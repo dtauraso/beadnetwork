@@ -3,7 +3,7 @@
 // RegisterBuilder, and the trivial identity accessors (Name/Ctx) — see that file's header
 // for why BuildArgs exists at all.
 
-package dispatch
+package kindapi
 
 import (
 	"fmt"

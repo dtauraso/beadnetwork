@@ -18,7 +18,7 @@ package NormalSum
 import (
 	"context"
 
-	Wiring "github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
+	Wiring "github.com/dtauraso/wirefold/nodes/Wiring/kindapi"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
 	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
 	wire "github.com/dtauraso/wirefold/nodes/wire"

@@ -4,7 +4,7 @@
 // tilt index and vector exchange instead of a separate nodeMover. Split out of
 // build_args.go — see that file's header.
 
-package dispatch
+package kindapi
 
 import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
@@ -20,25 +20,19 @@ func (a BuildArgs) TiltVectorAngleSeed() (theta int32) {
 }
 
 // TiltEditIn claims this node's dedicated inbound channel for a panel-driven tilt-angle
-// click (TiltVectorAnglePanel), registering it in MoveDispatch.tiltEditIns so
-// applyUpdateTiltVector (stdin_reader.go) routes that node's edits HERE instead of to its
-// mover. Call this ONLY from a kind whose own goroutine independently owns/decides its
-// tilt index (PairNode) — every other kind must keep using the old mover-owned path by
-// simply never calling this. nil-safe: a.deps.inboxes is nil on a bare test build with no
-// loader, in which case this returns a channel that is never written to (PollRecv-style
-// non-blocking reads on it always find nothing, matching every other build-time fallback
-// in this file).
+// click (TiltVectorAnglePanel), via the dispatch core's bound a.deps.ClaimTiltEditIn (which
+// registers it in the dispatch core's inbox directory so applyUpdateTiltVector routes that
+// node's edits HERE instead of to its mover — see BuildDeps' own doc comment). Call this
+// ONLY from a kind whose own goroutine independently owns/decides its tilt index (PairNode)
+// — every other kind must keep using the old mover-owned path by simply never calling this.
+// nil-safe: a.deps.ClaimTiltEditIn is nil on a bare test build with no loader, in which case
+// this returns a channel that is never written to (PollRecv-style non-blocking reads on it
+// always find nothing, matching every other build-time fallback in this file).
 func (a BuildArgs) TiltEditIn() <-chan movemsg.TiltEditMsg {
-	inboxes := a.deps.inboxes
-	if inboxes == nil {
+	if a.deps.ClaimTiltEditIn == nil {
 		return make(chan movemsg.TiltEditMsg)
 	}
-	panelToNodeTiltEditIn := make(chan movemsg.TiltEditMsg, moverInboxDepth)
-	if inboxes.tiltEdit == nil {
-		inboxes.tiltEdit = map[string]chan movemsg.TiltEditMsg{}
-	}
-	inboxes.tiltEdit[a.name] = panelToNodeTiltEditIn
-	return panelToNodeTiltEditIn
+	return a.deps.ClaimTiltEditIn(a.name)
 }
 
 // VectorOut returns this node's own SEND end of its dedicated tilt-vector channel

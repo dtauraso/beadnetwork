@@ -53,7 +53,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
 	"github.com/dtauraso/wirefold/nodes/PairNode/tiltring"
-	Wiring "github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
+	Wiring "github.com/dtauraso/wirefold/nodes/Wiring/kindapi"
 	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
 	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
 )

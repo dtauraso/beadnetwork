@@ -4,7 +4,7 @@
 // result can never become a Wiring.DrivenOut at all) is exercised by hand in
 // docs/investigations/interior-stream-framing.md's "Guard verdict"/"Tests" sections, not by a Go test,
 // since a type mismatch is a build failure, not a runtime assertion.
-package dispatch
+package kindapi
 
 import (
 	"context"

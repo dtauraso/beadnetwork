@@ -28,6 +28,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/countspersist"
 	Wiring "github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/edgefile"
+	"github.com/dtauraso/wirefold/nodes/Wiring/kindapi"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
 	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
@@ -66,7 +67,7 @@ func copyTreeForCreate(t *testing.T, src string) string {
 // declared port in that direction.
 func firstPort(t *testing.T, kind string, dir portwiring.PortDir) string {
 	t.Helper()
-	b, ok := Wiring.Registry[kind]
+	b, ok := kindapi.Registry[kind]
 	if !ok {
 		t.Fatalf("kind %q is not registered — kinds_generated.go may be stale", kind)
 	}

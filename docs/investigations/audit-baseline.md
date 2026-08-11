@@ -86,7 +86,7 @@ replacement preserves the single-string-equality-check property.
 
 `Wiring.Registry` is a package-level map. This looks like a shared mutable map but is not a
 concurrency hazard: the only writer is `Wiring.RegisterBuilder`
-(`nodes/Wiring/dispatch/build_args.go`), called exactly once per node package from that package's own
+(`nodes/Wiring/kindapi/build_args.go`), called exactly once per node package from that package's own
 `init()`, and it panics on a duplicate key. All writes happen before `main` runs and before
 any goroutine starts; after that it is read-only. Do not report this as a `sync`-free
 shared-state violation.

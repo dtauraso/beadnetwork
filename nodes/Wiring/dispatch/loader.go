@@ -26,6 +26,7 @@ import (
 	"context"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/nodes/Wiring/kindapi"
 	"github.com/dtauraso/wirefold/nodes/Wiring/loadspec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
@@ -52,17 +53,17 @@ import (
 // never touched by the goroutines that own the receive ends. Most callers
 // (tests that don't drive a speed slider) can discard it.
 func LoadTopology(ctx context.Context, jsonPath string, tr *T.Trace, clk clock.Clock) ([]wire.Node, inputcodec.SlotRegistry, *MoveDispatch, []chan float64, error) {
-	BuildRegistry()
+	kindapi.BuildRegistry()
 	spec, err := loadspec.ParseSpec(jsonPath)
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
-	// kindPorts is the one thing loadspec.ValidateSpec reads from Registry — each
+	// kindPorts is the one thing loadspec.ValidateSpec reads from kindapi.Registry — each
 	// registered kind's own port list — built here and passed in rather than handing
-	// validation the whole Registry (see NodeBuilder's doc comment for why Registry
-	// itself cannot live in loadspec).
-	kindPorts := make(map[string][]portwiring.PortSpec, len(Registry))
-	for kind, bind := range Registry {
+	// validation the whole Registry (see kindapi.NodeBuilder's doc comment for why
+	// Registry itself cannot live in loadspec).
+	kindPorts := make(map[string][]portwiring.PortSpec, len(kindapi.Registry))
+	for kind, bind := range kindapi.Registry {
 		kindPorts[kind] = bind.Ports
 	}
 	if err := loadspec.ValidateSpec(&spec, kindPorts); err != nil {

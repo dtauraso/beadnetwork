@@ -1,7 +1,7 @@
 // build_args_clock.go — BuildArgs methods for a node's own CLOCK origin, tick reader, and
 // speed-delivery channel. Split out of build_args.go — see that file's header.
 
-package dispatch
+package kindapi
 
 import (
 	"github.com/dtauraso/wirefold/nodes/wire/clock"

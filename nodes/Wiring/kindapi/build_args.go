@@ -21,20 +21,35 @@
 // returns exactly what reflectBuild's corresponding injection produced; the difference is
 // only that the kind asks for it by name instead of being handed it by reflection.
 //
-// DEPENDENCY DIRECTION (why this type lives in Wiring and not in nodes/wire): the kinds
-// import Wiring — several already do, for BuildArgs itself — while Wiring imports NO kind
-// at all. The blank imports that run each kind's init() live in kinds_generated.go at the
-// repo root (package main). So a kind may legally receive Wiring types, and BuildArgs can
-// name PortBindings/nodegeom.NodeGeom/NodeData. It could NOT live in nodes/wire, which Wiring
-// imports and which therefore cannot name any of them.
+// DEPENDENCY DIRECTION (why this type lives in its own package and not in nodes/wire): the
+// kinds import kindapi — several already do, for BuildArgs itself — while kindapi imports NO
+// kind at all. The blank imports that run each kind's init() live in kinds_generated.go at
+// the repo root (package main). So a kind may legally receive kindapi types, and BuildArgs
+// can name PortBindings/nodegeom.NodeGeom/NodeData. It could NOT live in nodes/wire, which
+// kindapi imports and which therefore cannot name any of them.
+//
+// PACKAGE SPLIT (docs/planning/movedispatch-decomposition.md §24): this file used to live in
+// nodes/Wiring/dispatch, package dispatch, alongside MoveDispatch/moverRegistry — the
+// dispatch CORE. BuildDeps used to embed *nodeInboxes/*moverRegistry pointers directly (the
+// exact types MoveDispatch itself holds), which meant every node kind's import of BuildArgs
+// transitively pulled in the whole dispatch core. The three consuming methods
+// (LatticeIn/TiltEditIn/ClaimSelfDrive) needed only ONE thing each from those pointers — a
+// channel-claim, a channel-claim, and a geometry-lookup-plus-claim — so BuildDeps now carries
+// three BOUND FUNC VALUES instead, closed over dispatch's own state at construction
+// (dispatch/build_nodes.go), the same pattern edgemover/nodeactor already used to cross a
+// package boundary without exporting a channel or a field (§17/§20's `resolveDest`/
+// `centerOf`/`sendMove`). BuildDeps now names no dispatch-core type at all, so this package
+// has ZERO import of nodes/Wiring/dispatch — node kinds import kindapi only.
 
-package dispatch
+package kindapi
 
 import (
 	"context"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/interior"
 	"github.com/dtauraso/wirefold/nodes/Wiring/loadspec"
+	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
@@ -42,23 +57,30 @@ import (
 	T "github.com/dtauraso/wirefold/Trace"
 )
 
-// buildDeps carries the specific pieces of MoveDispatch state that
-// build_args_lattice.go/build_args_tilt_vector.go/build_args_selfdrive.go's methods need
-// (md.ui.latticePoints, md.inboxes, md.mr) — the Wiring-internal state PortBindings cannot
-// portably carry once PortBindings/PortSpec live in their own portwiring package. It is
-// built once per load by buildNodes (build_nodes.go) from its *buildCtx's *MoveDispatch and
-// handed down through RegisterBuilder's wrapper into each node's BuildArgs, instead of a
-// package-level *MoveDispatch var any node's build could reach for — the hub back-reference
-// this struct exists to avoid. Two of the three consuming methods MUTATE through these
-// fields (LatticeIn/TiltEditIn register this node's own channel in the inboxes map,
-// ClaimSelfDrive marks this node's own id in mr.selfDriveClaimed), so inboxes/mr are
-// pointers, not copies. Zero value (nil inboxes/mr, zero latticePoints) is what a bare test
-// build with no loader passes, and every consuming method's nil-safe fallback is keyed off
-// that zero value.
-type buildDeps struct {
-	latticePoints int32
-	inboxes       *nodeInboxes
-	mr            *moverRegistry
+// BuildDeps carries the specific bound capabilities the dispatch core hands down for
+// build_args_lattice.go/build_args_tilt_vector.go/build_args_selfdrive.go's methods —
+// claiming this node's own dedicated lattice/tilt-edit inbox, and claiming this node's own
+// self-drive geometry — as FUNC VALUES closed over the dispatch core's state, not as pointers
+// to the dispatch core's own registry types (see this file's header comment). It is built
+// once per load by dispatch's buildNodes and handed down through RegisterBuilder's wrapper
+// into each node's BuildArgs, instead of a package-level dispatch-core var any node's build
+// could reach for — the hub back-reference this struct exists to avoid. Zero value (every
+// func nil, zero LatticePoints) is what a bare test build with no loader passes, and every
+// consuming method's nil-safe fallback is keyed off that zero value.
+type BuildDeps struct {
+	// LatticePoints is the scene's currently-loaded lattice point count — see
+	// LatticePointsSeed.
+	LatticePoints int32
+	// ClaimLatticeIn registers this node's own dedicated inbound lattice-point-count
+	// channel with the dispatch core and returns it — see LatticeIn.
+	ClaimLatticeIn func(name string) chan int32
+	// ClaimTiltEditIn registers this node's own dedicated inbound tilt-edit channel with
+	// the dispatch core and returns it — see TiltEditIn.
+	ClaimTiltEditIn func(name string) chan movemsg.TiltEditMsg
+	// ClaimSelfDriveGeom marks this node's own id as self-driven in the dispatch core's
+	// mover registry and returns this node's own *nodeactor.NodeGeometry (nil if this node
+	// has no geometry entry) — see ClaimSelfDrive.
+	ClaimSelfDriveGeom func(name string) *nodeactor.NodeGeometry
 }
 
 // BuildArgs carries everything a node kind needs to construct itself. It is passed as ONE
@@ -106,8 +128,8 @@ type BuildArgs struct {
 	// DriveOut below.
 	driveSlotClaims map[int]string
 
-	// deps carries the caller-supplied buildDeps — see that type's own doc comment.
-	deps buildDeps
+	// deps carries the caller-supplied BuildDeps — see that type's own doc comment.
+	deps BuildDeps
 }
 
 // Name is this node's spec id.
@@ -133,11 +155,11 @@ func (a BuildArgs) Ctx() context.Context { return a.ctx }
 // ONE AT A TIME while the rest keep working untouched.
 func RegisterBuilder(kind string, ports []portwiring.PortSpec, build func(BuildArgs) (wire.Node, error)) {
 	if _, exists := Registry[kind]; exists {
-		panic("Wiring.RegisterBuilder: kind already registered: " + kind)
+		panic("kindapi.RegisterBuilder: kind already registered: " + kind)
 	}
 	Registry[kind] = NodeBuilder{
 		Ports: ports,
-		Build: func(ctx context.Context, name string, data *loadspec.NodeData, pb portwiring.PortBindings, tr *T.Trace, geom nodegeom.NodeGeom, tiltThetaIdx int32, deps buildDeps) (wire.Node, error) {
+		Build: func(ctx context.Context, name string, data *loadspec.NodeData, pb portwiring.PortBindings, tr *T.Trace, geom nodegeom.NodeGeom, tiltThetaIdx int32, deps BuildDeps) (wire.Node, error) {
 			var sourceOuts []*wire.Out
 			return build(BuildArgs{
 				ctx: ctx, name: name, data: data, pb: pb, tr: tr,

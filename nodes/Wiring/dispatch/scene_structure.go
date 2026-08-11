@@ -22,6 +22,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/countspersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/edgefile"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/kindapi"
 	"github.com/dtauraso/wirefold/nodes/Wiring/loadspec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
 	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
@@ -189,16 +190,16 @@ func (md *MoveDispatch) DeleteNode(row int, tr *T.Trace) {
 // is what let an edge be written to a port that does not exist: the check looked at the
 // kind's real ports, and the writer then assumed "Out" and "In".
 
-// firstPortOfDir looks up kind's registered ports and forwards to
-// portwiring.FirstPortOfDir (moved there — pure over a []PortSpec, no Wiring state) for the
-// FIRST port in dir, in the order the kind declared them at RegisterBuilder. First, not
-// "In": a kind names its own ports, and the declaration order is the only ranking there is
-// — NormalSum's NormalA before NormalB says which one an edge should take when nothing else
-// has been said. The Registry lookup stays here: Registry's value type (NodeBuilder) is
-// defined in this package, so portwiring (which nodes/Wiring imports) cannot see it without
-// an import cycle.
+// firstPortOfDir looks up kind's registered ports (kindapi.Registry) and forwards to
+// portwiring.FirstPortOfDir (moved there — pure over a []PortSpec, no dispatch-core state)
+// for the FIRST port in dir, in the order the kind declared them at RegisterBuilder. First,
+// not "In": a kind names its own ports, and the declaration order is the only ranking there
+// is — NormalSum's NormalA before NormalB says which one an edge should take when nothing
+// else has been said. The Registry lookup lives in kindapi, not here: Registry's value type
+// (kindapi.NodeBuilder) is defined there, so portwiring (which node kinds import) cannot see
+// it without an import cycle.
 func firstPortOfDir(kind string, dir portwiring.PortDir) (string, bool) {
-	b, ok := Registry[kind]
+	b, ok := kindapi.Registry[kind]
 	if !ok {
 		return "", false
 	}

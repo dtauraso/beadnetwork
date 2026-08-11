@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	B "github.com/dtauraso/wirefold/Buffer"
-	Wiring "github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
+	Wiring "github.com/dtauraso/wirefold/nodes/Wiring/kindapi"
 )
 
 // TestRegistryMatchesGeneratedKindTable pins the kind name that each node package

@@ -1,4 +1,4 @@
-package dispatch
+package kindapi
 
 import (
 	"testing"

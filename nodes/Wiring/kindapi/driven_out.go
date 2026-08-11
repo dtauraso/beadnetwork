@@ -27,7 +27,7 @@
 // OutFanout check) — not an Unwrap()/Out() method back to the bare *wire.Out. That keeps it
 // a narrow capability instead of a transparent alias a caller could stash and hand to a
 // second goroutine under a different name.
-package dispatch
+package kindapi
 
 import (
 	wire "github.com/dtauraso/wirefold/nodes/wire"

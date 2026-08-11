@@ -16,6 +16,7 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/nodes/Wiring/kindapi"
 	"github.com/dtauraso/wirefold/nodes/Wiring/loadspec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/quantoffset"
@@ -116,7 +117,7 @@ func buildFromSpec(ctx context.Context, spec loadspec.TopoSpec, tr *T.Trace, clk
 	if err := b.buildMoveDispatch(); err != nil {
 		return nil, nil, nil, nil, err
 	}
-	b.nodeType, b.kindBroadcastPorts = buildTypeMaps(b.spec)
+	b.nodeType, b.kindBroadcastPorts = kindapi.BuildTypeMaps(b.spec)
 	b.inbound, b.outbound, b.outboundHandle = topoderive.BuildEdgeMaps(b.spec, b.nodeType, b.kindBroadcastPorts)
 	if err := b.buildNodes(); err != nil {
 		return nil, nil, nil, nil, err

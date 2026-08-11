@@ -2,7 +2,7 @@
 // public type consumed by the loader, and BuildRegistry populates Registry
 // from wire.KindRegistry as each node package's init() runs.
 
-package dispatch
+package kindapi
 
 import (
 	"context"
@@ -15,19 +15,19 @@ import (
 	T "github.com/dtauraso/wirefold/Trace"
 )
 
-// NodeBuilder is the public-facing type consumed by the loader.
-// Ports and Build both come from the kind itself, via RegisterBuilder.
+// NodeBuilder is the public-facing type consumed by the loader (nodes/Wiring/dispatch).
 //
-// This type stays in nodes/Wiring rather than moving with the rest of the loader/spec
-// pieces into nodes/Wiring/loadspec: Build's signature carries buildDeps
-// (build_args.go), a Wiring-internal hub type (it holds *nodeInboxes/*moverRegistry) that
-// loadspec cannot name without importing nodes/Wiring — the exact cycle "no package under
-// nodes/Wiring/ may import nodes/Wiring" forbids. loadspec.ValidateSpec, which is the one
-// loadspec function that used to read this registry, takes the specific values it needs
-// (each kind's port list) as a parameter instead — see its own doc comment.
+// This type lives in kindapi, not nodes/Wiring/loadspec: Build's signature carries
+// BuildDeps (build_args.go) — see that type's own doc comment for why it no longer names
+// any dispatch-core type, which is what let this whole package (and NodeBuilder with it)
+// move out of the dispatch core in the first place (§24). It still cannot live in
+// loadspec: loadspec.ValidateSpec, the one loadspec function that used to read this
+// registry, takes the specific values it needs (each kind's port list) as a parameter
+// instead — see its own doc comment — rather than this package importing loadspec's own
+// importers back.
 type NodeBuilder struct {
 	Ports []portwiring.PortSpec
-	Build func(ctx context.Context, name string, data *loadspec.NodeData, pb portwiring.PortBindings, tr *T.Trace, geom nodegeom.NodeGeom, tiltThetaIdx int32, deps buildDeps) (wire.Node, error)
+	Build func(ctx context.Context, name string, data *loadspec.NodeData, pb portwiring.PortBindings, tr *T.Trace, geom nodegeom.NodeGeom, tiltThetaIdx int32, deps BuildDeps) (wire.Node, error)
 }
 
 // Registry is the loader-facing map, populated one kind at a time by
@@ -50,6 +50,6 @@ func init() {
 // `unknown type "X"`.
 func BuildRegistry() {
 	if len(Registry) == 0 {
-		panic("Wiring.BuildRegistry: no node kinds registered — kinds_generated.go's blank imports are what run each kind's init(); regenerate with `go run ./tools/gen-node-defs`")
+		panic("kindapi.BuildRegistry: no node kinds registered — kinds_generated.go's blank imports are what run each kind's init(); regenerate with `go run ./tools/gen-node-defs`")
 	}
 }

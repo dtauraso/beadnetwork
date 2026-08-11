@@ -2,7 +2,7 @@
 // closures (Fire and the Emit* family), all of which write to this node's own interior
 // stream via a.getStream. Split out of build_args.go — see that file's header.
 
-package dispatch
+package kindapi
 
 import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/interior"

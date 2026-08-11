@@ -3,6 +3,7 @@ package dispatch
 import (
 	"context"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/kindapi"
 	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
@@ -39,24 +40,24 @@ func (n *aimedPacer) Update(ctx context.Context) {
 
 // Self-registering, like every production kind — same construction path as the loader.
 func init() {
-	RegisterBuilder("AimedSrc",
+	kindapi.RegisterBuilder("AimedSrc",
 		[]portwiring.PortSpec{{Name: "Out", Dir: portwiring.PortOut}, {Name: "FeedbackIn", Dir: portwiring.PortIn}},
-		func(a BuildArgs) (wire.Node, error) {
+		func(a kindapi.BuildArgs) (wire.Node, error) {
 			n := &aimedSrc{}
 			n.Out = a.Out("Out")
 			n.FeedbackIn = a.In("FeedbackIn")
 			return n, nil
 		})
-	RegisterBuilder("AimedSink",
+	kindapi.RegisterBuilder("AimedSink",
 		[]portwiring.PortSpec{{Name: "In", Dir: portwiring.PortIn}},
-		func(a BuildArgs) (wire.Node, error) {
+		func(a kindapi.BuildArgs) (wire.Node, error) {
 			n := &aimedSink{}
 			n.In = a.In("In")
 			return n, nil
 		})
-	RegisterBuilder("AimedPacer",
+	kindapi.RegisterBuilder("AimedPacer",
 		[]portwiring.PortSpec{{Name: "FromSrc", Dir: portwiring.PortIn}, {Name: "Feedback", Dir: portwiring.PortOut}},
-		func(a BuildArgs) (wire.Node, error) {
+		func(a kindapi.BuildArgs) (wire.Node, error) {
 			n := &aimedPacer{}
 			n.FromSrc = a.In("FromSrc")
 			n.Feedback = a.Out("Feedback")

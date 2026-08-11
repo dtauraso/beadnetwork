@@ -2,7 +2,7 @@
 // `data.state` seed accessor, and the raw spec data block for fields with no dedicated
 // accessor). Split out of build_args.go — see that file's header.
 
-package dispatch
+package kindapi
 
 import "github.com/dtauraso/wirefold/nodes/Wiring/loadspec"
 

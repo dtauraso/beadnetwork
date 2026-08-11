@@ -8,6 +8,7 @@ package dispatch
 import (
 	"context"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/kindapi"
 	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
@@ -34,16 +35,16 @@ func (n *sinkNode) Update(ctx context.Context) {
 // Fixture kinds self-register exactly like production kinds do (RegisterBuilder), so the
 // tests exercise the SAME construction path the loader uses rather than a parallel one.
 func init() {
-	RegisterBuilder("SrcNode",
+	kindapi.RegisterBuilder("SrcNode",
 		[]portwiring.PortSpec{{Name: "Out", Dir: portwiring.PortOut}},
-		func(a BuildArgs) (wire.Node, error) {
+		func(a kindapi.BuildArgs) (wire.Node, error) {
 			n := &srcNode{}
 			n.Out = a.Out("Out")
 			return n, nil
 		})
-	RegisterBuilder("SinkNode",
+	kindapi.RegisterBuilder("SinkNode",
 		[]portwiring.PortSpec{{Name: "In", Dir: portwiring.PortIn}},
-		func(a BuildArgs) (wire.Node, error) {
+		func(a kindapi.BuildArgs) (wire.Node, error) {
 			n := &sinkNode{}
 			n.In = a.In("In")
 			return n, nil

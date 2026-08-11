@@ -8,7 +8,10 @@ import (
 	"fmt"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/nodes/Wiring/kindapi"
 	"github.com/dtauraso/wirefold/nodes/Wiring/loadspec"
+	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
 	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
@@ -18,19 +21,53 @@ import (
 // so node-move can update per-edge travel-time on the Out.
 func (b *buildCtx) buildNodes() error {
 	// deps gives BuildArgs methods that need more of MoveDispatch than PortBindings can
-	// portably carry (LatticePointsSeed/LatticeIn, TiltEditIn, ClaimSelfDrive —
-	// Wiring-internal state: md.ui.latticePoints, md.inboxes, md.mr) a way to reach it
-	// without PortBindings holding a *MoveDispatch back-reference. Built once, here,
-	// before any node is built, and threaded down through each bind.Build call below.
-	deps := buildDeps{
-		latticePoints: b.md.UI.LatticePoints,
-		inboxes:       &b.md.inboxes,
-		mr:            &b.md.mr,
+	// portably carry (LatticePointsSeed/LatticeIn, TiltEditIn, ClaimSelfDrive — dispatch
+	// core state: md.UI.LatticePoints, md.inboxes, md.mr) a way to reach it WITHOUT
+	// kindapi naming any dispatch-core type (docs/planning/movedispatch-decomposition.md
+	// §24): each of the three consuming BuildArgs methods gets its OWN bound func value,
+	// closed over this build's own *MoveDispatch, instead of raw pointers into
+	// nodeInboxes/moverRegistry. Built once, here, before any node is built, and threaded
+	// down through each bind.Build call below.
+	deps := kindapi.BuildDeps{
+		LatticePoints: b.md.UI.LatticePoints,
+		ClaimLatticeIn: func(name string) chan int32 {
+			sceneToNodeLatticeIn := make(chan int32, moverInboxDepth)
+			if b.md.inboxes.lattice == nil {
+				b.md.inboxes.lattice = map[string]chan int32{}
+			}
+			b.md.inboxes.lattice[name] = sceneToNodeLatticeIn
+			return sceneToNodeLatticeIn
+		},
+		ClaimTiltEditIn: func(name string) chan movemsg.TiltEditMsg {
+			panelToNodeTiltEditIn := make(chan movemsg.TiltEditMsg, moverInboxDepth)
+			if b.md.inboxes.tiltEdit == nil {
+				b.md.inboxes.tiltEdit = map[string]chan movemsg.TiltEditMsg{}
+			}
+			b.md.inboxes.tiltEdit[name] = panelToNodeTiltEditIn
+			return panelToNodeTiltEditIn
+		},
+		ClaimSelfDriveGeom: func(name string) *nodeactor.NodeGeometry {
+			ng, ok := b.md.mr.nodeGeoms[name]
+			if !ok {
+				return nil
+			}
+			if b.md.mr.selfDriveClaimed == nil {
+				b.md.mr.selfDriveClaimed = map[string]bool{}
+			}
+			b.md.mr.selfDriveClaimed[name] = true
+			// A ring node's NodeMover.Run Copies clockSrc into clk once, at its own
+			// goroutine start. There is no such goroutine start for a self-driven node —
+			// this runs during buildNodes, single-threaded setup, before any goroutine
+			// exists — so do the same copy here instead; writeStreamFrame (Step) still
+			// reads clk directly.
+			ng.CopyClockSrc()
+			return ng
+		},
 	}
 	outSink := map[string]*wire.Out{}
 	nodes := make([]wire.Node, 0, len(b.spec.Nodes))
 	for _, n := range b.spec.Nodes {
-		bind := Registry[n.Type]
+		bind := kindapi.Registry[n.Type]
 		pb := portwiring.NewPortBindings()
 		pb.OutSink = outSink
 		pb.Clock = b.clk // shared clock for clock-paced interior animation (Input refill slide)

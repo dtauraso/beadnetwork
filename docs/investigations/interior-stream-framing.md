@@ -157,7 +157,7 @@ imprecise on that point; only `Pulse`/`PulseLeft`/`PulseRight`/`holdflip` actual
 `nodes/Wiring/portwiring/port_wiring.go`'s `NewDriveStreamGetter(name, slot, pb)` is
 `NewInteriorStreamGetter`'s counterpart, reading `driveOuts[name][slot]` instead of
 `interiorOuts[name]` — a DIFFERENT lazy-cache-once closure, so it can never alias the
-node's own interior stream by construction. `nodes/Wiring/dispatch/build_args.go`'s
+node's own interior stream by construction. `nodes/Wiring/kindapi/build_args.go`'s
 `BuildArgs.DriveOut(portName, slot)` is the kind-facing entry point: `Pulse`/`PulseLeft`/
 `PulseRight`/`holdflip` now build their `DriveHeld`-driven `Out`/`OutFanout` fields via
 `a.DriveOut(...)` instead of `a.Out(...)`.
@@ -233,7 +233,7 @@ own backing array can't be mutated in place, since callers may still hold it).
   fix.** It used to express the SAME invariant at the source-text level — every
   `nodes/<Kind>/node.go` that calls `gatecommon.DriveHeld` must also call `a.DriveOut(...)`,
   and must not resolve `"Out"`/`"OutFanout"` via bare `a.Out(...)` — by grepping for the
-  mistake after the fact. `nodes/Wiring/dispatch/driven_out.go`'s `Wiring.DrivenOut` now makes that
+  mistake after the fact. `nodes/Wiring/kindapi/driven_out.go`'s `Wiring.DrivenOut` now makes that
   mistake **unrepresentable**: `gatecommon.DriveHeld`'s signature accepts ONLY
   `Wiring.DrivenOut`, never a bare `*wire.Out`, and the only way to construct one is the
   unexported `newDrivenOut` constructor, called from exactly one place

@@ -1,20 +1,21 @@
 // build_edge_maps.go — the id→type map and per-kind Broadcast port set buildNodes wires
 // each node's ports from (needed for sourceHandle normalization). The inbound/outbound
 // edge maps themselves (buildEdgeMaps) moved to nodes/Wiring/topoderive — this function
-// stayed behind because it reads the package-level Registry, whose value type NodeBuilder
-// is a Wiring type topoderive cannot import.
+// stays here (moved with the rest of the registry, §24) because it reads the
+// package-level Registry, whose value type NodeBuilder is a kindapi type topoderive
+// cannot import.
 
-package dispatch
+package kindapi
 
 import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/loadspec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
 )
 
-// buildTypeMaps builds the id→type map and per-kind Broadcast port set (needed
+// BuildTypeMaps builds the id→type map and per-kind Broadcast port set (needed
 // for sourceHandle normalization in buildEdgeMaps). It reads the package-level
 // Registry, not just spec, for the per-kind Broadcast port set.
-func buildTypeMaps(spec loadspec.TopoSpec) (nodeType map[string]string, kindBroadcastPorts map[string]map[string]bool) {
+func BuildTypeMaps(spec loadspec.TopoSpec) (nodeType map[string]string, kindBroadcastPorts map[string]map[string]bool) {
 	nodeType = map[string]string{}
 	for _, n := range spec.Nodes {
 		nodeType[n.ID] = n.Type
