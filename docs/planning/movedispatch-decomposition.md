@@ -886,3 +886,67 @@ locally true statements that did not reach the conclusion drawn from them.
 - If the exported surface grows, the change is not paying for itself — that is what happened
   to the late package-lifts, which is why this list stops at decomposition rather than
   continuing to lift.
+
+## 7. The build cluster (14 `build*.go` + `loader.go`/`loader_layout.go`) — probed and DECLINED
+
+Applied "the one rule": named the specific values the build cluster reads from `MoveDispatch`'s
+actor internals, not just from the constructor. `newMoveDispatch`/`finalizeActors`/`bind` alone
+would have been a legitimate ask (an exported constructor + two exported entry-point methods —
+matching the `NewMoveDispatch` note in the task brief and the `GS`/`RT`/`Scenes`/`UI` precedent
+of "export follows the type's own surface"). That is not what the grep shows.
+
+**Exact export list the lift would require**, from `build_move_dispatch.go`/`build_nodes.go`/
+`build.go` (verbatim call sites):
+
+- `newMoveDispatch(...)` → an exported constructor. **Defensible alone.**
+- `md.mr` (`moverRegistry`, unexported by design — `move_dispatch.go`'s own field comment says
+  `bind`/`centerOfNode`/`enqueueFor`/`finalizeActors` are meant to be called `md.mr.X` by
+  **in-package** callers only) — reached directly six separate ways:
+  - `md.mr.nodeGeoms` — the actor map itself, iterated and indexed by node id
+    (`build_move_dispatch.go` lines seeding `flags.coplanarEdges`, `flags.upAxis`,
+    `quantOffset`, `selfKind`, `tilt.topTiltVectorThetaIdx`, `topo.neighborKinds`,
+    `outs.outTargets`) — **7 unexported `nodeGeometry` fields written by direct field
+    assignment**, not through any method.
+  - `md.mr.bind(outSink, inputcodec.SlotRegistry(destWire))` (`build_nodes.go:111`)
+  - `md.mr.finalizeActors(&b.speedSinks)` (`build.go:126`)
+  - `&b.md.mr` handed to `PortBindings.mr` (`build_nodes.go:28`)
+- `md.lq.quantizedLayout` (`layoutQuantizer`, unexported) — direct field write
+  (`build_move_dispatch.go:61`)
+- `b.md.inboxes` (`nodeInboxes`, unexported) — pointer handed out (`build_nodes.go:27`)
+- `b.md.sw.interiorOuts` / `.driveOuts` / `.buildInteriorFrame` (`streamWiring`, unexported) —
+  three more unexported fields, pointers handed out (`build_nodes.go:49-51`)
+- `b.md.selfDriveClaimed` — referenced from `build_args_selfdrive.go`
+
+**Count: 1 legitimate constructor + 6 distinct unexported-internals reach-ins (one of them —
+`nodeGeoms`' 7 per-node fields — is itself a compound list), across `moverRegistry`,
+`layoutQuantizer`, `nodeInboxes`, and `streamWiring`.** This is not "the constructor plus a
+couple of real entry points"; it is four different actor-owned types' private state, reached by
+field, from outside their own methods.
+
+**This is exactly the class item 6a's "one rule" was written to separate from a real blocker,
+but on the other side of the line.** `beadcrud`/`portwiring` lifted because their coupling
+reduced to a small, named set of func values/exported methods once measured. Here the measured
+set is the actor registry's OWN unexported state, written directly instead of through any
+method — the shape item 6a called "not a lift target" for `moverRegistry`/`layoutQuantizer.
+`nodeGeometry`'s own file (`node_geometry.go`) states, for nearly every mutable field, that it
+is written ONLY by that node's own goroutine post-construction — the reason this build-time
+seeding is safe today is that it runs single-threaded, before any node goroutine exists, still
+inside the actor's own package. Exporting `nodeGeoms`, its 7 fields, `bind`, `finalizeActors`,
+`inboxes`, and `streamWiring`'s three fields would not create a new capability the build phase
+lacks — it would remove the enforcement (unexported = only this package's methods can touch it)
+that currently backs every one of `node_geometry.go`'s single-writer claims, to satisfy a file
+move with no behavioural motivation.
+
+**Declined.** `MoveDispatch` and every actor it owns (`moverRegistry`, `layoutQuantizer`,
+`nodeInboxes`, `streamWiring`) stay in `Wiring`, and so does their construction — `loader.go`,
+`loader_layout.go`, and all 14 `build*.go` files. `newMoveDispatch` remaining unexported (used
+only by `buildMoveDispatch`, its sole caller, already in-package) costs nothing; exporting only
+it while leaving the other five reach-ins unexported would still fail to compile the lift, since
+`build_move_dispatch.go`/`build_nodes.go`/`build.go` would still need to move with it or the
+constructor's own body would gain a back-reference to `Wiring`. No code was written; no
+constructor, method, or field was exported. `git status --short` was empty throughout this
+probe; `go build ./...` was run against the untouched tree only to confirm the starting state.
+
+No interface, `types`/`common` package, alias shim, dot-import, package-level actor global, or
+`ForTest` hatch was used to route around this — the decline is the outcome, not a placeholder
+for one of those.
