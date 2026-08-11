@@ -1,9 +1,5 @@
 package Wiring
 
-import (
-	"github.com/dtauraso/wirefold/nodes/Wiring/gesturefsm"
-)
-
 // gesture.go — the GESTURE STATE MACHINE's OWNED STATE. It consumes RAW pointer/wheel input
 // (forwarded fire-and-forget from TS behind USE_RAW_INPUT) plus the stateless raycast hit,
 // and owns the in-progress gesture bookkeeping (origin, button, phase, frozen rotation
@@ -45,20 +41,8 @@ import (
 //
 // The FSM's actual state (the phase enum, GestureState, GestureRect, and their state-only
 // methods) now lives in nodes/Wiring/gesturefsm — lifted out per
-// docs/planning/movedispatch-decomposition.md's "6." section. These are plain type aliases
-// (same shape as vec_alias.go's `vec3 = wire.Vec3`) so the rest of this package's gesture
-// files keep using the short unqualified names; the entry points, dispatch tables, and leaf
-// actions that read/write *uiState stay here because uiState itself could not lift (item 5:
-// view_stream.go reads md.ui.ov/md.ui.vp/md.ui.sceneSphere by unexported field).
-type gesturePhase = gesturefsm.GesturePhase
-
-const (
-	gestIdle     = gesturefsm.GestIdle
-	gestPending  = gesturefsm.GestPending
-	gestRotating = gesturefsm.GestRotating
-	gestDragging = gesturefsm.GestDragging
-	gestHandhold = gesturefsm.GestHandhold
-)
-
-type gestureState = gesturefsm.GestureState
-type gestureRect = gesturefsm.GestureRect
+// docs/planning/movedispatch-decomposition.md's "6." section. Every call site in this package
+// names gesturefsm.GestureState/gesturefsm.GestureRect/gesturefsm.GesturePhase/
+// gesturefsm.GestIdle etc. directly — no alias shim. The entry points, dispatch tables, and
+// leaf actions that read/write *uiState stay here because uiState itself could not lift
+// (item 5: view_stream.go reads md.ui.ov/md.ui.vp/md.ui.sceneSphere by unexported field).

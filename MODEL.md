@@ -71,7 +71,7 @@ mistake to avoid (chain_beads.go's own header comment makes the same split):
   - **Mode**: two more `BroadcastChain`s — wake (sets the ONE local `dragging` flag) and
     settle (clears it) — each advanced by a SINGLE close from the owning node
     (`BeadWakeGroup.StartDrag`/`EndDrag`), once per drag gesture (the gesture FSM's
-    `gestPointerDown`→`gestDragging` edge sends `movemsg.KindDragStart`;
+    `gestPointerDown`→`gesturefsm.GestDragging` edge sends `movemsg.KindDragStart`;
     `gestPointerUp`, on every path a drag ends by, sends the mirroring
     `movemsg.KindDragEnd`), never per pointer event. Position and animation are disjoint
     state (one writer each), so the two clocks never coordinate and the bead is never in

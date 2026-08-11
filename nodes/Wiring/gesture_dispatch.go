@@ -2,6 +2,7 @@ package Wiring
 
 import (
 	T "github.com/dtauraso/wirefold/Trace"
+	"github.com/dtauraso/wirefold/nodes/Wiring/gesturefsm"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 )
 
@@ -16,7 +17,7 @@ import (
 func (md *MoveDispatch) HandleRawInput(ev inputcodec.RawInputMsg, slotReg inputcodec.SlotRegistry, tr *T.Trace) {
 	g := &md.ui.gest
 	g.Fov = ev.Fov
-	g.Rect = gestureRect{Left: ev.RectLeft, Top: ev.RectTop, Width: ev.RectWidth, Height: ev.RectHeight}
+	g.Rect = gesturefsm.GestureRect{Left: ev.RectLeft, Top: ev.RectTop, Width: ev.RectWidth, Height: ev.RectHeight}
 	if h := rawInputHandlers[ev.Kind]; h != nil {
 		h(md, ev, slotReg, tr)
 	}

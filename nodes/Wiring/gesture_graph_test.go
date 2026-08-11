@@ -3,6 +3,8 @@ package Wiring
 import (
 	"sort"
 	"testing"
+
+	"github.com/dtauraso/wirefold/nodes/Wiring/gesturefsm"
 )
 
 // gesture_graph_test.go — a CONFORMANCE test over the commit/apply TABLES in
@@ -15,15 +17,15 @@ import (
 
 // gestureName maps a terminal phase to the human gesture name used in gesture.go's doc
 // comment, so the test output reads the same vocabulary as the source.
-func gestureName(phase gesturePhase) string {
+func gestureName(phase gesturefsm.GesturePhase) string {
 	switch phase {
-	case gestPending:
+	case gesturefsm.GestPending:
 		return "tap-select"
-	case gestDragging:
+	case gesturefsm.GestDragging:
 		return "node-drag"
-	case gestRotating:
+	case gesturefsm.GestRotating:
 		return "rotate"
-	case gestHandhold:
+	case gesturefsm.GestHandhold:
 		return "handhold-orbit"
 	default:
 		return "UNKNOWN"
@@ -39,7 +41,7 @@ func allGestures() []string {
 	seen := map[string]bool{}
 	// The "no edge fires" path: every commitEdges guard evaluates false on the zero
 	// gestureState → stays gestPending → tap-select.
-	seen[gestureName(gestPending)] = true
+	seen[gestureName(gesturefsm.GestPending)] = true
 	for _, edge := range commitEdges {
 		seen[gestureName(edge.to)] = true
 	}
@@ -70,7 +72,7 @@ func TestGestureGraphRecognizesExactlyFourGestures(t *testing.T) {
 // would silently change which gesture wins when multiple grab-stashes are set (which
 // should never happen in practice, but the table's ORDER is still part of the contract).
 func TestGestureGraphCommitEdgePrecedence(t *testing.T) {
-	wantOrder := []gesturePhase{gestDragging, gestHandhold, gestRotating}
+	wantOrder := []gesturefsm.GesturePhase{gesturefsm.GestDragging, gesturefsm.GestHandhold, gesturefsm.GestRotating}
 	if len(commitEdges) != len(wantOrder) {
 		t.Fatalf("got %d commit edges, want %d", len(commitEdges), len(wantOrder))
 	}
@@ -85,10 +87,10 @@ func TestGestureGraphCommitEdgePrecedence(t *testing.T) {
 // exactly the phases a commit edge can resolve to that ALSO need a per-move apply
 // (dragging/rotating/handhold).
 func TestGestureGraphApplyActionCoversMoveResolvedPhases(t *testing.T) {
-	wantApply := map[gesturePhase]bool{
-		gestDragging: true,
-		gestRotating: true,
-		gestHandhold: true,
+	wantApply := map[gesturefsm.GesturePhase]bool{
+		gesturefsm.GestDragging: true,
+		gesturefsm.GestRotating: true,
+		gesturefsm.GestHandhold: true,
 	}
 	if len(applyAction) != len(wantApply) {
 		t.Fatalf("got %d applyAction entries, want %d", len(applyAction), len(wantApply))

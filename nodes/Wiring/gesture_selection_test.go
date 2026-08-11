@@ -3,6 +3,7 @@ package Wiring
 import (
 	"testing"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/gesturefsm"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 )
 
@@ -93,7 +94,7 @@ func TestGestureClickSelectsNodeGoOwned(t *testing.T) {
 
 // A SECONDARY (two-finger trackpad tap, button 2) select is a tap-select that must survive
 // finger drift PAST the move slop: two fingers don't land precisely, so the down→up path
-// jitters more than the slop. It must stay gestPending (never convert to drag/rotate) and
+// jitters more than the slop. It must stay gesturefsm.GestPending (never convert to drag/rotate) and
 // still resolve to a node select on pointer-up. Empty-space two-finger tap preserves selection.
 func TestGestureSecondaryTapSelectsThroughDrift(t *testing.T) {
 	md := newGestureMD(canonicalViewpoint())
@@ -104,7 +105,7 @@ func TestGestureSecondaryTapSelectsThroughDrift(t *testing.T) {
 	down.Button = 2
 	down.Hit = inputcodec.RawHit{Kind: "node", NodeRow: 0}
 	md.HandleRawInput(down, nil, nil)
-	if !md.ui.gest.Secondary || md.ui.gest.Phase != gestPending {
+	if !md.ui.gest.Secondary || md.ui.gest.Phase != gesturefsm.GestPending {
 		t.Fatalf("after secondary down: secondary=%v phase=%v", md.ui.gest.Secondary, md.ui.gest.Phase)
 	}
 	// Finger drift past the slop must NOT convert to drag/rotate — it stays a tap-select.
@@ -112,7 +113,7 @@ func TestGestureSecondaryTapSelectsThroughDrift(t *testing.T) {
 	drift.Button = 2
 	drift.Hit = inputcodec.RawHit{Kind: "node", NodeRow: 0}
 	md.HandleRawInput(drift, nil, nil)
-	if md.ui.gest.Phase != gestPending {
+	if md.ui.gest.Phase != gesturefsm.GestPending {
 		t.Fatalf("secondary tap converted out of pending: phase=%v", md.ui.gest.Phase)
 	}
 	up := rawEvent("pointerup", 410, 300)
@@ -155,7 +156,7 @@ func TestGesturePressReleaseNoMoveSelects(t *testing.T) {
 	if md.ui.sel.Selected != "N7" {
 		t.Fatalf("selected=%q want N7 after press+release with no move", md.ui.sel.Selected)
 	}
-	if md.ui.gest.Phase != gestIdle {
+	if md.ui.gest.Phase != gesturefsm.GestIdle {
 		t.Fatalf("after click phase=%v want idle", md.ui.gest.Phase)
 	}
 }
@@ -177,7 +178,7 @@ func TestGestureSecondaryMoveStaysPendingAndTapSelects(t *testing.T) {
 	move.Button = 2
 	move.Hit = inputcodec.RawHit{Kind: "node", NodeRow: 0}
 	md.HandleRawInput(move, nil, nil)
-	if md.ui.gest.Phase != gestPending {
+	if md.ui.gest.Phase != gesturefsm.GestPending {
 		t.Fatalf("secondary press converted out of pending on move: phase=%v", md.ui.gest.Phase)
 	}
 
@@ -223,7 +224,7 @@ func TestGestureClickNoCameraChange(t *testing.T) {
 	if md.ui.vp.Viewpoint != before {
 		t.Fatalf("click changed camera: %+v != %+v", md.ui.vp.Viewpoint, before)
 	}
-	if md.ui.gest.Phase != gestIdle {
+	if md.ui.gest.Phase != gesturefsm.GestIdle {
 		t.Fatalf("after click phase=%v want idle", md.ui.gest.Phase)
 	}
 }
@@ -231,21 +232,21 @@ func TestGestureClickNoCameraChange(t *testing.T) {
 // A single pixel of movement past the press point now commits to dragging — the "click vs.
 // drag = click-with-no-movement vs. drag" discriminator has no distance floor. Before this
 // change (dist > gestureMoveSlopPx == 6px), this exact 1px move would have stayed
-// gestPending; this pins that it no longer does.
+// gesturefsm.GestPending; this pins that it no longer does.
 func TestGestureOnePixelMoveCommitsToDrag(t *testing.T) {
 	md := dragOffsetMD() // real nodeMover for "n" so the dragNode commit guard's centerOfNode succeeds
 
 	down := rawEvent("pointerdown", 400, 300)
 	down.Hit = inputcodec.RawHit{Kind: "node", NodeRow: 0}
 	md.HandleRawInput(down, nil, nil)
-	if md.ui.gest.Phase != gestPending {
+	if md.ui.gest.Phase != gesturefsm.GestPending {
 		t.Fatalf("after pointerdown: phase=%v want pending", md.ui.gest.Phase)
 	}
 
 	move := rawEvent("pointermove", 401, 300) // 1px displacement, well under the old 6px slop
 	move.Hit = inputcodec.RawHit{Kind: "node", NodeRow: 0}
 	md.HandleRawInput(move, nil, nil)
-	if md.ui.gest.Phase != gestDragging {
+	if md.ui.gest.Phase != gesturefsm.GestDragging {
 		t.Fatalf("after 1px move: phase=%v want dragging (movement itself commits)", md.ui.gest.Phase)
 	}
 }
@@ -264,7 +265,7 @@ func TestGestureMoveAtPressPointDoesNotCommit(t *testing.T) {
 	same := rawEvent("pointermove", 400, 300) // identical to the press point → zero displacement
 	same.Hit = inputcodec.RawHit{Kind: "node", NodeRow: 0}
 	md.HandleRawInput(same, nil, nil)
-	if md.ui.gest.Phase != gestPending {
+	if md.ui.gest.Phase != gesturefsm.GestPending {
 		t.Fatalf("after zero-displacement move: phase=%v want still pending (no movement occurred)", md.ui.gest.Phase)
 	}
 }

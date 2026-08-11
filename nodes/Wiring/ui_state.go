@@ -13,6 +13,7 @@ import (
 	"math"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/gesturefsm"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/selectionstate"
 )
@@ -63,16 +64,16 @@ type uiState struct {
 	// vp is the polar camera viewpoint state (viewpoint_state.go). Owned entirely by
 	// MoveDispatch — no separate goroutine; callers serialize externally (stdin reader
 	// runs in a single goroutine). MoveDispatch exposes thin delegating methods.
-	vp viewpointState
+	vp gesturefsm.ViewpointState
 	// ov groups the 9 overlay-toggle visibility booleans and their flip/emit logic
 	// (overlay_state.go). Initialized to defaults by newMoveDispatch (all true).
 	// MoveDispatch exposes thin delegating methods.
 	ov overlayState
-	// gest is the gesture state machine (gesturefsm.GestureState, aliased as gestureState in
-	// gesture.go): it consumes raw pointer/wheel input and produces camera (viewpoint) +
-	// topology (node-move) changes. Owned by MoveDispatch; serialized by the single-goroutine
-	// stdin reader. Zero value = idle.
-	gest gestureState
+	// gest is the gesture state machine (gesturefsm.GestureState): it consumes raw
+	// pointer/wheel input and produces camera (viewpoint) + topology (node-move) changes.
+	// Owned by MoveDispatch; serialized by the single-goroutine stdin reader. Zero value =
+	// idle.
+	gest gesturefsm.GestureState
 	// sel groups the CURRENTLY-SELECTED (click-select) and CURRENTLY-HOVERED (pointer hover)
 	// UI-only state (selection_state.go) — pure routing-directory-parked UI state, owned by
 	// Go but not part of the dispatch/persist/camera concerns. Grouped the same way

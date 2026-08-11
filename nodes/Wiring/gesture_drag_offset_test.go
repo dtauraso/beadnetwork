@@ -3,6 +3,7 @@ package Wiring
 import (
 	"testing"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/gesturefsm"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
@@ -80,7 +81,7 @@ func TestGestureDragOffCenterPreservesGrabPoint(t *testing.T) {
 	move1 := rawEvent("pointermove", 480, 300) // any displacement from (450,300) commits
 	move1.Hit = nodeHit()
 	md.HandleRawInput(move1, nil, nil)
-	if md.ui.gest.Phase != gestDragging {
+	if md.ui.gest.Phase != gesturefsm.GestDragging {
 		t.Fatalf("after slop-cross move: phase=%v want dragging", md.ui.gest.Phase)
 	}
 
@@ -125,7 +126,7 @@ func TestGestureDragCenterGrabUnchanged(t *testing.T) {
 	move1 := rawEvent("pointermove", 400, 300) // screen center → projects exactly onto (0,0,0)
 	move1.Hit = nodeHit()
 	md.HandleRawInput(move1, nil, nil)
-	if md.ui.gest.Phase != gestDragging {
+	if md.ui.gest.Phase != gesturefsm.GestDragging {
 		t.Fatalf("after slop-cross move: phase=%v want dragging", md.ui.gest.Phase)
 	}
 	hit1, ok := md.ui.dragPlaneHit(move1)

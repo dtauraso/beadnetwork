@@ -8,20 +8,16 @@ package Wiring
 //
 // viewpointState itself now lives in nodes/Wiring/gesturefsm (ViewpointState) — lifted out
 // per docs/planning/movedispatch-decomposition.md's "6." section, since it has no
-// dependency on *uiState/*MoveDispatch/*moverRegistry/*layoutQuantizer. This is a plain
-// type alias (same shape as vec_alias.go's `vec3 = wire.Vec3`) so md.ui.vp keeps resolving
-// unqualified, and the *geom.Viewpoint navigation ops (Orbit/OrbitLocked/Zoom/Pan) still
-// promote onto it. The delegators below (which need md.sw/md.RT to emit the VIEW frame,
-// per the write-then-emit split) stay here.
+// dependency on *uiState/*MoveDispatch/*moverRegistry/*layoutQuantizer. md.ui.vp is typed
+// gesturefsm.ViewpointState directly (no alias shim), and the *geom.Viewpoint navigation ops
+// (Orbit/OrbitLocked/Zoom/Pan) still promote onto it. The delegators below (which need
+// md.sw/md.RT to emit the VIEW frame, per the write-then-emit split) stay here.
 
 import (
 	T "github.com/dtauraso/wirefold/Trace"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
-	"github.com/dtauraso/wirefold/nodes/Wiring/gesturefsm"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
-
-type viewpointState = gesturefsm.ViewpointState
 
 // Camera viewpoint API — thin delegators to the owned viewpointState above. SetViewpoint
 // and Viewpoint both have out-of-package callers (runtopology passes md.SetViewpoint as a

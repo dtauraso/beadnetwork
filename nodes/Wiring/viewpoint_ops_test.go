@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/gesturefsm"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -18,7 +19,7 @@ import (
 // TestZoomViewpointEmitsRadius: ZoomViewpoint scales r.
 func TestZoomViewpointEmitsRadius(t *testing.T) {
 	tr := T.New()
-	vp := &viewpointState{}
+	vp := &gesturefsm.ViewpointState{}
 	vp.SetViewpoint(vec3{}, 100, geom.Dir{Theta: 1.0}, geom.Dir{Theta: 1.5708})
 
 	vp.ZoomViewpoint(0.5, tr)
@@ -30,7 +31,7 @@ func TestZoomViewpointEmitsRadius(t *testing.T) {
 // TestPanViewpointEmitsPivot: PanViewpoint slides the pivot.
 func TestPanViewpointEmitsPivot(t *testing.T) {
 	tr := T.New()
-	vp := &viewpointState{}
+	vp := &gesturefsm.ViewpointState{}
 	vp.SetViewpoint(vec3{X: 1, Y: 2, Z: 3}, 100, geom.Dir{Theta: 1.0}, geom.Dir{Theta: 1.5708})
 
 	vp.PanViewpoint(vec3{X: 10, Y: 0, Z: -3}, tr)
@@ -43,7 +44,7 @@ func TestPanViewpointEmitsPivot(t *testing.T) {
 // pos direction.
 func TestOrbitViewpointEmitsMovedPos(t *testing.T) {
 	tr := T.New()
-	vp := &viewpointState{}
+	vp := &gesturefsm.ViewpointState{}
 	before := geom.Dir{Theta: 1.0, Phi: 0.0}
 	vp.SetViewpoint(vec3{}, 100, before, geom.Dir{Theta: 1.5708})
 

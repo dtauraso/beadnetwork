@@ -3,6 +3,7 @@ package Wiring
 import (
 	T "github.com/dtauraso/wirefold/Trace"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/gesturefsm"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 )
@@ -22,9 +23,9 @@ import (
 
 // gestureEdge is one entry of the pending→phase commit table.
 type gestureEdge struct {
-	guard  func(g *gestureState) bool
-	action func(md *MoveDispatch, g *gestureState, ev inputcodec.RawInputMsg, tr *T.Trace)
-	to     gesturePhase
+	guard  func(g *gesturefsm.GestureState) bool
+	action func(md *MoveDispatch, g *gesturefsm.GestureState, ev inputcodec.RawInputMsg, tr *T.Trace)
+	to     gesturefsm.GesturePhase
 }
 
 // commitEdges is the SAME precedence order as the old commit switch in gestPointerMove:
@@ -35,22 +36,22 @@ type gestureEdge struct {
 // only effect was a ring-anchor snap that no longer exists).
 var commitEdges = []gestureEdge{
 	{
-		guard: func(g *gestureState) bool { return g.DragNode != "" },
-		action: func(md *MoveDispatch, g *gestureState, ev inputcodec.RawInputMsg, tr *T.Trace) {
+		guard: func(g *gesturefsm.GestureState) bool { return g.DragNode != "" },
+		action: func(md *MoveDispatch, g *gesturefsm.GestureState, ev inputcodec.RawInputMsg, tr *T.Trace) {
 			mr, ctx := &md.mr, md.ctx
 			commitDragStart(&md.ui, func(id string, msg movemsg.Msg) { sendMove(mr, ctx, id, msg) }, g, ev, tr)
 		},
-		to: gestDragging,
+		to: gesturefsm.GestDragging,
 	},
 	{
-		guard:  func(g *gestureState) bool { return g.HandholdDown },
+		guard:  func(g *gesturefsm.GestureState) bool { return g.HandholdDown },
 		action: (*MoveDispatch).commitHandholdStart,
-		to:     gestHandhold,
+		to:     gesturefsm.GestHandhold,
 	},
 	{
-		guard:  func(g *gestureState) bool { return g.EmptyDown },
+		guard:  func(g *gesturefsm.GestureState) bool { return g.EmptyDown },
 		action: (*MoveDispatch).commitRotateStart,
-		to:     gestRotating,
+		to:     gesturefsm.GestRotating,
 	},
 }
 
@@ -62,7 +63,7 @@ var commitEdges = []gestureEdge{
 // (emitViewFrame(KindAbcDragReset) → resetAbcDrag()) that used to run here was deleted
 // with the local-polar model itself (MODEL.md "the polar model") — there is no more
 // per-drag recipient set to re-scope.
-func commitDragStart(ui *uiState, sendMoveFn func(id string, msg movemsg.Msg), g *gestureState, ev inputcodec.RawInputMsg, tr *T.Trace) {
+func commitDragStart(ui *uiState, sendMoveFn func(id string, msg movemsg.Msg), g *gesturefsm.GestureState, ev inputcodec.RawInputMsg, tr *T.Trace) {
 	// Capture the grab offset ONCE, at this exact slop-crossing commit event: the vector
 	// from where the pointer's ray actually hits the drag plane to the node's center. Every
 	// later move (applyNodeDragTarget) adds this same offset back so the grabbed point
@@ -98,7 +99,7 @@ func commitDragStart(ui *uiState, sendMoveFn func(id string, msg movemsg.Msg), g
 // the old commit switch's `case g.HandholdDown` arm (minus the phase assignment). Side-effect
 // order preserved exactly: seed prevX/prevY and smoothX/smoothY from the grab point BEFORE
 // seedOrbitPivot.
-func (md *MoveDispatch) commitHandholdStart(g *gestureState, ev inputcodec.RawInputMsg, tr *T.Trace) {
+func (md *MoveDispatch) commitHandholdStart(g *gesturefsm.GestureState, ev inputcodec.RawInputMsg, tr *T.Trace) {
 	// Handhold-constrained orbit: seed prevX/prevY from the GRAB point (downX/downY),
 	// not the slop-crossing point, so the first locked arc is grab→first-move (mirrors
 	// interaction-handlers.ts). Seed the viewpoint about the frozen pivot, then lock.
@@ -111,7 +112,7 @@ func (md *MoveDispatch) commitHandholdStart(g *gestureState, ev inputcodec.RawIn
 // commit switch's `case g.EmptyDown` arm (minus the phase assignment). Side-effect order
 // preserved exactly: seed prevX/prevY and smoothX/smoothY from the CURRENT point BEFORE
 // seedOrbitPivot.
-func (md *MoveDispatch) commitRotateStart(g *gestureState, ev inputcodec.RawInputMsg, tr *T.Trace) {
+func (md *MoveDispatch) commitRotateStart(g *gesturefsm.GestureState, ev inputcodec.RawInputMsg, tr *T.Trace) {
 	g.PrevX, g.PrevY = ev.X, ev.Y
 	g.SmoothX, g.SmoothY = ev.X, ev.Y
 	// Seed the viewpoint so the orbit pivot is the frozen region-focus (mirrors the
@@ -122,14 +123,14 @@ func (md *MoveDispatch) commitRotateStart(g *gestureState, ev inputcodec.RawInpu
 // applyAction is the Block 2 per-phase apply table, copied verbatim (per-case body) from the
 // old `switch g.Phase` in gestPointerMove. A phase with no entry does nothing, matching the
 // old switch's implicit default (gestIdle, gestPending fell through to nothing).
-var applyAction = map[gesturePhase]func(md *MoveDispatch, g *gestureState, ev inputcodec.RawInputMsg, tr *T.Trace){
-	gestDragging: func(md *MoveDispatch, g *gestureState, ev inputcodec.RawInputMsg, tr *T.Trace) {
+var applyAction = map[gesturefsm.GesturePhase]func(md *MoveDispatch, g *gesturefsm.GestureState, ev inputcodec.RawInputMsg, tr *T.Trace){
+	gesturefsm.GestDragging: func(md *MoveDispatch, g *gesturefsm.GestureState, ev inputcodec.RawInputMsg, tr *T.Trace) {
 		mr, lq, ctx := &md.mr, &md.lq, md.ctx
 		if applyNodeDragTarget(&md.ui, func(id string, target vec3) bool { return lq.RootMove(ctx, mr, id, target) }, ev) {
 			g.PrevX, g.PrevY = ev.X, ev.Y
 		}
 	},
-	gestRotating: func(md *MoveDispatch, g *gestureState, ev inputcodec.RawInputMsg, tr *T.Trace) {
+	gesturefsm.GestRotating: func(md *MoveDispatch, g *gesturefsm.GestureState, ev inputcodec.RawInputMsg, tr *T.Trace) {
 		g.SmoothX += geom.RotSmoothAlpha * (ev.X - g.SmoothX)
 		g.SmoothY += geom.RotSmoothAlpha * (ev.Y - g.SmoothY)
 		smoothEv := ev
@@ -137,7 +138,7 @@ var applyAction = map[gesturePhase]func(md *MoveDispatch, g *gestureState, ev in
 		md.applyOrbit(smoothEv, tr)
 		g.PrevX, g.PrevY = g.SmoothX, g.SmoothY
 	},
-	gestHandhold: func(md *MoveDispatch, g *gestureState, ev inputcodec.RawInputMsg, tr *T.Trace) {
+	gesturefsm.GestHandhold: func(md *MoveDispatch, g *gesturefsm.GestureState, ev inputcodec.RawInputMsg, tr *T.Trace) {
 		g.SmoothX += geom.RotSmoothAlpha * (ev.X - g.SmoothX)
 		g.SmoothY += geom.RotSmoothAlpha * (ev.Y - g.SmoothY)
 		smoothEv := ev

@@ -1,6 +1,7 @@
 package Wiring
 
 import (
+	"github.com/dtauraso/wirefold/nodes/Wiring/gesturefsm"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 )
 
@@ -15,15 +16,15 @@ import (
 // switch it replaces was TERMINAL in gestPointerDown (nothing ran after it), so each case's
 // `return` becomes a `return` from the handler func here — behavior-equivalent because
 // nothing downstream of the switch depended on falling through to it.
-var hitClassifiers = map[string]func(md *MoveDispatch, g *gestureState, ev inputcodec.RawInputMsg){
-	"handhold": func(md *MoveDispatch, g *gestureState, ev inputcodec.RawInputMsg) {
+var hitClassifiers = map[string]func(md *MoveDispatch, g *gesturefsm.GestureState, ev inputcodec.RawInputMsg){
+	"handhold": func(md *MoveDispatch, g *gesturefsm.GestureState, ev inputcodec.RawInputMsg) {
 		// Handhold grab → axis-locked (constrained) orbit. Freeze the sphere rotation frame
 		// now (mirrors interaction-handlers.ts: beginSphereRotation on a handhold hit).
 		g.HandholdDown = true
 		lq, mr := &md.lq, &md.mr
 		beginSphereRotation(&md.ui, func() map[string]vec3 { return lq.heldCenters(mr) }, ev)
 	},
-	"node": func(md *MoveDispatch, g *gestureState, ev inputcodec.RawInputMsg) {
+	"node": func(md *MoveDispatch, g *gesturefsm.GestureState, ev inputcodec.RawInputMsg) {
 		if node, ok := md.RT.NodeFromHit(ev.Hit); ok {
 			if c, ok := md.mr.centerOfNode(node); ok {
 				g.DragNode = node
@@ -31,7 +32,7 @@ var hitClassifiers = map[string]func(md *MoveDispatch, g *gestureState, ev input
 			}
 		}
 	},
-	"empty": func(md *MoveDispatch, g *gestureState, ev inputcodec.RawInputMsg) {
+	"empty": func(md *MoveDispatch, g *gesturefsm.GestureState, ev inputcodec.RawInputMsg) {
 		g.EmptyDown = true
 		lq, mr := &md.lq, &md.mr
 		beginSphereRotation(&md.ui, func() map[string]vec3 { return lq.heldCenters(mr) }, ev)

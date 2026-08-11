@@ -5,6 +5,7 @@ import (
 
 	T "github.com/dtauraso/wirefold/Trace"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/gesturefsm"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 )
@@ -43,7 +44,7 @@ func (md *MoveDispatch) gestPointerDown(ev inputcodec.RawInputMsg, tr *T.Trace) 
 	g.PrevX, g.PrevY = ev.X, ev.Y
 	g.Button = ev.Button
 	g.Secondary = ev.Button == 2 // two-finger trackpad tap → always a tap-select
-	g.Phase = gestPending
+	g.Phase = gesturefsm.GestPending
 	g.EmptyDown = false
 	g.DragNode = ""
 	g.HandholdDown = false
@@ -55,7 +56,7 @@ func (md *MoveDispatch) gestPointerDown(ev inputcodec.RawInputMsg, tr *T.Trace) 
 
 func (md *MoveDispatch) gestPointerMove(ev inputcodec.RawInputMsg, tr *T.Trace) {
 	g := &md.ui.gest
-	if g.Phase == gestIdle {
+	if g.Phase == gesturefsm.GestIdle {
 		return
 	}
 	dx := ev.X - g.DownX
@@ -77,7 +78,7 @@ func (md *MoveDispatch) gestPointerMove(ev inputcodec.RawInputMsg, tr *T.Trace) 
 	//
 	// A secondary (two-finger) press never becomes a drag/rotate — it is a tap-select, so
 	// it stays gestPending through any finger drift and resolves on pointer-up.
-	if g.Phase == gestPending && dist > 0 && !g.Secondary {
+	if g.Phase == gesturefsm.GestPending && dist > 0 && !g.Secondary {
 		for _, edge := range commitEdges {
 			if edge.guard(g) {
 				edge.action(md, g, ev, tr)
@@ -95,18 +96,18 @@ func (md *MoveDispatch) gestPointerMove(ev inputcodec.RawInputMsg, tr *T.Trace) 
 func (md *MoveDispatch) gestPointerUp(ev inputcodec.RawInputMsg, slotReg inputcodec.SlotRegistry, tr *T.Trace) {
 	g := &md.ui.gest
 	switch {
-	case g.Phase == gestDragging:
+	case g.Phase == gesturefsm.GestDragging:
 		mr, lq, ctx := &md.mr, &md.lq, md.ctx
 		applyNodeDragTarget(&md.ui, func(id string, target vec3) bool { return lq.RootMove(ctx, mr, id, target) }, ev) // final target flush
-	case g.Phase == gestHandhold, g.Phase == gestRotating:
+	case g.Phase == gesturefsm.GestHandhold, g.Phase == gesturefsm.GestRotating:
 		// Rotation completed (free or handhold-constrained): nothing to flush.
-	case g.Phase == gestPending:
+	case g.Phase == gesturefsm.GestPending:
 		// Click → Go-owned selection. A node hit selects it; empty space clears the
 		// selection. md.ui.sel.Selected is the authoritative selection; Select() emits it so the
 		// buffer snapshot marks the node's Selected column.
 		md.applySelect(ev, tr)
 	}
-	wasDragging := g.Phase == gestDragging
+	wasDragging := g.Phase == gesturefsm.GestDragging
 	// Capture BEFORE reset() clears it (below) — movemsg.KindDragEnd must name the node
 	// that was actually dragged, and reset() zeroes g.DragNode unconditionally.
 	draggedNode := g.DragNode
