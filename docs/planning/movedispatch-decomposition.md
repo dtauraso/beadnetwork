@@ -25,7 +25,36 @@ co-locates a file's reader and writer to stop schema drift. That rule governs wr
 ownership, not where a type lives. A schema in its own package that both sides import
 prevents drift better than proximity.
 
-## 2. `MoveDispatch` is still 63 methods across 20 files (was 88)
+## 2. `MoveDispatch` is still 48 methods across ~19 files (was 88)
+
+Round 4 re-measured the 55 remaining methods for the mechanical criterion (touches at most
+one owner field, calls no other `MoveDispatch` method) rather than trusting the prior
+estimate: 22 looked eligible by field count alone, but only 7 survived once cross-package
+callers/func-values were checked one at a time (the same audit trap the task brief warned
+about — a `grep -v` filter without a leading `./` had silently matched nothing earlier in
+this pass and had to be re-run). Moved: `SliderSpeed`, `dragPlaneHit`,
+`refuseStructuralEdit`, `OrbitViewpoint`, `OrbitLockedViewpoint`, `ZoomViewpoint` (all →
+`uiState`, `scene_speed_persist.go`/`gesture_actions.go`/`scene_structure.go`/
+`viewpoint_state.go`); `selectViewEvent` → `rowtables.RowTables.SelectViewEvent`
+(`row_tables.go` — this one needed a new import of `Trace`/`nodes/wire` into the `rowtables`
+package, no cycle, no new export since `RowTables`/`NodeRowFor` were already exported).
+`refuseStructuralEdit` moving required updating `check-refusal-emits-frame.sh`'s definition-
+skip regex from a receiver-specific pattern (`\(md \*MoveDispatch\)`) to a generic one
+(`\([a-zA-Z_]+ \*\w+\)`) — confirmed with a deliberate break (deleting one call site's
+follow-up emit) both before and after the regex change. 55 → 48 methods (drop of 7).
+Exported `Wiring`-package symbol count unchanged (160 → 160, verified against `git stash`).
+
+Held back and reconfirmed, not re-litigated: the 7 export-blocked methods
+(`ResolveSceneDistanceGroups`, `LoadOverlays`, `LoadSpeed`, `SetViewpoint`, `EmitViewpoint`,
+`SetViewStream`, `EnableSceneSwitch`) plus `HasNodeMover`/`NodeSelfDriven`/`NodeQuantOffset`
+(external `mr` callers) — `Viewpoint()` and `PanViewpoint` join this set this round: both are
+called as func values or directly from `nodes/Wiring/scenecamera`'s external test package.
+`SelectScene` stays declined per its package doc comment (genuine orchestration). Everything
+else among the 55 touches 2+ owners or calls another `MoveDispatch` method (mostly
+`emitViewFrame`/`sendMove`, the gesture/dispatch entry points) and is not a rehome target —
+see the "write-then-emit" section below for why those stay.
+
+## 2a. Prior state (round 3): `MoveDispatch` was 63 methods across 20 files (was 88)
 
 Its state is already twelve named owners; the facade over them was never fully decomposed.
 The 13 generated pure delegators are done: `overlayToggles` now binds
