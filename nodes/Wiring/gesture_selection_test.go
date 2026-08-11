@@ -5,6 +5,8 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/gesturefsm"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
+	"github.com/dtauraso/wirefold/nodes/wire/clock"
 )
 
 // gesture_selection_test.go — click resolution through the gesture FSM: click-select (node
@@ -145,6 +147,12 @@ func TestGestureSecondaryTapSelectsThroughDrift(t *testing.T) {
 func TestGesturePressReleaseNoMoveSelects(t *testing.T) {
 	md := newGestureMD(canonicalViewpoint())
 	md.RT.NodeRowTable = []string{"N7"}
+	// A real node geometry, so the "node" hit classifier's centerOfNode lookup succeeds and
+	// actually arms g.DragNode="N7" at pointerdown — needed below to prove Reset clears it
+	// even though this press never becomes a drag.
+	md.mr.nodeGeoms = map[string]*nodeGeometry{
+		"N7": newNodeGeometry("N7", nodegeom.NodeGeom{NodeIdentity: nodegeom.NodeIdentity{Kind: "TimeEnd"}}, nil, clock.NewRealClock()),
+	}
 
 	down := rawEvent("pointerdown", 400, 300)
 	down.Hit = inputcodec.RawHit{Kind: "node", NodeRow: 0}
@@ -158,6 +166,13 @@ func TestGesturePressReleaseNoMoveSelects(t *testing.T) {
 	}
 	if md.ui.gest.Phase != gesturefsm.GestIdle {
 		t.Fatalf("after click phase=%v want idle", md.ui.gest.Phase)
+	}
+	// The pointerdown's "node" hit classifier armed DragNode="N7" even though this press
+	// never crossed the slop into a drag; Reset (called from gestPointerUp) must clear it
+	// back to "" along with the phase, or a later reader of DragNode (e.g. the Overlay
+	// block's DragNodeRow column) would keep reporting a stale drag target.
+	if md.ui.gest.DragNode != "" {
+		t.Fatalf("after click DragNode=%q want \"\" (Reset must clear it)", md.ui.gest.DragNode)
 	}
 }
 

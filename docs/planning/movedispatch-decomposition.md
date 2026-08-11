@@ -655,6 +655,42 @@ test. This gap pre-dates the lift (the assertion was never written) and the lift
 introduce it — named here per the task's coverage-reporting requirement, not fixed (out of
 this task's scope to add tests).
 
+## 6c. The nine `= gesturefsm.X` alias shims from 6b removed — every call site qualified
+
+6b's own alias declarations (`type gesturePhase = gesturefsm.GesturePhase`, `gestIdle`/
+`gestPending`/`gestRotating`/`gestDragging`/`gestHandhold` const aliases, `type gestureState
+= gesturefsm.GestureState`, `type gestureRect = gesturefsm.GestureRect`,
+`type viewpointState = gesturefsm.ViewpointState`) were deleted. They were justified at the
+time by citing `vec_alias.go`'s `vec3 = wire.Vec3` as precedent — same shape, not a
+license: `geom_bridge.go`'s `polar = geom.Polar` aliases and `port_bindings.go`'s six
+`= portwiring.X` aliases were each removed for the same reason (a shim makes the package
+boundary cosmetic), and this is the third instance of that same pattern.
+
+Every reference in `nodes/Wiring` (production and tests) now names
+`gesturefsm.GestureState`/`gesturefsm.GesturePhase`/`gesturefsm.GestIdle`/etc. directly —
+`gesture.go`, `gesture_dispatch.go`, `gesture_graph.go`, `gesture_graph_test.go`,
+`gesture_handlers.go`, `gesture_hitclassify.go`, `ui_state.go`, `viewpoint_state.go`,
+`viewpoint_ops_test.go`, `gesture_camera_outcomes_test.go`, `gesture_drag_offset_test.go`,
+`gesture_selection_test.go`. `grep -rn "= gesturefsm\." nodes/Wiring/*.go` now returns only
+real comparisons (`g.Phase != gesturefsm.GestPending` etc.), no `type`/`const` alias
+declarations. Exported `Wiring`-package symbol count unchanged, 167 → 167. `go build ./...`,
+`go vet ./...`, `go test -race -count=1 ./...` all clean; `go run ./tools/gen-node-defs`
+produces no generated diff; the no-imports-`Wiring` loop is empty.
+
+Also closed the coverage gap 6b reported but did not fix: added an assertion to
+`TestGesturePressReleaseNoMoveSelects` that `GestureState.Reset` clears `DragNode` back to
+`""`. The 4 tests 6b named as "already exercising `Reset`" turned out not to observe this
+specifically — each one's `mr` is a zero-value `moverRegistry` with no seeded `centerMirror`,
+so their pointerdown's "node" hit classifier never actually arms `DragNode` (`centerOfNode`
+returns `ok==false`), leaving it at `""` before Reset runs either way. Gave
+`TestGesturePressReleaseNoMoveSelects` a real `nodeGeometry` for "N7" (mirroring
+`gesture_drag_offset_test.go`'s `dragOffsetMD` pattern, whose self-seeded `centerOut`
+channel is what makes `centerOfNode` succeed) so the pointerdown genuinely arms
+`DragNode="N7"` before the no-move pointerup's `Reset`. Commented out `g.DragNode = ""` in
+`Reset` and confirmed the new assertion fails:
+`gesture_selection_test.go:175: after click DragNode="N7" want "" (Reset must clear it)` —
+then restored it; `go test -race -count=1 ./nodes/Wiring/...` is clean again.
+
 ## 6a. Original decline (superseded above, kept as the record of what was measured wrong)
 
 Attempted to lift the nine gesture+view files, `uiState`/`viewpointState`/`gestureState`/
