@@ -77,7 +77,7 @@ func RunTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 	// the reason Trace needs no mutex.
 	moverWG := md.Start(ctx)
 
-	stdinWG := startStdinReader(ctx, cancel, slotReg, md, tr, speedSinks)
+	stdinWG, gestureWG := startStdinReader(ctx, cancel, slotReg, md, tr, speedSinks)
 	wg := launchNodeGoroutines(ctx, nodes)
-	joinAll(wg, moverWG, stdinWG)
+	joinAll(wg, moverWG, stdinWG, gestureWG)
 }

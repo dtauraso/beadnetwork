@@ -13,8 +13,9 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/stdinreader"
 )
 
-// startStdinReader launches the editor→Go bridge dispatch loop and returns the WaitGroup
-// that tracks ONLY that loop.
+// startStdinReader launches the editor→Go bridge dispatch loop AND the gesture actor
+// (gesture_actor.go, docs/planning/gesture-actor.md step 1) that now runs its three
+// handlers, and returns the WaitGroups tracking each.
 //
 // Read the editor→Go bridge: "edit" JSON lines (op = create/update/delete)
 // from stdin. When stdin reaches EOF (extension host disconnect), cancel the context.
@@ -30,20 +31,35 @@ import (
 // reader goroutine is deliberately left un-waited (detached); in production it
 // outlives the process only as long as it takes the OS to tear down the closed fd,
 // which is bounded by process exit, not by this WaitGroup.
-func startStdinReader(ctx context.Context, cancel context.CancelFunc, slotReg inputcodec.SlotRegistry, md *W.MoveDispatch, tr *T.Trace, speedSinks []chan float64) *sync.WaitGroup {
+//
+// gestureWG tracks the new gesture-actor goroutine (startGestureActor): RunStdinReader's
+// three Handlers funcs are now channel sends into that actor's own inbox
+// (sendGestureMsgBlocking) instead of direct calls — the actor itself calls the exact
+// same W.ApplyEdit / W.HandleRawInputMsg / W.HandleSaveMsg RunStdinReader used to call
+// inline, just on its own goroutine. No behaviour change: same funcs, same order, same
+// inputs.
+func startStdinReader(ctx context.Context, cancel context.CancelFunc, slotReg inputcodec.SlotRegistry, md *W.MoveDispatch, tr *T.Trace, speedSinks []chan float64) (*sync.WaitGroup, *sync.WaitGroup) {
+	inbox, gestureWG := startGestureActor(ctx, slotReg, md, tr, speedSinks)
+
 	stdinWG := new(sync.WaitGroup)
 	stdinWG.Add(1)
 	h := stdinreader.Handlers{
-		ApplyEdit:      func(msg inputcodec.StdinMsg) { W.ApplyEdit(msg, md, tr, speedSinks) },
-		HandleRawInput: func(msg inputcodec.StdinMsg) { W.HandleRawInputMsg(msg, slotReg, md, tr) },
-		HandleSave:     func() { W.HandleSaveMsg(md) },
+		ApplyEdit: func(msg inputcodec.StdinMsg) {
+			sendGestureMsgBlocking(ctx, inbox, gestureInboxMsg{kind: gestureMsgEdit, msg: msg})
+		},
+		HandleRawInput: func(msg inputcodec.StdinMsg) {
+			sendGestureMsgBlocking(ctx, inbox, gestureInboxMsg{kind: gestureMsgRawInput, msg: msg})
+		},
+		HandleSave: func() {
+			sendGestureMsgBlocking(ctx, inbox, gestureInboxMsg{kind: gestureMsgSave})
+		},
 	}
 	go func() {
 		defer stdinWG.Done()
 		stdinreader.RunStdinReader(ctx, os.Stdin, h)
 		cancel()
 	}()
-	return stdinWG
+	return stdinWG, gestureWG
 }
 
 // launchNodeGoroutines starts every node's own Update loop and returns the WaitGroup
@@ -63,18 +79,20 @@ func launchNodeGoroutines(ctx context.Context, nodes []wire.Node) *sync.WaitGrou
 // joinAll blocks until every tracked goroutine has exited.
 //
 // Wait for every tracked goroutine to exit — node Update loops, nodeMover/
-// edgeMover goroutines, and the stdin dispatch loop — before closing the trace.
+// edgeMover goroutines, the stdin dispatch loop, and the gesture actor — before closing
+// the trace.
 // No grace timeout: every one of these goroutines' only blocking call is
 // SleepCycle, which selects on ctx.Done(), so cancel-to-return is bounded by one
 // clock tick (~16ms), not by an arbitrary grace window. If a goroutine ever fails
 // to exit, wg.Wait() below hangs visibly instead of silently proceeding past a
 // still-running goroutine — a hang names the bug; a grace timeout hides it.
-func joinAll(wg, moverWG, stdinWG *sync.WaitGroup) {
+func joinAll(wg, moverWG, stdinWG, gestureWG *sync.WaitGroup) {
 	done := make(chan struct{})
 	go func() {
 		wg.Wait()
 		moverWG.Wait()
 		stdinWG.Wait()
+		gestureWG.Wait()
 		close(done)
 	}()
 	<-done
