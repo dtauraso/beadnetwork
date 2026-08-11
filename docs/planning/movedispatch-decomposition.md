@@ -531,6 +531,68 @@ move with it or the whole thing stays. Measure field-level cross-file access bef
 a lift like this one, the same way `RootMove`/`heldCenters`/`applyNodeDragTarget` etc. were
 measured for method-level calls in round 3.
 
+## 6. Gesture-cluster lift (gesture-actor.md step 3) — probed and declined, exact edge below
+
+Attempted to lift the nine gesture+view files, `uiState`/`viewpointState`/`gestureState`/
+`overlayState`, and the view-stream half of `streamWiring` into `nodes/Wiring/gestureview`,
+per the task brief's own measurement (`md.mr`/`md.sw`/`md.lq` reduce to seven operations:
+`centerOfNode`, `nodeBodyRadius`, `heldCenters`, `viewOut`, `viewBuildFrame`, `viewTick`,
+`ensureClaims`).
+
+**That measurement undercounted.** A wider grep for `md\.mr\b`/`md\.lq\b` (not just
+`md\.mr\.`/`md\.lq\.`, which only catches direct method calls) finds `&md.mr`/`&md.lq`
+passed BY POINTER into six functions, three of which live inside the files that would move:
+
+```
+beginSphereRotation(ui *uiState, mr *moverRegistry, lq *layoutQuantizer, ...)   gesture_actions.go (moves)
+applyNodeDragTarget(ctx, ui *uiState, mr *moverRegistry, lq *layoutQuantizer, ...) gesture_actions.go (moves)
+commitDragStart(ui *uiState, mr *moverRegistry, ctx, g, ev, tr)                  gesture_graph.go (moves)
+setSelectionUI(ui *uiState, mr *moverRegistry, ctx, node, edge)                  move_dispatch_api.go (STAYS)
+sendMove(mr *moverRegistry, ctx, id string, msg movemsg.Msg)                     move_dispatch_api.go (STAYS)
+DistanceGroupLens(ui *uiState, mr *moverRegistry)                                distance_groups.go (STAYS)
+```
+
+plus `layoutQuantizer.RootMove`/`layoutQuantizer.heldCenters`, both already on record (item 1,
+"pre-existing, now closed") as needing `*moverRegistry`/full owner access, not a leaf read.
+
+**`moverRegistry` and `layoutQuantizer` are unexported types defined in package `Wiring`**
+(`mover_registry.go`, `quantized_move.go`). Go's export rule — not a design preference — means
+no other package can name them in a parameter list at all, exported alias or not: renaming
+them `MoverRegistry`/`LayoutQuantizer` doesn't fix it, because the new package would then have
+to `import ".../nodes/Wiring"` to reach the exported name, which is banned outright
+(`nodes/Wiring/<sub>` may not import `nodes/Wiring`) and would cycle against the OTHER
+required edge anyway: `MoveDispatch` must hold a field of the new package's type
+(`GV gestureview.GestureView`, the task's own required pattern, matching `GS`/`RT`/`Scenes`),
+so `Wiring` already imports the new package. Both edges existing together is
+`import cycle not allowed`, the literal error the compiler gives — this is `beadcrud`/
+`portwiring`'s "genuine, compiler-confirmed cycle" class, not the usual dissolvable blocker.
+
+**Both directions of the edge, as the task asked:**
+- new package → `Wiring`: `beginSphereRotation`/`applyNodeDragTarget`/`commitDragStart`
+  (in-cluster) and their callees `setSelectionUI`/`sendMove`/`DistanceGroupLens`/
+  `layoutQuantizer.RootMove`/`layoutQuantizer.heldCenters` (stay in `Wiring`) all require
+  `*moverRegistry`/`*layoutQuantizer` — unexported `Wiring` types, unreachable from outside.
+- `Wiring` → new package: `MoveDispatch` needs a `GV gestureview.GestureView`-shaped field
+  to keep being the composer, per the task's own prescribed pattern.
+
+This is a bigger surface than "give it three func values" — `mr`/`lq` are read AND written
+(hover messaging, `RootMove`, sphere-rotation math) through many operations, not the three
+named lookups, and `moverRegistry`/`layoutQuantizer` are explicitly declared not a lift target
+elsewhere in this doc ("`moverRegistry` is not a target... whatever remains of `MoveDispatch`
+stays with it"). Turning every one of those operations into an individually-injected func
+value would be a different, much larger task (effectively exporting `moverRegistry`'s/
+`layoutQuantizer`'s behaviour piecemeal), not this one.
+
+**No code was written.** `git status --short` was empty throughout this probe; `go build
+./...`/`go test ./...` were run against the untouched tree only to confirm the starting state
+was clean. `MoveDispatch`'s method/export counts are unchanged from item 5's last measurement
+(37 methods; the same 7 export-blocked methods remain blocked).
+
+Pattern recorded for the next attempt: grepping `md\.owner\.` (dot-call only) undercounts —
+`&md.owner` passed as a function argument is the same coupling and needs its own grep
+(`md\.owner\b`, then check what the receiving parameter's TYPE is, not just that the value
+came from one field).
+
 ## The one rule
 
 **Name the specific values the leaf reads from the hub.** If you can list them, it is not a

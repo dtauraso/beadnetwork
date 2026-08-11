@@ -116,3 +116,17 @@ one owner, one writer — the same shape as a `nodeMover`.
   is the existing convention — verify it, do not assume it.
 - **If step 2 finds an `emitViewFrame` caller that cannot move to the FSM goroutine**, stop.
   That is a real second writer and the design is wrong as stated.
+
+## Step 3 — probed and declined (measurement, no code written)
+
+The re-measurement this doc calls for (`## The one real problem`'s closing paragraph) found
+the lift does not go through. Full account and the exact edge are in
+`docs/planning/movedispatch-decomposition.md`'s "6." section. Short version: the gesture
+files' own package-level helpers (`beginSphereRotation`, `applyNodeDragTarget`,
+`commitDragStart` in the cluster, plus `setSelectionUI`/`sendMove`/`DistanceGroupLens` in
+`move_dispatch_api.go`/`distance_groups.go`, which stay in `Wiring`) take `*moverRegistry`/
+`*layoutQuantizer` — unexported `Wiring` types — as parameters, not just through the three
+read-only accessors (`centerOfNode`, `nodeBodyRadius`, `heldCenters`) the earlier measurement
+named. Those two types cannot be named outside package `Wiring` at all (Go's export rule,
+not a design choice), so the cluster cannot lift while it still needs `mr`/`lq` by pointer.
+`git status --short` was empty throughout; no file was written.
