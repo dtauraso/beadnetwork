@@ -1258,3 +1258,90 @@ keyed to `chain_beads.go`/`bead_chain.go` needed updating (both are named by
 `check-bead-actor-has-call-site.sh` and `check-no-sqrt-in-chain-beads.sh`, unaffected by an
 in-place edit). No interface, `types`/`common` package, alias shim, dot-import,
 package-level actor global, or `ForTest` hatch was added.
+
+## 12. `scene_structure.go`/`distance_groups.go` re-measured — three pure functions landed in existing packages, everything else declined by mechanism
+
+Measured both files function-by-function. `scene_structure.go` (260 lines) and
+`distance_groups.go` (203 lines), both unchanged in line count budget for the file itself
+(functions moved OUT, doc comments left behind naming the new home) — no new package
+created, both lifts landed in packages that already existed.
+
+**Lifted:**
+
+- `kindForID` → `loadspec.KindForID` (`nodes/Wiring/loadspec/builders.go`). Body only calls
+  `Buffer.KnownKinds()`/`Buffer.NodeKindID(...)` — no Wiring state. `loadspec` already
+  imports `Buffer`-adjacent helpers is not required; verified no import cycle
+  (`go list -deps ./nodes/Wiring/loadspec | grep -i buffer` was empty before the change,
+  and `Buffer` has no dependency on `nodes/Wiring/loadspec`).
+- `newNodeID` → `loadspec.NewNodeID` (same file). Body is `strconv.Itoa(LargestNodeID(root)
+  + 1)` — `LargestNodeID` already lives in `loadspec` (`loader_tree.go`), so this is a
+  same-package call, not a new dependency.
+- `firstPortOfDir`'s inner scan → `portwiring.FirstPortOfDir(ports []PortSpec, dir PortDir)
+  (string, bool)` (`nodes/Wiring/portwiring/port_bindings.go`). The ORIGINAL function's body
+  did two things: look up `Registry[kind]` (a Wiring-package map keyed by the
+  Wiring-unexported `NodeBuilder` type) and then scan `b.Ports` for the first port in `dir`.
+  Only the scan is pure over portable data (`[]portwiring.PortSpec`); the `Registry` lookup
+  stays in Wiring's own `firstPortOfDir`, now a two-line wrapper, because `NodeBuilder` is
+  defined in `nodes/Wiring` and `portwiring` (which `nodes/Wiring` imports) cannot import it
+  back without a cycle. This is the same "in-package lookup, subpackage forwards the pure
+  computation over the already-portable type" split builders.go and node_registry.go already
+  use elsewhere — not a new pattern.
+
+**Declined, by mechanism, not by category:**
+
+- `MoveDispatch.CreateNode`/`MoveDispatch.DeleteNode` — both write files
+  (`WriteNewNodeFiles`, `RemoveNodeDir`, `edgefile.WriteEdgeFile`/`RemoveEdgesTo`,
+  `countspersist.WriteCounts`), call `md.Scenes.Quit()` (ends the process), and read/write
+  `md.UI` (`RefuseStructuralEdit`, `EmitViewFrame`, `SceneEditable`, `SceneKinds`,
+  `SceneSphere`) — an entry point with side effects on every path, not a computed result.
+- `moverRegistry.linkRefusal` (already in `mover_registry.go`, referenced by
+  `scene_structure.go`'s header comment) — reads `mr.nodeGeoms` (`moverRegistry`'s own
+  unexported map), so it is bound to the unexported `moverRegistry` receiver type; declined
+  for the same mechanism as the build cluster (§7).
+- `ResolveSceneDistanceGroups` (`distance_groups.go`) — a `*MoveDispatch` method that writes
+  three `md.UI` fields (`HasDistanceGroups`, `SceneEditable`, `SceneKinds`) by direct
+  assignment. Its own body calls into `scene.SceneHasDistanceGroups`/`SceneIsEditable`/
+  `SceneKindMask`, which are themselves already pure functions already living in the
+  existing `scene` package — nothing further to lift.
+- `distanceGroupMax` — takes `*viewstate.UIState` and `*moverRegistry` and calls
+  `mr.centerOfNode(...)`, an unexported method on the unexported `moverRegistry` type
+  (`mover_registry.go:66`, `mover_registry.go:223`). Verified mechanism: `moverRegistry` has
+  no exported surface for reading a node's center other than through this actor-owned type;
+  lifting the function would require exporting `moverRegistry` itself, the exact "actor
+  registry's own unexported state, reached by field/method from outside" class §7 already
+  measured and declined for the build cluster.
+- `DistanceGroupLens` — thin wrapper over `distanceGroupMax`, same `*moverRegistry`
+  parameter, same mechanism.
+- `applyDistanceGroupTarget` — takes `*layoutQuantizer` (unexported, `quantized_move.go:34`)
+  and `*moverRegistry`, and calls `lq.RootMove(ctx, mr, ...)`, an unexported method on the
+  unexported `layoutQuantizer` type (`quantized_move.go:86`) that routes a move to the
+  target node's own goroutine. Same mechanism as `distanceGroupMax`, compounded by a second
+  unexported actor type.
+- `waitForCenterSettle` — takes `*moverRegistry` and polls `mr.centerOfNode(...)` in a loop;
+  same mechanism as `distanceGroupMax`. (Also genuinely a busy-poll against another
+  goroutine's live state, not a pure computation, independent of the signature issue.)
+- `distancePair`/`distanceGroupOrder`/`distanceGroups` (the group table) — plain data with
+  no Wiring-type dependency in isolation, but every consumer of this table
+  (`distanceGroupMax`/`DistanceGroupLens`/`applyDistanceGroupTarget`, all declined above by
+  the `*moverRegistry`/`*layoutQuantizer` mechanism) stays in Wiring. Splitting the table
+  into a subpackage while every reader stays behind would not reduce `nodes/Wiring`'s
+  surface — it would just relocate three lines and leave a data-only one-purpose package
+  with no computation in it, which is the shape this task's "new package only when the
+  boundary is genuinely different" instruction rules out.
+
+**LOC:** `scene_structure.go` 260 → 243 lines (net -17: `kindForID`/`newNodeID`
+bodies removed, `firstPortOfDir`'s scan removed, three unused imports (`strconv`,
+`Buffer as B`) dropped, doc comments left in place naming the new home).
+`distance_groups.go` unchanged, 203 lines (nothing moved out of it — every function in it
+takes an unexported Wiring actor type). `nodes/Wiring` non-test top-level `.go` file count:
+unchanged, 59 (no file moved/created; both target packages — `loadspec`, `portwiring` —
+already existed).
+
+**Verification:** `go build ./...`, `go vet ./...` clean; `go test -race -count=1 ./...`
+passes with no failures (verbatim `ok` for every package, no race reported). The
+no-imports-`Wiring` loop is empty. No interface, `types`/`common` package, alias shim,
+dot-import, package-level actor global, or `ForTest` hatch was added. No guard names
+`scene_structure.go`/`distance_groups.go`/`kindForID`/`newNodeID`/`firstPortOfDir` as a
+pattern to match (`check-refusal-emits-frame.sh` and
+`check-persist-write-ownership.sh` mention `scene_structure.go` only in prose comments, not
+as a glob/grep target) — no guard update needed, file paths and names unchanged.
