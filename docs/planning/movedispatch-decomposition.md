@@ -3945,3 +3945,222 @@ No `types`/`common` package, no alias shim, no dot-import, no package-level acto
 `git status --short`: empty. Commits: `dfbb2c24` (the three package lifts +
 `move_dispatch.go`'s field exports), `796a69fc` (every dispatch call site rewritten to the
 new exported APIs, plus the one doc-drift fix and 8 test-file rewrites).
+
+## §30 — stdin cluster landed in `nodes/Wiring/stdinreader`, pulling `ctx` explicit; other
+three clusters (gesture, build/load, remainder) NOT attempted this session — ran out of
+room, stopped at a committed buildable stage
+
+### Partition table (named before moving, per the task's own method)
+
+| cluster | files | verdict this session |
+|---|---|---|
+| stdin | `stdin_dispatch.go`, `stdin_apply.go`, `bool_u8.go` (single caller) | **MOVED** to `nodes/Wiring/stdinreader` |
+| gesture | `gesture.go`, `gesture_hitclassify.go`, `gesture_actions.go`, `gesture_handlers.go`, `gesture_graph.go`, `gesture_dispatch.go` | not attempted |
+| build/load | `build.go`, `loader.go`, `move_dispatch_construct.go`, `build_move_dispatch.go`, `build_nodes.go` | not attempted |
+| remainder | `scene_switch.go`, `viewpoint_state.go`, `vec_alias.go`, `move_persist.go`, `move_streams.go`, `move_dispatch_api.go`, `move_dispatch.go`, `distance_groups.go`, `scene_structure.go`, `scene_*_persist.go` | not attempted |
+
+### What actually unblocked the stdin cluster
+
+§29 had narrowed the stdin cluster's pin to exactly one field: `md.ctx`, read directly by
+`applyUpdateDistanceGroup` and `applyUpdateTiltVector`. Its own downstream callees
+(`sendMove`, `sendTiltEdit`, `applyDistanceGroupTarget`) already took `ctx
+context.Context` as an explicit parameter — only the two HANDLER functions themselves
+still reached back into `md.ctx`. Tracing the call chain up from `ApplyEdit` found `ctx`
+was ALREADY in scope at the one production caller
+(`runtopology/gesture_actor.go`'s `startGestureActor` goroutine, which holds its own
+`ctx context.Context` parameter) — so threading it down as an explicit parameter through
+`ApplyEdit` → `applyUpdate` → `updateKindHandlers[...]` cost nothing at the call site: no
+new state, no new field, just an extra argument on an existing signature. `md.ctx` itself
+was NOT exported (task constraint honored) and nothing about `MoveDispatch.Start`
+(the field's sole writer) changed.
+
+Three package-level free functions moved from unexported to exported so the moved files
+could still reach them from the new package: `sendMove` → `SendMove`, `sendTiltEdit` →
+`SendTiltEdit` (`move_dispatch_api.go`, both bucket (b) already — thin delegators to
+`mr`/`inboxes`, no `MoveDispatch` reach), and `applyDistanceGroupTarget` →
+`ApplyDistanceGroupTarget` (`distance_groups.go`, same shape). Every other in-package
+call site of these three (the gesture cluster's `gesture_actions.go`/`gesture_handlers.go`/
+`gesture_graph.go`, staying in `dispatch` this session) was updated to the new
+capitalization — a rename, not a behavior change; bodies are byte-identical.
+`bool_u8.go`'s `boolU8` moved WITH the stdin files (its only caller) and stayed
+unexported — no export needed since caller and callee now share a package.
+
+### What moved, what stayed, and why `stdinreader` now imports `dispatch`
+
+`stdin_dispatch.go`/`stdin_apply.go` → `nodes/Wiring/stdinreader/dispatch_edit.go`/
+`dispatch_apply.go` (renamed to avoid a second `stdin_*.go` prefix inside a package that
+already has `stdin_reader.go`), `bool_u8.go` moved unchanged. Every function's own
+`*MoveDispatch` parameter became `*dispatch.MoveDispatch` — the type was already exported
+(§28) with every field this cluster reaches (`UI`, `MR`, `LQ`, `Inboxes`, `Persist`,
+`Scenes`) exported (§28/§29), so this is a straight type-qualification, not a new
+capability crossing the boundary. This is a REAL new import edge (`stdinreader` → `dispatch`)
+that did not exist before — `stdin_reader.go`'s own header comment previously said this
+package "does not import nodes/Wiring", which was true of the framing half
+(`RunStdinReader`, unchanged, still takes its three ops as plain `Handlers` function
+values) but is no longer true of the package as a whole now that `dispatch_edit.go`/
+`dispatch_apply.go` live here too. Both `stdin_reader.go`'s header and the two moved
+files' own headers were reworded to say this plainly rather than leave a stale claim.
+This is NOT a cycle: `dispatch`'s own non-test code never imports `stdinreader` (confirmed
+by the no-package-under-Wiring-imports-dispatch loop below, which correctly reports
+`stdinreader` as the one exception — expected and intended, not a defect); the closure-based
+`Handlers` shape that kept `stdin_reader.go` decoupled from `dispatch` is preserved exactly
+where it always mattered (the ext-host-facing wiring in `runtopology`), not weakened.
+
+### Test moves — real cycle forced 8 file-level splits, not a straight `git mv`
+
+Attempting a straight `git mv` of every dispatch test file that reached `applyUpdate`/
+`ApplyEdit`/`updateKindHandlers`/etc. hit a genuine Go import-cycle error the first time:
+an in-package (`package dispatch`) test file importing `stdinreader` (which now imports
+`dispatch`) is disallowed by the toolchain, not a style choice — confirmed by running
+`go vet ./...` and reading the exact error (`import cycle not allowed in test`), not
+assumed. Each affected file was inspected and handled on its own terms rather than
+force-relocated wholesale:
+
+- `dispatch_keys_test.go` (one test, `TestDispatchTableKeysMatchFingerprint`, exercising
+  FIVE tables) **split by table ownership**: `rawInputHandlers`/`hitClassifiers` (gesture
+  cluster, staying in `dispatch`) stayed in `nodes/Wiring/dispatch/dispatch_keys_test.go`;
+  `updateKindHandlers`/`clockAttrHandlers`/`overlayAttrHandlers`/`viewstate.OverlayFlagTraceKind`
+  moved to a new `nodes/Wiring/stdinreader/dispatch_keys_test.go`. `mapKeys[V any]` is
+  duplicated (one small generic helper per package, same "own trivial copy" precedent
+  `bool_u8.go`'s header already documents) rather than exported from either side.
+- `overlay_toggle_emit_test.go` (two tests) **split by whether the test calls
+  `applyUpdate`**: `TestViewFrameCarriesEveryOverlayFlag` (drives `md.UI.EmitViewFrame`
+  directly, never touches `applyUpdate`) stayed in `dispatch`;
+  `TestApplyUpdateOverlayToggleEmitsViewFrame` (drives `applyUpdate` directly) moved to a
+  new `nodes/Wiring/stdinreader/dispatch_edit_overlay_test.go`.
+- `scene_lattice_edit_test.go` (four tests) **split the same way**: the two
+  `TestBroadcastLatticePoints*` tests (call `md.BroadcastLatticePoints`/
+  `md.Inboxes.ClaimLatticeIn` directly, never `applyUpdate`) moved to a new
+  `nodes/Wiring/dispatch/scene_lattice_broadcast_test.go`; the two
+  `TestApplyUpdateSceneLatticePoints*` tests (call `applyUpdate`) moved to a new
+  `nodes/Wiring/stdinreader/dispatch_apply_scene_test.go`, using
+  `dispatch.LoadTopology`+`writeMinimalTree`/`loadMinimalMD` (below) in place of the
+  original file's `writeTree`/`loadTreeMD` helpers (those two stayed behind in
+  `nodes/Wiring/dispatch/scene_edit_persist_test.go`, unexported, unreachable from the new
+  package).
+- `stdin_input_integration_test.go` (one test) and `stdin_reader_framing_test.go` (two
+  tests) **moved whole** to `nodes/Wiring/stdinreader/dispatch_edit_integration_test.go`
+  and `nodes/Wiring/stdinreader/stdin_reader_framing_test.go` — both files' own header
+  comments had already argued (pre-this-task) for exactly this destination once the cycle
+  cleared, and neither test needed splitting.
+
+None of these four originals used the unexported `newMoveDispatch` for anything a real
+`dispatch.LoadTopology(ctx, root, tr, clk)` load can't equally construct, so every moved
+test that built its own `*MoveDispatch` now does so through `LoadTopology` over a real
+(tiny, on-disk) tree instead. Two new test-only helpers,
+`writeMinimalTree`/`loadMinimalMD` (`dispatch_edit_integration_test.go`), replace the old
+`newMoveDispatch(map[string]nodegeom.NodeGeom{}, ...)` bare-construction calls. Because
+`kindapi.BuildRegistry` panics loudly on an EMPTY registry (by design — a silent empty
+build was the exact bug class it exists to prevent) and `stdinreader`'s test binary is
+SEPARATE from `dispatch`'s (so `dispatch`'s own `fixture_kinds_test.go` `SrcNode`/
+`SinkNode` registration is invisible here), `dispatch_edit_integration_test.go` carries its
+own minimal `fixtureSrcNode` kind + `init()` registration — same pattern
+`fixture_kinds_test.go`'s own header already documents for why the pattern exists, applied
+to a second test binary that now also needs one real kind registered.
+
+No test was renamed, dropped, weakened, or skipped — every split kept every original
+assertion, and every moved test's body is unchanged beyond the qualification
+(`MoveDispatch` → `dispatch.MoveDispatch`, `applyUpdate`/`ApplyEdit` unqualified since
+they're now same-package calls) its new location requires.
+
+### Test-name/assertion count — a deliberate, explained delta, not silent drift
+
+`grep -oE '^func Test[A-Za-z0-9_]+' nodes/Wiring/dispatch/*_test.go nodes/Wiring/kindapi/*_test.go nodes/Wiring/stdinreader/*_test.go`
+→ **110** (100 dispatch + 3 kindapi + 7 stdinreader), one more than the 109 baseline §29
+confirmed directly. The one new function is `dispatch_keys_test.go`'s own
+`TestDispatchTableKeysMatchFingerprint`, which existed as a SINGLE function checking five
+tables before this task and is now TWO functions (one per package) each checking a subset
+of the same five tables — a structural split forced by the real import cycle above, not a
+new assertion invented from nothing. `grep -c 't\.Fatal\|Fatalf\|Error\|Errorf(' ...`
+→ **329**, two more than the 327 baseline: each half of the split
+`TestDispatchTableKeysMatchFingerprint` carries its own `t.Errorf` call site (one loop
+body each) where the original had one shared site — same split, same non-assertion-losing
+reason. No test's assertion COUNT within a single scenario was reduced; the delta is
+entirely the file-split mechanics above, confirmed by reading the diff rather than assumed
+from the numbers alone.
+
+### Guards — re-run, and proven with teeth on the moved fences specifically
+
+Neither `check-edit-op-parity.sh` nor `check-message-kind-parity.sh` nor
+`check-input-attr-dispatched.sh` needed re-keying: all three locate their Go-side fence by
+CONTENT (`grep -rl`/`find` over `nodes/Wiring` recursively, or by the literal string
+`updateKindHandlers = map`), not by a hardcoded path, so moving the fenced files one level
+deeper (into `nodes/Wiring/stdinreader`) left every one of them green with no edit. Proven
+with teeth, not just re-run clean:
+
+- Deleted the `"update": applyUpdate` entry from `editOps` in the moved `dispatch_edit.go`
+  → `check-edit-op-parity.sh` failed with `EMPTY extracted set for 'axis1 nodes/Wiring
+  ops' — sentinel block missing/renamed; refusing vacuous parity pass`, exit 1. Restored;
+  `git diff` empty afterward.
+- Renamed the `overlayAttrHandlers["toggle"]` key to `"toggleXX"` in the same file →
+  `check-input-attr-dispatched.sh` failed with `attr "toggle" on entity "overlays" is
+  DECODED but never DISPATCHED`, exit 1; `check-edit-op-parity.sh` stayed clean on this
+  probe (expected — that guard checks the KIND table, not the per-kind attr table).
+  Restored; `go build ./...` clean afterward.
+- Forced `points < 0` in place of the real `points < 4 || points > 64 || points%4 != 0`
+  range check inside the moved `applyUpdateScene` (`dispatch_apply.go`) →
+  `TestApplyUpdateSceneLatticePointsIgnoresInvalidCounts` failed by name with
+  `latticePoints=0: md.UI.LatticePoints changed to 0, want unchanged 24`. Restored;
+  `go build ./...` clean, full suite green afterward.
+- `check-doc-drift.sh` failed once, honestly, citing two now-broken references
+  (`.claude/rules/bridge-surface.md` and `nodes/PairNode/SPEC.md`, both naming the
+  pre-move `nodes/Wiring/dispatch/stdin_dispatch.go`/`stdin_apply.go` paths) — fixed by
+  rewording both to the new `nodes/Wiring/stdinreader/dispatch_edit.go`/
+  `dispatch_apply.go` paths, then re-ran clean.
+- `check-no-untracked-source.sh` failed once (the five new test files were untracked) —
+  fixed with `git add -N` on those five paths, then re-ran clean.
+
+**Attempted a deliberate break on `applyUpdateTiltVector`'s direction handling** (forced
+`up := false` regardless of `msg.Flag`) and could NOT find a test that fails by name: the
+one production caller that exercises this path end-to-end
+(`pair_self_drive_persist_test.go`'s `TestPairNodeSelfDrivePersistsThroughRealReload`)
+only asserts that node 2's `position.json` CHANGED after a tilt edit, not which direction
+it moved — it stayed green with the break in place. `nodes/Wiring/tiltvector`'s own test
+suite covers the channel/index primitives one layer below, not this handler's own
+direction-selection line. **Reported rather than silently accepted**: this is an
+uncovered moved surface — restored immediately (`up := msg.Flag == "up"`), confirmed
+`go build ./...` clean and the full suite green afterward, but no test in this codebase
+today can catch a sign flip specifically in `applyUpdateTiltVector`'s `up` computation.
+
+`check-composer-fields.sh`, `check-channel-names.sh`, `check-no-network-locks.sh`,
+`check-docs-symbols.sh`, `check-dep-rules.sh`, `check-persist-write-ownership.sh`,
+`check-scene-path-resolution.sh` all ran clean with no re-keying (none match the moved
+file/symbol names by content). Grepped `nodes/Wiring/stdinreader` for
+`runtime.Caller`/`filepath.Join("..", ...)`/`../..` — zero hits.
+
+### The no-package-under-Wiring-imports-dispatch loop — one expected line, not empty
+
+Running the loop from this task's own instructions verbatim now reports exactly one line:
+`DEPENDS ON DISPATCH: github.com/dtauraso/wirefold/nodes/Wiring/stdinreader` — this is the
+new, INTENDED edge from this task (see "What moved, what stayed" above), not a defect the
+loop caught. No other package under `nodes/Wiring/` appears.
+
+### Verification
+
+`go build ./...`, `go vet ./...`: clean. `go test -race -count=1 ./...`: every package `ok`
+or `[no test files]`, zero `FAIL`, zero race reports, including `nodes/Wiring/dispatch` and
+the new `nodes/Wiring/stdinreader` test files. `bash scripts/verify.sh`: `stop-checks:
+clean`, exit 0.
+
+### Final state and what did not get attempted
+
+`ls nodes/Wiring/dispatch/*.go | wc -l` → **69** (24 non-test + 45 test), down from 74 (27
+non-test + 47 test) — three non-test files left (`stdin_dispatch.go`, `stdin_apply.go`,
+`bool_u8.go`) and their two test files' worth of splits netted a two-file REDUCTION on the
+test side (47 → 45: `scene_lattice_edit_test.go` and `stdin_input_integration_test.go`
+deleted outright, replaced by new files that moved to `stdinreader`, minus the one new
+`scene_lattice_broadcast_test.go` that stayed). `nodes/Wiring/stdinreader` now holds 4
+non-test files (`stdin_reader.go`, `bool_u8.go`, `dispatch_edit.go`, `dispatch_apply.go`)
+and 5 test files.
+
+**The gesture cluster, the build/load cluster, and the "remainder" cluster (scene/persist
+wrappers, `viewpoint_state.go`, `scene_switch.go`, `vec_alias.go`, and the rest of the 24
+non-test files still in `dispatch`) were NOT attempted this session** — the stdin cluster's
+ctx-threading + real-import-cycle test-splitting cost the full session's remaining budget.
+This is a stop-at-a-committed-buildable-stage report, not a decline: `nodes/Wiring/dispatch`
+is still above the ≤31-file target (69, 24 non-test), and the task's own framing ("work all
+four groups... do not stop after one cluster") was not met this session. The next pass
+should start from the gesture cluster (§26's "23 stayed" list and this doc's own history
+already measured most of its bodies) rather than re-measuring the stdin cluster again.
+
+Commit: `0a7dcbf3` (stdin cluster move + ctx-threading + guard doc fixes + test splits).
