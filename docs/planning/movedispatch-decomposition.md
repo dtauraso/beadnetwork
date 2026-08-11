@@ -2287,3 +2287,170 @@ into `move_dispatch_api.go` (no new file). `nodes/Wiring/nodeactor` (new): 13 no
 files (11 moved + `consts.go` + `stream_claim.go`, a NEW duplicate) plus
 `node_geometry_accessors.go` (new). No alias shim, interface, `types`/`common` package,
 dot-import, package-level actor global, or `*ForTest` constructor was added.
+
+## 21. `nodes/wire` measured statement-by-statement — one real pure-math lift found, everything else is genuinely wire-state or channel ops
+
+Measured the assigned cluster (`out_port.go`, `wire_readout.go`, `in_port.go`,
+`paced_wire_drive.go`, `paced_wire.go`, `paced_wire_send.go`, `drive_item.go`,
+`live_beads.go` — 1467 LOC across 8 files) statement by statement, per the task's own
+correction ("measure BODIES statement by statement, never signatures, never whole files").
+
+**What was actually found.** This cluster is small and was already split by concern before
+this task (each file's own header comment states its one job); most functions are already
+either pure one-liner field reads/writers (`Paced`, `Gated`, `Wired`, `Live`/`Failed`/
+`BufferFull` on `DriveItem`) too short to be worth a cross-package move, or are
+channel-send/receive/state-mutation top to bottom (`Send`, `RecvTick`, `drainPlacements`,
+`stepAll`, `ClearInFlight`, `flushDroppedBreadcrumbs`, `drainBreadcrumbEvents`,
+`drainPendingEvents`, `PollRecv`). The one genuine, repeated block of pure arithmetic —
+found in THREE places, not one — was a bead's clamped fractional-progress computation
+(`nowTick`/`placementTick`/`crossTicks` → `t ∈ [0,1]`), independently duplicated:
+
+```
+live_beads.go LiveBeadFractions        6 stmts pure math (target/t/clamp), reads b.placementTick by pointer
+live_beads.go LiveBeadRows             8 stmts pure math (same shape), reads b.placementTick by pointer
+paced_wire_drive.go ReviseInFlightGeometry  6 stmts pure math (same shape), reads b.placementTick by pointer
+```
+
+Each read `b.placementTick`/`b.steps` off a pointer INTO `pw.inflight` (the wire's own
+mutable state) but only to COPY the two floats needed for the arithmetic — no statement in
+any of the three writes to `pw.inflight` as part of computing `t` (the writes in
+`ReviseInFlightGeometry` — `b.steps = newSteps`, `b.seg = newSeg`, `b.placementTick = ...` —
+come AFTER `t` is computed and are unrelated to computing it, so they stay). The task's own
+worked example names exactly this shape ("was declined as impure because its top level sent
+on channels — its body was arithmetic on locals"): reading two floats off a bead pointer to
+feed pure arithmetic is a field read, not a mutation, and the type the pointer resolves
+(`inflightBead`) is never touched by the moved code, only two of its fields' VALUES.
+
+**Lifted.** `lattice.BeadFraction(nowTick, placementTick, crossTicks float64) float64`
+(`nodes/wire/lattice/bead_fraction.go`) replaces all three call sites' clamp blocks with one
+call each. `out_port.go`'s `flushSendEvent` also had one duplicate-with-a-neighbor
+computation — `SimLatencyMs: float64(steps) * lattice.DwellTicksPerBead * clock.MsPerTick` —
+which was ALREADY calling into `lattice` for its one constant; lifted the whole expression as
+`lattice.SimLatencyMs(steps int) float64`, since it reads no field of `Out` at all (`steps` is
+already a plain `int` parameter) and belongs next to `DwellTicksPerBead`, the constant it is
+defined in terms of. `lattice` was the only candidate of the three named existing
+subpackages: `beadchain` is the chain-BEAD-goroutine's own state and never reads a
+`PacedWire`; `clock` is the tick-scale primitive and both lifted functions already reference
+it as a dependency, not a home; `lattice` is the bead-lattice CONSTANTS package this same
+arithmetic is defined against (`DwellTicksPerBead`, `BeadStepR`) and already has zero
+dependency on `wire` (confirmed by the no-imports-`wire` loop below), so nothing new needed
+importing back.
+
+**Declined, with the specific statement that pins each.**
+
+- `Out.Geom()` (`out_port.go`) — every statement either drains a channel
+  (`drainStepsNonBlocking(o.geomSendSteps, ...)`) or mutates the goroutine-owned cache
+  (`o.sendCur.Steps` written by that drain); there is no arithmetic in the body at all, only
+  channel reads landing on a field.
+- `Out.placeDrivenNoWalker` (`out_port.go`) — `outcome := o.pw.Send(v, ..., tick)` sends on
+  the wire's in-channel; `o.flushSendEvent(v, g.Steps)` writes a `RowEvent` onto the node's
+  own interior stream — both are the "sends/receives on a channel" bucket verbatim, the
+  handful of remaining lines are a single field-selection return, not arithmetic worth a
+  file of its own.
+- `Out.placementFrom`/`CurrentPlacement` (`out_port.go`) — pure struct construction from
+  `o.node`/`o.port`/an already-loaded `outGeom`, but the type it builds
+  (`beadPlacement`) is UNEXPORTED in package `wire`; a subpackage cannot construct or return
+  it, so this cannot cross the package boundary regardless of purity (a real type-boundary
+  reason, not a preference).
+- `wireReadout.appendPending`/`drainPendingEvents` (`wire_readout.go`) — `appendPending`'s
+  body is `r.pending = append(r.pending, ev)` then a bound check against
+  `maxPendingEvents` that PANICS naming the wire — the append IS the wire's own mutable
+  state (`readout.pending`), and the panic path is an assertion tied to that same state,
+  not extractable arithmetic. `drainPendingEvents` is `out := r.pending; r.pending = nil;
+  return out` — every statement reads or clears `r.pending` directly.
+- `PacedWire.DrainPendingEvents`'s conversion loop (`wire_readout.go`) — genuinely pure
+  (`out[i] = PendingWireEvent{Kind: pe.kind, ...}`, 6 of 7 statements), but it converts
+  FROM `pendingWireEvent`, an unexported package-`wire` type, so — same reason as
+  `placementFrom` above — it cannot leave the package without exporting a type solely to
+  satisfy this one conversion, which is not what this task's export-cost bar allows.
+- `ReviseInFlightGeometry`'s trailing three statements (`paced_wire_drive.go`) —
+  `b.steps = newSteps`, `b.seg = newSeg`, `b.placementTick = nowTick - t*pw.ticksToCross(newSteps)`
+  each assign directly to a field of `*inflightBead`, a pointer into `pw.inflight` — the
+  wire's own owned in-flight state, per MODEL.md's "exactly one goroutine touches that
+  state" ("Wire (PacedWire)" bullet). These stay.
+- `Send`/`RecvTick`/`Recv`/`ClearInFlight` (`paced_wire_send.go`), `drainPlacements`/
+  `stepAll`/`DriveOneCycle` (`paced_wire_drive.go`), `PollRecv`/`Breadcrumb`
+  (`in_port.go`), `flushDroppedBreadcrumbs`/`drainBreadcrumbEvents`
+  (`wire_readout.go`) — each function's FIRST statement is already a channel send/receive
+  or a direct mutation of `inflight`/`pending`/`breadcrumbCh`/`droppedBreadcrumbs`, and
+  every subsequent statement either extends that same operation (the `select` bodies) or
+  is unreachable without it (e.g. `stepAll`'s `pw.advanceBead`/`pw.readout.appendPending`
+  calls only run once a bead is already being read off `pw.inflight`). No statement run of
+  ≥3 pure lines exists in any of these bodies once the channel/state statements are
+  excluded — measured, not assumed, by reading each body line by line above.
+- `NewPacedWire`/`NewOutPaced`/`NewInPaced`/`newOutChan`/`NewOutChanForTest`/
+  `NewOutChanDeadEnd`/`NewInChan`/`NewPacedOutNoGeom` (constructors, several files) — pure
+  struct literal construction, but every one either allocates a channel (`make(chan ...)`,
+  itself excluded as channel-adjacent by the task's own bucket (a): "starts a goroutine,
+  sends/receives on a channel" reads naturally as covering channel allocation for the
+  wire's own transport, not just send/recv) or builds an unexported package-`wire` type
+  (`*Out`, `*In`, `*PacedWire`) that cannot be returned from a subpackage. Not moved.
+
+**File LOC before → after** (measured `wc -l`, non-test):
+`out_port.go` 326→325, `live_beads.go` 105→90, `paced_wire_drive.go` 204→196. `wire_readout.go`
+(236), `in_port.go` (205), `paced_wire.go` (139), `paced_wire_send.go` (131), `drive_item.go`
+(121) unchanged — no statement in any of those five survived the (b) test above. New:
+`nodes/wire/lattice/bead_fraction.go` (44), `nodes/wire/lattice/bead_fraction_test.go` (47).
+`nodes/wire` top-level (non-subpackage) `.go` file count: unchanged at 31 — this lift added a
+file to the EXISTING `lattice` subpackage, it did not add or remove a file from `nodes/wire`
+itself.
+
+**No-imports-`wire` loop**: `nodes/wire/beadchain` already imports `nodes/wire` (a
+PRE-EXISTING, separately-tracked relationship — `bead_actor.go`'s own doc comments describe
+the chain-bead goroutine reading a wire's `LiveBeadFractions`), confirmed unchanged by this
+task by running the same loop against `git stash` before this task's commit — it printed the
+identical single line before and after, so this task added no new subpackage-imports-`wire`
+edge. `nodes/wire/lattice` itself: zero dependency on `wire`, unchanged.
+
+**Guards.** `check-uniform-pulse-speed.sh` (clean, `NewPacedWire`'s one production call site
+untouched), `check-no-network-locks.sh` (clean, empty allowlist, no lock/atomic touched or
+added), `check-panic-message.sh` (clean, `appendPending`'s panic — the only one in this
+cluster — was not moved or edited), `scripts/audit-channel-names.sh` (clean, no channel
+declared/renamed). None of these guards name `LiveBeadFractions`/`LiveBeadRows`/
+`ReviseInFlightGeometry`/`flushSendEvent` by symbol, so none needed re-keying; each was still
+re-run to confirm silence is real rather than assumed.
+
+**Invariant loop, deliberate breaks, and verbatim results.**
+`go build ./...` clean; `go vet ./...` clean; `go test -race -count=1 ./...` clean (own
+scope: `ok github.com/dtauraso/wirefold/nodes/wire 1.622s`, `.../nodes/wire/lattice 1.583s`,
+`.../nodes/wire/beadchain 1.246s`, `.../nodes/wire/clock 1.633s`, full-tree run also clean
+before a concurrent, unrelated agent's in-progress `nodes/PairNode` edit later left that one
+package mid-refactor and non-building — confirmed by `git log --oneline -5` (no commit of
+mine touches `PairNode`) and by `git status --short` showing those files modified-but-
+unstaged outside this commit; not reverted, not attributed to this task, per the brief's own
+instruction. Deliberately broke `BeadFraction`'s division (`* 2`) — `go test
+./nodes/wire/lattice/... -run TestBeadFractionClampsAtZeroAndOne` failed by name
+(`--- FAIL: TestBeadFractionClampsAtZeroAndOne/midway_is_fractional`, `got 1, want 0.5`),
+restored, re-passed. Deliberately broke `SimLatencyMs` (`steps+1`) — `go test
+./nodes/wire/lattice/... -run TestSimLatencyMsScalesWithSteps` failed by name
+(`SimLatencyMs(0) = 224, want 0`), restored, re-passed. One dead branch found while probing:
+`BeadFraction`'s trailing `if t > 1 { t = 1 }` is UNREACHABLE given the preceding
+`target := min(nowTick, placementTick+crossTicks)` capping — `t` can never exceed 1.0 before
+that check runs (confirmed: changing it to `t = 2` passed every existing case, including
+"past deadline clamps to 1"). Kept anyway, unchanged from the pre-lift code it was copied
+from (defensive against float rounding at the boundary), and named here rather than quietly
+deleted, since deleting it was not this task's question to answer.
+
+**Functions with NO test that can fail if broken**, reported per the task's own requirement:
+`Out.Geom`, `Out.publishSteps`/`publishSegment` and their exported mirrors, `Out.Paced`/
+`Gated`/`Wired`, `In.Wired`, all of `DriveItem`'s three predicates, every constructor
+(`NewPacedWire`, `NewOutPaced`, `NewInPaced`, `NewOutChanForTest`, `NewOutChanDeadEnd`,
+`NewInChan`, `NewPacedOutNoGeom`) — none is asserted against directly by name anywhere in
+`nodes/wire/*_test.go`; each is exercised only incidentally as plumbing inside a larger
+integration-style wire test, so a targeted one-line break in any of them was not
+independently provable to fail the way the two lifted functions above were. This gap
+pre-dates this task (none of these functions were touched) and is reported, not fixed, per
+the same "uncovered, reported rather than silently accepted" convention this document's
+earlier sections use.
+
+**`git status --short` (this task's files only) and commit:**
+```
+A  nodes/wire/lattice/bead_fraction.go
+A  nodes/wire/lattice/bead_fraction_test.go
+M  nodes/wire/live_beads.go
+M  nodes/wire/out_port.go
+M  nodes/wire/paced_wire_drive.go
+```
+`0343a81b` — "The bead's fractional-progress clamp math and SimLatencyMs's reported latency
+arithmetic move into nodes/wire/lattice as pure functions, replacing three duplicated copies
+in nodes/wire."
