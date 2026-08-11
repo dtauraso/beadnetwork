@@ -707,6 +707,40 @@ are now 4 (`ResolveSceneDistanceGroups`/`LoadOverlays`/`LoadSpeed`/`EnableSceneS
 each blocked for a genuine reason unrelated to `uiState` (each reaches at least one more
 owner beyond `md.UI`, in a file outside this lift's scope).
 
+**Correction (6e below): that "reaches ≥1 more owner beyond `md.UI`" measurement was the
+`emitViewFrame` delegator itself** — a one-line forward left behind by this same lift,
+counted as a second owner. Once it was deleted, three of the four (`ResolveSceneDistanceGroups`/
+`LoadOverlays`/`LoadSpeed`) reach exactly one owner (`md.UI`) and were kept anyway because
+each does real multi-step work beyond forwarding; only `EnableSceneSwitch` was a pure
+two-field forward and was deleted.
+
+## 6e. `emitViewFrame` delegator deleted; `EnableSceneSwitch` deleted, the other three kept
+
+The `emitViewFrame` delegator 6d left behind (`func (md *MoveDispatch) emitViewFrame(events
+[]wire.RowEvent) { md.UI.EmitViewFrame(events) }`, `view_stream.go`) was deleted; its ~30
+in-package call sites now call `md.UI.EmitViewFrame(...)` directly. That resolved the "reaches
+≥1 more owner beyond `md.UI`" reason 6d gave for all four remaining export-blocked methods —
+each of them touched `md.UI` plus the now-gone `md.emitViewFrame`, so once that delegator was
+gone each touched only ONE owner. Re-measuring what each actually does, not just what it
+touches:
+
+- **`ResolveSceneDistanceGroups`** (`distance_groups.go`) — three separate `scene.*` lookups
+  (`SceneHasDistanceGroups`/`SceneIsEditable`/`SceneKindMask`) each assigned to a different
+  `md.UI` field. Real logic (three independent computed values), not a forward. **Kept.**
+- **`LoadOverlays`** (`scene_overlays_persist.go`) — loads `overlays.json`, installs it via
+  `md.UI.OV.SetGuideVisibility`, then emits a 13-event VIEW frame by hand. Real logic. **Kept.**
+- **`LoadSpeed`** (`scene_speed_persist.go`) — loads `speed.json`, sets two `md.UI` fields,
+  computes the effective speed, and broadcasts it to every speed sink before emitting a VIEW
+  frame. Real logic. **Kept.**
+- **`EnableSceneSwitch`** (`scene_switch.go`) — was exactly two field assignments
+  (`md.Scenes.AnchorPath = anchorPath; md.Scenes.Quit = quit`), nothing else. A pure forward
+  onto the already-exported `md.Scenes` field. **Deleted** — its one caller
+  (`runtopology/topology_run.go`) now sets `md.Scenes.AnchorPath`/`md.Scenes.Quit` directly.
+
+`MoveDispatch` method count and export-blocked count: see the commit report for before/after
+numbers (this doc is not a status board; the count is a measurement made once, not tracked
+here going forward).
+
 ## 6a. Original decline (superseded above, kept as the record of what was measured wrong)
 
 Attempted to lift the nine gesture+view files, `uiState`/`viewpointState`/`gestureState`/

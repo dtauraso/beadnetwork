@@ -34,7 +34,8 @@ func armedDispatch(t *testing.T, anchor string) (*MoveDispatch, *bool) {
 	t.Helper()
 	md := &MoveDispatch{tr: T.New()}
 	quit := false
-	md.EnableSceneSwitch(anchor, func() { quit = true })
+	md.Scenes.AnchorPath = anchor
+	md.Scenes.Quit = func() { quit = true }
 	return md, &quit
 }
 

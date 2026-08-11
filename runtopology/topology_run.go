@@ -68,7 +68,8 @@ func RunTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 	// against — it is the one path that is the same whichever tab is showing. cancel ends
 	// this run; the extension host's runner is looping, so it respawns against the same
 	// anchor and this function re-resolves the newly selected scene above.
-	md.EnableSceneSwitch(topologyPath, cancel)
+	md.Scenes.AnchorPath = topologyPath
+	md.Scenes.Quit = cancel
 
 	// Launch the per-node and per-edge move-handler goroutines (decentralized
 	// node-move: each node/edge drains its own inbox and recomputes its own geometry).

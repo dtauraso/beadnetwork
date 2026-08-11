@@ -2,13 +2,14 @@
 // decomposition), as a pure move (no logic changes): SceneSwitch is MoveDispatch's half
 // of scene-tab switching — the anchor to persist against, and the way to end this process
 // so the runner's looping respawn loads the newly selected scene. Both AnchorPath/Quit are
-// zero/nil until EnableSceneSwitch (nodes/Wiring/scene_switch.go) arms them, so a bare
-// test-constructed MoveDispatch cannot exit anything.
+// zero/nil until runtopology/topology_run.go sets md.Scenes.AnchorPath/md.Scenes.Quit
+// directly (the exported field, no method — EnableSceneSwitch, a pure two-field forward,
+// was deleted), so a bare test-constructed MoveDispatch cannot exit anything.
 //
-// The surrounding logic (SceneTabs, EnableSceneSwitch, SelectScene, structural-edit
-// handling) stays in package Wiring: it is genuine orchestration referencing
-// Wiring-only state (SceneTabs, persistence helpers), not a thin delegator to this type,
-// so only the plain data this struct holds moves here.
+// The surrounding logic (SceneTabs, SelectScene, structural-edit handling) stays in
+// package Wiring: it is genuine orchestration referencing Wiring-only state (SceneTabs,
+// persistence helpers), not a thin delegator to this type, so only the plain data this
+// struct holds moves here.
 package sceneswitch
 
 // SceneSwitch is MoveDispatch's half of scene-tab switching: the anchor to persist the

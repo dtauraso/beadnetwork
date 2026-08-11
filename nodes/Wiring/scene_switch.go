@@ -1,7 +1,11 @@
-// scene_switch.go — the two *MoveDispatch methods that PERFORM a tab switch: arming it
-// (EnableSceneSwitch) and carrying out a click (SelectScene). The tab registry lives in
-// scene/scene_tabs.go; anchor/path resolution against the persisted selection lives in
-// scene_selection.go.
+// scene_switch.go — SelectScene, the *MoveDispatch method that CARRIES OUT a tab-click.
+// The tab registry lives in scene/scene_tabs.go; anchor/path resolution against the
+// persisted selection lives in scene_selection.go. Arming the switch (formerly
+// EnableSceneSwitch, a pure two-field forward onto md.Scenes) was deleted — md.Scenes is
+// exported, so its one caller (runtopology/topology_run.go) sets
+// md.Scenes.AnchorPath/md.Scenes.Quit directly, before the stdin reader starts — the
+// view-owner goroutine is the only caller of SelectScene, so those fields are written
+// once, before that goroutine exists.
 package Wiring
 
 import (
@@ -13,15 +17,6 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/sceneswitch"
 )
-
-// EnableSceneSwitch arms tab switching. quit ends the run (main's context cancel), which
-// the extension host's looping runner follows with a respawn. Called from main.go after
-// load, before the stdin reader starts — the view-owner goroutine is the only caller of
-// SelectScene, so this field is written once, before that goroutine exists.
-func (md *MoveDispatch) EnableSceneSwitch(anchorPath string, quit func()) {
-	md.Scenes.AnchorPath = anchorPath
-	md.Scenes.Quit = quit
-}
 
 // SelectScene handles a tab click: persist, then end the run so the respawn loads it.
 // Selecting the tab already showing is a no-op — restarting the sim to arrive at the same

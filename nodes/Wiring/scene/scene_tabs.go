@@ -15,9 +15,10 @@
 // selects) is what makes the selection readable before any scene has been chosen — a
 // selection stored inside scene B would be unreachable while scene A is loaded.
 //
-// This package holds the pure tab data and path resolution; the switch itself (the two
-// *MoveDispatch methods, EnableSceneSwitch/SelectScene) lives in package Wiring's
-// scene_switch.go, since a method on another package's type cannot live here.
+// This package holds the pure tab data and path resolution; the switch itself (the
+// *MoveDispatch method SelectScene, plus runtopology/topology_run.go setting
+// md.Scenes.AnchorPath/md.Scenes.Quit directly) lives in package Wiring's scene_switch.go,
+// since a method on another package's type cannot live here.
 //
 // HOW THE SWITCH HAPPENS — no in-process teardown, and no new TS restart path. SelectScene
 // persists the new selection and asks the process to end. runCommand.ts's runner is already
