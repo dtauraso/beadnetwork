@@ -80,12 +80,14 @@ func TestSetNodeStreamsResolvesPerNodeKindID(t *testing.T) {
 		return nil
 	}
 
-	// SetNodeStreams is the real exported production entry point (move_streams.go);
-	// nodeBase/interiorBase/driveBase are arbitrary — the underlying os.NewFile calls
-	// never need a live fd, since fire-and-forget writes on an invalid fd simply fail
+	// md.Sw.SetNodeStreams is the real exported production entry point (streamwire package,
+	// called directly by runtopology/node_stream.go since MoveDispatch's own SetNodeStreams
+	// forward was deleted — docs/planning/movedispatch-decomposition.md, the remainder
+	// cluster); nodeBase/interiorBase/driveBase are arbitrary — the underlying os.NewFile
+	// calls never need a live fd, since fire-and-forget writes on an invalid fd simply fail
 	// silently (this bridge's own documented posture), and buildFrame above is called
 	// regardless of write success.
-	md.SetNodeStreams(1000, 2000, 0, false, md.RT.NodeRowFor, buildFrame, buildInteriorFrame, kindIDFor)
+	md.Sw.SetNodeStreams(md.GS.NodeSeeds, md.MR.NodeGeoms(), 1000, 2000, 0, false, md.RT.NodeRowFor, buildFrame, buildInteriorFrame, kindIDFor)
 
 	src, ok := md.MR.NodeGeoms()["1"]
 	if !ok {

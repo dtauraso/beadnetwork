@@ -51,7 +51,7 @@ func wireEdgeStreams(streamFDs SF.StreamFDs, md *W.MoveDispatch) {
 		// Edge selection is no longer an injected lookup: each edgeMover owns its OWN
 		// selected bit, set via a moveMsgKindSelect message the gesture goroutine sends
 		// on select/deselect (MoveDispatch.sendEdgeSelect).
-		md.SetEdgeStreams(edgeBase, md.RT.NodeRowFor,
+		md.Sw.SetEdgeStreams(md.GS.EdgeSeeds, md.MR.EdgeMovers(), edgeBase, md.RT.NodeRowFor,
 			func(tick uint32, sx, sy, sz, ex, ey, ez float32, selected uint8, label string, events []wire.RowEvent) []byte {
 				return SF.BuildEdgeStreamFrame(tick, sx, sy, sz, ex, ey, ez, selected, label, toStreamEvents(events))
 			})
