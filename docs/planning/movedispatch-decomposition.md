@@ -4321,3 +4321,207 @@ doc's summary.
 Commits: `2495a7d6` (gesture cluster moves to `nodes/Wiring/gesture`, ctx threaded as
 `Deps.Ctx`), `9e5e23d2` (removes the six now-empty-of-purpose old file paths in `dispatch`
 the first commit's pathspec missed).
+
+## §32 — the build/load cluster moves to `nodes/Wiring/build`; the remainder cluster (16
+files) NOT attempted — a test-helper coupling this doc's own arithmetic did not anticipate
+ran out the session
+
+### Partition table (19 non-test files in `dispatch` before this pass)
+
+- **build/load cluster (4 files)**: `build.go`, `loader.go`, `build_move_dispatch.go`,
+  `build_nodes.go` — **MOVED** to `nodes/Wiring/build`.
+- **stays in `dispatch` on purpose (1 file)**: `move_dispatch_construct.go` —
+  `NewMoveDispatch` (renamed from `newMoveDispatch`, exported) reads `md.tapToInstall`
+  directly in its own struct literal + `WireMessaging` call, so per the task's own
+  constraint ("do NOT export `tapToInstall`") the CONSTRUCTOR cannot move even though its
+  one caller (`buildMoveDispatch`) did. This is exactly the open question the task brief
+  flagged in advance ("measure, don't assume") — measured, and it stays.
+- **remainder (14 files)**: `distance_groups.go`, `gesture_dispatch.go`, `move_dispatch.go`,
+  `move_dispatch_api.go`, `move_persist.go`, `move_streams.go`, `scene_lattice_persist.go`,
+  `scene_overlays_persist.go`, `scene_speed_persist.go`, `scene_sphere_persist.go`,
+  `scene_structure.go`, `scene_switch.go`, `vec_alias.go`, `viewpoint_state.go` — **NOT
+  attempted this pass** (see below).
+
+### `buildCtx`/`buildFromSpec`/`LoadTopology` — (a)/(b) classification
+
+Per-statement classification found the SAME result across `build.go`/`loader.go`/
+`build_move_dispatch.go`/`build_nodes.go`: every field access on the `*MoveDispatch` these
+phases construct or extend was either a write to `buildCtx`'s OWN unexported fields
+(bucket (a), but `buildCtx` is a build-phase-only struct that travels WITH this cluster per
+the task's own framing — "moving the type moves its methods") or a call through an
+already-exported `MoveDispatch` sub-object (`b.md.MR`, `b.md.UI`, `b.md.RT`, `b.md.Sw`,
+`b.md.Inboxes` — all exported since §28/§29). The one call that reaches an UNEXPORTED
+symbol is `newMoveDispatch` itself (`build_move_dispatch.go`'s `buildMoveDispatch`) — bucket
+(a) against a symbol that stayed behind, resolved by exporting the callee (`NewMoveDispatch`)
+rather than by not moving the caller, since the callee's own body is what touches
+`tapToInstall`, not the caller's.
+
+### What moved where
+
+New package `nodes/Wiring/build` (4 files, unchanged names): `build.go`, `loader.go`,
+`build_move_dispatch.go`, `build_nodes.go`. Every `MoveDispatch`/`vec3`/`wireSegment` bare
+reference became `dispatch.MoveDispatch`/`wire.Vec3`/`wire.WireSegment` (the local
+`vec_alias.go` aliases only existed for in-package brevity; the new package spells the
+underlying `nodes/wire` types directly rather than re-declaring its own alias pair — one
+copy, not two). `move_dispatch_construct.go`'s `newMoveDispatch` → `NewMoveDispatch`
+(rename, exported) is the ONE new capability crossing the boundary; its body is
+byte-identical. `vec_alias.go`'s `wireSegment` alias — used only by the moved `build.go` —
+was deleted from `dispatch` as dead weight rather than travelling with a file it no longer
+appears in; `vec3` stays (still ~200 in-package call sites).
+
+### Dependency direction
+
+New edge: `build → dispatch` (constructs `*dispatch.MoveDispatch`, calls
+`dispatch.NewMoveDispatch`). Same caller-depends-on-callee shape as §30's
+`stdinreader → dispatch` and §31's `dispatch → gesture`. Confirmed no cycle: the
+no-package-under-Wiring-imports-dispatch loop (§30) now reports exactly two lines —
+`nodes/Wiring/build` (new, this task) and `nodes/Wiring/stdinreader` (§30) — `gesture`
+still does not appear (it is the one edge running the OTHER direction, unaffected).
+
+### `newMoveDispatch` must stay; here is what actually stays with it
+
+`NewMoveDispatch` is the composition root's OWN constructor — it reads `md.tapToInstall`
+(forbidden to export) inside the exact struct literal that builds `*MoveDispatch`, so per
+the task's stated rule this one function cannot leave package `dispatch` no matter how thin
+its caller becomes. Nothing else in the 4-file cluster shares that property — every other
+statement in `build.go`/`loader.go`/`build_move_dispatch.go`/`build_nodes.go` reached only
+`buildCtx`'s own fields or already-exported `MoveDispatch` sub-objects — so exactly ONE
+file (`move_dispatch_construct.go`, already present, now with one renamed export) stays
+behind for this reason, not a family of leftover phases.
+
+### A coupling this doc's own arithmetic did not price in: `LoadTopology` is a TEST FIXTURE, not just a production entry point
+
+The build/load cluster's own 4 files compiled clean immediately. What actually cost the
+session was every OTHER call site of `LoadTopology`/`newMoveDispatch` across the whole
+repo, most of them tests: **16 test files** (7 in package `dispatch` calling it directly,
+2 already `package dispatch_test` calling it qualified, plus 5 root/other-package test
+files calling it qualified as `Wiring.LoadTopology`, plus `nodes/TimeEnd`'s and
+`nodes/Wiring/stdinreader`'s own copies) had to be updated to call `build.LoadTopology`
+instead. Of the 7 in-package callers, TWO share a further wrinkle only found by trying to
+compile them: `loadTreeMD`/`writeTree` (`scene_edit_persist_test.go`'s own local helpers)
+are each used by **7 additional sibling test files** in the SAME package that do not
+themselves call `LoadTopology` by name — they call the HELPER, which does. Converting the
+one file that DEFINED the helper to `package dispatch_test` (required, since it now needs
+`build.LoadTopology`) silently broke all 7 siblings (`undefined: loadTreeMD`), a second-order
+break this doc's own "convert the caller" framing did not anticipate. Fixed by moving the
+canonical, still-unexported `writeTree` into `wire_test_helpers_test.go` (package
+`dispatch`, alongside `writeSpecTree`/`writeTreeFile`) with a `_test.go`-only exported
+`WriteTree` wrapper (same precedent as `WriteSpecTree`), and converting each of the 7
+siblings' OWN package line to `dispatch_test` too, once it turned out `loadTreeMD` itself
+(not just `writeTree`) needed the same treatment for the same reason (it calls
+`LoadTopology`). Two more test-only exports were added for the same "in-package helper an
+external file now needs" reason: `WriteTreeFile` (wraps `writeTreeFile`) and
+`QuantizedDragTarget` (wraps the renamed `quantizedDragTargetImpl`, replacing the now-dead
+unexported `quantizedDragTarget` wrapper — `staticcheck` caught the dead one, U1000, before
+this was cleaned up). `distance_groups_test.go`/`distance_groups_scene_test.go` additionally
+read `md.ctx` (unexported) directly in an `ApplyDistanceGroupTarget` call; since `md.ctx` is
+provably `nil` in both (neither test ever calls `md.Start`), the call sites now pass
+`context.Background()` instead — behaviorally identical (`ApplyDistanceGroupTarget` only
+uses `ctx.Done()` for cancellation, never exercised by either test), not a weakening.
+`scene_edit_persist_test.go` also called a THIRD in-package-only test helper
+(`loadSceneViewpoint`, `camera_viewpoint_test_helper_test.go`) — resolved without exporting
+anything new, by switching that one call site to the already-exported, already-identical
+production sibling `scenecamera.LoadSceneViewpoint` (the local helper's own doc comment
+already documented it as "a test-only duplicate of `nodes/Wiring/scenecamera`'s
+`LoadSceneViewpoint`, kept here" for the opposite-direction cycle — this call site simply
+didn't need the duplicate).
+
+None of this reached genuinely NEW test surface: every converted file's assertions are
+byte-identical, just re-qualified (`LoadTopology` → `build.LoadTopology`,
+`MoveDispatch`/`vec3`/`ApplyDistanceGroupTarget`/`DistanceGroupLens`/`NewMoveDispatch` →
+`dispatch.X`, `writeSpecTree`/`writeTreeFile`/`writeTree`/`quantizedDragTarget` →
+`dispatch.WriteSpecTree`/`WriteTreeFile`/`WriteTree`/`QuantizedDragTarget`).
+
+### Test-name parity
+
+`grep -oE '^func Test[A-Za-z0-9_]+' nodes/Wiring/{dispatch,kindapi,stdinreader,gesture,build}/*_test.go`
+→ **110**, unchanged from §31's baseline — no test was moved OUT of the fingerprint set
+(every one of the 16 files above stayed physically in `nodes/Wiring/dispatch/`; only their
+`package` line and call-site qualification changed), none renamed, dropped, weakened, or
+`t.Skip`ped.
+
+### Verify
+
+`go build ./...`, `go vet ./...`: clean. `go test ./...`: every package `ok` or
+`[no test files]`. `go test -race -count=1 ./...`: every package `ok` or `[no test files]`,
+zero `FAIL`, zero race reports, including `nodes/Wiring/dispatch` and the new
+`nodes/Wiring/build` (`[no test files]` there — the moved tests all stayed keyed to
+`nodes/Wiring/dispatch`'s own `LoadTopology` fixtures, now qualified). `bash
+scripts/stop-checks.sh`: clean (empty stdout) after fixing three findings it caught that a
+bare `go build`/`go vet` pass did not — `staticcheck` (`wireSegment`/`quantizedDragTarget`
+dead code, both above), `gofmt` (one misordered import block in
+`created_node_loads_test.go`), and `check-doc-drift.sh` (four stale
+`nodes/Wiring/dispatch/loader.go` references in `CLAUDE.md`, `MODEL.md`,
+`memory/feedback/architecture/feedback_schema_parser_parity.md`,
+`tools/topology-vscode/ARCHITECTURE.md` — all reworded to `nodes/Wiring/build/loader.go`).
+
+Deliberate break: commented out `topoderive.ComputeReachRadii(b.spec, b.nodeGeoms)` in the
+moved `build.go`. `go test ./nodes/Wiring/dispatch/... -run TestLoadTopologyComputesReachRadii -v`
+failed exactly that test (`node 1 ReachR = 0, want 50`) — confirming the moved production
+code and its moved-along coverage still connect across the new package boundary. Restored;
+`go build ./...` clean, `bash scripts/stop-checks.sh` clean afterward.
+
+### Guards
+
+Grepped `tools/` for `build.go`/`loader.go`/`newMoveDispatch`/`buildCtx`/`buildFromSpec` —
+one hit, `tools/docs/check-comment-vocab.sh`, which names `loader.go` only inside a
+descriptive comment (not a path match it enforces); no guard needed re-keying.
+`check-persist-write-ownership.sh`, `check-scene-path-resolution.sh` (does not name
+`loader.go` — it names `loader_tree.go`, a DIFFERENT file in `nodes/Wiring/loadspec`, unmoved
+and unaffected), `check-no-network-locks.sh` (allowlist stayed empty), `check-channel-names.sh`,
+the stream-fd guards, `check-composer-fields.sh`, `check-docs-symbols.sh`,
+`check-no-untracked-source.sh`, `check-generated.sh` all ran clean inside `stop-checks.sh`
+with no re-keying. Grepped every file in `nodes/Wiring/build` for `runtime.Caller`,
+`filepath.Join("..", ...)`, `../..` — zero hits (the one `runtime.Caller`-based test helper
+touched this pass, `repoRootForDistanceGroupsTest` in `distance_groups_test.go`, did NOT
+change file location — only its `package` line changed — so its depth-3 relative path is
+still correct and was left alone).
+
+### Which moved surface has no test that can fail
+
+Not found this pass — the one deliberate break above (`ComputeReachRadii`) failed a named
+test immediately, and every other statement in the 4 moved files was already covered by
+`build_load_derive_test.go` (the other reach/quantized-layout gap this doc's own history
+already closed) or by the wider node-move/vector-channel/speed-delivery suites that also
+moved to calling `build.LoadTopology`.
+
+### Final state and what did not get attempted
+
+`ls nodes/Wiring/dispatch/*.go | wc -l` → **58** (15 non-test + 43 test), down from 62
+(19 non-test + 43 test — the test count is UNCHANGED because every moved test stayed
+physically in this directory, only re-packaged; the reduction is 4 non-test files only).
+Target is ≤31; still well above it. **The remainder cluster (14 files:
+`distance_groups.go`, `gesture_dispatch.go`, `move_dispatch.go`, `move_dispatch_api.go`,
+`move_persist.go`, `move_streams.go`, `scene_lattice_persist.go`, `scene_overlays_persist.go`,
+`scene_speed_persist.go`, `scene_sphere_persist.go`, `scene_structure.go`, `scene_switch.go`,
+`vec_alias.go`, `viewpoint_state.go`) was NOT attempted this session** — the build/load
+cluster's own test-helper coupling cascade (above) cost the full remaining budget. This is a
+stop-at-a-committed-buildable-stage report, not a decline.
+
+Measured (not attempted) for the next pass: every remaining `*MoveDispatch` METHOD in this
+list reads/writes ONLY already-exported sub-objects (`md.MR`, `md.UI`, `md.Scenes`,
+`md.Persist`, `md.RT`, `md.Sw`, `md.Inboxes`, `md.GS`) — e.g. `EnableViewpointPersist`
+touches only `md.Persist`/`md.UI.VP`, `CreateNode`/`DeleteNode` touch only `md.Scenes`/
+`md.UI`/`md.MR`/`md.RT` — so each CAN become a free function taking those sub-objects
+directly (no `*dispatch.MoveDispatch` parameter at all, avoiding any import of `dispatch`
+and therefore any cycle regardless of direction), with a thin delegator method LEFT ON
+`MoveDispatch` in `dispatch` (mirroring `gesture_dispatch.go`'s existing
+`HandleRawInput`/`NodeSelfDriven`/`HasNodeMover` precedent) so every current external
+caller (`runtopology/scene_state.go`, `nodes/Wiring/stdinreader/dispatch_apply.go`) needs NO
+signature change. The one exception is `move_streams.go`'s `SetMsgTap` (writes
+`md.tapToInstall`, must stay a `MoveDispatch` method in `dispatch`) and
+`move_dispatch_api.go`'s `Start` (writes `md.ctx`, same). `distance_groups.go`'s
+`DistanceGroupLens` must ALSO stay in `dispatch` specifically (not because of an unexported
+field, but because `move_dispatch_construct.go`'s `NewMoveDispatch` — which stays — calls it
+to bind `md.UI.DistanceGroupLensFn`; moving it would require `dispatch` to import whatever
+package it moved to, which would import `dispatch` back for its `MoveDispatch`-method
+delegator, a real cycle). `move_dispatch.go` (the `MoveDispatch` struct itself) stays as the
+composition root regardless. The next pass should start by confirming this measurement
+against fresh reads (this doc's own history has been wrong before when trusted over
+re-measuring) rather than re-deriving it, and should budget for the SAME test-helper-cascade
+risk this pass hit — check every remaining file's test siblings for shared unexported
+fixture helpers BEFORE converting the first one's package line.
+
+Commit: `d15bda9e` (build/load cluster moves to `nodes/Wiring/build`, `NewMoveDispatch`
+exported, 16 test-fixture call sites re-qualified, test-helper cascade fixed, guards
+re-verified).
