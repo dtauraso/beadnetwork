@@ -1,11 +1,13 @@
 package Wiring
 
 import (
+	"context"
 	"math"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
+	"github.com/dtauraso/wirefold/nodes/Wiring/rowtables"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -66,7 +68,7 @@ func (md *MoveDispatch) updateHover(ev inputcodec.RawInputMsg, tr *T.Trace) {
 			node = n
 		}
 	}
-	if events, changed := md.setHover(node, "", false, tr); changed {
+	if events, changed := setHover(&md.ui, &md.mr, md.ctx, &md.RT, node, "", false, tr); changed {
 		md.emitViewFrame(events)
 	}
 }
@@ -160,16 +162,16 @@ func (md *MoveDispatch) applyNodeDragTarget(ev inputcodec.RawInputMsg) bool {
 // hover RowEvent to emit; the caller (the view-owner goroutine) emits it — this method
 // itself never calls emitViewFrame, per docs/planning/movedispatch-decomposition.md's
 // write-then-emit split.
-func (md *MoveDispatch) setHover(node, port string, isInput bool, tr *T.Trace) (events []wire.RowEvent, changed bool) {
-	if node == md.ui.sel.HoverNode && port == md.ui.sel.HoverPort && isInput == md.ui.sel.HoverInput {
+func setHover(ui *uiState, mr *moverRegistry, ctx context.Context, RT *rowtables.RowTables, node, port string, isInput bool, tr *T.Trace) (events []wire.RowEvent, changed bool) {
+	if node == ui.sel.HoverNode && port == ui.sel.HoverPort && isInput == ui.sel.HoverInput {
 		return nil, false // no change → no re-emit (dedupe)
 	}
-	// ui_state.go's setHoverUI is the AUTHORITATIVE write: it sets md.ui.sel's hover
+	// ui_state.go's setHoverUI is the AUTHORITATIVE write: it sets ui.sel's hover
 	// fields (mutated only by this goroutine) and MESSAGES the affected
 	// node(s) to set their OWN hovered bit — no shared/republished map.
-	md.ui.setHoverUI(func(id string, msg movemsg.Msg) { sendMove(&md.mr, md.ctx, id, msg) }, node, port, isInput)
+	ui.setHoverUI(func(id string, msg movemsg.Msg) { sendMove(mr, ctx, id, msg) }, node, port, isInput)
 	nodeRow := int32(-1)
-	if r, ok := md.RT.NodeRowFor(node); ok {
+	if r, ok := RT.NodeRowFor(node); ok {
 		nodeRow = r
 	}
 	// portRow is always -1: a port has no buffer row of its own any more
