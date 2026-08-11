@@ -23,8 +23,10 @@ ALLOWED = {
     # waitForCenterSettle polls another goroutine's already-written position after a
     # synchronous dispatch call, bounded by a 200ms deadline -- not a per-cycle pacing loop,
     # and already flagged in its own doc comment for deletion once dispatch stops measuring
-    # across goroutines (see the comment above ApplyDistanceGroupTarget's call site).
-    ("nodes/Wiring/distance_groups.go", "time.Sleep(time.Millisecond)"),
+    # across goroutines (see the comment above ApplyTarget's call site). Moved from
+    # nodes/Wiring/distance_groups.go to nodes/Wiring/distancegroups/distance_groups.go
+    # (god-object decomposition) -- same site, new path.
+    ("nodes/Wiring/distancegroups/distance_groups.go", "time.Sleep(time.Millisecond)"),
 }
 
 hits = []

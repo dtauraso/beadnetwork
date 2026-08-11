@@ -1,51 +1,40 @@
 // distance_groups.go — the "distance home button" toolbar panel's Go-owned controller.
 //
-// Three named groups of node-pair distances (GATE definitions below, node ids are the
-// string ids from topology/nodes/<id>). Each pair is (source, target) taken from the
-// bead edge's direction; the TARGET node is the one that moves. Clicking a group's up
-// arrow sets that group's target length L = currentMax*1.1 (down: currentMax/1.1),
-// where currentMax is the max over the group's pairs of |center(target)-center(source)|
-// (mirrors reachRFromPolar's max-over-edges loop, quantized_move.go). Then EVERY pair in
-// the group is repositioned so its length becomes L, in FLAT LIST ORDER — a target node
-// that appears in two pairs (gate group: 8 is the target of both (3,8) and (5,8); 9 of
-// both (5,9) and (7,9)) ends at the LAST pair's placement. This is intended and
-// accepted (per the agreed model): there is no tree/graph solver, no averaging, no
-// equal-radii resolve for a shared target.
+// Three named groups of node-pair distances (GATE definitions in
+// nodes/Wiring/distancegroups, node ids are the string ids from topology/nodes/<id>). Each
+// pair is (source, target) taken from the bead edge's direction; the TARGET node is the one
+// that moves. Clicking a group's up arrow sets that group's target length L = currentMax*1.1
+// (down: currentMax/1.1), where currentMax is the max over the group's pairs of
+// |center(target)-center(source)| (mirrors reachRFromPolar's max-over-edges loop,
+// quantized_move.go). Then EVERY pair in the group is repositioned so its length becomes L,
+// in FLAT LIST ORDER — a target node that appears in two pairs (gate group: 8 is the target
+// of both (3,8) and (5,8); 9 of both (5,9) and (7,9)) ends at the LAST pair's placement. This
+// is intended and accepted (per the agreed model): there is no tree/graph solver, no
+// averaging, no equal-radii resolve for a shared target.
 //
 // The repositioning itself reuses lq.RootMove exactly as the drag tests call it
 // programmatically (abc_drag_count_target_node_test.go) — RootMove already routes the
 // move to the target node's OWN goroutine, commits via commitNodeMoveLocal, and
 // rebroadcasts geometry so incident edges' segments recompute and redraw. This file adds
 // no new position/commit path.
+//
+// The GROUP TABLE and the MAX/LENS/APPLY math live in nodes/Wiring/distancegroups
+// (god-object decomposition): those functions only ever needed "read a node's live center"
+// and "move a node's target" through *moverRegistry/*layoutQuantizer, both unexported Wiring
+// actor types — so they now take centerOf/rootMove as plain func values, bound to the real
+// actor methods here, the same bound-func-value pattern move_dispatch_construct.go already
+// uses (`ng.msg.sendMove = md.mr.enqueueFor(ng)`). This file is left holding exactly the
+// parts that read/write MoveDispatch's own actor state: the ResolveSceneDistanceGroups
+// writer, and the two thin wrappers that bind centerOf/rootMove and forward.
 package Wiring
 
 import (
 	"context"
-	"time"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/distancegroups"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
 )
-
-// distancePair is one (source, target) bead-edge pair; TARGET is the node that moves.
-type distancePair struct {
-	Source string
-	Target string
-}
-
-// distanceGroupOrder is the WIRE ORDER for the 3 groups (group index 0/1/2 on the
-// editor->Go bridge, and the order the 3 Overlay GroupLen* columns are populated in —
-// see MoveDispatch.DistanceGroupLens). Never reorder without updating both.
-var distanceGroupOrder = []string{"time", "input", "gate"}
-
-// distanceGroups is the Go-authoritative group->pairs table (CLAUDE.md "Model — read
-// first": Go owns the group definitions and the math; TS holds no domain state). These
-// 10 pairs are exactly the 10 bead edges in topology/nodes/*/edges/*.json.
-var distanceGroups = map[string][]distancePair{
-	"time":  {{Source: "2", Target: "5"}, {Source: "2", Target: "4"}, {Source: "4", Target: "7"}, {Source: "4", Target: "6"}},
-	"input": {{Source: "1", Target: "3"}, {Source: "1", Target: "2"}},
-	"gate":  {{Source: "3", Target: "8"}, {Source: "5", Target: "8"}, {Source: "5", Target: "9"}, {Source: "7", Target: "9"}},
-}
 
 // ResolveSceneDistanceGroups records whether the tree being loaded owns the three named
 // distance groups (SceneTab.DistanceGroups). Call it once at load, BEFORE anything emits a
@@ -62,142 +51,34 @@ func (md *MoveDispatch) ResolveSceneDistanceGroups(scenePath string) {
 	md.UI.SceneKinds = scene.SceneKindMask(scenePath)
 }
 
-// distanceGroupMax computes a group's CURRENT max pair length (max over the group's
-// pairs of |center(target)-center(source)|), reading live centers from mr's own
-// centerMirror (mr.centerOfNode — the same source RootMove/reachRFromPolar use). ok is
-// false if the group is unknown or none of its pairs' centers are resolvable yet.
-func distanceGroupMax(ui *viewstate.UIState, mr *moverRegistry, group string) (float64, bool) {
-	// A scene without these groups resolves NONE of them. This is the one gate: every
-	// reader — DistanceGroupLens (and so the VIEW frame's three columns) and
-	// ApplyDistanceGroupTarget (the ▲/▼ math) — comes through here, so neither can act on a
-	// group belonging to a different scene. See SceneTab.DistanceGroups for why sharing node
-	// ids across scenes made that possible.
-	if !ui.HasDistanceGroups {
-		return 0, false
-	}
-	pairs, ok := distanceGroups[group]
-	if !ok {
-		return 0, false
-	}
-	max := 0.0
-	any := false
-	for _, p := range pairs {
-		cs, okS := mr.centerOfNode(p.Source)
-		ct, okT := mr.centerOfNode(p.Target)
-		if !okS || !okT {
-			continue
-		}
-		if d := ct.Sub(cs).Length(); d > max {
-			max = d
-		}
-		any = true
-	}
-	return max, any
-}
-
 // DistanceGroupLens returns the 3 groups' current max pair lengths, in
-// distanceGroupOrder (time, input, gate) — for the VIEW stream's Overlay
-// GroupLenTime/GroupLenInput/GroupLenGate columns (read-only reflect; see
-// view_stream.go's emitViewFrame). A group whose centers aren't resolvable yet reads 0.
+// distancegroups.GroupOrder (time, input, gate) — for the VIEW stream's Overlay
+// GroupLenTime/GroupLenInput/GroupLenGate columns (read-only reflect; see view_stream.go's
+// emitViewFrame). A group whose centers aren't resolvable yet reads 0. Binds
+// mr.centerOfNode once per call and forwards to distancegroups.Lens, which does the actual
+// per-group max/scan.
 func DistanceGroupLens(ui *viewstate.UIState, mr *moverRegistry) (timeLen, inputLen, gateLen float32) {
-	vals := make([]float32, len(distanceGroupOrder))
-	for i, g := range distanceGroupOrder {
-		if m, ok := distanceGroupMax(ui, mr, g); ok {
-			vals[i] = float32(m)
-		}
-	}
-	return vals[0], vals[1], vals[2]
+	return distancegroups.Lens(ui.HasDistanceGroups, mr.centerOfNode)
 }
 
-// ApplyDistanceGroupTarget is the controller for one arrow click: groupIdx indexes
-// distanceGroupOrder (0/1/2, out of range = no-op); dir > 0 is the up arrow (target
-// length L = currentMax*1.1), dir < 0 is down (L = currentMax/1.1). For EACH pair in
-// the group's flat list, IN ORDER, the target node's new world position is
-// center(source) + normalize(center(target)-center(source))*L, applied via
-// lq.RootMove(ctx, mr, target, newPos) — the same decentralized drag entry every programmatic
-// move test uses. Returns false if the group is unknown, has no resolvable pair, or
-// groupIdx is out of range.
+// applyDistanceGroupTarget is the controller for one arrow click: groupIdx indexes
+// distancegroups.GroupOrder (0/1/2, out of range = no-op); dir > 0 is the up arrow, dir < 0
+// is down. Binds mr.centerOfNode and lq.RootMove and forwards to distancegroups.ApplyTarget,
+// which does the actual max/target-length/reposition-loop math. Returns false if the group
+// is unknown, has no resolvable pair, or groupIdx is out of range.
+//
+// The 3 GroupLen* Overlay columns are recomputed from live centers ONLY inside
+// emitViewFrame (view_stream.go). RootMove emits NODE frames (the moved geometry), not the
+// VIEW frame, so without a caller-side emit the panel's displayed lengths never refresh
+// after a button press. This runs on the stdin/dispatch goroutine — the VIEW-stream owner —
+// so emitting is safe once distancegroups.ApplyTarget's internal settle has returned.
+//
+// This function itself no longer emits: the caller (applyUpdateDistanceGroup,
+// stdin_apply.go — the same stdin/dispatch goroutine) emits the VIEW frame when moved is
+// true, per docs/planning/movedispatch-decomposition.md's write-then-emit split.
 func applyDistanceGroupTarget(ctx context.Context, ui *viewstate.UIState, mr *moverRegistry, lq *layoutQuantizer, groupIdx, dir int) bool {
-	if groupIdx < 0 || groupIdx >= len(distanceGroupOrder) {
-		return false
+	rootMove := func(ctx context.Context, target string, newPos vec3) bool {
+		return lq.RootMove(ctx, mr, target, newPos)
 	}
-	group := distanceGroupOrder[groupIdx]
-	pairs, ok := distanceGroups[group]
-	if !ok {
-		return false
-	}
-	currentMax, any := distanceGroupMax(ui, mr, group)
-	if !any {
-		return false
-	}
-	targetLen := currentMax * 1.1
-	if dir < 0 {
-		targetLen = currentMax / 1.1
-	}
-	moved := false
-	for _, p := range pairs {
-		cs, okS := mr.centerOfNode(p.Source)
-		ct, okT := mr.centerOfNode(p.Target)
-		if !okS || !okT {
-			continue
-		}
-		offset := ct.Sub(cs)
-		if offset.Length() == 0 {
-			continue
-		}
-		newPos := cs.Add(offset.Normalize().Scale(targetLen))
-		if lq.RootMove(ctx, mr, p.Target, newPos) {
-			moved = true
-			// RootMove is fire-and-forget (a movemsg.KindDrag message to the target's OWN
-			// goroutine — see its doc comment): it returns before the target's commit
-			// lands. A later pair in this SAME group can name this target as its own
-			// SOURCE (e.g. "time"'s node 5: target of (2,5), source of (5,8)/(5,7)), so
-			// the next iteration's center(source) read must observe the settled position,
-			// not a stale pre-move one — settle here, in order, before moving on. Bounded
-			// (never blocks forever); a target whose commit doesn't land within the
-			// deadline just leaves the next pair reading whatever center is currently
-			// live, same as any other cross-goroutine read on this seam.
-			waitForCenterSettle(mr, p.Target, newPos)
-		}
-	}
-	// The 3 GroupLen* Overlay columns are recomputed from live centers ONLY inside
-	// emitViewFrame (view_stream.go). RootMove emits NODE frames (the moved geometry),
-	// not the VIEW frame, so without this the panel's displayed lengths never refresh
-	// after a button press. This runs on the stdin/dispatch goroutine — the VIEW-stream
-	// owner — so emitting here is safe, and the centers have settled above.
-	//
-	// This call CANNOT just be deleted in favour of "the next frame will pick it up." The
-	// VIEW stream is event-driven, unlike NODE/EDGE/INTERIOR (view_stream.go's header) —
-	// with no call here the panel's lengths stay stale until an unrelated hover/select/
-	// camera event happens to emit one.
-	//
-	// It is therefore a REAL CONSTRAINT on making this function asynchronous. The standing
-	// plan is for the dispatch goroutine to stop measuring distances between other
-	// goroutines' nodes — fanning a target length out to each edge, which tells its own two
-	// endpoints how far to move — and that deletes waitForCenterSettle along with the
-	// ordered loop below. But it also means dispatch returns BEFORE anything has moved,
-	// while only dispatch may emit the VIEW frame and these columns are measured from live
-	// centers at emit time. So "emit after the moves land" reintroduces the very
-	// wait-for-other-goroutines this redesign exists to remove, one level up.
-	// Whoever does that work owes an answer here first; the likely one is that an edge
-	// carries its OWN length on its own EDGE frame (already per-owner, already streaming),
-	// so nothing has to measure across goroutines at all.
-	//
-	// This method itself no longer emits: the caller (applyUpdateDistanceGroup,
-	// stdin_apply.go — the same stdin/dispatch goroutine) emits the VIEW frame when moved
-	// is true, per docs/planning/movedispatch-decomposition.md's write-then-emit split.
-	return moved
-}
-
-// waitForCenterSettle polls md.mr.centerOfNode(id) until it matches want (within a small
-// tolerance) or a short deadline passes. See ApplyDistanceGroupTarget's call site.
-func waitForCenterSettle(mr *moverRegistry, id string, want vec3) {
-	const tol = 1e-6
-	deadline := time.Now().Add(200 * time.Millisecond)
-	for time.Now().Before(deadline) {
-		if c, ok := mr.centerOfNode(id); ok && c.Sub(want).Length() <= tol {
-			return
-		}
-		time.Sleep(time.Millisecond)
-	}
+	return distancegroups.ApplyTarget(ctx, ui.HasDistanceGroups, mr.centerOfNode, rootMove, groupIdx, dir)
 }

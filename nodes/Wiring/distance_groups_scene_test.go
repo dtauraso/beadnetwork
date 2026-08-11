@@ -19,6 +19,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/distancegroups"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
@@ -80,7 +81,7 @@ func TestPairSceneIsDeniedTheGroups(t *testing.T) {
 	// The ring's "input" group is the one that collided; if it stops naming a pair id, the
 	// collision this guards is gone and the test should be rewritten rather than left to pass.
 	named := false
-	for _, p := range distanceGroups["input"] {
+	for _, p := range distancegroups.Groups["input"] {
 		if p.Source == "1" || p.Target == "1" || p.Source == "2" || p.Target == "2" {
 			named = true
 		}
@@ -105,7 +106,7 @@ func TestGroupsAreInertUntilResolved(t *testing.T) {
 	if timeLen, inputLen, gateLen := DistanceGroupLens(&md.UI, &md.mr); timeLen != 0 || inputLen != 0 || gateLen != 0 {
 		t.Fatalf("unresolved dispatch streamed (%v, %v, %v), want all 0", timeLen, inputLen, gateLen)
 	}
-	for i := range distanceGroupOrder {
+	for i := range distancegroups.GroupOrder {
 		if ok := applyDistanceGroupTarget(md.ctx, &md.UI, &md.mr, &md.lq, i, 1); ok {
 			t.Fatalf("applyDistanceGroupTarget(%d, up) = true before the scene was resolved, want false", i)
 		}
