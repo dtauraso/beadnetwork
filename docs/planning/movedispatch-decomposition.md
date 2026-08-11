@@ -3378,3 +3378,116 @@ No `types`/`common` package, no alias shim, no dot-import, no package-level acto
 `*ForTest` constructor, no interface added.
 
 **`git status --short` and commits:** see below.
+
+## §27 — stdin cluster and build/load cluster, both RE-MEASURED and PINNED (no move landed)
+
+Baseline confirmed unchanged from §26: `nodes/Wiring/dispatch` is 75 files (28 non-test + 47
+test), non-test line counts matching the task brief exactly (`move_dispatch_construct.go` 230,
+`stdin_dispatch.go` 182, `stdin_apply.go` 172, `move_dispatch.go` 163, `build.go` 136,
+`loader.go` 78, `gesture.go` 48, `scene_switch.go` 45, `viewpoint_state.go` 44,
+`gesture_hitclassify.go` 41, `vec_alias.go` 22, `bool_u8.go` 13). `bash scripts/stop-checks.sh`
+empty (clean) before any analysis — confirmed as the starting baseline.
+
+### Method
+
+Every candidate function's body was read statement-by-statement per the task's own rule:
+bucket (a) = writes/reads an unexported field of a type staying behind (or sends on a
+channel / starts a goroutine / writes a file); bucket (b) = computation on locals, params,
+and already-exported field/method reads. `MoveDispatch` itself is confirmed NOT moving (§24's
+own table: 30 methods, "gesture entry points reading MULTIPLE owners at once", unchanged by
+§26's `moverreg` lift) — so any function that reaches `md.mr`, `md.persist`, `md.ctx`,
+`md.inboxes`, `md.sw`, `md.lq`, or `md.tapToInstall` (all still UNEXPORTED fields of
+`*MoveDispatch`, per `move_dispatch.go`) is bucket (a) by construction, regardless of whether
+the value read off that field is itself an exported type/method (e.g. `md.mr.NodeGeoms()` —
+`NodeGeoms` is exported, but `mr` the FIELD is not, so the expression cannot be written outside
+package `dispatch`).
+
+### Stdin cluster — `stdin_dispatch.go` (182) + `stdin_apply.go` (172)
+
+| function | body touches | bucket |
+|---|---|---|
+| `HandleRawInputMsg` | `md.HandleRawInput(...)` — one call to an EXPORTED method | **(b)** — the one exception |
+| `HandleSaveMsg` | `md.persist.overlays.Schedule`, `md.persist.sphere.Schedule` — `persist` unexported | (a) |
+| `ApplyEdit`/`applyEdit` table | dispatches into `applyUpdate` (below); table itself carries no md touch but is inseparable from its handlers | (a), transitively |
+| `applyUpdate` + `updateKindHandlers` table | dispatches into the 5 `applyUpdate*` handlers (all touch `md` fields) | (a), transitively |
+| `clockAttrHandlers["speed"]` closure | `md.UI.ClockDivisor`/`md.UI.Speed` (UI exported, fine) but also `md.persist.speed.Schedule(...)` | (a) |
+| `overlayAttrHandlers["toggle"]` closure | ONLY `md.UI.OV`/`md.UI.EmitBreadcrumb`/`md.UI.EmitViewFrame` — all through the exported `UI` field | **(b)** — the other exception |
+| `applyUpdateClock` | delegates to `clockAttrHandlers` | (a), transitively |
+| `applyUpdateDistanceGroup` | `applyDistanceGroupTarget(md.ctx, &md.UI, &md.mr, &md.lq, ...)` — `ctx`/`mr`/`lq` unexported | (a) |
+| `applyUpdateTiltVector` | `md.mr.NodeGeoms()`, `sendTiltEdit(&md.inboxes, md.ctx, ...)`, `sendMove(&md.mr, md.ctx, ...)` | (a) |
+| `applyUpdateScene` | `SelectScene(&md.Scenes, ...)` (Scenes exported, fine) but also `md.UI.LatticePoints=`/`md.persist.lattice.Schedule`/`md.BroadcastLatticePoints`/`md.CreateNode`/`md.DeleteNode` — several are exported methods, but `md.persist.lattice` is not | (a) |
+| `applyUpdateOverlays` | dispatches to `overlayAttrHandlers`, then unconditionally `md.persist.overlays.Schedule(md.UI.OV)` | (a) |
+
+**Verdict: PINNED.** Exactly 2 of 11 functions are bucket (b) in isolation
+(`HandleRawInputMsg`, the `"toggle"` closure), and both are small (5 and ~20 lines) pieces
+wired into dispatch tables (`editOps`, `updateKindHandlers`, `overlayAttrHandlers`) that must
+stay adjacent to their bucket-(a) siblings — splitting 2 functions into a third file to shave
+~25 of 354 combined lines is not a real reduction and was not done. Every other function's
+pinning statement is named in the table above (`md.persist.X.Schedule`, `md.mr.X`, `md.ctx`,
+`md.inboxes`) — each is an unexported field read/write on the type that stays.
+
+### Build/load cluster — `build.go` (136) + `loader.go` (78) + `move_dispatch_construct.go` (230)
+
+**Re-measured against §24's stated blocker** ("calls the unexported constructor
+`newMoveDispatch(...)`, then writes directly into `md.mr.nodeGeoms`/`md.lq.QuantizedLayout`/
+`md.mr.selfDriveClaimed` (bare, unexported hub fields)"). That EXACT wording is now stale —
+`moverreg.MoverRegistry` (§26) exposes `NodeGeoms()`/`EdgeMovers()`/`ClaimSelfDrive` as real
+exported methods, so the specific bare-field-write phrasing no longer applies. But the
+STRUCTURAL blocker survives the rewording: both `buildMoveDispatch` and `buildNodes` are
+methods on `*buildCtx`, and BOTH still read/write `b.md`'s (a `*MoveDispatch`) own UNEXPORTED
+fields directly — `mr` and `inboxes` and `sw`, not `mr`'s or `inboxes`'s own fields:
+
+- `buildMoveDispatch` (`build_move_dispatch.go`): `b.md = md` (the assignment itself — `md`
+  field unexported), `md.lq.QuantizedLayout = ...` (`lq` unexported), `md.mr.NodeGeoms()` (×4,
+  `mr` unexported field access, independent of `NodeGeoms` being exported).
+- `buildNodes` (`build_nodes.go`): `b.md.UI.LatticePoints` (UI exported — fine in isolation) but
+  also `b.md.inboxes.lattice`/`b.md.inboxes.tiltEdit` (direct map writes on the unexported
+  `inboxes` field, inside the `kindapi.BuildDeps` closures), `b.md.mr.NodeGeoms()`/
+  `b.md.mr.ClaimSelfDrive(...)` (`mr` unexported), `b.md.RT` (exported, fine),
+  `b.md.sw.interiorOuts`/`b.md.sw.driveOuts`/`b.md.sw.buildInteriorFrame` (`sw` unexported).
+- `newMoveDispatch` (`move_dispatch_construct.go`, the constructor `buildMoveDispatch` calls):
+  literally constructs `md := &MoveDispatch{tr: tr}` then writes `md.mr = moverreg.New()`,
+  `md.UI.OV = ...`, `md.GS.NodeSeeds = ...`, `md.RT.Build(...)`, `md.UI.DistanceGroupLensFn =
+  func() { ... mrForLens := &md.mr ... }` — a struct LITERAL and direct field assignment on
+  every one of `MoveDispatch`'s fields, several unexported (`tr`, `mr`). A constructor of a
+  type whose fields it sets directly by literal/assignment cannot live outside that type's own
+  package, independent of whether the constructor's NAME is exported or not — this was never
+  actually about the name `newMoveDispatch` vs `NewMoveDispatch`, contrary to how §24 phrased
+  it.
+- `buildFromSpec`/`buildCtx` (`build.go`): `buildCtx` itself has exactly 2 remaining methods
+  (`buildMoveDispatch`, `buildNodes` — `allocateWires` already externalized in §24), both
+  pinned above, so Go's "a method's receiver type must be defined in the same package as the
+  method" rule keeps `buildCtx` itself in `dispatch` too. `buildFromSpec` constructs and reads
+  `buildCtx`'s own fields directly (`b.nodeGeoms`, `b.md`, `b.speedSinks`, ...) and calls
+  `b.md.mr.FinalizeActors(...)` directly (`mr` unexported) — pinned by the same rule.
+- `LoadTopology` (`loader.go`): the ONE genuinely loose piece — its body never touches
+  `MoveDispatch`'s or `buildCtx`'s unexported fields, only calls `kindapi.BuildRegistry()`,
+  `loadspec.ParseSpec`/`ValidateSpec`, `scenepersist.LoadSceneSphere`, and the (unexported)
+  `buildFromSpec`. It is bucket (b) IN ISOLATION but its only non-trivial call
+  (`buildFromSpec`) is itself pinned in `dispatch` (above), so `LoadTopology` would need to
+  call an EXPORTED `dispatch.BuildFromSpec` from a new package — a rename-only move that
+  shrinks `dispatch` by exactly 1 non-test file (78 LOC) and adds 1 file elsewhere, for a net
+  package-count change with no reduction in the files that actually dominate the 28-file total.
+  Not done: not a real reduction, and the task named `loader.go` as part of ONE cluster with
+  `build.go`/`move_dispatch_construct.go`, which stay.
+
+**Verdict: PINNED**, confirmed by re-measurement rather than assumed. §24's blocker phrasing
+was stale (moverreg's exported API means the WRITES are no longer bare-field writes on `mr`'s
+OWN fields) but the CONCLUSION was right for a reason §24 didn't isolate: the blocker was
+never `mr`'s encapsulation, it is `MoveDispatch`'s OWN encapsulation (`mr`/`inboxes`/`sw`/`lq`/
+`ctx`/`tr`/`tapToInstall` as fields on `*MoveDispatch`, the type §24 already confirmed is not
+moving). Lifting `mr` into `moverreg` (§26) could never unblock `buildMoveDispatch`/
+`buildNodes`/`newMoveDispatch`, because their pinning statements were never really about `mr`'s
+own internals — they were always about reaching `b.md.mr` / `b.md.inboxes` / `b.md.sw`, i.e.
+`MoveDispatch`'s own field surface. Unblocking this cluster for real is the same shape of task
+§24 named for `MoveDispatch` itself ("exporting its field surface... as its OWN task, not a
+byproduct of this one") — not attempted here, correctly out of scope for a re-measurement pass.
+
+### Outcome
+
+No files moved, no code changed. `git status --short` empty, no commit made for either
+cluster — both were genuinely blocked, per the task's own "if a cluster genuinely cannot move,
+quote the specific pinning statement per function ... rather than stopping entirely" clause,
+applied to both clusters in turn rather than only one. `bash scripts/stop-checks.sh`: empty
+(unchanged tree). `nodes/Wiring/dispatch` file count: unchanged, **75** (28 non-test + 47
+test).
