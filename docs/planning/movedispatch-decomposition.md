@@ -1623,3 +1623,109 @@ larger change than a decomposition pass).
 No interface, `types`/`common` package, alias shim, dot-import, package-level actor global,
 or `ForTest` hatch was added. Tests moved with their subject: none — no test file in either
 cluster needed a change (the coverage gap above is exactly why).
+
+## 15. The gesture FSM cluster (6 files, 680 lines) — one genuine lift, the rest re-confirmed pinned, `gesture_state.go`'s stale claim corrected
+
+Re-measured `gesture_actions.go`/`gesture_handlers.go`/`gesture_graph.go`/`gesture.go`/
+`gesture_dispatch.go`/`gesture_hitclassify.go` statement by statement per this task's own
+"measure bodies, not signatures" instruction, since `gesture_state.go`'s package comment
+made a "cannot move without dragging uiState" claim that predates Step 4 of
+`docs/planning/gesture-actor.md` (uiState → exported `viewstate.UIState`).
+
+**`beginSphereRotation` lifted** to `gesturefsm.GestureState.BeginSphereRotation` — its body
+was already `ui *viewstate.UIState` only to read `ui.VP.Viewpoint`/`ui.Gest` and write
+`ui.Gest`'s own fields; changing the first param to `vp geom.Viewpoint` (by value) removed
+the `viewstate` dependency entirely, leaving a pure method reading `vp`/its own `Rect` field
+and a `heldCenters` closure, writing only `RotPivot`/`RotCx`/`RotCy`/`RotPxPerRad` (its own
+type's fields). Two call sites (`gesture_hitclassify.go`'s `"handhold"`/`"empty"` branches)
+updated to `g.BeginSphereRotation(md.UI.VP.Viewpoint, heldCentersFn, ev)`.
+
+**The other three uiState-taking leaf actions (`applyNodeDragTarget`, `commitDragStart`,
+`setHover`) do NOT move, for a reason narrower than the old comment's:** `viewstate` imports
+`gesturefsm` (`UIState.Gest gesturefsm.GestureState`), so `gesturefsm` importing `viewstate`
+back is a real cycle, not an unexported-field problem — `uiState` being exported changed
+nothing for these three, because each one's body genuinely reads/writes OTHER `UIState`
+fields (`ui.Sel.*`, `ui.LastDraggedNode`, `ui.SetHoverUI(...)`, `ui.DragPlaneHit(...)`), not
+just `Gest`. A function that needs the rest of `UIState` belongs in `viewstate`, not
+`gesturefsm`, regardless of how its parameter is spelled — and moving it into `viewstate`
+was out of this task's scope (matching the same "third file forces a surface open" shape
+Step 3 of `gesture-actor.md` already declined once). The FSM entry points
+(`gestPointerDown/Move/Up`, `HandleRawInput`, `gestHome`, `gestWheel`) and
+`updateHover`/`applySelect` stay in package Wiring because, beyond the `UIState` field
+reads above, they also reach unexported `MoveDispatch` fields (`md.mr`, `md.lq`, `md.RT`,
+`md.ctx`) that cannot be named outside package Wiring at all — the same blocker
+`gesture-actor.md`'s "Step 3 — probed and declined" section already found for the
+`*moverRegistry`/`*layoutQuantizer` cluster, re-confirmed here rather than assumed.
+
+**Four unused parameters deleted**, each confirmed dead by grep of the function body before
+removal: `setHover`'s `tr *T.Trace`, `applySelect`'s `tr *T.Trace`, `gestPointerDown`'s
+`tr *T.Trace`, `gestPointerUp`'s `slotReg inputcodec.SlotRegistry`. Removing `applySelect`'s
+`tr` and `setHover`'s `tr` left `gestPointerUp`'s and `updateHover`'s own `tr` params
+unused too (they existed only to forward); both dropped as well, since neither is
+constrained by a dispatch-table type — only the five `rawInputHandlers` map closures are,
+and those keep their full `(md, ev, slotReg, tr)` shape unchanged, simply not passing the
+now-dropped args through to `gestPointerDown(ev)`/`gestPointerUp(ev)`/`updateHover(ev)`.
+
+**Classification (statement buckets: (a) = writes a uiState/MoveDispatch field, sends on a
+channel, starts a goroutine, or writes a file; (b) = computation on locals/params/field
+reads):**
+
+| function | file | (a) | (b) | outcome |
+|---|---|---|---|---|
+| `beginSphereRotation`/`BeginSphereRotation` | gesture_actions.go → gesturefsm | 0 | ~25 | **lifted** |
+| `applyNodeDragTarget` | gesture_actions.go | 1 (`rootMove(...)` call) | ~4 | stays — already minimal, the one statement IS the action |
+| `commitDragStart` | gesture_graph.go | 2 (`ui.LastDraggedNode = ...`, `sendMoveFn(...)`) | ~2 | stays — mixed, not separable further without a 3-line split not worth a new file |
+| `setHover` | gesture_actions.go | 1 (`ui.SetHoverUI(...)`) | ~8 | stays — dedupe compare + RowEvent construction is bucket (b) but the one authoritative write can't leave `viewstate`'s reach |
+| `applySelect` | gesture_actions.go | 3 (`setSelectionUI` ×3, `EmitViewFrame` ×3) | ~4 (hit-kind branching) | stays — dominated by (a) |
+| `updateHover` | gesture_actions.go | 1 (`EmitViewFrame`) | ~6 | stays — reaches `md.RT`/`md.mr`/`md.ctx` (unexported `MoveDispatch` fields) |
+| `seedOrbitPivot` | gesture_actions.go | 1 (`SetViewpoint`) | ~3 | stays — reaches `md.UI.VP` |
+| `applyOrbit`/`applyOrbitLocked` | gesture_actions.go | 2 each (`OrbitViewpoint`/`OrbitLockedViewpoint`, `EmitViewFrame`) | ~6 each | stays — the (b) prefix (basis/prev/curr/dir math) is a plausible FUTURE lift as a pure `gesturefsm` helper taking `vp geom.Viewpoint` by value, same treatment as `BeginSphereRotation`; not done this pass to keep the change reviewable as one mechanical idea |
+| `gestHome`/`gestPointerDown`/`gestPointerMove`/`gestPointerUp`/`gestWheel` | gesture_handlers.go | 2–6 each | ~4–10 each | stay — each is dominated by dispatch-table walks and `md.mr`/`md.lq`/`md.UI` reach |
+| `commitHandholdStart`/`commitRotateStart` | gesture_graph.go | 1 each (`seedOrbitPivot` call, itself (a)) | ~2 each | stay — the pure prefix is 2 lines, not worth a file |
+| hit classifiers (`hitClassifiers` map) | gesture_hitclassify.go | 1–2 each | ~2 each | stay — each reaches `md.RT`/`md.mr` |
+
+**`gesture_state.go`'s package comment corrected** — see the file itself; the stale
+"cannot move without dragging uiState" sentence is replaced with the actual boundary
+(`viewstate`↔`gesturefsm` import cycle + unexported `MoveDispatch` fields), stated so it
+does not drift the same way again.
+
+**LOC:** `gesture_actions.go` 204 → 171 (−33, `beginSphereRotation` moved out).
+`gesture_handlers.go` 193 → 193 (param deletions, no net line change — same line count,
+narrower signatures). `gesture_graph.go`/`gesture.go`/`gesture_dispatch.go`/
+`gesture_hitclassify.go` unchanged in line count (dispatch-table call-site edits only).
+`nodes/Wiring` non-test top-level file count: unchanged at 59 (no new top-level file; the
+new file is `gesturefsm/gesture_camera_seed.go`, inside the existing subpackage).
+`gesturefsm` package: 133 → 178 lines (+45, the new file).
+
+**Verification:** `go build ./...`, `go vet ./...` clean. `go test -race -count=1 ./...`:
+every package `ok` or `[no test files]`, no failure, no race reported.
+`nodes/Wiring/gesturefsm` itself has `[no test files]` — it is exercised only indirectly,
+through `nodes/Wiring`'s own gesture tests. The no-imports-`Wiring` loop (same command as
+§14 above) is empty.
+
+**Coverage confirmed, not assumed — deliberately broke `BeginSphereRotation`** (changed
+`g.RotPivot = pivot` to `g.RotPivot = pivot.Add(wire.Vec3{X: 1})`) and reproduced
+`TestGestureEmptyDragOrbits`'s exact failure:
+```
+--- FAIL: TestGestureEmptyDragOrbits (0.00s)
+    gesture_camera_outcomes_test.go:28: rotPivot={1.0000000000000056 5.510910596163082e-15 90} want focus-ahead (0,0,90)
+```
+then restored and confirmed `go test github.com/dtauraso/wirefold/nodes/Wiring -run
+TestGestureEmptyDragOrbits` passes again. This is the only lifted function this pass
+produced, and it has a test that can fail by name — no coverage hole on the lifted surface.
+The functions that were NOT lifted (declined above) keep whatever coverage they already
+had; this task did not audit or change it.
+
+**No guard renamed or re-keyed.** `grep -rln "beginSphereRotation\|gestPointerDown\|gestPointerUp" tools/ --include="*.sh"` and the same names against `tools/` scoped away from
+`node_modules`/`topology-vscode` are both empty — no shell guard is keyed to any of these
+Go symbol names. (A first, unscoped pass of this grep across all of `tools/` DID hit —
+React's own `setHover`/`useState` setters in unrelated `.tsx` panel files, e.g.
+`TiltVectorAnglePanel.tsx`, `NodePalette.tsx` — confirmed as unrelated by inspection, not a
+guard, before discounting them; recorded here so the "grep returned nothing" claim is
+scoped honestly rather than repeating the unscoped false-positive.) None needed re-keying
+and none was made to fail-once as a check (there was nothing to prove teeth on).
+
+No interface, `types`/`common` package, alias shim, dot-import, package-level actor global,
+or `ForTest` hatch was added. No test was renamed, dropped, weakened, or skipped — none
+needed to change since no test named any of the moved/edited symbols directly (they are
+reached only through `HandleRawInput`).
