@@ -4,7 +4,7 @@
 // nodes/Wiring/sceneswitch/select_scene_test.go alongside SelectScene
 // (docs/planning/movedispatch-decomposition.md, the remainder cluster) — those tests never
 // needed *MoveDispatch, only *sceneswitch.SceneSwitch.
-package dispatch
+package scene_test
 
 import (
 	"os"
