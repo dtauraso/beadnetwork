@@ -3491,3 +3491,172 @@ quote the specific pinning statement per function ... rather than stopping entir
 applied to both clusters in turn rather than only one. `bash scripts/stop-checks.sh`: empty
 (unchanged tree). `nodes/Wiring/dispatch` file count: unchanged, **75** (28 non-test + 47
 test).
+
+## §28 — `MR`/`LQ`/`TR` exported on `MoveDispatch`; both §27 clusters re-measured, still
+PINNED, pin statements narrowed
+
+§27 listed five blockers for the stdin and build/load clusters: `md.mr`, `md.inboxes`,
+`md.sw`, `md.lq`, `md.tr`. Of those, `GS`/`UI`/`Scenes`/`RT` were ALREADY exported fields of
+`MoveDispatch` holding exported types from already-lifted packages (`geomseeds.GeomSeeds`,
+`viewstate.UIState`, `sceneswitch.SceneSwitch`, `rowtables.RowTables`) — `mr`
+(`moverreg.MoverRegistry`), `lq` (`layoutquant.LayoutQuantizer`), and `tr` (`*T.Trace`) were
+the identical shape, unexported only because they predate the pattern. Confirmed by reading
+`move_dispatch.go` directly before touching anything.
+
+### Rename, commit 1
+
+`mr`→`MR`, `lq`→`LQ`, `tr`→`TR` on `MoveDispatch` (`move_dispatch.go`'s struct decl) — pure
+rename, no logic change. `persist`/`sw`/`inboxes`/`tapToInstall`/`ctx` were left unexported,
+per the task's own constraint (they hold unexported types or are internal wiring).
+
+**Call-site count.** 129 `md.mr` + 20 `md.lq` occurrences (comments excluded) across 30
+production/test files, plus 2 `tr:`-literal / no-live-read `md.tr` sites in
+`move_dispatch_construct.go`/`build.go`, plus 2 more `{mr: ...}`/`tr:` literals found only
+after the first `go vet` pass (`scene_tabs_test.go`, missed by the initial grep because it
+used `tr: T.New()` with no `.mr`/`.lq` neighbor on the same line) — 32 files touched in
+total, confirmed by `git show --stat`. `md.tr` itself had **zero live in-package reads** —
+only ever set at construction (`newMoveDispatch`'s struct literal) — confirmed by grep before
+renaming, so `TR` is genuinely write-only today, same as before the rename.
+
+**Verification.** `go build ./...`, `go vet ./...` clean. `go test -race -count=1 ./...`:
+every package `ok` or `[no test files]`, zero `FAIL`, zero races. Test-name/assertion parity:
+109 `TestXxx` / 324 assertions across `dispatch`+`kindapi`, identical to §26's baseline
+(diff empty, count re-derived, not assumed). Guards: `check-no-network-locks.sh`,
+`check-persist-write-ownership.sh`, `check-scene-path-resolution.sh`,
+`check-channel-names.sh`, `check-doc-drift.sh`, `check-docs-symbols.sh`,
+`check-no-untracked-source.sh`, `check-composer-fields.sh` (the one guard that mentions
+`moverRegistry`/`layoutQuantizer` by name, in a comment and an error-message string — it
+counts `MoveDispatch`'s field DECLARATIONS by pattern, not by name, so the rename left its
+count (12) and its exit code (0) unchanged; no re-keying needed) all ran clean. The
+no-package-under-`Wiring`-imports-`dispatch` loop: empty. Deliberate break: forced
+`md.LQ.QuantizedLayout = false` unconditionally in `build_move_dispatch.go` (replacing the
+real `scene.SceneUsesQuantizedDrag` call) → 4 tests failed by name:
+`TestCommitNodeMoveLocalDrawsQuantizedNotRawTarget`,
+`TestCommitNodeMoveLocalRemoveTakesBeadsPlace`,
+`TestCommitNodeMoveLocalAddMovesOneBeadBeyondNewBead`,
+`TestCommitNodeMoveLocalPersistsQuantizedNotRawPolar`. Restored; `go build ./...` and
+`git diff` clean again.
+
+### Stdin cluster, re-measured — still PINNED, narrower pin per function
+
+Re-read every one of the same 11 functions/closures §27 tabulated, now that `md.MR`/`md.LQ`
+are ordinary exported-field reads:
+
+| function | remaining touch after the rename | bucket |
+|---|---|---|
+| `HandleRawInputMsg` | `md.HandleRawInput(...)` — exported method | **(b)**, unchanged |
+| `HandleSaveMsg` | `md.persist.overlays.Schedule`, `md.persist.sphere.Schedule` | (a) — `persist` still unexported |
+| `applyUpdateDistanceGroup` | `applyDistanceGroupTarget(md.ctx, &md.UI, &md.MR, &md.LQ, ...)` | (a) — narrowed to `md.ctx` ALONE; MR/LQ no longer part of the pin |
+| `applyUpdateTiltVector` | `md.MR.NodeGeoms()` (now fine), `sendTiltEdit(&md.inboxes, md.ctx, ...)`, `sendMove(&md.MR, md.ctx, ...)` | (a) — narrowed to `md.ctx` + `md.inboxes`; MR dropped out |
+| `applyUpdateScene` | `SelectScene(&md.Scenes, ...)` (fine), `md.persist.lattice.Schedule` | (a) — `persist` still unexported |
+| `applyUpdateOverlays` | dispatches to `overlayAttrHandlers`, then `md.persist.overlays.Schedule(md.UI.OV)` | (a) — `persist` still unexported |
+| `clockAttrHandlers["speed"]` closure | `md.UI.ClockDivisor`/`md.UI.Speed` (fine), `md.persist.speed.Schedule` | (a) — `persist` still unexported |
+| `overlayAttrHandlers["toggle"]` closure | only `md.UI.*` | **(b)**, unchanged (the other pre-existing exception) |
+| `ApplyEdit`/`applyEdit` table, `applyUpdate` + `updateKindHandlers` table, `applyUpdateClock` | pure dispatch, no `md` field touch of their own; still transitively pinned by their handlers above | (a), transitively, unchanged |
+
+**Verdict: still PINNED**, exactly as §27 concluded, but the reason is now precise instead
+of blanket: every one of the 5 functions that used to list `md.mr`/`md.lq` among their
+blockers now lists ONLY `md.ctx` / `md.persist` / `md.inboxes` — genuinely unexported fields
+of `MoveDispatch` that this task was told not to export (`ctx`/`persist`/`inboxes` all hold
+either internal wiring or unexported types). MR/LQ dropped out of every one of these pin
+statements; nothing else did. `nodes/Wiring/stdinreader` (already existing) was checked —
+its own files (`stdin_reader.go`, framing/message-shape files) hold no `MoveDispatch`
+receiver methods and no bucket-(a) touch of `md`'s fields at all; it is already a clean
+package boundary and none of the 11 functions above are receiver methods that could move
+there — they are free functions dispatched BY the reader, not the reader's own logic, so
+there is nothing here that migrates INTO `stdinreader` either.
+
+### Build/load cluster, re-measured — still PINNED, but the blocker itself is now provably
+never about MR/LQ
+
+Re-read `buildMoveDispatch`, `buildNodes`, `newMoveDispatch`, `buildFromSpec`/`buildCtx`,
+`LoadTopology` with `MR`/`LQ`/`TR` now ordinary exported fields:
+
+- **`buildMoveDispatch`** (`build_move_dispatch.go`, a `*buildCtx` method): every remaining
+  statement in its body is now `md.LQ.QuantizedLayout = ...`, `md.MR.NodeGeoms()` (×4),
+  `md.UI.*` — ALL exported-field/method reads on `md`. Its OWN body no longer touches a
+  single unexported field of `MoveDispatch`. It still cannot move on its own, though — not
+  because of anything it reads, but because Go requires every method of `*buildCtx` to live
+  in the same package as `buildCtx` itself, and its sibling method `buildNodes` (below)
+  remains genuinely pinned. This is the exact distinction §26 already drew for
+  `layoutQuantizer` vs. `moverRegistry`: a method's OWN body can be un-pinned while the
+  method itself stays put, blocked by its RECEIVER TYPE's other methods, not by anything in
+  this one's body.
+- **`buildNodes`** (`build_nodes.go`, a `*buildCtx` method): STILL directly touches
+  `b.md.inboxes.lattice`/`b.md.inboxes.tiltEdit` (map writes inside the injected
+  `kindapi.BuildDeps` closures) and `b.md.sw.interiorOuts`/`b.md.sw.driveOuts`/
+  `b.md.sw.buildInteriorFrame` — `inboxes` and `sw` are UNEXPORTED types (`nodeInboxes`,
+  `streamWiring`), not touched by this task's rename, so this function is pinned exactly
+  where §27 left it. `b.md.MR.NodeGeoms()`/`b.md.MR.ClaimSelfDrive(...)` inside
+  `ClaimSelfDriveGeom` are now fine, but that is not what pins this function.
+- **`newMoveDispatch`** (`move_dispatch_construct.go`): constructs `md := &MoveDispatch{TR:
+  tr}` then assigns `md.MR = moverreg.New()`, `md.UI.OV = ...`, `md.GS.NodeSeeds = ...`,
+  `md.RT.Build(...)` — a struct LITERAL + direct field assignment on every one of
+  `MoveDispatch`'s own fields, several STILL unexported in the general case (this
+  constructor is IN package `dispatch`, so it is allowed to set unexported fields directly —
+  that permission is exactly what a constructor outside the package would lose). This was
+  never really about which fields are exported/unexported; it is that a function
+  constructing a type via struct literal must live in that type's own package when even ONE
+  field it sets is unexported (here: none currently unexported are set by literal after the
+  rename, but the function ALSO wires `md.tapToInstall`/reads `md.MR`/`md.LQ` through
+  closures bound at construction time — moving it would mean either exporting a
+  constructor `NewMoveDispatch` that returns a partially-wired value, or exporting
+  `tapToInstall`, both declined by this task's own constraints). Confirmed unchanged from
+  §27: the blocker was never the field NAME, always the construction-time WIRING.
+- **`buildFromSpec`/`buildCtx`** (`build.go`): `buildCtx` still has exactly 2 methods
+  (`buildMoveDispatch`, `buildNodes`), both pinned above (one transitively, one directly),
+  so `buildCtx` itself stays — and `buildFromSpec` constructs it via
+  `&buildCtx{ctx: ctx, spec: spec, tr: tr, clk: clk, sphere: sphere, hasScene: hasScene,
+  scenePath: scenePath}`, a struct literal setting `buildCtx`'s OWN unexported fields
+  (`ctx`/`spec`/`tr`/`clk`/... — a DIFFERENT `tr` than `MoveDispatch.TR`, `buildCtx`'s own
+  local field, untouched by this task's rename). This pin was **never about
+  `MoveDispatch`'s `mr`/`lq`/`tr` at all** — it is `buildCtx`'s own encapsulation, a
+  completely separate type. Re-measurement makes this explicit where §27 left it implicit.
+- **`LoadTopology`** (`loader.go`): unchanged from §27 — its only non-trivial call is the
+  unexported `buildFromSpec`, itself pinned above; not touched by this rename either way.
+
+**One free-standing function's blocker did fully resolve: `bindDispatch`**
+(`build_nodes.go`, NOT a `buildCtx`/`MoveDispatch` method — a plain function):
+```go
+func bindDispatch(md *MoveDispatch, outSink map[string]*wire.Out, destWire map[string]*wire.PacedWire) {
+	md.MR.Bind(outSink, inputcodec.SlotRegistry(destWire))
+}
+```
+Before the rename this was `md.mr.Bind(...)`, bucket (a). After, its ONLY touch is
+`md.MR.Bind`, an exported method through an exported field — bucket (b) — and, being a free
+function (no receiver), it is not blocked by the `buildCtx`/`MoveDispatch` same-package
+receiver rule the way `buildMoveDispatch`/`buildNodes` are. **Declined to move or inline
+anyway**: it has no natural destination package of its own (its 3-line body is now simple
+enough that the "move" available is deleting it and inlining `b.md.MR.Bind(b.outSink,
+inputcodec.SlotRegistry(b.destWire))` at its one call site in `build.go`, which changes
+nothing about `nodes/Wiring/dispatch`'s file count or the 3-way-split goal this section
+series is measured against — the task asked to move files to new packages / report pins
+per statement, not to inline single-call helpers), so it is reported here as the one
+statement in this cluster whose bucket genuinely flipped, without landing a change that
+would not move the actual metric.
+
+**Verdict: still PINNED**, matching §27's own conclusion, but the re-measurement proves
+something §27 could only assert from the OLD (unexported-`mr`) vantage: the build/load
+cluster's blocker was **never `MoveDispatch`'s `mr`/`lq`/`tr` fields** — it is (a)
+`buildNodes`' own direct reach into `inboxes`/`sw` (unexported types, untouched by this
+task), (b) `newMoveDispatch`'s construction-time wiring (closures bound at build time,
+not expressible as a plain exported constructor without also exporting `tapToInstall`), and
+(c) `buildCtx`'s OWN unexported fields, a completely separate type from `MoveDispatch`. Every
+one of those three reasons is unrelated to the rename this task made, which is why exporting
+`MR`/`LQ`/`TR` moved zero files in this cluster despite the earlier per-field grep counting
+them among the "blockers" — they were never the actual load-bearing ones.
+
+### Next lever, confirmed unchanged
+
+Per the task's own instruction: the sole remaining lever for BOTH clusters is lifting the
+UNEXPORTED TYPES `nodeInboxes` (`inboxes`) and `streamWiring` (`sw`) the way `moverRegistry`
+was lifted into `moverreg` in §26 — `persist`/`ctx`/`tapToInstall` stay internal wiring by
+this task's own constraint, not candidates for that lift. Not attempted here.
+
+### Final state
+
+`ls nodes/Wiring/dispatch/*.go` → **75** (28 non-test + 47 test), unchanged from §27 — the
+rename (commit 1) touched 32 existing files but added/removed none, and the re-measurement
+pass (commit 2, doc-only) moved no file either, since both clusters stayed pinned by
+statements unrelated to `MR`/`LQ`/`TR`. Test-name/assertion parity confirmed unchanged
+(109/324). `go test -race -count=1 ./...`: verbatim below.
