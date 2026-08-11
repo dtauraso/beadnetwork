@@ -4706,3 +4706,224 @@ Commits: `7e395993` (SelectScene → sceneswitch), `42faf338` (viewpoint_state.g
 `5634efcc` (distance groups → distancegroups), `91b853ab` (5 MoveDispatch forwards
 deleted), `95857821` (SetEdgeStreams/SetNodeStreams deleted), `1d3c985b`
 (BroadcastLatticePoints deleted), `567a38a5` (duplication fix).
+
+## §34 — the remainder cluster closes (5 of 5 named files), plus the 9 stranded test files
+
+§33's measurement HELD for all 5 files it named: every one was bucket (b) exactly as
+measured — pure forwards over already-exported sub-objects, no surprise unexported-field
+reach-ins. Re-measured fresh before each move, not trusted from §33's prose.
+
+### What moved (Group A — the 5 non-test files)
+
+- **`move_persist.go`**: `EnableViewpointPersist`/`EnableEditPersist` → package
+  `viewpersist` (new file `enable_persist.go`; `viewpersist` already existed as the
+  `Persisters` owner, no cycle with `sceneswitch`/`moverreg`/`viewstate`). 19 call sites
+  across `runtopology`, `nodes/Wiring/dispatch` (7 test files), `nodes/Wiring/stdinreader`
+  (2 test files), and root-package `pair_self_drive_persist_test.go` rewritten from
+  `md.EnableEditPersist(root)` to `viewpersist.EnableEditPersist(&md.Persist, &md.Scenes,
+  &md.MR, root)` (viewpoint variant takes `&md.Persist, &md.UI` instead). File deleted
+  outright.
+- **`scene_overlays_persist.go`/`scene_speed_persist.go`/`scene_sphere_persist.go`**:
+  `LoadOverlays`/`HumanEditSpeed`+`SliderSpeed`+`LoadSpeed`/`LoadSceneSphere` → package
+  `scenepersist`, folded into that package's SAME-NAMED existing files (which already held
+  `WriteScene*`/`LoadScene*`) rather than new files, since `scenepersist.LoadSceneSphere`
+  already existed as a pure read function — the MoveDispatch-facing method would have
+  collided on the name inside one package (it did not collide across packages, which is
+  what let §33's header comment call the collision "on purpose"). Renamed on the move:
+  `LoadOverlays`→`InstallOverlays`, `LoadSpeed`→`InstallSpeed`, `LoadSceneSphere`→
+  `InstallSceneSphere`; `SliderSpeed`/`HumanEditSpeed`/`EffectiveClockSpeed` keep their
+  names (no collision). All 3 files deleted from `dispatch`; their 3 header comments in
+  `scenepersist` (which pointed at the now-deleted dispatch files) were rewritten rather
+  than left dangling — caught by `check-docs-symbols`, not by inspection. Two test files
+  that exercised nothing but these functions and `viewstate.UIState`/`geomseeds.GeomSeeds`
+  moved bodily rather than being rewritten as call-site patches:
+  `scene_sphere_persist_test.go`'s 3 non-round-trip tests → `scenepersist/install_scene_sphere_test.go`
+  (the round-trip test already lived in `scenepersist` from an earlier pass — untouched);
+  `tilt_edit_speed_test.go`'s 3 tests → `scenepersist/tilt_edit_speed_test.go`. The other 6
+  call sites (5 in `dispatch` test files that also drive `EnableEditPersist`/real tree
+  fixtures via `loadTreeMD`/`writeTree`, 1 in `runtopology/scene_state.go`) were rewritten
+  in place rather than moved, since they exercise real-tree/production wiring beyond these
+  three functions alone.
+- **`scene_structure.go`** (227 lines, the pass's own "highest risk" call): `CreateNode`/
+  `DeleteNode` → new package `scenestructure` (its own boundary was already argued in §33's
+  prose — not persistence-of-one-file, not tab-switching, not geometry math). Signature:
+  `CreateNode(scenes *sceneswitch.SceneSwitch, ui *viewstate.UIState, mr
+  *moverreg.MoverRegistry, kindID uint8, ndcX, ndcY float64, tr *T.Trace)`,
+  `DeleteNode(scenes *sceneswitch.SceneSwitch, ui *viewstate.UIState, rt
+  *rowtables.RowTables, row int, tr *T.Trace)` — 4 owner types total across the two
+  functions (3 each), no cycle (`scenestructure` imports `countspersist`/`edgefile`/
+  `geom`/`loadspec`/`moverreg`/`nodeactor`/`rowtables`/`sceneswitch`/`viewstate`; none of
+  those import it back). One production caller
+  (`nodes/Wiring/stdinreader/dispatch_apply.go`'s `applyUpdateScene`) rewritten to
+  `scenestructure.CreateNode(&md.Scenes, &md.UI, &md.MR, ...)`/
+  `scenestructure.DeleteNode(&md.Scenes, &md.UI, &md.RT, ...)`. The test §33 flagged as
+  needing a rewrite (`refuse_structural_edit_emit_test.go`, which constructed
+  `&MoveDispatch{Scenes: ..., UI: ...}` directly) moved bodily with its 2 tests, rewritten
+  against bare `&sceneswitch.SceneSwitch{}`/`&viewstate.UIState{}` values instead —
+  `CreateNode(scenes, ui, nil, 0, 0, 0, nil)`/`DeleteNode(scenes, ui, nil, 0, nil)` pass
+  `nil` for the `mr`/`rt` parameter each test's own cheapest-refusal branch
+  (`!ui.SceneEditable`) returns before touching, exactly preserving what the original
+  bare-`MoveDispatch` construction left zero-valued.
+
+### What moved (Group B — 9 files measured as never naming `MoveDispatch`/`md.`/etc.)
+
+Re-verified the measurement rather than trusting it (per this doc's own repeated lesson):
+5 of the 9 turned out to be genuinely coupled to a SIBLING file that stays in `dispatch`,
+not actually stranded — moving them would have either broken a same-package fixture-kind
+`init()` a sibling test relies on, or duplicated a helper 4+ other files call.
+
+**Stayed, with the coupling found:**
+- `aimed_ports_test.go`, `fixture_kinds_test.go` — fixture node kinds (`aimedSrc`/
+  `aimedSink`/`aimedPacer`, `srcNode`/`sinkNode`) self-registered via `kindapi.RegisterBuilder`
+  in each file's own `init()`. `grep`-confirmed consumers still in `dispatch`:
+  `build_load_derive_test.go`/`node_geometry_wire_kindid_test.go`/`node_move_row_table_test.go`
+  (aimed fixtures), `node_move_test.go`/`per_edge_travel_time_test.go`/
+  `wire_test_helpers_test.go` (`SrcNode`/`SinkNode`). A `_test.go` file's `init()` only runs
+  within ITS OWN package's test binary — moving the fixture file out of `dispatch` would
+  silently un-register the kind for every sibling that still names it by string in JSON,
+  failing with `unknown type "X"` rather than a compile error.
+- `per_edge_travel_time_test.go` — needs `fixture_kinds_test.go`'s `SinkNode` kind
+  registered in the SAME test binary for the same reason; genuinely coupled, not stranded.
+- `distance_groups_kind_import_test.go` — blank-imports node kinds so
+  `distance_groups_test.go`/`distance_groups_scene_test.go` (both stay in `dispatch` per
+  §33's own pin — they drive a REAL `*dispatch.MoveDispatch` via `build.LoadTopology`) can
+  build the production topology. Confirmed load-bearing the hard way: moving
+  `speed_delivery_full_set_test.go`/`vector_channel_threading_test.go` (Group B's other
+  two) took THEIR blank imports (`Input`/`Time`/`TimeEnd`/`TimeStart`/`PulseLeft`/
+  `PulseRight`/`pulse`) out of `dispatch`'s test binary with them, and
+  `distance_groups_test.go`/`distance_groups_scene_test.go` had been relying on those
+  incidentally — `go build`/`go vet` stayed clean (blank imports have no symbol reference
+  to check), and only `go test ./...` caught it, with `unknown type "X"` errors identical
+  in shape to a forgotten `gen-node-defs` run. Fixed by expanding
+  `distance_groups_kind_import_test.go`'s own blank-import list to the full set the
+  production topology needs, named explicitly rather than depending on a sibling file's
+  incidental list — the exact fix the file's own updated header now states as the reason.
+- `vec_close_test.go` — confirmed still used by 4 sibling files
+  (`gesture_camera_outcomes_test.go`/`gesture_drag_offset_test.go`/`gesture_home_test.go`/
+  `scene_camera_persist_test.go`), exactly as the task's own note anticipated. Stayed.
+
+**Moved, each to the package it actually exercises:**
+- `tilt_vector_phi_removed_persist_test.go` → `nodes/Wiring/loadspec` (package
+  `loadspec_test`): exercised only `loadspec.LoadTree`. Its one dependency,
+  `writeTreeFile` (a 10-line fixture-file writer), was used by no other file in `dispatch`
+  once this one left — duplicated locally rather than exported cross-package, since a
+  single non-shared 10-line helper does not meet the bar for an export.
+- `interior_sphere_test.go` → `nodes/Wiring/nodegeom` (package `nodegeom_test`):
+  exercised only `nodegeom.NodeRadius` and `interior`'s exported slot geometry; its own
+  header comment's stated reason for living in `dispatch` ("these two assertions need
+  Wiring's own nodeRadius, which package interior must not import") was already stale —
+  `NodeRadius` had already moved to `nodegeom`, a package `interior` does not import
+  either, so the move is clean with zero new cycle risk.
+- `speed_delivery_full_set_test.go`, `vector_channel_threading_test.go` → `nodes/Wiring/build`
+  (package `build_test`): both exercise `build.LoadTopology` end-to-end (speed-sink count,
+  PairNode tilt-vector channel threading), never `MoveDispatch`'s own methods. Both called
+  `dispatch.WriteSpecTree` — discovered NOT reusable across directories: `WriteSpecTree` is
+  a "_test.go-only export" (defined in `dispatch`'s own internal `_test.go` file, exported
+  so `dispatch`'s EXTERNAL test package in the SAME directory can call it — `go test`
+  compiles internal+external test files of one directory into one augmented test binary).
+  That augmentation does not cross directories: `go vet` on the moved files failed with
+  `undefined: W.WriteSpecTree` because the NORMAL (non-test-augmented) `dispatch` package
+  `nodes/Wiring/build` imports has no such symbol. Fixed by duplicating `writeSpecTree`/
+  `writeTreeFile` into a new `nodes/Wiring/build/wire_test_helpers_test.go`, the same
+  "genuine copy, not a cross-directory reuse" call `tilt_vector_phi_removed_persist_test.go`
+  made for its own smaller helper.
+
+### Verify
+
+`go build ./...`, `go vet ./...`: clean after each of the 3 Group-A-package commits and the
+1 Group-B commit. `gofmt -l .`: empty after every commit (one auto-reformat by the tool
+itself, not hand-fixed). `go test ./...`: caught the `distance_groups_kind_import_test.go`
+blackout above (3 `FAIL`s, `unknown type "X"` for 8 kinds) — fixed in the same commit rather
+than a follow-up, since the guard suite does not check test-binary composition and this was
+found before that commit was made, not after. `go test -race -count=1 ./...`: zero `FAIL`,
+zero race reports, run at the end of each of the 4 commits and once more at the very end.
+`bash scripts/stop-checks.sh`: EMPTY stdout, run after every commit.
+
+Deliberate breaks, one per commit's most-exercised moved surface: (1) `viewpersist`'s
+`SliderSpeed`, `+ 1` added to `EffectiveClockSpeed(ui.Speed, ui.ClockDivisor)` →
+`TestSliderSpeedMatchesALiveSliderChange` failed by name (`userSpeed=0 divisor=1:
+SliderSpeed = 1, want 0`); restored, `go build` clean. (2) `scenestructure`'s
+`check-refusal-emits-frame.sh` re-run directly (pattern-based, not path-based, so no
+deliberate break was needed to prove it still bites — it already found and counted all 13
+call sites unchanged). (3) `loadspec.LoadTree`'s `TopTiltVectorThetaIdx` parse, `+ 1` added
+→ `TestLoadTreeIgnoresLegacyTopTiltVectorPhiIdx` failed by name (`want
+TopTiltVectorThetaIdx=5 ... got 0x...748` — the address of the mutated local, a sign the
+break landed exactly where intended); restored, `go build` clean, `git status --short`
+empty both times.
+
+Test-name fingerprint: `grep -oE '^func Test[A-Za-z0-9_]+'
+nodes/Wiring/{dispatch,kindapi,stdinreader,gesture,build,sceneswitch,nodeinbox,distancegroups,scenepersist,scenestructure,loadspec,nodegeom}/*_test.go`
+→ **147**, up from §33's 110 baseline by design, not drift: §33's own count formula never
+included `scenepersist` (which already held 1 test, `TestSceneSphereRoundTrip`, untouched
+this pass) or `scenestructure`/`loadspec`/`nodegeom` (which had zero `dispatch`-adjacent
+tests before this pass) in its package list — each new package this pass's moves actually
+landed tests in had to be added to the counted set, the same way §33 itself added
+`distancegroups` to §31's list rather than treating that omission as evidence of a
+duplication bug. Zero duplicate test names confirmed directly (`grep -rl "^func
+<name>("` returns exactly 1 file for every one of the 5 moved test names), which is the
+actual invariant the fingerprint stands in for. None renamed, dropped, weakened, or
+`t.Skip`ped; every moved test is byte-identical to its pre-move body except the
+receiver/import rewrite the move itself required.
+
+### Guards
+
+Grepped `tools/` for every filename and symbol moved this pass (`EnableViewpointPersist`,
+`EnableEditPersist`, `LoadOverlays`, `LoadSpeed`, `LoadSceneSphere`, `SliderSpeed`,
+`HumanEditSpeed`, `InstallOverlays`, `InstallSpeed`, `InstallSceneSphere`, `CreateNode`,
+`DeleteNode`, `scene_structure.go`, `move_persist.go`, `scene_overlays_persist.go`,
+`scene_speed_persist.go`, `scene_sphere_persist.go`, `vector_channel_threading_test.go`,
+`speed_delivery_full_set_test.go`, `interior_sphere_test.go`,
+`tilt_vector_phi_removed_persist_test.go`) — zero hits inside any guard's enforced pattern.
+`check-persist-write-ownership.sh`'s `VIEW_OWNERS` array matches by BASENAME, not full
+path, and every `scene_*_persist.go` basename still exists (now under `scenepersist/`
+instead of `dispatch/`) with its `writeJSONAtomic` call site unmoved — confirmed by reading
+the guard rather than assuming, since this pass moved the directory a basename-only guard
+could have silently stopped covering. `check-refusal-emits-frame.sh` re-run directly:
+`checked 13 refuseStructuralEdit( call site(s)`, exit 0 — same count as §33, confirming the
+pattern-based (not path-based) match still finds every site now that they live in
+`scenestructure`. `check-docs-symbols.sh` caught one real drift this pass introduced and
+missed by the first build: `nodes/Wiring/dispatch/scene_speed_persist.go` was still named in
+`docs/pair-node/math/formulas.html`'s two `data-src` attributes after the file moved —
+fixed by repointing both to `nodes/Wiring/scenepersist/scene_speed_persist.go`.
+`check-persist-write-ownership.sh`, `check-scene-path-resolution.sh`,
+`check-no-network-locks.sh` (allowlist stayed empty), `check-channel-names.sh`, the
+stream-fd guards, `check-composer-fields.sh`, `check-doc-drift.sh`,
+`check-no-untracked-source.sh`, `check-no-state-cache.sh`, `check-kind-imports.sh` (relevant
+to `distance_groups_kind_import_test.go`'s expanded blank-import list — clean, since none of
+the newly-added kinds import a sibling kind, only the shared spine) all ran clean inside
+`stop-checks.sh`. Grepped every new/touched file for `runtime.Caller`,
+`filepath.Join("..", ...)`, `../..` — zero hits (no new depth-sensitive helper was added or
+moved this pass; `writeTreeFile`'s duplicate copies use `t.TempDir()`/`filepath.Join(root,
+rel)`, not a relative-to-source-file path).
+
+### Which moved surfaces have no test that can fail
+
+`EnableViewpointPersist`/`EnableEditPersist`'s own moved BODIES are exercised indirectly
+through every test that arms persistence and then asserts on a written file
+(`TestPersistViewpointRoundTrips`, `TestPersistOverlaysRoundTrips`, etc.) — no test names
+`viewpersist.EnableEditPersist` itself and asserts on ITS OWN behavior in isolation (e.g.
+that `md.Scenes.TreeRoot` gets set), only on its downstream effects. `InstallOverlays`/
+`InstallSpeed`/`InstallSceneSphere`'s rename-only-no-behavior-change is unverified by a
+literal old-name assertion (impossible — the old name no longer exists) but IS verified by
+every test that calls the new name and checks the same on-disk round-trip §33's tests
+already checked. `scenestructure.CreateNode`/`DeleteNode`'s two refusal branches proven by
+`refuse_structural_edit_emit_test.go` (Group A above); every OTHER branch (the 11 remaining
+`refuseStructuralEdit`/`emitViewFrame` pairs `check-refusal-emits-frame.sh` still counts) has
+no test reaching it directly, same gap §33 already recorded and did not close.
+
+### Final state
+
+`ls nodes/Wiring/dispatch/*.go | wc -l` → **42** (7 non-test + 35 test), down from 54 (12 +
+42) at this pass's start — **target ≤31 still not reached, but every one of §33's 5 named
+remaining files is now closed**, and Group B closed 4 of its 9 measured files (5 were
+confirmed genuinely coupled to a sibling that stays, not stranded). The 7 non-test files
+left (`gesture_dispatch.go`, `move_dispatch.go`, `move_dispatch_api.go`,
+`move_dispatch_construct.go`, `move_streams.go`, `distance_groups.go`, `vec_alias.go`) are
+exactly §32/§33's own pinned set — unexported `ctx`, composition root, `tapToInstall`
+reach, `DistanceGroupLens`'s cycle, ~200 in-package `vec3` call sites — none re-examined
+this pass since nothing about them changed and §33 already re-confirmed them by inspection.
+
+Commits: `8649965d` (EnableViewpointPersist/EnableEditPersist → viewpersist), `45f40368`
+(LoadOverlays/LoadSpeed/SliderSpeed/HumanEditSpeed/LoadSceneSphere → scenepersist),
+`4b4530a9` (CreateNode/DeleteNode → scenestructure), `c83622e3` (4 Group-B test files move,
+distance_groups_kind_import_test.go absorbs the kind registrations they took with them).
