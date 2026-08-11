@@ -135,7 +135,7 @@ func applyUpdateScene(msg inputcodec.StdinMsg, md *MoveDispatch, tr *T.Trace, sp
 	}
 	switch msg.Attr {
 	case "selected":
-		md.SelectScene(int(msg.Num))
+		SelectScene(&md.Scenes, int(msg.Num))
 	case "latticePoints":
 		points := int32(msg.Num)
 		if points < 4 || points > 64 || points%4 != 0 {

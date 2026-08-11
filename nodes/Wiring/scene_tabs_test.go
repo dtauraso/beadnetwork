@@ -42,7 +42,7 @@ func TestSelectSceneWritesTheSelectionAndEndsTheRun(t *testing.T) {
 	anchor := tabbedAnchor(t)
 	md, quit := armedDispatch(t, anchor)
 
-	md.SelectScene(1)
+	SelectScene(&md.Scenes, 1)
 
 	if !*quit {
 		t.Fatalf("SelectScene(1) did not end the run; without that the respawn never happens and the tab never changes")
@@ -65,7 +65,7 @@ func TestSelectSceneIgnoresTheTabAlreadyShowing(t *testing.T) {
 	anchor := tabbedAnchor(t)
 	md, quit := armedDispatch(t, anchor)
 
-	md.SelectScene(0) // tab 0 is the default with no file present
+	SelectScene(&md.Scenes, 0) // tab 0 is the default with no file present
 
 	if *quit {
 		t.Fatalf("selecting the tab already showing ended the run: the sim would restart and land on the SAME diagram, which reads as a random flicker")
@@ -79,8 +79,8 @@ func TestSelectSceneRejectsAnOutOfRangeTab(t *testing.T) {
 	anchor := tabbedAnchor(t)
 	md, quit := armedDispatch(t, anchor)
 
-	md.SelectScene(len(scene.SceneTabs)) // one past the end
-	md.SelectScene(-1)
+	SelectScene(&md.Scenes, len(scene.SceneTabs)) // one past the end
+	SelectScene(&md.Scenes, -1)
 
 	if *quit {
 		t.Fatalf("an out-of-range tab index ended the run; the respawn would reload the same scene for no reason")
@@ -89,7 +89,7 @@ func TestSelectSceneRejectsAnOutOfRangeTab(t *testing.T) {
 
 func TestUnarmedDispatchCannotEndTheRun(t *testing.T) {
 	md := &MoveDispatch{tr: T.New()} // EnableSceneSwitch never called
-	md.SelectScene(1)                // must not panic, must not exit
+	SelectScene(&md.Scenes, 1)       // must not panic, must not exit
 }
 
 func TestSelectedSceneIndexFallsBackToTabZero(t *testing.T) {
