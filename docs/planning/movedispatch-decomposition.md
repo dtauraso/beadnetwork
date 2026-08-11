@@ -1497,3 +1497,129 @@ then restored and confirmed both pass again. No guard is keyed to `writeStreamFr
 before this change, so no guard needed re-keying and none was touched). No interface,
 `types`/`common` package, alias shim, dot-import, package-level actor global, or `ForTest`
 hatch was added.
+
+## 14. `mover_registry.go`/`move_dispatch_construct.go` re-measured statement by statement —
+§12's `linkRefusal` decline corrected, three pure functions lifted
+
+§12 declined `moverRegistry.linkRefusal` on the grounds that it "reads `mr.nodeGeoms`
+directly, so the actual statement pinning it is a field read". That measured the whole
+function by its one field read, not by counting statements — re-measured: the body is 13
+statements, of which **1** touches `mr` (`srcGeom, found := mr.nodeGeoms[src]`) and **9**
+are pure string/port-lookup logic (`firstPortOfDir` calls, `fmt.Sprintf` message building,
+the found/hasIn/hasOut branches). Same shape `nodeBodyRadius`/`nodeKind` etc. already
+show in this file: a real field touch does not make the rest of the body impure.
+
+**Classified every function in `mover_registry.go` and `move_dispatch_construct.go`:**
+
+`mover_registry.go`:
+- `bind` — every statement writes into `mr.edgeOut`/`mr.edgeMovers`/`mr.nodeGeoms`-derived
+  struct fields (`em.out`, `em.dest`, `srcNM.outs.*`). 100% bucket (a).
+- `start` — launches one goroutine per mover. 100% bucket (a) (goroutine start).
+- `finalizeActors` — reads `mr.selfDriveClaimed`/`mr.nodeGeoms`, writes `mr.nodeMovers`,
+  makes channels. 100% bucket (a).
+- `drainCenterMirror` — channel receive into `mr.centerMirror`. 100% bucket (a).
+- `centerOfNode` — calls `mr.drainCenterMirror`, reads `mr.centerMirror`. 100% bucket (a).
+- `sendMove` — channel send (with ctx-cancel escape). 100% bucket (a).
+- `enqueueFor` — returns a closure that appends to `nm.msg.pending`, calls
+  `nm.flushPending`, panics past the bound. 100% bucket (a) (field writes + panic
+  assertion).
+- `nodeKind` — 1 statement, reads `mr.nodeGeoms[nodeID]`. Trivial, not worth splitting.
+- `nodeBodyRadius` — 1 statement, `nodegeom.NodeRadius(mr.nodeKind(id))`; the pure call is
+  already in `nodegeom`, nothing left to lift.
+- `hasNodeMover`/`nodeSelfDriven`/`nodeQuantOffset` — 1-3 statements each, all direct
+  `mr.nodeGeoms`/`mr.nodeMovers` reads returned as-is. Trivial.
+- `linkRefusal` — **1/13 statements touch `mr`** (the `nodeGeoms` lookup); the other 9
+  (port-direction lookups + message formatting) never read or write `mr`. **Lifted** the 9
+  into a new package-level `linkRefusalFor(src, srcKind string, srcFound bool, kind
+  string)`, called by `linkRefusal` after it resolves `srcKind`/`srcFound` off
+  `mr.nodeGeoms`. `linkRefusalFor` stays in `mover_registry.go` (not a subpackage) because
+  it calls `firstPortOfDir` (`scene_structure.go`), which reads the package-level
+  `Registry` global — a dependency no subpackage may take on `nodes/Wiring` itself.
+- `nearestNodeTo` — **1/6 statements touch `mr`** (the `range mr.nodeGeoms` loop header);
+  the distance comparison itself (`c.Sub(p)`, `d2`, best-tracking) never reads `mr`.
+  **Lifted** to `nodegeom.NearestTo(centers map[string]vec3, p vec3) (string, bool)`
+  (`nodes/Wiring/nodegeom/nearest.go`, new file) — `mover_registry.go` now only builds the
+  `id -> center` map off `mr.nodeGeoms` and hands it to `nodegeom.NearestTo`. Landed in
+  `nodegeom` (existing subpackage, already the home for `NodeWorldPos`/`EdgeSegment`/etc.,
+  and depends on nothing but its own `vec3 = wire.Vec3` alias) rather than a new package.
+
+`move_dispatch_construct.go` (`newMoveDispatch`, one function, single-threaded setup):
+- The per-node seed loop (label-default, world-center-from-`HasPos`, row-from-id parsing,
+  struct literal) — every statement was a pure function of `id`/`i`/`g`/the already-computed
+  `row`, appended into `md.GS.NodeSeeds` (the append is the only `md`-touching statement).
+  **Lifted** to `geomseeds.BuildNodeSeed(id string, i int, g nodegeom.NodeGeom, row int)
+  NodeGeomSeed`.
+- The per-edge seed loop (endpoint lookup + `nodegeom.EdgeSegment` + struct literal, with a
+  loud error on a missing endpoint) — same shape, pure given `label`/`ep`/the `geoms` map
+  parameter (not `md.mr.nodeGeoms` — the load-time map `newMoveDispatch` was already handed).
+  **Lifted** to `geomseeds.BuildEdgeSeed(label string, ep inputcodec.EdgeEndpoints, geoms
+  map[string]nodegeom.NodeGeom) (EdgeGeomSeed, error)`.
+- The mutual-pair detection (`hasEdge` set built from `edgeEndpoints`, then a second pass
+  checking the reverse direction) — pure given `edgeEndpoints` alone; the only `md`-touching
+  statement was the final `nm.topo.mutualTargets[ep.Target] = true` write, which stayed at
+  the call site. **Lifted** to `geomseeds.MutualPairs(edgeEndpoints
+  map[string]inputcodec.EdgeEndpoints) map[string]map[string]bool`.
+- Everything else in `newMoveDispatch` — the `md := &MoveDispatch{...}` construction, the
+  `md.mr.nodeGeoms[id] = ng` node-geometry population loop (closures capturing `md.mr`/
+  `md.tapToInstall`/`md.lq`/`md.UI` — these closures ARE the cross-goroutine wiring the
+  model requires, not incidental), the partner-center/edge-id seeding loops (write into
+  `nm.topo.partnerCenters`/`nm.topo.edgeIDs`, read `md.mr.nodeGeoms`/`md.mr.edgeMovers`),
+  and the `RT.Build`/`DistanceGroupLensFn` binding at the end — all bucket (a): every
+  statement writes to or reads through `md`/`mr`. `newMoveDispatch` is single-threaded
+  SETUP, not an actor loop, but it is still a hub by construction: it exists to populate
+  `MoveDispatch`, so most of its body writing to `md` is not a defect the way it would be in
+  a request-handling method.
+
+All three `geomseeds` additions live in the SAME existing subpackage `newMoveDispatch`
+already imports (`geomseeds.NodeGeomSeed`/`EdgeGeomSeed` — the caller already builds these
+exact struct literals, so their own constructors are their type's natural home, same
+reasoning as `nodegeom` above). `geomseeds` gained two new imports it previously didn't
+need (`nodegeom`, `inputcodec`, `loadspec`, `fmt`) — checked for cycles: neither
+`nodegeom` nor `inputcodec` nor `loadspec` imports `geomseeds`, `nodes/Wiring`, or each
+other in a way that closes a loop (`go build ./...` is authoritative and stayed clean).
+
+**Declined:** nothing else in either file was a plausible split — see the per-function
+breakdown above; every remaining function's own body is 100% mr/md field
+touches/channel ops/goroutine starts, not merely "impure at the top level".
+
+**LOC:** `mover_registry.go` 384 → 392 (net +8: the `linkRefusal`/`linkRefusalFor` split
+added a function boundary and doc comments; no logic added). `move_dispatch_construct.go`
+272 → 240 (−32, the three inlined loops shrank to single calls). New file
+`nodes/Wiring/nodegeom/nearest.go`, 19 lines. `geomseeds/geom_seeds.go` 68 → 144 (+76, the
+three new pure builders plus their doc comments). `nodes/Wiring` non-test top-level `.go`
+file count unchanged (both touched files already existed at the top level; only
+`nodegeom/nearest.go`, inside an existing subpackage, is new).
+
+**Verification:** `go build ./...`, `go vet ./...` clean. `go test -race -count=1 ./...`
+passes with no failures and no race reported (every package `ok` or `[no test files]`). The
+no-imports-`Wiring` loop (`for p in $(go list ./nodes/Wiring/... | grep -v
+'nodes/Wiring$'); do go list -deps "$p" | grep -qx
+github.com/dtauraso/wirefold/nodes/Wiring && echo "IMPORTS WIRING: $p"; done`) is empty.
+`grep -rln` across `tools/` for `nearestNodeTo`, `linkRefusal`, `mutualTargets`,
+`BuildNodeSeed`, `BuildEdgeSeed`, `mover_registry.go`, `move_dispatch_construct.go` returned
+nothing — no guard is keyed to any of these names or files, none needed re-keying.
+
+Deliberately broke `geomseeds.BuildNodeSeed`'s `Row: row` (changed to `Row: i`, silently
+falling back to spec-order position instead of `id-1`) and confirmed
+`TestMoveDispatchRowTablesUseNodeIDMinusOne` FAILS by name:
+```
+--- FAIL: TestMoveDispatchRowTablesUseNodeIDMinusOne (0.01s)
+    node_move_row_table_test.go:51: LookupNodeRow(2)=("30",true) want ("3",true)
+```
+then restored and confirmed the test passes again (`go test -race -count=1
+./nodes/Wiring/...` clean, no failures).
+
+**Coverage gap found, not papered over.** Neither `linkRefusal`/`linkRefusalFor` nor
+`nearestNodeTo`/`nodegeom.NearestTo` has any direct test, and the one production call site
+for both (`scene_structure.go`'s drop-to-create-linked-node path) is reached only through
+`MoveDispatch.CreateNode`, whose one existing test
+(`refuse_structural_edit_emit_test.go`'s `TestCreateNodeRefusalEmitsViewFrame`) exercises
+only the cheapest refusal branch (`!md.ui.sceneEditable`) and never reaches the drop/link
+logic at all. This gap pre-dates this task (the split did not remove or weaken any
+assertion — there was none to weaken) and is reported per this task's own coverage
+requirement, not fixed (adding a `CreateNode`-with-link integration test is a separate,
+larger change than a decomposition pass).
+
+No interface, `types`/`common` package, alias shim, dot-import, package-level actor global,
+or `ForTest` hatch was added. Tests moved with their subject: none — no test file in either
+cluster needed a change (the coverage gap above is exactly why).
