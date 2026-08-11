@@ -11,42 +11,10 @@
 // float32 throughout, as the render path already is) — geometry/position coords therefore
 // carry float32 precision rather than the old float64 JSON, an inherent, expected nuance.
 
-import { TRACE_EVENT_KINDS, BREADCRUMB_LABELS } from "./schema/trace-kinds";
-import { NODE_KIND_NAMES } from "./schema/node-defs";
 import { decodeViewFrame } from "./webview/three/decode/buffer-decode-view";
-import { nodeLabel, type DecodedNodeFrame } from "./webview/three/decode/buffer-decode-node";
-import { edgeLabel, type DecodedEdgeFrame } from "./webview/three/decode/buffer-decode-edge";
-import { INTERIOR_SLOTS_PER_NODE } from "./webview/three/decode/buffer-decode-interior";
-import {
-  readNodeCX, readNodeCY, readNodeCZ, readNodeRadius, readNodeSphereR,
-  readNodeVRX, readNodeVRY, readNodeVRZ, readNodeFRX, readNodeFRY, readNodeFRZ,
-  readNodeKindId,
-  readInteriorPresent, readInteriorValue, readInteriorOX, readInteriorOY, readInteriorOZ,
-  readEdgeSX, readEdgeSY, readEdgeSZ, readEdgeEX, readEdgeEY, readEdgeEZ,
-  readCameraPX, readCameraPY, readCameraPZ, readCameraR,
-  readCameraPosTheta, readCameraPosPhi, readCameraUpTheta, readCameraUpPhi,
-  readOverlaySceneTori, readOverlayScenePoles, readOverlayNodePoles,
-  readOverlaySelSpherePoles, readOverlayHandholds, readOverlayLabelsGlobal,
-  readOverlayOverlaysVis,
-  readOverlayNodeBody,
-  readOverlayNodeRing,
-  readOverlayRingPick,
-  readOverlaySelectionRing,
-  readOverlayHoverRing,
-  readOverlayReachSphere,
-  readEventKind, readEventNodeRow, readEventPortRow, readEventTargetRow, readEventTargetPortRow,
-  readEventEdgeRow, readEventSlot, readEventValue, readEventBead,
-  readEventBeadSteps, readEventSimLatencyMs, readEventX, readEventY, readEventZ, readEventF,
-  readEventLabel, readEventDebug, readEventTextOff, readEventTextLen,
-  readSceneCX, readSceneCY, readSceneCZ, readSceneRadius,
-  UNKNOWN_KIND_ID,
-} from "./schema/buffer-layout";
-
-type Line = Record<string, unknown>;
-
-/** Shared UTF-8 decoder for the event-text-bytes section (the sanctioned single
- *  free-form string escape hatch on the EVENT row — see Buffer.BuildEventsSection). */
-const EVENT_TEXT_DECODER = new TextDecoder();
+import type { DecodedNodeFrame } from "./webview/three/decode/buffer-decode-node";
+import type { DecodedEdgeFrame } from "./webview/three/decode/buffer-decode-edge";
+import { decodeEventLine, type ViewBlocksOrNull } from "./webview/three/decode/decode-event-line";
 
 // DecodedEventLine pins the field shape decodeEventLine (below) emits per Go event kind —
 // the SAME shape the removed JSON-on-stdout path used to emit. Kept as a typed contract
@@ -103,17 +71,10 @@ export type DecodedEventLine =
  * stream frame instead, where a real DecodedNodeFrame/DecodedEdgeFrame aggregate is
  * available. Passing null degrades identity to "" rather than throwing — the same
  * graceful-empty convention nodeLabel/portName already use for an out-of-range row.
+ * ViewBlocksOrNull (the camera/overlay/scene-sphere view lookup) and decodeEventLine (the
+ * per-row decode this loop calls once per event) now live in
+ * webview/three/decode/decode-event-line.ts.
  */
-/** camera/overlay/scene views resolved from EITHER source — the SCENE frame's embedded
- *  blocks (fallback, no dedicated view fd) OR the dedicated VIEW frame (see
- *  webview/three/scene/view-blocks.ts's ext-host-side mirror). Null fields mean neither
- *  source has landed for that block yet. */
-interface ViewBlocksOrNull {
-  cameraView: DataView | null;
-  overlayView: DataView | null;
-  sceneView: DataView | null;
-}
-
 // decodeBufferLog decodes the VIEW frame's own trailing EVENTS section — the fallback
 // bucket of trace kinds not yet decentralized to their own owner fd (Fire/Recv/Send/
 // Select/Hover/AbcDrag*/Camera/SceneSphere/overlay toggles — see Buffer/
@@ -166,173 +127,4 @@ export function decodeStreamFrameEvents(eventCount: number, eventView: DataView,
     out += JSON.stringify({ ts_ms: now, src: "go", ...line }) + "\n";
   }
   return out;
-}
-
-function overlayFlag(vb: ViewBlocksOrNull, kind: string): number {
-  const v = vb.overlayView;
-  if (!v) return 0;
-  switch (kind) {
-    case "scene-tori": return readOverlaySceneTori(v);
-    case "scene-poles": return readOverlayScenePoles(v);
-    case "node-poles": return readOverlayNodePoles(v);
-    case "sel-sphere-poles": return readOverlaySelSpherePoles(v);
-    case "handholds": return readOverlayHandholds(v);
-    case "labels-global": return readOverlayLabelsGlobal(v);
-    case "overlays-vis": return readOverlayOverlaysVis(v);
-    case "node-body": return readOverlayNodeBody(v);
-    case "node-ring": return readOverlayNodeRing(v);
-    case "ring-pick": return readOverlayRingPick(v);
-    case "selection-ring": return readOverlaySelectionRing(v);
-    case "hover-ring": return readOverlayHoverRing(v);
-    case "reach-sphere": return readOverlayReachSphere(v);
-    default: return 0;
-  }
-}
-
-const OVERLAY_KINDS = new Set([
-  "scene-tori", "scene-poles", "node-poles", "sel-sphere-poles",
-  "handholds", "labels-global", "overlays-vis",
-  "node-body", "node-ring", "ring-pick", "selection-ring", "hover-ring", "reach-sphere",
-]);
-
-function decodeEventLine(ev: DataView, eventTextView: DataView, dn: DecodedNodeFrame | null, de: DecodedEdgeFrame | null, vb: ViewBlocksOrNull, i: number): Line | null {
-  const kindId = readEventKind(ev, i);
-  const kind = TRACE_EVENT_KINDS[kindId];
-  if (kind === undefined) return null;
-  const nodeRow = readEventNodeRow(ev, i);
-  const portRow = readEventPortRow(ev, i);
-  const targetRow = readEventTargetRow(ev, i);
-  const targetPortRow = readEventTargetPortRow(ev, i);
-  const edgeRow = readEventEdgeRow(ev, i);
-  const value = readEventValue(ev, i);
-  const bead = readEventBead(ev, i);
-  const node = dn && nodeRow >= 0 ? nodeLabel(dn, nodeRow) : "";
-  // port is always "" now: a port has no name/row on the buffer any more
-  // (docs/bead-model/channels-not-ports.md). portRow still rides the event as a sentinel (-1).
-  const port = "";
-
-  if (kind === "breadcrumb") {
-    // DEBUG BREADCRUMB channel (task/breadcrumbs-binary-buffer): a structured EVENT
-    // row instead of the retired free-form JSON stdout line. Column meanings are
-    // REUSED per breadcrumb Label (see each Go call site's own comment) — this decode
-    // exposes every raw column plus the resolved label name and free-form text (if
-    // any), so probe-merge.sh --debug (filtering on debug===true) can display whatever
-    // a given label populated without this decoder needing per-label knowledge.
-    const labelId = readEventLabel(ev, i);
-    const label = BREADCRUMB_LABELS[labelId] ?? String(labelId);
-    const textOff = readEventTextOff(ev, i);
-    const textLen = readEventTextLen(ev, i);
-    const text = textLen > 0 && eventTextView.byteLength >= textOff + textLen
-      ? EVENT_TEXT_DECODER.decode(new Uint8Array(eventTextView.buffer, eventTextView.byteOffset + textOff, textLen))
-      : "";
-    const t = dn && targetRow >= 0 ? nodeLabel(dn, targetRow) : "";
-    const line: Line = {
-      kind, label, debug: readEventDebug(ev, i) === 1,
-      node, port, value,
-      x: readEventX(ev, i), y: readEventY(ev, i), z: readEventZ(ev, i),
-      nodeRow, portRow, targetRow, targetPortRow, edgeRow, slot: readEventSlot(ev, i),
-    };
-    if (t) line.target = t;
-    if (text) line.text = text;
-    return line;
-  }
-
-  switch (kind) {
-    case "recv":
-      return { kind, node, port, value };
-    case "fire":
-      return { kind, node };
-    case "send": {
-      const beadSteps = readEventBeadSteps(ev, i);
-      const lat = readEventSimLatencyMs(ev, i);
-      if (beadSteps !== 0 || lat !== 0) {
-        const l: Line = { kind, node, port, value, beadSteps, simLatencyMs: lat };
-        const t = dn && targetRow >= 0 ? nodeLabel(dn, targetRow) : "";
-        if (t) l.target = t;
-        // No targetHandle any more: a port has no name on the buffer (docs/bead-model/channels-not-ports.md).
-        return l;
-      }
-      return { kind, node, port, value };
-    }
-    case "edge-bead": {
-      const l: Line = { kind, node, port, value, x: readEventX(ev, i), y: readEventY(ev, i), z: readEventZ(ev, i), f: readEventF(ev, i) };
-      if (bead !== 0) l.bead = bead;
-      return l;
-    }
-    case "arrive": {
-      const l: Line = { kind, node, port, value };
-      if (bead !== 0) l.bead = bead;
-      return l;
-    }
-    case "geometry": {
-      const edge = de ? edgeLabel(de, edgeRow) : "";
-      // The Edge block carries its own SEGMENT (SX..EZ) directly — node surface to node
-      // surface (docs/bead-model/channels-not-ports.md), not a reference through a port row.
-      let sx = 0, sy = 0, sz = 0, ex = 0, ey = 0, ez = 0;
-      if (de && edgeRow >= 0 && edgeRow < de.edgeCount) {
-        sx = readEdgeSX(de.edgeView, edgeRow); sy = readEdgeSY(de.edgeView, edgeRow); sz = readEdgeSZ(de.edgeView, edgeRow);
-        ex = readEdgeEX(de.edgeView, edgeRow); ey = readEdgeEY(de.edgeView, edgeRow); ez = readEdgeEZ(de.edgeView, edgeRow);
-      }
-      return { kind, edge, sx, sy, sz, ex, ey, ez };
-    }
-    case "node-geometry":
-      return dn ? nodeGeometryLine(dn, nodeRow, node) : { kind, node };
-    case "node-bead": {
-      if (!dn) return { kind, node };
-      const slot = readEventSlot(ev, i);
-      const irow = nodeRow * INTERIOR_SLOTS_PER_NODE + slot;
-      return {
-        kind, node, row: Math.floor(slot / 2), col: slot % 2,
-        present: readInteriorPresent(dn.interiorView, irow) === 1,
-        value: readInteriorValue(dn.interiorView, irow),
-        x: readInteriorOX(dn.interiorView, irow), y: readInteriorOY(dn.interiorView, irow), z: readInteriorOZ(dn.interiorView, irow),
-      };
-    }
-    case "camera": {
-      const c = vb.cameraView;
-      if (!c) return { kind };
-      return {
-        kind,
-        px: readCameraPX(c), py: readCameraPY(c), pz: readCameraPZ(c), r: readCameraR(c),
-        posTheta: readCameraPosTheta(c), posPhi: readCameraPosPhi(c),
-        upTheta: readCameraUpTheta(c), upPhi: readCameraUpPhi(c),
-      };
-    }
-    case "scene-sphere": {
-      const sc = vb.sceneView;
-      if (!sc) return { kind };
-      return { kind, cx: readSceneCX(sc), cy: readSceneCY(sc), cz: readSceneCZ(sc), radius: readSceneRadius(sc) };
-    }
-    case "select":
-      // stdout marshals select via the default {node,port,value} shape (edge label not emitted).
-      return { kind, node, port: "", value };
-    case "hover":
-      return { kind, node, port, value };
-    default:
-      if (OVERLAY_KINDS.has(kind)) return { kind, visible: overlayFlag(vb, kind) === 1 };
-      return { kind, node, port, value };
-  }
-}
-
-function nodeGeometryLine(dn: DecodedNodeFrame, nodeRow: number, node: string): Line {
-  // A node-geometry event riding the VIEW bucket resolves its node columns against the
-  // last cached per-node stream frame, which can be a STALE generation with fewer rows than the
-  // topology — reading nodeRow past nodeView would throw. Degrade to the label-only line
-  // (same graceful-empty contract as nodeLabel), never crash the .probe logger.
-  if (nodeRow < 0 || nodeRow >= dn.nodeCount) return { kind: "node-geometry", node };
-  const n = dn.nodeView;
-  const cx = readNodeCX(n, nodeRow), cy = readNodeCY(n, nodeRow), cz = readNodeCZ(n, nodeRow);
-  const radius = readNodeRadius(n, nodeRow);
-  const sphereR = readNodeSphereR(n, nodeRow);
-  const kindId = readNodeKindId(n, nodeRow);
-  // No `ports` array any more (docs/bead-model/channels-not-ports.md): a port carries no geometry,
-  // so there is nothing to report per node beyond its own fields below.
-  const l: Line = { kind: "node-geometry", node };
-  if (node) l.label = node;
-  if (kindId !== UNKNOWN_KIND_ID && NODE_KIND_NAMES[kindId] !== undefined) l.nodeKind = NODE_KIND_NAMES[kindId];
-  l.nx = cx; l.ny = cy; l.nz = cz; l.radius = radius;
-  if (sphereR !== 0) l.sphereR = sphereR;
-  l.vrx = readNodeVRX(n, nodeRow); l.vry = readNodeVRY(n, nodeRow); l.vrz = readNodeVRZ(n, nodeRow);
-  l.frx = readNodeFRX(n, nodeRow); l.fry = readNodeFRY(n, nodeRow); l.frz = readNodeFRZ(n, nodeRow);
-  return l;
 }
