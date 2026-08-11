@@ -2594,3 +2594,86 @@ interface added.
 renamed into `tiltring`, 4 new files in `tiltring`, 1 deleted (`node_helpers_test.go`, content
 moved), 8 docs pages updated, `SPEC.md` updated). `d0501639` — "PairNode tilt lattice and state
 machine moved to tiltring package with their tests".
+
+## §23 — "zero `.go` files directly under `nodes/Wiring/`": measured, not attempted
+
+Asked: empty `nodes/Wiring/*.go` (45 non-test + 49 test files) by moving every one into a
+subpackage, re-pointing all 36 external importers, with node kinds (audience 1) decoupled
+from the dispatch core (`MoveDispatch`) as the single most valuable outcome. No files were
+moved this session — the tree is unchanged (`git status --short` empty, no commits). This
+section records why, and what a staged follow-up needs to know going in.
+
+**Measured partition (before any move).** `nodes/Wiring/*.go` non-test, grouped by what
+already coheres:
+
+| Candidate package | Files (non-test) |
+|---|---|
+| load/build pipeline | `build.go`, `build_args.go`, `build_args_beads.go`, `build_args_clock.go`, `build_args_lattice.go`, `build_args_ports.go`, `build_args_selfdrive.go`, `build_args_state.go`, `build_args_tilt_vector.go`, `build_edge_maps.go`, `build_nodes.go`, `build_wires.go`, `build_move_dispatch.go`, `loader.go`, `node_registry.go` |
+| dispatch core (`MoveDispatch`/`moverRegistry`) | `move_dispatch.go`, `move_dispatch_api.go`, `move_dispatch_construct.go`, `mover_registry.go`, `commit_node_move.go`, `quantized_move.go`, `broadcast_move.go`, `driven_out.go`, `distance_groups.go`, `touching_beads.go` |
+| gesture FSM | `gesture.go`, `gesture_actions.go`, `gesture_dispatch.go`, `gesture_graph.go`, `gesture_handlers.go`, `gesture_hitclassify.go` |
+| stdin/stream wiring | `stdin_apply.go`, `stdin_dispatch.go`, `stream_wiring.go`, `move_streams.go` |
+| persisters | `move_persist.go`, `scene_lattice_persist.go`, `scene_overlays_persist.go`, `scene_speed_persist.go`, `scene_sphere_persist.go` |
+| scene/view state | `scene_structure.go`, `scene_switch.go`, `viewpoint_state.go` |
+| small/misc | `bool_u8.go`, `vec_alias.go` |
+
+**The blocker, precisely.** `BuildArgs` (`build_args.go`) is the parameter every one of the
+13 node kinds' `Build` functions takes. It embeds:
+
+```go
+type buildDeps struct {
+	latticePoints int32
+	inboxes       *nodeInboxes
+	mr            *moverRegistry
+}
+```
+
+`*moverRegistry` is the exact type `MoveDispatch.mr` holds (`move_dispatch.go`'s `mr
+moverRegistry` field) — the dispatch core's own registry, not a copy or a narrowed view.
+`build_args.go`'s own doc comment names this directly: "buildDeps carries the specific
+pieces of MoveDispatch state ... the Wiring-internal state PortBindings cannot portably
+carry." Two of its three consuming methods (`LatticeIn`/`TiltEditIn`, `ClaimSelfDrive`)
+mutate through these pointers (register this node's own channel in the inboxes map, mark
+this node's own id claimed in `mr`). This is not incidental coupling to prune — it is the
+mechanism by which a node claims its own inbox/self-drive slot in the live registry.
+
+Consequence: moving `RegisterBuilder`/`BuildArgs`/`Registry`/`BuildRegistry` into their own
+package (alongside `portwiring`, as the task asked) does not by itself decouple the 13 node
+kinds from the dispatch core — that new package would still need to import wherever
+`nodeInboxes`/`moverRegistry` live to name `buildDeps`'s fields, and every node kind
+transitively depends on it through `BuildArgs`. Achieving real decoupling means either (a)
+giving `nodeInboxes`/`moverRegistry` a narrow exported interface a kind-API package can
+depend on without pulling in the rest of `MoveDispatch` (a real design change to the
+registry's surface, not a file move), or (b) accepting that audience 1 depends on a small,
+separately-packaged slice of the dispatch core (inbox registration + self-drive claim only)
+rather than zero dependency. Either is a legitimate multi-file design change in its own
+right, done BEFORE any bulk file relocation — not a mechanical consequence of moving files.
+
+**Why this was not attempted as a full 94-file / 36-importer move this session.** The task's
+own process section requires per-package commits that each leave `go build ./...` / `go test
+-race ./...` green and `git status --short` empty, guard re-keying "with teeth" proven by a
+deliberate break per guard, and doc-symbol citations repointed one by one — for roughly 30
+target packages (7 above, plus the ~14 kind-specific groupings inside the remaining 15 test
+files, plus wherever the FSM/persist packages' own tests land) each touching some subset of
+36 external importers whose build/test signal only closes after the LAST package in the
+dependency order lands (the load/build pipeline and dispatch-core groups are mutually
+recursive per §17–§20's own finding, so they cannot be verified independently of each
+other). That is a multi-package, multi-session staged migration, not a single sitting's
+work; attempting it in one unbroken pass at this session's scope would force either skipping
+the per-commit verification this document's own convention requires, or presenting a
+partially-migrated `nodes/Wiring` as done when it is not. Neither is acceptable per this
+task's explicit "no half-migrated state" constraint, so no file was moved.
+
+**What a staged follow-up should do, in order:** (1) decide (a) vs (b) above for
+`buildDeps` and land that decoupling design as its own commit, verified, with `nodes/Wiring`
+untouched otherwise; (2) move the now-narrow kind-API (`RegisterBuilder`, `BuildArgs`,
+`Registry`, `BuildRegistry`) beside `portwiring` and re-point the 13 kind-package + 6
+kind-test importers — this is the commit that actually delivers "node kinds do not depend on
+`MoveDispatch`"; (3) migrate the dispatch-core + load/build groups together (real cycle, one
+package, matching §17's finding for `MoveDispatch`/`moverRegistry`); (4) migrate gesture FSM,
+stdin/stream wiring, persisters, scene/view state each as their own commit; (5) re-point
+`runtopology`'s 8 files once, after the run-API surface (`LoadTopology`, `MoveDispatch`,
+`RunStdinReader`, stream wiring) has a stable final location. Each step re-keys the guards
+this document's own header list names (`check-scene-path-resolution.sh`,
+`check-persist-write-ownership.sh`, `check-no-network-locks.sh`, `check-dep-rules.sh`, the
+stream-fd guards, `check-doc-symbols.sh`/`check-docs-symbols.sh`) at the point that step's
+files move, not in a final sweep.
