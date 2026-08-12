@@ -2,10 +2,10 @@ import {
   sph, meridian, parallel, path3, dot3,
   clamp, rig, ball,
   norm, cross, dot, vsub, vscale, rotAbout, cssv, D2R,
-} from "./pole-singularity-math.js";
+} from "./math.js";
 import {
   drawTab2Cells, drawTab2Arc, drawTab2Degenerate, drawTab2Pucks, drawTab2Psi, drawTab2Instruments,
-} from "./pole-singularity-tab2-render.js";
+} from "./tab2-render.js";
 
 export const r2 = rig(document.getElementById("c2"));
 export const ref = { th: 78 * D2R, ph: -1.9 };

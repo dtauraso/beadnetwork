@@ -1,6 +1,6 @@
-import { cam, sph, clamp, pickHemi, isDark, interaction, setTxt } from "./pole-singularity-math.js";
-import { r1, n1, draw1, setNudge1, setJit1, isJit1 } from "./pole-singularity-tab1.js";
-import { r2, tgt, draw2, setShowCells } from "./pole-singularity-tab2.js";
+import { cam, sph, clamp, pickHemi, isDark, interaction, setTxt } from "./math.js";
+import { r1, n1, draw1, setNudge1, setJit1, isJit1 } from "./tab1.js";
+import { r2, tgt, draw2, setShowCells } from "./tab2.js";
 
 // ---- interaction: orbit vs drag-node ----
 function bind(cv, r, node, redraw) {

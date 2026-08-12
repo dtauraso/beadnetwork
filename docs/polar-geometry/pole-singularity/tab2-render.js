@@ -2,8 +2,8 @@ import {
   R, R_WORLD, SP, R2D, D2R, TAU, cssv, path3, dashPath3, dot3,
   arrowHead, label3, clamp, setTxt,
   norm, cross, dot,
-} from "./pole-singularity-math.js";
-import { nudge1 } from "./pole-singularity-tab1.js";
+} from "./math.js";
+import { nudge1 } from "./tab1.js";
 
 export function drawTab2Cells(r, P, showCells, ang, psiR) {
   const SC = 20 * D2R, SPS = 20 * D2R;

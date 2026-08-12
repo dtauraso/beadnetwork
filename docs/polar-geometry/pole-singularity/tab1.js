@@ -1,4 +1,4 @@
-import { R_WORLD, SP_DEG, SP, D2R, R2D, cssv, sph, meridian, path3, parallel, dot3, label3, clamp, rig, setTxt, ball, interaction } from "./pole-singularity-math.js";
+import { R_WORLD, SP_DEG, SP, D2R, R2D, cssv, sph, meridian, path3, parallel, dot3, label3, clamp, rig, setTxt, ball, interaction } from "./math.js";
 
 // ============ TAB 1 scene ============
 export const r1 = rig(document.getElementById("c1"));
