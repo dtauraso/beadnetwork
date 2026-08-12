@@ -1,10 +1,11 @@
 import type { BufferLabelPos } from "../buffer-scene";
+import * as T from "../../controls/chrome-theme";
 
 const PILL_STYLE: React.CSSProperties = {
-  background: "rgba(0,0,0,0.55)",
-  border: "none",
-  borderRadius: 4,
-  padding: "3px 6px",
+  background: T.CHIP,
+  border: `1px solid ${T.BORDER}`,
+  borderRadius: T.RADIUS_ITEM,
+  padding: T.PAD_CHIP,
 };
 
 export function BufferLabelOverlay({ positions }: { positions: BufferLabelPos[] }) {
@@ -18,9 +19,10 @@ export function BufferLabelOverlay({ positions }: { positions: BufferLabelPos[] 
             left: pos.px,
             top: pos.py - 4,
             transform: "translate(-50%, -100%)",
-            fontSize: 11,
-            fontFamily: "monospace",
-            color: "#e0e0e0",
+            fontSize: T.FONT_SIZE,
+            fontFamily: T.FONT_STACK,
+            fontVariantNumeric: "tabular-nums",
+            color: T.TEXT,
             pointerEvents: "none",
             lineHeight: 1.25,
             textAlign: "center",

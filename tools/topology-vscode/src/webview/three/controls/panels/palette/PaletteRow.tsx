@@ -2,6 +2,7 @@ import React, { useRef, useState } from "react";
 import { NODE_DEFS } from "../../../../../schema/node-defs";
 import { NODE_PALETTE_KIND_MIME } from "./node-palette-drag";
 import { popoverRowStyle, DISCLOSURE_GLYPH_STYLE, REVEALED_LIST_STYLE } from "../../pills/overlay-chrome";
+import * as T from "../../chrome-theme";
 
 export function PaletteRow({ kind, kindId }: { kind: string; kindId: number }) {
   const [hover, setHover] = useState(false);
@@ -42,7 +43,7 @@ export function PaletteRow({ kind, kindId }: { kind: string; kindId: number }) {
             width: 11,
             height: 11,
             flex: "0 0 auto",
-            borderRadius: 3,
+            borderRadius: T.RADIUS_ITEM,
             background: def?.fill ?? "#888",
             border: `1px solid ${def?.stroke ?? "#888"}`,
           }}
