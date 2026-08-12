@@ -1,0 +1,127 @@
+<meta charset="utf-8">
+<title>Pair node — the arithmetic instead — the update</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../pair-base.css">
+<link rel="stylesheet" href="../pair-layout.css">
+<link rel="stylesheet" href="../pair-typography.css">
+<link rel="stylesheet" href="../pair-panels.css">
+<link rel="stylesheet" href="../pair-diagrams.css">
+
+<header>
+  <h1>The arithmetic instead — the update</h1>
+  <div class="sub">which end moves, the tilt line it stops on, and the one assumption held
+    fixed throughout</div>
+</header>
+
+<nav>
+  <a href="../index.html">Index</a>
+  <a href="arith.html">&larr; back to The arithmetic instead</a>
+</nav>
+
+<main class="onesize">
+
+  <div class="grid">
+
+    <div class="card wide">
+      <p class="lead">Continues <a href="arith.html">The arithmetic instead</a>, using the same
+        numbers defined there: <var>t</var>/<var>b</var> this node's tilt/bottom, <var>p</var>
+        the partner's (never seen) tilt, <var>a</var> the partner's normal (what arrives),
+        <var>u</var>/<var>v</var> the counts from the top/bottom to <var>a</var>, and <var>c</var>
+        the angle at whichever end is nearer.</p>
+    </div>
+
+    <h3 class="secname">One update of one node: t moves one slot, or none</h3>
+
+    <div class="card wide">
+      <h2>Which end moves, and whether it goes +1, −1 or stays</h2>
+      <p class="eq head"><var>u</var> &lt; 12
+        <span class="note">nearer end = top, so the top is the end that moves</span></p>
+      <p class="eq step"><span class="g"><var>u</var> = 6 :</span>
+        <span class="note par">parallel</span></p>
+      <p class="eq step sub"><var>t</var><sub>after</sub> = <var>t</var></p>
+      <p class="eq step sub"><var>u</var> &lt; 6 :</p>
+      <p class="eq step sub2"><var>t</var><sub>after</sub> = <var>t</var>+1</p>
+      <p class="eq step sub"><var>u</var> &gt; 6 :</p>
+      <p class="eq step sub2"><var>t</var><sub>after</sub> = <var>t</var>−1</p>
+      <p class="eq step"><span class="g"><var>u</var> = 0 :</span>
+        <span class="note perp">perpendicular</span></p>
+      <p class="eq step sub"><var>t</var><sub>after</sub> = <var>t</var></p>
+      <p class="eq step sub"><var>u</var> ≥ 6 :</p>
+      <p class="eq step sub2"><var>t</var><sub>after</sub> = <var>t</var>+1</p>
+      <p class="eq step sub"><var>u</var> &lt; 6 :</p>
+      <p class="eq step sub2"><var>t</var><sub>after</sub> = <var>t</var>−1</p>
+      <p class="eq step dim"><var>b</var><sub>after</sub> = <var>t</var><sub>after</sub> + 12
+        (mod 24) — the end that was not measured follows</p>
+      <p class="eq head"><var>u</var> ≥ 12
+        <span class="note">nearer end = bottom, so the bottom is the end that moves</span></p>
+      <p class="eq step"><span class="g"><var>v</var> = 6 :</span>
+        <span class="note par">parallel</span></p>
+      <p class="eq step sub"><var>b</var><sub>after</sub> = <var>b</var></p>
+      <p class="eq step sub"><var>v</var> &lt; 6 :</p>
+      <p class="eq step sub2"><var>b</var><sub>after</sub> = <var>b</var>+1</p>
+      <p class="eq step sub"><var>v</var> &gt; 6 :</p>
+      <p class="eq step sub2"><var>b</var><sub>after</sub> = <var>b</var>−1</p>
+      <p class="eq step"><span class="g"><var>v</var> = 0 :</span>
+        <span class="note perp">perpendicular</span></p>
+      <p class="eq step sub"><var>b</var><sub>after</sub> = <var>b</var></p>
+      <p class="eq step sub"><var>v</var> ≥ 6 :</p>
+      <p class="eq step sub2"><var>b</var><sub>after</sub> = <var>b</var>+1</p>
+      <p class="eq step sub"><var>v</var> &lt; 6 :</p>
+      <p class="eq step sub2"><var>b</var><sub>after</sub> = <var>b</var>−1</p>
+      <p class="eq step dim"><var>t</var><sub>after</sub> = <var>b</var><sub>after</sub> − 12
+        (mod 24) — the end that was not measured follows</p>
+      <p class="eq head">standing still means <var>a</var> lies along one of this node's own
+        two lines</p>
+      <p class="eq step par"><span class="g">parallel</span>
+        the normal line: <var>t</var>+6, <var>b</var>+6</p>
+      <p class="eq step perp"><span class="g">perpendicular</span>
+        the tilt line: <var>t</var>, <var>b</var></p>
+      <div class="keynote">
+        <p><b>t<sub>after</sub>, b<sub>after</sub></b> — the two ends after this update. Each half
+          moves the end it measured and derives the other, so the ends never have to agree about
+          who moved: one of them is written and the other is read off it</p>
+        <p>the node stores both ends and runs exactly this:
+          <span data-src="nodes/PairNode/tiltring/machine.go#NearerEndCount">nearerEndCount</span> says which
+          end the count came from, <span data-src="nodes/PairNode/tiltring/machine.go#Step">step</span> returns
+          that end moved one slot, and
+          <span data-src="nodes/PairNode/ring.go#setTop">setTop</span> /
+          <span data-src="nodes/PairNode/ring.go#setBottom">setBottom</span> write it — each writing
+          the other end off its own opposite in the same statement, which is why the two cannot
+          come apart</p>
+        <p>read on the nearer end's OWN count the two halves are the same four lines — u under 12
+          in the first, v under 12 in the second — so no comparison reverses</p>
+        <p>the reversal appears only if the bottom is measured by the complementary angle,
+          12 − c, which counts the other way round: then every comparison flips and the two
+          descriptions still pick the same move</p>
+        <p>the direction is a comparison, not a sign: no value here is negative</p>
+      </div>
+    </div>
+
+    <h3 class="secname">The tilt it stops on</h3>
+
+    <div class="card wide">
+      <h2>t once it has stopped, as a line</h2>
+      <p class="eq step par"><span class="g">parallel</span>
+        <var>t</var> ≡ <var>a</var> + 6 (mod 12)</p>
+      <p class="eq step perp"><span class="g">perpendicular</span>
+        <var>t</var> ≡ <var>a</var> (mod 12)</p>
+      <p class="eq step dim">which of the line's two ends it lands on is not settled by these</p>
+      <div class="keynote">
+        <p>taken mod 12 a tilt and its bottom are the same number, so these two lines fix the
+          arrangement without naming which way t turned to reach it</p>
+      </div>
+    </div>
+
+    <h3 class="secname">The one thing held fixed: a</h3>
+
+    <div class="card wide">
+      <h2>Everything above assumes a keeps the same value</h2>
+      <div class="keynote">
+        <p>in a live pair the partner turns too, so a changes between updates. The exchange is on
+          <a href="../rules/updates.html">Update rules</a></p>
+      </div>
+    </div>
+
+  </div>
+
+</main>
