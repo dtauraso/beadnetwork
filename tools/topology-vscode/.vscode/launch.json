@@ -8,6 +8,7 @@
       "runtimeExecutable": "${execPath}",
       "args": [
         "--extensionDevelopmentPath=${workspaceFolder}",
+        "--disable-extension=ms-vscode.live-server",
         "${workspaceFolder}/../.."
       ],
       "outFiles": ["${workspaceFolder}/out/**/*.js"],
