@@ -19,7 +19,7 @@ def build_panels():
         o.append(arrow(cx, cy, R, t, TOP, 2.8))
         o.append(f'<text x="{cx}" y="176" text-anchor="middle" {MONO} {INK}>t = {t}</text>')
         o.append('</svg>')
-        out[f"panel-triad-{t}"] = "\n".join(o)
+        out[f"triad/{t}"] = "\n".join(o)
 
     for sep, note in ((0, "perpendicular rests"), (3, "acute — steps"), (6, "parallel rests"),
                       (11, "obtuse — steps"), (12, "perpendicular rests")):
@@ -32,7 +32,7 @@ def build_panels():
         o.append(f'<text x="{cx}" y="180" text-anchor="middle" {MONO} fill="{HOME}">L = {sep}</text>')
         o.append(f'<text x="{cx}" y="202" text-anchor="middle" {SANS} {DIM}>{note}</text>')
         o.append('</svg>')
-        out[f"panel-length-{sep}"] = "\n".join(o)
+        out[f"length/{sep}"] = "\n".join(o)
 
     frames = [(23, 10, None, None, ["n1 sends 5"]),
               (23, 10, 2, 5, ["n2 reads 5,", "one slot short"]),
@@ -51,7 +51,7 @@ def build_panels():
         for i, line in enumerate(cap):
             o.append(f'<text x="76" y="{224 + i * 19}" text-anchor="middle" {SANS} {DIM}>{line}</text>')
         o.append('</svg>')
-        out[f"panel-run-{n + 1}"] = "\n".join(o)
+        out[f"run/{n + 1}"] = "\n".join(o)
 
     for name, t, extra in (("before", 17, True), ("after", 0, False)):
         W, H, cx, cy, R = 164, 204, 82, 82, 66
@@ -65,10 +65,10 @@ def build_panels():
         o.append(f'<text x="{cx}" y="180" text-anchor="middle" {MONO} {INK}>{label}</text>')
         o.append(f'<text x="{cx}" y="200" text-anchor="middle" {SANS} {DIM}>{name}</text>')
         o.append('</svg>')
-        out[f"panel-reset-{name}"] = "\n".join(o)
+        out[f"reset/{name}"] = "\n".join(o)
 
-    out["panel-links"] = build_panel_links()
-    out["panel-modes"] = build_panel_modes()
+    out["links/links"] = build_panel_links()
+    out["modes/modes"] = build_panel_modes()
 
     for name, a, note in (("perp", 12, "gap 6 → perpendicular"), ("par", 9, "gap 3 → parallel")):
         W, H, cx, cy, R = 200, 232, 100, 84, 68
@@ -84,10 +84,10 @@ def build_panels():
         o.append(f'<text x="{cx}" y="196" text-anchor="middle" {SANS} {DIM}>{note}</text>')
         o.append(f'<text x="{cx}" y="218" text-anchor="middle" {SANS} {DIM}>a = {a}, partner = {partner}</text>')
         o.append('</svg>')
-        out[f"panel-gap-{name}"] = "\n".join(o)
+        out[f"gap/{name}"] = "\n".join(o)
 
-    out["panel-state"] = build_panel_state()
-    out["panel-step"] = build_panel_step()
-    out["panel-frame"] = build_panel_frame()
+    out["state/state"] = build_panel_state()
+    out["step/step"] = build_panel_step()
+    out["frame/frame"] = build_panel_frame()
 
     return out

@@ -1,16 +1,9 @@
-"""Build one .tex + .svg per block of the update maths.
-
-Rows are set in array{@{}l@{}} — a single LEFT-aligned column with no padding
-either side — so every line starts at the same left edge. The obvious choice,
-`aligned`, anchors each row at its & instead, which lines the rows up on their
-equals signs and leaves ragged space in front of the shorter left-hand sides.
-"""
 import os, subprocess
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-OPEN = r"\[\begin{array}{@{}l@{}}"
-CLOSE = r"\end{array}\]"
+LEFT_ALIGNED_NO_PADDING_ARRAY_OPEN = r"\[\begin{array}{@{}l@{}}"
+LEFT_ALIGNED_NO_PADDING_ARRAY_CLOSE = r"\end{array}\]"
 
 BODIES = {
     "read": r"""
@@ -123,12 +116,26 @@ HEAD = ("%% update-%s.tex — one block of the update. Shared setup is pairmath.
 
 SCALE = 1.9
 
+FAMILY_ENV = dict(os.environ, TEXINPUTS=".." + os.pathsep + os.environ.get("TEXINPUTS", ""))
+
+
+def family_and_stem(name):
+    family, _, rest = name.partition("-")
+    return (family, rest) if rest else (name, name)
+
+
 for name, body in BODIES.items():
-    stem = f"update-{name}"
-    open(stem + ".tex", "w").write((HEAD % name) + OPEN + body + CLOSE + "\n\\end{document}\n")
-    subprocess.run(["latex", "-interaction=nonstopmode", stem + ".tex"], capture_output=True)
+    family, stem = family_and_stem(name)
+    os.makedirs(family, exist_ok=True)
+    tex_name = stem + ".tex"
+    content = (HEAD % name) + LEFT_ALIGNED_NO_PADDING_ARRAY_OPEN + body + \
+        LEFT_ALIGNED_NO_PADDING_ARRAY_CLOSE + "\n\\end{document}\n"
+    open(os.path.join(family, tex_name), "w").write(content)
+    subprocess.run(["latex", "-interaction=nonstopmode", tex_name], cwd=family,
+                    env=FAMILY_ENV, capture_output=True)
     r = subprocess.run(["dvisvgm", "--no-fonts", "--exact-bbox",
-                        f"--output={stem}.svg", stem + ".dvi"], capture_output=True, text=True)
+                        f"--output={stem}.svg", stem + ".dvi"], cwd=family,
+                        capture_output=True, text=True)
     out = r.stderr + r.stdout
     line = [l for l in out.splitlines() if "graphic size" in l]
     if not line:
@@ -136,4 +143,4 @@ for name, body in BODIES.items():
         print(out[-600:])
         continue
     pt = float(line[0].split()[2].removesuffix("pt"))
-    print(f'{stem}.svg  {pt:7.1f}pt  ->  style="width:{round(pt * SCALE)}px"')
+    print(f'{family}/{stem}.svg  {pt:7.1f}pt  ->  style="width:{round(pt * SCALE)}px"')
