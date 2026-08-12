@@ -1,9 +1,4 @@
 #!/usr/bin/env node
-// Scans tools/topology-vscode/src/webview/rf/ for banned
-// vocabulary that signals the AI (or a human) has drifted from the
-// Go model. See MODEL.md at repo root.
-//
-// Exits non-zero on any hit. Wire into CI / pre-commit as desired.
 
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
@@ -31,7 +26,7 @@ const BANNED = [
   /\bdeadline\b/i,
   /\bschedule[rd]?\b/i,
   /\bcarrying\b/,
-  // Logical-tick vocabulary banned after MODEL.md removed the tick view
+
   /\btick\b/i,
   /\bround[- ]?close\b/i,
   /\blap\b/i,
@@ -55,9 +50,7 @@ for (const file of walk(ROOT)) {
   const text = readFileSync(file, "utf8");
   const lines = text.split("\n");
   lines.forEach((line, i) => {
-    // Explicit per-line opt-out for legitimate visual-layer uses
-    // (wire RAF, pulse animation, etc). Reason must follow the
-    // marker so the exemption stays auditable.
+
     if (/\bvocab-ok:/.test(line)) return;
     for (const re of BANNED) {
       if (re.test(line)) {
