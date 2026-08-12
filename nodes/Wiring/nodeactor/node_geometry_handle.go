@@ -118,10 +118,7 @@ func (m *NodeGeometry) handleTiltVectorReset() {
 }
 
 func (m *NodeGeometry) handleNeighborCenter(msg movemsg.Msg) {
-	if m.topo.partnerCenters == nil {
-		m.topo.partnerCenters = map[string]vec3{}
-	}
-	m.topo.partnerCenters[msg.SenderID] = msg.FromCenter
+	m.topo.SeedPartnerCenter(msg.SenderID, msg.FromCenter)
 	if m.tr != nil {
 
 		value := fmt.Sprintf("sender=%s center=(%.4f,%.4f,%.4f)", msg.SenderID, msg.FromCenter.X, msg.FromCenter.Y, msg.FromCenter.Z)

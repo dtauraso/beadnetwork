@@ -23,28 +23,19 @@ func (m *NodeGeometry) EnsureNeighborChannel(otherID string) {
 }
 
 func (m *NodeGeometry) AddMutualTarget(target string) {
-	if m.topo.mutualTargets == nil {
-		m.topo.mutualTargets = map[string]bool{}
-	}
-	m.topo.mutualTargets[target] = true
+	m.topo.AddMutualTarget(target)
 }
 
 func (m *NodeGeometry) SeedPartnerCenter(neighborID string, c vec3) {
-	if m.topo.partnerCenters == nil {
-		m.topo.partnerCenters = map[string]vec3{}
-	}
-	m.topo.partnerCenters[neighborID] = c
+	m.topo.SeedPartnerCenter(neighborID, c)
 }
 
 func (m *NodeGeometry) AddEdgeID(edgeID string) {
-	m.topo.edgeIDs = append(m.topo.edgeIDs, edgeID)
+	m.topo.AddEdgeID(edgeID)
 }
 
 func (m *NodeGeometry) AddNeighborKind(toID, kind string) {
-	if m.topo.neighborKinds == nil {
-		m.topo.neighborKinds = map[string]string{}
-	}
-	m.topo.neighborKinds[toID] = kind
+	m.topo.AddNeighborKind(toID, kind)
 }
 
 func (m *NodeGeometry) SetSelfKind(kind string) {
