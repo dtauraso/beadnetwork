@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>wirefold — debouncedPersister.mu, resolved</title>
+<title>wirefold — debouncedPersister.mu, resolved — 2b · is 60 writes/sec actually a problem? — nobody has shown it is</title>
 <style>
   :root {
     --ground:#F2F4F7; --surface:#FFFFFF; --plate:#FAFBFC;
@@ -93,64 +93,71 @@
 .crumbnav a { color: var(--flow, #2E7D9A); text-decoration:none; }
 .crumbnav a:hover { text-decoration:underline; }
 .crumbnav .crumb-here { color: var(--ink, #131A24); font-weight:600; }
-
-.idx-list { list-style:none; margin:22px 0 0; padding:0; display:grid; gap:10px; max-width:640px; }
-.idx-list a {
-  display:block; font-family:var(--mono); font-size:14px; color:var(--ink, #131A24);
-  background:var(--surface, #fff); border:1px solid var(--line, #D3D9E2); border-radius:6px;
-  padding:14px 16px; text-decoration:none;
-}
-.idx-list a:hover { border-color:var(--line-strong, #B7C0CD); }
 </style>
 </head>
 <body>
 
 <header>
   <div class="head-inner">
-    <p class="eyebrow">wirefold · concurrency · RESOLVED</p>
-    <h1>debouncedPersister.mu — a deleted lock, recorded</h1>
-    <p class="sub">Every lock in this repo has now been deleted — <code>sceneFileMu</code> and
-    <code>entityFileMu</code> are both gone; LayoutHolder.mu was deleted too
-    (one owner goroutine per node, no lock needed) — LayoutHolder itself was later deleted
-    entirely along with the local-polar model it held (MODEL.md "the polar model"); and
-    <code>Trace.mu</code>, once thought to be the one lock that had to stay because it guarded
-    an accumulator that cannot be copied, was deleted too — that claim was true but was never
-    what the lock actually guarded in production (see
-    <code>docs/concurrency/trace-mutex-architecture.html</code>). This page records the debounced
-    persister's own lock (was <code>nodes/Wiring/scene_persist.go:64</code>, five instances),
-    the last one in question when this page was written. See
-    <code>docs/concurrency/mutex-architecture.html</code> for the whole-system view, now describing zero
-    live locks.</p>
-    <p class="verdict ok"><b>RESOLVED</b> — task/mutex-debounced-persister deleted the whole
-    generic type (the struct, its lock, the coalescing timer) rather than restructuring it:
-    the throughput case for debouncing (diagram 2b) never held up, and the analysis below is
-    kept as the record of why. Every domain persister's <code>schedule()</code> now writes
-    synchronously. The type/method names below (the struct itself, its timer field, its four
-    methods) no longer exist in code — read this page as history, not as a description of the
-    current tree.</p>
+    <p class="eyebrow">debouncedPersister.mu, resolved</p>
+    <h1>2b · is 60 writes/sec actually a problem? — nobody has shown it is</h1>
+    <nav class="crumbnav"><a href="debounced-persister-architecture.html">debouncedPersister.mu — a deleted lock, recorded</a> — <a href="debounced-persister-architecture-1-what-it-guards.html">what it guards — four fields, four methods</a> · <a href="debounced-persister-architecture-2-what-debouncing-is.html">what debouncing is for — a drag is one write, not sixty</a> · <span class="crumb-here">2b · is 60 writes/sec actually a problem? — nobody has shown it is</span> · <a href="debounced-persister-architecture-3-the-two-parties.html">the two parties — and the second one is spawned, not chosen</a> · <a href="debounced-persister-architecture-4-why-take-zeroes.html">why take() zeroes pending — the non-obvious reason the lock earns its keep</a> · <a href="debounced-persister-architecture-5-five-instances-independent.html">five instances — independent, not one shared lock</a> · <a href="debounced-persister-architecture-6-the-single-owner-candidate.html">the single-owner candidate</a> · <a href="debounced-persister-architecture-7-measured-deleting-mu.html">measured: deleting mu is red, not clean</a> · <a href="debounced-persister-architecture-8-what-the-lock.html">what the lock is actually doing — three separable jobs</a></nav>
   </div>
 </header>
 
 <div class="wrap">
-<ul class="idx-list">
-  <li><a href="debounced-persister-architecture-1-what-it-guards.html">1 · what it guards — four fields, four methods</a></li>
-  <li><a href="debounced-persister-architecture-2-what-debouncing-is.html">2 · what debouncing is for — a drag is one write, not sixty</a></li>
-  <li><a href="debounced-persister-architecture-2b-is-60.html">2b · is 60 writes/sec actually a problem? — nobody has shown it is</a></li>
-  <li><a href="debounced-persister-architecture-3-the-two-parties.html">3 · the two parties — and the second one is spawned, not chosen</a></li>
-  <li><a href="debounced-persister-architecture-4-why-take-zeroes.html">4 · why take() zeroes pending — the non-obvious reason the lock earns its keep</a></li>
-  <li><a href="debounced-persister-architecture-5-five-instances-independent.html">5 · five instances — independent, not one shared lock</a></li>
-  <li><a href="debounced-persister-architecture-6-the-single-owner-candidate.html">6 · the single-owner candidate</a></li>
-  <li><a href="debounced-persister-architecture-7-measured-deleting-mu.html">7 · measured: deleting mu is red, not clean</a></li>
-  <li><a href="debounced-persister-architecture-8-what-the-lock.html">8 · what the lock is actually doing — three separable jobs</a></li>
-</ul>
-<footer>
-  Verified against the tree on <span style="font-family:var(--mono)">task/mutex-debounced-persister</span>.
-  Line numbers drift — re-grep before trusting them. Companions:
-  <span style="font-family:var(--mono)">docs/concurrency/scene-persist-architecture.html</span>,
-  <span style="font-family:var(--mono)">docs/layout-holder-architecture.html</span>,
-  <span style="font-family:var(--mono)">docs/concurrency/mutex-architecture.html</span>,
-  <span style="font-family:var(--mono)">docs/concurrency/framings.md</span>.
-</footer>
+<div class="legend">
+  <span><i class="sw g"></i>goroutine</span>
+  <span><i class="sw s"></i>locked state</span>
+  <span><i class="sw q"></i>timer</span>
+  <span><i class="sw k"></i>safe / resolved</span>
+</div>
+
+<h2>2b · is 60 writes/sec actually a problem? — nobody has shown it is</h2>
+<p class="cap">The same question that deflated <code>RealClock.mu</code>'s performance premise.
+Asked here, the throughput case is <b>weak</b>, and the one argument that might hold is a
+different argument entirely — and unmeasured.</p>
+
+<div class="plate">
+<svg viewBox="0 0 860 370" role="img" aria-label="The throughput justification for debouncing does not hold up arithmetically, and its sibling writer follows a different policy on the same drag, with no measurement behind either.">
+  <text class="tl" x="0" y="14">THE THROUGHPUT ARGUMENT — DOES NOT HOLD</text>
+
+  <rect class="box" x="0" y="28" width="420" height="120" rx="6"/>
+  <text class="ts" x="12" y="50">60 writes/sec × a handful of nodes</text>
+  <text class="ts" x="12" y="68">≈ 240 writes/sec</text>
+  <text class="tf" x="12" y="88">each = marshal + MkdirAll + WriteFile + rename</text>
+  <text class="tf" x="12" y="102">≈ 4 syscalls, on ~200-byte files</text>
+  <text class="ts" x="12" y="124">≈ 1,000 syscalls/sec total</text>
+  <text class="tk" x="12" y="142">an SSD does not notice this</text>
+
+  <text class="tl" x="440" y="14">WHAT THE SIBLING DOES</text>
+
+  <rect class="box" x="440" y="28" width="420" height="120" rx="6"/>
+  <text class="ts" x="452" y="50">WriteLocalPolars — quantized_move.go:264, :382</text>
+  <text class="tf" x="452" y="70">writes local-polars.json into the SAME per-node</text>
+  <text class="tf" x="452" y="84">directory, on the SAME drag</text>
+  <text class="tw" x="452" y="106">NOT debounced — synchronous, every commit</text>
+  <text class="tf" x="452" y="128">two writers, one drag, two different policies,</text>
+  <text class="tf" x="452" y="142">and no measurement behind either</text>
+
+  <rect class="state" x="0" y="164" width="860" height="70" rx="6"/>
+  <text class="t"  x="12" y="186">WHAT THE REPO ACTUALLY RECORDS</text>
+  <text class="ts" x="12" y="208">No benchmark. No profile. No commit motivated by a measurement. The only stated rationale is a comment</text>
+  <text class="ts" x="12" y="224">saying the write happens “off the hot path” — which asserts the conclusion rather than establishing it.</text>
+
+  <text class="tq" x="0" y="256">SEPARATE FINDING → task/undebounced-local-polars</text>
+  <text class="tf" x="0" y="272">one sibling debounced, the other not, on the same drag —</text>
+  <text class="tf" x="0" y="286">an asymmetry nobody chose. Its own question, not this branch's.</text>
+
+  <line x1="0" y1="306" x2="860" y2="306" stroke="var(--line)"/>
+  <text class="tw" x="0" y="326">WHAT THIS REFRAMES</text>
+  <text class="ts" x="160" y="326">the question is not only “can the lock go” but “does the debouncer earn its place at all”.</text>
+  <text class="tf" x="0" y="344">If it does not, the lock goes with it and there is nothing to restructure. Measure the drag path before designing an owner goroutine to preserve machinery that may not need to exist.</text>
+</svg>
+</div>
+
+
+
 </div>
 
 </body>

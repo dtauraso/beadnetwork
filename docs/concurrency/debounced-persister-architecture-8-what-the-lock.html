@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>wirefold — debouncedPersister.mu, resolved</title>
+<title>wirefold — debouncedPersister.mu, resolved — what the lock is actually doing — three separable jobs</title>
 <style>
   :root {
     --ground:#F2F4F7; --surface:#FFFFFF; --plate:#FAFBFC;
@@ -93,56 +93,71 @@
 .crumbnav a { color: var(--flow, #2E7D9A); text-decoration:none; }
 .crumbnav a:hover { text-decoration:underline; }
 .crumbnav .crumb-here { color: var(--ink, #131A24); font-weight:600; }
-
-.idx-list { list-style:none; margin:22px 0 0; padding:0; display:grid; gap:10px; max-width:640px; }
-.idx-list a {
-  display:block; font-family:var(--mono); font-size:14px; color:var(--ink, #131A24);
-  background:var(--surface, #fff); border:1px solid var(--line, #D3D9E2); border-radius:6px;
-  padding:14px 16px; text-decoration:none;
-}
-.idx-list a:hover { border-color:var(--line-strong, #B7C0CD); }
 </style>
 </head>
 <body>
 
 <header>
   <div class="head-inner">
-    <p class="eyebrow">wirefold · concurrency · RESOLVED</p>
-    <h1>debouncedPersister.mu — a deleted lock, recorded</h1>
-    <p class="sub">Every lock in this repo has now been deleted — <code>sceneFileMu</code> and
-    <code>entityFileMu</code> are both gone; LayoutHolder.mu was deleted too
-    (one owner goroutine per node, no lock needed) — LayoutHolder itself was later deleted
-    entirely along with the local-polar model it held (MODEL.md "the polar model"); and
-    <code>Trace.mu</code>, once thought to be the one lock that had to stay because it guarded
-    an accumulator that cannot be copied, was deleted too — that claim was true but was never
-    what the lock actually guarded in production (see
-    <code>docs/concurrency/trace-mutex-architecture.html</code>). This page records the debounced
-    persister's own lock (was <code>nodes/Wiring/scene_persist.go:64</code>, five instances),
-    the last one in question when this page was written. See
-    <code>docs/concurrency/mutex-architecture.html</code> for the whole-system view, now describing zero
-    live locks.</p>
-    <p class="verdict ok"><b>RESOLVED</b> — task/mutex-debounced-persister deleted the whole
-    generic type (the struct, its lock, the coalescing timer) rather than restructuring it:
-    the throughput case for debouncing (diagram 2b) never held up, and the analysis below is
-    kept as the record of why. Every domain persister's <code>schedule()</code> now writes
-    synchronously. The type/method names below (the struct itself, its timer field, its four
-    methods) no longer exist in code — read this page as history, not as a description of the
-    current tree.</p>
+    <p class="eyebrow">debouncedPersister.mu, resolved</p>
+    <h1>8 · what the lock is actually doing — three separable jobs</h1>
+    <nav class="crumbnav"><a href="debounced-persister-architecture.html">debouncedPersister.mu — a deleted lock, recorded</a> — <a href="debounced-persister-architecture-1-what-it-guards.html">what it guards — four fields, four methods</a> · <a href="debounced-persister-architecture-2-what-debouncing-is.html">what debouncing is for — a drag is one write, not sixty</a> · <a href="debounced-persister-architecture-2b-is-60.html">2b · is 60 writes/sec actually a problem? — nobody has shown it is</a> · <a href="debounced-persister-architecture-3-the-two-parties.html">the two parties — and the second one is spawned, not chosen</a> · <a href="debounced-persister-architecture-4-why-take-zeroes.html">why take() zeroes pending — the non-obvious reason the lock earns its keep</a> · <a href="debounced-persister-architecture-5-five-instances-independent.html">five instances — independent, not one shared lock</a> · <a href="debounced-persister-architecture-6-the-single-owner-candidate.html">the single-owner candidate</a> · <a href="debounced-persister-architecture-7-measured-deleting-mu.html">measured: deleting mu is red, not clean</a> · <span class="crumb-here">what the lock is actually doing — three separable jobs</span></nav>
   </div>
 </header>
 
 <div class="wrap">
-<ul class="idx-list">
-  <li><a href="debounced-persister-architecture-1-what-it-guards.html">1 · what it guards — four fields, four methods</a></li>
-  <li><a href="debounced-persister-architecture-2-what-debouncing-is.html">2 · what debouncing is for — a drag is one write, not sixty</a></li>
-  <li><a href="debounced-persister-architecture-2b-is-60.html">2b · is 60 writes/sec actually a problem? — nobody has shown it is</a></li>
-  <li><a href="debounced-persister-architecture-3-the-two-parties.html">3 · the two parties — and the second one is spawned, not chosen</a></li>
-  <li><a href="debounced-persister-architecture-4-why-take-zeroes.html">4 · why take() zeroes pending — the non-obvious reason the lock earns its keep</a></li>
-  <li><a href="debounced-persister-architecture-5-five-instances-independent.html">5 · five instances — independent, not one shared lock</a></li>
-  <li><a href="debounced-persister-architecture-6-the-single-owner-candidate.html">6 · the single-owner candidate</a></li>
-  <li><a href="debounced-persister-architecture-7-measured-deleting-mu.html">7 · measured: deleting mu is red, not clean</a></li>
-  <li><a href="debounced-persister-architecture-8-what-the-lock.html">8 · what the lock is actually doing — three separable jobs</a></li>
-</ul>
+<div class="legend">
+  <span><i class="sw g"></i>goroutine</span>
+  <span><i class="sw s"></i>locked state</span>
+  <span><i class="sw q"></i>timer</span>
+  <span><i class="sw k"></i>safe / resolved</span>
+</div>
+
+<h2>8 · what the lock is actually doing — three separable jobs</h2>
+<p class="cap">"Guards four fields" is not one job. Each of <code>arm</code>'s and
+<code>take</code>'s three effects fails a different way if <code>mu</code> is deleted, and
+they do not all get fixed by the same replacement.</p>
+
+<div class="plate">
+<svg viewBox="0 0 860 330" role="img" aria-label="The lock does three separable jobs: keeps pending and has consistent, makes the AfterFunc-or-Reset timer decision atomic, and hands map ownership from scheduler to flusher by zeroing pending in take.">
+  <text class="tl" x="0" y="14">JOB 1 — TWO FIELDS, ONE INVARIANT</text>
+  <rect class="box" x="0" y="26" width="272" height="112" rx="6"/>
+  <text class="ts" x="12" y="46">arm sets pending AND has :77-78</text>
+  <text class="ts" x="12" y="62">take reads both, clears both :93-96</text>
+  <text class="tf" x="12" y="84">unlocked: timer goroutine could see</text>
+  <text class="tf" x="12" y="98">has==true with a half-written pending,</text>
+  <text class="tf" x="12" y="112">or the stale pending after has flips</text>
+  <text class="tf" x="12" y="126">for a NEWER value</text>
+
+  <text class="tl" x="294" y="14">JOB 2 — THE TIMER DECISION IS ATOMIC</text>
+  <rect class="box" x="294" y="26" width="272" height="112" rx="6"/>
+  <text class="ts" x="306" y="46">arm: timer==nil ? AfterFunc : Reset :79-83</text>
+  <text class="tf" x="306" y="68">two concurrent arms could both see nil —</text>
+  <text class="tf" x="306" y="82">two timers, one leaks, value written twice</text>
+  <text class="tf" x="306" y="104">stop() racing arm() could Reset a timer</text>
+  <text class="tf" x="306" y="118">just Stopped — a write survives shutdown</text>
+
+  <text class="tl" x="588" y="14">JOB 3 — OWNERSHIP HANDOFF (MAPS ONLY)</text>
+  <rect class="box" x="588" y="26" width="272" height="112" rx="6"/>
+  <text class="ts" x="600" y="46">take() zeroes pending :95</text>
+  <text class="tf" x="600" y="68">anchor / quantOffset are MAP-valued —</text>
+  <text class="tf" x="600" y="82">flush walks away with the only reference</text>
+  <text class="tf" x="600" y="102">unlocked: a schedule landing mid-take is a</text>
+  <text class="tf" x="600" y="116">concurrent map write — Go crashes, not</text>
+  <text class="tf" x="600" y="130">a wrong value</text>
+
+  <line x1="0" y1="164" x2="860" y2="164" stroke="var(--line)"/>
+  <text class="tq" x="0" y="184">THE CONSEQUENCE — WHY THIS SPLIT MATTERS FOR ANY REPLACEMENT</text>
+  <rect class="safe" x="0" y="196" width="860" height="118" rx="6"/>
+  <text class="ts" x="12" y="218">An owner-goroutine design gets jobs 1 and 2 for FREE — one goroutine touching pending/has/timer</text>
+  <text class="ts" x="12" y="234">makes both invariants structural, no lock needed.</text>
+  <text class="tw" x="12" y="260">But it only gets job 3 right if the VALUE SENT to the owner is already a snapshot the sender</text>
+  <text class="tw" x="12" y="276">will not touch again.</text>
+  <text class="ts" x="12" y="298">Send a live map to the owner and the concurrent-write bug does not go away — it just moves from</text>
+  <text class="ts" x="12" y="312">"inside the lock" to "across the channel send".</text>
+</svg>
+</div>
+
 <footer>
   Verified against the tree on <span style="font-family:var(--mono)">task/mutex-debounced-persister</span>.
   Line numbers drift — re-grep before trusting them. Companions:
@@ -151,6 +166,12 @@
   <span style="font-family:var(--mono)">docs/concurrency/mutex-architecture.html</span>,
   <span style="font-family:var(--mono)">docs/concurrency/framings.md</span>.
 </footer>
+
+</div>
+
+</body>
+</html>
+
 </div>
 
 </body>

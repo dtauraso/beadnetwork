@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>wirefold — debouncedPersister.mu, resolved</title>
+<title>wirefold — debouncedPersister.mu, resolved — measured: deleting mu is red, not clean</title>
 <style>
   :root {
     --ground:#F2F4F7; --surface:#FFFFFF; --plate:#FAFBFC;
@@ -93,64 +93,58 @@
 .crumbnav a { color: var(--flow, #2E7D9A); text-decoration:none; }
 .crumbnav a:hover { text-decoration:underline; }
 .crumbnav .crumb-here { color: var(--ink, #131A24); font-weight:600; }
-
-.idx-list { list-style:none; margin:22px 0 0; padding:0; display:grid; gap:10px; max-width:640px; }
-.idx-list a {
-  display:block; font-family:var(--mono); font-size:14px; color:var(--ink, #131A24);
-  background:var(--surface, #fff); border:1px solid var(--line, #D3D9E2); border-radius:6px;
-  padding:14px 16px; text-decoration:none;
-}
-.idx-list a:hover { border-color:var(--line-strong, #B7C0CD); }
 </style>
 </head>
 <body>
 
 <header>
   <div class="head-inner">
-    <p class="eyebrow">wirefold · concurrency · RESOLVED</p>
-    <h1>debouncedPersister.mu — a deleted lock, recorded</h1>
-    <p class="sub">Every lock in this repo has now been deleted — <code>sceneFileMu</code> and
-    <code>entityFileMu</code> are both gone; LayoutHolder.mu was deleted too
-    (one owner goroutine per node, no lock needed) — LayoutHolder itself was later deleted
-    entirely along with the local-polar model it held (MODEL.md "the polar model"); and
-    <code>Trace.mu</code>, once thought to be the one lock that had to stay because it guarded
-    an accumulator that cannot be copied, was deleted too — that claim was true but was never
-    what the lock actually guarded in production (see
-    <code>docs/concurrency/trace-mutex-architecture.html</code>). This page records the debounced
-    persister's own lock (was <code>nodes/Wiring/scene_persist.go:64</code>, five instances),
-    the last one in question when this page was written. See
-    <code>docs/concurrency/mutex-architecture.html</code> for the whole-system view, now describing zero
-    live locks.</p>
-    <p class="verdict ok"><b>RESOLVED</b> — task/mutex-debounced-persister deleted the whole
-    generic type (the struct, its lock, the coalescing timer) rather than restructuring it:
-    the throughput case for debouncing (diagram 2b) never held up, and the analysis below is
-    kept as the record of why. Every domain persister's <code>schedule()</code> now writes
-    synchronously. The type/method names below (the struct itself, its timer field, its four
-    methods) no longer exist in code — read this page as history, not as a description of the
-    current tree.</p>
+    <p class="eyebrow">debouncedPersister.mu, resolved</p>
+    <h1>7 · measured: deleting mu is red, not clean</h1>
+    <nav class="crumbnav"><a href="debounced-persister-architecture.html">debouncedPersister.mu — a deleted lock, recorded</a> — <a href="debounced-persister-architecture-1-what-it-guards.html">what it guards — four fields, four methods</a> · <a href="debounced-persister-architecture-2-what-debouncing-is.html">what debouncing is for — a drag is one write, not sixty</a> · <a href="debounced-persister-architecture-2b-is-60.html">2b · is 60 writes/sec actually a problem? — nobody has shown it is</a> · <a href="debounced-persister-architecture-3-the-two-parties.html">the two parties — and the second one is spawned, not chosen</a> · <a href="debounced-persister-architecture-4-why-take-zeroes.html">why take() zeroes pending — the non-obvious reason the lock earns its keep</a> · <a href="debounced-persister-architecture-5-five-instances-independent.html">five instances — independent, not one shared lock</a> · <a href="debounced-persister-architecture-6-the-single-owner-candidate.html">the single-owner candidate</a> · <span class="crumb-here">measured: deleting mu is red, not clean</span> · <a href="debounced-persister-architecture-8-what-the-lock.html">what the lock is actually doing — three separable jobs</a></nav>
   </div>
 </header>
 
 <div class="wrap">
-<ul class="idx-list">
-  <li><a href="debounced-persister-architecture-1-what-it-guards.html">1 · what it guards — four fields, four methods</a></li>
-  <li><a href="debounced-persister-architecture-2-what-debouncing-is.html">2 · what debouncing is for — a drag is one write, not sixty</a></li>
-  <li><a href="debounced-persister-architecture-2b-is-60.html">2b · is 60 writes/sec actually a problem? — nobody has shown it is</a></li>
-  <li><a href="debounced-persister-architecture-3-the-two-parties.html">3 · the two parties — and the second one is spawned, not chosen</a></li>
-  <li><a href="debounced-persister-architecture-4-why-take-zeroes.html">4 · why take() zeroes pending — the non-obvious reason the lock earns its keep</a></li>
-  <li><a href="debounced-persister-architecture-5-five-instances-independent.html">5 · five instances — independent, not one shared lock</a></li>
-  <li><a href="debounced-persister-architecture-6-the-single-owner-candidate.html">6 · the single-owner candidate</a></li>
-  <li><a href="debounced-persister-architecture-7-measured-deleting-mu.html">7 · measured: deleting mu is red, not clean</a></li>
-  <li><a href="debounced-persister-architecture-8-what-the-lock.html">8 · what the lock is actually doing — three separable jobs</a></li>
-</ul>
-<footer>
-  Verified against the tree on <span style="font-family:var(--mono)">task/mutex-debounced-persister</span>.
-  Line numbers drift — re-grep before trusting them. Companions:
-  <span style="font-family:var(--mono)">docs/concurrency/scene-persist-architecture.html</span>,
-  <span style="font-family:var(--mono)">docs/layout-holder-architecture.html</span>,
-  <span style="font-family:var(--mono)">docs/concurrency/mutex-architecture.html</span>,
-  <span style="font-family:var(--mono)">docs/concurrency/framings.md</span>.
-</footer>
+<div class="legend">
+  <span><i class="sw g"></i>goroutine</span>
+  <span><i class="sw s"></i>locked state</span>
+  <span><i class="sw q"></i>timer</span>
+  <span><i class="sw k"></i>safe / resolved</span>
+</div>
+
+<h2>7 · measured: deleting mu is red, not clean</h2>
+<p class="cap">Unlike <code>sceneFileMu</code>, this one was actually tried. Removing the
+locking from the struct's four methods (arm/take/stop/write-counter)
+and re-running the package tests under <code>-race</code> produces a genuine data race —
+not a hypothetical one.</p>
+
+<div class="plate">
+<svg viewBox="0 0 860 170" role="img" aria-label="Deleting the locking from arm, take, stop and recordWrite and running the package tests under -race produces a real data race between quantOffsetPersister.schedule and quantOffsetPersister.flush.">
+  <rect class="state" x="0" y="24" width="420" height="96" rx="6"/>
+  <text class="t"  x="12" y="46">MEASURED</text>
+  <text class="ts" x="12" y="68">go test ./nodes/Wiring/... -race after deleting</text>
+  <text class="ts" x="12" y="82">the locking: TestDragPositionRoundTripsExactly</text>
+  <text class="tf" x="12" y="100">goes RED — a real WARNING: DATA RACE between</text>
+  <text class="tf" x="12" y="112">quantOffsetPersister.schedule (nodeMover's own</text>
+  <text class="tf" x="12" y="124">goroutine) and .flush (the AfterFunc goroutine).</text>
+
+  <rect class="safe" x="440" y="24" width="420" height="96" rx="6"/>
+  <text class="t"  x="452" y="46">WHY THIS ONE IS DIFFERENT FROM sceneFileMu</text>
+  <text class="ts" x="452" y="68">sceneFileMu's removal was provably clean because</text>
+  <text class="ts" x="452" y="82">the file split removed the second writer entirely.</text>
+  <text class="tf" x="452" y="100">Here the second party (the timer goroutine) still</text>
+  <text class="tf" x="452" y="112">exists, and an existing test already exercises the</text>
+  <text class="tf" x="452" y="124">exact schedule-vs-flush race this lock prevents.</text>
+
+  <line x1="0" y1="140" x2="860" y2="140" stroke="var(--line)"/>
+  <text class="tw" x="0" y="160">SO THIS ONE IS LOAD-BEARING</text>
+  <text class="ts" x="230" y="160">a red proof already exists for the map persisters; it just was not run until this audit.</text>
+</svg>
+</div>
+
+
+
 </div>
 
 </body>
