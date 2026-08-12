@@ -1,14 +1,10 @@
-import * as fs from "fs";
 import type { HostToWebviewMsg } from "../messages";
-import { decodeBufferLog, decodeStreamFrameEvents } from "../buffer-log";
-import { decodeNodeStreamFrame } from "../webview/three/decode/buffer-decode-node";
-import { decodeEdgeStreamFrame } from "../webview/three/decode/buffer-decode-edge";
-import { decodeInteriorStreamFrame } from "../webview/three/decode/buffer-decode-interior";
 import { BUF_BLOCK_TAG_VIEW, BUF_BLOCK_TAG_EDGE_STREAM, BUF_BLOCK_TAG_NODE_STREAM, BUF_BLOCK_TAG_INTERIOR_STREAM } from "../schema/frame-tags";
 import { nodeIdForRow } from "./stream-fds";
 import { splitJsonlLines, splitFrames } from "./framing";
 import { freshStreamState, type StreamParseState } from "./parse-state";
 import type { ProbePaths } from "./probe-paths";
+import { appendViewProbe, appendEdgeProbe, appendNodeProbe, appendInteriorProbe } from "./probe-append";
 
 export interface StreamDemuxConfig {
   paths: ProbePaths | undefined;
@@ -104,14 +100,7 @@ export class StreamDemux {
       (frames) => {
         for (const ab of frames) {
 
-          if (this.probeFile) {
-            const lines = decodeBufferLog(ab, !this.probeTrace);
-            if (lines.length > 0) {
-              try {
-                fs.appendFileSync(this.probeFile, lines, "utf8");
-              } catch { /* eslint-disable-line no-empty */ }
-            }
-          }
+          appendViewProbe(this.probeFile, ab, this.probeTrace);
 
           this.lastViewFrame = ab.slice(0);
           if (this.onSnapshot) {
@@ -132,17 +121,7 @@ export class StreamDemux {
       (frames) => {
         for (const ab of frames) {
 
-          if (this.probeEdgeFile) {
-            const decoded = decodeEdgeStreamFrame(row, ab);
-            if (decoded && decoded.eventCount > 0) {
-              const lines = decodeStreamFrameEvents(decoded.eventCount, decoded.eventView, decoded.eventTextView, undefined, undefined, !this.probeTrace);
-              if (lines.length > 0) {
-                try {
-                  fs.appendFileSync(this.probeEdgeFile, lines, "utf8");
-                } catch { /* eslint-disable-line no-empty */ }
-              }
-            }
-          }
+          appendEdgeProbe(this.probeEdgeFile, row, ab, this.probeTrace);
 
           this.lastEdgeFrames.set(row, ab.slice(0));
           if (this.onSnapshot) {
@@ -163,17 +142,7 @@ export class StreamDemux {
       (frames) => {
         for (const ab of frames) {
 
-          if (this.probeNodeFile) {
-            const decoded = decodeNodeStreamFrame(row, ab);
-            if (decoded && decoded.eventCount > 0) {
-              const lines = decodeStreamFrameEvents(decoded.eventCount, decoded.eventView, decoded.eventTextView, undefined, undefined, !this.probeTrace);
-              if (lines.length > 0) {
-                try {
-                  fs.appendFileSync(this.probeNodeFile, lines, "utf8");
-                } catch { /* eslint-disable-line no-empty */ }
-              }
-            }
-          }
+          appendNodeProbe(this.probeNodeFile, row, ab, this.probeTrace);
 
           this.lastNodeFrames.set(row, ab.slice(0));
           if (this.onSnapshot) {
@@ -214,18 +183,8 @@ export class StreamDemux {
   private processInteriorLikeFrames(row: number, frames: ArrayBuffer[], assertsSlots: boolean) {
     for (const ab of frames) {
 
-      if (this.probeInteriorFile) {
-        const decoded = decodeInteriorStreamFrame(row, ab);
-        if (decoded && decoded.eventCount > 0) {
-          const lines = decodeStreamFrameEvents(decoded.eventCount, decoded.eventView, decoded.eventTextView, undefined, undefined, !this.probeTrace);
-          if (lines.length > 0) {
-            try {
-              fs.appendFileSync(this.probeInteriorFile, lines, "utf8");
-            } catch { /* eslint-disable-line no-empty */ }
-          }
-        }
-      }
-      if (!assertsSlots) continue; 
+      appendInteriorProbe(this.probeInteriorFile, row, ab, this.probeTrace);
+      if (!assertsSlots) continue;
       this.lastInteriorFrames.set(row, ab.slice(0));
       if (this.onSnapshot) {
         this.onSnapshot({ type: "buffer-snapshot", buffer: ab, tag: BUF_BLOCK_TAG_INTERIOR_STREAM, row, gen: this.gen });
