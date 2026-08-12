@@ -73,4 +73,3 @@ func decodeUpdateDistanceGroup(r *recread.Reader, attr byte) (StdinMsg, bool) {
 	dir := dirWord(dirUp)
 	return StdinMsg{Type: "edit", Op: "update", Kind: "distanceGroup", Attr: "length", Num: int(groupIdx), Flag: dir}, true
 }
-

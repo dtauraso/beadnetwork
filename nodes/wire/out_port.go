@@ -88,4 +88,3 @@ func (o *Out) Gated() bool {
 	}
 	return o.Rule != RuleFireAndForget
 }
-
