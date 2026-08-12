@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="doc-status" content="historical">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clock — Go-Authoritative Clock — Wirefold Design Spec</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+  <div class="page-title">Wirefold — Design Spec</div>
+  <div class="page-subtitle">Go Backend / TS Frontend — Clock</div>
+
+  <ul class="tabs" role="navigation" aria-label="Go-Authoritative Clock pages">
+      <li><a href="index.html">The split</a></li>
+      <li><a href="goroutines.html">Goroutines</a></li>
+      <li><a href="ts-execution.html">TS</a></li>
+      <li><a href="bridge.html">The Bridge</a></li>
+      <li><a href="clock.html" class="current">Clock</a></li>
+      <li><a href="ts-to-go.html">TS → Go</a></li>
+      <li><a href="plan.html">Plan</a></li>
+      <li><a href="verify.html">Verify</a></li>
+      <li><a href="tracking.html">Tracking</a></li>
+      <li><a href="inconsistencies.html">Inconsistencies</a></li>
+      <li><a href="todo.html">What's left</a></li>
+  </ul>
+
+  <div class="panel active" id="panel-clock" role="region">
+    <h2><button type="button" class="chk-btn heading-chk" aria-pressed="false" data-chk="panel-clock:h2-go-calculates">☐</button>Go calculates the animation; TS only draws it.</h2>
+    <p>Go does all animation calculation — timing, progress, durations — and emits ready-to-render messages. TS draws them. The frontend never calculates animation; it renders frames Go describes. Today's inversion (TS pacing Go via NotifyDelivered) is what this design removes.</p>
+
+    <div class="flow-stack">
+      <div>
+        <div class="flow-label">Before</div>
+        <svg width="640" height="70" viewBox="0 0 640 70" xmlns="http://www.w3.org/2000/svg" aria-label="Before: TS animation completes drives NotifyDelivered which drives Go delivers to slot">
+          <rect x="0" y="14" width="178" height="38" rx="6" fill="#1e0e0e" stroke="#c07ef8" stroke-width="1.2"/>
+          <text x="89" y="36" text-anchor="middle" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="11.5" fill="#c07ef8" font-weight="600">TS calculates / drives</text>
+
+          <line x1="180" y1="33" x2="225" y2="33" stroke="#c07ef8" stroke-width="1.5" marker-end="url(#ba1)"/>
+
+          <rect x="227" y="14" width="138" height="38" rx="6" fill="#1e0e0e" stroke="#c07ef8" stroke-width="1.2"/>
+          <text x="296" y="36" text-anchor="middle" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="11.5" fill="#c07ef8" font-weight="600">NotifyDelivered</text>
+
+          <line x1="367" y1="33" x2="412" y2="33" stroke="#c07ef8" stroke-width="1.5" marker-end="url(#ba1)"/>
+
+          <rect x="414" y="14" width="178" height="38" rx="6" fill="#18181c" stroke="#2a2a30" stroke-width="1.2"/>
+          <text x="503" y="36" text-anchor="middle" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="11.5" fill="#808090" font-weight="600">Go delivers to slot</text>
+
+          <text x="200" y="62" text-anchor="middle" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="10" fill="#8040b0">TS drives Go</text>
+
+          <defs>
+            <marker id="ba1" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L7,3 z" fill="#c07ef8"/>
+            </marker>
+          </defs>
+        </svg>
+      </div>
+
+      <div>
+        <div class="flow-label">After</div>
+        <button type="button" class="chk-btn diagram-chk" aria-pressed="false" data-chk="panel-clock:svg2-after">☐</button>
+        <svg width="640" height="70" viewBox="0 0 640 70" xmlns="http://www.w3.org/2000/svg" aria-label="After: Go elapses inFlightTime drives Go delivers on channel drives trace out drives TS animates to fit duration">
+          <rect x="0" y="14" width="170" height="38" rx="6" fill="#0e1e1a" stroke="#5ec4a0" stroke-width="1.2"/>
+          <text x="85" y="32" text-anchor="middle" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="11" fill="#5ec4a0" font-weight="600">Go calculates all</text>
+          <text x="85" y="46" text-anchor="middle" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="11" fill="#5ec4a0" font-weight="600">animation values</text>
+
+          <line x1="172" y1="33" x2="210" y2="33" stroke="#5ec4a0" stroke-width="1.5" marker-end="url(#aa1)"/>
+
+          <rect x="212" y="14" width="148" height="38" rx="6" fill="#0e1e1a" stroke="#5ec4a0" stroke-width="1.2"/>
+          <text x="286" y="36" text-anchor="middle" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="11" fill="#5ec4a0" font-weight="600">Go delivers on channel</text>
+
+          <line x1="362" y1="33" x2="400" y2="33" stroke="#5ec4a0" stroke-width="1.5" marker-end="url(#aa1)"/>
+
+          <rect x="402" y="14" width="80" height="38" rx="6" fill="#18181c" stroke="#2a2a30" stroke-width="1.2"/>
+          <text x="442" y="36" text-anchor="middle" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="11" fill="#808090" font-weight="600">trace out</text>
+
+          <line x1="484" y1="33" x2="520" y2="33" stroke="#5ec4a0" stroke-width="1.5" marker-end="url(#aa1)"/>
+
+          <rect x="522" y="6" width="116" height="54" rx="6" fill="#1a0e24" stroke="#c07ef8" stroke-width="1.2"/>
+          <text x="580" y="28" text-anchor="middle" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="10.5" fill="#c07ef8" font-weight="600">TS renders</text>
+          <text x="580" y="42" text-anchor="middle" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="10.5" fill="#c07ef8" font-weight="600">the result</text>
+
+          <text x="100" y="62" text-anchor="middle" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="10" fill="#3d8a70">Go drives</text>
+
+          <defs>
+            <marker id="aa1" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L7,3 z" fill="#5ec4a0"/>
+            </marker>
+          </defs>
+        </svg>
+      </div>
+    </div>
+
+    <div class="subheading"><button type="button" class="chk-btn heading-chk" aria-pressed="false" data-chk="panel-clock:sub-go-computes-position">☐</button>Go computes and emits each position directly</div>
+    <p>Each wire's loop computes its bead's current position from the clock and path geometry (bezier math) and emits it; when <span style="font-family:var(--mono);font-size:12px;color:var(--go-hue)">elapsed</span> reaches <span style="font-family:var(--mono);font-size:12px;color:var(--go-hue)">inFlightTime</span>, the wire puts the bead on the destination channel.</p>
+
+    <div class="cards" style="margin-top:0.5rem;">
+      <div class="card">
+        <ul>
+          <li>Position computation is part of the wire's own loop — not a separate reader polling state at a fixed rate.</li>
+          <li>Pause freezes motion naturally: when the clock is paused, elapsed stops advancing, so the computed position is unchanged.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="subheading"><button type="button" class="chk-btn heading-chk" aria-pressed="false" data-chk="panel-clock:sub-sleep-paces-loop">☐</button>Sleep paces the loop</div>
+    <p>The ~16 ms sleep is the report rate (matching a 60Hz display), not bead speed — speed stays pulseSpeed, arrival stays at inFlightTime regardless of sleep duration.</p>
+
+    <div class="cards" style="margin-top:0.5rem;">
+      <div class="card">
+        <ul>
+          <li>16 ms is the starting point — it matches a 60Hz display, which is the most a monitor can show. Emitting faster than the refresh is wasted.</li>
+          <li>The sleep sets report smoothness, not speed. The bead still arrives at exactly inFlightTime no matter the sleep — a longer sleep just shows fewer waypoints along the path.</li>
+          <li>Pause still freezes motion: while paused the clock stops advancing, so each wake computes the same position.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="subheading"><button type="button" class="chk-btn heading-chk" aria-pressed="false" data-chk="panel-clock:sub-human-speed">☐</button>Human speed belongs to Go</div>
+    <p>pulseSpeed sets the human-watchable pace; Go emits positions at the ~16ms report rate; TS sends CRUD edits only and never drives timing.</p>
+
+    <div class="subheading"><button type="button" class="chk-btn heading-chk" aria-pressed="false" data-chk="panel-clock:sub-keeping-locked">☐</button>Keeping them locked</div>
+    <p>Go is the single source of all animation values; TS renders exactly what Go sends, so there is nothing to keep in sync.</p>
+
+    <h2><button type="button" class="chk-btn heading-chk" aria-pressed="false" data-chk="playpause:h2">☐</button>Play / Pause: the button is in TS, the clock is in Go.</h2>
+    <p>Pause and resume act on Go's single clock. TS does not hold time — it holds a button. TS sends a pause or resume message to Go; Go's clock halts or runs. The frontend never owns any time.</p>
+
+    <div class="cards">
+      <div class="card">
+        <h3><button type="button" class="chk-btn heading-chk" aria-pressed="false" data-chk="playpause:card1">☐</button>Pause</h3>
+        <ul>
+          <li>TS sends "pause"</li>
+          <li>Go freezes its clock</li>
+          <li>In-flight beads stop progressing</li>
+          <li>No new firing (no wire completes)</li>
+          <li>Editor shows last known state</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3><button type="button" class="chk-btn heading-chk" aria-pressed="false" data-chk="playpause:card2">☐</button>Resume</h3>
+        <ul>
+          <li>TS sends "resume"</li>
+          <li>Go's clock advances from where it left off</li>
+          <li>In-flight traversal continues</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="subheading"><button type="button" class="chk-btn heading-chk" aria-pressed="false" data-chk="playpause:sub1">☐</button>Freeze means stop accumulating</div>
+    <p>Pause means stop accumulating elapsed time — not diff wall-clock on resume. A bead 40% across stays 40% on resume. Implement as a monotonic clock with a paused accumulator (elapsed-while-paused is zero), behind an injectable interface — a real impl plus a fake the tests advance, so timing is deterministic.</p>
+
+    <div class="subheading"><button type="button" class="chk-btn heading-chk" aria-pressed="false" data-chk="playpause:sub2">☐</button>Why the gate lives in Go</div>
+    <p>Play/pause halts Go's clock — not a TS render toggle. If TS paused its render loop while Go kept running, Go's clock would race ahead and be out of sync on resume. Button in TS; clock in Go.</p>
+  
+  </div>
+</div>
+<script src="script.js"></script>
+</body>
+</html>
