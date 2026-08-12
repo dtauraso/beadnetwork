@@ -1,4 +1,4 @@
-package nodeactor
+package owners
 
 import (
 	"context"
@@ -8,34 +8,43 @@ import (
 	"github.com/dtauraso/wirefold/nodes/wire/outport"
 )
 
-func (o *nodeOuts) AddOutTarget(target string) {
+type Outs struct {
+	outTargets     []string
+	outWires       []*wire.PacedWire
+	outWireTargets []string
+	outWireOuts    []*outport.Out
+
+	outStepsIn []func(int)
+}
+
+func (o *Outs) AddOutTarget(target string) {
 	o.outTargets = append(o.outTargets, target)
 }
 
-func (o *nodeOuts) OutTargets() []string { return o.outTargets }
+func (o *Outs) OutTargets() []string { return o.outTargets }
 
-func (o *nodeOuts) HasOutWires() bool { return len(o.outWires) > 0 }
+func (o *Outs) HasOutWires() bool { return len(o.outWires) > 0 }
 
-func (o *nodeOuts) DriveOutWires(ctx context.Context, tick int64) {
+func (o *Outs) DriveOutWires(ctx context.Context, tick int64) {
 	for _, pw := range o.outWires {
 		pw.DriveOneCycle(ctx, tick)
 	}
 }
 
-func (o *nodeOuts) ClearOutWires() {
+func (o *Outs) ClearOutWires() {
 	for _, pw := range o.outWires {
 		pw.ClearInFlight()
 	}
 }
 
-func (o *nodeOuts) AddOutWire(pw *wire.PacedWire, target string, out *outport.Out, sendSteps func(int)) {
+func (o *Outs) AddOutWire(pw *wire.PacedWire, target string, out *outport.Out, sendSteps func(int)) {
 	o.outWires = append(o.outWires, pw)
 	o.outWireTargets = append(o.outWireTargets, target)
 	o.outWireOuts = append(o.outWireOuts, out)
 	o.outStepsIn = append(o.outStepsIn, sendSteps)
 }
 
-func (o *nodeOuts) PublishStepCount(to string, count int) {
+func (o *Outs) PublishStepCount(to string, count int) {
 	for i, wt := range o.outWireTargets {
 		if wt != to {
 			continue
@@ -49,7 +58,7 @@ func (o *nodeOuts) PublishStepCount(to string, count int) {
 	}
 }
 
-func (o *nodeOuts) GatherPulses(to string, tick int64) []beadindex.Pulse {
+func (o *Outs) GatherPulses(to string, tick int64) []beadindex.Pulse {
 	var pulses []beadindex.Pulse
 	for i, wt := range o.outWireTargets {
 		if wt != to || o.outWires[i] == nil {

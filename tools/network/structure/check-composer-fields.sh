@@ -10,7 +10,7 @@ cd "$REPO_ROOT"
 
 COMPOSERS=(
   "type MoveDispatch struct {|12|the responsible owner type (rowtables.RowTables/geomseeds.GeomSeeds/streamWiring/uiState/moverRegistry/layoutQuantizer)"
-  "type NodeGeometry struct {|20|the responsible owner type (nodeMessaging/nodeClocks/nodeStream/nodeUI/nodeTilt/pairReadout/nodeOuts/neighborTopology/sceneFlags/nodeBeads, node_geometry_parts.go)"
+  "type NodeGeometry struct {|20|the responsible owner type (owners.Messaging/Clocks/Stream/UI/Tilt/Readout/Outs/Topology/Flags/Beads, nodes/Wiring/nodeactor/owners/)"
 )
 
 fail=0

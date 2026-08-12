@@ -1,4 +1,4 @@
-package nodeactor
+package owners
 
 const inboxDepth = 8
 

@@ -14,7 +14,7 @@ mistake to avoid (chain_beads.go's own header comment makes the same split):
   picture (`docs/bead-model/beads-are-the-edge.md`) — one per node-local offset along an outgoing
   edge's aim. **This bead is a goroutine**, per (`nodes/wire/beadchain/bead_actor.go`'s `Bead`,
   `nodes/wire/beadchain/bead_wake_group.go`'s `BeadWakeGroup`), with a real production call site:
-  `nodes/Wiring/nodeactor/bead_chain.go`'s `reconcileBeadChain`/`startBeadDrag`/`endBeadDrag`, driven
+  `nodes/Wiring/nodeactor/owners/beads.go`'s `ReconcileBeadChain`/`StartBeadDrag`/`EndBeadDrag`, driven
   from `chainBeads()` (`nodes/Wiring/nodeactor/chain_beads.go`) and from `handle()`'s
   `movemsg.KindDragStart`/`movemsg.KindDragEnd` cases (`nodes/Wiring/nodeactor/node_mover.go`,
   `nodes/Wiring/movemsg/move_msg.go`). `chainBeads()` itself stays a pure, synchronous function of this node's
@@ -28,7 +28,7 @@ mistake to avoid (chain_beads.go's own header comment makes the same split):
     direction (broadcast in NODE-LOCAL terms — a unit vector, no absolute center — so a
     bead's own resolved position IS the node-local offset the buffer has always carried),
     broadcast to every bead on that edge in ONE close (`BeadWakeGroup.BroadcastGeometry`,
-    called by `reconcileBeadChain` only when the aim or the bead count actually changed) —
+    called by `ReconcileBeadChain` only when the aim or the bead count actually changed) —
     a body force, dependency depth 1: each bead computes its own position directly from the
     broadcast and its own fixed offset, never from a neighbour bead's position
     (memory/project/layout-model/project_wire_is_straight_line_not_chain.md's O(N²) defect was momentum-free
@@ -45,7 +45,7 @@ mistake to avoid (chain_beads.go's own header comment makes the same split):
     state (one writer each), so the two clocks never coordinate and the bead is never in
     both modes.
 
-  Bead-goroutine lifetime follows chain length: `reconcileBeadChain` grows a chain by
+  Bead-goroutine lifetime follows chain length: `ReconcileBeadChain` grows a chain by
   starting one goroutine per added bead (at the chain end, matching bead CRUD's own
   convention, `bead_crud.go`) and shrinks it by closing each removed bead's OWN dedicated
   stop channel, which the removed bead's `run` loop observes and returns from immediately —
@@ -72,7 +72,7 @@ mistake to avoid (chain_beads.go's own header comment makes the same split):
 
   **Known boundary:** the bead-actor path is driven by the SOURCE node's own drag (the node
   that owns the chain, per "an edge is stored under its source node" above) —
-  `startBeadDrag`/`endBeadDrag` fire only when `g.DragNode` is that source node. Dragging
+  `StartBeadDrag`/`EndBeadDrag` fire only when `g.DragNode` is that source node. Dragging
   the TARGET end of an edge still repositions that edge's beads with no visible lag (every
   `chainBeads()` call recomputes from the live `partnerCenters` push the target's own
   `ApplyCenter` already sends on every commit — unchanged, pre-existing machinery), but it

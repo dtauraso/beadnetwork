@@ -2,6 +2,7 @@ package nodeactor
 
 import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/owners"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/quantoffset"
 	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
@@ -9,6 +10,8 @@ import (
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
+
+const inboxDepth = 8
 
 type NodeGeometry struct {
 	id   string
@@ -20,38 +23,38 @@ type NodeGeometry struct {
 	quantOffset quantoffset.QuantizedOffset
 	tr          *T.Trace
 
-	msg nodeMessaging
+	msg owners.Messaging
 
-	clocks nodeClocks
+	clocks owners.Clocks
 
-	stream nodeStream
+	stream owners.Stream
 
-	ui nodeUI
+	ui owners.UI
 
-	tilt nodeTilt
+	tilt owners.Tilt
 
-	readout pairReadout
+	readout owners.Readout
 
-	outs nodeOuts
+	outs owners.Outs
 
-	topo neighborTopology
+	topo owners.Topology
 
-	flags sceneFlags
+	flags owners.Flags
 
-	beads nodeBeads
+	beads owners.Beads
 }
 
 func NewNodeGeometry(id string, geom nodegeom.NodeGeom, tr *T.Trace, clockSrc clock.Clock) *NodeGeometry {
 	ng := &NodeGeometry{
 		id: id, geom: geom, tr: tr,
-		msg: nodeMessaging{
-			extIn:      make(chan movemsg.Msg, inboxDepth),
-			neighborIn: map[string]chan movemsg.Msg{},
-			centerOut:  make(chan vec3, 1),
-		},
-		topo:   neighborTopology{partnerCenters: map[string]vec3{}},
-		clocks: nodeClocks{clockSrc: clockSrc, clk: clock.NewRealClock()},
-		tilt:   nodeTilt{latticePoints: tiltvector.FullTurnThetaIdx},
+		msg: owners.NewMessaging(
+			make(chan movemsg.Msg, inboxDepth),
+			map[string]chan movemsg.Msg{},
+			make(chan vec3, 1),
+		),
+		topo:   owners.NewTopology(map[string]vec3{}),
+		clocks: owners.NewClocks(clockSrc, clock.NewRealClock()),
+		tilt:   owners.NewTilt(tiltvector.FullTurnThetaIdx),
 	}
 
 	ng.msg.SeedCenter(nodegeom.NodeWorldPos(geom))

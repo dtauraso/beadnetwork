@@ -1,4 +1,4 @@
-package nodeactor
+package owners
 
 import (
 	"context"
@@ -7,7 +7,34 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 )
 
-func (n *nodeMessaging) WireMessaging(
+type Messaging struct {
+	extIn chan movemsg.Msg
+
+	neighborIn map[string]chan movemsg.Msg
+
+	centerOut chan vec3
+
+	sendMove func(id string, msg movemsg.Msg)
+
+	resolveDest func(id string) (func(movemsg.Msg) bool, bool)
+
+	centerOf func(id string) (vec3, bool)
+
+	commitLocal func(id string, newPos vec3)
+
+	pending []pendingSend
+}
+
+type pendingSend struct {
+	destID string
+	msg    movemsg.Msg
+}
+
+func NewMessaging(extIn chan movemsg.Msg, neighborIn map[string]chan movemsg.Msg, centerOut chan vec3) Messaging {
+	return Messaging{extIn: extIn, neighborIn: neighborIn, centerOut: centerOut}
+}
+
+func (n *Messaging) WireMessaging(
 	resolveDest func(id string) (func(movemsg.Msg) bool, bool),
 	sendMove func(id string, msg movemsg.Msg),
 	centerOf func(id string) (vec3, bool),
@@ -19,25 +46,25 @@ func (n *nodeMessaging) WireMessaging(
 	n.commitLocal = commitLocal
 }
 
-func (n *nodeMessaging) EnsureNeighborChannel(otherID string) {
+func (n *Messaging) EnsureNeighborChannel(otherID string) {
 	if _, exists := n.neighborIn[otherID]; !exists {
 		n.neighborIn[otherID] = make(chan movemsg.Msg, inboxDepth)
 	}
 }
 
-func (n *nodeMessaging) SendMove() func(id string, msg movemsg.Msg) { return n.sendMove }
+func (n *Messaging) SendMove() func(id string, msg movemsg.Msg) { return n.sendMove }
 
-func (n *nodeMessaging) SeedCenter(center vec3) {
+func (n *Messaging) SeedCenter(center vec3) {
 	n.centerOut <- center
 }
 
-func (n *nodeMessaging) CommitLocal(id string, newPos vec3) {
+func (n *Messaging) CommitLocal(id string, newPos vec3) {
 	if n.commitLocal != nil {
 		n.commitLocal(id, newPos)
 	}
 }
 
-func (n *nodeMessaging) DrainPending(ctx context.Context, handle func(movemsg.Msg)) (progressed, cancelled bool) {
+func (n *Messaging) DrainPending(ctx context.Context, handle func(movemsg.Msg)) (progressed, cancelled bool) {
 	select {
 	case <-ctx.Done():
 		return false, true
@@ -63,7 +90,7 @@ func (n *nodeMessaging) DrainPending(ctx context.Context, handle func(movemsg.Ms
 	return progressed, false
 }
 
-func (n *nodeMessaging) NeighborIDs() []string {
+func (n *Messaging) NeighborIDs() []string {
 	ids := make([]string, 0, len(n.neighborIn))
 	for id := range n.neighborIn {
 		ids = append(ids, id)
@@ -71,7 +98,7 @@ func (n *nodeMessaging) NeighborIDs() []string {
 	return ids
 }
 
-func (n *nodeMessaging) NeighborTrySend(fromID string) (func(movemsg.Msg) bool, bool) {
+func (n *Messaging) NeighborTrySend(fromID string) (func(movemsg.Msg) bool, bool) {
 	ch, ok := n.neighborIn[fromID]
 	if !ok {
 		return nil, false
@@ -86,7 +113,7 @@ func (n *nodeMessaging) NeighborTrySend(fromID string) (func(movemsg.Msg) bool, 
 	}, true
 }
 
-func (n *nodeMessaging) PollCenter() (vec3, bool) {
+func (n *Messaging) PollCenter() (vec3, bool) {
 	select {
 	case c := <-n.centerOut:
 		return c, true
@@ -95,7 +122,7 @@ func (n *nodeMessaging) PollCenter() (vec3, bool) {
 	}
 }
 
-func (n *nodeMessaging) SendExternal(ctx context.Context, msg movemsg.Msg) {
+func (n *Messaging) SendExternal(ctx context.Context, msg movemsg.Msg) {
 	if ctx == nil {
 		n.extIn <- msg
 		return
@@ -106,7 +133,7 @@ func (n *nodeMessaging) SendExternal(ctx context.Context, msg movemsg.Msg) {
 	}
 }
 
-func (n *nodeMessaging) TryRecvExternal() (movemsg.Msg, bool) {
+func (n *Messaging) TryRecvExternal() (movemsg.Msg, bool) {
 	select {
 	case msg := <-n.extIn:
 		return msg, true
@@ -115,7 +142,7 @@ func (n *nodeMessaging) TryRecvExternal() (movemsg.Msg, bool) {
 	}
 }
 
-func (n *nodeMessaging) EnqueueSend(id, destID string, msg movemsg.Msg) {
+func (n *Messaging) EnqueueSend(id, destID string, msg movemsg.Msg) {
 	n.pending = append(n.pending, pendingSend{destID: destID, msg: msg})
 	n.FlushPending()
 	if len(n.pending) > maxPendingSends {
@@ -129,7 +156,7 @@ func (n *nodeMessaging) EnqueueSend(id, destID string, msg movemsg.Msg) {
 	}
 }
 
-func (n *nodeMessaging) FlushPending() {
+func (n *Messaging) FlushPending() {
 	if len(n.pending) == 0 || n.resolveDest == nil {
 		return
 	}
@@ -152,7 +179,7 @@ func (n *nodeMessaging) FlushPending() {
 	n.pending = kept
 }
 
-func (n *nodeMessaging) BroadcastCenter(selfID string, center vec3) {
+func (n *Messaging) BroadcastCenter(selfID string, center vec3) {
 	select {
 	case <-n.centerOut:
 	default:

@@ -77,16 +77,7 @@ func (m *NodeGeometry) chainBeadsForTarget(to string, tick int64, selfTorusR flo
 	}
 
 	actorChain := m.beads.ReconcileBeadChain(to, count, offsetAt, aimUnit)
-
-	var resolved []vec3
-	var resolvedValid []bool
-	if actorChain != nil {
-		resolved = make([]vec3, len(actorChain.last))
-		resolvedValid = actorChain.valid
-		for i, s := range actorChain.last {
-			resolved[i] = s.Position
-		}
-	}
+	resolved, resolvedValid := actorChain.Resolved()
 
 	ox, oy, oz, lit, litVal = beadindex.ChainBeadRows(liveDir, chainSep, base, step, count, resolved, resolvedValid, pulses)
 	return ox, oy, oz, lit, litVal, breadcrumb, true

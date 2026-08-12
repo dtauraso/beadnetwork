@@ -1,11 +1,16 @@
-package nodeactor
+package owners
 
 import (
 	"github.com/dtauraso/wirefold/nodes/spatial"
 	beadchain "github.com/dtauraso/wirefold/nodes/wire/beadchain"
 )
 
-type edgeBeadChain struct {
+type Beads struct {
+	beadTickFn func() <-chan struct{}
+	beadChains map[string]*BeadChain
+}
+
+type BeadChain struct {
 	group *beadchain.BeadWakeGroup
 	beads []*beadchain.Bead
 
@@ -23,20 +28,31 @@ type edgeBeadChain struct {
 	lattice     float64
 }
 
-func (nb *nodeBeads) SetBeadTickFn(fn func() <-chan struct{}) {
+func (c *BeadChain) Resolved() (positions []vec3, valid []bool) {
+	if c == nil {
+		return nil, nil
+	}
+	positions = make([]vec3, len(c.last))
+	for i, s := range c.last {
+		positions[i] = s.Position
+	}
+	return positions, c.valid
+}
+
+func (nb *Beads) SetBeadTickFn(fn func() <-chan struct{}) {
 	nb.beadTickFn = fn
 }
 
-func (nb *nodeBeads) ReconcileBeadChain(to string, count int, offsetAt func(i int) float64, aim spatial.Vec3) *edgeBeadChain {
+func (nb *Beads) ReconcileBeadChain(to string, count int, offsetAt func(i int) float64, aim spatial.Vec3) *BeadChain {
 	if nb.beadTickFn == nil {
 		return nil
 	}
 	if nb.beadChains == nil {
-		nb.beadChains = map[string]*edgeBeadChain{}
+		nb.beadChains = map[string]*BeadChain{}
 	}
 	c := nb.beadChains[to]
 	if c == nil {
-		c = &edgeBeadChain{group: beadchain.NewBeadWakeGroup()}
+		c = &BeadChain{group: beadchain.NewBeadWakeGroup()}
 		nb.beadChains[to] = c
 	}
 
@@ -91,13 +107,13 @@ func (nb *nodeBeads) ReconcileBeadChain(to string, count int, offsetAt func(i in
 	return c
 }
 
-func (nb *nodeBeads) StartBeadDrag() {
+func (nb *Beads) StartBeadDrag() {
 	for _, c := range nb.beadChains {
 		c.group.StartDrag()
 	}
 }
 
-func (nb *nodeBeads) EndBeadDrag() {
+func (nb *Beads) EndBeadDrag() {
 	for _, c := range nb.beadChains {
 		c.group.EndDrag()
 	}
