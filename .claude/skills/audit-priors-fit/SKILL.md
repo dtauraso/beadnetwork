@@ -11,7 +11,7 @@ form an LLM can't predict cheaply, causing generate-then-back-out (thrash). This
 token-reduction program (target ~5× less AI usage per feature).
 
 Give the subagent this task (read CLAUDE.md + MODEL.md first for the intended model, and
-**read `docs/audit-baseline.md`** — it lists findings already judged deliberate-and-structural
+**read `docs/investigations/audit-baseline.md`** — it lists findings already judged deliberate-and-structural
 (e.g. node-kind clone families, gap-numbered wire values, fingerprint duplication,
 DeltaA/B/C vocabulary); do not re-report anything in it, only NEW deviations from it. Then
 grep-first; scope out `node_modules,out,.git,handoff-archive,memory`):
@@ -29,7 +29,7 @@ grep-first; scope out `node_modules,out,.git,handoff-archive,memory`):
 Rank each High/Med/Low thrash cost. Concrete paths. No fixes — findings only, as raw
 material for a categorized table.
 
-Note: `tools/check-comment-vocab.sh` already guards retired comment vocabulary
+Note: `tools/docs/check-comment-vocab.sh` already guards retired comment vocabulary
 deterministically — this audit finds NEW drift to add to that guard's token list.
 
 When it returns, present the findings as a table by category and rank.

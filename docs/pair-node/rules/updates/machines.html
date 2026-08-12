@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pair node — Update rules</title>
+  <link rel="stylesheet" href="../../pair-base.css">
+  <link rel="stylesheet" href="../../pair-layout.css">
+  <link rel="stylesheet" href="../../pair-typography.css">
+  <link rel="stylesheet" href="../../pair-panels.css">
+  <link rel="stylesheet" href="../../pair-diagrams.css">
+  <link rel="stylesheet" href="../../pair-diagrams-tables.css">
+  <script src="../../port.js"></script>
+  <script src="../../pair.js" defer></script>
+</head>
+
+<body>
+
+  <header>
+    <h1>Update rules</h1>
+    <div class="sub">one arrival, two yes-or-no questions: settle, and if not, which way</div>
+  </header>
+
+  <nav>
+    <a href="../../index.html">Index</a>
+    <a href="../../structure/anatomy.html">Anatomy</a>
+    <a href="../../structure/own.html">Ownership</a>
+    <a href="../../math/vectors/index.html">Vectors</a>
+    <a href="../../math/math/index.html">Math</a>
+    <a href="../../math/formulas/index.html">Formulas</a>
+    <a href="../../math/dots.html">Separation</a>
+    <a href="../../math/perpendicular/index.html">Perpendicular</a>
+    <a href="../cases/index.html">Cases</a>
+    <a href="../../structure/channels.html">Channels</a>
+    <a href="../../structure/cycle.html">Cycle</a>
+    <a class="on" href="index.html">Update rules</a>
+    <a href="../../math/arith/index.html">Arithmetic instead</a>
+  <a href="../code/index.html">In code</a>
+    <a href="../../structure/clock.html">Clock</a>
+    <a href="../../math/geometry.html">Geometry</a>
+    <a href="../asym.html">Asymmetry</a>
+  
+  </nav>
+
+  <nav class="subnav" aria-label="Update-rules sections">
+    <a href="index.html">What a node holds</a>
+    <a class="on" href="machines.html">The two machines it is</a>
+    <a href="machines-arith.html">Both as a transition function, and the arithmetic</a>
+    <a href="arrival.html">What an arrival does</a>
+    <a href="worked.html">The same two decisions, worked</a>
+    <a href="leaves.html">What leaves the node</a>
+    <a href="map.html">The map into the code</a>
+    <a href="map-plumbing.html">The map into the plumbing</a>
+  </nav>
+
+  <main>
+
+    <div class="grid">
+
+<h3 class="secname">The two machines it is</h3>
+
+
+      <div class="card wide">
+        <h2>The tilt as a state machine — 24 states, two links out of each</h2>
+        <img class="figure" src="../../diagrams/panels/links/links.svg"
+          alt="Five adjacent states, 21 22 23 0 1, with a next link running one way between them and a prev link running the other. The seam between 23 and 0 is marked and is an ordinary link.">
+        <div class="keynote">
+          <p><i class="sw" style="background:#5fd68a"></i>next &nbsp;
+            <i class="sw" style="background:#e05fd8"></i>prev — the only two moves there are</p>
+          <p>a turn FOLLOWS one of these links, so it cannot land between two states or off the
+            ring, and no rule anywhere adds 1 or takes a modulus</p>
+          <p>the seam in the middle is 23 → 0. Nothing detects it and no rule mentions it — the
+            last state's next simply IS the first, fixed when the ring was built</p>
+        </div>
+      </div>
+
+      <div class="card wide">
+        <h2>The mode as a state machine — three modes, four transitions</h2>
+        <img class="figure" src="../../diagrams/panels/modes/modes.svg"
+          alt="Three modes: setting, perpendicular and parallel. Setting goes to either of the other two, chosen from the gap at the first arrival. Both go back to setting on a reset. There is no edge between perpendicular and parallel.">
+        <div class="keynote">
+          <p>setting is where a node starts and what a reset restores — it is the zero value, so a
+            node is in it without anything having to put it there</p>
+          <p>there is NO edge between perpendicular and parallel: a chosen mode sticks, and a second
+            choice arriving mid-run is ignored</p>
+          <p>every case, mode by mode and length by length, is on <a href="../cases/index.html">Cases</a></p>
+        </div>
+      </div>
+
+      <div class="card wide">
+        <h2>Both machines, and the arithmetic they come out of</h2>
+        <p>Moved to their own page: <a href="machines-arith.html">Both machines as a transition function, and the arithmetic they come out of</a>.</p>
+      </div>
+
+
+    </div>
+  </main>
+</body>
+
+</html>

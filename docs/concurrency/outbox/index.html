@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>wirefold — outbox.mu, resolved: the lock is gone</title>
+<link rel="stylesheet" href="styles/base.css">
+<link rel="stylesheet" href="styles/layout.css">
+<link rel="stylesheet" href="styles/panels.css">
+<link rel="stylesheet" href="styles/diagrams.css">
+<link rel="stylesheet" href="styles/shapes.css">
+<link rel="stylesheet" href="styles/footer.css">
+<link rel="stylesheet" href="styles/idx.css">
+</head>
+<body>
+
+<header>
+    <div class="head-inner">
+      <p class="eyebrow">wirefold · concurrency · RESOLVED</p>
+      <h1>outbox.mu — the record of a question that closed</h1>
+      <p class="sub">
+        <code>geomMu</code> was removed, LayoutHolder.mu was removed (LayoutHolder itself was later deleted entirely), and
+        <code>PacedWire.mu</code> was removed — each was called necessary first. This page
+        argued <code>outbox.mu</code> was the fourth and still standing. It is now gone too:
+        <code>task/mutex-outbox-restructure</code> deleted the outbox struct entirely — no
+        queue, no <code>mu</code>, no <code>cond</code>, no dedicated sender goroutine, no
+        ctx-watcher goroutine. What's below is kept as the argument that led there, not as a
+        description of the code that runs today (see diagram 6 for that).
+      </p>
+    </div>
+  </header>
+
+<div class="wrap">
+<ul class="idx-list">
+  <li><a href="1-history-why-the.html">1 · history — why the outbox was built in the first place</a></li>
+  <li><a href="2-the-shape-that.html">2 · the shape that was replaced — outbox + dedicated sender</a></li>
+  <li><a href="3-why-the-lock.html">3 · why the lock was even worth examining — it was SPSC</a></li>
+  <li><a href="4-just-use-a.html">4 · "just use a channel" — the argument that was wrong here</a></li>
+  <li><a href="5-the-track-record.html">5 · the track record on “this lock must stay”</a></li>
+  <li><a href="6-what-actually-shipped.html">6 · what actually shipped — two directed channels, no lock</a></li>
+</ul>
+<footer>
+      Verified against the tree on <span style="font-family:var(--mono)">task/mutex-outbox-restructure</span>.
+      Line numbers drift — re-grep before trusting them. Companion to
+      <span style="font-family:var(--mono)">docs/concurrency/mutex/index.html</span> (all remaining locks)
+      and <span style="font-family:var(--mono)">docs/concurrency/framings.md</span> (why each exists).
+    </footer>
+</div>
+
+</body>
+</html>
+

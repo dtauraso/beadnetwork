@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Node Runs Its Own Outgoing Edges</title>
+<link rel="stylesheet" href="index.css">
+</head>
+<body>
+<div class="page">
+  <header>
+    <h1>Node Runs Its Own Outgoing Edges</h1>
+    <div class="meta">branch: task/node-runs-own-edges &nbsp;·&nbsp; docs/planning/visual-editor/node-edges/index.html</div>
+  </header>
+
+  <nav>
+    <a class="tab-btn active" href="index.html">Model</a>
+    <a class="tab-btn" href="was.html">Was (train)</a>
+    <a class="tab-btn" href="target.html">Target</a>
+    <a class="tab-btn" href="invariants.html">Invariants</a>
+    <a class="tab-btn" href="migration.html">Migration</a>
+    <a class="tab-btn" href="openq.html">Open Qs</a>
+  </nav>
+
+  <div id="model" class="panel active">
+    <p>
+      <strong>A node emits one bead per fire; the bead rides a wire the node owns, advanced by the node's own goroutine.</strong>
+    </p>
+
+    <ul>
+      <li>A node emits <strong>one bead per fire</strong> — not a 2s/400ms train. No <code>trainDurationMs</code>, no <code>beadSpacingMs</code>, no persistent re-send.</li>
+      <li>The bead travels on a wire the <strong>source node owns</strong>. The node's own goroutine advances the bead — there is no separate per-wire pacer goroutine and no per-bead walker goroutine.</li>
+      <li>No rule enforces how many beads are on a wire. No occupancy / back-pressure gate. "One bead" is the per-emit granularity, not a per-wire capacity — several fires over time can leave multiple beads in flight on one wire simultaneously.</li>
+    </ul>
+
+    <div class="eq-block">
+      <span class="eq-line">before:  fire &rarr; 2s/400ms train of beads; per-wire pacer goroutine + N walker goroutines; receiver dedups train by seq</span>
+      <span class="eq-line">after:   fire &rarr; 1 bead; node goroutine advances it on a node-owned wire; no pacer, no walkers, no bead-count rule</span>
+    </div>
+
+    <p>
+      This <strong>reverses the sustained-bead-train direction</strong>: the train model, seq-collapse, and persistent re-send are being removed.
+    </p>
+
+    <h2>What is unchanged</h2>
+    <ul>
+      <li>One clock, one pause button</li>
+      <li><code>pulseSpeed</code> as the sole distance&divide;time conversion</li>
+      <li>Fire-and-forget sends on the Go&rarr;TS bridge</li>
+      <li>A bead's delivery time is still derived: <code>placement + arc / pulseSpeed</code></li>
+    </ul>
+  </div>
+
+</div>
+</body>
+</html>

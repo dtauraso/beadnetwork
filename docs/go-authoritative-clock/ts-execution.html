@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="doc-status" content="historical">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TS — Go-Authoritative Clock — Wirefold Design Spec</title>
+<link rel="stylesheet" href="styles/base.css">
+<link rel="stylesheet" href="styles/layout.css">
+<link rel="stylesheet" href="styles/typography.css">
+<link rel="stylesheet" href="styles/tables.css">
+<link rel="stylesheet" href="styles/panels.css">
+<link rel="stylesheet" href="styles/diagrams.css">
+<link rel="stylesheet" href="styles/controls.css">
+</head>
+<body>
+<div class="container">
+  <div class="page-title">Wirefold — Design Spec</div>
+  <div class="page-subtitle">Go Backend / TS Frontend — TS</div>
+
+  <ul class="tabs" role="navigation" aria-label="Go-Authoritative Clock pages">
+      <li><a href="index.html">The split</a></li>
+      <li><a href="goroutines/index.html">Goroutines</a></li>
+      <li><a href="ts-execution.html" class="current">TS</a></li>
+      <li><a href="bridge.html">The Bridge</a></li>
+      <li><a href="clock/index.html">Clock</a></li>
+      <li><a href="clock/playpause.html">Play/Pause</a></li>
+      <li><a href="ts-to-go/index.html">TS → Go</a></li>
+      <li><a href="plan.html">Plan</a></li>
+      <li><a href="verify.html">Verify</a></li>
+      <li><a href="tracking.html">Tracking</a></li>
+      <li><a href="inconsistencies.html">Inconsistencies</a></li>
+      <li><a href="todo.html">What's left</a></li>
+  </ul>
+
+  <div class="panel active" id="panel-tscode" role="region">
+    <h2><button type="button" class="chk-btn heading-chk" aria-pressed="false" data-chk="tscode:h2">☐</button>What the TS frontend runs.</h2>
+    <p>TS has no goroutines; its job is to render the stream Go emits and send CRUD + pause/resume back. Its execution contexts are below; the data work is Go's (see the TS &rarr; Go tab).</p>
+
+    <table class="spec-table" id="tscode-table">
+      <caption>The TS execution contexts</caption>
+      <thead>
+        <tr><th class="enum">#</th><th class="chk">✓</th><th>Context</th><th>Source file</th><th>When it runs</th><th>Its job</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="enum">1</td>
+          <td class="chk"><button type="button" class="chk-btn" aria-pressed="false" aria-label="toggle done">☐</button></td>
+          <td>Render loop · pulse</td>
+          <td title="tools/topology-vscode/src/webview/three/pulse-state.ts">pulse-state.ts</td>
+          <td>every frame (~60fps), one per in-flight bead</td>
+          <td><ol><li>Read each in-flight bead's current position from the stream Go emits (the pulse map, pulse-state.ts).</li><li>Set the bead mesh position to that point.</li><li>No curve rebuild, no progress t, no curve sampling &mdash; Go computes every position; no delivered post &mdash; Go times its own delivery.</li></ol></td>
+        </tr>
+        <tr>
+          <td class="enum">2</td>
+          <td class="chk"><button type="button" class="chk-btn" aria-pressed="false" aria-label="toggle done">☐</button></td>
+          <td>Render loop · overlays</td>
+          <td title="tools/topology-vscode/src/webview/three/scene-content.tsx">scene-content.tsx</td>
+          <td>every few frames (throttled)</td>
+          <td><ol><li>Project node world positions to screen for the HTML label overlay (LabelProjector).</li><li>Debounce the camera matrix and fire a settle callback once motion stops (CameraSettleDetector).</li><li>Track the nearest N nodes to the camera for occlusion/label decisions (NearestNTracker).</li><li>Screen-space and GPU-tied &mdash; stays in TS.</li></ol></td>
+        </tr>
+        <tr>
+          <td class="enum">3</td>
+          <td class="chk"><button type="button" class="chk-btn" aria-pressed="false" aria-label="toggle done">☐</button></td>
+          <td>Trace pump</td>
+          <td title="tools/topology-vscode/src/webview/three/pump.ts">pump.ts</td>
+          <td>event-driven (each Go trace event)</td>
+          <td><ol><li>handleTraceEvent switches on the event kind (pump.ts).</li><li><strong>send</strong> &rarr; match edges by source+sourceHandle and setPulse on each.</li><li><strong>done</strong> &rarr; match edges by target+targetHandle and clearPulse on each.</li><li><strong>fire / recv</strong> &rarr; no-op.</li></ol></td>
+        </tr>
+        <tr>
+          <td class="enum">4</td>
+          <td class="chk"><button type="button" class="chk-btn" aria-pressed="false" aria-label="toggle done">☐</button></td>
+          <td>Message receiver</td>
+          <td title="tools/topology-vscode/src/webview/main.tsx">main.tsx</td>
+          <td>event-driven (window "message")</td>
+          <td><ol><li>parseHostToWebview narrows the incoming message (main.tsx).</li><li><strong>buffer-snapshot</strong> &rarr; setLatestSnapshot (the only host&rarr;webview message; BufferScene polls it).</li><li>On startup, post {type:"ready"} back to the host.</li></ol></td>
+        </tr>
+        <tr>
+          <td class="enum">5</td>
+          <td class="chk"><button type="button" class="chk-btn" aria-pressed="false" aria-label="toggle done">☐</button></td>
+          <td>Outbound IPC</td>
+          <td title="tools/topology-vscode/src/extension/handle-message.ts">handle-message.ts</td>
+          <td>on user action</td>
+          <td><ol><li>vscode.postMessage from the webview; the extension's dispatch writes a JSON line to the Go process stdin (handle-message.ts).</li><li>Out types: CRUD + control + raw input (deleteEdge, addEdge, fade, node-move, pause/resume), each carrying the picked Go id plus geometry/animation edits &mdash; never delivery, timing, or camera nav (orbit/pan/zoom stays in TS).</li><li>Fire-and-forget &mdash; the writeStdin is not awaited; no request/response.</li></ol></td>
+        </tr>
+        <tr>
+          <td class="enum">6</td>
+          <td class="chk"><button type="button" class="chk-btn" aria-pressed="false" aria-label="toggle done">☐</button></td>
+          <td>Input handlers</td>
+          <td title="tools/topology-vscode/src/webview/three/interaction-controls.ts">interaction-controls.ts</td>
+          <td>DOM pointer / wheel events</td>
+          <td><ol><li>pointer down: raycast-pick a port, node, or empty space; capture the drag/wiring origin (interaction-controls.ts).</li><li>pointer move: drag a node (&rarr; node-move IPC, rAF-throttled), preview a wire, or arcball-rotate the camera.</li><li>pointer up: complete wiring (createEdge), persist a node move, or reset.</li><li>wheel/pointer navigation: TS interprets it (ctrl = pinch-zoom to cursor, else pan on z=0) and commits the camera locally — TS owns the camera (three.js), nothing forwarded to Go.</li></ol></td>
+        </tr>
+        <tr>
+          <td class="enum">7</td>
+          <td class="chk"><button type="button" class="chk-btn" aria-pressed="false" aria-label="toggle done">☐</button></td>
+          <td>React / Zustand store</td>
+          <td title="tools/topology-vscode/src/webview/three/store.ts">store.ts</td>
+          <td>on state change</td>
+          <td><ol><li>Keeps a passive render copy of nodes/edges/selection (store.ts); Go owns the authoritative data.</li><li>moveNode updates a node position locally and posts node-move; it derives no curve geometry and patches no pulse timing &mdash; Go does that.</li><li>createEdge / deleteEdge / toggleFade apply optimistically and post addEdge / deleteEdge / fade to Go.</li></ol></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="note" style="margin-top:1.25rem;"><button type="button" class="chk-btn heading-chk" aria-pressed="false" data-chk="tscode:note1">☐</button>What stays in TS vs. what is Go's &mdash; see the <strong>TS &rarr; Go</strong> tab.</div>
+
+    <h2><button type="button" class="chk-btn heading-chk" aria-pressed="false" data-chk="tsgraph:h2">☐</button>The TS frontend, wired.</h2>
+  <p>Two pipes to Go — nothing else crosses. <strong>In:</strong> position stream → trace pump → render (draw beads). <strong>Out:</strong> CRUD, pause/resume, action input (Go id) via writeStdin. Camera stays in TS; TS computes no geometry.</p>
+  <div class="diagram">
+<button type="button" class="chk-btn diagram-chk" aria-pressed="false" data-chk="tsgraph:svg1">☐</button>
+<svg width="560" height="240" viewBox="0 0 560 240" xmlns="http://www.w3.org/2000/svg" aria-label="TS frontend: two pipes to Go. The trace pump feeds Go's position stream to the render loop, which draws beads to the screen. The user sees the render and acts; the outbound IPC (writeStdin) sends CRUD, pause/resume, and action input (Go id) to Go.">
+  <line x1="120" y1="78" x2="210" y2="78" stroke="#5ec4a0" stroke-width="1.5" marker-end="url(#aG)"/>
+  <text x="165" y="70" text-anchor="middle" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="9" fill="#5ec4a0">position stream</text>
+  <line x1="340" y1="78" x2="400" y2="78" stroke="#c07ef8" stroke-width="1.5" marker-end="url(#aP)"/>
+  <line x1="470" y1="106" x2="470" y2="140" stroke="#808090" stroke-width="1.2" stroke-dasharray="3,3" marker-end="url(#aM)"/>
+  <text x="485" y="127" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="9" fill="#808090">user</text>
+  <line x1="400" y1="168" x2="120" y2="168" stroke="#d4a017" stroke-width="1.5" marker-end="url(#aA)"/>
+  <text x="262" y="160" text-anchor="middle" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="10" fill="#d4a017">CRUD &middot; pause/resume &middot; action input (Go id)</text>
+  <rect x="24" y="46" width="96" height="150" rx="10" ry="10" fill="#0e1e1a" stroke="#5ec4a0" stroke-width="1.5"/>
+  <text x="72" y="116" text-anchor="middle" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="15" font-weight="700" fill="#5ec4a0">GO</text>
+  <text x="72" y="134" text-anchor="middle" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="10" fill="#3d8a70">backend</text>
+  <rect x="210" y="50" width="130" height="56" rx="9" ry="9" fill="#0d1628" stroke="#7c9ef8" stroke-width="1.5"/>
+  <text x="275" y="74" text-anchor="middle" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="12" font-weight="700" fill="#7c9ef8">Trace pump</text>
+  <text x="275" y="91" text-anchor="middle" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="9" fill="#5a78c0">setPulse(pos)</text>
+  <rect x="400" y="50" width="140" height="56" rx="9" ry="9" fill="#1a0e24" stroke="#c07ef8" stroke-width="1.5"/>
+  <text x="470" y="74" text-anchor="middle" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="12" font-weight="700" fill="#c07ef8">Render loop</text>
+  <text x="470" y="91" text-anchor="middle" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="9" fill="#8040b0">draw beads to screen</text>
+  <rect x="400" y="140" width="140" height="56" rx="9" ry="9" fill="#1e1800" stroke="#d4a017" stroke-width="1.5"/>
+  <text x="470" y="164" text-anchor="middle" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="12" font-weight="700" fill="#d4a017">Outbound IPC</text>
+  <text x="470" y="181" text-anchor="middle" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="9" fill="#9a7818">writeStdin</text>
+  <defs>
+    <marker id="aG" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#5ec4a0"/></marker>
+    <marker id="aP" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#c07ef8"/></marker>
+    <marker id="aA" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#d4a017"/></marker>
+    <marker id="aM" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#808090"/></marker>
+  </defs>
+</svg>
+  </div>
+  <div class="note"><button type="button" class="chk-btn heading-chk" aria-pressed="false" data-chk="tsgraph:note1">☐</button><strong>Legend.</strong> Green = Go; blue = trace pump (Go&rarr;TS); purple = render path; amber = writeStdin (TS&rarr;Go). Two pipes; nothing else crosses. Dashed user arrow = the human sees the render, their actions go to Go.</div>
+  <div class="note" style="margin-top:0.75rem;"><button type="button" class="chk-btn heading-chk" aria-pressed="false" data-chk="tsgraph:note2">☐</button>TS only renders Go's stream, owns the camera + scene navigation, and forwards the user's actions. The authoritative data &mdash; positions, geometry, timing &mdash; lives in Go; the TS zustand store is a no-op holder Go writes.</div>
+  
+  </div>
+</div>
+<script src="styles/script.js"></script>
+</body>
+</html>

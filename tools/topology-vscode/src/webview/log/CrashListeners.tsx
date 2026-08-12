@@ -1,8 +1,3 @@
-// Mounts window-level crash listeners as a React effect. Replaces the
-// top-level addEventListener calls that lived in main.tsx — keeping
-// lifecycle inside the component tree means tests can mount/unmount
-// without leaking listeners.
-
 import { useEffect } from "react";
 import { postLog } from "./post";
 

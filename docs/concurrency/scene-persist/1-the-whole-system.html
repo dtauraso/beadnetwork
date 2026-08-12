@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>wirefold — scene_persist, the last unexamined locks — the whole system — five persisters, four locks, two files</title>
+<link rel="stylesheet" href="../persister/index.css">
+</head>
+<body>
+
+<header>
+  <div class="head-inner">
+    <p class="eyebrow">scene_persist, the last unexamined locks</p>
+    <h1>1 · the whole system — five persisters, four locks, two files</h1>
+    <nav class="crumbnav"><a href="index.html">scene_persist — the last locks nobody has looked at</a> — <span class="crumb-here">the whole system — five persisters, four locks, two files</span> · <a href="2-the-race-that.html">the race that is reachable today</a> · <a href="3-atomic-rename-does.html">atomic rename does not make these locks redundant</a> · <a href="4-the-question-that.html">the question that killed the other four locks</a> · <a href="5-findings-one-stale.html">findings — one stale claim, one missing guard</a></nav>
+  </div>
+</header>
+
+<div class="wrap">
+<div class="legend">
+  <span><i class="sw g"></i>goroutine</span>
+  <span><i class="sw s"></i>lock / hazard</span>
+  <span><i class="sw q"></i>timer-spawned</span>
+  <span><i class="sw k"></i>file on disk</span>
+</div>
+
+<h2>1 · the whole system — five persisters, four locks, two files</h2>
+<p class="cap">Every writer, the goroutine it runs on, the lock it takes, and the file it lands
+in. <b>Five</b> debounced persisters, each with its own independent <code>mu</code>.</p>
+
+<div class="plate">
+<svg viewBox="0 0 860 400" role="img" aria-label="Five debounced persisters and one synchronous writer funnel through either the scene file mutex or a per-path entity mutex before writing scene.json or a node's meta.json.">
+  <defs><marker id="as" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#C06A12"/></marker></defs>
+
+  <text class="tl" x="0" y="14">WRITER · GOROUTINE</text>
+  <text class="tl" x="392" y="14">LOCK</text>
+  <text class="tl" x="672" y="14">FILE</text>
+
+  <rect class="queue" x="0" y="28" width="356" height="34" rx="5"/>
+  <text class="ts" x="10" y="43">viewpointPersister.flush — camera</text>
+  <text class="tf" x="10" y="56">scene_camera_persist.go:55 · TIMER goroutine</text>
+
+  <rect class="queue" x="0" y="68" width="356" height="34" rx="5"/>
+  <text class="ts" x="10" y="83">overlaysPersister.flush — overlays</text>
+  <text class="tf" x="10" y="96">scene_overlays_persist.go:94 · TIMER, or stdin on save</text>
+
+  <rect class="gor" x="0" y="108" width="356" height="34" rx="5"/>
+  <text class="ts" x="10" y="123">sceneSpherePersister.flushNow — sphere</text>
+  <text class="tf" x="10" y="136">scene_sphere_persist.go:128 · STDIN goroutine, synchronous</text>
+
+  <rect class="queue" x="0" y="162" width="356" height="34" rx="5"/>
+  <text class="ts" x="10" y="177">quantOffsetPersister.flush — node position</text>
+  <text class="tf" x="10" y="190">quant_offset_persist.go:68 · TIMER goroutine</text>
+
+  <rect class="gor" x="0" y="202" width="356" height="34" rx="5"/>
+  <text class="ts" x="10" y="217">WriteLocalPolars — local polars</text>
+  <text class="tf" x="10" y="230">quant_offset_persist.go:143 · node's OWN mover goroutine, SYNC</text>
+
+  <rect class="queue" x="0" y="242" width="356" height="34" rx="5"/>
+  <text class="ts" x="10" y="257">anchorPersister.flush — port anchor</text>
+  <text class="tf" x="10" y="270">scene_anchor_persist.go:53 · TIMER goroutine</text>
+
+  <path class="arrq" d="M356,45 L456,60" marker-end="url(#as)"/>
+  <path class="arrq" d="M356,85 L456,70" marker-end="url(#as)"/>
+  <path class="arrq" d="M356,125 L456,80" marker-end="url(#as)"/>
+  <path class="arrq" d="M356,179 L456,178" marker-end="url(#as)"/>
+  <path class="arrq" d="M356,219 L456,188" marker-end="url(#as)"/>
+  <path class="arrq" d="M356,259 L456,250" marker-end="url(#as)"/>
+
+  <rect class="state" x="456" y="40" width="200" height="52" rx="6"/>
+  <text class="tw" x="468" y="60">sceneFileMu</text>
+  <text class="tf" x="468" y="76">scene_persist.go:44</text>
+  <text class="tf" x="468" y="88">one package-level lock</text>
+
+  <rect class="state" x="456" y="158" width="200" height="52" rx="6"/>
+  <text class="tw" x="468" y="178">entityFileMus[path]</text>
+  <text class="tf" x="468" y="194">:168–181 — striped per file</text>
+  <text class="tf" x="468" y="206">entityFileMuMu guards the map</text>
+
+  <rect class="state" x="456" y="228" width="200" height="44" rx="6"/>
+  <text class="tw" x="468" y="248">entityFileMus[port path]</text>
+  <text class="tf" x="468" y="264">a different striped path</text>
+
+  <path class="arrq" d="M656,66 L672,66" marker-end="url(#as)"/>
+  <path class="arrq" d="M656,184 L672,184" marker-end="url(#as)"/>
+  <path class="arrq" d="M656,250 L672,250" marker-end="url(#as)"/>
+
+  <rect class="safe" x="672" y="44" width="188" height="44" rx="6"/>
+  <text class="ts" x="682" y="62">view/scene.json</text>
+  <text class="tf" x="682" y="78">3 disjoint keys, 1 document</text>
+
+  <rect class="safe" x="672" y="162" width="188" height="44" rx="6"/>
+  <text class="ts" x="682" y="180">nodes/&lt;id&gt;/meta.json</text>
+  <text class="tf" x="682" y="196">position + localPolars</text>
+
+  <rect class="safe" x="672" y="228" width="188" height="44" rx="6"/>
+  <text class="ts" x="682" y="246">nodes/&lt;id&gt;/…/&lt;port&gt;.json</text>
+  <text class="tf" x="682" y="262">anchorId</text>
+
+  <rect class="box" x="0" y="296" width="856" height="42" rx="6"/>
+  <text class="tq" x="12" y="314">debouncedPersister.mu ×5</text>
+  <text class="tf" x="150" y="314">scene_persist.go:58 — guards pending · has · timer · writes. One INDEPENDENT instance per persister.</text>
+  <text class="tf" x="12" y="330">Contends: the goroutine calling schedule/arm vs the timer goroutine calling take/recordWrite. No file I/O is held under it.</text>
+
+  <line x1="0" y1="358" x2="860" y2="358" stroke="var(--line)"/>
+  <text class="tq" x="0" y="378">time.AfterFunc runs every flush on a BRAND NEW GOROUTINE</text>
+  <text class="ts" x="470" y="378">— that is the second party in every race below.</text>
+  <text class="tf" x="0" y="394">Debounce window ~250ms, shared by all persisters (move_persist.go:77-81).</text>
+</svg>
+</div>
+
+
+
+</div>
+
+</body>
+</html>
+

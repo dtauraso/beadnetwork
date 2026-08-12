@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="doc-status" content="historical">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Cartesian pan — The Polar System for a Sphere</title>
+<link rel="stylesheet" href="index.css">
+</head>
+<body>
+<header>
+  <h1>The Polar System for a Sphere</h1>
+  <p>How <span class="kb">2D polar</span> <code>(r, θ)</code> grows into <span class="kp">3D spherical</span> <code>(r, θ, φ)</code> — and the parts that only exist in 3D.</p>
+</header>
+
+<ul class="tabs" role="navigation" aria-label="Polar-sphere pages">
+    <li><a href="index.html">2D polar</a></li>
+    <li><a href="3d.html">3D spherical</a></li>
+    <li><a href="diff.html">What 3D adds</a></li>
+    <li><a href="frame.html">The frame</a></li>
+    <li><a href="tri.html">The pan triangle</a></li>
+    <li><a href="cart.html" class="current">Cartesian pan</a></li>
+    <li><a href="mouse.html">Mouse as polar</a></li>
+    <li><a href="recenter.html">pan → recenter</a></li>
+    <li><a href="rot.html">Rotation</a></li>
+    <li><a href="zoom.html">Zoom</a></li>
+    <li><a href="plan.html">Plan</a></li>
+</ul>
+
+<section class="panel active" id="tcart">
+  <div class="row">
+    <figure class="fig">
+      <svg id="svgCartScreen" width="400" height="300"></svg>
+      <figcaption>Cartesian pan: <em>every</em> point slides by the same screen vector Δ.</figcaption>
+    </figure>
+    <figure class="fig">
+      <svg id="svgCartCam" width="400" height="300"></svg>
+      <figcaption>Camera and target translate <em>together</em> — look direction unchanged.</figcaption>
+    </figure>
+    <div class="prose">
+      <h2>How Cartesian does pan</h2>
+      <p>Pan in CAD/3D tools is a flat <strong>screen-space translation</strong>. The drag <code>(Δx, Δy)</code> in pixels becomes a world vector along the camera's own right/up axes:</p>
+      <div class="note"><strong>The editor now pans polar</strong> (the "Mouse as polar" / "pan → recenter" tabs): the wheel <code>(Δx, Δy)</code> is converted to <code>(r, angle)</code> at the input edge, the slide runs in the refX–pole plane, an overlay shows the construction during the burst, and the polar origin recenters. Cartesian survives only at the <code>(right, up)</code> output edge — this tab is the contrast it replaced.</div>
+      <p><code>Δ = right·(Δx·s) + up·(−Δy·s)</code></p>
+      <p>where <code>s</code> = world-units-per-pixel at the look distance. Then <strong>both the camera and its target move by the same Δ</strong>:</p>
+      <ul>
+        <li>every node shifts by the identical vector — the whole scene slides rigidly (left figure);</li>
+        <li>camera + target ride along together, so the look direction and zoom are untouched (right figure);</li>
+        <li>no center, no angle, no radius — it's pure addition of an <code>(x,y,z)</code> vector.</li>
+      </ul>
+      <h3>Why it's "Cartesian"</h3>
+      <p>It only uses vector addition in the view plane. There's no pole, no <span class="kb">θ</span>/<span class="kp">φ</span>, nothing rotates. It's the one navigation op that stays flat even in the orbit-camera tools.</p>
+      <div class="note"><strong>Contrast with polar pan:</strong> the polar version doesn't translate a camera through space. It <strong>rebases the sphere's origin</strong> by the triangle's base offset and <strong>recomputes every node's <code>(r,θ,φ)</code></strong> about the new center — an operation on the <em>model</em>, in angles, not a Cartesian slide of the view.</div>
+    </div>
+  </div>
+</section>
+<script src="shared.js"></script>
+<script>
+// ---- Cartesian pan: screen-space rigid slide -------------------------------
+(function(){
+  const svg=document.getElementById("svgCartScreen");
+  svg.appendChild(el("rect",{x:20,y:20,width:360,height:260,fill:"#10182e",stroke:"#2b3350","stroke-width":1.5,rx:8}));
+  const dx=70, dy=40;                              // the drag Δ (pixels)
+  const nodes=[[90,90],[150,170],[240,110],[300,200],[200,240]];
+  for(const [x,y] of nodes){
+    svg.appendChild(el("circle",{cx:x,cy:y,r:7,fill:"none",stroke:"#566",
+      "stroke-width":1.5,"stroke-dasharray":"3 3"}));      // old (ghost)
+    arrow(svg,x,y,x+dx,y+dy,"#445",1.5);
+    dot(svg,x+dx,y+dy,"#ffcc44",6);                         // new
+  }
+  arrow(svg,60,55,60+dx,55+dy,"#66ff99",3);                 // the drag Δ
+  label(svg,62+dx,55+dy+14,"Δ (drag)","#66ff99",12);
+  label(svg,30,275,"every node += the same Δ","#9aa6c0",12);
+})();
+
+// ---- Cartesian pan: camera + target slide together -------------------------
+(function(){
+  const svg=document.getElementById("svgCartCam");
+  const dx=46, dy=-46;
+  function cam(x,y,c,ghost){                                // little camera wedge facing right-up toward target
+    const op=ghost?0.4:1;
+    svg.appendChild(el("path",{d:`M ${x} ${y} L ${x-22} ${y-10} L ${x-22} ${y+10} Z`,
+      fill:"none",stroke:c,"stroke-width":2,"stroke-opacity":op}));
+  }
+  const C=[90,210], T=[320,120];                            // camera, target (old)
+  cam(C[0],C[1],"#57b6ff",true); dot(svg,T[0],T[1],"#566",5);
+  line(svg,C[0],C[1],T[0],T[1],"#2b3350",1.5);
+  const C2=[C[0]+dx,C[1]+dy], T2=[T[0]+dx,T[1]+dy];          // slid by Δ
+  cam(C2[0],C2[1],"#57b6ff",false); dot(svg,T2[0],T2[1],"#ffcc44",6);
+  line(svg,C2[0],C2[1],T2[0],T2[1],"#57b6ff",2);            // view line — parallel (unchanged dir)
+  arrow(svg,C[0],C[1],C2[0],C2[1],"#66ff99",2.5);
+  arrow(svg,T[0],T[1],T2[0],T2[1],"#66ff99",2.5);
+  label(svg,C2[0]-30,C2[1]-16,"camera","#57b6ff",12);
+  label(svg,T2[0]-30,T2[1]-12,"target","#ffcc44",12);
+  label(svg,150,40,"same Δ on both","#66ff99",12);
+  label(svg,150,58,"→ look direction unchanged","#9aa6c0",12);
+})();
+</script>
+</body>
+</html>

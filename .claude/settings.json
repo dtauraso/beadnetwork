@@ -16,7 +16,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/tools/check-stray-screenshots.sh\""
+            "command": "bash \"$CLAUDE_PROJECT_DIR/tools/repo-hygiene/hooks/check-stray-screenshots.sh\""
           },
           {
             "type": "command",
@@ -24,7 +24,7 @@
           },
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/tools/check-no-foreground-sim.sh\""
+            "command": "bash \"$CLAUDE_PROJECT_DIR/tools/repo-hygiene/hooks/check-no-foreground-sim.sh\""
           },
           {
             "type": "command",
@@ -32,7 +32,7 @@
           },
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/tools/check-no-shell-source-edits.sh\""
+            "command": "bash \"$CLAUDE_PROJECT_DIR/tools/repo-hygiene/hooks/check-no-shell-source-edits.sh\""
           }
         ]
       },

@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>wirefold — debouncedPersister.mu, resolved — why take() zeroes pending — the non-obvious reason the lock earns its keep</title>
+<link rel="stylesheet" href="index.css">
+</head>
+<body>
+
+<header>
+  <div class="head-inner">
+    <p class="eyebrow">debouncedPersister.mu, resolved</p>
+    <h1>4 · why take() zeroes pending — the non-obvious reason the lock earns its keep</h1>
+    <nav class="crumbnav"><a href="index.html">debouncedPersister.mu — a deleted lock, recorded</a> — <a href="1-what-it-guards.html">what it guards — four fields, four methods</a> · <a href="2-what-debouncing-is.html">what debouncing is for — a drag is one write, not sixty</a> · <a href="2b-is-60.html">2b · is 60 writes/sec actually a problem? — nobody has shown it is</a> · <a href="3-the-two-parties.html">the two parties — and the second one is spawned, not chosen</a> · <span class="crumb-here">why take() zeroes pending — the non-obvious reason the lock earns its keep</span> · <a href="5-five-instances-independent.html">five instances — independent, not one shared lock</a> · <a href="6-the-single-owner-candidate.html">the single-owner candidate</a> · <a href="7-measured-deleting-mu.html">measured: deleting mu is red, not clean</a> · <a href="8-what-the-lock.html">what the lock is actually doing — three separable jobs</a></nav>
+  </div>
+</header>
+
+<div class="wrap">
+<div class="legend">
+  <span><i class="sw g"></i>goroutine</span>
+  <span><i class="sw s"></i>locked state</span>
+  <span><i class="sw q"></i>timer</span>
+  <span><i class="sw k"></i>safe / resolved</span>
+</div>
+
+<h2>4 · why take() zeroes pending — the non-obvious reason the lock earns its keep</h2>
+<p class="cap">Two of the five persisters hold a <b>map</b> and mutate it in place. If
+<code>take()</code> handed the map out without clearing it, a schedule arriving mid-flush
+would write into the very map <code>flush</code> is iterating.</p>
+
+<div class="plate">
+<svg viewBox="0 0 860 280" role="img" aria-label="Without zeroing pending, a schedule during a flush would mutate the same map the flush is iterating; zeroing forces the next schedule to allocate a fresh map.">
+  <text class="tl" x="0" y="14">WITHOUT ZEROING — the bug that would exist</text>
+
+  <rect class="gor" x="0" y="30" width="240" height="40" rx="5"/>
+  <text class="ts" x="12" y="55">flush: take() → map M</text>
+
+  <rect class="gor" x="0" y="80" width="240" height="40" rx="5"/>
+  <text class="ts" x="12" y="105">schedule: pending[k] = v</text>
+
+  <path class="arr" d="M240,50 L360,86" marker-end="url(#ah4)"/>
+  <path class="arr" d="M240,100 L360,96" marker-end="url(#ah4)"/>
+
+  <rect class="state" x="360" y="70" width="220" height="56" rx="6"/>
+  <text class="big" x="372" y="94">SAME MAP</text>
+  <text class="tf" x="372" y="112">flush iterates it while schedule writes it</text>
+
+  <text class="tl" x="0" y="164">WITH ZEROING — what the code does</text>
+
+  <rect class="gor" x="0" y="180" width="240" height="40" rx="5"/>
+  <text class="ts" x="12" y="205">take(): return M, pending = nil</text>
+
+  <rect class="gor" x="0" y="230" width="240" height="40" rx="5"/>
+  <text class="ts" x="12" y="255">next schedule: fresh map</text>
+
+  <path class="arrk" d="M240,200 L360,208"/>
+  <path class="arrk" d="M240,250 L360,236"/>
+
+  <rect class="safe" x="360" y="186" width="220" height="40" rx="5"/>
+  <text class="tk" x="372" y="211">flush owns M alone</text>
+
+  <rect class="safe" x="360" y="232" width="220" height="40" rx="5"/>
+  <text class="tk" x="372" y="257">schedule owns the new map alone</text>
+
+  <rect class="box" x="608" y="70" width="252" height="202" rx="6"/>
+  <text class="t"  x="620" y="92">READ THIS BEFORE REMOVING mu</text>
+  <text class="tf" x="620" y="114">The lock is not only guarding four</text>
+  <text class="tf" x="620" y="128">fields. take()'s zeroing is a HANDOFF:</text>
+  <text class="tf" x="620" y="142">it transfers ownership of a reference</text>
+  <text class="tf" x="620" y="156">type from the scheduler to the flusher.</text>
+  <text class="tf" x="620" y="180">Any replacement must preserve that</text>
+  <text class="tf" x="620" y="194">handoff, not just the mutual exclusion.</text>
+  <text class="tf" x="620" y="218">Affected: the map-valued persisters</text>
+  <text class="tf" x="620" y="232">(anchor, quantOffset). The scalar/</text>
+  <text class="tf" x="620" y="246">pointer ones do not care.</text>
+  <text class="tw" x="620" y="266">This is the trap in this lock.</text>
+</svg>
+</div>
+
+
+
+</div>
+
+</body>
+</html>
+

@@ -1,309 +1,24 @@
-// Trace is now a thin breadcrumb writer plus the closed EVENT-KIND vocabulary shared
-// with the per-owner buffer streams (memory/feedback_no_single_writer_bridge.md, memory/
-// feedback_no_single_writer_bridge.md). Every domain event (recv/fire/send/geometry/
-// camera/selection/overlay-toggle/...) is now written by its OWNING goroutine directly
-// as a RowEvent onto that goroutine's own dedicated stream frame (nodes/Wiring's
-// owner_events.go and friends) — there is no more central Trace channel, no drain
-// goroutine, and no second (redundant) serialization of those events through this
-// package. Buffer.KindID resolves a RowEvent's string Kind to its numeric id via
-// TraceEventKinds below, which stays the single source of that vocabulary (also
-// generated into tools/topology-vscode/src/schema/trace-kinds.ts).
-//
-// The one exception is NodeBead: emitRefillSlide's per-frame interior-refill-slide
-// animation (nodes/Wiring/emit_geometry.go) calls Trace.NodeBead directly with no
-// RowEvent dual of its own — kept as an actual Trace event for that reason, delivered
-// synchronously (no channel) to an optional in-process onEvent hook (headless tests)
-// and/or sink (in-process test buffer). Neither is wired in production (main.go passes
-// none), so this is a no-op cost on the live path.
-//
-// Breadcrumb is the other survivor: a free-form diagnostic line (outside the closed
-// Kind vocabulary), written directly — one `sink.Write` call per breadcrumb, on the
-// calling goroutine, no channel. A single small write to a pipe is atomic
-// per POSIX PIPE_BUF, so concurrent breadcrumbs from many goroutines never interleave
-// into a fused line; breadcrumbs are short, sparse control-event lines (see
-// .claude/rules/go-debugging.md's "Debugging the Go layer (probe breadcrumbs)" section),
-// never a per-tick firehose, so this holds in practice.
-
 package Trace
 
 import "io"
 
-// Closed event-kind vocabulary. Every per-owner stream's RowEvent.Kind (nodes/Wiring's
-// owner_events.go and friends) is one of these strings; Buffer.KindID resolves it to
-// its TraceEventKinds index for the wire encoding. Node is always the emitting node —
-// the one that received the value (recv) or sent it (send/fire) — Port distinguishes
-// input vs output where applicable.
-const (
-	KindRecv = "recv"
-	KindFire = "fire"
-	KindSend = "send"
-	// KindEdgeBead is the per-frame bead-position kind (wire value "edge-bead", paired with
-	// KindNodeBead below). The wire's delivery goroutine resolves one every ~16 ms while a
-	// bead is in flight, carrying the bead's evaluated 3-D position so the renderer plots it
-	// without computing geometry itself.
-	KindEdgeBead = "edge-bead"
-	// KindGeometry carries an edge's authoritative straight-segment endpoints. The
-	// edgeMover resolves one per edge on load and again whenever a node-move re-derives
-	// that edge's segment, so the renderer draws the wire tube from Go's endpoints and
-	// computes no geometry of its own. Keyed by edge label (== the TS edge id).
-	KindGeometry = "geometry"
-	// KindNodeGeometry carries one node's authoritative center + per-port world
-	// positions/directions. Each nodeMover resolves this once on startup and again on
-	// every node-move — the node owns its own geometry (wires own bead-position).
-	// Keyed by node id.
-	KindNodeGeometry = "node-geometry"
-	// KindArrive marks a bead COMPLETING its traversal on a wire — the bead has reached
-	// the destination port and is delivered into the slot. The wire resolves it from
-	// deliverLocked (the single delivery path), keyed by the bead's SOURCE node+port —
-	// the same routing key as send/position — so the renderer clears the transit pulse
-	// the instant the bead arrives.
-	KindArrive = "arrive"
-	// KindNodeBead carries one INTERIOR slot's authoritative grid-slot state (node 1's
-	// depleting/refilling buffer). Node 1's Update computes the 2x2 grid slot positions
-	// coupled to the working/backup array mutation and resolves a 4-slot SNAPSHOT (one
-	// node-bead kind per slot) whenever the array changes. Keyed by node id +
-	// (row,col): row 0 = top/backup, row 1 = bottom/working; col is the index within
-	// that row. Payload = present (filled?) + value (0|1) + world position (x,y,z). A
-	// popped slot carries present=false so TS clears it (absence can't be rendered,
-	// presence can).
-	KindNodeBead = "node-bead"
-	// KindCamera carries the polar camera viewpoint state. Go resolves it whenever the
-	// camera is set, orbited, zoomed, or panned, so the renderer can reconstruct the
-	// camera pose without computing any geometry itself.
-	KindCamera = "camera"
-	// KindSceneTori carries the polar-guide tori visibility state.
-	KindSceneTori = "scene-tori"
-	// KindScenePoles carries the scene-center pole frame visibility state.
-	KindScenePoles = "scene-poles"
-	// KindNodePoles carries the per-node pole frame visibility state.
-	KindNodePoles = "node-poles"
-	// KindSelSpherePoles carries the selection-sphere pole axis visibility state.
-	KindSelSpherePoles = "sel-sphere-poles"
-	// KindHandholds carries the rotation-handhold grab-sphere visibility state.
-	KindHandholds = "handholds"
-	// KindLabelsGlobal carries the global node-label visibility state.
-	KindLabelsGlobal = "labels-global"
-	// KindOverlaysVis carries the master overlays visibility state.
-	KindOverlaysVis = "overlays-vis"
-	// KindNodeBody carries the node-sphere visibility state.
-	KindNodeBody = "node-body"
-	// KindNodeRing carries the per-node border-ring visibility state.
-	KindNodeRing = "node-ring"
-	// KindRingPick carries the ring click-band's visibility state — the band a click lands
-	// on to author a port∈torus lock, painted so its position is visible. The band takes
-	// clicks either way; this flag only says whether it is drawn.
-	KindRingPick = "ring-pick"
-	// KindSelectionRing carries the selected node's ring+halo visibility state.
-	KindSelectionRing = "selection-ring"
-	// KindHoverRing carries the hovered node's ring visibility state.
-	KindHoverRing = "hover-ring"
-	// KindReachSphere carries the selected node's reach-sphere ring visibility state.
-	KindReachSphere = "reach-sphere"
-	// KindSelect carries the CURRENTLY-SELECTED node id (click-select), or an edge label
-	// on Edge with Node empty (edge selection — selection is single + exclusive across
-	// nodes and edges). Node="" clears the selection (empty-space click).
-	KindSelect = "select"
-	// KindHover carries the CURRENTLY-HOVERED entity (pointer hover). Port!="" hovers
-	// that port (Node is its owning node, Value=1 for an input port); otherwise Node
-	// hovers that node (Node="" clears all hover).
-	KindHover = "hover"
-	// KindSceneSphere carries the persisted scene sphere (center + radius) — the fixed
-	// world anchor every node's scene polar is measured about. Established ONCE at load
-	// and never moves.
-	KindSceneSphere = "scene-sphere"
-	// KindAbcDrag marks one time-node (Time) abc-drag re-quantize event — the
-	// routed counterpart to the "time.abc-drag" debug breadcrumb emitted alongside it
-	// (nodes/Wiring/node_move.go neighborSetCRequantize).
-	KindAbcDrag = "abc-drag"
-	// KindAbcDragReset marks the START of one drag operation — resolved exactly once at
-	// the gesture FSM's pending→dragging transition, BEFORE the dragged node's
-	// neighborSetC fan resolves any KindAbcDrag marks for that drag.
-	KindAbcDragReset = "abc-drag-reset"
-	// KindBreadcrumb carries a DEBUG BREADCRUMB (see .claude/rules/go-debugging.md's
-	// "Debugging the Go layer (probe breadcrumbs)" section) as a structured buffer
-	// EVENT row instead of a free-form JSON
-	// stdout line. It rides the EMITTING goroutine's own per-owner stream (node/edge/
-	// interior/VIEW) — main.go's own breadcrumbs (no per-node stream) ride the VIEW
-	// stream. Label (a BreadcrumbLabel* index below) names which of the 10 breadcrumb
-	// sites emitted it; the row's other columns (Value/X/Y/Z/NodeRow/PortRow/
-	// TargetRow/TargetPortRow) are REUSED per label, with Label/TextOff/TextLen (the
-	// bufLayoutEvent.Debug flag is always 1 on this Kind) as the two dedicated
-	// breadcrumb-only columns.
-	KindBreadcrumb = "breadcrumb"
-)
-
-// BreadcrumbLabel* enumerate the breadcrumb call sites (Buffer/layout.go's
-// bufLayoutEvent.Label column, Kind==KindBreadcrumb rows only). Order is the wire id —
-// append only; do not reorder or delete a label without a migration. BreadcrumbLabels
-// is the string lookup gen-node-defs mirrors into TS for the .probe decode/log.
-const (
-	BreadcrumbTopologyLoaded uint8 = iota
-	BreadcrumbRowSeedCountMismatch
-	BreadcrumbPoleToggleGo
-	BreadcrumbWindowClear
-	BreadcrumbWindowOpen
-	BreadcrumbDwellStart
-	BreadcrumbAbcDrag
-	BreadcrumbWireSendBufferFull
-	// BreadcrumbDragCommit reports a node's own drag commit (owner-goroutine handle's
-	// moveMsgKindDrag case) — the new position this node's own goroutine just committed.
-	BreadcrumbDragCommit
-	// BreadcrumbWireBreadcrumbsDropped reports how many KindBreadcrumb rows
-	// PacedWire.Send's non-blocking breadcrumbCh send silently dropped since
-	// the last report (breadcrumbCh's own doc comment, paced_wire.go) — Value
-	// carries the dropped count. Emitted once room reappears on breadcrumbCh,
-	// so the diagnostic channel's own lossiness is never itself silent.
-	BreadcrumbWireBreadcrumbsDropped
-	// BreadcrumbChainAim: diagnostic-only (task/log-node4-chain-aim), one per outgoing
-	// target per chainBeads() call — see chain_beads.go's tr.Breadcrumb("chain-aim", ...)
-	// call site for the exact fields packed into Text.
-	BreadcrumbChainAim
-	// BreadcrumbNeighborCenterRecv: diagnostic-only (task/log-node4-chain-aim), fired in
-	// nodeMover.handle's moveMsgKindNeighborCenter case — records that a neighbor-center
-	// push arrived (sender id + pushed center).
-	BreadcrumbNeighborCenterRecv
-	// BreadcrumbNeighborSetCRecv: diagnostic-only (task/log-node4-chain-aim), fired in
-	// nodeMover.handle's moveMsgKindNeighborSetC case — records that a neighbor-setC
-	// (edge re-quantize) message arrived (sender id).
-	BreadcrumbNeighborSetCRecv
-	// BreadcrumbBeadCrud: diagnostic-only (task/log-node2-bead-crud), one per commitNodeMoveLocal
-	// call — the dragged node's own event plus every touching bead's full CRUD arithmetic
-	// (why each returned none/add/remove), packed into Text by quantized_move.go.
-	BreadcrumbBeadCrud
-	// BreadcrumbPairSeedUnknown: one at BUILD TIME, and only when a pair node's persisted
-	// tilt index is not one its ring has — a position.json written before the tilt became a
-	// state, or by a build with a different lattice size. The node opens at the origin, and
-	// this says which number was refused. At most one per node per load, and none at all for
-	// a file written by this build at this size.
-	BreadcrumbPairSeedUnknown
-	// BreadcrumbPairLatticeAdopt: one per pair node per POINT-COUNT CHANGE, and only when
-	// the index it was holding is not one the new lattice has — that node opens at the
-	// origin instead, and this says which index was kept and what became of it. A change
-	// that every node's index survives logs nothing.
-	BreadcrumbPairLatticeAdopt
-)
-
-// BreadcrumbLabels is the single source of truth for the BreadcrumbLabel* enum's
-// string names, indexed by the enum value — mirrored into TS by gen-node-defs for the
-// .probe buffer-decoded breadcrumb log.
-var BreadcrumbLabels = []string{
-	"topology-loaded",
-	"row-seed-count-mismatch",
-	"pole-toggle-go",
-	"window_clear",
-	"window_open",
-	"dwell_start",
-	"abc-drag",
-	"wire-send-buffer-full",
-	"drag.commit",
-	"wire-breadcrumbs-dropped",
-	"chain-aim",
-	"neighbor-center-recv",
-	"neighbor-setc-recv",
-	"bead-crud",
-	"pair-seed-unknown",
-	"pair-lattice-adopt",
-}
-
-// BreadcrumbLabelID resolves a breadcrumb's string name to its BreadcrumbLabel* index —
-// the number a KindBreadcrumb RowEvent carries on the wire. It exists for the call sites
-// that name their breadcrumb with the same string they pass to Trace.Breadcrumb, so the
-// structured production emit and the test-sink line cannot name different things. ok is
-// false for a name not in the table, which a caller should treat as "do not emit" rather
-// than sending an id the decode side would resolve to the wrong label.
-func BreadcrumbLabelID(name string) (uint8, bool) {
-	for i, n := range BreadcrumbLabels {
-		if n == name {
-			return uint8(i), true
-		}
-	}
-	return 0, false
-}
-
-// TraceEventKinds is the single source of truth for the closed kind vocabulary.
-// gen-node-defs reads this slice to emit trace-kinds.ts (the TS decode side's kindId →
-// name lookup), and Buffer.KindID indexes it to resolve a RowEvent's string Kind to its
-// numeric id for the wire encoding. There is no tsc exhaustiveness check derived from
-// it — adding a kind here does not force a TS branch anywhere; it only extends the
-// lookup table.
-var TraceEventKinds = []string{KindRecv, KindFire, KindSend, KindEdgeBead, KindGeometry, KindNodeGeometry, KindArrive, KindNodeBead, KindCamera, KindSceneTori, KindScenePoles, KindNodePoles, KindSelSpherePoles, KindHandholds, KindLabelsGlobal, KindOverlaysVis, KindNodeBody, KindNodeRing, KindRingPick, KindSelectionRing, KindHoverRing, KindReachSphere, KindSelect, KindHover, KindSceneSphere, KindAbcDrag, KindAbcDragReset, KindBreadcrumb}
-
-// PortGeom is one port's authoritative world geometry: its name, whether it is an
-// input, its sphere-surface world position (PX/PY/PZ), and the unit direction from node
-// center toward the port (DX/DY/DZ). Shared value type used by nodes/Wiring's own
-// per-node stream-frame builders (node_mover.go/node_move.go) — independent of the
-// (deleted) central NodeGeometry event this used to also ride on.
-type PortGeom struct {
-	Name       string
-	IsInput    bool
-	PX, PY, PZ float64
-	DX, DY, DZ float64
-}
-
-// Event is the payload NodeBead (the one surviving Trace event) and Breadcrumb (outside
-// the closed Kind vocabulary) carry. Trimmed to just the fields those two use — every
-// other field the pre-decentralization Event struct carried (Step, Bead, geometry,
-// camera, overlay-visibility, ...) died with the methods that populated them.
-type Event struct {
-	Kind     string
-	Node     string
-	Port     string
-	Value    int
-	Row, Col int
-	Present  bool
-	X, Y, Z  float64
-	// BreadcrumbLabel/BreadcrumbValue carry a Breadcrumb() call's label/value strings.
-	// Node/Port above are reused for a breadcrumb's node/port arguments.
-	BreadcrumbLabel string
-	BreadcrumbValue string
-}
-
-// Trace holds the optional in-process test sink (headless tests only — never wired in
-// production). It is set ONCE at startup (New*) before any producer goroutine exists,
-// and never mutated again — read-only for the rest of the process, so every later
-// caller (running in a goroutine spawned after startup) sees the write via the
-// ordinary happens-before edge from goroutine creation. There is no
-// second writer of the field, and NodeBead/Breadcrumb only ever READ it.
-//
-// There used to be a second, PRODUCTION debug sink here (os.Stdout, wired by
-// SetDebugSink) that gave every Breadcrumb() call a free-form JSON stdout line, routed
-// by the ext host to .probe/go-debug.jsonl. That production JSON path is RETIRED
-// (task/breadcrumbs-binary-buffer): breadcrumbs now ride each emitting goroutine's own
-// per-owner buffer stream as a structured Kind==KindBreadcrumb EVENT row (see
-// owner_events.go's RowEvent.Label/Debug/Text and each call site's writeStreamFrame/
-// writeEvents/EmitBreadcrumb call) — the ext host decodes them off that stream like any
-// other event and probe-merge.sh --debug filters on the Debug flag. Breadcrumb below
-// keeps writing the in-process sink ONLY — that path is unrelated to the removed
-// production one and still backs headless tests (BreadcrumbLabel/BreadcrumbValue).
 type Trace struct {
 	sink    io.Writer
-	onEvent func(Event) // optional in-process observation hook (headless tests only)
+	onEvent func(Event)
 }
 
-// New allocates a Trace with no sinks wired.
 func New() *Trace {
 	return NewWithSink(nil)
 }
 
-// NewWithSink is like New but wires sink as the in-process test-observation sink (see
-// Breadcrumb/NodeBead's doc comments) — never wired in production.
 func NewWithSink(sink io.Writer) *Trace {
 	return NewWithSinkHook(sink, nil)
 }
 
-// NewWithSinkHook is like NewWithSink but also installs onEvent, called synchronously
-// (on the calling goroutine) by NodeBead — the one surviving Trace event. Pass nil for
-// onEvent to omit the hook (production always does).
 func NewWithSinkHook(sink io.Writer, onEvent func(Event)) *Trace {
 	return &Trace{sink: sink, onEvent: onEvent}
 }
 
-// SetSink wires (or replaces) the in-process TEST-OBSERVATION sink after construction —
-// for tests that build a *Trace via a helper (e.g. LoadTopology) that doesn't take a
-// sink at New time, rather than the (removed) production stdout path. Never wired in
-// production. Set once, before any producer goroutine exists (same ordering
-// requirement the old SetDebugSink had), relying on the happens-before edge
-// from goroutine creation.
 func (t *Trace) SetSink(w io.Writer) {
 	if t == nil {
 		return
@@ -311,16 +26,6 @@ func (t *Trace) SetSink(w io.Writer) {
 	t.sink = w
 }
 
-// Breadcrumb writes a free-form diagnostic line DIRECTLY to the in-process test sink —
-// one `sink.Write` call, on the CALLING goroutine. No channel, no ordinal:
-// breadcrumbs are outside the closed Kind vocabulary (RowEvents carry the closed
-// vocabulary; this is a control-event log line). Production no longer has a stdout
-// sink here (see this file's header + Trace struct doc comments) — the PRODUCTION
-// observation path for a breadcrumb is now the structured Kind==KindBreadcrumb buffer
-// EVENT each call site emits on its own owning stream, not this method. This method's
-// only remaining reader is the in-process test sink (headless model/gate tests poll
-// it via BreadcrumbLabel/BreadcrumbValue). A breadcrumb with no sink wired is a cheap
-// no-op.
 func (t *Trace) Breadcrumb(label, node, port, value string) {
 	if t == nil || t.sink == nil {
 		return
@@ -333,11 +38,6 @@ func (t *Trace) Breadcrumb(label, node, port, value string) {
 	_, _ = t.sink.Write(b)
 }
 
-// NodeBead is the one surviving Trace EVENT (see this file's header doc comment):
-// emitRefillSlide (nodes/Wiring/emit_geometry.go) calls it directly, once per animation
-// frame, with no RowEvent dual of its own. Delivered synchronously to the optional
-// onEvent hook and/or sink — neither wired in production, so this is a cheap no-op on
-// the live path. nodeID + (row,col) key the slot; present/value/x/y/z carry its state.
 func (t *Trace) NodeBead(nodeID string, row, col int, present bool, value int, x, y, z float64) {
 	if t == nil {
 		return

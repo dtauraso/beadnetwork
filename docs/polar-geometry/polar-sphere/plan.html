@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="doc-status" content="historical">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Plan — The Polar System for a Sphere</title>
+<link rel="stylesheet" href="index.css">
+</head>
+<body>
+<header>
+  <h1>The Polar System for a Sphere</h1>
+  <p>How <span class="kb">2D polar</span> <code>(r, θ)</code> grows into <span class="kp">3D spherical</span> <code>(r, θ, φ)</code> — and the parts that only exist in 3D.</p>
+</header>
+
+<ul class="tabs" role="navigation" aria-label="Polar-sphere pages">
+    <li><a href="index.html">2D polar</a></li>
+    <li><a href="3d.html">3D spherical</a></li>
+    <li><a href="diff.html">What 3D adds</a></li>
+    <li><a href="frame.html">The frame</a></li>
+    <li><a href="tri.html">The pan triangle</a></li>
+    <li><a href="cart.html">Cartesian pan</a></li>
+    <li><a href="mouse.html">Mouse as polar</a></li>
+    <li><a href="recenter.html">pan → recenter</a></li>
+    <li><a href="rot.html">Rotation</a></li>
+    <li><a href="zoom.html">Zoom</a></li>
+    <li><a href="plan.html" class="current">Plan</a></li>
+</ul>
+
+<section class="panel active" id="tplan">
+  <div class="prose" style="max-width:900px">
+    <h2>Plan: apply the polar rotate / pan / zoom to the code</h2>
+    <p>Goal: navigation math is polar; the camera stays renderer-native (three.js position + quaternion). Rotate, pan, and zoom become polar operations; Cartesian is confined to the camera's storage and the conversion edges in <code>polar.ts</code>. This removes the round-trip, the pole clamp, and the seam (see the Rotation / pan → recenter / Zoom tabs for the per-op math).</p>
+    <div class="note"><strong>Architecture that actually shipped:</strong> The camera is <strong>NOT</strong> angle-of-record. The camera stays renderer-native — three.js owns it as a position vector + orientation quaternion (the medium). All navigation <strong>math</strong> is polar; Cartesian is confined to two places only: (a) the camera's storage, and (b) the conversion edges in <code>polar.ts</code> (<code>makeFrame</code>, <code>cameraFrame</code>, <code>toWorld</code>, <code>fromWorld</code>, <code>screenToPolar</code>, <code>deltaToPolar</code>). The navigation handler (<code>interaction-controls.ts</code>) holds only polar quantities. Two grep guards enforce this and are wired into the Stop hook: <code>check-polar-only-nav.sh</code> (no Cartesian rotation math in the handler) and <code>check-no-camera-roundtrip.sh</code> (camera state never reconstructed from a position). The split is: Go owns the diagram (polar <code>(<span class="k">r</span>,<span class="kb">θ</span>,<span class="kp">φ</span>)</code>), TS owns the camera (Cartesian medium). Where a quaternion is read (in <code>cameraFrame</code>/pan), it is <em>reading</em> the renderer's orientation, not doing Euler-angle math — no gimbal lock.</div>
+
+    <h3>Phase 0 — Foundation: angle-of-record camera store <span style="color:var(--red)">[SUPERSEDED — not built]</span></h3>
+    <p>The original plan was to store the camera as <code>{ frame, <span class="k">r</span>, <span class="kb">θ</span>, <span class="kp">φ</span>, roll }</code> in a dedicated <code>camera-polar-store.ts</code>, making angles the source of truth. <strong>This was deliberately abandoned.</strong> Storing orientation as angles reintroduces the very pole singularity we were eliminating — at a pole, <span class="kb">θ</span> is undefined, so the angle-of-record representation breaks there. Instead, the camera stays renderer-native (position + quaternion), and polar-only discipline is enforced by guard scripts rather than by the data structure. <code>camera-polar-store.ts</code> was written and then deleted.</p>
+    <ul>
+      <li><strong>0.1–0.5</strong> (angle-of-record store, forward render hook, load conversion): <strong>abandoned</strong> — wrong shape; the guard-enforced renderer-native approach replaced all of these.</li>
+    </ul>
+
+    <h3>Phase 1 — Point every camera consumer at the new state <span style="color:var(--red)">[SUPERSEDED — not built]</span></h3>
+    <p>Superseded along with Phase 0. There is no <code>camera-polar-store</code> for consumers to point at. Camera readers (<code>cameraRef</code>, raycasts, label projection, <code>NavGuides</code>) continue to use the live three.js camera directly — that is correct because the camera is the medium. The <code>computeContentSphere</code> center is still used to build the polar frame for each gesture.</p>
+
+    <h3>Phase 2 — Pan <span style="color:var(--green)">[DONE]</span></h3>
+    <p>Wheel pixels → polar <code>(<span class="k">r</span>, angle)</code> via <code>deltaToPolar</code> (input edge in <code>polar.ts</code>); <code>planeSlide</code> (also in <code>polar.ts</code>) recombines onto the camera's right/up basis (output edge); camera + target slide together; <code>set-origin</code> to Go re-bases the node frame. The navigation handler (<code>interaction-controls.ts</code>) holds only the polar <code>(r, angle)</code> — no raw Cartesian delta flows past the input edge.</p>
+    <ul>
+      <li><strong>2.1</strong> Input edge <code>deltaToPolar(Δx, Δy)</code> → <code>(<span class="k">r</span>, angle)</code> — <strong>done</strong>.</li>
+      <li><strong>2.2</strong> Slide camera + target in refX–pole plane by <code>r</code> at <code>angle</code> — <strong>done</strong>.</li>
+      <li><strong>2.3</strong> Recenter: <code>set-origin</code> to Go; node <code>(<span class="k">r</span>,<span class="kb">θ</span>,<span class="kp">φ</span>)</code> recomputed about <code>C′</code> — <strong>done</strong>.</li>
+      <li><strong>2.4</strong> <code>PanPolarOverlay</code> + ~450&nbsp;ms linger — <strong>done</strong>.</li>
+    </ul>
+
+    <h3>Phase 3 — Rotation <span style="color:var(--green)">[DONE — motion-driven incremental great circle, not the original frozen-grab spec]</span></h3>
+    <p>Shipped as <strong>motion-driven incremental great-circle rotation</strong>, not the original frozen-grab/single-big-arc design. Each pointer-move event rotates by the small arc between the previous frame's cursor point and the current one. The rotation axis comes from <code>θ + 90°</code> (an equatorial direction perpendicular to the motion) — pure angle arithmetic, no cross product of the two cursor points. Applied via <code>arcAxisAngle</code> + <code>rotateAboutAxis</code> in <code>polar.ts</code>. No quaternion in the rotation math; no antipode singularity (consecutive points are only a few pixels apart so they are never antipodal); no flip; free roll rides along; pole-crossing is smooth.</p>
+    <p><strong>Rejected approaches</strong> (don't retry these): Cartesian arcball + Bell/Holroyd edge map (silhouette fold) — built and rejected; frozen-grab single-big-arc (antipode flip at large drags) — built and rejected; turntable (no free roll) — rejected by design.</p>
+    <ul>
+      <li><strong>3.1–3.2</strong> Empty-space pointer-drag gesture, discrimination from click/node-drag/wiring — <strong>done</strong>.</li>
+      <li><strong>3.3</strong> Per-frame cursor→sphere point; incremental arc — <strong>done</strong> (not frozen-grab).</li>
+      <li><strong>3.4</strong> Axis = <code>θ + 90°</code>, <code>θ += angle</code> in frame poled at the axis — <strong>done</strong> (no quaternion, no cross product, no clamp).</li>
+      <li><strong>3.5</strong> Roll widget composition — <strong>done</strong>.</li>
+    </ul>
+
+    <h3>Phase 4 — Zoom <span style="color:var(--green)">[DONE]</span></h3>
+    <p>ctrl+wheel / pinch snaps to the node nearest the cursor and scales the camera's explicit polar radius <code>r</code> about that node (<code>scaleRadius</code> in <code>polar.ts</code>), angles held; floored at <code>MIN_DIST</code>; clamped inside the large sphere. Radial-only, no degeneracy.</p>
+    <ul>
+      <li><strong>4.1</strong> Re-aim to nearest node in NDC — <strong>done</strong>.</li>
+      <li><strong>4.2</strong> <code>d′ = max(d·f, MIN_DIST)</code>, <code>f = 1.01<sup>s</sup></code>; angles held — <strong>done</strong>.</li>
+      <li><strong>4.3–4.4</strong> Node-anchored dolly; <code>constrainInsideLargeSphere</code> — <strong>done</strong>.</li>
+    </ul>
+
+    <h3>Phase 5 — Home / Fit + save &amp; restore <span style="color:var(--accent)">[PARTIAL / re-scoped]</span></h3>
+    <p>Home/Fit works (fits all nodes square-on, levels roll). Save/restore works and is <strong>correct as-is</strong>: the camera persists as position + quaternion (Cartesian), serialized by TS and written opaquely by Go via the <code>scene</code> edit op.</p>
+    <p>Sub-items 5.2/5.3 (persist as <code>(r,θ,φ,roll)</code> angles) are <strong>superseded</strong> — the camera is the viewer's medium, so Cartesian storage is correct, not a gap; persisting as angles would reintroduce the rejected angle-of-record representation for no functional gain. Optional not done: animate the Home/Fit transition.</p>
+    <ul>
+      <li><strong>5.1</strong> Home/Fit frames content, levels roll — <strong>done</strong>.</li>
+      <li><strong>5.2–5.3</strong> Persist as angles — <strong>superseded</strong> (Cartesian storage is correct).</li>
+    </ul>
+
+    <h3>Phase 6 — Prove no round-trip <span style="color:var(--green)">[DONE]</span></h3>
+    <p>Both guards exist, pass, and are wired into the Stop hook (<code>scripts/stop-checks.sh</code>). The pole test (orbit straight through a pole — smooth, no jump) passes by hand.</p>
+    <ul>
+      <li><strong>6.1</strong> <code>check-no-camera-roundtrip.sh</code> — <strong>written, passing, wired into Stop hook</strong>.</li>
+      <li><strong>6.2</strong> <code>check-polar-only-nav.sh</code> (no Cartesian rotation math in the handler) — <strong>written, passing, wired into Stop hook</strong>.</li>
+      <li><strong>6.3</strong> Pole test — <strong>passes</strong>: orbit through a pole is smooth, roll preserved, no jump.</li>
+      <li><strong>6.4</strong> Dead Cartesian scaffolding removed; <code>tsc --noEmit</code> clean — <strong>done</strong>.</li>
+    </ul>
+
+    <h3>Phase 7 — Verify end-to-end &amp; sync the spec <span style="color:var(--accent)">[IN PROGRESS]</span></h3>
+    <p>This doc update is part of Phase 7. Remaining: a hands-on no-regression pass (click-select, node-drag, wiring, edges still work).</p>
+    <ul>
+      <li><strong>7.1</strong> <code>npm run build</code> + <code>tsc --noEmit</code> + guards clean — <strong>done</strong>.</li>
+      <li><strong>7.2</strong> Editor pass: rotate / pan / zoom; pole test; roll; recenter; node-zoom; save→restore; Home/Fit; <strong>no regressions</strong> — <strong>remaining</strong>.</li>
+      <li><strong>7.3</strong> Update spec doc (this Plan tab) — <strong>in progress (this edit)</strong>.</li>
+      <li><strong>7.4</strong> Keep this Plan tab current — <strong>ongoing</strong>.</li>
+    </ul>
+
+    <h3>Phase 8 — Hardening &amp; edge cases <span style="color:var(--dim)">[DEFERRED — friction-driven]</span></h3>
+    <p>Deferred per the post-v0 posture: implement when real-world friction appears, not speculatively.</p>
+    <ul>
+      <li><strong>8.1</strong> Degenerate scenes: empty graph / single node / all-coincident nodes.</li>
+      <li><strong>8.2</strong> Cursor off the sphere → closest-point fallback (rotation &amp; pick).</li>
+      <li><strong>8.3</strong> Burst pan: one <code>set-origin</code> per frame; large scenes stay smooth.</li>
+      <li><strong>8.4</strong> Gesture conflicts: pan (wheel) vs zoom (ctrl+wheel) vs rotate (drag) vs node-drag / wiring — clean discrimination.</li>
+      <li><strong>8.5</strong> Touch: pinch = zoom, drag = rotate/pan.</li>
+    </ul>
+  </div>
+</section>
+<script src="shared.js"></script>
+</body>
+</html>

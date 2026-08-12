@@ -16,13 +16,10 @@ import sys
 try:
     data = json.load(sys.stdin)
 except Exception:
-    sys.exit(0)  # not our concern; don't block on malformed input
+    sys.exit(0)
 
 cmd = (data.get("tool_input") or {}).get("command", "")
 
-# `open` as a command word (start of line or after a shell separator), then an
-# argument that resolves to a .html file. Keep it narrow: macOS `open` opening a
-# page, not e.g. `openssl` or a flag like `--open`.
 OPEN_HTML = re.compile(
     r"""(?:^|[;&|]|&&|\|\|)\s*open\b      # the open command word
         (?:\s+-[^\s]+)*                   # any leading flags (-a, -g, ...)

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pair node — Update rules</title>
+  <link rel="stylesheet" href="../../pair-base.css">
+  <link rel="stylesheet" href="../../pair-layout.css">
+  <link rel="stylesheet" href="../../pair-typography.css">
+  <link rel="stylesheet" href="../../pair-panels.css">
+  <link rel="stylesheet" href="../../pair-diagrams.css">
+  <link rel="stylesheet" href="../../pair-diagrams-tables.css">
+  <script src="../../port.js"></script>
+  <script src="../../pair.js" defer></script>
+</head>
+
+<body>
+
+  <header>
+    <h1>Update rules</h1>
+    <div class="sub">one arrival, two yes-or-no questions: settle, and if not, which way</div>
+  </header>
+
+  <nav>
+    <a href="../../index.html">Index</a>
+    <a href="../../structure/anatomy.html">Anatomy</a>
+    <a href="../../structure/own.html">Ownership</a>
+    <a href="../../math/vectors/index.html">Vectors</a>
+    <a href="../../math/math/index.html">Math</a>
+    <a href="../../math/formulas/index.html">Formulas</a>
+    <a href="../../math/dots.html">Separation</a>
+    <a href="../../math/perpendicular/index.html">Perpendicular</a>
+    <a href="../cases/index.html">Cases</a>
+    <a href="../../structure/channels.html">Channels</a>
+    <a href="../../structure/cycle.html">Cycle</a>
+    <a class="on" href="index.html">Update rules</a>
+    <a href="../../math/arith/index.html">Arithmetic instead</a>
+  <a href="../code/index.html">In code</a>
+    <a href="../../structure/clock.html">Clock</a>
+    <a href="../../math/geometry.html">Geometry</a>
+    <a href="../asym.html">Asymmetry</a>
+  
+  </nav>
+
+  <nav class="subnav" aria-label="Update-rules sections">
+    <a href="index.html">What a node holds</a>
+    <a href="machines.html">The two machines it is</a>
+    <a href="machines-arith.html">Both as a transition function, and the arithmetic</a>
+    <a class="on" href="arrival.html">What an arrival does</a>
+    <a href="worked.html">The same two decisions, worked</a>
+    <a href="leaves.html">What leaves the node</a>
+    <a href="map.html">The map into the code</a>
+    <a href="map-plumbing.html">The map into the plumbing</a>
+  </nav>
+
+  <main>
+
+    <div class="grid">
+
+<h3 class="secname">What an arrival does</h3>
+
+
+      <div class="card">
+        <h2 id="loop">Where each mode stops</h2>
+        <img class="math" src="../../diagrams/mathblocks/resting/resting.svg" style="width:112px"
+          alt="R perpendicular = {0}. R parallel = {6}. R setting = any.">
+      </div>
+
+      <div class="card wide">
+        <h2>Which mode to be in — measure, then decide, and it is the only update that reads the
+          arrival's own tilt</h2>
+        <div class="strip">
+          <img src="../../diagrams/panels/gap/perp.svg"
+            alt="The arrival at slot 12; backing out its quarter puts the partner's tilt at 6, a quarter turn from this node's tilt, so the pair runs perpendicular.">
+          <img src="../../diagrams/panels/gap/par.svg"
+            alt="The arrival at slot 9; backing out its quarter puts the partner's tilt at 3, three slots from this node's tilt, so the pair runs parallel.">
+        </div>
+        <img class="math" src="../../diagrams/mathblocks/decide/mode.svg" style="width:603px"
+          alt="If R is not R setting, nothing changes — the choice already stuck. Otherwise measure: p = a minus six, the partner's tilt backed out of the arrival, and G = angleLength(t, p), the gap between the two tilts. Then decide: if G = 6, R becomes R perpendicular; else R becomes R parallel.">
+        <div class="keynote">
+          <p><i class="sw" style="background:#5fd68a"></i>t — this node's own tilt</p>
+          <p><i class="sw" style="background:#f9a825"></i>a — what arrived, which is the partner's
+            NORMAL, already a quarter turn off its tilt</p>
+          <p><i class="sw" style="background:#9a9aa6"></i>the partner's own tilt, backed out of the
+            arrival — dashed, because it is inferred and never sent</p>
+          <p>this is the one place the gap between the two TILTS is measured; everything else
+            measures the arrival directly</p>
+          <p>it runs once, on the first arrival, and the answer sticks until a reset</p>
+        </div>
+      </div>
+
+      <div class="card wide">
+        <h2>Which slot to go to — measure, then decide</h2>
+        <img class="math" src="../../diagrams/mathblocks/decide/turn.svg" style="width:456px"
+          alt="Measure once, at the end the arrival is nearer: u = (t - a) mod 24; c = u if u is under 12, else (b - a) mod 24; e is t if u is under 12, else b — the end that was counted from. The count each mode stops at: parallel s = 6, perpendicular s = 0, setting every c. Then decide, with no distance and nothing measured at the neighbours: c = s gives e after = e; (s - c) mod 12 at most 6 gives e after = e plus one; else e after = e minus one.">
+        <div class="keynote">
+          <p>ONE measurement, and it is taken where the node already is — not at the two places it
+            could go. The old form read ℓ at t, t+1 and t−1 and compared the results, which is a
+            machine choosing the better of its next two positions without working out where it was
+            heading</p>
+          <p>the way DOWN never appears: the two ways round the count-ring sum to 12, so asking which
+            is shorter is asking whether the way up is at most 6</p>
+          <p>the two f lines being 6 apart is the <a href="../audit/index.html">audit</a>'s "one mode is the
+            other upside down", written as arithmetic</p>
+          <p>an update writes the END IT COUNTED FROM — the top for half the ring, the bottom for the
+            other half — and reads the other straight off its opposite in the same statement
+            (<span data-src="nodes/PairNode/ring.go#setTop">setTop</span> /
+            <span data-src="nodes/PairNode/ring.go#setBottom">setBottom</span>). The normal still follows,
+            because it is a link and nothing moves it</p>
+          <p>f is a quantity of THIS PAGE, not of the node. One arrival turns the tilt at most one
+            slot, so the code asks a comparison and a subtraction and never works out a distance at
+            all — <span data-src="nodes/PairNode/tiltring/machine.go#Settled">settled</span> tests
+            <var>c</var> against the mode's one stopping count, and
+            <span data-src="nodes/PairNode/tiltring/machine.go#Step">step</span> tests the way up against a
+            quarter turn</p>
+          <p>the deciding never names a mode — by the time it runs, the mode is spent, having
+            produced the one count <span data-src="nodes/PairNode/tiltring/machine.go#Stopping">stopping</span>
+            returns</p>
+          <p>f survives as a page-side measurement, because "each step lands nearer than it started"
+            cannot be said without one</p>
+          <p>ℓ, ℓ₊ and ℓ₋ are one function called three times —
+            <span data-src="nodes/PairNode/tiltring/machine.go#Settled">settled</span> uses the first,
+            <span data-src="nodes/PairNode/tiltring/machine.go#Step">step</span> the other two</p>
+        </div>
+      </div>
+
+      <div class="card wide">
+        <h2>The other updates</h2>
+        <img class="math" src="../../diagrams/mathblocks/other/other.svg" style="width:396px"
+          alt="Every arrival: r sub after = a. Panel up/down: t sub after = t sub plus or minus one, R sub after = R sub before. Reset: t sub after = 0, R sub after = R sub setting.">
+      </div>
+
+      
+    </div>
+  </main>
+</body>
+
+</html>

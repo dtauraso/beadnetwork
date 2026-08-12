@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="doc-status" content="historical" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>wirefold — mutex architecture — gone · scene_persist — the second party was a timer goroutine</title>
+<link rel="stylesheet" href="index.css">
+</head>
+<body>
+
+<header>
+  <div class="head-inner">
+    <p class="eyebrow">mutex architecture</p>
+    <h1>gone · scene_persist — the second party was a timer goroutine</h1>
+    <nav class="crumbnav"><a href="index.html">Mutex architecture — who touches what</a> — <a href="gone-pacedwire-mu.html">gone · PacedWire.mu — deleted by making the wire a goroutine, not a smaller lock</a> · <a href="gone-outbox-mu.html">gone · outbox.mu + cond — deleted by per-direction channels, not a smaller lock</a> · <a href="gone-trace-mu.html">gone · Trace.mu — deleted by giving the drain the only write, not by a smaller lock</a> · <a href="gone-layoutholder-mu.html">gone · LayoutHolder.mu — deleted by ownership, not by a smaller lock</a> · <span class="crumb-here">gone · scene_persist — the second party was a timer goroutine</span> · <a href="gone-realclock-mu.html">gone · RealClock.mu — deleted by ownership, not by a smaller lock</a></nav>
+  </div>
+</header>
+
+<div class="wrap">
+<div class="legend">
+  <span><i class="sw g"></i>goroutine</span>
+  <span><i class="sw s"></i>locked state</span>
+  <span><i class="sw q"></i>queue / buffer</span>
+  <span><i class="sw k"></i>no lock needed</span>
+</div>
+
+<h2>gone · scene_persist — the second party was a timer goroutine</h2>
+<p class="verdict ok"><b>RESOLVED</b> — task/mutex-debounced-persister deleted the debounce
+timer (and its lock) outright rather than keeping it: see
+<code>docs/concurrency/persister/index.html</code> for the full analysis. Every domain
+persister below now writes synchronously on the calling goroutine; there is no timer
+goroutine left to race. This section is kept as the historical record of why the lock
+existed.</p>
+<p class="cap">the standard library's timer-fire API used to run every debounced flush in a
+<b>new goroutine</b>. That was the easily-missed racer against a drag-time synchronous write
+on the same file.</p>
+
+<div class="plate">
+<svg viewBox="0 0 860 310" role="img" aria-label="Camera, overlays and drag-time writers plus a debounce timer goroutine all funnel through per-file locks before touching the scene JSON and per-entity meta files.">
+  <defs>
+    <marker id="as" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#C06A12"/>
+    </marker>
+  </defs>
+
+  <text class="tl" x="0" y="14">WRITERS</text>
+  <text class="tl" x="330" y="14">LOCKS</text>
+  <text class="tl" x="640" y="14">FILES</text>
+
+  <rect class="gor" x="0" y="30" width="250" height="40" rx="6"/>
+  <text class="ts" x="12" y="47">viewpointPersister.flush</text>
+  <text class="tf" x="12" y="62">camera · scene_camera_persist.go:55</text>
+
+  <rect class="gor" x="0" y="78" width="250" height="40" rx="6"/>
+  <text class="ts" x="12" y="95">overlaysPersister.flush</text>
+  <text class="tf" x="12" y="110">overlays · scene_overlays_persist.go:94</text>
+
+  <rect class="gor" x="0" y="126" width="250" height="40" rx="6"/>
+  <text class="ts" x="12" y="143">WriteLocalPolars</text>
+  <text class="tf" x="12" y="158">drag-time, synchronous, mover goroutine</text>
+
+  <rect class="queue" x="0" y="174" width="250" height="52" rx="6"/>
+  <text class="tq" x="12" y="192">time.AfterFunc flush</text>
+  <text class="tf" x="12" y="207">A NEW GOROUTINE PER TIMER POP</text>
+  <text class="tf" x="12" y="220">writeQuantOffset</text>
+
+  <path class="arrq" d="M250,50 L330,58" marker-end="url(#as)"/>
+  <path class="arrq" d="M250,98 L330,68" marker-end="url(#as)"/>
+  <path class="arrq" d="M250,146 L330,150" marker-end="url(#as)"/>
+  <path class="arrq" d="M250,200 L330,162" marker-end="url(#as)"/>
+
+  <rect class="state" x="330" y="34" width="280" height="52" rx="6"/>
+  <text class="tw" x="342" y="54">sceneFileMu</text>
+  <text class="tf" x="342" y="70">scene_persist.go:44 — read-modify-write</text>
+
+  <rect class="state" x="330" y="126" width="280" height="52" rx="6"/>
+  <text class="tw" x="342" y="146">entityFileMus[path]</text>
+  <text class="tf" x="342" y="162">:168–177 — one lock per file path</text>
+
+  <rect class="box" x="330" y="192" width="280" height="40" rx="6"/>
+  <text class="ts" x="342" y="209">debouncedPersister.mu ×4</text>
+  <text class="tf" x="342" y="224">:58 — pending · has · timer · writes</text>
+
+  <path class="arrq" d="M610,60 L640,60" marker-end="url(#as)"/>
+  <path class="arrq" d="M610,152 L640,152" marker-end="url(#as)"/>
+
+  <rect class="safe" x="640" y="36" width="220" height="48" rx="6"/>
+  <text class="ts" x="652" y="56">runtime scene JSON</text>
+  <text class="tf" x="652" y="72">camera + overlays</text>
+
+  <rect class="safe" x="640" y="128" width="220" height="48" rx="6"/>
+  <text class="ts" x="652" y="148">nodes/&lt;id&gt;/meta.json</text>
+  <text class="tf" x="652" y="164">port anchors, quant offsets</text>
+
+  <line x1="0" y1="252" x2="860" y2="252" stroke="var(--line)"/>
+  <text class="tq" x="0" y="272">NEVER EXAMINED</text>
+  <text class="ts" x="140" y="272">observer is the FILESYSTEM — no perceptual threshold, so the other rows' logic does not transfer</text>
+  <text class="tf" x="0" y="290">scene_persist.go:42–43 also names a third scene-JSON writer ("polar locks") that does not exist in non-test code — UNVERIFIED</text>
+</svg>
+</div>
+
+
+
+</div>
+
+</body>
+</html>
+

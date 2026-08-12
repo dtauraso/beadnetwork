@@ -1,0 +1,48 @@
+html, body { margin: 0; padding: 0; height: 100%; background: #fafafa; font-family: ui-sans-serif, system-ui, sans-serif; }
+#app { width: 100vw; height: 100vh; }
+.node { cursor: grab; }
+.node.dragging { cursor: grabbing; }
+.node text { pointer-events: none; user-select: none; }
+.toolbar { position: fixed; top: 8px; left: 8px; padding: 6px 10px; background: #fff; border: 1px solid #ddd; border-radius: 6px; font-size: 12px; display: flex; gap: 12px; align-items: center; z-index: 10; }
+#run-mount { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.tilt-vector-btn-row { display: flex; flex-direction: row; gap: 6px; align-items: flex-start; }
+.tilt-rounds-readout { display: flex; flex-direction: column; gap: 3px; align-items: flex-start; font-size: 13px; font-weight: 600; color: #222; white-space: nowrap; }
+.tilt-rounds-group { display: flex; flex-direction: row; gap: 5px; align-items: center; }
+.tilt-rounds-node { color: #222; font-weight: 700; }
+.tilt-rounds-cell {
+  display: inline-flex; align-items: baseline; gap: 4px;
+  font-variant-numeric: tabular-nums;
+  padding: 2px 7px;
+  border-radius: 3px;
+  background: #222;
+}
+.tilt-rounds-key { color: #bdbdbd; font-weight: 500; font-size: 11px; }
+.tilt-rounds-val { color: #fff; font-weight: 700; }
+.tilt-start-btn { padding: 3px 10px; }
+.tilt-reset-btn { padding: 3px 10px; }
+.timeline-panel { z-index: 10; }
+.react-flow__controls { bottom: 56px !important; }
+.rf-anim-overlay { position: absolute; inset: 0; pointer-events: none; overflow: visible; }
+.abc-drag-label { position: fixed; bottom: 8px; right: 280px; padding: 4px 8px; background: #fff; border: 1px solid #ddd; border-radius: 6px; font-size: 11px; color: #555; z-index: 10; pointer-events: none; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; max-width: 260px; }
+.abc-drag-label-header { white-space: nowrap; }
+.abc-drag-label-relay { color: #888; }
+.abc-drag-label-row { white-space: nowrap; }
+.delta-forward-label { position: fixed; bottom: 8px; right: 8px; padding: 4px 8px; background: #fff; border: 1px solid #ddd; border-radius: 6px; font-size: 11px; color: #555; z-index: 10; pointer-events: none; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; max-width: 260px; }
+.delta-forward-label-dragged { white-space: nowrap; }
+.delta-forward-label-header { white-space: nowrap; }
+.delta-forward-label-row { white-space: nowrap; }
+.react-flow__edge.selected .react-flow__edge-path { stroke-width: 3 !important; }
+.react-flow__edge:hover .react-flow__edge-path { stroke-width: 2.5; }
+.dirty { color: #c62828; font-weight: 600; }
+.clean { color: #2e7d32; }
+.run-btn {
+  border: 1px solid #ddd; background: #fafafa; border-radius: 4px;
+  padding: 2px 8px; cursor: pointer; font: inherit; color: #333;
+}
+.run-btn:hover { background: #f0f0f0; }
+.run-idle { color: #666; }
+.run-running { color: #f57f17; }
+.run-ok { color: #2e7d32; }
+.run-error { color: #c62828; font-weight: 600; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.runner-probe-stuck { color: #c62828; font-weight: 600; margin-left: 8px; cursor: text; user-select: text; }
+

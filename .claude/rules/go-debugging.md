@@ -35,10 +35,10 @@ you need the full per-tick trace, not just breadcrumbs.
 ## Source-gated edge-bead trace
 
 The highest-volume of these — `KindEdgeBead`, emitted per in-flight bead per tick by
-`nodes/wire/paced_wire.go`'s `stepAll` — is gated at the SOURCE, not just at the TS
+`nodes/wire/paced_wire_drive.go`'s `stepAll` — is gated at the SOURCE, not just at the TS
 write. `stepAll` reads a package-level `edgeBeadTraceEnabled` bool set ONCE at process
 startup from the `WIREFOLD_EDGE_BEAD_TRACE` env var (same "one env var, read once before
-any goroutine starts" shape as `WIREFOLD_STREAM_FDS` — see `Buffer/stream_fds.go`); the
+any goroutine starts" shape as `WIREFOLD_STREAM_FDS` — see `Buffer/streamframe/stream_fds.go`); the
 ext host (`tools/topology-vscode/src/runCommand.ts`) sets it from the SAME
 `isProbeTraceEnabled()` that gates the TS-side write, so there is one source of truth for
 the setting. With tracing off, Go never appends the event to the frame at all — TS
@@ -47,6 +47,6 @@ previously decoded and discarded it every tick regardless. `KindBreadcrumb` and
 buffer path that actually renders beads reads neither flag and is unaffected.
 
 On editor hang/decouple/compound symptoms, read the `.probe` ERROR logs first
-(`memory/feedback_runner_errors_probe_first.md`). For intermittent UI bugs, add cheap
+(`memory/feedback/debugging/probe-logs/feedback_runner_errors_probe_first.md`). For intermittent UI bugs, add cheap
 runtime breadcrumbs + a repro before theorizing
-(`memory/feedback_runtime_breadcrumbs_beat_static_analysis.md`).
+(`memory/feedback/debugging/investigation-method/feedback_runtime_breadcrumbs_beat_static_analysis.md`).

@@ -1,0 +1,73 @@
+.eq {
+      font-size: 17px;
+      line-height: 1.6;
+      margin: 0 0 5px;
+      color: var(--ink)
+    }
+
+    .eq var {
+      font-style: italic
+    }
+
+    .eq .g {
+      display: inline-block;
+      min-width: 15ch
+    }
+
+    .eq .note {
+      color: var(--dim);
+      margin-left: 14px
+    }
+
+    .eq .lhs {
+      display: inline-block;
+      min-width: 13ch
+    }
+
+    .eq .lhs.wide {
+      min-width: 20ch
+    }
+
+    .eq.step {
+      margin-left: 0
+    }
+
+    .eq.sub {
+      margin-left: 28px
+    }
+
+    .eq.sub2 {
+      margin-left: 56px
+    }
+
+    .eq.head {
+      color: var(--accent);
+      margin-top: 14px
+    }
+
+    .eq.head.par {
+      color: var(--warm)
+    }
+
+    .eq.head.perp {
+      color: var(--mag)
+    }
+
+    .eq.head:first-child {
+      margin-top: 0
+    }
+
+    .eq.dim {
+      color: var(--dim)
+    }
+
+    .eq .perp,
+    .eq.perp {
+      color: var(--mag)
+    }
+
+    .eq .par,
+    .eq.par {
+      color: var(--warm)
+    }
+

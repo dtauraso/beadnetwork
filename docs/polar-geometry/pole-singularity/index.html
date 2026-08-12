@@ -1,0 +1,130 @@
+t?
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The layout pole singularity — φ grid vs great-circle bearing</title>
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/stage.css">
+  <link rel="stylesheet" href="css/instrument.css">
+  <link rel="stylesheet" href="css/instrument-status.css">
+  <link rel="stylesheet" href="css/chrome.css">
+</head>
+
+<body>
+  <button class="themebtn" id="themebtn" title="Toggle light / dark">◐</button>
+  <div class="wrap">
+    <header>
+      <p class="eyebrow">wirefold · layout geometry · task/layout-pole-singularity</p>
+      <h1>One coordinate dies at the pole. The other never does.</h1>
+    </header>
+
+    <div class="tabs" role="tablist" aria-label="Two formulations">
+      <button class="tab" id="tab1" role="tab" aria-selected="true" aria-controls="panel1" style="--tabc:var(--amber)">
+        <span class="dot"></span>φ about fixed +y
+      </button>
+      <button class="tab" id="tab2" role="tab" aria-selected="false" aria-controls="panel2" style="--tabc:var(--teal)">
+        <span class="dot"></span>great-circle bearing
+      </button>
+    </div>
+
+    <section class="panel" id="panel1" role="tabpanel" aria-labelledby="tab1" data-active style="--tabc:var(--amber)">
+      <div class="layout">
+        <div class="stage">
+          <canvas id="c1" class="scene" width="640" height="560"
+            aria-label="3D sphere. Longitude cells converge at the +y pole; drag the node toward the pole to watch a fixed nudge cross many cells."></canvas>
+          <div class="scenetag"><b>drag</b> the node · <b>orbit</b> the empty space</div>
+        </div>
+        <div class="inst">
+          <div class="card">
+            <p class="lab"><span>nudge crosses</span><span id="c1sectorlab">cells</span></p>
+            <div><span class="big xl" id="c1dqp" style="color:var(--amber)">0</span><span class="big unit">cells</span>
+            </div>
+            <div class="meter amber" style="margin-top:12px"><i id="c1dqpbar" style="width:0%"></i></div>
+          </div>
+          <div class="card">
+            <p class="lab"><span>one φ-cell, in world units</span><span>r·sinθ·sp</span></p>
+            <div class="meter amber"><i id="c1cellbar" style="width:100%"></i></div>
+            <div class="legend" style="margin-top:9px">
+              <span><i style="background:var(--muted)"></i>θ&nbsp;<b id="c1theta"
+                  style="color:var(--ink); font-weight:600">—</b></span>
+              <span>Δφ&nbsp;<b id="c1dphi" style="color:var(--ink); font-weight:600">—</b></span>
+            </div>
+          </div>
+          <div class="card">
+            <p class="lab"><span>fixed world nudge δ</span><span class="val" id="c1nv">0.05</span></p>
+            <div class="ctl"><input type="range" id="c1nudge" min="0.01" max="0.20" step="0.01" value="0.05"></div>
+            <label class="toggle" style="margin-top:11px; font-size:12.5px; color:var(--muted)"><input type="checkbox"
+                id="c1jit"> show input jitter</label>
+          </div>
+          <div class="status ok" id="c1status"><span class="ico"></span>absorbed</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="panel2" role="tabpanel" aria-labelledby="tab2" style="--tabc:var(--teal)">
+      <div class="layout">
+        <div class="stage">
+          <canvas id="c2" class="scene" width="640" height="560"
+            aria-label="3D sphere with a reference point and a target node. The great circle through them, and its perpendicular axis, stay well-behaved as the target crosses the pole."></canvas>
+          <div class="scenetag"><b>drag</b> the target anywhere · ref keeps its distance</div>
+        </div>
+        <div class="inst">
+          <div class="card">
+            <p class="lab"><span>sensitivity per δ nudge</span><span>cells</span></p>
+            <div class="metrow"><span class="name" style="color:var(--amber)">φ / +y</span>
+              <div class="meter amber" style="flex:1"><i id="c2llbar" style="width:0%"></i></div>
+              <span class="num tag-bad" id="c2ll" style="color:var(--amber)">—</span>
+            </div>
+            <div class="metrow"><span class="name" style="color:var(--teal)">great-circle</span>
+              <div class="meter teal" style="flex:1"><i id="c2gcbar" style="width:0%"></i></div>
+              <span class="num" id="c2gc" style="color:var(--teal)">—</span>
+            </div>
+          </div>
+          <div class="card">
+            <p class="lab"><span>target · stored properties</span><span id="c2health" class="pill ok">frame safe</span>
+            </p>
+            <div class="kv">
+              <div class="kv-row"><span class="k">r_edge <small>‖neighbor − node‖</small></span><span class="v"
+                  id="c2r">—</span></div>
+              <div class="kv-row"><span class="k">range c <small>∠ ref→target</small></span><span class="v" id="c2c"
+                  style="color:var(--teal)">—</span></div>
+              <div class="kv-row"><span class="k">bearing ψ <small>central azimuth about ref</small></span><span
+                  class="v" id="c2psi" style="color:var(--psi)">—</span></div>
+              <div class="kv-row"><span class="k">gain <small>Δstore / Δworld = 1/r_edge</small></span><span class="v"
+                  id="c2gain" style="color:var(--teal)">—</span></div>
+              <div class="kv-row"><span class="k">separation from ref</span><span class="v" id="c2sep">—</span></div>
+            </div>
+            <label class="toggle" style="margin-top:11px; font-size:12.5px; color:var(--muted)"><input type="checkbox"
+                id="c2cells" checked> show snapping cells (ref frame)</label>
+          </div>
+          <div class="card" style="padding:11px 13px">
+            <div class="legend">
+              <span><i style="background:var(--teal)"></i>c · range arc</span>
+              <span><i style="background:var(--psi)"></i>ψ · central azimuth about ref</span>
+              <span><i style="height:2px; border-top:2px dashed var(--muted); background:none"></i>ref × target
+                axis</span>
+              <span><i style="background:var(--amber-soft)"></i>old +y φ grid</span>
+            </div>
+          </div>
+          <div class="status ok" id="c2status"><span class="ico"></span>teal flat through the pole</div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <b style="color:var(--ink)">Root cause</b> — position is stored as φ about the fixed +y pole, then quantized,
+      locked, and persisted; φ is degenerate there so a nudge crosses many grid cells and the lock freezes a wrong one.
+      <b style="color:var(--ink)">Fix</b> — mirror <code>spherical.go</code>'s great-circle bearing
+      (<code>AzimuthFrom</code>/<code>FromAxisFrame</code>, no <code>/sinθ</code>) at the
+      <code>cart2polar</code>→quantize sites in <code>node_move.go</code> (1372, 1470, 1688).
+    </footer>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+
+</html>

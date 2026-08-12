@@ -1,14 +1,9 @@
 # CLAUDE.md
 
-<!-- Root file = cross-cutting invariants where drift is expensive. Region-specific detail
-     lives in .claude/rules/*.md with `paths:` frontmatter and loads on demand.
-     Root CLAUDE.md is re-injected after /compact; rules are NOT — they reload the next
-     time a matching file is read. That is the criterion for what stays here. -->
-
 ## Model — read first
 
 Before changing anything in the **Go network** (`nodes/`, `nodes/wire/paced_wire.go`,
-`nodes/Wiring/loader.go`, `nodes/Wiring/builders.go`) or the **content buffer**
+`nodes/Wiring/build/loader.go`, `nodes/Wiring/loadspec/builders.go`) or the **content buffer**
 (`Buffer/`, the render tree under `tools/topology-vscode/src/webview/three/`),
 read [MODEL.md](MODEL.md). It pins the model. Do not propose multi-step
 plans with options for network/wire work; name the single concrete next
@@ -23,22 +18,27 @@ overlays) into a **binary content buffer** and streams it. The render tree under
 and draws that buffer; it computes no positions, no geometry, and no traversal timing,
 and never tells Go when a bead arrived. There is no JSON-trace render path and no
 `pump.ts`; the TS layer is **render + forward only** and holds no domain state (guard:
-`tools/check-no-webview-state.sh`).
+`tools/webview/check-no-webview-state.sh`).
 
 The model's real entities live in [MODEL.md](MODEL.md): bead, wire (`PacedWire` — a
 PASSIVE delay queue holding its own in-flight beads, with a channel on each end, stepped by
 its SOURCE NODE's own goroutine — it is not a goroutine itself), node goroutine, input port,
 clock, and the node-owned chain of placeholder beads that renders a traversal
-([docs/beads-are-the-edge.md](docs/beads-are-the-edge.md)). The active node kinds are the structs under `nodes/<Kind>/`.
+([docs/bead-model/beads-are-the-edge.md](docs/bead-model/beads-are-the-edge.md)). The active node kinds are the structs under `nodes/<Kind>/`.
 
 **Drift rule:** see MODEL.md's "Drift rule" section for the full statement (guards:
-`tools/check-no-webview-state.sh`, `tools/check-no-await-on-bridge.sh`).
+`tools/webview/check-no-webview-state.sh`, `tools/bridge/check-no-await-on-bridge.sh`).
 
 ## Primitive landing rule (narrowed)
 
 **Node kinds:** adding a kind requires four things in the same commit:
 1. An entry in `NODE_DEFS` (`tools/topology-vscode/src/schema/node-defs.ts`, generated).
-2. Nothing else in the schema dir — `node-defs.ts` is the single registry.
+2. No separate `registry.ts` — `node-defs.ts` is the single node-kind registry. The schema
+   dir also holds `wire-defs.ts`, `trace-kinds.ts`, `types.ts`, and `node-dims.ts` at its top
+   level (registries and shared types), plus two clustered subdirs: `schema/buffer-layout/`
+   (the generated buffer wire format plus the curve/shading params that ride in it) and
+   `schema/input/` (the TS<->Go input-record codec: byte reader/writer, attrs, layout
+   fingerprint, encode/decode). Adding a node kind touches only `node-defs.ts`.
 3. The Go node package under `nodes/<Kind>/`, with its logic always in `node.go` (never
    `<Kind>.go`) plus `SPEC.md`. Directory casing is mixed and both are live: PascalCase
    (`Time`, `TimeEnd`, `TimeStart`, `PulseLeft`, `PulseRight`) and lowercase (`holdflip`,
@@ -61,7 +61,7 @@ entity kind or attribute, NOT a new op), **bare commands** (`save` only), and **
 produced in-process by the FSM, they do not cross this seam as edits).
 
 The TS → Go send is **fire-and-forget** — no `await`, no Promise chain, no request/response,
-no delivery signal (guard: `tools/check-no-await-on-bridge.sh`).
+no delivery signal (guard: `tools/bridge/check-no-await-on-bridge.sh`).
 
 Vocabulary detail, parity guards, and the no-sidecar rule: `.claude/rules/bridge-surface.md`.
 
@@ -76,22 +76,26 @@ docs, and the auto-memory dir, costing tokens and time.
 - **`ls`**: prefer a specific subdir over wide listings; pipe to `head` if you only need a sample.
 - Planning docs (`docs/planning/visual-editor/`, `memory/`) contain domain vocabulary — grep them only when the question is about *planning state*, not when looking for code.
 
-## Testing shape — read before writing a test
+## There are no tests. Do not add any.
 
-A test asserts what **one goroutine itself** decided, emitted, or persisted. Do **not**
-test that two or more goroutines communicate properly — not delivery, not ordering, not
-absence-of-deadlock, not absence-of-race. That correctness is guaranteed BY CONSTRUCTION
-here (per-mover ownership, dedicated per-pair channels, no locks/atomics — guard:
-`tools/check-no-network-locks.sh`, empty allowlist), so such a test asserts what the
-structure already gives you and exercises Go's runtime instead of this codebase.
+Every test file in this repo was deleted. A test cannot constrain an AI, because the AI edits
+the test as freely as the code and at the same cost — the human effort-asymmetry the whole
+mechanism rests on does not exist here. Measured on the branch that removed them: one refactor
+churned 13,271 lines across 174 test files purely to keep them compiling through requested
+changes, and caught zero production regressions. A test also cannot tell "the AI broke it" from
+"David asked for this", so on every requested change its failure is cost, never signal.
 
-The one exception is **persistence**: bytes on disk through a real reload
-(`memory/feedback_headless_repro_verifies_persistence`).
+**Verification is loud runtime failure plus driving the editor.** A failure that announces
+itself in a live session reaches the human; a silent green check does not. That is the whole
+difference — not tamper-proofness. **An AI can edit the loud failures too**, and the guards, and
+this sentence. Their value is only that in the DEFAULT case they announce, so neglect makes them
+fire instead of fall silent. Nothing here is a guarantee; the only real check is the human
+noticing behavior.
 
-Full doctrine — the dividing line, why absence assertions can't be polled, the industry
-patterns and which actually transfer, a decision procedure, and named anti-patterns — is
-in [docs/testing-shape.md](docs/testing-shape.md). Read it before adding a test that needs
-more than one goroutine running.
+Prefer, in order: an assertion that fires in the running system with a site tag
+(`tools/network/quality/check-panic-message.sh`); a guard whose failure state is loud and
+whose allowlist is empty (`tools/network/concurrency/check-no-network-locks.sh`); a `.probe`
+breadcrumb (`.claude/rules/go-debugging.md`). Never a test.
 
 ## Workflow
 
@@ -99,7 +103,7 @@ more than one goroutine running.
   - **Why, and why the opposite rule used to be written here:** the old text said verified work merges "on the spot, without asking", justified by "a change on a task branch is INVISIBLE to the person driving the editor". That was true only under the worktree layout, where the editor was pinned to the main checkout. That layout is gone — there is ONE checkout, so `git checkout task/<name>` is what the editor runs and a branch is fully testable in place. Merging to make a change visible is now pointless AND harmful: it lands unreviewed work in the tool being used. In one session that shipped vanished edge beads, wrong animation colours, and a node that dragged backwards — each found by the user, in the editor, after the merge.
   - Do NOT reintroduce an exemption for "plumbing", "docs", "just tests", or "it's default-off so it can't affect anything". Every one of those is a category invented to merge without asking. There is no such category.
   - Sign-off is still required for genuinely destructive or shared-state actions: force-pushing `main` or any branch you do not own, rewriting published history, removing a dependency, deleting someone else's branch, and anything else called out in the system prompt's "Executing actions with care" section.
-  - After merging, say so and name what to reload — a webview change needs the file reopened, an extension-host change needs "Developer: Reload Window" (`memory/feedback_two_process_editor_reload.md`).
+  - After merging, say so and name what to reload — a webview change needs the file reopened, an extension-host change needs "Developer: Reload Window" (`memory/feedback/ux/feedback_two_process_editor_reload.md`).
 - Build and run before reporting a change as ready; verify output matches previous run. If verification fails, fix forward or revert — don't leave broken state on the branch. To exercise a TS change in the LIVE editor, run `npm run build` — the Stop hook does this automatically, but manual subagent verifications do not (why `tsc --noEmit` isn't enough is in the verify recipe below; stated once, there).
   - **Verify recipe (NEVER run the sim in the foreground):** the single source of truth is `bash scripts/stop-checks.sh` run from the repo root. **Read its STDOUT, not `$?` — it ALWAYS exits 0**, by design: it speaks the Stop-hook JSON protocol, so a failure is a `{"decision":"block","reason":...}` object printed to stdout while the exit code stays 0. Clean means *empty stdout*. Therefore `stop-checks.sh >/dev/null; echo $?` is not a check — it discards the only failure signal and reads a constant. Verify with `bash scripts/stop-checks.sh` and look at the output, or gate on it with `[ -z "$(bash scripts/stop-checks.sh 2>/dev/null)" ]`. It runs go build+test, tsc `--noEmit`, the npm webview build, staticcheck, eslint, vitest, and the full guard suite (incl. message-kind-parity, polar-only-nav, no-camera-roundtrip) — gated so the expensive per-language steps run only when that language changed or the branch is ahead of origin/main. Do NOT run the old `go build && go test`, `tsc`, `npm run build` steps separately; that just duplicates what stop-checks already does. Caveats it does NOT cover: the early-exit was removed so it also runs on a clean tree, but `tsc --noEmit` alone still won't refresh `out/webview.js` (stop-checks' npm build does), and an extension-host change still needs VS Code "Developer: Reload Window" (reopening a file only reloads the webview).
 - One logical change per commit. Push each commit to the current task branch.
@@ -120,7 +124,7 @@ more than one goroutine running.
   Put detail here when it only matters for one part of the codebase.
 - Root CLAUDE.md — cross-cutting invariants only. It is re-injected after `/compact`;
   rules are not.
-- [docs/drift-checklist.md](docs/drift-checklist.md) — the periodic agent-health audit.
+- [docs/process/drift-checklist.md](docs/process/drift-checklist.md) — the periodic agent-health audit.
 
 ## Session handoff
 
@@ -142,7 +146,7 @@ preferences stated only verbally. Save anything in the second list to a file bef
 
 ## Posture (post-v0)
 
-Visual editor reached v0. New work is friction-driven, not phase-driven; justify changes from real-world editor use logged in [session-log.md](docs/planning/visual-editor/session-log.md). Working mode: user drives the editor and narrates; assistant logs and makes changes.
+Visual editor reached v0. New work is friction-driven, not phase-driven; justify changes from real-world editor use. Working mode: user drives the editor and narrates; assistant makes changes. Friction arrives live, in conversation — what survives the session goes to `memory/` as a lesson, and what became code is already in git. Do not reintroduce a session log: the one that existed was write-only, never read to justify a change, and duplicated `git log` for everything except a handful of corrected measurements that now live in `memory/`.
 
 **Plan docs are allowed, per change, in `docs/planning/`.** The old blanket "per-phase plans were deleted, git history is the archive" is gone: a change that reverses a documented invariant, or ripples across code and several pages at once, is worth writing down BEFORE it is made — what breaks, in what order, and how it is verified. Write one when the change is that shape; skip it when the change is a page edit or a rename.
 

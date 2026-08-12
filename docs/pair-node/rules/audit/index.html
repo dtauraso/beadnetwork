@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pair node — Machine sameness audit</title>
+  <link rel="stylesheet" href="base.css">
+  <link rel="stylesheet" href="layout.css">
+  <link rel="stylesheet" href="panels.css">
+  <link rel="stylesheet" href="diagrams.css">
+</head>
+
+<body>
+
+  <header>
+    <h1>Machine sameness audit</h1>
+    <div class="sub">where perpendicular.go and parallel.go were the same thing — the report that folded
+      them into one machine</div>
+  </header>
+
+  <nav class="subnav" aria-label="Audit sections">
+    <a class="on" href="index.html">The finding</a>
+    <a href="home-sets.html">Home sets</a>
+    <a href="outcome.html">The outcome</a>
+  </nav>
+
+  <main>
+
+    <div class="card">
+      <h2>The finding, in one picture</h2>
+      <svg width="660" height="286" viewBox="0 0 660 286">
+        <line x1="60" y1="90" x2="540" y2="90" stroke="#5fd68a" stroke-width="1.4" stroke-dasharray="5 4" />
+        <text x="300" y="74" text-anchor="middle" class="big" fill="#5fd68a">the two always sum to quarter</text>
+
+        <line x1="60" y1="210" x2="540" y2="210" stroke="#3a3a44" />
+        <line x1="300" y1="86" x2="300" y2="216" stroke="#3a3a44" stroke-dasharray="3 3" />
+
+        <polyline points="60,210 300,90 540,210" fill="none" stroke="#e05fd8" stroke-width="2.4" />
+        <polyline points="60,90 300,210 540,90" fill="none" stroke="#f9a825" stroke-width="2.4" />
+
+        <circle cx="180" cy="150" r="3.5" fill="#e7e7ea" />
+        <circle cx="420" cy="150" r="3.5" fill="#e7e7ea" />
+
+        <text x="548" y="94" class="lblm" fill="#f9a825">parallel miss</text>
+        <text x="548" y="214" class="lblm" fill="#e05fd8">perpendicular miss</text>
+
+        <text x="52" y="94" text-anchor="end" class="lbl">12</text>
+        <text x="52" y="214" text-anchor="end" class="lbl">0</text>
+
+        <text x="60" y="228" text-anchor="middle" class="lbl">0</text>
+        <text x="180" y="228" text-anchor="middle" class="lbl">6</text>
+        <text x="300" y="228" text-anchor="middle" class="lbl">12</text>
+        <text x="420" y="228" text-anchor="middle" class="lbl">18</text>
+        <text x="540" y="228" text-anchor="middle" class="lbl">24</text>
+        <text x="300" y="248" text-anchor="middle" class="lbl">separation, folded into [0, half] — 48-point ring, quarter =
+          12</text>
+        <text x="300" y="270" text-anchor="middle" class="lblm" fill="#5fd68a">perpendicular miss = quarter − parallel
+          miss</text>
+      </svg>
+      <div class="cap">One curve is the other upside down. Minimising one miss IS maximising the other, so
+        the two machines are one walk run in opposite directions on one number — not two rules that
+        happen to resemble each other.</div>
+    </div>
+
+    <div class="card">
+      <h2>Exact, both halves of the fold</h2>
+      <table class="f">
+        <tr class="h">
+          <td>case</td>
+          <td>parallel miss</td>
+          <td>quarter − that</td>
+          <td>perpendicular miss</td>
+        </tr>
+        <tr>
+          <td class="n">sep ≤ quarter</td>
+          <td class="e">quarter − sep</td>
+          <td class="e">sep</td>
+          <td class="e">sep</td>
+        </tr>
+        <tr>
+          <td class="n">sep ≥ quarter</td>
+          <td class="e">sep − quarter</td>
+          <td class="e">half − sep</td>
+          <td class="e">half − sep</td>
+        </tr>
+      </table>
+      <div class="cap">Equal in both cases, so equal everywhere on the ring. No exceptions, no approximation.</div>
+    </div>
+
+    <div class="card">
+      <h2>What is actually different: which separations count as home</h2>
+      <div class="cap">See <a href="home-sets.html">Home sets</a> for the perpendicular/parallel/setting
+        home-set diagrams and the "one walk, two directions" figure that follows from them.</div>
+    </div>
+
+  </main>
+</body>
+
+</html>

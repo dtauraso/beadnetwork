@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="doc-status" content="historical" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>wirefold — Trace.mu, resolved</title>
+<link rel="stylesheet" href="index.css">
+<link rel="stylesheet" href="idx.css">
+</head>
+<body>
+
+<header>
+  <div class="head-inner">
+    <p class="eyebrow">wirefold · concurrency · RESOLVED</p>
+    <h1>Trace.mu — the record of a question that closed</h1>
+    <p class="sub">This page used to describe <code>Trace.mu</code> as present and its removal as
+    open. It is now deleted — the seventh and last <code>sync.Mutex</code>/<code>Cond</code> in
+    non-test Go. All six others were already deleted before it: <code>geomMu</code> deleted, <code>RealClock.mu</code> deleted, <code>PacedWire.mu</code> deleted, <code>outbox.mu</code> deleted, <code>LayoutHolder.mu</code> deleted, <code>debouncedPersister.mu</code> deleted. Its stated job was guarding the event accumulator, and
+    that claim was true but <b>vestigial</b> — nothing in production ever raced it. What the
+    lock was actually still doing — serializing <code>Breadcrumb</code>'s direct sink writes and
+    surviving a shutdown that didn't wait — is what got fixed. The diagrams below are kept as the
+    historical record of the diagnosis; each is marked with what changed.</p>
+  </div>
+</header>
+
+<div class="wrap">
+<ul class="idx-list">
+  <li><a href="1-the-hot-path.html">1 · the hot path never touched the lock — still true, now trivially</a></li>
+  <li><a href="2-what-it-used.html">2 · what it used to guard — and one field the comment claimed but did not</a></li>
+  <li><a href="3-who-actually-took.html">3 · who actually took the lock — and which of them existed in production</a></li>
+  <li><a href="4-what-the-lock.html">4 · what the lock was really doing — shutdown, not accumulation (RESOLVED)</a></li>
+  <li><a href="5-unlike-every-other.html">5 · unlike every other lock here, this one was held across I/O (now moot — the lock is gone)</a></li>
+  <li><a href="6-the-single-owner-question.html">6 · the single-owner question — drain already was one (RESOLVED)</a></li>
+  <li><a href="7-the-framing-above.html">7 · the framing above it — Step is arrival order, not causal order (STILL OPEN)</a></li>
+  <li><a href="8-the-red-proof.html">8 · the red proof — settled by the deletion itself</a></li>
+</ul>
+<footer>
+  Verified against the tree on <span style="font-family:var(--mono)">task/mutex-trace</span>.
+  Line numbers drift — re-grep before trusting them. Companions:
+  <span style="font-family:var(--mono)">docs/concurrency/mutex/index.html</span>,
+  <span style="font-family:var(--mono)">docs/layout-holder-architecture.html</span>,
+  <span style="font-family:var(--mono)">docs/concurrency/persister/index.html</span>,
+  <span style="font-family:var(--mono)">docs/concurrency/framings.md</span>.
+</footer>
+</div>
+
+</body>
+</html>
+

@@ -26,7 +26,7 @@ topology/
     └── camera.json  overlays.json  sphere.json  scene.json
 ```
 
-**`topology/` is one of several sibling SCENES**, not the only tree. `nodes/Wiring/scene_tabs.go`'s
+**`topology/` is one of several sibling SCENES**, not the only tree. `nodes/Wiring/scene/scene_tabs.go`'s
 `SceneTabs` names each sibling directory (today: `topology/`, `topology-pair/`) resolved
 relative to the ANCHOR's parent — the `-topology` flag the extension host launches with is
 the fixed anchor, and which sibling directory actually loads is resolved from it
@@ -54,7 +54,7 @@ recording the edge under the target — that reintroduces the duplication the la
 - A `nodeMover` writes its own `position/local-polars`, and constructs those
   paths (`node_mover.go`). There is no longer a separate `inputs/`/`outputs/` port-geometry
   file — port geometry was removed with the port model (edges attach on the bead lattice,
-  docs/bead-lattice.md); this bullet used to list it as a second thing the mover writes.
+  docs/bead-model/bead-lattice.md); this bullet used to list it as a second thing the mover writes.
 - An `edgeMover` owns `nodes/<source>/edges/<label>.json`. No Go writer exists yet — edges
   are editor-authored — but when one is added, its path construction belongs there.
 - Scene-level state (camera, overlays, sphere) is genuinely singular and belongs to the
@@ -65,8 +65,8 @@ recording the edge under the target — that reintroduces the duplication the la
 writes through the source node's mover would make one goroutine write another's state on
 request — the coordination this model exists to avoid.
 
-Guards: `tools/check-persist-write-ownership.sh` (who may write which path pattern),
-`tools/check-scene-path-resolution.sh` (who may construct a `nodes/` path).
+Guards: `tools/network/persist/check-persist-write-ownership.sh` (who may write which path pattern),
+`tools/network/persist/check-scene-path-resolution.sh` (who may construct a `nodes/` path).
 
 ## A topology is a directory tree, always
 

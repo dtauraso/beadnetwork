@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="doc-status" content="historical">
+<title>Level-4 Audit · wirefold — Recommendations</title>
+<link rel="stylesheet" href="styles/base.css">
+<link rel="stylesheet" href="styles/layout.css">
+<link rel="stylesheet" href="styles/typography.css">
+<link rel="stylesheet" href="styles/panels.css">
+<link rel="stylesheet" href="styles/diagrams.css">
+</head>
+<body>
+
+<main>
+<nav class="crumbnav"><a href="index.html">index</a> — <a href="overview.html">Overview</a> · <a href="leverage-model.html">Leverage Model</a> · <a href="f1-stale-docs.html">F1 · Stale Docs</a> · <a href="f2-silent-dup.html">F2 · Silent Dup</a> · <a href="f3-sendrule.html">F3 · SendRule</a> · <a href="whats-healthy.html">What's Healthy</a> · <span class="crumb-here">Recommendations</span></nav>
+<section id="recs" class="active">
+
+  <h1>Recommendations</h1>
+  <p>Ordered by leverage-per-dollar. Do these in order — each one reduces AI re-derivation cost for all subsequent sessions.</p>
+
+  <table>
+    <tr>
+      <th>#</th>
+      <th>Action</th>
+      <th>Severity</th>
+      <th>Why</th>
+      <th>Effort</th>
+    </tr>
+    <tr>
+      <td style="font-family:var(--mono);color:var(--muted);">1</td>
+      <td>Re-anchor <code>CLAUDE.md</code> + <code>MODEL.md</code> to the <code>three/</code> architecture. Remove all <code>rf/</code> path references, fix schema dir (<code>src/schema/</code> not <code>webview/schema/</code>), remove phantom slot-phase section from MODEL.md or update to reflect no-op.</td>
+      <td><span class="badge HIGH" style="margin:0">HIGH</span></td>
+      <td>Loaded every session. Wrong paths cause first action to fail. Highest leverage of any change in the repo.</td>
+      <td>Small</td>
+    </tr>
+    <tr>
+      <td style="font-family:var(--mono);color:var(--muted);">2</td>
+      <td>Guard or codegen <code>node-override-text.ts</code>. Either add it to <code>check-generated.sh</code> or generate the switch from the kind registry so new/renamed kinds are caught at build time.</td>
+      <td><span class="badge MED" style="margin:0">MED</span></td>
+      <td>Silent empty string on unknown kind; only discovered at runtime via visual inspection.</td>
+      <td>Small–Medium</td>
+    </tr>
+    <tr>
+      <td style="font-family:var(--mono);color:var(--muted);">3</td>
+      <td>Extract node default dims (<code>110</code>/<code>60</code>) into a single named constant shared across all 7 TS files that reference them.</td>
+      <td><span class="badge LOW" style="margin:0">LOW</span></td>
+      <td>Layout regressions require grep-and-replace; no compile guard. Low frequency but easy win.</td>
+      <td>Small</td>
+    </tr>
+    <tr>
+      <td style="font-family:var(--mono);color:var(--muted);">4</td>
+      <td>Add parse-time SendRule validation in <code>validate.go</code> against <code>{consumeGated, fireAndForget}</code>. Return an error for unrecognized strings.</td>
+      <td><span class="badge MED" style="margin:0">MED</span></td>
+      <td>Typo flips send semantics silently. Only the Go model convention not yet enforced by structure.</td>
+      <td>Small</td>
+    </tr>
+    <tr>
+      <td style="font-family:var(--mono);color:var(--muted);">5</td>
+      <td>Add exhaustiveness check on trace-event kinds in <code>pump.ts</code> and <code>messages.ts</code> — reference the generated <code>trace-kinds.ts</code> type rather than re-typing string literals.</td>
+      <td><span class="badge LOW" style="margin:0">LOW</span></td>
+      <td>New trace kind added to generator is silently missed in TS handling. Low frequency, but the protected file is already doing the right thing.</td>
+      <td>Small</td>
+    </tr>
+  </table>
+
+  <h2>Expected Outcome</h2>
+  <p>Completing items 1–4 eliminates all HIGH and MED findings. AI sessions following these fixes will load correct context on first read, get compile errors on kind drift, get parse errors on SendRule typos, and spend zero tokens recovering from phantom path instructions.</p>
+
+  <footer>Level-4 audit · wirefold · 2026-06-01 · static, offline-openable</footer>
+
+</section>
+</main>
+
+</body>
+</html>
+

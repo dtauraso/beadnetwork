@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="doc-status" content="historical">
+<title>Level-4 Audit · wirefold — Overview</title>
+<link rel="stylesheet" href="styles/base.css">
+<link rel="stylesheet" href="styles/layout.css">
+<link rel="stylesheet" href="styles/typography.css">
+<link rel="stylesheet" href="styles/panels.css">
+<link rel="stylesheet" href="styles/diagrams.css">
+</head>
+<body>
+
+<main>
+<nav class="crumbnav"><a href="index.html">index</a> — <span class="crumb-here">Overview</span> · <a href="leverage-model.html">Leverage Model</a> · <a href="f1-stale-docs.html">F1 · Stale Docs</a> · <a href="f2-silent-dup.html">F2 · Silent Dup</a> · <a href="f3-sendrule.html">F3 · SendRule</a> · <a href="whats-healthy.html">What's Healthy</a> · <a href="recommendations.html">Recommendations</a></nav>
+<section id="overview" class="active">
+
+  <h1>Level-4 Audit</h1>
+  <p style="color:var(--muted);margin-bottom:20px;">wirefold · 2026-06-01</p>
+  <p>This audit examines the wirefold repo through a <strong>level-4 (Staff / model-correctness)</strong> lens. The optimization target is not lines of code or test coverage — it is <strong>AI re-derivation cost</strong>: every session where an AI agent must re-read stale docs, grep for constants, or discover silent failures from scratch burns tokens and produces drift.</p>
+
+  <h2>Leverage Metric</h2>
+  <p>Each finding is scored by:</p>
+  <pre>leverage = (token cost per hit) × (sessions that hit it) × (drift likelihood)</pre>
+  <p><strong>Token cost per hit</strong> — how many tokens are wasted when an AI encounters this. <strong>Sessions that hit it</strong> — how often (stale CLAUDE.md loads every single session). <strong>Drift likelihood</strong> — probability the AI acts on bad info vs. recovers via grep.</p>
+
+  <h2>Findings Ranked by Leverage</h2>
+  <svg width="740" height="240" viewBox="0 0 740 240" xmlns="http://www.w3.org/2000/svg">
+    <rect width="740" height="240" fill="#18181c" rx="8"/>
+    <line x1="160" y1="20" x2="160" y2="200" stroke="#2a2a30" stroke-width="1"/>
+    <line x1="160" y1="200" x2="720" y2="200" stroke="#2a2a30" stroke-width="1"/>
+    <text x="8" y="110" fill="#808090" font-size="11" transform="rotate(-90,8,110)">Leverage →</text>
+
+    <rect x="164" y="40" width="530" height="28" fill="#e05252" rx="3" opacity="0.85"/>
+    <text x="172" y="59" fill="#15151a" font-size="12" text-anchor="start">F1 · Stale Docs (HIGH)</text>
+
+    <rect x="164" y="80" width="307" height="28" fill="#d4a017" rx="3" opacity="0.85"/>
+    <text x="172" y="99" fill="#15151a" font-size="12" text-anchor="start">F2 · Silent Dup (MED)</text>
+
+    <rect x="164" y="120" width="238" height="28" fill="#d4a017" rx="3" opacity="0.85"/>
+    <text x="172" y="139" fill="#15151a" font-size="12" text-anchor="start">F3 · SendRule (MED)</text>
+
+    <rect x="164" y="160" width="130" height="28" fill="#3db87a" rx="3" opacity="0.85"/>
+    <text x="172" y="179" fill="#15151a" font-size="12" text-anchor="start">Healthy boundary</text>
+
+    <text x="164" y="218" fill="#808090" font-size="10">0</text>
+    <text x="430" y="218" fill="#808090" font-size="10">50</text>
+    <text x="696" y="218" fill="#808090" font-size="10">100</text>
+  </svg>
+
+  <p style="margin-top:16px;">Finding 1 (stale docs) scores near-maximum because CLAUDE.md and MODEL.md load into context <em>every single AI session</em>, contain incorrect file paths, and actively instruct impossible actions.</p>
+
+  <footer>Level-4 audit · wirefold · 2026-06-01 · static, offline-openable</footer>
+
+</section>
+</main>
+
+</body>
+</html>
+

@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>wirefold — scene_persist, the last unexamined locks — the question that killed the other four locks</title>
+<link rel="stylesheet" href="../persister/index.css">
+</head>
+<body>
+
+<header>
+  <div class="head-inner">
+    <p class="eyebrow">scene_persist, the last unexamined locks</p>
+    <h1>4 · the question that killed the other four locks</h1>
+    <nav class="crumbnav"><a href="index.html">scene_persist — the last locks nobody has looked at</a> — <a href="1-the-whole-system.html">the whole system — five persisters, four locks, two files</a> · <a href="2-the-race-that.html">the race that is reachable today</a> · <a href="3-atomic-rename-does.html">atomic rename does not make these locks redundant</a> · <span class="crumb-here">the question that killed the other four locks</span> · <a href="5-findings-one-stale.html">findings — one stale claim, one missing guard</a></nav>
+  </div>
+</header>
+
+<div class="wrap">
+<div class="legend">
+  <span><i class="sw g"></i>goroutine</span>
+  <span><i class="sw s"></i>lock / hazard</span>
+  <span><i class="sw q"></i>timer-spawned</span>
+  <span><i class="sw k"></i>file on disk</span>
+</div>
+
+<h2>4 · the question that killed the other four locks</h2>
+<p class="cap">Every lock removed so far fell to the same move: the state turned out to have, or
+could be given, <b>exactly one owner</b>. Asking it here gives three different answers.</p>
+
+<div class="plate">
+<svg viewBox="0 0 860 240" role="img" aria-label="Applying the single-owner test to each lock gives three answers: the debounce state has two genuine parties, the scene file has whole-document overlap, and the entity path could plausibly be routed through one goroutine.">
+  <rect class="queue" x="0" y="24" width="278" height="150" rx="6"/>
+  <text class="t"  x="12" y="44">debouncedPersister.mu</text>
+  <text class="tf" x="12" y="64">Two parties by construction:</text>
+  <text class="tf" x="12" y="78">the goroutine that arms it, and</text>
+  <text class="tf" x="12" y="92">the timer goroutine that fires.</text>
+  <text class="tq" x="12" y="116">COULD be one owner</text>
+  <text class="tf" x="12" y="132">if schedules were routed to a</text>
+  <text class="tf" x="12" y="146">persister-owning goroutine —</text>
+  <text class="tf" x="12" y="160">the shape used everywhere else.</text>
+
+  <rect class="state" x="292" y="24" width="278" height="150" rx="6"/>
+  <text class="t"  x="304" y="44">sceneFileMu</text>
+  <text class="tf" x="304" y="64">Three writers, DISJOINT keys —</text>
+  <text class="tf" x="304" y="78">cameraPolar, overlays, sceneSphere.</text>
+  <text class="tf" x="304" y="92">But each reads and writes the</text>
+  <text class="tf" x="304" y="106">WHOLE document.</text>
+  <text class="tw" x="304" y="130">NOT reducible by ownership</text>
+  <text class="tf" x="304" y="146">without splitting the file, i.e.</text>
+  <text class="tf" x="304" y="160">a format change. Real overlap.</text>
+
+  <rect class="queue" x="584" y="24" width="276" height="150" rx="6"/>
+  <text class="t"  x="596" y="44">entityFileMus[path]</text>
+  <text class="tf" x="596" y="64">Second party is a timer goroutine</text>
+  <text class="tf" x="596" y="78">spawned from an EARLIER call by</text>
+  <text class="tf" x="596" y="92">the same mover — it contends</text>
+  <text class="tf" x="596" y="106">with itself across time.</text>
+  <text class="tq" x="596" y="130">COULD be one owner</text>
+  <text class="tf" x="596" y="146">route the flush through the node's</text>
+  <text class="tf" x="596" y="160">own channel instead of AfterFunc.</text>
+
+  <line x1="0" y1="196" x2="860" y2="196" stroke="var(--line)"/>
+  <text class="tk" x="0" y="216">FOUR FOR FOUR SO FAR</text>
+  <text class="ts" x="164" y="216">geomMu · LayoutHolder.mu · PacedWire.mu · outbox.mu — each removed by giving state one owner.</text>
+  <text class="tf" x="0" y="232">Two of the three above have a plausible owner. The middle one may genuinely not — which would be the first.</text>
+</svg>
+</div>
+
+
+
+</div>
+
+</body>
+</html>
+

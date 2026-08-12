@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>wirefold — scene_persist, the last unexamined locks — atomic rename does not make these locks redundant</title>
+<link rel="stylesheet" href="../persister/index.css">
+</head>
+<body>
+
+<header>
+  <div class="head-inner">
+    <p class="eyebrow">scene_persist, the last unexamined locks</p>
+    <h1>3 · atomic rename does not make these locks redundant</h1>
+    <nav class="crumbnav"><a href="index.html">scene_persist — the last locks nobody has looked at</a> — <a href="1-the-whole-system.html">the whole system — five persisters, four locks, two files</a> · <a href="2-the-race-that.html">the race that is reachable today</a> · <span class="crumb-here">atomic rename does not make these locks redundant</span> · <a href="4-the-question-that.html">the question that killed the other four locks</a> · <a href="5-findings-one-stale.html">findings — one stale claim, one missing guard</a></nav>
+  </div>
+</header>
+
+<div class="wrap">
+<div class="legend">
+  <span><i class="sw g"></i>goroutine</span>
+  <span><i class="sw s"></i>lock / hazard</span>
+  <span><i class="sw q"></i>timer-spawned</span>
+  <span><i class="sw k"></i>file on disk</span>
+</div>
+
+<h2>3 · atomic rename does not make these locks redundant</h2>
+<p class="cap">The obvious objection: <code>writeJSONAtomic</code> writes a temp file then renames,
+so readers never see a torn file. True — and irrelevant to what these locks prevent. Two
+distinct failures survive it, and <b>both writers share one literal tmp filename</b>.</p>
+
+<div class="plate">
+<svg viewBox="0 0 860 300" role="img" aria-label="Two concurrent writers both read the same snapshot and both write the same temp filename, so one update is lost and the second rename can fail outright.">
+  <text class="tl" x="0" y="14">writeJSONAtomic — scene_persist.go:201–214</text>
+
+  <rect class="box" x="0" y="28" width="860" height="34" rx="5"/>
+  <text class="ts" x="12" y="49">json.Marshal → os.MkdirAll → os.WriteFile(path + ".tmp") → os.Rename(tmp, path)</text>
+  <text class="tw" x="600" y="49">← ONE shared tmp name</text>
+
+  <text class="tl" x="0" y="88">FAILURE 1 · LOST UPDATE</text>
+  <rect class="state" x="0" y="100" width="410" height="112" rx="6"/>
+  <text class="ts" x="12" y="120">A reads whole object</text>
+  <text class="ts" x="12" y="138">B reads whole object   ← same snapshot</text>
+  <text class="ts" x="12" y="156">A writes {…, keyA}</text>
+  <text class="ts" x="12" y="174">B writes {…, keyB}     ← A's key is gone</text>
+  <text class="tf" x="12" y="196">disjoint KEYS do not help: the unit of write is the whole map</text>
+
+  <text class="tl" x="450" y="88">FAILURE 2 · RENAME ERRORS OUT</text>
+  <rect class="state" x="450" y="100" width="410" height="112" rx="6"/>
+  <text class="ts" x="462" y="120">A writes meta.json.tmp</text>
+  <text class="ts" x="462" y="138">B writes meta.json.tmp  ← same path</text>
+  <text class="ts" x="462" y="156">A renames tmp → meta.json</text>
+  <text class="tw" x="462" y="174">B renames tmp → no such file or directory</text>
+  <text class="tf" x="462" y="196">this exact error has been observed in test output</text>
+
+  <line x1="0" y1="234" x2="860" y2="234" stroke="var(--line)"/>
+  <text class="tk" x="0" y="254">WHAT RENAME DOES SOLVE</text>
+  <text class="ts" x="192" y="254">a READER never observes a half-written file. That is upstream of, not overlapping with, the locks.</text>
+  <text class="tf" x="0" y="272">These are plain sync.Mutex, not flock — in-process only. Cross-process writers are out of the model (Go owns persistence).</text>
+  <text class="tf" x="0" y="288">Note the shared tmp name is a hazard the lock HIDES rather than removes: unlock it and the bug is a failed write, not a torn one.</text>
+</svg>
+</div>
+
+
+
+</div>
+
+</body>
+</html>
+

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="doc-status" content="historical">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clock — Play/Pause — Go-Authoritative Clock — Wirefold Design Spec</title>
+<link rel="stylesheet" href="../styles/base.css">
+<link rel="stylesheet" href="../styles/layout.css">
+<link rel="stylesheet" href="../styles/typography.css">
+<link rel="stylesheet" href="../styles/tables.css">
+<link rel="stylesheet" href="../styles/panels.css">
+<link rel="stylesheet" href="../styles/diagrams.css">
+<link rel="stylesheet" href="../styles/controls.css">
+</head>
+<body>
+<div class="container">
+  <div class="page-title">Wirefold — Design Spec</div>
+  <div class="page-subtitle">Go Backend / TS Frontend — Clock — Play/Pause</div>
+
+  <ul class="tabs" role="navigation" aria-label="Go-Authoritative Clock pages">
+      <li><a href="../index.html">The split</a></li>
+      <li><a href="../goroutines/index.html">Goroutines</a></li>
+      <li><a href="../ts-execution.html">TS</a></li>
+      <li><a href="../bridge.html">The Bridge</a></li>
+      <li><a href="index.html">Clock</a></li>
+      <li><a href="playpause.html" class="current">Play/Pause</a></li>
+      <li><a href="../ts-to-go/index.html">TS → Go</a></li>
+      <li><a href="../plan.html">Plan</a></li>
+      <li><a href="../verify.html">Verify</a></li>
+      <li><a href="../tracking.html">Tracking</a></li>
+      <li><a href="../inconsistencies.html">Inconsistencies</a></li>
+      <li><a href="../todo.html">What's left</a></li>
+  </ul>
+
+  <div class="panel active" id="panel-clock-playpause" role="region">
+    <h2><button type="button" class="chk-btn heading-chk" aria-pressed="false" data-chk="playpause:h2">☐</button>Play / Pause: the button is in TS, the clock is in Go.</h2>
+    <p>Pause and resume act on Go's single clock. TS does not hold time — it holds a button. TS sends a pause or resume message to Go; Go's clock halts or runs. The frontend never owns any time.</p>
+
+    <div class="cards">
+      <div class="card">
+        <h3><button type="button" class="chk-btn heading-chk" aria-pressed="false" data-chk="playpause:card1">☐</button>Pause</h3>
+        <ul>
+          <li>TS sends "pause"</li>
+          <li>Go freezes its clock</li>
+          <li>In-flight beads stop progressing</li>
+          <li>No new firing (no wire completes)</li>
+          <li>Editor shows last known state</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3><button type="button" class="chk-btn heading-chk" aria-pressed="false" data-chk="playpause:card2">☐</button>Resume</h3>
+        <ul>
+          <li>TS sends "resume"</li>
+          <li>Go's clock advances from where it left off</li>
+          <li>In-flight traversal continues</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="subheading"><button type="button" class="chk-btn heading-chk" aria-pressed="false" data-chk="playpause:sub1">☐</button>Freeze means stop accumulating</div>
+    <p>Pause means stop accumulating elapsed time — not diff wall-clock on resume. A bead 40% across stays 40% on resume. Implement as a monotonic clock with a paused accumulator (elapsed-while-paused is zero), behind an injectable interface — a real impl plus a fake the tests advance, so timing is deterministic.</p>
+
+    <div class="subheading"><button type="button" class="chk-btn heading-chk" aria-pressed="false" data-chk="playpause:sub2">☐</button>Why the gate lives in Go</div>
+    <p>Play/pause halts Go's clock — not a TS render toggle. If TS paused its render loop while Go kept running, Go's clock would race ahead and be out of sync on resume. Button in TS; clock in Go.</p>
+
+  </div>
+</div>
+<script src="../styles/script.js"></script>
+</body>
+</html>

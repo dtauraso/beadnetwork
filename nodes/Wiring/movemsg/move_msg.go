@@ -1,0 +1,65 @@
+package movemsg
+
+import "github.com/dtauraso/wirefold/nodes/spatial"
+
+type vec3 = spatial.Vec3
+
+const (
+	KindAnchor  = "anchor"
+	KindCenter  = "center"
+	KindCenters = "centers"
+
+	KindDrag = "drag"
+
+	KindDragStart = "dragStart"
+
+	KindDragEnd = "dragEnd"
+
+	KindSelect = "select"
+
+	KindHover = "hover"
+
+	KindLatched = "latched"
+
+	KindNeighborCenter = "neighborCenter"
+
+	KindTiltVectorAngle = "tiltVectorAngle"
+
+	KindTiltVectorReset = "tiltVectorReset"
+)
+
+type TiltEditMsg struct {
+	Axis string
+	Up   bool
+
+	Start bool
+
+	Reset bool
+}
+
+type Msg struct {
+	Kind   string
+	NodeID string
+
+	Port     string
+	IsInput  bool
+	AnchorId int
+
+	Center *vec3
+
+	Centers map[string]vec3
+
+	ReachR float64
+
+	FromCenter vec3
+
+	SenderID string
+
+	Target vec3
+
+	Bool bool
+
+	Axis string
+
+	TestDone chan struct{}
+}

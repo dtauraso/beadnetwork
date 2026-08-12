@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pair node — Update rules</title>
+  <link rel="stylesheet" href="../../pair-base.css">
+  <link rel="stylesheet" href="../../pair-layout.css">
+  <link rel="stylesheet" href="../../pair-typography.css">
+  <link rel="stylesheet" href="../../pair-panels.css">
+  <link rel="stylesheet" href="../../pair-diagrams.css">
+  <link rel="stylesheet" href="../../pair-diagrams-tables.css">
+  <script src="../../port.js"></script>
+  <script src="../../pair.js" defer></script>
+</head>
+
+<body>
+
+  <header>
+    <h1>Update rules</h1>
+    <div class="sub">one arrival, two yes-or-no questions: settle, and if not, which way</div>
+  </header>
+
+  <nav>
+    <a href="../../index.html">Index</a>
+    <a href="../../structure/anatomy.html">Anatomy</a>
+    <a href="../../structure/own.html">Ownership</a>
+    <a href="../../math/vectors/index.html">Vectors</a>
+    <a href="../../math/math/index.html">Math</a>
+    <a href="../../math/formulas/index.html">Formulas</a>
+    <a href="../../math/dots.html">Separation</a>
+    <a href="../../math/perpendicular/index.html">Perpendicular</a>
+    <a href="../cases/index.html">Cases</a>
+    <a href="../../structure/channels.html">Channels</a>
+    <a href="../../structure/cycle.html">Cycle</a>
+    <a class="on" href="index.html">Update rules</a>
+    <a href="../../math/arith/index.html">Arithmetic instead</a>
+  <a href="../code/index.html">In code</a>
+    <a href="../../structure/clock.html">Clock</a>
+    <a href="../../math/geometry.html">Geometry</a>
+    <a href="../asym.html">Asymmetry</a>
+  
+  </nav>
+
+  <nav class="subnav" aria-label="Update-rules sections">
+    <a class="on" href="index.html">What a node holds</a>
+    <a href="machines.html">The two machines it is</a>
+    <a href="machines-arith.html">Both as a transition function, and the arithmetic</a>
+    <a href="arrival.html">What an arrival does</a>
+    <a href="worked.html">The same two decisions, worked</a>
+    <a href="leaves.html">What leaves the node</a>
+    <a href="map.html">The map into the code</a>
+    <a href="map-plumbing.html">The map into the plumbing</a>
+  </nav>
+
+  <main>
+
+    <div class="grid">
+
+<h3 class="secname">What a node holds, and what it reads off it</h3>
+
+
+      <div class="card wide">
+        <h2>The state</h2>
+        <img class="figure" src="../../diagrams/panels/state/state.svg"
+          alt="A 24-slot ring. Slots 0, 6, 12 and 18 are marked; one step of the ring is pi/12; the link from 23 back to 0 is highlighted.">
+        <div class="keynote">
+          <p><code>t ∈ {0 … 23}</code></p>
+          <p>a state, not a number — t ± 1 follows a link. 6 is a quarter turn, 12 a half</p>
+          <p>t is the node's TILT, and the whole of what it stores — one state, persisted as one
+            angle. The normal and the bottom on the next card are read off it</p>
+          <p><code>angle = (π/12) · t</code></p>
+          <p>the only thing that leaves this kind</p>
+          <p><i class="sw" style="background:#4ea1ff"></i>23 → 0 — one link like any other, and the
+            only reason the ring closes</p>
+        </div>
+      </div>
+
+      <div class="card wide">
+        <h2>What is read off the tilt</h2>
+        <div class="strip">
+          <img src="../../diagrams/panels/triad/0.svg" alt="tilt 0, with its normal and bottom">
+          <img src="../../diagrams/panels/triad/6.svg" alt="tilt 6, with its normal and bottom">
+          <img src="../../diagrams/panels/triad/12.svg" alt="tilt 12, with its normal and bottom">
+          <img src="../../diagrams/panels/triad/17.svg" alt="tilt 17, with its normal and bottom">
+        </div>
+        <div class="keynote">
+          <p><i class="sw" style="background:#5fd68a"></i>t — the tilt</p>
+          <p><i class="sw" style="background:#4ea1ff"></i>t + 6 — the normal, and what it sends</p>
+          <p><i class="sw" style="background:#9a9aa6"></i>t + 12 — the bottom</p>
+          <p>links, not sums — the triad turns as one, and nothing wraps</p>
+          <p>ONLY t is updated, and only ever by this node's own loop
+            (<span data-src="nodes/PairNode/node_parts.go#Top">Top</span>). The normal and the bottom are
+            links off it — <span data-src="nodes/PairNode/tiltring/lattice.go#State">quarter</span> and
+            <span data-src="nodes/PairNode/tiltring/lattice.go#State">opposite</span> — so they are not two
+            more vectors to move, and cannot fall out of step with the tilt</p>
+          <p>the normal is what LEAVES
+            (<span data-src="nodes/PairNode/vectors.go#outgoingVector">outgoingVector</span>); the bottom
+            is drawn and never sent</p>
+        </div>
+        <img class="math" src="../../diagrams/mathblocks/read/read.svg" style="width:184px"
+          alt="normal(t) = t+6. bottom(t) = t+12. sends = normal(t). angle(i) = (pi/12) i.">
+      </div>
+
+      <div class="card wide">
+        <h2>The angle length, and what it says the pair is at</h2>
+        <div class="strip">
+          <img src="../../diagrams/panels/length/0.svg" alt="angle length 0 — the arrival is on this node's top, so perpendicular stops">
+          <img src="../../diagrams/panels/length/3.svg" alt="angle length 3, an acute angle — neither mode stops here, so the node turns">
+          <img src="../../diagrams/panels/length/6.svg" alt="angle length 6 — the arrival is a quarter turn off, so parallel stops">
+          <img src="../../diagrams/panels/length/11.svg" alt="angle length 11, an obtuse angle — neither mode stops here, so the node turns">
+          <img src="../../diagrams/panels/length/12.svg" alt="angle length 12, a half turn — the arrival is on this node's bottom, which is the SAME count of 0 taken at the nearer end, so perpendicular stops">
+        </div>
+        <div class="keynote">
+          <p><i class="sw" style="background:#5fd68a"></i>t — this node's own tilt</p>
+          <p><i class="sw" style="background:#f9a825"></i>a — the direction that arrived</p>
+          <p><i class="sw" style="background:#e05fd8"></i>L — short for
+            <span data-src="nodes/PairNode/tiltring/lattice.go#AngleLength">angleLength</span>, the slots between
+            them the short way round, so never more than 12</p>
+          <p>the two slots have TWO arcs between them, one each way round, and L is the shorter —
+            that choice is what min is for. It is not wrap handling: a tilt is a state on the ring
+            and cannot leave it, so turning never does arithmetic at all</p>
+          <p>0 and 12 are where perpendicular stops and 6 is where parallel does; every other length —
+            acute below the quarter, obtuse above it — is ordinary to both, and gets turned over</p>
+          <p><b>the RULE does not read L.</b> It counts from the nearer END of the tilt line
+            (<span data-src="nodes/PairNode/tiltring/machine.go#NearerEndCount">nearerEndCount</span>), which is
+            under 12 by construction and remembers which end it came from — and that fold is why
+            perpendicular's two lengths here, 0 and 12, are ONE count of 0 to the code. L survives for
+            the one question about the two TILTS rather than the arrival: which mode the pair runs</p>
+          <p>integers, so exact — no dot product, no epsilon to tune</p>
+        </div>
+        <img class="math" src="../../diagrams/mathblocks/length/length.svg" style="width:396px"
+          alt="d = absolute value of t minus a. L, short for angleLength(t,a), = min(d, 24 - d) — the shorter of the two arcs.">
+      </div>
+
+      
+    </div>
+  </main>
+</body>
+
+</html>

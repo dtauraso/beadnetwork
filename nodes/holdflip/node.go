@@ -2,96 +2,51 @@ package holdflip
 
 import (
 	"context"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/clock"
+	"github.com/dtauraso/wirefold/nodes/nodeapi"
+	"github.com/dtauraso/wirefold/nodes/wire/inport"
 
-	"github.com/dtauraso/wirefold/nodes/Wiring"
+	Wiring "github.com/dtauraso/wirefold/nodes/Wiring/kindapi"
+	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
 	"github.com/dtauraso/wirefold/nodes/gatecommon"
 )
 
-// Node is a drain-to-latest flip node. It HOLDS one int value (the last
-// received input), initialized to noValue, and drives the FLIPPED value (1-held)
-// out continuously.
-//
-// Two goroutines split the two concerns so the held value (and its interior
-// bead) updates the INSTANT input arrives, with no one-output-drive lag:
-//   - The MAIN loop polls input non-blocking (PollRecv, one cycle-sleep per
-//     iteration), then drains any additional queued beads the same way to keep
-//     only the LATEST value. It calls g.Fire(), updates held (a plain field
-//     owned by this loop), and emits the interior bead when held changes.
-//   - A DRIVE goroutine continuously pulses 1-held to the output via
-//     gatecommon.DriveHeld (PlaceDriven + per-cycle StepOnce, sleeping one
-//     cycle between steps), so it self-paces at the wire rate and re-reads
-//     held each pulse — when held changes the next pulse carries the
-//     flipped new value.
-//
-// held is owned by the MAIN loop; the drive goroutine gets its own channel
-// (DriveHeldCh) that the main loop sends the latest held value on
-// (wire.SendLatestNonBlocking) whenever it changes — the same
-// per-goroutine-channel shape as DriveSpeedCh below.
 type Node struct {
 	Fire         func()
 	EmitGeometry func()
-	// EmitHeldBead, assigned by this kind's own builder, streams the held INPUT value
-	// as a SINGLE centered interior node-bead (present when held != noValue).
-	// Re-emitted at startup (held = noValue, empty interior) and whenever the held
-	// value changes.
+
 	EmitHeldBead func(held int)
-	// Clock is this node's OWN clock storage, assigned by this kind's own builder
-	// directly from the loader's origin (bare-field injection by exact type
-	// wire.Clock — see input.Node.Clock; ports no longer hand out a clock,
-	// per-goroutine-clock.md API demolition item 1). Update() Copies it once for
-	// its own loop, and passes the ORIGIN (not that copy) to the DRIVE goroutine
-	// below, which Copies independently at ITS OWN start.
-	Clock wire.Clock
-	// SpeedCh delivers a speed change to the MAIN loop's own clock copy;
-	// DriveSpeedCh does the same for the DRIVE goroutine's OWN independent
-	// copy (per-goroutine-clock.md "Delivery") — two separate clock-owning
-	// goroutines here need two separate channels. Seeded by
-	// this kind's own builder via a.SpeedCh(); nil on a test build with no
-	// loader.
+
+	Clock clock.Clock
+
 	SpeedCh      <-chan float64
 	DriveSpeedCh <-chan float64
-	In           *wire.In
+	In           *inport.In
 	Out          Wiring.DrivenOut
 }
 
 func (g *Node) Update(ctx context.Context) {
-	wire.TryEmit(g.EmitGeometry)
+	nodeapi.TryEmit(g.EmitGeometry)
 
-	// held is owned by this main loop; heldCh delivers it to the drive
-	// goroutine (buffered-1, latest-wins).
 	if g.EmitHeldBead != nil {
-		g.EmitHeldBead(gatecommon.NoValue) // startup: empty interior
+		g.EmitHeldBead(gatecommon.NoValue)
 	}
 	heldCh := make(chan int64, 1)
 
-	// DRIVE goroutine: continuously pulse the FLIPPED current held value to Out.
-	// Delegates to gatecommon.DriveHeld (shared with Pulse's identical-shaped
-	// drive goroutine; PlaceDriven + per-cycle StepOnce, sleeping one cycle
-	// between steps), so this self-paces at the wire rate. Draining heldCh each
-	// iteration means the next pulse after an input update carries the new
-	// flipped value. Stops on ctx cancel.
 	gatecommon.DriveHeld(ctx, g.Out, heldCh, func(h int64) int {
 		if h == gatecommon.NoValue {
-			return gatecommon.NoValue // no value yet; emit sentinel so wire doesn't carry garbage
+			return gatecommon.NoValue
 		}
 		return 1 - int(h)
 	}, g.Clock, g.DriveSpeedCh)
 
-	// MAIN loop frame: do activities (non-blocking input check, drain-to-latest,
-	// Fire/update held/emit interior bead), then sleep one human clock cycle,
-	// repeat. Sleeping one cycle per iteration (paced mode) keeps the loop off
-	// the CPU 99% of the time instead of spinning millions of times per human
-	// tick while there is nothing to receive.
 	var lastDisplayed int64 = gatecommon.NoValue
 	consume := func() {
 		v, ok := g.In.PollRecv()
 		if !ok {
 			return
 		}
-		// Drain-to-latest: consume any additional queued beads, keeping the last
-		// REAL value. A stray NoValue sentinel must not overwrite v (storing -1 would
-		// emit 1-(-1)=2) — mirrors gatecommon.drainLatestReal's NoValue guard.
+
 		for {
 			next, ok := g.In.PollRecv()
 			if !ok {
@@ -105,25 +60,21 @@ func (g *Node) Update(ctx context.Context) {
 			g.Fire()
 		}
 		newHeld := int64(v)
-		wire.SendLatestNonBlocking(heldCh, newHeld)
+		clock.SendLatestNonBlocking(heldCh, newHeld)
 		if newHeld != lastDisplayed && g.EmitHeldBead != nil {
 			g.EmitHeldBead(v)
 		}
 		lastDisplayed = newHeld
 	}
 
-	// Copy taken ONCE at this goroutine's start (Update IS the goroutine); the
-	// DRIVE goroutine above takes its own copy independently inside
-	// gatecommon.DriveHeld.
 	clk := g.Clock.Copy()
 
-	// Paced mode: do activities, sleep one human clock cycle, repeat.
 	for {
 		if ctx.Err() != nil {
 			return
 		}
 		consume()
-		wire.ApplySpeedNonBlocking(clk, g.SpeedCh)
+		clock.ApplySpeedNonBlocking(clk, g.SpeedCh)
 		if err := clk.SleepCycle(ctx); err != nil {
 			return
 		}
@@ -131,20 +82,13 @@ func (g *Node) Update(ctx context.Context) {
 }
 
 func init() {
-	// HoldFlip CONSTRUCTS ITSELF. Every assignment below was previously performed
-	// by Wiring.reflectBuild via reflection — see Time for the general note.
-	//
-	// Two independent clock-owning goroutines (the MAIN loop and the DRIVE
-	// goroutine inside gatecommon.DriveHeld) need two independent speed
-	// channels, so a.SpeedCh() is called twice — once per channel, each still
-	// exactly once — matching the retired injectSpeedChans, which allocated
-	// one channel per <-chan float64-typed field.
+
 	Wiring.RegisterBuilder("HoldFlip",
-		[]Wiring.PortSpec{
-			{Name: "In", Dir: Wiring.PortIn},
-			{Name: "Out", Dir: Wiring.PortOut},
+		[]portwiring.PortSpec{
+			{Name: "In", Dir: portwiring.PortIn},
+			{Name: "Out", Dir: portwiring.PortOut},
 		},
-		func(a Wiring.BuildArgs) (wire.Node, error) {
+		func(a Wiring.BuildArgs) (nodeapi.Node, error) {
 			n := &Node{}
 			n.Fire = a.Fire()
 			n.EmitHeldBead = a.EmitHeldBead()
@@ -152,13 +96,9 @@ func init() {
 			n.SpeedCh = a.SpeedCh()
 			n.DriveSpeedCh = a.SpeedCh()
 			n.In = a.In("In")
-			// DriveOut, not Out: Out is driven by its own gatecommon.DriveHeld
-			// goroutine, a SEPARATE goroutine from this node's own Update loop —
-			// see BuildArgs.DriveOut's doc comment and docs/interior-stream-
-			// framing.md.
+
 			n.Out = a.DriveOut("Out", 0)
-			// EmitGeometry stays nil deliberately — nodeMover/edgeMover emit the same
-			// geometry from their own goroutine start.
+
 			return n, nil
 		})
 }

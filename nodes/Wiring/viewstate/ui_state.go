@@ -1,0 +1,148 @@
+package viewstate
+
+import (
+	"fmt"
+	"math"
+	"os"
+
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom/camera"
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
+	"github.com/dtauraso/wirefold/nodes/Wiring/gesturefsm"
+	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
+	"github.com/dtauraso/wirefold/nodes/Wiring/selectionstate"
+	"github.com/dtauraso/wirefold/nodes/spatial"
+
+	T "github.com/dtauraso/wirefold/Trace"
+)
+
+type UIState struct {
+	EditRefused uint32
+
+	SceneEditable bool
+
+	SceneKinds uint32
+
+	SceneSphere polar.SceneSphere
+
+	ClockDivisor float64
+
+	HasDistanceGroups bool
+
+	VP gesturefsm.ViewpointState
+
+	OV OverlayState
+
+	Gest gesturefsm.GestureState
+
+	Sel selectionstate.SelectionState
+
+	LatchedNode string
+
+	LastDraggedNode string
+
+	Speed float64
+
+	LatticePoints int32
+
+	NodeRowFor func(id string) (int32, bool)
+
+	DistanceGroupLensFn func() (timeLen, inputLen, gateLen float32)
+
+	viewOut        viewClaimedStream
+	ViewBuildFrame ViewFrameBuilder
+	viewTick       uint32
+	viewClaimed    bool
+}
+
+func (ui *UIState) SetSelectionUI(sendMove func(id string, msg movemsg.Msg), sendEdgeSelect func(label string, on bool), node, edge string) {
+	prevNode := ui.Sel.Selected
+	prevEdge := ui.Sel.SelectedEdge
+	ui.Sel.Selected = node
+	ui.Sel.SelectedEdge = edge
+	if prevNode != "" && prevNode != node {
+		sendMove(prevNode, movemsg.Msg{Kind: movemsg.KindSelect, NodeID: prevNode, Bool: false})
+	}
+	if node != "" && node != prevNode {
+		sendMove(node, movemsg.Msg{Kind: movemsg.KindSelect, NodeID: node, Bool: true})
+	}
+	if prevEdge != "" && prevEdge != edge {
+		sendEdgeSelect(prevEdge, false)
+	}
+	if edge != "" && edge != prevEdge {
+		sendEdgeSelect(edge, true)
+	}
+	if node != "" && node != ui.LatchedNode {
+		prevLatched := ui.LatchedNode
+		ui.LatchedNode = node
+		if prevLatched != "" {
+			sendMove(prevLatched, movemsg.Msg{Kind: movemsg.KindLatched, NodeID: prevLatched, Bool: false})
+		}
+		sendMove(node, movemsg.Msg{Kind: movemsg.KindLatched, NodeID: node, Bool: true})
+	}
+}
+
+func (ui *UIState) DropPointFromNDC(ndcX, ndcY float64) (spatial.Vec3, bool) {
+	vp := ui.VP.Viewpoint
+	eye := camera.EyeOf(vp)
+	basis := camera.BasisFromViewpoint(vp.Pos, vp.Up)
+	dir := camera.RayDirThroughNDC(ndcX, ndcY, basis, ui.Gest.Fov, ui.Gest.Rect.Aspect())
+	forward := basis.Pole.Scale(-1)
+	denom := dir.Dot(forward)
+	if denom == 0 {
+		return spatial.Vec3{}, false
+	}
+	t := ui.SceneSphere.Center.Sub(eye).Dot(forward) / denom
+	hit := eye.Add(dir.Scale(t))
+	if math.IsNaN(hit.X) || math.IsInf(hit.X, 0) {
+		return spatial.Vec3{}, false
+	}
+	return hit, true
+}
+
+func (ui *UIState) SetHoverUI(sendMove func(id string, msg movemsg.Msg), node, port string, isInput bool) {
+	prevNode := ui.Sel.HoverNode
+	ui.Sel.HoverNode, ui.Sel.HoverPort, ui.Sel.HoverInput = node, port, isInput
+	if prevNode != "" && prevNode != node {
+		sendMove(prevNode, movemsg.Msg{Kind: movemsg.KindHover, NodeID: prevNode, Bool: false})
+	}
+	if node != "" {
+		sendMove(node, movemsg.Msg{Kind: movemsg.KindHover, NodeID: node, Bool: true, Port: port, IsInput: isInput})
+	}
+}
+
+func (ui *UIState) DragPlaneHit(ev inputcodec.RawInputMsg) (hit spatial.Vec3, ok bool) {
+	g := &ui.Gest
+	vp := ui.VP.Viewpoint
+	eye := camera.EyeOf(vp)
+	basis := camera.BasisFromViewpoint(vp.Pos, vp.Up)
+	nx, ny := g.PixelToNDC(ev.X, ev.Y)
+	dir := camera.RayDirThroughNDC(nx, ny, basis, ev.Fov, g.Rect.Aspect())
+	forward := basis.Pole.Scale(-1)
+	denom := dir.Dot(forward)
+	if denom == 0 {
+		return spatial.Vec3{}, false
+	}
+	t := g.DragStartCenter.Sub(eye).Dot(forward) / denom
+	hit = eye.Add(dir.Scale(t))
+	if math.IsNaN(hit.X) || math.IsInf(hit.X, 0) {
+		return spatial.Vec3{}, false
+	}
+	return hit, true
+}
+
+func (ui *UIState) OrbitViewpoint(from, to camera.Dir, tr *T.Trace) {
+	ui.VP.OrbitViewpoint(from, to, tr)
+}
+func (ui *UIState) OrbitLockedViewpoint(from, to camera.Dir, tr *T.Trace) {
+	ui.VP.OrbitLockedViewpoint(from, to, tr)
+}
+func (ui *UIState) ZoomViewpoint(factor float64, tr *T.Trace) {
+	ui.VP.ZoomViewpoint(factor, tr)
+}
+
+func (ui *UIState) RefuseStructuralEdit(why string) {
+	fmt.Fprintf(os.Stderr, "structural edit refused: %s\n", why)
+
+	ui.EditRefused++
+}

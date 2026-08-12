@@ -17,6 +17,7 @@ systemNow          # tick = floor((systemNow - start) * scale)
 remainingTicks     # remainingTicks = (1-t)*newArc/pulseSpeed
 liveStart          # lerp(liveStart, liveEnd, t)
 liveEnd            # lerp(liveStart, liveEnd, t)
+scenePolar         # World = sceneCenter + polar2cart(scenePolar) — the (r,theta,phi) tuple, never a declared symbol itself
 
 # ---- pseudo-code placeholders ------------------------------------------------------------
 ArrayUnion         # schema/types.ts: `const _ : MustEqual<Union, ArrayUnion> = true` example

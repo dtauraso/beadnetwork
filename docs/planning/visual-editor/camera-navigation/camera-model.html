@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3D Camera Navigation — Camera model</title>
+<link rel="stylesheet" href="index.css">
+<link rel="stylesheet" href="diagrams.css">
+</head>
+<body>
+<div class="page">
+  <header>
+    <h1>3D Camera Navigation</h1>
+    <div class="meta">branch: task/camera-nav-doc &nbsp;·&nbsp; tools/topology-vscode/src/webview/three/ — editor camera controls</div>
+  </header>
+
+  <nav>
+    <a class="tab-btn" href="index.html">Controls</a>
+    <a class="tab-btn active" href="camera-model.html">Camera model</a>
+    <a class="tab-btn" href="motions.html">Motions</a>
+    <a class="tab-btn" href="fit-persistence.html">Fit &amp; persistence</a>
+    <a class="tab-btn" href="design.html">Design</a>
+  </nav>
+
+  <div id="camera-model" class="panel active">
+    <h2>PerspectiveCamera parameters</h2>
+    <table>
+      <thead>
+        <tr><th>Parameter</th><th>Value</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Type</td><td><code>THREE.PerspectiveCamera</code></td><td>Created in <code>ThreeView.tsx</code></td></tr>
+        <tr><td><code>fov</code></td><td>50°</td><td>Vertical field of view</td></tr>
+        <tr><td><code>near</code></td><td>0.1</td><td>Near clip plane</td></tr>
+        <tr><td><code>far</code></td><td>20 000</td><td>Far clip plane</td></tr>
+        <tr><td>Initial position</td><td>[0, 0, 500]</td><td>Overridden on load by saved camera or auto-fit</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Camera3D state</h2>
+    <div class="card">
+      <p>Stored in <code>viewer/types.ts</code>:</p>
+      <div class="eq-block">
+        <span class="eq-line">Camera3D = {"{"}  position: [x, y, z],  quaternion: [x, y, z, w]  {"}"}</span>
+      </div>
+      <p class="note" style="margin:0">Six degrees of freedom captured as position + unit quaternion. No Euler angles — quaternion composition avoids gimbal lock during arcball rotation.</p>
+      <p style="margin:0.8rem 0 0">In addition to the persisted pose, the camera carries a <strong>persistent target</strong> — a maintained look-at / pivot point that is <strong>finite at all times</strong>. Orbit, pan, and dolly are defined purely from <strong>(pose, target)</strong>, which makes them <strong>total</strong> operations: no grazing / edge-on singularity is reachable. The target is set to the selected node when one is selected; otherwise it is seeded (when uninitialized) by projecting the scene center onto the camera's forward ray — a scene-depth point along the view direction.</p>
+      <p class="note" style="margin:0.6rem 0 0">The target is <strong>runtime-only</strong> for now — <em>not</em> yet persisted to <code>scene.json</code>; it is re-seeded on load.</p>
+    </div>
+
+    <h2>Arcball pivot diagram</h2>
+    <div class="diagram">
+      <svg width="540" height="300" viewBox="0 0 540 300" fill="none"
+           xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Arcball pivot: camera arcs around pivot on world-fixed X and Y axes">
+
+        <line x1="270" y1="260" x2="270" y2="40" stroke="currentColor" stroke-width="1.2" stroke-dasharray="5,4" opacity="0.4"/>
+        <polygon points="270,36 265,48 275,48" fill="currentColor" opacity="0.4"/>
+        <text x="278" y="46" font-size="11" fill="currentColor" opacity="0.6" font-family="inherit">World Y</text>
+
+        <line x1="80" y1="200" x2="460" y2="200" stroke="currentColor" stroke-width="1.2" stroke-dasharray="5,4" opacity="0.4"/>
+        <polygon points="464,200 452,195 452,205" fill="currentColor" opacity="0.4"/>
+        <text x="462" y="216" font-size="11" fill="currentColor" opacity="0.6" font-family="inherit">World X</text>
+
+        <circle cx="270" cy="200" r="6" fill="var(--accent)" opacity="0.9"/>
+        <text x="280" y="196" font-size="10.5" font-weight="600" fill="var(--accent)" font-family="inherit">target</text>
+        <text x="280" y="210" font-size="9" fill="var(--text-muted)" font-family="inherit">(selection or seeded scene-depth point)</text>
+
+        <path d="M 165,200 A 105,105 0 0 1 375,200" stroke="var(--accent)" stroke-width="2" stroke-dasharray="6,3" fill="none" opacity="0.6"/>
+        <rect x="150" y="187" width="22" height="16" rx="3" stroke="var(--accent)" stroke-width="1.8" fill="var(--card-bg)"/>
+        <polygon points="172,191 180,187 180,203 172,199" stroke="var(--accent)" stroke-width="1.5" fill="var(--card-bg)"/>
+        <text x="115" y="183" font-size="9.5" fill="var(--text-muted)" font-family="inherit" text-anchor="middle">cam start</text>
+
+        <rect x="368" y="187" width="22" height="16" rx="3" stroke="var(--accent)" stroke-width="1.8" fill="var(--card-bg)"/>
+        <polygon points="390,191 398,187 398,203 390,199" stroke="var(--accent)" stroke-width="1.5" fill="var(--card-bg)"/>
+        <text x="408" y="183" font-size="9.5" fill="var(--text-muted)" font-family="inherit" text-anchor="middle">cam end</text>
+
+        <text x="270" y="148" text-anchor="middle" font-size="10.5" fill="var(--accent)" font-family="inherit">horizontal drag → rotate about World Y</text>
+
+        <path d="M 270,95 A 105,105 0 0 1 270,200" stroke="#e65" stroke-width="2" stroke-dasharray="6,3" fill="none" opacity="0.7"/>
+        <rect x="259" y="80" width="22" height="16" rx="3" stroke="#e65" stroke-width="1.8" fill="var(--card-bg)"/>
+        <polygon points="281,84 289,80 289,96 281,92" stroke="#e65" stroke-width="1.5" fill="var(--card-bg)"/>
+
+        <text x="370" y="148" font-size="10.5" fill="#e65" font-family="inherit">vertical drag →</text>
+        <text x="370" y="162" font-size="10.5" fill="#e65" font-family="inherit">rotate about World X</text>
+
+        <text x="270" y="282" text-anchor="middle" font-size="9.5" fill="var(--text-muted)" font-family="inherit">ROT_SPEED = 0.005 rad/px — target fixed for entire gesture</text>
+      </svg>
+      <div class="diagram-caption">
+        Arcball model — camera orbits around the persistent target on world-fixed X/Y axes.
+        The target is the selected node's world position, or a seeded scene-depth point along the view direction when nothing is selected.
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

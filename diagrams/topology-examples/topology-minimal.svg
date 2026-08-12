@@ -19,25 +19,17 @@
 
   <rect width="280" height="300" fill="#fafafa" rx="4"/>
 
-  <!-- ========================================= -->
-  <!-- === VERTICAL (top, rotated CCW 90deg) === -->
-  <!-- ========================================= -->
-
-  <!-- p1 -->
   <circle cx="133" cy="48" r="8" fill="#e8f5e9" stroke="#2e7d32" stroke-width="1.5"/>
   <text x="133" y="51" text-anchor="middle" font-size="6" fill="#2e7d32">p1</text>
 
-  <!-- e2, e3 -->
   <circle cx="158" cy="105" r="5" fill="#ffebee" stroke="#c62828" stroke-width="1"/>
   <text x="158" y="107" text-anchor="middle" font-size="5" fill="#c62828">e2</text>
   <circle cx="158" cy="45" r="5" fill="#e3f2fd" stroke="#1565c0" stroke-width="1"/>
   <text x="158" y="47" text-anchor="middle" font-size="5" fill="#1565c0">e3</text>
 
-  <!-- in1 -->
   <circle cx="183" cy="155" r="5" fill="#e0e0e0" stroke="#666" stroke-width="1"/>
   <text x="183" y="157" text-anchor="middle" font-size="5" fill="#333">in1</text>
 
-  <!-- i3, gate, i4, gate, i5 -->
   <circle cx="183" cy="130" r="7" fill="#fff3e0" stroke="#e65100" stroke-width="1.5"/>
   <text x="183" y="132" text-anchor="middle" font-size="6" fill="#e65100">i3</text>
 
@@ -51,59 +43,39 @@
   <circle cx="183" cy="20" r="7" fill="#fff3e0" stroke="#e65100" stroke-width="1.5"/>
   <text x="183" y="22" text-anchor="middle" font-size="6" fill="#e65100">i5</text>
 
-  <!-- a1 (recognition AND, top) -->
   <circle cx="133" cy="75" r="4" fill="#e8eaf6" stroke="#283593" stroke-width="1"/>
   <text x="123" y="78" text-anchor="end" font-size="5" fill="#283593">a1</text>
 
-  <!-- in1 -> i3 -->
   <line x1="183" y1="150" x2="183" y2="139" stroke="#555" stroke-width="0.7" marker-end="url(#arr)"/>
-  <!-- i3 -> gate -> i4 -->
   <line x1="183" y1="123" x2="183" y2="108" stroke="#555" stroke-width="0.7" marker-end="url(#arr)"/>
   <line x1="183" y1="100" x2="183" y2="84" stroke="#555" stroke-width="0.7" marker-end="url(#arr)"/>
-  <!-- i4 -> gate -> i5 -->
   <line x1="183" y1="68" x2="183" y2="53" stroke="#555" stroke-width="0.7" marker-end="url(#arr)"/>
   <line x1="183" y1="45" x2="183" y2="29" stroke="#555" stroke-width="0.7" marker-end="url(#arr)"/>
 
-  <!-- i3 <-> e2 -->
   <line x1="176" y1="126" x2="161" y2="110" stroke="#2266aa" stroke-width="0.5"/>
   <line x1="159" y1="108" x2="176" y2="125" stroke="#2266aa" stroke-width="0.5"/>
-  <!-- i4 -> e2 -->
   <line x1="176" y1="80" x2="161" y2="110" stroke="#2266aa" stroke-width="0.5"/>
-  <!-- i4 <-> e3 -->
   <line x1="176" y1="70" x2="161" y2="50" stroke="#2266aa" stroke-width="0.5"/>
   <line x1="159" y1="48" x2="176" y2="70" stroke="#2266aa" stroke-width="0.5"/>
-  <!-- i5 -> e3 -->
   <line x1="176" y1="24" x2="161" y2="50" stroke="#2266aa" stroke-width="0.5"/>
 
-  <!-- e2 -> p1 -->
   <line x1="153" y1="102" x2="140" y2="55" stroke="#cc2222" stroke-width="0.8" marker-end="url(#arr-r)"/>
-  <!-- p1 -> i4 -->
   <line x1="141" y1="50" x2="174" y2="73" stroke="#228844" stroke-width="0.7" marker-end="url(#arr-g)"/>
-  <!-- i5 -> p1 -->
   <path d="M 176 22 C 148 22, 133 32, 133 38" fill="none" stroke="#e65100" stroke-width="0.7" marker-end="url(#arr-o)"/>
-  <!-- i4 -> a1, i5 -> a1 -->
   <line x1="176" y1="75" x2="139" y2="75" stroke="#283593" stroke-width="0.5" marker-end="url(#arr-i)"/>
   <line x1="176" y1="23" x2="136" y2="71" stroke="#283593" stroke-width="0.5" marker-end="url(#arr-i)"/>
 
-  <!-- ========================================= -->
-  <!-- === HORIZONTAL (bottom) ================= -->
-  <!-- ========================================= -->
-
-  <!-- p0 -->
   <circle cx="183" cy="195" r="8" fill="#e8f5e9" stroke="#2e7d32" stroke-width="1.5"/>
   <text x="183" y="198" text-anchor="middle" font-size="6" fill="#2e7d32">p0</text>
 
-  <!-- e0, e1 -->
   <circle cx="120" cy="220" r="5" fill="#ffebee" stroke="#c62828" stroke-width="1"/>
   <text x="120" y="222" text-anchor="middle" font-size="5" fill="#c62828">e0</text>
   <circle cx="185" cy="220" r="5" fill="#e3f2fd" stroke="#1565c0" stroke-width="1"/>
   <text x="185" y="222" text-anchor="middle" font-size="5" fill="#1565c0">e1</text>
 
-  <!-- in0 -->
   <circle cx="30" cy="245" r="5" fill="#e0e0e0" stroke="#666" stroke-width="1"/>
   <text x="30" y="247" text-anchor="middle" font-size="5" fill="#333">in0</text>
 
-  <!-- i0, gate, i1, gate, i2 -->
   <circle cx="65" cy="245" r="7" fill="#fff3e0" stroke="#e65100" stroke-width="1.5"/>
   <text x="65" y="247" text-anchor="middle" font-size="6" fill="#e65100">i0</text>
   <text x="65" y="260" text-anchor="middle" font-size="6" fill="#999">0</text>
@@ -120,37 +92,25 @@
   <text x="200" y="247" text-anchor="middle" font-size="6" fill="#e65100">i2</text>
   <text x="200" y="260" text-anchor="middle" font-size="6" fill="#999">1</text>
 
-  <!-- a0 (recognition AND, bottom) -->
   <circle cx="168" cy="275" r="4" fill="#e8eaf6" stroke="#283593" stroke-width="1"/>
   <text x="168" y="288" text-anchor="middle" font-size="5" fill="#283593">a0</text>
 
-  <!-- in0 -> i0 -->
   <line x1="35" y1="245" x2="56" y2="245" stroke="#555" stroke-width="0.7" marker-end="url(#arr)"/>
-  <!-- i0 -> gate -> i1 -->
   <line x1="72" y1="245" x2="103" y2="245" stroke="#555" stroke-width="0.7" marker-end="url(#arr)"/>
   <line x1="111" y1="245" x2="126" y2="245" stroke="#555" stroke-width="0.7" marker-end="url(#arr)"/>
-  <!-- i1 -> gate -> i2 -->
   <line x1="142" y1="245" x2="166" y2="245" stroke="#555" stroke-width="0.7" marker-end="url(#arr)"/>
   <line x1="174" y1="245" x2="191" y2="245" stroke="#555" stroke-width="0.7" marker-end="url(#arr)"/>
 
-  <!-- i0 <-> e0 -->
   <line x1="63" y1="238" x2="117" y2="226" stroke="#2266aa" stroke-width="0.5"/>
   <line x1="119" y1="224" x2="67" y2="238" stroke="#2266aa" stroke-width="0.5"/>
-  <!-- i1 -> e0 -->
   <line x1="130" y1="238" x2="124" y2="226" stroke="#2266aa" stroke-width="0.5"/>
-  <!-- i1 <-> e1 -->
   <line x1="140" y1="238" x2="182" y2="226" stroke="#2266aa" stroke-width="0.5"/>
   <line x1="184" y1="224" x2="142" y2="238" stroke="#2266aa" stroke-width="0.5"/>
-  <!-- i2 -> e1 -->
   <line x1="195" y1="238" x2="189" y2="226" stroke="#2266aa" stroke-width="0.5"/>
 
-  <!-- e0 -> p0 -->
   <line x1="125" y1="217" x2="175" y2="201" stroke="#cc2222" stroke-width="0.8" marker-end="url(#arr-r)"/>
-  <!-- p0 -> i1 -->
   <line x1="178" y1="203" x2="140" y2="236" stroke="#228844" stroke-width="0.7" marker-end="url(#arr-g)"/>
-  <!-- i2 -> p0 -->
   <path d="M 200 238 C 200 220, 195 205, 191 198" fill="none" stroke="#e65100" stroke-width="0.7" marker-end="url(#arr-o)"/>
-  <!-- i1 -> a0, i2 -> a0 -->
   <line x1="135" y1="252" x2="164" y2="271" stroke="#283593" stroke-width="0.5" marker-end="url(#arr-i)"/>
   <line x1="200" y1="252" x2="172" y2="271" stroke="#283593" stroke-width="0.5" marker-end="url(#arr-i)"/>
 </svg>

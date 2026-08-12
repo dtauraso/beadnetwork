@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="doc-status" content="historical">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Rotation — The Polar System for a Sphere</title>
+<link rel="stylesheet" href="index.css">
+</head>
+<body>
+<header>
+  <h1>The Polar System for a Sphere</h1>
+  <p>How <span class="kb">2D polar</span> <code>(r, θ)</code> grows into <span class="kp">3D spherical</span> <code>(r, θ, φ)</code> — and the parts that only exist in 3D.</p>
+</header>
+
+<ul class="tabs" role="navigation" aria-label="Polar-sphere pages">
+    <li><a href="index.html">2D polar</a></li>
+    <li><a href="3d.html">3D spherical</a></li>
+    <li><a href="diff.html">What 3D adds</a></li>
+    <li><a href="frame.html">The frame</a></li>
+    <li><a href="tri.html">The pan triangle</a></li>
+    <li><a href="cart.html">Cartesian pan</a></li>
+    <li><a href="mouse.html">Mouse as polar</a></li>
+    <li><a href="recenter.html">pan → recenter</a></li>
+    <li><a href="rot.html" class="current">Rotation</a></li>
+    <li><a href="zoom.html">Zoom</a></li>
+    <li><a href="plan.html">Plan</a></li>
+</ul>
+
+<section class="panel active" id="trot">
+  <div class="row">
+    <figure class="fig">
+      <svg id="svgRot" width="500" height="420"></svg>
+      <figcaption>Rotation = carry the grabbed point <span class="kr">P₀</span> to the cursor <span class="kr">P₁</span> along a great circle.</figcaption>
+    </figure>
+    <div class="prose">
+      <h2>Rotation: drag along a great circle</h2>
+      <p>An empty-space drag rotates the view. You <strong>grab</strong> the point <span class="kr">P₀</span> under the cursor on the sphere; dragging carries the cursor to <span class="kr">P₁</span>.</p>
+      <p>The view turns by the single <strong>great-circle</strong> move that carries <span class="kr">P₀</span> → <span class="kr">P₁</span> — the geodesic arc between the two points. The turn <strong>amount</strong> is that arc (the angle between them about the center).</p>
+      <p>In polar — <span class="kr">P₀</span> = (<span class="kb">θ₀</span>, <span class="kp">φ₀</span>), <span class="kr">P₁</span> = (<span class="kb">θ₁</span>, <span class="kp">φ₁</span>) about the pole. That is all it takes:</p>
+      <p>The rotation is just <strong>carry <code>(<span class="kb">θ₀</span>, <span class="kp">φ₀</span>) → (<span class="kb">θ₁</span>, <span class="kp">φ₁</span>)</code> along the great circle through them</strong>. The two angle pairs fully specify it — no extra quantity to supply, no axis to name, and no need to compute <em>how far</em> it turned (that arc is only a display readout; the rotation is built and applied straight from the two endpoints).</p>
+      <div class="note"><strong>No axis to pick, and no dome.</strong> The rotation is fixed by the two points and the great circle through them — there is no separate yaw/pitch/roll or sign to choose, so the wrong-axis bug can't be expressed. The cursor maps straight onto the sphere's surface (a point on the great circle), not onto a raised dome/hemisphere — so there is no in-dome vs off-dome seam.</div>
+    </div>
+  </div>
+</section>
+<script src="shared.js"></script>
+<script>
+// ---- rotation: drag P0 -> P1 along a great circle (pole = up, refX = horizontal) --
+(function(){
+  const svg=document.getElementById("svgRot"), cx=235, cy=205, R=150;
+  sphere(svg,cx,cy,R);
+  const cosY=Math.cos(YAW), sinY=Math.sin(YAW), cosT=Math.cos(TILT), sinT=Math.sin(TILT);
+  function projDir(d){ const x=d.x*cosY+d.z*sinY, z=-d.x*sinY+d.z*cosY, y=d.y; const y2=y*cosT-z*sinT, z2=y*sinT+z*cosT; return {x:cx+R*x,y:cy-R*y2,front:z2>=-0.02}; }
+  function slerp(a,b,t){ let dt=a.x*b.x+a.y*b.y+a.z*b.z; dt=Math.max(-1,Math.min(1,dt)); const O=Math.acos(dt); if(O<1e-6) return a; const s=Math.sin(O),u=Math.sin((1-t)*O)/s,v=Math.sin(t*O)/s; return {x:u*a.x+v*b.x,y:u*a.y+v*b.y,z:u*a.z+v*b.z}; }
+  // pole = up
+  const top=proj(0,0,cx,cy,R), bot=proj(0,Math.PI,cx,cy,R);
+  line(svg,cx,bot.y+18,cx,top.y-18,"#c79cff",2); label(svg,top.x+8,top.y-10,"pole (up)","#c79cff",12);
+  // refX = horizontal (the θ = 0 reference on the equator)
+  const refX=proj(0,Math.PI/2,cx,cy,R);
+  line(svg,cx,cy,refX.x,refX.y,"#57b6ff",1.6); dot(svg,refX.x,refX.y,"#57b6ff",4);
+  label(svg,refX.x-128,refX.y+18,"refX (horizontal)","#57b6ff",11);
+  // two well-separated points (opposite sides, clear of the pole)
+  const TH0=42*Math.PI/180, PH0=74*Math.PI/180, TH1=146*Math.PI/180, PH1=74*Math.PI/180;
+  const d0=dirOf(TH0,PH0), d1=dirOf(TH1,PH1), P0=projDir(d0), P1=projDir(d1);
+  line(svg,cx,cy,P0.x,P0.y,"#7a8398",1.5); line(svg,cx,cy,P1.x,P1.y,"#7a8398",1.5);
+  // φ arcs (pole → P, the polar angle of each point)
+  sphereCurve(svg,s=>projDir(dirOf(TH0,PH0*s)),48,cx,cy,R,"#c79cff",2);
+  sphereCurve(svg,s=>projDir(dirOf(TH1,PH1*s)),48,cx,cy,R,"#c79cff",2);
+  // great-circle arc P0 -> P1 (front solid, back dashed)
+  sphereCurve(svg,t=>projDir(slerp(d0,d1,t)),80,cx,cy,R,"#ff5566",3);
+  const pa=projDir(slerp(d0,d1,0.9)); arrow(svg,pa.x,pa.y,P1.x,P1.y,"#ff5566",3);
+  dot(svg,cx,cy,"#e7ecf5",4); dot(svg,P0.x,P0.y,"#ffcc44",6); dot(svg,P1.x,P1.y,"#ff5566",6);
+  const m0=projDir(dirOf(TH0,PH0*0.5)), m1=projDir(dirOf(TH1,PH1*0.5)), mc=projDir(slerp(d0,d1,0.5));
+  label(svg,m0.x+6,m0.y+2,"φ₀","#c79cff",12);
+  label(svg,m1.x-22,m1.y+2,"φ₁","#c79cff",12);
+  label(svg,mc.x-34,mc.y+44,"great circle","#ff5566",11);
+  label(svg,P0.x+10,P0.y+6,"P₀ (θ₀, φ₀)","#ffcc44",12);
+  label(svg,P1.x-120,P1.y+6,"P₁ (θ₁, φ₁)","#ff5566",12);
+  label(svg,cx-150,26,"carry (θ₀,φ₀) → (θ₁,φ₁) along the great circle","#9aa6c0",12);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pair node — Cases</title>
+  <link rel="stylesheet" href="../../pair-base.css">
+  <link rel="stylesheet" href="../../pair-layout.css">
+  <link rel="stylesheet" href="../../pair-typography.css">
+  <link rel="stylesheet" href="../../pair-panels.css">
+  <link rel="stylesheet" href="../../pair-diagrams.css">
+  <link rel="stylesheet" href="../../pair-diagrams-tables.css">
+  <script src="../../port.js"></script>
+  <script src="../../pair.js" defer></script>
+</head>
+
+<body>
+
+  <header>
+    <h1>Cases</h1>
+    <div class="sub">every case the one machine has — three modes, what each does at every count,
+      and the only four transitions between them</div>
+  </header>
+
+  <nav>
+    <a href="../../index.html">Index</a>
+    <a href="../../structure/anatomy.html">Anatomy</a>
+    <a href="../../structure/own.html">Ownership</a>
+    <a href="../../math/vectors/index.html">Vectors</a>
+    <a href="../../math/math/index.html">Math</a>
+    <a href="../../math/formulas/index.html">Formulas</a>
+    <a href="../../math/dots.html">Separation</a>
+    <a href="../../math/perpendicular/index.html">Perpendicular</a>
+    <a class="on" href="index.html">Cases</a>
+    <a href="../../structure/channels.html">Channels</a>
+    <a href="../../structure/cycle.html">Cycle</a>
+    <a href="../updates/index.html">Update rules</a>
+    <a href="../../math/arith/index.html">Arithmetic instead</a>
+  <a href="../code/index.html">In code</a>
+    <a href="../../structure/clock.html">Clock</a>
+    <a href="../../math/geometry.html">Geometry</a>
+    <a href="../asym.html">Asymmetry</a>
+  </nav>
+
+  <nav class="subnav" aria-label="Cases sections">
+    <a class="on" href="index.html">The case grid</a>
+    <a href="transitions.html">Transitions and edge cases</a>
+  </nav>
+
+  <main>
+
+    <div class="grid">
+
+      <div class="card wide">
+        <h2>The whole case space</h2>
+        <p>A node's tilt machine is ONE instance
+          (<span data-src="nodes/PairNode/tiltring/machine.go#Machine">tiltMachine</span>) whose entire state is
+          which mode it is in. So the cases are: three modes, each against every COUNT an arrival can
+          produce — the ring slots between the arrival and the NEARER END of this node's tilt line
+          (<span data-src="nodes/PairNode/tiltring/machine.go#NearerEndCount">nearerEndCount</span>). A node draws two
+          ends a half turn apart, so exactly one count is under a half turn, and that is the one. The grid
+          runs 0 to 11 on a 24-point ring, not 0 to 12: <var>c</var> lives on a ring of a HALF TURN, and 12
+          is 0 at the other end. Nothing else is a case: the turn never sees which mode is running, and there
+          is no fourth input.</p>
+        <svg width="700" height="252" viewBox="0 0 700 252">
+          <text x="150" y="26" class="lbl">count c — slots from the nearer end of the tilt line to the arrival</text>
+          <g class="lbl" text-anchor="middle">
+            <text x="176" y="46">0</text>
+            <text x="216" y="46">1</text>
+            <text x="256" y="46">2</text>
+            <text x="296" y="46">3</text>
+            <text x="336" y="46">4</text>
+            <text x="376" y="46">5</text>
+            <text x="416" y="46">6</text>
+            <text x="456" y="46">7</text>
+            <text x="496" y="46">8</text>
+            <text x="536" y="46">9</text>
+            <text x="576" y="46">10</text>
+            <text x="616" y="46">11</text>
+          </g>
+
+          <text x="150" y="80" text-anchor="end" class="lblm" fill="#9a9aa6">setting</text>
+          <g fill="#5fd68a">
+            <circle cx="176" cy="75" r="7" /><circle cx="216" cy="75" r="7" /><circle cx="256" cy="75" r="7" />
+            <circle cx="296" cy="75" r="7" /><circle cx="336" cy="75" r="7" /><circle cx="376" cy="75" r="7" />
+            <circle cx="416" cy="75" r="7" /><circle cx="456" cy="75" r="7" /><circle cx="496" cy="75" r="7" />
+            <circle cx="536" cy="75" r="7" /><circle cx="576" cy="75" r="7" /><circle cx="616" cy="75" r="7" />
+          </g>
+
+          <text x="150" y="130" text-anchor="end" class="lblm" fill="#e05fd8">perpendicular</text>
+          <circle cx="176" cy="125" r="7" fill="#5fd68a" />
+          <g fill="#4ea1ff" class="lblm" text-anchor="middle">
+            <text x="216" y="130">‹</text>
+            <text x="256" y="130">‹</text>
+            <text x="296" y="130">‹</text>
+            <text x="336" y="130">‹</text>
+            <text x="376" y="130">‹</text>
+          </g>
+          <g fill="#4ea1ff" class="lblm" text-anchor="middle">
+            <text x="416" y="130">›</text>
+            <text x="456" y="130">›</text>
+            <text x="496" y="130">›</text>
+            <text x="536" y="130">›</text>
+            <text x="576" y="130">›</text>
+            <text x="616" y="130">›</text>
+          </g>
+
+          <text x="150" y="180" text-anchor="end" class="lblm" fill="#f9a825">parallel</text>
+          <g fill="#4ea1ff" class="lblm" text-anchor="middle">
+            <text x="176" y="180">›</text>
+            <text x="216" y="180">›</text>
+            <text x="256" y="180">›</text>
+            <text x="296" y="180">›</text>
+            <text x="336" y="180">›</text>
+            <text x="376" y="180">›</text>
+          </g>
+          <circle cx="416" cy="175" r="7" fill="#5fd68a" />
+          <g fill="#4ea1ff" class="lblm" text-anchor="middle">
+            <text x="456" y="180">‹</text>
+            <text x="496" y="180">‹</text>
+            <text x="536" y="180">‹</text>
+            <text x="576" y="180">‹</text>
+            <text x="616" y="180">‹</text>
+          </g>
+
+          <text x="176" y="214" class="lbl">● settle — this c IS the count the mode stops at</text>
+          <text x="176" y="232" class="lbl">› turn up · ‹ turn down — one slot, on the end that was counted from</text>
+        </svg>
+        <div class="cap">Read a row and you have that mode entirely. SETTING stops at every count, which is
+          why a node being set up cannot be moved by an arrival. The other two stop at ONE count each and
+          turn straight over the other's — perpendicular walks through a quarter turn, parallel walks
+          through 0. Each row is a single run of ‹ and a single run of ›, because the rule is a single
+          comparison: is the stop within a quarter turn going up.</div>
+      </div>
+
+      <div class="card wide">
+        <h2>More</h2>
+        <p>The two ties, and which way they break: moved to
+          <a href="ties.html">Cases — the two ties</a>.</p>
+      </div>
+
+    </div>
+  </main>
+</body>
+
+</html>

@@ -1,0 +1,101 @@
+package nodeactor
+
+import (
+	"os"
+
+	T "github.com/dtauraso/wirefold/Trace"
+	"github.com/dtauraso/wirefold/nodes/Wiring/beadindex"
+	"github.com/dtauraso/wirefold/nodes/Wiring/edgegeom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
+	"github.com/dtauraso/wirefold/nodes/rowevent"
+	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
+)
+
+var chainAimTraceEnabled = os.Getenv("WIREFOLD_CHAIN_AIM_TRACE") == "1"
+
+func (m *NodeGeometry) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []int32, breadcrumbs []rowevent.RowEvent) {
+	outTargets := m.outs.OutTargets()
+	if len(outTargets) == 0 {
+		return nil, nil, nil, nil, nil, nil
+	}
+
+	var tick int64
+	if m.outs.HasOutWires() {
+		tick = m.clocks.Tick()
+	}
+	selfTorusR := nodegeom.NodeTorusOuterR(m.geom.Kind)
+
+	selfCenter := nodegeom.NodeWorldPos(m.geom)
+	for _, to := range outTargets {
+
+		targetCenter, haveTargetCenter := m.topo.PartnerCenters()[to]
+		if !haveTargetCenter {
+			continue
+		}
+		edgeOX, edgeOY, edgeOZ, edgeLit, edgeLitVal, breadcrumb, ok := m.chainBeadsForTarget(to, tick, selfTorusR, selfCenter, targetCenter)
+		if !ok {
+			continue
+		}
+		ox = append(ox, edgeOX...)
+		oy = append(oy, edgeOY...)
+		oz = append(oz, edgeOZ...)
+		lit = append(lit, edgeLit...)
+		litVal = append(litVal, edgeLitVal...)
+		if breadcrumb != nil {
+			breadcrumbs = append(breadcrumbs, *breadcrumb)
+		}
+	}
+	return ox, oy, oz, lit, litVal, breadcrumbs
+}
+
+func (m *NodeGeometry) chainBeadsForTarget(to string, tick int64, selfTorusR float64, selfCenter, targetCenter vec3) (ox, oy, oz []float32, lit []uint8, litVal []int32, breadcrumb *rowevent.RowEvent, ok bool) {
+
+	dist, liveDir, count, geomOK := beadindex.ChainEdgeGeometry(selfCenter, targetCenter, selfTorusR, m.geom.Kind, m.topo.NeighborKind(to))
+	if !geomOK {
+		return nil, nil, nil, nil, nil, nil, false
+	}
+
+	m.outs.PublishStepCount(to, count)
+
+	pulses := m.outs.GatherPulses(to, tick)
+
+	breadcrumb = m.chainAimBreadcrumb(to, count, dist, liveDir)
+
+	step := lattice.BeadStepR
+	base := selfTorusR + lattice.BeadTorusOuterR
+	offsetAt := func(i int) float64 {
+		return beadindex.BeadPlacementOffset(base, step, i)
+	}
+
+	aimUnit := liveDir
+
+	var chainSep vec3
+	if m.topo.IsMutualTarget(to) {
+		if off, sepOK := edgegeom.ParallelChainOffset(m.id, to, selfCenter, targetCenter, m.geom.SceneCenter); sepOK {
+			chainSep = off
+		}
+	}
+
+	actorChain := m.beads.ReconcileBeadChain(to, count, offsetAt, aimUnit)
+	resolved, resolvedValid := actorChain.Resolved()
+
+	ox, oy, oz, lit, litVal = beadindex.ChainBeadRows(liveDir, chainSep, base, step, count, resolved, resolvedValid, pulses)
+	return ox, oy, oz, lit, litVal, breadcrumb, true
+}
+
+func (m *NodeGeometry) chainAimBreadcrumb(to string, count int, dist float64, liveDir vec3) *rowevent.RowEvent {
+	if m.tr == nil || !chainAimTraceEnabled {
+		return nil
+	}
+	targetRow := int32(-1)
+	if r, ok := m.topo.NodeRowFor(to); ok {
+		targetRow = r
+	}
+	value := beadindex.ChainAimBreadcrumbText(to, count, dist, liveDir)
+	m.tr.Breadcrumb("chain-aim", m.id, to, value)
+	return &rowevent.RowEvent{
+		Kind: T.KindBreadcrumb, Label: T.BreadcrumbChainAim, Debug: 1,
+		NodeRow: m.stream.NodeRow(), PortRow: -1, TargetRow: targetRow, TargetPortRow: -1,
+		EdgeRow: -1, Slot: -1, Text: value,
+	}
+}

@@ -27,7 +27,7 @@ const webview = {
   format: "iife",
   jsx: "automatic",
   loader: { ".css": "css" },
-  // Bundled CSS is emitted alongside as out/webview.css automatically.
+
 };
 
 if (watch) {

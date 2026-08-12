@@ -1,0 +1,51 @@
+package outport
+
+import "github.com/dtauraso/wirefold/nodes/spatial"
+
+func drainStepsNonBlocking(ch chan int, cur *int) {
+	select {
+	case v := <-ch:
+		*cur = v
+	default:
+	}
+}
+
+func sendIntNonBlocking(ch chan int, v int) {
+	select {
+	case ch <- v:
+		return
+	default:
+	}
+	select {
+	case <-ch:
+	default:
+	}
+	select {
+	case ch <- v:
+	default:
+	}
+}
+
+func drainSegNonBlocking(ch chan spatial.WireSegment, start, end *spatial.Vec3) {
+	select {
+	case seg := <-ch:
+		*start, *end = seg.Start, seg.End
+	default:
+	}
+}
+
+func sendSegNonBlocking(ch chan spatial.WireSegment, seg spatial.WireSegment) {
+	select {
+	case ch <- seg:
+		return
+	default:
+	}
+	select {
+	case <-ch:
+	default:
+	}
+	select {
+	case ch <- seg:
+	default:
+	}
+}

@@ -4,7 +4,7 @@ paths:
   - "tools/topology-vscode/src/messages.ts"
   - "tools/topology-vscode/src/extension/handle-message.ts"
   - "tools/topology-vscode/src/runCommand.ts"
-  - "tools/topology-vscode/src/schema/input-layout.ts"
+  - "tools/topology-vscode/src/schema/input/input-layout-gen.ts"
 ---
 
 # Bridge surface — TS → Go vocabulary detail
@@ -15,7 +15,7 @@ carries the TS → Go vocabulary.
 **TS → Go** is framed binary records on stdin. Two shapes, and the distinction is the model:
 
 - **Addressed edits** — a single geometry-CRUD `edit` message whose sole op is `update`
-  (see `nodes/Wiring/stdin_reader.go` `applyEdit`, fenced by `EDIT_OPS_START`/
+  (see `nodes/Wiring/stdinreader/dispatch_edit.go` `applyEdit`, fenced by `EDIT_OPS_START`/
   `EDIT_OPS_END`, and `tools/topology-vscode/src/messages.ts` `EditMsg`): **`update` sets
   an ATTRIBUTE on a typed entity** (`kind` = node / edge / camera / overlays / scene) —
   there is no per-feature op. New *addressed* capability is a new entity kind or
@@ -47,18 +47,19 @@ buffer's row index alone — the loader/mover enforce `NodeId == row + 1` by con
 (`ROW ID = NODE ID - 1`, `.claude/rules/persistence-ownership.md`), so today the two always
 agree, but a bare row could never have been CONTRADICTED by the frame that carried it: a
 misrouted or permuted frame would render silently in the wrong place. `NodeId` closes that —
-`decodeNodeStreamFrame` (buffer-decode.ts) compares the frame's stated id against its
+`decodeNodeStreamFrame` (buffer-decode-node.ts) compares the frame's stated id against its
 arrival row and reports a mismatch loudly instead of trusting the row. (A test asserts the
 removed id/label/kind SIDECAR MESSAGE is rejected; a column inside the Node block is the
 same shape as `KindId`, not a second channel, and does not reintroduce one.)
 
 Full architecture (frame shape, stream inventory, synthetic frame tags) is canonical in
-MODEL.md's "Editor surface (TS)" section; see also `memory/feedback_no_single_writer_bridge.md`
-and `memory/feedback_per_goroutine_bridge.md`.
+MODEL.md's "Editor surface (TS)" section; see also `memory/feedback/architecture/bridge/feedback_no_single_writer_bridge.md`
+and `memory/feedback/architecture/bridge/feedback_per_goroutine_bridge.md`.
 
 ## Parity
 
-Keep all of it in parity across `messages.ts`, `stdin_reader.go`, and `handle-message.ts`
-(guards: `tools/check-edit-op-parity.sh`, `tools/check-message-kind-parity.sh`, and the
+Keep all of it in parity across `messages.ts`, the `nodes/Wiring` stdin reader/dispatch
+(`stdin_reader.go`'s `MSG_TYPES` fence, `dispatch_edit.go`'s edit tables), and `handle-message.ts`
+(guards: `tools/bridge/check-edit-op-parity.sh`, `tools/bridge/check-message-kind-parity.sh`, and the
 `INPUT_LAYOUT_FINGERPRINT` in `input_codec.go` /
-`tools/topology-vscode/src/schema/input-layout.ts`).
+`tools/topology-vscode/src/schema/input/input-layout-gen.ts`).

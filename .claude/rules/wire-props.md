@@ -7,12 +7,12 @@ paths:
 # Wire props — a tag alone does not reach the screen
 
 Wire props (`WireProps` from `tools/topology-vscode/src/schema/wire-defs.ts`, generated from
-`wire:"prop,..."` tags on `specEdge` in `nodes/Wiring/topo_spec.go`) are Go-owned edge
+`wire:"prop,..."` tags on `specEdge` in `nodes/Wiring/loadspec/topo_spec.go`) are Go-owned edge
 metadata from the spec JSON.
 
 Today the only prop is `label`, and it does **NOT** feed the render path: there is no
 per-edge drawn line at all any more (the source node's own chain of placeholder beads is
-the edge's visual, `docs/beads-are-the-edge.md`) — the Edge block's SX..EZ/Selected columns
+the edge's visual, `docs/bead-model/beads-are-the-edge.md`) — the Edge block's SX..EZ/Selected columns
 still stream, read only by the `.probe` debug decoder, not by anything that draws. `label`
 rides the Edge block's EdgeLabelOff/EdgeLabelLen columns solely for that same `.probe` log,
 never for drawing.
@@ -26,4 +26,4 @@ could not affect a single pixel; its only consumer was a test importing the sche
 not production code.)
 
 Pulse speed is uniform across all wires — reject per-wire `speed` props
-(`memory/feedback_uniform_pulse_speed.md`).
+(`memory/feedback/architecture/geometry/feedback_uniform_pulse_speed.md`).

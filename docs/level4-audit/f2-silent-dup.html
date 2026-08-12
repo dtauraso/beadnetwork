@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="doc-status" content="historical">
+<title>Level-4 Audit · wirefold — F2 · Silent Dup</title>
+<link rel="stylesheet" href="styles/base.css">
+<link rel="stylesheet" href="styles/layout.css">
+<link rel="stylesheet" href="styles/typography.css">
+<link rel="stylesheet" href="styles/panels.css">
+<link rel="stylesheet" href="styles/diagrams.css">
+</head>
+<body>
+
+<main>
+<nav class="crumbnav"><a href="index.html">index</a> — <a href="overview.html">Overview</a> · <a href="leverage-model.html">Leverage Model</a> · <a href="f1-stale-docs.html">F1 · Stale Docs</a> · <span class="crumb-here">F2 · Silent Dup</span> · <a href="f3-sendrule.html">F3 · SendRule</a> · <a href="whats-healthy.html">What's Healthy</a> · <a href="recommendations.html">Recommendations</a></nav>
+<section id="f2" class="active">
+
+  <h1>Finding 2 — Silent-Failure Duplication</h1>
+  <span class="badge MED">MED</span>
+  <p class="summary">Three verify-grep hotspots that fail silently when the codebase drifts — new node kinds produce wrong output, layout regressions are invisible, and trace exhaustiveness is unchecked.</p>
+
+  <div class="evidence">
+    <h3>Evidence</h3>
+    <p><strong>(a) node-override-text.ts — hand-repeated kind names</strong></p>
+    <p>File hand-repeats node-kind strings (<code>"Input"</code>, <code>"ChainInhibitor"</code>, …) and field keys (<code>raw["init"]</code>, <code>state.held</code>) in a <code>switch</code> statement. No codegen, not referenced in <code>check-generated.sh</code>. Adding or renaming a kind returns empty string with no error.</p>
+
+    <p style="margin-top:12px;"><strong>(b) Default node dims — duplicated across 7 files</strong></p>
+    <p>The values <code>110</code> (width) and <code>60</code> (height) appear across at least 7 TypeScript files with no named constant. A layout change requires grep-and-replace with no compile-time guard.</p>
+
+    <p style="margin-top:12px;"><strong>(c) Trace-event kinds — re-typed as string literals</strong></p>
+    <p>Trace kinds (<code>recv</code>, <code>fire</code>, <code>send</code>, <code>slot</code>, <code>done</code>) are generated into <code>trace-kinds.ts</code> (protected by check-generated.sh) but re-typed as raw string literals in <code>pump.ts</code> and <code>messages.ts</code> with no exhaustiveness check. A new kind added to the generator is silently missed.</p>
+  </div>
+
+  <div class="proposed">
+    <h3>Proposed solution</h3>
+    <p>Three independent fixes:</p>
+    <ul>
+      <li><strong>node-override-text.ts:</strong> drive the kind names and field keys from the generated <code>NODE_DEFS</code> instead of a hand-written switch, OR add the file to <code>check-generated.sh</code> coverage with an exhaustiveness assertion keyed on <code>NODE_DEFS</code>, so a missing/renamed kind becomes a compile/check error instead of an empty string.</li>
+      <li><strong>Default dims 110/60:</strong> extract a single exported <code>NODE_DIM_FALLBACK = { width: 110, height: 60 }</code> constant and import it in all 7 sites; delete the inline literals.</li>
+      <li><strong>Trace kinds:</strong> add a TS exhaustiveness check in <code>pump.ts</code> — a <code>switch</code> over the generated <code>TRACE_EVENT_KINDS</code> union with a <code>default: assertNever(kind)</code> — so adding a Go trace kind that isn't handled fails <code>tsc</code>.</li>
+      <li>Effort: small–medium.</li>
+    </ul>
+  </div>
+
+  <h2>Source-of-Truth Diagram</h2>
+  <svg width="640" height="200" viewBox="0 0 640 200" xmlns="http://www.w3.org/2000/svg">
+    <rect width="640" height="200" fill="#18181c" rx="8"/>
+
+    <rect x="20" y="70" width="140" height="60" rx="5" fill="#0a2018" stroke="#3db87a" stroke-width="1.5"/>
+    <text x="90" y="97" fill="#3db87a" font-size="12" text-anchor="middle" font-weight="bold">Source of Truth</text>
+    <text x="90" y="113" fill="#3db87a" font-size="11" text-anchor="middle">(codegen / schema)</text>
+
+    <line x1="162" y1="80" x2="240" y2="60" stroke="#3db87a" stroke-width="1.5" marker-end="url(#arrg)"/>
+    <rect x="242" y="38" width="160" height="44" rx="5" fill="#0a2018" stroke="#3db87a" stroke-width="1.5"/>
+    <text x="322" y="58" fill="#3db87a" font-size="12" text-anchor="middle">Generated ✓</text>
+    <text x="322" y="74" fill="#3db87a" font-size="11" text-anchor="middle">trace-kinds.ts (protected)</text>
+
+    <line x1="162" y1="120" x2="240" y2="140" stroke="#e05252" stroke-width="1.5" marker-end="url(#arrr)"/>
+    <rect x="242" y="118" width="160" height="44" rx="5" fill="#2a1010" stroke="#e05252" stroke-width="1.5"/>
+    <text x="322" y="138" fill="#e05252" font-size="12" text-anchor="middle">Hand-copied ✗</text>
+    <text x="322" y="154" fill="#e05252" font-size="11" text-anchor="middle">node-override-text.ts</text>
+
+    <line x1="404" y1="140" x2="480" y2="140" stroke="#e05252" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arrr)"/>
+    <rect x="482" y="118" width="140" height="44" rx="5" fill="#1a1010" stroke="#804040" stroke-width="1"/>
+    <text x="552" y="138" fill="#e05252" font-size="12" text-anchor="middle">Drift → silent</text>
+    <text x="552" y="154" fill="#e05252" font-size="11" text-anchor="middle">empty string, no error</text>
+
+    <defs>
+      <marker id="arrg" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+        <path d="M0,0 L0,6 L8,3 z" fill="#3db87a"/>
+      </marker>
+      <marker id="arrr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+        <path d="M0,0 L0,6 L8,3 z" fill="#e05252"/>
+      </marker>
+    </defs>
+  </svg>
+
+  <div class="leverage">
+    <strong>Leverage: MED.</strong> Hits when adding/renaming node kinds or changing layout. Each hit costs 1k–3k tokens of grep-to-diagnose. Drift likelihood is moderate — happens on feature work, not every session.
+  </div>
+
+  <footer>Level-4 audit · wirefold · 2026-06-01 · static, offline-openable</footer>
+
+</section>
+</main>
+
+</body>
+</html>
+

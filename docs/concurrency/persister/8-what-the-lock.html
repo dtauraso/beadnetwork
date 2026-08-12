@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>wirefold — debouncedPersister.mu, resolved — what the lock is actually doing — three separable jobs</title>
+<link rel="stylesheet" href="index.css">
+</head>
+<body>
+
+<header>
+  <div class="head-inner">
+    <p class="eyebrow">debouncedPersister.mu, resolved</p>
+    <h1>8 · what the lock is actually doing — three separable jobs</h1>
+    <nav class="crumbnav"><a href="index.html">debouncedPersister.mu — a deleted lock, recorded</a> — <a href="1-what-it-guards.html">what it guards — four fields, four methods</a> · <a href="2-what-debouncing-is.html">what debouncing is for — a drag is one write, not sixty</a> · <a href="2b-is-60.html">2b · is 60 writes/sec actually a problem? — nobody has shown it is</a> · <a href="3-the-two-parties.html">the two parties — and the second one is spawned, not chosen</a> · <a href="4-why-take-zeroes.html">why take() zeroes pending — the non-obvious reason the lock earns its keep</a> · <a href="5-five-instances-independent.html">five instances — independent, not one shared lock</a> · <a href="6-the-single-owner-candidate.html">the single-owner candidate</a> · <a href="7-measured-deleting-mu.html">measured: deleting mu is red, not clean</a> · <span class="crumb-here">what the lock is actually doing — three separable jobs</span></nav>
+  </div>
+</header>
+
+<div class="wrap">
+<div class="legend">
+  <span><i class="sw g"></i>goroutine</span>
+  <span><i class="sw s"></i>locked state</span>
+  <span><i class="sw q"></i>timer</span>
+  <span><i class="sw k"></i>safe / resolved</span>
+</div>
+
+<h2>8 · what the lock is actually doing — three separable jobs</h2>
+<p class="cap">"Guards four fields" is not one job. Each of <code>arm</code>'s and
+<code>take</code>'s three effects fails a different way if <code>mu</code> is deleted, and
+they do not all get fixed by the same replacement.</p>
+
+<div class="plate">
+<svg viewBox="0 0 860 330" role="img" aria-label="The lock does three separable jobs: keeps pending and has consistent, makes the AfterFunc-or-Reset timer decision atomic, and hands map ownership from scheduler to flusher by zeroing pending in take.">
+  <text class="tl" x="0" y="14">JOB 1 — TWO FIELDS, ONE INVARIANT</text>
+  <rect class="box" x="0" y="26" width="272" height="112" rx="6"/>
+  <text class="ts" x="12" y="46">arm sets pending AND has :77-78</text>
+  <text class="ts" x="12" y="62">take reads both, clears both :93-96</text>
+  <text class="tf" x="12" y="84">unlocked: timer goroutine could see</text>
+  <text class="tf" x="12" y="98">has==true with a half-written pending,</text>
+  <text class="tf" x="12" y="112">or the stale pending after has flips</text>
+  <text class="tf" x="12" y="126">for a NEWER value</text>
+
+  <text class="tl" x="294" y="14">JOB 2 — THE TIMER DECISION IS ATOMIC</text>
+  <rect class="box" x="294" y="26" width="272" height="112" rx="6"/>
+  <text class="ts" x="306" y="46">arm: timer==nil ? AfterFunc : Reset :79-83</text>
+  <text class="tf" x="306" y="68">two concurrent arms could both see nil —</text>
+  <text class="tf" x="306" y="82">two timers, one leaks, value written twice</text>
+  <text class="tf" x="306" y="104">stop() racing arm() could Reset a timer</text>
+  <text class="tf" x="306" y="118">just Stopped — a write survives shutdown</text>
+
+  <text class="tl" x="588" y="14">JOB 3 — OWNERSHIP HANDOFF (MAPS ONLY)</text>
+  <rect class="box" x="588" y="26" width="272" height="112" rx="6"/>
+  <text class="ts" x="600" y="46">take() zeroes pending :95</text>
+  <text class="tf" x="600" y="68">anchor / quantOffset are MAP-valued —</text>
+  <text class="tf" x="600" y="82">flush walks away with the only reference</text>
+  <text class="tf" x="600" y="102">unlocked: a schedule landing mid-take is a</text>
+  <text class="tf" x="600" y="116">concurrent map write — Go crashes, not</text>
+  <text class="tf" x="600" y="130">a wrong value</text>
+
+  <line x1="0" y1="164" x2="860" y2="164" stroke="var(--line)"/>
+  <text class="tq" x="0" y="184">THE CONSEQUENCE — WHY THIS SPLIT MATTERS FOR ANY REPLACEMENT</text>
+  <rect class="safe" x="0" y="196" width="860" height="118" rx="6"/>
+  <text class="ts" x="12" y="218">An owner-goroutine design gets jobs 1 and 2 for FREE — one goroutine touching pending/has/timer</text>
+  <text class="ts" x="12" y="234">makes both invariants structural, no lock needed.</text>
+  <text class="tw" x="12" y="260">But it only gets job 3 right if the VALUE SENT to the owner is already a snapshot the sender</text>
+  <text class="tw" x="12" y="276">will not touch again.</text>
+  <text class="ts" x="12" y="298">Send a live map to the owner and the concurrent-write bug does not go away — it just moves from</text>
+  <text class="ts" x="12" y="312">"inside the lock" to "across the channel send".</text>
+</svg>
+</div>
+
+<footer>
+  Verified against the tree on <span style="font-family:var(--mono)">task/mutex-debounced-persister</span>.
+  Line numbers drift — re-grep before trusting them. Companions:
+  <span style="font-family:var(--mono)">docs/concurrency/scene-persist/index.html</span>,
+  <span style="font-family:var(--mono)">docs/layout-holder-architecture.html</span>,
+  <span style="font-family:var(--mono)">docs/concurrency/mutex/index.html</span>,
+  <span style="font-family:var(--mono)">docs/concurrency/framings.md</span>.
+</footer>
+
+</div>
+
+</body>
+</html>
+
+</div>
+
+</body>
+</html>
+

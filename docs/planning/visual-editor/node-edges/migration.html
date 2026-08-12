@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Node Runs Its Own Outgoing Edges — Migration</title>
+<link rel="stylesheet" href="index.css">
+</head>
+<body>
+<div class="page">
+  <header>
+    <h1>Node Runs Its Own Outgoing Edges</h1>
+    <div class="meta">branch: task/node-runs-own-edges &nbsp;·&nbsp; docs/planning/visual-editor/node-edges/index.html</div>
+  </header>
+
+  <nav>
+    <a class="tab-btn" href="index.html">Model</a>
+    <a class="tab-btn" href="was.html">Was (train)</a>
+    <a class="tab-btn" href="target.html">Target</a>
+    <a class="tab-btn" href="invariants.html">Invariants</a>
+    <a class="tab-btn active" href="migration.html">Migration</a>
+    <a class="tab-btn" href="openq.html">Open Qs</a>
+  </nav>
+
+  <div id="migration" class="panel active">
+    <p class="note">Indicative shape, pending Open Questions. Not a commitment.</p>
+
+    <div class="card">
+      <h2>Node-by-node rollout &mdash; start with node 1</h2>
+      <p>
+        The conversion is incremental. Begin with <strong>node 1</strong> (the Input bootstrap node) and verify it in isolation before touching any other node.
+      </p>
+      <ul>
+        <li style="margin-bottom: 0.6rem;"><strong>Node 1 first.</strong> Convert node 1's emit path: one bead per fire, on a wire node 1 owns, advanced by node 1's own goroutine. No pacer goroutine. No walker goroutine.</li>
+        <li style="margin-bottom: 0.6rem;"><strong>Verify node 1 alone.</strong> Node 1 fires once and delivers exactly one bead on its owned wire. Confirm with <code>go test -race</code> and a headless trace showing one bead in, one bead delivered, no stall.</li>
+        <li style="margin-bottom: 0.6rem;"><strong>Proceed outward.</strong> Only after node 1 passes, repeat the same mechanical steps (below) for nodes 2, 3, 4, 5 in order &mdash; one at a time, verifying each before advancing.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>Mechanical steps &mdash; applied first to node 1, then repeated per node</h2>
+      <ol style="padding-left: 1.4rem;">
+        <li style="margin-bottom: 0.6rem;">Delete the train pacer (<code>runTrain</code>) and the per-bead walker goroutine launch; keep <code>inflight</code>/<code>delivered</code> slices.</li>
+        <li style="margin-bottom: 0.6rem;"><code>StartTrain</code> becomes "append one bead" &mdash; no goroutine launch, no train state.</li>
+        <li style="margin-bottom: 0.6rem;">Node run loop: <code>select</code> over {inputs that fire-and-append, earliest inflight head deadline}; on deadline move head <code>inflight&rarr;delivered</code>.</li>
+        <li style="margin-bottom: 0.6rem;">Remove <code>trainDurationMs</code>, <code>beadSpacingMs</code>, persistent re-send, and <code>Occupied</code>/back-pressure gating.</li>
+        <li style="margin-bottom: 0.6rem;">Decide seq's fate (Open Q1) before deleting <code>trainSeq</code>/<code>lastAcceptedSeq</code>.</li>
+        <li style="margin-bottom: 0.6rem;">Verify: <code>go build</code> + <code>go test -race</code>; headless trace: the converted node emits one bead per fire and delivers.</li>
+      </ol>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

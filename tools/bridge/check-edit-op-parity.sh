@@ -1,0 +1,122 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# PLACEMENT: nodes/Wiring/stdin_dispatch.go,tools/topology-vscode/src/messages.ts,tools/topology-vscode/src/schema/input/input-layout-gen.ts,tools/topology-vscode/src/webview/three/controls/flags/overlay-flags.ts | edit ops/update-kinds/overlay flags must stay listed identically on both sides of the bridge
+
+# Sentinel comments (X_START / X_END) bound each region so the greps cannot sweep in
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+
+GO_PKG_DIR="$REPO_ROOT/nodes/Wiring"
+go_fence_files() {
+  grep -rl --include='*.go' -E "^[[:space:]]*//[[:space:]]*$1[[:space:]]*$" "$GO_PKG_DIR" \
+    | grep -v '_test\.go$' || true
+}
+MESSAGES_TS="$REPO_ROOT/tools/topology-vscode/src/messages.ts"
+
+HANDLE_MSG="$REPO_ROOT/tools/topology-vscode/src/schema/input/input-layout-gen.ts"
+
+OVERLAY_FLAGS_TS="$REPO_ROOT/tools/topology-vscode/src/webview/three/controls/flags/overlay-flags.ts"
+
+for f in "$MESSAGES_TS" "$HANDLE_MSG" "$OVERLAY_FLAGS_TS"; do
+  if [[ ! -f "$f" ]]; then
+    echo "edit-op-parity: MISCONFIGURED — file not found: $f" >&2
+    exit 1
+  fi
+done
+if [[ ! -d "$GO_PKG_DIR" ]]; then
+  echo "edit-op-parity: MISCONFIGURED — dir not found: $GO_PKG_DIR" >&2
+  exit 1
+fi
+
+GO_OPS_FILES=$(go_fence_files EDIT_OPS_START)
+GO_KINDS_FILES=$(go_fence_files EDIT_UPDATE_KINDS_START)
+for pair in "GO_OPS_FILES:EDIT_OPS_START" "GO_KINDS_FILES:EDIT_UPDATE_KINDS_START"; do
+  var="${pair%%:*}"; marker="${pair#*:}"
+  if [[ -z "${!var}" ]]; then
+    echo "edit-op-parity: MISCONFIGURED — no non-test .go file under $GO_PKG_DIR carries the" >&2
+    echo "  $marker sentinel. The fenced table was renamed, deleted, or moved out of the" >&2
+    echo "  package; repoint this guard rather than letting it scan nothing." >&2
+    exit 1
+  fi
+done
+
+# switch is fenced by EDIT_OPS_START/END", which is exactly the style stdin_dispatch.go and
+
+between() {
+  local s="$1" e="$2"; shift 2
+  awk -v s="$s" -v e="$e" '
+    FNR==1 { p=0 }
+    $0 ~ "^[ \t]*(//|#)[ \t]*" s "[ \t]*$" { p=1; next }
+    $0 ~ "^[ \t]*(//|#)[ \t]*" e "[ \t]*$" { p=0 }
+    p
+  ' "$@"
+}
+
+quoted() { grep -aoE '"[^"]+"' | tr -d '"' | sort -u; }
+
+toplevel_case() { awk '/^\tcase "/ || /^\t"[^"]+":/'; }
+
+assert_nonempty() {
+  if [[ -z "$(printf '%s' "$1" | tr -d '[:space:]')" ]]; then
+    echo "edit-op-parity: EMPTY extracted set for '$2' — sentinel block missing/renamed; refusing vacuous parity pass" >&2
+    exit 1
+  fi
+}
+
+HITS=0
+report_diff() {
+  local missing_a="$1" a_name="$2" missing_b="$3" b_name="$4"
+  if [[ -n "$missing_a" ]]; then
+    while IFS= read -r v; do [[ -z "$v" ]] && continue
+      echo "  $v: present in $b_name but missing in $a_name"; HITS=$((HITS+1)); done <<< "$missing_a"
+  fi
+  if [[ -n "$missing_b" ]]; then
+    while IFS= read -r v; do [[ -z "$v" ]] && continue
+      echo "  $v: present in $a_name but missing in $b_name"; HITS=$((HITS+1)); done <<< "$missing_b"
+  fi
+}
+
+TS_OPS=$(between EDIT_MSG_START EDIT_MSG_END "$MESSAGES_TS" | grep -aoE 'op: "[^"]+"' | quoted) || true
+GO_OPS=$(between EDIT_OPS_START EDIT_OPS_END $GO_OPS_FILES | toplevel_case | quoted) || true
+assert_nonempty "$TS_OPS" "axis1 messages.ts ops"
+assert_nonempty "$GO_OPS" "axis1 nodes/Wiring ops"
+report_diff "$(comm -13 <(echo "$GO_OPS") <(echo "$TS_OPS"))" "nodes/Wiring ops" \
+            "$(comm -23 <(echo "$GO_OPS") <(echo "$TS_OPS"))" "messages.ts ops"
+
+TS_KINDS=$(between EDIT_MSG_START EDIT_MSG_END "$MESSAGES_TS" | grep -aoE 'kind: "[^"]+"' | quoted) || true
+GO_KINDS=$(between EDIT_UPDATE_KINDS_START EDIT_UPDATE_KINDS_END $GO_KINDS_FILES | toplevel_case | quoted) || true
+HM_KINDS=$(between EDIT_UPDATE_KINDS_START EDIT_UPDATE_KINDS_END "$HANDLE_MSG" | quoted) || true
+assert_nonempty "$TS_KINDS" "axis2 messages.ts update kinds"
+assert_nonempty "$GO_KINDS" "axis2 nodes/Wiring update kinds"
+assert_nonempty "$HM_KINDS" "axis2 handle-message.ts update kinds"
+report_diff "$(comm -13 <(echo "$GO_KINDS") <(echo "$TS_KINDS"))" "nodes/Wiring kinds" \
+            "$(comm -23 <(echo "$GO_KINDS") <(echo "$TS_KINDS"))" "messages.ts kinds"
+report_diff "$(comm -13 <(echo "$HM_KINDS") <(echo "$TS_KINDS"))" "handle-message.ts kinds" \
+            "$(comm -23 <(echo "$HM_KINDS") <(echo "$TS_KINDS"))" "messages.ts kinds"
+
+TS_FLAGS=$(between OVERLAY_FLAGS_START OVERLAY_FLAGS_END "$MESSAGES_TS" | quoted) || true
+assert_nonempty "$TS_FLAGS" "axis3 messages.ts overlay flags"
+
+RENDER_READS=$(grep -aoE 'readOverlay[A-Za-z]+\(v\)' "$OVERLAY_FLAGS_TS" | sort -u)
+
+RENDER_KEYS=$(awk '/OverlayFlagVals = \{/{p=1;next} p&&/^[[:space:]]*};/{p=0} p&&/^[[:space:]]*[a-zA-Z_]+:/{print}' "$OVERLAY_FLAGS_TS" | grep -aoE '^[[:space:]]*[a-zA-Z_]+:' | sort -u)
+assert_nonempty "$RENDER_READS" "axis3 overlay-flags.ts readOverlay* reads"
+assert_nonempty "$RENDER_KEYS" "axis3 overlay-flags.ts OverlayFlagVals keys"
+N_FLAGS=$(printf '%s\n' "$TS_FLAGS" | grep -c .)
+N_READS=$(printf '%s\n' "$RENDER_READS" | grep -c .)
+N_KEYS=$(printf '%s\n' "$RENDER_KEYS" | grep -c .)
+if [[ "$N_FLAGS" -ne "$N_READS" || "$N_FLAGS" -ne "$N_KEYS" ]]; then
+  echo "  overlay flag/renderer cardinality mismatch: OVERLAY_FLAG_NAMES=$N_FLAGS, overlay-flags reads=$N_READS, OverlayFlagVals keys=$N_KEYS"
+  echo "    (a flag was added/removed in messages.ts but not wired into overlay-flags.ts's renderer, or vice versa)"
+  HITS=$((HITS+1))
+fi
+
+if [[ $HITS -eq 0 ]]; then
+  echo "edit-op-parity: clean (ops + update kinds + overlay flags in parity)"
+  exit 0
+fi
+echo ""
+echo "edit-op-parity: $HITS divergence(s) found"
+exit 1

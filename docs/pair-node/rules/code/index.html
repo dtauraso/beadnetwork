@@ -1,0 +1,126 @@
+<meta charset="utf-8">
+<title>Pair node — in code</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../../pair-base.css">
+<link rel="stylesheet" href="../../pair-layout.css">
+<link rel="stylesheet" href="../../pair-typography.css">
+<link rel="stylesheet" href="../../pair-panels.css">
+<link rel="stylesheet" href="../../pair-diagrams.css">
+<link rel="stylesheet" href="../../pair-diagrams-tables.css">
+<script src="../../port.js"></script>
+<script src="../../pair.js" defer></script>
+
+<header>
+  <h1>In code</h1>
+  <div class="sub">the update rule as <code>machine.go</code> computes it — four numbers, one
+    comparison, and no mode anywhere in the rule</div>
+</header>
+
+<nav>
+  <a href="../../index.html">Index</a>
+  <a href="../../structure/anatomy.html">Anatomy</a>
+  <a href="../../structure/own.html">Ownership</a>
+  <a href="../../math/vectors/index.html">Vectors</a>
+  <a href="../../math/math/index.html">Math</a>
+  <a href="../../math/formulas/index.html">Formulas</a>
+  <a href="../../math/dots.html">Separation</a>
+  <a href="../../math/perpendicular/index.html">Perpendicular</a>
+  <a href="../cases/index.html">Cases</a>
+  <a href="../../structure/channels.html">Channels</a>
+  <a href="../../structure/cycle.html">Cycle</a>
+  <a href="../updates/index.html">Update rules</a>
+  <a href="../../math/arith/index.html">Arithmetic instead</a>
+  <a class="on" href="index.html">In code</a>
+  <a href="../../structure/clock.html">Clock</a>
+  <a href="../../math/geometry.html">Geometry</a>
+  <a href="../asym.html">Asymmetry</a>
+</nav>
+
+<main>
+  <section>
+    <h3 class="secname">The count, taken at the end the arrival is nearer</h3>
+
+    <div class="card wide">
+      <h2><span data-src="nodes/PairNode/tiltring/machine.go#NearerEndCount">nearerEndCount</span></h2>
+      <div class="cap"><span data-src="nodes/PairNode/machine.go">nodes/PairNode/machine.go</span></div>
+      <p class="eq step" data-src="nodes/PairNode/tiltring/machine.go#NearerEndCount"><span class="lhs"><var>u</var></span>=
+        (<var>t</var> − <var>a</var>) mod points</p>
+      <p class="eq step" data-src="nodes/PairNode/tiltring/machine.go#NearerEndCount"><span class="lhs"><var>u</var>
+          &lt; <var>h</var></span><var>c</var> = <var>u</var> <span class="note">the top is nearer</span></p>
+      <p class="eq step" data-src="nodes/PairNode/tiltring/machine.go#NearerEndCount"><span class="lhs"><var>u</var>
+          ≥ <var>h</var></span><var>c</var> = (<var>b</var> − <var>a</var>) mod points
+        <span class="note">the bottom is</span></p>
+      <p class="eq step dim"><span class="lhs">always</span>0 ≤ <var>c</var> &lt; <var>h</var></p>
+    </div>
+
+    <div class="card wide">
+      <h2>where <var>t</var>, <var>b</var> and <var>a</var> come from</h2>
+      <div class="cap"><span data-src="nodes/PairNode/ring.go">nodes/PairNode/ring.go</span> ·
+        <span data-src="nodes/PairNode/vectors.go">nodes/PairNode/vectors.go</span></div>
+      <p class="eq step" data-src="nodes/PairNode/tiltring/lattice.go#State"><span class="lhs wide"><var>b</var></span>=
+        t.opposite <span class="note">a link the ring resolved, not <var>t</var> + <var>h</var></span></p>
+      <p class="eq step" data-src="nodes/PairNode/vectors.go#outgoingVector"><span class="lhs wide"><var>a</var></span>=
+        the partner's t.quarter <span class="note">its normal, not its tilt</span></p>
+      <p class="eq step" data-src="nodes/PairNode/machine.go#machineForGap"><span class="lhs wide">the partner's
+          tilt</span>= a.quarter.opposite <span class="note">read once, to pick the mode</span></p>
+    </div>
+  </section>
+
+  <section>
+    <h3 class="secname">A mode, as the counts it stops at</h3>
+
+    <div class="card wide">
+      <h2><span data-src="nodes/PairNode/tiltring/machine.go#stoppingCounts">stoppingCounts</span></h2>
+      <div class="cap"><span data-src="nodes/PairNode/machine.go">nodes/PairNode/machine.go</span></div>
+      <p class="eq step perp" data-src="nodes/PairNode/tiltring/machine.go#stoppingCounts"><span class="lhs">perpendicular</span>stop
+        = 0</p>
+      <p class="eq step par" data-src="nodes/PairNode/tiltring/machine.go#stoppingCounts"><span class="lhs">parallel</span>stop
+        = <var>q</var></p>
+      <p class="eq step dim" data-src="nodes/PairNode/tiltring/machine.go#stoppingCounts"><span class="lhs">setting</span>anywhere
+        <span class="note">so it is settled wherever it stands</span></p>
+      <p class="eq step" data-src="nodes/PairNode/tiltring/machine.go#MachineFor"><span class="lhs">machineFor</span>panics
+        unless the mode has a row</p>
+    </div>
+
+    <div class="card wide">
+      <h2>which row — <span data-src="nodes/PairNode/machine.go#machineForGap">machineForGap</span></h2>
+      <div class="cap"><span data-src="nodes/PairNode/machine.go">nodes/PairNode/machine.go</span></div>
+      <p class="eq step" data-src="nodes/PairNode/machine.go#machineForGap"><span class="lhs">partner's tilt</span>=
+        <var>a</var>.quarter.opposite</p>
+      <p class="eq step" data-src="nodes/PairNode/tiltring/lattice.go#AngleLength"><span class="lhs"><var>G</var></span>=
+        angleLength(<var>t</var>, partner's tilt)</p>
+      <p class="eq step perp" data-src="nodes/PairNode/machine.go#machineForGap"><span class="lhs"><var>G</var>
+          = <var>q</var></span>perpendicular</p>
+      <p class="eq step par" data-src="nodes/PairNode/machine.go#machineForGap"><span class="lhs">otherwise</span>parallel</p>
+      <p class="eq step dim">the ONE place the gap between the two TILTS is measured, and the one
+        use of <span data-src="nodes/PairNode/tiltring/lattice.go#AngleLength">angleLength</span> left in the rule;
+        <span data-src="nodes/PairNode/machine.go#adoptMachine">adoptMachine</span> makes it stick until a
+        reset</p>
+    </div>
+  </section>
+
+  <section>
+    <h3 class="secname">The other two writes of the tilt, neither of them an arrival</h3>
+
+    <div class="card wide">
+      <h2>a click, and a change of lattice</h2>
+      <div class="cap"><span data-src="nodes/PairNode/edits.go">nodes/PairNode/edits.go</span> ·
+        <span data-src="nodes/PairNode/ring.go">nodes/PairNode/ring.go</span></div>
+      <p class="eq step" data-src="nodes/PairNode/edits.go#applyTiltEdit"><span class="lhs">applyTiltEdit</span>setTop(<var>t</var>.next)
+        or setTop(<var>t</var>.prev) <span class="note">one slot, no mode chosen, nothing sent</span></p>
+      <p class="eq step" data-src="nodes/PairNode/ring.go#adoptLattice"><span class="lhs">adoptLattice</span>setTop(seedState(idx))
+        on the new ring</p>
+      <p class="eq step dim">both go through setTop, so both ends move together here too</p>
+    </div>
+  </section>
+
+  <section>
+    <h3 class="secname">More</h3>
+    <div class="card wide">
+      <p>The two-questions comparison, <code>setTop</code>/<code>setBottom</code>, and what the
+        arithmetic page states that no file computes: moved to
+        <a href="settle-and-write.html">In code — settle, step, and write</a>.</p>
+    </div>
+  </section>
+
+</main>

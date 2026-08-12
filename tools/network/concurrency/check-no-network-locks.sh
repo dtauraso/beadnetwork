@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+
+# PLACEMENT: nodes/**/*.go | no sync.Mutex/RWMutex and no sync/atomic in the network: use ownership + message passing
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+cd "$REPO_ROOT"
+
+report="$(python3 - <<'PY'
+import os, re
+
+roots = ["nodes", "Buffer", "Trace"]
+mutex_pat  = re.compile(r'sync\.(Mutex|RWMutex)\b')
+atomic_pat = re.compile(r'\batomic\.')
+
+# Known atomic sites that predate the no-atomic rule — DEFECTS being removed, matched by the
+# trimmed code text of the line. This list may only shrink. Each is pending a redesign to
+# push-to-owned-copies / single-threaded ownership; see the branch descriptions.
+#
+# Empty as of the atomic #3 removal (node_mover.go's snap atomic.Pointer[centerSnap] —
+# redesigned to push-to-owned-copies: bucket-3/quantize reads now use nm.partnerCenters,
+# bucket-1/camera reads now use the dispatch goroutine's owned centerMirror). The network
+# is atomic-free.
+ALLOWED_ATOMIC = set()
+
+mutex_hits = []
+atomic_hits = []            # non-allowlisted atomic usage — forbidden
+seen_allowed = set()        # allowlisted atomic lines actually found (for rot-check)
+
+for root in roots:
+    if not os.path.isdir(root):
+        continue
+    for dp, _dn, fns in os.walk(root):
+        for fn in fns:
+            if not fn.endswith(".go") or fn.endswith("_test.go"):
+                continue
+            p = os.path.join(dp, fn)
+            with open(p, encoding="utf-8", errors="replace") as fh:
+                for i, line in enumerate(fh, 1):
+                    code = line.split("//", 1)[0]          # strip line comment (prose exempt)
+                    if mutex_pat.search(code):
+                        mutex_hits.append(f"{p}:{i}: {line.strip()}")
+                    if atomic_pat.search(code):
+                        trimmed = line.strip()
+                        if trimmed in ALLOWED_ATOMIC:
+                            seen_allowed.add(trimmed)
+                        else:
+                            atomic_hits.append(f"{p}:{i}: {trimmed}")
+
+out = []
+if mutex_hits:
+    out.append("MUTEX")
+    out += mutex_hits
+if atomic_hits:
+    out.append("ATOMIC")
+    out += atomic_hits
+stale = ALLOWED_ATOMIC - seen_allowed
+if stale:
+    out.append("STALE_ALLOW")
+    out += sorted(stale)
+print("\n".join(out))
+PY
+)"
+
+if [[ -z "$report" ]]; then
+  exit 0
+fi
+
+section=""
+fail=0
+while IFS= read -r line; do
+  case "$line" in
+    MUTEX)
+      echo "NETWORK MUTEX FORBIDDEN: sync.Mutex/RWMutex in the node network — the model is"
+      echo "ownership + message-passing, zero shared memory. Give the state one owning goroutine:"
+      fail=1; section=body; continue ;;
+    ATOMIC)
+      echo "NETWORK ATOMIC FORBIDDEN: a non-allowlisted atomic in the node network. An atomic here"
+      echo "is a shared-state DEFECT — a cross-goroutine read that should be a push-to-owned-copy."
+      echo "Do not add one; send the value to the goroutine that needs it and let it own its copy:"
+      fail=1; section=body; continue ;;
+    STALE_ALLOW)
+      echo "STALE ALLOWLIST: an ALLOWED_ATOMIC entry no longer exists — remove it (the list must"
+      echo "only shrink as these defects are eliminated):"
+      fail=1; section=body; continue ;;
+    *)
+      printf '  %s\n' "$line" ;;
+  esac
+done <<< "$report"
+
+exit $fail

@@ -1,17 +1,4 @@
 #!/usr/bin/env bash
-# next.sh — the live "what's next" view, derived from git (no hand-synced doc).
-#
-# Replaced the old handoff.md doc, which kept drifting
-# because it was a manually-updated cache of state that lives authoritatively in
-# git / memory / MODEL.md. This script DERIVES state instead of storing it:
-#
-#   - Open work  = the task/* branches, each with its one-line git branch
-#                  description (set via `git config branch.<name>.description`).
-#                  Merge + delete a branch and its item disappears on its own.
-#   - History    = `git log` (recent merges) + docs/planning/visual-editor/session-log.md
-#   - Doctrine   = MODEL.md, CLAUDE.md, memory/MEMORY.md (read those; not repeated here)
-#
-# A fresh session should: run this, then read MEMORY.md and MODEL.md.
 
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
@@ -47,7 +34,6 @@ echo "  - start a change: tools/new-task.sh <short-kebab-name> \"one-line descri
 echo "    (makes the branch and checks it out — plain branches in this one checkout)"
 echo "  - read memory/MEMORY.md (durable rules + project state)"
 echo "  - read MODEL.md before any Go-network / pump change"
-echo "  - friction log: docs/planning/visual-editor/session-log.md"
 echo "  - verify recipe: see CLAUDE.md Workflow — bash scripts/stop-checks.sh, clean == EMPTY stdout"
 echo "    (it ALWAYS exits 0 by design; \$? is not the signal)"
 echo

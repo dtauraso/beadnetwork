@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="doc-status" content="historical">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Verify — Go-Authoritative Clock — Wirefold Design Spec</title>
+<link rel="stylesheet" href="styles/base.css">
+<link rel="stylesheet" href="styles/layout.css">
+<link rel="stylesheet" href="styles/typography.css">
+<link rel="stylesheet" href="styles/tables.css">
+<link rel="stylesheet" href="styles/panels.css">
+<link rel="stylesheet" href="styles/diagrams.css">
+<link rel="stylesheet" href="styles/controls.css">
+</head>
+<body>
+<div class="container">
+  <div class="page-title">Wirefold — Design Spec</div>
+  <div class="page-subtitle">Go Backend / TS Frontend — Verify</div>
+
+  <ul class="tabs" role="navigation" aria-label="Go-Authoritative Clock pages">
+      <li><a href="index.html">The split</a></li>
+      <li><a href="goroutines/index.html">Goroutines</a></li>
+      <li><a href="ts-execution.html">TS</a></li>
+      <li><a href="bridge.html">The Bridge</a></li>
+      <li><a href="clock/index.html">Clock</a></li>
+      <li><a href="clock/playpause.html">Play/Pause</a></li>
+      <li><a href="ts-to-go/index.html">TS → Go</a></li>
+      <li><a href="plan.html">Plan</a></li>
+      <li><a href="verify.html" class="current">Verify</a></li>
+      <li><a href="tracking.html">Tracking</a></li>
+      <li><a href="inconsistencies.html">Inconsistencies</a></li>
+      <li><a href="todo.html">What's left</a></li>
+  </ul>
+
+  <div class="panel active" id="panel-verify" role="region">
+    <h2><button type="button" class="chk-btn heading-chk" aria-pressed="false" data-chk="verify:h2">☐</button>Verification and risks.</h2>
+
+    <div class="subheading"><button type="button" class="chk-btn heading-chk" aria-pressed="false" data-chk="verify:sub1">☐</button>How to test</div>
+    <p>Two surfaces: the live editor (every phase), and — new from Phase 1 — headless in-process <code style="font-family:var(--mono);font-size:11px;">go test</code> driven by a fake clock (deterministic). Signal: the headless cascade completes (today deadlocks at hop 1); the live editor shows pulses from Go's stream.</p>
+
+    <div class="cards" style="flex-direction:column;margin-bottom:1.5rem;">
+      <div class="card">
+        <h3><button type="button" class="chk-btn heading-chk" aria-pressed="false" data-chk="verify:card1">☐</button>Can it be tested in the editor?</h3>
+        <ul>
+          <li>Yes — at every phase. Load topology.json (click it → custom editor opens), Run, and watch pulses animate. The editor stays the integration test surface throughout.</li>
+          <li>From Phase 1: headless <span style="font-family:var(--mono);font-size:12px;color:var(--go-hue)">go test</span> / <span style="font-family:var(--mono);font-size:12px;color:var(--go-hue)">go run .</span> runs the cascade with no TS. Today it deadlocks after the first hop — "headless completes" is the proof Phase 1 worked.</li>
+          <li>Inspection tool both ways: the .probe breadcrumb logs (go.jsonl / ts.jsonl). Clear them, Run, read them to see Go deliveries firing on Go's clock and TS applying the stream.</li>
+        </ul>
+      </div>
+
+      <div>
+        <table class="spec-table" style="margin-top:0.5rem;">
+          <caption><button type="button" class="chk-btn heading-chk" aria-pressed="false" data-chk="verify:card2">☐</button>What shows it worked</caption>
+          <thead>
+            <tr>
+              <th>Phase</th>
+              <th>Success signal</th>
+              <th>How to verify</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1 · Clock</td>
+              <td>Headless <code>go test</code> / <code>go run .</code> completes full cascade with no editor (previously deadlocks)</td>
+              <td><code style="font-family:var(--mono);font-size:11px;">go test</code> (fake clock): the cascade completes headless (red today) and each delivery fires at exactly elapsed = <code style="font-family:var(--mono);font-size:11px;">inFlightTime</code>. Detach the renderer — Go keeps delivering.</td>
+            </tr>
+            <tr>
+              <td>2 · Position stream</td>
+              <td>Beads animate from Go's emitted positions; the stream matches a captured golden sequence; TS computes no positions</td>
+              <td><code style="font-family:var(--mono);font-size:11px;">go test</code> (fake clock): positions == eval(controlPoints, t), t monotonic, arrival at t=1, exact ~16ms cadence; assert against the golden sequence. Grep guard: <code style="font-family:var(--mono);font-size:11px;">PulseBead</code>/<code style="font-family:var(--mono);font-size:11px;">rfArcLength</code>/<code style="font-family:var(--mono);font-size:11px;">moveNode</code> math gone.</td>
+            </tr>
+            <tr>
+              <td>3 · Geometry</td>
+              <td>Drag a node — wire re-curves and in-flight bead re-derives remaining travel from Go's data</td>
+              <td><code style="font-family:var(--mono);font-size:11px;">go test</code>: a node-move edit in → recomputed control points/arc-length out; in-flight bead re-derives. Grep guard: TS geometry math removed. (Live-drag feel = manual smoke.)</td>
+            </tr>
+            <tr>
+              <td>4 · Shading</td>
+              <td>Appearance unchanged at parity; changing a shading parameter in Go's data is reflected on screen</td>
+              <td>Deterministic: grep — TS materials read Go-supplied params, not constants; <code style="font-family:var(--mono);font-size:11px;">go test</code> — shading params emitted. Pixel fidelity ('looks unchanged') stays a manual smoke-check — not deterministic.</td>
+            </tr>
+            <tr>
+              <td>5 · Bridge / CRUD</td>
+              <td><code>notifyDelivered</code> is gone; all parity/guard scripts pass; save/load through VS Code works end to end</td>
+              <td>grep confirms nothing sends <code>notifyDelivered</code>; run check-trace-kind-parity, check-message-kind-parity, check-no-ts-timers, check-slot-phase-boundary.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <h3><button type="button" class="chk-btn heading-chk" aria-pressed="false" data-chk="verify:card3">☐</button>Reference / regression</h3>
+        <ul>
+          <li>Capture a visual reference run before Phase 2 (a short recording or screenshots of a cascade) and compare after each phase for parity — motion should look identical; only the source of the motion changed.</li>
+          <li>Add the headless cascade Go test as a permanent regression: it locks in that the Go network runs without the editor and never silently re-couples to it.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="note" style="margin-bottom:1.5rem;"><button type="button" class="chk-btn heading-chk" aria-pressed="false" data-chk="verify:note1">☐</button>The litmus test for the whole effort: pull the editor away and Go still runs the network; reattach the editor and it draws exactly what Go is doing. If both hold, the clock and data truly moved to Go.</div>
+
+    <div class="cards" style="flex-direction:column;">
+      <div class="card">
+        <h3><button type="button" class="chk-btn heading-chk" aria-pressed="false" data-chk="verify:card4">☐</button>Green gate every phase</h3>
+        <ul>
+          <li><span style="font-family:var(--mono);font-size:12px;color:var(--go-hue)">go build ./...</span> and <span style="font-family:var(--mono);font-size:12px;color:var(--go-hue)">go test ./...</span></li>
+          <li>Webview <span style="font-family:var(--mono);font-size:12px;color:var(--ts-hue)">npx tsc --noEmit</span> and <span style="font-family:var(--mono);font-size:12px;color:var(--ts-hue)">npm run build</span></li>
+          <li>Guard scripts — check-trace-kind-parity, check-message-kind-parity, check-no-ts-timers, check-slot-phase-boundary</li>
+          <li>New deterministic guards to add: <code style="font-family:var(--mono);font-size:11px;">check-ts-computes-no-geometry</code> (Phases 2–3 — no position/curve/arc-length math in TS); and extend <code style="font-family:var(--mono);font-size:11px;">check-no-ts-timers</code> to also reject <code style="font-family:var(--mono);font-size:11px;">await</code> on the TS→Go send (Phase 5).</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3><button type="button" class="chk-btn heading-chk" aria-pressed="false" data-chk="verify:card5">☐</button>New milestones</h3>
+        <ul>
+          <li><strong>Phase 1</strong> — headless cascade run works (a Go test runs the network with no TS; previously impossible).</li>
+          <li><strong>Pause/resume</strong> — verify the paused accumulator preserves each bead's progress across resume (a bead 40% across stays 40%, no teleport).</li>
+          <li><strong>Delete-edge-mid-flight test, both states:</strong> send deleteEdge while PLAYING and while PAUSED. Assert: bead never arrives, edge + bead are gone, no stray delivery. Proves pause keeps inbound live and delete beats clock-delivery atomically.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3><button type="button" class="chk-btn heading-chk" aria-pressed="false" data-chk="verify:card6">☐</button>Risks to watch</h3>
+        <ul>
+          <li><strong>Bandwidth / busy stdout pipe:</strong> N beads × ~60/s over stdout — if the pipe fills, Go stalls and TS re-paces Go. Escape: emit-on-change deduplication (not a separate tick).</li>
+          <li><strong>Two arc-length implementations</strong> must agree until Phase 2 deletes the TS copy — until then a drift risk.</li>
+          <li><strong>Bead speed vs report rate:</strong> confirm the sleep never affects speed — speed stays pulseSpeed, arrival stays inFlightTime, the sleep only changes how many waypoints are shown.</li>
+          <li>Run an industry bug-class scan on the Phase 1–2 timing change before declaring it ready.</li>
+          <li><strong>Zustand store (no-op holder):</strong> once store.ts is stripped of authority, grep its consumers — structural rendering must read from Go's data, not a local model.</li>
+          <li><strong>Guard the TS→Go path against await/Promises:</strong> no <span style="font-family:var(--mono);font-size:12px;color:var(--ts-hue)">await</span> on a send-to-Go, no request/response. Consider extending the existing no-TS-timers guard to also reject awaiting the bridge. A blocking TS→Go call reintroduces event-loop coordination — the exact thing this avoids.</li>
+          <li><strong>deleteEdge rewrite:</strong> confirm the new path cancels clock-delivery atomically and emits the pulse-cancelled echo; grep old <span style="font-family:var(--mono);font-size:12px;color:var(--go-hue)">deleteEdge</span> call sites so nothing still relies on the Reset-only behavior. Removing the bespoke verb must not orphan any sender still using it.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="note" style="margin-top:1rem;">This plan stays a proposal until Phase 1 lands; MODEL.md remains current for existing code until then.</div>
+  
+  </div>
+</div>
+<script src="styles/script.js"></script>
+</body>
+</html>

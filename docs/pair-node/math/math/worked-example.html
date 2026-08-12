@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pair node — Math — Worked example &amp; sweep</title>
+  <link rel="stylesheet" href="../../pair-base.css">
+  <link rel="stylesheet" href="../../pair-layout.css">
+  <link rel="stylesheet" href="../../pair-typography.css">
+  <link rel="stylesheet" href="../../pair-panels.css">
+  <link rel="stylesheet" href="../../pair-diagrams.css">
+  <link rel="stylesheet" href="../../pair-diagrams-tables.css">
+  <script src="../../port.js"></script>
+  <script src="../../pair.js" defer></script>
+</head>
+
+<body>
+
+  <header>
+    <h1>Math — Worked example &amp; sweep</h1>
+    <div class="sub">a concrete three-round run, and every opening of the 24-point lattice swept</div>
+  </header>
+
+  <nav>
+    <a href="../../index.html">Index</a>
+    <a href="index.html">&larr; back to Math</a>
+  </nav>
+
+  <main>
+
+      <div class="grid">
+
+        <div class="card">
+          <h2>Three rounds, drawn</h2>
+          <svg width="440" height="170" viewBox="0 0 440 170">
+            <g stroke="#3a3a44" fill="none">
+              <circle cx="60" cy="70" r="30" />
+              <circle cx="170" cy="70" r="30" />
+              <circle cx="280" cy="70" r="30" />
+              <circle cx="390" cy="70" r="30" />
+            </g>
+
+            <g stroke="#e05fd8" stroke-width="3">
+              <line x1="60" y1="70" x2="60" y2="40" />
+              <line x1="170" y1="70" x2="170" y2="40" />
+              <line x1="280" y1="70" x2="287.8" y2="41" />
+              <line x1="390" y1="70" x2="397.8" y2="41" />
+            </g>
+            <g stroke="#4ea1ff" stroke-width="1.6">
+              <line x1="60" y1="70" x2="81.2" y2="48.8" />
+              <line x1="170" y1="70" x2="185" y2="44" />
+              <line x1="280" y1="70" x2="295" y2="44" />
+              <line x1="390" y1="70" x2="397.8" y2="41" />
+            </g>
+
+            <g class="lbl" text-anchor="middle" fill="#9a9aa6">
+              <text x="60" y="118">−5 · 5</text>
+              <text x="170" y="118">−5 · 6</text>
+              <text x="280" y="118">−6 · 6</text>
+              <text x="390" y="118">−6 · 6</text>
+            </g>
+
+            <g class="lblm" text-anchor="middle">
+              <text x="115" y="150" fill="#5fd68a">1 →</text>
+              <text x="225" y="150" fill="#4ea1ff">← 12</text>
+              <text x="335" y="150" fill="#5fd68a">0 →</text>
+            </g>
+            <text x="390" y="150" text-anchor="middle" class="lblm" fill="#ff6b6b">halt</text>
+          </svg>
+          <div class="legend">
+            <span><i style="background:#e05fd8"></i>node 1 top</span>
+            <span><i style="background:#4ea1ff"></i>node 2 top</span>
+          </div>
+          <div class="cap">This run's gap picked <a href="../perpendicular/index.html">perpendicular</a>, so it
+            halts at separation 0 — the other machine, running the same ring, would have walked past this
+            point to a quarter-turn separation instead.</div>
+        </div>
+
+        <div class="card wide">
+          <h2>Every opening, swept</h2>
+          <p>All 576 openings of a 24-point lattice — every starting tilt for node 1 against every
+            starting tilt for node 2 — run through the same decision functions the live node calls, in
+            the order its own loop calls them. The numbers below are produced by that sweep, not
+            estimated; re-derive and put the new output here after changing the rule.</p>
+          <table class="f">
+            <tr class="h">
+              <td>openings</td>
+              <td>machine chosen at START</td>
+              <td>where it settled</td>
+            </tr>
+            <tr>
+              <td class="e">48</td>
+              <td class="n">perpendicular — the two openings a quarter turn apart, for each of the 24
+                starting tilts</td>
+              <td class="n">the tilts a quarter turn apart</td>
+            </tr>
+            <tr>
+              <td class="e">264</td>
+              <td class="n">parallel</td>
+              <td class="n">the tilts on one line, pointing the SAME way</td>
+            </tr>
+            <tr>
+              <td class="e">264</td>
+              <td class="n">parallel</td>
+              <td class="n">the tilts on one line, pointing OPPOSITE ways</td>
+            </tr>
+          </table>
+          <p>Every one of the 576 settles, and none takes more than 4 rounds — a round being both ends
+            reading the other's last normal and stepping once.</p>
+          <p>Both of the last two rows ARE parallel — two arrows on one line are parallel whether or not
+            they point the same way, so reversing one changes nothing about the relationship. The rule
+            reads it that way without being told to: its halt is a separation of a quarter turn between
+            this node's top and the arrival, and
+            <span data-src="nodes/PairNode/tiltring/lattice.go#AngleLength">separation</span> folds the long way round
+            into the short one, so a reversed partner lands exactly where an aligned one does. The split
+            is listed here only because the arrows LOOK different in the editor.</p>
+        </div>
+
+      </div>
+  </main>
+</body>
+
+</html>

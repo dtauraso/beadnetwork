@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>wirefold — concurrency map — mutex pattern 4 · claimed multi-writer</title>
+<link rel="stylesheet" href="index.css">
+</head>
+<body>
+
+<header>
+  <div class="head-inner">
+    <p class="eyebrow">wirefold · go network</p>
+    <h1>Concurrency map — mutex pattern 4 · claimed multi-writer</h1>
+    <nav class="crumbnav"><a href="mutex-patterns.html">&larr; mutex patterns</a></nav>
+  </div>
+</header>
+
+<div class="wrap">
+<section class="panel" id="p-mutex-4" data-active>
+
+  <div class="plate">
+    <svg viewBox="0 690 860 100" role="img" aria-label="Claimed multi-writer: LayoutHolder.mu, refuted, now deleted. X never writes M's holder directly; X sends neighborSetC and M's own goroutine writes M's holder, single-owner like every other holder.">
+      <text class="d-tl" x="0" y="716">4 · CLAIMED MULTI-WRITER — LayoutHolder.mu, refuted, now deleted</text>
+      <rect class="d-group" x="0" y="696" width="860" height="86" rx="6"/>
+      <rect class="d-box-flow" x="18" y="716" width="150" height="28" rx="4"/>
+      <text class="d-ts" x="30" y="735">X: requantize…</text>
+      <line class="d-arrow-x" x1="170" y1="730" x2="270" y2="730"/>
+      <text class="d-ts" x="204" y="722">✕ never</text>
+      <rect class="d-box" x="274" y="716" width="150" height="28" rx="4"/>
+      <text class="d-ts" x="286" y="735">M's holder — no mutex</text>
+      <text class="d-ts" x="30" y="766">X sends neighborSetC → M's own goroutine writes M's holder</text>
+      <text class="d-ts" x="470" y="735">single-owner, like every other holder</text>
+    </svg>
+    <p class="plate-cap">verified by removing each guard and running go test -race</p>
+  </div>
+
+</section>
+</div>
+
+</body>
+</html>

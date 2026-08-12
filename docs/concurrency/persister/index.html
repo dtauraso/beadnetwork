@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>wirefold — debouncedPersister.mu, resolved</title>
+<link rel="stylesheet" href="index.css">
+<link rel="stylesheet" href="idx.css">
+</head>
+<body>
+
+<header>
+  <div class="head-inner">
+    <p class="eyebrow">wirefold · concurrency · RESOLVED</p>
+    <h1>debouncedPersister.mu — a deleted lock, recorded</h1>
+    <p class="sub">Every lock in this repo has now been deleted — <code>sceneFileMu</code> and
+    <code>entityFileMu</code> are both gone; LayoutHolder.mu was deleted too
+    (one owner goroutine per node, no lock needed) — LayoutHolder itself was later deleted
+    entirely along with the local-polar model it held (MODEL.md "the polar model"); and
+    <code>Trace.mu</code>, once thought to be the one lock that had to stay because it guarded
+    an accumulator that cannot be copied, was deleted too — that claim was true but was never
+    what the lock actually guarded in production (see
+    <code>docs/concurrency/trace-mutex/index.html</code>). This page records the debounced
+    persister's own lock (was <code>nodes/Wiring/scene_persist.go:64</code>, five instances),
+    the last one in question when this page was written. See
+    <code>docs/concurrency/mutex/index.html</code> for the whole-system view, now describing zero
+    live locks.</p>
+    <p class="verdict ok"><b>RESOLVED</b> — task/mutex-debounced-persister deleted the whole
+    generic type (the struct, its lock, the coalescing timer) rather than restructuring it:
+    the throughput case for debouncing (diagram 2b) never held up, and the analysis below is
+    kept as the record of why. Every domain persister's <code>schedule()</code> now writes
+    synchronously. The type/method names below (the struct itself, its timer field, its four
+    methods) no longer exist in code — read this page as history, not as a description of the
+    current tree.</p>
+  </div>
+</header>
+
+<div class="wrap">
+<ul class="idx-list">
+  <li><a href="1-what-it-guards.html">1 · what it guards — four fields, four methods</a></li>
+  <li><a href="2-what-debouncing-is.html">2 · what debouncing is for — a drag is one write, not sixty</a></li>
+  <li><a href="2b-is-60.html">2b · is 60 writes/sec actually a problem? — nobody has shown it is</a></li>
+  <li><a href="3-the-two-parties.html">3 · the two parties — and the second one is spawned, not chosen</a></li>
+  <li><a href="4-why-take-zeroes.html">4 · why take() zeroes pending — the non-obvious reason the lock earns its keep</a></li>
+  <li><a href="5-five-instances-independent.html">5 · five instances — independent, not one shared lock</a></li>
+  <li><a href="6-the-single-owner-candidate.html">6 · the single-owner candidate</a></li>
+  <li><a href="7-measured-deleting-mu.html">7 · measured: deleting mu is red, not clean</a></li>
+  <li><a href="8-what-the-lock.html">8 · what the lock is actually doing — three separable jobs</a></li>
+</ul>
+<footer>
+  Verified against the tree on <span style="font-family:var(--mono)">task/mutex-debounced-persister</span>.
+  Line numbers drift — re-grep before trusting them. Companions:
+  <span style="font-family:var(--mono)">docs/concurrency/scene-persist/index.html</span>,
+  <span style="font-family:var(--mono)">docs/layout-holder-architecture.html</span>,
+  <span style="font-family:var(--mono)">docs/concurrency/mutex/index.html</span>,
+  <span style="font-family:var(--mono)">docs/concurrency/framings.md</span>.
+</footer>
+</div>
+
+</body>
+</html>
+

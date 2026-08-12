@@ -11,9 +11,9 @@ this file is only the file-layout map for this package.
 extension host (Node)                webview (browser)
 ─────────────────────                ─────────────────
   src/extension.ts            ◄──►   src/webview/main.tsx
-  src/runCommand.ts                  src/webview/three/ThreeView.tsx
-  src/extension/handle-message.ts    src/webview/three/buffer-scene.tsx
-  src/extension/html.ts              src/webview/three/buffer-decode.ts
+  src/runCommand.ts                  src/webview/three/scene/ThreeView.tsx
+  src/extension/handle-message.ts    src/webview/three/scene/buffer-scene.tsx
+  src/extension/html.ts              src/webview/three/decode/buffer-decode-{view,edge,node,interior}.ts
   src/goBuild.ts                     src/webview/snapshot-buffer.ts
   src/schema/* (shared)
 ```
@@ -26,7 +26,7 @@ Communication is `panel.webview.postMessage` ↔ `vscode.postMessage`, wired in
 
 `src/messages.ts` is the shared discriminated-union source for both sides.
 `WebviewToHostMsg` includes `ready` and the binary bridge envelope (a fully
-encoded editor→Go record built via `src/schema/input-layout.ts` and written
+encoded editor→Go record built via `src/schema/input/input-encode.ts` and written
 FRAMED to Go's stdin by `runCommand.ts`); `HostToWebviewMsg` carries the
 decoded content-buffer snapshot. Extension-side dispatch is
 `src/extension/handle-message.ts`. Per CLAUDE.md, Go → TS is the binary
@@ -36,11 +36,11 @@ for the full bridge-surface model, not duplicated here.
 
 **Do not restate the kind list here.** The authority is
 `INPUT_LAYOUT_FINGERPRINT` — one string encoding every kind byte, update kind,
-attr, and overlay flag, defined in `nodes/Wiring/input_codec.go`. The TS side
-(`src/schema/input-layout-gen.ts`) is GENERATED from that Go string by
+attr, and overlay flag, defined in `nodes/Wiring/inputcodec/input_fingerprint.go`. The TS side
+(`src/schema/input/input-layout-gen.ts`) is GENERATED from that Go string by
 `tools/gen-node-defs`, so it cannot drift — there is no second hand-kept copy to compare.
 Read the fingerprint to learn the current surface; prose copied into this file cannot fail
-and so cannot be trusted. (Removed kind bytes are preserved as GAPS in `input_codec.go` and
+and so cannot be trusted. (Removed kind bytes are preserved as GAPS in `input_fingerprint.go` and
 never renumbered.)
 
 ## Extension side — what lives where
@@ -52,7 +52,7 @@ never renumbered.)
 | `src/extension/html.ts` | Webview HTML shell + CSP |
 | `runCommand.ts` | Spawns/streams the Go process; frames stdin records; decodes breadcrumbs |
 | `goBuild.ts` | Compiles the Go binary; invoked automatically on `ready`, not by a button |
-| `schema/*.ts` | Node-type registry (`node-defs.ts`), buffer layout, wire props — shared with the webview |
+| `schema/` | Node-type registry (`node-defs.ts`), wire props (`wire-defs.ts`), trace kinds, shared types — plus `schema/buffer-layout/` (generated buffer wire format + curve/shading params) and `schema/input/` (the TS<->Go input-record codec) — shared with the webview |
 
 ## Webview side
 
@@ -65,20 +65,20 @@ generically from the decoded content buffer, keyed off `NODE_DEFS`
 |---|---|
 | `src/webview/main.tsx` | Entry point, message handling |
 | `src/webview/snapshot-buffer.ts` | Raw buffer receive/framing on the webview side |
-| `src/webview/three/buffer-decode.ts` | Decodes the binary content buffer into a typed snapshot |
-| `src/webview/three/buffer-scene.tsx` | Draws the whole scene generically from the decoded snapshot |
-| `src/webview/three/ThreeView.tsx` | R3F `<Canvas>` root. Holds NO gesture state — raw pointer/wheel events forward verbatim to Go's FSM (`nodes/Wiring/gesture.go`) |
-| `src/webview/three/raw-input.ts` | Raw pointer/wheel + raycast hit → binary `raw-input` record to Go |
-| `src/webview/three/overlay-flags.ts` | Read-only reflection of Go-owned overlay-toggle state (`useSyncExternalStore`; no store) |
+| `src/webview/three/decode/buffer-decode-view.ts` / `-edge.ts` / `-node.ts` / `-interior.ts` | Decode each per-owner stream frame into a typed snapshot (shared trailing-EVENTS decode in `buffer-decode-shared.ts`) |
+| `src/webview/three/scene/buffer-scene.tsx` | Draws the whole scene generically from the decoded snapshot |
+| `src/webview/three/scene/ThreeView.tsx` | R3F `<Canvas>` root. Holds NO gesture state — raw pointer/wheel events forward verbatim to Go's FSM (`nodes/Wiring/gesture` package) |
+| `src/webview/three/interaction/raw-input.ts` | Raw pointer/wheel + raycast hit → binary `raw-input` record to Go |
+| `src/webview/three/controls/flags/overlay-flags.ts` | Read-only reflection of Go-owned overlay-toggle state (`useSyncExternalStore`; no store) |
 | `webview/log/*` | Crash listeners, error boundary, log posting to the extension host |
 
 There is no JSON-trace render path, no `pump.ts`, and no zustand/Redux-style
 store — the TS layer is render + forward only (guard:
-`tools/check-no-webview-state.sh`).
+`tools/webview/check-no-webview-state.sh`).
 
 ## Spec vs viewer state
 
-- **The `topology/` tree** — read directly by the Go loader (`nodes/Wiring/loader.go`,
+- **The `topology/` tree** — read directly by the Go loader (`nodes/Wiring/build/loader.go`,
   `loader_tree.go`) at startup; every field maps to live wiring. Edited through `edit`
   messages. The live form is a directory tree — `nodes/<id>/meta.json`, `data.json`,
   `inputs/`, `outputs/`, and `edges/*.json` (adjacency layout: an edge lives under its
@@ -87,7 +87,7 @@ store — the TS layer is render + forward only (guard:
   supported form.
 - **`<tree-root>/view/{camera,overlays,sphere}.json`** — one file per writer, for
   camera/view state not affecting generated Go. Paths computed in
-  `nodes/Wiring/scene_paths.go`. (An earlier shared sidecar under that same `view/`
+  `nodes/Wiring/scenepaths/scene_paths.go`. (An earlier shared sidecar under that same `view/`
   directory, a single `scene.json`, held all three in one document; it and its
   best-effort read fallback were removed once the split landed — no such file exists in
   this repo's tree.)

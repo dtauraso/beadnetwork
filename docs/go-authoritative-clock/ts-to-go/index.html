@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="doc-status" content="historical">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TS → Go — Go-Authoritative Clock — Wirefold Design Spec</title>
+<link rel="stylesheet" href="../styles/base.css">
+<link rel="stylesheet" href="../styles/layout.css">
+<link rel="stylesheet" href="../styles/typography.css">
+<link rel="stylesheet" href="../styles/tables.css">
+<link rel="stylesheet" href="../styles/panels.css">
+<link rel="stylesheet" href="../styles/diagrams.css">
+<link rel="stylesheet" href="../styles/controls.css">
+</head>
+<body>
+<div class="container">
+  <div class="page-title">Wirefold — Design Spec</div>
+  <div class="page-subtitle">Go Backend / TS Frontend — TS → Go</div>
+
+  <ul class="tabs" role="navigation" aria-label="Go-Authoritative Clock pages">
+      <li><a href="../index.html">The split</a></li>
+      <li><a href="../goroutines/index.html">Goroutines</a></li>
+      <li><a href="../ts-execution.html">TS</a></li>
+      <li><a href="../bridge.html">The Bridge</a></li>
+      <li><a href="../clock/index.html">Clock</a></li>
+      <li><a href="../clock/playpause.html">Play/Pause</a></li>
+      <li><a href="index.html" class="current">TS → Go</a></li>
+      <li><a href="../plan.html">Plan</a></li>
+      <li><a href="../verify.html">Verify</a></li>
+      <li><a href="../tracking.html">Tracking</a></li>
+      <li><a href="../inconsistencies.html">Inconsistencies</a></li>
+      <li><a href="../todo.html">What's left</a></li>
+  </ul>
+
+  <div class="panel active" id="panel-tsgo" role="region">
+    <h2><button type="button" class="chk-btn heading-chk" aria-pressed="false" data-chk="tsgo:h2">☐</button>How much of TS converts to Go?</h2>
+    <p>The dividing line is <strong>data vs. the GPU</strong>.</p>
+    <ul style="margin-top:0.5rem;margin-bottom:1.25rem;padding-left:1.25rem;color:var(--muted);font-size:13.5px;line-height:1.65;max-width:680px;">
+      <li style="margin-bottom:0.5rem;">Geometry, animation, and shading are data &mdash; Go owns and emits them.</li>
+      <li style="margin-bottom:0.5rem;">Running the GPU and capturing input need the browser &mdash; these stay in TS.</li>
+      <li>Input that produces geometry (e.g. a node drag) is captured in TS and sent to Go as an edit, so Go stays authoritative.</li>
+    </ul>
+
+    <table class="spec-table" style="margin-top:1rem;">
+      <caption>Data that moves to Go</caption>
+      <thead>
+        <tr>
+          <th>Class</th>
+          <th>What</th>
+          <th>TS symbol(s) today</th>
+          <th>Now</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Geometry</td>
+          <td>node / port world positions</td>
+          <td><code>nodeWorldPos</code>, <code>portDir</code>, <code>portWorldPos</code></td>
+          <td>Go</td>
+        </tr>
+        <tr>
+          <td>Geometry</td>
+          <td>edge curve / control points</td>
+          <td><code>buildPortCurve</code>, <code>buildEdgeCurve</code><br><span style="color:var(--muted)">SingleEdgeTube — TS renderer of Go's curve (stays TS)</span></td>
+          <td>Go</td>
+        </tr>
+        <tr>
+          <td>Geometry</td>
+          <td>arc length</td>
+          <td><code>rfArcLength</code></td>
+          <td>Go (already: <code>BezierArcLength</code>)</td>
+        </tr>
+        <tr>
+          <td>Geometry</td>
+          <td>node positions</td>
+          <td><code>moveNode</code></td>
+          <td>Go</td>
+        </tr>
+        <tr>
+          <td>Geometry</td>
+          <td>bounding box</td>
+          <td><code>boundingBox</code></td>
+          <td>Go</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p style="margin-top:1.25rem;">Animation and shading data — bead position/timing, pause-adjusted clock,
+      materials, glass/tube appearance, environment/lighting, bead appearance — continued on
+      <a href="animation-shading.html">TS → Go — animation &amp; shading data</a>.</p>
+
+    <div class="note" style="margin-top:1.25rem;"><button type="button" class="chk-btn heading-chk" aria-pressed="false" data-chk="tsgo:note1">☐</button>Dividing line: data vs. GPU. Geometry, animation, shading are data — Go owns them. GPU + input capture require the browser — stay in TS. Geometry-producing input (node drag) is sent to Go as a geometry edit.</div>
+
+    <p style="margin-top:1.25rem;"><strong>More:</strong> what stays in TS, and the new Go builds this requires — continued on
+      <a href="stays-and-builds.html">TS → Go — stays in TS &amp; new Go builds</a>.</p>
+
+  </div>
+</div>
+<script src="../styles/script.js"></script>
+</body>
+</html>

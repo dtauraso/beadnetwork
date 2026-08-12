@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pair node — Vectors</title>
+  <link rel="stylesheet" href="../../pair-base.css">
+  <link rel="stylesheet" href="../../pair-layout.css">
+  <link rel="stylesheet" href="../../pair-typography.css">
+  <link rel="stylesheet" href="../../pair-panels.css">
+  <link rel="stylesheet" href="../../pair-diagrams.css">
+  <link rel="stylesheet" href="../../pair-diagrams-tables.css">
+</head>
+
+<body>
+
+  <header>
+    <h1>Vectors</h1>
+    <div class="sub">three directions derived from one ring state, and a fourth that arrived</div>
+  </header>
+
+  <nav>
+    <a href="../../index.html">Index</a>
+    <a href="../../structure/anatomy.html">Anatomy</a>
+    <a href="../../structure/own.html">Ownership</a>
+    <a class="on" href="index.html">Vectors</a>
+    <a href="../math/index.html">Math</a>
+    <a href="../formulas/index.html">Formulas</a>
+    <a href="../dots.html">Separation</a>
+    <a href="../perpendicular/index.html">Perpendicular</a>
+    <a href="../../rules/cases/index.html">Cases</a>
+    <a href="../../structure/channels.html">Channels</a>
+    <a href="../../structure/cycle.html">Cycle</a>
+    <a href="../../rules/updates/index.html">Update rules</a>
+    <a href="../arith/index.html">Arithmetic instead</a>
+  <a href="../../rules/code/index.html">In code</a>
+    <a href="../../structure/clock.html">Clock</a>
+    <a href="../geometry.html">Geometry</a>
+    <a href="../../rules/asym.html">Asymmetry</a>
+  </nav>
+
+  <main>
+
+      <div class="grid">
+
+        <div class="card">
+          <h2>Four drawn vectors — three from this node's index, one from its channel</h2>
+          <svg width="440" height="380" viewBox="0 0 440 380">
+            <defs>
+              <marker id="mTop" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+                <path d="M0,0 L8,3 L0,6 z" fill="#e05fd8" />
+              </marker>
+              <marker id="mBot" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+                <path d="M0,0 L8,3 L0,6 z" fill="#b34fa8" />
+              </marker>
+              <marker id="mNor" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+                <path d="M0,0 L8,3 L0,6 z" fill="#4ea1ff" />
+              </marker>
+              <marker id="mRcv" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+                <path d="M0,0 L8,3 L0,6 z" fill="#00E5FF" />
+              </marker>
+            </defs>
+
+            <circle cx="220" cy="190" r="140" fill="none" stroke="#3a3a44" />
+            <circle cx="220" cy="190" r="4" fill="#9a9aa6" />
+
+            <g stroke="#3a3a44">
+              <line x1="220" y1="50" x2="220" y2="62" />
+              <line x1="220" y1="318" x2="220" y2="330" />
+              <line x1="80" y1="190" x2="92" y2="190" />
+              <line x1="348" y1="190" x2="360" y2="190" />
+              <line x1="319" y1="91" x2="311" y2="99" />
+              <line x1="121" y1="289" x2="129" y2="281" />
+              <line x1="121" y1="91" x2="129" y2="99" />
+              <line x1="319" y1="289" x2="311" y2="281" />
+            </g>
+            <text x="220" y="42" text-anchor="middle" class="lbl">+y (θ index 0)</text>
+            <text x="220" y="348" text-anchor="middle" class="lbl">−y (θ index 12)</text>
+
+            <line x1="220" y1="190" x2="319" y2="91" stroke="#e05fd8" stroke-width="2.4" marker-end="url(#mTop)" />
+            <text x="330" y="86" class="lblm" fill="#e05fd8">top idx</text>
+
+            <line x1="220" y1="190" x2="121" y2="289" stroke="#b34fa8" stroke-width="2.4" marker-end="url(#mBot)" />
+            <text x="70" y="300" class="lblm" fill="#b34fa8">bottom +12</text>
+
+            <line x1="220" y1="190" x2="319" y2="289" stroke="#4ea1ff" stroke-width="2.4" marker-end="url(#mNor)" />
+            <text x="330" y="300" class="lblm" fill="#4ea1ff">normal +6</text>
+            <text x="330" y="316" class="lbl" fill="#4ea1ff">this is what is sent</text>
+
+            <line x1="220" y1="190" x2="121" y2="121" stroke="#00E5FF" stroke-width="2.4" marker-end="url(#mRcv)" />
+            <text x="52" y="116" class="lblm" fill="#00E5FF">received</text>
+
+            <path d="M 265 145 A 64 64 0 0 1 265 235" fill="none" stroke="#4ea1ff" stroke-dasharray="3 3" />
+            <text x="290" y="196" class="lbl" fill="#4ea1ff">90°</text>
+          </svg>
+          <div class="legend">
+            <span><i style="background:#e05fd8"></i>top tilt (stored)</span>
+            <span><i style="background:#b34fa8"></i>bottom (+12)</span>
+            <span><i style="background:#4ea1ff"></i>coplanar normal (+6) — and what is sent</span>
+            <span><i style="background:#00E5FF"></i>received — the PARTNER's coplanar normal</span>
+          </div>
+          <div class="cap">Three of the four are links off this node's own Top state and move together when
+            Top steps. The fourth is not derived here at all: it is whatever last arrived, held until the
+            next arrival replaces it, and it is the only one a reset can remove on its own.</div>
+          <div class="cap">The received arrow is the partner's blue arrow, unrotated — the two are the same
+            direction, drawn at two centres. In the editor these are the pink trio and the cyan single
+            arrow; the colours here match.</div>
+        </div>
+
+        <div class="card">
+          <h2>What the receiver does with it</h2>
+          <table class="f">
+            <tr class="h">
+              <td>this node's own machine (perpendicular or parallel)</td>
+              <td>both nodes of a pair — same unmodified rule per machine</td>
+            </tr>
+            <tr>
+              <td class="e">arrival IS this machine's halt</td>
+              <td class="e">stand still — reply anyway, so the partner has something to correct against</td>
+            </tr>
+            <tr>
+              <td class="e">otherwise</td>
+              <td class="e">Top ← Top.next or Top.prev, whichever lands closer to this machine's own halt</td>
+            </tr>
+            <tr>
+              <td class="e">in the SETTING mode (before START, or after RESET)</td>
+              <td class="e">an arrival moves nothing — every separation is that mode's home, so the node is
+                already halted wherever it stands. The choice is made at START, not here</td>
+            </tr>
+          </table>
+          <div class="cap">There is ONE machine with three modes (<a href="../../rules/cases/index.html">Cases</a>), and a node is
+            in exactly one of them. A chosen mode steps straight over the OTHER mode's halt on the way back to
+            its own — see <span data-src="nodes/PairNode/cycle.go#stepFromVector">stepFromVector</span>.
+            The step itself is answerable everywhere on the ring, including sitting exactly on a halt.</div>
+        </div>
+
+        <div class="card wide">
+          <h2>More</h2>
+          <p>The 24-state ring itself — the lattice diagram, and why it is 24 states and not a number
+            kept in range — moved to <a href="ring.html">Vectors — the ring</a>.</p>
+        </div>
+
+      </div>
+  </main>
+</body>
+
+</html>
