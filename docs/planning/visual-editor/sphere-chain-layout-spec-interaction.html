@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sphere-Chain Node Layout — Interaction</title>
+<link rel="stylesheet" href="sphere-chain-layout-spec.css">
+</head>
+<body>
+<div class="page">
+  <header>
+    <h1>Sphere-Chain Node Layout</h1>
+    <div class="meta">branch: task/sphere-chain-layout &nbsp;·&nbsp; docs/planning/visual-editor/sphere-chain-layout-spec.html</div>
+  </header>
+
+  <nav>
+    <a class="tab-btn" href="sphere-chain-layout-spec.html">Model</a>
+    <a class="tab-btn" href="sphere-chain-layout-spec-geometry.html">Geometry</a>
+    <a class="tab-btn" href="sphere-chain-layout-spec-was.html">Was (lattice)</a>
+    <a class="tab-btn" href="sphere-chain-layout-spec-target.html">Target (sphere chain)</a>
+    <a class="tab-btn active" href="sphere-chain-layout-spec-interaction.html">Interaction</a>
+    <a class="tab-btn" href="sphere-chain-layout-spec-open.html">Open Questions</a>
+  </nav>
+
+  <div id="interaction" class="panel active">
+    <p>
+      The big open question: with positions derived from the topology, what happens to
+      <strong>node dragging</strong>? Two framings:
+    </p>
+
+    <div class="card">
+      <h2>A — Auto-computed (no dragging)</h2>
+      <p>
+        The layout is fully a function of the graph. Because the topology is sparse, Go can compute
+        an <strong>exact uniform-<code>R</code> placement deterministically</strong> (no relaxation);
+        the user never moves nodes by hand. Changing the layout means changing the wiring (or the
+        layout parameters), not dragging.
+      </p>
+    </div>
+
+    <div class="card">
+      <h2>B — Draggable on the sphere</h2>
+      <p>
+        Nodes remain movable, but constrained to the model: e.g. a child slides around on its
+        parent's sphere surface (changing its <code>dir</code> at fixed <code>R</code>) in
+        <strong>steps of its own diameter</strong> (step angle <code>diameter / R</code>), so a
+        smaller node has finer steps; the tree can be re-rooted. Dragging adjusts <code>dir</code>/angle rather than free-placing.
+      </p>
+    </div>
+
+    <p class="note">
+      Which framing wins is <strong>open</strong> (Q5). Either way, the lattice's
+      drag-snap-to-cell behavior is gone — there are no cells to snap to.
+    </p>
+
+    <div class="card">
+      <h2>First-cut visualization (committed 837087f7)</h2>
+      <p>
+        A <strong>"sphere" button</strong> toggles a see-through <strong>torus ring at radius
+        <code>R</code></strong> for the <strong>selected node</strong> (styled like that node's border
+        torus). It shows the node's own sphere. <code>R</code> there currently uses the live
+        <strong>primary-output-edge distance as a stand-in</strong> for the node's starting <code>R</code>
+        value (the real per-node starting value is still Q1). Neighbors are seeded on the surface by
+        <strong>projecting their current edge direction</strong> onto it and thereafter drag across the
+        surface in <strong>steps of the dragged node's own diameter</strong>; dragging the surface inward
+        shrinks that node's <code>R</code>.
+      </p>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

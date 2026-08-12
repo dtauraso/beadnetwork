@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sphere-Chain Node Layout — Geometry</title>
+<link rel="stylesheet" href="sphere-chain-layout-spec.css">
+</head>
+<body>
+<div class="page">
+  <header>
+    <h1>Sphere-Chain Node Layout</h1>
+    <div class="meta">branch: task/sphere-chain-layout &nbsp;·&nbsp; docs/planning/visual-editor/sphere-chain-layout-spec.html</div>
+  </header>
+
+  <nav>
+    <a class="tab-btn" href="sphere-chain-layout-spec.html">Model</a>
+    <a class="tab-btn active" href="sphere-chain-layout-spec-geometry.html">Geometry</a>
+    <a class="tab-btn" href="sphere-chain-layout-spec-was.html">Was (lattice)</a>
+    <a class="tab-btn" href="sphere-chain-layout-spec-target.html">Target (sphere chain)</a>
+    <a class="tab-btn" href="sphere-chain-layout-spec-interaction.html">Interaction</a>
+    <a class="tab-btn" href="sphere-chain-layout-spec-open.html">Open Questions</a>
+  </nav>
+
+  <div id="geometry" class="panel active">
+    <p>
+      A neighbor's world position is a node's center pushed out by the sphere radius along a
+      unit direction. Symmetrically: every edge has length <code>R</code>, so both endpoints lie on
+      each other's radius-<code>R</code> sphere.
+    </p>
+
+    <div class="eq-block">
+      <span class="eq-line">neighbor_pos = node_center + R · dir</span>
+      <span class="eq-line">|dir| = 1   ·   ‖edge‖ = R for every edge</span>
+    </div>
+
+    <ul>
+      <li><strong>R — per-node starting radius.</strong> <code>R</code> is a <strong>per-node starting value</strong>, independent and adjustable per node — <em>not</em> the length of any designated/reference edge (there is no designated edge). The user supplies the starting values. Resizing a node's sphere (dragging its surface toward the center) changes <em>that node's</em> <code>R</code>. Where the starting values come from is <strong>open</strong> (Q1).</li>
+      <li><strong>Local frame.</strong> A sphere constrains only the node and its <em>direct</em> neighbors; only connected nodes lie on each other's surfaces. Output-less nodes have no sphere of their own and appear only as surface members of the node(s) they connect to (possibly several).</li>
+      <li><strong>dir — per-neighbor direction.</strong> When a node has multiple neighbors, each one needs its own <code>dir</code> on the surface. <strong>Initial</strong> directions are seeded by <strong>projecting each neighbor's current edge direction onto the sphere</strong> (<code>projectToSphere</code>); thereafter dragging moves a node across the surface in steps of <strong>its own diameter</strong> (step angle <code>diameter / R</code>, <code>diameterStepAngle</code>). There is <strong>no global slot grid and no Fibonacci distribution</strong> (Q2).</li>
+      <li><strong>First-cut render (committed 837087f7).</strong> A see-through <strong>torus ring at radius
+        <code>R</code></strong> (styled like the node's border torus), toggled by a "sphere" button for the selected node, with draggable surface positions that step by the dragged node's own diameter. <code>R</code> there currently stands in as the live primary-output-edge distance until per-node starting values exist (Q1).</li>
+      <li><strong>All edges define the frame.</strong> Back/feedback edges (e.g. <code>2 → 1</code>) are <strong>not</strong> excluded — they constrain placement like any other edge (node <code>1</code> on node <code>2</code>'s sphere and vice versa). The frame is the whole edge set, not a spanning tree.</li>
+      <li><strong>Exact placement, no relaxation needed.</strong> Achieving every-edge-= <code>R</code> exactly is only impossible for <em>dense / over-constrained</em> graphs — e.g. a 5-clique <code>K5</code> with uniform edge length can't exist in 3D (at most 4 equidistant points = a tetrahedron), or a shared neighbor whose two neighbors are pinned more than <code>2R</code> apart. This topology is <strong>sparse / under-constrained</strong>: 7 nodes give <code>3·7 − 6 = 15</code> degrees of freedom against only ~7 edges, so an <strong>exact</strong> uniform-<code>R</code> placement exists with slack to spare. A <strong>deterministic exact placement</strong> works — <strong>no force-directed relaxation</strong> required.</li>
+    </ul>
+  </div>
+
+</div>
+</body>
+</html>
