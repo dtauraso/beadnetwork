@@ -1,12 +1,12 @@
 import * as vscode from "vscode";
 import * as cp from "child_process";
 import * as path from "path";
-import { readCounts } from "./counts";
-import { appendGoError } from "./go-errors";
-import { probePathsFor, type ProbePaths } from "./probe-paths";
-import { computeSpawnLayout, type SpawnLayout } from "./spawn-layout";
-import { StreamDemux } from "./stream-demux";
-import type { HostToWebviewMsg } from "../messages";
+import { readCounts } from "../counts";
+import { appendGoError } from "../probe/go-errors";
+import { probePathsFor, type ProbePaths } from "../probe/probe-paths";
+import { computeSpawnLayout, type SpawnLayout } from "../spawn-layout";
+import { StreamDemux } from "../stream-demux";
+import type { HostToWebviewMsg } from "../../messages";
 
 export interface PreparedRun {
   goErrorsFile: string;

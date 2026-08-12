@@ -1,7 +1,7 @@
-import type { HostToWebviewMsg } from "../messages";
-import { BUF_BLOCK_TAG_VIEW, BUF_BLOCK_TAG_EDGE_STREAM, BUF_BLOCK_TAG_NODE_STREAM, BUF_BLOCK_TAG_INTERIOR_STREAM } from "../schema/frame-tags";
+import type { HostToWebviewMsg } from "../../messages";
+import { BUF_BLOCK_TAG_VIEW, BUF_BLOCK_TAG_EDGE_STREAM, BUF_BLOCK_TAG_NODE_STREAM, BUF_BLOCK_TAG_INTERIOR_STREAM } from "../../schema/frame-tags";
 import { appendViewProbe, appendEdgeProbe, appendNodeProbe, appendInteriorProbe } from "./probe-append";
-import { splitFrames } from "./framing";
+import { splitFrames } from "../framing";
 
 export interface FrameDispatchContext {
   probeTrace: boolean;

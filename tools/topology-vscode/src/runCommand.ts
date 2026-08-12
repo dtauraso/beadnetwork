@@ -1,13 +1,14 @@
 import * as vscode from "vscode";
 import * as path from "path";
 import { isProbeTraceEnabled } from "./probe-files";
-import { appendGoError } from "./runner/go-errors";
-import { probePathsForFolder, prepareRunLayout, wireExitHandlers } from "./runner/run-lifecycle";
-import { buildBinary, reapOrphans, spawnProcess, attachStreamHandlers } from "./runner/process-lifecycle";
-import { RunnerLifecycle } from "./runner/runner-base";
+import { appendGoError } from "./runner/probe/go-errors";
+import { probePathsForFolder, prepareRunLayout, wireExitHandlers } from "./runner/lifecycle/run-lifecycle";
+import { buildBinary, reapOrphans, spawnProcess, attachStreamHandlers } from "./runner/lifecycle/process-lifecycle";
+import { RunnerLifecycle } from "./runner/lifecycle/runner-base";
 
 export { nodeIdForRow, rowForNodeId } from "./runner/stream-fds";
 export { readCounts } from "./runner/counts";
+
 export { splitJsonlLines, splitFrames, MAX_FRAME_BYTES } from "./runner/framing";
 
 export class BuildAndRunRunner extends RunnerLifecycle {

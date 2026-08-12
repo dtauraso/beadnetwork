@@ -1,11 +1,11 @@
 import * as vscode from "vscode";
 import * as cp from "child_process";
-import { killOrphanedSims } from "../goBuild";
-import { appendGoError } from "./go-errors";
+import { killOrphanedSims } from "../../goBuild";
+import { appendGoError } from "../probe/go-errors";
 import { ensureBinaryBuilt } from "./ensure-binary";
 import { attachStreamListeners } from "./attach-listeners";
-import type { StreamDemux } from "./stream-demux";
-import type { SpawnLayout } from "./spawn-layout";
+import type { StreamDemux } from "../stream-demux";
+import type { SpawnLayout } from "../spawn-layout";
 
 export function buildBinary(
   channel: vscode.OutputChannel,

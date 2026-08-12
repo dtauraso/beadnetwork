@@ -1,7 +1,7 @@
 import type * as cp from "child_process";
-import { VIEW_FD, EDGE_BASE_FD, DRIVE_SLOTS_PER_NODE } from "./stream-fds";
-import type { StreamDemux } from "./stream-demux";
-import type { SpawnLayout } from "./spawn-layout";
+import { VIEW_FD, EDGE_BASE_FD, DRIVE_SLOTS_PER_NODE } from "../stream-fds";
+import type { StreamDemux } from "../stream-demux";
+import type { SpawnLayout } from "../spawn-layout";
 
 export function attachStreamListeners(proc: cp.ChildProcess, demux: StreamDemux, layout: SpawnLayout): void {
   const { edgeCount, nodeCount, nodeBaseFd, interiorBaseFd, driveBaseFd } = layout;

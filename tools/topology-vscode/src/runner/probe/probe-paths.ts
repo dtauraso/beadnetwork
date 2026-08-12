@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import * as fs from "fs";
 import * as path from "path";
-import { PROBE_DIR, PROBE_FILES, PROBE_TRACE_FILES } from "../probe-files";
+import { PROBE_DIR, PROBE_FILES, PROBE_TRACE_FILES } from "../../probe-files";
 
 export interface ProbePaths {
 

@@ -1,8 +1,8 @@
 import * as fs from "fs";
-import { decodeBufferLog, decodeStreamFrameEvents } from "../buffer-log";
-import { decodeNodeStreamFrame } from "../webview/three/decode/buffer-decode-node";
-import { decodeEdgeStreamFrame } from "../webview/three/decode/buffer-decode-edge";
-import { decodeInteriorStreamFrame } from "../webview/three/decode/buffer-decode-interior";
+import { decodeBufferLog, decodeStreamFrameEvents } from "../../buffer-log";
+import { decodeNodeStreamFrame } from "../../webview/three/decode/buffer-decode-node";
+import { decodeEdgeStreamFrame } from "../../webview/three/decode/buffer-decode-edge";
+import { decodeInteriorStreamFrame } from "../../webview/three/decode/buffer-decode-interior";
 
 function appendLines(probeFile: string, lines: string): void {
   if (lines.length === 0) return;

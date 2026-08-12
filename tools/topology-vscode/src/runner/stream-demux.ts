@@ -2,7 +2,7 @@ import type { HostToWebviewMsg } from "../messages";
 import { nodeIdForRow } from "./stream-fds";
 import { splitJsonlLines } from "./framing";
 import { freshStreamState, type StreamParseState } from "./parse-state";
-import type { ProbePaths } from "./probe-paths";
+import type { ProbePaths } from "./probe/probe-paths";
 import { LastFrameStore } from "./last-frame-store";
 import {
   dispatchViewFrames,
@@ -10,7 +10,7 @@ import {
   dispatchNodeFrames,
   makeFrameDispatchContext,
   type FrameDispatchContext,
-} from "./frame-dispatch";
+} from "./probe/frame-dispatch";
 import { handleInteriorFdImpl, handleDriveFdImpl } from "./stream-demux-interior";
 
 export interface StreamDemuxConfig {

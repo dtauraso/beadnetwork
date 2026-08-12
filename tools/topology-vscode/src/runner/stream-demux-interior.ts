@@ -1,5 +1,5 @@
 import { nodeIdForRow } from "./stream-fds";
-import { dispatchInteriorLikeFrames, type FrameDispatchContext } from "./frame-dispatch";
+import { dispatchInteriorLikeFrames, type FrameDispatchContext } from "./probe/frame-dispatch";
 import type { StreamParseState } from "./parse-state";
 
 export function handleInteriorFdImpl(

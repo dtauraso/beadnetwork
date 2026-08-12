@@ -1,5 +1,5 @@
 import * as fs from "fs";
-import { buildBinary, maxGoMtime } from "../goBuild";
+import { buildBinary, maxGoMtime } from "../../goBuild";
 
 const BUILD_BINARY_MAX_ATTEMPTS = 50;
 
