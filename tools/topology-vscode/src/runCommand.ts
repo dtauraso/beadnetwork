@@ -1,48 +1,16 @@
 import * as vscode from "vscode";
-import * as cp from "child_process";
 import * as path from "path";
-import type { HostToWebviewMsg } from "./messages";
-import { frameRecord } from "./schema/input-encode";
 import { isProbeTraceEnabled } from "./probe-files";
 import { appendGoError } from "./runner/go-errors";
-import { probePathsForFolder, prepareRunLayout, wireExitHandlers, makeDemuxFactory } from "./runner/run-lifecycle";
-import type { StreamDemux } from "./runner/stream-demux";
+import { probePathsForFolder, prepareRunLayout, wireExitHandlers } from "./runner/run-lifecycle";
 import { buildBinary, reapOrphans, spawnProcess, attachStreamHandlers } from "./runner/process-lifecycle";
+import { RunnerLifecycle } from "./runner/runner-base";
 
 export { nodeIdForRow, rowForNodeId } from "./runner/stream-fds";
 export { readCounts } from "./runner/counts";
 export { splitJsonlLines, splitFrames, MAX_FRAME_BYTES } from "./runner/framing";
 
-export class BuildAndRunRunner {
-  private proc: cp.ChildProcess | undefined;
-  private cancelled = false;
-  private looping = false;
-  private channel: vscode.OutputChannel | undefined;
-  private goErrorsFile: string | undefined;
-
-  private readonly newDemux = makeDemuxFactory({
-    onSnapshot: (msg) => this.onSnapshot?.(msg),
-    appendLine: (line) => this.channel?.appendLine(line),
-    reportError: (msg) => {
-      this.channel?.appendLine(`\n[${msg}]`);
-      appendGoError(this.goErrorsFile, msg);
-    },
-  });
-
-  private demux: StreamDemux = this.newDemux(undefined, false, 0, 0, 0);
-  private spawnGen = 0;
-  private topologyPath: string | undefined;
-  private restartPending = false;
-  private pendingStdin: Uint8Array[] = [];
-
-  constructor(
-    private readonly onSnapshot?: (msg: HostToWebviewMsg & { type: "buffer-snapshot" }) => void,
-  ) {}
-
-  currentGen(): number {
-    return this.spawnGen;
-  }
-
+export class BuildAndRunRunner extends RunnerLifecycle {
   run(topologyPath?: string) {
     if (this.proc) return;
     if (topologyPath) this.topologyPath = topologyPath;
@@ -103,62 +71,5 @@ export class BuildAndRunRunner {
       reportError: (msg) => appendGoError(this.goErrorsFile, msg),
       restart: () => this.run(),
     });
-  }
-
-  private ensureOutputChannel(): void {
-    if (!this.channel) this.channel = vscode.window.createOutputChannel("topology run");
-    this.channel.clear();
-  }
-
-  cancel() {
-    this.pendingStdin = [];
-    if (!this.proc || this.proc.pid === undefined) return;
-    this.cancelled = true;
-    try {
-      process.kill(-this.proc.pid, "SIGTERM");
-    } catch {
-      this.proc.kill("SIGTERM");
-    }
-  }
-
-  isRunning(): boolean {
-    return this.proc !== undefined;
-  }
-
-  restart(): boolean {
-    if (!this.proc) return false;
-    this.restartPending = true;
-    this.cancel();
-    return true;
-  }
-
-  getLastViewFrame(): ArrayBuffer | undefined {
-    return this.demux.getLastViewFrame();
-  }
-
-  getLastEdgeFrames(): Array<{ row: number; buffer: ArrayBuffer }> {
-    return this.demux.getLastEdgeFrames();
-  }
-
-  getLastNodeFrames(): Array<{ row: number; buffer: ArrayBuffer }> {
-    return this.demux.getLastNodeFrames();
-  }
-
-  getLastInteriorFrames(): Array<{ row: number; buffer: ArrayBuffer }> {
-    return this.demux.getLastInteriorFrames();
-  }
-
-  writeStdin(record: ArrayBuffer | Uint8Array): void {
-    const framed = record instanceof Uint8Array ? record : frameRecord(record);
-    if (!this.proc?.stdin) {
-      this.pendingStdin.push(framed);
-      return;
-    }
-    this.proc.stdin.write(framed);
-  }
-
-  dispose() {
-    this.cancel();
-    this.channel?.dispose();
   }
 }
