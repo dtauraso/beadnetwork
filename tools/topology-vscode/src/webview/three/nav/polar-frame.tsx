@@ -5,6 +5,7 @@
 import React, { useMemo } from "react";
 import * as THREE from "three";
 import { AxisLabel } from "./axis-label";
+import { computePolarFrameGeometry } from "./polar-frame-geometry";
 
 // WORLD_UP — the axis PolarFrame is drawn poled at. A frame given its own pole rotates as
 // a whole from this axis onto it (PolarFrame's quat), so +y stays the only pole any of the
@@ -79,16 +80,8 @@ const PHI_CIRCLES: { sx: number; sz: number; n: number; c: string }[] = [
 export function PolarFrame({ center, scale, tag, octants, pole }: {
   center: THREE.Vector3; scale: number; tag?: string; octants?: boolean; pole?: THREE.Vector3;
 }) {
-  const radiusKey = Math.max(Math.round(scale), 1);
-  const poleLen = radiusKey * 1.3;
-  const poleRadius = Math.max(radiusKey * 0.01, 1);
-  const coneH = radiusKey * 0.12;
-  const coneBaseR = radiusKey * 0.05;
-  const arcR = poleLen * 0.68;
-  const arcTube = Math.max(radiusKey * 0.012, 1.2);
-  const arcMid = arcR * 1.12 * Math.SQRT1_2;
-  const hhR = Math.max(radiusKey * 0.04, 3);   // handhold sphere radius (matches the tori handholds)
-  const arcHH = arcR * Math.SQRT1_2;           // a quarter-arc's midpoint radius (45° in its plane)
+  const { poleLen, poleRadius, coneH, coneBaseR, arcR, arcTube, arcMid, hhR, arcHH } =
+    computePolarFrameGeometry(scale);
   const sfx = tag ? ` ${tag}` : "";
   // The frame is DRAWN poled at +y throughout (every mesh below is placed in that frame);
   // an alternate pole is applied as one rotation of the whole group, so there is exactly
