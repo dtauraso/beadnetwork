@@ -36,15 +36,9 @@ func (m *NodeGeometry) PartnerCenters() map[string]vec3 { return m.topo.partnerC
 
 func (m *NodeGeometry) NeighborKinds() map[string]string { return m.topo.neighborKinds }
 
-func (m *NodeGeometry) SendMove() func(id string, msg movemsg.Msg) { return m.msg.sendMove }
+func (m *NodeGeometry) SendMove() func(id string, msg movemsg.Msg) { return m.msg.SendMove() }
 
-func (m *NodeGeometry) NeighborIDs() []string {
-	ids := make([]string, 0, len(m.msg.neighborIn))
-	for id := range m.msg.neighborIn {
-		ids = append(ids, id)
-	}
-	return ids
-}
+func (m *NodeGeometry) NeighborIDs() []string { return m.msg.NeighborIDs() }
 
 func (m *NodeGeometry) QuantOffset() (iTheta, iPhi, iR int) {
 	return m.quantOffset.ITheta, m.quantOffset.IPhi, m.quantOffset.IR

@@ -66,7 +66,7 @@ func (m *NodeMover) Run(ctx context.Context) {
 			pw.DriveOneCycle(ctx, outTick)
 		}
 
-		g.flushPending()
+		g.msg.flushPending()
 
 		g.writeStreamFrame(nil)
 		if err := g.clocks.clk.SleepCycle(ctx); err != nil {

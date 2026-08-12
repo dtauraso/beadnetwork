@@ -15,16 +15,11 @@ func (m *NodeGeometry) WireMessaging(
 	centerOf func(id string) (vec3, bool),
 	commitLocal func(id string, newPos vec3),
 ) {
-	m.msg.resolveDest = resolveDest
-	m.msg.sendMove = sendMove
-	m.msg.centerOf = centerOf
-	m.msg.commitLocal = commitLocal
+	m.msg.WireMessaging(resolveDest, sendMove, centerOf, commitLocal)
 }
 
 func (m *NodeGeometry) EnsureNeighborChannel(otherID string) {
-	if _, exists := m.msg.neighborIn[otherID]; !exists {
-		m.msg.neighborIn[otherID] = make(chan movemsg.Msg, inboxDepth)
-	}
+	m.msg.EnsureNeighborChannel(otherID)
 }
 
 func (m *NodeGeometry) AddMutualTarget(target string) {

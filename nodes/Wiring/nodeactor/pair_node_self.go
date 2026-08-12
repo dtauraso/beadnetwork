@@ -80,7 +80,7 @@ func (p *PairNodeSelf) Step(ctx context.Context, tick int64) {
 	for _, pw := range g.outs.outWires {
 		pw.DriveOneCycle(ctx, tick)
 	}
-	g.flushPending()
+	g.msg.flushPending()
 	g.writeStreamFrame(nil)
 }
 
