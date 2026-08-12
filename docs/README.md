@@ -71,12 +71,12 @@ Planning/spec (untagged, predate the branch-local rule):
 
 | Doc | What it covers |
 |---|---|
-| [camera-navigation.html](planning/visual-editor/camera-navigation.html) | 3D camera navigation model. |
-| [edit-hop-audit.html](planning/visual-editor/edit-hop-audit.html) | Edit round-trip audit — why 12 hops. |
-| [node-edges-goroutine-spec.html](planning/visual-editor/node-edges-goroutine-spec.html) | A node runs its own outgoing edges. |
-| [sphere-chain-layout-spec.html](planning/visual-editor/sphere-chain-layout-spec.html) | Sphere-chain node layout. |
-| [timing-spec.html](planning/visual-editor/timing-spec.html) | Wirefold timing spec. |
-| [timing-window.html](planning/visual-editor/timing-window.html) | Timing-window spec. |
+| [camera-navigation/index.html](planning/visual-editor/camera-navigation/index.html) | 3D camera navigation model. |
+| [edit-hop-audit/index.html](planning/visual-editor/edit-hop-audit/index.html) | Edit round-trip audit — why 12 hops. |
+| [node-edges/index.html](planning/visual-editor/node-edges/index.html) | A node runs its own outgoing edges. |
+| [sphere-chain/index.html](planning/visual-editor/sphere-chain/index.html) | Sphere-chain node layout. |
+| [timing-spec/index.html](planning/visual-editor/timing-spec/index.html) | Wirefold timing spec. |
+| [timing-window/index.html](planning/visual-editor/timing-window/index.html) | Timing-window spec. |
 | [animation-drag-issues.md](planning/visual-editor/animation-drag-issues.md) | Live-observed open issues in animation & dragging. |
 | [double-link-polar-model.md](planning/visual-editor/double-link-polar-model.md) | Double-link polar movement model. |
 | [existing-lock-system-record.md](planning/visual-editor/existing-lock-system-record.md) | Lock-system record kept before the double-link rewrite. |
