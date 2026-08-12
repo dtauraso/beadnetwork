@@ -88,7 +88,5 @@ func (m *NodeGeometry) SetPersistRoot(root string) {
 }
 
 func (m *NodeGeometry) CopyClockSrc() {
-	if m.clocks.clockSrc != nil {
-		m.clocks.clk = m.clocks.clockSrc.Copy()
-	}
+	m.clocks.CopyClockSrc()
 }

@@ -22,7 +22,7 @@ func (m *NodeGeometry) Kind() string { return m.geom.Kind }
 
 func (m *NodeGeometry) SelfKind() string { return m.selfKind }
 
-func (m *NodeGeometry) Tick() int64 { return m.clocks.clk.Tick() }
+func (m *NodeGeometry) Tick() int64 { return m.clocks.Tick() }
 
 func (m *NodeGeometry) Label() string { return m.geom.Label }
 
