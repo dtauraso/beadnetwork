@@ -83,62 +83,12 @@
           <td><code>boundingBox</code></td>
           <td>Go</td>
         </tr>
-        <tr>
-          <td>Animation</td>
-          <td>bead position</td>
-          <td><code>getPointAt(t)</code><br><span style="color:var(--muted)">PulseBead — TS bead renderer (stays TS)</span></td>
-          <td>Go</td>
-        </tr>
-        <tr>
-          <td>Animation</td>
-          <td>traversal progress fraction</td>
-          <td><code>t = (now − startTime) / simLatencyMs</code>, <code>simLatencyMs</code></td>
-          <td>Go</td>
-        </tr>
-        <tr>
-          <td>Animation</td>
-          <td>traversal timing / delivery</td>
-          <td><code>simLatencyMs</code>, <code>inFlightTime</code>, <code>claimDelivered</code>, <code>moveNode</code></td>
-          <td>Go</td>
-        </tr>
-        <tr>
-          <td>Animation</td>
-          <td>pause-adjusted clock</td>
-          <td><code>getPauseAdjustedNow()</code></td>
-          <td>Go</td>
-        </tr>
-        <tr>
-          <td>Shading</td>
-          <td>materials / colors</td>
-          <td><code>node.data.fill</code>, <code>node.data.stroke</code>, <code>NODE_DEFS</code></td>
-          <td>Go</td>
-        </tr>
-        <tr>
-          <td>Shading</td>
-          <td>glass / material params</td>
-          <td><code>MeshPhysicalMaterial</code></td>
-          <td>Go</td>
-        </tr>
-        <tr>
-          <td>Shading</td>
-          <td>wire / tube appearance</td>
-          <td><code>SingleEdgeTube</code></td>
-          <td>Go</td>
-        </tr>
-        <tr>
-          <td>Shading</td>
-          <td>environment / lighting params</td>
-          <td>(env/lighting parameter values)</td>
-          <td>Go</td>
-        </tr>
-        <tr>
-          <td>Shading</td>
-          <td>bead appearance</td>
-          <td>(bead size, color, emissive — alongside bead position)</td>
-          <td>Go</td>
-        </tr>
       </tbody>
     </table>
+
+    <p style="margin-top:1.25rem;">Animation and shading data — bead position/timing, pause-adjusted clock,
+      materials, glass/tube appearance, environment/lighting, bead appearance — continued on
+      <a href="ts-to-go-animation-shading.html">TS → Go — animation &amp; shading data</a>.</p>
 
     <div class="note" style="margin-top:1.25rem;"><button type="button" class="chk-btn heading-chk" aria-pressed="false" data-chk="tsgo:note1">☐</button>Dividing line: data vs. GPU. Geometry, animation, shading are data — Go owns them. GPU + input capture require the browser — stay in TS. Geometry-producing input (node drag) is sent to Go as a geometry edit.</div>
 
