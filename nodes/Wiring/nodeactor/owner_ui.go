@@ -20,6 +20,10 @@ func (u *nodeUI) SetHover(on bool, port string, isInput bool) {
 	}
 }
 
+func (u *nodeUI) Flags() (selected, hovered, latchedSel uint8) {
+	return u.selected, u.hovered, u.latchedSel
+}
+
 func (u *nodeUI) SetLatched(on bool) {
 	if on {
 		u.latchedSel = 1

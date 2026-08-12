@@ -23,7 +23,14 @@ type edgeBeadChain struct {
 	lattice     float64
 }
 
-func (nb *nodeBeads) reconcileBeadChain(to string, count int, offsetAt func(i int) float64, aim spatial.Vec3) *edgeBeadChain {
+func (nb *nodeBeads) SetBeadTickFn(fn func() <-chan struct{}) {
+	nb.beadTickFn = fn
+}
+
+func (nb *nodeBeads) ReconcileBeadChain(to string, count int, offsetAt func(i int) float64, aim spatial.Vec3) *edgeBeadChain {
+	if nb.beadTickFn == nil {
+		return nil
+	}
 	if nb.beadChains == nil {
 		nb.beadChains = map[string]*edgeBeadChain{}
 	}
@@ -84,13 +91,13 @@ func (nb *nodeBeads) reconcileBeadChain(to string, count int, offsetAt func(i in
 	return c
 }
 
-func (nb *nodeBeads) startBeadDrag() {
+func (nb *nodeBeads) StartBeadDrag() {
 	for _, c := range nb.beadChains {
 		c.group.StartDrag()
 	}
 }
 
-func (nb *nodeBeads) endBeadDrag() {
+func (nb *nodeBeads) EndBeadDrag() {
 	for _, c := range nb.beadChains {
 		c.group.EndDrag()
 	}

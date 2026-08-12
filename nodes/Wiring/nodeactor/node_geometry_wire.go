@@ -64,7 +64,7 @@ func (m *NodeGeometry) AddOutWire(pw *wire.PacedWire, target string, o *outport.
 
 func (m *NodeGeometry) WireStream(streamOut streamclaim.StreamHandle, row int32, kindID uint8, nodeRowFor func(id string) (int32, bool), buildFrame nodeframe.NodeFrameBuilder) {
 	m.stream.SetStream(streamOut, row, kindID, buildFrame)
-	m.topo.nodeRowFor = nodeRowFor
+	m.topo.SetNodeRowFor(nodeRowFor)
 }
 
 func (m *NodeGeometry) SetPersistRoot(root string) {

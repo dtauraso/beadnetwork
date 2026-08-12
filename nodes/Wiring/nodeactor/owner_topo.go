@@ -30,3 +30,22 @@ func (t *neighborTopology) AddNeighborKind(toID, kind string) {
 	}
 	t.neighborKinds[toID] = kind
 }
+
+func (t *neighborTopology) NeighborKind(toID string) string {
+	return t.neighborKinds[toID]
+}
+
+func (t *neighborTopology) IsMutualTarget(toID string) bool {
+	return t.mutualTargets[toID]
+}
+
+func (t *neighborTopology) SetNodeRowFor(fn func(id string) (int32, bool)) {
+	t.nodeRowFor = fn
+}
+
+func (t *neighborTopology) NodeRowFor(id string) (int32, bool) {
+	if t.nodeRowFor == nil {
+		return -1, false
+	}
+	return t.nodeRowFor(id)
+}

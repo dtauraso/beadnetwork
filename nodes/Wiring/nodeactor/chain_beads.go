@@ -14,20 +14,21 @@ import (
 var chainAimTraceEnabled = os.Getenv("WIREFOLD_CHAIN_AIM_TRACE") == "1"
 
 func (m *NodeGeometry) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []int32, breadcrumbs []rowevent.RowEvent) {
-	if len(m.outs.outTargets) == 0 {
+	outTargets := m.outs.OutTargets()
+	if len(outTargets) == 0 {
 		return nil, nil, nil, nil, nil, nil
 	}
 
 	var tick int64
-	if len(m.outs.outWires) > 0 {
-		tick = m.clocks.clk.Tick()
+	if m.outs.HasOutWires() {
+		tick = m.clocks.Tick()
 	}
 	selfTorusR := nodegeom.NodeTorusOuterR(m.geom.Kind)
 
 	selfCenter := nodegeom.NodeWorldPos(m.geom)
-	for _, to := range m.outs.outTargets {
+	for _, to := range outTargets {
 
-		targetCenter, haveTargetCenter := m.topo.partnerCenters[to]
+		targetCenter, haveTargetCenter := m.topo.PartnerCenters()[to]
 		if !haveTargetCenter {
 			continue
 		}
@@ -49,14 +50,14 @@ func (m *NodeGeometry) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal [
 
 func (m *NodeGeometry) chainBeadsForTarget(to string, tick int64, selfTorusR float64, selfCenter, targetCenter vec3) (ox, oy, oz []float32, lit []uint8, litVal []int32, breadcrumb *rowevent.RowEvent, ok bool) {
 
-	dist, liveDir, count, geomOK := beadindex.ChainEdgeGeometry(selfCenter, targetCenter, selfTorusR, m.geom.Kind, m.topo.neighborKinds[to])
+	dist, liveDir, count, geomOK := beadindex.ChainEdgeGeometry(selfCenter, targetCenter, selfTorusR, m.geom.Kind, m.topo.NeighborKind(to))
 	if !geomOK {
 		return nil, nil, nil, nil, nil, nil, false
 	}
 
-	m.outs.publishStepCount(to, count)
+	m.outs.PublishStepCount(to, count)
 
-	pulses := m.outs.gatherPulses(to, tick)
+	pulses := m.outs.GatherPulses(to, tick)
 
 	breadcrumb = m.chainAimBreadcrumb(to, count, dist, liveDir)
 
@@ -69,16 +70,13 @@ func (m *NodeGeometry) chainBeadsForTarget(to string, tick int64, selfTorusR flo
 	aimUnit := liveDir
 
 	var chainSep vec3
-	if m.topo.mutualTargets[to] {
+	if m.topo.IsMutualTarget(to) {
 		if off, sepOK := edgegeom.ParallelChainOffset(m.id, to, selfCenter, targetCenter, m.geom.SceneCenter); sepOK {
 			chainSep = off
 		}
 	}
 
-	var actorChain *edgeBeadChain
-	if m.beads.beadTickFn != nil {
-		actorChain = m.beads.reconcileBeadChain(to, count, offsetAt, aimUnit)
-	}
+	actorChain := m.beads.ReconcileBeadChain(to, count, offsetAt, aimUnit)
 
 	var resolved []vec3
 	var resolvedValid []bool
@@ -99,16 +97,14 @@ func (m *NodeGeometry) chainAimBreadcrumb(to string, count int, dist float64, li
 		return nil
 	}
 	targetRow := int32(-1)
-	if m.topo.nodeRowFor != nil {
-		if r, ok := m.topo.nodeRowFor(to); ok {
-			targetRow = r
-		}
+	if r, ok := m.topo.NodeRowFor(to); ok {
+		targetRow = r
 	}
 	value := beadindex.ChainAimBreadcrumbText(to, count, dist, liveDir)
 	m.tr.Breadcrumb("chain-aim", m.id, to, value)
 	return &rowevent.RowEvent{
 		Kind: T.KindBreadcrumb, Label: T.BreadcrumbChainAim, Debug: 1,
-		NodeRow: m.stream.nodeRow, PortRow: -1, TargetRow: targetRow, TargetPortRow: -1,
+		NodeRow: m.stream.NodeRow(), PortRow: -1, TargetRow: targetRow, TargetPortRow: -1,
 		EdgeRow: -1, Slot: -1, Text: value,
 	}
 }

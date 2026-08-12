@@ -19,10 +19,10 @@ func (m *NodeGeometry) handle(msg movemsg.Msg) {
 	case movemsg.KindDrag:
 		m.handleDrag(msg)
 	case movemsg.KindDragStart:
-		m.beads.startBeadDrag()
+		m.beads.StartBeadDrag()
 	case movemsg.KindDragEnd:
 
-		m.beads.endBeadDrag()
+		m.beads.EndBeadDrag()
 	case movemsg.KindSelect:
 		m.handleSelect(msg)
 	case movemsg.KindHover:
@@ -55,15 +55,13 @@ func (m *NodeGeometry) handleCenter(msg movemsg.Msg) {
 
 func (m *NodeGeometry) handleDrag(msg movemsg.Msg) {
 	newPos := msg.Target
-	if m.msg.commitLocal != nil {
-		m.msg.commitLocal(m.id, newPos)
-	}
+	m.msg.CommitLocal(m.id, newPos)
 	if m.tr != nil {
 		m.tr.Breadcrumb("drag.commit", m.id, "", fmt.Sprintf("newPos=(%.4f,%.4f,%.4f)", newPos.X, newPos.Y, newPos.Z))
 
 		m.writeStreamFrame([]rowevent.RowEvent{{
 			Kind: T.KindBreadcrumb, Label: T.BreadcrumbDragCommit, Debug: 1,
-			NodeRow: m.stream.nodeRow, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
+			NodeRow: m.stream.NodeRow(), PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 			X: newPos.X, Y: newPos.Y, Z: newPos.Z,
 		}})
 	}
@@ -108,14 +106,12 @@ func (m *NodeGeometry) handleNeighborCenter(msg movemsg.Msg) {
 		value := fmt.Sprintf("sender=%s center=(%.4f,%.4f,%.4f)", msg.SenderID, msg.FromCenter.X, msg.FromCenter.Y, msg.FromCenter.Z)
 		m.tr.Breadcrumb("neighbor-center-recv", m.id, msg.SenderID, value)
 		senderRow := int32(-1)
-		if m.topo.nodeRowFor != nil {
-			if r, ok := m.topo.nodeRowFor(msg.SenderID); ok {
-				senderRow = r
-			}
+		if r, ok := m.topo.NodeRowFor(msg.SenderID); ok {
+			senderRow = r
 		}
 		m.writeStreamFrame([]rowevent.RowEvent{{
 			Kind: T.KindBreadcrumb, Label: T.BreadcrumbNeighborCenterRecv, Debug: 1,
-			NodeRow: m.stream.nodeRow, PortRow: -1, TargetRow: senderRow, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
+			NodeRow: m.stream.NodeRow(), PortRow: -1, TargetRow: senderRow, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 			Text: value,
 		}})
 		m.emitGeometry()

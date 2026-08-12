@@ -14,7 +14,7 @@ func (nm *NodeGeometry) persistQuantOffset(off quantoffset.QuantizedOffset, scen
 		return
 	}
 
-	if err := writeQuantOffset(nm.persistRoot, nm.id, off, scene, nm.tilt.topTiltVectorThetaIdx); err != nil {
+	if err := writeQuantOffset(nm.persistRoot, nm.id, off, scene, nm.tilt.TopTiltVectorThetaIdx()); err != nil {
 		jsonpersist.LogPersistErr("quant_offset_persist", nm.id, err)
 	}
 }
@@ -23,7 +23,7 @@ func (nm *NodeGeometry) persistTiltVectorAngle() {
 	if nm.persistRoot == "" {
 		return
 	}
-	if err := writeQuantOffset(nm.persistRoot, nm.id, nm.quantOffset, nm.geom.ScenePolar, nm.tilt.topTiltVectorThetaIdx); err != nil {
+	if err := writeQuantOffset(nm.persistRoot, nm.id, nm.quantOffset, nm.geom.ScenePolar, nm.tilt.TopTiltVectorThetaIdx()); err != nil {
 		jsonpersist.LogPersistErr("quant_offset_persist", nm.id, err)
 	}
 }

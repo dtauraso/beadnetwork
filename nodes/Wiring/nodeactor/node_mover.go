@@ -2,8 +2,6 @@ package nodeactor
 
 import (
 	"context"
-
-	"github.com/dtauraso/wirefold/nodes/clock"
 )
 
 type NodeMover struct {
@@ -22,54 +20,31 @@ func (m *NodeMover) SetSpeedCh(ch chan float64) {
 
 func (m *NodeMover) Run(ctx context.Context) {
 	g := m.geom
-	if g.clocks.clockSrc != nil {
-		g.clocks.clk = g.clocks.clockSrc.Copy()
-	}
+	g.clocks.CopyClockSrc()
 
 	if g.tr != nil {
 		g.emitGeometry()
 	}
 	for {
-		clock.ApplySpeedNonBlocking(g.clocks.clk, m.speedCh)
+		g.clocks.ApplySpeed(m.speedCh)
 
 		for {
-			progressed := false
-			select {
-			case <-ctx.Done():
+			progressed, cancelled := g.msg.DrainPending(ctx, g.handle)
+			if cancelled {
 				return
-			case msg := <-g.msg.extIn:
-				g.handle(msg)
-				if msg.TestDone != nil {
-					close(msg.TestDone)
-				}
-				progressed = true
-			default:
-			}
-			for _, ch := range g.msg.neighborIn {
-				select {
-				case msg := <-ch:
-					g.handle(msg)
-					if msg.TestDone != nil {
-						close(msg.TestDone)
-					}
-					progressed = true
-				default:
-				}
 			}
 			if !progressed {
 				break
 			}
 		}
 
-		outTick := g.clocks.clk.Tick()
-		for _, pw := range g.outs.outWires {
-			pw.DriveOneCycle(ctx, outTick)
-		}
+		outTick := g.clocks.Tick()
+		g.outs.DriveOutWires(ctx, outTick)
 
-		g.msg.flushPending()
+		g.msg.FlushPending()
 
 		g.writeStreamFrame(nil)
-		if err := g.clocks.clk.SleepCycle(ctx); err != nil {
+		if err := g.clocks.SleepCycle(ctx); err != nil {
 			return
 		}
 	}

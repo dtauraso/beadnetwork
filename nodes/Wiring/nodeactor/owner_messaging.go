@@ -27,6 +27,42 @@ func (n *nodeMessaging) EnsureNeighborChannel(otherID string) {
 
 func (n *nodeMessaging) SendMove() func(id string, msg movemsg.Msg) { return n.sendMove }
 
+func (n *nodeMessaging) SeedCenter(center vec3) {
+	n.centerOut <- center
+}
+
+func (n *nodeMessaging) CommitLocal(id string, newPos vec3) {
+	if n.commitLocal != nil {
+		n.commitLocal(id, newPos)
+	}
+}
+
+func (n *nodeMessaging) DrainPending(ctx context.Context, handle func(movemsg.Msg)) (progressed, cancelled bool) {
+	select {
+	case <-ctx.Done():
+		return false, true
+	case msg := <-n.extIn:
+		handle(msg)
+		if msg.TestDone != nil {
+			close(msg.TestDone)
+		}
+		progressed = true
+	default:
+	}
+	for _, ch := range n.neighborIn {
+		select {
+		case msg := <-ch:
+			handle(msg)
+			if msg.TestDone != nil {
+				close(msg.TestDone)
+			}
+			progressed = true
+		default:
+		}
+	}
+	return progressed, false
+}
+
 func (n *nodeMessaging) NeighborIDs() []string {
 	ids := make([]string, 0, len(n.neighborIn))
 	for id := range n.neighborIn {
@@ -81,7 +117,7 @@ func (n *nodeMessaging) TryRecvExternal() (movemsg.Msg, bool) {
 
 func (n *nodeMessaging) EnqueueSend(id, destID string, msg movemsg.Msg) {
 	n.pending = append(n.pending, pendingSend{destID: destID, msg: msg})
-	n.flushPending()
+	n.FlushPending()
 	if len(n.pending) > maxPendingSends {
 
 		panic(fmt.Sprintf(
@@ -93,7 +129,7 @@ func (n *nodeMessaging) EnqueueSend(id, destID string, msg movemsg.Msg) {
 	}
 }
 
-func (n *nodeMessaging) flushPending() {
+func (n *nodeMessaging) FlushPending() {
 	if len(n.pending) == 0 || n.resolveDest == nil {
 		return
 	}

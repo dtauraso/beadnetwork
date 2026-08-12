@@ -54,8 +54,8 @@ func NewNodeGeometry(id string, geom nodegeom.NodeGeom, tr *T.Trace, clockSrc cl
 		tilt:   nodeTilt{latticePoints: tiltvector.FullTurnThetaIdx},
 	}
 
-	ng.msg.centerOut <- nodegeom.NodeWorldPos(geom)
+	ng.msg.SeedCenter(nodegeom.NodeWorldPos(geom))
 
-	ng.beads.beadTickFn = clock.NewTickChan
+	ng.beads.SetBeadTickFn(clock.NewTickChan)
 	return ng
 }

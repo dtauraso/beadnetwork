@@ -1,7 +1,6 @@
 package nodeactor
 
 import (
-	"encoding/binary"
 	"fmt"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/framegeom"
@@ -17,35 +16,38 @@ import (
 func (m *NodeGeometry) emitGeometry() {
 
 	m.writeStreamFrame([]rowevent.RowEvent{{
-		Kind: T.KindNodeGeometry, NodeRow: m.stream.nodeRow,
+		Kind: T.KindNodeGeometry, NodeRow: m.stream.NodeRow(),
 		PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1,
 	}})
 }
 
 func (m *NodeGeometry) writeStreamFrame(events []rowevent.RowEvent) {
-	if !m.stream.streamOut.Ok() || m.stream.buildFrame == nil {
+	if !m.stream.Ready() {
 		return
 	}
 
+	row := m.stream.NodeRow()
 	for _, e := range events {
-		if e.NodeRow != m.stream.nodeRow {
+		if e.NodeRow != row {
 			panic(fmt.Sprintf(
 				"NodeGeometry.writeStreamFrame: node %q (row %d) is carrying a %s event for row %d on its OWN dedicated stream — NodeRow is an ownership claim, not a reference; a foreign node belongs in TargetRow",
-				m.id, m.stream.nodeRow, e.Kind, e.NodeRow))
+				m.id, row, e.Kind, e.NodeRow))
 		}
 	}
 
+	coplanarEdges, upAxis := m.flags.Flags()
+	topIdx, bottomIdx, normalIdx, receivedIdx, receivedSet, latticePoints := m.tilt.FrameGeometryFields()
 	fg := framegeom.DeriveFrameGeometry(framegeom.FrameGeometryInputs{
 		Geom:                   m.geom,
-		UpAxis:                 m.flags.upAxis,
-		CoplanarEdges:          m.flags.coplanarEdges,
-		PartnerCenters:         m.topo.partnerCenters,
-		TopTiltVectorThetaIdx:  m.tilt.topTiltVectorThetaIdx,
-		BottomThetaIdx:         m.tilt.bottomThetaIdx,
-		NormalThetaIdx:         m.tilt.normalThetaIdx,
-		ReceivedVectorThetaIdx: m.tilt.receivedVectorThetaIdx,
-		ReceivedVectorSet:      m.tilt.receivedVectorSet,
-		LatticePoints:          m.tilt.latticePoints,
+		UpAxis:                 upAxis,
+		CoplanarEdges:          coplanarEdges,
+		PartnerCenters:         m.topo.PartnerCenters(),
+		TopTiltVectorThetaIdx:  topIdx,
+		BottomThetaIdx:         bottomIdx,
+		NormalThetaIdx:         normalIdx,
+		ReceivedVectorThetaIdx: receivedIdx,
+		ReceivedVectorSet:      receivedSet,
+		LatticePoints:          latticePoints,
 		DefaultLatticePoints:   tiltvector.FullTurnThetaIdx,
 	})
 	center := fg.Center
@@ -63,7 +65,9 @@ func (m *NodeGeometry) writeStreamFrame(events []rowevent.RowEvent) {
 	if label == "" {
 		label = m.id
 	}
-	selected, hovered, latchedSel, kindID := m.ui.selected, m.ui.hovered, m.ui.latchedSel, m.stream.kindID
+	selected, hovered, latchedSel := m.ui.Flags()
+	kindID := m.stream.KindID()
+	roundsToParallel, msgsToParallel := m.readout.RoundsToParallel()
 
 	chainOX, chainOY, chainOZ, chainLit, chainLitVal, chainBreadcrumbs := m.chainBeads()
 	if len(chainBreadcrumbs) > 0 {
@@ -71,10 +75,10 @@ func (m *NodeGeometry) writeStreamFrame(events []rowevent.RowEvent) {
 		events = append(events, chainBreadcrumbs...)
 	}
 
-	frame := m.stream.buildFrame(nodeframe.NodeFrameInput{
-		Tick:                  uint32(m.clocks.clk.Tick()),
-		NodeRow:               m.stream.nodeRow,
-		NodeID:                m.stream.nodeRow + 1,
+	m.stream.WriteFrame(nodeframe.NodeFrameInput{
+		Tick:                  uint32(m.clocks.Tick()),
+		NodeRow:               row,
+		NodeID:                row + 1,
 		CX:                    float32(center.X),
 		CY:                    float32(center.Y),
 		CZ:                    float32(center.Z),
@@ -101,8 +105,8 @@ func (m *NodeGeometry) writeStreamFrame(events []rowevent.RowEvent) {
 		Hovered:               hovered,
 		LatchedSel:            latchedSel,
 		LatticePoints:         uint8(points),
-		RoundsToParallel:      m.readout.roundsToParallel,
-		MsgsToParallel:        m.readout.msgsToParallel,
+		RoundsToParallel:      roundsToParallel,
+		MsgsToParallel:        msgsToParallel,
 		Label:                 label,
 		ChainBeadOX:           chainOX,
 		ChainBeadOY:           chainOY,
@@ -111,9 +115,4 @@ func (m *NodeGeometry) writeStreamFrame(events []rowevent.RowEvent) {
 		ChainBeadLitValue:     chainLitVal,
 		Events:                events,
 	})
-	var hdr [4]byte
-	binary.LittleEndian.PutUint32(hdr[:], uint32(len(frame)))
-
-	_, _ = m.stream.streamOut.Write(hdr[:])
-	_, _ = m.stream.streamOut.Write(frame)
 }
