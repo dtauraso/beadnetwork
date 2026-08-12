@@ -1,21 +1,21 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Overlay wire-vocabulary name parity: the overlay FLAG names authored in messages.ts
-# (OVERLAY_FLAG_NAMES, the single TS source) must be exactly the key set of the Go
-# OverlayToggles map (nodes/Wiring/viewstate/overlay_state.go) — the attr="toggle" wire name
-# → flip-method table Wiring's stdin_dispatch.go dispatches on. A name present on one side
-# and not the other silently no-ops the toggle at runtime.
-#
-# overlay_state.go IS generated from OVERLAY_FLAG_NAMES (tools/gen-node-defs), so
-# check-generated.sh already catches a stale regen by full-file diff. This guard is the
-# NAMED, boundary-specific complement: it fails with "these exact flag names diverge"
-# instead of "the generated file is stale", and it pins the contract at the wire-name set
-# itself so a future refactor that changed how the file is generated can't quietly drop it.
-# Both regions are sentinel-fenced so the extraction can't sweep in unrelated literals.
-#
-# Exit 0 clean, exit 1 with a report.
-#
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # PLACEMENT: tools/topology-vscode/src/messages.ts,nodes/Wiring/viewstate/overlay_state.go | OVERLAY_FLAG_NAMES (TS) and OverlayToggles keys (Go) must be the exact same name set
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -38,7 +38,7 @@ ts_names=$(awk '/OVERLAY_FLAGS_START/{on=1;next} /OVERLAY_FLAGS_END/{on=0} on' "
   | grep -oE '"[^"]+"' | tr -d '"' | sort)
 
 # overlay_state.go: the map KEYS between OVERLAY_TOGGLES_START / OVERLAY_TOGGLES_END
-# (the quoted string before the ':' on each entry line).
+
 go_names=$(awk '/OVERLAY_TOGGLES_START/{on=1;next} /OVERLAY_TOGGLES_END/{on=0} on' "$GO" \
   | grep -oE '"[^"]+"[[:space:]]*:' | grep -oE '"[^"]+"' | tr -d '"' | sort)
 

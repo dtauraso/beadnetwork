@@ -1,26 +1,26 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# check-no-sqrt-in-chain-beads.sh — guard that chain-bead placement stays index arithmetic.
-#
-# docs/bead-model/beads-are-the-edge.md's chain beads sit on the SAME local polar lattice a node's own
-# LocalPolar triples describe (nodes/wire/layout_holder.go). A bead's distance from its
-# source node comes from an integer index (QuantIR) times a step constant (StepR) —
-# multiplication, per memory/feedback_abc_times_constant_not_rederive.md — never from a
-# cartesian offset's square root. Both math.Sqrt directly and Vec3's .Length()/.Normalize()
-# (each internally a sqrt, nodes/wire/geometry.go) are banned in this one file: a distance
-# computed by sqrt means someone reintroduced a cartesian shortcut that can drift from the
-# lattice the nodes actually sit on, silently reproducing the bug this design exists to rule
-# out. Trig (sin/cos/atan2/acos) is NOT banned — it is expected at the one
-# cartesian<->polar boundary conversion per bead (polar2cart).
-#
-# Exit 0 clean, exit 1 with a report.
-#
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # PLACEMENT: nodes/Wiring/nodeactor/chain_beads.go | no math.Sqrt/.Length()/.Normalize(); bead placement stays index arithmetic (QuantIR*StepR)
-#
-# Re-keyed in docs/planning/movedispatch-decomposition.md §20: chain_beads.go moved from
-# package Wiring into nodes/Wiring/nodeactor (the per-node actor package move), same
-# filename, new directory — the file this guard polices did not change, only its path.
+
+
+
+
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"

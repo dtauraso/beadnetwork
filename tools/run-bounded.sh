@@ -1,20 +1,20 @@
 #!/usr/bin/env bash
-# run-bounded.sh — run a command with a hard wall-clock limit.
-#
-# macOS has no coreutils `timeout`, and the wirefold sim (and anything that
-# parks goroutines on a halted clock / paced wire) can fail to exit on its own.
-# A foreground call to such a command blocks until the agent/harness limit —
-# this is exactly what hung a subagent for 13 minutes. ALWAYS wrap a
-# potentially-blocking run in this helper instead of calling it directly.
-#
-# Usage:
-#   tools/run-bounded.sh <seconds> <command> [args...]
-#
-# Example (bounded self-terminating run without risking a hang):
-#   tools/run-bounded.sh 5 ./wirefold -topology ./topology -duration 1s </dev/null
-#
-# Exits with the command's own status if it finishes in time, or 124 if it was
-# killed at the deadline (matching GNU `timeout`'s convention).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 set -uo pipefail
 
@@ -25,8 +25,8 @@ fi
 
 limit="$1"; shift
 
-# perl's alarm delivers SIGALRM after <limit> seconds; exec replaces the shell so
-# signals hit the real command. If alarm fires, perl exits 124.
+
+
 perl -e '
   my $limit = shift;
   my $pid = fork();

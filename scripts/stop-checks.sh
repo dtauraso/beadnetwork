@@ -1,30 +1,30 @@
 #!/usr/bin/env bash
-# Fast deterministic checks. Skips slow test suites. Two output modes (see MODE below):
-#   default (hook)  — prints {"decision":"block",...} JSON on stdout and exits 0 (Stop hook).
-#   --cli           — prints the failure reason to stderr and exits NONZERO (terminal use;
-#                     scripts/verify.sh is the front door). Run `bash scripts/verify.sh`.
+
+
+
+
 set -u
 
-# Output MODE — determined FIRST so the scratchpad guard below can signal per-mode. Two
-# callers, two failure-signalling contracts — ONE set of checks below so they can never
-# drift (the reason this is a flag, not a second script):
-#   - hook (default): the Stop hook wires this in .claude/settings.json. The hook protocol
-#     signals failure by printing {"decision":"block",...} JSON on stdout and MUST exit 0;
-#     a nonzero exit would be read as a hook error, not a blocked stop.
-#   - cli (--cli): for a human/agent at the terminal. Prints the failure reason plainly and
-#     EXITS NONZERO, so the reflexive `&& echo ok` / `$?` / `if ...; then` habit is correct
-#     here. scripts/verify.sh is the obvious front door to this mode.
+
+
+
+
+
+
+
+
+
 MODE="hook"
 if [ "${1:-}" = "--cli" ]; then
   MODE="cli"
 fi
 
-# Caller's cwd, captured BEFORE any cd — the scratchpad guard compares it to the repo root.
+
 CALLER_CWD="$PWD"
 
-# emit_block REASON — signal a blocked stop per MODE, then exit. hook mode prints the
-# Stop-hook JSON on stdout and exits 0 (a nonzero exit would read as a hook error, not a
-# blocked stop); cli mode prints the reason to stderr and exits NONZERO.
+
+
+
 emit_block() {
   if [ "$MODE" = "cli" ]; then
     printf 'stop-checks: %s\n' "$1" >&2
@@ -34,11 +34,11 @@ emit_block() {
   exit 0
 }
 
-# Resolve the repo root from the SCRIPT'S OWN location, not the caller's cwd. This script
-# always lives at <repo>/scripts/stop-checks.sh, so `git -C "$SCRIPT_DIR"` finds the repo
-# regardless of where the shell was when the hook fired. (Assignment, not `cd "$(...)"`:
-# `ROOT=$(cmd)` propagates cmd's exit status, so the `|| { ... }` actually fires — the old
-# `cd "$(...)" || exit` degraded to `cd ""`, a no-op that never tripped the guard.)
+
+
+
+
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)" || {
   echo "stop-checks: MISCONFIGURED — cannot resolve script directory." >&2
   exit 1
@@ -52,10 +52,10 @@ if [ -z "$ROOT" ]; then
   exit 1
 fi
 
-# Scratchpad guard (chosen behavior: BLOCK, do NOT run). If the caller's cwd is not inside
-# THIS repo — a drifted shell parked in a scratchpad / tmp after background work — refuse to
-# run and say so plainly, rather than silently compensating. A subdir of the repo is fine
-# (git resolves the same root from anywhere inside); only a cwd OUTSIDE the repo trips this.
+
+
+
+
 repo_common="$(git -C "$SCRIPT_DIR" rev-parse --path-format=absolute --git-common-dir 2>/dev/null || true)"
 caller_common="$(git -C "$CALLER_CWD" rev-parse --path-format=absolute --git-common-dir 2>/dev/null || true)"
 if [ -z "$caller_common" ] || [ -z "$repo_common" ] || [ "$caller_common" != "$repo_common" ]; then
@@ -67,12 +67,12 @@ cd "$ROOT" || {
   exit 1
 }
 
-# Files to consider for the EXPENSIVE language builds. This is the union of:
-#   - the working tree (uncommitted changes), and
-#   - committed-but-unmerged work (branch ahead of origin/main, or main if no origin).
-# The guard LOOP below runs unconditionally regardless of this set — it is fast
-# (sub-second greps) and is the real enforcement; gating it on a dirty tree made
-# the whole suite decorative for the normal commit-then-stop workflow.
+
+
+
+
+
+
 worktree_changed=$(git status --porcelain 2>/dev/null | awk '{print $NF}')
 
 base=""
@@ -90,14 +90,14 @@ changed=$(printf '%s\n%s\n' "$worktree_changed" "$committed_changed")
 
 go_changed=$(echo "$changed" | grep -E '\.go$' || true)
 ts_changed=$(echo "$changed" | grep -E 'tools/topology-vscode/.*\.(ts|tsx)$' || true)
-# CSS is a BUNDLE INPUT too — esbuild emits out/webview.css from src/webview/webview.css,
-# and the webview loads that built file, not the source. It is tracked separately from
-# ts_changed because it feeds only the BUILD: tsc --noEmit has nothing to say about a
-# stylesheet.
-#
-# Without this, a CSS-only edit passed every check while never reaching the editor: the
-# build lives inside the `ts_changed` block, so out/webview.css kept whatever the last
-# TS-touching commit had built. A stylesheet change looked verified and shipped nothing.
+
+
+
+
+
+
+
+
 css_changed=$(echo "$changed" | grep -E 'tools/topology-vscode/.*\.css$' || true)
 
 fail=0
@@ -108,30 +108,30 @@ if [ -n "$go_changed" ]; then
     out+="go build failed:\n$go_out\n\n"
     fail=1
   fi
-  # go test — runs on the same gate as go build (Go changed / branch ahead of
-  # origin/main). This was the one verify step living outside the suite.
-  #
-  # -race was REMOVED (2026-07-28). Its original justification named "atomic center
-  # snapshots" as the shared memory worth detecting races on. That code is gone:
-  # check-no-network-locks.sh now enforces ZERO atomics and ZERO mutexes across
-  # nodes/ Buffer/ Trace/ with an empty ALLOWED_ATOMIC set and a rot-check, so the
-  # shared-memory bug class -race detects is structurally unrepresentable here —
-  # per-mover ownership, dedicated per-pair channels, no shared state.
-  #
-  # The cost had also drifted 13x from what the original decision was priced on:
-  # the comment claimed "4.9s -> 6.3s uncached"; measured 2026-07-28 it was 82s of
-  # a ~112s suite, i.e. 73% of every Stop-hook run to check a bug class a guard
-  # already makes impossible.
-  #
-  # If shared state is ever deliberately reintroduced, check-no-network-locks.sh
-  # fails first — restore -race here in the same commit that allowlists the atomic.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   if ! gotest_out=$(go test ./... 2>&1); then
     out+="go test failed:\n$gotest_out\n\n"
     fail=1
   fi
   # go vet + staticcheck. staticcheck COMPILES the whole module, so it is
-  # expensive — it lives here in the go-gated block (Go changed / branch ahead of
-  # origin/main), never in the fast unconditional guard loop below.
+
+
   if ! sc_out=$(bash tools/lang/check-staticcheck.sh 2>&1); then
     out+="check-staticcheck failed:\n$sc_out\n\n"
     fail=1
@@ -143,13 +143,13 @@ if [ -n "$ts_changed" ] || [ -n "$css_changed" ]; then
     out+="tsc --noEmit failed:\n$tsc_out\n\n"
     fail=1
   fi
-  # Rebuild the webview/extension bundle so Cmd-R in the host picks up
-  # the latest TS/CSS changes without a manual `npm run build`. Skip when
-  # out/webview.js is already newer than every changed bundle input — avoids
-  # paying full esbuild cost on no-op or pure-test edits.
+
+
+
+
   webview_out="tools/topology-vscode/out/webview.js"
-  # Test files don't enter the bundle; skip build when only test/ changed. CSS always
-  # enters it (esbuild emits out/webview.css), so it joins the list unfiltered.
+
+
   bundle_ts_changed=$(printf '%s\n%s' "$(echo "$ts_changed" | grep -v 'tools/topology-vscode/test/' || true)" "$css_changed" | grep -v '^$' || true)
   need_build=0
   if [ -n "$bundle_ts_changed" ]; then
@@ -172,36 +172,36 @@ if [ -n "$ts_changed" ] || [ -n "$css_changed" ]; then
       fail=1
     fi
   fi
-  # ESLint (react-hooks correctness guard) — TS-only, needs node_modules, so it
-  # lives in the ts_changed block alongside tsc rather than the generic loop.
+
+
   if ! eslint_out=$(bash tools/lang/check-eslint.sh 2>&1); then
     out+="check-eslint failed:\n$eslint_out\n\n"
     fail=1
   fi
-  # The vitest unit suite was removed with every other test file: a test cannot
-  # constrain an AI that edits it as freely as the code, and on this repo the suite
-  # cost 13k lines of churn across one refactor while catching no production
-  # regression. Verification is loud runtime failure plus driving the editor.
+
+
+
+
 fi
 
-# DISCOVER the guard suite; do not hand-list it. The list used to be hardcoded here, which
-# meant a new tools/**/check-*.sh was simply not run until someone remembered to edit this
-# line — a guard nobody invokes is a guard that cannot fail. Globbing makes "written" and
-# "run" the same fact.
-#
-# Guards live one level deep, grouped by WHAT THEY GUARD (tools/network,
-# tools/bridge, tools/buffer-schema, tools/webview, tools/docs, tools/repo-hygiene,
-# tools/lang) rather than all 60+ dumped flat in tools/ — so the glob below is
-# two levels (tools/*/check-*.sh), not tools/check-*.sh. A guard GROUP may itself be
-# split into subdirectories by invariant (e.g. tools/network/beads/check-*.sh) — the
-# glob below also matches three levels deep (tools/*/*/check-*.sh) so a group split
-# like that stays discovered instead of silently dropping out of the suite.
-#
-# EXCLUDED, deliberately:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #   check-staticcheck / check-eslint / check-vitest — expensive; invoked above under their
-#     language gate, not in this fast unconditional loop.
-#   check-no-foreground-sim / check-stray-screenshots — PreToolUse hooks, not checks;
-#     they read tool_input JSON from stdin and must always exit 0.
+
+
+
 GUARD_EXCLUDE="check-staticcheck|check-eslint|check-vitest|check-no-foreground-sim|check-stray-screenshots|check-no-shell-source-edits"
 
 shopt -s nullglob
@@ -213,18 +213,18 @@ if [ ${#guards[@]} -eq 0 ]; then
   exit 1
 fi
 
-# The guards are ~96% of this script's wall time (5.86s of 6.14s measured), they are 48
-# independent read-only checks, and they used to run one at a time. Now they run
-# CONCURRENTLY, which bounds the suite at its slowest single guard instead of the sum.
-#
-# ONE guard must not run concurrently with the others: check-generated.sh RUNS the
-# generator (`npm run gen:node-defs`, its line 27), which WRITES the generated files into
-# the working tree. Any guard reading those files while it rewrites them could see a
-# half-written file and fail at random — a flaky guard suite is worse than a slow one. So
-# it runs FIRST, alone, and the rest fan out only after it has finished.
-#
-# Output is collected per guard and replayed in sorted order, so a failure report reads
-# identically to the serial version regardless of which guard finished first.
+
+
+
+
+
+
+
+
+
+
+
+
 GUARD_SERIAL="check-generated"
 JOBS=$(sysctl -n hw.ncpu 2>/dev/null || nproc 2>/dev/null || echo 4)
 
@@ -239,7 +239,7 @@ GDIR=$(mktemp -d)
 trap 'rm -rf "$GDIR"' EXIT
 
 run_one_guard() {
-  # $1 = path. Writes <name>.out and <name>.rc so the collector can report deterministically.
+
   local gp="$1" gn go grc
   gn=$(basename "$gp" .sh)
   go=$(bash "$gp" 2>&1); grc=$?
@@ -248,18 +248,18 @@ run_one_guard() {
 }
 export -f run_one_guard 2>/dev/null || true
 
-# 1. the tree-mutating guard, alone
+
 for chk_path in "${guard_selected[@]}"; do
   chk=$(basename "$chk_path" .sh)
   [ "$chk" = "$GUARD_SERIAL" ] || continue
   run_one_guard "$chk_path"
 done
 
-# 2. everything else, concurrently. `xargs -P` rather than backgrounding in batches of
-# $JOBS: a batch only advances when its SLOWEST member finishes, so with one 2s guard and
-# 47 fast ones the batch containing it idles 7 cores for 2s. xargs keeps every slot busy —
-# measured 3.98s (batched) vs 2.66s (streaming) on the same tree.
-# bash 3.2 (macOS) has no `wait -n`, which is the other way to do this.
+
+
+
+
+
 printf '%s\n' "${guard_selected[@]}" \
   | grep -v "/${GUARD_SERIAL}\.sh$" \
   | GDIR="$GDIR" xargs -P "$JOBS" -I@ bash -c '
@@ -269,7 +269,7 @@ printf '%s\n' "${guard_selected[@]}" \
       printf "%s" "$grc" > "$GDIR/$gn.rc"
     ' 
 
-# 3. collect in sorted order — same report the serial loop produced
+
 for chk_path in "${guard_selected[@]}"; do
   chk=$(basename "$chk_path" .sh)
   grc=$(cat "$GDIR/$chk.rc" 2>/dev/null || echo 1)
@@ -282,12 +282,12 @@ done
 
 if [ $fail -ne 0 ]; then
   if [ "$MODE" = "cli" ]; then
-    # CLI mode: human-readable reason to stderr, NONZERO exit — the obvious-correct signal.
+
     printf 'stop-checks: FAILED\n\n%b\n' "$out" >&2
     exit 1
   fi
-  # Hook mode: the Stop-hook JSON-on-stdout contract, exit 0 (a nonzero exit here would be
-  # read as a hook error, not a blocked stop).
+
+
   python3 -c "
 import json, sys
 reason = 'Pre-stop checks failed. Fix before stopping:\n\n' + sys.stdin.read()

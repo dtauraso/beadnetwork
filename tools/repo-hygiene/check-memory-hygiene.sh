@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
-# check-memory-hygiene.sh — enforce that every memory/ entry is a well-formed, indexed
-# memory, not raw agent monologue. Run from repo root: bash tools/repo-hygiene/check-memory-hygiene.sh
-#
-# WHY THIS EXISTS (drift-checklist item #7 — "memory poisoning"): CLAUDE.md's drift
-# checklist asks "can the agent's own monologue become persistent memory/?" A repo guard
-# can't watch the agent, but it CAN enforce the static shape every real memory has, so a
-# malformed / typeless / unindexed blob (the shape monologue-dumped-as-memory takes) fails
-# the build instead of silently persisting. Each memory/*.md must have: YAML frontmatter,
-# a name, a description, a valid type (user|feedback|project|reference — accepted either as
-# `metadata:\n  type:` or a top-level `type:`), a non-empty body, and an entry in
-# memory/MEMORY.md (the index CLAUDE.md says is loaded each session).
-#
-# Exit 0 clean, exit 1 with a report — auto-discovered by scripts/stop-checks.sh via the
-# tools/check-*.sh glob.
-#
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # PLACEMENT: memory/*.md | needs YAML frontmatter with name/description/valid type, non-empty body, and an entry in memory/MEMORY.md
 set -euo pipefail
 
@@ -28,7 +28,7 @@ if [[ ! -d "$MEM_DIR" || ! -f "$INDEX" ]]; then
   exit 1
 fi
 
-# Allowed memory types (CLAUDE.md memory section).
+
 allowed_type() { case "$1" in user|feedback|project|reference) return 0;; *) return 1;; esac; }
 
 files=()
@@ -39,12 +39,12 @@ if [[ ${#files[@]} -eq 0 ]]; then
   exit 1
 fi
 
-# All five checks in ONE python3 pass over ALL files, instead of ~8 process spawns
-# (basename/head/awk/grep×3/tr) PER file (~67 files ≈ 500 processes). Each check below is
-# a line-for-line port of the shell/awk/grep/sed it replaces — same regexes, same fence
-# semantics, same "first match wins" for type — so a file that failed before fails the
-# same way now. One unreadable file is caught and reported per-file rather than aborting
-# the batch, mirroring the old per-file `[[ -f ]]`/redirection guards.
+
+
+
+
+
+
 python3 -c "
 import re, sys
 

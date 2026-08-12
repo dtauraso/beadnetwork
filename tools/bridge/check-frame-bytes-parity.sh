@@ -2,22 +2,22 @@
 set -euo pipefail
 
 # PLACEMENT: nodes/Wiring/stdinreader/stdin_reader.go,tools/topology-vscode/src/runner/framing.ts | maxFrameBytes and MAX_FRAME_BYTES must be numerically equal
-#
-# Verifies that the two sides of the SAME framed-binary protocol ([len:u32-LE][payload])
-# agree on the maximum frame length they will accept:
-#   nodes/Wiring/stdinreader/stdin_reader.go        `const maxFrameBytes = ...`   (TS -> Go direction)
-#   tools/topology-vscode/src/runner/framing.ts  `export const MAX_FRAME_BYTES = ...`  (Go -> TS direction)
-#
-# This protocol is used in BOTH directions on the same wire shape, and each side's reader
-# is the one that must bound ITS OWN allocation — a bound that exists on only one side is
-# the defect (a corrupt/hostile length on the unguarded side grows the carry-over buffer
-# without limit). This guard is generated-vs-generated in spirit but hand-authored-vs-
-# hand-authored in practice: it does not regenerate anything, it only asserts the two
-# CONSTANTS are numerically equal. It does NOT verify either side's logic actually rejects
-# an over-limit frame (see the reader code itself / the guard's own file comments for that);
-# it only catches the constants drifting apart.
-#
-# Exit 0 if clean; exit 1 with a report if the values diverge.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
@@ -32,8 +32,8 @@ for f in "$GO_FILE" "$TS_FILE"; do
   fi
 done
 
-# Extract the literal expression after the `=` on the const declaration line, e.g.
-# "1 << 20". Evaluated with bash arithmetic so "1 << 20" and "1048576" compare equal.
+
+
 value_go() {
   grep -aE '^[[:space:]]*const[[:space:]]+maxFrameBytes[[:space:]]*=' "$GO_FILE" \
     | sed -E 's/^[[:space:]]*const[[:space:]]+maxFrameBytes[[:space:]]*=[[:space:]]*//'

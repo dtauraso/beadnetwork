@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# check-no-shell-source-edits.sh — PreToolUse(Bash) guard.
-#
-# Source files are edited with the Edit/Write TOOLS, never by a shell command. A shell
-# write — `python3 - <<'PY'`, `sed -i`, `perl -pi`, `cat > file.ts` — reaches the same bytes
+
+
+
+
 # but bypasses everything the tool path provides:
 #
 #   * placement-brief-hook.sh (PreToolUse Write|Edit) never fires, so a NEW file is created

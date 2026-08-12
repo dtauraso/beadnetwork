@@ -1,40 +1,40 @@
 #!/usr/bin/env bash
-#
+
 # PLACEMENT: nodes/SPEC-FORMAT.md,tools/gen-node-defs/kindscan/spec_md.go | the `## View` field table must name exactly the view.* fields parseSpecMD reads
 set -euo pipefail
 
-# check-spec-format-view-fields.sh — nodes/SPEC-FORMAT.md's `## View` field table must name
-# exactly the view.* fields tools/gen-node-defs's parseSpecMD (in spec_md.go) actually
-# reads (via vmap["<field>"]) — no more, no less.
-#
-# WHY THIS EXISTS
-# ---------------
-# SPEC-FORMAT.md is the authoring contract for nodes/<Kind>/SPEC.md, but no generator or guard
-# reads it — it is pure prose describing what the generator does, so nothing stopped it from
-# drifting. An audit found it documenting three View fields (accent, displays, defaultLabel)
-# that main.go parsed into ViewDef but never emitted anywhere downstream (dead — confirmed by
-# regenerating node-defs.ts after deleting them: zero diff), while omitting six fields
-# (role, shape, fill, stroke, width, height) that main.go DOES read and that DO reach
-# node-defs.ts / node_dims_gen.go.
-#
-# THE RULE
-# --------
-# Extract the field names from main.go's `vmap["<name>"]` reads inside parseSpecMD (the ground
-# truth of what the generator actually parses from a SPEC.md `## View` table) and compare them,
-# as a set, to the field names appearing in the first column of SPEC-FORMAT.md's `## View`
-# field-value tables. Any asymmetric difference fails the build:
-#   - a field the doc documents but the generator does not read → doc re-added a dead/ghost
-#     field (the accent/displays/defaultLabel class).
-#   - a field the generator reads but the doc omits → the generator grew a field the authoring
-#     contract never mentioned (an author would have no way to discover it exists).
-#
-# This is intentionally narrower than "does the field affect rendering" (main.go parses fields
-# it discards downstream too, e.g. accent WAS parsed before this fix) — it only proves
-# doc-vs-parser parity, which is what SPEC-FORMAT.md claims to describe. It cannot silently
-# regress: reintroducing a dead field to the doc without touching main.go, or adding a new
-# vmap read to main.go without documenting it, both flip this guard red.
-#
-# Exit 0 if clean; exit 1 with a diff otherwise.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
@@ -55,11 +55,11 @@ fi
 TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT
 
-# ---- fields the generator actually reads (vmap["field"] inside parseSpecMD) ----------------
-# Scan every non-test *.go file under $GEN_DIR, RECURSIVELY (not just main.go, and not just
-# $GEN_DIR's own top level) — parseSpecMD (and its vmap[...] reads) may live in any file
-# within this package or a subpackage after a split (e.g. tools/gen-node-defs/kindscan), and
-# a non-recursive glob here would silently stop tracking new/moved reads.
+
+
+
+
+
 grep -rhoE 'vmap\["[A-Za-z0-9_]+"\]' "$GEN_DIR" --include="*.go" \
   | sed -E 's/vmap\["([A-Za-z0-9_]+)"\]/\1/' \
   | sort -u > "$TMP/code_fields.txt"
@@ -69,11 +69,11 @@ if [[ ! -s "$TMP/code_fields.txt" ]]; then
   exit 1
 fi
 
-# ---- fields SPEC-FORMAT.md documents in its `## View` table(s) -----------------------------
-# Both the `## File layout` skeleton and the worked `## View section` example carry a
-# `| Field | Value |` table; collect field names from every such table in the doc. A table row
-# looks like `| kind | <rfType> |` — take the first cell after splitting on `|`, skip the
-# header row and the `----` separator row.
+
+
+
+
+
 awk '
   /^\| *Field *\| *Value *\|/ { intable=1; next }
   intable && /^\|[-: ]+\|[-: ]+\|/ { next }

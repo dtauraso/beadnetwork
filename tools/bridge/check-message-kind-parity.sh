@@ -2,34 +2,34 @@
 set -euo pipefail
 
 # PLACEMENT: nodes/Wiring/stdinreader/stdin_reader.go,tools/topology-vscode/src/messages.ts,tools/topology-vscode/src/extension/handle-message.ts,tools/topology-vscode/src/webview/** | a new message kind needs matching entries in Go's MSG_TYPES fence+doc, messages.ts, and a live sender
-#
-# Verifies THREE parities for the editor<->Go/ext-host seams:
-#   1. every message type dispatched by stdin_reader.go is declared in
-#      WEBVIEW_TO_HOST_TYPES in messages.ts;
-#   2. every message type dispatched by stdin_reader.go is DOCUMENTED in that file's own
+
+
+
+
+
 #      MSG_TYPES_DOC block, and vice versa — so the header cannot undercount its switch.
-#   3. every kind in handle-message.ts's LIVE_CASES fence (a real handler case, not the
-#      DECLARED_NOT_SENT fallthrough) has at least one literal `postMessage({ type: "..." })`
-#      sender somewhere in the webview source. This is the check that would have caught
-#      "run-cancel" and the dead "play" handler case: a kind can have a handler and be
-#      declared in WEBVIEW_TO_HOST_TYPES yet have NOTHING that ever sends it. (1) alone only
-#      checks Go's kinds are a subset of TS's — it never asked whether a TS-declared kind is
-#      reachable from anywhere, so a handler with no sender could never fail it.
-# Exit 0 if clean; exit 1 with a report if they diverge.
-#
-# (2) exists because the header once enumerated five types while the switch had seven; the
-# undocumented one (fade-toggle) then read as contradicting the header. Prose describing a
-# dispatch is only true if something fails when it stops being true.
+
+
+
+
+
+
+
+
+
+
+
+
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
-# The Go side is the nodes/Wiring PACKAGE, scanned, not one named file
+
 # (memory/feedback_guards_hardcoding_single_file_break_on_split.md): the MSG_TYPES fence and
 # its MSG_TYPES_DOC header sit in stdin_reader.go today, but that file has already been split
-# once by job, and a guard pinned to a path goes quiet the next time it is. Tests are excluded
-# so a fixture comparing msg.Type cannot enter the kind set. An empty scan is MISCONFIGURED
-# (asserted below), never a pass.
+
+
+
 GO_PKG_DIR="$REPO_ROOT/nodes/Wiring"
 MESSAGES_TS="$REPO_ROOT/tools/topology-vscode/src/messages.ts"
 HANDLE_MESSAGE_TS="$REPO_ROOT/tools/topology-vscode/src/extension/handle-message.ts"
@@ -39,7 +39,7 @@ if [[ ! -d "$GO_PKG_DIR" ]]; then
   echo "message-kind-parity: MISCONFIGURED — dir not found: $GO_PKG_DIR" >&2
   exit 1
 fi
-# Non-test .go files of the package, as an argument list for grep/awk.
+
 GO_FILES=$(find "$GO_PKG_DIR" -name '*.go' ! -name '*_test.go' | sort)
 if [[ -z "$GO_FILES" ]]; then
   echo "message-kind-parity: MISCONFIGURED — no non-test .go files under $GO_PKG_DIR" >&2
@@ -57,25 +57,25 @@ if [[ ! -d "$WEBVIEW_SRC_DIR" ]]; then
   exit 1
 fi
 
-# Extract string literals compared against msg.Type anywhere in the nodes/Wiring package.
-# Patterns matched:
-#   msg.Type != "..." or msg.Type == "..."  (if-style comparisons)
+
+
+
 #   case "...":  inside the MSG_TYPES_START/END fence
 kinds_from_go() {
   {
     grep -haoE 'msg\.Type[[:space:]]*[!=]=[[:space:]]*"[^"]+"' $GO_FILES \
       | grep -oE '"[^"]+"' \
       | tr -d '"'
-    # Extract case literals from the FENCED dispatch switch only. The fence is explicit
-    # rather than a heuristic window, so nested op/sub-kind switches can never be mistaken
+
+
     # for top-level types. Same pattern as EDIT_OPS_START/END in applyEdit.
-    #
-    # Markers are matched ANCHORED (a comment line containing the marker and nothing else).
-    # An unanchored match is a trap: this file's own header PROSE names the markers, and a
-    # loose /MARKER/ match opens the fence on that prose line — which made a deleted marker
-    # still "pass". Anchoring is what makes deleting the fence fail loudly.
-    # FNR==1 resets the fence at each file boundary (the scan spans the package now), so an
-    # unterminated fence in one file cannot swallow the next one whole.
+
+
+
+
+
+
+
     awk '
       FNR==1 { inblk=0 }
       /^[[:space:]]*\/\/[[:space:]]*MSG_TYPES_START[[:space:]]*$/ { inblk=1; next }
@@ -89,8 +89,8 @@ kinds_from_go() {
 }
 
 # Extract the types DECLARED in the package's MSG_TYPES_DOC block (stdin_reader.go's header). Only numbered
-# entry lines are read (`//  N. "type" [/ "type"] — prose`), so prose on continuation lines
-# can quote freely without being mistaken for a declaration.
+
+
 kinds_from_go_doc() {
   awk '
     FNR==1 { inblk=0 }
@@ -103,9 +103,9 @@ kinds_from_go_doc() {
     | sort -u
 }
 
-# Extract the string literals inside WEBVIEW_TO_HOST_TYPES in messages.ts.
-# The const spans multiple lines; awk slurps from the declaration to the closing ]);
-# then we drop the spread line, the declaration line, and the closing line.
+
+
+
 kinds_from_ts() {
   awk '/WEBVIEW_TO_HOST_TYPES/,/\]\)/' "$MESSAGES_TS" \
     | grep -avE 'flatMap|WEBVIEW_TO_HOST_TYPES|\]\)' \
@@ -114,18 +114,18 @@ kinds_from_ts() {
     | sort -u
 }
 
-# NOTE `|| true` on every extractor assignment below. Without it, `set -euo pipefail` kills
-# the script AT THE ASSIGNMENT whenever an extractor's grep legitimately matches nothing —
-# so the assert_nonempty diagnostic underneath, which exists precisely to explain that case,
-# could never print. The script still exited nonzero, so it failed SAFE but SILENTLY,
-# defeating the message. Verified with a minimal repro.
+
+
+
+
+
 GO_KINDS=$(kinds_from_go) || true
 GO_DOC_KINDS=$(kinds_from_go_doc) || true
 TS_KINDS=$(kinds_from_ts) || true
 
-# Refuse a vacuous pass: if any extractor returns an EMPTY set (the switch/fence/const was
-# renamed or removed), comm would compare empty-to-empty and "pass". All must be
-# non-empty. (Positive-assertion pattern, per check-ts-shading-from-go.sh.)
+
+
+
 for pair in "GO_KINDS:stdin_reader.go MSG_TYPES fenced switch" \
             "GO_DOC_KINDS:stdin_reader.go MSG_TYPES_DOC header list" \
             "TS_KINDS:WEBVIEW_TO_HOST_TYPES kinds"; do
@@ -147,7 +147,7 @@ if [[ -n "$MISSING" ]]; then
   done <<< "$MISSING"
 fi
 
-# (2) The file's own header must document exactly what it dispatches — both directions.
+
 UNDOCUMENTED=$(comm -23 <(echo "$GO_KINDS") <(echo "$GO_DOC_KINDS"))
 PHANTOM=$(comm -13 <(echo "$GO_KINDS") <(echo "$GO_DOC_KINDS"))
 
@@ -167,15 +167,15 @@ if [[ -n "$PHANTOM" ]]; then
   done <<< "$PHANTOM"
 fi
 
-# Extra TS kinds that Go doesn't recognize are fine (TS handles more message
-# types than stdin_reader.go: ext-host-only kinds like "ready"/"stop"/"webview-log" never
-# reach Go), so we only report Go→TS missing above, not TS→Go extra. What extra TS kinds DO
-# need is a live sender — checked next.
 
-# (3) Every kind in handle-message.ts's LIVE_CASES fence must have a real sender: a literal
-# `postMessage({ type: "<kind>"` (or `type: "<kind>",`) call site somewhere under the webview
-# source tree. "go-record" is sent via a typed wrapper (vscode-api.ts) rather than a bare
-# object literal per kind, so it is checked for the literal `"go-record"` string instead.
+
+
+
+
+
+
+
+
 kinds_from_live_cases() {
   awk '
     /^[[:space:]]*\/\/[[:space:]]*LIVE_CASES_START[[:space:]]*$/ { inblk=1; next }
@@ -204,11 +204,11 @@ while IFS= read -r k; do
   fi
 done <<< "$LIVE_CASE_KINDS"
 
-# (4) DECLARED_NOT_SENT is a hatch for "no live TS sender, but Go still dispatches this kind"
-# — that is the ONLY legitimate reason to sit there. A kind declared-not-sent that Go's
+
+
 # MSG_TYPES switch does NOT recognize is dead on both sides: no sender, no real handler
-# reachable from Go, and nothing catches that today. Verify every DECLARED_NOT_SENT kind is
-# in GO_KINDS (Go-parity is checked, not just asserted in prose).
+
+
 kinds_from_declared_not_sent() {
   awk '
     /^[[:space:]]*\/\/[[:space:]]*DECLARED_NOT_SENT_START[[:space:]]*$/ { inblk=1; next }

@@ -1,24 +1,24 @@
 #!/usr/bin/env bash
-#
+
 # PLACEMENT: Buffer/layout*.go,nodes/Wiring/inputcodec/input_fingerprint.go,nodes/*/SPEC.md | changing a generator source means running `go run ./tools/gen-node-defs` in the SAME commit
 set -euo pipefail
 
-# check-generated.sh — guard against stale generated files.
-#
-# Runs the generator and fails if any generated file differs from the committed version.
-#
-# THE FILE LIST IS DERIVED, NOT HARDCODED. The generator announces every file it writes
-# ("gen-node-defs: wrote <abs path> ..."), so this parses that output and checks exactly
-# what was written.
-#
-# It used to carry a hand-maintained list, duplicated in a header comment, and the two had
-# already drifted: Buffer/node_kind_id_gen.go was in the checked list but missing from the
-# comment. Worse than cosmetic — a NEW generated file added to the generator but not to the
-# list was never guarded at all, silently and forever, because `git status --porcelain
-# <explicit paths>` only looks where it is told. Deriving the list makes that
-# unrepresentable: if the generator writes it, this checks it.
-#
-# Exit 0 when every generated file matches the committed version.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 REPO_ROOT="$(git rev-parse --show-toplevel)" || {
   echo "check-generated: MISCONFIGURED — cannot locate repo root." >&2
@@ -32,14 +32,14 @@ GEN_OUT=$(cd tools/topology-vscode && npm run --silent gen:node-defs 2>&1) || {
   exit 1
 }
 
-# "gen-node-defs: wrote /abs/path/file.ts (8 entries)" -> repo-relative path
+
 FILES=$(printf '%s\n' "$GEN_OUT" \
   | sed -nE 's|^gen-node-defs: wrote ([^ ]+).*$|\1|p' \
   | sed "s|^$REPO_ROOT/||" \
   | sort -u)
 
-# Refuse a vacuous pass: no parsed paths means the generator's output format changed and
-# this guard is now checking NOTHING while reporting clean.
+
+
 if [[ -z "$FILES" ]]; then
   echo "check-generated: MISCONFIGURED — parsed 0 generated files from the generator output." >&2
   echo "  Its 'wrote <path>' format likely changed; this guard would silently check nothing." >&2
@@ -48,8 +48,8 @@ if [[ -z "$FILES" ]]; then
   exit 1
 fi
 
-# Every announced file must be tracked — an untracked generated file is invisible to
-# `git status --porcelain <path>` diffing and would pass vacuously.
+
+
 UNTRACKED=0
 while IFS= read -r f; do
   [[ -z "$f" ]] && continue
@@ -61,7 +61,7 @@ while IFS= read -r f; do
 done <<< "$FILES"
 [[ $UNTRACKED -eq 0 ]] || exit 1
 
-# shellcheck disable=SC2086 # word-splitting is intended: FILES is a newline list of paths
+
 stale=$(git status --porcelain -- $FILES 2>/dev/null || true)
 
 if [ -n "$stale" ]; then

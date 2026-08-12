@@ -1,35 +1,35 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# check-no-nul-bytes.sh — guard against literal NUL (0x00) bytes in tracked
-# source files.
-#
-# History: overlay-flags.ts was authored with the two-character escape
-# sequence `\0` intended (e.g. inside a template/string like
-# `names.join("\0")`) but a literal 0x00 byte landed in the file instead.
-# Consequences: git treated the file as BINARY (diffs showed `Bin X -> Y`
-# instead of a real line diff), `grep` went silent on it, and every guard
-# that greps source was blinded to its contents. It still compiled and every
-# check passed — the whole verify suite was green on a binary source file.
-# The NULs shipped to main in commit 338f05da before anyone noticed.
-#
-# This guard makes that class impossible to ship again: it scans every
-# TRACKED source file (driven by `git ls-files`, so untracked/gitignored
-# noise like node_modules/out/.git never enters the scan) for a literal
-# 0x00 byte and fails, naming the file and the byte offset, if it finds one.
-#
-# Exit 0 when clean, exit 1 (with a report) when any tracked source file
-# contains a NUL byte.
-#
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # PLACEMENT: **/*.{go,ts,tsx,js,jsx,json,md,sh,css} | must not contain a literal 0x00 byte
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 cd "$REPO_ROOT"
 
-# Source-file extensions we care about. Genuinely binary tracked files (images,
-# fonts, etc.) are excluded by extension, not by an ad hoc path list, so a new
-# binary asset doesn't need this script edited.
+
+
+
 INCLUDE_EXT_RE='\.(go|ts|tsx|js|jsx|json|md|sh|css)$'
 
 HITS=0
@@ -38,13 +38,13 @@ report() {
   HITS=$((HITS + 1))
 }
 
-# Byte-scan via a single python3 process rather than one-per-file: grep implementations
-# differ wildly across platforms in how -P/-U/-a/-o interact with a literal NUL byte
-# (verified: ugrep on macOS silently matched the whole line instead of just the NUL when
-# asked for $'\x00'). A direct byte scan has no such ambiguity. Paths come in on stdin so
-# we pay python's ~19ms interpreter startup once for the whole tree, not once per file.
-# Each path is scanned in its own try/except so one unreadable/vanished file (mirrors the
-# old `2>/dev/null || true` swallow) can't abort the batch and silently truncate the scan.
+
+
+
+
+
+
+
 while IFS= read -r hit; do
   [[ -z "$hit" ]] && continue
   f="${hit%%:*}"

@@ -1,21 +1,21 @@
 #!/usr/bin/env bash
-# PreToolUse(Bash) approval guard. Three tiers, evaluated in order over the
-# FULL command string (so a flagged sub-command anywhere in a compound command
-# a && b ; c | d triggers the tier):
-#   CATASTROPHIC -> deny        (hard block; no prompt — edit this file to ever run it)
-#   DESTRUCTIVE  -> pass-through (no output; Claude Code's native prompt handles it,
-#                                 so a "yes, and don't ask again" choice persists)
-#   NETWORK      -> pass-through (same — native prompt; remembered allows work)
-#   otherwise    -> allow       (silent)
-# Patterns are extended-regex (grep -E). Avoid leading "--" (BSD grep treats it
-# as a flag) — use [-][-] instead. The '>' overwrite matcher in DESTRUCTIVE is
-# the most aggressive; comment it out to reduce prompts.
+
+
+
+
+
+
+
+
+
+
+
 set -uo pipefail
 
 input="$(cat)"
 cmd="$(printf '%s' "$input" | jq -r '.tool_input.command // empty')"
 
-emit() { # $1=allow|ask|deny  $2=reason
+emit() {
   jq -nc --arg d "$1" --arg r "$2" \
     '{hookSpecificOutput:{hookEventName:"PreToolUse",permissionDecision:$d,permissionDecisionReason:$r}}'
 }
@@ -55,14 +55,14 @@ DESTRUCTIVE_PATTERNS=(
   'git[[:space:]]+branch[[:space:]].*-[Dd]([[:space:]]|$)'
   'git[[:space:]]+tag[[:space:]].*-d([[:space:]]|$)'
   '[-][-]force(-with-lease)?([[:space:]]|=|$)'
-  # git merge: CLAUDE.md's Workflow section names "merging a task branch into main"
-  # FIRST in its list of actions that still require sign-off. Until this line, that rule
-  # was prose the code contradicted: merge matched no tier, fell through to
-  # `otherwise -> allow`, and was SILENTLY AUTO-APPROVED — the guard actively answered
-  # the question the doc says to ask. --force and branch -D were gated; the one action
-  # named first was not.
-  # Trailing ([[:space:]]|$) is load-bearing: it keeps read-only `git merge-base` out
-  # (after "merge" comes "-", not a space), while still catching `git merge --no-ff x`.
+
+
+
+
+
+
+
+
   'git[[:space:]]+merge([[:space:]]|$)'
 )
 

@@ -1,63 +1,63 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# check-input-attr-dispatched.sh — an attribute Go can DECODE must be DISPATCHED.
-#
+
+
 # PLACEMENT: nodes/Wiring/inputcodec/edit_update_decode.go,nodes/Wiring/stdin_dispatch.go,nodes/Wiring/stdin_apply.go | a new addressed-edit attribute must reach a handler, not just decode off the wire
-#
-# THE BUG THIS EXISTS FOR. A new addressed-edit ATTRIBUTE (the only way new addressed
-# capability lands — .claude/rules/bridge-surface.md: new entity kind or attribute, never a
-# new op) is spread across four files: the TS const + encoder (src/schema/input-attrs.ts,
-# src/schema/input-encode.ts),
-# Go's decode (edit_update_decode.go), the dispatch TABLE (stdin_dispatch.go's updateKindHandlers /
-# the per-kind *AttrHandlers tables), and the HANDLER that says what it means
-# (stdin_apply.go). Miss the last two and the attribute round-trips the wire PERFECTLY —
-# encodes, frames, decodes into a stdinMsg with the right Kind/Attr — and is then dropped on
-# the floor, because every dispatch level is deliberately forward-compat ("unknown
-# kinds/attrs are ignored"). The click does nothing and nothing anywhere says why.
-#
-# WHAT THE EXISTING GUARDS ALREADY COVER (this one does not repeat them):
-#   - check-edit-op-parity.sh: the OP set, the ENTITY-KIND set 3 ways (messages.ts vs
-#     updateKindHandlers vs the generated IN_UPDATE_KINDS), and overlay-flag cardinality. It
-#     is kind-level; it never looks at an attr.
-#   - check-message-kind-parity.sh: top-level msg.Type kinds and their senders. Above this
-#     seam entirely.
-#   - INPUT_LAYOUT_FINGERPRINT (input_codec.go vs input-layout-gen.ts): pins the attr NAME LIST
-#     and its index order across the two languages, so an encoder and a decoder cannot
-#     disagree about byte 5. It says nothing about whether anything RUNS afterwards.
-#   The gap this guard closes: decoded-but-never-dispatched.
-#
-# WHAT IT ASSERTS. For every (entity kind, attr) pair Go's decoder actually PRODUCES —
-# extracted from the `Kind: "<k>", Attr: "<a>"` stdinMsg literals in the codec — both:
-#   1. <k> has an entry in the top-level updateKindHandlers dispatch table, and
-#   2. the attr literal "<a>" appears in that entry's handler function body, or in a
-#      per-kind `*AttrHandlers` table that body routes through (the two live dispatch
-#      shapes: applyUpdateClock/applyUpdateOverlays defer to an attr table;
-#      applyUpdateScene/applyUpdateTiltVector/applyUpdateDistanceGroup switch or compare
-#      on msg.Attr inline).
-#
-# WHAT IT DELIBERATELY DOES NOT ASSERT. That the handler does the RIGHT thing with the
-# attribute, or anything at all — a `case "x":` with an empty body passes. It is a
-# reachability check on the routing surface, not a semantics check. It also does not check
-# the reverse direction (a handler for an attr nothing decodes); that is dead code, not a
-# silently-ignored user action, and it is cheap to spot.
-#
-# Files are LOCATED BY SCANNING (memory/feedback_guards_hardcoding_single_file_break_on_split.md
-# — the handlers moved out of stdin_reader.go into stdin_apply.go on exactly this branch, and
-# a path-hardcoded guard is what that split breaks). Finding nothing to scan reports
-# MISCONFIGURED and exits 1 rather than passing vacuously.
-#
-# Exit 0 clean, exit 1 with a named report.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 cd "$REPO_ROOT"
 
-# `|| true` on every extractor assignment: under `set -e` a non-matching grep inside a
-# VAR=$(...) assignment kills the script with exit 1 and NO output, which would make the
-# MISCONFIGURED branches below unreachable (a sibling guard hit exactly this).
 
-# --- Locate the dispatch TABLE, and with it the package dir -------------------
+
+
+
+
 TABLE_FILE=$(grep -rl 'updateKindHandlers = map' --include='*.go' . \
   --exclude-dir=node_modules --exclude-dir=out --exclude-dir=.git 2>/dev/null | head -1 || true)
 if [ -z "$TABLE_FILE" ]; then
@@ -68,13 +68,13 @@ if [ -z "$TABLE_FILE" ]; then
 fi
 PKG_DIR="$(dirname "$TABLE_FILE")"
 
-# --- Locate the DECODER: whatever file builds stdinMsg{... Kind: "x", Attr: "y" } ---
-# Searched REPO-WIDE, not under $PKG_DIR. The decoder used to sit in the dispatch table's own
-# package, so scoping to PKG_DIR looked equivalent — but it silently matched TEST fixtures in
-# that directory instead of the decoder, and kept passing on them. The decomposition moved the
-# real decoder to nodes/Wiring/inputcodec while the table stayed in nodes/Wiring/stdinreader,
-# and deleting the tests is what exposed it. Repo-wide is packaging-independent: it finds the
-# decoder wherever it lives next.
+
+
+
+
+
+
+
 CODEC_FILES=$(grep -rlE 'Kind: "[a-zA-Z]+", Attr: "[a-zA-Z]+"' --include='*.go' . \
   --exclude-dir=node_modules --exclude-dir=out --exclude-dir=.git 2>/dev/null || true)
 if [ -z "$CODEC_FILES" ]; then
@@ -92,7 +92,7 @@ if [ -z "$PAIRS" ]; then
   exit 1
 fi
 
-# Extract the top-level dispatch table's "kind": handlerFunc entries.
+
 TABLE_BODY=$(awk '/updateKindHandlers = map/{p=1} p{print} p&&/^\}/{exit}' "$TABLE_FILE" || true)
 if [ -z "$TABLE_BODY" ]; then
   echo "check-input-attr-dispatched: MISCONFIGURED — could not read the updateKindHandlers"
@@ -100,8 +100,8 @@ if [ -z "$TABLE_BODY" ]; then
   exit 1
 fi
 
-# Print the body of a top-level Go func by name, from any .go in the package dir.
-func_body() { # name
+
+func_body() {
   awk -v fn="$1" '
     $0 ~ "^func " fn "\\(" { p=1 }
     p { print }
@@ -109,8 +109,8 @@ func_body() { # name
   ' $PKG_GO_FILES
 }
 
-# Print a top-level `var <name> = map[...]{ … }` block by name.
-var_block() { # name
+
+var_block() {
   awk -v vn="$1" '
     $0 ~ "^var " vn " = " { p=1 }
     p { print }
@@ -146,7 +146,7 @@ while read -r kind attr; do
     exit 1
   fi
 
-  # Follow one level of indirection: a per-kind attr TABLE the handler routes through.
+
   for tbl in $(printf '%s\n' "$BODY" | grep -oE '[A-Za-z0-9_]+AttrHandlers' | sort -u || true); do
     BODY="$BODY
 $(var_block "$tbl" || true)"

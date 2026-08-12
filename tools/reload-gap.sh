@@ -1,58 +1,58 @@
 #!/usr/bin/env bash
-# reload-gap.sh — measure how long "Developer: Reload Window" actually takes.
-#
-# WHY THIS EXISTS
-# ---------------
-# Editor reload slowness is easy to misattribute. When it was first noticed
-# (10s, up from ~1s) the standing theory was "the .probe logs are huge and VS
-# Code is watching them" — plausible, already partly true, and WRONG for this
-# symptom: files.watcherExclude and per-run log rotation had both landed and the
-# reload stayed slow.
-#
-# The extension host log settles it, because it timestamps the two events that
-# bracket the dead time:
-#
-#   Extension host with pid N exiting with code 0     <- old host gone
-#   Extension host with pid M started                 <- new host up
-#
-# That gap is pure process respawn: nothing of ours runs in it. Separately,
-# "Eager extensions activated" lands ~200ms after start, so extension ACTIVATION
-# is not the cost and never was. This script prints the gap so the question
-# "is reload slow, and did my change help?" is a number instead of a feeling.
-#
-# WHY EXTHOST.LOG ALONE IS NOT ENOUGH
-# -----------------------------------
-# A short-lived host can exit before it flushes anything, leaving NO started and
-# NO exiting line in exthost.log — it is missing from that file entirely. Pairing
-# exthost's own exiting->started then spans the invisible host and reports two
-# reloads as one doubled gap. Observed 07-28: pid 2739 lived 01:22:19->01:22:20
-# and appears only in main.log; exthost pairing printed 3.5s for what were two
-# ~1.7s reloads. So exits come from the session's main.log, which logs an
-# "exited with code" line for EVERY pid, and starts come from the window's
-# exthost.log. Each start is paired with the latest exit before it. A host with
-# no started line is still unmeasurable — it anchors the NEXT reload's gap
-# correctly, but contributes no row of its own, so the printed reload count can
-# undercount. Better a missing row than a doubled number.
-#
-# Measured baseline on this machine (see git log for the session that found it):
-#   07-23 .. 07-26  ->  1.8s, flat across 44 reloads
-#   07-27           ->  4.0-4.9s
-#   07-28 (reboot)  ->  1.6-1.7s, back to baseline
-# The regression did NOT line up with any commit, and a full quit+relaunch of VS
-# Code did NOT fix it — a window measured 12 minutes into a fresh VS Code launch
-# was still at 4s, which rules out accumulated editor/session state. What fixed
-# it was a full macOS restart: host memory pressure (44 days uptime, 2.83 GB of
-# 4 GB swap in use, load average ~3) went to zero swap and the gap returned to
-# baseline in the same reload session. So when this reads >4s, reboot the
-# machine; there is nothing to fix in this repo.
-#
-# USAGE
-#   tools/reload-gap.sh              # all windows, last 20 reloads each
-#   tools/reload-gap.sh -n 5         # last 5 reloads per window
-#   tools/reload-gap.sh -a           # every reload on record, no tail limit
-#
-# Reads only VS Code's own logs under ~/Library/Application Support/*/logs/.
-# Touches nothing in the repo and needs no editor state.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 set -euo pipefail
 
@@ -62,14 +62,14 @@ while [ $# -gt 0 ]; do
   case "$1" in
     -n) limit="${2:?-n needs a count}"; shift 2 ;;
     -a) show_all=1; shift ;;
-    # Print the whole comment header, however long it grows — a hardcoded line
-    # range silently truncates the next time something is added to it.
+
+
     -h|--help) sed -n '2,/^[^#]/p' "$0" | sed '$d; s/^# \{0,1\}//'; exit 0 ;;
     *) echo "unknown arg: $1 (try -h)" >&2; exit 2 ;;
   esac
 done
 
-# VS Code, VSCodium and Cursor all use the same log layout; take whichever exist.
+
 roots=()
 for app in Code VSCodium Cursor "Code - Insiders"; do
   d="$HOME/Library/Application Support/$app/logs"
@@ -80,17 +80,17 @@ if [ ${#roots[@]} -eq 0 ]; then
   exit 1
 fi
 
-# Pair each host start (window exthost.log) with the latest host exit before it
-# (session main.log — see "WHY EXTHOST.LOG ALONE IS NOT ENOUGH" above), and print
-# the gap. Timestamps are "YYYY-MM-DD HH:MM:SS.mmm"; convert to epoch seconds with
-# days_from_civil so a reload spanning midnight still measures correctly. Plain
-# awk (no gawk mktime).
-#
-# $1 = main.log (may be missing — then exthost's own "exiting" lines are the only
-#      exits available and short-lived hosts stay invisible), $2 = exthost.log.
-# A start with no exit before it is a window opening, not a reload, so it is
-# skipped. So is a gap over MAXGAP seconds: that is a window that sat closed,
-# not a respawn.
+
+
+
+
+
+
+
+
+
+
+
 gaps_for() {
   awk -v MAXGAP=60 -v MAIN="$1" '
     function days(y, m, d,   era, yoe, doy, doe) {
@@ -126,10 +126,10 @@ gaps_for() {
 
 found=0
 for root in "${roots[@]}"; do
-  # Newest session dirs first, but print each window's history oldest->newest so
-  # a trend reads top-to-bottom.
+
+
   while IFS= read -r log; do
-    # <session>/<window>/exthost/exthost.log -> <session>/main.log
+
     sessdir=$(dirname "$(dirname "$(dirname "$log")")")
     main="$sessdir/main.log"
     [ -f "$main" ] || main=/dev/null

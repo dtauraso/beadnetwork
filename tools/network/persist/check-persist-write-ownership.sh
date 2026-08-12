@@ -1,57 +1,57 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# check-persist-write-ownership.sh — guard: PER-OWNER file WRITES (not just path
-# construction — that half is check-scene-path-resolution.sh's job).
-#
-# .claude/rules/persistence-ownership.md "The owner writes, and owns the path": the goroutine that owns a piece
-# of state writes its own file. Steps 4a-4c moved every write call site onto its owning
-# goroutine (a node's own nodeMover for its own files; the view-owner goroutine,
-# RunStdinReader, for the three scene-level files). This guard is what stops a FUTURE
-# refactor from quietly routing a write back through a shared coordinator — the exact
-# regression step 3's path-construction guard alone cannot catch, because it only checks
-# who builds a path string, not who actually calls the OS write.
-#
-# Every real on-disk write in this package funnels through the shared primitive
-# nodes/Wiring/jsonpersist.WriteJSONAtomic (whole-file marshal+write) — the sole survivor of
-# what used to be two primitives; the read-modify-write helper (entityReadModifyWrite, for
-# the now-removed port-anchor writer) is gone. The jsonpersist package itself is exempted as
-# shared plumbing every owner calls THROUGH — same exemption shape as scene_paths.go in
-# check-scene-path-resolution.sh.
-#
-# Ownership is matched by PATH PATTERN, not directory
-# (.claude/rules/persistence-ownership.md "The owner writes, and owns the path": nodes/<id>/
-# legitimately holds files owned by TWO different kinds of mover — the node's own, and each
-# outgoing edge's):
-#
-#   - nodes/<id>/position.json, local-polars.json, {inputs,outputs}/<port>.json
-#     (i.e. everything under nodes/<id>/ EXCEPT edges/) — written only by the node's own
-#     mover. Today that write call lives in quant_offset_persist.go (position.json,
-#     local-polars.json) and scene_anchor_persist.go (port-anchor files) — both define
-#     nodeMover methods (persistQuantOffset/persistLocalPolars/persistPortAnchor) called
-#     exclusively from that node's own goroutine. node_mover.go itself holds the path
-#     resolvers (positionFilePath/localPolarsFilePath/nodePortFilePath) but no direct
-#     writeJSONAtomic/entityReadModifyWrite call of its own today; it is listed as an
-#     allowed owner so a future write added directly there does not need this guard
-#     touched again.
-#   - nodes/<id>/edges/<label>.json — reserved for edge_mover.go. NO writer exists in this
-#     codebase today (edges are editor-authored; loader_tree.go only reads them — see the
-#     plan's "Explicitly out of scope: Loading"), so the correct state is ZERO write call
-#     sites naming an edges/ path anywhere. This guard does not invent a fake writer to
-#     give itself something to match; instead it asserts two things that stay true whether
-#     or not edge_mover.go exists yet: (1) no NODE-OWNER file's write call resolves an
-#     edges/ path (that would be a node mover reaching into an edge's file — the exact
-#     coupling this model forbids), and (2) if a write call ever appears in edge_mover.go,
-#     it is accepted without editing this guard.
-#   - view/camera.json, view/overlays.json, view/sphere.json, view/speed.json — written
-#     only by the view-owner goroutine's own files: scene_camera_persist.go,
-#     scene_overlays_persist.go, scene_selection_persist.go (the scene-tab selection,
-#     written on a tab click), scene_sphere_persist.go, scene_speed_persist.go (the
-#     playback-speed multiplier), scene_lattice_persist.go (the pair lattice's point
-#     count).
-#
-# Exit 0 when clean.
-#
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # PLACEMENT: nodes/Wiring/*.go | writeJSONAtomic/entityReadModifyWrite calls must live in the owning file (node/edge/view mover), never elsewhere
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -71,20 +71,20 @@ if [[ ! -f "$PLUMBING_PATH" ]]; then
   exit 1
 fi
 
-# Node-owner files: files whose writeJSONAtomic/entityReadModifyWrite call acts on behalf
-# of a node's own mover (a nodeMover method, called only from that node's own goroutine).
+
+
 NODE_OWNERS=("node_mover.go" "quant_offset_persist.go" "scene_anchor_persist.go")
-# Edge-owner files: the edges/<label>.json writer (edge_file.go) plus edge_mover.go itself,
-# kept as an owner so a future write added directly there does not need this guard touched
-# again.
+
+
+
 EDGE_OWNERS=("edge_file.go" "edge_mover.go")
-# View-owner files: the view-owner goroutine's (RunStdinReader) own scene-level writers.
+
 VIEW_OWNERS=("scene_camera_persist.go" "scene_overlays_persist.go" "scene_sphere_persist.go" "scene_selection_persist.go" "scene_speed_persist.go" "scene_lattice_persist.go")
-# Tree-shape owner: counts.json, which is neither per-node nor per-edge nor view state — it
-# is how many of each the tree HAS, written only by the operation that changes that (a node
-# create or delete, scene_structure.go). Its own category, and so its own file, for the same
-# reason each view/ file has one: single-writer is enforced by there being exactly one place
-# the bytes can come from.
+
+
+
+
+
 TREE_OWNERS=("scene_counts_persist.go")
 
 in_list() {
@@ -118,15 +118,15 @@ while IFS= read -r hit; do
   [[ -z "$hit" ]] && continue
   file="${hit%%:*}"; rest="${hit#*:}"; lineno="${rest%%:*}"; content="${rest#*:}"
   base="${file##*/}"
-  # Skip the function DEFINITION of a write primitive (defensive only — the real ones live
-  # in scene_persist.go, already excluded above; this catches a definition duplicated
-  # elsewhere).
-  #
-  # Match the DECLARATION specifically, not any line containing "func ". A blanket
-  # func-skip silently ignores every write that shares a line with the keyword — a one-line
-  # helper, and more realistically `go func() { writeJSONAtomic(...) }()`, which is ordinary
-  # Go. Verified: with the blanket skip, a one-line non-owner write passed this guard
-  # cleanly while the identical write spread over three lines was caught.
+
+
+
+
+
+
+
+
+
   if printf '%s\n' "$content" | grep -qE '^[[:space:]]*func[[:space:]]+(\([^)]*\)[[:space:]]+)?(writeJSONAtomic|entityReadModifyWrite)[[:space:]]*\('; then
     continue
   fi
@@ -142,9 +142,9 @@ while IFS= read -r hit; do
     continue
   fi
   if in_list "$base" "${NODE_OWNERS[@]}"; then
-    # A node-owner file may never resolve an edges/ path — that would be a node's own
-    # mover reaching into an edge's file, the exact per-owner violation this model
-    # forbids. edge_mover.go is the only file allowed to write there (once it exists).
+
+
+
     if [[ "$content" == *"edges"* ]]; then
       report "node-owner-wrote-edge-path: $file: $lineno:$content"
     fi

@@ -16,16 +16,16 @@ EXEMPT_FILES = {
     os.path.join("nodes", "wire", "clock", "tick_broadcaster.go"),
 }
 
-# Known pre-existing sites that are NOT mover/node tick-pacing waits — each is a distinct,
-# short-lived, already-documented poll unrelated to the clock/SleepCycle mechanism this rule
-# governs. The list may only SHRINK.
+
+
+
 ALLOWED = {
-    # waitForCenterSettle polls another goroutine's already-written position after a
-    # synchronous dispatch call, bounded by a 200ms deadline -- not a per-cycle pacing loop,
-    # and already flagged in its own doc comment for deletion once dispatch stops measuring
-    # across goroutines (see the comment above ApplyTarget's call site). Moved from
-    # nodes/Wiring/distance_groups.go to nodes/Wiring/distancegroups/distance_groups.go
-    # (god-object decomposition) -- same site, new path.
+
+
+
+
+
+
     ("nodes/Wiring/distancegroups/distance_groups.go", "time.Sleep(time.Millisecond)"),
 }
 
@@ -45,7 +45,7 @@ for root in roots:
                 continue
             with open(p, encoding="utf-8", errors="replace") as fh:
                 for i, line in enumerate(fh, 1):
-                    code = line.split("//", 1)[0]  # strip line comment (prose exempt)
+                    code = line.split("//", 1)[0]
                     if wait_pat.search(code):
                         trimmed = code.strip()
                         key = (rel, trimmed)

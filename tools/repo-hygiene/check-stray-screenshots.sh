@@ -1,23 +1,23 @@
 #!/usr/bin/env bash
-#
+
 # PLACEMENT: none | PreToolUse(Bash) hook on git commit; it inspects the repo root for stray screenshots, not a source path
 set -uo pipefail
 
-# check-stray-screenshots.sh — PreToolUse(Bash) guard.
-#
-# Blocks a `git commit` when a stray Screenshot*.png / "Screen Shot*.png" sits in
-# the repo root, per the visual-editor screenshot convention (move under
-# docs/planning/visual-editor/screenshots/ with a date-prefixed kebab name and
-# reference it from session-log.md in the same commit as the work it motivates).
-#
-# This was previously an inline .claude/settings.json command carrying an "if":
-# "Bash(git commit*)" key on the individual hook object. That field is not part
-# of the documented hook schema (only "type"/"command"/"prompt"/"timeout" per
-# hook, "matcher" per group) — an unrecognized key is silently ignored, so the
-# check ran on EVERY Bash call under the group's "Bash" matcher, not just git
-# commit. Gating on the command string INSIDE the script (reading tool_input
-# from stdin, like check-no-foreground-sim.sh) is the only way to scope this to
-# commits; there is no such per-hook conditional in the schema.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 input="$(cat)"
 cmd="$(printf '%s' "$input" | jq -r '.tool_input.command // empty')"

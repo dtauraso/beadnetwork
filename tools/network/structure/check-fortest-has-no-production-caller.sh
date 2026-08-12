@@ -1,24 +1,24 @@
 #!/usr/bin/env bash
-#
+
 # PLACEMENT: nodes/**/*.go | a *ForTest symbol must have no production (non-_test.go) caller
-# check-fortest-has-no-production-caller.sh — forbid a non-test call site of any symbol whose
-# name ends in "ForTest". Run from repo root:
-# bash tools/network/structure/check-fortest-has-no-production-caller.sh
-#
-# WHY THIS EXISTS (docs/planning/movedispatch-decomposition.md item 2): a *ForTest
-# constructor is a deliberately named escape hatch — its whole justification is "test code
-# outside this package needs to build one of these without going through the real,
-# production-gated construction path". If production code itself calls it, the hatch has
-# become a second, un-reviewed production entry point wearing a test-only name: nothing
-# stops it from skipping whatever the real constructor enforces.
-#
-# Scope: production (non-test) Go under nodes/ — the runtime network. tools/ codegen and
-# other non-network code are NOT scanned. Comments are stripped before matching, so a doc
-# comment or prose *naming* a ForTest symbol does not trip it — only an actual call/reference
-# in code. A `func XForTest(...)` DEFINITION line does not count as a reference to itself.
-#
-# Exit 0 clean, exit 1 with a report — auto-discovered by scripts/stop-checks.sh via the
-# tools/*/check-*.sh glob.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -80,7 +80,7 @@ print("\n".join(out))
 PY
 )"
 
-# First line is always the scan-summary (printed for visibility even on a clean run).
+
 summary="$(head -n1 <<< "$report")"
 rest="$(tail -n +2 <<< "$report")"
 echo "$summary"

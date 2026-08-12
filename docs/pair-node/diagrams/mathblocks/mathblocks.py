@@ -9,7 +9,7 @@ import os, subprocess
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-# one left-aligned column, no leading or trailing padding
+
 OPEN = r"\[\begin{array}{@{}l@{}}"
 CLOSE = r"\end{array}\]"
 
@@ -20,17 +20,17 @@ BODIES = {
   \mathrm{sends} = \mathrm{normal}(t) \\[4pt]
   \mathrm{angle}(i) = \tfrac{\pi}{12}\, i
 """,
-    # |t - a|, not max-min: a comparison is a subtraction, so ordering the operands first
-    # subtracts twice to avoid a sign check the sign bit already answers.
-    # No \bmod: both indices are already 0..23, so d never exceeds 23 and the code takes
-    # no modulus. The min is the arc choice, which is a real choice between two different
-    # numbers — unlike the case split it replaced, which only looked like wrap handling.
+
+
+
+
+
     "length": r"""
   d = \lvert t - a \rvert \\[6pt]
   L \;=\; \len(t,a) = \min(d,\; 24 - d)
 """,
-    # machineForGap: the third way R changes, and the only one that reads the arrival.
-    # both machines as (states, inputs, transition function)
+
+
     "machine-tilt": r"""
   S = \mathbb{Z}_{24} \qquad \Sigma = \{\,\mathrm{next},\; \mathrm{prev}\,\} \\[6pt]
   \delta(t,\, \mathrm{next}) = t + 1 \pmod{24} \\[4pt]
@@ -47,26 +47,26 @@ BODIES = {
   \delta(R,\, a) = R \qquad R \neq R_{\mathrm{setting}} \\[4pt]
   \delta(R,\, \mathrm{reset}) = R_{\mathrm{setting}}
 """,
-    # The arithmetic the machine COMES OUT OF, not arithmetic imitating the machine.
-    #
-    # These four say NOTHING about the machine. No tilt, no partner, no arrival, no mode,
-    # no rest — x and y are two numbers on a ring of 24, and the claim is a fact about
-    # them: shift one by 6, and the only gaps whose length lands on 0, 6 or 12 are the four
-    # quarter gaps. That fact is true whether or not anything runs. Writing it in the
-    # machine's own words (t, p, a, "the rests") made it read as the machine restated,
-    # which is exactly what this card exists to deny — the machine is what you get when
-    # you build something that lives on these numbers, not the other way round.
-    #
-    # Also: no Z_24, no congruence, no min. Each is a NAME for something the ring says out
-    # loud, and naming it makes four lines of counting look like it needs the machinery.
-    #
-    # FOUR FILES, not one. The first cut was a single block that ran each claim and its
-    # gloss across one long line: 399pt wide against 157-322pt for every other block on
-    # the page, so it was the one block max-width:100% shrank and the only one that did
-    # not render at the size it was set at. Setting the same content as one TALL block
-    # instead just moved the problem — it overflowed pairmath's 7cm paper and dvisvgm
-    # cropped an empty first page to 0pt. The page's own pattern is one card per block,
-    # each its own file at a size you can read; these are the four steps of the argument.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     "arith-groups": r"""
   \text{\color{acc}the ring} \quad x = 0,\,1,\,\ldots,\,23 \\[3pt]
   \quad {\color{dim}\text{counted round, so } 24 \text{ is } 0 \text{ again}} \\[8pt]
@@ -95,11 +95,11 @@ BODIES = {
   \quad {\color{dim}\text{every other } g \;\Rightarrow\; L(x,\,y+6)
     \text{ is none of } 0,\,6,\,12}
 """,
-    # WHICH MODE TO BE IN, written as the conditional it is: measure something, then let the
-    # measurement decide. The earlier spelling set R_after with a cases brace, which reads as
-    # a definition of R_after — a thing that IS one of two values — and hides that a node
-    # computes the partner's tilt and compares it before it knows which. Same rule, written
-    # as the decision it makes rather than the value it ends up with.
+
+
+
+
+
     "decide-mode": r"""
   \text{\color{acc}if } R \neq R_{\mathrm{setting}} :
     \quad {\color{dim}\text{nothing changes — the choice already stuck}} \\[9pt]
@@ -117,11 +117,11 @@ BODIES = {
   {\color{par}R_{\parallel} = \{6\}} \\[5pt]
   {\color{dim}R_{\mathrm{setting}} = \text{any}}
 """,
-    # WHICH SLOT TO GO TO. This was two blocks — "the two questions" and "the turn" — and
-    # between them they stated the same measurement twice: once as a pair of yes/no questions
-    # and again as a cases brace over the answers. One conditional says it once. The measure
-    # step is the whole of what the mode contributes, and it contributes it as R, a list of
-    # numbers, which is why neither branch below mentions perpendicular or parallel.
+
+
+
+
+
     "decide-turn": r"""
   \text{\color{acc}measure}
     \quad {\color{dim}\text{where it is, and each way it could turn}} \\[5pt]
@@ -139,13 +139,13 @@ BODIES = {
   \quad f_{+} \le f_{-} : \quad t_{\mathrm{after}} = t_{+1} \\[5pt]
   \quad \text{else} : \qquad\quad\;\, t_{\mathrm{after}} = t_{-1}
 """,
-    # NO closed-* BLOCKS HERE. arith.html sets its equations as HTML text (pair.css, .eq)
-    # rather than LaTeX rendered to SVG, because that page is maths and prose side by side
-    # and two typefaces cannot be made the same size: matched by em, Computer Modern's low
-    # x-height reads small; matched by x-height, its em is 22.7px against the page's 19px
-    # and it reads large. One font ends the argument, and the equations reflow on a narrow
-    # window instead of scaling. This file is for updates.html, which sets its maths beside
-    # DRAWINGS and wants the LaTeX look.
+
+
+
+
+
+
+
     "other": r"""
   \text{every arrival} :\; r_{\mathrm{after}} = a \\[5pt]
   \text{panel } \blacktriangle\,\blacktriangledown :\;
@@ -160,22 +160,22 @@ HEAD = ("%% update-%s.tex — one block of the update. Shared setup is pairmath.
         "\\usepackage{pairmath}\n"
         "\\begin{document}\n")
 
-# px per pt for the displayed width, so blocks of different shapes render at the same glyph
-# size. TWO constants, because the two pages are set against different things.
-#
-# updates.html (SCALE) is set against the DRAWINGS: panels.py labels its SVGs at 15px and
-# shows them at their authored width, so 15px is that page's at-a-glance size and the maths
-# matches it rather than sitting under it.
-#
-# ONE constant again, and arith.html is back on it. Two earlier attempts at a page-specific
-# size both read as too small when rendered: 14/12 = 1.167 (matching the em to the 14px prose)
-# and 1.4 (matching the x-heights instead). Set against the prose the maths comes out at
-# reading size, and reading size is not the size a formula wants — the comparison that matters
-# is with OTHER MATHS, which is on updates.html at 1.9.
-#
-# The ceiling is real and worth knowing before raising this again: a wide card's inner width
-# is viewport - 60, and the widest block here is the arithmetic page's first card at 381pt, so
-# 1.9 needs a 784px window before anything shrinks. Twice 1.4 would need 1126px.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 SCALE = 1.9
 
 for name, body in BODIES.items():

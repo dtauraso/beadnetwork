@@ -1,22 +1,22 @@
 #!/usr/bin/env bash
-# check-no-camera-roundtrip.sh — guard that the camera stays angle-of-record.
-#
-# The round-trip (store a Cartesian position, reconstruct the angles from it each tick)
-# is what creates the pole singularity and the makeSafe clamp. We forbid its fingerprints
-# in the webview's 3D nav/camera code. The legitimate Cartesian edges are:
-#   - polar.ts        : deltaToPolar (input edge) + fromWorld (cursor pick) — allowed
-#   - PanPolarOverlay  : screen-space overlay math — allowed
-# Everything else that reconstructs camera state from a position is banned.
-#
-# Mirrors tools/bridge/check-no-await-on-bridge.sh. Exit 1 on any hit.
-#
+
+
+
+
+
+
+
+
+
+
+
 # PLACEMENT: tools/topology-vscode/src/webview/three/** | camera/nav code must not reconstruct angles from a Cartesian position (setFromVector3/makeSafe/THREE.Spherical banned outside polar.ts, PanPolarOverlay.tsx)
 
 set -euo pipefail
 
-# Resolve relative to the repo root (script lives in tools/) so a standalone
-# invocation from any cwd scans the real tree instead of silently finding
-# nothing and reporting a false clean.
+
+
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 DIR="$REPO_ROOT/tools/topology-vscode/src/webview/three"
@@ -24,10 +24,10 @@ if [ ! -d "$DIR" ]; then
   echo "✗ no-camera-roundtrip: MISCONFIGURED — scan dir not found: $DIR" >&2
   exit 1
 fi
-# Files allowed to use the input/pick edges.
+
 EXCLUDE='polar\.ts|PanPolarOverlay\.tsx'
 
-# Banned symbols: camera state reconstructed from a Cartesian position.
+
 PATTERN='setFromVector3|setFromCartesianCoords|\.makeSafe\(|new THREE\.Spherical'
 
 hits=$(grep -arnE "$PATTERN" "$DIR" --include='*.ts' --include='*.tsx' 2>/dev/null \

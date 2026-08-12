@@ -1,22 +1,22 @@
 #!/usr/bin/env bash
-#
+
 # PLACEMENT: nodes/wire/beadchain/bead_actor.go,nodes/wire/*.go | a bead goroutine's select must have NO default: case — it parks, it never spins
 set -euo pipefail
 
-# check-no-select-default.sh — guard that the bead goroutine's own select carries no
-# `default:` case.
-#
-# PLAN.md "two clocks per bead" / MODEL.md: a `select` WITH `default:` is non-blocking, so a
-# loop wrapped around it SPINS and burns a core; WITHOUT one, the runtime parks the
-# goroutine on every case's wait queue at zero CPU until something is ready. This is
-# invisible to any behavioural test (both versions pass identically under a real drag) —
-# only a source guard can catch a `default:` creeping back in. Scoped to the exact select in
+
+
+
+
+
+
+
+
 # nodes/wire/beadchain/bead_actor.go's Bead.run, fenced by BEAD-SELECT-START/END, NOT a repo-wide "no
-# default in any select" rule — sendStepsNonBlocking and friends elsewhere in this package
-# correctly rely on `default:` for a non-blocking latest-wins send, and banning it there
-# would break that idiom.
-#
-# Exit 0 clean, exit 1 with a report.
+
+
+
+
+
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"

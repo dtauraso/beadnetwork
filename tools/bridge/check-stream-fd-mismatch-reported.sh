@@ -1,40 +1,40 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# check-stream-fd-mismatch-reported.sh — a per-owner stream that Go wires CONDITIONALLY
-# must say so when the condition fails.
-#
-# THE BUG THIS EXISTS FOR. main.go wires each per-owner stream behind
-# `if base, ok := streamFDs[SF.StreamKind<X>]; ok`. When the entry is absent the block is
-# simply skipped: every mover of that kind keeps a nil streamOut and emits nothing, so an
-# ENTIRE ENTITY CLASS vanishes from the editor while every file on disk is correct. That
-# happened to edges on 2026-07-28 — a VS Code extension host left running across a change
-# handed Go older fd plumbing (the host owns WIREFOLD_STREAM_FDS, see runCommand.ts), and
-# the silence read as a code defect: the bundle was byte-identical to a fresh build and the
-# Go headless edge test passed, because neither was where the fault was.
-#
-# It is the same class runCommand.ts's MAX_EDGE_STREAMS overflow was fixed for in 93d2e9b6
-# — "the quietest possible failure for the loudest consequence." That fix and the Go-side
-# one are both point fixes; this guard is what keeps the NEXT stream kind from landing with
-# a silent skip, since the failure is invisible precisely when it matters.
-#
-# WHAT IT ASSERTS: every per-owner StreamKind constant declared in Buffer/streamframe/stream_fds.go is
-# named in a stream-fd mismatch report in main.go. Not that the report is correct — a guard
-# cannot know that — only that the silent-skip path has a voice.
-#
-# DELIBERATELY EXCLUDED: StreamKindView. It is the singleton view stream, not a per-owner
-# one: there is no population ("the graph has N of these") to compare an fd count against,
-# and its absence is not silent in the same way — no camera/overlay state means an
-# immediately dead scene rather than one intact class quietly missing. If view ever gains a
-# per-entity fd range, delete it from EXCLUDED here and give it a report.
-#
-# WHAT NO GUARD CAN COVER: the operational cause itself. A stale extension host is a
-# running process, not a fact about the tree, so this guard cannot detect one — it only
-# ensures the runtime says which failure it is. The reload trigger stays in
-# memory/feedback_two_process_editor_reload.md for that reason.
-#
-# Exit 0 clean, exit 1 with a named report.
-#
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # PLACEMENT: main.go,runtopology/edge_stream.go,runtopology/node_stream.go,Buffer/streamframe/stream_fds.go | every conditionally-wired per-owner StreamKind must have a named stream-fd mismatch report
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -42,14 +42,14 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 cd "$REPO_ROOT"
 
 KINDS_FILE="Buffer/streamframe/stream_fds.go"
-# main.go itself now holds only the startup sequence; the per-owner stream wiring
-# (and its stream-fd mismatch reports) lives in runtopology/edge_stream.go and
-# runtopology/node_stream.go (main.go's split into the runtopology package). Scan every
-# one of these named files, not a directory glob, so a future split doesn't
-# blind this guard again.
+
+
+
+
+
 MAIN_FILE="main.go runtopology/edge_stream.go runtopology/node_stream.go"
 
-# A missing scan root is a disarmed guard, not a clean one (check-guards-refuse-vacuous).
+
 for f in "$KINDS_FILE" $MAIN_FILE; do
   if [ ! -f "$f" ]; then
     echo "check-stream-fd-mismatch-reported: $f not found — this guard cannot scan and is"
@@ -60,7 +60,7 @@ done
 
 EXCLUDED="StreamKindView"
 
-# Discover the kinds instead of hardcoding them, so a NEW kind is covered the day it lands.
+
 kinds=()
 while IFS= read -r k; do
   [ -n "$k" ] && kinds+=("$k")
@@ -78,12 +78,12 @@ for k in "${kinds[@]}"; do
   case " $EXCLUDED " in
     *" $k "*) continue ;;
   esac
-  # Only kinds these files actually wire conditionally can have a silent-skip path. The
-  # import alias in front of the kind constant is not hardcoded (B./SF./etc. all count) —
-  # a future re-alias must not blind this guard again.
+
+
+
   grep -qE "streamFDs\[[A-Za-z_][A-Za-z0-9_]*\.$k\]" $MAIN_FILE || continue
   checked=$((checked + 1))
-  # The report must name the kind constant and sit on a stream-fd mismatch line.
+
   if ! grep -F 'stream-fd mismatch' $MAIN_FILE | grep -qE "[A-Za-z_][A-Za-z0-9_]*\.$k\b"; then
     if ! grep -A6 'stream-fd mismatch' $MAIN_FILE | grep -qE "[A-Za-z_][A-Za-z0-9_]*\.$k\b"; then
       missing="$missing $k"

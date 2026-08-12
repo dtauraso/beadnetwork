@@ -1,29 +1,29 @@
 #!/usr/bin/env bash
-#
+
 # PLACEMENT: nodes/**/*.go | no sync.Mutex/RWMutex and no sync/atomic in the network: use ownership + message passing
-# check-no-network-locks.sh — forbid shared-synchronization primitives (sync.Mutex/RWMutex
-# AND sync/atomic) in the concurrent node network. Run from repo root:
-# bash tools/network/concurrency/check-no-network-locks.sh
-#
-# WHY THIS EXISTS (audit shared-state cluster): the network's model is ownership +
-# message-passing with ZERO shared memory — each piece of mutable state is owned by exactly
-# one goroutine, and anything another goroutine needs to know is SENT to it as a value, not
-# read from a shared location. Under that model a synchronization primitive is not a tool,
-# it is a DEFECT MARKER: if code reaches for a mutex OR an atomic, it shared something it
-# should have owned. A mutex is forbidden outright. An atomic is forbidden too — needing one
-# means a shared cross-goroutine read that should instead be a push-to-owned-copy.
-#
-# GRANDFATHERED: two atomic sites predate this rule and are KNOWN defects being removed
-# (see the ALLOWED_ATOMIC list). The list may only SHRINK — a NEW atomic fails the build,
-# and an allowlisted one that is deleted must be dropped from the list (rot-checked below).
-#
-# Scope: production (non-test) Go under nodes/, Buffer/, Trace/ — the runtime network.
-# tools/ codegen and other non-network code are NOT scanned. sync.WaitGroup / sync.Once are
-# allowed (they coordinate goroutine lifetime, they do not share mutable state). Comments are
-# stripped before matching, so prose about a removed primitive does not trip it.
-#
-# Exit 0 clean, exit 1 with a report — auto-discovered by scripts/stop-checks.sh via the
-# tools/check-*.sh glob.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

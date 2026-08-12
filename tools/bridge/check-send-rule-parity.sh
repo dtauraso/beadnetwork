@@ -2,20 +2,20 @@
 set -euo pipefail
 
 # PLACEMENT: nodes/Wiring/*.go,nodes/wire/*.go,tools/topology-vscode/src/schema/types.ts | a new SendRule const must also appear in the SEND_RULES array in types.ts
-#
-# Verifies that the SendRule string constants declared anywhere in the
-# nodes/Wiring/ or nodes/wire/ Go packages match the SEND_RULES array in
-# tools/topology-vscode/src/schema/types.ts.
-# Both sides are hand-maintained; this guard fails on any divergence.
-# Exit 0 if clean; exit 1 with a report if they diverge.
-#
-# NOTE: SendRule consts are not confined to one file or even one package
-# (ports.go moved from nodes/Wiring to nodes/wire under task/wiring-decompose, and
-# the consts then moved AGAIN, out of ports.go into nodes/wire/send_rule.go, when
-# ports.go was split by job — the anticipated split, now actual. Another one could
-# add a const elsewhere in either package). Scrape ALL tracked .go files under BOTH nodes/Wiring/ and
-# nodes/wire/, not one hardcoded filename/dir, so the guard can't go blind on
-# a split or a package move.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
@@ -37,8 +37,8 @@ if [[ ! -f "$TYPES_TS" ]]; then
   exit 1
 fi
 
-# Extract SendRule const values from every tracked .go file in nodes/Wiring/ and
-# nodes/wire/: lines of the form:  RuleFoo SendRule = "someValue"
+
+
 rules_from_go() {
   local go_files
   go_files=$(cd "$REPO_ROOT" && git ls-files 'nodes/Wiring/*.go' 'nodes/Wiring/**/*.go' 'nodes/wire/*.go' 'nodes/wire/**/*.go')
@@ -49,8 +49,8 @@ rules_from_go() {
     | sort
 }
 
-# Extract values from the SEND_RULES array in types.ts:
-#   export const SEND_RULES: readonly SendRule[] = ["consumeGated", "fireAndForget"];
+
+
 rules_from_ts() {
   grep -a 'SEND_RULES' "$TYPES_TS" \
     | grep -o '"[^"]*"' \
@@ -58,19 +58,19 @@ rules_from_ts() {
     | sort
 }
 
-# NOTE `|| true` on every extractor assignment below. Without it, `set -euo pipefail` kills
-# the script AT THE ASSIGNMENT whenever an extractor's grep legitimately matches nothing —
-# so the assert_nonempty diagnostic underneath, which exists precisely to explain that case,
-# could never print. The script still exited nonzero, so it failed SAFE but SILENTLY,
-# defeating the message. Verified with a minimal repro.
+
+
+
+
+
 GO_RULES=$(rules_from_go) || true
 TS_RULES=$(rules_from_ts) || true
 
-# Refuse a vacuous pass: if either extractor returns an EMPTY set (a SendRule const
-# rename in send_rule.go or a SEND_RULES rename in types.ts), comm would compare
-# empty-to-empty and "pass" blind. Assert each set is non-empty. (Positive-assertion
-# pattern, per check-edit-op-parity.sh / check-message-kind-parity.sh.)
-assert_nonempty() { # value label
+
+
+
+
+assert_nonempty() {
   if [[ -z "$(printf '%s' "$1" | tr -d '[:space:]')" ]]; then
     echo "send-rule-parity: EMPTY extracted set for '$2' — const/array missing or renamed; refusing vacuous parity pass" >&2
     exit 1

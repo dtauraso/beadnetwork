@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Fan-in is removed from the model: an input port takes exactly ONE incident edge (multiple
-# sources into one node use DISTINCT input ports — as every production node does, e.g. a
-# gate's FromLeft/FromRight). The loader enforces this at parse (validateNoFanIn, topo_spec.go)
-# so a fan-in topology fails at load. This guard is the STATIC repo-side complement: it
-# fails the build if the committed production topology (adjacency layout —
-# topology/nodes/<source>/edges/*.json, an edge lives under its source node, no top-level
-# topology/edges/ dir) has two edges targeting the same target+targetHandle, so a fan-in
-# diagram can't be committed and only discovered when someone runs it.
-#
-# Exit 0 clean, exit 1 with a report.
-#
+
+
+
+
+
+
+
+
+
+
+
 # PLACEMENT: topology/nodes/*/edges/*.json | two committed edges may not target the same target+targetHandle (fan-in)
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

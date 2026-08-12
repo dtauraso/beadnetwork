@@ -57,7 +57,7 @@ def arc(cx, cy, R, i0, i1, col, w=3):
 
 out = {}
 
-# ---- the triad, one panel per tilt
+
 for t in (0, 6, 12, 17):
     W, H, cx, cy, R = 152, 194, 76, 80, 64
     o = [f'<svg width="{W}" height="{H}" viewBox="0 0 {W} {H}">', ring(cx, cy, R)]
@@ -68,12 +68,12 @@ for t in (0, 6, 12, 17):
     o.append('</svg>')
     out[f"panel-triad-{t}"] = "\n".join(o)
 
-# ---- the angle length, one panel per case. The canvas is as wide as the CAPTION,
-# not as the ring — "perpendicular rests" is the widest thing in it.
-# Every kind of angle length there is, in order: the two perpendicular rests at each
-# end, the parallel rest in the middle, and an ACUTE and an OBTUSE example for the
-# ordinary lengths on either side of the quarter — the acute one was missing, and with
-# it the fact that a length below the quarter is just as ordinary as one above.
+
+
+
+
+
+
 for sep, note in ((0, "perpendicular rests"), (3, "acute — steps"), (6, "parallel rests"),
                   (11, "obtuse — steps"), (12, "perpendicular rests")):
     W, H, cx, cy, R = 186, 218, 93, 82, 66
@@ -87,7 +87,7 @@ for sep, note in ((0, "perpendicular rests"), (3, "acute — steps"), (6, "paral
     o.append('</svg>')
     out[f"panel-length-{sep}"] = "\n".join(o)
 
-# ---- the run, one panel per step
+
 frames = [(23, 10, None, None, ["n1 sends 5"]),
           (23, 10, 2, 5, ["n2 reads 5,", "one slot short"]),
           (23, 11, None, None, ["n2 turns to 11,", "sends 17"]),
@@ -98,7 +98,7 @@ for n, (t1, t2, who, ai, cap) in enumerate(frames):
     for row, (t, node) in enumerate([(t1, 1), (t2, 2)]):
         cx, cy = 92, 56 + row * 104
         o.append(ring(cx, cy, R) + arrow(cx, cy, R, t, TOP, 2.4))
-        # the arrival is what makes this a run rather than four still lifes
+
         if who == node:
             o.append(arrow(cx, cy, R, ai, ARR, 2.4))
         o.append(f'<text x="{cx - R - 8}" y="{cy + 5}" text-anchor="end" {MONO} {INK}>n{node}</text>')
@@ -107,7 +107,7 @@ for n, (t1, t2, who, ai, cap) in enumerate(frames):
     o.append('</svg>')
     out[f"panel-run-{n + 1}"] = "\n".join(o)
 
-# ---- reset, one panel per side
+
 for name, t, extra in (("before", 17, True), ("after", 0, False)):
     W, H, cx, cy, R = 164, 204, 82, 82, 66
     o = [f'<svg width="{W}" height="{H}" viewBox="0 0 {W} {H}">', ring(cx, cy, R)]
@@ -122,8 +122,8 @@ for name, t, extra in (("before", 17, True), ("after", 0, False)):
     o.append('</svg>')
     out[f"panel-reset-{name}"] = "\n".join(o)
 
-# ---- the tilt as a state machine: five adjacent states and the two links out of each,
-# with the seam sitting in the middle so it can be seen to be an ordinary link.
+
+
 W, H = 620, 176
 o = [f'<svg width="{W}" height="{H}" viewBox="0 0 {W} {H}">']
 xs = [70, 190, 310, 430, 550]
@@ -132,7 +132,7 @@ o.append(f'<line x1="370" y1="18" x2="370" y2="158" stroke="#3a3a44" stroke-dash
 for x, name in zip(xs, names):
     o.append(f'<circle cx="{x}" cy="88" r="26" fill="#2b2b33" stroke="#3a3a44" stroke-width="1.4"/>')
     o.append(f'<text x="{x}" y="94" text-anchor="middle" {MONO} {INK}>{name}</text>')
-# straight arrows in the gap between neighbours: next along the top, prev along the bottom
+
 for a, b in zip(xs, xs[1:]):
     o.append(f'<line x1="{a + 30}" y1="78" x2="{b - 36}" y2="78" stroke="{TOP}" stroke-width="2.2"/>')
     o.append(f'<polygon points="{b - 28},78 {b - 38},73 {b - 38},83" fill="{TOP}"/>')
@@ -144,8 +144,8 @@ o.append(f'<text x="370" y="170" text-anchor="middle" {SANS} {DIM}>the seam</tex
 o.append('</svg>')
 out["panel-links"] = "\n".join(o)
 
-# ---- the mode as a state machine: three modes, four transitions, and no edge between
-# the two chosen ones.
+
+
 W, H = 620, 250
 o = [f'<svg width="{W}" height="{H}" viewBox="0 0 {W} {H}">']
 boxes = [(24, 102, 140, 46, "setting", "#9a9aa6"),
@@ -166,12 +166,12 @@ def straight(x1, y1, x2, y2, col, dash=""):
             f'{round(bx + 5 * uy)},{round(by - 5 * ux)}" fill="{col}"/>')
 
 
-# chosen from the gap, at the first arrival — one edge into each chosen mode
+
 o.append(straight(168, 118, 396, 56, TOP))
 o.append(straight(168, 132, 396, 194, TOP))
 o.append(f'<text x="286" y="118" text-anchor="middle" {SANS} fill="{TOP}">the gap, at the</text>')
 o.append(f'<text x="286" y="136" text-anchor="middle" {SANS} fill="{TOP}">first arrival</text>')
-# reset, from each chosen mode back to setting, routed clear of the green edges
+
 o.append(straight(400, 40, 172, 106, "#ff6b6b", ' stroke-dasharray="5 4"'))
 o.append(straight(400, 210, 172, 144, "#ff6b6b", ' stroke-dasharray="5 4"'))
 o.append(f'<text x="286" y="60" text-anchor="middle" {SANS} fill="#ff6b6b">RESET</text>')
@@ -180,15 +180,15 @@ o.append(f'<text x="310" y="240" text-anchor="middle" {SANS} {DIM}>no edge betwe
 o.append('</svg>')
 out["panel-modes"] = "\n".join(o)
 
-# ---- the gap read: this node's tilt against the PARTNER'S tilt, which is the arrival
-# backed up by a quarter. Two cases, because the answer is two-valued.
+
+
 for name, a, note in (("perp", 12, "gap 6 → perpendicular"), ("par", 9, "gap 3 → parallel")):
     W, H, cx, cy, R = 200, 232, 100, 84, 68
     partner = (a - 6) % 24
     o = [f'<svg width="{W}" height="{H}" viewBox="0 0 {W} {H}">', ring(cx, cy, R)]
     o.append(arc(cx, cy, round(R * 0.46), 0, partner, HOME))
     o.append(arrow(cx, cy, R, a, ARR, 2.2))
-    # the partner's own tilt is inferred, never sent, so it is drawn dashed
+
     px, py = P(cx, cy, R * 0.84, partner)
     o.append(f'<line x1="{cx}" y1="{cy}" x2="{px}" y2="{py}" stroke="#9a9aa6" stroke-width="2" '
              f'stroke-dasharray="5 4"/>')
@@ -198,9 +198,9 @@ for name, a, note in (("perp", 12, "gap 6 → perpendicular"), ("par", 9, "gap 3
     o.append('</svg>')
     out[f"panel-gap-{name}"] = "\n".join(o)
 
-# ---- the state
-# W leaves room to the RIGHT of the ring for the step label, which sits outside the
-# circle and points back at the wedge rather than being crowded inside it.
+
+
+
 W, H, cx, cy, R = 436, 280, 150, 140, 106
 o = [f'<svg width="{W}" height="{H}" viewBox="0 0 {W} {H}">', ring(cx, cy, R)]
 o.append(arc(cx, cy, R + 12, 3, 4, HOME, 4))
@@ -218,7 +218,7 @@ o.append(arc(cx, cy, R + 7, 23, 0, "#4ea1ff", 3))
 o.append('</svg>')
 out["panel-state"] = "\n".join(o)
 
-# ---- one step, worked
+
 W, H, cx, cy, R = 300, 300, 150, 140, 108
 o = [f'<svg width="{W}" height="{H}" viewBox="0 0 {W} {H}">', ring(cx, cy, R)]
 for h in (6, 18):
@@ -237,7 +237,7 @@ o.append(f'<text x="{cx - 16}" y="{cy + 66}" text-anchor="end" {SANS} fill="{TOP
 o.append('</svg>')
 out["panel-step"] = "\n".join(o)
 
-# ---- what a report puts on the frame
+
 W, H, cx, cy, R = 260, 250, 130, 125, 104
 o = [f'<svg width="{W}" height="{H}" viewBox="0 0 {W} {H}">', ring(cx, cy, R)]
 o.append(arrow(cx, cy, R, 17, ARR, 2.4))

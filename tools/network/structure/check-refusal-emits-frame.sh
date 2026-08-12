@@ -1,30 +1,30 @@
 #!/usr/bin/env bash
-#
+
 # PLACEMENT: nodes/**/*.go | every refuseStructuralEdit(...) call site must be followed by
-# an emitViewFrame(...) call — the write-then-emit split moved the VIEW frame emit OUT of
-# refuseStructuralEdit and onto its callers.
-# check-refusal-emits-frame.sh — forbid a refuseStructuralEdit(...) call that is not
-# immediately followed by an emitViewFrame(...) call. Run from repo root:
-# bash tools/network/structure/check-refusal-emits-frame.sh
-#
-# WHY THIS EXISTS: docs/planning/movedispatch-decomposition.md, the write-then-emit split, moved
-# emitViewFrame OUT of refuseStructuralEdit (nodes/Wiring/scene_structure.go) and onto each of
-# its 12 CreateNode/DeleteNode call sites by hand. refuseStructuralEdit used to emit its own
-# frame — impossible to forget. Now a call site that forgets the follow-up emit bumps the
-# ui.editRefused counter and returns silently: nothing is written, the run does not end, and
-# the webview is never told. That reads EXACTLY like a refused edit that never happened, i.e.
-# a broken build, from the outside — deleting one such emit was confirmed to produce ZERO
-# `go test ./...` failures before this guard and its sibling test existed.
-#
-# RULE: for every call to refuseStructuralEdit( in non-test Go under nodes/, the next
-# non-comment, non-blank line in the same function must be a call to emitViewFrame(. This
-# skips refuseStructuralEdit own definition line (func (md *MoveDispatch) refuseStructuralEdit).
-#
-# Scope: production (non-test) Go under nodes/. Comments are stripped from the scanned lines
-# before matching, so prose about refuseStructuralEdit does not trip it.
-#
-# Exit 0 clean, exit 1 with a report — auto-discovered by scripts/stop-checks.sh via the
-# tools/*/check-*.sh / tools/*/*/check-*.sh glob.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# check-broadcast-is-close-not-loop.sh — guard that BeadWakeGroup wakes/settles/broadcasts
-# its beads with a single close (BroadcastChain.Advance), never a send-loop over N beads.
-#
-# PLAN.md "the wake is one operation, not N": a send-loop iterating a group's beads is
-# behaviourally identical to a single close (every bead still gets woken) but SCALES WITH N
-# — exactly the cost the close-based BroadcastChain exists to avoid. Invisible to a
-# behavioural test with a small bead count, so this is a source guard: BeadWakeGroup's
-# StartDrag/EndDrag/BroadcastGeometry methods (nodes/wire/beadchain/bead_wake_group.go) must each call
-# Advance/AdvanceWithValue and must not contain a `for`/`range` loop.
-#
+
+
+
+
+
+
+
+
+
+
 # PLACEMENT: nodes/wire/beadchain/bead_wake_group.go | StartDrag/EndDrag/BroadcastGeometry must call Advance, never loop over beads
-#
-# Exit 0 clean, exit 1 with a report.
+
+
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
