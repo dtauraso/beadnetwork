@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Timing-Window Spec — Rules</title>
+<link rel="stylesheet" href="index.css">
+</head>
+<body>
+<div class="page">
+  <header>
+    <h1>Timing-Window (Coincidence-Detection) Rule</h1>
+    <div class="meta">branch: task/timing-window &nbsp;·&nbsp; docs/planning/visual-editor/timing-window.md</div>
+  </header>
+
+  <nav>
+    <a class="tab-btn" href="index.html">Overview</a>
+    <a class="tab-btn" href="diagram.html">Diagram</a>
+    <a class="tab-btn active" href="rules.html">Rules</a>
+    <a class="tab-btn" href="windows.html">Windows</a>
+    <a class="tab-btn" href="tests.html">Tests</a>
+  </nav>
+
+  <div id="rules" class="panel active">
+    <ul>
+      <li><strong>Window iff ≥2 input edges.</strong> The timing-window rule applies only to nodes with two or more input edges. A node with a single input edge has no window — it receives normally with a blocking <code>Recv</code>. The rule is stored per-node in <code>node.data</code> (same ownership as send rules).</li>
+      <li><strong>Core rule:</strong> a windowed node (≥2 input edges) collects one pulse from each of its input edges. If ALL of them arrive within window <code>W</code> of the first arrival (<code>t0</code>) → ALL inputs are <strong>kept</strong> (the combination is accepted; the node fires). If <code>W</code> elapses with any input still missing → ALL inputs are <strong>removed</strong> (discarded via <code>Done</code> without firing); the node resets and waits for the next first-arrival.</li>
+      <li><strong>Window opens at <code>t0</code></strong> — the wall-clock moment the first input arrives. <code>W</code> is real elapsed wall-clock time measured at the node.</li>
+      <li><strong>W is derived, not stored</strong> — recomputed from the node's current input edges on every input-edge-length change (move, reconnect, midpoint drag): <code>W = 1.5 × max(simLatencyMs)</code> over current input wires, where <code>simLatencyMs = arcLength ÷ 0.08 WU/ms</code>. The value is a geometry snapshot, not fixed config.</li>
+      <li><strong>Clear semantics</strong> — call <code>Done</code> on each held input's <code>In</code> port (drains the upstream wire so a <code>consumeGated</code> source's <code>WaitConsumed</code> returns). No <code>Fire()</code>. Emit a <code>window-clear</code> trace breadcrumb for observability.</li>
+    </ul>
+    <p style="margin-top:0.75rem;font-size:0.82rem;color:var(--text-muted);"><strong>Implementation note</strong> — windowed nodes use a non-blocking poll primitive (<code>PollRecv() (value, ok)</code> on <code>PacedWire</code>/<code>Out</code>) instead of a parking <code>Recv</code>, with a <code>select</code>-timeout or short sleep between iterations to avoid busy-spin. Single-input nodes keep their existing blocking <code>Recv</code> unchanged. <code>inhibitRight0</code> is the first windowed node wired up.</p>
+
+  </div>
+
+</div>
+</body>
+</html>
