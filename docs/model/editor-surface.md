@@ -58,14 +58,14 @@ when a bead has arrived. Go owns the clock.
   is the composition root of the render tree — it decodes the buffer and
   assembles the per-concern components that draw ALL geometry from it. It is a
   small file; the drawing lives in its siblings under `three/scene/`. Grep the symbol,
-  not this filename. The tree covers: node bodies (`tools/topology-vscode/src/webview/three/scene/NodeInstances.tsx` — sphere
+  not this filename. The tree covers: node bodies (`tools/topology-vscode/src/webview/three/scene/nodes/NodeInstances.tsx` — sphere
   mesh + ring, keyed off `node.data.fill`/`node.data.stroke` from `NODE_DEFS`; no port
   geometry — a port is a load-time channel-binding ROLE, never drawn, `docs/bead-model/channels-not-ports.md`),
   transit and interior
-  beads (`tools/topology-vscode/src/webview/three/scene/ChainBeadInstances.tsx`, `tools/topology-vscode/src/webview/three/scene/InteriorBeadInstances.tsx` — there is no
+  beads (`tools/topology-vscode/src/webview/three/scene/beads/ChainBeadInstances.tsx`, `tools/topology-vscode/src/webview/three/scene/beads/InteriorBeadInstances.tsx` — there is no
   per-edge drawn tube any more; the source node's own chain of placeholder beads is the
   edge's visual, `docs/bead-model/beads-are-the-edge.md`), selection highlight
-  (`tools/topology-vscode/src/webview/three/scene/SelectionHighlight.tsx`), and the camera (`tools/topology-vscode/src/webview/three/scene/BufferCamera.tsx` maps the buffer
+  (`tools/topology-vscode/src/webview/three/scene/overlays/SelectionHighlight.tsx`), and the camera (`tools/topology-vscode/src/webview/three/scene/BufferCamera.tsx` maps the buffer
   Camera row onto the three.js camera). Nothing in this tree owns traversal
   timing, positions, or geometry.
 - **Bridge surface — binary BOTH ways.** **Go → TS:** the binary content

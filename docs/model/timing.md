@@ -23,7 +23,7 @@
   It no longer computes or streams an absolute bead position: nothing draws a moving bead.
   The source node quantises its own `t` onto its own chain and streams which bead is LIT
   (`readChainBeadLit` from `tools/topology-vscode/src/schema/buffer-layout.ts`, consumed by
-  `tools/topology-vscode/src/webview/three/scene/ChainBeadInstances.tsx`). The editor does not
+  `tools/topology-vscode/src/webview/three/scene/beads/ChainBeadInstances.tsx`). The editor does not
   interpolate, does not own positions, and does not decide which bead is lit.
 - Durations are tick counts: bead traversal (`ticksToCross`) and node processing windows.
 

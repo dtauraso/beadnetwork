@@ -65,7 +65,7 @@ and none is a source of truth.
   stored copy. It is NEVER stored as an independent absolute position — it is computed at
   ONE site by summation: the node's world center (already `sceneCenter +
   polar2cart(scenePolar)`) plus this node-local vector, at the render/decode boundary
-  (`tools/topology-vscode/src/webview/three/scene/node-stream-blocks.ts`'s `getChainBeads`,
+  (`tools/topology-vscode/src/webview/three/scene/nodes/node-stream-blocks.ts`'s `getChainBeads`,
   `cx + readChainBeadOX(...)` and its Y/Z siblings) — the buffer streams the node's world
   center and each bead's NODE-LOCAL offset as two separate columns on purpose (constant-time
   node moves: moving a node costs one center write, not degree × N bead positions), and
