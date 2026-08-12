@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wirefold Timing Spec — Constants</title>
+<link rel="stylesheet" href="timing-spec.css">
+</head>
+<body>
+<div class="page">
+  <header>
+    <h1>Wirefold Timing Spec</h1>
+    <div class="meta">branch: task/multi-bead-wire &nbsp;·&nbsp; docs/planning/visual-editor/timing-spec.html</div>
+  </header>
+
+  <nav>
+    <a class="tab-btn" href="timing-spec.html">Model</a>
+    <a class="tab-btn active" href="timing-spec-constants.html">Constants</a>
+    <a class="tab-btn" href="timing-spec-timers.html">Timers (current)</a>
+    <a class="tab-btn" href="timing-spec-target.html">Target (distance)</a>
+    <a class="tab-btn" href="timing-spec-nodeproc.html">Node Processing</a>
+  </nav>
+
+  <div id="constants" class="panel active">
+    <table>
+      <thead>
+        <tr>
+          <th>Constant</th>
+          <th>Value</th>
+          <th>Units</th>
+          <th>Meaning</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>pulseSpeed</code> (<code>CurveParamPulseSpeedWuPerMs</code>)</td>
+          <td>0.04</td>
+          <td>wu/ms</td>
+          <td>The one distance↔time conversion (human speed)</td>
+        </tr>
+        <tr>
+          <td>bead diameter</td>
+          <td>8</td>
+          <td>wu</td>
+          <td>On-wire bead visual size (radius 4)</td>
+        </tr>
+        <tr>
+          <td>min non-overlap interval</td>
+          <td>200</td>
+          <td>ms</td>
+          <td>beadDiameter / pulseSpeed = 8 / 0.04 — minimum safe gap between beads</td>
+        </tr>
+        <tr>
+          <td><code>trainDurationMs</code></td>
+          <td>2000</td>
+          <td>ms</td>
+          <td>How long a fire keeps emitting its train of beads</td>
+        </tr>
+        <tr>
+          <td><code>beadSpacingMs</code></td>
+          <td>400</td>
+          <td>ms</td>
+          <td>Gap between consecutive train beads (= 16 wu at 0.04)</td>
+        </tr>
+        <tr>
+          <td><code>recvGateMs</code></td>
+          <td>2000</td>
+          <td>ms</td>
+          <td>Refractory window — one consume allowed per window; collapses a bead train to a single fire</td>
+        </tr>
+        <tr>
+          <td><code>windowWu</code></td>
+          <td>120</td>
+          <td>wu</td>
+          <td>Fixed per-node coincidence window (WindowAndGate); 120 wu ÷ 0.04 wu/ms = 3000 ms</td>
+        </tr>
+        <tr>
+          <td><code>fireDwellMs</code></td>
+          <td>800</td>
+          <td>ms</td>
+          <td>WindowAndGate holds both inputs before firing</td>
+        </tr>
+        <tr>
+          <td>poll interval</td>
+          <td>5</td>
+          <td>ms</td>
+          <td>Gate poll cadence (wall-clock <code>time.After</code>)</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+</body>
+</html>
