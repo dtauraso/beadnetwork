@@ -9,7 +9,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/loadspec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/moverreg"
-	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/nodefiles"
 	"github.com/dtauraso/wirefold/nodes/Wiring/rowtables"
 	"github.com/dtauraso/wirefold/nodes/Wiring/sceneswitch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
@@ -61,7 +61,7 @@ func CreateNode(scenes *sceneswitch.SceneSwitch, ui *viewstate.UIState, mr *move
 	c := ui.SceneSphere.Center
 	off := drop.Sub(c)
 	d := geom.WorldDirToAngles(off)
-	if err := nodeactor.WriteNewNodeFiles(scenes.TreeRoot, target, kind, off.Length(), d.Theta, d.Phi); err != nil {
+	if err := nodefiles.WriteNewNodeFiles(scenes.TreeRoot, target, kind, off.Length(), d.Theta, d.Phi); err != nil {
 		ui.RefuseStructuralEdit(fmt.Sprintf("could not write node %s: %v", target, err))
 		ui.EmitViewFrame(nil)
 		return
@@ -101,7 +101,7 @@ func DeleteNode(scenes *sceneswitch.SceneSwitch, ui *viewstate.UIState, rt *rowt
 		return
 	}
 	root := scenes.TreeRoot
-	if err := nodeactor.RemoveNodeDir(root, id); err != nil {
+	if err := nodefiles.RemoveNodeDir(root, id); err != nil {
 		ui.RefuseStructuralEdit(fmt.Sprintf("could not remove node %s: %v", id, err))
 		ui.EmitViewFrame(nil)
 		return
