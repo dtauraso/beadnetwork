@@ -16,7 +16,7 @@ data points appear.
   caused VS Code-internal `toUrl` errors and had to be reverted.
   The actual cause was the wrong devtools frame — the bundle had
   been working all along. See
-  [feedback_webview_devtools_frame.md](../ux/feedback_webview_devtools_frame.md).
+  [feedback_webview_devtools_frame.md](../../ux/verification/feedback_webview_devtools_frame.md).
 
 **Why:** A wrong diagnosis compounds — each "fix" adds new state
 (reverted commits, broken caches, restarted hosts) that pollutes the
