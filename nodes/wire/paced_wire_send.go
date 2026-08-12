@@ -12,7 +12,7 @@ const (
 	SendBufferFull
 )
 
-func (pw *PacedWire) Send(v int, bp beadPlacement, tick int64) SendOutcome {
+func (pw *PacedWire) Send(v int, bp BeadPlacement, tick int64) SendOutcome {
 
 	pw.readout.flushDroppedBreadcrumbs()
 	select {

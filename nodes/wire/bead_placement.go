@@ -1,19 +1,21 @@
 package wire
 
-type beadPlacement struct {
+// BeadPlacement is exported: it is constructed by nodes/wire/outport.Out and handed
+// across the package boundary to PacedWire.Send. Nothing else about it changed.
+type BeadPlacement struct {
 	Steps int
 
 	Start, End Vec3
 	Node, Port string
 }
 
-func (bp beadPlacement) streams() bool {
+func (bp BeadPlacement) streams() bool {
 	return bp.Node != ""
 }
 
 type placeRequest struct {
 	val           int
-	bp            beadPlacement
+	bp            BeadPlacement
 	placementTick int64
 }
 
