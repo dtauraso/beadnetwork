@@ -6052,3 +6052,115 @@ scan (`dispatch` importers) showed only the two legitimate importers (`build`,
 `stdinreader`). `go run ./tools/gen-node-defs && git status --short` clean (regenerated
 `shading-params.ts` etc. identically, confirming the untouched `shading_params.go` still
 parses correctly through the unmodified codegen path).
+
+## The last two files over 250 lines never individually examined
+
+`nodes/PairNode/node_parts.go` (257) and `nodes/wire/beadchain/bead_actor.go` (272) — the
+remainder after every other ≥250-line file was individually examined and either split or
+declined with per-statement reasons, or is generated.
+
+### `nodes/PairNode/node_parts.go` — declined, whole file
+
+Every top-level item in this file is a **type declaration with a doc comment** — there are
+NO function bodies at all, so the statement classification the task asks for ((a) vs (b)
+per-body) does not apply: 0 lines of (a), 0 lines of (b), because there are 0 statements.
+The file is entirely declaration + comment.
+
+The five types (`nodePlumbing`, `tiltHeld`, `latticeState`, `vectorExchange`,
+`restCounters`) are not one grab-bag concern — each has its own header naming exactly what
+it owns and, in most cases, why a neighbouring type does NOT also own it (e.g. `tiltHeld`'s
+header explains why `Bottom` is a separate stored field rather than derived from `Top`).
+But that is exactly the same shape `node_geometry_parts.go` was correctly KEPT in: they are
+the composer sub-structs of ONE type, `PairNode.Node` (`node.go:64-77` composes them as
+`plumb nodePlumbing`, `tilt tiltHeld`, `lattice latticeState`, `vec vectorExchange`,
+`rest restCounters` — confirmed by grep, not assumed). Splitting this file into five
+one-type files would not separate concerns that are currently tangled — they are already
+named, commented, and field-scoped apart from each other in the SAME file — it would only
+turn one 257-line file citing "the owner sub-structs a PairNode Node composes" into five
+smaller files with nothing left to say about each other, for a line-count outcome only.
+Declined, same reasoning as `node_geometry_parts.go`'s prior decline for its ten composer
+structs. No guard names this file or any of its five type symbols (grepped `tools/` and
+`scripts/`), so there is no re-keying/teeth-proving needed for the decline.
+
+### `nodes/wire/beadchain/bead_actor.go` — split: BroadcastChain lifted out
+
+Per-function statement classification (bodies only; MODEL.md's guarded `Bead.run` select is
+counted but not touched):
+
+- `applyTransform` — 1 stmt, (a) writes `g.position` (unexported field).
+- `tick` — 2 stmts, (a) writes `a.lit`/`a.litVal`.
+- `NewBroadcastChain` — 1 stmt, (b) pure construction (no existing receiver mutated).
+- `Advance` — 3 stmts: `next := NewBroadcastChain()` (b), `c.Next = next` (a, field write),
+  `close(c.Fire)` (a, channel close) + return (b) — net (a)-dominant.
+- `AdvanceWithValue` — 2 stmts, (a) (`c.Value = v` field write, then calls into `Advance`).
+- `NewBead` — 1 stmt, (b) pure construction (struct literal, no existing receiver mutated).
+- `WithObserve` — 2 stmts, (a) writes `b.observe`.
+- `pushObserve` — reads fields to build a local snapshot (b, ~3 lines), then three send/drain
+  channel operations (a, ~9 lines) — (a)-dominant.
+- `run` (the guarded select) — 100% (a): every case is a channel receive plus a field write.
+  **Untouched** — same select shape, same three channel sets, no `default:` added (proved by
+  a deliberate break/revert below), same `BEAD-SELECT-START`/`BEAD-SELECT-END` fence lines.
+- `Start` — 1 stmt, (a) starts a goroutine.
+
+Totals: ~14 lines (a) field/channel-owning statements, ~4 lines (b) pure-construction
+statements, ~223 lines of the 272 are doc comments/type declarations around them — this is a
+concurrency-primitive file, so (a) dominates by design; there was very little pure
+computation to lift.
+
+The split taken is **not** a lift of computation to a sibling package (there is no sibling
+like `lattice`/`geom` in this package that these statements belong to) — it is a split BY
+CONCERN, same package, of the ONE self-contained piece that has no dependency on `Bead`:
+`BeadGeometryIn`/`BroadcastChain` (the close-once wake primitive) moved to a new
+`broadcast_chain.go`; `Bead` itself — including the guarded `run` select — stayed in
+`bead_actor.go`. The dependency runs one way (`Bead` holds `*BroadcastChain` fields;
+`BroadcastChain` has zero reference to `Bead`), so this is lifting the primitive out from
+under the actor that's built on it, not fragmenting one entangled concern. `bead_actor.go`
+272 → 223 lines; `broadcast_chain.go` new at 60 lines.
+
+**Guard teeth, grepped and proved:** grepped `tools/` and `scripts/` for `bead_actor.go` and
+`BroadcastChain` before touching anything. Three guards name `bead_actor.go`:
+`check-no-select-default.sh` hardcodes
+`FILE="$REPO_ROOT/nodes/wire/beadchain/bead_actor.go"` and scans between the
+`BEAD-SELECT-START`/`BEAD-SELECT-END` fence — unaffected by the move since `run` (and its
+fence) never left the file; `check-bead-actor-has-call-site.sh` and
+`check-broadcast-is-close-not-loop.sh` reference the filename in comments/output text only,
+not as a path they read, so both are structurally unaffected by an in-package file split.
+Deliberately broke `check-no-select-default.sh` (Edit tool, added a `default:` case to
+`run`'s select) and got the verbatim failure:
+
+    ✗ Bead.run's select carries a default: case — that makes it non-blocking, so a loop
+      around it spins a core instead of parking at zero CPU. Remove the default: case;
+      every event this loop reacts to must arrive as a channel message, never be polled.
+    exit=1
+
+Reverted with Edit; reran — exit 0, `✓ no default: in Bead.run's select
+(nodes/wire/beadchain/bead_actor.go) — the loop parks, it does not spin.`
+`check-broadcast-is-close-not-loop.sh` and `check-bead-actor-has-call-site.sh` both re-ran
+clean (exit 0) after the split, unmodified — proving the guard genuinely does not care where
+`BroadcastChain` lives, only where `BeadWakeGroup`'s methods and the production call sites
+are, neither of which moved.
+
+**Changed surfaces with no check of any kind that can fail:** `BroadcastChain.Advance`'s
+"write `Next` before `close(Fire)`" ordering — the happens-before argument the type doc
+makes for why a receiver can read `Next` lock-free — has no guard or test; it rests on the
+doc comment (unchanged, moved verbatim) and a human reading it, per this repo's no-tests
+policy for concurrency correctness. `pushObserve`'s drain-then-send retry shape is likewise
+uncovered by any check; unchanged by this move.
+
+**Confirmation the bead primitive was left alone:** the guarded select, its `no default:`
+property, and the wake/settle/geometry close-not-loop broadcast in `bead_wake_group.go` were
+not edited except for the one deliberate break-then-revert above (verified: `git diff` after
+the revert showed no residual change to `run`).
+
+**Verify (from `/Users/David/Documents/github/wirefold`, cwd confirmed each time):**
+`go build ./...` — clean, no output. `go vet ./...` — clean, no output.
+`go run ./tools/gen-node-defs && git status --short` — generator wrote the same set of
+generated files it always does; `git status --short` showed only the two hand-edited
+`beadchain` files, confirming byte-identical generator output. `bash scripts/stop-checks.sh`
+— empty stdout (clean) after the `bead_actor.go`/`broadcast_chain.go` commit.
+
+**Commit** (`task/god-objects`): `6659e8b2` — "BroadcastChain, the reusable close-once wake
+primitive Bead is built on, gets its own file, leaving bead_actor.go to the guarded Bead
+goroutine alone."
+
+**`node_parts.go`:** declined, no commit.
