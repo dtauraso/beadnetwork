@@ -86,7 +86,7 @@ func (m *NodeGeometry) handleTiltVectorAngle(msg movemsg.Msg) {
 	if msg.Bool {
 		delta = 1
 	}
-	m.tilt.topTiltVectorThetaIdx += delta
+	m.tilt.BumpTopTiltVectorThetaIdx(delta)
 	m.persistTiltVectorAngle()
 	if m.tr != nil {
 		m.emitGeometry()
@@ -94,7 +94,7 @@ func (m *NodeGeometry) handleTiltVectorAngle(msg movemsg.Msg) {
 }
 
 func (m *NodeGeometry) handleTiltVectorReset() {
-	m.tilt.topTiltVectorThetaIdx = 0
+	m.tilt.ResetTopTiltVectorThetaIdx()
 	m.persistTiltVectorAngle()
 	if m.tr != nil {
 		m.emitGeometry()
