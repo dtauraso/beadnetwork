@@ -1,6 +1,6 @@
-// geometry-helpers.ts — pure NDC ↔ pixel conversion helpers for the 3D view.
-// No React, no scene state, no node/edge geometry (all geometry is Go-owned and arrives
-// via the binary content buffer).
+
+
+
 
 export function ndcToPixel(ndcX: number, ndcY: number, size: { width: number; height: number }): { px: number; py: number } {
   const px = (ndcX + 1) / 2 * size.width;

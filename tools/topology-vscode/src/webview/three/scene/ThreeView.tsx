@@ -1,8 +1,8 @@
-// ThreeView — 3D view of the Go-owned network, rendered entirely from the binary content
-// buffer (BufferScene) with raw-input forwarding to Go's gesture FSM for all interaction.
-//   - PerspectiveCamera driven by Go's Camera buffer row (BufferCamera)
-//   - Pointer/wheel events forwarded raw to Go (useInteractionControls → raw-input)
-//   - Node labels projected from the buffer node block
+
+
+
+
+
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { Canvas } from "@react-three/fiber";
@@ -22,12 +22,12 @@ import type { BufferLabelPos } from "./buffer-scene";
 import { NavGuides } from "../nav/NavGuides";
 import { useOverlayFlags } from "../controls/flags/overlay-flags";
 
-// ---------------------------------------------------------------------------
-// ThreeView: Canvas wrapper + interaction + label overlay + widgets
-// ---------------------------------------------------------------------------
 
-// Static label-pill style — no per-node data, so it is hoisted to module scope
-// rather than reallocated per node per render.
+
+
+
+
+
 const PILL_STYLE: React.CSSProperties = {
   background: "rgba(0,0,0,0.55)",
   border: "none",
@@ -36,8 +36,8 @@ const PILL_STYLE: React.CSSProperties = {
 };
 
 export function ThreeView() {
-  // Buffer-driven label positions: projected from the binary buffer's node block + the
-  // buffer-nav id table by BufferLabelProjector.
+
+
   const [bufferLabelPositions, setBufferLabelPositions] = useState<BufferLabelPos[]>([]);
 
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
@@ -46,7 +46,7 @@ export function ThreeView() {
   const captureRef = useRef<HTMLDivElement | null>(null);
   const [canvasSize, setCanvasSize] = useState({ w: 800, h: 600 });
 
-  // Observe container size
+
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -56,7 +56,7 @@ export function ThreeView() {
     return () => obs.disconnect();
   }, []);
 
-  // Buffer-driven label positions — RAF-batched so state churns at most once per frame.
+
   const bufferLabelRaf = useRef<ReturnType<typeof requestAnimationFrame> | null>(null);
   const pendingBufferPositions = useRef<BufferLabelPos[]>([]);
   const onBufferPositions = useCallback((positions: BufferLabelPos[]) => {
@@ -69,7 +69,7 @@ export function ThreeView() {
     }
   }, []);
 
-  // Cancel any pending label RAF on unmount so it can't fire against a torn-down component.
+
   useEffect(() => {
     return () => {
       if (bufferLabelRaf.current !== null) {
@@ -84,9 +84,9 @@ export function ThreeView() {
     pickRequest,
   );
 
-  // Bind wheel listener as non-passive so e.preventDefault() actually works.
-  // React's synthetic onWheel is passive — preventDefault silently no-ops there,
-  // which lets horizontal two-finger drags trigger browser back-nav.
+
+
+
   useEffect(() => {
     const el = captureRef.current;
     if (!el) return;
@@ -94,17 +94,17 @@ export function ThreeView() {
     return () => el.removeEventListener("wheel", onWheelNative);
   }, [onWheelNative]);
 
-  // Label global visibility comes from the buffer overlay column (Go-owned), reflected
-  // read-only via the sanctioned useOverlayFlags hook so this component re-renders the
-  // instant the flag flips — independent of the label-positioning rAF loop below.
-  // overlay-flags.ts already stores labelsGlobal in HIDDEN-sense (it inverts the buffer's
-  // visible-sense column), so bufLabelsHidden is that flag directly.
+
+
+
+
+
   const bufFlags = useOverlayFlags();
   const bufLabelsHidden = bufFlags?.labelsGlobal ?? false;
 
   return (
     <div ref={containerRef} style={{ position: "absolute", inset: 0 }}>
-      {/* Canvas + gesture capture layer */}
+      {}
       <div
         ref={captureRef}
         style={{ position: "absolute", inset: 0, touchAction: "none" }}
@@ -113,13 +113,13 @@ export function ThreeView() {
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerCancel}
         onContextMenu={(e) => e.preventDefault()}
-        // THE DROP TARGET for the node palette. It sits on the same element that captures
-        // gestures, because that element IS the scene as far as the pointer is concerned —
-        // its rect is what turns a client pixel into NDC, exactly as raw-input already does
-        // for every pointer event.
-        //
-        // onDragOver must preventDefault or the browser refuses the drop outright; that is
-        // the whole reason it exists here.
+
+
+
+
+
+
+
         onDragOver={(e) => {
           if (e.dataTransfer.types.includes("application/x-wirefold-kind")) e.preventDefault();
         }}
@@ -144,12 +144,9 @@ export function ThreeView() {
           <Scene
             onPickRequest={pickRequest}
           />
-          {/* NavGuides (polar tori / pole frames / θ-φ angle arcs / handholds), derived from
-              the binary buffer (Go-owned node centers/radii/sphereR + selection column). */}
+          {}
           <NavGuides />
-          {/* BufferScene's node bodies use a glassy PMREM-lit meshPhysicalMaterial, so it needs
-              the env texture. This is the sole ProceduralEnvProvider mount in the Canvas —
-              Scene's lighting/RaycasterHelper don't read EnvTexContext, so they aren't wrapped. */}
+          {}
           <ProceduralEnvProvider>
             <BufferScene cameraRef={cameraRef} />
           </ProceduralEnvProvider>
@@ -157,8 +154,7 @@ export function ThreeView() {
         </Canvas>
       </div>
 
-      {/* Node label pills — one pill per buffer-projected node position (BufferLabelProjector),
-          label text decoded straight from the buffer's label section (pos.label). No sidecar. */}
+      {}
       {!bufLabelsHidden && bufferLabelPositions.map((pos) => (
         <div
           key={pos.row}
@@ -181,15 +177,7 @@ export function ThreeView() {
         </div>
       ))}
 
-      {/* RIGHT-HAND COLUMN. These used to be four independently absolute widgets at
-          hardcoded tops (44 / 66 / 128 / 156), each one's comment explaining how tall the
-          widget above it was. That only holds while every panel's height is known in
-          advance — and the tilt-vector panel's is not: it grows a block per node, so with
-          two nodes it ran straight through the overlays button beneath it.
-          One flex column instead. Order here IS order on screen, spacing is the gap, and a
-          panel that grows pushes the rest down rather than overlapping them. The column
-          takes no pointer events, so the canvas stays draggable in the gaps; each widget
-          re-enables them for itself. */}
+      {}
       <div
         style={{
           position: "absolute",
@@ -198,21 +186,21 @@ export function ThreeView() {
           zIndex: 20,
           display: "flex",
           flexDirection: "column",
-          // `stretch`, not `flex-end`: the column is as wide as its widest widget and every
-          // widget takes that width, so the three pills below START the same width as each
-          // other instead of each sizing to its own label. Opening one still grows it to
-          // fit its popover as it always did — the others just come along, since the width
-          // is now the column's rather than each pill's own.
+
+
+
+
+
           alignItems: "stretch",
           gap: 6,
           pointerEvents: "none",
         }}
       >
-        {/* Not a pill: keeps its own size rather than stretching to the pills' width. */}
+        {}
         <HomeButton cameraRef={cameraRef} aspect={canvasSize.w / canvasSize.h} />
         <DistanceHomePanel />
         <TiltVectorAnglePanel />
-        {/* Renders nothing in a scene Go says is not editable. */}
+        {}
         <NodePalette />
         <OverlaysControl />
       </div>

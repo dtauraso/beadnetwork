@@ -1,6 +1,6 @@
-// axis-label.tsx — AxisLabel: canvas-texture Sprite billboard used by PolarFrame's axis/arc
-// labels (and reusable by other buffer-driven 3D overlays, e.g. PortLabels' port-name tags).
-// Always faces the camera, no font asset needed.
+
+
+
 
 import React, { useMemo, useEffect } from "react";
 import * as THREE from "three";
@@ -21,7 +21,7 @@ export function AxisLabel({ text, color, position, size }: {
     t.needsUpdate = true;
     return t;
   }, [text, color]);
-  // Dispose the previous texture when deps change and on unmount to prevent GPU memory leaks.
+
   useEffect(() => {
     return () => { texture.dispose(); };
   }, [texture]);

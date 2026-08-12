@@ -1,6 +1,6 @@
-// buffer-decode-view.ts — decodeViewFrame: the dedicated VIEW-stream frame, returning the
-// Camera/Overlay/Scene blocks plus the scene-tab strip and this stream's own trailing
-// EVENTS section.
+
+
+
 
 import {
   CAMERA_STRIDE,
@@ -10,14 +10,13 @@ import {
 import { BUF_VIEW_FRAME_HEADER_SIZE } from "../../../schema/frame-tags";
 import { STR_DECODER, decodeTrailingEvents } from "./buffer-decode-shared";
 
-/** Byte width of the scene-tabs section header: [count:u16][selected:u16]. Always present
- *  on a VIEW frame, even for zero tabs (see Buffer.BuildSceneTabsSection). */
+
 export const SCENE_TABS_HEADER_SIZE = 4;
 
-// decodeSceneTabs decodes the Go-owned tab strip written by Buffer.BuildSceneTabsSection:
-// [count:u16][selected:u16] then count × ([nameLen:u16][utf8 name]). Returns the end offset
-// so the caller can continue to the events trailer. A truncated section decodes as no tabs
-// rather than throwing — a short frame must not take the whole render path down with it.
+
+
+
+
 function decodeSceneTabs(buf: ArrayBuffer, offset: number): { names: string[]; selected: number; end: number } {
   if (buf.byteLength < offset + SCENE_TABS_HEADER_SIZE) {
     return { names: [], selected: 0, end: offset };
@@ -38,36 +37,27 @@ function decodeSceneTabs(buf: ArrayBuffer, offset: number): { names: string[]; s
   return { names, selected, end: off };
 }
 
-/** Decoded view over a BUF_BLOCK_TAG_VIEW frame (see frame-tags.ts for its byte layout):
- *  [tick:u32] followed by the Camera, Overlay, and Scene blocks. */
+
 export interface DecodedViewFrame {
   tick: number;
   cameraView: DataView;
   overlayView: DataView;
   sceneView: DataView;
-  /** The Go-owned scene tab strip (nodes/Wiring/scene/scene_tabs.go): the labels to draw and
-   *  which one is showing. Empty for an untabbed anchor, which is what makes the strip
-   *  absent rather than a single dead tab. TS renders these; it never invents one. */
+
   sceneTabs: string[];
   sceneTabSelected: number;
-  /** This VIEW stream's own trailing EVENTS section (camera/overlay/scene events —
-   *  every other kind is decentralized to its own owner fd). */
+
   eventCount: number;
   eventView: DataView;
   eventTextView: DataView;
 }
 
-// Single-entry memo — the view frame arrives on its own dedicated fd, decoded
-// independently of every other stream.
+
+
 let lastViewBuf: ArrayBuffer | null = null;
 let lastDecodedView: DecodedViewFrame | null = null;
 
-/**
- * Decode a BUF_BLOCK_TAG_VIEW frame ArrayBuffer (the dedicated view-fd stream) into
- * typed camera/overlay/scene views. Returns null if the buffer is too small to be a
- * valid view frame. Pure — no side effects, no store reads/writes. Views alias the
- * original buffer (zero-copy). Memoized on `buf`'s identity.
- */
+
 export function decodeViewFrame(buf: ArrayBuffer): DecodedViewFrame | null {
   if (buf === lastViewBuf) return lastDecodedView;
   const decoded = decodeViewFrameUncached(buf);

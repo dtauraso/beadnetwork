@@ -1,10 +1,10 @@
-// BufferLabelProjector.tsx — buffer-driven node label projector: each ~2 frames it reads the
-// snapshot's node block, projects each node's top (center.y+radius) and center to screen,
-// and reports {row,label,px,py,cx,cy} — the row is the node's buffer node-row index
-// (identity) and the label is decoded straight from the buffer's label section (nodeLabel).
-// Split out of buffer-scene.tsx. Mirrors the old JSON-path LabelProjector but sourced
-// entirely from the buffer, no id table. The DOM label pills (ThreeView) render from these
-// positions. Pure projection — no store writes.
+
+
+
+
+
+
+
 
 import { useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
@@ -26,7 +26,7 @@ export function BufferLabelProjector({ onPositions }: {
 
   useFrame(() => {
     frameCountRef.current++;
-    if (frameCountRef.current % 2 !== 0) return; // ~30fps, matches LabelProjector
+    if (frameCountRef.current % 2 !== 0) return; 
     const decoded = getNodeFrame();
     if (!decoded) return;
     const { nodeCount, nodeView } = decoded;

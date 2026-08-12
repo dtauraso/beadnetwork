@@ -1,11 +1,11 @@
-// raw-input.ts — RAW-INPUT forwarding.
-//
-// The editor forwards RAW pointer/wheel events plus the stateless three.js raycast hit to
-// Go, fire-and-forget; Go's gesture state machine (nodes/Wiring/gesture package) decides what the
-// input MEANS. TS holds NO gesture state.
-//
-// The raycast + hit classification (three.js hit-testing) live HERE, not in the polar-only
-// interaction-*.ts files, so the polar-nav guard is unaffected.
+
+
+
+
+
+
+
+
 
 import * as THREE from "three";
 import { postGoRecord } from "../../vscode-api";
@@ -16,46 +16,42 @@ import { pixelToNDC } from "./geometry-helpers";
 
 type CamRef = React.MutableRefObject<THREE.PerspectiveCamera | null>;
 
-/** Fire-and-forget: encode a raw-input event as a BINARY record and place it on the TS→Go
- *  bridge. No await, no response. */
+
 export function sendRawInput(event: RawInputEvent): void {
   postGoRecord(encodeRawInput(event));
 }
 
-/** Classify the rendered entity under the pointer via the existing pick callback (three.js
- *  raycast). Every hit carries ONLY a numeric buffer ROW (node / port / edge); Go resolves the
- *  row back to its entity via its own row tables. Topology facts (connected?) are NOT decided
- *  here — Go's FSM owns those. */
+
 function classifyHit(pickRequest: PickRef, ndcX: number, ndcY: number): { kind: RawHit["kind"]; isInput: boolean; nodeRow: number; portRow: number; edgeRow: number } {
-  // There is no port pick any more (docs/bead-model/channels-not-ports.md): a port is a load-time
-  // channel-binding ROLE, never drawn or hit-testable, so "port" is not a hit kind this
-  // classifier can produce. portRow always rides the wire as -1 (RawHit still carries the
-  // field — see its own doc comment for why the wire shape didn't need to shrink here).
-  // Priority: edge, then handhold, then torus, then node.
-  //
-  // An edge hit carries ONLY its numeric buffer EDGE-ROW index (pickBufferEdge returns the row
-  // as a string). Go resolves the row → its edge via its own edge-row table.
+
+
+
+
+
+
+
+
   const edgeStr = pickRequest.current?.(ndcX, ndcY, { edgeOnly: true }) ?? null;
   if (edgeStr !== null) return { kind: "edge", isInput: false, nodeRow: -1, portRow: -1, edgeRow: Number(edgeStr) };
-  // A handhold hit is detected by PRESENCE only (pickBufferHandhold returns non-null for any
-  // handhold mesh, octant or roll grip) — no numeric term crosses the bridge; Go's
-  // handhold-down branch (gesture.go) only needs to know a handhold was grabbed.
+
+
+
   const handholdStr = pickRequest.current?.(ndcX, ndcY, { handholdOnly: true }) ?? null;
   if (handholdStr !== null) return { kind: "handhold", isInput: false, nodeRow: -1, portRow: -1, edgeRow: -1 };
-  // A torus (node border-ring) hit carries ONLY the owning node's numeric buffer NODE-ROW index
-  // (pickBufferRing returns the row as a string, since rings are drawn per-node in body row
-  // order). Checked before the plain node body so a ring-edge click (`port ∈ torus` lock
-  // capture) is not swallowed by the larger body sphere underneath it.
+
+
+
+
   const torusStr = pickRequest.current?.(ndcX, ndcY, { ringOnly: true }) ?? null;
   if (torusStr !== null) return { kind: "torus", isInput: false, nodeRow: Number(torusStr), portRow: -1, edgeRow: -1 };
-  // A node hit carries ONLY its numeric buffer NODE-ROW index (pickBufferNode returns the row
-  // as a string). Go resolves the row → node id via its own node-row table; no id crosses.
+
+
   const nodeStr = pickRequest.current?.(ndcX, ndcY) ?? null;
   if (nodeStr !== null) return { kind: "node", isInput: false, nodeRow: Number(nodeStr), portRow: -1, edgeRow: -1 };
   return { kind: "empty", isInput: false, nodeRow: -1, portRow: -1, edgeRow: -1 };
 }
 
-/** Build a RawInputEvent from a React pointer event + the raycast hit. */
+
 export function buildPointerRaw(
   e: React.PointerEvent<HTMLDivElement>,
   kind: RawPointerKind,
@@ -80,10 +76,7 @@ export function buildPointerRaw(
   };
 }
 
-/** Build a "home" (fit-to-content) command event. Carries ONLY the render context Go needs
- *  to size the fit — camera fov + viewport aspect (encoded as rectWidth/rectHeight so Go's
- *  rect.aspect() reads width/height = aspect). No pose is computed here; Go frames the scene
- *  from its own node geometry. Pointer/hit fields are inert (unused for a home command). */
+
 export function buildHomeRaw(fov: number, aspect: number): RawInputEvent {
   const hit: RawHit = { kind: "empty", isInput: false, nodeRow: -1, portRow: -1, edgeRow: -1 };
   return {
@@ -98,7 +91,7 @@ export function buildHomeRaw(fov: number, aspect: number): RawInputEvent {
   };
 }
 
-/** Build a RawInputEvent from a native wheel event + the raycast hit. */
+
 export function buildWheelRaw(
   e: WheelEvent,
   cameraRef: CamRef,

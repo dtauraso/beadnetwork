@@ -1,9 +1,9 @@
-// byte-reader.ts — the little-endian record reader input-decode.ts reads through.
-// Production decode is input_codec.go; this is used by unit tests + round-trip.
+
+
 
 export class ByteReader {
   private view: DataView;
-  private pos = 1; // skip kind byte
+  private pos = 1; 
   constructor(private bytes: Uint8Array) {
     this.view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   }

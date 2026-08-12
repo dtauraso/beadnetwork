@@ -1,12 +1,12 @@
-// Append-mode writer for webview log entries. One JSON line per call,
-// routed to .probe/ts.jsonl (normal) or .probe/ts-errors.jsonl (error
-// labels: window-error, unhandled-rejection, render-error) in the
-// document's workspace folder. External readers tail these files to
-// observe the webview without DevTools.
-//
-// Appends serialize through a single promise chain per target file —
-// concurrent bursts (boundary catch + window error firing for the same
-// crash) would otherwise race on the read-then-write.
+
+
+
+
+
+
+
+
+
 
 import * as fs from "fs/promises";
 import * as fsSync from "fs";
@@ -27,8 +27,8 @@ export async function appendWebviewLog(
   entry: string,
   documentUri: vscode.Uri | undefined,
 ): Promise<void> {
-  // No real workspace uri → nowhere to anchor .probe/; trace to nowhere rather
-  // than misdirecting the log to an arbitrary cwd.
+
+
   if (documentUri === undefined) return;
   let parsed: { label?: string } | undefined;
   try {
@@ -37,14 +37,14 @@ export async function appendWebviewLog(
       const label = (raw as Record<string, unknown>).label;
       parsed = typeof label === "string" ? { label } : {};
     }
-  } catch { /* malformed — route to ts.jsonl */ }
+  } catch {  }
   const isError = parsed?.label !== undefined && ERROR_LABELS.has(parsed.label);
   if (isError) {
     pendingTsErrors = pendingTsErrors.then(() => doAppend(entry, documentUri, PROBE_FILES.tsErrors));
     return pendingTsErrors;
   } else {
-    // ts.jsonl is a high-volume trace log (webview logging is gated the same as the four
-    // Go per-owner trace logs) — opt-in via isProbeTraceEnabled(), default off.
+
+
     if (!isProbeTraceEnabled()) {
       return;
     }
@@ -63,10 +63,10 @@ async function doAppend(entry: string, documentUri: vscode.Uri, filename: string
     await fs.appendFile(file, entry + "\n", "utf8");
   } catch (err) {
     console.warn("topology editor: webview-log append failed", err);
-    // Mirror to ts-errors.jsonl (best-effort; if dir creation failed this may also fail)
+
     try {
       const errFile = path.join(dir, PROBE_FILES.tsErrors);
       fsSync.appendFileSync(errFile, JSON.stringify({ ts_ms: Date.now(), src: "ts-ext", label: "ext.webview-log-append-failed", message: String(err) }) + "\n", "utf8");
-    } catch { /* swallow */ }
+    } catch {  }
   }
 }

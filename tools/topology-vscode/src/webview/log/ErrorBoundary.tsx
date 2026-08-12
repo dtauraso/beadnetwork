@@ -1,6 +1,6 @@
-// React error boundary. Catches render-time errors anywhere in the
-// subtree and posts a structured entry to the webview log. Renders a
-// minimal fallback so the panel doesn't go blank silently.
+
+
+
 
 import { Component, type ErrorInfo, type ReactNode } from "react";
 import { postLog } from "./post";

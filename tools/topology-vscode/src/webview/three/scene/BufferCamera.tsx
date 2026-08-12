@@ -1,16 +1,16 @@
-// BufferCamera.tsx — buffer-driven camera: each frame reads the snapshot's single Camera row
-// and drives the three.js camera (position / up / lookAt) from it. Split out of
-// buffer-scene.tsx: pure buffer→camera render, no state authority.
-//
-// The polar→cartesian mapping uses the shared anglesToWorldOffset helper (viewpoint-bridge),
-// so a given Go camera state always produces the same three.js pose:
-//   pivot   = (PX, PY, PZ)
-//   position = pivot + anglesToWorldOffset(R, PosTheta, PosPhi)
-//   up      = anglesToWorldOffset(1, UpTheta, UpPhi).normalize()
-//   lookAt(pivot)
-//
-// Also keeps `cameraRef` current (the old CameraRefBridge did this; it is gated off
-// under the flag, but raw-input / HomeButton still read cameraRef.current).
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 import { useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
@@ -30,17 +30,17 @@ export function BufferCamera({ cameraRef }: {
 
   useFrame(() => {
     const cam = camera as THREE.PerspectiveCamera;
-    if (cameraRef) cameraRef.current = cam; // keep the ref alive for raw-input / HomeButton
+    if (cameraRef) cameraRef.current = cam; 
 
     const blocks = getViewBlocks();
     if (!blocks) return;
     const cv = blocks.cameraView;
 
     const r = readCameraR(cv);
-    // Guard the uninitialized camera row: Go emits a real viewpoint on load (SeedInitialViewpoint
-    // reads the saved pose from view/camera.json, or a non-degenerate default), but node-geometry
-    // snapshots can land first, with the camera row still all zeros. r <= 0 means "no viewpoint
-    // yet" — skip.
+
+
+
+
     if (!(r > 0)) return;
 
     const pivot = pivotRef.current;

@@ -1,7 +1,7 @@
-// byte-writer.ts — the little-endian growable record builder input-encode.ts writes
-// TS→Go binary records through, plus the shared enum-name→wire-index helper.
 
-/** ByteWriter — a little-endian growable record builder. */
+
+
+
 export class ByteWriter {
   private buf = new Uint8Array(64);
   private view = new DataView(this.buf.buffer);
@@ -57,14 +57,13 @@ export class ByteWriter {
     this.buf.set(bytes, this.pos);
     this.pos += bytes.length;
   }
-  /** The record bytes (a fresh ArrayBuffer sized to content). */
+
   toArrayBuffer(): ArrayBuffer {
     return this.buf.buffer.slice(0, this.pos);
   }
 }
 
-/** enumIndex — look up an enum string's wire index in a generated ordering array,
- *  defaulting to 0 (the ordering's first member) when not found. */
+
 export function enumIndex(list: readonly string[], s: string): number {
   const i = list.indexOf(s);
   return i < 0 ? 0 : i;

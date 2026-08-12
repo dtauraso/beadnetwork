@@ -1,7 +1,7 @@
-// SphereRings.tsx — "show the sphere" visualization: for the currently-SELECTED node, two
-// thin see-through great-circle tori are drawn AT its center showing its own reach-sphere
-// boundary. Split out of buffer-scene.tsx: pure buffer→GPU render, no state authority
-// beyond the geometry-rebuild-on-change React state SphereRings already held.
+
+
+
+
 
 import { useRef, useState, useMemo, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
@@ -15,23 +15,23 @@ import {
 import { overlayOn } from "../controls/flags/overlay-flags";
 import { NODE_SPHERE_RADIUS, NORMAL_DEGENERATE_EPS, SPHERE_RING_MIN_RADIUS, nodeRowColors } from "./buffer-scene-shared";
 
-// Mirrors the pre-branch SphereRing (scene-graph.tsx) EXACTLY: major radius R = the
-// selected node's Go-streamed sphereR (buffer SphereR column), tube = max(0.5,
-// radius*0.08), two tori oriented by the node's two ring-plane normals (VR vertical, FR
-// flat), material = node stroke color, emissiveIntensity 0.25, opacity 0.55, depthWrite
-// false, raycast disabled (purely decorative — clicks pass through to the node inside).
-// Drawn only when a selection exists AND that node's SphereR is Go-streamed non-degenerate
-// (SPHERE_RING_MIN_RADIUS filters out nodes that don't center a sphere at all).
+
+
+
+
+
+
+
 const SPHERE_RING_EMISSIVE_INTENSITY = 0.25;
 const SPHERE_RING_OPACITY = 0.55;
-const SPHERE_RING_TUBE_RATIO = 0.08; // pre-branch: nodeRadius(owner) * 0.08
+const SPHERE_RING_TUBE_RATIO = 0.08; 
 const SPHERE_RING_TUBE_MIN = 0.5;
 const SPHERE_RING_RADIAL_SEGMENTS = 12;
 const SPHERE_RING_TUBULAR_SEGMENTS = 96;
-const _sphereRingDefaultNormal = new THREE.Vector3(0, 0, 1); // torusGeometry lies in XY (normal +Z)
+const _sphereRingDefaultNormal = new THREE.Vector3(0, 0, 1); 
 
 interface OwnerRing {
-  row: number; // owner node's buffer node-row index — stable identity for React keys
+  row: number; 
   cx: number; cy: number; cz: number;
   R: number; tube: number;
   vrx: number; vry: number; vrz: number;
@@ -39,8 +39,8 @@ interface OwnerRing {
   color: string;
 }
 
-// One owner's pair of great-circle tori. Geometry + orientation quaternions are rebuilt
-// only when the owner's R/tube/normals change (keyed useMemo) — not every frame.
+
+
 function SphereRingBuf({ ring }: { ring: OwnerRing }) {
   const { geo, vrQ, frQ } = useMemo(() => {
     const _geo = new THREE.TorusGeometry(ring.R, ring.tube, SPHERE_RING_RADIAL_SEGMENTS, SPHERE_RING_TUBULAR_SEGMENTS);
@@ -55,7 +55,7 @@ function SphereRingBuf({ ring }: { ring: OwnerRing }) {
     };
   }, [ring.R, ring.tube, ring.vrx, ring.vry, ring.vrz, ring.frx, ring.fry, ring.frz]);
 
-  // R3F does not auto-dispose an imperatively-passed geometry; dispose on rebuild/unmount.
+
   useEffect(() => () => { geo.dispose(); }, [geo]);
 
   return (
@@ -110,13 +110,13 @@ export function SphereRings() {
   useFrame(() => {
     const decoded = getNodeFrame();
     const next: OwnerRing[] = [];
-    // The STATE cluster's reach-sphere overlay. Off ⇒ an EMPTY ring list, which is the same
-    // path "nothing is selected" already takes — so the tori are torn down rather than left
-    // in the scene hidden, and nothing here needs a second way to be invisible.
+
+
+
     if (decoded && overlayOn(readOverlayReachSphere)) {
       const { nodeCount, nodeView } = decoded;
 
-      // Selected row (at most one) — the ONLY row this draws a sphere ring for.
+
       let selectedRow = -1;
       for (let i = 0; i < nodeCount; i++) {
         if (readNodeSelected(nodeView, i)) { selectedRow = i; break; }
@@ -124,7 +124,7 @@ export function SphereRings() {
 
       if (selectedRow >= 0) {
         const row = selectedRow;
-        // R = Go-streamed reach radius (sphereR); fall back to node radius pre-emit.
+
         const radius = readNodeRadius(nodeView, row) || NODE_SPHERE_RADIUS;
         const R = readNodeSphereR(nodeView, row) || radius;
         if (R >= SPHERE_RING_MIN_RADIUS) {
@@ -141,7 +141,7 @@ export function SphereRings() {
         }
       }
     }
-    // Rebuild only when the ring set / geometry / color actually changed.
+
     if (!sameRings(prevRef.current, next)) {
       prevRef.current = next;
       setRings(next);

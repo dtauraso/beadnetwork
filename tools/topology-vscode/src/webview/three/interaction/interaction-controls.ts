@@ -1,18 +1,18 @@
-// interaction-controls.ts — useInteractionControls hook.
-//
-// All interaction is RAW-INPUT forwarding: the pointer/wheel handlers forward the raw event
-// plus the stateless three.js raycast hit to Go's gesture FSM (raw-input.ts) and hold NO
-// state locally. Go owns every gesture's meaning (select, node-drag, edge-create, orbit,
-// pan, dolly, ring-move). TS is forward-only.
+
+
+
+
+
+
 
 import { useCallback } from "react";
 import * as THREE from "three";
 import { sendRawInput, buildPointerRaw, buildWheelRaw } from "./raw-input";
 import type { PickRef } from "./pick-types";
 
-// ---------------------------------------------------------------------------
-// useInteractionControls — raw-input forwarding only
-// ---------------------------------------------------------------------------
+
+
+
 
 export function useInteractionControls(
   cameraRef: React.MutableRefObject<THREE.PerspectiveCamera | null>,
@@ -35,12 +35,12 @@ export function useInteractionControls(
     e.currentTarget.releasePointerCapture(e.pointerId);
   }, [cameraRef, pickRequest]);
 
-  // A gesture can end via pointercancel (touch interrupted, OS gesture, focus
-  // steal) instead of pointerup, and the browser then fires NO pointerup — so
-  // without this the Go FSM stays stuck in its drag phase and later buttonless
-  // moves keep dragging. Synthesize a pointerup to end the gesture through the
-  // normal path. (Do NOT also wire onLostPointerCapture: it fires on a normal
-  // pointerup too, which would double-finalize.)
+
+
+
+
+
+
   const onPointerCancel = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
     const ev = buildPointerRaw(e, "pointerup", cameraRef, pickRequest);
     if (ev) sendRawInput(ev);

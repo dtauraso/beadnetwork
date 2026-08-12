@@ -1,31 +1,31 @@
-// buffer-scene.tsx — buffer-driven render path orchestrator.
-//
-// Reads the latest binary snapshot each frame and renders:
-//   - Beads: InstancedMesh updated from bead column (positions, live flag).
-//   - Nodes: InstancedMesh updated from node column (center positions).
-//   - Edges: LineSegments updated from edge column (start/end endpoints).
-//
-// This component does NOT write to any Zustand store. It reads the snapshot
-// buffer directly (zero-copy DataView slices via the buffer-decode-* decoders) and fills
-// GPU attribute arrays imperatively via useFrame. No domain state flows out.
-//
-// The actual per-block renderers live in sibling files (BeadInstances, NodeInstances,
-// SelectionHighlight/HoverHighlight, SphereRings, InteriorBeadInstances,
-// BufferCamera, BufferLabelProjector) — this file is just the capacity-manager
-// orchestrator that mounts them, plus the shared pick-tag re-exports scene-content.tsx and
-// ThreeView.tsx still import from here. There is no PortInstances any more
-// (docs/bead-model/channels-not-ports.md): a port is a load-time channel-binding ROLE, never drawn or
-// hit-testable. There is no per-edge drawn tube any more either (the source node's own
-// chain of placeholder beads is the edge's visual, docs/bead-model/beads-are-the-edge.md).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 import { useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import type * as THREE from "three";
 import { getNodeFrame, getChainBeads } from "./node-stream-blocks";
 import { INTERIOR_SLOTS_PER_NODE } from "../decode/buffer-decode-interior";
-// BeadInstances (the single MOVING transit bead per wire) is gone: the animation is now the
-// LIT bead advancing along a node-owned fixed chain (ChainBeadInstances,
-// docs/bead-model/beads-are-the-edge.md). Two representations of one traversal would drift.
+
+
+
 import { ChainBeadInstances } from "./ChainBeadInstances";
 import { EdgeLines } from "./EdgeLines";
 import { getEdgeStreamAccessor } from "./edge-stream-blocks";
@@ -45,19 +45,19 @@ export {
 } from "./buffer-scene-shared";
 export { BufferLabelProjector };
 
-// ── Sizing constants ──────────────────────────────────────────────────────────
-const INITIAL_NODE_CAP  = 32;
-// Chain-bead rows are now one per LIVE PULSE, not one per placeholder: an idle edge streams
-// no rows at all, and a busy one streams a handful. 256 stays as headroom (it costs one
-// allocation, and a burst of concurrent traversals is exactly when a re-alloc would be most
-// visible), but it is no longer sized by edge LENGTH — nothing about the geometry sets it.
-const INITIAL_CHAINBEAD_CAP = 256;
-const INITIAL_EDGE_CAP = 32; // one line + one arrowhead per edge row
 
-// ── BufferScene ───────────────────────────────────────────────────────────────
-// Capacity manager: checks the latest snapshot each frame and grows per-block
-// capacities when counts exceed current allocation, triggering a React re-render
-// (which remounts the InstancedMesh/LineSegments with a larger buffer).
+const INITIAL_NODE_CAP  = 32;
+
+
+
+
+const INITIAL_CHAINBEAD_CAP = 256;
+const INITIAL_EDGE_CAP = 32; 
+
+
+
+
+
 
 export function BufferScene({ cameraRef }: {
   cameraRef?: React.MutableRefObject<THREE.PerspectiveCamera | null>;
@@ -66,33 +66,33 @@ export function BufferScene({ cameraRef }: {
   const [chainBeadCap, setChainBeadCap] = useState(INITIAL_CHAINBEAD_CAP);
   const [edgeCap, setEdgeCap] = useState(INITIAL_EDGE_CAP);
 
-  // Capacity-growth guard: runs every frame to detect need for reallocation. EVERY
-  // variable-length streamed block must have a row here — a block whose count outgrows a
-  // cap that isn't tracked is silently clamped. Listing them in ONE table (not scattered
-  // ifs) makes a new block's capacity a single obvious edit and its omission a visible gap
-  // in this list.
+
+
+
+
+
   useFrame(() => {
     const grow: { count: number; cap: number; set: (n: number) => void }[] = [];
 
-    // Chain beads are aggregated from the per-node dedicated streams too (getChainBeads) —
-    // each node contributes the chains on its OWN outgoing edges. Its own row here, not a
-    // share of beadCap: that cap tracks in-flight transit beads on the edge streams, an
-    // unrelated and much smaller count.
+
+
+
+
     const { count: chainBeadCount } = getChainBeads();
     grow.push({ count: chainBeadCount, cap: chainBeadCap, set: setChainBeadCap });
 
-    // Edges are drawn again (EdgeLines), so their row count is capacity-tracked once more —
-    // one line + one arrowhead instance per edge row. Still no beadCap: the per-edge transit
-    // bead has no instanced pool of its own; a traversal renders as a pulse row on the
-    // source node's own chain-bead stream, already counted above.
+
+
+
+
     const edges = getEdgeStreamAccessor();
     if (edges) {
       grow.push({ count: edges.edgeCount, cap: edgeCap, set: setEdgeCap });
     }
 
-    // Node/Interior + Label bytes are aggregated from every node row's own dedicated
-    // stream frame (node-stream-blocks.ts) — grow nodeCap off that aggregate's count,
-    // independent of edge/bead stream arrival.
+
+
+
     const decodedNode = getNodeFrame();
     if (decodedNode) {
       grow.push({ count: decodedNode.nodeCount, cap: nodeCap, set: setNodeCap });
@@ -106,20 +106,12 @@ export function BufferScene({ cameraRef }: {
   return (
     <>
       <BufferCamera cameraRef={cameraRef} />
-      {/* The edge itself, drawn: a line per edge with an arrowhead at its target end. First
-          in the list so it draws before the pulse that runs along it. */}
+      {}
       <EdgeLines capacity={edgeCap} />
       <ChainBeadInstances capacity={chainBeadCap} />
       <NodeInstances capacity={nodeCap} />
-      {/* One arrow per node, centre to its own top, along the same axis its ring is drawn
-          on. Sized by nodeCap for the same reason NodeInstances is: at most one per row.
-          A node whose streamed TopTiltVectorLen is 0 draws none. */}
-      {/* THREE arrows per node — its TOP tilt vector, its BOTTOM tilt vector (a half turn
-          in θ from the top) and the quarter-turn coplanar normal — so the instance budget
-          is three times the node count. The RECEIVED arrow — the direction last received on
-          a node's vector channel — draws at most one per node into its own separate,
-          differently-coloured mesh pair (TiltVectors.tsx), so its capacity is the node
-          count, not tripled. */}
+      {}
+      {}
       <TiltVectors capacity={nodeCap * 3} receivedCapacity={nodeCap} />
       <InteriorBeadInstances capacity={nodeCap * INTERIOR_SLOTS_PER_NODE} />
       <SelectionHighlight />

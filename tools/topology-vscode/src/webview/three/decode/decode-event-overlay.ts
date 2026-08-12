@@ -1,6 +1,6 @@
-// decode-event-overlay.ts — pure per-overlay-kind flag lookup, split out of
-// decode-event-line.ts. Each overlay-kind string names one boolean column on the OVERLAY
-// view block; this resolves the string to its column reader and reads it.
+
+
+
 
 import {
   readOverlaySceneTori, readOverlayScenePoles, readOverlayNodePoles,

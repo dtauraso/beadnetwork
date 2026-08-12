@@ -1,7 +1,7 @@
-// input-decode.ts — decode one editor→Go input record body. Used by unit tests + the
-// encode/decode round-trip; production decode of the SAME wire format is
-// nodes/Wiring/inputcodec/input_codec.go (Go decodes for real, TS here never reads its own traffic
-// back off the bridge).
+
+
+
+
 
 import { ByteReader } from "./byte-reader";
 import { IN_KIND_SAVE, IN_KIND_RAW_INPUT, IN_KIND_EDIT_UPDATE, IN_EVENT_KINDS, IN_HIT_KINDS, IN_UPDATE_KINDS } from "./input-layout-gen";
@@ -16,7 +16,7 @@ export type DecodedInput =
   | { kind: "edit-update"; entity: "clock"; attr: "speed"; value: number }
   | { kind: "edit-update"; entity: "distanceGroup"; attr: "length"; group: number; dir: "up" | "down" };
 
-/** Decode one record body (with kind byte, without the [len] frame). */
+
 export function decodeInputRecord(record: ArrayBuffer): DecodedInput | undefined {
   const bytes = new Uint8Array(record);
   if (bytes.length === 0) return undefined;
@@ -52,7 +52,7 @@ export function decodeInputRecord(record: ArrayBuffer): DecodedInput | undefined
       return { kind: "raw-input", event };
     }
     case IN_KIND_EDIT_UPDATE: {
-      // entityKind byte selects the entity; attr byte + numeric payload follow.
+
       const entityKind = IN_UPDATE_KINDS[r.u8()];
       if (entityKind === "overlays") {
         const attr = r.u8();
@@ -66,9 +66,9 @@ export function decodeInputRecord(record: ArrayBuffer): DecodedInput | undefined
       if (entityKind === "clock") {
         const attr = r.u8();
         if (attr === IN_CLOCK_ATTR_SPEED) {
-          // Wire value is QUARTER-UNITS (see input-encode.ts's encodeClockSpeed); divide
-          // back to the real multiplier so decodeInputRecord's `value` matches what the
-          // caller passed in.
+
+
+
           const value = r.u8() / 4;
           return { kind: "edit-update", entity: "clock", attr: "speed", value };
         }
