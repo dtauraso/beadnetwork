@@ -22,121 +22,14 @@
   <div class="layout">
     <div>
       <div class="plate">
-        <svg viewBox="0 0 860 800" role="img" aria-label="The four mutex patterns shown as the specific calls each goroutine makes: identity reads versus position writes, message enqueue and bead handling, why neither the clock nor the trace is a shared lock anymore, and the refuted-then-deleted holder access.">
-          <text class="d-tl" x="0" y="12">1 · ANTI-TEARING — geomMu, now deleted</text>
-          <rect class="d-group" x="0" y="22" width="860" height="120" rx="6"/>
-
-          <rect class="d-box-flow" x="18" y="40" width="176" height="28" rx="4"/>
-          <text class="d-ts" x="30" y="59">mover: applyCenter()</text>
-          <line class="d-arrow-sig" x1="196" y1="54" x2="316" y2="54"/>
-          <path class="d-arrow-sig" d="M308 50 L318 54 L308 58"/>
-          <text class="d-ts" x="206" y="47">writes every move</text>
-          <rect class="d-box-sig" x="320" y="40" width="200" height="28" rx="4"/>
-          <text class="d-ts" x="332" y="59">ScenePolar · HasPos · ReachR</text>
-
-          <rect class="d-box" x="18" y="86" width="176" height="28" rx="4"/>
-          <text class="d-ts" x="30" y="105">gesture: NodeKind()</text>
-          <line class="d-arrow-flow" x1="196" y1="100" x2="316" y2="100"/>
-          <path class="d-arrow-flow" d="M308 96 L318 100 L308 104"/>
-          <text class="d-ts" x="210" y="93">reads only Kind</text>
-          <rect class="d-box" x="320" y="86" width="200" height="28" rx="4"/>
-          <text class="d-ts" x="332" y="105">nodeIdentity — never written</text>
-
-          <text class="d-ts" x="548" y="59">two different structs now,</text>
-          <text class="d-ts" x="548" y="76">so nothing can tear —</text>
-          <text class="d-ts" x="548" y="93">live position reaches other</text>
-          <text class="d-ts" x="548" y="110">goroutines via snap atomic.Pointer</text>
-
-          <text class="d-tl" x="0" y="176">2 · QUEUES — outbox.mu + cond deleted, now per-direction channels; PacedWire.mu deleted, now ownership</text>
-          <rect class="d-group" x="0" y="186" width="860" height="140" rx="6"/>
-
-          <rect class="d-box-flow" x="18" y="204" width="150" height="28" rx="4"/>
-          <text class="d-ts" x="30" y="223">X.sendMove()</text>
-          <line class="d-arrow-sig" x1="170" y1="218" x2="420" y2="218"/>
-          <path class="d-arrow-sig" d="M412 214 L422 218 L412 222"/>
-          <text class="d-ts" x="200" y="211">non-blocking send</text>
-          <rect class="d-box-flow" x="424" y="204" width="150" height="28" rx="4"/>
-          <text class="d-ts" x="436" y="223">M.neighborIn[X]</text>
-          <text class="d-ts" x="590" y="223">full chan → X.pending, retried next cycle — no lock</text>
-
-          <rect class="d-box-flow" x="18" y="256" width="150" height="28" rx="4"/>
-          <text class="d-ts" x="30" y="275">source: Out.PlaceDrivenAt</text>
-          <rect class="d-box-flow" x="18" y="290" width="150" height="24" rx="4"/>
-          <text class="d-ts" x="30" y="307">→ PacedWire.Send (chan)</text>
-          <rect class="d-box-flow" x="424" y="256" width="150" height="28" rx="4"/>
-          <text class="d-ts" x="436" y="275">dest: In.PollRecv</text>
-          <rect class="d-box-flow" x="424" y="290" width="150" height="24" rx="4"/>
-          <text class="d-ts" x="436" y="307">→ PacedWire.Recv (chan)</text>
-          <rect class="d-box-passive" x="200" y="266" width="190" height="36" rx="4"/>
-          <text class="d-ts" x="212" y="282">edgeMover.run OWNS</text>
-          <text class="d-ts" x="212" y="296">inflight — no lock</text>
-          <line class="d-arrow-flow" x1="170" y1="284" x2="196" y2="284"/>
-          <line class="d-arrow-flow" x1="392" y1="284" x2="420" y2="284"/>
-          <text class="d-ts" x="590" y="284">two channels, one owning goroutine — nothing left to lock</text>
-
-          <text class="d-tl" x="0" y="360">3 · SHARED SERVICE — neither is a shared lock anymore</text>
-          <rect class="d-group" x="0" y="370" width="860" height="282" rx="6"/>
-
-          <text class="d-tl" x="20" y="392">NO LONGER SHARED — the clock</text>
-          <rect class="d-box-passive" x="20" y="402" width="390" height="196" rx="5"/>
-          <text class="d-t"  x="34" y="428">RealClock</text>
-          <text class="d-ts" x="34" y="448">deleted: RealClock.mu, the one shared</text>
-          <text class="d-ts" x="34" y="464">clock object, and the shared Tick() bus</text>
-          <text class="d-ts" x="34" y="480">a goroutine could contend on</text>
-          <text class="d-ts" x="34" y="506">now: every goroutine holds its OWN</text>
-          <text class="d-ts" x="34" y="522">RealClock value-copy — nothing to lock</text>
-          <text class="d-ts" x="34" y="548">speed changes travel on per-goroutine</text>
-          <text class="d-ts" x="34" y="564">buffered-1 latest-wins channels, not a bus</text>
-          <text class="d-ts" x="34" y="588">see “the clock question” tab</text>
-
-          <text class="d-tl" x="450" y="392">SHARED STATE, NO LOCK — says “what happened”</text>
-          <rect class="d-box-passive" x="450" y="402" width="140" height="196" rx="5"/>
-          <text class="d-t"  x="464" y="426">Trace</text>
-          <text class="d-ts" x="464" y="444">passive object —</text>
-          <text class="d-ts" x="464" y="462">NOT a goroutine</text>
-          <text class="d-ts" x="464" y="486">the drain below</text>
-          <text class="d-ts" x="464" y="500">is the goroutine</text>
-          <text class="d-ts" x="464" y="574">mu deleted</text>
-
-          <line class="d-arrow-flow" x1="590" y1="428" x2="634" y2="428"/>
-          <path class="d-arrow-flow" d="M598 424 L588 428 L598 432"/>
-          <rect class="d-box-flow" x="644" y="402" width="204" height="38" rx="4" opacity=".35"/>
-          <rect class="d-box-flow" x="640" y="406" width="204" height="38" rx="4" opacity=".6"/>
-          <rect class="d-box-flow" x="636" y="410" width="204" height="38" rx="4"/>
-          <text class="d-t"  x="648" y="427">node's own loop</text>
-          <text class="d-ts" x="648" y="441">× 9  —  Fire · Send · Arrive</text>
-
-          <line class="d-arrow-flow" x1="590" y1="486" x2="634" y2="486"/>
-          <path class="d-arrow-flow" d="M598 482 L588 486 L598 490"/>
-          <rect class="d-box-flow" x="644" y="460" width="204" height="38" rx="4" opacity=".35"/>
-          <rect class="d-box-flow" x="640" y="464" width="204" height="38" rx="4" opacity=".6"/>
-          <rect class="d-box-flow" x="636" y="468" width="204" height="38" rx="4"/>
-          <text class="d-t"  x="648" y="485">nodeMover</text>
-          <text class="d-ts" x="648" y="499">× 9  —  NodeGeometry</text>
-
-          <line class="d-arrow-flow" x1="590" y1="544" x2="634" y2="544"/>
-          <path class="d-arrow-flow" d="M626 540 L636 544 L626 548"/>
-          <rect class="d-box-flow" x="636" y="526" width="204" height="38" rx="4"/>
-          <text class="d-t"  x="648" y="543">drain — the ONLY writer, no lock</text>
-          <text class="d-ts" x="648" y="557">one · reads it back, packs buffer → editor</text>
-
-          <text class="d-ts" x="450" y="614">≈18 goroutines emit to it on a channel · 1 drains it</text>
-          <rect class="d-box-flow" x="20" y="630" width="16" height="11" rx="2"/>
-          <text class="d-ts" x="44" y="640">goroutine — one per node / per output</text>
-          <rect class="d-box-passive" x="330" y="630" width="16" height="11" rx="2"/>
-          <text class="d-ts" x="354" y="640">passive object — nothing runs in it, no lock</text>
-
-          <text class="d-tl" x="0" y="716">4 · CLAIMED MULTI-WRITER — LayoutHolder.mu, refuted, now deleted</text>
-          <rect class="d-group" x="0" y="696" width="860" height="86" rx="6"/>
-          <rect class="d-box-flow" x="18" y="716" width="150" height="28" rx="4"/>
-          <text class="d-ts" x="30" y="735">X: requantize…</text>
-          <line class="d-arrow-x" x1="170" y1="730" x2="270" y2="730"/>
-          <text class="d-ts" x="204" y="722">✕ never</text>
-          <rect class="d-box" x="274" y="716" width="150" height="28" rx="4"/>
-          <text class="d-ts" x="286" y="735">M's holder — no mutex</text>
-          <text class="d-ts" x="30" y="766">X sends neighborSetC → M's own goroutine writes M's holder</text>
-          <text class="d-ts" x="470" y="735">single-owner, like every other holder</text>
-        </svg>
+        <p>The four patterns, each its own diagram (split from one shared 860×800 coordinate
+          space into four independently viewable pages):</p>
+        <ul>
+          <li><a href="concurrency-map-mutex-pattern-1.html">1 · Anti-tearing</a> — geomMu, now deleted</li>
+          <li><a href="concurrency-map-mutex-pattern-2.html">2 · Queues</a> — outbox.mu + cond deleted, now per-direction channels; PacedWire.mu deleted, now ownership</li>
+          <li><a href="concurrency-map-mutex-pattern-3.html">3 · Shared service</a> — neither the clock nor the trace is a shared lock anymore</li>
+          <li><a href="concurrency-map-mutex-pattern-4.html">4 · Claimed multi-writer</a> — LayoutHolder.mu, refuted, now deleted</li>
+        </ul>
         <p class="plate-cap">verified by removing each guard and running go test -race</p>
       </div>
 
