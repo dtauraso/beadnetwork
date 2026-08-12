@@ -114,76 +114,11 @@
   </section>
 
   <section>
-    <h3 class="secname">Two questions, and neither answer is a length</h3>
-
+    <h3 class="secname">More</h3>
     <div class="card wide">
-      <h2><span data-src="nodes/PairNode/tiltring/machine.go#Settled">settled</span> ·
-        <span data-src="nodes/PairNode/tiltring/machine.go#Step">step</span></h2>
-      <div class="cap"><span data-src="nodes/PairNode/machine.go">nodes/PairNode/machine.go</span></div>
-      <p class="eq step" data-src="nodes/PairNode/tiltring/machine.go#Settled"><span class="lhs">settled</span><var>c</var>
-        = <var>stop</var>, or the row stops anywhere</p>
-      <p class="eq step" data-src="nodes/PairNode/tiltring/machine.go#Step"><span class="lhs">step</span>the measured
-        end, one slot: next if (<var>stop</var> − <var>c</var>) mod <var>h</var> ≤ <var>q</var>, else prev</p>
-      <p class="eq step dim">no distance is taken and no minimum: the way down is the rest of the
-        circle, so asking which is shorter is asking whether the way up is at most a quarter</p>
-      <p class="eq step dim">no mode is read below
-        <span data-src="nodes/PairNode/tiltring/machine.go#Stopping">stopping</span>; no value is negative</p>
-    </div>
-
-    <div class="card wide">
-      <h2>what that one line comes to, per arrangement</h2>
-      <div class="cap">arith.html prints these twelve; the code holds none of them</div>
-      <p class="eq step perp" data-src="nodes/PairNode/tiltring/machine.go#Step"><span class="lhs">perpendicular</span>(0
-        − <var>c</var>) mod <var>h</var> ≤ <var>q</var>, which is <var>c</var> ≥ <var>q</var></p>
-      <p class="eq step sub"><span class="lhs"><var>c</var> = 0</span>stay</p>
-      <p class="eq step sub"><span class="lhs"><var>c</var> ≥ <var>q</var></span>+1</p>
-      <p class="eq step sub"><span class="lhs"><var>c</var> &lt; <var>q</var></span>−1</p>
-      <p class="eq step par" data-src="nodes/PairNode/tiltring/machine.go#Step"><span class="lhs">parallel</span>(<var>q</var>
-        − <var>c</var>) mod <var>h</var> ≤ <var>q</var>, which is <var>c</var> ≤ <var>q</var></p>
-      <p class="eq step sub"><span class="lhs"><var>c</var> = <var>q</var></span>stay</p>
-      <p class="eq step sub"><span class="lhs"><var>c</var> &lt; <var>q</var></span>+1</p>
-      <p class="eq step sub"><span class="lhs"><var>c</var> &gt; <var>q</var></span>−1</p>
-      <p class="eq step dim">the ±1 is on the MEASURED end — the top when <var>u</var> &lt;
-        <var>h</var>, the bottom otherwise — which is the page's two halves. Six lines each way,
-        twelve in all, and not one of them is written down in
-        <span data-src="nodes/PairNode/machine.go">machine.go</span>: they are the one comparison
-        above, read for a stop of 0 and a stop of <var>q</var></p>
-    </div>
-  </section>
-
-  <section>
-    <h3 class="secname">The end that was measured is the end that moves</h3>
-
-    <div class="card wide">
-      <h2><span data-src="nodes/PairNode/ring.go#setTop">setTop</span> ·
-        <span data-src="nodes/PairNode/ring.go#setBottom">setBottom</span></h2>
-      <div class="cap"><span data-src="nodes/PairNode/ring.go">nodes/PairNode/ring.go</span> ·
-        <span data-src="nodes/PairNode/node.go">nodes/PairNode/node.go</span></div>
-      <p class="eq step" data-src="nodes/PairNode/node_parts.go#Bottom"><span class="lhs">Top, Bottom</span>both
-        stored</p>
-      <p class="eq step" data-src="nodes/PairNode/ring.go#setTop"><span class="lhs">setTop(<var>x</var>)</span>Top
-        = <var>x</var>, Bottom = <var>x</var>.opposite</p>
-      <p class="eq step" data-src="nodes/PairNode/ring.go#setBottom"><span class="lhs">setBottom(<var>x</var>)</span>Bottom
-        = <var>x</var>, Top = <var>x</var>.opposite</p>
-      <p class="eq step dim">the only writers of either field</p>
-    </div>
-  </section>
-
-  <section>
-    <h3 class="secname">Two of arithmetic-instead's five sections are not code, and cannot be</h3>
-
-    <div class="card wide">
-      <h2>what that page states and this one does not</h2>
-      <div class="cap">no file — that is the point</div>
-      <p class="eq head">the tilt it stops on — <var>t</var> + <var>s</var>·<var>f</var></p>
-      <p class="eq step dim">computed NOWHERE in <code>nodes/PairNode</code>. One arrival turns one
-        slot; <var>f</var> is made inside it and discarded, no walk is planned, and the next
-        arrival re-derives everything. The closed form is a property of the rule, not a
-        quantity a node holds</p>
-      <p class="eq head">the one thing held fixed — <var>a</var></p>
-      <p class="eq step dim">an assumption of that page's analysis, and one the live exchange
-        breaks: both ends move, so <var>a</var> is not held. Nothing in the code assumes it, which
-        is why nothing here states it</p>
+      <p>The two-questions comparison, <code>setTop</code>/<code>setBottom</code>, and what the
+        arithmetic page states that no file computes: moved to
+        <a href="code-settle-and-write.html">In code — settle, step, and write</a>.</p>
     </div>
   </section>
 
