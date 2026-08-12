@@ -32,7 +32,7 @@ PROPS=(
   emissiveIntensity
 )
 
-EXCLUDED_FILES=(SelectionHighlight.tsx NavGuides.tsx polar-frame.tsx)
+EXCLUDED_FILES=(SelectionHighlight.tsx NavGuides.tsx polar-frame.tsx PolarHandholds.tsx)
 
 NUM='-?(0x[0-9a-fA-F]+|[0-9]+\.?[0-9]*([eE][-+]?[0-9]+)?)'
 
