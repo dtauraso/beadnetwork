@@ -66,143 +66,175 @@ func LoadTree(root string) (TopoSpec, error) {
 	if err != nil {
 		return spec, fmt.Errorf("loadTree: list nodes dir %s: %w", nodesDir, err)
 	}
-	// ROW ID = NODE ID - 1 (declared by the directory name, never derived by sorting). Node
-	// ids ARE numbers — they only appear as strings because they are directory names — and
-	// node identity IS the buffer row index (no id sidecar): a row is decided by parsing the
-	// directory name, not by where it falls after a sort. A directory name that isn't a
-	// number, an id below 1 (ids are 1-based), or a duplicate parsed id is a load error, loud
-	// and naming the offending directory — never a silent fallback. The row space itself
-	// (spec.RowCount) is sized by the LARGEST id found, not by the node count: a deleted node
-	// leaves its row empty rather than collapsing later rows upward — that collapse is
-	// precisely the silent renaming this model removes. There is no ordering left to assert:
-	// loop order below only affects the order edges are appended to spec.Edges, which carries
-	// no row semantics of its own.
+
+	rowCount, err := validateNodeIDs(nodeDirs)
+	if err != nil {
+		return spec, err
+	}
+	spec.RowCount = rowCount
+
+	for _, nodeID := range nodeDirs {
+		sn, err := loadNodeMeta(root, nodesDir, nodeID)
+		if err != nil {
+			return spec, err
+		}
+		spec.Nodes = append(spec.Nodes, sn)
+
+		edges, err := loadNodeEdges(nodesDir, nodeID)
+		if err != nil {
+			return spec, err
+		}
+		spec.Edges = append(spec.Edges, edges...)
+	}
+
+	return spec, nil
+}
+
+// validateNodeIDs parses every node directory name to its numeric id and returns the row
+// space size (spec.RowCount).
+//
+// ROW ID = NODE ID - 1 (declared by the directory name, never derived by sorting). Node
+// ids ARE numbers — they only appear as strings because they are directory names — and
+// node identity IS the buffer row index (no id sidecar): a row is decided by parsing the
+// directory name, not by where it falls after a sort. A directory name that isn't a
+// number, an id below 1 (ids are 1-based), or a duplicate parsed id is a load error, loud
+// and naming the offending directory — never a silent fallback. The row space itself
+// (spec.RowCount) is sized by the LARGEST id found, not by the node count: a deleted node
+// leaves its row empty rather than collapsing later rows upward — that collapse is
+// precisely the silent renaming this model removes. There is no ordering left to assert:
+// loop order in LoadTree only affects the order edges are appended to spec.Edges, which
+// carries no row semantics of its own.
+func validateNodeIDs(nodeDirs []string) (int, error) {
+	rowCount := 0
 	seenIDs := make(map[int]string, len(nodeDirs))
 	for _, name := range nodeDirs {
 		n, err := strconv.Atoi(name)
 		if err != nil {
-			return spec, fmt.Errorf("loadTree: node directory %q is not a numeric id: %w", name, err)
+			return 0, fmt.Errorf("loadTree: node directory %q is not a numeric id: %w", name, err)
 		}
 		if n < 1 {
-			return spec, fmt.Errorf("loadTree: node directory %q has id %d, but node ids are 1-based (must be >= 1)", name, n)
+			return 0, fmt.Errorf("loadTree: node directory %q has id %d, but node ids are 1-based (must be >= 1)", name, n)
 		}
 		if prev, dup := seenIDs[n]; dup {
-			return spec, fmt.Errorf("loadTree: node directories %q and %q both parse to id %d — duplicate node id", prev, name, n)
+			return 0, fmt.Errorf("loadTree: node directories %q and %q both parse to id %d — duplicate node id", prev, name, n)
 		}
 		seenIDs[n] = name
-		if n > spec.RowCount {
-			spec.RowCount = n
+		if n > rowCount {
+			rowCount = n
 		}
 	}
+	return rowCount, nil
+}
 
-	for _, nodeID := range nodeDirs {
-		nodeDir := filepath.Join(nodesDir, nodeID)
+// loadNodeMeta reads nodeID's meta.json (required — static identity: id/type/r/gate, and
+// for a PRE-SPLIT topology also the position fields inline, legacy shape), then its
+// position.json (the POST-SPLIT position writer's file, quant_offset_persist.go
+// writeQuantOffset — present overrides meta.json's possibly stale/legacy position fields,
+// absent leaves sn with whatever meta.json carried), then its optional data.json.
+func loadNodeMeta(root, nodesDir, nodeID string) (specNode, error) {
+	nodeDir := filepath.Join(nodesDir, nodeID)
 
-		// meta.json — required. Still owns static node identity (id/type/r/gate) and, for a
-		// PRE-SPLIT topology, also the position fields inline (legacy shape).
-		metaPath := filepath.Join(nodeDir, "meta.json")
-		metaRaw, err := os.ReadFile(metaPath)
-		if err != nil {
-			return spec, fmt.Errorf("loadTree: node %q meta: %w", nodeID, err)
-		}
-		var meta JSONMeta
-		if err := json.Unmarshal(metaRaw, &meta); err != nil {
-			return spec, fmt.Errorf("loadTree: node %q meta parse: %w", nodeID, err)
-		}
-
-		sn := specNode{
-			ID:              meta.ID,
-			Type:            meta.Type,
-			R:               meta.R,
-			ScenePolarR:     meta.ScenePolarR,
-			ScenePolarTheta: meta.ScenePolarTheta,
-			ScenePolarPhi:   meta.ScenePolarPhi,
-			QuantITheta:     meta.QuantITheta,
-			QuantIPhi:       meta.QuantIPhi,
-			QuantIR:         meta.QuantIR,
-			StepTheta:       meta.StepTheta,
-			StepPhi:         meta.StepPhi,
-			StepR:           meta.StepR,
-			Gate:            meta.Gate,
-		}
-
-		// position.json — the POST-SPLIT position writer's file (quant_offset_persist.go
-		// writeQuantOffset). Present → overrides meta.json's (possibly stale/legacy) position
-		// fields. Absent → sn keeps whatever meta.json carried above (old-format topology).
-		var pf positionfile.JSON
-		if jsonpersist.ReadJSONIfExists(positionfile.FilePath(root, nodeID), &pf) {
-			r, th, ph := pf.ScenePolarR, pf.ScenePolarTheta, pf.ScenePolarPhi
-			qt, qp, qr := pf.QuantITheta, pf.QuantIPhi, pf.QuantIR
-			st, sp, sr := pf.StepTheta, pf.StepPhi, pf.StepR
-			sn.ScenePolarR, sn.ScenePolarTheta, sn.ScenePolarPhi = &r, &th, &ph
-			sn.QuantITheta, sn.QuantIPhi, sn.QuantIR = &qt, &qp, &qr
-			sn.StepTheta, sn.StepPhi, sn.StepR = &st, &sp, &sr
-			vt := pf.TopTiltVectorThetaIdx
-			sn.TopTiltVectorThetaIdx = &vt
-		}
-
-		// data.json — optional
-		dataPath := filepath.Join(nodeDir, "data.json")
-		if raw, err := os.ReadFile(dataPath); err == nil {
-			var nd NodeData
-			if err := json.Unmarshal(raw, &nd); err != nil {
-				return spec, fmt.Errorf("loadTree: node %q data parse: %w", nodeID, err)
-			}
-			sn.Data = &nd
-		}
-
-		spec.Nodes = append(spec.Nodes, sn)
-
-		// edges/ — this node's OUTGOING edges (adjacency list). Optional subdir: a node
-		// with no outgoing edges simply has no edges/ subdir, which is normal, not an
-		// error. Order rule: edges appear in outer node-directory-numeric-sorted order
-		// (already established above), then inner sort.Strings(edgeFiles) within each
-		// node's edges/. Unlike node ids, edge-file names are LABELS, not numbers — a
-		// plain lexicographic string sort is correct here and must stay that way; do not
-		// "fix" this the same way node ids were fixed.
-		edgesDir := filepath.Join(nodeDir, "edges")
-		edgeFiles, err := readDirNames(edgesDir)
-		if err != nil {
-			if os.IsNotExist(err) {
-				continue
-			}
-			return spec, fmt.Errorf("loadTree: list node %q edges dir %s: %w", nodeID, edgesDir, err)
-		}
-		sort.Strings(edgeFiles)
-
-		for _, fname := range edgeFiles {
-			if !strings.HasSuffix(fname, ".json") {
-				continue
-			}
-			fpath := filepath.Join(edgesDir, fname)
-			raw, err := os.ReadFile(fpath)
-			if err != nil {
-				return spec, fmt.Errorf("loadTree: read edge file %s: %w", fpath, err)
-			}
-			var e specEdge
-			if err := json.Unmarshal(raw, &e); err != nil {
-				return spec, fmt.Errorf("loadTree: parse edge file %s: %w", fpath, err)
-			}
-			// The source is the directory the file sits in, not a field left inside the
-			// file. A stale "source" key that disagrees with nodeID means the file was
-			// moved (or hand-edited) without updating its content — trust the directory,
-			// which is the addressing scheme, and fail loudly rather than silently
-			// accepting a value that could drift from where the file actually lives.
-			if e.Source != "" && e.Source != nodeID {
-				panic(fmt.Sprintf(
-					"loadTree: edge file %s has stale source %q that disagrees with its "+
-						"containing node directory %q — the adjacency layout (topology/nodes/<id>/edges/) "+
-						"derives an edge's source from the directory it is stored under, not from a "+
-						"\"source\" key in the file; whatever wrote/moved this file should have dropped "+
-						"the redundant source key or kept it in sync with the directory",
-					fpath, e.Source, nodeID))
-			}
-			e.Source = nodeID
-			spec.Edges = append(spec.Edges, e)
-		}
+	metaPath := filepath.Join(nodeDir, "meta.json")
+	metaRaw, err := os.ReadFile(metaPath)
+	if err != nil {
+		return specNode{}, fmt.Errorf("loadTree: node %q meta: %w", nodeID, err)
+	}
+	var meta JSONMeta
+	if err := json.Unmarshal(metaRaw, &meta); err != nil {
+		return specNode{}, fmt.Errorf("loadTree: node %q meta parse: %w", nodeID, err)
 	}
 
-	return spec, nil
+	sn := specNode{
+		ID:              meta.ID,
+		Type:            meta.Type,
+		R:               meta.R,
+		ScenePolarR:     meta.ScenePolarR,
+		ScenePolarTheta: meta.ScenePolarTheta,
+		ScenePolarPhi:   meta.ScenePolarPhi,
+		QuantITheta:     meta.QuantITheta,
+		QuantIPhi:       meta.QuantIPhi,
+		QuantIR:         meta.QuantIR,
+		StepTheta:       meta.StepTheta,
+		StepPhi:         meta.StepPhi,
+		StepR:           meta.StepR,
+		Gate:            meta.Gate,
+	}
+
+	var pf positionfile.JSON
+	if jsonpersist.ReadJSONIfExists(positionfile.FilePath(root, nodeID), &pf) {
+		r, th, ph := pf.ScenePolarR, pf.ScenePolarTheta, pf.ScenePolarPhi
+		qt, qp, qr := pf.QuantITheta, pf.QuantIPhi, pf.QuantIR
+		st, sp, sr := pf.StepTheta, pf.StepPhi, pf.StepR
+		sn.ScenePolarR, sn.ScenePolarTheta, sn.ScenePolarPhi = &r, &th, &ph
+		sn.QuantITheta, sn.QuantIPhi, sn.QuantIR = &qt, &qp, &qr
+		sn.StepTheta, sn.StepPhi, sn.StepR = &st, &sp, &sr
+		vt := pf.TopTiltVectorThetaIdx
+		sn.TopTiltVectorThetaIdx = &vt
+	}
+
+	dataPath := filepath.Join(nodeDir, "data.json")
+	if raw, err := os.ReadFile(dataPath); err == nil {
+		var nd NodeData
+		if err := json.Unmarshal(raw, &nd); err != nil {
+			return specNode{}, fmt.Errorf("loadTree: node %q data parse: %w", nodeID, err)
+		}
+		sn.Data = &nd
+	}
+
+	return sn, nil
+}
+
+// loadNodeEdges reads nodeID's edges/ subdir — this node's OUTGOING edges (adjacency
+// list). Optional subdir: a node with no outgoing edges simply has no edges/ subdir, which
+// is normal, not an error. Order rule: edges appear in outer node-directory-numeric-sorted
+// order (established by LoadTree's own nodeDirs iteration), then inner
+// sort.Strings(edgeFiles) within each node's edges/. Unlike node ids, edge-file names are
+// LABELS, not numbers — a plain lexicographic string sort is correct here and must stay
+// that way; do not "fix" this the same way node ids were fixed.
+func loadNodeEdges(nodesDir, nodeID string) ([]specEdge, error) {
+	nodeDir := filepath.Join(nodesDir, nodeID)
+	edgesDir := filepath.Join(nodeDir, "edges")
+	edgeFiles, err := readDirNames(edgesDir)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("loadTree: list node %q edges dir %s: %w", nodeID, edgesDir, err)
+	}
+	sort.Strings(edgeFiles)
+
+	var edges []specEdge
+	for _, fname := range edgeFiles {
+		if !strings.HasSuffix(fname, ".json") {
+			continue
+		}
+		fpath := filepath.Join(edgesDir, fname)
+		raw, err := os.ReadFile(fpath)
+		if err != nil {
+			return nil, fmt.Errorf("loadTree: read edge file %s: %w", fpath, err)
+		}
+		var e specEdge
+		if err := json.Unmarshal(raw, &e); err != nil {
+			return nil, fmt.Errorf("loadTree: parse edge file %s: %w", fpath, err)
+		}
+		// The source is the directory the file sits in, not a field left inside the
+		// file. A stale "source" key that disagrees with nodeID means the file was
+		// moved (or hand-edited) without updating its content — trust the directory,
+		// which is the addressing scheme, and fail loudly rather than silently
+		// accepting a value that could drift from where the file actually lives.
+		if e.Source != "" && e.Source != nodeID {
+			panic(fmt.Sprintf(
+				"loadTree: edge file %s has stale source %q that disagrees with its "+
+					"containing node directory %q — the adjacency layout (topology/nodes/<id>/edges/) "+
+					"derives an edge's source from the directory it is stored under, not from a "+
+					"\"source\" key in the file; whatever wrote/moved this file should have dropped "+
+					"the redundant source key or kept it in sync with the directory",
+				fpath, e.Source, nodeID))
+		}
+		e.Source = nodeID
+		edges = append(edges, e)
+	}
+	return edges, nil
 }
 
 // readDirNames returns the names (not full paths) of all entries in dir.
