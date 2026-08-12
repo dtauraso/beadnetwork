@@ -9,13 +9,6 @@ import (
 	"strings"
 )
 
-// parseEmbeddedPorts scans pkgDir's struct declarations for anonymous
-// (embedded) fields whose type is a selector into another local nodes/<pkg>
-// package (e.g. gatecommon.GateNode), and returns the channel-typed ports
-// declared on that embedded package's own structs (recursively, guarded by
-// visited to avoid cycles). This lets a wrapper kind's SPEC.md-independent
-// AST port discovery still pick up promoted fields from a shared embedded
-// struct package.
 func parseEmbeddedPorts(nodesDir, pkgDir string, visited map[string]bool) ([]Port, error) {
 	fset := token.NewFileSet()
 	entries, err := os.ReadDir(pkgDir)
@@ -48,7 +41,7 @@ func parseEmbeddedPorts(nodesDir, pkgDir string, visited map[string]bool) ([]Por
 				}
 				for _, field := range structType.Fields.List {
 					if len(field.Names) != 0 {
-						continue // not embedded
+						continue
 					}
 					sel, ok := field.Type.(*ast.SelectorExpr)
 					if !ok {
@@ -64,7 +57,7 @@ func parseEmbeddedPorts(nodesDir, pkgDir string, visited map[string]bool) ([]Por
 					}
 					visited[embedDir] = true
 					if _, statErr := os.Stat(embedDir); statErr != nil {
-						continue // not a local nodes/ package (e.g. Wiring itself)
+						continue
 					}
 					embedded, err := parsePortsFromAST(embedDir)
 					if err != nil {

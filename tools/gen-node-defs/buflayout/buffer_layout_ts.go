@@ -1,6 +1,3 @@
-// The TS emitter half of the buffer-layout codegen (WriteBufferLayoutGo, the Go emitter, is
-// the sibling buffer_layout.go — see that file's header for the shared schema/table/naming
-// helpers both draw from).
 package buflayout
 
 import (
@@ -11,7 +8,6 @@ import (
 	"strings"
 )
 
-// WriteBufferLayoutTS emits tools/topology-vscode/src/schema/buffer-layout.ts.
 func WriteBufferLayoutTS(outPath string, schema BufLayoutSchema) error {
 	fp := buildBufFingerprint(schema)
 	var buf bytes.Buffer
@@ -45,7 +41,6 @@ func WriteBufferLayoutTS(outPath string, schema BufLayoutSchema) error {
 		fmt.Fprintf(w, "export const %-35s = %d;\n", strideTSName(blk.name), blk.stride)
 		fmt.Fprintln(w)
 
-		// Reader helpers.
 		stride := strideTSName(blk.name)
 		for _, c := range blk.columns {
 			colConst := colTSName(blk.name, c.name)
@@ -53,7 +48,7 @@ func WriteBufferLayoutTS(outPath string, schema BufLayoutSchema) error {
 			le := tsDataViewLE(c.bufType)
 			fnName := readerFnTSName(blk.name, c.name)
 			if blk.name == "Camera" || blk.name == "Overlay" || blk.name == "RuleBuilder" || blk.name == "Scene" {
-				// Single-row blocks: no row param.
+
 				fmt.Fprintf(w, "export function %s(view: DataView): number { return view.%s(%s%s); }\n",
 					fnName, getter, colConst, le)
 			} else {

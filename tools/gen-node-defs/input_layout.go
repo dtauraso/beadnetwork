@@ -1,21 +1,3 @@
-// input-layout-gen.ts emitter: mirrors the nodes/Wiring InputLayoutFingerprint const
-// (input_fingerprint.go) into tools/topology-vscode/src/schema/input-layout-gen.ts.
-//
-// The const is located by SCANNING the package, never by a hardcoded filename
-// (memory/feedback_guards_hardcoding_single_file_break_on_split.md — it used to live in
-// input_codec.go and moved when that file was split by job).
-//
-// Go's InputLayoutFingerprint string is the single source of truth for the TS→Go input
-// record layout (record kind bytes + enum orderings). Go derives its own kind consts and
-// enum arrays from that same string via parseFPList (see input_fingerprint.go) — this generator
-// derives the TS-side equivalents the same way, so the two languages can never carry a
-// hand-copied fingerprint that silently drifts. Only the fingerprint STRING and its
-// directly-derived constants/arrays are generated here; the codec functions
-// (encode*/decode*, ByteWriter/ByteReader, etc.) stay hand-written in input-encode.ts,
-// input-decode.ts, byte-writer.ts, byte-reader.ts, and input-attrs.ts.
-//
-// Parsing the fingerprint out of Go source lives in input_layout_parse.go; this file is
-// only the emit half (writeInputLayout/writeTSArray).
 package main
 
 import (
@@ -26,9 +8,6 @@ import (
 	"strings"
 )
 
-// writeInputLayout emits tools/topology-vscode/src/schema/input-layout-gen.ts from the
-// parsed fingerprint. Value-identical to what input-layout.ts previously hand-carried for
-// these constants; only structure/provenance comments differ.
 func writeInputLayout(outPath string, fp *inputLayoutFingerprint) error {
 	var buf bytes.Buffer
 	w := bufio.NewWriter(&buf)
@@ -57,8 +36,7 @@ func writeInputLayout(outPath string, fp *inputLayoutFingerprint) error {
 	writeTSArray(w, "IN_EVENT_KINDS", fp.eventKinds)
 	writeTSArray(w, "IN_HIT_KINDS", fp.hitKinds)
 	// EDIT_UPDATE_KINDS_START / _END bound tools/bridge/check-edit-op-parity.sh's axis-2 extraction
-	// (the 3rd update-kind parity source, alongside messages.ts EditMsg + stdin_reader.go
-	// applyUpdate). Keep the sentinel lines immediately around IN_UPDATE_KINDS.
+
 	fmt.Fprintln(w, `// EDIT_UPDATE_KINDS_START`)
 	writeTSArray(w, "IN_UPDATE_KINDS", fp.updateKinds)
 	fmt.Fprintln(w, `// EDIT_UPDATE_KINDS_END`)

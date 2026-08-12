@@ -2,31 +2,12 @@ package geom
 
 import "math"
 
-// polar.go — spherical (polar) coordinate type and conversions for the
-// polar layout model.
-//
-// Pole = +y (vertical/up). Convention (matches the spec §2):
-//
-//	x = r·sinθ·cosφ
-//	y = r·cosθ
-//	z = r·sinθ·sinφ
-//
-//	r — radius (distance from the origin)
-//	θ (Theta) — polar angle from +y: 0 = straight up, π/2 = equator, π = down
-//	φ (Phi)   — azimuth around +y in the x–z plane: 0 = +x, increasing toward +z
-//
-// All angles are in radians. Conversions are pure functions of an origin-
-// relative vector; the caller subtracts the frame origin first.
-
-// Polar is a point in spherical coordinates relative to some (caller-supplied)
-// origin, pole = +y.
 type Polar struct {
-	R     float64 // radius
-	Theta float64 // polar angle from +y (radians, 0..π)
-	Phi   float64 // azimuth around +y (radians, -π..π)
+	R     float64
+	Theta float64
+	Phi   float64
 }
 
-// Polar2cart converts a polar coordinate to an origin-relative Cartesian vec3.
 func Polar2cart(p Polar) vec3 {
 	st := math.Sin(p.Theta)
 	return vec3{
@@ -36,16 +17,6 @@ func Polar2cart(p Polar) vec3 {
 	}
 }
 
-// inwardPole returns the direction a node's OWN local polar frame is poled at: its own
-// scene-polar direction reversed, so the frame's +y points back at the scene centre. That
-// is the antipode of (θ,φ) on the unit sphere, which is exact angle arithmetic — θ measured
-// from +y flips to π−θ, and the azimuth turns half a revolution — with no cartesian round
-// trip and no radius involved (a pole is a direction; r is dropped on purpose).
-//
-// A node AT the scene centre has no direction to reverse — r=0 carries θ=φ=0 as a
-// placeholder (cart2polar's r=0 case), and reversing that placeholder would aim the frame
-// straight down for a reason that isn't geometric. So r=0 returns world +y (0,0): the
-// unrotated frame, same as a node whose position hasn't been established yet.
 func InwardPole(p Polar) (theta, phi float64) {
 	if p.R == 0 {
 		return 0, 0
@@ -53,26 +24,16 @@ func InwardPole(p Polar) (theta, phi float64) {
 	return math.Pi - p.Theta, WrapPi(p.Phi + math.Pi)
 }
 
-// Cart2polar converts an origin-relative Cartesian vec3 to polar (pole = +y).
-// At the origin (r=0) θ and φ are 0. On the +y/-y axis (st=0) φ is 0 since
-// azimuth is undefined there.
 func Cart2polar(v vec3) Polar {
 	r := v.Length()
 	if r == 0 {
 		return Polar{}
 	}
 	theta := math.Acos(Clamp(v.Y/r, -1, 1))
-	phi := math.Atan2(v.Z, v.X) // 0 when on the y-axis (Z=X=0)
+	phi := math.Atan2(v.Z, v.X)
 	return Polar{R: r, Theta: theta, Phi: phi}
 }
 
-// PolarDist returns the straight-line distance between two points given in polar about the
-// SAME origin (pole +y), via the spherical law of cosines — NO cartesian, no vector
-// subtraction (polar-frame-rewrite.md: all geometry math stays polar; cartesian appears only
-// at the GPU boundary):
-//
-//	cosγ = cosθ₁·cosθ₂ + sinθ₁·sinθ₂·cos(φ₁−φ₂)   // angle between the two radial vectors
-//	d²   = r₁² + r₂² − 2·r₁·r₂·cosγ                // law of cosines on the triangle O,P₁,P₂
 func PolarDist(a, b Polar) float64 {
 	cosG := math.Cos(a.Theta)*math.Cos(b.Theta) +
 		math.Sin(a.Theta)*math.Sin(b.Theta)*math.Cos(a.Phi-b.Phi)

@@ -1,124 +1,19 @@
-// bead_lattice.go — the bead lattice constants (docs/bead-model/bead-lattice.md).
-//
-// An edge's length is ONE INTEGER, the bead-step count between two nodes' tori
-// (docs/bead-model/bead-lattice.md "The model"). Everything else here — the node lattice's
-// own radial cell, and the uniform per-bead dwell that makes pulse speed structural
-// instead of computed — falls out of the bead's AUTHORED size and these constants,
-// not from independently chosen literals that could drift apart from it.
 package lattice
 
 import "github.com/dtauraso/wirefold/nodes/wire/clock"
 
-// PulseSpeedWuPerMs is the fixed world-units-per-MILLISECOND conversion for the
-// SimLatencyMs REPORTING path (the ms value emitted on the send trace); it is NOT
-// the clock's unit. This is an intentional duplicate of the literal value in
-// nodes/Wiring/nodegeom/curve_params.go's CurveParamPulseSpeedWuPerMs — that copy is the
-// single source of truth gen-node-defs reads (by literal AST value) to emit TS,
-// and it cannot be an alias of this one because nodes/wire must not import
-// nodes/Wiring (that would be a package cycle: Wiring already imports wire, and
-// this lattice subpackage is imported by wire in turn). Keep the two literals in
-// sync by hand; a mismatch would only affect SimLatencyMs reporting/pacing math,
-// not correctness of delivery.
 const PulseSpeedWuPerMs = 0.04
 
-// PulseSpeedWuPerTick is the uniform pulse speed reinterpreted in world-units per
-// TICK (MODEL.md: pulseSpeed is world-units-per-tick). It is the ms speed scaled
-// by the tick period: 0.04 wu/ms × 16 ms/tick = 0.64 wu/tick. This is what the
-// human-speed clock uses to derive ticksToCross = arcLength / PulseSpeedWuPerTick,
-// which equals the retired arc/pulseSpeedMs/16 sample count — so a bead visits the
-// same number of positions in the same wall time.
 const PulseSpeedWuPerTick = PulseSpeedWuPerMs * clock.MsPerTick
 
-// BeadRadius is the bead's own visible sphere radius — the AUTHORED primitive
-// this whole file derives from. It used to be the other way around: the node
-// lattice's LocalStepR was the primitive and the bead radius fell out of it by
-// tangency, landing at 3.5714285714285716 — visibly ~11% smaller than the
-// hand-picked 4.0 David had actually chosen. That direction is now REJECTED
-// (docs/bead-model/bead-lattice.md "The bead radius is derived, not chosen" — renamed to
-// "the lattice is derived, not the bead"): the bead's size is what a person
-// looks at, so it wins, and the node lattice's own cell absorbs the change
-// instead (LocalStepR grows from 2.0 to 2.24 in layout_holder.go). Stored
-// quantIR values are NOT rewritten for this — each cell simply now measures
-// 12% more, so the whole graph expands by that fraction on load. That
-// expansion is the accepted, agreed cost; nothing here compensates for it.
 const BeadRadius = 4.0
 
-// BeadRingTubeRatio is a bead ring's torus tube radius as a fraction of
-// BeadRadius, same role as ShadingParamBeadRingTubeRatio used to play alone —
-// moved out of nodes/Wiring/shading_params.go (and now out of nodes/wire itself,
-// into this lattice subpackage) because it feeds BeadTorusOuterR, which needs to
-// be readable by both nodes/wire and nodes/Wiring, and neither package may import
-// the other in the wrong direction (Wiring imports wire). nodes/Wiring's
-// ShadingParamBeadRingTubeRatio now just references this value.
 const BeadRingTubeRatio = 0.12
 
-// BeadTorusOuterR is a bead's true extent — its invisible sphere radius — now
-// derived from the AUTHORED sphere radius by the same outer = r*(1+ratio)
-// formula every other ring in this codebase uses: 4.0 * 1.12 = 4.48. Tangency
-// is unchanged by the flip (docs/bead-model/bead-lattice.md "The bead radius is derived,
-// not chosen"/its rewrite): two tangent beads' tori still touch at the lattice
-// step's midpoint, so BeadStepR below is still exactly twice this value — only
-// which of {bead radius, lattice step} is the free variable and which is
-// computed has flipped.
 const BeadTorusOuterR = BeadRadius * (1 + BeadRingTubeRatio)
 
-// BeadStepR is the centre-to-centre distance between two tangent beads, fixed
-// by tangency at twice a bead's own torus outer radius: 2 * 4.48 = 8.96.
 const BeadStepR = 2 * BeadTorusOuterR
 
-// BeadStepCells does not exist. It used to be the ratio between TWO lattices —
-// the node lattice's own small LocalStepR cell, and the coarser bead lattice a
-// fixed number of those cells (4) was said to span. That ratio was a
-// mismeasurement: BeadStepCells was fixed at 4 while the STORED per-node
-// stepR (topology/nodes/*/local-polars.json, "stepR": 2) disagreed with what
-// LocalStepR actually computed to (2.24) — placement read the stored 2, the
-// edge-length count divided by the assumed 4, and the two lattices did not
-// nest, so the count over-budgeted and surplus chain beads ran into the
-// target node (docs/bead-model/bead-lattice.md). The fix collapses the two lattices into
-// ONE: LocalStepR is now simply BeadStepR (below) — a node moves exactly one
-// bead distance per lattice tick — so there is no second, coarser lattice
-// left to express a cell-count between, and the constant that named that
-// relationship has nothing to name. There is no replacement constant here —
-// deleting it is the point: the bug was two lattices that could disagree, and
-// the fix is having only one, not renaming the ratio.
-
-// DwellTicksPerBead is the constant tick dwell every bead spends per lattice
-// step, at the one uniform pulse speed (PulseSpeedWuPerTick, above in this
-// package). Uniform pulse speed is structural under the bead lattice because
-// dwell-per-bead is now a CONSTANT rather than a division that could vary per
-// edge: ticksToCross for an N-step edge is simply N * DwellTicksPerBead, with
-// no per-edge arc to divide by speed (docs/bead-model/bead-lattice.md "Timing"). This is
-// the value the ONE production PacedWire construction site (loader.go, guarded
-// by tools/network/beads/check-uniform-pulse-speed.sh) is expected to pass as dwellTicks.
 const DwellTicksPerBead = BeadStepR / PulseSpeedWuPerTick * PulseSubStepsPerBead
 
-// PulseSubStepsPerBead is how many ticks the pulse takes to cross ONE bead step, as a
-// multiple of what it used to take. It exists because the pulse is now drawn at a
-// continuous position rather than snapped to a bead index: at the old rate it covers a
-// whole bead-width per tick, which was invisible while the drawing could only ever be AT a
-// bead, and is a visible hop now that it can be between them. Four sub-steps is four times
-// as many samples across the same edge — the motion reads as travel rather than as a
-// sequence of positions.
-//
-// It multiplies DWELL, not speed, deliberately: dwell-per-bead is the constant that makes
-// pulse speed uniform across every edge (ticksToCross = steps × dwell, no per-edge division),
-// so scaling it keeps that structural property — every edge slows by the same factor and no
-// edge gains a speed of its own.
-// ONE — the original rate. Ticks are
-// the one clock, so every multiple here slowed delivery, not just the drawing, and none of
-// it was buying the smoothness it was introduced for: that comes from the pulse being drawn
-// at a CONTINUOUS position instead of floored onto a bead slot, which is independent of the
-// rate — so this constant is purely PACE, not smoothness, and is set by what looks right.
-//
-// It is the knob for that: dwell is what makes pulse speed uniform across every edge
-// (ticksToCross = steps × dwell, no per-edge division), so a change of pace belongs here —
-// one edit, every edge equally. The lean node tests' wall-clock waits scale off it, so they
-// track it without a second edit.
 const PulseSubStepsPerBead = 1
-
-// SnapQuantIR does not exist. It used to round a stored quantIR to the nearest
-// multiple of BeadStepCells so the node lattice stayed a commensurate SUBLATTICE
-// of the bead lattice. With BeadStepCells gone (comment above) there is exactly
-// one lattice, so the only multiple left to snap to is 1 — an identity
-// operation, which is not a snap. Its two write choke points
-// (LayoutHolder.SetLocalPolar/LoadLocalPolars) now store quantIR verbatim.

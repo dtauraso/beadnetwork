@@ -1,10 +1,3 @@
-// Buffer/streamframe/stream_events.go — the per-owner-frame trailing EVENTS section (memory/
-// feedback_no_single_writer_bridge.md): every per-owner stream frame (NODE/EDGE/INTERIOR/
-// VIEW) appends [count:u32] + count × BufEventStride bytes AFTER its own self-describing
-// payload, using the SAME row layout (SetEventRow) the old combined view/scene frame's EVENT
-// block used before this migration — so the ext host decodes an event identically regardless of which
-// fd it rode in on. No frame header needs an eventCount field of its own: the decoder reads
-// this section as "whatever bytes remain" once each frame's own known counts are exhausted.
 package streamframe
 
 import (
@@ -14,35 +7,21 @@ import (
 	T "github.com/dtauraso/wirefold/Trace"
 )
 
-// StreamEvent is one packed EVENT-block row. Kind is already resolved to its numeric
-// TRACE_EVENT_KINDS index (via KindID) by the caller.
 type StreamEvent struct {
 	Kind                                                             uint8
 	NodeRow, PortRow, TargetRow, TargetPortRow, EdgeRow, Slot, Value int32
 	Bead                                                             uint32
-	// BeadSteps is a send event's edge bead-step count (docs/bead-model/bead-lattice.md "The
-	// count") — was ArcLength before the bead lattice replaced the arc-length
-	// model.
+
 	BeadSteps                float32
 	SimLatencyMs, X, Y, Z, F float32
-	// Label/Debug/Text mirror Wiring.RowEvent's breadcrumb fields (Kind ==
-	// KindBreadcrumb only). Text is packed by BuildEventsSection into this frame's
-	// own trailing event-text-bytes section, immediately after the fixed-stride
-	// event rows — the single sanctioned free-form string escape hatch on this row
-	// (tools/buffer-schema/check-event-string-section-singular.sh).
+
 	Label uint8
 	Debug uint8
 	Text  string
 }
 
-// kindIDByName is built once at package init from the closed T.TraceEventKinds
-// vocabulary and never mutated again, so concurrent reads from many owner goroutines
-// need no synchronization — a pure package-level lookup so any per-owner goroutine can
-// resolve its own event kind with no shared accumulator instance.
 var kindIDByName = buildKindIDMap()
 
-// buildKindIDMap indexes T.TraceEventKinds so the EVENT block Kind column matches the
-// TS TRACE_EVENT_KINDS array (both generated from Trace.go's Kind* constants).
 func buildKindIDMap() map[string]uint8 {
 	m := make(map[string]uint8, len(T.TraceEventKinds))
 	for i, k := range T.TraceEventKinds {
@@ -51,17 +30,10 @@ func buildKindIDMap() map[string]uint8 {
 	return m
 }
 
-// KindID resolves a raw Trace kind string (T.Kind*) to its EVENT-block numeric id.
 func KindID(kind string) uint8 {
 	return kindIDByName[kind]
 }
 
-// BuildEventsSection packs events into one trailing EVENTS section: [count:u32] +
-// count × BufEventStride bytes, followed by the event-text-bytes section (every
-// event's Text, concatenated in event order) — the single free-form string section
-// this row type carries (TextOff/TextLen on bufLayoutEvent). This section is always
-// the LAST thing in a per-owner stream frame (every BuildXStreamFrame appends it
-// last), so appending the text bytes here needs no frame-level size bookkeeping.
 func BuildEventsSection(events []StreamEvent) []byte {
 	textBytes := make([][]byte, len(events))
 	textLen := 0

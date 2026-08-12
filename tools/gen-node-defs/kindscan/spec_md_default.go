@@ -2,8 +2,6 @@ package kindscan
 
 import "strings"
 
-// parseDefaultData reads nodes/<Kind>/SPEC.md and returns the JSON string from
-// the first fenced code block inside ## Default data, or "" if absent.
 func parseDefaultData(pkgDir string) string {
 	lines, err := readSpecMDLines(pkgDir)
 	if err != nil {

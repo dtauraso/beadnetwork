@@ -11,15 +11,6 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
 )
 
-// wireViewStream makes md the VIEW stream's owner/writer.
-//
-// The VIEW stream's write side (Step C, memory/feedback_no_single_writer_bridge.md): wire md as the
-// stream's owner/writer BEFORE anything that can change camera/overlay/scene-sphere/
-// selection/hover reaches it (SeedInitialViewpoint/LoadOverlays/LoadSceneSphere below,
-// then the launched movers/stdin reader) — mirrors SetEdgeStreams/SetNodeStreams'
-// "wire before it can fire" ordering above. Only when the dedicated fd is actually
-// wired (viewStreamWired) — left uncalled otherwise (no WIREFOLD_STREAM_FDS "view"
-// entry, e.g. a non-extension launch with no dedicated pipes at all).
 func wireViewStream(md *W.MoveDispatch, viewFile *os.File, viewStreamWired bool, sceneTabNames []string, sceneTabSelected int) {
 	if viewStreamWired {
 		md.UI.SetViewStream(viewFile,
@@ -50,11 +41,7 @@ func wireViewStream(md *W.MoveDispatch, viewFile *os.File, viewStreamWired bool,
 						Speed: speed,
 					},
 					sceneCX, sceneCY, sceneCZ, sceneRadius,
-					// The tab strip is CONSTANT for this process's lifetime: the list is
-					// Go's own registry and the selection is what this run was loaded
-					// with (switching tabs ends the run — scene_switch.go's SelectScene),
-					// so it is captured here rather than threaded through MoveDispatch's
-					// view-frame signature as if it were live state.
+
 					sceneTabNames, uint16(sceneTabSelected),
 					toStreamEvents(events))
 			})

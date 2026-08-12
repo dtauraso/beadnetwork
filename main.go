@@ -13,17 +13,12 @@ import (
 	"github.com/dtauraso/wirefold/runtopology"
 )
 
-// Run wires the topology and blocks until SIGTERM/SIGINT or stdin EOF.
-// This is the live-run path used by the extension host. It uses a production
-// free-running RealClock (no play/pause gate).
 func Run(topologyPath string) {
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
 	defer cancel()
 	runtopology.RunTopology(ctx, cancel, topologyPath, clock.NewRealClock())
 }
 
-// RunTest wires the topology and lets it run for dur before cancelling, using a
-// production RealClock. Used by automated tests that need a self-terminating run.
 func RunTest(dur time.Duration, topologyPath string) {
 	ctx, cancel := context.WithTimeout(context.Background(), dur)
 	defer cancel()

@@ -11,26 +11,11 @@ import (
 	T "github.com/dtauraso/wirefold/Trace"
 )
 
-// gesture_actions.go — the LEAF ACTIONS invoked by the gesture FSM's phase handlers in
-// gesture_handlers.go: orbit/rotation seeding, drag/select application, hover, and select.
-// This file owns no FSM state transitions; it only performs the behavior a phase handler
-// decided to invoke.
-
-// updateHover resolves the entity under the pointer from the raycast hit and, WHEN IT
-// CHANGES, records it as the Go-owned hover and emits KindHover so the buffer snapshot marks
-// the node's Hovered column. Hover is node-only now — a port is a load-time channel-binding
-// ROLE (docs/bead-model/channels-not-ports.md), never drawn or raycast-hit, so the old "port" hit branch
-// is gone. Deduping on the node keeps a still pointer and a same-entity drag from re-emitting
-// a snapshot each pointer-move (no new flood — Go already emits per raw-input; a hover only
-// fires on a genuine target change). An empty / edge / other hit clears hover.
 func updateHover(d Deps, ev inputcodec.RawInputMsg) {
 	var node string
 	switch ev.Hit.Kind {
 	case "torus":
-		// The concentric hover ring emphasizes the TORUS handle, so it lights only when the
-		// cursor is actually on the ring — NOT on the node body. A plain "node"-body hit
-		// deliberately falls through here and clears hover (node-body hover feedback is a
-		// separate concern, not wired yet).
+
 		if n, ok := d.RT.NodeFromHit(ev.Hit); ok {
 			node = n
 		}
@@ -42,9 +27,6 @@ func updateHover(d Deps, ev inputcodec.RawInputMsg) {
 	}
 }
 
-// seedOrbitPivot installs the frozen pivot as the viewpoint pivot (mirrors the TS
-// sendViewpointSet at rotation start): pos/up/r recompute about the new pivot so the
-// subsequent orbit is rigid about it.
 func seedOrbitPivot(d Deps, pivot vec3) {
 	vp := d.UI.VP.Viewpoint
 	eye := geom.EyeOf(vp)
@@ -53,9 +35,6 @@ func seedOrbitPivot(d Deps, pivot vec3) {
 	d.UI.VP.SetViewpoint(pivot, r, pos, vp.Up)
 }
 
-// applyOrbit mirrors the "rotating" branch of interaction-handlers.ts handlePointerMove:
-// map prev/curr cursor pixels through the frozen sphere frame to world directions and orbit
-// (curr → prev), so the grabbed direction follows the cursor.
 func applyOrbit(d Deps, ev inputcodec.RawInputMsg, tr *T.Trace) {
 	g := &d.UI.Gest
 	vp := d.UI.VP.Viewpoint
@@ -68,10 +47,6 @@ func applyOrbit(d Deps, ev inputcodec.RawInputMsg, tr *T.Trace) {
 	d.UI.EmitViewFrame(CameraViewEvent())
 }
 
-// applyOrbitLocked mirrors the "handhold-rotating" branch of interaction-handlers.ts
-// handlePointerMove: identical prev/curr → world-direction mapping as applyOrbit, but the
-// arc is applied through OrbitLockedViewpoint, which locks the rotation axis on the first
-// call and reuses it (constrained "disk" orbit). The lock clears on the next SetViewpoint.
 func applyOrbitLocked(d Deps, ev inputcodec.RawInputMsg, tr *T.Trace) {
 	g := &d.UI.Gest
 	vp := d.UI.VP.Viewpoint
@@ -84,13 +59,6 @@ func applyOrbitLocked(d Deps, ev inputcodec.RawInputMsg, tr *T.Trace) {
 	d.UI.EmitViewFrame(CameraViewEvent())
 }
 
-// applyNodeDragTarget mirrors the "dragging" branch: unproject the pointer onto a
-// camera-facing plane through the node's start center, giving a free world target, then
-// RootMove the node to that target PLUS the grab offset captured once at drag start (Go
-// snaps it to the parent sphere). Adding the offset here — instead of moving the node's
-// center straight to the hit — is what keeps the point you grabbed under the cursor instead
-// of the node teleporting so its center lands there. Returns false if the ray is parallel
-// to the plane.
 func applyNodeDragTarget(ui *viewstate.UIState, rootMove func(id string, target vec3) bool, ev inputcodec.RawInputMsg) bool {
 	g := &ui.Gest
 	hit, ok := ui.DragPlaneHit(ev)
@@ -101,25 +69,17 @@ func applyNodeDragTarget(ui *viewstate.UIState, rootMove func(id string, target 
 	return true
 }
 
-// setHover is the shared dedupe+mutate hover write; updateHover (pointer path) is its one
-// caller. It mutates ui's hover fields and reports whether they changed plus the one
-// hover RowEvent to emit; the caller (the view-owner goroutine) emits it — this method
-// itself never calls emitViewFrame, per docs/planning/movedispatch-decomposition.md's
-// write-then-emit split.
 func setHover(ui *viewstate.UIState, sendMoveFn func(id string, msg movemsg.Msg), RT *rowtables.RowTables, node, port string, isInput bool) (events []wire.RowEvent, changed bool) {
 	if node == ui.Sel.HoverNode && port == ui.Sel.HoverPort && isInput == ui.Sel.HoverInput {
-		return nil, false // no change → no re-emit (dedupe)
+		return nil, false
 	}
-	// viewstate's UIState.SetHoverUI is the AUTHORITATIVE write: it sets ui.Sel's hover
-	// fields (mutated only by this goroutine) and MESSAGES the affected
-	// node(s) to set their OWN hovered bit — no shared/republished map.
+
 	ui.SetHoverUI(sendMoveFn, node, port, isInput)
 	nodeRow := int32(-1)
 	if r, ok := RT.NodeRowFor(node); ok {
 		nodeRow = r
 	}
-	// portRow is always -1: a port has no buffer row of its own any more
-	// (docs/bead-model/channels-not-ports.md — hover addresses the node, not a port).
+
 	portRow := int32(-1)
 	value := int32(0)
 	if isInput {
@@ -128,16 +88,8 @@ func setHover(ui *viewstate.UIState, sendMoveFn func(id string, msg movemsg.Msg)
 	return []wire.RowEvent{{Kind: T.KindHover, NodeRow: nodeRow, PortRow: portRow, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Value: value}}, true
 }
 
-// applySelect sets the Go-owned selection from a click hit and emits it. Selection is
-// single + EXCLUSIVE across nodes and edges: an EDGE hit selects that edge (clearing any
-// node selection); a node/port hit selects that node (clearing any edge selection); an
-// empty-space hit CLEARS the transient highlight (ui.Sel.Selected / ui.Sel.SelectedEdge) — this is
-// the original click-empty-clears behavior.
 func applySelect(d Deps, ev inputcodec.RawInputMsg) {
-	// setSelectionUI (gesture_select.go) is the AUTHORITATIVE write, same reasoning as
-	// setHoverUI above: it sets ui.Sel's selection fields (+ latchedNode, mutated only
-	// by this goroutine) and MESSAGES the affected node(s)/edge to set their
-	// OWN selected/latchedSel bit.
+
 	if ev.Hit.Kind == "empty" {
 		setSelectionUI(d.UI, d.MR, d.Ctx, "", "")
 		d.UI.EmitViewFrame(d.RT.SelectViewEvent(""))
@@ -146,13 +98,11 @@ func applySelect(d Deps, ev inputcodec.RawInputMsg) {
 	if ev.Hit.Kind == "edge" {
 		if label, ok := d.RT.EdgeFromHit(ev.Hit); ok {
 			setSelectionUI(d.UI, d.MR, d.Ctx, "", label)
-			// An edge selection carries no NodeRow (see decodeEventLine's "select" case,
-			// buffer-log.ts — it never reads EdgeRow for this kind), mirroring the
-			// KindSelect{Edge: label, Node: ""} shape exactly.
+
 			d.UI.EmitViewFrame(d.RT.SelectViewEvent(""))
 			return
 		}
-		// Unresolvable edge hit → clear selection rather than leaving stale state.
+
 	}
 
 	var node string

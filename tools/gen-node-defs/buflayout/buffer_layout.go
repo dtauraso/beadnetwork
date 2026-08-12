@@ -1,15 +1,3 @@
-// Buffer-layout codegen: parses Buffer/layout.go's buf: struct tags and emits
-// both Buffer/buffer_layout_gen.go (Go writers) and src/schema/buffer-layout.ts
-// (TS readers) from one shared schema + one bufTypeTable, so the two sides
-// cannot disagree about a column's width, signedness, or endianness (see
-// TestBufTypeTableConsistency).
-//
-// The parsed schema types and Buffer/layout.go AST walk live in
-// buf_layout_parse.go; the shared bufType table (the single source of truth
-// every emitter below derives from) lives in buf_type_table.go; the Go/TS
-// naming helpers (const names, writer/reader function names) live in
-// buf_layout_names.go. This file holds the Go emitter (WriteBufferLayoutGo);
-// the TS emitter (WriteBufferLayoutTS) is the sibling buffer_layout_ts.go.
 package buflayout
 
 import (
@@ -21,7 +9,6 @@ import (
 	"strings"
 )
 
-// WriteBufferLayoutGo emits Buffer/buffer_layout_gen.go.
 func WriteBufferLayoutGo(outPath string, schema BufLayoutSchema) error {
 	fp := buildBufFingerprint(schema)
 	var buf bytes.Buffer
@@ -64,14 +51,9 @@ func WriteBufferLayoutGo(outPath string, schema BufLayoutSchema) error {
 		fmt.Fprintln(w, `)`)
 		fmt.Fprintln(w)
 
-		// Writer function.
 		var params []string
 		if blk.name == "Overlay" {
-			// The Overlay block is a single row with several same-typed (uint8) boolean
-			// flag columns — a positional writer call here is exactly the "transposed
-			// adjacent same-typed args compiles silently" hazard. Emit a named-field
-			// struct (OverlayRow) instead: the writer takes ONE value, so there is no
-			// per-field positional list at the call site to transpose at all.
+
 			fmt.Fprintln(w, `// OverlayRow is the named-field snapshot of the Overlay block (single row).`)
 			fmt.Fprintln(w, `// Passed BY VALUE to SetOverlayRow so the write call never enumerates fields`)
 			fmt.Fprintln(w, `// positionally — closes the swapped-adjacent-uint8-args hazard a positional`)
@@ -93,7 +75,7 @@ func WriteBufferLayoutGo(outPath string, schema BufLayoutSchema) error {
 			fmt.Fprintln(w)
 
 		} else if blk.name == "Camera" || blk.name == "RuleBuilder" || blk.name == "Scene" {
-			// Camera/RuleBuilder/Scene always have exactly 1 row; omit row param.
+
 			for _, c := range blk.columns {
 				pname := strings.ToLower(c.name[:1]) + c.name[1:]
 				params = append(params, fmt.Sprintf("%s %s", pname, goParamType(c.bufType)))

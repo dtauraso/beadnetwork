@@ -8,10 +8,6 @@ import (
 	"strings"
 )
 
-// eval evaluates expr, which was parsed as part of file living in dir, to a
-// go/constant.Value — the same representation cmd/compile uses for untyped
-// constant arithmetic, so a chain of untyped-float divisions round-trips to
-// exactly the float64 Go itself would produce, with no lossy string hop.
 func (env *Env) Eval(dir string, file *ast.File, expr ast.Expr) (constant.Value, error) {
 	switch e := expr.(type) {
 	case *ast.BasicLit:
@@ -77,8 +73,6 @@ func (env *Env) Eval(dir string, file *ast.File, expr ast.Expr) (constant.Value,
 	}
 }
 
-// exprString renders expr back to source text for error messages, without
-// pulling in go/printer for what is only ever a short diagnostic.
 func exprString(expr ast.Expr) string {
 	fset := token.NewFileSet()
 	var buf strings.Builder

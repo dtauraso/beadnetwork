@@ -16,30 +16,12 @@ import (
 	"github.com/dtauraso/wirefold/tools/gen-node-defs/constexpr"
 )
 
-// shadingParam is one exported constant from shading_params.go with a
-// "ShadingParam" name prefix. Unlike curveParam, shading params include string
-// literals (hex colors), so isStr drives quoting in the emitted TS.
 type shadingParam struct {
-	tsName string // TS export name (SCREAMING_SNAKE, ShadingParam prefix stripped)
-	value  string // raw literal value (unquoted for strings)
-	isStr  bool   // true if the Go literal is a string (emit quoted in TS)
+	tsName string
+	value  string
+	isStr  bool
 }
 
-// parseShadingParams reads the Go source at goPath and returns all top-level
-// const declarations whose names start with "ShadingParam". Mirrors
-// parseCurveParams but records string-ness so writeShadingParams can quote
-// color literals correctly.
-//
-// Unlike parseCurveParams, a ShadingParam* value need not be a bare literal:
-// docs/bead-model/bead-lattice.md wants ShadingParamBeadRadius written as the actual
-// derivation (`lattice.BeadTorusOuterR / (1 + ShadingParamBeadRingTubeRatio)`)
-// rather than a hand-computed literal that is a second copy of the same fact.
-// A plain *ast.BasicLit is still handled with the old direct text extraction
-// (byte-identical output for every param that stays a literal); anything else
-// is evaluated via constexpr.Env, which resolves identifiers — including ones
-// qualified into another package — against real Go constant arithmetic
-// (go/constant), so the emitted value is exactly what the Go compiler would
-// compute, not a re-derivation that could itself drift from the formula.
 func parseShadingParams(repoRoot, goPath string) ([]shadingParam, error) {
 	fset := token.NewFileSet()
 	f, err := parser.ParseFile(fset, goPath, nil, 0)
@@ -47,7 +29,7 @@ func parseShadingParams(repoRoot, goPath string) ([]shadingParam, error) {
 		return nil, err
 	}
 	dir := filepath.Dir(goPath)
-	var env *constexpr.Env // built lazily: only a non-literal value expression needs it (and its go.mod read)
+	var env *constexpr.Env
 	var params []shadingParam
 	for _, decl := range f.Decls {
 		genDecl, ok := decl.(*ast.GenDecl)
@@ -96,13 +78,6 @@ func parseShadingParams(repoRoot, goPath string) ([]shadingParam, error) {
 	return params, nil
 }
 
-// constValueString renders an evaluated go/constant.Value as the literal Go
-// (and TS, since both use plain decimal syntax for a float) would print it —
-// the shortest decimal that round-trips to the same float64, matching
-// strconv.FormatFloat(f, 'g', -1, 64). Untyped constant arithmetic in
-// go/constant stays exact (arbitrary-precision rational) until this
-// conversion, so this is the one and only place precision can be lost, and
-// it loses exactly as much as assigning the constant to a Go float64 would.
 func constValueString(v constant.Value) string {
 	if v.Kind() == constant.Int {
 		return v.ExactString()
@@ -111,8 +86,6 @@ func constValueString(v constant.Value) string {
 	return strconv.FormatFloat(f, 'g', -1, 64)
 }
 
-// writeShadingParams emits shading-params.ts from the parsed shadingParam slice.
-// String literals (hex colors) are emitted quoted; numeric literals raw.
 func writeShadingParams(outPath string, params []shadingParam) error {
 	var buf bytes.Buffer
 	w := bufio.NewWriter(&buf)

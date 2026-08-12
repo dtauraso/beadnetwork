@@ -1,7 +1,3 @@
-// The emit half of the trace-kinds.ts pipeline: writeTraceKinds turns the Kind* constant
-// slice and BreadcrumbLabels slice parsed by trace_kinds.go into TRACE_EVENT_KINDS and
-// BREADCRUMB_LABELS — both closed vocabularies sourced from Trace/Trace.go, kept together
-// since they're both TRACE_EVENT_KINDS-adjacent.
 package main
 
 import (
@@ -11,8 +7,6 @@ import (
 	"os"
 )
 
-// writeTraceKinds emits trace-kinds.ts from the parsed kind slice plus the
-// BreadcrumbLabel* name table (BREADCRUMB_LABELS).
 func writeTraceKinds(outPath string, kinds []string, breadcrumbLabels []string) error {
 	var buf bytes.Buffer
 	w := bufio.NewWriter(&buf)

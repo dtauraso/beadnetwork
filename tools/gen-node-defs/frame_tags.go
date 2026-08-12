@@ -1,14 +1,5 @@
-// frame-tags.ts emitter: mirrors Buffer/frame_tags.go's marked constants into
-// tools/topology-vscode/src/schema/frame-tags.ts. This is the single source-of-truth
-// pipeline for the envelope-level frame tags/header sizes (memory/
-// feedback_no_single_writer_bridge.md) — mirroring input_codec.go / input-layout.ts's
-// hand-paired split, but generated instead of hand-kept-in-lockstep.
-//
 // A const is picked up ONLY if it carries a `//frametag:ts=NAME` marker comment
-// immediately preceding it (or trailing in its doc block) — this is what lets
-// BufNodeStreamLayoutLinkStride (which does not follow the BUF_ prefix naming
-// convention) name its own irregular TS export name explicitly, rather than deriving it
-// mechanically from the Go name the way curve-params/shading-params do.
+
 package main
 
 import (
@@ -25,13 +16,12 @@ import (
 // frameTagConst is one //frametag:ts=... marked constant from Buffer/frame_tags.go.
 type frameTagConst struct {
 	tsName string // exact TS export name, from the frametag:ts=NAME marker
-	value  string // raw literal value (numeric only — all current frame tags are ints)
-	doc    string // doc comment text (marker line stripped), used as the TS JSDoc body
+	value  string
+	doc    string
 }
 
-// parseFrameTags reads Buffer/frame_tags.go and returns every const carrying a
 // `//frametag:ts=NAME` marker comment, along with the file's own header doc comment
-// (used as the generated file's leading prose block).
+
 func parseFrameTags(goPath string) (header string, consts []frameTagConst, err error) {
 	fset := token.NewFileSet()
 	f, err := parser.ParseFile(fset, goPath, nil, parser.ParseComments)
@@ -54,8 +44,7 @@ func parseFrameTags(goPath string) (header string, consts []frameTagConst, err e
 			}
 			doc := vs.Doc
 			if doc == nil {
-				// Unparenthesized single-const decls attach the doc comment to the
-				// GenDecl, not the ValueSpec.
+
 				doc = genDecl.Doc
 			}
 			if doc == nil {
@@ -81,8 +70,7 @@ func parseFrameTags(goPath string) (header string, consts []frameTagConst, err e
 			if !ok || lit.Kind != token.INT {
 				return "", nil, fmt.Errorf("frametag %s: value is not an integer literal", tsName)
 			}
-			// Trim the trailing blank line(s) left by the blank-comment separator
-			// before the marker.
+
 			for len(docLines) > 0 && strings.TrimSpace(docLines[len(docLines)-1]) == "" {
 				docLines = docLines[:len(docLines)-1]
 			}
@@ -99,9 +87,6 @@ func parseFrameTags(goPath string) (header string, consts []frameTagConst, err e
 	return header, consts, nil
 }
 
-// writeFrameTags emits tools/topology-vscode/src/schema/frame-tags.ts from the parsed
-// Buffer/frame_tags.go constants. Value-identical to the previously hand-authored file;
-// only structure/provenance comments differ.
 func writeFrameTags(outPath, header string, consts []frameTagConst) error {
 	var buf bytes.Buffer
 	w := bufio.NewWriter(&buf)

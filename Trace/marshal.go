@@ -2,11 +2,6 @@ package Trace
 
 import "encoding/json"
 
-// marshalBreadcrumb serializes one Breadcrumb() call as {"kind":"breadcrumb",...} with
-// empty fields omitted. Used ONLY by the in-process test-observation sink now (see
-// Trace.go's Breadcrumb/Trace-struct doc comments) — the production stdout path this
-// shape used to also feed (routed by the ext host's now-removed tryParseBreadcrumb to
-// .probe/go-debug.jsonl) was retired in favor of the structured buffer EVENT row.
 func marshalBreadcrumb(label, node, port, value string) ([]byte, error) {
 	type breadcrumb struct {
 		Kind  string `json:"kind"`
@@ -18,9 +13,6 @@ func marshalBreadcrumb(label, node, port, value string) ([]byte, error) {
 	return json.Marshal(breadcrumb{Kind: "breadcrumb", Label: label, Node: node, Port: port, Value: value})
 }
 
-// marshalNodeBead serializes a NodeBead event for the optional in-process test sink
-// (never wired in production — see NodeBead's doc comment). Used only by headless
-// tests observing emitRefillSlide's animation frames via NewWithSink.
 func marshalNodeBead(e Event) ([]byte, error) {
 	type nodeBead struct {
 		Kind    string  `json:"kind"`

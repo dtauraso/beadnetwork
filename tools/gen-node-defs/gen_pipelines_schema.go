@@ -1,7 +1,3 @@
-// Pipeline phase functions that emit the TS schema files derived directly from kind/wire/trace
-// data: node-defs.ts, wire-defs.ts, trace-kinds.ts, plus the two kind-indexed Go/TS id tables
-// (node_dims_gen.go, node_kind_id_gen.go). Split out of main.go by concern — main.go keeps only
-// the entry point and the call sequence (see its header comment).
 package main
 
 import (
@@ -12,11 +8,6 @@ import (
 	"github.com/dtauraso/wirefold/tools/gen-node-defs/kindscan"
 )
 
-// generateKindImports writes kinds_generated.go — blank imports that make each node
-// package's init() (and thus its wire.Register call) run. Folded in from the former
-// standalone tools/gen-kind-imports so ONE registration scan feeds every kind-derived
-// output; a separate binary could silently diverge from this one (audit finding).
-// check-generated.sh guards it via the "wrote" line below, so no dedicated guard is needed.
 func generateKindImports(repoRoot string, kinds []kindscan.KindEntry) {
 	kindImportsPath := filepath.Join(repoRoot, "kinds_generated.go")
 	if err := kindscan.WriteKindImports(kindImportsPath, kinds); err != nil {

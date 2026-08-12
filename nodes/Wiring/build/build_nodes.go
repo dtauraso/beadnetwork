@@ -1,7 +1,3 @@
-// build_nodes.go — the node-construction phase of buildFromSpec: builds each
-// node from the wire allocation and edge maps computed by earlier phases, then
-// binds the resulting Outs and dest wires into the already-built MoveDispatch.
-
 package build
 
 import (
@@ -18,18 +14,8 @@ import (
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
-// buildNodes builds each node from the wire allocation and edge maps computed by
-// earlier phases. outSink collects every paced source Out keyed by "node.handle"
-// so node-move can update per-edge travel-time on the Out.
 func (b *buildCtx) buildNodes() error {
-	// deps gives BuildArgs methods that need more of MoveDispatch than PortBindings can
-	// portably carry (LatticePointsSeed/LatticeIn, TiltEditIn, ClaimSelfDrive — dispatch
-	// core state: md.UI.LatticePoints, md.Inboxes, md.MR) a way to reach it WITHOUT
-	// kindapi naming any dispatch-core type (docs/planning/movedispatch-decomposition.md
-	// §24): each of the three consuming BuildArgs methods gets its OWN bound func value,
-	// closed over this build's own *MoveDispatch, instead of raw pointers into
-	// nodeinbox.NodeInboxes/moverreg.MoverRegistry. Built once, here, before any node is
-	// built, and threaded down through each bind.Build call below.
+
 	deps := kindapi.BuildDeps{
 		LatticePoints: b.md.UI.LatticePoints,
 		ClaimLatticeIn: func(name string) chan int32 {
@@ -48,11 +34,7 @@ func (b *buildCtx) buildNodes() error {
 				return nil
 			}
 			b.md.MR.ClaimSelfDrive(name)
-			// A ring node's NodeMover.Run Copies clockSrc into clk once, at its own
-			// goroutine start. There is no such goroutine start for a self-driven node —
-			// this runs during buildNodes, single-threaded setup, before any goroutine
-			// exists — so do the same copy here instead; writeStreamFrame (Step) still
-			// reads clk directly.
+
 			ng.CopyClockSrc()
 			return ng
 		},
@@ -63,18 +45,10 @@ func (b *buildCtx) buildNodes() error {
 		bind := kindapi.Registry[n.Type]
 		pb := portwiring.NewPortBindings()
 		pb.OutSink = outSink
-		pb.Clock = b.clk // shared clock for clock-paced interior animation (Input refill slide)
-		// &b.speedSinks (not a fresh slice per node): every node's channels append
-		// onto the SAME build-wide accumulator, so LoadTopology's one returned
-		// list carries every clock-owning goroutine across the whole build.
+		pb.Clock = b.clk
+
 		pb.SpeedSinks = &b.speedSinks
-		// InteriorOuts/DriveOuts/BuildInteriorFrame give injectClosures's interior-bead
-		// Emit* closures access to this node's OWN dedicated interior fd (keyed by node
-		// id) + the injected frame builder — the SECOND emitting goroutine per node
-		// (memory/feedback_no_single_writer_bridge.md). These are POINTERS into b.md.Sw's
-		// own fields (see portwiring.PortBindings' doc comment for why): nil-checked before
-		// writing, and stay effectively nil (pointing at an empty/nil map) until
-		// SetNodeStreams runs (main.go, after LoadTopology returns).
+
 		pb.RT = b.md.RT
 		pb.InteriorOuts = b.md.Sw.InteriorOutsPtr()
 		pb.DriveOuts = b.md.Sw.DriveOutsPtr()
@@ -89,19 +63,15 @@ func (b *buildCtx) buildNodes() error {
 				if ok {
 					pb.SetSinglePaced(port.Name, b.destWire[dk])
 				}
-				// If no inbound edge, a.In() falls back to a dead-end chan.
 
 			case portwiring.PortOut:
 				labels := b.outbound[n.ID][port.Name]
 				if len(labels) > 0 {
-					// Look up wire by destination of the first outbound edge.
-					// For fan-in, the destination port owns the wire.
-					// Send rule is node-owned, keyed by this output port name.
+
 					rule := loadspec.NodeSendRule(n, port.Name)
 					lbl := labels[0]
 					pb.SetSinglePacedRule(port.Name, b.edgeWire[lbl], rule, b.edgeSteps[lbl], b.edgeSegments[lbl], lbl)
 				}
-				// If no outbound edge, a.Out() falls back to a dead-end chan.
 
 			case portwiring.PortBroadcast:
 				labels := b.outbound[n.ID][port.Name]
@@ -111,12 +81,11 @@ func (b *buildCtx) buildNodes() error {
 					if i < len(handles) {
 						handle = handles[i]
 					}
-					// Per-port (per fan-out element): the rule is keyed by the
-					// concrete output port name (sourceHandle, e.g. "ToNext0").
+
 					rule := loadspec.NodeSendRule(n, handle)
 					pb.AppendBroadcastWithHandle(port.Name, handle, b.edgeWire[lbl], rule, b.edgeSteps[lbl], b.edgeSegments[lbl], lbl)
 				}
-				// If no outbound edges, builder falls back to a dead-end slice.
+
 			}
 		}
 
@@ -135,8 +104,6 @@ func (b *buildCtx) buildNodes() error {
 	return nil
 }
 
-// bindDispatch binds per-edge source Outs and dest wires into each edgeMover so
-// a node-move updates per-edge travel-time.
 func bindDispatch(md *dispatch.MoveDispatch, outSink map[string]*wire.Out, destWire map[string]*wire.PacedWire) {
 	md.MR.Bind(outSink, inputcodec.SlotRegistry(destWire))
 }

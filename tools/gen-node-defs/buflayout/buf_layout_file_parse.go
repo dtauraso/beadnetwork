@@ -8,10 +8,6 @@ import (
 	"strings"
 )
 
-// parseBufferLayoutFile parses one file for its BufLayoutVersion/
-// BufInteriorSlotsPerNode consts (zero value if this file declares neither)
-// and its bufLayout* struct types (nil if this file declares none) — the
-// per-file half of ParseBufferLayoutDir's directory scan.
 func parseBufferLayoutFile(layoutPath string) (BufLayoutSchema, error) {
 	fset := token.NewFileSet()
 	f, err := parser.ParseFile(fset, layoutPath, nil, 0)
@@ -21,9 +17,6 @@ func parseBufferLayoutFile(layoutPath string) (BufLayoutSchema, error) {
 
 	var schema BufLayoutSchema
 
-	// Walk declarations in source order to preserve relative ordering of consts
-	// and struct types (they are interleaved intentionally — version first, then
-	// blocks — within a file that declares more than one).
 	for _, decl := range f.Decls {
 		switch d := decl.(type) {
 		case *ast.GenDecl:

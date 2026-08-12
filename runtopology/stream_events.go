@@ -6,11 +6,6 @@ import (
 	SF "github.com/dtauraso/wirefold/Buffer/streamframe"
 )
 
-// toStreamEvents converts a nodeMover/edgeMover/interiorStream goroutine's own
-// row-resolved events (Wiring.RowEvent, string kind — kept Buffer-independent there) into
-// streamframe.StreamEvent (numeric kind, via streamframe.KindID) for packing into that SAME
-// goroutine's own frame's trailing EVENTS section (memory/feedback_no_single_writer_bridge.md).
-// Pure value conversion — no shared state, safe to call from any owner goroutine.
 func toStreamEvents(events []wire.RowEvent) []SF.StreamEvent {
 	if len(events) == 0 {
 		return nil

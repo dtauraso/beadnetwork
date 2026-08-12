@@ -1,9 +1,5 @@
 package kindscan
 
-// parsePortsFromSpec reads nodes/<Kind>/SPEC.md and returns ports derived from
-// the Ports table (Name + Direction columns). Used as a fallback when AST
-// parsing discovers 0 ports — e.g. when all ports live in an embedded struct
-// from another package that the AST walker cannot follow.
 func parsePortsFromSpec(pkgDir string) []Port {
 	lines, err := readSpecMDLines(pkgDir)
 	if err != nil {

@@ -1,8 +1,3 @@
-// commit_node_move.go — the owner-goroutine single-node commit path. Lifted from
-// nodes/Wiring/dispatch (docs/planning/movedispatch-decomposition.md §24 — pure move, no
-// logic change): kept apart from held-state snapshots, touching-bead resolution, and the
-// broadcast-after-commit fan-out.
-
 package layoutquant
 
 import (
@@ -21,24 +16,11 @@ import (
 	T "github.com/dtauraso/wirefold/Trace"
 )
 
-// CommitNodeMoveLocal is the OWNER-GOROUTINE single-node commit path
-// (generalized to every node): used when the commit
-// originates on nm's OWN mover goroutine (its own inbox handler for a
-// movemsg.KindDrag). It applies nm's OWN new center SYNCHRONOUSLY via
-// applyCenter — safe and correct here because applyCenter's doc contract is "called
-// only from this nodeMover's own inbox-drain goroutine", which this is. Also fans
-// centers to incident edges/partners, persists the per-node quantized-offset
-// (nodeMover.quantOffset — never a shared map, so no other mover goroutine's commit
-// can race this write even for a different node id), and requantizes nm's
-// local-polar cascade-links against its (unmoved) neighbors.
 func (lq *LayoutQuantizer) CommitNodeMoveLocal(nodeGeoms map[string]*nodeactor.NodeGeometry, edgeMovers map[string]*edgemover.EdgeMover, ui *viewstate.UIState, nm *nodeactor.NodeGeometry, newPos wire.Vec3) {
 	nodeID := nm.ID()
 	edges := HeldEdges(edgeMovers)
 	polars := neighborPolars(nm, edgeMovers, ui)
-	// Single cart2polar boundary conversion for this drag target — newPos is mouse-
-	// derived cartesian (gesture.go ray/plane unproject); everything downstream
-	// (reach, measureScalar, the persist schedule) reuses this one polar value rather
-	// than re-deriving it from newPos.
+
 	nodePolar := geom.Cart2polar(newPos.Sub(ui.SceneSphere.Center))
 
 	committedPos, committedPolar := lq.resolveCommittedPosition(edgeMovers, ui, nm, newPos, nodePolar)
@@ -49,31 +31,9 @@ func (lq *LayoutQuantizer) CommitNodeMoveLocal(nodeGeoms map[string]*nodeactor.N
 	nm.ApplyCenter(committedPos, reach[nodeID])
 	BroadcastToEdgesAndPartners(edgeMovers, nodeGeoms, map[string]wire.Vec3{nodeID: committedPos}, nm.SendMove())
 
-	// PERSIST ON EVERY DRAG, both modes. This used to sit inside `if lq.QuantizedLayout`,
-	// which silently stopped saving the moment a scene chose the continuous drag: the node
-	// moved, drew, fanned to its neighbours and looked entirely correct, and the position
-	// was gone on the next load. The two modes differ in WHERE the node lands, never in
-	// whether that landing is written down.
-	//
-	// off is the quantized scalar triple, measured here in both modes because position.json
-	// carries it as a self-describing CACHE of the drag-time snap cells, not as the position
-	// source (quant_offset_persist.go) — the source is committedPolar either way. Measuring
-	// it under the continuous drag keeps that cache describing the position actually stored
-	// rather than the last one a quantized drag happened to leave behind.
 	nm.CommitQuantOffset(committedPolar)
 }
 
-// neighborPolars is CommitNodeMoveLocal's first phase: reach[nodeID] only ever needs
-// nodeID's own fresh polar plus its DIRECT neighbors' polar (reachRFromPolar only
-// accumulates reach for an edge's SOURCE, from that edge's Target) — each direct
-// neighbor's last-pushed CARTESIAN center is read from THIS node's OWN partnerCenters map
-// (nm.PartnerCenters(), kept current by every neighbor's ApplyCenter push — see its doc
-// comment), resolved via nm.EdgeIDs() (this node's own incident edges, fixed at
-// construction; every edgeIDs neighbor is by construction a key of nm's own neighborIn, the
-// same set partnerCenters is seeded/kept from). scene polar is a pure re-derive off the
-// fixed, write-once ui.SceneSphere.Center (never mutated after load), so this stays
-// race-free with no cross-goroutine read at all now (this runs on nm's own goroutine,
-// reading nm's own map).
 func neighborPolars(nm *nodeactor.NodeGeometry, edgeMovers map[string]*edgemover.EdgeMover, ui *viewstate.UIState) map[string]geom.Polar {
 	nodeID := nm.ID()
 	polars := map[string]geom.Polar{}
@@ -94,30 +54,6 @@ func neighborPolars(nm *nodeactor.NodeGeometry, edgeMovers map[string]*edgemover
 	return polars
 }
 
-// resolveCommittedPosition is CommitNodeMoveLocal's second phase: committedPos/committedPolar
-// are what gets DRAWN (applyCenter), FANNED (BroadcastToEdgesAndPartners), PERSISTED
-// (persistQuantOffset), and re-quantized against by every neighbor (requantizeLocalPolars)
-// for this commit — ONE position, not the raw drag target for some of those and a quantized
-// point for others (docs/investigations/which-lattice-a-node-lives-on.md "Why the drag makes it worst": that
-// split is exactly what made the node glide continuously while its own chain beads jumped
-// one bead distance at a time). Under the quantized scene lattice (lq.QuantizedLayout),
-// moving the node is now CRUD on the edge beads that touch it (PLAN.md, bead_crud.go)
-// instead of solving a joint lattice-intersection: EVERY touching bead (DragTouchingBeads)
-// judges the SAME raw mouse target independently (resolveBeadCrudMove/beadCrudDecide) — no
-// solver, no enumeration across neighbours, no selection of one edge over another, and no
-// summing of per-edge results into a displacement. The node's new centre comes from the
-// BEAD OPERATION (beadCrudImpliedCentre), along that edge's own chain axis — NEVER from the
-// raw drag target, which supplies nodeDestination for the third-vector test and the angle
-// gate only (PLAN.md "the node moves the bead's distance ... NOT the drag destination
-// point"). If every touching bead's verdict is "none" (or the node has no touching beads at
-// all, a free node with no incident edges), the raw drag target is used directly for a free
-// node, matching the old solver's N==0 branch; with incident edges and every verdict "none",
-// the node holds prevPos. off/committedPolar below are still measured back OFF committedPos
-// purely as the position.json self-describing CACHE (quant_offset_persist.go's doc comment:
-// "the quantized scalar triple... rides along as a self-describing cache of the drag-time
-// snap cells, NOT the position source") — nothing downstream reconstructs committedPos from
-// off. If quantizedLayout is off, keep the historic behavior: committedPos stays the raw,
-// continuous target, and no offset is measured.
 func (lq *LayoutQuantizer) resolveCommittedPosition(edgeMovers map[string]*edgemover.EdgeMover, ui *viewstate.UIState, nm *nodeactor.NodeGeometry, newPos wire.Vec3, nodePolar geom.Polar) (committedPos wire.Vec3, committedPolar geom.Polar) {
 	committedPos = newPos
 	committedPolar = nodePolar
@@ -137,14 +73,6 @@ func (lq *LayoutQuantizer) resolveCommittedPosition(edgeMovers map[string]*edgem
 	return committedPos, committedPolar
 }
 
-// emitBeadCrudDiagnostic is DIAGNOSTIC ONLY (task/log-node2-bead-crud): one breadcrumb per
-// pointer-move commit — node 2 (neighbours 1, 4, 5) can barely be dragged; long drags
-// produce no movement, and beads that should be ADDED to push it the right way are not
-// being added. This packs the whole event PLUS every touching bead's own CRUD arithmetic
-// (why it returned none/add/remove) so the actual numbers, not a theory, explain it. Gated
-// on nm.Traced() exactly like the neighbor-center-recv/neighbor-setc-recv breadcrumb sites
-// elsewhere (node_mover.go) — cheap no-op with no stream wired (headless tests, bare
-// movers).
 func emitBeadCrudDiagnostic(nm *nodeactor.NodeGeometry, nodeID string, prevPos, newPos, committedPos wire.Vec3, beads []beadcrud.TouchingBead) {
 	if !nm.Traced() {
 		return

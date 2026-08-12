@@ -1,6 +1,3 @@
-// node-defs.ts emitter: builds NODE_DEFS/NODE_DEFS_ARRAY/NODE_KIND_NAMES from
-// the parsed kindscan.KindEntry slice. Building each entry's TS object-literal string
-// (buildDef and its port-filtering helpers) is the sibling node_defs_fields.go.
 package main
 
 import (
@@ -12,7 +9,6 @@ import (
 	"github.com/dtauraso/wirefold/tools/gen-node-defs/kindscan"
 )
 
-// writeNodeDefs emits the node-defs.ts file.
 func writeNodeDefs(outPath string, kinds []kindscan.KindEntry) error {
 	var buf bytes.Buffer
 	w := bufio.NewWriter(&buf)
@@ -38,7 +34,7 @@ func writeNodeDefs(outPath string, kinds []kindscan.KindEntry) error {
 	fmt.Fprintln(w, `  outputs?: { name: string; kind: string; isMulti?: boolean }[];`)
 	fmt.Fprintln(w, `}`)
 	fmt.Fprintln(w)
-	// Emit RUNTIME_IMPLEMENTED_KINDS from goKind names.
+
 	fmt.Fprintln(w, `// PascalCase Go kind names that have a Go runtime.`)
 	fmt.Fprintln(w, `// Single source of truth — derived from wire.Register calls.`)
 	fmt.Fprintf(w, "export const RUNTIME_IMPLEMENTED_KINDS: ReadonlySet<string> = new Set([\n")
@@ -47,8 +43,7 @@ func writeNodeDefs(outPath string, kinds []kindscan.KindEntry) error {
 	}
 	fmt.Fprintln(w, `]);`)
 	fmt.Fprintln(w)
-	// Pre-build the def strings so we can reuse them for both NODE_DEFS and NODE_DEFS_ARRAY.
-	// NODE_DEFS itself is keyed by goKind name, so it stays in the alphabetical `kinds` order.
+
 	type kindDef struct {
 		goKind string
 		kindID uint8
@@ -64,12 +59,7 @@ func writeNodeDefs(outPath string, kinds []kindscan.KindEntry) error {
 	}
 	fmt.Fprint(w, `};`, "\n")
 	fmt.Fprintln(w)
-	// NODE_DEFS_ARRAY is indexed by the stable buffer KindId (see kindscan.AssignKindIDs in
-	// main.go), NOT by alphabetical position — a removed kind can leave a gap, which
-	// is emitted here as `undefined` so NODE_DEFS_ARRAY[id] still resolves correctly
-	// for every OTHER id (TS consumers already tolerate undefined via `def?.x ?? default`).
-	// Emitting literals directly (not NODE_DEFS[key]) so tsc with noUncheckedIndexedAccess
-	// can't widen to NodeDef|undefined for the populated slots.
+
 	maxID := -1
 	byID := map[uint8]kindDef{}
 	for _, kd := range defs {
@@ -78,12 +68,11 @@ func writeNodeDefs(outPath string, kinds []kindscan.KindEntry) error {
 			maxID = int(kd.kindID)
 		}
 	}
-	hasGap := len(byID) <= maxID // fewer entries than slots means at least one gap
+	hasGap := len(byID) <= maxID
 	arrayType := "readonly NodeDef[]"
 	namesType := "readonly string[]"
 	if hasGap {
-		// Only widen the declared element type when a gap actually exists, so the
-		// dense (no-gap) case emits the exact same type annotation as before.
+
 		arrayType = "readonly (NodeDef | undefined)[]"
 		namesType = "readonly (string | undefined)[]"
 	}
@@ -97,11 +86,7 @@ func writeNodeDefs(outPath string, kinds []kindscan.KindEntry) error {
 	}
 	fmt.Fprintln(w, `];`)
 	fmt.Fprintln(w)
-	// NODE_KIND_NAMES: the PascalCase Go kind name for each KindId index, same
-	// indexing as NODE_DEFS_ARRAY (index i ↔ buffer KindId i, gaps → undefined).
-	// Used by the ext-host buffer-decoded .probe logger to reconstruct a
-	// node-geometry event's `nodeKind` string from the numeric KindId column, so
-	// no kind string is streamed per node.
+
 	fmt.Fprintf(w, "export const NODE_KIND_NAMES: %s = [\n", namesType)
 	for id := 0; id <= maxID; id++ {
 		if kd, ok := byID[uint8(id)]; ok {

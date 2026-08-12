@@ -8,16 +8,10 @@ import (
 	"strings"
 )
 
-// assignKindIDs resolves each kind's stable buffer KindId from its SPEC.md
-// View "kindId" field, in place on kinds. A kind whose SPEC.md has no kindId
-// yet is auto-assigned max(existing ids)+1 and that assignment is written
-// back into its SPEC.md immediately, so the id is stable from here on —
-// regenerating never reassigns it again. Fails loudly on a duplicate id or
-// an id colliding with/exceeding the KindIDUnknown sentinel (0xFF).
 func AssignKindIDs(kinds []KindEntry, nodesDir string) {
-	usedBy := map[uint8]string{} // id -> goKind that claimed it
+	usedBy := map[uint8]string{}
 	maxID := -1
-	var unassigned []int // indices into kinds needing auto-assignment
+	var unassigned []int
 
 	for i := range kinds {
 		raw := strings.TrimSpace(kinds[i].View.KindID)
@@ -55,9 +49,6 @@ func AssignKindIDs(kinds []KindEntry, nodesDir string) {
 	}
 }
 
-// writeBackKindID inserts a "| kindId | N |" row directly above the existing
-// "| kind | ... |" row in nodes/<dir>/SPEC.md's View table, so a newly
-// auto-assigned id is persisted and stable on the next regeneration.
 func writeBackKindID(nodesDir, dir string, id uint8) error {
 	specPath := filepath.Join(nodesDir, dir, "SPEC.md")
 	data, err := os.ReadFile(specPath)

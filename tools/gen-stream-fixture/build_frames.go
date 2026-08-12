@@ -1,8 +1,3 @@
-// build_frames.go builds each fixture's real production frame bytes with the REAL packers
-// (streamframe.BuildNodeStreamFrame / BuildEdgeStreamFrame / BuildInteriorStreamFrame), using
-// distinctive, all-different field values — see main.go's package doc for the fixture's
-// purpose. Every statement here is pure: it constructs a value from the literals above and
-// hex-encodes the packer's own output; nothing here touches a file or persisted state.
 package main
 
 import (

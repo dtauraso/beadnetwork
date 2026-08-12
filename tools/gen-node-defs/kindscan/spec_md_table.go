@@ -6,9 +6,6 @@ import (
 	"strings"
 )
 
-// readSpecMDLines reads nodes/<Kind>/SPEC.md and splits it into lines. Shared
-// by every SPEC.md parser (parseSpecMD, parsePortsFromSpec, parseDefaultData)
-// so the file-read/split step isn't repeated per caller.
 func readSpecMDLines(pkgDir string) ([]string, error) {
 	data, err := os.ReadFile(filepath.Join(pkgDir, "SPEC.md"))
 	if err != nil {
@@ -17,8 +14,6 @@ func readSpecMDLines(pkgDir string) ([]string, error) {
 	return strings.Split(string(data), "\n"), nil
 }
 
-// sectionLines returns the lines strictly between a "## heading" line and the
-// next "## " heading (or EOF), or nil if heading isn't present.
 func sectionLines(lines []string, heading string) []string {
 	start := -1
 	for i, l := range lines {
@@ -40,8 +35,6 @@ func sectionLines(lines []string, heading string) []string {
 	return lines[start+1 : end]
 }
 
-// parseMDTable parses a markdown table (pipe-delimited rows, with a
-// separator row skipped) into its header cells and data rows.
 func parseMDTable(tableLines []string) ([]string, [][]string) {
 	var rows []string
 	var headers []string
@@ -55,7 +48,7 @@ func parseMDTable(tableLines []string) ([]string, [][]string) {
 	if len(rows) < 2 {
 		return nil, nil
 	}
-	// First row is headers.
+
 	parts := strings.Split(rows[0], "|")
 	for _, p := range parts {
 		h := strings.TrimSpace(p)
@@ -65,7 +58,7 @@ func parseMDTable(tableLines []string) ([]string, [][]string) {
 	}
 	for _, row := range rows[1:] {
 		cells := parseMDRowCells(row)
-		// Skip separator rows.
+
 		allSep := true
 		for _, c := range cells {
 			if !isSep(c) {
@@ -81,9 +74,6 @@ func parseMDTable(tableLines []string) ([]string, [][]string) {
 	return headers, result
 }
 
-// parseMDRowCells splits one pipe-delimited markdown table row into trimmed
-// cells, dropping the leading/trailing empty cell that a leading/trailing
-// "|" produces.
 func parseMDRowCells(row string) []string {
 	parts := strings.Split(row, "|")
 	var cells []string
@@ -99,8 +89,6 @@ func parseMDRowCells(row string) []string {
 	return cells
 }
 
-// isSep reports whether s is a markdown table separator cell (e.g. "---",
-// ":--", "--:"): only '-', ':', and spaces.
 func isSep(s string) bool {
 	for _, c := range s {
 		if c != '-' && c != ':' && c != ' ' {

@@ -1,6 +1,3 @@
-// trace-kinds.ts pipeline: scans Trace/ for Kind* string constants and the BreadcrumbLabels
-// var (this file). Emitting TRACE_EVENT_KINDS/BREADCRUMB_LABELS from the parsed result is
-// the sibling trace_kinds_write.go.
 package main
 
 import (
@@ -13,11 +10,6 @@ import (
 	"strings"
 )
 
-// parseTraceKinds scans EVERY non-test *.go file under the Trace/ dir and returns
-// the string values of all Kind* constants (e.g. "recv", "fire", "send", "slot").
-// Scanning the whole dir (not just Trace.go) means a Kind* const declared in any
-// sibling file under Trace/ is still picked up — the single-file-path guard-blindness
-// class (memory: feedback_guards_hardcoding_single_file_break_on_split).
 func parseTraceKinds(traceDir string) ([]string, error) {
 	entries, err := os.ReadDir(traceDir)
 	if err != nil {
@@ -60,18 +52,13 @@ func parseTraceKinds(traceDir string) ([]string, error) {
 			}
 		}
 	}
-	// No sort: os.ReadDir yields filenames in lexical order and go/ast preserves
-	// in-file declaration order, so the emitted slice is deterministic across runs.
+
 	if len(kinds) == 0 {
 		return nil, fmt.Errorf("no Kind* constants found in %s", traceDir)
 	}
 	return kinds, nil
 }
 
-// parseBreadcrumbLabels scans EVERY non-test *.go file under traceDir for the
-// `BreadcrumbLabels = []string{...}` var and returns its string literals in order —
-// the mirror of parseTraceKinds for the 13-value BreadcrumbLabel* enum
-// (Buffer/layout.go's bufLayoutEvent.Label column, Kind==KindBreadcrumb rows only).
 func parseBreadcrumbLabels(traceDir string) ([]string, error) {
 	entries, err := os.ReadDir(traceDir)
 	if err != nil {

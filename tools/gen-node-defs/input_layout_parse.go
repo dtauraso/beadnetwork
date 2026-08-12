@@ -1,7 +1,3 @@
-// Parses the nodes/Wiring InputLayoutFingerprint const out of Go source. Emitting the
-// TS mirror from the parsed result is input_layout.go's job. Tokenizing the fingerprint
-// string once found (fpList/fpListToken/unquoteGoString/kindConstName) is the sibling
-// input_layout_tokens.go.
 package main
 
 import (
@@ -15,28 +11,18 @@ import (
 	"strings"
 )
 
-// inputLayoutFingerprint holds the parsed pieces of Go's InputLayoutFingerprint string.
 type inputLayoutFingerprint struct {
-	raw         string            // the full fingerprint string, verbatim
-	kindNames   []string          // ordered kind names, e.g. ["save","raw-input","edit-update"]
-	kindValues  map[string]string // kind name -> numeric value string, e.g. "save"->"4"
+	raw         string
+	kindNames   []string
+	kindValues  map[string]string
 	eventKinds  []string
 	hitKinds    []string
 	updateKinds []string
 	updateAttrs []string
 }
 
-// errFingerprintNotFound says "this particular file does not declare the const" — as
-// opposed to "the const is there and is malformed". parseInputLayoutFingerprintDir needs
-// the distinction so it can keep scanning past the package's other files while still
-// surfacing a real parse error from the file that DOES declare it.
 var errFingerprintNotFound = fmt.Errorf("InputLayoutFingerprint const not found")
 
-// parseInputLayoutFingerprintDir finds the one file in the nodes/Wiring package that
-// declares InputLayoutFingerprint and parses it. Scanning rather than naming a file is what
-// keeps this generator working across a file split
-// (memory/feedback_guards_hardcoding_single_file_break_on_split.md); finding no declaration
-// at all is an ERROR, never a silent skip that would emit an empty layout.
 func parseInputLayoutFingerprintDir(dir string) (*inputLayoutFingerprint, error) {
 	paths, err := filepath.Glob(filepath.Join(dir, "*.go"))
 	if err != nil {
@@ -56,9 +42,6 @@ func parseInputLayoutFingerprintDir(dir string) (*inputLayoutFingerprint, error)
 	return nil, fmt.Errorf("no file in %s declares InputLayoutFingerprint", dir)
 }
 
-// parseInputLayoutFingerprint reads one Go file via go/ast and extracts the
-// InputLayoutFingerprint string-literal constant, then tokenizes it the same way Go's own
-// parseFPList does (space-delimited tokens, comma-separated lists after "marker=").
 func parseInputLayoutFingerprint(goPath string) (*inputLayoutFingerprint, error) {
 	fset := token.NewFileSet()
 	f, err := parser.ParseFile(fset, goPath, nil, parser.ParseComments)

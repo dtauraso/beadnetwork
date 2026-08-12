@@ -1,5 +1,3 @@
-// node_dims_gen.go / node_kind_id_gen.go emitters: per-kind render dimensions
-// (mirrors SPEC.md View width/height) and the buffer KindId numbering.
 package main
 
 import (
@@ -13,10 +11,6 @@ import (
 	"github.com/dtauraso/wirefold/tools/gen-node-defs/kindscan"
 )
 
-// writeNodeDims emits nodes/Wiring/nodegeom/node_dims_gen.go: a kind → render width/height
-// map sourced from each kind's SPEC.md ## View width/height fields. The Go
-// Go uses these to mirror nodegeom.NodeRadius/nodegeom.NodeWorldPos in geometry-helpers.ts
-// when computing port-to-port arc length. Single source of truth = SPEC.md.
 func writeNodeDims(outPath string, kinds []kindscan.KindEntry) error {
 	var buf bytes.Buffer
 	w := bufio.NewWriter(&buf)
@@ -47,8 +41,7 @@ func writeNodeDims(outPath string, kinds []kindscan.KindEntry) error {
 	fmt.Fprintln(w, `}`)
 
 	w.Flush()
-	// gofmt the generated Go so the output is canonical and the repo-wide
-	// gofmt guard (tools/lang/check-gofmt.sh) stays in agreement with check-generated.
+
 	formatted, err := format.Source(buf.Bytes())
 	if err != nil {
 		return fmt.Errorf("format node_dims_gen.go: %w", err)
@@ -56,11 +49,6 @@ func writeNodeDims(outPath string, kinds []kindscan.KindEntry) error {
 	return os.WriteFile(outPath, formatted, 0644)
 }
 
-// writeNodeKindID emits Buffer/node_kind_id_gen.go: a kind → uint8 id map so
-// each node's own emit path can populate the KindId column in the buffer node block.
-// The id is the STABLE, assigned-once value from each kind's SPEC.md "kindId" field
-// (see kindscan.AssignKindIDs in main.go) — NOT a sort-derived index, so adding a kind never
-// renumbers an existing one. NODE_DEFS_ARRAY in node-defs.ts is indexed by this same id.
 func writeNodeKindID(outPath string, kinds []kindscan.KindEntry) error {
 	var buf bytes.Buffer
 	w := bufio.NewWriter(&buf)
@@ -79,8 +67,7 @@ func writeNodeKindID(outPath string, kinds []kindscan.KindEntry) error {
 	fmt.Fprintln(w, `// order. Id i here ↔ NODE_DEFS_ARRAY[i] on the TS side (gaps left by a removed`)
 	fmt.Fprintln(w, `// kind get an undefined placeholder there, not a shift).`)
 	fmt.Fprintln(w, `var kindIDMap = map[string]uint8{`)
-	// Emit in ascending id order for a stable, readable diff independent of the
-	// alphabetical goKind emission order used elsewhere.
+
 	byID := append([]kindscan.KindEntry(nil), kinds...)
 	sort.Slice(byID, func(i, j int) bool { return byID[i].KindID < byID[j].KindID })
 	for _, e := range byID {

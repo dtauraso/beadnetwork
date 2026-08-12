@@ -11,44 +11,20 @@ import (
 	"github.com/dtauraso/wirefold/nodes/gatecommon"
 )
 
-// Time holds the most recently received bead and, on the NEXT receive, sends
-// out the value it held from the PREVIOUS receive (a one-step "hold new, send
-// old" delay) — a pure forwarder paced on its own clock. It broadcasts the
-// held value concurrently to every ToNext output, waits out that broadcast's
-// own traversal-tick budget as a processing window (never parking across a
-// traversal), and only then admits the next input.
 type Time struct {
 	Fire         func()
 	EmitGeometry func()
 	EmitHeldBead func(held int)
 	Held         int `wire:"data.state"`
-	// Clock is this node's OWN clock storage, assigned by this kind's own builder
-	// directly from the loader's origin (bare-field injection by exact type
-	// clock.Clock — see input.Node.Clock; ports no longer hand out a clock,
-	// per-goroutine-clock.md API demolition item 1). Update() Copies it exactly
-	// once at its own start.
+
 	Clock clock.Clock
-	// SpeedCh delivers a speed change to THIS goroutine's own clk copy
-	// (per-goroutine-clock.md "Delivery"), assigned by this kind's own builder
-	// (injectSpeedChans). nil on a test build with no loader.
+
 	SpeedCh <-chan float64
-	// In is the sole input: the value that, on the NEXT receive, triggers this
-	// node to broadcast the value it held from the PREVIOUS receive (rule 4 — with
-	// exactly one input, there is nothing to distinguish it from). Was
-	// "FromPrevTimeNode", a kind-leak name — the sender does not have to be a
-	// Time/TimeStart kind, and free rewiring to any other source is the point.
+
 	In     *wire.In
 	ToNext wire.Broadcast
 }
 
-// placeHeld appends the ToNext broadcast beads (held value) to items WITHOUT driving
-// them, returning the extended set. Invariant: gatecommon.NoValue (the empty-Held
-// sentinel) is never sent on an output channel — a fire whose Held is NoValue places
-// nothing on ToNext. Only the SEND is suppressed; Held still updates to the received
-// value in the caller. tick is this goroutine's own clock reading, read ONCE by the
-// caller and stamped as every placed bead's placementTick, so the whole broadcast
-// provably starts on one tick even though each wire then advances/delivers its own
-// bead independently (concurrent traversal, shared start).
 func placeHeld(outs wire.Broadcast, held int, items []wire.DriveItem, tick int64) []wire.DriveItem {
 	if held == gatecommon.NoValue {
 		return items
@@ -56,13 +32,6 @@ func placeHeld(outs wire.Broadcast, held int, items []wire.DriveItem, tick int64
 	return outs.PlaceDrivenAllAt(held, items, tick)
 }
 
-// drainInput is Update's mid-window observe phase: drain and discard every bead delivered
-// on the input port this cycle (same-color and different-color are both consumed silently;
-// neither is processed).
-//
-// Drain-until-empty, transitively bounded by this wire's declared channel capacity -- no
-// iteration cap; see nodes/wire/paced_wire_drive.go's drainPlacements doc comment for the
-// full reasoning shared by every drain-until-empty loop in this repo.
 func (in *Time) drainInput() {
 	for {
 		if _, ok := in.In.PollRecv(); !ok {
@@ -71,18 +40,6 @@ func (in *Time) drainInput() {
 	}
 }
 
-// consumeInput is Update's new-input phase: a value arrived while no processing window was
-// active. It fires, emits the interior held-value bead only when the held value changes
-// (-1 → 0 → 1 → 0 …), places the ToNext broadcast beads WITHOUT walkers, and opens a
-// processing window sized to the LONGEST ToNext edge's ticksToCross
-// (steps*DwellTicksPerBead, docs/bead-model/bead-lattice.md "Timing") — a formula over the
-// node's own outputs, not a query of wire state. No live bead placed (suppressed sentinel
-// broadcast) ⇒ no real output transit ⇒ no processing window to observe.
-//
-// placeTick is this goroutine's own clock reading, read ONCE before placing so every ToNext
-// bead of this emission shares it (placeHeld's doc comment) and the processing-window
-// deadline is computed from the same reading the beads were actually stamped with. prevHeld
-// is the OLD held value (captured before updating in.Held) so the ordering is explicit.
 func (in *Time) consumeInput(clk clock.Clock, value int, held int) (newHeld int, windowActive bool, windowEndTick int64) {
 	if in.Fire != nil {
 		in.Fire()
@@ -121,35 +78,14 @@ func (in *Time) consumeInput(clk clock.Clock, value int, held int) (newHeld int,
 func (in *Time) Update(ctx context.Context) {
 	wire.TryEmit(in.EmitGeometry)
 
-	// -1 is the sentinel meaning "no value seen yet"; real values are non-negative
-	// indices, so gatecommon.NoValue never collides with a legitimate Init index.
 	held := gatecommon.NoValue
-	// Emit the initial interior bead state: held == NoValue → present=false (empty
-	// interior). The bead is re-emitted only when held actually changes below.
+
 	if in.EmitHeldBead != nil {
 		in.EmitHeldBead(held)
 	}
 
-	// Copy taken ONCE at this goroutine's start (Update IS the goroutine): from
-	// here on this loop reads only its own clock, never in.Clock (this node's
-	// origin field) directly again.
 	clk := in.Clock.Copy()
 
-	// Paced mode: single loop, one step per human-clock cycle. windowActive tracks
-	// whether the current cycle is inside a processing window — the span from
-	// consuming an input value until the placed ToNext beads' own traversal tick
-	// count has elapsed. Per MODEL.md §Sending, a node's processing window is a
-	// TICK COUNT derived from a formula, not a query of wire occupancy: the
-	// window length is ticksToCross (steps*DwellTicksPerBead, docs/bead-model/bead-lattice.md
-	// "Timing", already computed per wire) of the LONGEST ToNext edge, so it does
-	// not ask any wire whether a
-	// bead is still in flight. While a window is active, the input port is
-	// observed non-blockingly each cycle and any arrival (same or different
-	// value) is consumed and discarded (input consumption is decoupled from
-	// output transit; only the next window's PollRecv consumes a real input).
-	// The node is never parked across a traversal — it WaitTicks one
-	// human-clock cycle and StepOnces the in-flight ToNext beads exactly once per
-	// cycle, matching the canonical single-step shape (nodes/pacer, gatecommon.DriveHeld).
 	windowActive := false
 	var windowEndTick int64
 	for {
@@ -170,8 +106,6 @@ func (in *Time) Update(ctx context.Context) {
 			held, windowActive, windowEndTick = in.consumeInput(clk, value, held)
 		}
 
-		// Each ToNext wire's own goroutine advances its in-flight beads; this
-		// node only tracks whether the window's tick-count budget has elapsed.
 		if windowActive && clk.Tick() >= windowEndTick {
 			windowActive = false
 		}
@@ -179,14 +113,7 @@ func (in *Time) Update(ctx context.Context) {
 }
 
 func init() {
-	// Time CONSTRUCTS ITSELF. Every assignment below was previously performed by
-	// Wiring.reflectBuild, which matched this struct's field NAMES and TYPES by
-	// reflection — so renaming a field here used to leave it silently nil rather than
-	// failing to compile. Now it is a compile error.
-	//
-	// The port names are the SPEC names the loader binds; declaring them here (rather
-	// than having reflectPorts derive them from the struct) is what makes this kind's
-	// interface its own statement.
+
 	Wiring.RegisterBuilder("Time",
 		[]portwiring.PortSpec{
 			{Name: "In", Dir: portwiring.PortIn},
@@ -194,10 +121,7 @@ func init() {
 		},
 		func(a Wiring.BuildArgs) (wire.Node, error) {
 			n := &Time{
-				// Held defaults to the empty sentinel, not the int zero-value: 0 is a
-				// legitimate held value (a real bead), so an unset seed must be empty
-				// (NoValue) rather than a phantom 0. The data.state seed overrides this
-				// only when the spec authors a real starting value.
+
 				Held: a.StateSeed("held", gatecommon.NoValue),
 			}
 			n.Fire = a.Fire()
@@ -206,8 +130,7 @@ func init() {
 			n.SpeedCh = a.SpeedCh()
 			n.In = a.In("In")
 			n.ToNext = a.Broadcast("ToNext")
-			// EmitGeometry stays nil deliberately — nodeMover/edgeMover emit the same
-			// geometry from their own goroutine start (see builders.go's note).
+
 			return n, nil
 		})
 }

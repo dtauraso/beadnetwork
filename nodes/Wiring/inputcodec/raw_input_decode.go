@@ -1,11 +1,3 @@
-// raw_input_decode.go — decode of the ONE record kind that is not an addressed edit.
-//
-// A raw-input record is a flat run of fixed-width fields (pointer state + the stateless
-// raycast hit) in the exact order INPUT_LAYOUT_FINGERPRINT pins, so it reads as a straight
-// sequence rather than a dispatch — which is why it sits apart from input_codec.go's
-// per-kind edit decoding. Go's gesture FSM decides what the event MEANS; this file only
-// says where each number is.
-
 package inputcodec
 
 import "github.com/dtauraso/wirefold/nodes/Wiring/recread"

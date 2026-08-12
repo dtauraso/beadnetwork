@@ -1,6 +1,3 @@
-// wire-defs.ts pipeline: parses wire:"prop,..." tags off specEdge in
-// nodes/Wiring/loadspec/topo_spec.go (this file) and emits WIRE_PROPS/WireProps from the
-// parsed result (the sibling wire_defs_write.go).
 package main
 
 import (
@@ -11,15 +8,12 @@ import (
 	"strings"
 )
 
-// wireProp represents one wire:"prop,..." tagged field on specEdge.
 type wireProp struct {
-	jsonName string // from json:"..." tag
-	tsType   string // from tsType:... in wire tag
-	required bool   // false if "optional", true if "required"
+	jsonName string
+	tsType   string
+	required bool
 }
 
-// parseWirePropsFromFile parses wire:"prop,..." tags on fields of specEdge
-// in the given Go source file and returns them in declaration order.
 func parseWirePropsFromFile(filePath string) ([]wireProp, error) {
 	fset := token.NewFileSet()
 	f, err := parser.ParseFile(fset, filePath, nil, 0)
@@ -46,7 +40,7 @@ func parseWirePropsFromFile(filePath string) ([]wireProp, error) {
 					continue
 				}
 				rawTag := strings.Trim(field.Tag.Value, "`")
-				// Extract wire tag value (text after `wire:"` up to the closing quote).
+
 				_, wireVal, hasWire := strings.Cut(rawTag, `wire:"`)
 				if !hasWire {
 					continue
@@ -55,14 +49,7 @@ func parseWirePropsFromFile(filePath string) ([]wireProp, error) {
 				if !strings.HasPrefix(wireVal, "prop,") {
 					continue
 				}
-				// Parse segments: prop, optional|required, tsType:X
-				//
-				// A malformed prop tag is an ERROR, not a skip. These `continue`s used to be
-				// silent: a field tagged wire:"prop,tsType:string" (no optional|required
-				// segment) was dropped, the generator still printed "wrote wire-defs.ts
-				// (1 entries)" and exited 0, and the prop simply never reached TS. The tag
-				// looked correct in review and nothing anywhere said otherwise. If a field
-				// says it is a wire prop, either emit it or say why not.
+
 				fieldName := "<anonymous>"
 				if len(field.Names) > 0 {
 					fieldName = field.Names[0].Name
@@ -89,12 +76,12 @@ func parseWirePropsFromFile(filePath string) ([]wireProp, error) {
 					return nil, fmt.Errorf(
 						"specEdge.%s: wire tag %q has no tsType:<T> segment", fieldName, wireVal)
 				}
-				// Extract json name.
+
 				jsonName := ""
 				_, after, found := strings.Cut(rawTag, `json:"`)
 				if found {
 					jsonName, _, _ = strings.Cut(after, `"`)
-					// Strip omitempty etc.
+
 					jsonName, _, _ = strings.Cut(jsonName, ",")
 				}
 				if jsonName == "" && len(field.Names) > 0 {

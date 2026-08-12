@@ -1,6 +1,3 @@
-// AST read that discovers a kind's wire:"data.*" tagged struct fields (parseDataFieldsFromAST),
-// plus the Go-type-expression stringifier (goTypeExprStr) it depends on. The kind's registered
-// Go name is the sibling ast_kind.go's job.
 package kindscan
 
 import (
@@ -13,7 +10,6 @@ import (
 	"strings"
 )
 
-// goTypeExprStr converts an ast.Expr to a Go type string.
 func goTypeExprStr(expr ast.Expr) (string, bool) {
 	switch t := expr.(type) {
 	case *ast.Ident:
@@ -35,8 +31,6 @@ func goTypeExprStr(expr ast.Expr) (string, bool) {
 	return "", false
 }
 
-// parseDataFieldsFromAST reads all .go files in pkgDir and returns data fields
-// derived from struct fields tagged with wire:"data.*".
 func parseDataFieldsFromAST(pkgDir string) ([]DataField, error) {
 	fset := token.NewFileSet()
 	entries, err := os.ReadDir(pkgDir)

@@ -1,41 +1,5 @@
 package nodeactor
 
-// quant_offset_persist.go — the WRITE side of the quantized scalar triple (a,b,c) =
-// (iTheta,iPhi,iR) as file data.
-//
-// Path construction and the on-disk JSON shape (positionfile.FilePath, positionfile.JSON)
-// live in nodes/Wiring/positionfile, not here — this file (the node's own mover) is the
-// only writer (.claude/rules/persistence-ownership.md "The owner writes, and owns the path").
-//
-// A node's PERSISTED position is its EXACT scene-polar (r,θ,φ) about the scene center —
-// lossless, so a dragged node reloads at exactly where it was dropped. The quantized
-// scalar triple (quantITheta/quantIPhi/quantIR + steps) rides along as a self-describing
-// cache of the drag-time snap cells, NOT the position source. package Wiring's
-// commitNodeMoveLocal calls nm.CommitQuantOffset (node_geometry_accessors.go), which calls
-// persistQuantOffset below, for the dragged node's OWN NodeGeometry, writing
-// scenePolarR/Theta/Phi + the quant cache to `<root>/nodes/<id>/position.json` —
-// one-file-per-writer: this file has exactly one writer per node id (writeQuantOffset), so
-// each write is a fresh whole-file marshal, no read-modify-write, no entityFileMu
-// (deleted). Static node identity (id/type/r/gate) stays in meta.json, which this write
-// never touches. There is no local-polars.json any more — a node has no stored record of a
-// NEIGHBOUR's coordinate (MODEL.md "the polar model"); local-polars.json and its
-// reader/writer were deleted with the LocalPolar type.
-//
-// Go owns persistence (MODEL.md): fire-and-forget, SYNCHRONOUS — persistQuantOffset writes
-// immediately, inline on the caller's own goroutine (see nodes/Wiring/jsonpersist's header
-// comment for why the prior debounce was removed) — logs on error, never blocks the gesture. Only
-// nm.persistRoot == "" (never armed via package Wiring's EnableEditPersist/SetPersistRoot)
-// is a no-op. The owning goroutine IS the node's own NodeMover
-// (.claude/rules/persistence-ownership.md "The owner writes, and owns the path") — every
-// call site above runs on nm's own goroutine, never routed through MoveDispatch.
-//
-// LEGACY FALLBACK: an existing pre-split topology has these fields inline in meta.json
-// instead of a separate position.json/local-polars.json — package Wiring's loader_tree.go
-// loadTree reads meta.json first (still required — it owns id/type/r/gate) and then
-// overlays position.json / local-polars.json when present, so an old topology still loads
-// unchanged and the next drag/move writes forward into the new files without ever
-// migrating or deleting meta.json.
-
 import (
 	"fmt"
 
@@ -45,37 +9,16 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/quantoffset"
 )
 
-// persistQuantOffset writes THIS node's own exact position (scene) plus its quantized
-// triple to its OWN position.json, synchronously, on THIS node's own mover goroutine
-// (CommitQuantOffset calls it from nm's own inbox-drain goroutine — see
-// node_geometry_accessors.go). nm.persistRoot == "" (unarmed — bare test construction, or
-// no SetPersistRoot call) makes this a no-op. scene is the authoritative persisted
-// position.
-//
-// UNLIKE package Wiring's scene-level persisters (camera/overlays/sphere, each with ONE
-// owning goroutine), every node has its OWN mover goroutine, so many different nodes' own
-// persistQuantOffset calls can run concurrently — safe because each writes to a DIFFERENT
-// file (position.json is keyed by node id, so no two calls ever race the same
-// os.WriteFile/Rename) and nm.persistRoot is set once, before any mover goroutine starts,
-// and never written again.
 func (nm *NodeGeometry) persistQuantOffset(off quantoffset.QuantizedOffset, scene geom.Polar) {
 	if nm.persistRoot == "" {
 		return
 	}
-	// Carries this node's CURRENT vector-angle index along unchanged — writeQuantOffset
-	// is a fresh whole-file marshal (no read-modify-write), so a position-only write here
-	// must still round-trip whatever topTiltVectorThetaIdx this node already holds,
-	// or a later drag would silently reset a previously-set vector direction back to 0.
+
 	if err := writeQuantOffset(nm.persistRoot, nm.id, off, scene, nm.tilt.topTiltVectorThetaIdx); err != nil {
 		jsonpersist.LogPersistErr("quant_offset_persist", nm.id, err)
 	}
 }
 
-// persistTiltVectorAngle writes THIS node's own vector-direction indices to its OWN
-// position.json, synchronously, on THIS node's own mover goroutine (handle's
-// movemsg.KindTiltVectorAngle case). Carries the node's CURRENT position/quant-offset along
-// unchanged (same one-file whole-marshal shape as persistQuantOffset, reversed: this
-// write is angle-driven, not position-driven). nm.persistRoot == "" is a no-op.
 func (nm *NodeGeometry) persistTiltVectorAngle() {
 	if nm.persistRoot == "" {
 		return
@@ -85,12 +28,6 @@ func (nm *NodeGeometry) persistTiltVectorAngle() {
 	}
 }
 
-// writeQuantOffset writes the node's EXACT scenePolarR/Theta/Phi (the authoritative,
-// lossless position — see the package doc comment above) PLUS the quantized scalar triple
-// (iTheta,iPhi,iR) as a self-describing cache of the drag-time snap cells, as the WHOLE
-// content of <root>/nodes/<id>/position.json — the sole writer of that file, so each write
-// is a fresh marshal (no read-modify-write, and no leftover `reference` field to drop: that
-// was a meta.json-only artifact of the removed reference-tree model).
 func writeQuantOffset(root, id string, off quantoffset.QuantizedOffset, scene geom.Polar, topTiltVectorThetaIdx int32) error {
 	if !jsonpersist.SafeTreePathComponent(id) {
 		return fmt.Errorf("unsafe node id %q", id)

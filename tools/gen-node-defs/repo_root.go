@@ -5,7 +5,6 @@ import (
 	"path/filepath"
 )
 
-// findRepoRoot walks up from dir until it finds a directory containing "nodes/".
 func findRepoRoot(dir string) string {
 	for {
 		if _, err := os.Stat(filepath.Join(dir, "nodes")); err == nil {

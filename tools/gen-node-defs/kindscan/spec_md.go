@@ -1,5 +1,3 @@
-// SPEC.md parsing: the View table, the Ports table (accent/edgeKind/optional
-// overrides and the fallback port list), and the Default data fenced block.
 package kindscan
 
 import (
@@ -7,16 +5,6 @@ import (
 	"strings"
 )
 
-// parseSpecMD reads SPEC.md in pkgDir and returns the view definition,
-// a map of port-name → accent override, a map of port-name → edgeKind,
-// a set of optional port names from the Ports table, and the set of every
-// "Name" cell that appears in the Ports table (used by callers to validate
-// each one resolves to a real AST-derived port id — a typo previously
-// dropped its override silently instead of failing).
-// firstParagraph joins a section's leading paragraph into ONE line — the palette shows a
-// kind's description on a single row, and a SPEC is written in wrapped prose. Stops at the
-// first blank line, so a Description section can say more underneath without any of it
-// reaching the menu.
 func firstParagraph(sec []string) string {
 	var out []string
 	for _, l := range sec {
@@ -39,7 +27,6 @@ func parseSpecMD(pkgDir string) (ViewDef, map[string]string, map[string]string, 
 		return ViewDef{}, nil, nil, nil, nil, err
 	}
 
-	// Parse View section.
 	viewLines := sectionLines(lines, "View")
 	if viewLines == nil {
 		return ViewDef{}, nil, nil, nil, nil, fmt.Errorf("no View section")
@@ -71,7 +58,6 @@ func parseSpecMD(pkgDir string) (ViewDef, map[string]string, map[string]string, 
 		Desc:     firstParagraph(sectionLines(lines, "Description")),
 	}
 
-	// Parse Ports section for accent, edgeKind overrides, and optional flags.
 	accentOverrides := map[string]string{}
 	edgeKindOverrides := map[string]string{}
 	optionalPorts := map[string]bool{}
@@ -90,9 +76,7 @@ func parseSpecMD(pkgDir string) (ViewDef, map[string]string, map[string]string, 
 			if name == "" {
 				continue
 			}
-			// Record every Ports-table Name, even if it sets no override column,
-			// so callers can validate it resolves to a real AST-derived port id
-			// (a typo'd Name here previously dropped its override silently).
+
 			specPortNames[name] = true
 			if accentIdx != -1 && accentIdx < len(row) && row[accentIdx] != "" {
 				accentOverrides[name] = row[accentIdx]

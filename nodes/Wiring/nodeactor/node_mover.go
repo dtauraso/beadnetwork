@@ -1,14 +1,3 @@
-// node_mover.go — NodeMover, the RING-ONLY actor: its own goroutine, its own inbox drain,
-// its own clock-paced loop, wrapping a *NodeGeometry it owns (node_geometry.go). A PAIR
-// node (PairNode, task/pair-node-owns-itself) has NO NodeMover at all — its own kind
-// goroutine owns a *NodeGeometry directly (BuildArgs.ClaimSelfDrive, pair_node_self.go) —
-// there is nothing here for it to skip launching.
-//
-// Every field that is genuinely about GEOMETRY (position, wires, retry queue, tilt state,
-// persistence, the dedicated stream) lives on NodeGeometry, not here. What stays here is
-// ACTOR-ONLY: the pacing clock-poll (speedCh/ApplySpeedNonBlocking) and the goroutine loop
-// itself (Run). See node_geometry.go's own header comment for the full split.
-
 package nodeactor
 
 import (
@@ -21,33 +10,14 @@ import (
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 )
 
-// --- node path construction ---
-//
-// A node owns every path under its own <root>/nodes/<id>/ directory EXCEPT
-// nodes/<id>/edges/ (that subtree belongs to the edgeMover of each edge leaving this
-// node — see nodes/Wiring/edgemover's edge_mover.go doc comment and
-// .claude/rules/persistence-ownership.md "The model"). These are the ONLY functions in
-// this package that build those paths (positionfile.FilePath, in its own package, is the
-// one exception — see its doc comment for why); quant_offset_persist.go and package
-// Wiring's scene_anchor_persist.go call them rather than constructing the path
-// themselves. jsonpersist.SafeTreePathComponent is applied at each call site before use,
-// same as it always was — node ids and port names are spec-authored and must not escape
-// the tree root via ".." or a separator.
-
-// nodeMetaFilePath is <root>/nodes/<id>/meta.json — a node's kind and id.
 func nodeMetaFilePath(root, id string) string {
 	return filepath.Join(root, "nodes", id, "meta.json")
 }
 
-// nodeDirPath is <root>/nodes/<id> — the whole node, which is the unit a delete removes:
-// "a node and its outgoing edges are one unit" (.claude/rules/persistence-ownership.md).
 func nodeDirPath(root, id string) string {
 	return filepath.Join(root, "nodes", id)
 }
 
-// newNodeMeta / newNodePosition are the two files a CREATED node starts with. Position is
-// polar because that is what a node's position IS here; the quantized triple beside it is
-// this node's own mover's to fill in once it runs.
 type newNodeMeta struct {
 	ID   string `json:"id"`
 	Type string `json:"type"`
@@ -59,10 +29,6 @@ type newNodePosition struct {
 	ScenePolarPhi   float64 `json:"scenePolarPhi"`
 }
 
-// WriteNewNodeFiles creates <root>/nodes/<id>/ with its meta, position and empty edges dir.
-// It lives HERE, with every other per-node write, because a per-node file may only be
-// written by the node's own mover file (check-persist-write-ownership) — a node being born
-// has no running mover yet, but its bytes still belong to the same owner.
 func WriteNewNodeFiles(root, id, kind string, scenePolarR, theta, phi float64) error {
 	dir := nodeDirPath(root, id)
 	if err := os.MkdirAll(filepath.Join(dir, "edges"), 0o755); err != nil {
@@ -76,71 +42,36 @@ func WriteNewNodeFiles(root, id, kind string, scenePolarR, theta, phi float64) e
 	})
 }
 
-// RemoveNodeDir deletes a node and, with it, its OUTGOING edges — they live inside it. The
-// in-edges are another matter entirely and belong to their own sources (edgemover's own
-// RemoveEdgesTo).
 func RemoveNodeDir(root, id string) error {
 	return os.RemoveAll(nodeDirPath(root, id))
 }
 
-// NodeMover is the RING actor: its own goroutine (Run, launched by package Wiring's
-// moverRegistry.start) and its own speed channel, driving a *NodeGeometry it owns. It
-// carries no geometry fields of its own — everything about what a node's geometry IS
-// lives on geom.
 type NodeMover struct {
 	geom *NodeGeometry
-	// speedCh delivers a speed change to THIS node's own clk copy
-	// (per-goroutine-clock.md "Delivery"), polled via ApplySpeedNonBlocking every cycle
-	// of Run's loop. Set once, at construction (package Wiring's newMoveDispatch finalize
-	// pass, via SetSpeedCh), from the loader's build-wide speed-sink accumulator; nil in
-	// bare test construction, which is fine — ApplySpeedNonBlocking is a no-op on a nil
-	// channel. A PAIR node has no NodeMover and therefore no speedCh of its own — its own
-	// kind goroutine paces itself already.
+
 	speedCh chan float64
 }
 
-// NewNodeMover wraps geom in a RING actor. Only called for a node that never claims
-// BuildArgs.ClaimSelfDrive (see package Wiring's moverRegistry.finalizeActors).
 func NewNodeMover(geom *NodeGeometry) *NodeMover {
 	return &NodeMover{geom: geom}
 }
 
-// SetSpeedCh installs this actor's own speed-delivery channel — the construction-time
-// write package Wiring's moverRegistry.finalizeActors makes once, per node, before Run is
-// ever launched (mirrors edgemover.EdgeMover.SetSpeedCh exactly).
 func (m *NodeMover) SetSpeedCh(ch chan float64) {
 	m.speedCh = ch
 }
 
-// Run is the node's per-goroutine move loop. It paces itself on its OWN clock copy the
-// same way every other loop in the system does (edgemover.EdgeMover.Run, DriveHeld,
-// emitRefillSlide): a Clock.Copy() taken once here at goroutine start, ApplySpeedNonBlocking
-// polled once per cycle, and SleepCycle(ctx) as the pacing sleep at the bottom of the loop.
-//
-// Each cycle FIRST drains every one of geom's OWN dedicated inbound channels (extIn + one
-// per neighbor) — there is no shared inbox to drain — non-blockingly and acts on whatever
-// is there, repeating the drain pass until a full pass finds nothing left (so a backlog on
-// any one channel is fully drained before the cycle paces, not throttled to "one message
-// per channel per cycle"), THEN retries any pending sends, THEN sleeps one clock cycle.
-// Nothing here ever blocks on a receive OR a send: an empty channel just falls through its
-// `default`, exactly the "read non-blockingly at the top, act on what's there, pace on the
-// clock" shape the design calls for.
 func (m *NodeMover) Run(ctx context.Context) {
 	g := m.geom
 	if g.clocks.clockSrc != nil {
 		g.clocks.clk = g.clocks.clockSrc.Copy()
 	}
-	// ONE-TIME startup geometry emit, on THIS node's own goroutine — the sole per-owner
-	// source of a node's initial node-geometry event.
+
 	if g.tr != nil {
 		g.emitGeometry()
 	}
 	for {
 		clock.ApplySpeedNonBlocking(g.clocks.clk, m.speedCh)
-		// Drain-until-empty, transitively bounded by each channel's own declared
-		// capacity (inboxDepth) -- no iteration cap; see
-		// nodes/wire/paced_wire_drive.go's drainPlacements doc comment for the full
-		// reasoning shared by every drain-until-empty loop in this repo.
+
 		for {
 			progressed := false
 			select {
@@ -169,25 +100,14 @@ func (m *NodeMover) Run(ctx context.Context) {
 				break
 			}
 		}
-		// Drive THIS node's own outgoing wires — placement drain, position step, delivery
-		// — on this node's own goroutine and its own clock reading. This is the work
-		// edgeMover.run used to do for the wire; the wire has no goroutine of its own
-		// (docs/bead-model/beads-are-the-edge.md step 3). Driving it here is also what makes
-		// LiveBeadFractions safe to read below: same goroutine, no shared state.
-		//
-		// Read the clock ONCE for this whole pass, not once per wire: a per-wire read
-		// can straddle a tick boundary mid-loop, splitting one emission's beads across
-		// two ticks even though they were placed microseconds apart.
+
 		outTick := g.clocks.clk.Tick()
 		for _, pw := range g.outs.outWires {
 			pw.DriveOneCycle(ctx, outTick)
 		}
-		// Retry any pending sends every cycle — a destination that was full earlier may
-		// have drained since.
+
 		g.flushPending()
-		// Selection/hover/drag UI state may have changed even with no geometry change
-		// this cycle — write this node's dedicated stream frame every cycle (no-op when
-		// streamOut is nil), mirroring edgeMover.Run's same every-cycle writeStreamFrame call.
+
 		g.writeStreamFrame(nil)
 		if err := g.clocks.clk.SleepCycle(ctx); err != nil {
 			return

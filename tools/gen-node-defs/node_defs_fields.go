@@ -1,5 +1,3 @@
-// Builds the TS object-literal string for one NodeDef entry (buildDef) plus its port-
-// filtering/formatting helpers. writeNodeDefs (node_defs.go) calls buildDef once per kind.
 package main
 
 import (
@@ -36,10 +34,10 @@ func buildDef(v kindscan.ViewDef, ports []kindscan.Port) string {
 		fields = append(fields, fmt.Sprintf(`height: %s`, v.Height))
 	}
 	if v.Desc != "" {
-		// %q, not "%s": a description is prose and will contain quotes and apostrophes.
+
 		fields = append(fields, fmt.Sprintf(`desc: %q`, v.Desc))
 	}
-	// Emit typed inputs/outputs for schema/adapter consumers.
+
 	if len(targets) > 0 {
 		fields = append(fields, fmt.Sprintf(`inputs: [%s]`, joinPortsTyped(targets)))
 	}
@@ -59,13 +57,12 @@ func filterPorts(ports []kindscan.Port, dir string) []kindscan.Port {
 	return out
 }
 
-// joinPortsTyped emits {name, kind, isMulti?} pairs for NodeTypeDef-compatible consumers.
 func joinPortsTyped(ports []kindscan.Port) string {
 	var parts []string
 	for _, p := range ports {
 		ek := p.EdgeKind
 		if ek == "" {
-			ek = "chain" // default
+			ek = "chain"
 		}
 		if p.IsMulti {
 			parts = append(parts, fmt.Sprintf(`{ name: "%s", kind: "%s", isMulti: true }`, p.ID, ek))

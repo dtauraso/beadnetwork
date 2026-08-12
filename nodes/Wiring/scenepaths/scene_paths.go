@@ -1,76 +1,31 @@
-// Package scenepaths resolves ONLY the scene-level paths under a topology tree: the
-// one-file-per-writer view/camera.json, view/overlays.json, view/sphere.json.
-// TopologyPath is always the tree root directory — LoadTopology rejects anything else
-// (topo_spec.go's "a topology is a directory tree and nothing else") — so every function
-// here is a plain filepath.Join, no os.Stat/IsDir resolution needed.
-//
-// The pre-split shared view/scene.json sidecar (cameraPolar/overlay-flags/sceneSphere all
-// in one document) and its best-effort read fallback (sceneJSONPath/sceneCameraPath) were
-// REMOVED — no such file exists anywhere in this repo's tree, and nothing wrote it once the
-// one-file-per-writer split landed. A topology directory holding ONLY that legacy sidecar
-// now loses its camera pose, overlay flags and scene sphere on load (falls back to
-// defaultViewpoint / defaultOverlayState / a content-fit sphere) instead of migrating them
-// forward. This is a compatibility removal, not a cleanup — see the git log for this file.
-//
-// Node/port/edge path construction does NOT live here: it lives with the goroutine that
-// owns those files — node_mover.go (a node's own meta/position/data/inputs/outputs) and
-// edge_mover.go (an edge's own
-// nodes/<source>/edges/<label>.json). See MODEL.md / docs/planning/decentralized-
-// persistence.md "The model": the owner writes the file AND owns the path.
-//
-// Guard: tools/network/persist/check-scene-path-resolution.sh enforces the split by path pattern — see the
-// guard's own header for the current rule.
 package scenepaths
 
 import "path/filepath"
 
-// ViewFilePath resolves <topologyPath>/view/<name>. Backs the one-file-per-writer
-// split: camera.json, overlays.json and sphere.json each replace one of the three writers
-// that used to share scene.json, and each resolves its path through this one shared helper.
 func ViewFilePath(topologyPath, name string) string {
 	return filepath.Join(topologyPath, "view", name)
 }
 
-// SelectionFilePath resolves <anchorPath>/view/scene.json — the SCENE TAB selection.
-//
-// It takes the ANCHOR, not a loaded scene: the selection names which scene to load, so it
-// must be readable before one is chosen and must not move when the choice changes. Every
-// other resolver in this file takes the loaded scene's own root. Same "view/" join, one
-// deliberately different argument — which is why it lives here with them rather than being
-// hand-rolled at its call site.
 func SelectionFilePath(anchorPath string) string {
 	return ViewFilePath(anchorPath, "scene.json")
 }
 
-// CameraFilePath is the WRITE-side location of the persisted camera pose — the sole
-// successor to scene.json's cameraPolar key. camerapersist.WriteSceneCameraPolar is its
-// only writer.
 func CameraFilePath(topologyPath string) string {
 	return ViewFilePath(topologyPath, "camera.json")
 }
 
-// OverlaysFilePath is the WRITE-side location of the persisted overlay-visibility flags —
-// the sole successor to scene.json's overlay keys. writeSceneOverlays is its only writer.
 func OverlaysFilePath(topologyPath string) string {
 	return ViewFilePath(topologyPath, "overlays.json")
 }
 
-// SphereFilePath is the WRITE-side location of the persisted scene sphere — the sole
-// successor to scene.json's sceneSphere key. writeSceneSphere is its only writer.
 func SphereFilePath(topologyPath string) string {
 	return ViewFilePath(topologyPath, "sphere.json")
 }
 
-// SpeedFilePath is the WRITE-side location of the persisted playback-speed multiplier —
-// one-file-per-writer, mirroring camera/overlays/sphere above. writeSceneSpeed is its
-// only writer (scene_speed_persist.go).
 func SpeedFilePath(topologyPath string) string {
 	return ViewFilePath(topologyPath, "speed.json")
 }
 
-// LatticeFilePath is the WRITE-side location of the persisted pair-lattice point count —
-// one-file-per-writer, mirroring camera/overlays/sphere/speed above. writeSceneLattice is
-// its only writer (scene_lattice_persist.go).
 func LatticeFilePath(topologyPath string) string {
 	return ViewFilePath(topologyPath, "lattice.json")
 }

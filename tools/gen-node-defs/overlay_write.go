@@ -1,5 +1,3 @@
-// writeOverlayGen: the emit half of the overlay pipeline. Parsing OVERLAY_FLAG_NAMES
-// out of messages.ts into the overlayFlag slice this reads is overlay_gen.go.
 package main
 
 import (
@@ -10,14 +8,6 @@ import (
 	"os"
 )
 
-// writeOverlayGen emits nodes/Wiring/viewstate/overlay_state.go: the entire Go-side overlay
-// wiring mechanically derived from OVERLAY_FLAG_NAMES — the OverlayState struct + flip/emit
-// methods, the DefaultOverlayState constructor, and the OverlayToggles method-expression
-// table (bound directly to OverlayState, no MoveDispatch delegator tier). Deviating flags
-// (scene/node poles Breadcrumb) are generated from overlayOverrides. Adding an overlay flag
-// now means editing OVERLAY_FLAG_NAMES (+ the ~4-5 TS/render sites); every Go site above
-// is regenerated. Parity of the generated table is guarded by check-edit-op-parity.sh
-// (which reads this file's OVERLAY_TOGGLES sentinel) and staleness by check-generated.sh.
 func writeOverlayGen(outPath string, flags []overlayFlag) error {
 	var buf bytes.Buffer
 	w := bufio.NewWriter(&buf)
@@ -52,7 +42,6 @@ func writeOverlayGen(outPath string, flags []overlayFlag) error {
 	return os.WriteFile(outPath, formatted, 0644)
 }
 
-// writeOverlayStateStruct emits the OverlayState struct: one bool field per flag.
 func writeOverlayStateStruct(w *bufio.Writer, flags []overlayFlag) {
 	fmt.Fprintln(w, `// OverlayState groups the per-toggle overlay-visibility booleans and their`)
 	fmt.Fprintln(w, `// flip/emit logic. Owned by UIState (ui.OV); Wiring's stdin reader's OverlayToggles`)
@@ -65,7 +54,6 @@ func writeOverlayStateStruct(w *bufio.Writer, flags []overlayFlag) {
 	fmt.Fprintln(w)
 }
 
-// writeOverlaySetFlagHelper emits setFlag, the shared body of the uniform Toggle* methods.
 func writeOverlaySetFlagHelper(w *bufio.Writer) {
 	fmt.Fprintln(w, `// setFlag flips *field. Shared body of the uniform Toggle* methods. The RowEvent`)
 	fmt.Fprintln(w, `// carrying the new value is written by the caller's own goroutine directly (see`)
@@ -76,10 +64,6 @@ func writeOverlaySetFlagHelper(w *bufio.Writer) {
 	fmt.Fprintln(w)
 }
 
-// writeOverlayToggleMethods emits the per-flag Toggle (+ accessor) on OverlayState. tr is
-// kept only for the breadcrumb variants (scenePoles/nodePoles) and to keep every Toggle*
-// method's signature uniform for the OverlayToggles method-expression table; the per-owner
-// RowEvent write lives at the call site (Wiring's stdin_dispatch.go's applyUpdate), not here.
 func writeOverlayToggleMethods(w *bufio.Writer, flags []overlayFlag) {
 	for _, f := range flags {
 		field := exportField(f.field)
@@ -103,9 +87,6 @@ func writeOverlayToggleMethods(w *bufio.Writer, flags []overlayFlag) {
 	}
 }
 
-// writeOverlaySetGuideVisibility emits SetGuideVisibility on OverlayState. The 8 RowEvents
-// this snapshot implies are written by the caller (Wiring's scene_overlays_persist.go's
-// LoadOverlays) directly.
 func writeOverlaySetGuideVisibility(w *bufio.Writer) {
 	fmt.Fprintln(w, `// SetGuideVisibility installs an explicit-visibility snapshot wholesale (the TS`)
 	fmt.Fprintln(w, `// startup push so settings survive a Go respawn).`)

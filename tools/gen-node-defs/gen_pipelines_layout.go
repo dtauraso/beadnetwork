@@ -1,7 +1,3 @@
-// Pipeline phase functions that emit layout/geometry-adjacent generated files: curve/shading
-// params, the overlay-state Go file, the buffer layout Go+TS pair, frame tags, and the TS->Go
-// input-layout fingerprint mirror. Split out of main.go by concern — main.go keeps only the
-// entry point and the call sequence (see its header comment).
 package main
 
 import (
@@ -83,11 +79,6 @@ func generateFrameTags(repoRoot string) {
 	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d constants)\n", frameTagsTSPath, len(frameTagConsts))
 }
 
-// generateInputLayout scans the package for whichever file declares InputLayoutFingerprint
-// rather than naming one (it moved from input_codec.go to input_fingerprint.go when that
-// file was split by job — memory/feedback_guards_hardcoding_single_file_break_on_split.md —
-// and again from nodes/Wiring to nodes/Wiring/inputcodec when the TS->Go decode cluster was
-// lifted into its own package).
 func generateInputLayout(repoRoot string) {
 	wiringGoDir := filepath.Join(repoRoot, "nodes", "Wiring", "inputcodec")
 	inputFP, err := parseInputLayoutFingerprintDir(wiringGoDir)
@@ -98,6 +89,6 @@ func generateInputLayout(repoRoot string) {
 	if err := writeInputLayout(inputLayoutTSPath, inputFP); err != nil {
 		fatalf("write %s: %v", inputLayoutTSPath, err)
 	}
-	numConsts := 1 /* fingerprint */ + len(inputFP.kindNames) + 4 /* enum arrays */
+	numConsts := 1 + len(inputFP.kindNames) + 4
 	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d constants)\n", inputLayoutTSPath, numConsts)
 }

@@ -11,16 +11,12 @@ import (
 	"strings"
 )
 
-// curveParam is one exported constant from curve_params.go with a "CurveParam"
-// name prefix.
 type curveParam struct {
-	tsName string // TS export name (SCREAMING_SNAKE, CurveParam prefix stripped)
-	value  string // raw literal value (string or numeric)
-	isInt  bool   // true if the literal contains no decimal point
+	tsName string
+	value  string
+	isInt  bool
 }
 
-// parseCurveParams reads the Go source at goPath and returns all top-level
-// const declarations whose names start with "CurveParam".
 func parseCurveParams(goPath string) ([]curveParam, error) {
 	fset := token.NewFileSet()
 	f, err := parser.ParseFile(fset, goPath, nil, 0)
@@ -50,11 +46,11 @@ func parseCurveParams(goPath string) ([]curveParam, error) {
 					continue
 				}
 				raw := lit.Value
-				// Strip surrounding quotes from string literals.
+
 				if lit.Kind == token.STRING {
 					raw = strings.Trim(raw, `"`)
 				}
-				// Convert Go name CurveParamFooBar → TS name CURVE_PARAM_FOO_BAR
+
 				tsName := camelToScreamingSnake(name.Name)
 				isInt := lit.Kind == token.INT
 				params = append(params, curveParam{tsName: tsName, value: raw, isInt: isInt})
@@ -67,7 +63,6 @@ func parseCurveParams(goPath string) ([]curveParam, error) {
 	return params, nil
 }
 
-// writeCurveParams emits curve-params.ts from the parsed curveParam slice.
 func writeCurveParams(outPath string, params []curveParam) error {
 	var buf bytes.Buffer
 	w := bufio.NewWriter(&buf)

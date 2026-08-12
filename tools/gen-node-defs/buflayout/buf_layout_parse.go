@@ -7,56 +7,28 @@ import (
 	"strings"
 )
 
-// bufCol is one column within a buffer block (from a buf: struct tag).
 type bufCol struct {
-	name    string // Go field name, e.g. "X"
-	bufType string // "f32" | "i32" | "u32" | "u8"
-	offset  int    // byte offset within one row (packed, no padding)
+	name    string
+	bufType string
+	offset  int
 }
 
-// bufBlock is one column block from a bufLayout* struct definition.
 type bufBlock struct {
-	name    string   // e.g. "Bead", "Node", "Edge", "Camera", "Overlay"
-	columns []bufCol // in declaration order
-	stride  int      // total bytes per row
+	name    string
+	columns []bufCol
+	stride  int
 }
 
-// BufLayoutSchema is the parsed content of Buffer/layout.go.
 type BufLayoutSchema struct {
 	version              int
 	Blocks               []bufBlock
 	interiorSlotsPerNode int
 }
 
-// bufBlockOrder is the FIXED, canonical ordering of bufLayout* blocks that
-// BUF_LAYOUT_FINGERPRINT was built from back when they all lived in source
-// order in one file (Buffer/layout.go). Splitting the schema across several
-// files (Buffer/layout_*.go, one struct per file, scanned by
-// ParseBufferLayoutDir below) makes filesystem scan order no longer the
-// source of block order, so this list is what keeps the fingerprint byte-
-// identical across that split: every block found is re-sorted into this
-// order before the fingerprint is built. A block name missing from this list
-// is a loud error (fatalf), never a silent append — the same "scan, don't
-// hardcode a path, but never guess an order" shape as
-// parseInputLayoutFingerprintDir (memory/feedback_guards_hardcoding_single_file_break_on_split.md).
 var bufBlockOrder = []string{
 	"Node", "ChainBead", "Interior", "Edge", "Camera", "Overlay", "Scene", "Event",
 }
 
-// ParseBufferLayoutDir scans every *.go file directly in dir (Buffer/) for the
-// BufLayoutVersion/BufInteriorSlotsPerNode consts and bufLayout* struct types,
-// and returns the accumulated schema. Scanning the directory rather than a
-// single named file is what lets Buffer/layout.go's schema be split into
-// several files, one struct per file, without the generator losing track of
-// any of them (memory/feedback_guards_hardcoding_single_file_break_on_split.md,
-// the same shape as parseInputLayoutFingerprintDir in input_layout.go). Block
-// ORDER is then normalized via bufBlockOrder (above), independent of scan
-// order, so the fingerprint stays exactly what it was when everything lived
-// in declaration order in one file.
-//
-// The per-file AST parse itself (BufLayoutVersion/BufInteriorSlotsPerNode
-// consts, bufLayout* struct fields) is parseBufferLayoutFile, in
-// buf_layout_file_parse.go.
 func ParseBufferLayoutDir(dir string) (BufLayoutSchema, error) {
 	paths, err := filepath.Glob(filepath.Join(dir, "*.go"))
 	if err != nil {
@@ -123,8 +95,6 @@ func ParseBufferLayoutDir(dir string) (BufLayoutSchema, error) {
 	return schema, nil
 }
 
-// buildBufFingerprint builds a deterministic fingerprint string from the schema.
-// Both generated files embed this as a comment; the parity guard greps and compares.
 func buildBufFingerprint(schema BufLayoutSchema) string {
 	var parts []string
 	parts = append(parts, fmt.Sprintf("version:%d", schema.version))
