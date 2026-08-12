@@ -5854,3 +5854,81 @@ concurrent session on this same branch per this task's own instructions — not 
 either commit here. `go build ./...` and `go vet ./...` both clean after each commit.
 `go run ./tools/gen-node-defs && git status --short` empty (beyond the two files this
 pass itself created/modified) after both commits.
+
+## 2. `tools/gen-stream-fixture/` and `nodes/Wiring/nodegeom/` — two never-examined files
+
+`tools/gen-stream-fixture/main.go` (was 257 lines) is tooling, not the network — package
+`main`, no goroutines, no channels, no locks. Every statement in `buildNodeFrame`/
+`buildEdgeFrame`/`buildInteriorFrame` is bucket (b): pure struct construction from literals,
+one call into a real production packer (itself pure), one `hex.EncodeToString`. `main()`'s
+own body is the only bucket (a): `os.WriteFile` and the two `os.Exit`/`Fprintf` failure
+paths. No existing sibling package fits this tooling's own domain (fixture-shape types +
+frame builders), so it split IN PLACE: `types.go` (the four fixture structs), `build_frames.go`
+(the three builders, unchanged bodies), and a trimmed `main.go` left as pure CLI entry point
+(61 lines: arg parsing, marshal, write). No committed `stream_fixture.json` artifact exists
+in this tree today (grepped and confirmed absent), so there was nothing to diff for
+byte-identity; ran `go run ./tools/gen-stream-fixture <scratch-path>` post-split and
+confirmed it still emits well-formed JSON with the same literal field values.
+
+`nodes/Wiring/nodegeom/port_geometry.go` (was 257 lines) is the already-lifted pure-geometry
+package MODEL.md names for `ParallelChainOffset`/`EdgeCenterDistAndDir`. Every function body
+is bucket (b) — no field writes on a type staying behind, no channel/goroutine/file I/O,
+all local vec3 math. Split IN PLACE by concern, not lifted (nodegeom already IS the sibling
+package these functions belong to): `port_geometry.go` keeps `EdgeSegment` +
+`EdgeCenterDistAndDir` (the single edge segment / live distance-and-direction concern the
+file is named for); `parallel_chain_offset.go` takes `ParallelChainOffset` + `NodeIDLess`
+(the mutual-pair concern); `ring_axis.go` takes `PoleContainingEdge`,
+`TorusDefaultAxisAngles`, `UprightRingAxis`, and the trailing removed-function comment (the
+ring-axis-derivation concern). No API change — same package, same signatures.
+
+Also measured `nodes/Wiring/nodegeom/shading_params.go` (242 lines, over the ~200 bar) and
+**declined** to split it: it has no function bodies to classify — it is 100% top-level
+`const` declarations, explicitly documented in its own header as "single source of truth"
+that `tools/gen-node-defs/params_shading.go`'s `parseShadingParams` reads via AST from this
+ONE hardcoded path (`tools/gen-node-defs/main.go:136`) to generate `shading-params.ts`.
+Splitting it would either break that codegen (consts scattered across files it never scans)
+or require rewiring the generator to scan a directory — churn with no separable-concern
+payoff, since there is no statement-level logic here to separate. `node_geom.go` (170 lines)
+and `frame_geometry.go` (101 lines) are both under the ~200 bar; not touched.
+
+**Guard teeth:** grepped `tools/` and `scripts/` for every moved symbol
+(`ParallelChainOffset`, `NodeIDLess`, `PoleContainingEdge`, `TorusDefaultAxisAngles`,
+`UprightRingAxis`) and for `gen-stream-fixture`/`port_geometry` filenames — no guard
+pattern-matches any of them; `check-docs-symbols.sh` references `port_geometry.go` from
+`docs/pair-node/math/formulas.html`, but by PATH only (no `#symbol` anchor), so it is
+unaffected by which functions live in the file, only that the file still exists. Proved that
+guard still bites: edited `formulas.html`'s `data-src` to a nonexistent
+`port_geometry_DELIBERATE_BREAK.go`, ran `bash tools/docs/check-docs-symbols.sh`, got
+`check-docs-symbols: nodes/Wiring/nodegeom/port_geometry_DELIBERATE_BREAK.go does not exist
+(referenced as "nodes/Wiring/nodegeom/port_geometry_DELIBERATE_BREAK.go")`, exit 1; reverted
+with Edit, guard back to exit 0.
+
+**Changed surfaces with no check of any kind that can fail:** every statement in
+`gen-stream-fixture`'s three builder functions (whether the fixture's literal field values
+stay correct) — covered only by the TS-side fixture test reading the SAME hex, which this
+change did not touch, and by the human running `stream-fixture.test.ts`. All five functions
+moved out of `port_geometry.go` — `ParallelChainOffset`'s sign/perpendicular derivation,
+`NodeIDLess`'s numeric-vs-string fallback, the two ring-axis functions' plane math — have no
+guard or test verifying their arithmetic; correctness rests on `go build`/`go vet` (unchanged
+signatures, so nothing to catch here) plus the human driving the editor and observing ring
+orientation and mutual-pair chain separation, per this repo's no-tests-by-design policy.
+
+**Declines:** `shading_params.go` only (reasoning above) — no per-function pinning
+statement applies since there are no function bodies in that file.
+
+**Commits** (`task/god-objects`): `b9f8b810` (gen-stream-fixture → types.go + build_frames.go
++ trimmed main.go), `1fa2950d` (port_geometry.go → port_geometry.go + parallel_chain_offset.go
++ ring_axis.go), `cdb45939` (fix a doc-citation mismatch this pass introduced in
+`parallel_chain_offset.go`'s header, caught by `check-doc-citations` on the same pass).
+
+Verify: `bash scripts/stop-checks.sh` empty after the citation fix. `go build ./...`/
+`go vet ./...` on the whole tree failed with pre-existing, concurrent-session errors in
+`nodes/Wiring/layoutquant`/`nodes/Wiring/moverreg` (missing methods on
+`nodeactor.NodeGeometry`) — confirmed via `git status` these are uncommitted edits under
+`nodes/Wiring/nodeactor/` from another agent working that path per this task's own
+instructions, not touched here; `go build`/`go vet` scoped to
+`./nodes/Wiring/nodegeom/...`/`./tools/gen-stream-fixture/...` both clean. Dependency-rule
+scan (`dispatch` importers) showed only the two legitimate importers (`build`,
+`stdinreader`). `go run ./tools/gen-node-defs && git status --short` clean (regenerated
+`shading-params.ts` etc. identically, confirming the untouched `shading_params.go` still
+parses correctly through the unmodified codegen path).
