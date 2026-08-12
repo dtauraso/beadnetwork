@@ -1,42 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # PLACEMENT: none | universal prose hygiene: any file quoting CLAUDE.md/MODEL.md must quote it verbatim
-
-
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
@@ -49,15 +14,10 @@ for doc in CLAUDE.md MODEL.md; do
   fi
 done
 
-
-
-
 HISTORY_RE='(gone|removed|retired|deleted|erased|obsolete|legacy|superseded|replaced|no longer|used to|formerly|dead|was |were |old |reverted|rejected|abandoned|does not exist|doesn.t exist|never existed|unbuilt|no such|there is no|do not cite|do not re-add|until )'
 
 TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT
-
-
 
 normalize() {
   tr '\n' ' ' < "$1" | tr -s '[:space:]' ' ' | tr '[:upper:]' '[:lower:]' | sed 's/[*`]//g'
@@ -72,45 +32,11 @@ for f in claude model; do
   fi
 done
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 : > "$TMP/cites.txt"
-
-
-
-
 
 : > "$TMP/mentions.txt"
 git grep -nE '(CLAUDE|MODEL)\.md' -- '*.go' '*.ts' '*.tsx' '*.sh' '*.py' '*.md' '*.html' \
   > "$TMP/mentions.txt" 2>/dev/null || true
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 : > "$TMP/files.txt"
 : > "$TMP/filelines.txt"
@@ -130,8 +56,6 @@ if [[ ! -s "$TMP/files.txt" ]]; then
   echo "doc-citations: MISCONFIGURED — no candidate files survived filtering." >&2
   exit 1
 fi
-
-
 
 awk -v PATHS="$TMP/paths.txt" '
 function emit() {
@@ -154,9 +78,6 @@ FNR == 1 { emit(); path = FILENAME; text = ""
 END { emit() }
 ' $(cat "$TMP/files.txt") > "$TMP/norm.txt"
 
-
-
-
 nf=$(wc -l < "$TMP/files.txt" | tr -d ' ')
 nn=$(wc -l < "$TMP/norm.txt" | tr -d ' ')
 np=$(wc -l < "$TMP/paths.txt" | tr -d ' ')
@@ -170,27 +91,8 @@ if grep -qE '^[[:space:]]*$' "$TMP/norm.txt"; then
   exit 1
 fi
 
-
-
 FIRSTLINE=(0)
 while IFS= read -r _l; do FIRSTLINE+=("$_l"); done < "$TMP/filelines.txt"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 awk '{
   s = $0
@@ -206,13 +108,6 @@ while IFS= read -r rec; do
   n="${rec%%:*}"; window="${rec#*:}"
   path=$(sed -n "${n}p" "$TMP/paths.txt")
 
-
-
-
-
-
-
-
   if printf '%s' "$window" | grep -qiE "$HISTORY_RE"; then continue; fi
   hit=$(printf '%s' "$window" | grep -oE '(CLAUDE|MODEL)\.md'"'"'?s?[[:space:]]+"[^"]{3,}"' | tail -1)
   [[ -n "$hit" ]] || continue
@@ -224,15 +119,10 @@ done < "$TMP/windows.txt"
 
 if [[ ! -s "$TMP/cites.txt" ]]; then
 
-
   echo "doc-citations: EMPTY citation set — the extractor found no CLAUDE.md/MODEL.md citations at all." >&2
   echo "  That is almost certainly a broken regex, not a clean repo; refusing vacuous pass." >&2
   exit 1
 fi
-
-
-
-
 
 HITS=0
 while IFS=$'\t' read -r path line doc quoted; do
@@ -242,14 +132,10 @@ while IFS=$'\t' read -r path line doc quoted; do
     *) continue ;;
   esac
 
-
-
   needle=${quoted//[*\`]/}
   needle=${needle//$'\t'/ }
   needle=${needle//$'\n'/ }
   while [[ $needle == *"  "* ]]; do needle=${needle//  / }; done
-
-
 
   if ! grep -qiF -- "$needle" "$blob"; then
     if [[ $HITS -eq 0 ]]; then

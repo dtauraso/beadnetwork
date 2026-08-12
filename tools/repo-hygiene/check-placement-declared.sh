@@ -1,40 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-
-
 # PLACEMENT: none | this guard reads the guards themselves, not the tree
-
-
-
-
 
 #   # PLACEMENT: <glob>[,<glob>...] | <one-line rule>
 #   # PLACEMENT: none | <why this guard is not path-scoped>
 
-
-
-
-
-
-
-
-
-
 # language — gofmt, staticcheck, eslint, the prose-hygiene checks — declares "none" even
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
@@ -57,7 +29,6 @@ for guard in "${guards[@]}"; do
     missing+=("$name")
     continue
   fi
-
 
   while IFS= read -r line; do
     body="${line#*PLACEMENT:}"

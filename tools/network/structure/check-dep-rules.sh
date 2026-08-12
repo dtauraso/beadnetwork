@@ -2,28 +2,6 @@
 
 # PLACEMENT: nodes/*/node.go,nodes/*/*.go | a node-kind package may import only the shared spine (Wiring/gatecommon/wire), never a sibling kind
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -40,19 +18,12 @@ fi
 
 MODULE="github.com/dtauraso/wirefold"
 
-
 is_spine() { [ "$1" = "Wiring" ] || [ "$1" = "gatecommon" ] || [ "$1" = "wire" ]; }
 
 fail=0
 for dir in "$NODES_DIR"/*/; do
   kind="$(basename "$dir")"
   is_spine "$kind" && continue
-
-
-
-
-
-
 
   imported="$(grep -rhoE "\"$MODULE/nodes/[A-Za-z0-9_]+(/[A-Za-z0-9_/]+)?\"" "$dir" --include="*.go" 2>/dev/null \
       | sed -E "s#\"$MODULE/nodes/([A-Za-z0-9_]+)(/[A-Za-z0-9_/]+)?\"#\1#" | sort -u || true)"

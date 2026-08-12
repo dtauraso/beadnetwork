@@ -1,15 +1,5 @@
 #!/usr/bin/env bash
 
-
-
-
-
-
-
-
-
-
-
 set -uo pipefail
 
 input="$(cat)"
@@ -55,13 +45,6 @@ DESTRUCTIVE_PATTERNS=(
   'git[[:space:]]+branch[[:space:]].*-[Dd]([[:space:]]|$)'
   'git[[:space:]]+tag[[:space:]].*-d([[:space:]]|$)'
   '[-][-]force(-with-lease)?([[:space:]]|=|$)'
-
-
-
-
-
-
-
 
   'git[[:space:]]+merge([[:space:]]|$)'
 )

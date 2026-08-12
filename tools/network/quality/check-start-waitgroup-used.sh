@@ -1,26 +1,8 @@
 #!/usr/bin/env bash
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # PLACEMENT: *_test.go | a bare `<recv>.Start(ctx)` call must capture and Wait() its returned WaitGroup before cleanup
 set -uo pipefail
 cd "$(dirname "$0")/../../.."
-
-
 
 hits=$(git ls-files '*_test.go' -z \
   | xargs -0 grep -nE '^[[:space:]]*[A-Za-z_][A-Za-z0-9_]*\.Start\(ctx\)[[:space:]]*$' \

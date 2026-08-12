@@ -1,40 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # PLACEMENT: main.go,runtopology/edge_stream.go,runtopology/node_stream.go,Buffer/streamframe/stream_fds.go | every conditionally-wired per-owner StreamKind must have a named stream-fd mismatch report
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -43,12 +9,7 @@ cd "$REPO_ROOT"
 
 KINDS_FILE="Buffer/streamframe/stream_fds.go"
 
-
-
-
-
 MAIN_FILE="main.go runtopology/edge_stream.go runtopology/node_stream.go"
-
 
 for f in "$KINDS_FILE" $MAIN_FILE; do
   if [ ! -f "$f" ]; then
@@ -59,7 +20,6 @@ for f in "$KINDS_FILE" $MAIN_FILE; do
 done
 
 EXCLUDED="StreamKindView"
-
 
 kinds=()
 while IFS= read -r k; do
@@ -78,8 +38,6 @@ for k in "${kinds[@]}"; do
   case " $EXCLUDED " in
     *" $k "*) continue ;;
   esac
-
-
 
   grep -qE "streamFDs\[[A-Za-z_][A-Za-z0-9_]*\.$k\]" $MAIN_FILE || continue
   checked=$((checked + 1))

@@ -1,59 +1,5 @@
 #!/usr/bin/env bash
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 set -euo pipefail
 
 limit=20
@@ -63,12 +9,10 @@ while [ $# -gt 0 ]; do
     -n) limit="${2:?-n needs a count}"; shift 2 ;;
     -a) show_all=1; shift ;;
 
-
     -h|--help) sed -n '2,/^[^#]/p' "$0" | sed '$d; s/^# \{0,1\}//'; exit 0 ;;
     *) echo "unknown arg: $1 (try -h)" >&2; exit 2 ;;
   esac
 done
-
 
 roots=()
 for app in Code VSCodium Cursor "Code - Insiders"; do
@@ -79,17 +23,6 @@ if [ ${#roots[@]} -eq 0 ]; then
   echo "no VS Code log directory found under ~/Library/Application Support/" >&2
   exit 1
 fi
-
-
-
-
-
-
-
-
-
-
-
 
 gaps_for() {
   awk -v MAXGAP=60 -v MAIN="$1" '
@@ -126,7 +59,6 @@ gaps_for() {
 
 found=0
 for root in "${roots[@]}"; do
-
 
   while IFS= read -r log; do
 

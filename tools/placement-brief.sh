@@ -1,35 +1,8 @@
 #!/usr/bin/env bash
 set -uo pipefail
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #   # PLACEMENT: <glob>[,<glob>...] | <one-line rule>
 #   # PLACEMENT: none | <why this guard is not path-scoped>
-
-
-
-
-
-
-
-
-
-
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
@@ -38,8 +11,6 @@ if [ "$#" -lt 1 ]; then
   echo "usage: placement-brief.sh <path> [<path>...]" >&2
   exit 2
 fi
-
-
 
 repo_relative() {
   local p="$1"

@@ -1,26 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # PLACEMENT: nodes/Wiring/nodeactor/chain_beads.go | no math.Sqrt/.Length()/.Normalize(); bead placement stays index arithmetic (QuantIR*StepR)
-
-
-
-
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"

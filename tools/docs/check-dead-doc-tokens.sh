@@ -1,21 +1,13 @@
 #!/usr/bin/env bash
 
-
-
 # PLACEMENT: CLAUDE.md,MODEL.md | must not reintroduce tokens from the DEAD_TOKENS list (retired React Flow terms)
 set -euo pipefail
-
-
-
-
-
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 cd "$REPO_ROOT"
 
 DOCS=(CLAUDE.md MODEL.md)
-
 
 DEAD_TOKENS=(
   "rf/nodes"

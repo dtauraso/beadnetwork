@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-
-
 set -u
 cd "$(git rev-parse --show-toplevel)" || exit 1
 
@@ -16,8 +14,6 @@ fail=0
 while IFS= read -r line; do
   file=$(echo "$line" | cut -d: -f1)
   match=$(echo "$line" | cut -d: -f2-)
-
-
 
   if echo "$match" | command grep -q 'chan-name-ok'; then continue; fi
   name=$(echo "$match" | sed -E 's/.*[[:space:]]([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*:?=[[:space:]]*make\(chan.*/\1/')

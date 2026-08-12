@@ -1,57 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # PLACEMENT: nodes/Wiring/*.go | writeJSONAtomic/entityReadModifyWrite calls must live in the owning file (node/edge/view mover), never elsewhere
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -71,19 +20,11 @@ if [[ ! -f "$PLUMBING_PATH" ]]; then
   exit 1
 fi
 
-
-
 NODE_OWNERS=("node_mover.go" "quant_offset_persist.go" "scene_anchor_persist.go")
-
-
 
 EDGE_OWNERS=("edge_file.go" "edge_mover.go")
 
 VIEW_OWNERS=("scene_camera_persist.go" "scene_overlays_persist.go" "scene_sphere_persist.go" "scene_selection_persist.go" "scene_speed_persist.go" "scene_lattice_persist.go")
-
-
-
-
 
 TREE_OWNERS=("scene_counts_persist.go")
 
@@ -119,14 +60,6 @@ while IFS= read -r hit; do
   file="${hit%%:*}"; rest="${hit#*:}"; lineno="${rest%%:*}"; content="${rest#*:}"
   base="${file##*/}"
 
-
-
-
-
-
-
-
-
   if printf '%s\n' "$content" | grep -qE '^[[:space:]]*func[[:space:]]+(\([^)]*\)[[:space:]]+)?(writeJSONAtomic|entityReadModifyWrite)[[:space:]]*\('; then
     continue
   fi
@@ -142,8 +75,6 @@ while IFS= read -r hit; do
     continue
   fi
   if in_list "$base" "${NODE_OWNERS[@]}"; then
-
-
 
     if [[ "$content" == *"edges"* ]]; then
       report "node-owner-wrote-edge-path: $file: $lineno:$content"

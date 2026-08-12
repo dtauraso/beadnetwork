@@ -3,32 +3,13 @@ set -euo pipefail
 
 # PLACEMENT: nodes/Wiring/stdinreader/stdin_reader.go,tools/topology-vscode/src/messages.ts,tools/topology-vscode/src/extension/handle-message.ts,tools/topology-vscode/src/webview/** | a new message kind needs matching entries in Go's MSG_TYPES fence+doc, messages.ts, and a live sender
 
-
-
-
-
 #      MSG_TYPES_DOC block, and vice versa — so the header cannot undercount its switch.
-
-
-
-
-
-
-
-
-
-
-
-
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
-
 # (memory/feedback_guards_hardcoding_single_file_break_on_split.md): the MSG_TYPES fence and
 # its MSG_TYPES_DOC header sit in stdin_reader.go today, but that file has already been split
-
-
 
 GO_PKG_DIR="$REPO_ROOT/nodes/Wiring"
 MESSAGES_TS="$REPO_ROOT/tools/topology-vscode/src/messages.ts"
@@ -57,9 +38,6 @@ if [[ ! -d "$WEBVIEW_SRC_DIR" ]]; then
   exit 1
 fi
 
-
-
-
 #   case "...":  inside the MSG_TYPES_START/END fence
 kinds_from_go() {
   {
@@ -67,14 +45,7 @@ kinds_from_go() {
       | grep -oE '"[^"]+"' \
       | tr -d '"'
 
-
     # for top-level types. Same pattern as EDIT_OPS_START/END in applyEdit.
-
-
-
-
-
-
 
     awk '
       FNR==1 { inblk=0 }
@@ -90,7 +61,6 @@ kinds_from_go() {
 
 # Extract the types DECLARED in the package's MSG_TYPES_DOC block (stdin_reader.go's header). Only numbered
 
-
 kinds_from_go_doc() {
   awk '
     FNR==1 { inblk=0 }
@@ -103,9 +73,6 @@ kinds_from_go_doc() {
     | sort -u
 }
 
-
-
-
 kinds_from_ts() {
   awk '/WEBVIEW_TO_HOST_TYPES/,/\]\)/' "$MESSAGES_TS" \
     | grep -avE 'flatMap|WEBVIEW_TO_HOST_TYPES|\]\)' \
@@ -114,17 +81,9 @@ kinds_from_ts() {
     | sort -u
 }
 
-
-
-
-
-
 GO_KINDS=$(kinds_from_go) || true
 GO_DOC_KINDS=$(kinds_from_go_doc) || true
 TS_KINDS=$(kinds_from_ts) || true
-
-
-
 
 for pair in "GO_KINDS:stdin_reader.go MSG_TYPES fenced switch" \
             "GO_DOC_KINDS:stdin_reader.go MSG_TYPES_DOC header list" \
@@ -147,7 +106,6 @@ if [[ -n "$MISSING" ]]; then
   done <<< "$MISSING"
 fi
 
-
 UNDOCUMENTED=$(comm -23 <(echo "$GO_KINDS") <(echo "$GO_DOC_KINDS"))
 PHANTOM=$(comm -13 <(echo "$GO_KINDS") <(echo "$GO_DOC_KINDS"))
 
@@ -166,15 +124,6 @@ if [[ -n "$PHANTOM" ]]; then
     HITS=$((HITS + 1))
   done <<< "$PHANTOM"
 fi
-
-
-
-
-
-
-
-
-
 
 kinds_from_live_cases() {
   awk '
@@ -204,10 +153,7 @@ while IFS= read -r k; do
   fi
 done <<< "$LIVE_CASE_KINDS"
 
-
-
 # MSG_TYPES switch does NOT recognize is dead on both sides: no sender, no real handler
-
 
 kinds_from_declared_not_sent() {
   awk '

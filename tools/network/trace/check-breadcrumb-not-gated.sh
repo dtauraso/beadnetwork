@@ -2,41 +2,6 @@
 
 # PLACEMENT: nodes/wire/*.go,nodes/Wiring/*.go | only stepAll's KindEdgeBead append may sit behind edgeBeadTraceEnabled; breadcrumbs always emit
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -44,9 +9,6 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 cd "$REPO_ROOT"
 
 IDENT="edgeBeadTraceEnabled"
-
-
-
 
 files=()
 while IFS= read -r f; do
@@ -60,20 +22,12 @@ if [ ${#files[@]} -eq 0 ]; then
   exit 1
 fi
 
-
 all_hits=()
 while IFS= read -r line; do
   [ -n "$line" ] && all_hits+=("$line")
 done < <(grep -Hn "$IDENT" "${files[@]}" 2>/dev/null || true)
 
 total=${#all_hits[@]}
-
-
-
-
-
-
-
 
 guard_hits=()
 for h in "${all_hits[@]}"; do
@@ -109,9 +63,6 @@ if [ ${#guard_hits[@]} -ne 1 ]; then
   report+="memory/feedback_make_bug_class_unrepresentable.md."$'\n'
 else
 
-
-
-
   h="${guard_hits[0]}"
   gfile="${h%%:*}"
   rest="${h#*:}"
@@ -130,13 +81,6 @@ else
     report+="memory/feedback_make_bug_class_unrepresentable.md)."$'\n'
   fi
 fi
-
-
-
-
-
-
-
 
 IDENT2="StreamsActive"
 
@@ -171,8 +115,6 @@ for h in "${all_hits2[@]}"; do
   esac
 done
 
-
-
 if [ ${#guard_hits2[@]} -ne 2 ]; then
   fail=1
   report+="Expected exactly TWO guarding uses of $IDENT2 (stepAll's KindEdgeBead append and"$'\n'
@@ -195,8 +137,6 @@ else
       report+="  $h"$'\n'
     fi
   done
-
-
 
   for h in "${guard_hits2[@]}"; do
     gfile="${h%%:*}"

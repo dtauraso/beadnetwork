@@ -3,38 +3,10 @@ set -euo pipefail
 
 # PLACEMENT: nodes/Wiring/stdin_dispatch.go,tools/topology-vscode/src/messages.ts,tools/topology-vscode/src/schema/input-layout-gen.ts,tools/topology-vscode/src/webview/three/controls/flags/overlay-flags.ts | edit ops/update-kinds/overlay flags must stay listed identically on both sides of the bridge
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # Sentinel comments (X_START / X_END) bound each region so the greps cannot sweep in
-
-
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-
-
-
-
-
-
 
 GO_PKG_DIR="$REPO_ROOT/nodes/Wiring"
 go_fence_files() {
@@ -43,15 +15,7 @@ go_fence_files() {
 }
 MESSAGES_TS="$REPO_ROOT/tools/topology-vscode/src/messages.ts"
 
-
-
-
-
 HANDLE_MSG="$REPO_ROOT/tools/topology-vscode/src/schema/input-layout-gen.ts"
-
-
-
-
 
 OVERLAY_FLAGS_TS="$REPO_ROOT/tools/topology-vscode/src/webview/three/controls/flags/overlay-flags.ts"
 
@@ -78,21 +42,7 @@ for pair in "GO_OPS_FILES:EDIT_OPS_START" "GO_KINDS_FILES:EDIT_UPDATE_KINDS_STAR
   fi
 done
 
-
-
-
-
-
 # switch is fenced by EDIT_OPS_START/END", which is exactly the style stdin_dispatch.go and
-
-
-
-
-
-
-
-
-
 
 between() {
   local s="$1" e="$2"; shift 2
@@ -104,20 +54,9 @@ between() {
   ' "$@"
 }
 
-
 quoted() { grep -aoE '"[^"]+"' | tr -d '"' | sort -u; }
 
-
-
-
-
-
-
 toplevel_case() { awk '/^\tcase "/ || /^\t"[^"]+":/'; }
-
-
-
-
 
 assert_nonempty() {
   if [[ -z "$(printf '%s' "$1" | tr -d '[:space:]')" ]]; then
@@ -139,19 +78,12 @@ report_diff() {
   fi
 }
 
-
-
-
-
-
-
 TS_OPS=$(between EDIT_MSG_START EDIT_MSG_END "$MESSAGES_TS" | grep -aoE 'op: "[^"]+"' | quoted) || true
 GO_OPS=$(between EDIT_OPS_START EDIT_OPS_END $GO_OPS_FILES | toplevel_case | quoted) || true
 assert_nonempty "$TS_OPS" "axis1 messages.ts ops"
 assert_nonempty "$GO_OPS" "axis1 nodes/Wiring ops"
 report_diff "$(comm -13 <(echo "$GO_OPS") <(echo "$TS_OPS"))" "nodes/Wiring ops" \
             "$(comm -23 <(echo "$GO_OPS") <(echo "$TS_OPS"))" "messages.ts ops"
-
 
 TS_KINDS=$(between EDIT_MSG_START EDIT_MSG_END "$MESSAGES_TS" | grep -aoE 'kind: "[^"]+"' | quoted) || true
 GO_KINDS=$(between EDIT_UPDATE_KINDS_START EDIT_UPDATE_KINDS_END $GO_KINDS_FILES | toplevel_case | quoted) || true
@@ -164,29 +96,10 @@ report_diff "$(comm -13 <(echo "$GO_KINDS") <(echo "$TS_KINDS"))" "nodes/Wiring 
 report_diff "$(comm -13 <(echo "$HM_KINDS") <(echo "$TS_KINDS"))" "handle-message.ts kinds" \
             "$(comm -23 <(echo "$HM_KINDS") <(echo "$TS_KINDS"))" "messages.ts kinds"
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 TS_FLAGS=$(between OVERLAY_FLAGS_START OVERLAY_FLAGS_END "$MESSAGES_TS" | quoted) || true
 assert_nonempty "$TS_FLAGS" "axis3 messages.ts overlay flags"
 
 RENDER_READS=$(grep -aoE 'readOverlay[A-Za-z]+\(v\)' "$OVERLAY_FLAGS_TS" | sort -u)
-
-
-
 
 RENDER_KEYS=$(awk '/OverlayFlagVals = \{/{p=1;next} p&&/^[[:space:]]*};/{p=0} p&&/^[[:space:]]*[a-zA-Z_]+:/{print}' "$OVERLAY_FLAGS_TS" | grep -aoE '^[[:space:]]*[a-zA-Z_]+:' | sort -u)
 assert_nonempty "$RENDER_READS" "axis3 overlay-flags.ts readOverlay* reads"
@@ -199,12 +112,6 @@ if [[ "$N_FLAGS" -ne "$N_READS" || "$N_FLAGS" -ne "$N_KEYS" ]]; then
   echo "    (a flag was added/removed in messages.ts but not wired into overlay-flags.ts's renderer, or vice versa)"
   HITS=$((HITS+1))
 fi
-
-
-
-
-
-
 
 if [[ $HITS -eq 0 ]]; then
   echo "edit-op-parity: clean (ops + update kinds + overlay flags in parity)"

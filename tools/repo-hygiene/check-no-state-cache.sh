@@ -2,37 +2,11 @@
 
 # PLACEMENT: docs/**,*.md | no synced live-state snapshot doc; task state is derived from git/memory/MODEL.md
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 cd "$REPO_ROOT"
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 hits="$(find . \
   -type d \( -name node_modules -o -name .git -o -name out -o -name handoff-archive -o -path './.claude/worktrees' \) -prune -o \

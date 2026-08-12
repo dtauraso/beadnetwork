@@ -3,20 +3,6 @@ set -euo pipefail
 
 # PLACEMENT: nodes/Wiring/*.go,nodes/wire/*.go,tools/topology-vscode/src/schema/types.ts | a new SendRule const must also appear in the SEND_RULES array in types.ts
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
@@ -37,8 +23,6 @@ if [[ ! -f "$TYPES_TS" ]]; then
   exit 1
 fi
 
-
-
 rules_from_go() {
   local go_files
   go_files=$(cd "$REPO_ROOT" && git ls-files 'nodes/Wiring/*.go' 'nodes/Wiring/**/*.go' 'nodes/wire/*.go' 'nodes/wire/**/*.go')
@@ -49,8 +33,6 @@ rules_from_go() {
     | sort
 }
 
-
-
 rules_from_ts() {
   grep -a 'SEND_RULES' "$TYPES_TS" \
     | grep -o '"[^"]*"' \
@@ -58,17 +40,8 @@ rules_from_ts() {
     | sort
 }
 
-
-
-
-
-
 GO_RULES=$(rules_from_go) || true
 TS_RULES=$(rules_from_ts) || true
-
-
-
-
 
 assert_nonempty() {
   if [[ -z "$(printf '%s' "$1" | tr -d '[:space:]')" ]]; then

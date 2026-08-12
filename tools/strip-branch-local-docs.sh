@@ -1,10 +1,5 @@
 #!/usr/bin/env bash
 
-
-
-
-
-
 set -euo pipefail
 
 if [[ $# -ne 1 ]]; then
@@ -19,7 +14,6 @@ if [[ ! -d "$DOCS_DIR" ]]; then
   echo "Error: $DOCS_DIR not found. Run from repo root." >&2
   exit 1
 fi
-
 
 matched=()
 while IFS= read -r -d '' file; do
@@ -46,12 +40,7 @@ for f in "${matched[@]}"; do
   echo "  removed: $f"
 done
 
-
-
-
-
 for f in "${matched[@]}"; do
-
 
   hits=$(grep -rln --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=.claude -- "$f" . 2>/dev/null | grep -v '^\./docs/' || true)
   if [[ -n "$hits" ]]; then

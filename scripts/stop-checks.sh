@@ -1,29 +1,13 @@
 #!/usr/bin/env bash
 
-
-
-
 set -u
-
-
-
-
-
-
-
-
-
 
 MODE="hook"
 if [ "${1:-}" = "--cli" ]; then
   MODE="cli"
 fi
 
-
 CALLER_CWD="$PWD"
-
-
-
 
 emit_block() {
   if [ "$MODE" = "cli" ]; then
@@ -33,11 +17,6 @@ emit_block() {
   python3 -c "import json,sys; print(json.dumps({'decision':'block','reason':sys.stdin.read()}))" <<< "$1"
   exit 0
 }
-
-
-
-
-
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)" || {
   echo "stop-checks: MISCONFIGURED — cannot resolve script directory." >&2
@@ -52,10 +31,6 @@ if [ -z "$ROOT" ]; then
   exit 1
 fi
 
-
-
-
-
 repo_common="$(git -C "$SCRIPT_DIR" rev-parse --path-format=absolute --git-common-dir 2>/dev/null || true)"
 caller_common="$(git -C "$CALLER_CWD" rev-parse --path-format=absolute --git-common-dir 2>/dev/null || true)"
 if [ -z "$caller_common" ] || [ -z "$repo_common" ] || [ "$caller_common" != "$repo_common" ]; then
@@ -66,12 +41,6 @@ cd "$ROOT" || {
   echo "stop-checks: MISCONFIGURED — cannot cd to repo root '$ROOT'." >&2
   exit 1
 }
-
-
-
-
-
-
 
 worktree_changed=$(git status --porcelain 2>/dev/null | awk '{print $NF}')
 
@@ -91,13 +60,6 @@ changed=$(printf '%s\n%s\n' "$worktree_changed" "$committed_changed")
 go_changed=$(echo "$changed" | grep -E '\.go$' || true)
 ts_changed=$(echo "$changed" | grep -E 'tools/topology-vscode/.*\.(ts|tsx)$' || true)
 
-
-
-
-
-
-
-
 css_changed=$(echo "$changed" | grep -E 'tools/topology-vscode/.*\.css$' || true)
 
 fail=0
@@ -109,28 +71,11 @@ if [ -n "$go_changed" ]; then
     fail=1
   fi
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   if ! gotest_out=$(go test ./... 2>&1); then
     out+="go test failed:\n$gotest_out\n\n"
     fail=1
   fi
   # go vet + staticcheck. staticcheck COMPILES the whole module, so it is
-
 
   if ! sc_out=$(bash tools/lang/check-staticcheck.sh 2>&1); then
     out+="check-staticcheck failed:\n$sc_out\n\n"
@@ -144,11 +89,7 @@ if [ -n "$ts_changed" ] || [ -n "$css_changed" ]; then
     fail=1
   fi
 
-
-
-
   webview_out="tools/topology-vscode/out/webview.js"
-
 
   bundle_ts_changed=$(printf '%s\n%s' "$(echo "$ts_changed" | grep -v 'tools/topology-vscode/test/' || true)" "$css_changed" | grep -v '^$' || true)
   need_build=0
@@ -173,34 +114,14 @@ if [ -n "$ts_changed" ] || [ -n "$css_changed" ]; then
     fi
   fi
 
-
   if ! eslint_out=$(bash tools/lang/check-eslint.sh 2>&1); then
     out+="check-eslint failed:\n$eslint_out\n\n"
     fail=1
   fi
 
-
-
-
 fi
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #   check-staticcheck / check-eslint / check-vitest — expensive; invoked above under their
-
-
 
 GUARD_EXCLUDE="check-staticcheck|check-eslint|check-vitest|check-no-foreground-sim|check-stray-screenshots|check-no-shell-source-edits"
 
@@ -212,18 +133,6 @@ if [ ${#guards[@]} -eq 0 ]; then
   echo "stop-checks: MISCONFIGURED — no tools/*/check-*.sh found; refusing to report success." >&2
   exit 1
 fi
-
-
-
-
-
-
-
-
-
-
-
-
 
 GUARD_SERIAL="check-generated"
 JOBS=$(sysctl -n hw.ncpu 2>/dev/null || nproc 2>/dev/null || echo 4)
@@ -248,17 +157,11 @@ run_one_guard() {
 }
 export -f run_one_guard 2>/dev/null || true
 
-
 for chk_path in "${guard_selected[@]}"; do
   chk=$(basename "$chk_path" .sh)
   [ "$chk" = "$GUARD_SERIAL" ] || continue
   run_one_guard "$chk_path"
 done
-
-
-
-
-
 
 printf '%s\n' "${guard_selected[@]}" \
   | grep -v "/${GUARD_SERIAL}\.sh$" \
@@ -268,7 +171,6 @@ printf '%s\n' "${guard_selected[@]}" \
       printf "%s" "$go" > "$GDIR/$gn.out"
       printf "%s" "$grc" > "$GDIR/$gn.rc"
     ' 
-
 
 for chk_path in "${guard_selected[@]}"; do
   chk=$(basename "$chk_path" .sh)
@@ -286,7 +188,6 @@ if [ $fail -ne 0 ]; then
     printf 'stop-checks: FAILED\n\n%b\n' "$out" >&2
     exit 1
   fi
-
 
   python3 -c "
 import json, sys

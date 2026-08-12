@@ -2,43 +2,11 @@
 
 # PLACEMENT: nodes/**/*.go,Buffer/*.go,Trace/*.go | a panic must NAME the invariant it broke, not just the symptom
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 cd "$REPO_ROOT"
-
-
-
 
 readonly MIN_MSG_LEN=30
 
@@ -49,14 +17,10 @@ done
 
 [ ${#ROOTS[@]} -eq 0 ] && exit 0
 
-
-
 FILES="$(find "${ROOTS[@]}" -name '*.go' ! -name '*_test.go' -type f)"
 [ -z "$FILES" ] && exit 0
 
 fail=0
-
-
 
 report="$(echo "$FILES" | tr '\n' '\0' | xargs -0 awk -v minlen="$MIN_MSG_LEN" '
   FNR == 1 { seeking = 0 }
@@ -69,9 +33,6 @@ report="$(echo "$FILES" | tr '\n' '\0' | xargs -0 awk -v minlen="$MIN_MSG_LEN" '
     if (match($0, /"[^"]*"/)) {
       msg = substr($0, RSTART + 1, RLENGTH - 2)
       seeking = 0
-
-
-
 
       hastag = (msg ~ /^[A-Za-z_][A-Za-z0-9_.]*(\([^)]*\))?: /)
 

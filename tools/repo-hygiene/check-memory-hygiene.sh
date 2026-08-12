@@ -1,19 +1,5 @@
 #!/usr/bin/env bash
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # PLACEMENT: memory/*.md | needs YAML frontmatter with name/description/valid type, non-empty body, and an entry in memory/MEMORY.md
 set -euo pipefail
 
@@ -28,7 +14,6 @@ if [[ ! -d "$MEM_DIR" || ! -f "$INDEX" ]]; then
   exit 1
 fi
 
-
 allowed_type() { case "$1" in user|feedback|project|reference) return 0;; *) return 1;; esac; }
 
 files=()
@@ -38,12 +23,6 @@ if [[ ${#files[@]} -eq 0 ]]; then
   echo "check-memory-hygiene: MISCONFIGURED — no memory/*.md files found; refusing vacuous pass" >&2
   exit 1
 fi
-
-
-
-
-
-
 
 python3 -c "
 import re, sys

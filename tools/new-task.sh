@@ -1,16 +1,5 @@
 #!/usr/bin/env bash
 
-
-
-
-
-
-
-
-
-
-
-
 set -euo pipefail
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
@@ -22,8 +11,6 @@ NAME="${1:-}"
 DESC="${2:-}"
 [ -n "$NAME" ] || die "usage: tools/new-task.sh <short-kebab-name> [\"one-line description\"]"
 
-
-
 case "$NAME" in
   task/*) die "pass the SHORT name, not the branch: '${NAME#task/}' rather than '$NAME'" ;;
 esac
@@ -32,15 +19,9 @@ printf '%s' "$NAME" | grep -Eq '^[a-z0-9]+(-[a-z0-9]+)*$' \
 
 BRANCH="task/$NAME"
 
-
-
 git show-ref --verify --quiet "refs/heads/$BRANCH" && die "branch $BRANCH already exists"
 
-
-
 [ -z "$(git status --porcelain)" ] || die "working tree is dirty — commit or park (tools/wip.sh) before starting a new task"
-
-
 
 BASE=main
 if git show-ref --verify --quiet refs/remotes/origin/main; then

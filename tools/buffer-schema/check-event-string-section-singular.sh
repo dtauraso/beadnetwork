@@ -1,36 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # PLACEMENT: Buffer/layout_event.go | bufLayoutEvent may declare at most one `<Name>Off uint32` free-form string section
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -41,7 +11,6 @@ if [[ ! -f "$LAYOUT_FILE" ]]; then
   echo "check-event-string-section-singular: MISCONFIGURED — file not found: $LAYOUT_FILE" >&2
   exit 1
 fi
-
 
 BODY="$(awk '
   /^type bufLayoutEvent struct \{/ { grab=1; next }
@@ -54,8 +23,6 @@ if [[ -z "$BODY" ]]; then
   echo "  in $LAYOUT_FILE. If the struct was renamed, update this guard to match."
   exit 1
 fi
-
-
 
 OFF_FIELDS="$(printf '%s\n' "$BODY" | grep -oE '^[[:space:]]*[A-Za-z0-9_]+Off[[:space:]]+uint32' || true)"
 OFF_COUNT="$(printf '%s' "$OFF_FIELDS" | grep -c . || true)"

@@ -2,43 +2,11 @@
 
 # PLACEMENT: nodes/Wiring/move_dispatch.go,nodes/Wiring/nodeactor/node_geometry.go | a composer struct (MoveDispatch, nodeactor.NodeGeometry) stays THIN: new state belongs in a named sub-struct, not a new loose field
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 cd "$REPO_ROOT"
-
-
-
-
-
-
-
-
 
 COMPOSERS=(
   "type MoveDispatch struct {|12|the responsible owner type (rowtables.RowTables/geomseeds.GeomSeeds/streamWiring/uiState/moverRegistry/layoutQuantizer)"
@@ -53,20 +21,12 @@ for row in "${COMPOSERS[@]}"; do
   owners="${rest#*|}"
   name=$(printf '%s' "$decl" | awk '{print $2}')
 
-
-
-
-
-
-
   FILE=$( (grep -rl "^${decl}\$" nodes/Wiring/ --include="*.go" || true) | grep -v _test | head -1 || true)
   if [[ -z "${FILE:-}" || ! -f "$FILE" ]]; then
     echo "check-composer-fields: MISCONFIGURED — could not locate '${decl}' under nodes/Wiring/*.go; refusing vacuous pass" >&2
     fail=1
     continue
   fi
-
-
 
   body=$(awk -v decl="$decl" 'index($0, decl)==1 && !f {f=1;next} f&&/^\}/{f=0} f' "$FILE")
   if [[ -z "$body" ]]; then

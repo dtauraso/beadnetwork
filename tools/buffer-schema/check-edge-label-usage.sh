@@ -1,19 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 # PLACEMENT: tools/topology-vscode/src/webview/three/**/*.ts,tools/topology-vscode/src/webview/three/**/*.tsx | only buffer-decode-edge.ts/buffer-layout.ts may read EdgeLabelOff/Len; the renderer must not
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -28,12 +15,7 @@ if [ ! -d "$THREE_DIR" ]; then
   exit 1
 fi
 
-
-
 PATTERN='readEdgeEdgeLabelOff|readEdgeEdgeLabelLen|EdgeLabelOff|EdgeLabelLen'
-
-
-
 
 hits=$(grep -rnE "$PATTERN" "$THREE_DIR" --include="*.ts" --include="*.tsx" \
   | grep -v '/buffer-decode-edge.ts:' \

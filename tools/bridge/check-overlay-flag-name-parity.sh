@@ -1,21 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # PLACEMENT: tools/topology-vscode/src/messages.ts,nodes/Wiring/viewstate/overlay_state.go | OVERLAY_FLAG_NAMES (TS) and OverlayToggles keys (Go) must be the exact same name set
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

@@ -1,19 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-
-
-
-
-
-
-
-
-
-
 # PLACEMENT: nodes/wire/beadchain/bead_wake_group.go | StartDrag/EndDrag/BroadcastGeometry must call Advance, never loop over beads
-
-
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"

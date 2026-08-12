@@ -1,57 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # PLACEMENT: none | repo-wide hygiene check that every *.go/*.ts/*.tsx/*.js/*.jsx/*.sh/*.py file is git-visible (tracked or intent-to-add)
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 cd "$REPO_ROOT"
 
-
-
 INCLUDE_RE='\.(go|ts|tsx|js|jsx|sh|py)$'
-
-
-
-
-
-
-
 
 untracked=()
 while IFS= read -r f; do

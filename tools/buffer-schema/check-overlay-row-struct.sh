@@ -3,28 +3,6 @@ set -euo pipefail
 
 # PLACEMENT: Buffer/buffer_layout_gen.go,tools/gen-node-defs/buflayout/buffer_layout.go | SetOverlayRow must take one named OverlayRow struct, never positional same-typed scalars
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 

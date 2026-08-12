@@ -1,26 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-
-
-
-
-
 # PLACEMENT: Buffer/buffer_layout_gen.go,tools/topology-vscode/src/schema/buffer-layout.ts | BUF_LAYOUT_FINGERPRINT must match between the two generated layout files
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
@@ -35,8 +16,6 @@ for f in "$GO_FILE" "$TS_FILE"; do
   fi
 done
 
-
-
 fingerprint_go() {
   grep -a 'BUF_LAYOUT_FINGERPRINT:' "$GO_FILE" \
     | sed 's/.*BUF_LAYOUT_FINGERPRINT: //'
@@ -46,8 +25,6 @@ fingerprint_ts() {
   grep -a 'BUF_LAYOUT_FINGERPRINT:' "$TS_FILE" \
     | sed 's/.*BUF_LAYOUT_FINGERPRINT: //'
 }
-
-
 
 assert_nonempty() {
   if [[ -z "$(printf '%s' "$1" | tr -d '[:space:]')" ]]; then

@@ -3,39 +3,6 @@
 # PLACEMENT: nodes/SPEC-FORMAT.md,tools/gen-node-defs/kindscan/spec_md.go | the `## View` field table must name exactly the view.* fields parseSpecMD reads
 set -euo pipefail
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 cd "$REPO_ROOT"
@@ -55,11 +22,6 @@ fi
 TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT
 
-
-
-
-
-
 grep -rhoE 'vmap\["[A-Za-z0-9_]+"\]' "$GEN_DIR" --include="*.go" \
   | sed -E 's/vmap\["([A-Za-z0-9_]+)"\]/\1/' \
   | sort -u > "$TMP/code_fields.txt"
@@ -68,11 +30,6 @@ if [[ ! -s "$TMP/code_fields.txt" ]]; then
   echo "check-spec-format-view-fields: EMPTY vmap[...] extraction from $GEN_DIR/*.go — extractor broken, refusing vacuous pass" >&2
   exit 1
 fi
-
-
-
-
-
 
 awk '
   /^\| *Field *\| *Value *\|/ { intable=1; next }

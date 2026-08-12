@@ -3,55 +3,12 @@ set -euo pipefail
 
 # PLACEMENT: nodes/**/*.go | NewPacedWire must have exactly one non-test production call site, passing DwellTicksPerBead
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 
 CANONICAL_SPEED="DwellTicksPerBead"
 
 cd "$REPO_ROOT"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 CALLS=$(git ls-files -z --cached --others --exclude-standard '*.go' \
   | xargs -0 grep -n "NewPacedWire(" -- \
@@ -60,9 +17,6 @@ CALLS=$(git ls-files -z --cached --others --exclude-standard '*.go' \
   || true)
 
 COUNT=$(printf '%s' "$CALLS" | grep -c . || true)
-
-
-
 
 if [[ "$COUNT" -eq 0 ]]; then
   echo "uniform-pulse-speed: EMPTY — no non-test NewPacedWire call site found." >&2
@@ -82,7 +36,6 @@ if [[ "$COUNT" -ne 1 ]]; then
   echo "  the production constructor rather than adding another caller."
   HITS=$((HITS + 1))
 fi
-
 
 if ! printf '%s' "$CALLS" | grep -q "$CANONICAL_SPEED"; then
   echo "uniform-pulse-speed: the production call site does not pass $CANONICAL_SPEED:"

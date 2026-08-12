@@ -3,117 +3,26 @@
 # PLACEMENT: none | universal prose hygiene: every file's comments are checked, no placement decision
 set -euo pipefail
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 cd "$REPO_ROOT"
 
 ALLOWLIST="$SCRIPT_DIR/../doc-symbols-allow.txt"
 
-
 IDENT_RE='([A-Z][a-z0-9]+([A-Z][a-z0-9]*)+|[a-z][a-z0-9]*([A-Z][a-z0-9]*)+)'
 
-
-
-
 HISTORY_RE='(gone|removed|retired|deleted|erased|obsolete|legacy|superseded|replaced|no longer|used to|formerly|gutted|gone away|gone now|dead|gone\.|was |were |gone,|old |gone;|pre-|reverted|rejected|abandoned|do not re-|don.t re-|never re-|does not exist|doesn.t exist|never existed|unbuilt|no such|there is no|do not cite)'
-
-
 
 DOC_HISTORICAL_RE='<meta[[:space:]]+name="doc-status"[[:space:]]+content="historical"'
 
 TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT
 
-
-
-
 git ls-files -z '*.go' '*.ts' '*.tsx' '*.js' '*.sh' 2>/dev/null \
   | tr '\0' '\n' | grep -v '^tools/check-' | tr '\n' '\0' \
   | xargs -0 -r sed -e 's|//.*||' 2>/dev/null \
   | grep -oE "$IDENT_RE" \
   | sort -u > "$TMP/code.txt" || true
-
-
-
 
 git ls-files -z '*.go' '*.ts' '*.tsx' 2>/dev/null \
   | xargs -0 -r grep -hE '^[[:space:]]*(//|\*)' 2>/dev/null \
@@ -122,7 +31,6 @@ git ls-files -z '*.go' '*.ts' '*.tsx' 2>/dev/null \
   | grep -oE "$IDENT_RE" \
   | sort -u > "$TMP/from_go.txt" || true
 
-
 DOCS=(CLAUDE.md MODEL.md)
 while IFS= read -r spec; do DOCS+=("$spec"); done < <(git ls-files 'nodes/*/SPEC.md' 2>/dev/null || true)
 
@@ -130,15 +38,11 @@ while IFS= read -r spec; do DOCS+=("$spec"); done < <(git ls-files 'nodes/*/SPEC
 for d in "${DOCS[@]}"; do
   [[ -f "$d" ]] || continue
 
-
   grep -viE "$HISTORY_RE" "$d" 2>/dev/null \
     | grep -oE '`[^`]+`' \
     | grep -oE "$IDENT_RE" >> "$TMP/from_md.txt" || true
 done
 sort -u -o "$TMP/from_md.txt" "$TMP/from_md.txt"
-
-
-
 
 : > "$TMP/from_html.txt"
 while IFS= read -r page; do
@@ -154,9 +58,6 @@ sort -u -o "$TMP/from_html.txt" "$TMP/from_html.txt"
 
 cat "$TMP/from_go.txt" "$TMP/from_md.txt" "$TMP/from_html.txt" | sort -u > "$TMP/candidates.txt"
 
-
-
-
 for pair in "code.txt:code-identifier corpus" "candidates.txt:comment/doc candidates"; do
   f="${pair%%:*}"; label="${pair#*:}"
   if [[ ! -s "$TMP/$f" ]]; then
@@ -164,11 +65,6 @@ for pair in "code.txt:code-identifier corpus" "candidates.txt:comment/doc candid
     exit 1
   fi
 done
-
-
-
-
-
 
 : > "$TMP/allow.txt"
 if [[ -f "$ALLOWLIST" ]]; then

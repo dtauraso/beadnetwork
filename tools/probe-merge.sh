@@ -1,46 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 PROBE_DIR="$REPO_ROOT/.probe"
-
-
-
-
-
-
 
 GO_FILE="$PROBE_DIR/go.jsonl"
 GO_NODE_FILE="$PROBE_DIR/go-node.jsonl"
@@ -49,7 +12,6 @@ GO_INTERIOR_FILE="$PROBE_DIR/go-interior.jsonl"
 GO_ERR_FILE="$PROBE_DIR/go-errors.jsonl"
 TS_FILE="$PROBE_DIR/ts.jsonl"
 TS_ERR_FILE="$PROBE_DIR/ts-errors.jsonl"
-
 
 read_file() {
   local f="$1"
@@ -90,8 +52,6 @@ case "$MODE" in
     merge_and_sort "$GO_FILE" "$GO_NODE_FILE" "$GO_EDGE_FILE" "$GO_INTERIOR_FILE" "$GO_ERR_FILE"
     ;;
   --debug)
-
-
 
     {
       read_file "$GO_FILE"

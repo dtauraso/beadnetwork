@@ -1,30 +1,12 @@
 #!/usr/bin/env bash
 
-
-
 # PLACEMENT: nodes/wire/beadchain/bead_actor.go,nodes/wire/beadchain/bead_wake_group.go | must have a production call site outside nodes/wire and _test.go
-
-
-
-
-
-
-
-
-
-
-
-
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 cd "$REPO_ROOT"
-
-
-
-
 
 readonly SYMBOLS=(
   "beadchain.NewBead("
@@ -33,8 +15,6 @@ readonly SYMBOLS=(
   ".BroadcastGeometry("
   ".EndDrag("
 )
-
-
 
 prod_files=()
 while IFS= read -r f; do prod_files+=("$f"); done < <(

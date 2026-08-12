@@ -1,28 +1,5 @@
 #!/usr/bin/env bash
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # PLACEMENT: none | this is a PreToolUse(Bash) hook gating shell commands, not a source-file guard
 set -uo pipefail
 
@@ -37,19 +14,11 @@ emit() {
 
 if [ -z "$cmd" ]; then emit allow "no command string"; exit 0; fi
 
-
-
-
-
-
-
-
 CMD_HEAD='(^|[;&|(])[[:space:]]*'
 SIM_RE="${CMD_HEAD}(\./)?wirefold([[:space:]]|\$)|${CMD_HEAD}go[[:space:]]+run[[:space:]]+(\./?|github\.com/dtauraso/wirefold)([[:space:]]|\$)"
 if ! printf '%s' "$cmd" | grep -Eq "$SIM_RE"; then
   emit allow "not a sim run"; exit 0
 fi
-
 
 if [ "$bg" = "true" ]; then emit allow "sim run is harness-backgrounded"; exit 0; fi
 if printf '%s' "$cmd" | grep -Eq 'run-bounded\.sh'; then emit allow "sim run is bounded"; exit 0; fi

@@ -1,62 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-
-
 # PLACEMENT: nodes/Wiring/inputcodec/edit_update_decode.go,nodes/Wiring/stdin_dispatch.go,nodes/Wiring/stdin_apply.go | a new addressed-edit attribute must reach a handler, not just decode off the wire
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 cd "$REPO_ROOT"
-
-
-
-
-
 
 TABLE_FILE=$(grep -rl 'updateKindHandlers = map' --include='*.go' . \
   --exclude-dir=node_modules --exclude-dir=out --exclude-dir=.git 2>/dev/null | head -1 || true)
@@ -67,13 +16,6 @@ if [ -z "$TABLE_FILE" ]; then
   exit 1
 fi
 PKG_DIR="$(dirname "$TABLE_FILE")"
-
-
-
-
-
-
-
 
 CODEC_FILES=$(grep -rlE 'Kind: "[a-zA-Z]+", Attr: "[a-zA-Z]+"' --include='*.go' . \
   --exclude-dir=node_modules --exclude-dir=out --exclude-dir=.git 2>/dev/null || true)
@@ -92,14 +34,12 @@ if [ -z "$PAIRS" ]; then
   exit 1
 fi
 
-
 TABLE_BODY=$(awk '/updateKindHandlers = map/{p=1} p{print} p&&/^\}/{exit}' "$TABLE_FILE" || true)
 if [ -z "$TABLE_BODY" ]; then
   echo "check-input-attr-dispatched: MISCONFIGURED — could not read the updateKindHandlers"
   echo "table body out of $TABLE_FILE."
   exit 1
 fi
-
 
 func_body() {
   awk -v fn="$1" '
@@ -108,7 +48,6 @@ func_body() {
     p && /^\}/ { exit }
   ' $PKG_GO_FILES
 }
-
 
 var_block() {
   awk -v vn="$1" '
@@ -145,7 +84,6 @@ while read -r kind attr; do
     echo "  package; repoint this guard."
     exit 1
   fi
-
 
   for tbl in $(printf '%s\n' "$BODY" | grep -oE '[A-Za-z0-9_]+AttrHandlers' | sort -u || true); do
     BODY="$BODY

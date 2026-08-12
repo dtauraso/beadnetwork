@@ -2,29 +2,6 @@
 
 # PLACEMENT: nodes/**/*.go | every refuseStructuralEdit(...) call site must be followed by
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

@@ -3,53 +3,21 @@
 # PLACEMENT: tools/topology-vscode/src/webview/**/*.ts,tools/topology-vscode/src/webview/**/*.tsx | TS plots what Go streams: no bead positions, no edge curves, no traversal timing computed here
 set -euo pipefail
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 SRC_DIR="$REPO_ROOT/tools/topology-vscode/src"
-
-
-
 
 if [[ ! -d "$SRC_DIR" ]]; then
   echo "ts-computes-no-geometry: MISCONFIGURED — scan dir not found: $SRC_DIR" >&2
   exit 1
 fi
 
-
-
-
 ts_file_count=$(find "$SRC_DIR" \( -name "*.ts" -o -name "*.tsx" \) | head -1 | wc -l | tr -d ' ')
 if [[ "$ts_file_count" -eq 0 ]]; then
   echo "ts-computes-no-geometry: MISCONFIGURED — no .ts/.tsx files under $SRC_DIR" >&2
   exit 1
 fi
-
-
-
 
 FORBIDDEN=(
   "getPointAt"

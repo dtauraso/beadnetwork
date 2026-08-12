@@ -1,36 +1,5 @@
 #!/usr/bin/env bash
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # PLACEMENT: nodes/**/*.go,Buffer/**/*.go,tools/topology-vscode/src/**/*.ts | no node-node polar record (LocalPolar et al.); exactly one bead-centre summation site (node-stream-blocks.ts)
 
 set -euo pipefail
@@ -41,10 +10,6 @@ cd "$REPO_ROOT"
 
 fail=0
 SELF="$(basename "$0")"
-
-
-
-
 
 BANNED_SYMBOLS='\bLocalPolar\b|\bLayoutHolder\b|\bSetLocalPolar\(|\bLocalPolarsSnapshot\(|\bLoadLocalPolars\(|\brequantizeLocalPolars\(|\brequantizePoleTraced\(|\bneighborSetCRequantize\('
 
@@ -70,10 +35,7 @@ if [ -n "$hits" ]; then
   fail=1
 fi
 
-
 TS_DIR="tools/topology-vscode/src"
-
-
 
 SUM_PATTERN='[A-Za-z0-9_.]+[[:space:]]*\+[[:space:]]*readChainBeadO[XYZ]\('
 

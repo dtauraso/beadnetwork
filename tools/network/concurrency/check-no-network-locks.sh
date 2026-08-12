@@ -2,28 +2,6 @@
 
 # PLACEMENT: nodes/**/*.go | no sync.Mutex/RWMutex and no sync/atomic in the network: use ownership + message passing
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

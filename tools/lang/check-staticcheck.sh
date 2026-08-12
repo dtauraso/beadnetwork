@@ -3,20 +3,13 @@ set -euo pipefail
 
 # check-staticcheck.sh — Go static-analysis guard (the Go equivalent of
 
-
 # PLACEMENT: none | universal Go vet/staticcheck hygiene, not a placement decision
-
-
-
 
 #   2. `staticcheck ./...` — a dev tool that must be installed separately. Policy:
 
-
 #               the dev tool; staticcheck is enforced whenever it is present
 
-
 cd "$(git rev-parse --show-toplevel)"
-
 
 if ! vet_out=$(go vet ./... 2>&1); then
   echo "go vet failed:" >&2
@@ -38,7 +31,6 @@ if [ -z "$staticcheck_bin" ]; then
   echo "  go install honnef.co/go/tools/cmd/staticcheck@latest)" >&2
   exit 0
 fi
-
 
 if ! sc_out=$("$staticcheck_bin" ./... 2>&1); then
   echo "staticcheck reported findings:" >&2

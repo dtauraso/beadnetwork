@@ -1,30 +1,6 @@
 #!/usr/bin/env bash
 
-
-
 # PLACEMENT: .claude/settings.json,.githooks/* | a new hook command must be classified and added to the ALLOWED list here
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 set -euo pipefail
 
@@ -38,8 +14,6 @@ if [[ ! -f "$SETTINGS" ]]; then
   exit 1
 fi
 
-
-
 readonly ALLOWED=(
   "stop-checks.sh"
   "check-stray-screenshots.sh"
@@ -48,12 +22,9 @@ readonly ALLOWED=(
   "block-open-html-hook.py"
   "check-no-shell-source-edits.sh"
 
-
   "placement-brief-hook.sh"
 )
 is_allowed() { local s="$1"; for a in "${ALLOWED[@]}"; do [[ "$s" == "$a" ]] && return 0; done; return 1; }
-
-
 
 cmds="$(python3 - "$SETTINGS" <<'PY'
 import json, sys, os
@@ -92,10 +63,6 @@ done <<< "$cmds"
 # work in flight, so both belong to this guard — otherwise adding a git hook would create an
 # enforcement mechanism that the repo's own hook audit cannot see.
 
-
-
-
-
 HOOKS_DIR=".githooks"
 readonly EXPECTED_GIT_HOOKS=(
   "pre-push"
@@ -112,8 +79,6 @@ for h in "${EXPECTED_GIT_HOOKS[@]}"; do
     fail=1
   fi
 done
-
-
 
 configured="$(git config --local --get core.hooksPath 2>/dev/null || true)"
 if [[ "$configured" != "$HOOKS_DIR" ]]; then

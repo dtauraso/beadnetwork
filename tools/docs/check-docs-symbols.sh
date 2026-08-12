@@ -3,29 +3,11 @@
 # PLACEMENT: docs/pair-node/**/*.html | a data-src naming a definition must name one that still exists
 set -euo pipefail
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 cd "$REPO_ROOT"
 
 fail=0
 note() { echo "check-docs-symbols: $*" >&2; fail=1; }
-
 
 refs=$(grep -ho 'data-src="[^"]*"' docs/pair-node/*.html docs/pair-node/*/*.html 2>/dev/null \
   | sed -E 's/^data-src="//; s/"$//' | sort -u)
@@ -46,8 +28,6 @@ while IFS= read -r ref; do
     continue
   fi
   [ -n "$symbol" ] || continue
-
-
 
   if ! grep -qE \
     "^func[[:space:]]+(\([^)]*\)[[:space:]]*)?${symbol}\b|\

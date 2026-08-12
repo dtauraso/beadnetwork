@@ -3,20 +3,7 @@
 # PLACEMENT: nodes/wire/beadchain/bead_actor.go,nodes/wire/*.go | a bead goroutine's select must have NO default: case — it parks, it never spins
 set -euo pipefail
 
-
-
-
-
-
-
-
-
 # nodes/wire/beadchain/bead_actor.go's Bead.run, fenced by BEAD-SELECT-START/END, NOT a repo-wide "no
-
-
-
-
-
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"

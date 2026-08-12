@@ -1,29 +1,5 @@
 #!/usr/bin/env bash
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # PLACEMENT: nodes/**/*.go | no time.Sleep/time.After/time.NewTicker outside nodes/wire/clock/clock.go; block on the tick channel instead
 set -euo pipefail
 

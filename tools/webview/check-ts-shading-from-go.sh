@@ -1,66 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # PLACEMENT: tools/topology-vscode/src/webview/three/**/*.ts,tools/topology-vscode/src/webview/three/**/*.tsx | Go-owned shading props (roughness, ior, etc.) must reference shading-params.ts, not a numeric literal
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -72,11 +12,6 @@ if [[ ! -d "$SCAN_DIR" ]]; then
   echo "ts-shading-from-go: render dir not found at $SCAN_DIR" >&2
   exit 1
 fi
-
-
-
-
-
 
 PROPS=(
   transmission
@@ -97,12 +32,7 @@ PROPS=(
   emissiveIntensity
 )
 
-
-
-
-
 EXCLUDED_FILES=(SelectionHighlight.tsx NavGuides.tsx polar-frame.tsx)
-
 
 NUM='-?(0x[0-9a-fA-F]+|[0-9]+\.?[0-9]*([eE][-+]?[0-9]+)?)'
 
@@ -126,7 +56,6 @@ for prop in "${PROPS[@]}"; do
   done < <(grep -arnE "\b${prop}[[:space:]]*=\{[[:space:]]*${NUM}[[:space:]]*\}|\b${prop}:[[:space:]]*${NUM}\b" \
     --include='*.ts' --include='*.tsx' "$SCAN_DIR" 2>/dev/null || true)
 done
-
 
 if ! grep -arq --include='*.ts' --include='*.tsx' 'schema/shading-params"' "$SCAN_DIR"; then
   echo 'ts-shading-from-go: three/ does not import from "../../schema/shading-params" — shading params must come from Go'

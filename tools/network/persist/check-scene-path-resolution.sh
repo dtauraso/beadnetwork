@@ -1,40 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # PLACEMENT: nodes/Wiring/*.go | view/*.json path resolution lives only in scene_paths.go; nodes/ path Join lives only in node_mover.go/edge_mover.go/loader_tree.go/tree_shape.go
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -42,21 +8,11 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 WIRING_DIR="$REPO_ROOT/nodes/Wiring"
 RESOLVER="$WIRING_DIR/scenepaths/scene_paths.go"
 
-
-
-
-
-
-
-
-
 if [[ ! -d "$WIRING_DIR" ]]; then
   echo "check-scene-path-resolution: MISCONFIGURED — $WIRING_DIR not found (moved/renamed?)." >&2
   echo "  Refusing to report clean without scanning anything; update WIRING_DIR in $(basename "$0")." >&2
   exit 1
 fi
-
-
 
 if [[ ! -f "$RESOLVER" ]]; then
   echo "check-scene-path-resolution: MISCONFIGURED — $RESOLVER not found." >&2
@@ -78,10 +34,6 @@ report() {
   HITS=$((HITS + 1))
 }
 
-
-
-
-
 eligible_files=()
 while IFS= read -r file; do
   [[ "$file" == *"_test.go" ]] && continue
@@ -89,17 +41,11 @@ while IFS= read -r file; do
   eligible_files+=("$file")
 done < <(find "$WIRING_DIR" -name "*.go" -not -path "*/node_modules/*")
 
-
-
-
-
-
 all_hits=""
 if [[ ${#eligible_files[@]} -gt 0 ]]; then
   all_hits="$(grep -nE 'IsDir\(\)|scenepaths\.CameraFilePath\(|scenepaths\.OverlaysFilePath\(|scenepaths\.SphereFilePath\(|scenepaths\.ViewFilePath\(|filepath\.Join\(' \
     "${eligible_files[@]}" 2>/dev/null || true)"
 fi
-
 
 while IFS= read -r hit; do
   [[ -z "$hit" ]] && continue
@@ -115,15 +61,6 @@ if [[ $HITS -ne 0 ]]; then
   exit 1
 fi
 
-
-
-
-
-
-
-
-
-
 CALL_SITES=0
 while IFS= read -r hit; do
   [[ -z "$hit" ]] && continue
@@ -138,11 +75,6 @@ if [[ "$CALL_SITES" -eq 0 ]]; then
   echo "  The resolvers exist but nothing calls them; the IsDir-only scan above would pass vacuously." >&2
   exit 1
 fi
-
-
-
-
-
 
 JOIN_HITS=0
 while IFS= read -r hit; do
@@ -160,14 +92,6 @@ if [[ "$JOIN_HITS" -ne 0 ]]; then
   echo "check-scene-path-resolution: $JOIN_HITS hand-rolled filepath.Join(\"view\", ...) hit(s) outside scene_paths.go — call the shared resolver in scene_paths.go instead."
   exit 1
 fi
-
-
-
-
-
-
-
-
 
 NODE_PATH_OWNERS=("node_mover.go" "edge_mover.go" "edge_file.go" "loader_tree.go" "tree_shape.go" "position_file.go")
 is_node_path_owner() {

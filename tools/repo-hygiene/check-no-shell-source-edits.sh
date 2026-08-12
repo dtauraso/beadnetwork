@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-
-
-
 # but bypasses everything the tool path provides:
 #
 #   * placement-brief-hook.sh (PreToolUse Write|Edit) never fires, so a NEW file is created

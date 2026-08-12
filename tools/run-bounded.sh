@@ -1,21 +1,5 @@
 #!/usr/bin/env bash
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 set -uo pipefail
 
 if [ "$#" -lt 2 ]; then
@@ -24,8 +8,6 @@ if [ "$#" -lt 2 ]; then
 fi
 
 limit="$1"; shift
-
-
 
 perl -e '
   my $limit = shift;

@@ -1,25 +1,11 @@
 #!/usr/bin/env bash
 set -uo pipefail
 
-
-
-
 # PLACEMENT: none | this is the hook wrapper itself; it reads the guards, it does not constrain a source path
-
-
-
-
-
-
-
-
-
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 payload="$(cat)"
-
-
 
 path="$(printf '%s' "$payload" | python3 -c '
 import json, sys
@@ -31,9 +17,6 @@ print(d.get("tool_input", {}).get("file_path", "") or "")
 ' 2>/dev/null || true)"
 
 [ -z "$path" ] && exit 0
-
-
-
 
 [ -e "$path" ] && exit 0
 

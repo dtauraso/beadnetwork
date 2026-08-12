@@ -3,23 +3,6 @@
 # PLACEMENT: Buffer/layout*.go,nodes/Wiring/inputcodec/input_fingerprint.go,nodes/*/SPEC.md | changing a generator source means running `go run ./tools/gen-node-defs` in the SAME commit
 set -euo pipefail
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 REPO_ROOT="$(git rev-parse --show-toplevel)" || {
   echo "check-generated: MISCONFIGURED — cannot locate repo root." >&2
   exit 1
@@ -32,13 +15,10 @@ GEN_OUT=$(cd tools/topology-vscode && npm run --silent gen:node-defs 2>&1) || {
   exit 1
 }
 
-
 FILES=$(printf '%s\n' "$GEN_OUT" \
   | sed -nE 's|^gen-node-defs: wrote ([^ ]+).*$|\1|p' \
   | sed "s|^$REPO_ROOT/||" \
   | sort -u)
-
-
 
 if [[ -z "$FILES" ]]; then
   echo "check-generated: MISCONFIGURED — parsed 0 generated files from the generator output." >&2
@@ -47,8 +27,6 @@ if [[ -z "$FILES" ]]; then
   printf '%s\n' "$GEN_OUT" | sed 's/^/    /' >&2
   exit 1
 fi
-
-
 
 UNTRACKED=0
 while IFS= read -r f; do
@@ -60,7 +38,6 @@ while IFS= read -r f; do
   fi
 done <<< "$FILES"
 [[ $UNTRACKED -eq 0 ]] || exit 1
-
 
 stale=$(git status --porcelain -- $FILES 2>/dev/null || true)
 

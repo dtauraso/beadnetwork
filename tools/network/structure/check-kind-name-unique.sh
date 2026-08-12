@@ -3,20 +3,6 @@
 # PLACEMENT: nodes/*/node.go | a kind's wire.Register("<Kind>") name must be unique across every node package
 set -euo pipefail
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 
@@ -28,9 +14,6 @@ if [ ${#node_files[@]} -eq 0 ]; then
 
   exit 0
 fi
-
-
-
 
 dups=$(grep -hoE '(wire|Wiring)\.Register\("[^"]+"' "${node_files[@]}" \
   | sed -E 's/.*Register\("([^"]+)"/\1/' \

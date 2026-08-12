@@ -3,22 +3,6 @@
 # PLACEMENT: none | PreToolUse(Bash) hook on git commit; it inspects the repo root for stray screenshots, not a source path
 set -uo pipefail
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 input="$(cat)"
 cmd="$(printf '%s' "$input" | jq -r '.tool_input.command // empty')"
 

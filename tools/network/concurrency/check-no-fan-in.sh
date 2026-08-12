@@ -1,17 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-
-
-
-
-
-
-
-
-
-
-
 # PLACEMENT: topology/nodes/*/edges/*.json | two committed edges may not target the same target+targetHandle (fan-in)
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

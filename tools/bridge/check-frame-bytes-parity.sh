@@ -3,22 +3,6 @@ set -euo pipefail
 
 # PLACEMENT: nodes/Wiring/stdinreader/stdin_reader.go,tools/topology-vscode/src/runner/framing.ts | maxFrameBytes and MAX_FRAME_BYTES must be numerically equal
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
@@ -31,8 +15,6 @@ for f in "$GO_FILE" "$TS_FILE"; do
     exit 1
   fi
 done
-
-
 
 value_go() {
   grep -aE '^[[:space:]]*const[[:space:]]+maxFrameBytes[[:space:]]*=' "$GO_FILE" \

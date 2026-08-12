@@ -1,26 +1,6 @@
 #!/usr/bin/env bash
 
-
-
-
 # PLACEMENT: Trace/Trace.go,nodes/wire/in_port.go,nodes/**/*.go,Buffer/**/*.go | a .Breadcrumb("label") literal must be added to Trace.BreadcrumbLabels
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 set -euo pipefail
 
@@ -35,12 +15,6 @@ if [[ ! -d "$TRACE_DIR" ]]; then
   exit 1
 fi
 
-
-
-
-
-
-
 LABEL_FN_FILE=$(grep -rl '^func breadcrumbLabelFor(' --include="*.go" nodes/wire 2>/dev/null | head -1 || true)
 if [[ -z "$LABEL_FN_FILE" ]]; then
   echo "check-breadcrumb-label-registered: MISCONFIGURED — breadcrumbLabelFor not found in" >&2
@@ -48,14 +22,6 @@ if [[ -z "$LABEL_FN_FILE" ]]; then
   echo "with Trace.BreadcrumbLabels no longer has a home — update this guard in the same commit." >&2
   exit 1
 fi
-
-
-
-
-
-
-
-
 
 registered() {
   awk '/var BreadcrumbLabels = \[\]string\{/,/^\}/' "$TRACE_DIR"/*.go \
@@ -70,10 +36,6 @@ if [[ -z "$(printf '%s' "$REGISTERED" | tr -d '[:space:]')" ]]; then
   echo "the var was renamed or its shape changed; refusing a vacuous pass." >&2
   exit 1
 fi
-
-
-
-
 
 call_site_hits() {
   grep -rnoE '\.Breadcrumb\("[^"]*"' --include="*.go" nodes Buffer Trace 2>/dev/null \

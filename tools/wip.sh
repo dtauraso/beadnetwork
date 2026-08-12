@@ -1,18 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-
-
-
-
-
-
-
-
-
-
-
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR/.."
 
@@ -34,7 +22,6 @@ if [ "${1:-}" = "--undo" ]; then
   exit 0
 fi
 
-
 [ "$branch" = "main" ] && die "refusing to park WIP on main — start a change with tools/new-task.sh <name>"
 
 if [ -z "$(git status --porcelain)" ]; then
@@ -48,8 +35,6 @@ if [ -n "$MSG" ]; then
 else
   MSG="$WIP_PREFIX $branch"
 fi
-
-
 
 git add -A
 git commit -q -m "$MSG"

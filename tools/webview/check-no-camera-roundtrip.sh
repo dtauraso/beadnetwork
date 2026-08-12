@@ -1,21 +1,8 @@
 #!/usr/bin/env bash
 
-
-
-
-
-
-
-
-
-
-
 # PLACEMENT: tools/topology-vscode/src/webview/three/** | camera/nav code must not reconstruct angles from a Cartesian position (setFromVector3/makeSafe/THREE.Spherical banned outside polar.ts, PanPolarOverlay.tsx)
 
 set -euo pipefail
-
-
-
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
@@ -26,7 +13,6 @@ if [ ! -d "$DIR" ]; then
 fi
 
 EXCLUDE='polar\.ts|PanPolarOverlay\.tsx'
-
 
 PATTERN='setFromVector3|setFromCartesianCoords|\.makeSafe\(|new THREE\.Spherical'
 

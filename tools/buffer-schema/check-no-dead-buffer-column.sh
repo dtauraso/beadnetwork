@@ -2,21 +2,6 @@
 
 # PLACEMENT: Buffer/layout*.go | every buffer column needs a non-test production consumer; delete an unused one rather than allowlisting it
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -31,9 +16,6 @@ if [[ ! -f "$LAYOUT" ]]; then
   exit 1
 fi
 
-
-
-
 readonly ALLOWED_DEAD=(
 )
 
@@ -44,7 +26,6 @@ is_allowed() {
   return 1
 }
 
-
 readers=()
 while IFS= read -r line; do
   [[ -n "$line" ]] && readers+=("$line")
@@ -54,17 +35,6 @@ if [[ ${#readers[@]} -eq 0 ]]; then
   echo "check-no-dead-buffer-column: MISCONFIGURED — parsed 0 read* helpers from $LAYOUT; format changed, guard would check nothing" >&2
   exit 1
 fi
-
-
-
-
-
-
-
-
-
-
-
 
 prod_files=()
 while IFS= read -r f; do prod_files+=("$f"); done < <(
@@ -94,8 +64,6 @@ for fn in "${readers[@]}"; do
   echo "  Fix: consume it, remove the column from Buffer/layout.go (regenerate), or (if intentionally staged) add it to ALLOWED_DEAD with a reason."
   fail=1
 done
-
-
 
 for a in "${ALLOWED_DEAD[@]+"${ALLOWED_DEAD[@]}"}"; do
   present=false

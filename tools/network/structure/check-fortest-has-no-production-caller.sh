@@ -2,23 +2,6 @@
 
 # PLACEMENT: nodes/**/*.go | a *ForTest symbol must have no production (non-_test.go) caller
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -79,7 +62,6 @@ if hits:
 print("\n".join(out))
 PY
 )"
-
 
 summary="$(head -n1 <<< "$report")"
 rest="$(tail -n +2 <<< "$report")"

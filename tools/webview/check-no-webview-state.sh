@@ -3,33 +3,6 @@
 # PLACEMENT: tools/topology-vscode/src/webview/**/*.ts,tools/topology-vscode/src/webview/**/*.tsx | no zustand and no useSyncExternalStore outside the named buffer-reflect resources
 set -euo pipefail
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
@@ -46,22 +19,17 @@ report() {
   HITS=$((HITS + 1))
 }
 
-
 while IFS= read -r line; do
   [[ -z "$line" ]] && continue
   report "zustand-import: $line  (Zustand store in the webview — domain state must live in Go)"
 done < <(grep -arnE 'from[[:space:]]+"zustand"' \
   --include="*.ts" --include="*.tsx" "$WEBVIEW_DIR" 2>/dev/null || true)
 
-
-
 while IFS= read -r line; do
   [[ -z "$line" ]] && continue
   report "zustand-create: $line  (store constructor in the webview — domain state must live in Go)"
 done < <(grep -arnE '\bcreate[<(]' \
   --include="*.ts" --include="*.tsx" "$WEBVIEW_DIR" 2>/dev/null || true)
-
-
 
 while IFS= read -r line; do
   [[ -z "$line" ]] && continue
@@ -77,21 +45,11 @@ while IFS= read -r line; do
 done < <(grep -arnE '\buseSyncExternalStore\b' \
   --include="*.ts" --include="*.tsx" "$WEBVIEW_DIR" 2>/dev/null || true)
 
-
-
-
-
 while IFS= read -r line; do
   [[ -z "$line" ]] && continue
   report "reducer: $line  (useReducer in the webview — a domain state machine must live in Go)"
 done < <(grep -arnE '\buseReducer\b' \
   --include="*.ts" --include="*.tsx" "$WEBVIEW_DIR" 2>/dev/null || true)
-
-
-
-
-
-
 
 while IFS= read -r line; do
   [[ -z "$line" ]] && continue
