@@ -1,7 +1,3 @@
-
-
-
-
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
@@ -13,19 +9,12 @@ import { readOverlaySelectionRing, readOverlayHoverRing } from "../../../schema/
 import { overlayOn } from "../controls/flags/overlay-flags";
 import { NODE_SPHERE_RADIUS, HOVER_COLOR, HOVER_RING_TUBE_RATIO } from "./buffer-scene-shared";
 
-
-
-
 const SELECTION_RING_TUBE_RATIO = 0.14;
 const SELECTION_RING_RADIAL_SEGMENTS = 8;
 const SELECTION_RING_TUBULAR_SEGMENTS = 32;
 const SELECTION_HALO_R_RATIO = 1.45;
 const SELECTION_HALO_WIDTH_SEGMENTS = 16;
 const SELECTION_HALO_HEIGHT_SEGMENTS = 16;
-
-
-
-
 
 export function SelectionHighlight() {
   const groupRef = useRef<THREE.Group | null>(null);
@@ -38,7 +27,6 @@ export function SelectionHighlight() {
     let show = false;
     if (decoded) {
       const { nodeCount, nodeView } = decoded;
-
 
       let selectedRow = -1;
       for (let i = 0; i < nodeCount; i++) {
@@ -53,15 +41,10 @@ export function SelectionHighlight() {
           readNodeCZ(nodeView, selectedRow),
         );
 
-
-
-
         g.scale.setScalar(r);
         show = true;
       }
     }
-
-
 
     g.visible = show && overlayOn(readOverlaySelectionRing);
   });
@@ -88,13 +71,6 @@ export function SelectionHighlight() {
   );
 }
 
-
-
-
-
-
-
-
 export function HoverHighlight() {
   const ringRef = useRef<THREE.Mesh>(null);
 
@@ -107,15 +83,12 @@ export function HoverHighlight() {
     if (decoded) {
       const { nodeCount, nodeView } = decoded;
 
-
       let hoveredRow = -1;
       for (let i = 0; i < nodeCount; i++) {
         if (readNodeHovered(nodeView, i)) { hoveredRow = i; break; }
       }
 
       if (hoveredRow >= 0) {
-
-
 
         const suppressed =
           readNodeSelected(nodeView, hoveredRow) !== 0 && overlayOn(readOverlaySelectionRing);

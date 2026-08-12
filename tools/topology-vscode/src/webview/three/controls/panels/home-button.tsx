@@ -1,9 +1,6 @@
-
-
 import React, { useCallback } from "react";
 import * as THREE from "three";
 import { sendRawInput, buildHomeRaw } from "../../interaction/raw-input";
-
 
 export function HomeButton({
   cameraRef,
@@ -17,10 +14,6 @@ export function HomeButton({
     const cam = cameraRef.current;
     if (!cam) return;
 
-
-
-
-
     sendRawInput(buildHomeRaw(cam.fov, aspect));
   }, [cameraRef, aspect]);
 
@@ -29,8 +22,6 @@ export function HomeButton({
       onClick={onClick}
       title="Fit diagram in view"
       style={{
-
-
 
         alignSelf: "flex-end",
         background: "rgba(0,0,0,0.55)",

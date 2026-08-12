@@ -1,6 +1,3 @@
-
-
-
 import React, { useCallback, useState } from "react";
 import { fireToggle, useToggleVal } from "./overlay-toggle";
 import { guidelinesCfg, OVERLAY_GROUPS } from "./overlay-defs";
@@ -12,7 +9,6 @@ import {
   inFlowPopoverStyle,
   PILL_ANCHOR_STYLE,
 } from "./overlay-chrome";
-
 
 export function OverlaysControl() {
   const [open, setOpen] = useState(false);
@@ -34,15 +30,10 @@ export function OverlaysControl() {
 
   return (
 
-
-
-
     <div style={PILL_ANCHOR_STYLE}>
       {}
       <div
         style={{
-
-
 
           ...pillContainerStyle(active),
         }}

@@ -1,7 +1,3 @@
-
-
-
-
 import {
   readOverlaySceneTori, readOverlayScenePoles, readOverlayNodePoles,
   readOverlaySelSpherePoles, readOverlayHandholds, readOverlayLabelsGlobal,

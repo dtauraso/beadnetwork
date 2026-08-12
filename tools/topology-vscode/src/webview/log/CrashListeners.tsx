@@ -1,8 +1,3 @@
-
-
-
-
-
 import { useEffect } from "react";
 import { postLog } from "./post";
 

@@ -19,42 +19,18 @@ export function activate(context: vscode.ExtensionContext) {
   );
   armHostReloadWatcher(context);
 
-
-
-
   serveDocsOpen(context);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 function armHostReloadWatcher(context: vscode.ExtensionContext): void {
   const hostBundlePath = path.join(context.extensionPath, "out", "extension.js");
   const hostChannel = vscode.window.createOutputChannel("topology host-reload");
   context.subscriptions.push(hostChannel);
 
-
-
   let loadedHash: string | undefined;
   try {
     loadedHash = hashBundle(fs.readFileSync(hostBundlePath));
-  } catch {
-
-
-
-  }
+  } catch { /* eslint-disable-line no-empty */ }
   const hostWatcher = vscode.workspace.createFileSystemWatcher(
     new vscode.RelativePattern(
       vscode.Uri.file(path.join(context.extensionPath, "out")),
@@ -65,13 +41,10 @@ function armHostReloadWatcher(context: vscode.ExtensionContext): void {
   const debouncer = new TrailingDebouncer(250);
   context.subscriptions.push({ dispose: () => debouncer.dispose() });
 
-
-
   let reloading = false;
   const maybeReload = () => {
     debouncer.schedule(() => {
       if (reloading) return;
-
 
       if (!isHostReloadEnabled()) return;
       let newHash: string;
@@ -82,19 +55,12 @@ function armHostReloadWatcher(context: vscode.ExtensionContext): void {
       }
       if (!shouldReloadHost(loadedHash, newHash)) return;
 
-
-
-
-
-
-
       reloading = true;
       hostChannel.appendLine("[topology] extension host bundle changed — reloading window");
       vscode.window.setStatusBarMessage(
         "Topology: extension updated, reloading window…",
         3000,
       );
-
 
       void vscode.commands.executeCommand("workbench.action.reloadWindow");
     });
@@ -103,26 +69,16 @@ function armHostReloadWatcher(context: vscode.ExtensionContext): void {
   hostWatcher.onDidCreate(maybeReload);
 }
 
-
 function resetProbeLogs(repoRoot: string): void {
   try {
     const probeDir = path.join(repoRoot, ".probe");
     fs.mkdirSync(probeDir, { recursive: true });
 
-
-
-
-
-
     for (const name of Object.values(PROBE_FILES)) {
       fs.writeFileSync(path.join(probeDir, name), "");
     }
-  } catch {
-
-  }
+  } catch { /* eslint-disable-line no-empty */ }
 }
-
-
 
 function resolveTopologyPath(folderUri?: vscode.Uri): string | undefined {
   if (folderUri) return folderUri.fsPath;
@@ -134,16 +90,6 @@ function resolveTopologyPath(folderUri?: vscode.Uri): string | undefined {
   }
   return undefined;
 }
-
-
-
-
-
-
-
-
-
-
 
 function armBundleWatcher(panel: vscode.WebviewPanel, context: vscode.ExtensionContext): vscode.FileSystemWatcher {
   const bundleWatcher = vscode.workspace.createFileSystemWatcher(
@@ -167,14 +113,6 @@ function armBundleWatcher(panel: vscode.WebviewPanel, context: vscode.ExtensionC
   return bundleWatcher;
 }
 
-
-
-
-
-
-
-
-
 function armGoWatcher(
   repoRoot: string | undefined,
   runner: BuildAndRunRunner,
@@ -194,9 +132,6 @@ function armGoWatcher(
       if (shouldRestartAfterBuild(res)) {
         goChannel.appendLine("[go] rebuilt wirefold");
 
-
-
-
         if (runner.restart()) {
           goChannel.appendLine("[go] hot-restarting sim");
         }
@@ -209,12 +144,8 @@ function armGoWatcher(
             JSON.stringify({ ts_ms: Date.now(), src: "go", kind: "error", message: res.error }) + "\n",
             "utf8",
           );
-        } catch {  }
+        } catch { /* eslint-disable-line no-empty */ }
       }
-
-
-
-
 
     });
   };
@@ -222,18 +153,12 @@ function armGoWatcher(
   goWatcher.onDidCreate(rebuild);
   goWatcher.onDidDelete(rebuild);
 
-
-
-
   panel.onDidDispose(() => {
     debouncer.dispose();
     goChannel.dispose();
   });
   return goWatcher;
 }
-
-
-
 
 function wireMessageHandler(
   panel: vscode.WebviewPanel,
@@ -244,7 +169,6 @@ function wireMessageHandler(
   panel.webview.onDidReceiveMessage((raw) => {
     const workspaceFolder = folderUri ? vscode.workspace.getWorkspaceFolder(folderUri) : undefined;
 
-
     const logUri = workspaceFolder?.uri ?? folderUri ?? vscode.workspace.workspaceFolders?.[0]?.uri;
     void handleMessage(raw, { logUri, runner, post }).catch((err: unknown) => {
       console.error("topology: handleMessage failed", err);
@@ -254,8 +178,6 @@ function wireMessageHandler(
 
 function openTopologyEditor(context: vscode.ExtensionContext, folderUri?: vscode.Uri): void {
   const topologyPath = resolveTopologyPath(folderUri);
-
-
 
   const probeRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
   if (probeRoot) resetProbeLogs(probeRoot);
@@ -272,18 +194,10 @@ function openTopologyEditor(context: vscode.ExtensionContext, folderUri?: vscode
   );
   panel.webview.html = buildWebviewHtml(panel.webview, context.extensionPath);
 
-
-
-
-
   const post = (msg: HostToWebviewMsg): void => {
     void panel.webview.postMessage(msg);
   };
   const runner = new BuildAndRunRunner(
-
-
-
-
 
     (snapshot) => post(snapshot),
   );
@@ -295,9 +209,6 @@ function openTopologyEditor(context: vscode.ExtensionContext, folderUri?: vscode
 
   context.subscriptions.push(runner);
 
-
-
-
   panel.onDidDispose(() => {
     bundleWatcher?.dispose();
     goWatcher?.dispose();
@@ -305,9 +216,6 @@ function openTopologyEditor(context: vscode.ExtensionContext, folderUri?: vscode
   });
 
   wireMessageHandler(panel, folderUri, runner, post);
-
-
-
 
   runner.run(topologyPath);
 }

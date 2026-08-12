@@ -1,20 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 export const SPEED_SETTINGS = [
   { speed: 0, label: "0" },
   { speed: 0.25, num: "1", den: "4" },
@@ -24,19 +7,9 @@ export const SPEED_SETTINGS = [
   { speed: 2, label: "2" },
 ] as const;
 
-
-
-
 export const settingKey = (s: (typeof SPEED_SETTINGS)[number]): string => String(s.speed);
 
-
-
-
-
 export const DEFAULT_INDEX = SPEED_SETTINGS.findIndex((s) => s.speed === 1);
-
-
-
 
 export function closestSettingIndex(speed: number): number {
   let best = 0;

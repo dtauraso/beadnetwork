@@ -1,8 +1,3 @@
-
-
-
-
-
 import { useRef, useState, useMemo, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
@@ -14,13 +9,6 @@ import {
 } from "../../../schema/buffer-layout";
 import { overlayOn } from "../controls/flags/overlay-flags";
 import { NODE_SPHERE_RADIUS, NORMAL_DEGENERATE_EPS, SPHERE_RING_MIN_RADIUS, nodeRowColors } from "./buffer-scene-shared";
-
-
-
-
-
-
-
 
 const SPHERE_RING_EMISSIVE_INTENSITY = 0.25;
 const SPHERE_RING_OPACITY = 0.55;
@@ -39,8 +27,6 @@ interface OwnerRing {
   color: string;
 }
 
-
-
 function SphereRingBuf({ ring }: { ring: OwnerRing }) {
   const { geo, vrQ, frQ } = useMemo(() => {
     const _geo = new THREE.TorusGeometry(ring.R, ring.tube, SPHERE_RING_RADIAL_SEGMENTS, SPHERE_RING_TUBULAR_SEGMENTS);
@@ -54,7 +40,6 @@ function SphereRingBuf({ ring }: { ring: OwnerRing }) {
       frQ: new THREE.Quaternion().setFromUnitVectors(_sphereRingDefaultNormal, frN),
     };
   }, [ring.R, ring.tube, ring.vrx, ring.vry, ring.vrz, ring.frx, ring.fry, ring.frz]);
-
 
   useEffect(() => () => { geo.dispose(); }, [geo]);
 
@@ -111,11 +96,8 @@ export function SphereRings() {
     const decoded = getNodeFrame();
     const next: OwnerRing[] = [];
 
-
-
     if (decoded && overlayOn(readOverlayReachSphere)) {
       const { nodeCount, nodeView } = decoded;
-
 
       let selectedRow = -1;
       for (let i = 0; i < nodeCount; i++) {

@@ -1,7 +1,3 @@
-
-
-
-
 import { useSyncExternalStore } from "react";
 import { getViewBlocks, subscribeViewBlocks } from "../../scene/view-blocks";
 import {
@@ -9,7 +5,6 @@ import {
   readOverlayGroupLenInput,
   readOverlayGroupLenGate,
 } from "../../../../schema/buffer-layout";
-
 
 export interface DistanceGroupLens {
   time: number;
@@ -22,7 +17,6 @@ let cachedGroupLens: DistanceGroupLens | null = null;
 function distanceGroupLensEqual(a: DistanceGroupLens, b: DistanceGroupLens): boolean {
   return a.time === b.time && a.input === b.input && a.gate === b.gate;
 }
-
 
 export function readDistanceGroupLens(): DistanceGroupLens | null {
   const blocks = getViewBlocks();
@@ -37,7 +31,6 @@ export function readDistanceGroupLens(): DistanceGroupLens | null {
   cachedGroupLens = next;
   return cachedGroupLens;
 }
-
 
 export function useDistanceGroupLens(): DistanceGroupLens | null {
   return useSyncExternalStore(subscribeViewBlocks, readDistanceGroupLens, readDistanceGroupLens);

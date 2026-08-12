@@ -1,11 +1,3 @@
-
-
-
-
-
-
-
-
 export interface PolarFrameGeometry {
   poleLen: number;
   poleRadius: number;
@@ -17,7 +9,6 @@ export interface PolarFrameGeometry {
   hhR: number;
   arcHH: number;
 }
-
 
 export function computePolarFrameGeometry(scale: number): PolarFrameGeometry {
   const radiusKey = Math.max(Math.round(scale), 1);

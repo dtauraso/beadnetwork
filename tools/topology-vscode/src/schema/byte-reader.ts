@@ -1,6 +1,3 @@
-
-
-
 export class ByteReader {
   private view: DataView;
   private pos = 1; 

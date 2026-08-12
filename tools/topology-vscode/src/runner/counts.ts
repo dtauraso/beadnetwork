@@ -1,26 +1,6 @@
 import * as fs from "fs";
 import * as path from "path";
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 export function readCounts(topologyPath: string): { nodes: number; edges: number } {
   const countsPath = path.join(topologyPath, "counts.json");
   let raw: string;

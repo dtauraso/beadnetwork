@@ -1,10 +1,3 @@
-
-
-
-
-
-
-
 import {
   EDGE_BASE_FD,
   MAX_EDGE_STREAMS,
@@ -27,28 +20,17 @@ export interface SpawnLayout {
   warnings: string[];
 }
 
-
 export function computeSpawnLayout(counts: { nodes: number; edges: number }): SpawnLayout {
   const warnings: string[] = [];
-
-
 
   const edgeCountRaw = counts.edges;
   const edgeCount = edgeCountRaw > MAX_EDGE_STREAMS ? 0 : edgeCountRaw;
   if (edgeCountRaw > MAX_EDGE_STREAMS) {
 
-
-
-
-
-
     warnings.push(
       `edge count ${edgeCountRaw} exceeds MAX_EDGE_STREAMS (${MAX_EDGE_STREAMS}); disabling ALL dedicated per-edge streams for this run`,
     );
   }
-
-
-
 
   const nodeCountRaw = counts.nodes;
   const nodeCount = nodeCountRaw > MAX_NODE_STREAMS ? 0 : nodeCountRaw;
@@ -61,16 +43,7 @@ export function computeSpawnLayout(counts: { nodes: number; edges: number }): Sp
   const nodeBaseFd = EDGE_BASE_FD + edgeCount;
   const interiorBaseFd = nodeBaseFd + nodeCount;
 
-
-
-
-
-
-
   const driveBaseFd = interiorBaseFd + nodeCount;
-
-
-
 
   const stdio: Array<"pipe"> = ["pipe", "pipe", "pipe", "pipe", "pipe"];
   for (let i = 0; i < edgeCount; i++) stdio.push("pipe");
@@ -80,8 +53,6 @@ export function computeSpawnLayout(counts: { nodes: number; edges: number }): Sp
 
   const streamFDsEnvParts = [`view:${VIEW_FD}`];
   if (edgeCount > 0) streamFDsEnvParts.push(`edge:${EDGE_BASE_FD}`);
-
-
 
   if (nodeCount > 0) {
     streamFDsEnvParts.push(`node:${nodeBaseFd}`, `interior:${interiorBaseFd}`, `drive:${driveBaseFd}`);

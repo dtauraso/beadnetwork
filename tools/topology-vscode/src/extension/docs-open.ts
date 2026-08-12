@@ -4,39 +4,6 @@ import * as path from "path";
 import * as crypto from "crypto";
 import * as vscode from "vscode";
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 export function findDefinitionLine(abs: string, symbol: string): number {
   let text: string;
   try {
@@ -106,8 +73,6 @@ export function serveDocsOpen(context: vscode.ExtensionContext): void {
     const options: vscode.TextDocumentShowOptions = { preview: false };
     if (line >= 0) {
 
-
-
       const at = new vscode.Range(line, 0, line, 0);
       options.selection = at;
     }
@@ -141,7 +106,7 @@ export function serveDocsOpen(context: vscode.ExtensionContext): void {
   context.subscriptions.push({
     dispose() {
       server.close();
-      try { fs.unlinkSync(portFile); } catch {  }
+      try { fs.unlinkSync(portFile); } catch { /* eslint-disable-line no-empty */ }
     },
   });
 }

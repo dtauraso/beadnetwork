@@ -13,66 +13,24 @@ import { StreamDemux } from "./runner/stream-demux";
 import { computeSpawnLayout, type SpawnLayout } from "./runner/spawn-layout";
 import { attachStreamListeners } from "./runner/attach-listeners";
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 export { nodeIdForRow, rowForNodeId } from "./runner/stream-fds";
 export { readCounts } from "./runner/counts";
 export { splitJsonlLines, splitFrames, MAX_FRAME_BYTES } from "./runner/framing";
 
-
-
-
-
-
-
 export class BuildAndRunRunner {
   private proc: cp.ChildProcess | undefined;
 
-
-
   private cancelled = false;
-
-
 
   private looping = false;
   private channel: vscode.OutputChannel | undefined;
   private goErrorsFile: string | undefined;
 
-
-
-
-
-
-
   private demux: StreamDemux = this.newDemux(undefined, false, 0, 0, 0);
-
-
-
-
-
 
   private spawnGen = 0;
 
   private topologyPath: string | undefined;
-
-
-
-
-
-
-
 
   private restartPending = false;
 
@@ -80,21 +38,9 @@ export class BuildAndRunRunner {
     private readonly onSnapshot?: (msg: HostToWebviewMsg & { type: "buffer-snapshot" }) => void,
   ) {}
 
-
-
-
-
-
-
-
-
-
-
-
   currentGen(): number {
     return this.spawnGen;
   }
-
 
   private newDemux(paths: ProbePaths | undefined, probeTrace: boolean, edgeCount: number, nodeCount: number, gen: number): StreamDemux {
     return new StreamDemux({
@@ -115,31 +61,20 @@ export class BuildAndRunRunner {
   run(topologyPath?: string) {
     if (this.proc) {
 
-
-
-
       return;
     }
     if (topologyPath) this.topologyPath = topologyPath;
     const folder = vscode.workspace.workspaceFolders?.[0];
     if (!folder) return;
 
-
-
     this.ensureOutputChannel();
     const repoRoot = folder.uri.fsPath;
     const binPath = path.join(repoRoot, ".wirefold-cache", "wirefold");
     const topArgs = this.topologyPath ? ["-topology", this.topologyPath] : [];
 
-
-
     const probePaths = probePathsFor(folder);
     if (!this.buildBinary(repoRoot, binPath, probePaths)) return;
     const killed = this.reapOrphans(binPath);
-
-
-
-
 
     const prepared = this.armFieldsAndPrepareLayout(probePaths, killed, binPath, topArgs, repoRoot);
     if (!prepared) return;
@@ -150,18 +85,15 @@ export class BuildAndRunRunner {
     this.wireExitHandlers();
   }
 
-
   private ensureOutputChannel(): void {
     if (!this.channel) this.channel = vscode.window.createOutputChannel("topology run");
     this.channel.clear();
   }
 
-
   private buildBinary(repoRoot: string, binPath: string, probePaths: ProbePaths): boolean {
     const built = ensureBinaryBuilt(repoRoot, binPath);
     if (!built.ok) {
       this.channel!.appendLine(`\n[build error: ${built.error}]`);
-
 
       this.channel!.show(true);
       appendGoError(probePaths.goErrorsFile, built.error);
@@ -171,13 +103,11 @@ export class BuildAndRunRunner {
     return true;
   }
 
-
   private reapOrphans(binPath: string): number {
     const activePid: number | undefined = this.proc?.pid;
     const { killed } = killOrphanedSims(binPath, activePid);
     return killed;
   }
-
 
   private armFieldsAndPrepareLayout(
     probePaths: ProbePaths,
@@ -197,10 +127,6 @@ export class BuildAndRunRunner {
 
     this.spawnGen++;
 
-
-
-
-
     let counts: { nodes: number; edges: number };
     try {
       counts = readCounts(this.topologyPath ?? path.join(repoRoot, "topology"));
@@ -212,11 +138,6 @@ export class BuildAndRunRunner {
       return undefined;
     }
 
-
-
-
-
-
     const layout = computeSpawnLayout(counts);
     const { edgeCount, nodeCount } = layout;
     for (const msg of layout.warnings) {
@@ -224,44 +145,13 @@ export class BuildAndRunRunner {
       appendGoError(probePaths.goErrorsFile, msg);
     }
 
-
-
-
-
-
-
-
-
-
     const demux = this.newDemux(probePaths, probeTrace, edgeCount, nodeCount, this.spawnGen);
     this.demux = demux;
     return { layout, demux };
   }
 
-
   private spawnProcess(binPath: string, topArgs: string[], repoRoot: string, layout: SpawnLayout): void {
     const { stdio, streamFDsEnv } = layout;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     const probeTrace = isProbeTraceEnabled();
     this.proc = cp.spawn(binPath, [...topArgs], {
@@ -273,13 +163,6 @@ export class BuildAndRunRunner {
         WIREFOLD_BUF_OUT_FD: "3",
         WIREFOLD_STREAM_FDS: streamFDsEnv,
 
-
-
-
-
-
-
-
         WIREFOLD_EDGE_BEAD_TRACE: probeTrace ? "1" : "0",
       },
     });
@@ -290,7 +173,6 @@ export class BuildAndRunRunner {
     }
   }
 
-
   private attachStreamHandlers(demux: StreamDemux, layout: SpawnLayout): void {
     attachStreamListeners(this.proc!, demux, layout);
     this.proc!.stderr?.on("data", (d: Buffer) => {
@@ -299,7 +181,6 @@ export class BuildAndRunRunner {
       appendGoError(this.goErrorsFile, msg);
     });
   }
-
 
   private wireExitHandlers(): void {
     this.proc!.on("close", (code) => {
@@ -310,10 +191,6 @@ export class BuildAndRunRunner {
       if (cancelled) {
         this.channel!.appendLine("\n[cancelled]");
         if (this.restartPending) {
-
-
-
-
 
           this.restartPending = false;
           this.run();
@@ -340,17 +217,13 @@ export class BuildAndRunRunner {
 
   cancel() {
 
-
-
     this.pendingStdin = [];
     if (!this.proc || this.proc.pid === undefined) return;
     this.cancelled = true;
     try {
 
-
       process.kill(-this.proc.pid, "SIGTERM");
     } catch {
-
 
       this.proc.kill("SIGTERM");
     }
@@ -360,7 +233,6 @@ export class BuildAndRunRunner {
     return this.proc !== undefined;
   }
 
-
   restart(): boolean {
     if (!this.proc) return false;
     this.restartPending = true;
@@ -368,34 +240,23 @@ export class BuildAndRunRunner {
     return true;
   }
 
-
-
-
-
-
-
   getLastViewFrame(): ArrayBuffer | undefined {
     return this.demux.getLastViewFrame();
   }
-
 
   getLastEdgeFrames(): Array<{ row: number; buffer: ArrayBuffer }> {
     return this.demux.getLastEdgeFrames();
   }
 
-
   getLastNodeFrames(): Array<{ row: number; buffer: ArrayBuffer }> {
     return this.demux.getLastNodeFrames();
   }
-
 
   getLastInteriorFrames(): Array<{ row: number; buffer: ArrayBuffer }> {
     return this.demux.getLastInteriorFrames();
   }
 
-
   private pendingStdin: Uint8Array[] = [];
-
 
   writeStdin(record: ArrayBuffer | Uint8Array): void {
     const framed = record instanceof Uint8Array ? record : frameRecord(record);

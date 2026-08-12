@@ -1,6 +1,3 @@
-
-
-
 export type EdgeKind =
   | "chain"
   | "signal"
@@ -12,17 +9,10 @@ export type EdgeKind =
   | "inhibit-in"
   | "any";
 
-
-
-
-
-
 export const EDGE_KINDS = [
   "chain", "signal", "release", "streak",
   "pointer", "and-out", "edge-connection", "inhibit-in", "any",
 ] as const satisfies readonly EdgeKind[];
-
-
 
 type MustEqual<A, B> = [A] extends [B] ? ([B] extends [A] ? true : never) : never;
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -35,11 +25,7 @@ export type Port = {
   kind: EdgeKind;
   required?: boolean;
 
-
   anchorId?: number;
-
-
-
 
   portR?: number;
 };

@@ -1,27 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 import { getLatestNodeStreamFrames, getLatestInteriorStreamFrames, getNodeStreamVersion, getInteriorStreamVersion, subscribeNodeStreamFrame, subscribeInteriorStreamFrame } from "../../snapshot-buffer";
 import {
   decodeNodeStreamFrame,
@@ -41,14 +17,9 @@ import { poleAxis } from "./buffer-scene-shared";
 
 const STR_ENCODER = new TextEncoder();
 
-
-
-
-
 let lastNodeVersion = -1;
 let lastInteriorVersion = -1;
 let lastAggregate: DecodedNodeFrame | null = null;
-
 
 export function getNodeFrame(): DecodedNodeFrame | null {
   const nodeFrames = getLatestNodeStreamFrames();
@@ -67,7 +38,6 @@ export function getNodeFrame(): DecodedNodeFrame | null {
   return aggregate;
 }
 
-
 export function subscribeNodeStreamBlocks(fn: () => void): () => void {
   const unsubNode = subscribeNodeStreamFrame(fn);
   const unsubInterior = subscribeInteriorStreamFrame(fn);
@@ -81,8 +51,6 @@ function buildAggregate(
   nodeFrames: ReadonlyMap<number, ArrayBuffer>,
   interiorFrames: ReadonlyMap<number, ArrayBuffer>,
 ): DecodedNodeFrame {
-
-
 
   let maxRow = -1;
   for (const r of nodeFrames.keys()) if (r > maxRow) maxRow = r;
@@ -116,8 +84,6 @@ function buildAggregate(
     const nodeRowBytes = new Uint8Array(nodeBuf, row * NODE_STRIDE, NODE_STRIDE);
     if (decoded) {
 
-
-
       nodeRowBytes.set(new Uint8Array(decoded.nodeView.buffer, decoded.nodeView.byteOffset, NODE_STRIDE));
       const labelEncoded = STR_ENCODER.encode(decoded.label);
       nodeOut.setUint32(row * NODE_STRIDE + NODE_COL_LABEL_OFF, labelCursor, true);
@@ -125,8 +91,6 @@ function buildAggregate(
       labelBytesOut.set(labelEncoded, labelCursor);
       labelCursor += labelEncoded.length;
     }
-
-
 
     const interiorRowBytes = new Uint8Array(interiorBuf, row * INTERIOR_SLOTS_PER_NODE * INTERIOR_STRIDE, INTERIOR_SLOTS_PER_NODE * INTERIOR_STRIDE);
     const interiorFrameBuf = interiorFrames.get(row);
@@ -138,7 +102,6 @@ function buildAggregate(
         INTERIOR_SLOTS_PER_NODE * INTERIOR_STRIDE,
       ));
     }
-
 
   }
 
@@ -152,7 +115,6 @@ function buildAggregate(
     labelBytes: labelBytesOut,
   };
 }
-
 
 export interface ChainBeadsAgg {
 
@@ -169,7 +131,6 @@ export interface ChainBeadsAgg {
 
 let lastChainVersion = -1;
 let lastChainAgg: ChainBeadsAgg | null = null;
-
 
 export function getChainBeads(): ChainBeadsAgg {
   const nodeFrames = getLatestNodeStreamFrames();
@@ -188,9 +149,6 @@ export function getChainBeads(): ChainBeadsAgg {
   }
   const positions = new Float32Array(total * 3);
 
-
-
-
   const ringAxis = new Float32Array(total * 3);
   const lit = new Uint8Array(total);
   const litValue = new Int32Array(total);
@@ -198,11 +156,9 @@ export function getChainBeads(): ChainBeadsAgg {
   let b = 0;
   for (const decoded of decodedByRow) {
 
-
     const cx = readNodeCX(decoded.nodeView, 0);
     const cy = readNodeCY(decoded.nodeView, 0);
     const cz = readNodeCZ(decoded.nodeView, 0);
-
 
     const poleTheta = readNodeRingAxisTheta(decoded.nodeView, 0);
     const polePhi = readNodeRingAxisPhi(decoded.nodeView, 0);

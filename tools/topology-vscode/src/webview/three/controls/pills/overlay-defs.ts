@@ -1,6 +1,3 @@
-
-
-
 import type { ToggleCfg } from "./overlay-toggle";
 
 export const guidelinesCfg: ToggleCfg = {
@@ -74,11 +71,6 @@ const globalLabelsCfg: ToggleCfg = {
   payload: (v) => ({ flag: "labelsGlobal", wasHidden: v }),
 };
 
-
-
-
-
-
 const nodeBodyCfg: ToggleCfg = {
   flag: "nodeBody",
   default: true,
@@ -104,8 +96,6 @@ const ringPickCfg: ToggleCfg = {
   default: true,
   active: (v) => v,
   icon: "◌",
-
-
 
   label: "ring band",
   title: (a) => (a ? "Hide the ring's click band" : "Show the ring's click band"),
@@ -142,19 +132,7 @@ const reachSphereCfg: ToggleCfg = {
   payload: (v) => ({ flag: "reachSphere", was: v }),
 };
 
-
-
-
-
 export type OverlayGroup = { heading: string; cfgs: ToggleCfg[]; under?: Partial<Record<string, ToggleCfg>> };
-
-
-
-
-
-
-
-
 
 export const OVERLAY_GROUPS: OverlayGroup[] = [
   { heading: "NODE",   cfgs: [nodeBodyCfg, nodeRingCfg, ringPickCfg] }, 

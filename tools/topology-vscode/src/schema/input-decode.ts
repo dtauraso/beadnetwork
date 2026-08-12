@@ -1,8 +1,3 @@
-
-
-
-
-
 import { ByteReader } from "./byte-reader";
 import { IN_KIND_SAVE, IN_KIND_RAW_INPUT, IN_KIND_EDIT_UPDATE, IN_EVENT_KINDS, IN_HIT_KINDS, IN_UPDATE_KINDS } from "./input-layout-gen";
 import { IN_OVERLAY_ATTR_TOGGLE, IN_CLOCK_ATTR_SPEED, IN_DISTANCE_GROUP_ATTR_LENGTH } from "./input-attrs";
@@ -15,7 +10,6 @@ export type DecodedInput =
   | { kind: "edit-update"; entity: "overlays"; attr: "toggle"; flag: OverlayFlag }
   | { kind: "edit-update"; entity: "clock"; attr: "speed"; value: number }
   | { kind: "edit-update"; entity: "distanceGroup"; attr: "length"; group: number; dir: "up" | "down" };
-
 
 export function decodeInputRecord(record: ArrayBuffer): DecodedInput | undefined {
   const bytes = new Uint8Array(record);
@@ -66,8 +60,6 @@ export function decodeInputRecord(record: ArrayBuffer): DecodedInput | undefined
       if (entityKind === "clock") {
         const attr = r.u8();
         if (attr === IN_CLOCK_ATTR_SPEED) {
-
-
 
           const value = r.u8() / 4;
           return { kind: "edit-update", entity: "clock", attr: "speed", value };

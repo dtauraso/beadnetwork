@@ -1,42 +1,17 @@
 import { DRIVE_SLOTS_PER_NODE } from "./stream-fds";
 
-
-
-
-
-
-
-
-
 export interface StreamParseState {
   stdoutBuf: string;
 
   viewBuf: Buffer;
 
-
   edgeBufs: Buffer[];
-
 
   nodeBufs: Buffer[];
   interiorBufs: Buffer[];
 
-
-
-
-
-
-
-
   driveBufs: Buffer[][];
 }
-
-
-
-
-
-
-
-
 
 export function freshStreamState(edgeCount: number, nodeCount: number): StreamParseState {
   return {

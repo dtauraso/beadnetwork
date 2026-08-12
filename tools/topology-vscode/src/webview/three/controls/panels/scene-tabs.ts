@@ -1,23 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 import { useSyncExternalStore } from "react";
 import { getViewBlocks, subscribeViewBlocks } from "../../scene/view-blocks";
 
@@ -25,10 +5,6 @@ export interface SceneTabsState {
   names: string[];
   selected: number;
 }
-
-
-
-
 
 let cached: SceneTabsState = { names: [], selected: 0 };
 
@@ -47,7 +23,6 @@ function getSceneTabs(): SceneTabsState {
   if (!sameTabs(cached, next)) cached = next;
   return cached;
 }
-
 
 export function useSceneTabs(): SceneTabsState {
   return useSyncExternalStore(subscribeViewBlocks, getSceneTabs);

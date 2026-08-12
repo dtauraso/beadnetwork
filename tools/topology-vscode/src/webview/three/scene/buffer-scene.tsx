@@ -1,30 +1,8 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 import { useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import type * as THREE from "three";
 import { getNodeFrame, getChainBeads } from "./node-stream-blocks";
 import { INTERIOR_SLOTS_PER_NODE } from "../decode/buffer-decode-interior";
-
-
 
 import { ChainBeadInstances } from "./ChainBeadInstances";
 import { EdgeLines } from "./EdgeLines";
@@ -45,19 +23,10 @@ export {
 } from "./buffer-scene-shared";
 export { BufferLabelProjector };
 
-
 const INITIAL_NODE_CAP  = 32;
-
-
-
 
 const INITIAL_CHAINBEAD_CAP = 256;
 const INITIAL_EDGE_CAP = 32; 
-
-
-
-
-
 
 export function BufferScene({ cameraRef }: {
   cameraRef?: React.MutableRefObject<THREE.PerspectiveCamera | null>;
@@ -66,32 +35,16 @@ export function BufferScene({ cameraRef }: {
   const [chainBeadCap, setChainBeadCap] = useState(INITIAL_CHAINBEAD_CAP);
   const [edgeCap, setEdgeCap] = useState(INITIAL_EDGE_CAP);
 
-
-
-
-
-
   useFrame(() => {
     const grow: { count: number; cap: number; set: (n: number) => void }[] = [];
 
-
-
-
-
     const { count: chainBeadCount } = getChainBeads();
     grow.push({ count: chainBeadCount, cap: chainBeadCap, set: setChainBeadCap });
-
-
-
-
 
     const edges = getEdgeStreamAccessor();
     if (edges) {
       grow.push({ count: edges.edgeCount, cap: edgeCap, set: setEdgeCap });
     }
-
-
-
 
     const decodedNode = getNodeFrame();
     if (decodedNode) {

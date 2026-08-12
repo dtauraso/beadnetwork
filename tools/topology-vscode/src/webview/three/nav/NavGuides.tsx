@@ -1,7 +1,3 @@
-
-
-
-
 import React, { useMemo, useState, useEffect, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
@@ -14,17 +10,9 @@ import {
 import { navSignature } from "./nav-signature";
 import { PolarFrame } from "./polar-frame";
 
-
-
-
 export function NavGuides() {
 
-
-
   const bufFlags = useOverlayFlags();
-
-
-
 
   const g = bufFlags?.overlays ?? false;
   const showTori = g && !!bufFlags?.tori;
@@ -33,22 +21,12 @@ export function NavGuides() {
   const showSelPoles = g && !!bufFlags?.selSpherePoles;
   const showHandholds = g && !!bufFlags?.handholds;
 
-
-
-
-
-
   const [navTick, setNavTick] = useState(0);
   const bufNavRef = useRef<NavNode[]>([]);
   const bufSigRef = useRef("");
 
-
-
   const sceneSphereRef = useRef<{ center: THREE.Vector3; radius: number }>({ center: new THREE.Vector3(), radius: 100 });
   useFrame(() => {
-
-
-
 
     if (!showTori && !showScenePoles && !showNodePoles && !showSelPoles && !showHandholds) return;
     const blocks = getViewBlocks();
@@ -63,29 +41,16 @@ export function NavGuides() {
     }
   });
 
-
-
   const navNodes = useMemo<NavNode[]>(
     () => bufNavRef.current,
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [navTick],
   );
 
-
-
-
-
-
-
   const latchedSel = navNodes.find((n) => n.latchedSel)?.row ?? null;
-
-
-
 
   const cs = sceneSphereRef.current;
   const tube = navNodes.length > 0 ? Math.max(0.5, navNodes[0]!.radius * 0.08) : 1;
-
-
 
   const radiusKey = Math.round(cs.radius);
   const tubeKey = Math.round(tube * 10);
@@ -97,10 +62,6 @@ export function NavGuides() {
     [radiusKey, tubeKey],
   );
 
-
-
-
-
   useEffect(() => {
     return () => {
       geoA.dispose();
@@ -108,12 +69,6 @@ export function NavGuides() {
     };
   }, [geoA, geoB]);
   const rotB = useMemo(() => new THREE.Euler(Math.PI / 2, 0, 0), []);
-
-
-
-
-
-
 
   const hhAngles = [0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2];
   const hhRadius = Math.max(radiusKey * 0.04, 3); 
@@ -130,15 +85,7 @@ export function NavGuides() {
 
   if (navNodes.length < 1) return null;
 
-
-
-
-
-
   const sphereCenters = latchedSel !== null ? navNodes.filter((n) => n.row === latchedSel) : [];
-
-
-
 
   const pos: [number, number, number] = [cs.center.x, cs.center.y, cs.center.z];
   return (

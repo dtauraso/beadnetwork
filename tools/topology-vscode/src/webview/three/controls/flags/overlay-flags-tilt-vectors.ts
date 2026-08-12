@@ -1,8 +1,3 @@
-
-
-
-
-
 import { useSyncExternalStore } from "react";
 import { getNodeFrame, subscribeNodeStreamBlocks } from "../../scene/node-stream-blocks";
 import {
@@ -13,7 +8,6 @@ import {
   readNodeMsgsToParallel,
 } from "../../../../schema/buffer-layout";
 import { nodeLabel } from "../../decode/buffer-decode-node";
-
 
 export interface TiltVectorRow {
   row: number;
@@ -49,7 +43,6 @@ function tiltVectorRowsEqual(a: TiltVectorRow[], b: TiltVectorRow[]): boolean {
   return true;
 }
 
-
 export function readTiltVectorRows(): TiltVectorRow[] | null {
   const decoded = getNodeFrame();
   if (!decoded) return cachedTiltVectorRows;
@@ -70,7 +63,6 @@ export function readTiltVectorRows(): TiltVectorRow[] | null {
   cachedTiltVectorRows = next;
   return cachedTiltVectorRows;
 }
-
 
 export function useTiltVectorRows(): TiltVectorRow[] | null {
   return useSyncExternalStore(subscribeNodeStreamBlocks, readTiltVectorRows, readTiltVectorRows);

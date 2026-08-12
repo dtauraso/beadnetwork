@@ -1,17 +1,6 @@
 import React, { useState } from "react";
 import { popoverRowStyle } from "./overlay-chrome";
 
-
-
-
-
-
-
-
-
-
-
-
 export function ValueBox({ shown, widest }: { shown: string; widest: string }) {
   return (
     <span style={valueBoxStyle}>
@@ -20,7 +9,6 @@ export function ValueBox({ shown, widest }: { shown: string; widest: string }) {
     </span>
   );
 }
-
 
 export function StepperRow({
   name,
@@ -88,8 +76,6 @@ function ArrowButton({
   );
 }
 
-
-
 const valueBoxStyle: React.CSSProperties = {
   position: "relative",
   display: "inline-block",
@@ -97,15 +83,11 @@ const valueBoxStyle: React.CSSProperties = {
   whiteSpace: "nowrap",
 };
 
-
 const valueTextStyle: React.CSSProperties = {
   position: "absolute",
   left: 0,
   top: 0,
 };
-
-
-
 
 const valueLineStyle: React.CSSProperties = {
   display: "flex",
@@ -114,12 +96,9 @@ const valueLineStyle: React.CSSProperties = {
   gap: 4,
   width: "100%",
 
-
   flexWrap: "wrap",
   rowGap: 2,
 };
-
-
 
 const arrowGroupStyle: React.CSSProperties = {
   display: "flex",
@@ -139,8 +118,6 @@ const arrowBtnStyle: React.CSSProperties = {
   padding: "2px 5px",
   cursor: "pointer",
 };
-
-
 
 const arrowBtnDisabledStyle: React.CSSProperties = {
   ...arrowBtnStyle,

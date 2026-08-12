@@ -1,9 +1,3 @@
-
-
-
-
-
-
 import { getLatestEdgeStreamFrames } from "../../snapshot-buffer";
 import { decodeEdgeStreamFrame, type DecodedEdgeStreamFrame } from "../decode/buffer-decode-edge";
 import {
@@ -16,22 +10,12 @@ export interface EdgeAccessor {
 
   segment(row: number): [number, number, number, number, number, number];
 
-
-
-
-
-
-
-
-
-
 }
 
 function decodedFor(frames: ReadonlyMap<number, ArrayBuffer>, row: number): DecodedEdgeStreamFrame | null {
   const buf = frames.get(row);
   return buf ? decodeEdgeStreamFrame(row, buf) : null;
 }
-
 
 export function getEdgeStreamAccessor(): EdgeAccessor | null {
   const frames = getLatestEdgeStreamFrames();

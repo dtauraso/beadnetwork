@@ -11,37 +11,11 @@ import {
 } from "../pills/overlay-chrome";
 import { StepperRow } from "../pills/pill-rows";
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 const GROUPS: { index: number; label: string }[] = [
   { index: 0, label: "time" },
   { index: 1, label: "input" },
   { index: 2, label: "select" },
 ];
-
-
-
-
 
 function widestLength(values: number[]): string {
   const digits = Math.max(4, ...values.map((v) => String(Math.round(v)).length));
@@ -51,14 +25,6 @@ function widestLength(values: number[]): string {
 export function DistanceHomePanel() {
   const lens = useDistanceGroupLens();
   const [open, setOpen] = useState(false);
-
-
-
-
-
-
-
-
 
   if (!lens || (lens.time === 0 && lens.input === 0 && lens.gate === 0)) return null;
 
@@ -80,8 +46,6 @@ export function DistanceHomePanel() {
   const widest = widestLength(GROUPS.map(({ index }) => valueFor(index)));
 
   return (
-
-
 
     <div style={PILL_ANCHOR_STYLE}>
       <div style={pillContainerStyle(false)}>

@@ -1,9 +1,3 @@
-
-
-
-
-
-
 import React, { useEffect, useRef } from "react";
 import { useThree } from "@react-three/fiber";
 import * as THREE from "three";
@@ -16,15 +10,6 @@ import { BUFFER_NODE_TAG, BUFFER_EDGE_TAG, BUFFER_RING_TAG } from "./buffer-scen
 import { HANDHOLD_TERM_TAG } from "../nav/polar-frame-data";
 import { resolveNodeDrawSlot } from "./node-depth-order";
 
-
-
-
-
-
-
-
-
-
 function pickBufferEdge(hits: THREE.Intersection[]): string | null {
   for (const hit of hits) {
     const row: unknown = (hit.object as THREE.Mesh).userData?.[BUFFER_EDGE_TAG];
@@ -34,7 +19,6 @@ function pickBufferEdge(hits: THREE.Intersection[]): string | null {
   return null;
 }
 
-
 function pickBufferHandhold(hits: THREE.Intersection[]): string | null {
   for (const hit of hits) {
     const data = (hit.object as THREE.Mesh).userData;
@@ -42,7 +26,6 @@ function pickBufferHandhold(hits: THREE.Intersection[]): string | null {
   }
   return null;
 }
-
 
 function pickBufferRing(hits: THREE.Intersection[]): string | null {
   for (const hit of hits) {
@@ -52,7 +35,6 @@ function pickBufferRing(hits: THREE.Intersection[]): string | null {
   }
   return null;
 }
-
 
 function pickBufferNode(hits: THREE.Intersection[], excludeRow?: string): string | null {
   for (const hit of hits) {
@@ -64,10 +46,6 @@ function pickBufferNode(hits: THREE.Intersection[], excludeRow?: string): string
   }
   return null;
 }
-
-
-
-
 
 function RaycasterHelper({
   onPickRequest,
@@ -89,25 +67,16 @@ function RaycasterHelper({
           : allHits.filter((h) => (h.object as THREE.Mesh).isMesh);
       if (hits.length === 0) return null;
 
-
-
-
-
       if (opts?.handholdOnly) return pickBufferHandhold(hits);
       if (opts?.edgeOnly) return pickBufferEdge(hits);
       if (opts?.ringOnly) return pickBufferRing(hits);
       return pickBufferNode(hits, opts?.nodesOnly ? opts.excludeId : undefined);
     };
 
-
   }, [camera, scene, onPickRequest]);
 
   return null;
 }
-
-
-
-
 
 export function Scene({
   onPickRequest,

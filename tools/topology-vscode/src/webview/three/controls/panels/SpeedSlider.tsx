@@ -5,31 +5,9 @@ import { encodeClockSpeed } from "../../../../schema/input-encode";
 import { usePlaybackSpeed } from "../flags/overlay-flags-speed";
 import { SPEED_SETTINGS, settingKey, DEFAULT_INDEX, closestSettingIndex } from "./speed-settings";
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 const TRACK_W = 104;
 
-
-
-
 const THUMB_INSET = 6;
-
-
-
-
-
-
 
 export function SpeedSlider() {
   const speed = usePlaybackSpeed();
@@ -80,7 +58,6 @@ export function SpeedSlider() {
   );
 }
 
-
 const namedWrapStyle: React.CSSProperties = {
   display: "inline-flex",
   flexDirection: "row",
@@ -88,15 +65,10 @@ const namedWrapStyle: React.CSSProperties = {
   gap: 8,
 };
 
-
-
 const nameStyle: React.CSSProperties = {
   color: "#333",
   whiteSpace: "nowrap",
 };
-
-
-
 
 const wrapStyle: React.CSSProperties = {
   display: "inline-flex",
@@ -124,25 +96,9 @@ const ticksStyle: React.CSSProperties = {
   pointerEvents: "none",
 };
 
-
-
-
-
-
-
-
 const tickStyle: React.CSSProperties = { color: "#000" };
 
-
-
-
-
-
-
 const FRAC_EM = 0.62;
-
-
-
 
 const FRAC_GAP = 1;
 
@@ -156,8 +112,6 @@ const fracStyle: React.CSSProperties = {
   lineHeight: 1,
 };
 
-
-
 const fracBarStyle: React.CSSProperties = {
   display: "block",
   width: "100%",
@@ -165,6 +119,5 @@ const fracBarStyle: React.CSSProperties = {
   margin: `${FRAC_GAP}px 0`,
   background: "currentColor",
 };
-
 
 const tickOnStyle: React.CSSProperties = { color: "#000", fontWeight: "bold" };

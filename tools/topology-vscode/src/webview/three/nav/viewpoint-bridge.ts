@@ -1,14 +1,4 @@
-
-
-
-
-
-
-
-
-
 import * as THREE from "three";
-
 
 export function anglesToWorldOffset(r: number, theta: number, phi: number): THREE.Vector3 {
   const sinTheta = Math.sin(theta);

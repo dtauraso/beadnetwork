@@ -1,15 +1,8 @@
-
-
-
 import { INTERIOR_STRIDE, INTERIOR_SLOTS_PER_NODE } from "../../../schema/buffer-layout";
 import { BUF_INTERIOR_STREAM_FRAME_HEADER_SIZE } from "../../../schema/frame-tags";
 import { decodeTrailingEvents } from "./buffer-decode-shared";
 
-
-
-
 export { INTERIOR_SLOTS_PER_NODE } from "../../../schema/buffer-layout";
-
 
 export interface DecodedInteriorStreamFrame {
   tick: number;
@@ -23,7 +16,6 @@ export interface DecodedInteriorStreamFrame {
 
 const lastInteriorStreamBufByRow = new Map<number, ArrayBuffer>();
 const lastDecodedInteriorStreamByRow = new Map<number, DecodedInteriorStreamFrame | null>();
-
 
 export function decodeInteriorStreamFrame(row: number, buf: ArrayBuffer): DecodedInteriorStreamFrame | null {
   if (lastInteriorStreamBufByRow.get(row) === buf) {

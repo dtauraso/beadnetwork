@@ -1,26 +1,8 @@
 import React from "react";
 
-
-
-
-
-
-
-
-
 export const CHROME_FONT_STACK = '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif';
 
-
-
-
-
-
-
-
-
-
 export const CHROME_TEXT = "#e7e7ea";
-
 
 export function pillContainerStyle(active: boolean): React.CSSProperties {
   return {
@@ -37,12 +19,10 @@ export function pillContainerStyle(active: boolean): React.CSSProperties {
     background: active ? "#4ea1ff" : "#34343d",
     border: `1px solid ${active ? "#4ea1ff" : "#3a3a44"}`,
 
-
     color: active ? "#04101f" : CHROME_TEXT,
     userSelect: "none",
   };
 }
-
 
 export const pillBodyStyle: React.CSSProperties = {
   padding: "3px 9px",
@@ -51,7 +31,6 @@ export const pillBodyStyle: React.CSSProperties = {
   alignItems: "center",
 };
 
-
 export const pillCaretStyle: React.CSSProperties = {
   padding: "3px 7px 3px 4px",
   cursor: "pointer",
@@ -59,13 +38,7 @@ export const pillCaretStyle: React.CSSProperties = {
   alignItems: "center",
   fontSize: 9,
 
-
-
 };
-
-
-
-
 
 export function popoverStyle(width: number | string): React.CSSProperties {
   return {
@@ -85,7 +58,6 @@ export function popoverStyle(width: number | string): React.CSSProperties {
   };
 }
 
-
 export function groupHeadingStyle(hover: boolean): React.CSSProperties {
   return {
     display: "flex",
@@ -102,11 +74,7 @@ export function groupHeadingStyle(hover: boolean): React.CSSProperties {
   };
 }
 
-
-
-
 export const DISCLOSURE_GLYPH_STYLE: React.CSSProperties = { fontSize: 8, width: 8, flex: "0 0 auto" };
-
 
 export const PILL_ANCHOR_STYLE: React.CSSProperties = {
   display: "flex",
@@ -116,14 +84,11 @@ export const PILL_ANCHOR_STYLE: React.CSSProperties = {
   pointerEvents: "none",
 };
 
-
 export function inFlowPopoverStyle(): React.CSSProperties {
   return { ...popoverStyle("100%"), position: "static", boxSizing: "border-box" };
 }
 
-
 export const REVEALED_LIST_STYLE: React.CSSProperties = { width: 0, minWidth: "100%" };
-
 
 export function popoverRowStyle(hover: boolean, disabled: boolean): React.CSSProperties {
   return {

@@ -1,6 +1,3 @@
-
-
-
 import React, { useCallback, useState } from "react";
 import { fireToggle, toggleVal } from "./overlay-toggle";
 import { useOverlayFlags } from "../flags/overlay-flags";
@@ -13,7 +10,6 @@ import {
   REVEALED_LIST_STYLE,
 } from "./overlay-chrome";
 
-
 export function OverlayGroupSection({ group, disabled }: { group: OverlayGroup; disabled?: boolean }) {
   const [open, setOpen] = useState(false);
   const [hover, setHover] = useState(false);
@@ -21,15 +17,8 @@ export function OverlayGroupSection({ group, disabled }: { group: OverlayGroup; 
   const bufFlags = useOverlayFlags();
   const on = group.cfgs.filter((cfg) => cfg.active(toggleVal(bufFlags, cfg))).length;
 
-
-
-
   const onCountClick = useCallback(
     (e: React.MouseEvent) => {
-
-
-
-
 
       if (disabled) return;
       e.stopPropagation();
@@ -60,12 +49,8 @@ export function OverlayGroupSection({ group, disabled }: { group: OverlayGroup; 
           title={disabled ? "" : on > 0 ? `Turn all ${group.heading} off` : `Turn all ${group.heading} on`}
           style={{
 
-
-
             color: on > 0 ? "#4ea1ff" : CHROME_TEXT,
             fontVariantNumeric: "tabular-nums",
-
-
 
             cursor: "pointer",
             padding: "1px 4px",
@@ -80,9 +65,6 @@ export function OverlayGroupSection({ group, disabled }: { group: OverlayGroup; 
         <div style={REVEALED_LIST_STYLE}>
           {group.cfgs.map((cfg) => {
             const parent = group.under?.[cfg.flag];
-
-
-
 
             const parentOff = !!parent && !parent.active(toggleVal(bufFlags, parent));
             return (

@@ -10,7 +10,6 @@ import { splitJsonlLines, splitFrames } from "./framing";
 import { freshStreamState, type StreamParseState } from "./parse-state";
 import type { ProbePaths } from "./probe-paths";
 
-
 export interface StreamDemuxConfig {
   paths: ProbePaths | undefined;
   probeTrace: boolean;
@@ -24,10 +23,7 @@ export interface StreamDemuxConfig {
   onError: (msg: string) => void;
 }
 
-
 export class StreamDemux {
-
-
 
   private stream: StreamParseState;
 
@@ -36,47 +32,18 @@ export class StreamDemux {
   private probeEdgeFile: string | undefined;
   private probeInteriorFile: string | undefined;
 
-
-
-
-
   private readonly probeTrace: boolean;
 
-
-
-
-
-
-
-
-
-
   private lastViewFrame: ArrayBuffer | undefined;
-
-
-
-
 
   private lastEdgeFrames: Map<number, ArrayBuffer> = new Map();
 
   readonly edgeCount: number;
 
-
-
-
-
-
-
   private lastNodeFrames: Map<number, ArrayBuffer> = new Map();
   private lastInteriorFrames: Map<number, ArrayBuffer> = new Map();
 
   readonly nodeCount: number;
-
-
-
-
-
-
 
   private deadStreams: Set<string> = new Set();
 
@@ -105,24 +72,9 @@ export class StreamDemux {
     this.stream.stdoutBuf = rest;
     for (const line of lines) {
 
-
-
-
-
-
       this.onLine(line);
     }
   }
-
-
-
-
-
-
-
-
-
-
 
   private dispatchFrames(
     key: string,
@@ -142,13 +94,6 @@ export class StreamDemux {
     onFrames(frames);
   }
 
-
-
-
-
-
-
-
   handleViewFd(chunk: Buffer) {
     this.dispatchFrames(
       "view",
@@ -159,18 +104,14 @@ export class StreamDemux {
       (frames) => {
         for (const ab of frames) {
 
-
-
-
           if (this.probeFile) {
             const lines = decodeBufferLog(ab, !this.probeTrace);
             if (lines.length > 0) {
               try {
                 fs.appendFileSync(this.probeFile, lines, "utf8");
-              } catch {  }
+              } catch { /* eslint-disable-line no-empty */ }
             }
           }
-
 
           this.lastViewFrame = ab.slice(0);
           if (this.onSnapshot) {
@@ -180,15 +121,6 @@ export class StreamDemux {
       },
     );
   }
-
-
-
-
-
-
-
-
-
 
   handleEdgeFd(row: number, chunk: Buffer) {
     this.dispatchFrames(
@@ -200,9 +132,6 @@ export class StreamDemux {
       (frames) => {
         for (const ab of frames) {
 
-
-
-
           if (this.probeEdgeFile) {
             const decoded = decodeEdgeStreamFrame(row, ab);
             if (decoded && decoded.eventCount > 0) {
@@ -210,7 +139,7 @@ export class StreamDemux {
               if (lines.length > 0) {
                 try {
                   fs.appendFileSync(this.probeEdgeFile, lines, "utf8");
-                } catch {  }
+                } catch { /* eslint-disable-line no-empty */ }
               }
             }
           }
@@ -224,15 +153,6 @@ export class StreamDemux {
     );
   }
 
-
-
-
-
-
-
-
-
-
   handleNodeFd(row: number, chunk: Buffer) {
     this.dispatchFrames(
       `node:${row}`,
@@ -243,8 +163,6 @@ export class StreamDemux {
       (frames) => {
         for (const ab of frames) {
 
-
-
           if (this.probeNodeFile) {
             const decoded = decodeNodeStreamFrame(row, ab);
             if (decoded && decoded.eventCount > 0) {
@@ -252,7 +170,7 @@ export class StreamDemux {
               if (lines.length > 0) {
                 try {
                   fs.appendFileSync(this.probeNodeFile, lines, "utf8");
-                } catch {  }
+                } catch { /* eslint-disable-line no-empty */ }
               }
             }
           }
@@ -266,13 +184,6 @@ export class StreamDemux {
     );
   }
 
-
-
-
-
-
-
-
   handleInteriorFd(row: number, chunk: Buffer) {
     this.dispatchFrames(
       `interior:${row}`,
@@ -284,20 +195,6 @@ export class StreamDemux {
       (frames) => this.processInteriorLikeFrames(row, frames, true),
     );
   }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   handleDriveFd(row: number, slot: number, chunk: Buffer) {
     this.dispatchFrames(
@@ -314,26 +211,8 @@ export class StreamDemux {
     );
   }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   private processInteriorLikeFrames(row: number, frames: ArrayBuffer[], assertsSlots: boolean) {
     for (const ab of frames) {
-
-
 
       if (this.probeInteriorFile) {
         const decoded = decodeInteriorStreamFrame(row, ab);
@@ -342,7 +221,7 @@ export class StreamDemux {
           if (lines.length > 0) {
             try {
               fs.appendFileSync(this.probeInteriorFile, lines, "utf8");
-            } catch {  }
+            } catch { /* eslint-disable-line no-empty */ }
           }
         }
       }
@@ -354,21 +233,17 @@ export class StreamDemux {
     }
   }
 
-
   getLastViewFrame(): ArrayBuffer | undefined {
     return this.lastViewFrame?.slice(0);
   }
-
 
   getLastEdgeFrames(): Array<{ row: number; buffer: ArrayBuffer }> {
     return Array.from(this.lastEdgeFrames, ([row, buffer]) => ({ row, buffer: buffer.slice(0) }));
   }
 
-
   getLastNodeFrames(): Array<{ row: number; buffer: ArrayBuffer }> {
     return Array.from(this.lastNodeFrames, ([row, buffer]) => ({ row, buffer: buffer.slice(0) }));
   }
-
 
   getLastInteriorFrames(): Array<{ row: number; buffer: ArrayBuffer }> {
     return Array.from(this.lastInteriorFrames, ([row, buffer]) => ({ row, buffer: buffer.slice(0) }));

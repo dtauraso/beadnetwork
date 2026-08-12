@@ -1,41 +1,16 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { getEdgeStreamAccessor } from "./edge-stream-blocks";
 import { EDGE_LINE_COLOR } from "./bead-style";
 
-
-
-
 import { DIRECTION_ZERO_EPS } from "./buffer-scene-shared";
-
-
-
-
-
 
 const EDGE_LINE_RADIUS = 1.5;
 const ARROW_HEAD_RADIUS = 3;
 const ARROW_HEAD_LENGTH = ARROW_HEAD_RADIUS * 2;
 
-
-
 const AXIS_DEFAULT = new THREE.Vector3(0, 1, 0);
-
 
 const TORUS_DEFAULT_NORMAL = new THREE.Vector3(0, 0, 1);
 
@@ -63,24 +38,15 @@ export function EdgeLines({ capacity }: { capacity: number }) {
       dir.current.set(ex - sx, ey - sy, ez - sz);
       const len = dir.current.length();
 
-
-
       if (len <= DIRECTION_ZERO_EPS) continue;
       dir.current.divideScalar(len);
       quat.current.setFromUnitVectors(AXIS_DEFAULT, dir.current);
-
-
-
-
 
       const shaft = Math.max(len - ARROW_HEAD_LENGTH, 0);
       pos.current.set(sx, sy, sz).addScaledVector(dir.current, shaft / 2);
       scl.current.set(1, shaft, 1);
       mat.current.compose(pos.current, quat.current, scl.current);
       line.setMatrixAt(drawn, mat.current);
-
-
-
 
       pos.current.set(ex, ey, ez).addScaledVector(dir.current, -ARROW_HEAD_LENGTH / 2);
       scl.current.set(1, 1, 1);

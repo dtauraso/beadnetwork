@@ -1,12 +1,7 @@
-
-
-
-
 import { useSyncExternalStore } from "react";
 import { getNodeFrame } from "../../scene/node-stream-blocks";
 import { subscribeViewBlocks } from "../../scene/view-blocks";
 import { readNodeSelected } from "../../../../schema/buffer-layout";
-
 
 export function readSelectedNodeRow(): number {
   const decoded = getNodeFrame();
@@ -16,7 +11,6 @@ export function readSelectedNodeRow(): number {
   }
   return -1;
 }
-
 
 export function useSelectedNodeRow(): number {
   return useSyncExternalStore(subscribeViewBlocks, readSelectedNodeRow, readSelectedNodeRow);

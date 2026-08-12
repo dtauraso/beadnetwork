@@ -1,7 +1,3 @@
-
-
-
-
 import {
   NODE_STRIDE,
   CHAIN_BEAD_STRIDE,
@@ -11,14 +7,6 @@ import {
 } from "../../../schema/buffer-layout";
 import { BUF_NODE_STREAM_FRAME_HEADER_SIZE } from "../../../schema/frame-tags";
 import { STR_DECODER, decodeTrailingEvents } from "./buffer-decode-shared";
-
-
-
-
-
-
-
-
 
 function reportNodeIdMismatch(row: number, expectedId: number, statedId: number): void {
   const message = `node stream frame arrived on row ${row} (expected id ${expectedId}) but carries NodeId ${statedId}`;
@@ -31,7 +19,6 @@ function reportNodeIdMismatch(row: number, expectedId: number, statedId: number)
     postLog("load-error", { reason: "node-id-row-mismatch", message, arrivalRow: row, statedNodeId: statedId, expectedNodeId: expectedId });
   });
 }
-
 
 export interface DecodedNodeFrame {
   tick: number;
@@ -48,13 +35,7 @@ export interface DecodedNodeFrame {
   labelBytes: Uint8Array;
 }
 
-
 export function nodeLabel(decoded: DecodedNodeFrame, row: number): string {
-
-
-
-
-
 
   if (row < 0 || row >= decoded.nodeCount) return "";
   const off = readNodeLabelOff(decoded.nodeView, row);
@@ -63,10 +44,6 @@ export function nodeLabel(decoded: DecodedNodeFrame, row: number): string {
   if (off < 0 || len < 0 || off + len > decoded.labelBytes.byteLength) return "";
   return STR_DECODER.decode(decoded.labelBytes.subarray(off, off + len));
 }
-
-
-
-
 
 export interface DecodedNodeStreamFrame {
   tick: number;
@@ -84,15 +61,8 @@ export interface DecodedNodeStreamFrame {
   eventTextView: DataView;
 }
 
-
-
-
-
-
-
 const lastNodeStreamBufByRow = new Map<number, ArrayBuffer>();
 const lastDecodedNodeStreamByRow = new Map<number, DecodedNodeStreamFrame | null>();
-
 
 export function decodeNodeStreamFrame(row: number, buf: ArrayBuffer): DecodedNodeStreamFrame | null {
   if (lastNodeStreamBufByRow.get(row) === buf) {
@@ -100,14 +70,6 @@ export function decodeNodeStreamFrame(row: number, buf: ArrayBuffer): DecodedNod
   }
   const decoded = decodeNodeStreamFrameUncached(buf);
   if (decoded) {
-
-
-
-
-
-
-
-
 
     const statedId = readNodeNodeId(decoded.nodeView, 0);
     const expectedId = row + 1;

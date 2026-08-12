@@ -2,13 +2,9 @@ import * as cp from "child_process";
 import * as fs from "fs";
 import * as path from "path";
 
-
-
 const GO_WALK_EXCLUDE = new Set([
   "node_modules", ".git", "out", ".probe", ".wirefold-cache", "handoff-archive",
 ]);
-
-
 
 export function maxGoMtime(dir: string): number {
   let max = 0;
@@ -28,7 +24,7 @@ export function maxGoMtime(dir: string): number {
       try {
         const m = fs.statSync(full).mtimeMs;
         if (m > max) max = m;
-      } catch {  }
+      } catch { /* eslint-disable-line no-empty */ }
     }
   }
   return max;
@@ -38,32 +34,7 @@ export type BuildResult =
   | { ok: true; busy?: boolean }
   | { ok: false; error: string };
 
-
-
-
-
-
-
-
-
 let building = false;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 export function killOrphanedSims(binPath: string, exceptPid?: number): { killed: number } {
   if (process.platform !== "darwin" && process.platform !== "linux") {
@@ -88,23 +59,14 @@ export function killOrphanedSims(binPath: string, exceptPid?: number): { killed:
     if (!Number.isInteger(pid) || pid <= 0) continue;
     const command = line.slice(sp + 1);
 
-
-
     if (pid === self || (exceptPid !== undefined && pid === exceptPid)) continue;
-
-
-
-
-
 
     if (!command.includes("wirefold")) continue;
     if (!command.includes(binPath) && !command.includes("-topology")) continue;
     try {
       process.kill(pid, "SIGKILL");
       killed++;
-    } catch {
-
-    }
+    } catch { /* eslint-disable-line no-empty */ }
   }
   return { killed };
 }

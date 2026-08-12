@@ -1,36 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 import React, { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
@@ -43,30 +10,13 @@ import {
   readNodeReceivedVectorLen, readNodeReceivedVectorTheta,
 } from "../../../schema/buffer-layout";
 
-
-
 const SHAFT_RADIUS_FRAC = 0.035;
 const HEAD_LEN_FRAC = 0.22;
 const HEAD_RADIUS_FRAC = 0.09;
 
-
-
-
-
-
 const VECTOR_COLOR = "#FF2E88";
 
-
-
-
-
-
-
-
-
-
 const RECEIVED_VECTOR_COLOR = "#00E5FF";
-
 
 const GEOMETRY_AXIS = new THREE.Vector3(0, 1, 0);
 
@@ -98,16 +48,10 @@ export function TiltVectors({ capacity, receivedCapacity }: { capacity: number; 
     }
     const { nodeCount, nodeView } = decoded;
 
-
-
-
     const writeArrowInto = (
       targetShaft: THREE.InstancedMesh, targetHead: THREE.InstancedMesh, idx: number,
       cx: number, cy: number, cz: number, len: number, theta: number,
     ) => {
-
-
-
 
       if (theta === 0) {
         axisRef.current.set(0, 1, 0);
@@ -115,8 +59,6 @@ export function TiltVectors({ capacity, receivedCapacity }: { capacity: number; 
         axisRef.current.set(Math.sin(theta), Math.cos(theta), 0);
       }
       quatRef.current.setFromUnitVectors(GEOMETRY_AXIS, axisRef.current);
-
-
 
       const shaftLen = len * (1 - HEAD_LEN_FRAC);
       posRef.current.set(
@@ -127,8 +69,6 @@ export function TiltVectors({ capacity, receivedCapacity }: { capacity: number; 
       sclRef.current.set(len * SHAFT_RADIUS_FRAC, shaftLen, len * SHAFT_RADIUS_FRAC);
       matRef.current.compose(posRef.current, quatRef.current, sclRef.current);
       targetShaft.setMatrixAt(idx, matRef.current);
-
-
 
       const headLen = len * HEAD_LEN_FRAC;
       const headCentre = len - headLen / 2;
@@ -142,13 +82,7 @@ export function TiltVectors({ capacity, receivedCapacity }: { capacity: number; 
       targetHead.setMatrixAt(idx, matRef.current);
     };
 
-
-
-
-
-
     let drawn = 0;
-
 
     let receivedDrawn = 0;
 
@@ -156,12 +90,6 @@ export function TiltVectors({ capacity, receivedCapacity }: { capacity: number; 
       const cx = readNodeCX(nodeView, row);
       const cy = readNodeCY(nodeView, row);
       const cz = readNodeCZ(nodeView, row);
-
-
-
-
-
-
 
       const len = readNodeTopTiltVectorLen(nodeView, row);
       if (len > 0 && drawn + 2 < capacity) {
@@ -172,9 +100,6 @@ export function TiltVectors({ capacity, receivedCapacity }: { capacity: number; 
         writeArrowInto(shaft, head, drawn, cx, cy, cz, len, readNodeCoplanarNormalTheta(nodeView, row));
         drawn++;
       }
-
-
-
 
       const receivedLen = readNodeReceivedVectorLen(nodeView, row);
       if (receivedLen > 0 && receivedDrawn < receivedCapacity) {

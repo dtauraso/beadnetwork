@@ -1,17 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 import React, { useEffect, useRef, useState } from "react";
 import { postGoRecord } from "../../../vscode-api";
 import { encodeSceneCreate, encodeSceneDelete } from "../../../../schema/input-encode";
@@ -32,19 +18,13 @@ import {
   REVEALED_LIST_STYLE,
 } from "../pills/overlay-chrome";
 
-
-
 const KIND_MIME = "application/x-wirefold-kind";
-
 
 export function NodePalette() {
   const editable = useSceneEditable();
   const sceneKinds = useSceneKinds();
   const [open, setOpen] = useState(false);
   const selectedRow = useSelectedNodeRow();
-
-
-
 
   useEffect(() => {
     if (!editable) return;
@@ -59,9 +39,6 @@ export function NodePalette() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [editable, selectedRow]);
-
-
-
 
   if (!editable) return null;
 
@@ -103,10 +80,8 @@ export function NodePalette() {
   );
 }
 
-
 function PaletteRow({ kind, kindId }: { kind: string; kindId: number }) {
   const [hover, setHover] = useState(false);
-
 
   const [open, setOpen] = useState(false);
 
@@ -118,9 +93,6 @@ function PaletteRow({ kind, kindId }: { kind: string; kindId: number }) {
       onDragStart={(e) => {
         e.dataTransfer.setData(KIND_MIME, String(kindId));
         e.dataTransfer.effectAllowed = "copy";
-
-
-
 
         if (headingRef.current) {
           e.dataTransfer.setDragImage(headingRef.current, 12, 8);
@@ -162,7 +134,6 @@ function PaletteRow({ kind, kindId }: { kind: string; kindId: number }) {
               display: "block",
               opacity: 0.8,
 
-
               overflowWrap: "anywhere",
               whiteSpace: "normal",
               lineHeight: 1.35,
@@ -176,7 +147,6 @@ function PaletteRow({ kind, kindId }: { kind: string; kindId: number }) {
     </div>
   );
 }
-
 
 function RefusedNotice() {
   const refused = useEditRefused();
@@ -210,14 +180,12 @@ function RefusedNotice() {
   );
 }
 
-
 export function dropKindFromEvent(e: DragEvent): number | null {
   const raw = e.dataTransfer?.getData(KIND_MIME);
   if (!raw) return null;
   const id = Number(raw);
   return Number.isInteger(id) && id >= 0 ? id : null;
 }
-
 
 export function fireCreateAt(kindId: number, ndcX: number, ndcY: number): void {
   postGoRecord(encodeSceneCreate(kindId, ndcX, ndcY));

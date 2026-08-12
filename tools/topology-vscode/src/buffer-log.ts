@@ -1,25 +1,7 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
 import { decodeViewFrame } from "./webview/three/decode/buffer-decode-view";
 import type { DecodedNodeFrame } from "./webview/three/decode/buffer-decode-node";
 import type { DecodedEdgeFrame } from "./webview/three/decode/buffer-decode-edge";
 import { decodeEventLine, type ViewBlocksOrNull } from "./webview/three/decode/decode-event-line";
-
-
-
-
-
 
 export type DecodedEventLine =
   | { step: number; kind: "recv" | "fire"; node: string; port?: string; value?: number }
@@ -42,14 +24,7 @@ export type DecodedEventLine =
   | { step: number; kind: "select"; node: string }
   | { step: number; kind: "hover"; node: string; port?: string; value?: number }
 
-
-
-
   | { step: number; kind: "abc-drag"; node: string; port?: string; value?: number }
-
-
-
-
 
   | {
       step: number; kind: "breadcrumb"; label: string; debug: boolean;
@@ -57,21 +32,6 @@ export type DecodedEventLine =
       nodeRow: number; portRow: number; targetRow: number; targetPortRow: number; edgeRow: number; slot: number;
       target?: string; text?: string;
     };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 export function decodeBufferLog(viewFrameBuf: ArrayBuffer, breadcrumbsOnly = false): string {
   const dv = decodeViewFrame(viewFrameBuf);
@@ -91,15 +51,6 @@ function decodeEventsFromView(eventCount: number, eventView: DataView, eventText
   }
   return out;
 }
-
-
-
-
-
-
-
-
-
 
 export function decodeStreamFrameEvents(eventCount: number, eventView: DataView, eventTextView: DataView, dn?: DecodedNodeFrame | null, de?: DecodedEdgeFrame | null, breadcrumbsOnly = false): string {
   const now = Date.now();

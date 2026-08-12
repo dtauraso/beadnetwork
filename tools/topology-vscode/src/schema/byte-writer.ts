@@ -1,7 +1,3 @@
-
-
-
-
 export class ByteWriter {
   private buf = new Uint8Array(64);
   private view = new DataView(this.buf.buffer);
@@ -62,7 +58,6 @@ export class ByteWriter {
     return this.buf.buffer.slice(0, this.pos);
   }
 }
-
 
 export function enumIndex(list: readonly string[], s: string): number {
   const i = list.indexOf(s);

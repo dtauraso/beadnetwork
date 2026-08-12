@@ -1,7 +1,3 @@
-
-
-
-
 export function ndcToPixel(ndcX: number, ndcY: number, size: { width: number; height: number }): { px: number; py: number } {
   const px = (ndcX + 1) / 2 * size.width;
   const py = (1 - (ndcY + 1) / 2) * size.height;

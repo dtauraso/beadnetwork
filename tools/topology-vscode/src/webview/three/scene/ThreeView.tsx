@@ -1,9 +1,3 @@
-
-
-
-
-
-
 import { useEffect, useRef, useState, useCallback } from "react";
 import { Canvas } from "@react-three/fiber";
 import * as THREE from "three";
@@ -22,12 +16,6 @@ import type { BufferLabelPos } from "./buffer-scene";
 import { NavGuides } from "../nav/NavGuides";
 import { useOverlayFlags } from "../controls/flags/overlay-flags";
 
-
-
-
-
-
-
 const PILL_STYLE: React.CSSProperties = {
   background: "rgba(0,0,0,0.55)",
   border: "none",
@@ -37,7 +25,6 @@ const PILL_STYLE: React.CSSProperties = {
 
 export function ThreeView() {
 
-
   const [bufferLabelPositions, setBufferLabelPositions] = useState<BufferLabelPos[]>([]);
 
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
@@ -45,7 +32,6 @@ export function ThreeView() {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const captureRef = useRef<HTMLDivElement | null>(null);
   const [canvasSize, setCanvasSize] = useState({ w: 800, h: 600 });
-
 
   useEffect(() => {
     const el = containerRef.current;
@@ -55,7 +41,6 @@ export function ThreeView() {
     setCanvasSize({ w: el.clientWidth, h: el.clientHeight });
     return () => obs.disconnect();
   }, []);
-
 
   const bufferLabelRaf = useRef<ReturnType<typeof requestAnimationFrame> | null>(null);
   const pendingBufferPositions = useRef<BufferLabelPos[]>([]);
@@ -68,7 +53,6 @@ export function ThreeView() {
       });
     }
   }, []);
-
 
   useEffect(() => {
     return () => {
@@ -84,20 +68,12 @@ export function ThreeView() {
     pickRequest,
   );
 
-
-
-
   useEffect(() => {
     const el = captureRef.current;
     if (!el) return;
     el.addEventListener("wheel", onWheelNative, { passive: false });
     return () => el.removeEventListener("wheel", onWheelNative);
   }, [onWheelNative]);
-
-
-
-
-
 
   const bufFlags = useOverlayFlags();
   const bufLabelsHidden = bufFlags?.labelsGlobal ?? false;
@@ -113,12 +89,6 @@ export function ThreeView() {
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerCancel}
         onContextMenu={(e) => e.preventDefault()}
-
-
-
-
-
-
 
         onDragOver={(e) => {
           if (e.dataTransfer.types.includes("application/x-wirefold-kind")) e.preventDefault();
@@ -186,10 +156,6 @@ export function ThreeView() {
           zIndex: 20,
           display: "flex",
           flexDirection: "column",
-
-
-
-
 
           alignItems: "stretch",
           gap: 6,

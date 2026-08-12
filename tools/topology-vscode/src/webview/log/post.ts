@@ -1,11 +1,3 @@
-
-
-
-
-
-
-
-
 import { vscode } from "../vscode-api";
 
 export function postLog(label: string, data?: Record<string, unknown>): void {
@@ -23,7 +15,5 @@ export function postLog(label: string, data?: Record<string, unknown>): void {
   if (typeof window === "undefined") return;
   try {
     (vscode as unknown as { postMessage(msg: unknown): void }).postMessage({ type: "webview-log", entry });
-  } catch {
-
-  }
+  } catch { /* eslint-disable-line no-empty */ }
 }

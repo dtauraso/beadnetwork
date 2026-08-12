@@ -1,6 +1,3 @@
-
-
-
 import * as crypto from "crypto";
 import * as fs from "fs";
 import * as path from "path";
@@ -13,9 +10,6 @@ export function buildWebviewHtml(
   const scriptPath = path.join(extensionPath, "out", "webview.js");
   const stylePath = path.join(extensionPath, "out", "webview.css");
 
-
-
-
   const scriptUri = webview
     .asWebviewUri(vscode.Uri.file(scriptPath))
     .with({ query: `v=${mtimeMs(scriptPath)}` });
@@ -23,15 +17,6 @@ export function buildWebviewHtml(
     .asWebviewUri(vscode.Uri.file(stylePath))
     .with({ query: `v=${mtimeMs(stylePath)}` });
   const nonce = randomNonce();
-
-
-
-
-
-
-
-
-
 
   const csp = [
     `default-src 'none'`,

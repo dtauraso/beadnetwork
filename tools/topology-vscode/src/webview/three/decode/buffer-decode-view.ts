@@ -1,7 +1,3 @@
-
-
-
-
 import {
   CAMERA_STRIDE,
   OVERLAY_STRIDE,
@@ -10,12 +6,7 @@ import {
 import { BUF_VIEW_FRAME_HEADER_SIZE } from "../../../schema/frame-tags";
 import { STR_DECODER, decodeTrailingEvents } from "./buffer-decode-shared";
 
-
 export const SCENE_TABS_HEADER_SIZE = 4;
-
-
-
-
 
 function decodeSceneTabs(buf: ArrayBuffer, offset: number): { names: string[]; selected: number; end: number } {
   if (buf.byteLength < offset + SCENE_TABS_HEADER_SIZE) {
@@ -37,7 +28,6 @@ function decodeSceneTabs(buf: ArrayBuffer, offset: number): { names: string[]; s
   return { names, selected, end: off };
 }
 
-
 export interface DecodedViewFrame {
   tick: number;
   cameraView: DataView;
@@ -52,11 +42,8 @@ export interface DecodedViewFrame {
   eventTextView: DataView;
 }
 
-
-
 let lastViewBuf: ArrayBuffer | null = null;
 let lastDecodedView: DecodedViewFrame | null = null;
-
 
 export function decodeViewFrame(buf: ArrayBuffer): DecodedViewFrame | null {
   if (buf === lastViewBuf) return lastDecodedView;

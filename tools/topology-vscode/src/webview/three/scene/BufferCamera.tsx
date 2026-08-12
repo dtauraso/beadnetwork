@@ -1,17 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 import { useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
@@ -37,9 +23,6 @@ export function BufferCamera({ cameraRef }: {
     const cv = blocks.cameraView;
 
     const r = readCameraR(cv);
-
-
-
 
     if (!(r > 0)) return;
 

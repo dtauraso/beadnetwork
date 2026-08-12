@@ -1,13 +1,8 @@
-
-
-
-
 import { useSyncExternalStore } from "react";
 import { getNodeFrame, subscribeNodeStreamBlocks } from "../../scene/node-stream-blocks";
 import { getViewBlocks, subscribeViewBlocks } from "../../scene/view-blocks";
 import { readOverlayDragNodeRow } from "../../../../schema/buffer-layout";
 import { nodeLabel } from "../../decode/buffer-decode-node";
-
 
 export function readDragNodeRow(): number {
   const blocks = getViewBlocks();
@@ -15,11 +10,9 @@ export function readDragNodeRow(): number {
   return readOverlayDragNodeRow(blocks.overlayView);
 }
 
-
 export function useDragNodeRow(): number {
   return useSyncExternalStore(subscribeViewBlocks, readDragNodeRow, readDragNodeRow);
 }
-
 
 export function readDraggedNodeName(): string {
   const row = readDragNodeRow();
@@ -29,7 +22,6 @@ export function readDraggedNodeName(): string {
   return nodeLabel(decoded, row);
 }
 
-
 function subscribeDraggedNodeName(fn: () => void): () => void {
   const unsubView = subscribeViewBlocks(fn);
   const unsubNode = subscribeNodeStreamBlocks(fn);
@@ -38,7 +30,6 @@ function subscribeDraggedNodeName(fn: () => void): () => void {
     unsubNode();
   };
 }
-
 
 export function useDraggedNodeName(): string {
   return useSyncExternalStore(subscribeDraggedNodeName, readDraggedNodeName, readDraggedNodeName);

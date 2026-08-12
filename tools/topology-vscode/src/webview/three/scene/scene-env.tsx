@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, createContext } from "react";
 import { useThree } from "@react-three/fiber";
 import * as THREE from "three";
@@ -19,10 +18,7 @@ import {
   SHADING_PARAM_ENV_PMREM_BLUR,
 } from "../../../schema/shading-params";
 
-
 export const EnvTexContext = createContext<THREE.Texture | null>(null);
-
-
 
 export function ProceduralEnvProvider({ children }: { children: React.ReactNode }) {
   const { gl } = useThree();
@@ -32,9 +28,7 @@ export function ProceduralEnvProvider({ children }: { children: React.ReactNode 
     const pmrem = new THREE.PMREMGenerator(gl);
     pmrem.compileEquirectangularShader();
 
-
     const envScene = new THREE.Scene();
-
 
     const skyGeo = new THREE.SphereGeometry(SHADING_PARAM_ENV_SKY_RADIUS, 16, 8);
     const skyMat = new THREE.MeshBasicMaterial({
@@ -42,7 +36,6 @@ export function ProceduralEnvProvider({ children }: { children: React.ReactNode 
       vertexColors: true,
     });
     const skyMesh = new THREE.Mesh(skyGeo, skyMat);
-
 
     const posAttr = skyGeo.attributes.position as THREE.BufferAttribute;
     const count = posAttr.count;
@@ -56,7 +49,6 @@ export function ProceduralEnvProvider({ children }: { children: React.ReactNode 
     }
     skyGeo.setAttribute("color", new THREE.BufferAttribute(colors, 3));
     envScene.add(skyMesh);
-
 
     const fill = new THREE.AmbientLight(new THREE.Color(SHADING_PARAM_ENV_AMBIENT_COLOR), SHADING_PARAM_ENV_AMBIENT_INTENSITY);
     envScene.add(fill);
@@ -77,8 +69,6 @@ export function ProceduralEnvProvider({ children }: { children: React.ReactNode 
       skyMat.dispose();
       pmrem.dispose();
     };
-
-
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

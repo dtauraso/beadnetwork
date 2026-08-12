@@ -1,35 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
@@ -41,16 +9,7 @@ import {
   SHADING_PARAM_CHAIN_BEAD_FILL,
 } from "../../../schema/shading-params";
 
-
-
 const RING_COLOR = beadStyleForValue(1)!.ring;
-
-
-
-
-
-
-
 
 const TORUS_DEFAULT_NORMAL = new THREE.Vector3(0, 0, 1);
 const BEAD_UNIT_SCALE = new THREE.Vector3(1, 1, 1);
@@ -72,43 +31,17 @@ export function ChainBeadInstances({ capacity }: { capacity: number }) {
 
     const { positions, ringAxis, count, lit, litValue } = getChainBeads();
 
-
-
-
     const drawn = Math.min(count, capacity);
-
-
-
-
-
 
     let litCount = 0;
     let ringCount = 0;
     for (let i = 0; i < drawn; i++) {
 
-
-
-
-
-
       if (lit[i] !== 1) continue;
-
-
-
-
-
-
 
       if (!beadStyleForValue(litValue[i])) continue;
 
-
-
       matRef.current.makeTranslation(positions[i * 3]!, positions[i * 3 + 1]!, positions[i * 3 + 2]!);
-
-
-
-
-
 
       beadAxisRef.current.set(ringAxis[i * 3]!, ringAxis[i * 3 + 1]!, ringAxis[i * 3 + 2]!);
       beadQuatRef.current.setFromUnitVectors(TORUS_DEFAULT_NORMAL, beadAxisRef.current);
@@ -120,10 +53,6 @@ export function ChainBeadInstances({ capacity }: { capacity: number }) {
       ring.setMatrixAt(ringCount, beadRingMatRef.current);
       ring.setColorAt(ringCount, colRef.current.set(RING_COLOR));
       ringCount++;
-
-
-
-
 
       const style = beadStyleForValue(litValue[i]);
       if (!style) continue;

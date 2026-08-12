@@ -1,12 +1,3 @@
-
-
-
-
-
-
-
-
-
 import * as THREE from "three";
 import { postGoRecord } from "../../vscode-api";
 import { encodeRawInput } from "../../../schema/input-encode";
@@ -16,41 +7,25 @@ import { pixelToNDC } from "./geometry-helpers";
 
 type CamRef = React.MutableRefObject<THREE.PerspectiveCamera | null>;
 
-
 export function sendRawInput(event: RawInputEvent): void {
   postGoRecord(encodeRawInput(event));
 }
 
-
 function classifyHit(pickRequest: PickRef, ndcX: number, ndcY: number): { kind: RawHit["kind"]; isInput: boolean; nodeRow: number; portRow: number; edgeRow: number } {
-
-
-
-
-
-
-
 
   const edgeStr = pickRequest.current?.(ndcX, ndcY, { edgeOnly: true }) ?? null;
   if (edgeStr !== null) return { kind: "edge", isInput: false, nodeRow: -1, portRow: -1, edgeRow: Number(edgeStr) };
 
-
-
   const handholdStr = pickRequest.current?.(ndcX, ndcY, { handholdOnly: true }) ?? null;
   if (handholdStr !== null) return { kind: "handhold", isInput: false, nodeRow: -1, portRow: -1, edgeRow: -1 };
 
-
-
-
   const torusStr = pickRequest.current?.(ndcX, ndcY, { ringOnly: true }) ?? null;
   if (torusStr !== null) return { kind: "torus", isInput: false, nodeRow: Number(torusStr), portRow: -1, edgeRow: -1 };
-
 
   const nodeStr = pickRequest.current?.(ndcX, ndcY) ?? null;
   if (nodeStr !== null) return { kind: "node", isInput: false, nodeRow: Number(nodeStr), portRow: -1, edgeRow: -1 };
   return { kind: "empty", isInput: false, nodeRow: -1, portRow: -1, edgeRow: -1 };
 }
-
 
 export function buildPointerRaw(
   e: React.PointerEvent<HTMLDivElement>,
@@ -76,7 +51,6 @@ export function buildPointerRaw(
   };
 }
 
-
 export function buildHomeRaw(fov: number, aspect: number): RawInputEvent {
   const hit: RawHit = { kind: "empty", isInput: false, nodeRow: -1, portRow: -1, edgeRow: -1 };
   return {
@@ -90,7 +64,6 @@ export function buildHomeRaw(fov: number, aspect: number): RawInputEvent {
     hit,
   };
 }
-
 
 export function buildWheelRaw(
   e: WheelEvent,

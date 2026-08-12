@@ -1,5 +1,3 @@
-
-
 import { vscode } from "./vscode-api";
 import { postLog } from "./log/post";
 postLog("lifecycle", { phase: "bundle-eval" });
@@ -34,9 +32,6 @@ createRoot(app).render(
   </ErrorBoundary>,
 );
 
-
-
-
 let bufSnapLogAt = 0;
 let bufSnapCount = 0;
 
@@ -44,32 +39,16 @@ window.addEventListener("message", (e) => {
   const msg = parseHostToWebview(e.data);
   if (!msg) return;
 
-
-
-
-
-
-
-
-
   if (msg.type === "buffer-snapshot") {
-
-
-
-
-
 
     if (msg.tag === BUF_BLOCK_TAG_VIEW) {
       setLatestViewFrame(msg.buffer, msg.gen);
     } else if (msg.tag === BUF_BLOCK_TAG_EDGE_STREAM) {
 
-
-
       if (typeof msg.row === "number") {
         setLatestEdgeStreamFrame(msg.row, msg.buffer, msg.gen);
       }
     } else if (msg.tag === BUF_BLOCK_TAG_NODE_STREAM) {
-
 
       if (typeof msg.row === "number") {
         setLatestNodeStreamFrame(msg.row, msg.buffer, msg.gen);
@@ -89,7 +68,6 @@ window.addEventListener("message", (e) => {
     }
   }
 });
-
 
 vscode.postMessage({ type: "ready" });
 postLog("lifecycle", { phase: "ready-sent" });

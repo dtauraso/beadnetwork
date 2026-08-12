@@ -1,18 +1,6 @@
-
-
-
-
-
 import { EVENT_STRIDE } from "../../../schema/buffer-layout";
 
-
 export const STR_DECODER = new TextDecoder();
-
-
-
-
-
-
 
 export function decodeTrailingEvents(buf: ArrayBuffer, offset: number): { count: number; view: DataView; textView: DataView } {
   const empty = { count: 0, view: new DataView(buf, buf.byteLength, 0), textView: new DataView(buf, buf.byteLength, 0) };

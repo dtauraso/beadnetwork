@@ -1,24 +1,10 @@
-
-
-
-
 import React, { useMemo } from "react";
 import * as THREE from "three";
 import { AxisLabel } from "./axis-label";
 import { computePolarFrameGeometry } from "./polar-frame-geometry";
 import { HANDHOLD_TERM_TAG, THETA_CIRCLES, PHI_CIRCLES } from "./polar-frame-data";
 
-
-
-
 const WORLD_UP = new THREE.Vector3(0, 1, 0);
-
-
-
-
-
-
-
 
 export function PolarFrame({ center, scale, tag, octants, pole }: {
   center: THREE.Vector3; scale: number; tag?: string; octants?: boolean; pole?: THREE.Vector3;
@@ -26,9 +12,6 @@ export function PolarFrame({ center, scale, tag, octants, pole }: {
   const { poleLen, poleRadius, coneH, coneBaseR, arcR, arcTube, arcMid, hhR, arcHH } =
     computePolarFrameGeometry(scale);
   const sfx = tag ? ` ${tag}` : "";
-
-
-
 
   const quat = useMemo(() => {
     const q = new THREE.Quaternion();

@@ -1,16 +1,4 @@
-
-
-
-
-
-
-
-
-
 export const HANDHOLD_TERM_TAG = "handholdTerm";
-
-
-
 
 export const OCTANTS: { s: [number, number, number]; color: string; tag: string }[] = [
   { s: [1, 1, 1], color: "#ffffff", tag: "+x+y+z" },
@@ -22,30 +10,6 @@ export const OCTANTS: { s: [number, number, number]; color: string; tag: string 
   { s: [-1, -1, 1], color: "#00bfff", tag: "−x−y+z" },
   { s: [-1, -1, -1], color: "#cd853f", tag: "−x−y−z" },
 ];
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 export const THETA_CIRCLES: { sx: number; sy: number; n: number; c: string }[] = [
   { sx: 1, sy: 1, n: 2, c: "#ff8c00" },

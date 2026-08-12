@@ -15,51 +15,7 @@ import {
 } from "../pills/overlay-chrome";
 import { StepperRow } from "../pills/pill-rows";
 
-
-
-
-
-
-
-
-
-
 const AXES = ["theta"] as const;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 function AxisRow({ node, axis }: { node: TiltVectorRow; axis: (typeof AXES)[number] }) {
   const adjust = (dir: "up" | "down") => {
@@ -78,7 +34,6 @@ function AxisRow({ node, axis }: { node: TiltVectorRow; axis: (typeof AXES)[numb
     />
   );
 }
-
 
 function NodeGroupSection({ node }: { node: TiltVectorRow }) {
   const [open, setOpen] = useState(false);
@@ -107,18 +62,14 @@ function NodeGroupSection({ node }: { node: TiltVectorRow }) {
   );
 }
 
-
-
 const LATTICE_POINTS_MIN = 4;
 const LATTICE_POINTS_MAX = 64;
 const LATTICE_POINTS_STEP = 4;
-
 
 function LatticePointsRow({ points }: { points: number }) {
   const adjust = (delta: number) => {
     postGoRecord(encodeSceneLatticePoints(points + delta));
   };
-
 
   return (
     <StepperRow
@@ -133,13 +84,9 @@ function LatticePointsRow({ points }: { points: number }) {
   );
 }
 
-
 export function TiltVectorAnglePanel() {
   const rows = useTiltVectorRows();
   const [open, setOpen] = useState(false);
-
-
-
 
   if (!rows || rows.length === 0) return null;
 
@@ -149,10 +96,6 @@ export function TiltVectorAnglePanel() {
   };
 
   return (
-
-
-
-
 
     <div style={PILL_ANCHOR_STYLE}>
       <div style={pillContainerStyle(false)}>
@@ -181,8 +124,4 @@ export function TiltVectorAnglePanel() {
     </div>
   );
 }
-
-
-
-
 

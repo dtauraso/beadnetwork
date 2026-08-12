@@ -1,7 +1,3 @@
-
-
-
-
 import { postGoRecord } from "../../../vscode-api";
 import { encodeOverlaysToggle } from "../../../../schema/input-encode";
 import type { OverlayFlag } from "../../../../messages";
@@ -29,16 +25,11 @@ export function fireToggle(cfg: ToggleCfg, val: boolean) {
   postGoRecord(encodeOverlaysToggle(cfg.flag));
 }
 
-
 export function useToggleVal(cfg: ToggleCfg): boolean {
   return toggleVal(useOverlayFlags(), cfg);
 }
 
-
 export function toggleVal(bufFlags: ReturnType<typeof useOverlayFlags>, cfg: ToggleCfg): boolean {
-
-
-
 
   if (bufFlags) return bufFlags[cfg.flag] ?? cfg.default ?? false;
   return cfg.default ?? false;

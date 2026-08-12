@@ -1,8 +1,3 @@
-
-
-
-
-
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
@@ -22,11 +17,9 @@ export type MessageCtx = {
   post: (msg: HostToWebviewMsg) => void;
 };
 
-
 function assertNever(msg: never): never {
   throw new Error(`handle-message: unhandled webview message kind ${JSON.stringify(msg)}`);
 }
-
 
 export async function handleMessage(raw: unknown, ctx: MessageCtx): Promise<void> {
   const msg = parseWebviewToHost(raw);
@@ -39,7 +32,6 @@ export async function handleMessage(raw: unknown, ctx: MessageCtx): Promise<void
   } catch (err) {
     const error = err instanceof Error ? err : new Error(String(err));
     console.error("topology editor: unhandled message handler error", error);
-
 
     const repoRoot = workspaceRoot();
     if (repoRoot) {
@@ -65,21 +57,8 @@ async function dispatch(msg: WebviewToHostMsg, ctx: MessageCtx): Promise<void> {
   const { logUri, runner } = ctx;
   switch (msg.type) {
 
-
-
-
     // LIVE_CASES_START
     case "ready": {
-
-
-
-
-
-
-
-
-
-
 
       const wasRunning = runner.isRunning();
       runner.run();
@@ -89,13 +68,9 @@ async function dispatch(msg: WebviewToHostMsg, ctx: MessageCtx): Promise<void> {
           ctx.post({ type: "buffer-snapshot", buffer: viewFrame, tag: BUF_BLOCK_TAG_VIEW, gen: runner.currentGen() });
         }
 
-
         for (const { row, buffer } of runner.getLastEdgeFrames()) {
           ctx.post({ type: "buffer-snapshot", buffer, tag: BUF_BLOCK_TAG_EDGE_STREAM, row, gen: runner.currentGen() });
         }
-
-
-
 
         for (const { row, buffer } of runner.getLastNodeFrames()) {
           ctx.post({ type: "buffer-snapshot", buffer, tag: BUF_BLOCK_TAG_NODE_STREAM, row, gen: runner.currentGen() });
@@ -111,27 +86,12 @@ async function dispatch(msg: WebviewToHostMsg, ctx: MessageCtx): Promise<void> {
       return;
     case "go-record":
 
-
-
-
-
-
-
-
       if (!runner.isRunning()) return;
       runner.writeStdin(msg.record);
       return;
     // LIVE_CASES_END
 
-
-
-
-
-
-
-
     // kinds stdin_reader.go's msg.Type switch dispatches (its MSG_TYPES fence). A kind here
-
 
     // DECLARED_NOT_SENT_START
     case "raw-input":

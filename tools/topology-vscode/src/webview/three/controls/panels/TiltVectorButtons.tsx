@@ -3,36 +3,6 @@ import { postGoRecord } from "../../../vscode-api";
 import { encodeTiltVectorStart, encodeTiltVectorReset } from "../../../../schema/input-encode";
 import { useTiltVectorRows } from "../flags/overlay-flags-tilt-vectors";
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 export function TiltVectorButtons() {
   const rows = useTiltVectorRows();
   const mount = document.getElementById("run-mount");

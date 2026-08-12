@@ -1,10 +1,3 @@
-
-
-
-
-
-
-
 import type * as cp from "child_process";
 import { VIEW_FD, EDGE_BASE_FD, DRIVE_SLOTS_PER_NODE } from "./stream-fds";
 import type { StreamDemux } from "./stream-demux";
@@ -13,9 +6,6 @@ import type { SpawnLayout } from "./spawn-layout";
 export function attachStreamListeners(proc: cp.ChildProcess, demux: StreamDemux, layout: SpawnLayout): void {
   const { edgeCount, nodeCount, nodeBaseFd, interiorBaseFd, driveBaseFd } = layout;
   proc.stdout?.on("data", (d: Buffer) => demux.handleStdout(d.toString()));
-
-
-
 
   const viewFd = (proc.stdio as (NodeJS.ReadableStream | null)[])[VIEW_FD];
   if (viewFd) {
@@ -30,8 +20,6 @@ export function attachStreamListeners(proc: cp.ChildProcess, demux: StreamDemux,
     }
   }
 
-
-
   for (let row = 0; row < nodeCount; row++) {
     const nodeFdIdx = nodeBaseFd + row;
     const nodeFd = (proc.stdio as (NodeJS.ReadableStream | null)[])[nodeFdIdx];
@@ -43,11 +31,6 @@ export function attachStreamListeners(proc: cp.ChildProcess, demux: StreamDemux,
     if (interiorFd) {
       interiorFd.on("data", (d: Buffer) => demux.handleInteriorFd(row, d));
     }
-
-
-
-
-
 
     for (let slot = 0; slot < DRIVE_SLOTS_PER_NODE; slot++) {
       const driveFdIdx = driveBaseFd + row * DRIVE_SLOTS_PER_NODE + slot;

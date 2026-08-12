@@ -1,9 +1,3 @@
-
-
-
-
-
-
 export function splitJsonlLines(buf: string, chunk: string): { lines: string[]; rest: string } {
   let rest = buf + chunk;
   const lines: string[] = [];
@@ -15,31 +9,7 @@ export function splitJsonlLines(buf: string, chunk: string): { lines: string[]; 
   return { lines, rest };
 }
 
-
-
-
-
-
-
-
-
 export const MAX_FRAME_BYTES = 1 << 20;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 export function splitFrames(buf: Buffer, chunk: Buffer): { frames: ArrayBuffer[]; rest: Buffer; error?: string } {
   let rest = buf.length > 0 ? Buffer.concat([buf, chunk]) : chunk;
@@ -51,7 +21,6 @@ export function splitFrames(buf: Buffer, chunk: Buffer): { frames: ArrayBuffer[]
     }
     const needed = 4 + frameLen;
     if (rest.length < needed) break;
-
 
     const payload = rest.slice(4, needed);
     const ab = payload.buffer.slice(payload.byteOffset, payload.byteOffset + payload.byteLength);

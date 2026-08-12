@@ -1,8 +1,3 @@
-
-
-
-
-
 import { type NavNode } from "./buffer-nav";
 
 export function navSignature(nav: NavNode[]): string {

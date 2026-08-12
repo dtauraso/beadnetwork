@@ -1,23 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 import * as THREE from "three";
 import { type DecodedNodeFrame, nodeLabel } from "../decode/buffer-decode-node";
 import { type ViewBlocks } from "../scene/view-blocks";
@@ -27,7 +7,6 @@ import {
   readNodePoleTheta, readNodePolePhi,
   readSceneCX, readSceneCY, readSceneCZ, readSceneRadius,
 } from "../../../schema/buffer-layout";
-
 
 export interface NavNode {
 
@@ -45,14 +24,10 @@ export interface NavNode {
   pole: THREE.Vector3;
 }
 
-
-
-
 function poleVec(theta: number, phi: number): THREE.Vector3 {
   const st = Math.sin(theta);
   return new THREE.Vector3(st * Math.cos(phi), Math.cos(theta), st * Math.sin(phi));
 }
-
 
 export function decodeNavNodes(decoded: DecodedNodeFrame): NavNode[] {
   const { nodeCount, nodeView } = decoded;
@@ -69,7 +44,6 @@ export function decodeNavNodes(decoded: DecodedNodeFrame): NavNode[] {
       ),
       radius: readNodeRadius(nodeView, i),
 
-
       sphereR: sphereR || undefined,
       selected: readNodeSelected(nodeView, i) !== 0,
       latchedSel: readNodeLatchedSel(nodeView, i) !== 0,
@@ -78,7 +52,6 @@ export function decodeNavNodes(decoded: DecodedNodeFrame): NavNode[] {
   }
   return out;
 }
-
 
 export function sceneSphereFromSnapshot(decoded: ViewBlocks): { center: THREE.Vector3; radius: number } {
   const radius = readSceneRadius(decoded.sceneView);

@@ -1,9 +1,3 @@
-
-
-
-
-
-
 import { TRACE_EVENT_KINDS, BREADCRUMB_LABELS } from "../../../schema/trace-kinds";
 import { nodeLabel, type DecodedNodeFrame } from "./buffer-decode-node";
 import { edgeLabel, type DecodedEdgeFrame } from "./buffer-decode-edge";
@@ -24,16 +18,13 @@ import {
 
 export type Line = Record<string, unknown>;
 
-
 const EVENT_TEXT_DECODER = new TextDecoder();
-
 
 export interface ViewBlocksOrNull {
   cameraView: DataView | null;
   overlayView: DataView | null;
   sceneView: DataView | null;
 }
-
 
 export function decodeEventLine(ev: DataView, eventTextView: DataView, dn: DecodedNodeFrame | null, de: DecodedEdgeFrame | null, vb: ViewBlocksOrNull, i: number): Line | null {
   const kindId = readEventKind(ev, i);
@@ -48,15 +39,9 @@ export function decodeEventLine(ev: DataView, eventTextView: DataView, dn: Decod
   const bead = readEventBead(ev, i);
   const node = dn && nodeRow >= 0 ? nodeLabel(dn, nodeRow) : "";
 
-
   const port = "";
 
   if (kind === "breadcrumb") {
-
-
-
-
-
 
     const labelId = readEventLabel(ev, i);
     const label = BREADCRUMB_LABELS[labelId] ?? String(labelId);
@@ -106,7 +91,6 @@ export function decodeEventLine(ev: DataView, eventTextView: DataView, dn: Decod
     }
     case "geometry": {
       const edge = de ? edgeLabel(de, edgeRow) : "";
-
 
       let sx = 0, sy = 0, sz = 0, ex = 0, ey = 0, ez = 0;
       if (de && edgeRow >= 0 && edgeRow < de.edgeCount) {

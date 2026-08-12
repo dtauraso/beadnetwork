@@ -1,22 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 import { encodeRawInput } from "../src/schema/input-encode";
 import { INPUT_LAYOUT_FINGERPRINT } from "../src/schema/input-layout-gen";
 import type { RawInputEvent } from "../src/messages";
@@ -31,7 +12,6 @@ const events: RawInputEvent[] = [
     deltaX: 107.5, deltaY: 108.25, fov: 45.5,
     hit: { kind: "port", isInput: true, nodeRow: 11, portRow: 12, edgeRow: 13 },
   },
-
 
   {
     kind: "pointermove",
@@ -94,8 +74,6 @@ export function generate(): { fingerprint: string; records: { event: RawInputEve
     records: events.map((event) => ({ event, hex: toHex(encodeRawInput(event)) })),
   };
 }
-
-
 
 const outPath = process.argv[2];
 if (outPath) {

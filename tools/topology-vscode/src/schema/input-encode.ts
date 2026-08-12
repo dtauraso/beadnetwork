@@ -1,19 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 import { ByteWriter, enumIndex } from "./byte-writer";
 import {
   IN_KIND_RAW_INPUT,
@@ -37,7 +21,6 @@ import {
 import type { RawInputEvent, OverlayFlag } from "../messages";
 import { OVERLAY_FLAG_ORDER } from "../messages";
 
-
 export function encodeOverlaysToggle(flag: OverlayFlag): ArrayBuffer {
   const w = new ByteWriter();
   w.u8(IN_KIND_EDIT_UPDATE);
@@ -47,7 +30,6 @@ export function encodeOverlaysToggle(flag: OverlayFlag): ArrayBuffer {
   return w.toArrayBuffer();
 }
 
-
 export function encodeClockSpeed(speed: number): ArrayBuffer {
   const w = new ByteWriter();
   w.u8(IN_KIND_EDIT_UPDATE);
@@ -56,7 +38,6 @@ export function encodeClockSpeed(speed: number): ArrayBuffer {
   w.u8(Math.round(speed * 4));
   return w.toArrayBuffer();
 }
-
 
 export function encodeDistanceGroupAdjust(groupIndex: number, dir: "up" | "down"): ArrayBuffer {
   const w = new ByteWriter();
@@ -68,7 +49,6 @@ export function encodeDistanceGroupAdjust(groupIndex: number, dir: "up" | "down"
   return w.toArrayBuffer();
 }
 
-
 export function encodeSceneSelected(tabIndex: number): ArrayBuffer {
   const w = new ByteWriter();
   w.u8(IN_KIND_EDIT_UPDATE);
@@ -77,7 +57,6 @@ export function encodeSceneSelected(tabIndex: number): ArrayBuffer {
   w.u8(tabIndex);
   return w.toArrayBuffer();
 }
-
 
 export function encodeSceneCreate(kindId: number, ndcX: number, ndcY: number): ArrayBuffer {
   const w = new ByteWriter();
@@ -90,7 +69,6 @@ export function encodeSceneCreate(kindId: number, ndcX: number, ndcY: number): A
   return w.toArrayBuffer();
 }
 
-
 export function encodeSceneDelete(nodeRow: number): ArrayBuffer {
   const w = new ByteWriter();
   w.u8(IN_KIND_EDIT_UPDATE);
@@ -100,7 +78,6 @@ export function encodeSceneDelete(nodeRow: number): ArrayBuffer {
   return w.toArrayBuffer();
 }
 
-
 export function encodeSceneLatticePoints(points: number): ArrayBuffer {
   const w = new ByteWriter();
   w.u8(IN_KIND_EDIT_UPDATE);
@@ -109,7 +86,6 @@ export function encodeSceneLatticePoints(points: number): ArrayBuffer {
   w.u8(points);
   return w.toArrayBuffer();
 }
-
 
 export function encodeTiltVectorAdjust(nodeRow: number, dir: "up" | "down"): ArrayBuffer {
   const w = new ByteWriter();
@@ -121,7 +97,6 @@ export function encodeTiltVectorAdjust(nodeRow: number, dir: "up" | "down"): Arr
   return w.toArrayBuffer();
 }
 
-
 export function encodeTiltVectorReset(nodeRow: number): ArrayBuffer {
   const w = new ByteWriter();
   w.u8(IN_KIND_EDIT_UPDATE);
@@ -131,7 +106,6 @@ export function encodeTiltVectorReset(nodeRow: number): ArrayBuffer {
   return w.toArrayBuffer();
 }
 
-
 export function encodeTiltVectorStart(nodeRow: number): ArrayBuffer {
   const w = new ByteWriter();
   w.u8(IN_KIND_EDIT_UPDATE);
@@ -140,7 +114,6 @@ export function encodeTiltVectorStart(nodeRow: number): ArrayBuffer {
   w.u8(nodeRow);
   return w.toArrayBuffer();
 }
-
 
 export function encodeRawInput(ev: RawInputEvent): ArrayBuffer {
   const w = new ByteWriter();
@@ -167,7 +140,6 @@ export function encodeRawInput(ev: RawInputEvent): ArrayBuffer {
   w.i32(ev.hit.edgeRow);
   return w.toArrayBuffer();
 }
-
 
 export function frameRecord(record: ArrayBuffer): Uint8Array {
   const rec = new Uint8Array(record);

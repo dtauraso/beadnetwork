@@ -1,15 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
 export function formatAngle(radians: number, points: number): string {
   const denom = Math.max(1, Math.round(points / 2));
   const step = (2 * Math.PI) / Math.max(1, points);
@@ -18,12 +6,6 @@ export function formatAngle(radians: number, points: number): string {
   const sign = idx < 0 ? "-" : "";
   return `${sign}${Math.abs(idx)}π/${denom}`;
 }
-
-
-
-
-
-
 
 export function widestAngle(points: number): string {
   const denom = Math.max(1, Math.round(points / 2));

@@ -1,7 +1,3 @@
-
-
-
-
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
@@ -13,20 +9,8 @@ import {
   readInteriorPresent, readInteriorValue, readInteriorOX, readInteriorOY, readInteriorOZ,
 } from "../../../schema/buffer-layout";
 
-
-
-
 const INTERIOR_BEAD_R = 5;
 const INTERIOR_RING_TUBE_RATIO = 0.12;
-
-
-
-
-
-
-
-
-
 
 export function InteriorBeadInstances({ capacity }: { capacity: number }) {
   const bodyRef = useRef<THREE.InstancedMesh>(null);

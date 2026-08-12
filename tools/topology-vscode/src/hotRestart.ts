@@ -1,32 +1,8 @@
-
-
-
-
 import type { BuildResult } from "./goBuild";
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 export function shouldRestartAfterBuild(res: BuildResult): boolean {
   return res.ok && !res.busy;
 }
-
-
-
-
-
-
-
 
 export class TrailingDebouncer {
   private pending: ReturnType<typeof setTimeout> | undefined;
@@ -40,8 +16,6 @@ export class TrailingDebouncer {
       fn();
     }, this.delayMs);
   }
-
-
 
   dispose(): void {
     if (this.pending) clearTimeout(this.pending);

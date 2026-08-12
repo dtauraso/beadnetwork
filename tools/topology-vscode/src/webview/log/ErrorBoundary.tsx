@@ -1,7 +1,3 @@
-
-
-
-
 import { Component, type ErrorInfo, type ReactNode } from "react";
 import { postLog } from "./post";
 

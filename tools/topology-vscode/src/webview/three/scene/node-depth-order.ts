@@ -1,25 +1,4 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 let drawOrder: Int32Array | null = null;
-
 
 export function computeNodeDepthOrder(
   n: number,
@@ -40,16 +19,13 @@ export function computeNodeDepthOrder(
     distSq[row] = dx * dx + dy * dy + dz * dz;
   }
 
-
   rows.sort((a, b) => distSq[b]! - distSq[a]!);
   return Int32Array.from(rows);
 }
 
-
 export function setNodeDrawOrder(order: Int32Array): void {
   drawOrder = order;
 }
-
 
 export function resolveNodeDrawSlot(slot: number): number {
   if (!drawOrder || slot < 0 || slot >= drawOrder.length) return slot;

@@ -1,9 +1,3 @@
-
-
-
-
-
-
 import { useRef, useContext } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
@@ -35,8 +29,6 @@ import {
   RING_BAND_MAJOR, RING_BAND_TUBE, nodeRowColors, poleAxis,
 } from "./buffer-scene-shared";
 import { computeNodeDepthOrder, setNodeDrawOrder } from "./node-depth-order";
-
-
 
 const TORUS_DEFAULT_NORMAL = new THREE.Vector3(0, 0, 1);
 
@@ -70,38 +62,16 @@ export function NodeInstances({ capacity }: { capacity: number }) {
     const { overlayView } = blocks;
     const { nodeCount, nodeView } = decodedNode;
 
-
-
-
-
-
     const selectModeOn = readOverlaySelSpherePoles(overlayView) !== 0;
-
-
-
-
 
     const showBody = readOverlayNodeBody(overlayView) !== 0;
     const showRing = readOverlayNodeRing(overlayView) !== 0;
-
-
 
     const showPickBand = readOverlayRingPick(overlayView) !== 0;
 
     const n = Math.min(nodeCount, capacity);
 
-
-
-
-
-
-
     const q = quatRef.current;
-
-
-
-
-
 
     const order = computeNodeDepthOrder(
       n,
@@ -125,12 +95,6 @@ export function NodeInstances({ capacity }: { capacity: number }) {
       matRef.current.compose(posRef.current, q, sclRef.current);
       body.setMatrixAt(slot, matRef.current);
 
-
-
-
-
-
-
       const poleTheta = readNodeRingAxisTheta(nodeView, row);
       const polePhi = readNodeRingAxisPhi(nodeView, row);
       const [ax, ay, az] = poleAxis(poleTheta, polePhi);
@@ -138,8 +102,6 @@ export function NodeInstances({ capacity }: { capacity: number }) {
       ringQuatRef.current.setFromUnitVectors(TORUS_DEFAULT_NORMAL, ringAxis);
       matRef.current.compose(posRef.current, ringQuatRef.current, sclRef.current);
       ring.setMatrixAt(slot, matRef.current);
-
-
 
       ringPick.setMatrixAt(slot, matRef.current);
       ringBand.setMatrixAt(slot, matRef.current);
@@ -151,10 +113,7 @@ export function NodeInstances({ capacity }: { capacity: number }) {
     body.count = showBody ? n : 0;
     ring.count = showRing ? n : 0;
 
-
     ringPick.count = selectModeOn ? n : 0;
-
-
 
     ringBand.count = showPickBand ? n : 0;
     body.instanceMatrix.needsUpdate = true;
@@ -163,9 +122,6 @@ export function NodeInstances({ capacity }: { capacity: number }) {
     ringBand.instanceMatrix.needsUpdate = true;
     if (body.instanceColor) body.instanceColor.needsUpdate = true;
     if (ring.instanceColor) ring.instanceColor.needsUpdate = true;
-
-
-
 
     if (showBody) body.computeBoundingSphere();
     if (selectModeOn) ringPick.computeBoundingSphere();
