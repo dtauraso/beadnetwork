@@ -16,8 +16,8 @@ if [[ ! -f "$LAYOUT" ]]; then
   exit 1
 fi
 
-readonly ALLOWED_DEAD=(
-)
+readonly DEAD_PICK_HALO_REMOVED_NO_RAYCAST_HIT_SOURCE=( readEdgeSelected )
+readonly ALLOWED_DEAD=( "${DEAD_PICK_HALO_REMOVED_NO_RAYCAST_HIT_SOURCE[@]}" )
 
 is_allowed() {
   local fn="$1"
@@ -44,17 +44,21 @@ while IFS= read -r f; do prod_files+=("$f"); done < <(
     -not -name '*.test.ts' 2>/dev/null
 )
 
-CORPUS="$(mktemp)"
-trap 'rm -f "$CORPUS"' EXIT
+strip_ts_comments() {
+  perl -0777pe 's{/\*.*?\*/}{}gs; s{//[^\n]*}{}g' "$@" 2>/dev/null
+}
+
+CODE_ONLY_CORPUS="$(mktemp)"
+trap 'rm -f "$CODE_ONLY_CORPUS"' EXIT
 if [[ ${#prod_files[@]} -gt 0 ]]; then
-  grep -ohE '[A-Za-z0-9_]+' "${prod_files[@]}" 2>/dev/null | sort -u > "$CORPUS"
+  strip_ts_comments "${prod_files[@]}" | grep -ohE '[A-Za-z0-9_]+' | sort -u > "$CODE_ONLY_CORPUS"
 else
-  : > "$CORPUS"
+  : > "$CODE_ONLY_CORPUS"
 fi
 
 fail=0
 for fn in "${readers[@]}"; do
-  if grep -qxF "$fn" "$CORPUS"; then
+  if grep -qxF "$fn" "$CODE_ONLY_CORPUS"; then
     continue
   fi
   if is_allowed "$fn"; then
@@ -73,7 +77,7 @@ for a in "${ALLOWED_DEAD[@]+"${ALLOWED_DEAD[@]}"}"; do
     fail=1
     continue
   fi
-  if grep -qxF "$a" "$CORPUS"; then
+  if grep -qxF "$a" "$CODE_ONLY_CORPUS"; then
     echo "STALE ALLOWLIST: '$a' now HAS a production consumer — remove it from ALLOWED_DEAD (no longer dead)."
     fail=1
   fi
