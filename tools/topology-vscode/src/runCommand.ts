@@ -2,16 +2,14 @@ import * as vscode from "vscode";
 import * as cp from "child_process";
 import * as path from "path";
 import type { HostToWebviewMsg } from "./messages";
-import { killOrphanedSims } from "./goBuild";
 import { frameRecord } from "./schema/input-encode";
 import { isProbeTraceEnabled } from "./probe-files";
 import { readCounts } from "./runner/counts";
 import { appendGoError } from "./runner/go-errors";
 import { probePathsFor, type ProbePaths } from "./runner/probe-paths";
-import { ensureBinaryBuilt } from "./runner/ensure-binary";
 import { StreamDemux } from "./runner/stream-demux";
 import { computeSpawnLayout, type SpawnLayout } from "./runner/spawn-layout";
-import { attachStreamListeners } from "./runner/attach-listeners";
+import { buildBinary, reapOrphans, spawnProcess, attachStreamHandlers } from "./runner/process-lifecycle";
 
 export { nodeIdForRow, rowForNodeId } from "./runner/stream-fds";
 export { readCounts } from "./runner/counts";
@@ -73,40 +71,29 @@ export class BuildAndRunRunner {
     const topArgs = this.topologyPath ? ["-topology", this.topologyPath] : [];
 
     const probePaths = probePathsFor(folder);
-    if (!this.buildBinary(repoRoot, binPath, probePaths)) return;
-    const killed = this.reapOrphans(binPath);
+    if (!buildBinary(this.channel!, repoRoot, binPath, probePaths.goErrorsFile)) {
+      this.looping = false;
+      return;
+    }
+    const killed = reapOrphans(binPath, undefined);
 
     const prepared = this.armFieldsAndPrepareLayout(probePaths, killed, binPath, topArgs, repoRoot);
     if (!prepared) return;
     const { layout, demux } = prepared;
 
-    this.spawnProcess(binPath, topArgs, repoRoot, layout);
-    this.attachStreamHandlers(demux, layout);
+    const probeTrace = isProbeTraceEnabled();
+    this.proc = spawnProcess(binPath, topArgs, repoRoot, layout, probeTrace);
+    if (this.pendingStdin.length > 0) {
+      for (const rec of this.pendingStdin) this.proc.stdin?.write(rec);
+      this.pendingStdin = [];
+    }
+    attachStreamHandlers(this.proc, demux, layout, this.channel!, this.goErrorsFile);
     this.wireExitHandlers();
   }
 
   private ensureOutputChannel(): void {
     if (!this.channel) this.channel = vscode.window.createOutputChannel("topology run");
     this.channel.clear();
-  }
-
-  private buildBinary(repoRoot: string, binPath: string, probePaths: ProbePaths): boolean {
-    const built = ensureBinaryBuilt(repoRoot, binPath);
-    if (!built.ok) {
-      this.channel!.appendLine(`\n[build error: ${built.error}]`);
-
-      this.channel!.show(true);
-      appendGoError(probePaths.goErrorsFile, built.error);
-      this.looping = false;
-      return false;
-    }
-    return true;
-  }
-
-  private reapOrphans(binPath: string): number {
-    const activePid: number | undefined = this.proc?.pid;
-    const { killed } = killOrphanedSims(binPath, activePid);
-    return killed;
   }
 
   private armFieldsAndPrepareLayout(
@@ -148,38 +135,6 @@ export class BuildAndRunRunner {
     const demux = this.newDemux(probePaths, probeTrace, edgeCount, nodeCount, this.spawnGen);
     this.demux = demux;
     return { layout, demux };
-  }
-
-  private spawnProcess(binPath: string, topArgs: string[], repoRoot: string, layout: SpawnLayout): void {
-    const { stdio, streamFDsEnv } = layout;
-
-    const probeTrace = isProbeTraceEnabled();
-    this.proc = cp.spawn(binPath, [...topArgs], {
-      cwd: repoRoot,
-      detached: true,
-      stdio,
-      env: {
-        ...process.env,
-        WIREFOLD_BUF_OUT_FD: "3",
-        WIREFOLD_STREAM_FDS: streamFDsEnv,
-
-        WIREFOLD_EDGE_BEAD_TRACE: probeTrace ? "1" : "0",
-      },
-    });
-
-    if (this.pendingStdin.length > 0) {
-      for (const rec of this.pendingStdin) this.proc.stdin?.write(rec);
-      this.pendingStdin = [];
-    }
-  }
-
-  private attachStreamHandlers(demux: StreamDemux, layout: SpawnLayout): void {
-    attachStreamListeners(this.proc!, demux, layout);
-    this.proc!.stderr?.on("data", (d: Buffer) => {
-      const msg = d.toString();
-      this.channel!.append(msg);
-      appendGoError(this.goErrorsFile, msg);
-    });
   }
 
   private wireExitHandlers(): void {
