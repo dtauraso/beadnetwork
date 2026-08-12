@@ -4,14 +4,7 @@ html, body { margin: 0; padding: 0; height: 100%; background: #fafafa; font-fami
 .node.dragging { cursor: grabbing; }
 .node text { pointer-events: none; user-select: none; }
 .toolbar { position: fixed; top: 8px; left: 8px; padding: 6px 10px; background: #fff; border: 1px solid #ddd; border-radius: 6px; font-size: 12px; display: flex; gap: 12px; align-items: center; z-index: 10; }
-/* The toolbar's single mount: SpeedSlider and TiltVectorButtons both portal in here. A
-   COLUMN, so the tilt button row sits below the slider rather than beside it, and
-   flex-start so it lines up on the slider's left edge. Order is render order in main.tsx
-   (slider, then the tilt button row). TiltVectorButtons renders nothing when the scene has
-   no tilt vectors (the ring), and the gap collapses with it. */
 #run-mount { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
-/* The START/RESET pair renders as ONE row (TiltVectorButtons.tsx), so START sits
-   immediately to the left of RESET rather than stacking as two more #run-mount rows. */
 .tilt-vector-btn-row { display: flex; flex-direction: row; gap: 6px; align-items: flex-start; }
 .tilt-rounds-readout { display: flex; flex-direction: column; gap: 3px; align-items: flex-start; font-size: 13px; font-weight: 600; color: #222; white-space: nowrap; }
 .tilt-rounds-group { display: flex; flex-direction: row; gap: 5px; align-items: center; }
@@ -53,17 +46,10 @@ html, body { margin: 0; padding: 0; height: 100%; background: #fafafa; font-fami
 .run-error { color: #c62828; font-weight: 600; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .runner-probe-stuck { color: #c62828; font-weight: 600; margin-left: 8px; cursor: text; user-select: text; }
 
-/* Symbolic readout of the polar equation the rule-builder (gesture.go trySelectSphereRule)
-   is currently authoring. Positioned directly below the run/pause/stop toolbar, same
-   look-and-feel as .toolbar. */
 .rule-eq-panel {
   position: fixed; top: 44px; left: 8px;
   padding: 6px 10px; background: #fff; border: 1px solid #ddd; border-radius: 6px;
   font-size: 12px; display: flex; flex-direction: column; gap: 4px;
-  /* Above the buffer-projected node-name label pills (ThreeView.tsx inline zIndex:10) —
-     those are DOM overlays painted from #app, which follows #rule-eq-mount in html.ts's
-     markup, so equal/lower z-index let a later-painted label win the stacking tiebreak and
-     visually cover the equation panel. */
   z-index: 1000; color: #333;
 }
 .rule-eq-center { color: #666; }
@@ -86,10 +72,6 @@ html, body { margin: 0; padding: 0; height: 100%; background: #fafafa; font-fami
 .rule-eq-clear:hover:not(:disabled) { background: #eee; }
 .rule-eq-clear:disabled { opacity: 0.4; cursor: default; }
 
-/* Committed polar-equation locks whose Center is the selected node (locks.go
-   md.polarEqs, streamed via the PolarLock buffer block). Each row: activate/deactivate
-   checkbox + the symbolic equation; click the row (not the checkbox) to focus it, then
-   Delete/Backspace removes a focused DEACTIVATED row. */
 .rule-eq-list {
   display: flex; flex-direction: column; gap: 2px;
   margin-top: 4px; padding-top: 4px; border-top: 1px solid #eee;
@@ -104,9 +86,6 @@ html, body { margin: 0; padding: 0; height: 100%; background: #fafafa; font-fami
 .rule-eq-row--inactive .rule-eq-node,
 .rule-eq-row--inactive .rule-eq-angle { opacity: 0.45; }
 
-/* Typed "+ Add equation" entry: kind picker + a single small text field. The in-progress
-   equation itself is drawn by renderBuilder/renderPortTorusBuilder (.rule-eq-equation etc
-   above) — the SAME notation a click-driven session uses — not by anything below. */
 .rule-eq-add-row { display: flex; flex-direction: column; gap: 4px; }
 .rule-eq-add-btn {
   align-self: flex-start; font-size: 16px; line-height: 1; padding: 2px 10px; cursor: pointer;
@@ -143,17 +122,12 @@ html, body { margin: 0; padding: 0; height: 100%; background: #fafafa; font-fami
 .rule-eq-form-option { padding: 2px 8px; font-size: 11px; cursor: pointer; white-space: nowrap; }
 .rule-eq-form-option--hl { background: #e3f2fd; }
 
-/* Inline fill-in-the-blank input: the user types DIRECTLY into the equation's `_` blanks
-   (RuleEquationPanel's renderTypedNodeNode/renderTypedPortTorus) — no separate text box.
-   Sized/colored to sit inline inside the `( , )` parens without breaking that layout; the
-   node/angle color coding carries over via the shared rule-eq-node/rule-eq-angle class. */
 .rule-eq-blank-input {
   font: inherit; font-size: 12px; padding: 1px 5px; min-width: 2em;
   border: 1px solid #1976d2; border-radius: 3px; background: #e3f2fd; color: #111;
 }
 .rule-eq-blank-input:focus { outline: none; box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.35); }
 .rule-eq-blank-input::placeholder { color: #1976d2; font-style: normal; opacity: 0.75; }
-
 
 .timeline-panel {
   position: fixed; bottom: 8px; left: 8px;
@@ -226,10 +200,6 @@ html, body { margin: 0; padding: 0; height: 100%; background: #fafafa; font-fami
 .palette-swatch { width: 14px; height: 10px; flex-shrink: 0; }
 .palette-name { color: #222; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-/* ─── Comparison-mode decoration ─────────────────────────────────────
- * Halos render *outside* the node body so playback flashes (which paint
- * the body) stay uncontaminated.
- */
 .react-flow__node.diff-added {
   box-shadow: 0 0 0 3px #2e7d32, 0 0 0 5px rgba(46, 125, 50, 0.25);
   border-radius: 4px;
@@ -260,15 +230,11 @@ html, body { margin: 0; padding: 0; height: 100%; background: #fafafa; font-fami
   opacity: 0.35;
   pointer-events: none;
 }
-/* When a node is both .ghost and a diff category, keep the halo bright
-   even though the body is faded. */
 .react-flow__node.ghost.diff-removed,
 .react-flow__node.ghost.diff-moved {
   opacity: 0.35;
 }
 
-/* Mode B onion-skin: ghost layer rendered translucent below live; spacebar
-   held (.ghost-front on the wrapper) bumps the ghost layer in front. */
 .react-flow__node.onion-ghost { opacity: 0.25; }
 .react-flow__edge.onion-ghost { opacity: 0.35; }
 .ghost-front .react-flow__node.onion-ghost { opacity: 0.6; z-index: 1000; }
@@ -276,9 +242,6 @@ html, body { margin: 0; padding: 0; height: 100%; background: #fafafa; font-fami
 .ghost-front .react-flow__node.onion-live { opacity: 0.4; }
 
 .compare-toolbar {
-  /* Bottom-right, above the timeline panel (~36px tall + 8px gap from
-     bottom). Avoids the top-right views panel and the top-left main
-     toolbar / palette. */
   position: fixed; bottom: 56px; right: 8px; z-index: 10;
   display: flex; align-items: center; gap: 6px;
   padding: 6px 8px; background: #fff; border: 1px solid #ddd; border-radius: 6px;
@@ -327,12 +290,8 @@ html, body { margin: 0; padding: 0; height: 100%; background: #fafafa; font-fami
   content: "✓ "; color: #0d47a1;
 }
 
-/* Render edges above nodes so wires crossing node boxes are visible */
 .react-flow__edges { z-index: 1; }
 
-/* Alignment guides shown while dragging a node whose center matches another
-   node's center within ALIGN_TOL flow units. Positioned over the RF pane;
-   the inline left/top is precomputed in screen coords. */
 .align-guide {
   position: absolute;
   pointer-events: none;
@@ -344,7 +303,6 @@ html, body { margin: 0; padding: 0; height: 100%; background: #fafafa; font-fami
 .align-guide-v { top: 0; bottom: 0; width: 0; border-left-width: 1px; }
 .align-guide-h { left: 0; right: 0; height: 0; border-top-width: 1px; }
 
-/* Inert node: one or more required wires are unconnected — node will silently no-op */
 .r-go-node--inert {
   opacity: 0.5;
   outline: 2px dashed #999 !important;

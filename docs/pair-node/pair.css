@@ -24,9 +24,6 @@
       color: var(--ink);
       font-family: var(--font);
       font-size: 13px;
-      /* The page scrolls DOWN and only down. The causes are fixed below — children
-         scale or wrap, grid items get min-width:0 — and this is the backstop so a
-         future wide element cannot reintroduce a sideways scrollbar unnoticed. */
       overflow-x: hidden
     }
 
@@ -83,7 +80,6 @@
       color: #04101f
     }
 
-    /* the index's own list: the same pill, with its blurb beside it */
     .rows {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -128,27 +124,12 @@
       }
     }
 
-    /* A run of cards that answer one question, named. It is a grid child rather than a
-       wrapper around the cards, so the cards stay direct children of .grid and keep
-       flowing across both columns — a wrapper would restart a one-column layout inside
-       each section. First-child gets no top margin so the page does not open with a gap. */
-    /* arith.html is maths and prose and nothing else — no drawings — so the two are sized
-       against each other rather than against a figure. The maths is at the site's 1.9
-       (mathblocks.py), which puts its x-height near a 19px sans; the prose meets it there
-       instead of the maths coming down to a 14px reading size. Headers sit above both.
-
-       The notes also align LEFT here. Elsewhere .keynote is centred under a drawing, which
-       leaves an empty column on a card whose content is a left-aligned block of maths. */
     .onesize .card h2,
     .onesize .secname {
       font-size: 21px;
       letter-spacing: .02em
     }
 
-    /* 17px, not 19: the longest equation line is about 74 characters, and at 19px that runs
-       690px, which wraps as soon as the window is under about 750. An equation that wraps
-       reads as two statements. 17px holds it to roughly 615px, so the whole page fits a
-       675px window before anything breaks. The prose moves with it — one font, one size. */
     .onesize .lead,
     .onesize .keynote p,
     .onesize .keynote code {
@@ -162,12 +143,6 @@
       margin-left: 0
     }
 
-    /* The equations on arith.html are TEXT, not LaTeX rendered to SVG. Two typefaces cannot
-       be the same size: matched by em, Computer Modern's low x-height reads small; matched
-       by x-height, its em is 22.7px against the page's 19px and it reads large. Setting the
-       maths in the page's own font ends the argument — one element, one font-size, and it
-       reflows on a narrow window instead of scaling. Symbols are letters, so italic marks
-       them apart the way the maths did. */
     .eq {
       font-size: 17px;
       line-height: 1.6;
@@ -189,38 +164,23 @@
       margin-left: 14px
     }
 
-    /* The name or condition at the head of an equation sits in a fixed column, so every "=" and
-       every right-hand side on a card begins at the same x and the lines read as one table
-       rather than as ragged sentences.
-
-       INLINE-BLOCK, not a grid on the row: a line carrying a data-src is rewrapped into a single
-       <a> when the click handling is wired (pair.js), which would collapse a two-column grid on
-       the row to one cell. An inline-block first child survives being moved inside the link. */
     .eq .lhs {
       display: inline-block;
       min-width: 13ch
     }
 
-    /* A line whose head runs past the column keeps its own spacing rather than pushing the whole
-       card wider — one long name is not worth a wider column for every other line. */
     .eq .lhs.wide {
       min-width: 20ch
     }
 
-    /* Every line starts at the same left edge — heading, equation and note alike. Indenting
-       the equations under their headings gave the card two left edges and made the maths
-       read as an aside to the label above it, which is backwards. */
     .eq.step {
       margin-left: 0
     }
 
-    /* The exception: a case that only applies INSIDE another case is indented under it, so
-       the branch it belongs to is visible rather than inferred from reading order. */
     .eq.sub {
       margin-left: 28px
     }
 
-    /* one level deeper again: a result belonging to a condition that is itself nested */
     .eq.sub2 {
       margin-left: 56px
     }
@@ -230,7 +190,6 @@
       margin-top: 14px
     }
 
-    /* a head that names one arrangement takes that arrangement's colour */
     .eq.head.par {
       color: var(--warm)
     }
@@ -247,9 +206,6 @@
       color: var(--dim)
     }
 
-    /* The site's own two mode colours, as in the drawings. BOTH forms are needed: a span
-       inside a line, and the line itself — an .eq.par line was rendering uncoloured because
-       only the descendant rule existed. */
     .eq .perp,
     .eq.perp {
       color: var(--mag)
@@ -274,13 +230,6 @@
       margin-top: 0
     }
 
-    /* A drawing grows to its card but STOPS. width:100% alone was wrong on a wide
-       window: a portrait canvas (520 wide, 620 tall) stretched to an 1130px card
-       renders 1340px tall, which is a full screen of one circle. The cap keeps every
-       drawing at a readable size and still lets it shrink on a narrow window. */
-    /* The caps are each drawing's OWN authored width, so on a wide window nothing is
-       scaled down and the labels render at the size they were set in. Scaling only
-       happens on a narrow window, where shrinking is the right answer anyway. */
     .card svg {
       display: block;
       width: 100%;
@@ -288,22 +237,11 @@
       height: auto
     }
 
-    /* A PORTRAIT drawing — one big ring with its notes underneath — needs a tighter cap
-       than a row of small multiples. At the same 660px the tall ones render about 600px
-       high and swamp the page, so they get their own limit. Verified by rendering the
-       page headless and looking at it, not by reading the numbers. */
     .card svg.tall {
       max-width: 520px;
       margin: 0 auto
     }
 
-    /* A row of separate drawings, one per case, that wraps. Small multiples packed into
-       ONE canvas had to shrink to fit — four rings in a 700px drawing gave each a 120px
-       circle whose tick marks were invisible, and the tick marks are what make a slot
-       count readable. Each panel is now its own file at its own size, and the row wraps
-       instead of scaling anything down.
-       They are <img>, which does not inherit this stylesheet, so those files carry their
-       own text styling (docs/pair-node/panels.py). */
     .strip {
       display: flex;
       flex-wrap: wrap;
@@ -318,7 +256,6 @@
       height: auto
     }
 
-    /* A single drawing, same deal: its own generated file at its own size. */
     img.figure {
       display: block;
       max-width: 100%;
@@ -326,8 +263,6 @@
       margin: 4px 0 2px
     }
 
-    /* Names the figure directly below it, when a card carries more than one and they
-       would otherwise run together. */
     .figlabel {
       margin: 16px 0 0;
       font-family: var(--mono);
@@ -335,8 +270,6 @@
       color: var(--accent)
     }
 
-    /* A sentence or two setting up what a card shows, above the figure rather than under
-       it. Same size as .keynote so the card reads as one voice. */
     .lead {
       max-width: 62ch;
       margin: 2px 0 12px;
@@ -345,9 +278,6 @@
       color: var(--dim)
     }
 
-    /* The notes that belong to a drawing, kept OUT of the svg so they stay page-size
-       when the drawing scales down. Larger than .cap because these are the point of
-       the card, not an aside. */
     .keynote {
       max-width: 62ch;
       margin: 14px auto 0
@@ -365,7 +295,6 @@
       color: var(--ink)
     }
 
-    /* the legend swatch, matching the chips drawn inside the diagrams */
     .keynote i.sw {
       display: inline-block;
       width: 11px;
@@ -375,22 +304,14 @@
       vertical-align: baseline
     }
 
-    /* NOTHING SCROLLS SIDEWAYS. A card sizes its content to itself — tables wrap,
-       drawings scale — instead of sizing itself to the content and growing a second
-       scrollbar. The page scrolls DOWN and only down. */
     .card.wide {
       grid-column: 1 / -1
     }
 
-    /* No overflow property here on purpose: setting overflow-x alone computes
-       overflow-y to auto, which grows a scrollbar INSIDE the card. Nothing needs
-       clipping anyway — every child scales (svg, img) or wraps (table). */
     .card {
       min-width: 0
     }
 
-    /* grid children default to min-width:auto, which lets a wide child push the
-       column past the viewport — the usual cause of a page that scrolls across. */
     .grid,
     .rows {
       min-width: 0
@@ -430,21 +351,6 @@
       color: var(--accent)
     }
 
-    /* One block of the arithmetic, set in LaTeX and rendered to an SVG of paths at
-       authoring time. The WIDTH IS SET PER IMAGE, inline, as that block's own intrinsic
-       pt width times one shared constant — so blocks of different shapes all render at
-       the same glyph size, which a blanket width:100% would not do. max-width keeps it
-       inside the card, so it scales down rather than scrolling.
-
-       The constant (mathblocks.py, SCALE) is set against the DRAWINGS: panels.py labels
-       its SVGs at 15px and shows them at their authored width, so that is the page's
-       at-a-glance size and the maths matches it rather than sitting under it.
-
-       One glyph size holds only while every block fits its card. A wide card's inner
-       width is viewport - 60px, so below roughly a 710px window the widest block starts
-       shrinking while the narrow ones do not, and the page has two sizes again. That is
-       the cost of raising the constant, and it is why a block that grows past the widest
-       one here should be SPLIT rather than scaled down. */
     img.math {
       display: block;
       max-width: 100%;
@@ -464,9 +370,6 @@
       vertical-align: baseline
     }
 
-    /* expression : note : source — the shares that keep all three on the page.
-       The source column is sized for the longest file name it carries
-       (tilt_vector_channel.go / scene_speed_persist.go, 22 characters). */
     table.f td:nth-child(1) {
       width: 40%
     }
@@ -483,9 +386,6 @@
     table.f td.e {
       font-family: var(--mono);
       color: var(--ink);
-      /* `anywhere`, not `break-word`: it also lowers the cell's min-content
-         width, so a long unbroken token (a file name, 0.2617993877991494)
-         cannot push the table past the card. */
       overflow-wrap: anywhere
     }
 
@@ -500,17 +400,12 @@
       overflow-wrap: anywhere
     }
 
-    /* pair.js turns each source cell into a vscode://file link */
     a.srclink {
       color: inherit;
       text-decoration: none;
       border-bottom: 1px dotted var(--line)
     }
 
-    /* A WHOLE EQUATION LINE can carry a data-src, so that clicking the RULE opens the code
-       that runs it. Underlining all of it would draw a rule under every line on the page and
-       read as emphasis rather than as a link, so inside .eq the dotted border waits for the
-       hover — the line still answers the pointer, it just does not shout when idle. */
     .eq a.srclink {
       border-bottom: none
     }
@@ -523,7 +418,6 @@
       color: var(--accent);
       border-bottom-color: var(--accent)
     }
-
 
     table.f tr.h td {
       color: var(--accent);
@@ -572,9 +466,6 @@
       fill: var(--dim)
     }
 
-    /* A page whose drawings are scaled down opts into bigger diagram type, so the
-       labels survive the scaling. Only the type changes — the geometry is untouched,
-       so check the render for anything that now runs past its canvas. */
     .readable-type svg .lbl,
     .readable-type svg .lblm {
       font-size: 14px
