@@ -5,6 +5,7 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/rowtables"
 	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
+	"github.com/dtauraso/wirefold/nodes/rowevent"
 	"github.com/dtauraso/wirefold/nodes/spatial"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
@@ -49,7 +50,7 @@ type PortBindings struct {
 
 	InteriorOuts       *map[string]io.Writer
 	DriveOuts          *map[string][DriveSlotsPerNode]io.Writer
-	BuildInteriorFrame *func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []wire.RowEvent) []byte
+	BuildInteriorFrame *func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []rowevent.RowEvent) []byte
 
 	VectorOut map[string]chan tiltvector.TiltVectorMsg
 	VectorIn  map[string]chan tiltvector.TiltVectorMsg

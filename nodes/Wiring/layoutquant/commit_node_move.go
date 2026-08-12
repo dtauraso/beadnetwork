@@ -10,8 +10,8 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
 	"github.com/dtauraso/wirefold/nodes/Wiring/topoderive"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
+	"github.com/dtauraso/wirefold/nodes/rowevent"
 	"github.com/dtauraso/wirefold/nodes/spatial"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
 	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -105,7 +105,7 @@ func emitBeadCrudDiagnostic(nm *nodeactor.NodeGeometry, nodeID string, prevPos, 
 		committedPos.X, committedPos.Y, committedPos.Z, committedDelta, committedDelta > 1e-9,
 		strings.Join(parts, " "))
 	nm.Breadcrumb("bead-crud", nodeID, "", value)
-	nm.WriteStreamFrame([]wire.RowEvent{{
+	nm.WriteStreamFrame([]rowevent.RowEvent{{
 		Kind: T.KindBreadcrumb, Label: T.BreadcrumbBeadCrud, Debug: 1,
 		NodeRow: nm.NodeRow(), PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 		Text: value,

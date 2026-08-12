@@ -1,12 +1,12 @@
 package runtopology
 
 import (
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/rowevent"
 
 	SF "github.com/dtauraso/wirefold/Buffer/streamframe"
 )
 
-func toStreamEvents(events []wire.RowEvent) []SF.StreamEvent {
+func toStreamEvents(events []rowevent.RowEvent) []SF.StreamEvent {
 	if len(events) == 0 {
 		return nil
 	}

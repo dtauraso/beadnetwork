@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/rowevent"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -61,7 +61,7 @@ func (m *NodeGeometry) handleDrag(msg movemsg.Msg) {
 	if m.tr != nil {
 		m.tr.Breadcrumb("drag.commit", m.id, "", fmt.Sprintf("newPos=(%.4f,%.4f,%.4f)", newPos.X, newPos.Y, newPos.Z))
 
-		m.writeStreamFrame([]wire.RowEvent{{
+		m.writeStreamFrame([]rowevent.RowEvent{{
 			Kind: T.KindBreadcrumb, Label: T.BreadcrumbDragCommit, Debug: 1,
 			NodeRow: m.stream.nodeRow, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 			X: newPos.X, Y: newPos.Y, Z: newPos.Z,
@@ -113,7 +113,7 @@ func (m *NodeGeometry) handleNeighborCenter(msg movemsg.Msg) {
 				senderRow = r
 			}
 		}
-		m.writeStreamFrame([]wire.RowEvent{{
+		m.writeStreamFrame([]rowevent.RowEvent{{
 			Kind: T.KindBreadcrumb, Label: T.BreadcrumbNeighborCenterRecv, Debug: 1,
 			NodeRow: m.stream.nodeRow, PortRow: -1, TargetRow: senderRow, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 			Text: value,

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	T "github.com/dtauraso/wirefold/Trace"
+	"github.com/dtauraso/wirefold/nodes/rowevent"
 	"github.com/dtauraso/wirefold/nodes/spatial"
 	"github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/lattice"
@@ -27,7 +28,7 @@ func (o *Out) flushSendEvent(value int, steps int) {
 	if s == nil {
 		return
 	}
-	s.WriteEvents([]wire.RowEvent{{
+	s.WriteEvents([]rowevent.RowEvent{{
 		Kind: T.KindSend, NodeRow: s.NodeRowOf(), PortRow: o.portRow,
 		TargetRow: o.targetRow, TargetPortRow: o.targetPortRow, EdgeRow: -1,
 		Value:        int32(value),
@@ -59,7 +60,7 @@ func newOutChan(ch chan<- int, node, port string, tr *T.Trace) *Out {
 	return &Out{ch: ch, node: node, port: port, trace: tr}
 }
 
-func NewOutPaced(pw *wire.PacedWire, ctx context.Context, node, port string, tr *T.Trace, rule SendRule, steps int, seg spatial.WireSegment, edgeLabel string, stream func() wire.EventSink, portRow, targetRow, targetPortRow int32) *Out {
+func NewOutPaced(pw *wire.PacedWire, ctx context.Context, node, port string, tr *T.Trace, rule SendRule, steps int, seg spatial.WireSegment, edgeLabel string, stream func() rowevent.EventSink, portRow, targetRow, targetPortRow int32) *Out {
 	if rule == "" {
 		rule = RuleConsumeGated
 	}

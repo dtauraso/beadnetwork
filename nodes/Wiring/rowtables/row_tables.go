@@ -3,7 +3,7 @@ package rowtables
 import (
 	T "github.com/dtauraso/wirefold/Trace"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/rowevent"
 )
 
 type EdgeEndpoint struct {
@@ -86,14 +86,14 @@ func (rt *RowTables) NodeFromHit(h inputcodec.RawHit) (node string, ok bool) {
 	return "", false
 }
 
-func (rt *RowTables) SelectViewEvent(node string) []wire.RowEvent {
+func (rt *RowTables) SelectViewEvent(node string) []rowevent.RowEvent {
 	nodeRow := int32(-1)
 	if node != "" {
 		if r, ok := rt.NodeRowFor(node); ok {
 			nodeRow = r
 		}
 	}
-	return []wire.RowEvent{{Kind: T.KindSelect, NodeRow: nodeRow, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1}}
+	return []rowevent.RowEvent{{Kind: T.KindSelect, NodeRow: nodeRow, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1}}
 }
 
 func (rt *RowTables) EdgeFromHit(h inputcodec.RawHit) (label string, ok bool) {

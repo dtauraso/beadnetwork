@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/rowevent"
 
 	B "github.com/dtauraso/wirefold/Buffer"
 	SF "github.com/dtauraso/wirefold/Buffer/streamframe"
@@ -75,7 +75,7 @@ func wireNodeStreams(streamFDs SF.StreamFDs, md *W.MoveDispatch) {
 						Events:                toStreamEvents(f.Events),
 					})
 				},
-				func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []wire.RowEvent) []byte {
+				func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []rowevent.RowEvent) []byte {
 					return SF.BuildInteriorStreamFrame(tick, present, value, ox, oy, oz, toStreamEvents(events))
 				},
 				B.NodeKindID)

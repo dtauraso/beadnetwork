@@ -3,7 +3,7 @@ package stdinreader
 import (
 	"context"
 
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/rowevent"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -89,11 +89,11 @@ var overlayAttrHandlers = map[string]func(msg inputcodec.StdinMsg, md *dispatch.
 			fn(&md.UI.OV, tr)
 
 			if scope, ok := viewstate.OverlayFlagBreadcrumbScope[msg.Flag]; ok {
-				md.UI.EmitBreadcrumb(wire.RowEvent{Label: T.BreadcrumbPoleToggleGo, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1, Value: int32(boolU8(viewstate.OverlayFlagValue[msg.Flag](&md.UI.OV))), Text: scope})
+				md.UI.EmitBreadcrumb(rowevent.RowEvent{Label: T.BreadcrumbPoleToggleGo, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1, Value: int32(boolU8(viewstate.OverlayFlagValue[msg.Flag](&md.UI.OV))), Text: scope})
 			}
 
 			if kind, ok := viewstate.OverlayFlagTraceKind[msg.Flag]; ok {
-				md.UI.EmitViewFrame([]wire.RowEvent{{Kind: kind, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1}})
+				md.UI.EmitViewFrame([]rowevent.RowEvent{{Kind: kind, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1}})
 			}
 		}
 	},

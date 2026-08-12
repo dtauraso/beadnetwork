@@ -1,4 +1,4 @@
-package wire
+package rowevent
 
 type RowEvent struct {
 	Kind                                                             string
@@ -11,4 +11,9 @@ type RowEvent struct {
 	Label uint8
 	Debug uint8
 	Text  string
+}
+
+type EventSink interface {
+	WriteEvents(events []RowEvent)
+	NodeRowOf() int32
 }

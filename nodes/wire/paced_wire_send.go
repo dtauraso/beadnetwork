@@ -2,6 +2,7 @@ package wire
 
 import (
 	T "github.com/dtauraso/wirefold/Trace"
+	"github.com/dtauraso/wirefold/nodes/rowevent"
 )
 
 type SendOutcome uint8
@@ -25,7 +26,7 @@ func (pw *PacedWire) Send(v int, bp BeadPlacement, tick int64) SendOutcome {
 
 		if pw.readout.breadcrumbCh != nil {
 			select {
-			case pw.readout.breadcrumbCh <- RowEvent{
+			case pw.readout.breadcrumbCh <- rowevent.RowEvent{
 				Kind: T.KindBreadcrumb, Label: T.BreadcrumbWireSendBufferFull, Debug: 1,
 				NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 				Value: int32(v),

@@ -6,7 +6,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/rowtables"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/rowevent"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -69,7 +69,7 @@ func applyNodeDragTarget(ui *viewstate.UIState, rootMove func(id string, target 
 	return true
 }
 
-func setHover(ui *viewstate.UIState, sendMoveFn func(id string, msg movemsg.Msg), RT *rowtables.RowTables, node, port string, isInput bool) (events []wire.RowEvent, changed bool) {
+func setHover(ui *viewstate.UIState, sendMoveFn func(id string, msg movemsg.Msg), RT *rowtables.RowTables, node, port string, isInput bool) (events []rowevent.RowEvent, changed bool) {
 	if node == ui.Sel.HoverNode && port == ui.Sel.HoverPort && isInput == ui.Sel.HoverInput {
 		return nil, false
 	}
@@ -85,7 +85,7 @@ func setHover(ui *viewstate.UIState, sendMoveFn func(id string, msg movemsg.Msg)
 	if isInput {
 		value = 1
 	}
-	return []wire.RowEvent{{Kind: T.KindHover, NodeRow: nodeRow, PortRow: portRow, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Value: value}}, true
+	return []rowevent.RowEvent{{Kind: T.KindHover, NodeRow: nodeRow, PortRow: portRow, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Value: value}}, true
 }
 
 func applySelect(d Deps, ev inputcodec.RawInputMsg) {

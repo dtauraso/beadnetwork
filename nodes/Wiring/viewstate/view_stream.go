@@ -4,7 +4,7 @@ import (
 	"encoding/binary"
 	"io"
 
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/rowevent"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -28,7 +28,7 @@ type ViewFrameBuilder func(tick uint32,
 	groupLenTime, groupLenInput, groupLenGate float32,
 	speed float32,
 	sceneCX, sceneCY, sceneCZ, sceneRadius float32,
-	events []wire.RowEvent,
+	events []rowevent.RowEvent,
 ) []byte
 
 func (ui *UIState) SetViewStream(out io.Writer, buildFrame ViewFrameBuilder) {
@@ -37,13 +37,13 @@ func (ui *UIState) SetViewStream(out io.Writer, buildFrame ViewFrameBuilder) {
 	ui.ViewBuildFrame = buildFrame
 }
 
-func (ui *UIState) EmitBreadcrumb(ev wire.RowEvent) {
+func (ui *UIState) EmitBreadcrumb(ev rowevent.RowEvent) {
 	ev.Kind = T.KindBreadcrumb
 	ev.Debug = 1
-	ui.EmitViewFrame([]wire.RowEvent{ev})
+	ui.EmitViewFrame([]rowevent.RowEvent{ev})
 }
 
-func (ui *UIState) EmitViewFrame(events []wire.RowEvent) {
+func (ui *UIState) EmitViewFrame(events []rowevent.RowEvent) {
 	if ui.ViewBuildFrame == nil {
 		return
 	}

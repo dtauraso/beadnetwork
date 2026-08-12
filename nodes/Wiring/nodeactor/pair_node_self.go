@@ -4,7 +4,7 @@ import (
 	"context"
 
 	T "github.com/dtauraso/wirefold/Trace"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/rowevent"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 )
 
@@ -29,7 +29,7 @@ func (p *PairNodeSelf) Breadcrumb(label, value string) {
 	if !ok {
 		return
 	}
-	p.geom.writeStreamFrame([]wire.RowEvent{{
+	p.geom.writeStreamFrame([]rowevent.RowEvent{{
 		Kind: T.KindBreadcrumb, Label: id, Debug: 1,
 		NodeRow: p.geom.stream.nodeRow, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 		Text: value,

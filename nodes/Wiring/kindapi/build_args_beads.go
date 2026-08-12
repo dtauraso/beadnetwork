@@ -2,7 +2,7 @@ package kindapi
 
 import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/interior"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/rowevent"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -12,7 +12,7 @@ func (a BuildArgs) Fire() func() {
 	getStream := a.getStream
 	return func() {
 		if s := getStream(); s != nil {
-			s.WriteEvents([]wire.RowEvent{{
+			s.WriteEvents([]rowevent.RowEvent{{
 				Kind: T.KindFire, NodeRow: s.NodeRowOf(),
 				PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1,
 			}})

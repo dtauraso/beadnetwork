@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/interior"
+	"github.com/dtauraso/wirefold/nodes/rowevent"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/outport"
 
@@ -60,8 +61,8 @@ func NewDriveStreamGetter(name string, slot int, pb PortBindings) func() *interi
 	}
 }
 
-func AsEventSinkGetter(g func() *interior.InteriorStream) func() wire.EventSink {
-	return func() wire.EventSink {
+func AsEventSinkGetter(g func() *interior.InteriorStream) func() rowevent.EventSink {
+	return func() rowevent.EventSink {
 		s := g()
 		if s == nil {
 			return nil

@@ -8,20 +8,20 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/nodeframe"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/rowevent"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
 
 func (m *NodeGeometry) emitGeometry() {
 
-	m.writeStreamFrame([]wire.RowEvent{{
+	m.writeStreamFrame([]rowevent.RowEvent{{
 		Kind: T.KindNodeGeometry, NodeRow: m.stream.nodeRow,
 		PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1,
 	}})
 }
 
-func (m *NodeGeometry) writeStreamFrame(events []wire.RowEvent) {
+func (m *NodeGeometry) writeStreamFrame(events []rowevent.RowEvent) {
 	if !m.stream.streamOut.Ok() || m.stream.buildFrame == nil {
 		return
 	}

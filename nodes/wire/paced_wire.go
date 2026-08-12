@@ -2,6 +2,8 @@ package wire
 
 import (
 	"os"
+
+	"github.com/dtauraso/wirefold/nodes/rowevent"
 )
 
 var edgeBeadTraceEnabled = os.Getenv("WIREFOLD_EDGE_BEAD_TRACE") == "1"
@@ -36,6 +38,6 @@ func NewPacedWire(steps int, dwellTicks float64) *PacedWire {
 		dwell:   dwellTicks,
 		inCh:    make(chan placeRequest, wireChanBufferSize),
 		outCh:   make(chan deliveredBead, wireChanBufferSize),
-		readout: wireReadout{breadcrumbCh: make(chan RowEvent, 4)},
+		readout: wireReadout{breadcrumbCh: make(chan rowevent.RowEvent, 4)},
 	}
 }

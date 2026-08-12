@@ -5,7 +5,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/quantoffset"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/rowevent"
 )
 
 func (m *NodeGeometry) ID() string { return m.id }
@@ -54,6 +54,6 @@ func (m *NodeGeometry) CommitQuantOffset(committedPolar geom.Polar) {
 	m.persistQuantOffset(off, committedPolar)
 }
 
-func (m *NodeGeometry) WriteStreamFrame(events []wire.RowEvent) {
+func (m *NodeGeometry) WriteStreamFrame(events []rowevent.RowEvent) {
 	m.writeStreamFrame(events)
 }

@@ -1,7 +1,7 @@
 package nodeframe
 
 import (
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/rowevent"
 )
 
 type NodeFrameInput struct {
@@ -45,7 +45,7 @@ type NodeFrameInput struct {
 	ChainBeadLit                          []uint8
 	ChainBeadLitValue                     []int32
 
-	Events []wire.RowEvent
+	Events []rowevent.RowEvent
 }
 
 type NodeFrameBuilder func(f NodeFrameInput) []byte

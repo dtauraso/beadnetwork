@@ -3,7 +3,7 @@ package runtopology
 import (
 	"os"
 
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/rowevent"
 
 	B "github.com/dtauraso/wirefold/Buffer"
 	SF "github.com/dtauraso/wirefold/Buffer/streamframe"
@@ -22,7 +22,7 @@ func wireViewStream(md *W.MoveDispatch, viewFile *os.File, viewStreamWired bool,
 				groupLenTime, groupLenInput, groupLenGate float32,
 				speed float32,
 				sceneCX, sceneCY, sceneCZ, sceneRadius float32,
-				events []wire.RowEvent,
+				events []rowevent.RowEvent,
 			) []byte {
 				return SF.BuildViewStreamFrame(tick,
 					camPX, camPY, camPZ, camR, camPosTheta, camPosPhi, camUpTheta, camUpPhi,

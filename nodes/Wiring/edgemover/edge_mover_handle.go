@@ -3,7 +3,7 @@ package edgemover
 import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/rowevent"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -59,7 +59,7 @@ func (m *EdgeMover) recomputeGeometry() {
 		m.dest.ReviseInFlightGeometry(m.clk.Tick(), m.steps, seg)
 	}
 
-	m.writeStreamFrame(m.clk.Tick(), []wire.RowEvent{{
+	m.writeStreamFrame(m.clk.Tick(), []rowevent.RowEvent{{
 		Kind: T.KindGeometry, EdgeRow: m.edgeRow,
 		NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1,
 	}})

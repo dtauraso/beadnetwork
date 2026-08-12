@@ -4,6 +4,7 @@ import (
 	"context"
 
 	T "github.com/dtauraso/wirefold/Trace"
+	"github.com/dtauraso/wirefold/nodes/rowevent"
 )
 
 type In struct {
@@ -16,7 +17,7 @@ type In struct {
 	port  string
 	trace *T.Trace
 
-	stream func() EventSink
+	stream func() rowevent.EventSink
 
 	portRow int32
 }
@@ -53,17 +54,17 @@ func (i *In) flushRecvEvent(value int) {
 	if s == nil {
 		return
 	}
-	s.WriteEvents([]RowEvent{{
+	s.WriteEvents([]rowevent.RowEvent{{
 		Kind: T.KindRecv, NodeRow: s.NodeRowOf(), PortRow: i.portRow,
 		TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Value: int32(value),
 	}})
 }
 
-func NewInChan(ch <-chan int, node, port string, tr *T.Trace, stream func() EventSink) *In {
+func NewInChan(ch <-chan int, node, port string, tr *T.Trace, stream func() rowevent.EventSink) *In {
 	return &In{ch: ch, node: node, port: port, trace: tr, portRow: -1, stream: stream}
 }
 
-func NewInPaced(pw *PacedWire, ctx context.Context, node, port string, tr *T.Trace, stream func() EventSink, portRow int32) *In {
+func NewInPaced(pw *PacedWire, ctx context.Context, node, port string, tr *T.Trace, stream func() rowevent.EventSink, portRow int32) *In {
 	return &In{pw: pw, ctx: ctx, node: node, port: port, trace: tr, stream: stream, portRow: portRow}
 }
 
@@ -95,7 +96,7 @@ func (i *In) Breadcrumb(event, detail string) {
 	if s == nil {
 		return
 	}
-	s.WriteEvents([]RowEvent{{
+	s.WriteEvents([]rowevent.RowEvent{{
 		Kind: T.KindBreadcrumb, Label: label, Debug: 1,
 		NodeRow: s.NodeRowOf(), PortRow: i.portRow,
 		TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,

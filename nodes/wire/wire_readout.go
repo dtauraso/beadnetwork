@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	T "github.com/dtauraso/wirefold/Trace"
+	"github.com/dtauraso/wirefold/nodes/rowevent"
 )
 
 type wireReadout struct {
@@ -13,7 +14,7 @@ type wireReadout struct {
 
 	pending []pendingWireEvent
 
-	breadcrumbCh chan RowEvent
+	breadcrumbCh chan rowevent.RowEvent
 
 	droppedBreadcrumbs int
 }
@@ -27,7 +28,7 @@ func (r *wireReadout) flushDroppedBreadcrumbs() {
 		return
 	}
 	select {
-	case r.breadcrumbCh <- RowEvent{
+	case r.breadcrumbCh <- rowevent.RowEvent{
 		Kind: T.KindBreadcrumb, Label: T.BreadcrumbWireBreadcrumbsDropped, Debug: 1,
 		NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 		Value: int32(r.droppedBreadcrumbs),
@@ -37,11 +38,11 @@ func (r *wireReadout) flushDroppedBreadcrumbs() {
 	}
 }
 
-func (r *wireReadout) drainBreadcrumbEvents() []RowEvent {
+func (r *wireReadout) drainBreadcrumbEvents() []rowevent.RowEvent {
 	if r.breadcrumbCh == nil {
 		return nil
 	}
-	var out []RowEvent
+	var out []rowevent.RowEvent
 	for {
 		select {
 		case ev := <-r.breadcrumbCh:
@@ -52,7 +53,7 @@ func (r *wireReadout) drainBreadcrumbEvents() []RowEvent {
 	}
 }
 
-func (pw *PacedWire) DrainBreadcrumbEvents() []RowEvent {
+func (pw *PacedWire) DrainBreadcrumbEvents() []rowevent.RowEvent {
 	return pw.readout.drainBreadcrumbEvents()
 }
 

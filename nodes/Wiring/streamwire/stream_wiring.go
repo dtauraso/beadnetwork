@@ -10,7 +10,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/nodeframe"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/streamclaim"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/rowevent"
 )
 
 const DriveSlotsPerNode = 2
@@ -18,7 +18,7 @@ const DriveSlotsPerNode = 2
 type StreamWiring struct {
 	interiorOuts map[string]io.Writer
 
-	buildInteriorFrame func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []wire.RowEvent) []byte
+	buildInteriorFrame func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []rowevent.RowEvent) []byte
 
 	driveOuts map[string][DriveSlotsPerNode]io.Writer
 
@@ -33,7 +33,7 @@ func (sw *StreamWiring) DriveOutsPtr() *map[string][DriveSlotsPerNode]io.Writer 
 	return &sw.driveOuts
 }
 
-func (sw *StreamWiring) BuildInteriorFramePtr() *func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []wire.RowEvent) []byte {
+func (sw *StreamWiring) BuildInteriorFramePtr() *func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []rowevent.RowEvent) []byte {
 	return &sw.buildInteriorFrame
 }
 
@@ -56,7 +56,7 @@ func (sw *StreamWiring) SetEdgeStreams(
 	edgeMovers map[string]*edgemover.EdgeMover,
 	baseFd int,
 	nodeRowFor func(id string) (int32, bool),
-	buildFrame func(tick uint32, sx, sy, sz, ex, ey, ez float32, label string, events []wire.RowEvent) []byte,
+	buildFrame func(tick uint32, sx, sy, sz, ex, ey, ez float32, label string, events []rowevent.RowEvent) []byte,
 ) {
 	for row, seed := range edgeSeeds {
 		em, ok := edgeMovers[seed.Label]
@@ -81,7 +81,7 @@ func (sw *StreamWiring) SetNodeStreams(
 	driveBase int, driveWired bool,
 	nodeRowFor func(id string) (int32, bool),
 	buildFrame nodeframe.NodeFrameBuilder,
-	buildInteriorFrame func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []wire.RowEvent) []byte,
+	buildInteriorFrame func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []rowevent.RowEvent) []byte,
 	kindIDFor func(kind string) uint8,
 ) {
 	sw.interiorOuts = map[string]io.Writer{}

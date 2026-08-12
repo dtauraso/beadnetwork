@@ -5,10 +5,10 @@ import (
 	"fmt"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/rowevent"
 )
 
-func (m *EdgeMover) writeStreamFrame(tick int64, events []wire.RowEvent) {
+func (m *EdgeMover) writeStreamFrame(tick int64, events []rowevent.RowEvent) {
 	if !m.streamOut.Ok() || m.buildFrame == nil {
 		return
 	}
@@ -34,7 +34,7 @@ func (m *EdgeMover) writeStreamFrame(tick int64, events []wire.RowEvent) {
 			}
 		}
 		for _, pe := range m.dest.DrainPendingEvents() {
-			events = append(events, wire.RowEvent{
+			events = append(events, rowevent.RowEvent{
 				Kind: pe.Kind, NodeRow: nodeRow, PortRow: -1,
 				TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 				Value: int32(pe.Value), Bead: pe.Gen,

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	T "github.com/dtauraso/wirefold/Trace"
+	"github.com/dtauraso/wirefold/nodes/rowevent"
 	"github.com/dtauraso/wirefold/nodes/spatial"
 	"github.com/dtauraso/wirefold/nodes/wire"
 )
@@ -31,7 +32,7 @@ type Out struct {
 
 	Rule SendRule
 
-	stream func() wire.EventSink
+	stream func() rowevent.EventSink
 
 	portRow, targetRow, targetPortRow int32
 }

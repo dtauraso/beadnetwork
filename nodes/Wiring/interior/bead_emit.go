@@ -3,7 +3,7 @@ package interior
 import (
 	"context"
 
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/rowevent"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 
@@ -19,7 +19,7 @@ func EmitNodeBeads(tr *T.Trace, nodeName string, working, backup []int, stream *
 	if stream != nil {
 		nodeRow = stream.nodeRow
 	}
-	var events []wire.RowEvent
+	var events []rowevent.RowEvent
 	emitRow := func(row int, slice []int) {
 		for col := 0; col < cols; col++ {
 			p := InteriorSlotOffset(row, col)
@@ -28,7 +28,7 @@ func EmitNodeBeads(tr *T.Trace, nodeName string, working, backup []int, stream *
 			if has {
 				v = slice[col]
 			}
-			events = append(events, wire.RowEvent{
+			events = append(events, rowevent.RowEvent{
 				Kind: T.KindNodeBead, NodeRow: nodeRow, Slot: int32(row*cols + col), Value: int32(v),
 				PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1,
 				X: p.X, Y: p.Y, Z: p.Z,
@@ -56,7 +56,7 @@ func EmitHeldBead(tr *T.Trace, nodeName string, held int, stream *InteriorStream
 	if stream != nil {
 		nodeRow = stream.nodeRow
 	}
-	events := []wire.RowEvent{{
+	events := []rowevent.RowEvent{{
 		Kind: T.KindNodeBead, NodeRow: nodeRow, Slot: 0, Value: int32(v),
 		PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1,
 	}}
@@ -82,7 +82,7 @@ func EmitInputBeads(tr *T.Trace, nodeName string, left, right int, stream *Inter
 	if stream != nil {
 		nodeRow = stream.nodeRow
 	}
-	events := []wire.RowEvent{
+	events := []rowevent.RowEvent{
 		{Kind: T.KindNodeBead, NodeRow: nodeRow, Slot: 0, Value: int32(vL), PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, X: -s},
 		{Kind: T.KindNodeBead, NodeRow: nodeRow, Slot: 1, Value: int32(vR), PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, X: s},
 	}

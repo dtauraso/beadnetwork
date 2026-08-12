@@ -6,7 +6,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/rowevent"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -15,7 +15,7 @@ func InstallOverlays(ui *viewstate.UIState, topologyPath string, tr *T.Trace) {
 	ov, _ := LoadSceneOverlays(scenepaths.OverlaysFilePath(topologyPath))
 	ui.OV.SetGuideVisibility(ov)
 
-	ui.EmitViewFrame([]wire.RowEvent{
+	ui.EmitViewFrame([]rowevent.RowEvent{
 		{Kind: T.KindSceneTori, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1},
 		{Kind: T.KindScenePoles, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1},
 		{Kind: T.KindNodePoles, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1},

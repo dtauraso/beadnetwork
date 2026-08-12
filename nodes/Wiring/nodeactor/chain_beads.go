@@ -6,13 +6,13 @@ import (
 	T "github.com/dtauraso/wirefold/Trace"
 	"github.com/dtauraso/wirefold/nodes/Wiring/beadindex"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/rowevent"
 	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 )
 
 var chainAimTraceEnabled = os.Getenv("WIREFOLD_CHAIN_AIM_TRACE") == "1"
 
-func (m *NodeGeometry) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []int32, breadcrumbs []wire.RowEvent) {
+func (m *NodeGeometry) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []int32, breadcrumbs []rowevent.RowEvent) {
 	if len(m.outs.outTargets) == 0 {
 		return nil, nil, nil, nil, nil, nil
 	}
@@ -46,7 +46,7 @@ func (m *NodeGeometry) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal [
 	return ox, oy, oz, lit, litVal, breadcrumbs
 }
 
-func (m *NodeGeometry) chainBeadsForTarget(to string, tick int64, selfTorusR float64, selfCenter, targetCenter vec3) (ox, oy, oz []float32, lit []uint8, litVal []int32, breadcrumb *wire.RowEvent, ok bool) {
+func (m *NodeGeometry) chainBeadsForTarget(to string, tick int64, selfTorusR float64, selfCenter, targetCenter vec3) (ox, oy, oz []float32, lit []uint8, litVal []int32, breadcrumb *rowevent.RowEvent, ok bool) {
 
 	dist, liveDir, count, geomOK := beadindex.ChainEdgeGeometry(selfCenter, targetCenter, selfTorusR, m.geom.Kind, m.topo.neighborKinds[to])
 	if !geomOK {
@@ -93,7 +93,7 @@ func (m *NodeGeometry) chainBeadsForTarget(to string, tick int64, selfTorusR flo
 	return ox, oy, oz, lit, litVal, breadcrumb, true
 }
 
-func (m *NodeGeometry) chainAimBreadcrumb(to string, count int, dist float64, liveDir vec3) *wire.RowEvent {
+func (m *NodeGeometry) chainAimBreadcrumb(to string, count int, dist float64, liveDir vec3) *rowevent.RowEvent {
 	if m.tr == nil || !chainAimTraceEnabled {
 		return nil
 	}
@@ -105,7 +105,7 @@ func (m *NodeGeometry) chainAimBreadcrumb(to string, count int, dist float64, li
 	}
 	value := beadindex.ChainAimBreadcrumbText(to, count, dist, liveDir)
 	m.tr.Breadcrumb("chain-aim", m.id, to, value)
-	return &wire.RowEvent{
+	return &rowevent.RowEvent{
 		Kind: T.KindBreadcrumb, Label: T.BreadcrumbChainAim, Debug: 1,
 		NodeRow: m.stream.nodeRow, PortRow: -1, TargetRow: targetRow, TargetPortRow: -1,
 		EdgeRow: -1, Slot: -1, Text: value,
