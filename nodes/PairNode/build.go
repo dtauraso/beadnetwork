@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/nodeapi"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 
 	"github.com/dtauraso/wirefold/nodes/PairNode/tiltring"
@@ -69,7 +69,7 @@ func init() {
 			{Name: "In", Dir: portwiring.PortIn},
 			{Name: "Out", Dir: portwiring.PortOut},
 		},
-		func(a Wiring.BuildArgs) (wire.Node, error) {
+		func(a Wiring.BuildArgs) (nodeapi.Node, error) {
 			n := &Node{
 				plumb: nodePlumbing{Clock: clock.NewRealClock()},
 			}

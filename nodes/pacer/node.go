@@ -2,7 +2,7 @@ package pacer
 
 import (
 	"context"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/nodeapi"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 	"github.com/dtauraso/wirefold/nodes/wire/inport"
 	"github.com/dtauraso/wirefold/nodes/wire/outport"
@@ -29,7 +29,7 @@ type Node struct {
 }
 
 func (p *Node) Update(ctx context.Context) {
-	wire.TryEmit(p.EmitGeometry)
+	nodeapi.TryEmit(p.EmitGeometry)
 
 	held := noValue
 	if p.EmitHeldBead != nil {
@@ -79,7 +79,7 @@ func init() {
 			{Name: "In", Dir: portwiring.PortIn},
 			{Name: "FeedbackOut", Dir: portwiring.PortOut},
 		},
-		func(a Wiring.BuildArgs) (wire.Node, error) {
+		func(a Wiring.BuildArgs) (nodeapi.Node, error) {
 			n := &Node{
 
 				Held: a.StateSeed("held", noValue),

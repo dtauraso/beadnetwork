@@ -6,7 +6,7 @@ import (
 	Wiring "github.com/dtauraso/wirefold/nodes/Wiring/kindapi"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
 	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/nodeapi"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 	"github.com/dtauraso/wirefold/nodes/wire/inport"
 	"github.com/dtauraso/wirefold/nodes/wire/outport"
@@ -121,7 +121,7 @@ func init() {
 			{Name: "NormalB", Dir: portwiring.PortIn},
 			{Name: "Out", Dir: portwiring.PortOut},
 		},
-		func(a Wiring.BuildArgs) (wire.Node, error) {
+		func(a Wiring.BuildArgs) (nodeapi.Node, error) {
 			n := &Node{}
 			n.Fire = a.Fire()
 			n.Clock = a.Clock()

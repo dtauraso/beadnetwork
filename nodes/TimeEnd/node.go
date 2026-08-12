@@ -2,7 +2,7 @@ package timeend
 
 import (
 	"context"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/nodeapi"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 	"github.com/dtauraso/wirefold/nodes/wire/inport"
 
@@ -26,7 +26,7 @@ type TimeEnd struct {
 }
 
 func (h *TimeEnd) Update(ctx context.Context) {
-	wire.TryEmit(h.EmitGeometry)
+	nodeapi.TryEmit(h.EmitGeometry)
 
 	held := noValue
 	if h.EmitHeldBead != nil {
@@ -66,7 +66,7 @@ func init() {
 		[]portwiring.PortSpec{
 			{Name: "In", Dir: portwiring.PortIn},
 		},
-		func(a Wiring.BuildArgs) (wire.Node, error) {
+		func(a Wiring.BuildArgs) (nodeapi.Node, error) {
 			n := &TimeEnd{
 
 				Held: a.StateSeed("held", noValue),

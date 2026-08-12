@@ -12,6 +12,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/quantoffset"
 	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
 	"github.com/dtauraso/wirefold/nodes/Wiring/topoderive"
+	"github.com/dtauraso/wirefold/nodes/nodeapi"
 	"github.com/dtauraso/wirefold/nodes/spatial"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
@@ -54,13 +55,13 @@ type buildCtx struct {
 	outboundHandle map[string]map[string][]string
 
 	outSink map[string]*outport.Out
-	nodes   []wire.Node
+	nodes   []nodeapi.Node
 
 	vectorOutByNode map[string]chan tiltvector.TiltVectorMsg
 	vectorInByNode  map[string]chan tiltvector.TiltVectorMsg
 }
 
-func buildFromSpec(ctx context.Context, spec loadspec.TopoSpec, tr *T.Trace, clk clock.Clock, sphere geom.SceneSphere, hasScene bool, scenePath string) ([]wire.Node, inputcodec.SlotRegistry, *dispatch.MoveDispatch, []chan float64, error) {
+func buildFromSpec(ctx context.Context, spec loadspec.TopoSpec, tr *T.Trace, clk clock.Clock, sphere geom.SceneSphere, hasScene bool, scenePath string) ([]nodeapi.Node, inputcodec.SlotRegistry, *dispatch.MoveDispatch, []chan float64, error) {
 	b := &buildCtx{ctx: ctx, spec: spec, tr: tr, clk: clk, sphere: sphere, hasScene: hasScene, scenePath: scenePath}
 
 	b.nodeGeoms, b.centers = topoderive.ComputeNodeGeometry(b.spec, b.sphere)

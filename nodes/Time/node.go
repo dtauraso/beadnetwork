@@ -2,7 +2,7 @@ package time
 
 import (
 	"context"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/nodeapi"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 	"github.com/dtauraso/wirefold/nodes/wire/inport"
 	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
@@ -78,7 +78,7 @@ func (in *Time) consumeInput(clk clock.Clock, value int, held int) (newHeld int,
 }
 
 func (in *Time) Update(ctx context.Context) {
-	wire.TryEmit(in.EmitGeometry)
+	nodeapi.TryEmit(in.EmitGeometry)
 
 	held := gatecommon.NoValue
 
@@ -121,7 +121,7 @@ func init() {
 			{Name: "In", Dir: portwiring.PortIn},
 			{Name: "ToNext", Dir: portwiring.PortBroadcast},
 		},
-		func(a Wiring.BuildArgs) (wire.Node, error) {
+		func(a Wiring.BuildArgs) (nodeapi.Node, error) {
 			n := &Time{
 
 				Held: a.StateSeed("held", gatecommon.NoValue),

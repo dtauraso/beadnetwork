@@ -2,7 +2,7 @@ package input
 
 import (
 	"context"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/nodeapi"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 	"github.com/dtauraso/wirefold/nodes/wire/inport"
 	"github.com/dtauraso/wirefold/nodes/wire/outport"
@@ -49,7 +49,7 @@ func (n *Node) broadcastPlace(v int, tick int64) bool {
 }
 
 func (n *Node) Update(ctx context.Context) {
-	wire.TryEmit(n.EmitGeometry)
+	nodeapi.TryEmit(n.EmitGeometry)
 	if len(n.Init) == 0 {
 		return
 	}
@@ -83,7 +83,7 @@ func init() {
 			{Name: "ToExcitatory", Dir: portwiring.PortOut},
 			{Name: "FeedbackIn", Dir: portwiring.PortIn},
 		},
-		func(a Wiring.BuildArgs) (wire.Node, error) {
+		func(a Wiring.BuildArgs) (nodeapi.Node, error) {
 			n := &Node{
 
 				Clock: clock.NewRealClock(),

@@ -11,6 +11,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/moverreg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
 	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
+	"github.com/dtauraso/wirefold/nodes/nodeapi"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/outport"
 )
@@ -41,7 +42,7 @@ func (b *buildCtx) buildNodes() error {
 		},
 	}
 	outSink := map[string]*outport.Out{}
-	nodes := make([]wire.Node, 0, len(b.spec.Nodes))
+	nodes := make([]nodeapi.Node, 0, len(b.spec.Nodes))
 	for _, n := range b.spec.Nodes {
 		bind := kindapi.Registry[n.Type]
 		pb := portwiring.NewPortBindings()

@@ -1,4 +1,4 @@
-package wire
+package nodeapi
 
 import "context"
 

@@ -2,7 +2,7 @@ package pulseleft
 
 import (
 	"context"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/nodeapi"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 	"github.com/dtauraso/wirefold/nodes/wire/inport"
 
@@ -31,7 +31,7 @@ func driveOutput(ctx context.Context, out Wiring.DrivenOut, heldCh <-chan int64,
 }
 
 func (g *PulseLeft) Update(ctx context.Context) {
-	wire.TryEmit(g.EmitGeometry)
+	nodeapi.TryEmit(g.EmitGeometry)
 
 	var cur int64 = gatecommon.NoValue
 	if g.EmitHeldBead != nil {
@@ -78,7 +78,7 @@ func init() {
 			{Name: "In", Dir: portwiring.PortIn},
 			{Name: "Out", Dir: portwiring.PortOut},
 		},
-		func(a Wiring.BuildArgs) (wire.Node, error) {
+		func(a Wiring.BuildArgs) (nodeapi.Node, error) {
 			n := &PulseLeft{}
 			n.Fire = a.Fire()
 			n.EmitHeldBead = a.EmitHeldBead()

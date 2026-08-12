@@ -2,7 +2,7 @@ package holdflip
 
 import (
 	"context"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/nodeapi"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 	"github.com/dtauraso/wirefold/nodes/wire/inport"
 
@@ -26,7 +26,7 @@ type Node struct {
 }
 
 func (g *Node) Update(ctx context.Context) {
-	wire.TryEmit(g.EmitGeometry)
+	nodeapi.TryEmit(g.EmitGeometry)
 
 	if g.EmitHeldBead != nil {
 		g.EmitHeldBead(gatecommon.NoValue)
@@ -88,7 +88,7 @@ func init() {
 			{Name: "In", Dir: portwiring.PortIn},
 			{Name: "Out", Dir: portwiring.PortOut},
 		},
-		func(a Wiring.BuildArgs) (wire.Node, error) {
+		func(a Wiring.BuildArgs) (nodeapi.Node, error) {
 			n := &Node{}
 			n.Fire = a.Fire()
 			n.EmitHeldBead = a.EmitHeldBead()

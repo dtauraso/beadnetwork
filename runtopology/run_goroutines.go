@@ -5,7 +5,7 @@ import (
 	"os"
 	"sync"
 
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/nodeapi"
 
 	T "github.com/dtauraso/wirefold/Trace"
 	W "github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
@@ -37,7 +37,7 @@ func startStdinReader(ctx context.Context, cancel context.CancelFunc, slotReg in
 	return stdinWG, gestureWG
 }
 
-func launchNodeGoroutines(ctx context.Context, nodes []wire.Node) *sync.WaitGroup {
+func launchNodeGoroutines(ctx context.Context, nodes []nodeapi.Node) *sync.WaitGroup {
 	wg := new(sync.WaitGroup)
 	wg.Add(len(nodes))
 	for _, node := range nodes {

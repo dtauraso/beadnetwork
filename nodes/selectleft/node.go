@@ -2,7 +2,7 @@ package selectleft
 
 import (
 	"context"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/nodeapi"
 
 	Wiring "github.com/dtauraso/wirefold/nodes/Wiring/kindapi"
 	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
@@ -25,7 +25,7 @@ func init() {
 			{Name: "FromRight", Dir: portwiring.PortIn},
 			{Name: "ToPassed", Dir: portwiring.PortOut},
 		},
-		func(a Wiring.BuildArgs) (wire.Node, error) {
+		func(a Wiring.BuildArgs) (nodeapi.Node, error) {
 			n := &SelectLeft{}
 			n.Fire = a.Fire()
 			n.EmitInputBeads = a.EmitInputBeads()
