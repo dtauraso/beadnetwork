@@ -49,6 +49,7 @@
     <a href="updates-worked.html">The same two decisions, worked</a>
     <a href="updates-leaves.html">What leaves the node</a>
     <a class="on" href="updates-map.html">The map into the code</a>
+    <a href="updates-map-plumbing.html">The map into the plumbing</a>
   </nav>
 
   <main>
@@ -115,45 +116,13 @@
               <span data-src="nodes/PairNode/machine.go#adoptMachine">adoptMachine</span>
             </td>
           </tr>
-          <tr>
-            <td class="n">nodes/Wiring/tiltvector/tilt_vector_channel.go</td>
-            <td class="s" colspan="2">
-              <span data-src="nodes/Wiring/tiltvector/tilt_vector_channel.go#PollRecvVector">PollRecvVector</span> ·
-              <span data-src="nodes/Wiring/tiltvector/tilt_vector_channel.go#SendVectorLatestNonBlocking">SendVectorLatestNonBlocking</span> ·
-              <span data-src="nodes/Wiring/tiltvector/tilt_vector_channel.go#FullTurnThetaIdx">FullTurnThetaIdx</span>
-            </td>
-          </tr>
-          <tr>
-            <td class="n">nodes/Wiring/nodeactor/pair_node_self.go</td>
-            <td class="s" colspan="2">
-              <span data-src="nodes/Wiring/nodeactor/pair_node_self.go#EmitGeometryOnce">EmitGeometryOnce</span> ·
-              <span data-src="nodes/Wiring/nodeactor/pair_node_self.go#Step">Step</span> ·
-              <span data-src="nodes/Wiring/nodeactor/pair_node_self.go#SetTiltIndex">SetTiltIndex</span> ·
-              <span data-src="nodes/Wiring/nodeactor/pair_node_self.go#SetReceivedVector">SetReceivedVector</span> ·
-              <span data-src="nodes/Wiring/nodeactor/pair_node_self.go#ClearOutBeads">ClearOutBeads</span>
-            </td>
-          </tr>
-          <tr>
-            <td class="n">nodes/Wiring/nodeactor/node_geometry_stream.go, node_geometry_center.go</td>
-            <td class="s" colspan="2">
-              <span data-src="nodes/Wiring/nodeactor/node_geometry_stream.go#emitGeometry">emitGeometry</span> ·
-              <span data-src="nodes/Wiring/nodeactor/node_geometry_stream.go#writeStreamFrame">writeStreamFrame</span> ·
-              <span data-src="nodes/Wiring/nodeactor/node_geometry_center.go#ApplyCenter">ApplyCenter</span>
-            </td>
-          </tr>
-          <tr>
-            <td class="n">nodes/wire/clock/clock.go</td>
-            <td class="s" colspan="2">
-              <span data-src="nodes/wire/clock/real_clock.go#Copy">Copy</span> ·
-              <span data-src="nodes/wire/clock/sleep_cycle.go#SleepCycle">SleepCycle</span> ·
-              <span data-src="nodes/wire/clock/sleep_cycle.go#pulsesPerCycle">pulsesPerCycle</span> ·
-              <span data-src="nodes/wire/clock/speed_delivery.go#ApplySpeedNonBlocking">ApplySpeedNonBlocking</span>
-            </td>
-          </tr>
         </table>
       </div>
 
-    
+      <p class="cap">See <a href="updates-map-plumbing.html">The map into the plumbing</a> for
+        the shared Wiring/wire files this node calls into: the vector channel, the
+        node-actor geometry mirror, and the clock.</p>
+
     </div>
   </main>
 </body>
