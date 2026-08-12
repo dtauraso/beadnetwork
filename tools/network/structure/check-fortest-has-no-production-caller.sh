@@ -76,7 +76,7 @@ while IFS= read -r line; do
   case "$line" in
     HITS)
       echo "FORTEST SYMBOL CALLED FROM PRODUCTION CODE: a *ForTest constructor is a test-only"
-      echo "escape hatch (docs/planning/movedispatch-decomposition.md item 2). Give the caller a"
+      echo "escape hatch. Give the caller a"
       echo "real, non-test entry point instead of reusing the test hatch:"
       fail=1; continue ;;
     *)

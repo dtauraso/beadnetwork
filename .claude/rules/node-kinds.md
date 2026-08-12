@@ -29,7 +29,7 @@ package's `init()` — and therefore its `Wiring.RegisterBuilder` call — run a
 `RegisterBuilder(kind, ports, build)` (`nodes/Wiring/kindapi/build_args.go`) populates
 `Wiring.Registry` directly, so the registry is complete before `main` runs (`Wiring` here
 aliases `nodes/Wiring/kindapi` — the kind-API package node kinds import, decoupled from the
-dispatch core, `docs/planning/movedispatch-decomposition.md` §24). The kind
+dispatch core). The kind
 declares its ports as an explicit `[]portwiring.PortSpec` argument (imported from
 `nodes/Wiring/portwiring`, named directly — `Wiring.PortSpec`/`Wiring.PortIn`/
 `Wiring.PortOut`/`Wiring.PortBroadcast` were re-export aliases and no longer exist) rather
