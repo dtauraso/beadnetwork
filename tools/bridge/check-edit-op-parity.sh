@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: nodes/Wiring/stdin_dispatch.go,tools/topology-vscode/src/messages.ts,tools/topology-vscode/src/schema/input-layout-gen.ts,tools/topology-vscode/src/webview/three/controls/flags/overlay-flags.ts | edit ops/update-kinds/overlay flags must stay listed identically on both sides of the bridge
+# PLACEMENT: nodes/Wiring/stdin_dispatch.go,tools/topology-vscode/src/messages.ts,tools/topology-vscode/src/schema/input/input-layout-gen.ts,tools/topology-vscode/src/webview/three/controls/flags/overlay-flags.ts | edit ops/update-kinds/overlay flags must stay listed identically on both sides of the bridge
 
 # Sentinel comments (X_START / X_END) bound each region so the greps cannot sweep in
 
@@ -15,7 +15,7 @@ go_fence_files() {
 }
 MESSAGES_TS="$REPO_ROOT/tools/topology-vscode/src/messages.ts"
 
-HANDLE_MSG="$REPO_ROOT/tools/topology-vscode/src/schema/input-layout-gen.ts"
+HANDLE_MSG="$REPO_ROOT/tools/topology-vscode/src/schema/input/input-layout-gen.ts"
 
 OVERLAY_FLAGS_TS="$REPO_ROOT/tools/topology-vscode/src/webview/three/controls/flags/overlay-flags.ts"
 

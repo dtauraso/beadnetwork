@@ -57,8 +57,8 @@ for prop in "${PROPS[@]}"; do
     --include='*.ts' --include='*.tsx' "$SCAN_DIR" 2>/dev/null || true)
 done
 
-if ! grep -arq --include='*.ts' --include='*.tsx' 'schema/shading-params"' "$SCAN_DIR"; then
-  echo 'ts-shading-from-go: three/ does not import from "../../schema/shading-params" — shading params must come from Go'
+if ! grep -arq --include='*.ts' --include='*.tsx' 'schema/buffer-layout/shading-params"' "$SCAN_DIR"; then
+  echo 'ts-shading-from-go: three/ does not import from "../../schema/buffer-layout/shading-params" — shading params must come from Go'
   HITS=$((HITS + 1))
 fi
 if ! grep -arq --include='*.ts' --include='*.tsx' 'SHADING_PARAM_NODE_TRANSMISSION' "$SCAN_DIR"; then
