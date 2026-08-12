@@ -3,7 +3,7 @@ package moverreg
 import (
 	"fmt"
 
-	"github.com/dtauraso/wirefold/nodes/Wiring/kindapi"
+	"github.com/dtauraso/wirefold/nodes/Wiring/kindreg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
 )
 
@@ -32,7 +32,7 @@ func linkRefusalFor(src, srcKind string, srcFound bool, kind string) (srcPort, t
 }
 
 func firstPortOfDir(kind string, dir portwiring.PortDir) (string, bool) {
-	b, ok := kindapi.Registry[kind]
+	b, ok := kindreg.Registry[kind]
 	if !ok {
 		return "", false
 	}

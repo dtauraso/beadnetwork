@@ -5,7 +5,7 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
-	"github.com/dtauraso/wirefold/nodes/Wiring/kindapi"
+	"github.com/dtauraso/wirefold/nodes/Wiring/kindreg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/loadspec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/moverreg"
@@ -18,7 +18,7 @@ import (
 
 func (b *buildCtx) buildNodes() error {
 
-	deps := kindapi.BuildDeps{
+	deps := kindreg.BuildDeps{
 		LatticePoints: b.md.UI.LatticePoints,
 		ClaimLatticeIn: func(name string) chan int32 {
 			sceneToNodeLatticeIn := make(chan int32, moverreg.InboxDepth)
@@ -44,7 +44,7 @@ func (b *buildCtx) buildNodes() error {
 	outSink := map[string]*outport.Out{}
 	nodes := make([]nodeapi.Node, 0, len(b.spec.Nodes))
 	for _, n := range b.spec.Nodes {
-		bind := kindapi.Registry[n.Type]
+		bind := kindreg.Registry[n.Type]
 		pb := portwiring.NewPortBindings()
 		pb.OutSink = outSink
 		pb.Clock = b.clk

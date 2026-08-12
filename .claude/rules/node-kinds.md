@@ -27,9 +27,11 @@ pipeline; it also refreshes `kinds_generated.go`. That file's blank imports are 
 package's `init()` — and therefore its `Wiring.RegisterBuilder` call — run at all.
 
 `RegisterBuilder(kind, ports, build)` (`nodes/Wiring/kindapi/build_args.go`) populates
-`Wiring.Registry` directly, so the registry is complete before `main` runs (`Wiring` here
+`kindreg.Registry` directly, so the registry is complete before `main` runs (`Wiring` here
 aliases `nodes/Wiring/kindapi` — the kind-API package node kinds import, decoupled from the
-dispatch core). The kind
+dispatch core; `nodes/Wiring/kindreg` holds the registry itself — `Registry`, `NodeBuilder`,
+`BuildDeps`, `BuildRegistry`, `BuildTypeMaps` — which `kindapi` calls into but node kinds
+never import directly). The kind
 declares its ports as an explicit `[]portwiring.PortSpec` argument (imported from
 `nodes/Wiring/portwiring`, named directly — `Wiring.PortSpec`/`Wiring.PortIn`/
 `Wiring.PortOut`/`Wiring.PortBroadcast` were re-export aliases and no longer exist) rather

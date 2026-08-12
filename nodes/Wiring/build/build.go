@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
-	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
-	"github.com/dtauraso/wirefold/nodes/Wiring/kindapi"
+	"github.com/dtauraso/wirefold/nodes/Wiring/kindreg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/loadspec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/quantoffset"
@@ -26,7 +26,7 @@ type buildCtx struct {
 	spec     loadspec.TopoSpec
 	tr       *T.Trace
 	clk      clock.Clock
-	sphere   geom.SceneSphere
+	sphere   polar.SceneSphere
 	hasScene bool
 
 	scenePath string
@@ -61,7 +61,7 @@ type buildCtx struct {
 	vectorInByNode  map[string]chan tiltvector.TiltVectorMsg
 }
 
-func buildFromSpec(ctx context.Context, spec loadspec.TopoSpec, tr *T.Trace, clk clock.Clock, sphere geom.SceneSphere, hasScene bool, scenePath string) ([]nodeapi.Node, inputcodec.SlotRegistry, *dispatch.MoveDispatch, []chan float64, error) {
+func buildFromSpec(ctx context.Context, spec loadspec.TopoSpec, tr *T.Trace, clk clock.Clock, sphere polar.SceneSphere, hasScene bool, scenePath string) ([]nodeapi.Node, inputcodec.SlotRegistry, *dispatch.MoveDispatch, []chan float64, error) {
 	b := &buildCtx{ctx: ctx, spec: spec, tr: tr, clk: clk, sphere: sphere, hasScene: hasScene, scenePath: scenePath}
 
 	b.nodeGeoms, b.centers = topoderive.ComputeNodeGeometry(b.spec, b.sphere)
@@ -72,7 +72,7 @@ func buildFromSpec(ctx context.Context, spec loadspec.TopoSpec, tr *T.Trace, clk
 	if err := b.buildMoveDispatch(); err != nil {
 		return nil, nil, nil, nil, err
 	}
-	b.nodeType, b.kindBroadcastPorts = kindapi.BuildTypeMaps(b.spec)
+	b.nodeType, b.kindBroadcastPorts = kindreg.BuildTypeMaps(b.spec)
 	b.inbound, b.outbound, b.outboundHandle = topoderive.BuildEdgeMaps(b.spec, b.nodeType, b.kindBroadcastPorts)
 	if err := b.buildNodes(); err != nil {
 		return nil, nil, nil, nil, err
