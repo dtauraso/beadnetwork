@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { postGoRecord } from "../../../vscode-api";
-import { encodeDistanceGroupAdjust } from "../../../../schema/input-encode";
+import { encodeDistanceGroupAdjust } from "../../../../schema/input/input-encode";
 import { useDistanceGroupLens } from "../flags/overlay-flags-distance-groups";
 import {
   pillContainerStyle,

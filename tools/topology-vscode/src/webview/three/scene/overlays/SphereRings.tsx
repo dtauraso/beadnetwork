@@ -6,7 +6,7 @@ import {
   readNodeCX, readNodeCY, readNodeCZ, readNodeRadius, readNodeSelected, readNodeSphereR,
   readNodeVRX, readNodeVRY, readNodeVRZ, readNodeFRX, readNodeFRY, readNodeFRZ,
   readOverlayReachSphere,
-} from "../../../../schema/buffer-layout";
+} from "../../../../schema/buffer-layout/buffer-layout";
 import { overlayOn } from "../../controls/flags/overlay-flags";
 import { NODE_SPHERE_RADIUS, NORMAL_DEGENERATE_EPS, SPHERE_RING_MIN_RADIUS, nodeRowColors } from "../buffer-scene-shared";
 

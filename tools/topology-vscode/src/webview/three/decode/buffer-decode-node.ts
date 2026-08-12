@@ -4,8 +4,8 @@ import {
   readNodeLabelOff,
   readNodeLabelLen,
   readNodeNodeId,
-} from "../../../schema/buffer-layout";
-import { BUF_NODE_STREAM_FRAME_HEADER_SIZE } from "../../../schema/frame-tags";
+} from "../../../schema/buffer-layout/buffer-layout";
+import { BUF_NODE_STREAM_FRAME_HEADER_SIZE } from "../../../schema/buffer-layout/frame-tags";
 import { STR_DECODER, decodeTrailingEvents } from "./buffer-decode-shared";
 
 function reportNodeIdMismatch(row: number, expectedId: number, statedId: number): void {

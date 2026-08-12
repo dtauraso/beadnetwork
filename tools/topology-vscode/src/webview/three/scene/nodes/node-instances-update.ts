@@ -7,7 +7,7 @@ import {
   readNodeCX, readNodeCY, readNodeCZ, readNodeRadius,
   readOverlaySelSpherePoles,
   readOverlayNodeBody, readOverlayNodeRing, readOverlayRingPick,
-} from "../../../../schema/buffer-layout";
+} from "../../../../schema/buffer-layout/buffer-layout";
 import { NODE_SPHERE_RADIUS, nodeRowColors, poleAxis } from "../buffer-scene-shared";
 import { computeNodeDepthOrder, setNodeDrawOrder } from "./node-depth-order";
 

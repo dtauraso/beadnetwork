@@ -9,7 +9,7 @@ import {
 } from "../messages";
 import { appendWebviewLog } from "./webview-log";
 import { PROBE_DIR, PROBE_FILES } from "../probe-files";
-import { BUF_BLOCK_TAG_VIEW, BUF_BLOCK_TAG_EDGE_STREAM, BUF_BLOCK_TAG_NODE_STREAM, BUF_BLOCK_TAG_INTERIOR_STREAM } from "../schema/frame-tags";
+import { BUF_BLOCK_TAG_VIEW, BUF_BLOCK_TAG_EDGE_STREAM, BUF_BLOCK_TAG_NODE_STREAM, BUF_BLOCK_TAG_INTERIOR_STREAM } from "../schema/buffer-layout/frame-tags";
 
 export type MessageCtx = {
   logUri: vscode.Uri | undefined;

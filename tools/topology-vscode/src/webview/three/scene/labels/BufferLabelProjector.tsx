@@ -4,7 +4,7 @@ import * as THREE from "three";
 import { nodeLabel } from "../../decode/buffer-decode-node";
 import { getNodeFrame } from "../nodes/node-frame-aggregate";
 import { ndcToPixel } from "../../interaction/geometry-helpers";
-import { readNodeCX, readNodeCY, readNodeCZ, readNodeRadius } from "../../../../schema/buffer-layout";
+import { readNodeCX, readNodeCY, readNodeCZ, readNodeRadius } from "../../../../schema/buffer-layout/buffer-layout";
 import type { BufferLabelPos } from "../buffer-scene-shared";
 
 const _bufTopScratch = new THREE.Vector3();

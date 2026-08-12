@@ -1,4 +1,4 @@
-import { readNodeKindId, UNKNOWN_KIND_ID } from "../../../schema/buffer-layout";
+import { readNodeKindId, UNKNOWN_KIND_ID } from "../../../schema/buffer-layout/buffer-layout";
 import { NODE_DEFS_ARRAY } from "../../../schema/node-defs";
 
 export interface BufferLabelPos { row: number; label: string; px: number; py: number; cx: number; cy: number; }

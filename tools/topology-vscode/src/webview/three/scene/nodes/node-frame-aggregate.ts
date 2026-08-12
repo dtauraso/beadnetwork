@@ -7,7 +7,7 @@ import { decodeInteriorStreamFrame } from "../../decode/buffer-decode-interior";
 import {
   NODE_STRIDE, INTERIOR_STRIDE, INTERIOR_SLOTS_PER_NODE,
   NODE_COL_LABEL_OFF, NODE_COL_LABEL_LEN,
-} from "../../../../schema/buffer-layout";
+} from "../../../../schema/buffer-layout/buffer-layout";
 
 const STR_ENCODER = new TextEncoder();
 

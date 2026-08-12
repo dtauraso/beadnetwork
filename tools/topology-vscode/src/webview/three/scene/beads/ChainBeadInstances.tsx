@@ -7,7 +7,7 @@ import {
   SHADING_PARAM_BEAD_RADIUS,
   SHADING_PARAM_BEAD_RING_TUBE_RATIO,
   SHADING_PARAM_CHAIN_BEAD_FILL,
-} from "../../../../schema/shading-params";
+} from "../../../../schema/buffer-layout/shading-params";
 
 const RING_COLOR = beadStyleForValue(1)!.ring;
 

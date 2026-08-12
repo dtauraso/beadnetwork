@@ -1,5 +1,5 @@
 import { postGoRecord } from "../../../vscode-api";
-import { encodeOverlaysToggle } from "../../../../schema/input-encode";
+import { encodeOverlaysToggle } from "../../../../schema/input/input-encode";
 import type { OverlayFlag } from "../../../../messages";
 import { postLog } from "../../../log/post";
 import { useOverlayFlags } from "../flags/overlay-flags";

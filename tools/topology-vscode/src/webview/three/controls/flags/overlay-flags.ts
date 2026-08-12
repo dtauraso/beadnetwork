@@ -15,7 +15,7 @@ import {
   readOverlaySelectionRing,
   readOverlayHoverRing,
   readOverlayReachSphere,
-} from "../../../../schema/buffer-layout";
+} from "../../../../schema/buffer-layout/buffer-layout";
 
 export type OverlayFlagVals = Record<OverlayFlag, boolean>;
 

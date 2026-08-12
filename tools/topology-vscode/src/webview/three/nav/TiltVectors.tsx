@@ -8,7 +8,7 @@ import {
   readNodeBottomTiltVectorTheta,
   readNodeCoplanarNormalTheta,
   readNodeReceivedVectorLen, readNodeReceivedVectorTheta,
-} from "../../../schema/buffer-layout";
+} from "../../../schema/buffer-layout/buffer-layout";
 
 const SHAFT_RADIUS_FRAC = 0.035;
 const HEAD_LEN_FRAC = 0.22;

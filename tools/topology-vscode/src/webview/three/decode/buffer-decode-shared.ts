@@ -1,4 +1,4 @@
-import { EVENT_STRIDE } from "../../../schema/buffer-layout";
+import { EVENT_STRIDE } from "../../../schema/buffer-layout/buffer-layout";
 
 export const STR_DECODER = new TextDecoder();
 

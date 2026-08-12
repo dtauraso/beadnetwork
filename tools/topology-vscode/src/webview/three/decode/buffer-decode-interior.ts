@@ -1,8 +1,8 @@
-import { INTERIOR_STRIDE, INTERIOR_SLOTS_PER_NODE } from "../../../schema/buffer-layout";
-import { BUF_INTERIOR_STREAM_FRAME_HEADER_SIZE } from "../../../schema/frame-tags";
+import { INTERIOR_STRIDE, INTERIOR_SLOTS_PER_NODE } from "../../../schema/buffer-layout/buffer-layout";
+import { BUF_INTERIOR_STREAM_FRAME_HEADER_SIZE } from "../../../schema/buffer-layout/frame-tags";
 import { decodeTrailingEvents } from "./buffer-decode-shared";
 
-export { INTERIOR_SLOTS_PER_NODE } from "../../../schema/buffer-layout";
+export { INTERIOR_SLOTS_PER_NODE } from "../../../schema/buffer-layout/buffer-layout";
 
 export interface DecodedInteriorStreamFrame {
   tick: number;

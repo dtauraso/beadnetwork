@@ -14,7 +14,7 @@ import {
   readEventBeadSteps, readEventSimLatencyMs, readEventX, readEventY, readEventZ, readEventF,
   readEventLabel, readEventDebug, readEventTextOff, readEventTextLen,
   readSceneCX, readSceneCY, readSceneCZ, readSceneRadius,
-} from "../../../schema/buffer-layout";
+} from "../../../schema/buffer-layout/buffer-layout";
 
 export type Line = Record<string, unknown>;
 

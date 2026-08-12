@@ -8,7 +8,7 @@ import {
   readNodeRingAxisPhi,
   readNodeCX, readNodeCY, readNodeCZ,
   readChainBeadOX, readChainBeadOY, readChainBeadOZ, readChainBeadLit, readChainBeadLitValue,
-} from "../../../../schema/buffer-layout";
+} from "../../../../schema/buffer-layout/buffer-layout";
 import { poleAxis } from "../buffer-scene-shared";
 
 export interface ChainBeadsAgg {

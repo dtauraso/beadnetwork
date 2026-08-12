@@ -7,7 +7,7 @@ import { interiorBeadStyleForValue } from "./bead-style";
 import {
   readNodeCX, readNodeCY, readNodeCZ,
   readInteriorPresent, readInteriorValue, readInteriorOX, readInteriorOY, readInteriorOZ,
-} from "../../../../schema/buffer-layout";
+} from "../../../../schema/buffer-layout/buffer-layout";
 
 const INTERIOR_BEAD_R = 5;
 const INTERIOR_RING_TUBE_RATIO = 0.12;
