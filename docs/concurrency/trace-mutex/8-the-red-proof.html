@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="doc-status" content="historical" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>wirefold — Trace.mu, resolved — the red proof — settled by the deletion itself</title>
+<link rel="stylesheet" href="index.css">
+</head>
+<body>
+
+<header>
+  <div class="head-inner">
+    <p class="eyebrow">Trace.mu, resolved</p>
+    <h1>8 · the red proof — settled by the deletion itself</h1>
+    <nav class="crumbnav"><a href="index.html">Trace.mu — the record of a question that closed</a> — <a href="1-the-hot-path.html">the hot path never touched the lock — still true, now trivially</a> · <a href="2-what-it-used.html">what it used to guard — and one field the comment claimed but did not</a> · <a href="3-who-actually-took.html">who actually took the lock — and which of them existed in production</a> · <a href="4-what-the-lock.html">what the lock was really doing — shutdown, not accumulation (RESOLVED)</a> · <a href="5-unlike-every-other.html">unlike every other lock here, this one was held across I/O (now moot — the lock is gone)</a> · <a href="6-the-single-owner-question.html">the single-owner question — drain already was one (RESOLVED)</a> · <a href="7-the-framing-above.html">the framing above it — Step is arrival order, not causal order (STILL OPEN)</a> · <span class="crumb-here">the red proof — settled by the deletion itself</span></nav>
+  </div>
+</header>
+
+<div class="wrap">
+<div class="legend">
+  <span><i class="sw g"></i>goroutine</span>
+  <span><i class="sw s"></i>under the lock</span>
+  <span><i class="sw k"></i>lock-free</span>
+  <span><i class="sw q"></i>test-only</span>
+</div>
+
+<h2>8 · the red proof — settled by the deletion itself</h2>
+<p class="cap">This section used to say the RED claim was a comment's assertion, not a
+measurement made here. It is now settled the direct way: the lock was actually deleted and
+<code>go test -race ./...</code> stayed clean, which is a stronger result than deleting-and-
+reverting a `Lock()`/`Unlock()` pair to check a comment. The "no panic on a closed channel"
+claim below is unaffected by any of this — it was never about the mutex.</p>
+
+<div class="plate">
+<svg viewBox="0 0 860 190" role="img" aria-label="The concurrency test asserted data-race freedom, falsifiable by deleting the lock; that deletion has now actually happened and go test -race stayed clean. Separately it asserts no panic, which was never about the mutex.">
+  <rect class="safe" x="0" y="24" width="420" height="110" rx="6"/>
+  <text class="tk" x="12" y="46">FALSIFIED THE HARD WAY — the lock is gone</text>
+  <text class="ts" x="12" y="68">TestTraceConcurrentEmitVsClose: many Emit,</text>
+  <text class="ts" x="12" y="82">readers, 1 Close, under -race</text>
+  <text class="tk" x="12" y="102">mu was actually deleted, not Lock/Unlock'd</text>
+  <text class="tf" x="12" y="116">out — go test -race ./... stayed clean</text>
+
+  <rect class="state" x="440" y="24" width="420" height="110" rx="6"/>
+  <text class="t"  x="452" y="46">NOT FALSIFIABLE — the “no panic” claim</text>
+  <text class="ts" x="452" y="68">“ch is NEVER closed” — Trace.go:288-293</text>
+  <text class="tf" x="452" y="88">the comment admits it: “a positive (no-panic)</text>
+  <text class="tf" x="452" y="102">claim … cannot be red-proofed by deletion”</text>
+  <text class="tf" x="452" y="120">the mutex was never what prevented close(t.ch)</text>
+
+  <line x1="0" y1="158" x2="860" y2="158" stroke="var(--line)"/>
+  <text class="tk" x="0" y="178">RESOLVED: the deletion experiment was actually run, on this branch, not just claimed in a comment.</text>
+</svg>
+</div>
+
+<footer>
+  Verified against the tree on <span style="font-family:var(--mono)">task/mutex-trace</span>.
+  Line numbers drift — re-grep before trusting them. Companions:
+  <span style="font-family:var(--mono)">docs/concurrency/mutex-architecture.html</span>,
+  <span style="font-family:var(--mono)">docs/layout-holder-architecture.html</span>,
+  <span style="font-family:var(--mono)">docs/concurrency/debounced-persister-architecture.html</span>,
+  <span style="font-family:var(--mono)">docs/concurrency/framings.md</span>.
+</footer>
+
+
+
+</div>
+
+</body>
+</html>
+

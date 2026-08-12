@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="doc-status" content="historical" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>wirefold — Trace.mu, resolved — the framing above it — Step is arrival order, not causal order (STILL OPEN)</title>
+<link rel="stylesheet" href="index.css">
+</head>
+<body>
+
+<header>
+  <div class="head-inner">
+    <p class="eyebrow">Trace.mu, resolved</p>
+    <h1>7 · the framing above it — Step is arrival order, not causal order (STILL OPEN)</h1>
+    <nav class="crumbnav"><a href="index.html">Trace.mu — the record of a question that closed</a> — <a href="1-the-hot-path.html">the hot path never touched the lock — still true, now trivially</a> · <a href="2-what-it-used.html">what it used to guard — and one field the comment claimed but did not</a> · <a href="3-who-actually-took.html">who actually took the lock — and which of them existed in production</a> · <a href="4-what-the-lock.html">what the lock was really doing — shutdown, not accumulation (RESOLVED)</a> · <a href="5-unlike-every-other.html">unlike every other lock here, this one was held across I/O (now moot — the lock is gone)</a> · <a href="6-the-single-owner-question.html">the single-owner question — drain already was one (RESOLVED)</a> · <span class="crumb-here">the framing above it — Step is arrival order, not causal order (STILL OPEN)</span> · <a href="8-the-red-proof.html">the red proof — settled by the deletion itself</a></nav>
+  </div>
+</header>
+
+<div class="wrap">
+<div class="legend">
+  <span><i class="sw g"></i>goroutine</span>
+  <span><i class="sw s"></i>under the lock</span>
+  <span><i class="sw k"></i>lock-free</span>
+  <span><i class="sw q"></i>test-only</span>
+</div>
+
+<h2>7 · the framing above it — Step is arrival order, not causal order (STILL OPEN)</h2>
+<p class="cap">This question does not close with the lock. <code>Trace.mu</code> is gone, but the
+event channel and the drain's single-writer ordering are unchanged — <code>Step</code> is still
+assigned in scheduler-arrival order, not causal order. See
+<code>task/framing-event-order</code> and <code>task/per-owner-buffer-rows</code>.</p>
+
+<div class="plate">
+<svg viewBox="0 0 860 200" role="img" aria-label="The Step ordinal is assigned in the order events arrive at the channel, which is scheduler order, and nothing computes or checks causal order.">
+  <rect class="box" x="0" y="24" width="420" height="112" rx="6"/>
+  <text class="t"  x="12" y="46">WHAT THE CODE DOES</text>
+  <text class="ts" x="12" y="68">ev.Step = len(t.events) — drain.go:94</text>
+  <text class="tf" x="12" y="88">assigned in the order events come off t.ch,</text>
+  <text class="tf" x="12" y="102">inside the single drain goroutine</text>
+  <text class="tf" x="12" y="122">many unsynchronized producers → whatever</text>
+  <text class="tf" x="12" y="134">order the scheduler happens to deliver</text>
+
+  <rect class="state" x="440" y="24" width="420" height="112" rx="6"/>
+  <text class="t"  x="452" y="46">WHAT THE PACKAGE DOC CLAIMS</text>
+  <text class="ts" x="452" y="68">Trace.go:9-10 — “the order events arrive at</text>
+  <text class="ts" x="452" y="82">the channel is the causal-enough story”</text>
+  <text class="tw" x="452" y="106">an assumption, enforced nowhere</text>
+  <text class="tf" x="452" y="126">no vector clocks, no logical timestamps,</text>
+  <text class="tf" x="452" y="134">nothing that checks causality</text>
+
+  <line x1="0" y1="160" x2="860" y2="160" stroke="var(--line)"/>
+  <text class="tq" x="0" y="180">SEPARATE QUESTION → task/framing-event-order</text>
+  <text class="ts" x="290" y="180">“each owner’s own order is the only real one” vs “events have a global total order”.</text>
+  <text class="tf" x="0" y="196">Deleting Trace.mu did not settle this. The lock was never what produced the ordering — the channel and the drain were, and both are still here.</text>
+</svg>
+</div>
+
+
+
+</div>
+
+</body>
+</html>
+

@@ -5,8 +5,8 @@
 <meta name="doc-status" content="historical" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>wirefold — Trace.mu, resolved</title>
-<link rel="stylesheet" href="trace-mutex-architecture.css">
-<link rel="stylesheet" href="trace-mutex-architecture-idx.css">
+<link rel="stylesheet" href="index.css">
+<link rel="stylesheet" href="idx.css">
 </head>
 <body>
 
@@ -26,14 +26,14 @@
 
 <div class="wrap">
 <ul class="idx-list">
-  <li><a href="trace-mutex-architecture-1-the-hot-path.html">1 · the hot path never touched the lock — still true, now trivially</a></li>
-  <li><a href="trace-mutex-architecture-2-what-it-used.html">2 · what it used to guard — and one field the comment claimed but did not</a></li>
-  <li><a href="trace-mutex-architecture-3-who-actually-took.html">3 · who actually took the lock — and which of them existed in production</a></li>
-  <li><a href="trace-mutex-architecture-4-what-the-lock.html">4 · what the lock was really doing — shutdown, not accumulation (RESOLVED)</a></li>
-  <li><a href="trace-mutex-architecture-5-unlike-every-other.html">5 · unlike every other lock here, this one was held across I/O (now moot — the lock is gone)</a></li>
-  <li><a href="trace-mutex-architecture-6-the-single-owner-question.html">6 · the single-owner question — drain already was one (RESOLVED)</a></li>
-  <li><a href="trace-mutex-architecture-7-the-framing-above.html">7 · the framing above it — Step is arrival order, not causal order (STILL OPEN)</a></li>
-  <li><a href="trace-mutex-architecture-8-the-red-proof.html">8 · the red proof — settled by the deletion itself</a></li>
+  <li><a href="1-the-hot-path.html">1 · the hot path never touched the lock — still true, now trivially</a></li>
+  <li><a href="2-what-it-used.html">2 · what it used to guard — and one field the comment claimed but did not</a></li>
+  <li><a href="3-who-actually-took.html">3 · who actually took the lock — and which of them existed in production</a></li>
+  <li><a href="4-what-the-lock.html">4 · what the lock was really doing — shutdown, not accumulation (RESOLVED)</a></li>
+  <li><a href="5-unlike-every-other.html">5 · unlike every other lock here, this one was held across I/O (now moot — the lock is gone)</a></li>
+  <li><a href="6-the-single-owner-question.html">6 · the single-owner question — drain already was one (RESOLVED)</a></li>
+  <li><a href="7-the-framing-above.html">7 · the framing above it — Step is arrival order, not causal order (STILL OPEN)</a></li>
+  <li><a href="8-the-red-proof.html">8 · the red proof — settled by the deletion itself</a></li>
 </ul>
 <footer>
   Verified against the tree on <span style="font-family:var(--mono)">task/mutex-trace</span>.

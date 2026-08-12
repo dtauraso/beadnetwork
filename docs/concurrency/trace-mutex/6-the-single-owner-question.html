@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="doc-status" content="historical" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>wirefold — Trace.mu, resolved — the single-owner question — drain already was one (RESOLVED)</title>
+<link rel="stylesheet" href="index.css">
+</head>
+<body>
+
+<header>
+  <div class="head-inner">
+    <p class="eyebrow">Trace.mu, resolved</p>
+    <h1>6 · the single-owner question — drain already was one (RESOLVED)</h1>
+    <nav class="crumbnav"><a href="index.html">Trace.mu — the record of a question that closed</a> — <a href="1-the-hot-path.html">the hot path never touched the lock — still true, now trivially</a> · <a href="2-what-it-used.html">what it used to guard — and one field the comment claimed but did not</a> · <a href="3-who-actually-took.html">who actually took the lock — and which of them existed in production</a> · <a href="4-what-the-lock.html">what the lock was really doing — shutdown, not accumulation (RESOLVED)</a> · <a href="5-unlike-every-other.html">unlike every other lock here, this one was held across I/O (now moot — the lock is gone)</a> · <span class="crumb-here">the single-owner question — drain already was one (RESOLVED)</span> · <a href="7-the-framing-above.html">the framing above it — Step is arrival order, not causal order (STILL OPEN)</a> · <a href="8-the-red-proof.html">the red proof — settled by the deletion itself</a></nav>
+  </div>
+</header>
+
+<div class="wrap">
+<div class="legend">
+  <span><i class="sw g"></i>goroutine</span>
+  <span><i class="sw s"></i>under the lock</span>
+  <span><i class="sw k"></i>lock-free</span>
+  <span><i class="sw q"></i>test-only</span>
+</div>
+
+<h2>6 · the single-owner question — drain already was one (RESOLVED)</h2>
+<p class="cap">The move that removed the other six: give the state one owner.
+<code>events</code> <b>already had one</b> — the drain goroutine was its sole writer, so the
+accumulator was never the obstacle. What this diagram called "the whole difficulty" —
+<code>Breadcrumb</code> writing to <code>sink</code>/<code>debugSink</code> directly, on
+arbitrary node goroutines, not through the drain channel — is exactly what got changed:
+<code>Breadcrumb</code> now sends on <code>t.ch</code> too, so the drain goroutine is the sole
+writer of everything the lock used to guard.</p>
+
+<div class="plate">
+<svg viewBox="0 0 860 250" role="img" aria-label="The drain goroutine was already the sole writer of events; the fix was routing Breadcrumb's sink writes through drain too, and giving closed a sync.Once instead of the mutex, so the whole struct is now single-owner with no lock.">
+  <rect class="safe" x="0" y="28" width="420" height="96" rx="6"/>
+  <text class="tk" x="12" y="50">WAS ALREADY SINGLE-OWNER</text>
+  <text class="ts" x="12" y="72">drain was the only writer of events (drain.go:95)</text>
+  <text class="tf" x="12" y="92">Events() was test-only; WriteJSONL ran after</text>
+  <text class="tf" x="12" y="106">drain had exited. Nothing to route — that</text>
+  <text class="tf" x="12" y="118">part of the lock was already dead weight.</text>
+
+  <rect class="safe" x="440" y="28" width="420" height="96" rx="6"/>
+  <text class="tk" x="452" y="50">closed — NOW sync.Once, NO MUTEX</text>
+  <text class="ts" x="452" y="72">it was an idempotency flag inside Close</text>
+  <text class="tf" x="452" y="92">sync.Once expresses that directly, with no</text>
+  <text class="tf" x="452" y="106">lock at all. Close still coordinates via</text>
+  <text class="tf" x="452" y="118">close(t.stopped) and &lt;-t.done.</text>
+
+  <rect class="safe" x="0" y="136" width="860" height="72" rx="6"/>
+  <text class="tk" x="12" y="158">WHAT THIS DIAGRAM CALLED "THE WHOLE DIFFICULTY" — FIXED</text>
+  <text class="ts" x="12" y="180">Breadcrumb used to write to sink/debugSink directly, on arbitrary node goroutines — NOT through the drain channel.</text>
+  <text class="ts" x="12" y="196">It now sends on t.ch like every other event, so the drain goroutine writes sink/debugSink too. One owner for all four fields.</text>
+
+  <line x1="0" y1="224" x2="860" y2="224" stroke="var(--line)"/>
+  <text class="tq" x="0" y="242">It was three questions, not one — and the third (Breadcrumb) was the one that actually needed fixing.</text>
+</svg>
+</div>
+
+
+
+</div>
+
+</body>
+</html>
+
