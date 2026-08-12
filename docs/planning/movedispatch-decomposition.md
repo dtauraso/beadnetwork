@@ -5322,3 +5322,65 @@ repo root). No-import-cycle check: only `nodes/wire/beadchain` imports `nodes/wi
 `nodes/wire`'s subpackages — pre-existing (verified before this pass's first edit too, not
 introduced by it). `git status --short` empty after both commits. Commits: `7c3de447`
 (`bead_advance.go`/`lattice/bead_fraction.go`), `1d89e255` (`Trace.go` split + guard re-key).
+
+## `stream-demux.ts`'s five handlers and `runCommand.ts` — re-measured
+
+`stream-demux.ts`'s five `handle<Kind>Fd` methods (view/edge/node/interior/drive) were
+declined once, citing `processInteriorLikeFrames`'s own doc comment on carry-buffer desync
+risk (`docs/investigations/interior-stream-framing.md`). Re-read: that argument is scoped to
+sharing ONE carry buffer across two physically distinct pipes ("reusing `interiorBufs`'
+carry state across two physically distinct pipes would reintroduce the exact desync"), not
+to sharing the reassembly CODE SHAPE. It does not forbid a shared code path that takes the
+carry buffer as a parameter and keeps each fd's own buffer field.
+
+Factored the dead-stream-check + `splitFrames` + rest-storage + error-report shape into one
+private `dispatchFrames(key, carry, chunk, storeRest, errorContext, onFrames)`. Each
+`handle<Kind>Fd` call site still names, explicitly, its own carry-buffer field (`stream.
+viewBuf` / `stream.edgeBufs[row]` / `stream.nodeBufs[row]` / `stream.interiorBufs[row]` /
+`stream.driveBufs[row][slot]`), its own probe file, decode function, `BUF_BLOCK_TAG_*`, and
+last-frame cache. `handleInteriorFd`/`handleDriveFd` still both feed the pre-existing shared
+`processInteriorLikeFrames` tail (decode/probe/cache), which itself was already correctly
+shared before this pass and is unchanged in shape. `stream-demux.ts`: 364 → 402 lines (grew
+— five call sites now each carry an explanatory comment naming what they still own, plus the
+new `dispatchFrames` method itself with its own doc comment); the point was removing the
+statement-for-statement duplication, not line count. `check-stream-kind-ts-parity.sh` is a
+pure name-level grep (`handle<Cap>Fd(` anywhere under the ext-host src tree) — it does not
+care whether that text is a method definition, a call site, or an error-context string, so
+renaming only the definition left it passing; renaming the definition, the
+`attach-listeners.ts` call site, AND the error-context string together made it fire by name
+(`stream kind "drive" is declared in Go but no handleDriveFd( reader exists`), then
+restored.
+
+`runCommand.ts` was re-measured per function rather than by a blanket claim. Every method
+outside `run()` is 3–17 lines and is a thin, already-terminal delegation (`constructor` 3,
+`currentGen` 3, `newDemux` 15, `cancel` 17, `isRunning` 3, `restart` 6, the four
+`getLast*Frame(s)` accessors 3 each, `writeStdin` 8, `dispose` 4) — each body is entirely
+`vscode.*`/`cp.*`/`proc.*`/`process.*`/`this.*`/`fs.*` or a direct delegation to an
+already-extracted pure helper (`frameRecord`, the four `demux.getLast*` calls). `run()` is
+the one large method (190 lines, 121–310) and is almost entirely sequenced side effects in
+a fixed order (channel setup, orphan reap, build, counts read, spawn-layout compute, `cp.
+spawn`, listener attach, close/error handlers) — 75 of its 232 non-comment/non-blank lines
+match the `vscode.|cp.spawn|proc.|process.|this.|fs.` scan directly, and of the rest,
+nothing is a standalone pure computation worth its own file: the two arguably-pure
+fragments (`topArgs = topologyPath ? [...] : []`, one ternary; the `WIREFOLD_STREAM_FDS`/
+`WIREFOLD_EDGE_BEAD_TRACE` env-object literal, ~4 lines) are each smaller than the import +
+call-site overhead a new file would add, and neither is duplicated anywhere else in the
+tree. Declined again, this time with the per-function breakdown the previous pass's blanket
+claim lacked.
+
+No new home for domain state was created by either change — `dispatchFrames` holds no
+field, takes its carry buffer and storage callback as parameters, and returns nothing that
+outlives the call; `StreamDemux`'s existing per-kind last-frame caches (sanctioned replay
+state) are untouched in shape.
+
+**Surfaces with NO check of any kind that can fail:** `dispatchFrames` itself (no guard or
+test names it — its correctness is that its five callers still produce identical output,
+which is asserted only by reading the diff and by the live editor); the per-call-site
+closures' exact ordering of probe-decode vs. cache-set vs. `onSnapshot` (no guard checks
+statement order within a handler, only that a `handle<Kind>Fd` symbol exists somewhere);
+`runCommand.ts`'s `run()` sequencing (channel-clear-before-build, orphan-reap-before-spawn,
+`spawnGen++`-before-spawn) has no guard — those invariants are stated only in comments.
+
+**Verify:** `bash scripts/stop-checks.sh` printed empty stdout after the `stream-demux.ts`
+commit (run from repo root, confirmed via `pwd`). `git status --short` empty after the
+commit. Commit: `fb0d4763` (`stream-demux.ts` dispatchFrames factoring).
