@@ -70,31 +70,15 @@ func (m *NodeGeometry) handleDrag(msg movemsg.Msg) {
 }
 
 func (m *NodeGeometry) handleSelect(msg movemsg.Msg) {
-	if msg.Bool {
-		m.ui.selected = 1
-	} else {
-		m.ui.selected = 0
-	}
+	m.ui.SetSelected(msg.Bool)
 }
 
 func (m *NodeGeometry) handleHover(msg movemsg.Msg) {
-	if msg.Bool {
-		m.ui.hovered = 1
-		m.ui.hoverPort = msg.Port
-		m.ui.hoverIsInput = msg.IsInput
-	} else {
-		m.ui.hovered = 0
-		m.ui.hoverPort = ""
-		m.ui.hoverIsInput = false
-	}
+	m.ui.SetHover(msg.Bool, msg.Port, msg.IsInput)
 }
 
 func (m *NodeGeometry) handleLatched(msg movemsg.Msg) {
-	if msg.Bool {
-		m.ui.latchedSel = 1
-	} else {
-		m.ui.latchedSel = 0
-	}
+	m.ui.SetLatched(msg.Bool)
 }
 
 func (m *NodeGeometry) handleTiltVectorAngle(msg movemsg.Msg) {
