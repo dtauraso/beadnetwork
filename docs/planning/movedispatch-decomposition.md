@@ -6739,3 +6739,71 @@ session's two commits.
 **Commits (`task/god-objects`):** `d1c6ac63` — "The overlay-flag lookup and node-geometry
 decode split out of the event-line decoder into their own files." `0928714f` — "The
 octant/circle legend tables split out of PolarFrame into their own data file."
+
+## `tools/gen-node-defs/` — the remaining eight files, all split, no lift
+
+Measured brace-to-brace, CODE lines (comments/blanks excluded). Every function here is
+bucket (a) — file I/O, AST parse, or `fmt.Fprintln` emission on locals — so none qualified
+to LIFT into `kindscan`/`buflayout`/`constexpr`; every split was in-place, by concern, into
+a sibling file in the same package, following the established shape from the prior pass.
+
+- **`main.go`** (179 code → 81). `main`/`resolveRepoRootAndKinds`/`fatalf` stayed (35 code).
+  Its twelve `generate*` phase functions (144 code total, ~10-15 lines each, one per
+  pipeline: I/O bucket (a) only) split into two new siblings by what they feed:
+  `gen_pipelines_schema.go` (kind-imports, node-defs, wire-defs, trace-kinds, node-dims,
+  node-kind-id — 80 code) and `gen_pipelines_layout.go` (curve-params, overlay-gen,
+  shading-params, buffer-layout, frame-tags, input-layout — 103 code, includes doc
+  comments carried with `generateInputLayout`).
+- **`overlay_write.go`** (160 code → ~67). `writeOverlayGen` (33 code, the orchestrator)
+  plus `writeOverlayStateStruct`/`writeOverlaySetFlagHelper`/`writeOverlayToggleMethods`/
+  `writeOverlaySetGuideVisibility` (struct + per-flag methods, ~55 code) stayed. The four
+  lookup-table writers — `writeOverlayDefaultConstructor`, `writeOverlayTogglesMap`,
+  `writeOverlayBreadcrumbTables`, `writeOverlayTraceKindMap` (~93 code) — moved to
+  `overlay_write_tables.go`. Mechanically dropped an unused `T "github.com/dtauraso/
+  wirefold/Trace"` import I first added by pattern-matching the generated OUTPUT text
+  (`T.Kind%s` is a string literal being emitted, not a live Go reference) — caught by
+  `go build` immediately, no generated-file impact.
+- **`buflayout/buffer_layout.go`** (154 code → 92). `WriteBufferLayoutGo` (105 code)
+  stayed; `WriteBufferLayoutTS` (~55 code) moved to `buflayout/buffer_layout_ts.go`. This
+  is the file `check-overlay-row-struct.sh` names by path (`GENERATOR` var) — verified the
+  guard only uses that var for an existence check (not content grep), and it still passes
+  since the file itself wasn't deleted, only shortened.
+- **`node_defs.go`** (153 code → 74 for `writeNodeDefs`+imports). `buildDef`,
+  `filterPorts`, `joinPortsTyped` (~59 code, the per-kind TS object-literal builders) moved
+  to `node_defs_fields.go`; `strings` import followed them (no longer used in
+  `node_defs.go`).
+- **`input_layout_parse.go`** (144 code → 89 for the AST-parse half:
+  `parseInputLayoutFingerprintDir`+`parseInputLayoutFingerprint`). `fpListToken`, `fpList`,
+  `unquoteGoString`, `kindConstName` (~49 code, string-token helpers with no AST
+  dependency) moved to `input_layout_tokens.go`.
+- **`wire_defs.go`** (143 code → 46 for `parseWirePropsFromFile`, AST-only now — dropped
+  `bufio`/`bytes`/`os`/`sort` imports it no longer needs). `writeWireDefs` (~65 code) moved
+  to `wire_defs_write.go`.
+- **`trace_kinds.go`** (140 code → 82 for `parseTraceKinds`+`parseBreadcrumbLabels`, both
+  Trace/-dir AST scans). `writeTraceKinds` (~43 code) moved to `trace_kinds_write.go`.
+  `check-breadcrumb-label-registered.sh` names `trace_kinds.go` only in a prose comment
+  (not a hardcoded path or grep target) — no re-key needed, confirmed by reading the guard
+  before touching the file.
+- **`kindscan/ast_kind.go`** (133 code → 33 for `parseGoKindName`+`goIdentRE`).
+  `goTypeExprStr` and `parseDataFieldsFromAST` (~100 code, the wire:"data.*" struct-tag
+  scan and its type-expression stringifier) moved to `kindscan/ast_datafields.go`,
+  dropping the now-unused `go/ast`/`go/parser`/`go/token` imports from `ast_kind.go`.
+
+**No decline.** Every file's split-off half was a genuinely separable phase (parse vs.
+emit, or Go-target emit vs. TS-target emit, or struct/methods vs. lookup tables) with no
+shared-package-only-seam and no hardcoded path forcing content to stay put.
+
+**Verify, run after every commit from repo root:** `go build ./...` and `go vet ./...` both
+silent (no output) at every step. `go run ./tools/gen-node-defs && git status --short`
+showed no generated file as modified after any of the eight commits — byte-identical
+output preserved throughout. One `gofmt` failure caught by `bash scripts/stop-checks.sh`
+(a trailing blank line `buffer_layout.go` was left with after `WriteBufferLayoutTS` was
+cut out) — fixed with `gofmt -w` and landed as its own one-line commit; `stop-checks.sh`
+was empty (clean) after. `check-overlay-row-struct.sh` re-run standalone after its named
+file was split: printed `check-overlay-row-struct: clean`, `exit=0`.
+
+**Commits (`task/god-objects`):** `45a1e073` main.go phase-function split;
+`d211e87f` overlay lookup-table split; `63e56a3c` buffer-layout TS-emitter split;
+`ab53ac18` node-defs field-builder split; `21353293` input-layout token-helper split;
+`a9b3a62d` wire-defs write split; `53091b13` trace-kinds write split; `f4b9b358`
+kindscan data-field split; `13aa89fa` gofmt fixup.
