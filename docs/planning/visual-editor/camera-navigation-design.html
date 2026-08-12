@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3D Camera Navigation — Design</title>
+<link rel="stylesheet" href="camera-navigation.css">
+</head>
+<body>
+<div class="page">
+  <header>
+    <h1>3D Camera Navigation</h1>
+    <div class="meta">branch: task/camera-nav-doc &nbsp;·&nbsp; tools/topology-vscode/src/webview/three/ — editor camera controls</div>
+  </header>
+
+  <nav>
+    <a class="tab-btn" href="camera-navigation.html">Controls</a>
+    <a class="tab-btn" href="camera-navigation-camera-model.html">Camera model</a>
+    <a class="tab-btn" href="camera-navigation-motions.html">Motions</a>
+    <a class="tab-btn" href="camera-navigation-fit-persistence.html">Fit &amp; persistence</a>
+    <a class="tab-btn active" href="camera-navigation-design.html">Design</a>
+  </nav>
+
+  <div id="design" class="panel active">
+    <h2>Total operations, not a partial z=0 raycast</h2>
+    <p>
+      The <strong>old</strong> design derived each gesture's anchor by <strong>raycasting the world z=0 plane</strong>
+      under the cursor. That is a <strong>partial function</strong>: it is undefined when the view goes parallel to
+      the ground — the ray never intersects, or the intersection diverges as the view grazes edge-on. The result was
+      a reachable <strong>singularity</strong> (and the earlier "pan zooms / pan swings / direction reversed" symptoms).
+    </p>
+    <p>
+      The fix is <strong>representational</strong>: anchor every gesture on a camera-<strong>owned</strong>
+      <strong>target</strong> that is finite at all times. Orbit, pan, and dolly become <strong>total</strong> by
+      construction — the singularity is simply unrepresentable, because there is no plane intersection to diverge.
+    </p>
+    <p>This was chosen over two alternatives:</p>
+    <ul>
+      <li><strong>(a) Clamp the tilt</strong> so the view can never go parallel to the ground — <em>rejected</em>: full 6-DOF is <strong>substance</strong>, not a convenience to trade away.</li>
+      <li><strong>(b) A fallback band-aid</strong> when the raycast misses — <em>rejected</em>: it only masks the partial function instead of removing it.</li>
+    </ul>
+    <div class="card">
+      <p style="margin:0">
+        <strong>Industry note.</strong> OrbitControls, Blender, Maya, and CAD packages all carry a target point —
+        that is the robust part, and this project <strong>adopts the target</strong>. It does <strong>not</strong>
+        adopt OrbitControls' rotation constraints (turntable azimuth/elevation, locked up-vector, roll-clamp),
+        which it rejects: the arcball stays free 6-DOF.
+      </p>
+    </div>
+
+    <h2>Why no OrbitControls</h2>
+    <p>
+      Interaction control is classified as <strong>substance</strong>, not medium (per project design memory).
+      Three.js <code>OrbitControls</code> is a medium default that encodes wrong constraints:
+    </p>
+    <ul>
+      <li><strong>Fixed up-vector</strong> — OrbitControls prevents roll by locking the up-axis, trading full 6-DOF for convenience. The wirefold editor needs all 6 degrees available.</li>
+      <li><strong>Constrained rotation</strong> — OrbitControls couples its target to a turntable / locked-up rotation model. The custom controller carries a persistent target too, but orbits it with a free arcball (world-fixed X/Y quaternion composition), keeping full 6-DOF.</li>
+      <li><strong>Roll reachability</strong> — the arcball math (quaternion composition from world-axis rotations) can naturally produce roll as a side effect of combined rotations. Roll is reachable in the math today; it simply has no dedicated input binding yet.</li>
+    </ul>
+
+    <div class="card">
+      <p style="margin-bottom:0.4rem">
+        The test: <em>"can you recover full control from any pose on a device with only a single pointer?"</em>
+        OrbitControls fails this (roll is unrecoverable). The custom arcball passes.
+      </p>
+    </div>
+
+    <h2>Arcball vs OrbitControls</h2>
+    <table>
+      <thead>
+        <tr><th></th><th>OrbitControls</th><th>Custom arcball (wirefold)</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Rotation axes</td>
+          <td>Spherical (azimuth + elevation), up-locked</td>
+          <td>World-fixed X and Y; quaternion composition</td>
+        </tr>
+        <tr>
+          <td>Roll</td>
+          <td>Locked (by design)</td>
+          <td>Reachable in math; no input binding yet</td>
+        </tr>
+        <tr>
+          <td>Pivot / target</td>
+          <td>Fixed target, turntable rotation</td>
+          <td>Persistent target (selection or seeded scene-depth point), free arcball rotation</td>
+        </tr>
+        <tr>
+          <td>Pan</td>
+          <td>Built-in, up-aligned</td>
+          <td>Camera + target slide on view plane; scale = distance to target</td>
+        </tr>
+        <tr>
+          <td>Dolly</td>
+          <td>Along view axis</td>
+          <td>Exponential (<code>1.01^deltaY</code>) toward target, min-distance clamped</td>
+        </tr>
+        <tr>
+          <td>6-DOF recoverable</td>
+          <td>No</td>
+          <td>Yes</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Roll status</h2>
+    <p>
+      Roll is currently <span class="absent-badge">NOT IMPLEMENTED</span> as a user input.
+      A design comment exists acknowledging it as a future DOF. The arcball quaternion
+      math does not prevent roll — composed horizontal+vertical rotations can produce
+      incidental roll — but there is no deliberate roll gesture or keyboard shortcut today.
+    </p>
+
+    <h2>Source files</h2>
+    <table>
+      <thead>
+        <tr><th>File</th><th>Role</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>tools/topology-vscode/src/webview/three/interaction-controls.ts</code></td><td>All gestures: orbit, pan, dolly, gesture discrimination</td></tr>
+        <tr><td><code>tools/topology-vscode/src/webview/three/camera-ui.tsx</code></td><td>Home/Fit button, fit algorithm</td></tr>
+        <tr><td><code>tools/topology-vscode/src/webview/three/scene-content.tsx</code></td><td>CameraRefBridge, CameraFitter, CameraSettleDetector</td></tr>
+        <tr><td><code>tools/topology-vscode/src/webview/three/ThreeView.tsx</code></td><td>PerspectiveCamera creation, fov/near/far</td></tr>
+        <tr><td><code>tools/topology-vscode/src/webview/viewer/types.ts</code></td><td>Camera3D type definition</td></tr>
+        <tr><td><code>tools/topology-vscode/src/webview/save.ts</code></td><td>scheduleViewSave — 400 ms debounce, fire-and-forget to Go</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+</body>
+</html>
