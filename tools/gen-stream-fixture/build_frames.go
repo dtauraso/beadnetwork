@@ -84,9 +84,9 @@ func buildNodeFrame() nodeFrameFixture {
 func buildEdgeFrame() edgeFrameFixture {
 	f := edgeFrameFixture{
 		Tick: 8181, SX: 12.5, SY: -13.25, SZ: 14.125, EX: 34.5, EY: -35.25, EZ: 36.125,
-		Selected: 1, Label: "edgeLabel",
+		Label: "edgeLabel",
 	}
-	raw := streamframe.BuildEdgeStreamFrame(f.Tick, f.SX, f.SY, f.SZ, f.EX, f.EY, f.EZ, f.Selected, f.Label, nil)
+	raw := streamframe.BuildEdgeStreamFrame(f.Tick, f.SX, f.SY, f.SZ, f.EX, f.EY, f.EZ, f.Label, nil)
 	f.Hex = hex.EncodeToString(raw)
 	return f
 }

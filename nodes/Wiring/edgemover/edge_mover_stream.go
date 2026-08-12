@@ -22,7 +22,6 @@ func (m *EdgeMover) writeStreamFrame(tick int64, events []wire.RowEvent) {
 	}
 
 	seg := nodegeom.EdgeSegment(m.srcGeom, m.dstGeom)
-	selected := m.selected
 	if m.dest != nil {
 
 		nodeRow, targetRow := int32(-1), int32(-1)
@@ -53,7 +52,7 @@ func (m *EdgeMover) writeStreamFrame(tick int64, events []wire.RowEvent) {
 	frame := m.buildFrame(uint32(tick),
 		float32(seg.Start.X), float32(seg.Start.Y), float32(seg.Start.Z),
 		float32(seg.End.X), float32(seg.End.Y), float32(seg.End.Z),
-		selected, m.edgeID, events)
+		m.edgeID, events)
 	var hdr [4]byte
 	binary.LittleEndian.PutUint32(hdr[:], uint32(len(frame)))
 

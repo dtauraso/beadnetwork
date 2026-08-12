@@ -10,11 +10,6 @@ import (
 
 func (m *EdgeMover) handle(msg movemsg.Msg) {
 	if msg.Kind == movemsg.KindSelect {
-		if msg.Bool {
-			m.selected = 1
-		} else {
-			m.selected = 0
-		}
 		return
 	}
 	if msg.Kind == movemsg.KindCenter {

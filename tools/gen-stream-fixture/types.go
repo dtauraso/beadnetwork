@@ -55,16 +55,15 @@ type nodeFrameFixture struct {
 }
 
 type edgeFrameFixture struct {
-	Tick     uint32  `json:"tick"`
-	SX       float32 `json:"sx"`
-	SY       float32 `json:"sy"`
-	SZ       float32 `json:"sz"`
-	EX       float32 `json:"ex"`
-	EY       float32 `json:"ey"`
-	EZ       float32 `json:"ez"`
-	Selected uint8   `json:"selected"`
-	Label    string  `json:"label"`
-	Hex      string  `json:"hex"`
+	Tick  uint32  `json:"tick"`
+	SX    float32 `json:"sx"`
+	SY    float32 `json:"sy"`
+	SZ    float32 `json:"sz"`
+	EX    float32 `json:"ex"`
+	EY    float32 `json:"ey"`
+	EZ    float32 `json:"ez"`
+	Label string  `json:"label"`
+	Hex   string  `json:"hex"`
 }
 
 type interiorFrameFixture struct {

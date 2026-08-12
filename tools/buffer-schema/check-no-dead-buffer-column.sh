@@ -16,8 +16,7 @@ if [[ ! -f "$LAYOUT" ]]; then
   exit 1
 fi
 
-readonly DEAD_PICK_HALO_REMOVED_NO_RAYCAST_HIT_SOURCE=( readEdgeSelected )
-readonly ALLOWED_DEAD=( "${DEAD_PICK_HALO_REMOVED_NO_RAYCAST_HIT_SOURCE[@]}" )
+readonly ALLOWED_DEAD=()
 
 is_allowed() {
   local fn="$1"
