@@ -2,6 +2,8 @@ package nodeactor
 
 import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/nodeframe"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/streamclaim"
 	"github.com/dtauraso/wirefold/nodes/Wiring/quantoffset"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/outport"
@@ -78,7 +80,7 @@ func (m *NodeGeometry) AddOutWire(pw *wire.PacedWire, target string, o *outport.
 	m.outs.outStepsIn = append(m.outs.outStepsIn, sendSteps)
 }
 
-func (m *NodeGeometry) WireStream(streamOut StreamHandle, row int32, kindID uint8, nodeRowFor func(id string) (int32, bool), buildFrame NodeFrameBuilder) {
+func (m *NodeGeometry) WireStream(streamOut streamclaim.StreamHandle, row int32, kindID uint8, nodeRowFor func(id string) (int32, bool), buildFrame nodeframe.NodeFrameBuilder) {
 	m.stream.streamOut = streamOut
 	m.stream.nodeRow = row
 	m.stream.kindID = kindID

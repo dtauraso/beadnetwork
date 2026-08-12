@@ -2,6 +2,8 @@ package nodeactor
 
 import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/nodeframe"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/streamclaim"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 	"github.com/dtauraso/wirefold/nodes/wire/outport"
@@ -37,11 +39,11 @@ type nodeClocks struct {
 }
 
 type nodeStream struct {
-	streamOut StreamHandle
+	streamOut streamclaim.StreamHandle
 	nodeRow   int32
 	kindID    uint8
 
-	buildFrame NodeFrameBuilder
+	buildFrame nodeframe.NodeFrameBuilder
 }
 
 type nodeUI struct {

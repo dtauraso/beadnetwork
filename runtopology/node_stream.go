@@ -9,7 +9,7 @@ import (
 	B "github.com/dtauraso/wirefold/Buffer"
 	SF "github.com/dtauraso/wirefold/Buffer/streamframe"
 	W "github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
-	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/nodeframe"
 )
 
 func wireNodeStreams(streamFDs SF.StreamFDs, md *W.MoveDispatch) {
@@ -33,7 +33,7 @@ func wireNodeStreams(streamFDs SF.StreamFDs, md *W.MoveDispatch) {
 			md.Sw.SetNodeStreams(md.GS.NodeSeeds, md.MR.NodeGeoms(), nodeBase, interiorBase, driveBase, driveWired,
 				md.RT.NodeRowFor,
 
-				func(f nodeactor.NodeFrameInput) []byte {
+				func(f nodeframe.NodeFrameInput) []byte {
 					return SF.BuildNodeStreamFrame(SF.NodeStreamFrame{
 						Tick:                  f.Tick,
 						NodeRow:               f.NodeRow,

@@ -8,6 +8,8 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/edgemover"
 	geomseeds "github.com/dtauraso/wirefold/nodes/Wiring/geomseeds"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/nodeframe"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/streamclaim"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
@@ -20,7 +22,7 @@ type StreamWiring struct {
 
 	driveOuts map[string][DriveSlotsPerNode]io.Writer
 
-	nodeClaims nodeactor.ClaimRegistry
+	nodeClaims streamclaim.ClaimRegistry
 
 	edgeClaims edgemover.ClaimRegistry
 }
@@ -35,9 +37,9 @@ func (sw *StreamWiring) BuildInteriorFramePtr() *func(tick uint32, present []uin
 	return &sw.buildInteriorFrame
 }
 
-func (sw *StreamWiring) ensureNodeClaims() nodeactor.ClaimRegistry {
+func (sw *StreamWiring) ensureNodeClaims() streamclaim.ClaimRegistry {
 	if sw.nodeClaims == nil {
-		sw.nodeClaims = nodeactor.NewClaimRegistry()
+		sw.nodeClaims = streamclaim.NewClaimRegistry()
 	}
 	return sw.nodeClaims
 }
@@ -78,7 +80,7 @@ func (sw *StreamWiring) SetNodeStreams(
 	nodeBase, interiorBase int,
 	driveBase int, driveWired bool,
 	nodeRowFor func(id string) (int32, bool),
-	buildFrame nodeactor.NodeFrameBuilder,
+	buildFrame nodeframe.NodeFrameBuilder,
 	buildInteriorFrame func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []wire.RowEvent) []byte,
 	kindIDFor func(kind string) uint8,
 ) {
@@ -94,7 +96,7 @@ func (sw *StreamWiring) SetNodeStreams(
 		row := seed.Row
 		nFd := nodeBase + row
 		rawNodeOut := os.NewFile(uintptr(nFd), fmt.Sprintf("node-fd%d", nFd))
-		streamOut := nodeactor.Claim(sw.ensureNodeClaims(), seed.ID, rawNodeOut)
+		streamOut := streamclaim.Claim(sw.ensureNodeClaims(), seed.ID, rawNodeOut)
 
 		var kindID uint8
 		if kindIDFor != nil {

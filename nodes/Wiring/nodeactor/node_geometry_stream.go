@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/loadspec"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/nodeframe"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
@@ -69,7 +70,7 @@ func (m *NodeGeometry) writeStreamFrame(events []wire.RowEvent) {
 		events = append(events, chainBreadcrumbs...)
 	}
 
-	frame := m.stream.buildFrame(NodeFrameInput{
+	frame := m.stream.buildFrame(nodeframe.NodeFrameInput{
 		Tick:                  uint32(m.clocks.clk.Tick()),
 		NodeRow:               m.stream.nodeRow,
 		NodeID:                m.stream.nodeRow + 1,
