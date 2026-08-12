@@ -53,9 +53,9 @@ func (m *NodeGeometry) chainBeadsForTarget(to string, tick int64, selfTorusR flo
 		return nil, nil, nil, nil, nil, nil, false
 	}
 
-	m.publishStepCount(to, count)
+	m.outs.publishStepCount(to, count)
 
-	pulses := m.gatherPulses(to, tick)
+	pulses := m.outs.gatherPulses(to, tick)
 
 	breadcrumb = m.chainAimBreadcrumb(to, count, dist, liveDir)
 
@@ -91,37 +91,6 @@ func (m *NodeGeometry) chainBeadsForTarget(to string, tick int64, selfTorusR flo
 
 	ox, oy, oz, lit, litVal = beadindex.ChainBeadRows(liveDir, chainSep, base, step, count, resolved, resolvedValid, pulses)
 	return ox, oy, oz, lit, litVal, breadcrumb, true
-}
-
-func (m *NodeGeometry) publishStepCount(to string, count int) {
-	for i, wt := range m.outs.outWireTargets {
-		if wt != to {
-			continue
-		}
-		if i < len(m.outs.outWireOuts) && m.outs.outWireOuts[i] != nil {
-			m.outs.outWireOuts[i].PublishSteps(count)
-		}
-		if i < len(m.outs.outStepsIn) && m.outs.outStepsIn[i] != nil {
-			m.outs.outStepsIn[i](count)
-		}
-	}
-}
-
-func (m *NodeGeometry) gatherPulses(to string, tick int64) []beadindex.Pulse {
-	var pulses []beadindex.Pulse
-	for i, wt := range m.outs.outWireTargets {
-		if wt != to || m.outs.outWires[i] == nil {
-			continue
-		}
-		for _, p := range m.outs.outWires[i].LiveBeadFractions(tick) {
-			if p.T < 0 || p.T >= 1 || p.Steps <= 0 {
-				continue
-			}
-
-			pulses = append(pulses, beadindex.Pulse{T: p.T, Steps: p.Steps, Val: int32(p.Val)})
-		}
-	}
-	return pulses
 }
 
 func (m *NodeGeometry) chainAimBreadcrumb(to string, count int, dist float64, liveDir vec3) *wire.RowEvent {
