@@ -11,6 +11,7 @@ cd "$REPO_ROOT"
 LAYOUT_FILES=(
   "tools/topology-vscode/src/schema/buffer-layout.ts"
   "tools/topology-vscode/src/schema/buffer-layout-rows-gen.ts"
+  "tools/topology-vscode/src/schema/buffer-layout-rows2-gen.ts"
   "tools/topology-vscode/src/schema/buffer-layout-singletons-gen.ts"
 )
 SRC="tools/topology-vscode/src"
@@ -46,6 +47,7 @@ while IFS= read -r f; do prod_files+=("$f"); done < <(
   find "$SRC" -type f \( -name '*.ts' -o -name '*.tsx' \) \
     -not -path '*/schema/buffer-layout.ts' \
     -not -path '*/schema/buffer-layout-rows-gen.ts' \
+    -not -path '*/schema/buffer-layout-rows2-gen.ts' \
     -not -path '*/schema/buffer-layout-singletons-gen.ts' \
     -not -path '*/test/*' \
     -not -name '*.test.ts' 2>/dev/null

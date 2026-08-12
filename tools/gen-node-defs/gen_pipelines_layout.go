@@ -58,23 +58,27 @@ func generateBufferLayout(repoRoot string) {
 	}
 	bufLayoutGenGoPath := filepath.Join(repoRoot, "Buffer", "buffer_layout_gen.go")
 	bufLayoutGenGoRowsPath := filepath.Join(repoRoot, "Buffer", "buffer_layout_gen_rows.go")
+	bufLayoutGenGoRows2Path := filepath.Join(repoRoot, "Buffer", "buffer_layout_gen_rows2.go")
 	bufLayoutGenGoSingletonsPath := filepath.Join(repoRoot, "Buffer", "buffer_layout_gen_singletons.go")
-	if err := buflayout.WriteBufferLayoutGo(bufLayoutGenGoPath, bufLayoutGenGoRowsPath, bufLayoutGenGoSingletonsPath, bufSchema); err != nil {
+	if err := buflayout.WriteBufferLayoutGo(bufLayoutGenGoPath, bufLayoutGenGoRowsPath, bufLayoutGenGoRows2Path, bufLayoutGenGoSingletonsPath, bufSchema); err != nil {
 		fatalf("write buffer layout go: %v", err)
 	}
 	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d blocks)\n", bufLayoutGenGoPath, len(bufSchema.Blocks))
 	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d blocks)\n", bufLayoutGenGoRowsPath, len(bufSchema.Blocks))
+	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d blocks)\n", bufLayoutGenGoRows2Path, len(bufSchema.Blocks))
 	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d blocks)\n", bufLayoutGenGoSingletonsPath, len(bufSchema.Blocks))
 
 	schemaDir := filepath.Join(repoRoot, "tools", "topology-vscode", "src", "schema")
 	bufLayoutTSPath := filepath.Join(schemaDir, "buffer-layout.ts")
 	bufLayoutTSRowsPath := filepath.Join(schemaDir, "buffer-layout-rows-gen.ts")
+	bufLayoutTSRows2Path := filepath.Join(schemaDir, "buffer-layout-rows2-gen.ts")
 	bufLayoutTSSingletonsPath := filepath.Join(schemaDir, "buffer-layout-singletons-gen.ts")
-	if err := buflayout.WriteBufferLayoutTS(bufLayoutTSPath, bufLayoutTSRowsPath, bufLayoutTSSingletonsPath, bufSchema); err != nil {
+	if err := buflayout.WriteBufferLayoutTS(bufLayoutTSPath, bufLayoutTSRowsPath, bufLayoutTSRows2Path, bufLayoutTSSingletonsPath, bufSchema); err != nil {
 		fatalf("write buffer layout ts: %v", err)
 	}
 	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d blocks)\n", bufLayoutTSPath, len(bufSchema.Blocks))
 	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d blocks)\n", bufLayoutTSRowsPath, len(bufSchema.Blocks))
+	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d blocks)\n", bufLayoutTSRows2Path, len(bufSchema.Blocks))
 	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d blocks)\n", bufLayoutTSSingletonsPath, len(bufSchema.Blocks))
 }
 

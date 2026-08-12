@@ -20,4 +20,5 @@ export const BUF_HEADER_SIZE = 8;
 export const UNKNOWN_KIND_ID = 0xff;
 
 export * from './buffer-layout-rows-gen';
+export * from './buffer-layout-rows2-gen';
 export * from './buffer-layout-singletons-gen';

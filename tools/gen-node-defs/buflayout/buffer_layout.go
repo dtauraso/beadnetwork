@@ -12,13 +12,13 @@ func isSingletonBlock(name string) bool {
 	return name == "Overlay" || name == "Camera" || name == "RuleBuilder" || name == "Scene"
 }
 
-func WriteBufferLayoutGo(headerPath, rowsPath, singletonsPath string, schema BufLayoutSchema) error {
+func WriteBufferLayoutGo(headerPath, rowsPathA, rowsPathB, singletonsPath string, schema BufLayoutSchema) error {
 	fp := buildBufFingerprint(schema)
 
 	if err := writeBufferLayoutGoHeader(headerPath, schema, fp); err != nil {
 		return err
 	}
-	if err := writeBufferLayoutGoRows(rowsPath, schema, fp); err != nil {
+	if err := writeBufferLayoutGoRows(rowsPathA, rowsPathB, schema, fp); err != nil {
 		return err
 	}
 	if err := writeBufferLayoutGoSingletons(singletonsPath, schema, fp); err != nil {

@@ -6,14 +6,20 @@ import (
 	"os"
 )
 
-func writeBufferLayoutTSRows(outPath string, schema BufLayoutSchema) error {
+func writeBufferLayoutTSRows(outPathA, outPathB string, schema BufLayoutSchema) error {
+	blocks := rowBlocks(schema)
+	split := rowBlockSplit(len(blocks))
+	if err := writeBufferLayoutTSRowsFile(outPathA, blocks[:split]); err != nil {
+		return err
+	}
+	return writeBufferLayoutTSRowsFile(outPathB, blocks[split:])
+}
+
+func writeBufferLayoutTSRowsFile(outPath string, blocks []bufBlock) error {
 	var buf bytes.Buffer
 	w := bufio.NewWriter(&buf)
 
-	for _, blk := range schema.Blocks {
-		if isSingletonBlock(blk.name) {
-			continue
-		}
+	for _, blk := range blocks {
 		writeTSBlockConstsAndReaders(w, blk, false)
 	}
 

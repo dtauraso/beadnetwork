@@ -7,15 +7,39 @@ import (
 	"strings"
 )
 
-func writeBufferLayoutGoRows(outPath string, schema BufLayoutSchema, fp string) error {
-	var buf bytes.Buffer
-	w := bufio.NewWriter(&buf)
-	writeBufferLayoutGoPreamble(w, fp)
+func rowBlockSplit(n int) int {
+	if n <= 2 {
+		return n
+	}
+	return 2
+}
 
+func rowBlocks(schema BufLayoutSchema) []bufBlock {
+	var blocks []bufBlock
 	for _, blk := range schema.Blocks {
 		if isSingletonBlock(blk.name) {
 			continue
 		}
+		blocks = append(blocks, blk)
+	}
+	return blocks
+}
+
+func writeBufferLayoutGoRows(outPathA, outPathB string, schema BufLayoutSchema, fp string) error {
+	blocks := rowBlocks(schema)
+	split := rowBlockSplit(len(blocks))
+	if err := writeBufferLayoutGoRowsFile(outPathA, blocks[:split], fp); err != nil {
+		return err
+	}
+	return writeBufferLayoutGoRowsFile(outPathB, blocks[split:], fp)
+}
+
+func writeBufferLayoutGoRowsFile(outPath string, blocks []bufBlock, fp string) error {
+	var buf bytes.Buffer
+	w := bufio.NewWriter(&buf)
+	writeBufferLayoutGoPreamble(w, fp)
+
+	for _, blk := range blocks {
 		writeBufferLayoutGoBlockConst(w, blk)
 
 		var params []string

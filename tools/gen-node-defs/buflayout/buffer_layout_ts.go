@@ -8,13 +8,13 @@ import (
 	"strings"
 )
 
-func WriteBufferLayoutTS(headerPath, rowsPath, singletonsPath string, schema BufLayoutSchema) error {
+func WriteBufferLayoutTS(headerPath, rowsPathA, rowsPathB, singletonsPath string, schema BufLayoutSchema) error {
 	fp := buildBufFingerprint(schema)
 
 	if err := writeBufferLayoutTSHeader(headerPath, schema, fp); err != nil {
 		return err
 	}
-	if err := writeBufferLayoutTSRows(rowsPath, schema); err != nil {
+	if err := writeBufferLayoutTSRows(rowsPathA, rowsPathB, schema); err != nil {
 		return err
 	}
 	if err := writeBufferLayoutTSSingletons(singletonsPath, schema); err != nil {
@@ -49,6 +49,7 @@ func writeBufferLayoutTSHeader(outPath string, schema BufLayoutSchema, fp string
 	fmt.Fprintln(w, `export const UNKNOWN_KIND_ID = 0xff;`)
 	fmt.Fprintln(w)
 	fmt.Fprintln(w, `export * from './buffer-layout-rows-gen';`)
+	fmt.Fprintln(w, `export * from './buffer-layout-rows2-gen';`)
 	fmt.Fprintln(w, `export * from './buffer-layout-singletons-gen';`)
 
 	w.Flush()
