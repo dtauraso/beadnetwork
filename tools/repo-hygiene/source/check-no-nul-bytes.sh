@@ -4,7 +4,7 @@ set -euo pipefail
 # PLACEMENT: **/*.{go,ts,tsx,js,jsx,json,md,sh,css} | must not contain a literal 0x00 byte
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 cd "$REPO_ROOT"
 
 INCLUDE_EXT_RE='\.(go|ts|tsx|js|jsx|json|md|sh|css)$'

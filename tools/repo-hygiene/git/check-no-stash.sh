@@ -4,7 +4,7 @@ set -euo pipefail
 # PLACEMENT: none | checks the repo-global git stash stack, not a set of source files
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd "$SCRIPT_DIR/../.."
+cd "$SCRIPT_DIR/../../.."
 
 entries="$(git stash list 2>/dev/null || true)"
 [ -z "$entries" ] && exit 0
