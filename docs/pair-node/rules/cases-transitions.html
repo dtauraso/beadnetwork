@@ -115,68 +115,9 @@
       </div>
 
       <div class="card wide">
-        <h2>What the gap read actually asks</h2>
-        <table class="f">
-          <tr class="h">
-            <td>arrival lands at count</td>
-            <td>the two tilts are</td>
-            <td>mode chosen</td>
-          </tr>
-          <tr>
-            <td class="e">c = 0 — on this node's tilt line, either end</td>
-            <td class="n">a quarter turn apart — ALREADY perpendicular. The code measures this the other
-              way about, as the gap between the two TILTS being a quarter turn
-              (<span data-src="nodes/PairNode/machine.go#machineForGap">machineForGap</span>); the two are the
-              same fact, since the arrival is the partner's normal</td>
-            <td class="n">perpendicular</td>
-          </tr>
-          <tr>
-            <td class="e">anything else</td>
-            <td class="n">an acute gap</td>
-            <td class="n">parallel</td>
-          </tr>
-        </table>
-        <div class="cap">The two rows are perpendicular's gap and everything else, which is the honest
-          reading of the rule: it asks "is this setup already perpendicular?", and everything that is not
-          becomes a parallel pair to be closed. A pair set up at a quarter turn is therefore perpendicular
-          and finished on arrival — it has nowhere to walk.</div>
-      </div>
-
-      <div class="card wide">
-        <h2>The cases that are NOT mode cases</h2>
-        <table class="f">
-          <tr class="h">
-            <td>case</td>
-            <td>what happens, and why it is not a fourth mode</td>
-            <td>source</td>
-          </tr>
-          <tr>
-            <td class="e">the lattice changes under a running mode</td>
-            <td class="n">the stopping count is read from the ring at every call, never stored, so a mode
-              that stopped at 12 on a 48-ring stops at 6 on a 24-ring with nothing to migrate. The INDEX is
-              what survives, not the angle</td>
-            <td class="s" data-src="nodes/PairNode/ring.go#adoptLattice">adoptLattice</td>
-          </tr>
-          <tr>
-            <td class="e">the arrival lands on this node's own top</td>
-            <td class="n">the exchange comes to rest: nothing is sent and no bead is placed. That is the
-              halt of the EXCHANGE, not of a mode</td>
-            <td class="s" data-src="nodes/PairNode/node.go#handleVectorCycle">handleVectorCycle</td>
-          </tr>
-          <tr>
-            <td class="e">the partner's arrow is reversed</td>
-            <td class="n">not a case at all — the count is taken from whichever END is nearer, so a
-              reversed partner lands exactly where an aligned one does and parallel reads both as its one
-              stopping count</td>
-            <td class="s" data-src="nodes/PairNode/tiltring/machine.go#NearerEndCount">nearerEndCount</td>
-          </tr>
-          <tr>
-            <td class="e">a mode with no stopping count</td>
-            <td class="n">refused where the broken invariant can still be named, rather than silently
-              behaving like some other mode</td>
-            <td class="s" data-src="nodes/PairNode/tiltring/machine.go#MachineFor">machineFor</td>
-          </tr>
-        </table>
+        <h2>More</h2>
+        <p>What the gap read actually asks, and the cases that are not mode cases: moved to
+          <a href="cases-transitions-more.html">Cases — the gap read &amp; non-mode cases</a>.</p>
       </div>
 
     </div>
