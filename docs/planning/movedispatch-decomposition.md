@@ -5203,3 +5203,122 @@ amend-to-fold-the-deletion pattern), `b208f47f`/`eab81961` (`overlay_toggle_emit
 `viewstate`, same pattern a third time — `git mv` followed by `git commit -- <paths>` does not
 reliably stage the SOURCE side of a rename in this environment; each of the 3 commits above is
 the POST-`--amend` clean rename, and the intermediate two-part commits never left the branch).
+
+## §40 — `nodes/wire` and `Trace/Trace.go`: verifying the "no pure run ≥3 lines" claim
+
+Two clusters left with little/no attention on this branch: `nodes/wire` (19 files, three
+over 200 lines — `out_port.go` 325, `wire_readout.go` 236, `in_port.go` 205) and the
+untouched `Trace/Trace.go` (354 lines, hand-written, not generated — `head -3` confirms).
+
+**Method.** Every function's body was classified statement-by-statement: (a) touches the
+wire's own mutable state (`inflight`/`delivered`/queues), sends/receives on a channel,
+starts a goroutine, or reads a clock; or (b) computation on locals/params/field-reads. An
+earlier pass on this branch reported no pure run ≥3 lines survived in most of `nodes/wire`
+after excluding channel ops and `pw.inflight` reads/writes — that claim was re-verified
+rather than inherited, per this task's own instruction (every predecessor's stated blocker
+on this branch went stale at least once).
+
+**`nodes/wire`: the claim mostly held, with one real miss.** `out_port.go` (`Geom`,
+`publishSteps`/`publishSegment`, `placeDrivenNoWalker`, `flushSendEvent`) is
+channel-drain/channel-send/stream-write end to end — the only pure statement,
+`placementFrom`'s 6-line struct build, is already a minimal, already-isolated method with
+nothing left to extract. `wire_readout.go` (the file flagged "most suspicious, never
+individually reported on") is the same story: `flushDroppedBreadcrumbs`/
+`drainBreadcrumbEvents`/`appendPending`/`drainPendingEvents` are channel ops or slice
+mutation on `pw.readout`'s own owned state; `DrainPendingEvents`' internal→exported slice
+conversion loop is pure but converts a package-PRIVATE type (`pendingWireEvent`) so it
+cannot leave package `wire`, and at 6 lines inline is not worth a same-package helper.
+`in_port.go` is `PollRecv`/`flushRecvEvent`/`Breadcrumb` (all channel-or-stream I/O) plus
+`breadcrumbLabelFor`, an already-minimal pure switch. `drive_item.go`, `paced_wire_send.go`,
+`ports.go`, `owner_events.go`, `send_rule.go`, `broadcast.go`, `node.go` were also read in
+full: each is either a channel/state operation or an already-minimal pure
+predicate/constructor with nothing left to lift (`ParseSendRule`, `DriveItem.Live/Failed/
+BufferFull`, `TryEmit`). `arrival.go`, `bead_placement.go`, `geometry.go`,
+`chan_nonblocking.go` were already pure-only files before this pass (no change needed).
+
+**The one miss:** `bead_advance.go`'s `advanceBead` re-implemented, inline, the exact
+clamp-and-divide `lattice.BeadFraction` already exists to share — `lattice/bead_fraction.go`'s
+own header comment names its two call sites (`live_beads.go`, `paced_wire_drive.go`'s
+`ReviseInFlightGeometry`) and simply never listed `advanceBead` as a third. Fixed:
+`advanceBead` now computes `final` directly from the deadline comparison and calls
+`lattice.BeadFraction(nowTick, placementTick, crossTicks)` for `t`, deleting the duplicate
+9-line clamp. Verified equivalent statement-by-statement: `BeadFraction` internally
+re-derives the same `target = min(nowTick, deadline)` `advanceBead` used to compute by hand,
+divides the same way, and clamps `t` to `[0,1]` — the extra `t<0` clamp `BeadFraction` adds
+is a no-op here because `stepAll` only calls `advanceBead` after already checking
+`nowTick > b.placementTick`. `lattice.BeadFraction`'s doc comment updated to name the third
+call site. Commit `7c3de447`.
+
+**`Trace/Trace.go`: not a pure/impure mix worth lifting — a four-way concern split.**
+Statement classification confirmed the file is exactly what its own header says: a closed
+event-kind vocabulary (data, not logic) plus a thin writer. The genuinely pure parts
+(`marshalBreadcrumb`/`marshalNodeBead`) were ALREADY extracted to `Trace/marshal.go` on an
+earlier pass; nothing pure remained un-lifted in `Trace.go` itself. What remained was one
+file carrying four distinct concerns — the closed `Kind*` vocabulary + `TraceEventKinds`
+(~130 lines), the breadcrumb-label sub-vocabulary + `BreadcrumbLabels` +
+`BreadcrumbLabelID` (~70 lines), the `PortGeom`/`Event` payload value types (~30 lines), and
+the `Trace` struct + its constructors + `Breadcrumb`/`NodeBead` methods (~95 lines) — split,
+same as every other "ONE JOB" file split on this branch, into `kind_events.go`,
+`breadcrumb_labels.go`, `event.go`, and a trimmed `Trace.go`. All four stay `package Trace`
+(no new package: these types are load-bearing exports of one existing package, not a new
+boundary). Commit `1d89e255`.
+
+**Guard re-key.** `tools/network/trace/check-breadcrumb-label-registered.sh` hardcoded
+`TRACE_GO="Trace/Trace.go"` and `awk`-scanned that one file for `BreadcrumbLabels`'
+literal — exactly the single-file-path guard-blindness class
+(`memory/feedback_guards_hardcoding_single_file_break_on_split.md`) moving `BreadcrumbLabels`
+into `breadcrumb_labels.go` would have hit. Re-keyed to scan every `Trace/*.go` file
+(matching `tools/gen-node-defs/trace_kinds.go`'s `parseBreadcrumbLabels`, which already
+scanned the whole dir and needed no change). Deliberate-break proof: removed `"bead-crud"`
+from `BreadcrumbLabels` — guard failed by name (`FAIL — 1 unregistered breadcrumb label(s):
+nodes/Wiring/layoutquant/commit_node_move.go:142: label "bead-crud" is not in
+Trace.BreadcrumbLabels`), restored, guard passed clean again. `go run
+./tools/gen-node-defs` was also re-run after the split: byte-identical output (`git status`
+showed no diff on any generated file), confirming `parseTraceKinds`/`parseBreadcrumbLabels`'
+whole-dir scan tolerated the split with zero drift.
+
+**Declines (with the pinning statement quoted).** No file in `nodes/wire` was declined outright
+this pass — every file was either already pure-only, already minimal, or fixed
+(`bead_advance.go`). The nearest thing to a decline is `wire_readout.go`'s
+`DrainPendingEvents` conversion loop, kept in place because it converts
+`pendingWireEvent` (package-private) to `PendingWireEvent` (exported) — moving it out of
+package `wire` would require exporting the private type or duplicating its shape in a new
+package, neither of which is a real win for 6 lines already sitting next to their one
+caller.
+
+**LOC before/after:**
+| file | before | after |
+|---|---|---|
+| `nodes/wire/bead_advance.go` | 85 | 79 |
+| `nodes/wire/lattice/bead_fraction.go` | 44 | 45 (doc-only) |
+| `Trace/Trace.go` | 354 | 117 |
+| `Trace/kind_events.go` | — | 119 (new) |
+| `Trace/breadcrumb_labels.go` | — | 94 (new) |
+| `Trace/event.go` | — | 36 (new) |
+
+`nodes/wire` file count: 19 → 19 (no file added/removed, one dedupe). `Trace/` file count
+(non-test, non-generated): 2 → 5.
+
+**Surfaces with NO check of any kind that can fail:** `advanceBead`'s `final`/`t` computation
+itself (no test exists anywhere in this repo — verification is `go build`/`go vet`/loud
+runtime assertion only, per this task's constraints); the `Trace` struct's constructors and
+`Breadcrumb`/`NodeBead` methods (headless-test-only code paths, never wired in production,
+with no guard naming them); `PortGeom`/`Event`'s field shapes (no guard checks their fields
+against any consumer). This list is long by design — most of both clusters is either
+channel/state plumbing (correct by construction, per this repo's testing-shape doctrine) or
+vocabulary data with no logic to break.
+
+**Verify:** `go build ./...`, `go vet ./...` clean. `go test -race -count=1 ./...` — every
+package printed `[no test files]` (72 packages), none failed; verbatim tail:
+```
+?   	github.com/dtauraso/wirefold/tools/gen-node-defs/buflayout	[no test files]
+?   	github.com/dtauraso/wirefold/tools/gen-node-defs/constexpr	[no test files]
+?   	github.com/dtauraso/wirefold/tools/gen-node-defs/kindscan	[no test files]
+?   	github.com/dtauraso/wirefold/tools/gen-stream-fixture	[no test files]
+?   	github.com/dtauraso/wirefold/tools/topology-vscode/node_modules/flatted/golang/pkg/flatted	[no test files]
+```
+`bash scripts/stop-checks.sh` printed empty stdout after both commits (confirmed run from
+repo root). No-import-cycle check: only `nodes/wire/beadchain` imports `nodes/wire` among
+`nodes/wire`'s subpackages — pre-existing (verified before this pass's first edit too, not
+introduced by it). `git status --short` empty after both commits. Commits: `7c3de447`
+(`bead_advance.go`/`lattice/bead_fraction.go`), `1d89e255` (`Trace.go` split + guard re-key).
