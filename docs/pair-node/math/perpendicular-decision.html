@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pair node — Perpendicular — Decision &amp; files</title>
+  <link rel="stylesheet" href="../pair-base.css">
+  <link rel="stylesheet" href="../pair-layout.css">
+  <link rel="stylesheet" href="../pair-typography.css">
+  <link rel="stylesheet" href="../pair-panels.css">
+  <link rel="stylesheet" href="../pair-diagrams.css">
+  <script src="../port.js"></script>
+  <script src="../pair.js" defer></script>
+</head>
+
+<body>
+
+  <header>
+    <h1>Perpendicular — Decision &amp; files</h1>
+    <div class="sub">stepping over the other halt, when the machine choice is made, and the source
+      files</div>
+  </header>
+
+  <nav>
+    <a href="../index.html">Index</a>
+    <a href="perpendicular.html">&larr; back to Perpendicular</a>
+  </nav>
+
+  <main>
+
+    <div class="grid">
+
+      <div class="card wide">
+        <h2>Stepping over the other halt</h2>
+        <p>The two halts sit a quarter turn apart in separation, so the walk back to one CROSSES the
+          other. A node that stopped at any halt was taken by whichever it touched first — the log
+          caught it in both directions: a pair holding perpendicular stepped correctly toward
+          separation 0, met a quarter turn on the way, and took up parallel there; a pair holding
+          parallel walked the other way, met a half turn, and took up perpendicular.</p>
+        <p>So a node halts on ITS OWN halt only. The other one is an angle it passes over, because
+          this machine names no separation but its own two.</p>
+      </div>
+
+      <div class="card wide">
+        <h2>Which machine runs, and when that is decided</h2>
+        <table class="f">
+          <tr>
+            <td>moment</td>
+            <td>what happens</td>
+            <td>source</td>
+          </tr>
+          <tr>
+            <td class="e">▲/▼ click</td>
+            <td class="n">moves this node's own tilt. Nothing else — no send, no bead, NO choice. The
+              setup is not finished until start, and deciding on the first of twelve clicks read a gap
+              of one step and locked the pair to the wrong machine</td>
+            <td class="s" data-src="nodes/PairNode/edits.go#applyTiltEdit">applyTiltEdit</td>
+          </tr>
+          <tr>
+            <td class="e">START — the first arrival</td>
+            <td class="n">the gap is read HERE: back the quarter out of the arrival to get the
+              partner's own tilt, and measure. A quarter turn apart picks this machine; anything else
+              is acute and picks parallel</td>
+            <td class="s" data-src="nodes/PairNode/node.go#handleVectorCycle">handleVectorCycle</td>
+          </tr>
+          <tr>
+            <td class="e">every reply after that</td>
+            <td class="n">carries which machine its sender is running, which is how the end that did
+              not decide finds out. Adopting STICKS, so a later message cannot switch a running
+              machine</td>
+            <td class="s" data-src="nodes/PairNode/machine.go#adoptMachine">adoptMachine</td>
+          </tr>
+          <tr>
+            <td class="e">RESET</td>
+            <td class="n">the one thing that removes the choice. The next start makes a new one</td>
+            <td class="s" data-src="nodes/PairNode/edits.go#clear">clear</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="card wide">
+        <h2>Files</h2>
+        <table class="f">
+          <tr>
+            <td class="n">nodes/PairNode/machine.go</td>
+            <td class="s" colspan="2">
+              <span data-src="nodes/PairNode/tiltring/machine.go#Machine">tiltMachine</span> ·
+              <span data-src="nodes/PairNode/tiltring/machine.go#Settled">halted</span> ·
+              <span data-src="nodes/PairNode/tiltring/machine.go#Step">step</span> ·
+              <span>miss</span>
+            </td>
+          </tr>
+          <tr>
+            <td class="n">— the three modes, each the counts it stops at</td>
+            <td class="s" colspan="2">
+              <span data-src="nodes/PairNode/tiltring/machine.go#stoppingCounts">stoppingCounts</span> ·
+              <span data-src="nodes/PairNode/tiltring/machine.go#Setting">setting</span>
+            </td>
+          </tr>
+          <tr>
+            <td class="n">nodes/PairNode/ring.go</td>
+            <td class="s" colspan="2">
+              <span data-src="nodes/PairNode/tiltring/lattice.go#AngleLength">separation</span>
+            </td>
+          </tr>
+          <tr>
+            <td class="n">nodes/Wiring/tiltvector/tilt_vector_channel.go</td>
+            <td class="s" colspan="2">
+              <span data-src="nodes/Wiring/tiltvector/tilt_vector_channel.go#TiltMachine">TiltMachine</span>
+            </td>
+          </tr>
+        </table>
+      </div>
+
+    </div>
+  </main>
+</body>
+
+</html>
