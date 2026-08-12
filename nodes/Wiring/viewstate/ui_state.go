@@ -10,7 +10,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/selectionstate"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/spatial"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -81,7 +81,7 @@ func (ui *UIState) SetSelectionUI(sendMove func(id string, msg movemsg.Msg), sen
 	}
 }
 
-func (ui *UIState) DropPointFromNDC(ndcX, ndcY float64) (wire.Vec3, bool) {
+func (ui *UIState) DropPointFromNDC(ndcX, ndcY float64) (spatial.Vec3, bool) {
 	vp := ui.VP.Viewpoint
 	eye := geom.EyeOf(vp)
 	basis := geom.BasisFromViewpoint(vp.Pos, vp.Up)
@@ -89,12 +89,12 @@ func (ui *UIState) DropPointFromNDC(ndcX, ndcY float64) (wire.Vec3, bool) {
 	forward := basis.Pole.Scale(-1)
 	denom := dir.Dot(forward)
 	if denom == 0 {
-		return wire.Vec3{}, false
+		return spatial.Vec3{}, false
 	}
 	t := ui.SceneSphere.Center.Sub(eye).Dot(forward) / denom
 	hit := eye.Add(dir.Scale(t))
 	if math.IsNaN(hit.X) || math.IsInf(hit.X, 0) {
-		return wire.Vec3{}, false
+		return spatial.Vec3{}, false
 	}
 	return hit, true
 }
@@ -110,7 +110,7 @@ func (ui *UIState) SetHoverUI(sendMove func(id string, msg movemsg.Msg), node, p
 	}
 }
 
-func (ui *UIState) DragPlaneHit(ev inputcodec.RawInputMsg) (hit wire.Vec3, ok bool) {
+func (ui *UIState) DragPlaneHit(ev inputcodec.RawInputMsg) (hit spatial.Vec3, ok bool) {
 	g := &ui.Gest
 	vp := ui.VP.Viewpoint
 	eye := geom.EyeOf(vp)
@@ -120,12 +120,12 @@ func (ui *UIState) DragPlaneHit(ev inputcodec.RawInputMsg) (hit wire.Vec3, ok bo
 	forward := basis.Pole.Scale(-1)
 	denom := dir.Dot(forward)
 	if denom == 0 {
-		return wire.Vec3{}, false
+		return spatial.Vec3{}, false
 	}
 	t := g.DragStartCenter.Sub(eye).Dot(forward) / denom
 	hit = eye.Add(dir.Scale(t))
 	if math.IsNaN(hit.X) || math.IsInf(hit.X, 0) {
-		return wire.Vec3{}, false
+		return spatial.Vec3{}, false
 	}
 	return hit, true
 }

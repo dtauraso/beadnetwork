@@ -1,9 +1,9 @@
 package beadchain
 
-import wire "github.com/dtauraso/wirefold/nodes/wire"
+import "github.com/dtauraso/wirefold/nodes/spatial"
 
 type beadGeometryState struct {
-	position wire.Vec3
+	position spatial.Vec3
 }
 
 func (g *beadGeometryState) applyTransform(xf BeadGeometryIn, offsetR float64) {
@@ -37,7 +37,7 @@ type Bead struct {
 }
 
 type BeadSnapshot struct {
-	Position wire.Vec3
+	Position spatial.Vec3
 	Dragging bool
 	Lit      bool
 	LitVal   int32

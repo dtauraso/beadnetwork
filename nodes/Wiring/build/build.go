@@ -12,6 +12,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/quantoffset"
 	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
 	"github.com/dtauraso/wirefold/nodes/Wiring/topoderive"
+	"github.com/dtauraso/wirefold/nodes/spatial"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 	"github.com/dtauraso/wirefold/nodes/wire/outport"
@@ -30,7 +31,7 @@ type buildCtx struct {
 	scenePath string
 
 	nodeGeoms map[string]nodegeom.NodeGeom
-	centers   map[string]wire.Vec3
+	centers   map[string]spatial.Vec3
 
 	quantizedOffsets map[string]quantoffset.QuantizedOffset
 
@@ -39,7 +40,7 @@ type buildCtx struct {
 	edgeEndpoints map[string]inputcodec.EdgeEndpoints
 
 	edgeSteps    map[string]int
-	edgeSegments map[string]wire.WireSegment
+	edgeSegments map[string]spatial.WireSegment
 
 	md *dispatch.MoveDispatch
 

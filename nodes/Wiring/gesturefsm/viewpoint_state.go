@@ -3,7 +3,7 @@ package gesturefsm
 import (
 	T "github.com/dtauraso/wirefold/Trace"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/spatial"
 )
 
 type ViewpointState struct {
@@ -12,7 +12,7 @@ type ViewpointState struct {
 	Persist func(geom.Viewpoint)
 }
 
-func (v *ViewpointState) SetViewpoint(pivot wire.Vec3, r float64, pos, up geom.Dir) {
+func (v *ViewpointState) SetViewpoint(pivot spatial.Vec3, r float64, pos, up geom.Dir) {
 	v.Pivot = pivot
 	v.R = r
 	v.Pos = pos
@@ -42,7 +42,7 @@ func (v *ViewpointState) ZoomViewpoint(factor float64, tr *T.Trace) {
 	v.EmitViewpoint(tr)
 }
 
-func (v *ViewpointState) PanViewpoint(delta wire.Vec3, tr *T.Trace) {
+func (v *ViewpointState) PanViewpoint(delta spatial.Vec3, tr *T.Trace) {
 	v.Pan(delta)
 	v.EmitViewpoint(tr)
 }

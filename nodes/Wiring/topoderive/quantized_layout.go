@@ -5,10 +5,10 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/loadspec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/quantoffset"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/spatial"
 )
 
-func ComputeQuantizedLayout(spec loadspec.TopoSpec, sphere geom.SceneSphere, centers map[string]wire.Vec3, nodeGeoms map[string]nodegeom.NodeGeom) map[string]quantoffset.QuantizedOffset {
+func ComputeQuantizedLayout(spec loadspec.TopoSpec, sphere geom.SceneSphere, centers map[string]spatial.Vec3, nodeGeoms map[string]nodegeom.NodeGeom) map[string]quantoffset.QuantizedOffset {
 	ids := make(map[string]bool, len(spec.Nodes))
 	for _, n := range spec.Nodes {
 		ids[n.ID] = true

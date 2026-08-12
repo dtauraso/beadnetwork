@@ -7,15 +7,15 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/spatial"
 )
 
 type LayoutQuantizer struct {
 	QuantizedLayout bool
 }
 
-func HeldCenters(nodeGeoms map[string]*nodeactor.NodeGeometry, centerOf func(id string) (wire.Vec3, bool)) map[string]wire.Vec3 {
-	out := make(map[string]wire.Vec3, len(nodeGeoms))
+func HeldCenters(nodeGeoms map[string]*nodeactor.NodeGeometry, centerOf func(id string) (spatial.Vec3, bool)) map[string]spatial.Vec3 {
+	out := make(map[string]spatial.Vec3, len(nodeGeoms))
 	for id := range nodeGeoms {
 		if c, ok := centerOf(id); ok {
 			out[id] = c
@@ -32,7 +32,7 @@ func HeldEdges(edgeMovers map[string]*edgemover.EdgeMover) []geom.SphereEdge {
 	return edges
 }
 
-func (lq *LayoutQuantizer) RootMove(ctx context.Context, nodeGeoms map[string]*nodeactor.NodeGeometry, nodeID string, target wire.Vec3) bool {
+func (lq *LayoutQuantizer) RootMove(ctx context.Context, nodeGeoms map[string]*nodeactor.NodeGeometry, nodeID string, target spatial.Vec3) bool {
 	nm, ok := nodeGeoms[nodeID]
 	if !ok {
 		return false

@@ -6,6 +6,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
+	"github.com/dtauraso/wirefold/nodes/spatial"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -23,7 +24,7 @@ func LoadSceneSphere(topologyPath string) (geom.SceneSphere, bool) {
 		return geom.SceneSphere{}, false
 	}
 	return geom.SceneSphere{
-		Center: wire.Vec3{X: sj.Center[0], Y: sj.Center[1], Z: sj.Center[2]},
+		Center: spatial.Vec3{X: sj.Center[0], Y: sj.Center[1], Z: sj.Center[2]},
 		Radius: *sj.Radius,
 	}, true
 }

@@ -7,7 +7,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/moverreg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/spatial"
 )
 
 func ResolveSceneDistanceGroups(ui *viewstate.UIState, scenePath string) {
@@ -18,7 +18,7 @@ func ResolveSceneDistanceGroups(ui *viewstate.UIState, scenePath string) {
 }
 
 func ApplyDistanceGroupTarget(ctx context.Context, ui *viewstate.UIState, mr *moverreg.MoverRegistry, lq *layoutquant.LayoutQuantizer, groupIdx, dir int) bool {
-	rootMove := func(ctx context.Context, target string, newPos wire.Vec3) bool {
+	rootMove := func(ctx context.Context, target string, newPos spatial.Vec3) bool {
 		return lq.RootMove(ctx, mr.NodeGeoms(), target, newPos)
 	}
 	return ApplyTarget(ctx, ui.HasDistanceGroups, mr.CenterOfNode, rootMove, groupIdx, dir)

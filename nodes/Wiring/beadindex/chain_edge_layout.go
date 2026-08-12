@@ -6,7 +6,7 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/spatial"
 	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 )
 
@@ -16,7 +16,7 @@ type Pulse struct {
 	Val   int32
 }
 
-func ChainEdgeGeometry(selfCenter, targetCenter wire.Vec3, selfTorusR float64, selfKind, targetKind string) (dist float64, dir wire.Vec3, count int, ok bool) {
+func ChainEdgeGeometry(selfCenter, targetCenter spatial.Vec3, selfTorusR float64, selfKind, targetKind string) (dist float64, dir spatial.Vec3, count int, ok bool) {
 	dist, dir, ok = nodegeom.EdgeCenterDistAndDir(selfCenter, targetCenter)
 	if !ok {
 		return dist, dir, 0, false
@@ -25,10 +25,10 @@ func ChainEdgeGeometry(selfCenter, targetCenter wire.Vec3, selfTorusR float64, s
 	return dist, dir, count, true
 }
 
-func ChainBeadRows(dir, chainSep wire.Vec3, base, step float64, count int, resolved []wire.Vec3, resolvedValid []bool, pulses []Pulse) (ox, oy, oz []float32, lit []uint8, litVal []int32) {
+func ChainBeadRows(dir, chainSep spatial.Vec3, base, step float64, count int, resolved []spatial.Vec3, resolvedValid []bool, pulses []Pulse) (ox, oy, oz []float32, lit []uint8, litVal []int32) {
 
 	for i := 0; i < count; i++ {
-		var p wire.Vec3
+		var p spatial.Vec3
 		if i < len(resolvedValid) && resolvedValid[i] && i < len(resolved) {
 
 			p = resolved[i]
@@ -57,7 +57,7 @@ func ChainBeadRows(dir, chainSep wire.Vec3, base, step float64, count int, resol
 	return ox, oy, oz, lit, litVal
 }
 
-func ChainAimBreadcrumbText(to string, count int, dist float64, dir wire.Vec3) string {
+func ChainAimBreadcrumbText(to string, count int, dist float64, dir spatial.Vec3) string {
 	liveTheta := math.Acos(geom.Clamp(dir.Y, -1, 1))
 	livePhi := math.Atan2(dir.Z, dir.X)
 	return fmt.Sprintf(

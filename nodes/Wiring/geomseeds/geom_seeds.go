@@ -6,7 +6,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/loadspec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/spatial"
 )
 
 type NodeGeomSeed struct {
@@ -31,10 +31,10 @@ func (gs *GeomSeeds) NodeSeedsFn() []NodeGeomSeed { return gs.NodeSeeds }
 
 func (gs *GeomSeeds) EdgeSeedsFn() []EdgeGeomSeed { return gs.EdgeSeeds }
 
-func (gs *GeomSeeds) LoadTimeCenters() map[string]wire.Vec3 {
-	out := make(map[string]wire.Vec3, len(gs.NodeSeeds))
+func (gs *GeomSeeds) LoadTimeCenters() map[string]spatial.Vec3 {
+	out := make(map[string]spatial.Vec3, len(gs.NodeSeeds))
 	for _, sd := range gs.NodeSeeds {
-		out[sd.ID] = wire.Vec3{X: sd.CX, Y: sd.CY, Z: sd.CZ}
+		out[sd.ID] = spatial.Vec3{X: sd.CX, Y: sd.CY, Z: sd.CZ}
 	}
 	return out
 }

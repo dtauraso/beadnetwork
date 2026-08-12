@@ -1,7 +1,7 @@
 package nodeactor
 
 import (
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/spatial"
 	beadchain "github.com/dtauraso/wirefold/nodes/wire/beadchain"
 )
 
@@ -17,13 +17,13 @@ type edgeBeadChain struct {
 	valid []bool
 
 	haveAim bool
-	lastAim wire.Vec3
+	lastAim spatial.Vec3
 
 	haveLattice bool
 	lattice     float64
 }
 
-func (nb *nodeBeads) reconcileBeadChain(to string, count int, offsetAt func(i int) float64, aim wire.Vec3) *edgeBeadChain {
+func (nb *nodeBeads) reconcileBeadChain(to string, count int, offsetAt func(i int) float64, aim spatial.Vec3) *edgeBeadChain {
 	if nb.beadChains == nil {
 		nb.beadChains = map[string]*edgeBeadChain{}
 	}

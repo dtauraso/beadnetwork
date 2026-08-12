@@ -4,10 +4,10 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/beadcrud"
 	"github.com/dtauraso/wirefold/nodes/Wiring/edgemover"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/spatial"
 )
 
-func DragTouchingBeads(edgeMovers map[string]*edgemover.EdgeMover, nm *nodeactor.NodeGeometry, prevPos wire.Vec3) []beadcrud.TouchingBead {
+func DragTouchingBeads(edgeMovers map[string]*edgemover.EdgeMover, nm *nodeactor.NodeGeometry, prevPos spatial.Vec3) []beadcrud.TouchingBead {
 	edgeIDs := nm.EdgeIDs()
 	selfID := nm.ID()
 	neighborOf := make(map[string]string, len(edgeIDs))

@@ -6,6 +6,7 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
+	"github.com/dtauraso/wirefold/nodes/spatial"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/outport"
 )
@@ -41,7 +42,7 @@ func (n specNode) label() string {
 	return n.ID
 }
 
-func (n specNode) ToNodeGeom(sceneCenter wire.Vec3) nodegeom.NodeGeom {
+func (n specNode) ToNodeGeom(sceneCenter spatial.Vec3) nodegeom.NodeGeom {
 
 	g := nodegeom.NodeGeom{NodeIdentity: nodegeom.NodeIdentity{Kind: n.Type, Label: n.label(), R: n.R, SceneCenter: sceneCenter}}
 	if n.ScenePolarR != nil && n.ScenePolarTheta != nil && n.ScenePolarPhi != nil {

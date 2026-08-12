@@ -8,10 +8,10 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
-	"github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/spatial"
 )
 
-type vec3 = wire.Vec3
+type vec3 = spatial.Vec3
 
 func SeedInitialViewpoint(topologyPath string, setViewpoint func(pivot vec3, r float64, pos, up geom.Dir), emitViewpoint func(tr *T.Trace), tr *T.Trace) {
 	if setViewpoint == nil || emitViewpoint == nil {

@@ -1,6 +1,6 @@
 package outport
 
-import "github.com/dtauraso/wirefold/nodes/wire"
+import "github.com/dtauraso/wirefold/nodes/spatial"
 
 func drainStepsNonBlocking(ch chan int, cur *int) {
 	select {
@@ -26,7 +26,7 @@ func sendIntNonBlocking(ch chan int, v int) {
 	}
 }
 
-func drainSegNonBlocking(ch chan wire.WireSegment, start, end *wire.Vec3) {
+func drainSegNonBlocking(ch chan spatial.WireSegment, start, end *spatial.Vec3) {
 	select {
 	case seg := <-ch:
 		*start, *end = seg.Start, seg.End
@@ -34,7 +34,7 @@ func drainSegNonBlocking(ch chan wire.WireSegment, start, end *wire.Vec3) {
 	}
 }
 
-func sendSegNonBlocking(ch chan wire.WireSegment, seg wire.WireSegment) {
+func sendSegNonBlocking(ch chan spatial.WireSegment, seg spatial.WireSegment) {
 	select {
 	case ch <- seg:
 		return

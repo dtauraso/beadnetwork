@@ -10,13 +10,14 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
 	"github.com/dtauraso/wirefold/nodes/Wiring/topoderive"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
+	"github.com/dtauraso/wirefold/nodes/spatial"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
 
-func (lq *LayoutQuantizer) CommitNodeMoveLocal(nodeGeoms map[string]*nodeactor.NodeGeometry, edgeMovers map[string]*edgemover.EdgeMover, ui *viewstate.UIState, nm *nodeactor.NodeGeometry, newPos wire.Vec3) {
+func (lq *LayoutQuantizer) CommitNodeMoveLocal(nodeGeoms map[string]*nodeactor.NodeGeometry, edgeMovers map[string]*edgemover.EdgeMover, ui *viewstate.UIState, nm *nodeactor.NodeGeometry, newPos spatial.Vec3) {
 	nodeID := nm.ID()
 	edges := HeldEdges(edgeMovers)
 	polars := neighborPolars(nm, edgeMovers, ui)
@@ -29,7 +30,7 @@ func (lq *LayoutQuantizer) CommitNodeMoveLocal(nodeGeoms map[string]*nodeactor.N
 	reach := topoderive.ReachRFromPolar(polars, edges)
 
 	nm.ApplyCenter(committedPos, reach[nodeID])
-	BroadcastToEdgesAndPartners(edgeMovers, nodeGeoms, map[string]wire.Vec3{nodeID: committedPos}, nm.SendMove())
+	BroadcastToEdgesAndPartners(edgeMovers, nodeGeoms, map[string]spatial.Vec3{nodeID: committedPos}, nm.SendMove())
 
 	nm.CommitQuantOffset(committedPolar)
 }
@@ -54,7 +55,7 @@ func neighborPolars(nm *nodeactor.NodeGeometry, edgeMovers map[string]*edgemover
 	return polars
 }
 
-func (lq *LayoutQuantizer) resolveCommittedPosition(edgeMovers map[string]*edgemover.EdgeMover, ui *viewstate.UIState, nm *nodeactor.NodeGeometry, newPos wire.Vec3, nodePolar geom.Polar) (committedPos wire.Vec3, committedPolar geom.Polar) {
+func (lq *LayoutQuantizer) resolveCommittedPosition(edgeMovers map[string]*edgemover.EdgeMover, ui *viewstate.UIState, nm *nodeactor.NodeGeometry, newPos spatial.Vec3, nodePolar geom.Polar) (committedPos spatial.Vec3, committedPolar geom.Polar) {
 	committedPos = newPos
 	committedPolar = nodePolar
 	if !lq.QuantizedLayout {
@@ -73,7 +74,7 @@ func (lq *LayoutQuantizer) resolveCommittedPosition(edgeMovers map[string]*edgem
 	return committedPos, committedPolar
 }
 
-func emitBeadCrudDiagnostic(nm *nodeactor.NodeGeometry, nodeID string, prevPos, newPos, committedPos wire.Vec3, beads []beadcrud.TouchingBead) {
+func emitBeadCrudDiagnostic(nm *nodeactor.NodeGeometry, nodeID string, prevPos, newPos, committedPos spatial.Vec3, beads []beadcrud.TouchingBead) {
 	if !nm.Traced() {
 		return
 	}

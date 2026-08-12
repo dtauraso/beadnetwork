@@ -5,10 +5,10 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/spatial"
 )
 
-func (g *GestureState) BeginSphereRotation(vp geom.Viewpoint, heldCenters func() map[string]wire.Vec3, ev inputcodec.RawInputMsg) {
+func (g *GestureState) BeginSphereRotation(vp geom.Viewpoint, heldCenters func() map[string]spatial.Vec3, ev inputcodec.RawInputMsg) {
 	pivot := geom.FocusAhead(vp, heldCenters())
 	g.RotPivot = pivot
 

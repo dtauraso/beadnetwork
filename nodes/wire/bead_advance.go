@@ -2,6 +2,7 @@ package wire
 
 import (
 	T "github.com/dtauraso/wirefold/Trace"
+	"github.com/dtauraso/wirefold/nodes/spatial"
 	"github.com/dtauraso/wirefold/nodes/wire/lattice"
 )
 
@@ -41,7 +42,7 @@ func (pw *PacedWire) advanceBead(b *inflightBead, nowTick float64) (emit bool, p
 	if stream {
 
 		t := lattice.BeadFraction(nowTick, placementTick, crossTicks)
-		p := lerp(seg.Start, seg.End, t)
+		p := spatial.Lerp(seg.Start, seg.End, t)
 		emit = true
 		pos = posEmitArgs{
 			node: b.node, port: b.port, val: b.val,

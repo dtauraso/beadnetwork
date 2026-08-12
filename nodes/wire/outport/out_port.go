@@ -4,12 +4,13 @@ import (
 	"context"
 
 	T "github.com/dtauraso/wirefold/Trace"
+	"github.com/dtauraso/wirefold/nodes/spatial"
 	"github.com/dtauraso/wirefold/nodes/wire"
 )
 
 type outGeom struct {
 	Steps      int
-	Start, End wire.Vec3
+	Start, End spatial.Vec3
 }
 
 type Out struct {
@@ -23,7 +24,7 @@ type Out struct {
 	trace *T.Trace
 
 	geomSendSteps chan int
-	geomSendSeg   chan wire.WireSegment
+	geomSendSeg   chan spatial.WireSegment
 	sendCur       outGeom
 
 	EdgeLabel string
@@ -52,11 +53,11 @@ func (o *Out) PublishSteps(steps int) {
 	o.publishSteps(steps)
 }
 
-func (o *Out) publishSegment(start, end wire.Vec3) {
-	sendSegNonBlocking(o.geomSendSeg, wire.WireSegment{Start: start, End: end})
+func (o *Out) publishSegment(start, end spatial.Vec3) {
+	sendSegNonBlocking(o.geomSendSeg, spatial.WireSegment{Start: start, End: end})
 }
 
-func (o *Out) PublishSegment(start, end wire.Vec3) {
+func (o *Out) PublishSegment(start, end spatial.Vec3) {
 	o.publishSegment(start, end)
 }
 
@@ -64,7 +65,7 @@ func (o *Out) placement() wire.BeadPlacement {
 	return o.placementFrom(o.Geom())
 }
 
-func (o *Out) CurrentPlacement() (steps int, start, end wire.Vec3) {
+func (o *Out) CurrentPlacement() (steps int, start, end spatial.Vec3) {
 	bp := o.placement()
 	return bp.Steps, bp.Start, bp.End
 }

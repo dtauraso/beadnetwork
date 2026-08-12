@@ -1,4 +1,4 @@
-package wire
+package spatial
 
 import "math"
 
@@ -32,6 +32,6 @@ func (a Vec3) Cross(b Vec3) Vec3 {
 	}
 }
 
-func lerp(a, b Vec3, t float64) Vec3 {
+func Lerp(a, b Vec3, t float64) Vec3 {
 	return a.Add(b.Sub(a).Scale(t))
 }

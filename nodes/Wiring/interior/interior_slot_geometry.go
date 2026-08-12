@@ -1,8 +1,8 @@
 package interior
 
-import wire "github.com/dtauraso/wirefold/nodes/wire"
+import "github.com/dtauraso/wirefold/nodes/spatial"
 
-type vec3 = wire.Vec3
+type vec3 = spatial.Vec3
 
 const (
 	interiorBeadR         = 5.0

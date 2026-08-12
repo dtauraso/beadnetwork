@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/spatial"
 )
 
 type Pair struct {
@@ -20,7 +20,7 @@ var Groups = map[string][]Pair{
 	"gate":  {{Source: "3", Target: "8"}, {Source: "5", Target: "8"}, {Source: "5", Target: "9"}, {Source: "7", Target: "9"}},
 }
 
-func Max(hasGroups bool, centerOf func(string) (wire.Vec3, bool), group string) (float64, bool) {
+func Max(hasGroups bool, centerOf func(string) (spatial.Vec3, bool), group string) (float64, bool) {
 	if !hasGroups {
 		return 0, false
 	}
@@ -44,7 +44,7 @@ func Max(hasGroups bool, centerOf func(string) (wire.Vec3, bool), group string) 
 	return max, any
 }
 
-func Lens(hasGroups bool, centerOf func(string) (wire.Vec3, bool)) (timeLen, inputLen, gateLen float32) {
+func Lens(hasGroups bool, centerOf func(string) (spatial.Vec3, bool)) (timeLen, inputLen, gateLen float32) {
 	vals := make([]float32, len(GroupOrder))
 	for i, g := range GroupOrder {
 		if m, ok := Max(hasGroups, centerOf, g); ok {
@@ -54,7 +54,7 @@ func Lens(hasGroups bool, centerOf func(string) (wire.Vec3, bool)) (timeLen, inp
 	return vals[0], vals[1], vals[2]
 }
 
-func ApplyTarget(ctx context.Context, hasGroups bool, centerOf func(string) (wire.Vec3, bool), rootMove func(ctx context.Context, target string, newPos wire.Vec3) bool, groupIdx, dir int) bool {
+func ApplyTarget(ctx context.Context, hasGroups bool, centerOf func(string) (spatial.Vec3, bool), rootMove func(ctx context.Context, target string, newPos spatial.Vec3) bool, groupIdx, dir int) bool {
 	if groupIdx < 0 || groupIdx >= len(GroupOrder) {
 		return false
 	}
@@ -92,7 +92,7 @@ func ApplyTarget(ctx context.Context, hasGroups bool, centerOf func(string) (wir
 	return moved
 }
 
-func waitForCenterSettle(centerOf func(string) (wire.Vec3, bool), id string, want wire.Vec3) {
+func waitForCenterSettle(centerOf func(string) (spatial.Vec3, bool), id string, want spatial.Vec3) {
 	const tol = 1e-6
 	deadline := time.Now().Add(200 * time.Millisecond)
 	for time.Now().Before(deadline) {

@@ -1,10 +1,10 @@
 package beadchain
 
-import wire "github.com/dtauraso/wirefold/nodes/wire"
+import "github.com/dtauraso/wirefold/nodes/spatial"
 
 type BeadGeometryIn struct {
-	Center wire.Vec3
-	Aim    wire.Vec3
+	Center spatial.Vec3
+	Aim    spatial.Vec3
 }
 
 type BroadcastChain struct {

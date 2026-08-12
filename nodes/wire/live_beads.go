@@ -1,6 +1,9 @@
 package wire
 
-import "github.com/dtauraso/wirefold/nodes/wire/lattice"
+import (
+	"github.com/dtauraso/wirefold/nodes/spatial"
+	"github.com/dtauraso/wirefold/nodes/wire/lattice"
+)
 
 type LiveBeadRow struct {
 	Val     int
@@ -40,7 +43,7 @@ func (pw *PacedWire) LiveBeadRows(tick int64) []LiveBeadRow {
 		}
 		crossTicks := pw.ticksToCross(b.steps)
 		t := lattice.BeadFraction(nowTick, b.placementTick, crossTicks)
-		p := lerp(b.seg.Start, b.seg.End, t)
+		p := spatial.Lerp(b.seg.Start, b.seg.End, t)
 		rows = append(rows, LiveBeadRow{Val: b.val, X: p.X, Y: p.Y, Z: p.Z, Gen: b.gen})
 	}
 	return rows

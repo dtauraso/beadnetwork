@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	T "github.com/dtauraso/wirefold/Trace"
+	"github.com/dtauraso/wirefold/nodes/spatial"
 	"github.com/dtauraso/wirefold/nodes/wire/lattice"
 )
 
@@ -26,7 +27,7 @@ func (pw *PacedWire) drainPlacements() {
 				placementTick: float64(req.placementTick),
 
 				steps:   req.bp.Steps,
-				seg:     WireSegment{Start: req.bp.Start, End: req.bp.End},
+				seg:     spatial.WireSegment{Start: req.bp.Start, End: req.bp.End},
 				node:    req.bp.Node,
 				port:    req.bp.Port,
 				streams: req.bp.streams(),
@@ -89,7 +90,7 @@ func (pw *PacedWire) stepAll(tick int64) {
 	}
 }
 
-func (pw *PacedWire) ReviseInFlightGeometry(tick int64, newSteps int, newSeg WireSegment) {
+func (pw *PacedWire) ReviseInFlightGeometry(tick int64, newSteps int, newSeg spatial.WireSegment) {
 	if len(pw.inflight) == 0 {
 		return
 	}

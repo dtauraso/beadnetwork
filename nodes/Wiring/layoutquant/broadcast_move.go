@@ -4,13 +4,13 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/edgemover"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/spatial"
 )
 
-func BroadcastToEdgesAndPartners(edgeMovers map[string]*edgemover.EdgeMover, nodeGeoms map[string]*nodeactor.NodeGeometry, newCenters map[string]wire.Vec3, enqueue func(id string, msg movemsg.Msg)) {
+func BroadcastToEdgesAndPartners(edgeMovers map[string]*edgemover.EdgeMover, nodeGeoms map[string]*nodeactor.NodeGeometry, newCenters map[string]spatial.Vec3, enqueue func(id string, msg movemsg.Msg)) {
 
 	for edgeID, em := range edgeMovers {
-		eps := map[string]wire.Vec3{}
+		eps := map[string]spatial.Vec3{}
 		if c, ok := newCenters[em.SrcID()]; ok {
 			eps[em.SrcID()] = c
 		}

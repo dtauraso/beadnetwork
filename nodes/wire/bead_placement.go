@@ -1,11 +1,13 @@
 package wire
 
+import "github.com/dtauraso/wirefold/nodes/spatial"
+
 // BeadPlacement is exported: it is constructed by nodes/wire/outport.Out and handed
 // across the package boundary to PacedWire.Send. Nothing else about it changed.
 type BeadPlacement struct {
 	Steps int
 
-	Start, End Vec3
+	Start, End spatial.Vec3
 	Node, Port string
 }
 
@@ -23,7 +25,7 @@ type inflightBead struct {
 	val           int
 	placementTick float64
 	steps         int
-	seg           WireSegment
+	seg           spatial.WireSegment
 	node          string
 	port          string
 	streams       bool

@@ -2,7 +2,7 @@ package gesturefsm
 
 import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/spatial"
 )
 
 type GesturePhase int
@@ -29,13 +29,13 @@ type GestureState struct {
 	EmptyDown bool
 
 	DragNode        string
-	DragStartCenter wire.Vec3
+	DragStartCenter spatial.Vec3
 
-	DragGrabOffset wire.Vec3
+	DragGrabOffset spatial.Vec3
 
 	HandholdDown bool
 
-	RotPivot     wire.Vec3
+	RotPivot     spatial.Vec3
 	RotCx, RotCy float64
 	RotPxPerRad  float64
 
@@ -62,7 +62,7 @@ func (g *GestureState) Reset(vp *geom.Viewpoint) {
 	g.Phase = GestIdle
 	g.EmptyDown = false
 	g.DragNode = ""
-	g.DragGrabOffset = wire.Vec3{}
+	g.DragGrabOffset = spatial.Vec3{}
 	g.HandholdDown = false
 	g.Secondary = false
 	vp.LockedAxis = nil

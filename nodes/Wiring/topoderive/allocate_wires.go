@@ -4,6 +4,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/loadspec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
+	"github.com/dtauraso/wirefold/nodes/spatial"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 
@@ -15,13 +16,13 @@ func AllocateWires(spec loadspec.TopoSpec, nodeGeoms map[string]nodegeom.NodeGeo
 	edgeWire loadspec.WireRegistry,
 	edgeEndpoints map[string]inputcodec.EdgeEndpoints,
 	edgeSteps map[string]int,
-	edgeSegments map[string]wire.WireSegment,
+	edgeSegments map[string]spatial.WireSegment,
 ) {
 	destWire = map[string]*wire.PacedWire{}
 	edgeWire = loadspec.WireRegistry{}
 	edgeEndpoints = map[string]inputcodec.EdgeEndpoints{}
 	edgeSteps = map[string]int{}
-	edgeSegments = map[string]wire.WireSegment{}
+	edgeSegments = map[string]spatial.WireSegment{}
 	for _, e := range spec.Edges {
 		destKey := e.Target + "." + e.TargetHandle
 
