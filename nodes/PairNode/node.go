@@ -235,6 +235,81 @@ func (n *Node) Update(ctx context.Context) {
 
 // openingEmit, paceOnBeadArrival: see lifecycle.go.
 
+// wirePlumbing is init's first construction phase: this node's own spec id, Fire,
+// Clock override, SpeedCh, and its In/Out ports — the nodePlumbing fields.
+func (n *Node) wirePlumbing(a Wiring.BuildArgs) {
+	// This node's own spec id, which is what START is addressed by — see PairID's
+	// own doc comment. A name that is not a number leaves PairID at 0, so such a
+	// node simply never opens an exchange rather than silently becoming id 1.
+	if id, err := strconv.Atoi(a.Name()); err == nil {
+		n.plumb.PairID = int32(id)
+	}
+	n.plumb.Fire = a.Fire()
+	if clk := a.Clock(); clk != nil {
+		n.plumb.Clock = clk
+	}
+	n.plumb.SpeedCh = a.SpeedCh()
+	n.plumb.In = a.In("In")
+	n.plumb.Out = a.Out("Out")
+}
+
+// wireLatticeSeed is init's second construction phase: opens this node's own
+// lattice at the scene's currently-persisted point count and seeds its tilt
+// state from it. Returns the lattice seed and the seed state/unknown-ness so
+// wireSelfDrive (which runs after Self exists) can sync/report them.
+//
+// The persisted seed is a NUMBER from outside this kind — an old position.json
+// can hold anything, including a running count from before the tilt became a
+// state — so it comes in through seedState, which asks the ring which state
+// carries that index. After this returns the tilt is a state and stays one.
+func (n *Node) wireLatticeSeed(a Wiring.BuildArgs) (latticeSeed int32, seed *tiltring.State, seedUnknown bool) {
+	latticeSeed = a.LatticePointsSeed()
+	n.lattice.Ring = tiltring.NewRing(latticeSeed)
+	seed, seedUnknown = n.lattice.Ring.SeedState(a.TiltVectorAngleSeed())
+	n.setTop(seed)
+	n.tilt.TiltEditIn = a.TiltEditIn()
+	n.lattice.LatticeIn = a.LatticeIn()
+	return latticeSeed, seed, seedUnknown
+}
+
+// wireSelfDrive is init's third construction phase: claims this node's own
+// mover (Self replaces the old SyncTiltIndex/SyncReceivedVector/ClearOutBeads
+// messages-to-a-separate-mover-goroutine, task/pair-node-owns-itself — this
+// node's own goroutine now owns that mover state directly, so what used to be
+// a message is a plain method call on the same object here), wires the
+// Sync*/ClearOutBeads closures onto it, and reports an unrecognised persisted
+// seed.
+func (n *Node) wireSelfDrive(a Wiring.BuildArgs, latticeSeed int32, seed *tiltring.State, seedUnknown bool) {
+	self := a.ClaimSelfDrive()
+	n.plumb.Self = self
+	n.lattice.SyncLatticePoints = func(points int32) {
+		self.SetLatticePoints(points)
+	}
+	n.lattice.SyncLatticePoints(latticeSeed)
+	if seedUnknown {
+		// The persisted index is not one this ring has — a position.json written
+		// before the tilt became a state, or by a build with a different lattice.
+		// The node opens at the origin and says which number it refused, rather
+		// than computing some other direction and drawing it as if chosen.
+		self.Breadcrumb("pair-seed-unknown", fmt.Sprintf(
+			"node=%s persisted=%d loaded=%d", a.Name(), a.TiltVectorAngleSeed(), seed.Idx))
+	}
+	n.tilt.SyncTiltIndex = func(theta, normalTheta, bottomTheta int32) {
+		self.SetTiltIndex(theta, normalTheta, bottomTheta)
+	}
+	n.vec.SyncReceivedVector = func(theta int32, set bool) {
+		self.SetReceivedVector(theta, set)
+	}
+	n.plumb.ClearOutBeads = func() { self.ClearOutBeads() }
+}
+
+// wireVectorChannels is init's fourth and final construction phase: this
+// node's two ends of the tilt-vector exchange.
+func (n *Node) wireVectorChannels(a Wiring.BuildArgs) {
+	n.vec.VectorOut = a.VectorOut()
+	n.vec.VectorIn = a.VectorIn()
+}
+
 func init() {
 	// PairNode CONSTRUCTS ITSELF (Wiring.RegisterBuilder), same self-construction
 	// shape as every other kind — see Pacer/Input for the general note on why
@@ -248,59 +323,10 @@ func init() {
 			n := &Node{
 				plumb: nodePlumbing{Clock: clock.NewRealClock()},
 			}
-			// This node's own spec id, which is what START is addressed by — see PairID's
-			// own doc comment. A name that is not a number leaves PairID at 0, so such a
-			// node simply never opens an exchange rather than silently becoming id 1.
-			if id, err := strconv.Atoi(a.Name()); err == nil {
-				n.plumb.PairID = int32(id)
-			}
-			n.plumb.Fire = a.Fire()
-			if clk := a.Clock(); clk != nil {
-				n.plumb.Clock = clk
-			}
-			n.plumb.SpeedCh = a.SpeedCh()
-			n.plumb.In = a.In("In")
-			n.plumb.Out = a.Out("Out")
-			// The persisted seed is a NUMBER from outside this kind — an old position.json
-			// can hold anything, including a running count from before the tilt became a
-			// state — so it comes in through seedState, which asks the ring which state
-			// carries that index. After this line the tilt is a state and stays one.
-			// This node's own lattice, opened at the scene's currently-persisted point
-			// count (view/lattice.json via BuildArgs.LatticePointsSeed) rather than the
-			// compile-time default.
-			latticeSeed := a.LatticePointsSeed()
-			n.lattice.Ring = tiltring.NewRing(latticeSeed)
-			seed, seedUnknown := n.lattice.Ring.SeedState(a.TiltVectorAngleSeed())
-			n.setTop(seed)
-			n.tilt.TiltEditIn = a.TiltEditIn()
-			n.lattice.LatticeIn = a.LatticeIn()
-			// Self replaces the old SyncTiltIndex/SyncReceivedVector/ClearOutBeads
-			// messages-to-a-separate-mover-goroutine (task/pair-node-owns-itself):
-			// this node's own goroutine now owns that mover state directly, so what
-			// used to be a message is a plain method call on the same object below.
-			self := a.ClaimSelfDrive()
-			n.plumb.Self = self
-			n.lattice.SyncLatticePoints = func(points int32) {
-				self.SetLatticePoints(points)
-			}
-			n.lattice.SyncLatticePoints(latticeSeed)
-			if seedUnknown {
-				// The persisted index is not one this ring has — a position.json written
-				// before the tilt became a state, or by a build with a different lattice.
-				// The node opens at the origin and says which number it refused, rather
-				// than computing some other direction and drawing it as if chosen.
-				self.Breadcrumb("pair-seed-unknown", fmt.Sprintf(
-					"node=%s persisted=%d loaded=%d", a.Name(), a.TiltVectorAngleSeed(), seed.Idx))
-			}
-			n.tilt.SyncTiltIndex = func(theta, normalTheta, bottomTheta int32) {
-				self.SetTiltIndex(theta, normalTheta, bottomTheta)
-			}
-			n.vec.SyncReceivedVector = func(theta int32, set bool) {
-				self.SetReceivedVector(theta, set)
-			}
-			n.plumb.ClearOutBeads = func() { self.ClearOutBeads() }
-			n.vec.VectorOut = a.VectorOut()
-			n.vec.VectorIn = a.VectorIn()
+			n.wirePlumbing(a)
+			latticeSeed, seed, seedUnknown := n.wireLatticeSeed(a)
+			n.wireSelfDrive(a, latticeSeed, seed, seedUnknown)
+			n.wireVectorChannels(a)
 			// EmitGeometry stays nil deliberately — n.Self.EmitGeometryOnce (Update)
 			// makes this node's own startup geometry emit instead.
 			return n, nil
