@@ -28,7 +28,7 @@ func (m *NodeGeometry) Label() string { return m.geom.Label }
 
 func (m *NodeGeometry) WorldCenter() vec3 { return nodegeom.NodeWorldPos(m.geom) }
 
-func (m *NodeGeometry) NodeRow() int32 { return m.stream.nodeRow }
+func (m *NodeGeometry) NodeRow() int32 { return m.stream.NodeRow() }
 
 func (m *NodeGeometry) EdgeIDs() []string { return m.topo.EdgeIDs() }
 
