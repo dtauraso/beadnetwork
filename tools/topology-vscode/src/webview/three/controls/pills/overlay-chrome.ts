@@ -1,8 +1,9 @@
 import React from "react";
+import * as T from "../chrome-theme";
 
-export const CHROME_FONT_STACK = '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif';
+export const CHROME_FONT_STACK = T.FONT_STACK;
 
-export const CHROME_TEXT = "#e7e7ea";
+export const CHROME_TEXT = T.TEXT;
 
 export function pillContainerStyle(active: boolean): React.CSSProperties {
   return {
@@ -11,21 +12,21 @@ export function pillContainerStyle(active: boolean): React.CSSProperties {
     pointerEvents: "auto",
     display: "flex",
     alignItems: "stretch",
-    borderRadius: 6,
+    borderRadius: T.RADIUS_CHIP,
     overflow: "hidden",
-    fontSize: 11,
-    fontWeight: 600,
+    fontSize: T.FONT_SIZE,
+    fontWeight: T.FONT_WEIGHT_LABEL,
     fontFamily: CHROME_FONT_STACK,
-    background: active ? "#4ea1ff" : "#34343d",
-    border: `1px solid ${active ? "#4ea1ff" : "#3a3a44"}`,
+    background: active ? T.ACCENT : T.CHIP,
+    border: `1px solid ${active ? T.ACCENT : T.BORDER}`,
 
-    color: active ? "#04101f" : CHROME_TEXT,
+    color: active ? T.ACCENT_INK : CHROME_TEXT,
     userSelect: "none",
   };
 }
 
 export const pillBodyStyle: React.CSSProperties = {
-  padding: "3px 9px",
+  padding: T.PAD_PILL_BODY,
   cursor: "pointer",
   display: "flex",
   alignItems: "center",
@@ -36,7 +37,7 @@ export const pillCaretStyle: React.CSSProperties = {
   cursor: "pointer",
   display: "flex",
   alignItems: "center",
-  fontSize: 9,
+  fontSize: T.FONT_SIZE_GLYPH,
 
 };
 
@@ -48,11 +49,11 @@ export function popoverStyle(width: number | string): React.CSSProperties {
     zIndex: 21,
     pointerEvents: "auto",
     width,
-    background: "#2f2f37",
-    border: "1px solid #3a3a44",
-    borderRadius: 8,
-    padding: 6,
-    boxShadow: "0 8px 24px rgba(0,0,0,0.5)",
+    background: T.SURFACE,
+    border: `1px solid ${T.BORDER}`,
+    borderRadius: T.RADIUS_PANEL,
+    padding: T.PAD_PANEL,
+    boxShadow: T.PANEL_SHADOW,
     fontFamily: CHROME_FONT_STACK,
     userSelect: "none",
   };
@@ -63,14 +64,14 @@ export function groupHeadingStyle(hover: boolean): React.CSSProperties {
     display: "flex",
     alignItems: "center",
     gap: 5,
-    fontSize: 9.5,
+    fontSize: T.FONT_SIZE_HEADING,
     textTransform: "uppercase",
-    letterSpacing: "0.05em",
+    letterSpacing: T.HEADING_TRACKING,
     color: CHROME_TEXT,
-    padding: "5px 6px 4px",
+    padding: T.PAD_HEADING,
     cursor: "pointer",
-    borderRadius: 5,
-    background: hover ? "rgba(255,255,255,0.05)" : "transparent",
+    borderRadius: T.RADIUS_ITEM,
+    background: hover ? T.HOVER_ROW : "transparent",
   };
 }
 
@@ -95,12 +96,12 @@ export function popoverRowStyle(hover: boolean, disabled: boolean): React.CSSPro
     display: "flex",
     alignItems: "center",
     gap: 7,
-    padding: "4px 6px",
+    padding: T.PAD_ROW,
     cursor: disabled ? "default" : "pointer",
     color: CHROME_TEXT,
-    borderRadius: 5,
-    background: !disabled && hover ? "rgba(255,255,255,0.05)" : "transparent",
+    borderRadius: T.RADIUS_ITEM,
+    background: !disabled && hover ? T.HOVER_ROW : "transparent",
     userSelect: "none",
-    fontSize: 11.5,
+    fontSize: T.FONT_SIZE,
   };
 }

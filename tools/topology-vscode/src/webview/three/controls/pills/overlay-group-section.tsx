@@ -9,6 +9,7 @@ import {
   CHROME_TEXT,
   REVEALED_LIST_STYLE,
 } from "./overlay-chrome";
+import * as T from "../chrome-theme";
 
 export function OverlayGroupSection({ group, disabled }: { group: OverlayGroup; disabled?: boolean }) {
   const [open, setOpen] = useState(false);
@@ -49,13 +50,13 @@ export function OverlayGroupSection({ group, disabled }: { group: OverlayGroup; 
           title={disabled ? "" : on > 0 ? `Turn all ${group.heading} off` : `Turn all ${group.heading} on`}
           style={{
 
-            color: on > 0 ? "#4ea1ff" : CHROME_TEXT,
+            color: on > 0 ? T.ACCENT : CHROME_TEXT,
             fontVariantNumeric: "tabular-nums",
 
             cursor: "pointer",
-            padding: "1px 4px",
-            borderRadius: 4,
-            background: !disabled && countHover ? "rgba(255,255,255,0.10)" : "transparent",
+            padding: T.PAD_ITEM,
+            borderRadius: T.RADIUS_ITEM,
+            background: !disabled && countHover ? T.HOVER_CHIP : "transparent",
           }}
         >
           {on}/{group.cfgs.length}

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { popoverRowStyle } from "./overlay-chrome";
+import * as T from "../chrome-theme";
 
 export function ValueBox({ shown, widest }: { shown: string; widest: string }) {
   return (
@@ -109,18 +110,18 @@ const arrowGroupStyle: React.CSSProperties = {
 };
 
 const arrowBtnStyle: React.CSSProperties = {
-  background: "rgba(255,255,255,0.12)",
+  background: T.HOVER_ROW,
   border: "none",
-  borderRadius: 4,
-  color: "#e7e7ea",
-  fontSize: 10,
+  borderRadius: T.RADIUS_ITEM,
+  color: T.TEXT,
+  fontSize: T.FONT_SIZE_GLYPH,
   lineHeight: 1,
-  padding: "2px 5px",
+  padding: T.PAD_ITEM,
   cursor: "pointer",
 };
 
 const arrowBtnDisabledStyle: React.CSSProperties = {
   ...arrowBtnStyle,
-  opacity: 0.35,
+  opacity: T.DISABLED_OPACITY,
   cursor: "default",
 };

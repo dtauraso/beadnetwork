@@ -15,6 +15,7 @@ import {
   CHROME_TEXT,
   CHROME_FONT_STACK,
 } from "../../pills/overlay-chrome";
+import * as T from "../../chrome-theme";
 
 export function NodePalette() {
   const editable = useSceneEditable();
@@ -94,13 +95,13 @@ function RefusedNotice() {
     <div
       style={{
         pointerEvents: "auto",
-        background: "#34343d",
-        border: "1px solid #3a3a44",
-        borderRadius: 6,
+        background: T.CHIP,
+        border: `1px solid ${T.BORDER}`,
+        borderRadius: T.RADIUS_CHIP,
         color: CHROME_TEXT,
         fontFamily: CHROME_FONT_STACK,
-        fontSize: 11,
-        padding: "3px 8px",
+        fontSize: T.FONT_SIZE,
+        padding: T.PAD_CHIP,
       }}
     >
       edit refused — see the output channel

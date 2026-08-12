@@ -1,6 +1,7 @@
 import React, { useCallback, useState } from "react";
 import { fireToggle, useToggleVal, type ToggleCfg } from "./overlay-toggle";
 import { popoverRowStyle } from "./overlay-chrome";
+import * as T from "../chrome-theme";
 
 export function OverlayRow({ cfg, disabled, indent }: { cfg: ToggleCfg; disabled?: boolean; indent?: boolean }) {
   const val = useToggleVal(cfg);
@@ -36,14 +37,14 @@ export function OverlayRow({ cfg, disabled, indent }: { cfg: ToggleCfg; disabled
           flex: "0 0 auto",
 
           alignSelf: "flex-start",
-          opacity: disabled ? 0.45 : 1,
-          borderRadius: 3,
-          border: `1.5px solid ${active ? "#4ea1ff" : "#9a9aa6"}`,
-          background: active ? "#4ea1ff" : "transparent",
+          opacity: disabled ? T.DISABLED_OPACITY : 1,
+          borderRadius: T.RADIUS_ITEM,
+          border: `1px solid ${active ? T.ACCENT : T.TEXT}`,
+          background: active ? T.ACCENT : "transparent",
           display: "grid",
           placeItems: "center",
-          color: "#04101f",
-          fontSize: 10,
+          color: T.ACCENT_INK,
+          fontSize: T.FONT_SIZE_GLYPH,
           fontWeight: 900,
           lineHeight: "11px",
         }}

@@ -1,6 +1,7 @@
 import React, { useCallback } from "react";
 import * as THREE from "three";
 import { sendRawInput, buildHomeRaw } from "../../interaction/raw-input";
+import * as T from "../chrome-theme";
 
 export function HomeButton({
   cameraRef,
@@ -24,15 +25,16 @@ export function HomeButton({
       style={{
 
         alignSelf: "flex-end",
-        background: "rgba(0,0,0,0.55)",
-        borderRadius: 6,
-        padding: "3px 7px",
+        background: T.CHIP,
+        border: `1px solid ${T.BORDER}`,
+        borderRadius: T.RADIUS_CHIP,
+        padding: T.PAD_CHIP,
         cursor: "pointer",
         pointerEvents: "auto",
         zIndex: 20,
-        color: "#ddd",
-        fontSize: 11,
-        fontFamily: "monospace",
+        color: T.TEXT,
+        fontSize: T.FONT_SIZE,
+        fontFamily: T.FONT_STACK,
         userSelect: "none",
         display: "flex",
         alignItems: "center",

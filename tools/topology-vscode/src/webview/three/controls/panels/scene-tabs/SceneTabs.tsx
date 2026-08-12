@@ -3,6 +3,7 @@ import { postGoRecord } from "../../../../vscode-api";
 import { encodeSceneSelected } from "../../../../../schema/input/input-encode";
 import { postLog } from "../../../../log/post";
 import { useSceneTabs } from "./scene-tabs";
+import * as T from "../../chrome-theme";
 
 const stripStyle: React.CSSProperties = {
 
@@ -15,24 +16,25 @@ const stripStyle: React.CSSProperties = {
   display: "inline-flex",
   flexDirection: "row",
   gap: 2,
-  background: "rgba(0,0,0,0.55)",
-  borderRadius: 6,
-  padding: "3px 4px",
-  fontSize: 11,
-  fontFamily: "monospace",
+  background: T.CHIP,
+  border: `1px solid ${T.BORDER}`,
+  borderRadius: T.RADIUS_CHIP,
+  padding: T.PAD_CHIP,
+  fontSize: T.FONT_SIZE,
+  fontFamily: T.FONT_STACK,
   userSelect: "none",
 };
 
 function tabStyle(active: boolean): React.CSSProperties {
   return {
-    background: active ? "rgba(255,255,255,0.22)" : "transparent",
+    background: active ? T.ACCENT : "transparent",
     border: "none",
-    borderRadius: 4,
-    color: active ? "#fff" : "#bbb",
-    fontSize: 11,
-    fontFamily: "monospace",
+    borderRadius: T.RADIUS_ITEM,
+    color: active ? T.ACCENT_INK : T.TEXT,
+    fontSize: T.FONT_SIZE,
+    fontFamily: T.FONT_STACK,
     lineHeight: 1,
-    padding: "3px 8px",
+    padding: T.PAD_CHIP,
     cursor: "pointer",
   };
 }
