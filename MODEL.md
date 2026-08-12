@@ -53,7 +53,7 @@ mistake to avoid (chain_beads.go's own header comment makes the same split):
   own state (its own kind/radius and its own live copy of each neighbour's world
   center, `partnerCenters` — see "the polar model" below) — the bead-actor path is
   entered only when the node's own `beadTickFn` is set (production's `NewNodeMover`; nil in
-  every bare-literal test `nodeMover`, which is what keeps `chainBeads`' own test suite pure
+  every bare-literal test `NodeMover`, which is what keeps `chainBeads`' own test suite pure
   and free of any live `TickBroadcaster` side effect). This bead is driven by TWO clocks
   over THREE structurally distinct channel sets:
   - **Geometry** (machine time): a `BroadcastChain` carrying the owning node's live aim
@@ -104,7 +104,7 @@ mistake to avoid (chain_beads.go's own header comment makes the same split):
 
   **Known boundary:** the bead-actor path is driven by the SOURCE node's own drag (the node
   that owns the chain, per "an edge is stored under its source node" above) —
-  `startBeadDrag`/`endBeadDrag` fire only when `g.dragNode` is that source node. Dragging
+  `startBeadDrag`/`endBeadDrag` fire only when `g.DragNode` is that source node. Dragging
   the TARGET end of an edge still repositions that edge's beads with no visible lag (every
   `chainBeads()` call recomputes from the live `partnerCenters` push the target's own
   `ApplyCenter` already sends on every commit — unchanged, pre-existing machinery), but it
@@ -179,7 +179,7 @@ A bead crosses a wire in one direction:
    (see the Clock bullet above) — advances the bead, keeping it in the
    wire's `inflight` set. The wire has no goroutine of its own: the source
    node's mover drives `DriveOneCycle` for each of its outgoing wires
-   (`nodeMover.run`), so a wire is a passive delay queue its source node
+   (`NodeMover.Run`), so a wire is a passive delay queue its source node
    steps.
 3. On traversal-complete, that same drive sends the bead over the wire's
    out-channel to the destination node.
@@ -253,7 +253,7 @@ resolving instantaneously.
 
 **Self-scheduling node goroutines.** Each node is a goroutine. A WIRE IS
 NOT: it is a passive delay queue, and the goroutine that steps it is its
-own SOURCE NODE's mover (`nodeMover.run` calls `DriveOneCycle` for each of
+own SOURCE NODE's mover (`NodeMover.Run` calls `DriveOneCycle` for each of
 its outgoing wires). There is still no central walker and no play/pause
 gate — the clock is free-running and the animation never halts.
 
@@ -296,7 +296,7 @@ when a bead has arrived. Go owns the clock.
   stdio pipe (`Buffer/streamframe/stream_fds.go`, memory/feedback/architecture/feedback_no_single_writer_bridge.md)
   — one VIEW stream (camera/overlay/scene, the gesture/stdin-reader
   goroutine), one stream per edge row (that edgeMover's own geometry + its
-  wire's live beads), one stream per node row (that nodeMover's own
+  wire's live beads), one stream per node row (that NodeMover's own
   geometry+ports+label), one INTERIOR stream per node row (that node's own
   Update-goroutine's interior beads — the ONLY writer of that node's four
   interior slots), and a fixed `DriveSlotsPerNode` (`Buffer/streamframe/stream_fds.go`)
@@ -458,7 +458,7 @@ and none is a source of truth.
 
   > **Rejected: pan moves the sphere.** The model once said camera pan should translate the
   > center by the same delta, holding node world positions fixed while their scene polars
-  > recomputed about the new center. Coupling pan/dolly to the sphere left `md.sceneSphere`
+  > recomputed about the new center. Coupling pan/dolly to the sphere left `ui.SceneSphere`
   > diverged from the movers' held center until a later broadcast reconciled it with a jump —
   > the "zoom got canceled" symptom. It was decoupled, a separate scene-pan gesture was named
   > as the proper home, and that gesture was never built. The claim is now DROPPED rather than
@@ -504,7 +504,7 @@ and none is a source of truth.
   keep their existing chain-relative placement (index × `lattice.BeadStepR` along the same aim)
   — this model change is about the node's coordinate, the per-edge first-bead vector, and
   this one summation site, not the rest of the chain.
-- **The node STORES ITS SUM** — its own world center (`nodeMover.geom`, written once per
+- **The node STORES ITS SUM** — its own world center (`NodeMover.geom`, written once per
   move by `ApplyCenter`) — so a bead's polar view starts from that stored sum rather than
   re-walking to the scene centre on every read. With no ancestors, only that node can
   invalidate it, and it owns it (single-writer, its own goroutine).
@@ -605,7 +605,7 @@ pacing to another's, which is the coupling the whole model exists to avoid.
 is the only context they get. It must:
 
 1. **Open with a site tag** — the detecting function, method, or subsystem, then a colon —
-   so the message greps back to its source: `paced_wire: `, `nodeMover(%s): `,
+   so the message greps back to its source: `paced_wire: `, `NodeMover(%s): `,
    `BuildEdgeStreamFrame: `.
 2. **Name the invariant and the actual values**, not a category. `pending exceeded %d events
    on wire -> %s.%s`, not `limit exceeded`.

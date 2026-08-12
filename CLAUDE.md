@@ -1,10 +1,5 @@
 # CLAUDE.md
 
-<!-- Root file = cross-cutting invariants where drift is expensive. Region-specific detail
-     lives in .claude/rules/*.md with `paths:` frontmatter and loads on demand.
-     Root CLAUDE.md is re-injected after /compact; rules are NOT — they reload the next
-     time a matching file is read. That is the criterion for what stays here. -->
-
 ## Model — read first
 
 Before changing anything in the **Go network** (`nodes/`, `nodes/wire/paced_wire.go`,

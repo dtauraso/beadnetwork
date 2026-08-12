@@ -125,8 +125,6 @@ confirmed. Redesign complete; merging to `main` this session.
 
 ---
 
-<!-- source: session-log/2026-05-03-industry-standard-pattern-review-visual-editor.md -->
-
 ## 2026-05-03 — industry-standard-pattern review (visual editor)
 
 **Branch:** task/industry-pattern-review
