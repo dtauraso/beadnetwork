@@ -13,6 +13,8 @@ type MoverRegistry struct {
 
 	nodeMovers map[string]*nodeactor.NodeMover
 
+	nodeAnimations map[string]*nodeactor.NodeAnimation
+
 	selfDriveClaimed map[string]bool
 	edgeMovers       map[string]*edgemover.EdgeMover
 

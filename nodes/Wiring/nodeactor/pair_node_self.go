@@ -56,7 +56,16 @@ func (p *PairNodeSelf) Step(ctx context.Context, tick int64) {
 			break
 		}
 	}
-	g.outs.DriveOutWires(ctx, tick)
+
+	// A self-driven kind has no separate animation goroutine — its own
+	// loop plays both peers' roles serially. It still round-trips through
+	// the same step-count / pulse channels as the split case, so
+	// chainBeads (called from writeStreamFrame below) sees this cycle's
+	// pulses exactly as it would from a genuine animation peer.
+	g.anim.drainStepCounts()
+	g.anim.driveOutWires(ctx, tick)
+	g.anim.sendPulses(tick)
+
 	g.msg.FlushPending()
 	g.writeStreamFrame(nil)
 }
@@ -110,5 +119,5 @@ func (p *PairNodeSelf) ClearOutBeads() {
 	if p == nil || p.geom == nil {
 		return
 	}
-	p.geom.outs.ClearOutWires()
+	p.geom.anim.ClearOutWires()
 }

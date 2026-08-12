@@ -9,7 +9,6 @@ import (
 )
 
 type Outs struct {
-	outTargets     []string
 	outWires       []*wire.PacedWire
 	outWireTargets []string
 	outWireOuts    []*outport.Out
@@ -17,13 +16,24 @@ type Outs struct {
 	outStepsIn []func(int)
 }
 
-func (o *Outs) AddOutTarget(target string) {
-	o.outTargets = append(o.outTargets, target)
-}
-
-func (o *Outs) OutTargets() []string { return o.outTargets }
-
 func (o *Outs) HasOutWires() bool { return len(o.outWires) > 0 }
+
+// WireTargets returns each distinct target id an outgoing PacedWire drives —
+// the animation job's own iteration list, separate from NodeGeometry's
+// outTargets (which draws chain beads toward every declared edge target,
+// wired or not).
+func (o *Outs) WireTargets() []string {
+	seen := map[string]bool{}
+	var targets []string
+	for _, wt := range o.outWireTargets {
+		if seen[wt] {
+			continue
+		}
+		seen[wt] = true
+		targets = append(targets, wt)
+	}
+	return targets
+}
 
 func (o *Outs) DriveOutWires(ctx context.Context, tick int64) {
 	for _, pw := range o.outWires {

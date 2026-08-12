@@ -55,11 +55,11 @@ func (m *NodeGeometry) SetTopTiltVectorThetaIdx(idx int32) {
 }
 
 func (m *NodeGeometry) AddOutTarget(target string) {
-	m.outs.AddOutTarget(target)
+	m.outTargets = append(m.outTargets, target)
 }
 
 func (m *NodeGeometry) AddOutWire(pw *wire.PacedWire, target string, o *outport.Out, sendSteps func(int)) {
-	m.outs.AddOutWire(pw, target, o, sendSteps)
+	m.anim.AddOutWire(pw, target, o, sendSteps)
 }
 
 func (m *NodeGeometry) WireStream(streamOut streamclaim.StreamHandle, row int32, kindID uint8, nodeRowFor func(id string) (int32, bool), buildFrame nodeframe.NodeFrameBuilder) {
