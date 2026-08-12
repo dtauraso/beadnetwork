@@ -23,14 +23,14 @@ type edgeBeadChain struct {
 	lattice     float64
 }
 
-func (m *NodeGeometry) reconcileBeadChain(to string, count int, offsetAt func(i int) float64, aim wire.Vec3) *edgeBeadChain {
-	if m.beads.beadChains == nil {
-		m.beads.beadChains = map[string]*edgeBeadChain{}
+func (nb *nodeBeads) reconcileBeadChain(to string, count int, offsetAt func(i int) float64, aim wire.Vec3) *edgeBeadChain {
+	if nb.beadChains == nil {
+		nb.beadChains = map[string]*edgeBeadChain{}
 	}
-	c := m.beads.beadChains[to]
+	c := nb.beadChains[to]
 	if c == nil {
 		c = &edgeBeadChain{group: beadchain.NewBeadWakeGroup()}
-		m.beads.beadChains[to] = c
+		nb.beadChains[to] = c
 	}
 
 	if lat := offsetAt(0); !c.haveLattice || lat != c.lattice {
@@ -47,7 +47,7 @@ func (m *NodeGeometry) reconcileBeadChain(to string, count int, offsetAt func(i 
 		i := len(c.beads)
 		geom, wake, settle := c.group.Current()
 		stop := make(chan struct{})
-		b := beadchain.NewBead(offsetAt(i), geom, wake, settle, m.beads.beadTickFn(), stop)
+		b := beadchain.NewBead(offsetAt(i), geom, wake, settle, nb.beadTickFn(), stop)
 		snap := b.WithObserve()
 		b.Start()
 		c.beads = append(c.beads, b)
@@ -84,14 +84,14 @@ func (m *NodeGeometry) reconcileBeadChain(to string, count int, offsetAt func(i 
 	return c
 }
 
-func (m *NodeGeometry) startBeadDrag() {
-	for _, c := range m.beads.beadChains {
+func (nb *nodeBeads) startBeadDrag() {
+	for _, c := range nb.beadChains {
 		c.group.StartDrag()
 	}
 }
 
-func (m *NodeGeometry) endBeadDrag() {
-	for _, c := range m.beads.beadChains {
+func (nb *nodeBeads) endBeadDrag() {
+	for _, c := range nb.beadChains {
 		c.group.EndDrag()
 	}
 }

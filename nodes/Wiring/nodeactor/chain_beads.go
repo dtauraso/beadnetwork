@@ -76,7 +76,7 @@ func (m *NodeGeometry) chainBeadsForTarget(to string, tick int64, selfTorusR flo
 
 	var actorChain *edgeBeadChain
 	if m.beads.beadTickFn != nil {
-		actorChain = m.reconcileBeadChain(to, count, offsetAt, aimUnit)
+		actorChain = m.beads.reconcileBeadChain(to, count, offsetAt, aimUnit)
 	}
 
 	var resolved []vec3
