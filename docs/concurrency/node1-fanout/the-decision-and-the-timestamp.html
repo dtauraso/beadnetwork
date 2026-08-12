@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Node 1 fan-out — architecture — The decision and the timestamp live in different goroutines</title>
+<link rel="stylesheet" href="index.css">
+</head>
+<body>
+<div class="wrap">
+  <header style="display:flex; flex-direction:column; gap:0.7rem;">
+    <p class="eyebrow">wirefold · architecture · node 1 fan-out</p>
+    <h1>The decision and the timestamp live in different goroutines</h1>
+    <nav class="crumbnav"><a href="index.html">index</a> — <a href="who-owns-what-and-which.html">Who owns what, and which channels cross between them</a> · <span class="crumb-here">The decision and the timestamp live in different goroutines</span> · <a href="one-goroutine-one-stream.html">One goroutine, one stream</a></nav>
+  </header>
+  <section>
+    <p class="eyebrow">the seam</p>
+    <h2>The decision and the timestamp live in different goroutines</h2>
+    <p>Every other piece of state on this page is written by exactly one goroutine — the one that decides it. A bead's <code>placementTick</code> is the exception: the Input kind decides the bead exists, and the mover stamps its start time whenever it next drains that wire.</p>
+    <div class="tbl-scroll">
+      <table>
+        <thead><tr><th>State</th><th>Decided by</th><th>Written by</th></tr></thead>
+        <tbody>
+          <tr><td class="c1">bead value</td><td class="c1">Input kind</td><td class="c1">Input kind</td></tr>
+          <tr><td class="c1">node center</td><td class="c1">nodeMover</td><td class="c1">nodeMover</td></tr>
+          <tr><td class="c1">chain lit index</td><td class="c1">nodeMover</td><td class="c1">nodeMover</td></tr>
+          <tr><td class="c1">arc / ticksToCross</td><td class="c1">wire geometry</td><td class="c1">nodeMover</td></tr>
+          <tr>
+            <td class="c1" style="color:var(--fault)">bead placementTick</td>
+            <td class="c1">Input kind</td>
+            <td class="c1" style="color:var(--fault)">nodeMover &mdash; split owner</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">Two beads from one <code>broadcastPlace</code> should share a start time by construction. They only do if the goroutine that placed them is the one that stamps them. Moving the stamp into <code>Send</code> closes the split — the sender reads its own clock once and both wires carry it.</p>
+  </section>
+</div>
+</body>
+</html>
+
