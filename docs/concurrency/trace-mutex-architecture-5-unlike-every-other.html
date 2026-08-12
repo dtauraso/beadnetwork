@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="doc-status" content="historical" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>wirefold — Trace.mu, resolved</title>
+<title>wirefold — Trace.mu, resolved — unlike every other lock here, this one was held across I/O (now moot — the lock is gone)</title>
 <style>
   :root {
     --ground:#F2F4F7; --surface:#FFFFFF; --plate:#FAFBFC;
@@ -94,51 +94,56 @@
 .crumbnav a { color: var(--flow, #2E7D9A); text-decoration:none; }
 .crumbnav a:hover { text-decoration:underline; }
 .crumbnav .crumb-here { color: var(--ink, #131A24); font-weight:600; }
-
-.idx-list { list-style:none; margin:22px 0 0; padding:0; display:grid; gap:10px; max-width:640px; }
-.idx-list a {
-  display:block; font-family:var(--mono); font-size:14px; color:var(--ink, #131A24);
-  background:var(--surface, #fff); border:1px solid var(--line, #D3D9E2); border-radius:6px;
-  padding:14px 16px; text-decoration:none;
-}
-.idx-list a:hover { border-color:var(--line-strong, #B7C0CD); }
 </style>
 </head>
 <body>
 
 <header>
   <div class="head-inner">
-    <p class="eyebrow">wirefold · concurrency · RESOLVED</p>
-    <h1>Trace.mu — the record of a question that closed</h1>
-    <p class="sub">This page used to describe <code>Trace.mu</code> as present and its removal as
-    open. It is now deleted — the seventh and last <code>sync.Mutex</code>/<code>Cond</code> in
-    non-test Go. All six others were already deleted before it: <code>geomMu</code> deleted, <code>RealClock.mu</code> deleted, <code>PacedWire.mu</code> deleted, <code>outbox.mu</code> deleted, <code>LayoutHolder.mu</code> deleted, <code>debouncedPersister.mu</code> deleted. Its stated job was guarding the event accumulator, and
-    that claim was true but <b>vestigial</b> — nothing in production ever raced it. What the
-    lock was actually still doing — serializing <code>Breadcrumb</code>'s direct sink writes and
-    surviving a shutdown that didn't wait — is what got fixed. The diagrams below are kept as the
-    historical record of the diagnosis; each is marked with what changed.</p>
+    <p class="eyebrow">Trace.mu, resolved</p>
+    <h1>5 · unlike every other lock here, this one was held across I/O (now moot — the lock is gone)</h1>
+    <nav class="crumbnav"><a href="trace-mutex-architecture.html">Trace.mu — the record of a question that closed</a> — <a href="trace-mutex-architecture-1-the-hot-path.html">the hot path never touched the lock — still true, now trivially</a> · <a href="trace-mutex-architecture-2-what-it-used.html">what it used to guard — and one field the comment claimed but did not</a> · <a href="trace-mutex-architecture-3-who-actually-took.html">who actually took the lock — and which of them existed in production</a> · <a href="trace-mutex-architecture-4-what-the-lock.html">what the lock was really doing — shutdown, not accumulation (RESOLVED)</a> · <span class="crumb-here">unlike every other lock here, this one was held across I/O (now moot — the lock is gone)</span> · <a href="trace-mutex-architecture-6-the-single-owner-question.html">the single-owner question — drain already was one (RESOLVED)</a> · <a href="trace-mutex-architecture-7-the-framing-above.html">the framing above it — Step is arrival order, not causal order (STILL OPEN)</a> · <a href="trace-mutex-architecture-8-the-red-proof.html">the red proof — settled by the deletion itself</a></nav>
   </div>
 </header>
 
 <div class="wrap">
-<ul class="idx-list">
-  <li><a href="trace-mutex-architecture-1-the-hot-path.html">1 · the hot path never touched the lock — still true, now trivially</a></li>
-  <li><a href="trace-mutex-architecture-2-what-it-used.html">2 · what it used to guard — and one field the comment claimed but did not</a></li>
-  <li><a href="trace-mutex-architecture-3-who-actually-took.html">3 · who actually took the lock — and which of them existed in production</a></li>
-  <li><a href="trace-mutex-architecture-4-what-the-lock.html">4 · what the lock was really doing — shutdown, not accumulation (RESOLVED)</a></li>
-  <li><a href="trace-mutex-architecture-5-unlike-every-other.html">5 · unlike every other lock here, this one was held across I/O (now moot — the lock is gone)</a></li>
-  <li><a href="trace-mutex-architecture-6-the-single-owner-question.html">6 · the single-owner question — drain already was one (RESOLVED)</a></li>
-  <li><a href="trace-mutex-architecture-7-the-framing-above.html">7 · the framing above it — Step is arrival order, not causal order (STILL OPEN)</a></li>
-  <li><a href="trace-mutex-architecture-8-the-red-proof.html">8 · the red proof — settled by the deletion itself</a></li>
-</ul>
-<footer>
-  Verified against the tree on <span style="font-family:var(--mono)">task/mutex-trace</span>.
-  Line numbers drift — re-grep before trusting them. Companions:
-  <span style="font-family:var(--mono)">docs/concurrency/mutex-architecture.html</span>,
-  <span style="font-family:var(--mono)">docs/layout-holder-architecture.html</span>,
-  <span style="font-family:var(--mono)">docs/concurrency/debounced-persister-architecture.html</span>,
-  <span style="font-family:var(--mono)">docs/concurrency/framings.md</span>.
-</footer>
+<div class="legend">
+  <span><i class="sw g"></i>goroutine</span>
+  <span><i class="sw s"></i>under the lock</span>
+  <span><i class="sw k"></i>lock-free</span>
+  <span><i class="sw q"></i>test-only</span>
+</div>
+
+<h2>5 · unlike every other lock here, this one was held across I/O (now moot — the lock is gone)</h2>
+<p class="cap">Historical: every lock deleted before this one released before touching the outside
+world. This one didn't — which no longer matters, because there is no lock left to hold across
+anything. <code>Breadcrumb</code> and <code>WriteJSONL</code> still do the same I/O; they just
+do it from the drain goroutine with nothing else able to race them.</p>
+
+<div class="plate">
+<svg viewBox="0 0 860 190" role="img" aria-label="Historical: Breadcrumb used to write to standard output while holding the mutex, and WriteJSONL held it across an entire write loop to an arbitrary writer. Neither holds a lock now because Breadcrumb runs on the drain goroutine and WriteJSONL still runs after drain has exited.">
+  <rect class="safe" x="0" y="24" width="420" height="106" rx="6"/>
+  <text class="t"  x="12" y="46">Breadcrumb — Trace.go:580-602</text>
+  <text class="tk" x="12" y="68">no mu — sends on t.ch, drain writes debugSink</text>
+  <text class="tf" x="12" y="88">= os.Stdout in production (main.go:82)</text>
+  <text class="tf" x="12" y="106">a slow/blocked stdout now only blocks the</text>
+  <text class="tf" x="12" y="120">drain goroutine, not other emitters</text>
+
+  <rect class="safe" x="440" y="24" width="420" height="106" rx="6"/>
+  <text class="t"  x="452" y="46">WriteJSONL — drain.go:56-60</text>
+  <text class="tk" x="452" y="68">no mu — nothing left to hold</text>
+  <text class="tf" x="452" y="88">to a caller-supplied io.Writer</text>
+  <text class="tf" x="452" y="106">still: one call, after Close,</text>
+  <text class="tf" x="452" y="120">nothing else running (main.go:240)</text>
+
+  <line x1="0" y1="152" x2="860" y2="152" stroke="var(--line)"/>
+  <text class="tq" x="0" y="172">KEEP SPARSE</text>
+  <text class="ts" x="86" y="172">CLAUDE.md already says breadcrumbs are for control events, not a per-tick firehose. This is why.</text>
+</svg>
+</div>
+
+
+
 </div>
 
 </body>
