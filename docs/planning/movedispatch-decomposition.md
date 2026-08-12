@@ -5645,3 +5645,95 @@ shared table helpers), `32fe690f` (input_layout.go parse/emit split), `17f5285c`
 
 Verify: `bash scripts/stop-checks.sh` from repo root — empty stdout. `go build ./...` and
 `go vet ./...` both clean (no output beyond the build/vet completing).
+
+## Two never-examined files: gesture_camera.go (geom) and loader_tree.go (loadspec)
+
+Both files already lived in lifted subpackages (`geom`, `loadspec`); this pass was purely
+about splitting a large file by concern, not escaping a god package.
+
+**`nodes/Wiring/geom/gesture_camera.go` (321 lines).** Every function in this file is
+bucket (b): pure computation on parameters/locals, no field writes on a type staying
+behind, no channel send, no goroutine start, no file I/O. There is nothing to lift — the
+file already sits in its correct sibling package (`geom`). Split IN PLACE by the six
+concerns the file's own section-comment banners already named: `camera_angles.go`
+(`AnglesToWorldOffset`/`WorldDirToAngles`, 50 lines), `camera_basis.go` (`CamBasis`/
+`BasisFromViewpoint`/`EyeOf`, 36 lines), `camera_screen.go` (`PolarDir`/`ScreenToPolar`/
+`ToWorldDir`/`PlaneSlide`/`DeltaToPolar`/`PanDisplacementPolar`, 69 lines),
+`camera_focus.go` (`FocusAhead`/`ContentSphereOf`/`RegionFocus` + the three gesture
+constants, 99 lines), `camera_homefit.go` (`FitDistanceGo`/`HomeFitPose`, 50 lines),
+`camera_project.go` (`ProjectNDC`/`RayDirThroughNDC`, 37 lines). No exported surface
+changed — same package, same signatures, same body text moved verbatim. The great-circle
+orbit formulation (no free axis/sign parameter — `memory/feedback_make_bug_class_unrepresentable.md`)
+was preserved exactly: nothing in the split touches the math, only which file a function's
+text lives in. Grepped `tools/` and `scripts/` for `gesture_camera.go` and every moved
+symbol name before splitting — zero hits, so no guard hardcoded this file's path or any of
+its function names. One doc citation did reference it: `docs/pair-node/math/formulas.html`'s
+three `data-src="nodes/Wiring/geom/gesture_camera.go"` rows (the x/y/z spherical-to-cartesian
+formula, which is `AnglesToWorldOffset`) now point at `camera_angles.go`, caught by
+`check-docs-symbols.sh` failing loudly (`nodes/Wiring/geom/gesture_camera.go does not
+exist`) rather than silently. No test file existed for this package (`gesture_camera_test.go`,
+named in the old header comment, was never created — this repo has no tests by decision).
+
+**`nodes/Wiring/loadspec/loader_tree.go` (284 lines).** `LoadTree` itself is bucket (a):
+every top-level step is `os.ReadFile`/`os.ReadDir` (via `readDirNames`) building `spec`,
+which stays behind — kept in `loader_tree.go` untouched, including the `ROW ID = NODE ID -
+1` loud-failure block (`.claude/rules/persistence-ownership.md`) and the panic on a stale
+edge `Source` field. The four trailing helpers (`NodeIDsInTree`, `NodeIDStringsInTree`,
+`LargestNodeID`, `CountEdgeFiles`, 51 lines total) are a SEPARATE concern already marked off
+by the file's own `--- the tree's own shape, for the operations that CHANGE it ---` banner:
+each does its own `os.ReadDir` (via `readDirNames`) and pure arithmetic (parse/sort/max) —
+still bucket (a) by the letter of the rule (file I/O), but answering "what does the tree
+look like today" for `scene_structure.go`'s create/delete, not "load the graph" the way
+`LoadTree` does. Split in place: moved to a new file in the SAME package,
+`tree_shape.go`, no API change, `readDirNames` stayed in `loader_tree.go` and both files
+call it. `go build ./nodes/... `/`go vet` clean before any guard re-keying.
+
+**Guard re-keyed:** `tools/network/persist/check-scene-path-resolution.sh`'s `NODE_PATH_OWNERS`
+array names the files allowed to `filepath.Join` a `nodes/` path — it hardcoded
+`loader_tree.go` and would have gone silently green on `tree_shape.go`'s two `nodes/`
+`filepath.Join` calls landing in an un-listed file... except it doesn't go green, it FAILS,
+because the guard's positive assertion is "every `nodes/`-segment Join must be in an
+allow-listed file", not "loader_tree.go's Joins are still there" — an unlisted new file
+trips it. Added `"tree_shape.go"` to `NODE_PATH_OWNERS` plus updated the three prose
+comments (`PLACEMENT:` line, the `nodes/<id>/...` bullet, the `NODE_JOIN_HITS` error
+string) that named `loader_tree.go` as the sole reader. Proved the guard still bites: used
+Edit to remove `"tree_shape.go"` from the array, ran the guard, got:
+
+```
+hand-rolled-node-path: /Users/David/Documents/github/wirefold/nodes/Wiring/loadspec/tree_shape.go: 22:	names, err := readDirNames(filepath.Join(root, "nodes"))
+hand-rolled-node-path: /Users/David/Documents/github/wirefold/nodes/Wiring/loadspec/tree_shape.go: 65:		names, err := readDirNames(filepath.Join(root, "nodes", id, "edges"))
+
+check-scene-path-resolution: 2 hand-rolled nodes/ filepath.Join(...) hit(s) outside node_mover.go/edge_mover.go/edge_file.go/loader_tree.go/tree_shape.go/position_file.go — a node/port path belongs to its owning mover; call node_mover.go's or positionfile's resolvers instead of reconstructing the path.
+exit=1
+```
+
+Restored the array entry, guard back to clean. Grepped `tools/` and `scripts/` for
+`loader_tree.go` and `tree_shape.go`/every moved function name beforehand — the only other
+hits were prose mentions in `check-persist-write-ownership.sh`'s comments (not enforced
+matching, informational only, left as-is since they still describe `loader_tree.go`'s role
+accurately — the moved functions are read-only queries, not writes, so that guard's actual
+scope never touched them).
+
+**Changed surfaces with no check of any kind that can fail:** the six `camera_*.go`
+concern splits — no guard names any of their symbols or the old filename in a way that
+would have caught a wrong split (confirmed by grep before splitting); correctness rests on
+`go build`/`go vet` plus the human driving the editor exercising camera gestures, per this
+repo's no-tests-by-design policy. `tree_shape.go`'s four helper functions are likewise
+uncovered by any behavioral check — `check-scene-path-resolution.sh` verifies WHERE a
+`nodes/` path is constructed, not that `LargestNodeID`/`CountEdgeFiles` compute the right
+number; that arithmetic has always been unchecked (same exposure as before the split, not
+newly introduced).
+
+**Declines:** none — both files split cleanly with no channel/goroutine/field-write
+statement pinning a boundary.
+
+**Commits** (`task/god-objects`): `855310f1` (gesture_camera.go → six geom concern files),
+`c3015224` (loader_tree.go → loader_tree.go + tree_shape.go, guard re-keyed).
+
+Verify: `bash scripts/stop-checks.sh` after each commit — the one failure surfaced both
+times (`check-no-webview-state` zustand import in `snapshot-buffer.ts`, then a `tsc`
+conflict in `SpeedSlider.tsx`) is in `tools/topology-vscode/src/webview/`, owned by a
+concurrent session on this same branch per this task's own instructions — not touched by
+either commit here. `go build ./...` and `go vet ./...` both clean after each commit.
+`go run ./tools/gen-node-defs && git status --short` empty (beyond the two files this
+pass itself created/modified) after both commits.
