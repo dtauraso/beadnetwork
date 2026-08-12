@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pair node — Math — Turn sent as is, and separation</title>
+  <link rel="stylesheet" href="../pair-base.css">
+  <link rel="stylesheet" href="../pair-layout.css">
+  <link rel="stylesheet" href="../pair-typography.css">
+  <link rel="stylesheet" href="../pair-panels.css">
+  <link rel="stylesheet" href="../pair-diagrams.css">
+  <link rel="stylesheet" href="../pair-diagrams-tables.css">
+  <script src="../port.js"></script>
+  <script src="../pair.js" defer></script>
+</head>
+
+<body>
+
+  <header>
+    <h1>Math — Turn sent as is, and separation</h1>
+    <div class="sub">the unmodified quarter-turn send, the fold, the nearer-end count, and where separation still matters</div>
+  </header>
+
+  <nav>
+    <a href="../index.html">Index</a>
+    <a href="math.html">&larr; back to Math</a>
+  </nav>
+
+  <main>
+
+      <div class="grid">
+
+        <div class="card">
+          <h2>One quarter turn, sent as is</h2>
+          <svg width="300" height="150" viewBox="0 0 300 150">
+            <text x="20" y="34" class="lblm" fill="#f9a825">node 1</text>
+            <text x="90" y="34" class="lblm" fill="#e05fd8">top</text>
+            <text x="118" y="34" class="lblm" fill="#4ea1ff">.quarter</text>
+            <text x="166" y="34" class="lblm">=</text>
+            <text x="190" y="34" class="lblm" fill="#5fd68a">sent</text>
+
+            <text x="20" y="100" class="lblm" fill="#4ea1ff">node 2</text>
+            <text x="90" y="100" class="lblm" fill="#e05fd8">top</text>
+            <text x="118" y="100" class="lblm" fill="#4ea1ff">.quarter</text>
+            <text x="166" y="100" class="lblm">=</text>
+            <text x="190" y="100" class="lblm" fill="#5fd68a">sent</text>
+
+            <text x="20" y="60" class="lbl" fill="#9a9aa6">normal</text>
+            <text x="20" y="126" class="lbl" fill="#9a9aa6">normal</text>
+          </svg>
+          <div class="cap">Both nodes of a pair run this same unmodified rule — a field read off the ring,
+            nothing further is done to it.</div>
+        </div>
+
+        <div class="card">
+          <h2>separation, folded to the short side</h2>
+          <svg width="300" height="250" viewBox="0 0 300 250">
+            <circle cx="150" cy="120" r="86" fill="none" stroke="#3a3a44" />
+            <g stroke="#3a3a44">
+              <line x1="150" y1="34" x2="150" y2="46" />
+              <line x1="150" y1="194" x2="150" y2="206" />
+              <line x1="64" y1="120" x2="76" y2="120" />
+              <line x1="224" y1="120" x2="236" y2="120" />
+            </g>
+            <text x="150" y="26" text-anchor="middle" class="lblm">0</text>
+            <text x="248" y="125" class="lblm">6</text>
+            <text x="150" y="224" text-anchor="middle" class="lblm">12</text>
+            <text x="40" y="125" class="lblm">18</text>
+
+            <path d="M 150 34 A 86 86 0 0 1 236 120" fill="none" stroke="#5fd68a" stroke-width="5" />
+            <path d="M 64 120 A 86 86 0 0 1 150 34" fill="none" stroke="#5fd68a" stroke-width="5" />
+
+            <text x="150" y="112" text-anchor="middle" class="lblm" fill="#5fd68a">short arc = separation</text>
+            <text x="150" y="132" text-anchor="middle" class="lbl">never more than a half turn</text>
+            <text x="150" y="244" text-anchor="middle" class="lblm">gap = |a.idx − b.idx|, folded if it exceeds a half turn</text>
+          </svg>
+          <div class="cap">No trig: both states are already on the ring, so the fold is one subtraction
+            against the ring's own half-turn count
+            (<span data-src="nodes/PairNode/tiltring/lattice.go#AngleLength">separation</span>). The turn does not read
+            this number: it counts from the NEARER END of the tilt line instead
+            (<span data-src="nodes/PairNode/tiltring/machine.go#NearerEndCount">nearerEndCount</span>), which keeps
+            the end it measured. Separation survives for the one question that is about the two TILTS
+            rather than the arrival — which mode the pair runs
+            (<span data-src="nodes/PairNode/machine.go#machineForGap">machineForGap</span>) — and there it names
+            no resting state either (<a href="perpendicular.html">Perpendicular</a>).</div>
+        </div>
+
+      </div>
+  </main>
+</body>
+
+</html>
