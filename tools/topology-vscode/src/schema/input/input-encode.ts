@@ -9,8 +9,8 @@ import {
   IN_DISTANCE_GROUP_ATTR_LENGTH,
   IN_SCENE_ATTR_SELECTED,
 } from "./input-attrs";
-import type { OverlayFlag } from "../messages";
-import { OVERLAY_FLAG_ORDER } from "../messages";
+import type { OverlayFlag } from "../../messages";
+import { OVERLAY_FLAG_ORDER } from "../../messages";
 
 export function encodeOverlaysToggle(flag: OverlayFlag): ArrayBuffer {
   const w = new ByteWriter();
