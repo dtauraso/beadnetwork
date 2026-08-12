@@ -43,8 +43,7 @@ func (m *NodeGeometry) SetSelfKind(kind string) {
 }
 
 func (m *NodeGeometry) SetSceneFlags(coplanarEdges, upAxis bool) {
-	m.flags.coplanarEdges = coplanarEdges
-	m.flags.upAxis = upAxis
+	m.flags.SetSceneFlags(coplanarEdges, upAxis)
 }
 
 func (m *NodeGeometry) SetQuantOffset(off quantoffset.QuantizedOffset) {
