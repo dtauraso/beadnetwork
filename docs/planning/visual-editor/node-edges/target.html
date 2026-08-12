@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Node Runs Its Own Outgoing Edges — Target</title>
+<link rel="stylesheet" href="index.css">
+</head>
+<body>
+<div class="page">
+  <header>
+    <h1>Node Runs Its Own Outgoing Edges</h1>
+    <div class="meta">branch: task/node-runs-own-edges &nbsp;·&nbsp; docs/planning/visual-editor/node-edges-goroutine-spec.html</div>
+  </header>
+
+  <nav>
+    <a class="tab-btn" href="index.html">Model</a>
+    <a class="tab-btn" href="was.html">Was (train)</a>
+    <a class="tab-btn active" href="target.html">Target</a>
+    <a class="tab-btn" href="invariants.html">Invariants</a>
+    <a class="tab-btn" href="migration.html">Migration</a>
+    <a class="tab-btn" href="openq.html">Open Qs</a>
+  </nav>
+
+  <div id="target" class="panel active">
+    <p>The node loop after the change.</p>
+
+    <div class="card">
+      <h2>Node loop invariants</h2>
+      <ul>
+        <li>A fire produces exactly <strong>one bead</strong> appended to the owned wire's inflight FIFO (<code>inflight []inflightBead</code> reused unchanged).</li>
+        <li>The node goroutine advances beads: <code>inflight[0]</code> is always the earliest deadline. All beads on a wire share arc/<code>pulseSpeed</code> travel time, so placement order = deadline order &mdash; a FIFO, no scheduler or heap needed per wire.</li>
+        <li>At the head's deadline (<code>placement + arc / pulseSpeed</code>) the node moves it <code>inflight&rarr;delivered</code>; the receiver's <code>Recv</code> consumes from <code>delivered</code>.</li>
+        <li>A fan-out node owns several wires; it compares the few FIFO heads (min over out-degree, typically 1&ndash;3) &mdash; not a heap data structure.</li>
+        <li><strong>Two-source wake:</strong> the one node goroutine must wake on EITHER an incoming input (which may fire and append a bead) OR the earliest head deadline; park until the earliest head, wake early when an input lands.</li>
+        <li>No bead-count cap; no <code>Occupied</code> gate.</li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
