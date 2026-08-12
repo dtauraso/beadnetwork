@@ -10,6 +10,11 @@ nav {
       border-bottom: 1px solid var(--line)
     }
 
+    nav.subnav {
+      position: static;
+      z-index: 4
+    }
+
     nav a,
     a.pill {
       font-size: 11px;

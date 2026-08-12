@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pair node — Update rules</title>
+  <link rel="stylesheet" href="../pair-base.css">
+  <link rel="stylesheet" href="../pair-layout.css">
+  <link rel="stylesheet" href="../pair-typography.css">
+  <link rel="stylesheet" href="../pair-panels.css">
+  <link rel="stylesheet" href="../pair-diagrams.css">
+  <script src="../port.js"></script>
+  <script src="../pair.js" defer></script>
+</head>
+
+<body>
+
+  <header>
+    <h1>Update rules</h1>
+    <div class="sub">one arrival, two yes-or-no questions: settle, and if not, which way</div>
+  </header>
+
+  <nav>
+    <a href="../index.html">Index</a>
+    <a href="../structure/anatomy.html">Anatomy</a>
+    <a href="../structure/own.html">Ownership</a>
+    <a href="../math/vectors.html">Vectors</a>
+    <a href="../math/math.html">Math</a>
+    <a href="../math/formulas.html">Formulas</a>
+    <a href="../math/dots.html">Separation</a>
+    <a href="../math/perpendicular.html">Perpendicular</a>
+    <a href="cases.html">Cases</a>
+    <a href="../structure/channels.html">Channels</a>
+    <a href="../structure/cycle.html">Cycle</a>
+    <a class="on" href="updates.html">Update rules</a>
+    <a href="../math/arith.html">Arithmetic instead</a>
+  <a href="code.html">In code</a>
+    <a href="../structure/clock.html">Clock</a>
+    <a href="../math/geometry.html">Geometry</a>
+    <a href="asym.html">Asymmetry</a>
+  
+  </nav>
+
+  <nav class="subnav" aria-label="Update-rules sections">
+    <a href="updates.html">What a node holds</a>
+    <a href="updates-machines.html">The two machines it is</a>
+    <a href="updates-arrival.html">What an arrival does</a>
+    <a href="updates-worked.html">The same two decisions, worked</a>
+    <a class="on" href="updates-leaves.html">What leaves the node</a>
+    <a href="updates-map.html">The map into the code</a>
+  </nav>
+
+  <main>
+
+    <div class="grid">
+
+<h3 class="secname">What leaves the node, and what a reset puts back</h3>
+
+
+      <div class="card wide">
+        <h2>What a report puts on the frame</h2>
+        <img class="figure" src="../diagrams/panels/panel-frame.svg"
+          alt="One node's ring carrying four arrows: its tilt, its normal, its bottom, and the direction it last received.">
+        <div class="keynote">
+          <p><i class="sw" style="background:#5fd68a"></i><code>(π/12) · t</code> — persisted, position.json</p>
+          <p><i class="sw" style="background:#4ea1ff"></i><code>(π/12) · (t + 6)</code> — a link, never stored</p>
+          <p><i class="sw" style="background:#9a9aa6"></i><code>(π/12) · (t + 12)</code> — a link, never stored</p>
+          <p><i class="sw" style="background:#f9a825"></i><code>(π/12) · r</code> — drawn when set, never
+            persisted</p>
+          <p>centre · reach · pole · ring axis — a tilt touches none of them</p>
+        </div>
+      </div>
+
+      <div class="card wide">
+        <h2>What a reset puts back</h2>
+        <div class="strip">
+          <img src="../diagrams/panels/panel-reset-before.svg" alt="before the reset: tilt 17, and a received direction drawn">
+          <img src="../diagrams/panels/panel-reset-after.svg" alt="after the reset: tilt 0, and no received direction">
+        </div>
+        <div class="keynote">
+          <p>the tilt goes to 0 and the other two follow, being links off it</p>
+          <p>both queues emptied — a direction left waiting would step t straight back off 0</p>
+          <p>beads still crossing dropped · each node clears twice, and the marker's clear lands last</p>
+        </div>
+      </div>
+
+      
+    </div>
+  </main>
+</body>
+
+</html>

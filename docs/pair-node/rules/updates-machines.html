@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pair node — Update rules</title>
+  <link rel="stylesheet" href="../pair-base.css">
+  <link rel="stylesheet" href="../pair-layout.css">
+  <link rel="stylesheet" href="../pair-typography.css">
+  <link rel="stylesheet" href="../pair-panels.css">
+  <link rel="stylesheet" href="../pair-diagrams.css">
+  <script src="../port.js"></script>
+  <script src="../pair.js" defer></script>
+</head>
+
+<body>
+
+  <header>
+    <h1>Update rules</h1>
+    <div class="sub">one arrival, two yes-or-no questions: settle, and if not, which way</div>
+  </header>
+
+  <nav>
+    <a href="../index.html">Index</a>
+    <a href="../structure/anatomy.html">Anatomy</a>
+    <a href="../structure/own.html">Ownership</a>
+    <a href="../math/vectors.html">Vectors</a>
+    <a href="../math/math.html">Math</a>
+    <a href="../math/formulas.html">Formulas</a>
+    <a href="../math/dots.html">Separation</a>
+    <a href="../math/perpendicular.html">Perpendicular</a>
+    <a href="cases.html">Cases</a>
+    <a href="../structure/channels.html">Channels</a>
+    <a href="../structure/cycle.html">Cycle</a>
+    <a class="on" href="updates.html">Update rules</a>
+    <a href="../math/arith.html">Arithmetic instead</a>
+  <a href="code.html">In code</a>
+    <a href="../structure/clock.html">Clock</a>
+    <a href="../math/geometry.html">Geometry</a>
+    <a href="asym.html">Asymmetry</a>
+  
+  </nav>
+
+  <nav class="subnav" aria-label="Update-rules sections">
+    <a href="updates.html">What a node holds</a>
+    <a class="on" href="updates-machines.html">The two machines it is</a>
+    <a href="updates-arrival.html">What an arrival does</a>
+    <a href="updates-worked.html">The same two decisions, worked</a>
+    <a href="updates-leaves.html">What leaves the node</a>
+    <a href="updates-map.html">The map into the code</a>
+  </nav>
+
+  <main>
+
+    <div class="grid">
+
+<h3 class="secname">The two machines it is</h3>
+
+
+      <div class="card wide">
+        <h2>The tilt as a state machine — 24 states, two links out of each</h2>
+        <img class="figure" src="../diagrams/panels/panel-links.svg"
+          alt="Five adjacent states, 21 22 23 0 1, with a next link running one way between them and a prev link running the other. The seam between 23 and 0 is marked and is an ordinary link.">
+        <div class="keynote">
+          <p><i class="sw" style="background:#5fd68a"></i>next &nbsp;
+            <i class="sw" style="background:#e05fd8"></i>prev — the only two moves there are</p>
+          <p>a turn FOLLOWS one of these links, so it cannot land between two states or off the
+            ring, and no rule anywhere adds 1 or takes a modulus</p>
+          <p>the seam in the middle is 23 → 0. Nothing detects it and no rule mentions it — the
+            last state's next simply IS the first, fixed when the ring was built</p>
+        </div>
+      </div>
+
+      <div class="card wide">
+        <h2>The mode as a state machine — three modes, four transitions</h2>
+        <img class="figure" src="../diagrams/panels/panel-modes.svg"
+          alt="Three modes: setting, perpendicular and parallel. Setting goes to either of the other two, chosen from the gap at the first arrival. Both go back to setting on a reset. There is no edge between perpendicular and parallel.">
+        <div class="keynote">
+          <p>setting is where a node starts and what a reset restores — it is the zero value, so a
+            node is in it without anything having to put it there</p>
+          <p>there is NO edge between perpendicular and parallel: a chosen mode sticks, and a second
+            choice arriving mid-run is ignored</p>
+          <p>every case, mode by mode and length by length, is on <a href="cases.html">Cases</a></p>
+        </div>
+      </div>
+
+      <div class="card wide">
+        <h2>Both machines, as a transition function</h2>
+        <p class="lead">A state machine is its states, its inputs, and where each input sends each
+          state. Written that way the two above are small enough to read in full — and the
+          difference in size between them is the point: one has 24 states and two inputs, the other
+          three states and two, and neither has anything else in it.</p>
+        <p class="figlabel">the tilt</p>
+        <img class="math" src="../diagrams/mathblocks/update-machine-tilt.svg" style="width:299px"
+          alt="S = the integers mod 24. Sigma = next, prev. delta(t, next) = t+1 mod 24. delta(t, prev) = t-1 mod 24.">
+        <p class="figlabel">the mode</p>
+        <img class="math" src="../diagrams/mathblocks/update-machine-mode.svg" style="width:453px"
+          alt="S = R setting, R perpendicular, R parallel. Sigma = a, reset. delta(R setting, a) = R perpendicular if angleLength(t, a sub minus six) = 6, else R parallel. delta(R, a) = R for R not setting. delta(R, reset) = R setting.">
+        <div class="keynote">
+          <p>the tilt ring is the Cayley graph of ℤ₂₄ on the generator 1 — which is exactly what
+            "24 states, two links out of each" says</p>
+          <p>the mod 24 above is the DEFINITION the links implement, not an operation the code
+            performs: <span data-src="nodes/PairNode/tiltring/lattice.go#NewRing">newRing</span> resolves next and
+            prev once, so a turn is a field read and no arithmetic runs at a turn at all</p>
+          <p>δ(R, a) = R for a chosen mode is the whole of "a choice sticks", and it is why there is
+            no edge between perpendicular and parallel</p>
+        </div>
+      </div>
+
+      <div class="card wide">
+        <h2>The arithmetic the machine comes out of</h2>
+        <p class="lead">Nothing below mentions the machine — no tilt, no partner, no arrival, no
+          mode. It is a fact about two numbers on a ring of 24: shift one of them by 6, and the
+          only gaps whose length lands on 0, 6 or 12 are the four quarter gaps. That is true
+          whether or not anything is running. Read it back with x as this node's tilt and y as the
+          partner's, and it is the machine: 24 states with two links out of each, a line that
+          reversing does not change, and the two stopping counts — which are therefore not chosen,
+          but counted.</p>
+        <img class="math" src="../diagrams/mathblocks/update-arith-groups.svg" style="width:468px"
+          alt="The ring: x runs 0 to 23, counted round, so 24 is 0 again. The half turn: x and x + 12 name the same line, so a line is a number counted round twelve.">
+        <img class="math" src="../diagrams/mathblocks/update-arith-distance.svg" style="width:439px"
+          alt="The length between two numbers: d = |x - y|, and L(x, y) is d or 24 - d, whichever is shorter — never more than 12.">
+        <img class="math" src="../diagrams/mathblocks/update-arith-gap.svg" style="width:387px"
+          alt="The four quarter gaps, with g = x - y: g is 0 or 12, where x and y name the same line; and g is 6 or 18, a quarter of the ring between them.">
+        <img class="math" src="../diagrams/mathblocks/update-arith-rests.svg" style="width:602px"
+          alt="Shift one of the two by 6, and only those four land on 0, 6, 12: a gap of 0 or 12 gives L(x, y + 6) = 6; a gap of 6 or 18 gives L(x, y + 6) = 0 or 12; every other gap gives an L(x, y + 6) that is none of 0, 6, 12.">
+        <div class="keynote">
+          <p>this is where <span data-src="nodes/PairNode/tiltring/machine.go#stoppingCounts">stoppingCounts</span>
+            comes from. { 6 } and { 0, 12 } are not two facts to remember — they are the four
+            quarter gaps, and the shift by 6 above is the quarter turn the partner adds when it
+            sends its normal instead of its tilt</p>
+          <p>counted from the NEARER END the second of those is a single 0: 0 and 12 are the same
+            count taken at the two ends of one line, which is why a mode's row is { 0 } or
+            { 6 } and never a pair</p>
+          <p>it also explains the shape the <a href="audit.html">audit</a> found: the two modes are a
+            half turn apart in g, so their two distances sum to a constant, which is why one is the
+            other upside down</p>
+        </div>
+      </div>
+
+      
+    </div>
+  </main>
+</body>
+
+</html>
