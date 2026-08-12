@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { postGoRecord } from "../../../vscode-api";
-import { encodeSceneDelete } from "../../../../schema/input-encode";
+import { encodeSceneDelete } from "../../../../schema/input-encode-scene-tilt";
 import { NODE_KIND_NAMES } from "../../../../schema/node-defs";
 import { useSelectedNodeRow } from "../flags/overlay-flags-selection";
 import { useSceneEditable, useSceneKinds } from "../flags/overlay-flags-scene";

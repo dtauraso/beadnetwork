@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import * as cp from "child_process";
 import type { HostToWebviewMsg } from "../messages";
-import { frameRecord } from "../schema/input-encode";
+import { frameRecord } from "../schema/input-encode-scene-tilt";
 import type { StreamDemux } from "./stream-demux";
 import { makeDemuxFactory } from "./run-lifecycle";
 import { appendGoError } from "./go-errors";

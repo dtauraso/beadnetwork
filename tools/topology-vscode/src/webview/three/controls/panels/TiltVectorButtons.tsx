@@ -1,6 +1,6 @@
 import { createPortal } from "react-dom";
 import { postGoRecord } from "../../../vscode-api";
-import { encodeTiltVectorStart, encodeTiltVectorReset } from "../../../../schema/input-encode";
+import { encodeTiltVectorStart, encodeTiltVectorReset } from "../../../../schema/input-encode-scene-tilt";
 import { useTiltVectorRows } from "../flags/overlay-flags-tilt-vectors";
 
 export function TiltVectorButtons() {
