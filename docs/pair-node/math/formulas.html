@@ -92,59 +92,16 @@
               <td class="e">normal</td>
             </tr>
 
-            <tr class="h">
-              <td>THE TEST</td>
-              <td>what it is</td>
-              <td>source</td>
-            </tr>
-            <tr>
-              <td class="e">sep = |a.idx − b.idx|, folded to ≤ HALF</td>
-              <td class="n">the short way round, so the number means the same thing whichever side
-                the arrival sits on</td>
-              <td class="s" data-src="nodes/PairNode/tiltring/lattice.go#AngleLength">ring.go</td>
-            </tr>
-            <tr>
-            <tr>
-              <td class="e">c = u if u &lt; HALF, else (b − a) mod points</td>
-              <td class="n">the count from the NEARER END of the tilt line, which is the one measurement
-                the rule makes. It lives on a ring of a half turn</td>
-              <td class="s" data-src="nodes/PairNode/tiltring/machine.go#NearerEndCount">nearerEndCount</td>
-            </tr>
-            <tr>
-              <td class="e">settled = (c = stop)</td>
-              <td class="n">perpendicular stops at 0, parallel at a quarter. A comparison — no distance
-                is taken and nothing is minimised</td>
-              <td class="s" data-src="nodes/PairNode/tiltring/machine.go#stoppingCounts">stoppingCounts</td>
-            </tr>
-            <tr>
-              <td class="e">step = next if (stop − c) mod HALF ≤ QUARTER, else prev</td>
-              <td class="n">written ONCE and shared by every mode; the way down is the rest of the circle,
-                so one subtraction settles it. Answerable everywhere on the ring, every halt included</td>
-              <td class="s" data-src="nodes/PairNode/tiltring/machine.go#Step">step</td>
-            </tr>
-
-            <tr class="h">
-              <td>THE STEP — what arrived</td>
-              <td>both nodes of a pair — same unmodified rule per machine</td>
-            </tr>
-            <tr>
-              <td class="e">this machine.halted(top, arrival) →</td>
-              <td class="n">stand still, reply anyway</td>
-            </tr>
-            <tr>
-              <td class="e">otherwise →</td>
-              <td class="e">Top ← this machine.step(top, arrival)</td>
-            </tr>
-            <tr>
-              <td class="e">the SETTING mode →</td>
-              <td class="n">already halted at every separation, so an arrival moves nothing; the choice is
-                made at START (machineForGap)</td>
-            </tr>
           </table>
-          <div class="cap">The direction and step rows are the one kind's own <code>stepFromVector</code>,
+          <div class="cap">The direction rows are the one kind's own <code>stepFromVector</code>,
             run unmodified by both nodes of a pair. There is nothing to dispatch to: the node holds one
             machine, and which mode it is in supplies the one count the same rule compares against —
             nodes/PairNode/node.go.</div>
+        </div>
+
+        <div class="card wide">
+          <h2>The test and the step</h2>
+          <p>Moved to its own page: <a href="formulas-test.html">The separation test and what each machine does with an arrival</a>.</p>
         </div>
 
         <div class="card wide">
