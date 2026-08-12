@@ -5646,6 +5646,123 @@ shared table helpers), `32fe690f` (input_layout.go parse/emit split), `17f5285c`
 Verify: `bash scripts/stop-checks.sh` from repo root — empty stdout. `go build ./...` and
 `go vet ./...` both clean (no output beyond the build/vet completing).
 
+## 2. Six webview neighbours audited (`NodePalette.tsx`, `polar-frame.tsx`, `TiltVectors.tsx`,
+   `snapshot-buffer.ts`, `SpeedSlider.tsx`, `TiltVectorAnglePanel.tsx`)
+
+Statement-by-statement classification, per the render-and-forward-only invariant (no store,
+no geometry computed in TS).
+
+**`polar-frame.tsx` (239→232) — split.** Lines 82–92 were 11 statements of pure arithmetic
+(`radiusKey`/`poleLen`/`poleRadius`/`coneH`/`coneBaseR`/`arcR`/`arcTube`/`arcMid`/`hhR`/
+`arcHH`), all derived from the `scale` prop alone, no THREE/ref/hook touch. Lifted into
+`nav/polar-frame-geometry.ts` (`computePolarFrameGeometry`, 35 lines) — local DRAWING SCALE
+for a decorative overlay frame (stick/cone/handhold sizes), not a bead/node/edge position;
+`center`/`scale` still arrive from Go untouched. `polar-frame.tsx`'s remaining body is JSX
++ the one `useMemo` quaternion (touches a THREE object) — bucket (a).
+
+**`SpeedSlider.tsx` (221→177) — split.** `SPEED_SETTINGS`/`settingKey`/`DEFAULT_INDEX`
+(module-level pure data, ~19 lines) plus `closestSettingIndex` (10 lines, pure numeric
+lookup) had zero react/vscode-api dependency — same shape as the existing
+`tilt-vector-angle-format.ts` split TiltVectorAnglePanel already uses. Lifted into a new
+sibling `panels/speed-settings.ts` (52 lines). `SpeedSlider.tsx`'s remaining body is the
+component (hooks, `createPortal`, `postGoRecord`) plus inline `CSSProperties` objects —
+bucket (a)/style, not logic.
+
+**`snapshot-buffer.ts` (223→233, but 51 lines of near-identical structure removed) —
+split-in-place, not a new file.** The edge/node/interior sections were three copies of the
+same five-operation shape (keyed Map, per-generation routing via `genTable`, listener
+`Set`, optional version counter) differing only in variable names and whether a version
+counter existed. Factored into one closure-returning `makeRowStreamTable(withVersion)`
+(bucket (b): pure plumbing, no hook/ref/three/post — `noteGen`/`genTable` were already pure
+helpers in this file) instantiated three times (`edgeStream`, `nodeStream`,
+`interiorStream`, the last two `withVersion=true`). Every exported function name/signature
+is unchanged (`setLatestEdgeStreamFrame`, `getLatestNodeStreamFrames`,
+`getInteriorStreamVersion`, etc.) — only the internal implementation is shared, so every
+call site in `main.tsx`/`node-stream-blocks.ts`/`edge-stream-blocks.ts` is untouched. This
+does NOT create a new home for domain state: it is the same one-pointer-per-key module
+cells the file's own header comment already disclaims as "not a store", just built by one
+factory instead of copy-pasted three times. Grepped `tools/` for the internal variable
+names being renamed (`edgeStreamTables`, `nodeStreamTables`, `interiorStreamTables`,
+`*StreamListeners`) — zero hits, nothing guards them by name.
+
+**Declined — `NodePalette.tsx` (249, unchanged).** The only pure, non-JSX/non-bridge
+statement is `dropKindFromEvent` (6 lines: `dataTransfer.getData` read + `Number.isInteger`
+guard) — too small to justify a new file, and every other function in the file either
+touches a hook/ref (`PaletteRow`, `RefusedNotice`, the `useEffect` keydown binder) or calls
+`postGoRecord`/`e.dataTransfer.setDragImage` directly (`fireCreateAt`, the drag handlers) —
+bucket (a) by the stated classification rule ("touches a React hook, a three.js object, a
+ref, or posts to the host"). No factorable shape shared with the other two panels beyond
+what `overlay-chrome.ts`'s pill/popover primitives (already shared, already a separate
+file) provide.
+
+**Declined — `TiltVectors.tsx` (224, unchanged).** `writeArrowInto`'s geometry math (axis
+from θ, shaft/head midpoint/scale) is pure arithmetic in isolation, but every statement
+writes directly into `axisRef.current`/`posRef.current`/`quatRef.current`/
+`sclRef.current`/`matRef.current` — mutable THREE.js objects held in refs specifically to
+avoid a per-frame allocation (the file's own header comment: "holding no state of its own"
+/ "writes instance matrices imperatively"). The method's own doc comment: "writeArrowInto
+composes one arrow's shaft+head matrices into whichever mesh pair and instance index the
+caller supplies... so the geometry math lives in one place" — it is ALREADY the one
+extraction point this file has, and it is bucket (a) by the classification rule ("touches a
+... three.js object, a ref") on every statement, not bucket (b). Pulling the θ→axis/
+scale arithmetic out into a plain function while leaving the ref writes behind would split
+one coherent unit into two files that must be read together to see the seven writes it
+does, for no bucket-(b) LOC gained (it's already the sole such function in the file).
+
+**Declined — `TiltVectorAnglePanel.tsx` (205, unchanged).** Its own header comment already
+states the split this task would otherwise propose: "The actual derivation lives in
+tilt-vector-angle-format.ts (formatAngle, imported above) — split out so it has no
+react/vscode-api dependency". The remaining pure (b) content is four `LATTICE_POINTS_*`
+constants (3 lines) and one `points + delta` computation inline in
+`LatticePointsRow`'s `adjust` closure (1 line) — below any reasonable extraction
+threshold. Every function (`AxisRow`, `NodeGroupSection`, `LatticePointsRow`,
+`TiltVectorAnglePanel`) is hooks/JSX/`postGoRecord` — bucket (a).
+
+**No new home for domain state, no geometry computed in TS:** confirmed by running
+`bash tools/webview/check-no-webview-state.sh` clean after each commit, and by a
+deliberate break — added `import { create } from "zustand";` to `snapshot-buffer.ts`,
+reran the guard, got:
+```
+zustand-import: .../snapshot-buffer.ts:1:import { create } from "zustand";  (Zustand store in the webview — domain state must live in Go)
+no-webview-state: 1 hit(s) — the webview must hold no domain state (no Zustand store, no stateful domain hook); the model lives in Go and streams as the binary content buffer
+EXIT:1
+```
+reverted, guard clean again. `check-ts-computes-no-geometry.sh` scans a fixed forbidden-token
+list (`getPointAt`/`rfArcLength`/`arcLengthToSimLatencyMs`/`patchPulse`/`buildPortCurve`/
+`buildEdgeCurve`) unrelated to what moved here — `polar-frame-geometry.ts`'s scale-derived
+stick/handhold sizing was never one of those tokens and stays a local-drawing-scale helper,
+not a position/curve/timing computation; confirmed the guard passes clean regardless (no
+targeted break attempted, since none of its named tokens were touched — grepped `tools/` for
+`polar-frame-geometry`/`speed-settings`/`makeRowStreamTable` and found no guard names any
+of them).
+
+**LOC:** `polar-frame.tsx` 239→232 (+35 new file); `SpeedSlider.tsx` 221→177 (+52 new file);
+`snapshot-buffer.ts` 223→233 (structure dedup, not a shrink — three copies became one
+factory + three 2-line instantiations, at the cost of the factory's own ~28-line body).
+`NodePalette.tsx`/`TiltVectors.tsx`/`TiltVectorAnglePanel.tsx` unchanged.
+
+**No check of any kind that can fail** on the specific arithmetic moved: `computePolarFrameGeometry`
+and `closestSettingIndex`/`SPEED_SETTINGS` have no test (none exist project-wide by
+design) and no guard reads their numeric output — only `tsc`/eslint/build catch a
+type/syntax break, and only a human noticing a wrongly-scaled frame or a slider landing on
+the wrong tick would catch a value regression. Same exposure as before the split; the move
+does not add or remove it.
+
+Verify: `bash scripts/stop-checks.sh` blocked on a PRE-EXISTING, out-of-scope failure
+(`check-docs-symbols`: `nodes/Wiring/geom/gesture_camera.go does not exist`, referenced by
+`docs/planning/movedispatch-decomposition.md` itself, from a concurrent Go-side session
+editing `nodes/Wiring/loadspec/loader_tree.go` in this same checkout — confirmed via
+`git status --short` showing that file modified but not staged by this task, and never
+touched by any commit here). Verified the TS-owned surface directly instead: `npx tsc
+--noEmit -p tools/topology-vscode` (empty output after each commit), `npx eslint` on every
+changed/new file (empty output), `npm run build` inside `tools/topology-vscode` (clean,
+`out/webview.js` refreshed each time), and `bash tools/webview/check-no-webview-state.sh`
+(clean each time, teeth proven above).
+
+Commits (`task/god-objects`): `076e97dd` (PolarFrame geometry split),
+`8160d816` (SpeedSlider speed-settings split), `dbfea6ff` (snapshot-buffer.ts table
+factoring).
+
 ## Two never-examined files: gesture_camera.go (geom) and loader_tree.go (loadspec)
 
 Both files already lived in lifted subpackages (`geom`, `loadspec`); this pass was purely
