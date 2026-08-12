@@ -28,10 +28,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 cd "$REPO_ROOT"
 
-TRACE_GO="Trace/Trace.go"
+TRACE_DIR="Trace"
 
-if [[ ! -f "$TRACE_GO" ]]; then
-  echo "check-breadcrumb-label-registered: MISCONFIGURED — file not found: $TRACE_GO" >&2
+if [[ ! -d "$TRACE_DIR" ]]; then
+  echo "check-breadcrumb-label-registered: MISCONFIGURED — dir not found: $TRACE_DIR" >&2
   exit 1
 fi
 
@@ -52,9 +52,13 @@ fi
 # Registered labels: Trace.BreadcrumbLabels's string-literal elements, in order. Same
 # "slurp from the var name to the closing brace" shape as gen-node-defs' own
 # parseBreadcrumbLabels (tools/gen-node-defs/trace_kinds.go), just in awk instead of Go's
-# ast package — both read the identical literal.
+# ast package — both read the identical literal. Scanned across EVERY non-test *.go file
+# under Trace/ (not one hardcoded filename), matching parseBreadcrumbLabels' own
+# whole-dir scan, so a future file split (like this one moving BreadcrumbLabels out of
+# Trace.go into breadcrumb_labels.go) cannot go blind the way
+# memory/feedback_guards_hardcoding_single_file_break_on_split.md describes.
 registered() {
-  awk '/var BreadcrumbLabels = \[\]string\{/,/^\}/' "$TRACE_GO" \
+  awk '/var BreadcrumbLabels = \[\]string\{/,/^\}/' "$TRACE_DIR"/*.go \
     | grep -oE '"[^"]*"' \
     | tr -d '"' \
     | sort -u
