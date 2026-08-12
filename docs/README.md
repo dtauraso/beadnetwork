@@ -9,7 +9,7 @@ static pages (no external assets).
 **Planning docs are branch-local going forward** (`.claude/rules/planning-docs.md` →
 "Planning docs are branch-local"): new docs under `docs/planning/` carry a `branch:` frontmatter and are
 stripped before merge. The existing untagged ones below predate that rule and stay until
-individually judged. `session-log.md` is the one durable exception — it always rides to main.
+individually judged.
 
 ## Concurrency & lock architecture
 
@@ -66,12 +66,6 @@ The mutex-removal work: each `sync.Mutex`/`Cond` replaced by single-owner state.
 | [drift-checklist.md](process/drift-checklist.md) | Drift checklist — periodic agent/model-health audit. |
 
 ## Visual-editor planning (`docs/planning/visual-editor/`)
-
-Durable:
-
-| Doc | What it covers |
-|---|---|
-| [session-log.md](planning/visual-editor/session-log.md) | Real-world editor session log — the friction record driving new work. |
 
 Planning/spec (untagged, predate the branch-local rule):
 

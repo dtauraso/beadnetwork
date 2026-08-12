@@ -9,7 +9,7 @@ delete it locally and on remote in the same step. Don't ask again.
 
 **Why:** matches CLAUDE.md's "avoid long-lived feature branches" posture
 (the v0 `visual-editor` branch was the cautionary example). Commits,
-screenshots, session-log entries, and memory files all reach `main`
+screenshots and memory files all reach `main`
 via the merge, so an AI or human can grep the repo for any of them
 without the branch ref. Named branch survival adds no recovery
 value vs. the clutter cost.

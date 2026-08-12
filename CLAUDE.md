@@ -141,7 +141,7 @@ preferences stated only verbally. Save anything in the second list to a file bef
 
 ## Posture (post-v0)
 
-Visual editor reached v0. New work is friction-driven, not phase-driven; justify changes from real-world editor use logged in [session-log.md](docs/planning/visual-editor/session-log.md). Working mode: user drives the editor and narrates; assistant logs and makes changes.
+Visual editor reached v0. New work is friction-driven, not phase-driven; justify changes from real-world editor use. Working mode: user drives the editor and narrates; assistant makes changes. Friction arrives live, in conversation — what survives the session goes to `memory/` as a lesson, and what became code is already in git. Do not reintroduce a session log: the one that existed was write-only, never read to justify a change, and duplicated `git log` for everything except a handful of corrected measurements that now live in `memory/`.
 
 **Plan docs are allowed, per change, in `docs/planning/`.** The old blanket "per-phase plans were deleted, git history is the archive" is gone: a change that reverses a documented invariant, or ripples across code and several pages at once, is worth writing down BEFORE it is made — what breaks, in what order, and how it is verified. Write one when the change is that shape; skip it when the change is a page edit or a rename.
 

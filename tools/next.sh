@@ -34,7 +34,6 @@ echo "  - start a change: tools/new-task.sh <short-kebab-name> \"one-line descri
 echo "    (makes the branch and checks it out — plain branches in this one checkout)"
 echo "  - read memory/MEMORY.md (durable rules + project state)"
 echo "  - read MODEL.md before any Go-network / pump change"
-echo "  - friction log: docs/planning/visual-editor/session-log.md"
 echo "  - verify recipe: see CLAUDE.md Workflow — bash scripts/stop-checks.sh, clean == EMPTY stdout"
 echo "    (it ALWAYS exits 0 by design; \$? is not the signal)"
 echo

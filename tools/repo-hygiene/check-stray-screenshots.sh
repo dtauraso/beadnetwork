@@ -16,7 +16,7 @@ if [ -n "$files" ]; then
   python3 -c "
 import json, sys
 files = sys.stdin.read().strip().splitlines()
-msg = 'Stray screenshot(s) in repo root: ' + ', '.join(files) + '. Per the visual-editor convention, move them under docs/planning/visual-editor/screenshots/ with a date-prefixed kebab name (e.g. 2026-05-05-<topic>-N.png) and reference them from docs/planning/visual-editor/session-log.md in the same commit as the work they motivate.'
+msg = 'Stray screenshot(s) in repo root: ' + ', '.join(files) + '. Per the visual-editor convention, move them under docs/planning/visual-editor/screenshots/ with a date-prefixed kebab name (e.g. 2026-05-05-<topic>-N.png), referenced from whatever memory file or doc the work they motivate lands in.'
 print(json.dumps({'hookSpecificOutput': {'hookEventName': 'PreToolUse', 'permissionDecision': 'deny', 'permissionDecisionReason': msg}}))
 " <<< "$files"
 fi
