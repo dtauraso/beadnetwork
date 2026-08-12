@@ -128,118 +128,156 @@ export class StreamDemux {
     }
   }
 
+  // dispatchFrames is the ONE shape shared by every handle<Kind>Fd below: dead-stream
+  // short-circuit, splitFrames reassembly against THIS FD'S OWN carry buffer, storing the
+  // remainder back where it came from, and reporting a bad-length error. It takes the carry
+  // buffer and its storage slot AS PARAMETERS — it does not hold or choose between them —
+  // so it shares CODE SHAPE, never the buffer itself, across fds. Each call site below still
+  // names its own key, its own carry-buffer field, and its own error-context string; nothing
+  // about WHICH fd's bytes flow through here becomes implicit. (See handleDriveFd's doc
+  // comment / docs/investigations/interior-stream-framing.md for why the carry buffers
+  // themselves must never be merged — that argument is about sharing one buffer across two
+  // physically distinct pipes, not about sharing this reassembly shape.)
+  private dispatchFrames(
+    key: string,
+    carry: Buffer,
+    chunk: Buffer,
+    storeRest: (rest: Buffer) => void,
+    errorContext: string,
+    onFrames: (frames: ArrayBuffer[]) => void,
+  ) {
+    if (this.deadStreams.has(key)) return;
+    const { frames, rest, error } = splitFrames(carry, chunk);
+    storeRest(rest);
+    if (error) {
+      this.deadStreams.add(key);
+      this.onError(`${errorContext}: ${error}`);
+    }
+    onFrames(frames);
+  }
+
   // handleViewFd parses the dedicated VIEW-stream pipe (VIEW_FD): frames are
   // [len:u32][payload] with NO tag byte (the fd position already identifies the stream —
   // see Buffer/stream_fds.go / frame-tags.ts). Relayed to the webview under the
   // "buffer-snapshot" message shape, tagged BUF_BLOCK_TAG_VIEW (a synthetic ext-host-side
-  // tag, never a wire byte).
+  // tag, never a wire byte). Names its own carry buffer (stream.viewBuf), probe file
+  // (probeFile), decode (decodeBufferLog), tag (BUF_BLOCK_TAG_VIEW), and last-frame cache
+  // (lastViewFrame) — dispatchFrames only supplies the reassembly shape.
   handleViewFd(chunk: Buffer) {
-    if (this.deadStreams.has("view")) return;
-    const { frames, rest, error } = splitFrames(this.stream.viewBuf, chunk);
-    this.stream.viewBuf = rest;
-    if (error) {
-      this.deadStreams.add("view");
-      this.onError(`handleViewFd: ${error}`);
-    }
-    for (const ab of frames) {
-      // Decode this frame's OWN trailing EVENTS section (camera/overlay/scene events —
-      // every other trace kind is decentralized to its own owner fd; memory/
-      // feedback_no_single_writer_bridge.md). Written to its OWN .probe file (go.jsonl) —
-      // N separate logs, never merged on write.
-      if (this.probeFile) {
-        const lines = decodeBufferLog(ab, !this.probeTrace);
-        if (lines.length > 0) {
-          try {
-            fs.appendFileSync(this.probeFile, lines, "utf8");
-          } catch { /* swallow */ }
+    this.dispatchFrames(
+      "view",
+      this.stream.viewBuf,
+      chunk,
+      (rest) => { this.stream.viewBuf = rest; },
+      "handleViewFd",
+      (frames) => {
+        for (const ab of frames) {
+          // Decode this frame's OWN trailing EVENTS section (camera/overlay/scene events —
+          // every other trace kind is decentralized to its own owner fd; memory/
+          // feedback_no_single_writer_bridge.md). Written to its OWN .probe file
+          // (go.jsonl) — N separate logs, never merged on write.
+          if (this.probeFile) {
+            const lines = decodeBufferLog(ab, !this.probeTrace);
+            if (lines.length > 0) {
+              try {
+                fs.appendFileSync(this.probeFile, lines, "utf8");
+              } catch { /* swallow */ }
+            }
+          }
+          // Cache a COPY before handing `ab` off — see the lastViewFrame field comment for
+          // why the reference itself cannot be cached (postMessage may transfer/detach it).
+          this.lastViewFrame = ab.slice(0);
+          if (this.onSnapshot) {
+            this.onSnapshot({ type: "buffer-snapshot", buffer: ab, tag: BUF_BLOCK_TAG_VIEW, gen: this.gen });
+          }
         }
-      }
-      // Cache a COPY before handing `ab` off — see the lastViewFrame field comment for why
-      // the reference itself cannot be cached (postMessage may transfer/detach it).
-      this.lastViewFrame = ab.slice(0);
-      if (this.onSnapshot) {
-        this.onSnapshot({ type: "buffer-snapshot", buffer: ab, tag: BUF_BLOCK_TAG_VIEW, gen: this.gen });
-      }
-    }
+      },
+    );
   }
 
   // handleEdgeFd parses ONE dedicated per-edge stream pipe (fd = EDGE_BASE_FD + row):
   // frames are [len:u32][payload] with NO tag byte (the fd position already identifies
-  // WHICH edge — see Buffer/stream_fds.go / Buffer/edge_stream_frame.go). splitFrames is
-  // reused as-is, same as handleViewFd. Each decoded frame is relayed to the webview under
-  // the SAME "buffer-snapshot" shape as the other tags, tagged BUF_BLOCK_TAG_EDGE_STREAM
-  // (synthetic, never a wire byte) PLUS `row` so the webview routes it to the right
-  // per-edge cell (there are many edge streams, unlike view's singleton).
+  // WHICH edge — see Buffer/stream_fds.go / Buffer/edge_stream_frame.go). Each decoded frame
+  // is relayed to the webview under the SAME "buffer-snapshot" shape as the other tags,
+  // tagged BUF_BLOCK_TAG_EDGE_STREAM (synthetic, never a wire byte) PLUS `row` so the
+  // webview routes it to the right per-edge cell (there are many edge streams, unlike
+  // view's singleton). Names its own carry buffer (stream.edgeBufs[row]), probe file
+  // (probeEdgeFile), decode (decodeEdgeStreamFrame), tag (BUF_BLOCK_TAG_EDGE_STREAM), and
+  // last-frame cache (lastEdgeFrames) — dispatchFrames only supplies the reassembly shape.
   handleEdgeFd(row: number, chunk: Buffer) {
-    const key = `edge:${row}`;
-    if (this.deadStreams.has(key)) return;
-    const carry = this.stream.edgeBufs[row] ?? Buffer.alloc(0);
-    const { frames, rest, error } = splitFrames(carry, chunk);
-    this.stream.edgeBufs[row] = rest;
-    if (error) {
-      this.deadStreams.add(key);
-      this.onError(`handleEdgeFd(row=${row}): ${error}`);
-    }
-    for (const ab of frames) {
-      // Decode this edge's OWN trailing EVENTS section (Geometry/Position/Arrive — this
-      // goroutine's own row-resolved events; memory/feedback_no_single_writer_bridge.md).
-      // Written to its OWN .probe file (go-edge.jsonl) — N separate logs, never merged.
-      if (this.probeEdgeFile) {
-        const decoded = decodeEdgeStreamFrame(row, ab);
-        if (decoded && decoded.eventCount > 0) {
-          const lines = decodeStreamFrameEvents(decoded.eventCount, decoded.eventView, decoded.eventTextView, undefined, undefined, !this.probeTrace);
-          if (lines.length > 0) {
-            try {
-              fs.appendFileSync(this.probeEdgeFile, lines, "utf8");
-            } catch { /* swallow */ }
+    this.dispatchFrames(
+      `edge:${row}`,
+      this.stream.edgeBufs[row] ?? Buffer.alloc(0),
+      chunk,
+      (rest) => { this.stream.edgeBufs[row] = rest; },
+      `handleEdgeFd(row=${row})`,
+      (frames) => {
+        for (const ab of frames) {
+          // Decode this edge's OWN trailing EVENTS section (Geometry/Position/Arrive —
+          // this goroutine's own row-resolved events; memory/
+          // feedback_no_single_writer_bridge.md). Written to its OWN .probe file
+          // (go-edge.jsonl) — N separate logs, never merged.
+          if (this.probeEdgeFile) {
+            const decoded = decodeEdgeStreamFrame(row, ab);
+            if (decoded && decoded.eventCount > 0) {
+              const lines = decodeStreamFrameEvents(decoded.eventCount, decoded.eventView, decoded.eventTextView, undefined, undefined, !this.probeTrace);
+              if (lines.length > 0) {
+                try {
+                  fs.appendFileSync(this.probeEdgeFile, lines, "utf8");
+                } catch { /* swallow */ }
+              }
+            }
+          }
+          // Cache under this edge row (same copy-before-hand-off reasoning as lastViewFrame).
+          this.lastEdgeFrames.set(row, ab.slice(0));
+          if (this.onSnapshot) {
+            this.onSnapshot({ type: "buffer-snapshot", buffer: ab, tag: BUF_BLOCK_TAG_EDGE_STREAM, row, gen: this.gen });
           }
         }
-      }
-      // Cache under this edge row (same copy-before-hand-off reasoning as lastViewFrame).
-      this.lastEdgeFrames.set(row, ab.slice(0));
-      if (this.onSnapshot) {
-        this.onSnapshot({ type: "buffer-snapshot", buffer: ab, tag: BUF_BLOCK_TAG_EDGE_STREAM, row, gen: this.gen });
-      }
-    }
+      },
+    );
   }
 
   // handleNodeFd parses ONE dedicated per-node NODE stream pipe (fd = nodeBaseFd + row):
   // frames are [len:u32][payload] with NO tag byte (the fd position already identifies
-  // WHICH node — see Buffer/stream_fds.go / Buffer/node_stream_frame.go). splitFrames is
-  // reused as-is, same as handleEdgeFd. Each decoded frame is relayed to the webview under
-  // the SAME "buffer-snapshot" shape, tagged BUF_BLOCK_TAG_NODE_STREAM (synthetic, never a
-  // wire byte) PLUS `row` so the webview routes it to the right per-node cell.
+  // WHICH node — see Buffer/stream_fds.go / Buffer/node_stream_frame.go). Each decoded frame
+  // is relayed to the webview under the SAME "buffer-snapshot" shape, tagged
+  // BUF_BLOCK_TAG_NODE_STREAM (synthetic, never a wire byte) PLUS `row` so the webview
+  // routes it to the right per-node cell. Names its own carry buffer (stream.nodeBufs[row]),
+  // probe file (probeNodeFile), decode (decodeNodeStreamFrame), tag
+  // (BUF_BLOCK_TAG_NODE_STREAM), and last-frame cache (lastNodeFrames) — dispatchFrames only
+  // supplies the reassembly shape.
   handleNodeFd(row: number, chunk: Buffer) {
-    const key = `node:${row}`;
-    if (this.deadStreams.has(key)) return;
-    const carry = this.stream.nodeBufs[row] ?? Buffer.alloc(0);
-    const { frames, rest, error } = splitFrames(carry, chunk);
-    this.stream.nodeBufs[row] = rest;
-    if (error) {
-      this.deadStreams.add(key);
-      this.onError(`handleNodeFd(node=${nodeIdForRow(row)}): ${error}`);
-    }
-    for (const ab of frames) {
-      // Decode this node's OWN trailing EVENTS section (NodeGeometry — this nodeMover
-      // goroutine's own row-resolved event; memory/feedback_no_single_writer_bridge.md).
-      // Written to its OWN .probe file (go-node.jsonl) — N separate logs, never merged.
-      if (this.probeNodeFile) {
-        const decoded = decodeNodeStreamFrame(row, ab);
-        if (decoded && decoded.eventCount > 0) {
-          const lines = decodeStreamFrameEvents(decoded.eventCount, decoded.eventView, decoded.eventTextView, undefined, undefined, !this.probeTrace);
-          if (lines.length > 0) {
-            try {
-              fs.appendFileSync(this.probeNodeFile, lines, "utf8");
-            } catch { /* swallow */ }
+    this.dispatchFrames(
+      `node:${row}`,
+      this.stream.nodeBufs[row] ?? Buffer.alloc(0),
+      chunk,
+      (rest) => { this.stream.nodeBufs[row] = rest; },
+      `handleNodeFd(node=${nodeIdForRow(row)})`,
+      (frames) => {
+        for (const ab of frames) {
+          // Decode this node's OWN trailing EVENTS section (NodeGeometry — this nodeMover
+          // goroutine's own row-resolved event; memory/feedback_no_single_writer_bridge.md).
+          // Written to its OWN .probe file (go-node.jsonl) — N separate logs, never merged.
+          if (this.probeNodeFile) {
+            const decoded = decodeNodeStreamFrame(row, ab);
+            if (decoded && decoded.eventCount > 0) {
+              const lines = decodeStreamFrameEvents(decoded.eventCount, decoded.eventView, decoded.eventTextView, undefined, undefined, !this.probeTrace);
+              if (lines.length > 0) {
+                try {
+                  fs.appendFileSync(this.probeNodeFile, lines, "utf8");
+                } catch { /* swallow */ }
+              }
+            }
+          }
+          // Cache under this node row (same copy-before-hand-off reasoning as lastViewFrame).
+          this.lastNodeFrames.set(row, ab.slice(0));
+          if (this.onSnapshot) {
+            this.onSnapshot({ type: "buffer-snapshot", buffer: ab, tag: BUF_BLOCK_TAG_NODE_STREAM, row, gen: this.gen });
           }
         }
-      }
-      // Cache under this node row (same copy-before-hand-off reasoning as lastViewFrame).
-      this.lastNodeFrames.set(row, ab.slice(0));
-      if (this.onSnapshot) {
-        this.onSnapshot({ type: "buffer-snapshot", buffer: ab, tag: BUF_BLOCK_TAG_NODE_STREAM, row, gen: this.gen });
-      }
-    }
+      },
+    );
   }
 
   // handleInteriorFd parses ONE dedicated per-node INTERIOR stream pipe (fd =
@@ -250,16 +288,15 @@ export class StreamDemux {
   // for why the CARRY BUFFER and dead-stream key stay separate per fd even though the
   // decoded output lands in the same place.
   handleInteriorFd(row: number, chunk: Buffer) {
-    const key = `interior:${row}`;
-    if (this.deadStreams.has(key)) return;
-    const carry = this.stream.interiorBufs[row] ?? Buffer.alloc(0);
-    const { frames, rest, error } = splitFrames(carry, chunk);
-    this.stream.interiorBufs[row] = rest;
-    if (error) {
-      this.deadStreams.add(key);
-      this.onError(`handleInteriorFd(node=${nodeIdForRow(row)}): ${error}`);
-    }
-    this.processInteriorLikeFrames(row, frames, true); // this node own interior stream: the sole author of slot state
+    this.dispatchFrames(
+      `interior:${row}`,
+      this.stream.interiorBufs[row] ?? Buffer.alloc(0),
+      chunk,
+      (rest) => { this.stream.interiorBufs[row] = rest; },
+      `handleInteriorFd(node=${nodeIdForRow(row)})`,
+      // this node's own interior stream: the sole author of slot state
+      (frames) => this.processInteriorLikeFrames(row, frames, true),
+    );
   }
 
   // handleDriveFd parses ONE dedicated per-(node row, drive slot) DRIVE stream pipe (fd =
@@ -277,17 +314,18 @@ export class StreamDemux {
   // matching this node's own single most-recent bead-state snapshot regardless of which
   // goroutine produced it), same BUF_BLOCK_TAG_INTERIOR_STREAM tag to the webview.
   handleDriveFd(row: number, slot: number, chunk: Buffer) {
-    const key = `drive:${row}:${slot}`;
-    if (this.deadStreams.has(key)) return;
-    const carry = this.stream.driveBufs[row]?.[slot] ?? Buffer.alloc(0);
-    const { frames, rest, error } = splitFrames(carry, chunk);
-    if (!this.stream.driveBufs[row]) this.stream.driveBufs[row] = [];
-    this.stream.driveBufs[row][slot] = rest;
-    if (error) {
-      this.deadStreams.add(key);
-      this.onError(`handleDriveFd(node=${nodeIdForRow(row)}, slot=${slot}): ${error}`);
-    }
-    this.processInteriorLikeFrames(row, frames, false); // drive slot: events only
+    this.dispatchFrames(
+      `drive:${row}:${slot}`,
+      this.stream.driveBufs[row]?.[slot] ?? Buffer.alloc(0),
+      chunk,
+      (rest) => {
+        if (!this.stream.driveBufs[row]) this.stream.driveBufs[row] = [];
+        this.stream.driveBufs[row][slot] = rest;
+      },
+      `handleDriveFd(node=${nodeIdForRow(row)}, slot=${slot})`,
+      // drive slot: events only, never interior state
+      (frames) => this.processInteriorLikeFrames(row, frames, false),
+    );
   }
 
   // processInteriorLikeFrames is the shared decode/probe-log tail of handleInteriorFd and
