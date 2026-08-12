@@ -6,10 +6,18 @@ import (
 )
 
 func (c *RealClock) SleepCycle(ctx context.Context) error {
+	return c.sleepPulses(ctx, c.pulsesPerCycle())
+}
+
+func (c *RealClock) SleepPulse(ctx context.Context) error {
+	return c.sleepPulses(ctx, 1)
+}
+
+func (c *RealClock) sleepPulses(ctx context.Context, n int) error {
 	if c.tickCh == nil {
 		c.tickCh = globalTickBroadcaster().Subscribe()
 	}
-	for i := 0; i < c.pulsesPerCycle(); i++ {
+	for range n {
 		select {
 		case <-c.tickCh:
 		case <-ctx.Done():

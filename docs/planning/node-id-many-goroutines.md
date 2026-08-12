@@ -37,8 +37,9 @@ already correctly paced by `Tick()`, which scales elapsed time by speed
 Two goroutines per node id to start with, both already provisioned a stream fd by
 `tools/topology-vscode/src/runner/spawn-layout.ts` (`node:`, `drive:`):
 
-- **geometry** — owns `geom`, `topo`, `beads`, the node stream. BLOCKS ON ITS INBOX. Never
-  calls `SleepCycle`. Wakes for a move message or a pulse update, and re-emits.
+- **geometry** — owns `geom`, `topo`, `beads`, the node stream. Free-runs at ONE RAW PULSE
+  (16ms, unscaled), draining its inbox non-blocking exactly as it does today. Never calls
+  `SleepCycle`, so bead speed cannot reach it.
 - **animation** — owns `outs` (the outgoing `PacedWire`s and their in-flight beads) and the
   clock. Calls `SleepCycle`, then `DriveOneCycle(tick)`.
 
@@ -71,8 +72,9 @@ construction rather than by discipline.
   owner; the remaining fields stay with geometry.
 - `nodes/Wiring/nodeactor/chain_beads.go` — the join point; reads pulses from the last
   message instead of calling `GatherPulses` directly.
-- `nodes/Wiring/nodeactor/owners/messaging.go` — needs a BLOCKING wait over the inbox set,
-  where every select today ends in `default:`.
+- `nodes/clock/` — a `SleepPulse` that waits ONE pulse whatever the speed, beside the
+  speed-scaled `SleepCycle`. Nothing blocks on a peer: a node polls its inboxes and does its
+  own local work, which is why `DrainPending`'s `default:` selects stay exactly as they are.
 - `nodes/Wiring/nodeactor/pair_node_self.go` — a second caller of `DriveOutWires` /
   `ClearOutWires`; it becomes another goroutine serving the same id, not a special case.
 - MODEL.md "Each node is a goroutine" and `docs/model/entities.md` — the invariant itself.
@@ -82,10 +84,10 @@ construction rather than by discipline.
 
 1. Model docs first, so the code is written against the stated invariant rather than the
    docs being back-filled to match whatever got built.
-2. Give `Messaging` a blocking wait over its inbox set.
+2. `SleepPulse` on the clock: one pulse, unscaled.
 3. Move `outs` out of `NodeGeometry` into its own owner, with the two messages replacing the
    two inline calls.
-4. Split `Run` into the two loops.
+4. Split `Run` into the two loops — geometry on `SleepPulse`, animation on `SleepCycle`.
 5. `pair_node_self.go` becomes a peer goroutine on the same id.
 
 ## Verification
@@ -99,9 +101,10 @@ peer stopped draining, which is what a blocking wait done wrong looks like.
 
 ## Risks
 
-- A blocking wait over N channels has no plain `select` form. `reflect.Select` keeps it
-  channel-based and avoids adding a signalling channel; the neighbour count is small.
-- Deadlock: geometry blocks on its inbox, animation blocks on the clock. Animation must
-  never wait on geometry — its send is a non-blocking `trySend`, as `FlushPending` already
-  does, so a slow geometry drops a pulse update rather than stalling the clock.
+- Nothing waits on a peer, so there is no deadlock to reason about: both loops poll and
+  sleep on their own pulse. Both directions of the new traffic send non-blocking, as
+  `FlushPending` already does — a slow reader drops an update rather than stalling a clock.
+- Geometry now wakes 1/speed times more often than before at low speed. That is the point,
+  but it is also real work per pulse: `writeStreamFrame` should stay cheap, and emitting an
+  unchanged frame every 16ms is the thing to watch.
 - Delete this file when the change lands.
