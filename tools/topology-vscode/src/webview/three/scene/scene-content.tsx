@@ -13,7 +13,7 @@ import {
   SHADING_PARAM_SCENE_DIR_INTENSITY,
 } from "../../../schema/shading-params";
 import { BUFFER_NODE_TAG, BUFFER_EDGE_TAG, BUFFER_RING_TAG } from "./buffer-scene";
-import { HANDHOLD_TERM_TAG } from "../nav/polar-frame";
+import { HANDHOLD_TERM_TAG } from "../nav/polar-frame-data";
 import { resolveNodeDrawSlot } from "./node-depth-order";
 
 // ---------------------------------------------------------------------------
