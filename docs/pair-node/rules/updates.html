@@ -63,7 +63,7 @@
 
       <div class="card wide">
         <h2>The state</h2>
-        <img class="figure" src="../diagrams/panels/panel-state.svg"
+        <img class="figure" src="../diagrams/panels/state/state.svg"
           alt="A 24-slot ring. Slots 0, 6, 12 and 18 are marked; one step of the ring is pi/12; the link from 23 back to 0 is highlighted.">
         <div class="keynote">
           <p><code>t ∈ {0 … 23}</code></p>
@@ -80,10 +80,10 @@
       <div class="card wide">
         <h2>What is read off the tilt</h2>
         <div class="strip">
-          <img src="../diagrams/panels/panel-triad-0.svg" alt="tilt 0, with its normal and bottom">
-          <img src="../diagrams/panels/panel-triad-6.svg" alt="tilt 6, with its normal and bottom">
-          <img src="../diagrams/panels/panel-triad-12.svg" alt="tilt 12, with its normal and bottom">
-          <img src="../diagrams/panels/panel-triad-17.svg" alt="tilt 17, with its normal and bottom">
+          <img src="../diagrams/panels/triad/0.svg" alt="tilt 0, with its normal and bottom">
+          <img src="../diagrams/panels/triad/6.svg" alt="tilt 6, with its normal and bottom">
+          <img src="../diagrams/panels/triad/12.svg" alt="tilt 12, with its normal and bottom">
+          <img src="../diagrams/panels/triad/17.svg" alt="tilt 17, with its normal and bottom">
         </div>
         <div class="keynote">
           <p><i class="sw" style="background:#5fd68a"></i>t — the tilt</p>
@@ -99,18 +99,18 @@
             (<span data-src="nodes/PairNode/vectors.go#outgoingVector">outgoingVector</span>); the bottom
             is drawn and never sent</p>
         </div>
-        <img class="math" src="../diagrams/mathblocks/update-read.svg" style="width:184px"
+        <img class="math" src="../diagrams/mathblocks/read/read.svg" style="width:184px"
           alt="normal(t) = t+6. bottom(t) = t+12. sends = normal(t). angle(i) = (pi/12) i.">
       </div>
 
       <div class="card wide">
         <h2>The angle length, and what it says the pair is at</h2>
         <div class="strip">
-          <img src="../diagrams/panels/panel-length-0.svg" alt="angle length 0 — the arrival is on this node's top, so perpendicular stops">
-          <img src="../diagrams/panels/panel-length-3.svg" alt="angle length 3, an acute angle — neither mode stops here, so the node turns">
-          <img src="../diagrams/panels/panel-length-6.svg" alt="angle length 6 — the arrival is a quarter turn off, so parallel stops">
-          <img src="../diagrams/panels/panel-length-11.svg" alt="angle length 11, an obtuse angle — neither mode stops here, so the node turns">
-          <img src="../diagrams/panels/panel-length-12.svg" alt="angle length 12, a half turn — the arrival is on this node's bottom, which is the SAME count of 0 taken at the nearer end, so perpendicular stops">
+          <img src="../diagrams/panels/length/0.svg" alt="angle length 0 — the arrival is on this node's top, so perpendicular stops">
+          <img src="../diagrams/panels/length/3.svg" alt="angle length 3, an acute angle — neither mode stops here, so the node turns">
+          <img src="../diagrams/panels/length/6.svg" alt="angle length 6 — the arrival is a quarter turn off, so parallel stops">
+          <img src="../diagrams/panels/length/11.svg" alt="angle length 11, an obtuse angle — neither mode stops here, so the node turns">
+          <img src="../diagrams/panels/length/12.svg" alt="angle length 12, a half turn — the arrival is on this node's bottom, which is the SAME count of 0 taken at the nearer end, so perpendicular stops">
         </div>
         <div class="keynote">
           <p><i class="sw" style="background:#5fd68a"></i>t — this node's own tilt</p>
@@ -130,7 +130,7 @@
             the one question about the two TILTS rather than the arrival: which mode the pair runs</p>
           <p>integers, so exact — no dot product, no epsilon to tune</p>
         </div>
-        <img class="math" src="../diagrams/mathblocks/update-length.svg" style="width:396px"
+        <img class="math" src="../diagrams/mathblocks/length/length.svg" style="width:396px"
           alt="d = absolute value of t minus a. L, short for angleLength(t,a), = min(d, 24 - d) — the shorter of the two arcs.">
       </div>
 

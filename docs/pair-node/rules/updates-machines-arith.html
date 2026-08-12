@@ -39,10 +39,10 @@
           difference in size between them is the point: one has 24 states and two inputs, the other
           three states and two, and neither has anything else in it.</p>
         <p class="figlabel">the tilt</p>
-        <img class="math" src="../diagrams/mathblocks/update-machine-tilt.svg" style="width:299px"
+        <img class="math" src="../diagrams/mathblocks/machine/tilt.svg" style="width:299px"
           alt="S = the integers mod 24. Sigma = next, prev. delta(t, next) = t+1 mod 24. delta(t, prev) = t-1 mod 24.">
         <p class="figlabel">the mode</p>
-        <img class="math" src="../diagrams/mathblocks/update-machine-mode.svg" style="width:453px"
+        <img class="math" src="../diagrams/mathblocks/machine/mode.svg" style="width:453px"
           alt="S = R setting, R perpendicular, R parallel. Sigma = a, reset. delta(R setting, a) = R perpendicular if angleLength(t, a sub minus six) = 6, else R parallel. delta(R, a) = R for R not setting. delta(R, reset) = R setting.">
         <div class="keynote">
           <p>the tilt ring is the Cayley graph of ℤ₂₄ on the generator 1 — which is exactly what
@@ -64,13 +64,13 @@
           partner's, and it is the machine: 24 states with two links out of each, a line that
           reversing does not change, and the two stopping counts — which are therefore not chosen,
           but counted.</p>
-        <img class="math" src="../diagrams/mathblocks/update-arith-groups.svg" style="width:468px"
+        <img class="math" src="../diagrams/mathblocks/arith/groups.svg" style="width:468px"
           alt="The ring: x runs 0 to 23, counted round, so 24 is 0 again. The half turn: x and x + 12 name the same line, so a line is a number counted round twelve.">
-        <img class="math" src="../diagrams/mathblocks/update-arith-distance.svg" style="width:439px"
+        <img class="math" src="../diagrams/mathblocks/arith/distance.svg" style="width:439px"
           alt="The length between two numbers: d = |x - y|, and L(x, y) is d or 24 - d, whichever is shorter — never more than 12.">
-        <img class="math" src="../diagrams/mathblocks/update-arith-gap.svg" style="width:387px"
+        <img class="math" src="../diagrams/mathblocks/arith/gap.svg" style="width:387px"
           alt="The four quarter gaps, with g = x - y: g is 0 or 12, where x and y name the same line; and g is 6 or 18, a quarter of the ring between them.">
-        <img class="math" src="../diagrams/mathblocks/update-arith-rests.svg" style="width:602px"
+        <img class="math" src="../diagrams/mathblocks/arith/rests.svg" style="width:602px"
           alt="Shift one of the two by 6, and only those four land on 0, 6, 12: a gap of 0 or 12 gives L(x, y + 6) = 6; a gap of 6 or 18 gives L(x, y + 6) = 0 or 12; every other gap gives an L(x, y + 6) that is none of 0, 6, 12.">
         <div class="keynote">
           <p>this is where <span data-src="nodes/PairNode/tiltring/machine.go#stoppingCounts">stoppingCounts</span>
