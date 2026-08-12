@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="doc-status" content="historical">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>The pan triangle — The Polar System for a Sphere</title>
+<link rel="stylesheet" href="polar-sphere.css">
+</head>
+<body>
+<header>
+  <h1>The Polar System for a Sphere</h1>
+  <p>How <span class="kb">2D polar</span> <code>(r, θ)</code> grows into <span class="kp">3D spherical</span> <code>(r, θ, φ)</code> — and the parts that only exist in 3D.</p>
+</header>
+
+<ul class="tabs" role="navigation" aria-label="Polar-sphere pages">
+    <li><a href="polar-sphere.html">2D polar</a></li>
+    <li><a href="polar-sphere-3d.html">3D spherical</a></li>
+    <li><a href="polar-sphere-diff.html">What 3D adds</a></li>
+    <li><a href="polar-sphere-frame.html">The frame</a></li>
+    <li><a href="polar-sphere-tri.html" class="current">The pan triangle</a></li>
+    <li><a href="polar-sphere-cart.html">Cartesian pan</a></li>
+    <li><a href="polar-sphere-mouse.html">Mouse as polar</a></li>
+    <li><a href="polar-sphere-recenter.html">pan → recenter</a></li>
+    <li><a href="polar-sphere-rot.html">Rotation</a></li>
+    <li><a href="polar-sphere-zoom.html">Zoom</a></li>
+    <li><a href="polar-sphere-plan.html">Plan</a></li>
+</ul>
+
+<section class="panel active" id="ttri">
+  <div class="row">
+    <figure class="fig">
+      <svg id="svgTri" width="460" height="420"></svg>
+      <figcaption>The pan triangle: hypotenuse = radius, right angle on the <span class="kg">green</span> equator line.</figcaption>
+    </figure>
+    <div class="prose">
+      <h2>The pan triangle, in 3D</h2>
+      <p>This is the 2D right triangle (<code>x = r cos θ</code>) lifted onto the sphere — the construction the editor's pan guide draws:</p>
+      <ul>
+        <li><span class="kr">hypotenuse</span> — the radius <code>C → P</code> to the cursor point (length <code>R</code>).</li>
+        <li><span class="kg">green line</span> — the equator (horizontal torus) diameter at the cursor's turn <span class="kb">θ</span>.</li>
+        <li><strong>foot G</strong> — the cursor's horizontal shadow, <code>R·sin <span class="kp">φ</span></code> along <span class="kb">θ</span>, sitting <em>on</em> the green line.</li>
+        <li>the <strong>right angle is at G</strong>: <code>C→G</code> (the pan offset) is horizontal, <code>G→P</code> (= <code>R·cos <span class="kp">φ</span></code>) runs straight up the pole — perpendicular by construction, every frame.</li>
+      </ul>
+      <p>The 3D difference: in 2D the right angle is just a corner in the plane. Here the green line is the crossing of two great circles (disk ∩ equator), and the height rises <em>out of</em> the equatorial plane toward the pole. The same trig, but the legs now live on different circles of the sphere.</p>
+      <div class="note">Because <code>G</code> is placed by the angle <span class="kb">θ</span> (always defined) and offset <code>R·sin <span class="kp">φ</span></code>, the right angle can never "flip" — there is no cross product to collapse.</div>
+    </div>
+  </div>
+</section>
+<script src="polar-sphere-shared.js"></script>
+<script>
+// ---- triangle --------------------------------------------------------------
+(function(){
+  const svg=document.getElementById("svgTri"), cx=230, cy=215, R=155;
+  sphere(svg,cx,cy,R); poleAxis(svg,cx,cy,R);
+  sphereCurve(svg,t=>proj(t*2*Math.PI,Math.PI/2,cx,cy,R),120,cx,cy,R,"#2f3a5c",1);
+  const TH=42*Math.PI/180, PH=50*Math.PI/180;
+  // green line = equator diameter at azimuth θ
+  const gA=proj(TH,Math.PI/2,cx,cy,R), gB=proj(TH+Math.PI,Math.PI/2,cx,cy,R);
+  line(svg,gA.x,gA.y,gB.x,gB.y,"#66ff99",3);
+  // P and foot G (R sinφ along θ on the equator dir), height up the pole
+  const P=proj(TH,PH,cx,cy,R);
+  // G in 3D: center + sinφ*R along equator dir(θ); project by treating it as a point inside —
+  // approximate by scaling the equator point gA toward center by sinφ.
+  const s=Math.sin(PH);
+  const G={x:cx+(gA.x-cx)*s, y:cy+(gA.y-cy)*s};
+  line(svg,cx,cy,P.x,P.y,"#ff5566",3);     // hypotenuse (radius)
+  line(svg,cx,cy,G.x,G.y,"#ffcc44",2.5);   // base along green line (pan offset)
+  line(svg,G.x,G.y,P.x,P.y,"#57b6ff",2.5); // height up the pole
+  // little right-angle square at G
+  const ux={x:(G.x-cx),y:(G.y-cy)}, m=Math.hypot(ux.x,ux.y)||1; ux.x/=m; ux.y/=m;
+  const vy={x:(P.x-G.x),y:(P.y-G.y)}, m2=Math.hypot(vy.x,vy.y)||1; vy.x/=m2; vy.y/=m2;
+  const sq=11; svg.appendChild(poly([
+    {x:G.x+ux.x*sq,y:G.y+ux.y*sq},{x:G.x+ux.x*sq+vy.x*sq,y:G.y+ux.y*sq+vy.y*sq},
+    {x:G.x+vy.x*sq,y:G.y+vy.y*sq}],{fill:"none",stroke:"#e7ecf5","stroke-width":1.4}));
+  dot(svg,cx,cy,"#e7ecf5",4.5); dot(svg,P.x,P.y,"#ff5566",5.5); dot(svg,G.x,G.y,"#ffcc44",4.5);
+  label(svg,cx-14,cy+18,"C","#9aa6c0");
+  label(svg,P.x+8,P.y,"P (cursor)","#ff5566",12);
+  label(svg,G.x+6,G.y+14,"G (right angle)","#ffcc44",11);
+  label(svg,(cx+P.x)/2-18,(cy+P.y)/2-6,"r","#ff5566");
+  label(svg,gB.x-4,gB.y+14,"green line","#66ff99",11);
+  label(svg,(G.x+P.x)/2+6,(G.y+P.y)/2,"r·cosφ","#57b6ff",11);
+})();
+</script>
+</body>
+</html>
