@@ -3,7 +3,11 @@ import { postLog } from "./log/post";
 postLog("lifecycle", { phase: "bundle-eval" });
 
 import { createRoot } from "react-dom/client";
-import "./webview.css";
+import "./webview-toolbar.css";
+import "./webview-rule-eq.css";
+import "./webview-timeline.css";
+import "./webview-palette.css";
+import "./webview-diff.css";
 import { ThreeView } from "./three/scene/ThreeView";
 import { SpeedSlider } from "./three/controls/panels/SpeedSlider";
 import { TiltVectorButtons } from "./three/controls/panels/TiltVectorButtons";
