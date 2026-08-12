@@ -6286,3 +6286,80 @@ phase methods, matching build.go's shape" (`tools/topology-vscode/src/runCommand
 (`tools/topology-vscode/src/extension.ts`).
 
 **`messages.ts`:** declined, no commit.
+
+## Phase-split pass over four measured long files
+
+Measured LOC and long functions before touching anything (`awk` distance-between-`func`-lines
+scan, more reliable than eyeballing — this session's greps had been wrong three times prior).
+
+**`nodes/input/node.go`** (347 LOC). `updateFeedbackRing` (81) and `Update` (76) confirmed
+over ~50; the third table entry ("one ~71-line block") did not correspond to any distinct
+third function — only these two plus `init()` (52, itself a short flat builder, not a phase
+sequence) exceed ~50. `updateFeedbackRing`'s per-cycle body genuinely has two named phases
+under the flat-loop shape its own doc comment insists on (no nested wait loop): peek+send
+(extracted as `feedbackRingSend`) and react-to-arrival (extracted as `feedbackRingReact`),
+called from the unchanged outer `for` with the same statement order, same early-returns
+turned into the same bool-return/continue shape. `Update`'s plain (non-feedback) emit path
+was itself an undecomposed ~30-line loop parallel in shape to `updateFeedbackRing` — extracted
+as its own sibling method `runPeriodicEmit`, leaving `Update` as a short orchestrator (setup →
+dispatch to `updateFeedbackRing` or `runPeriodicEmit`). No local was promoted to a struct
+field — `working`/`backup`/`emitBeads`/`clk` are still loop-scoped, passed as parameters/
+pointers exactly as before. No channel or field was exported. LOC before/after: 347 → 368 (net
++21, all new doc comments on the extracted phases — no logic reflow). Generator
+byte-identical: `go run ./tools/gen-node-defs && git status --short` showed only
+`nodes/input/node.go` as the diff (the file we edited), no generated file moved. No guard
+under `tools/`/`scripts/` names `updateFeedbackRing`/`Update`/`feedbackRingSend`/
+`feedbackRingReact`/`runPeriodicEmit`, so no re-keying was needed. Commit `c87664a6`.
+
+**`nodes/wire/out_port.go`** (325 LOC). Declined in full — the table's "one ~101-line block"
+does not exist. Re-measured every function in the file: the longest is `placeDrivenNoWalker`
+at 22 lines: every function in this file is well under 50. The file already reads as one job
+(the sending end of a port pair) split into many small, single-purpose methods with heavy
+doc comments; there is no long function here to phase-split. No edit made, no commit.
+
+**`nodes/PairNode/node.go`** (308 LOC). `init()` measured at 71 lines, matching the table's
+"70". `handleVectorCycle` measured at 53 (the table's "one ~77-line block" did not match any
+actual function — `stepFromVector` is 45, under the ~50 bar). `init()`'s builder closure is a
+straight-line sequence of four independent field-group phases (plumbing → lattice/tilt seed →
+self-drive + sync closures + seed-unknown breadcrumb → vector channels), each phase depending
+only on values the prior phase produced (`latticeSeed`/`seed`/`seedUnknown` threaded forward
+as return values, not promoted to fields) — extracted as `wirePlumbing`/`wireLatticeSeed`/
+`wireSelfDrive`/`wireVectorChannels`, same shape as `build.go`'s `buildFromSpec`. `init()`
+itself, and the `Wiring.RegisterBuilder("PairNode", ...)` call, stay in `node.go` per the
+primitive landing rule; the four phase methods are unexported siblings in the same file (no
+new sibling file needed — this package already has one, `lifecycle.go`, for a different
+concern). `handleVectorCycle` was inspected and declined: at 53 lines it is already a thin
+orchestrator over named decision helpers (`adoptMachine`, `fromAnotherLattice`,
+`recordReceived`, `machineForGap`, `stepFromVector`, `reply`, `reportRest`) separated only by
+early-return guards — its length is comments, not undecomposed logic, and fragmenting the
+guard chain further would not extract a phase, only rename the same statements. No local was
+promoted to a field; `wireLatticeSeed`'s `latticeSeed`/`seed`/`seedUnknown` cross phase
+boundaries as return values consumed once by `wireSelfDrive`, never stored on `n`. No channel
+or field was exported. LOC before/after: 308 → 334 (net +26, doc comments on the new phase
+methods). Generator byte-identical (`git status --short` after `gen-node-defs` showed only
+`nodes/PairNode/node.go`). `tools/docs/check-docs-symbols.sh` names
+`nodes/PairNode/node.go#handleVectorCycle` — untouched, still resolves; not re-keyed because
+nothing it names moved. Commit `939cc254`.
+
+**`nodes/Wiring/edgemover/edge_mover.go`** (268 LOC). Declined in full — the table's "one
+~126-line block" does not exist in this file. Re-measured every function: the longest is
+`Select` (Context-guarded channel send, but body is 8 statements) and `New` (a flat struct
+literal); nothing approaches 50 lines. This actor was ALREADY split by concern before this
+task — the file's own header says so — into `edge_mover_handle.go` (`handle`, `recomputeGeometry`),
+`edge_mover_run.go` (`Run`), and `edge_mover_stream.go` (`writeStreamFrame`); those sibling
+files hold the longer functions (`handle` 49 lines, `Run` ~60, `writeStreamFrame` ~65 by
+statement count), each still under the ~50–70 range and each already reading as one
+indivisible per-goroutine step, not a file in scope for this task (the task named
+`edge_mover.go` specifically). No edit made to `edge_mover.go`, no commit.
+
+**Verify (from `/Users/David/Documents/github/wirefold`, cwd confirmed each time):**
+`go build ./...` — clean, no output, after each of the two edits. `go vet ./...` — clean, no
+output. `bash scripts/stop-checks.sh` — empty stdout after each commit. `git status --short`
+empty after each commit.
+
+**Commits (`task/god-objects`):** `c87664a6` — "Input's feedback-ring loop and periodic-emit
+loop split into named phase methods" (`nodes/input/node.go`). `939cc254` — "PairNode's builder
+closure splits into four named construction phases" (`nodes/PairNode/node.go`).
+
+**Declined, no commit:** `nodes/wire/out_port.go`, `nodes/Wiring/edgemover/edge_mover.go` —
+both files' pre-task measurements did not hold; neither contains a function over ~50 lines.
