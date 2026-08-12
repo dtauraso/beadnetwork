@@ -27,9 +27,33 @@ import (
 )
 
 func main() {
-	// Generator is invoked from tools/topology-vscode/ via npm run gen:node-defs.
-	// Resolve repo root relative to this file's location at compile time is not
-	// possible; instead, walk up from cwd until we find a "nodes/" directory.
+	repoRoot, kinds := resolveRepoRootAndKinds()
+
+	generateKindImports(repoRoot, kinds)
+	generateNodeDefs(repoRoot, kinds)
+	generateWireDefs(repoRoot)
+	generateTraceKinds(repoRoot)
+	generateNodeDims(repoRoot, kinds)
+	generateNodeKindID(repoRoot, kinds)
+	generateCurveParams(repoRoot)
+	generateOverlayGen(repoRoot)
+	generateShadingParams(repoRoot)
+	generateBufferLayout(repoRoot)
+	generateFrameTags(repoRoot)
+	generateInputLayout(repoRoot)
+}
+
+// resolveRepoRootAndKinds resolves the repo root (walking up from cwd until a "nodes/"
+// directory is found — generator is invoked from tools/topology-vscode/ via
+// npm run gen:node-defs, so resolving the root relative to this file's location at compile
+// time is not possible), then collects every node kind and assigns each a stable KindId.
+//
+// Finding B: KindId is a stable, assigned-once fact per kind (from SPEC.md's View "kindId"
+// field), NOT a sort-derived index — adding a kind must never renumber an existing one.
+// Resolve each kind's id, auto-assigning (and writing back into its SPEC.md) the next free
+// id for any kind that doesn't have one yet, so a new kind is stable from the moment it's
+// first generated.
+func resolveRepoRootAndKinds() (string, []kindscan.KindEntry) {
 	cwd, err := os.Getwd()
 	if err != nil {
 		fatalf("getwd: %v", err)
@@ -41,12 +65,6 @@ func main() {
 
 	nodesDir := filepath.Join(repoRoot, "nodes")
 	kinds := kindscan.CollectKinds(nodesDir)
-
-	// Finding B: KindId is a stable, assigned-once fact per kind (from SPEC.md's
-	// View "kindId" field), NOT a sort-derived index — adding a kind must never
-	// renumber an existing one. Resolve each kind's id, auto-assigning (and
-	// writing back into its SPEC.md) the next free id for any kind that doesn't
-	// have one yet, so a new kind is stable from the moment it's first generated.
 	kindscan.AssignKindIDs(kinds, nodesDir)
 
 	// Sort alphabetically by Go kind name (PascalCase spec kind) for stable,
@@ -55,24 +73,31 @@ func main() {
 	sort.Slice(kinds, func(i, j int) bool {
 		return kinds[i].GoKind < kinds[j].GoKind
 	})
+	return repoRoot, kinds
+}
 
-	// kinds_generated.go — blank imports that make each node package's init() (and thus
-	// its wire.Register call) run. Folded in from the former standalone tools/gen-kind-imports
-	// so ONE registration scan feeds every kind-derived output; a separate binary could
-	// silently diverge from this one (audit finding). check-generated.sh guards it via the
-	// "wrote" line below, so no dedicated guard is needed.
+// generateKindImports writes kinds_generated.go — blank imports that make each node
+// package's init() (and thus its wire.Register call) run. Folded in from the former
+// standalone tools/gen-kind-imports so ONE registration scan feeds every kind-derived
+// output; a separate binary could silently diverge from this one (audit finding).
+// check-generated.sh guards it via the "wrote" line below, so no dedicated guard is needed.
+func generateKindImports(repoRoot string, kinds []kindscan.KindEntry) {
 	kindImportsPath := filepath.Join(repoRoot, "kinds_generated.go")
 	if err := kindscan.WriteKindImports(kindImportsPath, kinds); err != nil {
 		fatalf("write %s: %v", kindImportsPath, err)
 	}
 	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d kinds)\n", kindImportsPath, len(kinds))
+}
 
+func generateNodeDefs(repoRoot string, kinds []kindscan.KindEntry) {
 	outPath := filepath.Join(repoRoot, "tools", "topology-vscode", "src", "schema", "node-defs.ts")
 	if err := writeNodeDefs(outPath, kinds); err != nil {
 		fatalf("write %s: %v", outPath, err)
 	}
 	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d entries)\n", outPath, len(kinds))
+}
 
+func generateWireDefs(repoRoot string) {
 	loaderPath := filepath.Join(repoRoot, "nodes", "Wiring", "loadspec", "topo_spec.go")
 	wireProps, err := parseWirePropsFromFile(loaderPath)
 	if err != nil {
@@ -83,7 +108,9 @@ func main() {
 		fatalf("write %s: %v", wireDefsPath, err)
 	}
 	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d entries)\n", wireDefsPath, len(wireProps))
+}
 
+func generateTraceKinds(repoRoot string) {
 	traceDir := filepath.Join(repoRoot, "Trace")
 	traceKinds, err := parseTraceKinds(traceDir)
 	if err != nil {
@@ -98,19 +125,25 @@ func main() {
 		fatalf("write %s: %v", traceKindsPath, err)
 	}
 	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d kinds)\n", traceKindsPath, len(traceKinds))
+}
 
+func generateNodeDims(repoRoot string, kinds []kindscan.KindEntry) {
 	nodeDimsGoPath := filepath.Join(repoRoot, "nodes", "Wiring", "nodegeom", "node_dims_gen.go")
 	if err := writeNodeDims(nodeDimsGoPath, kinds); err != nil {
 		fatalf("write %s: %v", nodeDimsGoPath, err)
 	}
 	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d kinds)\n", nodeDimsGoPath, len(kinds))
+}
 
+func generateNodeKindID(repoRoot string, kinds []kindscan.KindEntry) {
 	nodeKindIDGoPath := filepath.Join(repoRoot, "Buffer", "node_kind_id_gen.go")
 	if err := writeNodeKindID(nodeKindIDGoPath, kinds); err != nil {
 		fatalf("write %s: %v", nodeKindIDGoPath, err)
 	}
 	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d kinds)\n", nodeKindIDGoPath, len(kinds))
+}
 
+func generateCurveParams(repoRoot string) {
 	curveParamsGoPath := filepath.Join(repoRoot, "nodes", "Wiring", "nodegeom", "curve_params.go")
 	curveParams, err := parseCurveParams(curveParamsGoPath)
 	if err != nil {
@@ -121,7 +154,9 @@ func main() {
 		fatalf("write %s: %v", curveParamsTsPath, err)
 	}
 	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d constants)\n", curveParamsTsPath, len(curveParams))
+}
 
+func generateOverlayGen(repoRoot string) {
 	messagesTSPath := filepath.Join(repoRoot, "tools", "topology-vscode", "src", "messages.ts")
 	overlayFlags, err := parseOverlayFlags(messagesTSPath)
 	if err != nil {
@@ -132,7 +167,9 @@ func main() {
 		fatalf("write %s: %v", overlayGenGoPath, err)
 	}
 	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d overlay flags)\n", overlayGenGoPath, len(overlayFlags))
+}
 
+func generateShadingParams(repoRoot string) {
 	shadingParamsGoPath := filepath.Join(repoRoot, "nodes", "Wiring", "nodegeom", "shading_params.go")
 	shadingParams, err := parseShadingParams(repoRoot, shadingParamsGoPath)
 	if err != nil {
@@ -143,7 +180,9 @@ func main() {
 		fatalf("write %s: %v", shadingParamsTsPath, err)
 	}
 	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d constants)\n", shadingParamsTsPath, len(shadingParams))
+}
 
+func generateBufferLayout(repoRoot string) {
 	bufferDir := filepath.Join(repoRoot, "Buffer")
 	bufSchema, err := buflayout.ParseBufferLayoutDir(bufferDir)
 	if err != nil {
@@ -160,7 +199,9 @@ func main() {
 		fatalf("write %s: %v", bufLayoutTSPath, err)
 	}
 	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d blocks)\n", bufLayoutTSPath, len(bufSchema.Blocks))
+}
 
+func generateFrameTags(repoRoot string) {
 	frameTagsGoPath := filepath.Join(repoRoot, "Buffer", "frame_tags.go")
 	frameTagsHeader, frameTagConsts, err := parseFrameTags(frameTagsGoPath)
 	if err != nil {
@@ -171,12 +212,14 @@ func main() {
 		fatalf("write %s: %v", frameTagsTSPath, err)
 	}
 	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d constants)\n", frameTagsTSPath, len(frameTagConsts))
+}
 
-	// Scan the package for whichever file declares InputLayoutFingerprint rather than
-	// naming one (it moved from input_codec.go to input_fingerprint.go when that file was
-	// split by job — memory/feedback_guards_hardcoding_single_file_break_on_split.md — and
-	// again from nodes/Wiring to nodes/Wiring/inputcodec when the TS->Go decode cluster
-	// was lifted into its own package).
+// generateInputLayout scans the package for whichever file declares InputLayoutFingerprint
+// rather than naming one (it moved from input_codec.go to input_fingerprint.go when that
+// file was split by job — memory/feedback_guards_hardcoding_single_file_break_on_split.md —
+// and again from nodes/Wiring to nodes/Wiring/inputcodec when the TS->Go decode cluster was
+// lifted into its own package).
+func generateInputLayout(repoRoot string) {
 	wiringGoDir := filepath.Join(repoRoot, "nodes", "Wiring", "inputcodec")
 	inputFP, err := parseInputLayoutFingerprintDir(wiringGoDir)
 	if err != nil {
