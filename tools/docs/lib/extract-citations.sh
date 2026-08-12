@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 
-# Sourced by tools/docs/check-doc-citations.sh. Scans $TMP/norm.txt for
-# `CLAUDE.md "..."` / `MODEL.md "..."` style citations, drops ones that read as history
-# (HISTORY_RE), and writes the survivors to $TMP/cites.txt as path\tline\tdoc\tquoted.
+# Sourced by tools/docs/check-doc-citations.sh. Scans $TMP/norm.txt for a doc name
+# immediately followed by a quoted string (the citation shape this whole guard enforces),
+# drops ones that read as history (HISTORY_RE), and writes the survivors to
+# $TMP/cites.txt as path\tline\tdoc\tquoted.
 
 HISTORY_RE='(gone|removed|retired|deleted|erased|obsolete|legacy|superseded|replaced|no longer|used to|formerly|dead|was |were |old |reverted|rejected|abandoned|does not exist|doesn.t exist|never existed|unbuilt|no such|there is no|do not cite|do not re-add|until )'
 

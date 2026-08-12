@@ -11,7 +11,7 @@ source "$SCRIPT_DIR/lib/normalize-docs.sh"
 source "$SCRIPT_DIR/lib/collect-citing-files.sh"
 source "$SCRIPT_DIR/lib/normalize-candidates.sh"
 source "$SCRIPT_DIR/lib/extract-citations.sh"
-source "$SCRIPT_DIR/lib/check-citations-match.sh"
+source "$SCRIPT_DIR/lib/citations-match.sh"
 
 require_docs_present
 
