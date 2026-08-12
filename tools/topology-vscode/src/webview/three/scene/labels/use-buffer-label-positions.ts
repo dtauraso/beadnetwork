@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { BufferLabelPos } from "./buffer-scene";
+import type { BufferLabelPos } from "../buffer-scene";
 
 export function useBufferLabelPositions(): [BufferLabelPos[], (positions: BufferLabelPos[]) => void] {
   const [bufferLabelPositions, setBufferLabelPositions] = useState<BufferLabelPos[]>([]);

@@ -10,8 +10,8 @@ import { BufferScene, BufferLabelProjector } from "./buffer-scene";
 import { ProceduralEnvProvider } from "./scene-env";
 import { NavGuides } from "../nav/NavGuides";
 import { useOverlayFlags } from "../controls/flags/overlay-flags";
-import { useBufferLabelPositions } from "./use-buffer-label-positions";
-import { BufferLabelOverlay } from "./BufferLabelOverlay";
+import { useBufferLabelPositions } from "./labels/use-buffer-label-positions";
+import { BufferLabelOverlay } from "./labels/BufferLabelOverlay";
 import { ScenePanelColumn } from "./ScenePanelColumn";
 
 export function ThreeView() {

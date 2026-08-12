@@ -1,20 +1,20 @@
 import { useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import type * as THREE from "three";
-import { getChainBeads } from "./node-stream-blocks";
-import { getNodeFrame } from "./node-frame-aggregate";
+import { getChainBeads } from "./nodes/node-stream-blocks";
+import { getNodeFrame } from "./nodes/node-frame-aggregate";
 import { INTERIOR_SLOTS_PER_NODE } from "../decode/buffer-decode-interior";
 
-import { ChainBeadInstances } from "./ChainBeadInstances";
-import { EdgeLines } from "./EdgeLines";
-import { getEdgeStreamAccessor } from "./edge-stream-blocks";
+import { ChainBeadInstances } from "./beads/ChainBeadInstances";
+import { EdgeLines } from "./edges/EdgeLines";
+import { getEdgeStreamAccessor } from "./edges/edge-stream-blocks";
 import { TiltVectors } from "../nav/TiltVectors";
-import { NodeInstances } from "./NodeInstances";
-import { SelectionHighlight, HoverHighlight } from "./SelectionHighlight";
-import { SphereRings } from "./SphereRings";
-import { InteriorBeadInstances } from "./InteriorBeadInstances";
+import { NodeInstances } from "./nodes/NodeInstances";
+import { SelectionHighlight, HoverHighlight } from "./overlays/SelectionHighlight";
+import { SphereRings } from "./overlays/SphereRings";
+import { InteriorBeadInstances } from "./beads/InteriorBeadInstances";
 import { BufferCamera } from "./BufferCamera";
-import { BufferLabelProjector } from "./BufferLabelProjector";
+import { BufferLabelProjector } from "./labels/BufferLabelProjector";
 
 export type { BufferLabelPos } from "./buffer-scene-shared";
 export {

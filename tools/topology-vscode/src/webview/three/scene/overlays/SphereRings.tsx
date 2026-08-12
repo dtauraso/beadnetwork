@@ -1,14 +1,14 @@
 import { useRef, useState, useMemo, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { getNodeFrame } from "./node-frame-aggregate";
+import { getNodeFrame } from "../nodes/node-frame-aggregate";
 import {
   readNodeCX, readNodeCY, readNodeCZ, readNodeRadius, readNodeSelected, readNodeSphereR,
   readNodeVRX, readNodeVRY, readNodeVRZ, readNodeFRX, readNodeFRY, readNodeFRZ,
   readOverlayReachSphere,
-} from "../../../schema/buffer-layout";
-import { overlayOn } from "../controls/flags/overlay-flags";
-import { NODE_SPHERE_RADIUS, NORMAL_DEGENERATE_EPS, SPHERE_RING_MIN_RADIUS, nodeRowColors } from "./buffer-scene-shared";
+} from "../../../../schema/buffer-layout";
+import { overlayOn } from "../../controls/flags/overlay-flags";
+import { NODE_SPHERE_RADIUS, NORMAL_DEGENERATE_EPS, SPHERE_RING_MIN_RADIUS, nodeRowColors } from "../buffer-scene-shared";
 
 const SPHERE_RING_EMISSIVE_INTENSITY = 0.25;
 const SPHERE_RING_OPACITY = 0.55;

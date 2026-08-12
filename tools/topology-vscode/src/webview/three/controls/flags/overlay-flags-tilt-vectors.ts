@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import { getNodeFrame, subscribeNodeStreamBlocks } from "../../scene/node-frame-aggregate";
+import { getNodeFrame, subscribeNodeStreamBlocks } from "../../scene/nodes/node-frame-aggregate";
 import {
   readNodeTopTiltVectorLen,
   readNodeTopTiltVectorTheta,

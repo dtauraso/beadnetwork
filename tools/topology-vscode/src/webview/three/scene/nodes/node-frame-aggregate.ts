@@ -1,13 +1,13 @@
-import { getLatestNodeStreamFrames, getLatestInteriorStreamFrames, getNodeStreamVersion, getInteriorStreamVersion, subscribeNodeStreamFrame, subscribeInteriorStreamFrame } from "../../snapshot-buffer";
+import { getLatestNodeStreamFrames, getLatestInteriorStreamFrames, getNodeStreamVersion, getInteriorStreamVersion, subscribeNodeStreamFrame, subscribeInteriorStreamFrame } from "../../../snapshot-buffer";
 import {
   decodeNodeStreamFrame,
   type DecodedNodeFrame,
-} from "../decode/buffer-decode-node";
-import { decodeInteriorStreamFrame } from "../decode/buffer-decode-interior";
+} from "../../decode/buffer-decode-node";
+import { decodeInteriorStreamFrame } from "../../decode/buffer-decode-interior";
 import {
   NODE_STRIDE, INTERIOR_STRIDE, INTERIOR_SLOTS_PER_NODE,
   NODE_COL_LABEL_OFF, NODE_COL_LABEL_LEN,
-} from "../../../schema/buffer-layout";
+} from "../../../../schema/buffer-layout";
 
 const STR_ENCODER = new TextEncoder();
 

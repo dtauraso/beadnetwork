@@ -2,9 +2,9 @@ import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { getEdgeStreamAccessor } from "./edge-stream-blocks";
-import { EDGE_LINE_COLOR } from "./bead-style";
+import { EDGE_LINE_COLOR } from "../beads/bead-style";
 
-import { DIRECTION_ZERO_EPS } from "./buffer-scene-shared";
+import { DIRECTION_ZERO_EPS } from "../buffer-scene-shared";
 
 const EDGE_LINE_RADIUS = 1.5;
 const ARROW_HEAD_RADIUS = 3;

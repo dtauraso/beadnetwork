@@ -1,13 +1,13 @@
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { getChainBeads } from "./node-stream-blocks";
+import { getChainBeads } from "../nodes/node-stream-blocks";
 import { beadStyleForValue } from "./bead-style";
 import {
   SHADING_PARAM_BEAD_RADIUS,
   SHADING_PARAM_BEAD_RING_TUBE_RATIO,
   SHADING_PARAM_CHAIN_BEAD_FILL,
-} from "../../../schema/shading-params";
+} from "../../../../schema/shading-params";
 
 const RING_COLOR = beadStyleForValue(1)!.ring;
 

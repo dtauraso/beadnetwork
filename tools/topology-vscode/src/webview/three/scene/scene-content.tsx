@@ -8,7 +8,7 @@ import {
 } from "../../../schema/shading-params";
 import { BUFFER_NODE_TAG, BUFFER_EDGE_TAG, BUFFER_RING_TAG } from "./buffer-scene";
 import { HANDHOLD_TERM_TAG } from "../nav/polar-frame-data";
-import { resolveNodeDrawSlot } from "./node-depth-order";
+import { resolveNodeDrawSlot } from "./nodes/node-depth-order";
 
 function pickBufferEdge(hits: THREE.Intersection[]): string | null {
   for (const hit of hits) {

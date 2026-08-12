@@ -1,14 +1,14 @@
 import * as THREE from "three";
 import { getNodeFrame } from "./node-frame-aggregate";
-import { getViewBlocks } from "./view-blocks";
+import { getViewBlocks } from "../view-blocks";
 import {
   readNodeRingAxisTheta,
   readNodeRingAxisPhi,
   readNodeCX, readNodeCY, readNodeCZ, readNodeRadius,
   readOverlaySelSpherePoles,
   readOverlayNodeBody, readOverlayNodeRing, readOverlayRingPick,
-} from "../../../schema/buffer-layout";
-import { NODE_SPHERE_RADIUS, nodeRowColors, poleAxis } from "./buffer-scene-shared";
+} from "../../../../schema/buffer-layout";
+import { NODE_SPHERE_RADIUS, nodeRowColors, poleAxis } from "../buffer-scene-shared";
 import { computeNodeDepthOrder, setNodeDrawOrder } from "./node-depth-order";
 
 const TORUS_DEFAULT_NORMAL = new THREE.Vector3(0, 0, 1);

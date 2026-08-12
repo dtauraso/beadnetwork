@@ -1,15 +1,15 @@
-import { getLatestNodeStreamFrames, getNodeStreamVersion } from "../../snapshot-buffer";
+import { getLatestNodeStreamFrames, getNodeStreamVersion } from "../../../snapshot-buffer";
 import {
   decodeNodeStreamFrame,
   type DecodedNodeStreamFrame,
-} from "../decode/buffer-decode-node";
+} from "../../decode/buffer-decode-node";
 import {
   readNodeRingAxisTheta,
   readNodeRingAxisPhi,
   readNodeCX, readNodeCY, readNodeCZ,
   readChainBeadOX, readChainBeadOY, readChainBeadOZ, readChainBeadLit, readChainBeadLitValue,
-} from "../../../schema/buffer-layout";
-import { poleAxis } from "./buffer-scene-shared";
+} from "../../../../schema/buffer-layout";
+import { poleAxis } from "../buffer-scene-shared";
 
 export interface ChainBeadsAgg {
 

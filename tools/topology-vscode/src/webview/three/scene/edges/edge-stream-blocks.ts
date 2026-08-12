@@ -1,8 +1,8 @@
-import { getLatestEdgeStreamFrames } from "../../snapshot-buffer";
-import { decodeEdgeStreamFrame, type DecodedEdgeStreamFrame } from "../decode/buffer-decode-edge";
+import { getLatestEdgeStreamFrames } from "../../../snapshot-buffer";
+import { decodeEdgeStreamFrame, type DecodedEdgeStreamFrame } from "../../decode/buffer-decode-edge";
 import {
   readEdgeSX, readEdgeSY, readEdgeSZ, readEdgeEX, readEdgeEY, readEdgeEZ,
-} from "../../../schema/buffer-layout";
+} from "../../../../schema/buffer-layout";
 
 export interface EdgeAccessor {
 

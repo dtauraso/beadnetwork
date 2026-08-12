@@ -1,4 +1,4 @@
-import type { BufferLabelPos } from "./buffer-scene";
+import type { BufferLabelPos } from "../buffer-scene";
 
 const PILL_STYLE: React.CSSProperties = {
   background: "rgba(0,0,0,0.55)",
