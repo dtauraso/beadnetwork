@@ -1,6 +1,6 @@
 # PairNode — behavior
 
-[← SPEC.md](SPEC.md)
+[← SPEC.md](../SPEC.md)
 
 The `## View`, `## Ports`, and `## Description` sections stay in SPEC.md because
 `tools/gen-node-defs/kindscan/spec_md_table.go`'s `readSpecMDLines` reads exactly

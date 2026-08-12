@@ -34,7 +34,7 @@ partner, one step per arrival.
 | In | in | chain | sole input; every arrival is drained non-blocking and paces the exchange — it decides and places nothing itself |
 | Out | out | chain | THIS node's own goroutine places a bead here directly, from `handleVectorCycle` when `stepFromVector` actually moves this node — never the mover |
 
-See [BEHAVIOR.md](BEHAVIOR.md) for the firing rule, the vector channel, why a tilt does not
+See [BEHAVIOR.md](docs/BEHAVIOR.md) for the firing rule, the vector channel, why a tilt does not
 move the node, pacing/clock speed, and the third (received-direction) vector — none of
 which `tools/gen-node-defs` parses.
 
