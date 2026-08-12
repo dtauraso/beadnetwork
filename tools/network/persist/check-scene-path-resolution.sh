@@ -19,12 +19,12 @@ set -euo pipefail
 #     no such file exists in this repo's tree and nothing wrote it once the
 #     one-file-per-writer split landed.
 #   - nodes/<id>/... (position, inputs/outputs port files) —
-#     node_mover.go/positionfile package only (plus loader_tree.go, which READS these paths to build the graph
-#     at load time — an explicitly out-of-scope concern, see the plan's "Explicitly out of
-#     scope: Loading").
+#     node_mover.go/positionfile package only (plus loader_tree.go and tree_shape.go, which
+#     READ these paths to build/inspect the graph at load time — an explicitly out-of-scope
+#     concern, see the plan's "Explicitly out of scope: Loading").
 #   - nodes/<id>/edges/<label>.json — reserved for edge_mover.go once a Go-side writer
-#     exists (today there is none; loader_tree.go's read is the only occurrence, also
-#     exempted as loading).
+#     exists (today there is none; loader_tree.go's and tree_shape.go's reads are the only
+#     occurrences, also exempted as loading).
 #
 # UNLIKE the view-file rule, the node-path rule below matches on the LITERAL "nodes"
 # path segment rather than requiring a shared resolver function — no such function
@@ -35,7 +35,7 @@ set -euo pipefail
 #
 # Exit 0 when clean.
 #
-# PLACEMENT: nodes/Wiring/*.go | view/*.json path resolution lives only in scene_paths.go; nodes/ path Join lives only in node_mover.go/edge_mover.go/loader_tree.go
+# PLACEMENT: nodes/Wiring/*.go | view/*.json path resolution lives only in scene_paths.go; nodes/ path Join lives only in node_mover.go/edge_mover.go/loader_tree.go/tree_shape.go
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
@@ -169,7 +169,7 @@ fi
 # unrepresentable — a persister reaching around node_mover.go's resolvers to build its own
 # path, which is precisely how positionFilePath/localPolarsFilePath/cascadeEdgesFilePath/
 # nodePortFilePath used to be scattered before step 3.
-NODE_PATH_OWNERS=("node_mover.go" "edge_mover.go" "edge_file.go" "loader_tree.go" "position_file.go")
+NODE_PATH_OWNERS=("node_mover.go" "edge_mover.go" "edge_file.go" "loader_tree.go" "tree_shape.go" "position_file.go")
 is_node_path_owner() {
   local f="$1"
   for owner in "${NODE_PATH_OWNERS[@]}"; do
@@ -190,7 +190,7 @@ done <<< "$all_hits"
 
 if [[ "$NODE_JOIN_HITS" -ne 0 ]]; then
   echo ""
-  echo "check-scene-path-resolution: $NODE_JOIN_HITS hand-rolled nodes/ filepath.Join(...) hit(s) outside node_mover.go/edge_mover.go/edge_file.go/loader_tree.go/position_file.go — a node/port path belongs to its owning mover; call node_mover.go's or positionfile's resolvers instead of reconstructing the path."
+  echo "check-scene-path-resolution: $NODE_JOIN_HITS hand-rolled nodes/ filepath.Join(...) hit(s) outside node_mover.go/edge_mover.go/edge_file.go/loader_tree.go/tree_shape.go/position_file.go — a node/port path belongs to its owning mover; call node_mover.go's or positionfile's resolvers instead of reconstructing the path."
   exit 1
 fi
 
