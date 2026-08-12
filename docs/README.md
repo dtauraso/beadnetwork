@@ -19,13 +19,13 @@ The mutex-removal work: each `sync.Mutex`/`Cond` replaced by single-owner state.
 | Doc | What it covers |
 |---|---|
 | [framings.md](concurrency/framings.md) | The framing ledger — what replaced what, and the architecture built for the old model. No locks remain. |
-| [concurrency-map.html](concurrency/concurrency-map.html) | Map of the concurrency model — goroutines, channels, who owns what. |
-| [mutex-architecture.html](concurrency/mutex-architecture.html) | Overview of the mutex architecture (and its removal). |
-| [outbox-architecture.html](concurrency/outbox-architecture.html) | `outbox.mu` resolved — per-direction channels replaced the shared move queue. |
-| [trace-mutex-architecture.html](concurrency/trace-mutex-architecture.html) | `Trace.mu` resolved — events ride each owner's own stream. |
-| [debounced-persister-architecture.html](concurrency/debounced-persister-architecture.html) | `debouncedPersister.mu` resolved — inline per-caller writes, no shared timer. |
-| [scene-persist-architecture.html](concurrency/scene-persist-architecture.html) | `scene_persist` — the last unexamined locks; per-writer file ownership. |
-| [node1-fanout-goroutines.html](concurrency/node1-fanout-goroutines.html) | Node-1 fan-out — one node driving several outgoing edges. |
+| [concurrency-map/index.html](concurrency/concurrency-map/index.html) | Map of the concurrency model — goroutines, channels, who owns what. |
+| [mutex/index.html](concurrency/mutex/index.html) | Overview of the mutex architecture (and its removal). |
+| [outbox/index.html](concurrency/outbox/index.html) | `outbox.mu` resolved — per-direction channels replaced the shared move queue. |
+| [trace-mutex/index.html](concurrency/trace-mutex/index.html) | `Trace.mu` resolved — events ride each owner's own stream. |
+| [persister/index.html](concurrency/persister/index.html) | `debouncedPersister.mu` resolved — inline per-caller writes, no shared timer. |
+| [scene-persist/index.html](concurrency/scene-persist/index.html) | `scene_persist` — the last unexamined locks; per-writer file ownership. |
+| [node1-fanout/index.html](concurrency/node1-fanout/index.html) | Node-1 fan-out — one node driving several outgoing edges. |
 
 ## Investigations
 

@@ -28,7 +28,7 @@
 <h2>gone · scene_persist — the second party was a timer goroutine</h2>
 <p class="verdict ok"><b>RESOLVED</b> — task/mutex-debounced-persister deleted the debounce
 timer (and its lock) outright rather than keeping it: see
-<code>docs/concurrency/debounced-persister-architecture.html</code> for the full analysis. Every domain
+<code>docs/concurrency/persister/index.html</code> for the full analysis. Every domain
 persister below now writes synchronously on the calling goroutine; there is no timer
 goroutine left to race. This section is kept as the historical record of why the lock
 existed.</p>

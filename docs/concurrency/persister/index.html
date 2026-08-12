@@ -20,10 +20,10 @@
     <code>Trace.mu</code>, once thought to be the one lock that had to stay because it guarded
     an accumulator that cannot be copied, was deleted too — that claim was true but was never
     what the lock actually guarded in production (see
-    <code>docs/concurrency/trace-mutex-architecture.html</code>). This page records the debounced
+    <code>docs/concurrency/trace-mutex/index.html</code>). This page records the debounced
     persister's own lock (was <code>nodes/Wiring/scene_persist.go:64</code>, five instances),
     the last one in question when this page was written. See
-    <code>docs/concurrency/mutex-architecture.html</code> for the whole-system view, now describing zero
+    <code>docs/concurrency/mutex/index.html</code> for the whole-system view, now describing zero
     live locks.</p>
     <p class="verdict ok"><b>RESOLVED</b> — task/mutex-debounced-persister deleted the whole
     generic type (the struct, its lock, the coalescing timer) rather than restructuring it:
@@ -50,9 +50,9 @@
 <footer>
   Verified against the tree on <span style="font-family:var(--mono)">task/mutex-debounced-persister</span>.
   Line numbers drift — re-grep before trusting them. Companions:
-  <span style="font-family:var(--mono)">docs/concurrency/scene-persist-architecture.html</span>,
+  <span style="font-family:var(--mono)">docs/concurrency/scene-persist/index.html</span>,
   <span style="font-family:var(--mono)">docs/layout-holder-architecture.html</span>,
-  <span style="font-family:var(--mono)">docs/concurrency/mutex-architecture.html</span>,
+  <span style="font-family:var(--mono)">docs/concurrency/mutex/index.html</span>,
   <span style="font-family:var(--mono)">docs/concurrency/framings.md</span>.
 </footer>
 </div>
