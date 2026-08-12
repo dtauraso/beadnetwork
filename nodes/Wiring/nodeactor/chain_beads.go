@@ -5,6 +5,7 @@ import (
 
 	T "github.com/dtauraso/wirefold/Trace"
 	"github.com/dtauraso/wirefold/nodes/Wiring/beadindex"
+	"github.com/dtauraso/wirefold/nodes/Wiring/edgegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
 	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
@@ -69,7 +70,7 @@ func (m *NodeGeometry) chainBeadsForTarget(to string, tick int64, selfTorusR flo
 
 	var chainSep vec3
 	if m.topo.mutualTargets[to] {
-		if off, sepOK := nodegeom.ParallelChainOffset(m.id, to, selfCenter, targetCenter, m.geom.SceneCenter); sepOK {
+		if off, sepOK := edgegeom.ParallelChainOffset(m.id, to, selfCenter, targetCenter, m.geom.SceneCenter); sepOK {
 			chainSep = off
 		}
 	}

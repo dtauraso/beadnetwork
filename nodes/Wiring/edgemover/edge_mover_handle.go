@@ -1,6 +1,7 @@
 package edgemover
 
 import (
+	"github.com/dtauraso/wirefold/nodes/Wiring/edgegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
@@ -49,7 +50,7 @@ func (m *EdgeMover) handle(msg movemsg.Msg) {
 }
 
 func (m *EdgeMover) recomputeGeometry() {
-	seg := nodegeom.EdgeSegment(m.srcGeom, m.dstGeom)
+	seg := edgegeom.EdgeSegment(m.srcGeom, m.dstGeom)
 
 	if m.out != nil {
 		m.out.PublishSegment(seg.Start, seg.End)

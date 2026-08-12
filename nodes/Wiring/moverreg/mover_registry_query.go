@@ -3,6 +3,7 @@ package moverreg
 import (
 	"context"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/edgegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
@@ -74,5 +75,5 @@ func (mr *MoverRegistry) NearestNodeTo(p vec3) (string, bool) {
 	for id, ng := range mr.nodeGeoms {
 		centers[id] = ng.WorldCenter()
 	}
-	return nodegeom.NearestTo(centers, p)
+	return edgegeom.NearestTo(centers, p)
 }

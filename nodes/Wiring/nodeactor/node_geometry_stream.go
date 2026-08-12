@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"fmt"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/framegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/loadspec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/nodeframe"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
@@ -34,7 +35,7 @@ func (m *NodeGeometry) writeStreamFrame(events []rowevent.RowEvent) {
 		}
 	}
 
-	fg := nodegeom.DeriveFrameGeometry(nodegeom.FrameGeometryInputs{
+	fg := framegeom.DeriveFrameGeometry(framegeom.FrameGeometryInputs{
 		Geom:                   m.geom,
 		UpAxis:                 m.flags.upAxis,
 		CoplanarEdges:          m.flags.coplanarEdges,

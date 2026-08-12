@@ -4,7 +4,7 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/edgegeom"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
 )
 
@@ -21,7 +21,7 @@ func (m *EdgeMover) writeStreamFrame(tick int64, events []rowevent.RowEvent) {
 		}
 	}
 
-	seg := nodegeom.EdgeSegment(m.srcGeom, m.dstGeom)
+	seg := edgegeom.EdgeSegment(m.srcGeom, m.dstGeom)
 	if m.dest != nil {
 
 		nodeRow, targetRow := int32(-1), int32(-1)

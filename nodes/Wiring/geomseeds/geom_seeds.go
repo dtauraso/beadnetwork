@@ -3,6 +3,7 @@ package geomseeds
 import (
 	"fmt"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/edgegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/loadspec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
@@ -68,7 +69,7 @@ func BuildEdgeSeed(label string, ep inputcodec.EdgeEndpoints, geoms map[string]n
 	if !dstOK {
 		return EdgeGeomSeed{}, fmt.Errorf("newMoveDispatch: edge %q references missing target node %q (no geometry loaded for it)", label, ep.Target)
 	}
-	seg := nodegeom.EdgeSegment(srcG, dstG)
+	seg := edgegeom.EdgeSegment(srcG, dstG)
 	return EdgeGeomSeed{
 		Label: label, SrcNode: ep.Source, DstNode: ep.Target,
 		SX: seg.Start.X, SY: seg.Start.Y, SZ: seg.Start.Z,

@@ -1,4 +1,4 @@
-package nodegeom
+package edgegeom
 
 func NearestTo(centers map[string]vec3, p vec3) (string, bool) {
 	best, bestD2, found := "", 0.0, false

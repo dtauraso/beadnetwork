@@ -1,13 +1,14 @@
-package nodegeom
+package framegeom
 
 import (
 	"math"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 )
 
 type FrameGeometryInputs struct {
-	Geom           NodeGeom
+	Geom           nodegeom.NodeGeom
 	UpAxis         bool
 	CoplanarEdges  bool
 	PartnerCenters map[string]vec3
@@ -41,8 +42,8 @@ type FrameGeometryOutputs struct {
 
 func DeriveFrameGeometry(in FrameGeometryInputs) FrameGeometryOutputs {
 	out := FrameGeometryOutputs{
-		Center:  NodeWorldPos(in.Geom),
-		SphereR: EffectiveRadius(in.Geom),
+		Center:  nodegeom.NodeWorldPos(in.Geom),
+		SphereR: nodegeom.EffectiveRadius(in.Geom),
 	}
 
 	if in.Geom.HasPos {
@@ -53,14 +54,14 @@ func DeriveFrameGeometry(in FrameGeometryInputs) FrameGeometryOutputs {
 
 	if in.UpAxis && in.Geom.HasPos && len(in.PartnerCenters) == 1 {
 		for _, partner := range in.PartnerCenters {
-			if t, p, ok := UprightRingAxis(NodeWorldPos(in.Geom), partner); ok {
+			if t, p, ok := UprightRingAxis(nodegeom.NodeWorldPos(in.Geom), partner); ok {
 				out.RingAxisTheta, out.RingAxisPhi = t, p
 			}
 		}
-		out.TopTiltVectorLen = NodeRadius(in.Geom.Kind)
+		out.TopTiltVectorLen = nodegeom.NodeRadius(in.Geom.Kind)
 	} else if in.CoplanarEdges && in.Geom.HasPos && len(in.PartnerCenters) == 1 {
 		for _, partner := range in.PartnerCenters {
-			if t, p, ok := PoleContainingEdge(out.PoleTheta, out.PolePhi, NodeWorldPos(in.Geom), partner); ok {
+			if t, p, ok := PoleContainingEdge(out.PoleTheta, out.PolePhi, nodegeom.NodeWorldPos(in.Geom), partner); ok {
 				out.RingAxisTheta, out.RingAxisPhi = t, p
 			}
 		}
@@ -78,7 +79,7 @@ func DeriveFrameGeometry(in FrameGeometryInputs) FrameGeometryOutputs {
 	out.CoplanarNormalTheta = float64(in.NormalThetaIdx) * latticeThetaStep
 
 	if in.ReceivedVectorSet {
-		out.ReceivedVectorLen = NodeRadius(in.Geom.Kind)
+		out.ReceivedVectorLen = nodegeom.NodeRadius(in.Geom.Kind)
 		out.ReceivedVectorTheta = float64(in.ReceivedVectorThetaIdx) * latticeThetaStep
 	}
 

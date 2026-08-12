@@ -1,16 +1,20 @@
-package nodegeom
+package edgegeom
 
-func EdgeSegment(src, tgt NodeGeom) wireSegment {
-	srcCenter := NodeWorldPos(src)
-	tgtCenter := NodeWorldPos(tgt)
+import (
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
+)
+
+func EdgeSegment(src, tgt nodegeom.NodeGeom) wireSegment {
+	srcCenter := nodegeom.NodeWorldPos(src)
+	tgtCenter := nodegeom.NodeWorldPos(tgt)
 	dir := tgtCenter.Sub(srcCenter)
 	if dir.Length() < 1e-9 {
 
 		return wireSegment{Start: srcCenter, End: tgtCenter}
 	}
 	unit := dir.Normalize()
-	start := srcCenter.Add(unit.Scale(NodeTorusOuterR(src.Kind)))
-	end := tgtCenter.Sub(unit.Scale(NodeTorusOuterR(tgt.Kind)))
+	start := srcCenter.Add(unit.Scale(nodegeom.NodeTorusOuterR(src.Kind)))
+	end := tgtCenter.Sub(unit.Scale(nodegeom.NodeTorusOuterR(tgt.Kind)))
 	return wireSegment{Start: start, End: end}
 }
 

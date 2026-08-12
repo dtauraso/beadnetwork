@@ -1,6 +1,7 @@
 package topoderive
 
 import (
+	"github.com/dtauraso/wirefold/nodes/Wiring/edgegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/loadspec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
@@ -27,10 +28,10 @@ func AllocateWires(spec loadspec.TopoSpec, nodeGeoms map[string]nodegeom.NodeGeo
 		destKey := e.Target + "." + e.TargetHandle
 
 		srcG, tgtG := nodeGeoms[e.Source], nodeGeoms[e.Target]
-		seg := nodegeom.EdgeSegment(srcG, tgtG)
+		seg := edgegeom.EdgeSegment(srcG, tgtG)
 
 		dist := nodegeom.NodeWorldPos(srcG).Sub(nodegeom.NodeWorldPos(tgtG)).Length()
-		steps := nodegeom.EdgeStepCount(dist, srcG.Kind, tgtG.Kind)
+		steps := edgegeom.EdgeStepCount(dist, srcG.Kind, tgtG.Kind)
 		edgeSteps[e.Label] = steps
 		edgeSegments[e.Label] = seg
 

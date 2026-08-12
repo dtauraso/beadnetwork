@@ -1,4 +1,4 @@
-package nodegeom
+package edgegeom
 
 import (
 	"math"

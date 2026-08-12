@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"math"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/edgegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
-	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/spatial"
 	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 )
@@ -17,11 +17,11 @@ type Pulse struct {
 }
 
 func ChainEdgeGeometry(selfCenter, targetCenter spatial.Vec3, selfTorusR float64, selfKind, targetKind string) (dist float64, dir spatial.Vec3, count int, ok bool) {
-	dist, dir, ok = nodegeom.EdgeCenterDistAndDir(selfCenter, targetCenter)
+	dist, dir, ok = edgegeom.EdgeCenterDistAndDir(selfCenter, targetCenter)
 	if !ok {
 		return dist, dir, 0, false
 	}
-	count = nodegeom.EdgeStepCount(dist, selfKind, targetKind)
+	count = edgegeom.EdgeStepCount(dist, selfKind, targetKind)
 	return dist, dir, count, true
 }
 

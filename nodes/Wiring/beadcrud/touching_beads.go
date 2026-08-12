@@ -1,6 +1,7 @@
 package beadcrud
 
 import (
+	"github.com/dtauraso/wirefold/nodes/Wiring/edgegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 )
@@ -24,14 +25,14 @@ func DragTouchingBeads(nodeID, selfKind string, edgeIDs []string, neighborOf map
 		if !ok {
 			continue
 		}
-		dist, aimDir, ok := nodegeom.EdgeCenterDistAndDir(prevPos, neighborCenter)
+		dist, aimDir, ok := edgegeom.EdgeCenterDistAndDir(prevPos, neighborCenter)
 		if !ok {
 			continue
 		}
 		beadCentre := prevPos.Add(aimDir.Scale(selfTorusR + lattice.BeadTorusOuterR))
 
 		neighborKind := neighborKinds[neighborID]
-		count := nodegeom.EdgeStepCount(dist, neighborKind, selfKind)
+		count := edgegeom.EdgeStepCount(dist, neighborKind, selfKind)
 		var beadSource vec3
 		if count >= 2 {
 			beadSource = beadCentre.Add(aimDir.Scale(lattice.BeadStepR))
