@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="doc-status" content="historical" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>wirefold — mutex architecture — gone · PacedWire.mu — deleted by making the wire a goroutine, not a smaller lock</title>
+<style>
+  :root {
+    --ground:#F2F4F7; --surface:#FFFFFF; --plate:#FAFBFC;
+    --ink:#131A24; --muted:#5B6779; --faint:#8894A6;
+    --line:#D3D9E2; --line-strong:#B7C0CD;
+    --signal:#C06A12; --flow:#2E7D9A; --hazard:#A8443C; --ok:#3B7350;
+    --signal-wash:#F6ECDF; --flow-wash:#E4EFF3; --hazard-wash:#F6E6E4; --ok-wash:#E4EFE8;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ground:#0D1219; --surface:#141C26; --plate:#111925;
+      --ink:#E4E9F0; --muted:#94A1B2; --faint:#6C7A8B;
+      --line:#26313F; --line-strong:#3A4859;
+      --signal:#E8A147; --flow:#57AECB; --hazard:#D2685E; --ok:#6FA783;
+      --signal-wash:#241B10; --flow-wash:#0F2029; --hazard-wash:#251413; --ok-wash:#12241A;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground:#0D1219; --surface:#141C26; --plate:#111925;
+    --ink:#E4E9F0; --muted:#94A1B2; --faint:#6C7A8B;
+    --line:#26313F; --line-strong:#3A4859;
+    --signal:#E8A147; --flow:#57AECB; --hazard:#D2685E; --ok:#6FA783;
+    --signal-wash:#241B10; --flow-wash:#0F2029; --hazard-wash:#251413; --ok-wash:#12241A;
+  }
+  :root[data-theme="light"] {
+    --ground:#F2F4F7; --surface:#FFFFFF; --plate:#FAFBFC;
+    --ink:#131A24; --muted:#5B6779; --faint:#8894A6;
+    --line:#D3D9E2; --line-strong:#B7C0CD;
+    --signal:#C06A12; --flow:#2E7D9A; --hazard:#A8443C; --ok:#3B7350;
+    --signal-wash:#F6ECDF; --flow-wash:#E4EFF3; --hazard-wash:#F6E6E4; --ok-wash:#E4EFE8;
+  }
+
+  * { box-sizing:border-box; }
+  body {
+    margin:0; background:var(--ground); color:var(--ink);
+    font-family:var(--sans); line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap { max-width:1120px; margin:0 auto; padding:0 20px 72px; }
+
+  header { border-bottom:1px solid var(--line); background:var(--surface); }
+  .head-inner { max-width:1120px; margin:0 auto; padding:24px 20px 20px; }
+  .eyebrow {
+    font-family:var(--mono); font-size:11px; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--faint); margin:0 0 8px;
+  }
+  h1 { font-family:var(--mono); font-weight:600; font-size:clamp(20px,3vw,28px); margin:0 0 6px; }
+  .sub { margin:0; color:var(--muted); max-width:72ch; font-size:14px; }
+
+  h2 {
+    font-family:var(--mono); font-size:13px; font-weight:600;
+    margin:38px 0 2px; letter-spacing:.02em;
+  }
+  .cap { margin:0 0 10px; color:var(--muted); font-size:13px; max-width:78ch; }
+  .cap b { color:var(--ink); font-weight:600; }
+
+  .plate {
+    background:var(--surface); border:1px solid var(--line);
+    border-radius:10px; padding:14px; margin:0 0 10px; overflow-x:auto;
+  }
+  .plate svg { display:block; min-width:600px; width:100%; height:auto; }
+
+  /* SVG type scale */
+  .t   { font-family:var(--mono); font-size:12.5px; fill:var(--ink); font-weight:600; }
+  .ts  { font-family:var(--mono); font-size:10.5px; fill:var(--muted); }
+  .tf  { font-family:var(--mono); font-size:9.5px;  fill:var(--faint); }
+  .tl  { font-family:var(--mono); font-size:11px; fill:var(--faint); letter-spacing:.1em; }
+  .tw  { font-family:var(--mono); font-size:10.5px; fill:var(--hazard); font-weight:600; }
+  .tk  { font-family:var(--mono); font-size:10.5px; fill:var(--ok); font-weight:600; }
+  .tq  { font-family:var(--mono); font-size:10.5px; fill:var(--signal); font-weight:600; }
+  .tb  { font-family:var(--mono); font-size:10.5px; fill:var(--flow); font-weight:600; }
+
+  .box   { fill:var(--plate); stroke:var(--line-strong); stroke-width:1; }
+  .gor   { fill:var(--flow-wash); stroke:var(--flow); stroke-width:1.2; }
+  .state { fill:var(--hazard-wash); stroke:var(--hazard); stroke-width:1.4; }
+  .safe  { fill:var(--ok-wash); stroke:var(--ok); stroke-width:1.2; }
+  .queue { fill:var(--signal-wash); stroke:var(--signal); stroke-width:1.2; }
+  .dash  { fill:none; stroke:var(--line-strong); stroke-width:1; stroke-dasharray:4 3; }
+  .arr   { fill:none; stroke:var(--hazard); stroke-width:1.4; }
+  .arrb  { fill:none; stroke:var(--flow); stroke-width:1.4; }
+  .arrk  { fill:none; stroke:var(--ok); stroke-width:1.4; }
+  .arrq  { fill:none; stroke:var(--signal); stroke-width:1.4; }
+
+  .legend { display:flex; gap:16px; flex-wrap:wrap; margin:0 0 22px; font-size:12px; color:var(--muted); }
+  .legend span { display:flex; align-items:center; gap:6px; font-family:var(--mono); font-size:11px; }
+  .sw { width:12px; height:12px; border-radius:3px; border:1.4px solid; display:inline-block; }
+  .sw.g { background:var(--flow-wash);   border-color:var(--flow); }
+  .sw.s { background:var(--hazard-wash); border-color:var(--hazard); }
+  .sw.k { background:var(--ok-wash);     border-color:var(--ok); }
+  .sw.q { background:var(--signal-wash); border-color:var(--signal); }
+
+  .verdict { font-size:13px; margin:0 0 26px; padding:9px 12px; border-radius:6px; }
+  .verdict.ok     { background:var(--ok-wash); }
+  .verdict.open   { background:var(--signal-wash); }
+  .verdict.hazard { background:var(--hazard-wash); }
+  .verdict b { font-family:var(--mono); font-size:11.5px; }
+  code { font-family:var(--mono); font-size:.92em; }
+  footer { margin-top:46px; padding-top:16px; border-top:1px solid var(--line); color:var(--faint); font-size:12px; }
+
+.crumbnav { font-family: var(--mono); font-size:12px; color:var(--muted); margin:18px 0 0; }
+.crumbnav a { color: var(--flow, #2E7D9A); text-decoration:none; }
+.crumbnav a:hover { text-decoration:underline; }
+.crumbnav .crumb-here { color: var(--ink, #131A24); font-weight:600; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="head-inner">
+    <p class="eyebrow">mutex architecture</p>
+    <h1>gone · PacedWire.mu — deleted by making the wire a goroutine, not a smaller lock</h1>
+    <nav class="crumbnav"><a href="mutex-architecture.html">Mutex architecture — who touches what</a> — <span class="crumb-here">gone · PacedWire.mu — deleted by making the wire a goroutine, not a smaller lock</span> · <a href="mutex-architecture-gone-outbox-mu.html">gone · outbox.mu + cond — deleted by per-direction channels, not a smaller lock</a> · <a href="mutex-architecture-gone-trace-mu.html">gone · Trace.mu — deleted by giving the drain the only write, not by a smaller lock</a> · <a href="mutex-architecture-gone-layoutholder-mu.html">gone · LayoutHolder.mu — deleted by ownership, not by a smaller lock</a> · <a href="mutex-architecture-gone-scene-persist.html">gone · scene_persist — the second party was a timer goroutine</a> · <a href="mutex-architecture-gone-realclock-mu.html">gone · RealClock.mu — deleted by ownership, not by a smaller lock</a></nav>
+  </div>
+</header>
+
+<div class="wrap">
+<div class="legend">
+  <span><i class="sw g"></i>goroutine</span>
+  <span><i class="sw s"></i>locked state</span>
+  <span><i class="sw q"></i>queue / buffer</span>
+  <span><i class="sw k"></i>no lock needed</span>
+</div>
+
+<h2>gone · PacedWire.mu — deleted by making the wire a goroutine, not a smaller lock</h2>
+<p class="cap">Before, three independently scheduled goroutine roles (source drive loop, destination
+Update loop, per-edge mover) all locked one shared <code>PacedWire</code> struct to reach its
+<code>inflight</code>/<code>delivered</code> slices. After, <code>PacedWire</code> IS the per-edge
+goroutine (<code>edgeMover.run</code>, unchanged goroutine count — the edge mover already existed to
+revise in-flight geometry on a node move): a channel in from the source, a channel out to the
+destination, and the bead state touched by exactly one goroutine. Ownership replaces locking, the same
+move that deleted <code>RealClock.mu</code> below.</p>
+
+<div class="plate">
+<svg viewBox="0 0 860 330" role="img" aria-label="Before, three goroutines locked one PacedWire mutex. After, the source sends on the wire's in-channel, the destination receives on its out-channel, and the wire's own goroutine (the same edgeMover.run goroutine that used to revise geometry under the lock) owns inflight/delivered with no lock at all.">
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2E7D9A"/>
+    </marker>
+  </defs>
+
+  <text class="tl" x="0" y="14">GOROUTINES</text>
+  <text class="tl" x="560" y="14">OWNED BY ONE OF THEM</text>
+
+  <rect class="safe" x="0" y="30" width="250" height="62" rx="6"/>
+  <text class="t"  x="12" y="50">source node · drive loop</text>
+  <text class="ts" x="12" y="66">DriveHeld · node Update</text>
+  <text class="tf" x="12" y="82">Out.PlaceDrivenAt → PacedWire.Send</text>
+
+  <rect class="safe" x="0" y="112" width="250" height="62" rx="6"/>
+  <text class="t"  x="12" y="132">dest node · Update loop</text>
+  <text class="ts" x="12" y="148">In.PollRecv → PacedWire.Recv</text>
+  <text class="tf" x="12" y="164">one per destination node</text>
+
+  <rect class="gor" x="0" y="194" width="250" height="62" rx="6"/>
+  <text class="t"  x="12" y="214">edgeMover.run — IS the wire's goroutine</text>
+  <text class="ts" x="12" y="230">DriveOneCycle + ReviseInFlightGeometry</text>
+  <text class="tf" x="12" y="246">node_mover.go · one per edge, unchanged count</text>
+
+  <path class="arrq" d="M250,61 L560,95" marker-end="url(#ah)"/>
+  <text class="tq" x="292" y="62">Send</text>
+  <text class="tf" x="292" y="74">non-blocking chan send — never waits on the wire</text>
+
+  <path class="arrq" d="M560,145 L250,143" marker-end="url(#ah)"/>
+  <text class="tq" x="300" y="135">Recv / RecvTick</text>
+  <text class="tf" x="300" y="157">non-blocking chan recv</text>
+
+  <text class="tk" x="12" y="266">no lock reaches this goroutine from outside — nothing to race</text>
+
+  <rect class="safe" x="560" y="30" width="290" height="226" rx="8"/>
+  <text class="t"  x="574" y="52">PacedWire — the goroutine's own state</text>
+  <text class="tf" x="574" y="67">nodes/Wiring/paced_wire.go</text>
+
+  <rect x="574" y="80" width="262" height="26" rx="4" class="box"/>
+  <text class="tk" x="586" y="97">no mu — deleted, not narrowed</text>
+
+  <rect x="574" y="114" width="262" height="34" rx="4" class="box"/>
+  <text class="ts" x="586" y="128">inflight []inflightBead</text>
+  <text class="tf" x="586" y="142">touched only inside DriveOneCycle</text>
+
+  <rect x="574" y="156" width="262" height="34" rx="4" class="box"/>
+  <text class="ts" x="586" y="170">inCh / outCh — the channel ends</text>
+  <text class="tf" x="586" y="184">generously buffered: send never blocks</text>
+
+  <rect x="574" y="198" width="262" height="26" rx="4" class="box"/>
+  <text class="ts" x="586" y="215">nextGen · teardownGen</text>
+
+  <text class="tf" x="574" y="240">reads its OWN clock copy — no caller-pinned tick anymore</text>
+
+  <line x1="0" y1="284" x2="860" y2="284" stroke="var(--line)"/>
+  <text class="tk" x="0" y="304">RE-PROVEN CLEAN</text>
+  <text class="ts" x="130" y="304">Send/RecvTick from other goroutines concurrent with DriveOneCycle + ReviseInFlightGeometry on the wire's own goroutine — no mutex, -race clean</text>
+  <text class="tf" x="0" y="320">paced_wire_concurrency_race_test.go · TestPacedWireOwnershipUnderRace</text>
+</svg>
+</div>
+
+<p class="verdict ok"><b>RESOLVED:</b> the open question below this diagram used to be whether
+<code>inflight</code>/<code>delivered</code> split by owner. They no longer need to: there is only one
+owner, period — the wire's own goroutine. See
+<span style="color:var(--muted)">docs/planning/visual-editor/wire-owns-itself.md</span> and MODEL.md.
+<span style="color:var(--muted)">task/mutex-pacedwire-restructure</span></p>
+
+
+
+</div>
+
+</body>
+</html>
+

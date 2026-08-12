@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="doc-status" content="historical" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>wirefold — mutex architecture</title>
+<title>wirefold — mutex architecture — gone · outbox.mu + cond — deleted by per-direction channels, not a smaller lock</title>
 <style>
   :root {
     --ground:#F2F4F7; --surface:#FFFFFF; --plate:#FAFBFC;
@@ -110,44 +110,85 @@
 .crumbnav a { color: var(--flow, #2E7D9A); text-decoration:none; }
 .crumbnav a:hover { text-decoration:underline; }
 .crumbnav .crumb-here { color: var(--ink, #131A24); font-weight:600; }
-
-.idx-list { list-style:none; margin:22px 0 0; padding:0; display:grid; gap:10px; max-width:640px; }
-.idx-list a {
-  display:block; font-family:var(--mono); font-size:14px; color:var(--ink, #131A24);
-  background:var(--surface, #fff); border:1px solid var(--line, #D3D9E2); border-radius:6px;
-  padding:14px 16px; text-decoration:none;
-}
-.idx-list a:hover { border-color:var(--line-strong, #B7C0CD); }
 </style>
 </head>
 <body>
 
 <header>
   <div class="head-inner">
-    <p class="eyebrow">wirefold · concurrency</p>
-    <h1>Mutex architecture — who touches what</h1>
-    <p class="sub">Zero locks left. Every <code>sync.Mutex</code>/<code>Cond</code> in non-test Go has been
-    deleted, each by giving its state one owner rather than by narrowing the lock. Each diagram below is
-    now historical record — the real goroutines, the real methods, the real line numbers, and what
-    replaced the lock.</p>
+    <p class="eyebrow">mutex architecture</p>
+    <h1>gone · outbox.mu + cond — deleted by per-direction channels, not a smaller lock</h1>
+    <nav class="crumbnav"><a href="mutex-architecture.html">Mutex architecture — who touches what</a> — <a href="mutex-architecture-gone-pacedwire-mu.html">gone · PacedWire.mu — deleted by making the wire a goroutine, not a smaller lock</a> · <span class="crumb-here">gone · outbox.mu + cond — deleted by per-direction channels, not a smaller lock</span> · <a href="mutex-architecture-gone-trace-mu.html">gone · Trace.mu — deleted by giving the drain the only write, not by a smaller lock</a> · <a href="mutex-architecture-gone-layoutholder-mu.html">gone · LayoutHolder.mu — deleted by ownership, not by a smaller lock</a> · <a href="mutex-architecture-gone-scene-persist.html">gone · scene_persist — the second party was a timer goroutine</a> · <a href="mutex-architecture-gone-realclock-mu.html">gone · RealClock.mu — deleted by ownership, not by a smaller lock</a></nav>
   </div>
 </header>
 
 <div class="wrap">
-<ul class="idx-list">
-  <li><a href="mutex-architecture-gone-pacedwire-mu.html">gone · PacedWire.mu — deleted by making the wire a goroutine, not a smaller lock</a></li>
-  <li><a href="mutex-architecture-gone-outbox-mu.html">gone · outbox.mu + cond — deleted by per-direction channels, not a smaller lock</a></li>
-  <li><a href="mutex-architecture-gone-trace-mu.html">gone · Trace.mu — deleted by giving the drain the only write, not by a smaller lock</a></li>
-  <li><a href="mutex-architecture-gone-layoutholder-mu.html">gone · LayoutHolder.mu — deleted by ownership, not by a smaller lock</a></li>
-  <li><a href="mutex-architecture-gone-scene-persist.html">gone · scene_persist — the second party was a timer goroutine</a></li>
-  <li><a href="mutex-architecture-gone-realclock-mu.html">gone · RealClock.mu — deleted by ownership, not by a smaller lock</a></li>
-</ul>
-<footer>
-  Verified against the tree on <span style="font-family:var(--mono)">task/framing-event-order</span>.
-  Line numbers drift — re-grep before trusting them. Companion to
-  <span style="font-family:var(--mono)">docs/concurrency/framings.md</span>, which records <i>why</i> each lock
-  exists; this page records <i>who touches it</i>.
-</footer>
+<div class="legend">
+  <span><i class="sw g"></i>goroutine</span>
+  <span><i class="sw s"></i>locked state</span>
+  <span><i class="sw q"></i>queue / buffer</span>
+  <span><i class="sw k"></i>no lock needed</span>
+</div>
+
+<h2>gone · outbox.mu + cond — deleted by per-direction channels, not a smaller lock</h2>
+<p class="cap">Before, every mover's handler enqueued onto its own <code>outbox</code> (a mutex+cond
+queue) drained by a dedicated sender goroutine. After, each mover owns one plain channel PER
+ADJACENT NODE (<code>neighborIn</code>) plus one <code>extIn</code> for external entries; a send is a
+non-blocking attempt on the destination's own channel, and on a full channel the sender retains the
+message on its own <code>pending</code> slice and retries next cycle. No queue, no lock, no cond, no
+dedicated sender goroutine — two goroutines fewer per mover.</p>
+
+<div class="plate">
+<svg viewBox="0 0 860 260" role="img" aria-label="Before, a node mover's handler enqueued into its own mutex-and-cond outbox, drained by a dedicated sender goroutine. After, the mover sends directly on the destination's own neighborIn channel; a full channel retains the message on the sender's own pending slice, retried next cycle — no queue, no lock, no sender goroutine.">
+  <text class="tl" x="0" y="14">BEFORE</text>
+  <text class="tl" x="450" y="14">NOW</text>
+  <line x1="415" y1="24" x2="415" y2="200" stroke="var(--line)"/>
+
+  <rect class="gor" x="0" y="34" width="200" height="30" rx="4"/>
+  <text class="tf" x="10" y="53">nodeMover.run — handle()</text>
+  <path class="arrq" d="M100,64 L100,96"/>
+  <rect class="queue" x="0" y="98" width="200" height="52" rx="6"/>
+  <rect x="10" y="106" width="180" height="20" rx="3" class="box"/>
+  <text class="tw" x="18" y="121">mu + cond</text>
+  <text class="tf" x="10" y="144">q []outboxItem — UNBOUNDED</text>
+  <path class="arrq" d="M100,150 L100,182"/>
+  <text class="tq" x="106" y="170">drain</text>
+  <rect class="gor" x="0" y="184" width="200" height="30" rx="4"/>
+  <text class="tf" x="10" y="203">outbox.run — dedicated sender</text>
+
+  <rect class="gor" x="450" y="34" width="180" height="30" rx="4"/>
+  <text class="tf" x="460" y="53">nodeMover.run — sendMove</text>
+  <path class="arrk" d="M540,64 L540,96"/>
+  <rect class="safe" x="450" y="98" width="180" height="40" rx="6"/>
+  <text class="tk" x="460" y="120">neighbor's own neighborIn chan</text>
+  <text class="tf" x="460" y="132">non-blocking send</text>
+  <path class="dash" d="M630,120 L680,120"/>
+  <rect class="box" x="682" y="98" width="160" height="60" rx="6"/>
+  <text class="ts" x="692" y="118">full? → nm.pending</text>
+  <text class="tf" x="692" y="134">retained on the SENDER'S</text>
+  <text class="tf" x="692" y="146">own goroutine, no lock</text>
+  <path class="arrk" d="M762,158 C762,180 600,180 540,150" marker-end="url(#ak2)"/>
+  <text class="tf" x="600" y="192">flushPending — retried every cycle</text>
+
+  <defs>
+    <marker id="ak2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#3B7350"/>
+    </marker>
+  </defs>
+
+  <line x1="0" y1="222" x2="860" y2="222" stroke="var(--line)"/>
+  <text class="tk" x="0" y="242">STILL HOLDS: FIFO per destination, cascade never drops a message.</text>
+  <text class="tf" x="0" y="256">node_mover.go · nodeMover.pending / flushPending; node_move.go · sendMove</text>
+</svg>
+</div>
+
+<p class="verdict ok"><b>RESOLVED:</b> the open question below this diagram used to be whether the
+SPSC outbox queue had a lock-free form. It no longer applies — there is no queue and no lock: each
+pair of adjacent movers talks over its own dedicated channel, and a full channel just means "try
+again next cycle," never a block.</p>
+
+
+
 </div>
 
 </body>

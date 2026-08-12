@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="doc-status" content="historical" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>wirefold — mutex architecture — gone · Trace.mu — deleted by giving the drain the only write, not by a smaller lock</title>
+<style>
+  :root {
+    --ground:#F2F4F7; --surface:#FFFFFF; --plate:#FAFBFC;
+    --ink:#131A24; --muted:#5B6779; --faint:#8894A6;
+    --line:#D3D9E2; --line-strong:#B7C0CD;
+    --signal:#C06A12; --flow:#2E7D9A; --hazard:#A8443C; --ok:#3B7350;
+    --signal-wash:#F6ECDF; --flow-wash:#E4EFF3; --hazard-wash:#F6E6E4; --ok-wash:#E4EFE8;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ground:#0D1219; --surface:#141C26; --plate:#111925;
+      --ink:#E4E9F0; --muted:#94A1B2; --faint:#6C7A8B;
+      --line:#26313F; --line-strong:#3A4859;
+      --signal:#E8A147; --flow:#57AECB; --hazard:#D2685E; --ok:#6FA783;
+      --signal-wash:#241B10; --flow-wash:#0F2029; --hazard-wash:#251413; --ok-wash:#12241A;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground:#0D1219; --surface:#141C26; --plate:#111925;
+    --ink:#E4E9F0; --muted:#94A1B2; --faint:#6C7A8B;
+    --line:#26313F; --line-strong:#3A4859;
+    --signal:#E8A147; --flow:#57AECB; --hazard:#D2685E; --ok:#6FA783;
+    --signal-wash:#241B10; --flow-wash:#0F2029; --hazard-wash:#251413; --ok-wash:#12241A;
+  }
+  :root[data-theme="light"] {
+    --ground:#F2F4F7; --surface:#FFFFFF; --plate:#FAFBFC;
+    --ink:#131A24; --muted:#5B6779; --faint:#8894A6;
+    --line:#D3D9E2; --line-strong:#B7C0CD;
+    --signal:#C06A12; --flow:#2E7D9A; --hazard:#A8443C; --ok:#3B7350;
+    --signal-wash:#F6ECDF; --flow-wash:#E4EFF3; --hazard-wash:#F6E6E4; --ok-wash:#E4EFE8;
+  }
+
+  * { box-sizing:border-box; }
+  body {
+    margin:0; background:var(--ground); color:var(--ink);
+    font-family:var(--sans); line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap { max-width:1120px; margin:0 auto; padding:0 20px 72px; }
+
+  header { border-bottom:1px solid var(--line); background:var(--surface); }
+  .head-inner { max-width:1120px; margin:0 auto; padding:24px 20px 20px; }
+  .eyebrow {
+    font-family:var(--mono); font-size:11px; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--faint); margin:0 0 8px;
+  }
+  h1 { font-family:var(--mono); font-weight:600; font-size:clamp(20px,3vw,28px); margin:0 0 6px; }
+  .sub { margin:0; color:var(--muted); max-width:72ch; font-size:14px; }
+
+  h2 {
+    font-family:var(--mono); font-size:13px; font-weight:600;
+    margin:38px 0 2px; letter-spacing:.02em;
+  }
+  .cap { margin:0 0 10px; color:var(--muted); font-size:13px; max-width:78ch; }
+  .cap b { color:var(--ink); font-weight:600; }
+
+  .plate {
+    background:var(--surface); border:1px solid var(--line);
+    border-radius:10px; padding:14px; margin:0 0 10px; overflow-x:auto;
+  }
+  .plate svg { display:block; min-width:600px; width:100%; height:auto; }
+
+  /* SVG type scale */
+  .t   { font-family:var(--mono); font-size:12.5px; fill:var(--ink); font-weight:600; }
+  .ts  { font-family:var(--mono); font-size:10.5px; fill:var(--muted); }
+  .tf  { font-family:var(--mono); font-size:9.5px;  fill:var(--faint); }
+  .tl  { font-family:var(--mono); font-size:11px; fill:var(--faint); letter-spacing:.1em; }
+  .tw  { font-family:var(--mono); font-size:10.5px; fill:var(--hazard); font-weight:600; }
+  .tk  { font-family:var(--mono); font-size:10.5px; fill:var(--ok); font-weight:600; }
+  .tq  { font-family:var(--mono); font-size:10.5px; fill:var(--signal); font-weight:600; }
+  .tb  { font-family:var(--mono); font-size:10.5px; fill:var(--flow); font-weight:600; }
+
+  .box   { fill:var(--plate); stroke:var(--line-strong); stroke-width:1; }
+  .gor   { fill:var(--flow-wash); stroke:var(--flow); stroke-width:1.2; }
+  .state { fill:var(--hazard-wash); stroke:var(--hazard); stroke-width:1.4; }
+  .safe  { fill:var(--ok-wash); stroke:var(--ok); stroke-width:1.2; }
+  .queue { fill:var(--signal-wash); stroke:var(--signal); stroke-width:1.2; }
+  .dash  { fill:none; stroke:var(--line-strong); stroke-width:1; stroke-dasharray:4 3; }
+  .arr   { fill:none; stroke:var(--hazard); stroke-width:1.4; }
+  .arrb  { fill:none; stroke:var(--flow); stroke-width:1.4; }
+  .arrk  { fill:none; stroke:var(--ok); stroke-width:1.4; }
+  .arrq  { fill:none; stroke:var(--signal); stroke-width:1.4; }
+
+  .legend { display:flex; gap:16px; flex-wrap:wrap; margin:0 0 22px; font-size:12px; color:var(--muted); }
+  .legend span { display:flex; align-items:center; gap:6px; font-family:var(--mono); font-size:11px; }
+  .sw { width:12px; height:12px; border-radius:3px; border:1.4px solid; display:inline-block; }
+  .sw.g { background:var(--flow-wash);   border-color:var(--flow); }
+  .sw.s { background:var(--hazard-wash); border-color:var(--hazard); }
+  .sw.k { background:var(--ok-wash);     border-color:var(--ok); }
+  .sw.q { background:var(--signal-wash); border-color:var(--signal); }
+
+  .verdict { font-size:13px; margin:0 0 26px; padding:9px 12px; border-radius:6px; }
+  .verdict.ok     { background:var(--ok-wash); }
+  .verdict.open   { background:var(--signal-wash); }
+  .verdict.hazard { background:var(--hazard-wash); }
+  .verdict b { font-family:var(--mono); font-size:11.5px; }
+  code { font-family:var(--mono); font-size:.92em; }
+  footer { margin-top:46px; padding-top:16px; border-top:1px solid var(--line); color:var(--faint); font-size:12px; }
+
+.crumbnav { font-family: var(--mono); font-size:12px; color:var(--muted); margin:18px 0 0; }
+.crumbnav a { color: var(--flow, #2E7D9A); text-decoration:none; }
+.crumbnav a:hover { text-decoration:underline; }
+.crumbnav .crumb-here { color: var(--ink, #131A24); font-weight:600; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="head-inner">
+    <p class="eyebrow">mutex architecture</p>
+    <h1>gone · Trace.mu — deleted by giving the drain the only write, not by a smaller lock</h1>
+    <nav class="crumbnav"><a href="mutex-architecture.html">Mutex architecture — who touches what</a> — <a href="mutex-architecture-gone-pacedwire-mu.html">gone · PacedWire.mu — deleted by making the wire a goroutine, not a smaller lock</a> · <a href="mutex-architecture-gone-outbox-mu.html">gone · outbox.mu + cond — deleted by per-direction channels, not a smaller lock</a> · <span class="crumb-here">gone · Trace.mu — deleted by giving the drain the only write, not by a smaller lock</span> · <a href="mutex-architecture-gone-layoutholder-mu.html">gone · LayoutHolder.mu — deleted by ownership, not by a smaller lock</a> · <a href="mutex-architecture-gone-scene-persist.html">gone · scene_persist — the second party was a timer goroutine</a> · <a href="mutex-architecture-gone-realclock-mu.html">gone · RealClock.mu — deleted by ownership, not by a smaller lock</a></nav>
+  </div>
+</header>
+
+<div class="wrap">
+<div class="legend">
+  <span><i class="sw g"></i>goroutine</span>
+  <span><i class="sw s"></i>locked state</span>
+  <span><i class="sw q"></i>queue / buffer</span>
+  <span><i class="sw k"></i>no lock needed</span>
+</div>
+
+<h2>gone · Trace.mu — deleted by giving the drain the only write, not by a smaller lock</h2>
+<p class="cap">Every emitting goroutine sent on a <b>channel</b>, taking no lock, even before the lock
+was deleted. What the mutex actually guarded was <code>Breadcrumb</code>'s direct sink writes (it used
+to write <code>sink</code>/<code>debugSink</code> straight from the calling goroutine, bypassing
+<code>t.ch</code>) and surviving a <code>Close()</code> that ran while goroutines were still shutting
+down. Both were fixed at the source: <code>Breadcrumb</code> now sends on <code>t.ch</code> like every
+other event, so the drain goroutine is the sole writer; and shutdown became complete — every
+<code>nodeMover.run</code>/<code>edgeMover.run</code> and <code>RunStdinReader</code> is now covered
+by a <code>WaitGroup</code>, so nothing can call into <code>Trace</code> during <code>Close()</code>.
+The accumulator-can't-be-copied justification below was true but was never what the lock was doing
+in production — this was the most misread lock in the tree.</p>
+
+<div class="plate">
+<svg viewBox="0 0 860 340" role="img" aria-label="Many goroutines, including Breadcrumb callers, emit into a buffered channel with no lock; a single drain goroutine appends events and writes sinks with no lock either, because it is the only writer; a WaitGroup now covers every mover and the stdin reader so Close cannot run concurrently with them.">
+  <defs>
+    <marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2E7D9A"/>
+    </marker>
+    <marker id="ah2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#A8443C"/>
+    </marker>
+  </defs>
+
+  <text class="tl" x="0" y="14">MANY EMITTERS — NO LOCK</text>
+  <text class="tl" x="336" y="14">HANDOFF</text>
+  <text class="tl" x="620" y="14">LEDGER — NO LOCK NEEDED</text>
+
+  <rect class="safe" x="0" y="30" width="230" height="150" rx="6"/>
+  <text class="tk" x="12" y="50">node Update loops (one per node)</text>
+  <text class="tk" x="12" y="70">gate loops · DriveHeld</text>
+  <text class="tk" x="12" y="90">nodeMover.run · edgeMover.run</text>
+  <text class="tk" x="12" y="110">RunStdinReader</text>
+  <text class="tk" x="12" y="130">Breadcrumb (now sends on t.ch too)</text>
+  <text class="tf" x="12" y="156">emit() = bare select send</text>
+  <text class="tf" x="12" y="170">Trace.go — mu deleted, not narrowed</text>
+
+  <path class="arrb" d="M230,86 L336,86" marker-end="url(#ab)"/>
+  <text class="tb" x="240" y="78">send</text>
+
+  <rect class="queue" x="336" y="52" width="180" height="66" rx="6"/>
+  <text class="t"  x="348" y="74">t.ch</text>
+  <text class="ts" x="348" y="90">buffered chan Event</text>
+  <text class="tf" x="348" y="106">Trace.go:278</text>
+
+  <path class="arrb" d="M516,86 L620,86" marker-end="url(#ab)"/>
+
+  <rect class="gor" x="620" y="30" width="240" height="60" rx="6"/>
+  <text class="t"  x="632" y="50">Trace.drain</text>
+  <text class="ts" x="632" y="66">record() — the ONLY writer</text>
+  <text class="tf" x="632" y="82">spawned once · Trace.go:332</text>
+
+  <path class="arrk" d="M740,90 L740,116" marker-end="url(#ah2)"/>
+
+  <rect class="safe" x="620" y="122" width="240" height="126" rx="8"/>
+  <text class="t"  x="632" y="144">Trace</text>
+  <text class="tf" x="632" y="158">Trace/Trace.go:294</text>
+  <rect x="632" y="170" width="216" height="24" rx="4" class="box"/>
+  <text class="tk" x="644" y="187">no mu — drain-only writer</text>
+  <rect x="632" y="202" width="216" height="38" rx="4" class="box"/>
+  <text class="ts" x="644" y="217">events · closed (sync.Once)</text>
+  <text class="ts" x="644" y="232">sink · onEvent · debugSink</text>
+
+  <rect class="safe" x="336" y="176" width="180" height="34" rx="6"/>
+  <text class="tk" x="348" y="197">Close — waits for wg first</text>
+  <path class="arrk" d="M516,193 L620,193" marker-end="url(#ah2)"/>
+
+  <rect class="safe" x="336" y="220" width="180" height="46" rx="6"/>
+  <text class="tk" x="348" y="238">Events · WriteJSONL</text>
+  <text class="tf" x="348" y="253">readers · run AFTER drain exits</text>
+  <path class="arrk" d="M516,240 L620,225" marker-end="url(#ah2)"/>
+
+  <line x1="0" y1="288" x2="860" y2="288" stroke="var(--line)"/>
+  <text class="tk" x="0" y="308">THE POINT</text>
+  <text class="ts" x="86" y="308">producers only ever contended on the CHANNEL. Once Close waits for every goroutine, nothing contends on the ledger either — no mutex left to take.</text>
+  <text class="tf" x="0" y="324">Trace/trace_concurrency_test.go</text>
+</svg>
+</div>
+
+<p class="verdict ok"><b>DELETED, NOT NARROWED.</b> The accumulator-can't-be-copied claim above was
+true but was not what the lock guarded — in production nothing ever raced <code>events</code>
+(the drain was already sole writer, <code>Events()</code> had zero non-test callers,
+<code>WriteJSONL</code> ran after drain exited). The lock's real job was serializing
+<code>Breadcrumb</code>'s direct sink writes and surviving an incomplete shutdown; fixing both
+removed it. <b style="color:var(--signal)">The framing above it is still open:</b> the event
+channel and the drain's single-writer ordering still exist, and the merged log is already only
+<i>arrival order at the drain</i> — scheduler order, not causal order.</p>
+
+
+
+</div>
+
+</body>
+</html>
+
