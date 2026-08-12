@@ -122,20 +122,138 @@ function resetProbeLogs(repoRoot: string): void {
   }
 }
 
-function openTopologyEditor(context: vscode.ExtensionContext, folderUri?: vscode.Uri): void {
-  // Resolve topology folder path. Command can be invoked from explorer context
-  // menu (folderUri is the topology/ dir) or command palette (no uri).
-  let topologyPath: string | undefined;
-  if (folderUri) {
-    topologyPath = folderUri.fsPath;
-  } else {
-    // Fallback: find topology/ dir in workspace root
-    const folder = vscode.workspace.workspaceFolders?.[0];
-    if (folder) {
-      const candidate = path.join(folder.uri.fsPath, "topology");
-      if (fs.existsSync(candidate)) topologyPath = candidate;
-    }
+// Resolve topology folder path. Command can be invoked from explorer context
+// menu (folderUri is the topology/ dir) or command palette (no uri).
+function resolveTopologyPath(folderUri?: vscode.Uri): string | undefined {
+  if (folderUri) return folderUri.fsPath;
+  // Fallback: find topology/ dir in workspace root
+  const folder = vscode.workspace.workspaceFolders?.[0];
+  if (folder) {
+    const candidate = path.join(folder.uri.fsPath, "topology");
+    if (fs.existsSync(candidate)) return candidate;
   }
+  return undefined;
+}
+
+// Hot-reload of the webview bundle. Armed in every extension mode, not just
+// Development: gating it on extensionMode was self-defeating. In a real
+// install out/webview.js never changes, so an always-armed watcher costs one
+// idle inotify handle and fires never; but the case that actually matters —
+// a developer rebuilding the bundle while the editor tab is open, INCLUDING
+// against an installed extension rather than an F5 dev host — is precisely
+// what the gate suppressed, forcing a manual tab reload. This is safe
+// because the webview holds no domain state (render-and-forward-only seam,
+// guard: check-no-webview-state.sh): Go re-streams and main.tsx re-posts
+// "ready" on remount, so a refreshed tab re-learns everything.
+function armBundleWatcher(panel: vscode.WebviewPanel, context: vscode.ExtensionContext): vscode.FileSystemWatcher {
+  const bundleWatcher = vscode.workspace.createFileSystemWatcher(
+    new vscode.RelativePattern(
+      vscode.Uri.file(path.join(context.extensionPath, "out")),
+      "webview.js",
+    ),
+  );
+  console.log("[topology] bundleWatcher armed for", path.join(context.extensionPath, "out", "webview.js"));
+  let pending: NodeJS.Timeout | undefined;
+  const reload = (kind: string) => () => {
+    console.log("[topology] bundleWatcher fired:", kind);
+    if (pending) clearTimeout(pending);
+    pending = setTimeout(() => {
+      console.log("[topology] hot-reload: re-rendering webview.html");
+      panel.webview.html = buildWebviewHtml(panel.webview, context.extensionPath);
+    }, 150);
+  };
+  bundleWatcher.onDidChange(reload("change"));
+  bundleWatcher.onDidCreate(reload("create"));
+  return bundleWatcher;
+}
+
+// Eager Go-binary watcher: rebuild the prebuilt binary the moment a .go file is saved so
+// launches stay instant (the lazy ensureBinaryBuilt in runner.run() remains the safety
+// net for missed events). If a sim is LIVE when a rebuild SUCCEEDS, it also hot-restarts
+// that sim (runner.restart(), which is a no-op — requirement 1 — if nothing is running)
+// so the new geometry/behaviour is on screen with no window reload and no user action.
+// Debounced (TrailingDebouncer) so one save, or a multi-file edit/checkout touching
+// hundreds of .go files, produces at most one rebuild and one restart, not one per event.
+// Returns undefined when there is no workspace root to watch.
+function armGoWatcher(
+  repoRoot: string | undefined,
+  runner: BuildAndRunRunner,
+  panel: vscode.WebviewPanel,
+): vscode.FileSystemWatcher | undefined {
+  if (!repoRoot) return undefined;
+  const binPath = path.join(repoRoot, ".wirefold-cache", "wirefold");
+  const goErrorsFile = path.join(repoRoot, ".probe", "go-errors.jsonl");
+  const goChannel = vscode.window.createOutputChannel("topology go-build");
+  const goWatcher = vscode.workspace.createFileSystemWatcher(
+    new vscode.RelativePattern(repoRoot, "**/*.go"),
+  );
+  const debouncer = new TrailingDebouncer(250);
+  const rebuild = () => {
+    debouncer.schedule(() => {
+      const res = buildBinary(repoRoot, binPath);
+      if (shouldRestartAfterBuild(res)) {
+        goChannel.appendLine("[go] rebuilt wirefold");
+        // Only restarts a LIVE sim (runner.restart() no-ops otherwise — requirement 1);
+        // reuses the topology path the live run was already started with (runner owns
+        // that, restart() never takes one — requirement 2). Told to the user here so a
+        // sim that silently changes under someone mid-drag isn't confusing (requirement 7).
+        if (runner.restart()) {
+          goChannel.appendLine("[go] hot-restarting sim");
+        }
+      } else if (!res.ok) {
+        goChannel.appendLine(`[go] build error: ${res.error}`);
+        try {
+          fs.mkdirSync(path.dirname(goErrorsFile), { recursive: true });
+          fs.appendFileSync(
+            goErrorsFile,
+            JSON.stringify({ ts_ms: Date.now(), src: "go", kind: "error", message: res.error }) + "\n",
+            "utf8",
+          );
+        } catch { /* swallow */ }
+      }
+      // else: res.ok && res.busy — coalesced against another in-flight build (see
+      // shouldRestartAfterBuild's doc comment: this caller did not cause a build, so
+      // its result says nothing about whether THIS edit's changes are in the binary
+      // yet). Nothing to report; skip the restart rather than restart against a binary
+      // that might still be one edit stale.
+    });
+  };
+  goWatcher.onDidChange(rebuild);
+  goWatcher.onDidCreate(rebuild);
+  goWatcher.onDidDelete(rebuild);
+  // goWatcher/goChannel/debouncer track THIS panel's lifetime, so the panel is their
+  // single disposal owner (onDidDispose below). Deliberately NOT pushed into
+  // context.subscriptions — mirrors the bundleWatcher single-owner contract and
+  // avoids a double-dispose across the two owners.
+  panel.onDidDispose(() => {
+    debouncer.dispose();
+    goChannel.dispose();
+  });
+  return goWatcher;
+}
+
+// Wires the webview→host message channel for this panel. folderUri (the command's own
+// argument, not resolved from it) decides the log directory: the workspace folder it
+// belongs to if resolvable, else itself, else the first workspace folder.
+function wireMessageHandler(
+  panel: vscode.WebviewPanel,
+  folderUri: vscode.Uri | undefined,
+  runner: BuildAndRunRunner,
+  post: (msg: HostToWebviewMsg) => void,
+): void {
+  panel.webview.onDidReceiveMessage((raw) => {
+    const workspaceFolder = folderUri ? vscode.workspace.getWorkspaceFolder(folderUri) : undefined;
+    // Final fallback is undefined (no real workspace) — appendWebviewLog skips the
+    // write rather than misdirecting .probe/ logs to an arbitrary cwd.
+    const logUri = workspaceFolder?.uri ?? folderUri ?? vscode.workspace.workspaceFolders?.[0]?.uri;
+    void handleMessage(raw, { logUri, runner, post }).catch((err: unknown) => {
+      console.error("topology: handleMessage failed", err);
+    });
+  });
+}
+
+function openTopologyEditor(context: vscode.ExtensionContext, folderUri?: vscode.Uri): void {
+  const topologyPath = resolveTopologyPath(folderUri);
 
   // Reset probe logs early: same workspace root the runner (.probe/go*.jsonl) and
   // appendWebviewLog (.probe/ts*.jsonl) write to, before any log can be appended.
@@ -170,97 +288,10 @@ function openTopologyEditor(context: vscode.ExtensionContext, folderUri?: vscode
     (snapshot) => post(snapshot),
   );
 
+  const bundleWatcher = armBundleWatcher(panel, context);
 
-  // Hot-reload of the webview bundle. Armed in every extension mode, not just
-  // Development: gating it on extensionMode was self-defeating. In a real
-  // install out/webview.js never changes, so an always-armed watcher costs one
-  // idle inotify handle and fires never; but the case that actually matters —
-  // a developer rebuilding the bundle while the editor tab is open, INCLUDING
-  // against an installed extension rather than an F5 dev host — is precisely
-  // what the gate suppressed, forcing a manual tab reload. This is safe
-  // because the webview holds no domain state (render-and-forward-only seam,
-  // guard: check-no-webview-state.sh): Go re-streams and main.tsx re-posts
-  // "ready" on remount, so a refreshed tab re-learns everything.
-  const bundleWatcher = vscode.workspace.createFileSystemWatcher(
-    new vscode.RelativePattern(
-      vscode.Uri.file(path.join(context.extensionPath, "out")),
-      "webview.js",
-    ),
-  );
-  {
-    console.log("[topology] bundleWatcher armed for", path.join(context.extensionPath, "out", "webview.js"));
-    let pending: NodeJS.Timeout | undefined;
-    const reload = (kind: string) => () => {
-      console.log("[topology] bundleWatcher fired:", kind);
-      if (pending) clearTimeout(pending);
-      pending = setTimeout(() => {
-        console.log("[topology] hot-reload: re-rendering webview.html");
-        panel.webview.html = buildWebviewHtml(panel.webview, context.extensionPath);
-      }, 150);
-    };
-    bundleWatcher.onDidChange(reload("change"));
-    bundleWatcher.onDidCreate(reload("create"));
-  }
-
-  // Eager Go-binary watcher: rebuild the prebuilt binary the moment a .go file is saved so
-  // launches stay instant (the lazy ensureBinaryBuilt in runner.run() remains the safety
-  // net for missed events). If a sim is LIVE when a rebuild SUCCEEDS, it also hot-restarts
-  // that sim (runner.restart(), which is a no-op — requirement 1 — if nothing is running)
-  // so the new geometry/behaviour is on screen with no window reload and no user action.
-  // Debounced (TrailingDebouncer) so one save, or a multi-file edit/checkout touching
-  // hundreds of .go files, produces at most one rebuild and one restart, not one per event.
   const repoRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
-  let goWatcher: vscode.FileSystemWatcher | undefined;
-  if (repoRoot) {
-    const binPath = path.join(repoRoot, ".wirefold-cache", "wirefold");
-    const goErrorsFile = path.join(repoRoot, ".probe", "go-errors.jsonl");
-    const goChannel = vscode.window.createOutputChannel("topology go-build");
-    goWatcher = vscode.workspace.createFileSystemWatcher(
-      new vscode.RelativePattern(repoRoot, "**/*.go"),
-    );
-    const debouncer = new TrailingDebouncer(250);
-    const rebuild = () => {
-      debouncer.schedule(() => {
-        const res = buildBinary(repoRoot, binPath);
-        if (shouldRestartAfterBuild(res)) {
-          goChannel.appendLine("[go] rebuilt wirefold");
-          // Only restarts a LIVE sim (runner.restart() no-ops otherwise — requirement 1);
-          // reuses the topology path the live run was already started with (runner owns
-          // that, restart() never takes one — requirement 2). Told to the user here so a
-          // sim that silently changes under someone mid-drag isn't confusing (requirement 7).
-          if (runner.restart()) {
-            goChannel.appendLine("[go] hot-restarting sim");
-          }
-        } else if (!res.ok) {
-          goChannel.appendLine(`[go] build error: ${res.error}`);
-          try {
-            fs.mkdirSync(path.dirname(goErrorsFile), { recursive: true });
-            fs.appendFileSync(
-              goErrorsFile,
-              JSON.stringify({ ts_ms: Date.now(), src: "go", kind: "error", message: res.error }) + "\n",
-              "utf8",
-            );
-          } catch { /* swallow */ }
-        }
-        // else: res.ok && res.busy — coalesced against another in-flight build (see
-        // shouldRestartAfterBuild's doc comment: this caller did not cause a build, so
-        // its result says nothing about whether THIS edit's changes are in the binary
-        // yet). Nothing to report; skip the restart rather than restart against a binary
-        // that might still be one edit stale.
-      });
-    };
-    goWatcher.onDidChange(rebuild);
-    goWatcher.onDidCreate(rebuild);
-    goWatcher.onDidDelete(rebuild);
-    // goWatcher/goChannel/debouncer track THIS panel's lifetime, so the panel is their
-    // single disposal owner (onDidDispose below). Deliberately NOT pushed into
-    // context.subscriptions — mirrors the bundleWatcher single-owner contract and
-    // avoids a double-dispose across the two owners.
-    panel.onDidDispose(() => {
-      debouncer.dispose();
-      goChannel.dispose();
-    });
-  }
+  const goWatcher = armGoWatcher(repoRoot, runner, panel);
 
   context.subscriptions.push(runner);
   // bundleWatcher tracks THIS panel's lifetime, so the panel is its single disposal
@@ -273,15 +304,7 @@ function openTopologyEditor(context: vscode.ExtensionContext, folderUri?: vscode
     runner.dispose();
   });
 
-  panel.webview.onDidReceiveMessage((raw) => {
-    const workspaceFolder = folderUri ? vscode.workspace.getWorkspaceFolder(folderUri) : undefined;
-    // Final fallback is undefined (no real workspace) — appendWebviewLog skips the
-    // write rather than misdirecting .probe/ logs to an arbitrary cwd.
-    const logUri = workspaceFolder?.uri ?? folderUri ?? vscode.workspace.workspaceFolders?.[0]?.uri;
-    void handleMessage(raw, { logUri, runner, post }).catch((err: unknown) => {
-      console.error("topology: handleMessage failed", err);
-    });
-  });
+  wireMessageHandler(panel, folderUri, runner, post);
 
   // Spawn Go immediately; the render path is buffer-only (buffer-snapshot on
   // fd3) so there is nothing else to send on "ready".
