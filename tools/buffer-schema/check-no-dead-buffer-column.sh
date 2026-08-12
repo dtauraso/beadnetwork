@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: Buffer/layout*.go | every buffer column needs a non-test production consumer; delete an unused one rather than allowlisting it
+# PLACEMENT: Buffer/layout*.go,tools/topology-vscode/src/schema/buffer-layout*.ts | every buffer column needs a non-test production consumer; delete an unused one rather than allowlisting it
 
 set -euo pipefail
 
@@ -8,13 +8,19 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 cd "$REPO_ROOT"
 
-LAYOUT="tools/topology-vscode/src/schema/buffer-layout.ts"
+LAYOUT_FILES=(
+  "tools/topology-vscode/src/schema/buffer-layout.ts"
+  "tools/topology-vscode/src/schema/buffer-layout-rows-gen.ts"
+  "tools/topology-vscode/src/schema/buffer-layout-singletons-gen.ts"
+)
 SRC="tools/topology-vscode/src"
 
-if [[ ! -f "$LAYOUT" ]]; then
-  echo "check-no-dead-buffer-column: MISCONFIGURED — $LAYOUT not found (renamed?); refusing vacuous pass" >&2
-  exit 1
-fi
+for LAYOUT in "${LAYOUT_FILES[@]}"; do
+  if [[ ! -f "$LAYOUT" ]]; then
+    echo "check-no-dead-buffer-column: MISCONFIGURED — $LAYOUT not found (renamed?); refusing vacuous pass" >&2
+    exit 1
+  fi
+done
 
 readonly ALLOWED_DEAD=()
 
@@ -28,10 +34,10 @@ is_allowed() {
 readers=()
 while IFS= read -r line; do
   [[ -n "$line" ]] && readers+=("$line")
-done < <(grep -oE 'export function (read[A-Za-z0-9_]+)' "$LAYOUT" | awk '{print $3}' | sort -u)
+done < <(grep -ohE 'export function (read[A-Za-z0-9_]+)' "${LAYOUT_FILES[@]}" | awk '{print $3}' | sort -u)
 
 if [[ ${#readers[@]} -eq 0 ]]; then
-  echo "check-no-dead-buffer-column: MISCONFIGURED — parsed 0 read* helpers from $LAYOUT; format changed, guard would check nothing" >&2
+  echo "check-no-dead-buffer-column: MISCONFIGURED — parsed 0 read* helpers from ${LAYOUT_FILES[*]}; format changed, guard would check nothing" >&2
   exit 1
 fi
 
@@ -39,6 +45,8 @@ prod_files=()
 while IFS= read -r f; do prod_files+=("$f"); done < <(
   find "$SRC" -type f \( -name '*.ts' -o -name '*.tsx' \) \
     -not -path '*/schema/buffer-layout.ts' \
+    -not -path '*/schema/buffer-layout-rows-gen.ts' \
+    -not -path '*/schema/buffer-layout-singletons-gen.ts' \
     -not -path '*/test/*' \
     -not -name '*.test.ts' 2>/dev/null
 )
