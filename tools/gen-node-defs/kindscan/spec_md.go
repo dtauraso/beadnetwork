@@ -4,8 +4,6 @@ package kindscan
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 	"strings"
 )
 
@@ -36,90 +34,17 @@ func firstParagraph(sec []string) string {
 
 func parseSpecMD(pkgDir string) (ViewDef, map[string]string, map[string]string, map[string]bool, map[string]bool, error) {
 	specPortNames := map[string]bool{}
-	data, readErr := os.ReadFile(filepath.Join(pkgDir, "SPEC.md"))
-	if readErr != nil {
-		return ViewDef{}, nil, nil, nil, nil, readErr
-	}
-	lines := strings.Split(string(data), "\n")
-
-	sectionLines := func(heading string) []string {
-		start := -1
-		for i, l := range lines {
-			if strings.TrimSpace(l) == "## "+heading {
-				start = i
-				break
-			}
-		}
-		if start == -1 {
-			return nil
-		}
-		end := len(lines)
-		for i := start + 1; i < len(lines); i++ {
-			if strings.HasPrefix(lines[i], "## ") {
-				end = i
-				break
-			}
-		}
-		return lines[start+1 : end]
-	}
-
-	// Parse a markdown table into rows.
-	parseTable := func(tableLines []string) ([]string, [][]string) {
-		var rows []string
-		var headers []string
-		var result [][]string
-		for _, l := range tableLines {
-			if !strings.Contains(l, "|") {
-				continue
-			}
-			rows = append(rows, l)
-		}
-		if len(rows) < 2 {
-			return nil, nil
-		}
-		// First row is headers.
-		parts := strings.Split(rows[0], "|")
-		for _, p := range parts {
-			h := strings.TrimSpace(p)
-			if h != "" {
-				headers = append(headers, h)
-			}
-		}
-		for _, row := range rows[1:] {
-			parts := strings.Split(row, "|")
-			var cells []string
-			for _, p := range parts {
-				cells = append(cells, strings.TrimSpace(p))
-			}
-			// Remove leading/trailing empty cells from split on "|".
-			if len(cells) > 0 && cells[0] == "" {
-				cells = cells[1:]
-			}
-			if len(cells) > 0 && cells[len(cells)-1] == "" {
-				cells = cells[:len(cells)-1]
-			}
-			// Skip separator rows.
-			allSep := true
-			for _, c := range cells {
-				if !isSep(c) {
-					allSep = false
-					break
-				}
-			}
-			if allSep {
-				continue
-			}
-			result = append(result, cells)
-		}
-		return headers, result
+	lines, err := readSpecMDLines(pkgDir)
+	if err != nil {
+		return ViewDef{}, nil, nil, nil, nil, err
 	}
 
 	// Parse View section.
-	viewLines := sectionLines("View")
+	viewLines := sectionLines(lines, "View")
 	if viewLines == nil {
 		return ViewDef{}, nil, nil, nil, nil, fmt.Errorf("no View section")
 	}
-	headers, rows := parseTable(viewLines)
+	headers, rows := parseMDTable(viewLines)
 	fieldIdx := indexOf(headers, "Field")
 	valueIdx := indexOf(headers, "Value")
 	if fieldIdx == -1 || valueIdx == -1 {
@@ -143,16 +68,16 @@ func parseSpecMD(pkgDir string) (ViewDef, map[string]string, map[string]string, 
 		Stroke:   vmap["stroke"],
 		Width:    vmap["width"],
 		Height:   vmap["height"],
-		Desc:     firstParagraph(sectionLines("Description")),
+		Desc:     firstParagraph(sectionLines(lines, "Description")),
 	}
 
 	// Parse Ports section for accent, edgeKind overrides, and optional flags.
 	accentOverrides := map[string]string{}
 	edgeKindOverrides := map[string]string{}
 	optionalPorts := map[string]bool{}
-	portsLines := sectionLines("Ports")
+	portsLines := sectionLines(lines, "Ports")
 	if portsLines != nil {
-		headers, rows := parseTable(portsLines)
+		headers, rows := parseMDTable(portsLines)
 		nameIdx := indexOf(headers, "Name")
 		accentIdx := indexOf(headers, "Accent")
 		edgeKindIdx := indexOf(headers, "EdgeKind")
@@ -182,146 +107,4 @@ func parseSpecMD(pkgDir string) (ViewDef, map[string]string, map[string]string, 
 	}
 
 	return view, accentOverrides, edgeKindOverrides, optionalPorts, specPortNames, nil
-}
-
-// parsePortsFromSpec reads nodes/<Kind>/SPEC.md and returns ports derived from
-// the Ports table (Name + Direction columns). Used as a fallback when AST
-// parsing discovers 0 ports — e.g. when all ports live in an embedded struct
-// from another package that the AST walker cannot follow.
-func parsePortsFromSpec(pkgDir string) []Port {
-	data, err := os.ReadFile(filepath.Join(pkgDir, "SPEC.md"))
-	if err != nil {
-		return nil
-	}
-	lines := strings.Split(string(data), "\n")
-	// Locate ## Ports section.
-	start := -1
-	for i, l := range lines {
-		if strings.TrimSpace(l) == "## Ports" {
-			start = i
-			break
-		}
-	}
-	if start == -1 {
-		return nil
-	}
-	end := len(lines)
-	for i := start + 1; i < len(lines); i++ {
-		if strings.HasPrefix(lines[i], "## ") {
-			end = i
-			break
-		}
-	}
-	tableLines := lines[start+1 : end]
-	// Parse the markdown table.
-	var rows []string
-	for _, l := range tableLines {
-		if strings.Contains(l, "|") {
-			rows = append(rows, l)
-		}
-	}
-	if len(rows) < 2 {
-		return nil
-	}
-	// Parse header row.
-	var headers []string
-	for _, p := range strings.Split(rows[0], "|") {
-		h := strings.TrimSpace(p)
-		if h != "" {
-			headers = append(headers, h)
-		}
-	}
-	nameIdx := indexOf(headers, "Name")
-	dirIdx := indexOf(headers, "Direction")
-	if nameIdx == -1 || dirIdx == -1 {
-		return nil
-	}
-	var ports []Port
-	for _, row := range rows[1:] {
-		parts := strings.Split(row, "|")
-		var cells []string
-		for _, p := range parts {
-			cells = append(cells, strings.TrimSpace(p))
-		}
-		if len(cells) > 0 && cells[0] == "" {
-			cells = cells[1:]
-		}
-		if len(cells) > 0 && cells[len(cells)-1] == "" {
-			cells = cells[:len(cells)-1]
-		}
-		// Skip separator rows.
-		allSep := true
-		for _, c := range cells {
-			if !isSep(c) {
-				allSep = false
-				break
-			}
-		}
-		if allSep {
-			continue
-		}
-		if nameIdx >= len(cells) || dirIdx >= len(cells) {
-			continue
-		}
-		name := cells[nameIdx]
-		dir := cells[dirIdx]
-		if name == "" || (dir != "in" && dir != "out") {
-			continue
-		}
-		ports = append(ports, Port{ID: name, Direction: dir})
-	}
-	return ports
-}
-
-// parseDefaultData reads nodes/<Kind>/SPEC.md and returns the JSON string from
-// the first fenced code block inside ## Default data, or "" if absent.
-func parseDefaultData(pkgDir string) string {
-	data, err := os.ReadFile(filepath.Join(pkgDir, "SPEC.md"))
-	if err != nil {
-		return ""
-	}
-	lines := strings.Split(string(data), "\n")
-	inSection := false
-	inFence := false
-	var jsonLines []string
-	for _, l := range lines {
-		if strings.TrimSpace(l) == "## Default data" {
-			inSection = true
-			continue
-		}
-		if inSection && strings.HasPrefix(l, "## ") {
-			break
-		}
-		if inSection && !inFence && strings.TrimSpace(l) == "```json" {
-			inFence = true
-			continue
-		}
-		if inSection && inFence {
-			if strings.TrimSpace(l) == "```" {
-				break
-			}
-			jsonLines = append(jsonLines, l)
-		}
-	}
-	return strings.TrimSpace(strings.Join(jsonLines, "\n"))
-}
-
-// isSep reports whether s is a markdown table separator cell (e.g. "---",
-// ":--", "--:"): only '-', ':', and spaces.
-func isSep(s string) bool {
-	for _, c := range s {
-		if c != '-' && c != ':' && c != ' ' {
-			return false
-		}
-	}
-	return len(s) > 0
-}
-
-func indexOf[T comparable](slice []T, val T) int {
-	for i, v := range slice {
-		if v == val {
-			return i
-		}
-	}
-	return -1
 }
