@@ -6164,3 +6164,125 @@ primitive Bead is built on, gets its own file, leaving bead_actor.go to the guar
 goroutine alone."
 
 **`node_parts.go`:** declined, no commit.
+
+## §42 `runCommand.ts`'s `run()`, `extension.ts`'s `openTopologyEditor()` — phase question, not purity
+
+`tools/topology-vscode/src/runCommand.ts` (408 lines, largest hand-written file in the repo)
+was declined twice on "every remaining statement is `vscode.*`/`cp.spawn`/`this.*` — no
+standalone pure computation big enough to justify a new file." That reasoning answers the
+wrong question for a sequential startup pipeline. `run()` (lines 121–311, ~190 lines) reads
+as named PHASES, not pure computations: re-entry guard → resolve workspace folder → create
+output channel → build the Go binary → reap orphan processes → read counts / compute stream
+layout → spawn → attach listeners → wire exit/error handlers. This mirrors
+`nodes/Wiring/build/build.go`'s `buildFromSpec`, whose own header states the same shape:
+short orchestrator calling named, impure, struct-field-grouped phase methods.
+
+**Split applied to `BuildAndRunRunner`** — each phase became a private method, same order,
+same data flow:
+
+- `ensureOutputChannel()` — channel create + clear
+- `buildBinary(repoRoot, binPath, probePaths): boolean` — carries the build-failure early
+  return; comment retained verbatim
+- `reapOrphans(binPath): number` — orphan reap
+- `armFieldsAndPrepareLayout(...): {layout, demux} | undefined` — arms
+  `goErrorsFile`/`cancelled`/`looping`/`spawnGen`, reads counts, computes the spawn layout,
+  builds the fresh demux; carries the "arm every receiver field ... in ONE uninterrupted run
+  immediately before cp.spawn" comment onto itself since it IS that uninterrupted run
+- `spawnProcess(binPath, topArgs, repoRoot, layout)` — `cp.spawn` + stdin flush; carries the
+  full stdio-index doc comment
+- `attachStreamHandlers(demux, layout)` — `attachStreamListeners` + stderr relay
+- `wireExitHandlers()` — close/error handlers, including the `restartPending` respawn branch
+
+`run()` itself is now an 18-line orchestrator calling these in the original statement order.
+
+**Ordering invariants preserved, comments carried to the owning phase:**
+- channel-clear-before-build — `ensureOutputChannel()` runs before `buildBinary()` is called,
+  same as before (comment on `ensureOutputChannel` explains why channel setup isn't folded
+  into the build phase: the failure branch needs it).
+- orphan-reap-before-spawn — `reapOrphans()` is called before `armFieldsAndPrepareLayout()`/
+  `spawnProcess()`, same statement order as the original.
+- `spawnGen++`-before-spawn — still inside `armFieldsAndPrepareLayout()`, which fully
+  completes (including building the demux with the bumped `spawnGen`) before `spawnProcess()`
+  runs.
+
+**No local promoted to a field.** The one place I was tempted: `probeTrace` is computed once
+in `armFieldsAndPrepareLayout` (for the demux) and used again in `spawnProcess` (for
+`WIREFOLD_EDGE_BEAD_TRACE`) — threading it as a return value + parameter was the obvious
+first instinct, since it's the same value used twice across a phase boundary. I did NOT
+promote it to a field. Instead `spawnProcess` re-reads it from `isProbeTraceEnabled()`
+directly (a pure env-setting read, not a decision `armFieldsAndPrepareLayout` makes), with a
+comment on `spawnProcess` explaining why it's read a second time rather than threaded — the
+value doesn't change between the two reads within one `run()` call, and re-reading a
+read-only external setting is not the same as caching a decision as instance state.
+
+**`extension.ts`'s `openTopologyEditor()`** (was 125–290, ~165 lines) has the identical
+shape: resolve topology path → reset probe logs → create panel + html → construct
+post/runner → arm bundle watcher → arm go watcher → wire disposal owners → wire message
+handler → spawn. Split into four top-level functions (`resolveTopologyPath`,
+`armBundleWatcher`, `armGoWatcher`, `wireMessageHandler`), each already a closed-over block
+in the original — no field/state promotion applies since these were always function locals,
+not class fields. `openTopologyEditor` itself is now ~35 lines calling them in the original
+order; the disposal wiring (`bundleWatcher?.dispose()` / `goWatcher?.dispose()` /
+`runner.dispose()`) stayed inline in `openTopologyEditor` because it is the one place that
+legitimately needs all three watcher/runner locals together, and splitting it out would only
+have added an extra parameter-passing hop with no separation-of-concerns gain. `activate()`
+(14 lines), `armHostReloadWatcher()` (61 lines, already one cohesive watcher-arming phase),
+and `resetProbeLogs()` (18 lines) were left alone — each is already a single named phase, not
+a multi-phase pipeline.
+
+**`messages.ts` re-measured under the phase question, not the purity question — verdict
+unchanged (decline).** 277 lines, of which only two are functions: `parseWebviewToHost`
+(18 lines, one type-switch validating each `WebviewToHostMsg` variant's payload — a single
+validation phase, not a sequential pipeline) and `parseHostToWebview` (21 lines, same shape).
+Everything else is `type`/`interface`/`const` declarations that erase at compile time. There
+is no multi-phase sequence here to name and extract — the phase question and the purity
+question agree on this file.
+
+**LOC:** `runCommand.ts` 408 → 466 (net +58: named methods plus JSDoc carried onto each,
+same total logic). `extension.ts` 290 → 313 (net +23, same reason). `messages.ts` untouched,
+277.
+
+**Class-length note (item 2 of the task):** `BuildAndRunRunner` is 427 lines after the split
+(40–466), over the ~250-line guideline. I did not move a phase group to `runner/`: every
+phase reads/writes the runner's own lifecycle fields (`channel`, `proc`, `demux`, `spawnGen`,
+`cancelled`, `looping`, `goErrorsFile`, `restartPending`) — seven fields threaded through
+nearly every phase. Externalizing any of them to sibling-module free functions would mean
+either passing `this` (defeating the point of a private-field boundary) or threading
+getter/setter closures for each field into every phase function — more indirection than the
+class itself, not a real separation of concerns, and it risks exactly the kind of duplicated
+state-outside-the-owner the "no domain state" guard exists to catch. This mirrors the file's
+own header comment: "What stays here is the runner itself: spawn + env, process lifecycle...
+and writeStdin." Declined; reported per the task's instruction to say what was done instead
+of promoting/relocating.
+
+**Guard teeth — `check-stream-kind-ts-parity.sh`:** grepped `runCommand.ts` and every moved
+symbol first; the guard's PLACEMENT line already lists `runCommand.ts` alongside the
+`runner/` split files and needed no re-keying (the `WIREFOLD_STREAM_FDS` assignment stayed in
+`runCommand.ts`, now inside `spawnProcess`). Deliberately broke it (Edit tool) by renaming the
+env key to `WIREFOLD_STREAM_FDS_BROKEN` and got the verbatim failure:
+
+    check-stream-kind-ts-parity: MISCONFIGURED — nothing under tools/topology-vscode/src assigns
+    WIREFOLD_STREAM_FDS: in a spawn env. The ext host's fd-allocation site moved;
+    repoint this guard.
+    exit=1
+
+Reverted with Edit; reran — exit 0. No guard names `extension.ts`.
+
+**Changed surfaces with no check of any kind that can fail:** the three ordering invariants
+above (channel-clear-before-build, orphan-reap-before-spawn, spawnGen++-before-spawn) — each
+rests on statement order within `run()`/`openTopologyEditor()` and the doc comments carried
+onto the owning phase method, per this repo's no-tests policy and the "TS is render+forward,
+no domain state" doctrine (there is no unit-test layer to assert cross-method call order
+against). The `restartPending`/close-handler respawn branch and the `looping`-respawn branch
+are likewise uncovered — process-lifecycle behavior only observable by running the real
+editor.
+
+**Verify (from `/Users/David/Documents/github/wirefold`, cwd confirmed each time):**
+`bash scripts/stop-checks.sh` — empty stdout (clean) after each of the two commits below.
+
+**Commits** (`task/god-objects`): `7888d62b` — "run() becomes a short orchestrator over named
+phase methods, matching build.go's shape" (`tools/topology-vscode/src/runCommand.ts`).
+`0400eb40` — "openTopologyEditor becomes a short orchestrator over named phase functions"
+(`tools/topology-vscode/src/extension.ts`).
+
+**`messages.ts`:** declined, no commit.
