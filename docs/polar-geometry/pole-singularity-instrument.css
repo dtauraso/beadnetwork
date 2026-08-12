@@ -1,0 +1,210 @@
+    /* instrument panel */
+    .inst {
+      display: flex;
+      flex-direction: column;
+      gap: 12px
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px 15px
+    }
+
+    .card .lab {
+      font-size: 11.5px;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-family: var(--mono);
+      margin: 0 0 8px;
+      display: flex;
+      justify-content: space-between
+    }
+
+    .big {
+      font-family: var(--mono);
+      font-variant-numeric: tabular-nums;
+      font-weight: 640;
+      line-height: 1;
+      letter-spacing: -.01em
+    }
+
+    .big.xl {
+      font-size: 40px
+    }
+
+    .big.unit {
+      font-size: 15px;
+      color: var(--muted);
+      font-weight: 520;
+      margin-left: 6px
+    }
+
+    .meter {
+      height: 12px;
+      border-radius: 7px;
+      background: var(--grid);
+      overflow: hidden;
+      position: relative;
+      margin-top: 4px
+    }
+
+    .meter>i {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      border-radius: 7px;
+      transition: width .12s ease
+    }
+
+    .meter.amber>i {
+      background: linear-gradient(90deg, var(--amber-soft), var(--amber))
+    }
+
+    .meter.teal>i {
+      background: linear-gradient(90deg, var(--teal-soft), var(--teal))
+    }
+
+    .metrow {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 9px
+    }
+
+    .metrow .name {
+      font-size: 12px;
+      color: var(--muted);
+      width: 74px;
+      flex: none
+    }
+
+    .metrow .num {
+      font-family: var(--mono);
+      font-variant-numeric: tabular-nums;
+      font-size: 13px;
+      width: 64px;
+      text-align: right;
+      flex: none
+    }
+
+    .kv {
+      display: flex;
+      flex-direction: column
+    }
+
+    .kv-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 7px 0;
+      border-bottom: 1px solid var(--grid);
+      gap: 12px
+    }
+
+    .kv-row:last-child {
+      border-bottom: 0
+    }
+
+    .kv-row .k {
+      font-size: 12.5px;
+      color: var(--muted)
+    }
+
+    .kv-row .k small {
+      font-family: var(--mono);
+      font-size: 10.5px;
+      opacity: .7;
+      margin-left: 5px
+    }
+
+    .kv-row .v {
+      font-family: var(--mono);
+      font-variant-numeric: tabular-nums;
+      font-size: 13.5px;
+      font-weight: 520
+    }
+
+    .pill {
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-weight: 600
+    }
+
+    .pill.ok {
+      color: var(--ok);
+      background: color-mix(in srgb, var(--ok) 13%, transparent)
+    }
+
+    .pill.bad {
+      color: var(--danger);
+      background: color-mix(in srgb, var(--danger) 13%, transparent)
+    }
+
+    .status {
+      border-radius: 9px;
+      padding: 11px 13px;
+      font-family: var(--mono);
+      font-size: 12.5px;
+      font-weight: 600;
+      border: 1px solid;
+      display: flex;
+      gap: 9px;
+      align-items: center;
+      letter-spacing: .01em
+    }
+
+    .status.ok {
+      color: var(--ok);
+      border-color: color-mix(in srgb, var(--ok) 42%, transparent);
+      background: color-mix(in srgb, var(--ok) 9%, transparent)
+    }
+
+    .status.bad {
+      color: var(--danger);
+      border-color: color-mix(in srgb, var(--danger) 42%, transparent);
+      background: color-mix(in srgb, var(--danger) 9%, transparent)
+    }
+
+    .status .ico {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+      flex: none
+    }
+
+    .ctl {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 12.5px;
+      color: var(--muted);
+      flex-wrap: wrap
+    }
+
+    .ctl input[type=range] {
+      accent-color: var(--tabc);
+      flex: 1;
+      min-width: 80px
+    }
+
+    .ctl .val {
+      font-family: var(--mono);
+      color: var(--ink);
+      width: 38px;
+      text-align: right
+    }
+
+    .toggle {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      cursor: pointer
+    }
+
