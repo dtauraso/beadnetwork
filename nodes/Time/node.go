@@ -56,6 +56,68 @@ func placeHeld(outs wire.Broadcast, held int, items []wire.DriveItem, tick int64
 	return outs.PlaceDrivenAllAt(held, items, tick)
 }
 
+// drainInput is Update's mid-window observe phase: drain and discard every bead delivered
+// on the input port this cycle (same-color and different-color are both consumed silently;
+// neither is processed).
+//
+// Drain-until-empty, transitively bounded by this wire's declared channel capacity -- no
+// iteration cap; see nodes/wire/paced_wire_drive.go's drainPlacements doc comment for the
+// full reasoning shared by every drain-until-empty loop in this repo.
+func (in *Time) drainInput() {
+	for {
+		if _, ok := in.In.PollRecv(); !ok {
+			return
+		}
+	}
+}
+
+// consumeInput is Update's new-input phase: a value arrived while no processing window was
+// active. It fires, emits the interior held-value bead only when the held value changes
+// (-1 → 0 → 1 → 0 …), places the ToNext broadcast beads WITHOUT walkers, and opens a
+// processing window sized to the LONGEST ToNext edge's ticksToCross
+// (steps*DwellTicksPerBead, docs/bead-model/bead-lattice.md "Timing") — a formula over the
+// node's own outputs, not a query of wire state. No live bead placed (suppressed sentinel
+// broadcast) ⇒ no real output transit ⇒ no processing window to observe.
+//
+// placeTick is this goroutine's own clock reading, read ONCE before placing so every ToNext
+// bead of this emission shares it (placeHeld's doc comment) and the processing-window
+// deadline is computed from the same reading the beads were actually stamped with. prevHeld
+// is the OLD held value (captured before updating in.Held) so the ordering is explicit.
+func (in *Time) consumeInput(clk clock.Clock, value int, held int) (newHeld int, windowActive bool, windowEndTick int64) {
+	if in.Fire != nil {
+		in.Fire()
+	}
+
+	heldChanged := value != held
+	newHeld = value
+	if heldChanged && in.EmitHeldBead != nil {
+		in.EmitHeldBead(value)
+	}
+
+	placeTick := clk.Tick()
+	var items []wire.DriveItem
+	prevHeld := in.Held
+	items = placeHeld(in.ToNext, prevHeld, items, placeTick)
+	in.Held = value
+
+	var maxTicks float64
+	anyLive := false
+	for i, di := range items {
+		if !di.Live() {
+			continue
+		}
+		anyLive = true
+		if t := float64(in.ToNext[i].Geom().Steps) * lattice.DwellTicksPerBead; t > maxTicks {
+			maxTicks = t
+		}
+	}
+	if anyLive {
+		windowActive = true
+		windowEndTick = placeTick + int64(maxTicks+0.999999)
+	}
+	return newHeld, windowActive, windowEndTick
+}
+
 func (in *Time) Update(ctx context.Context) {
 	wire.TryEmit(in.EmitGeometry)
 
@@ -103,71 +165,9 @@ func (in *Time) Update(ctx context.Context) {
 		}
 
 		if windowActive {
-			// Mid-window observe: drain and discard every bead delivered on the
-			// input port this cycle (same-color and different-color are both
-			// consumed silently; neither is processed).
-			//
-			// Drain-until-empty, transitively bounded by this wire's declared
-			// channel capacity -- no iteration cap; see nodes/wire/paced_wire_drive.go's
-			// drainPlacements doc comment for the full reasoning shared by every
-			// drain-until-empty loop in this repo.
-			for {
-				if _, ok := in.In.PollRecv(); !ok {
-					break
-				}
-			}
-		} else {
-			value, ok := in.In.PollRecv()
-			if ok {
-				if in.Fire != nil {
-					in.Fire()
-				}
-
-				// Interior held-value bead: emit only when the held value
-				// changes (-1 → 0 → 1 → 0 …). `held` is the running compare
-				// value tracking the received value; update it once here at
-				// recv time.
-				heldChanged := value != held
-				held = value
-				if heldChanged && in.EmitHeldBead != nil {
-					in.EmitHeldBead(value)
-				}
-
-				// Place the ToNext broadcast beads WITHOUT walkers. prevHeld is
-				// the OLD held value (captured before updating in.Held) so the
-				// ordering is explicit.
-				// placeTick is this goroutine's own clock reading, read ONCE before
-				// placing so every ToNext bead of this emission shares it (placeHeld's
-				// doc comment) and the processing-window deadline below is computed
-				// from the same reading the beads were actually stamped with.
-				placeTick := clk.Tick()
-				var items []wire.DriveItem
-				prevHeld := in.Held
-				items = placeHeld(in.ToNext, prevHeld, items, placeTick)
-				in.Held = value
-
-				// No live bead placed (suppressed sentinel broadcast) ⇒ no real
-				// output transit ⇒ no processing window to observe. Otherwise
-				// the window length is the LONGEST ToNext edge's ticksToCross
-				// (steps*DwellTicksPerBead, docs/bead-model/bead-lattice.md "Timing") counted
-				// from this placement tick — a formula over the node's own
-				// outputs, not a query of wire state.
-				var maxTicks float64
-				anyLive := false
-				for i, di := range items {
-					if !di.Live() {
-						continue
-					}
-					anyLive = true
-					if t := float64(in.ToNext[i].Geom().Steps) * lattice.DwellTicksPerBead; t > maxTicks {
-						maxTicks = t
-					}
-				}
-				if anyLive {
-					windowActive = true
-					windowEndTick = placeTick + int64(maxTicks+0.999999)
-				}
-			}
+			in.drainInput()
+		} else if value, ok := in.In.PollRecv(); ok {
+			held, windowActive, windowEndTick = in.consumeInput(clk, value, held)
 		}
 
 		// Each ToNext wire's own goroutine advances its in-flight beads; this
