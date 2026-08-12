@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<title>Level-4 Audit · wirefold</title>
+<title>Level-4 Audit · wirefold — Leverage Model</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
@@ -174,33 +174,57 @@
 .crumbnav a { color: var(--accent, #4a9eff); text-decoration:none; }
 .crumbnav a:hover { text-decoration:underline; }
 .crumbnav .crumb-here { color: var(--text, #eee); font-weight:600; }
-
-.idx-list { list-style:none; margin:22px 0 0; padding:0; display:grid; gap:10px; max-width:520px; }
-.idx-list a {
-  display:block; font-family:var(--mono, monospace); font-size:14px; color:var(--text, #eee);
-  background:var(--surface, #111); border:1px solid var(--border, #333); border-radius:6px;
-  padding:14px 16px; text-decoration:none;
-}
-.idx-list a:hover { border-color:var(--accent, #4a9eff); }
 </style>
 </head>
 <body>
 
-<nav>
-  <div class="logo">wirefold<span>Level-4 Code Audit</span></div>
-</nav>
-
 <main>
-<h1>Level-4 Audit</h1>
-<ul class="idx-list">
-  <li><a href="index-overview.html">Overview</a></li>
-  <li><a href="index-leverage-model.html">Leverage Model</a></li>
-  <li><a href="index-f1-stale-docs.html">F1 · Stale Docs</a></li>
-  <li><a href="index-f2-silent-dup.html">F2 · Silent Dup</a></li>
-  <li><a href="index-f3-sendrule.html">F3 · SendRule</a></li>
-  <li><a href="index-whats-healthy.html">What's Healthy</a></li>
-  <li><a href="index-recommendations.html">Recommendations</a></li>
-</ul>
+<nav class="crumbnav"><a href="index.html">index</a> — <a href="index-overview.html">Overview</a> · <span class="crumb-here">Leverage Model</span> · <a href="index-f1-stale-docs.html">F1 · Stale Docs</a> · <a href="index-f2-silent-dup.html">F2 · Silent Dup</a> · <a href="index-f3-sendrule.html">F3 · SendRule</a> · <a href="index-whats-healthy.html">What's Healthy</a> · <a href="index-recommendations.html">Recommendations</a></nav>
+<section id="leverage" class="active">
+
+  <h1>Leverage Model</h1>
+  <p>The <strong>level-4 lens</strong> asks: <em>is the model correct?</em> Not "does it compile?" (level 1) or "are modules well-bounded?" (level 3) — but "does the mental model encoded in the codebase match how the system actually works?"</p>
+  <p>For an AI-assisted project, a wrong model in context docs is worse than a wrong comment in code, because it is injected into every session's prompt window before any code is read.</p>
+
+  <h2>Seniority Ladder of Refactoring</h2>
+  <svg width="640" height="370" viewBox="0 0 640 370" xmlns="http://www.w3.org/2000/svg">
+    <rect width="640" height="370" fill="#18181c" rx="8"/>
+
+    <rect x="40" y="290" width="560" height="42" fill="#1a1a24" rx="4" stroke="#2a2a30" stroke-width="1"/>
+    <text x="60" y="313" fill="#808090" font-size="12" font-weight="bold">1 · Junior</text>
+    <text x="200" y="313" fill="#606070" font-size="12">Lines, naming, dead code</text>
+
+    <rect x="60" y="238" width="520" height="42" fill="#1a1a24" rx="4" stroke="#2a2a30" stroke-width="1"/>
+    <text x="80" y="261" fill="#808090" font-size="12" font-weight="bold">2 · Mid</text>
+    <text x="200" y="261" fill="#606070" font-size="12">Modules, extract functions, DRY</text>
+
+    <rect x="80" y="186" width="480" height="42" fill="#1a1a24" rx="4" stroke="#2a2a30" stroke-width="1"/>
+    <text x="100" y="209" fill="#808090" font-size="12" font-weight="bold">3 · Senior</text>
+    <text x="200" y="209" fill="#606070" font-size="12">Boundaries, APIs, error handling</text>
+
+    <rect x="100" y="134" width="440" height="42" fill="#0a1820" rx="4" stroke="#7c9ef8" stroke-width="2"/>
+    <text x="120" y="157" fill="#7c9ef8" font-size="13" font-weight="bold">4 · Staff ← YOU ARE HERE</text>
+    <text x="310" y="157" fill="#9ab8ff" font-size="12">Model correctness, context docs, drift</text>
+
+    <rect x="120" y="82" width="400" height="42" fill="#1a1a24" rx="4" stroke="#2a2a30" stroke-width="1"/>
+    <text x="140" y="105" fill="#808090" font-size="12" font-weight="bold">5 · Principal</text>
+    <text x="260" y="105" fill="#606070" font-size="12">Which models deserve questioning?</text>
+
+    <rect x="140" y="30" width="360" height="42" fill="#1a1a24" rx="4" stroke="#2a2a30" stroke-width="1"/>
+    <text x="160" y="53" fill="#808090" font-size="12" font-weight="bold">6 · Distinguished</text>
+    <text x="300" y="53" fill="#606070" font-size="12">Which problems deserve a system?</text>
+
+    <line x1="24" y1="320" x2="24" y2="50" stroke="#2a2a30" stroke-width="1.5"/>
+    <polygon points="24,40 20,56 28,56" fill="#2a2a30"/>
+    <text x="14" y="200" fill="#808090" font-size="10" transform="rotate(-90,14,200)">abstraction →</text>
+  </svg>
+
+  <h2>Why AI Re-Derivation Is the Cost Axis</h2>
+  <p>Each session where an AI must re-derive a fact that was already known — because docs are wrong, constants aren't named, or invariants are runtime-only — costs real tokens and real money. Level-4 refactoring for AI-assisted projects means: <strong>encode the model correctly so the AI can read it once and stay correct</strong>, rather than re-grepping every session to recover ground truth.</p>
+
+  <footer>Level-4 audit · wirefold · 2026-06-01 · static, offline-openable</footer>
+
+</section>
 </main>
 
 </body>

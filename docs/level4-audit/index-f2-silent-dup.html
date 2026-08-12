@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Level-4 Audit · wirefold — F2 · Silent Dup</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0e0e10;
+    --surface: #18181c;
+    --border: #2a2a30;
+    --text: #e0e0e8;
+    --muted: #808090;
+    --accent: #7c9ef8;
+    --high: #e05252;
+    --high-bg: #2a1010;
+    --med: #d4a017;
+    --med-bg: #261e04;
+    --low: #888;
+    --low-bg: #1a1a1e;
+    --good: #3db87a;
+    --good-bg: #0a2018;
+    --mono: 'JetBrains Mono', 'Fira Mono', 'Cascadia Code', monospace;
+    --sans: system-ui, -apple-system, sans-serif;
+  }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.6;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+  }
+  /* Horizontal tab bar */
+  nav {
+    flex-shrink: 0;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: 0 12px;
+  }
+  nav .logo {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--accent);
+    padding: 10px 16px 10px 4px;
+    border-right: 1px solid var(--border);
+    margin-right: 8px;
+    white-space: nowrap;
+  }
+  nav .logo span { color: var(--muted); display: inline; font-size: 10px; margin-left: 6px; }
+  nav button {
+    background: none;
+    border: none;
+    color: #c8c8d0;
+    font-family: var(--sans);
+    font-size: 12px;
+    text-align: center;
+    padding: 8px 12px;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: color 0.15s, border-color 0.15s, background 0.15s;
+    white-space: nowrap;
+    overflow: visible;
+    text-overflow: clip;
+    min-width: 0;
+    flex-shrink: 0;
+  }
+  nav button:hover { color: #fff; background: rgba(124,158,248,0.10); }
+  nav button.active { color: #fff; border-bottom-color: var(--accent); background: rgba(124,158,248,0.14); }
+  /* Main */
+  main {
+    flex: 1;
+    overflow-y: auto;
+    padding: 32px 40px;
+    max-width: 860px;
+  }
+  section { display: none; }
+  section.active { display: block; }
+  h1 { font-family: var(--mono); font-size: 22px; color: var(--text); margin-bottom: 6px; }
+  h2 { font-family: var(--mono); font-size: 16px; color: var(--accent); margin: 24px 0 10px; }
+  h3 { font-family: var(--mono); font-size: 13px; color: var(--muted); margin: 16px 0 6px; letter-spacing: .04em; text-transform: uppercase; }
+  p { margin-bottom: 10px; color: var(--text); }
+  code {
+    font-family: var(--mono);
+    font-size: 12px;
+    background: var(--border);
+    padding: 1px 5px;
+    border-radius: 3px;
+    color: #b0c8ff;
+  }
+  pre {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: #b0c8ff;
+    overflow-x: auto;
+    margin-bottom: 14px;
+  }
+  .badge {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 4px;
+    letter-spacing: .06em;
+    margin-bottom: 12px;
+  }
+  .badge.HIGH { background: var(--high-bg); color: var(--high); border: 1px solid var(--high); }
+  .badge.MED  { background: var(--med-bg);  color: var(--med);  border: 1px solid var(--med); }
+  .badge.LOW  { background: var(--low-bg);  color: var(--low);  border: 1px solid var(--low); }
+  .badge.GOOD { background: var(--good-bg); color: var(--good); border: 1px solid var(--good); }
+  .summary {
+    font-size: 15px;
+    color: var(--text);
+    margin-bottom: 18px;
+    padding-left: 10px;
+    border-left: 3px solid var(--accent);
+  }
+  .evidence {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px;
+    margin-bottom: 18px;
+  }
+  .evidence h3 { margin-top: 0; }
+  .leverage {
+    background: rgba(124,158,248,0.07);
+    border: 1px solid rgba(124,158,248,0.2);
+    border-radius: 6px;
+    padding: 12px 14px;
+    margin-top: 16px;
+    font-size: 13px;
+  }
+  .leverage strong { color: var(--accent); }
+  .proposed {
+    background: #081a0f;
+    border: 1px solid #1e4d2e;
+    border-left: 3px solid var(--good);
+    border-radius: 6px;
+    padding: 14px;
+    margin-bottom: 18px;
+  }
+  .proposed h3 { margin-top: 0; color: var(--good); }
+  .proposed ul { padding-left: 20px; margin: 6px 0; }
+  .proposed li { margin-bottom: 6px; color: var(--text); }
+  .proposed li ul { margin-top: 4px; }
+  svg text { font-family: var(--sans); }
+  table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+  th { background: var(--surface); font-family: var(--mono); font-size: 11px; color: var(--muted); text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); letter-spacing: .05em; text-transform: uppercase; }
+  td { padding: 9px 10px; border-bottom: 1px solid var(--border); font-size: 13px; vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  footer {
+    margin-top: 48px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--muted);
+    font-family: var(--mono);
+  }
+
+.crumbnav { font-family: var(--mono, monospace); font-size:12px; color:var(--muted, #888); margin:14px 0 20px; }
+.crumbnav a { color: var(--accent, #4a9eff); text-decoration:none; }
+.crumbnav a:hover { text-decoration:underline; }
+.crumbnav .crumb-here { color: var(--text, #eee); font-weight:600; }
+</style>
+</head>
+<body>
+
+<main>
+<nav class="crumbnav"><a href="index.html">index</a> — <a href="index-overview.html">Overview</a> · <a href="index-leverage-model.html">Leverage Model</a> · <a href="index-f1-stale-docs.html">F1 · Stale Docs</a> · <span class="crumb-here">F2 · Silent Dup</span> · <a href="index-f3-sendrule.html">F3 · SendRule</a> · <a href="index-whats-healthy.html">What's Healthy</a> · <a href="index-recommendations.html">Recommendations</a></nav>
+<section id="f2" class="active">
+
+  <h1>Finding 2 — Silent-Failure Duplication</h1>
+  <span class="badge MED">MED</span>
+  <p class="summary">Three verify-grep hotspots that fail silently when the codebase drifts — new node kinds produce wrong output, layout regressions are invisible, and trace exhaustiveness is unchecked.</p>
+
+  <div class="evidence">
+    <h3>Evidence</h3>
+    <p><strong>(a) node-override-text.ts — hand-repeated kind names</strong></p>
+    <p>File hand-repeats node-kind strings (<code>"Input"</code>, <code>"ChainInhibitor"</code>, …) and field keys (<code>raw["init"]</code>, <code>state.held</code>) in a <code>switch</code> statement. No codegen, not referenced in <code>check-generated.sh</code>. Adding or renaming a kind returns empty string with no error.</p>
+
+    <p style="margin-top:12px;"><strong>(b) Default node dims — duplicated across 7 files</strong></p>
+    <p>The values <code>110</code> (width) and <code>60</code> (height) appear across at least 7 TypeScript files with no named constant. A layout change requires grep-and-replace with no compile-time guard.</p>
+
+    <p style="margin-top:12px;"><strong>(c) Trace-event kinds — re-typed as string literals</strong></p>
+    <p>Trace kinds (<code>recv</code>, <code>fire</code>, <code>send</code>, <code>slot</code>, <code>done</code>) are generated into <code>trace-kinds.ts</code> (protected by check-generated.sh) but re-typed as raw string literals in <code>pump.ts</code> and <code>messages.ts</code> with no exhaustiveness check. A new kind added to the generator is silently missed.</p>
+  </div>
+
+  <div class="proposed">
+    <h3>Proposed solution</h3>
+    <p>Three independent fixes:</p>
+    <ul>
+      <li><strong>node-override-text.ts:</strong> drive the kind names and field keys from the generated <code>NODE_DEFS</code> instead of a hand-written switch, OR add the file to <code>check-generated.sh</code> coverage with an exhaustiveness assertion keyed on <code>NODE_DEFS</code>, so a missing/renamed kind becomes a compile/check error instead of an empty string.</li>
+      <li><strong>Default dims 110/60:</strong> extract a single exported <code>NODE_DIM_FALLBACK = { width: 110, height: 60 }</code> constant and import it in all 7 sites; delete the inline literals.</li>
+      <li><strong>Trace kinds:</strong> add a TS exhaustiveness check in <code>pump.ts</code> — a <code>switch</code> over the generated <code>TRACE_EVENT_KINDS</code> union with a <code>default: assertNever(kind)</code> — so adding a Go trace kind that isn't handled fails <code>tsc</code>.</li>
+      <li>Effort: small–medium.</li>
+    </ul>
+  </div>
+
+  <h2>Source-of-Truth Diagram</h2>
+  <svg width="640" height="200" viewBox="0 0 640 200" xmlns="http://www.w3.org/2000/svg">
+    <rect width="640" height="200" fill="#18181c" rx="8"/>
+
+    <rect x="20" y="70" width="140" height="60" rx="5" fill="#0a2018" stroke="#3db87a" stroke-width="1.5"/>
+    <text x="90" y="97" fill="#3db87a" font-size="12" text-anchor="middle" font-weight="bold">Source of Truth</text>
+    <text x="90" y="113" fill="#3db87a" font-size="11" text-anchor="middle">(codegen / schema)</text>
+
+    <line x1="162" y1="80" x2="240" y2="60" stroke="#3db87a" stroke-width="1.5" marker-end="url(#arrg)"/>
+    <rect x="242" y="38" width="160" height="44" rx="5" fill="#0a2018" stroke="#3db87a" stroke-width="1.5"/>
+    <text x="322" y="58" fill="#3db87a" font-size="12" text-anchor="middle">Generated ✓</text>
+    <text x="322" y="74" fill="#3db87a" font-size="11" text-anchor="middle">trace-kinds.ts (protected)</text>
+
+    <line x1="162" y1="120" x2="240" y2="140" stroke="#e05252" stroke-width="1.5" marker-end="url(#arrr)"/>
+    <rect x="242" y="118" width="160" height="44" rx="5" fill="#2a1010" stroke="#e05252" stroke-width="1.5"/>
+    <text x="322" y="138" fill="#e05252" font-size="12" text-anchor="middle">Hand-copied ✗</text>
+    <text x="322" y="154" fill="#e05252" font-size="11" text-anchor="middle">node-override-text.ts</text>
+
+    <line x1="404" y1="140" x2="480" y2="140" stroke="#e05252" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arrr)"/>
+    <rect x="482" y="118" width="140" height="44" rx="5" fill="#1a1010" stroke="#804040" stroke-width="1"/>
+    <text x="552" y="138" fill="#e05252" font-size="12" text-anchor="middle">Drift → silent</text>
+    <text x="552" y="154" fill="#e05252" font-size="11" text-anchor="middle">empty string, no error</text>
+
+    <defs>
+      <marker id="arrg" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+        <path d="M0,0 L0,6 L8,3 z" fill="#3db87a"/>
+      </marker>
+      <marker id="arrr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+        <path d="M0,0 L0,6 L8,3 z" fill="#e05252"/>
+      </marker>
+    </defs>
+  </svg>
+
+  <div class="leverage">
+    <strong>Leverage: MED.</strong> Hits when adding/renaming node kinds or changing layout. Each hit costs 1k–3k tokens of grep-to-diagnose. Drift likelihood is moderate — happens on feature work, not every session.
+  </div>
+
+  <footer>Level-4 audit · wirefold · 2026-06-01 · static, offline-openable</footer>
+
+</section>
+</main>
+
+</body>
+</html>
+

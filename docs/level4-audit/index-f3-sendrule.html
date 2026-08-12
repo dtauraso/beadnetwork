@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<title>Level-4 Audit · wirefold</title>
+<title>Level-4 Audit · wirefold — F3 · SendRule</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
@@ -174,33 +174,82 @@
 .crumbnav a { color: var(--accent, #4a9eff); text-decoration:none; }
 .crumbnav a:hover { text-decoration:underline; }
 .crumbnav .crumb-here { color: var(--text, #eee); font-weight:600; }
-
-.idx-list { list-style:none; margin:22px 0 0; padding:0; display:grid; gap:10px; max-width:520px; }
-.idx-list a {
-  display:block; font-family:var(--mono, monospace); font-size:14px; color:var(--text, #eee);
-  background:var(--surface, #111); border:1px solid var(--border, #333); border-radius:6px;
-  padding:14px 16px; text-decoration:none;
-}
-.idx-list a:hover { border-color:var(--accent, #4a9eff); }
 </style>
 </head>
 <body>
 
-<nav>
-  <div class="logo">wirefold<span>Level-4 Code Audit</span></div>
-</nav>
-
 <main>
-<h1>Level-4 Audit</h1>
-<ul class="idx-list">
-  <li><a href="index-overview.html">Overview</a></li>
-  <li><a href="index-leverage-model.html">Leverage Model</a></li>
-  <li><a href="index-f1-stale-docs.html">F1 · Stale Docs</a></li>
-  <li><a href="index-f2-silent-dup.html">F2 · Silent Dup</a></li>
-  <li><a href="index-f3-sendrule.html">F3 · SendRule</a></li>
-  <li><a href="index-whats-healthy.html">What's Healthy</a></li>
-  <li><a href="index-recommendations.html">Recommendations</a></li>
-</ul>
+<nav class="crumbnav"><a href="index.html">index</a> — <a href="index-overview.html">Overview</a> · <a href="index-leverage-model.html">Leverage Model</a> · <a href="index-f1-stale-docs.html">F1 · Stale Docs</a> · <a href="index-f2-silent-dup.html">F2 · Silent Dup</a> · <span class="crumb-here">F3 · SendRule</span> · <a href="index-whats-healthy.html">What's Healthy</a> · <a href="index-recommendations.html">Recommendations</a></nav>
+<section id="f3" class="active">
+
+  <h1>Finding 3 — SendRule Silent Degradation</h1>
+  <span class="badge MED">MED</span>
+  <p class="summary">Invalid SendRule values in topology.json (e.g., a lowercase typo) are not rejected at parse time — they silently flip send semantics to <code>consumeGated</code> with zero signal.</p>
+
+  <div class="evidence">
+    <h3>Evidence</h3>
+    <p><code>loader.go:288</code> — raw string cast into SendRule with no validation.</p>
+    <p><code>ports.go:171</code> — logic is <code>Rule != RuleFireAndForget</code>: anything unrecognized evaluates as <code>consumeGated</code>.</p>
+    <p>Example: <code>"fireandforget"</code> (missing camel case) in <code>topology.json</code> → silently treated as <code>consumeGated</code>. The node runs but blocks on slot fill instead of firing independently. No log, no error, no panic.</p>
+    <p>This is the only place in the Go model where a convention (the exact string <code>"fireAndForget"</code>) is not enforced by structure.</p>
+  </div>
+
+  <div class="proposed">
+    <h3>Proposed solution</h3>
+    <ul>
+      <li>Add parse-time validation in <code>validate.go</code>: reject any <code>node.data.sendRules</code> value not in <code>{ "consumeGated", "fireAndForget" }</code> with a clear error, instead of the silent cast at <code>loader.go:288</code>.</li>
+      <li>Make it structural: give <code>SendRule</code> a <code>ParseSendRule(string) (SendRule, error)</code> constructor that is the ONLY way to build one, so <code>ports.go</code> can never fall through to the <code>consumeGated</code> default on an unrecognized string.</li>
+      <li>Effort: small. This converts the one model-as-convention gap into model-as-structure.</li>
+    </ul>
+  </div>
+
+  <h2>Failure Path</h2>
+  <svg width="680" height="120" viewBox="0 0 680 120" xmlns="http://www.w3.org/2000/svg">
+    <rect width="680" height="120" fill="#18181c" rx="8"/>
+
+    <rect x="16" y="30" width="130" height="50" rx="5" fill="#261004" stroke="#d4a017" stroke-width="1.5"/>
+    <text x="81" y="53" fill="#d4a017" font-size="12" text-anchor="middle">"fireandforget"</text>
+    <text x="81" y="69" fill="#d4a017" font-size="11" text-anchor="middle">typo in json</text>
+
+    <line x1="148" y1="55" x2="196" y2="55" stroke="#808090" stroke-width="1.5" marker-end="url(#arra)"/>
+
+    <rect x="198" y="30" width="160" height="50" rx="5" fill="#1a1a24" stroke="#2a2a30" stroke-width="1"/>
+    <text x="278" y="53" fill="#d0d0e0" font-size="12" text-anchor="middle">loader.go:288</text>
+    <text x="278" y="69" fill="#808090" font-size="11" text-anchor="middle">cast, no check</text>
+
+    <line x1="360" y1="55" x2="408" y2="55" stroke="#808090" stroke-width="1.5" marker-end="url(#arra)"/>
+
+    <rect x="410" y="30" width="180" height="50" rx="5" fill="#1a1a24" stroke="#2a2a30" stroke-width="1"/>
+    <text x="500" y="53" fill="#d0d0e0" font-size="12" text-anchor="middle">ports.go:171</text>
+    <text x="500" y="69" fill="#808090" font-size="11" text-anchor="middle">!= fireAndForget</text>
+
+    <line x1="592" y1="55" x2="634" y2="55" stroke="#e05252" stroke-width="1.5" marker-end="url(#arre)"/>
+
+    <rect x="636" y="30" width="28" height="50" rx="5" fill="#2a1010" stroke="#e05252" stroke-width="1.5"/>
+    <text x="650" y="60" fill="#e05252" font-size="20" text-anchor="middle">✗</text>
+
+    <text x="416" y="100" fill="#808090" font-size="10">silently gated — wrong semantics, no signal</text>
+
+    <defs>
+      <marker id="arra" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+        <path d="M0,0 L0,6 L8,3 z" fill="#808090"/>
+      </marker>
+      <marker id="arre" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+        <path d="M0,0 L0,6 L8,3 z" fill="#e05252"/>
+      </marker>
+    </defs>
+  </svg>
+
+  <h2>Fix</h2>
+  <p>In <code>validate.go</code> (or as a dedicated parse step), validate SendRule strings against the allowlist <code>{consumeGated, fireAndForget}</code> and return an error for unrecognized values. This moves a runtime convention to a parse-time invariant — the correct shape for the Go model.</p>
+
+  <div class="leverage">
+    <strong>Leverage: MED.</strong> Hits only when topology.json has SendRule values. But the failure is completely silent — a debugging session to diagnose wrong firing behavior can cost 5k–20k tokens. Drift likelihood: moderate (typos in JSON are common).
+  </div>
+
+  <footer>Level-4 audit · wirefold · 2026-06-01 · static, offline-openable</footer>
+
+</section>
 </main>
 
 </body>
