@@ -28,7 +28,7 @@ func (p *PairNodeSelf) Breadcrumb(label, value string) {
 	if !ok {
 		return
 	}
-	p.geom.writeStreamFrame([]rowevent.RowEvent{{
+	p.geom.postSelfEvents([]rowevent.RowEvent{{
 		Kind: T.KindBreadcrumb, Label: id, Debug: 1,
 		NodeRow: p.geom.NodeRow(), PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 		Text: value,
@@ -40,7 +40,10 @@ func (p *PairNodeSelf) EmitGeometryOnce() {
 		return
 	}
 	if p.geom.tr != nil {
-		p.geom.emitGeometry()
+		p.geom.postSelfEvents([]rowevent.RowEvent{{
+			Kind: T.KindNodeGeometry, NodeRow: p.geom.NodeRow(),
+			PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1,
+		}})
 	}
 }
 
@@ -50,24 +53,14 @@ func (p *PairNodeSelf) Step(ctx context.Context, tick int64) {
 	}
 	g := p.geom
 	g.clocks.ApplySpeed(p.speedCh)
-	for {
-		progressed, _ := g.msg.DrainPending(context.Background(), g.handle)
-		if !progressed {
-			break
-		}
-	}
 
-	// A self-driven kind has no separate animation goroutine — its own
-	// loop plays both peers' roles serially. It still round-trips through
-	// the same step-count / pulse channels as the split case, so
-	// chainBeads (called from writeStreamFrame below) sees this cycle's
-	// pulses exactly as it would from a genuine animation peer.
+	// A self-driven kind claims the ANIMATION role only: it drives its own wires on its
+	// own loop's speed-scaled cycle. Draining move messages and writing the node stream
+	// belong to this id's geometry peer, which runs on a raw pulse — doing them here too
+	// would both race that peer and put the drag back on the bead clock.
 	g.anim.drainStepCounts()
 	g.anim.driveOutWires(ctx, tick)
 	g.anim.sendPulses(tick)
-
-	g.msg.FlushPending()
-	g.writeStreamFrame(nil)
 }
 
 func (p *PairNodeSelf) SetTiltIndex(theta, normalTheta, bottomTheta int32) {

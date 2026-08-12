@@ -21,6 +21,14 @@ func (m *NodeGeometry) emitGeometry() {
 	}})
 }
 
+func (m *NodeGeometry) postSelfEvents(events []rowevent.RowEvent) {
+	m.stream.PostSelfEvents(events)
+}
+
+func (m *NodeGeometry) drainSelfEvents() []rowevent.RowEvent {
+	return m.stream.DrainSelfEvents()
+}
+
 func (m *NodeGeometry) writeStreamFrame(events []rowevent.RowEvent) {
 	if !m.stream.Ready() {
 		return
