@@ -1,8 +1,8 @@
 import type React from "react";
 import { createPortal } from "react-dom";
-import { postGoRecord } from "../../../vscode-api";
-import { encodeClockSpeed } from "../../../../schema/input-encode";
-import { usePlaybackSpeed } from "../flags/overlay-flags-speed";
+import { postGoRecord } from "../../../../vscode-api";
+import { encodeClockSpeed } from "../../../../../schema/input-encode";
+import { usePlaybackSpeed } from "../../flags/overlay-flags-speed";
 import { SPEED_SETTINGS, settingKey, DEFAULT_INDEX, closestSettingIndex } from "./speed-settings";
 
 const TRACK_W = 104;

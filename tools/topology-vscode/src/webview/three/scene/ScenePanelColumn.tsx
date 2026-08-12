@@ -2,9 +2,9 @@ import type { RefObject } from "react";
 import * as THREE from "three";
 import { HomeButton } from "../controls/panels/home-button";
 import { OverlaysControl } from "../controls/pills/overlays-control";
-import { NodePalette } from "../controls/panels/NodePalette";
+import { NodePalette } from "../controls/panels/palette/NodePalette";
 import { DistanceHomePanel } from "../controls/panels/DistanceHomePanel";
-import { TiltVectorAnglePanel } from "../controls/panels/TiltVectorAnglePanel";
+import { TiltVectorAnglePanel } from "../controls/panels/tilt/TiltVectorAnglePanel";
 
 export function ScenePanelColumn({ cameraRef, aspect }: { cameraRef: RefObject<THREE.PerspectiveCamera | null>; aspect: number }) {
   return (

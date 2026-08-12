@@ -1,7 +1,7 @@
 import React, { useRef, useState } from "react";
-import { NODE_DEFS } from "../../../../schema/node-defs";
+import { NODE_DEFS } from "../../../../../schema/node-defs";
 import { NODE_PALETTE_KIND_MIME } from "./node-palette-drag";
-import { popoverRowStyle, DISCLOSURE_GLYPH_STYLE, REVEALED_LIST_STYLE } from "../pills/overlay-chrome";
+import { popoverRowStyle, DISCLOSURE_GLYPH_STYLE, REVEALED_LIST_STYLE } from "../../pills/overlay-chrome";
 
 export function PaletteRow({ kind, kindId }: { kind: string; kindId: number }) {
   const [hover, setHover] = useState(false);

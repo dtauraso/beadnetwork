@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import { getViewBlocks, subscribeViewBlocks } from "../../scene/view-blocks";
+import { getViewBlocks, subscribeViewBlocks } from "../../../scene/view-blocks";
 
 export interface SceneTabsState {
   names: string[];

@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { postGoRecord } from "../../../vscode-api";
-import { encodeSceneDelete } from "../../../../schema/input-encode-scene-tilt";
-import { NODE_KIND_NAMES } from "../../../../schema/node-defs";
-import { useSelectedNodeRow } from "../flags/overlay-flags-selection";
-import { useSceneEditable, useSceneKinds } from "../flags/overlay-flags-scene";
-import { useEditRefused } from "../flags/overlay-flags-edit-refused";
+import { postGoRecord } from "../../../../vscode-api";
+import { encodeSceneDelete } from "../../../../../schema/input-encode-scene-tilt";
+import { NODE_KIND_NAMES } from "../../../../../schema/node-defs";
+import { useSelectedNodeRow } from "../../flags/overlay-flags-selection";
+import { useSceneEditable, useSceneKinds } from "../../flags/overlay-flags-scene";
+import { useEditRefused } from "../../flags/overlay-flags-edit-refused";
 import { PaletteRow } from "./PaletteRow";
 import {
   pillContainerStyle,
@@ -14,7 +14,7 @@ import {
   inFlowPopoverStyle,
   CHROME_TEXT,
   CHROME_FONT_STACK,
-} from "../pills/overlay-chrome";
+} from "../../pills/overlay-chrome";
 
 export function NodePalette() {
   const editable = useSceneEditable();

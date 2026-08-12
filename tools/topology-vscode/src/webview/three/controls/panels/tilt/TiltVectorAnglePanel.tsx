@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { postGoRecord } from "../../../vscode-api";
-import { encodeTiltVectorAdjust, encodeSceneLatticePoints } from "../../../../schema/input-encode-scene-tilt";
-import { useTiltVectorRows, type TiltVectorRow } from "../flags/overlay-flags-tilt-vectors";
+import { postGoRecord } from "../../../../vscode-api";
+import { encodeTiltVectorAdjust, encodeSceneLatticePoints } from "../../../../../schema/input-encode-scene-tilt";
+import { useTiltVectorRows, type TiltVectorRow } from "../../flags/overlay-flags-tilt-vectors";
 import { formatAngle, widestAngle } from "./tilt-vector-angle-format";
 import {
   pillContainerStyle,
@@ -12,8 +12,8 @@ import {
   REVEALED_LIST_STYLE,
   PILL_ANCHOR_STYLE,
   inFlowPopoverStyle,
-} from "../pills/overlay-chrome";
-import { StepperRow } from "../pills/pill-rows";
+} from "../../pills/overlay-chrome";
+import { StepperRow } from "../../pills/pill-rows";
 
 const AXES = ["theta"] as const;
 

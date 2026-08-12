@@ -1,7 +1,7 @@
 import React, { useCallback } from "react";
-import { postGoRecord } from "../../../vscode-api";
-import { encodeSceneSelected } from "../../../../schema/input-encode";
-import { postLog } from "../../../log/post";
+import { postGoRecord } from "../../../../vscode-api";
+import { encodeSceneSelected } from "../../../../../schema/input-encode";
+import { postLog } from "../../../../log/post";
 import { useSceneTabs } from "./scene-tabs";
 
 const stripStyle: React.CSSProperties = {

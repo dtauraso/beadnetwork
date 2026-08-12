@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import * as THREE from "three";
-import { dropKindFromEvent, fireCreateAt } from "../controls/panels/node-palette-drag";
-import { SceneTabs } from "../controls/panels/SceneTabs";
+import { dropKindFromEvent, fireCreateAt } from "../controls/panels/palette/node-palette-drag";
+import { SceneTabs } from "../controls/panels/scene-tabs/SceneTabs";
 import { useInteractionControls } from "../interaction/interaction-controls";
 import type { PickFn } from "../interaction/pick-types";
 import { Scene } from "./scene-content";
