@@ -4,7 +4,6 @@ import (
 	"context"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
-	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 
 	Wiring "github.com/dtauraso/wirefold/nodes/Wiring/kindapi"
 	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
@@ -106,21 +105,8 @@ func (n *Node) broadcastPlace(v int, tick int64) bool {
 	return true
 }
 
-// popEnd reads and removes the END element of working, refilling from backup
-// when working empties. working/backup are the double-buffer: each is a fresh
-// copy of init, and end-popping [1,0] yields 0 then 1. Returns the popped value.
-// Caller guarantees len(working) > 0 (refill keeps it non-empty when init != nil).
-func popEnd(working, backup *[]int, init []int) int {
-	v := (*working)[len(*working)-1]
-	*working = (*working)[:len(*working)-1]
-	if len(*working) == 0 {
-		// Refill: the top row (backup) slides down to become the new working
-		// row; a fresh top row appears.
-		*working = *backup
-		*backup = append([]int(nil), init...)
-	}
-	return v
-}
+// popEnd, cadenceTicks: see emit_helpers.go — the pure double-buffer/tick-count
+// arithmetic this node's loop bodies below call.
 
 // updateFeedbackRing runs the feedback-ring emit path. It returns when ctx is
 // cancelled or FeedbackIn closes. Called only when FeedbackIn.Wired() is true.
@@ -300,13 +286,11 @@ func (n *Node) Update(ctx context.Context) {
 // the OutCadence edge, Steps * DwellTicksPerBead (= ticksToCross,
 // docs/bead-model/bead-lattice.md "Timing"), so exactly one bead crosses the edge per
 // cadence — no overlap. Measured in ticks, so it freezes on pause with Tick().
-// Recomputed live so a drag that changes the edge's step count re-paces emission.
+// Recomputed live so a drag that changes the edge's step count re-paces emission. The
+// arithmetic itself is cadenceTicks (emit_helpers.go); this wrapper's only job is the
+// one field read (n.OutCadence.Geom().Steps) that arithmetic can't do itself.
 func inputCadenceTicks(n *Node) int64 {
-	c := int64(float64(n.OutCadence.Geom().Steps) * lattice.DwellTicksPerBead)
-	if c < 1 {
-		return 1
-	}
-	return c
+	return cadenceTicks(n.OutCadence.Geom().Steps)
 }
 
 func init() {
