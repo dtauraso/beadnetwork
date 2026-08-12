@@ -5,13 +5,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TS → Go — Go-Authoritative Clock — Wirefold Design Spec</title>
-<link rel="stylesheet" href="style-base.css">
-<link rel="stylesheet" href="style-layout.css">
-<link rel="stylesheet" href="style-typography.css">
-<link rel="stylesheet" href="style-tables.css">
-<link rel="stylesheet" href="style-panels.css">
-<link rel="stylesheet" href="style-diagrams.css">
-<link rel="stylesheet" href="style-controls.css">
+<link rel="stylesheet" href="../style-base.css">
+<link rel="stylesheet" href="../style-layout.css">
+<link rel="stylesheet" href="../style-typography.css">
+<link rel="stylesheet" href="../style-tables.css">
+<link rel="stylesheet" href="../style-panels.css">
+<link rel="stylesheet" href="../style-diagrams.css">
+<link rel="stylesheet" href="../style-controls.css">
 </head>
 <body>
 <div class="container">
@@ -19,18 +19,18 @@
   <div class="page-subtitle">Go Backend / TS Frontend — TS → Go</div>
 
   <ul class="tabs" role="navigation" aria-label="Go-Authoritative Clock pages">
-      <li><a href="index.html">The split</a></li>
-      <li><a href="goroutines.html">Goroutines</a></li>
-      <li><a href="ts-execution.html">TS</a></li>
-      <li><a href="bridge.html">The Bridge</a></li>
-      <li><a href="clock.html">Clock</a></li>
-      <li><a href="clock-playpause.html">Play/Pause</a></li>
-      <li><a href="ts-to-go.html" class="current">TS → Go</a></li>
-      <li><a href="plan.html">Plan</a></li>
-      <li><a href="verify.html">Verify</a></li>
-      <li><a href="tracking.html">Tracking</a></li>
-      <li><a href="inconsistencies.html">Inconsistencies</a></li>
-      <li><a href="todo.html">What's left</a></li>
+      <li><a href="../index.html">The split</a></li>
+      <li><a href="../goroutines/index.html">Goroutines</a></li>
+      <li><a href="../ts-execution.html">TS</a></li>
+      <li><a href="../bridge.html">The Bridge</a></li>
+      <li><a href="../clock/index.html">Clock</a></li>
+      <li><a href="../clock/playpause.html">Play/Pause</a></li>
+      <li><a href="index.html" class="current">TS → Go</a></li>
+      <li><a href="../plan.html">Plan</a></li>
+      <li><a href="../verify.html">Verify</a></li>
+      <li><a href="../tracking.html">Tracking</a></li>
+      <li><a href="../inconsistencies.html">Inconsistencies</a></li>
+      <li><a href="../todo.html">What's left</a></li>
   </ul>
 
   <div class="panel active" id="panel-tsgo" role="region">
@@ -88,15 +88,15 @@
 
     <p style="margin-top:1.25rem;">Animation and shading data — bead position/timing, pause-adjusted clock,
       materials, glass/tube appearance, environment/lighting, bead appearance — continued on
-      <a href="ts-to-go-animation-shading.html">TS → Go — animation &amp; shading data</a>.</p>
+      <a href="animation-shading.html">TS → Go — animation &amp; shading data</a>.</p>
 
     <div class="note" style="margin-top:1.25rem;"><button type="button" class="chk-btn heading-chk" aria-pressed="false" data-chk="tsgo:note1">☐</button>Dividing line: data vs. GPU. Geometry, animation, shading are data — Go owns them. GPU + input capture require the browser — stay in TS. Geometry-producing input (node drag) is sent to Go as a geometry edit.</div>
 
     <p style="margin-top:1.25rem;"><strong>More:</strong> what stays in TS, and the new Go builds this requires — continued on
-      <a href="ts-to-go-stays-and-builds.html">TS → Go — stays in TS &amp; new Go builds</a>.</p>
+      <a href="stays-and-builds.html">TS → Go — stays in TS &amp; new Go builds</a>.</p>
 
   </div>
 </div>
-<script src="script.js"></script>
+<script src="../script.js"></script>
 </body>
 </html>

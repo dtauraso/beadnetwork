@@ -5,13 +5,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Goroutines — wired — Go-Authoritative Clock — Wirefold Design Spec</title>
-<link rel="stylesheet" href="style-base.css">
-<link rel="stylesheet" href="style-layout.css">
-<link rel="stylesheet" href="style-typography.css">
-<link rel="stylesheet" href="style-tables.css">
-<link rel="stylesheet" href="style-panels.css">
-<link rel="stylesheet" href="style-diagrams.css">
-<link rel="stylesheet" href="style-controls.css">
+<link rel="stylesheet" href="../style-base.css">
+<link rel="stylesheet" href="../style-layout.css">
+<link rel="stylesheet" href="../style-typography.css">
+<link rel="stylesheet" href="../style-tables.css">
+<link rel="stylesheet" href="../style-panels.css">
+<link rel="stylesheet" href="../style-diagrams.css">
+<link rel="stylesheet" href="../style-controls.css">
 </head>
 <body>
 <div class="container">
@@ -19,22 +19,22 @@
   <div class="page-subtitle">Go Backend / TS Frontend — Goroutines — wired</div>
 
   <ul class="tabs" role="navigation" aria-label="Go-Authoritative Clock pages">
-      <li><a href="index.html">The split</a></li>
-      <li><a href="goroutines.html">Goroutines</a></li>
-      <li><a href="ts-execution.html">TS</a></li>
-      <li><a href="bridge.html">The Bridge</a></li>
-      <li><a href="clock.html">Clock</a></li>
-      <li><a href="clock-playpause.html">Play/Pause</a></li>
-      <li><a href="ts-to-go.html">TS → Go</a></li>
-      <li><a href="plan.html">Plan</a></li>
-      <li><a href="verify.html">Verify</a></li>
-      <li><a href="tracking.html">Tracking</a></li>
-      <li><a href="inconsistencies.html">Inconsistencies</a></li>
-      <li><a href="todo.html">What's left</a></li>
+      <li><a href="../index.html">The split</a></li>
+      <li><a href="index.html">Goroutines</a></li>
+      <li><a href="../ts-execution.html">TS</a></li>
+      <li><a href="../bridge.html">The Bridge</a></li>
+      <li><a href="../clock/index.html">Clock</a></li>
+      <li><a href="../clock/playpause.html">Play/Pause</a></li>
+      <li><a href="../ts-to-go/index.html">TS → Go</a></li>
+      <li><a href="../plan.html">Plan</a></li>
+      <li><a href="../verify.html">Verify</a></li>
+      <li><a href="../tracking.html">Tracking</a></li>
+      <li><a href="../inconsistencies.html">Inconsistencies</a></li>
+      <li><a href="../todo.html">What's left</a></li>
   </ul>
 
   <div class="panel active" id="panel-goroutines-wired" role="region">
-    <p><a href="goroutines.html">&larr; back to Goroutines</a></p>
+    <p><a href="index.html">&larr; back to Goroutines</a></p>
 
     <h2><button type="button" class="chk-btn heading-chk" aria-pressed="false" data-chk="goroutinegraph:h2">☐</button>The goroutines, wired.</h2>
     <p>Every connection is a <strong>PacedWire goroutine</strong>: carries beads over a channel, holds no clear/busy state, may carry more than one bead at once. Nodes and wires are all goroutines — channels only.</p>
@@ -97,6 +97,6 @@
 
   </div>
 </div>
-<script src="script.js"></script>
+<script src="../script.js"></script>
 </body>
 </html>
