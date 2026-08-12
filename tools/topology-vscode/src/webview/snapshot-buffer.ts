@@ -95,9 +95,9 @@ function noteGen(gen: number): void {
  *  never needs this. */
 export function resetSceneIdentityForTest(): void {
   latestGen = 0;
-  edgeStreamTables.clear();
-  nodeStreamTables.clear();
-  interiorStreamTables.clear();
+  edgeStream.clear();
+  nodeStream.clear();
+  interiorStream.clear();
 }
 
 /** Called by three/view-blocks.ts (and tests) to read the most-recent VIEW frame. Null
@@ -114,21 +114,52 @@ export function subscribeViewFrame(fn: SnapshotListener): () => void {
   };
 }
 
-// --- per-edge dedicated streams (memory/feedback_no_single_writer_bridge.md) ---
+// --- per-row dedicated stream tables (memory/feedback_no_single_writer_bridge.md) ---
 //
+// The edge/node/interior stream cells below share ONE shape: a keyed map (row → latest
+// frame), routed through genTable's per-generation table, with a listener set and
+// (node/interior only) a monotonic version counter for node-stream-blocks.ts's aggregator
+// to memoize against. makeRowStreamTable builds that shape once; each cell below is still
+// its own module-level Map/Set instance (still not a store — same one-pointer-per-key role
+// as the singleton VIEW cell above, just keyed), only the set/get/subscribe/version wiring
+// is shared.
+function makeRowStreamTable(withVersion: boolean) {
+  const tables: Map<number, Map<number, ArrayBuffer>> = new Map();
+  const listeners = new Set<SnapshotListener>();
+  let version = 0;
+  return {
+    set(row: number, buf: ArrayBuffer, gen: number): void {
+      noteGen(gen);
+      genTable(tables, gen).set(row, buf);
+      if (withVersion) version++;
+      for (const fn of listeners) fn();
+    },
+    get(): ReadonlyMap<number, ArrayBuffer> {
+      return genTable(tables, latestGen);
+    },
+    subscribe(fn: SnapshotListener): () => void {
+      listeners.add(fn);
+      return () => {
+        listeners.delete(fn);
+      };
+    },
+    getVersion(): number {
+      return version;
+    },
+    clear(): void {
+      tables.clear();
+    },
+  };
+}
+
 // Unlike the singleton VIEW stream, there are MANY per-edge streams (one per edge row —
-// see Buffer/stream_fds.go's StreamKindEdge / runCommand.ts's edge-fd range). Keyed by
-// edge row (int) rather than one bare cell. Still a plain module-level Map, not a store —
-// same one-pointer-per-key role as the cells above, just keyed.
-const edgeStreamTables: Map<number, Map<number, ArrayBuffer>> = new Map();
-const edgeStreamListeners = new Set<SnapshotListener>();
+// see Buffer/stream_fds.go's StreamKindEdge / runCommand.ts's edge-fd range).
+const edgeStream = makeRowStreamTable(false);
 
 /** Called by main.tsx whenever a new per-edge dedicated-stream frame arrives (tag
  *  BUF_BLOCK_TAG_EDGE_STREAM, carrying `row`). */
 export function setLatestEdgeStreamFrame(row: number, buf: ArrayBuffer, gen = 0): void {
-  noteGen(gen);
-  genTable(edgeStreamTables, gen).set(row, buf);
-  for (const fn of edgeStreamListeners) fn();
+  edgeStream.set(row, buf, gen);
 }
 
 /** Called by EdgeTube.tsx/BeadInstances.tsx to read every edge row's most-recent dedicated
@@ -136,88 +167,67 @@ export function setLatestEdgeStreamFrame(row: number, buf: ArrayBuffer, gen = 0)
  *  never populate this map) — callers fall back to the single EDGE/BEAD cells above in
  *  that case. */
 export function getLatestEdgeStreamFrames(): ReadonlyMap<number, ArrayBuffer> {
-  return genTable(edgeStreamTables, latestGen);
+  return edgeStream.get();
 }
 
 /** Subscribe to per-edge dedicated-stream arrivals (any row); returns an unsubscribe fn
  *  (useSyncExternalStore shape). */
 export function subscribeEdgeStreamFrame(fn: SnapshotListener): () => void {
-  edgeStreamListeners.add(fn);
-  return () => {
-    edgeStreamListeners.delete(fn);
-  };
+  return edgeStream.subscribe(fn);
 }
 
-// --- per-node dedicated streams (memory/feedback_no_single_writer_bridge.md) ---
-//
-// TWO keyed maps, mirroring edgeStreamFrames' role but split by stream KIND: one node's
-// own nodeMover (geometry+ports+label) and its OWN Update goroutine (interior beads) write
-// to two DIFFERENT fds (see Buffer/stream_fds.go's StreamKindNode/StreamKindInterior), so
-// they get two separate cells here, both keyed by node row. version counters let
-// node-stream-blocks.ts's aggregator memoize its (necessarily-copying) rebuild instead of
-// re-concatenating every consumer's per-frame read.
-const nodeStreamTables: Map<number, Map<number, ArrayBuffer>> = new Map();
-const interiorStreamTables: Map<number, Map<number, ArrayBuffer>> = new Map();
-const nodeStreamListeners = new Set<SnapshotListener>();
-const interiorStreamListeners = new Set<SnapshotListener>();
-let nodeStreamVersion = 0;
-let interiorStreamVersion = 0;
+// TWO tables, mirroring edgeStream's role but split by stream KIND: one node's own
+// nodeMover (geometry+ports+label) and its OWN Update goroutine (interior beads) write to
+// two DIFFERENT fds (see Buffer/stream_fds.go's StreamKindNode/StreamKindInterior), so they
+// get two separate tables here, both keyed by node row and both with a version counter —
+// node-stream-blocks.ts's aggregator memoizes its (necessarily-copying) rebuild against it
+// instead of re-concatenating every consumer's per-frame read.
+const nodeStream = makeRowStreamTable(true);
+const interiorStream = makeRowStreamTable(true);
 
 /** Called by main.tsx whenever a new per-node dedicated NODE-stream frame arrives (tag
  *  BUF_BLOCK_TAG_NODE_STREAM, carrying `row`). */
 export function setLatestNodeStreamFrame(row: number, buf: ArrayBuffer, gen = 0): void {
-  noteGen(gen);
-  genTable(nodeStreamTables, gen).set(row, buf);
-  nodeStreamVersion++;
-  for (const fn of nodeStreamListeners) fn();
+  nodeStream.set(row, buf, gen);
 }
 
 /** Called by node-stream-blocks.ts (and tests) to read every node row's most-recent
  *  dedicated NODE-stream frame. Empty when the dedicated node-fd path is not active
  *  (fallback launches never populate this map). */
 export function getLatestNodeStreamFrames(): ReadonlyMap<number, ArrayBuffer> {
-  return genTable(nodeStreamTables, latestGen);
+  return nodeStream.get();
 }
 
 /** Monotonic counter bumped on every setLatestNodeStreamFrame call — a cheap memo key for
  *  the aggregator (rebuilding the aggregate DecodedNodeFrame is a full copy; this avoids
  *  redoing it when nothing changed since the last read). */
 export function getNodeStreamVersion(): number {
-  return nodeStreamVersion;
+  return nodeStream.getVersion();
 }
 
 /** Subscribe to per-node NODE-stream arrivals (any row); returns an unsubscribe fn. */
 export function subscribeNodeStreamFrame(fn: SnapshotListener): () => void {
-  nodeStreamListeners.add(fn);
-  return () => {
-    nodeStreamListeners.delete(fn);
-  };
+  return nodeStream.subscribe(fn);
 }
 
 /** Called by main.tsx whenever a new per-node dedicated INTERIOR-stream frame arrives (tag
  *  BUF_BLOCK_TAG_INTERIOR_STREAM, carrying `row`). */
 export function setLatestInteriorStreamFrame(row: number, buf: ArrayBuffer, gen = 0): void {
-  noteGen(gen);
-  genTable(interiorStreamTables, gen).set(row, buf);
-  interiorStreamVersion++;
-  for (const fn of interiorStreamListeners) fn();
+  interiorStream.set(row, buf, gen);
 }
 
 /** Called by node-stream-blocks.ts (and tests) to read every node row's most-recent
  *  dedicated INTERIOR-stream frame. */
 export function getLatestInteriorStreamFrames(): ReadonlyMap<number, ArrayBuffer> {
-  return genTable(interiorStreamTables, latestGen);
+  return interiorStream.get();
 }
 
 /** Monotonic counter mirroring getNodeStreamVersion for the interior stream. */
 export function getInteriorStreamVersion(): number {
-  return interiorStreamVersion;
+  return interiorStream.getVersion();
 }
 
 /** Subscribe to per-node INTERIOR-stream arrivals (any row); returns an unsubscribe fn. */
 export function subscribeInteriorStreamFrame(fn: SnapshotListener): () => void {
-  interiorStreamListeners.add(fn);
-  return () => {
-    interiorStreamListeners.delete(fn);
-  };
+  return interiorStream.subscribe(fn);
 }
