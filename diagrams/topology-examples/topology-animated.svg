@@ -8,7 +8,6 @@
   <rect width="400" height="300" fill="#1a1a2e" rx="6"/>
   <text x="200" y="22" text-anchor="middle" font-size="11" fill="#888">Shift Register Cascade — [1, 1, 0]</text>
 
-  <!-- Static structure -->
   <circle cx="40" cy="150" r="8" fill="none" stroke="#555" stroke-width="1"/>
   <text x="40" y="153" text-anchor="middle" font-size="7" fill="#555">in0</text>
 
@@ -30,19 +29,15 @@
   <circle cx="340" cy="150" r="10" fill="none" stroke="#e65100" stroke-width="1.5"/>
   <text x="340" y="153" text-anchor="middle" font-size="8" fill="#e65100">i2</text>
 
-  <!-- Gate AND nodes between inhibitors -->
   <rect x="148" y="146" width="8" height="8" fill="none" stroke="#283593" stroke-width="1" rx="1"/>
   <rect x="260" y="146" width="8" height="8" fill="none" stroke="#283593" stroke-width="1" rx="1"/>
 
-  <!-- Recognition AND gate -->
   <circle cx="280" cy="190" r="6" fill="none" stroke="#283593" stroke-width="1"/>
   <text x="280" y="193" text-anchor="middle" font-size="6" fill="#283593">a0</text>
 
-  <!-- i1 -> a0, i2 -> a0 -->
   <line x1="220" y1="160" x2="274" y2="185" stroke="#283593" stroke-width="0.5"/>
   <line x1="340" y1="160" x2="286" y2="185" stroke="#283593" stroke-width="0.5"/>
 
-  <!-- Static lines -->
   <line x1="48" y1="150" x2="88" y2="150" stroke="#333" stroke-width="0.8" marker-end="url(#arr)"/>
   <line x1="110" y1="150" x2="146" y2="150" stroke="#333" stroke-width="0.8" marker-end="url(#arr)"/>
   <line x1="156" y1="150" x2="208" y2="150" stroke="#333" stroke-width="0.8" marker-end="url(#arr)"/>
@@ -54,9 +49,6 @@
   <line x1="335" y1="140" x2="285" y2="90" stroke="#2266aa" stroke-width="0.5"/>
   <line x1="163" y1="72" x2="260" y2="65" stroke="#c62828" stroke-width="0.5"/>
 
-  <!-- ========= ANIMATION (12s loop) ========= -->
-
-  <!-- Step labels -->
   <text x="200" y="280" text-anchor="middle" font-size="9">
     <animate attributeName="fill" values="#888;#888;#1a1a2e;#1a1a2e;#1a1a2e;#1a1a2e;#1a1a2e;#1a1a2e" dur="12s" repeatCount="indefinite"/>
     Step 1: input 1 → i0 holds 1
@@ -74,7 +66,6 @@
     Settled: i0=0  i1=1  i2=1
   </text>
 
-  <!-- Held value dots -->
   <circle cx="100" cy="172" r="4">
     <animate attributeName="fill" values="#1a1a2e;#ffab40;#ffab40;#ffab40;#ffab40;#66bb6a;#66bb6a;#1a1a2e" dur="12s" repeatCount="indefinite"/>
   </circle>
@@ -85,7 +76,6 @@
     <animate attributeName="fill" values="#1a1a2e;#1a1a2e;#1a1a2e;#1a1a2e;#1a1a2e;#ffab40;#ffab40;#1a1a2e" dur="12s" repeatCount="indefinite"/>
   </circle>
 
-  <!-- Held value numbers -->
   <text x="100" y="190" text-anchor="middle" font-size="8">
     <animate attributeName="fill" values="#1a1a2e;#ffab40;#ffab40;#ffab40;#ffab40;#1a1a2e;#1a1a2e;#1a1a2e" dur="12s" repeatCount="indefinite"/>
     1
@@ -103,70 +93,58 @@
     1
   </text>
 
-  <!-- p0 state -->
   <text x="270" y="45" text-anchor="middle" font-size="7">
     <animate attributeName="fill" values="#1a1a2e;#1a1a2e;#1a1a2e;#1a1a2e;#2e7d32;#2e7d32;#2e7d32;#1a1a2e" dur="12s" repeatCount="indefinite"/>
     Growing
   </text>
 
-  <!-- p0 glow -->
   <circle cx="270" cy="60" r="14" fill="none" stroke="#2e7d32">
     <animate attributeName="stroke-width" values="0;0;0;0;2;1;0;0" dur="12s" repeatCount="indefinite"/>
     <animate attributeName="opacity" values="0;0;0;0;0.8;0.4;0;0" dur="12s" repeatCount="indefinite"/>
   </circle>
 
-  <!-- === TRAVELING PULSES (all 12s cycle, keyTimes position within cycle) === -->
-
-  <!-- Pulse 1: in0 -> i0 (value 1) at ~4-12% of cycle -->
   <circle r="3" fill="#ffab40">
     <animate attributeName="cx" values="40;40;100;100;100;100;100;100" dur="12s" repeatCount="indefinite"/>
     <animate attributeName="cy" values="150;150;150;150;150;150;150;150" dur="12s" repeatCount="indefinite"/>
     <animate attributeName="opacity" values="0;1;1;0;0;0;0;0" keyTimes="0;0.04;0.10;0.14;0.25;0.5;0.75;1" dur="12s" repeatCount="indefinite"/>
   </circle>
 
-  <!-- Pulse 2: in0 -> i0 (value 1, second) at ~25-35% -->
   <circle r="3" fill="#ffab40">
     <animate attributeName="cx" values="40;40;40;40;100;100;100;100" dur="12s" repeatCount="indefinite"/>
     <animate attributeName="cy" values="150;150;150;150;150;150;150;150" dur="12s" repeatCount="indefinite"/>
     <animate attributeName="opacity" values="0;0;0;1;1;0;0;0" keyTimes="0;0.1;0.24;0.25;0.31;0.35;0.5;1" dur="12s" repeatCount="indefinite"/>
   </circle>
 
-  <!-- Pulse 2b: i0 -> i1 (push held 1) at ~29-39% -->
   <circle r="3" fill="#ffab40">
     <animate attributeName="cx" values="100;100;100;100;220;220;220;220" dur="12s" repeatCount="indefinite"/>
     <animate attributeName="cy" values="150;150;150;150;150;150;150;150" dur="12s" repeatCount="indefinite"/>
     <animate attributeName="opacity" values="0;0;0;1;1;0;0;0" keyTimes="0;0.1;0.28;0.29;0.37;0.40;0.5;1" dur="12s" repeatCount="indefinite"/>
   </circle>
 
-  <!-- Pulse 3: in0 -> i0 (value 0) at ~50-58% -->
   <circle r="3" fill="#66bb6a">
     <animate attributeName="cx" values="40;40;40;40;40;100;100;100" dur="12s" repeatCount="indefinite"/>
     <animate attributeName="cy" values="150;150;150;150;150;150;150;150" dur="12s" repeatCount="indefinite"/>
     <animate attributeName="opacity" values="0;0;0;0;1;1;0;0" keyTimes="0;0.1;0.25;0.49;0.50;0.56;0.60;1" dur="12s" repeatCount="indefinite"/>
   </circle>
 
-  <!-- Pulse 3b: i0 -> i1 (push held 1) at ~54-62% -->
   <circle r="3" fill="#ffab40">
     <animate attributeName="cx" values="100;100;100;100;100;220;220;220" dur="12s" repeatCount="indefinite"/>
     <animate attributeName="cy" values="150;150;150;150;150;150;150;150" dur="12s" repeatCount="indefinite"/>
     <animate attributeName="opacity" values="0;0;0;0;1;1;0;0" keyTimes="0;0.1;0.25;0.53;0.54;0.62;0.65;1" dur="12s" repeatCount="indefinite"/>
   </circle>
 
-  <!-- Pulse 3c: i1 -> i2 (push held 1) at ~58-67% -->
   <circle r="3" fill="#ffab40">
     <animate attributeName="cx" values="220;220;220;220;220;340;340;340" dur="12s" repeatCount="indefinite"/>
     <animate attributeName="cy" values="150;150;150;150;150;150;150;150" dur="12s" repeatCount="indefinite"/>
     <animate attributeName="opacity" values="0;0;0;0;1;1;0;0" keyTimes="0;0.1;0.25;0.57;0.58;0.66;0.70;1" dur="12s" repeatCount="indefinite"/>
   </circle>
 
-  <!-- Pulse: i0 -> edn0 (contrast) at ~33-40% -->
   <circle r="2" fill="#c62828">
     <animate attributeName="cx" values="105;105;105;160;160;160;160;105" dur="12s" repeatCount="indefinite"/>
     <animate attributeName="cy" values="140;140;140;85;85;85;85;140" dur="12s" repeatCount="indefinite"/>
     <animate attributeName="opacity" values="0;0;1;1;0;0;0;0" keyTimes="0;0.32;0.33;0.38;0.42;0.5;0.75;1" dur="12s" repeatCount="indefinite"/>
   </circle>
 
-  <!-- Pulse: edn0 -> p0 (contrast=1) at ~38-44% -->
   <circle r="2" fill="#2e7d32">
     <animate attributeName="cx" values="165;165;165;265;265;265;165;165" dur="12s" repeatCount="indefinite"/>
     <animate attributeName="cy" values="78;78;78;63;63;63;78;78" dur="12s" repeatCount="indefinite"/>
