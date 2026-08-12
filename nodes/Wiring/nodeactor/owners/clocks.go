@@ -31,3 +31,10 @@ func (c *Clocks) ApplySpeed(speedCh <-chan float64) {
 func (c *Clocks) SleepCycle(ctx context.Context) error {
 	return c.clk.SleepCycle(ctx)
 }
+
+// SleepPulse waits exactly one raw pulse, unscaled by speed — the geometry
+// job's cadence. It must never be mixed with SleepCycle on the same clock
+// copy: one clock copy per goroutine, per the network's ownership rule.
+func (c *Clocks) SleepPulse(ctx context.Context) error {
+	return c.clk.SleepPulse(ctx)
+}

@@ -14,25 +14,23 @@ import (
 var chainAimTraceEnabled = os.Getenv("WIREFOLD_CHAIN_AIM_TRACE") == "1"
 
 func (m *NodeGeometry) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal []int32, breadcrumbs []rowevent.RowEvent) {
-	outTargets := m.outs.OutTargets()
-	if len(outTargets) == 0 {
+	if len(m.outTargets) == 0 {
 		return nil, nil, nil, nil, nil, nil
 	}
 
-	var tick int64
-	if m.outs.HasOutWires() {
-		tick = m.clocks.Tick()
-	}
+	m.drainPulses()
+
 	selfTorusR := nodegeom.NodeTorusOuterR(m.geom.Kind)
 
 	selfCenter := nodegeom.NodeWorldPos(m.geom)
-	for _, to := range outTargets {
+	counts := make(map[string]int, len(m.outTargets))
+	for _, to := range m.outTargets {
 
 		targetCenter, haveTargetCenter := m.topo.PartnerCenters()[to]
 		if !haveTargetCenter {
 			continue
 		}
-		edgeOX, edgeOY, edgeOZ, edgeLit, edgeLitVal, breadcrumb, ok := m.chainBeadsForTarget(to, tick, selfTorusR, selfCenter, targetCenter)
+		edgeOX, edgeOY, edgeOZ, edgeLit, edgeLitVal, breadcrumb, ok := m.chainBeadsForTarget(to, selfTorusR, selfCenter, targetCenter, counts)
 		if !ok {
 			continue
 		}
@@ -45,19 +43,47 @@ func (m *NodeGeometry) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal [
 			breadcrumbs = append(breadcrumbs, *breadcrumb)
 		}
 	}
+	m.sendStepCounts(counts)
 	return ox, oy, oz, lit, litVal, breadcrumbs
 }
 
-func (m *NodeGeometry) chainBeadsForTarget(to string, tick int64, selfTorusR float64, selfCenter, targetCenter vec3) (ox, oy, oz []float32, lit []uint8, litVal []int32, breadcrumb *rowevent.RowEvent, ok bool) {
+// drainPulses applies the most recently received gathered-pulses message
+// from the animation peer, non-blocking. Between animation cycles geometry
+// keeps rendering with the last pulses it received.
+func (m *NodeGeometry) drainPulses() {
+	for {
+		select {
+		case p := <-m.pulseIn:
+			m.lastPulses = p
+		default:
+			return
+		}
+	}
+}
+
+// sendStepCounts hands this pass's step counts to the animation peer,
+// non-blocking — the geometry side's answer to "how many steps to the
+// target", sent once per target set rather than per target.
+func (m *NodeGeometry) sendStepCounts(counts map[string]int) {
+	if len(counts) == 0 {
+		return
+	}
+	select {
+	case m.stepOut <- counts:
+	default:
+	}
+}
+
+func (m *NodeGeometry) chainBeadsForTarget(to string, selfTorusR float64, selfCenter, targetCenter vec3, counts map[string]int) (ox, oy, oz []float32, lit []uint8, litVal []int32, breadcrumb *rowevent.RowEvent, ok bool) {
 
 	dist, liveDir, count, geomOK := beadindex.ChainEdgeGeometry(selfCenter, targetCenter, selfTorusR, m.geom.Kind, m.topo.NeighborKind(to))
 	if !geomOK {
 		return nil, nil, nil, nil, nil, nil, false
 	}
 
-	m.outs.PublishStepCount(to, count)
+	counts[to] = count
 
-	pulses := m.outs.GatherPulses(to, tick)
+	pulses := m.lastPulses[to]
 
 	breadcrumb = m.chainAimBreadcrumb(to, count, dist, liveDir)
 

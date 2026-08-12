@@ -105,7 +105,13 @@ mistake to avoid (chain_beads.go's own header comment makes the same split):
   Position/Arrive buffer, the `Trace` handle and the debug-breadcrumb
   channel. Both are owned by the same single source-node goroutine; the
   split says which concern a field belongs to, it does not add an owner.
-- **Node goroutine.** Receives beads over its input port's channel,
+- **Node goroutine.** One of SEVERAL serving the same node id, not "the" goroutine for that
+  node: a node id is a referent, and each goroutine that tags frames with it owns one job
+  (the kind's own logic, geometry and interaction, bead animation) and its own state. They
+  are peers sharing nothing but the id. **Only the animation job sleeps on the human-speed
+  clock**; a goroutine that both paces beads and reads input makes the bead rate the
+  interaction rate, which is why the jobs are separate goroutines rather than phases of one
+  loop. The kind's own job receives beads over its input port's channel,
   holds them in node-local state until its firing rule is satisfied,
   then fires. There is no held-value slot in this model sense — node-local held
   state replaces it. (This is a different concept from the buffer's `Slot`

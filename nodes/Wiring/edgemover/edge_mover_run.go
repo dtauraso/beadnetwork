@@ -53,7 +53,11 @@ func (m *EdgeMover) Run(ctx context.Context) {
 
 			m.writeStreamFrame(m.clk.Tick(), nil)
 		}
-		if err := m.clk.SleepCycle(ctx); err != nil {
+		// One raw pulse, not the speed-scaled cycle: this goroutine drives no wire and
+		// paces no bead — it recomputes edge geometry and writes the edge frame, which is
+		// what a drag redraws. On SleepCycle the wire and its beads re-fitted to a dragged
+		// node at the bead rate, so slowing the beads made the drag jerky.
+		if err := m.clk.SleepPulse(ctx); err != nil {
 			return
 		}
 	}
