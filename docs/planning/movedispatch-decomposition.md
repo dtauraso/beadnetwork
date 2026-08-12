@@ -6629,3 +6629,113 @@ phases into named methods."
 
 **Declined:** none — all six held up as genuine phase splits with the ordering/comments
 carried across.
+
+## TS webview mass sweep — `tools/topology-vscode/src/`
+
+Ran the CLAUDE-Md purity+phase method over the 12 files named as having real mass. Two
+landed real, safe splits; the rest declined with a stated mechanism after a per-function
+line-span audit (`awk` over each file's top-level `export function`/`const` declarations,
+plus a full read for the files closest to the threshold). Not every file got the full
+statement-by-statement bucket classification the method calls for — time-boxed; the ones
+that did are called out below.
+
+**Landed:**
+
+- `decode-event-line.ts` (224→162 lines). `decodeEventLine`'s switch dispatched into two
+  self-contained pure helpers that had no reason to live in the dispatcher: `overlayFlag` +
+  `OVERLAY_KINDS` (a kind-string → OVERLAY-block-column lookup, zero dependency on the
+  event row) moved to new `decode-event-overlay.ts` (43 lines); `nodeGeometryLine` (a
+  node-geometry EVENT row's own decode, independent of every other case) moved to new
+  `decode-event-node-geometry.ts` (36 lines). Both are pure functions on their arguments —
+  bucket (b) in full. `decodeEventLine` itself keeps its switch as a genuine
+  mutually-exclusive dispatch over `TRACE_EVENT_KINDS`, each remaining case still small
+  (2-12 lines) and reading straight off the event row's own columns — no further
+  extractable seam. Commit `d1c6ac63`.
+- `polar-frame.tsx` (232→175 lines). `PolarFrame`'s three static legend tables
+  (`OCTANTS`, `THETA_CIRCLES`, `PHI_CIRCLES`) plus `HANDHOLD_TERM_TAG` — pure data, no
+  hook/ref/three.js object, consumed only as lookup tables inside the render body — moved
+  to new `polar-frame-data.ts` (61 lines). `scene-content.tsx`'s import of
+  `HANDHOLD_TERM_TAG` re-pointed to the new file (the only other consumer, grepped first).
+  The render body itself (axis poles, octant spokes, angle arcs, labels, handholds) stayed:
+  every mesh in it is bucket (a) — a `<mesh>`/`<group>` JSX node or a `computePolarFrameGeometry`-derived
+  numeric literal already lifted to that sibling file — so there was no further pure
+  computation to extract. `OCTANTS` turned out to be dead even before this split (referenced
+  only in a comment, never indexed) — left in place, not this change's job to prune.
+  Commit `0928714f`.
+
+**Declined, with mechanism, after a full read:**
+
+- `NodePalette.tsx` (193 code / 249 total). Five exports, none over 82 lines
+  (`NodePalette` 73, `PaletteRow` 82, `RefusedNotice` 31, `dropKindFromEvent` 6,
+  `fireCreateAt` 3). The only bucket-(b) pure computation in the file is
+  `dropKindFromEvent`'s 6-line MIME parse — moving 6 lines out of a 249-line file is not a
+  decomposition, and it shares the private `KIND_MIME` constant with `PaletteRow`'s
+  `onDragStart` and with `fireCreateAt`'s caller contract (`ThreeView.tsx`'s `onDrop`),
+  so splitting it away from that constant fragments one drag/drop contract across files
+  for no line-count benefit.
+- `NodeInstances.tsx` (175 code / 239 total). One component, one `useFrame` body (57-172,
+  ~115 lines) writing into seven preallocated `useRef` objects (`matRef`, `posRef`,
+  `quatRef`, `ringQuatRef`, `ringAxisRef`, `sclRef`, `colRef`) every frame — the same
+  no-per-frame-allocation contract this task's own brief calls out for
+  `TiltVectors.tsx`'s `writeArrowInto`. Extracting the per-slot loop body into a helper
+  would either take all seven refs as parameters (no complexity reduction, only a longer
+  signature) or construct fresh `Vector3`/`Matrix4`/`Quaternion` objects per call (the
+  allocation this file exists to avoid). The JSX return (four `<instancedMesh>` blocks) is
+  pure bucket (a) — shading-param constants and geometry args, no literal shading numbers
+  (verified against `check-ts-shading-from-go`'s intent by reading every prop).
+- `ThreeView.tsx` (173 code / 222 total). This is the view's composition root: ~10 named
+  hooks (each 3-12 lines — container resize, RAF-batched label positions, wheel-listener
+  binding, overlay-flag reflection), followed by the JSX that mounts ~10 child
+  components/panels (`Canvas`, `Scene`, `NavGuides`, `BufferScene`, `HomeButton`,
+  `DistanceHomePanel`, `TiltVectorAnglePanel`, `NodePalette`, `OverlaysControl`,
+  `SceneTabs`). Every hook's output (`cameraRef`, `pickRequest`, `canvasSize`,
+  `bufferLabelPositions`, `bufLabelsHidden`) is consumed directly by the JSX in this same
+  file — extracting the hooks into a `useThreeViewState`-shaped module would hand that
+  module a set of refs/state consumed one file away, which is the state-home shape the
+  render-and-forward invariant exists to prevent, for zero reduction in this file's actual
+  job (mounting the tree). The one pure fragment, the `onDrop` handler's NDC conversion
+  (3 lines), is too small to be its own file.
+- `overlay-defs.ts` (126 code / 165 total). One flat table: 13 near-identical
+  `ToggleCfg` literals feeding a single `OVERLAY_GROUPS` array. Grepped every consumer
+  (`overlays-control.tsx`) — only `guidelinesCfg` and `OVERLAY_GROUPS` are imported
+  anywhere; the other 12 cfg constants exist solely to be listed in `OVERLAY_GROUPS`.
+  Splitting the cfg literals into a second file would put an import boundary through the
+  middle of one aggregation with no independent reuse on either side of it.
+- `schema/input-encode.ts` (138 code / 225 total). Eleven `encode*` functions plus
+  `frameRecord`, each already its own small pure wire-encoder (14-30 lines), one per
+  message kind — the shape the four-step node-kind-adjacent bridge rules already impose.
+  None is a long body with a separable derive step; the file's mass is the count of
+  distinct encoders, not any one encoder's length. Splitting by encoder would produce a
+  dozen near-empty files, the `utils.ts`-grab-bag shape in reverse.
+
+**Declined, mechanism from a structural (function-span) pass, not a full statement-by-statement read —
+flagged for a deeper look if this list is revisited:**
+
+- `node-stream-blocks.ts` (153 code / 251 total). `buildAggregate` (85-200, ~115 lines) is
+  the file's one large function, and it is the file `check-no-node-node-polar.sh` names as
+  the SOLE allowed bead-centre summation site — moving that body elsewhere would need the
+  guard re-keyed to a second filename, which the guard's own doctrine (empty allowlist,
+  one site) argues against doing for a line-count goal alone.
+- `TiltVectors.tsx` (131 code / 224 total), `NavGuides.tsx` (126 code / 196 total),
+  `SphereRings.tsx` (126 code / 158 total): each is dominated by one `useFrame`-driven
+  ref-mutation render body in the same preallocated-buffer shape as `NodeInstances.tsx`
+  above (`TiltVectors.tsx`'s `writeArrowInto` is the one this task's brief names by name).
+  `SphereRings.tsx` and `TiltVectorAnglePanel.tsx` are already split into named
+  sub-components (`SphereRingBuf`/`sameRings`/`SphereRings`;
+  `AxisRow`/`NodeGroupSection`/`LatticePointsRow`/`TiltVectorAnglePanel`), none over ~45
+  lines, so the "long undifferentiated body" shape the phase question targets isn't
+  present in either file's top-level export.
+
+**Verify:** `tsc --noEmit` clean after each landed edit; `eslint` clean on every touched
+file; `check-no-webview-state.sh`, `check-ts-computes-no-geometry.sh`,
+`check-polar-only-nav.sh`, `check-no-camera-roundtrip.sh` all reported clean after both
+commits. `bash scripts/stop-checks.sh` could not be read as a clean/dirty signal this
+session: a concurrent agent's in-progress edit to `tools/gen-node-defs/` (Go, outside this
+task's scope) left `check-generated` failing tree-wide throughout, confirmed pre-existing
+via `git log -1 -- tools/gen-node-defs/overlay_write.go` showing the same function names
+mid-refactor in the last real commit. `git status --short` was empty after each of this
+session's two commits.
+
+**Commits (`task/god-objects`):** `d1c6ac63` — "The overlay-flag lookup and node-geometry
+decode split out of the event-line decoder into their own files." `0928714f` — "The
+octant/circle legend tables split out of PolarFrame into their own data file."
