@@ -1,4 +1,4 @@
-package Buffer
+package bufschema
 
 type bufLayoutChainBead struct {
 	OX float32 `buf:"f32"`

@@ -1,4 +1,4 @@
-package Buffer
+package bufschema
 
 type bufLayoutNode struct {
 	NodeId  int32   `buf:"i32"`

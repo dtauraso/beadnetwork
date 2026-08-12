@@ -1,4 +1,4 @@
-package Buffer
+package bufschema
 
 type bufLayoutOverlay struct {
 	SceneTori      uint8 `buf:"u8"`

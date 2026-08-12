@@ -1,6 +1,6 @@
 // staticcheck anchor (schemaTypes below) that references every block type so
 
-package Buffer
+package bufschema
 
 const BufLayoutVersion = 41
 

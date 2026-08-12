@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: Buffer/layout_event.go | bufLayoutEvent may declare at most one `<Name>Off uint32` free-form string section
+# PLACEMENT: Buffer/bufschema/layout_event.go | bufLayoutEvent may declare at most one `<Name>Off uint32` free-form string section
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-LAYOUT_FILE="$REPO_ROOT/Buffer/layout_event.go"
+LAYOUT_FILE="$REPO_ROOT/Buffer/bufschema/layout_event.go"
 
 if [[ ! -f "$LAYOUT_FILE" ]]; then
   echo "check-event-string-section-singular: MISCONFIGURED — file not found: $LAYOUT_FILE" >&2

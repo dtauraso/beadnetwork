@@ -54,7 +54,7 @@ func generateShadingParams(repoRoot string) {
 }
 
 func generateBufferLayout(repoRoot string) {
-	bufferDir := filepath.Join(repoRoot, "Buffer")
+	bufferDir := filepath.Join(repoRoot, "Buffer", "bufschema")
 	bufSchema, err := buflayout.ParseBufferLayoutDir(bufferDir)
 	if err != nil {
 		fatalf("parse buffer layout: %v", err)

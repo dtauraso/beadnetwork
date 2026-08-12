@@ -9,10 +9,10 @@ paths:
 # Content buffer schema — adding or changing a column
 
 If a change needs a **new column in the content buffer**, add it to the hand-authored
-schema (`Buffer/layout.go`, the `buf:"…"` struct tags) and regenerate in the same commit.
-`Buffer/buffer_layout_gen.go` and `tools/topology-vscode/src/schema/buffer-layout.ts` are
-BOTH generated from `layout.go`, and `check-generated.sh` fails if either is stale relative
-to it (it regenerates and diffs).
+schema (`Buffer/bufschema/layout.go`, the `buf:"…"` struct tags) and regenerate in the same
+commit. `Buffer/buffer_layout_gen.go` and `tools/topology-vscode/src/schema/buffer-layout.ts`
+are BOTH generated from `layout.go`, and `check-generated.sh` fails if either is stale
+relative to it (it regenerates and diffs).
 
 ## Which guard catches what
 

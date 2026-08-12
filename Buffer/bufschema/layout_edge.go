@@ -1,4 +1,4 @@
-package Buffer
+package bufschema
 
 type bufLayoutEdge struct {
 	SX float32 `buf:"f32"`

@@ -1,4 +1,4 @@
-package Buffer
+package bufschema
 
 type bufLayoutInterior struct {
 	Present uint8   `buf:"u8"`

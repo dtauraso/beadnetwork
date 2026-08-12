@@ -1,4 +1,4 @@
-package Buffer
+package bufschema
 
 type bufLayoutCamera struct {
 	PX       float32 `buf:"f32"`

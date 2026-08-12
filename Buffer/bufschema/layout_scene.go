@@ -1,4 +1,4 @@
-package Buffer
+package bufschema
 
 type bufLayoutScene struct {
 	CX     float32 `buf:"f32"`

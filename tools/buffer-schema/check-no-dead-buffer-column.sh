@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: Buffer/layout*.go,tools/topology-vscode/src/schema/buffer-layout*.ts | every buffer column needs a non-test production consumer; delete an unused one rather than allowlisting it
+# PLACEMENT: Buffer/bufschema/layout*.go,tools/topology-vscode/src/schema/buffer-layout*.ts | every buffer column needs a non-test production consumer; delete an unused one rather than allowlisting it
 
 set -euo pipefail
 
@@ -74,7 +74,7 @@ for fn in "${readers[@]}"; do
     continue
   fi
   echo "DEAD BUFFER COLUMN: $fn has no production consumer — the column is packed + decoded but used by nothing."
-  echo "  Fix: consume it, remove the column from Buffer/layout.go (regenerate), or (if intentionally staged) add it to ALLOWED_DEAD with a reason."
+  echo "  Fix: consume it, remove the column from Buffer/bufschema/layout.go (regenerate), or (if intentionally staged) add it to ALLOWED_DEAD with a reason."
   fail=1
 done
 

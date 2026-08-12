@@ -1,4 +1,4 @@
-package Buffer
+package bufschema
 
 type bufLayoutEvent struct {
 	Kind          uint8  `buf:"u8"`
