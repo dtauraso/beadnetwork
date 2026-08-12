@@ -8,8 +8,17 @@ frame. Stop, re-read this file, and re-derive from the model.
 
 ## The network
 
-The network is **nodes and wires**. Each node runs on its own Go
-goroutine. A wire (`PacedWire`) does NOT: it is a PASSIVE delay queue
+The network is **nodes and wires**. A node id NAMES a thing that is drawn;
+SEVERAL goroutines serve one node id, each owning one job and its own
+state, each writing its own stream, all tagging their frames with that id
+— the editor composes them onto one drawn node. They are peers: there is
+no principal node goroutine the others assist. The jobs are what differ
+(geometry and interaction, bead animation, the kind's own logic), and
+they share nothing but the id. In particular **the human-speed clock
+belongs to the ANIMATION job alone** — a goroutine that sleeps on the
+clock to pace beads must not also be the one that reads input or streams
+geometry, or the bead rate becomes the interaction rate. A wire
+(`PacedWire`) is not a goroutine at all: it is a PASSIVE delay queue
 with a channel on each end — a channel in from its source node, a channel
 out to its destination node — stepped by its SOURCE NODE's own goroutine.
 The wire still owns its own beads (`inflight`/`delivered`) and its own
