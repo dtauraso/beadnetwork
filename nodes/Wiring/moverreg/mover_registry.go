@@ -2,29 +2,26 @@
 // dispatch into its own package (docs/planning/movedispatch-decomposition.md §25),
 // mirroring the §17 edgemover / §20 nodeactor package moves: same "still one goroutine per
 // node/edge, still the same channels, only the package boundary moved" shape. MoverRegistry
-// owns nodeGeoms/nodeMovers/edgeMovers/edgeOut/selfDriveClaimed/centerMirror and the
-// Bind/Start/SendMove/EnqueueFor/CenterOfNode/FinalizeActors logic. Every external touch
-// that used to reach a bare field (md.mr.nodeGeoms[...], md.mr.edgeMovers[...], ...) now
-// goes through NodeGeoms()/EdgeMovers() (both return the LIVE map — a map is a reference
-// type, so an external `mr.NodeGeoms()[id] = ng` still writes MoverRegistry's own map,
-// exactly as the old bare field write did) or one of the construction-time wiring methods
-// below (ClaimSelfDrive, SeedCenter) that fold what used to be a multi-statement external
-// write into one call, the same shape §19's node_geometry_wire.go used for nodeGeometry's
-// own construction-time writes.
+// owns nodeGeoms/nodeMovers/edgeMovers/edgeOut/selfDriveClaimed/centerMirror. Every
+// external touch that used to reach a bare field (md.mr.nodeGeoms[...],
+// md.mr.edgeMovers[...], ...) now goes through NodeGeoms()/EdgeMovers() (both return the
+// LIVE map — a map is a reference type, so an external `mr.NodeGeoms()[id] = ng` still
+// writes MoverRegistry's own map, exactly as the old bare field write did) or one of the
+// construction-time wiring methods below (ClaimSelfDrive, SeedCenter) that fold what used
+// to be a multi-statement external write into one call, the same shape §19's
+// node_geometry_wire.go used for nodeGeometry's own construction-time writes.
+//
+// This file holds the struct + directory accessors + construction-time writes only.
+// Bind/Start/FinalizeActors (wiring and actor launch) live in mover_registry_wire.go;
+// the read-only lookups (CenterOfNode, SendMove, NodeBodyRadius, ...) live in
+// mover_registry_query.go; the pure LinkRefusal decision lives in
+// mover_registry_linkrefusal.go — one same-package split by concern, no API change (§26
+// pattern, mirroring the Trace/Trace.go split).
 package moverreg
 
 import (
-	"context"
-	"fmt"
-	"sync"
-
 	"github.com/dtauraso/wirefold/nodes/Wiring/edgemover"
-	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
-	"github.com/dtauraso/wirefold/nodes/Wiring/kindapi"
-	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
-	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
-	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
@@ -135,261 +132,7 @@ func (mr *MoverRegistry) SeedCenter(id string, c vec3) {
 	mr.centerMirror[id] = c
 }
 
-// Bind wires the per-edge source Outs (keyed "source.sourceHandle" in outSink) and dest
-// wires (slotReg, keyed "target.targetHandle") into each edgeMover. Call once after node
-// construction.
-func (mr *MoverRegistry) Bind(outSink map[string]*wire.Out, slotReg inputcodec.SlotRegistry) {
-	for edgeID, em := range mr.edgeMovers {
-		var o *wire.Out
-		if oo, ok := outSink[em.SrcID()+"."+em.SrcHandle()]; ok {
-			o = oo
-			em.SetOut(oo)
-			mr.edgeOut[edgeID] = oo
-		}
-		if pw, ok := slotReg[em.DstID()+"."+em.DstHandle()]; ok {
-			em.SetDest(pw)
-			// The SOURCE node also takes this wire, paired with the outTargets entry for
-			// the same edge: the source node's own goroutine drives it (NodeMover.Run)
-			// and reads its in-flight fractions to light its own chain
-			// (docs/bead-model/beads-are-the-edge.md step 3). The wire is no longer driven by a
-			// goroutine of its own — that is what "the wire goroutine is removed" means
-			// concretely, and it is why the node can read the fraction without touching
-			// another goroutine's state.
-			// o may be nil if this edge's source handle wasn't found in outSink;
-			// chainBeads then just skips publishing for this edge (it still lays the
-			// chain out — the step count is computed locally either way, see
-			// edgeStepCount). em.SendSteps is the second delivery chainBeads makes
-			// alongside PublishSteps, so the edgeMover's own goroutine (which cannot
-			// read the Out directly — see nodeOuts.outStepsIn's own doc comment) can
-			// revise an in-flight bead's remaining travel against the same freshly
-			// computed count.
-			if srcNM, ok := mr.nodeGeoms[em.SrcID()]; ok {
-				srcNM.AddOutWire(pw, em.DstID(), o, em.SendSteps)
-			}
-		}
-	}
-}
-
-// Start launches every mover's goroutine — ONE goroutine per node and ONE per edge, no
-// dedicated sender/watcher goroutines (an earlier shared-outbox-plus-sender-goroutine
-// design was removed: each mover's own run loop drains its own inbox AND retries its own
-// pending sends, non-blockingly, every cycle).
-//
-// Returns a *sync.WaitGroup covering every launched goroutine, so a caller that wants a
-// complete shutdown (main.go: "wait for everything, then close" — see
-// the wait-for-everything-then-close change) can wg.Wait() on it after cancelling
-// ctx. Both nm.Run and em.Run select on ctx.Done() at the top of their loop (their only
-// blocking call is SleepCycle, which also selects on ctx), so cancel-to-return is one
-// clock tick, worst case. Callers that don't care about shutdown completeness (most
-// existing tests) can ignore the return value — Start(ctx) alone still compiles and
-// still launches every goroutine exactly as before.
-func (mr *MoverRegistry) Start(ctx context.Context) *sync.WaitGroup {
-	wg := new(sync.WaitGroup)
-	// mr.nodeMovers holds ONLY ring nodes by construction (FinalizeActors never builds
-	// one for a node that claimed BuildArgs.ClaimSelfDrive) — there is nothing to skip
-	// here, unlike the old selfDriven-flag check this replaced.
-	for _, nm := range mr.nodeMovers {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			nm.Run(ctx)
-		}()
-	}
-	for _, em := range mr.edgeMovers {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			em.Run(ctx)
-		}()
-	}
-	return wg
-}
-
-// FinalizeActors builds the RING actor directory (mr.nodeMovers) from mr.nodeGeoms, AFTER
-// buildNodes has run every kind's own build func — which is when a pair kind calls
-// BuildArgs.ClaimSelfDrive (build_args_selfdrive.go) and so is the earliest point "which
-// nodes self-drive" is fully known. Every node id NOT in claimed gets wrapped in a
-// nodeactor.NodeMover and a fresh speed channel (per-goroutine-clock.md "Delivery"),
-// appended to speedSinks; every id IN claimed gets no NodeMover at all — nothing to skip
-// launching later, by construction, not by a flag. clockSrc is copied into that node's own
-// geometry.clk lazily by NodeMover.Run at its own goroutine start (mirrors every other
-// per-goroutine clock use).
-func (mr *MoverRegistry) FinalizeActors(speedSinks *[]chan float64) {
-	mr.nodeMovers = map[string]*nodeactor.NodeMover{}
-	for id, ng := range mr.nodeGeoms {
-		if mr.selfDriveClaimed[id] {
-			continue
-		}
-		nm := nodeactor.NewNodeMover(ng)
-		if speedSinks != nil {
-			nodeSpeedCh := make(chan float64, 1)
-			nm.SetSpeedCh(nodeSpeedCh)
-			*speedSinks = append(*speedSinks, nodeSpeedCh)
-		}
-		mr.nodeMovers[id] = nm
-	}
-}
-
-// drainCenterMirror drains every node's own centerOut channel non-blockingly (via
-// PollCenter), updating mr.centerMirror with whatever's newest for each node. Called
-// before every dispatch-side framing read (CenterOfNode) so those reads always see the
-// latest pushed center. This is EVENTUALLY CONSISTENT (a read may be one push behind a
-// node that just moved on its own goroutine) — acceptable for camera/framing reads, which
-// is the only remaining caller class (see MoverRegistry.centerMirror's doc comment).
-// Must only be called from the dispatch/gesture goroutine — it is the sole
-// reader of every node's centerOut channel.
-func (mr *MoverRegistry) drainCenterMirror() {
-	if mr.centerMirror == nil {
-		mr.centerMirror = map[string]vec3{}
-	}
-	for id, nm := range mr.nodeGeoms {
-		if c, ok := nm.PollCenter(); ok {
-			mr.centerMirror[id] = c
-		}
-	}
-}
-
-// CenterOfNode returns the current world center for a node id by draining the center
-// mirror (drainCenterMirror) and reading mr.centerMirror. Must only be called from the
-// dispatch/gesture goroutine.
-func (mr *MoverRegistry) CenterOfNode(id string) (vec3, bool) {
-	mr.drainCenterMirror()
-	c, ok := mr.centerMirror[id]
-	return c, ok
-}
-
-// SendMove routes one movemsg.Msg to a node's dedicated external-entry channel (extIn), if
-// the id is a known node. This is the EXTERNAL-caller path — RootMove (drag) and
-// gesture.go's dragStart send — not a mover-to-mover send (those go through a node's
-// own pending/flushPending onto its OWN dedicated channel, never through this
-// function), so it has no owning geometry to fire a tap through — this bare path never
-// fires the test-only tap (see nodeactor's own EnqueueSend doc comment; only EnqueueSend,
-// a node's own send, does). Looks up mr.nodeGeoms (every node, ring and pair alike — a
-// drag/select/hover addressed to a pair node must still arrive and be handled, on that
-// node's own goroutine) — a read-only directory once construction finishes, safe to
-// read from any goroutine. ctx is threaded through from package dispatch's MoveDispatch
-// (not part of MoverRegistry).
-func (mr *MoverRegistry) SendMove(ctx context.Context, id string, msg movemsg.Msg) {
-	nm, ok := mr.nodeGeoms[id]
-	if !ok {
-		return
-	}
-	nm.SendExternal(ctx, msg)
-}
-
-// EnqueueFor returns nm's own non-blocking send function — nm.EnqueueSend itself
-// (nodeactor/node_geometry_accessors.go), the exact method value package dispatch's
-// move_dispatch_construct.go binds as nm.WireMessaging(..., md.mr.EnqueueFor(nm), ...).
-// Kept as a named wrapper (rather than inlining nm.EnqueueSend at the one call site)
-// purely so this file keeps documenting the whole enqueue story in one place, matching
-// where the old inline closure body used to live before §20 folded that body into the
-// actor itself (docs/planning/movedispatch-decomposition.md).
-func (mr *MoverRegistry) EnqueueFor(nm *nodeactor.NodeGeometry) func(id string, msg movemsg.Msg) {
-	return nm.EnqueueSend
-}
-
-// nodeKind returns the kind string for the given node id, or "" if unknown. Kind lives
-// on nm.geom's embedded nodegeom.NodeIdentity. Unexported: package dispatch has no
-// external caller of this by itself, only through NodeBodyRadius/LinkRefusal below.
-func (mr *MoverRegistry) nodeKind(nodeID string) string {
-	if nm, ok := mr.nodeGeoms[nodeID]; ok {
-		return nm.Kind()
-	}
-	return ""
-}
-
-// NodeBodyRadius is the node's body sphere radius used to size the home fit (gestHome,
-// package dispatch's gesture_handlers.go). It reuses the SAME nodeRadius the pre-branch
-// HomeButton framed with: nodegeom.NodeRadius(kind) =
-// min(width,height)/CurveParamNodeRadiusDivisor, with the (110,60) default for an unknown
-// kind.
-func (mr *MoverRegistry) NodeBodyRadius(id string) float64 {
-	return nodegeom.NodeRadius(mr.nodeKind(id))
-}
-
-// HasNodeMover reports whether node id has a real, separate nodeactor.NodeMover actor (a
-// ring node) as opposed to no NodeMover at all (a self-driven pair node, or an unknown id).
-func (mr *MoverRegistry) HasNodeMover(id string) bool {
-	_, ok := mr.nodeMovers[id]
-	return ok
-}
-
-// NodeSelfDriven reports whether node id is driven by its OWN pair-node goroutine
-// (task/pair-node-owns-itself, ClaimSelfDrive) rather than a separate nodeactor.NodeMover
-// goroutine — equivalently, whether id has NO entry in mr.nodeMovers at all
-// (FinalizeActors never builds one for a claimed id).
-func (mr *MoverRegistry) NodeSelfDriven(id string) bool {
-	if _, hasGeom := mr.nodeGeoms[id]; !hasGeom {
-		return false
-	}
-	return !mr.HasNodeMover(id)
-}
-
-// NodeQuantOffset returns node id's own current quantized polar offset triple
-// (iTheta, iPhi, iR).
-func (mr *MoverRegistry) NodeQuantOffset(id string) (iTheta, iPhi, iR int, ok bool) {
-	nm, exists := mr.nodeGeoms[id]
-	if !exists {
-		return 0, 0, 0, false
-	}
-	t, p, r := nm.QuantOffset()
-	return t, p, r, true
-}
-
-// LinkRefusal answers whether an edge from src to a NEW node of kind can exist, and says
-// why not when it cannot. mr's only part is resolving src's own kind off nodeGeoms; the
-// two structural reasons themselves are decided by the pure linkRefusalFor below.
-func (mr *MoverRegistry) LinkRefusal(src, kind string) (srcPort, targetPort, why string, ok bool) {
-	srcGeom, found := mr.nodeGeoms[src]
-	srcKind := ""
-	if found {
-		srcKind = srcGeom.Kind()
-	}
-	return linkRefusalFor(src, srcKind, found, kind)
-}
-
-// linkRefusalFor is the pure decision LinkRefusal makes once src's own kind (and whether
-// it was found at all) has been resolved: kind must take an input, and src must have
-// both geometry and an output to connect from. Split out of LinkRefusal because it never
-// touched MoverRegistry itself, only the two node kinds it was handed.
-func linkRefusalFor(src, srcKind string, srcFound bool, kind string) (srcPort, targetPort, why string, ok bool) {
-	targetPort, hasIn := firstPortOfDir(kind, portwiring.PortIn)
-	if !hasIn {
-		return "", "", fmt.Sprintf("%s takes no input, so nothing can connect to it", kind), false
-	}
-	if !srcFound {
-		return "", "", fmt.Sprintf("no geometry for %s", src), false
-	}
-	srcPort, hasOut := firstPortOfDir(srcKind, portwiring.PortOut)
-	if !hasOut {
-		return "", "", fmt.Sprintf("%s has no output to connect from", srcKind), false
-	}
-	return srcPort, targetPort, "", true
-}
-
-// firstPortOfDir looks up kind's registered ports (kindapi.Registry) and forwards to
-// portwiring.FirstPortOfDir (pure over a []PortSpec, no dispatch-core state) for the FIRST
-// port in dir, in the order the kind declared them at RegisterBuilder. First, not "In": a
-// kind names its own ports, and the declaration order is the only ranking there is —
-// NormalSum's NormalA before NormalB says which one an edge should take when nothing else
-// has been said. Moved here (from package dispatch's scene_structure.go) alongside
-// linkRefusalFor, its only caller.
-func firstPortOfDir(kind string, dir portwiring.PortDir) (string, bool) {
-	b, ok := kindapi.Registry[kind]
-	if !ok {
-		return "", false
-	}
-	return portwiring.FirstPortOfDir(b.Ports, dir)
-}
-
-// NearestNodeTo picks the live node whose centre is closest to p, from this process's
-// own geometry. The distance comparison itself is pure and lives in
-// nodegeom.NearestTo; this method's only job is building the id->center map from mr's
-// own nodeGeoms directory.
-func (mr *MoverRegistry) NearestNodeTo(p vec3) (string, bool) {
-	centers := make(map[string]vec3, len(mr.nodeGeoms))
-	for id, ng := range mr.nodeGeoms {
-		centers[id] = ng.WorldCenter()
-	}
-	return nodegeom.NearestTo(centers, p)
-}
+// Bind, Start, FinalizeActors: see mover_registry_wire.go.
+// drainCenterMirror, CenterOfNode, SendMove, EnqueueFor, nodeKind, NodeBodyRadius,
+// HasNodeMover, NodeSelfDriven, NodeQuantOffset, NearestNodeTo: see mover_registry_query.go.
+// LinkRefusal, linkRefusalFor, firstPortOfDir: see mover_registry_linkrefusal.go.
