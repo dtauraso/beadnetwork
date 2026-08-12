@@ -4,8 +4,8 @@ import (
 	"context"
 
 	T "github.com/dtauraso/wirefold/Trace"
-	"github.com/dtauraso/wirefold/nodes/rowevent"
 	"github.com/dtauraso/wirefold/nodes/clock"
+	"github.com/dtauraso/wirefold/nodes/rowevent"
 )
 
 type PairNodeSelf struct {
