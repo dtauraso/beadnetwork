@@ -3,14 +3,15 @@ import { nodeIdForRow } from "./stream-fds";
 import { splitJsonlLines } from "./framing";
 import { freshStreamState, type StreamParseState } from "./parse-state";
 import type { ProbePaths } from "./probe-paths";
+import { LastFrameStore } from "./last-frame-store";
 import {
   dispatchViewFrames,
   dispatchEdgeFrames,
   dispatchNodeFrames,
-  dispatchInteriorLikeFrames,
   makeFrameDispatchContext,
   type FrameDispatchContext,
 } from "./frame-dispatch";
+import { handleInteriorFdImpl, handleDriveFdImpl } from "./stream-demux-interior";
 
 export interface StreamDemuxConfig {
   paths: ProbePaths | undefined;
@@ -25,7 +26,7 @@ export interface StreamDemuxConfig {
   onError: (msg: string) => void;
 }
 
-export class StreamDemux {
+export class StreamDemux extends LastFrameStore {
 
   private stream: StreamParseState;
 
@@ -34,14 +35,7 @@ export class StreamDemux {
   private probeEdgeFile: string | undefined;
   private probeInteriorFile: string | undefined;
 
-  private lastViewFrame: ArrayBuffer | undefined;
-
-  private lastEdgeFrames: Map<number, ArrayBuffer> = new Map();
-
   readonly edgeCount: number;
-
-  private lastNodeFrames: Map<number, ArrayBuffer> = new Map();
-  private lastInteriorFrames: Map<number, ArrayBuffer> = new Map();
 
   readonly nodeCount: number;
 
@@ -49,6 +43,7 @@ export class StreamDemux {
   private readonly onLine: (line: string) => void;
 
   constructor(cfg: StreamDemuxConfig) {
+    super();
     this.stream = freshStreamState(cfg.edgeCount, cfg.nodeCount);
     this.probeFile = cfg.paths?.probeFile;
     this.probeNodeFile = cfg.paths?.probeNodeFile;
@@ -106,51 +101,12 @@ export class StreamDemux {
   }
 
   handleInteriorFd(row: number, chunk: Buffer) {
-    dispatchInteriorLikeFrames(
-      this.frameCtx,
-      `interior:${row}`,
-      row,
-      `handleInteriorFd(node=${nodeIdForRow(row)})`,
-      this.stream.interiorBufs[row] ?? Buffer.alloc(0),
-      chunk,
-      (rest) => { this.stream.interiorBufs[row] = rest; },
-      this.probeInteriorFile,
-      true,
-      (row, ab) => { this.lastInteriorFrames.set(row, ab); },
-    );
+    handleInteriorFdImpl(this.frameCtx, this.stream, this.probeInteriorFile, row, chunk,
+      (row, ab) => { this.lastInteriorFrames.set(row, ab); });
   }
 
   handleDriveFd(row: number, slot: number, chunk: Buffer) {
-    dispatchInteriorLikeFrames(
-      this.frameCtx,
-      `drive:${row}:${slot}`,
-      row,
-      `handleDriveFd(node=${nodeIdForRow(row)}, slot=${slot})`,
-      this.stream.driveBufs[row]?.[slot] ?? Buffer.alloc(0),
-      chunk,
-      (rest) => {
-        if (!this.stream.driveBufs[row]) this.stream.driveBufs[row] = [];
-        this.stream.driveBufs[row][slot] = rest;
-      },
-      this.probeInteriorFile,
-      false,
-      (row, ab) => { this.lastInteriorFrames.set(row, ab); },
-    );
-  }
-
-  getLastViewFrame(): ArrayBuffer | undefined {
-    return this.lastViewFrame?.slice(0);
-  }
-
-  getLastEdgeFrames(): Array<{ row: number; buffer: ArrayBuffer }> {
-    return Array.from(this.lastEdgeFrames, ([row, buffer]) => ({ row, buffer: buffer.slice(0) }));
-  }
-
-  getLastNodeFrames(): Array<{ row: number; buffer: ArrayBuffer }> {
-    return Array.from(this.lastNodeFrames, ([row, buffer]) => ({ row, buffer: buffer.slice(0) }));
-  }
-
-  getLastInteriorFrames(): Array<{ row: number; buffer: ArrayBuffer }> {
-    return Array.from(this.lastInteriorFrames, ([row, buffer]) => ({ row, buffer: buffer.slice(0) }));
+    handleDriveFdImpl(this.frameCtx, this.stream, this.probeInteriorFile, row, slot, chunk,
+      (row, ab) => { this.lastInteriorFrames.set(row, ab); });
   }
 }
