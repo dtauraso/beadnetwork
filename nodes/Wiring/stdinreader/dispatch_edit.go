@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/dtauraso/wirefold/nodes/rowevent"
-	"github.com/dtauraso/wirefold/nodes/wire/clock"
+	"github.com/dtauraso/wirefold/nodes/clock"
 
 	T "github.com/dtauraso/wirefold/Trace"
 	"github.com/dtauraso/wirefold/nodes/Wiring/dispatch"

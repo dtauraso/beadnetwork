@@ -5,7 +5,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/quantoffset"
 	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
-	"github.com/dtauraso/wirefold/nodes/wire/clock"
+	"github.com/dtauraso/wirefold/nodes/clock"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )

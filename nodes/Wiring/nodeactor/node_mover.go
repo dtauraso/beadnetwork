@@ -3,7 +3,7 @@ package nodeactor
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/nodes/wire/clock"
+	"github.com/dtauraso/wirefold/nodes/clock"
 )
 
 type NodeMover struct {

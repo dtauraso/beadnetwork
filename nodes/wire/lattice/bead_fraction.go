@@ -1,6 +1,6 @@
 package lattice
 
-import "github.com/dtauraso/wirefold/nodes/wire/clock"
+import "github.com/dtauraso/wirefold/nodes/clock"
 
 func BeadFraction(nowTick, placementTick, crossTicks float64) float64 {
 	if crossTicks <= 0 {

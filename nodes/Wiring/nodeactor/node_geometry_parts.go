@@ -5,7 +5,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/nodeframe"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/streamclaim"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
-	"github.com/dtauraso/wirefold/nodes/wire/clock"
+	"github.com/dtauraso/wirefold/nodes/clock"
 	"github.com/dtauraso/wirefold/nodes/wire/outport"
 )
 

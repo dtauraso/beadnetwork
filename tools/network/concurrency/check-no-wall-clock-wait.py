@@ -12,8 +12,8 @@ roots = ["nodes"]
 wait_pat = re.compile(r'\btime\.(Sleep|After|NewTicker)\s*\(')
 
 EXEMPT_FILES = {
-    os.path.join("nodes", "wire", "clock", "clock.go"),
-    os.path.join("nodes", "wire", "clock", "tick_broadcaster.go"),
+    os.path.join("nodes", "clock", "clock.go"),
+    os.path.join("nodes", "clock", "tick_broadcaster.go"),
 }
 
 ALLOWED = {

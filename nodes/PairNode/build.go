@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"github.com/dtauraso/wirefold/nodes/nodeapi"
-	"github.com/dtauraso/wirefold/nodes/wire/clock"
+	"github.com/dtauraso/wirefold/nodes/clock"
 
 	"github.com/dtauraso/wirefold/nodes/PairNode/tiltring"
 	Wiring "github.com/dtauraso/wirefold/nodes/Wiring/kindapi"

@@ -3,7 +3,7 @@ package timeend
 import (
 	"context"
 	"github.com/dtauraso/wirefold/nodes/nodeapi"
-	"github.com/dtauraso/wirefold/nodes/wire/clock"
+	"github.com/dtauraso/wirefold/nodes/clock"
 	"github.com/dtauraso/wirefold/nodes/wire/inport"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/interior"

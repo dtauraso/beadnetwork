@@ -10,7 +10,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
 	"github.com/dtauraso/wirefold/nodes/nodeapi"
-	"github.com/dtauraso/wirefold/nodes/wire/clock"
+	"github.com/dtauraso/wirefold/nodes/clock"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )

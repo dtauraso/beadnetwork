@@ -1,7 +1,7 @@
 package kindapi
 
 import (
-	"github.com/dtauraso/wirefold/nodes/wire/clock"
+	"github.com/dtauraso/wirefold/nodes/clock"
 )
 
 func (a BuildArgs) Clock() clock.Clock { return a.pb.Clock }

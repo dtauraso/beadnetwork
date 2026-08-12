@@ -7,7 +7,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
-	"github.com/dtauraso/wirefold/nodes/wire/clock"
+	"github.com/dtauraso/wirefold/nodes/clock"
 	"github.com/dtauraso/wirefold/nodes/wire/outport"
 
 	T "github.com/dtauraso/wirefold/Trace"

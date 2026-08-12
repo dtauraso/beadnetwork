@@ -4,7 +4,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/PairNode/tiltring"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
-	"github.com/dtauraso/wirefold/nodes/wire/clock"
+	"github.com/dtauraso/wirefold/nodes/clock"
 )
 
 func (n *Node) drainTiltEdit(clk clock.Clock) {

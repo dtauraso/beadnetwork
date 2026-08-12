@@ -8,7 +8,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
-	"github.com/dtauraso/wirefold/nodes/wire/clock"
+	"github.com/dtauraso/wirefold/nodes/clock"
 )
 
 func (md *MoveDispatch) buildNodeMovers(geoms map[string]nodegeom.NodeGeom, tr *T.Trace, clk clock.Clock) {

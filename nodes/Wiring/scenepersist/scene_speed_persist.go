@@ -7,7 +7,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
-	"github.com/dtauraso/wirefold/nodes/wire/clock"
+	"github.com/dtauraso/wirefold/nodes/clock"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )

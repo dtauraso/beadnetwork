@@ -3,7 +3,7 @@ package edgemover
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/nodes/wire/clock"
+	"github.com/dtauraso/wirefold/nodes/clock"
 )
 
 func (m *EdgeMover) Run(ctx context.Context) {

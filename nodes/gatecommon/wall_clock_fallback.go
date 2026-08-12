@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/dtauraso/wirefold/nodes/wire/clock"
+	"github.com/dtauraso/wirefold/nodes/clock"
 )
 
 func tickDuration(ticks int64) time.Duration {

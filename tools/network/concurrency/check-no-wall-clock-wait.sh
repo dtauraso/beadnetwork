@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: nodes/**/*.go | no time.Sleep/time.After/time.NewTicker outside nodes/wire/clock/clock.go; block on the tick channel instead
+# PLACEMENT: nodes/**/*.go | no time.Sleep/time.After/time.NewTicker outside nodes/clock/clock.go; block on the tick channel instead
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -19,7 +19,7 @@ while IFS= read -r line; do
   case "$line" in
     WAIT)
       echo "WALL-CLOCK WAIT OUTSIDE THE CLOCK GOROUTINE: time.Sleep/time.After/time.NewTicker"
-      echo "found outside nodes/wire/clock/clock.go. A goroutine parked here cannot service its other"
+      echo "found outside nodes/clock/clock.go. A goroutine parked here cannot service its other"
       echo "channels for the wait — route through clock.NewRealClock()'s SleepCycle or"
       echo "clock.NewTickChan() instead, both backed by the process's one TickBroadcaster:"
       fail=1; section=body; continue ;;

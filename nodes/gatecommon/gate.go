@@ -3,7 +3,7 @@ package gatecommon
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/nodes/wire/clock"
+	"github.com/dtauraso/wirefold/nodes/clock"
 )
 
 func runGateLoop(ctx context.Context, g *GateNode, captureLeftFn, captureRightFn func(*GateNode) bool, fireResult func(*GateNode) int) {
