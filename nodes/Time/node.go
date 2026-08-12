@@ -5,6 +5,7 @@ import (
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
 	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
+	"github.com/dtauraso/wirefold/nodes/wire/outport"
 
 	Wiring "github.com/dtauraso/wirefold/nodes/Wiring/kindapi"
 	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
@@ -22,10 +23,10 @@ type Time struct {
 	SpeedCh <-chan float64
 
 	In     *wire.In
-	ToNext wire.Broadcast
+	ToNext outport.Broadcast
 }
 
-func placeHeld(outs wire.Broadcast, held int, items []wire.DriveItem, tick int64) []wire.DriveItem {
+func placeHeld(outs outport.Broadcast, held int, items []outport.DriveItem, tick int64) []outport.DriveItem {
 	if held == gatecommon.NoValue {
 		return items
 	}
@@ -52,7 +53,7 @@ func (in *Time) consumeInput(clk clock.Clock, value int, held int) (newHeld int,
 	}
 
 	placeTick := clk.Tick()
-	var items []wire.DriveItem
+	var items []outport.DriveItem
 	prevHeld := in.Held
 	items = placeHeld(in.ToNext, prevHeld, items, placeTick)
 	in.Held = value

@@ -5,6 +5,7 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/interior"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/outport"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -80,7 +81,7 @@ func NewInPort(portName string, ctx context.Context, name string, pb PortBinding
 	}
 }
 
-func NewOutPort(portName string, ctx context.Context, name string, pb PortBindings, tr *T.Trace, sourceOuts *[]*wire.Out, getStream func() *interior.InteriorStream) *wire.Out {
+func NewOutPort(portName string, ctx context.Context, name string, pb PortBindings, tr *T.Trace, sourceOuts *[]*outport.Out, getStream func() *interior.InteriorStream) *outport.Out {
 	if b := pb.singlePaced[portName]; b.pw != nil {
 		targetRow := int32(-1)
 		if b.pw.Target != "" {
@@ -88,7 +89,7 @@ func NewOutPort(portName string, ctx context.Context, name string, pb PortBindin
 				targetRow = r
 			}
 		}
-		o := wire.NewOutPaced(b.pw, ctx, name, portName, tr, b.rule, b.steps, b.seg, b.label, AsEventSinkGetter(getStream), NoPortRow, targetRow, NoPortRow)
+		o := outport.NewOutPaced(b.pw, ctx, name, portName, tr, b.rule, b.steps, b.seg, b.label, AsEventSinkGetter(getStream), NoPortRow, targetRow, NoPortRow)
 		*sourceOuts = append(*sourceOuts, o)
 		if pb.OutSink != nil {
 			pb.OutSink[name+"."+portName] = o
@@ -96,12 +97,12 @@ func NewOutPort(portName string, ctx context.Context, name string, pb PortBindin
 		return o
 	}
 	ch := pb.deadEndOut(portName)
-	return wire.NewOutChanDeadEnd(ch, name, portName, tr)
+	return outport.NewOutChanDeadEnd(ch, name, portName, tr)
 }
 
-func NewBroadcastPort(portName string, ctx context.Context, name string, pb PortBindings, tr *T.Trace, sourceOuts *[]*wire.Out, getStream func() *interior.InteriorStream) wire.Broadcast {
+func NewBroadcastPort(portName string, ctx context.Context, name string, pb PortBindings, tr *T.Trace, sourceOuts *[]*outport.Out, getStream func() *interior.InteriorStream) outport.Broadcast {
 	if bs := pb.broadcastPaced[portName]; len(bs) > 0 {
-		outs := make(wire.Broadcast, len(bs))
+		outs := make(outport.Broadcast, len(bs))
 		for i, b := range bs {
 			targetRow := int32(-1)
 			if b.pw.Target != "" {
@@ -109,7 +110,7 @@ func NewBroadcastPort(portName string, ctx context.Context, name string, pb Port
 					targetRow = r
 				}
 			}
-			o := wire.NewOutPaced(b.pw, ctx, name, b.handle, tr, b.rule, b.steps, b.seg, b.label, AsEventSinkGetter(getStream), NoPortRow, targetRow, NoPortRow)
+			o := outport.NewOutPaced(b.pw, ctx, name, b.handle, tr, b.rule, b.steps, b.seg, b.label, AsEventSinkGetter(getStream), NoPortRow, targetRow, NoPortRow)
 			outs[i] = o
 			*sourceOuts = append(*sourceOuts, o)
 			if pb.OutSink != nil {
@@ -120,9 +121,9 @@ func NewBroadcastPort(portName string, ctx context.Context, name string, pb Port
 	}
 	{
 		chs := pb.deadEndOutSlice(portName)
-		outs := make(wire.Broadcast, len(chs))
+		outs := make(outport.Broadcast, len(chs))
 		for i, c := range chs {
-			outs[i] = wire.NewOutChanDeadEnd(c, name, portName, tr)
+			outs[i] = outport.NewOutChanDeadEnd(c, name, portName, tr)
 		}
 		return outs
 	}

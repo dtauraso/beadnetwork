@@ -6,17 +6,18 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/outport"
 )
 
 func (a BuildArgs) In(portName string) *wire.In {
 	return portwiring.NewInPort(portName, a.ctx, a.name, a.pb, a.tr, a.getStream)
 }
 
-func (a BuildArgs) Out(portName string) *wire.Out {
+func (a BuildArgs) Out(portName string) *outport.Out {
 	return portwiring.NewOutPort(portName, a.ctx, a.name, a.pb, a.tr, a.sourceOuts, a.getStream)
 }
 
-func (a BuildArgs) Broadcast(portName string) wire.Broadcast {
+func (a BuildArgs) Broadcast(portName string) outport.Broadcast {
 	return portwiring.NewBroadcastPort(portName, a.ctx, a.name, a.pb, a.tr, a.sourceOuts, a.getStream)
 }
 

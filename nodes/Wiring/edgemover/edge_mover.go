@@ -7,6 +7,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
+	"github.com/dtauraso/wirefold/nodes/wire/outport"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -20,7 +21,7 @@ type EdgeMover struct {
 
 	srcGeom nodegeom.NodeGeom
 	dstGeom nodegeom.NodeGeom
-	out     *wire.Out
+	out     *outport.Out
 	dest    *wire.PacedWire
 
 	extIn chan movemsg.Msg
@@ -74,7 +75,7 @@ func (m *EdgeMover) DstID() string     { return m.dstID }
 func (m *EdgeMover) SrcHandle() string { return m.srcH }
 func (m *EdgeMover) DstHandle() string { return m.dstH }
 
-func (m *EdgeMover) SetOut(out *wire.Out) { m.out = out }
+func (m *EdgeMover) SetOut(out *outport.Out) { m.out = out }
 
 func (m *EdgeMover) SetDest(dest *wire.PacedWire) { m.dest = dest }
 

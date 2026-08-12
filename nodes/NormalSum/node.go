@@ -8,6 +8,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
+	"github.com/dtauraso/wirefold/nodes/wire/outport"
 )
 
 const noNormal = -1
@@ -22,7 +23,7 @@ type Node struct {
 
 	NormalA *wire.In
 	NormalB *wire.In
-	Out     *wire.Out
+	Out     *outport.Out
 	SpeedCh <-chan float64
 
 	LatticeIn <-chan int32

@@ -6,12 +6,12 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/outport"
 )
 
-func (mr *MoverRegistry) Bind(outSink map[string]*wire.Out, slotReg inputcodec.SlotRegistry) {
+func (mr *MoverRegistry) Bind(outSink map[string]*outport.Out, slotReg inputcodec.SlotRegistry) {
 	for edgeID, em := range mr.edgeMovers {
-		var o *wire.Out
+		var o *outport.Out
 		if oo, ok := outSink[em.SrcID()+"."+em.SrcHandle()]; ok {
 			o = oo
 			em.SetOut(oo)

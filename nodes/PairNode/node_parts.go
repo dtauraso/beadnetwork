@@ -3,6 +3,7 @@ package PairNode
 import (
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
+	"github.com/dtauraso/wirefold/nodes/wire/outport"
 
 	"github.com/dtauraso/wirefold/nodes/PairNode/tiltring"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
@@ -22,7 +23,7 @@ type nodePlumbing struct {
 
 	In *wire.In
 
-	Out *wire.Out
+	Out *outport.Out
 
 	ClearOutBeads func()
 

@@ -14,6 +14,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/topoderive"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
+	"github.com/dtauraso/wirefold/nodes/wire/outport"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -51,7 +52,7 @@ type buildCtx struct {
 	outbound       map[string]map[string][]string
 	outboundHandle map[string]map[string][]string
 
-	outSink map[string]*wire.Out
+	outSink map[string]*outport.Out
 	nodes   []wire.Node
 
 	vectorOutByNode map[string]chan tiltvector.TiltVectorMsg

@@ -7,6 +7,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
+	"github.com/dtauraso/wirefold/nodes/wire/outport"
 )
 
 const DriveSlotsPerNode = 2
@@ -37,7 +38,7 @@ type PortBindings struct {
 	singlePaced    map[string]singleBinding
 	broadcastPaced map[string][]broadcastBinding
 
-	OutSink map[string]*wire.Out
+	OutSink map[string]*outport.Out
 
 	Clock clock.Clock
 
@@ -55,7 +56,7 @@ type PortBindings struct {
 
 type singleBinding struct {
 	pw    *wire.PacedWire
-	rule  wire.SendRule
+	rule  outport.SendRule
 	steps int
 	seg   wire.WireSegment
 	label string
@@ -64,7 +65,7 @@ type singleBinding struct {
 type broadcastBinding struct {
 	pw     *wire.PacedWire
 	handle string
-	rule   wire.SendRule
+	rule   outport.SendRule
 	steps  int
 	seg    wire.WireSegment
 	label  string
@@ -81,11 +82,11 @@ func (pb *PortBindings) SetSinglePaced(name string, pw *wire.PacedWire) {
 	pb.singlePaced[name] = singleBinding{pw: pw}
 }
 
-func (pb *PortBindings) SetSinglePacedRule(name string, pw *wire.PacedWire, rule wire.SendRule, steps int, seg wire.WireSegment, label string) {
+func (pb *PortBindings) SetSinglePacedRule(name string, pw *wire.PacedWire, rule outport.SendRule, steps int, seg wire.WireSegment, label string) {
 	pb.singlePaced[name] = singleBinding{pw: pw, rule: rule, steps: steps, seg: seg, label: label}
 }
 
-func (pb *PortBindings) AppendBroadcastWithHandle(name, handle string, pw *wire.PacedWire, rule wire.SendRule, steps int, seg wire.WireSegment, label string) {
+func (pb *PortBindings) AppendBroadcastWithHandle(name, handle string, pw *wire.PacedWire, rule outport.SendRule, steps int, seg wire.WireSegment, label string) {
 	pb.broadcastPaced[name] = append(pb.broadcastPaced[name], broadcastBinding{
 		pw: pw, handle: handle, rule: rule, steps: steps, seg: seg, label: label,
 	})

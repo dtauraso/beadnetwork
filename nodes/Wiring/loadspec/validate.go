@@ -7,7 +7,7 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/outport"
 )
 
 func ValidateSpec(spec *TopoSpec, kindPorts map[string][]portwiring.PortSpec) error {
@@ -89,7 +89,7 @@ func ValidateSpec(spec *TopoSpec, kindPorts map[string][]portwiring.PortSpec) er
 			continue
 		}
 		for port, raw := range n.Data.SendRules {
-			if _, err := wire.ParseSendRule(raw); err != nil {
+			if _, err := outport.ParseSendRule(raw); err != nil {
 				errs = append(errs, fmt.Sprintf("node %q port %q: %v", n.ID, port, err))
 			}
 		}

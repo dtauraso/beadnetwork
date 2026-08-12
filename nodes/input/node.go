@@ -4,6 +4,7 @@ import (
 	"context"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
+	"github.com/dtauraso/wirefold/nodes/wire/outport"
 
 	Wiring "github.com/dtauraso/wirefold/nodes/Wiring/kindapi"
 	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
@@ -23,9 +24,9 @@ type Node struct {
 	Init    []int `wire:"data.init"`
 	Repeat  bool  `wire:"data.repeat"`
 
-	OutCadence *wire.Out
+	OutCadence *outport.Out
 
-	ToExcitatory *wire.Out
+	ToExcitatory *outport.Out
 	FeedbackIn   *wire.In
 }
 

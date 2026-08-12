@@ -4,6 +4,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/quantoffset"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/outport"
 )
 
 func (m *NodeGeometry) WireMessaging(
@@ -70,7 +71,7 @@ func (m *NodeGeometry) AddOutTarget(target string) {
 	m.outs.outTargets = append(m.outs.outTargets, target)
 }
 
-func (m *NodeGeometry) AddOutWire(pw *wire.PacedWire, target string, o *wire.Out, sendSteps func(int)) {
+func (m *NodeGeometry) AddOutWire(pw *wire.PacedWire, target string, o *outport.Out, sendSteps func(int)) {
 	m.outs.outWires = append(m.outs.outWires, pw)
 	m.outs.outWireTargets = append(m.outs.outWireTargets, target)
 	m.outs.outWireOuts = append(m.outs.outWireOuts, o)

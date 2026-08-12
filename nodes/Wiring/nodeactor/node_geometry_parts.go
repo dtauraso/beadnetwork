@@ -4,6 +4,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
+	"github.com/dtauraso/wirefold/nodes/wire/outport"
 )
 
 type nodeMessaging struct {
@@ -69,7 +70,7 @@ type nodeOuts struct {
 	outTargets     []string
 	outWires       []*wire.PacedWire
 	outWireTargets []string
-	outWireOuts    []*wire.Out
+	outWireOuts    []*outport.Out
 
 	outStepsIn []func(int)
 }

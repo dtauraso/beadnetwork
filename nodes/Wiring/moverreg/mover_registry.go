@@ -3,7 +3,7 @@ package moverreg
 import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/edgemover"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/outport"
 )
 
 const InboxDepth = 8
@@ -16,7 +16,7 @@ type MoverRegistry struct {
 	selfDriveClaimed map[string]bool
 	edgeMovers       map[string]*edgemover.EdgeMover
 
-	edgeOut map[string]*wire.Out
+	edgeOut map[string]*outport.Out
 
 	centerMirror map[string]vec3
 }
@@ -25,7 +25,7 @@ func New() MoverRegistry {
 	return MoverRegistry{
 		nodeGeoms:    map[string]*nodeactor.NodeGeometry{},
 		edgeMovers:   map[string]*edgemover.EdgeMover{},
-		edgeOut:      map[string]*wire.Out{},
+		edgeOut:      map[string]*outport.Out{},
 		centerMirror: map[string]vec3{},
 	}
 }

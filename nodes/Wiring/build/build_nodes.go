@@ -12,6 +12,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
 	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/outport"
 )
 
 func (b *buildCtx) buildNodes() error {
@@ -39,7 +40,7 @@ func (b *buildCtx) buildNodes() error {
 			return ng
 		},
 	}
-	outSink := map[string]*wire.Out{}
+	outSink := map[string]*outport.Out{}
 	nodes := make([]wire.Node, 0, len(b.spec.Nodes))
 	for _, n := range b.spec.Nodes {
 		bind := kindapi.Registry[n.Type]
@@ -104,6 +105,6 @@ func (b *buildCtx) buildNodes() error {
 	return nil
 }
 
-func bindDispatch(md *dispatch.MoveDispatch, outSink map[string]*wire.Out, destWire map[string]*wire.PacedWire) {
+func bindDispatch(md *dispatch.MoveDispatch, outSink map[string]*outport.Out, destWire map[string]*wire.PacedWire) {
 	md.MR.Bind(outSink, inputcodec.SlotRegistry(destWire))
 }

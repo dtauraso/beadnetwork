@@ -10,6 +10,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/outport"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -34,7 +35,7 @@ type BuildArgs struct {
 
 	tiltThetaIdx int32
 
-	sourceOuts *[]*wire.Out
+	sourceOuts *[]*outport.Out
 
 	getStream func() *interior.InteriorStream
 
@@ -54,7 +55,7 @@ func RegisterBuilder(kind string, ports []portwiring.PortSpec, build func(BuildA
 	Registry[kind] = NodeBuilder{
 		Ports: ports,
 		Build: func(ctx context.Context, name string, data *loadspec.NodeData, pb portwiring.PortBindings, tr *T.Trace, geom nodegeom.NodeGeom, tiltThetaIdx int32, deps BuildDeps) (wire.Node, error) {
-			var sourceOuts []*wire.Out
+			var sourceOuts []*outport.Out
 			return build(BuildArgs{
 				ctx: ctx, name: name, data: data, pb: pb, tr: tr,
 				geom:            geom,

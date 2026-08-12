@@ -3,6 +3,7 @@ package gatecommon
 import (
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
+	"github.com/dtauraso/wirefold/nodes/wire/outport"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/interior"
 )
@@ -31,7 +32,7 @@ type GateNode struct {
 	HasRight  bool
 	FromLeft  *wire.In
 	FromRight *wire.In
-	ToPassed  *wire.Out
+	ToPassed  *outport.Out
 }
 
 const windowTicks = int64(WindowMs / clock.MsPerTick)

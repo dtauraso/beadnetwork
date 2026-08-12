@@ -4,6 +4,7 @@ import (
 	"context"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
+	"github.com/dtauraso/wirefold/nodes/wire/outport"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/interior"
 	Wiring "github.com/dtauraso/wirefold/nodes/Wiring/kindapi"
@@ -23,7 +24,7 @@ type Node struct {
 	SpeedCh <-chan float64
 
 	In          *wire.In
-	FeedbackOut *wire.Out
+	FeedbackOut *outport.Out
 }
 
 func (p *Node) Update(ctx context.Context) {

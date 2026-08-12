@@ -7,6 +7,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/outport"
 )
 
 type specNode struct {
@@ -128,11 +129,11 @@ func validateNoFanIn(spec TopoSpec) error {
 	return nil
 }
 
-func NodeSendRule(n specNode, port string) wire.SendRule {
+func NodeSendRule(n specNode, port string) outport.SendRule {
 	if n.Data == nil || n.Data.SendRules == nil {
-		return wire.RuleConsumeGated
+		return outport.RuleConsumeGated
 	}
 
-	rule, _ := wire.ParseSendRule(n.Data.SendRules[port])
+	rule, _ := outport.ParseSendRule(n.Data.SendRules[port])
 	return rule
 }
