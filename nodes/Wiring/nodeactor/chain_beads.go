@@ -130,189 +130,229 @@ func (m *NodeGeometry) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal [
 		if !haveTargetCenter {
 			continue
 		}
-
-		// The ONE authoritative length: docs/bead-model/bead-lattice.md's edgeStepCount, computed
-		// from the LIVE center-to-center distance — the model has no stored fallback any
-		// more (wire.LocalPolar deleted): a target with no live measurement was already
-		// skipped above via haveTargetCenter. dist and liveDir (the DIRECTION, consumed
-		// further down) come from the SAME nodegeom.EdgeCenterDistAndDir call — one measurement of
-		// the edge, not two (that function's own doc comment). Both the placement loop
-		// below and this edge's wire (via PublishSteps/outStepsIn just after) read this
-		// SAME integer, so layout and timing cannot disagree.
-		//
-		// nodegeom.EdgeCenterDistAndDir's one sqrt-based vector-length/normalize pair is
-		// deliberately NOT inlined here: this file is guarded against a cartesian sqrt
-		// (tools/network/beads/check-no-sqrt-in-chain-beads.sh) so bead placement stays a direct read of
-		// the live measurement; the sqrt itself lives in port_geometry.go, which already
-		// computes nodegeom.EdgeSegment the same way.
-		// ChainEdgeGeometry is nodegeom.EdgeCenterDistAndDir + nodegeom.EdgeStepCount,
-		// unchanged, named as a phase (beadindex/chain_edge_layout.go): the ONE live
-		// measurement of this edge and the ONE integer bead-step count derived from it,
-		// read once and reused for layout, the published step count, and the breadcrumb's
-		// own K. ok is false exactly when the two centers coincide (EdgeCenterDistAndDir's
-		// own guard) — skip this edge exactly as before.
-		dist, liveDir, count, ok := beadindex.ChainEdgeGeometry(selfCenter, targetCenter, selfTorusR, m.geom.Kind, m.topo.neighborKinds[to])
+		edgeOX, edgeOY, edgeOZ, edgeLit, edgeLitVal, breadcrumb, ok := m.chainBeadsForTarget(to, tick, selfTorusR, selfCenter, targetCenter)
 		if !ok {
 			continue
 		}
-
-		// Publish this edge's freshly computed step count onto its own *wire.Out
-		// (docs/bead-model/bead-lattice.md "Ownership") and onto its edgeMover's stepsIn (so a live
-		// in-flight bead's remaining travel — edgeMover.recomputeGeometry's
-		// ReviseInFlightGeometry call — is revised against the same integer too; see
-		// edgemover's own edge_mover.go stepsIn doc comment for why a second delivery is
-		// needed instead of the edgeMover reading the Out directly). Both are
-		// non-blocking, latest-wins sends — this node's own goroutine never waits on
-		// either reader.
-		for i, wt := range m.outs.outWireTargets {
-			if wt != to {
-				continue
-			}
-			if i < len(m.outs.outWireOuts) && m.outs.outWireOuts[i] != nil {
-				m.outs.outWireOuts[i].PublishSteps(count)
-			}
-			if i < len(m.outs.outStepsIn) && m.outs.outStepsIn[i] != nil {
-				m.outs.outStepsIn[i](count)
-			}
-		}
-
-		// Which bead this edge's traversals have reached. Read from THIS node's own
-		// outgoing wire for this target, on this node's own goroutine (it is the goroutine
-		// that drives that wire — see NodeMover.outWires), so LiveBeadFractions' single-
-		// goroutine contract holds and no other goroutine's state is touched.
-		//
-		// index -> the traversing bead's VALUE. The value travels because the lit bead takes
-		// bead 0's or bead 1's own fill: a bare "is lit" flag could not say which.
-		// THE PULSES on this edge: one entry per live traversal, each carrying its own
-		// CONTINUOUS fraction rather than the index of a chain bead it has reached.
-		//
-		// The edge is drawn as a line now, not as a sequence of placeholder beads lighting
-		// in turn, so there is no slot for a traversal to occupy — it has a position. That
-		// is why litBeadIndex (a FLOOR onto a bead index, lit_bead_index.go) is not used
-		// here: floor is exactly what made the old motion a series of jumps, one bead-width
-		// each, and no tick rate can smooth a value that is quantised before it is drawn.
-		//
-		// t stays the wire's own [0,1) fraction, and the step count still comes with the
-		// bead (p.Steps), so lighting and layout still read ONE length — the property
-		// litBeadIndex's doc comment protects, kept by passing t through instead of an index.
-		// Gathered into beadindex.Pulse values (t, the step count that t was computed
-		// against, and the carried value) — a plain data value from here on, handed to
-		// ChainBeadRows below.
-		var pulses []beadindex.Pulse
-		for i, wt := range m.outs.outWireTargets {
-			if wt != to || m.outs.outWires[i] == nil {
-				continue
-			}
-			for _, p := range m.outs.outWires[i].LiveBeadFractions(tick) {
-				if p.T < 0 || p.T >= 1 || p.Steps <= 0 {
-					continue
-				}
-				// p.Steps travels WITH the bead: it is the length its own t was computed
-				// against. Carried here so placement spans that same integer — see the
-				// placement below.
-				pulses = append(pulses, beadindex.Pulse{T: p.T, Steps: p.Steps, Val: int32(p.Val)})
-			}
-		}
-		// DIAGNOSTIC ONLY (task/log-node4-chain-aim): one breadcrumb per outgoing target
-		// per chainBeads() call. Gated on m.tr != nil exactly like emitGeometry's own
-		// breadcrumb calls elsewhere in this package — cheap no-op with no stream wired
-		// (headless tests, bare movers).
-		// DIAGNOSTIC, AND OFF BY DEFAULT. chainBeads runs once per cycle per outgoing
-		// target, so this breadcrumb is per-tick — 56,492 rows and 15 MB from a single
-		// two-node run, which buries every control-event breadcrumb emitted alongside it
-		// and is the exact firehose .claude/rules/go-debugging.md warns against ("keep it
-		// SPARSE — it is a debug tool for control events, not a per-tick firehose").
-		//
-		// Gated at the SOURCE on one env var read once at process start, the same shape
-		// WIREFOLD_EDGE_BEAD_TRACE uses for the other high-volume trace (paced_wire.go):
-		// with it unset nothing is formatted and nothing is appended, rather than being
-		// built and discarded downstream. Set WIREFOLD_CHAIN_AIM_TRACE=1 to get it back.
-		// beadindex.ChainAimBreadcrumbText builds the pure VALUE string (a phase of its
-		// own); the m.tr.Breadcrumb call right after it is the side effect — a send on the
-		// trace channel — that formatting is not.
-		if m.tr != nil && chainAimTraceEnabled {
-			targetRow := int32(-1)
-			if m.topo.nodeRowFor != nil {
-				if r, ok := m.topo.nodeRowFor(to); ok {
-					targetRow = r
-				}
-			}
-			value := beadindex.ChainAimBreadcrumbText(to, count, dist, liveDir)
-			m.tr.Breadcrumb("chain-aim", m.id, to, value)
-			breadcrumbs = append(breadcrumbs, wire.RowEvent{
-				Kind: T.KindBreadcrumb, Label: T.BreadcrumbChainAim, Debug: 1,
-				NodeRow: m.stream.nodeRow, PortRow: -1, TargetRow: targetRow, TargetPortRow: -1,
-				EdgeRow: -1, Slot: -1, Text: value,
-			})
-		}
-		// One coordinate: bead index i. Offset from this node's centre is
-		// selfTorusR + lattice.BeadTorusOuterR + i*lattice.BeadStepR (docs/bead-model/bead-lattice.md
-		// "Placement"). "Beads never inside a node" falls out of this tangency, with no
-		// clamp.
-		step := lattice.BeadStepR
-		base := selfTorusR + lattice.BeadTorusOuterR
-		offsetAt := func(i int) float64 {
-			return beadindex.BeadPlacementOffset(base, step, i)
-		}
-		// aimUnit is the live direction, carried as a plain unit vector: this is what
-		// gets broadcast to this edge's bead-actor chain (reconcileBeadChain,
-		// bead_chain.go), which resolves each bead's own position from it directly (one
-		// hop, dependency depth 1 — no neighbour read). Bead 0's resolved position IS
-		// this node's own "node -> first bead" polar vector (MODEL.md): owned by that
-		// bead's own goroutine, never a second stored copy here.
-		aimUnit := liveDir
-		// A MUTUAL pair (this target also aims back here) offsets its own chain
-		// perpendicular to the shared centre line so the two chains do not draw on top of
-		// each other — see nodegeom.ParallelChainOffset (nodegeom/port_geometry.go) for why the direction is
-		// measured in canonical id order and why each end can decide alone. Zero for every
-		// ordinary edge, so a one-way chain is untouched. The vector math lives in
-		// port_geometry.go because this file is guarded against it
-		// (tools/network/beads/check-no-sqrt-in-chain-beads.sh), the same split nodegeom.EdgeCenterDistAndDir uses.
-		var chainSep vec3
-		if m.topo.mutualTargets[to] {
-			if off, ok := nodegeom.ParallelChainOffset(m.id, to, selfCenter, targetCenter, m.geom.SceneCenter); ok {
-				chainSep = off
-			}
-		}
-		// Production call site for the bead-actor primitive (nodes/wire/bead_actor.go,
-		// bead_wake_group.go): nil in every bare-literal test NodeMover, so this stays a
-		// no-op there and chainBeads keeps its pure, synchronous, deterministic contract
-		// (see beadTickFn's own doc comment). In production this reconciles this edge's
-		// live *wire.Bead goroutine count to `count` and broadcasts fresh geometry when
-		// the aim or count changed.
-		var actorChain *edgeBeadChain
-		if m.beads.beadTickFn != nil {
-			actorChain = m.reconcileBeadChain(to, count, offsetAt, aimUnit)
-		}
-		// resolved/resolvedValid are the bead-actor chain's own already-drained snapshot
-		// positions, parallel to placeholder index i — nil/empty when there is no live
-		// bead-actor chain (beadTickFn nil, every bare-literal test NodeMover), in which
-		// case beadindex.ChainBeadRows falls back to the formula for every index. This is
-		// the only piece of actor state fed into ChainBeadRows; it is read here, once, on
-		// this node's own goroutine, and handed down as a plain slice.
-		var resolved []vec3
-		var resolvedValid []bool
-		if actorChain != nil {
-			resolved = make([]vec3, len(actorChain.last))
-			resolvedValid = actorChain.valid
-			for i, s := range actorChain.last {
-				resolved[i] = s.Position
-			}
-		}
-		// ChainBeadRows is chainBeads' own two placement loops — the placeholder loop
-		// (every row UNLIT; it is no longer what a traversal looks like, but it stays on
-		// the wire because it is still the chain's own geometry, still what the bead-actor
-		// goroutines resolve, and still what every placement rule in this file's tests is
-		// written against — the renderer simply draws lit rows only) and the lit-pulse loop
-		// (one LIT row per live pulse, appended after this edge's chain, at a CONTINUOUS
-		// index rather than an integer one — see PulsePlacementOffset's own doc comment) —
-		// unchanged arithmetic, named as a phase (beadindex/chain_edge_layout.go).
-		edgeOX, edgeOY, edgeOZ, edgeLit, edgeLitVal := beadindex.ChainBeadRows(liveDir, chainSep, base, step, count, resolved, resolvedValid, pulses)
 		ox = append(ox, edgeOX...)
 		oy = append(oy, edgeOY...)
 		oz = append(oz, edgeOZ...)
 		lit = append(lit, edgeLit...)
 		litVal = append(litVal, edgeLitVal...)
+		if breadcrumb != nil {
+			breadcrumbs = append(breadcrumbs, *breadcrumb)
+		}
 	}
 	return ox, oy, oz, lit, litVal, breadcrumbs
+}
+
+// chainBeadsForTarget is chainBeads' own per-target body, split out as a phase: measure the
+// edge, publish its step count, gather its live pulses, build its diagnostic breadcrumb,
+// reconcile its bead-actor chain, then place its rows. ok is false exactly when this target
+// contributes no beads (EdgeCenterDistAndDir's own guard, unchanged from before this split).
+func (m *NodeGeometry) chainBeadsForTarget(to string, tick int64, selfTorusR float64, selfCenter, targetCenter vec3) (ox, oy, oz []float32, lit []uint8, litVal []int32, breadcrumb *wire.RowEvent, ok bool) {
+	// The ONE authoritative length: docs/bead-model/bead-lattice.md's edgeStepCount, computed
+	// from the LIVE center-to-center distance — the model has no stored fallback any
+	// more (wire.LocalPolar deleted): a target with no live measurement was already
+	// skipped by the caller via haveTargetCenter. dist and liveDir (the DIRECTION, consumed
+	// further down) come from the SAME nodegeom.EdgeCenterDistAndDir call — one measurement of
+	// the edge, not two (that function's own doc comment). Both the placement loop
+	// below and this edge's wire (via PublishSteps/outStepsIn just after) read this
+	// SAME integer, so layout and timing cannot disagree.
+	//
+	// nodegeom.EdgeCenterDistAndDir's one sqrt-based vector-length/normalize pair is
+	// deliberately NOT inlined here: this file is guarded against a cartesian sqrt
+	// (tools/network/beads/check-no-sqrt-in-chain-beads.sh) so bead placement stays a direct read of
+	// the live measurement; the sqrt itself lives in port_geometry.go, which already
+	// computes nodegeom.EdgeSegment the same way.
+	// ChainEdgeGeometry is nodegeom.EdgeCenterDistAndDir + nodegeom.EdgeStepCount,
+	// unchanged, named as a phase (beadindex/chain_edge_layout.go): the ONE live
+	// measurement of this edge and the ONE integer bead-step count derived from it,
+	// read once and reused for layout, the published step count, and the breadcrumb's
+	// own K. ok is false exactly when the two centers coincide (EdgeCenterDistAndDir's
+	// own guard) — skip this edge exactly as before.
+	dist, liveDir, count, geomOK := beadindex.ChainEdgeGeometry(selfCenter, targetCenter, selfTorusR, m.geom.Kind, m.topo.neighborKinds[to])
+	if !geomOK {
+		return nil, nil, nil, nil, nil, nil, false
+	}
+
+	// IMPURE 1: publish this edge's freshly computed step count onto its own *wire.Out
+	// (docs/bead-model/bead-lattice.md "Ownership") and onto its edgeMover's stepsIn (so a live
+	// in-flight bead's remaining travel — edgeMover.recomputeGeometry's
+	// ReviseInFlightGeometry call — is revised against the same integer too; see
+	// edgemover's own edge_mover.go stepsIn doc comment for why a second delivery is
+	// needed instead of the edgeMover reading the Out directly). Both are
+	// non-blocking, latest-wins sends — this node's own goroutine never waits on
+	// either reader.
+	m.publishStepCount(to, count)
+
+	// IMPURE 2: which bead this edge's traversals have reached, read from THIS node's own
+	// outgoing wire for this target (m.outs.outWires[i].LiveBeadFractions), gathered into
+	// beadindex.Pulse values — see gatherPulses for the full doc.
+	pulses := m.gatherPulses(to, tick)
+
+	// IMPURE 3/4: the diagnostic chain-aim breadcrumb — m.tr.Breadcrumb is the trace-channel
+	// send, breadcrumbFor builds the RowEvent appended to the caller's own stream frame
+	// (never a nested writeStreamFrame call — see this file's package doc comment on why
+	// that would recurse).
+	breadcrumb = m.chainAimBreadcrumb(to, count, dist, liveDir)
+
+	// One coordinate: bead index i. Offset from this node's centre is
+	// selfTorusR + lattice.BeadTorusOuterR + i*lattice.BeadStepR (docs/bead-model/bead-lattice.md
+	// "Placement"). "Beads never inside a node" falls out of this tangency, with no
+	// clamp.
+	step := lattice.BeadStepR
+	base := selfTorusR + lattice.BeadTorusOuterR
+	offsetAt := func(i int) float64 {
+		return beadindex.BeadPlacementOffset(base, step, i)
+	}
+	// aimUnit is the live direction, carried as a plain unit vector: this is what
+	// gets broadcast to this edge's bead-actor chain (reconcileBeadChain,
+	// bead_chain.go), which resolves each bead's own position from it directly (one
+	// hop, dependency depth 1 — no neighbour read). Bead 0's resolved position IS
+	// this node's own "node -> first bead" polar vector (MODEL.md): owned by that
+	// bead's own goroutine, never a second stored copy here.
+	aimUnit := liveDir
+	// A MUTUAL pair (this target also aims back here) offsets its own chain
+	// perpendicular to the shared centre line so the two chains do not draw on top of
+	// each other — see nodegeom.ParallelChainOffset (nodegeom/port_geometry.go) for why the direction is
+	// measured in canonical id order and why each end can decide alone. Zero for every
+	// ordinary edge, so a one-way chain is untouched. The vector math lives in
+	// port_geometry.go because this file is guarded against it
+	// (tools/network/beads/check-no-sqrt-in-chain-beads.sh), the same split nodegeom.EdgeCenterDistAndDir uses.
+	var chainSep vec3
+	if m.topo.mutualTargets[to] {
+		if off, sepOK := nodegeom.ParallelChainOffset(m.id, to, selfCenter, targetCenter, m.geom.SceneCenter); sepOK {
+			chainSep = off
+		}
+	}
+
+	// IMPURE 5: reconcile this edge's live bead-actor chain (production call site for
+	// nodes/wire/bead_actor.go, bead_wake_group.go) — nil in every bare-literal test
+	// NodeMover, so this stays a no-op there and chainBeads keeps its pure, synchronous,
+	// deterministic contract (see beadTickFn's own doc comment). In production this
+	// reconciles this edge's live *wire.Bead goroutine count to `count` and broadcasts
+	// fresh geometry when the aim or count changed.
+	var actorChain *edgeBeadChain
+	if m.beads.beadTickFn != nil {
+		actorChain = m.reconcileBeadChain(to, count, offsetAt, aimUnit)
+	}
+	// resolved/resolvedValid are the bead-actor chain's own already-drained snapshot
+	// positions, parallel to placeholder index i — nil/empty when there is no live
+	// bead-actor chain (beadTickFn nil, every bare-literal test NodeMover), in which
+	// case beadindex.ChainBeadRows falls back to the formula for every index. This is
+	// the only piece of actor state fed into ChainBeadRows; it is read here, once, on
+	// this node's own goroutine, and handed down as a plain slice.
+	var resolved []vec3
+	var resolvedValid []bool
+	if actorChain != nil {
+		resolved = make([]vec3, len(actorChain.last))
+		resolvedValid = actorChain.valid
+		for i, s := range actorChain.last {
+			resolved[i] = s.Position
+		}
+	}
+	// ChainBeadRows is chainBeads' own two placement loops — the placeholder loop
+	// (every row UNLIT; it is no longer what a traversal looks like, but it stays on
+	// the wire because it is still the chain's own geometry, still what the bead-actor
+	// goroutines resolve, and still what every placement rule in this file's tests is
+	// written against — the renderer simply draws lit rows only) and the lit-pulse loop
+	// (one LIT row per live pulse, appended after this edge's chain, at a CONTINUOUS
+	// index rather than an integer one — see PulsePlacementOffset's own doc comment) —
+	// unchanged arithmetic, named as a phase (beadindex/chain_edge_layout.go).
+	ox, oy, oz, lit, litVal = beadindex.ChainBeadRows(liveDir, chainSep, base, step, count, resolved, resolvedValid, pulses)
+	return ox, oy, oz, lit, litVal, breadcrumb, true
+}
+
+// publishStepCount is IMPURE OPERATION 1 (originally chain_beads.go:167-177): a non-blocking,
+// latest-wins send of this edge's freshly computed step count onto its own *wire.Out and its
+// edgeMover's stepsIn. See chainBeadsForTarget's call site for the ownership doc.
+func (m *NodeGeometry) publishStepCount(to string, count int) {
+	for i, wt := range m.outs.outWireTargets {
+		if wt != to {
+			continue
+		}
+		if i < len(m.outs.outWireOuts) && m.outs.outWireOuts[i] != nil {
+			m.outs.outWireOuts[i].PublishSteps(count)
+		}
+		if i < len(m.outs.outStepsIn) && m.outs.outStepsIn[i] != nil {
+			m.outs.outStepsIn[i](count)
+		}
+	}
+}
+
+// gatherPulses is IMPURE OPERATION 2 (originally chain_beads.go:201-215): reads THIS node's
+// own outgoing wire for `to`, on this node's own goroutine (it is the goroutine that drives
+// that wire — see NodeMover.outWires), so LiveBeadFractions' single-goroutine contract holds
+// and no other goroutine's state is touched.
+//
+// index -> the traversing bead's VALUE. The value travels because the lit bead takes bead 0's
+// or bead 1's own fill: a bare "is lit" flag could not say which. THE PULSES on this edge: one
+// entry per live traversal, each carrying its own CONTINUOUS fraction rather than the index of
+// a chain bead it has reached.
+//
+// The edge is drawn as a line now, not as a sequence of placeholder beads lighting in turn, so
+// there is no slot for a traversal to occupy — it has a position. That is why litBeadIndex (a
+// FLOOR onto a bead index, lit_bead_index.go) is not used here: floor is exactly what made the
+// old motion a series of jumps, one bead-width each, and no tick rate can smooth a value that
+// is quantised before it is drawn.
+//
+// t stays the wire's own [0,1) fraction, and the step count still comes with the bead
+// (p.Steps), so lighting and layout still read ONE length — the property litBeadIndex's doc
+// comment protects, kept by passing t through instead of an index.
+func (m *NodeGeometry) gatherPulses(to string, tick int64) []beadindex.Pulse {
+	var pulses []beadindex.Pulse
+	for i, wt := range m.outs.outWireTargets {
+		if wt != to || m.outs.outWires[i] == nil {
+			continue
+		}
+		for _, p := range m.outs.outWires[i].LiveBeadFractions(tick) {
+			if p.T < 0 || p.T >= 1 || p.Steps <= 0 {
+				continue
+			}
+			// p.Steps travels WITH the bead: it is the length its own t was computed
+			// against. Carried here so placement spans that same integer — see the
+			// placement in chainBeadsForTarget.
+			pulses = append(pulses, beadindex.Pulse{T: p.T, Steps: p.Steps, Val: int32(p.Val)})
+		}
+	}
+	return pulses
+}
+
+// chainAimBreadcrumb is IMPURE OPERATIONS 3 and 4 (originally chain_beads.go:216-247):
+// DIAGNOSTIC ONLY (task/log-node4-chain-aim), one breadcrumb per outgoing target per
+// chainBeads() call. Gated on m.tr != nil exactly like emitGeometry's own breadcrumb calls
+// elsewhere in this package — cheap no-op with no stream wired (headless tests, bare movers).
+//
+// DIAGNOSTIC, AND OFF BY DEFAULT. chainBeads runs once per cycle per outgoing target, so this
+// breadcrumb is per-tick — 56,492 rows and 15 MB from a single two-node run, which buries
+// every control-event breadcrumb emitted alongside it and is the exact firehose
+// .claude/rules/go-debugging.md warns against ("keep it SPARSE — it is a debug tool for
+// control events, not a per-tick firehose").
+//
+// Gated at the SOURCE on one env var read once at process start, the same shape
+// WIREFOLD_EDGE_BEAD_TRACE uses for the other high-volume trace (paced_wire.go): with it
+// unset nothing is formatted and nothing is appended, rather than being built and discarded
+// downstream. Set WIREFOLD_CHAIN_AIM_TRACE=1 to get it back. beadindex.ChainAimBreadcrumbText
+// builds the pure VALUE string (a phase of its own); the m.tr.Breadcrumb call right after it
+// is IMPURE OPERATION 3 — a send on the trace channel — that formatting is not. The returned
+// *wire.RowEvent is appended to the caller's own frame — the caller does IMPURE OPERATION 4,
+// a nested writeStreamFrame call would recurse (see this file's package doc comment).
+func (m *NodeGeometry) chainAimBreadcrumb(to string, count int, dist float64, liveDir vec3) *wire.RowEvent {
+	if m.tr == nil || !chainAimTraceEnabled {
+		return nil
+	}
+	targetRow := int32(-1)
+	if m.topo.nodeRowFor != nil {
+		if r, ok := m.topo.nodeRowFor(to); ok {
+			targetRow = r
+		}
+	}
+	value := beadindex.ChainAimBreadcrumbText(to, count, dist, liveDir)
+	m.tr.Breadcrumb("chain-aim", m.id, to, value)
+	return &wire.RowEvent{
+		Kind: T.KindBreadcrumb, Label: T.BreadcrumbChainAim, Debug: 1,
+		NodeRow: m.stream.nodeRow, PortRow: -1, TargetRow: targetRow, TargetPortRow: -1,
+		EdgeRow: -1, Slot: -1, Text: value,
+	}
 }
