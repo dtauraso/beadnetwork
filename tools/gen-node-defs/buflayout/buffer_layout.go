@@ -128,4 +128,3 @@ func WriteBufferLayoutGo(outPath string, schema BufLayoutSchema) error {
 	}
 	return os.WriteFile(outPath, formatted, 0644)
 }
-
