@@ -51,8 +51,32 @@ import (
 // not the node count): rows 0..rowCount-1, ROW ID = NODE ID - 1. 0 (test call sites that
 // don't pass one) falls back to the number of resolved seeds, i.e. no gaps.
 func NewMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[string]inputcodec.EdgeEndpoints, tr *T.Trace, nodeOrder, edgeOrder []string, clk clock.Clock, speedSinks *[]chan float64, rowCount int) (*MoveDispatch, error) {
-	// nil order (test call sites that don't care about seed order) falls back to sorted
-	// map keys — still deterministic, just not necessarily spec order.
+	nodeOrder, edgeOrder = resolveSeedOrders(geoms, edgeEndpoints, nodeOrder, edgeOrder)
+
+	md := &MoveDispatch{
+		TR: tr,
+	}
+	md.MR = moverreg.New()
+	initMoveDispatchUIDefaults(md)
+
+	if err := md.buildGeomSeeds(geoms, edgeEndpoints, nodeOrder, edgeOrder); err != nil {
+		return nil, err
+	}
+	md.buildNodeMovers(geoms, tr, clk)
+	md.wireMutualPairs(edgeEndpoints)
+	md.buildEdgeMovers(edgeEndpoints, geoms, tr, clk, speedSinks)
+	md.seedPartnerCenters()
+	md.wireNodeEdgeIDs()
+	md.buildRowTables(rowCount)
+	md.bindUIClosures()
+
+	return md, nil
+}
+
+// resolveSeedOrders returns nodeOrder/edgeOrder, falling back to sorted map keys when the
+// caller passed nil (test call sites that don't care about seed order) — still
+// deterministic, just not necessarily spec order.
+func resolveSeedOrders(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[string]inputcodec.EdgeEndpoints, nodeOrder, edgeOrder []string) ([]string, []string) {
 	if nodeOrder == nil {
 		nodeOrder = make([]string, 0, len(geoms))
 		for id := range geoms {
@@ -67,14 +91,21 @@ func NewMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[strin
 		}
 		sort.Strings(edgeOrder)
 	}
-	md := &MoveDispatch{
-		TR: tr,
-	}
-	md.MR = moverreg.New()
+	return nodeOrder, edgeOrder
+}
+
+// initMoveDispatchUIDefaults sets md.UI's startup defaults, each overwritten later by its
+// own loader if the loaded scene has one persisted.
+func initMoveDispatchUIDefaults(md *MoveDispatch) {
 	md.UI.OV = viewstate.DefaultOverlayState()
 	md.UI.Speed = 1                                         // default playback multiplier; LoadSpeed overwrites from view/speed.json if present
 	md.UI.ClockDivisor = 1                                  // no scaling until LoadSpeed resolves the loaded scene's own divisor
 	md.UI.LatticePoints = scenepersist.DefaultLatticePoints // LoadLatticePoints overwrites from view/lattice.json if present
+}
+
+// buildGeomSeeds builds md.GS.NodeSeeds/EdgeSeeds — the buffer row seeds — from the
+// load-time geoms/edgeEndpoints, in nodeOrder/edgeOrder (the SPEC order).
+func (md *MoveDispatch) buildGeomSeeds(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[string]inputcodec.EdgeEndpoints, nodeOrder, edgeOrder []string) error {
 	md.GS.NodeSeeds = make([]geomseeds.NodeGeomSeed, 0, len(nodeOrder))
 	for i, id := range nodeOrder {
 		g, ok := geoms[id]
@@ -108,10 +139,16 @@ func NewMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[strin
 		// real data.
 		seed, err := geomseeds.BuildEdgeSeed(label, ep, geoms)
 		if err != nil {
-			return nil, err
+			return err
 		}
 		md.GS.EdgeSeeds = append(md.GS.EdgeSeeds, seed)
 	}
+	return nil
+}
+
+// buildNodeMovers creates one nodeMover per node, wires its messaging closures, and seeds
+// the dispatch goroutine's center mirror from the load-time geom.
+func (md *MoveDispatch) buildNodeMovers(geoms map[string]nodegeom.NodeGeom, tr *T.Trace, clk clock.Clock) {
 	for id, g := range geoms {
 		ng := nodeactor.NewNodeGeometry(id, g, tr, clk)
 		// resolveDest resolves the ONE dedicated directed channel FROM this node
@@ -148,11 +185,15 @@ func NewMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[strin
 		// the partnerCenters seed below).
 		md.MR.SeedCenter(id, nodegeom.NodeWorldPos(g))
 	}
-	// A pair that points at each other is a LOAD-TIME fact of the edge set, resolved here
-	// (single-threaded setup, before any mover goroutine exists) and copied into each
-	// node's own field. Without it a node cannot know whether its target also aims back —
-	// its own outTargets say nothing about the other node's — and the two chains would draw
-	// along the identical centre line (nodegeom.ParallelChainOffset, nodegeom/port_geometry.go).
+}
+
+// wireMutualPairs copies each mutual-pair fact (a pair that points an edge at each other) —
+// a LOAD-TIME fact of the edge set, resolved here (single-threaded setup, before any mover
+// goroutine exists) — into each node's own field. Without it a node cannot know whether its
+// target also aims back — its own outTargets say nothing about the other node's — and the
+// two chains would draw along the identical centre line (nodegeom.ParallelChainOffset,
+// nodegeom/port_geometry.go).
+func (md *MoveDispatch) wireMutualPairs(edgeEndpoints map[string]inputcodec.EdgeEndpoints) {
 	for src, targets := range geomseeds.MutualPairs(edgeEndpoints) {
 		if nm, ok := md.MR.NodeGeoms()[src]; ok {
 			for target := range targets {
@@ -160,6 +201,12 @@ func NewMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[strin
 			}
 		}
 	}
+}
+
+// buildEdgeMovers creates one edgeMover per edge, wires speedSinks (if non-nil, the
+// loader's build-wide accumulator — every clock-owning goroutine must not be left behind),
+// and ensures the dedicated node-to-node neighbor channels each edge's two endpoints share.
+func (md *MoveDispatch) buildEdgeMovers(edgeEndpoints map[string]inputcodec.EdgeEndpoints, geoms map[string]nodegeom.NodeGeom, tr *T.Trace, clk clock.Clock, speedSinks *[]chan float64) {
 	for edgeID, ep := range edgeEndpoints {
 		em := edgemover.New(edgeID, ep.Source, ep.Target, ep.SourceHandle, ep.TargetHandle, geoms[ep.Source], geoms[ep.Target], tr, clk)
 		if speedSinks != nil {
@@ -179,11 +226,14 @@ func NewMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[strin
 			}
 		}
 	}
-	// Seed every nodeMover's own partnerCenters map: quantized_move.go's neighbor-move
-	// math (neighborSetCReposition et al.) reads a direct neighbor's CURRENT world center
-	// off THIS node's OWN partnerCenters map (owned, written only by this node's own
-	// goroutine), kept current thereafter by each neighbor's own movemsg.KindNeighborCenter
-	// push (applyCenter) — one hop, no cascade.
+}
+
+// seedPartnerCenters seeds every nodeMover's own partnerCenters map: quantized_move.go's
+// neighbor-move math (neighborSetCReposition et al.) reads a direct neighbor's CURRENT
+// world center off THIS node's OWN partnerCenters map (owned, written only by this node's
+// own goroutine), kept current thereafter by each neighbor's own movemsg.KindNeighborCenter
+// push (applyCenter) — one hop, no cascade.
+func (md *MoveDispatch) seedPartnerCenters() {
 	for _, nm := range md.MR.NodeGeoms() {
 		// Seed partnerCenters at construction (single-threaded setup, before md.Start —
 		// no mover goroutine is running yet, so reading a neighbor's geom directly here
@@ -197,9 +247,12 @@ func NewMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[strin
 			}
 		}
 	}
-	// Give every nodeMover the ids of its OWN incident edges, so a lock-driven move can
-	// notify its edges via sendMove (resolveDest's per-pair channel lookup) — no cached
-	// channel slice.
+}
+
+// wireNodeEdgeIDs gives every nodeMover the ids of its OWN incident edges, so a
+// lock-driven move can notify its edges via sendMove (resolveDest's per-pair channel
+// lookup) — no cached channel slice.
+func (md *MoveDispatch) wireNodeEdgeIDs() {
 	for id, nm := range md.MR.NodeGeoms() {
 		for edgeID, em := range md.MR.EdgeMovers() {
 			if em.SrcID() == id || em.DstID() == id {
@@ -207,9 +260,12 @@ func NewMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[strin
 			}
 		}
 	}
-	// Row-identity tables: built ONCE here, from nodeSeeds/edgeSeeds (each node seed already
-	// carries its own absolute Row = id-1) — see RowTables.Build's doc comment for why this is
-	// a load-time constant, not a discovery log.
+}
+
+// buildRowTables builds the row-identity tables ONCE, from nodeSeeds/edgeSeeds (each node
+// seed already carries its own absolute Row = id-1) — see RowTables.Build's doc comment for
+// why this is a load-time constant, not a discovery log.
+func (md *MoveDispatch) buildRowTables(rowCount int) {
 	rtNodeSeeds := make([]rowtables.NodeSeed, len(md.GS.NodeSeeds))
 	for i, sd := range md.GS.NodeSeeds {
 		rtNodeSeeds[i] = rowtables.NodeSeed{ID: sd.ID, Row: sd.Row}
@@ -219,18 +275,20 @@ func NewMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[strin
 		rtEdgeSeeds[i] = rowtables.EdgeSeed{Label: sd.Label, SrcNode: sd.SrcNode, DstNode: sd.DstNode}
 	}
 	md.RT.Build(rtNodeSeeds, rtEdgeSeeds, rowCount)
-	// Bind the two closures EmitViewFrame needs but cannot reach directly (md.RT/md.MR are
-	// unexported-package-internal from viewstate's point of view — RT is exported but
-	// UIState cannot hold a *rowtables.RowTables field of its own without MoveDispatch
-	// handing it one, and DistanceGroupLens needs *moverreg.MoverRegistry, an unexported
-	// dispatch-owned field). Bound ONCE, here, mirroring ng.msg.sendMove = md.MR.EnqueueFor(ng) above — not
-	// re-resolved on every emit. Method value md.RT.NodeRowFor captures &md.RT (md.RT is
-	// addressable through the *MoveDispatch pointer), so it keeps seeing whatever RT.Build
-	// just populated even though this bind runs after it.
+}
+
+// bindUIClosures binds the two closures EmitViewFrame needs but cannot reach directly
+// (md.RT/md.MR are unexported-package-internal from viewstate's point of view — RT is
+// exported but UIState cannot hold a *rowtables.RowTables field of its own without
+// MoveDispatch handing it one, and DistanceGroupLens needs *moverreg.MoverRegistry, an
+// unexported dispatch-owned field). Bound ONCE, here, mirroring ng.msg.sendMove =
+// md.MR.EnqueueFor(ng) above — not re-resolved on every emit. Method value md.RT.NodeRowFor
+// captures &md.RT (md.RT is addressable through the *MoveDispatch pointer), so it keeps
+// seeing whatever RT.Build just populated even though this bind runs after it.
+func (md *MoveDispatch) bindUIClosures() {
 	md.UI.NodeRowFor = md.RT.NodeRowFor
 	mrForLens, uiForLens := &md.MR, &md.UI
 	md.UI.DistanceGroupLensFn = func() (float32, float32, float32) {
 		return DistanceGroupLens(uiForLens, mrForLens)
 	}
-	return md, nil
 }
