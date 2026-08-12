@@ -106,3 +106,20 @@ export function nodeRowColors(nodeView: DataView, row: number): { fill: string; 
     stroke: def?.stroke ?? NODE_DEFAULT_STROKE,
   };
 }
+
+/**
+ * Convert a streamed ring/pole angle pair (RingAxisTheta/RingAxisPhi, or the same
+ * PoleTheta/PolePhi convention elsewhere) into a unit axis vector — the one cartesian
+ * conversion shared by NodeInstances.tsx (ring orientation) and node-stream-blocks.ts
+ * (chain-bead ring axis), which both orient geometry off the same Go-streamed pole. θ
+ * measured from world +y, φ the azimuth around +y from +x toward +z (nav/buffer-nav.ts's
+ * poleVec uses the identical convention, kept separate there since it returns a
+ * THREE.Vector3 for the nav overlay rather than a plain triple).
+ *
+ * (0,0) is Go's "no position yet" sentinel; this formula already maps it to (0,1,0) (world
+ * +y) with no special case needed, since sin(0)=0 and cos(0)=1.
+ */
+export function poleAxis(theta: number, phi: number): [number, number, number] {
+  const st = Math.sin(theta);
+  return [st * Math.cos(phi), Math.cos(theta), st * Math.sin(phi)];
+}

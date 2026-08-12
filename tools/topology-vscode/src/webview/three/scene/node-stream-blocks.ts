@@ -37,6 +37,7 @@ import {
   readNodeCX, readNodeCY, readNodeCZ,
   readChainBeadOX, readChainBeadOY, readChainBeadOZ, readChainBeadLit, readChainBeadLitValue,
 } from "../../../schema/buffer-layout";
+import { poleAxis } from "./buffer-scene-shared";
 
 const STR_ENCODER = new TextEncoder();
 
@@ -232,10 +233,7 @@ export function getChainBeads(): ChainBeadsAgg {
     // (0,0) is the "no position yet" value Go streams, which means world +y.
     const poleTheta = readNodeRingAxisTheta(decoded.nodeView, 0);
     const polePhi = readNodeRingAxisPhi(decoded.nodeView, 0);
-    const st = Math.sin(poleTheta);
-    const ax = poleTheta === 0 && polePhi === 0 ? 0 : st * Math.cos(polePhi);
-    const ay = poleTheta === 0 && polePhi === 0 ? 1 : Math.cos(poleTheta);
-    const az = poleTheta === 0 && polePhi === 0 ? 0 : st * Math.sin(polePhi);
+    const [ax, ay, az] = poleAxis(poleTheta, polePhi);
     for (let i = 0; i < decoded.chainBeadCount; i++) {
       ringAxis[w] = ax;
       ringAxis[w + 1] = ay;

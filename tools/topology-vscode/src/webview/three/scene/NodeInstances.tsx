@@ -32,7 +32,7 @@ import {
 import {
   BUFFER_NODE_TAG, BUFFER_RING_TAG, NODE_SPHERE_RADIUS,
   NODE_RING_TUBE_RATIO, RING_PICK_TUBE_RATIO, RING_PICK_COLOR, RING_PICK_OPACITY,
-  RING_BAND_MAJOR, RING_BAND_TUBE, nodeRowColors,
+  RING_BAND_MAJOR, RING_BAND_TUBE, nodeRowColors, poleAxis,
 } from "./buffer-scene-shared";
 import { computeNodeDepthOrder, setNodeDrawOrder } from "./node-depth-order";
 
@@ -131,13 +131,10 @@ export function NodeInstances({ capacity }: { capacity: number }) {
       // Ring orientation: rotate the torus's own +Z normal onto the axis Go streams for
       // this node. The BODY stays unrotated (a sphere has no orientation to get wrong), so
       // this is composed separately rather than reusing the body's matrix.
-      ringAxis.set(0, 1, 0);
       const poleTheta = readNodeRingAxisTheta(nodeView, row);
       const polePhi = readNodeRingAxisPhi(nodeView, row);
-      if (poleTheta !== 0 || polePhi !== 0) {
-        const st = Math.sin(poleTheta);
-        ringAxis.set(st * Math.cos(polePhi), Math.cos(poleTheta), st * Math.sin(polePhi));
-      }
+      const [ax, ay, az] = poleAxis(poleTheta, polePhi);
+      ringAxis.set(ax, ay, az);
       ringQuatRef.current.setFromUnitVectors(TORUS_DEFAULT_NORMAL, ringAxis);
       matRef.current.compose(posRef.current, ringQuatRef.current, sclRef.current);
       ring.setMatrixAt(slot, matRef.current);
