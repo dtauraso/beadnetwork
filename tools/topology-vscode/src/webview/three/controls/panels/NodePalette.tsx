@@ -1,24 +1,20 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { postGoRecord } from "../../../vscode-api";
-import { encodeSceneCreate, encodeSceneDelete } from "../../../../schema/input-encode";
-import { NODE_KIND_NAMES, NODE_DEFS } from "../../../../schema/node-defs";
+import { encodeSceneDelete } from "../../../../schema/input-encode";
+import { NODE_KIND_NAMES } from "../../../../schema/node-defs";
 import { useSelectedNodeRow } from "../flags/overlay-flags-selection";
 import { useSceneEditable, useSceneKinds } from "../flags/overlay-flags-scene";
 import { useEditRefused } from "../flags/overlay-flags-edit-refused";
+import { PaletteRow } from "./PaletteRow";
 import {
   pillContainerStyle,
   pillBodyStyle,
   pillCaretStyle,
   PILL_ANCHOR_STYLE,
   inFlowPopoverStyle,
-  popoverRowStyle,
   CHROME_TEXT,
   CHROME_FONT_STACK,
-  DISCLOSURE_GLYPH_STYLE,
-  REVEALED_LIST_STYLE,
 } from "../pills/overlay-chrome";
-
-const KIND_MIME = "application/x-wirefold-kind";
 
 export function NodePalette() {
   const editable = useSceneEditable();
@@ -80,74 +76,6 @@ export function NodePalette() {
   );
 }
 
-function PaletteRow({ kind, kindId }: { kind: string; kindId: number }) {
-  const [hover, setHover] = useState(false);
-
-  const [open, setOpen] = useState(false);
-
-  const headingRef = useRef<HTMLSpanElement>(null);
-  const def = NODE_DEFS[kind];
-  return (
-    <div
-      draggable
-      onDragStart={(e) => {
-        e.dataTransfer.setData(KIND_MIME, String(kindId));
-        e.dataTransfer.effectAllowed = "copy";
-
-        if (headingRef.current) {
-          e.dataTransfer.setDragImage(headingRef.current, 12, 8);
-        }
-      }}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-      style={{ ...popoverRowStyle(hover, false), cursor: "grab", flexDirection: "column", alignItems: "stretch", gap: 2 }}
-      title={`Drag ${kind} onto the scene`}
-    >
-      {}
-      <span
-        ref={headingRef}
-        style={{ display: "flex", alignItems: "center", gap: 7 }}
-        onClick={(e) => {
-          e.stopPropagation();
-          setOpen((o) => !o);
-        }}
-      >
-        <span style={DISCLOSURE_GLYPH_STYLE}>{open ? "▼" : "▶"}</span>
-        {}
-        <span
-          style={{
-            width: 11,
-            height: 11,
-            flex: "0 0 auto",
-            borderRadius: 3,
-            background: def?.fill ?? "#888",
-            border: `1px solid ${def?.stroke ?? "#888"}`,
-          }}
-        />
-        <span style={{ minWidth: 0, overflowWrap: "anywhere" }}>{kind}</span>
-      </span>
-      {}
-      {open && def?.desc && (
-        <div style={REVEALED_LIST_STYLE}>
-          <span
-            style={{
-              display: "block",
-              opacity: 0.8,
-
-              overflowWrap: "anywhere",
-              whiteSpace: "normal",
-              lineHeight: 1.35,
-              paddingLeft: 18,
-            }}
-          >
-            {def.desc}
-          </span>
-        </div>
-      )}
-    </div>
-  );
-}
-
 function RefusedNotice() {
   const refused = useEditRefused();
   const [seen, setSeen] = useState(refused);
@@ -178,15 +106,4 @@ function RefusedNotice() {
       edit refused — see the output channel
     </div>
   );
-}
-
-export function dropKindFromEvent(e: DragEvent): number | null {
-  const raw = e.dataTransfer?.getData(KIND_MIME);
-  if (!raw) return null;
-  const id = Number(raw);
-  return Number.isInteger(id) && id >= 0 ? id : null;
-}
-
-export function fireCreateAt(kindId: number, ndcX: number, ndcY: number): void {
-  postGoRecord(encodeSceneCreate(kindId, ndcX, ndcY));
 }
