@@ -1,7 +1,32 @@
 // fenced by MSG_TYPES_START/END must be declared here and vice versa. Adding a case without
+// adding a numbered entry (or the reverse) fails the guard.
 
 // MSG_TYPES_DOC_START
-
+//
+//  1. "edit" — geometry-CRUD. The sole op is update, which sets an ATTRIBUTE on a
+//     typed entity; the live entities are overlays, clock, and distanceGroup:
+//       update overlays attr=toggle: flip one named overlay flag.
+//       update clock attr=speed: set the playback multiplier.
+//       update distanceGroup attr=length: adjust one "distance home button" group's
+//       target pair length (×1.1 up / ÷1.1 down) — see ApplyDistanceGroupTarget.
+//     A create/delete op pair (records 20/21) once added or removed an edge by
+//     destination slot; both were removed end-to-end (no live TS sender, and create's
+//     only trigger tore down a live wire's beads via PacedWire.Restore) — records 20/21
+//     are now GAPS. Camera / node-move / port-anchor are NOT edits: the gesture FSM
+//     produces them in-process from raw-input, so they never cross this seam as an edit op.
+//
+//  2. "save" — Go persists its OWN authoritative scene state (overlay visibility →
+//     overlays.json; camera → camera.json). Bare command, no payload; the
+//     editor holds no authoritative scene document.
+//
+//  3. "raw-input" — a raw pointer/wheel event + stateless raycast hit, handed to the
+//     gesture FSM.
+//
+// A remounted webview that has nothing new to render (Go idle) is served from the
+// EXT HOST's cached last stream frame instead of asking Go to manufacture one — see
+// runCommand.ts's BuildAndRunRunner.lastSnapshot/getLastSnapshot. Go has no "resend"
+// concept: it emits a frame only when something changes, and that stays true here.
+//
 // MSG_TYPES_DOC_END
 
 package stdinreader
