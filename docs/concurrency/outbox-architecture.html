@@ -408,7 +408,6 @@
       <span><i class="sw k"></i>free to proceed</span>
     </div>
 
-    <!-- ══ 1 · THE DEADLOCK (HISTORY) ══ -->
     <h2>1 · history — why the outbox was built in the first place</h2>
     <p class="cap">Two <b>mutually adjacent</b> movers, both mid-<code>handle</code>, both with full
       inboxes. Each blocks writing into the other's inbox; neither returns to drain its own. Nothing
@@ -460,7 +459,6 @@
       </svg>
     </div>
 
-    <!-- ══ 2 · THE FIRST FIX (SUPERSEDED) ══ -->
     <h2>2 · the shape that was replaced — outbox + dedicated sender</h2>
     <p class="cap">This was the first fix, and it shipped for a while. The enqueue was an
       <b>unbounded slice append</b> guarded by <code>mu</code>/<code>cond</code>; it could not block,
@@ -523,7 +521,6 @@
       </svg>
     </div>
 
-    <!-- ══ 3 · SPSC (WHY THE LOCK WAS EXAMINABLE AT ALL) ══ -->
     <h2>3 · why the lock was even worth examining — it was SPSC</h2>
     <p class="cap">Per instance, every mover's outbox had exactly <b>one</b> enqueuer and <b>one</b>
       drainer; the third goroutine touched <code>mu</code> but never the queue — it only flipped
@@ -562,7 +559,6 @@
       </svg>
     </div>
 
-    <!-- ══ 4 · WHY NOT A CHANNEL (WRONG CONCLUSION AT THE TIME — RESOLVED IN DIAGRAM 6) ══ -->
     <h2>4 · "just use a channel" — the argument that was wrong here</h2>
     <p class="cap">This diagram's ORIGINAL conclusion was: a Go channel is bounded, a full buffer
       blocks the sender, and a blocking sender in <code>handle</code> is <i>exactly</i> diagram 1 —
@@ -611,7 +607,6 @@
       </svg>
     </div>
 
-    <!-- ══ 5 · THE PATTERN ══ -->
     <h2>5 · the track record on “this lock must stay”</h2>
     <p class="cap">Each of these was described in <code>framings.md</code> as needing its lock. Each was
       wrong, including — as of this branch — the one this page itself argued for.</p>
@@ -658,7 +653,6 @@
       </svg>
     </div>
 
-    <!-- ══ 6 · THE SHAPE THAT SHIPPED ══ -->
     <h2>6 · what actually shipped — two directed channels, no lock</h2>
     <p class="cap">No shared inbox, no outbox, no <code>mu</code>, no <code>cond</code>, no dedicated
       sender goroutine, no ctx-watcher goroutine. Every pair of adjacent movers gets <b>two plain Go

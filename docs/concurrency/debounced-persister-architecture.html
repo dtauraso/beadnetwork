@@ -127,7 +127,6 @@
   <span><i class="sw k"></i>safe / resolved</span>
 </div>
 
-<!-- ══ 1 · THE STATE ══ -->
 <h2>1 · what it guards — four fields, four methods</h2>
 <p class="cap">The whole lock is one small struct. Every method takes <code>mu</code>; none
 holds it across a write to disk.</p>
@@ -180,7 +179,6 @@ holds it across a write to disk.</p>
 </svg>
 </div>
 
-<!-- ══ 2 · THE POINT OF IT ══ -->
 <h2>2 · what debouncing is for — a drag is one write, not sixty</h2>
 <p class="cap">Every <code>arm</code> resets the window. A continuous stream of updates
 coalesces into <b>one</b> write after activity settles.</p>
@@ -256,7 +254,6 @@ different argument entirely — and unmeasured.</p>
 </svg>
 </div>
 
-<!-- ══ 3 · THE TWO PARTIES ══ -->
 <h2>3 · the two parties — and the second one is spawned, not chosen</h2>
 <p class="cap">the standard library's timer-fire API used to run <code>flush</code> on a <b>brand-new goroutine</b>
 each time it fires. Nobody picks that goroutine; the runtime makes it. That is what makes
@@ -305,7 +302,6 @@ this two-party rather than one-owner.</p>
 </svg>
 </div>
 
-<!-- ══ 4 · THE SUBTLE ONE ══ -->
 <h2>4 · why take() zeroes pending — the non-obvious reason the lock earns its keep</h2>
 <p class="cap">Two of the five persisters hold a <b>map</b> and mutate it in place. If
 <code>take()</code> handed the map out without clearing it, a schedule arriving mid-flush
@@ -360,7 +356,6 @@ would write into the very map <code>flush</code> is iterating.</p>
 </svg>
 </div>
 
-<!-- ══ 5 · FIVE INSTANCES ══ -->
 <h2>5 · five instances — independent, not one shared lock</h2>
 <p class="cap">Unlike <code>sceneFileMu</code>, this was never one lock over many writers. Each
 persister has its own, so they never contend with each other — only with their own timer.</p>
@@ -386,7 +381,6 @@ persister has its own, so they never contend with each other — only with their
 </svg>
 </div>
 
-<!-- ══ 6 · THE CANDIDATE ══ -->
 <h2>6 · the single-owner candidate</h2>
 <p class="cap">Every lock removed so far fell the same way: give the state one owner. Here that
 means the timer stops spawning an anonymous goroutine, and the flush happens on a goroutine
@@ -429,7 +423,6 @@ that already exists.</p>
 </svg>
 </div>
 
-<!-- ══ 7 · WHAT WOULD PROVE IT ══ -->
 <h2>7 · measured: deleting mu is red, not clean</h2>
 <p class="cap">Unlike <code>sceneFileMu</code>, this one was actually tried. Removing the
 locking from the struct's four methods (arm/take/stop/write-counter)
@@ -460,7 +453,6 @@ not a hypothetical one.</p>
 </svg>
 </div>
 
-<!-- ══ 8 · THE THREE JOBS ══ -->
 <h2>8 · what the lock is actually doing — three separable jobs</h2>
 <p class="cap">"Guards four fields" is not one job. Each of <code>arm</code>'s and
 <code>take</code>'s three effects fails a different way if <code>mu</code> is deleted, and

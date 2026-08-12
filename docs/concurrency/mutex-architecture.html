@@ -129,7 +129,6 @@
   <span><i class="sw k"></i>no lock needed</span>
 </div>
 
-<!-- ═══════════ gone · PacedWire.mu ═══════════ -->
 <h2>gone · PacedWire.mu — deleted by making the wire a goroutine, not a smaller lock</h2>
 <p class="cap">Before, three independently scheduled goroutine roles (source drive loop, destination
 Update loop, per-edge mover) all locked one shared <code>PacedWire</code> struct to reach its
@@ -150,7 +149,6 @@ move that deleted <code>RealClock.mu</code> below.</p>
   <text class="tl" x="0" y="14">GOROUTINES</text>
   <text class="tl" x="560" y="14">OWNED BY ONE OF THEM</text>
 
-  <!-- goroutine boxes -->
   <rect class="safe" x="0" y="30" width="250" height="62" rx="6"/>
   <text class="t"  x="12" y="50">source node · drive loop</text>
   <text class="ts" x="12" y="66">DriveHeld · node Update</text>
@@ -166,7 +164,6 @@ move that deleted <code>RealClock.mu</code> below.</p>
   <text class="ts" x="12" y="230">DriveOneCycle + ReviseInFlightGeometry</text>
   <text class="tf" x="12" y="246">node_mover.go · one per edge, unchanged count</text>
 
-  <!-- arrows with call labels -->
   <path class="arrq" d="M250,61 L560,95" marker-end="url(#ah)"/>
   <text class="tq" x="292" y="62">Send</text>
   <text class="tf" x="292" y="74">non-blocking chan send — never waits on the wire</text>
@@ -177,7 +174,6 @@ move that deleted <code>RealClock.mu</code> below.</p>
 
   <text class="tk" x="12" y="266">no lock reaches this goroutine from outside — nothing to race</text>
 
-  <!-- the wire -->
   <rect class="safe" x="560" y="30" width="290" height="226" rx="8"/>
   <text class="t"  x="574" y="52">PacedWire — the goroutine's own state</text>
   <text class="tf" x="574" y="67">nodes/Wiring/paced_wire.go</text>
@@ -198,7 +194,6 @@ move that deleted <code>RealClock.mu</code> below.</p>
 
   <text class="tf" x="574" y="240">reads its OWN clock copy — no caller-pinned tick anymore</text>
 
-  <!-- verdict strip -->
   <line x1="0" y1="284" x2="860" y2="284" stroke="var(--line)"/>
   <text class="tk" x="0" y="304">RE-PROVEN CLEAN</text>
   <text class="ts" x="130" y="304">Send/RecvTick from other goroutines concurrent with DriveOneCycle + ReviseInFlightGeometry on the wire's own goroutine — no mutex, -race clean</text>
@@ -212,7 +207,6 @@ owner, period — the wire's own goroutine. See
 <span style="color:var(--muted)">docs/planning/visual-editor/wire-owns-itself.md</span> and MODEL.md.
 <span style="color:var(--muted)">task/mutex-pacedwire-restructure</span></p>
 
-<!-- ═══════════ gone · outbox.mu ═══════════ -->
 <h2>gone · outbox.mu + cond — deleted by per-direction channels, not a smaller lock</h2>
 <p class="cap">Before, every mover's handler enqueued onto its own <code>outbox</code> (a mutex+cond
 queue) drained by a dedicated sender goroutine. After, each mover owns one plain channel PER
@@ -227,7 +221,6 @@ dedicated sender goroutine — two goroutines fewer per mover.</p>
   <text class="tl" x="450" y="14">NOW</text>
   <line x1="415" y1="24" x2="415" y2="200" stroke="var(--line)"/>
 
-  <!-- before -->
   <rect class="gor" x="0" y="34" width="200" height="30" rx="4"/>
   <text class="tf" x="10" y="53">nodeMover.run — handle()</text>
   <path class="arrq" d="M100,64 L100,96"/>
@@ -240,7 +233,6 @@ dedicated sender goroutine — two goroutines fewer per mover.</p>
   <rect class="gor" x="0" y="184" width="200" height="30" rx="4"/>
   <text class="tf" x="10" y="203">outbox.run — dedicated sender</text>
 
-  <!-- after -->
   <rect class="gor" x="450" y="34" width="180" height="30" rx="4"/>
   <text class="tf" x="460" y="53">nodeMover.run — sendMove</text>
   <path class="arrk" d="M540,64 L540,96"/>
@@ -272,7 +264,6 @@ SPSC outbox queue had a lock-free form. It no longer applies — there is no que
 pair of adjacent movers talks over its own dedicated channel, and a full channel just means "try
 again next cycle," never a block.</p>
 
-<!-- ═══════════ gone · Trace.mu ═══════════ -->
 <h2>gone · Trace.mu — deleted by giving the drain the only write, not by a smaller lock</h2>
 <p class="cap">Every emitting goroutine sent on a <b>channel</b>, taking no lock, even before the lock
 was deleted. What the mutex actually guarded was <code>Breadcrumb</code>'s direct sink writes (it used
@@ -335,7 +326,6 @@ in production — this was the most misread lock in the tree.</p>
   <text class="ts" x="644" y="217">events · closed (sync.Once)</text>
   <text class="ts" x="644" y="232">sink · onEvent · debugSink</text>
 
-  <!-- former contenders on the ledger, now waited on -->
   <rect class="safe" x="336" y="176" width="180" height="34" rx="6"/>
   <text class="tk" x="348" y="197">Close — waits for wg first</text>
   <path class="arrk" d="M516,193 L620,193" marker-end="url(#ah2)"/>
@@ -361,7 +351,6 @@ removed it. <b style="color:var(--signal)">The framing above it is still open:</
 channel and the drain's single-writer ordering still exist, and the merged log is already only
 <i>arrival order at the drain</i> — scheduler order, not causal order.</p>
 
-<!-- ═══════════ gone · LayoutHolder.mu ═══════════ -->
 <h2>gone · LayoutHolder.mu — deleted by ownership, not by a smaller lock</h2>
 <p class="cap">A node never reaches into a neighbour's holder. It <b>sends a message</b>, and the
 neighbour's own goroutine does the write — so there was never anything for a lock to guard.
@@ -395,7 +384,6 @@ already emits (the <code>"abc-drag"</code> breadcrumb, or a tapped
   <text class="ts" x="12" y="158">localPolars · pole</text>
   <text class="tf" x="12" y="174">written by A only, no lock</text>
 
-  <!-- message path -->
   <path class="arrk" d="M210,58 L330,58" marker-end="url(#ak)"/>
   <rect class="queue" x="330" y="34" width="300" height="48" rx="6"/>
   <text class="ts" x="342" y="54">moveMsgKindNeighborSetC</text>
@@ -412,7 +400,6 @@ already emits (the <code>"abc-drag"</code> breadcrumb, or a tapped
   <text class="ts" x="672" y="158">SetLocalPolar / SetPole</text>
   <text class="tf" x="672" y="174">written by B only, no lock</text>
 
-  <!-- the crossed-out direct path -->
   <path class="dash" d="M210,155 L660,155"/>
   <text class="tf" x="330" y="148">no direct md.layoutHolders[m] access exists</text>
   <line x1="425" y1="145" x2="455" y2="165" stroke="var(--hazard)" stroke-width="2"/>
@@ -425,7 +412,6 @@ already emits (the <code>"abc-drag"</code> breadcrumb, or a tapped
 </svg>
 </div>
 
-<!-- ═══════════ gone · scene_persist ═══════════ -->
 <h2>gone · scene_persist — the second party was a timer goroutine</h2>
 <p class="verdict ok"><b>RESOLVED</b> — task/mutex-debounced-persister deleted the debounce
 timer (and its lock) outright rather than keeping it: see
@@ -501,7 +487,6 @@ on the same file.</p>
 </svg>
 </div>
 
-<!-- ═══════════ GONE ═══════════ -->
 <h2>gone · RealClock.mu — deleted by ownership, not by a smaller lock</h2>
 <p class="cap">Before, one object with a lock. After, a copy each and no lock. Nothing replaced it:
 the speed channels are built at load time and only the stdin reader's goroutine holds the send ends.</p>
@@ -512,7 +497,6 @@ the speed channels are built at load time and only the stdin reader's goroutine 
   <text class="tl" x="450" y="14">NOW</text>
   <line x1="415" y1="24" x2="415" y2="240" stroke="var(--line)"/>
 
-  <!-- before -->
   <rect class="gor" x="0" y="34" width="120" height="26" rx="4"/><text class="tf" x="10" y="51">node Update ×9</text>
   <rect class="gor" x="0" y="66" width="120" height="26" rx="4"/><text class="tf" x="10" y="83">DriveHeld ×n</text>
   <rect class="gor" x="0" y="98" width="120" height="26" rx="4"/><text class="tf" x="10" y="115">edgeMover ×10</text>
@@ -531,7 +515,6 @@ the speed channels are built at load time and only the stdin reader's goroutine 
   <text class="tw" x="272" y="118">mu</text>
   <text class="tf" x="262" y="140">one object, all readers</text>
 
-  <!-- after -->
   <rect class="safe" x="450" y="34" width="180" height="30" rx="4"/>
   <text class="tf" x="460" y="53">node Update + own clock copy</text>
   <rect class="safe" x="450" y="72" width="180" height="30" rx="4"/>

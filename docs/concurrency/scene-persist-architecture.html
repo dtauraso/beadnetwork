@@ -112,7 +112,6 @@
   <span><i class="sw k"></i>file on disk</span>
 </div>
 
-<!-- ══ 1 · THE MAP ══ -->
 <h2>1 · the whole system — five persisters, four locks, two files</h2>
 <p class="cap">Every writer, the goroutine it runs on, the lock it takes, and the file it lands
 in. <b>Five</b> debounced persisters, each with its own independent <code>mu</code>.</p>
@@ -198,7 +197,6 @@ in. <b>Five</b> debounced persisters, each with its own independent <code>mu</co
 </svg>
 </div>
 
-<!-- ══ 2 · THE REAL RACE ══ -->
 <h2>2 · the race that is reachable today</h2>
 <p class="cap">Node X was dragged, so its position flush is <b>pending on a timer</b>. Within that
 ~250 ms window a different node Y is dragged, and X is Y's neighbour — so X's own mover
@@ -244,7 +242,6 @@ flushing the <i>same file</i>.</p>
 </svg>
 </div>
 
-<!-- ══ 3 · WHY RENAME IS NOT ENOUGH ══ -->
 <h2>3 · atomic rename does not make these locks redundant</h2>
 <p class="cap">The obvious objection: <code>writeJSONAtomic</code> writes a temp file then renames,
 so readers never see a torn file. True — and irrelevant to what these locks prevent. Two
@@ -282,7 +279,6 @@ distinct failures survive it, and <b>both writers share one literal tmp filename
 </svg>
 </div>
 
-<!-- ══ 4 · SINGLE OWNER? ══ -->
 <h2>4 · the question that killed the other four locks</h2>
 <p class="cap">Every lock removed so far fell to the same move: the state turned out to have, or
 could be given, <b>exactly one owner</b>. Asking it here gives three different answers.</p>
@@ -326,7 +322,6 @@ could be given, <b>exactly one owner</b>. Asking it here gives three different a
 </svg>
 </div>
 
-<!-- ══ 5 · WHAT IS NOT TRUE ══ -->
 <h2>5 · findings — one stale claim, one missing guard</h2>
 
 <div class="plate">

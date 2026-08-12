@@ -1,10 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- A dated DESIGN SPEC (as-proposed, 2026-06), not a description of current code: it still
-     names useNodeGeometryStore / notifyDelivered / getPauseAdjustedNow, which died with the
-     old render path. Exempt from tools/docs/check-doc-symbols.sh; do not "fix" its symbols —
-     rewriting a snapshot to match today destroys the record of what was proposed then. -->
 <meta name="doc-status" content="historical">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -426,7 +422,6 @@
     <button class="tab-btn" role="tab" aria-selected="false" data-panel="todo">What's left</button>
   </div>
 
-  <!-- TAB 1: Overview -->
   <div class="panel active" id="panel-overview" role="tabpanel">
     <div class="callout-warn"><strong>Spec is authoritative.</strong> Where the implementation and this spec conflict in interpretation, the spec wins — change the code to match the spec, not the spec to match the code. If the spec is genuinely wrong or ambiguous, stop and flag it for revision rather than silently diverging. Also flag any implementation code this spec does not mention — the spec's silence on a piece of code is itself something to surface for review, not a default-keep.</div>
     <h2><button type="button" class="chk-btn heading-chk" aria-pressed="false" data-chk="overview:h2">☐</button>Go is the backend. TS is the frontend.</h2>
@@ -496,7 +491,6 @@ The bridge is: geometry + shading + position data out, editor geometry + animati
     </div>
   </div>
 
-  <!-- TAB: Goroutines -->
   <div class="panel" id="panel-goroutines" role="tabpanel">
     <h2><button type="button" class="chk-btn heading-chk" aria-pressed="false" data-chk="goroutines:h2">☐</button>What each goroutine does.</h2>
     <p>Concurrency <em>is</em> the nodes and wires: each is its own loop on its own goroutine, coordinating only through channels — no global clock, no central round. Active set: Input loop (in08), i0, i1 (ChainInhibitor), PacedWire (i0&rarr;i1).</p>
@@ -565,64 +559,46 @@ The bridge is: geometry + shading + position data out, editor geometry + animati
     <marker id="arrOrange" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#c47c5e"/></marker>
   </defs>
 
-  <!-- in08 node: center (120, 150) -->
   <rect x="30" y="117" width="180" height="66" rx="10" ry="10" fill="#0e1e1a" stroke="#5ec4a0" stroke-width="1.5"/>
   <text x="120" y="148" text-anchor="middle" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="12" font-weight="700" fill="#5ec4a0">Input loop</text>
   <text x="120" y="166" text-anchor="middle" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="11" fill="#3d8a70">in08</text>
 
-  <!-- PacedWire FORWARD (in08→i0), center (420, 70) -->
   <rect x="341" y="44" width="158" height="52" rx="10" ry="10" fill="#0d1628" stroke="#7c9ef8" stroke-width="2"/>
   <text x="420" y="68" text-anchor="middle" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="13" font-weight="700" fill="#7c9ef8">PacedWire</text>
   <text x="420" y="84" text-anchor="middle" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="9" fill="#5a78c0">goroutine</text>
 
-  <!-- PacedWire REVERSE (i0→in08), center (420, 230) -->
   <rect x="341" y="204" width="158" height="52" rx="10" ry="10" fill="#0d1628" stroke="#7c9ef8" stroke-width="2"/>
   <text x="420" y="228" text-anchor="middle" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="13" font-weight="700" fill="#7c9ef8">PacedWire</text>
   <text x="420" y="244" text-anchor="middle" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="9" fill="#5a78c0">goroutine</text>
 
-  <!-- i0 node: center (720, 150) -->
   <rect x="620" y="117" width="200" height="66" rx="10" ry="10" fill="#0e1e1a" stroke="#5ec4a0" stroke-width="1.5"/>
   <text x="720" y="142" text-anchor="middle" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="12" font-weight="700" fill="#5ec4a0">ChainInhibitor loop</text>
   <text x="720" y="160" text-anchor="middle" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="11" fill="#3d8a70">i0</text>
   <text x="720" y="175" text-anchor="middle" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="9" fill="#3d5a50">(held inits -1)</text>
 
-  <!-- FORWARD path: in08 right edge → PW_fwd left, top; label "value" above -->
-  <!-- in08 right: (210, 132); PW_fwd left: (341, 70) -->
   <line x1="210" y1="132" x2="341" y2="70" stroke="#5ec4a0" stroke-width="1.5" marker-end="url(#arrG)"/>
   <text x="270" y="92" text-anchor="middle" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="10" fill="#5ec4a0">value</text>
 
-  <!-- FORWARD path: PW_fwd right → i0 left, top; label "value" above -->
-  <!-- PW_fwd right: (499, 70); i0 left: (620, 132) -->
   <line x1="499" y1="70" x2="620" y2="132" stroke="#5ec4a0" stroke-width="1.5" marker-end="url(#arrG)"/>
   <text x="566" y="90" text-anchor="middle" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="10" fill="#5ec4a0">value</text>
 
-  <!-- REVERSE path: i0 left → PW_rev right; label "1/0" below -->
-  <!-- i0 left: (620, 168); PW_rev right: (499, 230) -->
   <line x1="620" y1="168" x2="499" y2="230" stroke="#c47c5e" stroke-width="1.5" marker-end="url(#arrOrange)"/>
   <text x="566" y="215" text-anchor="middle" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="10" fill="#c47c5e">1 / 0</text>
 
-  <!-- REVERSE path: PW_rev left → in08 right, bottom; label "1/0" below -->
-  <!-- PW_rev left: (341, 230); in08 right: (210, 168) -->
   <line x1="341" y1="230" x2="210" y2="168" stroke="#c47c5e" stroke-width="1.5" marker-end="url(#arrOrange)"/>
   <text x="270" y="215" text-anchor="middle" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="10" fill="#c47c5e">1 / 0</text>
 
-  <!-- PacedWire for i0→i1 chain, center (730, 350) -->
   <rect x="651" y="324" width="158" height="52" rx="10" ry="10" fill="#0d1628" stroke="#7c9ef8" stroke-width="2"/>
   <text x="730" y="348" text-anchor="middle" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="13" font-weight="700" fill="#7c9ef8">PacedWire</text>
   <text x="730" y="364" text-anchor="middle" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="9" fill="#5a78c0">goroutine</text>
 
-  <!-- i1 node: center (960, 350), generous spacing from PW_i1 -->
   <rect x="870" y="324" width="180" height="52" rx="10" ry="10" fill="#0e1e1a" stroke="#5ec4a0" stroke-width="1.5"/>
   <text x="960" y="348" text-anchor="middle" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="12" font-weight="700" fill="#5ec4a0">ChainInhibitor loop</text>
   <text x="960" y="366" text-anchor="middle" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="11" fill="#3d8a70">i1 (sink)</text>
 
-  <!-- i0 bottom → PacedWire_i1 top -->
-  <!-- i0 bottom: (720, 183); PW_i1 top: (730, 324) -->
   <line x1="720" y1="183" x2="730" y2="324" stroke="#7c9ef8" stroke-width="1.5" marker-end="url(#arrB)"/>
   <text x="736" y="262" text-anchor="middle" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="10" fill="#7c9ef8">held</text>
 
-  <!-- PacedWire_i1 right → i1 left -->
-  <!-- PW_i1 right: (809, 350); i1 left: (870, 350) -->
   <line x1="809" y1="350" x2="868" y2="350" stroke="#7c9ef8" stroke-width="1.5" marker-end="url(#arrB)"/>
   <text x="838" y="341" text-anchor="middle" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="10" fill="#7c9ef8">deliver</text>
 </svg>
@@ -632,7 +608,6 @@ The bridge is: geometry + shading + position data out, editor geometry + animati
     <div class="note" style="margin-top:0.75rem;"><button type="button" class="chk-btn heading-chk" aria-pressed="false" data-chk="goroutinegraph:note3">☐</button><strong>Singletons, off to the side.</strong> main (spawns everything, then waits), the stdin reader (CRUD + pause/resume in), and the trace drain (orders and writes the trace) &mdash; process lifecycle and I/O, not part of the bead path.</div>
   </div>
 
-  <!-- TAB: TS code -->
   <div class="panel" id="panel-tscode" role="tabpanel">
     <h2><button type="button" class="chk-btn heading-chk" aria-pressed="false" data-chk="tscode:h2">☐</button>What the TS frontend runs.</h2>
     <p>TS has no goroutines; its job is to render the stream Go emits and send CRUD + pause/resume back. Its execution contexts are below; the data work is Go's (see the TS &rarr; Go tab).</p>
@@ -740,7 +715,6 @@ The bridge is: geometry + shading + position data out, editor geometry + animati
   <div class="note" style="margin-top:0.75rem;"><button type="button" class="chk-btn heading-chk" aria-pressed="false" data-chk="tsgraph:note2">☐</button>TS only renders Go's stream, owns the camera + scene navigation, and forwards the user's actions. The authoritative data &mdash; positions, geometry, timing &mdash; lives in Go; the TS zustand store is a no-op holder Go writes.</div>
   </div>
 
-  <!-- TAB 3: The Bridge -->
   <div class="panel" id="panel-bridge" role="tabpanel">
     <h2><button type="button" class="chk-btn heading-chk" aria-pressed="false" data-chk="bridge:h2">☐</button>Trace out, geometry in.</h2>
     <p>The whole boundary is two arrows. Nothing else crosses.</p>
@@ -748,21 +722,17 @@ The bridge is: geometry + shading + position data out, editor geometry + animati
     <div class="diagram">
       <button type="button" class="chk-btn diagram-chk" aria-pressed="false" data-chk="bridge:svg1">☐</button>
       <svg width="680" height="180" viewBox="0 0 680 180" xmlns="http://www.w3.org/2000/svg" aria-label="Bridge diagram: Go sends trace stream to TS; TS sends editor geometry and animation updates to Go">
-        <!-- Go box -->
         <rect x="20" y="40" width="200" height="100" rx="10" ry="10" fill="#0e1e1a" stroke="#5ec4a0" stroke-width="1.5"/>
         <text x="120" y="82" text-anchor="middle" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="15" font-weight="700" fill="#5ec4a0">GO</text>
         <text x="120" y="102" text-anchor="middle" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="11" fill="#3d8a70">backend — geometry + animation calc</text>
 
-        <!-- TS box -->
         <rect x="460" y="40" width="200" height="100" rx="10" ry="10" fill="#1a0e24" stroke="#c07ef8" stroke-width="1.5"/>
         <text x="560" y="82" text-anchor="middle" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="15" font-weight="700" fill="#c07ef8">TS</text>
         <text x="560" y="102" text-anchor="middle" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="11" fill="#8040b0">frontend — renderer</text>
 
-        <!-- Top arrow: GO → TS (trace stream) -->
         <line x1="222" y1="68" x2="458" y2="68" stroke="#5ec4a0" stroke-width="1.5" marker-end="url(#arr)"/>
         <text x="340" y="58" text-anchor="middle" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="11" fill="#5ec4a0">position stream (per-bead x,y,z)</text>
 
-        <!-- Bottom arrow: TS → GO (geometry edits) -->
         <line x1="458" y1="112" x2="222" y2="112" stroke="#c07ef8" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr2)"/>
         <text x="340" y="130" text-anchor="middle" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="11" fill="#c07ef8">editor geometry + animation updates + action input (Go id)</text>
 
@@ -829,7 +799,6 @@ The bridge is: geometry + shading + position data out, editor geometry + animati
   <div class="note" style="margin-top:0.75rem;"><button type="button" class="chk-btn heading-chk" aria-pressed="false" data-chk="bridge:note8">☐</button><strong>Escape hatch (not built).</strong> If <code>postMessage</code> can't handle the stream volume: localhost WebSocket from webview to a server in the Go process; extension only spawns Go and hands over the port. Unbuilt until profiling says otherwise.</div>
   </div>
 
-  <!-- TAB 4: Clock Change -->
   <div class="panel" id="panel-clock" role="tabpanel">
     <h2><button type="button" class="chk-btn heading-chk" aria-pressed="false" data-chk="panel-clock:h2-go-calculates">☐</button>Go calculates the animation; TS only draws it.</h2>
     <p>Go does all animation calculation — timing, progress, durations — and emits ready-to-render messages. TS draws them. The frontend never calculates animation; it renders frames Go describes. Today's inversion (TS pacing Go via NotifyDelivered) is what this design removes.</p>
@@ -838,25 +807,19 @@ The bridge is: geometry + shading + position data out, editor geometry + animati
       <div>
         <div class="flow-label">Before</div>
         <svg width="640" height="70" viewBox="0 0 640 70" xmlns="http://www.w3.org/2000/svg" aria-label="Before: TS animation completes drives NotifyDelivered which drives Go delivers to slot">
-          <!-- Box 1 -->
           <rect x="0" y="14" width="178" height="38" rx="6" fill="#1e0e0e" stroke="#c07ef8" stroke-width="1.2"/>
           <text x="89" y="36" text-anchor="middle" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="11.5" fill="#c07ef8" font-weight="600">TS calculates / drives</text>
 
-          <!-- Arrow 1 -->
           <line x1="180" y1="33" x2="225" y2="33" stroke="#c07ef8" stroke-width="1.5" marker-end="url(#ba1)"/>
 
-          <!-- Box 2 -->
           <rect x="227" y="14" width="138" height="38" rx="6" fill="#1e0e0e" stroke="#c07ef8" stroke-width="1.2"/>
           <text x="296" y="36" text-anchor="middle" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="11.5" fill="#c07ef8" font-weight="600">NotifyDelivered</text>
 
-          <!-- Arrow 2 -->
           <line x1="367" y1="33" x2="412" y2="33" stroke="#c07ef8" stroke-width="1.5" marker-end="url(#ba1)"/>
 
-          <!-- Box 3 -->
           <rect x="414" y="14" width="178" height="38" rx="6" fill="#18181c" stroke="#2a2a30" stroke-width="1.2"/>
           <text x="503" y="36" text-anchor="middle" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="11.5" fill="#808090" font-weight="600">Go delivers to slot</text>
 
-          <!-- TS drives label -->
           <text x="200" y="62" text-anchor="middle" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="10" fill="#8040b0">TS drives Go</text>
 
           <defs>
@@ -871,34 +834,26 @@ The bridge is: geometry + shading + position data out, editor geometry + animati
         <div class="flow-label">After</div>
         <button type="button" class="chk-btn diagram-chk" aria-pressed="false" data-chk="panel-clock:svg2-after">☐</button>
         <svg width="640" height="70" viewBox="0 0 640 70" xmlns="http://www.w3.org/2000/svg" aria-label="After: Go elapses inFlightTime drives Go delivers on channel drives trace out drives TS animates to fit duration">
-          <!-- Box 1 -->
           <rect x="0" y="14" width="170" height="38" rx="6" fill="#0e1e1a" stroke="#5ec4a0" stroke-width="1.2"/>
           <text x="85" y="32" text-anchor="middle" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="11" fill="#5ec4a0" font-weight="600">Go calculates all</text>
           <text x="85" y="46" text-anchor="middle" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="11" fill="#5ec4a0" font-weight="600">animation values</text>
 
-          <!-- Arrow 1 -->
           <line x1="172" y1="33" x2="210" y2="33" stroke="#5ec4a0" stroke-width="1.5" marker-end="url(#aa1)"/>
 
-          <!-- Box 2 -->
           <rect x="212" y="14" width="148" height="38" rx="6" fill="#0e1e1a" stroke="#5ec4a0" stroke-width="1.2"/>
           <text x="286" y="36" text-anchor="middle" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="11" fill="#5ec4a0" font-weight="600">Go delivers on channel</text>
 
-          <!-- Arrow 2 -->
           <line x1="362" y1="33" x2="400" y2="33" stroke="#5ec4a0" stroke-width="1.5" marker-end="url(#aa1)"/>
 
-          <!-- Box 3 -->
           <rect x="402" y="14" width="80" height="38" rx="6" fill="#18181c" stroke="#2a2a30" stroke-width="1.2"/>
           <text x="442" y="36" text-anchor="middle" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="11" fill="#808090" font-weight="600">trace out</text>
 
-          <!-- Arrow 3 -->
           <line x1="484" y1="33" x2="520" y2="33" stroke="#5ec4a0" stroke-width="1.5" marker-end="url(#aa1)"/>
 
-          <!-- Box 4 -->
           <rect x="522" y="6" width="116" height="54" rx="6" fill="#1a0e24" stroke="#c07ef8" stroke-width="1.2"/>
           <text x="580" y="28" text-anchor="middle" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="10.5" fill="#c07ef8" font-weight="600">TS renders</text>
           <text x="580" y="42" text-anchor="middle" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="10.5" fill="#c07ef8" font-weight="600">the result</text>
 
-          <!-- Go drives label -->
           <text x="100" y="62" text-anchor="middle" font-family="'JetBrains Mono','Fira Mono',monospace" font-size="10" fill="#3d8a70">Go drives</text>
 
           <defs>
@@ -972,7 +927,6 @@ The bridge is: geometry + shading + position data out, editor geometry + animati
     <p>Play/pause halts Go's clock — not a TS render toggle. If TS paused its render loop while Go kept running, Go's clock would race ahead and be out of sync on resume. Button in TS; clock in Go.</p>
   </div>
 
-  <!-- TAB 7: TS → Go -->
   <div class="panel" id="panel-tsgo" role="tabpanel">
     <h2><button type="button" class="chk-btn heading-chk" aria-pressed="false" data-chk="tsgo:h2">☐</button>How much of TS converts to Go?</h2>
     <p>The dividing line is <strong>data vs. the GPU</strong>.</p>
@@ -1122,7 +1076,6 @@ The bridge is: geometry + shading + position data out, editor geometry + animati
     <div class="note" style="margin-top:0.75rem;"><button type="button" class="chk-btn heading-chk" aria-pressed="false" data-chk="tsgo:newbuilds-libs">☐</button><strong>Go libraries.</strong> stdlib <code style="font-family:var(--mono);font-size:11px;">time</code> for the clock; the existing <code style="font-family:var(--mono);font-size:11px;">vec3</code> + bézier eval for beads — no 3D-math library. Camera, projection, and picking (<code style="font-family:var(--mono);font-size:11px;">Perspective</code>, <code style="font-family:var(--mono);font-size:11px;">UnProject</code>) stay in three.js.</div>
   </div>
 
-  <!-- TAB 9: Plan -->
   <div class="panel" id="panel-plan" role="tabpanel">
     <h2><button type="button" class="chk-btn heading-chk" aria-pressed="false" data-chk="plan:h2">☐</button>Coding plan: clock first, then migrate data.</h2>
     <p>One model shift (Go owns the clock) plus staged data migration (positions, geometry, shading). Clock first — it unblocks the rest by letting Go run and deliver without TS. Each phase leaves the build green and the editor working.</p>
@@ -1204,7 +1157,6 @@ The bridge is: geometry + shading + position data out, editor geometry + animati
     </div>
   </div>
 
-  <!-- TAB 11: Verify -->
   <div class="panel" id="panel-verify" role="tabpanel">
     <h2><button type="button" class="chk-btn heading-chk" aria-pressed="false" data-chk="verify:h2">☐</button>Verification and risks.</h2>
 
@@ -1309,7 +1261,6 @@ The bridge is: geometry + shading + position data out, editor geometry + animati
     <div class="note" style="margin-top:1rem;">This plan stays a proposal until Phase 1 lands; MODEL.md remains current for existing code until then.</div>
   </div>
 
-  <!-- TAB: Tracking -->
   <div class="panel" id="panel-issues" role="tabpanel">
     <h2><button type="button" class="chk-btn heading-chk" aria-pressed="false" data-chk="docs:h2">☐</button>This is a model amendment — update MODEL.md and CLAUDE.md when implementing.</h2>
     <p>This spec deletes NotifyDelivered as the delivery trigger, moves the clock and all position computation into Go, and makes each wire its own goroutine. Update MODEL.md and CLAUDE.md in the same commit as the code.</p>
@@ -1342,7 +1293,6 @@ The bridge is: geometry + shading + position data out, editor geometry + animati
 <div class="note" style="margin-top:1.25rem;"><button type="button" class="chk-btn heading-chk" aria-pressed="false" data-chk="issues:note8">☐</button><strong>Consistent across all tabs</strong> &mdash; clock, position, pacing, and ownership are settled, no cross-tab conflicts. The Clock <strong>&ldquo;Before&rdquo;</strong> diagram intentionally keeps the old slot model, for contrast.</div>
   </div>
 
-  <!-- TAB: What's left -->
   <div class="panel" id="panel-todo" role="tabpanel">
     <h2>What's left to do.</h2>
     <p>Items 1–4 are done. Node/port-position geometry is Go-authoritative (items 1–2 shipped); edge-curve geometry and node-move/fade are fully per-goroutine (items 3–4 done). Item 5 is cosmetic and open. Item 6 (merge) is gated on explicit sign-off only.</p>
@@ -1402,7 +1352,6 @@ The bridge is: geometry + shading + position data out, editor geometry + animati
     </table>
   </div>
 
-  <!-- TAB: Inconsistencies -->
   <div class="panel" id="panel-inconsistencies" role="tabpanel">
     <h2>Where the spec text and the shipped Go/TS code disagree.</h2>
     <table class="spec-table">

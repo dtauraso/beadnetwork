@@ -95,7 +95,6 @@
     <button class="tab-btn" data-tab="tests">Tests</button>
   </nav>
 
-  <!-- OVERVIEW -->
   <div id="overview" class="panel active">
     <p>The timing-window rule applies to nodes with <strong>two or more input edges</strong> — coincidence detection is only meaningful across multiple inputs. A node with a single input edge has no window and receives normally (blocking <code>Recv</code>). A windowed node (≥2 input edges) collects one pulse from each of its input edges. If all of them arrive within window <code>W</code> of the first arrival, the combination is accepted and the node fires. If <code>W</code> elapses with any input still missing, all held inputs are discarded (via <code>Done</code>) without firing, and the node resets to wait for the next first-arrival.</p>
     <p>The timing window opens when the <strong>first input arrives</strong> (<code>t0</code>).</p>
@@ -103,73 +102,54 @@
     <p><code>W</code> is derived per-node from current input-edge geometry (<code>W = 1.5 × max(simLatencyMs)</code> over current input wires) and stored in <code>node.data</code>. It is recomputed automatically whenever an input edge's length changes.</p>
   </div>
 
-  <!-- DIAGRAM -->
   <div id="diagram" class="panel">
     <div class="diagram-wrap">
       <svg width="780" height="310" viewBox="0 0 780 310" aria-label="Timing-window timeline diagram">
-        <!-- Timeline axis -->
         <line x1="60" y1="200" x2="720" y2="200" stroke="#555" stroke-width="1.5"/>
-        <!-- Arrow head on axis -->
         <polygon points="720,196 730,200 720,204" fill="#555"/>
         <text x="735" y="204" font-size="12" fill="#555">time</text>
 
-        <!-- t0 marker -->
         <line x1="180" y1="185" x2="180" y2="215" stroke="#555" stroke-width="1.5"/>
         <text x="173" y="180" font-size="11" fill="#555">t0</text>
 
-        <!-- Window bracket – FIRE scenario (top) -->
-        <!-- W bracket -->
         <line x1="180" y1="110" x2="460" y2="110" stroke="#2c6fbd" stroke-width="1.5" stroke-dasharray="5,3"/>
         <line x1="180" y1="105" x2="180" y2="115" stroke="#2c6fbd" stroke-width="1.5"/>
         <line x1="460" y1="105" x2="460" y2="115" stroke="#2c6fbd" stroke-width="1.5"/>
         <text x="295" y="105" font-size="12" fill="#2c6fbd" text-anchor="middle">W</text>
 
-        <!-- Input A arrives at t0 (FIRE path) -->
         <line x1="180" y1="140" x2="180" y2="198" stroke="#4a9a4a" stroke-width="2"/>
         <polygon points="176,198 184,198 180,205" fill="#4a9a4a"/>
         <text x="180" y="133" font-size="11" fill="#4a9a4a" text-anchor="middle">input A</text>
 
-        <!-- Input B arrives at t0+delta, inside W (FIRE path) -->
         <line x1="340" y1="140" x2="340" y2="198" stroke="#4a9a4a" stroke-width="2"/>
         <polygon points="336,198 344,198 340,205" fill="#4a9a4a"/>
         <text x="340" y="133" font-size="11" fill="#4a9a4a" text-anchor="middle">input B</text>
 
-        <!-- FIRE label -->
         <rect x="400" y="148" width="64" height="26" rx="4" fill="#4a9a4a"/>
         <text x="432" y="165" font-size="13" fill="#fff" text-anchor="middle" font-weight="bold">FIRE</text>
-        <!-- dashed line from B to FIRE -->
         <line x1="355" y1="162" x2="398" y2="162" stroke="#4a9a4a" stroke-width="1.2" stroke-dasharray="4,3"/>
 
-        <!-- Divider between two scenarios -->
         <line x1="60" y1="220" x2="720" y2="220" stroke="#ccc" stroke-width="1" stroke-dasharray="4,4"/>
 
-        <!-- CLEAR scenario (bottom) -->
-        <!-- W bracket (clear) -->
         <line x1="180" y1="260" x2="560" y2="260" stroke="#b85c00" stroke-width="1.5" stroke-dasharray="5,3"/>
         <line x1="180" y1="255" x2="180" y2="265" stroke="#b85c00" stroke-width="1.5"/>
         <line x1="560" y1="255" x2="560" y2="265" stroke="#b85c00" stroke-width="1.5"/>
         <text x="368" y="255" font-size="12" fill="#b85c00" text-anchor="middle">W</text>
 
-        <!-- Input A arrives (CLEAR path) -->
         <line x1="180" y1="235" x2="180" y2="298" stroke="#4a9a4a" stroke-width="2"/>
         <polygon points="176,298 184,298 180,305" fill="#4a9a4a"/>
         <text x="180" y="230" font-size="11" fill="#4a9a4a" text-anchor="middle">input A</text>
 
-        <!-- Input B missing (CLEAR path) -->
         <line x1="460" y1="240" x2="460" y2="298" stroke="#bbb" stroke-width="1.5" stroke-dasharray="5,3"/>
         <text x="460" y="235" font-size="11" fill="#aaa" text-anchor="middle">B missing</text>
 
-        <!-- W elapses marker -->
         <line x1="560" y1="235" x2="560" y2="298" stroke="#b85c00" stroke-width="1.5"/>
 
-        <!-- CLEAR label -->
         <rect x="575" y="260" width="68" height="26" rx="4" fill="#b85c00"/>
         <text x="609" y="277" font-size="13" fill="#fff" text-anchor="middle" font-weight="bold">CLEAR</text>
 
-        <!-- Done label -->
         <text x="609" y="298" font-size="10" fill="#b85c00" text-anchor="middle">Done(A), reset</text>
 
-        <!-- Scenario labels on left -->
         <text x="55" y="162" font-size="11" fill="#4a9a4a" text-anchor="end">all present</text>
         <text x="55" y="275" font-size="11" fill="#b85c00" text-anchor="end">timeout</text>
       </svg>
@@ -180,7 +160,6 @@
     </p>
   </div>
 
-  <!-- RULES -->
   <div id="rules" class="panel">
     <ul>
       <li><strong>Window iff ≥2 input edges.</strong> The timing-window rule applies only to nodes with two or more input edges. A node with a single input edge has no window — it receives normally with a blocking <code>Recv</code>. The rule is stored per-node in <code>node.data</code> (same ownership as send rules).</li>
@@ -193,7 +172,6 @@
 
   </div>
 
-  <!-- WINDOWS -->
   <div id="windows" class="panel">
     <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:0.75rem;"><strong>W is not a fixed config value.</strong> It is recomputed from the node's current input edges whenever any input edge length changes (node moved, edge reconnected, midpoint dragged): <code>W = 1.5 × longest current input edge travel time</code>, where travel time = bezier arcLength ÷ 0.08 WU/ms (uniform pulse speed). The values below are a <em>snapshot at the current geometry</em> — they change automatically if geometry changes. This table lists only nodes <strong>with a window (≥2 input edges)</strong>. Single-input nodes (<code>i0</code>, <code>i1</code>) are excluded — they have no window and receive normally.</p>
     <table style="width:100%;border-collapse:collapse;margin-top:0.25rem;">
@@ -219,7 +197,6 @@
     </table>
   </div>
 
-  <!-- TESTS -->
   <div id="tests" class="panel">
     <ul>
       <li><strong>Unit — single input, no second within W → CLEAR</strong>: windowed node receives input A; B never arrives; after <code>W</code> elapses, <code>Done</code> is called on A, no fire occurs, flags reset.</li>

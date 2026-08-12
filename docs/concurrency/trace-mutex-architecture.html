@@ -116,7 +116,6 @@
   <span><i class="sw q"></i>test-only</span>
 </div>
 
-<!-- ══ 1 · THE TWO PATHS ══ -->
 <h2>1 · the hot path never touched the lock — still true, now trivially</h2>
 <p class="cap">Every node and wire goroutine emits events. <b>None of them ever took the mutex.</b>
 They send on a buffered channel and return. The lock used to live entirely on the far side of
@@ -169,7 +168,6 @@ that channel, on one goroutine — the diagram below is unchanged except that th
 </svg>
 </div>
 
-<!-- ══ 2 · WHAT IT GUARDS ══ -->
 <h2>2 · what it used to guard — and one field the comment claimed but did not</h2>
 <p class="cap">Historical: what <code>mu</code> covered before it was deleted. All four fields it
 protected are gone from the lock's job list now — the drain goroutine is the sole writer of
@@ -204,7 +202,6 @@ directly.</p>
 </svg>
 </div>
 
-<!-- ══ 3 · WHO CONTENDS ══ -->
 <h2>3 · who actually took the lock — and which of them existed in production</h2>
 <p class="cap">Historical: this is where the stated justification came apart.
 <code>Events()</code> had <b>zero non-test callers</b>, and <code>WriteJSONL</code> ran only
@@ -253,7 +250,6 @@ concurrent in production, and both are now folded onto the drain goroutine with 
 </svg>
 </div>
 
-<!-- ══ 4 · THE REAL CONTENTION ══ -->
 <h2>4 · what the lock was really doing — shutdown, not accumulation (RESOLVED)</h2>
 <p class="cap">This diagram found the lock's real job: production shutdown used to wait at most
 <b>250 ms</b> for node goroutines, then call <code>Close()</code> regardless, so
@@ -296,7 +292,6 @@ unrepresentable, not just unlikely.</p>
 </svg>
 </div>
 
-<!-- ══ 5 · I/O UNDER THE LOCK ══ -->
 <h2>5 · unlike every other lock here, this one was held across I/O (now moot — the lock is gone)</h2>
 <p class="cap">Historical: every lock deleted before this one released before touching the outside
 world. This one didn't — which no longer matters, because there is no lock left to hold across
@@ -325,7 +320,6 @@ do it from the drain goroutine with nothing else able to race them.</p>
 </svg>
 </div>
 
-<!-- ══ 6 · SINGLE OWNER ══ -->
 <h2>6 · the single-owner question — drain already was one (RESOLVED)</h2>
 <p class="cap">The move that removed the other six: give the state one owner.
 <code>events</code> <b>already had one</b> — the drain goroutine was its sole writer, so the
@@ -361,7 +355,6 @@ writer of everything the lock used to guard.</p>
 </svg>
 </div>
 
-<!-- ══ 7 · THE FRAMING ══ -->
 <h2>7 · the framing above it — Step is arrival order, not causal order (STILL OPEN)</h2>
 <p class="cap">This question does not close with the lock. <code>Trace.mu</code> is gone, but the
 event channel and the drain's single-writer ordering are unchanged — <code>Step</code> is still
@@ -393,7 +386,6 @@ assigned in scheduler-arrival order, not causal order. See
 </svg>
 </div>
 
-<!-- ══ 8 · RED PROOF ══ -->
 <h2>8 · the red proof — settled by the deletion itself</h2>
 <p class="cap">This section used to say the RED claim was a comment's assertion, not a
 measurement made here. It is now settled the direct way: the lock was actually deleted and

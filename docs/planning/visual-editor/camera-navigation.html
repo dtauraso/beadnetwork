@@ -202,7 +202,6 @@
     <button class="tab-btn" data-tab="design">Design</button>
   </nav>
 
-  <!-- TAB 1: CONTROLS -->
   <div id="controls" class="panel active">
     <p>
       All navigation is handled by a <strong>custom controller</strong> in
@@ -259,53 +258,43 @@
       click-pick — never for camera gestures.
     </p>
 
-    <!-- Input map diagram -->
     <div class="diagram">
       <svg width="640" height="320" viewBox="0 0 640 320" fill="none"
            xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Input map: trackpad and mouse gesture callouts">
 
-        <!-- Trackpad body -->
         <rect x="200" y="80" width="240" height="160" rx="18"
               stroke="currentColor" stroke-width="2" fill="var(--card-bg)" opacity="0.9"/>
         <text x="320" y="170" text-anchor="middle" font-size="11" fill="var(--text-muted)" font-family="inherit">trackpad / mouse</text>
 
-        <!-- Drag arrow (orbit) -->
         <line x1="260" y1="130" x2="320" y2="145" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
         <polygon points="320,145 310,138 313,149" fill="var(--accent)"/>
 
-        <!-- Callout: Orbit -->
         <line x1="260" y1="125" x2="100" y2="90" stroke="var(--border)" stroke-width="1.2" stroke-dasharray="4,3"/>
         <rect x="10" y="60" width="88" height="44" rx="5" fill="var(--card-bg)" stroke="var(--border)" stroke-width="1"/>
         <text x="54" y="79" text-anchor="middle" font-size="10.5" font-weight="600" fill="currentColor" font-family="inherit">ORBIT</text>
         <text x="54" y="93" text-anchor="middle" font-size="9.5" fill="var(--text-muted)" font-family="inherit">drag empty space</text>
 
-        <!-- Two-finger scroll arrows (pan) -->
         <line x1="310" y1="195" x2="310" y2="175" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"/>
         <polygon points="310,173 305,183 315,183" fill="var(--accent)"/>
         <line x1="330" y1="195" x2="330" y2="175" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"/>
         <polygon points="330,173 325,183 335,183" fill="var(--accent)"/>
 
-        <!-- Callout: Pan -->
         <line x1="320" y1="180" x2="420" y2="90" stroke="var(--border)" stroke-width="1.2" stroke-dasharray="4,3"/>
         <rect x="421" y="58" width="104" height="44" rx="5" fill="var(--card-bg)" stroke="var(--border)" stroke-width="1"/>
         <text x="473" y="77" text-anchor="middle" font-size="10.5" font-weight="600" fill="currentColor" font-family="inherit">PAN</text>
         <text x="473" y="91" text-anchor="middle" font-size="9.5" fill="var(--text-muted)" font-family="inherit">2-finger scroll · slides view</text>
 
-        <!-- Ctrl+scroll pinch symbol -->
         <text x="320" y="230" text-anchor="middle" font-size="13" fill="var(--text-muted)" font-family="monospace">⌃ + scroll / pinch</text>
 
-        <!-- Callout: Dolly -->
         <line x1="320" y1="235" x2="420" y2="260" stroke="var(--border)" stroke-width="1.2" stroke-dasharray="4,3"/>
         <rect x="421" y="245" width="104" height="44" rx="5" fill="var(--card-bg)" stroke="var(--border)" stroke-width="1"/>
         <text x="473" y="264" text-anchor="middle" font-size="10.5" font-weight="600" fill="currentColor" font-family="inherit">DOLLY</text>
         <text x="473" y="278" text-anchor="middle" font-size="9.5" fill="var(--text-muted)" font-family="inherit">Ctrl/Cmd + scroll</text>
 
-        <!-- Home button -->
         <rect x="220" y="255" width="56" height="28" rx="6"
               fill="var(--accent)" opacity="0.15" stroke="var(--accent)" stroke-width="1.5"/>
         <text x="248" y="274" text-anchor="middle" font-size="10" font-weight="600" fill="var(--accent)" font-family="inherit">Home</text>
 
-        <!-- Callout: Fit -->
         <line x1="220" y1="269" x2="100" y2="260" stroke="var(--border)" stroke-width="1.2" stroke-dasharray="4,3"/>
         <rect x="10" y="246" width="88" height="44" rx="5" fill="var(--card-bg)" stroke="var(--border)" stroke-width="1"/>
         <text x="54" y="265" text-anchor="middle" font-size="10.5" font-weight="600" fill="currentColor" font-family="inherit">FIT</text>
@@ -330,7 +319,6 @@
     </ul>
   </div>
 
-  <!-- TAB 2: CAMERA MODEL -->
   <div id="camera-model" class="panel">
     <h2>PerspectiveCamera parameters</h2>
     <table>
@@ -357,54 +345,41 @@
       <p class="note" style="margin:0.6rem 0 0">The target is <strong>runtime-only</strong> for now — <em>not</em> yet persisted to <code>scene.json</code>; it is re-seeded on load.</p>
     </div>
 
-    <!-- Arcball diagram -->
     <h2>Arcball pivot diagram</h2>
     <div class="diagram">
       <svg width="540" height="300" viewBox="0 0 540 300" fill="none"
            xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Arcball pivot: camera arcs around pivot on world-fixed X and Y axes">
 
-        <!-- World axes -->
-        <!-- Y axis -->
         <line x1="270" y1="260" x2="270" y2="40" stroke="currentColor" stroke-width="1.2" stroke-dasharray="5,4" opacity="0.4"/>
         <polygon points="270,36 265,48 275,48" fill="currentColor" opacity="0.4"/>
         <text x="278" y="46" font-size="11" fill="currentColor" opacity="0.6" font-family="inherit">World Y</text>
 
-        <!-- X axis -->
         <line x1="80" y1="200" x2="460" y2="200" stroke="currentColor" stroke-width="1.2" stroke-dasharray="5,4" opacity="0.4"/>
         <polygon points="464,200 452,195 452,205" fill="currentColor" opacity="0.4"/>
         <text x="462" y="216" font-size="11" fill="currentColor" opacity="0.6" font-family="inherit">World X</text>
 
-        <!-- Target point -->
         <circle cx="270" cy="200" r="6" fill="var(--accent)" opacity="0.9"/>
         <text x="280" y="196" font-size="10.5" font-weight="600" fill="var(--accent)" font-family="inherit">target</text>
         <text x="280" y="210" font-size="9" fill="var(--text-muted)" font-family="inherit">(selection or seeded scene-depth point)</text>
 
-        <!-- Camera arc around pivot (horizontal — world Y rotation) -->
         <path d="M 165,200 A 105,105 0 0 1 375,200" stroke="var(--accent)" stroke-width="2" stroke-dasharray="6,3" fill="none" opacity="0.6"/>
-        <!-- Camera icon at arc end -->
         <rect x="150" y="187" width="22" height="16" rx="3" stroke="var(--accent)" stroke-width="1.8" fill="var(--card-bg)"/>
         <polygon points="172,191 180,187 180,203 172,199" stroke="var(--accent)" stroke-width="1.5" fill="var(--card-bg)"/>
         <text x="115" y="183" font-size="9.5" fill="var(--text-muted)" font-family="inherit" text-anchor="middle">cam start</text>
 
-        <!-- Camera icon at arc other end -->
         <rect x="368" y="187" width="22" height="16" rx="3" stroke="var(--accent)" stroke-width="1.8" fill="var(--card-bg)"/>
         <polygon points="390,191 398,187 398,203 390,199" stroke="var(--accent)" stroke-width="1.5" fill="var(--card-bg)"/>
         <text x="408" y="183" font-size="9.5" fill="var(--text-muted)" font-family="inherit" text-anchor="middle">cam end</text>
 
-        <!-- Horizontal drag label -->
         <text x="270" y="148" text-anchor="middle" font-size="10.5" fill="var(--accent)" font-family="inherit">horizontal drag → rotate about World Y</text>
 
-        <!-- Camera arc (vertical — world X rotation) -->
         <path d="M 270,95 A 105,105 0 0 1 270,200" stroke="#e65" stroke-width="2" stroke-dasharray="6,3" fill="none" opacity="0.7"/>
-        <!-- Camera icon top -->
         <rect x="259" y="80" width="22" height="16" rx="3" stroke="#e65" stroke-width="1.8" fill="var(--card-bg)"/>
         <polygon points="281,84 289,80 289,96 281,92" stroke="#e65" stroke-width="1.5" fill="var(--card-bg)"/>
 
-        <!-- Vertical drag label -->
         <text x="370" y="148" font-size="10.5" fill="#e65" font-family="inherit">vertical drag →</text>
         <text x="370" y="162" font-size="10.5" fill="#e65" font-family="inherit">rotate about World X</text>
 
-        <!-- ROT_SPEED label -->
         <text x="270" y="282" text-anchor="middle" font-size="9.5" fill="var(--text-muted)" font-family="inherit">ROT_SPEED = 0.005 rad/px — target fixed for entire gesture</text>
       </svg>
       <div class="diagram-caption">
@@ -414,31 +389,24 @@
     </div>
   </div>
 
-  <!-- TAB 3: MOTIONS -->
   <div id="motions" class="panel">
     <p>Three independent camera motions, each with its own input and math:</p>
 
     <div class="diagrams-row">
 
-      <!-- ORBIT diagram -->
       <div class="diagram">
         <svg width="220" height="200" viewBox="0 0 220 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <!-- Pivot -->
           <circle cx="110" cy="120" r="5" fill="var(--accent)"/>
           <text x="110" y="145" text-anchor="middle" font-size="9" fill="var(--text-muted)" font-family="inherit">target</text>
 
-          <!-- Arc -->
           <path d="M 30,120 A 80,80 0 0 1 190,120" stroke="var(--accent)" stroke-width="2" stroke-dasharray="5,3" fill="none"/>
 
-          <!-- Camera at start -->
           <rect x="16" y="110" width="18" height="13" rx="2" stroke="var(--accent)" stroke-width="1.5" fill="var(--card-bg)"/>
           <polygon points="34,112 41,109 41,123 34,120" fill="var(--card-bg)" stroke="var(--accent)" stroke-width="1.2"/>
 
-          <!-- Camera at end -->
           <rect x="186" y="110" width="18" height="13" rx="2" stroke="var(--accent)" stroke-width="1.5" fill="var(--card-bg)"/>
           <polygon points="204,112 211,109 211,123 204,120" fill="var(--card-bg)" stroke="var(--accent)" stroke-width="1.2"/>
 
-          <!-- Arrow along arc -->
           <path d="M 48,72 Q 110,40 172,72" stroke="var(--accent)" stroke-width="1.5" fill="none" marker-end="url(#arrow-orbit)"/>
           <defs>
             <marker id="arrow-orbit" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
@@ -446,7 +414,6 @@
             </marker>
           </defs>
 
-          <!-- Label -->
           <text x="110" y="25" text-anchor="middle" font-size="11" font-weight="600" fill="currentColor" font-family="inherit">ORBIT</text>
           <text x="110" y="40" text-anchor="middle" font-size="9" fill="var(--text-muted)" font-family="inherit">drag empty space</text>
         </svg>
@@ -456,7 +423,6 @@
         </div>
       </div>
 
-      <!-- PAN diagram -->
       <div class="diagram">
         <svg width="220" height="200" viewBox="0 0 220 200" fill="none" xmlns="http://www.w3.org/2000/svg">
           <defs>
@@ -465,25 +431,19 @@
             </marker>
           </defs>
 
-          <!-- Target before -->
           <circle cx="59" cy="150" r="4" fill="#5a9"/>
-          <!-- Target after -->
           <circle cx="149" cy="150" r="4" fill="#5a9"/>
           <text x="104" y="178" text-anchor="middle" font-size="9" fill="var(--text-muted)" font-family="inherit">target moves with camera</text>
 
-          <!-- Camera before -->
           <rect x="50" y="88" width="18" height="13" rx="2" stroke="#5a9" stroke-width="1.5" fill="var(--card-bg)"/>
           <polygon points="68,90 76,87 76,101 68,99" fill="var(--card-bg)" stroke="#5a9" stroke-width="1.2"/>
           <line x1="59" y1="101" x2="59" y2="146" stroke="#5a9" stroke-width="1" stroke-dasharray="3,3" opacity="0.5"/>
 
-          <!-- Camera after -->
           <rect x="140" y="88" width="18" height="13" rx="2" stroke="#5a9" stroke-width="1.5" fill="var(--card-bg)"/>
           <polygon points="158,90 166,87 166,101 158,99" fill="var(--card-bg)" stroke="#5a9" stroke-width="1.2"/>
           <line x1="149" y1="101" x2="149" y2="146" stroke="#5a9" stroke-width="1" stroke-dasharray="3,3" opacity="0.5"/>
 
-          <!-- Arrow between cameras -->
           <line x1="85" y1="94" x2="133" y2="94" stroke="#5a9" stroke-width="2" marker-end="url(#arrow-pan)"/>
-          <!-- Arrow between targets -->
           <line x1="68" y1="150" x2="140" y2="150" stroke="#5a9" stroke-width="2" marker-end="url(#arrow-pan)"/>
 
           <text x="110" y="25" text-anchor="middle" font-size="11" font-weight="600" fill="currentColor" font-family="inherit">PAN</text>
@@ -495,7 +455,6 @@
         </div>
       </div>
 
-      <!-- DOLLY diagram -->
       <div class="diagram">
         <svg width="220" height="200" viewBox="0 0 220 200" fill="none" xmlns="http://www.w3.org/2000/svg">
           <defs>
@@ -507,22 +466,17 @@
             </marker>
           </defs>
 
-          <!-- Target -->
           <circle cx="110" cy="148" r="12" fill="none" stroke="var(--border)" stroke-width="2"/>
           <circle cx="110" cy="148" r="4" fill="var(--accent)"/>
           <text x="110" y="170" text-anchor="middle" font-size="9" fill="var(--text-muted)" font-family="inherit">target</text>
 
-          <!-- View axis -->
           <line x1="110" y1="40" x2="110" y2="136" stroke="currentColor" stroke-width="1" stroke-dasharray="4,3" opacity="0.35"/>
 
-          <!-- Camera far -->
           <rect x="96" y="28" width="18" height="13" rx="2" stroke="#e8a" stroke-width="1.5" fill="var(--card-bg)"/>
           <polygon points="114,30 122,27 122,41 114,39" fill="var(--card-bg)" stroke="#e8a" stroke-width="1.2"/>
-          <!-- Camera near -->
           <rect x="96" y="68" width="18" height="13" rx="2" stroke="#e8a" stroke-width="1.5" fill="var(--card-bg)"/>
           <polygon points="114,70 122,67 122,81 114,79" fill="var(--card-bg)" stroke="#e8a" stroke-width="1.2"/>
 
-          <!-- In/out arrows -->
           <line x1="110" y1="45" x2="110" y2="65" stroke="#e8a" stroke-width="2" marker-end="url(#arrow-in)"/>
           <text x="122" y="58" font-size="8.5" fill="#e8a" font-family="inherit">zoom in (−ΔY)</text>
 
@@ -538,7 +492,7 @@
         </div>
       </div>
 
-    </div><!-- end diagrams-row -->
+    </div>
 
     <div class="card">
       <h2 style="margin-top:0">Constants</h2>
@@ -554,7 +508,6 @@
     </div>
   </div>
 
-  <!-- TAB 4: FIT & PERSISTENCE -->
   <div id="fit-persistence" class="panel">
 
     <h2>Fit algorithm ("Home" button)</h2>
@@ -574,7 +527,6 @@
 
     <h2>Save / restore flow</h2>
 
-    <!-- Flow diagram as inline SVG -->
     <div class="diagram">
       <svg width="620" height="90" viewBox="0 0 620 90" fill="none" xmlns="http://www.w3.org/2000/svg"
            role="img" aria-label="Camera save/restore data flow">
@@ -584,37 +536,28 @@
           </marker>
         </defs>
 
-        <!-- Nodes -->
-        <!-- gesture-end -->
         <rect x="2" y="28" width="92" height="34" rx="5" fill="var(--card-bg)" stroke="var(--border)" stroke-width="1.2"/>
         <text x="48" y="46" text-anchor="middle" font-size="9.5" font-weight="600" fill="currentColor" font-family="inherit">gesture end</text>
         <text x="48" y="58" text-anchor="middle" font-size="8.5" fill="var(--text-muted)" font-family="inherit">commitCamera</text>
 
-        <!-- arrow -->
         <line x1="94" y1="45" x2="116" y2="45" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#arr-flow)"/>
 
-        <!-- scheduleViewSave -->
         <rect x="118" y="28" width="110" height="34" rx="5" fill="var(--card-bg)" stroke="var(--border)" stroke-width="1.2"/>
         <text x="173" y="46" text-anchor="middle" font-size="9.5" font-weight="600" fill="currentColor" font-family="inherit">scheduleViewSave</text>
         <text x="173" y="58" text-anchor="middle" font-size="8.5" fill="var(--text-muted)" font-family="inherit">400 ms debounce</text>
 
-        <!-- arrow -->
         <line x1="228" y1="45" x2="252" y2="45" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#arr-flow)"/>
 
-        <!-- scene edit -->
         <rect x="254" y="28" width="100" height="34" rx="5" fill="var(--card-bg)" stroke="var(--border)" stroke-width="1.2"/>
         <text x="304" y="46" text-anchor="middle" font-size="9.5" font-weight="600" fill="currentColor" font-family="inherit">scene edit → Go</text>
         <text x="304" y="58" text-anchor="middle" font-size="8.5" fill="var(--text-muted)" font-family="inherit">save.ts</text>
 
-        <!-- arrow -->
         <line x1="354" y1="45" x2="374" y2="45" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#arr-flow)"/>
 
-        <!-- topology scene.json -->
         <rect x="376" y="28" width="110" height="34" rx="5" fill="var(--card-bg)" stroke="var(--border)" stroke-width="1.2"/>
         <text x="431" y="46" text-anchor="middle" font-size="9.5" font-weight="600" fill="currentColor" font-family="inherit">topology</text>
         <text x="431" y="58" text-anchor="middle" font-size="8.5" fill="var(--text-muted)" font-family="inherit">scene.json camera3d</text>
 
-        <!-- Restore legend -->
         <text x="2" y="85" font-size="8.5" fill="var(--text-muted)" font-family="inherit">
           load → CameraRefBridge (saved camera3d? apply : square-on) → CameraFitter (auto-fit once only if no saved camera)
         </text>
@@ -638,7 +581,6 @@
     </div>
   </div>
 
-  <!-- TAB 5: DESIGN -->
   <div id="design" class="panel">
     <h2>Total operations, not a partial z=0 raycast</h2>
     <p>
@@ -747,7 +689,7 @@
     </table>
   </div>
 
-</div><!-- .page -->
+</div>
 
 <script>
   (function () {

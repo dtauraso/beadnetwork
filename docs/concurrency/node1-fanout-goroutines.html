@@ -3,21 +3,6 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<!--
-  node1-fanout-goroutines.html — ARCHITECTURE of node 1's fan-out (edges 1->2 and 1->3):
-  which goroutine owns which state, and which dedicated channel or stream crosses between
-  them. Sibling of concurrency-map.html. Standalone: no build step, no external assets.
-
-  This replaced a runtime timing chart of the same subject. The timing view showed one
-  interleaving; the structure is what explains it, and stays true across interleavings.
-
-  The structural point: a wire is passive state with no goroutine, so the SOURCE node's
-  mover steps both wires' inflight. That leaves one piece of state with a split owner —
-  a bead's placementTick is DECIDED by the Input kind goroutine and WRITTEN by the mover,
-  whenever it next drains that wire. Everything else on the page is written by the
-  goroutine that decides it. See the seam section; nodes/wire/paced_wire.go's placeRequest
-  comment still carries the pre-removal rationale for the split.
--->
 <title>Node 1 fan-out — architecture</title>
 <style>
   :root {
@@ -153,7 +138,6 @@
         <div class="colhead"></div>
         <div class="colhead">destinations</div>
 
-        <!-- col 1: node 1's two goroutines -->
         <div class="stack">
           <div class="g">
             <span class="g-tag">goroutine</span>
@@ -174,7 +158,6 @@
           </div>
         </div>
 
-        <!-- arrows col 1 -> wires -->
         <div class="stack">
           <div class="arrow">
             <span class="lbl a-col">Send &rarr; inCh</span>
@@ -184,7 +167,6 @@
           </div>
         </div>
 
-        <!-- col 3: the two passive wires -->
         <div class="stack">
           <div class="passive wire-a">
             <span class="g-tag">passive state</span>
@@ -200,7 +182,6 @@
           </div>
         </div>
 
-        <!-- arrows wires -> destinations -->
         <div class="stack">
           <div class="arrow">
             <span class="lbl a-col">outCh &rarr; In</span>
@@ -210,7 +191,6 @@
           </div>
         </div>
 
-        <!-- col 5: destination goroutines -->
         <div class="stack">
           <div class="g">
             <span class="g-tag">goroutine</span>

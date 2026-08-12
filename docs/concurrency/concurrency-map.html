@@ -166,7 +166,6 @@
 
 <div class="wrap">
 
-<!-- ───────────────────────── GOROUTINES ───────────────────────── -->
 <section class="panel" id="p-goroutines" role="tabpanel" aria-labelledby="t-goroutines" data-active>
   <div class="layout">
     <div>
@@ -251,13 +250,11 @@
   </div>
 </section>
 
-<!-- ───────────────────────── MUTEXES ───────────────────────── -->
 <section class="panel" id="p-mutexes" role="tabpanel" aria-labelledby="t-mutexes">
   <div class="layout">
     <div>
       <div class="plate">
         <svg viewBox="0 0 860 800" role="img" aria-label="The four mutex patterns shown as the specific calls each goroutine makes: identity reads versus position writes, message enqueue and bead handling, why neither the clock nor the trace is a shared lock anymore, and the refuted-then-deleted holder access.">
-          <!-- ── 1 anti-tearing ── -->
           <text class="d-tl" x="0" y="12">1 · ANTI-TEARING — geomMu, now deleted</text>
           <rect class="d-group" x="0" y="22" width="860" height="120" rx="6"/>
 
@@ -282,7 +279,6 @@
           <text class="d-ts" x="548" y="93">live position reaches other</text>
           <text class="d-ts" x="548" y="110">goroutines via snap atomic.Pointer</text>
 
-          <!-- ── 2 queues ── -->
           <text class="d-tl" x="0" y="176">2 · QUEUES — outbox.mu + cond deleted, now per-direction channels; PacedWire.mu deleted, now ownership</text>
           <rect class="d-group" x="0" y="186" width="860" height="140" rx="6"/>
 
@@ -310,11 +306,9 @@
           <line class="d-arrow-flow" x1="392" y1="284" x2="420" y2="284"/>
           <text class="d-ts" x="590" y="284">two channels, one owning goroutine — nothing left to lock</text>
 
-          <!-- ── 3 shared services: neither the clock nor Trace is a shared lock anymore ── -->
           <text class="d-tl" x="0" y="360">3 · SHARED SERVICE — neither is a shared lock anymore</text>
           <rect class="d-group" x="0" y="370" width="860" height="282" rx="6"/>
 
-          <!-- ── left: the clock, once shared, now per-goroutine ── -->
           <text class="d-tl" x="20" y="392">NO LONGER SHARED — the clock</text>
           <rect class="d-box-passive" x="20" y="402" width="390" height="196" rx="5"/>
           <text class="d-t"  x="34" y="428">RealClock</text>
@@ -327,7 +321,6 @@
           <text class="d-ts" x="34" y="564">buffered-1 latest-wins channels, not a bus</text>
           <text class="d-ts" x="34" y="588">see “the clock question” tab</text>
 
-          <!-- ── bus B: the trace ── -->
           <text class="d-tl" x="450" y="392">SHARED STATE, NO LOCK — says “what happened”</text>
           <rect class="d-box-passive" x="450" y="402" width="140" height="196" rx="5"/>
           <text class="d-t"  x="464" y="426">Trace</text>
@@ -365,7 +358,6 @@
           <rect class="d-box-passive" x="330" y="630" width="16" height="11" rx="2"/>
           <text class="d-ts" x="354" y="640">passive object — nothing runs in it, no lock</text>
 
-          <!-- ── 4 refuted ── -->
           <text class="d-tl" x="0" y="716">4 · CLAIMED MULTI-WRITER — LayoutHolder.mu, refuted, now deleted</text>
           <rect class="d-group" x="0" y="696" width="860" height="86" rx="6"/>
           <rect class="d-box-flow" x="18" y="716" width="150" height="28" rx="4"/>
@@ -441,7 +433,6 @@
   </div>
 </section>
 
-<!-- ───────────────────────── DRAG ───────────────────────── -->
 <section class="panel" id="p-drag" role="tabpanel" aria-labelledby="t-drag">
   <div class="layout">
     <div>
@@ -521,7 +512,6 @@
   </div>
 </section>
 
-<!-- ───────────────────────── BEAD ───────────────────────── -->
 <section class="panel" id="p-bead" role="tabpanel" aria-labelledby="t-bead">
   <div class="layout">
     <div>
@@ -591,7 +581,6 @@
   </div>
 </section>
 
-<!-- ───────────────────────── CLOCK ───────────────────────── -->
 <section class="panel" id="p-clock" role="tabpanel" aria-labelledby="t-clock">
   <div class="layout">
     <div>

@@ -54,7 +54,6 @@
           is 0 at the other end. Nothing else is a case: the turn never sees which mode is running, and there
           is no fourth input.</p>
         <svg width="700" height="252" viewBox="0 0 700 252">
-          <!-- column headers: the count 0..11 -->
           <text x="150" y="26" class="lbl">count c — slots from the nearer end of the tilt line to the arrival</text>
           <g class="lbl" text-anchor="middle">
             <text x="176" y="46">0</text>
@@ -71,7 +70,6 @@
             <text x="616" y="46">11</text>
           </g>
 
-          <!-- setting: stops at every count -->
           <text x="150" y="80" text-anchor="end" class="lblm" fill="#9a9aa6">setting</text>
           <g fill="#5fd68a">
             <circle cx="176" cy="75" r="7" /><circle cx="216" cy="75" r="7" /><circle cx="256" cy="75" r="7" />
@@ -80,7 +78,6 @@
             <circle cx="536" cy="75" r="7" /><circle cx="576" cy="75" r="7" /><circle cx="616" cy="75" r="7" />
           </g>
 
-          <!-- perpendicular: stops at 0; down for 1..5; up for 6..11 (c >= q goes up) -->
           <text x="150" y="130" text-anchor="end" class="lblm" fill="#e05fd8">perpendicular</text>
           <circle cx="176" cy="125" r="7" fill="#5fd68a" />
           <g fill="#4ea1ff" class="lblm" text-anchor="middle">
@@ -99,7 +96,6 @@
             <text x="616" y="130">›</text>
           </g>
 
-          <!-- parallel: stops at 6; up for 0..5; down for 7..11 (c <= q goes up) -->
           <text x="150" y="180" text-anchor="end" class="lblm" fill="#f9a825">parallel</text>
           <g fill="#4ea1ff" class="lblm" text-anchor="middle">
             <text x="176" y="180">›</text>
@@ -159,22 +155,18 @@
       <div class="card wide">
         <h2>Every transition — there are four, and no others</h2>
         <svg width="700" height="196" viewBox="0 0 700 196">
-          <!-- setting -->
           <rect x="40" y="60" width="150" height="46" rx="8" fill="#2b2b33" stroke="#9a9aa6" />
           <text x="115" y="80" text-anchor="middle" class="lblm" fill="#9a9aa6">setting</text>
           <text x="115" y="96" text-anchor="middle" class="lbl">the zero value</text>
 
-          <!-- perpendicular -->
           <rect x="430" y="14" width="190" height="46" rx="8" fill="#2b2b33" stroke="#e05fd8" />
           <text x="525" y="34" text-anchor="middle" class="lblm" fill="#e05fd8">perpendicular</text>
           <text x="525" y="50" text-anchor="middle" class="lbl">stops at c = 0</text>
 
-          <!-- parallel -->
           <rect x="430" y="112" width="190" height="46" rx="8" fill="#2b2b33" stroke="#f9a825" />
           <text x="525" y="132" text-anchor="middle" class="lblm" fill="#f9a825">parallel</text>
           <text x="525" y="148" text-anchor="middle" class="lbl">stops at c = quarter</text>
 
-          <!-- adopt arrows -->
           <line x1="190" y1="74" x2="422" y2="42" stroke="#5fd68a" stroke-width="1.8" />
           <polygon points="430,40 418,38 419,48" fill="#5fd68a" />
           <line x1="190" y1="92" x2="422" y2="130" stroke="#5fd68a" stroke-width="1.8" />
@@ -182,7 +174,6 @@
           <text x="300" y="52" text-anchor="middle" class="lbl" fill="#5fd68a">gap read at START,</text>
           <text x="300" y="66" text-anchor="middle" class="lbl" fill="#5fd68a">or the partner says so</text>
 
-          <!-- reset arrows -->
           <path d="M 430 26 L 300 8 L 60 44" fill="none" stroke="#ff6b6b" stroke-width="1.4"
             stroke-dasharray="4 3" />
           <polygon points="52,46 64,38 66,48" fill="#ff6b6b" />
