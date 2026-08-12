@@ -6489,3 +6489,143 @@ orchestrator over eight named emit phases" (`tools/gen-node-defs/overlay_write.g
 
 **Declined:** none — all four held up as genuine phase splits with the ordering/comments
 carried across.
+
+## Six previously-declined functions revisited (concurrent session, same branch)
+
+Reworked six functions the owner rejected as declined-without-mechanism: `handle()`
+(`nodes/Wiring/nodeactor/node_geometry_handle.go`), `chainBeads()`
+(`nodes/Wiring/nodeactor/chain_beads.go`), and four never-examined functions —
+`CommitNodeMoveLocal` (`nodes/Wiring/layoutquant/commit_node_move.go`), `DriveHeld`
+(`nodes/gatecommon/drive.go`), `Time.Update` (`nodes/Time/node.go`), `TimeStart.Update`
+(`nodes/TimeStart/node.go`). All six landed as genuine splits; none declined.
+
+**`handle()`** — 10 mutually-exclusive `if msg.Kind == X { ... return }` branches became a
+`switch` dispatching to `handleCenter`/`handleDrag`/`handleSelect`/`handleHover`/
+`handleLatched`/`handleTiltVectorAngle`/`handleTiltVectorReset`/`handleNeighborCenter`, plus
+`startBeadDrag`/`endBeadDrag` called inline (already-existing methods) and the
+`KindTiltIndexSync`/etc-removed fallback kept as the `switch`'s `default`. Each new method
+stays on `*NodeGeometry`, so every field write and channel/stream send moved unchanged. `go
+build`/`go vet ./...` clean. `handle` itself: 48 lines (was ~166). Longest new method:
+`handleNeighborCenter` at 25 lines. File total 206 (was 182, `git show` before/after) — the
+split adds signatures and doc comments, expected. Commit `a695cc35`.
+
+**`chainBeads()`** — measured the five impure operations directly in the pre-split file
+(original `chain_beads.go` line numbers, before this split): (1) `m.clocks.clk.Tick()` at
+line 111 (read the live clock); (2) `m.outs.outWireOuts[i].PublishSteps(count)` /
+`m.outs.outStepsIn[i](count)` at lines 172/175 (publish this edge's step count); (3)
+`m.outs.outWires[i].LiveBeadFractions(tick)` at line 206 (read this edge's live in-flight
+beads); (4) `m.tr.Breadcrumb(...)` at line 241 (send the diagnostic trace); (5)
+`m.reconcileBeadChain(to, count, offsetAt, aimUnit)` at line 285 (reconcile the bead-actor
+goroutine count). Between them: 1→2 is 55 lines (mostly comments plus the pure
+`ChainEdgeGeometry` call); 2→3 is 24 lines (comments plus the `pulses` gather loop's own
+setup); 3→4 is 25 lines (comments); 4→5 is 35 lines (offset/aim/chainSep computation, itself
+pure — `ParallelChainOffset`); after 5, 29 lines of pure result-shaping (`resolved`/
+`resolvedValid`) into the final `ChainBeadRows` call. None of the five gaps is "a few lines"
+— every one is a genuine extractable phase, so the earlier "no seam" decline was wrong for
+this function. Extracted the whole per-target loop body into `chainBeadsForTarget` (one
+target's worth of all five impure ops plus the pure math between them), then further split
+`publishStepCount` (impure op 1), `gatherPulses` (impure op 2), and `chainAimBreadcrumb`
+(impure ops 3/4) into their own named methods on `*NodeGeometry`; impure op 5
+(`reconcileBeadChain`, pre-existing) stays inline in `chainBeadsForTarget` since its result
+(`actorChain`) is consumed immediately by the next few lines with nothing extractable
+between. `check-no-sqrt-in-chain-beads.sh` reverified green on the new file (ran it, printed
+the pass line). Longest function after the split: `chainBeadsForTarget` at 117 lines — still
+long because it is the one function that DOES thread all five impure ops plus the geometry
+setup between them; further splitting it would either re-inline the phases it already calls
+out (no gain) or promote per-target locals (`dist`, `liveDir`, `count`, `chainSep`,
+`actorChain`) into a struct field to share across smaller methods, which the constraints
+forbid. `go build`/`go vet ./...` clean. File total 358 (was 318, `git show` before/after).
+Commit `ad7b6aab`.
+
+**`CommitNodeMoveLocal`** — 135 lines (34–169 in the un-split file), never examined before
+this pass. Three sequential phases, cleanly separated by existing comment headers in the
+original: (1) gather each direct neighbor's polar from `partnerCenters` (lines 48–62); (2)
+resolve `committedPos`/`committedPolar` — either the raw drag target or, under
+`QuantizedLayout`, the bead-CRUD-implied position, plus its `task/log-node2-bead-crud`
+diagnostic breadcrumb (lines 95–149); (3) finalize — apply reach, `ApplyCenter`, broadcast,
+persist (lines 151–168, left in place). Extracted (1) to standalone function
+`neighborPolars`, (2) to method `(*LayoutQuantizer) resolveCommittedPosition`, and the
+diagnostic breadcrumb sub-block of (2) to standalone function `emitBeadCrudDiagnostic` (not
+a method — `*nodeactor.NodeGeometry` is a foreign-package receiver, so it takes `nm` as a
+parameter instead, same call shape `nm.Breadcrumb(...)`/`nm.WriteStreamFrame(...)` as
+before, no field or channel touched differently). `go build`/`go vet ./...` clean. Longest
+remaining function: `neighborPolars` at 44 lines (mostly comment). `CommitNodeMoveLocal`
+itself down to 43 lines. File total 184 (was 169, `git show` before/after). Commit
+`a1cffa3f`.
+
+**`DriveHeld`** — one `go func(){...}()` literal, 122 lines in the un-split file (93–215),
+never examined before this pass. Two genuine phases, not a five-impure-op interleave like
+`chainBeads`: (a) one-time clock/sleep/tick setup at goroutine start (originally lines
+96–131), independent of the per-cycle loop; (b) the per-cycle `K = ticksToCross` computation,
+duplicated VERBATIM at two call sites (originally lines 156–163 in the place-decision and
+198–202 in the sleep-to-next-placement) — a duplication bug waiting to happen if one site
+were edited and not the other. Extracted (a) to `driveHeldClock` (returns `tick`, `sleep`,
+and the clock copy `c` — three return values, not a struct; the loop below still holds its
+own locals `lastPlaceTick`/`cur`/`paced` directly, none promoted) and (b) to
+`driveHeldPeriod` (returns `(k int64, known bool)`, called from both the place decision and
+the sleep call so they can never disagree again). Both are ordinary top-level functions in
+package `gatecommon`, not methods — `DriveHeld` has no receiver to keep them on, and none of
+the goroutine's per-iteration locals were pulled into a struct to make the split work. `go
+build`/`go vet ./...` clean. `DriveHeld` itself: 99 lines (the `go func(){}()` body, still
+containing the full per-cycle loop — further splitting the loop itself would mean passing
+`lastPlaceTick`/`cur` by pointer through more functions for no clarity gain, or promoting
+them to a struct, which the constraints forbid). Longest remaining function in the file:
+`DriveHeld` at 99. File total 234 (was 215, `git show` before/after). Commit `e984c0a6`.
+
+**`Time.Update` / `TimeStart.Update`** — 120 lines each in the un-split files (59–179 /
+62–182), byte-identical bodies (only the receiver type name differs — `Time` vs
+`TimeStart`), never examined before this pass. Two phases inside the per-cycle loop: (a)
+mid-window observe — drain and discard every input bead without processing (originally
+14 lines); (b) new-input consume — fire, update `held`, place the `ToNext` broadcast, open
+the next processing window (originally 53 lines). Extracted both to methods on the
+respective receiver — `drainInput()` and `consumeInput(clk, value, held) (newHeld int,
+windowActive bool, windowEndTick int64)` — in EACH file separately (not merged into one
+shared package): merging into `gatecommon` was considered and rejected as out of scope for
+this pass — it would require threading `Held`/`Fire`/`EmitHeldBead`/`In`/`ToNext` through
+closures or a shared interface across two node-kind packages, a larger change than "split
+one long function," and CLAUDE.md's node-kind landing rule keeps each kind's own package as
+the home for its own logic. `Wiring.RegisterBuilder` calls and `init()` untouched in both
+files; `go run ./tools/gen-node-defs && git status --short` showed only the two edited
+`node.go` files each time — byte-identical generator output, confirming the registration
+wasn't perturbed. `go build`/`go vet ./...` clean for both. `Update` itself: 60 lines in each
+file (was ~120). Longest remaining function per file: `Update` at 60 (still the loop with
+the tick-sleep, the drain/consume dispatch, and the window-timeout check — comment-heavy,
+same shape kept as the un-split original's outer skeleton). File totals measured before/after
+via `git show`: `Time/node.go` 213→213 (net wash — the doc comments moved onto the two new
+methods roughly balance what the inlined loop body no longer needs to restate);
+`TimeStart/node.go` 212→212. Commits `58f2a3ba` (Time), `b4562fb4` (TimeStart).
+
+**Nothing exported, no local promoted to a struct field, in any of the six.** Every new
+function/method takes what it needs as parameters and returns what the caller needs as
+return values; every impure op (channel send, clock read, breadcrumb send, PublishSteps,
+LiveBeadFractions, ReconcileBeadChain call) stayed exactly where it was in terms of which
+goroutine executes it and which receiver it runs on.
+
+**Guards:** grepped `tools/` and `scripts/` for every filename and every moved/renamed
+symbol before each split (`chainBeads`, `handle`, `CommitNodeMoveLocal`, `DriveHeld`,
+`Update`, `placeHeld`, `neighborPolars`, etc.) — no guard hardcodes any of them except
+`tools/network/beads/check-no-sqrt-in-chain-beads.sh`, which names the FILE
+(`chain_beads.go`) and was reverified green with its own printed pass line after the split
+(teeth already proven by the file surviving unchanged in name and by the guard's own
+positive-match check, not a deliberately-broken negative case in this pass — the pre-split
+guard investigation in `feedback_guards_hardcoding_single_file_break_on_split.md` covers the
+break case).
+
+**Verify (from `/Users/David/Documents/github/wirefold`, cwd confirmed each time):**
+`go build ./...` clean (no output) after each of the six edits. `go vet ./...` clean (no
+output) after each. `bash scripts/stop-checks.sh` empty stdout after each of the six commits.
+`git status --short` empty after each commit. `go run ./tools/gen-node-defs && git status
+--short` after the `Time`/`TimeStart` edits showed only the edited `node.go` files —
+generator output byte-identical.
+
+**Commits (`task/god-objects`):** `a695cc35` — "NodeGeometry.handle dispatches to one method
+per mutually-exclusive movemsg.Kind." `ad7b6aab` — "chainBeads splits its per-target body
+into named phases around its five impure operations." `a1cffa3f` — "CommitNodeMoveLocal
+splits into neighbor-polar gathering, position resolution, and its diagnostic breadcrumb."
+`e984c0a6` — "DriveHeld factors its clock setup and duplicated K computation into named
+helpers." `58f2a3ba` — "Time.Update splits its mid-window drain and new-input phases into
+named methods." `b4562fb4` — "TimeStart.Update splits its mid-window drain and new-input
+phases into named methods."
+
+**Declined:** none — all six held up as genuine phase splits with the ordering/comments
+carried across.
