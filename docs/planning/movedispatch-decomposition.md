@@ -5384,3 +5384,111 @@ statement order within a handler, only that a `handle<Kind>Fd` symbol exists som
 **Verify:** `bash scripts/stop-checks.sh` printed empty stdout after the `stream-demux.ts`
 commit (run from repo root, confirmed via `pwd`). `git status --short` empty after the
 commit. Commit: `fb0d4763` (`stream-demux.ts` dispatchFrames factoring).
+
+## The four largest hand-written Go files
+
+`mover_registry.go` (395), `nodes/input/node.go` (363), `edge_mover.go` (359),
+`nodes/PairNode/node.go` (348) — measured statement-by-statement per CLAUDE.md's method
+(writes an unexported field/sends on a channel/starts a goroutine/writes a file = bucket
+(a); computation on locals/params/field reads = bucket (b)).
+
+**`moverreg/mover_registry.go` — split in place, four files, no API change.** Every method
+on `*MoverRegistry` reads or writes the type's own unexported fields (bucket (a) by the
+task's own rule — a method on a type legitimately touches that type's fields; this isn't a
+channel-export question, `MoverRegistry` holds maps, not channels). The two fully-pure
+functions (`linkRefusalFor`, `firstPortOfDir`) already didn't touch `MoverRegistry` at all.
+Grouped by concern, same package: `mover_registry.go` (138 lines — struct, `New`,
+`NodeGeoms`/`EdgeMovers` accessors, `ClaimSelfDrive`/`SeedCenter` construction-time
+writes), `mover_registry_wire.go` (111 — `Bind`/`Start`/`FinalizeActors`, wiring + actor
+launch), `mover_registry_query.go` (131 — `drainCenterMirror`/`CenterOfNode`/`SendMove`/
+`EnqueueFor`/`nodeKind`/`NodeBodyRadius`/`HasNodeMover`/`NodeSelfDriven`/
+`NodeQuantOffset`/`NearestNodeTo`, all read-only lookups), `mover_registry_linkrefusal.go`
+(59 — `LinkRefusal` + its two pure helpers). No decline; every function found a concern
+home. Commit `2a89023b`.
+
+**`edgemover/edge_mover.go` — split in place.** `handle` (the inbox message switch) and
+`recomputeGeometry` (the geometry propagate it drives) are the two functions with real
+weight and a distinct role — "what runs once a message has arrived" — versus the rest of
+the file (struct, construction, the bound-func-value setter/accessor surface: `Select`,
+`TrySendFromSrc/Dst`, `SendSteps`, `SetOut`/`SetDest`/`SetSpeedCh`/`SetStream`). Both moved
+to `edge_mover_handle.go` (109 lines); `edge_mover.go` dropped 359→268. The unexported
+`extIn`/`srcIn`/`dstIn`/`stepsIn` channels were untouched — no export, no new package
+boundary, same package `edgemover`. Commit `a7c46321`.
+
+**`nodes/input/node.go` — mostly declined, small lift.** Per-function bucket count: `clock`
+(6, all field reads, bucket a-adjacent trivial), `broadcastPlace` (9, calls
+`n.OutCadence.Wired()`/`.PlaceDrivenAt` — bucket a, side-effecting placement), `popEnd`
+(11, **fully bucket (b)** — only the caller's own local slice pointers, no `Node` field
+touched at all), `updateFeedbackRing` (~70, ctx/channel/clock blocking calls throughout —
+bucket a), `Update` (~55, the goroutine loop itself — bucket a), `inputCadenceTicks` (7:
+one field read `n.OutCadence.Geom().Steps`, bucket a, then 5 lines of pure arithmetic on
+that int, bucket b), `init`/`RegisterBuilder` (~45, construction writes — stays per the
+node-kind landing rule). Lifted the two genuinely pure pieces — `popEnd` whole,
+`inputCadenceTicks`'s arithmetic split out as `cadenceTicks(steps int) int64` — into a new
+sibling file `nodes/input/emit_helpers.go` (38 lines) in the SAME package `input`, not a
+subpackage (too small to justify a new one-file package per CLAUDE.md's "existing sibling
+first" bias, and there is no existing sibling shaped for "arithmetic serving exactly one
+node kind's own cadence"). `node.go` 363→347 — a small drop, honestly reported: nearly
+everything else in this file is bucket (a) by construction (a periodic-source node's own
+goroutine loop, its channel drains, its placements), which is the loop-body/decision
+content the primitive landing rule keeps in `node.go`. Declined further split: every
+remaining function's own statements are field reads/writes or channel/blocking calls on
+`*Node`'s own state, not stray computation. `go run ./tools/gen-node-defs` produced
+byte-identical generated output (git status showed only the two edited files after the
+run). Commit `a8f6d8af`.
+
+**`nodes/PairNode/node.go` — mostly declined, small lift.** This file's own header
+comment already states its contract: "THE KIND'S LOGIC IS THIS FILE: the Node struct, the
+builder..., the Update loop..., and the two functions that decide — stepFromVector and
+handleVectorCycle." Code-only line count (comments/blanks stripped) is 144 of 348 lines —
+the rest is the prose the file's own doc block promises. `stepFromVector` (35 lines: field
+reads via `n.ringOf()`/`n.topState()`, calls to `n.tilt.Machine.Settled/Step`, one field
+write `n.rest.restedThisCycle = true` — mixed, but IS the decision, per the header's own
+naming) and `handleVectorCycle` (52 lines, same shape) are declined outright — the file's
+own stated contract names them as what stays, and pulling either out would leave `node.go`
+without either of "the two functions that decide," contradicting the header on the same
+branch that wrote it. `Update` (34 lines, the goroutine loop) also stays, same reasoning
+as `input`. Lifted three helpers that are NEITHER the composer/builder NOR one of the two
+deciding functions: `clock()` (6 lines, a nil-guard field read), `openingEmit` (7 lines,
+three field/method calls made once before the loop), `paceOnBeadArrival` (7 lines, one
+non-blocking channel drain) — into a new sibling file `nodes/PairNode/lifecycle.go` (57
+lines), same package, no subpackage (mirrors `input`'s reasoning — this is per-kind
+lifecycle plumbing, not a concern any existing sibling like `tiltring` is shaped for).
+`node.go` 348→308. `go run ./tools/gen-node-defs` produced byte-identical generated output.
+`check-docs-symbols.sh` (which asserts `nodes/PairNode/node.go#handleVectorCycle` still
+resolves, since `docs/pair-node/*.html` link to it) stayed green because that symbol never
+moved. Commit `cba04edf`.
+
+**Guard teeth, proven with a deliberate failure.** Grepped `tools/` for every filename and
+symbol touched; the two guards that name `edge_mover.go`/`edge_file.go` literally
+(`check-persist-write-ownership.sh`'s `EDGE_OWNERS`, `check-scene-path-resolution.sh`'s
+`NODE_PATH_OWNERS`) do NOT name the new `edge_mover_handle.go` — deliberately: that file
+holds no `filepath.Join`/`writeJSONAtomic` call today, so it correctly has no owner entry
+yet. Proved this is a live tooth, not silent-green-by-omission: added
+`jsonpersist.WriteJSONAtomic("x", nil)` to `edge_mover_handle.go` via the Edit tool and ran
+`check-persist-write-ownership.sh` — it failed loudly (`unauthorized-write:
+.../edge_mover_handle.go: 18:...`, exit 1) — then reverted via Edit and reran clean (`git
+diff --stat` empty on the file, guard back to exit 0). If a real write is ever added to
+`edge_mover_handle.go`, that file's basename must be added to `EDGE_OWNERS` in the same
+commit — recorded here so the guard's silence today isn't mistaken for coverage of a write
+that doesn't exist yet.
+
+**Surfaces with NO check of any kind that can fail:** the four-way file split inside
+`moverreg` (which method landed in which of the four files) — nothing asserts a given
+method lives in a given file, only that the package still builds and exports the same
+API; `edgemover`'s `handle`/`recomputeGeometry` extraction, same story; `input`'s and
+`PairNode`'s sibling-file placement of `popEnd`/`cadenceTicks`/`clock`/`openingEmit`/
+`paceOnBeadArrival` — no guard names these functions, only `check-docs-symbols.sh`'s one
+hardcoded anchor (`node.go#handleVectorCycle`) which happens not to have moved.
+
+**Verify, all four commits:** `go build ./...` — no output, exit 0. `go vet ./...` — no
+output, exit 0. `go test -race -count=1 ./...` — every package `[no test files]` (expected
+per this repo's no-test doctrine). The no-dispatch-import loop (`for p in $(go list
+./nodes/Wiring/... | grep -v 'dispatch$'); do go list -deps "$p" | grep -qx
+.../nodes/Wiring/dispatch && echo DEPENDS; done`) printed only the two expected exceptions,
+`nodes/Wiring/build` and `nodes/Wiring/stdinreader`. `go run ./tools/gen-node-defs` +
+`git status --short` after each of the `input`/`PairNode` commits showed only the
+hand-edited files, confirming byte-identical generated output. `bash
+scripts/stop-checks.sh` printed empty stdout (confirmed `pwd` first) after all four
+commits landed. `git status --short` empty at the end. Commits: `2a89023b` (moverreg),
+`a7c46321` (edgemover), `a8f6d8af` (input), `cba04edf` (PairNode).
