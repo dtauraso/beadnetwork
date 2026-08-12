@@ -3,27 +3,22 @@
 // adjacent movers together (see move_dispatch.go's doc comment for the model this
 // reproduces per-goroutine). This is the one-time, single-threaded setup step; the
 // MoveDispatch struct itself lives in move_dispatch.go and its public delegator API lives
-// in move_dispatch_api.go.
+// in move_dispatch_api.go. The phases NewMoveDispatch calls in order are grouped by
+// concern into sibling files: move_dispatch_seeds.go (order resolution, buffer row seeds,
+// and the row-identity tables built from them), move_dispatch_movers.go (constructing the
+// node/edge movers and wiring the channels/pairs/ids between them), and
+// move_dispatch_ui.go (UI-state defaults and the closures EmitViewFrame needs). This file
+// keeps NewMoveDispatch itself, the sole constructor of the &MoveDispatch{...} struct
+// literal.
 
 package dispatch
 
 import (
-	"sort"
-	"strconv"
-
-	"github.com/dtauraso/wirefold/nodes/Wiring/edgemover"
-	geomseeds "github.com/dtauraso/wirefold/nodes/Wiring/geomseeds"
-	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
-	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
-	"github.com/dtauraso/wirefold/nodes/Wiring/moverreg"
-	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
-	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
-	rowtables "github.com/dtauraso/wirefold/nodes/Wiring/rowtables"
-	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
-	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
-	"github.com/dtauraso/wirefold/nodes/wire/clock"
-
 	T "github.com/dtauraso/wirefold/Trace"
+	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/nodes/Wiring/moverreg"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
+	"github.com/dtauraso/wirefold/nodes/wire/clock"
 )
 
 // NewMoveDispatch builds the registry from per-node geometry and per-edge endpoints.
@@ -71,224 +66,4 @@ func NewMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[strin
 	md.bindUIClosures()
 
 	return md, nil
-}
-
-// resolveSeedOrders returns nodeOrder/edgeOrder, falling back to sorted map keys when the
-// caller passed nil (test call sites that don't care about seed order) — still
-// deterministic, just not necessarily spec order.
-func resolveSeedOrders(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[string]inputcodec.EdgeEndpoints, nodeOrder, edgeOrder []string) ([]string, []string) {
-	if nodeOrder == nil {
-		nodeOrder = make([]string, 0, len(geoms))
-		for id := range geoms {
-			nodeOrder = append(nodeOrder, id)
-		}
-		sort.Strings(nodeOrder)
-	}
-	if edgeOrder == nil {
-		edgeOrder = make([]string, 0, len(edgeEndpoints))
-		for label := range edgeEndpoints {
-			edgeOrder = append(edgeOrder, label)
-		}
-		sort.Strings(edgeOrder)
-	}
-	return nodeOrder, edgeOrder
-}
-
-// initMoveDispatchUIDefaults sets md.UI's startup defaults, each overwritten later by its
-// own loader if the loaded scene has one persisted.
-func initMoveDispatchUIDefaults(md *MoveDispatch) {
-	md.UI.OV = viewstate.DefaultOverlayState()
-	md.UI.Speed = 1                                         // default playback multiplier; LoadSpeed overwrites from view/speed.json if present
-	md.UI.ClockDivisor = 1                                  // no scaling until LoadSpeed resolves the loaded scene's own divisor
-	md.UI.LatticePoints = scenepersist.DefaultLatticePoints // LoadLatticePoints overwrites from view/lattice.json if present
-}
-
-// buildGeomSeeds builds md.GS.NodeSeeds/EdgeSeeds — the buffer row seeds — from the
-// load-time geoms/edgeEndpoints, in nodeOrder/edgeOrder (the SPEC order).
-func (md *MoveDispatch) buildGeomSeeds(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[string]inputcodec.EdgeEndpoints, nodeOrder, edgeOrder []string) error {
-	md.GS.NodeSeeds = make([]geomseeds.NodeGeomSeed, 0, len(nodeOrder))
-	for i, id := range nodeOrder {
-		g, ok := geoms[id]
-		if !ok {
-			continue
-		}
-		// ROW ID = NODE ID - 1 — declared by the id, not by position in nodeOrder. Falls
-		// back to positional index only for a non-numeric id, which real (loadTree-built)
-		// specs never produce (loud load-time error there); this keeps synthetic-id unit
-		// tests that construct a MoveDispatch directly working unchanged.
-		row := i
-		if n, err := strconv.Atoi(id); err == nil {
-			row = n - 1
-		}
-		md.GS.NodeSeeds = append(md.GS.NodeSeeds, geomseeds.BuildNodeSeed(id, i, g, row))
-	}
-	md.GS.EdgeSeeds = make([]geomseeds.EdgeGeomSeed, 0, len(edgeOrder))
-	for _, label := range edgeOrder {
-		ep, ok := edgeEndpoints[label]
-		if !ok {
-			continue
-		}
-		// Real endpoint geometry, computed by geomseeds.BuildEdgeSeed: the same
-		// nodegeom.EdgeSegment computation recomputeGeometry (below) uses on every live
-		// move, evaluated once here against the load-time geoms so the seed row is never
-		// a degenerate 0,0,0->0,0,0 segment. A missed lookup means the edge's source or
-		// target node id has no geometry — a malformed topology (most commonly a stale
-		// edge file left behind after its target node's directory was deleted by hand;
-		// in-edges are not indexed, so nothing else catches this) — and must fail the
-		// load loudly, never seed a silent 0,0,0->0,0,0 segment indistinguishable from
-		// real data.
-		seed, err := geomseeds.BuildEdgeSeed(label, ep, geoms)
-		if err != nil {
-			return err
-		}
-		md.GS.EdgeSeeds = append(md.GS.EdgeSeeds, seed)
-	}
-	return nil
-}
-
-// buildNodeMovers creates one nodeMover per node, wires its messaging closures, and seeds
-// the dispatch goroutine's center mirror from the load-time geom.
-func (md *MoveDispatch) buildNodeMovers(geoms map[string]nodegeom.NodeGeom, tr *T.Trace, clk clock.Clock) {
-	for id, g := range geoms {
-		ng := nodeactor.NewNodeGeometry(id, g, tr, clk)
-		// resolveDest resolves the ONE dedicated directed channel FROM this node
-		// (selfID, captured below) TO destID: another node's own neighborIn[selfID]
-		// slot, or an incident edge's srcIn/dstIn depending on which endpoint this
-		// node is. There is no shared dispatch map to look up — md.MR.NodeGeoms()/md.MR.EdgeMovers() are the
-		// read-only directories, safe to read from any goroutine once construction
-		// finishes.
-		selfID := id
-		resolveDest := func(destID string) (func(movemsg.Msg) bool, bool) {
-			if em, ok := md.MR.EdgeMovers()[destID]; ok {
-				switch selfID {
-				case em.SrcID():
-					return em.TrySendFromSrc, true
-				case em.DstID():
-					return em.TrySendFromDst, true
-				}
-				return nil, false
-			}
-			if other, ok := md.MR.NodeGeoms()[destID]; ok {
-				return other.NeighborTrySend(selfID)
-			}
-			return nil, false
-		}
-		ownGeom := ng
-		commitLocal := func(_ string, newPos vec3) {
-			md.LQ.CommitNodeMoveLocal(md.MR.NodeGeoms(), md.MR.EdgeMovers(), &md.UI, ownGeom, newPos)
-		}
-		ng.WireMessaging(resolveDest, md.MR.EnqueueFor(ng), md.MR.CenterOfNode, commitLocal)
-		md.MR.NodeGeoms()[id] = ng
-		// Seed the dispatch goroutine's center mirror from the same load-time geom
-		// (single-threaded setup, before md.Start — no driving goroutine is running yet)
-		// so the first framing read has every center before any push arrives (mirrors
-		// the partnerCenters seed below).
-		md.MR.SeedCenter(id, nodegeom.NodeWorldPos(g))
-	}
-}
-
-// wireMutualPairs copies each mutual-pair fact (a pair that points an edge at each other) —
-// a LOAD-TIME fact of the edge set, resolved here (single-threaded setup, before any mover
-// goroutine exists) — into each node's own field. Without it a node cannot know whether its
-// target also aims back — its own outTargets say nothing about the other node's — and the
-// two chains would draw along the identical centre line (nodegeom.ParallelChainOffset,
-// nodegeom/port_geometry.go).
-func (md *MoveDispatch) wireMutualPairs(edgeEndpoints map[string]inputcodec.EdgeEndpoints) {
-	for src, targets := range geomseeds.MutualPairs(edgeEndpoints) {
-		if nm, ok := md.MR.NodeGeoms()[src]; ok {
-			for target := range targets {
-				nm.AddMutualTarget(target)
-			}
-		}
-	}
-}
-
-// buildEdgeMovers creates one edgeMover per edge, wires speedSinks (if non-nil, the
-// loader's build-wide accumulator — every clock-owning goroutine must not be left behind),
-// and ensures the dedicated node-to-node neighbor channels each edge's two endpoints share.
-func (md *MoveDispatch) buildEdgeMovers(edgeEndpoints map[string]inputcodec.EdgeEndpoints, geoms map[string]nodegeom.NodeGeom, tr *T.Trace, clk clock.Clock, speedSinks *[]chan float64) {
-	for edgeID, ep := range edgeEndpoints {
-		em := edgemover.New(edgeID, ep.Source, ep.Target, ep.SourceHandle, ep.TargetHandle, geoms[ep.Source], geoms[ep.Target], tr, clk)
-		if speedSinks != nil {
-			edgeSpeedCh := make(chan float64, 1)
-			em.SetSpeedCh(edgeSpeedCh)
-			*speedSinks = append(*speedSinks, edgeSpeedCh)
-		}
-		md.MR.EdgeMovers()[edgeID] = em
-		// This edge's two nodes each get a dedicated channel TO this edge (already
-		// created above, srcIn/dstIn) — and each other's own dedicated channel for
-		// node-to-node traffic (neighborIn, the plain-neighbor/partner-reemit fan):
-		// two directed channels per ordered pair, never a shared inbox.
-		if srcNM, ok := md.MR.NodeGeoms()[ep.Source]; ok {
-			if dstNM, ok := md.MR.NodeGeoms()[ep.Target]; ok {
-				dstNM.EnsureNeighborChannel(ep.Source)
-				srcNM.EnsureNeighborChannel(ep.Target)
-			}
-		}
-	}
-}
-
-// seedPartnerCenters seeds every nodeMover's own partnerCenters map: quantized_move.go's
-// neighbor-move math (neighborSetCReposition et al.) reads a direct neighbor's CURRENT
-// world center off THIS node's OWN partnerCenters map (owned, written only by this node's
-// own goroutine), kept current thereafter by each neighbor's own movemsg.KindNeighborCenter
-// push (applyCenter) — one hop, no cascade.
-func (md *MoveDispatch) seedPartnerCenters() {
-	for _, nm := range md.MR.NodeGeoms() {
-		// Seed partnerCenters at construction (single-threaded setup, before md.Start —
-		// no mover goroutine is running yet, so reading a neighbor's geom directly here
-		// is safe) with the SAME value the old snap seed used (newNodeMover seeds snap
-		// from nodegeom.NodeWorldPos(geom)), so the first emit reproduces today's center exactly.
-		// A node's neighbor set is nm.NeighborIDs() (populated above from
-		// edgeEndpoints — one dedicated channel per adjacent node, both directions).
-		for _, neighborID := range nm.NeighborIDs() {
-			if other, ok := md.MR.NodeGeoms()[neighborID]; ok {
-				nm.SeedPartnerCenter(neighborID, other.WorldCenter())
-			}
-		}
-	}
-}
-
-// wireNodeEdgeIDs gives every nodeMover the ids of its OWN incident edges, so a
-// lock-driven move can notify its edges via sendMove (resolveDest's per-pair channel
-// lookup) — no cached channel slice.
-func (md *MoveDispatch) wireNodeEdgeIDs() {
-	for id, nm := range md.MR.NodeGeoms() {
-		for edgeID, em := range md.MR.EdgeMovers() {
-			if em.SrcID() == id || em.DstID() == id {
-				nm.AddEdgeID(edgeID)
-			}
-		}
-	}
-}
-
-// buildRowTables builds the row-identity tables ONCE, from nodeSeeds/edgeSeeds (each node
-// seed already carries its own absolute Row = id-1) — see RowTables.Build's doc comment for
-// why this is a load-time constant, not a discovery log.
-func (md *MoveDispatch) buildRowTables(rowCount int) {
-	rtNodeSeeds := make([]rowtables.NodeSeed, len(md.GS.NodeSeeds))
-	for i, sd := range md.GS.NodeSeeds {
-		rtNodeSeeds[i] = rowtables.NodeSeed{ID: sd.ID, Row: sd.Row}
-	}
-	rtEdgeSeeds := make([]rowtables.EdgeSeed, len(md.GS.EdgeSeeds))
-	for i, sd := range md.GS.EdgeSeeds {
-		rtEdgeSeeds[i] = rowtables.EdgeSeed{Label: sd.Label, SrcNode: sd.SrcNode, DstNode: sd.DstNode}
-	}
-	md.RT.Build(rtNodeSeeds, rtEdgeSeeds, rowCount)
-}
-
-// bindUIClosures binds the two closures EmitViewFrame needs but cannot reach directly
-// (md.RT/md.MR are unexported-package-internal from viewstate's point of view — RT is
-// exported but UIState cannot hold a *rowtables.RowTables field of its own without
-// MoveDispatch handing it one, and DistanceGroupLens needs *moverreg.MoverRegistry, an
-// unexported dispatch-owned field). Bound ONCE, here, mirroring ng.msg.sendMove =
-// md.MR.EnqueueFor(ng) above — not re-resolved on every emit. Method value md.RT.NodeRowFor
-// captures &md.RT (md.RT is addressable through the *MoveDispatch pointer), so it keeps
-// seeing whatever RT.Build just populated even though this bind runs after it.
-func (md *MoveDispatch) bindUIClosures() {
-	md.UI.NodeRowFor = md.RT.NodeRowFor
-	mrForLens, uiForLens := &md.MR, &md.UI
-	md.UI.DistanceGroupLensFn = func() (float32, float32, float32) {
-		return DistanceGroupLens(uiForLens, mrForLens)
-	}
 }
