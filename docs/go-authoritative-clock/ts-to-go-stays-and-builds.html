@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="doc-status" content="historical">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TS → Go — stays in TS &amp; new Go builds — Go-Authoritative Clock — Wirefold Design Spec</title>
+<link rel="stylesheet" href="style-base.css">
+<link rel="stylesheet" href="style-layout.css">
+<link rel="stylesheet" href="style-typography.css">
+<link rel="stylesheet" href="style-tables.css">
+<link rel="stylesheet" href="style-panels.css">
+<link rel="stylesheet" href="style-diagrams.css">
+<link rel="stylesheet" href="style-controls.css">
+</head>
+<body>
+<div class="container">
+  <div class="page-title">Wirefold — Design Spec</div>
+  <div class="page-subtitle">Go Backend / TS Frontend — TS → Go — stays in TS &amp; new Go builds</div>
+
+  <ul class="tabs" role="navigation" aria-label="Go-Authoritative Clock pages">
+      <li><a href="index.html">The split</a></li>
+      <li><a href="goroutines.html">Goroutines</a></li>
+      <li><a href="ts-execution.html">TS</a></li>
+      <li><a href="bridge.html">The Bridge</a></li>
+      <li><a href="clock.html">Clock</a></li>
+      <li><a href="ts-to-go.html">TS → Go</a></li>
+      <li><a href="plan.html">Plan</a></li>
+      <li><a href="verify.html">Verify</a></li>
+      <li><a href="tracking.html">Tracking</a></li>
+      <li><a href="inconsistencies.html">Inconsistencies</a></li>
+      <li><a href="todo.html">What's left</a></li>
+  </ul>
+
+  <div class="panel active" id="panel-tsgo-stays" role="region">
+    <p><a href="ts-to-go.html">&larr; back to TS → Go</a></p>
+
+    <div class="cards" style="margin-top:1rem;">
+      <div class="card">
+        <h3 style="color:var(--ts-hue);"><button type="button" class="chk-btn heading-chk" aria-pressed="false" data-chk="tsgo:card4">☐</button>Stays in TS (render + input + authoring)</h3>
+        <ul>
+          <li><strong>GPU draw calls</strong> — WebGL/three.js render: sphere/torus/tube geometry, <code style="font-family:var(--mono);font-size:11px;">renderer.render()</code>, the @react-three/fiber Canvas loop (<span style="font-family:var(--mono);font-size:12px;color:var(--ts-hue)">scene-content.tsx</span>: GraphNode, SingleEdgeTube, PulseBead).</li>
+          <li><strong>GPU-resident resources</strong> — WebGL context, compiled shaders, baked textures/env maps; Go supplies the parameters, TS bakes + binds them (<span style="font-family:var(--mono);font-size:12px;color:var(--ts-hue)">scene-content.tsx</span>: ProceduralEnvProvider).</li>
+          <li><strong>Human input</strong> — camera arcball/pan/pinch-dolly committed locally, never forwarded; raycast pick identifies node/port/edge; drag + wiring go to Go as geometry edits (<span style="font-family:var(--mono);font-size:12px;color:var(--ts-hue)">useInteractionControls</span>, <span style="font-family:var(--mono);font-size:12px;color:var(--ts-hue)">RaycasterHelper</span>).</li>
+          <li><strong>DOM editor chrome</strong> — label overlays, occlusion badges, spec-override text, run button, camera-UI widgets; HTML stays in the browser (<span style="font-family:var(--mono);font-size:12px;color:var(--ts-hue)">ThreeView.tsx</span>).</li>
+          <li><strong>Authoring lifecycle</strong> — editor state, JSON parse/serialize, VS Code save IPC: authoring, not Go-network compute (<span style="font-family:var(--mono);font-size:12px;color:var(--ts-hue)">store.ts</span>, <span style="font-family:var(--mono);font-size:12px;color:var(--ts-hue)">save.ts</span>, <span style="font-family:var(--mono);font-size:12px;color:var(--ts-hue)">SaveLifecycle.tsx</span>).</li>
+          <li><strong>No authoritative store</strong> — TS holds no source-of-truth graph state; the zustand store is a no-op holder Go writes (<span style="font-family:var(--mono);font-size:12px;color:var(--ts-hue)">store.ts</span>).</li>
+          <li><strong>Fire-and-forget sends</strong> — no await/Promise/reply; optimistic local apply for responsiveness, Go's echo reconciles.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="note" style="margin-top:0.75rem;border-left-color:var(--warn);"><button type="button" class="chk-btn heading-chk" aria-pressed="false" data-chk="tsgo:note2">☐</button>Moving geometry into Go doesn't mean serializing the <em>derived</em> geometry into <span style="font-family:var(--mono);font-size:12px;color:var(--go-hue)">topology.json</span> — node x/y is the geometric input and still persists. File holds: network spec + <span style="font-family:var(--mono);font-size:12px;color:var(--go-hue)">view</span> block (node x/y, camera, fade/label); port positions, curves, and arc lengths are recomputed at load. Node drag writes back one x/y.</div>
+
+    <h3 style="margin-top:1.75rem;"><button type="button" class="chk-btn heading-chk" aria-pressed="false" data-chk="tsgo:newbuilds-intro">☐</button>New Go builds</h3>
+    <p><strong>Static geometry is already Go's</strong> — delete TS duplicates: <code style="font-family:var(--mono);font-size:11px;">BezierArcLength</code>, <code style="font-family:var(--mono);font-size:11px;">PortCurveArcLength</code>, <code style="font-family:var(--mono);font-size:11px;">nodeWorldPos</code>, <code style="font-family:var(--mono);font-size:11px;">portWorldPos</code>, <code style="font-family:var(--mono);font-size:11px;">CurveParamPulseSpeedWuPerMs</code>. Go must newly build Chain 1 (clock + per-frame streaming; the bézier eval already exists).</p>
+
+    <div class="note" style="margin-top:0.5rem;"><button type="button" class="chk-btn heading-chk" aria-pressed="false" data-chk="tsgo:newbuilds-chain1">☐</button><strong>Chain 1 — animation (first domino):</strong>
+      <ul style="margin-top:0.4rem;padding-left:1.25rem;">
+        <li style="margin-bottom:0.3rem;"><strong>Clock + per-frame stepping — NEW.</strong> Monotonic clock; stdlib <code style="font-family:var(--mono);font-size:11px;">time</code>.</li>
+        <li><strong>Bead-position eval — EXPOSE, don't build.</strong> The 3D bézier eval and <code style="font-family:var(--mono);font-size:11px;">vec3</code> already exist inline in <code style="font-family:var(--mono);font-size:11px;">PortCurveArcLength</code>; factor out and call per frame: bead t → 3D pos, streamed.</li>
+      </ul>
+    </div>
+
+    <div class="note" style="margin-top:0.75rem;"><button type="button" class="chk-btn heading-chk" aria-pressed="false" data-chk="tsgo:newbuilds-divline">☐</button><strong>Diagram vs viewpoint.</strong>
+      <ul style="margin-top:0.4rem;padding-left:1.2rem;">
+        <li>Go: diagram (nodes/edges/beads, control points, arc length, world positions, animation).</li>
+        <li>TS: viewpoint (camera, orbit/pan/zoom, projection, picking, GPU). "TS computes none" = no diagram math.</li>
+        <li>CRUD surfaces send actions to Go with the Go id (one id space).</li>
+      </ul>
+    </div>
+
+    <div class="note" style="margin-top:0.75rem;"><button type="button" class="chk-btn heading-chk" aria-pressed="false" data-chk="tsgo:newbuilds-decisions">☐</button><strong>Fade reachability → Go.</strong> <code style="font-family:var(--mono);font-size:11px;">SetFaded</code> + <code style="font-family:var(--mono);font-size:11px;">fade</code> broadcast are already Go; the reachability that drives them is Go's too — diagram logic, not camera-dependent. Camera-dependent label-display (nearest-N-to-camera, occlusion) stays in TS.</div>
+
+    <div class="note" style="margin-top:0.75rem;"><button type="button" class="chk-btn heading-chk" aria-pressed="false" data-chk="tsgo:newbuilds-libs">☐</button><strong>Go libraries.</strong> stdlib <code style="font-family:var(--mono);font-size:11px;">time</code> for the clock; the existing <code style="font-family:var(--mono);font-size:11px;">vec3</code> + bézier eval for beads — no 3D-math library. Camera, projection, and picking (<code style="font-family:var(--mono);font-size:11px;">Perspective</code>, <code style="font-family:var(--mono);font-size:11px;">UnProject</code>) stay in three.js.</div>
+
+  </div>
+</div>
+<script src="script.js"></script>
+</body>
+</html>
