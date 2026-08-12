@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>wirefold — scene_persist, the last unexamined locks — the whole system — five persisters, four locks, two files</title>
+<style>
+  :root {
+    --ground:#F2F4F7; --surface:#FFFFFF; --plate:#FAFBFC;
+    --ink:#131A24; --muted:#5B6779; --faint:#8894A6;
+    --line:#D3D9E2; --line-strong:#B7C0CD;
+    --signal:#C06A12; --flow:#2E7D9A; --hazard:#A8443C; --ok:#3B7350;
+    --signal-wash:#F6ECDF; --flow-wash:#E4EFF3; --hazard-wash:#F6E6E4; --ok-wash:#E4EFE8;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ground:#0D1219; --surface:#141C26; --plate:#111925;
+      --ink:#E4E9F0; --muted:#94A1B2; --faint:#6C7A8B;
+      --line:#26313F; --line-strong:#3A4859;
+      --signal:#E8A147; --flow:#57AECB; --hazard:#D2685E; --ok:#6FA783;
+      --signal-wash:#241B10; --flow-wash:#0F2029; --hazard-wash:#251413; --ok-wash:#12241A;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground:#0D1219; --surface:#141C26; --plate:#111925;
+    --ink:#E4E9F0; --muted:#94A1B2; --faint:#6C7A8B;
+    --line:#26313F; --line-strong:#3A4859;
+    --signal:#E8A147; --flow:#57AECB; --hazard:#D2685E; --ok:#6FA783;
+    --signal-wash:#241B10; --flow-wash:#0F2029; --hazard-wash:#251413; --ok-wash:#12241A;
+  }
+  :root[data-theme="light"] {
+    --ground:#F2F4F7; --surface:#FFFFFF; --plate:#FAFBFC;
+    --ink:#131A24; --muted:#5B6779; --faint:#8894A6;
+    --line:#D3D9E2; --line-strong:#B7C0CD;
+    --signal:#C06A12; --flow:#2E7D9A; --hazard:#A8443C; --ok:#3B7350;
+    --signal-wash:#F6ECDF; --flow-wash:#E4EFF3; --hazard-wash:#F6E6E4; --ok-wash:#E4EFE8;
+  }
+
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--ground); color:var(--ink); font-family:var(--sans); line-height:1.5; -webkit-font-smoothing:antialiased; }
+  .wrap { max-width:1120px; margin:0 auto; padding:0 20px 72px; }
+  header { border-bottom:1px solid var(--line); background:var(--surface); }
+  .head-inner { max-width:1120px; margin:0 auto; padding:24px 20px 20px; }
+  .eyebrow { font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--faint); margin:0 0 8px; }
+  h1 { font-family:var(--mono); font-weight:600; font-size:clamp(20px,3vw,28px); margin:0 0 6px; }
+  .sub { margin:0; color:var(--muted); max-width:76ch; font-size:14px; }
+  h2 { font-family:var(--mono); font-size:13px; font-weight:600; margin:38px 0 2px; letter-spacing:.02em; }
+  .cap { margin:0 0 10px; color:var(--muted); font-size:13px; max-width:82ch; }
+  .cap b { color:var(--ink); font-weight:600; }
+  .plate { background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:14px; margin:0 0 10px; overflow-x:auto; }
+  .plate svg { display:block; min-width:600px; width:100%; height:auto; }
+
+  .t   { font-family:var(--mono); font-size:12.5px; fill:var(--ink); font-weight:600; }
+  .ts  { font-family:var(--mono); font-size:10.5px; fill:var(--muted); }
+  .tf  { font-family:var(--mono); font-size:9.5px;  fill:var(--faint); }
+  .tl  { font-family:var(--mono); font-size:11px; fill:var(--faint); letter-spacing:.1em; }
+  .tw  { font-family:var(--mono); font-size:10.5px; fill:var(--hazard); font-weight:600; }
+  .tk  { font-family:var(--mono); font-size:10.5px; fill:var(--ok); font-weight:600; }
+  .tq  { font-family:var(--mono); font-size:10.5px; fill:var(--signal); font-weight:600; }
+  .tb  { font-family:var(--mono); font-size:10.5px; fill:var(--flow); font-weight:600; }
+  .big { font-family:var(--mono); font-size:14px; fill:var(--hazard); font-weight:700; }
+
+  .box   { fill:var(--plate); stroke:var(--line-strong); stroke-width:1; }
+  .gor   { fill:var(--flow-wash); stroke:var(--flow); stroke-width:1.2; }
+  .state { fill:var(--hazard-wash); stroke:var(--hazard); stroke-width:1.4; }
+  .safe  { fill:var(--ok-wash); stroke:var(--ok); stroke-width:1.2; }
+  .queue { fill:var(--signal-wash); stroke:var(--signal); stroke-width:1.2; }
+  .dash  { fill:none; stroke:var(--line-strong); stroke-width:1; stroke-dasharray:4 3; }
+  .arr   { fill:none; stroke:var(--hazard); stroke-width:1.4; }
+  .arrb  { fill:none; stroke:var(--flow); stroke-width:1.4; }
+  .arrk  { fill:none; stroke:var(--ok); stroke-width:1.4; }
+  .arrq  { fill:none; stroke:var(--signal); stroke-width:1.4; }
+
+  .legend { display:flex; gap:16px; flex-wrap:wrap; margin:0 0 22px; font-size:12px; color:var(--muted); }
+  .legend span { display:flex; align-items:center; gap:6px; font-family:var(--mono); font-size:11px; }
+  .sw { width:12px; height:12px; border-radius:3px; border:1.4px solid; display:inline-block; }
+  .sw.g { background:var(--flow-wash);   border-color:var(--flow); }
+  .sw.s { background:var(--hazard-wash); border-color:var(--hazard); }
+  .sw.k { background:var(--ok-wash);     border-color:var(--ok); }
+  .sw.q { background:var(--signal-wash); border-color:var(--signal); }
+
+  .verdict { font-size:13px; margin:0 0 26px; padding:9px 12px; border-radius:6px; }
+  .verdict.ok { background:var(--ok-wash); }
+  .verdict.open { background:var(--signal-wash); }
+  .verdict.hazard { background:var(--hazard-wash); }
+  .verdict b { font-family:var(--mono); font-size:11.5px; }
+  code { font-family:var(--mono); font-size:.92em; }
+  footer { margin-top:46px; padding-top:16px; border-top:1px solid var(--line); color:var(--faint); font-size:12px; }
+
+.crumbnav { font-family: var(--mono); font-size:12px; color:var(--muted); margin:18px 0 0; }
+.crumbnav a { color: var(--flow, #2E7D9A); text-decoration:none; }
+.crumbnav a:hover { text-decoration:underline; }
+.crumbnav .crumb-here { color: var(--ink, #131A24); font-weight:600; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="head-inner">
+    <p class="eyebrow">scene_persist, the last unexamined locks</p>
+    <h1>1 · the whole system — five persisters, four locks, two files</h1>
+    <nav class="crumbnav"><a href="scene-persist-architecture.html">scene_persist — the last locks nobody has looked at</a> — <span class="crumb-here">the whole system — five persisters, four locks, two files</span> · <a href="scene-persist-architecture-2-the-race-that.html">the race that is reachable today</a> · <a href="scene-persist-architecture-3-atomic-rename-does.html">atomic rename does not make these locks redundant</a> · <a href="scene-persist-architecture-4-the-question-that.html">the question that killed the other four locks</a> · <a href="scene-persist-architecture-5-findings-one-stale.html">findings — one stale claim, one missing guard</a></nav>
+  </div>
+</header>
+
+<div class="wrap">
+<div class="legend">
+  <span><i class="sw g"></i>goroutine</span>
+  <span><i class="sw s"></i>lock / hazard</span>
+  <span><i class="sw q"></i>timer-spawned</span>
+  <span><i class="sw k"></i>file on disk</span>
+</div>
+
+<h2>1 · the whole system — five persisters, four locks, two files</h2>
+<p class="cap">Every writer, the goroutine it runs on, the lock it takes, and the file it lands
+in. <b>Five</b> debounced persisters, each with its own independent <code>mu</code>.</p>
+
+<div class="plate">
+<svg viewBox="0 0 860 400" role="img" aria-label="Five debounced persisters and one synchronous writer funnel through either the scene file mutex or a per-path entity mutex before writing scene.json or a node's meta.json.">
+  <defs><marker id="as" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#C06A12"/></marker></defs>
+
+  <text class="tl" x="0" y="14">WRITER · GOROUTINE</text>
+  <text class="tl" x="392" y="14">LOCK</text>
+  <text class="tl" x="672" y="14">FILE</text>
+
+  <rect class="queue" x="0" y="28" width="356" height="34" rx="5"/>
+  <text class="ts" x="10" y="43">viewpointPersister.flush — camera</text>
+  <text class="tf" x="10" y="56">scene_camera_persist.go:55 · TIMER goroutine</text>
+
+  <rect class="queue" x="0" y="68" width="356" height="34" rx="5"/>
+  <text class="ts" x="10" y="83">overlaysPersister.flush — overlays</text>
+  <text class="tf" x="10" y="96">scene_overlays_persist.go:94 · TIMER, or stdin on save</text>
+
+  <rect class="gor" x="0" y="108" width="356" height="34" rx="5"/>
+  <text class="ts" x="10" y="123">sceneSpherePersister.flushNow — sphere</text>
+  <text class="tf" x="10" y="136">scene_sphere_persist.go:128 · STDIN goroutine, synchronous</text>
+
+  <rect class="queue" x="0" y="162" width="356" height="34" rx="5"/>
+  <text class="ts" x="10" y="177">quantOffsetPersister.flush — node position</text>
+  <text class="tf" x="10" y="190">quant_offset_persist.go:68 · TIMER goroutine</text>
+
+  <rect class="gor" x="0" y="202" width="356" height="34" rx="5"/>
+  <text class="ts" x="10" y="217">WriteLocalPolars — local polars</text>
+  <text class="tf" x="10" y="230">quant_offset_persist.go:143 · node's OWN mover goroutine, SYNC</text>
+
+  <rect class="queue" x="0" y="242" width="356" height="34" rx="5"/>
+  <text class="ts" x="10" y="257">anchorPersister.flush — port anchor</text>
+  <text class="tf" x="10" y="270">scene_anchor_persist.go:53 · TIMER goroutine</text>
+
+  <path class="arrq" d="M356,45 L456,60" marker-end="url(#as)"/>
+  <path class="arrq" d="M356,85 L456,70" marker-end="url(#as)"/>
+  <path class="arrq" d="M356,125 L456,80" marker-end="url(#as)"/>
+  <path class="arrq" d="M356,179 L456,178" marker-end="url(#as)"/>
+  <path class="arrq" d="M356,219 L456,188" marker-end="url(#as)"/>
+  <path class="arrq" d="M356,259 L456,250" marker-end="url(#as)"/>
+
+  <rect class="state" x="456" y="40" width="200" height="52" rx="6"/>
+  <text class="tw" x="468" y="60">sceneFileMu</text>
+  <text class="tf" x="468" y="76">scene_persist.go:44</text>
+  <text class="tf" x="468" y="88">one package-level lock</text>
+
+  <rect class="state" x="456" y="158" width="200" height="52" rx="6"/>
+  <text class="tw" x="468" y="178">entityFileMus[path]</text>
+  <text class="tf" x="468" y="194">:168–181 — striped per file</text>
+  <text class="tf" x="468" y="206">entityFileMuMu guards the map</text>
+
+  <rect class="state" x="456" y="228" width="200" height="44" rx="6"/>
+  <text class="tw" x="468" y="248">entityFileMus[port path]</text>
+  <text class="tf" x="468" y="264">a different striped path</text>
+
+  <path class="arrq" d="M656,66 L672,66" marker-end="url(#as)"/>
+  <path class="arrq" d="M656,184 L672,184" marker-end="url(#as)"/>
+  <path class="arrq" d="M656,250 L672,250" marker-end="url(#as)"/>
+
+  <rect class="safe" x="672" y="44" width="188" height="44" rx="6"/>
+  <text class="ts" x="682" y="62">view/scene.json</text>
+  <text class="tf" x="682" y="78">3 disjoint keys, 1 document</text>
+
+  <rect class="safe" x="672" y="162" width="188" height="44" rx="6"/>
+  <text class="ts" x="682" y="180">nodes/&lt;id&gt;/meta.json</text>
+  <text class="tf" x="682" y="196">position + localPolars</text>
+
+  <rect class="safe" x="672" y="228" width="188" height="44" rx="6"/>
+  <text class="ts" x="682" y="246">nodes/&lt;id&gt;/…/&lt;port&gt;.json</text>
+  <text class="tf" x="682" y="262">anchorId</text>
+
+  <rect class="box" x="0" y="296" width="856" height="42" rx="6"/>
+  <text class="tq" x="12" y="314">debouncedPersister.mu ×5</text>
+  <text class="tf" x="150" y="314">scene_persist.go:58 — guards pending · has · timer · writes. One INDEPENDENT instance per persister.</text>
+  <text class="tf" x="12" y="330">Contends: the goroutine calling schedule/arm vs the timer goroutine calling take/recordWrite. No file I/O is held under it.</text>
+
+  <line x1="0" y1="358" x2="860" y2="358" stroke="var(--line)"/>
+  <text class="tq" x="0" y="378">time.AfterFunc runs every flush on a BRAND NEW GOROUTINE</text>
+  <text class="ts" x="470" y="378">— that is the second party in every race below.</text>
+  <text class="tf" x="0" y="394">Debounce window ~250ms, shared by all persisters (move_persist.go:77-81).</text>
+</svg>
+</div>
+
+
+
+</div>
+
+</body>
+</html>
+
