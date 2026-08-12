@@ -6363,3 +6363,129 @@ closure splits into four named construction phases" (`nodes/PairNode/node.go`).
 
 **Declined, no commit:** `nodes/wire/out_port.go`, `nodes/Wiring/edgemover/edge_mover.go` —
 both files' pre-task measurements did not hold; neither contains a function over ~50 lines.
+
+## Phase-split pass over the four longest remaining Go functions
+
+Re-measured every function with an `awk` func-to-func line scan before touching anything (own
+numbers, not the task's table — mine are one line higher throughout because they count the
+closing `func` header line the table's count omitted): `NewMoveDispatch` 184, `main()` 164,
+`writeOverlayGen` 162, `LoadTree` 149 — all four confirmed as the phase-split targets named.
+
+**`nodes/Wiring/dispatch/move_dispatch_construct.go` — `NewMoveDispatch`** (184→26 lines).
+Nine sequential phases, each operating on `md`'s already-existing fields (no new struct
+field added, no local promoted): `resolveSeedOrders` (nodeOrder/edgeOrder defaulting),
+`initMoveDispatchUIDefaults`, `(*MoveDispatch).buildGeomSeeds` (NodeSeeds/EdgeSeeds, can
+error), `.buildNodeMovers` (one nodeMover per node + messaging closures), `.wireMutualPairs`,
+`.buildEdgeMovers` (one edgeMover per edge + neighbor channels + speedSinks), `.seedPartnerCenters`,
+`.wireNodeEdgeIDs`, `.buildRowTables`, `.bindUIClosures` — same order as the original, same
+data flow (each phase reads/writes only `md`'s own fields or its own parameters). The
+constructor itself stays the ONLY site that builds the `&MoveDispatch{...}` struct literal,
+per the file's own doc comment and the task's constraint. **Tempted-and-declined moment:**
+`resolveDest`/`commitLocal` inside `buildNodeMovers` close over `md` (an already-existing
+struct, not a new field) exactly as the original code did — no temptation to promote a local
+into a struct field arose because every phase's inputs were already parameters or `md`'s
+existing fields. Nothing exported: the eight new phase functions/methods are unexported,
+`tapToInstall` and `ctx` do not appear anywhere in this file (grepped — `tapToInstall` is
+named only inside an existing, untouched doc comment). Ordering invariants (ROW ID = NODE ID
+- 1 fallback, mutual-pair load-time resolution before edgeMover creation, partnerCenters
+seeded from live geoms before `md.Start`, row tables built from GS seeds before UI closures
+bind to them) carried onto the phase whose body now contains them, same statement order.
+LOC before/after: 294 (file) with orchestrator 184→26, longest helper `buildNodeMovers` at 45.
+Commit `13dd33bc`.
+
+**`tools/gen-node-defs/main.go` — `main()`** (164→27 lines). The body was already a flat
+sequence of twelve independent generator-pipeline steps (each already calling its own
+`writeX`/`parseX` helper) — this split names each step as its own `generateX(repoRoot, ...)`
+function, in the same call order, each keeping its own `fatalf`/stderr-print exactly as
+before (`fatalf` calls `os.Exit(1)` so no error needs to propagate back to `main`). New:
+`resolveRepoRootAndKinds` (getwd/findRepoRoot/CollectKinds/AssignKindIDs/sort — was the
+first ~25 lines), `generateKindImports`, `generateNodeDefs`, `generateWireDefs`,
+`generateTraceKinds`, `generateNodeDims`, `generateNodeKindID`, `generateCurveParams`,
+`generateOverlayGen`, `generateShadingParams`, `generateBufferLayout` (both the Go and TS
+buffer-layout writes — they share `bufSchema`), `generateFrameTags`, `generateInputLayout`.
+Generator byte-identical: `go run ./tools/gen-node-defs && git status --short` showed only
+`tools/gen-node-defs/main.go` itself as changed — every emitted stderr line and every
+generated file's bytes matched. No guard under `tools/`/`scripts/` names `main()` or any of
+the new `generateX` function names. LOC: `main()` 164→27, longest helper
+`resolveRepoRootAndKinds` at 28. Commit `bb844c81`.
+
+**`tools/gen-node-defs/overlay_write.go` — `writeOverlayGen`** (162→35 lines). The body was
+already visually sectioned by its own inline comments into eight named emit blocks — this
+split turned each into its own `writeOverlayX(w *bufio.Writer, flags []overlayFlag)`
+function, called in the same order against the same `w`: `writeOverlayStateStruct`,
+`writeOverlaySetFlagHelper`, `writeOverlayToggleMethods`, `writeOverlaySetGuideVisibility`,
+`writeOverlayDefaultConstructor`, `writeOverlayTogglesMap`, `writeOverlayBreadcrumbTables`
+(both `OverlayFlagBreadcrumbScope` and `OverlayFlagValue` — they share the same `if
+f.breadcrumb != ""` filter and are one job), `writeOverlayTraceKindMap`. **Trap avoided per
+the task's own warning:** the doc-comment string this function emits — `"// Go compile error
+here, not a silent no-op — see writeOverlayGen in\n// tools/gen-node-defs/overlay_gen.go."`
+— is OUTPUT (part of the generated `overlay_state.go`'s own comment), not documentation of
+this function's location; it was left byte-for-byte unchanged inside
+`writeOverlayTraceKindMap` even though it now names a file (`overlay_gen.go`) that is neither
+where the string physically lives (`overlay_write.go`) nor accurate history — not touched.
+Generator byte-identical: `go run ./tools/gen-node-defs && git status --short` showed only
+`overlay_write.go` itself (plus, transiently, an unrelated concurrent-session file that
+cleared once that session's own edit landed — see the note below). No guard names any of the
+eight new function names. LOC: `writeOverlayGen` 162→35, longest helper
+`writeOverlayBreadcrumbTables` at 35. Commit `eef3ddb2`.
+
+**`nodes/Wiring/loadspec/loader_tree.go` — `LoadTree`** (149→47 lines). Three phases, same
+order as the original single loop-plus-inline-work body: `validateNodeIDs(nodeDirs)
+(rowCount int, err error)` (the id-parsing/duplicate-check/RowCount-sizing block, unchanged
+statement order and unchanged error messages, carrying the full "ROW ID = NODE ID - 1"
+ordering-invariant comment onto itself), `loadNodeMeta(root, nodesDir, nodeID) (specNode,
+error)` (meta.json required-read + position.json override + data.json optional-read, same
+three-step order, same comments), `loadNodeEdges(nodesDir, nodeID) ([]specEdge, error)` (the
+edges/ subdir read + per-file parse + the stale-source LOUD panic assertion, unchanged, same
+lexicographic-sort-not-numeric-sort comment carried onto the phase that now owns it).
+`LoadTree` itself is now: read nodeDirs → `validateNodeIDs` → set `spec.RowCount` → loop
+nodeDirs calling `loadNodeMeta` then `loadNodeEdges`, appending to `spec.Nodes`/`spec.Edges`
+in the same order as before. All `filepath.Join(nodesDir, ...)`/`filepath.Join(root, "nodes")`
+calls stayed inside this one file (`nodesDir` threaded as a parameter, never reconstructed),
+so `check-scene-path-resolution.sh`'s `NODE_PATH_OWNERS` allowlist (which names
+`loader_tree.go` at the file level) needed no re-keying — proved by a deliberate break
+(a `filepath.Join("nodes", "probe")` inserted into a different, disallowed file,
+`move_dispatch_construct.go`, then reverted): guard output verbatim,
+`hand-rolled-node-path: .../move_dispatch_construct.go: 71:	_ = filepath.Join("nodes",
+"probe")` / `check-scene-path-resolution: 1 hand-rolled nodes/ filepath.Join(...) hit(s)
+outside node_mover.go/edge_mover.go/edge_file.go/loader_tree.go/tree_shape.go/position_file.go
+— ...`, exit 1; clean again (exit 0) after the Edit-tool revert. LOC:
+`LoadTree` 149→47, longest helper `loadNodeMeta` at 60. Commit `12d88e49`.
+
+**Note on a concurrent session sharing this checkout:** partway through this pass,
+`git status --short` showed `nodes/Wiring/nodeactor/chain_beads.go` and later
+`nodes/Wiring/layoutquant/commit_node_move.go` modified by a different session working the
+same god-objects branch concurrently (visible in `git log` as `a695cc35`, `ad7b6aab`,
+`a1cffa3f`, interleaved with this pass's four commits). One `go build`/`stop-checks` run
+transiently failed on that session's own mid-edit (`nm.emitBeadCrudDiagnostic undefined`); a
+re-run seconds later was clean once that session's edit landed. None of those three commits,
+or the transient failure, belong to this task's four files — not touched, not committed by
+this pass.
+
+**Verify (from `/Users/David/Documents/github/wirefold`, cwd confirmed each time):**
+`go build ./...` — clean, no output, after each of the four edits. `go vet ./...` — clean, no
+output. `bash scripts/stop-checks.sh` — empty stdout after each commit. `git status --short`
+empty after each commit. `go run ./tools/gen-node-defs && git status --short` showed only the
+edited generator source file each time it applied (`main.go`, `overlay_write.go`) — no
+generated output moved.
+
+**Changed surfaces with no check of any kind that can fail:** the phase ORDER inside
+`NewMoveDispatch`, `main()`, and `LoadTree` — each rests on statement order in the
+orchestrator body and the doc comments carried onto the owning phase, per this repo's
+no-tests policy; a reordering (e.g. building edgeMovers before nodeMovers, or resolving
+`positionfile` before `meta.json`) would surface only as a human noticing wrong runtime
+behavior, not a failing check. `writeOverlayGen`'s phase order is additionally covered
+in one direction only — a wrong order would still produce a `gofmt`-valid, compiling
+`overlay_state.go`, just with declarations out of their documented grouping; nothing
+asserts declaration order in a generated `.go` file.
+
+**Commits (`task/god-objects`):** `13dd33bc` — "NewMoveDispatch becomes a short orchestrator
+over nine named construction phases" (`nodes/Wiring/dispatch/move_dispatch_construct.go`).
+`bb844c81` — "gen-node-defs main() becomes a short orchestrator over twelve named generation
+phases" (`tools/gen-node-defs/main.go`). `eef3ddb2` — "writeOverlayGen becomes a short
+orchestrator over eight named emit phases" (`tools/gen-node-defs/overlay_write.go`).
+`12d88e49` — "LoadTree becomes a short orchestrator over three named per-node load phases"
+(`nodes/Wiring/loadspec/loader_tree.go`).
+
+**Declined:** none — all four held up as genuine phase splits with the ordering/comments
+carried across.
