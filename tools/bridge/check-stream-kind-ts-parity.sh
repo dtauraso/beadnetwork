@@ -120,11 +120,20 @@ for k in $KINDS; do
     HITS=$((HITS + 1))
   fi
 
-  # 2. per-kind reader: handle<Kind>Fd(
+  # 2. per-kind reader: the DEFINITION of handle<Kind>Fd, not merely the name.
+  # This used to be a bare `grep -q "handle${cap}Fd("`, which any occurrence satisfied —
+  # including a CALL SITE whose definition had been renamed or deleted. Proven blind: renaming
+  # only the method definition in stream-demux.ts left this guard green, because
+  # attach-listeners.ts still contained the literal text. It fired only once the definition,
+  # the call site, and an error string were all renamed together — i.e. it was checking that
+  # the NAME appears somewhere, not that a reader EXISTS.
+  # A method definition sits at the start of its line (class member, optional whitespace);
+  # a call site is always preceded by `.` or `?.`. Anchoring to line-start distinguishes them.
   cap="$(printf '%s' "$k" | awk '{print toupper(substr($0,1,1)) substr($0,2)}')"
-  if ! grep -rq "handle${cap}Fd(" --include='*.ts' "$TS_SRC" 2>/dev/null; then
+  if ! grep -rqE "^[[:space:]]*(private |public |protected |async )*handle${cap}Fd[[:space:]]*\(" --include='*.ts' "$TS_SRC" 2>/dev/null; then
     echo "check-stream-kind-ts-parity: stream kind \"$k\" is declared in Go but no"
-    echo "  handle${cap}Fd( reader exists anywhere under $TS_SRC."
+    echo "  handle${cap}Fd( reader METHOD IS DEFINED anywhere under $TS_SRC (a call site alone"
+    echo "  does not count — see this check's own comment)."
     echo "  The pipe would be allocated and never read — frames pile up in the pipe buffer and"
     echo "  the entity class never appears in the editor. Add the per-kind handler."
     HITS=$((HITS + 1))
