@@ -1,7 +1,7 @@
 // parallel_chain_offset.go — the mutual-pair parallel-chain-offset concern, split out of
 // port_geometry.go (which keeps the single edge segment / distance-and-direction concern).
-// See MODEL.md "A mutual pair ... offsets its two chains to opposite sides" for the model
-// this implements.
+// See MODEL.md's "Node positions & movement locks (the polar model)" section, on a mutual
+// pair offsetting its two chains, for the model this implements.
 
 package nodegeom
 
