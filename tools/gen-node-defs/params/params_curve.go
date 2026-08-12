@@ -1,4 +1,4 @@
-package main
+package params
 
 import (
 	"bufio"
@@ -17,7 +17,7 @@ type curveParam struct {
 	isInt  bool
 }
 
-func parseCurveParams(goPath string) ([]curveParam, error) {
+func ParseCurveParams(goPath string) ([]curveParam, error) {
 	fset := token.NewFileSet()
 	f, err := parser.ParseFile(fset, goPath, nil, 0)
 	if err != nil {
@@ -63,7 +63,7 @@ func parseCurveParams(goPath string) ([]curveParam, error) {
 	return params, nil
 }
 
-func writeCurveParams(outPath string, params []curveParam) error {
+func WriteCurveParams(outPath string, params []curveParam) error {
 	var buf bytes.Buffer
 	w := bufio.NewWriter(&buf)
 

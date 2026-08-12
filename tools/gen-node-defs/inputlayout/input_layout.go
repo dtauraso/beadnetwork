@@ -1,4 +1,4 @@
-package main
+package inputlayout
 
 import (
 	"bufio"
@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func writeInputLayout(outPath string, fp *inputLayoutFingerprint) error {
+func WriteInputLayout(outPath string, fp *inputLayoutFingerprint) error {
 	var buf bytes.Buffer
 	w := bufio.NewWriter(&buf)
 
@@ -27,7 +27,7 @@ func writeInputLayout(outPath string, fp *inputLayoutFingerprint) error {
 	fmt.Fprintf(w, "export const INPUT_LAYOUT_FINGERPRINT =\n  %q;\n\n", fp.raw)
 
 	fmt.Fprintln(w, `// Record kind bytes (first byte of every record). Must match input_fingerprint.go.`)
-	for _, name := range fp.kindNames {
+	for _, name := range fp.KindNames {
 		fmt.Fprintf(w, "export const %s = %s;\n", kindConstName(name), fp.kindValues[name])
 	}
 	fmt.Fprintln(w)

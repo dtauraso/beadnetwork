@@ -1,4 +1,4 @@
-package main
+package overlaygen
 
 import (
 	"bufio"
@@ -8,7 +8,7 @@ import (
 	"os"
 )
 
-func writeOverlayGen(statePath, tablesPath string, flags []overlayFlag) error {
+func WriteOverlayGen(statePath, tablesPath string, flags []overlayFlag) error {
 	if err := writeOverlayStateGen(statePath, flags); err != nil {
 		return err
 	}

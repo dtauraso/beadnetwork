@@ -1,4 +1,4 @@
-package main
+package params
 
 func camelToScreamingSnake(s string) string {
 	runes := []rune(s)

@@ -1,4 +1,4 @@
-package main
+package tracekinds
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-func parseTraceKinds(traceDir string) ([]string, error) {
+func ParseTraceKinds(traceDir string) ([]string, error) {
 	entries, err := os.ReadDir(traceDir)
 	if err != nil {
 		return nil, err
@@ -59,7 +59,7 @@ func parseTraceKinds(traceDir string) ([]string, error) {
 	return kinds, nil
 }
 
-func parseBreadcrumbLabels(traceDir string) ([]string, error) {
+func ParseBreadcrumbLabels(traceDir string) ([]string, error) {
 	entries, err := os.ReadDir(traceDir)
 	if err != nil {
 		return nil, err

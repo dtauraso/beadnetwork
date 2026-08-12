@@ -6,6 +6,9 @@ import (
 	"path/filepath"
 
 	"github.com/dtauraso/wirefold/tools/gen-node-defs/kindscan"
+	"github.com/dtauraso/wirefold/tools/gen-node-defs/nodedefs"
+	"github.com/dtauraso/wirefold/tools/gen-node-defs/tracekinds"
+	"github.com/dtauraso/wirefold/tools/gen-node-defs/wiredefs"
 )
 
 func generateKindImports(repoRoot string, kinds []kindscan.KindEntry) {
@@ -18,7 +21,7 @@ func generateKindImports(repoRoot string, kinds []kindscan.KindEntry) {
 
 func generateNodeDefs(repoRoot string, kinds []kindscan.KindEntry) {
 	outPath := filepath.Join(repoRoot, "tools", "topology-vscode", "src", "schema", "node-defs.ts")
-	if err := writeNodeDefs(outPath, kinds); err != nil {
+	if err := nodedefs.WriteNodeDefs(outPath, kinds); err != nil {
 		fatalf("write %s: %v", outPath, err)
 	}
 	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d entries)\n", outPath, len(kinds))
@@ -26,12 +29,12 @@ func generateNodeDefs(repoRoot string, kinds []kindscan.KindEntry) {
 
 func generateWireDefs(repoRoot string) {
 	loaderPath := filepath.Join(repoRoot, "nodes", "Wiring", "loadspec", "topo_spec.go")
-	wireProps, err := parseWirePropsFromFile(loaderPath)
+	wireProps, err := wiredefs.ParseWirePropsFromFile(loaderPath)
 	if err != nil {
 		fatalf("parse wire props from loadspec/topo_spec.go: %v", err)
 	}
 	wireDefsPath := filepath.Join(repoRoot, "tools", "topology-vscode", "src", "schema", "wire-defs.ts")
-	if err := writeWireDefs(wireDefsPath, wireProps); err != nil {
+	if err := wiredefs.WriteWireDefs(wireDefsPath, wireProps); err != nil {
 		fatalf("write %s: %v", wireDefsPath, err)
 	}
 	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d entries)\n", wireDefsPath, len(wireProps))
@@ -39,16 +42,16 @@ func generateWireDefs(repoRoot string) {
 
 func generateTraceKinds(repoRoot string) {
 	traceDir := filepath.Join(repoRoot, "Trace")
-	traceKinds, err := parseTraceKinds(traceDir)
+	traceKinds, err := tracekinds.ParseTraceKinds(traceDir)
 	if err != nil {
 		fatalf("parse trace kinds: %v", err)
 	}
-	breadcrumbLabels, err := parseBreadcrumbLabels(traceDir)
+	breadcrumbLabels, err := tracekinds.ParseBreadcrumbLabels(traceDir)
 	if err != nil {
 		fatalf("parse breadcrumb labels: %v", err)
 	}
 	traceKindsPath := filepath.Join(repoRoot, "tools", "topology-vscode", "src", "schema", "trace-kinds.ts")
-	if err := writeTraceKinds(traceKindsPath, traceKinds, breadcrumbLabels); err != nil {
+	if err := tracekinds.WriteTraceKinds(traceKindsPath, traceKinds, breadcrumbLabels); err != nil {
 		fatalf("write %s: %v", traceKindsPath, err)
 	}
 	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d kinds)\n", traceKindsPath, len(traceKinds))

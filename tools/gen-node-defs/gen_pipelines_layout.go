@@ -6,16 +6,19 @@ import (
 	"path/filepath"
 
 	"github.com/dtauraso/wirefold/tools/gen-node-defs/buflayout"
+	"github.com/dtauraso/wirefold/tools/gen-node-defs/inputlayout"
+	"github.com/dtauraso/wirefold/tools/gen-node-defs/overlaygen"
+	"github.com/dtauraso/wirefold/tools/gen-node-defs/params"
 )
 
 func generateCurveParams(repoRoot string) {
 	curveParamsGoPath := filepath.Join(repoRoot, "nodes", "Wiring", "nodegeom", "curve_params.go")
-	curveParams, err := parseCurveParams(curveParamsGoPath)
+	curveParams, err := params.ParseCurveParams(curveParamsGoPath)
 	if err != nil {
 		fatalf("parse curve params: %v", err)
 	}
 	curveParamsTsPath := filepath.Join(repoRoot, "tools", "topology-vscode", "src", "schema", "curve-params.ts")
-	if err := writeCurveParams(curveParamsTsPath, curveParams); err != nil {
+	if err := params.WriteCurveParams(curveParamsTsPath, curveParams); err != nil {
 		fatalf("write %s: %v", curveParamsTsPath, err)
 	}
 	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d constants)\n", curveParamsTsPath, len(curveParams))
@@ -23,14 +26,14 @@ func generateCurveParams(repoRoot string) {
 
 func generateOverlayGen(repoRoot string) {
 	messagesTSPath := filepath.Join(repoRoot, "tools", "topology-vscode", "src", "messages.ts")
-	overlayFlags, err := parseOverlayFlags(messagesTSPath)
+	overlayFlags, err := overlaygen.ParseOverlayFlags(messagesTSPath)
 	if err != nil {
 		fatalf("parse overlay flags: %v", err)
 	}
 	viewstateDir := filepath.Join(repoRoot, "nodes", "Wiring", "viewstate")
 	overlayGenGoPath := filepath.Join(viewstateDir, "overlay_state.go")
 	overlayTablesGoPath := filepath.Join(viewstateDir, "overlay_tables_gen.go")
-	if err := writeOverlayGen(overlayGenGoPath, overlayTablesGoPath, overlayFlags); err != nil {
+	if err := overlaygen.WriteOverlayGen(overlayGenGoPath, overlayTablesGoPath, overlayFlags); err != nil {
 		fatalf("write overlay gen: %v", err)
 	}
 	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d overlay flags)\n", overlayGenGoPath, len(overlayFlags))
@@ -39,12 +42,12 @@ func generateOverlayGen(repoRoot string) {
 
 func generateShadingParams(repoRoot string) {
 	shadingParamsGoPath := filepath.Join(repoRoot, "nodes", "Wiring", "nodegeom", "shading_params.go")
-	shadingParams, err := parseShadingParams(repoRoot, shadingParamsGoPath)
+	shadingParams, err := params.ParseShadingParams(repoRoot, shadingParamsGoPath)
 	if err != nil {
 		fatalf("parse shading params: %v", err)
 	}
 	shadingParamsTsPath := filepath.Join(repoRoot, "tools", "topology-vscode", "src", "schema", "shading-params.ts")
-	if err := writeShadingParams(shadingParamsTsPath, shadingParams); err != nil {
+	if err := params.WriteShadingParams(shadingParamsTsPath, shadingParams); err != nil {
 		fatalf("write %s: %v", shadingParamsTsPath, err)
 	}
 	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d constants)\n", shadingParamsTsPath, len(shadingParams))
@@ -97,14 +100,14 @@ func generateFrameTags(repoRoot string) {
 
 func generateInputLayout(repoRoot string) {
 	wiringGoDir := filepath.Join(repoRoot, "nodes", "Wiring", "inputcodec")
-	inputFP, err := parseInputLayoutFingerprintDir(wiringGoDir)
+	inputFP, err := inputlayout.ParseInputLayoutFingerprintDir(wiringGoDir)
 	if err != nil {
 		fatalf("parse input layout fingerprint: %v", err)
 	}
 	inputLayoutTSPath := filepath.Join(repoRoot, "tools", "topology-vscode", "src", "schema", "input-layout-gen.ts")
-	if err := writeInputLayout(inputLayoutTSPath, inputFP); err != nil {
+	if err := inputlayout.WriteInputLayout(inputLayoutTSPath, inputFP); err != nil {
 		fatalf("write %s: %v", inputLayoutTSPath, err)
 	}
-	numConsts := 1 + len(inputFP.kindNames) + 4
+	numConsts := 1 + len(inputFP.KindNames) + 4
 	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d constants)\n", inputLayoutTSPath, numConsts)
 }

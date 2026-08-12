@@ -1,4 +1,4 @@
-package main
+package wiredefs
 
 import (
 	"fmt"
@@ -14,7 +14,7 @@ type wireProp struct {
 	required bool
 }
 
-func parseWirePropsFromFile(filePath string) ([]wireProp, error) {
+func ParseWirePropsFromFile(filePath string) ([]wireProp, error) {
 	fset := token.NewFileSet()
 	f, err := parser.ParseFile(fset, filePath, nil, 0)
 	if err != nil {

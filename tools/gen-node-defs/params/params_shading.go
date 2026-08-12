@@ -1,4 +1,4 @@
-package main
+package params
 
 import (
 	"bufio"
@@ -22,7 +22,7 @@ type shadingParam struct {
 	isStr  bool
 }
 
-func parseShadingParams(repoRoot, goPath string) ([]shadingParam, error) {
+func ParseShadingParams(repoRoot, goPath string) ([]shadingParam, error) {
 	fset := token.NewFileSet()
 	f, err := parser.ParseFile(fset, goPath, nil, 0)
 	if err != nil {
@@ -86,7 +86,7 @@ func constValueString(v constant.Value) string {
 	return strconv.FormatFloat(f, 'g', -1, 64)
 }
 
-func writeShadingParams(outPath string, params []shadingParam) error {
+func WriteShadingParams(outPath string, params []shadingParam) error {
 	var buf bytes.Buffer
 	w := bufio.NewWriter(&buf)
 

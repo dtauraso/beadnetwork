@@ -1,4 +1,4 @@
-package main
+package overlaygen
 
 import (
 	"fmt"
@@ -37,7 +37,7 @@ var overlayOverrides = map[string]overlayOverride{
 
 // OVERLAY_FLAGS_START / OVERLAY_FLAGS_END sentinels) and returns the flag metadata in
 
-func parseOverlayFlags(messagesPath string) ([]overlayFlag, error) {
+func ParseOverlayFlags(messagesPath string) ([]overlayFlag, error) {
 	data, err := os.ReadFile(messagesPath)
 	if err != nil {
 		return nil, err
@@ -102,7 +102,7 @@ func parseOverlayFlags(messagesPath string) ([]overlayFlag, error) {
 
 	for key := range overlayOverrides {
 		if !seen[key] {
-			fatalf("overlayOverrides key %q is not a real overlay flag in OVERLAY_FLAG_NAMES", key)
+			return nil, fmt.Errorf("overlayOverrides key %q is not a real overlay flag in OVERLAY_FLAG_NAMES", key)
 		}
 	}
 	return flags, nil

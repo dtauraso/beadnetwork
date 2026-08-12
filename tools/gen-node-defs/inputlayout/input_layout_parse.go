@@ -1,4 +1,4 @@
-package main
+package inputlayout
 
 import (
 	"errors"
@@ -13,7 +13,7 @@ import (
 
 type inputLayoutFingerprint struct {
 	raw         string
-	kindNames   []string
+	KindNames   []string
 	kindValues  map[string]string
 	eventKinds  []string
 	hitKinds    []string
@@ -23,7 +23,7 @@ type inputLayoutFingerprint struct {
 
 var errFingerprintNotFound = fmt.Errorf("InputLayoutFingerprint const not found")
 
-func parseInputLayoutFingerprintDir(dir string) (*inputLayoutFingerprint, error) {
+func ParseInputLayoutFingerprintDir(dir string) (*inputLayoutFingerprint, error) {
 	paths, err := filepath.Glob(filepath.Join(dir, "*.go"))
 	if err != nil {
 		return nil, err
@@ -96,7 +96,7 @@ func parseInputLayoutFingerprint(goPath string) (*inputLayoutFingerprint, error)
 		if len(nv) != 2 {
 			return nil, fmt.Errorf("InputLayoutFingerprint kinds= entry %q is not name:value", pair)
 		}
-		fp.kindNames = append(fp.kindNames, nv[0])
+		fp.KindNames = append(fp.KindNames, nv[0])
 		fp.kindValues[nv[0]] = nv[1]
 	}
 

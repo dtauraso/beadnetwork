@@ -1,4 +1,4 @@
-package main
+package nodedefs
 
 import (
 	"bufio"
@@ -9,7 +9,7 @@ import (
 	"github.com/dtauraso/wirefold/tools/gen-node-defs/kindscan"
 )
 
-func writeNodeDefs(outPath string, kinds []kindscan.KindEntry) error {
+func WriteNodeDefs(outPath string, kinds []kindscan.KindEntry) error {
 	var buf bytes.Buffer
 	w := bufio.NewWriter(&buf)
 

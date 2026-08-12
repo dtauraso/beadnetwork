@@ -1,4 +1,4 @@
-package main
+package wiredefs
 
 import (
 	"bufio"
@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func writeWireDefs(outPath string, props []wireProp) error {
+func WriteWireDefs(outPath string, props []wireProp) error {
 	var buf bytes.Buffer
 	w := bufio.NewWriter(&buf)
 

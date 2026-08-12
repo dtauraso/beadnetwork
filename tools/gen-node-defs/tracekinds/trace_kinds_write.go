@@ -1,4 +1,4 @@
-package main
+package tracekinds
 
 import (
 	"bufio"
@@ -7,7 +7,7 @@ import (
 	"os"
 )
 
-func writeTraceKinds(outPath string, kinds []string, breadcrumbLabels []string) error {
+func WriteTraceKinds(outPath string, kinds []string, breadcrumbLabels []string) error {
 	var buf bytes.Buffer
 	w := bufio.NewWriter(&buf)
 
