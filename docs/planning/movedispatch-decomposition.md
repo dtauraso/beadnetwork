@@ -5548,3 +5548,100 @@ not opened this session; they remain open for a future pass if friction surfaces
 
 Verify: `bash scripts/stop-checks.sh` from repo root — empty stdout (tsc, npm webview build,
 eslint, and the guard suite all clean). Commit `58944ca9`.
+
+## `tools/gen-node-defs/` — the seven files over 200 lines, all measured and split
+
+First look at this directory on the branch. It is tooling (parses `SPEC.md`, Go `const`
+declarations, and `messages.ts`; emits TS/Go), not the network — MODEL.md's
+goroutine/ownership doctrine does not apply here, and it is mostly pure parse→build→emit,
+which makes it decomposable in the ordinary way. Every function in every file below was
+a single job done in one long body, no interleaving of unrelated concerns within a
+function — the split in each case is "this file was doing two jobs sequentially,
+give each its own file," not a lift of incidental pure computation out of I/O.
+
+- **`kindscan/spec_md.go` (327→110)**: `parseSpecMD` (View+Ports table parse, kept),
+  `parsePortsFromSpec` (fallback Ports-table→Port list) and `parseDefaultData` (fenced
+  JSON block extraction) moved to their own files
+  (`spec_md_ports.go`, `spec_md_default.go`); the markdown-table parsing they all
+  duplicated (`sectionLines`, `parseMDTable`, `parseMDRowCells`, `isSep`, `indexOf`,
+  `readSpecMDLines`) was lifted into a new shared `spec_md_table.go` — this also removed
+  real duplication (`parsePortsFromSpec` had its own hand-rolled copy of the separator-row
+  skip and cell-trim logic `parseSpecMD`'s closure already had).
+- **`overlay_gen.go` (303→129 + `overlay_write.go` 182)**: `parseOverlayFlags` (reads
+  `messages.ts`, mostly pure token/override derivation after the read) stayed;
+  `writeOverlayGen` (≈165 lines of sequential `fmt.Fprintln`/`Fprintf` emission, bucket
+  (a) by nature — text generation IS the emitted output) moved to its own file. One trap:
+  `writeOverlayGen`'s emitted Go comment names its own source file
+  (`tools/gen-node-defs/overlay_gen.go`) for a future reader of the GENERATED
+  `overlay_state.go` — that string is OUTPUT, not documentation, so it was left pointing at
+  `overlay_gen.go` even though the function now lives in `overlay_write.go`; changing it
+  would have silently broken byte-identical output (caught by the required post-split
+  generator diff, but noted here since it's the kind of thing a blind grep-and-rename could
+  get wrong).
+- **`input_layout.go` (248→78 + `input_layout_parse.go` 181)**: fingerprint-string parsing
+  (`parseInputLayoutFingerprintDir`/`parseInputLayoutFingerprint`/`fpListToken`/`fpList`/
+  `unquoteGoString`/`kindConstName`) split from the TS emit (`writeInputLayout`/
+  `writeTSArray`) — same parse/emit shape as overlay_gen.go.
+- **`params.go` (241→31 + `params_curve.go` 89 + `params_shading.go` 138)**: two
+  independent const-family pipelines (`CurveParam*`→`curve-params.ts`,
+  `ShadingParam*`→`shading-params.ts`, the latter needing `constexpr.Env` for non-literal
+  values) that only shared one naming helper — `camelToScreamingSnake` stayed in
+  `params.go`, which is now just that.
+- **`constexpr/constexpr.go` (233→159 + `eval.go` 87)**: package/import loading
+  (`NewEnv`/`loadPkgConsts`/`importDir`, all file/dir reads) stayed; `Eval` (pure recursive
+  descent over an already-parsed AST) plus its `exprString` diagnostic helper moved to
+  `eval.go`.
+- **`buflayout/buf_layout_parse.go` (229→140 + `buf_layout_file_parse.go` 99)**: the
+  directory-scan/block-reordering half (`ParseBufferLayoutDir`, `bufBlockOrder`,
+  `buildBufFingerprint`) stayed; the per-file AST extraction (`parseBufferLayoutFile`)
+  moved out — same "scan a directory, don't hardcode a filename" shape as
+  `input_layout_parse.go`, called out in both files' own doc comments.
+- **`kindscan/ast_ports.go` (204→130 + `ast_embedded_ports.go` 84)**: direct channel-typed
+  field scan (`parsePortsFromAST`, `chanDirection`) stayed; the embedded-struct recursive
+  port walk (`parseEmbeddedPorts`) moved out — it's a distinct concern (following
+  `gatecommon`-style embedded packages) that only calls `parsePortsFromAST` as a leaf.
+
+**Guards:** grepped `tools/` and `scripts/` for every moved filename and every moved
+function/type name before splitting. Only two hits, neither a file-path guard that could go
+silently green on a split: `check-spec-format-view-fields.sh` names `spec_md.go` in a
+comment but extracts its `vmap["..."]` fields via a RECURSIVE grep of the whole
+`tools/gen-node-defs` tree, so the split didn't blind it (confirmed unaffected — still
+greps every file). `buffer_layout.go`'s doc comment names `buf_layout_parse.go` in prose,
+also unaffected (comment, not a check). No guard anywhere greps for
+`overlay_gen.go`/`input_layout.go`/`params.go`/`constexpr.go`/`ast_ports.go` by filename or
+for any of the moved function names as a placement check — grepped and confirmed absent.
+
+**Guard teeth, proven with a deliberate break:** `check-generated.sh` (self-heals a stale
+*generated* file by regenerating in place, so editing a generated file directly doesn't
+prove anything — it just gets overwritten). The real test is a generator-SOURCE edit that
+changes emitted output without regenerating the tracked file: appended `+ "BROKEN"` to
+`parseSpecMD`'s `Bg: vmap["bg"]` line in `kindscan/spec_md.go`, ran
+`bash tools/buffer-schema/check-generated.sh`, got:
+```
+check-generated: stale generated file(s) — commit the regenerated output:
+ M tools/topology-vscode/src/schema/node-defs.ts
+EXIT=1
+```
+Reverted the edit, reran `go run ./tools/gen-node-defs`, confirmed `git status --short`
+empty again.
+
+**No check of any kind exists for:** the shared `spec_md_table.go` helpers' correctness
+(no tests project-wide, by design) — coverage here is the byte-identical generator output
+check plus `check-spec-format-view-fields.sh`'s doc/parser-field parity, neither of which
+would catch a subtly wrong `parseMDTable` that still happened to produce the same output
+for every CURRENT `SPEC.md` file. Same gap existed before the split (the logic was inline,
+untested either way); the split does not add or remove this exposure.
+
+**Byte-identical generator output, confirmed after every commit:** `go run
+./tools/gen-node-defs && git status --short` returned empty after each of the 7 commits
+below.
+
+**Commits** (all on `task/god-objects`, each `go build ./...`/`go vet ./...` clean, each
+followed by an empty-diff generator run): `8a074350` (spec_md.go three-way split +
+shared table helpers), `32fe690f` (input_layout.go parse/emit split), `17f5285c`
+(params.go curve/shading split), `0c967642` (constexpr.go load/eval split), `d7ae36cd`
+(buflayout dir-scan/per-file split), `45df1a6d` (ast_ports.go direct/embedded split),
+`c6427cc0` (overlay_gen.go parse/emit split).
+
+Verify: `bash scripts/stop-checks.sh` from repo root — empty stdout. `go build ./...` and
+`go vet ./...` both clean (no output beyond the build/vet completing).
