@@ -5,7 +5,7 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/interior"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/inport"
 	"github.com/dtauraso/wirefold/nodes/wire/outport"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -73,12 +73,12 @@ func AsEventSinkGetter(g func() *interior.InteriorStream) func() rowevent.EventS
 
 const NoPortRow = int32(-1)
 
-func NewInPort(portName string, ctx context.Context, name string, pb PortBindings, tr *T.Trace, getStream func() *interior.InteriorStream) *wire.In {
+func NewInPort(portName string, ctx context.Context, name string, pb PortBindings, tr *T.Trace, getStream func() *interior.InteriorStream) *inport.In {
 	if b := pb.singlePaced[portName]; b.pw != nil {
-		return wire.NewInPaced(b.pw, ctx, name, portName, tr, AsEventSinkGetter(getStream), NoPortRow)
+		return inport.NewInPaced(b.pw, ctx, name, portName, tr, AsEventSinkGetter(getStream), NoPortRow)
 	} else {
 		ch := pb.deadEndIn(portName)
-		return wire.NewInChan(ch, name, portName, tr, AsEventSinkGetter(getStream))
+		return inport.NewInChan(ch, name, portName, tr, AsEventSinkGetter(getStream))
 	}
 }
 

@@ -5,11 +5,11 @@ import (
 	"os"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/inport"
 	"github.com/dtauraso/wirefold/nodes/wire/outport"
 )
 
-func (a BuildArgs) In(portName string) *wire.In {
+func (a BuildArgs) In(portName string) *inport.In {
 	return portwiring.NewInPort(portName, a.ctx, a.name, a.pb, a.tr, a.getStream)
 }
 

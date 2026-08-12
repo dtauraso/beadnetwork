@@ -4,6 +4,7 @@ import (
 	"context"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
+	"github.com/dtauraso/wirefold/nodes/wire/inport"
 
 	Wiring "github.com/dtauraso/wirefold/nodes/Wiring/kindapi"
 	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
@@ -20,7 +21,7 @@ type Node struct {
 
 	SpeedCh      <-chan float64
 	DriveSpeedCh <-chan float64
-	In           *wire.In
+	In           *inport.In
 	Out          Wiring.DrivenOut
 }
 

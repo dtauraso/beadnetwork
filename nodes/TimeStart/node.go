@@ -4,6 +4,7 @@ import (
 	"context"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
+	"github.com/dtauraso/wirefold/nodes/wire/inport"
 	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 	"github.com/dtauraso/wirefold/nodes/wire/outport"
 
@@ -22,7 +23,7 @@ type TimeStart struct {
 
 	SpeedCh <-chan float64
 
-	In     *wire.In
+	In     *inport.In
 	ToNext outport.Broadcast
 }
 

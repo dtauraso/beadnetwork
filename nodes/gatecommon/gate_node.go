@@ -1,8 +1,8 @@
 package gatecommon
 
 import (
-	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
+	"github.com/dtauraso/wirefold/nodes/wire/inport"
 	"github.com/dtauraso/wirefold/nodes/wire/outport"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/interior"
@@ -30,8 +30,8 @@ type GateNode struct {
 	HasLeft   bool
 	Right     int
 	HasRight  bool
-	FromLeft  *wire.In
-	FromRight *wire.In
+	FromLeft  *inport.In
+	FromRight *inport.In
 	ToPassed  *outport.Out
 }
 

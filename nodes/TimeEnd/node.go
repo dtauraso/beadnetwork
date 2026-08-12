@@ -4,6 +4,7 @@ import (
 	"context"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
+	"github.com/dtauraso/wirefold/nodes/wire/inport"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/interior"
 	Wiring "github.com/dtauraso/wirefold/nodes/Wiring/kindapi"
@@ -21,7 +22,7 @@ type TimeEnd struct {
 	Clock clock.Clock
 
 	SpeedCh <-chan float64
-	In      *wire.In
+	In      *inport.In
 }
 
 func (h *TimeEnd) Update(ctx context.Context) {

@@ -1,8 +1,8 @@
 package PairNode
 
 import (
-	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
+	"github.com/dtauraso/wirefold/nodes/wire/inport"
 	"github.com/dtauraso/wirefold/nodes/wire/outport"
 
 	"github.com/dtauraso/wirefold/nodes/PairNode/tiltring"
@@ -21,7 +21,7 @@ type nodePlumbing struct {
 
 	SpeedCh <-chan float64
 
-	In *wire.In
+	In *inport.In
 
 	Out *outport.Out
 

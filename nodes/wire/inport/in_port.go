@@ -1,16 +1,17 @@
-package wire
+package inport
 
 import (
 	"context"
 
 	T "github.com/dtauraso/wirefold/Trace"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
+	"github.com/dtauraso/wirefold/nodes/wire"
 )
 
 type In struct {
 	ch <-chan int
 
-	pw  *PacedWire
+	pw  *wire.PacedWire
 	ctx context.Context
 
 	node  string
@@ -64,7 +65,7 @@ func NewInChan(ch <-chan int, node, port string, tr *T.Trace, stream func() rowe
 	return &In{ch: ch, node: node, port: port, trace: tr, portRow: -1, stream: stream}
 }
 
-func NewInPaced(pw *PacedWire, ctx context.Context, node, port string, tr *T.Trace, stream func() rowevent.EventSink, portRow int32) *In {
+func NewInPaced(pw *wire.PacedWire, ctx context.Context, node, port string, tr *T.Trace, stream func() rowevent.EventSink, portRow int32) *In {
 	return &In{pw: pw, ctx: ctx, node: node, port: port, trace: tr, stream: stream, portRow: portRow}
 }
 

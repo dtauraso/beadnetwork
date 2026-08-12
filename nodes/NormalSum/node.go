@@ -8,6 +8,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
+	"github.com/dtauraso/wirefold/nodes/wire/inport"
 	"github.com/dtauraso/wirefold/nodes/wire/outport"
 )
 
@@ -21,8 +22,8 @@ type Node struct {
 
 	Points int32
 
-	NormalA *wire.In
-	NormalB *wire.In
+	NormalA *inport.In
+	NormalB *inport.In
 	Out     *outport.Out
 	SpeedCh <-chan float64
 

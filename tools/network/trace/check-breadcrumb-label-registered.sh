@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: Trace/Trace.go,nodes/wire/in_port.go,nodes/**/*.go,Buffer/**/*.go | a .Breadcrumb("label") literal must be added to Trace.BreadcrumbLabels
+# PLACEMENT: Trace/Trace.go,nodes/wire/inport/in_port.go,nodes/**/*.go,Buffer/**/*.go | a .Breadcrumb("label") literal must be added to Trace.BreadcrumbLabels
 
 set -euo pipefail
 

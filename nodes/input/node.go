@@ -4,6 +4,7 @@ import (
 	"context"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/clock"
+	"github.com/dtauraso/wirefold/nodes/wire/inport"
 	"github.com/dtauraso/wirefold/nodes/wire/outport"
 
 	Wiring "github.com/dtauraso/wirefold/nodes/Wiring/kindapi"
@@ -27,7 +28,7 @@ type Node struct {
 	OutCadence *outport.Out
 
 	ToExcitatory *outport.Out
-	FeedbackIn   *wire.In
+	FeedbackIn   *inport.In
 }
 
 func (n *Node) clock() clock.Clock {

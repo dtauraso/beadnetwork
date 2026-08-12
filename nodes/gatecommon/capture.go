@@ -1,8 +1,8 @@
 package gatecommon
 
-import wire "github.com/dtauraso/wirefold/nodes/wire"
+import "github.com/dtauraso/wirefold/nodes/wire/inport"
 
-func drainLatestReal(in *wire.In) (int, bool) {
+func drainLatestReal(in *inport.In) (int, bool) {
 	v, got := NoValue, false
 	for {
 		nv, ok := in.PollRecv()
