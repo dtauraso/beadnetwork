@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>wirefold — outbox.mu, resolved: the lock is gone</title>
+<title>wirefold — outbox.mu, resolved: the lock is gone — the track record on “this lock must stay”</title>
 <style>
     :root {
       --ground: #F2F4F7;
@@ -382,49 +382,74 @@
 .crumbnav a { color: var(--flow, #2E7D9A); text-decoration:none; }
 .crumbnav a:hover { text-decoration:underline; }
 .crumbnav .crumb-here { color: var(--ink, #131A24); font-weight:600; }
-
-.idx-list { list-style:none; margin:22px 0 0; padding:0; display:grid; gap:10px; max-width:640px; }
-.idx-list a {
-  display:block; font-family:var(--mono); font-size:14px; color:var(--ink, #131A24);
-  background:var(--surface, #fff); border:1px solid var(--line, #D3D9E2); border-radius:6px;
-  padding:14px 16px; text-decoration:none;
-}
-.idx-list a:hover { border-color:var(--line-strong, #B7C0CD); }
 </style>
 </head>
 <body>
 
 <header>
-    <div class="head-inner">
-      <p class="eyebrow">wirefold · concurrency · RESOLVED</p>
-      <h1>outbox.mu — the record of a question that closed</h1>
-      <p class="sub">
-        <code>geomMu</code> was removed, LayoutHolder.mu was removed (LayoutHolder itself was later deleted entirely), and
-        <code>PacedWire.mu</code> was removed — each was called necessary first. This page
-        argued <code>outbox.mu</code> was the fourth and still standing. It is now gone too:
-        <code>task/mutex-outbox-restructure</code> deleted the outbox struct entirely — no
-        queue, no <code>mu</code>, no <code>cond</code>, no dedicated sender goroutine, no
-        ctx-watcher goroutine. What's below is kept as the argument that led there, not as a
-        description of the code that runs today (see diagram 6 for that).
-      </p>
-    </div>
-  </header>
+  <div class="head-inner">
+    <p class="eyebrow">outbox.mu, resolved: the lock is gone</p>
+    <h1>5 · the track record on “this lock must stay”</h1>
+    <nav class="crumbnav"><a href="outbox-architecture.html">outbox.mu — the record of a question that closed</a> — <a href="outbox-architecture-1-history-why-the.html">history — why the outbox was built in the first place</a> · <a href="outbox-architecture-2-the-shape-that.html">the shape that was replaced — outbox + dedicated sender</a> · <a href="outbox-architecture-3-why-the-lock.html">why the lock was even worth examining — it was SPSC</a> · <a href="outbox-architecture-4-just-use-a.html">"just use a channel" — the argument that was wrong here</a> · <span class="crumb-here">the track record on “this lock must stay”</span> · <a href="outbox-architecture-6-what-actually-shipped.html">what actually shipped — two directed channels, no lock</a></nav>
+  </div>
+</header>
 
 <div class="wrap">
-<ul class="idx-list">
-  <li><a href="outbox-architecture-1-history-why-the.html">1 · history — why the outbox was built in the first place</a></li>
-  <li><a href="outbox-architecture-2-the-shape-that.html">2 · the shape that was replaced — outbox + dedicated sender</a></li>
-  <li><a href="outbox-architecture-3-why-the-lock.html">3 · why the lock was even worth examining — it was SPSC</a></li>
-  <li><a href="outbox-architecture-4-just-use-a.html">4 · "just use a channel" — the argument that was wrong here</a></li>
-  <li><a href="outbox-architecture-5-the-track-record.html">5 · the track record on “this lock must stay”</a></li>
-  <li><a href="outbox-architecture-6-what-actually-shipped.html">6 · what actually shipped — two directed channels, no lock</a></li>
-</ul>
-<footer>
-      Verified against the tree on <span style="font-family:var(--mono)">task/mutex-outbox-restructure</span>.
-      Line numbers drift — re-grep before trusting them. Companion to
-      <span style="font-family:var(--mono)">docs/concurrency/mutex-architecture.html</span> (all remaining locks)
-      and <span style="font-family:var(--mono)">docs/concurrency/framings.md</span> (why each exists).
-    </footer>
+<div class="legend">
+      <span><i class="sw g"></i>goroutine</span>
+      <span><i class="sw s"></i>locked / blocked</span>
+      <span><i class="sw q"></i>queue</span>
+      <span><i class="sw k"></i>free to proceed</span>
+    </div>
+
+<h2>5 · the track record on “this lock must stay”</h2>
+    <p class="cap">Each of these was described in <code>framings.md</code> as needing its lock. Each was
+      wrong, including — as of this branch — the one this page itself argued for.</p>
+
+    <div class="plate">
+      <svg viewBox="0 0 860 200" role="img"
+        aria-label="geomMu, LayoutHolder.mu, PacedWire.mu and outbox.mu were each said to be necessary and each was removed by a restructuring, LayoutHolder.mu deleted outright once every non-test caller was confirmed single-owner; it is now four for four.">
+        <text class="tl" x="0" y="14">CLAIMED NECESSARY → ACTUAL OUTCOME</text>
+
+        <rect class="safe" x="0" y="30" width="205" height="94" rx="6" />
+        <text class="t" x="12" y="50">geomMu</text>
+        <text class="tf" x="12" y="68">“shared struct needs</text>
+        <text class="tf" x="12" y="82">guarding against reads”</text>
+        <text class="tk" x="12" y="104">GONE — split identity</text>
+        <text class="tf" x="12" y="118">from mutable state</text>
+
+        <rect class="safe" x="218" y="30" width="205" height="94" rx="6" />
+        <text class="t" x="230" y="50">LayoutHolder.mu</text>
+        <text class="tf" x="230" y="68">“neighbours reach into</text>
+        <text class="tf" x="230" y="82">each other”</text>
+        <text class="tk" x="230" y="104">GONE — they never</text>
+        <text class="tf" x="230" y="118">did; it is a message</text>
+
+        <rect class="safe" x="436" y="30" width="205" height="94" rx="6" />
+        <text class="t" x="448" y="50">PacedWire.mu</text>
+        <text class="tf" x="448" y="68">“three goroutines</text>
+        <text class="tf" x="448" y="82">genuinely mutate it”</text>
+        <text class="tk" x="448" y="104">GONE — the wire</text>
+        <text class="tf" x="448" y="118">became its own owner</text>
+
+        <rect class="safe" x="654" y="30" width="206" height="94" rx="6" />
+        <text class="t" x="666" y="50">outbox.mu</text>
+        <text class="tf" x="666" y="68">“a queue's invariant</text>
+        <text class="tf" x="666" y="82">must be maintained”</text>
+        <text class="tk" x="666" y="104">GONE — retain-and-</text>
+        <text class="tf" x="666" y="118">retry needs no queue</text>
+
+        <line x1="0" y1="152" x2="860" y2="152" stroke="var(--line)" />
+        <text class="tk" x="0" y="172">4 FOR 4</text>
+        <text class="ts" x="90" y="172">every “this one must stay” has fallen to a restructuring that gave the state ONE
+          OWNER.</text>
+        <text class="tf" x="0" y="188">Ownership, not cleverness: geomMu split it, LayoutHolder already had it, PacedWire
+          took it, outbox's queue was replaced by per-direction channels each mover already owned one end of.</text>
+      </svg>
+    </div>
+
+    
+
 </div>
 
 </body>
