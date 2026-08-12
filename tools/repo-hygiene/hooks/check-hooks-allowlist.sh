@@ -23,8 +23,6 @@ readonly ALLOWED=(
   "check-no-shell-source-edits.sh"
 
   "placement-brief-hook.sh"
-
-  "check-size-after-edit.sh"
 )
 is_allowed() { local s="$1"; for a in "${ALLOWED[@]}"; do [[ "$s" == "$a" ]] && return 0; done; return 1; }
 
