@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>wirefold — concurrency map</title>
+<title>wirefold — concurrency map — goroutines</title>
 <style>
   :root {
     --ground:#F2F4F7; --surface:#FFFFFF; --plate:#FAFBFC;
@@ -146,14 +146,6 @@
 .crumbnav a { color: var(--flow); text-decoration:none; }
 .crumbnav a:hover { text-decoration:underline; }
 .crumbnav .crumb-here { color: var(--ink); font-weight:600; }
-
-.idx-list { list-style:none; margin:22px 0 0; padding:0; display:grid; gap:10px; max-width:520px; }
-.idx-list a {
-  display:block; font-family:var(--mono); font-size:14px; color:var(--ink);
-  background:var(--surface); border:1px solid var(--line); border-radius:6px;
-  padding:14px 16px; text-decoration:none;
-}
-.idx-list a:hover { border-color:var(--line-strong); }
 </style>
 </head>
 <body>
@@ -161,23 +153,97 @@
 <header>
   <div class="head-inner">
     <p class="eyebrow">wirefold · go network</p>
-    <h1>Concurrency map</h1>
-    <p class="sub">
-      Goroutines here are the architecture, not a way to serve load. One per node, one per edge,
-      one per wire — so the count scales with the graph you draw, and every shared boundary
-      between them is enumerable.
-    </p>
+    <h1>Concurrency map — goroutines</h1>
+    <nav class="crumbnav"><a href="concurrency-map.html">Concurrency map</a> — <span class="crumb-here">goroutines</span> · <a href="concurrency-map-mutex-patterns.html">mutex patterns</a> · <a href="concurrency-map-a-drag.html">a drag</a> · <a href="concurrency-map-a-bead.html">a bead</a> · <a href="concurrency-map-the-clock-question.html">the clock question</a></nav>
   </div>
 </header>
 
 <div class="wrap">
-<ul class="idx-list">
-  <li><a href="concurrency-map-goroutines.html">goroutines</a></li>
-  <li><a href="concurrency-map-mutex-patterns.html">mutex patterns</a></li>
-  <li><a href="concurrency-map-a-drag.html">a drag</a></li>
-  <li><a href="concurrency-map-a-bead.html">a bead</a></li>
-  <li><a href="concurrency-map-the-clock-question.html">the clock question</a></li>
-</ul>
+<section class="panel" id="p-goroutines" data-active>
+
+  <div class="layout">
+    <div>
+      <div class="plate">
+        <svg viewBox="0 0 860 450" role="img" aria-label="Goroutines that run for a nine node, ten edge graph, grouped into per-node, per-edge and singleton goroutines.">
+          <text class="d-tl" x="0" y="12">PER NODE  × 9</text>
+          <rect class="d-group" x="0" y="22" width="270" height="216" rx="6"/>
+          <rect class="d-box-flow" x="18" y="42" width="234" height="34" rx="4"/>
+          <text class="d-t" x="30" y="63">nodeMover.run</text>
+          <text class="d-ts" x="176" y="63">extIn + neighborIn</text>
+          <rect class="d-box-flow" x="18" y="88" width="234" height="34" rx="4"/>
+          <text class="d-t" x="30" y="109">node kind loop</text>
+          <text class="d-ts" x="186" y="109">fires</text>
+          <rect class="d-box-flow" x="18" y="134" width="234" height="30" rx="4"/>
+          <text class="d-t" x="30" y="153">DriveHeld</text>
+          <text class="d-ts" x="120" y="153">one per driven output</text>
+          <text class="d-ts" x="18" y="176">writes only its own position</text>
+          <text class="d-ts" x="18" y="202">no dedicated sender goroutine — retry lives in nodeMover.run</text>
+
+          <text class="d-tl" x="300" y="12">PER EDGE  × 10</text>
+          <rect class="d-group" x="300" y="22" width="250" height="216" rx="6"/>
+          <rect class="d-box-flow" x="318" y="42" width="214" height="34" rx="4"/>
+          <text class="d-t" x="330" y="63">edgeMover.run</text>
+          <text class="d-ts" x="318" y="88">holds both endpoints; draws the curve</text>
+
+          <rect class="d-box-flow" x="318" y="106" width="214" height="62" rx="4"/>
+          <text class="d-t" x="330" y="126">PacedWire</text>
+          <text class="d-ts" x="330" y="142">IS edgeMover.run's own state —</text>
+          <text class="d-ts" x="330" y="158">not a separate goroutine, no lock</text>
+          <text class="d-ts" x="318" y="188">owns inflight · in-chan/out-chan</text>
+
+          <text class="d-tl" x="580" y="12">SINGLETONS</text>
+          <rect class="d-group" x="580" y="22" width="270" height="216" rx="6"/>
+          <rect class="d-box" x="598" y="42" width="234" height="34" rx="4"/>
+          <text class="d-t" x="610" y="63">Trace drain</text>
+          <rect class="d-box" x="598" y="88" width="234" height="34" rx="4"/>
+          <text class="d-t" x="610" y="109">stdin reader</text>
+          <text class="d-ts" x="740" y="109">gestures</text>
+          <rect class="d-box" x="598" y="134" width="234" height="34" rx="4"/>
+          <text class="d-t" x="610" y="155">persist timers</text>
+          <text class="d-ts" x="742" y="155">debounced</text>
+          <text class="d-ts" x="598" y="224">one each, whole process</text>
+
+          <line class="d-arrow" x1="430" y1="256" x2="430" y2="278"/>
+          <path class="d-arrow" d="M426 272 L430 280 L434 272"/>
+
+          <rect class="d-box" x="150" y="282" width="560" height="62" rx="5"/>
+          <text class="d-t" x="176" y="308">≈ 36 long-lived goroutines</text>
+          <text class="d-ts" x="176" y="328">for a 9-node / 10-edge graph — all running continuously, all session</text>
+
+          <text class="d-tl" x="150" y="376">SCALING</text>
+          <line class="d-arrow-flow" x1="150" y1="386" x2="710" y2="386"/>
+          <text class="d-ts" x="150" y="406">add a node in the editor</text>
+          <text class="d-ts" x="470" y="406">→ you add goroutines</text>
+          <text class="d-ts" x="150" y="424">the concurrency structure is the picture you drew, not a function of load</text>
+        </svg>
+        <p class="plate-cap">spawn sites: node_mover.go · node_move.go · main.go · gatecommon/drive.go</p>
+      </div>
+    </div>
+    <aside class="rail">
+      <div class="stat">
+        <div><b>~40</b><span>goroutines</span></div>
+        <div><b>26</b><span>sync sites</span></div>
+      </div>
+      <h2>Why this is unusual</h2>
+      <p>
+        In a typical Go service, goroutines are short-lived — one per request, sharing almost
+        nothing, handing off through a channel and dying. The race surface is small and uniform.
+      </p>
+      <p>
+        Here they are long-lived and graph-shaped. They run the whole session, they both
+        message-pass <em>and</em> touch shared state, and their number is set by the topology
+        on screen.
+      </p>
+      <h2>The ownership rule</h2>
+      <p>
+        A node writes only itself. No coordinator, no worklist. Almost all state is therefore
+        protected by nothing at all — which is what makes the handful of sync sites worth
+        enumerating: each one marks a place that rule is deliberately crossed.
+      </p>
+    </aside>
+  </div>
+
+</section>
 </div>
 
 </body>
