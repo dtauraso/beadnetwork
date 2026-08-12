@@ -9,7 +9,6 @@ import os, subprocess
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-
 OPEN = r"\[\begin{array}{@{}l@{}}"
 CLOSE = r"\end{array}\]"
 
@@ -21,15 +20,10 @@ BODIES = {
   \mathrm{angle}(i) = \tfrac{\pi}{12}\, i
 """,
 
-
-
-
-
     "length": r"""
   d = \lvert t - a \rvert \\[6pt]
   L \;=\; \len(t,a) = \min(d,\; 24 - d)
 """,
-
 
     "machine-tilt": r"""
   S = \mathbb{Z}_{24} \qquad \Sigma = \{\,\mathrm{next},\; \mathrm{prev}\,\} \\[6pt]
@@ -47,25 +41,6 @@ BODIES = {
   \delta(R,\, a) = R \qquad R \neq R_{\mathrm{setting}} \\[4pt]
   \delta(R,\, \mathrm{reset}) = R_{\mathrm{setting}}
 """,
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     "arith-groups": r"""
   \text{\color{acc}the ring} \quad x = 0,\,1,\,\ldots,\,23 \\[3pt]
@@ -96,10 +71,6 @@ BODIES = {
     \text{ is none of } 0,\,6,\,12}
 """,
 
-
-
-
-
     "decide-mode": r"""
   \text{\color{acc}if } R \neq R_{\mathrm{setting}} :
     \quad {\color{dim}\text{nothing changes — the choice already stuck}} \\[9pt]
@@ -117,10 +88,6 @@ BODIES = {
   {\color{par}R_{\parallel} = \{6\}} \\[5pt]
   {\color{dim}R_{\mathrm{setting}} = \text{any}}
 """,
-
-
-
-
 
     "decide-turn": r"""
   \text{\color{acc}measure}
@@ -140,12 +107,6 @@ BODIES = {
   \quad \text{else} : \qquad\quad\;\, t_{\mathrm{after}} = t_{-1}
 """,
 
-
-
-
-
-
-
     "other": r"""
   \text{every arrival} :\; r_{\mathrm{after}} = a \\[5pt]
   \text{panel } \blacktriangle\,\blacktriangledown :\;
@@ -159,22 +120,6 @@ HEAD = ("%% update-%s.tex — one block of the update. Shared setup is pairmath.
         "\\documentclass[12pt]{article}\n"
         "\\usepackage{pairmath}\n"
         "\\begin{document}\n")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 SCALE = 1.9
 

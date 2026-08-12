@@ -20,9 +20,6 @@ except Exception:
 
 cmd = (data.get("tool_input") or {}).get("command", "")
 
-
-
-
 OPEN_HTML = re.compile(
     r"""(?:^|[;&|]|&&|\|\|)\s*open\b      # the open command word
         (?:\s+-[^\s]+)*                   # any leading flags (-a, -g, ...)

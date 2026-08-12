@@ -18,11 +18,9 @@ MONO = 'font-family="ui-monospace,SFMono-Regular,Menlo,monospace" font-size="15"
 SANS = 'font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="15"'
 INK, DIM = 'fill="#e7e7ea"', 'fill="#9a9aa6"'
 
-
 def P(cx, cy, R, idx):
     a = math.radians(15 * idx)
     return (round(cx + R * math.sin(a)), round(cy - R * math.cos(a)))
-
 
 def arrow(cx, cy, R, idx, col, w=2.4, frac=0.84):
     x, y = P(cx, cy, R * frac, idx)
@@ -33,7 +31,6 @@ def arrow(cx, cy, R, idx, col, w=2.4, frac=0.84):
     b2 = (round(x - px * 4.5), round(y - py * 4.5))
     return (f'<line x1="{cx}" y1="{cy}" x2="{x}" y2="{y}" stroke="{col}" stroke-width="{w}"/>'
             f'<polygon points="{tx},{ty} {b1[0]},{b1[1]} {b2[0]},{b2[1]}" fill="{col}"/>')
-
 
 def ring(cx, cy, R, ticks=True):
     s = f'<circle cx="{cx}" cy="{cy}" r="{R}" fill="none" stroke="#3a3a44" stroke-width="1.4"/>'
@@ -47,16 +44,13 @@ def ring(cx, cy, R, ticks=True):
               f'<path d="{"".join(maj)}" stroke="#9a9aa6" stroke-width="1.6"/>')
     return s
 
-
 def arc(cx, cy, R, i0, i1, col, w=3):
     x0, y0 = P(cx, cy, R, i0)
     x1, y1 = P(cx, cy, R, i1)
     large = 1 if (i1 - i0) % 24 > 12 else 0
     return f'<path d="M{x0} {y0}A{R} {R} 0 {large} 1 {x1} {y1}" fill="none" stroke="{col}" stroke-width="{w}"/>'
 
-
 out = {}
-
 
 for t in (0, 6, 12, 17):
     W, H, cx, cy, R = 152, 194, 76, 80, 64
@@ -67,12 +61,6 @@ for t in (0, 6, 12, 17):
     o.append(f'<text x="{cx}" y="176" text-anchor="middle" {MONO} {INK}>t = {t}</text>')
     o.append('</svg>')
     out[f"panel-triad-{t}"] = "\n".join(o)
-
-
-
-
-
-
 
 for sep, note in ((0, "perpendicular rests"), (3, "acute — steps"), (6, "parallel rests"),
                   (11, "obtuse — steps"), (12, "perpendicular rests")):
@@ -86,7 +74,6 @@ for sep, note in ((0, "perpendicular rests"), (3, "acute — steps"), (6, "paral
     o.append(f'<text x="{cx}" y="202" text-anchor="middle" {SANS} {DIM}>{note}</text>')
     o.append('</svg>')
     out[f"panel-length-{sep}"] = "\n".join(o)
-
 
 frames = [(23, 10, None, None, ["n1 sends 5"]),
           (23, 10, 2, 5, ["n2 reads 5,", "one slot short"]),
@@ -107,7 +94,6 @@ for n, (t1, t2, who, ai, cap) in enumerate(frames):
     o.append('</svg>')
     out[f"panel-run-{n + 1}"] = "\n".join(o)
 
-
 for name, t, extra in (("before", 17, True), ("after", 0, False)):
     W, H, cx, cy, R = 164, 204, 82, 82, 66
     o = [f'<svg width="{W}" height="{H}" viewBox="0 0 {W} {H}">', ring(cx, cy, R)]
@@ -121,8 +107,6 @@ for name, t, extra in (("before", 17, True), ("after", 0, False)):
     o.append(f'<text x="{cx}" y="200" text-anchor="middle" {SANS} {DIM}>{name}</text>')
     o.append('</svg>')
     out[f"panel-reset-{name}"] = "\n".join(o)
-
-
 
 W, H = 620, 176
 o = [f'<svg width="{W}" height="{H}" viewBox="0 0 {W} {H}">']
@@ -144,8 +128,6 @@ o.append(f'<text x="370" y="170" text-anchor="middle" {SANS} {DIM}>the seam</tex
 o.append('</svg>')
 out["panel-links"] = "\n".join(o)
 
-
-
 W, H = 620, 250
 o = [f'<svg width="{W}" height="{H}" viewBox="0 0 {W} {H}">']
 boxes = [(24, 102, 140, 46, "setting", "#9a9aa6"),
@@ -155,7 +137,6 @@ for x, y, w, h, name, col in boxes:
     o.append(f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="9" fill="#2b2b33" stroke="{col}"/>')
     o.append(f'<text x="{x + w // 2}" y="{y + 29}" text-anchor="middle" {MONO} fill="{col}">{name}</text>')
 
-
 def straight(x1, y1, x2, y2, col, dash=""):
     n = ((x2 - x1) ** 2 + (y2 - y1) ** 2) ** 0.5
     ux, uy = (x2 - x1) / n, (y2 - y1) / n
@@ -164,8 +145,6 @@ def straight(x1, y1, x2, y2, col, dash=""):
             f'stroke-width="2"{dash}/>'
             f'<polygon points="{x2},{y2} {round(bx - 5 * uy)},{round(by + 5 * ux)} '
             f'{round(bx + 5 * uy)},{round(by - 5 * ux)}" fill="{col}"/>')
-
-
 
 o.append(straight(168, 118, 396, 56, TOP))
 o.append(straight(168, 132, 396, 194, TOP))
@@ -179,8 +158,6 @@ o.append(f'<text x="286" y="204" text-anchor="middle" {SANS} fill="#ff6b6b">RESE
 o.append(f'<text x="310" y="240" text-anchor="middle" {SANS} {DIM}>no edge between the two chosen modes — a choice sticks</text>')
 o.append('</svg>')
 out["panel-modes"] = "\n".join(o)
-
-
 
 for name, a, note in (("perp", 12, "gap 6 → perpendicular"), ("par", 9, "gap 3 → parallel")):
     W, H, cx, cy, R = 200, 232, 100, 84, 68
@@ -197,9 +174,6 @@ for name, a, note in (("perp", 12, "gap 6 → perpendicular"), ("par", 9, "gap 3
     o.append(f'<text x="{cx}" y="218" text-anchor="middle" {SANS} {DIM}>a = {a}, partner = {partner}</text>')
     o.append('</svg>')
     out[f"panel-gap-{name}"] = "\n".join(o)
-
-
-
 
 W, H, cx, cy, R = 436, 280, 150, 140, 106
 o = [f'<svg width="{W}" height="{H}" viewBox="0 0 {W} {H}">', ring(cx, cy, R)]
@@ -218,7 +192,6 @@ o.append(arc(cx, cy, R + 7, 23, 0, "#4ea1ff", 3))
 o.append('</svg>')
 out["panel-state"] = "\n".join(o)
 
-
 W, H, cx, cy, R = 300, 300, 150, 140, 108
 o = [f'<svg width="{W}" height="{H}" viewBox="0 0 {W} {H}">', ring(cx, cy, R)]
 for h in (6, 18):
@@ -236,7 +209,6 @@ o.append(arrow(cx, cy, R, 10, TOP, 3))
 o.append(f'<text x="{cx - 16}" y="{cy + 66}" text-anchor="end" {SANS} fill="{TOP}">t = 10</text>')
 o.append('</svg>')
 out["panel-step"] = "\n".join(o)
-
 
 W, H, cx, cy, R = 260, 250, 130, 125, 104
 o = [f'<svg width="{W}" height="{H}" viewBox="0 0 {W} {H}">', ring(cx, cy, R)]

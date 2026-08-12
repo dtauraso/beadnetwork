@@ -16,15 +16,7 @@ EXEMPT_FILES = {
     os.path.join("nodes", "wire", "clock", "tick_broadcaster.go"),
 }
 
-
-
-
 ALLOWED = {
-
-
-
-
-
 
     ("nodes/Wiring/distancegroups/distance_groups.go", "time.Sleep(time.Millisecond)"),
 }
