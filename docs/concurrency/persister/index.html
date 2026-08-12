@@ -4,8 +4,8 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>wirefold — debouncedPersister.mu, resolved</title>
-<link rel="stylesheet" href="persister-architecture.css">
-<link rel="stylesheet" href="persister-architecture-idx.css">
+<link rel="stylesheet" href="index.css">
+<link rel="stylesheet" href="idx.css">
 </head>
 <body>
 
@@ -37,15 +37,15 @@
 
 <div class="wrap">
 <ul class="idx-list">
-  <li><a href="debounced-persister-architecture-1-what-it-guards.html">1 · what it guards — four fields, four methods</a></li>
-  <li><a href="debounced-persister-architecture-2-what-debouncing-is.html">2 · what debouncing is for — a drag is one write, not sixty</a></li>
-  <li><a href="debounced-persister-architecture-2b-is-60.html">2b · is 60 writes/sec actually a problem? — nobody has shown it is</a></li>
-  <li><a href="debounced-persister-architecture-3-the-two-parties.html">3 · the two parties — and the second one is spawned, not chosen</a></li>
-  <li><a href="debounced-persister-architecture-4-why-take-zeroes.html">4 · why take() zeroes pending — the non-obvious reason the lock earns its keep</a></li>
-  <li><a href="debounced-persister-architecture-5-five-instances-independent.html">5 · five instances — independent, not one shared lock</a></li>
-  <li><a href="debounced-persister-architecture-6-the-single-owner-candidate.html">6 · the single-owner candidate</a></li>
-  <li><a href="debounced-persister-architecture-7-measured-deleting-mu.html">7 · measured: deleting mu is red, not clean</a></li>
-  <li><a href="debounced-persister-architecture-8-what-the-lock.html">8 · what the lock is actually doing — three separable jobs</a></li>
+  <li><a href="1-what-it-guards.html">1 · what it guards — four fields, four methods</a></li>
+  <li><a href="2-what-debouncing-is.html">2 · what debouncing is for — a drag is one write, not sixty</a></li>
+  <li><a href="2b-is-60.html">2b · is 60 writes/sec actually a problem? — nobody has shown it is</a></li>
+  <li><a href="3-the-two-parties.html">3 · the two parties — and the second one is spawned, not chosen</a></li>
+  <li><a href="4-why-take-zeroes.html">4 · why take() zeroes pending — the non-obvious reason the lock earns its keep</a></li>
+  <li><a href="5-five-instances-independent.html">5 · five instances — independent, not one shared lock</a></li>
+  <li><a href="6-the-single-owner-candidate.html">6 · the single-owner candidate</a></li>
+  <li><a href="7-measured-deleting-mu.html">7 · measured: deleting mu is red, not clean</a></li>
+  <li><a href="8-what-the-lock.html">8 · what the lock is actually doing — three separable jobs</a></li>
 </ul>
 <footer>
   Verified against the tree on <span style="font-family:var(--mono)">task/mutex-debounced-persister</span>.
