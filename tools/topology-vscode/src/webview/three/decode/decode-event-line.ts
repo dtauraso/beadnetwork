@@ -5,33 +5,21 @@
 // it once per event and serializes the result to a .probe/go*.jsonl line.
 
 import { TRACE_EVENT_KINDS, BREADCRUMB_LABELS } from "../../../schema/trace-kinds";
-import { NODE_KIND_NAMES } from "../../../schema/node-defs";
 import { nodeLabel, type DecodedNodeFrame } from "./buffer-decode-node";
 import { edgeLabel, type DecodedEdgeFrame } from "./buffer-decode-edge";
 import { INTERIOR_SLOTS_PER_NODE } from "./buffer-decode-interior";
+import { overlayFlag, OVERLAY_KINDS } from "./decode-event-overlay";
+import { nodeGeometryLine } from "./decode-event-node-geometry";
 import {
-  readNodeCX, readNodeCY, readNodeCZ, readNodeRadius, readNodeSphereR,
-  readNodeVRX, readNodeVRY, readNodeVRZ, readNodeFRX, readNodeFRY, readNodeFRZ,
-  readNodeKindId,
   readInteriorPresent, readInteriorValue, readInteriorOX, readInteriorOY, readInteriorOZ,
   readEdgeSX, readEdgeSY, readEdgeSZ, readEdgeEX, readEdgeEY, readEdgeEZ,
   readCameraPX, readCameraPY, readCameraPZ, readCameraR,
   readCameraPosTheta, readCameraPosPhi, readCameraUpTheta, readCameraUpPhi,
-  readOverlaySceneTori, readOverlayScenePoles, readOverlayNodePoles,
-  readOverlaySelSpherePoles, readOverlayHandholds, readOverlayLabelsGlobal,
-  readOverlayOverlaysVis,
-  readOverlayNodeBody,
-  readOverlayNodeRing,
-  readOverlayRingPick,
-  readOverlaySelectionRing,
-  readOverlayHoverRing,
-  readOverlayReachSphere,
   readEventKind, readEventNodeRow, readEventPortRow, readEventTargetRow, readEventTargetPortRow,
   readEventEdgeRow, readEventSlot, readEventValue, readEventBead,
   readEventBeadSteps, readEventSimLatencyMs, readEventX, readEventY, readEventZ, readEventF,
   readEventLabel, readEventDebug, readEventTextOff, readEventTextLen,
   readSceneCX, readSceneCY, readSceneCZ, readSceneRadius,
-  UNKNOWN_KIND_ID,
 } from "../../../schema/buffer-layout";
 
 export type Line = Record<string, unknown>;
@@ -48,56 +36,6 @@ export interface ViewBlocksOrNull {
   cameraView: DataView | null;
   overlayView: DataView | null;
   sceneView: DataView | null;
-}
-
-function overlayFlag(vb: ViewBlocksOrNull, kind: string): number {
-  const v = vb.overlayView;
-  if (!v) return 0;
-  switch (kind) {
-    case "scene-tori": return readOverlaySceneTori(v);
-    case "scene-poles": return readOverlayScenePoles(v);
-    case "node-poles": return readOverlayNodePoles(v);
-    case "sel-sphere-poles": return readOverlaySelSpherePoles(v);
-    case "handholds": return readOverlayHandholds(v);
-    case "labels-global": return readOverlayLabelsGlobal(v);
-    case "overlays-vis": return readOverlayOverlaysVis(v);
-    case "node-body": return readOverlayNodeBody(v);
-    case "node-ring": return readOverlayNodeRing(v);
-    case "ring-pick": return readOverlayRingPick(v);
-    case "selection-ring": return readOverlaySelectionRing(v);
-    case "hover-ring": return readOverlayHoverRing(v);
-    case "reach-sphere": return readOverlayReachSphere(v);
-    default: return 0;
-  }
-}
-
-const OVERLAY_KINDS = new Set([
-  "scene-tori", "scene-poles", "node-poles", "sel-sphere-poles",
-  "handholds", "labels-global", "overlays-vis",
-  "node-body", "node-ring", "ring-pick", "selection-ring", "hover-ring", "reach-sphere",
-]);
-
-function nodeGeometryLine(dn: DecodedNodeFrame, nodeRow: number, node: string): Line {
-  // A node-geometry event riding the VIEW bucket resolves its node columns against the
-  // last cached per-node stream frame, which can be a STALE generation with fewer rows than the
-  // topology — reading nodeRow past nodeView would throw. Degrade to the label-only line
-  // (same graceful-empty contract as nodeLabel), never crash the .probe logger.
-  if (nodeRow < 0 || nodeRow >= dn.nodeCount) return { kind: "node-geometry", node };
-  const n = dn.nodeView;
-  const cx = readNodeCX(n, nodeRow), cy = readNodeCY(n, nodeRow), cz = readNodeCZ(n, nodeRow);
-  const radius = readNodeRadius(n, nodeRow);
-  const sphereR = readNodeSphereR(n, nodeRow);
-  const kindId = readNodeKindId(n, nodeRow);
-  // No `ports` array any more (docs/bead-model/channels-not-ports.md): a port carries no geometry,
-  // so there is nothing to report per node beyond its own fields below.
-  const l: Line = { kind: "node-geometry", node };
-  if (node) l.label = node;
-  if (kindId !== UNKNOWN_KIND_ID && NODE_KIND_NAMES[kindId] !== undefined) l.nodeKind = NODE_KIND_NAMES[kindId];
-  l.nx = cx; l.ny = cy; l.nz = cz; l.radius = radius;
-  if (sphereR !== 0) l.sphereR = sphereR;
-  l.vrx = readNodeVRX(n, nodeRow); l.vry = readNodeVRY(n, nodeRow); l.vrz = readNodeVRZ(n, nodeRow);
-  l.frx = readNodeFRX(n, nodeRow); l.fry = readNodeFRY(n, nodeRow); l.frz = readNodeFRZ(n, nodeRow);
-  return l;
 }
 
 /** Decode ONE EVENT row (index i) into its JSON-shaped Line, or null when the row's kind
