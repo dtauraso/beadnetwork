@@ -3,7 +3,8 @@ package nodegeom
 import (
 	"math"
 
-	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom/camera"
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 )
 
 func PoleContainingEdge(poleTheta, polePhi float64, selfCenter, partnerCenter vec3) (theta, phi float64, ok bool) {
@@ -12,13 +13,13 @@ func PoleContainingEdge(poleTheta, polePhi float64, selfCenter, partnerCenter ve
 		return 0, 0, false
 	}
 	dir := delta.Normalize()
-	pole := geom.AnglesToWorldOffset(1, poleTheta, polePhi)
+	pole := camera.AnglesToWorldOffset(1, poleTheta, polePhi)
 	projected := pole.Sub(dir.Scale(pole.Dot(dir)))
 	if projected.Length() < 1e-6 {
 		return 0, 0, false
 	}
 	u := projected.Normalize()
-	return math.Acos(geom.Clamp(u.Y, -1, 1)), math.Atan2(u.Z, u.X), true
+	return math.Acos(polar.Clamp(u.Y, -1, 1)), math.Atan2(u.Z, u.X), true
 }
 
 func TorusDefaultAxisAngles() (theta, phi float64) {
@@ -35,5 +36,5 @@ func UprightRingAxis(selfCenter, partnerCenter vec3) (theta, phi float64, ok boo
 		return 0, 0, false
 	}
 	u := n.Normalize()
-	return math.Acos(geom.Clamp(u.Y, -1, 1)), math.Atan2(u.Z, u.X), true
+	return math.Acos(polar.Clamp(u.Y, -1, 1)), math.Atan2(u.Z, u.X), true
 }

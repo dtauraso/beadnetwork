@@ -1,4 +1,4 @@
-package geom
+package camera
 
 const ViewpointMinDist = 5.0
 

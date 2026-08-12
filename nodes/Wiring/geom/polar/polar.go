@@ -1,4 +1,4 @@
-package geom
+package polar
 
 import "math"
 
@@ -52,4 +52,14 @@ func Clamp(v, lo, hi float64) float64 {
 		return hi
 	}
 	return v
+}
+
+func WrapPi(a float64) float64 {
+	for a > math.Pi {
+		a -= 2 * math.Pi
+	}
+	for a <= -math.Pi {
+		a += 2 * math.Pi
+	}
+	return a
 }

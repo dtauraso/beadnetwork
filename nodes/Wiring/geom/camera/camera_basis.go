@@ -1,4 +1,4 @@
-package geom
+package camera
 
 type CamBasis struct {
 	RefX vec3

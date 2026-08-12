@@ -3,7 +3,7 @@ package nodegeom
 import (
 	"math"
 
-	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 )
 
@@ -18,7 +18,7 @@ type NodeIdentity struct {
 type NodeGeom struct {
 	NodeIdentity
 
-	ScenePolar geom.Polar
+	ScenePolar polar.Polar
 	HasPos     bool
 
 	ReachR float64
@@ -60,11 +60,11 @@ func NodeWorldPos(g NodeGeom) vec3 {
 	if !g.HasPos {
 		return vec3{}
 	}
-	return g.SceneCenter.Add(geom.Polar2cart(g.ScenePolar))
+	return g.SceneCenter.Add(polar.Polar2cart(g.ScenePolar))
 }
 
 func SetNodeWorld(g *NodeGeom, world vec3) {
-	g.ScenePolar = geom.Cart2polar(world.Sub(g.SceneCenter))
+	g.ScenePolar = polar.Cart2polar(world.Sub(g.SceneCenter))
 	g.HasPos = true
 }
 

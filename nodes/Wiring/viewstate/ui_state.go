@@ -5,7 +5,8 @@ import (
 	"math"
 	"os"
 
-	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom/camera"
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/nodes/Wiring/gesturefsm"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
@@ -22,7 +23,7 @@ type UIState struct {
 
 	SceneKinds uint32
 
-	SceneSphere geom.SceneSphere
+	SceneSphere polar.SceneSphere
 
 	ClockDivisor float64
 
@@ -83,9 +84,9 @@ func (ui *UIState) SetSelectionUI(sendMove func(id string, msg movemsg.Msg), sen
 
 func (ui *UIState) DropPointFromNDC(ndcX, ndcY float64) (spatial.Vec3, bool) {
 	vp := ui.VP.Viewpoint
-	eye := geom.EyeOf(vp)
-	basis := geom.BasisFromViewpoint(vp.Pos, vp.Up)
-	dir := geom.RayDirThroughNDC(ndcX, ndcY, basis, ui.Gest.Fov, ui.Gest.Rect.Aspect())
+	eye := camera.EyeOf(vp)
+	basis := camera.BasisFromViewpoint(vp.Pos, vp.Up)
+	dir := camera.RayDirThroughNDC(ndcX, ndcY, basis, ui.Gest.Fov, ui.Gest.Rect.Aspect())
 	forward := basis.Pole.Scale(-1)
 	denom := dir.Dot(forward)
 	if denom == 0 {
@@ -113,10 +114,10 @@ func (ui *UIState) SetHoverUI(sendMove func(id string, msg movemsg.Msg), node, p
 func (ui *UIState) DragPlaneHit(ev inputcodec.RawInputMsg) (hit spatial.Vec3, ok bool) {
 	g := &ui.Gest
 	vp := ui.VP.Viewpoint
-	eye := geom.EyeOf(vp)
-	basis := geom.BasisFromViewpoint(vp.Pos, vp.Up)
+	eye := camera.EyeOf(vp)
+	basis := camera.BasisFromViewpoint(vp.Pos, vp.Up)
 	nx, ny := g.PixelToNDC(ev.X, ev.Y)
-	dir := geom.RayDirThroughNDC(nx, ny, basis, ev.Fov, g.Rect.Aspect())
+	dir := camera.RayDirThroughNDC(nx, ny, basis, ev.Fov, g.Rect.Aspect())
 	forward := basis.Pole.Scale(-1)
 	denom := dir.Dot(forward)
 	if denom == 0 {
@@ -130,10 +131,10 @@ func (ui *UIState) DragPlaneHit(ev inputcodec.RawInputMsg) (hit spatial.Vec3, ok
 	return hit, true
 }
 
-func (ui *UIState) OrbitViewpoint(from, to geom.Dir, tr *T.Trace) {
+func (ui *UIState) OrbitViewpoint(from, to camera.Dir, tr *T.Trace) {
 	ui.VP.OrbitViewpoint(from, to, tr)
 }
-func (ui *UIState) OrbitLockedViewpoint(from, to geom.Dir, tr *T.Trace) {
+func (ui *UIState) OrbitLockedViewpoint(from, to camera.Dir, tr *T.Trace) {
 	ui.VP.OrbitLockedViewpoint(from, to, tr)
 }
 func (ui *UIState) ZoomViewpoint(factor float64, tr *T.Trace) {

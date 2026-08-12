@@ -2,7 +2,7 @@ package viewpersist
 
 import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/camerapersist"
-	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
@@ -13,7 +13,7 @@ type Persisters struct {
 
 	overlays *scenepersist.Persister[viewstate.OverlayState]
 
-	sphere *scenepersist.Persister[geom.SceneSphere]
+	sphere *scenepersist.Persister[polar.SceneSphere]
 
 	speed *scenepersist.Persister[float64]
 
@@ -30,7 +30,7 @@ func (p *Persisters) ArmEdit(topologyPath string) {
 	p.overlays = &scenepersist.Persister[viewstate.OverlayState]{
 		Path: scenepaths.OverlaysFilePath(topologyPath), Write: scenepersist.WriteSceneOverlays, Tag: "scene_overlays_persist",
 	}
-	p.sphere = &scenepersist.Persister[geom.SceneSphere]{
+	p.sphere = &scenepersist.Persister[polar.SceneSphere]{
 		Path: scenepaths.SphereFilePath(topologyPath), Write: scenepersist.WriteSceneSphere, Tag: "scene_sphere_persist",
 	}
 	p.speed = &scenepersist.Persister[float64]{
@@ -43,7 +43,7 @@ func (p *Persisters) ArmEdit(topologyPath string) {
 
 func (p *Persisters) Overlays() *scenepersist.Persister[viewstate.OverlayState] { return p.overlays }
 
-func (p *Persisters) Sphere() *scenepersist.Persister[geom.SceneSphere] { return p.sphere }
+func (p *Persisters) Sphere() *scenepersist.Persister[polar.SceneSphere] { return p.sphere }
 
 func (p *Persisters) Speed() *scenepersist.Persister[float64] { return p.speed }
 

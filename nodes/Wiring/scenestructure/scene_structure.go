@@ -6,7 +6,7 @@ import (
 	T "github.com/dtauraso/wirefold/Trace"
 	"github.com/dtauraso/wirefold/nodes/Wiring/countspersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/edgefile"
-	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom/camera"
 	"github.com/dtauraso/wirefold/nodes/Wiring/loadspec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/moverreg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/nodefiles"
@@ -60,7 +60,7 @@ func CreateNode(scenes *sceneswitch.SceneSwitch, ui *viewstate.UIState, mr *move
 
 	c := ui.SceneSphere.Center
 	off := drop.Sub(c)
-	d := geom.WorldDirToAngles(off)
+	d := camera.WorldDirToAngles(off)
 	if err := nodefiles.WriteNewNodeFiles(scenes.TreeRoot, target, kind, off.Length(), d.Theta, d.Phi); err != nil {
 		ui.RefuseStructuralEdit(fmt.Sprintf("could not write node %s: %v", target, err))
 		ui.EmitViewFrame(nil)

@@ -2,17 +2,17 @@ package gesturefsm
 
 import (
 	T "github.com/dtauraso/wirefold/Trace"
-	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom/camera"
 	"github.com/dtauraso/wirefold/nodes/spatial"
 )
 
 type ViewpointState struct {
-	geom.Viewpoint
+	camera.Viewpoint
 
-	Persist func(geom.Viewpoint)
+	Persist func(camera.Viewpoint)
 }
 
-func (v *ViewpointState) SetViewpoint(pivot spatial.Vec3, r float64, pos, up geom.Dir) {
+func (v *ViewpointState) SetViewpoint(pivot spatial.Vec3, r float64, pos, up camera.Dir) {
 	v.Pivot = pivot
 	v.R = r
 	v.Pos = pos
@@ -27,12 +27,12 @@ func (v *ViewpointState) EmitViewpoint(tr *T.Trace) {
 	}
 }
 
-func (v *ViewpointState) OrbitViewpoint(from, to geom.Dir, tr *T.Trace) {
+func (v *ViewpointState) OrbitViewpoint(from, to camera.Dir, tr *T.Trace) {
 	v.Orbit(from, to)
 	v.EmitViewpoint(tr)
 }
 
-func (v *ViewpointState) OrbitLockedViewpoint(from, to geom.Dir, tr *T.Trace) {
+func (v *ViewpointState) OrbitLockedViewpoint(from, to camera.Dir, tr *T.Trace) {
 	v.OrbitLocked(from, to)
 	v.EmitViewpoint(tr)
 }

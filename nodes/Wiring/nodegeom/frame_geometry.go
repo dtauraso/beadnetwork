@@ -3,7 +3,7 @@ package nodegeom
 import (
 	"math"
 
-	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 )
 
 type FrameGeometryInputs struct {
@@ -46,7 +46,7 @@ func DeriveFrameGeometry(in FrameGeometryInputs) FrameGeometryOutputs {
 	}
 
 	if in.Geom.HasPos {
-		out.PoleTheta, out.PolePhi = geom.InwardPole(in.Geom.ScenePolar)
+		out.PoleTheta, out.PolePhi = polar.InwardPole(in.Geom.ScenePolar)
 	}
 
 	out.RingAxisTheta, out.RingAxisPhi = TorusDefaultAxisAngles()

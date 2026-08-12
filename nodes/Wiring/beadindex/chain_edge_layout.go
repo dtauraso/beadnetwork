@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/spatial"
 	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
@@ -58,7 +58,7 @@ func ChainBeadRows(dir, chainSep spatial.Vec3, base, step float64, count int, re
 }
 
 func ChainAimBreadcrumbText(to string, count int, dist float64, dir spatial.Vec3) string {
-	liveTheta := math.Acos(geom.Clamp(dir.Y, -1, 1))
+	liveTheta := math.Acos(polar.Clamp(dir.Y, -1, 1))
 	livePhi := math.Atan2(dir.Z, dir.X)
 	return fmt.Sprintf(
 		"to=%s count=%d K=%d liveDir=(theta=%.4f,phi=%.4f)",

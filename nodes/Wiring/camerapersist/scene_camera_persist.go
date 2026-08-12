@@ -1,7 +1,7 @@
 package camerapersist
 
 import (
-	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom/camera"
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
 )
 
@@ -16,7 +16,7 @@ type ViewpointPersister struct {
 	Path string
 }
 
-func (p *ViewpointPersister) Schedule(v geom.Viewpoint) {
+func (p *ViewpointPersister) Schedule(v camera.Viewpoint) {
 	if p == nil || p.Path == "" {
 		return
 	}
@@ -27,7 +27,7 @@ func (p *ViewpointPersister) Schedule(v geom.Viewpoint) {
 	}
 }
 
-func ViewpointToPolar(v geom.Viewpoint) *PolarCamera {
+func ViewpointToPolar(v camera.Viewpoint) *PolarCamera {
 	pivot := [3]float64{v.Pivot.X, v.Pivot.Y, v.Pivot.Z}
 	r := v.R
 	pos := [2]float64{v.Pos.Theta, v.Pos.Phi}

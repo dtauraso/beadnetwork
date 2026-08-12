@@ -3,7 +3,7 @@ package quantoffset
 import (
 	"math"
 
-	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/nodes/spatial"
 	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 )
@@ -50,7 +50,7 @@ func MeasureScalars(centers map[string]vec3, ids map[string]bool, sceneCenter ve
 		}
 		carried := prior[id]
 		t, p_, r := carried.EffectiveSteps()
-		p := geom.Cart2polar(pos.Sub(sceneCenter))
+		p := polar.Cart2polar(pos.Sub(sceneCenter))
 		result[id] = QuantizedOffset{
 			ITheta: int(math.Round(p.Theta / t)),
 			IPhi:   int(math.Round(p.Phi / p_)),
@@ -63,7 +63,7 @@ func MeasureScalars(centers map[string]vec3, ids map[string]bool, sceneCenter ve
 	return result
 }
 
-func MeasureScalar(p geom.Polar, prior QuantizedOffset) QuantizedOffset {
+func MeasureScalar(p polar.Polar, prior QuantizedOffset) QuantizedOffset {
 	t, p_, r := prior.EffectiveSteps()
 	return QuantizedOffset{
 		ITheta: int(math.Round(p.Theta / t)),
@@ -75,15 +75,15 @@ func MeasureScalar(p geom.Polar, prior QuantizedOffset) QuantizedOffset {
 	}
 }
 
-func offsetScenePolar(o QuantizedOffset) geom.Polar {
+func offsetScenePolar(o QuantizedOffset) polar.Polar {
 	t, p, r := o.EffectiveSteps()
-	return geom.Polar{R: float64(o.IR) * r, Theta: float64(o.ITheta) * t, Phi: float64(o.IPhi) * p}
+	return polar.Polar{R: float64(o.IR) * r, Theta: float64(o.ITheta) * t, Phi: float64(o.IPhi) * p}
 }
 
 func DeriveCenters(scalars map[string]QuantizedOffset, sceneCenter vec3) map[string]vec3 {
 	derived := make(map[string]vec3, len(scalars))
 	for id, o := range scalars {
-		derived[id] = sceneCenter.Add(geom.Polar2cart(offsetScenePolar(o)))
+		derived[id] = sceneCenter.Add(polar.Polar2cart(offsetScenePolar(o)))
 	}
 	return derived
 }

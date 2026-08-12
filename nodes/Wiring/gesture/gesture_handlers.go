@@ -4,7 +4,7 @@ import (
 	"math"
 
 	T "github.com/dtauraso/wirefold/Trace"
-	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom/camera"
 	"github.com/dtauraso/wirefold/nodes/Wiring/gesturefsm"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/layoutquant"
@@ -17,7 +17,7 @@ func gestHome(d Deps, ev inputcodec.RawInputMsg, tr *T.Trace) {
 	for id := range centers {
 		radius[id] = d.MR.NodeBodyRadius(id)
 	}
-	pivot, r, pos, up, ok := geom.HomeFitPose(centers, radius, ev.Fov, d.UI.Gest.Rect.Aspect())
+	pivot, r, pos, up, ok := camera.HomeFitPose(centers, radius, ev.Fov, d.UI.Gest.Rect.Aspect())
 	if !ok {
 		return
 	}
@@ -94,18 +94,18 @@ func gestPointerUp(d Deps, ev inputcodec.RawInputMsg) {
 
 func gestWheel(d Deps, ev inputcodec.RawInputMsg, tr *T.Trace) {
 	vp := d.UI.VP.Viewpoint
-	eye := geom.EyeOf(vp)
-	pivot := geom.RegionFocus(vp, layoutquant.HeldCenters(d.MR.NodeGeoms(), d.MR.CenterOfNode))
+	eye := camera.EyeOf(vp)
+	pivot := camera.RegionFocus(vp, layoutquant.HeldCenters(d.MR.NodeGeoms(), d.MR.CenterOfNode))
 
 	if ev.Ctrl {
 
 		mouseNdcX, mouseNdcY := d.UI.Gest.PixelToNDC(ev.X, ev.Y)
-		basis := geom.BasisFromViewpoint(vp.Pos, vp.Up)
+		basis := camera.BasisFromViewpoint(vp.Pos, vp.Up)
 		aspect := d.UI.Gest.Rect.Aspect()
 		target := pivot
 		best := math.Inf(1)
 		for _, c := range layoutquant.HeldCenters(d.MR.NodeGeoms(), d.MR.CenterOfNode) {
-			nx, ny, inFront := geom.ProjectNDC(c, eye, basis, ev.Fov, aspect)
+			nx, ny, inFront := camera.ProjectNDC(c, eye, basis, ev.Fov, aspect)
 			if !inFront {
 				continue
 			}
@@ -116,14 +116,14 @@ func gestWheel(d Deps, ev inputcodec.RawInputMsg, tr *T.Trace) {
 		}
 		toTarget := target.Sub(eye)
 		distP := toTarget.Length()
-		rayDir := geom.AnglesToWorldOffset(1, vp.Pos.Theta, vp.Pos.Phi).Scale(-1)
+		rayDir := camera.AnglesToWorldOffset(1, vp.Pos.Theta, vp.Pos.Phi).Scale(-1)
 		if distP > 1e-9 {
 			rayDir = toTarget.Scale(1 / distP)
 		}
 
-		amt := 1 - math.Pow(geom.GestureZoomBase, ev.DeltaY)
+		amt := 1 - math.Pow(camera.GestureZoomBase, ev.DeltaY)
 		step := distP * amt
-		if minStep := vp.R * (geom.GestureZoomBase - 1); math.Abs(step) < minStep {
+		if minStep := vp.R * (camera.GestureZoomBase - 1); math.Abs(step) < minStep {
 			step = math.Copysign(minStep, amt)
 		}
 		d.UI.VP.PanViewpoint(rayDir.Scale(step), tr)
@@ -133,7 +133,7 @@ func gestWheel(d Deps, ev inputcodec.RawInputMsg, tr *T.Trace) {
 
 	fovRad := ev.Fov * math.Pi / 180
 	worldPerPixel := (2 * vp.R * math.Tan(fovRad/2)) / d.UI.Gest.Rect.Height
-	disp := geom.PanDisplacementPolar(vp.Pos, vp.Up, ev.DeltaX, ev.DeltaY, worldPerPixel)
+	disp := camera.PanDisplacementPolar(vp.Pos, vp.Up, ev.DeltaX, ev.DeltaY, worldPerPixel)
 	d.UI.VP.PanViewpoint(disp, tr)
 	d.UI.EmitViewFrame(CameraViewEvent())
 }

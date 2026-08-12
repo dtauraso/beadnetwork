@@ -3,22 +3,23 @@ package gesturefsm
 import (
 	"math"
 
-	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom/camera"
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/spatial"
 )
 
-func (g *GestureState) BeginSphereRotation(vp geom.Viewpoint, heldCenters func() map[string]spatial.Vec3, ev inputcodec.RawInputMsg) {
-	pivot := geom.FocusAhead(vp, heldCenters())
+func (g *GestureState) BeginSphereRotation(vp camera.Viewpoint, heldCenters func() map[string]spatial.Vec3, ev inputcodec.RawInputMsg) {
+	pivot := camera.FocusAhead(vp, heldCenters())
 	g.RotPivot = pivot
 
-	eye := geom.EyeOf(vp)
-	basis := geom.BasisFromViewpoint(vp.Pos, vp.Up)
-	ndcX, ndcY, _ := geom.ProjectNDC(pivot, eye, basis, ev.Fov, g.Rect.Aspect())
+	eye := camera.EyeOf(vp)
+	basis := camera.BasisFromViewpoint(vp.Pos, vp.Up)
+	ndcX, ndcY, _ := camera.ProjectNDC(pivot, eye, basis, ev.Fov, g.Rect.Aspect())
 	g.RotCx = ((ndcX+1)/2)*g.Rect.Width + g.Rect.Left
 	g.RotCy = ((-ndcY+1)/2)*g.Rect.Height + g.Rect.Top
 
-	_, csRadius := geom.ContentSphereOf(heldCenters())
+	_, csRadius := polar.ContentSphereOf(heldCenters())
 	pivotDist := eye.Sub(pivot).Length()
 	fovRad := ev.Fov * math.Pi / 180
 	rpx := (g.Rect.Height / 2) / math.Tan(fovRad/2)

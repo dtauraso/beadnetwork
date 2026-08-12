@@ -1,6 +1,10 @@
-package geom
+package camera
 
-import "math"
+import (
+	"math"
+
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
+)
 
 type PolarDir struct {
 	Theta float64
@@ -33,5 +37,5 @@ func PanDisplacementPolar(pos, up Dir, dx, dy, worldPerPixel float64) vec3 {
 	r, bearing := DeltaToPolar(dx, -dy)
 	_, psiUp := AzimuthFrom(pos, up)
 	d := FromAxisFrame(pos, math.Pi/2, psiUp-math.Pi/2+bearing)
-	return Polar2cart(Polar{R: r * worldPerPixel, Theta: d.Theta, Phi: d.Phi})
+	return polar.Polar2cart(polar.Polar{R: r * worldPerPixel, Theta: d.Theta, Phi: d.Phi})
 }

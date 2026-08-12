@@ -1,7 +1,7 @@
 package nodeactor
 
 import (
-	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/quantoffset"
@@ -48,7 +48,7 @@ func (m *NodeGeometry) QuantizedOffsetValue() quantoffset.QuantizedOffset { retu
 
 func (m *NodeGeometry) ReachR() float64 { return m.geom.ReachR }
 
-func (m *NodeGeometry) CommitQuantOffset(committedPolar geom.Polar) {
+func (m *NodeGeometry) CommitQuantOffset(committedPolar polar.Polar) {
 	off := quantoffset.MeasureScalar(committedPolar, m.quantOffset)
 	m.quantOffset = off
 	m.persistQuantOffset(off, committedPolar)

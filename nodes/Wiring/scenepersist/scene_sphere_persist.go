@@ -1,7 +1,7 @@
 package scenepersist
 
 import (
-	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geomseeds"
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
@@ -17,19 +17,19 @@ type sceneSphereJSON struct {
 	Radius *float64    `json:"radius"`
 }
 
-func LoadSceneSphere(topologyPath string) (geom.SceneSphere, bool) {
+func LoadSceneSphere(topologyPath string) (polar.SceneSphere, bool) {
 	var sj sceneSphereJSON
 	jsonpersist.ReadJSONBestEffort(scenepaths.SphereFilePath(topologyPath), &sj)
 	if sj.Center == nil || sj.Radius == nil {
-		return geom.SceneSphere{}, false
+		return polar.SceneSphere{}, false
 	}
-	return geom.SceneSphere{
+	return polar.SceneSphere{
 		Center: spatial.Vec3{X: sj.Center[0], Y: sj.Center[1], Z: sj.Center[2]},
 		Radius: *sj.Radius,
 	}, true
 }
 
-func WriteSceneSphere(sphereJSONPath string, s geom.SceneSphere) error {
+func WriteSceneSphere(sphereJSONPath string, s polar.SceneSphere) error {
 	center := [3]float64{s.Center.X, s.Center.Y, s.Center.Z}
 	radius := s.Radius
 	return jsonpersist.WriteJSONAtomic(sphereJSONPath, sceneSphereJSON{Center: &center, Radius: &radius})
@@ -40,7 +40,7 @@ func InstallSceneSphere(ui *viewstate.UIState, gs *geomseeds.GeomSeeds, topology
 		ui.SceneSphere = s
 	} else {
 
-		ui.SceneSphere = geom.ContentFitSceneSphere(gs.LoadTimeCenters())
+		ui.SceneSphere = polar.ContentFitSceneSphere(gs.LoadTimeCenters())
 
 		if topologyPath != "" {
 			_ = WriteSceneSphere(scenepaths.SphereFilePath(topologyPath), ui.SceneSphere)

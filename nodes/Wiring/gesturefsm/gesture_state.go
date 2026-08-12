@@ -1,7 +1,7 @@
 package gesturefsm
 
 import (
-	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom/camera"
 	"github.com/dtauraso/wirefold/nodes/spatial"
 )
 
@@ -58,7 +58,7 @@ func (g *GestureState) PixelToNDC(x, y float64) (nx, ny float64) {
 	return nx, ny
 }
 
-func (g *GestureState) Reset(vp *geom.Viewpoint) {
+func (g *GestureState) Reset(vp *camera.Viewpoint) {
 	g.Phase = GestIdle
 	g.EmptyDown = false
 	g.DragNode = ""

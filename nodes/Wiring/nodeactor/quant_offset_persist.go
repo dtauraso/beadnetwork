@@ -3,13 +3,13 @@ package nodeactor
 import (
 	"fmt"
 
-	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/positionfile"
 	"github.com/dtauraso/wirefold/nodes/Wiring/quantoffset"
 )
 
-func (nm *NodeGeometry) persistQuantOffset(off quantoffset.QuantizedOffset, scene geom.Polar) {
+func (nm *NodeGeometry) persistQuantOffset(off quantoffset.QuantizedOffset, scene polar.Polar) {
 	if nm.persistRoot == "" {
 		return
 	}
@@ -28,7 +28,7 @@ func (nm *NodeGeometry) persistTiltVectorAngle() {
 	}
 }
 
-func writeQuantOffset(root, id string, off quantoffset.QuantizedOffset, scene geom.Polar, topTiltVectorThetaIdx int32) error {
+func writeQuantOffset(root, id string, off quantoffset.QuantizedOffset, scene polar.Polar, topTiltVectorThetaIdx int32) error {
 	if !jsonpersist.SafeTreePathComponent(id) {
 		return fmt.Errorf("unsafe node id %q", id)
 	}

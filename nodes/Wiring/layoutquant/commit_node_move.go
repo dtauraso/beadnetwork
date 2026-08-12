@@ -6,7 +6,7 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/beadcrud"
 	"github.com/dtauraso/wirefold/nodes/Wiring/edgemover"
-	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
 	"github.com/dtauraso/wirefold/nodes/Wiring/topoderive"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
@@ -22,7 +22,7 @@ func (lq *LayoutQuantizer) CommitNodeMoveLocal(nodeGeoms map[string]*nodeactor.N
 	edges := HeldEdges(edgeMovers)
 	polars := neighborPolars(nm, edgeMovers, ui)
 
-	nodePolar := geom.Cart2polar(newPos.Sub(ui.SceneSphere.Center))
+	nodePolar := polar.Cart2polar(newPos.Sub(ui.SceneSphere.Center))
 
 	committedPos, committedPolar := lq.resolveCommittedPosition(edgeMovers, ui, nm, newPos, nodePolar)
 
@@ -35,9 +35,9 @@ func (lq *LayoutQuantizer) CommitNodeMoveLocal(nodeGeoms map[string]*nodeactor.N
 	nm.CommitQuantOffset(committedPolar)
 }
 
-func neighborPolars(nm *nodeactor.NodeGeometry, edgeMovers map[string]*edgemover.EdgeMover, ui *viewstate.UIState) map[string]geom.Polar {
+func neighborPolars(nm *nodeactor.NodeGeometry, edgeMovers map[string]*edgemover.EdgeMover, ui *viewstate.UIState) map[string]polar.Polar {
 	nodeID := nm.ID()
-	polars := map[string]geom.Polar{}
+	polars := map[string]polar.Polar{}
 	partnerCenters := nm.PartnerCenters()
 	for _, edgeID := range nm.EdgeIDs() {
 		em, ok := edgeMovers[edgeID]
@@ -49,13 +49,13 @@ func neighborPolars(nm *nodeactor.NodeGeometry, edgeMovers map[string]*edgemover
 			neighborID = em.DstID()
 		}
 		if c, ok := partnerCenters[neighborID]; ok {
-			polars[neighborID] = geom.Cart2polar(c.Sub(ui.SceneSphere.Center))
+			polars[neighborID] = polar.Cart2polar(c.Sub(ui.SceneSphere.Center))
 		}
 	}
 	return polars
 }
 
-func (lq *LayoutQuantizer) resolveCommittedPosition(edgeMovers map[string]*edgemover.EdgeMover, ui *viewstate.UIState, nm *nodeactor.NodeGeometry, newPos spatial.Vec3, nodePolar geom.Polar) (committedPos spatial.Vec3, committedPolar geom.Polar) {
+func (lq *LayoutQuantizer) resolveCommittedPosition(edgeMovers map[string]*edgemover.EdgeMover, ui *viewstate.UIState, nm *nodeactor.NodeGeometry, newPos spatial.Vec3, nodePolar polar.Polar) (committedPos spatial.Vec3, committedPolar polar.Polar) {
 	committedPos = newPos
 	committedPolar = nodePolar
 	if !lq.QuantizedLayout {
@@ -68,7 +68,7 @@ func (lq *LayoutQuantizer) resolveCommittedPosition(edgeMovers map[string]*edgem
 	} else {
 		committedPos, _ = beadcrud.ResolveBeadCrudMove(beads, prevPos, newPos, lattice.BeadStepR)
 	}
-	committedPolar = geom.Cart2polar(committedPos.Sub(ui.SceneSphere.Center))
+	committedPolar = polar.Cart2polar(committedPos.Sub(ui.SceneSphere.Center))
 
 	emitBeadCrudDiagnostic(nm, nm.ID(), prevPos, newPos, committedPos, beads)
 	return committedPos, committedPolar

@@ -1,4 +1,4 @@
-package geom
+package camera
 
 import "math"
 

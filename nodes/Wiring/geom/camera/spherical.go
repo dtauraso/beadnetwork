@@ -1,7 +1,9 @@
-package geom
+package camera
 
 import (
 	"math"
+
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 )
 
 type Dir struct {
@@ -14,20 +16,10 @@ type Rot struct {
 	Angle float64
 }
 
-func WrapPi(a float64) float64 {
-	for a > math.Pi {
-		a -= 2 * math.Pi
-	}
-	for a <= -math.Pi {
-		a += 2 * math.Pi
-	}
-	return a
-}
-
 func AngularDistance(a, b Dir) float64 {
 	cd := math.Cos(a.Theta)*math.Cos(b.Theta) +
 		math.Sin(a.Theta)*math.Sin(b.Theta)*math.Cos(a.Phi-b.Phi)
-	return math.Acos(Clamp(cd, -1, 1))
+	return math.Acos(polar.Clamp(cd, -1, 1))
 }
 
 func AzimuthFrom(pole, p Dir) (c, psi float64) {
@@ -41,13 +33,13 @@ func AzimuthFrom(pole, p Dir) (c, psi float64) {
 }
 
 func FromAxisFrame(pole Dir, c, psi float64) Dir {
-	cosT := Clamp(math.Cos(pole.Theta)*math.Cos(c)+math.Sin(pole.Theta)*math.Sin(c)*math.Cos(psi), -1, 1)
+	cosT := polar.Clamp(math.Cos(pole.Theta)*math.Cos(c)+math.Sin(pole.Theta)*math.Sin(c)*math.Cos(psi), -1, 1)
 	theta := math.Acos(cosT)
 	dphi := math.Atan2(
 		math.Sin(c)*math.Sin(psi),
 		math.Sin(pole.Theta)*math.Cos(c)-math.Cos(pole.Theta)*math.Sin(c)*math.Cos(psi),
 	)
-	return Dir{Theta: theta, Phi: WrapPi(pole.Phi + dphi)}
+	return Dir{Theta: theta, Phi: polar.WrapPi(pole.Phi + dphi)}
 }
 
 func RotateDir(p, axis Dir, angle float64) Dir {
@@ -64,5 +56,5 @@ func ArcBetween(from, to Dir) Rot {
 func AngleAboutAxis(from, to, axis Dir) float64 {
 	_, psiFrom := AzimuthFrom(axis, from)
 	_, psiTo := AzimuthFrom(axis, to)
-	return WrapPi(psiTo - psiFrom)
+	return polar.WrapPi(psiTo - psiFrom)
 }

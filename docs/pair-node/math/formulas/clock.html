@@ -52,12 +52,12 @@
             <tr>
               <td class="e">pulses = clamp(⌈1 / speed⌉, 1, 64)</td>
               <td class="n">speed ≤ 0 → 64</td>
-              <td class="s" data-src="nodes/wire/clock/sleep_cycle.go">wire/clock/sleep_cycle.go</td>
+              <td class="s" data-src="nodes/clock/sleep_cycle.go">clock/sleep_cycle.go</td>
             </tr>
             <tr>
               <td class="e">one cycle = pulses × 16 ms</td>
               <td class="n">one process-wide ticker</td>
-              <td class="s" data-src="nodes/wire/clock/tick_broadcaster.go">wire/clock/tick_broadcaster.go</td>
+              <td class="s" data-src="nodes/clock/tick_broadcaster.go">clock/tick_broadcaster.go</td>
             </tr>
             <tr>
               <td class="e">HumanEditSpeed = 1.0</td>
@@ -78,17 +78,17 @@
             <tr>
               <td class="e">x = r·sinθ·cosφ</td>
               <td class="n">the one trig site</td>
-              <td class="s" data-src="nodes/Wiring/geom/camera_angles.go">camera_angles.go</td>
+              <td class="s" data-src="nodes/Wiring/geom/camera/camera_angles.go">camera_angles.go</td>
             </tr>
             <tr>
               <td class="e">y = r·cosθ</td>
               <td class="n">θ from +y, so y is the cosine</td>
-              <td class="s" data-src="nodes/Wiring/geom/camera_angles.go">camera_angles.go</td>
+              <td class="s" data-src="nodes/Wiring/geom/camera/camera_angles.go">camera_angles.go</td>
             </tr>
             <tr>
               <td class="e">z = r·sinθ·sinφ</td>
               <td class="n">the other in-ring component</td>
-              <td class="s" data-src="nodes/Wiring/geom/camera_angles.go">camera_angles.go</td>
+              <td class="s" data-src="nodes/Wiring/geom/camera/camera_angles.go">camera_angles.go</td>
             </tr>
             <tr>
               <td class="e">r = nodeRadius(kind)</td>

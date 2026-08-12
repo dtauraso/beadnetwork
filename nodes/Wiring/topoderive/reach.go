@@ -1,17 +1,17 @@
 package topoderive
 
 import (
-	"github.com/dtauraso/wirefold/nodes/Wiring/geom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/nodes/Wiring/loadspec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 )
 
 func ComputeReachRadii(spec loadspec.TopoSpec, nodeGeoms map[string]nodegeom.NodeGeom) {
-	edges := make([]geom.SphereEdge, 0, len(spec.Edges))
+	edges := make([]polar.SphereEdge, 0, len(spec.Edges))
 	for _, e := range spec.Edges {
-		edges = append(edges, geom.SphereEdge{Source: e.Source, Target: e.Target})
+		edges = append(edges, polar.SphereEdge{Source: e.Source, Target: e.Target})
 	}
-	polars := map[string]geom.Polar{}
+	polars := map[string]polar.Polar{}
 	for id, g := range nodeGeoms {
 		if g.HasPos {
 			polars[id] = g.ScenePolar
@@ -24,7 +24,7 @@ func ComputeReachRadii(spec loadspec.TopoSpec, nodeGeoms map[string]nodegeom.Nod
 	}
 }
 
-func ReachRFromPolar(polars map[string]geom.Polar, edges []geom.SphereEdge) map[string]float64 {
+func ReachRFromPolar(polars map[string]polar.Polar, edges []polar.SphereEdge) map[string]float64 {
 	reachR := map[string]float64{}
 	for _, e := range edges {
 		sp, okS := polars[e.Source]
@@ -32,7 +32,7 @@ func ReachRFromPolar(polars map[string]geom.Polar, edges []geom.SphereEdge) map[
 		if !okS || !okT {
 			continue
 		}
-		if d := geom.PolarDist(sp, tp); d > reachR[e.Source] {
+		if d := polar.PolarDist(sp, tp); d > reachR[e.Source] {
 			reachR[e.Source] = d
 		}
 	}
