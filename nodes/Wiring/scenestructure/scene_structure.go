@@ -47,15 +47,21 @@ func CreateNode(scenes *sceneswitch.SceneSwitch, ui *viewstate.UIState, mr *move
 
 	src, okNear := mr.NearestNodeTo(drop)
 	target := loadspec.NewNodeID(scenes.TreeRoot)
-	var srcPort, targetPort string
+	var srcHandle, targetPort string
 	if okNear {
-		var why string
-		var canLink bool
-		if srcPort, targetPort, why, canLink = mr.LinkRefusal(src, kind); !canLink {
+		link, why, canLink := mr.LinkRefusal(src, kind)
+		if !canLink {
 			ui.RefuseStructuralEdit(why)
 			ui.EmitViewFrame(nil)
 			return
 		}
+		var okHandle bool
+		if srcHandle, why, okHandle = edgefile.SourceHandleFor(scenes.TreeRoot, src, link.SrcPort, link.Broadcast); !okHandle {
+			ui.RefuseStructuralEdit(why)
+			ui.EmitViewFrame(nil)
+			return
+		}
+		targetPort = link.TargetPort
 	}
 
 	c := ui.SceneSphere.Center
@@ -68,7 +74,7 @@ func CreateNode(scenes *sceneswitch.SceneSwitch, ui *viewstate.UIState, mr *move
 	}
 	edges := loadspec.CountEdgeFiles(scenes.TreeRoot)
 	if okNear {
-		if err := edgefile.WriteEdgeFile(scenes.TreeRoot, src, srcPort, target, targetPort); err != nil {
+		if err := edgefile.WriteEdgeFile(scenes.TreeRoot, src, srcHandle, target, targetPort); err != nil {
 			ui.RefuseStructuralEdit(fmt.Sprintf("could not write edge %s->%s: %v", src, target, err))
 			ui.EmitViewFrame(nil)
 			return
