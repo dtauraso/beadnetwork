@@ -94,41 +94,7 @@ func DriveHeld(ctx context.Context, out Wiring.DrivenOut, heldCh <-chan int64, t
 	go func() {
 		paced := out.Paced()
 		cur := int64(NoValue)
-		var c clock.Clock
-		// No-loader fallback: a dedicated tick-pulse channel subscribed ONCE here
-		// against the process's one TickBroadcaster (nodes/wire/clock.go), so this
-		// goroutine blocks on receive instead of on its own time.After.
-		tickCh := clock.NewTickChan()
-		sleep := func(ctx context.Context) error {
-			select {
-			case <-ctx.Done():
-				return ctx.Err()
-			case <-tickCh:
-				return nil
-			}
-		}
-		// tick returns the current tick off this goroutine's own clock copy
-		// whenever one exists (clk != nil), or 0 on a genuinely clock-less build
-		// (unit tests with no loader). Used to pace placement against K below AND
-		// (as of the sender-stamps-placement-tick change) as the placementTick
-		// this goroutine itself stamps on each bead it places — the wire no
-		// longer reads its own clock at drain time. This must NOT be gated on
-		// `paced` — an Out with no wire but a real clock copy still has to stay
-		// speed-aware (see the doc comment above).
-		tick := func() int64 { return 0 }
-		if clk != nil {
-			// Copy taken ONCE at this goroutine's start (the go func() literal above
-			// IS the goroutine).
-			c = clk.Copy()
-			// Fold the speed-delivery poll into the one blocking point this loop has
-			// (this comment block's own note above it): DriveHeld's only blocking
-			// point is sleep, so that is where the check goes.
-			sleep = func(ctx context.Context) error {
-				clock.ApplySpeedNonBlocking(c, speedCh)
-				return c.SleepCycle(ctx)
-			}
-			tick = c.Tick
-		}
+		tick, sleep, c := driveHeldClock(clk, speedCh)
 
 		// lastPlaceTick anchors placement pacing in SCALED-tick space (paced mode).
 		// Seeded to now so the first bead lands one K after start, as before.
@@ -154,11 +120,7 @@ func DriveHeld(ctx context.Context, out Wiring.DrivenOut, heldCh <-chan int64, t
 			// send, synchronous chan semantics).
 			place := !paced
 			if paced {
-				if steps := out.Steps(); steps > 0 {
-					k := int64(float64(steps)*lattice.DwellTicksPerBead + 0.999999)
-					if k < 1 {
-						k = 1
-					}
+				if k, known := driveHeldPeriod(out); known {
 					place = tick()-lastPlaceTick >= k
 				}
 				// else: geometry not yet known — don't place this cycle.
@@ -195,11 +157,7 @@ func DriveHeld(ctx context.Context, out Wiring.DrivenOut, heldCh <-chan int64, t
 			// Still whole cycles underneath (SleepUntilTick), so a speed change lands on
 			// the next cycle and a clock held at 0 simply never reaches the target.
 			if paced {
-				if steps := out.Steps(); steps > 0 {
-					k := int64(float64(steps)*lattice.DwellTicksPerBead + 0.999999)
-					if k < 1 {
-						k = 1
-					}
+				if k, known := driveHeldPeriod(out); known {
 					clock.ApplySpeedNonBlocking(c, speedCh)
 					if err := c.SleepUntilTick(ctx, lastPlaceTick+k); err != nil {
 						return
@@ -212,4 +170,65 @@ func DriveHeld(ctx context.Context, out Wiring.DrivenOut, heldCh <-chan int64, t
 			}
 		}
 	}()
+}
+
+// driveHeldClock is DriveHeld's own clock-setup phase, run once at this goroutine's start:
+// it returns the tick reader, the fallback sleep function, and (when clk is non-nil) this
+// goroutine's own clock copy.
+//
+// tick returns the current tick off this goroutine's own clock copy whenever one exists
+// (clk != nil), or 0 on a genuinely clock-less build (unit tests with no loader). Used to
+// pace placement against K AND (as of the sender-stamps-placement-tick change) as the
+// placementTick this goroutine itself stamps on each bead it places — the wire no longer
+// reads its own clock at drain time. This must NOT be gated on `paced` — an Out with no wire
+// but a real clock copy still has to stay speed-aware (see DriveHeld's own doc comment).
+//
+// With clk == nil, sleep is a no-loader fallback: a dedicated tick-pulse channel subscribed
+// ONCE here against the process's one TickBroadcaster (nodes/wire/clock.go), so this
+// goroutine blocks on receive instead of on its own time.After. With clk != nil, the copy is
+// taken ONCE (this call site IS the goroutine's own start) and sleep folds the
+// speed-delivery poll into the one blocking point this loop has (DriveHeld's only blocking
+// point is sleep, so that is where the check goes).
+func driveHeldClock(clk clock.Clock, speedCh <-chan float64) (tick func() int64, sleep func(context.Context) error, c clock.Clock) {
+	tickCh := clock.NewTickChan()
+	sleep = func(ctx context.Context) error {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-tickCh:
+			return nil
+		}
+	}
+	tick = func() int64 { return 0 }
+	if clk == nil {
+		return tick, sleep, nil
+	}
+	c = clk.Copy()
+	sleep = func(ctx context.Context) error {
+		clock.ApplySpeedNonBlocking(c, speedCh)
+		return c.SleepCycle(ctx)
+	}
+	tick = c.Tick
+	return tick, sleep, c
+}
+
+// driveHeldPeriod is DriveHeld's own K computation, shared by both call sites (the place
+// decision and the sleep-to-next-placement below it) so they can never compute two
+// different values for the same edge's period: K = ticksToCross =
+// Steps*DwellTicksPerBead (docs/bead-model/bead-lattice.md "Timing"; same ceil-rounding
+// convention as Time/node.go's ToNext processing window), clamped to at least 1 tick.
+// known is false when out.Steps() is not yet known (zero — a real paced Out's geometry is
+// seeded at construction from the loader's own bead-step count, so this only happens
+// transiently before that seed) — DriveHeld does not place until it is; it still steps the
+// wire every cycle, so nothing else stalls waiting on it.
+func driveHeldPeriod(out Wiring.DrivenOut) (k int64, known bool) {
+	steps := out.Steps()
+	if steps <= 0 {
+		return 0, false
+	}
+	k = int64(float64(steps)*lattice.DwellTicksPerBead + 0.999999)
+	if k < 1 {
+		k = 1
+	}
+	return k, true
 }
