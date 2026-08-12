@@ -1,7 +1,7 @@
 import { useRef, useContext } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { getNodeFrame } from "./node-stream-blocks";
+import { getNodeFrame } from "./node-frame-aggregate";
 import { getViewBlocks } from "./view-blocks";
 import { EnvTexContext } from "./scene-env";
 import {

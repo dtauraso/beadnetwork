@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import { getNodeFrame } from "../../scene/node-stream-blocks";
+import { getNodeFrame } from "../../scene/node-frame-aggregate";
 import { subscribeViewBlocks } from "../../scene/view-blocks";
 import { readNodeSelected } from "../../../../schema/buffer-layout";
 

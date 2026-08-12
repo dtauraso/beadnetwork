@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import { getNodeFrame, subscribeNodeStreamBlocks } from "../../scene/node-stream-blocks";
+import { getNodeFrame, subscribeNodeStreamBlocks } from "../../scene/node-frame-aggregate";
 import { getViewBlocks, subscribeViewBlocks } from "../../scene/view-blocks";
 import { readOverlayDragNodeRow } from "../../../../schema/buffer-layout";
 import { nodeLabel } from "../../decode/buffer-decode-node";

@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { getNodeFrame } from "./node-stream-blocks";
+import { getNodeFrame } from "./node-frame-aggregate";
 import {
   readNodeCX, readNodeCY, readNodeCZ, readNodeRadius, readNodeSelected, readNodeHovered,
 } from "../../../schema/buffer-layout";

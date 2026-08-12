@@ -2,7 +2,7 @@ import { useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { nodeLabel } from "../decode/buffer-decode-node";
-import { getNodeFrame } from "./node-stream-blocks";
+import { getNodeFrame } from "./node-frame-aggregate";
 import { ndcToPixel } from "../interaction/geometry-helpers";
 import { readNodeCX, readNodeCY, readNodeCZ, readNodeRadius } from "../../../schema/buffer-layout";
 import type { BufferLabelPos } from "./buffer-scene-shared";
