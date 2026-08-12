@@ -6807,3 +6807,84 @@ file was split: printed `check-overlay-row-struct: clean`, `exit=0`.
 `ab53ac18` node-defs field-builder split; `21353293` input-layout token-helper split;
 `a9b3a62d` wire-defs write split; `53091b13` trace-kinds write split; `f4b9b358`
 kindscan data-field split; `13aa89fa` gofmt fixup.
+
+## Three more many-small-functions files grouped into sibling files
+
+The three files below had already had their long functions phase-split earlier the same
+day, so no function in any of them was long. What remained was purely a set of small
+functions sharing one file — the same "group by concern" move as the eight files above.
+
+**`nodes/Wiring/dispatch/move_dispatch_construct.go`** (per-function CODE lines, brace to
+brace, measured by a script, not by hand): `NewMoveDispatch` 19, `resolveSeedOrders` 17,
+`initMoveDispatchUIDefaults` 6, `buildGeomSeeds` 27, `buildNodeMovers` 28,
+`wireMutualPairs` 9, `buildEdgeMovers` 17, `seedPartnerCenters` 9, `wireNodeEdgeIDs` 9,
+`buildRowTables` 11, `bindUIClosures` 7 (159 code lines total across 11 functions).
+Grouped into three sibling files by concern, matching the phase order `NewMoveDispatch`
+itself calls in:
+- `move_dispatch_seeds.go` — `resolveSeedOrders`, `buildGeomSeeds`, `buildRowTables`
+  (order resolution, buffer row seeds, and the row-identity table built from those same
+  seeds — one pass over nodeOrder/edgeOrder).
+- `move_dispatch_movers.go` — `buildNodeMovers`, `wireMutualPairs`, `buildEdgeMovers`,
+  `seedPartnerCenters`, `wireNodeEdgeIDs` (constructing the node/edge movers and wiring
+  the channels/pairs/ids between them).
+- `move_dispatch_ui.go` — `initMoveDispatchUIDefaults`, `bindUIClosures` (UI-state
+  defaults and the closures `EmitViewFrame` needs).
+
+`move_dispatch_construct.go` itself kept only `NewMoveDispatch` (19 code lines) — the sole
+constructor of the `&MoveDispatch{...}` struct literal, unchanged. No field was exported,
+no local was promoted to a struct field, `tapToInstall` was not exported (it appears only
+in a doc comment referencing the earlier removal). File total: 295→62 lines
+(`move_dispatch_construct.go`), plus three new files of 96/136/35 lines.
+
+**`nodes/Wiring/loadspec/loader_tree.go`**: `LoadTree` 26, `validateNodeIDs` 21,
+`loadNodeMeta` 47, `loadNodeEdges` 39, `readDirNames` 11 (144 code lines total). Split
+into two files by concern:
+- `loader_tree.go` kept `LoadTree` (orchestrator), `validateNodeIDs` (id validation), and
+  `readDirNames` (generic dir listing) — the tree-walk/validation half.
+- `loader_node_read.go` gained `loadNodeMeta`+`loadNodeEdges` and the `JSONMeta` type they
+  share — reading one node's own files (meta/position/data, and its edges/ subdir).
+
+`tools/network/persist/check-scene-path-resolution.sh`'s `NODE_PATH_OWNERS` allowlist
+matches only a literal `"nodes"` string segment inside a `filepath.Join(...)` call,
+grepped before moving anything: `loadNodeMeta`/`loadNodeEdges` build `nodeDir`/`edgesDir`
+from already-resolved directory arguments (`filepath.Join(nodesDir, nodeID)`,
+`filepath.Join(nodeDir, "edges")`) — neither has the literal `"nodes"` segment; only
+`LoadTree` itself does (`filepath.Join(root, "nodes")`), and `LoadTree` stayed in
+`loader_tree.go`. So no guard re-key was needed. Proved by injecting
+`filepath.Join(root, "nodes")` into `loader_node_read.go` and re-running the guard
+standalone — it failed with `hand-rolled-node-path: ... loader_node_read.go: ...`
+(`NODE_JOIN_HITS=1`, exit 1) — then reverting; guard was empty/clean again afterward.
+
+**`nodes/input/node.go`**: `clock` 6, `broadcastPlace` 9, `updateFeedbackRing` 24,
+`feedbackRingSend` 12, `feedbackRingReact` 14, `Update` 21, `runPeriodicEmit` 26,
+`inputCadenceTicks` 3, `init` (RegisterBuilder) 30 (145 code lines total across 9
+functions/methods — most of the 369 total lines is doc comment, per the task brief, and
+every comment moved WITH its function). Split into two new sibling files by concern
+(`node.go` keeps its kind-landing role — the `Node` type, `clock()`/`broadcastPlace()`
+primitives, `Update`'s dispatch, and `RegisterBuilder`):
+- `feedback_ring.go` — `updateFeedbackRing`, `feedbackRingSend`, `feedbackRingReact` (one
+  state machine: the flat cycle loop and its two phases), entered from `Update` only when
+  `FeedbackIn.Wired()`.
+- `periodic_emit.go` — `runPeriodicEmit`, `inputCadenceTicks` (the plain periodic-source
+  path and the one field-read cadence helper it calls every pass), entered when
+  `FeedbackIn` is not wired.
+
+`go run ./tools/gen-node-defs && git status --short` showed no generated file touched —
+byte-identical, confirmed both right after the split and again in the final verify pass.
+
+**No decline.** Every phase in all three files was a genuinely separable concern (seed
+resolution vs. actor construction vs. UI-closure binding; tree orchestration vs.
+single-node file reads; feedback-ring state machine vs. plain periodic emit) with no
+import cycle, no guard forbidding the placement, and no ordering invariant a split would
+reorder — `NewMoveDispatch`/`LoadTree`/`Update` each still call their extracted phases in
+the exact same order as before, now just resolving to sibling-file symbols within the same
+package.
+
+**Verify, run after each commit from repo root:** `bash scripts/stop-checks.sh` empty
+(clean) after all three commits. `go build ./...` and `go vet ./...` both silent at every
+step. `go run ./tools/gen-node-defs && git status --short` empty (byte-identical) after
+the `nodes/input` split and again in the final combined pass.
+
+**Commits (`task/god-objects`):** `df412cb4` move_dispatch_construct.go three-way
+concern split; `763eb58f` loader_tree.go node-file-read split; `21217f1c` nodes/input
+feedback-ring/periodic-emit split.
