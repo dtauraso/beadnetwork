@@ -45,6 +45,17 @@
           }
         ]
       }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/tools/repo-hygiene/hooks/check-size-after-edit.sh\""
+          }
+        ]
+      }
     ]
   },
   "permissions": {
