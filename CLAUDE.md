@@ -33,7 +33,12 @@ clock, and the node-owned chain of placeholder beads that renders a traversal
 
 **Node kinds:** adding a kind requires four things in the same commit:
 1. An entry in `NODE_DEFS` (`tools/topology-vscode/src/schema/node-defs.ts`, generated).
-2. Nothing else in the schema dir — `node-defs.ts` is the single registry.
+2. No separate `registry.ts` — `node-defs.ts` is the single node-kind registry. The schema
+   dir also holds `wire-defs.ts`, `trace-kinds.ts`, `types.ts`, and `node-dims.ts` at its top
+   level (registries and shared types), plus two clustered subdirs: `schema/buffer-layout/`
+   (the generated buffer wire format plus the curve/shading params that ride in it) and
+   `schema/input/` (the TS<->Go input-record codec: byte reader/writer, attrs, layout
+   fingerprint, encode/decode). Adding a node kind touches only `node-defs.ts`.
 3. The Go node package under `nodes/<Kind>/`, with its logic always in `node.go` (never
    `<Kind>.go`) plus `SPEC.md`. Directory casing is mixed and both are live: PascalCase
    (`Time`, `TimeEnd`, `TimeStart`, `PulseLeft`, `PulseRight`) and lowercase (`holdflip`,

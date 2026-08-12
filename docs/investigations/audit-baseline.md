@@ -46,7 +46,7 @@ entry — don't leave it stale.
 ## 2. Buffer-column lockstep is the intrinsic cost of the agnostic buffer
 
 `Buffer/bufschema/layout.go` → `Buffer/buffer_layout_gen.go` (Go, generated) +
-`tools/topology-vscode/src/schema/buffer-layout.ts` (TS, generated) must agree column-for-
+`tools/topology-vscode/src/schema/buffer-layout/buffer-layout.ts` (TS, generated) must agree column-for-
 column. This is not accidental duplication to fix — it is the mechanism by which the binary
 content buffer stays agnostic between the Go producer and the TS consumer. It is fully
 guarded:
@@ -72,9 +72,9 @@ binary framing. Do not report "unused/gap enum values" as a defect here.
 
 Several `*Fingerprint` string constants (e.g. `InputLayoutFingerprint` in
 `nodes/Wiring/inputcodec/input_fingerprint.go`, mirrored in
-`tools/topology-vscode/src/schema/input-layout-gen.ts`; similar fingerprints for the
+`tools/topology-vscode/src/schema/input/input-layout-gen.ts`; similar fingerprints for the
 buffer layout in `Buffer/bufschema/layout.go` / `tools/gen-node-defs/buflayout/buffer_layout.go` /
-`tools/topology-vscode/src/schema/buffer-layout.ts`) are long literal strings (each several
+`tools/topology-vscode/src/schema/buffer-layout/buffer-layout.ts`) are long literal strings (each several
 hundred bytes, several KB total across all of them) that encode the full shape of a wire
 protocol in one line specifically so any drift between Go and TS trips a string-equality
 mismatch immediately instead of drifting silently column-by-column. This is a deliberate,

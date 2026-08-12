@@ -26,7 +26,7 @@ Communication is `panel.webview.postMessage` ↔ `vscode.postMessage`, wired in
 
 `src/messages.ts` is the shared discriminated-union source for both sides.
 `WebviewToHostMsg` includes `ready` and the binary bridge envelope (a fully
-encoded editor→Go record built via `src/schema/input-encode.ts` and written
+encoded editor→Go record built via `src/schema/input/input-encode.ts` and written
 FRAMED to Go's stdin by `runCommand.ts`); `HostToWebviewMsg` carries the
 decoded content-buffer snapshot. Extension-side dispatch is
 `src/extension/handle-message.ts`. Per CLAUDE.md, Go → TS is the binary
@@ -37,7 +37,7 @@ for the full bridge-surface model, not duplicated here.
 **Do not restate the kind list here.** The authority is
 `INPUT_LAYOUT_FINGERPRINT` — one string encoding every kind byte, update kind,
 attr, and overlay flag, defined in `nodes/Wiring/inputcodec/input_fingerprint.go`. The TS side
-(`src/schema/input-layout-gen.ts`) is GENERATED from that Go string by
+(`src/schema/input/input-layout-gen.ts`) is GENERATED from that Go string by
 `tools/gen-node-defs`, so it cannot drift — there is no second hand-kept copy to compare.
 Read the fingerprint to learn the current surface; prose copied into this file cannot fail
 and so cannot be trusted. (Removed kind bytes are preserved as GAPS in `input_fingerprint.go` and
@@ -52,7 +52,7 @@ never renumbered.)
 | `src/extension/html.ts` | Webview HTML shell + CSP |
 | `runCommand.ts` | Spawns/streams the Go process; frames stdin records; decodes breadcrumbs |
 | `goBuild.ts` | Compiles the Go binary; invoked automatically on `ready`, not by a button |
-| `schema/*.ts` | Node-type registry (`node-defs.ts`), buffer layout, wire props — shared with the webview |
+| `schema/` | Node-type registry (`node-defs.ts`), wire props (`wire-defs.ts`), trace kinds, shared types — plus `schema/buffer-layout/` (generated buffer wire format + curve/shading params) and `schema/input/` (the TS<->Go input-record codec) — shared with the webview |
 
 ## Webview side
 

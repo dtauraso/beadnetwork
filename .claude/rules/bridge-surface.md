@@ -4,7 +4,7 @@ paths:
   - "tools/topology-vscode/src/messages.ts"
   - "tools/topology-vscode/src/extension/handle-message.ts"
   - "tools/topology-vscode/src/runCommand.ts"
-  - "tools/topology-vscode/src/schema/input-layout.ts"
+  - "tools/topology-vscode/src/schema/input/input-layout-gen.ts"
 ---
 
 # Bridge surface — TS → Go vocabulary detail
@@ -62,4 +62,4 @@ Keep all of it in parity across `messages.ts`, the `nodes/Wiring` stdin reader/d
 (`stdin_reader.go`'s `MSG_TYPES` fence, `dispatch_edit.go`'s edit tables), and `handle-message.ts`
 (guards: `tools/bridge/check-edit-op-parity.sh`, `tools/bridge/check-message-kind-parity.sh`, and the
 `INPUT_LAYOUT_FINGERPRINT` in `input_codec.go` /
-`tools/topology-vscode/src/schema/input-layout-gen.ts`).
+`tools/topology-vscode/src/schema/input/input-layout-gen.ts`).
