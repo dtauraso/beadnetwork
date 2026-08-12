@@ -5855,6 +5855,126 @@ either commit here. `go build ./...` and `go vet ./...` both clean after each co
 `go run ./tools/gen-node-defs && git status --short` empty (beyond the two files this
 pass itself created/modified) after both commits.
 
+## §41 — `nodes/Wiring/nodeactor`'s four files over 250 lines, statement-by-statement
+
+§20 moved the per-node actor out of package `Wiring` wholesale but never split the files
+inside it. Four were over 250 lines: `node_geometry.go` (319), `chain_beads.go` (318),
+`node_geometry_parts.go` (294), `node_geometry_accessors.go` (272). Measured each
+statement-by-statement, never by signature or whole-file shape, per this task's own
+correction (seven prior declines on this branch were overturned by that distinction).
+
+**`node_geometry.go` (319 → 148).** The file was the composer type declaration + its
+constructor (both pure field-assembly, no channel/file/goroutine touch beyond the
+constructor's one self-seed send on `centerOut`) plus one function, `handle()` — a
+168-line `movemsg.Msg`-kind dispatch whose every branch is bucket (a): unexported-field
+writes (`m.ui.selected = ...`, `m.tilt.topTiltVectorThetaIdx += delta`), method calls that
+themselves mutate/send/persist (`m.ApplyCenter`, `m.emitGeometry`, `m.startBeadDrag`,
+`m.endBeadDrag`, `m.persistTiltVectorAngle`, `m.writeStreamFrame`), and one Trace
+breadcrumb call. Zero pure-computation statements worth lifting — this is the actor's own
+message-dispatch table, the same shape §18/§20 already named as a natural per-concern
+split point elsewhere in this package. **Split in place**, same package: `handle()` moved
+verbatim to a new `node_geometry_handle.go` (182 lines, its own `fmt`/`wire`/`movemsg`/`T`
+imports — both became genuinely unused in `node_geometry.go` and were dropped there).
+Behavior identical; no field, method, or channel changed shape.
+
+**`node_geometry_parts.go` (294 → 223, plus a new 82-line file).** Confirmed: ten
+composer sub-struct type declarations (`nodeMessaging`, `pendingSend`, `nodeClocks`,
+`nodeStream`, `nodeUI`, `nodeTilt`, `pairReadout`, `nodeOuts`, `neighborTopology`,
+`sceneFlags`, `nodeBeads`) plus two more types that are NOT composer state at all:
+`NodeFrameInput` (the ~35-field wire-frame argument handed to the injected stream packer
+every emit) and `NodeFrameBuilder` (the packer's func type). These ARE a genuinely
+distinct concern from the other ten — they describe what goes ON THE WIRE, built fresh
+per call, not state the actor holds between calls — so this is a **split in place** by
+concern rather than a decline-for-count: `NodeFrameInput`/`NodeFrameBuilder` moved to a
+new `node_frame_input.go` (82 lines). The other ten composer sub-structs stay one file,
+genuinely one concern (the actor's own state decomposition, per
+`check-composer-fields.sh`'s own doc comment) — zero functions in either file, still true.
+
+**`node_geometry_accessors.go` (272 → 149, plus a new 132-line file).** Eighteen
+post-construction methods. Two visibly distinct concerns: thirteen PLAIN read accessors
+(`ID`, `Traced`, `Breadcrumb`, `Kind`, `SelfKind`, `Tick`, `Label`, `WorldCenter`,
+`NodeRow`, `EdgeIDs`, `PartnerCenters`, `NeighborKinds`, `SendMove`, `NeighborIDs`,
+`QuantOffset`, `QuantizedOffsetValue`, `ReachR`, `WriteStreamFrame`, `CommitQuantOffset`)
+— every body a bucket (b)/(a)-boundary one-liner or a short field-read/field-write/method
+call, no channel — versus five methods whose entire body IS a channel operation
+(`NeighborTrySend`, `PollCenter`, `SendExternal`, `TryRecvExternal`, `EnqueueSend`), the
+same "channel-touching vs plain accessor" split the file's own OLD header comment already
+drew in prose ("The channel-touching members ... stay unexported and are reached ONLY
+through the methods below") without actually separating them into files. **Split in
+place**: the five channel methods moved verbatim to a new `node_geometry_channels.go` (132
+lines, carrying that same header comment forward); the file's own `context`/`fmt` imports
+moved with them (both became unused in the accessors file). No channel or field was
+exported that was not already exported by §20; `EnqueueSend`'s panic message (already
+site-tagged `NodeGeometry(%s): pending exceeded %d retry-queued sends; ...`, naming the two
+causes and the mechanism) moved unchanged, still satisfies `check-panic-message.sh`.
+
+**`chain_beads.go` (318, unchanged) — declined, and it is genuinely the impure spine.**
+An earlier pass (referenced in this task's own brief) already extracted the file's three
+pure phases into `beadindex` (`ChainEdgeGeometry`, `ChainBeadRows`,
+`ChainAimBreadcrumbText`). What is left is one function, `chainBeads()`, and it is one
+sequential per-edge loop threading loop-scoped locals (`dist`, `liveDir`, `count`,
+`pulses`, `chainSep`, `actorChain`, `resolved`) through statements that are each bucket
+(a): `m.clocks.clk.Tick()` (a same-goroutine clock read), `m.outs.outWireOuts[i].PublishSteps(count)`
+and `m.outs.outStepsIn[i](count)` (non-blocking sends/calls onto the edge's own paced wire
+and its `stepsIn` func value), `m.outs.outWires[i].LiveBeadFractions(tick)` (a read of
+another actor's own owned-and-driven wire state, safe only because this node's own
+goroutine is that wire's driver), `m.reconcileBeadChain(to, count, offsetAt, aimUnit)`
+(starts/stops bead-actor goroutines — the file's own doc comment on `beadTickFn`), and
+`m.tr.Breadcrumb(...)` (a channel send, gated `chainAimTraceEnabled`). The ~230 lines of
+header/inline comment are the file's actual bulk; the code itself is one function whose
+every statement either mutates loop-local state feeding the NEXT impure statement in the
+same iteration, or performs one of the five impure operations above — there is no
+standalone pure block left to name and lift (the task's own worked example — "impure
+because its top level sent on channels; its body was arithmetic on locals" — does not
+apply here: this body's statements are not disguised arithmetic, they are the actual sends
+and reads). Splitting the ONE function across files would only fragment one linear loop
+with no natural seam; declined on that basis, not on line count.
+
+**Guard grep, before touching anything.** `check-no-sqrt-in-chain-beads.sh` hardcodes
+`nodes/Wiring/nodeactor/chain_beads.go` — untouched, since `chain_beads.go` was not moved
+or renamed. Grepped `tools/` and `scripts/` for every other touched filename
+(`node_geometry.go`, `node_geometry_parts.go`, `node_geometry_accessors.go`) and every
+symbol moved (`NodeFrameInput`, `NeighborTrySend`, `PollCenter`, `SendExternal`,
+`TryRecvExternal`, `EnqueueSend`, `handle`) — no other guard names any of them by path or
+symbol; `check-composer-fields.sh` locates `type NodeGeometry struct {` by content-grep
+(not by filename), so it needed no re-keying and was re-verified passing after both
+`node_geometry_parts.go`-touching commits.
+
+**Verification.** `go build ./...`, `go vet ./...` both clean after every commit.
+`go run ./tools/gen-node-defs && git status --short` produced no diff beyond this task's
+own new/modified files. `bash scripts/stop-checks.sh` clean (empty stdout) after the final
+commit — one unrelated failure surfaced mid-task (`check-doc-citations` on
+`nodes/Wiring/nodegeom/parallel_chain_offset.go`, a file this task never touched, created
+by the concurrent session working `nodegeom`/`gen-stream-fixture` per this task's own
+instructions) and resolved itself without this task's intervention before the final run.
+
+**No channel or field was exported that §20 had not already exported.** The
+`node_geometry_channels.go` split moved five ALREADY-exported methods verbatim; the
+`node_frame_input.go` split moved two ALREADY-exported types verbatim. Goroutine count,
+channel set, and send/receive order are unchanged — this pass is a same-package file
+reorganization only.
+
+**`nodes/Wiring/nodeactor` file count:** 15 → 18 (three new files:
+`node_geometry_handle.go`, `node_frame_input.go`, `node_geometry_channels.go`; no file
+deleted, no file renamed). LOC per touched file: `node_geometry.go` 319→148 (+182 in
+`node_geometry_handle.go`); `node_geometry_parts.go` 294→223 (+82 in
+`node_frame_input.go`); `node_geometry_accessors.go` 272→149 (+132 in
+`node_geometry_channels.go`); `chain_beads.go` 318 unchanged (declined). Every other file
+in the package was measured briefly and left alone — the next-largest, `pair_node_self.go`
+at 243 lines, is under the 250 threshold and was not touched this pass.
+
+**Surfaces with no check that can fail.** This pass moved Go code only, entirely within
+one already-guarded package; every symbol touched was already covered by
+`check-composer-fields.sh` (composer shape) or `check-panic-message.sh` (the one panic,
+moved unchanged). There is no check anywhere in this repo that would fail if
+`node_geometry_handle.go`'s dispatch table were accidentally reordered in a way that
+changed which `movemsg.Kind` branch runs first for a message satisfying two conditions
+(none do today, by construction of the `if ... return` chain) — this was true before the
+split too, since the branches were never independently testable
+(`docs/process/testing-shape.md`'s cross-goroutine exclusion covers the channel methods;
+the plain accessors have no such exclusion but also have no dedicated check beyond `go
+build`/`go vet` catching a signature mismatch).
+
 ## 2. `tools/gen-stream-fixture/` and `nodes/Wiring/nodegeom/` — two never-examined files
 
 `tools/gen-stream-fixture/main.go` (was 257 lines) is tooling, not the network — package
