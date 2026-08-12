@@ -5492,3 +5492,59 @@ hand-edited files, confirming byte-identical generated output. `bash
 scripts/stop-checks.sh` printed empty stdout (confirmed `pwd` first) after all four
 commits landed. `git status --short` empty at the end. Commits: `2a89023b` (moverreg),
 `a7c46321` (edgemover), `a8f6d8af` (input), `cba04edf` (PairNode).
+
+## `three/scene/` audit (18 files) — one genuine duplication, rest already split
+
+Read every file in `tools/topology-vscode/src/webview/three/scene/` (18 files, 2281 LOC) and
+classified bodies statement-by-statement per the method above. Finding: the directory is
+**already decomposed correctly** for this task's purpose — `node-depth-order.ts`,
+`edge-stream-blocks.ts`, `view-blocks.ts`, `bead-style.ts`, and `node-stream-blocks.ts` are
+already pure modules with no React/three imports; the `.tsx` files (`NodeInstances.tsx`,
+`ThreeView.tsx`, `SphereRings.tsx`, `ChainBeadInstances.tsx`, `InteriorBeadInstances.tsx`,
+`EdgeLines.tsx`) are almost entirely bucket-(a) — `useFrame`/`useRef`/`useMemo`/three-object
+`.set(...)`/`InstancedMesh` matrix writes — with only one- or two-line `Math.min`/`Math.max`
+clamps that aren't worth a separate module (moving `const n = Math.min(count, capacity)` into
+its own file would not shrink the body of statements that *do the actual work*, which stay
+where the `useFrame` is).
+
+One real finding: `NodeInstances.tsx` (ring orientation, lines 134–141 pre-edit) and
+`node-stream-blocks.ts` (`getChainBeads`'s per-node ring axis, lines 233–238 pre-edit) each
+independently reimplemented the identical θ/φ → unit-axis conversion (the `Buffer/layout.go`
+`RingAxisTheta`/`RingAxisPhi` columns), one with a `(poleTheta===0 && polePhi===0)` special
+case and the other with an `if` guard defaulting to `(0,1,0)` — both unnecessary, since
+`poleAxis(0,0) = (sin(0)cos(0), cos(0), sin(0)sin(0)) = (0,1,0)` already, with no branch
+needed. Lifted the shared math into `buffer-scene-shared.ts` (already imported by
+`NodeInstances.tsx`, and now also by `node-stream-blocks.ts`) as
+`poleAxis(theta, phi): [number, number, number]`, dropping both branches in favor of a plain
+destructure. `nav/buffer-nav.ts` has its own `poleVec` doing the same math but returning a
+`THREE.Vector3` for the nav overlay — left alone, since `node-stream-blocks.ts` is
+`three`-free by design (pure decode module feeding both `.tsx` consumers and the
+`check-no-node-node-polar.sh` guard's single bead-centre-summation-site invariant) and pulling
+`three` into it to share with `nav/` would be the wrong direction for that boundary.
+
+**Domain-state check:** `poleAxis` is a pure function of two numbers to three numbers, no
+module-level mutable, no ref, no store — it does not give domain state a new home, and it
+computes no NEW geometry (the trig it does was already being computed twice; this makes it
+computed once, still purely from streamed buffer values, still at the renderer edge per
+`nav/buffer-nav.ts`'s own doc comment on `poleVec`).
+
+**Guard check:** grepped `tools/` for `NodeInstances`, `node-stream-blocks`, and
+`buffer-scene-shared` by filename; two guards reference them: `check-ts-shading-from-go.sh`
+(comment-only mentions of `NodeInstances.tsx`, unaffected — no shading constant moved) and
+`check-no-node-node-polar.sh`, which asserts exactly one bead-centre-summation site named
+`node-stream-blocks.ts`. The summation itself (`cx + readChainBeadOX(...)` etc.) was left in
+place in `node-stream-blocks.ts` — only the axis-vector math was extracted — so the guard
+still names the same file and passed (`✓ no node-node polar record; exactly one bead-centre
+summation site.`, exit 0) both before and after. A deliberate-failure proof (temporarily
+duplicating the summation line via a shell script) was attempted and correctly BLOCKED by the
+placement-brief pre-write hook (source writes must go through Edit/Write, not a shell
+heredoc) — reported here rather than routed around, per
+`memory/feedback/process/feedback_hook_block_means_stop.md`.
+
+**Neighbours not visited:** `NodePalette.tsx`, `polar-frame.tsx`, `TiltVectors.tsx`,
+`snapshot-buffer.ts`, `SpeedSlider.tsx` were listed as fallback candidates "if the scene dir
+yields little" — the scene dir yielded one real (if small) finding, so the neighbours were
+not opened this session; they remain open for a future pass if friction surfaces there.
+
+Verify: `bash scripts/stop-checks.sh` from repo root — empty stdout (tsc, npm webview build,
+eslint, and the guard suite all clean). Commit `58944ca9`.
