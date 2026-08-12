@@ -43,7 +43,7 @@ and none is a source of truth.
   `bead centre = (scene centre -> node) + (node -> bead)`. There is NO hierarchy between
   nodes: every node hangs off the scene centre directly, one hop (scene -> node -> bead,
   two levels — a rooted/parent layout was tried and rejected,
-  `memory/project/project_layout_model_evolution.md`).
+  `memory/project/layout-model/project_layout_model_evolution.md`).
 - **A node has ONE polar coordinate.** `(r,θ,φ)` about the scene-sphere center — the node's
   whole POSITION, in the QUANTISED integer form (`quantoffset.QuantizedOffset` — `ITheta`/`IPhi`/`IR`
   × per-node step constants, `nodes/Wiring/quantoffset/quantized_layout.go`), persisted

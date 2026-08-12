@@ -15,7 +15,7 @@ when a bead has arrived. Go owns the clock.
   parameters, camera pose, selection, and overlay visibility. There is no
   single combined buffer or central packer: each emitting goroutine packs
   and streams its OWN binary content buffer to its OWN dedicated inherited
-  stdio pipe (`Buffer/streamframe/stream_fds.go`, memory/feedback/architecture/feedback_no_single_writer_bridge.md)
+  stdio pipe (`Buffer/streamframe/stream_fds.go`, memory/feedback/architecture/bridge/feedback_no_single_writer_bridge.md)
   — one VIEW stream (camera/overlay/scene, the gesture/stdin-reader
   goroutine), one stream per edge row (that edgeMover's own geometry + its
   wire's live beads), one stream per node row (that NodeMover's own

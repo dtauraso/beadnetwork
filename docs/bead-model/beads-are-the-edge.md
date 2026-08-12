@@ -40,7 +40,7 @@ Model as stated (three parts, all from David):
 
 ## Why this is not the rejected chain model
 
-`memory/project/project_wire_is_straight_line_not_chain.md` reverted a bead-chain wire and says not
+`memory/project/layout-model/project_wire_is_straight_line_not_chain.md` reverted a bead-chain wire and says not
 to re-propose it. That rejection was specifically about **neighbour-midpoint relaxation** —
 a bead's position depending on its neighbours' positions, making straightness a diffusion
 process that follows a drag in O(N²) (measured ~1.5s at N≈40). The same memory names the

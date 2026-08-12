@@ -31,7 +31,7 @@ mistake to avoid (chain_beads.go's own header comment makes the same split):
     called by `reconcileBeadChain` only when the aim or the bead count actually changed) —
     a body force, dependency depth 1: each bead computes its own position directly from the
     broadcast and its own fixed offset, never from a neighbour bead's position
-    (memory/project/project_wire_is_straight_line_not_chain.md's O(N²) defect was momentum-free
+    (memory/project/layout-model/project_wire_is_straight_line_not_chain.md's O(N²) defect was momentum-free
     midpoint averaging plus human-clock gating, not "a chain of beads" per se — see that
     memory file's corrected framing).
   - **Animation/tick** (human time, `MsPerTick`): a pulse from the process's one

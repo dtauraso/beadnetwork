@@ -62,7 +62,7 @@ This INVERTS today's relationship. Currently the scene polars are the truth and 
 quantised cache of them; afterwards an edge is exactly `QuantIR` steps long because that is what
 is stored, and the rendered geometry follows. That is consistent with the polar model, which
 already treats the quantised indices as the source of truth for movement
-(`memory/feedback/architecture/feedback_abc_times_constant_not_rederive.md`), but it is a real model change and is the
+(`memory/feedback/architecture/geometry/feedback_abc_times_constant_not_rederive.md`), but it is a real model change and is the
 part to disagree with if any part of this is wrong.
 
 What it buys:

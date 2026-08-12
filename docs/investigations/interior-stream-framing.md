@@ -30,7 +30,7 @@ to find what a *live* editor session does differently.
 
 ## 1. Who writes the interior fd — REPRODUCED VIOLATION
 
-The model requires one writer per fd (`memory/feedback/architecture/feedback_no_single_writer_bridge.md`,
+The model requires one writer per fd (`memory/feedback/architecture/bridge/feedback_no_single_writer_bridge.md`,
 `Buffer/streamframe/stream_fds.go`'s `StreamKindInterior` doc comment: "written by that node's OWN
 Update goroutine"). That invariant is **violated by construction** for every node kind that
 uses `gatecommon.DriveHeld` — `Pulse`, `PulseLeft`, `PulseRight`, `holdflip`, `Time`,

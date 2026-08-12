@@ -53,8 +53,8 @@ removed id/label/kind SIDECAR MESSAGE is rejected; a column inside the Node bloc
 same shape as `KindId`, not a second channel, and does not reintroduce one.)
 
 Full architecture (frame shape, stream inventory, synthetic frame tags) is canonical in
-MODEL.md's "Editor surface (TS)" section; see also `memory/feedback/architecture/feedback_no_single_writer_bridge.md`
-and `memory/feedback/architecture/feedback_per_goroutine_bridge.md`.
+MODEL.md's "Editor surface (TS)" section; see also `memory/feedback/architecture/bridge/feedback_no_single_writer_bridge.md`
+and `memory/feedback/architecture/bridge/feedback_per_goroutine_bridge.md`.
 
 ## Parity
 
