@@ -62,7 +62,7 @@ design. Positions come from the node (and its neighbour's), never from adjacent 
 Only if bead offsets are **node-local**, which the buffer already does elsewhere. The
 Interior block stores `OX/OY/OZ` as "the Go-owned NODE-LOCAL slot offset (relative to the
 node center — the renderer adds the node center to get the world position)"
-(`Buffer/layout.go`). Go owns the offsets, the renderer does one add. That is not TS owning
+(`Buffer/bufschema/layout.go`). Go owns the offsets, the renderer does one add. That is not TS owning
 positions and it ships today.
 
 So a node moving rewrites its own centre and nothing else — its whole bead sequence rides

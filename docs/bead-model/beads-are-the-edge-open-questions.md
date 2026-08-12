@@ -81,7 +81,7 @@ makes the commit very large.
    `index = t × newCount` and `remaining = (newCount − index) × d`, which is
    `(1−t)·newArc/speed` — the same rule as index arithmetic rather than distance, which is
    the shape `memory/feedback/architecture/geometry/feedback_abc_times_constant_not_rederive.md` asks for.
-5. **What happens to the Bead block?** Today `bufLayoutBead` (`Buffer/layout.go:56`) is
+5. **What happens to the Bead block?** Today `bufLayoutBead` (`Buffer/bufschema/layout.go:56`) is
    `X/Y/Z` world position + `Value`, **one row per live in-flight bead**, fed from
    `KindEdgeBead` events and read by `edge-stream-blocks.ts` off the per-edge stream — Go
    recomputes that absolute position every tick and streams it. Under this model nothing
