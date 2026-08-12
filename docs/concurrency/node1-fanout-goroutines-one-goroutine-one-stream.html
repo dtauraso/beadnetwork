@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<title>Node 1 fan-out — architecture</title>
+<title>Node 1 fan-out — architecture — One goroutine, one stream</title>
 <style>
   :root {
     --bg: #eef2f1; --fg: #0e1518; --muted: #5d7278; --rule: #c2cfce;
@@ -122,23 +122,34 @@
 .crumbnav a { text-decoration:none; }
 .crumbnav a:hover { text-decoration:underline; }
 .crumbnav .crumb-here { font-weight:600; }
-
-.idx-list { list-style:none; margin:22px 0 0; padding:0; display:grid; gap:10px; max-width:640px; }
-.idx-list a { display:block; font-family:var(--mono, monospace); font-size:14px; text-decoration:none; padding:14px 16px; border-radius:6px; border:1px solid var(--line, #333); }
 </style>
 </head>
 <body>
 <div class="wrap">
   <header style="display:flex; flex-direction:column; gap:0.7rem;">
     <p class="eyebrow">wirefold · architecture · node 1 fan-out</p>
-    <h1>Who owns what, and which channels cross between them</h1>
-    <p class="lede">Node 1 fans out to nodes 2 and 3. Every box below is either a goroutine that owns state, or state that has no goroutine of its own. Nothing is shared: each arrow is a dedicated channel or a dedicated stream.</p>
+    <h1>One goroutine, one stream</h1>
+    <nav class="crumbnav"><a href="node1-fanout-goroutines.html">index</a> — <a href="node1-fanout-goroutines-who-owns-what-and-which.html">Who owns what, and which channels cross between them</a> · <a href="node1-fanout-goroutines-the-decision-and-the-timestamp.html">The decision and the timestamp live in different goroutines</a> · <span class="crumb-here">One goroutine, one stream</span></nav>
   </header>
-  <ul class="idx-list">
-    <li><a href="node1-fanout-goroutines-who-owns-what-and-which.html">Who owns what, and which channels cross between them</a></li>
-    <li><a href="node1-fanout-goroutines-the-decision-and-the-timestamp.html">The decision and the timestamp live in different goroutines</a></li>
-    <li><a href="node1-fanout-goroutines-one-goroutine-one-stream.html">One goroutine, one stream</a></li>
-  </ul>
+  <section>
+    <p class="eyebrow">bridge</p>
+    <h2>One goroutine, one stream</h2>
+    <p>Each emitting goroutine owns a dedicated pipe to the editor; nothing funnels through a shared writer. The chain beads travel on <em>node 1's own</em> node-stream frame, not on either edge's — they are node-local offsets from node 1's center.</p>
+    <div class="tbl-scroll">
+      <table>
+        <thead><tr><th>Emitter</th><th>Stream</th><th>Carries</th></tr></thead>
+        <tbody>
+          <tr><td class="c1">node 1 nodeMover</td><td class="c1">node fd</td><td class="c3">Node row, ports, label, <b>ChainBead rows for both chains</b></td></tr>
+          <tr><td class="c1">edgeMover 1&rarr;2</td><td class="c1">edge fd</td><td class="c3">Edge row + label. No beads — the Bead block is gone</td></tr>
+          <tr><td class="c1">edgeMover 1&rarr;3</td><td class="c1">edge fd</td><td class="c3">Edge row + label</td></tr>
+          <tr><td class="c1">node 1 Update</td><td class="c1">interior fd</td><td class="c3">its 4 interior slots</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">The edge movers are still goroutines and still own their streams — that is why removing the wire goroutine did not cost the per-edge streams their owner.</p>
+  </section>
+
+
 </div>
 </body>
 </html>
