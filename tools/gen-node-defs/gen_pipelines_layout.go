@@ -27,11 +27,14 @@ func generateOverlayGen(repoRoot string) {
 	if err != nil {
 		fatalf("parse overlay flags: %v", err)
 	}
-	overlayGenGoPath := filepath.Join(repoRoot, "nodes", "Wiring", "viewstate", "overlay_state.go")
-	if err := writeOverlayGen(overlayGenGoPath, overlayFlags); err != nil {
-		fatalf("write %s: %v", overlayGenGoPath, err)
+	viewstateDir := filepath.Join(repoRoot, "nodes", "Wiring", "viewstate")
+	overlayGenGoPath := filepath.Join(viewstateDir, "overlay_state.go")
+	overlayTablesGoPath := filepath.Join(viewstateDir, "overlay_tables_gen.go")
+	if err := writeOverlayGen(overlayGenGoPath, overlayTablesGoPath, overlayFlags); err != nil {
+		fatalf("write overlay gen: %v", err)
 	}
 	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d overlay flags)\n", overlayGenGoPath, len(overlayFlags))
+	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d overlay flags)\n", overlayTablesGoPath, len(overlayFlags))
 }
 
 func generateShadingParams(repoRoot string) {
@@ -54,16 +57,25 @@ func generateBufferLayout(repoRoot string) {
 		fatalf("parse buffer layout: %v", err)
 	}
 	bufLayoutGenGoPath := filepath.Join(repoRoot, "Buffer", "buffer_layout_gen.go")
-	if err := buflayout.WriteBufferLayoutGo(bufLayoutGenGoPath, bufSchema); err != nil {
-		fatalf("write %s: %v", bufLayoutGenGoPath, err)
+	bufLayoutGenGoRowsPath := filepath.Join(repoRoot, "Buffer", "buffer_layout_gen_rows.go")
+	bufLayoutGenGoSingletonsPath := filepath.Join(repoRoot, "Buffer", "buffer_layout_gen_singletons.go")
+	if err := buflayout.WriteBufferLayoutGo(bufLayoutGenGoPath, bufLayoutGenGoRowsPath, bufLayoutGenGoSingletonsPath, bufSchema); err != nil {
+		fatalf("write buffer layout go: %v", err)
 	}
 	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d blocks)\n", bufLayoutGenGoPath, len(bufSchema.Blocks))
+	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d blocks)\n", bufLayoutGenGoRowsPath, len(bufSchema.Blocks))
+	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d blocks)\n", bufLayoutGenGoSingletonsPath, len(bufSchema.Blocks))
 
-	bufLayoutTSPath := filepath.Join(repoRoot, "tools", "topology-vscode", "src", "schema", "buffer-layout.ts")
-	if err := buflayout.WriteBufferLayoutTS(bufLayoutTSPath, bufSchema); err != nil {
-		fatalf("write %s: %v", bufLayoutTSPath, err)
+	schemaDir := filepath.Join(repoRoot, "tools", "topology-vscode", "src", "schema")
+	bufLayoutTSPath := filepath.Join(schemaDir, "buffer-layout.ts")
+	bufLayoutTSRowsPath := filepath.Join(schemaDir, "buffer-layout-rows-gen.ts")
+	bufLayoutTSSingletonsPath := filepath.Join(schemaDir, "buffer-layout-singletons-gen.ts")
+	if err := buflayout.WriteBufferLayoutTS(bufLayoutTSPath, bufLayoutTSRowsPath, bufLayoutTSSingletonsPath, bufSchema); err != nil {
+		fatalf("write buffer layout ts: %v", err)
 	}
 	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d blocks)\n", bufLayoutTSPath, len(bufSchema.Blocks))
+	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d blocks)\n", bufLayoutTSRowsPath, len(bufSchema.Blocks))
+	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d blocks)\n", bufLayoutTSSingletonsPath, len(bufSchema.Blocks))
 }
 
 func generateFrameTags(repoRoot string) {

@@ -8,8 +8,22 @@ import (
 	"strings"
 )
 
-func WriteBufferLayoutTS(outPath string, schema BufLayoutSchema) error {
+func WriteBufferLayoutTS(headerPath, rowsPath, singletonsPath string, schema BufLayoutSchema) error {
 	fp := buildBufFingerprint(schema)
+
+	if err := writeBufferLayoutTSHeader(headerPath, schema, fp); err != nil {
+		return err
+	}
+	if err := writeBufferLayoutTSRows(rowsPath, schema); err != nil {
+		return err
+	}
+	if err := writeBufferLayoutTSSingletons(singletonsPath, schema); err != nil {
+		return err
+	}
+	return nil
+}
+
+func writeBufferLayoutTSHeader(outPath string, schema BufLayoutSchema, fp string) error {
 	var buf bytes.Buffer
 	w := bufio.NewWriter(&buf)
 
@@ -30,38 +44,39 @@ func WriteBufferLayoutTS(outPath string, schema BufLayoutSchema) error {
 	fmt.Fprintln(w, ` * memory/feedback_no_single_writer_bridge.md); this constant is a historical layout`)
 	fmt.Fprintln(w, ` * marker, not consumed by any live decoder: [tick:u32][layoutLinkCount:u32] */`)
 	fmt.Fprintln(w, `export const BUF_HEADER_SIZE = 8;`)
-
-	for _, blk := range schema.Blocks {
-		fmt.Fprintln(w)
-		sep := strings.Repeat("─", 60-len(blk.name)-9)
-		fmt.Fprintf(w, "// ── %s block %s\n", blk.name, sep)
-		for _, c := range blk.columns {
-			fmt.Fprintf(w, "export const %-35s = %d; // %s\n", colTSName(blk.name, c.name), c.offset, c.bufType)
-		}
-		fmt.Fprintf(w, "export const %-35s = %d;\n", strideTSName(blk.name), blk.stride)
-		fmt.Fprintln(w)
-
-		stride := strideTSName(blk.name)
-		for _, c := range blk.columns {
-			colConst := colTSName(blk.name, c.name)
-			getter := tsDataViewGetter(c.bufType)
-			le := tsDataViewLE(c.bufType)
-			fnName := readerFnTSName(blk.name, c.name)
-			if blk.name == "Camera" || blk.name == "Overlay" || blk.name == "RuleBuilder" || blk.name == "Scene" {
-
-				fmt.Fprintf(w, "export function %s(view: DataView): number { return view.%s(%s%s); }\n",
-					fnName, getter, colConst, le)
-			} else {
-				fmt.Fprintf(w, "export function %s(view: DataView, row: number): number { return view.%s(row * %s + %s%s); }\n",
-					fnName, getter, stride, colConst, le)
-			}
-		}
-	}
-
 	fmt.Fprintln(w)
 	fmt.Fprintln(w, `/** Sentinel Node KindId value meaning "unknown kind" (matches KindIDUnknown in Buffer/node_kind_id_gen.go). */`)
 	fmt.Fprintln(w, `export const UNKNOWN_KIND_ID = 0xff;`)
+	fmt.Fprintln(w)
+	fmt.Fprintln(w, `export * from './buffer-layout-rows-gen';`)
+	fmt.Fprintln(w, `export * from './buffer-layout-singletons-gen';`)
 
 	w.Flush()
 	return os.WriteFile(outPath, buf.Bytes(), 0644)
+}
+
+func writeTSBlockConstsAndReaders(w *bufio.Writer, blk bufBlock, singleton bool) {
+	sep := strings.Repeat("─", 60-len(blk.name)-9)
+	fmt.Fprintf(w, "// ── %s block %s\n", blk.name, sep)
+	for _, c := range blk.columns {
+		fmt.Fprintf(w, "export const %-35s = %d; // %s\n", colTSName(blk.name, c.name), c.offset, c.bufType)
+	}
+	fmt.Fprintf(w, "export const %-35s = %d;\n", strideTSName(blk.name), blk.stride)
+	fmt.Fprintln(w)
+
+	stride := strideTSName(blk.name)
+	for _, c := range blk.columns {
+		colConst := colTSName(blk.name, c.name)
+		getter := tsDataViewGetter(c.bufType)
+		le := tsDataViewLE(c.bufType)
+		fnName := readerFnTSName(blk.name, c.name)
+		if singleton {
+			fmt.Fprintf(w, "export function %s(view: DataView): number { return view.%s(%s%s); }\n",
+				fnName, getter, colConst, le)
+		} else {
+			fmt.Fprintf(w, "export function %s(view: DataView, row: number): number { return view.%s(row * %s + %s%s); }\n",
+				fnName, getter, stride, colConst, le)
+		}
+	}
+	fmt.Fprintln(w)
 }
