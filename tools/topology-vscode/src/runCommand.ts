@@ -10,7 +10,7 @@ import { appendGoError } from "./runner/go-errors";
 import { probePathsFor, type ProbePaths } from "./runner/probe-paths";
 import { ensureBinaryBuilt } from "./runner/ensure-binary";
 import { StreamDemux } from "./runner/stream-demux";
-import { computeSpawnLayout } from "./runner/spawn-layout";
+import { computeSpawnLayout, type SpawnLayout } from "./runner/spawn-layout";
 import { attachStreamListeners } from "./runner/attach-listeners";
 
 // The jobs this file used to do inline now live beside it under ./runner/, one concern per
@@ -132,8 +132,7 @@ export class BuildAndRunRunner {
     // Channel setup happens here (not folded into the post-build block below) because the
     // build-failure branch needs a visible place to report the error to the user, same as
     // before this refactor.
-    if (!this.channel) this.channel = vscode.window.createOutputChannel("topology run");
-    this.channel.clear();
+    this.ensureOutputChannel();
     const repoRoot = folder.uri.fsPath;
     const binPath = path.join(repoRoot, ".wirefold-cache", "wirefold");
     const topArgs = this.topologyPath ? ["-topology", this.topologyPath] : [];
@@ -141,40 +140,82 @@ export class BuildAndRunRunner {
     // `this.*`) so the build-failure branch below can log to goErrorsFile without arming
     // any of the runner's own fields — see the ProbePaths/probePathsFor doc comment.
     const probePaths = probePathsFor(folder);
-    // Build the binary once (and only rebuild when a .go source changed) instead of
-    // relinking a throwaway binary via `go run .` on every start/restart.
-    const built = ensureBinaryBuilt(repoRoot, binPath);
-    if (!built.ok) {
-      this.channel.appendLine(`\n[build error: ${built.error}]`);
-      // Reveal even on an automatic spawn: a broken build is the one thing the user has to
-      // see, and it is precisely the case where nothing else on screen will say so.
-      this.channel.show(true);
-      appendGoError(probePaths.goErrorsFile, built.error);
-      this.looping = false;
-      return;
-    }
-    // Reap orphaned sims left by prior/crashed editor sessions before spawning a
-    // new one. exceptPid spares the proc this runner legitimately manages (the
-    // stop/respawn logic still owns that). Single-panel assumption documented in
-    // killOrphanedSims: this kills ALL matching sims except the active one.
-    // this.proc is guaranteed undefined here (run() returns early at the top if a
-    // proc exists), so there is no active sim to spare — exceptPid is undefined.
-    // Passing it explicitly keeps the contract honest if that guard ever changes.
-    // this.proc is undefined here (guarded by the early return above), so activePid
-    // is always undefined — the cast overrides TypeScript's control-flow narrowing.
-    const activePid: number | undefined = (this.proc as cp.ChildProcess | undefined)?.pid;
-    const { killed } = killOrphanedSims(binPath, activePid);
+    if (!this.buildBinary(repoRoot, binPath, probePaths)) return;
+    const killed = this.reapOrphans(binPath);
 
     // Build (and orphan-reap) succeeded: from here on, arm every receiver field this run()
     // call touches in ONE uninterrupted run immediately before cp.spawn, so no early return
     // inserted above this point can ever leave probeFile/.../stream/lastSnapshot half-set —
     // see the ProbePaths doc comment for why probePaths was computed as locals above.
+    const prepared = this.armFieldsAndPrepareLayout(probePaths, killed, binPath, topArgs, repoRoot);
+    if (!prepared) return;
+    const { layout, demux } = prepared;
+
+    this.spawnProcess(binPath, topArgs, repoRoot, layout);
+    this.attachStreamHandlers(demux, layout);
+    this.wireExitHandlers();
+  }
+
+  /** Channel setup lives here (not folded into buildBinary) because the build-failure
+   *  branch needs a visible place to report the error to the user, same as before this
+   *  refactor. */
+  private ensureOutputChannel(): void {
+    if (!this.channel) this.channel = vscode.window.createOutputChannel("topology run");
+    this.channel.clear();
+  }
+
+  /** Build the binary once (and only rebuild when a .go source changed) instead of
+   *  relinking a throwaway binary via `go run .` on every start/restart. Returns false
+   *  (having already reported the failure) if the build did not succeed. */
+  private buildBinary(repoRoot: string, binPath: string, probePaths: ProbePaths): boolean {
+    const built = ensureBinaryBuilt(repoRoot, binPath);
+    if (!built.ok) {
+      this.channel!.appendLine(`\n[build error: ${built.error}]`);
+      // Reveal even on an automatic spawn: a broken build is the one thing the user has to
+      // see, and it is precisely the case where nothing else on screen will say so.
+      this.channel!.show(true);
+      appendGoError(probePaths.goErrorsFile, built.error);
+      this.looping = false;
+      return false;
+    }
+    return true;
+  }
+
+  /** Reap orphaned sims left by prior/crashed editor sessions before spawning a
+   *  new one. exceptPid spares the proc this runner legitimately manages (the
+   *  stop/respawn logic still owns that). Single-panel assumption documented in
+   *  killOrphanedSims: this kills ALL matching sims except the active one.
+   *  this.proc is guaranteed undefined here (run() returns early at the top if a
+   *  proc exists), so there is no active sim to spare — exceptPid is undefined.
+   *  Passing it explicitly keeps the contract honest if that guard ever changes.
+   *  this.proc is undefined here (guarded by run()'s early return before this is
+   *  called), so activePid is always undefined — TS can no longer narrow that across
+   *  the method boundary, so this reads `this.proc` (typed `cp.ChildProcess | undefined`)
+   *  directly rather than via a now-unnecessary cast. */
+  private reapOrphans(binPath: string): number {
+    const activePid: number | undefined = this.proc?.pid;
+    const { killed } = killOrphanedSims(binPath, activePid);
+    return killed;
+  }
+
+  /** Arms goErrorsFile/cancelled/looping/spawnGen (the receiver fields this run() call
+   *  touches), reads the stored topology counts, and computes the spawn layout — all in
+   *  ONE uninterrupted run immediately before cp.spawn, so no early return above this point
+   *  can ever leave probeFile/.../stream/lastSnapshot half-set. Returns undefined (having
+   *  already reported the failure) if counts.json is missing or malformed. */
+  private armFieldsAndPrepareLayout(
+    probePaths: ProbePaths,
+    killed: number,
+    binPath: string,
+    topArgs: string[],
+    repoRoot: string,
+  ): { layout: SpawnLayout; demux: StreamDemux } | undefined {
     this.goErrorsFile = probePaths.goErrorsFile;
     const probeTrace = isProbeTraceEnabled();
     if (killed > 0) {
-      this.channel.appendLine(`[cleanup] killed ${killed} orphaned sim process(es)`);
+      this.channel!.appendLine(`[cleanup] killed ${killed} orphaned sim process(es)`);
     }
-    this.channel.appendLine("$ " + binPath + " " + topArgs.join(" "));
+    this.channel!.appendLine("$ " + binPath + " " + topArgs.join(" "));
     this.cancelled = false;
     this.looping = true;
     // A new process: everything it emits belongs to a new generation.
@@ -189,10 +230,10 @@ export class BuildAndRunRunner {
       counts = readCounts(this.topologyPath ?? path.join(repoRoot, "topology"));
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      this.channel.appendLine(`\n[counts.json error: ${msg}]`);
+      this.channel!.appendLine(`\n[counts.json error: ${msg}]`);
       appendGoError(probePaths.goErrorsFile, msg);
       this.looping = false;
-      return;
+      return undefined;
     }
     // Size the dedicated per-edge/per-node/per-interior/per-drive fd ranges from the stored
     // counts (runner/spawn-layout.ts); any count above its MAX_*_STREAMS cap comes back with
@@ -201,9 +242,9 @@ export class BuildAndRunRunner {
     // this file rather than thrown (this is the same path that used to strand the `pending`
     // leak, fixed in 93d2e9b6).
     const layout = computeSpawnLayout(counts);
-    const { edgeCount, nodeCount, stdio, streamFDsEnv } = layout;
+    const { edgeCount, nodeCount } = layout;
     for (const msg of layout.warnings) {
-      this.channel.appendLine(`\n[${msg}]`);
+      this.channel!.appendLine(`\n[${msg}]`);
       appendGoError(probePaths.goErrorsFile, msg);
     }
     // A FRESH read side for this spawn: a prior process's leftover partial frame must
@@ -218,6 +259,15 @@ export class BuildAndRunRunner {
     // another's.
     const demux = this.newDemux(probePaths, probeTrace, edgeCount, nodeCount, this.spawnGen);
     this.demux = demux;
+    return { layout, demux };
+  }
+
+  /** Spawns the Go process. Reads WIREFOLD_EDGE_BEAD_TRACE straight from
+   *  isProbeTraceEnabled() (same source armFieldsAndPrepareLayout already read for the
+   *  demux's probeTrace) rather than threading it through as a parameter, since it is
+   *  read-only environment state, not something this run() call decided. */
+  private spawnProcess(binPath: string, topArgs: string[], repoRoot: string, layout: SpawnLayout): void {
+    const { stdio, streamFDsEnv } = layout;
     // detached: true makes the child the leader of a new process group; the
     // prebuilt binary is the sole group member, so kill(-pid) reaches it
     // directly. Without this, SIGTERM could leave it orphaned on macOS.
@@ -240,6 +290,7 @@ export class BuildAndRunRunner {
     // count is 0 (e.g. a topology with no edges) — Go simply never streams that kind.
     // "pipe" opens a readable pipe at each index; the existing stdin(0)/stdout(1)/stderr(2)
     // are unchanged.
+    const probeTrace = isProbeTraceEnabled();
     this.proc = cp.spawn(binPath, [...topArgs], {
       cwd: repoRoot,
       detached: true,
@@ -264,16 +315,25 @@ export class BuildAndRunRunner {
       for (const rec of this.pendingStdin) this.proc.stdin?.write(rec);
       this.pendingStdin = [];
     }
-    // Wire every dedicated stdio pipe this spawn opened (view, per-edge, per-node NODE/
-    // INTERIOR/DRIVE) to the matching demux method — pure plumbing, split out to
-    // runner/attach-listeners.ts (see its doc comment).
-    attachStreamListeners(this.proc, demux, layout);
-    this.proc.stderr?.on("data", (d: Buffer) => {
+  }
+
+  /** Wire every dedicated stdio pipe this spawn opened (view, per-edge, per-node NODE/
+   *  INTERIOR/DRIVE) to the matching demux method — pure plumbing, split out to
+   *  runner/attach-listeners.ts (see its doc comment) — plus the stderr relay this file
+   *  still owns. */
+  private attachStreamHandlers(demux: StreamDemux, layout: SpawnLayout): void {
+    attachStreamListeners(this.proc!, demux, layout);
+    this.proc!.stderr?.on("data", (d: Buffer) => {
       const msg = d.toString();
       this.channel!.append(msg);
       appendGoError(this.goErrorsFile, msg);
     });
-    this.proc.on("close", (code) => {
+  }
+
+  /** The close/error handlers that decide whether a finished process respawns
+   *  (looping/restartPending) or is reported as done. */
+  private wireExitHandlers(): void {
+    this.proc!.on("close", (code) => {
       const cancelled = this.cancelled;
       const looping = this.looping;
       this.proc = undefined;
@@ -301,7 +361,7 @@ export class BuildAndRunRunner {
         appendGoError(this.goErrorsFile, message);
       }
     });
-    this.proc.on("error", (err) => {
+    this.proc!.on("error", (err) => {
       this.proc = undefined;
       this.cancelled = false;
       this.channel!.appendLine(`\n[spawn error: ${err.message}]`);
