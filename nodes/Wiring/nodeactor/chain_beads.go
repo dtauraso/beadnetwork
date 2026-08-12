@@ -26,11 +26,14 @@ func (m *NodeGeometry) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal [
 	counts := make(map[string]int, len(m.outTargets))
 	for _, to := range m.outTargets {
 
-		targetCenter, haveTargetCenter := m.topo.PartnerCenters()[to]
-		if !haveTargetCenter {
+		// The stored outward path IS the animation path — the direction and
+		// length the beads travel come from it, not from a direction
+		// recomputed out of two node centres on every pass.
+		path, havePath := m.topo.PathTo(to)
+		if !havePath {
 			continue
 		}
-		edgeOX, edgeOY, edgeOZ, edgeLit, edgeLitVal, breadcrumb, ok := m.chainBeadsForTarget(to, selfTorusR, selfCenter, targetCenter, counts)
+		edgeOX, edgeOY, edgeOZ, edgeLit, edgeLitVal, breadcrumb, ok := m.chainBeadsForTarget(to, selfTorusR, selfCenter, selfCenter.Add(path), counts)
 		if !ok {
 			continue
 		}
