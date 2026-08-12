@@ -143,24 +143,7 @@ func (n *Node) updateFeedbackRing(ctx context.Context, working, backup *[]int, i
 		}
 
 		if !awaiting {
-			// Guard: never peek an empty slice. Refill keeps working non-empty,
-			// but be safe.
-			if len(*working) == 0 {
-				*working = *backup
-				*backup = append([]int(nil), init...)
-				emitBeads()
-			}
-
-			// PEEK the end (do NOT reslice) and SEND. Buffer unchanged. Input
-			// places the same bead on every wired output the same cycle
-			// (broadcastPlace — preserves concurrent broadcast) so whatever is
-			// wired to OutCadence and whatever is wired to ToExcitatory
-			// traverse in lockstep.
-			v := (*working)[len(*working)-1]
-			if n.Fire != nil {
-				n.Fire()
-			}
-			if !n.broadcastPlace(v, clk.Tick()) {
+			if !n.feedbackRingSend(working, backup, init, emitBeads, clk) {
 				return
 			}
 			awaiting = true
@@ -183,25 +166,58 @@ func (n *Node) updateFeedbackRing(ctx context.Context, working, backup *[]int, i
 		}
 		// Feedback arrived: re-arm the next peek+send regardless of hold/pop.
 		awaiting = false
-		if s != 1 {
-			// Hold: buffer unchanged, send the same last bead next cycle.
-			continue
-		}
-
-		// s == 1: POP the end (change the bead); refill when working empties.
-		*working = (*working)[:len(*working)-1]
-		if len(*working) == 0 {
-			// Animated refill: the top row (backup) SLIDES DOWN into the
-			// working row at human speed (clock-paced, pause-aware). After the
-			// slide lands, the new top row appears via the full emitBeads below.
-			if n.EmitRefillSlide != nil {
-				n.EmitRefillSlide(clk, n.SpeedCh, *backup)
-			}
-			*working = *backup
-			*backup = append([]int(nil), init...)
-		}
-		emitBeads() // array changed (pop, maybe refill) → restream interior
+		n.feedbackRingReact(s, working, backup, init, emitBeads, clk)
 	}
+}
+
+// feedbackRingSend is updateFeedbackRing's peek+send phase: guard the empty
+// buffer, PEEK the end (do NOT reslice) and SEND. Buffer unchanged. Input
+// places the same bead on every wired output the same cycle (broadcastPlace —
+// preserves concurrent broadcast) so whatever is wired to OutCadence and
+// whatever is wired to ToExcitatory traverse in lockstep. Returns false only
+// on the same terminal failure broadcastPlace itself reports (mirrors its own
+// doc — a momentarily full paced-wire buffer is transient and never reaches
+// here as false).
+func (n *Node) feedbackRingSend(working, backup *[]int, init []int, emitBeads func(), clk clock.Clock) bool {
+	// Guard: never peek an empty slice. Refill keeps working non-empty, but be
+	// safe.
+	if len(*working) == 0 {
+		*working = *backup
+		*backup = append([]int(nil), init...)
+		emitBeads()
+	}
+
+	v := (*working)[len(*working)-1]
+	if n.Fire != nil {
+		n.Fire()
+	}
+	return n.broadcastPlace(v, clk.Tick())
+}
+
+// feedbackRingReact is updateFeedbackRing's react-to-feedback phase, run once
+// node 2's feedback s has arrived this cycle:
+//
+//	s == 1 -> POP the end (the "change the bead" action); refill on empty.
+//	s == 0 -> hold: do nothing, keep sending the same last bead next loop.
+func (n *Node) feedbackRingReact(s int, working, backup *[]int, init []int, emitBeads func(), clk clock.Clock) {
+	if s != 1 {
+		// Hold: buffer unchanged, send the same last bead next cycle.
+		return
+	}
+
+	// s == 1: POP the end (change the bead); refill when working empties.
+	*working = (*working)[:len(*working)-1]
+	if len(*working) == 0 {
+		// Animated refill: the top row (backup) SLIDES DOWN into the working
+		// row at human speed (clock-paced, pause-aware). After the slide
+		// lands, the new top row appears via the full emitBeads below.
+		if n.EmitRefillSlide != nil {
+			n.EmitRefillSlide(clk, n.SpeedCh, *backup)
+		}
+		*working = *backup
+		*backup = append([]int(nil), init...)
+	}
+	emitBeads() // array changed (pop, maybe refill) → restream interior
 }
 
 func (n *Node) Update(ctx context.Context) {
@@ -238,17 +254,22 @@ func (n *Node) Update(ctx context.Context) {
 		return
 	}
 
-	// Plain emit path (FeedbackIn not wired): Input is a periodic SOURCE. It pops
-	// the end and fans the value to every wired output (2 and 3), then sleeps ONE
-	// CADENCE — a sleep timer of (one human cycle) × (the broadcast edge length) —
-	// before firing the next value. The bead is stepped one position per human
-	// cycle DURING that sleep, so it traverses the edge across the cadence; with
-	// equal-length output edges (assumed) both outputs stay in lockstep. With
-	// Repeat the buffer refills forever; without it, once the working buffer is
-	// drained it simply idles (no fire) but keeps cycling. Layout/drag handling
-	// is NOT here — the node's dedicated always-on layout goroutine owns it
-	// (split-layout-bead-goroutines.md), independent of this pausable bead loop.
-	// clk is the same copy taken once above; no second derivation.
+	n.runPeriodicEmit(ctx, &working, &backup, init, emitBeads, clk)
+}
+
+// runPeriodicEmit is Update's plain emit path (FeedbackIn not wired): Input is
+// a periodic SOURCE. It pops the end and fans the value to every wired output
+// (2 and 3), then sleeps ONE CADENCE — a sleep timer of (one human cycle) ×
+// (the broadcast edge length) — before firing the next value. The bead is
+// stepped one position per human cycle DURING that sleep, so it traverses the
+// edge across the cadence; with equal-length output edges (assumed) both
+// outputs stay in lockstep. With Repeat the buffer refills forever; without
+// it, once the working buffer is drained it simply idles (no fire) but keeps
+// cycling. Layout/drag handling is NOT here — the node's dedicated always-on
+// layout goroutine owns it (split-layout-bead-goroutines.md), independent of
+// this pausable bead loop. clk is the same copy Update took once at startup;
+// no second derivation.
+func (n *Node) runPeriodicEmit(ctx context.Context, working, backup *[]int, init []int, emitBeads func(), clk clock.Clock) {
 	emitted := 0
 	// Fire cadence is measured in CLOCK TICKS, exactly like a gate's window/dwell
 	// (gatecommon/gate.go: fire when now()-dwellStart >= fireDwellTicks). Tick()
@@ -266,7 +287,7 @@ func (n *Node) Update(ctx context.Context) {
 			if n.Fire != nil {
 				n.Fire()
 			}
-			v := popEnd(&working, &backup, init)
+			v := popEnd(working, backup, init)
 			emitBeads() // array changed (pop, maybe refill) → restream interior
 			if !n.broadcastPlace(v, now) {
 				return
