@@ -47,8 +47,8 @@ The mutex-removal work: each `sync.Mutex`/`Cond` replaced by single-owner state.
 
 | Doc | What it covers |
 |---|---|
-| [polar-sphere.html](polar-geometry/polar-sphere.html) | The polar coordinate system for a sphere. |
-| [pole-singularity.html](polar-geometry/pole-singularity.html) | The layout pole singularity — φ grid vs great-circle bearing. |
+| [polar-sphere/index.html](polar-geometry/polar-sphere/index.html) | The polar coordinate system for a sphere. |
+| [pole-singularity/index.html](polar-geometry/pole-singularity/index.html) | The layout pole singularity — φ grid vs great-circle bearing. |
 
 ## Bead / edge model
 
