@@ -93,9 +93,10 @@ shared-state violation.
 
 (Superseded detail, kept because older commits and docs still name it: this used to be
 `wire.KindRegistry` written by `wire.Register`, holding `func() any` constructors that
-returned EMPTY structs for the central reflection pipeline to fill in. Both are gone —
-`nodes/wire/registry.go` is now only a retirement note. The init-only property is unchanged;
-only the writer's name and what it stores changed.)
+returned EMPTY structs for the central reflection pipeline to fill in. Both are gone, and so
+is the one-line `nodes/wire/registry.go` retirement note that replaced them — it held only
+`package wire` and nothing else, so it was deleted outright. The init-only property is
+unchanged; only the writer's name and what it stores changed.)
 
 ## 6. Package-level var maps in `nodes/Wiring` are read-only dispatch tables
 

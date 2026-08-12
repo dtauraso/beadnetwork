@@ -109,7 +109,7 @@ mistake to avoid (chain_beads.go's own header comment makes the same split):
   holds them in node-local state until its firing rule is satisfied,
   then fires. There is no held-value slot in this model sense — node-local held
   state replaces it. (This is a different concept from the buffer's `Slot`
-  column — `nodes/wire/owner_events.go`, `Buffer/streamframe/stream_events.go`,
+  column — `nodes/rowevent/row_event.go`, `Buffer/streamframe/stream_events.go`,
   `Buffer/bufschema/layout.go` — which is a live 2x2 interior VISUAL grid position,
   slot = gridRow*2 + gridCol, for where a held bead is drawn inside a node.)
 - **Input port.** A ROLE, not a place (`docs/bead-model/channels-not-ports.md`): declared by the
