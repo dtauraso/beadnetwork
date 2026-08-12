@@ -1,10 +1,10 @@
 import React, { useMemo } from "react";
 import * as THREE from "three";
-import { computePolarFrameGeometry } from "./polar-frame-geometry";
-import { PolarAxisArrows } from "./PolarAxisArrows";
-import { PolarArcs } from "./PolarArcs";
-import { PolarAxisLabels } from "./PolarAxisLabels";
-import { PolarHandholds } from "./PolarHandholds";
+import { computePolarFrameGeometry } from "./polar-frame/polar-frame-geometry";
+import { PolarAxisArrows } from "./polar-frame/PolarAxisArrows";
+import { PolarArcs } from "./polar-frame/PolarArcs";
+import { PolarAxisLabels } from "./polar-frame/PolarAxisLabels";
+import { PolarHandholds } from "./polar-frame/PolarHandholds";
 
 const WORLD_UP = new THREE.Vector3(0, 1, 0);
 

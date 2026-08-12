@@ -7,7 +7,7 @@ import {
   SHADING_PARAM_SCENE_DIR_INTENSITY,
 } from "../../../schema/shading-params";
 import { BUFFER_NODE_TAG, BUFFER_EDGE_TAG, BUFFER_RING_TAG } from "./buffer-scene";
-import { HANDHOLD_TERM_TAG } from "../nav/polar-frame-data";
+import { HANDHOLD_TERM_TAG } from "../nav/polar-frame/polar-frame-data";
 import { resolveNodeDrawSlot } from "./nodes/node-depth-order";
 
 function pickBufferEdge(hits: THREE.Intersection[]): string | null {
