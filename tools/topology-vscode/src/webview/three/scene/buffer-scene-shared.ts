@@ -1,5 +1,6 @@
 import { readNodeKindId, UNKNOWN_KIND_ID } from "../../../schema/buffer-layout/buffer-layout";
 import { NODE_DEFS_ARRAY } from "../../../schema/node-defs";
+import { polarToCart } from "../polar-convert";
 
 export interface BufferLabelPos { row: number; label: string; px: number; py: number; cx: number; cy: number; }
 
@@ -44,6 +45,5 @@ export function nodeRowColors(nodeView: DataView, row: number): { fill: string; 
 }
 
 export function poleAxis(theta: number, phi: number): [number, number, number] {
-  const st = Math.sin(theta);
-  return [st * Math.cos(phi), Math.cos(theta), st * Math.sin(phi)];
+  return polarToCart(1, theta, phi);
 }
