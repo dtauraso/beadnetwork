@@ -1,3 +1,13 @@
+// ── OutPole block ────────────────────────────────────────────
+export const OUT_POLE_COL_DX                     = 0; // f32
+export const OUT_POLE_COL_DY                     = 4; // f32
+export const OUT_POLE_COL_DZ                     = 8; // f32
+export const OUT_POLE_STRIDE                     = 12;
+
+export function readOutPoleDX(view: DataView, row: number): number { return view.getFloat32(row * OUT_POLE_STRIDE + OUT_POLE_COL_DX, true); }
+export function readOutPoleDY(view: DataView, row: number): number { return view.getFloat32(row * OUT_POLE_STRIDE + OUT_POLE_COL_DY, true); }
+export function readOutPoleDZ(view: DataView, row: number): number { return view.getFloat32(row * OUT_POLE_STRIDE + OUT_POLE_COL_DZ, true); }
+
 // ── Interior block ───────────────────────────────────────────
 export const INTERIOR_COL_PRESENT                = 0; // u8
 export const INTERIOR_COL_VALUE                  = 1; // i32

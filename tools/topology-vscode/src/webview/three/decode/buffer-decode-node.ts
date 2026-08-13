@@ -1,6 +1,7 @@
 import {
   NODE_STRIDE,
   CHAIN_BEAD_STRIDE,
+  OUT_POLE_STRIDE,
   readNodeLabelOff,
   readNodeLabelLen,
   readNodeNodeId,
@@ -56,6 +57,10 @@ export interface DecodedNodeStreamFrame {
 
   chainBeadView: DataView;
 
+  outPoleCount: number;
+
+  outPoleView: DataView;
+
   eventCount: number;
   eventView: DataView;
   eventTextView: DataView;
@@ -88,9 +93,11 @@ function decodeNodeStreamFrameUncached(buf: ArrayBuffer): DecodedNodeStreamFrame
   const tick               = hdr.getUint32(0,  true);
   const labelLen           = hdr.getUint32(4,  true);
   const chainBeadCount     = hdr.getUint32(8,  true);
+  const outPoleCount       = hdr.getUint32(12, true);
 
   const chainBeadBytes = chainBeadCount * CHAIN_BEAD_STRIDE;
-  const expectedLen = BUF_NODE_STREAM_FRAME_HEADER_SIZE + NODE_STRIDE + labelLen + chainBeadBytes;
+  const outPoleBytes = outPoleCount * OUT_POLE_STRIDE;
+  const expectedLen = BUF_NODE_STREAM_FRAME_HEADER_SIZE + NODE_STRIDE + labelLen + chainBeadBytes + outPoleBytes;
   if (buf.byteLength < expectedLen) return null;
 
   let off = BUF_NODE_STREAM_FRAME_HEADER_SIZE;
@@ -104,7 +111,10 @@ function decodeNodeStreamFrameUncached(buf: ArrayBuffer): DecodedNodeStreamFrame
   const chainBeadView = new DataView(buf, off, chainBeadBytes);
   off += chainBeadBytes;
 
+  const outPoleView = new DataView(buf, off, outPoleBytes);
+  off += outPoleBytes;
+
   const { count: eventCount, view: eventView, textView: eventTextView } = decodeTrailingEvents(buf, off);
 
-  return { tick, nodeView, label, chainBeadCount, chainBeadView, eventCount, eventView, eventTextView };
+  return { tick, nodeView, label, chainBeadCount, chainBeadView, outPoleCount, outPoleView, eventCount, eventView, eventTextView };
 }

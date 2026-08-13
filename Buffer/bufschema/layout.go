@@ -2,7 +2,7 @@
 
 package bufschema
 
-const BufLayoutVersion = 41
+const BufLayoutVersion = 42
 
 const BufInteriorSlotsPerNode = 4
 
@@ -11,6 +11,7 @@ const BufInteriorSlotsPerNode = 4
 var _ = [...]any{
 	bufLayoutNode{},
 	bufLayoutChainBead{},
+	bufLayoutOutPole{},
 	bufLayoutInterior{},
 	bufLayoutEdge{},
 	bufLayoutCamera{},

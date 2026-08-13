@@ -45,6 +45,8 @@ type NodeFrameInput struct {
 	ChainBeadLit                          []uint8
 	ChainBeadLitValue                     []int32
 
+	OutPoleDX, OutPoleDY, OutPoleDZ []float32
+
 	Events []rowevent.RowEvent
 }
 

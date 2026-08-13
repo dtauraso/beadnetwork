@@ -72,6 +72,9 @@ func wireNodeStreams(streamFDs SF.StreamFDs, md *W.MoveDispatch) {
 						ChainBeadOZ:           f.ChainBeadOZ,
 						ChainBeadLit:          f.ChainBeadLit,
 						ChainBeadLitValue:     f.ChainBeadLitValue,
+						OutPoleDX:             f.OutPoleDX,
+						OutPoleDY:             f.OutPoleDY,
+						OutPoleDZ:             f.OutPoleDZ,
 						Events:                toStreamEvents(f.Events),
 					})
 				},
