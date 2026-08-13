@@ -7,6 +7,16 @@ package Buffer
 // BufLayoutVersionGenerated must equal BufLayoutVersion in layout.go.
 const BufLayoutVersionGenerated = 42
 
+// BufLayoutFingerprintHash is FNV-1a over BUF_LAYOUT_FINGERPRINT above. It rides in
+// every VIEW frame header so the decoder can REFUSE a frame whose layout it was not
+// built for, instead of reading the bytes into the wrong columns and drawing garbage.
+//
+// It is DERIVED, never hand-written: any column added, removed, resized or reordered
+// changes the fingerprint and therefore this value. BufLayoutVersion is a human intent
+// marker and is NOT what the wire check uses — a forgotten bump must not be able to
+// make a skewed layout look compatible.
+const BufLayoutFingerprintHash uint32 = 1360370107
+
 // BufInteriorSlotsPerNodeGenerated must equal BufInteriorSlotsPerNode in layout.go.
 const BufInteriorSlotsPerNodeGenerated = 4
 

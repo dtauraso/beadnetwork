@@ -6,7 +6,11 @@
 
 export const BUF_BLOCK_TAG_VIEW = 4;
 
-export const BUF_VIEW_FRAME_HEADER_SIZE = 4;
+/**
+ * [tick:u32][layoutFingerprintHash:u32] — the hash lets the decoder refuse a
+ * frame whose buffer layout it was not built for. See BufLayoutFingerprintHash.
+ */
+export const BUF_VIEW_FRAME_HEADER_SIZE = 8;
 
 export const BUF_BLOCK_TAG_EDGE_STREAM = 5;
 

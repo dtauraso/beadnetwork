@@ -5,6 +5,13 @@
 /** Schema version — must match BufLayoutVersion in Buffer/bufschema/layout.go. */
 export const BUF_LAYOUT_VERSION = 42;
 
+/** FNV-1a over BUF_LAYOUT_FINGERPRINT above — the layout this BUNDLE was built for.
+ * Every VIEW frame carries Go's copy; the decoder compares them and refuses a frame
+ * from a different layout rather than decoding its bytes into the wrong columns.
+ * Derived from the fingerprint, so it cannot be forgotten the way a hand-bumped
+ * version number can. */
+export const BUF_LAYOUT_FINGERPRINT_HASH = 1360370107;
+
 /** Fixed interior-grid slots per node — must match BufInteriorSlotsPerNode in Buffer/bufschema/layout.go.
  * Generated (part of BUF_LAYOUT_FINGERPRINT): a mismatch fails check-buffer-layout-parity.sh. */
 export const INTERIOR_SLOTS_PER_NODE = 4;

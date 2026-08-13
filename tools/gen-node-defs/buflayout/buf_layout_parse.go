@@ -95,6 +95,20 @@ func ParseBufferLayoutDir(dir string) (BufLayoutSchema, error) {
 	return schema, nil
 }
 
+// fnv1aHash is FNV-1a 32-bit over the layout fingerprint. Spelled out here rather
+// than taken from hash/fnv so the Go and TS emitters provably compute the same
+// number from the same string — the whole point is that the two sides agree.
+func fnv1aHash(s string) uint32 {
+	const offset32 = 2166136261
+	const prime32 = 16777619
+	h := uint32(offset32)
+	for i := 0; i < len(s); i++ {
+		h ^= uint32(s[i])
+		h *= prime32
+	}
+	return h
+}
+
 func buildBufFingerprint(schema BufLayoutSchema) string {
 	var parts []string
 	parts = append(parts, fmt.Sprintf("version:%d", schema.version))
