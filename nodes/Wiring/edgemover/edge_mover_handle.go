@@ -52,8 +52,17 @@ func (m *EdgeMover) handle(msg movemsg.Msg) {
 func (m *EdgeMover) recomputeGeometry() {
 	seg := edgegeom.EdgeSegment(m.srcGeom, m.dstGeom)
 
+	// How many steps it takes to cross is a fact about THIS edge — its two
+	// endpoints and the two node kinds whose tori it runs between — so the
+	// edge works it out. It used to be handed over by the source node's
+	// chain layout, and when that went the count went to zero with it,
+	// which is a bead that never leaves the end it was placed at.
+	m.steps = edgegeom.EdgeStepCount(
+		seg.End.Sub(seg.Start).Length(), m.srcGeom.Kind, m.dstGeom.Kind)
+
 	if m.out != nil {
 		m.out.PublishSegment(seg.Start, seg.End)
+		m.out.PublishSteps(m.steps)
 	}
 
 	if m.dest != nil {
