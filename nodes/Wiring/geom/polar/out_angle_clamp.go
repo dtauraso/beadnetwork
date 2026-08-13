@@ -31,6 +31,36 @@ func ClampOutAngles(p Polar) Polar {
 	return Polar{
 		R:     p.R,
 		Phi:   OutAnglePhi,
-		Theta: math.Max(-OutAngleMaxTheta, math.Min(OutAngleMaxTheta, p.Theta)),
+		Theta: clampOutTheta(p.Theta),
 	}
+}
+
+// TrimOutAngleDelta is the same constraint applied to a MOVE rather than to a
+// position: `have` is where the path is, `want` is where a drag is asking to
+// put it, and the result keeps only the part of that delta the constraint
+// allows. Whatever is left over is dropped, not resisted — the drag still
+// moves the node in every component that had room.
+//
+// It differs from ClampOutAngles in exactly one component, and that difference
+// is the whole point of having both:
+//
+//   - R keeps the full delta, as ever.
+//   - Phi keeps HAVE's value, not the allowed one. Its delta is always zero,
+//     so a drag cannot move phi at all — the forbidden motion is absent from
+//     the move rather than performed and then undone. That also means this
+//     will never CORRECT a phi that is already wrong, which is why the
+//     absolute clamp still runs when a position is established rather than
+//     dragged.
+//   - Theta keeps as much of the delta as fits and stops at the limit it
+//     crossed, so a drag that runs past the edge still slides along it.
+func TrimOutAngleDelta(have, want Polar) Polar {
+	return Polar{
+		R:     want.R,
+		Phi:   have.Phi,
+		Theta: clampOutTheta(want.Theta),
+	}
+}
+
+func clampOutTheta(theta float64) float64 {
+	return math.Max(-OutAngleMaxTheta, math.Min(OutAngleMaxTheta, theta))
 }

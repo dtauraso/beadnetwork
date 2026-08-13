@@ -38,6 +38,13 @@ func (lq *LayoutQuantizer) RootMove(ctx context.Context, nodeGeoms map[string]*n
 		return false
 	}
 
+	// The drag is a delta from where the node is to where the pointer is
+	// asking it to go. Trim it against this node's own constraints HERE,
+	// before it becomes a position anyone commits or draws — a component
+	// with no room contributes nothing to the move, and the components with
+	// room still move in full.
+	target = TrimDragAgainstInNeighbors(nm, nm.WorldCenter(), target)
+
 	nm.SendExternal(ctx, movemsg.Msg{Kind: movemsg.KindDrag, NodeID: nodeID, Target: target})
 	return true
 }

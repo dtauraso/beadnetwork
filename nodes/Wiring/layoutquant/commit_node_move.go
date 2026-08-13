@@ -56,15 +56,15 @@ func neighborPolars(nm *nodeactor.NodeGeometry, edgeMovers map[string]*edgemover
 }
 
 func (lq *LayoutQuantizer) resolveCommittedPosition(edgeMovers map[string]*edgemover.EdgeMover, ui *viewstate.UIState, nm *nodeactor.NodeGeometry, newPos spatial.Vec3, nodePolar polar.Polar) (committedPos spatial.Vec3, committedPolar polar.Polar) {
-	committedPos = HoldAgainstInNeighbors(nm, newPos)
+	// A drag arrives here already trimmed to what the constraints allow
+	// (RootMove), and a correction sent BY a constraining node is valid by
+	// construction, so there is nothing to hold on the way in. What is left
+	// to guard is bead snapping, which moves the destination again below.
+	committedPos = newPos
 	committedPolar = nodePolar
-	if committedPos != newPos {
-		committedPolar = polar.Cart2polar(committedPos.Sub(ui.SceneSphere.Center))
-	}
 	if !lq.QuantizedLayout {
 		return committedPos, committedPolar
 	}
-	newPos = committedPos
 	prevPos := nm.WorldCenter()
 	beads := DragTouchingBeads(edgeMovers, nm, prevPos)
 	if len(beads) == 0 {
@@ -72,10 +72,11 @@ func (lq *LayoutQuantizer) resolveCommittedPosition(edgeMovers map[string]*edgem
 	} else {
 		committedPos, _ = beadcrud.ResolveBeadCrudMove(beads, prevPos, newPos, lattice.BeadStepR)
 	}
-	// Bead snapping moves the destination again, so the hold is the LAST
-	// thing applied — otherwise the snap is free to put the node back off
-	// the angles, which is the frame-late correction this exists to avoid.
-	committedPos = HoldAgainstInNeighbors(nm, committedPos)
+	// Bead snapping moves the destination again, so its move is trimmed too
+	// — otherwise the snap is free to put the node back off the angles, and
+	// the frame-late correction this exists to avoid comes back by the side
+	// door. It is the same trim, because a snap is a move like any other.
+	committedPos = TrimDragAgainstInNeighbors(nm, newPos, committedPos)
 	committedPolar = polar.Cart2polar(committedPos.Sub(ui.SceneSphere.Center))
 
 	emitBeadCrudDiagnostic(nm, nm.ID(), prevPos, newPos, committedPos, beads)
