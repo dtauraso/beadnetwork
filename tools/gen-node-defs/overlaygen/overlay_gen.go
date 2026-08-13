@@ -33,6 +33,7 @@ var overlayOverrides = map[string]overlayOverride{
 	"scenePoles": {breadcrumb: "scene"},
 	"nodePoles":  {breadcrumb: "nodes"},
 	"overlays":   {method: "OverlaysVis"},
+	"commEdges":  {defaultOff: true},
 }
 
 // OVERLAY_FLAGS_START / OVERLAY_FLAGS_END sentinels) and returns the flag metadata in

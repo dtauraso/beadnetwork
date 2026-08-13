@@ -15,6 +15,11 @@ export function beadStyleForValue(v: number | null | undefined): { fill: string;
 
 export const EDGE_LINE_COLOR = SHADING_PARAM_EDGE_LINE_COLOR;
 
+// COMM_BEAD_STYLE is the whole chain along a path that carries a position
+// rather than a value — drawn at the same size as the animation edge it
+// stands in for, so the only difference the eye reads is the colour.
+export const COMM_BEAD_STYLE = { fill: "#3fb950", ring: "#14532d" };
+
 const INTERIOR_VALUE_BEAD_STYLE: Record<number, { fill: string; ring: string }> = {
   0: { fill: SHADING_PARAM_INTERIOR_BEAD_FILL0, ring: "#000000" },
   1: { fill: SHADING_PARAM_INTERIOR_BEAD_FILL1, ring: "#000000" },
