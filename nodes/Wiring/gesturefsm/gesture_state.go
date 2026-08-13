@@ -65,5 +65,4 @@ func (g *GestureState) Reset(vp *camera.Viewpoint) {
 	g.DragGrabOffset = spatial.Vec3{}
 	g.HandholdDown = false
 	g.Secondary = false
-	vp.LockedAxis = nil
 }

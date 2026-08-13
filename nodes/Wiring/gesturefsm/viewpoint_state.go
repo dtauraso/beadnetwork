@@ -17,7 +17,6 @@ func (v *ViewpointState) SetViewpoint(pivot spatial.Vec3, r float64, pos, up cam
 	v.R = r
 	v.Pos = pos
 	v.Up = up
-	v.LockedAxis = nil
 }
 
 func (v *ViewpointState) EmitViewpoint(tr *T.Trace) {
@@ -32,8 +31,10 @@ func (v *ViewpointState) OrbitViewpoint(from, to camera.Dir, tr *T.Trace) {
 	v.EmitViewpoint(tr)
 }
 
+// OrbitLockedViewpoint no longer holds an axis across the drag: the axis comes
+// from this move's own from->to arc, like every other orbit.
 func (v *ViewpointState) OrbitLockedViewpoint(from, to camera.Dir, tr *T.Trace) {
-	v.OrbitLocked(from, to)
+	v.Orbit(from, to)
 	v.EmitViewpoint(tr)
 }
 

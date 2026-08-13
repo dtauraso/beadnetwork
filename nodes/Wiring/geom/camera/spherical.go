@@ -16,46 +16,70 @@ type Rot struct {
 	Angle float64
 }
 
-// AngularDistance is the angle between two directions on the sphere.
+// Every function here converts to a vector at the boundary, does its work as
+// vectors, and converts back at the boundary. No angle is ever produced by
+// adding or subtracting angles.
 //
-// The spherical law of cosines gives cos of that angle; its SINE is the length
-// of the same two components the azimuth below is built from. Feeding both to
-// atan2 removes acos's domain — the clamp existed only because rounding pushes
-// the cosine past ±1 for nearly-equal directions — and is far more accurate for
-// small angles, where cosine is flat and acos loses most of its digits.
-func AngularDistance(a, b Dir) float64 {
-	dphi := b.Phi - a.Phi
-	cosD := math.Cos(a.Theta)*math.Cos(b.Theta) +
-		math.Sin(a.Theta)*math.Sin(b.Theta)*math.Cos(dphi)
-	sinD := math.Hypot(
-		math.Sin(b.Theta)*math.Sin(dphi),
-		math.Sin(a.Theta)*math.Cos(b.Theta)-math.Cos(a.Theta)*math.Sin(b.Theta)*math.Cos(dphi),
-	)
-	return math.Atan2(sinD, cosD)
+// That is what removed WrapPi. An angle built by arithmetic can land outside
+// the range atan2 hands back, so it had to be folded in; an angle that only
+// ever comes OUT of Cart2polar is already in that range, and there is nothing
+// left to fold. The spherical-trig identities this file used to carry — law of
+// cosines, bearing formula — are gone with it: they were the angle arithmetic.
+
+func dirToVec(d Dir) vec3 {
+	return polar.Polar2cart(polar.Polar{R: 1, Theta: d.Theta, Phi: d.Phi})
 }
 
+func vecToDir(v vec3) Dir {
+	p := polar.Cart2polar(v)
+	return Dir{Theta: p.Theta, Phi: p.Phi}
+}
+
+// axisFrame is the tangent basis at p: north points along p's meridian toward
+// +y, east toward increasing phi. Azimuth is measured from north toward east,
+// which is the convention the callers were already written against.
+//
+// At the poles the meridian direction is undefined — every direction from the
+// north pole is south — so phi itself supplies the reference there, which is
+// what the spherical formula this replaced did implicitly.
+func axisFrame(p vec3) (north, east vec3) {
+	up := vec3{X: 0, Y: 1, Z: 0}
+	north = up.Sub(p.Scale(up.Dot(p)))
+	if north.Length() < 1e-12 {
+		meridian := vec3{X: math.Cos(vecToDir(p).Phi), Y: 0, Z: math.Sin(vecToDir(p).Phi)}
+		north = meridian.Sub(p.Scale(meridian.Dot(p)))
+		if p.Y > 0 {
+			north = north.Scale(-1)
+		}
+	}
+	north = north.Normalize()
+	east = p.Cross(up)
+	if east.Length() < 1e-12 {
+		east = p.Cross(north)
+	}
+	return north, east.Normalize()
+}
+
+// AzimuthFrom gives p's polar coordinates IN THE FRAME whose pole is `pole`:
+// c is the angular distance, psi the bearing from north toward east.
 func AzimuthFrom(pole, p Dir) (c, psi float64) {
-	c = AngularDistance(pole, p)
-	dphi := p.Phi - pole.Phi
-	psi = math.Atan2(
-		math.Sin(p.Theta)*math.Sin(dphi),
-		math.Sin(pole.Theta)*math.Cos(p.Theta)-math.Cos(pole.Theta)*math.Sin(p.Theta)*math.Cos(dphi),
-	)
+	pv, tv := dirToVec(pole), dirToVec(p)
+	c = math.Atan2(pv.Cross(tv).Length(), pv.Dot(tv))
+
+	north, east := axisFrame(pv)
+	perp := tv.Sub(pv.Scale(pv.Dot(tv)))
+	psi = math.Atan2(perp.Dot(east), perp.Dot(north))
 	return c, psi
 }
 
+// FromAxisFrame is AzimuthFrom's inverse: the direction at angular distance c
+// from `pole`, on bearing psi.
 func FromAxisFrame(pole Dir, c, psi float64) Dir {
-	// The same two components serve twice: atan2'd against each other they are
-	// the azimuth step, and their length is sin(theta) to the cosine's cos —
-	// so theta comes out of atan2 as well, with no acos and no clamp.
-	tangential := math.Sin(c) * math.Sin(psi)
-	meridional := math.Sin(pole.Theta)*math.Cos(c) - math.Cos(pole.Theta)*math.Sin(c)*math.Cos(psi)
+	pv := dirToVec(pole)
+	north, east := axisFrame(pv)
 
-	cosT := math.Cos(pole.Theta)*math.Cos(c) + math.Sin(pole.Theta)*math.Sin(c)*math.Cos(psi)
-	theta := math.Atan2(math.Hypot(tangential, meridional), cosT)
-	dphi := math.Atan2(tangential, meridional)
-
-	return Dir{Theta: theta, Phi: polar.WrapPi(pole.Phi + dphi)}
+	tangent := north.Scale(math.Cos(psi)).Add(east.Scale(math.Sin(psi)))
+	return vecToDir(pv.Scale(math.Cos(c)).Add(tangent.Scale(math.Sin(c))))
 }
 
 func RotateDir(p, axis Dir, angle float64) Dir {
@@ -63,14 +87,16 @@ func RotateDir(p, axis Dir, angle float64) Dir {
 	return FromAxisFrame(axis, c, psi+angle)
 }
 
+// ArcBetween is the rotation carrying `from` to `to`: the axis is perpendicular
+// to both, and the angle is the distance between them.
 func ArcBetween(from, to Dir) Rot {
-	c, psi := AzimuthFrom(from, to)
-	axis := FromAxisFrame(from, math.Pi/2, psi+math.Pi/2)
-	return Rot{Axis: axis, Angle: c}
-}
-
-func AngleAboutAxis(from, to, axis Dir) float64 {
-	_, psiFrom := AzimuthFrom(axis, from)
-	_, psiTo := AzimuthFrom(axis, to)
-	return polar.WrapPi(psiTo - psiFrom)
+	fv, tv := dirToVec(from), dirToVec(to)
+	cross := fv.Cross(tv)
+	if cross.Length() < 1e-12 {
+		// Parallel or antiparallel: no unique axis. Keep the old behaviour of
+		// naming one perpendicular rather than failing.
+		north, _ := axisFrame(fv)
+		return Rot{Axis: vecToDir(fv.Cross(north)), Angle: math.Atan2(cross.Length(), fv.Dot(tv))}
+	}
+	return Rot{Axis: vecToDir(cross), Angle: math.Atan2(cross.Length(), fv.Dot(tv))}
 }

@@ -3,11 +3,10 @@ package camera
 const ViewpointMinDist = 5.0
 
 type Viewpoint struct {
-	Pivot      vec3
-	R          float64
-	Pos        Dir
-	Up         Dir
-	LockedAxis *Dir
+	Pivot vec3
+	R     float64
+	Pos   Dir
+	Up    Dir
 }
 
 func (v *Viewpoint) Rotate(rt Rot) {
@@ -17,15 +16,6 @@ func (v *Viewpoint) Rotate(rt Rot) {
 
 func (v *Viewpoint) Orbit(from, to Dir) {
 	v.Rotate(ArcBetween(from, to))
-}
-
-func (v *Viewpoint) OrbitLocked(from, to Dir) {
-	if v.LockedAxis == nil {
-		ax := ArcBetween(from, to).Axis
-		v.LockedAxis = &ax
-	}
-	angle := AngleAboutAxis(from, to, *v.LockedAxis)
-	v.Rotate(Rot{Axis: *v.LockedAxis, Angle: angle})
 }
 
 func (v *Viewpoint) Zoom(factor float64) {

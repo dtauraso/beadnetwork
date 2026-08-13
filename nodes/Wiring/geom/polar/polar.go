@@ -17,11 +17,17 @@ func Polar2cart(p Polar) vec3 {
 	}
 }
 
+// InwardPole is the direction opposite p — the one pointing back at the centre.
+//
+// It negates the VECTOR and converts, rather than computing pi-theta and
+// phi+pi. Those were angle arithmetic, and phi+pi is exactly the sum that could
+// land outside atan2's range and so needed wrapping. Coming back through
+// Cart2polar, the answer is in range because that is the only range atan2 has.
+// The zero-radius guard goes too: negating the zero vector is the zero vector,
+// which Cart2polar already answers with {0,0,0}.
 func InwardPole(p Polar) (theta, phi float64) {
-	if p.R == 0 {
-		return 0, 0
-	}
-	return math.Pi - p.Theta, WrapPi(p.Phi + math.Pi)
+	back := Cart2polar(Polar2cart(p).Scale(-1))
+	return back.Theta, back.Phi
 }
 
 // thetaOf is the polar angle down from world +y, for ANY cartesian vector —
@@ -59,14 +65,4 @@ func PolarDist(a, b Polar) float64 {
 		return 0
 	}
 	return math.Sqrt(d2)
-}
-
-func WrapPi(a float64) float64 {
-	for a > math.Pi {
-		a -= 2 * math.Pi
-	}
-	for a <= -math.Pi {
-		a += 2 * math.Pi
-	}
-	return a
 }
