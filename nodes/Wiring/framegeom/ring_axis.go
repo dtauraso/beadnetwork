@@ -7,27 +7,27 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 )
 
-func PoleContainingEdge(poleTheta, polePhi float64, selfCenter, partnerCenter vec3) (theta, phi float64, ok bool) {
+func PoleContainingEdge(polePhi, poleTheta float64, selfCenter, partnerCenter vec3) (phi, theta float64, ok bool) {
 	delta := partnerCenter.Sub(selfCenter)
 	if delta.Length() < 1e-9 {
 		return 0, 0, false
 	}
 	dir := delta.Normalize()
-	pole := camera.AnglesToWorldOffset(1, poleTheta, polePhi)
+	pole := camera.AnglesToWorldOffset(1, polePhi, poleTheta)
 	projected := pole.Sub(dir.Scale(pole.Dot(dir)))
 	if projected.Length() < 1e-6 {
 		return 0, 0, false
 	}
 	u := projected.Normalize()
 	p := polar.Cart2polar(u)
-	return p.Theta, p.Phi, true
+	return p.Phi, p.Theta, true
 }
 
-func TorusDefaultAxisAngles() (theta, phi float64) {
+func TorusDefaultAxisAngles() (phi, theta float64) {
 	return math.Pi / 2, math.Pi / 2
 }
 
-func UprightRingAxis(selfCenter, partnerCenter vec3) (theta, phi float64, ok bool) {
+func UprightRingAxis(selfCenter, partnerCenter vec3) (phi, theta float64, ok bool) {
 	delta := partnerCenter.Sub(selfCenter)
 	if delta.Length() < 1e-9 {
 		return 0, 0, false
@@ -38,5 +38,5 @@ func UprightRingAxis(selfCenter, partnerCenter vec3) (theta, phi float64, ok boo
 	}
 	u := n.Normalize()
 	p := polar.Cart2polar(u)
-	return p.Theta, p.Phi, true
+	return p.Phi, p.Theta, true
 }

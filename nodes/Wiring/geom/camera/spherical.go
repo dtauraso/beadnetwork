@@ -8,8 +8,8 @@ import (
 )
 
 type Dir struct {
-	Theta float64
 	Phi   float64
+	Theta float64
 }
 
 type Rot struct {
@@ -28,12 +28,12 @@ type Rot struct {
 // cosines, bearing formula — are gone with it: they were the angle arithmetic.
 
 func dirToVec(d Dir) vec3 {
-	return polar.Polar2cart(polar.Polar{R: 1, Theta: d.Theta, Phi: d.Phi})
+	return polar.Polar2cart(polar.Polar{R: 1, Phi: d.Phi, Theta: d.Theta})
 }
 
 func vecToDir(v vec3) Dir {
 	p := polar.Cart2polar(v)
-	return Dir{Theta: p.Theta, Phi: p.Phi}
+	return Dir{Phi: p.Phi, Theta: p.Theta}
 }
 
 // AngleAboutAxis is the SIGNED turn from `from` to `to` about `axis`, taking
@@ -90,13 +90,13 @@ func ArcBetween(from, to Dir) Rot {
 
 	if cross.Length() < 1e-12 && dot < 0 {
 		panic(fmt.Sprintf(
-			"camera.ArcBetween: asked for the rotation from (theta=%.6f,phi=%.6f) to its exact "+
-				"opposite (theta=%.6f,phi=%.6f) — every perpendicular axis performs that 180-degree "+
+			"camera.ArcBetween: asked for the rotation from (phi=%.6f,theta=%.6f) to its exact "+
+				"opposite (phi=%.6f,theta=%.6f) — every perpendicular axis performs that 180-degree "+
 				"turn and none is more correct, so there is no rotation to name. These two are "+
 				"consecutive samples of ONE pointer during a drag (gesture handlers -> "+
 				"Viewpoint.Orbit), which cannot reach the antipode between two events; whatever "+
 				"produced this pair is not sampling a drag.",
-			from.Theta, from.Phi, to.Theta, to.Phi))
+			from.Phi, from.Theta, to.Phi, to.Theta))
 	}
 
 	return Rot{Axis: vecToDir(cross), Angle: math.Atan2(cross.Length(), dot)}

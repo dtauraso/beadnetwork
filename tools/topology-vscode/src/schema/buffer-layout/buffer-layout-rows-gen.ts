@@ -11,10 +11,10 @@ export const NODE_COL_VRZ                        = 32; // f32
 export const NODE_COL_FRX                        = 36; // f32
 export const NODE_COL_FRY                        = 40; // f32
 export const NODE_COL_FRZ                        = 44; // f32
-export const NODE_COL_POLE_THETA                 = 48; // f32
-export const NODE_COL_POLE_PHI                   = 52; // f32
-export const NODE_COL_RING_AXIS_THETA            = 56; // f32
-export const NODE_COL_RING_AXIS_PHI              = 60; // f32
+export const NODE_COL_POLE_PHI                   = 48; // f32
+export const NODE_COL_POLE_THETA                 = 52; // f32
+export const NODE_COL_RING_AXIS_PHI              = 56; // f32
+export const NODE_COL_RING_AXIS_THETA            = 60; // f32
 export const NODE_COL_TOP_TILT_VECTOR_LEN        = 64; // f32
 export const NODE_COL_TOP_TILT_VECTOR_THETA      = 68; // f32
 export const NODE_COL_BOTTOM_TILT_VECTOR_THETA   = 72; // f32
@@ -44,10 +44,10 @@ export function readNodeVRZ(view: DataView, row: number): number { return view.g
 export function readNodeFRX(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_FRX, true); }
 export function readNodeFRY(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_FRY, true); }
 export function readNodeFRZ(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_FRZ, true); }
-export function readNodePoleTheta(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_POLE_THETA, true); }
 export function readNodePolePhi(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_POLE_PHI, true); }
-export function readNodeRingAxisTheta(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_RING_AXIS_THETA, true); }
+export function readNodePoleTheta(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_POLE_THETA, true); }
 export function readNodeRingAxisPhi(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_RING_AXIS_PHI, true); }
+export function readNodeRingAxisTheta(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_RING_AXIS_THETA, true); }
 export function readNodeTopTiltVectorLen(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_TOP_TILT_VECTOR_LEN, true); }
 export function readNodeTopTiltVectorTheta(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_TOP_TILT_VECTOR_THETA, true); }
 export function readNodeBottomTiltVectorTheta(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_BOTTOM_TILT_VECTOR_THETA, true); }

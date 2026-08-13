@@ -3,20 +3,20 @@ export const CAMERA_COL_PX                       = 0; // f32
 export const CAMERA_COL_PY                       = 4; // f32
 export const CAMERA_COL_PZ                       = 8; // f32
 export const CAMERA_COL_R                        = 12; // f32
-export const CAMERA_COL_POS_THETA                = 16; // f32
-export const CAMERA_COL_POS_PHI                  = 20; // f32
-export const CAMERA_COL_UP_THETA                 = 24; // f32
-export const CAMERA_COL_UP_PHI                   = 28; // f32
+export const CAMERA_COL_POS_PHI                  = 16; // f32
+export const CAMERA_COL_POS_THETA                = 20; // f32
+export const CAMERA_COL_UP_PHI                   = 24; // f32
+export const CAMERA_COL_UP_THETA                 = 28; // f32
 export const CAMERA_STRIDE                       = 32;
 
 export function readCameraPX(view: DataView): number { return view.getFloat32(CAMERA_COL_PX, true); }
 export function readCameraPY(view: DataView): number { return view.getFloat32(CAMERA_COL_PY, true); }
 export function readCameraPZ(view: DataView): number { return view.getFloat32(CAMERA_COL_PZ, true); }
 export function readCameraR(view: DataView): number { return view.getFloat32(CAMERA_COL_R, true); }
-export function readCameraPosTheta(view: DataView): number { return view.getFloat32(CAMERA_COL_POS_THETA, true); }
 export function readCameraPosPhi(view: DataView): number { return view.getFloat32(CAMERA_COL_POS_PHI, true); }
-export function readCameraUpTheta(view: DataView): number { return view.getFloat32(CAMERA_COL_UP_THETA, true); }
+export function readCameraPosTheta(view: DataView): number { return view.getFloat32(CAMERA_COL_POS_THETA, true); }
 export function readCameraUpPhi(view: DataView): number { return view.getFloat32(CAMERA_COL_UP_PHI, true); }
+export function readCameraUpTheta(view: DataView): number { return view.getFloat32(CAMERA_COL_UP_THETA, true); }
 
 // ── Overlay block ────────────────────────────────────────────
 export const OVERLAY_COL_SCENE_TORI              = 0; // u8

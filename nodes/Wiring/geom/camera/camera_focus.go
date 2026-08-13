@@ -9,7 +9,7 @@ const RotSmoothAlpha = 0.35
 
 func FocusAhead(v Viewpoint, centers map[string]vec3) vec3 {
 	eye := EyeOf(v)
-	forward := AnglesToWorldOffset(1, v.Pos.Theta, v.Pos.Phi).Scale(-1)
+	forward := AnglesToWorldOffset(1, v.Pos.Phi, v.Pos.Theta).Scale(-1)
 	bestCos := -2.0
 	depth := 0.0
 	found := false
@@ -37,7 +37,7 @@ func FocusAhead(v Viewpoint, centers map[string]vec3) vec3 {
 
 func RegionFocus(v Viewpoint, centers map[string]vec3) vec3 {
 	eye := EyeOf(v)
-	forward := AnglesToWorldOffset(1, v.Pos.Theta, v.Pos.Phi).Scale(-1)
+	forward := AnglesToWorldOffset(1, v.Pos.Phi, v.Pos.Theta).Scale(-1)
 
 	zNear := math.Inf(1)
 	for _, p := range centers {

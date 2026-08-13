@@ -5,7 +5,7 @@ import { getViewBlocks } from "./view-blocks";
 import { anglesToWorldOffset } from "../nav/viewpoint-bridge";
 import {
   readCameraPX, readCameraPY, readCameraPZ, readCameraR,
-  readCameraPosTheta, readCameraPosPhi, readCameraUpTheta, readCameraUpPhi,
+  readCameraPosPhi, readCameraPosTheta, readCameraUpPhi, readCameraUpTheta,
 } from "../../../schema/buffer-layout/buffer-layout";
 
 export function BufferCamera({ cameraRef }: {
@@ -28,9 +28,9 @@ export function BufferCamera({ cameraRef }: {
 
     const pivot = pivotRef.current;
     pivot.set(readCameraPX(cv), readCameraPY(cv), readCameraPZ(cv));
-    const posOffset = anglesToWorldOffset(r, readCameraPosTheta(cv), readCameraPosPhi(cv));
+    const posOffset = anglesToWorldOffset(r, readCameraPosPhi(cv), readCameraPosTheta(cv));
     cam.position.copy(pivot).add(posOffset);
-    const upDir = anglesToWorldOffset(1, readCameraUpTheta(cv), readCameraUpPhi(cv)).normalize();
+    const upDir = anglesToWorldOffset(1, readCameraUpPhi(cv), readCameraUpTheta(cv)).normalize();
     cam.up.copy(upDir);
     cam.lookAt(pivot);
     cam.updateMatrixWorld(true);

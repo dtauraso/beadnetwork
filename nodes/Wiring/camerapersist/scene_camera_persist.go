@@ -30,8 +30,8 @@ func (p *ViewpointPersister) Schedule(v camera.Viewpoint) {
 func ViewpointToPolar(v camera.Viewpoint) *PolarCamera {
 	pivot := [3]float64{v.Pivot.X, v.Pivot.Y, v.Pivot.Z}
 	r := v.R
-	pos := [2]float64{v.Pos.Theta, v.Pos.Phi}
-	up := [2]float64{v.Up.Theta, v.Up.Phi}
+	pos := [2]float64{v.Pos.Phi, v.Pos.Theta}
+	up := [2]float64{v.Up.Phi, v.Up.Theta}
 	return &PolarCamera{Pivot: &pivot, R: &r, Pos: &pos, Up: &up}
 }
 

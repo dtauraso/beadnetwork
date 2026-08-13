@@ -2,8 +2,8 @@ import * as THREE from "three";
 import { getNodeFrame } from "./node-frame-aggregate";
 import { getViewBlocks } from "../view-blocks";
 import {
-  readNodeRingAxisTheta,
   readNodeRingAxisPhi,
+  readNodeRingAxisTheta,
   readNodeCX, readNodeCY, readNodeCZ, readNodeRadius,
   readOverlaySelSpherePoles,
   readOverlayNodeBody, readOverlayNodeRing, readOverlayRingPick,
@@ -69,8 +69,8 @@ export function updateNodeInstances(refs: NodeInstanceRefs, capacity: number, ca
     mat.compose(pos, quat, scl);
     body.setMatrixAt(slot, mat);
 
-    const poleTheta = readNodeRingAxisTheta(nodeView, row);
-    const polePhi = readNodeRingAxisPhi(nodeView, row);
+    const poleTheta = readNodeRingAxisPhi(nodeView, row);
+    const polePhi = readNodeRingAxisTheta(nodeView, row);
     const [ax, ay, az] = poleAxis(poleTheta, polePhi);
     ringAxis.set(ax, ay, az);
     ringQuat.setFromUnitVectors(TORUS_DEFAULT_NORMAL, ringAxis);

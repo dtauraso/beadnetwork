@@ -26,8 +26,8 @@ type FrameGeometryOutputs struct {
 	Center  vec3
 	SphereR float64
 
-	PoleTheta, PolePhi         float64
-	RingAxisTheta, RingAxisPhi float64
+	PolePhi, PoleTheta         float64
+	RingAxisPhi, RingAxisTheta float64
 
 	LatticePoints int32
 
@@ -47,22 +47,22 @@ func DeriveFrameGeometry(in FrameGeometryInputs) FrameGeometryOutputs {
 	}
 
 	if in.Geom.HasPos {
-		out.PoleTheta, out.PolePhi = polar.InwardPole(in.Geom.ScenePolar)
+		out.PolePhi, out.PoleTheta = polar.InwardPole(in.Geom.ScenePolar)
 	}
 
-	out.RingAxisTheta, out.RingAxisPhi = TorusDefaultAxisAngles()
+	out.RingAxisPhi, out.RingAxisTheta = TorusDefaultAxisAngles()
 
 	if in.UpAxis && in.Geom.HasPos && len(in.PartnerCenters) == 1 {
 		for _, partner := range in.PartnerCenters {
 			if t, p, ok := UprightRingAxis(nodegeom.NodeWorldPos(in.Geom), partner); ok {
-				out.RingAxisTheta, out.RingAxisPhi = t, p
+				out.RingAxisPhi, out.RingAxisTheta = t, p
 			}
 		}
 		out.TopTiltVectorLen = nodegeom.NodeRadius(in.Geom.Kind)
 	} else if in.CoplanarEdges && in.Geom.HasPos && len(in.PartnerCenters) == 1 {
 		for _, partner := range in.PartnerCenters {
-			if t, p, ok := PoleContainingEdge(out.PoleTheta, out.PolePhi, nodegeom.NodeWorldPos(in.Geom), partner); ok {
-				out.RingAxisTheta, out.RingAxisPhi = t, p
+			if t, p, ok := PoleContainingEdge(out.PolePhi, out.PoleTheta, nodegeom.NodeWorldPos(in.Geom), partner); ok {
+				out.RingAxisPhi, out.RingAxisTheta = t, p
 			}
 		}
 	}

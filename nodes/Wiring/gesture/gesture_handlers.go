@@ -116,7 +116,7 @@ func gestWheel(d Deps, ev inputcodec.RawInputMsg, tr *T.Trace) {
 		}
 		toTarget := target.Sub(eye)
 		distP := toTarget.Length()
-		rayDir := camera.AnglesToWorldOffset(1, vp.Pos.Theta, vp.Pos.Phi).Scale(-1)
+		rayDir := camera.AnglesToWorldOffset(1, vp.Pos.Phi, vp.Pos.Theta).Scale(-1)
 		if distP > 1e-9 {
 			rayDir = toTarget.Scale(1 / distP)
 		}

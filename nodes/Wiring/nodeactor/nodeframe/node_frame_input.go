@@ -17,9 +17,9 @@ type NodeFrameInput struct {
 	VRX, VRY, VRZ float32
 	FRX, FRY, FRZ float32
 
-	PoleTheta, PolePhi float32
+	PolePhi, PoleTheta float32
 
-	RingAxisTheta, RingAxisPhi float32
+	RingAxisPhi, RingAxisTheta float32
 
 	TopTiltVectorLen float32
 

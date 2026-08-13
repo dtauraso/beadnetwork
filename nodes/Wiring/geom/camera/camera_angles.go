@@ -8,11 +8,11 @@ import (
 // in and out instead of a Polar — not a second copy of the formula. The trig
 // lives once, in the polar package.
 
-func AnglesToWorldOffset(r, theta, phi float64) vec3 {
-	return polar.Polar2cart(polar.Polar{R: r, Theta: theta, Phi: phi})
+func AnglesToWorldOffset(r, phi, theta float64) vec3 {
+	return polar.Polar2cart(polar.Polar{R: r, Phi: phi, Theta: theta})
 }
 
 func WorldDirToAngles(v vec3) Dir {
 	p := polar.Cart2polar(v)
-	return Dir{Theta: p.Theta, Phi: p.Phi}
+	return Dir{Phi: p.Phi, Theta: p.Theta}
 }

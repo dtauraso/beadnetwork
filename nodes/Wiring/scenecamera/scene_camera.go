@@ -34,8 +34,8 @@ func LoadSceneViewpoint(topologyPath string) (pivot vec3, r float64, pos, up cam
 	}
 	pivot = vec3{X: cp.Pivot[0], Y: cp.Pivot[1], Z: cp.Pivot[2]}
 	r = *cp.R
-	pos = camera.Dir{Theta: cp.Pos[0], Phi: cp.Pos[1]}
-	up = camera.Dir{Theta: cp.Up[0], Phi: cp.Up[1]}
+	pos = camera.Dir{Phi: cp.Pos[0], Theta: cp.Pos[1]}
+	up = camera.Dir{Phi: cp.Up[0], Theta: cp.Up[1]}
 	return pivot, r, pos, up, true
 }
 
@@ -44,6 +44,6 @@ const DefaultViewpointR = 500.0
 func DefaultViewpoint() (pivot vec3, r float64, pos, up camera.Dir) {
 	return vec3{X: 0, Y: 0, Z: 0},
 		DefaultViewpointR,
-		camera.Dir{Theta: math.Pi / 2, Phi: math.Pi / 2},
-		camera.Dir{Theta: 0, Phi: 0}
+		camera.Dir{Phi: math.Pi / 2, Theta: math.Pi / 2},
+		camera.Dir{Phi: 0, Theta: 0}
 }

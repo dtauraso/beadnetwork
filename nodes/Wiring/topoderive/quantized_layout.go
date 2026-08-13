@@ -17,11 +17,11 @@ func ComputeQuantizedLayout(spec loadspec.TopoSpec, sphere polar.SceneSphere, ce
 	prior := make(map[string]quantoffset.QuantizedOffset, len(spec.Nodes))
 	for _, n := range spec.Nodes {
 		o := quantoffset.QuantizedOffset{}
-		if n.StepTheta != nil {
-			o.CTheta = *n.StepTheta
-		}
 		if n.StepPhi != nil {
 			o.CPhi = *n.StepPhi
+		}
+		if n.StepTheta != nil {
+			o.CTheta = *n.StepTheta
 		}
 		if n.StepR != nil {
 			o.CR = *n.StepR
@@ -34,7 +34,7 @@ func ComputeQuantizedLayout(spec loadspec.TopoSpec, sphere polar.SceneSphere, ce
 
 	exact := make(map[string]bool, len(spec.Nodes))
 	for _, n := range spec.Nodes {
-		if n.ScenePolarR != nil && n.ScenePolarTheta != nil && n.ScenePolarPhi != nil {
+		if n.ScenePolarR != nil && n.ScenePolarPhi != nil && n.ScenePolarTheta != nil {
 			exact[n.ID] = true
 			if off, ok := measured[n.ID]; ok {
 				offsets[n.ID] = off
@@ -43,17 +43,17 @@ func ComputeQuantizedLayout(spec loadspec.TopoSpec, sphere polar.SceneSphere, ce
 			}
 			continue
 		}
-		if n.QuantITheta != nil && n.QuantIPhi != nil && n.QuantIR != nil {
+		if n.QuantIPhi != nil && n.QuantITheta != nil && n.QuantIR != nil {
 			o := quantoffset.QuantizedOffset{
-				ITheta: *n.QuantITheta,
 				IPhi:   *n.QuantIPhi,
+				ITheta: *n.QuantITheta,
 				IR:     *n.QuantIR,
-			}
-			if n.StepTheta != nil {
-				o.CTheta = *n.StepTheta
 			}
 			if n.StepPhi != nil {
 				o.CPhi = *n.StepPhi
+			}
+			if n.StepTheta != nil {
+				o.CTheta = *n.StepTheta
 			}
 			if n.StepR != nil {
 				o.CR = *n.StepR

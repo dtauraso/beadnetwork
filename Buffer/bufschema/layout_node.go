@@ -15,11 +15,11 @@ type bufLayoutNode struct {
 	FRY float32 `buf:"f32"`
 	FRZ float32 `buf:"f32"`
 
-	PoleTheta float32 `buf:"f32"`
 	PolePhi   float32 `buf:"f32"`
+	PoleTheta float32 `buf:"f32"`
 
-	RingAxisTheta float32 `buf:"f32"`
 	RingAxisPhi   float32 `buf:"f32"`
+	RingAxisTheta float32 `buf:"f32"`
 
 	TopTiltVectorLen float32 `buf:"f32"`
 

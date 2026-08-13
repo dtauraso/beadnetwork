@@ -4,30 +4,30 @@ import "math"
 
 type Polar struct {
 	R     float64
-	Theta float64
 	Phi   float64
+	Theta float64
 }
 
 func Polar2cart(p Polar) vec3 {
-	st := math.Sin(p.Theta)
+	st := math.Sin(p.Phi)
 	return vec3{
-		X: p.R * st * math.Cos(p.Phi),
-		Y: p.R * math.Cos(p.Theta),
-		Z: p.R * st * math.Sin(p.Phi),
+		X: p.R * st * math.Cos(p.Theta),
+		Y: p.R * math.Cos(p.Phi),
+		Z: p.R * st * math.Sin(p.Theta),
 	}
 }
 
 // InwardPole is the direction opposite p — the one pointing back at the centre.
 //
-// It negates the VECTOR and converts, rather than computing pi-theta and
-// phi+pi. Those were angle arithmetic, and phi+pi is exactly the sum that could
+// It negates the VECTOR and converts, rather than computing pi-phi and
+// theta+pi. Those were angle arithmetic, and theta+pi is exactly the sum that could
 // land outside atan2's range and so needed wrapping. Coming back through
 // Cart2polar, the answer is in range because that is the only range atan2 has.
 // The zero-radius guard goes too: negating the zero vector is the zero vector,
 // which Cart2polar already answers with {0,0,0}.
-func InwardPole(p Polar) (theta, phi float64) {
+func InwardPole(p Polar) (phi, theta float64) {
 	back := Cart2polar(Polar2cart(p).Scale(-1))
-	return back.Theta, back.Phi
+	return back.Phi, back.Theta
 }
 
 // thetaOf is the polar angle down from world +y, for ANY cartesian vector —
@@ -51,16 +51,16 @@ func thetaOf(v vec3) float64 {
 
 // The zero vector needs no guard: nothing divides by r any more, and atan2(0,0)
 // is 0, so the origin answers {0,0,0} on its own. The guard was load-bearing
-// only while theta was acos(y/r).
+// only while phi was acos(y/r).
 func Cart2polar(v vec3) Polar {
-	return Polar{R: v.Length(), Theta: thetaOf(v), Phi: math.Atan2(v.Z, v.X)}
+	return Polar{R: v.Length(), Phi: thetaOf(v), Theta: math.Atan2(v.Z, v.X)}
 }
 
 // PolarDist is the distance between two points: the length of the vector from
 // one to the other.
 //
 // It was the spherical law of cosines feeding the law of cosines — trigonometry
-// to find a length, with an angle subtraction (a.Phi - b.Phi) inside it. That
+// to find a length, with an angle subtraction (a.Theta - b.Theta) inside it. That
 // form computes a.R^2 + b.R^2 - 2*a.R*b.R*cos, a difference of two large nearly
 // equal numbers for points close together, so rounding could drive the squared
 // distance below zero and it needed a guard before taking the square root.

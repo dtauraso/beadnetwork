@@ -21,9 +21,9 @@ type NodeStreamFrame struct {
 	VRX, VRY, VRZ float32
 	FRX, FRY, FRZ float32
 
-	PoleTheta, PolePhi float32
+	PolePhi, PoleTheta float32
 
-	RingAxisTheta, RingAxisPhi float32
+	RingAxisPhi, RingAxisTheta float32
 
 	TopTiltVectorLen float32
 
@@ -97,7 +97,7 @@ func BuildNodeStreamFrame(f NodeStreamFrame) []byte {
 	off += 4
 
 	B.SetNodeRow(buf[off:off+B.BufNodeStride], 0, f.NodeID, f.CX, f.CY, f.CZ, f.Radius, f.SphereR, f.VRX, f.VRY, f.VRZ, f.FRX, f.FRY, f.FRZ,
-		f.PoleTheta, f.PolePhi, f.RingAxisTheta, f.RingAxisPhi, f.TopTiltVectorLen, f.TopTiltVectorTheta, f.BottomTiltVectorTheta, f.CoplanarNormalTheta, f.ReceivedVectorLen, f.ReceivedVectorTheta, f.Selected, f.KindID, 0, uint32(len(labelBytes)), f.Hovered, f.LatchedSel, f.LatticePoints, f.RoundsToParallel, f.MsgsToParallel)
+		f.PolePhi, f.PoleTheta, f.RingAxisPhi, f.RingAxisTheta, f.TopTiltVectorLen, f.TopTiltVectorTheta, f.BottomTiltVectorTheta, f.CoplanarNormalTheta, f.ReceivedVectorLen, f.ReceivedVectorTheta, f.Selected, f.KindID, 0, uint32(len(labelBytes)), f.Hovered, f.LatchedSel, f.LatticePoints, f.RoundsToParallel, f.MsgsToParallel)
 	off += B.BufNodeStride
 
 	copy(buf[off:off+len(labelBytes)], labelBytes)

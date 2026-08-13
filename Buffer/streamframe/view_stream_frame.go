@@ -7,7 +7,7 @@ import (
 )
 
 func BuildViewStreamFrame(tick uint32,
-	camPX, camPY, camPZ, camR, camPosTheta, camPosPhi, camUpTheta, camUpPhi float32,
+	camPX, camPY, camPZ, camR, camPosPhi, camPosTheta, camUpPhi, camUpTheta float32,
 	overlay B.OverlayRow,
 	sceneCX, sceneCY, sceneCZ, sceneRadius float32,
 	tabNames []string, tabSelected uint16,
@@ -20,7 +20,7 @@ func BuildViewStreamFrame(tick uint32,
 	// Go/bundle skew announces itself instead of decoding into wrong columns.
 	binary.LittleEndian.PutUint32(buf[4:], B.BufLayoutFingerprintHash)
 	off := B.BufViewFrameHeaderSize
-	B.SetCameraRow(buf[off:], camPX, camPY, camPZ, camR, camPosTheta, camPosPhi, camUpTheta, camUpPhi)
+	B.SetCameraRow(buf[off:], camPX, camPY, camPZ, camR, camPosPhi, camPosTheta, camUpPhi, camUpTheta)
 	off += B.BufCameraStride
 	B.SetOverlayRow(buf[off:], overlay)
 	off += B.BufOverlayStride

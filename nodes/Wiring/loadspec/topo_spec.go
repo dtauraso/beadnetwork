@@ -19,15 +19,15 @@ type specNode struct {
 	R     *float64  `json:"r,omitempty"`
 
 	ScenePolarR     *float64 `json:"scenePolarR,omitempty"`
-	ScenePolarTheta *float64 `json:"scenePolarTheta,omitempty"`
 	ScenePolarPhi   *float64 `json:"scenePolarPhi,omitempty"`
+	ScenePolarTheta *float64 `json:"scenePolarTheta,omitempty"`
 
-	QuantITheta *int `json:"quantITheta,omitempty"`
 	QuantIPhi   *int `json:"quantIPhi,omitempty"`
+	QuantITheta *int `json:"quantITheta,omitempty"`
 	QuantIR     *int `json:"quantIR,omitempty"`
 
-	StepTheta *float64 `json:"stepTheta,omitempty"`
 	StepPhi   *float64 `json:"stepPhi,omitempty"`
+	StepTheta *float64 `json:"stepTheta,omitempty"`
 	StepR     *float64 `json:"stepR,omitempty"`
 
 	Gate bool `json:"gate,omitempty"`
@@ -45,8 +45,8 @@ func (n specNode) label() string {
 func (n specNode) ToNodeGeom(sceneCenter spatial.Vec3) nodegeom.NodeGeom {
 
 	g := nodegeom.NodeGeom{NodeIdentity: nodegeom.NodeIdentity{Kind: n.Type, Label: n.label(), R: n.R, SceneCenter: sceneCenter}}
-	if n.ScenePolarR != nil && n.ScenePolarTheta != nil && n.ScenePolarPhi != nil {
-		g.ScenePolar = polar.Polar{R: *n.ScenePolarR, Theta: *n.ScenePolarTheta, Phi: *n.ScenePolarPhi}
+	if n.ScenePolarR != nil && n.ScenePolarPhi != nil && n.ScenePolarTheta != nil {
+		g.ScenePolar = polar.Polar{R: *n.ScenePolarR, Phi: *n.ScenePolarPhi, Theta: *n.ScenePolarTheta}
 		g.HasPos = true
 	}
 	return g

@@ -8,7 +8,7 @@ import {
   readInteriorPresent, readInteriorValue, readInteriorOX, readInteriorOY, readInteriorOZ,
   readEdgeSX, readEdgeSY, readEdgeSZ, readEdgeEX, readEdgeEY, readEdgeEZ,
   readCameraPX, readCameraPY, readCameraPZ, readCameraR,
-  readCameraPosTheta, readCameraPosPhi, readCameraUpTheta, readCameraUpPhi,
+  readCameraPosPhi, readCameraPosTheta, readCameraUpPhi, readCameraUpTheta,
   readEventKind, readEventNodeRow, readEventPortRow, readEventTargetRow, readEventTargetPortRow,
   readEventEdgeRow, readEventSlot, readEventValue, readEventBead,
   readEventBeadSteps, readEventSimLatencyMs, readEventX, readEventY, readEventZ, readEventF,
@@ -118,8 +118,8 @@ export function decodeEventLine(ev: DataView, eventTextView: DataView, dn: Decod
       return {
         kind,
         px: readCameraPX(c), py: readCameraPY(c), pz: readCameraPZ(c), r: readCameraR(c),
-        posTheta: readCameraPosTheta(c), posPhi: readCameraPosPhi(c),
-        upTheta: readCameraUpTheta(c), upPhi: readCameraUpPhi(c),
+        posTheta: readCameraPosPhi(c), posPhi: readCameraPosTheta(c),
+        upTheta: readCameraUpPhi(c), upPhi: readCameraUpTheta(c),
       };
     }
     case "scene-sphere": {

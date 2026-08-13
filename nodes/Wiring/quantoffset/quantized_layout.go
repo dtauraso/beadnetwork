@@ -11,29 +11,29 @@ import (
 type vec3 = spatial.Vec3
 
 const (
-	stepTheta = math.Pi / 180
 	stepPhi   = math.Pi / 180
+	stepTheta = math.Pi / 180
 
 	stepR = lattice.BeadStepR
 )
 
 type QuantizedOffset struct {
-	ITheta int
 	IPhi   int
+	ITheta int
 	IR     int
 
-	CTheta float64
 	CPhi   float64
+	CTheta float64
 	CR     float64
 }
 
 func (o QuantizedOffset) EffectiveSteps() (t, p, r float64) {
-	t, p, r = o.CTheta, o.CPhi, o.CR
+	t, p, r = o.CPhi, o.CTheta, o.CR
 	if t == 0 {
-		t = stepTheta
+		t = stepPhi
 	}
 	if p == 0 {
-		p = stepPhi
+		p = stepTheta
 	}
 	if r == 0 {
 		r = stepR
@@ -52,11 +52,11 @@ func MeasureScalars(centers map[string]vec3, ids map[string]bool, sceneCenter ve
 		t, p_, r := carried.EffectiveSteps()
 		p := polar.Cart2polar(pos.Sub(sceneCenter))
 		result[id] = QuantizedOffset{
-			ITheta: int(math.Round(p.Theta / t)),
-			IPhi:   int(math.Round(p.Phi / p_)),
+			IPhi:   int(math.Round(p.Phi / t)),
+			ITheta: int(math.Round(p.Theta / p_)),
 			IR:     int(math.Round(p.R / r)),
-			CTheta: carried.CTheta,
 			CPhi:   carried.CPhi,
+			CTheta: carried.CTheta,
 			CR:     carried.CR,
 		}
 	}
@@ -66,18 +66,18 @@ func MeasureScalars(centers map[string]vec3, ids map[string]bool, sceneCenter ve
 func MeasureScalar(p polar.Polar, prior QuantizedOffset) QuantizedOffset {
 	t, p_, r := prior.EffectiveSteps()
 	return QuantizedOffset{
-		ITheta: int(math.Round(p.Theta / t)),
-		IPhi:   int(math.Round(p.Phi / p_)),
+		IPhi:   int(math.Round(p.Phi / t)),
+		ITheta: int(math.Round(p.Theta / p_)),
 		IR:     int(math.Round(p.R / r)),
-		CTheta: prior.CTheta,
 		CPhi:   prior.CPhi,
+		CTheta: prior.CTheta,
 		CR:     prior.CR,
 	}
 }
 
 func offsetScenePolar(o QuantizedOffset) polar.Polar {
 	t, p, r := o.EffectiveSteps()
-	return polar.Polar{R: float64(o.IR) * r, Theta: float64(o.ITheta) * t, Phi: float64(o.IPhi) * p}
+	return polar.Polar{R: float64(o.IR) * r, Phi: float64(o.IPhi) * t, Theta: float64(o.ITheta) * p}
 }
 
 func DeriveCenters(scalars map[string]QuantizedOffset, sceneCenter vec3) map[string]vec3 {
@@ -89,13 +89,13 @@ func DeriveCenters(scalars map[string]QuantizedOffset, sceneCenter vec3) map[str
 }
 
 func NormalizeOffset(o QuantizedOffset) QuantizedOffset {
-	if o.CTheta != 0 && math.Abs(o.CTheta-stepTheta) > 1e-9 {
-		o.ITheta = int(math.Round(float64(o.ITheta) * o.CTheta / stepTheta))
-		o.CTheta = stepTheta
-	}
 	if o.CPhi != 0 && math.Abs(o.CPhi-stepPhi) > 1e-9 {
 		o.IPhi = int(math.Round(float64(o.IPhi) * o.CPhi / stepPhi))
 		o.CPhi = stepPhi
+	}
+	if o.CTheta != 0 && math.Abs(o.CTheta-stepTheta) > 1e-9 {
+		o.ITheta = int(math.Round(float64(o.ITheta) * o.CTheta / stepTheta))
+		o.CTheta = stepTheta
 	}
 	if o.CR != 0 && math.Abs(o.CR-stepR) > 1e-9 {
 		o.IR = int(math.Round(float64(o.IR) * o.CR / stepR))
