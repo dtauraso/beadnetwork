@@ -48,26 +48,35 @@ func (m *EdgeMover) streamBreadcrumb(label uint8, value string) {
 	}})
 }
 
-// noteBeadCount reports only when this edge's bead count CHANGES, so a stream
-// that is working produces two lines per traversal rather than one per tick.
+// noteBeadCount reports the FIRST time each bead is seen, by generation, and
+// how far along it already was at that moment.
+//
+// Reporting on a count change instead was measuring the wrong thing: it named
+// whichever bead sat at index 0, so an old bead most of the way across looked
+// exactly like a new one starting there. What matters is the earliest
+// position a bead is ever observed at — if that is not near zero, the bead is
+// being sampled for the first time long after it was placed, and it will
+// appear on screen to start partway down the edge.
 func (m *EdgeMover) noteBeadCount(rows []wire.LiveBeadRow) {
-	if len(rows) == m.lastBeadCount {
+	seg := edgegeom.EdgeSegment(m.srcGeom, m.dstGeom)
+	d := seg.End.Sub(seg.Start)
+	l2 := d.Dot(d)
+	if l2 <= 0 {
 		return
 	}
-	m.lastBeadCount = len(rows)
-	seg := edgegeom.EdgeSegment(m.srcGeom, m.dstGeom)
-	along := "none"
-	if len(rows) > 0 {
-		d := seg.End.Sub(seg.Start)
-		if l2 := d.Dot(d); l2 > 0 {
-			b := rows[0]
-			p := vec3{X: b.X, Y: b.Y, Z: b.Z}.Sub(seg.Start)
-			along = fmt.Sprintf("%.3f", p.Dot(d)/l2)
+	for _, b := range rows {
+		if m.seenBeadGens[b.Gen] {
+			continue
 		}
+		if m.seenBeadGens == nil {
+			m.seenBeadGens = map[uint64]bool{}
+		}
+		m.seenBeadGens[b.Gen] = true
+		p := vec3{X: b.X, Y: b.Y, Z: b.Z}.Sub(seg.Start)
+		m.breadcrumb(T.BreadcrumbEdgeBeads, "edge-beads", fmt.Sprintf(
+			"src=%s dst=%s gen=%d firstSeenAlong=%.3f inFlight=%d steps=%d",
+			m.srcID, m.dstID, b.Gen, p.Dot(d)/l2, len(rows), m.steps))
 	}
-	m.breadcrumb(T.BreadcrumbEdgeBeads, "edge-beads", fmt.Sprintf(
-		"src=%s dst=%s beads=%d firstAlong=%s steps=%d",
-		m.srcID, m.dstID, len(rows), along, m.steps))
 }
 
 func (m *EdgeMover) writeStreamFrame(tick int64, events []rowevent.RowEvent) {

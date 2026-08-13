@@ -38,9 +38,9 @@ type EdgeMover struct {
 	beadRowsIn   chan []wire.LiveBeadRow
 	lastBeadRows []wire.LiveBeadRow
 
-	// lastBeadCount is what the edge-beads breadcrumb last reported, so it
-	// speaks on a change rather than once per tick.
-	lastBeadCount int
+	// seenBeadGens is which beads this edge has already reported, so the
+	// breadcrumb speaks once per bead rather than once per tick.
+	seenBeadGens map[uint64]bool
 
 	steps int
 	tr    *T.Trace
