@@ -16,10 +16,22 @@ type Rot struct {
 	Angle float64
 }
 
+// AngularDistance is the angle between two directions on the sphere.
+//
+// The spherical law of cosines gives cos of that angle; its SINE is the length
+// of the same two components the azimuth below is built from. Feeding both to
+// atan2 removes acos's domain — the clamp existed only because rounding pushes
+// the cosine past ±1 for nearly-equal directions — and is far more accurate for
+// small angles, where cosine is flat and acos loses most of its digits.
 func AngularDistance(a, b Dir) float64 {
-	cd := math.Cos(a.Theta)*math.Cos(b.Theta) +
-		math.Sin(a.Theta)*math.Sin(b.Theta)*math.Cos(a.Phi-b.Phi)
-	return math.Acos(polar.Clamp(cd, -1, 1))
+	dphi := b.Phi - a.Phi
+	cosD := math.Cos(a.Theta)*math.Cos(b.Theta) +
+		math.Sin(a.Theta)*math.Sin(b.Theta)*math.Cos(dphi)
+	sinD := math.Hypot(
+		math.Sin(b.Theta)*math.Sin(dphi),
+		math.Sin(a.Theta)*math.Cos(b.Theta)-math.Cos(a.Theta)*math.Sin(b.Theta)*math.Cos(dphi),
+	)
+	return math.Atan2(sinD, cosD)
 }
 
 func AzimuthFrom(pole, p Dir) (c, psi float64) {
@@ -33,12 +45,16 @@ func AzimuthFrom(pole, p Dir) (c, psi float64) {
 }
 
 func FromAxisFrame(pole Dir, c, psi float64) Dir {
-	cosT := polar.Clamp(math.Cos(pole.Theta)*math.Cos(c)+math.Sin(pole.Theta)*math.Sin(c)*math.Cos(psi), -1, 1)
-	theta := math.Acos(cosT)
-	dphi := math.Atan2(
-		math.Sin(c)*math.Sin(psi),
-		math.Sin(pole.Theta)*math.Cos(c)-math.Cos(pole.Theta)*math.Sin(c)*math.Cos(psi),
-	)
+	// The same two components serve twice: atan2'd against each other they are
+	// the azimuth step, and their length is sin(theta) to the cosine's cos —
+	// so theta comes out of atan2 as well, with no acos and no clamp.
+	tangential := math.Sin(c) * math.Sin(psi)
+	meridional := math.Sin(pole.Theta)*math.Cos(c) - math.Cos(pole.Theta)*math.Sin(c)*math.Cos(psi)
+
+	cosT := math.Cos(pole.Theta)*math.Cos(c) + math.Sin(pole.Theta)*math.Sin(c)*math.Cos(psi)
+	theta := math.Atan2(math.Hypot(tangential, meridional), cosT)
+	dphi := math.Atan2(tangential, meridional)
+
 	return Dir{Theta: theta, Phi: polar.WrapPi(pole.Phi + dphi)}
 }
 

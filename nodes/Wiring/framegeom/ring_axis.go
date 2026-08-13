@@ -19,7 +19,8 @@ func PoleContainingEdge(poleTheta, polePhi float64, selfCenter, partnerCenter ve
 		return 0, 0, false
 	}
 	u := projected.Normalize()
-	return math.Acos(polar.Clamp(u.Y, -1, 1)), math.Atan2(u.Z, u.X), true
+	p := polar.Cart2polar(u)
+	return p.Theta, p.Phi, true
 }
 
 func TorusDefaultAxisAngles() (theta, phi float64) {
@@ -36,5 +37,6 @@ func UprightRingAxis(selfCenter, partnerCenter vec3) (theta, phi float64, ok boo
 		return 0, 0, false
 	}
 	u := n.Normalize()
-	return math.Acos(polar.Clamp(u.Y, -1, 1)), math.Atan2(u.Z, u.X), true
+	p := polar.Cart2polar(u)
+	return p.Theta, p.Phi, true
 }

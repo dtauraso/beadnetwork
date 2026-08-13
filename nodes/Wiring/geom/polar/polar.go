@@ -24,14 +24,31 @@ func InwardPole(p Polar) (theta, phi float64) {
 	return math.Pi - p.Theta, WrapPi(p.Phi + math.Pi)
 }
 
+// thetaOf is the polar angle down from world +y, for ANY cartesian vector —
+// unit or not, zero included.
+//
+// hypot(x,z) is r·sinθ and y is r·cosθ, so atan2 of the two is θ with r
+// cancelled. The first argument is never negative, which is what pins the
+// result to [0,π] — the same range acos(y/r) gave, reached without acos's
+// domain: no clamp, no NaN when rounding pushes y/r past ±1, and no separate
+// zero-radius branch, since atan2(0,0) is 0.
+//
+// It is also better conditioned exactly where this layout works. dθ/d(cosθ) =
+// -1/sinθ blows up at the poles, so the acos form amplified error precisely
+// for vectors along the pole axis; atan2 reads both legs instead of one ratio.
+// It is UNEXPORTED on purpose. Cart2polar is the one way in, so no caller can
+// compute half a conversion by hand — which is how the same two lines came to
+// be written in five places.
+func thetaOf(v vec3) float64 {
+	return math.Atan2(math.Hypot(v.X, v.Z), v.Y)
+}
+
 func Cart2polar(v vec3) Polar {
 	r := v.Length()
 	if r == 0 {
 		return Polar{}
 	}
-	theta := math.Acos(Clamp(v.Y/r, -1, 1))
-	phi := math.Atan2(v.Z, v.X)
-	return Polar{R: r, Theta: theta, Phi: phi}
+	return Polar{R: r, Theta: thetaOf(v), Phi: math.Atan2(v.Z, v.X)}
 }
 
 func PolarDist(a, b Polar) float64 {
@@ -42,16 +59,6 @@ func PolarDist(a, b Polar) float64 {
 		return 0
 	}
 	return math.Sqrt(d2)
-}
-
-func Clamp(v, lo, hi float64) float64 {
-	if v < lo {
-		return lo
-	}
-	if v > hi {
-		return hi
-	}
-	return v
 }
 
 func WrapPi(a float64) float64 {
