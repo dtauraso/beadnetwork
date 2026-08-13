@@ -1,6 +1,7 @@
 package camera
 
 import (
+	"fmt"
 	"math"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
@@ -54,28 +55,28 @@ func RotateDir(p, axis Dir, angle float64) Dir {
 // ArcBetween is the rotation carrying `from` to `to`: the axis is perpendicular
 // to both, and the angle is the distance between them.
 //
-// The one branch left in this file is here, and it is not a formula artifact —
-// it is the geometry having no unique answer. When the two directions are
-// ANTIPARALLEL the turn is 180 degrees and EVERY perpendicular axis performs
-// it; no expression can choose one continuously (you cannot comb a sphere), so
-// something has to pick.
+// The parallel case needs no handling. The cross product is zero, so the angle
+// is zero, and a zero-degree turn is the identity about any axis — including
+// the one the zero vector converts to. That case is COMMON: a pointer-move
+// event with no movement produces it.
 //
-// The parallel case needs no branch: the cross product is zero, so the angle is
-// zero, and a zero-degree turn about any axis — including the one the zero
-// vector converts to — is the identity.
+// The antiparallel case is not handled because it cannot be produced, and the
+// code no longer pretends otherwise. It asserts instead.
 func ArcBetween(from, to Dir) Rot {
 	fv, tv := dirToVec(from), dirToVec(to)
 	cross := fv.Cross(tv)
-	angle := math.Atan2(cross.Length(), fv.Dot(tv))
+	dot := fv.Dot(tv)
 
-	if cross.Length() < 1e-12 && fv.Dot(tv) < 0 {
-		// Cross with whichever world axis `from` is least aligned with, so the
-		// perpendicular we pick is the best conditioned one available.
-		alt := vec3{X: 1}
-		if math.Abs(fv.X) > 0.9 {
-			alt = vec3{Y: 1}
-		}
-		return Rot{Axis: vecToDir(fv.Cross(alt)), Angle: angle}
+	if cross.Length() < 1e-12 && dot < 0 {
+		panic(fmt.Sprintf(
+			"camera.ArcBetween: asked for the rotation from (theta=%.6f,phi=%.6f) to its exact "+
+				"opposite (theta=%.6f,phi=%.6f) — every perpendicular axis performs that 180-degree "+
+				"turn and none is more correct, so there is no rotation to name. These two are "+
+				"consecutive samples of ONE pointer during a drag (gesture handlers -> "+
+				"Viewpoint.Orbit), which cannot reach the antipode between two events; whatever "+
+				"produced this pair is not sampling a drag.",
+			from.Theta, from.Phi, to.Theta, to.Phi))
 	}
-	return Rot{Axis: vecToDir(cross), Angle: angle}
+
+	return Rot{Axis: vecToDir(cross), Angle: math.Atan2(cross.Length(), dot)}
 }
