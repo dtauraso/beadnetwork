@@ -10,7 +10,7 @@ import {
 import { navSignature } from "./nav-signature";
 import { PolarFrame } from "./polar-frame";
 import { SceneVectors } from "./SceneVectors";
-import { OutNeighborPoles } from "./OutNeighborPoles";
+import { NodePoles } from "./NodePoles";
 import { getNodeOutPoles, type NodeOutPoles } from "../scene/nodes/node-out-poles";
 
 export function NavGuides() {
@@ -53,14 +53,11 @@ export function NavGuides() {
     [navTick],
   );
 
-  // A node with outgoing neighbours shows one frame per neighbour instead of
-  // the single world-aligned frame; a node with none keeps that single frame.
   const outPoles = useMemo<NodeOutPoles[]>(
     () => outPolesRef.current,
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [navTick],
   );
-  const polesByRow = useMemo(() => new Set(outPoles.map((p) => p.row)), [outPoles]);
 
   const latchedSel = navNodes.find((n) => n.latchedSel)?.row ?? null;
 
@@ -127,17 +124,7 @@ export function NavGuides() {
       {}
       {}
       {}
-      {showNodePoles && <OutNeighborPoles nodes={outPoles} />}
-      {}
-      {showNodePoles && navNodes.filter((n) => !polesByRow.has(n.row)).map((node) => (
-        <PolarFrame
-          key={node.row}
-          center={node.center}
-          scale={node.radius}
-          tag={`(${node.label})`}
-
-        />
-      ))}
+      {showNodePoles && <NodePoles nodes={navNodes} outPoles={outPoles} />}
       {}
       {showSelPoles && sphereCenters.map((center) => (
         <PolarFrame
