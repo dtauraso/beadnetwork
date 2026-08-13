@@ -2,7 +2,7 @@ import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { getChainBeads } from "../nodes/node-stream-blocks";
-import { beadStyleForValue, COMM_BEAD_STYLE } from "./bead-style";
+import { beadStyleForValue } from "./bead-style";
 import { overlayOn } from "../../controls/flags/overlay-flags";
 import { readOverlayCommEdges } from "../../../../schema/buffer-layout/buffer-layout";
 import {
@@ -39,15 +39,14 @@ export function ChainBeadInstances({ capacity }: { capacity: number }) {
     let litCount = 0;
     let ringCount = 0;
     for (let i = 0; i < drawn; i++) {
-      // A comm bead is part of an edge that carries a position, not a
-      // value, so the whole chain draws whether or not a bead is lit —
-      // an edge is a line, not the beads that happen to be travelling
-      // it. With the overlay off these fall back to animation beads.
-      const isComm = showComm && comm[i] === 1;
-      const style = isComm ? COMM_BEAD_STYLE : beadStyleForValue(litValue[i]);
+      // A comm edge is drawn as a line and an arrow, by EdgeLines, so its
+      // beads are not drawn at all while the overlay is on — that is what
+      // taking the animation edge off those paths means.
+      if (showComm && comm[i] === 1) continue;
 
-      if (!isComm && lit[i] !== 1) continue;
+      if (lit[i] !== 1) continue;
 
+      const style = beadStyleForValue(litValue[i]);
       if (!style) continue;
 
       matRef.current.makeTranslation(positions[i * 3]!, positions[i * 3 + 1]!, positions[i * 3 + 2]!);
@@ -60,7 +59,7 @@ export function ChainBeadInstances({ capacity }: { capacity: number }) {
         BEAD_UNIT_SCALE,
       );
       ring.setMatrixAt(ringCount, beadRingMatRef.current);
-      ring.setColorAt(ringCount, colRef.current.set(isComm ? style.ring : RING_COLOR));
+      ring.setColorAt(ringCount, colRef.current.set(RING_COLOR));
       ringCount++;
 
       litBody.setMatrixAt(litCount, matRef.current);

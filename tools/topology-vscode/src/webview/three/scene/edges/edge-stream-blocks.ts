@@ -2,6 +2,7 @@ import { getLatestEdgeStreamFrames } from "../../../snapshot-buffer";
 import { decodeEdgeStreamFrame, type DecodedEdgeStreamFrame } from "../../decode/buffer-decode-edge";
 import {
   readEdgeSX, readEdgeSY, readEdgeSZ, readEdgeEX, readEdgeEY, readEdgeEZ,
+  readEdgeSrcNodeRow,
 } from "../../../../schema/buffer-layout/buffer-layout";
 
 export interface EdgeAccessor {
@@ -9,6 +10,10 @@ export interface EdgeAccessor {
   edgeCount: number;
 
   segment(row: number): [number, number, number, number, number, number];
+
+  // srcNodeRow is the node this edge leaves, or -1 when the frame does not
+  // name one. The segment says where an edge is, never whose it is.
+  srcNodeRow(row: number): number;
 
 }
 
@@ -32,6 +37,10 @@ export function getEdgeStreamAccessor(): EdgeAccessor | null {
         readEdgeSX(d.edgeView, 0), readEdgeSY(d.edgeView, 0), readEdgeSZ(d.edgeView, 0),
         readEdgeEX(d.edgeView, 0), readEdgeEY(d.edgeView, 0), readEdgeEZ(d.edgeView, 0),
       ];
+    },
+    srcNodeRow(row) {
+      const d = decodedFor(frames, row);
+      return d ? readEdgeSrcNodeRow(d.edgeView, 0) : -1;
     },
   };
 }

@@ -22,17 +22,20 @@ func (m *EdgeMover) writeStreamFrame(tick int64, events []rowevent.RowEvent) {
 	}
 
 	seg := edgegeom.EdgeSegment(m.srcGeom, m.dstGeom)
-	if m.dest != nil {
 
-		nodeRow, targetRow := int32(-1), int32(-1)
-		if m.nodeRowFor != nil {
-			if r, ok := m.nodeRowFor(m.srcID); ok {
-				nodeRow = r
-			}
-			if r, ok := m.nodeRowFor(m.dstID); ok {
-				targetRow = r
-			}
+	// The source row rides the frame itself, not just its events: it is
+	// what says whose edge this is, and the renderer needs that whether or
+	// not this edge has a destination draining events this tick.
+	nodeRow, targetRow := int32(-1), int32(-1)
+	if m.nodeRowFor != nil {
+		if r, ok := m.nodeRowFor(m.srcID); ok {
+			nodeRow = r
 		}
+		if r, ok := m.nodeRowFor(m.dstID); ok {
+			targetRow = r
+		}
+	}
+	if m.dest != nil {
 		for _, pe := range m.dest.DrainPendingEvents() {
 			events = append(events, rowevent.RowEvent{
 				Kind: pe.Kind, NodeRow: nodeRow, PortRow: -1,
@@ -52,7 +55,7 @@ func (m *EdgeMover) writeStreamFrame(tick int64, events []rowevent.RowEvent) {
 	frame := m.buildFrame(uint32(tick),
 		float32(seg.Start.X), float32(seg.Start.Y), float32(seg.Start.Z),
 		float32(seg.End.X), float32(seg.End.Y), float32(seg.End.Z),
-		m.edgeID, events)
+		nodeRow, m.edgeID, events)
 	var hdr [4]byte
 	binary.LittleEndian.PutUint32(hdr[:], uint32(len(frame)))
 

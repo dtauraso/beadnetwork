@@ -56,7 +56,7 @@ func (sw *StreamWiring) SetEdgeStreams(
 	edgeMovers map[string]*edgemover.EdgeMover,
 	baseFd int,
 	nodeRowFor func(id string) (int32, bool),
-	buildFrame func(tick uint32, sx, sy, sz, ex, ey, ez float32, label string, events []rowevent.RowEvent) []byte,
+	buildFrame func(tick uint32, sx, sy, sz, ex, ey, ez float32, srcNodeRow int32, label string, events []rowevent.RowEvent) []byte,
 ) {
 	for row, seed := range edgeSeeds {
 		em, ok := edgeMovers[seed.Label]
