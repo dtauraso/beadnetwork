@@ -1,6 +1,7 @@
 import {
   NODE_STRIDE,
   CHAIN_BEAD_STRIDE,
+  OUT_POLE_STRIDE,
   readNodeLabelOff,
   readNodeLabelLen,
   readNodeNodeId,
@@ -8,7 +9,22 @@ import {
 import { BUF_NODE_STREAM_FRAME_HEADER_SIZE } from "../../../schema/buffer-layout/frame-tags";
 import { STR_DECODER, decodeTrailingEvents } from "./buffer-decode-shared";
 
+// A mismatch is a per-frame condition, so it repeats every tick for every bad
+// row until the cause is fixed — and the report is a dynamic import() plus a
+// postMessage to the extension host plus a disk write. Unthrottled, one skewed
+// buffer layout produced 5088 reports in 10.1 seconds and wedged the extension
+// host, which is what made "Developer: Reload Window" stop responding.
+//
+// Report each DISTINCT (row, statedId) once. That keeps the diagnostic — a new
+// wrong id still speaks up immediately — while a stuck condition costs nothing
+// after its first frame.
+const reportedNodeIdMismatches = new Set<string>();
+
 function reportNodeIdMismatch(row: number, expectedId: number, statedId: number): void {
+  const seenKey = `${row}:${statedId}`;
+  if (reportedNodeIdMismatches.has(seenKey)) return;
+  reportedNodeIdMismatches.add(seenKey);
+
   const message = `node stream frame arrived on row ${row} (expected id ${expectedId}) but carries NodeId ${statedId}`;
   if (typeof window === "undefined") {
     // eslint-disable-next-line no-console
@@ -56,6 +72,10 @@ export interface DecodedNodeStreamFrame {
 
   chainBeadView: DataView;
 
+  outPoleCount: number;
+
+  outPoleView: DataView;
+
   eventCount: number;
   eventView: DataView;
   eventTextView: DataView;
@@ -88,9 +108,11 @@ function decodeNodeStreamFrameUncached(buf: ArrayBuffer): DecodedNodeStreamFrame
   const tick               = hdr.getUint32(0,  true);
   const labelLen           = hdr.getUint32(4,  true);
   const chainBeadCount     = hdr.getUint32(8,  true);
+  const outPoleCount       = hdr.getUint32(12, true);
 
   const chainBeadBytes = chainBeadCount * CHAIN_BEAD_STRIDE;
-  const expectedLen = BUF_NODE_STREAM_FRAME_HEADER_SIZE + NODE_STRIDE + labelLen + chainBeadBytes;
+  const outPoleBytes = outPoleCount * OUT_POLE_STRIDE;
+  const expectedLen = BUF_NODE_STREAM_FRAME_HEADER_SIZE + NODE_STRIDE + labelLen + chainBeadBytes + outPoleBytes;
   if (buf.byteLength < expectedLen) return null;
 
   let off = BUF_NODE_STREAM_FRAME_HEADER_SIZE;
@@ -104,7 +126,10 @@ function decodeNodeStreamFrameUncached(buf: ArrayBuffer): DecodedNodeStreamFrame
   const chainBeadView = new DataView(buf, off, chainBeadBytes);
   off += chainBeadBytes;
 
+  const outPoleView = new DataView(buf, off, outPoleBytes);
+  off += outPoleBytes;
+
   const { count: eventCount, view: eventView, textView: eventTextView } = decodeTrailingEvents(buf, off);
 
-  return { tick, nodeView, label, chainBeadCount, chainBeadView, eventCount, eventView, eventTextView };
+  return { tick, nodeView, label, chainBeadCount, chainBeadView, outPoleCount, outPoleView, eventCount, eventView, eventTextView };
 }

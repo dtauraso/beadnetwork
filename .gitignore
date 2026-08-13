@@ -81,6 +81,10 @@ tools/topology-vscode/gen-node-defs
 /.topogend-token
 
 # Pulse-probe dump from the visual editor's webview (workspace-local, transient)
+# Anchored on purpose: the repo root is the ONLY place a probe dir belongs (see
+# tools/topology-vscode/src/repo-root.ts). One written anywhere else is a bug,
+# and leaving it unignored is what surfaces it — it shows up as an untracked
+# dir and blocks tools/new-task.sh instead of sitting there unnoticed.
 /.probe/
 
 # Prebuilt Go binary cache (built once by the editor runner; not for VCS)

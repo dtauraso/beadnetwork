@@ -50,6 +50,25 @@ func (m *NodeGeometry) chainBeads() (ox, oy, oz []float32, lit []uint8, litVal [
 	return ox, oy, oz, lit, litVal, breadcrumbs
 }
 
+// outPoles is one direction per OUTGOING neighbour, in outTargets order: the
+// stored path vector itself, which the editor draws as that edge's +y pole.
+// n outgoing neighbours, n poles. The vector is sent as stored — scaling it to
+// unit length is an orientation detail of the frame the editor draws, so the
+// only sqrt in the chain stays on the render side. A zero path has no
+// direction, so it contributes no pole.
+func (m *NodeGeometry) outPoles() (dx, dy, dz []float32) {
+	for _, to := range m.outTargets {
+		path, ok := m.topo.PathTo(to)
+		if !ok || (path.X == 0 && path.Y == 0 && path.Z == 0) {
+			continue
+		}
+		dx = append(dx, float32(path.X))
+		dy = append(dy, float32(path.Y))
+		dz = append(dz, float32(path.Z))
+	}
+	return dx, dy, dz
+}
+
 // drainPulses applies the most recently received gathered-pulses message
 // from the animation peer, non-blocking. Between animation cycles geometry
 // keeps rendering with the last pulses it received.

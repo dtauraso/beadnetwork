@@ -10,6 +10,7 @@ import { armHostReloadWatcher } from "./extension/host-reload-watcher";
 import { armBundleWatcher } from "./extension/bundle-watcher";
 import { armGoWatcher } from "./extension/go-watcher";
 import { PROBE_FILES } from "./probe-files";
+import { resolveRepoRoot } from "./repo-root";
 
 export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
@@ -36,9 +37,12 @@ function resetProbeLogs(repoRoot: string): void {
 function resolveTopologyPath(folderUri?: vscode.Uri): string | undefined {
   if (folderUri) return folderUri.fsPath;
 
-  const folder = vscode.workspace.workspaceFolders?.[0];
-  if (folder) {
-    const candidate = path.join(folder.uri.fsPath, "topology");
+  // From the git root, not the workspace folder: with the window open on a
+  // subdirectory (tools/topology-vscode, say) <subdir>/topology does not exist,
+  // so this returned undefined and the editor opened with nothing to load.
+  const root = resolveRepoRoot(vscode.workspace.workspaceFolders?.[0]?.uri.fsPath);
+  if (root) {
+    const candidate = path.join(root, "topology");
     if (fs.existsSync(candidate)) return candidate;
   }
   return undefined;
@@ -53,7 +57,11 @@ function wireMessageHandler(
   panel.webview.onDidReceiveMessage((raw) => {
     const workspaceFolder = folderUri ? vscode.workspace.getWorkspaceFolder(folderUri) : undefined;
 
-    const logUri = workspaceFolder?.uri ?? folderUri ?? vscode.workspace.workspaceFolders?.[0]?.uri;
+    const repoRootUri = (() => {
+      const root = resolveRepoRoot(vscode.workspace.workspaceFolders?.[0]?.uri.fsPath);
+      return root ? vscode.Uri.file(root) : undefined;
+    })();
+    const logUri = workspaceFolder?.uri ?? folderUri ?? repoRootUri;
     void handleMessage(raw, { logUri, runner, post }).catch((err: unknown) => {
       console.error("topology: handleMessage failed", err);
     });
@@ -63,7 +71,7 @@ function wireMessageHandler(
 function openTopologyEditor(context: vscode.ExtensionContext, folderUri?: vscode.Uri): void {
   const topologyPath = resolveTopologyPath(folderUri);
 
-  const probeRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+  const probeRoot = resolveRepoRoot(vscode.workspace.workspaceFolders?.[0]?.uri.fsPath);
   if (probeRoot) resetProbeLogs(probeRoot);
 
   const panel = vscode.window.createWebviewPanel(
@@ -88,7 +96,7 @@ function openTopologyEditor(context: vscode.ExtensionContext, folderUri?: vscode
 
   const bundleWatcher = armBundleWatcher(panel, context);
 
-  const repoRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+  const repoRoot = resolveRepoRoot(vscode.workspace.workspaceFolders?.[0]?.uri.fsPath);
   const goWatcher = armGoWatcher(repoRoot, runner, panel);
 
   context.subscriptions.push(runner);

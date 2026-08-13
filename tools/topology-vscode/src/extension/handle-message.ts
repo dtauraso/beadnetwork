@@ -9,6 +9,7 @@ import {
 } from "../messages";
 import { appendWebviewLog } from "./webview-log";
 import { PROBE_DIR, PROBE_FILES } from "../probe-files";
+import { resolveRepoRoot } from "../repo-root";
 import { BUF_BLOCK_TAG_VIEW, BUF_BLOCK_TAG_EDGE_STREAM, BUF_BLOCK_TAG_NODE_STREAM, BUF_BLOCK_TAG_INTERIOR_STREAM } from "../schema/buffer-layout/frame-tags";
 
 export type MessageCtx = {
@@ -105,6 +106,8 @@ async function dispatch(msg: WebviewToHostMsg, ctx: MessageCtx): Promise<void> {
   }
 }
 
+// The git root, not the workspace folder — see repo-root.ts. Opening the window
+// on a subdirectory must not move where the repo's files are read and written.
 function workspaceRoot(): string | undefined {
-  return vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+  return resolveRepoRoot(vscode.workspace.workspaceFolders?.[0]?.uri.fsPath);
 }

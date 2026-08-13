@@ -49,6 +49,10 @@ type NodeStreamFrame struct {
 	ChainBeadLit                          []uint8
 	ChainBeadLitValue                     []int32
 
+	// OutPole* is one unit direction per OUTGOING neighbour — the pole of that
+	// edge's frame, pointing along the path vector the node stores for it.
+	OutPoleDX, OutPoleDY, OutPoleDZ []float32
+
 	Events []StreamEvent
 }
 
@@ -67,8 +71,20 @@ func BuildNodeStreamFrame(f NodeStreamFrame) []byte {
 		}
 	}
 
+	outPoleCount := len(f.OutPoleDX)
+	for _, s := range []struct {
+		name string
+		n    int
+	}{{"OutPoleDY", len(f.OutPoleDY)}, {"OutPoleDZ", len(f.OutPoleDZ)}} {
+		if s.n != outPoleCount {
+			panic(fmt.Sprintf(
+				"BuildNodeStreamFrame: node row %d has %d out-pole DX entries but %s has %d — the out-pole slices are parallel, one entry per outgoing neighbour",
+				f.NodeRow, outPoleCount, s.name, s.n))
+		}
+	}
+
 	size := B.BufNodeStreamFrameHeaderSize + B.BufNodeStride + len(labelBytes) +
-		chainBeadCount*B.BufChainBeadStride
+		chainBeadCount*B.BufChainBeadStride + outPoleCount*B.BufOutPoleStride
 	buf := make([]byte, size)
 	off := 0
 	binary.LittleEndian.PutUint32(buf[off:], f.Tick)
@@ -76,6 +92,8 @@ func BuildNodeStreamFrame(f NodeStreamFrame) []byte {
 	binary.LittleEndian.PutUint32(buf[off:], uint32(len(labelBytes)))
 	off += 4
 	binary.LittleEndian.PutUint32(buf[off:], uint32(chainBeadCount))
+	off += 4
+	binary.LittleEndian.PutUint32(buf[off:], uint32(outPoleCount))
 	off += 4
 
 	B.SetNodeRow(buf[off:off+B.BufNodeStride], 0, f.NodeID, f.CX, f.CY, f.CZ, f.Radius, f.SphereR, f.VRX, f.VRY, f.VRZ, f.FRX, f.FRY, f.FRZ,
@@ -90,6 +108,12 @@ func BuildNodeStreamFrame(f NodeStreamFrame) []byte {
 		B.SetChainBeadRow(buf[rowOff:rowOff+B.BufChainBeadStride], 0, f.ChainBeadOX[i], f.ChainBeadOY[i], f.ChainBeadOZ[i], f.ChainBeadLit[i], f.ChainBeadLitValue[i])
 	}
 	off += chainBeadCount * B.BufChainBeadStride
+
+	for i := 0; i < outPoleCount; i++ {
+		rowOff := off + i*B.BufOutPoleStride
+		B.SetOutPoleRow(buf[rowOff:rowOff+B.BufOutPoleStride], 0, f.OutPoleDX[i], f.OutPoleDY[i], f.OutPoleDZ[i])
+	}
+	off += outPoleCount * B.BufOutPoleStride
 
 	if off != size {
 		panic(fmt.Sprintf(

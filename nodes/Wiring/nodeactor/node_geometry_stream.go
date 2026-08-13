@@ -83,6 +83,8 @@ func (m *NodeGeometry) writeStreamFrame(events []rowevent.RowEvent) {
 		events = append(events, chainBreadcrumbs...)
 	}
 
+	outPoleDX, outPoleDY, outPoleDZ := m.outPoles()
+
 	m.stream.WriteFrame(nodeframe.NodeFrameInput{
 		Tick:                  uint32(m.clocks.Tick()),
 		NodeRow:               row,
@@ -121,6 +123,9 @@ func (m *NodeGeometry) writeStreamFrame(events []rowevent.RowEvent) {
 		ChainBeadOZ:           chainOZ,
 		ChainBeadLit:          chainLit,
 		ChainBeadLitValue:     chainLitVal,
+		OutPoleDX:             outPoleDX,
+		OutPoleDY:             outPoleDY,
+		OutPoleDZ:             outPoleDZ,
 		Events:                events,
 	})
 }
