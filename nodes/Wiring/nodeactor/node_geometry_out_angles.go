@@ -43,13 +43,17 @@ func (m *NodeGeometry) ConstrainOutAngles() {
 		return
 	}
 	self := m.WorldCenter()
+	sharedLen := m.establishSharedOutLen()
 	for _, to := range m.outTargets {
 		have, ok := m.topo.PolarPathTo(to)
 		if !ok {
 			continue
 		}
 		want := polar.ClampOutAngles(have)
-		if math.Abs(want.Phi-have.Phi) <= outAngleEps && math.Abs(want.Theta-have.Theta) <= outAngleEps {
+		want.R = sharedLen
+		if math.Abs(want.Phi-have.Phi) <= outAngleEps &&
+			math.Abs(want.Theta-have.Theta) <= outAngleEps &&
+			math.Abs(want.R-have.R) <= outAngleEps {
 			m.topo.ClearOutAngleFix(to)
 			continue
 		}
@@ -61,6 +65,53 @@ func (m *NodeGeometry) ConstrainOutAngles() {
 	}
 }
 
+// establishSharedOutLen is the length every outgoing path is held at.
+//
+// Normally it is simply the length already declared — set by whichever
+// neighbour last moved, so the node that was dragged states the distance and
+// its siblings are brought to it rather than the drag being undone. Because
+// it survives this node's OWN move untouched, dragging this node carries its
+// neighbours along at their distance instead of stretching the paths.
+//
+// The first time round there is nothing declared yet, so the longest path
+// wins: at load the paths disagree, and growing the short one is the choice
+// that never pulls a node inward past something it was already clear of.
+func (m *NodeGeometry) establishSharedOutLen() float64 {
+	if r, ok := m.topo.SharedOutLen(); ok {
+		return r
+	}
+	longest := 0.0
+	for _, to := range m.outTargets {
+		if p, ok := m.topo.PolarPathTo(to); ok && p.R > longest {
+			longest = p.R
+		}
+	}
+	m.topo.SetSharedOutLen(longest)
+	return longest
+}
+
+// NoteOutNeighborLen takes a neighbour's own new distance as the length ALL
+// the outgoing paths are now held at. It is what makes the constraint hold
+// whichever node moved: the mover states the distance, and the correction
+// that follows brings the others to it.
+func (m *NodeGeometry) NoteOutNeighborLen(from string) {
+	if m.selfKind != OutAngleKind || !m.IsOutTarget(from) {
+		return
+	}
+	// A neighbour still working through a correction is reporting a
+	// position THIS node asked for, so it has no distance of its own to
+	// state. Letting it restate one is how a follower that lands slightly
+	// off — bead snapping moves it again after it commits — becomes the new
+	// length, which the node that was actually dragged then gets corrected
+	// to, and the two trade the length back and forth forever.
+	if m.topo.HasPendingOutAngleFix(from) {
+		return
+	}
+	if p, ok := m.topo.PolarPathTo(from); ok && p.R != 0 {
+		m.topo.SetSharedOutLen(p.R)
+	}
+}
+
 // traceOutAngleFix records which angles were out of range and where the
 // corrected ones put that neighbour, so a hold that fires when it should not
 // — or never fires at all — is visible without attaching to the process.
@@ -69,8 +120,8 @@ func (m *NodeGeometry) traceOutAngleFix(to string, have, want polar.Polar, targe
 		return
 	}
 	value := fmt.Sprintf(
-		"to=%s havePhi=%.6f haveTheta=%.6f wantPhi=%.6f wantTheta=%.6f r=%.4f target=(%.4f,%.4f,%.4f)",
-		to, have.Phi, have.Theta, want.Phi, want.Theta, want.R, target.X, target.Y, target.Z)
+		"to=%s havePhi=%.6f haveTheta=%.6f haveR=%.4f wantPhi=%.6f wantTheta=%.6f wantR=%.4f target=(%.4f,%.4f,%.4f)",
+		to, have.Phi, have.Theta, have.R, want.Phi, want.Theta, want.R, target.X, target.Y, target.Z)
 	m.tr.Breadcrumb("out-angle-fix", m.id, to, value)
 	targetRow := int32(-1)
 	if r, ok := m.topo.NodeRowFor(to); ok {
@@ -85,15 +136,17 @@ func (m *NodeGeometry) traceOutAngleFix(to string, have, want polar.Polar, targe
 
 // countOutAngleFix panics once a target has been corrected this many times
 // running without ever coming back in range. That means the position this
-// node derives from the constrained angles is not the position the target
+// node derives from the constrained path is not the position the target
 // commits — the target's own commit is moving it somewhere else, so the two
-// are trading corrections and neither the angles nor the layout will settle.
+// are trading corrections and neither the paths nor the layout will settle.
 func (m *NodeGeometry) countOutAngleFix(to string) {
 	if m.topo.BumpOutAngleFix(to) > outAngleMaxFixes {
+		sharedLen, _ := m.topo.SharedOutLen()
 		panic(fmt.Sprintf(
-			"NodeGeometry(%s): outgoing angle constraint to %s did not converge in %d "+
-				"corrections — the centre derived from phi=pi/2, |theta|<=pi/2 is not the "+
-				"centre that target commits, so the two are trading corrections",
-			m.id, to, outAngleMaxFixes))
+			"NodeGeometry(%s): outgoing path constraint to %s did not converge in %d "+
+				"corrections — the centre derived from phi=pi/2, |theta|<=pi/2 and the shared "+
+				"length %.4f is not the centre that target commits, so the two are trading "+
+				"corrections",
+			m.id, to, outAngleMaxFixes, sharedLen))
 	}
 }
