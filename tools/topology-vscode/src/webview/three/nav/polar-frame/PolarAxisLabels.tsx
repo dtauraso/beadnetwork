@@ -1,5 +1,5 @@
 import { AxisLabel } from "./axis-label";
-import { THETA_CIRCLES, PHI_CIRCLES } from "./polar-frame-data";
+import { THETA_CIRCLES, THETA_CIRCLES_PHI_HALF, PHI_CIRCLES } from "./polar-frame-data";
 
 export function PolarAxisLabels({ poleLen, coneH, arcMid, sfx, octants }: {
   poleLen: number; coneH: number; arcMid: number; sfx: string; octants?: boolean;
@@ -24,6 +24,11 @@ export function PolarAxisLabels({ poleLen, coneH, arcMid, sfx, octants }: {
       ))}
       {octants && PHI_CIRCLES.map((p) => (
         <AxisLabel key={`pl-${p.n}`} text={`${p.sz > 0 ? "+" : "−"}φ`} color={p.c} position={[p.sx * arcMid, 0, p.sz * arcMid]} size={poleLen * 0.11} />
+      ))}
+      {/* Theta again, on the other meridian — named with its phi so the two
+          theta circles are told apart. */}
+      {octants && THETA_CIRCLES_PHI_HALF.map((m) => (
+        <AxisLabel key={`ml-${m.n}`} text={`${m.sy > 0 ? "+" : "−"}θ φπ/2`} color={m.c} position={[0, m.sy * arcMid, m.sz * arcMid]} size={poleLen * 0.11} />
       ))}
     </>
   );
