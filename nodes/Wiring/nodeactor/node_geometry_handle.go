@@ -101,6 +101,10 @@ func (m *NodeGeometry) handleTiltVectorReset() {
 
 func (m *NodeGeometry) handleNeighborCenter(msg movemsg.Msg) {
 	m.topo.SetPathTo(msg.SenderID, m.WorldCenter(), msg.FromCenter)
+	// The neighbour that moved states the new shared length before the hold
+	// runs, so its own distance is the one kept and its siblings are the
+	// ones brought to it.
+	m.NoteOutNeighborLen(msg.SenderID)
 	m.ConstrainOutAngles()
 	if m.tr != nil {
 

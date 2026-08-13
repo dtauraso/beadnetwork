@@ -20,6 +20,15 @@ type Topology struct {
 	// position or a streamed direction is genuinely wanted.
 	neighborPaths map[string]polar.Polar
 
+	// sharedOutLen is the ONE length this node's outgoing paths all have,
+	// when its kind holds them equal. It is stored rather than derived
+	// because the paths are what it decides: asking them what the shared
+	// length is, right after setting them from it, would only ever agree
+	// with itself and could never pull a path that had drifted.
+	//
+	// Zero means no length has been established yet.
+	sharedOutLen float64
+
 	// outAngleFixes counts consecutive angle corrections per target that
 	// have not yet come back in range. It sits with the paths because it
 	// is a fact about them: how many times one has been rewritten without
@@ -79,6 +88,20 @@ func (t *Topology) SetPolarPathTo(neighborID string, p polar.Polar) {
 	t.neighborPaths[neighborID] = p
 }
 
+// SharedOutLen is the length every outgoing path is held at, and whether one
+// has been established.
+func (t *Topology) SharedOutLen() (float64, bool) {
+	return t.sharedOutLen, t.sharedOutLen != 0
+}
+
+// SetSharedOutLen declares the length the outgoing paths are held at from now
+// on. The mover that just changed its distance is the one that sets it — the
+// node that was dragged states the new length and the others are brought to
+// it, rather than the drag being undone.
+func (t *Topology) SetSharedOutLen(r float64) {
+	t.sharedOutLen = r
+}
+
 // BumpOutAngleFix records one more correction to that target and returns the
 // running count. ClearOutAngleFix forgets it, which is what a path arriving
 // already in range means.
@@ -88,6 +111,13 @@ func (t *Topology) BumpOutAngleFix(neighborID string) int {
 	}
 	t.outAngleFixes[neighborID]++
 	return t.outAngleFixes[neighborID]
+}
+
+// HasPendingOutAngleFix says whether that target has been corrected and has
+// not yet reported back in range — that is, whether the position it is about
+// to report is one THIS node asked for.
+func (t *Topology) HasPendingOutAngleFix(neighborID string) bool {
+	return t.outAngleFixes[neighborID] > 0
 }
 
 func (t *Topology) ClearOutAngleFix(neighborID string) {
