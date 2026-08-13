@@ -17,49 +17,56 @@ func Polar2cart(p Polar) vec3 {
 	}
 }
 
+// InwardPole is the direction opposite p — the one pointing back at the centre.
+//
+// It negates the VECTOR and converts, rather than computing pi-theta and
+// phi+pi. Those were angle arithmetic, and phi+pi is exactly the sum that could
+// land outside atan2's range and so needed wrapping. Coming back through
+// Cart2polar, the answer is in range because that is the only range atan2 has.
+// The zero-radius guard goes too: negating the zero vector is the zero vector,
+// which Cart2polar already answers with {0,0,0}.
 func InwardPole(p Polar) (theta, phi float64) {
-	if p.R == 0 {
-		return 0, 0
-	}
-	return math.Pi - p.Theta, WrapPi(p.Phi + math.Pi)
+	back := Cart2polar(Polar2cart(p).Scale(-1))
+	return back.Theta, back.Phi
 }
 
+// thetaOf is the polar angle down from world +y, for ANY cartesian vector —
+// unit or not, zero included.
+//
+// hypot(x,z) is r·sinθ and y is r·cosθ, so atan2 of the two is θ with r
+// cancelled. The first argument is never negative, which is what pins the
+// result to [0,π] — the same range acos(y/r) gave, reached without acos's
+// domain: no clamp, no NaN when rounding pushes y/r past ±1, and no separate
+// zero-radius branch, since atan2(0,0) is 0.
+//
+// It is also better conditioned exactly where this layout works. dθ/d(cosθ) =
+// -1/sinθ blows up at the poles, so the acos form amplified error precisely
+// for vectors along the pole axis; atan2 reads both legs instead of one ratio.
+// It is UNEXPORTED on purpose. Cart2polar is the one way in, so no caller can
+// compute half a conversion by hand — which is how the same two lines came to
+// be written in five places.
+func thetaOf(v vec3) float64 {
+	return math.Atan2(math.Hypot(v.X, v.Z), v.Y)
+}
+
+// The zero vector needs no guard: nothing divides by r any more, and atan2(0,0)
+// is 0, so the origin answers {0,0,0} on its own. The guard was load-bearing
+// only while theta was acos(y/r).
 func Cart2polar(v vec3) Polar {
-	r := v.Length()
-	if r == 0 {
-		return Polar{}
-	}
-	theta := math.Acos(Clamp(v.Y/r, -1, 1))
-	phi := math.Atan2(v.Z, v.X)
-	return Polar{R: r, Theta: theta, Phi: phi}
+	return Polar{R: v.Length(), Theta: thetaOf(v), Phi: math.Atan2(v.Z, v.X)}
 }
 
+// PolarDist is the distance between two points: the length of the vector from
+// one to the other.
+//
+// It was the spherical law of cosines feeding the law of cosines — trigonometry
+// to find a length, with an angle subtraction (a.Phi - b.Phi) inside it. That
+// form computes a.R^2 + b.R^2 - 2*a.R*b.R*cos, a difference of two large nearly
+// equal numbers for points close together, so rounding could drive the squared
+// distance below zero and it needed a guard before taking the square root.
+//
+// Subtracting the vectors first leaves nothing large to cancel, so the result
+// cannot come out negative and there is nothing to guard.
 func PolarDist(a, b Polar) float64 {
-	cosG := math.Cos(a.Theta)*math.Cos(b.Theta) +
-		math.Sin(a.Theta)*math.Sin(b.Theta)*math.Cos(a.Phi-b.Phi)
-	d2 := a.R*a.R + b.R*b.R - 2*a.R*b.R*cosG
-	if d2 <= 0 {
-		return 0
-	}
-	return math.Sqrt(d2)
-}
-
-func Clamp(v, lo, hi float64) float64 {
-	if v < lo {
-		return lo
-	}
-	if v > hi {
-		return hi
-	}
-	return v
-}
-
-func WrapPi(a float64) float64 {
-	for a > math.Pi {
-		a -= 2 * math.Pi
-	}
-	for a <= -math.Pi {
-		a += 2 * math.Pi
-	}
-	return a
+	return Polar2cart(a).Sub(Polar2cart(b)).Length()
 }

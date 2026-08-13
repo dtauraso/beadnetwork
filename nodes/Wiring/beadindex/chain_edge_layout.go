@@ -58,8 +58,8 @@ func ChainBeadRows(dir, chainSep spatial.Vec3, base, step float64, count int, re
 }
 
 func ChainAimBreadcrumbText(to string, count int, dist float64, dir spatial.Vec3) string {
-	liveTheta := math.Acos(polar.Clamp(dir.Y, -1, 1))
-	livePhi := math.Atan2(dir.Z, dir.X)
+	live := polar.Cart2polar(dir)
+	liveTheta, livePhi := live.Theta, live.Phi
 	return fmt.Sprintf(
 		"to=%s count=%d K=%d liveDir=(theta=%.4f,phi=%.4f)",
 		to, count, int(math.Round(dist/lattice.BeadStepR)), liveTheta, livePhi)

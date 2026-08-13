@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { type DecodedNodeFrame, nodeLabel } from "../decode/buffer-decode-node";
 import { type ViewBlocks } from "../scene/view-blocks";
+import { polarToCart } from "../polar-convert";
 import {
   readNodeCX, readNodeCY, readNodeCZ,
   readNodeRadius, readNodeSphereR, readNodeSelected, readNodeLatchedSel,
@@ -25,8 +26,7 @@ export interface NavNode {
 }
 
 function poleVec(theta: number, phi: number): THREE.Vector3 {
-  const st = Math.sin(theta);
-  return new THREE.Vector3(st * Math.cos(phi), Math.cos(theta), st * Math.sin(phi));
+  return new THREE.Vector3(...polarToCart(1, theta, phi));
 }
 
 export function decodeNavNodes(decoded: DecodedNodeFrame): NavNode[] {
