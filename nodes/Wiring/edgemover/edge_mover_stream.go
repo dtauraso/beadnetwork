@@ -7,7 +7,13 @@ import (
 	SF "github.com/dtauraso/wirefold/Buffer/streamframe"
 	"github.com/dtauraso/wirefold/nodes/Wiring/edgegeom"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
+	"github.com/dtauraso/wirefold/nodes/spatial"
+	wire "github.com/dtauraso/wirefold/nodes/wire"
+
+	T "github.com/dtauraso/wirefold/Trace"
 )
+
+type vec3 = spatial.Vec3
 
 // edgeBeads is this edge's own in-flight beads, as world positions on its
 // own segment. They arrive from the goroutine that steps the wire; nothing
@@ -20,6 +26,48 @@ func (m *EdgeMover) edgeBeads() []SF.EdgeBead {
 		})
 	}
 	return beads
+}
+
+// breadcrumb records one control event on this edge's own stream.
+func (m *EdgeMover) breadcrumb(label uint8, name, value string) {
+	if m.tr == nil {
+		return
+	}
+	m.tr.Breadcrumb(name, m.edgeID, "", value)
+	m.streamBreadcrumb(label, value)
+}
+
+func (m *EdgeMover) streamBreadcrumb(label uint8, value string) {
+	if !m.streamOut.Ok() || m.buildFrame == nil {
+		return
+	}
+	m.writeStreamFrame(m.clk.Tick(), []rowevent.RowEvent{{
+		Kind: T.KindBreadcrumb, Label: label, Debug: 1,
+		EdgeRow: m.edgeRow, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, Slot: -1,
+		Text: value,
+	}})
+}
+
+// noteBeadCount reports only when this edge's bead count CHANGES, so a stream
+// that is working produces two lines per traversal rather than one per tick.
+func (m *EdgeMover) noteBeadCount(rows []wire.LiveBeadRow) {
+	if len(rows) == m.lastBeadCount {
+		return
+	}
+	m.lastBeadCount = len(rows)
+	seg := edgegeom.EdgeSegment(m.srcGeom, m.dstGeom)
+	along := "none"
+	if len(rows) > 0 {
+		d := seg.End.Sub(seg.Start)
+		if l2 := d.Dot(d); l2 > 0 {
+			b := rows[0]
+			p := vec3{X: b.X, Y: b.Y, Z: b.Z}.Sub(seg.Start)
+			along = fmt.Sprintf("%.3f", p.Dot(d)/l2)
+		}
+	}
+	m.breadcrumb(T.BreadcrumbEdgeBeads, "edge-beads", fmt.Sprintf(
+		"src=%s dst=%s beads=%d firstAlong=%s steps=%d",
+		m.srcID, m.dstID, len(rows), along, m.steps))
 }
 
 func (m *EdgeMover) writeStreamFrame(tick int64, events []rowevent.RowEvent) {

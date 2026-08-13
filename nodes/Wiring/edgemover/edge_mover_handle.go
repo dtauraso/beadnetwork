@@ -1,6 +1,8 @@
 package edgemover
 
 import (
+	"fmt"
+
 	"github.com/dtauraso/wirefold/nodes/Wiring/edgegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
@@ -73,6 +75,16 @@ func (m *EdgeMover) recomputeGeometry() {
 		m.out.PublishSegment(seg.Start, seg.End)
 		m.out.PublishSteps(m.steps)
 	}
+
+	// Which way this edge runs and how long it takes to cross, recorded
+	// whenever either endpoint moves. It is the segment the beads are placed
+	// against, so a bead in the wrong place is either this being wrong or
+	// the placement disagreeing with it.
+	m.breadcrumb(T.BreadcrumbEdgeGeom, "edge-geom", fmt.Sprintf(
+		"src=%s dst=%s steps=%d start=(%.2f,%.2f,%.2f) end=(%.2f,%.2f,%.2f) len=%.2f",
+		m.srcID, m.dstID, m.steps,
+		seg.Start.X, seg.Start.Y, seg.Start.Z, seg.End.X, seg.End.Y, seg.End.Z,
+		seg.End.Sub(seg.Start).Length()))
 
 	if m.dest != nil {
 		m.dest.ReviseInFlightGeometry(m.clk.Tick(), m.steps, seg)

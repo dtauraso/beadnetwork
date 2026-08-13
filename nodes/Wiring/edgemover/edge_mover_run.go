@@ -32,6 +32,7 @@ func (m *EdgeMover) Run(ctx context.Context) {
 				m.steps = steps
 			case rows := <-m.beadRowsIn:
 				m.lastBeadRows = rows
+				m.noteBeadCount(rows)
 				m.writeStreamFrame(m.clk.Tick(), nil)
 			case msg := <-m.extIn:
 				m.handle(msg)
