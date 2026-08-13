@@ -78,6 +78,11 @@ func (b *buildCtx) buildMoveDispatch() error {
 		}
 		nm.AddOutTarget(e.Target)
 	}
+	// Kind and out-targets are both known only now, so the loaded layout
+	// gets its first angle hold here rather than during seeding.
+	for _, nm := range md.MR.NodeGeoms() {
+		nm.ConstrainOutAngles()
+	}
 	b.md = md
 	return nil
 }

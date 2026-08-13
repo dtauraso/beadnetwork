@@ -101,6 +101,7 @@ func (m *NodeGeometry) handleTiltVectorReset() {
 
 func (m *NodeGeometry) handleNeighborCenter(msg movemsg.Msg) {
 	m.topo.SetPathTo(msg.SenderID, m.WorldCenter(), msg.FromCenter)
+	m.ConstrainOutAngles()
 	if m.tr != nil {
 
 		value := fmt.Sprintf("sender=%s center=(%.4f,%.4f,%.4f)", msg.SenderID, msg.FromCenter.X, msg.FromCenter.Y, msg.FromCenter.Z)

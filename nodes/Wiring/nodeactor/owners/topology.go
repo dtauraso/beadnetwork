@@ -19,6 +19,13 @@ type Topology struct {
 	// Here the angles ARE the field, and the trig sits only where a world
 	// position or a streamed direction is genuinely wanted.
 	neighborPaths map[string]polar.Polar
+
+	// outAngleFixes counts consecutive angle corrections per target that
+	// have not yet come back in range. It sits with the paths because it
+	// is a fact about them: how many times one has been rewritten without
+	// the rewrite taking.
+	outAngleFixes map[string]int
+
 	neighborKinds map[string]string
 	mutualTargets map[string]bool
 	nodeRowFor    func(id string) (int32, bool)
@@ -70,6 +77,21 @@ func (t *Topology) SetPolarPathTo(neighborID string, p polar.Polar) {
 		t.neighborPaths = map[string]polar.Polar{}
 	}
 	t.neighborPaths[neighborID] = p
+}
+
+// BumpOutAngleFix records one more correction to that target and returns the
+// running count. ClearOutAngleFix forgets it, which is what a path arriving
+// already in range means.
+func (t *Topology) BumpOutAngleFix(neighborID string) int {
+	if t.outAngleFixes == nil {
+		t.outAngleFixes = map[string]int{}
+	}
+	t.outAngleFixes[neighborID]++
+	return t.outAngleFixes[neighborID]
+}
+
+func (t *Topology) ClearOutAngleFix(neighborID string) {
+	delete(t.outAngleFixes, neighborID)
 }
 
 // RebaseForSelfMove rigidly rebases every path when THIS node moves: the

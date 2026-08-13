@@ -10,6 +10,9 @@ func (m *NodeGeometry) ApplyCenter(center vec3, reach float64) {
 	prev := nodegeom.NodeWorldPos(m.geom)
 	nodegeom.SetNodeWorld(&m.geom, center)
 	m.topo.RebaseForSelfMove(prev, center)
+	// The rebase is a translation, so it turns every stored path's angles;
+	// re-hold whichever of them this node's kind constrains.
+	m.ConstrainOutAngles()
 	m.geom.ReachR = reach
 
 	m.msg.BroadcastCenter(m.id, center)
