@@ -32,10 +32,23 @@ func HeldEdges(edgeMovers map[string]*edgemover.EdgeMover) []polar.SphereEdge {
 	return edges
 }
 
-func (lq *LayoutQuantizer) RootMove(ctx context.Context, nodeGeoms map[string]*nodeactor.NodeGeometry, nodeID string, target spatial.Vec3) bool {
+func (lq *LayoutQuantizer) RootMove(ctx context.Context, nodeGeoms map[string]*nodeactor.NodeGeometry, centerOf func(string) (spatial.Vec3, bool), nodeID string, target spatial.Vec3) bool {
 	nm, ok := nodeGeoms[nodeID]
 	if !ok {
 		return false
+	}
+
+	// A drag decides everything that moves. The dragged node's own
+	// constraints trim where IT may go, and if it is a node that holds
+	// constraints over others, the same drag carries them — a neighbour
+	// never moves itself to satisfy someone else's rule.
+	target = TrimDraggedNode(nm, centerOf, nm.WorldCenter(), target)
+	for to, heldPos := range HeldOutNeighbors(nm, centerOf, target) {
+		other, ok := nodeGeoms[to]
+		if !ok {
+			continue
+		}
+		other.SendExternal(ctx, movemsg.Msg{Kind: movemsg.KindDrag, NodeID: to, Target: heldPos})
 	}
 
 	nm.SendExternal(ctx, movemsg.Msg{Kind: movemsg.KindDrag, NodeID: nodeID, Target: target})

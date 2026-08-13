@@ -39,6 +39,9 @@ func (m *NodeGeometry) NeighborKinds() map[string]string { return m.topo.Neighbo
 // IsOutTarget says whether the edge to that neighbour LEAVES this node, which
 // is what separates a neighbour whose constraints this node must satisfy from
 // one whose constraints it imposes.
+// OutTargets is every edge target this node points at.
+func (m *NodeGeometry) OutTargets() []string { return m.outTargets }
+
 func (m *NodeGeometry) IsOutTarget(neighborID string) bool {
 	return slices.Contains(m.outTargets, neighborID)
 }
