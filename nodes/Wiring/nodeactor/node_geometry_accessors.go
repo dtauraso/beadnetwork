@@ -43,7 +43,7 @@ func (m *NodeGeometry) SendMove() func(id string, msg movemsg.Msg) { return m.ms
 func (m *NodeGeometry) NeighborIDs() []string { return m.msg.NeighborIDs() }
 
 func (m *NodeGeometry) QuantOffset() (iTheta, iPhi, iR int) {
-	return m.quantOffset.ITheta, m.quantOffset.IPhi, m.quantOffset.IR
+	return m.quantOffset.IPhi, m.quantOffset.ITheta, m.quantOffset.IR
 }
 
 func (m *NodeGeometry) QuantizedOffsetValue() quantoffset.QuantizedOffset { return m.quantOffset }

@@ -4,8 +4,8 @@ import {
   type DecodedNodeStreamFrame,
 } from "../../decode/buffer-decode-node";
 import {
-  readNodeRingAxisTheta,
   readNodeRingAxisPhi,
+  readNodeRingAxisTheta,
   readNodeCX, readNodeCY, readNodeCZ,
   readChainBeadOX, readChainBeadOY, readChainBeadOZ, readChainBeadLit, readChainBeadLitValue,
 } from "../../../../schema/buffer-layout/buffer-layout";
@@ -55,8 +55,8 @@ export function getChainBeads(): ChainBeadsAgg {
     const cy = readNodeCY(decoded.nodeView, 0);
     const cz = readNodeCZ(decoded.nodeView, 0);
 
-    const poleTheta = readNodeRingAxisTheta(decoded.nodeView, 0);
-    const polePhi = readNodeRingAxisPhi(decoded.nodeView, 0);
+    const poleTheta = readNodeRingAxisPhi(decoded.nodeView, 0);
+    const polePhi = readNodeRingAxisTheta(decoded.nodeView, 0);
     const [ax, ay, az] = poleAxis(poleTheta, polePhi);
     for (let i = 0; i < decoded.chainBeadCount; i++) {
       ringAxis[w] = ax;

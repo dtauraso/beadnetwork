@@ -15,15 +15,20 @@
 # which is what the Edit tool does natively, so the shell bought nothing and lost the above.
 #
 # SCOPE — narrow on purpose. It fires only when BOTH are true:
-#   1. the command uses a WRITE MECHANISM (in-place editor, redirect, or tee), and
+#   1. the command uses a BLOCKED WRITE MECHANISM (a redirect, a tee, or an inline
+#      interpreter script that writes), and
 #   2. the target is a SOURCE PATH — a repo-relative path with a source extension.
 # Reading, grepping, listing, `go run` of a generator (a program writing its own output is
 # not a shell write), and anything under the exempt trees below are allowed silently.
 #
-# NO ESCAPE HATCH, deliberately. Every previous "just this once" category in this repo
-# became a standing exemption. If a shell write is genuinely the only way, the user runs it
-# — that is the review step. See CLAUDE.md's landing rule for the same reasoning applied to
-# merges.
+# IN-PLACE EDITORS (`sed -i`, `perl -i`) ARE ALLOWED — see the mechanism check below.
+# They cannot CREATE a file, so the placement brief cannot be escaped, and a uniform
+# substitution cannot half-apply, which is the failure mode many hand edits have.
+#
+# There is still no escape hatch for the mechanisms that remain blocked, and adding one
+# should stay hard: every previous "just this once" category in this repo became a standing
+# exemption. If one of those is genuinely the only way, the user runs it — that is the
+# review step. See CLAUDE.md's landing rule for the same reasoning applied to merges.
 #
 # Exit 0 always; the decision is carried in the emitted JSON, same protocol as
 # check-no-foreground-sim.sh.
@@ -67,9 +72,24 @@ REDIRECT_RE='>>?[[:space:]]*[^&[:space:]]|(^|[;&|(])[[:space:]]*tee[[:space:]]'
 WRITE_CALL_RE="\.write[[:alnum:]_]*\(|open\([^)]*['\"][wa]|write_text\(|writeFile|\bfputs\b|\bprint\([^)]*file="
 
 mechanism=""
-if printf '%s' "$cmd" | grep -Eq "${CMD_HEAD}sed[[:space:]]+(-[[:alnum:]]*[[:space:]]+)*-i|${CMD_HEAD}(perl|ruby)[[:space:]]+-[[:alnum:]]*i"; then
-  mechanism="an in-place edit"
-fi
+
+# IN-PLACE EDITORS ARE ALLOWED, and are not lumped in with the rest, because the two
+# things this guard protects do not apply to them:
+#
+#   * placement-brief-hook.sh fires when a file is CREATED. `sed -i` cannot create one,
+#     so nothing it does escapes the brief. Redirects and heredocs can, and stay blocked.
+#   * read-before-edit protects against overwriting content you have not seen. A regex
+#     applied to every match is not that hazard: it matches or it does not, it cannot
+#     half-apply, and `git diff` shows exactly what it did before anything is committed.
+#
+# The hazard it does carry — a regex matching more than intended — gets the same review a
+# hand edit gets, and unlike a hand edit it cannot MISS a site. For a rename across dozens
+# of files that inverts the risk: many small edits is how one site is left behind, and for
+# a swap between two same-typed fields a missed site is a silent wrong answer that
+# compiles.
+#
+# Inline interpreter scripts (python3 -c, node -e, heredocs) stay blocked: those write
+# arbitrary computed bytes, which is what the brief and the read tracking are for.
 if [ -z "$mechanism" ] \
   && printf '%s' "$cmd" | grep -Eq "$INPLACE_RE" \
   && printf '%s' "$cmd" | grep -Eq "$WRITE_CALL_RE"; then

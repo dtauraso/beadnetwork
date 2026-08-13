@@ -8,13 +8,13 @@ func FilePath(root, id string) string {
 
 type JSON struct {
 	ScenePolarR     float64 `json:"scenePolarR"`
-	ScenePolarTheta float64 `json:"scenePolarTheta"`
 	ScenePolarPhi   float64 `json:"scenePolarPhi"`
-	QuantITheta     int     `json:"quantITheta"`
+	ScenePolarTheta float64 `json:"scenePolarTheta"`
 	QuantIPhi       int     `json:"quantIPhi"`
+	QuantITheta     int     `json:"quantITheta"`
 	QuantIR         int     `json:"quantIR"`
-	StepTheta       float64 `json:"stepTheta"`
 	StepPhi         float64 `json:"stepPhi"`
+	StepTheta       float64 `json:"stepTheta"`
 	StepR           float64 `json:"stepR"`
 
 	TopTiltVectorThetaIdx int32 `json:"topTiltVectorThetaIdx,omitempty"`

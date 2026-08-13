@@ -23,11 +23,11 @@ type newNodeMeta struct {
 
 type newNodePosition struct {
 	ScenePolarR     float64 `json:"scenePolarR"`
-	ScenePolarTheta float64 `json:"scenePolarTheta"`
 	ScenePolarPhi   float64 `json:"scenePolarPhi"`
+	ScenePolarTheta float64 `json:"scenePolarTheta"`
 }
 
-func WriteNewNodeFiles(root, id, kind string, scenePolarR, theta, phi float64) error {
+func WriteNewNodeFiles(root, id, kind string, scenePolarR, phi, theta float64) error {
 	dir := nodeDirPath(root, id)
 	if err := os.MkdirAll(filepath.Join(dir, "edges"), 0o755); err != nil {
 		return err
@@ -36,7 +36,7 @@ func WriteNewNodeFiles(root, id, kind string, scenePolarR, theta, phi float64) e
 		return err
 	}
 	return jsonpersist.WriteJSONAtomic(positionfile.FilePath(root, id), newNodePosition{
-		ScenePolarR: scenePolarR, ScenePolarTheta: theta, ScenePolarPhi: phi,
+		ScenePolarR: scenePolarR, ScenePolarPhi: phi, ScenePolarTheta: theta,
 	})
 }
 

@@ -18,15 +18,15 @@ type JSONMeta struct {
 	R    *float64 `json:"r,omitempty"`
 
 	ScenePolarR     *float64 `json:"scenePolarR,omitempty"`
-	ScenePolarTheta *float64 `json:"scenePolarTheta,omitempty"`
 	ScenePolarPhi   *float64 `json:"scenePolarPhi,omitempty"`
+	ScenePolarTheta *float64 `json:"scenePolarTheta,omitempty"`
 
-	QuantITheta *int `json:"quantITheta,omitempty"`
 	QuantIPhi   *int `json:"quantIPhi,omitempty"`
+	QuantITheta *int `json:"quantITheta,omitempty"`
 	QuantIR     *int `json:"quantIR,omitempty"`
 
-	StepTheta *float64 `json:"stepTheta,omitempty"`
 	StepPhi   *float64 `json:"stepPhi,omitempty"`
+	StepTheta *float64 `json:"stepTheta,omitempty"`
 	StepR     *float64 `json:"stepR,omitempty"`
 
 	Gate bool `json:"gate,omitempty"`
@@ -50,25 +50,25 @@ func loadNodeMeta(root, nodesDir, nodeID string) (specNode, error) {
 		Type:            meta.Type,
 		R:               meta.R,
 		ScenePolarR:     meta.ScenePolarR,
-		ScenePolarTheta: meta.ScenePolarTheta,
 		ScenePolarPhi:   meta.ScenePolarPhi,
-		QuantITheta:     meta.QuantITheta,
+		ScenePolarTheta: meta.ScenePolarTheta,
 		QuantIPhi:       meta.QuantIPhi,
+		QuantITheta:     meta.QuantITheta,
 		QuantIR:         meta.QuantIR,
-		StepTheta:       meta.StepTheta,
 		StepPhi:         meta.StepPhi,
+		StepTheta:       meta.StepTheta,
 		StepR:           meta.StepR,
 		Gate:            meta.Gate,
 	}
 
 	var pf positionfile.JSON
 	if jsonpersist.ReadJSONIfExists(positionfile.FilePath(root, nodeID), &pf) {
-		r, th, ph := pf.ScenePolarR, pf.ScenePolarTheta, pf.ScenePolarPhi
-		qt, qp, qr := pf.QuantITheta, pf.QuantIPhi, pf.QuantIR
-		st, sp, sr := pf.StepTheta, pf.StepPhi, pf.StepR
-		sn.ScenePolarR, sn.ScenePolarTheta, sn.ScenePolarPhi = &r, &th, &ph
-		sn.QuantITheta, sn.QuantIPhi, sn.QuantIR = &qt, &qp, &qr
-		sn.StepTheta, sn.StepPhi, sn.StepR = &st, &sp, &sr
+		r, th, ph := pf.ScenePolarR, pf.ScenePolarPhi, pf.ScenePolarTheta
+		qt, qp, qr := pf.QuantIPhi, pf.QuantITheta, pf.QuantIR
+		st, sp, sr := pf.StepPhi, pf.StepTheta, pf.StepR
+		sn.ScenePolarR, sn.ScenePolarPhi, sn.ScenePolarTheta = &r, &th, &ph
+		sn.QuantIPhi, sn.QuantITheta, sn.QuantIR = &qt, &qp, &qr
+		sn.StepPhi, sn.StepTheta, sn.StepR = &st, &sp, &sr
 		vt := pf.TopTiltVectorThetaIdx
 		sn.TopTiltVectorThetaIdx = &vt
 	}

@@ -1,4 +1,4 @@
-import { THETA_CIRCLES, THETA_CIRCLES_PHI_HALF, PHI_CIRCLES } from "./polar-frame-data";
+import { PHI_CIRCLES, PHI_CIRCLES_THETA_HALF, THETA_CIRCLES } from "./polar-frame-data";
 
 export function PolarArcs({ arcR, arcTube, octants }: {
   arcR: number; arcTube: number; octants?: boolean;
@@ -17,7 +17,7 @@ export function PolarArcs({ arcR, arcTube, octants }: {
         <meshBasicMaterial color="#dddd22" depthWrite={false} />
       </mesh>
       </>)}
-      {octants && THETA_CIRCLES.map((t) => (
+      {octants && PHI_CIRCLES.map((t) => (
         <group key={`tc-${t.n}`} scale={[t.sx, t.sy, 1]}>
           <mesh raycast={() => null}>
             <torusGeometry args={[arcR, arcTube, 8, 48, Math.PI / 2]} />
@@ -28,7 +28,7 @@ export function PolarArcs({ arcR, arcTube, octants }: {
       {/* Rotating -pi/2 about y carries the base arc's +x leg onto +z, so the
           unscaled quarter sits in (+y,+z) and (sy,sz) selects the quadrant the
           same way it does for the other two circles. */}
-      {octants && THETA_CIRCLES_PHI_HALF.map((m) => (
+      {octants && PHI_CIRCLES_THETA_HALF.map((m) => (
         <group key={`mc-${m.n}`} scale={[1, m.sy, m.sz]}>
           <mesh rotation={[0, -Math.PI / 2, 0]} raycast={() => null}>
             <torusGeometry args={[arcR, arcTube, 8, 48, Math.PI / 2]} />
@@ -36,7 +36,7 @@ export function PolarArcs({ arcR, arcTube, octants }: {
           </mesh>
         </group>
       ))}
-      {octants && PHI_CIRCLES.map((p) => (
+      {octants && THETA_CIRCLES.map((p) => (
         <group key={`pc-${p.n}`} scale={[p.sx, 1, p.sz]}>
           <mesh rotation={[Math.PI / 2, 0, 0]} raycast={() => null}>
             <torusGeometry args={[arcR, arcTube, 8, 48, Math.PI / 2]} />

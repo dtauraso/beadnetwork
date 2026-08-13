@@ -22,7 +22,7 @@ type ViewSceneState struct {
 }
 
 type ViewFrameBuilder func(tick uint32,
-	camPX, camPY, camPZ, camR, camPosTheta, camPosPhi, camUpTheta, camUpPhi float32,
+	camPX, camPY, camPZ, camR, camPosPhi, camPosTheta, camUpPhi, camUpTheta float32,
 	flags ViewOverlayFlags,
 	dragNodeRow int32,
 	scene ViewSceneState,
@@ -65,7 +65,7 @@ func (ui *UIState) EmitViewFrame(events []rowevent.RowEvent) {
 	}
 	frame := ui.ViewBuildFrame(ui.viewTick,
 		float32(v.Pivot.X), float32(v.Pivot.Y), float32(v.Pivot.Z), float32(v.R),
-		float32(v.Pos.Theta), float32(v.Pos.Phi), float32(v.Up.Theta), float32(v.Up.Phi),
+		float32(v.Pos.Phi), float32(v.Pos.Theta), float32(v.Up.Phi), float32(v.Up.Theta),
 		ViewOverlayFlags{
 			SceneTori:      boolU8(ui.OV.SceneToriVisible),
 			ScenePoles:     boolU8(ui.OV.ScenePolesVisible),

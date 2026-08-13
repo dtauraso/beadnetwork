@@ -15,7 +15,7 @@ func wireViewStream(md *W.MoveDispatch, viewFile *os.File, viewStreamWired bool,
 	if viewStreamWired {
 		md.UI.SetViewStream(viewFile,
 			func(tick uint32,
-				camPX, camPY, camPZ, camR, camPosTheta, camPosPhi, camUpTheta, camUpPhi float32,
+				camPX, camPY, camPZ, camR, camPosPhi, camPosTheta, camUpPhi, camUpTheta float32,
 				flags viewstate.ViewOverlayFlags,
 				dragNodeRow int32,
 				scene viewstate.ViewSceneState,
@@ -25,7 +25,7 @@ func wireViewStream(md *W.MoveDispatch, viewFile *os.File, viewStreamWired bool,
 				events []rowevent.RowEvent,
 			) []byte {
 				return SF.BuildViewStreamFrame(tick,
-					camPX, camPY, camPZ, camR, camPosTheta, camPosPhi, camUpTheta, camUpPhi,
+					camPX, camPY, camPZ, camR, camPosPhi, camPosTheta, camUpPhi, camUpTheta,
 					B.OverlayRow{
 						SceneTori: flags.SceneTori, ScenePoles: flags.ScenePoles, NodePoles: flags.NodePoles,
 						SelSpherePoles: flags.SelSpherePoles, Handholds: flags.Handholds,

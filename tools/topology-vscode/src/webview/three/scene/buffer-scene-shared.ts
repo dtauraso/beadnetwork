@@ -44,6 +44,6 @@ export function nodeRowColors(nodeView: DataView, row: number): { fill: string; 
   };
 }
 
-export function poleAxis(theta: number, phi: number): [number, number, number] {
-  return polarToCart(1, theta, phi);
+export function poleAxis(phi: number, theta: number): [number, number, number] {
+  return polarToCart(1, phi, theta);
 }

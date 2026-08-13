@@ -67,7 +67,7 @@ func CreateNode(scenes *sceneswitch.SceneSwitch, ui *viewstate.UIState, mr *move
 	c := ui.SceneSphere.Center
 	off := drop.Sub(c)
 	d := camera.WorldDirToAngles(off)
-	if err := nodefiles.WriteNewNodeFiles(scenes.TreeRoot, target, kind, off.Length(), d.Theta, d.Phi); err != nil {
+	if err := nodefiles.WriteNewNodeFiles(scenes.TreeRoot, target, kind, off.Length(), d.Phi, d.Theta); err != nil {
 		ui.RefuseStructuralEdit(fmt.Sprintf("could not write node %s: %v", target, err))
 		ui.EmitViewFrame(nil)
 		return
