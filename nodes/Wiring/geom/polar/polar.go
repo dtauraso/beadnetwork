@@ -49,20 +49,24 @@ func thetaOf(v vec3) float64 {
 	return math.Atan2(math.Hypot(v.X, v.Z), v.Y)
 }
 
+// The zero vector needs no guard: nothing divides by r any more, and atan2(0,0)
+// is 0, so the origin answers {0,0,0} on its own. The guard was load-bearing
+// only while theta was acos(y/r).
 func Cart2polar(v vec3) Polar {
-	r := v.Length()
-	if r == 0 {
-		return Polar{}
-	}
-	return Polar{R: r, Theta: thetaOf(v), Phi: math.Atan2(v.Z, v.X)}
+	return Polar{R: v.Length(), Theta: thetaOf(v), Phi: math.Atan2(v.Z, v.X)}
 }
 
+// PolarDist is the distance between two points: the length of the vector from
+// one to the other.
+//
+// It was the spherical law of cosines feeding the law of cosines — trigonometry
+// to find a length, with an angle subtraction (a.Phi - b.Phi) inside it. That
+// form computes a.R^2 + b.R^2 - 2*a.R*b.R*cos, a difference of two large nearly
+// equal numbers for points close together, so rounding could drive the squared
+// distance below zero and it needed a guard before taking the square root.
+//
+// Subtracting the vectors first leaves nothing large to cancel, so the result
+// cannot come out negative and there is nothing to guard.
 func PolarDist(a, b Polar) float64 {
-	cosG := math.Cos(a.Theta)*math.Cos(b.Theta) +
-		math.Sin(a.Theta)*math.Sin(b.Theta)*math.Cos(a.Phi-b.Phi)
-	d2 := a.R*a.R + b.R*b.R - 2*a.R*b.R*cosG
-	if d2 <= 0 {
-		return 0
-	}
-	return math.Sqrt(d2)
+	return Polar2cart(a).Sub(Polar2cart(b)).Length()
 }
