@@ -5,9 +5,10 @@ package Buffer
 //frametag:ts=BUF_BLOCK_TAG_VIEW
 const BufBlockTagView byte = 4
 
-//frametag:ts=BUF_VIEW_FRAME_HEADER_SIZE
 // [tick:u32][layoutFingerprintHash:u32] — the hash lets the decoder refuse a
 // frame whose buffer layout it was not built for. See BufLayoutFingerprintHash.
+//
+//frametag:ts=BUF_VIEW_FRAME_HEADER_SIZE
 const BufViewFrameHeaderSize = 8
 
 //frametag:ts=BUF_BLOCK_TAG_EDGE_STREAM

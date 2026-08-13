@@ -39,8 +39,8 @@
         },
         "wirefold.reloadOnHostBuild": {
           "type": "boolean",
-          "default": true,
-          "description": "Automatically run 'Developer: Reload Window' when the built extension-host bundle (out/extension.js) changes, so a rebuilt extension host is never running stale code silently. On by default. Disable if you want to control the reload yourself."
+          "default": false,
+          "description": "Automatically run 'Developer: Reload Window' when the built extension-host bundle (out/extension.js) changes. OFF by default: it reloads the window at a moment you did not choose — including mid-write during a rebuild, which presents as a 10-second stall and a missing 'Topology: Open Editor' command. It was on to stop a rebuilt host running stale code silently, but staleness is no longer silent: a frame whose buffer layout differs from the bundle's is refused and reported (see BufLayoutFingerprintHash). Turn it on if you want the editor to reload itself on every rebuild."
         }
       }
     }

@@ -1,4 +1,12 @@
 {
+    // The extension watches its own out/extension.js and runs "Developer: Reload
+    // Window" whenever it changes. Any rebuild — including the one scripts/stop-checks.sh
+    // now does when the bundle is older than its sources — therefore reloaded this window
+    // at a moment nobody chose, sometimes mid-write, which showed up as a 10-second stall
+    // and a "command not found". Reload when you decide to; a stale bundle is no longer
+    // silent, since a frame carrying a foreign buffer layout is refused and reported.
+    "wirefold.reloadOnHostBuild": false,
+
     // .probe/ holds the runtime JSONL logs the editor appends to continuously. They are
     // gitignored, but the FILE WATCHER does not honor .gitignore — without these excludes
     // VS Code watches (and search-indexes) multi-hundred-MB files that grow during every
