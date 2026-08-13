@@ -179,7 +179,12 @@ func (n *Messaging) FlushPending() {
 	n.pending = kept
 }
 
-func (n *Messaging) BroadcastCenter(selfID string, center vec3) {
+// PublishCenter makes this node's own centre readable and tells nobody.
+//
+// It used to fan the centre out to every neighbour as well. That was the last
+// standing piece of the cascade: each neighbour cached the sender's position,
+// and anything acting on that cache moved other nodes in response.
+func (n *Messaging) PublishCenter(center vec3) {
 	select {
 	case <-n.centerOut:
 	default:
@@ -187,10 +192,5 @@ func (n *Messaging) BroadcastCenter(selfID string, center vec3) {
 	select {
 	case n.centerOut <- center:
 	default:
-	}
-
-	for neighborID := range n.neighborIn {
-		n.sendMove(neighborID, movemsg.Msg{Kind: movemsg.KindNeighborCenter, NodeID: neighborID,
-			SenderID: selfID, FromCenter: center})
 	}
 }

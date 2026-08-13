@@ -11,7 +11,6 @@ import { navSignature } from "./nav-signature";
 import { PolarFrame } from "./polar-frame";
 import { SceneVectors } from "./SceneVectors";
 import { NodePoles } from "./NodePoles";
-import { getNodeOutPoles, type NodeOutPoles } from "../scene/nodes/node-out-poles";
 
 export function NavGuides() {
 
@@ -28,7 +27,6 @@ export function NavGuides() {
   const [navTick, setNavTick] = useState(0);
   const bufNavRef = useRef<NavNode[]>([]);
   const bufSigRef = useRef("");
-  const outPolesRef = useRef<NodeOutPoles[]>([]);
 
   const sceneSphereRef = useRef<{ center: THREE.Vector3; radius: number }>({ center: new THREE.Vector3(), radius: 100 });
   useFrame(() => {
@@ -38,7 +36,6 @@ export function NavGuides() {
     const decodedNode = getNodeFrame();
     if (!decodedNode || !blocks) return;
     bufNavRef.current = decodeNavNodes(decodedNode);
-    outPolesRef.current = getNodeOutPoles();
     sceneSphereRef.current = sceneSphereFromSnapshot(blocks);
     const sig = navSignature(bufNavRef.current);
     if (sig !== bufSigRef.current) {
@@ -53,11 +50,6 @@ export function NavGuides() {
     [navTick],
   );
 
-  const outPoles = useMemo<NodeOutPoles[]>(
-    () => outPolesRef.current,
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [navTick],
-  );
 
   const latchedSel = navNodes.find((n) => n.latchedSel)?.row ?? null;
 
@@ -124,7 +116,7 @@ export function NavGuides() {
       {}
       {}
       {}
-      {showNodePoles && <NodePoles nodes={navNodes} outPoles={outPoles} />}
+      {showNodePoles && <NodePoles nodes={navNodes} />}
       {}
       {showSelPoles && sphereCenters.map((center) => (
         <PolarFrame

@@ -31,8 +31,8 @@ func (a *NodeAnimation) SetSpeedCh(ch chan float64) {
 	a.speedCh = ch
 }
 
-func (a *NodeAnimation) AddOutWire(pw *wire.PacedWire, target string, o *outport.Out, sendSteps func(int)) {
-	a.outs.AddOutWire(pw, target, o, sendSteps)
+func (a *NodeAnimation) AddOutWire(pw *wire.PacedWire, target string, o *outport.Out, sendSteps func(int), sendBeadRows func([]wire.LiveBeadRow)) {
+	a.outs.AddOutWire(pw, target, o, sendSteps, sendBeadRows)
 }
 
 func (a *NodeAnimation) ClearOutWires() {
@@ -89,6 +89,10 @@ func (a *NodeAnimation) Run(ctx context.Context) {
 		tick := a.clocks.Tick()
 		a.driveOutWires(ctx, tick)
 		a.sendPulses(tick)
+		// Each edge draws its own beads, so hand every wire's in-flight
+		// rows to the edge that owns it, right after the cycle that moved
+		// them.
+		a.outs.SendBeadRows(tick)
 
 		if err := a.clocks.SleepCycle(ctx); err != nil {
 			return

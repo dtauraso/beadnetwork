@@ -4,9 +4,23 @@ import (
 	"encoding/binary"
 	"fmt"
 
+	SF "github.com/dtauraso/wirefold/Buffer/streamframe"
 	"github.com/dtauraso/wirefold/nodes/Wiring/edgegeom"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
 )
+
+// edgeBeads is this edge's own in-flight beads, as world positions on its
+// own segment. They arrive from the goroutine that steps the wire; nothing
+// here recomputes where a bead is.
+func (m *EdgeMover) edgeBeads() []SF.EdgeBead {
+	beads := make([]SF.EdgeBead, 0, len(m.lastBeadRows))
+	for _, r := range m.lastBeadRows {
+		beads = append(beads, SF.EdgeBead{
+			X: float32(r.X), Y: float32(r.Y), Z: float32(r.Z), Value: int32(r.Val),
+		})
+	}
+	return beads
+}
 
 func (m *EdgeMover) writeStreamFrame(tick int64, events []rowevent.RowEvent) {
 	if !m.streamOut.Ok() || m.buildFrame == nil {
@@ -55,7 +69,7 @@ func (m *EdgeMover) writeStreamFrame(tick int64, events []rowevent.RowEvent) {
 	frame := m.buildFrame(uint32(tick),
 		float32(seg.Start.X), float32(seg.Start.Y), float32(seg.Start.Z),
 		float32(seg.End.X), float32(seg.End.Y), float32(seg.End.Z),
-		nodeRow, m.edgeID, events)
+		nodeRow, m.edgeID, m.edgeBeads(), events)
 	var hdr [4]byte
 	binary.LittleEndian.PutUint32(hdr[:], uint32(len(frame)))
 

@@ -5,24 +5,24 @@
 ## What things are
 
 There are TWO different things this project calls a "bead", and conflating them is the
-mistake to avoid (chain_beads.go's own header comment makes the same split):
+mistake to avoid:
 
 - **In-flight VALUE bead (`PacedWire.inflight`).** A value in transit from a source node to
   a destination node, timed by the wire's own traversal fraction `t`. This bead is data, not
   a goroutine — see the Wire bullet below, unchanged by the chain-bead goroutine model.
-- **Chain (render/placeholder) bead.** The node-owned visual entity that IS a traversal's
-  picture (`docs/bead-model/beads-are-the-edge.md`) — one per node-local offset along an outgoing
-  edge's aim. **This bead is a goroutine**, per (`nodes/wire/beadchain/bead_actor.go`'s `Bead`,
-  `nodes/wire/beadchain/bead_wake_group.go`'s `BeadWakeGroup`), with a real production call site:
-  `nodes/Wiring/nodeactor/owners/beads.go`'s `ReconcileBeadChain`/`StartBeadDrag`/`EndBeadDrag`, driven
-  from `chainBeads()` (`nodes/Wiring/nodeactor/chain_beads.go`) and from `handle()`'s
-  `movemsg.KindDragStart`/`movemsg.KindDragEnd` cases (`nodes/Wiring/nodeactor/node_mover.go`,
-  `nodes/Wiring/movemsg/move_msg.go`). `chainBeads()` itself stays a pure, synchronous function of this node's
-  own state (its own kind/radius and its own live copy of each neighbour's world
-  center, `partnerCenters` — see "the polar model" below) — the bead-actor path is
-  entered only when the node's own `beadTickFn` is set (production's `NewNodeMover`; nil in
-  every bare-literal test `NodeMover`, which is what keeps `chainBeads`' own test suite pure
-  and free of any live `TickBroadcaster` side effect). This bead is driven by TWO clocks
+- **Chain (render/placeholder) bead.** REMOVED. It was the node-owned visual entity that
+  stood in for a traversal — one per node-local offset along an outgoing edge's aim — and
+  it existed because a node laid a chain toward where it believed its neighbour was. That
+  belief was a cache of the neighbour's centre, kept current by a centre broadcast, and
+  both are gone. What renders a traversal now is the in-flight value bead itself, placed
+  by the edge it travels on the segment that edge already holds
+  (`nodes/wire/live_beads.go`'s `LiveBeadRows`), streamed on the EDGE's own frame as a
+  world position. The goroutine-per-bead primitive
+  (`nodes/wire/beadchain/bead_actor.go`, `bead_wake_group.go`) survives with no production
+  call site. The rest of this bullet describes that removed entity; it is kept because the
+  clock/channel split below is the design a replacement would have to answer to.
+
+  This bead was driven by TWO clocks
   over THREE structurally distinct channel sets:
   - **Geometry** (machine time): a `BroadcastChain` carrying the owning node's live aim
     direction (broadcast in NODE-LOCAL terms — a unit vector, no absolute center — so a

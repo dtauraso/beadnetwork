@@ -1,27 +1,3 @@
-// ── OutPole block ────────────────────────────────────────────
-export const OUT_POLE_COL_DX                     = 0; // f32
-export const OUT_POLE_COL_DY                     = 4; // f32
-export const OUT_POLE_COL_DZ                     = 8; // f32
-export const OUT_POLE_STRIDE                     = 12;
-
-export function readOutPoleDX(view: DataView, row: number): number { return view.getFloat32(row * OUT_POLE_STRIDE + OUT_POLE_COL_DX, true); }
-export function readOutPoleDY(view: DataView, row: number): number { return view.getFloat32(row * OUT_POLE_STRIDE + OUT_POLE_COL_DY, true); }
-export function readOutPoleDZ(view: DataView, row: number): number { return view.getFloat32(row * OUT_POLE_STRIDE + OUT_POLE_COL_DZ, true); }
-
-// ── Interior block ───────────────────────────────────────────
-export const INTERIOR_COL_PRESENT                = 0; // u8
-export const INTERIOR_COL_VALUE                  = 1; // i32
-export const INTERIOR_COL_OX                     = 5; // f32
-export const INTERIOR_COL_OY                     = 9; // f32
-export const INTERIOR_COL_OZ                     = 13; // f32
-export const INTERIOR_STRIDE                     = 17;
-
-export function readInteriorPresent(view: DataView, row: number): number { return view.getUint8(row * INTERIOR_STRIDE + INTERIOR_COL_PRESENT); }
-export function readInteriorValue(view: DataView, row: number): number { return view.getInt32(row * INTERIOR_STRIDE + INTERIOR_COL_VALUE, true); }
-export function readInteriorOX(view: DataView, row: number): number { return view.getFloat32(row * INTERIOR_STRIDE + INTERIOR_COL_OX, true); }
-export function readInteriorOY(view: DataView, row: number): number { return view.getFloat32(row * INTERIOR_STRIDE + INTERIOR_COL_OY, true); }
-export function readInteriorOZ(view: DataView, row: number): number { return view.getFloat32(row * INTERIOR_STRIDE + INTERIOR_COL_OZ, true); }
-
 // ── Edge block ───────────────────────────────────────────────
 export const EDGE_COL_SX                         = 0; // f32
 export const EDGE_COL_SY                         = 4; // f32
@@ -43,6 +19,18 @@ export function readEdgeEZ(view: DataView, row: number): number { return view.ge
 export function readEdgeSrcNodeRow(view: DataView, row: number): number { return view.getInt32(row * EDGE_STRIDE + EDGE_COL_SRC_NODE_ROW, true); }
 export function readEdgeEdgeLabelOff(view: DataView, row: number): number { return view.getUint32(row * EDGE_STRIDE + EDGE_COL_EDGE_LABEL_OFF, true); }
 export function readEdgeEdgeLabelLen(view: DataView, row: number): number { return view.getUint32(row * EDGE_STRIDE + EDGE_COL_EDGE_LABEL_LEN, true); }
+
+// ── EdgeBead block ───────────────────────────────────────────
+export const EDGE_BEAD_COL_X                     = 0; // f32
+export const EDGE_BEAD_COL_Y                     = 4; // f32
+export const EDGE_BEAD_COL_Z                     = 8; // f32
+export const EDGE_BEAD_COL_VALUE                 = 12; // i32
+export const EDGE_BEAD_STRIDE                    = 16;
+
+export function readEdgeBeadX(view: DataView, row: number): number { return view.getFloat32(row * EDGE_BEAD_STRIDE + EDGE_BEAD_COL_X, true); }
+export function readEdgeBeadY(view: DataView, row: number): number { return view.getFloat32(row * EDGE_BEAD_STRIDE + EDGE_BEAD_COL_Y, true); }
+export function readEdgeBeadZ(view: DataView, row: number): number { return view.getFloat32(row * EDGE_BEAD_STRIDE + EDGE_BEAD_COL_Z, true); }
+export function readEdgeBeadValue(view: DataView, row: number): number { return view.getInt32(row * EDGE_BEAD_STRIDE + EDGE_BEAD_COL_VALUE, true); }
 
 // ── Event block ──────────────────────────────────────────────
 export const EVENT_COL_KIND                      = 0; // u8

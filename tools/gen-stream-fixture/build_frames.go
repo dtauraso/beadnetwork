@@ -70,11 +70,6 @@ func buildNodeFrame() nodeFrameFixture {
 		RoundsToParallel:      f.RoundsToParallel,
 		MsgsToParallel:        f.MsgsToParallel,
 		Label:                 f.Label,
-		ChainBeadOX:           chainOX,
-		ChainBeadOY:           chainOY,
-		ChainBeadOZ:           chainOZ,
-		ChainBeadLit:          chainLit,
-		ChainBeadLitValue:     chainLitVal,
 		Events:                nil,
 	})
 	f.Hex = hex.EncodeToString(raw)
@@ -87,7 +82,8 @@ func buildEdgeFrame() edgeFrameFixture {
 		SrcNodeRow: 3,
 		Label:      "edgeLabel",
 	}
-	raw := streamframe.BuildEdgeStreamFrame(f.Tick, f.SX, f.SY, f.SZ, f.EX, f.EY, f.EZ, f.SrcNodeRow, f.Label, nil)
+	raw := streamframe.BuildEdgeStreamFrame(f.Tick, f.SX, f.SY, f.SZ, f.EX, f.EY, f.EZ, f.SrcNodeRow, f.Label,
+		[]streamframe.EdgeBead{{X: 1.5, Y: 2.25, Z: 3.125, Value: 1}}, nil)
 	f.Hex = hex.EncodeToString(raw)
 	return f
 }

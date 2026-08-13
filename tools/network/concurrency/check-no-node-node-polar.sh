@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: nodes/**/*.go,Buffer/**/*.go,tools/topology-vscode/src/**/*.ts | no node-node polar record (LocalPolar et al.); exactly one bead-centre summation site (node-stream-blocks.ts)
+# PLACEMENT: nodes/**/*.go,Buffer/**/*.go,tools/topology-vscode/src/**/*.ts | no node-node polar record (LocalPolar et al.); a bead streams its world position, never a node-local offset to be summed
 
 set -euo pipefail
 
@@ -37,25 +37,24 @@ fi
 
 TS_DIR="tools/topology-vscode/src"
 
-SUM_PATTERN='[A-Za-z0-9_.]+[[:space:]]*\+[[:space:]]*readChainBeadO[XYZ]\('
-
-sum_hits=$(grep -rlnE "$SUM_PATTERN" \
+# There is no bead-centre summation left to police. A bead's offset used to be
+# stored NODE-LOCAL, so somewhere had to add it to that node's world centre,
+# and the whole risk was that "somewhere" becoming two places. Beads are now
+# placed by the edge they travel, on the segment that edge already holds, and
+# what streams is the world position itself — no offset, no origin, no sum.
+#
+# What the guard still watches is the offset ever coming back: a node-local
+# bead column would bring the summation with it.
+sum_hits=$(grep -rlnE 'readChainBeadO[XYZ]\(|readEdgeBeadO[XYZ]\(' \
   --include='*.ts' --include='*.tsx' \
   "$TS_DIR" 2>/dev/null || true)
 
-sum_count=$(printf '%s\n' "$sum_hits" | grep -c . || true)
-
-if [ "$sum_count" -gt 1 ]; then
-  echo "✗ more than one file sums a node centre with a chain-bead node-local offset — the"
-  echo "  summation (node world centre + node-local bead offset -> absolute bead centre)"
-  echo "  must happen at exactly ONE site (node-stream-blocks.ts's getChainBeads):"
+if [ -n "$sum_hits" ]; then
+  echo "✗ a node-local bead offset is being read again, which reintroduces the"
+  echo "  summation (some centre + bead offset -> absolute bead centre) this guard"
+  echo "  exists to keep at one site. A bead streams its WORLD position, placed by"
+  echo "  the edge it travels:"
   printf '%s\n' "$sum_hits"
-  fail=1
-elif [ "$sum_count" -eq 1 ] && ! printf '%s\n' "$sum_hits" | grep -q 'node-stream-blocks\.ts$'; then
-  echo "✗ the bead-centre summation site moved out of node-stream-blocks.ts to:"
-  printf '%s\n' "$sum_hits"
-  echo "  (update this guard's expected path if the move is deliberate and still"
-  echo "   exactly one site — do not let a second site appear silently)"
   fail=1
 fi
 

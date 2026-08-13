@@ -1,4 +1,4 @@
-import { EDGE_STRIDE, readEdgeEdgeLabelOff, readEdgeEdgeLabelLen } from "../../../schema/buffer-layout/buffer-layout";
+import { EDGE_STRIDE, EDGE_BEAD_STRIDE, readEdgeEdgeLabelOff, readEdgeEdgeLabelLen } from "../../../schema/buffer-layout/buffer-layout";
 import { BUF_EDGE_STREAM_FRAME_HEADER_SIZE } from "../../../schema/buffer-layout/frame-tags";
 import { STR_DECODER, decodeTrailingEvents } from "./buffer-decode-shared";
 
@@ -17,6 +17,12 @@ export interface DecodedEdgeStreamFrame {
   edgeView: DataView;
 
   label: string;
+
+  // The beads in flight on this edge, at world positions along its own
+  // segment. They ride the edge's frame because the edge is what they are
+  // on — a node no longer lays a chain toward anything.
+  beadCount: number;
+  beadView: DataView;
 
   eventCount: number;
   eventView: DataView;
@@ -38,8 +44,9 @@ export function decodeEdgeStreamFrame(row: number, buf: ArrayBuffer): DecodedEdg
 
 function decodeEdgeStreamFrameUncached(buf: ArrayBuffer): DecodedEdgeStreamFrame | null {
   if (buf.byteLength < BUF_EDGE_STREAM_FRAME_HEADER_SIZE + EDGE_STRIDE) return null;
-  const hdr = new DataView(buf, 0, 4);
+  const hdr = new DataView(buf, 0, BUF_EDGE_STREAM_FRAME_HEADER_SIZE);
   const tick = hdr.getUint32(0, true);
+  const beadCount = hdr.getUint32(8, true);
 
   let off = BUF_EDGE_STREAM_FRAME_HEADER_SIZE;
   const edgeView = new DataView(buf, off, EDGE_STRIDE);
@@ -51,9 +58,14 @@ function decodeEdgeStreamFrameUncached(buf: ArrayBuffer): DecodedEdgeStreamFrame
   const label = STR_DECODER.decode(labelBytes);
   off += labelLen;
 
+  const beadBytes = beadCount * EDGE_BEAD_STRIDE;
+  if (buf.byteLength < off + beadBytes) return null;
+  const beadView = new DataView(buf, off, beadBytes);
+  off += beadBytes;
+
   const { count: eventCount, view: eventView, textView: eventTextView } = decodeTrailingEvents(buf, off);
 
-  return { tick, edgeView, label, eventCount, eventView, eventTextView };
+  return { tick, edgeView, label, beadCount, beadView, eventCount, eventView, eventTextView };
 }
 
 export function edgeLabel(decoded: DecodedEdgeFrame, row: number): string {

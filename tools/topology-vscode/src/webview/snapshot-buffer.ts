@@ -87,6 +87,10 @@ export function getLatestEdgeStreamFrames(): ReadonlyMap<number, ArrayBuffer> {
   return edgeStream.get();
 }
 
+export function getEdgeStreamVersion(): number {
+  return edgeStream.getVersion();
+}
+
 export function subscribeEdgeStreamFrame(fn: SnapshotListener): () => void {
   return edgeStream.subscribe(fn);
 }

@@ -2,7 +2,6 @@ package nodeactor
 
 import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/beadindex"
-	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/owners"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
@@ -77,7 +76,7 @@ func NewNodeGeometry(id string, geom nodegeom.NodeGeom, tr *T.Trace, clockSrc cl
 			map[string]chan movemsg.Msg{},
 			make(chan vec3, 1),
 		),
-		topo:       owners.NewTopology(map[string]polar.Polar{}),
+		topo:       owners.NewTopology(),
 		clocks:     owners.NewClocks(clockSrc, clock.NewRealClock()),
 		tilt:       owners.NewTilt(tiltvector.FullTurnThetaIdx),
 		anim:       anim,

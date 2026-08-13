@@ -21,7 +21,7 @@ func (mr *MoverRegistry) Bind(outSink map[string]*outport.Out, slotReg inputcode
 			em.SetDest(pw)
 
 			if srcNM, ok := mr.nodeGeoms[em.SrcID()]; ok {
-				srcNM.AddOutWire(pw, em.DstID(), o, em.SendSteps)
+				srcNM.AddOutWire(pw, em.DstID(), o, em.SendSteps, em.SendBeadRows)
 			}
 		}
 	}

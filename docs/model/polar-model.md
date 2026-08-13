@@ -85,11 +85,13 @@ and none is a source of truth.
   stored copy. It is NEVER stored as an independent absolute position — it is computed at
   ONE site by summation: the node's world center (already `sceneCenter +
   polar2cart(scenePolar)`) plus this node-local vector, at the render/decode boundary
-  (`tools/topology-vscode/src/webview/three/scene/nodes/node-stream-blocks.ts`'s `getChainBeads`,
-  `cx + readChainBeadOX(...)` and its Y/Z siblings) — the buffer streams the node's world
-  center and each bead's NODE-LOCAL offset as two separate columns on purpose (constant-time
-  node moves: moving a node costs one center write, not degree × N bead positions), and
-  this is the one place they are summed into an absolute bead centre. Beads after the first
+  — the summation site is GONE. The buffer used to stream a node's world centre and each
+  bead's NODE-LOCAL offset as two columns, summed at one place on decode, so that moving a
+  node cost one centre write rather than degree × N bead positions. That arrangement
+  belonged to a chain a NODE laid toward a neighbour whose position it cached. Beads are
+  now placed by the EDGE they travel, on the segment that edge already holds, and the
+  buffer streams the world position itself: no offset, no origin, nothing to sum
+  (`tools/topology-vscode/src/webview/three/scene/edges/edge-bead-blocks.ts`). Beads after the first
   keep their existing chain-relative placement (index × `lattice.BeadStepR` along the same aim)
   — this model change is about the node's coordinate, the per-edge first-bead vector, and
   this one summation site, not the rest of the chain.
