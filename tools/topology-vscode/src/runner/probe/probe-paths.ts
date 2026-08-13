@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import * as fs from "fs";
 import * as path from "path";
 import { PROBE_DIR, PROBE_FILES, PROBE_TRACE_FILES } from "../../probe-files";
+import { resolveRepoRoot } from "../../repo-root";
 
 export interface ProbePaths {
 
@@ -22,7 +23,11 @@ function rotateProbeLog(p: string): void {
 }
 
 export function probePathsFor(folder: vscode.WorkspaceFolder): ProbePaths {
-  const probeDir = path.join(folder.uri.fsPath, PROBE_DIR);
+  // Anchored on the git root, so the logs land in ONE place no matter which
+  // subdirectory the window is open on — a second .probe/ inside a subdirectory
+  // splits the evidence and reads as "no errors this run".
+  const root = resolveRepoRoot(folder.uri.fsPath) ?? folder.uri.fsPath;
+  const probeDir = path.join(root, PROBE_DIR);
   fs.mkdirSync(probeDir, { recursive: true });
 
   rotateProbeLog(path.join(probeDir, PROBE_FILES.goErrors));

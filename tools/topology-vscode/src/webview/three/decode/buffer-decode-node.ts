@@ -8,7 +8,22 @@ import {
 import { BUF_NODE_STREAM_FRAME_HEADER_SIZE } from "../../../schema/buffer-layout/frame-tags";
 import { STR_DECODER, decodeTrailingEvents } from "./buffer-decode-shared";
 
+// A mismatch is a per-frame condition, so it repeats every tick for every bad
+// row until the cause is fixed — and the report is a dynamic import() plus a
+// postMessage to the extension host plus a disk write. Unthrottled, one skewed
+// buffer layout produced 5088 reports in 10.1 seconds and wedged the extension
+// host, which is what made "Developer: Reload Window" stop responding.
+//
+// Report each DISTINCT (row, statedId) once. That keeps the diagnostic — a new
+// wrong id still speaks up immediately — while a stuck condition costs nothing
+// after its first frame.
+const reportedNodeIdMismatches = new Set<string>();
+
 function reportNodeIdMismatch(row: number, expectedId: number, statedId: number): void {
+  const seenKey = `${row}:${statedId}`;
+  if (reportedNodeIdMismatches.has(seenKey)) return;
+  reportedNodeIdMismatches.add(seenKey);
+
   const message = `node stream frame arrived on row ${row} (expected id ${expectedId}) but carries NodeId ${statedId}`;
   if (typeof window === "undefined") {
     // eslint-disable-next-line no-console

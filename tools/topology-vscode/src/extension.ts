@@ -10,6 +10,7 @@ import { armHostReloadWatcher } from "./extension/host-reload-watcher";
 import { armBundleWatcher } from "./extension/bundle-watcher";
 import { armGoWatcher } from "./extension/go-watcher";
 import { PROBE_FILES } from "./probe-files";
+import { resolveRepoRoot } from "./repo-root";
 
 export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
@@ -63,7 +64,7 @@ function wireMessageHandler(
 function openTopologyEditor(context: vscode.ExtensionContext, folderUri?: vscode.Uri): void {
   const topologyPath = resolveTopologyPath(folderUri);
 
-  const probeRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+  const probeRoot = resolveRepoRoot(vscode.workspace.workspaceFolders?.[0]?.uri.fsPath);
   if (probeRoot) resetProbeLogs(probeRoot);
 
   const panel = vscode.window.createWebviewPanel(
@@ -88,7 +89,7 @@ function openTopologyEditor(context: vscode.ExtensionContext, folderUri?: vscode
 
   const bundleWatcher = armBundleWatcher(panel, context);
 
-  const repoRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+  const repoRoot = resolveRepoRoot(vscode.workspace.workspaceFolders?.[0]?.uri.fsPath);
   const goWatcher = armGoWatcher(repoRoot, runner, panel);
 
   context.subscriptions.push(runner);
