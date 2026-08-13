@@ -74,8 +74,8 @@ func (m *EdgeMover) noteBeadCount(rows []wire.LiveBeadRow) {
 		m.seenBeadGens[b.Gen] = true
 		p := vec3{X: b.X, Y: b.Y, Z: b.Z}.Sub(seg.Start)
 		m.breadcrumb(T.BreadcrumbEdgeBeads, "edge-beads", fmt.Sprintf(
-			"src=%s dst=%s gen=%d firstSeenAlong=%.3f inFlight=%d steps=%d",
-			m.srcID, m.dstID, b.Gen, p.Dot(d)/l2, len(rows), m.steps))
+			"src=%s dst=%s gen=%d firstSeenAlong=%.3f beadSteps=%d age=%.1f edgeSteps=%d inFlight=%d",
+			m.srcID, m.dstID, b.Gen, p.Dot(d)/l2, b.Steps, b.Age, m.steps, len(rows)))
 	}
 }
 
