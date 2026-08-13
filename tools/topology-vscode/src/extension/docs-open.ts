@@ -3,6 +3,7 @@ import * as http from "http";
 import * as path from "path";
 import * as crypto from "crypto";
 import * as vscode from "vscode";
+import { resolveRepoRoot } from "../repo-root";
 
 export function findDefinitionLine(abs: string, symbol: string): number {
   let text: string;
@@ -36,7 +37,10 @@ export function findDefinitionLine(abs: string, symbol: string): number {
 export function serveDocsOpen(context: vscode.ExtensionContext): void {
   const folder = vscode.workspace.workspaceFolders?.[0];
   if (!folder || folder.uri.scheme !== "file") return;
-  const root = folder.uri.fsPath;
+  // The git root: docs/pair-node hangs off the repo, not off whichever
+  // subdirectory the window happens to be open on.
+  const root = resolveRepoRoot(folder.uri.fsPath);
+  if (!root) return;
   const docsDir = path.join(root, "docs", "pair-node");
   if (!fs.existsSync(docsDir)) return;      
   const portFile = path.join(docsDir, "port.js");
