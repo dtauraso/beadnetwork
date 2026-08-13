@@ -5,6 +5,7 @@ import { appendGoError } from "./runner/probe/go-errors";
 import { probePathsForFolder, prepareRunLayout, wireExitHandlers } from "./runner/lifecycle/run-lifecycle";
 import { buildBinary, reapOrphans, spawnProcess, attachStreamHandlers } from "./runner/lifecycle/process-lifecycle";
 import { RunnerLifecycle } from "./runner/lifecycle/runner-base";
+import { resolveRepoRoot } from "./repo-root";
 
 export { nodeIdForRow, rowForNodeId } from "./runner/stream-fds";
 export { readCounts } from "./runner/counts";
@@ -19,7 +20,10 @@ export class BuildAndRunRunner extends RunnerLifecycle {
     if (!folder) return;
 
     this.ensureOutputChannel();
-    const repoRoot = folder.uri.fsPath;
+    // The git root, NOT the workspace folder: `go build .` has to run where the
+    // Go module is, whichever subdirectory the window happens to be open on.
+    const repoRoot = resolveRepoRoot(folder.uri.fsPath);
+    if (!repoRoot) return;
     const binPath = path.join(repoRoot, ".wirefold-cache", "wirefold");
     const topArgs = this.topologyPath ? ["-topology", this.topologyPath] : [];
 
