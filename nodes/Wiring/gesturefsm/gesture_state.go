@@ -65,4 +65,7 @@ func (g *GestureState) Reset(vp *camera.Viewpoint) {
 	g.DragGrabOffset = spatial.Vec3{}
 	g.HandholdDown = false
 	g.Secondary = false
+	// The roll axis lives for one gesture. Leaving it set would pin the next
+	// handhold drag to the axis of the previous one.
+	vp.LockedAxis = nil
 }

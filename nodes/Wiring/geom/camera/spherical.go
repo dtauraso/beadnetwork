@@ -36,6 +36,27 @@ func vecToDir(v vec3) Dir {
 	return Dir{Theta: p.Theta, Phi: p.Phi}
 }
 
+// AngleAboutAxis is the SIGNED turn from `from` to `to` about `axis`, taking
+// each one's component perpendicular to the axis.
+//
+// This is what makes a handhold drag a ROLL: the axis is pinned for the whole
+// gesture and every move contributes only its turn about that one axis, rather
+// than a fresh axis of its own.
+//
+// atan2 of (axis . (f x t)) against (f . t) lands in (-pi, pi] by construction,
+// so it is the short way round with no wrap — the seam a difference of two
+// azimuths used to fall across is never crossed, because no azimuths are
+// subtracted.
+func AngleAboutAxis(from, to, axis Dir) float64 {
+	av := dirToVec(axis)
+	fv, tv := dirToVec(from), dirToVec(to)
+
+	fp := fv.Sub(av.Scale(av.Dot(fv)))
+	tp := tv.Sub(av.Scale(av.Dot(tv)))
+
+	return math.Atan2(av.Dot(fp.Cross(tp)), fp.Dot(tp))
+}
+
 // RotateDir turns p about axis by angle, as a rotation of the vector itself
 // (Rodrigues): v·cos + (k×v)·sin + k·(k·v)·(1−cos).
 //
