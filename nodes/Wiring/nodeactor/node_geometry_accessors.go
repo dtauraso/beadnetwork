@@ -34,15 +34,14 @@ func (m *NodeGeometry) NodeRow() int32 { return m.stream.NodeRow() }
 
 func (m *NodeGeometry) EdgeIDs() []string { return m.topo.EdgeIDs() }
 
-func (m *NodeGeometry) PartnerCenters() map[string]vec3 {
-	return m.topo.PartnerCenters(m.WorldCenter())
-}
-
 func (m *NodeGeometry) NeighborKinds() map[string]string { return m.topo.NeighborKinds() }
 
 // IsOutTarget says whether the edge to that neighbour LEAVES this node, which
 // is what separates a neighbour whose constraints this node must satisfy from
 // one whose constraints it imposes.
+// OutTargets is every edge target this node points at.
+func (m *NodeGeometry) OutTargets() []string { return m.outTargets }
+
 func (m *NodeGeometry) IsOutTarget(neighborID string) bool {
 	return slices.Contains(m.outTargets, neighborID)
 }

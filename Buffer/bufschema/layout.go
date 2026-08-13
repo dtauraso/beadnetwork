@@ -10,10 +10,9 @@ const BufInteriorSlotsPerNode = 4
 
 var _ = [...]any{
 	bufLayoutNode{},
-	bufLayoutChainBead{},
-	bufLayoutOutPole{},
 	bufLayoutInterior{},
 	bufLayoutEdge{},
+	bufLayoutEdgeBead{},
 	bufLayoutCamera{},
 	bufLayoutOverlay{},
 	bufLayoutScene{},

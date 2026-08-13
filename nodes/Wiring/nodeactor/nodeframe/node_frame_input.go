@@ -41,12 +41,6 @@ type NodeFrameInput struct {
 
 	Label string
 
-	ChainBeadOX, ChainBeadOY, ChainBeadOZ []float32
-	ChainBeadLit                          []uint8
-	ChainBeadLitValue                     []int32
-
-	OutPoleDX, OutPoleDY, OutPoleDZ []float32
-
 	Events []rowevent.RowEvent
 }
 

@@ -13,18 +13,30 @@ func (pw *PacedWire) DriveOneCycle(ctx context.Context, tick int64) {
 	if ctx.Err() != nil {
 		return
 	}
-	pw.drainPlacements()
+	pw.drainPlacements(tick)
 	pw.stepAll(tick)
 }
 
-func (pw *PacedWire) drainPlacements() {
+// drainPlacements stamps each arriving bead with the tick of the clock that
+// DRIVES this wire, not the one the sender read.
+//
+// A bead's position is (now - placementTick) / crossTicks, and `now` is
+// always the driving clock. The sender's tick came from a different copy —
+// the network gives one clock copy per goroutine, and each has speed applied
+// on its own — so the two run apart, and the difference lands whole in that
+// numerator. A bead is then already part of the way across the first time it
+// is drawn, by however far the two copies have drifted. It showed up only on
+// the kinds that place from a separate driving goroutine (the pulse family,
+// through gatecommon.DriveHeld) and only after a session had run long enough
+// for the copies to separate.
+func (pw *PacedWire) drainPlacements(tick int64) {
 	for {
 		select {
 		case req := <-pw.inCh:
 			pw.nextGen++
 			pw.inflight = append(pw.inflight, inflightBead{
 				val:           req.val,
-				placementTick: float64(req.placementTick),
+				placementTick: float64(tick),
 
 				steps:   req.bp.Steps,
 				seg:     spatial.WireSegment{Start: req.bp.Start, End: req.bp.End},

@@ -71,17 +71,6 @@ func (md *MoveDispatch) buildEdgeMovers(edgeEndpoints map[string]inputcodec.Edge
 	}
 }
 
-func (md *MoveDispatch) seedPartnerCenters() {
-	for _, nm := range md.MR.NodeGeoms() {
-
-		for _, neighborID := range nm.NeighborIDs() {
-			if other, ok := md.MR.NodeGeoms()[neighborID]; ok {
-				nm.SeedPartnerCenter(neighborID, other.WorldCenter())
-			}
-		}
-	}
-}
-
 func (md *MoveDispatch) wireNodeEdgeIDs() {
 	for id, nm := range md.MR.NodeGeoms() {
 		for edgeID, em := range md.MR.EdgeMovers() {

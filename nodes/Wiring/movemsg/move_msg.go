@@ -21,8 +21,6 @@ const (
 
 	KindLatched = "latched"
 
-	KindNeighborCenter = "neighborCenter"
-
 	KindTiltVectorAngle = "tiltVectorAngle"
 
 	KindTiltVectorReset = "tiltVectorReset"

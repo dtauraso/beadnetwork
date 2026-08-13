@@ -49,7 +49,6 @@ func (m *NodeGeometry) writeStreamFrame(events []rowevent.RowEvent) {
 		Geom:                   m.geom,
 		UpAxis:                 upAxis,
 		CoplanarEdges:          coplanarEdges,
-		PartnerCenters:         m.topo.PartnerCenters(m.WorldCenter()),
 		TopTiltVectorThetaIdx:  topIdx,
 		BottomThetaIdx:         bottomIdx,
 		NormalThetaIdx:         normalIdx,
@@ -76,14 +75,6 @@ func (m *NodeGeometry) writeStreamFrame(events []rowevent.RowEvent) {
 	selected, hovered, latchedSel := m.ui.Flags()
 	kindID := m.stream.KindID()
 	roundsToParallel, msgsToParallel := m.readout.RoundsToParallel()
-
-	chainOX, chainOY, chainOZ, chainLit, chainLitVal, chainBreadcrumbs := m.chainBeads()
-	if len(chainBreadcrumbs) > 0 {
-
-		events = append(events, chainBreadcrumbs...)
-	}
-
-	outPoleDX, outPoleDY, outPoleDZ := m.outPoles()
 
 	m.stream.WriteFrame(nodeframe.NodeFrameInput{
 		Tick:                  uint32(m.clocks.Tick()),
@@ -118,14 +109,6 @@ func (m *NodeGeometry) writeStreamFrame(events []rowevent.RowEvent) {
 		RoundsToParallel:      roundsToParallel,
 		MsgsToParallel:        msgsToParallel,
 		Label:                 label,
-		ChainBeadOX:           chainOX,
-		ChainBeadOY:           chainOY,
-		ChainBeadOZ:           chainOZ,
-		ChainBeadLit:          chainLit,
-		ChainBeadLitValue:     chainLitVal,
-		OutPoleDX:             outPoleDX,
-		OutPoleDY:             outPoleDY,
-		OutPoleDZ:             outPoleDZ,
 		Events:                events,
 	})
 }

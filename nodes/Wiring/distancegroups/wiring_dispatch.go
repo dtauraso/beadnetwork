@@ -19,7 +19,7 @@ func ResolveSceneDistanceGroups(ui *viewstate.UIState, scenePath string) {
 
 func ApplyDistanceGroupTarget(ctx context.Context, ui *viewstate.UIState, mr *moverreg.MoverRegistry, lq *layoutquant.LayoutQuantizer, groupIdx, dir int) bool {
 	rootMove := func(ctx context.Context, target string, newPos spatial.Vec3) bool {
-		return lq.RootMove(ctx, mr.NodeGeoms(), target, newPos)
+		return lq.RootMove(ctx, mr.NodeGeoms(), mr.CenterOfNode, target, newPos)
 	}
 	return ApplyTarget(ctx, ui.HasDistanceGroups, mr.CenterOfNode, rootMove, groupIdx, dir)
 }

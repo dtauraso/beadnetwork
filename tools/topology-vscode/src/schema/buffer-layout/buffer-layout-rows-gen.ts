@@ -64,17 +64,17 @@ export function readNodeLatticePoints(view: DataView, row: number): number { ret
 export function readNodeRoundsToParallel(view: DataView, row: number): number { return view.getInt32(row * NODE_STRIDE + NODE_COL_ROUNDS_TO_PARALLEL, true); }
 export function readNodeMsgsToParallel(view: DataView, row: number): number { return view.getInt32(row * NODE_STRIDE + NODE_COL_MSGS_TO_PARALLEL, true); }
 
-// ── ChainBead block ──────────────────────────────────────────
-export const CHAIN_BEAD_COL_OX                   = 0; // f32
-export const CHAIN_BEAD_COL_OY                   = 4; // f32
-export const CHAIN_BEAD_COL_OZ                   = 8; // f32
-export const CHAIN_BEAD_COL_LIT                  = 12; // u8
-export const CHAIN_BEAD_COL_LIT_VALUE            = 13; // i32
-export const CHAIN_BEAD_STRIDE                   = 17;
+// ── Interior block ───────────────────────────────────────────
+export const INTERIOR_COL_PRESENT                = 0; // u8
+export const INTERIOR_COL_VALUE                  = 1; // i32
+export const INTERIOR_COL_OX                     = 5; // f32
+export const INTERIOR_COL_OY                     = 9; // f32
+export const INTERIOR_COL_OZ                     = 13; // f32
+export const INTERIOR_STRIDE                     = 17;
 
-export function readChainBeadOX(view: DataView, row: number): number { return view.getFloat32(row * CHAIN_BEAD_STRIDE + CHAIN_BEAD_COL_OX, true); }
-export function readChainBeadOY(view: DataView, row: number): number { return view.getFloat32(row * CHAIN_BEAD_STRIDE + CHAIN_BEAD_COL_OY, true); }
-export function readChainBeadOZ(view: DataView, row: number): number { return view.getFloat32(row * CHAIN_BEAD_STRIDE + CHAIN_BEAD_COL_OZ, true); }
-export function readChainBeadLit(view: DataView, row: number): number { return view.getUint8(row * CHAIN_BEAD_STRIDE + CHAIN_BEAD_COL_LIT); }
-export function readChainBeadLitValue(view: DataView, row: number): number { return view.getInt32(row * CHAIN_BEAD_STRIDE + CHAIN_BEAD_COL_LIT_VALUE, true); }
+export function readInteriorPresent(view: DataView, row: number): number { return view.getUint8(row * INTERIOR_STRIDE + INTERIOR_COL_PRESENT); }
+export function readInteriorValue(view: DataView, row: number): number { return view.getInt32(row * INTERIOR_STRIDE + INTERIOR_COL_VALUE, true); }
+export function readInteriorOX(view: DataView, row: number): number { return view.getFloat32(row * INTERIOR_STRIDE + INTERIOR_COL_OX, true); }
+export function readInteriorOY(view: DataView, row: number): number { return view.getFloat32(row * INTERIOR_STRIDE + INTERIOR_COL_OY, true); }
+export function readInteriorOZ(view: DataView, row: number): number { return view.getFloat32(row * INTERIOR_STRIDE + INTERIOR_COL_OZ, true); }
 

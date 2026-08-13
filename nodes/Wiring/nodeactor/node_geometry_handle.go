@@ -33,8 +33,6 @@ func (m *NodeGeometry) handle(msg movemsg.Msg) {
 		m.handleTiltVectorAngle(msg)
 	case movemsg.KindTiltVectorReset:
 		m.handleTiltVectorReset()
-	case movemsg.KindNeighborCenter:
-		m.handleNeighborCenter(msg)
 	default:
 
 		if m.tr != nil {
@@ -95,30 +93,6 @@ func (m *NodeGeometry) handleTiltVectorReset() {
 	m.tilt.ResetTopTiltVectorThetaIdx()
 	m.persistTiltVectorAngle()
 	if m.tr != nil {
-		m.emitGeometry()
-	}
-}
-
-func (m *NodeGeometry) handleNeighborCenter(msg movemsg.Msg) {
-	m.topo.SetPathTo(msg.SenderID, m.WorldCenter(), msg.FromCenter)
-	// The neighbour that moved states the new shared length before the hold
-	// runs, so its own distance is the one kept and its siblings are the
-	// ones brought to it.
-	m.NoteOutNeighborLen(msg.SenderID)
-	m.ConstrainOutAngles()
-	if m.tr != nil {
-
-		value := fmt.Sprintf("sender=%s center=(%.4f,%.4f,%.4f)", msg.SenderID, msg.FromCenter.X, msg.FromCenter.Y, msg.FromCenter.Z)
-		m.tr.Breadcrumb("neighbor-center-recv", m.id, msg.SenderID, value)
-		senderRow := int32(-1)
-		if r, ok := m.topo.NodeRowFor(msg.SenderID); ok {
-			senderRow = r
-		}
-		m.writeStreamFrame([]rowevent.RowEvent{{
-			Kind: T.KindBreadcrumb, Label: T.BreadcrumbNeighborCenterRecv, Debug: 1,
-			NodeRow: m.stream.NodeRow(), PortRow: -1, TargetRow: senderRow, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
-			Text: value,
-		}})
 		m.emitGeometry()
 	}
 }

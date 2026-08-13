@@ -1,9 +1,12 @@
 package build
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
+	"github.com/dtauraso/wirefold/nodes/Wiring/layoutquant"
+	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
 )
@@ -78,10 +81,18 @@ func (b *buildCtx) buildMoveDispatch() error {
 		}
 		nm.AddOutTarget(e.Target)
 	}
-	// Kind and out-targets are both known only now, so the loaded layout
-	// gets its first angle hold here rather than during seeding.
+
+	// Kind and out-targets are both known only now, so a loaded layout gets
+	// its first hold here. A drag is what enforces the constraints from then
+	// on; without this the layout would sit wrong until node 1 happened to
+	// be dragged, since a phi that loads wrong cannot be corrected by any
+	// move of the node it is wrong for.
 	for _, nm := range md.MR.NodeGeoms() {
-		nm.ConstrainOutAngles()
+		for to, heldPos := range layoutquant.HeldOutNeighbors(nm, md.MR.CenterOfNode, nm.WorldCenter()) {
+			if other, ok := md.MR.NodeGeoms()[to]; ok {
+				other.SendExternal(context.TODO(), movemsg.Msg{Kind: movemsg.KindDrag, NodeID: to, Target: heldPos})
+			}
+		}
 	}
 	b.md = md
 	return nil

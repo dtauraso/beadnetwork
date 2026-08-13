@@ -26,10 +26,6 @@ func (m *NodeGeometry) AddMutualTarget(target string) {
 	m.topo.AddMutualTarget(target)
 }
 
-func (m *NodeGeometry) SeedPartnerCenter(neighborID string, c vec3) {
-	m.topo.SetPathTo(neighborID, m.WorldCenter(), c)
-}
-
 func (m *NodeGeometry) AddEdgeID(edgeID string) {
 	m.topo.AddEdgeID(edgeID)
 }
@@ -58,8 +54,8 @@ func (m *NodeGeometry) AddOutTarget(target string) {
 	m.outTargets = append(m.outTargets, target)
 }
 
-func (m *NodeGeometry) AddOutWire(pw *wire.PacedWire, target string, o *outport.Out, sendSteps func(int)) {
-	m.anim.AddOutWire(pw, target, o, sendSteps)
+func (m *NodeGeometry) AddOutWire(pw *wire.PacedWire, target string, o *outport.Out, sendSteps func(int), sendBeadRows func([]wire.LiveBeadRow)) {
+	m.anim.AddOutWire(pw, target, o, sendSteps, sendBeadRows)
 }
 
 func (m *NodeGeometry) WireStream(streamOut streamclaim.StreamHandle, row int32, kindID uint8, nodeRowFor func(id string) (int32, bool), buildFrame nodeframe.NodeFrameBuilder) {
