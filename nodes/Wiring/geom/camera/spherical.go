@@ -35,68 +35,47 @@ func vecToDir(v vec3) Dir {
 	return Dir{Theta: p.Theta, Phi: p.Phi}
 }
 
-// axisFrame is the tangent basis at p: north points along p's meridian toward
-// +y, east toward increasing phi. Azimuth is measured from north toward east,
-// which is the convention the callers were already written against.
+// RotateDir turns p about axis by angle, as a rotation of the vector itself
+// (Rodrigues): v·cos + (k×v)·sin + k·(k·v)·(1−cos).
 //
-// At the poles the meridian direction is undefined — every direction from the
-// north pole is south — so phi itself supplies the reference there, which is
-// what the spherical formula this replaced did implicitly.
-func axisFrame(p vec3) (north, east vec3) {
-	up := vec3{X: 0, Y: 1, Z: 0}
-	north = up.Sub(p.Scale(up.Dot(p)))
-	if north.Length() < 1e-12 {
-		meridian := vec3{X: math.Cos(vecToDir(p).Phi), Y: 0, Z: math.Sin(vecToDir(p).Phi)}
-		north = meridian.Sub(p.Scale(meridian.Dot(p)))
-		if p.Y > 0 {
-			north = north.Scale(-1)
-		}
-	}
-	north = north.Normalize()
-	east = p.Cross(up)
-	if east.Length() < 1e-12 {
-		east = p.Cross(north)
-	}
-	return north, east.Normalize()
-}
-
-// AzimuthFrom gives p's polar coordinates IN THE FRAME whose pole is `pole`:
-// c is the angular distance, psi the bearing from north toward east.
-func AzimuthFrom(pole, p Dir) (c, psi float64) {
-	pv, tv := dirToVec(pole), dirToVec(p)
-	c = math.Atan2(pv.Cross(tv).Length(), pv.Dot(tv))
-
-	north, east := axisFrame(pv)
-	perp := tv.Sub(pv.Scale(pv.Dot(tv)))
-	psi = math.Atan2(perp.Dot(east), perp.Dot(north))
-	return c, psi
-}
-
-// FromAxisFrame is AzimuthFrom's inverse: the direction at angular distance c
-// from `pole`, on bearing psi.
-func FromAxisFrame(pole Dir, c, psi float64) Dir {
-	pv := dirToVec(pole)
-	north, east := axisFrame(pv)
-
-	tangent := north.Scale(math.Cos(psi)).Add(east.Scale(math.Sin(psi)))
-	return vecToDir(pv.Scale(math.Cos(c)).Add(tangent.Scale(math.Sin(c))))
-}
-
+// It used to measure p's bearing about the axis, add the angle to it, and
+// rebuild the direction from that bearing. Rotating the vector needs no bearing
+// and therefore no reference direction — which is what removed the pole case,
+// where a bearing has no meaning because every direction from the pole is south.
 func RotateDir(p, axis Dir, angle float64) Dir {
-	c, psi := AzimuthFrom(axis, p)
-	return FromAxisFrame(axis, c, psi+angle)
+	v, k := dirToVec(p), dirToVec(axis)
+	cos, sin := math.Cos(angle), math.Sin(angle)
+
+	return vecToDir(v.Scale(cos).
+		Add(k.Cross(v).Scale(sin)).
+		Add(k.Scale(k.Dot(v) * (1 - cos))))
 }
 
 // ArcBetween is the rotation carrying `from` to `to`: the axis is perpendicular
 // to both, and the angle is the distance between them.
+//
+// The one branch left in this file is here, and it is not a formula artifact —
+// it is the geometry having no unique answer. When the two directions are
+// ANTIPARALLEL the turn is 180 degrees and EVERY perpendicular axis performs
+// it; no expression can choose one continuously (you cannot comb a sphere), so
+// something has to pick.
+//
+// The parallel case needs no branch: the cross product is zero, so the angle is
+// zero, and a zero-degree turn about any axis — including the one the zero
+// vector converts to — is the identity.
 func ArcBetween(from, to Dir) Rot {
 	fv, tv := dirToVec(from), dirToVec(to)
 	cross := fv.Cross(tv)
-	if cross.Length() < 1e-12 {
-		// Parallel or antiparallel: no unique axis. Keep the old behaviour of
-		// naming one perpendicular rather than failing.
-		north, _ := axisFrame(fv)
-		return Rot{Axis: vecToDir(fv.Cross(north)), Angle: math.Atan2(cross.Length(), fv.Dot(tv))}
+	angle := math.Atan2(cross.Length(), fv.Dot(tv))
+
+	if cross.Length() < 1e-12 && fv.Dot(tv) < 0 {
+		// Cross with whichever world axis `from` is least aligned with, so the
+		// perpendicular we pick is the best conditioned one available.
+		alt := vec3{X: 1}
+		if math.Abs(fv.X) > 0.9 {
+			alt = vec3{Y: 1}
+		}
+		return Rot{Axis: vecToDir(fv.Cross(alt)), Angle: angle}
 	}
-	return Rot{Axis: vecToDir(cross), Angle: math.Atan2(cross.Length(), fv.Dot(tv))}
+	return Rot{Axis: vecToDir(cross), Angle: angle}
 }

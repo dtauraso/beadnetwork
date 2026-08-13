@@ -118,9 +118,12 @@ t?
     <footer>
       <b style="color:var(--ink)">Root cause</b> — position is stored as φ about the fixed +y pole, then quantized,
       locked, and persisted; φ is degenerate there so a nudge crosses many grid cells and the lock freezes a wrong one.
-      <b style="color:var(--ink)">Fix</b> — mirror <code>spherical.go</code>'s great-circle bearing
-      (<code>AzimuthFrom</code>/<code>FromAxisFrame</code>, no <code>/sinθ</code>) at the
-      <code>cart2polar</code>→quantize sites in <code>node_move.go</code> (1372, 1470, 1688).
+      <b style="color:var(--ink)">Status</b> — the CONVERSION no longer degrades here:
+      <code>Cart2polar</code> takes θ from <code>atan2(hypot(x,z), y)</code>, which reads both legs
+      instead of dividing, so it stays accurate along the pole axis where <code>acos(y/r)</code>
+      returned exactly 0. The grid degeneracy above is a separate thing and is untouched: it is a
+      property of quantizing φ about a fixed pole, where every φ names the same point, not of how
+      the angle is computed.
     </footer>
   </div>
 
