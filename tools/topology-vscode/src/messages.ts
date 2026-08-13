@@ -15,6 +15,7 @@ const OVERLAY_FLAG_NAMES = [
   "hoverRing",
   "reachSphere",
   "sceneVectors",
+  "commEdges",
 ] as const;
 // OVERLAY_FLAGS_END
 

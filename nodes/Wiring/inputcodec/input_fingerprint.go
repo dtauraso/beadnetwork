@@ -2,7 +2,7 @@ package inputcodec
 
 import "strings"
 
-const InputLayoutFingerprint = "kinds=save:4,raw-input:10,edit-update:22 eventKinds=pointerdown,pointermove,pointerup,wheel,home hitKinds=port,handhold,node,edge,torus,empty updateKinds=overlays,clock,distanceGroup,scene,tiltVector updateAttrs=toggle,speed,length,selected,theta,phi,reset,start,latticePoints,create,delete overlayFlags=tori,scenePoles,nodePoles,selSpherePoles,handholds,labelsGlobal,overlays,nodeBody,nodeRing,ringPick,selectionRing,hoverRing,reachSphere,sceneVectors"
+const InputLayoutFingerprint = "kinds=save:4,raw-input:10,edit-update:22 eventKinds=pointerdown,pointermove,pointerup,wheel,home hitKinds=port,handhold,node,edge,torus,empty updateKinds=overlays,clock,distanceGroup,scene,tiltVector updateAttrs=toggle,speed,length,selected,theta,phi,reset,start,latticePoints,create,delete overlayFlags=tori,scenePoles,nodePoles,selSpherePoles,handholds,labelsGlobal,overlays,nodeBody,nodeRing,ringPick,selectionRing,hoverRing,reachSphere,sceneVectors,commEdges"
 
 const (
 	InKindSave = 4

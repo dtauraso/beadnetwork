@@ -1,6 +1,8 @@
 package nodeactor
 
 import (
+	"slices"
+
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
@@ -37,6 +39,13 @@ func (m *NodeGeometry) PartnerCenters() map[string]vec3 {
 }
 
 func (m *NodeGeometry) NeighborKinds() map[string]string { return m.topo.NeighborKinds() }
+
+// IsOutTarget says whether the edge to that neighbour LEAVES this node, which
+// is what separates a neighbour whose constraints this node must satisfy from
+// one whose constraints it imposes.
+func (m *NodeGeometry) IsOutTarget(neighborID string) bool {
+	return slices.Contains(m.outTargets, neighborID)
+}
 
 func (m *NodeGeometry) SendMove() func(id string, msg movemsg.Msg) { return m.msg.SendMove() }
 

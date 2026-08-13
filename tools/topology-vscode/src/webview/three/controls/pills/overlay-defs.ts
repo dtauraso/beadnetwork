@@ -142,12 +142,23 @@ const sceneVectorsCfg: ToggleCfg = {
   payload: (v) => ({ flag: "sceneVectors", was: v }),
 };
 
+const commEdgesCfg: ToggleCfg = {
+  flag: "commEdges",
+  default: false,
+  active: (v) => v,
+  icon: "⇢",
+  label: "comm edges",
+  title: (a) =>
+    a ? "Hide constraint-communication edges" : "Show constraint-communication edges",
+  payload: (v) => ({ flag: "commEdges", was: v }),
+};
+
 export type OverlayGroup ={ heading: string; cfgs: ToggleCfg[]; under?: Partial<Record<string, ToggleCfg>> };
 
 export const OVERLAY_GROUPS: OverlayGroup[] = [
   { heading: "NODE",   cfgs: [nodeBodyCfg, nodeRingCfg, ringPickCfg] }, 
   { heading: "STATE",  cfgs: [selectionRingCfg, hoverRingCfg, reachSphereCfg] },
-  { heading: "GUIDES", cfgs: [ringsCfg, handholdsCfg, sceneVectorsCfg] },
+  { heading: "GUIDES", cfgs: [ringsCfg, handholdsCfg, sceneVectorsCfg, commEdgesCfg] },
   { heading: "POLES",  cfgs: [scenePolesCfg, nodePolesCfg, selSpherePolesCfg] },
   { heading: "LABELS", cfgs: [globalLabelsCfg] },
 ];

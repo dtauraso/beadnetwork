@@ -2,7 +2,9 @@ import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { getChainBeads } from "../nodes/node-stream-blocks";
-import { beadStyleForValue } from "./bead-style";
+import { beadStyleForValue, COMM_BEAD_STYLE } from "./bead-style";
+import { overlayOn } from "../../controls/flags/overlay-flags";
+import { readOverlayCommEdges } from "../../../../schema/buffer-layout/buffer-layout";
 import {
   SHADING_PARAM_BEAD_RADIUS,
   SHADING_PARAM_BEAD_RING_TUBE_RATIO,
@@ -29,17 +31,24 @@ export function ChainBeadInstances({ capacity }: { capacity: number }) {
     const ring = ringRef.current;
     if (!litBody || !ring) return;
 
-    const { positions, ringAxis, count, lit, litValue } = getChainBeads();
+    const { positions, ringAxis, count, lit, litValue, comm } = getChainBeads();
+    const showComm = overlayOn(readOverlayCommEdges);
 
     const drawn = Math.min(count, capacity);
 
     let litCount = 0;
     let ringCount = 0;
     for (let i = 0; i < drawn; i++) {
+      // A comm bead is part of an edge that carries a position, not a
+      // value, so the whole chain draws whether or not a bead is lit —
+      // an edge is a line, not the beads that happen to be travelling
+      // it. With the overlay off these fall back to animation beads.
+      const isComm = showComm && comm[i] === 1;
+      const style = isComm ? COMM_BEAD_STYLE : beadStyleForValue(litValue[i]);
 
-      if (lit[i] !== 1) continue;
+      if (!isComm && lit[i] !== 1) continue;
 
-      if (!beadStyleForValue(litValue[i])) continue;
+      if (!style) continue;
 
       matRef.current.makeTranslation(positions[i * 3]!, positions[i * 3 + 1]!, positions[i * 3 + 2]!);
 
@@ -51,11 +60,9 @@ export function ChainBeadInstances({ capacity }: { capacity: number }) {
         BEAD_UNIT_SCALE,
       );
       ring.setMatrixAt(ringCount, beadRingMatRef.current);
-      ring.setColorAt(ringCount, colRef.current.set(RING_COLOR));
+      ring.setColorAt(ringCount, colRef.current.set(isComm ? style.ring : RING_COLOR));
       ringCount++;
 
-      const style = beadStyleForValue(litValue[i]);
-      if (!style) continue;
       litBody.setMatrixAt(litCount, matRef.current);
       litBody.setColorAt(litCount, colRef.current.set(style.fill));
       litCount++;
