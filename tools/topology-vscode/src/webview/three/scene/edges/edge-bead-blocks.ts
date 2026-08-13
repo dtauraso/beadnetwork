@@ -3,6 +3,7 @@ import { decodeEdgeStreamFrame } from "../../decode/buffer-decode-edge";
 import {
   readEdgeBeadX, readEdgeBeadY, readEdgeBeadZ, readEdgeBeadValue,
   readEdgeSrcNodeRow,
+  readEdgeSX, readEdgeSY, readEdgeSZ, readEdgeEX, readEdgeEY, readEdgeEZ,
 } from "../../../../schema/buffer-layout/buffer-layout";
 
 export interface EdgeBeadsAgg {
@@ -13,6 +14,11 @@ export interface EdgeBeadsAgg {
   // lets a renderer colour a bead by the kind of node that sent it without
   // walking the frames a second time.
   srcNodeRow: Int32Array;
+
+  // ringAxis is the direction the bead is travelling — the axis its torus
+  // faces along. It is the edge's OWN streamed segment, read as a direction;
+  // nothing here works out where the segment is.
+  ringAxis: Float32Array;
 
   count: number;
 }
@@ -37,13 +43,23 @@ export function getEdgeBeads(): EdgeBeadsAgg {
   }
 
   const positions = new Float32Array(total * 3);
+  const ringAxis = new Float32Array(total * 3);
   const value = new Int32Array(total);
   const srcNodeRow = new Int32Array(total);
   let w = 0;
   let b = 0;
   for (const d of decoded) {
     const src = readEdgeSrcNodeRow(d.edgeView, 0);
+
+    const dx = readEdgeEX(d.edgeView, 0) - readEdgeSX(d.edgeView, 0);
+    const dy = readEdgeEY(d.edgeView, 0) - readEdgeSY(d.edgeView, 0);
+    const dz = readEdgeEZ(d.edgeView, 0) - readEdgeSZ(d.edgeView, 0);
+    const len = Math.hypot(dx, dy, dz) || 1;
+
     for (let i = 0; i < d.beadCount; i++) {
+      ringAxis[w] = dx / len;
+      ringAxis[w + 1] = dy / len;
+      ringAxis[w + 2] = dz / len;
       positions[w++] = readEdgeBeadX(d.beadView, i);
       positions[w++] = readEdgeBeadY(d.beadView, i);
       positions[w++] = readEdgeBeadZ(d.beadView, i);
@@ -53,6 +69,6 @@ export function getEdgeBeads(): EdgeBeadsAgg {
   }
 
   lastVersion = ev;
-  lastAgg = { positions, value, srcNodeRow, count: total };
+  lastAgg = { positions, ringAxis, value, srcNodeRow, count: total };
   return lastAgg;
 }

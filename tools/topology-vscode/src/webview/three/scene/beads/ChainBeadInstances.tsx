@@ -13,10 +13,17 @@ import {
 
 const RING_COLOR = beadStyleForValue(1)!.ring;
 
+const TORUS_DEFAULT_NORMAL = new THREE.Vector3(0, 0, 1);
+const BEAD_UNIT_SCALE = new THREE.Vector3(1, 1, 1);
+
 export function ChainBeadInstances({ capacity }: { capacity: number }) {
   const litBodyRef = useRef<THREE.InstancedMesh>(null);
   const ringRef = useRef<THREE.InstancedMesh>(null);
   const matRef = useRef(new THREE.Matrix4());
+  const ringMatRef = useRef(new THREE.Matrix4());
+  const quatRef = useRef(new THREE.Quaternion());
+  const axisRef = useRef(new THREE.Vector3());
+  const posRef = useRef(new THREE.Vector3());
   const colRef = useRef(new THREE.Color());
 
   useFrame(() => {
@@ -24,7 +31,7 @@ export function ChainBeadInstances({ capacity }: { capacity: number }) {
     const ring = ringRef.current;
     if (!litBody || !ring) return;
 
-    const { positions, value, srcNodeRow, count } = getEdgeBeads();
+    const { positions, ringAxis, value, srcNodeRow, count } = getEdgeBeads();
     const showComm = overlayOn(readOverlayCommEdges);
     const commRows = showComm ? getCommNodeRows() : null;
 
@@ -39,16 +46,27 @@ export function ChainBeadInstances({ capacity }: { capacity: number }) {
       const style = beadStyleForValue(value[i]);
       if (!style) continue;
 
-      matRef.current.makeTranslation(positions[i * 3]!, positions[i * 3 + 1]!, positions[i * 3 + 2]!);
+      posRef.current.set(positions[i * 3]!, positions[i * 3 + 1]!, positions[i * 3 + 2]!);
+      matRef.current.makeTranslation(posRef.current.x, posRef.current.y, posRef.current.z);
       litBody.setMatrixAt(litCount, matRef.current);
       litBody.setColorAt(litCount, colRef.current.set(style.fill));
+
+      // The torus faces along the way the bead is going, which for a bead on
+      // an edge is that edge's own direction.
+      axisRef.current.set(ringAxis[i * 3]!, ringAxis[i * 3 + 1]!, ringAxis[i * 3 + 2]!);
+      quatRef.current.setFromUnitVectors(TORUS_DEFAULT_NORMAL, axisRef.current);
+      ringMatRef.current.compose(posRef.current, quatRef.current, BEAD_UNIT_SCALE);
+      ring.setMatrixAt(litCount, ringMatRef.current);
+      ring.setColorAt(litCount, colRef.current.set(RING_COLOR));
+
       litCount++;
     }
     litBody.count = litCount;
-    ring.count = 0;
+    ring.count = litCount;
     litBody.instanceMatrix.needsUpdate = true;
     ring.instanceMatrix.needsUpdate = true;
     if (litBody.instanceColor) litBody.instanceColor.needsUpdate = true;
+    if (ring.instanceColor) ring.instanceColor.needsUpdate = true;
   });
 
   return (

@@ -57,8 +57,17 @@ func (m *EdgeMover) recomputeGeometry() {
 	// edge works it out. It used to be handed over by the source node's
 	// chain layout, and when that went the count went to zero with it,
 	// which is a bead that never leaves the end it was placed at.
-	m.steps = edgegeom.EdgeStepCount(
-		seg.End.Sub(seg.Start).Length(), m.srcGeom.Kind, m.dstGeom.Kind)
+	//
+	// The distance is CENTRE to CENTRE, not the drawn segment: EdgeStepCount
+	// takes the two tori off itself, and seg has already had them taken off.
+	// Passing seg's length subtracts them twice, which shortens the crossing
+	// by an amount that depends on the two node KINDS — so every edge runs
+	// at its own wrong speed instead of one wrong speed.
+	centerDist, _, distOK := edgegeom.EdgeCenterDistAndDir(
+		nodegeom.NodeWorldPos(m.srcGeom), nodegeom.NodeWorldPos(m.dstGeom))
+	if distOK {
+		m.steps = edgegeom.EdgeStepCount(centerDist, m.srcGeom.Kind, m.dstGeom.Kind)
+	}
 
 	if m.out != nil {
 		m.out.PublishSegment(seg.Start, seg.End)
