@@ -15,6 +15,7 @@ import {
   readOverlaySelectionRing,
   readOverlayHoverRing,
   readOverlayReachSphere,
+  readOverlaySceneVectors,
 } from "../../../../schema/buffer-layout/buffer-layout";
 
 export type OverlayFlagVals = Record<OverlayFlag, boolean>;
@@ -44,6 +45,7 @@ export function readOverlayFlags(): OverlayFlagVals | null {
     selectionRing: !!readOverlaySelectionRing(v),
     hoverRing: !!readOverlayHoverRing(v),
     reachSphere: !!readOverlayReachSphere(v),
+    sceneVectors: !!readOverlaySceneVectors(v),
   };
   if (cachedVals && overlayFlagsEqual(cachedVals, next)) return cachedVals;
   cachedVals = next;

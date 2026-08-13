@@ -132,12 +132,22 @@ const reachSphereCfg: ToggleCfg = {
   payload: (v) => ({ flag: "reachSphere", was: v }),
 };
 
-export type OverlayGroup = { heading: string; cfgs: ToggleCfg[]; under?: Partial<Record<string, ToggleCfg>> };
+const sceneVectorsCfg: ToggleCfg = {
+  flag: "sceneVectors",
+  default: true,
+  active: (v) => v,
+  icon: "↗",
+  label: "scene vectors",
+  title: (a) => (a ? "Hide scene-centre vectors" : "Show scene-centre vectors"),
+  payload: (v) => ({ flag: "sceneVectors", was: v }),
+};
+
+export type OverlayGroup ={ heading: string; cfgs: ToggleCfg[]; under?: Partial<Record<string, ToggleCfg>> };
 
 export const OVERLAY_GROUPS: OverlayGroup[] = [
   { heading: "NODE",   cfgs: [nodeBodyCfg, nodeRingCfg, ringPickCfg] }, 
   { heading: "STATE",  cfgs: [selectionRingCfg, hoverRingCfg, reachSphereCfg] },
-  { heading: "GUIDES", cfgs: [ringsCfg, handholdsCfg] },
+  { heading: "GUIDES", cfgs: [ringsCfg, handholdsCfg, sceneVectorsCfg] },
   { heading: "POLES",  cfgs: [scenePolesCfg, nodePolesCfg, selSpherePolesCfg] },
   { heading: "LABELS", cfgs: [globalLabelsCfg] },
 ];

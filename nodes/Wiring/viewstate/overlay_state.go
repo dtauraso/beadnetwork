@@ -27,6 +27,7 @@ type OverlayState struct {
 	SelectionRingVisible  bool
 	HoverRingVisible      bool
 	ReachSphereVisible    bool
+	SceneVectorsVisible   bool
 }
 
 // setFlag flips *field. Shared body of the uniform Toggle* methods. The RowEvent
@@ -101,6 +102,11 @@ func (o *OverlayState) ToggleHoverRing(tr *T.Trace) {
 // ToggleReachSphere flips ReachSphereVisible.
 func (o *OverlayState) ToggleReachSphere(tr *T.Trace) {
 	o.setFlag(&o.ReachSphereVisible)
+}
+
+// ToggleSceneVectors flips SceneVectorsVisible.
+func (o *OverlayState) ToggleSceneVectors(tr *T.Trace) {
+	o.setFlag(&o.SceneVectorsVisible)
 }
 
 // SetGuideVisibility installs an explicit-visibility snapshot wholesale (the TS
