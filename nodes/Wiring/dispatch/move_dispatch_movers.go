@@ -35,7 +35,7 @@ func (md *MoveDispatch) buildNodeMovers(geoms map[string]nodegeom.NodeGeom, tr *
 		commitLocal := func(_ string, newPos vec3) {
 			md.LQ.CommitNodeMoveLocal(md.MR.NodeGeoms(), md.MR.EdgeMovers(), &md.UI, ownGeom, newPos)
 		}
-		ng.WireMessaging(resolveDest, md.MR.EnqueueFor(ng), md.MR.CenterOfNode, commitLocal)
+		ng.WireMessaging(resolveDest, md.MR.EnqueueFor(ng), commitLocal)
 		md.MR.NodeGeoms()[id] = ng
 
 		md.MR.SeedCenter(id, nodegeom.NodeWorldPos(g))

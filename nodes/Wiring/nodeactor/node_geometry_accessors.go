@@ -42,6 +42,27 @@ func (m *NodeGeometry) NeighborKinds() map[string]string { return m.topo.Neighbo
 // OutTargets is every edge target this node points at.
 func (m *NodeGeometry) OutTargets() []string { return m.outTargets }
 
+// SetDeltaTo, DeltaTo and DeltaFrom are this node's own side of an incident
+// edge — the vector from here to the other end, and the same side read from
+// that end. See owners.Deltas.
+func (m *NodeGeometry) SetDeltaTo(otherID string, p polar.Polar) { m.deltas.SetDeltaTo(otherID, p) }
+
+func (m *NodeGeometry) DeltaTo(otherID string) (polar.Polar, bool) { return m.deltas.DeltaTo(otherID) }
+
+func (m *NodeGeometry) DeltaFrom(otherID string) (polar.Polar, bool) {
+	return m.deltas.DeltaFrom(otherID)
+}
+
+// ShiftDeltasBy is what a move of THIS node does to every side it touches.
+func (m *NodeGeometry) ShiftDeltasBy(delta polar.Polar) { m.deltas.ShiftSelfBy(delta) }
+
+// ScenePolar is this node's own point, the triple a delta adds to.
+func (m *NodeGeometry) ScenePolar() polar.Polar { return m.geom.ScenePolar }
+
+// SceneCenter is the one place a world position becomes a triple and back. It
+// is the cartesian boundary, and the only reason a node holds it.
+func (m *NodeGeometry) SceneCenter() vec3 { return m.geom.SceneCenter }
+
 func (m *NodeGeometry) IsOutTarget(neighborID string) bool {
 	return slices.Contains(m.outTargets, neighborID)
 }

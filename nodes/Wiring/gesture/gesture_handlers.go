@@ -71,7 +71,7 @@ func gestPointerUp(d Deps, ev inputcodec.RawInputMsg) {
 	switch {
 	case g.Phase == gesturefsm.GestDragging:
 		nodeGeoms, lq, ctx := d.MR.NodeGeoms(), d.LQ, d.Ctx
-		applyNodeDragTarget(d.UI, func(id string, target vec3) bool { return lq.RootMove(ctx, nodeGeoms, d.MR.CenterOfNode, id, target) }, ev)
+		applyNodeDragTarget(d.UI, func(id string, target vec3) bool { return lq.RootMove(ctx, nodeGeoms, id, target) }, ev)
 	case g.Phase == gesturefsm.GestHandhold, g.Phase == gesturefsm.GestRotating:
 
 	case g.Phase == gesturefsm.GestPending:

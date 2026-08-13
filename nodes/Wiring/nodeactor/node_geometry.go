@@ -53,6 +53,11 @@ type NodeGeometry struct {
 
 	topo owners.Topology
 
+	// deltas is this node's own side of every edge it touches — the vector
+	// from here to the node at the other end. A + D = B, so it is how this
+	// node reaches a neighbour without reading anything the neighbour owns.
+	deltas owners.Deltas
+
 	flags owners.Flags
 
 	beads owners.Beads
@@ -77,6 +82,7 @@ func NewNodeGeometry(id string, geom nodegeom.NodeGeom, tr *T.Trace, clockSrc cl
 			make(chan vec3, 1),
 		),
 		topo:       owners.NewTopology(),
+		deltas:     owners.NewDeltas(),
 		clocks:     owners.NewClocks(clockSrc, clock.NewRealClock()),
 		tilt:       owners.NewTilt(tiltvector.FullTurnThetaIdx),
 		anim:       anim,

@@ -42,6 +42,11 @@ func (m *NodeGeometry) handle(msg movemsg.Msg) {
 }
 
 func (m *NodeGeometry) handleCenter(msg movemsg.Msg) {
+	// The node at the other end of an edge moved and said how far. This node
+	// did not move, so its side of that edge gains the whole of that Δ.
+	if msg.Delta != nil && msg.SenderID != "" {
+		m.deltas.ShiftOtherBy(msg.SenderID, *msg.Delta)
+	}
 	if msg.Center != nil {
 		m.ApplyCenter(*msg.Center, msg.ReachR)
 		return

@@ -12,10 +12,9 @@ import (
 func (m *NodeGeometry) WireMessaging(
 	resolveDest func(id string) (func(movemsg.Msg) bool, bool),
 	sendMove func(id string, msg movemsg.Msg),
-	centerOf func(id string) (vec3, bool),
 	commitLocal func(id string, newPos vec3),
 ) {
-	m.msg.WireMessaging(resolveDest, sendMove, centerOf, commitLocal)
+	m.msg.WireMessaging(resolveDest, sendMove, commitLocal)
 }
 
 func (m *NodeGeometry) EnsureNeighborChannel(otherID string) {
