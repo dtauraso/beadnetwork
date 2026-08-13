@@ -92,10 +92,33 @@ model and streams it as the content buffer; TS decodes and draws.
 Editor-time node geometry and lock propagation are **pure polar**. The scene sphere's center
 is the only cartesian value that is **persisted and authoritative** — the world anchor.
 
+A node is a **point** and an edge is the **vector that closes the triangle**:
+
+```
+A = scene centre -> node        D = node -> neighbour        B = scene centre -> neighbour
+A + D = B
+```
+
+**`D` starts AT THE NODE.** That is the whole of it: because the vector starts there, its
+`phi` IS the angle from that node's own +y pole to its neighbour — the quantity the
+out-angle constraint names — and the constraint is read off the number it is applied to.
+
+`D` is **not** `B − A` component-wise. A difference of two coordinates that both start at
+the scene centre is a different quantity, and clamping it holds a number that is not the
+angle in the triangle: it sat at exactly 90.0000° while the picture sat at 99.79°, always
+past π/2, and no constant closes that gap because the real angle also depends on how far out
+the node sits and where its neighbour lies around the pole. Composition (`polar.Compose`)
+and difference (`polar.Between`) resolve onto common axes — the one operation the three
+numbers cannot do separately. Negation stays arithmetic and is exact.
+
+A move is the same triangle: a node's move takes `Δ` off every side it touches, and the node
+at the other end is TOLD `Δ` and takes it onto its own side. Neither reads the other's
+position.
+
 See [docs/model/polar-model.md](docs/model/polar-model.md) for the full statement: the
-scene sphere, the one-hop scene→node→bead vector sum, a node's single quantised polar
-coordinate, the per-edge first-bead vector, why there is no blow-up by construction, and
-the bead-CRUD drag-placement mechanism (add/remove/angle-gate) that moves a node.
+scene sphere, the one-hop scene→node→bead vector sum, the triangle above and why it is not
+the rejected double-link, why there is no blow-up by construction, and the bead-CRUD
+drag-placement mechanism (add/remove/angle-gate) that moves a node.
 
 ## Assertions
 

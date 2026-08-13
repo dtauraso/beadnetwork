@@ -44,36 +44,75 @@ and none is a source of truth.
   nodes: every node hangs off the scene centre directly, one hop (scene -> node -> bead,
   two levels — a rooted/parent layout was tried and rejected,
   `memory/project/layout-model/project_layout_model_evolution.md`).
-- **A node has ONE polar coordinate.** `(r,θ,φ)` about the scene-sphere center — the node's
-  whole POSITION, in the QUANTISED integer form (`quantoffset.QuantizedOffset` — `ITheta`/`IPhi`/`IR`
-  × per-node step constants, `nodes/Wiring/quantoffset/quantized_layout.go`), persisted
-  (`nodes/<id>/position.json` `scenePolarR`/`scenePolarTheta`/`scenePolarPhi` +
-  `quantITheta`/`quantIPhi`/`quantIR`). World = `sceneCenter + polar2cart(scenePolar)`.
-  A node's POSITION comes from this scene polar and nothing else.
-- **A node STORES ONE VECTOR PER OUTWARD EDGE, pointing at that edge's DESTINATION node —
-  the ANIMATION PATH.** Beads travel along it, so the chain's aim and its step count come
-  from the stored vector rather than from a direction recomputed out of two node centres on
-  every geometry pass. It lives in the source node's own `owners.Topology`
-  (`neighborPaths`, `nodes/Wiring/nodeactor/owners/topology.go`), written only by that
-  node's geometry goroutine.
+- **A node is a point and an edge is the triple that closes the triangle.** A node's own
+  point is `(r,φ,θ)` about the scene-sphere centre, in the QUANTISED integer form
+  (`quantoffset.QuantizedOffset` — `ITheta`/`IPhi`/`IR` × per-node step constants,
+  `nodes/Wiring/quantoffset/quantized_layout.go`), persisted (`nodes/<id>/position.json`
+  `scenePolarR`/`scenePolarPhi`/`scenePolarTheta` + `quantITheta`/`quantIPhi`/`quantIR`).
+  An edge carries `D`, the triple from its source to its target, persisted in that edge's
+  own file under its source (`nodes/<src>/edges/<label>.json`, `deltaPolar*`). The two are
+  one triangle:
 
-  It is **maintained, never authored**, at exactly two edges: the destination broadcasts its
-  new centre and the source rewrites that one path (`handleNeighborCenter`), and the source
-  moves itself and rigidly rebases every path by its own delta (`ApplyCenter` ->
-  `RebaseForSelfMove` — the neighbours did not move, so `path += prevSelf - newSelf`, exact
-  arithmetic, no reconstruction against a moving reference).
+  ```
+  A = the source's own point       D = the edge's triple       B = the target's point
+  A + D = B
+  ```
 
-  It is a **cached path, not a coordinate**: no node's position is ever derived from a
-  vector some other node stores, so there is still exactly ONE record per position. Where a
-  neighbour's world centre is genuinely needed (bead CRUD during a drag, the up-axis /
-  coplanar frame), it is DERIVED — `selfCentre + path` — never read back as authority.
-  **Only outward, single-link.** An earlier DOUBLE-link "local polar" model existed here —
-  each endpoint of a domain edge holding its own quantised bearing/distance to the OTHER
-  node, re-quantized node-to-node on every drag — and was measured disagreeing with the
-  node's own continuous scene polar (node 3 by +3.24 world units, node 4 by -3.08, against a
-  step of 8.96 — two half-authoritative records for one position). That is the state this
-  rule exists to stay out of: one writer per edge, and the vector never answers "where is
-  that node".
+  **`D` starts AT THE SOURCE**, and everything else follows from that. Because the vector
+  begins there, its `φ` IS the angle from that node's own +y pole to its neighbour, its `θ`
+  the turn around that pole, its `r` the distance — so the out-angle constraint is read off
+  the very number it is applied to.
+
+  **`D` is NOT `B − A` component-wise.** That is a difference of two coordinates which both
+  start at the scene centre, and it is a different quantity: clamping it pinned exactly
+  90.0000° while the angle in the triangle measured 99.79°, always past π/2. No constant
+  closes that gap, because the real angle also depends on how far out the source sits and
+  where its neighbour lies around the pole. `polar.Compose` (a followed by b) and
+  `polar.Between` (from one point to another) resolve onto common axes — the one operation
+  the three numbers cannot do separately. `Neg` is arithmetic on the numbers (`r`, `π−φ`,
+  `θ+π`) and is exact to 1e-13.
+
+  Placement WALKS: a node's point is its source's point composed with `D`, outward from each
+  seed (a node no edge reaches, or the first node of a ring), which is the only point read as
+  final.
+
+  A move is the same triangle. Drag a node by `Δ`: every side it touches loses `Δ`, and the
+  node at the other end of each of those edges takes that same `Δ` onto its own side. No node
+  reads another node's position — it is TOLD the difference (`movemsg.Msg.Delta`, applied in
+  `owners.Deltas`).
+
+  **Do not "tidy" a triple after arithmetic.** Folding a result back into canonical ranges
+  (`r ≥ 0`, `φ ∈ [0,π]`) removes nothing: each fold pays for itself by rewriting the other two
+  components, so the triple points somewhere the arithmetic never said. One such fold broke
+  `A + (B − A) = B` and walked node 2 outward 118 → 373 → 1891 across reloads, stacked on
+  node 3 — the blow-up this page says cannot happen, reached through an arithmetic that
+  quietly moved what it claimed to tidy.
+- **A node holds its own side of every edge it touches** (`owners.Deltas`,
+  `nodes/Wiring/nodeactor/owners/deltas.go`): the triple FROM ITSELF TO the node at the
+  other end, stored from-self whichever way the edge points, so a move is uniform across
+  in-edges and out-edges alike. The edge's own `D` is the out entry as-is and the negation
+  of the in entry.
+
+  The angle constraints (`φ = π/2`, `|θ| ≤ π/2` on an input node's outgoing paths) are
+  constraints ON `D`. They always were — they describe an edge's direction out of its
+  source, not a node's place in the world — so they are applied to the triple directly,
+  with no holder frame to convert in and out of
+  (`nodes/Wiring/layoutquant/out_angle_hold.go`).
+
+  `D.r` is a genuine DISTANCE — the length of the vector to the neighbour — so it is always
+  at or above zero and "the longest path" is a plain maximum. (It was briefly a difference of
+  two radii, and so could be negative; that was the same mistake as clamping the wrong phi,
+  and it is gone with it.)
+
+  **This is not the rejected double-link.** An earlier "local polar" model had each endpoint
+  of an edge holding its OWN quantised bearing/distance to the other node, re-quantized
+  node-to-node on every drag, and was measured disagreeing with the node's own scene polar
+  (node 3 by +3.24 world units, node 4 by −3.08, against a step of 8.96 — two
+  half-authoritative records for one position). Here there is ONE record: the edge file,
+  owned by the one `edgeMover` that writes it. A target's in-entry is not a second
+  authority — it is what its source TOLD it, it is never persisted, and no node's position
+  is derived from it. The loader asserts the triangle closes on load, per component, and
+  panics with both ids and all three triples if it does not.
 - **Every bead on an edge is a placement ALONG that edge's stored path vector** — index ×
   `lattice.BeadStepR` from the source's rim along the path's direction, the first bead
   included. The first bead is no longer a separately-authored vector; its aim and the

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: nodes/**/*.go,Buffer/**/*.go,tools/topology-vscode/src/**/*.ts | no node-node polar record (LocalPolar et al.); a bead streams its world position, never a node-local offset to be summed
+# PLACEMENT: nodes/**/*.go,Buffer/**/*.go,tools/topology-vscode/src/**/*.ts | no DOUBLE-LINK node-node polar record (LocalPolar et al. — the edge's own triple D is the model, not this); a bead streams its world position, never a node-local offset to be summed
 
 set -euo pipefail
 
@@ -28,9 +28,21 @@ hits=$(
 )
 
 if [ -n "$hits" ]; then
-  echo "✗ node-node polar record reappeared — MODEL.md \"the polar model\": a node has ONE"
-  echo "  polar coordinate (about the scene centre), never a stored coordinate for a"
-  echo "  neighbour. Delete the record, do not re-add it:"
+  echo "✗ the REJECTED node-node polar record reappeared — MODEL.md \"the polar model\"."
+  echo
+  echo "  What is banned is the DOUBLE-LINK form: each endpoint of an edge holding its OWN"
+  echo "  quantised bearing/distance to the other node, re-quantized node-to-node on every"
+  echo "  drag. That was two half-authoritative records for one position, and was measured"
+  echo "  disagreeing with the node's own scene polar (node 3 by +3.24 world units, node 4"
+  echo "  by -3.08, against a step of 8.96)."
+  echo
+  echo "  What is NOT banned, and is now the model, is the edge's own triple D: A + D = B,"
+  echo "  component by component, stored ONCE in the edge file under its source and owned by"
+  echo "  that edge's edgeMover (owners.Deltas, loadspec/edge_delta.go). A target's copy of"
+  echo "  it is what the source TOLD it, is never persisted, and never answers \"where is that"
+  echo "  node\" — the loader asserts the triangle closes on load, per component."
+  echo
+  echo "  Delete the record below, do not re-add it:"
   echo "$hits"
   fail=1
 fi
