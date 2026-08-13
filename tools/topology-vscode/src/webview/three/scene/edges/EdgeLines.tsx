@@ -2,7 +2,10 @@ import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { getEdgeStreamAccessor } from "./edge-stream-blocks";
-import { EDGE_LINE_COLOR } from "../beads/bead-style";
+import { EDGE_LINE_COLOR, COMM_EDGE_LINE_COLOR, INSTANCE_TINT_BASE } from "../beads/bead-style";
+import { getCommNodeRows } from "../nodes/comm-nodes";
+import { overlayOn } from "../../controls/flags/overlay-flags";
+import { readOverlayCommEdges } from "../../../../schema/buffer-layout/buffer-layout";
 
 import { DIRECTION_ZERO_EPS } from "../buffer-scene-shared";
 
@@ -22,6 +25,7 @@ export function EdgeLines({ capacity }: { capacity: number }) {
   const dir = useRef(new THREE.Vector3());
   const quat = useRef(new THREE.Quaternion());
   const scl = useRef(new THREE.Vector3());
+  const col = useRef(new THREE.Color());
 
   useFrame(() => {
     const line = lineRef.current;
@@ -31,10 +35,16 @@ export function EdgeLines({ capacity }: { capacity: number }) {
     const edges = getEdgeStreamAccessor();
     if (!edges) { line.count = 0; head.count = 0; return; }
 
+    const showComm = overlayOn(readOverlayCommEdges);
+    const commRows = showComm ? getCommNodeRows() : null;
+
     const n = Math.min(edges.edgeCount, capacity);
     let drawn = 0;
     for (let row = 0; row < n; row++) {
       const [sx, sy, sz, ex, ey, ez] = edges.segment(row);
+      // A comm edge is the same line and the same arrow — only its colour
+      // says that what travels it is a position rather than a value.
+      const isComm = commRows !== null && commRows.has(edges.srcNodeRow(row));
       dir.current.set(ex - sx, ey - sy, ez - sz);
       const len = dir.current.length();
 
@@ -53,12 +63,18 @@ export function EdgeLines({ capacity }: { capacity: number }) {
       mat.current.compose(pos.current, quat.current, scl.current);
       head.setMatrixAt(drawn, mat.current);
 
+      col.current.set(isComm ? COMM_EDGE_LINE_COLOR : EDGE_LINE_COLOR);
+      line.setColorAt(drawn, col.current);
+      head.setColorAt(drawn, col.current);
+
       drawn++;
     }
     line.count = drawn;
     head.count = drawn;
     line.instanceMatrix.needsUpdate = true;
     head.instanceMatrix.needsUpdate = true;
+    if (line.instanceColor) line.instanceColor.needsUpdate = true;
+    if (head.instanceColor) head.instanceColor.needsUpdate = true;
     if (drawn > 0) {
       line.computeBoundingSphere();
       head.computeBoundingSphere();
@@ -72,13 +88,13 @@ export function EdgeLines({ capacity }: { capacity: number }) {
         <cylinderGeometry args={[EDGE_LINE_RADIUS, EDGE_LINE_RADIUS, 1, 8]} />
         {}
         {}
-        <meshBasicMaterial color={EDGE_LINE_COLOR} toneMapped={false} transparent={false} opacity={1} />
+        <meshBasicMaterial color={INSTANCE_TINT_BASE} toneMapped={false} transparent={false} opacity={1} />
       </instancedMesh>
       <instancedMesh ref={headRef} args={[undefined, undefined, capacity]} frustumCulled={false} raycast={() => null}>
         <coneGeometry args={[ARROW_HEAD_RADIUS, ARROW_HEAD_LENGTH, 12]} />
         {}
         {}
-        <meshBasicMaterial color={EDGE_LINE_COLOR} toneMapped={false} transparent={false} opacity={1} />
+        <meshBasicMaterial color={INSTANCE_TINT_BASE} toneMapped={false} transparent={false} opacity={1} />
       </instancedMesh>
       {}
     </>

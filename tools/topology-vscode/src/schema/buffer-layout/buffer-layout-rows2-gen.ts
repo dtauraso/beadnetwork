@@ -29,9 +29,10 @@ export const EDGE_COL_SZ                         = 8; // f32
 export const EDGE_COL_EX                         = 12; // f32
 export const EDGE_COL_EY                         = 16; // f32
 export const EDGE_COL_EZ                         = 20; // f32
-export const EDGE_COL_EDGE_LABEL_OFF             = 24; // u32
-export const EDGE_COL_EDGE_LABEL_LEN             = 28; // u32
-export const EDGE_STRIDE                         = 32;
+export const EDGE_COL_SRC_NODE_ROW               = 24; // i32
+export const EDGE_COL_EDGE_LABEL_OFF             = 28; // u32
+export const EDGE_COL_EDGE_LABEL_LEN             = 32; // u32
+export const EDGE_STRIDE                         = 36;
 
 export function readEdgeSX(view: DataView, row: number): number { return view.getFloat32(row * EDGE_STRIDE + EDGE_COL_SX, true); }
 export function readEdgeSY(view: DataView, row: number): number { return view.getFloat32(row * EDGE_STRIDE + EDGE_COL_SY, true); }
@@ -39,6 +40,7 @@ export function readEdgeSZ(view: DataView, row: number): number { return view.ge
 export function readEdgeEX(view: DataView, row: number): number { return view.getFloat32(row * EDGE_STRIDE + EDGE_COL_EX, true); }
 export function readEdgeEY(view: DataView, row: number): number { return view.getFloat32(row * EDGE_STRIDE + EDGE_COL_EY, true); }
 export function readEdgeEZ(view: DataView, row: number): number { return view.getFloat32(row * EDGE_STRIDE + EDGE_COL_EZ, true); }
+export function readEdgeSrcNodeRow(view: DataView, row: number): number { return view.getInt32(row * EDGE_STRIDE + EDGE_COL_SRC_NODE_ROW, true); }
 export function readEdgeEdgeLabelOff(view: DataView, row: number): number { return view.getUint32(row * EDGE_STRIDE + EDGE_COL_EDGE_LABEL_OFF, true); }
 export function readEdgeEdgeLabelLen(view: DataView, row: number): number { return view.getUint32(row * EDGE_STRIDE + EDGE_COL_EDGE_LABEL_LEN, true); }
 
