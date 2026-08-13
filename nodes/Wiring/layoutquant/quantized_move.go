@@ -43,7 +43,15 @@ func (lq *LayoutQuantizer) RootMove(ctx context.Context, nodeGeoms map[string]*n
 	// constraints over others, the same drag carries them — a neighbour
 	// never moves itself to satisfy someone else's rule.
 	target = TrimDraggedNode(nm, centerOf, nm.WorldCenter(), target)
-	for to, heldPos := range HeldOutNeighbors(nm, centerOf, target) {
+
+	held := HeldOutNeighbors(nm, centerOf, target)
+	for to, pos := range HeldSiblings(nm, nodeGeoms, centerOf, nodeID, target) {
+		if held == nil {
+			held = map[string]spatial.Vec3{}
+		}
+		held[to] = pos
+	}
+	for to, heldPos := range held {
 		other, ok := nodeGeoms[to]
 		if !ok {
 			continue

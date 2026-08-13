@@ -44,6 +44,57 @@ func TrimDraggedNode(nm *nodeactor.NodeGeometry, centerOf func(string) (spatial.
 	return target
 }
 
+// HeldSiblings is where the OTHER outgoing neighbours of an input node have
+// to be once one of them has been dragged.
+//
+// The shared length is the one constraint a dragged node cannot satisfy by
+// itself: moving node 2 changes |1->2|, and nothing about node 2's own
+// position can bring |1->3| along with it. The node that was dragged states
+// the new length — its drag is kept in full — and its siblings are the ones
+// brought to it, so the node under the cursor is never the one corrected.
+//
+// Reading another node's out-targets and kinds is safe: both are set once at
+// build and never written again.
+func HeldSiblings(
+	nm *nodeactor.NodeGeometry,
+	nodeGeoms map[string]*nodeactor.NodeGeometry,
+	centerOf func(string) (spatial.Vec3, bool),
+	draggedID string,
+	target spatial.Vec3,
+) map[string]spatial.Vec3 {
+	var held map[string]spatial.Vec3
+	for holderID, kind := range nm.NeighborKinds() {
+		if kind != OutAngleKind || nm.IsOutTarget(holderID) {
+			continue
+		}
+		holder, ok := nodeGeoms[holderID]
+		if !ok {
+			continue
+		}
+		holderCenter, ok := centerOf(holderID)
+		if !ok {
+			continue
+		}
+		shared := target.Sub(holderCenter).Length()
+		for _, sib := range holder.OutTargets() {
+			if sib == draggedID {
+				continue
+			}
+			c, ok := centerOf(sib)
+			if !ok {
+				continue
+			}
+			p := polar.ClampOutAngles(polar.Cart2polar(c.Sub(holderCenter)))
+			p.R = shared
+			if held == nil {
+				held = map[string]spatial.Vec3{}
+			}
+			held[sib] = holderCenter.Add(polar.Polar2cart(p))
+		}
+	}
+	return held
+}
+
 // HeldOutNeighbors is where an input node's outgoing neighbours have to be,
 // given where that node is going. It answers for the case the dragged node
 // cannot: a neighbour does not move itself to satisfy someone else's
