@@ -11,10 +11,10 @@ import (
 	T "github.com/dtauraso/wirefold/Trace"
 )
 
-// outAngleKind is the one kind whose outgoing paths are angle-constrained.
+// OutAngleKind is the one kind whose outgoing paths are angle-constrained.
 // It is the SPEC kind name, which is PascalCase — the Go package directory
 // for this kind is lowercase `nodes/input/` and the two do not have to agree.
-const outAngleKind = "Input"
+const OutAngleKind = "Input"
 
 // outAngleEps is how far off the constrained angles a stored path may sit
 // before it counts as violating. A corrected path comes back to this node as
@@ -39,7 +39,7 @@ const outAngleMaxFixes = 8
 // its own goroutine through the ordinary move path. This node never writes
 // another node's position, and the neighbour never recomputes the constraint.
 func (m *NodeGeometry) ConstrainOutAngles() {
-	if m.selfKind != outAngleKind {
+	if m.selfKind != OutAngleKind {
 		return
 	}
 	self := m.WorldCenter()
