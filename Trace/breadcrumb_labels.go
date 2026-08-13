@@ -25,6 +25,8 @@ const (
 	BreadcrumbPairSeedUnknown
 
 	BreadcrumbPairLatticeAdopt
+
+	BreadcrumbOutAngleFix
 )
 
 var BreadcrumbLabels = []string{
@@ -44,6 +46,7 @@ var BreadcrumbLabels = []string{
 	"bead-crud",
 	"pair-seed-unknown",
 	"pair-lattice-adopt",
+	"out-angle-fix",
 }
 
 func BreadcrumbLabelID(name string) (uint8, bool) {

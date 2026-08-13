@@ -6,10 +6,15 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
+	"github.com/dtauraso/wirefold/nodes/rowevent"
+
+	T "github.com/dtauraso/wirefold/Trace"
 )
 
 // outAngleKind is the one kind whose outgoing paths are angle-constrained.
-const outAngleKind = "input"
+// It is the SPEC kind name, which is PascalCase — the Go package directory
+// for this kind is lowercase `nodes/input/` and the two do not have to agree.
+const outAngleKind = "Input"
 
 // outAngleEps is how far off the constrained angles a stored path may sit
 // before it counts as violating. A corrected path comes back to this node as
@@ -50,10 +55,32 @@ func (m *NodeGeometry) ConstrainOutAngles() {
 		}
 		m.topo.SetPolarPathTo(to, want)
 		m.countOutAngleFix(to)
-		m.msg.SendMove()(to, movemsg.Msg{
-			Kind: movemsg.KindDrag, NodeID: to, Target: self.Add(polar.Polar2cart(want)),
-		})
+		target := self.Add(polar.Polar2cart(want))
+		m.msg.SendMove()(to, movemsg.Msg{Kind: movemsg.KindDrag, NodeID: to, Target: target})
+		m.traceOutAngleFix(to, have, want, target)
 	}
+}
+
+// traceOutAngleFix records which angles were out of range and where the
+// corrected ones put that neighbour, so a hold that fires when it should not
+// — or never fires at all — is visible without attaching to the process.
+func (m *NodeGeometry) traceOutAngleFix(to string, have, want polar.Polar, target vec3) {
+	if m.tr == nil {
+		return
+	}
+	value := fmt.Sprintf(
+		"to=%s havePhi=%.6f haveTheta=%.6f wantPhi=%.6f wantTheta=%.6f r=%.4f target=(%.4f,%.4f,%.4f)",
+		to, have.Phi, have.Theta, want.Phi, want.Theta, want.R, target.X, target.Y, target.Z)
+	m.tr.Breadcrumb("out-angle-fix", m.id, to, value)
+	targetRow := int32(-1)
+	if r, ok := m.topo.NodeRowFor(to); ok {
+		targetRow = r
+	}
+	m.writeStreamFrame([]rowevent.RowEvent{{
+		Kind: T.KindBreadcrumb, Label: T.BreadcrumbOutAngleFix, Debug: 1,
+		NodeRow: m.stream.NodeRow(), PortRow: -1, TargetRow: targetRow, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
+		Text: value,
+	}})
 }
 
 // countOutAngleFix panics once a target has been corrected this many times
