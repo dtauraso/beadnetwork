@@ -83,6 +83,14 @@ type specEdge struct {
 	SourceHandle string `json:"sourceHandle"`
 	Target       string `json:"target"`
 	TargetHandle string `json:"targetHandle"`
+
+	// D — the vector from this edge's source to its target, in the same polar
+	// pole convention as a node's scenePolar*. See edge_delta.go: A + D = B.
+	// Absent in a scene written before the vector existed, and derived once from
+	// the two endpoints on load.
+	DeltaPolarR     *float64 `json:"deltaPolarR,omitempty"`
+	DeltaPolarPhi   *float64 `json:"deltaPolarPhi,omitempty"`
+	DeltaPolarTheta *float64 `json:"deltaPolarTheta,omitempty"`
 }
 
 type TopoSpec struct {

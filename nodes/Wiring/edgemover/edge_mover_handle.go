@@ -54,6 +54,13 @@ func (m *EdgeMover) handle(msg movemsg.Msg) {
 func (m *EdgeMover) recomputeGeometry() {
 	seg := edgegeom.EdgeSegment(m.srcGeom, m.dstGeom)
 
+	// Either endpoint just moved, so this edge's own vector has changed. It
+	// brings that vector up to date and writes the file it owns — a target that
+	// moved told this goroutine rather than writing a file belonging to its
+	// source.
+	m.updateDeltaFromEndpoints()
+	m.persistDelta()
+
 	// How many steps it takes to cross is a fact about THIS edge — its two
 	// endpoints and the two node kinds whose tori it runs between — so the
 	// edge works it out. It used to be handed over by the source node's
