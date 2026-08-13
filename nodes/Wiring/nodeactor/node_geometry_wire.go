@@ -27,7 +27,7 @@ func (m *NodeGeometry) AddMutualTarget(target string) {
 }
 
 func (m *NodeGeometry) SeedPartnerCenter(neighborID string, c vec3) {
-	m.topo.SeedPartnerCenter(neighborID, c)
+	m.topo.SetPathTo(neighborID, m.WorldCenter(), c)
 }
 
 func (m *NodeGeometry) AddEdgeID(edgeID string) {

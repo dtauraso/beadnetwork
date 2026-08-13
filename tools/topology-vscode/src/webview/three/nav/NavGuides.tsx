@@ -9,6 +9,7 @@ import {
 } from "./buffer-nav";
 import { navSignature } from "./nav-signature";
 import { PolarFrame } from "./polar-frame";
+import { SceneVectors } from "./SceneVectors";
 
 export function NavGuides() {
 
@@ -20,6 +21,7 @@ export function NavGuides() {
   const showNodePoles = g && !!bufFlags?.nodePoles;
   const showSelPoles = g && !!bufFlags?.selSpherePoles;
   const showHandholds = g && !!bufFlags?.handholds;
+  const showSceneVectors = g && !!bufFlags?.sceneVectors;
 
   const [navTick, setNavTick] = useState(0);
   const bufNavRef = useRef<NavNode[]>([]);
@@ -28,7 +30,7 @@ export function NavGuides() {
   const sceneSphereRef = useRef<{ center: THREE.Vector3; radius: number }>({ center: new THREE.Vector3(), radius: 100 });
   useFrame(() => {
 
-    if (!showTori && !showScenePoles && !showNodePoles && !showSelPoles && !showHandholds) return;
+    if (!showTori && !showScenePoles && !showNodePoles && !showSelPoles && !showHandholds && !showSceneVectors) return;
     const blocks = getViewBlocks();
     const decodedNode = getNodeFrame();
     if (!decodedNode || !blocks) return;
@@ -105,6 +107,8 @@ export function NavGuides() {
         {showHandholds && handholds()}
         {showHandholds && handholds(rotB)}
       </group>
+      {}
+      {showSceneVectors && <SceneVectors center={cs.center} nodes={navNodes} tube={tube * 0.35} />}
       {}
       {showScenePoles && <PolarFrame center={cs.center} scale={radiusKey} />}
       {}

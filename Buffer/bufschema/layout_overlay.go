@@ -16,6 +16,10 @@ type bufLayoutOverlay struct {
 	HoverRing     uint8 `buf:"u8"`
 	ReachSphere   uint8 `buf:"u8"`
 
+	// SceneVectors draws each node's stored scene vector — the line from the
+	// scene sphere's centre to that node's centre.
+	SceneVectors uint8 `buf:"u8"`
+
 	DragNodeRow int32 `buf:"i32"`
 
 	EditRefused uint32 `buf:"u32"`

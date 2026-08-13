@@ -32,7 +32,9 @@ func (m *NodeGeometry) NodeRow() int32 { return m.stream.NodeRow() }
 
 func (m *NodeGeometry) EdgeIDs() []string { return m.topo.EdgeIDs() }
 
-func (m *NodeGeometry) PartnerCenters() map[string]vec3 { return m.topo.PartnerCenters() }
+func (m *NodeGeometry) PartnerCenters() map[string]vec3 {
+	return m.topo.PartnerCenters(m.WorldCenter())
+}
 
 func (m *NodeGeometry) NeighborKinds() map[string]string { return m.topo.NeighborKinds() }
 

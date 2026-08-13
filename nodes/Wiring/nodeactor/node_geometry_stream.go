@@ -49,7 +49,7 @@ func (m *NodeGeometry) writeStreamFrame(events []rowevent.RowEvent) {
 		Geom:                   m.geom,
 		UpAxis:                 upAxis,
 		CoplanarEdges:          coplanarEdges,
-		PartnerCenters:         m.topo.PartnerCenters(),
+		PartnerCenters:         m.topo.PartnerCenters(m.WorldCenter()),
 		TopTiltVectorThetaIdx:  topIdx,
 		BottomThetaIdx:         bottomIdx,
 		NormalThetaIdx:         normalIdx,
