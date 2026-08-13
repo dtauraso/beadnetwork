@@ -2,12 +2,17 @@ package layoutquant
 
 import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/edgemover"
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
 	"github.com/dtauraso/wirefold/nodes/spatial"
 )
 
-func BroadcastToEdgesAndPartners(edgeMovers map[string]*edgemover.EdgeMover, nodeGeoms map[string]*nodeactor.NodeGeometry, newCenters map[string]spatial.Vec3, enqueue func(id string, msg movemsg.Msg)) {
+// moveDeltas says how far each moved node moved, keyed the same way as
+// newCenters. It rides out to the partner at the other end of every incident
+// edge, which is how that partner keeps its own side of the edge current
+// without ever reading the mover's position.
+func BroadcastToEdgesAndPartners(edgeMovers map[string]*edgemover.EdgeMover, nodeGeoms map[string]*nodeactor.NodeGeometry, newCenters map[string]spatial.Vec3, moveDeltas map[string]polar.Polar, enqueue func(id string, msg movemsg.Msg)) {
 
 	for edgeID, em := range edgeMovers {
 		eps := map[string]spatial.Vec3{}
@@ -41,7 +46,10 @@ func BroadcastToEdgesAndPartners(edgeMovers map[string]*edgemover.EdgeMover, nod
 			continue
 		}
 
-		enqueue(partnerID, movemsg.Msg{Kind: movemsg.KindCenter, NodeID: partnerID, Center: nil,
-			SenderID: movedID})
+		msg := movemsg.Msg{Kind: movemsg.KindCenter, NodeID: partnerID, Center: nil, SenderID: movedID}
+		if d, ok := moveDeltas[movedID]; ok {
+			msg.Delta = &d
+		}
+		enqueue(partnerID, msg)
 	}
 }

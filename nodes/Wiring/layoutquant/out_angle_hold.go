@@ -3,7 +3,6 @@ package layoutquant
 import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
-	"github.com/dtauraso/wirefold/nodes/spatial"
 )
 
 // OutAngleKind is the one kind whose outgoing paths are constrained. It is
@@ -21,27 +20,33 @@ const OutAngleKind = "Input"
 // decides what moves, which is the same thing group-length editing already
 // does through this entry point.
 //
-// Centres come from the registry's mirror of each node's OWN published
-// centre. That is a value the node sent, not a field read out from under it.
+// The constraints are held on D — the vector along the edge — because that is
+// what they were always about: an edge's direction out of its source, not a
+// node's place in the world. Every one of them is now read off the node's own
+// side of its own edges, so nothing here reads another node's centre and there
+// is no holder frame to convert in and out of.
 
 // TrimDraggedNode keeps only the part of a drag on `nodeID` that its own
 // constraints allow. A node with no input node pointing at it is unaffected.
-func TrimDraggedNode(nm *nodeactor.NodeGeometry, centerOf func(string) (spatial.Vec3, bool), from, target spatial.Vec3) spatial.Vec3 {
+func TrimDraggedNode(nm *nodeactor.NodeGeometry, delta polar.Polar) polar.Polar {
 	for neighborID, kind := range nm.NeighborKinds() {
 		// An out-target is a node THIS one points at, whose angles are that
 		// node's business, not a constraint on where this one may sit.
 		if kind != OutAngleKind || nm.IsOutTarget(neighborID) {
 			continue
 		}
-		center, ok := centerOf(neighborID)
+		// The edge runs holder -> here, so its D is this node's own side read
+		// from the other end. The drag asks for that same side plus Δ; what
+		// the constraint allows of it is what the node may take, and the
+		// difference between the two is the trimmed drag.
+		have, ok := nm.DeltaFrom(neighborID)
 		if !ok {
 			continue
 		}
-		have := polar.Cart2polar(from.Sub(center))
-		want := polar.Cart2polar(target.Sub(center))
-		target = center.Add(polar.Polar2cart(polar.TrimOutAngleDelta(have, want)))
+		want := polar.Compose(have, delta)
+		delta = polar.Between(have, polar.TrimOutAngleDelta(have, want))
 	}
-	return target
+	return delta
 }
 
 // HeldSiblings is where the OTHER outgoing neighbours of an input node have
@@ -58,11 +63,10 @@ func TrimDraggedNode(nm *nodeactor.NodeGeometry, centerOf func(string) (spatial.
 func HeldSiblings(
 	nm *nodeactor.NodeGeometry,
 	nodeGeoms map[string]*nodeactor.NodeGeometry,
-	centerOf func(string) (spatial.Vec3, bool),
 	draggedID string,
-	target spatial.Vec3,
-) map[string]spatial.Vec3 {
-	var held map[string]spatial.Vec3
+	delta polar.Polar,
+) map[string]polar.Polar {
+	var held map[string]polar.Polar
 	for holderID, kind := range nm.NeighborKinds() {
 		if kind != OutAngleKind || nm.IsOutTarget(holderID) {
 			continue
@@ -71,25 +75,30 @@ func HeldSiblings(
 		if !ok {
 			continue
 		}
-		holderCenter, ok := centerOf(holderID)
+		// The holder's own side of the edge that reaches this node locates
+		// the holder — its point is this node's point less that side — and
+		// the drag restates that side's r, which is the r every one of its
+		// siblings has to take.
+		toHere, ok := nm.DeltaFrom(holderID)
 		if !ok {
 			continue
 		}
-		shared := target.Sub(holderCenter).Length()
+		holderPoint := polar.Compose(nm.ScenePolar(), toHere.Neg())
+		shared := polar.Compose(toHere, delta).R
 		for _, sib := range holder.OutTargets() {
 			if sib == draggedID {
 				continue
 			}
-			c, ok := centerOf(sib)
+			toSib, ok := holder.DeltaTo(sib)
 			if !ok {
 				continue
 			}
-			p := polar.ClampOutAngles(polar.Cart2polar(c.Sub(holderCenter)))
+			p := polar.ClampOutAngles(toSib)
 			p.R = shared
 			if held == nil {
-				held = map[string]spatial.Vec3{}
+				held = map[string]polar.Polar{}
 			}
-			held[sib] = holderCenter.Add(polar.Polar2cart(p))
+			held[sib] = polar.Compose(holderPoint, p)
 		}
 	}
 	return held
@@ -103,18 +112,29 @@ func HeldSiblings(
 // The shared length is the LONGEST current path. Growing the short one is the
 // choice that never pulls a node inward past something it was already clear
 // of.
-func HeldOutNeighbors(nm *nodeactor.NodeGeometry, centerOf func(string) (spatial.Vec3, bool), selfTarget spatial.Vec3) map[string]spatial.Vec3 {
+func HeldOutNeighbors(nm *nodeactor.NodeGeometry, delta polar.Polar) map[string]polar.Polar {
 	if nm.SelfKind() != OutAngleKind {
 		return nil
 	}
+	// The neighbours COME ALONG. Dragging this node moves it and its
+	// out-neighbours by the same Δ, which leaves every D untouched — so
+	// phi, theta and the shared length all still hold, exactly, with nothing
+	// to re-solve.
+	//
+	// They used to be treated as standing still, each path recomputed as D
+	// composed with -Δ. A drag parallel to the line through two neighbours
+	// lengthens one path and shortens the other; the shared length is then the
+	// LONGER of the two, so the short one was stretched and its neighbour shoved
+	// along its own direction into whatever was there. Moving node 1 twenty
+	// units along the 2->3 direction pulled node 3 from r=20.03 to 14.92 and put
+	// it nearer node 5 than node 2, while node 2 did not follow at all.
 	paths := map[string]polar.Polar{}
 	shared := 0.0
 	for _, to := range nm.OutTargets() {
-		c, ok := centerOf(to)
+		p, ok := nm.DeltaTo(to)
 		if !ok {
 			continue
 		}
-		p := polar.Cart2polar(c.Sub(selfTarget))
 		paths[to] = p
 		if p.R > shared {
 			shared = p.R
@@ -123,11 +143,12 @@ func HeldOutNeighbors(nm *nodeactor.NodeGeometry, centerOf func(string) (spatial
 	if len(paths) == 0 {
 		return nil
 	}
-	out := make(map[string]spatial.Vec3, len(paths))
+	selfPoint := polar.Compose(nm.ScenePolar(), delta)
+	out := make(map[string]polar.Polar, len(paths))
 	for to, p := range paths {
 		held := polar.ClampOutAngles(p)
 		held.R = shared
-		out[to] = selfTarget.Add(polar.Polar2cart(held))
+		out[to] = polar.Compose(selfPoint, held)
 	}
 	return out
 }

@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
 )
 
@@ -15,6 +16,12 @@ type edgeFile struct {
 	TargetHandle string `json:"targetHandle"`
 	Kind         string `json:"kind"`
 	Label        string `json:"label"`
+
+	// D — the vector from this edge's source to its target. See
+	// nodes/Wiring/loadspec/edge_delta.go: A + D = B.
+	DeltaPolarR     *float64 `json:"deltaPolarR,omitempty"`
+	DeltaPolarPhi   *float64 `json:"deltaPolarPhi,omitempty"`
+	DeltaPolarTheta *float64 `json:"deltaPolarTheta,omitempty"`
 }
 
 func edgeFilePath(root, src, label string) string {
@@ -84,6 +91,21 @@ func WriteEdgeFile(root, src, srcPort, target, targetPort string) error {
 	return jsonpersist.WriteJSONAtomic(edgeFilePath(root, src, label), edgeFile{
 		SourceHandle: srcPort, Target: target, TargetHandle: targetPort, Kind: "chain", Label: label,
 	})
+}
+
+// WriteEdgeDelta records D on an edge that already exists, leaving every other
+// key as it was. Its ONLY caller is that edge's own edgeMover — the single
+// writer of nodes/<source>/edges/<label>.json.
+func WriteEdgeDelta(root, src, label string, d polar.Polar) error {
+	path := edgeFilePath(root, src, label)
+	var ef edgeFile
+	if !jsonpersist.ReadJSONIfExists(path, &ef) {
+		// No file means no edge to annotate. An edge is authored before it can
+		// move, so this is a missing file, not a first write.
+		return fmt.Errorf("WriteEdgeDelta: no edge file at %s", path)
+	}
+	ef.DeltaPolarR, ef.DeltaPolarPhi, ef.DeltaPolarTheta = &d.R, &d.Phi, &d.Theta
+	return jsonpersist.WriteJSONAtomic(path, ef)
 }
 
 func RemoveEdgesTo(root, id string, nodeIDs []string) error {

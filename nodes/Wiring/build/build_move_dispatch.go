@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/nodes/Wiring/layoutquant"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
@@ -82,15 +83,35 @@ func (b *buildCtx) buildMoveDispatch() error {
 		nm.AddOutTarget(e.Target)
 	}
 
+	// Each end of an edge takes its own side of it: the source the vector as
+	// stored, the target that vector negated. Both are FROM the holder, so a
+	// move of either end takes the same Δ off every side it touches.
+	for _, e := range b.spec.Edges {
+		d, ok := e.Delta()
+		if !ok {
+			continue
+		}
+		if em, ok := md.MR.EdgeMovers()[e.Label]; ok {
+			em.SetDelta(d)
+		}
+		if src, ok := md.MR.NodeGeoms()[e.Source]; ok {
+			src.SetDeltaTo(e.Target, d)
+		}
+		if dst, ok := md.MR.NodeGeoms()[e.Target]; ok {
+			dst.SetDeltaTo(e.Source, d.Neg())
+		}
+	}
+
 	// Kind and out-targets are both known only now, so a loaded layout gets
 	// its first hold here. A drag is what enforces the constraints from then
 	// on; without this the layout would sit wrong until node 1 happened to
 	// be dragged, since a phi that loads wrong cannot be corrected by any
 	// move of the node it is wrong for.
 	for _, nm := range md.MR.NodeGeoms() {
-		for to, heldPos := range layoutquant.HeldOutNeighbors(nm, md.MR.CenterOfNode, nm.WorldCenter()) {
+		for to, heldPoint := range layoutquant.HeldOutNeighbors(nm, polar.Polar{}) {
 			if other, ok := md.MR.NodeGeoms()[to]; ok {
-				other.SendExternal(context.TODO(), movemsg.Msg{Kind: movemsg.KindDrag, NodeID: to, Target: heldPos})
+				other.SendExternal(context.TODO(), movemsg.Msg{Kind: movemsg.KindDrag, NodeID: to,
+					Target: other.SceneCenter().Add(polar.Polar2cart(heldPoint))})
 			}
 		}
 	}

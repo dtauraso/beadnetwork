@@ -32,33 +32,46 @@ func HeldEdges(edgeMovers map[string]*edgemover.EdgeMover) []polar.SphereEdge {
 	return edges
 }
 
-func (lq *LayoutQuantizer) RootMove(ctx context.Context, nodeGeoms map[string]*nodeactor.NodeGeometry, centerOf func(string) (spatial.Vec3, bool), nodeID string, target spatial.Vec3) bool {
+func (lq *LayoutQuantizer) RootMove(ctx context.Context, nodeGeoms map[string]*nodeactor.NodeGeometry, nodeID string, target spatial.Vec3) bool {
 	nm, ok := nodeGeoms[nodeID]
 	if !ok {
 		return false
 	}
 
-	// A drag decides everything that moves. The dragged node's own
-	// constraints trim where IT may go, and if it is a node that holds
-	// constraints over others, the same drag carries them — a neighbour
-	// never moves itself to satisfy someone else's rule.
-	target = TrimDraggedNode(nm, centerOf, nm.WorldCenter(), target)
+	// A drag moves THE NODE UNDER THE CURSOR. Dragging an input node does not
+	// move its out-neighbours — not carried along, not re-solved around. They
+	// stay where they are and the edges to them change, which is what dragging
+	// that node is FOR.
+	//
+	// Two versions of moving them have now been wrong in the editor. Treating
+	// them as standing still and re-imposing the shared length stretched the
+	// shorter path and shoved its neighbour into other nodes; carrying them
+	// rigidly moved nodes nobody was dragging. HeldOutNeighbors survives for the
+	// LOAD-time hold only (build_move_dispatch.go, with a zero delta), which is
+	// what corrects a layout that loads wrong.
+	//
+	// The drag arrives as a world point, because a pointer hits a plane in the
+	// world. That is where it enters the polar system; from here down every
+	// rule works on triples, and the node's own centre is the only one read.
+	delta := polar.Between(nm.ScenePolar(), polar.Cart2polar(target.Sub(nm.SceneCenter())))
+	delta = TrimDraggedNode(nm, delta)
+	// Its neighbours are not moving, so keeping every outgoing path the same
+	// length is a constraint on where THIS node may go.
+	delta = TrimEqualOutLengths(nm, delta)
 
-	held := HeldOutNeighbors(nm, centerOf, target)
-	for to, pos := range HeldSiblings(nm, nodeGeoms, centerOf, nodeID, target) {
-		if held == nil {
-			held = map[string]spatial.Vec3{}
-		}
-		held[to] = pos
-	}
-	for to, heldPos := range held {
+	// Dragging one of an input node's neighbours is the case that still moves
+	// somebody else: the shared length is a constraint the dragged node cannot
+	// satisfy alone, so its SIBLINGS take the length it just stated.
+	for to, heldPoint := range HeldSiblings(nm, nodeGeoms, nodeID, delta) {
 		other, ok := nodeGeoms[to]
 		if !ok {
 			continue
 		}
-		other.SendExternal(ctx, movemsg.Msg{Kind: movemsg.KindDrag, NodeID: to, Target: heldPos})
+		other.SendExternal(ctx, movemsg.Msg{Kind: movemsg.KindDrag, NodeID: to,
+			Target: other.SceneCenter().Add(polar.Polar2cart(heldPoint))})
 	}
 
-	nm.SendExternal(ctx, movemsg.Msg{Kind: movemsg.KindDrag, NodeID: nodeID, Target: target})
+	nm.SendExternal(ctx, movemsg.Msg{Kind: movemsg.KindDrag, NodeID: nodeID,
+		Target: nm.SceneCenter().Add(polar.Polar2cart(polar.Compose(nm.ScenePolar(), delta)))})
 	return true
 }

@@ -36,6 +36,9 @@ func LoadTree(root string) (TopoSpec, error) {
 		spec.Edges = append(spec.Edges, edges...)
 	}
 
+	ResolveEdgeDeltas(&spec)
+	PlaceFromDeltas(&spec)
+
 	return spec, nil
 }
 

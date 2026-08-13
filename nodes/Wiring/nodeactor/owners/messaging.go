@@ -18,8 +18,6 @@ type Messaging struct {
 
 	resolveDest func(id string) (func(movemsg.Msg) bool, bool)
 
-	centerOf func(id string) (vec3, bool)
-
 	commitLocal func(id string, newPos vec3)
 
 	pending []pendingSend
@@ -37,12 +35,10 @@ func NewMessaging(extIn chan movemsg.Msg, neighborIn map[string]chan movemsg.Msg
 func (n *Messaging) WireMessaging(
 	resolveDest func(id string) (func(movemsg.Msg) bool, bool),
 	sendMove func(id string, msg movemsg.Msg),
-	centerOf func(id string) (vec3, bool),
 	commitLocal func(id string, newPos vec3),
 ) {
 	n.resolveDest = resolveDest
 	n.sendMove = sendMove
-	n.centerOf = centerOf
 	n.commitLocal = commitLocal
 }
 

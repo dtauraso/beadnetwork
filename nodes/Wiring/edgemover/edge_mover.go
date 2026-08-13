@@ -4,6 +4,7 @@ import (
 	"context"
 
 	SF "github.com/dtauraso/wirefold/Buffer/streamframe"
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/clock"
@@ -44,6 +45,15 @@ type EdgeMover struct {
 
 	steps int
 	tr    *T.Trace
+
+	// persistRoot arms this edge to write its own file — the one file it owns,
+	// nodes/<source>/edges/<label>.json.
+	persistRoot string
+
+	// d is this edge's OWN vector, source to target, seeded from its file at
+	// build. A + D = B holds because vector addition makes it hold, not because
+	// anything here recomputes or checks it.
+	d polar.Polar
 
 	clockSrc clock.Clock
 

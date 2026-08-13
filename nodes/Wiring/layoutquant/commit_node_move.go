@@ -24,8 +24,19 @@ func (lq *LayoutQuantizer) CommitNodeMoveLocal(nodeGeoms map[string]*nodeactor.N
 	polars[nodeID] = committedPolar
 	reach := topoderive.ReachRFromPolar(polars, edges)
 
+	// This node moved and the nodes at the other end of its edges did not, so
+	// every side it touches loses the whole of Δ, component by component. It
+	// applies that to its own sides here, and tells each partner the same Δ so
+	// that partner can apply it to theirs — neither end reads the other's
+	// position, and neither converts.
+	delta := polar.Between(nm.ScenePolar(), committedPolar)
+	nm.ShiftDeltasBy(delta)
+
 	nm.ApplyCenter(committedPos, reach[nodeID])
-	BroadcastToEdgesAndPartners(edgeMovers, nodeGeoms, map[string]spatial.Vec3{nodeID: committedPos}, nm.SendMove())
+	BroadcastToEdgesAndPartners(edgeMovers, nodeGeoms,
+		map[string]spatial.Vec3{nodeID: committedPos},
+		map[string]polar.Polar{nodeID: delta},
+		nm.SendMove())
 
 	nm.CommitQuantOffset(committedPolar)
 }

@@ -8,6 +8,68 @@ type Polar struct {
 	Theta float64
 }
 
+// A triple is a VECTOR — a distance out from wherever it starts, an angle down
+// from that start's own +y pole, and a turn around it. The three letters of the
+// model are three such vectors closing a triangle:
+//
+//	A = scene centre -> node        the node's own point
+//	D = node -> neighbour           the edge's vector
+//	B = scene centre -> neighbour   the neighbour's point
+//
+//	A + D = B
+//
+// D starts AT THE NODE. That is what makes its phi the angle from that node's
+// own pole to its neighbour — the quantity the out-angle constraint names, read
+// straight off the number the constraint is applied to.
+//
+// Between and Compose are how those vectors are taken apart and put together.
+// They are NOT component arithmetic: r+r, phi+phi, theta+theta was tried and is
+// not addition of anything. Measured against where the vectors land it was off
+// by 447 scene units on a sum, and it made the constraint hold a number that
+// was not the angle in the triangle — pinned at exactly 90 degrees while the
+// picture sat at 99.79.
+
+// Compose is the vector p followed by the vector q: the three numbers added.
+// Between is the vector from one point to another: the three numbers
+// subtracted. Neg turns a vector around: the three numbers negated.
+//
+// Only whole turns of theta are removed afterwards, and that moves nothing.
+// NOTHING ELSE IS FOLDED — r may be negative and phi may pass the pole, because
+// each of those folds pays for itself by rewriting the other two components,
+// which puts the triple somewhere the arithmetic never said. One did exactly
+// that and walked a node outward 118 -> 373 -> 1891 across reloads.
+//
+// These three used to resolve onto the pole axis and the plane across it and
+// read the answer back off those legs — sin and cos in, atan2 out, a cartesian
+// round trip behind a polar signature. The conversion happens ONCE now, where a
+// world point enters the system (Cart2polar) and where one leaves it
+// (Polar2cart), and nowhere in between.
+func Compose(p, q Polar) Polar {
+	return Polar{R: p.R + q.R, Phi: p.Phi + q.Phi, Theta: wrapTurn(p.Theta + q.Theta)}
+}
+
+func Between(from, to Polar) Polar {
+	return Polar{R: to.R - from.R, Phi: to.Phi - from.Phi, Theta: wrapTurn(to.Theta - from.Theta)}
+}
+
+func (p Polar) Neg() Polar {
+	return Polar{R: -p.R, Phi: -p.Phi, Theta: wrapTurn(-p.Theta)}
+}
+
+// wrapTurn removes whole turns, which do not move a vector, leaving an angle in
+// (-pi, pi] — the range atan2 answers in, so a composed and a negated triple
+// are comparable.
+func wrapTurn(a float64) float64 {
+	const twoPi = 2 * math.Pi
+	for a > math.Pi {
+		a -= twoPi
+	}
+	for a <= -math.Pi {
+		a += twoPi
+	}
+	return a
+}
+
 func Polar2cart(p Polar) vec3 {
 	st := math.Sin(p.Phi)
 	return vec3{
