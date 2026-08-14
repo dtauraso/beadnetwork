@@ -52,6 +52,22 @@ func Between(from, to Polar) Polar {
 	return Polar{R: to.R - from.R, Phi: to.Phi - from.Phi, Theta: wrapTurn(to.Theta - from.Theta)}
 }
 
+// SnapDeltaTheta puts a MOVE's theta on the nearest integer multiple of pi —
+// negative, zero, or positive. It is applied to a delta triple the moment that
+// triple is formed, before any rule reads it, so every rule downstream sees a
+// theta that is already one of the allowed turns.
+//
+// Between has already removed whole turns, so the delta arrives in (-pi, pi]
+// and the reachable answers are -pi, 0 and pi (and -pi is pi, a half turn
+// either way around the same pole). A drag therefore either leaves theta alone
+// or turns the vector half a turn; there is no partial turn to accumulate.
+//
+// Only theta is touched. R and Phi pass through, because this is the same shape
+// as the other rules on a delta: one component decided on its own.
+func SnapDeltaTheta(d Polar) Polar {
+	return Polar{R: d.R, Phi: d.Phi, Theta: wrapTurn(math.Round(d.Theta/math.Pi) * math.Pi)}
+}
+
 func (p Polar) Neg() Polar {
 	return Polar{R: -p.R, Phi: -p.Phi, Theta: wrapTurn(-p.Theta)}
 }
