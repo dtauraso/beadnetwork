@@ -6,7 +6,9 @@ import (
 	"github.com/dtauraso/wirefold/nodes/nodeapi"
 	"github.com/dtauraso/wirefold/nodes/wire/inport"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/helddrive"
 	Wiring "github.com/dtauraso/wirefold/nodes/Wiring/kindapi"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
 	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
 	"github.com/dtauraso/wirefold/nodes/gatecommon"
 )
@@ -17,11 +19,11 @@ type Pulse struct {
 
 	EmitHeldBead func(held int)
 
+	Self *nodeactor.PairNodeSelf
+
 	Clock clock.Clock
 
-	SpeedCh          <-chan float64
-	Out1SpeedCh      <-chan float64
-	OutFanoutSpeedCh <-chan float64
+	SpeedCh <-chan float64
 
 	In  *inport.In
 	Out Wiring.DrivenOut
@@ -29,25 +31,23 @@ type Pulse struct {
 	OutFanout Wiring.DrivenOut
 }
 
-func driveOutput(ctx context.Context, out Wiring.DrivenOut, heldCh <-chan int64, clk clock.Clock, speedCh <-chan float64) {
-	gatecommon.DriveHeld(ctx, out, heldCh, func(h int64) int { return int(h) }, clk, speedCh)
+func driveOutput(out Wiring.DrivenOut) *helddrive.HeldDriver {
+	return helddrive.New(out, func(h int64) int { return int(h) })
 }
 
 func (g *Pulse) Update(ctx context.Context) {
 	nodeapi.TryEmit(g.EmitGeometry)
+	g.Self.EmitGeometryOnce()
 
 	var cur int64 = gatecommon.NoValue
 	if g.EmitHeldBead != nil {
 		g.EmitHeldBead(gatecommon.NoValue)
 	}
 
-	out1HeldCh := make(chan int64, 1)
-	outFanoutHeldCh := make(chan int64, 1)
-
-	driveOutput(ctx, g.Out, out1HeldCh, g.Clock, g.Out1SpeedCh)
+	drivers := []*helddrive.HeldDriver{driveOutput(g.Out)}
 
 	if g.OutFanout.Wired() {
-		driveOutput(ctx, g.OutFanout, outFanoutHeldCh, g.Clock, g.OutFanoutSpeedCh)
+		drivers = append(drivers, driveOutput(g.OutFanout))
 	}
 
 	consume := func() {
@@ -62,8 +62,9 @@ func (g *Pulse) Update(ctx context.Context) {
 			g.EmitHeldBead(v)
 		}
 		cur = int64(v)
-		clock.SendLatestNonBlocking(out1HeldCh, cur)
-		clock.SendLatestNonBlocking(outFanoutHeldCh, cur)
+		for _, d := range drivers {
+			d.Set(cur)
+		}
 	}
 
 	clk := g.Clock.Copy()
@@ -74,6 +75,10 @@ func (g *Pulse) Update(ctx context.Context) {
 		}
 		consume()
 		clock.ApplySpeedNonBlocking(clk, g.SpeedCh)
+		for _, d := range drivers {
+			d.Step(clk.Tick())
+		}
+		g.Self.Step(ctx, clk.Tick())
 		if err := clk.SleepCycle(ctx); err != nil {
 			return
 		}
@@ -94,9 +99,8 @@ func init() {
 			n.EmitHeldBead = a.EmitHeldBead()
 			n.Clock = a.Clock()
 			n.SpeedCh = a.SpeedCh()
-			n.Out1SpeedCh = a.SpeedCh()
-			n.OutFanoutSpeedCh = a.SpeedCh()
 			n.In = a.In("In")
+			n.Self = a.ClaimSelfDrive()
 
 			n.Out = a.DriveOut("Out", 0)
 			n.OutFanout = a.DriveOut("OutFanout", 1)

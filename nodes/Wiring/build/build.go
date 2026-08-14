@@ -78,7 +78,6 @@ func buildFromSpec(ctx context.Context, spec loadspec.TopoSpec, tr *T.Trace, clk
 		return nil, nil, nil, nil, err
 	}
 
-	b.md.MR.FinalizeActors(&b.speedSinks)
 	bindDispatch(b.md, b.outSink, b.destWire)
 
 	return b.nodes, inputcodec.SlotRegistry(b.destWire), b.md, b.speedSinks, nil

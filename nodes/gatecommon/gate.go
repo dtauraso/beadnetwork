@@ -10,21 +10,19 @@ func runGateLoop(ctx context.Context, g *GateNode, captureLeftFn, captureRightFn
 	if g.EmitGeometry != nil {
 		g.EmitGeometry()
 	}
+	g.Self.EmitGeometryOnce()
 
-	var now func() int64
-	sleep := defaultSleep()
-	if g.Clock != nil {
-		clk := g.Clock.Copy()
-		now = clk.Tick
+	if g.Clock == nil {
+		panic("gatecommon.runGateLoop: gate node has no clock — a self-driven node steps its own geometry from its own clock, so there is no wall-clock fallback to fall back to")
+	}
 
-		sleep = func(ctx context.Context) error {
-			clock.ApplySpeedNonBlocking(clk, g.SpeedCh)
-			return clk.SleepCycle(ctx)
-		}
-	} else if g.Tick != nil {
-		now = g.Tick
-	} else {
-		now = defaultTick()
+	clk := g.Clock.Copy()
+	now := clk.Tick
+
+	sleep := func(ctx context.Context) error {
+		clock.ApplySpeedNonBlocking(clk, g.SpeedCh)
+		g.Self.Step(ctx, clk.Tick())
+		return clk.SleepCycle(ctx)
 	}
 
 	var w gateWindow

@@ -29,7 +29,7 @@ func init() {
 			n := &SelectLeft{}
 			n.Fire = a.Fire()
 			n.EmitInputBeads = a.EmitInputBeads()
-			n.Tick = a.Tick()
+			n.Self = a.ClaimSelfDrive()
 			n.Clock = a.Clock()
 			n.SpeedCh = a.SpeedCh()
 			n.FromLeft = a.In("FromLeft")

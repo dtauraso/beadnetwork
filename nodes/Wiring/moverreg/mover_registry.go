@@ -11,12 +11,7 @@ const InboxDepth = 8
 type MoverRegistry struct {
 	nodeGeoms map[string]*nodeactor.NodeGeometry
 
-	nodeMovers map[string]*nodeactor.NodeMover
-
-	nodeAnimations map[string]*nodeactor.NodeAnimation
-
-	selfDriveClaimed map[string]bool
-	edgeMovers       map[string]*edgemover.EdgeMover
+	edgeMovers map[string]*edgemover.EdgeMover
 
 	edgeOut map[string]*outport.Out
 
@@ -38,13 +33,6 @@ func (mr *MoverRegistry) NodeGeoms() map[string]*nodeactor.NodeGeometry {
 
 func (mr *MoverRegistry) EdgeMovers() map[string]*edgemover.EdgeMover {
 	return mr.edgeMovers
-}
-
-func (mr *MoverRegistry) ClaimSelfDrive(id string) {
-	if mr.selfDriveClaimed == nil {
-		mr.selfDriveClaimed = map[string]bool{}
-	}
-	mr.selfDriveClaimed[id] = true
 }
 
 func (mr *MoverRegistry) SeedCenter(id string, c vec3) {

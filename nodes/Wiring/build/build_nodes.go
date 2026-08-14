@@ -35,8 +35,6 @@ func (b *buildCtx) buildNodes() error {
 			if !ok {
 				return nil
 			}
-			b.md.MR.ClaimSelfDrive(name)
-
 			ng.CopyClockSrc()
 			return ng
 		},

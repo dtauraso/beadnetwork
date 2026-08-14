@@ -36,7 +36,7 @@ func (m *Mailbox) Send(s Snapshot) {
 	default:
 		panic(fmt.Sprintf(
 			"interior.Mailbox.Send: node row %d interior mailbox is full (depth %d) — the node's own "+
-				"NodeMover.Run loop is the sole drainer of this mailbox and is not keeping up (missing or "+
+				"Update loop is the sole drainer of this mailbox and is not keeping up (missing or "+
 				"stalled owners.Interior.WriteFrames call), not a reason to block the sender or drop the "+
 				"snapshot",
 			m.nodeRow, MailboxDepth))

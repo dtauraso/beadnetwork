@@ -6,6 +6,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/wire/outport"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/interior"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
 )
 
 const WindowMs = 3000
@@ -21,7 +22,7 @@ type GateNode struct {
 	EmitGeometry   func()
 	EmitInputBeads func(left, right int)
 
-	Tick func() int64
+	Self *nodeactor.PairNodeSelf
 
 	Clock clock.Clock
 

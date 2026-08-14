@@ -49,18 +49,6 @@ func (mr *MoverRegistry) NodeBodyRadius(id string) float64 {
 	return nodegeom.NodeRadius(mr.nodeKind(id))
 }
 
-func (mr *MoverRegistry) HasNodeMover(id string) bool {
-	_, ok := mr.nodeMovers[id]
-	return ok
-}
-
-func (mr *MoverRegistry) NodeSelfDriven(id string) bool {
-	if _, hasGeom := mr.nodeGeoms[id]; !hasGeom {
-		return false
-	}
-	return !mr.HasNodeMover(id)
-}
-
 func (mr *MoverRegistry) NodeQuantOffset(id string) (iTheta, iPhi, iR int, ok bool) {
 	nm, exists := mr.nodeGeoms[id]
 	if !exists {
