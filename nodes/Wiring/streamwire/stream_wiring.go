@@ -24,8 +24,6 @@ type StreamWiring struct {
 	driveOuts map[string][DriveSlotsPerNode]io.Writer
 
 	nodeClaims streamclaim.ClaimRegistry
-
-	edgeClaims edgemover.ClaimRegistry
 }
 
 func (sw *StreamWiring) InteriorOutsPtr() *map[string]io.Writer { return &sw.interiorOuts }
@@ -44,15 +42,6 @@ func (sw *StreamWiring) ensureNodeClaims() streamclaim.ClaimRegistry {
 	}
 	return sw.nodeClaims
 }
-
-func (sw *StreamWiring) ensureEdgeClaims() edgemover.ClaimRegistry {
-	if sw.edgeClaims == nil {
-		sw.edgeClaims = edgemover.NewClaimRegistry()
-	}
-	return sw.edgeClaims
-}
-
-func nodeDrawsOwnOutEdges(nodeID string) bool { return nodeID == "1" }
 
 func kindOf(nodeGeoms map[string]*nodeactor.NodeGeometry, nodeID string) string {
 	if nm, ok := nodeGeoms[nodeID]; ok {
@@ -77,20 +66,17 @@ func (sw *StreamWiring) SetEdgeStreams(
 		fd := baseFd + row
 		rawOut := os.NewFile(uintptr(fd), fmt.Sprintf("edge-fd%d", fd))
 
-		if srcNM, sourceDraws := nodeGeoms[seed.SrcNode]; sourceDraws && nodeDrawsOwnOutEdges(seed.SrcNode) {
-			srcRow := int32(-1)
-			if r, ok := nodeRowFor(seed.SrcNode); ok {
-				srcRow = r
-			}
-			srcNM.WireOutEdgeStream(seed.Label, int32(row), seed.DstNode, kindOf(nodeGeoms, seed.DstNode), rawOut, srcRow, buildFrame)
-			if dest := em.Dest(); dest != nil {
-				dest.SetStreamsActive(true)
-			}
-			continue
+		srcNM, ok := nodeGeoms[seed.SrcNode]
+		if !ok {
+			panic(fmt.Sprintf(
+				"streamwire.SetEdgeStreams: edge %q leaves node %q, which has no node geometry — a node draws its OWN out-edges, so an edge with no source node has no writer",
+				seed.Label, seed.SrcNode))
 		}
-
-		handle := edgemover.Claim(sw.ensureEdgeClaims(), seed.Label, rawOut)
-		em.SetStream(handle, int32(row), nodeRowFor, buildFrame)
+		srcRow := int32(-1)
+		if r, ok := nodeRowFor(seed.SrcNode); ok {
+			srcRow = r
+		}
+		srcNM.WireOutEdgeStream(seed.Label, int32(row), seed.DstNode, kindOf(nodeGeoms, seed.DstNode), rawOut, srcRow, buildFrame)
 
 		if dest := em.Dest(); dest != nil {
 			dest.SetStreamsActive(true)

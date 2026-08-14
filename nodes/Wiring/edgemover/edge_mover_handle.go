@@ -6,9 +6,6 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/edgegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
-	"github.com/dtauraso/wirefold/nodes/rowevent"
-
-	T "github.com/dtauraso/wirefold/Trace"
 )
 
 func (m *EdgeMover) handle(msg movemsg.Msg) {
@@ -68,7 +65,7 @@ func (m *EdgeMover) recomputeGeometry() {
 		m.out.PublishSteps(m.steps)
 	}
 
-	m.breadcrumb(T.BreadcrumbEdgeGeom, "edge-geom", fmt.Sprintf(
+	m.breadcrumb("edge-geom", fmt.Sprintf(
 		"src=%s dst=%s steps=%d start=(%.2f,%.2f,%.2f) end=(%.2f,%.2f,%.2f) len=%.2f",
 		m.srcID, m.dstID, m.steps,
 		seg.Start.X, seg.Start.Y, seg.Start.Z, seg.End.X, seg.End.Y, seg.End.Z,
@@ -77,9 +74,4 @@ func (m *EdgeMover) recomputeGeometry() {
 	if m.dest != nil {
 		m.dest.ReviseInFlightGeometry(m.clk.Tick(), m.steps, seg)
 	}
-
-	m.writeStreamFrame(m.clk.Tick(), []rowevent.RowEvent{{
-		Kind: T.KindGeometry, EdgeRow: m.edgeRow,
-		NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1,
-	}})
 }

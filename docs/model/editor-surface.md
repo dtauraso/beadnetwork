@@ -17,9 +17,11 @@ when a bead has arrived. Go owns the clock.
   and streams its OWN binary content buffer to its OWN dedicated inherited
   stdio pipe (`Buffer/streamframe/stream_fds.go`, memory/feedback/architecture/bridge/feedback_no_single_writer_bridge.md)
   — one VIEW stream (camera/overlay/scene, the gesture/stdin-reader
-  goroutine), one stream per edge row (that edgeMover's own geometry + its
-  wire's live beads), one stream per node row (that NodeMover's own
-  geometry+ports+label), one INTERIOR stream per node row (that node's own
+  goroutine), one stream per edge row (that edge's geometry, written by
+  the SOURCE node's own goroutine — a node draws its own out-edges), one
+  stream per node row (that NodeMover's own geometry+ports+label), one
+  BEAD stream per node row (that node's live beads on every wire leaving
+  it), one INTERIOR stream per node row (that node's own
   Update-goroutine's interior beads — the ONLY writer of that node's four
   interior slots), and a fixed `DriveSlotsPerNode` (`Buffer/streamframe/stream_fds.go`)
   of DRIVE streams per node row for any kind whose held value is driven by

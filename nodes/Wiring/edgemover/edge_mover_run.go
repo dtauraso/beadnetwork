@@ -46,10 +46,6 @@ func (m *EdgeMover) Run(ctx context.Context) {
 				break drain
 			}
 		}
-		if m.dest != nil {
-
-			m.writeStreamFrame(m.clk.Tick(), nil)
-		}
 		if err := m.clk.SleepPulse(ctx); err != nil {
 			return
 		}
