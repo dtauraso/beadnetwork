@@ -2,8 +2,6 @@
 const OVERLAY_FLAG_NAMES = [
   "tori",
   "scenePoles",
-  "nodePoles",
-  "selSpherePoles",
   "handholds",
   "labelsGlobal",
   "overlays",
@@ -30,7 +28,6 @@ const PANEL_FLAG_NAMES = [
   "nodeShape",
   "nodeState",
   "nodeReach",
-  "nodePoles",
   "scene",
   "sceneGuides",
   "scenePoles",

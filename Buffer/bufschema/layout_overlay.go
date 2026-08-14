@@ -1,13 +1,11 @@
 package bufschema
 
 type bufLayoutOverlay struct {
-	SceneTori      uint8 `buf:"u8"`
-	ScenePoles     uint8 `buf:"u8"`
-	NodePoles      uint8 `buf:"u8"`
-	SelSpherePoles uint8 `buf:"u8"`
-	Handholds      uint8 `buf:"u8"`
-	LabelsGlobal   uint8 `buf:"u8"`
-	OverlaysVis    uint8 `buf:"u8"`
+	SceneTori    uint8 `buf:"u8"`
+	ScenePoles   uint8 `buf:"u8"`
+	Handholds    uint8 `buf:"u8"`
+	LabelsGlobal uint8 `buf:"u8"`
+	OverlaysVis  uint8 `buf:"u8"`
 
 	NodeBody      uint8 `buf:"u8"`
 	NodeRing      uint8 `buf:"u8"`

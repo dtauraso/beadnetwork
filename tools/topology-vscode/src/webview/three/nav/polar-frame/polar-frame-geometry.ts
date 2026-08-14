@@ -6,8 +6,6 @@ export interface PolarFrameGeometry {
   arcR: number;
   arcTube: number;
   arcMid: number;
-  hhR: number;
-  arcHH: number;
 }
 
 export function computePolarFrameGeometry(scale: number): PolarFrameGeometry {
@@ -19,7 +17,5 @@ export function computePolarFrameGeometry(scale: number): PolarFrameGeometry {
   const arcR = poleLen * 0.68;
   const arcTube = Math.max(radiusKey * 0.012, 1.2);
   const arcMid = arcR * 1.12 * Math.SQRT1_2;
-  const hhR = Math.max(radiusKey * 0.04, 3);   
-  const arcHH = arcR * Math.SQRT1_2;           
-  return { poleLen, poleRadius, coneH, coneBaseR, arcR, arcTube, arcMid, hhR, arcHH };
+  return { poleLen, poleRadius, coneH, coneBaseR, arcR, arcTube, arcMid };
 }

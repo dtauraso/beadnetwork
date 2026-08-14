@@ -14,21 +14,19 @@ import (
 // flip/emit logic. Owned by UIState (ui.OV); Wiring's stdin reader's OverlayToggles
 // method-expression table binds these methods directly.
 type OverlayState struct {
-	SceneToriVisible      bool
-	ScenePolesVisible     bool
-	NodePolesVisible      bool
-	SelSpherePolesVisible bool
-	HandholdsVisible      bool
-	LabelsGlobalVisible   bool
-	OverlaysVisible       bool
-	NodeBodyVisible       bool
-	NodeRingVisible       bool
-	RingPickVisible       bool
-	SelectionRingVisible  bool
-	HoverRingVisible      bool
-	ReachSphereVisible    bool
-	SceneVectorsVisible   bool
-	CommEdgesVisible      bool
+	SceneToriVisible     bool
+	ScenePolesVisible    bool
+	HandholdsVisible     bool
+	LabelsGlobalVisible  bool
+	OverlaysVisible      bool
+	NodeBodyVisible      bool
+	NodeRingVisible      bool
+	RingPickVisible      bool
+	SelectionRingVisible bool
+	HoverRingVisible     bool
+	ReachSphereVisible   bool
+	SceneVectorsVisible  bool
+	CommEdgesVisible     bool
 }
 
 // setFlag flips *field. Shared body of the uniform Toggle* methods. The RowEvent
@@ -47,17 +45,6 @@ func (o *OverlayState) ToggleSceneTori(tr *T.Trace) {
 func (o *OverlayState) ToggleScenePoles(tr *T.Trace) {
 	o.ScenePolesVisible = !o.ScenePolesVisible
 	tr.Breadcrumb("pole-toggle-go", "scene", "", fmt.Sprintf("visible=%v", o.ScenePolesVisible))
-}
-
-// ToggleNodePoles flips NodePolesVisible.
-func (o *OverlayState) ToggleNodePoles(tr *T.Trace) {
-	o.NodePolesVisible = !o.NodePolesVisible
-	tr.Breadcrumb("pole-toggle-go", "nodes", "", fmt.Sprintf("visible=%v", o.NodePolesVisible))
-}
-
-// ToggleSelSpherePoles flips SelSpherePolesVisible.
-func (o *OverlayState) ToggleSelSpherePoles(tr *T.Trace) {
-	o.setFlag(&o.SelSpherePolesVisible)
 }
 
 // ToggleHandholds flips HandholdsVisible.

@@ -10,7 +10,6 @@ import {
 import { navSignature } from "./nav-signature";
 import { PolarFrame } from "./polar-frame";
 import { SceneVectors } from "./SceneVectors";
-import { NodePoles } from "./NodePoles";
 
 export function NavGuides() {
 
@@ -19,8 +18,6 @@ export function NavGuides() {
   const g = bufFlags?.overlays ?? false;
   const showTori = g && !!bufFlags?.tori;
   const showScenePoles = g && !!bufFlags?.scenePoles;
-  const showNodePoles = g && !!bufFlags?.nodePoles;
-  const showSelPoles = g && !!bufFlags?.selSpherePoles;
   const showHandholds = g && !!bufFlags?.handholds;
   const showSceneVectors = g && !!bufFlags?.sceneVectors;
 
@@ -31,7 +28,7 @@ export function NavGuides() {
   const sceneSphereRef = useRef<{ center: THREE.Vector3; radius: number }>({ center: new THREE.Vector3(), radius: 100 });
   useFrame(() => {
 
-    if (!showTori && !showScenePoles && !showNodePoles && !showSelPoles && !showHandholds && !showSceneVectors) return;
+    if (!showTori && !showScenePoles && !showHandholds && !showSceneVectors) return;
     const blocks = getViewBlocks();
     const decodedNode = getNodeFrame();
     if (!decodedNode || !blocks) return;
@@ -50,8 +47,6 @@ export function NavGuides() {
     [navTick],
   );
 
-
-  const latchedSel = navNodes.find((n) => n.latchedSel)?.row ?? null;
 
   const cs = sceneSphereRef.current;
   const tube = navNodes.length > 0 ? Math.max(0.5, navNodes[0]!.radius * 0.08) : 1;
@@ -89,8 +84,6 @@ export function NavGuides() {
 
   if (navNodes.length < 1) return null;
 
-  const sphereCenters = latchedSel !== null ? navNodes.filter((n) => n.row === latchedSel) : [];
-
   const pos: [number, number, number] = [cs.center.x, cs.center.y, cs.center.z];
   return (
     <>
@@ -113,20 +106,6 @@ export function NavGuides() {
       {showSceneVectors && <SceneVectors center={cs.center} nodes={navNodes} tube={tube * 0.35} />}
       {}
       {showScenePoles && <PolarFrame center={cs.center} scale={radiusKey} />}
-      {}
-      {}
-      {}
-      {showNodePoles && <NodePoles nodes={navNodes} />}
-      {}
-      {showSelPoles && sphereCenters.map((center) => (
-        <PolarFrame
-          key={`sel-${center.row}`}
-          center={center.center}
-          scale={center.sphereR ?? center.radius}
-          tag={`(${center.label})`}
-          octants
-        />
-      ))}
     </>
   );
 }

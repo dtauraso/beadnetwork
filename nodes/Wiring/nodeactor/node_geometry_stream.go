@@ -59,7 +59,6 @@ func (m *NodeGeometry) writeStreamFrame(events []rowevent.RowEvent) {
 	})
 	center := fg.Center
 	sphereR := fg.SphereR
-	polePhi, poleTheta := fg.PolePhi, fg.PoleTheta
 	ringAxisPhi, ringAxisTheta := fg.RingAxisPhi, fg.RingAxisTheta
 	points := fg.LatticePoints
 	topTiltVectorLen := fg.TopTiltVectorLen
@@ -91,8 +90,6 @@ func (m *NodeGeometry) writeStreamFrame(events []rowevent.RowEvent) {
 		FRX:                   loadspec.FlatRingNormalX,
 		FRY:                   loadspec.FlatRingNormalY,
 		FRZ:                   loadspec.FlatRingNormalZ,
-		PolePhi:               float32(polePhi),
-		PoleTheta:             float32(poleTheta),
 		RingAxisPhi:           float32(ringAxisPhi),
 		RingAxisTheta:         float32(ringAxisTheta),
 		TopTiltVectorLen:      float32(topTiltVectorLen),

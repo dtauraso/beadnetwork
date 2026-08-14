@@ -9,23 +9,20 @@ type chainBeadFixture struct {
 }
 
 type nodeFrameFixture struct {
-	Tick      uint32  `json:"tick"`
-	NodeRow   int32   `json:"nodeRow"`
-	NodeId    int32   `json:"nodeId"`
-	CX        float32 `json:"cx"`
-	CY        float32 `json:"cy"`
-	CZ        float32 `json:"cz"`
-	Radius    float32 `json:"radius"`
-	SphereR   float32 `json:"sphereR"`
-	VRX       float32 `json:"vrx"`
-	VRY       float32 `json:"vry"`
-	VRZ       float32 `json:"vrz"`
-	FRX       float32 `json:"frx"`
-	FRY       float32 `json:"fry"`
-	FRZ       float32 `json:"frz"`
-	PolePhi   float32 `json:"polePhi"`
-	PoleTheta float32 `json:"poleTheta"`
-
+	Tick          uint32  `json:"tick"`
+	NodeRow       int32   `json:"nodeRow"`
+	NodeId        int32   `json:"nodeId"`
+	CX            float32 `json:"cx"`
+	CY            float32 `json:"cy"`
+	CZ            float32 `json:"cz"`
+	Radius        float32 `json:"radius"`
+	SphereR       float32 `json:"sphereR"`
+	VRX           float32 `json:"vrx"`
+	VRY           float32 `json:"vry"`
+	VRZ           float32 `json:"vrz"`
+	FRX           float32 `json:"frx"`
+	FRY           float32 `json:"fry"`
+	FRZ           float32 `json:"frz"`
 	RingAxisPhi   float32 `json:"ringAxisPhi"`
 	RingAxisTheta float32 `json:"ringAxisTheta"`
 

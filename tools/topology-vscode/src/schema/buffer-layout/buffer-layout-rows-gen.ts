@@ -14,26 +14,24 @@ export const NODE_COL_VRZ                        = 32; // f32
 export const NODE_COL_FRX                        = 36; // f32
 export const NODE_COL_FRY                        = 40; // f32
 export const NODE_COL_FRZ                        = 44; // f32
-export const NODE_COL_POLE_PHI                   = 48; // f32
-export const NODE_COL_POLE_THETA                 = 52; // f32
-export const NODE_COL_RING_AXIS_PHI              = 56; // f32
-export const NODE_COL_RING_AXIS_THETA            = 60; // f32
-export const NODE_COL_TOP_TILT_VECTOR_LEN        = 64; // f32
-export const NODE_COL_TOP_TILT_VECTOR_THETA      = 68; // f32
-export const NODE_COL_BOTTOM_TILT_VECTOR_THETA   = 72; // f32
-export const NODE_COL_COPLANAR_NORMAL_THETA      = 76; // f32
-export const NODE_COL_RECEIVED_VECTOR_LEN        = 80; // f32
-export const NODE_COL_RECEIVED_VECTOR_THETA      = 84; // f32
-export const NODE_COL_SELECTED                   = 88; // u8
-export const NODE_COL_KIND_ID                    = 89; // u8
-export const NODE_COL_LABEL_OFF                  = 90; // u32
-export const NODE_COL_LABEL_LEN                  = 94; // u32
-export const NODE_COL_HOVERED                    = 98; // u8
-export const NODE_COL_LATCHED_SEL                = 99; // u8
-export const NODE_COL_LATTICE_POINTS             = 100; // u8
-export const NODE_COL_ROUNDS_TO_PARALLEL         = 101; // i32
-export const NODE_COL_MSGS_TO_PARALLEL           = 105; // i32
-export const NODE_STRIDE                         = 109;
+export const NODE_COL_RING_AXIS_PHI              = 48; // f32
+export const NODE_COL_RING_AXIS_THETA            = 52; // f32
+export const NODE_COL_TOP_TILT_VECTOR_LEN        = 56; // f32
+export const NODE_COL_TOP_TILT_VECTOR_THETA      = 60; // f32
+export const NODE_COL_BOTTOM_TILT_VECTOR_THETA   = 64; // f32
+export const NODE_COL_COPLANAR_NORMAL_THETA      = 68; // f32
+export const NODE_COL_RECEIVED_VECTOR_LEN        = 72; // f32
+export const NODE_COL_RECEIVED_VECTOR_THETA      = 76; // f32
+export const NODE_COL_SELECTED                   = 80; // u8
+export const NODE_COL_KIND_ID                    = 81; // u8
+export const NODE_COL_LABEL_OFF                  = 82; // u32
+export const NODE_COL_LABEL_LEN                  = 86; // u32
+export const NODE_COL_HOVERED                    = 90; // u8
+export const NODE_COL_LATCHED_SEL                = 91; // u8
+export const NODE_COL_LATTICE_POINTS             = 92; // u8
+export const NODE_COL_ROUNDS_TO_PARALLEL         = 93; // i32
+export const NODE_COL_MSGS_TO_PARALLEL           = 97; // i32
+export const NODE_STRIDE                         = 101;
 
 export function readNodeNodeId(view: DataView, row: number): number { return view.getInt32(row * NODE_STRIDE + NODE_COL_NODE_ID, true); }
 export function readNodeCX(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_CX, true); }
@@ -47,8 +45,6 @@ export function readNodeVRZ(view: DataView, row: number): number { return view.g
 export function readNodeFRX(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_FRX, true); }
 export function readNodeFRY(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_FRY, true); }
 export function readNodeFRZ(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_FRZ, true); }
-export function readNodePolePhi(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_POLE_PHI, true); }
-export function readNodePoleTheta(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_POLE_THETA, true); }
 export function readNodeRingAxisPhi(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_RING_AXIS_PHI, true); }
 export function readNodeRingAxisTheta(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_RING_AXIS_THETA, true); }
 export function readNodeTopTiltVectorLen(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_TOP_TILT_VECTOR_LEN, true); }

@@ -18,7 +18,6 @@ type scenePanelsFile struct {
 	NodeShape bool `json:"nodeShape"`
 	NodeState bool `json:"nodeState"`
 	NodeReach bool `json:"nodeReach"`
-	NodePoles bool `json:"nodePoles"`
 
 	Scene        bool `json:"scene"`
 	SceneGuides  bool `json:"sceneGuides"`
@@ -35,7 +34,6 @@ func WriteScenePanels(panelsPath string, pn viewstate.PanelState) error {
 		NodeShape: pn.NodeShapeOpen,
 		NodeState: pn.NodeStateOpen,
 		NodeReach: pn.NodeReachOpen,
-		NodePoles: pn.NodePolesOpen,
 
 		Scene:        pn.SceneOpen,
 		SceneGuides:  pn.SceneGuidesOpen,
@@ -56,7 +54,6 @@ func LoadScenePanels(panelsPath string) (viewstate.PanelState, bool) {
 	pn.NodeShapeOpen = sf.NodeShape
 	pn.NodeStateOpen = sf.NodeState
 	pn.NodeReachOpen = sf.NodeReach
-	pn.NodePolesOpen = sf.NodePoles
 
 	pn.SceneOpen = sf.Scene
 	pn.SceneGuidesOpen = sf.SceneGuides

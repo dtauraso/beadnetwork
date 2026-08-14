@@ -4,8 +4,6 @@ import { getViewBlocks, subscribeViewBlocks } from "../../scene/view-blocks";
 import {
   readOverlaySceneTori,
   readOverlayScenePoles,
-  readOverlayNodePoles,
-  readOverlaySelSpherePoles,
   readOverlayHandholds,
   readOverlayLabelsGlobal,
   readOverlayOverlaysVis,
@@ -34,8 +32,6 @@ export function readOverlayFlags(): OverlayFlagVals | null {
   const next: OverlayFlagVals = {
     tori: !!readOverlaySceneTori(v),
     scenePoles: !!readOverlayScenePoles(v),
-    nodePoles: !!readOverlayNodePoles(v),
-    selSpherePoles: !!readOverlaySelSpherePoles(v),
     handholds: !!readOverlayHandholds(v),
 
     labelsGlobal: !readOverlayLabelsGlobal(v),

@@ -7,7 +7,6 @@ import {
   SHADING_PARAM_SCENE_DIR_INTENSITY,
 } from "../../../schema/buffer-layout/shading-params";
 import { BUFFER_NODE_TAG, BUFFER_EDGE_TAG, BUFFER_RING_TAG } from "./buffer-scene";
-import { HANDHOLD_TERM_TAG } from "../nav/polar-frame/polar-frame-data";
 import { resolveNodeDrawSlot } from "./nodes/node-depth-order";
 
 function pickBufferEdge(hits: THREE.Intersection[]): string | null {
@@ -22,7 +21,7 @@ function pickBufferEdge(hits: THREE.Intersection[]): string | null {
 function pickBufferHandhold(hits: THREE.Intersection[]): string | null {
   for (const hit of hits) {
     const data = (hit.object as THREE.Mesh).userData;
-    if (data?.[HANDHOLD_TERM_TAG] === true || data?.handhold === true) return "1";
+    if (data?.handhold === true) return "1";
   }
   return null;
 }
