@@ -80,9 +80,11 @@ def strip(path, marker, added):
         else:
             blank = False
         kept.append(raw)
+    mode = os.stat(path).st_mode
     tmp = path + ".strip.tmp"
     with open(tmp, "w", encoding="utf-8") as f:
         f.write("\n".join(kept))
+    os.chmod(tmp, mode)
     os.replace(tmp, path)
     return killed
 
