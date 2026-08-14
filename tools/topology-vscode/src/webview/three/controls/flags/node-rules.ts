@@ -1,7 +1,10 @@
 import { useSyncExternalStore } from "react";
 import { getNodeFrame, subscribeNodeStreamBlocks } from "../../scene/nodes/node-frame-aggregate";
 import { getEdgeStreamAccessor } from "../../scene/edges/edge-stream-blocks";
+import { NODE_KIND_NAMES } from "../../../../schema/node-defs";
+import { UNKNOWN_KIND_ID } from "../../../../schema/buffer-layout/buffer-layout";
 import {
+  readNodeKindId,
   readNodeOrbitRLocked,
   readNodeOrbitPhiLocked,
   readNodeOrbitThetaMax,
@@ -20,6 +23,8 @@ export interface NodeRuleRow {
   row: number;
   label: string;
 
+  kind: string;
+
   hasRule: boolean;
 
   active: boolean;
@@ -32,6 +37,12 @@ export interface NodeRuleRow {
 }
 
 const RAD_TO_DEG = 180 / Math.PI;
+
+function kindNameFor(nodeView: DataView, row: number): string {
+  const kindId = readNodeKindId(nodeView, row);
+  if (kindId === UNKNOWN_KIND_ID) return "";
+  return NODE_KIND_NAMES[kindId] ?? "";
+}
 
 let cachedRuleRows: NodeRuleRow[] | null = null;
 
@@ -57,6 +68,7 @@ function ruleRowsEqual(a: NodeRuleRow[], b: NodeRuleRow[]): boolean {
     if (
       ai.row !== bi.row ||
       ai.label !== bi.label ||
+      ai.kind !== bi.kind ||
       ai.hasRule !== bi.hasRule ||
       ai.active !== bi.active ||
       ai.phiLocked !== bi.phiLocked ||
@@ -106,6 +118,7 @@ export function readNodeRuleRows(): NodeRuleRow[] | null {
     next.push({
       row,
       label: nodeLabel(decoded, row),
+      kind: kindNameFor(nodeView, row),
       hasRule,
       active: !!readNodeOrbitActive(nodeView, row),
       phiLocked: !!readNodeOrbitPhiLocked(nodeView, row),

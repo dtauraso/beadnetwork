@@ -132,6 +132,7 @@ function NodeBlock({ rule }: { rule: NodeRuleRow }) {
           />
         )}
         <span className="node-rules-node">{rule.label}</span>
+        {rule.kind && <span className="node-rules-kind">· {rule.kind}</span>}
       </div>
       {!rule.hasRule || rule.holders.length === 0 ? (
         <FreeNodeBlock />

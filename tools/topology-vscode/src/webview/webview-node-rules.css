@@ -27,6 +27,7 @@
 .node-rules-node-head { display: flex; align-items: center; gap: 6px; }
 .node-rules-node-head input[type="checkbox"] { margin: 0; cursor: pointer; }
 .node-rules-node { color: #222; font-weight: 600; }
+.node-rules-kind { color: #666; }
 
 .node-rules-holder { display: flex; align-items: flex-start; gap: 10px; padding-left: 10px; }
 .node-rules-holder-name { color: #666; min-width: 78px; }
