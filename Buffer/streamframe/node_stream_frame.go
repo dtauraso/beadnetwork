@@ -25,9 +25,7 @@ type NodeStreamFrame struct {
 
 	RingAxisPhi, RingAxisTheta float32
 
-	RingTubeRadius float32
-
-	RingPoints []float32
+	RingMatrix [16]float32
 
 	TopTiltVectorLen float32
 
@@ -57,25 +55,19 @@ type NodeStreamFrame struct {
 func BuildNodeStreamFrame(f NodeStreamFrame) []byte {
 	labelBytes := []byte(f.Label)
 
-	if len(f.RingPoints)%3 != 0 {
-		panic(fmt.Sprintf(
-			"BuildNodeStreamFrame: RingPoints has %d floats for node row %d — must be a whole number of XYZ triples",
-			len(f.RingPoints), f.NodeRow))
-	}
-	ringPointCount := len(f.RingPoints) / 3
-
-	size := B.BufNodeStreamFrameHeaderSize + B.BufNodeStride + len(labelBytes) + ringPointCount*B.BufRingPointStride
+	size := B.BufNodeStreamFrameHeaderSize + B.BufNodeStride + len(labelBytes)
 	buf := make([]byte, size)
 	off := 0
 	binary.LittleEndian.PutUint32(buf[off:], f.Tick)
 	off += 4
 	binary.LittleEndian.PutUint32(buf[off:], uint32(len(labelBytes)))
 	off += 4
-	binary.LittleEndian.PutUint32(buf[off:], uint32(ringPointCount))
-	off += 4
 
+	m := f.RingMatrix
 	B.SetNodeRow(buf[off:off+B.BufNodeStride], 0, f.NodeID, f.CX, f.CY, f.CZ, f.Radius, f.SphereR, f.VRX, f.VRY, f.VRZ, f.FRX, f.FRY, f.FRZ,
-		f.PolePhi, f.PoleTheta, f.RingAxisPhi, f.RingAxisTheta, f.RingTubeRadius, f.TopTiltVectorLen, f.TopTiltVectorIdx,
+		f.PolePhi, f.PoleTheta, f.RingAxisPhi, f.RingAxisTheta,
+		m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7], m[8], m[9], m[10], m[11], m[12], m[13], m[14], m[15],
+		f.TopTiltVectorLen, f.TopTiltVectorIdx,
 		f.TopTiltVectorPhi, f.BottomTiltVectorPhi,
 		f.CoplanarNormalPhi, f.ReceivedVectorLen, f.ReceivedVectorPhi,
 		f.Selected, f.KindID, 0, uint32(len(labelBytes)), f.Hovered, f.LatchedSel, f.LatticePoints, f.RoundsToParallel, f.MsgsToParallel)
@@ -83,12 +75,6 @@ func BuildNodeStreamFrame(f NodeStreamFrame) []byte {
 
 	copy(buf[off:off+len(labelBytes)], labelBytes)
 	off += len(labelBytes)
-
-	for i := 0; i < ringPointCount; i++ {
-		rowOff := off + i*B.BufRingPointStride
-		B.SetRingPointRow(buf[rowOff:rowOff+B.BufRingPointStride], 0, f.RingPoints[i*3], f.RingPoints[i*3+1], f.RingPoints[i*3+2])
-	}
-	off += ringPointCount * B.BufRingPointStride
 
 	if off != size {
 		panic(fmt.Sprintf(

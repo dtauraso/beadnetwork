@@ -61,11 +61,7 @@ func (m *NodeGeometry) writeStreamFrame(events []rowevent.RowEvent) {
 	sphereR := fg.SphereR
 	polePhi, poleTheta := fg.PolePhi, fg.PoleTheta
 	ringAxisPhi, ringAxisTheta := fg.RingAxisPhi, fg.RingAxisTheta
-	ringTubeRadius := fg.RingTubeRadius
-	ringPoints := make([]float32, 0, len(fg.RingPoints)*3)
-	for _, p := range fg.RingPoints {
-		ringPoints = append(ringPoints, float32(p.X), float32(p.Y), float32(p.Z))
-	}
+	ringMatrix := fg.RingMatrix
 	points := fg.LatticePoints
 	topTiltVectorLen := fg.TopTiltVectorLen
 	receivedVectorLen := fg.ReceivedVectorLen
@@ -96,8 +92,7 @@ func (m *NodeGeometry) writeStreamFrame(events []rowevent.RowEvent) {
 		PoleTheta:           float32(poleTheta),
 		RingAxisPhi:         float32(ringAxisPhi),
 		RingAxisTheta:       float32(ringAxisTheta),
-		RingTubeRadius:      float32(ringTubeRadius),
-		RingPoints:          ringPoints,
+		RingMatrix:          ringMatrix,
 		TopTiltVectorLen:    float32(topTiltVectorLen),
 		TopTiltVectorIdx:    fg.TopTiltVectorIdx,
 		TopTiltVectorPhi:    float32(fg.TopTiltVectorPhi),

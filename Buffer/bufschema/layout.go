@@ -2,7 +2,7 @@
 
 package bufschema
 
-const BufLayoutVersion = 44
+const BufLayoutVersion = 45
 
 const BufInteriorSlotsPerNode = 4
 

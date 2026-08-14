@@ -3,10 +3,18 @@ import {
   OVERLAY_STRIDE,
   PANEL_STRIDE,
   SCENE_STRIDE,
+  RING_POINT_STRIDE,
   BUF_LAYOUT_FINGERPRINT_HASH,
 } from "../../../schema/buffer-layout/buffer-layout";
 import { BUF_VIEW_FRAME_HEADER_SIZE } from "../../../schema/buffer-layout/frame-tags";
+import {
+  SHADING_PARAM_NODE_RING_SURFACE_NU,
+  SHADING_PARAM_NODE_RING_SURFACE_NV,
+} from "../../../schema/buffer-layout/shading-params";
 import { STR_DECODER, decodeTrailingEvents } from "./buffer-decode-shared";
+
+const RING_SURFACE_POINT_COUNT = SHADING_PARAM_NODE_RING_SURFACE_NU * SHADING_PARAM_NODE_RING_SURFACE_NV;
+const RING_SURFACE_STRIDE = RING_SURFACE_POINT_COUNT * RING_POINT_STRIDE;
 
 export const SCENE_TABS_HEADER_SIZE = 4;
 
@@ -64,6 +72,8 @@ export interface DecodedViewFrame {
   panelView: DataView;
   sceneView: DataView;
 
+  ringSurfacePointsView: DataView;
+
   sceneTabs: string[];
   sceneTabSelected: number;
 
@@ -84,7 +94,7 @@ export function decodeViewFrame(buf: ArrayBuffer): DecodedViewFrame | null {
 }
 
 function decodeViewFrameUncached(buf: ArrayBuffer): DecodedViewFrame | null {
-  const expectedLen = BUF_VIEW_FRAME_HEADER_SIZE + CAMERA_STRIDE + OVERLAY_STRIDE + PANEL_STRIDE + SCENE_STRIDE + SCENE_TABS_HEADER_SIZE;
+  const expectedLen = BUF_VIEW_FRAME_HEADER_SIZE + CAMERA_STRIDE + OVERLAY_STRIDE + PANEL_STRIDE + SCENE_STRIDE + RING_SURFACE_STRIDE + SCENE_TABS_HEADER_SIZE;
   if (buf.byteLength < expectedLen) return null;
 
   const hdr = new DataView(buf, 0, BUF_VIEW_FRAME_HEADER_SIZE);
@@ -110,6 +120,9 @@ function decodeViewFrameUncached(buf: ArrayBuffer): DecodedViewFrame | null {
   const sceneView = new DataView(buf, off, SCENE_STRIDE);
   off += SCENE_STRIDE;
 
+  const ringSurfacePointsView = new DataView(buf, off, RING_SURFACE_STRIDE);
+  off += RING_SURFACE_STRIDE;
+
   const tabs = decodeSceneTabs(buf, off);
   off = tabs.end;
 
@@ -117,6 +130,7 @@ function decodeViewFrameUncached(buf: ArrayBuffer): DecodedViewFrame | null {
 
   return {
     tick, cameraView, overlayView, panelView, sceneView,
+    ringSurfacePointsView,
     sceneTabs: tabs.names, sceneTabSelected: tabs.selected,
     eventCount, eventView, eventTextView,
   };

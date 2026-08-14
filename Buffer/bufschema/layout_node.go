@@ -21,7 +21,22 @@ type bufLayoutNode struct {
 	RingAxisPhi   float32 `buf:"f32"`
 	RingAxisTheta float32 `buf:"f32"`
 
-	RingTubeRadius float32 `buf:"f32"`
+	RingM0  float32 `buf:"f32"`
+	RingM1  float32 `buf:"f32"`
+	RingM2  float32 `buf:"f32"`
+	RingM3  float32 `buf:"f32"`
+	RingM4  float32 `buf:"f32"`
+	RingM5  float32 `buf:"f32"`
+	RingM6  float32 `buf:"f32"`
+	RingM7  float32 `buf:"f32"`
+	RingM8  float32 `buf:"f32"`
+	RingM9  float32 `buf:"f32"`
+	RingM10 float32 `buf:"f32"`
+	RingM11 float32 `buf:"f32"`
+	RingM12 float32 `buf:"f32"`
+	RingM13 float32 `buf:"f32"`
+	RingM14 float32 `buf:"f32"`
+	RingM15 float32 `buf:"f32"`
 
 	TopTiltVectorLen float32 `buf:"f32"`
 

@@ -16,10 +16,11 @@ import {
 } from "../../../../schema/buffer-layout/shading-params";
 import {
   BUFFER_NODE_TAG, BUFFER_RING_TAG,
-  NODE_RING_TUBE_RATIO, RING_PICK_TUBE_RATIO, RING_PICK_COLOR, RING_PICK_OPACITY,
+  RING_PICK_TUBE_RATIO, RING_PICK_COLOR, RING_PICK_OPACITY,
   RING_BAND_MAJOR, RING_BAND_TUBE,
 } from "../buffer-scene-shared";
 import { updateNodeInstances } from "./node-instances-update";
+import { getCanonicalRingSurfaceGeometry } from "./ring-surface-geometry";
 
 export function NodeInstances({ capacity }: { capacity: number }) {
   const envTex = useContext(EnvTexContext);
@@ -34,6 +35,7 @@ export function NodeInstances({ capacity }: { capacity: number }) {
   const ringAxisRef = useRef(new THREE.Vector3());
   const sclRef  = useRef(new THREE.Vector3());
   const colRef  = useRef(new THREE.Color());
+  const ringGeomAppliedRef = useRef(false);
 
   useFrame(({ camera }) => {
     const body = bodyRef.current;
@@ -41,6 +43,14 @@ export function NodeInstances({ capacity }: { capacity: number }) {
     const ringPick = ringPickRef.current;
     const ringBand = ringBandRef.current;
     if (!body || !ring || !ringPick || !ringBand) return;
+
+    if (!ringGeomAppliedRef.current) {
+      const geom = getCanonicalRingSurfaceGeometry();
+      if (geom) {
+        ring.geometry = geom;
+        ringGeomAppliedRef.current = true;
+      }
+    }
 
     updateNodeInstances(
       {
@@ -79,7 +89,8 @@ export function NodeInstances({ capacity }: { capacity: number }) {
         />
       </instancedMesh>
       <instancedMesh ref={ringRef} args={[undefined, undefined, capacity]} userData={{ [BUFFER_RING_TAG]: true }} frustumCulled={false}>
-        <torusGeometry args={[1, NODE_RING_TUBE_RATIO, 8, 32]} />
+        {}
+        <bufferGeometry />
         <meshStandardMaterial roughness={SHADING_PARAM_RING_ROUGHNESS} metalness={0} depthWrite={false} transparent={false} opacity={1} />
       </instancedMesh>
       {}
