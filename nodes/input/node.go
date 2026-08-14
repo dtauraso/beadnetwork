@@ -8,12 +8,15 @@ import (
 	"github.com/dtauraso/wirefold/nodes/wire/outport"
 
 	Wiring "github.com/dtauraso/wirefold/nodes/Wiring/kindapi"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
 	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
 )
 
 type Node struct {
 	Fire         func()
 	EmitGeometry func()
+
+	Self *nodeactor.PairNodeSelf
 
 	EmitNodeBeads func(working, backup []int)
 
@@ -50,7 +53,10 @@ func (n *Node) broadcastPlace(v int, tick int64) bool {
 
 func (n *Node) Update(ctx context.Context) {
 	nodeapi.TryEmit(n.EmitGeometry)
+	n.Self.EmitGeometryOnce()
+
 	if len(n.Init) == 0 {
+		n.runStepLoop(ctx, n.clock().Copy(), nil)
 		return
 	}
 
@@ -75,6 +81,23 @@ func (n *Node) Update(ctx context.Context) {
 	n.runPeriodicEmit(ctx, &working, &backup, init, emitBeads, clk)
 }
 
+func (n *Node) runStepLoop(ctx context.Context, clk clock.Clock, perTick func() bool) {
+	for {
+		if ctx.Err() != nil {
+			return
+		}
+		if perTick != nil && !perTick() {
+
+			perTick = nil
+		}
+		clock.ApplySpeedNonBlocking(clk, n.SpeedCh)
+		n.Self.Step(ctx, clk.Tick())
+		if err := clk.SleepPulse(ctx); err != nil {
+			return
+		}
+	}
+}
+
 func init() {
 
 	Wiring.RegisterBuilder("Input",
@@ -96,6 +119,7 @@ func init() {
 				n.Clock = clk
 			}
 			n.SpeedCh = a.SpeedCh()
+			n.Self = a.ClaimSelfDrive()
 
 			if data := a.Data(); data != nil {
 				if data.Init != nil {

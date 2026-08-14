@@ -9,32 +9,23 @@ import (
 func (n *Node) updateFeedbackRing(ctx context.Context, working, backup *[]int, init []int, emitBeads func(), clk clock.Clock) {
 
 	awaiting := false
-	for {
-		if ctx.Err() != nil {
-			return
-		}
-
+	n.runStepLoop(ctx, clk, func() bool {
 		if !awaiting {
 			if !n.feedbackRingSend(working, backup, init, emitBeads, clk) {
-				return
+				return false
 			}
 			awaiting = true
 		}
 
-		clock.ApplySpeedNonBlocking(clk, n.SpeedCh)
-		if err := clk.SleepCycle(ctx); err != nil {
-			return
-		}
-
 		s, ok := n.FeedbackIn.PollRecv()
 		if !ok {
-
-			continue
+			return true
 		}
 
 		awaiting = false
 		n.feedbackRingReact(s, working, backup, init, emitBeads, clk)
-	}
+		return true
+	})
 }
 
 func (n *Node) feedbackRingSend(working, backup *[]int, init []int, emitBeads func(), clk clock.Clock) bool {
