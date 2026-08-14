@@ -87,7 +87,8 @@ func (n *Node) runStepLoop(ctx context.Context, clk clock.Clock, perTick func() 
 			return
 		}
 		if perTick != nil && !perTick() {
-			return
+
+			perTick = nil
 		}
 		clock.ApplySpeedNonBlocking(clk, n.SpeedCh)
 		n.Self.Step(ctx, clk.Tick())
