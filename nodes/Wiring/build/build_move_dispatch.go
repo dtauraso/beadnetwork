@@ -6,8 +6,8 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
-	"github.com/dtauraso/wirefold/nodes/Wiring/layoutquant"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodedrag"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
 )
@@ -100,19 +100,16 @@ func (b *buildCtx) buildMoveDispatch() error {
 		}
 	}
 
-	ruleOf := func(id string) *polar.OrbitRule {
-		if other, ok := md.MR.NodeGeoms()[id]; ok {
-			return other.OrbitRule()
-		}
-		return nil
-	}
 	for _, nm := range md.MR.NodeGeoms() {
-		for to, heldPoint := range layoutquant.HeldOutNeighbors(nm, polar.Polar{}, ruleOf) {
+		asks := nodedrag.RequestFor(nm.SelfKind())
+		if asks == nil {
+			continue
+		}
+		for to, told := range asks(polar.Polar{}, nm) {
 			if other, ok := md.MR.NodeGeoms()[to]; ok {
-				held := heldPoint
+				d := told
 				other.SendExternal(context.TODO(), movemsg.Msg{Kind: movemsg.KindDrag, NodeID: to,
-					Target:      other.SceneCenter().Add(polar.Polar2cart(held)),
-					TargetPolar: &held})
+					SenderID: nm.ID(), Delta: &d})
 			}
 		}
 	}

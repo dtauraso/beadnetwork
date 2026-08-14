@@ -58,10 +58,6 @@ type Msg struct {
 
 	SenderID string
 
-	Target vec3
-
-	TargetPolar *polar.Polar
-
 	Bool bool
 
 	Axis string
