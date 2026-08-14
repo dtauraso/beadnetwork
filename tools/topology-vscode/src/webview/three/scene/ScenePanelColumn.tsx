@@ -5,6 +5,27 @@ import { OverlaysControl } from "../controls/pills/overlays-control";
 import { NodePalette } from "../controls/panels/palette/NodePalette";
 import { DistanceHomePanel } from "../controls/panels/DistanceHomePanel";
 import { TiltVectorAnglePanel } from "../controls/panels/tilt/TiltVectorAnglePanel";
+import { pillContainerStyle, pillBodyStyle, pillCaretStyle } from "../controls/pills/overlay-chrome";
+
+const COLUMN_GAP = 6;
+
+const PILL_LABELS = ["Distances", "Angles", "Nodes", "Overlays"];
+
+function PillColumnSizer() {
+  return (
+    <div
+      aria-hidden
+      style={{ height: 0, marginBottom: -COLUMN_GAP, overflow: "hidden", visibility: "hidden" }}
+    >
+      {PILL_LABELS.map((label) => (
+        <div key={label} style={pillContainerStyle(false)}>
+          <div style={{ ...pillBodyStyle, flex: "1 1 auto" }}>{label}</div>
+          <div style={pillCaretStyle}>▼</div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export function ScenePanelColumn({ cameraRef, aspect }: { cameraRef: RefObject<THREE.PerspectiveCamera | null>; aspect: number }) {
   return (
@@ -18,11 +39,12 @@ export function ScenePanelColumn({ cameraRef, aspect }: { cameraRef: RefObject<T
         flexDirection: "column",
 
         alignItems: "stretch",
-        gap: 6,
+        gap: COLUMN_GAP,
         pointerEvents: "none",
       }}
     >
       {}
+      <PillColumnSizer />
       <HomeButton cameraRef={cameraRef} aspect={aspect} />
       <DistanceHomePanel />
       <TiltVectorAnglePanel />
