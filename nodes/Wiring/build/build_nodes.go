@@ -52,7 +52,7 @@ func (b *buildCtx) buildNodes() error {
 		pb.SpeedSinks = &b.speedSinks
 
 		pb.RT = b.md.RT
-		pb.InteriorOuts = b.md.Sw.InteriorOutsPtr()
+		pb.InteriorEmitters = b.md.Sw.InteriorEmittersPtr()
 		pb.DriveOuts = b.md.Sw.DriveOutsPtr()
 		pb.BuildInteriorFrame = b.md.Sw.BuildInteriorFramePtr()
 		pb.VectorOut = b.vectorOutByNode

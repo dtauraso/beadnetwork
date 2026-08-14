@@ -9,11 +9,11 @@ import (
 )
 
 func (a BuildArgs) Fire() func() {
-	getStream := a.getStream
+	getEmitter := a.getEmitter
 	return func() {
-		if s := getStream(); s != nil {
-			s.WriteEvents([]rowevent.RowEvent{{
-				Kind: T.KindFire, NodeRow: s.NodeRowOf(),
+		if e := getEmitter(); e != nil {
+			e.WriteEvents([]rowevent.RowEvent{{
+				Kind: T.KindFire, NodeRow: e.NodeRowOf(),
 				PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1,
 			}})
 		}
@@ -21,18 +21,18 @@ func (a BuildArgs) Fire() func() {
 }
 
 func (a BuildArgs) EmitNodeBeads() func(working, backup []int) {
-	tr, name, getStream := a.tr, a.name, a.getStream
-	return func(working, backup []int) { interior.EmitNodeBeads(tr, name, working, backup, getStream()) }
+	tr, name, getEmitter := a.tr, a.name, a.getEmitter
+	return func(working, backup []int) { interior.EmitNodeBeads(tr, name, working, backup, getEmitter()) }
 }
 
 func (a BuildArgs) EmitHeldBead() func(held int) {
-	tr, name, getStream := a.tr, a.name, a.getStream
-	return func(held int) { interior.EmitHeldBead(tr, name, held, getStream()) }
+	tr, name, getEmitter := a.tr, a.name, a.getEmitter
+	return func(held int) { interior.EmitHeldBead(tr, name, held, getEmitter()) }
 }
 
 func (a BuildArgs) EmitInputBeads() func(left, right int) {
-	tr, name, getStream := a.tr, a.name, a.getStream
-	return func(left, right int) { interior.EmitInputBeads(tr, name, left, right, getStream()) }
+	tr, name, getEmitter := a.tr, a.name, a.getEmitter
+	return func(left, right int) { interior.EmitInputBeads(tr, name, left, right, getEmitter()) }
 }
 
 func (a BuildArgs) EmitRefillSlide() func(clk clock.Clock, speedCh <-chan float64, beads []int) {

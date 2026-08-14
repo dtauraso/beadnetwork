@@ -26,7 +26,7 @@ type BuildArgs struct {
 
 	sourceOuts *[]*outport.Out
 
-	getStream func() *interior.InteriorStream
+	getEmitter func() *interior.Emitter
 
 	driveSlotClaims map[int]string
 
@@ -49,7 +49,7 @@ func RegisterBuilder(kind string, ports []portwiring.PortSpec, build func(BuildA
 				ctx: ctx, name: name, data: data, pb: pb, tr: tr,
 				geom:            geom,
 				sourceOuts:      &sourceOuts,
-				getStream:       portwiring.NewInteriorStreamGetter(name, pb),
+				getEmitter:      portwiring.NewInteriorEmitterGetter(name, pb),
 				driveSlotClaims: map[int]string{},
 				tiltPhiIdx:      tiltPhiIdx,
 				deps:            deps,

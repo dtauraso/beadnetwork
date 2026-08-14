@@ -48,6 +48,8 @@ type NodeGeometry struct {
 	beads owners.Beads
 
 	outEdges owners.OutEdges
+
+	interior owners.Interior
 }
 
 func NewNodeGeometry(id string, geom nodegeom.NodeGeom, tr *T.Trace, clockSrc clock.Clock) *NodeGeometry {
