@@ -6,7 +6,9 @@ import (
 	"github.com/dtauraso/wirefold/nodes/nodeapi"
 	"github.com/dtauraso/wirefold/nodes/wire/inport"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/helddrive"
 	Wiring "github.com/dtauraso/wirefold/nodes/Wiring/kindapi"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
 	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
 	"github.com/dtauraso/wirefold/nodes/gatecommon"
 )
@@ -17,30 +19,30 @@ type PulseLeft struct {
 
 	EmitHeldBead func(held int)
 
+	Self *nodeactor.PairNodeSelf
+
 	Clock clock.Clock
 
-	SpeedCh     <-chan float64
-	Out1SpeedCh <-chan float64
+	SpeedCh <-chan float64
 
 	In  *inport.In
 	Out Wiring.DrivenOut
 }
 
-func driveOutput(ctx context.Context, out Wiring.DrivenOut, heldCh <-chan int64, clk clock.Clock, speedCh <-chan float64) {
-	gatecommon.DriveHeld(ctx, out, heldCh, func(h int64) int { return int(h) }, clk, speedCh)
+func driveOutput(out Wiring.DrivenOut) *helddrive.HeldDriver {
+	return helddrive.New(out, func(h int64) int { return int(h) })
 }
 
 func (g *PulseLeft) Update(ctx context.Context) {
 	nodeapi.TryEmit(g.EmitGeometry)
+	g.Self.EmitGeometryOnce()
 
 	var cur int64 = gatecommon.NoValue
 	if g.EmitHeldBead != nil {
 		g.EmitHeldBead(gatecommon.NoValue)
 	}
 
-	out1HeldCh := make(chan int64, 1)
-
-	driveOutput(ctx, g.Out, out1HeldCh, g.Clock, g.Out1SpeedCh)
+	driver := driveOutput(g.Out)
 
 	consume := func() {
 		v, ok := g.In.PollRecv()
@@ -54,7 +56,7 @@ func (g *PulseLeft) Update(ctx context.Context) {
 			g.EmitHeldBead(v)
 		}
 		cur = int64(v)
-		clock.SendLatestNonBlocking(out1HeldCh, cur)
+		driver.Set(cur)
 	}
 
 	clk := g.Clock.Copy()
@@ -65,6 +67,8 @@ func (g *PulseLeft) Update(ctx context.Context) {
 		}
 		consume()
 		clock.ApplySpeedNonBlocking(clk, g.SpeedCh)
+		driver.Step(clk.Tick())
+		g.Self.Step(ctx, clk.Tick())
 		if err := clk.SleepCycle(ctx); err != nil {
 			return
 		}
@@ -84,8 +88,8 @@ func init() {
 			n.EmitHeldBead = a.EmitHeldBead()
 			n.Clock = a.Clock()
 			n.SpeedCh = a.SpeedCh()
-			n.Out1SpeedCh = a.SpeedCh()
 			n.In = a.In("In")
+			n.Self = a.ClaimSelfDrive()
 
 			n.Out = a.DriveOut("Out", 0)
 

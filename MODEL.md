@@ -9,18 +9,23 @@ frame. Stop, re-read this file, and re-derive from the model.
 ## The network
 
 The network is **nodes and wires**. A node id NAMES a thing that is drawn.
-**A node is ONE goroutine** — its `NodeMover` — and that goroutine owns,
-in one pulse-paced loop, everything the node draws about itself:
-interaction and geometry, its own beads, and **its own OUT-EDGES** (each
-drawn from the node's own polar position composed with that edge's stored
-delta). It writes its own node stream, its own bead stream, and the edge
-stream of every edge leaving it. An edge is not drawn by anyone else:
-there is no goroutine that watches two nodes and draws the line between
-them. The one other goroutine per node id is the KIND's own logic
-(`Update`), which owns that node's interior slots and nothing drawn
-outside them. Because the node loop paces beads, it runs at PULSE
-cadence, and the same loop reads input — so input is served at pulse
-cadence too, deliberately: one clock per node, not one clock per job. A wire
+**A node is ONE goroutine** — the KIND's own `Update` — and that goroutine
+owns, in one paced loop, everything the node is and everything it draws
+about itself: the kind's logic and its interior slots, interaction and
+geometry, its own beads, and **its own OUT-EDGES** (each drawn from the
+node's own polar position composed with that edge's stored delta). It
+writes its own node stream, its own bead stream, and the edge stream of
+every edge leaving it. An edge is not drawn by anyone else: there is no
+goroutine that watches two nodes and draws the line between them. There
+is **no second goroutine per node id** — no mover goroutine beside `Update`,
+and no separate driver goroutine placing a held value onto an out. `Update`
+gets the drawing half by calling `Self.Step(ctx, tick)` once per pass of
+its own loop, where `Self` is the `PairNodeSelf` it claimed at build time
+(`BuildArgs.ClaimSelfDrive`); a kind that holds a value onto an out steps a
+`gatecommon.HeldDriver` in that same pass rather than handing the value to
+a goroutine over a channel. Because the node loop paces beads, it runs at
+its own tick cadence, and the same loop reads input — so input is served at
+that cadence too, deliberately: one clock per node, not one clock per job. A wire
 (`PacedWire`) is not a goroutine at all: it is a PASSIVE delay queue
 with a channel on each end — a channel in from its source node, a channel
 out to its destination node — stepped by its SOURCE NODE's own goroutine.
@@ -175,7 +180,7 @@ pacing to another's, which is the coupling the whole model exists to avoid.
 is the only context they get. It must:
 
 1. **Open with a site tag** — the detecting function, method, or subsystem, then a colon —
-   so the message greps back to its source: `paced_wire: `, `NodeMover(%s): `,
+   so the message greps back to its source: `paced_wire: `, `interior.Mailbox.Send: `,
    `BuildEdgeStreamFrame: `.
 2. **Name the invariant and the actual values**, not a category. `pending exceeded %d events
    on wire -> %s.%s`, not `limit exceeded`.

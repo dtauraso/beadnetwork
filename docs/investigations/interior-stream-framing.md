@@ -32,12 +32,12 @@ to find what a *live* editor session does differently.
 
 The model requires one writer per fd (`memory/feedback/architecture/bridge/feedback_no_single_writer_bridge.md`,
 `Buffer/streamframe/stream_fds.go`'s `StreamKindInterior` doc comment: "written by that node's OWN
-Update goroutine"). That invariant is **violated by construction** for every node kind that
-uses `gatecommon.DriveHeld` — `Pulse`, `PulseLeft`, `PulseRight`, `holdflip`, `Time`,
-`TimeStart` (`nodes/gatecommon/drive.go`).
+Update goroutine"). That invariant WAS **violated by construction** for every node kind that
+used `gatecommon.DriveHeld` — `Pulse`, `PulseLeft`, `PulseRight`, `holdflip`, `Time`,
+`TimeStart`.
 
-`DriveHeld` spawns its **own goroutine** (`nodes/gatecommon/drive.go:86`, `go func() {
-... }()`) that calls `Out.PlaceDrivenAt` → `flushSendEvent` → `s.WriteEvents(...)` on the
+`DriveHeld` spawned its **own goroutine** (`go func() { ... }()`) that called
+`Out.PlaceDrivenAt` → `flushSendEvent` → `s.WriteEvents(...)` on the
 node's shared `*interiorStream` (`nodes/wire/outport/out_port_send.go`'s `flushSendEvent`). Meanwhile the node's own
 `Update` goroutine (its main loop, e.g. `nodes/pulse/node.go`'s `consume()`) calls
 `EmitHeldBead(v)` → the SAME shared `*interiorStream` (`nodes/Wiring/portwiring/port_wiring.go`'s
@@ -125,7 +125,15 @@ separate `Write()` calls — worth noting for whoever writes the guard, since "r
 
 ## Fix
 
-See [interior-stream-framing-fix.md](interior-stream-framing-fix.md) for the full fix: the
+The second goroutine no longer exists. `DriveHeld` was replaced by
+`helddrive.HeldDriver` (`nodes/Wiring/helddrive/held_driver.go`), which is a plain
+stepper the node's OWN loop calls once per tick — the ownership fix the Guard verdict above
+names, arrived at from the other direction (every node kind became one goroutine). Two
+goroutines can no longer reach one node's streams, so the race in §2 is now unrepresentable
+rather than avoided. The per-fd `drive` stream kind below still exists and is still written,
+but now by the node's own goroutine, so it is no longer what keeps the writers apart.
+
+See [interior-stream-framing-fix.md](interior-stream-framing-fix.md) for the earlier fix: the
 per-fd `drive` stream kind, the Go-side wiring, how the fd count is known before spawn,
 mismatch handling, the read side, the single-Write framing done alongside, and verification
 (including the compile-time fix that replaced `check-driveheld-uses-driveout.sh`).

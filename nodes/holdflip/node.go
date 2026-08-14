@@ -6,7 +6,9 @@ import (
 	"github.com/dtauraso/wirefold/nodes/nodeapi"
 	"github.com/dtauraso/wirefold/nodes/wire/inport"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/helddrive"
 	Wiring "github.com/dtauraso/wirefold/nodes/Wiring/kindapi"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
 	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
 	"github.com/dtauraso/wirefold/nodes/gatecommon"
 )
@@ -17,28 +19,29 @@ type Node struct {
 
 	EmitHeldBead func(held int)
 
+	Self *nodeactor.PairNodeSelf
+
 	Clock clock.Clock
 
-	SpeedCh      <-chan float64
-	DriveSpeedCh <-chan float64
-	In           *inport.In
-	Out          Wiring.DrivenOut
+	SpeedCh <-chan float64
+	In      *inport.In
+	Out     Wiring.DrivenOut
 }
 
 func (g *Node) Update(ctx context.Context) {
 	nodeapi.TryEmit(g.EmitGeometry)
+	g.Self.EmitGeometryOnce()
 
 	if g.EmitHeldBead != nil {
 		g.EmitHeldBead(gatecommon.NoValue)
 	}
-	heldCh := make(chan int64, 1)
 
-	gatecommon.DriveHeld(ctx, g.Out, heldCh, func(h int64) int {
+	driver := helddrive.New(g.Out, func(h int64) int {
 		if h == gatecommon.NoValue {
 			return gatecommon.NoValue
 		}
 		return 1 - int(h)
-	}, g.Clock, g.DriveSpeedCh)
+	})
 
 	var lastDisplayed int64 = gatecommon.NoValue
 	consume := func() {
@@ -60,7 +63,7 @@ func (g *Node) Update(ctx context.Context) {
 			g.Fire()
 		}
 		newHeld := int64(v)
-		clock.SendLatestNonBlocking(heldCh, newHeld)
+		driver.Set(newHeld)
 		if newHeld != lastDisplayed && g.EmitHeldBead != nil {
 			g.EmitHeldBead(v)
 		}
@@ -75,6 +78,8 @@ func (g *Node) Update(ctx context.Context) {
 		}
 		consume()
 		clock.ApplySpeedNonBlocking(clk, g.SpeedCh)
+		driver.Step(clk.Tick())
+		g.Self.Step(ctx, clk.Tick())
 		if err := clk.SleepCycle(ctx); err != nil {
 			return
 		}
@@ -94,8 +99,8 @@ func init() {
 			n.EmitHeldBead = a.EmitHeldBead()
 			n.Clock = a.Clock()
 			n.SpeedCh = a.SpeedCh()
-			n.DriveSpeedCh = a.SpeedCh()
 			n.In = a.In("In")
+			n.Self = a.ClaimSelfDrive()
 
 			n.Out = a.DriveOut("Out", 0)
 

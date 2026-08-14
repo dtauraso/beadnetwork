@@ -13,12 +13,6 @@ type NodeAnimation struct {
 
 	outs   owners.Outs
 	clocks owners.Clocks
-
-	speedCh chan float64
-}
-
-func (a *NodeAnimation) SetSpeedCh(ch chan float64) {
-	a.speedCh = ch
 }
 
 func (a *NodeAnimation) AddOutWire(pw *wire.PacedWire, edgeRow int32) {
@@ -36,5 +30,3 @@ func (a *NodeAnimation) ClearOutWires() {
 func (a *NodeAnimation) driveOutWires(ctx context.Context, tick int64) {
 	a.outs.DriveOutWires(ctx, tick)
 }
-
-func (a *NodeAnimation) SpeedCh() <-chan float64 { return a.speedCh }

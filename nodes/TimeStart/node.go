@@ -9,6 +9,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/wire/outport"
 
 	Wiring "github.com/dtauraso/wirefold/nodes/Wiring/kindapi"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
 	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
 	"github.com/dtauraso/wirefold/nodes/gatecommon"
 )
@@ -18,6 +19,8 @@ type TimeStart struct {
 	EmitGeometry func()
 	EmitHeldBead func(held int)
 	Held         int `wire:"data.state"`
+
+	Self *nodeactor.PairNodeSelf
 
 	Clock clock.Clock
 
@@ -79,6 +82,7 @@ func (in *TimeStart) consumeInput(clk clock.Clock, value int, held int) (newHeld
 
 func (in *TimeStart) Update(ctx context.Context) {
 	nodeapi.TryEmit(in.EmitGeometry)
+	in.Self.EmitGeometryOnce()
 
 	held := gatecommon.NoValue
 
@@ -98,6 +102,7 @@ func (in *TimeStart) Update(ctx context.Context) {
 		}
 
 		clock.ApplySpeedNonBlocking(clk, in.SpeedCh)
+		in.Self.Step(ctx, clk.Tick())
 		if err := clk.SleepCycle(ctx); err != nil {
 			return
 		}
@@ -130,6 +135,7 @@ func init() {
 			n.EmitHeldBead = a.EmitHeldBead()
 			n.Clock = a.Clock()
 			n.SpeedCh = a.SpeedCh()
+			n.Self = a.ClaimSelfDrive()
 			n.In = a.In("In")
 			n.ToNext = a.Broadcast("ToNext")
 
