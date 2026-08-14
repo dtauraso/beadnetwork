@@ -64,11 +64,7 @@ func (m *NodeGeometry) writeStreamFrame(events []rowevent.RowEvent) {
 	ringAxisPhi, ringAxisTheta := fg.RingAxisPhi, fg.RingAxisTheta
 	points := fg.LatticePoints
 	topTiltVectorLen := fg.TopTiltVectorLen
-	topTiltVectorTheta := fg.TopTiltVectorTheta
-	bottomTiltVectorTheta := fg.BottomTiltVectorTheta
-	coplanarNormalTheta := fg.CoplanarNormalTheta
 	receivedVectorLen := fg.ReceivedVectorLen
-	receivedVectorTheta := fg.ReceivedVectorTheta
 	label := m.geom.Label
 	if label == "" {
 		label = m.id
@@ -97,11 +93,16 @@ func (m *NodeGeometry) writeStreamFrame(events []rowevent.RowEvent) {
 		RingAxisPhi:           float32(ringAxisPhi),
 		RingAxisTheta:         float32(ringAxisTheta),
 		TopTiltVectorLen:      float32(topTiltVectorLen),
-		TopTiltVectorTheta:    float32(topTiltVectorTheta),
-		BottomTiltVectorTheta: float32(bottomTiltVectorTheta),
-		CoplanarNormalTheta:   float32(coplanarNormalTheta),
+		TopTiltVectorIdx:      fg.TopTiltVectorIdx,
+		TopTiltVectorPhi:      float32(fg.TopTiltVectorPhi),
+		TopTiltVectorTheta:    float32(fg.TopTiltVectorTheta),
+		BottomTiltVectorPhi:   float32(fg.BottomTiltVectorPhi),
+		BottomTiltVectorTheta: float32(fg.BottomTiltVectorTheta),
+		CoplanarNormalPhi:     float32(fg.CoplanarNormalPhi),
+		CoplanarNormalTheta:   float32(fg.CoplanarNormalTheta),
 		ReceivedVectorLen:     float32(receivedVectorLen),
-		ReceivedVectorTheta:   float32(receivedVectorTheta),
+		ReceivedVectorPhi:     float32(fg.ReceivedVectorPhi),
+		ReceivedVectorTheta:   float32(fg.ReceivedVectorTheta),
 		Selected:              selected,
 		KindID:                kindID,
 		Hovered:               hovered,

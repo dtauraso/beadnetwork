@@ -1,7 +1,5 @@
-export function formatAngle(radians: number, points: number): string {
+export function formatAngle(idx: number, points: number): string {
   const denom = Math.max(1, Math.round(points / 2));
-  const step = (2 * Math.PI) / Math.max(1, points);
-  const idx = Math.round(radians / step);
   if (idx === 0) return "0";
   const sign = idx < 0 ? "-" : "";
   return `${sign}${Math.abs(idx)}π/${denom}`;

@@ -33,12 +33,19 @@ type FrameGeometryOutputs struct {
 
 	LatticePoints int32
 
-	TopTiltVectorLen      float64
+	TopTiltVectorLen float64
+
+	TopTiltVectorIdx int32
+
+	TopTiltVectorPhi      float64
 	TopTiltVectorTheta    float64
+	BottomTiltVectorPhi   float64
 	BottomTiltVectorTheta float64
+	CoplanarNormalPhi     float64
 	CoplanarNormalTheta   float64
 
 	ReceivedVectorLen   float64
+	ReceivedVectorPhi   float64
 	ReceivedVectorTheta float64
 }
 
@@ -84,13 +91,19 @@ func DeriveFrameGeometry(in FrameGeometryInputs) FrameGeometryOutputs {
 	out.LatticePoints = points
 	latticeThetaStep := 2 * math.Pi / float64(points)
 
-	out.TopTiltVectorTheta = float64(in.TopTiltVectorThetaIdx) * latticeThetaStep
-	out.BottomTiltVectorTheta = float64(in.BottomThetaIdx) * latticeThetaStep
-	out.CoplanarNormalTheta = float64(in.NormalThetaIdx) * latticeThetaStep
+	inRingPlane := func(idx int32) (phi, theta float64) {
+		d := RingPlaneDirection(out.RingAxisPhi, out.RingAxisTheta, float64(idx)*latticeThetaStep)
+		return d.Phi, d.Theta
+	}
+
+	out.TopTiltVectorIdx = in.TopTiltVectorThetaIdx
+	out.TopTiltVectorPhi, out.TopTiltVectorTheta = inRingPlane(in.TopTiltVectorThetaIdx)
+	out.BottomTiltVectorPhi, out.BottomTiltVectorTheta = inRingPlane(in.BottomThetaIdx)
+	out.CoplanarNormalPhi, out.CoplanarNormalTheta = inRingPlane(in.NormalThetaIdx)
 
 	if in.ReceivedVectorSet {
 		out.ReceivedVectorLen = nodegeom.NodeRadius(in.Geom.Kind)
-		out.ReceivedVectorTheta = float64(in.ReceivedVectorThetaIdx) * latticeThetaStep
+		out.ReceivedVectorPhi, out.ReceivedVectorTheta = inRingPlane(in.ReceivedVectorThetaIdx)
 	}
 
 	return out

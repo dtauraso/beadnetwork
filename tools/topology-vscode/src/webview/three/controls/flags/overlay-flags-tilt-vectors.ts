@@ -2,7 +2,7 @@ import { useSyncExternalStore } from "react";
 import { getNodeFrame, subscribeNodeStreamBlocks } from "../../scene/nodes/node-frame-aggregate";
 import {
   readNodeTopTiltVectorLen,
-  readNodeTopTiltVectorTheta,
+  readNodeTopTiltVectorIdx,
   readNodeLatticePoints,
   readNodeRoundsToParallel,
   readNodeMsgsToParallel,
@@ -12,7 +12,7 @@ import { nodeLabel } from "../../decode/buffer-decode-node";
 export interface TiltVectorRow {
   row: number;
   label: string;
-  theta: number;
+  idx: number;
 
   points: number;
 
@@ -31,7 +31,7 @@ function tiltVectorRowsEqual(a: TiltVectorRow[], b: TiltVectorRow[]): boolean {
     if (!ai || !bi) return false;
     if (
       ai.row !== bi.row ||
-      ai.theta !== bi.theta ||
+      ai.idx !== bi.idx ||
       ai.label !== bi.label ||
       ai.points !== bi.points ||
       ai.roundsToParallel !== bi.roundsToParallel ||
@@ -53,7 +53,7 @@ export function readTiltVectorRows(): TiltVectorRow[] | null {
     next.push({
       row,
       label: nodeLabel(decoded, row),
-      theta: readNodeTopTiltVectorTheta(nodeView, row),
+      idx: readNodeTopTiltVectorIdx(nodeView, row),
       points: readNodeLatticePoints(nodeView, row),
       roundsToParallel: readNodeRoundsToParallel(nodeView, row),
       msgsToParallel: readNodeMsgsToParallel(nodeView, row),

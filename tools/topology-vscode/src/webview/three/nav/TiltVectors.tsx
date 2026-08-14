@@ -2,13 +2,13 @@ import React, { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { getNodeFrame } from "../scene/nodes/node-frame-aggregate";
-import { polarToCart } from "../polar-convert";
+import { poleAxis } from "../scene/buffer-scene-shared";
 import {
   readNodeCX, readNodeCY, readNodeCZ,
-  readNodeTopTiltVectorLen, readNodeTopTiltVectorTheta,
-  readNodeBottomTiltVectorTheta,
-  readNodeCoplanarNormalTheta,
-  readNodeReceivedVectorLen, readNodeReceivedVectorTheta,
+  readNodeTopTiltVectorLen, readNodeTopTiltVectorPhi, readNodeTopTiltVectorTheta,
+  readNodeBottomTiltVectorPhi, readNodeBottomTiltVectorTheta,
+  readNodeCoplanarNormalPhi, readNodeCoplanarNormalTheta,
+  readNodeReceivedVectorLen, readNodeReceivedVectorPhi, readNodeReceivedVectorTheta,
 } from "../../../schema/buffer-layout/buffer-layout";
 
 const SHAFT_RADIUS_FRAC = 0.035;
@@ -51,10 +51,10 @@ export function TiltVectors({ capacity, receivedCapacity }: { capacity: number; 
 
     const writeArrowInto = (
       targetShaft: THREE.InstancedMesh, targetHead: THREE.InstancedMesh, idx: number,
-      cx: number, cy: number, cz: number, len: number, theta: number,
+      cx: number, cy: number, cz: number, len: number, phi: number, theta: number,
     ) => {
 
-      axisRef.current.set(...polarToCart(1, theta, 0));
+      axisRef.current.set(...poleAxis(phi, theta));
       quatRef.current.setFromUnitVectors(GEOMETRY_AXIS, axisRef.current);
 
       const shaftLen = len * (1 - HEAD_LEN_FRAC);
@@ -90,11 +90,14 @@ export function TiltVectors({ capacity, receivedCapacity }: { capacity: number; 
 
       const len = readNodeTopTiltVectorLen(nodeView, row);
       if (len > 0 && drawn + 2 < capacity) {
-        writeArrowInto(shaft, head, drawn, cx, cy, cz, len, readNodeTopTiltVectorTheta(nodeView, row));
+        writeArrowInto(shaft, head, drawn, cx, cy, cz, len,
+          readNodeTopTiltVectorPhi(nodeView, row), readNodeTopTiltVectorTheta(nodeView, row));
         drawn++;
-        writeArrowInto(shaft, head, drawn, cx, cy, cz, len, readNodeBottomTiltVectorTheta(nodeView, row));
+        writeArrowInto(shaft, head, drawn, cx, cy, cz, len,
+          readNodeBottomTiltVectorPhi(nodeView, row), readNodeBottomTiltVectorTheta(nodeView, row));
         drawn++;
-        writeArrowInto(shaft, head, drawn, cx, cy, cz, len, readNodeCoplanarNormalTheta(nodeView, row));
+        writeArrowInto(shaft, head, drawn, cx, cy, cz, len,
+          readNodeCoplanarNormalPhi(nodeView, row), readNodeCoplanarNormalTheta(nodeView, row));
         drawn++;
       }
 
@@ -103,6 +106,7 @@ export function TiltVectors({ capacity, receivedCapacity }: { capacity: number; 
         writeArrowInto(
           receivedShaft, receivedHead, receivedDrawn,
           cx, cy, cz, receivedLen,
+          readNodeReceivedVectorPhi(nodeView, row),
           readNodeReceivedVectorTheta(nodeView, row),
         );
         receivedDrawn++;
