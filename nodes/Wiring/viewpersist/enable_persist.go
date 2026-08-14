@@ -20,7 +20,4 @@ func EnableEditPersist(persist *Persisters, scenes *sceneswitch.SceneSwitch, mr 
 	for _, nm := range mr.NodeGeoms() {
 		nm.SetPersistRoot(root)
 	}
-	for _, em := range mr.EdgeMovers() {
-		em.SetPersistRoot(root)
-	}
 }

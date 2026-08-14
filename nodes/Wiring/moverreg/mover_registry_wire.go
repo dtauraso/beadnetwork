@@ -9,36 +9,41 @@ import (
 )
 
 func (mr *MoverRegistry) Bind(outSink map[string]*outport.Out, slotReg inputcodec.SlotRegistry, edgeRowFor func(src, dst string) (int32, bool)) {
-	for edgeID, em := range mr.edgeMovers {
-		if oo, ok := outSink[em.SrcID()+"."+em.SrcHandle()]; ok {
-			em.SetOut(oo)
+	for edgeID, e := range mr.edges {
+		var port *outport.Out
+		if oo, ok := outSink[e.SrcID()+"."+e.SrcHandle()]; ok {
+			e.SetOut(oo)
 			mr.edgeOut[edgeID] = oo
+			port = oo
 		}
-		if pw, ok := slotReg[em.DstID()+"."+em.DstHandle()]; ok {
-			em.SetDest(pw)
+		pw, hasDest := slotReg[e.DstID()+"."+e.DstHandle()]
+		if hasDest {
+			e.SetDest(pw)
+		}
 
-			if srcNM, ok := mr.nodeGeoms[em.SrcID()]; ok {
-				edgeRow := int32(-1)
-				if edgeRowFor != nil {
-					if r, ok := edgeRowFor(em.SrcID(), em.DstID()); ok {
-						edgeRow = r
-					}
+		srcNM, ok := mr.nodeGeoms[e.SrcID()]
+		if !ok {
+			continue
+		}
+
+		dstKind := ""
+		if dstNM, ok := mr.nodeGeoms[e.DstID()]; ok {
+			dstKind = dstNM.SelfKind()
+		}
+		srcNM.BindOutEdgeWire(e.Label(), e.DstID(), dstKind, port, pw)
+
+		if hasDest {
+			edgeRow := int32(-1)
+			if edgeRowFor != nil {
+				if r, ok := edgeRowFor(e.SrcID(), e.DstID()); ok {
+					edgeRow = r
 				}
-				srcNM.AddOutWire(pw, edgeRow)
 			}
+			srcNM.AddOutWire(pw, edgeRow)
 		}
 	}
 }
 
 func (mr *MoverRegistry) Start(ctx context.Context) *sync.WaitGroup {
-	wg := new(sync.WaitGroup)
-
-	for _, em := range mr.edgeMovers {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			em.Run(ctx)
-		}()
-	}
-	return wg
+	return new(sync.WaitGroup)
 }

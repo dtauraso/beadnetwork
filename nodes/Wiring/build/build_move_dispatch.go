@@ -89,9 +89,6 @@ func (b *buildCtx) buildMoveDispatch() error {
 		if !ok {
 			continue
 		}
-		if em, ok := md.MR.EdgeMovers()[e.Label]; ok {
-			em.SetDelta(d)
-		}
 		if src, ok := md.MR.NodeGeoms()[e.Source]; ok {
 			src.SetDeltaTo(e.Target, d)
 		}
