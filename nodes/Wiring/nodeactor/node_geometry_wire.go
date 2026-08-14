@@ -1,6 +1,7 @@
 package nodeactor
 
 import (
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/nodeframe"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/streamclaim"
@@ -12,7 +13,7 @@ import (
 func (m *NodeGeometry) WireMessaging(
 	resolveDest func(id string) (func(movemsg.Msg) bool, bool),
 	sendMove func(id string, msg movemsg.Msg),
-	commitLocal func(id string, newPos vec3),
+	commitLocal func(id string, newPos vec3, targetPolar *polar.Polar),
 ) {
 	m.msg.WireMessaging(resolveDest, sendMove, commitLocal)
 }
@@ -35,6 +36,13 @@ func (m *NodeGeometry) AddNeighborKind(toID, kind string) {
 
 func (m *NodeGeometry) SetSelfKind(kind string) {
 	m.selfKind = kind
+}
+
+// SetOrbitRule is called once at build from the node's own meta.json. Passing
+// nil is meaningful and is the common case: it says this node states no rule
+// and is free.
+func (m *NodeGeometry) SetOrbitRule(rule *polar.OrbitRule) {
+	m.topo.SetOrbitRule(rule)
 }
 
 func (m *NodeGeometry) SetSceneFlags(coplanarEdges, upAxis bool) {

@@ -24,6 +24,12 @@ func (m *NodeGeometry) Kind() string { return m.geom.Kind }
 
 func (m *NodeGeometry) SelfKind() string { return m.selfKind }
 
+// OrbitRule is this node's own statement of how it may sit about the node it
+// hangs from. nil is the answer for a node that states nothing, and means the
+// node is free — every rule that reads this must treat nil as "no trim", never
+// as a default set of angles.
+func (m *NodeGeometry) OrbitRule() *polar.OrbitRule { return m.topo.OrbitRule() }
+
 func (m *NodeGeometry) Tick() int64 { return m.clocks.Tick() }
 
 func (m *NodeGeometry) Label() string { return m.geom.Label }

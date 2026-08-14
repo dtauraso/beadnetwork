@@ -58,7 +58,9 @@ func (m *NodeGeometry) handleCenter(msg movemsg.Msg) {
 
 func (m *NodeGeometry) handleDrag(msg movemsg.Msg) {
 	newPos := msg.Target
-	m.msg.CommitLocal(m.id, newPos)
+	// The triple, when the sender composed one, is what commits — see
+	// movemsg.Msg.TargetPolar for what the world does to a triple it carries.
+	m.msg.CommitLocal(m.id, newPos, msg.TargetPolar)
 	if m.tr != nil {
 		m.tr.Breadcrumb("drag.commit", m.id, "", fmt.Sprintf("newPos=(%.4f,%.4f,%.4f)", newPos.X, newPos.Y, newPos.Z))
 

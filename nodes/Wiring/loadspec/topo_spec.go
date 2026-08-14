@@ -32,6 +32,11 @@ type specNode struct {
 
 	Gate bool `json:"gate,omitempty"`
 
+	// Orbit is this node's own statement of how it may sit about the node it
+	// hangs from — carried by the node the rule binds, by id, not by its kind
+	// and not by whatever is pointing at it. Absent means free.
+	Orbit *polar.OrbitRule `json:"orbit,omitempty"`
+
 	TopTiltVectorThetaIdx *int32 `json:"topTiltVectorThetaIdx,omitempty"`
 }
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 )
 
@@ -18,7 +19,7 @@ type Messaging struct {
 
 	resolveDest func(id string) (func(movemsg.Msg) bool, bool)
 
-	commitLocal func(id string, newPos vec3)
+	commitLocal func(id string, newPos vec3, targetPolar *polar.Polar)
 
 	pending []pendingSend
 }
@@ -35,7 +36,7 @@ func NewMessaging(extIn chan movemsg.Msg, neighborIn map[string]chan movemsg.Msg
 func (n *Messaging) WireMessaging(
 	resolveDest func(id string) (func(movemsg.Msg) bool, bool),
 	sendMove func(id string, msg movemsg.Msg),
-	commitLocal func(id string, newPos vec3),
+	commitLocal func(id string, newPos vec3, targetPolar *polar.Polar),
 ) {
 	n.resolveDest = resolveDest
 	n.sendMove = sendMove
@@ -54,9 +55,13 @@ func (n *Messaging) SeedCenter(center vec3) {
 	n.centerOut <- center
 }
 
-func (n *Messaging) CommitLocal(id string, newPos vec3) {
+// CommitLocal takes the world position and, when the sender had one, the
+// TRIPLE it composed. A nil targetPolar means the position arrived from the
+// world in the first place (a pointer hit) and the triple is derived from it;
+// a non-nil one is authoritative and must not be re-derived.
+func (n *Messaging) CommitLocal(id string, newPos vec3, targetPolar *polar.Polar) {
 	if n.commitLocal != nil {
-		n.commitLocal(id, newPos)
+		n.commitLocal(id, newPos, targetPolar)
 	}
 }
 

@@ -64,6 +64,28 @@ type Msg struct {
 
 	Target vec3
 
+	// TargetPolar is where a KindDrag is putting the node, AS THE TRIPLE THE
+	// SENDER COMPOSED. When it is set the receiver commits it verbatim and
+	// Target is only what that triple looks like in the world.
+	//
+	// It exists because a triple does not survive the world. Compose is the
+	// three numbers added and does not fold — phi may pass the pole, which is
+	// the whole reason a composed constraint stays exactly the number the
+	// constraint named. Cart2polar MUST fold: it answers in a canonical range,
+	// and the fold pays for itself by rewriting the other two components. So a
+	// held point that went out through Polar2cart and came back through
+	// Cart2polar arrived as a DIFFERENT triple standing at the same place.
+	//
+	// Measured: the load-time hold pinned D.phi to pi/2 about node 1, whose own
+	// phi is 3.0600999696029443, composing 4.630896296397841 — past the pole.
+	// The round trip returned 2*pi - that = 1.652289010781745, which is node 2's
+	// stored phi to the last digit, with theta shifted by pi. The pin was
+	// applied correctly every time and then undone in transit, and since a drag
+	// only ever trims a delta and holds `have.Phi`, nothing could correct it
+	// afterwards. Sending the triple is what makes the constraint mean
+	// something once the node has it.
+	TargetPolar *polar.Polar
+
 	Bool bool
 
 	Axis string
