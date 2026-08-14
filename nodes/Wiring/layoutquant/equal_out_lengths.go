@@ -27,7 +27,7 @@ import (
 // dragging parallel to the line through two neighbours moved the node 0.000 of
 // 30 units.
 func TrimEqualOutLengths(nm *nodeactor.NodeGeometry, delta polar.Polar) polar.Polar {
-	if nm.SelfKind() != OutAngleKind {
+	if nm.SelfKind() != SharedLengthKind {
 		return delta
 	}
 

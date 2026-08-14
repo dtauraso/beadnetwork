@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/positionfile"
 )
@@ -30,6 +31,8 @@ type JSONMeta struct {
 	StepR     *float64 `json:"stepR,omitempty"`
 
 	Gate bool `json:"gate,omitempty"`
+
+	Orbit *polar.OrbitRule `json:"orbit,omitempty"`
 }
 
 func loadNodeMeta(root, nodesDir, nodeID string) (specNode, error) {
@@ -59,6 +62,7 @@ func loadNodeMeta(root, nodesDir, nodeID string) (specNode, error) {
 		StepTheta:       meta.StepTheta,
 		StepR:           meta.StepR,
 		Gate:            meta.Gate,
+		Orbit:           meta.Orbit,
 	}
 
 	var pf positionfile.JSON

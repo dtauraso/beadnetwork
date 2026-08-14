@@ -54,6 +54,9 @@ func (b *buildCtx) buildMoveDispatch() error {
 			continue
 		}
 		nm.SetSelfKind(n.Type)
+		// The node's own orbit rule, off its own id. Most nodes state none and
+		// get nil, which is what "free" is spelled as.
+		nm.SetOrbitRule(n.Orbit)
 		if n.TopTiltVectorThetaIdx != nil {
 			nm.SetTopTiltVectorThetaIdx(*n.TopTiltVectorThetaIdx)
 		}
@@ -107,8 +110,16 @@ func (b *buildCtx) buildMoveDispatch() error {
 	// on; without this the layout would sit wrong until node 1 happened to
 	// be dragged, since a phi that loads wrong cannot be corrected by any
 	// move of the node it is wrong for.
+	// The angles each held neighbour takes are that neighbour's own, so the
+	// hold is handed a way to ask the node by id rather than a constant.
+	ruleOf := func(id string) *polar.OrbitRule {
+		if other, ok := md.MR.NodeGeoms()[id]; ok {
+			return other.OrbitRule()
+		}
+		return nil
+	}
 	for _, nm := range md.MR.NodeGeoms() {
-		for to, heldPoint := range layoutquant.HeldOutNeighbors(nm, polar.Polar{}) {
+		for to, heldPoint := range layoutquant.HeldOutNeighbors(nm, polar.Polar{}, ruleOf) {
 			if other, ok := md.MR.NodeGeoms()[to]; ok {
 				other.SendExternal(context.TODO(), movemsg.Msg{Kind: movemsg.KindDrag, NodeID: to,
 					Target: other.SceneCenter().Add(polar.Polar2cart(heldPoint))})

@@ -60,10 +60,12 @@ func (lq *LayoutQuantizer) RootMove(ctx context.Context, nodeGeoms map[string]*n
 	// downstream ever sees a partial turn to accumulate. Every other node drags
 	// with the theta the cursor asked for.
 	//
-	// It is the SAME gate the other rules on this node's own drag use — the
-	// kind, not the id, so the rule belongs to what an input node is rather
-	// than to which node happens to be first in this scene.
-	if nm.SelfKind() == OutAngleKind {
+	// This one is genuinely the KIND's, not an id's: it is a statement about
+	// what an input node is, and it constrains that node's own drag rather
+	// than where anything else may sit. The angles a node holds about the node
+	// it hangs from went the other way — they are per-id now, carried by the
+	// node they bind, and TrimDraggedNode reads them off `nm`.
+	if nm.SelfKind() == SharedLengthKind {
 		delta = polar.SnapDeltaTheta(delta)
 	}
 	delta = TrimDraggedNode(nm, delta)
@@ -74,7 +76,7 @@ func (lq *LayoutQuantizer) RootMove(ctx context.Context, nodeGeoms map[string]*n
 	// NOBODY ELSE MOVES. A drag sends exactly one message, to the node under
 	// the cursor. Dragging one of an input node's out-targets used to also
 	// move its siblings onto the length that drag had stated; the drag now
-	// holds that length instead (TrimOutAngleDelta), so there is no length to
+	// holds that length instead (its own polar.OrbitRule), so there is no length to
 	// restate and no sibling to correct.
 	nm.SendExternal(ctx, movemsg.Msg{Kind: movemsg.KindDrag, NodeID: nodeID,
 		Target: nm.SceneCenter().Add(polar.Polar2cart(polar.Compose(nm.ScenePolar(), delta)))})

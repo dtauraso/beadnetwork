@@ -93,11 +93,24 @@ and none is a source of truth.
   in-edges and out-edges alike. The edge's own `D` is the out entry as-is and the negation
   of the in entry.
 
-  The angle constraints (`φ = π/2`, `|θ| ≤ π/2` on an input node's outgoing paths) are
-  constraints ON `D`. They always were — they describe an edge's direction out of its
-  source, not a node's place in the world — so they are applied to the triple directly,
-  with no holder frame to convert in and out of
-  (`nodes/Wiring/layoutquant/out_angle_hold.go`).
+  The angle constraints (`φ = π/2`, `|θ| ≤ π/2`) are constraints ON `D`. They always were —
+  they describe where a node sits about the one it hangs from, not its place in the world —
+  so they are applied to the triple directly, with no holder frame to convert in and out of
+  (`nodes/Wiring/layoutquant/orbit_hold.go`).
+
+  **The rule is carried by the node it binds, by id.** Each node states its own `orbit` in
+  its own `meta.json` (`polar.OrbitRule`); absent means free, and most nodes say nothing.
+  A rule also holds `D.r`, so a node with one ORBITS its holder — its own drag cannot change
+  the distance between them, which is what keeps an input node's two outgoing paths equal
+  without anything being moved afterwards to repair them.
+
+  They used to be two package constants reached through the HOLDER's kind — a node was
+  constrained because something of kind `Input` pointed at it. That rule could not name the
+  node it was about, so every target inherited the same angles, and the length a drag stated
+  was then imposed on the target's siblings (`HeldSiblings`, deleted): dragging node 2
+  teleported node 3, and the two read as welded together. What remains keyed by kind is only
+  what is genuinely about being an input node — the shared length across its outgoing paths,
+  and the half-turn snap on its own drag (`SharedLengthKind`).
 
   `D.r` is a genuine DISTANCE — the length of the vector to the neighbour — so it is always
   at or above zero and "the longest path" is a plain maximum. (It was briefly a difference of
