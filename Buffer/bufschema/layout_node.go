@@ -25,18 +25,14 @@ type bufLayoutNode struct {
 
 	TopTiltVectorIdx int32 `buf:"i32"`
 
-	TopTiltVectorPhi   float32 `buf:"f32"`
-	TopTiltVectorTheta float32 `buf:"f32"`
+	TopTiltVectorPhi float32 `buf:"f32"`
 
-	BottomTiltVectorPhi   float32 `buf:"f32"`
-	BottomTiltVectorTheta float32 `buf:"f32"`
-	CoplanarNormalPhi     float32 `buf:"f32"`
-	CoplanarNormalTheta   float32 `buf:"f32"`
+	BottomTiltVectorPhi float32 `buf:"f32"`
+	CoplanarNormalPhi   float32 `buf:"f32"`
 
-	ReceivedVectorLen   float32 `buf:"f32"`
-	ReceivedVectorPhi   float32 `buf:"f32"`
-	ReceivedVectorTheta float32 `buf:"f32"`
-	Selected            uint8   `buf:"u8"`
+	ReceivedVectorLen float32 `buf:"f32"`
+	ReceivedVectorPhi float32 `buf:"f32"`
+	Selected          uint8   `buf:"u8"`
 
 	KindId uint8 `buf:"u8"`
 

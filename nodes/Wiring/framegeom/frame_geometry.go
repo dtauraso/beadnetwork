@@ -1,7 +1,6 @@
 package framegeom
 
 import (
-	"fmt"
 	"math"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
@@ -13,15 +12,13 @@ type FrameGeometryInputs struct {
 	UpAxis        bool
 	CoplanarEdges bool
 
-	PartnerDeltas []polar.Polar
-
-	TopTiltVectorThetaIdx  int32
-	BottomThetaIdx         int32
-	NormalThetaIdx         int32
-	ReceivedVectorThetaIdx int32
-	ReceivedVectorSet      bool
-	LatticePoints          int32
-	DefaultLatticePoints   int32
+	TopTiltVectorPhiIdx  int32
+	BottomPhiIdx         int32
+	NormalPhiIdx         int32
+	ReceivedVectorPhiIdx int32
+	ReceivedVectorSet    bool
+	LatticePoints        int32
+	DefaultLatticePoints int32
 }
 
 type FrameGeometryOutputs struct {
@@ -37,20 +34,12 @@ type FrameGeometryOutputs struct {
 
 	TopTiltVectorIdx int32
 
-	TopTiltVectorPhi      float64
-	TopTiltVectorTheta    float64
-	BottomTiltVectorPhi   float64
-	BottomTiltVectorTheta float64
-	CoplanarNormalPhi     float64
-	CoplanarNormalTheta   float64
+	TopTiltVectorPhi    float64
+	BottomTiltVectorPhi float64
+	CoplanarNormalPhi   float64
 
-	ReceivedVectorLen   float64
-	ReceivedVectorPhi   float64
-	ReceivedVectorTheta float64
-}
-
-func (in FrameGeometryInputs) partnerCenter(i int) vec3 {
-	return nodegeom.NodeWorldPos(in.Geom).Add(polar.Polar2cart(in.PartnerDeltas[i]))
+	ReceivedVectorLen float64
+	ReceivedVectorPhi float64
 }
 
 func DeriveFrameGeometry(in FrameGeometryInputs) FrameGeometryOutputs {
@@ -63,25 +52,8 @@ func DeriveFrameGeometry(in FrameGeometryInputs) FrameGeometryOutputs {
 
 	out.RingAxisPhi, out.RingAxisTheta = TorusDefaultAxisAngles()
 
-	if in.UpAxis && in.Geom.HasPos && len(in.PartnerDeltas) == 0 {
-		panic(fmt.Sprintf(
-			"DeriveFrameGeometry: node %q is placed in an up-axis scene but holds no neighbour delta, "+
-				"so its ring axis and tilt vector cannot be derived and would silently fall back to the "+
-				"scene defaults. A node's delta to each neighbour is seeded at build from the edge files "+
-				"it owns (build_move_dispatch's SetDeltaTo) and maintained by its own moves; reaching "+
-				"here means that seeding did not happen for this node",
-			in.Geom.Label))
-	}
-
-	if in.UpAxis && in.Geom.HasPos && len(in.PartnerDeltas) == 1 {
-		if t, p, ok := UprightRingAxis(nodegeom.NodeWorldPos(in.Geom), in.partnerCenter(0)); ok {
-			out.RingAxisPhi, out.RingAxisTheta = t, p
-		}
+	if in.UpAxis && in.Geom.HasPos {
 		out.TopTiltVectorLen = nodegeom.NodeRadius(in.Geom.Kind)
-	} else if in.CoplanarEdges && in.Geom.HasPos && len(in.PartnerDeltas) == 1 {
-		if t, p, ok := PoleContainingEdge(out.PolePhi, out.PoleTheta, nodegeom.NodeWorldPos(in.Geom), in.partnerCenter(0)); ok {
-			out.RingAxisPhi, out.RingAxisTheta = t, p
-		}
 	}
 
 	points := in.LatticePoints
@@ -89,21 +61,16 @@ func DeriveFrameGeometry(in FrameGeometryInputs) FrameGeometryOutputs {
 		points = in.DefaultLatticePoints
 	}
 	out.LatticePoints = points
-	latticeThetaStep := 2 * math.Pi / float64(points)
+	latticePhiStep := 2 * math.Pi / float64(points)
 
-	inRingPlane := func(idx int32) (phi, theta float64) {
-		d := RingPlaneDirection(out.RingAxisPhi, out.RingAxisTheta, float64(idx)*latticeThetaStep)
-		return d.Phi, d.Theta
-	}
-
-	out.TopTiltVectorIdx = in.TopTiltVectorThetaIdx
-	out.TopTiltVectorPhi, out.TopTiltVectorTheta = inRingPlane(in.TopTiltVectorThetaIdx)
-	out.BottomTiltVectorPhi, out.BottomTiltVectorTheta = inRingPlane(in.BottomThetaIdx)
-	out.CoplanarNormalPhi, out.CoplanarNormalTheta = inRingPlane(in.NormalThetaIdx)
+	out.TopTiltVectorIdx = in.TopTiltVectorPhiIdx
+	out.TopTiltVectorPhi = float64(in.TopTiltVectorPhiIdx) * latticePhiStep
+	out.BottomTiltVectorPhi = float64(in.BottomPhiIdx) * latticePhiStep
+	out.CoplanarNormalPhi = float64(in.NormalPhiIdx) * latticePhiStep
 
 	if in.ReceivedVectorSet {
 		out.ReceivedVectorLen = nodegeom.NodeRadius(in.Geom.Kind)
-		out.ReceivedVectorPhi, out.ReceivedVectorTheta = inRingPlane(in.ReceivedVectorThetaIdx)
+		out.ReceivedVectorPhi = float64(in.ReceivedVectorPhiIdx) * latticePhiStep
 	}
 
 	return out

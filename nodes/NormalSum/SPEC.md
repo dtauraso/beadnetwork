@@ -47,7 +47,7 @@ they said.
 Each input is held as it arrives, so a total exists as soon as BOTH have arrived once; before
 that the node holds no total and draws no arrow. It emits the total on Out whenever it
 changes, and its own drawn tilt vector IS that total — the arrow every node already draws
-from its `TopTiltVectorTheta` column, pointed along the sum.
+from its `TopTiltVectorPhi` column, pointed along the sum.
 
 ## Runtime status
 

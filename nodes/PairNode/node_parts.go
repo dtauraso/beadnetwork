@@ -54,8 +54,8 @@ type vectorExchange struct {
 	VectorOut chan<- tiltvector.TiltVectorMsg
 	VectorIn  <-chan tiltvector.TiltVectorMsg
 
-	ReceivedThetaIdx int32
-	ReceivedSet      bool
+	ReceivedPhiIdx int32
+	ReceivedSet    bool
 
 	SyncReceivedVector func(theta int32, set bool)
 }

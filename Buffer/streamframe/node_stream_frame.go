@@ -29,15 +29,15 @@ type NodeStreamFrame struct {
 
 	TopTiltVectorIdx int32
 
-	TopTiltVectorPhi, TopTiltVectorTheta float32
+	TopTiltVectorPhi float32
 
-	BottomTiltVectorPhi, BottomTiltVectorTheta float32
+	BottomTiltVectorPhi float32
 
-	CoplanarNormalPhi, CoplanarNormalTheta float32
+	CoplanarNormalPhi float32
 
 	ReceivedVectorLen float32
 
-	ReceivedVectorPhi, ReceivedVectorTheta float32
+	ReceivedVectorPhi float32
 
 	Selected, KindID, Hovered, LatchedSel uint8
 
@@ -63,8 +63,8 @@ func BuildNodeStreamFrame(f NodeStreamFrame) []byte {
 
 	B.SetNodeRow(buf[off:off+B.BufNodeStride], 0, f.NodeID, f.CX, f.CY, f.CZ, f.Radius, f.SphereR, f.VRX, f.VRY, f.VRZ, f.FRX, f.FRY, f.FRZ,
 		f.PolePhi, f.PoleTheta, f.RingAxisPhi, f.RingAxisTheta, f.TopTiltVectorLen, f.TopTiltVectorIdx,
-		f.TopTiltVectorPhi, f.TopTiltVectorTheta, f.BottomTiltVectorPhi, f.BottomTiltVectorTheta,
-		f.CoplanarNormalPhi, f.CoplanarNormalTheta, f.ReceivedVectorLen, f.ReceivedVectorPhi, f.ReceivedVectorTheta,
+		f.TopTiltVectorPhi, f.BottomTiltVectorPhi,
+		f.CoplanarNormalPhi, f.ReceivedVectorLen, f.ReceivedVectorPhi,
 		f.Selected, f.KindID, 0, uint32(len(labelBytes)), f.Hovered, f.LatchedSel, f.LatticePoints, f.RoundsToParallel, f.MsgsToParallel)
 	off += B.BufNodeStride
 

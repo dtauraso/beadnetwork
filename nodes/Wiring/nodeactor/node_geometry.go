@@ -64,7 +64,7 @@ func NewNodeGeometry(id string, geom nodegeom.NodeGeom, tr *T.Trace, clockSrc cl
 		topo:   owners.NewTopology(),
 		deltas: owners.NewDeltas(),
 		clocks: owners.NewClocks(clockSrc, clock.NewRealClock()),
-		tilt:   owners.NewTilt(tiltvector.FullTurnThetaIdx),
+		tilt:   owners.NewTilt(tiltvector.FullTurnPhiIdx),
 		anim:   anim,
 	}
 

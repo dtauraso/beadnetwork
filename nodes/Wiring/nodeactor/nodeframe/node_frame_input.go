@@ -25,15 +25,15 @@ type NodeFrameInput struct {
 
 	TopTiltVectorIdx int32
 
-	TopTiltVectorPhi, TopTiltVectorTheta float32
+	TopTiltVectorPhi float32
 
-	BottomTiltVectorPhi, BottomTiltVectorTheta float32
+	BottomTiltVectorPhi float32
 
-	CoplanarNormalPhi, CoplanarNormalTheta float32
+	CoplanarNormalPhi float32
 
 	ReceivedVectorLen float32
 
-	ReceivedVectorPhi, ReceivedVectorTheta float32
+	ReceivedVectorPhi float32
 
 	Selected, KindID, Hovered, LatchedSel uint8
 

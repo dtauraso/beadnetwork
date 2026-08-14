@@ -7,7 +7,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
 )
 
-var defaultRing = tiltring.NewRing(tiltvector.FullTurnThetaIdx)
+var defaultRing = tiltring.NewRing(tiltvector.FullTurnPhiIdx)
 
 func (n *Node) ringOf() *tiltring.Ring {
 	if n.lattice.Ring == nil {
@@ -61,7 +61,7 @@ func (n *Node) adoptLattice(points int32) {
 		n.plumb.Self.Breadcrumb("pair-lattice-adopt", fmt.Sprintf(
 			"points=%d keptIdx=%d unknown=true loaded=%d", points, keptIdx, top.Idx))
 	}
-	n.vec.ReceivedThetaIdx = 0
+	n.vec.ReceivedPhiIdx = 0
 	n.vec.ReceivedSet = false
 	n.syncReceivedVector()
 	tiltvector.PollRecvVector(n.vec.VectorIn)

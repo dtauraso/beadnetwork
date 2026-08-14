@@ -9,7 +9,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
 )
 
-const DefaultLatticePoints int32 = tiltvector.FullTurnThetaIdx
+const DefaultLatticePoints int32 = tiltvector.FullTurnPhiIdx
 
 func WriteSceneLattice(latticePath string, points int32) error {
 	obj := map[string]json.RawMessage{
