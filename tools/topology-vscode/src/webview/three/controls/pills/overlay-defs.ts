@@ -31,6 +31,16 @@ const scenePolesCfg: ToggleCfg = {
   payload: (v) => ({ flag: "scenePoles", was: v }),
 };
 
+const nodePolesCfg: ToggleCfg = {
+  flag: "nodePoles",
+  default: true,
+  active: (v) => v,
+  icon: "⊹",
+  label: "node poles",
+  title: (a) => (a ? "Hide node pole frames" : "Show node pole frames"),
+  payload: (v) => ({ flag: "nodePoles", was: v }),
+};
+
 const handholdsCfg: ToggleCfg = {
   flag: "handholds",
   default: true,
@@ -155,6 +165,7 @@ export const OVERLAY_GROUPS: OverlayGroup[] = [
       { heading: "SHAPE", cfgs: [nodeBodyCfg, nodeRingCfg, ringPickCfg], panel: "nodeShape" },
       { heading: "STATE", cfgs: [selectionRingCfg, hoverRingCfg], panel: "nodeState" },
       { heading: "REACH", cfgs: [reachSphereCfg], panel: "nodeReach" },
+      { heading: "POLES", cfgs: [nodePolesCfg], panel: "nodePoles" },
     ],
   },
   {

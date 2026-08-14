@@ -23,6 +23,8 @@ type nodeFrameFixture struct {
 	FRX           float32 `json:"frx"`
 	FRY           float32 `json:"fry"`
 	FRZ           float32 `json:"frz"`
+	PolePhi       float32 `json:"polePhi"`
+	PoleTheta     float32 `json:"poleTheta"`
 	RingAxisPhi   float32 `json:"ringAxisPhi"`
 	RingAxisTheta float32 `json:"ringAxisTheta"`
 

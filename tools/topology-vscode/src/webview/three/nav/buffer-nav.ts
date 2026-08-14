@@ -1,9 +1,11 @@
 import * as THREE from "three";
 import { type DecodedNodeFrame, nodeLabel } from "../decode/buffer-decode-node";
 import { type ViewBlocks } from "../scene/view-blocks";
+import { polarToCart } from "../polar-convert";
 import {
   readNodeCX, readNodeCY, readNodeCZ,
   readNodeRadius, readNodeSphereR, readNodeSelected, readNodeLatchedSel,
+  readNodePolePhi, readNodePoleTheta,
   readSceneCX, readSceneCY, readSceneCZ, readSceneRadius,
 } from "../../../schema/buffer-layout/buffer-layout";
 
@@ -19,6 +21,12 @@ export interface NavNode {
   selected: boolean;
 
   latchedSel: boolean;
+
+  pole: THREE.Vector3;
+}
+
+function poleVec(phi: number, theta: number): THREE.Vector3 {
+  return new THREE.Vector3(...polarToCart(1, phi, theta));
 }
 
 export function decodeNavNodes(decoded: DecodedNodeFrame): NavNode[] {
@@ -39,6 +47,7 @@ export function decodeNavNodes(decoded: DecodedNodeFrame): NavNode[] {
       sphereR: sphereR || undefined,
       selected: readNodeSelected(nodeView, i) !== 0,
       latchedSel: readNodeLatchedSel(nodeView, i) !== 0,
+      pole: poleVec(readNodePolePhi(nodeView, i), readNodePoleTheta(nodeView, i)),
     });
   }
   return out;

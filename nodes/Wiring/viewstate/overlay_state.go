@@ -16,6 +16,7 @@ import (
 type OverlayState struct {
 	SceneToriVisible     bool
 	ScenePolesVisible    bool
+	NodePolesVisible     bool
 	HandholdsVisible     bool
 	LabelsGlobalVisible  bool
 	OverlaysVisible      bool
@@ -45,6 +46,12 @@ func (o *OverlayState) ToggleSceneTori(tr *T.Trace) {
 func (o *OverlayState) ToggleScenePoles(tr *T.Trace) {
 	o.ScenePolesVisible = !o.ScenePolesVisible
 	tr.Breadcrumb("pole-toggle-go", "scene", "", fmt.Sprintf("visible=%v", o.ScenePolesVisible))
+}
+
+// ToggleNodePoles flips NodePolesVisible.
+func (o *OverlayState) ToggleNodePoles(tr *T.Trace) {
+	o.NodePolesVisible = !o.NodePolesVisible
+	tr.Breadcrumb("pole-toggle-go", "nodes", "", fmt.Sprintf("visible=%v", o.NodePolesVisible))
 }
 
 // ToggleHandholds flips HandholdsVisible.

@@ -18,6 +18,7 @@ func InstallOverlays(ui *viewstate.UIState, topologyPath string, tr *T.Trace) {
 	ui.EmitViewFrame([]rowevent.RowEvent{
 		{Kind: T.KindSceneTori, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1},
 		{Kind: T.KindScenePoles, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1},
+		{Kind: T.KindNodePoles, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1},
 		{Kind: T.KindHandholds, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1},
 		{Kind: T.KindLabelsGlobal, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1},
 		{Kind: T.KindOverlaysVis, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1},
@@ -48,6 +49,7 @@ func WriteSceneOverlays(overlaysPath string, ov viewstate.OverlayState) error {
 
 	setVisible("sceneToriVisible", ov.SceneToriVisible)
 	setVisible("scenePolesVisible", ov.ScenePolesVisible)
+	setVisible("nodePolesVisible", ov.NodePolesVisible)
 	setVisible("handholdsVisible", ov.HandholdsVisible)
 	setVisible("overlaysActive", ov.OverlaysVisible)
 	setHidden("labelsGlobalHidden", ov.LabelsGlobalVisible)
@@ -65,6 +67,7 @@ func WriteSceneOverlays(overlaysPath string, ov viewstate.OverlayState) error {
 type sceneOverlaysFile struct {
 	SceneToriVisible     *bool `json:"sceneToriVisible"`
 	ScenePolesVisible    *bool `json:"scenePolesVisible"`
+	NodePolesVisible     *bool `json:"nodePolesVisible"`
 	HandholdsVisible     *bool `json:"handholdsVisible"`
 	OverlaysActive       *bool `json:"overlaysActive"`
 	LabelsGlobalHidden   *bool `json:"labelsGlobalHidden"`
@@ -89,6 +92,10 @@ func LoadSceneOverlays(overlaysPath string) (viewstate.OverlayState, bool) {
 	}
 	if sf.ScenePolesVisible != nil {
 		ov.ScenePolesVisible = *sf.ScenePolesVisible
+		found = true
+	}
+	if sf.NodePolesVisible != nil {
+		ov.NodePolesVisible = *sf.NodePolesVisible
 		found = true
 	}
 	if sf.HandholdsVisible != nil {

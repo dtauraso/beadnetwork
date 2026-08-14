@@ -31,6 +31,7 @@ type overlayOverride struct {
 var overlayOverrides = map[string]overlayOverride{
 	"tori":       {field: "sceneToriVisible", method: "SceneTori"},
 	"scenePoles": {breadcrumb: "scene"},
+	"nodePoles":  {breadcrumb: "nodes"},
 	"overlays":   {method: "OverlaysVis"},
 	"commEdges":  {defaultOff: true},
 }

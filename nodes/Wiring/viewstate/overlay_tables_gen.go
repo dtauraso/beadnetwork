@@ -13,6 +13,7 @@ func DefaultOverlayState() OverlayState {
 	return OverlayState{
 		SceneToriVisible:     true,
 		ScenePolesVisible:    true,
+		NodePolesVisible:     true,
 		HandholdsVisible:     true,
 		LabelsGlobalVisible:  true,
 		OverlaysVisible:      true,
@@ -33,6 +34,7 @@ func DefaultOverlayState() OverlayState {
 var OverlayToggles = map[string]func(*OverlayState, *T.Trace){
 	"tori":          (*OverlayState).ToggleSceneTori,
 	"scenePoles":    (*OverlayState).ToggleScenePoles,
+	"nodePoles":     (*OverlayState).ToggleNodePoles,
 	"handholds":     (*OverlayState).ToggleHandholds,
 	"labelsGlobal":  (*OverlayState).ToggleLabelsGlobal,
 	"overlays":      (*OverlayState).ToggleOverlaysVis,
@@ -55,6 +57,7 @@ var OverlayToggles = map[string]func(*OverlayState, *T.Trace){
 // OVERLAY_BREADCRUMB_SCOPES_START
 var OverlayFlagBreadcrumbScope = map[string]string{
 	"scenePoles": "scene",
+	"nodePoles":  "nodes",
 }
 
 // OVERLAY_BREADCRUMB_SCOPES_END
@@ -63,6 +66,7 @@ var OverlayFlagBreadcrumbScope = map[string]string{
 // OverlayFlagBreadcrumbScope (same key set).
 var OverlayFlagValue = map[string]func(*OverlayState) bool{
 	"scenePoles": func(o *OverlayState) bool { return o.ScenePolesVisible },
+	"nodePoles":  func(o *OverlayState) bool { return o.NodePolesVisible },
 }
 
 // OverlayFlagTraceKind maps the wire FLAG name (same keys as OverlayToggles) to its
@@ -76,6 +80,7 @@ var OverlayFlagValue = map[string]func(*OverlayState) bool{
 var OverlayFlagTraceKind = map[string]string{
 	"tori":          T.KindSceneTori,
 	"scenePoles":    T.KindScenePoles,
+	"nodePoles":     T.KindNodePoles,
 	"handholds":     T.KindHandholds,
 	"labelsGlobal":  T.KindLabelsGlobal,
 	"overlays":      T.KindOverlaysVis,

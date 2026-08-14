@@ -10,15 +10,15 @@ import (
 )
 
 type ViewOverlayFlags struct {
-	SceneTori, ScenePoles, Handholds, LabelsGlobal, OverlaysVis         uint8
-	NodeBody, NodeRing, RingPick, SelectionRing, HoverRing, ReachSphere uint8
-	SceneVectors                                                        uint8
-	CommEdges                                                           uint8
+	SceneTori, ScenePoles, NodePoles, Handholds, LabelsGlobal, OverlaysVis uint8
+	NodeBody, NodeRing, RingPick, SelectionRing, HoverRing, ReachSphere    uint8
+	SceneVectors                                                           uint8
+	CommEdges                                                              uint8
 }
 
 type ViewPanelFlags struct {
 	Overlays                                                  uint8
-	Node, NodeShape, NodeState, NodeReach                     uint8
+	Node, NodeShape, NodeState, NodeReach, NodePoles          uint8
 	Scene, SceneGuides, ScenePoles, SceneVectors, SceneLabels uint8
 }
 
@@ -77,6 +77,7 @@ func (ui *UIState) EmitViewFrame(events []rowevent.RowEvent) {
 		ViewOverlayFlags{
 			SceneTori:     boolU8(ui.OV.SceneToriVisible),
 			ScenePoles:    boolU8(ui.OV.ScenePolesVisible),
+			NodePoles:     boolU8(ui.OV.NodePolesVisible),
 			Handholds:     boolU8(ui.OV.HandholdsVisible),
 			LabelsGlobal:  boolU8(ui.OV.LabelsGlobalVisible),
 			OverlaysVis:   boolU8(ui.OV.OverlaysVisible),
@@ -95,6 +96,7 @@ func (ui *UIState) EmitViewFrame(events []rowevent.RowEvent) {
 			NodeShape:    boolU8(ui.PN.NodeShapeOpen),
 			NodeState:    boolU8(ui.PN.NodeStateOpen),
 			NodeReach:    boolU8(ui.PN.NodeReachOpen),
+			NodePoles:    boolU8(ui.PN.NodePolesOpen),
 			Scene:        boolU8(ui.PN.SceneOpen),
 			SceneGuides:  boolU8(ui.PN.SceneGuidesOpen),
 			ScenePoles:   boolU8(ui.PN.ScenePolesOpen),
