@@ -25,7 +25,7 @@ func (m *NodeMover) Run(ctx context.Context) {
 	}
 	for {
 		for {
-			progressed, cancelled := g.msg.DrainPending(ctx, g.handle)
+			progressed, cancelled := g.msg.DrainPending(ctx, g.take)
 			if cancelled {
 				return
 			}

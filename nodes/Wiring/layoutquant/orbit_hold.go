@@ -5,66 +5,21 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
 )
 
-// SharedLengthKind is the one kind whose outgoing paths share a length. It is
-// the SPEC kind name, which is PascalCase — the Go package directory for this
-// kind is lowercase `nodes/input/` and the two do not have to agree.
+// SharedLengthKind, and the trims that read it, MOVED TO THE NODE.
 //
-// It is the ONLY thing left that names a kind. It used to gate the angles too,
-// under the name OutAngleKind, and that was the bug: "phi = pi/2, |theta| <=
-// pi/2" was stated as two package constants reached through the HOLDER's kind,
-// so the rule had no way to name the node it was actually about and every node
-// an Input pointed at inherited the same one. The angles now live on the node
-// they bind, by id, in its own meta.json (polar.OrbitRule).
+// They were package functions here, taking a *nodeactor.NodeGeometry and
+// reaching into it: a drag was converted, snapped, trimmed against the node's
+// own orbit rule and its own equal out-lengths, and only then was the node told
+// where it had ended up. Every number came from the node and none of the
+// decisions did. They are now nodeactor.NodeGeometry.TrimOwnDrag and its two
+// unexported halves, run on the node's own goroutine off the raw Δ it is sent
+// (nodes/Wiring/nodeactor/node_drag_trim.go), and the kind name went with them
+// as nodeactor.SharedLengthKind.
 //
-// What genuinely remains this kind's, because it is about what an input node
-// IS rather than about where any particular node sits: the shared length
-// across its outgoing paths (which is what sets its emission cadence, so the
-// paths must fire on one beat) and the half-turn snap on its own drag.
-const SharedLengthKind = "Input"
-
-// The constraints are enforced HERE, where a drag is turned into positions, and
-// nowhere else. No node holds a path to another node, nothing is cached from a
-// broadcast, and no node moves another in response to a message — a drag
-// decides what moves, which is the same thing group-length editing already
-// does through this entry point.
-//
-// They are held on D — the vector along the edge — because that is what they
-// were always about: where a node sits about the one it hangs from, not its
-// place in the world. Every one of them is read off the node's own side of its
-// own edges, so nothing here reads another node's centre and there is no holder
-// frame to convert in and out of.
-
-// TrimDraggedNode keeps only the part of a drag on this node that its OWN
-// orbit rule allows. A node carrying no rule is free and its drag is returned
-// untouched — which is every node but the two that state one.
-//
-// The rule is read off `nm`, the node under the cursor. Nothing here asks what
-// KIND its neighbours are: whether a node orbits is its own answer to give, and
-// a holder does not acquire the right to constrain by being of some type.
-func TrimDraggedNode(nm *nodeactor.NodeGeometry, delta polar.Polar) polar.Polar {
-	rule := nm.OrbitRule()
-	if rule == nil {
-		return delta
-	}
-	for neighborID := range nm.NeighborKinds() {
-		// An out-target is a node THIS one points at. This node hangs from the
-		// other ones, and those are the edges it orbits about.
-		if nm.IsOutTarget(neighborID) {
-			continue
-		}
-		// The edge runs holder -> here, so its D is this node's own side read
-		// from the other end. The drag asks for that same side plus Δ; what
-		// the rule allows of it is what the node may take, and the difference
-		// between the two is the trimmed drag.
-		have, ok := nm.DeltaFrom(neighborID)
-		if !ok {
-			continue
-		}
-		want := polar.Compose(have, delta)
-		delta = polar.Between(have, rule.TrimDelta(have, want))
-	}
-	return delta
-}
+// Do not restate any of them here. This package imports nodeactor, so a rule
+// written on this side can reach into a node's state and a rule written on that
+// side cannot reach anyone else's — which is why the trims are over there
+// rather than merely described as the node's.
 
 // HeldSiblings is DELETED, and nothing replaced it.
 //
@@ -72,7 +27,7 @@ func TrimDraggedNode(nm *nodeactor.NodeGeometry, delta polar.Polar) polar.Polar 
 // own comment: "moving node 2 changes |1->2|, and nothing about node 2's own
 // position can bring |1->3| along with it", so the dragged node stated a new
 // shared length and its siblings were teleported onto it. That premise is now
-// false. TrimDraggedNode holds R, so a drag of node 2 does not change |1->2|
+// false. The node's own orbit trim holds R, so a drag of node 2 does not change |1->2|
 // at all — there is no broken length for a sibling to be brought to.
 //
 // What it cost while it existed: 2 and 3 read as welded together and neither
@@ -109,7 +64,7 @@ func HeldOutNeighbors(
 	delta polar.Polar,
 	ruleOf func(id string) *polar.OrbitRule,
 ) map[string]polar.Polar {
-	if nm.SelfKind() != SharedLengthKind {
+	if nm.SelfKind() != nodeactor.SharedLengthKind {
 		return nil
 	}
 	// The neighbours COME ALONG. Dragging this node moves it and its

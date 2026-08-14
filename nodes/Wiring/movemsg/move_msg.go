@@ -48,10 +48,20 @@ type Msg struct {
 
 	Center *vec3
 
-	// Delta is how far the SENDER moved, as a polar triple, told to the node at
-	// the other end of an edge so it can take that move onto its own side of
-	// it by adding the three components. The receiver never reads the sender's
-	// position; it is told the difference.
+	// Delta is a polar triple whose meaning is the message's Kind, and both
+	// meanings are the same shape: three numbers the receiver adds to something
+	// of its own, never a position it reads off someone else.
+	//
+	// On KindCenter it is how far the SENDER moved, told to the node at the
+	// other end of an edge so it can take that move onto its own side of it.
+	//
+	// On KindDrag it is how far a POINTER is asking THIS node to move — the hit
+	// converted against this node's own centre, and nothing else. It arrives
+	// UNTRIMMED on purpose: what the node will actually take of it is the
+	// node's own answer, given by nodeactor.NodeGeometry.TrimOwnDrag on the
+	// node's own goroutine, off its own kind, orbit rule and edge sides. A
+	// sender that trimmed first would be deciding a node's constraints for it,
+	// which is what this field exists to stop.
 	Delta *polar.Polar
 
 	Centers map[string]vec3
