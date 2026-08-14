@@ -10,14 +10,14 @@ import (
 	T "github.com/dtauraso/wirefold/Trace"
 )
 
-func EmitNodeBeads(tr *T.Trace, nodeName string, working, backup []int, stream *InteriorStream) {
+func EmitNodeBeads(tr *T.Trace, nodeName string, working, backup []int, emitter *Emitter) {
 	const cols = 2
 	present := make([]uint8, 0, 4)
 	value := make([]int32, 0, 4)
 	ox, oy, oz := make([]float32, 0, 4), make([]float32, 0, 4), make([]float32, 0, 4)
 	nodeRow := int32(-1)
-	if stream != nil {
-		nodeRow = stream.nodeRow
+	if emitter != nil {
+		nodeRow = emitter.NodeRowOf()
 	}
 	var events []rowevent.RowEvent
 	emitRow := func(row int, slice []int) {
@@ -40,12 +40,12 @@ func EmitNodeBeads(tr *T.Trace, nodeName string, working, backup []int, stream *
 	}
 	emitRow(0, backup)
 	emitRow(1, working)
-	stream.write(present, value, ox, oy, oz, events)
+	emitter.write(present, value, ox, oy, oz, events)
 }
 
 const NoValue = -1
 
-func EmitHeldBead(tr *T.Trace, nodeName string, held int, stream *InteriorStream) {
+func EmitHeldBead(tr *T.Trace, nodeName string, held int, emitter *Emitter) {
 	has := held != NoValue
 
 	v := 0
@@ -53,14 +53,14 @@ func EmitHeldBead(tr *T.Trace, nodeName string, held int, stream *InteriorStream
 		v = held
 	}
 	nodeRow := int32(-1)
-	if stream != nil {
-		nodeRow = stream.nodeRow
+	if emitter != nil {
+		nodeRow = emitter.NodeRowOf()
 	}
 	events := []rowevent.RowEvent{{
 		Kind: T.KindNodeBead, NodeRow: nodeRow, Slot: 0, Value: int32(v),
 		PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1,
 	}}
-	stream.write(
+	emitter.write(
 		[]uint8{boolU8(has), 0, 0, 0},
 		[]int32{int32(v), 0, 0, 0},
 		[]float32{0, 0, 0, 0}, []float32{0, 0, 0, 0}, []float32{0, 0, 0, 0},
@@ -68,7 +68,7 @@ func EmitHeldBead(tr *T.Trace, nodeName string, held int, stream *InteriorStream
 	)
 }
 
-func EmitInputBeads(tr *T.Trace, nodeName string, left, right int, stream *InteriorStream) {
+func EmitInputBeads(tr *T.Trace, nodeName string, left, right int, emitter *Emitter) {
 	s := InteriorSlot
 	hasL, hasR := left != NoValue, right != NoValue
 	vL, vR := 0, 0
@@ -79,14 +79,14 @@ func EmitInputBeads(tr *T.Trace, nodeName string, left, right int, stream *Inter
 		vR = right
 	}
 	nodeRow := int32(-1)
-	if stream != nil {
-		nodeRow = stream.nodeRow
+	if emitter != nil {
+		nodeRow = emitter.NodeRowOf()
 	}
 	events := []rowevent.RowEvent{
 		{Kind: T.KindNodeBead, NodeRow: nodeRow, Slot: 0, Value: int32(vL), PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, X: -s},
 		{Kind: T.KindNodeBead, NodeRow: nodeRow, Slot: 1, Value: int32(vR), PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, X: s},
 	}
-	stream.write(
+	emitter.write(
 		[]uint8{boolU8(hasL), boolU8(hasR), 0, 0},
 		[]int32{int32(vL), int32(vR), 0, 0},
 		[]float32{float32(-s), float32(s), 0, 0}, []float32{0, 0, 0, 0}, []float32{0, 0, 0, 0},

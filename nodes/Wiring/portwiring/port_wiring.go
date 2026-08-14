@@ -13,27 +13,19 @@ import (
 
 const BufInteriorSlotsPerNode = 4
 
-func NewInteriorStreamGetter(name string, pb PortBindings) func() *interior.InteriorStream {
+func NewInteriorEmitterGetter(name string, pb PortBindings) func() *interior.Emitter {
 	var built bool
-	var stream *interior.InteriorStream
-	return func() *interior.InteriorStream {
+	var emitter *interior.Emitter
+	return func() *interior.Emitter {
 		if built {
-			return stream
+			return emitter
 		}
 		built = true
-		if pb.InteriorOuts == nil || *pb.InteriorOuts == nil {
+		if pb.InteriorEmitters == nil || *pb.InteriorEmitters == nil {
 			return nil
 		}
-		out, ok := (*pb.InteriorOuts)[name]
-		if !ok || out == nil || pb.BuildInteriorFrame == nil || *pb.BuildInteriorFrame == nil {
-			return nil
-		}
-		nodeRow := int32(-1)
-		if r, ok := pb.RT.NodeRowFor(name); ok {
-			nodeRow = r
-		}
-		stream = interior.NewInteriorStream(out, *pb.BuildInteriorFrame, nodeRow, BufInteriorSlotsPerNode)
-		return stream
+		emitter = (*pb.InteriorEmitters)[name]
+		return emitter
 	}
 }
 
@@ -71,18 +63,28 @@ func AsEventSinkGetter(g func() *interior.InteriorStream) func() rowevent.EventS
 	}
 }
 
-const NoPortRow = int32(-1)
-
-func NewInPort(portName string, ctx context.Context, name string, pb PortBindings, tr *T.Trace, getStream func() *interior.InteriorStream) *inport.In {
-	if b := pb.singlePaced[portName]; b.pw != nil {
-		return inport.NewInPaced(b.pw, ctx, name, portName, tr, AsEventSinkGetter(getStream), NoPortRow)
-	} else {
-		ch := pb.deadEndIn(portName)
-		return inport.NewInChan(ch, name, portName, tr, AsEventSinkGetter(getStream))
+func InteriorEventSinkGetter(g func() *interior.Emitter) func() rowevent.EventSink {
+	return func() rowevent.EventSink {
+		e := g()
+		if e == nil {
+			return nil
+		}
+		return e
 	}
 }
 
-func NewOutPort(portName string, ctx context.Context, name string, pb PortBindings, tr *T.Trace, sourceOuts *[]*outport.Out, getStream func() *interior.InteriorStream) *outport.Out {
+const NoPortRow = int32(-1)
+
+func NewInPort(portName string, ctx context.Context, name string, pb PortBindings, tr *T.Trace, getSink func() rowevent.EventSink) *inport.In {
+	if b := pb.singlePaced[portName]; b.pw != nil {
+		return inport.NewInPaced(b.pw, ctx, name, portName, tr, getSink, NoPortRow)
+	} else {
+		ch := pb.deadEndIn(portName)
+		return inport.NewInChan(ch, name, portName, tr, getSink)
+	}
+}
+
+func NewOutPort(portName string, ctx context.Context, name string, pb PortBindings, tr *T.Trace, sourceOuts *[]*outport.Out, getSink func() rowevent.EventSink) *outport.Out {
 	if b := pb.singlePaced[portName]; b.pw != nil {
 		targetRow := int32(-1)
 		if b.pw.Target != "" {
@@ -90,7 +92,7 @@ func NewOutPort(portName string, ctx context.Context, name string, pb PortBindin
 				targetRow = r
 			}
 		}
-		o := outport.NewOutPaced(b.pw, ctx, name, portName, tr, b.rule, b.steps, b.seg, b.label, AsEventSinkGetter(getStream), NoPortRow, targetRow, NoPortRow)
+		o := outport.NewOutPaced(b.pw, ctx, name, portName, tr, b.rule, b.steps, b.seg, b.label, getSink, NoPortRow, targetRow, NoPortRow)
 		*sourceOuts = append(*sourceOuts, o)
 		if pb.OutSink != nil {
 			pb.OutSink[name+"."+portName] = o
@@ -101,7 +103,7 @@ func NewOutPort(portName string, ctx context.Context, name string, pb PortBindin
 	return outport.NewOutChanDeadEnd(ch, name, portName, tr)
 }
 
-func NewBroadcastPort(portName string, ctx context.Context, name string, pb PortBindings, tr *T.Trace, sourceOuts *[]*outport.Out, getStream func() *interior.InteriorStream) outport.Broadcast {
+func NewBroadcastPort(portName string, ctx context.Context, name string, pb PortBindings, tr *T.Trace, sourceOuts *[]*outport.Out, getSink func() rowevent.EventSink) outport.Broadcast {
 	if bs := pb.broadcastPaced[portName]; len(bs) > 0 {
 		outs := make(outport.Broadcast, len(bs))
 		for i, b := range bs {
@@ -111,7 +113,7 @@ func NewBroadcastPort(portName string, ctx context.Context, name string, pb Port
 					targetRow = r
 				}
 			}
-			o := outport.NewOutPaced(b.pw, ctx, name, b.handle, tr, b.rule, b.steps, b.seg, b.label, AsEventSinkGetter(getStream), NoPortRow, targetRow, NoPortRow)
+			o := outport.NewOutPaced(b.pw, ctx, name, b.handle, tr, b.rule, b.steps, b.seg, b.label, getSink, NoPortRow, targetRow, NoPortRow)
 			outs[i] = o
 			*sourceOuts = append(*sourceOuts, o)
 			if pb.OutSink != nil {

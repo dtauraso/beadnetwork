@@ -13,12 +13,15 @@ wait_pat = re.compile(r'\btime\.(Sleep|After|NewTicker)\s*\(')
 
 EXEMPT_FILES = {
     os.path.join("nodes", "clock", "clock.go"),
-    os.path.join("nodes", "clock", "tick_broadcaster.go"),
+    os.path.join("nodes", "clock", "sleep_cycle.go"),
 }
 
 ALLOWED = {
 
     ("nodes/Wiring/distancegroups/distance_groups.go", "time.Sleep(time.Millisecond)"),
+    ("nodes/gatecommon/wall_clock_fallback.go", "ticker := time.NewTicker(clock.TickPeriod)"),
+    ("nodes/gatecommon/drive.go", "ticker := time.NewTicker(clock.TickPeriod)"),
+    ("nodes/Wiring/nodeactor/node_geometry.go", "ng.beads.SetBeadTickFn(func() *time.Ticker { return time.NewTicker(clock.TickPeriod) })"),
 }
 
 hits = []

@@ -18,7 +18,5 @@ type Clock interface {
 
 	SleepPulse(ctx context.Context) error
 
-	SleepUntilTick(ctx context.Context, target int64) error
-
 	Copy() Clock
 }

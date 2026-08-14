@@ -4,11 +4,13 @@ import (
 	"io"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
+	"github.com/dtauraso/wirefold/nodes/Wiring/interior"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/nodeframe"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/owners"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/streamclaim"
 	"github.com/dtauraso/wirefold/nodes/Wiring/quantoffset"
+	"github.com/dtauraso/wirefold/nodes/rowevent"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
@@ -70,6 +72,17 @@ func (m *NodeGeometry) WireOutEdgeStream(label string, edgeRow int32, targetID, 
 
 func (m *NodeGeometry) writeOutEdgeFrames(tick int64) {
 	m.outEdges.WriteFrames(tick, m.geom, &m.deltas)
+}
+
+func (m *NodeGeometry) WireInteriorStream(w io.Writer, row int32, buildFrame func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []rowevent.RowEvent) []byte) *interior.Emitter {
+	stream := interior.NewInteriorStream(w, buildFrame, row, interior.SlotsPerNode)
+	mailbox := interior.NewMailbox(row)
+	m.interior.SetInteriorStream(stream, mailbox)
+	return interior.NewEmitter(mailbox, row)
+}
+
+func (m *NodeGeometry) writeInteriorFrames() {
+	m.interior.WriteFrames()
 }
 
 func (m *NodeGeometry) WireBeadStream(w io.Writer, row int32, buildBeadFrame owners.BeadFrameBuilder) {

@@ -7,6 +7,7 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/edgemover"
 	geomseeds "github.com/dtauraso/wirefold/nodes/Wiring/geomseeds"
+	"github.com/dtauraso/wirefold/nodes/Wiring/interior"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/nodeframe"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/owners"
@@ -17,7 +18,7 @@ import (
 const DriveSlotsPerNode = 2
 
 type StreamWiring struct {
-	interiorOuts map[string]io.Writer
+	interiorEmitters map[string]*interior.Emitter
 
 	buildInteriorFrame func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []rowevent.RowEvent) []byte
 
@@ -26,7 +27,9 @@ type StreamWiring struct {
 	nodeClaims streamclaim.ClaimRegistry
 }
 
-func (sw *StreamWiring) InteriorOutsPtr() *map[string]io.Writer { return &sw.interiorOuts }
+func (sw *StreamWiring) InteriorEmittersPtr() *map[string]*interior.Emitter {
+	return &sw.interiorEmitters
+}
 
 func (sw *StreamWiring) DriveOutsPtr() *map[string][DriveSlotsPerNode]io.Writer {
 	return &sw.driveOuts
@@ -96,7 +99,7 @@ func (sw *StreamWiring) SetNodeStreams(
 	buildInteriorFrame func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []rowevent.RowEvent) []byte,
 	kindIDFor func(kind string) uint8,
 ) {
-	sw.interiorOuts = map[string]io.Writer{}
+	sw.interiorEmitters = map[string]*interior.Emitter{}
 	sw.buildInteriorFrame = buildInteriorFrame
 
 	sw.driveOuts = map[string][DriveSlotsPerNode]io.Writer{}
@@ -122,7 +125,8 @@ func (sw *StreamWiring) SetNodeStreams(
 		}
 
 		iFd := interiorBase + row
-		sw.interiorOuts[seed.ID] = os.NewFile(uintptr(iFd), fmt.Sprintf("interior-fd%d", iFd))
+		rawInteriorOut := os.NewFile(uintptr(iFd), fmt.Sprintf("interior-fd%d", iFd))
+		sw.interiorEmitters[seed.ID] = nm.WireInteriorStream(rawInteriorOut, int32(row), buildInteriorFrame)
 
 		if driveWired {
 			var slots [DriveSlotsPerNode]io.Writer

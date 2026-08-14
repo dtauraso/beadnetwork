@@ -2,6 +2,8 @@ package gatecommon
 
 import (
 	"context"
+	"time"
+
 	Wiring "github.com/dtauraso/wirefold/nodes/Wiring/kindapi"
 	"github.com/dtauraso/wirefold/nodes/clock"
 	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
@@ -11,7 +13,7 @@ func DriveHeld(ctx context.Context, out Wiring.DrivenOut, heldCh <-chan int64, t
 	go func() {
 		paced := out.Paced()
 		cur := int64(NoValue)
-		tick, sleep, c := driveHeldClock(clk, speedCh)
+		tick, sleep, _ := driveHeldClock(clk, speedCh)
 
 		var lastPlaceTick int64
 		if paced {
@@ -50,9 +52,12 @@ func DriveHeld(ctx context.Context, out Wiring.DrivenOut, heldCh <-chan int64, t
 
 			if paced {
 				if k, known := driveHeldPeriod(out); known {
-					clock.ApplySpeedNonBlocking(c, speedCh)
-					if err := c.SleepUntilTick(ctx, lastPlaceTick+k); err != nil {
-						return
+					target := lastPlaceTick + k
+					for tick() < target {
+
+						if err := sleep(ctx); err != nil {
+							return
+						}
 					}
 					continue
 				}
@@ -65,7 +70,8 @@ func DriveHeld(ctx context.Context, out Wiring.DrivenOut, heldCh <-chan int64, t
 }
 
 func driveHeldClock(clk clock.Clock, speedCh <-chan float64) (tick func() int64, sleep func(context.Context) error, c clock.Clock) {
-	tickCh := clock.NewTickChan()
+	ticker := time.NewTicker(clock.TickPeriod)
+	tickCh := ticker.C
 	sleep = func(ctx context.Context) error {
 		select {
 		case <-ctx.Done():

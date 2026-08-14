@@ -3,6 +3,7 @@ package clock
 import (
 	"context"
 	"math"
+	"time"
 )
 
 func (c *RealClock) SleepCycle(ctx context.Context) error {
@@ -14,23 +15,14 @@ func (c *RealClock) SleepPulse(ctx context.Context) error {
 }
 
 func (c *RealClock) sleepPulses(ctx context.Context, n int) error {
-	if c.tickCh == nil {
-		c.tickCh = globalTickBroadcaster().Subscribe()
+	if c.ticker == nil {
+		c.ticker = time.NewTicker(tickPeriod)
 	}
 	for range n {
 		select {
-		case <-c.tickCh:
+		case <-c.ticker.C:
 		case <-ctx.Done():
 			return ctx.Err()
-		}
-	}
-	return nil
-}
-
-func (c *RealClock) SleepUntilTick(ctx context.Context, target int64) error {
-	for c.Tick() < target {
-		if err := c.SleepCycle(ctx); err != nil {
-			return err
 		}
 	}
 	return nil

@@ -44,6 +44,10 @@ func (s *InteriorStream) write(present []uint8, value []int32, ox, oy, oz []floa
 	writeInteriorStreamFrame(s.out, s.buildFrame, s.tick, present, value, ox, oy, oz, events)
 }
 
+func (s *InteriorStream) WriteFull(present []uint8, value []int32, ox, oy, oz []float32, events []rowevent.RowEvent) {
+	s.write(present, value, ox, oy, oz, events)
+}
+
 func (s *InteriorStream) WriteEvents(events []rowevent.RowEvent) {
 	if s == nil {
 		return
