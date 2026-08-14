@@ -33,6 +33,7 @@ func (m *NodeMover) Run(ctx context.Context) {
 		g.msg.FlushPending()
 
 		g.writeStreamFrame(g.drainSelfEvents())
+		g.writeOutEdgeFrames(g.clocks.Tick())
 		if err := g.clocks.SleepPulse(ctx); err != nil {
 			return
 		}

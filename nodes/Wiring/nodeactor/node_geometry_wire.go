@@ -64,6 +64,14 @@ func (m *NodeGeometry) AddOutWire(pw *wire.PacedWire, edgeRow int32) {
 	m.anim.AddOutWire(pw, edgeRow)
 }
 
+func (m *NodeGeometry) WireOutEdgeStream(label string, edgeRow int32, targetID, targetKind string, w io.Writer, nodeRow int32, buildFrame owners.EdgeFrameBuilder) {
+	m.outEdges.AddOutEdge(label, edgeRow, targetID, targetKind, w, nodeRow, buildFrame)
+}
+
+func (m *NodeGeometry) writeOutEdgeFrames(tick int64) {
+	m.outEdges.WriteFrames(tick, m.geom, &m.deltas)
+}
+
 func (m *NodeGeometry) WireBeadStream(w io.Writer, row int32, buildBeadFrame owners.BeadFrameBuilder) {
 	m.anim.SetBeadStream(w, row, buildBeadFrame)
 }
