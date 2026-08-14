@@ -71,18 +71,11 @@ func (lq *LayoutQuantizer) RootMove(ctx context.Context, nodeGeoms map[string]*n
 	// length is a constraint on where THIS node may go.
 	delta = TrimEqualOutLengths(nm, delta)
 
-	// Dragging one of an input node's neighbours is the case that still moves
-	// somebody else: the shared length is a constraint the dragged node cannot
-	// satisfy alone, so its SIBLINGS take the length it just stated.
-	for to, heldPoint := range HeldSiblings(nm, nodeGeoms, nodeID, delta) {
-		other, ok := nodeGeoms[to]
-		if !ok {
-			continue
-		}
-		other.SendExternal(ctx, movemsg.Msg{Kind: movemsg.KindDrag, NodeID: to,
-			Target: other.SceneCenter().Add(polar.Polar2cart(heldPoint))})
-	}
-
+	// NOBODY ELSE MOVES. A drag sends exactly one message, to the node under
+	// the cursor. Dragging one of an input node's out-targets used to also
+	// move its siblings onto the length that drag had stated; the drag now
+	// holds that length instead (TrimOutAngleDelta), so there is no length to
+	// restate and no sibling to correct.
 	nm.SendExternal(ctx, movemsg.Msg{Kind: movemsg.KindDrag, NodeID: nodeID,
 		Target: nm.SceneCenter().Add(polar.Polar2cart(polar.Compose(nm.ScenePolar(), delta)))})
 	return true

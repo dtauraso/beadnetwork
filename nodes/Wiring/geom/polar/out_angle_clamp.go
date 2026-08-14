@@ -33,14 +33,28 @@ func ClampOutAngles(p Polar) Polar {
 // Whatever is left over is dropped, not resisted — the drag still moves in
 // every component that had room.
 //
-// It differs from ClampOutAngles in exactly one component: phi keeps HAVE's
-// value, so its delta is always zero and a phi drag is absent from the move
-// rather than performed and undone. That also means it can never CORRECT a
-// phi that is already wrong, which is why the absolute clamp is what runs
-// when a position is established rather than dragged.
+// It differs from ClampOutAngles in two components, both of which keep HAVE's
+// value so that their delta is always zero and the drag is absent from them
+// rather than performed and undone.
+//
+//   - Phi. That also means it can never CORRECT a phi that is already wrong,
+//     which is why the absolute clamp is what runs when a position is
+//     established rather than dragged.
+//   - R. The length of this path is SHARED with the holder's other outgoing
+//     paths, so it is not this node's to state. Holding it is what puts the
+//     drag on the sphere of that radius about the holder: one component
+//     decided on its own, not a point projected onto a surface. The shared
+//     length is still reachable — the holder's own drag states it for every
+//     side at once (TrimEqualOutLengths).
+//
+// R used to pass through here, and the sibling was then moved to whatever
+// length this drag had stated (HeldSiblings, deleted). Dragging node 2 taught
+// node 3 a new radius and teleported it there, which read as 2 and 3 being
+// welded together. Holding R means the drag never breaks the shared length, so
+// there is nothing for a sibling to be brought to.
 func TrimOutAngleDelta(have, want Polar) Polar {
 	return Polar{
-		R:     want.R,
+		R:     have.R,
 		Phi:   have.Phi,
 		Theta: clampOutTheta(want.Theta),
 	}

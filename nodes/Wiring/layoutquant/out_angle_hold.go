@@ -49,60 +49,20 @@ func TrimDraggedNode(nm *nodeactor.NodeGeometry, delta polar.Polar) polar.Polar 
 	return delta
 }
 
-// HeldSiblings is where the OTHER outgoing neighbours of an input node have
-// to be once one of them has been dragged.
+// HeldSiblings is DELETED, and nothing replaced it.
 //
-// The shared length is the one constraint a dragged node cannot satisfy by
-// itself: moving node 2 changes |1->2|, and nothing about node 2's own
-// position can bring |1->3| along with it. The node that was dragged states
-// the new length — its drag is kept in full — and its siblings are the ones
-// brought to it, so the node under the cursor is never the one corrected.
+// It moved node 3 whenever node 2 was dragged. Its premise was stated in its
+// own comment: "moving node 2 changes |1->2|, and nothing about node 2's own
+// position can bring |1->3| along with it", so the dragged node stated a new
+// shared length and its siblings were teleported onto it. That premise is now
+// false. TrimDraggedNode holds R, so a drag of node 2 does not change |1->2|
+// at all — there is no broken length for a sibling to be brought to.
 //
-// Reading another node's out-targets and kinds is safe: both are set once at
-// build and never written again.
-func HeldSiblings(
-	nm *nodeactor.NodeGeometry,
-	nodeGeoms map[string]*nodeactor.NodeGeometry,
-	draggedID string,
-	delta polar.Polar,
-) map[string]polar.Polar {
-	var held map[string]polar.Polar
-	for holderID, kind := range nm.NeighborKinds() {
-		if kind != OutAngleKind || nm.IsOutTarget(holderID) {
-			continue
-		}
-		holder, ok := nodeGeoms[holderID]
-		if !ok {
-			continue
-		}
-		// The holder's own side of the edge that reaches this node locates
-		// the holder — its point is this node's point less that side — and
-		// the drag restates that side's r, which is the r every one of its
-		// siblings has to take.
-		toHere, ok := nm.DeltaFrom(holderID)
-		if !ok {
-			continue
-		}
-		holderPoint := polar.Compose(nm.ScenePolar(), toHere.Neg())
-		shared := polar.Compose(toHere, delta).R
-		for _, sib := range holder.OutTargets() {
-			if sib == draggedID {
-				continue
-			}
-			toSib, ok := holder.DeltaTo(sib)
-			if !ok {
-				continue
-			}
-			p := polar.ClampOutAngles(toSib)
-			p.R = shared
-			if held == nil {
-				held = map[string]polar.Polar{}
-			}
-			held[sib] = polar.Compose(holderPoint, p)
-		}
-	}
-	return held
-}
+// What it cost while it existed: 2 and 3 read as welded together and neither
+// could be positioned on its own, because every drag of one restated the
+// radius of the other. Do not bring it back to "keep the lengths equal" —
+// they are equal because no drag of a target can make them unequal, which is
+// a stronger statement than a repair that runs afterwards.
 
 // HeldOutNeighbors is where an input node's outgoing neighbours have to be,
 // given where that node is going. It answers for the case the dragged node
