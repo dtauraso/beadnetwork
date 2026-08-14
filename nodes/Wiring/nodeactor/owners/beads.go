@@ -1,12 +1,14 @@
 package owners
 
 import (
+	"time"
+
 	"github.com/dtauraso/wirefold/nodes/spatial"
 	beadchain "github.com/dtauraso/wirefold/nodes/wire/beadchain"
 )
 
 type Beads struct {
-	beadTickFn func() <-chan struct{}
+	beadTickFn func() *time.Ticker
 	beadChains map[string]*BeadChain
 }
 
@@ -39,7 +41,7 @@ func (c *BeadChain) Resolved() (positions []vec3, valid []bool) {
 	return positions, c.valid
 }
 
-func (nb *Beads) SetBeadTickFn(fn func() <-chan struct{}) {
+func (nb *Beads) SetBeadTickFn(fn func() *time.Ticker) {
 	nb.beadTickFn = fn
 }
 

@@ -1,6 +1,8 @@
 package nodeactor
 
 import (
+	"time"
+
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/owners"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
@@ -72,7 +74,7 @@ func NewNodeGeometry(id string, geom nodegeom.NodeGeom, tr *T.Trace, clockSrc cl
 
 	ng.msg.SeedCenter(nodegeom.NodeWorldPos(geom))
 
-	ng.beads.SetBeadTickFn(clock.NewTickChan)
+	ng.beads.SetBeadTickFn(func() *time.Ticker { return time.NewTicker(clock.TickPeriod) })
 	return ng
 }
 

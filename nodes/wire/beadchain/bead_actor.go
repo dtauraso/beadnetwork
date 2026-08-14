@@ -1,6 +1,10 @@
 package beadchain
 
-import "github.com/dtauraso/wirefold/nodes/spatial"
+import (
+	"time"
+
+	"github.com/dtauraso/wirefold/nodes/spatial"
+)
 
 type beadGeometryState struct {
 	position spatial.Vec3
@@ -24,7 +28,7 @@ type Bead struct {
 	offsetR float64
 
 	geom   *BroadcastChain
-	tickCh <-chan struct{}
+	ticker *time.Ticker
 	wake   *BroadcastChain
 	settle *BroadcastChain
 	stop   <-chan struct{}
@@ -43,13 +47,13 @@ type BeadSnapshot struct {
 	LitVal   int32
 }
 
-func NewBead(offsetR float64, geom, wake, settle *BroadcastChain, tickCh <-chan struct{}, stop <-chan struct{}) *Bead {
+func NewBead(offsetR float64, geom, wake, settle *BroadcastChain, ticker *time.Ticker, stop <-chan struct{}) *Bead {
 	return &Bead{
 		offsetR: offsetR,
 		geom:    geom,
 		wake:    wake,
 		settle:  settle,
-		tickCh:  tickCh,
+		ticker:  ticker,
 		stop:    stop,
 	}
 }
@@ -98,11 +102,12 @@ func (b *Bead) run() {
 			b.dragging = false
 			b.settle = b.settle.Next
 			b.pushObserve()
-		case <-b.tickCh:
+		case <-b.ticker.C:
 
 			b.anim.tick(!b.anim.lit, b.anim.litVal)
 			b.pushObserve()
 		case <-b.stop:
+			b.ticker.Stop()
 			return
 		}
 	}

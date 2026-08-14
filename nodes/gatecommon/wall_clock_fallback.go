@@ -17,12 +17,12 @@ func defaultTick() func() int64 {
 }
 
 func defaultSleep() func(ctx context.Context) error {
-	tickCh := clock.NewTickChan()
+	ticker := time.NewTicker(clock.TickPeriod)
 	return func(ctx context.Context) error {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
-		case <-tickCh:
+		case <-ticker.C:
 			return nil
 		}
 	}
