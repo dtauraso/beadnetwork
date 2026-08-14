@@ -21,6 +21,10 @@ type NodeFrameInput struct {
 
 	RingAxisPhi, RingAxisTheta float32
 
+	RingTubeRadius float32
+
+	RingPoints []float32
+
 	TopTiltVectorLen float32
 
 	TopTiltVectorIdx int32

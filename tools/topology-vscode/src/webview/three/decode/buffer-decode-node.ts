@@ -1,5 +1,6 @@
 import {
   NODE_STRIDE,
+  RING_POINT_STRIDE,
   readNodeLabelOff,
   readNodeLabelLen,
   readNodeNodeId,
@@ -27,13 +28,14 @@ function reportNodeIdMismatch(row: number, expectedId: number, statedId: number)
 
 let reportedShortFrame = false;
 
-function reportShortNodeFrame(got: number, expected: number, labelLen: number): void {
+function reportShortNodeFrame(got: number, expected: number, labelLen: number, ringPointCount: number): void {
   if (reportedShortFrame) return;
   reportedShortFrame = true;
 
   const message =
     `node stream frame is ${got} bytes but this webview's layout needs ${expected} ` +
-    `(header + NODE_STRIDE ${NODE_STRIDE} + label ${labelLen}). Go and the webview are built ` +
+    `(header + NODE_STRIDE ${NODE_STRIDE} + label ${labelLen} + ${ringPointCount} ring points). ` +
+    `Go and the webview are built ` +
     `against different buffer layouts, so EVERY node frame is being dropped and nothing on a ` +
     `node will update. Run "Developer: Reload Window" — reopening the file reloads only the ` +
     `webview, not the extension host that spawns Go.`;
@@ -79,6 +81,9 @@ export interface DecodedNodeStreamFrame {
 
   label: string;
 
+  ringPointCount: number;
+  ringPointView: DataView;
+
   eventCount: number;
   eventView: DataView;
   eventTextView: DataView;
@@ -110,10 +115,11 @@ function decodeNodeStreamFrameUncached(buf: ArrayBuffer): DecodedNodeStreamFrame
   const hdr = new DataView(buf, 0, BUF_NODE_STREAM_FRAME_HEADER_SIZE);
   const tick               = hdr.getUint32(0,  true);
   const labelLen           = hdr.getUint32(4,  true);
+  const ringPointCount     = hdr.getUint32(8,  true);
 
-  const expectedLen = BUF_NODE_STREAM_FRAME_HEADER_SIZE + NODE_STRIDE + labelLen;
+  const expectedLen = BUF_NODE_STREAM_FRAME_HEADER_SIZE + NODE_STRIDE + labelLen + ringPointCount * RING_POINT_STRIDE;
   if (buf.byteLength < expectedLen) {
-    reportShortNodeFrame(buf.byteLength, expectedLen, labelLen);
+    reportShortNodeFrame(buf.byteLength, expectedLen, labelLen, ringPointCount);
     return null;
   }
 
@@ -125,7 +131,10 @@ function decodeNodeStreamFrameUncached(buf: ArrayBuffer): DecodedNodeStreamFrame
   const label = STR_DECODER.decode(labelBytes);
   off += labelLen;
 
+  const ringPointView = new DataView(buf, off, ringPointCount * RING_POINT_STRIDE);
+  off += ringPointCount * RING_POINT_STRIDE;
+
   const { count: eventCount, view: eventView, textView: eventTextView } = decodeTrailingEvents(buf, off);
 
-  return { tick, nodeView, label, eventCount, eventView, eventTextView };
+  return { tick, nodeView, label, ringPointCount, ringPointView, eventCount, eventView, eventTextView };
 }

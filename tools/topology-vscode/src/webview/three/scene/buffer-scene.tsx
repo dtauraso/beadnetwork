@@ -10,11 +10,13 @@ import { EdgeLines } from "./edges/EdgeLines";
 import { getEdgeStreamAccessor } from "./edges/edge-stream-blocks";
 import { TiltVectors } from "../nav/TiltVectors";
 import { NodeInstances } from "./nodes/NodeInstances";
+import { NodeRingTube } from "./nodes/NodeRingTube";
 import { SelectionHighlight, HoverHighlight } from "./overlays/SelectionHighlight";
 import { SphereRings } from "./overlays/SphereRings";
 import { InteriorBeadInstances } from "./beads/InteriorBeadInstances";
 import { BufferCamera } from "./BufferCamera";
 import { BufferLabelProjector } from "./labels/BufferLabelProjector";
+import { NODE_RING_TUBE_SWEPT_ROW } from "./buffer-scene-shared";
 
 export type { BufferLabelPos } from "./buffer-scene-shared";
 export {
@@ -64,6 +66,7 @@ export function BufferScene({ cameraRef }: {
       <EdgeLines capacity={edgeCap} />
       <ChainBeadInstances capacity={chainBeadCap} />
       <NodeInstances capacity={nodeCap} />
+      <NodeRingTube row={NODE_RING_TUBE_SWEPT_ROW} />
       {}
       {}
       <TiltVectors capacity={nodeCap * 3} receivedCapacity={nodeCap} />

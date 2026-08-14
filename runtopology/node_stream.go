@@ -53,6 +53,8 @@ func wireNodeStreams(streamFDs SF.StreamFDs, md *W.MoveDispatch) {
 						PoleTheta:           f.PoleTheta,
 						RingAxisPhi:         f.RingAxisPhi,
 						RingAxisTheta:       f.RingAxisTheta,
+						RingTubeRadius:      f.RingTubeRadius,
+						RingPoints:          f.RingPoints,
 						TopTiltVectorLen:    f.TopTiltVectorLen,
 						TopTiltVectorIdx:    f.TopTiltVectorIdx,
 						TopTiltVectorPhi:    f.TopTiltVectorPhi,

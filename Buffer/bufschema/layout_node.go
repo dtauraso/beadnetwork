@@ -21,6 +21,8 @@ type bufLayoutNode struct {
 	RingAxisPhi   float32 `buf:"f32"`
 	RingAxisTheta float32 `buf:"f32"`
 
+	RingTubeRadius float32 `buf:"f32"`
+
 	TopTiltVectorLen float32 `buf:"f32"`
 
 	TopTiltVectorIdx int32 `buf:"i32"`

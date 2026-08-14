@@ -14,6 +14,8 @@ export const NODE_SPHERE_RADIUS = 12;
 
 export const NODE_RING_TUBE_RATIO = 0.08;
 
+export const NODE_RING_TUBE_SWEPT_ROW = 0;
+
 export const RING_PICK_TUBE_RATIO = NODE_RING_TUBE_RATIO;
 
 export const RING_PICK_COLOR = "#00e5a8";

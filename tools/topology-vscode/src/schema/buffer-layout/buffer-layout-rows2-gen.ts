@@ -35,6 +35,16 @@ export function readEdgeBeadY(view: DataView, row: number): number { return view
 export function readEdgeBeadZ(view: DataView, row: number): number { return view.getFloat32(row * EDGE_BEAD_STRIDE + EDGE_BEAD_COL_Z, true); }
 export function readEdgeBeadValue(view: DataView, row: number): number { return view.getInt32(row * EDGE_BEAD_STRIDE + EDGE_BEAD_COL_VALUE, true); }
 
+// ── RingPoint block ──────────────────────────────────────────
+export const RING_POINT_COL_X                    = 0; // f32
+export const RING_POINT_COL_Y                    = 4; // f32
+export const RING_POINT_COL_Z                    = 8; // f32
+export const RING_POINT_STRIDE                   = 12;
+
+export function readRingPointX(view: DataView, row: number): number { return view.getFloat32(row * RING_POINT_STRIDE + RING_POINT_COL_X, true); }
+export function readRingPointY(view: DataView, row: number): number { return view.getFloat32(row * RING_POINT_STRIDE + RING_POINT_COL_Y, true); }
+export function readRingPointZ(view: DataView, row: number): number { return view.getFloat32(row * RING_POINT_STRIDE + RING_POINT_COL_Z, true); }
+
 // ── Event block ──────────────────────────────────────────────
 export const EVENT_COL_KIND                      = 0; // u8
 export const EVENT_COL_NODE_ROW                  = 1; // i32

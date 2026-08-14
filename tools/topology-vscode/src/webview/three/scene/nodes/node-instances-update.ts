@@ -7,10 +7,11 @@ import {
   readNodeCX, readNodeCY, readNodeCZ, readNodeRadius,
   readOverlayNodeBody, readOverlayNodeRing, readOverlayRingPick,
 } from "../../../../schema/buffer-layout/buffer-layout";
-import { NODE_SPHERE_RADIUS, nodeRowColors, poleAxis } from "../buffer-scene-shared";
+import { NODE_SPHERE_RADIUS, NODE_RING_TUBE_SWEPT_ROW, nodeRowColors, poleAxis } from "../buffer-scene-shared";
 import { computeNodeDepthOrder, setNodeDrawOrder } from "./node-depth-order";
 
 const TORUS_DEFAULT_NORMAL = new THREE.Vector3(0, 0, 1);
+const ZERO_SCALE = new THREE.Vector3(0, 0, 0);
 
 export interface NodeInstanceRefs {
   body: THREE.InstancedMesh;
@@ -72,10 +73,13 @@ export function updateNodeInstances(refs: NodeInstanceRefs, capacity: number, ca
     ringAxis.set(ax, ay, az);
     ringQuat.setFromUnitVectors(TORUS_DEFAULT_NORMAL, ringAxis);
     mat.compose(pos, ringQuat, scl);
-    ring.setMatrixAt(slot, mat);
-
     ringPick.setMatrixAt(slot, mat);
     ringBand.setMatrixAt(slot, mat);
+
+    if (row === NODE_RING_TUBE_SWEPT_ROW) {
+      mat.compose(pos, ringQuat, ZERO_SCALE);
+    }
+    ring.setMatrixAt(slot, mat);
 
     const { fill, stroke } = nodeRowColors(nodeView, row);
     body.setColorAt(slot, col.set(fill));
