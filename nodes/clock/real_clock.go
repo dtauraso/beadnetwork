@@ -9,7 +9,7 @@ type RealClock struct {
 
 	lastChange time.Time
 
-	tickCh <-chan struct{}
+	ticker *time.Ticker
 }
 
 func NewRealClock() *RealClock {
@@ -41,7 +41,7 @@ func (c *RealClock) SetSpeed(speed float64) {
 
 func (c *RealClock) Copy() Clock {
 	cp := *c
-	cp.tickCh = nil
+	cp.ticker = nil
 	return &cp
 }
 

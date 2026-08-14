@@ -34,8 +34,9 @@ mistake to avoid:
     (memory/project/layout-model/project_wire_is_straight_line_not_chain.md's O(N²) defect was momentum-free
     midpoint averaging plus human-clock gating, not "a chain of beads" per se — see that
     memory file's corrected framing).
-  - **Animation/tick** (human time, `MsPerTick`): a pulse from the process's one
-    `TickBroadcaster` (clock.go) advancing lit/carried-value state.
+  - **Animation/tick** (human time, `MsPerTick`): a pulse from the bead's own
+    `time.Ticker` (owned by the bead, stopped on its own `stop` channel) advancing
+    lit/carried-value state.
   - **Mode**: two more `BroadcastChain`s — wake (sets the ONE local `dragging` flag) and
     settle (clears it) — each advanced by a SINGLE close from the owning node
     (`BeadWakeGroup.StartDrag`/`EndDrag`), once per drag gesture (the gesture FSM's

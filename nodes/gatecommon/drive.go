@@ -2,6 +2,8 @@ package gatecommon
 
 import (
 	"context"
+	"time"
+
 	Wiring "github.com/dtauraso/wirefold/nodes/Wiring/kindapi"
 	"github.com/dtauraso/wirefold/nodes/clock"
 	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
@@ -65,7 +67,8 @@ func DriveHeld(ctx context.Context, out Wiring.DrivenOut, heldCh <-chan int64, t
 }
 
 func driveHeldClock(clk clock.Clock, speedCh <-chan float64) (tick func() int64, sleep func(context.Context) error, c clock.Clock) {
-	tickCh := clock.NewTickChan()
+	ticker := time.NewTicker(clock.TickPeriod)
+	tickCh := ticker.C
 	sleep = func(ctx context.Context) error {
 		select {
 		case <-ctx.Done():

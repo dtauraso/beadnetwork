@@ -20,8 +20,8 @@ while IFS= read -r line; do
     WAIT)
       echo "WALL-CLOCK WAIT OUTSIDE THE CLOCK GOROUTINE: time.Sleep/time.After/time.NewTicker"
       echo "found outside nodes/clock/clock.go. A goroutine parked here cannot service its other"
-      echo "channels for the wait — route through clock.NewRealClock()'s SleepCycle or"
-      echo "clock.NewTickChan() instead, both backed by the process's one TickBroadcaster:"
+      echo "channels for the wait — route through clock.NewRealClock()'s SleepCycle, or own a"
+      echo "private time.Ticker parked on only by the goroutine that created it:"
       fail=1; section=body; continue ;;
     STALE_ALLOW)
       echo "STALE ALLOWLIST: an entry in check-no-wall-clock-wait.sh's ALLOWED set no longer"
