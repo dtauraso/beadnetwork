@@ -1,4 +1,4 @@
-import React, { useCallback, useLayoutEffect, useRef, useState } from "react";
+import React, { useCallback } from "react";
 import { fireToggle, useToggleVal } from "./overlay-toggle";
 import { firePanelToggle, usePanelOpen } from "./panel-toggle";
 import { guidelinesCfg, OVERLAY_GROUPS } from "./overlay-defs";
@@ -7,11 +7,13 @@ import {
   pillContainerStyle,
   pillBodyStyle,
   pillCaretStyle,
-  inFlowPopoverStyle,
+  popoverStyle,
   PILL_ANCHOR_STYLE,
 } from "./overlay-chrome";
 
-const OPEN_WIDTH_RATIO = 1.5;
+const OPEN_WIDTH = "150%";
+
+const OPEN_PULL_LEFT = "-50%";
 
 const POPOVER_MAX_HEIGHT = "60vh";
 
@@ -36,26 +38,6 @@ export function OverlaysControl() {
     [open]
   );
 
-  const pillRef = useRef<HTMLDivElement>(null);
-  const [closedWidth, setClosedWidth] = useState(0);
-
-  useLayoutEffect(() => {
-    const pill = pillRef.current;
-    if (!pill || open) return;
-    const measure = () => {
-      const w = pill.getBoundingClientRect().width;
-      if (w > 0) setClosedWidth(w);
-    };
-    measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(pill);
-    return () => ro.disconnect();
-  }, [open]);
-
-  const openWidth = Math.round(closedWidth * OPEN_WIDTH_RATIO);
-
-  const wide = open && closedWidth > 0;
-
   return (
 
     <div
@@ -63,12 +45,13 @@ export function OverlaysControl() {
         ...PILL_ANCHOR_STYLE,
         boxSizing: "border-box",
 
-        ...(wide ? { width: openWidth, marginLeft: closedWidth - openWidth } : null),
+        position: "relative",
+
+        ...(open ? { width: OPEN_WIDTH, marginLeft: OPEN_PULL_LEFT } : null),
       }}
     >
       {}
       <div
-        ref={pillRef}
         style={{
 
           ...pillContainerStyle(active),
@@ -95,7 +78,14 @@ export function OverlaysControl() {
 
       {}
       {open && (
-        <div style={{ ...inFlowPopoverStyle(), maxHeight: POPOVER_MAX_HEIGHT, overflowY: "auto" }}>
+        <div
+          style={{
+            ...popoverStyle("100%"),
+            boxSizing: "border-box",
+            maxHeight: POPOVER_MAX_HEIGHT,
+            overflowY: "auto",
+          }}
+        >
           {}
           {OVERLAY_GROUPS.map((group) => (
             <OverlayGroupSection key={group.heading} group={group} disabled={!active} />
