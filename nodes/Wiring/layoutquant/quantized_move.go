@@ -78,7 +78,13 @@ func (lq *LayoutQuantizer) RootMove(ctx context.Context, nodeGeoms map[string]*n
 	// move its siblings onto the length that drag had stated; the drag now
 	// holds that length instead (its own polar.OrbitRule), so there is no length to
 	// restate and no sibling to correct.
+	// The drag's own composed triple travels with it. Every rule above worked
+	// on the three numbers; sending only the world point would hand the commit
+	// a position and make it guess the triple back, and the guess is canonical
+	// where the composition need not be (movemsg.Msg.TargetPolar).
+	moved := polar.Compose(nm.ScenePolar(), delta)
 	nm.SendExternal(ctx, movemsg.Msg{Kind: movemsg.KindDrag, NodeID: nodeID,
-		Target: nm.SceneCenter().Add(polar.Polar2cart(polar.Compose(nm.ScenePolar(), delta)))})
+		Target:      nm.SceneCenter().Add(polar.Polar2cart(moved)),
+		TargetPolar: &moved})
 	return true
 }

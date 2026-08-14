@@ -121,8 +121,10 @@ func (b *buildCtx) buildMoveDispatch() error {
 	for _, nm := range md.MR.NodeGeoms() {
 		for to, heldPoint := range layoutquant.HeldOutNeighbors(nm, polar.Polar{}, ruleOf) {
 			if other, ok := md.MR.NodeGeoms()[to]; ok {
+				held := heldPoint
 				other.SendExternal(context.TODO(), movemsg.Msg{Kind: movemsg.KindDrag, NodeID: to,
-					Target: other.SceneCenter().Add(polar.Polar2cart(heldPoint))})
+					Target:      other.SceneCenter().Add(polar.Polar2cart(held)),
+					TargetPolar: &held})
 			}
 		}
 	}

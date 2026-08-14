@@ -13,7 +13,7 @@ import (
 func (m *NodeGeometry) WireMessaging(
 	resolveDest func(id string) (func(movemsg.Msg) bool, bool),
 	sendMove func(id string, msg movemsg.Msg),
-	commitLocal func(id string, newPos vec3),
+	commitLocal func(id string, newPos vec3, targetPolar *polar.Polar),
 ) {
 	m.msg.WireMessaging(resolveDest, sendMove, commitLocal)
 }
