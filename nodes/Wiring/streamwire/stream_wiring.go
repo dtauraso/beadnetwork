@@ -52,9 +52,19 @@ func (sw *StreamWiring) ensureEdgeClaims() edgemover.ClaimRegistry {
 	return sw.edgeClaims
 }
 
+func nodeDrawsOwnOutEdges(nodeID string) bool { return nodeID == "1" }
+
+func kindOf(nodeGeoms map[string]*nodeactor.NodeGeometry, nodeID string) string {
+	if nm, ok := nodeGeoms[nodeID]; ok {
+		return nm.SelfKind()
+	}
+	return ""
+}
+
 func (sw *StreamWiring) SetEdgeStreams(
 	edgeSeeds []geomseeds.EdgeGeomSeed,
 	edgeMovers map[string]*edgemover.EdgeMover,
+	nodeGeoms map[string]*nodeactor.NodeGeometry,
 	baseFd int,
 	nodeRowFor func(id string) (int32, bool),
 	buildFrame func(tick uint32, sx, sy, sz, ex, ey, ez float32, srcNodeRow int32, label string, events []rowevent.RowEvent) []byte,
@@ -66,6 +76,19 @@ func (sw *StreamWiring) SetEdgeStreams(
 		}
 		fd := baseFd + row
 		rawOut := os.NewFile(uintptr(fd), fmt.Sprintf("edge-fd%d", fd))
+
+		if srcNM, sourceDraws := nodeGeoms[seed.SrcNode]; sourceDraws && nodeDrawsOwnOutEdges(seed.SrcNode) {
+			srcRow := int32(-1)
+			if r, ok := nodeRowFor(seed.SrcNode); ok {
+				srcRow = r
+			}
+			srcNM.WireOutEdgeStream(seed.Label, int32(row), seed.DstNode, kindOf(nodeGeoms, seed.DstNode), rawOut, srcRow, buildFrame)
+			if dest := em.Dest(); dest != nil {
+				dest.SetStreamsActive(true)
+			}
+			continue
+		}
+
 		handle := edgemover.Claim(sw.ensureEdgeClaims(), seed.Label, rawOut)
 		em.SetStream(handle, int32(row), nodeRowFor, buildFrame)
 

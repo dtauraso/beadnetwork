@@ -37,16 +37,4 @@ func (a *NodeAnimation) driveOutWires(ctx context.Context, tick int64) {
 	a.outs.DriveOutWires(ctx, tick)
 }
 
-func (a *NodeAnimation) Run(ctx context.Context) {
-	a.clocks.CopyClockSrc()
-	for {
-		a.clocks.ApplySpeed(a.speedCh)
-
-		tick := a.clocks.Tick()
-		a.driveOutWires(ctx, tick)
-
-		if err := a.clocks.SleepCycle(ctx); err != nil {
-			return
-		}
-	}
-}
+func (a *NodeAnimation) SpeedCh() <-chan float64 { return a.speedCh }
