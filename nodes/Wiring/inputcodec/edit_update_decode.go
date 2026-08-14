@@ -25,6 +25,8 @@ func decodeEditUpdate(r *recread.Reader) (StdinMsg, bool) {
 		return decodeUpdateTiltVector(r, attr)
 	case "panels":
 		return decodeUpdatePanels(r, attr)
+	case "node":
+		return decodeUpdateNode(r, attr)
 	}
 	return StdinMsg{}, false
 }

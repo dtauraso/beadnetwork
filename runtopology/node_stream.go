@@ -75,6 +75,10 @@ func wireNodeStreams(streamFDs SF.StreamFDs, md *W.MoveDispatch) {
 						LatticePoints:       f.LatticePoints,
 						RoundsToParallel:    f.RoundsToParallel,
 						MsgsToParallel:      f.MsgsToParallel,
+						OrbitRLocked:        f.OrbitRLocked,
+						OrbitPhiLocked:      f.OrbitPhiLocked,
+						OrbitThetaMax:       f.OrbitThetaMax,
+						OrbitActive:         f.OrbitActive,
 						Label:               f.Label,
 						Events:              toStreamEvents(f.Events),
 					})

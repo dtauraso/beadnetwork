@@ -73,6 +73,22 @@ func (m *NodeGeometry) writeStreamFrame(events []rowevent.RowEvent) {
 	kindID := m.stream.KindID()
 	roundsToParallel, msgsToParallel := m.readout.RoundsToParallel()
 
+	var orbitRLocked, orbitPhiLocked uint8
+	orbitThetaMax := float32(-1)
+	if rule := m.OrbitRule(); rule != nil {
+		orbitRLocked = 1
+		if rule.Phi != nil {
+			orbitPhiLocked = 1
+		}
+		if rule.MaxTheta != nil {
+			orbitThetaMax = float32(*rule.MaxTheta)
+		}
+	}
+	orbitActive := uint8(0)
+	if m.OrbitActive() {
+		orbitActive = 1
+	}
+
 	m.stream.WriteFrame(nodeframe.NodeFrameInput{
 		Tick:                uint32(m.clocks.Tick()),
 		NodeRow:             row,
@@ -107,6 +123,10 @@ func (m *NodeGeometry) writeStreamFrame(events []rowevent.RowEvent) {
 		LatticePoints:       uint8(points),
 		RoundsToParallel:    roundsToParallel,
 		MsgsToParallel:      msgsToParallel,
+		OrbitRLocked:        orbitRLocked,
+		OrbitPhiLocked:      orbitPhiLocked,
+		OrbitThetaMax:       orbitThetaMax,
+		OrbitActive:         orbitActive,
 		Label:               label,
 		Events:              events,
 	})

@@ -2,6 +2,7 @@ package stdinreader
 
 import (
 	"context"
+	"math"
 	"strconv"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -99,6 +100,44 @@ func applyUpdateOverlays(ctx context.Context, msg inputcodec.StdinMsg, md *dispa
 	}
 
 	md.Persist.Overlays().Schedule(md.UI.OV)
+}
+
+var nodeAttrHandlers = map[string]func(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch){
+	"orbitPhi": func(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch) {
+		id := strconv.Itoa(msg.Num + 1)
+		if _, ok := md.MR.NodeGeoms()[id]; !ok {
+			return
+		}
+		md.MR.SendMove(ctx, id, movemsg.Msg{Kind: movemsg.KindOrbitPhiToggle, NodeID: id})
+	},
+	"orbitMaxTheta": func(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch) {
+		id := strconv.Itoa(msg.Num + 1)
+		if _, ok := md.MR.NodeGeoms()[id]; !ok {
+			return
+		}
+		var maxTheta *float64
+		if msg.X >= 0 {
+			radians := msg.X * math.Pi / 180
+			maxTheta = &radians
+		}
+		md.MR.SendMove(ctx, id, movemsg.Msg{Kind: movemsg.KindOrbitMaxTheta, NodeID: id, OrbitMaxTheta: maxTheta})
+	},
+	"orbitActive": func(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch) {
+		id := strconv.Itoa(msg.Num + 1)
+		if _, ok := md.MR.NodeGeoms()[id]; !ok {
+			return
+		}
+		md.MR.SendMove(ctx, id, movemsg.Msg{Kind: movemsg.KindOrbitActiveToggle, NodeID: id})
+	},
+}
+
+func applyUpdateNode(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
+	if md == nil {
+		return
+	}
+	if h, ok := nodeAttrHandlers[msg.Attr]; ok {
+		h(ctx, msg, md)
+	}
 }
 
 func applyUpdatePanels(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks []chan float64) {

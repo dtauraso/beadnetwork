@@ -7,6 +7,7 @@ import (
 type Node interface {
 	ScenePolar() polar.Polar
 	OrbitRule() *polar.OrbitRule
+	OrbitActive() bool
 	NeighborKinds() map[string]string
 	IsOutTarget(neighborID string) bool
 	DeltaFrom(otherID string) (polar.Polar, bool)
@@ -52,7 +53,7 @@ func RequestFor(kind string) Request {
 
 func TrimToOrbitRule(delta polar.Polar, of Node) polar.Polar {
 	rule := of.OrbitRule()
-	if rule == nil {
+	if rule == nil || !of.OrbitActive() {
 		return delta
 	}
 	for neighborID := range of.NeighborKinds() {

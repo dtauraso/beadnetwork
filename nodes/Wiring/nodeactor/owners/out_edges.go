@@ -15,12 +15,14 @@ import (
 	"github.com/dtauraso/wirefold/nodes/wire/outport"
 )
 
-type EdgeFrameBuilder = func(tick uint32, sx, sy, sz, ex, ey, ez float32, srcNodeRow int32, label string, events []rowevent.RowEvent) []byte
+type EdgeFrameBuilder = func(tick uint32, sx, sy, sz, ex, ey, ez float32, srcNodeRow, dstNodeRow int32, deltaR float32, label string, events []rowevent.RowEvent) []byte
 
 type outEdge struct {
-	label    string
-	edgeRow  int32
-	targetID string
+	label      string
+	edgeRow    int32
+	targetID   string
+	dstNodeRow int32
+	deltaR     float32
 
 	targetKind string
 
@@ -76,13 +78,14 @@ func (o *OutEdges) BindWire(label, targetID, targetKind string, port *outport.Ou
 
 func (o *OutEdges) Any() bool { return len(o.edges) > 0 }
 
-func (o *OutEdges) AddOutEdge(label string, edgeRow int32, targetID, targetKind string, w io.Writer, nodeRow int32, buildFrame EdgeFrameBuilder) {
+func (o *OutEdges) AddOutEdge(label string, edgeRow int32, targetID, targetKind string, w io.Writer, nodeRow, dstNodeRow int32, buildFrame EdgeFrameBuilder) {
 	o.nodeRow = nodeRow
 	o.buildFrame = buildFrame
 	e := o.edgeFor(label)
 	e.edgeRow = edgeRow
 	e.targetID = targetID
 	e.targetKind = targetKind
+	e.dstNodeRow = dstNodeRow
 	e.out = w
 }
 
@@ -112,6 +115,7 @@ func (o *OutEdges) DeriveGeometry(tick int64, self nodegeom.NodeGeom, deltas *De
 			e.steps = edgegeom.EdgeStepCount(dist, self.Kind, e.targetKind)
 		}
 		e.start, e.end, e.derived = start, end, true
+		e.deltaR = float32(d.R)
 
 		if e.port != nil {
 			e.port.SetGeom(e.steps, start, end)
@@ -151,7 +155,7 @@ func (o *OutEdges) WriteFrames(tick int64, self nodegeom.NodeGeom, deltas *Delta
 		frame := o.buildFrame(uint32(tick),
 			float32(start.X), float32(start.Y), float32(start.Z),
 			float32(end.X), float32(end.Y), float32(end.Z),
-			o.nodeRow, e.label, nil)
+			o.nodeRow, e.dstNodeRow, e.deltaR, e.label, nil)
 		var hdr [4]byte
 		binary.LittleEndian.PutUint32(hdr[:], uint32(len(frame)))
 		_, _ = e.out.Write(hdr[:])

@@ -8,6 +8,7 @@ type bufLayoutPanel struct {
 	NodeState uint8 `buf:"u8"`
 	NodeReach uint8 `buf:"u8"`
 	NodePoles uint8 `buf:"u8"`
+	NodeRules uint8 `buf:"u8"`
 
 	Scene        uint8 `buf:"u8"`
 	SceneGuides  uint8 `buf:"u8"`

@@ -10,3 +10,7 @@ export const IN_SCENE_ATTR_LATTICE_POINTS = 8;
 export const IN_SCENE_ATTR_CREATE = 9;
 export const IN_SCENE_ATTR_DELETE = 10;
 export const IN_PANEL_ATTR_TOGGLE = 11;
+
+export const IN_NODE_ATTR_ORBIT_PHI = 12;
+export const IN_NODE_ATTR_ORBIT_MAX_THETA = 13;
+export const IN_NODE_ATTR_ORBIT_ACTIVE = 14;

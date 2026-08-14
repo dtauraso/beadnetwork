@@ -79,6 +79,8 @@ type edgeFrameFixture struct {
 	EY         float32 `json:"ey"`
 	EZ         float32 `json:"ez"`
 	SrcNodeRow int32   `json:"srcNodeRow"`
+	DstNodeRow int32   `json:"dstNodeRow"`
+	DeltaR     float32 `json:"deltaR"`
 	Label      string  `json:"label"`
 	Hex        string  `json:"hex"`
 }

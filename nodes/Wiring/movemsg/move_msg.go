@@ -27,6 +27,12 @@ const (
 	KindTiltVectorAngle = "tiltVectorAngle"
 
 	KindTiltVectorReset = "tiltVectorReset"
+
+	KindOrbitPhiToggle = "orbitPhiToggle"
+
+	KindOrbitMaxTheta = "orbitMaxTheta"
+
+	KindOrbitActiveToggle = "orbitActiveToggle"
 )
 
 type TiltEditMsg struct {
@@ -61,6 +67,8 @@ type Msg struct {
 	Bool bool
 
 	Axis string
+
+	OrbitMaxTheta *float64
 
 	TestDone chan struct{}
 }
