@@ -56,11 +56,10 @@ func (mr *MoverRegistry) FinalizeActors(speedSinks *[]chan float64) {
 	mr.nodeMovers = map[string]*nodeactor.NodeMover{}
 	mr.nodeAnimations = map[string]*nodeactor.NodeAnimation{}
 	for id, ng := range mr.nodeGeoms {
-		mr.nodeMovers[id] = nodeactor.NewNodeMover(ng)
-
 		if mr.selfDriveClaimed[id] {
 			continue
 		}
+		mr.nodeMovers[id] = nodeactor.NewNodeMover(ng)
 
 		anim := ng.Animation()
 		if speedSinks != nil {
