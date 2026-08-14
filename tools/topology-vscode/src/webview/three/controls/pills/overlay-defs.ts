@@ -156,7 +156,6 @@ const commEdgesCfg: ToggleCfg = {
 export type OverlayGroup = {
   heading: string;
   cfgs: ToggleCfg[];
-  under?: Partial<Record<string, ToggleCfg>>;
 
   groups?: OverlayGroup[];
 };
@@ -170,17 +169,9 @@ export const OVERLAY_GROUPS: OverlayGroup[] = [
     heading: "NODE",
     cfgs: [],
     groups: [
-      {
-        heading: "SHAPE",
-        cfgs: [nodeBodyCfg, nodeRingCfg, ringPickCfg],
-        under: { [ringPickCfg.flag]: nodeRingCfg },
-      },
+      { heading: "SHAPE", cfgs: [nodeBodyCfg, nodeRingCfg, ringPickCfg] },
       { heading: "STATE", cfgs: [selectionRingCfg, hoverRingCfg] },
-      {
-        heading: "REACH",
-        cfgs: [reachSphereCfg, selSpherePolesCfg],
-        under: { [selSpherePolesCfg.flag]: reachSphereCfg },
-      },
+      { heading: "REACH", cfgs: [reachSphereCfg, selSpherePolesCfg] },
       { heading: "POLES", cfgs: [nodePolesCfg] },
     ],
   },
@@ -188,11 +179,7 @@ export const OVERLAY_GROUPS: OverlayGroup[] = [
     heading: "SCENE",
     cfgs: [],
     groups: [
-      {
-        heading: "GUIDES",
-        cfgs: [ringsCfg, handholdsCfg],
-        under: { [handholdsCfg.flag]: ringsCfg },
-      },
+      { heading: "GUIDES", cfgs: [ringsCfg, handholdsCfg] },
       { heading: "POLES", cfgs: [scenePolesCfg] },
       { heading: "VECTORS", cfgs: [sceneVectorsCfg, commEdgesCfg] },
       { heading: "LABELS", cfgs: [globalLabelsCfg] },

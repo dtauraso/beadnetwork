@@ -74,19 +74,9 @@ export function OverlayGroupSection({
       </div>
       {open && (
         <div style={REVEALED_LIST_STYLE}>
-          {group.cfgs.map((cfg) => {
-            const parent = group.under?.[cfg.flag];
-
-            const parentOff = !!parent && !parent.active(toggleVal(bufFlags, parent));
-            return (
-              <OverlayRow
-                key={cfg.flag}
-                cfg={cfg}
-                disabled={disabled || parentOff}
-                indent={(parent ? 1 : 0) + depth}
-              />
-            );
-          })}
+          {group.cfgs.map((cfg) => (
+            <OverlayRow key={cfg.flag} cfg={cfg} disabled={disabled} indent={depth} />
+          ))}
           {(group.groups ?? []).map((sub) => (
             <OverlayGroupSection
               key={sub.heading}

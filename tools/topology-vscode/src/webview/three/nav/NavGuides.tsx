@@ -20,8 +20,8 @@ export function NavGuides() {
   const showTori = g && !!bufFlags?.tori;
   const showScenePoles = g && !!bufFlags?.scenePoles;
   const showNodePoles = g && !!bufFlags?.nodePoles;
-  const showSelPoles = g && !!bufFlags?.reachSphere && !!bufFlags?.selSpherePoles;
-  const showHandholds = g && showTori && !!bufFlags?.handholds;
+  const showSelPoles = g && !!bufFlags?.selSpherePoles;
+  const showHandholds = g && !!bufFlags?.handholds;
   const showSceneVectors = g && !!bufFlags?.sceneVectors;
 
   const [navTick, setNavTick] = useState(0);
