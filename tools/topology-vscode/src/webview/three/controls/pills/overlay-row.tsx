@@ -3,7 +3,7 @@ import { fireToggle, useToggleVal, type ToggleCfg } from "./overlay-toggle";
 import { popoverRowStyle } from "./overlay-chrome";
 import * as T from "../chrome-theme";
 
-export function OverlayRow({ cfg, disabled, indent }: { cfg: ToggleCfg; disabled?: boolean; indent?: boolean }) {
+export function OverlayRow({ cfg, disabled, indent = 0 }: { cfg: ToggleCfg; disabled?: boolean; indent?: number }) {
   const val = useToggleVal(cfg);
   const active = cfg.active(val);
   const [hover, setHover] = useState(false);
@@ -26,7 +26,7 @@ export function OverlayRow({ cfg, disabled, indent }: { cfg: ToggleCfg; disabled
       title={cfg.title(active)}
       style={{
         ...popoverRowStyle(hover, !!disabled),
-        paddingLeft: indent ? 20 : 6,
+        paddingLeft: 6 + indent * 14,
       }}
     >
       {}

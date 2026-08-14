@@ -153,34 +153,49 @@ const commEdgesCfg: ToggleCfg = {
   payload: (v) => ({ flag: "commEdges", was: v }),
 };
 
-export type OverlayGroup ={ heading: string; cfgs: ToggleCfg[]; under?: Partial<Record<string, ToggleCfg>> };
+export type OverlayGroup = {
+  heading: string;
+  cfgs: ToggleCfg[];
+  under?: Partial<Record<string, ToggleCfg>>;
+
+  groups?: OverlayGroup[];
+};
+
+export function groupCfgs(group: OverlayGroup): ToggleCfg[] {
+  return [...group.cfgs, ...(group.groups ?? []).flatMap(groupCfgs)];
+}
 
 export const OVERLAY_GROUPS: OverlayGroup[] = [
   {
     heading: "NODE",
-    cfgs: [
-      nodeBodyCfg,
-      nodeRingCfg, ringPickCfg,
-      selectionRingCfg, hoverRingCfg,
-      reachSphereCfg, selSpherePolesCfg,
-      nodePolesCfg,
+    cfgs: [],
+    groups: [
+      {
+        heading: "SHAPE",
+        cfgs: [nodeBodyCfg, nodeRingCfg, ringPickCfg],
+        under: { [ringPickCfg.flag]: nodeRingCfg },
+      },
+      { heading: "STATE", cfgs: [selectionRingCfg, hoverRingCfg] },
+      {
+        heading: "REACH",
+        cfgs: [reachSphereCfg, selSpherePolesCfg],
+        under: { [selSpherePolesCfg.flag]: reachSphereCfg },
+      },
+      { heading: "POLES", cfgs: [nodePolesCfg] },
     ],
-    under: {
-      [ringPickCfg.flag]: nodeRingCfg,
-      [selSpherePolesCfg.flag]: reachSphereCfg,
-    },
   },
   {
     heading: "SCENE",
-    cfgs: [
-      ringsCfg, handholdsCfg,
-      scenePolesCfg,
-      sceneVectorsCfg,
-      commEdgesCfg,
-      globalLabelsCfg,
+    cfgs: [],
+    groups: [
+      {
+        heading: "GUIDES",
+        cfgs: [ringsCfg, handholdsCfg],
+        under: { [handholdsCfg.flag]: ringsCfg },
+      },
+      { heading: "POLES", cfgs: [scenePolesCfg] },
+      { heading: "VECTORS", cfgs: [sceneVectorsCfg, commEdgesCfg] },
+      { heading: "LABELS", cfgs: [globalLabelsCfg] },
     ],
-    under: {
-      [handholdsCfg.flag]: ringsCfg,
-    },
   },
 ];
