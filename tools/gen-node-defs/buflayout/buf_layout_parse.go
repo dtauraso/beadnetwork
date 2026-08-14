@@ -26,7 +26,7 @@ type BufLayoutSchema struct {
 }
 
 var bufBlockOrder = []string{
-	"Node", "Interior", "Edge", "EdgeBead", "Camera", "Overlay", "Scene", "Event",
+	"Node", "Interior", "Edge", "EdgeBead", "Camera", "Overlay", "Panel", "Scene", "Event",
 }
 
 func ParseBufferLayoutDir(dir string) (BufLayoutSchema, error) {

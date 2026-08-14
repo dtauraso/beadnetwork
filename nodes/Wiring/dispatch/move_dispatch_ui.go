@@ -7,6 +7,7 @@ import (
 
 func initMoveDispatchUIDefaults(md *MoveDispatch) {
 	md.UI.OV = viewstate.DefaultOverlayState()
+	md.UI.PN = viewstate.DefaultPanelState()
 	md.UI.Speed = 1
 	md.UI.ClockDivisor = 1
 	md.UI.LatticePoints = scenepersist.DefaultLatticePoints

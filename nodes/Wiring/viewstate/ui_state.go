@@ -33,6 +33,8 @@ type UIState struct {
 
 	OV OverlayState
 
+	PN PanelState
+
 	Gest gesturefsm.GestureState
 
 	Sel selectionstate.SelectionState

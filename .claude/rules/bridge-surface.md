@@ -17,9 +17,13 @@ carries the TS → Go vocabulary.
 - **Addressed edits** — a single geometry-CRUD `edit` message whose sole op is `update`
   (see `nodes/Wiring/stdinreader/dispatch_edit.go` `applyEdit`, fenced by `EDIT_OPS_START`/
   `EDIT_OPS_END`, and `tools/topology-vscode/src/messages.ts` `EditMsg`): **`update` sets
-  an ATTRIBUTE on a typed entity** (`kind` = node / edge / camera / overlays / scene) —
-  there is no per-feature op. New *addressed* capability is a new entity kind or
-  attribute, NOT a new op.
+  an ATTRIBUTE on a typed entity** (`kind` = node / edge / camera / overlays / panels /
+  scene) — there is no per-feature op. New *addressed* capability is a new entity kind or
+  attribute, NOT a new op. `panels` is its OWN entity kind, deliberately separate from
+  `overlays`: it addresses the overlays popover's disclosure open/closed state, not overlay
+  visibility, and is its own hand-written `viewstate.PanelState` (not generated, unlike
+  `OverlayState`), streamed in its own Panel buffer block and persisted to its own file
+  under `view/` (`.claude/rules/persistence-ownership.md`).
 - **Bare commands** — `save` is the only bare command. It is defined end-to-end (kind byte,
   Go decode + persist) but currently has **no live TS sender** — no UI affordance posts it
   yet; it stays in the vocabulary because Go's decode and the `INPUT_LAYOUT_FINGERPRINT`

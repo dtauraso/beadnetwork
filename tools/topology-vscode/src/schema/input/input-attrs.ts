@@ -9,3 +9,4 @@ export const IN_TILT_VECTOR_ATTR_START = 7;
 export const IN_SCENE_ATTR_LATTICE_POINTS = 8;
 export const IN_SCENE_ATTR_CREATE = 9;
 export const IN_SCENE_ATTR_DELETE = 10;
+export const IN_PANEL_ATTR_TOGGLE = 11;

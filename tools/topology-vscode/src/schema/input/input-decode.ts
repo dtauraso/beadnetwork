@@ -1,13 +1,14 @@
 import { ByteReader } from "./byte-reader";
 import { IN_KIND_SAVE, IN_KIND_RAW_INPUT, IN_KIND_EDIT_UPDATE, IN_EVENT_KINDS, IN_HIT_KINDS, IN_UPDATE_KINDS } from "./input-layout-gen";
-import { IN_OVERLAY_ATTR_TOGGLE, IN_CLOCK_ATTR_SPEED, IN_DISTANCE_GROUP_ATTR_LENGTH } from "./input-attrs";
-import type { RawInputEvent, OverlayFlag } from "../../messages";
-import { OVERLAY_FLAG_ORDER } from "../../messages";
+import { IN_OVERLAY_ATTR_TOGGLE, IN_CLOCK_ATTR_SPEED, IN_DISTANCE_GROUP_ATTR_LENGTH, IN_PANEL_ATTR_TOGGLE } from "./input-attrs";
+import type { RawInputEvent, OverlayFlag, PanelFlag } from "../../messages";
+import { OVERLAY_FLAG_ORDER, PANEL_FLAG_ORDER } from "../../messages";
 
 export type DecodedInput =
   | { kind: "save" }
   | { kind: "raw-input"; event: RawInputEvent }
   | { kind: "edit-update"; entity: "overlays"; attr: "toggle"; flag: OverlayFlag }
+  | { kind: "edit-update"; entity: "panels"; attr: "toggle"; flag: PanelFlag }
   | { kind: "edit-update"; entity: "clock"; attr: "speed"; value: number }
   | { kind: "edit-update"; entity: "distanceGroup"; attr: "length"; group: number; dir: "up" | "down" };
 
@@ -54,6 +55,15 @@ export function decodeInputRecord(record: ArrayBuffer): DecodedInput | undefined
           const flag = OVERLAY_FLAG_ORDER[r.u8()];
           if (!flag) return undefined;
           return { kind: "edit-update", entity: "overlays", attr: "toggle", flag };
+        }
+        return undefined;
+      }
+      if (entityKind === "panels") {
+        const attr = r.u8();
+        if (attr === IN_PANEL_ATTR_TOGGLE) {
+          const flag = PANEL_FLAG_ORDER[r.u8()];
+          if (!flag) return undefined;
+          return { kind: "edit-update", entity: "panels", attr: "toggle", flag };
         }
         return undefined;
       }

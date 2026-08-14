@@ -8,9 +8,10 @@ import {
   IN_CLOCK_ATTR_SPEED,
   IN_DISTANCE_GROUP_ATTR_LENGTH,
   IN_SCENE_ATTR_SELECTED,
+  IN_PANEL_ATTR_TOGGLE,
 } from "./input-attrs";
-import type { OverlayFlag } from "../../messages";
-import { OVERLAY_FLAG_ORDER } from "../../messages";
+import type { OverlayFlag, PanelFlag } from "../../messages";
+import { OVERLAY_FLAG_ORDER, PANEL_FLAG_ORDER } from "../../messages";
 
 export function encodeOverlaysToggle(flag: OverlayFlag): ArrayBuffer {
   const w = new ByteWriter();
@@ -18,6 +19,15 @@ export function encodeOverlaysToggle(flag: OverlayFlag): ArrayBuffer {
   w.u8(enumIndex(IN_UPDATE_KINDS, "overlays"));
   w.u8(IN_OVERLAY_ATTR_TOGGLE);
   w.u8(enumIndex(OVERLAY_FLAG_ORDER, flag));
+  return w.toArrayBuffer();
+}
+
+export function encodePanelsToggle(flag: PanelFlag): ArrayBuffer {
+  const w = new ByteWriter();
+  w.u8(IN_KIND_EDIT_UPDATE);
+  w.u8(enumIndex(IN_UPDATE_KINDS, "panels"));
+  w.u8(IN_PANEL_ATTR_TOGGLE);
+  w.u8(enumIndex(PANEL_FLAG_ORDER, flag));
   return w.toArrayBuffer();
 }
 

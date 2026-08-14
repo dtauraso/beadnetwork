@@ -1,4 +1,5 @@
 import type { ToggleCfg } from "./overlay-toggle";
+import type { PanelFlag } from "../../../../messages";
 
 export const guidelinesCfg: ToggleCfg = {
   flag: "overlays",
@@ -157,6 +158,8 @@ export type OverlayGroup = {
   heading: string;
   cfgs: ToggleCfg[];
 
+  panel: PanelFlag;
+
   groups?: OverlayGroup[];
 };
 
@@ -168,21 +171,23 @@ export const OVERLAY_GROUPS: OverlayGroup[] = [
   {
     heading: "NODE",
     cfgs: [],
+    panel: "node",
     groups: [
-      { heading: "SHAPE", cfgs: [nodeBodyCfg, nodeRingCfg, ringPickCfg] },
-      { heading: "STATE", cfgs: [selectionRingCfg, hoverRingCfg] },
-      { heading: "REACH", cfgs: [reachSphereCfg, selSpherePolesCfg] },
-      { heading: "POLES", cfgs: [nodePolesCfg] },
+      { heading: "SHAPE", cfgs: [nodeBodyCfg, nodeRingCfg, ringPickCfg], panel: "nodeShape" },
+      { heading: "STATE", cfgs: [selectionRingCfg, hoverRingCfg], panel: "nodeState" },
+      { heading: "REACH", cfgs: [reachSphereCfg, selSpherePolesCfg], panel: "nodeReach" },
+      { heading: "POLES", cfgs: [nodePolesCfg], panel: "nodePoles" },
     ],
   },
   {
     heading: "SCENE",
     cfgs: [],
+    panel: "scene",
     groups: [
-      { heading: "GUIDES", cfgs: [ringsCfg, handholdsCfg] },
-      { heading: "POLES", cfgs: [scenePolesCfg] },
-      { heading: "VECTORS", cfgs: [sceneVectorsCfg, commEdgesCfg] },
-      { heading: "LABELS", cfgs: [globalLabelsCfg] },
+      { heading: "GUIDES", cfgs: [ringsCfg, handholdsCfg], panel: "sceneGuides" },
+      { heading: "POLES", cfgs: [scenePolesCfg], panel: "scenePoles" },
+      { heading: "VECTORS", cfgs: [sceneVectorsCfg, commEdgesCfg], panel: "sceneVectors" },
+      { heading: "LABELS", cfgs: [globalLabelsCfg], panel: "sceneLabels" },
     ],
   },
 ];

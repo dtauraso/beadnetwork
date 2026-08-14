@@ -68,6 +68,31 @@ export function readOverlayGroupLenInput(view: DataView): number { return view.g
 export function readOverlayGroupLenGate(view: DataView): number { return view.getFloat32(OVERLAY_COL_GROUP_LEN_GATE, true); }
 export function readOverlaySpeed(view: DataView): number { return view.getFloat32(OVERLAY_COL_SPEED, true); }
 
+export const PANEL_COL_OVERLAYS                  = 0; // u8
+export const PANEL_COL_NODE                      = 1; // u8
+export const PANEL_COL_NODE_SHAPE                = 2; // u8
+export const PANEL_COL_NODE_STATE                = 3; // u8
+export const PANEL_COL_NODE_REACH                = 4; // u8
+export const PANEL_COL_NODE_POLES                = 5; // u8
+export const PANEL_COL_SCENE                     = 6; // u8
+export const PANEL_COL_SCENE_GUIDES              = 7; // u8
+export const PANEL_COL_SCENE_POLES               = 8; // u8
+export const PANEL_COL_SCENE_VECTORS             = 9; // u8
+export const PANEL_COL_SCENE_LABELS              = 10; // u8
+export const PANEL_STRIDE                        = 11;
+
+export function readPanelOverlays(view: DataView): number { return view.getUint8(PANEL_COL_OVERLAYS); }
+export function readPanelNode(view: DataView): number { return view.getUint8(PANEL_COL_NODE); }
+export function readPanelNodeShape(view: DataView): number { return view.getUint8(PANEL_COL_NODE_SHAPE); }
+export function readPanelNodeState(view: DataView): number { return view.getUint8(PANEL_COL_NODE_STATE); }
+export function readPanelNodeReach(view: DataView): number { return view.getUint8(PANEL_COL_NODE_REACH); }
+export function readPanelNodePoles(view: DataView): number { return view.getUint8(PANEL_COL_NODE_POLES); }
+export function readPanelScene(view: DataView): number { return view.getUint8(PANEL_COL_SCENE); }
+export function readPanelSceneGuides(view: DataView): number { return view.getUint8(PANEL_COL_SCENE_GUIDES); }
+export function readPanelScenePoles(view: DataView): number { return view.getUint8(PANEL_COL_SCENE_POLES); }
+export function readPanelSceneVectors(view: DataView): number { return view.getUint8(PANEL_COL_SCENE_VECTORS); }
+export function readPanelSceneLabels(view: DataView): number { return view.getUint8(PANEL_COL_SCENE_LABELS); }
+
 // ── Scene block ──────────────────────────────────────────────
 export const SCENE_COL_CX                        = 0; // f32
 export const SCENE_COL_CY                        = 4; // f32
@@ -79,4 +104,3 @@ export function readSceneCX(view: DataView): number { return view.getFloat32(SCE
 export function readSceneCY(view: DataView): number { return view.getFloat32(SCENE_COL_CY, true); }
 export function readSceneCZ(view: DataView): number { return view.getFloat32(SCENE_COL_CZ, true); }
 export function readSceneRadius(view: DataView): number { return view.getFloat32(SCENE_COL_RADIUS, true); }
-

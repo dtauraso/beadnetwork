@@ -1,6 +1,7 @@
 import React, { useCallback, useState } from "react";
 import { fireToggle, toggleVal } from "./overlay-toggle";
 import { useOverlayFlags } from "../flags/overlay-flags";
+import { firePanelToggle, usePanelOpen } from "./panel-toggle";
 import { groupCfgs, type OverlayGroup } from "./overlay-defs";
 import { OverlayRow } from "./overlay-row";
 import {
@@ -20,7 +21,7 @@ export function OverlayGroupSection({
   disabled?: boolean;
   depth?: number;
 }) {
-  const [open, setOpen] = useState(false);
+  const open = usePanelOpen(group.panel);
   const [hover, setHover] = useState(false);
   const [countHover, setCountHover] = useState(false);
   const bufFlags = useOverlayFlags();
@@ -44,7 +45,7 @@ export function OverlayGroupSection({
   return (
     <div>
       <div
-        onClick={(e) => { e.stopPropagation(); setOpen((o) => !o); }}
+        onClick={(e) => { e.stopPropagation(); firePanelToggle(group.panel, open); }}
         onMouseEnter={() => setHover(true)}
         onMouseLeave={() => setHover(false)}
         title={open ? `Collapse ${group.heading}` : `Expand ${group.heading}`}

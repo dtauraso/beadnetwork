@@ -13,6 +13,8 @@ type Persisters struct {
 
 	overlays *scenepersist.Persister[viewstate.OverlayState]
 
+	panels *scenepersist.Persister[viewstate.PanelState]
+
 	sphere *scenepersist.Persister[polar.SceneSphere]
 
 	speed *scenepersist.Persister[float64]
@@ -30,6 +32,9 @@ func (p *Persisters) ArmEdit(topologyPath string) {
 	p.overlays = &scenepersist.Persister[viewstate.OverlayState]{
 		Path: scenepaths.OverlaysFilePath(topologyPath), Write: scenepersist.WriteSceneOverlays, Tag: "scene_overlays_persist",
 	}
+	p.panels = &scenepersist.Persister[viewstate.PanelState]{
+		Path: scenepaths.PanelsFilePath(topologyPath), Write: scenepersist.WriteScenePanels, Tag: "scene_panels_persist",
+	}
 	p.sphere = &scenepersist.Persister[polar.SceneSphere]{
 		Path: scenepaths.SphereFilePath(topologyPath), Write: scenepersist.WriteSceneSphere, Tag: "scene_sphere_persist",
 	}
@@ -42,6 +47,8 @@ func (p *Persisters) ArmEdit(topologyPath string) {
 }
 
 func (p *Persisters) Overlays() *scenepersist.Persister[viewstate.OverlayState] { return p.overlays }
+
+func (p *Persisters) Panels() *scenepersist.Persister[viewstate.PanelState] { return p.panels }
 
 func (p *Persisters) Sphere() *scenepersist.Persister[polar.SceneSphere] { return p.sphere }
 

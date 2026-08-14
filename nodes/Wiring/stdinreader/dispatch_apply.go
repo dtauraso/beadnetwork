@@ -100,3 +100,15 @@ func applyUpdateOverlays(ctx context.Context, msg inputcodec.StdinMsg, md *dispa
 
 	md.Persist.Overlays().Schedule(md.UI.OV)
 }
+
+func applyUpdatePanels(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
+	if md == nil {
+		return
+	}
+	if h, ok := panelAttrHandlers[msg.Attr]; ok {
+		h(msg, md)
+	}
+
+	md.Persist.Panels().Schedule(md.UI.PN)
+	md.UI.EmitViewFrame(nil)
+}

@@ -1,6 +1,7 @@
 import {
   CAMERA_STRIDE,
   OVERLAY_STRIDE,
+  PANEL_STRIDE,
   SCENE_STRIDE,
   BUF_LAYOUT_FINGERPRINT_HASH,
 } from "../../../schema/buffer-layout/buffer-layout";
@@ -60,6 +61,7 @@ export interface DecodedViewFrame {
   tick: number;
   cameraView: DataView;
   overlayView: DataView;
+  panelView: DataView;
   sceneView: DataView;
 
   sceneTabs: string[];
@@ -82,7 +84,7 @@ export function decodeViewFrame(buf: ArrayBuffer): DecodedViewFrame | null {
 }
 
 function decodeViewFrameUncached(buf: ArrayBuffer): DecodedViewFrame | null {
-  const expectedLen = BUF_VIEW_FRAME_HEADER_SIZE + CAMERA_STRIDE + OVERLAY_STRIDE + SCENE_STRIDE + SCENE_TABS_HEADER_SIZE;
+  const expectedLen = BUF_VIEW_FRAME_HEADER_SIZE + CAMERA_STRIDE + OVERLAY_STRIDE + PANEL_STRIDE + SCENE_STRIDE + SCENE_TABS_HEADER_SIZE;
   if (buf.byteLength < expectedLen) return null;
 
   const hdr = new DataView(buf, 0, BUF_VIEW_FRAME_HEADER_SIZE);
@@ -102,6 +104,9 @@ function decodeViewFrameUncached(buf: ArrayBuffer): DecodedViewFrame | null {
   const overlayView = new DataView(buf, off, OVERLAY_STRIDE);
   off += OVERLAY_STRIDE;
 
+  const panelView = new DataView(buf, off, PANEL_STRIDE);
+  off += PANEL_STRIDE;
+
   const sceneView = new DataView(buf, off, SCENE_STRIDE);
   off += SCENE_STRIDE;
 
@@ -111,7 +116,7 @@ function decodeViewFrameUncached(buf: ArrayBuffer): DecodedViewFrame | null {
   const { count: eventCount, view: eventView, textView: eventTextView } = decodeTrailingEvents(buf, off);
 
   return {
-    tick, cameraView, overlayView, sceneView,
+    tick, cameraView, overlayView, panelView, sceneView,
     sceneTabs: tabs.names, sceneTabSelected: tabs.selected,
     eventCount, eventView, eventTextView,
   };

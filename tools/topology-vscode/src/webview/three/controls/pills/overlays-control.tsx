@@ -1,5 +1,6 @@
 import React, { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { fireToggle, useToggleVal } from "./overlay-toggle";
+import { firePanelToggle, usePanelOpen } from "./panel-toggle";
 import { guidelinesCfg, OVERLAY_GROUPS } from "./overlay-defs";
 import { OverlayGroupSection } from "./overlay-group-section";
 import {
@@ -13,7 +14,7 @@ import {
 const OPEN_WIDTH_RATIO = 1.5;
 
 export function OverlaysControl() {
-  const [open, setOpen] = useState(false);
+  const open = usePanelOpen("overlays");
   const val = useToggleVal(guidelinesCfg);
   const active = guidelinesCfg.active(val);
 
@@ -25,10 +26,13 @@ export function OverlaysControl() {
     [val]
   );
 
-  const onCaretClick = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    setOpen((o) => !o);
-  }, []);
+  const onCaretClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      firePanelToggle("overlays", open);
+    },
+    [open]
+  );
 
   const pillRef = useRef<HTMLDivElement>(null);
   const [closedWidth, setClosedWidth] = useState(0);
