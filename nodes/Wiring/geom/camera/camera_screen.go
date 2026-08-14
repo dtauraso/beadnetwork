@@ -29,15 +29,6 @@ func DeltaToPolar(dx, dy float64) (r, angle float64) {
 	return math.Hypot(dx, dy), math.Atan2(dy, dx)
 }
 
-// PanDisplacementPolar slides the view in its own screen plane.
-//
-// It used to ask for the BEARING of the up vector as seen from the camera
-// position, offset the drag angle by it, and rebuild a direction from that
-// bearing — which is why a "which way is north" reference existed, and why that
-// reference had a special case at the poles where no meridian is defined.
-//
-// The screen plane is already a basis: CamBasis.RefX and RefY are its axes.
-// Sliding along them needs no angle measured from anything.
 func PanDisplacementPolar(pos, up Dir, dx, dy, worldPerPixel float64) vec3 {
 	r, angle := DeltaToPolar(dx, -dy)
 	return PlaneSlide(BasisFromViewpoint(pos, up), r, angle, worldPerPixel)

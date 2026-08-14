@@ -20,7 +20,6 @@ func EnableEditPersist(persist *Persisters, scenes *sceneswitch.SceneSwitch, mr 
 	for _, nm := range mr.NodeGeoms() {
 		nm.SetPersistRoot(root)
 	}
-	// An edge owns its own file, so it is armed the same way its endpoints are.
 	for _, em := range mr.EdgeMovers() {
 		em.SetPersistRoot(root)
 	}

@@ -10,10 +10,6 @@ type LiveBeadRow struct {
 	X, Y, Z float64
 	Gen     uint64
 
-	// Steps and Age are what decided this bead's fraction: the crossing it
-	// was placed for, and how far into it the bead already was when this row
-	// was taken. They ride along so a bead in the wrong place can be read
-	// back to whichever of the two was wrong.
 	Steps int
 	Age   float64
 }

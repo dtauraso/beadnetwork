@@ -4,9 +4,6 @@ import { type NavNode } from "./buffer-nav";
 
 const UP = new THREE.Vector3(0, 1, 0);
 
-// SceneVectors draws the vector each node stores: scene-sphere centre -> node
-// centre. Both endpoints arrive in the buffer (the Scene block's centre, the
-// Node block's centre); this only draws the segment between them.
 export function SceneVectors({ center, nodes, tube }: {
   center: THREE.Vector3; nodes: NavNode[]; tube: number;
 }) {

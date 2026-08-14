@@ -42,8 +42,6 @@ export function EdgeLines({ capacity }: { capacity: number }) {
     let drawn = 0;
     for (let row = 0; row < n; row++) {
       const [sx, sy, sz, ex, ey, ez] = edges.segment(row);
-      // A comm edge is the same line and the same arrow — only its colour
-      // says that what travels it is a position rather than a value.
       const isComm = commRows !== null && commRows.has(edges.srcNodeRow(row));
       dir.current.set(ex - sx, ey - sy, ez - sz);
       const len = dir.current.length();

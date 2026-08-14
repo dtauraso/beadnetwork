@@ -15,9 +15,6 @@ import (
 
 type vec3 = spatial.Vec3
 
-// edgeBeads is this edge's own in-flight beads, as world positions on its
-// own segment. They arrive from the goroutine that steps the wire; nothing
-// here recomputes where a bead is.
 func (m *EdgeMover) edgeBeads() []SF.EdgeBead {
 	beads := make([]SF.EdgeBead, 0, len(m.lastBeadRows))
 	for _, r := range m.lastBeadRows {
@@ -28,7 +25,6 @@ func (m *EdgeMover) edgeBeads() []SF.EdgeBead {
 	return beads
 }
 
-// breadcrumb records one control event on this edge's own stream.
 func (m *EdgeMover) breadcrumb(label uint8, name, value string) {
 	if m.tr == nil {
 		return
@@ -48,15 +44,6 @@ func (m *EdgeMover) streamBreadcrumb(label uint8, value string) {
 	}})
 }
 
-// noteBeadCount reports the FIRST time each bead is seen, by generation, and
-// how far along it already was at that moment.
-//
-// Reporting on a count change instead was measuring the wrong thing: it named
-// whichever bead sat at index 0, so an old bead most of the way across looked
-// exactly like a new one starting there. What matters is the earliest
-// position a bead is ever observed at — if that is not near zero, the bead is
-// being sampled for the first time long after it was placed, and it will
-// appear on screen to start partway down the edge.
 func (m *EdgeMover) noteBeadCount(rows []wire.LiveBeadRow) {
 	seg := edgegeom.EdgeSegment(m.srcGeom, m.dstGeom)
 	d := seg.End.Sub(seg.Start)
@@ -94,9 +81,6 @@ func (m *EdgeMover) writeStreamFrame(tick int64, events []rowevent.RowEvent) {
 
 	seg := edgegeom.EdgeSegment(m.srcGeom, m.dstGeom)
 
-	// The source row rides the frame itself, not just its events: it is
-	// what says whose edge this is, and the renderer needs that whether or
-	// not this edge has a destination draining events this tick.
 	nodeRow, targetRow := int32(-1), int32(-1)
 	if m.nodeRowFor != nil {
 		if r, ok := m.nodeRowFor(m.srcID); ok {

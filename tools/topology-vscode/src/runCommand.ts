@@ -20,8 +20,6 @@ export class BuildAndRunRunner extends RunnerLifecycle {
     if (!folder) return;
 
     this.ensureOutputChannel();
-    // The git root, NOT the workspace folder: `go build .` has to run where the
-    // Go module is, whichever subdirectory the window happens to be open on.
     const repoRoot = resolveRepoRoot(folder.uri.fsPath);
     if (!repoRoot) return;
     const binPath = path.join(repoRoot, ".wirefold-cache", "wirefold");

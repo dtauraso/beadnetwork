@@ -15,15 +15,8 @@ export interface EdgeBeadsAgg {
   positions: Float32Array;
   value: Int32Array;
 
-  // srcNodeRow per bead — the node whose edge it is travelling. It is what
-  // lets a renderer colour a bead by the kind of node that sent it without
-  // walking the frames a second time.
   srcNodeRow: Int32Array;
 
-  // ringAxis is what the bead's torus faces along: the ring axis of the node
-  // the bead came FROM, streamed on that node's own frame. It is not the
-  // direction of travel — a bead is threaded on its source node's ring, and
-  // aiming it down the edge instead turns every torus the wrong way.
   ringAxis: Float32Array;
 
   count: number;
@@ -31,10 +24,6 @@ export interface EdgeBeadsAgg {
 
 const RING_AXIS_FALLBACK: [number, number, number] = [0, 1, 0];
 
-// nodeRingAxes is each node row's own ring axis, off that node's own frame.
-// A bead's torus is aimed by the node it came from, so the aggregate has to
-// read the node stream as well as the edge stream — the two angles are
-// streamed, and poleAxis only turns them into the vector they already name.
 function nodeRingAxes(): Map<number, [number, number, number]> {
   const axes = new Map<number, [number, number, number]>();
   for (const [row, buf] of getLatestNodeStreamFrames()) {
@@ -52,13 +41,7 @@ let lastVersion = -1;
 let lastNodeVersion = -1;
 let lastAgg: EdgeBeadsAgg | null = null;
 
-// getEdgeBeads is every in-flight bead in the scene, flattened across edges.
-// The positions are WORLD positions: an edge places its own beads along its
-// own segment, so there is no centre to add them to.
 export function getEdgeBeads(): EdgeBeadsAgg {
-  // Two streams feed this now: the beads from the edges, their aim from the
-  // nodes. A node turning without a bead moving still re-aims every torus,
-  // so the cache has to watch both versions.
   const ev = getEdgeStreamVersion();
   const nv = getNodeStreamVersion();
   if (lastAgg !== null && ev === lastVersion && nv === lastNodeVersion) return lastAgg;

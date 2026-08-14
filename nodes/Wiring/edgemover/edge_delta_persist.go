@@ -9,28 +9,12 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 )
 
-// SetPersistRoot arms this edge to write its own file. Until it is called the
-// edge keeps D in memory only, which is what a headless run wants.
 func (m *EdgeMover) SetPersistRoot(root string) { m.persistRoot = root }
 
-// Delta is this edge's own vector, source to target.
 func (m *EdgeMover) Delta() polar.Polar { return m.d }
 
-// SetDelta seeds it at build, from the edge's own file.
 func (m *EdgeMover) SetDelta(d polar.Polar) { m.d = d }
 
-// updateDeltaFromEndpoints brings this edge's own vector up to date with a move
-// it has just been TOLD about.
-//
-// The edgeMover is the ONLY writer of nodes/<source>/edges/<label>.json, and it
-// already hears from both endpoints (srcIn and dstIn), so a target that moves
-// tells this goroutine rather than writing a file it does not own. That is why
-// no new message shape was needed for the target-moved case: it was already
-// arriving.
-//
-// This is the edge updating ITS OWN state from what it was told, not a
-// derivation of state someone else owns — the distinction the loader lost when
-// it recomputed D on every load and then asserted the result.
 func (m *EdgeMover) updateDeltaFromEndpoints() {
 	if !m.srcGeom.HasPos || !m.dstGeom.HasPos {
 		return
@@ -41,7 +25,6 @@ func (m *EdgeMover) updateDeltaFromEndpoints() {
 	)
 }
 
-// persistDelta writes the vector this edge holds into the file it owns.
 func (m *EdgeMover) persistDelta() {
 	if m.persistRoot == "" {
 		return

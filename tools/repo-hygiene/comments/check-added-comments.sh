@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 set -euo pipefail
 
 # PLACEMENT: none | repo-wide: no comment line added since the base ref survives in a hand-edited file
@@ -26,10 +25,6 @@ if not base:
 LINE = {".go": "//", ".ts": "//", ".tsx": "//", ".js": "//", ".jsx": "//",
         ".sh": "#", ".py": "#", ".css": None, ".md": None}
 
-# Comments a tool READS. Removing one changes behaviour, so none of them is
-# narration however it was added: build pragmas, lint and formatter directives,
-# generated-file markers, the PLACEMENT header tools/placement-brief.sh serves,
-# and the ALL_CAPS fences the parity guards grep between.
 KEEP = re.compile(
     r"go:|^\+build|nolint|shellcheck|eslint|@ts-|prettier|istanbul|coding[:=]|"
     r"Code generated|DO NOT EDIT|@generated|PLACEMENT:|^[A-Z][A-Z0-9_]{3,}$")

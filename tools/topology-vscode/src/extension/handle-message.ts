@@ -106,8 +106,6 @@ async function dispatch(msg: WebviewToHostMsg, ctx: MessageCtx): Promise<void> {
   }
 }
 
-// The git root, not the workspace folder — see repo-root.ts. Opening the window
-// on a subdirectory must not move where the repo's files are read and written.
 function workspaceRoot(): string | undefined {
   return resolveRepoRoot(vscode.workspace.workspaceFolders?.[0]?.uri.fsPath);
 }

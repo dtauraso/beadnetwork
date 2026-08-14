@@ -39,8 +39,6 @@ export function ChainBeadInstances({ capacity }: { capacity: number }) {
 
     let litCount = 0;
     for (let i = 0; i < drawn; i++) {
-      // A comm edge is drawn as a line and an arrow, so its beads are not
-      // drawn at all while that overlay is on.
       if (commRows !== null && commRows.has(srcNodeRow[i]!)) continue;
 
       const style = beadStyleForValue(value[i]);
@@ -51,8 +49,6 @@ export function ChainBeadInstances({ capacity }: { capacity: number }) {
       litBody.setMatrixAt(litCount, matRef.current);
       litBody.setColorAt(litCount, colRef.current.set(style.fill));
 
-      // The torus faces along the way the bead is going, which for a bead on
-      // an edge is that edge's own direction.
       axisRef.current.set(ringAxis[i * 3]!, ringAxis[i * 3 + 1]!, ringAxis[i * 3 + 2]!);
       quatRef.current.setFromUnitVectors(TORUS_DEFAULT_NORMAL, axisRef.current);
       ringMatRef.current.compose(posRef.current, quatRef.current, BEAD_UNIT_SCALE);

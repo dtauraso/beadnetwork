@@ -38,9 +38,6 @@ func (m *NodeGeometry) SetSelfKind(kind string) {
 	m.selfKind = kind
 }
 
-// SetOrbitRule is called once at build from the node's own meta.json. Passing
-// nil is meaningful and is the common case: it says this node states no rule
-// and is free.
 func (m *NodeGeometry) SetOrbitRule(rule *polar.OrbitRule) {
 	m.topo.SetOrbitRule(rule)
 }

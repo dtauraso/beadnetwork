@@ -36,15 +36,8 @@ type NodeGeometry struct {
 
 	readout owners.Readout
 
-	// outTargets is every edge target this node draws a chain of beads
-	// toward, declared regardless of whether an out wire is physically
-	// wired yet. It stays with geometry; the wire itself lives on anim.
 	outTargets []string
 
-	// anim is the peer goroutine that owns the outgoing PacedWires and the
-	// clock. Nothing outside chain_beads.go and this file's setup touches
-	// it directly — the two crossing messages (stepOut/pulseIn) are the
-	// only traffic between the peers.
 	anim *NodeAnimation
 
 	stepOut    chan<- map[string]int
@@ -53,9 +46,6 @@ type NodeGeometry struct {
 
 	topo owners.Topology
 
-	// deltas is this node's own side of every edge it touches — the vector
-	// from here to the node at the other end. A + D = B, so it is how this
-	// node reaches a neighbour without reading anything the neighbour owns.
 	deltas owners.Deltas
 
 	flags owners.Flags
@@ -97,8 +87,6 @@ func NewNodeGeometry(id string, geom nodegeom.NodeGeom, tr *T.Trace, clockSrc cl
 	return ng
 }
 
-// Animation returns this node's animation peer, so moverreg can start its
-// goroutine and wire its speed channel.
 func (m *NodeGeometry) Animation() *NodeAnimation {
 	return m.anim
 }

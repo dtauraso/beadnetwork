@@ -9,9 +9,6 @@ import { STR_DECODER, decodeTrailingEvents } from "./buffer-decode-shared";
 
 export const SCENE_TABS_HEADER_SIZE = 4;
 
-// Reported ONCE per distinct layout: the condition holds for every frame until
-// somebody rebuilds, and an unthrottled report per frame is what wedged the
-// extension host the last time a skew happened.
 const reportedLayoutSkews = new Set<number>();
 
 function reportLayoutSkew(frameLayout: number): void {
@@ -91,10 +88,6 @@ function decodeViewFrameUncached(buf: ArrayBuffer): DecodedViewFrame | null {
   const hdr = new DataView(buf, 0, BUF_VIEW_FRAME_HEADER_SIZE);
   const tick = hdr.getUint32(0, true);
 
-  // Refuse a frame from a buffer layout this bundle was not built for. Decoding
-  // it would read its bytes into the wrong columns and draw the result, which is
-  // the failure this check exists to end: a 4-byte header change once made every
-  // node and bead vanish with nothing anywhere saying why.
   const frameLayout = hdr.getUint32(4, true);
   if (frameLayout !== BUF_LAYOUT_FINGERPRINT_HASH) {
     reportLayoutSkew(frameLayout);

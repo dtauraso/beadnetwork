@@ -7,9 +7,6 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
 )
 
-// Link is the port pair a dropped node connects through. Broadcast says which of the two
-// output directions SrcPort is: a PortOut carries one edge and a PortBroadcast carries many,
-// and the handle written to disk is indexed for the second kind only.
 type Link struct {
 	SrcPort    string
 	TargetPort string
@@ -40,11 +37,6 @@ func linkRefusalFor(src, srcKind string, srcFound bool, kind string) (Link, stri
 	return Link{SrcPort: srcPort, TargetPort: targetPort, Broadcast: broadcast}, "", true
 }
 
-// firstOutputPort answers "what does this kind send from", which PortOut alone does not:
-// build_nodes.go binds PortBroadcast as an outbound port too, so a kind whose only output is
-// broadcast (Time, TimeStart) has one. Asking for PortOut alone told the ring scene that
-// Time had no output to connect from and refused every node dropped beside it, while the
-// pair scene never noticed because PairNode's single output is a PortOut.
 func firstOutputPort(kind string) (name string, broadcast, ok bool) {
 	if name, ok = firstPortOfDir(kind, portwiring.PortOut); ok {
 		return name, false, true

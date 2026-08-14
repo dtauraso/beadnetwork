@@ -17,7 +17,6 @@ type edgeFile struct {
 	Kind         string `json:"kind"`
 	Label        string `json:"label"`
 
-	// D — the vector from this edge's source to its target. See
 	// nodes/Wiring/loadspec/edge_delta.go: A + D = B.
 	DeltaPolarR     *float64 `json:"deltaPolarR,omitempty"`
 	DeltaPolarPhi   *float64 `json:"deltaPolarPhi,omitempty"`
@@ -32,12 +31,6 @@ func edgesDirPath(root, id string) string {
 	return filepath.Join(root, "nodes", id, "edges")
 }
 
-// SourceHandleFor names the handle a NEW edge leaves srcPort through, and refuses when the
-// port cannot carry another edge. A PortBroadcast handle is the port name plus the next free
-// index ("ToNext0", "ToNext1") — BroadcastBaseName strips that digit back off on load, and a
-// bare name would land in the same bucket without one. A PortOut carries exactly one edge:
-// build_nodes.go binds labels[0] and drops the rest, so a second edge from an occupied
-// PortOut is a file on disk that never becomes a wire. Refusing says so; writing it does not.
 func SourceHandleFor(root, src, srcPort string, broadcast bool) (string, string, bool) {
 	used := countHandlesOn(root, src, srcPort)
 	if broadcast {
@@ -49,8 +42,6 @@ func SourceHandleFor(root, src, srcPort string, broadcast bool) (string, string,
 	return srcPort, "", true
 }
 
-// countHandlesOn counts the edges already leaving srcPort, matching both the bare port name
-// and its indexed broadcast forms.
 func countHandlesOn(root, src, srcPort string) int {
 	entries, err := os.ReadDir(edgesDirPath(root, src))
 	if err != nil {
@@ -93,15 +84,10 @@ func WriteEdgeFile(root, src, srcPort, target, targetPort string) error {
 	})
 }
 
-// WriteEdgeDelta records D on an edge that already exists, leaving every other
-// key as it was. Its ONLY caller is that edge's own edgeMover — the single
-// writer of nodes/<source>/edges/<label>.json.
 func WriteEdgeDelta(root, src, label string, d polar.Polar) error {
 	path := edgeFilePath(root, src, label)
 	var ef edgeFile
 	if !jsonpersist.ReadJSONIfExists(path, &ef) {
-		// No file means no edge to annotate. An edge is authored before it can
-		// move, so this is a missing file, not a first write.
 		return fmt.Errorf("WriteEdgeDelta: no edge file at %s", path)
 	}
 	ef.DeltaPolarR, ef.DeltaPolarPhi, ef.DeltaPolarTheta = &d.R, &d.Phi, &d.Theta

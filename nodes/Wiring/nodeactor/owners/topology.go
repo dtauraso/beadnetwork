@@ -8,11 +8,6 @@ type Topology struct {
 	mutualTargets map[string]bool
 	nodeRowFor    func(id string) (int32, bool)
 
-	// orbitRule is THIS node's own statement of how it may sit about the node
-	// it hangs from, loaded from its own meta.json by id. It belongs here
-	// rather than beside a neighbour's entry because it is a fact about this
-	// node, true of every edge it hangs from at once. nil means free, which is
-	// what a node that says nothing about it is.
 	orbitRule *polar.OrbitRule
 }
 

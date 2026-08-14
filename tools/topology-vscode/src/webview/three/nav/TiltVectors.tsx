@@ -54,9 +54,6 @@ export function TiltVectors({ capacity, receivedCapacity }: { capacity: number; 
       cx: number, cy: number, cz: number, len: number, theta: number,
     ) => {
 
-      // The same conversion as everywhere else, at phi=0: (sin, cos, 0) is
-      // polarToCart(1, theta, 0). theta=0 needs no case of its own — it gives
-      // (0,1,0), which is what the branch used to spell out.
       axisRef.current.set(...polarToCart(1, theta, 0));
       quatRef.current.setFromUnitVectors(GEOMETRY_AXIS, axisRef.current);
 

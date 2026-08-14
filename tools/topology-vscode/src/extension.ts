@@ -37,9 +37,6 @@ function resetProbeLogs(repoRoot: string): void {
 function resolveTopologyPath(folderUri?: vscode.Uri): string | undefined {
   if (folderUri) return folderUri.fsPath;
 
-  // From the git root, not the workspace folder: with the window open on a
-  // subdirectory (tools/topology-vscode, say) <subdir>/topology does not exist,
-  // so this returned undefined and the editor opened with nothing to load.
   const root = resolveRepoRoot(vscode.workspace.workspaceFolders?.[0]?.uri.fsPath);
   if (root) {
     const candidate = path.join(root, "topology");
