@@ -148,7 +148,7 @@ topology*/nodes/*/position.json
 
 # Whether a node's orbit rule is currently ACTIVE is persisted output like position.json,
 # deliberately separate from the rule's VALUES (orbit.phi/orbit.maxTheta), which stay in the
-# tracked meta.json seed. docs/planning/node-polar-rules-panel.md.
+# tracked meta.json seed.
 topology*/nodes/*/rule-active.json
 
 # The drag-output half of an edge. A user drag is the only writer of geometry, and it
