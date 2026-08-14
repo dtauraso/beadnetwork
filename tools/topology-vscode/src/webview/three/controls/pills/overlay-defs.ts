@@ -156,9 +156,19 @@ const commEdgesCfg: ToggleCfg = {
 export type OverlayGroup ={ heading: string; cfgs: ToggleCfg[]; under?: Partial<Record<string, ToggleCfg>> };
 
 export const OVERLAY_GROUPS: OverlayGroup[] = [
-  { heading: "NODE",   cfgs: [nodeBodyCfg, nodeRingCfg, ringPickCfg] }, 
-  { heading: "STATE",  cfgs: [selectionRingCfg, hoverRingCfg, reachSphereCfg] },
-  { heading: "GUIDES", cfgs: [ringsCfg, handholdsCfg, sceneVectorsCfg, commEdgesCfg] },
-  { heading: "POLES",  cfgs: [scenePolesCfg, nodePolesCfg, selSpherePolesCfg] },
-  { heading: "LABELS", cfgs: [globalLabelsCfg] },
+  {
+    heading: "NODE",
+    cfgs: [
+      nodeBodyCfg, nodeRingCfg, ringPickCfg,
+      selectionRingCfg, hoverRingCfg, reachSphereCfg,
+      nodePolesCfg, selSpherePolesCfg,
+    ],
+  },
+  {
+    heading: "SCENE",
+    cfgs: [
+      ringsCfg, handholdsCfg, scenePolesCfg,
+      sceneVectorsCfg, commEdgesCfg, globalLabelsCfg,
+    ],
+  },
 ];
