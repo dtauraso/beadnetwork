@@ -28,15 +28,6 @@ func (c *RealClock) sleepPulses(ctx context.Context, n int) error {
 	return nil
 }
 
-func (c *RealClock) SleepUntilTick(ctx context.Context, target int64) error {
-	for c.Tick() < target {
-		if err := c.SleepCycle(ctx); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 const maxPulsesPerCycle = 64
 
 func (c *RealClock) pulsesPerCycle() int {

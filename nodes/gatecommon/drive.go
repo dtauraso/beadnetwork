@@ -13,7 +13,7 @@ func DriveHeld(ctx context.Context, out Wiring.DrivenOut, heldCh <-chan int64, t
 	go func() {
 		paced := out.Paced()
 		cur := int64(NoValue)
-		tick, sleep, c := driveHeldClock(clk, speedCh)
+		tick, sleep, _ := driveHeldClock(clk, speedCh)
 
 		var lastPlaceTick int64
 		if paced {
@@ -52,9 +52,12 @@ func DriveHeld(ctx context.Context, out Wiring.DrivenOut, heldCh <-chan int64, t
 
 			if paced {
 				if k, known := driveHeldPeriod(out); known {
-					clock.ApplySpeedNonBlocking(c, speedCh)
-					if err := c.SleepUntilTick(ctx, lastPlaceTick+k); err != nil {
-						return
+					target := lastPlaceTick + k
+					for tick() < target {
+
+						if err := sleep(ctx); err != nil {
+							return
+						}
 					}
 					continue
 				}
