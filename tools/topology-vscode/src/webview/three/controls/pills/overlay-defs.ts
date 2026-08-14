@@ -159,16 +159,28 @@ export const OVERLAY_GROUPS: OverlayGroup[] = [
   {
     heading: "NODE",
     cfgs: [
-      nodeBodyCfg, nodeRingCfg, ringPickCfg,
-      selectionRingCfg, hoverRingCfg, reachSphereCfg,
-      nodePolesCfg, selSpherePolesCfg,
+      nodeBodyCfg,
+      nodeRingCfg, ringPickCfg,
+      selectionRingCfg, hoverRingCfg,
+      reachSphereCfg, selSpherePolesCfg,
+      nodePolesCfg,
     ],
+    under: {
+      [ringPickCfg.flag]: nodeRingCfg,
+      [selSpherePolesCfg.flag]: reachSphereCfg,
+    },
   },
   {
     heading: "SCENE",
     cfgs: [
-      ringsCfg, handholdsCfg, scenePolesCfg,
-      sceneVectorsCfg, commEdgesCfg, globalLabelsCfg,
+      ringsCfg, handholdsCfg,
+      scenePolesCfg,
+      sceneVectorsCfg,
+      commEdgesCfg,
+      globalLabelsCfg,
     ],
+    under: {
+      [handholdsCfg.flag]: ringsCfg,
+    },
   },
 ];

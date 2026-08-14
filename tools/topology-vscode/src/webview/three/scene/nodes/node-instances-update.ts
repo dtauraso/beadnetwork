@@ -89,7 +89,7 @@ export function updateNodeInstances(refs: NodeInstanceRefs, capacity: number, ca
 
   ringPick.count = selectModeOn ? n : 0;
 
-  ringBand.count = showPickBand ? n : 0;
+  ringBand.count = showRing && showPickBand ? n : 0;
   body.instanceMatrix.needsUpdate = true;
   ring.instanceMatrix.needsUpdate = true;
   ringPick.instanceMatrix.needsUpdate = true;
