@@ -17,7 +17,7 @@ LINE = {".go": "//", ".ts": "//", ".tsx": "//", ".js": "//", ".jsx": "//",
         ".sh": "#", ".py": "#", ".css": None, ".md": None}
 
 KEEP = re.compile(
-    r"^!|go:|^\+build|nolint|shellcheck|eslint|@ts-|prettier|istanbul|coding[:=]|"
+    r"^!|go:|frametag:|^\+build|nolint|shellcheck|eslint|@ts-|prettier|istanbul|coding[:=]|"
     r"Code generated|DO NOT EDIT|@generated|PLACEMENT:|^[A-Z][A-Z0-9_]{3,}$")
 
 def added_lines(path):
