@@ -100,19 +100,12 @@ func (b *buildCtx) buildMoveDispatch() error {
 		}
 	}
 
-	ruleOf := func(id string) *polar.OrbitRule {
-		if other, ok := md.MR.NodeGeoms()[id]; ok {
-			return other.OrbitRule()
-		}
-		return nil
-	}
 	for _, nm := range md.MR.NodeGeoms() {
-		for to, heldPoint := range layoutquant.HeldOutNeighbors(nm, polar.Polar{}, ruleOf) {
+		for to, told := range layoutquant.SharedLengthDeltas(nm, polar.Polar{}) {
 			if other, ok := md.MR.NodeGeoms()[to]; ok {
-				held := heldPoint
+				d := told
 				other.SendExternal(context.TODO(), movemsg.Msg{Kind: movemsg.KindDrag, NodeID: to,
-					Target:      other.SceneCenter().Add(polar.Polar2cart(held)),
-					TargetPolar: &held})
+					SenderID: nm.ID(), Delta: &d})
 			}
 		}
 	}

@@ -96,10 +96,17 @@ and none is a source of truth.
   The angle constraints (`φ = π/2`, `|θ| ≤ π/2`) are constraints ON `D`. They always were —
   they describe where a node sits about the one it hangs from, not its place in the world —
   so they are applied to the triple directly, with no holder frame to convert in and out of
-  (`nodes/Wiring/layoutquant/orbit_hold.go`).
+  (`nodes/Wiring/nodeactor/node_drag_trim.go`).
 
-  **The rule is carried by the node it binds, by id.** Each node states its own `orbit` in
-  its own `meta.json` (`polar.OrbitRule`); absent means free, and most nodes say nothing.
+  **The rule is carried by the node it binds, by id, and is applied BY that node.** Each node
+  states its own `orbit` in its own `meta.json` (`polar.OrbitRule`); absent means free, and
+  most nodes say nothing. No node reads another's rule: a neighbour that wants a node moved
+  computes the `Δ` from ITS OWN numbers — its own point before and after, and its own side of
+  the edge before and after (`SharedLengthDeltas`,
+  `nodes/Wiring/layoutquant/shared_length_deltas.go`) — and TELLS it, and the node told
+  trims that `Δ` against its own rules before committing it (`TrimOwnDrag`). A `Δ` an input
+  node states to equalise its outgoing paths is therefore a request, not an imposition: a
+  target whose own rule holds `D.r` keeps its distance and takes only the angles.
   A rule also holds `D.r`, so a node with one ORBITS its holder — its own drag cannot change
   the distance between them, which is what keeps an input node's two outgoing paths equal
   without anything being moved afterwards to repair them.

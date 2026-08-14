@@ -5,11 +5,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
 )
 
-func HeldOutNeighbors(
-	nm *nodeactor.NodeGeometry,
-	delta polar.Polar,
-	ruleOf func(id string) *polar.OrbitRule,
-) map[string]polar.Polar {
+func SharedLengthDeltas(nm *nodeactor.NodeGeometry, delta polar.Polar) map[string]polar.Polar {
 	if nm.SelfKind() != nodeactor.SharedLengthKind {
 		return nil
 	}
@@ -28,12 +24,13 @@ func HeldOutNeighbors(
 	if len(paths) == 0 {
 		return nil
 	}
-	selfPoint := polar.Compose(nm.ScenePolar(), delta)
+	selfWas := nm.ScenePolar()
+	selfNow := polar.Compose(selfWas, delta)
 	out := make(map[string]polar.Polar, len(paths))
 	for to, p := range paths {
-		held := ruleOf(to).ClampPoint(p)
-		held.R = shared
-		out[to] = polar.Compose(selfPoint, held)
+		wants := p
+		wants.R = shared
+		out[to] = polar.Between(polar.Compose(selfWas, p), polar.Compose(selfNow, wants))
 	}
 	return out
 }

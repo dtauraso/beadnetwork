@@ -7,20 +7,6 @@ type OrbitRule struct {
 	MaxTheta *float64 `json:"maxTheta,omitempty"`
 }
 
-func (r *OrbitRule) ClampPoint(p Polar) Polar {
-	if r == nil {
-		return p
-	}
-	out := p
-	if r.Phi != nil {
-		out.Phi = *r.Phi
-	}
-	if r.MaxTheta != nil {
-		out.Theta = clampTheta(out.Theta, *r.MaxTheta)
-	}
-	return out
-}
-
 func (r *OrbitRule) TrimDelta(have, want Polar) Polar {
 	if r == nil {
 		return want
