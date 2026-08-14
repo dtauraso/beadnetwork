@@ -4,7 +4,7 @@ import type { StreamDemux } from "../stream-demux";
 import type { SpawnLayout } from "../spawn-layout";
 
 export function attachStreamListeners(proc: cp.ChildProcess, demux: StreamDemux, layout: SpawnLayout): void {
-  const { edgeCount, nodeCount, nodeBaseFd, interiorBaseFd, driveBaseFd } = layout;
+  const { edgeCount, nodeCount, nodeBaseFd, interiorBaseFd, driveBaseFd, beadBaseFd } = layout;
   proc.stdout?.on("data", (d: Buffer) => demux.handleStdout(d.toString()));
 
   const viewFd = (proc.stdio as (NodeJS.ReadableStream | null)[])[VIEW_FD];
@@ -30,6 +30,12 @@ export function attachStreamListeners(proc: cp.ChildProcess, demux: StreamDemux,
     const interiorFd = (proc.stdio as (NodeJS.ReadableStream | null)[])[interiorFdIdx];
     if (interiorFd) {
       interiorFd.on("data", (d: Buffer) => demux.handleInteriorFd(row, d));
+    }
+
+    const beadFdIdx = beadBaseFd + row;
+    const beadFd = (proc.stdio as (NodeJS.ReadableStream | null)[])[beadFdIdx];
+    if (beadFd) {
+      beadFd.on("data", (d: Buffer) => demux.handleBeadFd(row, d));
     }
 
     for (let slot = 0; slot < DRIVE_SLOTS_PER_NODE; slot++) {

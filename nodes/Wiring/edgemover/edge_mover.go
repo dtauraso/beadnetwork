@@ -3,7 +3,6 @@ package edgemover
 import (
 	"context"
 
-	SF "github.com/dtauraso/wirefold/Buffer/streamframe"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
@@ -31,11 +30,6 @@ type EdgeMover struct {
 	srcIn chan movemsg.Msg
 	dstIn chan movemsg.Msg
 
-	beadRowsIn   chan []wire.LiveBeadRow
-	lastBeadRows []wire.LiveBeadRow
-
-	seenBeadGens map[uint64]bool
-
 	steps int
 	tr    *T.Trace
 
@@ -55,26 +49,25 @@ type EdgeMover struct {
 
 	nodeRowFor func(id string) (int32, bool)
 
-	buildFrame func(tick uint32, sx, sy, sz, ex, ey, ez float32, srcNodeRow int32, label string, beads []SF.EdgeBead, events []rowevent.RowEvent) []byte
+	buildFrame func(tick uint32, sx, sy, sz, ex, ey, ez float32, srcNodeRow int32, label string, events []rowevent.RowEvent) []byte
 }
 
 func New(edgeID, srcID, dstID, srcHandle, dstHandle string, srcGeom, dstGeom nodegeom.NodeGeom, tr *T.Trace, clockSrc clock.Clock) *EdgeMover {
 	return &EdgeMover{
-		edgeID:     edgeID,
-		srcID:      srcID,
-		dstID:      dstID,
-		srcH:       srcHandle,
-		dstH:       dstHandle,
-		srcGeom:    srcGeom,
-		dstGeom:    dstGeom,
-		extIn:      make(chan movemsg.Msg, InboxDepth),
-		srcIn:      make(chan movemsg.Msg, InboxDepth),
-		dstIn:      make(chan movemsg.Msg, InboxDepth),
-		beadRowsIn: make(chan []wire.LiveBeadRow, 1),
-		tr:         tr,
-		clockSrc:   clockSrc,
-		clk:        clock.NewRealClock(),
-		edgeRow:    -1,
+		edgeID:   edgeID,
+		srcID:    srcID,
+		dstID:    dstID,
+		srcH:     srcHandle,
+		dstH:     dstHandle,
+		srcGeom:  srcGeom,
+		dstGeom:  dstGeom,
+		extIn:    make(chan movemsg.Msg, InboxDepth),
+		srcIn:    make(chan movemsg.Msg, InboxDepth),
+		dstIn:    make(chan movemsg.Msg, InboxDepth),
+		tr:       tr,
+		clockSrc: clockSrc,
+		clk:      clock.NewRealClock(),
+		edgeRow:  -1,
 	}
 }
 
@@ -93,7 +86,7 @@ func (m *EdgeMover) Dest() *wire.PacedWire { return m.dest }
 
 func (m *EdgeMover) SetSpeedCh(ch chan float64) { m.speedCh = ch }
 
-func (m *EdgeMover) SetStream(h StreamHandle, edgeRow int32, nodeRowFor func(id string) (int32, bool), buildFrame func(tick uint32, sx, sy, sz, ex, ey, ez float32, srcNodeRow int32, label string, beads []SF.EdgeBead, events []rowevent.RowEvent) []byte) {
+func (m *EdgeMover) SetStream(h StreamHandle, edgeRow int32, nodeRowFor func(id string) (int32, bool), buildFrame func(tick uint32, sx, sy, sz, ex, ey, ez float32, srcNodeRow int32, label string, events []rowevent.RowEvent) []byte) {
 	m.streamOut = h
 	m.edgeRow = edgeRow
 	m.nodeRowFor = nodeRowFor
@@ -127,23 +120,5 @@ func (m *EdgeMover) TrySendFromDst(msg movemsg.Msg) bool {
 		return true
 	default:
 		return false
-	}
-}
-
-func (m *EdgeMover) SendBeadRows(rows []wire.LiveBeadRow) {
-	if m.beadRowsIn == nil {
-		return
-	}
-	select {
-	case m.beadRowsIn <- rows:
-	default:
-		select {
-		case <-m.beadRowsIn:
-		default:
-		}
-		select {
-		case m.beadRowsIn <- rows:
-		default:
-		}
 	}
 }

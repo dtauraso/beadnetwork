@@ -1,9 +1,12 @@
 package nodeactor
 
 import (
+	"io"
+
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/nodeframe"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/owners"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/streamclaim"
 	"github.com/dtauraso/wirefold/nodes/Wiring/quantoffset"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
@@ -57,8 +60,12 @@ func (m *NodeGeometry) AddOutTarget(target string) {
 	m.outTargets = append(m.outTargets, target)
 }
 
-func (m *NodeGeometry) AddOutWire(pw *wire.PacedWire, sendBeadRows func([]wire.LiveBeadRow)) {
-	m.anim.AddOutWire(pw, sendBeadRows)
+func (m *NodeGeometry) AddOutWire(pw *wire.PacedWire, edgeRow int32) {
+	m.anim.AddOutWire(pw, edgeRow)
+}
+
+func (m *NodeGeometry) WireBeadStream(w io.Writer, row int32, buildBeadFrame owners.BeadFrameBuilder) {
+	m.anim.SetBeadStream(w, row, buildBeadFrame)
 }
 
 func (m *NodeGeometry) WireStream(streamOut streamclaim.StreamHandle, row int32, kindID uint8, nodeRowFor func(id string) (int32, bool), buildFrame nodeframe.NodeFrameBuilder) {

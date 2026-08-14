@@ -107,5 +107,5 @@ func (b *buildCtx) buildNodes() error {
 }
 
 func bindDispatch(md *dispatch.MoveDispatch, outSink map[string]*outport.Out, destWire map[string]*wire.PacedWire) {
-	md.MR.Bind(outSink, inputcodec.SlotRegistry(destWire))
+	md.MR.Bind(outSink, inputcodec.SlotRegistry(destWire), md.RT.EdgeRowForPair)
 }

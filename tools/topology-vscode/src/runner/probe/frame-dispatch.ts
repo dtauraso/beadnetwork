@@ -1,6 +1,6 @@
 import type { HostToWebviewMsg } from "../../messages";
-import { BUF_BLOCK_TAG_VIEW, BUF_BLOCK_TAG_EDGE_STREAM, BUF_BLOCK_TAG_NODE_STREAM, BUF_BLOCK_TAG_INTERIOR_STREAM } from "../../schema/buffer-layout/frame-tags";
-import { appendViewProbe, appendEdgeProbe, appendNodeProbe, appendInteriorProbe } from "./probe-append";
+import { BUF_BLOCK_TAG_VIEW, BUF_BLOCK_TAG_EDGE_STREAM, BUF_BLOCK_TAG_NODE_STREAM, BUF_BLOCK_TAG_INTERIOR_STREAM, BUF_BLOCK_TAG_BEAD_STREAM } from "../../schema/buffer-layout/frame-tags";
+import { appendViewProbe, appendEdgeProbe, appendNodeProbe, appendBeadProbe, appendInteriorProbe } from "./probe-append";
 import { splitFrames } from "../framing";
 
 export interface FrameDispatchContext {
@@ -96,6 +96,26 @@ export function dispatchNodeFrames(
       setLast(row, ab.slice(0));
       if (ctx.onSnapshot) {
         ctx.onSnapshot({ type: "buffer-snapshot", buffer: ab, tag: BUF_BLOCK_TAG_NODE_STREAM, row, gen: ctx.gen });
+      }
+    }
+  });
+}
+
+export function dispatchBeadFrames(
+  ctx: FrameDispatchContext,
+  row: number,
+  carry: Buffer,
+  chunk: Buffer,
+  storeRest: (rest: Buffer) => void,
+  probeFile: string | undefined,
+  setLast: (row: number, ab: ArrayBuffer) => void,
+): void {
+  ctx.dispatch(`bead:${row}`, carry, chunk, storeRest, `handleBeadFd(row=${row})`, (frames) => {
+    for (const ab of frames) {
+      appendBeadProbe(probeFile, row, ab, ctx.probeTrace);
+      setLast(row, ab.slice(0));
+      if (ctx.onSnapshot) {
+        ctx.onSnapshot({ type: "buffer-snapshot", buffer: ab, tag: BUF_BLOCK_TAG_BEAD_STREAM, row, gen: ctx.gen });
       }
     }
   });

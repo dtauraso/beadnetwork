@@ -15,6 +15,7 @@ func main() {
 	fx := streamFixture{
 		NodeFrame:     buildNodeFrame(),
 		EdgeFrame:     buildEdgeFrame(),
+		BeadFrame:     buildBeadFrame(),
 		InteriorFrame: buildInteriorFrame(),
 	}
 

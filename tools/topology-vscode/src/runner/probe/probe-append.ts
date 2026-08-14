@@ -2,6 +2,7 @@ import * as fs from "fs";
 import { decodeBufferLog, decodeStreamFrameEvents } from "../../buffer-log";
 import { decodeNodeStreamFrame } from "../../webview/three/decode/buffer-decode-node";
 import { decodeEdgeStreamFrame } from "../../webview/three/decode/buffer-decode-edge";
+import { decodeBeadStreamFrame } from "../../webview/three/decode/buffer-decode-bead";
 import { decodeInteriorStreamFrame } from "../../webview/three/decode/buffer-decode-interior";
 
 function appendLines(probeFile: string, lines: string): void {
@@ -26,6 +27,13 @@ export function appendEdgeProbe(probeFile: string | undefined, row: number, ab: 
 export function appendNodeProbe(probeFile: string | undefined, row: number, ab: ArrayBuffer, probeTrace: boolean): void {
   if (!probeFile) return;
   const decoded = decodeNodeStreamFrame(row, ab);
+  if (!decoded || decoded.eventCount === 0) return;
+  appendLines(probeFile, decodeStreamFrameEvents(decoded.eventCount, decoded.eventView, decoded.eventTextView, undefined, undefined, !probeTrace));
+}
+
+export function appendBeadProbe(probeFile: string | undefined, row: number, ab: ArrayBuffer, probeTrace: boolean): void {
+  if (!probeFile) return;
+  const decoded = decodeBeadStreamFrame(row, ab);
   if (!decoded || decoded.eventCount === 0) return;
   appendLines(probeFile, decodeStreamFrameEvents(decoded.eventCount, decoded.eventView, decoded.eventTextView, undefined, undefined, !probeTrace));
 }

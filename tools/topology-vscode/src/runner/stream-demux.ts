@@ -8,6 +8,7 @@ import {
   dispatchViewFrames,
   dispatchEdgeFrames,
   dispatchNodeFrames,
+  dispatchBeadFrames,
   makeFrameDispatchContext,
   type FrameDispatchContext,
 } from "./probe/frame-dispatch";
@@ -97,6 +98,18 @@ export class StreamDemux extends LastFrameStore {
       (rest) => { this.stream.nodeBufs[row] = rest; },
       this.probeNodeFile,
       (row, ab) => { this.lastNodeFrames.set(row, ab); },
+    );
+  }
+
+  handleBeadFd(row: number, chunk: Buffer) {
+    dispatchBeadFrames(
+      this.frameCtx,
+      row,
+      this.stream.beadBufs[row] ?? Buffer.alloc(0),
+      chunk,
+      (rest) => { this.stream.beadBufs[row] = rest; },
+      this.probeNodeFile,
+      (row, ab) => { this.lastBeadFrames.set(row, ab); },
     );
   }
 

@@ -3,6 +3,7 @@ export abstract class LastFrameStore {
   protected lastEdgeFrames: Map<number, ArrayBuffer> = new Map();
   protected lastNodeFrames: Map<number, ArrayBuffer> = new Map();
   protected lastInteriorFrames: Map<number, ArrayBuffer> = new Map();
+  protected lastBeadFrames: Map<number, ArrayBuffer> = new Map();
 
   getLastViewFrame(): ArrayBuffer | undefined {
     return this.lastViewFrame?.slice(0);
@@ -18,5 +19,9 @@ export abstract class LastFrameStore {
 
   getLastInteriorFrames(): Array<{ row: number; buffer: ArrayBuffer }> {
     return Array.from(this.lastInteriorFrames, ([row, buffer]) => ({ row, buffer: buffer.slice(0) }));
+  }
+
+  getLastBeadFrames(): Array<{ row: number; buffer: ArrayBuffer }> {
+    return Array.from(this.lastBeadFrames, ([row, buffer]) => ({ row, buffer: buffer.slice(0) }));
   }
 }
