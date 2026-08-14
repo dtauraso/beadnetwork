@@ -9,6 +9,7 @@ import {
   readNodeOrbitPhiLocked,
   readNodeOrbitThetaMax,
   readNodeOrbitActive,
+  readNodeHasKindRule,
 } from "../../../../schema/buffer-layout/buffer-layout";
 import { nodeLabel } from "../../decode/buffer-decode-node";
 
@@ -26,6 +27,8 @@ export interface NodeRuleRow {
   kind: string;
 
   hasRule: boolean;
+
+  hasKindRule: boolean;
 
   active: boolean;
 
@@ -70,6 +73,7 @@ function ruleRowsEqual(a: NodeRuleRow[], b: NodeRuleRow[]): boolean {
       ai.label !== bi.label ||
       ai.kind !== bi.kind ||
       ai.hasRule !== bi.hasRule ||
+      ai.hasKindRule !== bi.hasKindRule ||
       ai.active !== bi.active ||
       ai.phiLocked !== bi.phiLocked ||
       ai.maxThetaDeg !== bi.maxThetaDeg ||
@@ -120,6 +124,7 @@ export function readNodeRuleRows(): NodeRuleRow[] | null {
       label: nodeLabel(decoded, row),
       kind: kindNameFor(nodeView, row),
       hasRule,
+      hasKindRule: !!readNodeHasKindRule(nodeView, row),
       active: !!readNodeOrbitActive(nodeView, row),
       phiLocked: !!readNodeOrbitPhiLocked(nodeView, row),
       maxThetaDeg: thetaMax < 0 ? null : thetaMax * RAD_TO_DEG,

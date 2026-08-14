@@ -115,6 +115,19 @@ function FreeNodeBlock() {
   );
 }
 
+const KIND_RULE_TEXT: Record<string, string> = {
+  Input: "θ snaps to half-turns · out-lengths held equal",
+};
+
+function KindRuleLine({ rule }: { rule: NodeRuleRow }) {
+  const text = KIND_RULE_TEXT[rule.kind] ?? "kind rule applies";
+  return (
+    <div className="node-rules-kind-rule">
+      ⤷ <span className="node-rules-kind">{rule.kind}</span> {text}
+    </div>
+  );
+}
+
 function NodeBlock({ rule }: { rule: NodeRuleRow }) {
   const cls = ["node-rules-node-block", rule.hasRule && !rule.active ? "node-rules-node-block--inactive" : ""]
     .filter(Boolean)
@@ -123,7 +136,7 @@ function NodeBlock({ rule }: { rule: NodeRuleRow }) {
   return (
     <div className={cls}>
       <div className="node-rules-node-head">
-        {rule.hasRule && (
+        {(rule.hasRule || rule.hasKindRule) && (
           <input
             type="checkbox"
             title="rule enforced"
@@ -139,6 +152,7 @@ function NodeBlock({ rule }: { rule: NodeRuleRow }) {
       ) : (
         rule.holders.map((h) => <HolderBlock key={h.holderRow} rule={rule} holder={h} />)
       )}
+      {rule.hasKindRule && <KindRuleLine rule={rule} />}
     </div>
   );
 }

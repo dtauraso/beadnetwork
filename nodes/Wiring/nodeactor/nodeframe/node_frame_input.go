@@ -46,6 +46,7 @@ type NodeFrameInput struct {
 	OrbitRLocked, OrbitPhiLocked uint8
 	OrbitThetaMax                float32
 	OrbitActive                  uint8
+	HasKindRule                  uint8
 
 	Label string
 

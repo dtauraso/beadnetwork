@@ -70,4 +70,5 @@ type bufLayoutNode struct {
 	OrbitPhiLocked uint8   `buf:"u8"`
 	OrbitThetaMax  float32 `buf:"f32"`
 	OrbitActive    uint8   `buf:"u8"`
+	HasKindRule    uint8   `buf:"u8"`
 }

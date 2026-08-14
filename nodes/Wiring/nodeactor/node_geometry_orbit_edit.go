@@ -58,7 +58,13 @@ func (m *NodeGeometry) persistOrbitRule() {
 
 func (m *NodeGeometry) persistOrbitActive() {
 	if m.persistRoot == "" {
+		if m.tr != nil {
+			m.tr.Breadcrumb("orbit-active-persist", m.id, "", "SKIPPED: persistRoot unset")
+		}
 		return
+	}
+	if m.tr != nil {
+		m.tr.Breadcrumb("orbit-active-persist", m.id, "", m.persistRoot)
 	}
 	if err := nodefiles.WriteOrbitActive(m.persistRoot, m.id, m.OrbitActive()); err != nil {
 		jsonpersist.LogPersistErr("node_geometry_orbit_edit", m.id, err)

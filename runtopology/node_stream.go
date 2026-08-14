@@ -79,6 +79,7 @@ func wireNodeStreams(streamFDs SF.StreamFDs, md *W.MoveDispatch) {
 						OrbitPhiLocked:      f.OrbitPhiLocked,
 						OrbitThetaMax:       f.OrbitThetaMax,
 						OrbitActive:         f.OrbitActive,
+						HasKindRule:         f.HasKindRule,
 						Label:               f.Label,
 						Events:              toStreamEvents(f.Events),
 					})

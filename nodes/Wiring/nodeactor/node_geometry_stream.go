@@ -6,12 +6,20 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/framegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/loadspec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/nodeframe"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodedrag"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
+
+func hasKindRuleU8(kind string) uint8 {
+	if nodedrag.HasKindRule(kind) {
+		return 1
+	}
+	return 0
+}
 
 func (m *NodeGeometry) emitGeometry() {
 
@@ -123,6 +131,7 @@ func (m *NodeGeometry) writeStreamFrame(events []rowevent.RowEvent) {
 		LatticePoints:       uint8(points),
 		RoundsToParallel:    roundsToParallel,
 		MsgsToParallel:      msgsToParallel,
+		HasKindRule:         hasKindRuleU8(m.SelfKind()),
 		OrbitRLocked:        orbitRLocked,
 		OrbitPhiLocked:      orbitPhiLocked,
 		OrbitThetaMax:       orbitThetaMax,

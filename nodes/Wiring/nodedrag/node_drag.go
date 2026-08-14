@@ -37,6 +37,14 @@ func RegisterRequest(kind string, r Request) {
 	requests[kind] = r
 }
 
+func HasKindRule(kind string) bool {
+	if _, ok := trims[kind]; ok {
+		return true
+	}
+	_, ok := requests[kind]
+	return ok
+}
+
 func Apply(kind string, delta polar.Polar, of Node) polar.Polar {
 	if !of.OrbitActive() {
 		return delta
