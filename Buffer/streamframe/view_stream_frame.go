@@ -13,6 +13,7 @@ func BuildViewStreamFrame(tick uint32,
 	panel B.PanelRow,
 	sceneCX, sceneCY, sceneCZ, sceneRadius float32,
 	ringSurfacePoints []float32,
+	beadRingSurfacePoints []float32,
 	tabNames []string, tabSelected uint16,
 	events []StreamEvent,
 ) []byte {
@@ -21,10 +22,17 @@ func BuildViewStreamFrame(tick uint32,
 			"BuildViewStreamFrame: ringSurfacePoints has %d floats — must be a whole number of XYZ triples",
 			len(ringSurfacePoints)))
 	}
+	if len(beadRingSurfacePoints)%3 != 0 {
+		panic(fmt.Sprintf(
+			"BuildViewStreamFrame: beadRingSurfacePoints has %d floats — must be a whole number of XYZ triples",
+			len(beadRingSurfacePoints)))
+	}
 	ringPointCount := len(ringSurfacePoints) / 3
 	ringSurfaceSize := ringPointCount * B.BufRingPointStride
+	beadRingPointCount := len(beadRingSurfacePoints) / 3
+	beadRingSurfaceSize := beadRingPointCount * B.BufRingPointStride
 
-	buf := make([]byte, B.BufViewFrameHeaderSize+B.BufCameraStride+B.BufOverlayStride+B.BufPanelStride+B.BufSceneStride+ringSurfaceSize)
+	buf := make([]byte, B.BufViewFrameHeaderSize+B.BufCameraStride+B.BufOverlayStride+B.BufPanelStride+B.BufSceneStride+ringSurfaceSize+beadRingSurfaceSize)
 	binary.LittleEndian.PutUint32(buf[0:], tick)
 	binary.LittleEndian.PutUint32(buf[4:], B.BufLayoutFingerprintHash)
 	off := B.BufViewFrameHeaderSize
@@ -42,6 +50,12 @@ func BuildViewStreamFrame(tick uint32,
 		B.SetRingPointRow(buf[rowOff:rowOff+B.BufRingPointStride], 0, ringSurfacePoints[i*3], ringSurfacePoints[i*3+1], ringSurfacePoints[i*3+2])
 	}
 	off += ringSurfaceSize
+
+	for i := 0; i < beadRingPointCount; i++ {
+		rowOff := off + i*B.BufRingPointStride
+		B.SetRingPointRow(buf[rowOff:rowOff+B.BufRingPointStride], 0, beadRingSurfacePoints[i*3], beadRingSurfacePoints[i*3+1], beadRingSurfacePoints[i*3+2])
+	}
+	off += beadRingSurfaceSize
 
 	if off != len(buf) {
 		panic(fmt.Sprintf(

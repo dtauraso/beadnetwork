@@ -120,6 +120,40 @@ scene sphere, the one-hop scene→node→bead vector sum, the triangle above and
 the rejected double-link, why there is no blow-up by construction, and the bead-CRUD
 drag-placement mechanism (add/remove/angle-gate) that moves a node.
 
+## Tori (node rings and beads): one canonical surface, Go-composed matrices
+
+A torus is drawn from a **polar parametric equation Go evaluates ONCE**, plus **one instance
+matrix per torus that Go composes**. TS uploads both and draws. It generates no surface,
+composes no transform, and holds no tube ratio.
+
+The surface is the unit torus at `rho = 1`, tube `a` = the kind's tube ratio, on the
+`theta == 0` disk (`nodes/Wiring/framegeom/ring_surface.go`):
+
+```
+w   = rho + a*cos(v)
+R   = sqrt(rho^2 + a^2 + 2*rho*a*cos(v))            # v only
+psi = atan2(a*sin(v), w)                            # v only
+phi   = atan2( sqrt(cos(psi)^2*sin(u)^2 + sin(psi)^2), cos(psi)*cos(u) )
+theta = atan2( sin(psi), cos(psi)*sin(u) )
+```
+
+`u` sweeps the ring, `v` the tube, both as `index * step` — never re-derived from a position,
+because `Cart2polar` returns `phi` in `[0, pi]` and would silently fold the ring's second
+half. `R` and `psi` depend on `v` alone: that is the ring's rotational symmetry, and it is why
+the equation reduces to the two rim constraints — `theta == 0, r == rho +/- a` at `v = 0, pi`.
+
+**Why once, and not per instance.** Every torus of a given tube ratio is the SAME SHAPE;
+only centre, radius and axis vary. Streaming a surface per instance streams that shape N
+times and destroys instancing — measured at ~3 KB per instance against 64 bytes for a matrix,
+which is ~1.5 MB per refresh once beads are included versus ~32 KB. A per-instance surface is
+therefore drift, not an optimisation choice.
+
+**Why the instance basis has no convention.** The matrix rotates `+Z` onto the torus's axis
+through an arbitrary-but-consistent orthonormal frame. Any frame with `bz == axis` is
+correct, because the canonical torus is FULLY REVOLVED about that axis — the free choice
+cannot show in the output. Do not add an "up" convention to constrain it; there is nothing
+for one to fix.
+
 ## Assertions
 
 A `panic` in `nodes/`, `Buffer/`, or `Trace/` is an **assertion**, not error handling. It
