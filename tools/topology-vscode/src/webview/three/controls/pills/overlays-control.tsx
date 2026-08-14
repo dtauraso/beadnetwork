@@ -10,7 +10,7 @@ import {
   PILL_ANCHOR_STYLE,
 } from "./overlay-chrome";
 
-const OPEN_WIDTH_RATIO = 1.15;
+const OPEN_WIDTH_RATIO = 1.5;
 
 export function OverlaysControl() {
   const [open, setOpen] = useState(false);
