@@ -12,7 +12,7 @@ import {
   makeFrameDispatchContext,
   type FrameDispatchContext,
 } from "./probe/frame-dispatch";
-import { handleInteriorFdImpl, handleDriveFdImpl } from "./stream-demux-interior";
+import { handleInteriorFdImpl } from "./stream-demux-interior";
 
 export interface StreamDemuxConfig {
   paths: ProbePaths | undefined;
@@ -115,11 +115,6 @@ export class StreamDemux extends LastFrameStore {
 
   handleInteriorFd(row: number, chunk: Buffer) {
     handleInteriorFdImpl(this.frameCtx, this.stream, this.probeInteriorFile, row, chunk,
-      (row, ab) => { this.lastInteriorFrames.set(row, ab); });
-  }
-
-  handleDriveFd(row: number, slot: number, chunk: Buffer) {
-    handleDriveFdImpl(this.frameCtx, this.stream, this.probeInteriorFile, row, slot, chunk,
       (row, ab) => { this.lastInteriorFrames.set(row, ab); });
   }
 }

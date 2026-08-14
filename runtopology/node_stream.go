@@ -15,31 +15,25 @@ import (
 func wireNodeStreams(streamFDs SF.StreamFDs, md *W.MoveDispatch) {
 	_, nodeFDsWired := streamFDs[SF.StreamKindNode]
 	_, interiorFDsWired := streamFDs[SF.StreamKindInterior]
-	_, driveFDsWired := streamFDs[SF.StreamKindDrive]
 	_, beadFDsWired := streamFDs[SF.StreamKindBead]
-	if nodeFDsWired != interiorFDsWired || nodeFDsWired != driveFDsWired || nodeFDsWired != beadFDsWired {
+	if nodeFDsWired != interiorFDsWired || nodeFDsWired != beadFDsWired {
 		fmt.Fprintf(os.Stderr,
-			"stream-fd mismatch: WIREFOLD_STREAM_FDS carries %q=%t, %q=%t, %q=%t, %q=%t; all four are "+
+			"stream-fd mismatch: WIREFOLD_STREAM_FDS carries %q=%t, %q=%t, %q=%t; all three are "+
 				"required together, so the per-node streams stay unwired and node geometry/"+
-				"interior beads/drive-goroutine sends/EDGE BEADS will not be drawn. If the editor was "+
+				"interior beads/EDGE BEADS will not be drawn. If the editor was "+
 				"open across a rebuild, run \"Developer: Reload Window\" — reopening the file restarts "+
 				"only the webview, not the extension host that allocates these fds.\n",
 			SF.StreamKindNode, nodeFDsWired, SF.StreamKindInterior, interiorFDsWired,
-			SF.StreamKindDrive, driveFDsWired, SF.StreamKindBead, beadFDsWired)
+			SF.StreamKindBead, beadFDsWired)
 	}
 	if nodeBase, ok := streamFDs[SF.StreamKindNode]; ok {
 		if interiorBase, ok2 := streamFDs[SF.StreamKindInterior]; ok2 {
-			driveBase, driveWired := streamFDs[SF.StreamKindDrive]
-			if !driveWired {
-				driveBase = 0
-			}
-
 			beadBase, beadWired := streamFDs[SF.StreamKindBead]
 			if !beadWired {
 				beadBase = 0
 			}
 
-			md.Sw.SetNodeStreams(md.GS.NodeSeeds, md.MR.NodeGeoms(), nodeBase, interiorBase, driveBase, driveWired,
+			md.Sw.SetNodeStreams(md.GS.NodeSeeds, md.MR.NodeGeoms(), nodeBase, interiorBase,
 				beadBase, beadWired,
 				func(tick uint32, nodeRow int32, beads []SF.EdgeBead, events []rowevent.RowEvent) []byte {
 					return SF.BuildBeadStreamFrame(tick, nodeRow, beads, toStreamEvents(events))

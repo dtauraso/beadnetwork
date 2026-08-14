@@ -12,5 +12,3 @@ export function rowForNodeId(nodeId: number): number {
 }
 
 export const MAX_NODE_STREAMS = 256;
-
-export const DRIVE_SLOTS_PER_NODE = 2;

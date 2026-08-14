@@ -130,8 +130,9 @@ The second goroutine no longer exists. `DriveHeld` was replaced by
 stepper the node's OWN loop calls once per tick — the ownership fix the Guard verdict above
 names, arrived at from the other direction (every node kind became one goroutine). Two
 goroutines can no longer reach one node's streams, so the race in §2 is now unrepresentable
-rather than avoided. The per-fd `drive` stream kind below still exists and is still written,
-but now by the node's own goroutine, so it is no longer what keeps the writers apart.
+rather than avoided. The per-fd `drive` stream kind below has since been REMOVED with it:
+it existed only to keep the two writers on separate fds, and there is no second writer to
+separate. A driven out's events now ride the node's own interior stream.
 
 See [interior-stream-framing-fix.md](interior-stream-framing-fix.md) for the earlier fix: the
 per-fd `drive` stream kind, the Go-side wiring, how the fd count is known before spawn,

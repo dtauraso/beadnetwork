@@ -102,8 +102,8 @@ func init() {
 			n.In = a.In("In")
 			n.Self = a.ClaimSelfDrive()
 
-			n.Out = a.DriveOut("Out", 0)
-			n.OutFanout = a.DriveOut("OutFanout", 1)
+			n.Out = a.DriveOut("Out")
+			n.OutFanout = a.DriveOut("OutFanout")
 
 			return n, nil
 		})

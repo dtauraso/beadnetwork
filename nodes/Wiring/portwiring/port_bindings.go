@@ -1,8 +1,6 @@
 package portwiring
 
 import (
-	"io"
-
 	"github.com/dtauraso/wirefold/nodes/Wiring/interior"
 	"github.com/dtauraso/wirefold/nodes/Wiring/rowtables"
 	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
@@ -12,8 +10,6 @@ import (
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/outport"
 )
-
-const DriveSlotsPerNode = 2
 
 type PortDir int
 
@@ -50,7 +46,6 @@ type PortBindings struct {
 	RT rowtables.RowTables
 
 	InteriorEmitters   *map[string]*interior.Emitter
-	DriveOuts          *map[string][DriveSlotsPerNode]io.Writer
 	BuildInteriorFrame *func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []rowevent.RowEvent) []byte
 
 	VectorOut map[string]chan tiltvector.TiltVectorMsg

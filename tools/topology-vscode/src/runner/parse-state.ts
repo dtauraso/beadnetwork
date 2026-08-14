@@ -1,5 +1,3 @@
-import { DRIVE_SLOTS_PER_NODE } from "./stream-fds";
-
 export interface StreamParseState {
   stdoutBuf: string;
 
@@ -9,8 +7,6 @@ export interface StreamParseState {
 
   nodeBufs: Buffer[];
   interiorBufs: Buffer[];
-
-  driveBufs: Buffer[][];
 
   beadBufs: Buffer[];
 }
@@ -22,7 +18,6 @@ export function freshStreamState(edgeCount: number, nodeCount: number): StreamPa
     edgeBufs: Array.from({ length: edgeCount }, () => Buffer.alloc(0)),
     nodeBufs: Array.from({ length: nodeCount }, () => Buffer.alloc(0)),
     interiorBufs: Array.from({ length: nodeCount }, () => Buffer.alloc(0)),
-    driveBufs: Array.from({ length: nodeCount }, () => Array.from({ length: DRIVE_SLOTS_PER_NODE }, () => Buffer.alloc(0))),
     beadBufs: Array.from({ length: nodeCount }, () => Buffer.alloc(0)),
   };
 }
