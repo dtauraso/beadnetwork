@@ -19,9 +19,11 @@ topology/
 ├── counts.json                           {"nodes": 9, "edges": 10}  — nodes = ROW COUNT
 │                                          (largest node id), not a live-node count
 ├── nodes/<id>/
-│   ├── meta.json                         type, polar position, localPolars
-│   ├── position.json  data.json  local-polars.json
-│   └── edges/<label>.json                OUTGOING only
+│   ├── meta.json                         type + the TRACKED seed position
+│   ├── position.json                     drag output, GITIGNORED, overlays meta.json
+│   ├── data.json  local-polars.json
+│   ├── edges/<label>.json                OUTGOING only — wiring + TRACKED seed delta
+│   └── edges/<label>.geom.json           drag output, GITIGNORED, overlays the above
 └── view/
     └── camera.json  overlays.json  panels.json  sphere.json  scene.json
 ```
@@ -54,6 +56,30 @@ it, instead of leaving a dangling file in a sibling tree.
 points at node 9". Every use of an edge's target is built during a single full pass over all
 edges (`buildEdgeMaps`' `inbound`, `loader_layout`'s `neighbors`). Do NOT "fix" this by also
 recording the edge under the target — that reintroduces the duplication the layout removes.
+
+## Seed is tracked, drag output is not
+
+Every geometry file has two layers, and the loader reads the tracked one then overlays the
+untracked one — `meta.json` then `position.json`, `<label>.json` then `<label>.geom.json`.
+
+The reason is that **a user drag is the only writer of geometry** in the whole program:
+`CommitNodeMoveLocal` is reached solely from `takeDragOfSelf`, on a `KindDrag` message, which
+originates at the pointer. Nothing moves a node on its own. So "everything a drag changed" is
+a static set of paths, and git — which keys on paths, not on provenance — can express it.
+
+A drag touches more than the node you grabbed: the dragged node shifts its own vectors, and
+each neighbour is told how far it moved and shifts its own. That is why the edge file is
+SPLIT rather than simply ignored — the wiring (target, handles, kind) must stay tracked while
+the vector a neighbour's drag rewrote must not.
+
+Consequences to keep in mind:
+
+- A fresh clone has seeds only, and loads a complete, self-consistent scene from them.
+- Nothing promotes drag output into the seed. `meta.json`'s layout is whatever was last
+  written there and will drift from what anyone is actually looking at. Updating it is a
+  deliberate act, not a side effect of moving the mouse.
+- Anything that scans `nodes/*/edges/*.json` must skip `*.geom.json` — it has no wiring in
+  it and is not an edge (`loadNodeEdges`, `check-no-fan-in.sh`).
 
 ## The owner writes, and owns the path
 

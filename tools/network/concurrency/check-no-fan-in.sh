@@ -16,7 +16,7 @@ if [ ! -d "$NODES_DIR" ]; then
   exit 1
 fi
 
-edge_count=$(find "$NODES_DIR" -mindepth 3 -maxdepth 3 -path '*/edges/*.json' | wc -l | tr -d ' ')
+edge_count=$(find "$NODES_DIR" -mindepth 3 -maxdepth 3 -path '*/edges/*.json' ! -name '*.geom.json' | wc -l | tr -d ' ')
 if [ "$edge_count" -eq 0 ]; then
   echo "check-no-fan-in: MISCONFIGURED — 0 edge files found under $NODES_DIR/*/edges/*.json." >&2
   echo "  The scan must actually see real edges; refusing a vacuous pass. If the committed" >&2
@@ -30,6 +30,8 @@ import json, glob, os, sys, collections
 nodes_dir = sys.argv[1]
 seen = collections.defaultdict(list)
 for f in sorted(glob.glob(os.path.join(nodes_dir, "*", "edges", "*.json"))):
+    if f.endswith(".geom.json"):
+        continue
     try:
         d = json.load(open(f))
     except Exception as ex:

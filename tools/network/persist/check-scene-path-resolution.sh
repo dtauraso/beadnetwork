@@ -93,7 +93,7 @@ if [[ "$JOIN_HITS" -ne 0 ]]; then
   exit 1
 fi
 
-NODE_PATH_OWNERS=("new_node_files.go" "edge_file.go" "loader_tree.go" "tree_shape.go" "position_file.go")
+NODE_PATH_OWNERS=("new_node_files.go" "edge_file.go" "edge_delta_file.go" "loader_tree.go" "tree_shape.go" "position_file.go")
 is_node_path_owner() {
   local f="$1"
   for owner in "${NODE_PATH_OWNERS[@]}"; do

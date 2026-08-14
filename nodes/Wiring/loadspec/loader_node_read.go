@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/edgefile"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/positionfile"
@@ -89,7 +90,7 @@ func loadNodeMeta(root, nodesDir, nodeID string) (specNode, error) {
 	return sn, nil
 }
 
-func loadNodeEdges(nodesDir, nodeID string) ([]specEdge, error) {
+func loadNodeEdges(root, nodesDir, nodeID string) ([]specEdge, error) {
 	nodeDir := filepath.Join(nodesDir, nodeID)
 	edgesDir := filepath.Join(nodeDir, "edges")
 	edgeFiles, err := readDirNames(edgesDir)
@@ -104,6 +105,10 @@ func loadNodeEdges(nodesDir, nodeID string) ([]specEdge, error) {
 	var edges []specEdge
 	for _, fname := range edgeFiles {
 		if !strings.HasSuffix(fname, ".json") {
+			continue
+		}
+
+		if strings.HasSuffix(fname, ".geom.json") {
 			continue
 		}
 		fpath := filepath.Join(edgesDir, fname)
@@ -126,6 +131,10 @@ func loadNodeEdges(nodesDir, nodeID string) ([]specEdge, error) {
 				fpath, e.Source, nodeID))
 		}
 		e.Source = nodeID
+
+		if d, ok := edgefile.ReadEdgeDelta(root, nodeID, e.Label); ok {
+			e.setDelta(d)
+		}
 		edges = append(edges, e)
 	}
 	return edges, nil

@@ -146,6 +146,13 @@ __pycache__/
 topology*/view/*.json
 topology*/nodes/*/position.json
 
+# The drag-output half of an edge. A user drag is the only writer of geometry, and it
+# touches more than the node you grabbed -- each neighbour is told how far it moved and
+# shifts its own vector -- so every file a drag can write is ignored and the wiring
+# (target, handles, kind, in <label>.json) stays tracked. git keys on paths, not on
+# provenance; splitting the file is what makes the two line up.
+topology*/nodes/*/edges/*.geom.json
+
 # Where the running extension listens for "open this file as a tab", and that
 # session's token. Written on activation, removed on shutdown.
 docs/pair-node/port.js
