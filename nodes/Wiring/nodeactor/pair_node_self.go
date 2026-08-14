@@ -54,10 +54,6 @@ func (p *PairNodeSelf) Step(ctx context.Context, tick int64) {
 	g := p.geom
 	g.clocks.ApplySpeed(p.speedCh)
 
-	// A self-driven kind claims the ANIMATION role only: it drives its own wires on its
-	// own loop's speed-scaled cycle. Draining move messages and writing the node stream
-	// belong to this id's geometry peer, which runs on a raw pulse — doing them here too
-	// would both race that peer and put the drag back on the bead clock.
 	g.anim.drainStepCounts()
 	g.anim.driveOutWires(ctx, tick)
 	g.anim.sendPulses(tick)

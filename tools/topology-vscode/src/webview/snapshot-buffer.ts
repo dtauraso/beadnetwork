@@ -77,10 +77,6 @@ function makeRowStreamTable(withVersion: boolean) {
   };
 }
 
-// Versioned, because the beads ride the edge stream now and their decode is
-// memoised against this counter. Left unversioned it stays 0 for the life of
-// the session, every reader keeps its first aggregate, and beads render once
-// at the position they started from and never move again.
 const edgeStream = makeRowStreamTable(true);
 
 export function setLatestEdgeStreamFrame(row: number, buf: ArrayBuffer, gen = 0): void {

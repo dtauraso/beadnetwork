@@ -9,12 +9,6 @@ import (
 	"github.com/dtauraso/wirefold/nodes/wire/outport"
 )
 
-// NodeAnimation is the peer goroutine that owns a node's outgoing
-// PacedWires and the human-speed clock that paces their beads. It never
-// touches geometry state directly — the only things that cross to/from its
-// geometry peer are step counts (in, geometry -> animation) and gathered
-// pulses (out, animation -> geometry), both sent non-blocking so neither
-// peer ever waits on the other.
 type NodeAnimation struct {
 	id string
 
@@ -39,9 +33,6 @@ func (a *NodeAnimation) ClearOutWires() {
 	a.outs.ClearOutWires()
 }
 
-// drainStepCounts applies the most recently received step counts before
-// driving wires this cycle — the geometry side's answer to "how many steps
-// to the target", non-blocking exactly like DrainPending.
 func (a *NodeAnimation) drainStepCounts() {
 	for {
 		select {
@@ -55,9 +46,6 @@ func (a *NodeAnimation) drainStepCounts() {
 	}
 }
 
-// sendPulses gathers this cycle's in-flight bead fractions per target and
-// hands them to geometry non-blocking; a slow reader drops the update
-// rather than stalling this clock.
 func (a *NodeAnimation) sendPulses(tick int64) {
 	if !a.outs.HasOutWires() {
 		return
@@ -77,9 +65,6 @@ func (a *NodeAnimation) driveOutWires(ctx context.Context, tick int64) {
 	a.outs.DriveOutWires(ctx, tick)
 }
 
-// Run free-runs on the speed-scaled cycle: apply speed, drive beads, hand
-// their fractions to geometry, sleep. It never touches DrainPending or the
-// node stream — those belong to the geometry peer alone.
 func (a *NodeAnimation) Run(ctx context.Context) {
 	a.clocks.CopyClockSrc()
 	for {
@@ -89,9 +74,6 @@ func (a *NodeAnimation) Run(ctx context.Context) {
 		tick := a.clocks.Tick()
 		a.driveOutWires(ctx, tick)
 		a.sendPulses(tick)
-		// Each edge draws its own beads, so hand every wire's in-flight
-		// rows to the edge that owns it, right after the cycle that moved
-		// them.
 		a.outs.SendBeadRows(tick)
 
 		if err := a.clocks.SleepCycle(ctx); err != nil {

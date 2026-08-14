@@ -8,10 +8,6 @@ import (
 	"github.com/dtauraso/wirefold/nodes/spatial"
 )
 
-// moveDeltas says how far each moved node moved, keyed the same way as
-// newCenters. It rides out to the partner at the other end of every incident
-// edge, which is how that partner keeps its own side of the edge current
-// without ever reading the mover's position.
 func BroadcastToEdgesAndPartners(edgeMovers map[string]*edgemover.EdgeMover, nodeGeoms map[string]*nodeactor.NodeGeometry, newCenters map[string]spatial.Vec3, moveDeltas map[string]polar.Polar, enqueue func(id string, msg movemsg.Msg)) {
 
 	for edgeID, em := range edgeMovers {

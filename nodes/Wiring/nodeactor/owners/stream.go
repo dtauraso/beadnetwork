@@ -15,15 +15,9 @@ type Stream struct {
 
 	buildFrame nodeframe.NodeFrameBuilder
 
-	// selfEvents carries row events raised by a SELF-DRIVEN kind's own goroutine
-	// (breadcrumbs, its opening geometry emit) to the geometry peer, which is the one
-	// goroutine allowed to write this stream. Writing it from both would race.
 	selfEvents chan []rowevent.RowEvent
 }
 
-// PostSelfEvents hands row events from a self-driven kind's own goroutine to the geometry
-// peer, non-blocking: a breadcrumb is diagnostics, and dropping one is strictly better than
-// stalling the kind's loop on a peer.
 func (s *Stream) PostSelfEvents(events []rowevent.RowEvent) {
 	if s.selfEvents == nil {
 		return
@@ -34,8 +28,6 @@ func (s *Stream) PostSelfEvents(events []rowevent.RowEvent) {
 	}
 }
 
-// DrainSelfEvents collects whatever a self-driven kind posted since the last pass, for the
-// geometry peer to carry on its next frame.
 func (s *Stream) DrainSelfEvents() []rowevent.RowEvent {
 	var out []rowevent.RowEvent
 	for {

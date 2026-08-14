@@ -6,27 +6,16 @@
 
 export const BUF_BLOCK_TAG_VIEW = 4;
 
-/**
- * [tick:u32][layoutFingerprintHash:u32] — the hash lets the decoder refuse a
- * frame whose buffer layout it was not built for. See BufLayoutFingerprintHash.
- */
 export const BUF_VIEW_FRAME_HEADER_SIZE = 8;
 
 export const BUF_BLOCK_TAG_EDGE_STREAM = 5;
 
-/**
- * tick, then the label byte count, then how many beads are in flight.
- */
 export const BUF_EDGE_STREAM_FRAME_HEADER_SIZE = 12;
 
 export const BUF_BLOCK_TAG_NODE_STREAM = 6;
 
 export const BUF_BLOCK_TAG_INTERIOR_STREAM = 7;
 
-/**
- * tick, then the label byte count. Beads and poles left the node frame with
- * the neighbour positions they were laid out against.
- */
 export const BUF_NODE_STREAM_FRAME_HEADER_SIZE = 8;
 
 export const BUF_INTERIOR_STREAM_FRAME_HEADER_SIZE = 4;

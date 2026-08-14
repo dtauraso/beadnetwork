@@ -49,14 +49,6 @@ fi
 
 TS_DIR="tools/topology-vscode/src"
 
-# There is no bead-centre summation left to police. A bead's offset used to be
-# stored NODE-LOCAL, so somewhere had to add it to that node's world centre,
-# and the whole risk was that "somewhere" becoming two places. Beads are now
-# placed by the edge they travel, on the segment that edge already holds, and
-# what streams is the world position itself — no offset, no origin, no sum.
-#
-# What the guard still watches is the offset ever coming back: a node-local
-# bead column would bring the summation with it.
 sum_hits=$(grep -rlnE 'readChainBeadO[XYZ]\(|readEdgeBeadO[XYZ]\(' \
   --include='*.ts' --include='*.tsx' \
   "$TS_DIR" 2>/dev/null || true)

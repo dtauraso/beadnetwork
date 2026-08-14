@@ -58,11 +58,6 @@ func (mr *MoverRegistry) FinalizeActors(speedSinks *[]chan float64) {
 	mr.nodeMovers = map[string]*nodeactor.NodeMover{}
 	mr.nodeAnimations = map[string]*nodeactor.NodeAnimation{}
 	for id, ng := range mr.nodeGeoms {
-		// EVERY id gets a geometry peer, self-driven or not. A self-driven kind claims only
-		// the ANIMATION role — its own loop drives its wires on the speed-scaled cycle — and
-		// geometry is the one job that must never sleep on that cycle. Skipping these ids
-		// left the pair scene, whose nodes are all self-driven PairNodes, dragging at the
-		// bead rate while every other scene had been fixed.
 		mr.nodeMovers[id] = nodeactor.NewNodeMover(ng)
 
 		if mr.selfDriveClaimed[id] {

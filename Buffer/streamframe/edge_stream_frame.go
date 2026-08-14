@@ -7,7 +7,6 @@ import (
 	B "github.com/dtauraso/wirefold/Buffer"
 )
 
-// EdgeBead is one in-flight bead at its world position along this edge.
 type EdgeBead struct {
 	X, Y, Z float32
 	Value   int32

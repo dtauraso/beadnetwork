@@ -32,9 +32,6 @@ type specNode struct {
 
 	Gate bool `json:"gate,omitempty"`
 
-	// Orbit is this node's own statement of how it may sit about the node it
-	// hangs from — carried by the node the rule binds, by id, not by its kind
-	// and not by whatever is pointing at it. Absent means free.
 	Orbit *polar.OrbitRule `json:"orbit,omitempty"`
 
 	TopTiltVectorThetaIdx *int32 `json:"topTiltVectorThetaIdx,omitempty"`
@@ -89,10 +86,7 @@ type specEdge struct {
 	Target       string `json:"target"`
 	TargetHandle string `json:"targetHandle"`
 
-	// D — the vector from this edge's source to its target, in the same polar
 	// pole convention as a node's scenePolar*. See edge_delta.go: A + D = B.
-	// Absent in a scene written before the vector existed, and derived once from
-	// the two endpoints on load.
 	DeltaPolarR     *float64 `json:"deltaPolarR,omitempty"`
 	DeltaPolarPhi   *float64 `json:"deltaPolarPhi,omitempty"`
 	DeltaPolarTheta *float64 `json:"deltaPolarTheta,omitempty"`

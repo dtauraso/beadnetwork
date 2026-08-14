@@ -55,10 +55,6 @@ func (n *Messaging) SeedCenter(center vec3) {
 	n.centerOut <- center
 }
 
-// CommitLocal takes the world position and, when the sender had one, the
-// TRIPLE it composed. A nil targetPolar means the position arrived from the
-// world in the first place (a pointer hit) and the triple is derived from it;
-// a non-nil one is authoritative and must not be re-derived.
 func (n *Messaging) CommitLocal(id string, newPos vec3, targetPolar *polar.Polar) {
 	if n.commitLocal != nil {
 		n.commitLocal(id, newPos, targetPolar)
@@ -180,11 +176,6 @@ func (n *Messaging) FlushPending() {
 	n.pending = kept
 }
 
-// PublishCenter makes this node's own centre readable and tells nobody.
-//
-// It used to fan the centre out to every neighbour as well. That was the last
-// standing piece of the cascade: each neighbour cached the sender's position,
-// and anything acting on that cache moved other nodes in response.
 func (n *Messaging) PublishCenter(center vec3) {
 	select {
 	case <-n.centerOut:

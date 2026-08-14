@@ -11,8 +11,6 @@ export interface EdgeAccessor {
 
   segment(row: number): [number, number, number, number, number, number];
 
-  // srcNodeRow is the node this edge leaves, or -1 when the frame does not
-  // name one. The segment says where an edge is, never whose it is.
   srcNodeRow(row: number): number;
 
 }

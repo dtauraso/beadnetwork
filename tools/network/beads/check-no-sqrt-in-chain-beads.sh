@@ -3,12 +3,6 @@ set -euo pipefail
 
 # PLACEMENT: nodes/wire/live_beads.go | no math.Sqrt/.Length()/.Normalize(); bead placement stays a fraction along the edge's own segment
 
-# The chain a NODE laid toward a neighbour is gone, and so is the file this
-# guard used to read. Placement now happens where the beads actually are — on
-# the edge's own segment, in nodes/wire/live_beads.go — and the invariant is
-# unchanged: a bead's position is arithmetic on values already held, never a
-# cartesian distance measured on the spot.
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 FILE="$REPO_ROOT/nodes/wire/live_beads.go"

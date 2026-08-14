@@ -33,26 +33,16 @@ type EdgeMover struct {
 
 	stepsIn chan int
 
-	// beadRowsIn carries this edge's own in-flight beads, already placed
-	// along its segment, from the goroutine that steps the wire. The edge
-	// draws them; it never reads the wire itself.
 	beadRowsIn   chan []wire.LiveBeadRow
 	lastBeadRows []wire.LiveBeadRow
 
-	// seenBeadGens is which beads this edge has already reported, so the
-	// breadcrumb speaks once per bead rather than once per tick.
 	seenBeadGens map[uint64]bool
 
 	steps int
 	tr    *T.Trace
 
-	// persistRoot arms this edge to write its own file — the one file it owns,
-	// nodes/<source>/edges/<label>.json.
 	persistRoot string
 
-	// d is this edge's OWN vector, source to target, seeded from its file at
-	// build. A + D = B holds because vector addition makes it hold, not because
-	// anything here recomputes or checks it.
 	d polar.Polar
 
 	clockSrc clock.Clock
@@ -143,9 +133,6 @@ func (m *EdgeMover) TrySendFromDst(msg movemsg.Msg) bool {
 	}
 }
 
-// SendBeadRows replaces whatever this edge was last told about its beads.
-// A dropped update is a frame of staleness, never a stall on the goroutine
-// driving the wire — same shape as SendSteps.
 func (m *EdgeMover) SendBeadRows(rows []wire.LiveBeadRow) {
 	if m.beadRowsIn == nil {
 		return

@@ -10,8 +10,6 @@ cd "$REPO_ROOT"
 
 COMPOSERS=(
   "type MoveDispatch struct {|12|the responsible owner type (rowtables.RowTables/geomseeds.GeomSeeds/streamWiring/uiState/moverRegistry/layoutQuantizer)"
-  # 20 -> 21 for owners.Deltas: a node's own side of each edge it touches (A + D = B).
-  # It is a new NAMED owner, which is what this cap asks for, not a loose field.
   "type NodeGeometry struct {|21|the responsible owner type (owners.Messaging/Clocks/Stream/UI/Tilt/Readout/Outs/Topology/Flags/Beads/Deltas, nodes/Wiring/nodeactor/owners/)"
 )
 

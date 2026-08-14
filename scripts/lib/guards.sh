@@ -26,7 +26,7 @@ run_guards() {
     exit 1
   fi
 
-  local GUARD_SERIAL="check-generated"
+  local GUARD_SERIAL="check-generated|check-added-comments"
   local JOBS
   JOBS=$(sysctl -n hw.ncpu 2>/dev/null || nproc 2>/dev/null || echo 4)
 
@@ -43,12 +43,12 @@ run_guards() {
 
   for chk_path in "${guard_selected[@]}"; do
     chk=$(basename "$chk_path" .sh)
-    [ "$chk" = "$GUARD_SERIAL" ] || continue
+    echo "$chk" | grep -qE "^($GUARD_SERIAL)$" || continue
     run_one_guard "$chk_path"
   done
 
   printf '%s\n' "${guard_selected[@]}" \
-    | grep -v "/${GUARD_SERIAL}\.sh$" \
+    | grep -vE "/($GUARD_SERIAL)\.sh$" \
     | GDIR="$GDIR" xargs -P "$JOBS" -I@ bash -c '
         gp="@"; gn=$(basename "$gp" .sh)
         go=$(bash "$gp" 2>&1); grc=$?

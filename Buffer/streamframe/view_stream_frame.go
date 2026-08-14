@@ -15,9 +15,6 @@ func BuildViewStreamFrame(tick uint32,
 ) []byte {
 	buf := make([]byte, B.BufViewFrameHeaderSize+B.BufCameraStride+B.BufOverlayStride+B.BufSceneStride)
 	binary.LittleEndian.PutUint32(buf[0:], tick)
-	// The layout this BINARY was built for. The webview compares it against the
-	// layout ITS bundle was built for and refuses the frame on a mismatch, so a
-	// Go/bundle skew announces itself instead of decoding into wrong columns.
 	binary.LittleEndian.PutUint32(buf[4:], B.BufLayoutFingerprintHash)
 	off := B.BufViewFrameHeaderSize
 	B.SetCameraRow(buf[off:], camPX, camPY, camPZ, camR, camPosPhi, camPosTheta, camUpPhi, camUpTheta)

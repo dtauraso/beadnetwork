@@ -16,14 +16,8 @@ type bufLayoutOverlay struct {
 	HoverRing     uint8 `buf:"u8"`
 	ReachSphere   uint8 `buf:"u8"`
 
-	// SceneVectors draws each node's stored scene vector — the line from the
-	// scene sphere's centre to that node's centre.
 	SceneVectors uint8 `buf:"u8"`
 
-	// CommEdges draws the edges a node uses to tell another node where the
-	// constraint it holds puts it — an input node's outgoing paths, which
-	// carry a position to each neighbour rather than a bead. They take the
-	// place of the animation edge along those same paths while it is on.
 	CommEdges uint8 `buf:"u8"`
 
 	DragNodeRow int32 `buf:"i32"`

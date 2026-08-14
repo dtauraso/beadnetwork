@@ -18,9 +18,6 @@ export interface DecodedEdgeStreamFrame {
 
   label: string;
 
-  // The beads in flight on this edge, at world positions along its own
-  // segment. They ride the edge's frame because the edge is what they are
-  // on — a node no longer lays a chain toward anything.
   beadCount: number;
   beadView: DataView;
 

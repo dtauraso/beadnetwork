@@ -19,10 +19,6 @@ type Outs struct {
 
 func (o *Outs) HasOutWires() bool { return len(o.outWires) > 0 }
 
-// WireTargets returns each distinct target id an outgoing PacedWire drives —
-// the animation job's own iteration list, separate from NodeGeometry's
-// outTargets (which draws chain beads toward every declared edge target,
-// wired or not).
 func (o *Outs) WireTargets() []string {
 	seen := map[string]bool{}
 	var targets []string
@@ -56,12 +52,6 @@ func (o *Outs) AddOutWire(pw *wire.PacedWire, target string, out *outport.Out, s
 	o.outBeadRowsIn = append(o.outBeadRowsIn, sendBeadRows)
 }
 
-// SendBeadRows hands each wire's in-flight beads to the edge that owns it.
-//
-// The beads are read HERE, on the goroutine that steps the wire, because that
-// is the only goroutine allowed to look at its in-flight slice. The edge is
-// the one that draws them, so what crosses is the finished rows — positions
-// already placed along that edge's own segment — and never the wire itself.
 func (o *Outs) SendBeadRows(tick int64) {
 	for i, pw := range o.outWires {
 		if pw == nil || i >= len(o.outBeadRowsIn) || o.outBeadRowsIn[i] == nil {
