@@ -56,16 +56,13 @@ func (m *NodeGeometry) takeNeighborMove(msg movemsg.Msg) {
 }
 
 func (m *NodeGeometry) takeDragOfSelf(msg movemsg.Msg) {
-	newPos := msg.Target
-	targetPolar := msg.TargetPolar
-
-	if msg.Delta != nil {
-		moved := polar.Compose(m.ScenePolar(), m.TrimOwnDrag(*msg.Delta))
-		targetPolar = &moved
-		newPos = m.SceneCenter().Add(polar.Polar2cart(moved))
+	if msg.Delta == nil {
+		panic("nodeactor.takeDragOfSelf: drag of " + m.id + " carries no delta — a node is TOLD a delta and trims it itself, it is never handed a position")
 	}
+	moved := polar.Compose(m.ScenePolar(), m.TrimOwnDrag(*msg.Delta))
+	newPos := m.SceneCenter().Add(polar.Polar2cart(moved))
 
-	m.msg.CommitLocal(m.id, newPos, targetPolar)
+	m.msg.CommitLocal(m.id, newPos, &moved)
 	if m.tr != nil {
 		m.tr.Breadcrumb("drag.commit", m.id, "", fmt.Sprintf("newPos=(%.4f,%.4f,%.4f)", newPos.X, newPos.Y, newPos.Z))
 
