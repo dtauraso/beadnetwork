@@ -54,9 +54,7 @@ func (p *PairNodeSelf) Step(ctx context.Context, tick int64) {
 	g := p.geom
 	g.clocks.ApplySpeed(p.speedCh)
 
-	g.anim.drainStepCounts()
 	g.anim.driveOutWires(ctx, tick)
-	g.anim.sendPulses(tick)
 }
 
 func (p *PairNodeSelf) SetTiltIndex(theta, normalTheta, bottomTheta int32) {

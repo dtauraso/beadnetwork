@@ -66,13 +66,13 @@ type pendingWireEvent struct {
 
 const maxPendingEvents = wireChanBufferSize
 
-func (r *wireReadout) appendPending(ev pendingWireEvent, target, targetHandle string) {
+func (r *wireReadout) appendPending(ev pendingWireEvent, owner, edge string) {
 	r.pending = append(r.pending, ev)
 	if len(r.pending) > maxPendingEvents {
 		panic(fmt.Sprintf(
-			"paced_wire: pending exceeded %d events on wire -> %s.%s; the per-cycle drain "+
-				"(edgeMover.writeStreamFrame -> DrainPendingEvents) is not running",
-			maxPendingEvents, target, targetHandle))
+			"paced_wire: pending exceeded %d events on edge %q owned by node %s; the per-cycle "+
+				"drain (edgeMover.writeStreamFrame -> DrainPendingEvents) is not running",
+			maxPendingEvents, edge, owner))
 	}
 }
 

@@ -3,34 +3,16 @@ package owners
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/nodes/Wiring/beadindex"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
-	"github.com/dtauraso/wirefold/nodes/wire/outport"
 )
 
 type Outs struct {
-	outWires       []*wire.PacedWire
-	outWireTargets []string
-	outWireOuts    []*outport.Out
+	outWires []*wire.PacedWire
 
-	outStepsIn    []func(int)
 	outBeadRowsIn []func([]wire.LiveBeadRow)
 }
 
 func (o *Outs) HasOutWires() bool { return len(o.outWires) > 0 }
-
-func (o *Outs) WireTargets() []string {
-	seen := map[string]bool{}
-	var targets []string
-	for _, wt := range o.outWireTargets {
-		if seen[wt] {
-			continue
-		}
-		seen[wt] = true
-		targets = append(targets, wt)
-	}
-	return targets
-}
 
 func (o *Outs) DriveOutWires(ctx context.Context, tick int64) {
 	for _, pw := range o.outWires {
@@ -44,11 +26,8 @@ func (o *Outs) ClearOutWires() {
 	}
 }
 
-func (o *Outs) AddOutWire(pw *wire.PacedWire, target string, out *outport.Out, sendSteps func(int), sendBeadRows func([]wire.LiveBeadRow)) {
+func (o *Outs) AddOutWire(pw *wire.PacedWire, sendBeadRows func([]wire.LiveBeadRow)) {
 	o.outWires = append(o.outWires, pw)
-	o.outWireTargets = append(o.outWireTargets, target)
-	o.outWireOuts = append(o.outWireOuts, out)
-	o.outStepsIn = append(o.outStepsIn, sendSteps)
 	o.outBeadRowsIn = append(o.outBeadRowsIn, sendBeadRows)
 }
 
@@ -59,35 +38,4 @@ func (o *Outs) SendBeadRows(tick int64) {
 		}
 		o.outBeadRowsIn[i](pw.LiveBeadRows(tick))
 	}
-}
-
-func (o *Outs) PublishStepCount(to string, count int) {
-	for i, wt := range o.outWireTargets {
-		if wt != to {
-			continue
-		}
-		if i < len(o.outWireOuts) && o.outWireOuts[i] != nil {
-			o.outWireOuts[i].PublishSteps(count)
-		}
-		if i < len(o.outStepsIn) && o.outStepsIn[i] != nil {
-			o.outStepsIn[i](count)
-		}
-	}
-}
-
-func (o *Outs) GatherPulses(to string, tick int64) []beadindex.Pulse {
-	var pulses []beadindex.Pulse
-	for i, wt := range o.outWireTargets {
-		if wt != to || o.outWires[i] == nil {
-			continue
-		}
-		for _, p := range o.outWires[i].LiveBeadFractions(tick) {
-			if p.T < 0 || p.T >= 1 || p.Steps <= 0 {
-				continue
-			}
-
-			pulses = append(pulses, beadindex.Pulse{T: p.T, Steps: p.Steps, Val: int32(p.Val)})
-		}
-	}
-	return pulses
 }

@@ -1,7 +1,6 @@
 package nodeactor
 
 import (
-	"github.com/dtauraso/wirefold/nodes/Wiring/beadindex"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/owners"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
@@ -40,10 +39,6 @@ type NodeGeometry struct {
 
 	anim *NodeAnimation
 
-	stepOut    chan<- map[string]int
-	pulseIn    <-chan map[string][]beadindex.Pulse
-	lastPulses map[string][]beadindex.Pulse
-
 	topo owners.Topology
 
 	deltas owners.Deltas
@@ -54,14 +49,9 @@ type NodeGeometry struct {
 }
 
 func NewNodeGeometry(id string, geom nodegeom.NodeGeom, tr *T.Trace, clockSrc clock.Clock) *NodeGeometry {
-	stepCh := make(chan map[string]int, 1)
-	pulseCh := make(chan map[string][]beadindex.Pulse, 1)
-
 	anim := &NodeAnimation{
-		id:       id,
-		clocks:   owners.NewClocks(clockSrc, clock.NewRealClock()),
-		stepIn:   stepCh,
-		pulseOut: pulseCh,
+		id:     id,
+		clocks: owners.NewClocks(clockSrc, clock.NewRealClock()),
 	}
 
 	ng := &NodeGeometry{
@@ -71,14 +61,11 @@ func NewNodeGeometry(id string, geom nodegeom.NodeGeom, tr *T.Trace, clockSrc cl
 			map[string]chan movemsg.Msg{},
 			make(chan vec3, 1),
 		),
-		topo:       owners.NewTopology(),
-		deltas:     owners.NewDeltas(),
-		clocks:     owners.NewClocks(clockSrc, clock.NewRealClock()),
-		tilt:       owners.NewTilt(tiltvector.FullTurnThetaIdx),
-		anim:       anim,
-		stepOut:    stepCh,
-		pulseIn:    pulseCh,
-		lastPulses: map[string][]beadindex.Pulse{},
+		topo:   owners.NewTopology(),
+		deltas: owners.NewDeltas(),
+		clocks: owners.NewClocks(clockSrc, clock.NewRealClock()),
+		tilt:   owners.NewTilt(tiltvector.FullTurnThetaIdx),
+		anim:   anim,
 	}
 
 	ng.msg.SeedCenter(nodegeom.NodeWorldPos(geom))

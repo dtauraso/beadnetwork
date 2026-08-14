@@ -23,7 +23,7 @@ type posEmitArgs struct {
 func (pw *PacedWire) emitArrive(ai arriveInfo) {
 	if ai.emit && pw.readout.StreamsActive {
 		pw.readout.appendPending(pendingWireEvent{kind: T.KindArrive, value: ai.value, gen: ai.gen},
-			pw.Target, pw.TargetHandle)
+			pw.Owner, pw.Edge)
 	}
 }
 

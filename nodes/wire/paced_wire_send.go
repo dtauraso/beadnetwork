@@ -21,7 +21,7 @@ func (pw *PacedWire) Send(v int, bp BeadPlacement, tick int64) SendOutcome {
 		return SendPlaced
 	default:
 		if pw.readout.Trace != nil {
-			pw.readout.Trace.Breadcrumb("wire-send-buffer-full", pw.Target, pw.TargetHandle, "")
+			pw.readout.Trace.Breadcrumb("wire-send-buffer-full", pw.Owner, pw.Edge, "")
 		}
 
 		if pw.readout.breadcrumbCh != nil {

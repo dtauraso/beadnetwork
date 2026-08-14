@@ -11,9 +11,7 @@ import (
 
 func (mr *MoverRegistry) Bind(outSink map[string]*outport.Out, slotReg inputcodec.SlotRegistry) {
 	for edgeID, em := range mr.edgeMovers {
-		var o *outport.Out
 		if oo, ok := outSink[em.SrcID()+"."+em.SrcHandle()]; ok {
-			o = oo
 			em.SetOut(oo)
 			mr.edgeOut[edgeID] = oo
 		}
@@ -21,7 +19,7 @@ func (mr *MoverRegistry) Bind(outSink map[string]*outport.Out, slotReg inputcode
 			em.SetDest(pw)
 
 			if srcNM, ok := mr.nodeGeoms[em.SrcID()]; ok {
-				srcNM.AddOutWire(pw, em.DstID(), o, em.SendSteps, em.SendBeadRows)
+				srcNM.AddOutWire(pw, em.SendBeadRows)
 			}
 		}
 	}

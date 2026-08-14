@@ -25,6 +25,9 @@ type PacedWire struct {
 
 	dwell float64
 
+	Owner string
+	Edge  string
+
 	Target       string
 	TargetHandle string
 

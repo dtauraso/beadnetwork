@@ -40,6 +40,8 @@ func AllocateWires(spec loadspec.TopoSpec, nodeGeoms map[string]nodegeom.NodeGeo
 		}
 
 		pw := wire.NewPacedWire(steps, lattice.DwellTicksPerBead)
+		pw.Owner = e.Source
+		pw.Edge = e.Label
 		pw.Target = e.Target
 		pw.TargetHandle = e.TargetHandle
 		pw.SetTrace(tr)

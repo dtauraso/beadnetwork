@@ -27,9 +27,6 @@ func (m *EdgeMover) Run(ctx context.Context) {
 				if rc, ok := m.clk.(*clock.RealClock); ok {
 					rc.SetSpeed(sp)
 				}
-			case steps := <-m.stepsIn:
-
-				m.steps = steps
 			case rows := <-m.beadRowsIn:
 				m.lastBeadRows = rows
 				m.noteBeadCount(rows)
