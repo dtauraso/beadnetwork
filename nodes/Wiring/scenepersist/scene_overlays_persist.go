@@ -60,7 +60,6 @@ func WriteSceneOverlays(overlaysPath string, ov viewstate.OverlayState) error {
 	setVisible("hoverRingVisible", ov.HoverRingVisible)
 	setVisible("reachSphereVisible", ov.ReachSphereVisible)
 	setVisible("sceneVectorsVisible", ov.SceneVectorsVisible)
-	setVisible("commEdgesVisible", ov.CommEdgesVisible)
 	return jsonpersist.WriteJSONAtomic(overlaysPath, obj)
 }
 
@@ -78,7 +77,6 @@ type sceneOverlaysFile struct {
 	HoverRingVisible     *bool `json:"hoverRingVisible"`
 	ReachSphereVisible   *bool `json:"reachSphereVisible"`
 	SceneVectorsVisible  *bool `json:"sceneVectorsVisible"`
-	CommEdgesVisible     *bool `json:"commEdgesVisible"`
 }
 
 func LoadSceneOverlays(overlaysPath string) (viewstate.OverlayState, bool) {
@@ -136,10 +134,6 @@ func LoadSceneOverlays(overlaysPath string) (viewstate.OverlayState, bool) {
 	}
 	if sf.SceneVectorsVisible != nil {
 		ov.SceneVectorsVisible = *sf.SceneVectorsVisible
-		found = true
-	}
-	if sf.CommEdgesVisible != nil {
-		ov.CommEdgesVisible = *sf.CommEdgesVisible
 		found = true
 	}
 	return ov, found
