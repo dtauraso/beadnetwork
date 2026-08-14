@@ -2,6 +2,7 @@ package nodefiles
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -30,8 +31,17 @@ type newNodePosition struct {
 
 func entityReadModifyWrite(path string, mutate func(map[string]any)) error {
 	m := map[string]any{}
-	if raw, err := os.ReadFile(path); err == nil {
-		_ = json.Unmarshal(raw, &m)
+	raw, err := os.ReadFile(path)
+	if err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("entityReadModifyWrite: read %s: %w", path, err)
+	}
+	if err == nil {
+		if err := json.Unmarshal(raw, &m); err != nil {
+			return fmt.Errorf(
+				"entityReadModifyWrite: %s exists but does not parse as JSON (%w) — refusing to "+
+					"overwrite it, since that would discard every key this write does not set",
+				path, err)
+		}
 	}
 	mutate(m)
 	return jsonpersist.WriteJSONAtomic(path, m)
@@ -59,15 +69,14 @@ func WriteOrbitRule(root, id string, rule *polar.OrbitRule) error {
 			delete(m, "orbit")
 			return
 		}
-		raw, err := json.Marshal(rule)
-		if err != nil {
-			return
+		orbit := map[string]any{}
+		if rule.Phi != nil {
+			orbit["phi"] = *rule.Phi
 		}
-		var v any
-		if err := json.Unmarshal(raw, &v); err != nil {
-			return
+		if rule.MaxTheta != nil {
+			orbit["maxTheta"] = *rule.MaxTheta
 		}
-		m["orbit"] = v
+		m["orbit"] = orbit
 	})
 }
 
