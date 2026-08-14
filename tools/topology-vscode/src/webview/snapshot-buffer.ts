@@ -33,6 +33,7 @@ function noteGen(gen: number): void {
 export function resetSceneIdentityForTest(): void {
   latestGen = 0;
   edgeStream.clear();
+  beadStream.clear();
   nodeStream.clear();
   interiorStream.clear();
 }
@@ -93,6 +94,24 @@ export function getEdgeStreamVersion(): number {
 
 export function subscribeEdgeStreamFrame(fn: SnapshotListener): () => void {
   return edgeStream.subscribe(fn);
+}
+
+const beadStream = makeRowStreamTable(true);
+
+export function setLatestBeadStreamFrame(row: number, buf: ArrayBuffer, gen = 0): void {
+  beadStream.set(row, buf, gen);
+}
+
+export function getLatestBeadStreamFrames(): ReadonlyMap<number, ArrayBuffer> {
+  return beadStream.get();
+}
+
+export function getBeadStreamVersion(): number {
+  return beadStream.getVersion();
+}
+
+export function subscribeBeadStreamFrame(fn: SnapshotListener): () => void {
+  return beadStream.subscribe(fn);
 }
 
 const nodeStream = makeRowStreamTable(true);

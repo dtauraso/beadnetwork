@@ -1,15 +1,14 @@
 import {
-  getLatestEdgeStreamFrames, getEdgeStreamVersion,
-  getNodeStreamVersion,
+  getLatestBeadStreamFrames, getBeadStreamVersion,
 } from "../../../snapshot-buffer";
-import { decodeEdgeStreamFrame } from "../../decode/buffer-decode-edge";
+import { decodeBeadStreamFrame } from "../../decode/buffer-decode-bead";
 import {
   readEdgeBeadX, readEdgeBeadY, readEdgeBeadZ, readEdgeBeadValue,
-  readEdgeSrcNodeRow,
   readEdgeBeadRingM0, readEdgeBeadRingM1, readEdgeBeadRingM2, readEdgeBeadRingM3,
   readEdgeBeadRingM4, readEdgeBeadRingM5, readEdgeBeadRingM6, readEdgeBeadRingM7,
   readEdgeBeadRingM8, readEdgeBeadRingM9, readEdgeBeadRingM10, readEdgeBeadRingM11,
   readEdgeBeadRingM12, readEdgeBeadRingM13, readEdgeBeadRingM14, readEdgeBeadRingM15,
+  readEdgeBeadEdgeRow,
 } from "../../../../schema/buffer-layout/buffer-layout";
 
 export interface EdgeBeadsAgg {
@@ -18,24 +17,24 @@ export interface EdgeBeadsAgg {
 
   srcNodeRow: Int32Array;
 
+  edgeRow: Int32Array;
+
   ringMatrix: Float32Array;
 
   count: number;
 }
 
 let lastVersion = -1;
-let lastNodeVersion = -1;
 let lastAgg: EdgeBeadsAgg | null = null;
 
 export function getEdgeBeads(): EdgeBeadsAgg {
-  const ev = getEdgeStreamVersion();
-  const nv = getNodeStreamVersion();
-  if (lastAgg !== null && ev === lastVersion && nv === lastNodeVersion) return lastAgg;
+  const bv = getBeadStreamVersion();
+  if (lastAgg !== null && bv === lastVersion) return lastAgg;
 
   const decoded = [];
   let total = 0;
-  for (const [row, buf] of getLatestEdgeStreamFrames()) {
-    const d = decodeEdgeStreamFrame(row, buf);
+  for (const [row, buf] of getLatestBeadStreamFrames()) {
+    const d = decodeBeadStreamFrame(row, buf);
     if (!d) continue;
     decoded.push(d);
     total += d.beadCount;
@@ -45,18 +44,18 @@ export function getEdgeBeads(): EdgeBeadsAgg {
   const ringMatrix = new Float32Array(total * 16);
   const value = new Int32Array(total);
   const srcNodeRow = new Int32Array(total);
+  const edgeRow = new Int32Array(total);
   let w = 0;
   let m = 0;
   let b = 0;
   for (const d of decoded) {
-    const src = readEdgeSrcNodeRow(d.edgeView, 0);
-
     for (let i = 0; i < d.beadCount; i++) {
       positions[w++] = readEdgeBeadX(d.beadView, i);
       positions[w++] = readEdgeBeadY(d.beadView, i);
       positions[w++] = readEdgeBeadZ(d.beadView, i);
       value[b] = readEdgeBeadValue(d.beadView, i);
-      srcNodeRow[b++] = src;
+      edgeRow[b] = readEdgeBeadEdgeRow(d.beadView, i);
+      srcNodeRow[b++] = d.nodeRow;
 
       ringMatrix[m++] = readEdgeBeadRingM0(d.beadView, i);
       ringMatrix[m++] = readEdgeBeadRingM1(d.beadView, i);
@@ -77,8 +76,7 @@ export function getEdgeBeads(): EdgeBeadsAgg {
     }
   }
 
-  lastVersion = ev;
-  lastNodeVersion = nv;
-  lastAgg = { positions, value, srcNodeRow, ringMatrix, count: total };
+  lastVersion = bv;
+  lastAgg = { positions, value, srcNodeRow, edgeRow, ringMatrix, count: total };
   return lastAgg;
 }

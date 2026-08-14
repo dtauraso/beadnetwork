@@ -55,6 +55,21 @@ type nodeFrameFixture struct {
 	Hex            string             `json:"hex"`
 }
 
+type edgeBeadFixture struct {
+	X       float32 `json:"x"`
+	Y       float32 `json:"y"`
+	Z       float32 `json:"z"`
+	Value   int32   `json:"value"`
+	EdgeRow int32   `json:"edgeRow"`
+}
+
+type beadFrameFixture struct {
+	Tick    uint32            `json:"tick"`
+	NodeRow int32             `json:"nodeRow"`
+	Beads   []edgeBeadFixture `json:"beads"`
+	Hex     string            `json:"hex"`
+}
+
 type edgeFrameFixture struct {
 	Tick       uint32  `json:"tick"`
 	SX         float32 `json:"sx"`
@@ -82,5 +97,6 @@ type interiorFrameFixture struct {
 type streamFixture struct {
 	NodeFrame     nodeFrameFixture     `json:"nodeFrame"`
 	EdgeFrame     edgeFrameFixture     `json:"edgeFrame"`
+	BeadFrame     beadFrameFixture     `json:"beadFrame"`
 	InteriorFrame interiorFrameFixture `json:"interiorFrame"`
 }

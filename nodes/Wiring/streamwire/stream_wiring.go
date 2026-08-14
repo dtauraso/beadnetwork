@@ -5,11 +5,11 @@ import (
 	"io"
 	"os"
 
-	SF "github.com/dtauraso/wirefold/Buffer/streamframe"
 	"github.com/dtauraso/wirefold/nodes/Wiring/edgemover"
 	geomseeds "github.com/dtauraso/wirefold/nodes/Wiring/geomseeds"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/nodeframe"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/owners"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/streamclaim"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
 )
@@ -57,7 +57,7 @@ func (sw *StreamWiring) SetEdgeStreams(
 	edgeMovers map[string]*edgemover.EdgeMover,
 	baseFd int,
 	nodeRowFor func(id string) (int32, bool),
-	buildFrame func(tick uint32, sx, sy, sz, ex, ey, ez float32, srcNodeRow int32, label string, beads []SF.EdgeBead, events []rowevent.RowEvent) []byte,
+	buildFrame func(tick uint32, sx, sy, sz, ex, ey, ez float32, srcNodeRow int32, label string, events []rowevent.RowEvent) []byte,
 ) {
 	for row, seed := range edgeSeeds {
 		em, ok := edgeMovers[seed.Label]
@@ -80,6 +80,8 @@ func (sw *StreamWiring) SetNodeStreams(
 	nodeMovers map[string]*nodeactor.NodeGeometry,
 	nodeBase, interiorBase int,
 	driveBase int, driveWired bool,
+	beadBase int, beadWired bool,
+	buildBeadFrame owners.BeadFrameBuilder,
 	nodeRowFor func(id string) (int32, bool),
 	buildFrame nodeframe.NodeFrameBuilder,
 	buildInteriorFrame func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []rowevent.RowEvent) []byte,
@@ -104,6 +106,11 @@ func (sw *StreamWiring) SetNodeStreams(
 			kindID = kindIDFor(seed.Kind)
 		}
 		nm.WireStream(streamOut, int32(row), kindID, nodeRowFor, buildFrame)
+
+		if beadWired {
+			bFd := beadBase + row
+			nm.WireBeadStream(os.NewFile(uintptr(bFd), fmt.Sprintf("bead-fd%d", bFd)), int32(row), buildBeadFrame)
+		}
 
 		iFd := interiorBase + row
 		sw.interiorOuts[seed.ID] = os.NewFile(uintptr(iFd), fmt.Sprintf("interior-fd%d", iFd))

@@ -19,6 +19,8 @@ const DriveSlotsPerNode = 2
 
 const StreamKindDrive = "drive"
 
+const StreamKindBead = "bead"
+
 type StreamFDs map[string]int
 
 func ParseStreamFDs(env string) StreamFDs {

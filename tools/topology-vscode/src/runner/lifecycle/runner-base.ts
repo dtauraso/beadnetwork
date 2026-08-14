@@ -79,6 +79,10 @@ export abstract class RunnerLifecycle {
     return this.demux.getLastInteriorFrames();
   }
 
+  getLastBeadFrames(): Array<{ row: number; buffer: ArrayBuffer }> {
+    return this.demux.getLastBeadFrames();
+  }
+
   writeStdin(record: ArrayBuffer | Uint8Array): void {
     const framed = record instanceof Uint8Array ? record : frameRecord(record);
     if (!this.proc?.stdin) {

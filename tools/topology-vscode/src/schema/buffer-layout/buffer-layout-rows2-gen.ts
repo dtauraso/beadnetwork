@@ -28,28 +28,30 @@ export const EDGE_BEAD_COL_X                     = 0; // f32
 export const EDGE_BEAD_COL_Y                     = 4; // f32
 export const EDGE_BEAD_COL_Z                     = 8; // f32
 export const EDGE_BEAD_COL_VALUE                 = 12; // i32
-export const EDGE_BEAD_COL_RING_M0               = 16; // f32
-export const EDGE_BEAD_COL_RING_M1               = 20; // f32
-export const EDGE_BEAD_COL_RING_M2               = 24; // f32
-export const EDGE_BEAD_COL_RING_M3               = 28; // f32
-export const EDGE_BEAD_COL_RING_M4               = 32; // f32
-export const EDGE_BEAD_COL_RING_M5               = 36; // f32
-export const EDGE_BEAD_COL_RING_M6               = 40; // f32
-export const EDGE_BEAD_COL_RING_M7               = 44; // f32
-export const EDGE_BEAD_COL_RING_M8               = 48; // f32
-export const EDGE_BEAD_COL_RING_M9               = 52; // f32
-export const EDGE_BEAD_COL_RING_M10              = 56; // f32
-export const EDGE_BEAD_COL_RING_M11              = 60; // f32
-export const EDGE_BEAD_COL_RING_M12              = 64; // f32
-export const EDGE_BEAD_COL_RING_M13              = 68; // f32
-export const EDGE_BEAD_COL_RING_M14              = 72; // f32
-export const EDGE_BEAD_COL_RING_M15              = 76; // f32
-export const EDGE_BEAD_STRIDE                    = 80;
+export const EDGE_BEAD_COL_EDGE_ROW              = 16; // i32
+export const EDGE_BEAD_COL_RING_M0               = 20; // f32
+export const EDGE_BEAD_COL_RING_M1               = 24; // f32
+export const EDGE_BEAD_COL_RING_M2               = 28; // f32
+export const EDGE_BEAD_COL_RING_M3               = 32; // f32
+export const EDGE_BEAD_COL_RING_M4               = 36; // f32
+export const EDGE_BEAD_COL_RING_M5               = 40; // f32
+export const EDGE_BEAD_COL_RING_M6               = 44; // f32
+export const EDGE_BEAD_COL_RING_M7               = 48; // f32
+export const EDGE_BEAD_COL_RING_M8               = 52; // f32
+export const EDGE_BEAD_COL_RING_M9               = 56; // f32
+export const EDGE_BEAD_COL_RING_M10              = 60; // f32
+export const EDGE_BEAD_COL_RING_M11              = 64; // f32
+export const EDGE_BEAD_COL_RING_M12              = 68; // f32
+export const EDGE_BEAD_COL_RING_M13              = 72; // f32
+export const EDGE_BEAD_COL_RING_M14              = 76; // f32
+export const EDGE_BEAD_COL_RING_M15              = 80; // f32
+export const EDGE_BEAD_STRIDE                    = 84;
 
 export function readEdgeBeadX(view: DataView, row: number): number { return view.getFloat32(row * EDGE_BEAD_STRIDE + EDGE_BEAD_COL_X, true); }
 export function readEdgeBeadY(view: DataView, row: number): number { return view.getFloat32(row * EDGE_BEAD_STRIDE + EDGE_BEAD_COL_Y, true); }
 export function readEdgeBeadZ(view: DataView, row: number): number { return view.getFloat32(row * EDGE_BEAD_STRIDE + EDGE_BEAD_COL_Z, true); }
 export function readEdgeBeadValue(view: DataView, row: number): number { return view.getInt32(row * EDGE_BEAD_STRIDE + EDGE_BEAD_COL_VALUE, true); }
+export function readEdgeBeadEdgeRow(view: DataView, row: number): number { return view.getInt32(row * EDGE_BEAD_STRIDE + EDGE_BEAD_COL_EDGE_ROW, true); }
 export function readEdgeBeadRingM0(view: DataView, row: number): number { return view.getFloat32(row * EDGE_BEAD_STRIDE + EDGE_BEAD_COL_RING_M0, true); }
 export function readEdgeBeadRingM1(view: DataView, row: number): number { return view.getFloat32(row * EDGE_BEAD_STRIDE + EDGE_BEAD_COL_RING_M1, true); }
 export function readEdgeBeadRingM2(view: DataView, row: number): number { return view.getFloat32(row * EDGE_BEAD_STRIDE + EDGE_BEAD_COL_RING_M2, true); }

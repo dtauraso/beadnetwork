@@ -9,7 +9,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/wire/outport"
 )
 
-func (mr *MoverRegistry) Bind(outSink map[string]*outport.Out, slotReg inputcodec.SlotRegistry) {
+func (mr *MoverRegistry) Bind(outSink map[string]*outport.Out, slotReg inputcodec.SlotRegistry, edgeRowFor func(src, dst string) (int32, bool)) {
 	for edgeID, em := range mr.edgeMovers {
 		if oo, ok := outSink[em.SrcID()+"."+em.SrcHandle()]; ok {
 			em.SetOut(oo)
@@ -19,7 +19,13 @@ func (mr *MoverRegistry) Bind(outSink map[string]*outport.Out, slotReg inputcode
 			em.SetDest(pw)
 
 			if srcNM, ok := mr.nodeGeoms[em.SrcID()]; ok {
-				srcNM.AddOutWire(pw, em.SendBeadRows)
+				edgeRow := int32(-1)
+				if edgeRowFor != nil {
+					if r, ok := edgeRowFor(em.SrcID(), em.DstID()); ok {
+						edgeRow = r
+					}
+				}
+				srcNM.AddOutWire(pw, edgeRow)
 			}
 		}
 	}
