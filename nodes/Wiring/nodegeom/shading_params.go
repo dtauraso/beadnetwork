@@ -69,6 +69,10 @@ const ShadingParamBeadRadius = lattice.BeadRadius
 
 const ShadingParamBeadRingTubeRatio = lattice.BeadRingTubeRatio
 
+const ShadingParamBeadRingSurfaceNu = 16
+
+const ShadingParamBeadRingSurfaceNv = 6
+
 const ShadingParamChainBeadFill = "#9acdd3"
 
 const ShadingParamEdgeLineColor = "#a7dfe5"

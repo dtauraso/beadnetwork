@@ -12,15 +12,17 @@ import (
 const (
 	RingSurfaceNu = nodegeom.ShadingParamNodeRingSurfaceNu
 	RingSurfaceNv = nodegeom.ShadingParamNodeRingSurfaceNv
+
+	BeadRingSurfaceNu = nodegeom.ShadingParamBeadRingSurfaceNu
+	BeadRingSurfaceNv = nodegeom.ShadingParamBeadRingSurfaceNv
 )
 
-func CanonicalRingSurfacePoints() []vec3 {
+func canonicalTorusSurfacePoints(a float64, nu, nv int) []vec3 {
 	const rho = 1.0
-	a := nodegeom.ShadingParamNodeRingTubeRatio
 
-	pts := make([]vec3, 0, RingSurfaceNu*RingSurfaceNv)
-	for j := 0; j < RingSurfaceNv; j++ {
-		v := float64(j) * (2 * math.Pi / float64(RingSurfaceNv))
+	pts := make([]vec3, 0, nu*nv)
+	for j := 0; j < nv; j++ {
+		v := float64(j) * (2 * math.Pi / float64(nv))
 
 		w := rho + a*math.Cos(v)
 		R := math.Sqrt(rho*rho + a*a + 2*rho*a*math.Cos(v))
@@ -28,8 +30,8 @@ func CanonicalRingSurfacePoints() []vec3 {
 		cosPsi := math.Cos(psi)
 		sinPsi := math.Sin(psi)
 
-		for i := 0; i < RingSurfaceNu; i++ {
-			u := float64(i) * (2 * math.Pi / float64(RingSurfaceNu))
+		for i := 0; i < nu; i++ {
+			u := float64(i) * (2 * math.Pi / float64(nu))
 			sinU := math.Sin(u)
 			cosU := math.Cos(u)
 
@@ -42,21 +44,42 @@ func CanonicalRingSurfacePoints() []vec3 {
 	return pts
 }
 
+func CanonicalRingSurfacePoints() []vec3 {
+	return canonicalTorusSurfacePoints(nodegeom.ShadingParamNodeRingTubeRatio, RingSurfaceNu, RingSurfaceNv)
+}
+
+func CanonicalBeadRingSurfacePoints() []vec3 {
+	return canonicalTorusSurfacePoints(nodegeom.ShadingParamBeadRingTubeRatio, BeadRingSurfaceNu, BeadRingSurfaceNv)
+}
+
+func flattenPoints(pts []vec3) []float32 {
+	flat := make([]float32, 0, len(pts)*3)
+	for _, p := range pts {
+		flat = append(flat, float32(p.X), float32(p.Y), float32(p.Z))
+	}
+	return flat
+}
+
 var (
 	ringSurfaceFlatOnce sync.Once
 	ringSurfaceFlat     []float32
+
+	beadRingSurfaceFlatOnce sync.Once
+	beadRingSurfaceFlat     []float32
 )
 
 func CanonicalRingSurfacePointsFlat() []float32 {
 	ringSurfaceFlatOnce.Do(func() {
-		pts := CanonicalRingSurfacePoints()
-		flat := make([]float32, 0, len(pts)*3)
-		for _, p := range pts {
-			flat = append(flat, float32(p.X), float32(p.Y), float32(p.Z))
-		}
-		ringSurfaceFlat = flat
+		ringSurfaceFlat = flattenPoints(CanonicalRingSurfacePoints())
 	})
 	return ringSurfaceFlat
+}
+
+func CanonicalBeadRingSurfacePointsFlat() []float32 {
+	beadRingSurfaceFlatOnce.Do(func() {
+		beadRingSurfaceFlat = flattenPoints(CanonicalBeadRingSurfacePoints())
+	})
+	return beadRingSurfaceFlat
 }
 
 func ringAxisBasis(axis vec3) (bx, by, bz vec3) {

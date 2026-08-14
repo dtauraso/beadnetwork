@@ -1,15 +1,16 @@
 import {
   getLatestEdgeStreamFrames, getEdgeStreamVersion,
-  getLatestNodeStreamFrames, getNodeStreamVersion,
+  getNodeStreamVersion,
 } from "../../../snapshot-buffer";
 import { decodeEdgeStreamFrame } from "../../decode/buffer-decode-edge";
-import { decodeNodeStreamFrame } from "../../decode/buffer-decode-node";
 import {
   readEdgeBeadX, readEdgeBeadY, readEdgeBeadZ, readEdgeBeadValue,
   readEdgeSrcNodeRow,
-  readNodeRingAxisPhi, readNodeRingAxisTheta,
+  readEdgeBeadRingM0, readEdgeBeadRingM1, readEdgeBeadRingM2, readEdgeBeadRingM3,
+  readEdgeBeadRingM4, readEdgeBeadRingM5, readEdgeBeadRingM6, readEdgeBeadRingM7,
+  readEdgeBeadRingM8, readEdgeBeadRingM9, readEdgeBeadRingM10, readEdgeBeadRingM11,
+  readEdgeBeadRingM12, readEdgeBeadRingM13, readEdgeBeadRingM14, readEdgeBeadRingM15,
 } from "../../../../schema/buffer-layout/buffer-layout";
-import { poleAxis } from "../buffer-scene-shared";
 
 export interface EdgeBeadsAgg {
   positions: Float32Array;
@@ -17,24 +18,9 @@ export interface EdgeBeadsAgg {
 
   srcNodeRow: Int32Array;
 
-  ringAxis: Float32Array;
+  ringMatrix: Float32Array;
 
   count: number;
-}
-
-const RING_AXIS_FALLBACK: [number, number, number] = [0, 1, 0];
-
-function nodeRingAxes(): Map<number, [number, number, number]> {
-  const axes = new Map<number, [number, number, number]>();
-  for (const [row, buf] of getLatestNodeStreamFrames()) {
-    const d = decodeNodeStreamFrame(row, buf);
-    if (!d) continue;
-    axes.set(row, poleAxis(
-      readNodeRingAxisPhi(d.nodeView, 0),
-      readNodeRingAxisTheta(d.nodeView, 0),
-    ));
-  }
-  return axes;
 }
 
 let lastVersion = -1;
@@ -55,32 +41,44 @@ export function getEdgeBeads(): EdgeBeadsAgg {
     total += d.beadCount;
   }
 
-  const srcRingAxes = nodeRingAxes();
-
   const positions = new Float32Array(total * 3);
-  const ringAxis = new Float32Array(total * 3);
+  const ringMatrix = new Float32Array(total * 16);
   const value = new Int32Array(total);
   const srcNodeRow = new Int32Array(total);
   let w = 0;
+  let m = 0;
   let b = 0;
   for (const d of decoded) {
     const src = readEdgeSrcNodeRow(d.edgeView, 0);
-    const [ax, ay, az] = srcRingAxes.get(src) ?? RING_AXIS_FALLBACK;
 
     for (let i = 0; i < d.beadCount; i++) {
-      ringAxis[w] = ax;
-      ringAxis[w + 1] = ay;
-      ringAxis[w + 2] = az;
       positions[w++] = readEdgeBeadX(d.beadView, i);
       positions[w++] = readEdgeBeadY(d.beadView, i);
       positions[w++] = readEdgeBeadZ(d.beadView, i);
       value[b] = readEdgeBeadValue(d.beadView, i);
       srcNodeRow[b++] = src;
+
+      ringMatrix[m++] = readEdgeBeadRingM0(d.beadView, i);
+      ringMatrix[m++] = readEdgeBeadRingM1(d.beadView, i);
+      ringMatrix[m++] = readEdgeBeadRingM2(d.beadView, i);
+      ringMatrix[m++] = readEdgeBeadRingM3(d.beadView, i);
+      ringMatrix[m++] = readEdgeBeadRingM4(d.beadView, i);
+      ringMatrix[m++] = readEdgeBeadRingM5(d.beadView, i);
+      ringMatrix[m++] = readEdgeBeadRingM6(d.beadView, i);
+      ringMatrix[m++] = readEdgeBeadRingM7(d.beadView, i);
+      ringMatrix[m++] = readEdgeBeadRingM8(d.beadView, i);
+      ringMatrix[m++] = readEdgeBeadRingM9(d.beadView, i);
+      ringMatrix[m++] = readEdgeBeadRingM10(d.beadView, i);
+      ringMatrix[m++] = readEdgeBeadRingM11(d.beadView, i);
+      ringMatrix[m++] = readEdgeBeadRingM12(d.beadView, i);
+      ringMatrix[m++] = readEdgeBeadRingM13(d.beadView, i);
+      ringMatrix[m++] = readEdgeBeadRingM14(d.beadView, i);
+      ringMatrix[m++] = readEdgeBeadRingM15(d.beadView, i);
     }
   }
 
   lastVersion = ev;
   lastNodeVersion = nv;
-  lastAgg = { positions, ringAxis, value, srcNodeRow, count: total };
+  lastAgg = { positions, value, srcNodeRow, ringMatrix, count: total };
   return lastAgg;
 }

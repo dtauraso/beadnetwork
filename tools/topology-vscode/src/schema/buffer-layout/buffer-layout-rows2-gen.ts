@@ -28,12 +28,44 @@ export const EDGE_BEAD_COL_X                     = 0; // f32
 export const EDGE_BEAD_COL_Y                     = 4; // f32
 export const EDGE_BEAD_COL_Z                     = 8; // f32
 export const EDGE_BEAD_COL_VALUE                 = 12; // i32
-export const EDGE_BEAD_STRIDE                    = 16;
+export const EDGE_BEAD_COL_RING_M0               = 16; // f32
+export const EDGE_BEAD_COL_RING_M1               = 20; // f32
+export const EDGE_BEAD_COL_RING_M2               = 24; // f32
+export const EDGE_BEAD_COL_RING_M3               = 28; // f32
+export const EDGE_BEAD_COL_RING_M4               = 32; // f32
+export const EDGE_BEAD_COL_RING_M5               = 36; // f32
+export const EDGE_BEAD_COL_RING_M6               = 40; // f32
+export const EDGE_BEAD_COL_RING_M7               = 44; // f32
+export const EDGE_BEAD_COL_RING_M8               = 48; // f32
+export const EDGE_BEAD_COL_RING_M9               = 52; // f32
+export const EDGE_BEAD_COL_RING_M10              = 56; // f32
+export const EDGE_BEAD_COL_RING_M11              = 60; // f32
+export const EDGE_BEAD_COL_RING_M12              = 64; // f32
+export const EDGE_BEAD_COL_RING_M13              = 68; // f32
+export const EDGE_BEAD_COL_RING_M14              = 72; // f32
+export const EDGE_BEAD_COL_RING_M15              = 76; // f32
+export const EDGE_BEAD_STRIDE                    = 80;
 
 export function readEdgeBeadX(view: DataView, row: number): number { return view.getFloat32(row * EDGE_BEAD_STRIDE + EDGE_BEAD_COL_X, true); }
 export function readEdgeBeadY(view: DataView, row: number): number { return view.getFloat32(row * EDGE_BEAD_STRIDE + EDGE_BEAD_COL_Y, true); }
 export function readEdgeBeadZ(view: DataView, row: number): number { return view.getFloat32(row * EDGE_BEAD_STRIDE + EDGE_BEAD_COL_Z, true); }
 export function readEdgeBeadValue(view: DataView, row: number): number { return view.getInt32(row * EDGE_BEAD_STRIDE + EDGE_BEAD_COL_VALUE, true); }
+export function readEdgeBeadRingM0(view: DataView, row: number): number { return view.getFloat32(row * EDGE_BEAD_STRIDE + EDGE_BEAD_COL_RING_M0, true); }
+export function readEdgeBeadRingM1(view: DataView, row: number): number { return view.getFloat32(row * EDGE_BEAD_STRIDE + EDGE_BEAD_COL_RING_M1, true); }
+export function readEdgeBeadRingM2(view: DataView, row: number): number { return view.getFloat32(row * EDGE_BEAD_STRIDE + EDGE_BEAD_COL_RING_M2, true); }
+export function readEdgeBeadRingM3(view: DataView, row: number): number { return view.getFloat32(row * EDGE_BEAD_STRIDE + EDGE_BEAD_COL_RING_M3, true); }
+export function readEdgeBeadRingM4(view: DataView, row: number): number { return view.getFloat32(row * EDGE_BEAD_STRIDE + EDGE_BEAD_COL_RING_M4, true); }
+export function readEdgeBeadRingM5(view: DataView, row: number): number { return view.getFloat32(row * EDGE_BEAD_STRIDE + EDGE_BEAD_COL_RING_M5, true); }
+export function readEdgeBeadRingM6(view: DataView, row: number): number { return view.getFloat32(row * EDGE_BEAD_STRIDE + EDGE_BEAD_COL_RING_M6, true); }
+export function readEdgeBeadRingM7(view: DataView, row: number): number { return view.getFloat32(row * EDGE_BEAD_STRIDE + EDGE_BEAD_COL_RING_M7, true); }
+export function readEdgeBeadRingM8(view: DataView, row: number): number { return view.getFloat32(row * EDGE_BEAD_STRIDE + EDGE_BEAD_COL_RING_M8, true); }
+export function readEdgeBeadRingM9(view: DataView, row: number): number { return view.getFloat32(row * EDGE_BEAD_STRIDE + EDGE_BEAD_COL_RING_M9, true); }
+export function readEdgeBeadRingM10(view: DataView, row: number): number { return view.getFloat32(row * EDGE_BEAD_STRIDE + EDGE_BEAD_COL_RING_M10, true); }
+export function readEdgeBeadRingM11(view: DataView, row: number): number { return view.getFloat32(row * EDGE_BEAD_STRIDE + EDGE_BEAD_COL_RING_M11, true); }
+export function readEdgeBeadRingM12(view: DataView, row: number): number { return view.getFloat32(row * EDGE_BEAD_STRIDE + EDGE_BEAD_COL_RING_M12, true); }
+export function readEdgeBeadRingM13(view: DataView, row: number): number { return view.getFloat32(row * EDGE_BEAD_STRIDE + EDGE_BEAD_COL_RING_M13, true); }
+export function readEdgeBeadRingM14(view: DataView, row: number): number { return view.getFloat32(row * EDGE_BEAD_STRIDE + EDGE_BEAD_COL_RING_M14, true); }
+export function readEdgeBeadRingM15(view: DataView, row: number): number { return view.getFloat32(row * EDGE_BEAD_STRIDE + EDGE_BEAD_COL_RING_M15, true); }
 
 // ── RingPoint block ──────────────────────────────────────────
 export const RING_POINT_COL_X                    = 0; // f32

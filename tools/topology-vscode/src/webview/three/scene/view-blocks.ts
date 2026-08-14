@@ -8,6 +8,7 @@ export interface ViewBlocks {
   sceneView: DataView;
 
   ringSurfacePointsView: DataView;
+  beadRingSurfacePointsView: DataView;
 
   sceneTabs: string[];
   sceneTabSelected: number;

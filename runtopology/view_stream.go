@@ -51,6 +51,7 @@ func wireViewStream(md *W.MoveDispatch, viewFile *os.File, viewStreamWired bool,
 					},
 					sceneCX, sceneCY, sceneCZ, sceneRadius,
 					framegeom.CanonicalRingSurfacePointsFlat(),
+					framegeom.CanonicalBeadRingSurfacePointsFlat(),
 
 					sceneTabNames, uint16(sceneTabSelected),
 					toStreamEvents(events))

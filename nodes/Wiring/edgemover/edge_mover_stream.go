@@ -6,6 +6,8 @@ import (
 
 	SF "github.com/dtauraso/wirefold/Buffer/streamframe"
 	"github.com/dtauraso/wirefold/nodes/Wiring/edgegeom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/framegeom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
 	"github.com/dtauraso/wirefold/nodes/spatial"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
@@ -16,10 +18,14 @@ import (
 type vec3 = spatial.Vec3
 
 func (m *EdgeMover) edgeBeads() []SF.EdgeBead {
+	axisPhi, axisTheta := framegeom.TorusDefaultAxisAngles()
 	beads := make([]SF.EdgeBead, 0, len(m.lastBeadRows))
 	for _, r := range m.lastBeadRows {
+		pos := vec3{X: r.X, Y: r.Y, Z: r.Z}
 		beads = append(beads, SF.EdgeBead{
 			X: float32(r.X), Y: float32(r.Y), Z: float32(r.Z), Value: int32(r.Val),
+			RingMatrix: framegeom.RingInstanceMatrixColumnMajor(
+				pos, nodegeom.ShadingParamBeadRadius, axisPhi, axisTheta),
 		})
 	}
 	return beads
