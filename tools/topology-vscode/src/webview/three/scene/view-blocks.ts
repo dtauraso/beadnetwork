@@ -7,6 +7,8 @@ export interface ViewBlocks {
   panelView: DataView;
   sceneView: DataView;
 
+  ringSurfacePointsView: DataView;
+
   sceneTabs: string[];
   sceneTabSelected: number;
 }

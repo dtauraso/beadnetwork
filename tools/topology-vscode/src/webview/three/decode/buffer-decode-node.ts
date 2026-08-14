@@ -33,7 +33,8 @@ function reportShortNodeFrame(got: number, expected: number, labelLen: number): 
 
   const message =
     `node stream frame is ${got} bytes but this webview's layout needs ${expected} ` +
-    `(header + NODE_STRIDE ${NODE_STRIDE} + label ${labelLen}). Go and the webview are built ` +
+    `(header + NODE_STRIDE ${NODE_STRIDE} + label ${labelLen}). ` +
+    `Go and the webview are built ` +
     `against different buffer layouts, so EVERY node frame is being dropped and nothing on a ` +
     `node will update. Run "Developer: Reload Window" — reopening the file reloads only the ` +
     `webview, not the extension host that spawns Go.`;

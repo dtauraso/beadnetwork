@@ -2,6 +2,7 @@ import { getLatestNodeStreamFrames, getLatestInteriorStreamFrames, getNodeStream
 import {
   decodeNodeStreamFrame,
   type DecodedNodeFrame,
+  type DecodedNodeStreamFrame,
 } from "../../decode/buffer-decode-node";
 import { decodeInteriorStreamFrame } from "../../decode/buffer-decode-interior";
 import {
@@ -30,6 +31,11 @@ export function getNodeFrame(): DecodedNodeFrame | null {
   lastInteriorVersion = iv;
   lastAggregate = aggregate;
   return aggregate;
+}
+
+export function getNodeStreamFrameForRow(row: number): DecodedNodeStreamFrame | null {
+  const buf = getLatestNodeStreamFrames().get(row);
+  return buf ? decodeNodeStreamFrame(row, buf) : null;
 }
 
 export function subscribeNodeStreamBlocks(fn: () => void): () => void {

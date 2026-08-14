@@ -2,6 +2,7 @@ package streamframe
 
 import (
 	"encoding/binary"
+	"fmt"
 
 	B "github.com/dtauraso/wirefold/Buffer"
 )
@@ -11,10 +12,19 @@ func BuildViewStreamFrame(tick uint32,
 	overlay B.OverlayRow,
 	panel B.PanelRow,
 	sceneCX, sceneCY, sceneCZ, sceneRadius float32,
+	ringSurfacePoints []float32,
 	tabNames []string, tabSelected uint16,
 	events []StreamEvent,
 ) []byte {
-	buf := make([]byte, B.BufViewFrameHeaderSize+B.BufCameraStride+B.BufOverlayStride+B.BufPanelStride+B.BufSceneStride)
+	if len(ringSurfacePoints)%3 != 0 {
+		panic(fmt.Sprintf(
+			"BuildViewStreamFrame: ringSurfacePoints has %d floats — must be a whole number of XYZ triples",
+			len(ringSurfacePoints)))
+	}
+	ringPointCount := len(ringSurfacePoints) / 3
+	ringSurfaceSize := ringPointCount * B.BufRingPointStride
+
+	buf := make([]byte, B.BufViewFrameHeaderSize+B.BufCameraStride+B.BufOverlayStride+B.BufPanelStride+B.BufSceneStride+ringSurfaceSize)
 	binary.LittleEndian.PutUint32(buf[0:], tick)
 	binary.LittleEndian.PutUint32(buf[4:], B.BufLayoutFingerprintHash)
 	off := B.BufViewFrameHeaderSize
@@ -25,6 +35,20 @@ func BuildViewStreamFrame(tick uint32,
 	B.SetPanelRow(buf[off:], panel)
 	off += B.BufPanelStride
 	B.SetSceneRow(buf[off:], sceneCX, sceneCY, sceneCZ, sceneRadius)
+	off += B.BufSceneStride
+
+	for i := 0; i < ringPointCount; i++ {
+		rowOff := off + i*B.BufRingPointStride
+		B.SetRingPointRow(buf[rowOff:rowOff+B.BufRingPointStride], 0, ringSurfacePoints[i*3], ringSurfacePoints[i*3+1], ringSurfacePoints[i*3+2])
+	}
+	off += ringSurfaceSize
+
+	if off != len(buf) {
+		panic(fmt.Sprintf(
+			"BuildViewStreamFrame: packed %d bytes but allocated %d — the fixed-section walk and the size formula disagree",
+			off, len(buf)))
+	}
+
 	buf = append(buf, BuildSceneTabsSection(tabNames, tabSelected)...)
 	return append(buf, BuildEventsSection(events)...)
 }

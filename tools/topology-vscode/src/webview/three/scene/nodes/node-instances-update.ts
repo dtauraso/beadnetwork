@@ -6,11 +6,36 @@ import {
   readNodeRingAxisTheta,
   readNodeCX, readNodeCY, readNodeCZ, readNodeRadius,
   readOverlayNodeBody, readOverlayNodeRing, readOverlayRingPick,
+  readNodeRingM0, readNodeRingM1, readNodeRingM2, readNodeRingM3,
+  readNodeRingM4, readNodeRingM5, readNodeRingM6, readNodeRingM7,
+  readNodeRingM8, readNodeRingM9, readNodeRingM10, readNodeRingM11,
+  readNodeRingM12, readNodeRingM13, readNodeRingM14, readNodeRingM15,
 } from "../../../../schema/buffer-layout/buffer-layout";
 import { NODE_SPHERE_RADIUS, nodeRowColors, poleAxis } from "../buffer-scene-shared";
 import { computeNodeDepthOrder, setNodeDrawOrder } from "./node-depth-order";
 
 const TORUS_DEFAULT_NORMAL = new THREE.Vector3(0, 0, 1);
+
+function copyRingMatrix(nodeView: DataView, row: number, ring: THREE.InstancedMesh, slot: number): void {
+  const out = ring.instanceMatrix.array;
+  const base = slot * 16;
+  out[base]      = readNodeRingM0(nodeView, row);
+  out[base + 1]  = readNodeRingM1(nodeView, row);
+  out[base + 2]  = readNodeRingM2(nodeView, row);
+  out[base + 3]  = readNodeRingM3(nodeView, row);
+  out[base + 4]  = readNodeRingM4(nodeView, row);
+  out[base + 5]  = readNodeRingM5(nodeView, row);
+  out[base + 6]  = readNodeRingM6(nodeView, row);
+  out[base + 7]  = readNodeRingM7(nodeView, row);
+  out[base + 8]  = readNodeRingM8(nodeView, row);
+  out[base + 9]  = readNodeRingM9(nodeView, row);
+  out[base + 10] = readNodeRingM10(nodeView, row);
+  out[base + 11] = readNodeRingM11(nodeView, row);
+  out[base + 12] = readNodeRingM12(nodeView, row);
+  out[base + 13] = readNodeRingM13(nodeView, row);
+  out[base + 14] = readNodeRingM14(nodeView, row);
+  out[base + 15] = readNodeRingM15(nodeView, row);
+}
 
 export interface NodeInstanceRefs {
   body: THREE.InstancedMesh;
@@ -72,10 +97,10 @@ export function updateNodeInstances(refs: NodeInstanceRefs, capacity: number, ca
     ringAxis.set(ax, ay, az);
     ringQuat.setFromUnitVectors(TORUS_DEFAULT_NORMAL, ringAxis);
     mat.compose(pos, ringQuat, scl);
-    ring.setMatrixAt(slot, mat);
-
     ringPick.setMatrixAt(slot, mat);
     ringBand.setMatrixAt(slot, mat);
+
+    copyRingMatrix(nodeView, row, ring, slot);
 
     const { fill, stroke } = nodeRowColors(nodeView, row);
     body.setColorAt(slot, col.set(fill));

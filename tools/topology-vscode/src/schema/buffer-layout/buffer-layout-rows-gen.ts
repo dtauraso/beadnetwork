@@ -18,23 +18,39 @@ export const NODE_COL_POLE_PHI                   = 48; // f32
 export const NODE_COL_POLE_THETA                 = 52; // f32
 export const NODE_COL_RING_AXIS_PHI              = 56; // f32
 export const NODE_COL_RING_AXIS_THETA            = 60; // f32
-export const NODE_COL_TOP_TILT_VECTOR_LEN        = 64; // f32
-export const NODE_COL_TOP_TILT_VECTOR_IDX        = 68; // i32
-export const NODE_COL_TOP_TILT_VECTOR_PHI        = 72; // f32
-export const NODE_COL_BOTTOM_TILT_VECTOR_PHI     = 76; // f32
-export const NODE_COL_COPLANAR_NORMAL_PHI        = 80; // f32
-export const NODE_COL_RECEIVED_VECTOR_LEN        = 84; // f32
-export const NODE_COL_RECEIVED_VECTOR_PHI        = 88; // f32
-export const NODE_COL_SELECTED                   = 92; // u8
-export const NODE_COL_KIND_ID                    = 93; // u8
-export const NODE_COL_LABEL_OFF                  = 94; // u32
-export const NODE_COL_LABEL_LEN                  = 98; // u32
-export const NODE_COL_HOVERED                    = 102; // u8
-export const NODE_COL_LATCHED_SEL                = 103; // u8
-export const NODE_COL_LATTICE_POINTS             = 104; // u8
-export const NODE_COL_ROUNDS_TO_PARALLEL         = 105; // i32
-export const NODE_COL_MSGS_TO_PARALLEL           = 109; // i32
-export const NODE_STRIDE                         = 113;
+export const NODE_COL_RING_M0                    = 64; // f32
+export const NODE_COL_RING_M1                    = 68; // f32
+export const NODE_COL_RING_M2                    = 72; // f32
+export const NODE_COL_RING_M3                    = 76; // f32
+export const NODE_COL_RING_M4                    = 80; // f32
+export const NODE_COL_RING_M5                    = 84; // f32
+export const NODE_COL_RING_M6                    = 88; // f32
+export const NODE_COL_RING_M7                    = 92; // f32
+export const NODE_COL_RING_M8                    = 96; // f32
+export const NODE_COL_RING_M9                    = 100; // f32
+export const NODE_COL_RING_M10                   = 104; // f32
+export const NODE_COL_RING_M11                   = 108; // f32
+export const NODE_COL_RING_M12                   = 112; // f32
+export const NODE_COL_RING_M13                   = 116; // f32
+export const NODE_COL_RING_M14                   = 120; // f32
+export const NODE_COL_RING_M15                   = 124; // f32
+export const NODE_COL_TOP_TILT_VECTOR_LEN        = 128; // f32
+export const NODE_COL_TOP_TILT_VECTOR_IDX        = 132; // i32
+export const NODE_COL_TOP_TILT_VECTOR_PHI        = 136; // f32
+export const NODE_COL_BOTTOM_TILT_VECTOR_PHI     = 140; // f32
+export const NODE_COL_COPLANAR_NORMAL_PHI        = 144; // f32
+export const NODE_COL_RECEIVED_VECTOR_LEN        = 148; // f32
+export const NODE_COL_RECEIVED_VECTOR_PHI        = 152; // f32
+export const NODE_COL_SELECTED                   = 156; // u8
+export const NODE_COL_KIND_ID                    = 157; // u8
+export const NODE_COL_LABEL_OFF                  = 158; // u32
+export const NODE_COL_LABEL_LEN                  = 162; // u32
+export const NODE_COL_HOVERED                    = 166; // u8
+export const NODE_COL_LATCHED_SEL                = 167; // u8
+export const NODE_COL_LATTICE_POINTS             = 168; // u8
+export const NODE_COL_ROUNDS_TO_PARALLEL         = 169; // i32
+export const NODE_COL_MSGS_TO_PARALLEL           = 173; // i32
+export const NODE_STRIDE                         = 177;
 
 export function readNodeNodeId(view: DataView, row: number): number { return view.getInt32(row * NODE_STRIDE + NODE_COL_NODE_ID, true); }
 export function readNodeCX(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_CX, true); }
@@ -52,6 +68,22 @@ export function readNodePolePhi(view: DataView, row: number): number { return vi
 export function readNodePoleTheta(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_POLE_THETA, true); }
 export function readNodeRingAxisPhi(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_RING_AXIS_PHI, true); }
 export function readNodeRingAxisTheta(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_RING_AXIS_THETA, true); }
+export function readNodeRingM0(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_RING_M0, true); }
+export function readNodeRingM1(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_RING_M1, true); }
+export function readNodeRingM2(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_RING_M2, true); }
+export function readNodeRingM3(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_RING_M3, true); }
+export function readNodeRingM4(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_RING_M4, true); }
+export function readNodeRingM5(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_RING_M5, true); }
+export function readNodeRingM6(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_RING_M6, true); }
+export function readNodeRingM7(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_RING_M7, true); }
+export function readNodeRingM8(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_RING_M8, true); }
+export function readNodeRingM9(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_RING_M9, true); }
+export function readNodeRingM10(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_RING_M10, true); }
+export function readNodeRingM11(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_RING_M11, true); }
+export function readNodeRingM12(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_RING_M12, true); }
+export function readNodeRingM13(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_RING_M13, true); }
+export function readNodeRingM14(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_RING_M14, true); }
+export function readNodeRingM15(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_RING_M15, true); }
 export function readNodeTopTiltVectorLen(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_TOP_TILT_VECTOR_LEN, true); }
 export function readNodeTopTiltVectorIdx(view: DataView, row: number): number { return view.getInt32(row * NODE_STRIDE + NODE_COL_TOP_TILT_VECTOR_IDX, true); }
 export function readNodeTopTiltVectorPhi(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_TOP_TILT_VECTOR_PHI, true); }

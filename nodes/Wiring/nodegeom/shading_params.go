@@ -61,6 +61,10 @@ const ShadingParamSceneDirIntensity = 0.8
 
 const ShadingParamNodeRingTubeRatio = 0.08
 
+const ShadingParamNodeRingSurfaceNu = 32
+
+const ShadingParamNodeRingSurfaceNv = 8
+
 const ShadingParamBeadRadius = lattice.BeadRadius
 
 const ShadingParamBeadRingTubeRatio = lattice.BeadRingTubeRatio
