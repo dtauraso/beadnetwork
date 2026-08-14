@@ -49,7 +49,7 @@ func decodeUpdateScene(r *recread.Reader, attr byte) (StdinMsg, bool) {
 
 func decodeUpdateTiltVector(r *recread.Reader, attr byte) (StdinMsg, bool) {
 	switch attr {
-	case InTiltVectorAttrTheta:
+	case InTiltVectorAttrPhi:
 
 		row, errR := r.U8()
 		if errR != nil {
