@@ -1,4 +1,5 @@
 import type { ToggleCfg } from "./overlay-toggle";
+import type { PanelFlag } from "../../../../messages";
 
 export const guidelinesCfg: ToggleCfg = {
   flag: "overlays",
@@ -153,12 +154,40 @@ const commEdgesCfg: ToggleCfg = {
   payload: (v) => ({ flag: "commEdges", was: v }),
 };
 
-export type OverlayGroup ={ heading: string; cfgs: ToggleCfg[]; under?: Partial<Record<string, ToggleCfg>> };
+export type OverlayGroup = {
+  heading: string;
+  cfgs: ToggleCfg[];
+
+  panel: PanelFlag;
+
+  groups?: OverlayGroup[];
+};
+
+export function groupCfgs(group: OverlayGroup): ToggleCfg[] {
+  return [...group.cfgs, ...(group.groups ?? []).flatMap(groupCfgs)];
+}
 
 export const OVERLAY_GROUPS: OverlayGroup[] = [
-  { heading: "NODE",   cfgs: [nodeBodyCfg, nodeRingCfg, ringPickCfg] }, 
-  { heading: "STATE",  cfgs: [selectionRingCfg, hoverRingCfg, reachSphereCfg] },
-  { heading: "GUIDES", cfgs: [ringsCfg, handholdsCfg, sceneVectorsCfg, commEdgesCfg] },
-  { heading: "POLES",  cfgs: [scenePolesCfg, nodePolesCfg, selSpherePolesCfg] },
-  { heading: "LABELS", cfgs: [globalLabelsCfg] },
+  {
+    heading: "NODE",
+    cfgs: [],
+    panel: "node",
+    groups: [
+      { heading: "SHAPE", cfgs: [nodeBodyCfg, nodeRingCfg, ringPickCfg], panel: "nodeShape" },
+      { heading: "STATE", cfgs: [selectionRingCfg, hoverRingCfg], panel: "nodeState" },
+      { heading: "REACH", cfgs: [reachSphereCfg, selSpherePolesCfg], panel: "nodeReach" },
+      { heading: "POLES", cfgs: [nodePolesCfg], panel: "nodePoles" },
+    ],
+  },
+  {
+    heading: "SCENE",
+    cfgs: [],
+    panel: "scene",
+    groups: [
+      { heading: "GUIDES", cfgs: [ringsCfg, handholdsCfg], panel: "sceneGuides" },
+      { heading: "POLES", cfgs: [scenePolesCfg], panel: "scenePoles" },
+      { heading: "VECTORS", cfgs: [sceneVectorsCfg, commEdgesCfg], panel: "sceneVectors" },
+      { heading: "LABELS", cfgs: [globalLabelsCfg], panel: "sceneLabels" },
+    ],
+  },
 ];

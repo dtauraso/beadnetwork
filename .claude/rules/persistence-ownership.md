@@ -23,8 +23,14 @@ topology/
 │   ├── position.json  data.json  local-polars.json
 │   └── edges/<label>.json                OUTGOING only
 └── view/
-    └── camera.json  overlays.json  sphere.json  scene.json
+    └── camera.json  overlays.json  panels.json  sphere.json  scene.json
 ```
+
+The panels.json file under view/ holds the overlays popover's disclosure open/closed
+state (`viewstate.PanelState`, `nodes/Wiring/scenepersist/scene_panels_persist.go`) — its
+own file, deliberately separate from the overlays.json overlay-visibility file: a panel's
+open/closed state is not an overlay visibility flag, even though the two are persisted,
+streamed, and edited the same way.
 
 **`topology/` is one of several sibling SCENES**, not the only tree. `nodes/Wiring/scene/scene_tabs.go`'s
 `SceneTabs` names each sibling directory (today: `topology/`, `topology-pair/`) resolved

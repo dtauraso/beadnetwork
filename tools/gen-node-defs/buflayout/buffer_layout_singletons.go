@@ -18,8 +18,8 @@ func writeBufferLayoutGoSingletons(outPath string, schema BufLayoutSchema, fp st
 		}
 		writeBufferLayoutGoBlockConst(w, blk)
 
-		if blk.name == "Overlay" {
-			writeOverlayRowType(w, blk)
+		if blk.name == "Overlay" || blk.name == "Panel" {
+			writeRowType(w, blk)
 			continue
 		}
 
@@ -42,19 +42,20 @@ func writeBufferLayoutGoSingletons(outPath string, schema BufLayoutSchema, fp st
 	return formatAndWrite(buf, outPath)
 }
 
-func writeOverlayRowType(w *bufio.Writer, blk bufBlock) {
-	fmt.Fprintln(w, `// OverlayRow is the named-field snapshot of the Overlay block (single row).`)
-	fmt.Fprintln(w, `// Passed BY VALUE to SetOverlayRow so the write call never enumerates fields`)
+func writeRowType(w *bufio.Writer, blk bufBlock) {
+	rowType := blk.name + "Row"
+	fmt.Fprintf(w, "// %s is the named-field snapshot of the %s block (single row).\n", rowType, blk.name)
+	fmt.Fprintf(w, "// Passed BY VALUE to %s so the write call never enumerates fields\n", writerFnGoName(blk.name))
 	fmt.Fprintln(w, `// positionally — closes the swapped-adjacent-uint8-args hazard a positional`)
 	fmt.Fprintln(w, `// writer call would otherwise compile silently.`)
-	fmt.Fprintln(w, `type OverlayRow struct {`)
+	fmt.Fprintf(w, "type %s struct {\n", rowType)
 	for _, c := range blk.columns {
 		fmt.Fprintf(w, "\t%s %s\n", c.name, goParamType(c.bufType))
 	}
 	fmt.Fprintln(w, `}`)
 	fmt.Fprintln(w)
 	fmt.Fprintf(w, "// %s writes the %s row into buf (always 1 row; no row param).\n", writerFnGoName(blk.name), blk.name)
-	fmt.Fprintf(w, "func %s(buf []byte, row OverlayRow) {\n", writerFnGoName(blk.name))
+	fmt.Fprintf(w, "func %s(buf []byte, row %s) {\n", writerFnGoName(blk.name), rowType)
 	for _, c := range blk.columns {
 		fname := "row." + c.name
 		off := fmt.Sprintf("%d", c.offset)

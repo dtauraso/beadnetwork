@@ -9,7 +9,7 @@ import (
 )
 
 func isSingletonBlock(name string) bool {
-	return name == "Overlay" || name == "Camera" || name == "RuleBuilder" || name == "Scene"
+	return name == "Overlay" || name == "Camera" || name == "RuleBuilder" || name == "Scene" || name == "Panel"
 }
 
 func WriteBufferLayoutGo(headerPath, rowsPathA, rowsPathB, singletonsPath string, schema BufLayoutSchema) error {

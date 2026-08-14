@@ -16,6 +16,12 @@ type ViewOverlayFlags struct {
 	CommEdges                                                                              uint8
 }
 
+type ViewPanelFlags struct {
+	Overlays                                                  uint8
+	Node, NodeShape, NodeState, NodeReach, NodePoles          uint8
+	Scene, SceneGuides, ScenePoles, SceneVectors, SceneLabels uint8
+}
+
 type ViewSceneState struct {
 	EditRefused   uint32
 	SceneEditable uint8
@@ -25,6 +31,7 @@ type ViewSceneState struct {
 type ViewFrameBuilder func(tick uint32,
 	camPX, camPY, camPZ, camR, camPosPhi, camPosTheta, camUpPhi, camUpTheta float32,
 	flags ViewOverlayFlags,
+	panels ViewPanelFlags,
 	dragNodeRow int32,
 	scene ViewSceneState,
 	groupLenTime, groupLenInput, groupLenGate float32,
@@ -83,6 +90,19 @@ func (ui *UIState) EmitViewFrame(events []rowevent.RowEvent) {
 			ReachSphere:    boolU8(ui.OV.ReachSphereVisible),
 			SceneVectors:   boolU8(ui.OV.SceneVectorsVisible),
 			CommEdges:      boolU8(ui.OV.CommEdgesVisible),
+		},
+		ViewPanelFlags{
+			Overlays:     boolU8(ui.PN.OverlaysOpen),
+			Node:         boolU8(ui.PN.NodeOpen),
+			NodeShape:    boolU8(ui.PN.NodeShapeOpen),
+			NodeState:    boolU8(ui.PN.NodeStateOpen),
+			NodeReach:    boolU8(ui.PN.NodeReachOpen),
+			NodePoles:    boolU8(ui.PN.NodePolesOpen),
+			Scene:        boolU8(ui.PN.SceneOpen),
+			SceneGuides:  boolU8(ui.PN.SceneGuidesOpen),
+			ScenePoles:   boolU8(ui.PN.ScenePolesOpen),
+			SceneVectors: boolU8(ui.PN.SceneVectorsOpen),
+			SceneLabels:  boolU8(ui.PN.SceneLabelsOpen),
 		},
 		dragNodeRow,
 		ViewSceneState{

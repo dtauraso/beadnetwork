@@ -25,6 +25,8 @@ func HandleSaveMsg(md *dispatch.MoveDispatch) {
 	}
 	md.Persist.Overlays().Schedule(md.UI.OV)
 
+	md.Persist.Panels().Schedule(md.UI.PN)
+
 	md.Persist.Sphere().Schedule(md.UI.SceneSphere)
 }
 
@@ -48,6 +50,7 @@ var updateKindHandlers = map[string]func(context.Context, inputcodec.StdinMsg, *
 	"distanceGroup": applyUpdateDistanceGroup,
 	"scene":         applyUpdateScene,
 	"tiltVector":    applyUpdateTiltVector,
+	"panels":        applyUpdatePanels,
 }
 
 // EDIT_UPDATE_KINDS_END
@@ -79,6 +82,14 @@ var clockAttrHandlers = map[string]func(msg inputcodec.StdinMsg, md *dispatch.Mo
 		md.UI.Speed = userSpeed
 		md.Persist.Speed().Schedule(userSpeed)
 		md.UI.EmitViewFrame(nil)
+	},
+}
+
+var panelAttrHandlers = map[string]func(msg inputcodec.StdinMsg, md *dispatch.MoveDispatch){
+	"toggle": func(msg inputcodec.StdinMsg, md *dispatch.MoveDispatch) {
+		if fn, ok := viewstate.PanelToggles[msg.Flag]; ok {
+			fn(&md.UI.PN)
+		}
 	},
 }
 

@@ -23,6 +23,8 @@ func decodeEditUpdate(r *recread.Reader) (StdinMsg, bool) {
 		return decodeUpdateScene(r, attr)
 	case "tiltVector":
 		return decodeUpdateTiltVector(r, attr)
+	case "panels":
+		return decodeUpdatePanels(r, attr)
 	}
 	return StdinMsg{}, false
 }
@@ -43,6 +45,17 @@ func decodeUpdateOverlays(r *recread.Reader, attr byte) (StdinMsg, bool) {
 		return StdinMsg{}, false
 	}
 	return StdinMsg{Type: "edit", Op: "update", Kind: "overlays", Attr: "toggle", Flag: InOverlayFlags[flagID]}, true
+}
+
+func decodeUpdatePanels(r *recread.Reader, attr byte) (StdinMsg, bool) {
+	if attr != InPanelAttrToggle {
+		return StdinMsg{}, false
+	}
+	flagID, err := r.U8()
+	if err != nil || int(flagID) >= len(InPanelFlags) {
+		return StdinMsg{}, false
+	}
+	return StdinMsg{Type: "edit", Op: "update", Kind: "panels", Attr: "toggle", Flag: InPanelFlags[flagID]}, true
 }
 
 func decodeUpdateClock(r *recread.Reader, attr byte) (StdinMsg, bool) {

@@ -23,11 +23,32 @@ export type OverlayFlag = (typeof OVERLAY_FLAG_NAMES)[number];
 
 export const OVERLAY_FLAG_ORDER = OVERLAY_FLAG_NAMES;
 
+// PANEL_FLAGS_START
+const PANEL_FLAG_NAMES = [
+  "overlays",
+  "node",
+  "nodeShape",
+  "nodeState",
+  "nodeReach",
+  "nodePoles",
+  "scene",
+  "sceneGuides",
+  "scenePoles",
+  "sceneVectors",
+  "sceneLabels",
+] as const;
+// PANEL_FLAGS_END
+
+export type PanelFlag = (typeof PANEL_FLAG_NAMES)[number];
+
+export const PANEL_FLAG_ORDER = PANEL_FLAG_NAMES;
+
 // EDIT_MSG_START
 
 type EditMsg =
 
   | { type: "edit"; op: "update"; kind: "overlays"; attr: "toggle"; flag: OverlayFlag }
+  | { type: "edit"; op: "update"; kind: "panels"; attr: "toggle"; flag: PanelFlag }
   | { type: "edit"; op: "update"; kind: "clock"; attr: "speed"; value: number }
 
   | { type: "edit"; op: "update"; kind: "distanceGroup"; attr: "length"; group: number; dir: "up" | "down" }

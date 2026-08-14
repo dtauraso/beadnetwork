@@ -36,7 +36,7 @@ while IFS= read -r line; do
   f="${line%%:*}"
   base="$(basename "$f")"
   case "$base" in
-    snapshot-buffer.ts|overlay-flags.ts|buffer-nav.ts|scene-tabs.ts) continue ;;
+    snapshot-buffer.ts|overlay-flags.ts|panel-flags.ts|buffer-nav.ts|scene-tabs.ts) continue ;;
     overlay-flags-drag.ts|overlay-flags-edit-refused.ts|overlay-flags-scene.ts) continue ;;
     overlay-flags-selection.ts|overlay-flags-distance-groups.ts) continue ;;
     overlay-flags-speed.ts|overlay-flags-tilt-vectors.ts) continue ;;

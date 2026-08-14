@@ -16,6 +16,8 @@ func loadSceneState(scenePath string, md *W.MoveDispatch, tr *T.Trace, speedSink
 
 	scenepersist.InstallOverlays(&md.UI, scenePath, tr)
 
+	scenepersist.InstallPanels(&md.UI, scenePath)
+
 	scenepersist.InstallSpeed(&md.UI, scenePath, speedSinks, tr)
 
 	viewpersist.EnableViewpointPersist(&md.Persist, &md.UI, scenePath)

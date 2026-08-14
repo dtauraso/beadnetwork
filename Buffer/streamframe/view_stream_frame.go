@@ -9,11 +9,12 @@ import (
 func BuildViewStreamFrame(tick uint32,
 	camPX, camPY, camPZ, camR, camPosPhi, camPosTheta, camUpPhi, camUpTheta float32,
 	overlay B.OverlayRow,
+	panel B.PanelRow,
 	sceneCX, sceneCY, sceneCZ, sceneRadius float32,
 	tabNames []string, tabSelected uint16,
 	events []StreamEvent,
 ) []byte {
-	buf := make([]byte, B.BufViewFrameHeaderSize+B.BufCameraStride+B.BufOverlayStride+B.BufSceneStride)
+	buf := make([]byte, B.BufViewFrameHeaderSize+B.BufCameraStride+B.BufOverlayStride+B.BufPanelStride+B.BufSceneStride)
 	binary.LittleEndian.PutUint32(buf[0:], tick)
 	binary.LittleEndian.PutUint32(buf[4:], B.BufLayoutFingerprintHash)
 	off := B.BufViewFrameHeaderSize
@@ -21,6 +22,8 @@ func BuildViewStreamFrame(tick uint32,
 	off += B.BufCameraStride
 	B.SetOverlayRow(buf[off:], overlay)
 	off += B.BufOverlayStride
+	B.SetPanelRow(buf[off:], panel)
+	off += B.BufPanelStride
 	B.SetSceneRow(buf[off:], sceneCX, sceneCY, sceneCZ, sceneRadius)
 	buf = append(buf, BuildSceneTabsSection(tabNames, tabSelected)...)
 	return append(buf, BuildEventsSection(events)...)

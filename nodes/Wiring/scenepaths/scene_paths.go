@@ -18,6 +18,10 @@ func OverlaysFilePath(topologyPath string) string {
 	return ViewFilePath(topologyPath, "overlays.json")
 }
 
+func PanelsFilePath(topologyPath string) string {
+	return ViewFilePath(topologyPath, "panels.json")
+}
+
 func SphereFilePath(topologyPath string) string {
 	return ViewFilePath(topologyPath, "sphere.json")
 }

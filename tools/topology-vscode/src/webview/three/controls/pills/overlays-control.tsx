@@ -1,5 +1,6 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { fireToggle, useToggleVal } from "./overlay-toggle";
+import { firePanelToggle, usePanelOpen } from "./panel-toggle";
 import { guidelinesCfg, OVERLAY_GROUPS } from "./overlay-defs";
 import { OverlayGroupSection } from "./overlay-group-section";
 import {
@@ -10,8 +11,10 @@ import {
   PILL_ANCHOR_STYLE,
 } from "./overlay-chrome";
 
+const OPEN_WIDTH_RATIO = 1.5;
+
 export function OverlaysControl() {
-  const [open, setOpen] = useState(false);
+  const open = usePanelOpen("overlays");
   const val = useToggleVal(guidelinesCfg);
   const active = guidelinesCfg.active(val);
 
@@ -23,16 +26,47 @@ export function OverlaysControl() {
     [val]
   );
 
-  const onCaretClick = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    setOpen((o) => !o);
-  }, []);
+  const onCaretClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      firePanelToggle("overlays", open);
+    },
+    [open]
+  );
+
+  const pillRef = useRef<HTMLDivElement>(null);
+  const [closedWidth, setClosedWidth] = useState(0);
+
+  useLayoutEffect(() => {
+    const pill = pillRef.current;
+    if (!pill || open) return;
+    const measure = () => {
+      const w = pill.getBoundingClientRect().width;
+      if (w > 0) setClosedWidth(w);
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(pill);
+    return () => ro.disconnect();
+  }, [open]);
+
+  const openWidth = Math.round(closedWidth * OPEN_WIDTH_RATIO);
+
+  const wide = open && closedWidth > 0;
 
   return (
 
-    <div style={PILL_ANCHOR_STYLE}>
+    <div
+      style={{
+        ...PILL_ANCHOR_STYLE,
+        boxSizing: "border-box",
+
+        ...(wide ? { width: openWidth, marginLeft: closedWidth - openWidth } : null),
+      }}
+    >
       {}
       <div
+        ref={pillRef}
         style={{
 
           ...pillContainerStyle(active),
