@@ -30,20 +30,30 @@ export function OverlaysControl() {
     setOpen((o) => !o);
   }, []);
 
-  const anchorRef = useRef<HTMLDivElement>(null);
+  const pillRef = useRef<HTMLDivElement>(null);
   const [closedWidth, setClosedWidth] = useState(0);
-  useLayoutEffect(() => {
 
-    if (!open && anchorRef.current) setClosedWidth(anchorRef.current.getBoundingClientRect().width);
+  useLayoutEffect(() => {
+    const pill = pillRef.current;
+    if (!pill || open) return;
+    const measure = () => {
+      const w = pill.getBoundingClientRect().width;
+      if (w > 0) setClosedWidth(w);
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(pill);
+    return () => ro.disconnect();
   }, [open]);
 
   const openWidth = closedWidth > 0 ? Math.round(closedWidth * OPEN_WIDTH_RATIO) : undefined;
 
   return (
 
-    <div ref={anchorRef} style={{ ...PILL_ANCHOR_STYLE, width: open ? openWidth : undefined }}>
+    <div style={{ ...PILL_ANCHOR_STYLE, width: open ? openWidth : undefined, marginLeft: open ? "auto" : undefined, boxSizing: "border-box" }}>
       {}
       <div
+        ref={pillRef}
         style={{
 
           ...pillContainerStyle(active),
