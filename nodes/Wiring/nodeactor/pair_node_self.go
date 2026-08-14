@@ -70,6 +70,8 @@ func (p *PairNodeSelf) Step(ctx context.Context, tick int64) {
 	g.anim.driveOutWires(ctx, tick)
 
 	g.writeStreamFrame(g.drainSelfEvents())
+	g.writeOutEdgeFrames(tick)
+	g.writeInteriorFrames()
 }
 
 func (p *PairNodeSelf) SetTiltIndex(theta, normalTheta, bottomTheta int32) {

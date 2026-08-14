@@ -10,10 +10,7 @@ func (n *Node) runPeriodicEmit(ctx context.Context, working, backup *[]int, init
 	emitted := 0
 
 	lastFireTick := clk.Tick() - int64(inputCadenceTicks(n))
-	for {
-		if ctx.Err() != nil {
-			return
-		}
+	n.runStepLoop(ctx, clk, func() bool {
 		now := clk.Tick()
 		if (n.Repeat || emitted < len(init)) && now-lastFireTick >= int64(inputCadenceTicks(n)) {
 			if n.Fire != nil {
@@ -22,17 +19,13 @@ func (n *Node) runPeriodicEmit(ctx context.Context, working, backup *[]int, init
 			v := popEnd(working, backup, init)
 			emitBeads()
 			if !n.broadcastPlace(v, now) {
-				return
+				return false
 			}
 			lastFireTick = now
 			emitted++
 		}
-
-		clock.ApplySpeedNonBlocking(clk, n.SpeedCh)
-		if err := clk.SleepCycle(ctx); err != nil {
-			return
-		}
-	}
+		return true
+	})
 }
 
 func inputCadenceTicks(n *Node) int64 {
