@@ -57,9 +57,8 @@ type UIState struct {
 	viewClaimed    bool
 }
 
-func (ui *UIState) SetSelectionUI(sendMove func(id string, msg movemsg.Msg), sendEdgeSelect func(label string, on bool), node, edge string) {
+func (ui *UIState) SetSelectionUI(sendMove func(id string, msg movemsg.Msg), node, edge string) {
 	prevNode := ui.Sel.Selected
-	prevEdge := ui.Sel.SelectedEdge
 	ui.Sel.Selected = node
 	ui.Sel.SelectedEdge = edge
 	if prevNode != "" && prevNode != node {
@@ -67,12 +66,6 @@ func (ui *UIState) SetSelectionUI(sendMove func(id string, msg movemsg.Msg), sen
 	}
 	if node != "" && node != prevNode {
 		sendMove(node, movemsg.Msg{Kind: movemsg.KindSelect, NodeID: node, Bool: true})
-	}
-	if prevEdge != "" && prevEdge != edge {
-		sendEdgeSelect(prevEdge, false)
-	}
-	if edge != "" && edge != prevEdge {
-		sendEdgeSelect(edge, true)
 	}
 	if node != "" && node != ui.LatchedNode {
 		prevLatched := ui.LatchedNode

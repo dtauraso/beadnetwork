@@ -15,8 +15,16 @@ about itself: the kind's logic and its interior slots, interaction and
 geometry, its own beads, and **its own OUT-EDGES** (each drawn from the
 node's own polar position composed with that edge's stored delta). It
 writes its own node stream, its own bead stream, and the edge stream of
-every edge leaving it. An edge is not drawn by anyone else: there is no
-goroutine that watches two nodes and draws the line between them. There
+every edge leaving it. **An edge has NO goroutine at all** — not for drawing
+it and not for anything else. Its segment, its step count, the revision of
+beads already in flight on it, and its persisted file under the source
+node's own directory are all derived by the SOURCE NODE, in that node's
+loop, from the node's own polar position composed with the stored vector to
+that neighbour (`owners.Deltas`, `OutEdges.DeriveGeometry`). Nothing holds a
+copy of the far end's absolute position: when a neighbour moves, the node is
+told how far it moved and shifts its own stored vector by that much, so the
+vector is maintained by composition and never re-derived. An `edgetable.Edge`
+is a plain record of endpoints and plumbing, not an actor. There
 is **no second goroutine per node id** — no mover goroutine beside `Update`,
 and no separate driver goroutine placing a held value onto an out. `Update`
 gets the drawing half by calling `Self.Step(ctx, tick)` once per pass of

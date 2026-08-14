@@ -22,7 +22,7 @@ fi
 
 NODE_OWNERS=("node_mover.go" "new_node_files.go" "quant_offset_persist.go" "scene_anchor_persist.go")
 
-EDGE_OWNERS=("edge_file.go" "edge_mover.go")
+EDGE_OWNERS=("edge_file.go" "out_edges.go")
 
 VIEW_OWNERS=("scene_camera_persist.go" "scene_overlays_persist.go" "scene_panels_persist.go" "scene_sphere_persist.go" "scene_selection_persist.go" "scene_speed_persist.go" "scene_lattice_persist.go")
 
@@ -92,7 +92,7 @@ fi
 
 if [[ $HITS -ne 0 ]]; then
   echo ""
-  echo "check-persist-write-ownership: $HITS hit(s) — a per-node file may be written only by the node's own mover (${NODE_OWNERS[*]}), a per-edge outgoing-edge file only by edge_mover.go, and a scene-level view/ file only by the view-owner goroutine's own files (${VIEW_OWNERS[*]})."
+  echo "check-persist-write-ownership: $HITS hit(s) — a per-node file may be written only by the node's own mover (${NODE_OWNERS[*]}), a per-edge outgoing-edge file only by its SOURCE NODE (out_edges.go), and a scene-level view/ file only by the view-owner goroutine's own files (${VIEW_OWNERS[*]})."
   exit 1
 fi
 

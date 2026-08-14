@@ -68,10 +68,8 @@ func NewOutPaced(pw *wire.PacedWire, ctx context.Context, node, port string, tr 
 	fileGeom := outGeom{Steps: steps, Start: seg.Start, End: seg.End}
 	o := &Out{
 		pw: pw, ctx: ctx, node: node, port: port, trace: tr, Rule: rule, EdgeLabel: edgeLabel,
-		geomSendSteps: make(chan int, 1),
-		geomSendSeg:   make(chan spatial.WireSegment, 1),
-		sendCur:       fileGeom,
-		stream:        stream, portRow: portRow, targetRow: targetRow, targetPortRow: targetPortRow,
+		sendCur: fileGeom,
+		stream:  stream, portRow: portRow, targetRow: targetRow, targetPortRow: targetPortRow,
 	}
 	return o
 }

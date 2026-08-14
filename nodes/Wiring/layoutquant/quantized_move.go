@@ -3,7 +3,7 @@ package layoutquant
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/nodes/Wiring/edgemover"
+	"github.com/dtauraso/wirefold/nodes/Wiring/edgetable"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
@@ -24,10 +24,10 @@ func HeldCenters(nodeGeoms map[string]*nodeactor.NodeGeometry, centerOf func(id 
 	return out
 }
 
-func HeldEdges(edgeMovers map[string]*edgemover.EdgeMover) []polar.SphereEdge {
-	edges := make([]polar.SphereEdge, 0, len(edgeMovers))
-	for _, em := range edgeMovers {
-		edges = append(edges, polar.SphereEdge{Source: em.SrcID(), Target: em.DstID()})
+func HeldEdges(edgeTable map[string]*edgetable.Edge) []polar.SphereEdge {
+	edges := make([]polar.SphereEdge, 0, len(edgeTable))
+	for _, e := range edgeTable {
+		edges = append(edges, polar.SphereEdge{Source: e.SrcID(), Target: e.DstID()})
 	}
 	return edges
 }

@@ -57,19 +57,33 @@ recording the edge under the target — that reintroduces the duplication the la
 
 ## The owner writes, and owns the path
 
-- A `nodeMover` writes its own `position/local-polars`, and constructs those
-  paths (`node_mover.go`). There is no longer a separate `inputs/`/`outputs/` port-geometry
+- A node writes its own `position/local-polars` (path construction in
+  `positionfile/position_file.go`). There is no longer a separate `inputs/`/`outputs/` port-geometry
   file — port geometry was removed with the port model (edges attach on the bead lattice,
   docs/bead-model/bead-lattice.md); this bullet used to list it as a second thing the mover writes.
-- An `edgeMover` owns `nodes/<source>/edges/<label>.json`. No Go writer exists yet — edges
-  are editor-authored — but when one is added, its path construction belongs there.
+- The **SOURCE NODE** owns `nodes/<source>/edges/<label>.json`, and writes it from
+  `nodes/Wiring/nodeactor/owners/out_edges.go`'s `persistDelta` — the same pass that derives that edge's geometry,
+  since the node is what holds the vector being stored. The write is gated on the vector
+  actually changing: derivation runs every tick, so an ungated write would rewrite the file
+  every tick. (This bullet used to claim "an `edgeMover` owns" it and "no Go writer exists
+  yet — edges are editor-authored". Both were wrong: `edge_delta_persist.go` had been the
+  writer all along, and it rewrote every edge file on startup, which is why a plain run
+  used to dirty the whole tree.)
 - Scene-level state (camera, overlays, sphere) is genuinely singular and belongs to the
   view-owner goroutine (`RunStdinReader`).
 
-**Ownership is per-file-pattern, not per-directory.** Two owners legitimately write inside
-`nodes/<id>/`: that node's mover, and the edgeMover of each edge leaving it. Routing edge
+**One owner writes inside `nodes/<id>/`: that node.** Its own position/local-polars, and the
+file of every edge leaving it.
+
+This REVERSES what this section used to say. The old text had two owners per directory —
+the node's mover and the edgeMover of each edge leaving it — and warned that "routing edge
 writes through the source node's mover would make one goroutine write another's state on
-request — the coordination this model exists to avoid.
+request". That warning assumed the edge's delta was the EDGE's state. It is not: the vector
+from a node to its neighbour is the node's own state, held in its `owners.Deltas` and
+maintained by composing each neighbour's reported move into it. The edgeMover was computing
+a second copy of that vector from mirrored absolute positions and persisting the copy. So
+the node writing the file is a goroutine writing what it already owns — not a request, and
+one fewer representation of the same quantity.
 
 Guards: `tools/network/persist/check-persist-write-ownership.sh` (who may write which path pattern),
 `tools/network/persist/check-scene-path-resolution.sh` (who may construct a `nodes/` path).

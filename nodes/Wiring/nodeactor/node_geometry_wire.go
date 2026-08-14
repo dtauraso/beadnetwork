@@ -12,6 +12,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/quantoffset"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/wire/outport"
 )
 
 func (m *NodeGeometry) WireMessaging(
@@ -66,8 +67,17 @@ func (m *NodeGeometry) AddOutWire(pw *wire.PacedWire, edgeRow int32) {
 	m.anim.AddOutWire(pw, edgeRow)
 }
 
+func (m *NodeGeometry) BindOutEdgeWire(label, targetID, targetKind string, port *outport.Out, dest *wire.PacedWire) {
+	m.outEdges.BindWire(label, targetID, targetKind, port, dest)
+	m.outEdges.SetSrcID(m.id)
+}
+
 func (m *NodeGeometry) WireOutEdgeStream(label string, edgeRow int32, targetID, targetKind string, w io.Writer, nodeRow int32, buildFrame owners.EdgeFrameBuilder) {
 	m.outEdges.AddOutEdge(label, edgeRow, targetID, targetKind, w, nodeRow, buildFrame)
+}
+
+func (m *NodeGeometry) deriveOutEdgeGeometry(tick int64) {
+	m.outEdges.DeriveGeometry(tick, m.geom, &m.deltas)
 }
 
 func (m *NodeGeometry) writeOutEdgeFrames(tick int64) {
@@ -96,6 +106,8 @@ func (m *NodeGeometry) WireStream(streamOut streamclaim.StreamHandle, row int32,
 
 func (m *NodeGeometry) SetPersistRoot(root string) {
 	m.persistRoot = root
+	m.outEdges.SetPersistRoot(root)
+	m.outEdges.SetSrcID(m.id)
 }
 
 func (m *NodeGeometry) CopyClockSrc() {

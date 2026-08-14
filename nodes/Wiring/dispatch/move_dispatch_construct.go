@@ -22,7 +22,7 @@ func NewMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[strin
 	}
 	md.buildNodeMovers(geoms, tr, clk)
 	md.wireMutualPairs(edgeEndpoints)
-	md.buildEdgeMovers(edgeEndpoints, geoms, tr, clk, speedSinks)
+	md.buildEdgeTable(edgeEndpoints)
 	md.wireNodeEdgeIDs()
 	md.buildRowTables(rowCount)
 	md.bindUIClosures()
