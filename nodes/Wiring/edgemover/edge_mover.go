@@ -31,8 +31,6 @@ type EdgeMover struct {
 	srcIn chan movemsg.Msg
 	dstIn chan movemsg.Msg
 
-	stepsIn chan int
-
 	beadRowsIn   chan []wire.LiveBeadRow
 	lastBeadRows []wire.LiveBeadRow
 
@@ -72,7 +70,6 @@ func New(edgeID, srcID, dstID, srcHandle, dstHandle string, srcGeom, dstGeom nod
 		extIn:      make(chan movemsg.Msg, InboxDepth),
 		srcIn:      make(chan movemsg.Msg, InboxDepth),
 		dstIn:      make(chan movemsg.Msg, InboxDepth),
-		stepsIn:    make(chan int, 1),
 		beadRowsIn: make(chan []wire.LiveBeadRow, 1),
 		tr:         tr,
 		clockSrc:   clockSrc,
@@ -146,24 +143,6 @@ func (m *EdgeMover) SendBeadRows(rows []wire.LiveBeadRow) {
 		}
 		select {
 		case m.beadRowsIn <- rows:
-		default:
-		}
-	}
-}
-
-func (m *EdgeMover) SendSteps(steps int) {
-	if m.stepsIn == nil {
-		return
-	}
-	select {
-	case m.stepsIn <- steps:
-	default:
-		select {
-		case <-m.stepsIn:
-		default:
-		}
-		select {
-		case m.stepsIn <- steps:
 		default:
 		}
 	}

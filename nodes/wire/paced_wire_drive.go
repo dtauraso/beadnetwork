@@ -35,11 +35,11 @@ func (pw *PacedWire) drainPlacements(tick int64) {
 			})
 			if len(pw.inflight) > maxInflightBeads {
 				panic(fmt.Sprintf(
-					"paced_wire: inflight exceeded %d beads on wire -> %s.%s; beads are being "+
-						"placed faster than they cross and deliver. Two causes reach this: the "+
-						"destination stopped draining outCh (FIFO-head delivery stalled), or the "+
-						"source is placing faster than this wire can carry",
-					maxInflightBeads, pw.Target, pw.TargetHandle))
+					"paced_wire: inflight exceeded %d beads on edge %q owned by node %s (-> %s.%s); "+
+						"beads are being placed faster than they cross and deliver. Two causes reach "+
+						"this: the destination stopped draining outCh (FIFO-head delivery stalled), "+
+						"or the source is placing faster than this wire can carry",
+					maxInflightBeads, pw.Edge, pw.Owner, pw.Target, pw.TargetHandle))
 			}
 		default:
 			return
@@ -61,7 +61,7 @@ func (pw *PacedWire) stepAll(tick int64) {
 				pw.readout.appendPending(pendingWireEvent{
 					kind: T.KindEdgeBead, value: pos.val,
 					x: pos.x, y: pos.y, z: pos.z, t: pos.t, gen: pos.gen,
-				}, pw.Target, pw.TargetHandle)
+				}, pw.Owner, pw.Edge)
 			}
 			if !final {
 				i++

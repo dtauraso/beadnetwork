@@ -7,7 +7,6 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/streamclaim"
 	"github.com/dtauraso/wirefold/nodes/Wiring/quantoffset"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
-	"github.com/dtauraso/wirefold/nodes/wire/outport"
 )
 
 func (m *NodeGeometry) WireMessaging(
@@ -58,8 +57,8 @@ func (m *NodeGeometry) AddOutTarget(target string) {
 	m.outTargets = append(m.outTargets, target)
 }
 
-func (m *NodeGeometry) AddOutWire(pw *wire.PacedWire, target string, o *outport.Out, sendSteps func(int), sendBeadRows func([]wire.LiveBeadRow)) {
-	m.anim.AddOutWire(pw, target, o, sendSteps, sendBeadRows)
+func (m *NodeGeometry) AddOutWire(pw *wire.PacedWire, sendBeadRows func([]wire.LiveBeadRow)) {
+	m.anim.AddOutWire(pw, sendBeadRows)
 }
 
 func (m *NodeGeometry) WireStream(streamOut streamclaim.StreamHandle, row int32, kindID uint8, nodeRowFor func(id string) (int32, bool), buildFrame nodeframe.NodeFrameBuilder) {

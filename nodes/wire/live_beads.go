@@ -14,28 +14,6 @@ type LiveBeadRow struct {
 	Age   float64
 }
 
-type LiveBeadProgress struct {
-	T   float64
-	Val int
-
-	Steps int
-}
-
-func (pw *PacedWire) LiveBeadFractions(tick int64) []LiveBeadProgress {
-	nowTick := float64(tick)
-	out := make([]LiveBeadProgress, 0, len(pw.inflight))
-	for i := range pw.inflight {
-		b := &pw.inflight[i]
-		crossTicks := pw.ticksToCross(b.steps)
-		if crossTicks <= 0 {
-			continue
-		}
-		t := lattice.BeadFraction(nowTick, b.placementTick, crossTicks)
-		out = append(out, LiveBeadProgress{T: t, Val: b.val, Steps: b.steps})
-	}
-	return out
-}
-
 func (pw *PacedWire) LiveBeadRows(tick int64) []LiveBeadRow {
 	nowTick := float64(tick)
 	rows := make([]LiveBeadRow, 0, len(pw.inflight))
