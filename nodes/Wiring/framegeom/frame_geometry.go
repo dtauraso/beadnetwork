@@ -1,6 +1,7 @@
 package framegeom
 
 import (
+	"fmt"
 	"math"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
@@ -8,10 +9,11 @@ import (
 )
 
 type FrameGeometryInputs struct {
-	Geom           nodegeom.NodeGeom
-	UpAxis         bool
-	CoplanarEdges  bool
-	PartnerCenters map[string]vec3
+	Geom          nodegeom.NodeGeom
+	UpAxis        bool
+	CoplanarEdges bool
+
+	PartnerDeltas []polar.Polar
 
 	TopTiltVectorThetaIdx  int32
 	BottomThetaIdx         int32
@@ -40,6 +42,10 @@ type FrameGeometryOutputs struct {
 	ReceivedVectorTheta float64
 }
 
+func (in FrameGeometryInputs) partnerCenter(i int) vec3 {
+	return nodegeom.NodeWorldPos(in.Geom).Add(polar.Polar2cart(in.PartnerDeltas[i]))
+}
+
 func DeriveFrameGeometry(in FrameGeometryInputs) FrameGeometryOutputs {
 	out := FrameGeometryOutputs{
 		Center:  nodegeom.NodeWorldPos(in.Geom),
@@ -50,18 +56,24 @@ func DeriveFrameGeometry(in FrameGeometryInputs) FrameGeometryOutputs {
 
 	out.RingAxisPhi, out.RingAxisTheta = TorusDefaultAxisAngles()
 
-	if in.UpAxis && in.Geom.HasPos && len(in.PartnerCenters) == 1 {
-		for _, partner := range in.PartnerCenters {
-			if t, p, ok := UprightRingAxis(nodegeom.NodeWorldPos(in.Geom), partner); ok {
-				out.RingAxisPhi, out.RingAxisTheta = t, p
-			}
+	if in.UpAxis && in.Geom.HasPos && len(in.PartnerDeltas) == 0 {
+		panic(fmt.Sprintf(
+			"DeriveFrameGeometry: node %q is placed in an up-axis scene but holds no neighbour delta, "+
+				"so its ring axis and tilt vector cannot be derived and would silently fall back to the "+
+				"scene defaults. A node's delta to each neighbour is seeded at build from the edge files "+
+				"it owns (build_move_dispatch's SetDeltaTo) and maintained by its own moves; reaching "+
+				"here means that seeding did not happen for this node",
+			in.Geom.Label))
+	}
+
+	if in.UpAxis && in.Geom.HasPos && len(in.PartnerDeltas) == 1 {
+		if t, p, ok := UprightRingAxis(nodegeom.NodeWorldPos(in.Geom), in.partnerCenter(0)); ok {
+			out.RingAxisPhi, out.RingAxisTheta = t, p
 		}
 		out.TopTiltVectorLen = nodegeom.NodeRadius(in.Geom.Kind)
-	} else if in.CoplanarEdges && in.Geom.HasPos && len(in.PartnerCenters) == 1 {
-		for _, partner := range in.PartnerCenters {
-			if t, p, ok := PoleContainingEdge(out.PolePhi, out.PoleTheta, nodegeom.NodeWorldPos(in.Geom), partner); ok {
-				out.RingAxisPhi, out.RingAxisTheta = t, p
-			}
+	} else if in.CoplanarEdges && in.Geom.HasPos && len(in.PartnerDeltas) == 1 {
+		if t, p, ok := PoleContainingEdge(out.PolePhi, out.PoleTheta, nodegeom.NodeWorldPos(in.Geom), in.partnerCenter(0)); ok {
+			out.RingAxisPhi, out.RingAxisTheta = t, p
 		}
 	}
 
