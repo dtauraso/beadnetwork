@@ -41,17 +41,6 @@ const nodePolesCfg: ToggleCfg = {
   payload: (v) => ({ flag: "nodePoles", was: v }),
 };
 
-const selSpherePolesCfg: ToggleCfg = {
-  flag: "selSpherePoles",
-  default: true,
-  active: (v) => v,
-
-  icon: "⬡",
-  label: "select",
-  title: (a) => (a ? "Hide select-sphere poles" : "Show select-sphere poles"),
-  payload: (v) => ({ flag: "selSpherePoles", was: v }),
-};
-
 const handholdsCfg: ToggleCfg = {
   flag: "handholds",
   default: true,
@@ -175,7 +164,7 @@ export const OVERLAY_GROUPS: OverlayGroup[] = [
     groups: [
       { heading: "SHAPE", cfgs: [nodeBodyCfg, nodeRingCfg, ringPickCfg], panel: "nodeShape" },
       { heading: "STATE", cfgs: [selectionRingCfg, hoverRingCfg], panel: "nodeState" },
-      { heading: "REACH", cfgs: [reachSphereCfg, selSpherePolesCfg], panel: "nodeReach" },
+      { heading: "REACH", cfgs: [reachSphereCfg], panel: "nodeReach" },
       { heading: "POLES", cfgs: [nodePolesCfg], panel: "nodePoles" },
     ],
   },

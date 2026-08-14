@@ -29,7 +29,7 @@ func wireViewStream(md *W.MoveDispatch, viewFile *os.File, viewStreamWired bool,
 					camPX, camPY, camPZ, camR, camPosPhi, camPosTheta, camUpPhi, camUpTheta,
 					B.OverlayRow{
 						SceneTori: flags.SceneTori, ScenePoles: flags.ScenePoles, NodePoles: flags.NodePoles,
-						SelSpherePoles: flags.SelSpherePoles, Handholds: flags.Handholds,
+						Handholds:    flags.Handholds,
 						LabelsGlobal: flags.LabelsGlobal, OverlaysVis: flags.OverlaysVis,
 						NodeBody: flags.NodeBody, NodeRing: flags.NodeRing, RingPick: flags.RingPick,
 						SelectionRing: flags.SelectionRing, HoverRing: flags.HoverRing,

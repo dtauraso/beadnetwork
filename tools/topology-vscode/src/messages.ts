@@ -3,7 +3,6 @@ const OVERLAY_FLAG_NAMES = [
   "tori",
   "scenePoles",
   "nodePoles",
-  "selSpherePoles",
   "handholds",
   "labelsGlobal",
   "overlays",

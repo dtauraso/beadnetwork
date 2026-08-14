@@ -11,6 +11,7 @@ export function NodePoles({ nodes }: { nodes: NavNode[] }) {
             center={node.center}
             scale={node.radius}
             tag={`(${node.label})`}
+            pole={node.pole}
           />
         </React.Fragment>
       ))}

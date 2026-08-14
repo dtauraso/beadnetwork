@@ -5,7 +5,6 @@ import {
   readNodeRingAxisPhi,
   readNodeRingAxisTheta,
   readNodeCX, readNodeCY, readNodeCZ, readNodeRadius,
-  readOverlaySelSpherePoles,
   readOverlayNodeBody, readOverlayNodeRing, readOverlayRingPick,
 } from "../../../../schema/buffer-layout/buffer-layout";
 import { NODE_SPHERE_RADIUS, nodeRowColors, poleAxis } from "../buffer-scene-shared";
@@ -38,8 +37,6 @@ export function updateNodeInstances(refs: NodeInstanceRefs, capacity: number, ca
   }
   const { overlayView } = blocks;
   const { nodeCount, nodeView } = decodedNode;
-
-  const selectModeOn = readOverlaySelSpherePoles(overlayView) !== 0;
 
   const showBody = readOverlayNodeBody(overlayView) !== 0;
   const showRing = readOverlayNodeRing(overlayView) !== 0;
@@ -87,7 +84,7 @@ export function updateNodeInstances(refs: NodeInstanceRefs, capacity: number, ca
   body.count = showBody ? n : 0;
   ring.count = showRing ? n : 0;
 
-  ringPick.count = selectModeOn ? n : 0;
+  ringPick.count = n;
 
   ringBand.count = showPickBand ? n : 0;
   body.instanceMatrix.needsUpdate = true;
@@ -98,5 +95,5 @@ export function updateNodeInstances(refs: NodeInstanceRefs, capacity: number, ca
   if (ring.instanceColor) ring.instanceColor.needsUpdate = true;
 
   if (showBody) body.computeBoundingSphere();
-  if (selectModeOn) ringPick.computeBoundingSphere();
+  ringPick.computeBoundingSphere();
 }

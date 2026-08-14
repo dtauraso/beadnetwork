@@ -1,6 +1,6 @@
 import {
   readOverlaySceneTori, readOverlayScenePoles, readOverlayNodePoles,
-  readOverlaySelSpherePoles, readOverlayHandholds, readOverlayLabelsGlobal,
+  readOverlayHandholds, readOverlayLabelsGlobal,
   readOverlayOverlaysVis,
   readOverlayNodeBody,
   readOverlayNodeRing,
@@ -13,7 +13,7 @@ import {
 import type { ViewBlocksOrNull } from "./decode-event-line";
 
 export const OVERLAY_KINDS = new Set([
-  "scene-tori", "scene-poles", "node-poles", "sel-sphere-poles",
+  "scene-tori", "scene-poles", "node-poles",
   "handholds", "labels-global", "overlays-vis",
   "node-body", "node-ring", "ring-pick", "selection-ring", "hover-ring", "reach-sphere",
   "scene-vectors",
@@ -26,7 +26,6 @@ export function overlayFlag(vb: ViewBlocksOrNull, kind: string): number {
     case "scene-tori": return readOverlaySceneTori(v);
     case "scene-poles": return readOverlayScenePoles(v);
     case "node-poles": return readOverlayNodePoles(v);
-    case "sel-sphere-poles": return readOverlaySelSpherePoles(v);
     case "handholds": return readOverlayHandholds(v);
     case "labels-global": return readOverlayLabelsGlobal(v);
     case "overlays-vis": return readOverlayOverlaysVis(v);

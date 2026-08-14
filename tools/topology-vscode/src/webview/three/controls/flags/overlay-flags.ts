@@ -5,7 +5,6 @@ import {
   readOverlaySceneTori,
   readOverlayScenePoles,
   readOverlayNodePoles,
-  readOverlaySelSpherePoles,
   readOverlayHandholds,
   readOverlayLabelsGlobal,
   readOverlayOverlaysVis,
@@ -35,7 +34,6 @@ export function readOverlayFlags(): OverlayFlagVals | null {
     tori: !!readOverlaySceneTori(v),
     scenePoles: !!readOverlayScenePoles(v),
     nodePoles: !!readOverlayNodePoles(v),
-    selSpherePoles: !!readOverlaySelSpherePoles(v),
     handholds: !!readOverlayHandholds(v),
 
     labelsGlobal: !readOverlayLabelsGlobal(v),

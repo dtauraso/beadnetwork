@@ -25,32 +25,30 @@ export function readCameraUpTheta(view: DataView): number { return view.getFloat
 export const OVERLAY_COL_SCENE_TORI              = 0; // u8
 export const OVERLAY_COL_SCENE_POLES             = 1; // u8
 export const OVERLAY_COL_NODE_POLES              = 2; // u8
-export const OVERLAY_COL_SEL_SPHERE_POLES        = 3; // u8
-export const OVERLAY_COL_HANDHOLDS               = 4; // u8
-export const OVERLAY_COL_LABELS_GLOBAL           = 5; // u8
-export const OVERLAY_COL_OVERLAYS_VIS            = 6; // u8
-export const OVERLAY_COL_NODE_BODY               = 7; // u8
-export const OVERLAY_COL_NODE_RING               = 8; // u8
-export const OVERLAY_COL_RING_PICK               = 9; // u8
-export const OVERLAY_COL_SELECTION_RING          = 10; // u8
-export const OVERLAY_COL_HOVER_RING              = 11; // u8
-export const OVERLAY_COL_REACH_SPHERE            = 12; // u8
-export const OVERLAY_COL_SCENE_VECTORS           = 13; // u8
-export const OVERLAY_COL_COMM_EDGES              = 14; // u8
-export const OVERLAY_COL_DRAG_NODE_ROW           = 15; // i32
-export const OVERLAY_COL_EDIT_REFUSED            = 19; // u32
-export const OVERLAY_COL_SCENE_EDITABLE          = 23; // u8
-export const OVERLAY_COL_SCENE_KINDS             = 24; // u32
-export const OVERLAY_COL_GROUP_LEN_TIME          = 28; // f32
-export const OVERLAY_COL_GROUP_LEN_INPUT         = 32; // f32
-export const OVERLAY_COL_GROUP_LEN_GATE          = 36; // f32
-export const OVERLAY_COL_SPEED                   = 40; // f32
-export const OVERLAY_STRIDE                      = 44;
+export const OVERLAY_COL_HANDHOLDS               = 3; // u8
+export const OVERLAY_COL_LABELS_GLOBAL           = 4; // u8
+export const OVERLAY_COL_OVERLAYS_VIS            = 5; // u8
+export const OVERLAY_COL_NODE_BODY               = 6; // u8
+export const OVERLAY_COL_NODE_RING               = 7; // u8
+export const OVERLAY_COL_RING_PICK               = 8; // u8
+export const OVERLAY_COL_SELECTION_RING          = 9; // u8
+export const OVERLAY_COL_HOVER_RING              = 10; // u8
+export const OVERLAY_COL_REACH_SPHERE            = 11; // u8
+export const OVERLAY_COL_SCENE_VECTORS           = 12; // u8
+export const OVERLAY_COL_COMM_EDGES              = 13; // u8
+export const OVERLAY_COL_DRAG_NODE_ROW           = 14; // i32
+export const OVERLAY_COL_EDIT_REFUSED            = 18; // u32
+export const OVERLAY_COL_SCENE_EDITABLE          = 22; // u8
+export const OVERLAY_COL_SCENE_KINDS             = 23; // u32
+export const OVERLAY_COL_GROUP_LEN_TIME          = 27; // f32
+export const OVERLAY_COL_GROUP_LEN_INPUT         = 31; // f32
+export const OVERLAY_COL_GROUP_LEN_GATE          = 35; // f32
+export const OVERLAY_COL_SPEED                   = 39; // f32
+export const OVERLAY_STRIDE                      = 43;
 
 export function readOverlaySceneTori(view: DataView): number { return view.getUint8(OVERLAY_COL_SCENE_TORI); }
 export function readOverlayScenePoles(view: DataView): number { return view.getUint8(OVERLAY_COL_SCENE_POLES); }
 export function readOverlayNodePoles(view: DataView): number { return view.getUint8(OVERLAY_COL_NODE_POLES); }
-export function readOverlaySelSpherePoles(view: DataView): number { return view.getUint8(OVERLAY_COL_SEL_SPHERE_POLES); }
 export function readOverlayHandholds(view: DataView): number { return view.getUint8(OVERLAY_COL_HANDHOLDS); }
 export function readOverlayLabelsGlobal(view: DataView): number { return view.getUint8(OVERLAY_COL_LABELS_GLOBAL); }
 export function readOverlayOverlaysVis(view: DataView): number { return view.getUint8(OVERLAY_COL_OVERLAYS_VIS); }

@@ -16,7 +16,6 @@ export type DecodedEventLine =
   | { step: number; kind: "scene-tori"; visible: boolean }
   | { step: number; kind: "scene-poles"; visible: boolean }
   | { step: number; kind: "node-poles"; visible: boolean }
-  | { step: number; kind: "sel-sphere-poles"; visible: boolean }
   | { step: number; kind: "handholds"; visible: boolean }
   | { step: number; kind: "labels-global"; visible: boolean }
   | { step: number; kind: "overlays-vis"; visible: boolean }
