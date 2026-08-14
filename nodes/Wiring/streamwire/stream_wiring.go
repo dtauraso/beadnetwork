@@ -50,7 +50,7 @@ func (sw *StreamWiring) SetEdgeStreams(
 	nodeGeoms map[string]*nodeactor.NodeGeometry,
 	baseFd int,
 	nodeRowFor func(id string) (int32, bool),
-	buildFrame func(tick uint32, sx, sy, sz, ex, ey, ez float32, srcNodeRow int32, label string, events []rowevent.RowEvent) []byte,
+	buildFrame func(tick uint32, sx, sy, sz, ex, ey, ez float32, srcNodeRow, dstNodeRow int32, deltaR float32, label string, events []rowevent.RowEvent) []byte,
 ) {
 	for row, seed := range edgeSeeds {
 		em, ok := edgeTable[seed.Label]
@@ -70,7 +70,11 @@ func (sw *StreamWiring) SetEdgeStreams(
 		if r, ok := nodeRowFor(seed.SrcNode); ok {
 			srcRow = r
 		}
-		srcNM.WireOutEdgeStream(seed.Label, int32(row), seed.DstNode, kindOf(nodeGeoms, seed.DstNode), rawOut, srcRow, buildFrame)
+		dstRow := int32(-1)
+		if r, ok := nodeRowFor(seed.DstNode); ok {
+			dstRow = r
+		}
+		srcNM.WireOutEdgeStream(seed.Label, int32(row), seed.DstNode, kindOf(nodeGeoms, seed.DstNode), rawOut, srcRow, dstRow, buildFrame)
 
 		if dest := em.Dest(); dest != nil {
 			dest.SetStreamsActive(true)

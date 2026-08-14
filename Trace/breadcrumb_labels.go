@@ -31,6 +31,8 @@ const (
 	BreadcrumbEdgeGeom
 
 	BreadcrumbEdgeBeads
+
+	BreadcrumbOrbitActivePersist
 )
 
 var BreadcrumbLabels = []string{
@@ -53,6 +55,7 @@ var BreadcrumbLabels = []string{
 	"out-angle-fix",
 	"edge-geom",
 	"edge-beads",
+	"orbit-active-persist",
 }
 
 func BreadcrumbLabelID(name string) (uint8, bool) {

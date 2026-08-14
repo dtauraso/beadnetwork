@@ -74,12 +74,13 @@ export const PANEL_COL_NODE_SHAPE                = 2; // u8
 export const PANEL_COL_NODE_STATE                = 3; // u8
 export const PANEL_COL_NODE_REACH                = 4; // u8
 export const PANEL_COL_NODE_POLES                = 5; // u8
-export const PANEL_COL_SCENE                     = 6; // u8
-export const PANEL_COL_SCENE_GUIDES              = 7; // u8
-export const PANEL_COL_SCENE_POLES               = 8; // u8
-export const PANEL_COL_SCENE_VECTORS             = 9; // u8
-export const PANEL_COL_SCENE_LABELS              = 10; // u8
-export const PANEL_STRIDE                        = 11;
+export const PANEL_COL_NODE_RULES                = 6; // u8
+export const PANEL_COL_SCENE                     = 7; // u8
+export const PANEL_COL_SCENE_GUIDES              = 8; // u8
+export const PANEL_COL_SCENE_POLES               = 9; // u8
+export const PANEL_COL_SCENE_VECTORS             = 10; // u8
+export const PANEL_COL_SCENE_LABELS              = 11; // u8
+export const PANEL_STRIDE                        = 12;
 
 export function readPanelOverlays(view: DataView): number { return view.getUint8(PANEL_COL_OVERLAYS); }
 export function readPanelNode(view: DataView): number { return view.getUint8(PANEL_COL_NODE); }
@@ -87,6 +88,7 @@ export function readPanelNodeShape(view: DataView): number { return view.getUint
 export function readPanelNodeState(view: DataView): number { return view.getUint8(PANEL_COL_NODE_STATE); }
 export function readPanelNodeReach(view: DataView): number { return view.getUint8(PANEL_COL_NODE_REACH); }
 export function readPanelNodePoles(view: DataView): number { return view.getUint8(PANEL_COL_NODE_POLES); }
+export function readPanelNodeRules(view: DataView): number { return view.getUint8(PANEL_COL_NODE_RULES); }
 export function readPanelScene(view: DataView): number { return view.getUint8(PANEL_COL_SCENE); }
 export function readPanelSceneGuides(view: DataView): number { return view.getUint8(PANEL_COL_SCENE_GUIDES); }
 export function readPanelScenePoles(view: DataView): number { return view.getUint8(PANEL_COL_SCENE_POLES); }

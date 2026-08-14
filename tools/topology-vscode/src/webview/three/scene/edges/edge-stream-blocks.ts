@@ -2,7 +2,7 @@ import { getLatestEdgeStreamFrames } from "../../../snapshot-buffer";
 import { decodeEdgeStreamFrame, type DecodedEdgeStreamFrame } from "../../decode/buffer-decode-edge";
 import {
   readEdgeSX, readEdgeSY, readEdgeSZ, readEdgeEX, readEdgeEY, readEdgeEZ,
-  readEdgeSrcNodeRow,
+  readEdgeSrcNodeRow, readEdgeDstNodeRow, readEdgeDeltaR,
 } from "../../../../schema/buffer-layout/buffer-layout";
 
 export interface EdgeAccessor {
@@ -12,6 +12,10 @@ export interface EdgeAccessor {
   segment(row: number): [number, number, number, number, number, number];
 
   srcNodeRow(row: number): number;
+
+  dstNodeRow(row: number): number;
+
+  deltaR(row: number): number;
 
 }
 
@@ -39,6 +43,14 @@ export function getEdgeStreamAccessor(): EdgeAccessor | null {
     srcNodeRow(row) {
       const d = decodedFor(frames, row);
       return d ? readEdgeSrcNodeRow(d.edgeView, 0) : -1;
+    },
+    dstNodeRow(row) {
+      const d = decodedFor(frames, row);
+      return d ? readEdgeDstNodeRow(d.edgeView, 0) : -1;
+    },
+    deltaR(row) {
+      const d = decodedFor(frames, row);
+      return d ? readEdgeDeltaR(d.edgeView, 0) : 0;
     },
   };
 }

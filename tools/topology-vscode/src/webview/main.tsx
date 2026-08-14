@@ -4,13 +4,14 @@ postLog("lifecycle", { phase: "bundle-eval" });
 
 import { createRoot } from "react-dom/client";
 import "./webview-toolbar.css";
-import "./webview-rule-eq.css";
+import "./webview-node-rules.css";
 import "./webview-timeline.css";
 import "./webview-palette.css";
 import "./webview-diff.css";
 import { ThreeView } from "./three/scene/ThreeView";
 import { SpeedSlider } from "./three/controls/panels/speed/SpeedSlider";
 import { TiltVectorButtons } from "./three/controls/panels/tilt/TiltVectorButtons";
+import { NodeRulesPanel } from "./three/controls/panels/NodeRulesPanel";
 import { parseHostToWebview } from "../messages";
 import { ErrorBoundary } from "./log/ErrorBoundary";
 import { CrashListeners } from "./log/CrashListeners";
@@ -23,6 +24,7 @@ function Root() {
       <ThreeView />
       <SpeedSlider />
       <TiltVectorButtons />
+      <NodeRulesPanel />
     </>
   );
 }

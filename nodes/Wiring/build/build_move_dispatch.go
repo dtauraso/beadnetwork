@@ -7,6 +7,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/nodefiles"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodedrag"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
@@ -55,6 +56,7 @@ func (b *buildCtx) buildMoveDispatch() error {
 		}
 		nm.SetSelfKind(n.Type)
 		nm.SetOrbitRule(n.Orbit)
+		nm.SetOrbitActive(nodefiles.LoadOrbitActive(b.scenePath, n.ID))
 		if n.TopTiltVectorPhiIdx != nil {
 			nm.SetTopTiltVectorPhiIdx(*n.TopTiltVectorPhiIdx)
 		}
@@ -98,11 +100,7 @@ func (b *buildCtx) buildMoveDispatch() error {
 	}
 
 	for _, nm := range md.MR.NodeGeoms() {
-		asks := nodedrag.RequestFor(nm.SelfKind())
-		if asks == nil {
-			continue
-		}
-		for to, told := range asks(polar.Polar{}, nm) {
+		for to, told := range nodedrag.Requested(nm.SelfKind(), polar.Polar{}, nm) {
 			if other, ok := md.MR.NodeGeoms()[to]; ok {
 				d := told
 				other.SendExternal(context.TODO(), movemsg.Msg{Kind: movemsg.KindDrag, NodeID: to,

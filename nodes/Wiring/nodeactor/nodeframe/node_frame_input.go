@@ -43,6 +43,11 @@ type NodeFrameInput struct {
 
 	RoundsToParallel, MsgsToParallel int32
 
+	OrbitRLocked, OrbitPhiLocked uint8
+	OrbitThetaMax                float32
+	OrbitActive                  uint8
+	HasKindRule                  uint8
+
 	Label string
 
 	Events []rowevent.RowEvent

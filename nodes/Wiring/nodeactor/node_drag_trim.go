@@ -6,5 +6,5 @@ import (
 )
 
 func (m *NodeGeometry) TrimOwnDrag(delta polar.Polar) polar.Polar {
-	return nodedrag.TrimFor(m.SelfKind())(delta, m)
+	return nodedrag.Apply(m.SelfKind(), delta, m)
 }

@@ -8,7 +8,9 @@ type bufLayoutEdge struct {
 	EY float32 `buf:"f32"`
 	EZ float32 `buf:"f32"`
 
-	SrcNodeRow int32 `buf:"i32"`
+	SrcNodeRow int32   `buf:"i32"`
+	DstNodeRow int32   `buf:"i32"`
+	DeltaR     float32 `buf:"f32"`
 
 	EdgeLabelOff uint32 `buf:"u32"`
 	EdgeLabelLen uint32 `buf:"u32"`

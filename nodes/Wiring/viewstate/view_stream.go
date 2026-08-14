@@ -16,9 +16,9 @@ type ViewOverlayFlags struct {
 }
 
 type ViewPanelFlags struct {
-	Overlays                                                  uint8
-	Node, NodeShape, NodeState, NodeReach, NodePoles          uint8
-	Scene, SceneGuides, ScenePoles, SceneVectors, SceneLabels uint8
+	Overlays                                                    uint8
+	Node, NodeShape, NodeState, NodeReach, NodePoles, NodeRules uint8
+	Scene, SceneGuides, ScenePoles, SceneVectors, SceneLabels   uint8
 }
 
 type ViewSceneState struct {
@@ -95,6 +95,7 @@ func (ui *UIState) EmitViewFrame(events []rowevent.RowEvent) {
 			NodeState:    boolU8(ui.PN.NodeStateOpen),
 			NodeReach:    boolU8(ui.PN.NodeReachOpen),
 			NodePoles:    boolU8(ui.PN.NodePolesOpen),
+			NodeRules:    boolU8(ui.PN.NodeRulesOpen),
 			Scene:        boolU8(ui.PN.SceneOpen),
 			SceneGuides:  boolU8(ui.PN.SceneGuidesOpen),
 			ScenePoles:   boolU8(ui.PN.ScenePolesOpen),

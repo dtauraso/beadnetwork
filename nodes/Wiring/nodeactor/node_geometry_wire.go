@@ -47,6 +47,10 @@ func (m *NodeGeometry) SetOrbitRule(rule *polar.OrbitRule) {
 	m.topo.SetOrbitRule(rule)
 }
 
+func (m *NodeGeometry) SetOrbitActive(active bool) {
+	m.topo.SetOrbitActive(active)
+}
+
 func (m *NodeGeometry) SetSceneFlags(coplanarEdges, upAxis bool) {
 	m.flags.SetSceneFlags(coplanarEdges, upAxis)
 }
@@ -72,8 +76,8 @@ func (m *NodeGeometry) BindOutEdgeWire(label, targetID, targetKind string, port 
 	m.outEdges.SetSrcID(m.id)
 }
 
-func (m *NodeGeometry) WireOutEdgeStream(label string, edgeRow int32, targetID, targetKind string, w io.Writer, nodeRow int32, buildFrame owners.EdgeFrameBuilder) {
-	m.outEdges.AddOutEdge(label, edgeRow, targetID, targetKind, w, nodeRow, buildFrame)
+func (m *NodeGeometry) WireOutEdgeStream(label string, edgeRow int32, targetID, targetKind string, w io.Writer, nodeRow, dstNodeRow int32, buildFrame owners.EdgeFrameBuilder) {
+	m.outEdges.AddOutEdge(label, edgeRow, targetID, targetKind, w, nodeRow, dstNodeRow, buildFrame)
 }
 
 func (m *NodeGeometry) deriveOutEdgeGeometry(tick int64) {

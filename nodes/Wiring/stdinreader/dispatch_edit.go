@@ -51,6 +51,7 @@ var updateKindHandlers = map[string]func(context.Context, inputcodec.StdinMsg, *
 	"scene":         applyUpdateScene,
 	"tiltVector":    applyUpdateTiltVector,
 	"panels":        applyUpdatePanels,
+	"node":          applyUpdateNode,
 }
 
 // EDIT_UPDATE_KINDS_END
