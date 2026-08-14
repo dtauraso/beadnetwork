@@ -52,18 +52,20 @@ func Between(from, to Polar) Polar {
 	return Polar{R: to.R - from.R, Phi: to.Phi - from.Phi, Theta: wrapTurn(to.Theta - from.Theta)}
 }
 
-// NearestHalfTurn is the whole multiple of pi — negative, zero, or positive —
-// that a theta is closest to. It is the allowed set for a MOVE's theta: a drag
-// turns a vector a half turn about its pole, some number of times, or not at
-// all.
+// SnapDeltaTheta puts a MOVE's theta on the nearest integer multiple of pi —
+// negative, zero, or positive. It is applied to a delta triple the moment that
+// triple is formed, before any rule reads it, so every rule downstream sees a
+// theta that is already one of the allowed turns.
 //
-// It takes a bare angle rather than a triple because the caller has to decide
-// WHICH angle to ask about. One pointer event's theta is far too small to be
-// any multiple but zero, so rounding a single event's delta answers zero every
-// time and the drag never turns; the caller accumulates and asks about the
-// total (layoutquant's turnAsked).
-func NearestHalfTurn(theta float64) float64 {
-	return math.Round(theta/math.Pi) * math.Pi
+// Between has already removed whole turns, so the delta arrives in (-pi, pi]
+// and the reachable answers are -pi, 0 and pi (and -pi is pi, a half turn
+// either way around the same pole). A drag therefore either leaves theta alone
+// or turns the vector half a turn; there is no partial turn to accumulate.
+//
+// Only theta is touched. R and Phi pass through, because this is the same shape
+// as the other rules on a delta: one component decided on its own.
+func SnapDeltaTheta(d Polar) Polar {
+	return Polar{R: d.R, Phi: d.Phi, Theta: wrapTurn(math.Round(d.Theta/math.Pi) * math.Pi)}
 }
 
 func (p Polar) Neg() Polar {
