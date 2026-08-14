@@ -102,8 +102,7 @@ and none is a source of truth.
   states its own `orbit` in its own `meta.json` (`polar.OrbitRule`); absent means free, and
   most nodes say nothing. No node reads another's rule: a neighbour that wants a node moved
   computes the `Δ` from ITS OWN numbers — its own point before and after, and its own side of
-  the edge before and after (`SharedLengthDeltas`,
-  `nodes/Wiring/layoutquant/shared_length_deltas.go`) — and TELLS it, and the node told
+  the edge before and after (`nodes/input/drag.go`) — and TELLS it, and the node told
   trims that `Δ` against its own rules before committing it (`TrimOwnDrag`). A `Δ` an input
   node states to equalise its outgoing paths is therefore a request, not an imposition: a
   target whose own rule holds `D.r` keeps its distance and takes only the angles.
@@ -117,7 +116,12 @@ and none is a source of truth.
   was then imposed on the target's siblings (`HeldSiblings`, deleted): dragging node 2
   teleported node 3, and the two read as welded together. What remains keyed by kind is only
   what is genuinely about being an input node — the shared length across its outgoing paths,
-  and the half-turn snap on its own drag (`SharedLengthKind`).
+  and the half-turn snap on its own drag — and it is no longer a kind CHECK inside shared
+  code. **A node owns the function that trims it, not only the numbers it trims to.** The
+  kind states its own drag behaviour from its own package (`nodedrag.RegisterTrim` /
+  `RegisterRequest` in `nodes/input/drag.go`), exactly as it states its ports; a kind that
+  registers nothing is trimmed by its own orbit rule alone. `nodeactor` composes the delta,
+  asks the node to trim it, and commits — it does not know what an `Input` is.
 
   `D.r` is a genuine DISTANCE — the length of the vector to the neighbour — so it is always
   at or above zero and "the longest path" is a plain maximum. (It was briefly a difference of

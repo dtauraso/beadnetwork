@@ -6,8 +6,8 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
-	"github.com/dtauraso/wirefold/nodes/Wiring/layoutquant"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodedrag"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
 )
@@ -101,7 +101,11 @@ func (b *buildCtx) buildMoveDispatch() error {
 	}
 
 	for _, nm := range md.MR.NodeGeoms() {
-		for to, told := range layoutquant.SharedLengthDeltas(nm, polar.Polar{}) {
+		asks := nodedrag.RequestFor(nm.SelfKind())
+		if asks == nil {
+			continue
+		}
+		for to, told := range asks(polar.Polar{}, nm) {
 			if other, ok := md.MR.NodeGeoms()[to]; ok {
 				d := told
 				other.SendExternal(context.TODO(), movemsg.Msg{Kind: movemsg.KindDrag, NodeID: to,
