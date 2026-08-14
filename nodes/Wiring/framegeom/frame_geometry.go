@@ -46,9 +46,7 @@ func DeriveFrameGeometry(in FrameGeometryInputs) FrameGeometryOutputs {
 		SphereR: nodegeom.EffectiveRadius(in.Geom),
 	}
 
-	if in.Geom.HasPos {
-		out.PolePhi, out.PoleTheta = polar.InwardPole(in.Geom.ScenePolar)
-	}
+	out.PolePhi, out.PoleTheta = polar.WorldAxisPole()
 
 	out.RingAxisPhi, out.RingAxisTheta = TorusDefaultAxisAngles()
 
