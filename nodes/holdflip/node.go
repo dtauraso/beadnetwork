@@ -102,7 +102,7 @@ func init() {
 			n.In = a.In("In")
 			n.Self = a.ClaimSelfDrive()
 
-			n.Out = a.DriveOut("Out", 0)
+			n.Out = a.DriveOut("Out")
 
 			return n, nil
 		})

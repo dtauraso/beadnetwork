@@ -2,7 +2,6 @@ import {
   EDGE_BASE_FD,
   MAX_EDGE_STREAMS,
   MAX_NODE_STREAMS,
-  DRIVE_SLOTS_PER_NODE,
   VIEW_FD,
 } from "./stream-fds";
 
@@ -11,7 +10,6 @@ export interface SpawnLayout {
   nodeCount: number;
   nodeBaseFd: number;
   interiorBaseFd: number;
-  driveBaseFd: number;
 
   beadBaseFd: number;
 
@@ -45,15 +43,12 @@ export function computeSpawnLayout(counts: { nodes: number; edges: number }): Sp
   const nodeBaseFd = EDGE_BASE_FD + edgeCount;
   const interiorBaseFd = nodeBaseFd + nodeCount;
 
-  const driveBaseFd = interiorBaseFd + nodeCount;
-
-  const beadBaseFd = driveBaseFd + nodeCount * DRIVE_SLOTS_PER_NODE;
+  const beadBaseFd = interiorBaseFd + nodeCount;
 
   const stdio: Array<"pipe"> = ["pipe", "pipe", "pipe", "pipe", "pipe"];
   for (let i = 0; i < edgeCount; i++) stdio.push("pipe");
   for (let i = 0; i < nodeCount; i++) stdio.push("pipe");
   for (let i = 0; i < nodeCount; i++) stdio.push("pipe");
-  for (let i = 0; i < nodeCount * DRIVE_SLOTS_PER_NODE; i++) stdio.push("pipe");
 
   for (let i = 0; i < nodeCount; i++) stdio.push("pipe");
 
@@ -62,10 +57,10 @@ export function computeSpawnLayout(counts: { nodes: number; edges: number }): Sp
 
   if (nodeCount > 0) {
     streamFDsEnvParts.push(
-      `node:${nodeBaseFd}`, `interior:${interiorBaseFd}`, `drive:${driveBaseFd}`, `bead:${beadBaseFd}`,
+      `node:${nodeBaseFd}`, `interior:${interiorBaseFd}`, `bead:${beadBaseFd}`,
     );
   }
   const streamFDsEnv = streamFDsEnvParts.join(",");
 
-  return { edgeCount, nodeCount, nodeBaseFd, interiorBaseFd, driveBaseFd, beadBaseFd, stdio, streamFDsEnv, warnings };
+  return { edgeCount, nodeCount, nodeBaseFd, interiorBaseFd, beadBaseFd, stdio, streamFDsEnv, warnings };
 }

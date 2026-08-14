@@ -29,40 +29,6 @@ func NewInteriorEmitterGetter(name string, pb PortBindings) func() *interior.Emi
 	}
 }
 
-func NewDriveStreamGetter(name string, slot int, pb PortBindings) func() *interior.InteriorStream {
-	var built bool
-	var stream *interior.InteriorStream
-	return func() *interior.InteriorStream {
-		if built {
-			return stream
-		}
-		built = true
-		if pb.DriveOuts == nil || *pb.DriveOuts == nil {
-			return nil
-		}
-		slots, ok := (*pb.DriveOuts)[name]
-		if !ok || slot < 0 || slot >= len(slots) || slots[slot] == nil || pb.BuildInteriorFrame == nil || *pb.BuildInteriorFrame == nil {
-			return nil
-		}
-		nodeRow := int32(-1)
-		if r, ok := pb.RT.NodeRowFor(name); ok {
-			nodeRow = r
-		}
-		stream = interior.NewInteriorStream(slots[slot], *pb.BuildInteriorFrame, nodeRow, BufInteriorSlotsPerNode)
-		return stream
-	}
-}
-
-func AsEventSinkGetter(g func() *interior.InteriorStream) func() rowevent.EventSink {
-	return func() rowevent.EventSink {
-		s := g()
-		if s == nil {
-			return nil
-		}
-		return s
-	}
-}
-
 func InteriorEventSinkGetter(g func() *interior.Emitter) func() rowevent.EventSink {
 	return func() rowevent.EventSink {
 		e := g()

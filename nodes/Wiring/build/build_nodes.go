@@ -51,7 +51,6 @@ func (b *buildCtx) buildNodes() error {
 
 		pb.RT = b.md.RT
 		pb.InteriorEmitters = b.md.Sw.InteriorEmittersPtr()
-		pb.DriveOuts = b.md.Sw.DriveOutsPtr()
 		pb.BuildInteriorFrame = b.md.Sw.BuildInteriorFramePtr()
 		pb.VectorOut = b.vectorOutByNode
 		pb.VectorIn = b.vectorInByNode

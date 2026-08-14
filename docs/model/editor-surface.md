@@ -19,22 +19,21 @@ when a bead has arrived. Go owns the clock.
   — one VIEW stream (camera/overlay/scene, the gesture/stdin-reader
   goroutine), one stream per edge row (that edge's geometry, written by
   the SOURCE node's own goroutine — a node draws its own out-edges), one
-  stream per node row (that NodeMover's own geometry+ports+label), one
+  stream per node row (that node's own geometry+ports+label), one
   BEAD stream per node row (that node's live beads on every wire leaving
-  it), one INTERIOR stream per node row (that node's own
+  it), and one INTERIOR stream per node row (that node's own
   Update-goroutine's interior beads — the ONLY writer of that node's four
-  interior slots), and a fixed `DriveSlotsPerNode` (`Buffer/streamframe/stream_fds.go`)
-  of DRIVE streams per node row for any kind whose held value is driven by
-  a separate `DriveHeld` goroutine (`Pulse`/`PulseLeft`/`PulseRight`/
-  `holdflip`) — a second goroutine that must never share the interior
-  stream's fd (two goroutines racing one fd interleaves their frames'
-  header/payload writes into garbage — `docs/investigations/interior-stream-framing.md`).
-  A drive frame is INTERIOR-shaped and its EVENTS are decoded and
-  probe-logged like any other, but it asserts no slot state: nothing ever
-  sets a drive stream's own `lastPresent`, so treating a drive frame as a
-  statement about the node's held value paints an all-absent snapshot over
-  whatever the node's own interior stream just emitted. One writer owns
-  what is inside a node. Frames on a dedicated fd are `[len:u32-LE][payload]`
+  interior slots). **There are exactly three per-node streams.** There used
+  to be a fourth: `DriveSlotsPerNode` DRIVE streams per node row, so that
+  the separate `DriveHeld` goroutine of `Pulse`/`PulseLeft`/`PulseRight`/
+  `holdflip` would not share the interior stream's fd — two goroutines
+  racing one fd interleave their frames' header/payload writes into garbage
+  (`docs/investigations/interior-stream-framing.md`). That goroutine no
+  longer exists (a driven out is stepped by the node's own loop), so the
+  second writer it was separating is gone and a driven out's events ride
+  the node's own interior stream like everything else it emits. Do not
+  reintroduce a per-port stream to "keep writers apart" — keep the writers
+  singular instead. Frames on a dedicated fd are `[len:u32-LE][payload]`
   with NO tag byte — the fd POSITION identifies the stream/row.
   `WIREFOLD_STREAM_FDS` (the ext host's spawn env var,
   `tools/topology-vscode/src/runCommand.ts`) is **mandatory**: there is no

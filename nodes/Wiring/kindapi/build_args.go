@@ -28,8 +28,6 @@ type BuildArgs struct {
 
 	getEmitter func() *interior.Emitter
 
-	driveSlotClaims map[int]string
-
 	deps kindreg.BuildDeps
 }
 
@@ -47,12 +45,11 @@ func RegisterBuilder(kind string, ports []portwiring.PortSpec, build func(BuildA
 			var sourceOuts []*outport.Out
 			return build(BuildArgs{
 				ctx: ctx, name: name, data: data, pb: pb, tr: tr,
-				geom:            geom,
-				sourceOuts:      &sourceOuts,
-				getEmitter:      portwiring.NewInteriorEmitterGetter(name, pb),
-				driveSlotClaims: map[int]string{},
-				tiltPhiIdx:      tiltPhiIdx,
-				deps:            deps,
+				geom:       geom,
+				sourceOuts: &sourceOuts,
+				getEmitter: portwiring.NewInteriorEmitterGetter(name, pb),
+				tiltPhiIdx: tiltPhiIdx,
+				deps:       deps,
 			})
 		},
 	}

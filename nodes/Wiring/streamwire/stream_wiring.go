@@ -2,7 +2,6 @@ package streamwire
 
 import (
 	"fmt"
-	"io"
 	"os"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/edgetable"
@@ -15,24 +14,16 @@ import (
 	"github.com/dtauraso/wirefold/nodes/rowevent"
 )
 
-const DriveSlotsPerNode = 2
-
 type StreamWiring struct {
 	interiorEmitters map[string]*interior.Emitter
 
 	buildInteriorFrame func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []rowevent.RowEvent) []byte
-
-	driveOuts map[string][DriveSlotsPerNode]io.Writer
 
 	nodeClaims streamclaim.ClaimRegistry
 }
 
 func (sw *StreamWiring) InteriorEmittersPtr() *map[string]*interior.Emitter {
 	return &sw.interiorEmitters
-}
-
-func (sw *StreamWiring) DriveOutsPtr() *map[string][DriveSlotsPerNode]io.Writer {
-	return &sw.driveOuts
 }
 
 func (sw *StreamWiring) BuildInteriorFramePtr() *func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []rowevent.RowEvent) []byte {
@@ -91,7 +82,6 @@ func (sw *StreamWiring) SetNodeStreams(
 	nodeSeeds []geomseeds.NodeGeomSeed,
 	nodeMovers map[string]*nodeactor.NodeGeometry,
 	nodeBase, interiorBase int,
-	driveBase int, driveWired bool,
 	beadBase int, beadWired bool,
 	buildBeadFrame owners.BeadFrameBuilder,
 	nodeRowFor func(id string) (int32, bool),
@@ -102,7 +92,6 @@ func (sw *StreamWiring) SetNodeStreams(
 	sw.interiorEmitters = map[string]*interior.Emitter{}
 	sw.buildInteriorFrame = buildInteriorFrame
 
-	sw.driveOuts = map[string][DriveSlotsPerNode]io.Writer{}
 	for _, seed := range nodeSeeds {
 		nm, ok := nodeMovers[seed.ID]
 		if !ok {
@@ -127,14 +116,5 @@ func (sw *StreamWiring) SetNodeStreams(
 		iFd := interiorBase + row
 		rawInteriorOut := os.NewFile(uintptr(iFd), fmt.Sprintf("interior-fd%d", iFd))
 		sw.interiorEmitters[seed.ID] = nm.WireInteriorStream(rawInteriorOut, int32(row), buildInteriorFrame)
-
-		if driveWired {
-			var slots [DriveSlotsPerNode]io.Writer
-			for slot := 0; slot < DriveSlotsPerNode; slot++ {
-				dFd := driveBase + row*DriveSlotsPerNode + slot
-				slots[slot] = os.NewFile(uintptr(dFd), fmt.Sprintf("drive-fd%d", dFd))
-			}
-			sw.driveOuts[seed.ID] = slots
-		}
 	}
 }
