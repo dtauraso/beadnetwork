@@ -13,6 +13,8 @@ import {
 
 const OPEN_WIDTH_RATIO = 1.5;
 
+const POPOVER_MAX_HEIGHT = "60vh";
+
 export function OverlaysControl() {
   const open = usePanelOpen("overlays");
   const val = useToggleVal(guidelinesCfg);
@@ -93,7 +95,7 @@ export function OverlaysControl() {
 
       {}
       {open && (
-        <div style={inFlowPopoverStyle()}>
+        <div style={{ ...inFlowPopoverStyle(), maxHeight: POPOVER_MAX_HEIGHT, overflowY: "auto" }}>
           {}
           {OVERLAY_GROUPS.map((group) => (
             <OverlayGroupSection key={group.heading} group={group} disabled={!active} />
