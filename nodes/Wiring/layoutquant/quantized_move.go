@@ -54,6 +54,18 @@ func (lq *LayoutQuantizer) RootMove(ctx context.Context, nodeGeoms map[string]*n
 	// world. That is where it enters the polar system; from here down every
 	// rule works on triples, and the node's own centre is the only one read.
 	delta := polar.Between(nm.ScenePolar(), polar.Cart2polar(target.Sub(nm.SceneCenter())))
+	// An input node's own drag has its theta snapped to the nearest whole
+	// multiple of pi the moment the triple is formed, before any rule reads it:
+	// it turns half a turn about its own pole or not at all, and nothing
+	// downstream ever sees a partial turn to accumulate. Every other node drags
+	// with the theta the cursor asked for.
+	//
+	// It is the SAME gate the other rules on this node's own drag use — the
+	// kind, not the id, so the rule belongs to what an input node is rather
+	// than to which node happens to be first in this scene.
+	if nm.SelfKind() == OutAngleKind {
+		delta = polar.SnapDeltaTheta(delta)
+	}
 	delta = TrimDraggedNode(nm, delta)
 	// Its neighbours are not moving, so keeping every outgoing path the same
 	// length is a constraint on where THIS node may go.
