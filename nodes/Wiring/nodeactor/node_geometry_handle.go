@@ -3,6 +3,7 @@ package nodeactor
 import (
 	"fmt"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
 
@@ -58,9 +59,28 @@ func (m *NodeGeometry) handleCenter(msg movemsg.Msg) {
 
 func (m *NodeGeometry) handleDrag(msg movemsg.Msg) {
 	newPos := msg.Target
+	targetPolar := msg.TargetPolar
+
+	// A drag of THIS node arrives as the polar delta triple it was converted
+	// to, and this node decides how much of it to take. The trim is its own
+	// (TrimOwnDrag) and runs HERE, on its own goroutine, holding its own rules
+	// — a drag is a request, and the answer to it is the node's.
+	//
+	// Composing is the node's too, for the same reason the trim is: the three
+	// numbers are added to its own point and the result is what commits. Only
+	// then does the triple become a world position, once, for whoever needs to
+	// draw it.
+	if msg.Delta != nil {
+		moved := polar.Compose(m.ScenePolar(), m.TrimOwnDrag(*msg.Delta))
+		targetPolar = &moved
+		newPos = m.SceneCenter().Add(polar.Polar2cart(moved))
+	}
+
 	// The triple, when the sender composed one, is what commits — see
 	// movemsg.Msg.TargetPolar for what the world does to a triple it carries.
-	m.msg.CommitLocal(m.id, newPos, msg.TargetPolar)
+	// The load-time hold is the sender that still composes: it states a point
+	// absolutely, which is the one thing a delta cannot do.
+	m.msg.CommitLocal(m.id, newPos, targetPolar)
 	if m.tr != nil {
 		m.tr.Breadcrumb("drag.commit", m.id, "", fmt.Sprintf("newPos=(%.4f,%.4f,%.4f)", newPos.X, newPos.Y, newPos.Z))
 

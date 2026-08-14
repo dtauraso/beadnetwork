@@ -51,40 +51,28 @@ func (lq *LayoutQuantizer) RootMove(ctx context.Context, nodeGeoms map[string]*n
 	// what corrects a layout that loads wrong.
 	//
 	// The drag arrives as a world point, because a pointer hits a plane in the
-	// world. That is where it enters the polar system; from here down every
-	// rule works on triples, and the node's own centre is the only one read.
-	delta := polar.Between(nm.ScenePolar(), polar.Cart2polar(target.Sub(nm.SceneCenter())))
-	// An input node's own drag has its theta snapped to the nearest whole
-	// multiple of pi the moment the triple is formed, before any rule reads it:
-	// it turns half a turn about its own pole or not at all, and nothing
-	// downstream ever sees a partial turn to accumulate. Every other node drags
-	// with the theta the cursor asked for.
+	// world. That is where it enters the polar system, and it is ALL that
+	// happens here: the hit becomes Δ against the dragged node's own centre,
+	// and the node is sent that triple untrimmed.
 	//
-	// This one is genuinely the KIND's, not an id's: it is a statement about
-	// what an input node is, and it constrains that node's own drag rather
-	// than where anything else may sit. The angles a node holds about the node
-	// it hangs from went the other way — they are per-id now, carried by the
-	// node they bind, and TrimDraggedNode reads them off `nm`.
-	if nm.SelfKind() == SharedLengthKind {
-		delta = polar.SnapDeltaTheta(delta)
-	}
-	delta = TrimDraggedNode(nm, delta)
-	// Its neighbours are not moving, so keeping every outgoing path the same
-	// length is a constraint on where THIS node may go.
-	delta = TrimEqualOutLengths(nm, delta)
+	// No rule is read here and none may be added. The trims used to run in this
+	// function, on the pointer's goroutine, reaching into the node's own kind,
+	// orbit rule and edge sides to decide them before the node had heard
+	// anything. They are now the node's own (nodeactor.NodeGeometry.TrimOwnDrag),
+	// which is a statement this seam can enforce rather than describe: this
+	// package imports nodeactor, so a rule written here could reach the node's
+	// state, and one written there cannot reach anyone else's.
+	delta := polar.Between(nm.ScenePolar(), polar.Cart2polar(target.Sub(nm.SceneCenter())))
 
 	// NOBODY ELSE MOVES. A drag sends exactly one message, to the node under
 	// the cursor. Dragging one of an input node's out-targets used to also
 	// move its siblings onto the length that drag had stated; the drag now
 	// holds that length instead (its own polar.OrbitRule), so there is no length to
 	// restate and no sibling to correct.
-	// The drag's own composed triple travels with it. Every rule above worked
-	// on the three numbers; sending only the world point would hand the commit
-	// a position and make it guess the triple back, and the guess is canonical
-	// where the composition need not be (movemsg.Msg.TargetPolar).
-	moved := polar.Compose(nm.ScenePolar(), delta)
-	nm.SendExternal(ctx, movemsg.Msg{Kind: movemsg.KindDrag, NodeID: nodeID,
-		Target:      nm.SceneCenter().Add(polar.Polar2cart(moved)),
-		TargetPolar: &moved})
+	//
+	// Δ travels as the three numbers, not as a point. A world position would
+	// hand the node a place and make it guess the triple back, and the guess is
+	// canonical where the composition need not be (movemsg.Msg.Delta).
+	nm.SendExternal(ctx, movemsg.Msg{Kind: movemsg.KindDrag, NodeID: nodeID, Delta: &delta})
 	return true
 }
