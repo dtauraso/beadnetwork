@@ -7,7 +7,6 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/clock"
-	"github.com/dtauraso/wirefold/nodes/rowevent"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/outport"
 
@@ -42,14 +41,6 @@ type EdgeMover struct {
 	clk clock.Clock
 
 	speedCh chan float64
-
-	streamOut StreamHandle
-
-	edgeRow int32
-
-	nodeRowFor func(id string) (int32, bool)
-
-	buildFrame func(tick uint32, sx, sy, sz, ex, ey, ez float32, srcNodeRow int32, label string, events []rowevent.RowEvent) []byte
 }
 
 func New(edgeID, srcID, dstID, srcHandle, dstHandle string, srcGeom, dstGeom nodegeom.NodeGeom, tr *T.Trace, clockSrc clock.Clock) *EdgeMover {
@@ -67,7 +58,6 @@ func New(edgeID, srcID, dstID, srcHandle, dstHandle string, srcGeom, dstGeom nod
 		tr:       tr,
 		clockSrc: clockSrc,
 		clk:      clock.NewRealClock(),
-		edgeRow:  -1,
 	}
 }
 
@@ -86,11 +76,11 @@ func (m *EdgeMover) Dest() *wire.PacedWire { return m.dest }
 
 func (m *EdgeMover) SetSpeedCh(ch chan float64) { m.speedCh = ch }
 
-func (m *EdgeMover) SetStream(h StreamHandle, edgeRow int32, nodeRowFor func(id string) (int32, bool), buildFrame func(tick uint32, sx, sy, sz, ex, ey, ez float32, srcNodeRow int32, label string, events []rowevent.RowEvent) []byte) {
-	m.streamOut = h
-	m.edgeRow = edgeRow
-	m.nodeRowFor = nodeRowFor
-	m.buildFrame = buildFrame
+func (m *EdgeMover) breadcrumb(name, value string) {
+	if m.tr == nil {
+		return
+	}
+	m.tr.Breadcrumb(name, m.edgeID, "", value)
 }
 
 func (m *EdgeMover) Select(ctx context.Context, on bool) {

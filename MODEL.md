@@ -8,16 +8,19 @@ frame. Stop, re-read this file, and re-derive from the model.
 
 ## The network
 
-The network is **nodes and wires**. A node id NAMES a thing that is drawn;
-SEVERAL goroutines serve one node id, each owning one job and its own
-state, each writing its own stream, all tagging their frames with that id
-— the editor composes them onto one drawn node. They are peers: there is
-no principal node goroutine the others assist. The jobs are what differ
-(geometry and interaction, bead animation, the kind's own logic), and
-they share nothing but the id. In particular **the human-speed clock
-belongs to the ANIMATION job alone** — a goroutine that sleeps on the
-clock to pace beads must not also be the one that reads input or streams
-geometry, or the bead rate becomes the interaction rate. A wire
+The network is **nodes and wires**. A node id NAMES a thing that is drawn.
+**A node is ONE goroutine** — its `NodeMover` — and that goroutine owns,
+in one pulse-paced loop, everything the node draws about itself:
+interaction and geometry, its own beads, and **its own OUT-EDGES** (each
+drawn from the node's own polar position composed with that edge's stored
+delta). It writes its own node stream, its own bead stream, and the edge
+stream of every edge leaving it. An edge is not drawn by anyone else:
+there is no goroutine that watches two nodes and draws the line between
+them. The one other goroutine per node id is the KIND's own logic
+(`Update`), which owns that node's interior slots and nothing drawn
+outside them. Because the node loop paces beads, it runs at PULSE
+cadence, and the same loop reads input — so input is served at pulse
+cadence too, deliberately: one clock per node, not one clock per job. A wire
 (`PacedWire`) is not a goroutine at all: it is a PASSIVE delay queue
 with a channel on each end — a channel in from its source node, a channel
 out to its destination node — stepped by its SOURCE NODE's own goroutine.
@@ -177,7 +180,8 @@ is the only context they get. It must:
 2. **Name the invariant and the actual values**, not a category. `pending exceeded %d events
    on wire -> %s.%s`, not `limit exceeded`.
 3. **Name the mechanism that should have prevented it.** This is what turns a crash into a
-   diagnosis: *"the per-cycle drain (edgeMover.writeStreamFrame -> DrainPendingEvents) is not
+   diagnosis: *"the per-cycle drain (the source node's own Outs.DriveOutWires ->
+   DrainPendingEvents) is not
    running"*, or `allocateWires`' *"validateNoFanIn should have rejected this fan-in at
    parse"* — which names the earlier gate that let it through.
 
