@@ -6,7 +6,7 @@ import (
 )
 
 func (n *Node) stepFromVector(received tiltvector.TiltVectorMsg) bool {
-	arrival := n.ringOf().ArrivedState(received.ThetaIdx)
+	arrival := n.ringOf().ArrivedState(received.PhiIdx)
 	before := n.topState()
 
 	if !n.tilt.Machine.Settled(before, arrival) {
@@ -41,7 +41,7 @@ func (n *Node) handleVectorCycle(tick int64) {
 	n.recordReceived(received)
 
 	if n.tilt.Machine == tiltring.Setting {
-		n.adoptMachine(n.machineForGap(n.ringOf().ArrivedState(received.ThetaIdx)))
+		n.adoptMachine(n.machineForGap(n.ringOf().ArrivedState(received.PhiIdx)))
 	}
 	if !n.stepFromVector(received) {
 		return

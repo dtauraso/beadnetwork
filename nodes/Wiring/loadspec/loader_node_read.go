@@ -73,8 +73,8 @@ func loadNodeMeta(root, nodesDir, nodeID string) (specNode, error) {
 		sn.ScenePolarR, sn.ScenePolarPhi, sn.ScenePolarTheta = &r, &th, &ph
 		sn.QuantIPhi, sn.QuantITheta, sn.QuantIR = &qt, &qp, &qr
 		sn.StepPhi, sn.StepTheta, sn.StepR = &st, &sp, &sr
-		vt := pf.TopTiltVectorThetaIdx
-		sn.TopTiltVectorThetaIdx = &vt
+		vt := pf.TopTiltVectorPhiIdx
+		sn.TopTiltVectorPhiIdx = &vt
 	}
 
 	dataPath := filepath.Join(nodeDir, "data.json")

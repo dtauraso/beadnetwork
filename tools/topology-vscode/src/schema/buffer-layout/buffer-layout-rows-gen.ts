@@ -19,21 +19,22 @@ export const NODE_COL_POLE_THETA                 = 52; // f32
 export const NODE_COL_RING_AXIS_PHI              = 56; // f32
 export const NODE_COL_RING_AXIS_THETA            = 60; // f32
 export const NODE_COL_TOP_TILT_VECTOR_LEN        = 64; // f32
-export const NODE_COL_TOP_TILT_VECTOR_THETA      = 68; // f32
-export const NODE_COL_BOTTOM_TILT_VECTOR_THETA   = 72; // f32
-export const NODE_COL_COPLANAR_NORMAL_THETA      = 76; // f32
-export const NODE_COL_RECEIVED_VECTOR_LEN        = 80; // f32
-export const NODE_COL_RECEIVED_VECTOR_THETA      = 84; // f32
-export const NODE_COL_SELECTED                   = 88; // u8
-export const NODE_COL_KIND_ID                    = 89; // u8
-export const NODE_COL_LABEL_OFF                  = 90; // u32
-export const NODE_COL_LABEL_LEN                  = 94; // u32
-export const NODE_COL_HOVERED                    = 98; // u8
-export const NODE_COL_LATCHED_SEL                = 99; // u8
-export const NODE_COL_LATTICE_POINTS             = 100; // u8
-export const NODE_COL_ROUNDS_TO_PARALLEL         = 101; // i32
-export const NODE_COL_MSGS_TO_PARALLEL           = 105; // i32
-export const NODE_STRIDE                         = 109;
+export const NODE_COL_TOP_TILT_VECTOR_IDX        = 68; // i32
+export const NODE_COL_TOP_TILT_VECTOR_PHI        = 72; // f32
+export const NODE_COL_BOTTOM_TILT_VECTOR_PHI     = 76; // f32
+export const NODE_COL_COPLANAR_NORMAL_PHI        = 80; // f32
+export const NODE_COL_RECEIVED_VECTOR_LEN        = 84; // f32
+export const NODE_COL_RECEIVED_VECTOR_PHI        = 88; // f32
+export const NODE_COL_SELECTED                   = 92; // u8
+export const NODE_COL_KIND_ID                    = 93; // u8
+export const NODE_COL_LABEL_OFF                  = 94; // u32
+export const NODE_COL_LABEL_LEN                  = 98; // u32
+export const NODE_COL_HOVERED                    = 102; // u8
+export const NODE_COL_LATCHED_SEL                = 103; // u8
+export const NODE_COL_LATTICE_POINTS             = 104; // u8
+export const NODE_COL_ROUNDS_TO_PARALLEL         = 105; // i32
+export const NODE_COL_MSGS_TO_PARALLEL           = 109; // i32
+export const NODE_STRIDE                         = 113;
 
 export function readNodeNodeId(view: DataView, row: number): number { return view.getInt32(row * NODE_STRIDE + NODE_COL_NODE_ID, true); }
 export function readNodeCX(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_CX, true); }
@@ -52,11 +53,12 @@ export function readNodePoleTheta(view: DataView, row: number): number { return 
 export function readNodeRingAxisPhi(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_RING_AXIS_PHI, true); }
 export function readNodeRingAxisTheta(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_RING_AXIS_THETA, true); }
 export function readNodeTopTiltVectorLen(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_TOP_TILT_VECTOR_LEN, true); }
-export function readNodeTopTiltVectorTheta(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_TOP_TILT_VECTOR_THETA, true); }
-export function readNodeBottomTiltVectorTheta(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_BOTTOM_TILT_VECTOR_THETA, true); }
-export function readNodeCoplanarNormalTheta(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_COPLANAR_NORMAL_THETA, true); }
+export function readNodeTopTiltVectorIdx(view: DataView, row: number): number { return view.getInt32(row * NODE_STRIDE + NODE_COL_TOP_TILT_VECTOR_IDX, true); }
+export function readNodeTopTiltVectorPhi(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_TOP_TILT_VECTOR_PHI, true); }
+export function readNodeBottomTiltVectorPhi(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_BOTTOM_TILT_VECTOR_PHI, true); }
+export function readNodeCoplanarNormalPhi(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_COPLANAR_NORMAL_PHI, true); }
 export function readNodeReceivedVectorLen(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_RECEIVED_VECTOR_LEN, true); }
-export function readNodeReceivedVectorTheta(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_RECEIVED_VECTOR_THETA, true); }
+export function readNodeReceivedVectorPhi(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_RECEIVED_VECTOR_PHI, true); }
 export function readNodeSelected(view: DataView, row: number): number { return view.getUint8(row * NODE_STRIDE + NODE_COL_SELECTED); }
 export function readNodeKindId(view: DataView, row: number): number { return view.getUint8(row * NODE_STRIDE + NODE_COL_KIND_ID); }
 export function readNodeLabelOff(view: DataView, row: number): number { return view.getUint32(row * NODE_STRIDE + NODE_COL_LABEL_OFF, true); }

@@ -55,8 +55,8 @@ func (b *buildCtx) buildMoveDispatch() error {
 		}
 		nm.SetSelfKind(n.Type)
 		nm.SetOrbitRule(n.Orbit)
-		if n.TopTiltVectorThetaIdx != nil {
-			nm.SetTopTiltVectorThetaIdx(*n.TopTiltVectorThetaIdx)
+		if n.TopTiltVectorPhiIdx != nil {
+			nm.SetTopTiltVectorPhiIdx(*n.TopTiltVectorPhiIdx)
 		}
 	}
 

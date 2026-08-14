@@ -6,7 +6,7 @@ import (
 )
 
 func (a BuildArgs) TiltVectorAngleSeed() (theta int32) {
-	return a.tiltThetaIdx
+	return a.tiltPhiIdx
 }
 
 func (a BuildArgs) TiltEditIn() <-chan movemsg.TiltEditMsg {

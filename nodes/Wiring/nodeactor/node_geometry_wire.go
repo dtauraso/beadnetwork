@@ -49,8 +49,8 @@ func (m *NodeGeometry) SetQuantOffset(off quantoffset.QuantizedOffset) {
 	m.quantOffset = off
 }
 
-func (m *NodeGeometry) SetTopTiltVectorThetaIdx(idx int32) {
-	m.tilt.SetTopTiltVectorThetaIdx(idx)
+func (m *NodeGeometry) SetTopTiltVectorPhiIdx(idx int32) {
+	m.tilt.SetTopTiltVectorPhiIdx(idx)
 }
 
 func (m *NodeGeometry) AddOutTarget(target string) {

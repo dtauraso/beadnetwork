@@ -34,7 +34,7 @@ type specNode struct {
 
 	Orbit *polar.OrbitRule `json:"orbit,omitempty"`
 
-	TopTiltVectorThetaIdx *int32 `json:"topTiltVectorThetaIdx,omitempty"`
+	TopTiltVectorPhiIdx *int32 `json:"topTiltVectorThetaIdx,omitempty"`
 }
 
 func (n specNode) label() string {

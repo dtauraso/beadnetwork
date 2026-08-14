@@ -8,18 +8,17 @@ import (
 )
 
 type FrameGeometryInputs struct {
-	Geom           nodegeom.NodeGeom
-	UpAxis         bool
-	CoplanarEdges  bool
-	PartnerCenters map[string]vec3
+	Geom          nodegeom.NodeGeom
+	UpAxis        bool
+	CoplanarEdges bool
 
-	TopTiltVectorThetaIdx  int32
-	BottomThetaIdx         int32
-	NormalThetaIdx         int32
-	ReceivedVectorThetaIdx int32
-	ReceivedVectorSet      bool
-	LatticePoints          int32
-	DefaultLatticePoints   int32
+	TopTiltVectorPhiIdx  int32
+	BottomPhiIdx         int32
+	NormalPhiIdx         int32
+	ReceivedVectorPhiIdx int32
+	ReceivedVectorSet    bool
+	LatticePoints        int32
+	DefaultLatticePoints int32
 }
 
 type FrameGeometryOutputs struct {
@@ -31,13 +30,16 @@ type FrameGeometryOutputs struct {
 
 	LatticePoints int32
 
-	TopTiltVectorLen      float64
-	TopTiltVectorTheta    float64
-	BottomTiltVectorTheta float64
-	CoplanarNormalTheta   float64
+	TopTiltVectorLen float64
 
-	ReceivedVectorLen   float64
-	ReceivedVectorTheta float64
+	TopTiltVectorIdx int32
+
+	TopTiltVectorPhi    float64
+	BottomTiltVectorPhi float64
+	CoplanarNormalPhi   float64
+
+	ReceivedVectorLen float64
+	ReceivedVectorPhi float64
 }
 
 func DeriveFrameGeometry(in FrameGeometryInputs) FrameGeometryOutputs {
@@ -50,19 +52,8 @@ func DeriveFrameGeometry(in FrameGeometryInputs) FrameGeometryOutputs {
 
 	out.RingAxisPhi, out.RingAxisTheta = TorusDefaultAxisAngles()
 
-	if in.UpAxis && in.Geom.HasPos && len(in.PartnerCenters) == 1 {
-		for _, partner := range in.PartnerCenters {
-			if t, p, ok := UprightRingAxis(nodegeom.NodeWorldPos(in.Geom), partner); ok {
-				out.RingAxisPhi, out.RingAxisTheta = t, p
-			}
-		}
+	if in.UpAxis && in.Geom.HasPos {
 		out.TopTiltVectorLen = nodegeom.NodeRadius(in.Geom.Kind)
-	} else if in.CoplanarEdges && in.Geom.HasPos && len(in.PartnerCenters) == 1 {
-		for _, partner := range in.PartnerCenters {
-			if t, p, ok := PoleContainingEdge(out.PolePhi, out.PoleTheta, nodegeom.NodeWorldPos(in.Geom), partner); ok {
-				out.RingAxisPhi, out.RingAxisTheta = t, p
-			}
-		}
 	}
 
 	points := in.LatticePoints
@@ -70,15 +61,16 @@ func DeriveFrameGeometry(in FrameGeometryInputs) FrameGeometryOutputs {
 		points = in.DefaultLatticePoints
 	}
 	out.LatticePoints = points
-	latticeThetaStep := 2 * math.Pi / float64(points)
+	latticePhiStep := 2 * math.Pi / float64(points)
 
-	out.TopTiltVectorTheta = float64(in.TopTiltVectorThetaIdx) * latticeThetaStep
-	out.BottomTiltVectorTheta = float64(in.BottomThetaIdx) * latticeThetaStep
-	out.CoplanarNormalTheta = float64(in.NormalThetaIdx) * latticeThetaStep
+	out.TopTiltVectorIdx = in.TopTiltVectorPhiIdx
+	out.TopTiltVectorPhi = float64(in.TopTiltVectorPhiIdx) * latticePhiStep
+	out.BottomTiltVectorPhi = float64(in.BottomPhiIdx) * latticePhiStep
+	out.CoplanarNormalPhi = float64(in.NormalPhiIdx) * latticePhiStep
 
 	if in.ReceivedVectorSet {
 		out.ReceivedVectorLen = nodegeom.NodeRadius(in.Geom.Kind)
-		out.ReceivedVectorTheta = float64(in.ReceivedVectorThetaIdx) * latticeThetaStep
+		out.ReceivedVectorPhi = float64(in.ReceivedVectorPhiIdx) * latticePhiStep
 	}
 
 	return out

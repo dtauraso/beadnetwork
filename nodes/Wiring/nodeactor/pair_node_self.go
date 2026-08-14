@@ -39,6 +39,8 @@ func (p *PairNodeSelf) EmitGeometryOnce() {
 	if p == nil || p.geom == nil {
 		return
 	}
+
+	p.geom.clocks.CopyClockSrc()
 	if p.geom.tr != nil {
 		p.geom.postSelfEvents([]rowevent.RowEvent{{
 			Kind: T.KindNodeGeometry, NodeRow: p.geom.NodeRow(),
@@ -54,7 +56,20 @@ func (p *PairNodeSelf) Step(ctx context.Context, tick int64) {
 	g := p.geom
 	g.clocks.ApplySpeed(p.speedCh)
 
+	for {
+		progressed, cancelled := g.msg.DrainPending(ctx, g.take)
+		if cancelled {
+			return
+		}
+		if !progressed {
+			break
+		}
+	}
+	g.msg.FlushPending()
+
 	g.anim.driveOutWires(ctx, tick)
+
+	g.writeStreamFrame(g.drainSelfEvents())
 }
 
 func (p *PairNodeSelf) SetTiltIndex(theta, normalTheta, bottomTheta int32) {

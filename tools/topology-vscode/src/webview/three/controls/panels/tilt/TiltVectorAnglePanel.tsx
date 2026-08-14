@@ -15,7 +15,7 @@ import {
 } from "../../pills/overlay-chrome";
 import { StepperRow } from "../../pills/pill-rows";
 
-const AXES = ["theta"] as const;
+const AXES = ["phi"] as const;
 
 function AxisRow({ node, axis }: { node: TiltVectorRow; axis: (typeof AXES)[number] }) {
   const adjust = (dir: "up" | "down") => {
@@ -25,7 +25,7 @@ function AxisRow({ node, axis }: { node: TiltVectorRow; axis: (typeof AXES)[numb
   return (
     <StepperRow
       name={axis}
-      shown={formatAngle(node.theta, node.points)}
+      shown={formatAngle(node.idx, node.points)}
       widest={widestAngle(node.points)}
       upLabel={`${who} ${axis} up`}
       downLabel={`${who} ${axis} down`}

@@ -17,5 +17,5 @@ type JSON struct {
 	StepTheta       float64 `json:"stepTheta"`
 	StepR           float64 `json:"stepR"`
 
-	TopTiltVectorThetaIdx int32 `json:"topTiltVectorThetaIdx,omitempty"`
+	TopTiltVectorPhiIdx int32 `json:"topTiltVectorThetaIdx,omitempty"`
 }

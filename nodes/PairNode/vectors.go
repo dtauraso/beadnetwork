@@ -5,11 +5,11 @@ import (
 )
 
 func (n *Node) bottomTilt() tiltvector.TiltVectorMsg {
-	return tiltvector.TiltVectorMsg{ThetaIdx: n.bottomState().Idx}
+	return tiltvector.TiltVectorMsg{PhiIdx: n.bottomState().Idx}
 }
 
 func (n *Node) coplanarNormal() tiltvector.TiltVectorMsg {
-	return tiltvector.TiltVectorMsg{ThetaIdx: n.topState().Quarter.Idx}
+	return tiltvector.TiltVectorMsg{PhiIdx: n.topState().Quarter.Idx}
 }
 
 func (n *Node) syncTiltIndex() {
@@ -18,18 +18,18 @@ func (n *Node) syncTiltIndex() {
 	}
 	norm := n.coplanarNormal()
 	bottom := n.bottomTilt()
-	n.tilt.SyncTiltIndex(n.topState().Idx, norm.ThetaIdx, bottom.ThetaIdx)
+	n.tilt.SyncTiltIndex(n.topState().Idx, norm.PhiIdx, bottom.PhiIdx)
 }
 
 func (n *Node) syncReceivedVector() {
 	if n.vec.SyncReceivedVector == nil {
 		return
 	}
-	n.vec.SyncReceivedVector(n.vec.ReceivedThetaIdx, n.vec.ReceivedSet)
+	n.vec.SyncReceivedVector(n.vec.ReceivedPhiIdx, n.vec.ReceivedSet)
 }
 
 func (n *Node) recordReceived(received tiltvector.TiltVectorMsg) {
-	n.vec.ReceivedThetaIdx = received.ThetaIdx
+	n.vec.ReceivedPhiIdx = received.PhiIdx
 	n.vec.ReceivedSet = true
 	n.syncReceivedVector()
 }

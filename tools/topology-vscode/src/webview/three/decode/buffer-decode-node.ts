@@ -25,6 +25,28 @@ function reportNodeIdMismatch(row: number, expectedId: number, statedId: number)
   });
 }
 
+let reportedShortFrame = false;
+
+function reportShortNodeFrame(got: number, expected: number, labelLen: number): void {
+  if (reportedShortFrame) return;
+  reportedShortFrame = true;
+
+  const message =
+    `node stream frame is ${got} bytes but this webview's layout needs ${expected} ` +
+    `(header + NODE_STRIDE ${NODE_STRIDE} + label ${labelLen}). Go and the webview are built ` +
+    `against different buffer layouts, so EVERY node frame is being dropped and nothing on a ` +
+    `node will update. Run "Developer: Reload Window" — reopening the file reloads only the ` +
+    `webview, not the extension host that spawns Go.`;
+  if (typeof window === "undefined") {
+    // eslint-disable-next-line no-console
+    console.error(`[wirefold] node-frame-layout-skew: ${message}`);
+    return;
+  }
+  void import("../../log/post").then(({ postLog }) => {
+    postLog("load-error", { reason: "node-frame-layout-skew", message, gotBytes: got, expectedBytes: expected });
+  });
+}
+
 export interface DecodedNodeFrame {
   tick: number;
   nodeCount: number;
@@ -90,7 +112,10 @@ function decodeNodeStreamFrameUncached(buf: ArrayBuffer): DecodedNodeStreamFrame
   const labelLen           = hdr.getUint32(4,  true);
 
   const expectedLen = BUF_NODE_STREAM_FRAME_HEADER_SIZE + NODE_STRIDE + labelLen;
-  if (buf.byteLength < expectedLen) return null;
+  if (buf.byteLength < expectedLen) {
+    reportShortNodeFrame(buf.byteLength, expectedLen, labelLen);
+    return null;
+  }
 
   let off = BUF_NODE_STREAM_FRAME_HEADER_SIZE;
   const nodeView = new DataView(buf, off, NODE_STRIDE);

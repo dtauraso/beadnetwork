@@ -7,7 +7,7 @@ import {
   IN_UPDATE_KINDS,
 } from "./input-layout-gen";
 import {
-  IN_TILT_VECTOR_ATTR_THETA,
+  IN_TILT_VECTOR_ATTR_PHI,
   IN_TILT_VECTOR_ATTR_RESET,
   IN_TILT_VECTOR_ATTR_START,
   IN_SCENE_ATTR_LATTICE_POINTS,
@@ -49,7 +49,7 @@ export function encodeTiltVectorAdjust(nodeRow: number, dir: "up" | "down"): Arr
   const w = new ByteWriter();
   w.u8(IN_KIND_EDIT_UPDATE);
   w.u8(enumIndex(IN_UPDATE_KINDS, "tiltVector"));
-  w.u8(IN_TILT_VECTOR_ATTR_THETA);
+  w.u8(IN_TILT_VECTOR_ATTR_PHI);
   w.u8(nodeRow);
   w.u8(dir === "up" ? 1 : 0);
   return w.toArrayBuffer();

@@ -22,7 +22,7 @@ type BuildArgs struct {
 	tr   *T.Trace
 	geom nodegeom.NodeGeom
 
-	tiltThetaIdx int32
+	tiltPhiIdx int32
 
 	sourceOuts *[]*outport.Out
 
@@ -43,7 +43,7 @@ func RegisterBuilder(kind string, ports []portwiring.PortSpec, build func(BuildA
 	}
 	kindreg.Registry[kind] = kindreg.NodeBuilder{
 		Ports: ports,
-		Build: func(ctx context.Context, name string, data *loadspec.NodeData, pb portwiring.PortBindings, tr *T.Trace, geom nodegeom.NodeGeom, tiltThetaIdx int32, deps kindreg.BuildDeps) (nodeapi.Node, error) {
+		Build: func(ctx context.Context, name string, data *loadspec.NodeData, pb portwiring.PortBindings, tr *T.Trace, geom nodegeom.NodeGeom, tiltPhiIdx int32, deps kindreg.BuildDeps) (nodeapi.Node, error) {
 			var sourceOuts []*outport.Out
 			return build(BuildArgs{
 				ctx: ctx, name: name, data: data, pb: pb, tr: tr,
@@ -51,7 +51,7 @@ func RegisterBuilder(kind string, ports []portwiring.PortSpec, build func(BuildA
 				sourceOuts:      &sourceOuts,
 				getStream:       portwiring.NewInteriorStreamGetter(name, pb),
 				driveSlotClaims: map[int]string{},
-				tiltThetaIdx:    tiltThetaIdx,
+				tiltPhiIdx:      tiltPhiIdx,
 				deps:            deps,
 			})
 		},

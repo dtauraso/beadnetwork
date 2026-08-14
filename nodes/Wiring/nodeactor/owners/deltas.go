@@ -42,6 +42,14 @@ func (d *Deltas) ShiftOtherBy(otherID string, delta polar.Polar) {
 	d.toOther[otherID] = polar.Compose(p, delta)
 }
 
+func (d *Deltas) All() []polar.Polar {
+	out := make([]polar.Polar, 0, len(d.toOther))
+	for _, p := range d.toOther {
+		out = append(out, p)
+	}
+	return out
+}
+
 func (d *Deltas) DeltaIDs() []string {
 	ids := make([]string, 0, len(d.toOther))
 	for id := range d.toOther {

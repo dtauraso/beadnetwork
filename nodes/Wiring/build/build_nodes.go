@@ -91,11 +91,11 @@ func (b *buildCtx) buildNodes() error {
 			}
 		}
 
-		var tiltThetaIdx int32
-		if n.TopTiltVectorThetaIdx != nil {
-			tiltThetaIdx = *n.TopTiltVectorThetaIdx
+		var tiltPhiIdx int32
+		if n.TopTiltVectorPhiIdx != nil {
+			tiltPhiIdx = *n.TopTiltVectorPhiIdx
 		}
-		nd, err := bind.Build(b.ctx, n.ID, n.Data, pb, b.tr, b.nodeGeoms[n.ID], tiltThetaIdx, deps)
+		nd, err := bind.Build(b.ctx, n.ID, n.Data, pb, b.tr, b.nodeGeoms[n.ID], tiltPhiIdx, deps)
 		if err != nil {
 			return fmt.Errorf("LoadTopology: build node %q: %w", n.ID, err)
 		}

@@ -46,16 +46,16 @@ func (m *NodeGeometry) writeStreamFrame(events []rowevent.RowEvent) {
 	coplanarEdges, upAxis := m.flags.Flags()
 	topIdx, bottomIdx, normalIdx, receivedIdx, receivedSet, latticePoints := m.tilt.FrameGeometryFields()
 	fg := framegeom.DeriveFrameGeometry(framegeom.FrameGeometryInputs{
-		Geom:                   m.geom,
-		UpAxis:                 upAxis,
-		CoplanarEdges:          coplanarEdges,
-		TopTiltVectorThetaIdx:  topIdx,
-		BottomThetaIdx:         bottomIdx,
-		NormalThetaIdx:         normalIdx,
-		ReceivedVectorThetaIdx: receivedIdx,
-		ReceivedVectorSet:      receivedSet,
-		LatticePoints:          latticePoints,
-		DefaultLatticePoints:   tiltvector.FullTurnThetaIdx,
+		Geom:                 m.geom,
+		UpAxis:               upAxis,
+		CoplanarEdges:        coplanarEdges,
+		TopTiltVectorPhiIdx:  topIdx,
+		BottomPhiIdx:         bottomIdx,
+		NormalPhiIdx:         normalIdx,
+		ReceivedVectorPhiIdx: receivedIdx,
+		ReceivedVectorSet:    receivedSet,
+		LatticePoints:        latticePoints,
+		DefaultLatticePoints: tiltvector.FullTurnPhiIdx,
 	})
 	center := fg.Center
 	sphereR := fg.SphereR
@@ -63,11 +63,7 @@ func (m *NodeGeometry) writeStreamFrame(events []rowevent.RowEvent) {
 	ringAxisPhi, ringAxisTheta := fg.RingAxisPhi, fg.RingAxisTheta
 	points := fg.LatticePoints
 	topTiltVectorLen := fg.TopTiltVectorLen
-	topTiltVectorTheta := fg.TopTiltVectorTheta
-	bottomTiltVectorTheta := fg.BottomTiltVectorTheta
-	coplanarNormalTheta := fg.CoplanarNormalTheta
 	receivedVectorLen := fg.ReceivedVectorLen
-	receivedVectorTheta := fg.ReceivedVectorTheta
 	label := m.geom.Label
 	if label == "" {
 		label = m.id
@@ -77,38 +73,39 @@ func (m *NodeGeometry) writeStreamFrame(events []rowevent.RowEvent) {
 	roundsToParallel, msgsToParallel := m.readout.RoundsToParallel()
 
 	m.stream.WriteFrame(nodeframe.NodeFrameInput{
-		Tick:                  uint32(m.clocks.Tick()),
-		NodeRow:               row,
-		NodeID:                row + 1,
-		CX:                    float32(center.X),
-		CY:                    float32(center.Y),
-		CZ:                    float32(center.Z),
-		Radius:                float32(nodegeom.NodeRadius(m.geom.Kind)),
-		SphereR:               float32(sphereR),
-		VRX:                   loadspec.VerticalRingNormalX,
-		VRY:                   loadspec.VerticalRingNormalY,
-		VRZ:                   loadspec.VerticalRingNormalZ,
-		FRX:                   loadspec.FlatRingNormalX,
-		FRY:                   loadspec.FlatRingNormalY,
-		FRZ:                   loadspec.FlatRingNormalZ,
-		PolePhi:               float32(polePhi),
-		PoleTheta:             float32(poleTheta),
-		RingAxisPhi:           float32(ringAxisPhi),
-		RingAxisTheta:         float32(ringAxisTheta),
-		TopTiltVectorLen:      float32(topTiltVectorLen),
-		TopTiltVectorTheta:    float32(topTiltVectorTheta),
-		BottomTiltVectorTheta: float32(bottomTiltVectorTheta),
-		CoplanarNormalTheta:   float32(coplanarNormalTheta),
-		ReceivedVectorLen:     float32(receivedVectorLen),
-		ReceivedVectorTheta:   float32(receivedVectorTheta),
-		Selected:              selected,
-		KindID:                kindID,
-		Hovered:               hovered,
-		LatchedSel:            latchedSel,
-		LatticePoints:         uint8(points),
-		RoundsToParallel:      roundsToParallel,
-		MsgsToParallel:        msgsToParallel,
-		Label:                 label,
-		Events:                events,
+		Tick:                uint32(m.clocks.Tick()),
+		NodeRow:             row,
+		NodeID:              row + 1,
+		CX:                  float32(center.X),
+		CY:                  float32(center.Y),
+		CZ:                  float32(center.Z),
+		Radius:              float32(nodegeom.NodeRadius(m.geom.Kind)),
+		SphereR:             float32(sphereR),
+		VRX:                 loadspec.VerticalRingNormalX,
+		VRY:                 loadspec.VerticalRingNormalY,
+		VRZ:                 loadspec.VerticalRingNormalZ,
+		FRX:                 loadspec.FlatRingNormalX,
+		FRY:                 loadspec.FlatRingNormalY,
+		FRZ:                 loadspec.FlatRingNormalZ,
+		PolePhi:             float32(polePhi),
+		PoleTheta:           float32(poleTheta),
+		RingAxisPhi:         float32(ringAxisPhi),
+		RingAxisTheta:       float32(ringAxisTheta),
+		TopTiltVectorLen:    float32(topTiltVectorLen),
+		TopTiltVectorIdx:    fg.TopTiltVectorIdx,
+		TopTiltVectorPhi:    float32(fg.TopTiltVectorPhi),
+		BottomTiltVectorPhi: float32(fg.BottomTiltVectorPhi),
+		CoplanarNormalPhi:   float32(fg.CoplanarNormalPhi),
+		ReceivedVectorLen:   float32(receivedVectorLen),
+		ReceivedVectorPhi:   float32(fg.ReceivedVectorPhi),
+		Selected:            selected,
+		KindID:              kindID,
+		Hovered:             hovered,
+		LatchedSel:          latchedSel,
+		LatticePoints:       uint8(points),
+		RoundsToParallel:    roundsToParallel,
+		MsgsToParallel:      msgsToParallel,
+		Label:               label,
+		Events:              events,
 	})
 }

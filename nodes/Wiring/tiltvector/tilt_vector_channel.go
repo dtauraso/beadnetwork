@@ -1,7 +1,7 @@
 package tiltvector
 
 type TiltVectorMsg struct {
-	ThetaIdx int32
+	PhiIdx int32
 
 	Points int32
 
@@ -62,8 +62,8 @@ func PollRecvVector(ch <-chan TiltVectorMsg) (TiltVectorMsg, bool) {
 	}
 }
 
-const PerpendicularThetaIdx int32 = 6
+const PerpendicularPhiIdx int32 = 6
 
-const HalfTurnThetaIdx = 2 * PerpendicularThetaIdx
+const HalfTurnPhiIdx = 2 * PerpendicularPhiIdx
 
-const FullTurnThetaIdx = 2 * HalfTurnThetaIdx
+const FullTurnPhiIdx = 2 * HalfTurnPhiIdx
