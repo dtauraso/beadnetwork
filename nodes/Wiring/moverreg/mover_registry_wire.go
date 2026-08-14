@@ -41,13 +41,6 @@ func (mr *MoverRegistry) Start(ctx context.Context) *sync.WaitGroup {
 			nm.Run(ctx)
 		}()
 	}
-	for _, anim := range mr.nodeAnimations {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			anim.Run(ctx)
-		}()
-	}
 	for _, em := range mr.edgeMovers {
 		wg.Add(1)
 		go func() {

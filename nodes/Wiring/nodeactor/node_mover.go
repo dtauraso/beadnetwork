@@ -20,6 +20,8 @@ func (m *NodeMover) Run(ctx context.Context) {
 		g.emitGeometry()
 	}
 	for {
+		g.clocks.ApplySpeed(g.anim.SpeedCh())
+
 		for {
 			progressed, cancelled := g.msg.DrainPending(ctx, g.take)
 			if cancelled {
@@ -32,7 +34,13 @@ func (m *NodeMover) Run(ctx context.Context) {
 
 		g.msg.FlushPending()
 
+		tick := g.clocks.Tick()
+
+		g.anim.driveOutWires(ctx, tick)
+
 		g.writeStreamFrame(g.drainSelfEvents())
+		g.writeOutEdgeFrames(tick)
+
 		if err := g.clocks.SleepPulse(ctx); err != nil {
 			return
 		}
