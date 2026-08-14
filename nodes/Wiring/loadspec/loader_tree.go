@@ -29,7 +29,7 @@ func LoadTree(root string) (TopoSpec, error) {
 		}
 		spec.Nodes = append(spec.Nodes, sn)
 
-		edges, err := loadNodeEdges(nodesDir, nodeID)
+		edges, err := loadNodeEdges(root, nodesDir, nodeID)
 		if err != nil {
 			return spec, err
 		}

@@ -22,7 +22,7 @@ fi
 
 NODE_OWNERS=("node_mover.go" "new_node_files.go" "quant_offset_persist.go" "scene_anchor_persist.go")
 
-EDGE_OWNERS=("edge_file.go" "out_edges.go")
+EDGE_OWNERS=("edge_file.go" "edge_delta_file.go" "out_edges.go")
 
 VIEW_OWNERS=("scene_camera_persist.go" "scene_overlays_persist.go" "scene_panels_persist.go" "scene_sphere_persist.go" "scene_selection_persist.go" "scene_speed_persist.go" "scene_lattice_persist.go")
 
