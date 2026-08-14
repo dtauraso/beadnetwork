@@ -10,7 +10,7 @@ import {
   PILL_ANCHOR_STYLE,
 } from "./overlay-chrome";
 
-const OPEN_WIDTH_RATIO = 1.13;
+const OPEN_WIDTH_RATIO = 1.15;
 
 export function OverlaysControl() {
   const [open, setOpen] = useState(false);
@@ -46,11 +46,20 @@ export function OverlaysControl() {
     return () => ro.disconnect();
   }, [open]);
 
-  const openWidth = closedWidth > 0 ? Math.round(closedWidth * OPEN_WIDTH_RATIO) : undefined;
+  const openWidth = Math.round(closedWidth * OPEN_WIDTH_RATIO);
+
+  const wide = open && closedWidth > 0;
 
   return (
 
-    <div style={{ ...PILL_ANCHOR_STYLE, width: open ? openWidth : undefined, marginLeft: open ? "auto" : undefined, boxSizing: "border-box" }}>
+    <div
+      style={{
+        ...PILL_ANCHOR_STYLE,
+        boxSizing: "border-box",
+
+        ...(wide ? { width: openWidth, marginLeft: closedWidth - openWidth } : null),
+      }}
+    >
       {}
       <div
         ref={pillRef}
