@@ -37,18 +37,25 @@ func RegisterRequest(kind string, r Request) {
 	requests[kind] = r
 }
 
-func TrimFor(kind string) Trim {
-	if t, ok := trims[kind]; ok {
-		return t
+func Apply(kind string, delta polar.Polar, of Node) polar.Polar {
+	if !of.OrbitActive() {
+		return delta
 	}
-	return TrimToOrbitRule
+	if t, ok := trims[kind]; ok {
+		return t(delta, of)
+	}
+	return TrimToOrbitRule(delta, of)
 }
 
-func RequestFor(kind string) Request {
-	if r, ok := requests[kind]; ok {
-		return r
+func Requested(kind string, delta polar.Polar, of Node) map[string]polar.Polar {
+	if !of.OrbitActive() {
+		return nil
 	}
-	return nil
+	r, ok := requests[kind]
+	if !ok {
+		return nil
+	}
+	return r(delta, of)
 }
 
 func TrimToOrbitRule(delta polar.Polar, of Node) polar.Polar {
