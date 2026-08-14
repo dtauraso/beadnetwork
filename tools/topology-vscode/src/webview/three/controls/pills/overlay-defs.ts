@@ -132,17 +132,6 @@ const sceneVectorsCfg: ToggleCfg = {
   payload: (v) => ({ flag: "sceneVectors", was: v }),
 };
 
-const commEdgesCfg: ToggleCfg = {
-  flag: "commEdges",
-  default: false,
-  active: (v) => v,
-  icon: "⇢",
-  label: "comm edges",
-  title: (a) =>
-    a ? "Hide constraint-communication edges" : "Show constraint-communication edges",
-  payload: (v) => ({ flag: "commEdges", was: v }),
-};
-
 export type OverlayGroup = {
   heading: string;
   cfgs: ToggleCfg[];
@@ -175,7 +164,7 @@ export const OVERLAY_GROUPS: OverlayGroup[] = [
     groups: [
       { heading: "GUIDES", cfgs: [ringsCfg, handholdsCfg], panel: "sceneGuides" },
       { heading: "POLES", cfgs: [scenePolesCfg], panel: "scenePoles" },
-      { heading: "VECTORS", cfgs: [sceneVectorsCfg, commEdgesCfg], panel: "sceneVectors" },
+      { heading: "VECTORS", cfgs: [sceneVectorsCfg], panel: "sceneVectors" },
       { heading: "LABELS", cfgs: [globalLabelsCfg], panel: "sceneLabels" },
     ],
   },

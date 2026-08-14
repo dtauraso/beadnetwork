@@ -15,8 +15,6 @@ export function beadStyleForValue(v: number | null | undefined): { fill: string;
 
 export const EDGE_LINE_COLOR = SHADING_PARAM_EDGE_LINE_COLOR;
 
-export const COMM_EDGE_LINE_COLOR = "#3fb950";
-
 export const INSTANCE_TINT_BASE = "#ffffff";
 
 const INTERIOR_VALUE_BEAD_STYLE: Record<number, { fill: string; ring: string }> = {

@@ -45,7 +45,6 @@ var OverlayToggles = map[string]func(*OverlayState, *T.Trace){
 	"hoverRing":     (*OverlayState).ToggleHoverRing,
 	"reachSphere":   (*OverlayState).ToggleReachSphere,
 	"sceneVectors":  (*OverlayState).ToggleSceneVectors,
-	"commEdges":     (*OverlayState).ToggleCommEdges,
 }
 
 // OVERLAY_TOGGLES_END
@@ -91,7 +90,6 @@ var OverlayFlagTraceKind = map[string]string{
 	"hoverRing":     T.KindHoverRing,
 	"reachSphere":   T.KindReachSphere,
 	"sceneVectors":  T.KindSceneVectors,
-	"commEdges":     T.KindCommEdges,
 }
 
 // OVERLAY_TRACE_KINDS_END

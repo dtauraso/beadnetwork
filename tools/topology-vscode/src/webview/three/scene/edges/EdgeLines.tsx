@@ -2,10 +2,7 @@ import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { getEdgeStreamAccessor } from "./edge-stream-blocks";
-import { EDGE_LINE_COLOR, COMM_EDGE_LINE_COLOR, INSTANCE_TINT_BASE } from "../beads/bead-style";
-import { getCommNodeRows } from "../nodes/comm-nodes";
-import { overlayOn } from "../../controls/flags/overlay-flags";
-import { readOverlayCommEdges } from "../../../../schema/buffer-layout/buffer-layout";
+import { EDGE_LINE_COLOR, INSTANCE_TINT_BASE } from "../beads/bead-style";
 
 import { DIRECTION_ZERO_EPS } from "../buffer-scene-shared";
 
@@ -35,14 +32,10 @@ export function EdgeLines({ capacity }: { capacity: number }) {
     const edges = getEdgeStreamAccessor();
     if (!edges) { line.count = 0; head.count = 0; return; }
 
-    const showComm = overlayOn(readOverlayCommEdges);
-    const commRows = showComm ? getCommNodeRows() : null;
-
     const n = Math.min(edges.edgeCount, capacity);
     let drawn = 0;
     for (let row = 0; row < n; row++) {
       const [sx, sy, sz, ex, ey, ez] = edges.segment(row);
-      const isComm = commRows !== null && commRows.has(edges.srcNodeRow(row));
       dir.current.set(ex - sx, ey - sy, ez - sz);
       const len = dir.current.length();
 
@@ -61,7 +54,7 @@ export function EdgeLines({ capacity }: { capacity: number }) {
       mat.current.compose(pos.current, quat.current, scl.current);
       head.setMatrixAt(drawn, mat.current);
 
-      col.current.set(isComm ? COMM_EDGE_LINE_COLOR : EDGE_LINE_COLOR);
+      col.current.set(EDGE_LINE_COLOR);
       line.setColorAt(drawn, col.current);
       head.setColorAt(drawn, col.current);
 
