@@ -1,0 +1,55 @@
+/* The polar rules panel. Placement and visual vocabulary carried over from the deleted
+   rule-builder panel (commit 9e247aea1): directly below the toolbar, bold node names,
+   blue angle glyphs, inactive rows at 45%. The grammar it renders is different — see
+   node-rules.ts. */
+
+.node-rules-panel {
+  position: fixed; top: 44px; left: 8px;
+  padding: 6px 10px; background: #fff; border: 1px solid #ddd; border-radius: 6px;
+  font-size: 12px; display: flex; flex-direction: column; gap: 4px;
+  z-index: 1000; color: #333;
+  max-height: 70vh; overflow-y: auto;
+}
+.node-rules-toggle {
+  align-self: flex-start; font-size: 11px; padding: 1px 6px; cursor: pointer;
+  background: none; border: none; color: #666;
+}
+.node-rules-toggle:hover { color: #222; }
+
+.node-rules-body { display: flex; flex-direction: column; gap: 6px; }
+
+.node-rules-node-block {
+  display: flex; flex-direction: column; gap: 2px;
+  padding-top: 4px; border-top: 1px solid #eee;
+}
+.node-rules-node-block--inactive { opacity: 0.45; }
+
+.node-rules-node-head { display: flex; align-items: center; gap: 6px; }
+.node-rules-node-head input[type="checkbox"] { margin: 0; cursor: pointer; }
+.node-rules-node { color: #222; font-weight: 600; }
+
+.node-rules-holder { display: flex; align-items: flex-start; gap: 10px; padding-left: 10px; }
+.node-rules-holder-name { color: #666; min-width: 78px; }
+
+.node-rules-components { display: flex; flex-direction: column; gap: 1px; }
+.node-rules-line {
+  display: flex; align-items: center; gap: 6px;
+  font-variant-numeric: tabular-nums;
+}
+.node-rules-line--free { color: #999; }
+.node-rules-glyph { color: #1976d2; min-width: 1em; }
+.node-rules-line--free .node-rules-glyph { color: #aaa; }
+.node-rules-value { display: inline-flex; align-items: center; gap: 2px; }
+
+.node-rules-edit {
+  font: inherit; color: inherit; cursor: pointer;
+  background: none; border: none; padding: 0; border-radius: 3px;
+}
+.node-rules-edit:hover { background: #e3f2fd; }
+
+.node-rules-input {
+  font: inherit; font-size: 12px; padding: 1px 5px; width: 4em;
+  border: 1px solid #1976d2; border-radius: 3px; background: #e3f2fd; color: #111;
+}
+.node-rules-input:focus { outline: none; box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.35); }
+.node-rules-unit { color: #666; }

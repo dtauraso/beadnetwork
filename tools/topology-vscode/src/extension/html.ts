@@ -44,7 +44,7 @@ export function buildWebviewHtml(
   <div class="toolbar">
     <span id="run-mount"></span>
   </div>
-  <div id="rule-eq-mount"></div>
+  <div id="node-rules-mount"></div>
   <div class="drag-log-row">
     <div id="abc-drag-mount"></div>
     <div id="delta-forward-mount"></div>
