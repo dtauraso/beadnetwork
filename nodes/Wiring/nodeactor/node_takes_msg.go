@@ -10,15 +10,26 @@ import (
 	T "github.com/dtauraso/wirefold/Trace"
 )
 
-func (m *NodeGeometry) handle(msg movemsg.Msg) {
+// take is one message off THIS node's own inbox, on its own goroutine. It is
+// not a router standing between senders and nodes: it is unexported, its only
+// call site is this node's mover loop (NodeMover.Run), and every arm below is a
+// method on `m`. A message addressed to someone else is dropped rather than
+// forwarded, because there is nobody here to forward it on behalf of.
+//
+// The arms are deliberately not named alike. The first two are this node
+// ANSWERING about its own position — it decides what it takes of a drag of
+// itself, and it takes a neighbour's move onto its own side of their edge. The
+// rest set a flag from the message and have no answer to give, so they stay
+// spelled as handling.
+func (m *NodeGeometry) take(msg movemsg.Msg) {
 	if msg.NodeID != m.id {
 		return
 	}
 	switch msg.Kind {
 	case movemsg.KindCenter:
-		m.handleCenter(msg)
+		m.takeNeighborMove(msg)
 	case movemsg.KindDrag:
-		m.handleDrag(msg)
+		m.takeDragOfSelf(msg)
 	case movemsg.KindDragStart:
 		m.beads.StartBeadDrag()
 	case movemsg.KindDragEnd:
@@ -42,7 +53,10 @@ func (m *NodeGeometry) handle(msg movemsg.Msg) {
 	}
 }
 
-func (m *NodeGeometry) handleCenter(msg movemsg.Msg) {
+// takeNeighborMove is what this node does when the node at the other end of an
+// edge has moved and said how far. It is told a Δ, never a position, and it
+// applies that Δ to its own side of that edge — see movemsg.Msg.Delta.
+func (m *NodeGeometry) takeNeighborMove(msg movemsg.Msg) {
 	// The node at the other end of an edge moved and said how far. This node
 	// did not move, so its side of that edge gains the whole of that Δ.
 	if msg.Delta != nil && msg.SenderID != "" {
@@ -57,7 +71,10 @@ func (m *NodeGeometry) handleCenter(msg movemsg.Msg) {
 	}
 }
 
-func (m *NodeGeometry) handleDrag(msg movemsg.Msg) {
+// takeDragOfSelf is this node's answer to being dragged. A pointer ASKS, as a
+// polar Δ against this node's own centre; how much of it the node takes is its
+// own (TrimOwnDrag), decided here, on its own goroutine, out of its own state.
+func (m *NodeGeometry) takeDragOfSelf(msg movemsg.Msg) {
 	newPos := msg.Target
 	targetPolar := msg.TargetPolar
 
