@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { fireToggle, useToggleVal } from "./overlay-toggle";
 import { guidelinesCfg, OVERLAY_GROUPS } from "./overlay-defs";
 import { OverlayGroupSection } from "./overlay-group-section";
@@ -9,6 +9,8 @@ import {
   inFlowPopoverStyle,
   PILL_ANCHOR_STYLE,
 } from "./overlay-chrome";
+
+const OPEN_WIDTH_RATIO = 1.13;
 
 export function OverlaysControl() {
   const [open, setOpen] = useState(false);
@@ -28,9 +30,18 @@ export function OverlaysControl() {
     setOpen((o) => !o);
   }, []);
 
+  const anchorRef = useRef<HTMLDivElement>(null);
+  const [closedWidth, setClosedWidth] = useState(0);
+  useLayoutEffect(() => {
+
+    if (!open && anchorRef.current) setClosedWidth(anchorRef.current.getBoundingClientRect().width);
+  }, [open]);
+
+  const openWidth = closedWidth > 0 ? Math.round(closedWidth * OPEN_WIDTH_RATIO) : undefined;
+
   return (
 
-    <div style={PILL_ANCHOR_STYLE}>
+    <div ref={anchorRef} style={{ ...PILL_ANCHOR_STYLE, width: open ? openWidth : undefined }}>
       {}
       <div
         style={{
