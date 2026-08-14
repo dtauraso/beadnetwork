@@ -44,9 +44,8 @@ func Polar2cart(p Polar) vec3 {
 	}
 }
 
-func InwardPole(p Polar) (phi, theta float64) {
-	back := Cart2polar(Polar2cart(p).Scale(-1))
-	return back.Phi, back.Theta
+func WorldAxisPole() (phi, theta float64) {
+	return 0, 0
 }
 
 func thetaOf(v vec3) float64 {
