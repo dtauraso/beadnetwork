@@ -22,7 +22,7 @@ func SliderSpeed(ui *viewstate.UIState) float64 {
 
 func InstallSpeed(ui *viewstate.UIState, topologyPath string, speedSinks []chan float64, tr *T.Trace) {
 	speed, _ := LoadSceneSpeed(scenepaths.SpeedFilePath(topologyPath))
-	ui.ClockDivisor = scene.SceneClockDivisor(topologyPath)
+	ui.ClockDivisor = scene.For(topologyPath).ClockDivisor
 	ui.Speed = speed
 	effective := EffectiveClockSpeed(speed, ui.ClockDivisor)
 	BroadcastSpeed(speedSinks, effective)

@@ -16,8 +16,8 @@ func SelectScene(scenes *SceneSwitch, idx int) {
 	if scenes.Quit == nil {
 		panic("SelectScene: a scene tab was clicked but the SceneSwitch has no Quit func, so the selection could be written yet the sim could never reload into the picked scene — the switch was built without its reload hook")
 	}
-	if idx < 0 || idx >= len(scene.SceneTabs) {
-		panic(fmt.Sprintf("SelectScene: tab index %d is outside the %d scene tabs the buffer published, so the webview and scene.SceneTabs disagree about how many tabs exist", idx, len(scene.SceneTabs)))
+	if idx < 0 || idx >= len(scene.Scenes) {
+		return
 	}
 	if idx == scene.SelectedSceneIndex(scenes.AnchorPath) {
 		return

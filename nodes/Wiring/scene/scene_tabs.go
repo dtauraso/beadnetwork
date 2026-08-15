@@ -1,8 +1,15 @@
 package scene
 
-type SceneTab struct {
+import (
+	"path/filepath"
+
+	B "github.com/dtauraso/wirefold/Buffer"
+)
+
+type Scene struct {
 	Name string
-	Dir  string
+
+	Dir string
 
 	QuantizedDrag bool
 
@@ -19,7 +26,7 @@ type SceneTab struct {
 	Kinds []string
 }
 
-var SceneTabs = []SceneTab{
+var Scenes = []Scene{
 
 	{Name: "ring", Dir: "topology", QuantizedDrag: false, CoplanarEdges: false, UpAxis: false, ClockDivisor: 1, DistanceGroups: true, Editable: true,
 		Kinds: []string{
@@ -30,4 +37,36 @@ var SceneTabs = []SceneTab{
 		}},
 
 	{Name: "pair", Dir: "topology-pair", QuantizedDrag: false, CoplanarEdges: true, UpAxis: true, ClockDivisor: 64, DistanceGroups: false, Editable: true, Kinds: []string{"PairNode", "NormalSum"}},
+}
+
+var Unlisted = Scene{QuantizedDrag: true, ClockDivisor: 1}
+
+func Declared(path string) (Scene, bool) {
+	base := filepath.Base(filepath.Clean(path))
+	for _, s := range Scenes {
+		if s.Dir == base {
+			return s, true
+		}
+	}
+	return Scene{}, false
+}
+
+func For(path string) Scene {
+	if s, ok := Declared(path); ok {
+		return s
+	}
+	return Unlisted
+}
+
+func (s Scene) KindMask() uint32 {
+	if len(s.Kinds) == 0 {
+		return ^uint32(0)
+	}
+	var mask uint32
+	for _, k := range s.Kinds {
+		if id := B.NodeKindID(k); id != B.KindIDUnknown {
+			mask |= 1 << uint(id)
+		}
+	}
+	return mask
 }
