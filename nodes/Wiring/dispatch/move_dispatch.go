@@ -6,7 +6,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/moverreg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeinbox"
 	rowtables "github.com/dtauraso/wirefold/nodes/Wiring/rowtables"
-	"github.com/dtauraso/wirefold/nodes/Wiring/rulereg"
+	"github.com/dtauraso/wirefold/nodes/Wiring/rulenode"
 	sceneswitch "github.com/dtauraso/wirefold/nodes/Wiring/sceneswitch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/streamwire"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewpersist"
@@ -36,5 +36,5 @@ type MoveDispatch struct {
 
 	Inboxes nodeinbox.NodeInboxes
 
-	Rules rulereg.RuleRegistry
+	RuleEdits []chan<- rulenode.Edit
 }

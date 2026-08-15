@@ -2,6 +2,7 @@ package stdinreader
 
 import (
 	"context"
+	"fmt"
 	"math"
 	"strconv"
 
@@ -104,37 +105,34 @@ func applyUpdateOverlays(ctx context.Context, msg inputcodec.StdinMsg, md *dispa
 
 var nodeAttrHandlers = map[string]func(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch){
 	"orbitPhi": func(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch) {
-		id := strconv.Itoa(msg.Num + 1)
-		if _, ok := md.MR.NodeGeoms()[id]; !ok {
-			return
-		}
-		sendRuleEdit(ctx, md, id, rulenode.Edit{Kind: rulenode.EditPhiToggle})
+		sendRuleEdit(ctx, md, msg.Num, rulenode.Edit{Kind: rulenode.EditPhiToggle})
 	},
 	"orbitMaxTheta": func(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch) {
-		id := strconv.Itoa(msg.Num + 1)
-		if _, ok := md.MR.NodeGeoms()[id]; !ok {
-			return
-		}
 		var maxTheta *float64
 		if msg.X >= 0 {
 			radians := msg.X * math.Pi / 180
 			maxTheta = &radians
 		}
-		sendRuleEdit(ctx, md, id, rulenode.Edit{Kind: rulenode.EditMaxTheta, MaxTheta: maxTheta})
+		sendRuleEdit(ctx, md, msg.Num, rulenode.Edit{Kind: rulenode.EditMaxTheta, MaxTheta: maxTheta})
 	},
 	"orbitActive": func(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch) {
-		id := strconv.Itoa(msg.Num + 1)
-		if _, ok := md.MR.NodeGeoms()[id]; !ok {
-			return
-		}
-		sendRuleEdit(ctx, md, id, rulenode.Edit{Kind: rulenode.EditActiveToggle})
+		sendRuleEdit(ctx, md, msg.Num, rulenode.Edit{Kind: rulenode.EditActiveToggle})
 	},
 }
 
-func sendRuleEdit(ctx context.Context, md *dispatch.MoveDispatch, id string, edit rulenode.Edit) {
-	rn := md.Rules.MustGet(id)
+func sendRuleEdit(ctx context.Context, md *dispatch.MoveDispatch, row int, edit rulenode.Edit) {
+	if row < 0 || row >= len(md.RuleEdits) {
+		panic(fmt.Sprintf(
+			"sendRuleEdit: node row %d is outside the %d rows the tree declares, so a rule edit names an entity "+
+				"the row space has no slot for — the webview and the loaded tree disagree about how many nodes exist",
+			row, len(md.RuleEdits)))
+	}
+	edits := md.RuleEdits[row]
+	if edits == nil {
+		return
+	}
 	select {
-	case rn.Edits() <- edit:
+	case edits <- edit:
 	case <-ctx.Done():
 	}
 }

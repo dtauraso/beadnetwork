@@ -4,6 +4,7 @@ import (
 	"context"
 
 	T "github.com/dtauraso/wirefold/Trace"
+	"github.com/dtauraso/wirefold/nodes/clock"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
 )
 
@@ -17,11 +18,12 @@ func NewPairNodeSelf(geom *NodeGeometry, speedCh <-chan float64) *PairNodeSelf {
 	return &PairNodeSelf{geom: geom, speedCh: speedCh}
 }
 
-func (p *PairNodeSelf) RuleWake() <-chan struct{} {
+func (p *PairNodeSelf) StartRule(ctx context.Context, clk clock.Clock) {
 	if p == nil || p.geom == nil {
-		return nil
+		return
 	}
-	return p.geom.RuleWake()
+	p.geom.StartRuleNode(ctx)
+	clk.WakeOn(p.geom.RuleWake())
 }
 
 func (p *PairNodeSelf) Breadcrumb(label, value string) {

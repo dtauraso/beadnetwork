@@ -9,6 +9,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/rulenode"
 	"github.com/dtauraso/wirefold/nodes/clock"
 )
 
@@ -36,19 +37,31 @@ func (md *MoveDispatch) buildNodeMovers(geoms map[string]nodegeom.NodeGeom, tr *
 }
 
 func (md *MoveDispatch) wireRuleMesh() {
-	for id := range md.MR.NodeGeoms() {
-		md.Rules.Claim(id)
+	geoms := md.MR.NodeGeoms()
+	for id, nm := range geoms {
+		nm.AttachRuleNode(rulenode.New(id))
 	}
-	rules := md.Rules.All()
-	for id, rn := range rules {
-		for peerID, peer := range rules {
+	for id, nm := range geoms {
+		for peerID, peer := range geoms {
 			if peerID == id {
 				continue
 			}
 
-			rn.LinkRuleDown(peerID, peer.RuleBackChannel(id))
+			nm.RuleNode().LinkRuleDown(peerID, peer.RuleBackChannel(id))
 		}
-		md.MR.NodeGeoms()[id].LinkRuleState(rn.Out(), rn.Wake())
+	}
+
+}
+
+func (md *MoveDispatch) wireRuleEditRows() {
+	geoms := md.MR.NodeGeoms()
+	md.RuleEdits = make([]chan<- rulenode.Edit, len(md.RT.NodeRowTable))
+	for row, id := range md.RT.NodeRowTable {
+		nm, ok := geoms[id]
+		if !ok {
+			continue
+		}
+		md.RuleEdits[row] = nm.RuleNode().Edits()
 	}
 }
 

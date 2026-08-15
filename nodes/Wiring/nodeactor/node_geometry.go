@@ -54,7 +54,7 @@ type NodeGeometry struct {
 
 	interior owners.Interior
 
-	ruleCopy owners.RuleCopy[rulenode.State]
+	rule rulenode.Link
 }
 
 func NewNodeGeometry(id string, geom nodegeom.NodeGeom, tr *T.Trace, clockSrc clock.Clock) *NodeGeometry {

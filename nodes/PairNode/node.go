@@ -22,7 +22,7 @@ func (n *Node) Update(ctx context.Context) {
 	n.openingEmit()
 
 	clk := n.clock().Copy()
-	clk.WakeOn(n.plumb.Self.RuleWake())
+	n.plumb.Self.StartRule(ctx, clk)
 
 	for {
 		if ctx.Err() != nil {
