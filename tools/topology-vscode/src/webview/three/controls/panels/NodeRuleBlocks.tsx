@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { postGoRecord } from "../../../vscode-api";
-import { encodeNodeDragPhiToggle, encodeNodeDragMaxTheta } from "../../../../schema/input/input-encode";
+import {
+  encodeNodeDragPhiToggle,
+  encodeNodeDragMaxTheta,
+  encodeEdgeDragActiveToggle,
+} from "../../../../schema/input/input-encode";
 import { type NodeRuleRow, type EdgePartner } from "../flags/node-rules";
 
 export function ComponentLine({
@@ -100,6 +104,12 @@ export function EdgeBlock({ rule, partner }: { rule: NodeRuleRow; partner: EdgeP
   return (
     <div className="node-rules-holder">
       <div className="node-rules-holder-name">
+        <input
+          type="checkbox"
+          title="trim drags on this edge"
+          checked={partner.active}
+          onChange={() => postGoRecord(encodeEdgeDragActiveToggle(partner.edgeRow))}
+        />{" "}
         {rule.label} <span className="node-rules-node">→ {partner.otherLabel}</span>
       </div>
       <div className="node-rules-components">

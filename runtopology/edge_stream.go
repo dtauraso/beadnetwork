@@ -24,8 +24,8 @@ func wireEdgeStreams(streamFDs SF.StreamFDs, md *W.MoveDispatch) {
 	if edgeBase, ok := streamFDs[SF.StreamKindEdge]; ok {
 
 		md.Sw.SetEdgeStreams(md.GS.EdgeSeeds, md.MR.Edges(), md.MR.NodeGeoms(), edgeBase, md.RT.NodeRowFor,
-			func(tick uint32, sx, sy, sz, ex, ey, ez float32, srcNodeRow, dstNodeRow int32, deltaR float32, label string, events []rowevent.RowEvent) []byte {
-				return SF.BuildEdgeStreamFrame(tick, sx, sy, sz, ex, ey, ez, srcNodeRow, dstNodeRow, deltaR, label, toStreamEvents(events))
+			func(tick uint32, sx, sy, sz, ex, ey, ez float32, srcNodeRow, dstNodeRow int32, deltaR float32, dragActive uint8, label string, events []rowevent.RowEvent) []byte {
+				return SF.BuildEdgeStreamFrame(tick, sx, sy, sz, ex, ey, ez, srcNodeRow, dstNodeRow, deltaR, dragActive, label, toStreamEvents(events))
 			})
 	}
 }

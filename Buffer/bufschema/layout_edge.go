@@ -12,6 +12,8 @@ type bufLayoutEdge struct {
 	DstNodeRow int32   `buf:"i32"`
 	DeltaR     float32 `buf:"f32"`
 
+	DragActive uint8 `buf:"u8"`
+
 	EdgeLabelOff uint32 `buf:"u32"`
 	EdgeLabelLen uint32 `buf:"u32"`
 }

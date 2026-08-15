@@ -37,4 +37,6 @@ type MoveDispatch struct {
 	Inboxes nodeinbox.NodeInboxes
 
 	RuleEdits []chan<- rulenode.Edit
+
+	EdgeRuleToggles []chan<- struct{}
 }

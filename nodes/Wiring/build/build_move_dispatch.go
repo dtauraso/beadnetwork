@@ -73,6 +73,8 @@ func (b *buildCtx) buildMoveDispatch() error {
 		}
 	}
 
+	targetByLabel := make(map[string]string, len(b.spec.Edges))
+	sourceByLabel := make(map[string]string, len(b.spec.Edges))
 	for _, e := range b.spec.Edges {
 		active := edgefile.LoadEdgeRuleActive(b.scenePath, e.Source, e.Label)
 		if src, ok := md.MR.NodeGeoms()[e.Source]; ok {
@@ -81,6 +83,18 @@ func (b *buildCtx) buildMoveDispatch() error {
 		if dst, ok := md.MR.NodeGeoms()[e.Target]; ok {
 			dst.RuleNode().SeedEdgeActive(e.Source, active)
 		}
+		targetByLabel[e.Label] = e.Target
+		sourceByLabel[e.Label] = e.Source
+	}
+
+	md.EdgeRuleToggles = make([]chan<- struct{}, len(md.RT.EdgeRowTable))
+	for row, label := range md.RT.EdgeRowTable {
+		src, okS := md.MR.NodeGeoms()[sourceByLabel[label]]
+		target, okT := targetByLabel[label], true
+		if !okS || !okT {
+			continue
+		}
+		md.EdgeRuleToggles[row] = src.RuleNode().EdgeToggleChannel(target)
 	}
 
 	for _, nm := range md.MR.NodeGeoms() {

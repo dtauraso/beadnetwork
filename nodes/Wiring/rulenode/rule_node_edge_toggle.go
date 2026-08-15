@@ -9,21 +9,20 @@ import (
 
 type EdgeToggle struct {
 	Target string
-	Active bool
 }
 
 func (r *RuleNode) SeedEdgeActive(target string, active bool) {
 	r.edgeActive[target] = active
 	if _, made := r.toggleSelfToPeer[target]; !made {
-		r.toggleSelfToPeer[target] = make(chan bool, 4)
+		r.toggleSelfToPeer[target] = make(chan struct{}, 4)
 	}
 }
 
-func (r *RuleNode) EdgeToggleChannel(target string) chan<- bool {
+func (r *RuleNode) EdgeToggleChannel(target string) chan<- struct{} {
 	if selfToTarget, made := r.toggleSelfToPeer[target]; made {
 		return selfToTarget
 	}
-	selfToTarget := make(chan bool, 4)
+	selfToTarget := make(chan struct{}, 4)
 	r.toggleSelfToPeer[target] = selfToTarget
 	return selfToTarget
 }
@@ -33,14 +32,14 @@ func (r *RuleNode) EdgeActive(target string) bool {
 	return !seeded || active
 }
 
-func (r *RuleNode) forwardToggle(ctx context.Context, target string, toggle chan bool) {
+func (r *RuleNode) forwardToggle(ctx context.Context, target string, toggle chan struct{}) {
 	for {
 		select {
 		case <-ctx.Done():
 			return
-		case active := <-toggle:
+		case <-toggle:
 			select {
-			case r.toggleIn <- EdgeToggle{Target: target, Active: active}:
+			case r.toggleIn <- EdgeToggle{Target: target}:
 			case <-ctx.Done():
 				return
 			}
@@ -49,12 +48,13 @@ func (r *RuleNode) forwardToggle(ctx context.Context, target string, toggle chan
 }
 
 func (r *RuleNode) applyEdgeToggle(t EdgeToggle) {
-	r.edgeActive[t.Target] = t.Active
+	next := !r.EdgeActive(t.Target)
+	r.edgeActive[t.Target] = next
 	if r.persistRoot == "" {
 		return
 	}
 	label := r.id + "To" + t.Target
-	if err := edgefile.WriteEdgeRuleActive(r.persistRoot, r.id, label, t.Active); err != nil {
+	if err := edgefile.WriteEdgeRuleActive(r.persistRoot, r.id, label, next); err != nil {
 		jsonpersist.LogPersistErr("rulenode", label, err)
 	}
 }

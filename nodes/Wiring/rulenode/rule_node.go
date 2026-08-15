@@ -46,7 +46,7 @@ type RuleNode struct {
 	ruleIn chan rulemsg.Msg
 
 	edgeActive       map[string]bool
-	toggleSelfToPeer map[string]chan bool
+	toggleSelfToPeer map[string]chan struct{}
 	toggleIn         chan EdgeToggle
 
 	out  chan State
@@ -61,7 +61,7 @@ func New(id string) *RuleNode {
 		edits:            make(chan Edit, 8),
 		ruleIn:           make(chan rulemsg.Msg, 8),
 		edgeActive:       map[string]bool{},
-		toggleSelfToPeer: map[string]chan bool{},
+		toggleSelfToPeer: map[string]chan struct{}{},
 		toggleIn:         make(chan EdgeToggle, 8),
 		out:              make(chan State, 1),
 		wake:             make(chan struct{}, 1),

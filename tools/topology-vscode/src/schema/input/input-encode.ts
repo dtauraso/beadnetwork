@@ -81,6 +81,15 @@ export function encodeNodeDragMaxTheta(nodeRow: number, degrees: number): ArrayB
   return w.toArrayBuffer();
 }
 
+export function encodeEdgeDragActiveToggle(edgeRow: number): ArrayBuffer {
+  const w = new ByteWriter();
+  w.u8(IN_KIND_EDIT_UPDATE);
+  w.u8(enumIndex(IN_UPDATE_KINDS, "edge"));
+  w.u8(IN_NODE_ATTR_DRAG_ACTIVE);
+  w.u8(edgeRow);
+  return w.toArrayBuffer();
+}
+
 export function encodeNodeDragActiveToggle(nodeRow: number): ArrayBuffer {
   const w = new ByteWriter();
   w.u8(IN_KIND_EDIT_UPDATE);
