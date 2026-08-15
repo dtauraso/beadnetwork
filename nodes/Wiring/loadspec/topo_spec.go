@@ -17,10 +17,6 @@ type specNode struct {
 	Type string    `json:"type"`
 	Data *NodeData `json:"data,omitempty"`
 
-	ScenePolarR     *float64 `json:"scenePolarR,omitempty"`
-	ScenePolarPhi   *float64 `json:"scenePolarPhi,omitempty"`
-	ScenePolarTheta *float64 `json:"scenePolarTheta,omitempty"`
-
 	DragScenePolarR     *float64 `json:"-"`
 	DragScenePolarPhi   *float64 `json:"-"`
 	DragScenePolarTheta *float64 `json:"-"`
@@ -47,11 +43,11 @@ func (n specNode) label() string {
 	return n.ID
 }
 
-func (n specNode) ToNodeGeom(sceneCenter spatial.Vec3) nodegeom.NodeGeom {
+func (n specNode) ToNodeGeom(sceneCenter spatial.Vec3, sc polarindex.SceneConstants) nodegeom.NodeGeom {
 
 	g := nodegeom.NodeGeom{NodeIdentity: nodegeom.NodeIdentity{Kind: n.Type, Label: n.label(), SceneCenter: sceneCenter}}
-	if n.ScenePolarR != nil && n.ScenePolarPhi != nil && n.ScenePolarTheta != nil {
-		g.BasePolar = polar.Polar{R: *n.ScenePolarR, Phi: *n.ScenePolarPhi, Theta: *n.ScenePolarTheta}
+	if n.hasPoint() {
+		g.BasePolar = n.point(sc)
 		g.HasPos = true
 	}
 	if n.DragScenePolarR != nil && n.DragScenePolarPhi != nil && n.DragScenePolarTheta != nil {
@@ -92,10 +88,10 @@ type specEdge struct {
 	Target       string `json:"target"`
 	TargetHandle string `json:"targetHandle"`
 
-	// pole convention as a node's scenePolar*. See edge_delta.go: A + D = B.
-	DeltaPolarR     *float64 `json:"deltaPolarR,omitempty"`
-	DeltaPolarPhi   *float64 `json:"deltaPolarPhi,omitempty"`
-	DeltaPolarTheta *float64 `json:"deltaPolarTheta,omitempty"`
+	// pole convention as a node's absolute index. See edge_delta.go: A + D = B.
+	DeltaIndexR     *int `json:"deltaIndexR,omitempty"`
+	DeltaIndexPhi   *int `json:"deltaIndexPhi,omitempty"`
+	DeltaIndexTheta *int `json:"deltaIndexTheta,omitempty"`
 
 	DragDeltaPolarR     *float64 `json:"-"`
 	DragDeltaPolarPhi   *float64 `json:"-"`

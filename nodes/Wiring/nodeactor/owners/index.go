@@ -21,5 +21,5 @@ func (q *Quant) Base() polarindex.Index { return q.base }
 func (q *Quant) Drag() polarindex.Index { return q.drag }
 
 func (q *Quant) Composed() polarindex.Index {
-	return polarindex.Compose(q.base, q.drag)
+	return polarindex.Compose(q.base, q.drag, q.constants)
 }

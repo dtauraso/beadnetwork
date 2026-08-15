@@ -44,6 +44,9 @@ func LoadTree(root string) (TopoSpec, error) {
 
 	ResolveEdgeDeltas(&spec)
 	PlaceFromDeltas(&spec)
+
+	reportEdgeClosure(&spec)
+
 	ApplyDragOverlay(root, &spec)
 
 	return spec, nil

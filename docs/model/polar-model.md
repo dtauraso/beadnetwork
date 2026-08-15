@@ -46,12 +46,14 @@ and none is a source of truth.
   `memory/project/layout-model/project_layout_model_evolution.md`).
 - **A node is a point and an edge is the triple that closes the triangle.** A node's own
   point is `(r,φ,θ)` about the scene-sphere centre, in the QUANTISED integer form
-  (`polarindex.Index` — `ITheta`/`IPhi`/`IR` × per-node step constants,
-  `nodes/Wiring/polarindex/polar_index.go`), persisted (`nodes/<id>/position.json`
-  `scenePolarR`/`scenePolarPhi`/`scenePolarTheta` + `indexTheta`/`indexPhi`/`indexR`).
-  An edge carries `D`, the triple from its source to its target, persisted in that edge's
-  own file under its source (`nodes/<src>/edges/<label>.json`, `deltaPolar*`). The two are
-  one triangle:
+  (`polarindex.Index` — `IndexTheta`/`IndexPhi`/`IndexR` × the scene's own constants,
+  `nodes/Wiring/polarindex/polar_index.go`), persisted (`nodes/<id>/base.json`'s
+  `indexPhi`/`indexTheta`/`indexR` — the SOLE authored position; there is no continuous
+  `scenePolar*` shadow any more, so the value IS index × constant, never a second stored
+  copy). An edge carries `D`, the triple from its source to its target, persisted the same
+  way in that edge's own file under its source (`nodes/<src>/edges/<label>.json`'s
+  `deltaIndexR`/`deltaIndexPhi`/`deltaIndexTheta` — INTEGER steps, not a continuous
+  `deltaPolar*`). The two are one triangle:
 
   ```
   A = the source's own point       D = the edge's triple       B = the target's point
@@ -147,7 +149,7 @@ and none is a source of truth.
   aim broadcast (`BroadcastChain`, see the Chain bead bullet above) rather than a second
   stored copy. It is NEVER stored as an independent absolute position — it is computed at
   ONE site by summation: the node's world center (already `sceneCenter +
-  polar2cart(scenePolar)`) plus this node-local vector, at the render/decode boundary
+  polar2cart(polarindex.ToPolar(index, sc))`) plus this node-local vector, at the render/decode boundary
   — the summation site is GONE. The buffer used to stream a node's world centre and each
   bead's NODE-LOCAL offset as two columns, summed at one place on decode, so that moving a
   node cost one centre write rather than degree × N bead positions. That arrangement

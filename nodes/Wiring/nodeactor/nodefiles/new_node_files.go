@@ -6,6 +6,7 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
+	"github.com/dtauraso/wirefold/nodes/Wiring/polarindex"
 )
 
 func nodeBaseFilePath(root, id string) string {
@@ -24,17 +25,18 @@ func entityReadModifyWrite(path string, mutate func(map[string]any)) error {
 	return jsonpersist.ReadModifyWriteJSON(path, mutate)
 }
 
-func WriteNewNodeFiles(root, id, kind string, scenePolarR, phi, theta float64) error {
+func WriteNewNodeFiles(root, id, kind string, p polar.Polar, sc polarindex.SceneConstants) error {
 	dir := nodeDirPath(root, id)
 	if err := os.MkdirAll(filepath.Join(dir, "edges"), 0o755); err != nil {
 		return err
 	}
+	idx := polarindex.Canonical(polarindex.MeasureScalar(p, sc), sc)
 	return entityReadModifyWrite(nodeBaseFilePath(root, id), func(m map[string]any) {
 		m["id"] = id
 		m["type"] = kind
-		m["scenePolarR"] = scenePolarR
-		m["scenePolarPhi"] = phi
-		m["scenePolarTheta"] = theta
+		m["indexPhi"] = idx.Phi
+		m["indexTheta"] = idx.Theta
+		m["indexR"] = idx.R
 	})
 }
 

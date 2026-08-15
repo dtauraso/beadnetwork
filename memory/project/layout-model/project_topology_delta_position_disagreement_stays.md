@@ -5,10 +5,16 @@ metadata:
   type: project
 ---
 
-In `topology/`, the saved edge `deltaPolar*` and the saved node `scenePolar*` are two
-representations of the same geometry, and for 8 of the 10 edges they DISAGREE — by tens to
-hundreds of units, not by float epsilon (measured 2026-08-14; only `1To2` and `1To3` agree).
-MODEL.md's polar model says `A + D = B`; the saved tree does not satisfy it for those edges.
+In `topology/`, the saved edge delta index (`deltaIndex*`, formerly `deltaPolar*`) and the
+saved node position index (`indexPhi`/`indexTheta`/`indexR`, formerly duplicated in
+`scenePolar*`) are two representations of the same geometry, and for most edges they
+DISAGREE — by tens of steps, not by a rounding unit (measured 2026-08-14, pre-index-only
+migration; only `1To2` and `1To3` agreed). MODEL.md's polar model says `A + D = B`; the
+saved tree does not satisfy it for those edges. The `scenePolar*` fields themselves are
+gone (task/geometry-one-name-one-place): the index is now the sole authored position, so
+this note's ORIGINAL comparison (continuous `scenePolar*` vs `indexPhi/Theta/R`) no longer
+exists as a live pair of fields — the disagreement now lives entirely between an edge's
+`deltaIndex*` and the two endpoint nodes' own `indexPhi/Theta/R`.
 
 Nothing reconciles them at load, by design: `ResolveEdgeDeltas` keeps a stored delta whenever
 the edge file has one, and `PlaceFromDeltas` derives a node point only when that node has no

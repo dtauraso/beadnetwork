@@ -64,45 +64,48 @@ recording the edge under the target — that reintroduces the duplication the la
 **`base.json` and `<label>.json` are TRACKED and never written by the running sim.** They
 hold, respectively, a node's `type`/`id`/`gate`/`drag`-rule plus its BASE position, and an
 edge's wiring (`target`/`sourceHandle`/`targetHandle`/`kind`) plus its BASE geometry delta.
-**`drag/` `self.json` and `drag/edges/` `<label>.json` are GITIGNORED and are the only
-files a drag writes** — each holds an accumulated `polar.Polar` DELTA, not an absolute value, using
-the same `deltaPolarR`/`deltaPolarPhi`/`deltaPolarTheta` field naming the tracked delta files
-use. `drag/` `self.json` also carries `indexPhi`/`indexTheta`/`indexR` — these are
-DELTAS too (the offset from `base.json`'s own `indexPhi`/`indexTheta`/`indexR`, e.g. a
-base `indexR` of 25 plus a 4-step drag stores `iR: 4`, not 29), composed with the base
-quant index only at the point of use (`polarindex.Compose`, mirroring `nodegeom.ScenePolarOf`).
-It does NOT carry `constantPhi`/`constantTheta`/`constantR` — nor does `base.json` any
-more; those moved to `constants.json` at the scene root (read once per load, fails loudly
-by path on missing/malformed input, and asserts `constantR == lattice.BeadStepR` — the
-radial grid must match the bead lattice's own step size). The loaded triple
-(`polarindex.SceneConstants`) is passed explicitly into every consumer, never a
-per-instance field or a package-level global.
+**Both the base position and the base delta are stored ONLY as an index** —
+`base.json`'s `indexPhi`/`indexTheta`/`indexR` (absolute, folded through
+`polarindex.Canonical`) and `<label>.json`'s `deltaIndexR`/`deltaIndexPhi`/`deltaIndexTheta`
+(a relative integer step count, NEVER folded through `Canonical` — a delta is not a
+position). There is no `scenePolarR`/`scenePolarPhi`/`scenePolarTheta` on a node or
+`deltaPolarR`/`deltaPolarPhi`/`deltaPolarTheta` on an edge anywhere on disk any more; the
+index is the sole authored quantity and `polarindex.ToPolar(idx, sc)` is the only multiply,
+run at load. **A drag is stored the same way — an index delta,
+`indexPhi`/`indexTheta`/`indexR` under `drag/` — and the drag value IS index × constant,
+never a second stored continuous copy.** `drag/`
+`self.json` and `drag/edges/` `<label>.json` are GITIGNORED and are the only files a drag
+writes; both hold exactly that one triple (the offset from `base.json`'s own
+`indexPhi`/`indexTheta`/`indexR`, e.g. a base `indexR` of 25 plus a 4-step drag stores `iR:
+4`, not 29). There is no `dragPolarR`/`dragPolarPhi`/`dragPolarTheta` field anywhere in
+either file — `polarindex.ToPolar(idx, sc)` is the ONLY place the multiply happens, and it
+runs at load and at the moment a drag is measured, never stored as its own field. A
+sub-step drag rounds to the nearest index (`polarindex.MeasureScalar`) and a drag that
+rounds to zero is correct, not lost precision to recover. Neither file carries
+`constantPhi`/`constantTheta`/`constantR` — nor does `base.json` any more; those moved to
+`constants.json` at the scene root (read once per load, fails loudly by path on
+missing/malformed input, and asserts `constantR == lattice.BeadStepR` — the radial grid
+must match the bead lattice's own step size). The loaded triple (`polarindex.SceneConstants`)
+is passed explicitly into every consumer, never a per-instance field or a package-level
+global.
 
 **A (base) and B (drag) are held SEPARATELY in the running program, never summed into a
-stored value.** `nodegeom.NodeGeom` carries `BasePolar` (A, loaded once from `base.json`,
-never written by any runtime code path after load) and `DragPolar` (B, the only field a
-drag mutates — set directly by `nodegeom.SetNodeWorld` as `polar.Between(BasePolar,
-targetScenePolar)` at the moment an absolute target arrives, not reconstructed later by
-subtracting). The composed on-screen position is `nodegeom.ScenePolarOf(g)` —
-`polar.Compose(BasePolar, DragPolar)` — computed at each call site that needs it (world
-position, rendering, hit-testing) and held in no field that outlives that call. The
-`NodeGeometry.ScenePolar()` accessor is exactly this derived call, not a stored field.
-Persistence (`quant_offset_persist.go`) writes `geom.DragPolar` straight to
-`drag/` `self.json` — there is no `polar.Between(base, scene)` reconstruction left on this
-path.
-
-The quantized index rides the same split, in `owners.Quant`: `base` (A, loaded once from
-`base.json`'s `indexPhi`/`indexTheta`/`indexR`) and `drag` (B, set by `CommitQuantOffset`
-as `polarindex.Delta(measured, base)`, never reconstructed by subtracting later).
-`Quant.Composed()` returns `polarindex.Compose(base, drag)`, computed at each call site and
-held nowhere else. `persistQuantOffset` writes `drag` straight to `drag/` `self.json`'s
-`indexPhi`/`indexTheta`/`indexR` — a DELTA, same as the polar fields in that file.
+stored value.** The quantized index rides this split, in `owners.Quant`: `base` (A, loaded
+once from `base.json`'s `indexPhi`/`indexTheta`/`indexR`) and `drag` (B, set by
+`CommitQuantOffset` as `polarindex.Delta(measured, base)`, never reconstructed by
+subtracting later). `Quant.Composed()` returns `polarindex.Compose(base, drag)`, computed at
+each call site and held nowhere else; `nodegeom.ScenePolarOf`/`polar.Compose` derive the
+continuous on-screen position from that composed index the same way, at each call site that
+needs it, held in no field that outlives that call. `persistQuantOffset` writes `drag`
+straight to `drag/` `self.json`'s `indexPhi`/`indexTheta`/`indexR`.
 
 The same split applies to an edge's target vector. `owners.Deltas` holds `baseTo` (A, seeded
 once at build from each edge's `<label>.json`, outgoing straight and incoming negated, never
 mutated after) and `dragTo` (B, the only thing `ShiftSelfBy`/`ShiftOtherBy` mutate).
-`DeltaTo` returns the derived compose; `DragDeltaTo` returns B. `OutEdges.persistDelta`
-writes `DragDeltaTo` straight to `drag/edges/` `<label>.json`.
+`DeltaTo` returns the derived compose; `DragDeltaTo` returns B as a `polar.Polar`.
+`OutEdges.persistDelta` measures that into an index (`polarindex.MeasureScalar`) and writes
+the index straight to `drag/edges/` `<label>.json` — the same shape as the node path, no
+continuous field survives the write.
 
 THE DELTA (a node's standing vector to a neighbor, in `<label>.json`) and THE DRAG (the
 user's accumulated offset, in `drag/`) are different quantities. They are never summed into

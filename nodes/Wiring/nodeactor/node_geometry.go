@@ -79,6 +79,7 @@ func NewNodeGeometry(id string, geom nodegeom.NodeGeom, tr *T.Trace, clockSrc cl
 
 	ng.msg.SeedCenter(nodegeom.NodeWorldPos(geom))
 	ng.quant.SetConstants(constants)
+	ng.outEdges.SetConstants(constants)
 
 	ng.beads.SetBeadTickFn(func() *time.Ticker { return time.NewTicker(clock.TickPeriod) })
 	return ng

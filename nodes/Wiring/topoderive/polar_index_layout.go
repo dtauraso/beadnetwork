@@ -37,19 +37,12 @@ func ComputeQuantizedLayout(spec loadspec.TopoSpec, sphere polar.SceneSphere, ce
 
 	exact := make(map[string]bool, len(spec.Nodes))
 	for _, n := range spec.Nodes {
-		if n.ScenePolarR != nil && n.ScenePolarPhi != nil && n.ScenePolarTheta != nil {
-			exact[n.ID] = true
-			if off, ok := measured[n.ID]; ok {
-				offsets[n.ID] = off
-			}
-			continue
-		}
 		if n.IndexPhi != nil && n.IndexTheta != nil && n.IndexR != nil {
-			offsets[n.ID] = polarindex.Index{
+			offsets[n.ID] = polarindex.Canonical(polarindex.Index{
 				Phi:   *n.IndexPhi,
 				Theta: *n.IndexTheta,
 				R:     *n.IndexR,
-			}
+			}, spec.Constants)
 			continue
 		}
 		if off, ok := measured[n.ID]; ok {

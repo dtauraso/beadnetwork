@@ -1,1 +1,1 @@
-{"gate": true, "id": "9", "indexPhi": -15, "indexR": 18, "indexTheta": 45, "scenePolarPhi": -0.15992164940170495, "scenePolarR": 152.4255374159359, "scenePolarTheta": 0.8149031012888552, "type": "SelectLeft"}
+{"gate":true,"id":"9","indexPhi":15,"indexR":18,"indexTheta":-135,"type":"SelectLeft"}

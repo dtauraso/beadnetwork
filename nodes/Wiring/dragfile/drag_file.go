@@ -11,12 +11,9 @@ func DragPath(root, id string) string {
 }
 
 type JSON struct {
-	DragPolarR     float64 `json:"dragPolarR"`
-	DragPolarPhi   float64 `json:"dragPolarPhi"`
-	DragPolarTheta float64 `json:"dragPolarTheta"`
-	IndexPhi       int     `json:"indexPhi"`
-	IndexTheta     int     `json:"indexTheta"`
-	IndexR         int     `json:"indexR"`
+	IndexPhi   int `json:"indexPhi"`
+	IndexTheta int `json:"indexTheta"`
+	IndexR     int `json:"indexR"`
 
 	TopTiltVectorPhiIdx int32 `json:"topTiltVectorThetaIdx,omitempty"`
 }
@@ -24,12 +21,12 @@ type JSON struct {
 func Write(root, id string, j JSON) error {
 	path := DragPath(root, id)
 	return jsonpersist.ReadModifyWriteJSON(path, func(m map[string]any) {
-		m["dragPolarR"] = j.DragPolarR
-		m["dragPolarPhi"] = j.DragPolarPhi
-		m["dragPolarTheta"] = j.DragPolarTheta
 		m["indexPhi"] = j.IndexPhi
 		m["indexTheta"] = j.IndexTheta
 		m["indexR"] = j.IndexR
+		delete(m, "dragPolarR")
+		delete(m, "dragPolarPhi")
+		delete(m, "dragPolarTheta")
 		if j.TopTiltVectorPhiIdx != 0 {
 			m["topTiltVectorThetaIdx"] = j.TopTiltVectorPhiIdx
 		}

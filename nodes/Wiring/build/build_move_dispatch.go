@@ -101,7 +101,7 @@ func (b *buildCtx) buildMoveDispatch() error {
 	}
 
 	for _, e := range b.spec.Edges {
-		baseD, ok := e.BaseDelta()
+		baseD, ok := e.BaseDelta(b.spec.Constants)
 		if !ok {
 			continue
 		}

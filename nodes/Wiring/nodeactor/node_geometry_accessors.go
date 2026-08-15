@@ -80,7 +80,7 @@ func (m *NodeGeometry) IndexValue() polarindex.Index {
 }
 
 func (m *NodeGeometry) CommitQuantOffset(committedPolar polar.Polar) {
-	composed := polarindex.MeasureScalar(committedPolar, m.quant.Constants())
+	composed := polarindex.Canonical(polarindex.MeasureScalar(committedPolar, m.quant.Constants()), m.quant.Constants())
 	drag := polarindex.Delta(composed, m.quant.Base())
 	m.quant.SetDrag(drag)
 	m.persistQuantOffset(drag)

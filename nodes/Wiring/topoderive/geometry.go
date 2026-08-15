@@ -10,7 +10,7 @@ import (
 func ComputeNodeGeometry(spec loadspec.TopoSpec, sphere polar.SceneSphere) (map[string]nodegeom.NodeGeom, map[string]spatial.Vec3) {
 	nodeGeoms := map[string]nodegeom.NodeGeom{}
 	for _, n := range spec.Nodes {
-		nodeGeoms[n.ID] = n.ToNodeGeom(sphere.Center)
+		nodeGeoms[n.ID] = n.ToNodeGeom(sphere.Center, spec.Constants)
 	}
 
 	centers := map[string]spatial.Vec3{}

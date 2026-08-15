@@ -15,10 +15,6 @@ type JSONBase struct {
 	ID   string `json:"id"`
 	Type string `json:"type"`
 
-	ScenePolarR     *float64 `json:"scenePolarR,omitempty"`
-	ScenePolarPhi   *float64 `json:"scenePolarPhi,omitempty"`
-	ScenePolarTheta *float64 `json:"scenePolarTheta,omitempty"`
-
 	IndexPhi   *int `json:"indexPhi,omitempty"`
 	IndexTheta *int `json:"indexTheta,omitempty"`
 	IndexR     *int `json:"indexR,omitempty"`
@@ -46,9 +42,6 @@ func loadNodeBase(root, nodesDir, nodeID string) (specNode, error) {
 	sn := specNode{
 		ID:                  base.ID,
 		Type:                base.Type,
-		ScenePolarR:         base.ScenePolarR,
-		ScenePolarPhi:       base.ScenePolarPhi,
-		ScenePolarTheta:     base.ScenePolarTheta,
 		IndexPhi:            base.IndexPhi,
 		IndexTheta:          base.IndexTheta,
 		IndexR:              base.IndexR,

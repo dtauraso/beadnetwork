@@ -4,6 +4,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/dragfile"
 	"github.com/dtauraso/wirefold/nodes/Wiring/edgefile"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
+	"github.com/dtauraso/wirefold/nodes/Wiring/polarindex"
 )
 
 func ApplyDragOverlay(root string, spec *TopoSpec) {
@@ -13,7 +14,10 @@ func ApplyDragOverlay(root string, spec *TopoSpec) {
 			continue
 		}
 		if drag, ok := dragfile.Read(root, n.ID); ok {
-			d := polar.Polar{R: drag.DragPolarR, Phi: drag.DragPolarPhi, Theta: drag.DragPolarTheta}
+			dragIdx := polarindex.Index{Phi: drag.IndexPhi, Theta: drag.IndexTheta, R: drag.IndexR}
+			base := n.point(spec.Constants)
+			composed := polarindex.ToPolar(polarindex.Compose(n.index(), dragIdx, spec.Constants), spec.Constants)
+			d := polar.Between(base, composed)
 			n.DragScenePolarR, n.DragScenePolarPhi, n.DragScenePolarTheta = &d.R, &d.Phi, &d.Theta
 			n.DragIndexPhi, n.DragIndexTheta, n.DragIndexR = &drag.IndexPhi, &drag.IndexTheta, &drag.IndexR
 		}
@@ -24,8 +28,16 @@ func ApplyDragOverlay(root string, spec *TopoSpec) {
 		if !e.hasDelta() {
 			continue
 		}
-		if d, ok := edgefile.ReadEdgeDragDelta(root, e.Source, e.Label); ok {
+		if dragIdx, ok := edgefile.ReadEdgeDragIndex(root, e.Source, e.Label); ok {
+			base := e.delta(spec.Constants)
+			composedIdx := addIndex(e.deltaIndex(), dragIdx)
+			composed := polarindex.ToPolar(composedIdx, spec.Constants)
+			d := polar.Between(base, composed)
 			e.DragDeltaPolarR, e.DragDeltaPolarPhi, e.DragDeltaPolarTheta = &d.R, &d.Phi, &d.Theta
 		}
 	}
+}
+
+func addIndex(a, b polarindex.Index) polarindex.Index {
+	return polarindex.Index{Phi: a.Phi + b.Phi, Theta: a.Theta + b.Theta, R: a.R + b.R}
 }
