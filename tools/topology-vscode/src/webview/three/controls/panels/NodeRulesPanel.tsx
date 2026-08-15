@@ -2,9 +2,9 @@ import { useState } from "react";
 import { createPortal } from "react-dom";
 import { postGoRecord } from "../../../vscode-api";
 import {
-  encodeNodeOrbitPhiToggle,
-  encodeNodeOrbitMaxTheta,
-  encodeNodeOrbitActiveToggle,
+  encodeNodeDragPhiToggle,
+  encodeNodeDragMaxTheta,
+  encodeNodeDragActiveToggle,
 } from "../../../../schema/input/input-encode";
 import { useNodeRuleRows, type NodeRuleRow, type RuleHolder } from "../flags/node-rules";
 import { firePanelToggle, usePanelOpen } from "../pills/panel-toggle";
@@ -46,7 +46,7 @@ function ThetaLine({ rule }: { rule: NodeRuleRow }) {
             }
             if (e.key !== "Enter") return;
             const deg = Number.parseFloat(draft);
-            if (Number.isFinite(deg)) postGoRecord(encodeNodeOrbitMaxTheta(rule.row, deg));
+            if (Number.isFinite(deg)) postGoRecord(encodeNodeDragMaxTheta(rule.row, deg));
             setDraft(null);
           }}
         />
@@ -79,14 +79,14 @@ function HolderBlock({ rule, holder }: { rule: NodeRuleRow; holder: RuleHolder }
   return (
     <div className="node-rules-holder">
       <div className="node-rules-holder-name">
-        orbits <span className="node-rules-node">{holder.holderLabel}</span>
+        drag holds <span className="node-rules-node">{holder.holderLabel}</span>
       </div>
       <div className="node-rules-components">
-        <ComponentLine glyph="r">fixed {Math.round(holder.r * 10) / 10}</ComponentLine>
+        <ComponentLine glyph="r">r held {Math.round(holder.r * 10) / 10}</ComponentLine>
         <ComponentLine glyph="φ" free={!rule.phiLocked}>
           <button
             className="node-rules-edit"
-            onClick={() => postGoRecord(encodeNodeOrbitPhiToggle(rule.row))}
+            onClick={() => postGoRecord(encodeNodeDragPhiToggle(rule.row))}
           >
             {rule.phiLocked ? "locked" : "free"}
           </button>
@@ -100,7 +100,7 @@ function HolderBlock({ rule, holder }: { rule: NodeRuleRow; holder: RuleHolder }
 function FreeNodeBlock() {
   return (
     <div className="node-rules-holder">
-      <div className="node-rules-holder-name node-rules-line--free">no orbit rule</div>
+      <div className="node-rules-holder-name node-rules-line--free">drags free</div>
       <div className="node-rules-components">
         <ComponentLine glyph="r" free>
           free
@@ -142,9 +142,9 @@ function NodeBlock({ rule, members }: { rule: NodeRuleRow; members: NodeRuleRow[
         {(rule.hasRule || rule.hasKindRule) && (
           <input
             type="checkbox"
-            title="rule enforced"
+            title="trim drags"
             checked={rule.active}
-            onChange={() => postGoRecord(encodeNodeOrbitActiveToggle(rule.row))}
+            onChange={() => postGoRecord(encodeNodeDragActiveToggle(rule.row))}
           />
         )}
         <span className="node-rules-node">{rule.label}</span>

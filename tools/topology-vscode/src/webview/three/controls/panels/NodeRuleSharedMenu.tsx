@@ -1,5 +1,5 @@
 import { postGoRecord } from "../../../vscode-api";
-import { encodeNodeOrbitActiveToggle } from "../../../../schema/input/input-encode";
+import { encodeNodeDragActiveToggle } from "../../../../schema/input/input-encode";
 import type { NodeRuleRow } from "../flags/node-rules";
 
 export function NodeRuleSharedMenu({
@@ -32,7 +32,7 @@ export function NodeRuleSharedMenu({
           checked={allOn}
           onChange={() => {
             for (const m of members) {
-              if (m.active !== !allOn) postGoRecord(encodeNodeOrbitActiveToggle(m.row));
+              if (m.active !== !allOn) postGoRecord(encodeNodeDragActiveToggle(m.row));
             }
           }}
         />
@@ -50,7 +50,7 @@ export function NodeRuleSharedMenu({
           <input
             type="checkbox"
             checked={m.active}
-            onChange={() => postGoRecord(encodeNodeOrbitActiveToggle(m.row))}
+            onChange={() => postGoRecord(encodeNodeDragActiveToggle(m.row))}
           />
           <span>{m.label}</span>
         </label>

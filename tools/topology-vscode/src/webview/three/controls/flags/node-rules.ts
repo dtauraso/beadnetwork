@@ -5,10 +5,10 @@ import { NODE_KIND_NAMES } from "../../../../schema/node-defs";
 import { UNKNOWN_KIND_ID } from "../../../../schema/buffer-layout/buffer-layout";
 import {
   readNodeKindId,
-  readNodeOrbitRLocked,
-  readNodeOrbitPhiLocked,
-  readNodeOrbitThetaMax,
-  readNodeOrbitActive,
+  readNodeDragRLocked,
+  readNodeDragPhiLocked,
+  readNodeDragThetaMax,
+  readNodeDragActive,
   readNodeHasKindRule,
   readNodeRuleGroupId,
   readNodeRuleGroupSize,
@@ -124,8 +124,8 @@ export function readNodeRuleRows(): NodeRuleRow[] | null {
 
   const next: NodeRuleRow[] = [];
   for (let row = 0; row < nodeCount; row++) {
-    const hasRule = !!readNodeOrbitRLocked(nodeView, row);
-    const thetaMax = readNodeOrbitThetaMax(nodeView, row);
+    const hasRule = !!readNodeDragRLocked(nodeView, row);
+    const thetaMax = readNodeDragThetaMax(nodeView, row);
 
     next.push({
       row,
@@ -133,8 +133,8 @@ export function readNodeRuleRows(): NodeRuleRow[] | null {
       kind: kindNameFor(nodeView, row),
       hasRule,
       hasKindRule: !!readNodeHasKindRule(nodeView, row),
-      active: !!readNodeOrbitActive(nodeView, row),
-      phiLocked: !!readNodeOrbitPhiLocked(nodeView, row),
+      active: !!readNodeDragActive(nodeView, row),
+      phiLocked: !!readNodeDragPhiLocked(nodeView, row),
       maxThetaDeg: thetaMax < 0 ? null : thetaMax * RAD_TO_DEG,
       holders: byNode.get(row) ?? [],
       groupId: readNodeRuleGroupId(nodeView, row),
