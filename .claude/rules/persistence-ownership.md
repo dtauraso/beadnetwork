@@ -19,11 +19,10 @@ topology/
 ├── counts.json                           {"nodes": 9, "edges": 10}  — nodes = ROW COUNT
 │                                          (largest node id), not a live-node count
 ├── nodes/<id>/
-│   ├── meta.json                         type + the TRACKED seed position
-│   ├── position.json                     drag output, GITIGNORED, overlays meta.json
+│   ├── meta.json                         type + position, ONE tracked file — see below
 │   ├── data.json  local-polars.json
-│   ├── edges/<label>.json                OUTGOING only — wiring + TRACKED seed delta
-│   └── edges/<label>.geom.json           drag output, GITIGNORED, overlays the above
+│   ├── edges/<label>.json                OUTGOING only — wiring + geometry delta, ONE file
+│   └── (no *.geom.json — folded into <label>.json)
 └── view/
     └── camera.json  overlays.json  panels.json  sphere.json  scene.json
 ```
@@ -57,29 +56,50 @@ points at node 9". Every use of an edge's target is built during a single full p
 edges (`buildEdgeMaps`' `inbound`, `loader_layout`'s `neighbors`). Do NOT "fix" this by also
 recording the edge under the target — that reintroduces the duplication the layout removes.
 
-## Seed is tracked, drag output is not
+## One file per owner; git skip-worktree replaces the overlay split
 
-Every geometry file has two layers, and the loader reads the tracked one then overlays the
-untracked one — `meta.json` then `position.json`, `<label>.json` then `<label>.geom.json`.
+There used to be two layers per geometry file — a tracked seed plus a gitignored drag-output
+overlay the loader read second (`meta.json` + `position.json`, `<label>.json` +
+`<label>.geom.json`). That split is GONE. A node's position lives directly in `meta.json`
+alongside its `type`/`id`/`gate`/`orbit`; an edge's geometry delta lives directly in
+`<label>.json` alongside its wiring (`target`/`sourceHandle`/`targetHandle`/`kind`). One file,
+one owner, read-modify-write on every write so the keys a write doesn't touch survive
+(`jsonpersist.ReadModifyWriteJSON`, the same pattern `WriteOrbitRule` used before this
+change).
 
-The reason is that **a user drag is the only writer of geometry** in the whole program:
-`CommitNodeMoveLocal` is reached solely from `takeDragOfSelf`, on a `KindDrag` message, which
-originates at the pointer. Nothing moves a node on its own. So "everything a drag changed" is
-a static set of paths, and git — which keys on paths, not on provenance — can express it.
+The reason the split existed at all was that **a user drag is the only writer of geometry**
+in the whole program (`CommitNodeMoveLocal` is reached solely from `takeDragOfSelf`, on a
+`KindDrag` message), so "everything a drag changed" was a static set of PATHS, and git keys
+on paths — giving each drag-touched value its own file was how `.gitignore` could express
+"never track this". Collapsing to one file needed a different mechanism for the same
+distinction, because a fresh clone still needs `meta.json`/`<label>.json` to start out
+TRACKED (that's the seed a clone loads from), while a later drag write to that same path must
+NOT show as a tracked-file change.
+
+**`nodes/Wiring/gitskip`** is that mechanism. After `positionfile.Write` (node position) or
+`edgefile.WriteEdgeFile`/`WriteEdgeDelta` (edge wiring/delta) writes the file, it calls
+`gitskip.Mark(path)`, which runs `git update-index --skip-worktree <path>` once per path per
+process. From then on git treats the working-tree copy as authoritative and stops diffing it
+against the index, so a drag no longer shows up as a modified file — the same outcome
+`.gitignore` gave the old overlay file, achieved on a path that starts out committed instead
+of a path that never is. `Mark` is a no-op outside a git work tree (headless runs against a
+tmp dir) and panics loudly on a genuine git failure (e.g. a stuck `index.lock`) — a silently
+unmarked file is exactly the failure mode this exists to prevent.
 
 A drag touches more than the node you grabbed: the dragged node shifts its own vectors, and
-each neighbour is told how far it moved and shifts its own. That is why the edge file is
-SPLIT rather than simply ignored — the wiring (target, handles, kind) must stay tracked while
-the vector a neighbour's drag rewrote must not.
+each neighbour is told how far it moved and shifts its own — so a neighbour's `meta.json` and
+each of ITS outgoing edges' `<label>.json` also get written (and marked) as part of that same
+drag, same as before.
 
 Consequences to keep in mind:
 
-- A fresh clone has seeds only, and loads a complete, self-consistent scene from them.
-- Nothing promotes drag output into the seed. `meta.json`'s layout is whatever was last
-  written there and will drift from what anyone is actually looking at. Updating it is a
-  deliberate act, not a side effect of moving the mouse.
-- Anything that scans `nodes/*/edges/*.json` must skip `*.geom.json` — it has no wiring in
-  it and is not an edge (`loadNodeEdges`, `check-no-fan-in.sh`).
+- A fresh clone has the tracked seed values only (no skip-worktree bit yet — that's set by
+  the first LOCAL write), and loads a complete, self-consistent scene from them.
+- Nothing promotes a drag's live values back into a clean seed for a future clone; that would
+  need an explicit `git update-index --no-skip-worktree` plus a deliberate commit. Whatever
+  is on disk right now is the seed the NEXT clone gets, exactly as `meta.json` always was.
+- There is no more `*.geom.json` to skip when scanning `nodes/*/edges/*.json` — every file
+  under an `edges/` dir is a real edge (`loadNodeEdges`, `check-no-fan-in.sh`).
 
 ## The owner writes, and owns the path
 
