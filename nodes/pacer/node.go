@@ -41,6 +41,7 @@ func (p *Node) Update(ctx context.Context) {
 	}
 
 	clk := p.Clock.Copy()
+	clk.WakeOn(p.Self.RuleWake())
 
 	for {
 		select {

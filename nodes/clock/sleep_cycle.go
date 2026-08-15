@@ -21,6 +21,9 @@ func (c *RealClock) sleepPulses(ctx context.Context, n int) error {
 	for range n {
 		select {
 		case <-c.ticker.C:
+		case <-c.wake:
+
+			return nil
 		case <-ctx.Done():
 			return ctx.Err()
 		}

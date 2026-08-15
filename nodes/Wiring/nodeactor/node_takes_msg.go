@@ -34,12 +34,6 @@ func (m *NodeGeometry) take(msg movemsg.Msg) {
 		m.handleTiltVectorAngle(msg)
 	case movemsg.KindTiltVectorReset:
 		m.handleTiltVectorReset()
-	case movemsg.KindOrbitPhiToggle:
-		m.takeOrbitPhiToggle()
-	case movemsg.KindOrbitMaxTheta:
-		m.takeOrbitMaxTheta(msg.OrbitMaxTheta)
-	case movemsg.KindOrbitActiveToggle:
-		m.takeOrbitActiveToggle()
 	default:
 
 		if m.tr != nil {

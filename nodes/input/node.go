@@ -82,6 +82,7 @@ func (n *Node) Update(ctx context.Context) {
 }
 
 func (n *Node) runStepLoop(ctx context.Context, clk clock.Clock, perTick func() bool) {
+	clk.WakeOn(n.Self.RuleWake())
 	for {
 		if ctx.Err() != nil {
 			return

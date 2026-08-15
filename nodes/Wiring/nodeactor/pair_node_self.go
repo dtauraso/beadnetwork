@@ -17,6 +17,13 @@ func NewPairNodeSelf(geom *NodeGeometry, speedCh <-chan float64) *PairNodeSelf {
 	return &PairNodeSelf{geom: geom, speedCh: speedCh}
 }
 
+func (p *PairNodeSelf) RuleWake() <-chan struct{} {
+	if p == nil || p.geom == nil {
+		return nil
+	}
+	return p.geom.RuleWake()
+}
+
 func (p *PairNodeSelf) Breadcrumb(label, value string) {
 	if p == nil || p.geom == nil || p.geom.tr == nil {
 		return
