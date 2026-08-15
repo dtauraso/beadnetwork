@@ -20,13 +20,15 @@ export function TiltVectorButtons() {
   };
 
   return createPortal(
-    <span className="tilt-vector-btn-row">
-      <button type="button" className="run-btn tilt-start-btn" onClick={start} aria-label="start tilt exchange">
-        start tilt
-      </button>
-      <button type="button" className="run-btn tilt-reset-btn" onClick={reset} aria-label="reset tilt vectors">
-        reset tilt
-      </button>
+    <>
+      <span className="tilt-vector-btn-row">
+        <button type="button" className="run-btn tilt-start-btn" onClick={start} aria-label="start tilt exchange">
+          start tilt
+        </button>
+        <button type="button" className="run-btn tilt-reset-btn" onClick={reset} aria-label="reset tilt vectors">
+          reset tilt
+        </button>
+      </span>
       <span className="tilt-rounds-readout" aria-label="rounds and messages to parallel">
         {rows.map((row) => (
           <span key={row.row} className="tilt-rounds-group">
@@ -42,7 +44,7 @@ export function TiltVectorButtons() {
           </span>
         ))}
       </span>
-    </span>,
+    </>,
     mount,
   );
 }
