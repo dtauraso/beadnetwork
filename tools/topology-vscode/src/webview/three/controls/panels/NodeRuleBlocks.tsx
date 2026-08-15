@@ -100,7 +100,7 @@ export function EdgeBlock({ rule, partner }: { rule: NodeRuleRow; partner: EdgeP
   return (
     <div className="node-rules-holder">
       <div className="node-rules-holder-name">
-        {rule.label} <span className="node-rules-node">↔ {partner.otherLabel}</span>
+        {rule.label} <span className="node-rules-node">→ {partner.otherLabel}</span>
       </div>
       <div className="node-rules-components">
         {holder ? (
@@ -130,7 +130,7 @@ export function SpanningBlock({ rule }: { rule: NodeRuleRow }) {
   const axis = KIND_AXIS_RULES[rule.kind] ?? [];
   const spanning = KIND_SPANNING_RULES[rule.kind] ?? [];
   if (axis.length === 0 && spanning.length === 0) return null;
-  const count = rule.partners.length;
+  const count = rule.partners.filter((p) => !p.incoming).length;
   return (
     <div className="node-rules-holder">
       <div className="node-rules-holder-name">

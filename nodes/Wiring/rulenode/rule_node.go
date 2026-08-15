@@ -29,6 +29,8 @@ type State struct {
 	Active    bool
 	GroupID   int32
 	GroupSize int32
+
+	EdgeActive map[string]bool
 }
 
 type RuleNode struct {
@@ -43,19 +45,26 @@ type RuleNode struct {
 	edits  chan Edit
 	ruleIn chan rulemsg.Msg
 
+	edgeActive       map[string]bool
+	toggleSelfToPeer map[string]chan bool
+	toggleIn         chan EdgeToggle
+
 	out  chan State
 	wake chan struct{}
 }
 
 func New(id string) *RuleNode {
 	return &RuleNode{
-		id:     id,
-		mesh:   owners.NewRuleMesh(),
-		active: true,
-		edits:  make(chan Edit, 8),
-		ruleIn: make(chan rulemsg.Msg, 8),
-		out:    make(chan State, 1),
-		wake:   make(chan struct{}, 1),
+		id:               id,
+		mesh:             owners.NewRuleMesh(),
+		active:           true,
+		edits:            make(chan Edit, 8),
+		ruleIn:           make(chan rulemsg.Msg, 8),
+		edgeActive:       map[string]bool{},
+		toggleSelfToPeer: map[string]chan bool{},
+		toggleIn:         make(chan EdgeToggle, 8),
+		out:              make(chan State, 1),
+		wake:             make(chan struct{}, 1),
 	}
 }
 
@@ -90,6 +99,9 @@ func (r *RuleNode) Run(ctx context.Context) {
 	for peerID, back := range r.mesh.BackChannels() {
 		go r.forward(ctx, peerID, back)
 	}
+	for target, toggle := range r.toggleSelfToPeer {
+		go r.forwardToggle(ctx, target, toggle)
+	}
 
 	r.publish()
 
@@ -104,6 +116,9 @@ func (r *RuleNode) Run(ctx context.Context) {
 			if r.mesh.ApplyPeerRule(msg) {
 				r.publish()
 			}
+		case t := <-r.toggleIn:
+			r.applyEdgeToggle(t)
+			r.publish()
 		}
 	}
 }
@@ -166,7 +181,15 @@ func (r *RuleNode) applyEdit(e Edit) {
 
 func (r *RuleNode) publish() {
 	groupID, groupSize := r.mesh.RuleGroup(r.id)
-	state := State{Rule: r.rule, Active: r.active, GroupID: groupID, GroupSize: groupSize}
+	edgeActive := make(map[string]bool, len(r.edgeActive))
+	for target, active := range r.edgeActive {
+		edgeActive[target] = active
+	}
+	state := State{
+		Rule: r.rule, Active: r.active,
+		GroupID: groupID, GroupSize: groupSize,
+		EdgeActive: edgeActive,
+	}
 
 	select {
 	case <-r.out:

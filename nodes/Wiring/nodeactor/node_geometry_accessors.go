@@ -72,6 +72,13 @@ func (m *NodeGeometry) IsOutTarget(neighborID string) bool {
 	return slices.Contains(m.outTargets, neighborID)
 }
 
+func (m *NodeGeometry) EdgeRuleActive(otherID string) bool {
+	if m.RuleNode() == nil {
+		return true
+	}
+	return m.RuleNode().EdgeActive(otherID)
+}
+
 func (m *NodeGeometry) SendMove() func(id string, msg movemsg.Msg) { return m.msg.SendMove() }
 
 func (m *NodeGeometry) NeighborIDs() []string { return m.msg.NeighborIDs() }

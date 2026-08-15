@@ -11,6 +11,7 @@ type Node interface {
 	Constants() polarindex.SceneConstants
 	DragRule() *polar.DragRule
 	DragRuleActive() bool
+	EdgeRuleActive(otherID string) bool
 	NeighborKinds() map[string]string
 	IsOutTarget(neighborID string) bool
 	DeltaFrom(otherID string) (polarindex.Offset, bool)
@@ -77,6 +78,9 @@ func TrimToDragRule(delta polarindex.Offset, of Node) polarindex.Offset {
 	sc := of.Constants()
 	for neighborID := range of.NeighborKinds() {
 		if of.IsOutTarget(neighborID) {
+			continue
+		}
+		if !of.EdgeRuleActive(neighborID) {
 			continue
 		}
 		haveOff, ok := of.DeltaFrom(neighborID)

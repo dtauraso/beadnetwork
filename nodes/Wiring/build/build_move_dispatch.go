@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
+	"github.com/dtauraso/wirefold/nodes/Wiring/edgefile"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/nodefiles"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodedrag"
@@ -69,6 +70,16 @@ func (b *buildCtx) buildMoveDispatch() error {
 		rn.SeedRule(n.Drag, active)
 		if n.TopTiltVectorPhiIdx != nil {
 			nm.SetTopTiltVectorPhiIdx(*n.TopTiltVectorPhiIdx)
+		}
+	}
+
+	for _, e := range b.spec.Edges {
+		active := edgefile.LoadEdgeRuleActive(b.scenePath, e.Source, e.Label)
+		if src, ok := md.MR.NodeGeoms()[e.Source]; ok {
+			src.RuleNode().SeedEdgeActive(e.Target, active)
+		}
+		if dst, ok := md.MR.NodeGeoms()[e.Target]; ok {
+			dst.RuleNode().SeedEdgeActive(e.Source, active)
 		}
 	}
 

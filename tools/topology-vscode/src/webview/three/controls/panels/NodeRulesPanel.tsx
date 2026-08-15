@@ -49,9 +49,11 @@ function NodeBlock({ rule, members }: { rule: NodeRuleRow; members: NodeRuleRow[
         />
       )}
       {!rule.hasRule && <FreeNodeBlock />}
-      {rule.partners.map((p) => (
-        <EdgeBlock key={`${p.otherRow}-${p.incoming ? "in" : "out"}`} rule={rule} partner={p} />
-      ))}
+      {rule.partners
+        .filter((p) => !p.incoming)
+        .map((p) => (
+          <EdgeBlock key={p.otherRow} rule={rule} partner={p} />
+        ))}
       {rule.hasKindRule && <SpanningBlock rule={rule} />}
     </div>
   );
