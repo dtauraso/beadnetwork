@@ -22,7 +22,7 @@ html, body { margin: 0; padding: 0; height: 100%; background: #fafafa; font-fami
   font-size: 13px; font-weight: 600; color: #222; white-space: nowrap;
 }
 .tilt-rounds-node { color: #222; font-weight: 700; text-align: center; }
-.tilt-rounds-key { color: #666; font-weight: 500; font-size: 11px; text-align: right; }
+.tilt-rounds-key { color: #222; font-weight: 700; font-size: 12px; text-align: right; }
 .tilt-rounds-val {
   color: #fff; font-weight: 700; text-align: center;
   font-variant-numeric: tabular-nums;
