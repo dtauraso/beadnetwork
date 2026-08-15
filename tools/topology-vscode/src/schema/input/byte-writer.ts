@@ -61,5 +61,14 @@ export class ByteWriter {
 
 export function enumIndex(list: readonly string[], s: string): number {
   const i = list.indexOf(s);
-  return i < 0 ? 0 : i;
+  if (i < 0) {
+    throw new Error(
+      `enumIndex: "${s}" is not in the wire enum [${list.join(",")}] — every caller passes a name ` +
+        `that must be there, and the list comes from INPUT_LAYOUT_FINGERPRINT in ` +
+        `nodes/Wiring/inputcodec/input_fingerprint.go, so a miss means that fingerprint was not ` +
+        `extended when the flag was added. Returning 0 here silently encoded the FIRST enum member ` +
+        `instead, sending a correct-looking edit addressed to the wrong one.`,
+    );
+  }
+  return i;
 }
