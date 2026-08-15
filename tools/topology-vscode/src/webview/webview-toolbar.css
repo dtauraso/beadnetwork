@@ -3,8 +3,15 @@ html, body { margin: 0; padding: 0; height: 100%; background: #fafafa; font-fami
 .node { cursor: grab; }
 .node.dragging { cursor: grabbing; }
 .node text { pointer-events: none; user-select: none; }
-.toolbar { position: fixed; top: 8px; left: 8px; padding: 6px 10px; background: #fff; border: 1px solid #ddd; border-radius: 6px; font-size: 12px; display: flex; gap: 12px; align-items: center; z-index: 10; }
-#run-mount { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+/* The column is a layout box only: it must never take a click. It is fixed, z-index 1000
+   and as tall as its content, so any empty area inside it sits over the canvas and over
+   the scene-tab strip below — which is what swallowed tab clicks. Only the panels
+   themselves take pointer events. */
+.top-stack { position: fixed; top: 8px; left: 8px; z-index: 1000; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; max-height: calc(100vh - 16px); pointer-events: none; }
+.top-stack .toolbar, .top-stack .node-rules-panel { pointer-events: auto; }
+.toolbar { padding: 6px 10px; background: #fff; border: 1px solid #ddd; border-radius: 6px; font-size: 12px; display: flex; gap: 12px; align-items: center; z-index: 10; }
+.toolbar:has(> span:empty) { display: none; }
+#run-mount, #tilt-mount { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
 .tilt-vector-btn-row { display: flex; flex-direction: row; gap: 6px; align-items: flex-start; }
 .tilt-rounds-readout { display: flex; flex-direction: column; gap: 3px; align-items: flex-start; font-size: 13px; font-weight: 600; color: #222; white-space: nowrap; }
 .tilt-rounds-group { display: flex; flex-direction: row; gap: 5px; align-items: center; }
