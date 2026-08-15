@@ -47,6 +47,10 @@ html, body { margin: 0; padding: 0; height: 100%; background: #fafafa; font-fami
 .react-flow__edge.selected .react-flow__edge-path { stroke-width: 3 !important; }
 .react-flow__edge:hover .react-flow__edge-path { stroke-width: 2.5; }
 .dirty { color: #c62828; font-weight: 600; }
+.speed-slider input[type="range"]:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.35);
+}
 .clean { color: #2e7d32; }
 .run-btn {
   border: 1px solid #ddd; background: #fafafa; border-radius: 4px;
