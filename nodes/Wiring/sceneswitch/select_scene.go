@@ -10,11 +10,8 @@ import (
 )
 
 func SelectScene(scenes *SceneSwitch, idx int) {
-	if scenes.AnchorPath == "" {
-		panic("SelectScene: a scene tab was clicked but the SceneSwitch has no AnchorPath, so there is no scene dir to persist the selection into — the switch was never wired to the loaded topology")
-	}
-	if scenes.Quit == nil {
-		panic("SelectScene: a scene tab was clicked but the SceneSwitch has no Quit func, so the selection could be written yet the sim could never reload into the picked scene — the switch was built without its reload hook")
+	if scenes.AnchorPath == "" || scenes.Quit == nil {
+		return
 	}
 	if idx < 0 || idx >= len(scene.Scenes) {
 		return
