@@ -23,14 +23,14 @@ html, body { margin: 0; padding: 0; height: 100%; background: #fafafa; font-fami
 }
 .tilt-rounds-node { color: #222; font-weight: 700; text-align: center; }
 .tilt-rounds-cell {
-  display: inline-flex; align-items: baseline; justify-content: center; gap: 4px;
+  display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
   font-variant-numeric: tabular-nums;
   padding: 2px 7px;
   border-radius: 3px;
   background: #222;
 }
-.tilt-rounds-key { color: #e0e0e0; font-weight: 600; font-size: 11px; }
-.tilt-rounds-val { color: #fff; font-weight: 700; }
+.tilt-rounds-key { color: #e0e0e0; font-weight: 600; font-size: 11px; text-align: left; }
+.tilt-rounds-val { color: #fff; font-weight: 700; text-align: right; }
 .tilt-start-btn { padding: 3px 10px; }
 .tilt-reset-btn { padding: 3px 10px; }
 .timeline-panel { z-index: 10; }
