@@ -36,7 +36,7 @@ type outEdge struct {
 	steps      int
 	derived    bool
 
-	persistedDragIdx polarindex.Index
+	persistedDragIdx polarindex.Offset
 	hasPersisted     bool
 }
 
@@ -134,18 +134,18 @@ func (o *OutEdges) DeriveGeometry(tick int64, self nodegeom.NodeGeom, deltas *De
 	}
 }
 
-func (o *OutEdges) persistDelta(e *outEdge, idx polarindex.Index) {
+func (o *OutEdges) persistDelta(e *outEdge, off polarindex.Offset) {
 	if o.persistRoot == "" || o.srcID == "" {
 		return
 	}
-	if e.hasPersisted && e.persistedDragIdx == idx {
+	if e.hasPersisted && e.persistedDragIdx == off {
 		return
 	}
-	if err := edgefile.WriteEdgeDrag(o.persistRoot, o.srcID, e.label, idx); err != nil {
+	if err := edgefile.WriteEdgeDrag(o.persistRoot, o.srcID, e.label, off); err != nil {
 		jsonpersist.LogPersistErr("out_edges", o.srcID+"->"+e.targetID, err)
 		return
 	}
-	e.persistedDragIdx, e.hasPersisted = idx, true
+	e.persistedDragIdx, e.hasPersisted = off, true
 }
 
 func (o *OutEdges) WriteFrames(tick int64, self nodegeom.NodeGeom, deltas *Deltas) {

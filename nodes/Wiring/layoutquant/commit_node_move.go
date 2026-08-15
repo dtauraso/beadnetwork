@@ -18,7 +18,7 @@ func (lq *LayoutQuantizer) CommitNodeMoveLocal(nodeGeoms map[string]*nodeactor.N
 	committedPos := nm.SceneCenter().Add(polar.Polar2cart(polarindex.ToPolar(committedIdx, nm.Constants())))
 	BroadcastToPartners(edgeTable, nodeGeoms,
 		map[string]spatial.Vec3{nodeID: committedPos},
-		map[string]polarindex.Index{nodeID: deltaIdx},
+		map[string]polarindex.Offset{nodeID: deltaIdx},
 		nm.SendMove())
 
 	nm.CommitIndex()

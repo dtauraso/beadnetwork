@@ -35,7 +35,7 @@ type buildCtx struct {
 	centers   map[string]spatial.Vec3
 
 	baseIndices map[string]polarindex.Index
-	dragIndices map[string]polarindex.Index
+	dragIndices map[string]polarindex.Offset
 
 	destWire      map[string]*wire.PacedWire
 	edgeWire      loadspec.WireRegistry

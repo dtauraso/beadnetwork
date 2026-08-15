@@ -31,7 +31,7 @@ func (lq *LayoutQuantizer) RootMove(ctx context.Context, nodeGeoms map[string]*n
 	}
 
 	sc := nm.Constants()
-	targetIdx := polarindex.Canonical(polarindex.MeasureScalar(polar.Cart2polar(target.Sub(nm.SceneCenter())), sc), sc)
+	targetIdx := polarindex.MeasureIndex(polar.Cart2polar(target.Sub(nm.SceneCenter())), sc)
 	delta := polarindex.Delta(targetIdx, nm.ComposedIndex())
 
 	nm.SendExternal(ctx, movemsg.Msg{Kind: movemsg.KindDrag, NodeID: nodeID, Delta: &delta})

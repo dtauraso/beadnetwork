@@ -35,6 +35,12 @@ type Index struct {
 	R     int
 }
 
+type Offset struct {
+	Phi   int
+	Theta int
+	R     int
+}
+
 func Canonical(o Index, sc SceneConstants) Index {
 	turnPhi, turnTheta := sc.MaxIndexPhi, sc.MaxIndexTheta
 	if turnPhi == 0 || turnTheta == 0 {
@@ -69,8 +75,16 @@ func MeasureScalars(centers map[string]vec3, ids map[string]bool, sceneCenter ve
 	return result
 }
 
-func MeasureScalar(p polar.Polar, sc SceneConstants) Index {
-	return Index{
+func MeasureIndex(p polar.Polar, sc SceneConstants) Index {
+	return Canonical(Index{
+		Phi:   int(math.Round(p.Phi / sc.ConstantPhi())),
+		Theta: int(math.Round(p.Theta / sc.ConstantTheta())),
+		R:     int(math.Round(p.R / sc.ConstantR)),
+	}, sc)
+}
+
+func MeasureOffset(p polar.Polar, sc SceneConstants) Offset {
+	return Offset{
 		Phi:   int(math.Round(p.Phi / sc.ConstantPhi())),
 		Theta: int(math.Round(p.Theta / sc.ConstantTheta())),
 		R:     int(math.Round(p.R / sc.ConstantR)),
@@ -78,6 +92,10 @@ func MeasureScalar(p polar.Polar, sc SceneConstants) Index {
 }
 
 func ToPolar(o Index, sc SceneConstants) polar.Polar {
+	return polar.Polar{R: float64(o.R) * sc.ConstantR, Phi: float64(o.Phi) * sc.ConstantPhi(), Theta: float64(o.Theta) * sc.ConstantTheta()}
+}
+
+func OffsetToPolar(o Offset, sc SceneConstants) polar.Polar {
 	return polar.Polar{R: float64(o.R) * sc.ConstantR, Phi: float64(o.Phi) * sc.ConstantPhi(), Theta: float64(o.Theta) * sc.ConstantTheta()}
 }
 
@@ -89,26 +107,26 @@ func DeriveCenters(scalars map[string]Index, sceneCenter vec3, sc SceneConstants
 	return derived
 }
 
-func Compose(base, drag Index, sc SceneConstants) Index {
+func Compose(base Index, off Offset, sc SceneConstants) Index {
 	return Canonical(Index{
-		Phi:   base.Phi + drag.Phi,
-		Theta: base.Theta + drag.Theta,
-		R:     base.R + drag.R,
+		Phi:   base.Phi + off.Phi,
+		Theta: base.Theta + off.Theta,
+		R:     base.R + off.R,
 	}, sc)
 }
 
-func Sum(a, b Index) Index {
-	return Index{Phi: a.Phi + b.Phi, Theta: a.Theta + b.Theta, R: a.R + b.R}
+func Sum(a, b Offset) Offset {
+	return Offset{Phi: a.Phi + b.Phi, Theta: a.Theta + b.Theta, R: a.R + b.R}
 }
 
-func Delta(composed, base Index) Index {
-	return Index{
+func Delta(composed, base Index) Offset {
+	return Offset{
 		Phi:   composed.Phi - base.Phi,
 		Theta: composed.Theta - base.Theta,
 		R:     composed.R - base.R,
 	}
 }
 
-func Neg(o Index) Index {
-	return Index{Phi: -o.Phi, Theta: -o.Theta, R: -o.R}
+func Neg(o Offset) Offset {
+	return Offset{Phi: -o.Phi, Theta: -o.Theta, R: -o.R}
 }

@@ -8,7 +8,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/spatial"
 )
 
-func BroadcastToPartners(edges map[string]*edgetable.Edge, nodeGeoms map[string]*nodeactor.NodeGeometry, newCenters map[string]spatial.Vec3, moveDeltas map[string]polarindex.Index, enqueue func(id string, msg movemsg.Msg)) {
+func BroadcastToPartners(edges map[string]*edgetable.Edge, nodeGeoms map[string]*nodeactor.NodeGeometry, newCenters map[string]spatial.Vec3, moveDeltas map[string]polarindex.Offset, enqueue func(id string, msg movemsg.Msg)) {
 
 	partners := map[string]string{}
 	for _, e := range edges {

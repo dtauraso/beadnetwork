@@ -8,7 +8,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/polarindex"
 )
 
-func (nm *NodeGeometry) persistIndex(off polarindex.Index) {
+func (nm *NodeGeometry) persistIndex(off polarindex.Offset) {
 	if nm.persistRoot == "" {
 		return
 	}
@@ -27,7 +27,7 @@ func (nm *NodeGeometry) persistTiltVectorAngle() {
 	}
 }
 
-func writeIndex(root, id string, off polarindex.Index, topTiltVectorPhiIdx int32) error {
+func writeIndex(root, id string, off polarindex.Offset, topTiltVectorPhiIdx int32) error {
 	if !jsonpersist.SafeTreePathComponent(id) {
 		return fmt.Errorf("unsafe node id %q", id)
 	}

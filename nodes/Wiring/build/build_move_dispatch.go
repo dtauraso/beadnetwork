@@ -117,7 +117,7 @@ func (b *buildCtx) buildMoveDispatch() error {
 	}
 
 	for _, nm := range md.MR.NodeGeoms() {
-		for to, told := range nodedrag.Requested(nm.SelfKind(), polarindex.Index{}, nm) {
+		for to, told := range nodedrag.Requested(nm.SelfKind(), polarindex.Offset{}, nm) {
 			if other, ok := md.MR.NodeGeoms()[to]; ok {
 				d := told
 				other.SendExternal(context.TODO(), movemsg.Msg{Kind: movemsg.KindDrag, NodeID: to,

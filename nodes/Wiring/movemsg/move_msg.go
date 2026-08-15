@@ -54,7 +54,7 @@ type Msg struct {
 
 	Center *vec3
 
-	Delta *polarindex.Index
+	Delta *polarindex.Offset
 
 	Centers map[string]vec3
 

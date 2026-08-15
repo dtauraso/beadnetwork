@@ -30,7 +30,7 @@ func WriteNewNodeFiles(root, id, kind string, p polar.Polar, sc polarindex.Scene
 	if err := os.MkdirAll(filepath.Join(dir, "edges"), 0o755); err != nil {
 		return err
 	}
-	idx := polarindex.Canonical(polarindex.MeasureScalar(p, sc), sc)
+	idx := polarindex.MeasureIndex(p, sc)
 	return entityReadModifyWrite(nodeBaseFilePath(root, id), func(m map[string]any) {
 		m["id"] = id
 		m["type"] = kind
