@@ -52,6 +52,8 @@ type NodeGeometry struct {
 	outEdges owners.OutEdges
 
 	interior owners.Interior
+
+	ruleMesh owners.RuleMesh
 }
 
 func NewNodeGeometry(id string, geom nodegeom.NodeGeom, tr *T.Trace, clockSrc clock.Clock) *NodeGeometry {
@@ -67,11 +69,12 @@ func NewNodeGeometry(id string, geom nodegeom.NodeGeom, tr *T.Trace, clockSrc cl
 			map[string]chan movemsg.Msg{},
 			make(chan vec3, 1),
 		),
-		topo:   owners.NewTopology(),
-		deltas: owners.NewDeltas(),
-		clocks: owners.NewClocks(clockSrc, clock.NewRealClock()),
-		tilt:   owners.NewTilt(tiltvector.FullTurnPhiIdx),
-		anim:   anim,
+		topo:     owners.NewTopology(),
+		ruleMesh: owners.NewRuleMesh(),
+		deltas:   owners.NewDeltas(),
+		clocks:   owners.NewClocks(clockSrc, clock.NewRealClock()),
+		tilt:     owners.NewTilt(tiltvector.FullTurnPhiIdx),
+		anim:     anim,
 	}
 
 	ng.msg.SeedCenter(nodegeom.NodeWorldPos(geom))

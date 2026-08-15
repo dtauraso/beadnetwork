@@ -20,6 +20,7 @@ func (m *NodeGeometry) takeOrbitPhiToggle() {
 	}
 	m.SetOrbitRule(&next)
 	m.persistOrbitRule()
+	m.BroadcastRule()
 	if m.tr != nil {
 		m.emitGeometry()
 	}
@@ -34,6 +35,7 @@ func (m *NodeGeometry) takeOrbitMaxTheta(maxTheta *float64) {
 	next.MaxTheta = maxTheta
 	m.SetOrbitRule(&next)
 	m.persistOrbitRule()
+	m.BroadcastRule()
 	if m.tr != nil {
 		m.emitGeometry()
 	}
@@ -42,6 +44,7 @@ func (m *NodeGeometry) takeOrbitMaxTheta(maxTheta *float64) {
 func (m *NodeGeometry) takeOrbitActiveToggle() {
 	m.SetOrbitActive(!m.OrbitActive())
 	m.persistOrbitActive()
+	m.BroadcastRule()
 	if m.tr != nil {
 		m.emitGeometry()
 	}

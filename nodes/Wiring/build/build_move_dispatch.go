@@ -62,6 +62,10 @@ func (b *buildCtx) buildMoveDispatch() error {
 		}
 	}
 
+	for _, nm := range md.MR.NodeGeoms() {
+		nm.BroadcastRule()
+	}
+
 	kindByID := make(map[string]string, len(b.spec.Nodes))
 	for _, n := range b.spec.Nodes {
 		kindByID[n.ID] = n.Type

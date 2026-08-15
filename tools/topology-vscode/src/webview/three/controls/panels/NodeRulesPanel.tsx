@@ -8,6 +8,7 @@ import {
 } from "../../../../schema/input/input-encode";
 import { useNodeRuleRows, type NodeRuleRow, type RuleHolder } from "../flags/node-rules";
 import { firePanelToggle, usePanelOpen } from "../pills/panel-toggle";
+import { NodeRuleSharedMenu } from "./NodeRuleSharedMenu";
 
 function ComponentLine({
   glyph,
@@ -128,7 +129,9 @@ function KindRuleLine({ rule }: { rule: NodeRuleRow }) {
   );
 }
 
-function NodeBlock({ rule }: { rule: NodeRuleRow }) {
+function NodeBlock({ rule, members }: { rule: NodeRuleRow; members: NodeRuleRow[] }) {
+  const [menuAnchor, setMenuAnchor] = useState<DOMRect | null>(null);
+  const shared = rule.groupSize > 1;
   const cls = ["node-rules-node-block", rule.hasRule && !rule.active ? "node-rules-node-block--inactive" : ""]
     .filter(Boolean)
     .join(" ");
@@ -146,7 +149,26 @@ function NodeBlock({ rule }: { rule: NodeRuleRow }) {
         )}
         <span className="node-rules-node">{rule.label}</span>
         {rule.kind && <span className="node-rules-kind">· {rule.kind}</span>}
+        {shared && (
+          <button
+            className="node-rules-shared-pill"
+            title={`This rule is shared by ${rule.groupSize} nodes`}
+            onClick={(e) =>
+              setMenuAnchor((open) => (open ? null : e.currentTarget.getBoundingClientRect()))
+            }
+          >
+            ⇄ shared ×{rule.groupSize}
+          </button>
+        )}
       </div>
+      {shared && menuAnchor && (
+        <NodeRuleSharedMenu
+          rule={rule}
+          members={members}
+          anchor={menuAnchor}
+          onClose={() => setMenuAnchor(null)}
+        />
+      )}
       {!rule.hasRule || rule.holders.length === 0 ? (
         <FreeNodeBlock />
       ) : (
@@ -172,7 +194,11 @@ export function NodeRulesPanel() {
       {open && (
         <div className="node-rules-body">
           {(rows ?? []).map((rule) => (
-            <NodeBlock key={rule.row} rule={rule} />
+            <NodeBlock
+              key={rule.row}
+              rule={rule}
+              members={(rows ?? []).filter((r) => r.groupId === rule.groupId)}
+            />
           ))}
         </div>
       )}

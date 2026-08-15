@@ -48,6 +48,8 @@ type NodeFrameInput struct {
 	OrbitActive                  uint8
 	HasKindRule                  uint8
 
+	RuleGroupID, RuleGroupSize int32
+
 	Label string
 
 	Events []rowevent.RowEvent

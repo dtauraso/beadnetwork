@@ -67,6 +67,8 @@ func (p *PairNodeSelf) Step(ctx context.Context, tick int64) {
 	}
 	g.msg.FlushPending()
 
+	g.drainRuleMesh()
+
 	g.deriveOutEdgeGeometry(tick)
 
 	g.anim.driveOutWires(ctx, tick)

@@ -10,6 +10,8 @@ import {
   readNodeOrbitThetaMax,
   readNodeOrbitActive,
   readNodeHasKindRule,
+  readNodeRuleGroupId,
+  readNodeRuleGroupSize,
 } from "../../../../schema/buffer-layout/buffer-layout";
 import { nodeLabel } from "../../decode/buffer-decode-node";
 
@@ -37,6 +39,10 @@ export interface NodeRuleRow {
   maxThetaDeg: number | null;
 
   holders: RuleHolder[];
+
+  groupId: number;
+
+  groupSize: number;
 }
 
 const RAD_TO_DEG = 180 / Math.PI;
@@ -77,6 +83,8 @@ function ruleRowsEqual(a: NodeRuleRow[], b: NodeRuleRow[]): boolean {
       ai.active !== bi.active ||
       ai.phiLocked !== bi.phiLocked ||
       ai.maxThetaDeg !== bi.maxThetaDeg ||
+      ai.groupId !== bi.groupId ||
+      ai.groupSize !== bi.groupSize ||
       !holdersEqual(ai.holders, bi.holders)
     ) {
       return false;
@@ -129,6 +137,8 @@ export function readNodeRuleRows(): NodeRuleRow[] | null {
       phiLocked: !!readNodeOrbitPhiLocked(nodeView, row),
       maxThetaDeg: thetaMax < 0 ? null : thetaMax * RAD_TO_DEG,
       holders: byNode.get(row) ?? [],
+      groupId: readNodeRuleGroupId(nodeView, row),
+      groupSize: readNodeRuleGroupSize(nodeView, row),
     });
   }
 

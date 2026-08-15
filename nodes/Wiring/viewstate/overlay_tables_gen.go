@@ -24,6 +24,7 @@ func DefaultOverlayState() OverlayState {
 		HoverRingVisible:     true,
 		ReachSphereVisible:   true,
 		SceneVectorsVisible:  true,
+		RuleChannelsVisible:  true,
 	}
 }
 
@@ -45,6 +46,7 @@ var OverlayToggles = map[string]func(*OverlayState, *T.Trace){
 	"hoverRing":     (*OverlayState).ToggleHoverRing,
 	"reachSphere":   (*OverlayState).ToggleReachSphere,
 	"sceneVectors":  (*OverlayState).ToggleSceneVectors,
+	"ruleChannels":  (*OverlayState).ToggleRuleChannels,
 }
 
 // OVERLAY_TOGGLES_END
@@ -90,6 +92,7 @@ var OverlayFlagTraceKind = map[string]string{
 	"hoverRing":     T.KindHoverRing,
 	"reachSphere":   T.KindReachSphere,
 	"sceneVectors":  T.KindSceneVectors,
+	"ruleChannels":  T.KindRuleChannels,
 }
 
 // OVERLAY_TRACE_KINDS_END

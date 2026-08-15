@@ -96,6 +96,7 @@ func (m *NodeGeometry) writeStreamFrame(events []rowevent.RowEvent) {
 	if m.OrbitActive() {
 		orbitActive = 1
 	}
+	ruleGroupID, ruleGroupSize := m.RuleGroup()
 
 	m.stream.WriteFrame(nodeframe.NodeFrameInput{
 		Tick:                uint32(m.clocks.Tick()),
@@ -132,6 +133,8 @@ func (m *NodeGeometry) writeStreamFrame(events []rowevent.RowEvent) {
 		RoundsToParallel:    roundsToParallel,
 		MsgsToParallel:      msgsToParallel,
 		HasKindRule:         hasKindRuleU8(m.SelfKind()),
+		RuleGroupID:         ruleGroupID,
+		RuleGroupSize:       ruleGroupSize,
 		OrbitRLocked:        orbitRLocked,
 		OrbitPhiLocked:      orbitPhiLocked,
 		OrbitThetaMax:       orbitThetaMax,

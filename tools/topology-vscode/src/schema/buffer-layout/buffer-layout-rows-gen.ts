@@ -55,7 +55,9 @@ export const NODE_COL_ORBIT_PHI_LOCKED           = 178; // u8
 export const NODE_COL_ORBIT_THETA_MAX            = 179; // f32
 export const NODE_COL_ORBIT_ACTIVE               = 183; // u8
 export const NODE_COL_HAS_KIND_RULE              = 184; // u8
-export const NODE_STRIDE                         = 185;
+export const NODE_COL_RULE_GROUP_ID              = 185; // i32
+export const NODE_COL_RULE_GROUP_SIZE            = 189; // i32
+export const NODE_STRIDE                         = 193;
 
 export function readNodeNodeId(view: DataView, row: number): number { return view.getInt32(row * NODE_STRIDE + NODE_COL_NODE_ID, true); }
 export function readNodeCX(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_CX, true); }
@@ -110,6 +112,8 @@ export function readNodeOrbitPhiLocked(view: DataView, row: number): number { re
 export function readNodeOrbitThetaMax(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_ORBIT_THETA_MAX, true); }
 export function readNodeOrbitActive(view: DataView, row: number): number { return view.getUint8(row * NODE_STRIDE + NODE_COL_ORBIT_ACTIVE); }
 export function readNodeHasKindRule(view: DataView, row: number): number { return view.getUint8(row * NODE_STRIDE + NODE_COL_HAS_KIND_RULE); }
+export function readNodeRuleGroupId(view: DataView, row: number): number { return view.getInt32(row * NODE_STRIDE + NODE_COL_RULE_GROUP_ID, true); }
+export function readNodeRuleGroupSize(view: DataView, row: number): number { return view.getInt32(row * NODE_STRIDE + NODE_COL_RULE_GROUP_SIZE, true); }
 
 // ── Interior block ───────────────────────────────────────────
 export const INTERIOR_COL_PRESENT                = 0; // u8
