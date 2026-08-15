@@ -34,10 +34,11 @@ func (b *buildCtx) buildMoveDispatch() error {
 		md.UI.SceneSphere = b.sphere
 	}
 
-	md.LQ.QuantizedLayout = scene.SceneUsesQuantizedDrag(b.scenePath)
+	s := scene.For(b.scenePath)
+	md.LQ.QuantizedLayout = s.QuantizedDrag
 
-	coplanarEdges := scene.SceneWantsCoplanarEdges(b.scenePath)
-	upAxis := scene.SceneWantsUpAxis(b.scenePath)
+	coplanarEdges := s.CoplanarEdges
+	upAxis := s.UpAxis
 	if coplanarEdges || upAxis {
 		for _, nm := range md.MR.NodeGeoms() {
 			nm.SetSceneFlags(coplanarEdges, upAxis)

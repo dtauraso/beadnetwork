@@ -6,12 +6,21 @@
 
 A **scene** is a complete, independently loadable topology tree — its own `counts.json`,
 its own `nodes/`, its own `view/`. There is more than one: they are SIBLING directories next
-to each other (`nodes/Wiring/scene/scene_tabs.go`'s `SceneTabs`, e.g. `topology/` and
+to each other (`nodes/Wiring/scene/scene_tabs.go`'s `Scenes`, e.g. `topology/` and
 `topology-pair/`), not one topology with variants inside it. Go owns the list, the labels,
 which one is selected, and the switch — this is the same shape as the overlay toggles, not
-a new mechanism. The `-topology` path the extension host launches with is the fixed ANCHOR;
-which sibling actually loads is resolved from it (`ResolveScenePath`) and persisted at the
-anchor, never inside a scene (a selection stored inside scene B would be unreachable while
+a new mechanism.
+
+**A scene declares its own tab.** `Scene.Name` IS the tab, alongside that scene's own
+capabilities — there is no separate tab table to keep in sync with the scene list, and no
+scene's directory name decides whether the others are reachable. This replaces an
+`AnchorIsTabbed` check that compared the anchor's basename against `SceneTabs[0].Dir`: the
+first scene's directory name was privileged, so launching against any other directory
+published ZERO tabs and the strip silently vanished. The strip is now the set of declared
+scenes, always. The `-topology` path the extension host launches with is the fixed ANCHOR;
+the scenes live beside it (`SceneContainer` — the anchor's parent when the anchor is itself
+a scene directory), which sibling actually loads is resolved from it (`ResolveScenePath`)
+and persisted at the anchor, never inside a scene (a selection stored inside scene B would be unreachable while
 scene A is loaded — `.claude/rules/persistence-ownership.md`). TS renders the tab strip
 from the VIEW frame and forwards a click as one addressed edit (`kind="scene"
 attr="selected"`); it holds no list, no labels, no selection of its own.
@@ -26,7 +35,7 @@ by adding a second, in-process path to do the same thing.
 **A scene may fork small pieces of node behavior, and each fork is a named, reasoned
 choice — not a tuning knob:**
 
-- **Drag mode** (`SceneTab.QuantizedDrag`). The default is the CONTINUOUS drag: a node is
+- **Drag mode** (`Scene.QuantizedDrag`). The default is the CONTINUOUS drag: a node is
   one point, an edge is the distance between two of them, and a drag says where the point
   went — the bead count on that edge then fills whatever line that leaves. The alternative,
   quantized drag steps the node one bead length (`lattice.BeadStepR`) at a time, matching its
@@ -37,7 +46,7 @@ choice — not a tuning knob:**
   be positioned at all. No committed scene uses it today — both tabs drag continuously — but the path
   stays reachable (and is what an unrecognised tree gets) rather than deleted, since
   deleting a still-tested, still-reachable mechanism is a model decision, not a cleanup.
-- **Coplanar rings** (`SceneTab.CoplanarEdges`). A node's ring plane normally follows its
+- **Coplanar rings** (`Scene.CoplanarEdges`). A node's ring plane normally follows its
   INWARD pole (toward the scene centre), which says nothing about where its neighbour is,
   so an edge lies in that plane only by coincidence — the chain then runs through the
   tori's holes rather than across their faces. With this on, for a node with exactly ONE
