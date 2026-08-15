@@ -41,10 +41,16 @@ export function buildWebviewHtml(
        webview ever wrote to it, so it read "saved" forever regardless of state; the slider
        names itself in that spot now. TiltVectorButtons' RESET half had its own row below
        (#tilt-reset-mount), which is gone with it. -->
-  <div class="toolbar">
-    <span id="run-mount"></span>
+  <!-- One fixed column pinned to the top-left corner. The toolbar and the polar-rules panel
+       are stacked by flex order, not by each carrying its own top/left: the panel used to be
+       fixed at top:44px, which assumed a one-row toolbar and overlapped it once the speed
+       slider and the tilt buttons stacked into two rows. -->
+  <div class="top-stack">
+    <div class="toolbar">
+      <span id="run-mount"></span>
+    </div>
+    <div id="node-rules-mount"></div>
   </div>
-  <div id="node-rules-mount"></div>
   <div class="drag-log-row">
     <div id="abc-drag-mount"></div>
     <div id="delta-forward-mount"></div>

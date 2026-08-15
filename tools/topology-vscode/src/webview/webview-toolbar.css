@@ -3,7 +3,8 @@ html, body { margin: 0; padding: 0; height: 100%; background: #fafafa; font-fami
 .node { cursor: grab; }
 .node.dragging { cursor: grabbing; }
 .node text { pointer-events: none; user-select: none; }
-.toolbar { position: fixed; top: 8px; left: 8px; padding: 6px 10px; background: #fff; border: 1px solid #ddd; border-radius: 6px; font-size: 12px; display: flex; gap: 12px; align-items: center; z-index: 10; }
+.top-stack { position: fixed; top: 8px; left: 8px; z-index: 1000; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; max-height: calc(100vh - 16px); }
+.toolbar { padding: 6px 10px; background: #fff; border: 1px solid #ddd; border-radius: 6px; font-size: 12px; display: flex; gap: 12px; align-items: center; z-index: 10; }
 #run-mount { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
 .tilt-vector-btn-row { display: flex; flex-direction: row; gap: 6px; align-items: flex-start; }
 .tilt-rounds-readout { display: flex; flex-direction: column; gap: 3px; align-items: flex-start; font-size: 13px; font-weight: 600; color: #222; white-space: nowrap; }

@@ -1,10 +1,10 @@
 /* The polar rules panel. Placement and visual vocabulary carried over from the deleted
    rule-builder panel (commit 9e247aea1): directly below the toolbar, bold node names,
    blue angle glyphs, inactive rows at 45%. The grammar it renders is different — see
-   node-rules.ts. */
+   node-rules.ts. Placement is now the .top-stack flex column (webview-toolbar.css) rather
+   than a hardcoded top:44px, so it sits below the speed slider whatever height that bar is. */
 
 .node-rules-panel {
-  position: fixed; top: 44px; left: 8px;
   padding: 6px 10px; background: #fff; border: 1px solid #ddd; border-radius: 6px;
   font-size: 12px; display: flex; flex-direction: column; gap: 4px;
   z-index: 1000; color: #333;
