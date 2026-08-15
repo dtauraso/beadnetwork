@@ -26,6 +26,12 @@ func decodeUpdateNode(r *recread.Reader, attr byte) (StdinMsg, bool) {
 			return StdinMsg{}, false
 		}
 		return StdinMsg{Type: "edit", Op: "update", Kind: "node", Attr: "dragActive", Num: int(row)}, true
+	case InNodeAttrKindActive:
+		row, err := r.U8()
+		if err != nil {
+			return StdinMsg{}, false
+		}
+		return StdinMsg{Type: "edit", Op: "update", Kind: "node", Attr: "kindActive", Num: int(row)}, true
 	}
 	return StdinMsg{}, false
 }

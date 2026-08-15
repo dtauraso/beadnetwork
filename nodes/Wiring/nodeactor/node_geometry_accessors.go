@@ -72,6 +72,13 @@ func (m *NodeGeometry) IsOutTarget(neighborID string) bool {
 	return slices.Contains(m.outTargets, neighborID)
 }
 
+func (m *NodeGeometry) KindRuleActive() bool {
+	if m.RuleNode() == nil {
+		return true
+	}
+	return m.RuleNode().KindActive()
+}
+
 func (m *NodeGeometry) EdgeRuleActive(otherID string) bool {
 	if m.RuleNode() == nil {
 		return true

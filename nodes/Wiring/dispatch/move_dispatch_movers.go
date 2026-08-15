@@ -55,13 +55,14 @@ func (md *MoveDispatch) wireRuleMesh() {
 
 func (md *MoveDispatch) wireRuleEditRows() {
 	geoms := md.MR.NodeGeoms()
-	md.RuleEdits = make([]chan<- rulenode.Edit, len(md.RT.NodeRowTable))
+	md.Rules.SizeByNodeRows(len(md.RT.NodeRowTable))
 	for row, id := range md.RT.NodeRowTable {
 		nm, ok := geoms[id]
 		if !ok {
 			continue
 		}
-		md.RuleEdits[row] = nm.RuleNode().Edits()
+		md.Rules.EditsByNodeRow[row] = nm.RuleNode().Edits()
+		md.Rules.KindTogglesByNodeRow[row] = nm.RuleNode().KindToggleChannel()
 	}
 }
 

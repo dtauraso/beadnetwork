@@ -12,6 +12,7 @@ type Node interface {
 	DragRule() *polar.DragRule
 	DragRuleActive() bool
 	EdgeRuleActive(otherID string) bool
+	KindRuleActive() bool
 	NeighborKinds() map[string]string
 	IsOutTarget(neighborID string) bool
 	DeltaFrom(otherID string) (polarindex.Offset, bool)

@@ -68,6 +68,7 @@ func (b *buildCtx) buildMoveDispatch() error {
 		rn := nm.RuleNode()
 		rn.SetPersistRoot(b.scenePath)
 		rn.SeedRule(n.Drag, active)
+		rn.SeedKindActive(nodefiles.LoadKindRuleActive(b.scenePath, n.ID))
 		if n.TopTiltVectorPhiIdx != nil {
 			nm.SetTopTiltVectorPhiIdx(*n.TopTiltVectorPhiIdx)
 		}
@@ -87,14 +88,14 @@ func (b *buildCtx) buildMoveDispatch() error {
 		sourceByLabel[e.Label] = e.Source
 	}
 
-	md.EdgeRuleToggles = make([]chan<- struct{}, len(md.RT.EdgeRowTable))
+	md.Rules.TogglesByEdgeRow = make([]chan<- struct{}, len(md.RT.EdgeRowTable))
 	for row, label := range md.RT.EdgeRowTable {
 		src, okS := md.MR.NodeGeoms()[sourceByLabel[label]]
 		target, okT := targetByLabel[label], true
 		if !okS || !okT {
 			continue
 		}
-		md.EdgeRuleToggles[row] = src.RuleNode().EdgeToggleChannel(target)
+		md.Rules.TogglesByEdgeRow[row] = src.RuleNode().EdgeToggleChannel(target)
 	}
 
 	for _, nm := range md.MR.NodeGeoms() {

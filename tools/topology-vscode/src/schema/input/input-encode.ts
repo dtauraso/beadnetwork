@@ -12,6 +12,7 @@ import {
   IN_NODE_ATTR_DRAG_PHI,
   IN_NODE_ATTR_DRAG_MAX_THETA,
   IN_NODE_ATTR_DRAG_ACTIVE,
+  IN_NODE_ATTR_KIND_ACTIVE,
 } from "./input-attrs";
 import type { OverlayFlag, PanelFlag } from "../../messages";
 import { OVERLAY_FLAG_ORDER, PANEL_FLAG_ORDER } from "../../messages";
@@ -78,6 +79,15 @@ export function encodeNodeDragMaxTheta(nodeRow: number, degrees: number): ArrayB
   w.u8(IN_NODE_ATTR_DRAG_MAX_THETA);
   w.u8(nodeRow);
   w.f32(degrees);
+  return w.toArrayBuffer();
+}
+
+export function encodeNodeKindActiveToggle(nodeRow: number): ArrayBuffer {
+  const w = new ByteWriter();
+  w.u8(IN_KIND_EDIT_UPDATE);
+  w.u8(enumIndex(IN_UPDATE_KINDS, "node"));
+  w.u8(IN_NODE_ATTR_KIND_ACTIVE);
+  w.u8(nodeRow);
   return w.toArrayBuffer();
 }
 

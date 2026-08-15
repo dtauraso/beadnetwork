@@ -5,10 +5,42 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/edgefile"
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/nodefiles"
 )
 
 type EdgeToggle struct {
 	Target string
+}
+
+func (r *RuleNode) SeedKindActive(active bool) { r.kindActive = active }
+
+func (r *RuleNode) KindActive() bool { return r.kindActive }
+
+func (r *RuleNode) KindToggleChannel() chan<- struct{} { return r.toggleSelfKind }
+
+func (r *RuleNode) forwardKindToggle(ctx context.Context) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-r.toggleSelfKind:
+			select {
+			case r.kindIn <- struct{}{}:
+			case <-ctx.Done():
+				return
+			}
+		}
+	}
+}
+
+func (r *RuleNode) applyKindToggle() {
+	r.kindActive = !r.kindActive
+	if r.persistRoot == "" {
+		return
+	}
+	if err := nodefiles.WriteKindRuleActive(r.persistRoot, r.id, r.kindActive); err != nil {
+		jsonpersist.LogPersistErr("rulenode", r.id, err)
+	}
 }
 
 func (r *RuleNode) SeedEdgeActive(target string, active bool) {

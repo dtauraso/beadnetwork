@@ -51,6 +51,7 @@ type NodeStreamFrame struct {
 	DragThetaMax               float32
 	DragActive                 uint8
 	HasKindRule                uint8
+	KindRuleActive             uint8
 
 	RuleGroupID, RuleGroupSize int32
 
@@ -78,7 +79,7 @@ func BuildNodeStreamFrame(f NodeStreamFrame) []byte {
 		f.TopTiltVectorPhi, f.BottomTiltVectorPhi,
 		f.CoplanarNormalPhi, f.ReceivedVectorLen, f.ReceivedVectorPhi,
 		f.Selected, f.KindID, 0, uint32(len(labelBytes)), f.Hovered, f.LatchedSel, f.LatticePoints, f.RoundsToParallel, f.MsgsToParallel,
-		f.DragRLocked, f.DragPhiLocked, f.DragThetaMax, f.DragActive, f.HasKindRule,
+		f.DragRLocked, f.DragPhiLocked, f.DragThetaMax, f.DragActive, f.HasKindRule, f.KindRuleActive,
 		f.RuleGroupID, f.RuleGroupSize)
 	off += B.BufNodeStride
 

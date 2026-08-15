@@ -67,6 +67,7 @@ type EditMsg =
   | { type: "edit"; op: "update"; kind: "node"; attr: "dragPhi"; row: number }
   | { type: "edit"; op: "update"; kind: "node"; attr: "dragMaxTheta"; row: number; degrees: number }
   | { type: "edit"; op: "update"; kind: "node"; attr: "dragActive"; row: number }
+  | { type: "edit"; op: "update"; kind: "node"; attr: "kindActive"; row: number }
   | { type: "edit"; op: "update"; kind: "edge"; attr: "dragActive"; row: number };
 // EDIT_MSG_END
 

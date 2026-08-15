@@ -4,6 +4,7 @@ import {
   encodeNodeDragPhiToggle,
   encodeNodeDragMaxTheta,
   encodeEdgeDragActiveToggle,
+  encodeNodeKindActiveToggle,
 } from "../../../../schema/input/input-encode";
 import { type NodeRuleRow, type EdgePartner } from "../flags/node-rules";
 
@@ -144,6 +145,12 @@ export function SpanningBlock({ rule }: { rule: NodeRuleRow }) {
   return (
     <div className="node-rules-holder">
       <div className="node-rules-holder-name">
+        <input
+          type="checkbox"
+          title="trim drags across these edges"
+          checked={rule.kindActive}
+          onChange={() => postGoRecord(encodeNodeKindActiveToggle(rule.row))}
+        />{" "}
         {count === 2 ? "both" : `all ${count}`}
       </div>
       <div className="node-rules-components">

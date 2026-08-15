@@ -10,6 +10,7 @@ import {
   readNodeDragThetaMax,
   readNodeDragActive,
   readNodeHasKindRule,
+  readNodeKindRuleActive,
   readNodeRuleGroupId,
   readNodeRuleGroupSize,
 } from "../../../../schema/buffer-layout/buffer-layout";
@@ -44,6 +45,8 @@ export interface NodeRuleRow {
   hasRule: boolean;
 
   hasKindRule: boolean;
+
+  kindActive: boolean;
 
   active: boolean;
 
@@ -115,6 +118,7 @@ function ruleRowsEqual(a: NodeRuleRow[], b: NodeRuleRow[]): boolean {
       ai.kind !== bi.kind ||
       ai.hasRule !== bi.hasRule ||
       ai.hasKindRule !== bi.hasKindRule ||
+      ai.kindActive !== bi.kindActive ||
       ai.active !== bi.active ||
       ai.phiLocked !== bi.phiLocked ||
       ai.maxThetaDeg !== bi.maxThetaDeg ||
@@ -196,6 +200,7 @@ export function readNodeRuleRows(): NodeRuleRow[] | null {
       kind: kindNameFor(nodeView, row),
       hasRule,
       hasKindRule: !!readNodeHasKindRule(nodeView, row),
+      kindActive: !!readNodeKindRuleActive(nodeView, row),
       active: !!readNodeDragActive(nodeView, row),
       phiLocked: !!readNodeDragPhiLocked(nodeView, row),
       maxThetaDeg: thetaMax < 0 ? null : thetaMax * RAD_TO_DEG,

@@ -118,16 +118,33 @@ var nodeAttrHandlers = map[string]func(ctx context.Context, msg inputcodec.Stdin
 	"dragActive": func(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch) {
 		sendRuleEdit(ctx, md, msg.Num, rulenode.Edit{Kind: rulenode.EditActiveToggle})
 	},
+	"kindActive": func(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch) {
+		row := msg.Num
+		if row < 0 || row >= len(md.Rules.KindTogglesByNodeRow) {
+			panic(fmt.Sprintf(
+				"kindActive: node row %d is outside the %d rows the tree declares, so a kind-rule toggle names an "+
+					"entity the row space has no slot for — the webview and the loaded tree disagree about how many "+
+					"nodes exist", row, len(md.Rules.KindTogglesByNodeRow)))
+		}
+		toggle := md.Rules.KindTogglesByNodeRow[row]
+		if toggle == nil {
+			return
+		}
+		select {
+		case toggle <- struct{}{}:
+		case <-ctx.Done():
+		}
+	},
 }
 
 func sendRuleEdit(ctx context.Context, md *dispatch.MoveDispatch, row int, edit rulenode.Edit) {
-	if row < 0 || row >= len(md.RuleEdits) {
+	if row < 0 || row >= len(md.Rules.EditsByNodeRow) {
 		panic(fmt.Sprintf(
 			"sendRuleEdit: node row %d is outside the %d rows the tree declares, so a rule edit names an entity "+
 				"the row space has no slot for — the webview and the loaded tree disagree about how many nodes exist",
-			row, len(md.RuleEdits)))
+			row, len(md.Rules.EditsByNodeRow)))
 	}
-	edits := md.RuleEdits[row]
+	edits := md.Rules.EditsByNodeRow[row]
 	if edits == nil {
 		return
 	}
