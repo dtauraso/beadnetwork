@@ -14,3 +14,4 @@ export const IN_PANEL_ATTR_TOGGLE = 11;
 export const IN_NODE_ATTR_DRAG_PHI = 12;
 export const IN_NODE_ATTR_DRAG_MAX_THETA = 13;
 export const IN_NODE_ATTR_DRAG_ACTIVE = 14;
+export const IN_NODE_ATTR_KIND_ACTIVE = 15;

@@ -16,7 +16,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/wire/outport"
 )
 
-type EdgeFrameBuilder = func(tick uint32, sx, sy, sz, ex, ey, ez float32, srcNodeRow, dstNodeRow int32, deltaR float32, label string, events []rowevent.RowEvent) []byte
+type EdgeFrameBuilder = func(tick uint32, sx, sy, sz, ex, ey, ez float32, srcNodeRow, dstNodeRow int32, deltaR float32, dragActive uint8, label string, events []rowevent.RowEvent) []byte
 
 type outEdge struct {
 	label      string
@@ -38,6 +38,8 @@ type outEdge struct {
 
 	persistedDragIdx polarindex.Offset
 	hasPersisted     bool
+
+	ruleInactive bool
 }
 
 type OutEdges struct {
@@ -78,6 +80,17 @@ func (o *OutEdges) BindWire(label, targetID, targetKind string, port *outport.Ou
 	if e.targetKind == "" {
 		e.targetKind = targetKind
 	}
+}
+
+func (o *OutEdges) SetEdgeRuleActive(label string, active bool) {
+	o.edgeFor(label).ruleInactive = !active
+}
+
+func activeByte(inactive bool) uint8 {
+	if inactive {
+		return 0
+	}
+	return 1
 }
 
 func (o *OutEdges) Any() bool { return len(o.edges) > 0 }
@@ -162,7 +175,7 @@ func (o *OutEdges) WriteFrames(tick int64, self nodegeom.NodeGeom, deltas *Delta
 		frame := o.buildFrame(uint32(tick),
 			float32(start.X), float32(start.Y), float32(start.Z),
 			float32(end.X), float32(end.Y), float32(end.Z),
-			o.nodeRow, e.dstNodeRow, e.deltaR, e.label, nil)
+			o.nodeRow, e.dstNodeRow, e.deltaR, activeByte(e.ruleInactive), e.label, nil)
 		var hdr [4]byte
 		binary.LittleEndian.PutUint32(hdr[:], uint32(len(frame)))
 		_, _ = e.out.Write(hdr[:])

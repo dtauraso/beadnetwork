@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
+	"github.com/dtauraso/wirefold/nodes/Wiring/edgefile"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/nodefiles"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodedrag"
@@ -67,9 +68,34 @@ func (b *buildCtx) buildMoveDispatch() error {
 		rn := nm.RuleNode()
 		rn.SetPersistRoot(b.scenePath)
 		rn.SeedRule(n.Drag, active)
+		rn.SeedKindActive(nodefiles.LoadKindRuleActive(b.scenePath, n.ID))
 		if n.TopTiltVectorPhiIdx != nil {
 			nm.SetTopTiltVectorPhiIdx(*n.TopTiltVectorPhiIdx)
 		}
+	}
+
+	targetByLabel := make(map[string]string, len(b.spec.Edges))
+	sourceByLabel := make(map[string]string, len(b.spec.Edges))
+	for _, e := range b.spec.Edges {
+		active := edgefile.LoadEdgeRuleActive(b.scenePath, e.Source, e.Label)
+		if src, ok := md.MR.NodeGeoms()[e.Source]; ok {
+			src.RuleNode().SeedEdgeActive(e.Target, active)
+		}
+		if dst, ok := md.MR.NodeGeoms()[e.Target]; ok {
+			dst.RuleNode().SeedEdgeActive(e.Source, active)
+		}
+		targetByLabel[e.Label] = e.Target
+		sourceByLabel[e.Label] = e.Source
+	}
+
+	md.Rules.TogglesByEdgeRow = make([]chan<- struct{}, len(md.RT.EdgeRowTable))
+	for row, label := range md.RT.EdgeRowTable {
+		src, okS := md.MR.NodeGeoms()[sourceByLabel[label]]
+		target, okT := targetByLabel[label], true
+		if !okS || !okT {
+			continue
+		}
+		md.Rules.TogglesByEdgeRow[row] = src.RuleNode().EdgeToggleChannel(target)
 	}
 
 	for _, nm := range md.MR.NodeGeoms() {

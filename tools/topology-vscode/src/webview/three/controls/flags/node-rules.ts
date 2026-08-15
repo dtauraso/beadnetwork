@@ -10,6 +10,7 @@ import {
   readNodeDragThetaMax,
   readNodeDragActive,
   readNodeHasKindRule,
+  readNodeKindRuleActive,
   readNodeRuleGroupId,
   readNodeRuleGroupSize,
 } from "../../../../schema/buffer-layout/buffer-layout";
@@ -29,6 +30,10 @@ export interface EdgePartner {
   incoming: boolean;
 
   r: number;
+
+  edgeRow: number;
+
+  active: boolean;
 }
 
 export interface NodeRuleRow {
@@ -40,6 +45,8 @@ export interface NodeRuleRow {
   hasRule: boolean;
 
   hasKindRule: boolean;
+
+  kindActive: boolean;
 
   active: boolean;
 
@@ -89,7 +96,9 @@ function partnersEqual(a: EdgePartner[], b: EdgePartner[]): boolean {
       ai.otherRow !== bi.otherRow ||
       ai.otherLabel !== bi.otherLabel ||
       ai.incoming !== bi.incoming ||
-      ai.r !== bi.r
+      ai.r !== bi.r ||
+      ai.edgeRow !== bi.edgeRow ||
+      ai.active !== bi.active
     ) {
       return false;
     }
@@ -109,6 +118,7 @@ function ruleRowsEqual(a: NodeRuleRow[], b: NodeRuleRow[]): boolean {
       ai.kind !== bi.kind ||
       ai.hasRule !== bi.hasRule ||
       ai.hasKindRule !== bi.hasKindRule ||
+      ai.kindActive !== bi.kindActive ||
       ai.active !== bi.active ||
       ai.phiLocked !== bi.phiLocked ||
       ai.maxThetaDeg !== bi.maxThetaDeg ||
@@ -165,8 +175,9 @@ function partnersByNode(decoded: ReturnType<typeof getNodeFrame>): Map<number, E
     const dst = edges.dstNodeRow(edgeRow);
     if (src < 0 || dst < 0) continue;
     const r = Math.abs(edges.deltaR(edgeRow));
-    add(src, { otherRow: dst, otherLabel: nodeLabel(decoded, dst), incoming: false, r });
-    add(dst, { otherRow: src, otherLabel: nodeLabel(decoded, src), incoming: true, r });
+    const active = edges.dragActive(edgeRow);
+    add(src, { otherRow: dst, otherLabel: nodeLabel(decoded, dst), incoming: false, r, edgeRow, active });
+    add(dst, { otherRow: src, otherLabel: nodeLabel(decoded, src), incoming: true, r, edgeRow, active });
   }
   return byNode;
 }
@@ -189,6 +200,7 @@ export function readNodeRuleRows(): NodeRuleRow[] | null {
       kind: kindNameFor(nodeView, row),
       hasRule,
       hasKindRule: !!readNodeHasKindRule(nodeView, row),
+      kindActive: !!readNodeKindRuleActive(nodeView, row),
       active: !!readNodeDragActive(nodeView, row),
       phiLocked: !!readNodeDragPhiLocked(nodeView, row),
       maxThetaDeg: thetaMax < 0 ? null : thetaMax * RAD_TO_DEG,

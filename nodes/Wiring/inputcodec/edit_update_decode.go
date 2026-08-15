@@ -27,6 +27,8 @@ func decodeEditUpdate(r *recread.Reader) (StdinMsg, bool) {
 		return decodeUpdatePanels(r, attr)
 	case "node":
 		return decodeUpdateNode(r, attr)
+	case "edge":
+		return decodeUpdateEdge(r, attr)
 	}
 	return StdinMsg{}, false
 }

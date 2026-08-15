@@ -65,11 +65,12 @@ type bufLayoutNode struct {
 
 	MsgsToParallel int32 `buf:"i32"`
 
-	DragRLocked   uint8   `buf:"u8"`
-	DragPhiLocked uint8   `buf:"u8"`
-	DragThetaMax  float32 `buf:"f32"`
-	DragActive    uint8   `buf:"u8"`
-	HasKindRule   uint8   `buf:"u8"`
+	DragRLocked    uint8   `buf:"u8"`
+	DragPhiLocked  uint8   `buf:"u8"`
+	DragThetaMax   float32 `buf:"f32"`
+	DragActive     uint8   `buf:"u8"`
+	HasKindRule    uint8   `buf:"u8"`
+	KindRuleActive uint8   `buf:"u8"`
 
 	RuleGroupId   int32 `buf:"i32"`
 	RuleGroupSize int32 `buf:"i32"`

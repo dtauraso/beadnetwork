@@ -47,6 +47,7 @@ type NodeFrameInput struct {
 	DragThetaMax               float32
 	DragActive                 uint8
 	HasKindRule                uint8
+	KindRuleActive             uint8
 
 	RuleGroupID, RuleGroupSize int32
 

@@ -33,6 +33,9 @@ func (m *NodeGeometry) drainRuleMesh() {
 		m.topo.SetDragRule(state.Rule)
 		m.topo.SetDragActive(state.Active)
 		m.rule.SetGroup(state.GroupID, state.GroupSize)
+		for target, active := range state.EdgeActive {
+			m.outEdges.SetEdgeRuleActive(m.id+"To"+target, active)
+		}
 		changed = true
 	}
 	if !changed {

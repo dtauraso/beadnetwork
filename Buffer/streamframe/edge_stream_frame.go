@@ -7,7 +7,7 @@ import (
 	B "github.com/dtauraso/wirefold/Buffer"
 )
 
-func BuildEdgeStreamFrame(tick uint32, sx, sy, sz, ex, ey, ez float32, srcNodeRow, dstNodeRow int32, deltaR float32, label string, events []StreamEvent) []byte {
+func BuildEdgeStreamFrame(tick uint32, sx, sy, sz, ex, ey, ez float32, srcNodeRow, dstNodeRow int32, deltaR float32, dragActive uint8, label string, events []StreamEvent) []byte {
 	labelBytes := []byte(label)
 	size := B.BufEdgeStreamFrameHeaderSize + B.BufEdgeStride + len(labelBytes)
 	buf := make([]byte, size)
@@ -17,7 +17,7 @@ func BuildEdgeStreamFrame(tick uint32, sx, sy, sz, ex, ey, ez float32, srcNodeRo
 	binary.LittleEndian.PutUint32(buf[off:], uint32(len(labelBytes)))
 	off += 4
 
-	B.SetEdgeRow(buf[off:off+B.BufEdgeStride], 0, sx, sy, sz, ex, ey, ez, srcNodeRow, dstNodeRow, deltaR, 0, uint32(len(labelBytes)))
+	B.SetEdgeRow(buf[off:off+B.BufEdgeStride], 0, sx, sy, sz, ex, ey, ez, srcNodeRow, dstNodeRow, deltaR, dragActive, 0, uint32(len(labelBytes)))
 	off += B.BufEdgeStride
 	copy(buf[off:off+len(labelBytes)], labelBytes)
 	off += len(labelBytes)

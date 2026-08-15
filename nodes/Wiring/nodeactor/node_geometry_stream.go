@@ -14,6 +14,13 @@ import (
 	T "github.com/dtauraso/wirefold/Trace"
 )
 
+func boolU8(b bool) uint8 {
+	if b {
+		return 1
+	}
+	return 0
+}
+
 func hasKindRuleU8(kind string) uint8 {
 	if nodedrag.HasKindRule(kind) {
 		return 1
@@ -131,6 +138,7 @@ func (m *NodeGeometry) writeStreamFrame(events []rowevent.RowEvent) {
 		RoundsToParallel:    roundsToParallel,
 		MsgsToParallel:      msgsToParallel,
 		HasKindRule:         hasKindRuleU8(m.SelfKind()),
+		KindRuleActive:      boolU8(m.KindRuleActive()),
 		RuleGroupID:         ruleGroupID,
 		RuleGroupSize:       ruleGroupSize,
 		DragRLocked:         dragRLocked,

@@ -13,6 +13,9 @@ func init() {
 }
 
 func trimOwnDrag(delta polarindex.Offset, of nodedrag.Node) polarindex.Offset {
+	if !of.KindRuleActive() {
+		return nodedrag.TrimToDragRule(delta, of)
+	}
 	delta = snapDeltaTheta(delta, of.Constants())
 	delta = nodedrag.TrimToDragRule(delta, of)
 	return holdEqualOutLengths(delta, of)

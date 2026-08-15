@@ -1,6 +1,11 @@
 import { useState } from "react";
 import { postGoRecord } from "../../../vscode-api";
-import { encodeNodeDragPhiToggle, encodeNodeDragMaxTheta } from "../../../../schema/input/input-encode";
+import {
+  encodeNodeDragPhiToggle,
+  encodeNodeDragMaxTheta,
+  encodeEdgeDragActiveToggle,
+  encodeNodeKindActiveToggle,
+} from "../../../../schema/input/input-encode";
 import { type NodeRuleRow, type EdgePartner } from "../flags/node-rules";
 
 export function ComponentLine({
@@ -98,9 +103,15 @@ const KIND_SPANNING_RULES: Record<string, string[]> = {
 export function EdgeBlock({ rule, partner }: { rule: NodeRuleRow; partner: EdgePartner }) {
   const holder = rule.holders.find((h) => h.holderRow === partner.otherRow);
   return (
-    <div className="node-rules-holder">
+    <div className={partner.active ? "node-rules-holder" : "node-rules-holder node-rules-holder--inactive"}>
       <div className="node-rules-holder-name">
-        {rule.label} <span className="node-rules-node">↔ {partner.otherLabel}</span>
+        <input
+          type="checkbox"
+          title="trim drags on this edge"
+          checked={partner.active}
+          onChange={() => postGoRecord(encodeEdgeDragActiveToggle(partner.edgeRow))}
+        />{" "}
+        {rule.label} <span className="node-rules-node">→ {partner.otherLabel}</span>
       </div>
       <div className="node-rules-components">
         {holder ? (
@@ -130,10 +141,16 @@ export function SpanningBlock({ rule }: { rule: NodeRuleRow }) {
   const axis = KIND_AXIS_RULES[rule.kind] ?? [];
   const spanning = KIND_SPANNING_RULES[rule.kind] ?? [];
   if (axis.length === 0 && spanning.length === 0) return null;
-  const count = rule.partners.length;
+  const count = rule.partners.filter((p) => !p.incoming).length;
   return (
-    <div className="node-rules-holder">
+    <div className={rule.kindActive ? "node-rules-holder" : "node-rules-holder node-rules-holder--inactive"}>
       <div className="node-rules-holder-name">
+        <input
+          type="checkbox"
+          title="trim drags across these edges"
+          checked={rule.kindActive}
+          onChange={() => postGoRecord(encodeNodeKindActiveToggle(rule.row))}
+        />{" "}
         {count === 2 ? "both" : `all ${count}`}
       </div>
       <div className="node-rules-components">

@@ -79,6 +79,7 @@ func wireNodeStreams(streamFDs SF.StreamFDs, md *W.MoveDispatch) {
 						DragThetaMax:        f.DragThetaMax,
 						DragActive:          f.DragActive,
 						HasKindRule:         f.HasKindRule,
+						KindRuleActive:      f.KindRuleActive,
 						RuleGroupID:         f.RuleGroupID,
 						RuleGroupSize:       f.RuleGroupSize,
 						Label:               f.Label,

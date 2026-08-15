@@ -11,9 +11,10 @@ export const EDGE_COL_EZ                         = 20; // f32
 export const EDGE_COL_SRC_NODE_ROW               = 24; // i32
 export const EDGE_COL_DST_NODE_ROW               = 28; // i32
 export const EDGE_COL_DELTA_R                    = 32; // f32
-export const EDGE_COL_EDGE_LABEL_OFF             = 36; // u32
-export const EDGE_COL_EDGE_LABEL_LEN             = 40; // u32
-export const EDGE_STRIDE                         = 44;
+export const EDGE_COL_DRAG_ACTIVE                = 36; // u8
+export const EDGE_COL_EDGE_LABEL_OFF             = 37; // u32
+export const EDGE_COL_EDGE_LABEL_LEN             = 41; // u32
+export const EDGE_STRIDE                         = 45;
 
 export function readEdgeSX(view: DataView, row: number): number { return view.getFloat32(row * EDGE_STRIDE + EDGE_COL_SX, true); }
 export function readEdgeSY(view: DataView, row: number): number { return view.getFloat32(row * EDGE_STRIDE + EDGE_COL_SY, true); }
@@ -24,6 +25,7 @@ export function readEdgeEZ(view: DataView, row: number): number { return view.ge
 export function readEdgeSrcNodeRow(view: DataView, row: number): number { return view.getInt32(row * EDGE_STRIDE + EDGE_COL_SRC_NODE_ROW, true); }
 export function readEdgeDstNodeRow(view: DataView, row: number): number { return view.getInt32(row * EDGE_STRIDE + EDGE_COL_DST_NODE_ROW, true); }
 export function readEdgeDeltaR(view: DataView, row: number): number { return view.getFloat32(row * EDGE_STRIDE + EDGE_COL_DELTA_R, true); }
+export function readEdgeDragActive(view: DataView, row: number): number { return view.getUint8(row * EDGE_STRIDE + EDGE_COL_DRAG_ACTIVE); }
 export function readEdgeEdgeLabelOff(view: DataView, row: number): number { return view.getUint32(row * EDGE_STRIDE + EDGE_COL_EDGE_LABEL_OFF, true); }
 export function readEdgeEdgeLabelLen(view: DataView, row: number): number { return view.getUint32(row * EDGE_STRIDE + EDGE_COL_EDGE_LABEL_LEN, true); }
 

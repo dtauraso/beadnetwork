@@ -58,7 +58,25 @@ func WriteDragRule(root, id string, rule *polar.DragRule) error {
 }
 
 type ruleActiveFile struct {
-	Active bool `json:"active"`
+	Active     bool  `json:"active"`
+	KindActive *bool `json:"kindActive,omitempty"`
+}
+
+func WriteKindRuleActive(root, id string, active bool) error {
+	return jsonpersist.ReadModifyWriteJSON(nodeRuleActiveFilePath(root, id), func(m map[string]any) {
+		m["kindActive"] = active
+	})
+}
+
+func LoadKindRuleActive(root, id string) bool {
+	var f ruleActiveFile
+	if !jsonpersist.ReadJSONIfExists(nodeRuleActiveFilePath(root, id), &f) {
+		return true
+	}
+	if f.KindActive == nil {
+		return true
+	}
+	return *f.KindActive
 }
 
 func WriteDragActive(root, id string, active bool) error {
