@@ -21,5 +21,5 @@ func (lq *LayoutQuantizer) CommitNodeMoveLocal(nodeGeoms map[string]*nodeactor.N
 		map[string]polarindex.Index{nodeID: deltaIdx},
 		nm.SendMove())
 
-	nm.CommitQuantOffset(committedIdx)
+	nm.CommitIndex()
 }

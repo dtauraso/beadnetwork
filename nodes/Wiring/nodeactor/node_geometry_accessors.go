@@ -76,10 +76,8 @@ func (m *NodeGeometry) SendMove() func(id string, msg movemsg.Msg) { return m.ms
 
 func (m *NodeGeometry) NeighborIDs() []string { return m.msg.NeighborIDs() }
 
-func (m *NodeGeometry) CommitQuantOffset(committedIdx polarindex.Index) {
-	drag := polarindex.Delta(committedIdx, m.quant.Base())
-	m.quant.SetDrag(drag)
-	m.persistQuantOffset(drag)
+func (m *NodeGeometry) CommitIndex() {
+	m.persistIndex(m.geom.DragIndex)
 }
 
 func (m *NodeGeometry) WriteStreamFrame(events []rowevent.RowEvent) {

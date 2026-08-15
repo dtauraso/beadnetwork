@@ -44,14 +44,14 @@ func (b *buildCtx) buildMoveDispatch() error {
 			nm.SetSceneFlags(coplanarEdges, upAxis)
 		}
 	}
-	for id, off := range b.quantizedOffsets {
+	for id, off := range b.baseIndices {
 		if nm, ok := md.MR.NodeGeoms()[id]; ok {
-			nm.SetQuantOffset(off)
+			nm.SetBaseIndex(off)
 		}
 	}
-	for id, off := range b.dragQuantOffsets {
+	for id, off := range b.dragIndices {
 		if nm, ok := md.MR.NodeGeoms()[id]; ok {
-			nm.SetDragQuantOffset(off)
+			nm.SetDragIndex(off)
 		}
 	}
 

@@ -23,8 +23,7 @@ type NodeGeometry struct {
 	persistRoot string
 	selfKind    string
 
-	quant owners.Quant
-	tr    *T.Trace
+	tr *T.Trace
 
 	msg owners.Messaging
 
@@ -78,7 +77,6 @@ func NewNodeGeometry(id string, geom nodegeom.NodeGeom, tr *T.Trace, clockSrc cl
 	}
 
 	ng.msg.SeedCenter(nodegeom.NodeWorldPos(geom))
-	ng.quant.SetConstants(constants)
 	ng.outEdges.SetConstants(constants)
 	ng.deltas.SetConstants(constants)
 

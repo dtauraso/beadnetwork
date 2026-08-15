@@ -8,13 +8,13 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/polarindex"
 )
 
-func (nm *NodeGeometry) persistQuantOffset(off polarindex.Index) {
+func (nm *NodeGeometry) persistIndex(off polarindex.Index) {
 	if nm.persistRoot == "" {
 		return
 	}
 
-	if err := writeQuantOffset(nm.persistRoot, nm.id, off, nm.tilt.TopTiltVectorPhiIdx()); err != nil {
-		jsonpersist.LogPersistErr("quant_offset_persist", nm.id, err)
+	if err := writeIndex(nm.persistRoot, nm.id, off, nm.tilt.TopTiltVectorPhiIdx()); err != nil {
+		jsonpersist.LogPersistErr("index_persist", nm.id, err)
 	}
 }
 
@@ -22,12 +22,12 @@ func (nm *NodeGeometry) persistTiltVectorAngle() {
 	if nm.persistRoot == "" {
 		return
 	}
-	if err := writeQuantOffset(nm.persistRoot, nm.id, nm.quant.Drag(), nm.tilt.TopTiltVectorPhiIdx()); err != nil {
-		jsonpersist.LogPersistErr("quant_offset_persist", nm.id, err)
+	if err := writeIndex(nm.persistRoot, nm.id, nm.geom.DragIndex, nm.tilt.TopTiltVectorPhiIdx()); err != nil {
+		jsonpersist.LogPersistErr("index_persist", nm.id, err)
 	}
 }
 
-func writeQuantOffset(root, id string, off polarindex.Index, topTiltVectorPhiIdx int32) error {
+func writeIndex(root, id string, off polarindex.Index, topTiltVectorPhiIdx int32) error {
 	if !jsonpersist.SafeTreePathComponent(id) {
 		return fmt.Errorf("unsafe node id %q", id)
 	}

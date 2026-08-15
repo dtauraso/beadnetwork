@@ -34,8 +34,8 @@ type buildCtx struct {
 	nodeGeoms map[string]nodegeom.NodeGeom
 	centers   map[string]spatial.Vec3
 
-	quantizedOffsets map[string]polarindex.Index
-	dragQuantOffsets map[string]polarindex.Index
+	baseIndices map[string]polarindex.Index
+	dragIndices map[string]polarindex.Index
 
 	destWire      map[string]*wire.PacedWire
 	edgeWire      loadspec.WireRegistry
@@ -66,8 +66,8 @@ func buildFromSpec(ctx context.Context, spec loadspec.TopoSpec, tr *T.Trace, clk
 	b := &buildCtx{ctx: ctx, spec: spec, tr: tr, clk: clk, sphere: sphere, hasScene: hasScene, scenePath: scenePath}
 
 	b.nodeGeoms, b.centers = topoderive.ComputeNodeGeometry(b.spec, b.sphere)
-	b.quantizedOffsets = topoderive.ComputeQuantizedLayout(b.spec, b.sphere, b.centers, b.nodeGeoms)
-	b.dragQuantOffsets = topoderive.ComputeDragQuantOffsets(b.spec)
+	b.baseIndices = topoderive.ComputeBaseIndices(b.spec, b.sphere, b.centers, b.nodeGeoms)
+	b.dragIndices = topoderive.ComputeDragIndices(b.spec)
 	b.destWire, b.edgeWire, b.edgeEndpoints, b.edgeSteps, b.edgeSegments = topoderive.AllocateWires(b.spec, b.nodeGeoms, b.tr)
 	b.vectorOutByNode, b.vectorInByNode = topoderive.AllocateVectorChannels(b.spec)
 	if err := b.buildMoveDispatch(); err != nil {
