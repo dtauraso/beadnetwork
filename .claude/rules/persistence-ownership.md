@@ -83,8 +83,22 @@ process. From then on git treats the working-tree copy as authoritative and stop
 against the index, so a drag no longer shows up as a modified file — the same outcome
 `.gitignore` gave the old overlay file, achieved on a path that starts out committed instead
 of a path that never is. `Mark` is a no-op outside a git work tree (headless runs against a
-tmp dir) and panics loudly on a genuine git failure (e.g. a stuck `index.lock`) — a silently
-unmarked file is exactly the failure mode this exists to prevent.
+tmp dir).
+
+**`Mark` must never panic, and must never wait.** It runs on the NODE GOROUTINE, inside the
+drag commit path (`positionfile.Write` ← `persistQuantOffset` ← `CommitNodeMoveLocal` ←
+`takeDragOfSelf`). `.git/index.lock` contention is ROUTINE — any concurrent git command in
+this checkout holds that lock — so a fatal `Mark` kills node goroutines mid-drag. It shipped
+that way once: an ordinary `git status` during a drag killed the dragged node's goroutine,
+and the node stopped updating and dropped out of the scene. A file that reads as modified is
+a far cheaper failure than a dead node.
+
+A failed mark is NOT recorded, so the next write to that path retries it; geometry writes are
+gated on the value actually changing, so retries arrive with the next real drag rather than in
+a spin. The first failure per path goes to stderr (`go-errors.jsonl`) and later ones are
+suppressed, because a drag writes continuously and would flood it. There is no `time.Sleep`
+backoff — `check-no-wall-clock-wait` forbids parking a goroutine outside the clock, and the
+next-write retry is the backoff.
 
 A drag touches more than the node you grabbed: the dragged node shifts its own vectors, and
 each neighbour is told how far it moved and shifts its own — so a neighbour's `meta.json` and
