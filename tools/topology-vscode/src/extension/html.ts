@@ -35,19 +35,21 @@ export function buildWebviewHtml(
   <link rel="stylesheet" href="${styleUri.toString()}" />
 </head>
 <body>
-  <!-- The toolbar's one mount. SpeedSlider and TiltVectorButtons both portal in here, so the
-       speed control and the start/reset tilt buttons sit on the same bar. The bar used to
-       open with a static <span id="status" class="clean">saved</span> — nothing in the
-       webview ever wrote to it, so it read "saved" forever regardless of state; the slider
-       names itself in that spot now. TiltVectorButtons' RESET half had its own row below
-       (#tilt-reset-mount), which is gone with it. -->
-  <!-- One fixed column pinned to the top-left corner. The toolbar and the polar-rules panel
-       are stacked by flex order, not by each carrying its own top/left: the panel used to be
-       fixed at top:44px, which assumed a one-row toolbar and overlapped it once the speed
-       slider and the tilt buttons stacked into two rows. -->
+  <!-- One fixed column pinned to the top-left corner. Every panel is stacked by flex order,
+       not by each carrying its own top/left: the polar rules panel used to be fixed at
+       top:44px, which assumed a one-row toolbar and overlapped it once the toolbar grew.
+       SpeedSlider and TiltVectorButtons used to share one #run-mount and so read as one
+       bar; they are separate boxes now. The bar used to open with a static
+       <span id="status" class="clean">saved</span> — nothing in the webview ever wrote to
+       it, so it read "saved" forever regardless of state; the slider names itself in that
+       spot now. TiltVectorButtons' RESET half had its own row below (#tilt-reset-mount),
+       which is gone with it. -->
   <div class="top-stack">
     <div class="toolbar">
       <span id="run-mount"></span>
+    </div>
+    <div class="toolbar">
+      <span id="tilt-mount"></span>
     </div>
     <div id="scene-tabs-mount"></div>
     <div id="node-rules-mount"></div>

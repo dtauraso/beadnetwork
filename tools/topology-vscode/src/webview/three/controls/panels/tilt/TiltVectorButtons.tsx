@@ -5,7 +5,7 @@ import { useTiltVectorRows } from "../../flags/overlay-flags-tilt-vectors";
 
 export function TiltVectorButtons() {
   const rows = useTiltVectorRows();
-  const mount = document.getElementById("run-mount");
+  const mount = document.getElementById("tilt-mount");
   if (!mount || !rows || rows.length === 0) return null;
 
   const start = () => {
