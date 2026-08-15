@@ -153,9 +153,10 @@ function NodeBlock({ rule, members }: { rule: NodeRuleRow; members: NodeRuleRow[
           <button
             className="node-rules-shared-pill"
             title={`This rule is shared by ${rule.groupSize} nodes`}
-            onClick={(e) =>
-              setMenuAnchor((open) => (open ? null : e.currentTarget.getBoundingClientRect()))
-            }
+            onClick={(e) => {
+              const rect = e.currentTarget.getBoundingClientRect();
+              setMenuAnchor((open) => (open ? null : rect));
+            }}
           >
             ⇄ shared ×{rule.groupSize}
           </button>
