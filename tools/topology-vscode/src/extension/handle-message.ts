@@ -90,7 +90,19 @@ async function dispatch(msg: WebviewToHostMsg, ctx: MessageCtx): Promise<void> {
       return;
     case "go-record":
 
-      if (!runner.isRunning()) return;
+      if (!runner.isRunning()) {
+
+        await appendWebviewLog(
+          JSON.stringify({
+            ts_ms: Date.now(),
+            src: "ts-ext",
+            label: "input-dropped",
+            message: `a ${msg.record.byteLength}-byte go-record was discarded because the sim is not running, so the control that sent it looks dead with nothing said`,
+          }),
+          logUri,
+        );
+        return;
+      }
       runner.writeStdin(msg.record);
       return;
     // LIVE_CASES_END
