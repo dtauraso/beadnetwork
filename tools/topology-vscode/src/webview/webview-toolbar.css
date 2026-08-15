@@ -13,18 +13,23 @@ html, body { margin: 0; padding: 0; height: 100%; background: #fafafa; font-fami
 .toolbar:has(> span:empty) { display: none; }
 #run-mount, #tilt-mount { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
 .tilt-vector-btn-row { display: flex; flex-direction: row; gap: 6px; align-items: flex-start; }
-.tilt-rounds-readout { display: flex; flex-direction: column; gap: 3px; align-items: flex-start; font-size: 13px; font-weight: 600; color: #222; white-space: nowrap; }
-.tilt-rounds-group { display: flex; flex-direction: row; gap: 5px; align-items: center; }
-.tilt-rounds-node { color: #222; font-weight: 700; }
-.tilt-rounds-cell {
-  display: inline-flex; align-items: baseline; gap: 4px;
+/* A table: one column per node, headed by its name, one row per measure. The
+   grid-template-columns come from the component, since the column count is the node
+   count. This replaced a row-per-node flex list whose dark key+value cells repeated the
+   word "rounds" and "msgs" once per node. */
+.tilt-rounds-readout {
+  display: grid; gap: 3px 6px; align-items: center; justify-items: stretch;
+  font-size: 13px; font-weight: 600; color: #222; white-space: nowrap;
+}
+.tilt-rounds-node { color: #222; font-weight: 700; text-align: center; }
+.tilt-rounds-key { color: #666; font-weight: 500; font-size: 11px; text-align: right; }
+.tilt-rounds-val {
+  color: #fff; font-weight: 700; text-align: center;
   font-variant-numeric: tabular-nums;
   padding: 2px 7px;
   border-radius: 3px;
   background: #222;
 }
-.tilt-rounds-key { color: #bdbdbd; font-weight: 500; font-size: 11px; }
-.tilt-rounds-val { color: #fff; font-weight: 700; }
 .tilt-start-btn { padding: 3px 10px; }
 .tilt-reset-btn { padding: 3px 10px; }
 .timeline-panel { z-index: 10; }

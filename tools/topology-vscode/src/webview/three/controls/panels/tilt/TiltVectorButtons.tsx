@@ -29,19 +29,22 @@ export function TiltVectorButtons() {
           reset tilt
         </button>
       </span>
-      <span className="tilt-rounds-readout" aria-label="rounds and messages to parallel">
+      <span
+        className="tilt-rounds-readout"
+        aria-label="rounds and messages to parallel"
+        style={{ gridTemplateColumns: `auto repeat(${rows.length}, minmax(2.2em, auto))` }}
+      >
+        <span />
         {rows.map((row) => (
-          <span key={row.row} className="tilt-rounds-group">
-            <span className="tilt-rounds-node">node {row.label}</span>
-            <span className="tilt-rounds-cell">
-              <span className="tilt-rounds-key">rounds</span>
-              <span className="tilt-rounds-val">{row.roundsToParallel}</span>
-            </span>
-            <span className="tilt-rounds-cell">
-              <span className="tilt-rounds-key">msgs</span>
-              <span className="tilt-rounds-val">{row.msgsToParallel}</span>
-            </span>
-          </span>
+          <span key={row.row} className="tilt-rounds-node">node {row.label}</span>
+        ))}
+        <span className="tilt-rounds-key">rounds</span>
+        {rows.map((row) => (
+          <span key={row.row} className="tilt-rounds-val">{row.roundsToParallel}</span>
+        ))}
+        <span className="tilt-rounds-key">msgs</span>
+        {rows.map((row) => (
+          <span key={row.row} className="tilt-rounds-val">{row.msgsToParallel}</span>
         ))}
       </span>
     </>,
