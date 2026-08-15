@@ -13,14 +13,14 @@ type Node interface {
 	DragRuleActive() bool
 	NeighborKinds() map[string]string
 	IsOutTarget(neighborID string) bool
-	DeltaFrom(otherID string) (polarindex.Index, bool)
+	DeltaFrom(otherID string) (polarindex.Offset, bool)
 	OutTargets() []string
-	DeltaTo(otherID string) (polarindex.Index, bool)
+	DeltaTo(otherID string) (polarindex.Offset, bool)
 }
 
-type Trim func(delta polarindex.Index, of Node) polarindex.Index
+type Trim func(delta polarindex.Offset, of Node) polarindex.Offset
 
-type Request func(delta polarindex.Index, of Node) map[string]polarindex.Index
+type Request func(delta polarindex.Offset, of Node) map[string]polarindex.Offset
 
 var trims = map[string]Trim{}
 
@@ -48,7 +48,7 @@ func HasKindRule(kind string) bool {
 	return ok
 }
 
-func Apply(kind string, delta polarindex.Index, of Node) polarindex.Index {
+func Apply(kind string, delta polarindex.Offset, of Node) polarindex.Offset {
 	if !of.DragRuleActive() {
 		return delta
 	}
@@ -58,7 +58,7 @@ func Apply(kind string, delta polarindex.Index, of Node) polarindex.Index {
 	return TrimToDragRule(delta, of)
 }
 
-func Requested(kind string, delta polarindex.Index, of Node) map[string]polarindex.Index {
+func Requested(kind string, delta polarindex.Offset, of Node) map[string]polarindex.Offset {
 	if !of.DragRuleActive() {
 		return nil
 	}
@@ -69,7 +69,7 @@ func Requested(kind string, delta polarindex.Index, of Node) map[string]polarind
 	return r(delta, of)
 }
 
-func TrimToDragRule(delta polarindex.Index, of Node) polarindex.Index {
+func TrimToDragRule(delta polarindex.Offset, of Node) polarindex.Offset {
 	rule := of.DragRule()
 	if rule == nil || !of.DragRuleActive() {
 		return delta
@@ -79,16 +79,16 @@ func TrimToDragRule(delta polarindex.Index, of Node) polarindex.Index {
 		if of.IsOutTarget(neighborID) {
 			continue
 		}
-		haveIdx, ok := of.DeltaFrom(neighborID)
+		haveOff, ok := of.DeltaFrom(neighborID)
 		if !ok {
 			continue
 		}
-		have := polarindex.ToPolar(haveIdx, sc)
-		wantIdx := polarindex.Sum(haveIdx, delta)
-		want := polarindex.ToPolar(wantIdx, sc)
+		have := polarindex.OffsetToPolar(haveOff, sc)
+		wantOff := polarindex.Sum(haveOff, delta)
+		want := polarindex.OffsetToPolar(wantOff, sc)
 		trimmed := rule.TrimDelta(have, want)
-		trimmedIdx := polarindex.MeasureScalar(trimmed, sc)
-		delta = polarindex.Delta(trimmedIdx, haveIdx)
+		trimmedOff := polarindex.MeasureOffset(trimmed, sc)
+		delta = polarindex.Sum(trimmedOff, polarindex.Neg(haveOff))
 	}
 	return delta
 }

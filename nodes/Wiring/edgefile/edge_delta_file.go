@@ -23,22 +23,22 @@ type dragIndexFields struct {
 	IndexR     *int `json:"indexR,omitempty"`
 }
 
-func ReadEdgeDragIndex(root, src, label string) (polarindex.Index, bool) {
+func ReadEdgeDragIndex(root, src, label string) (polarindex.Offset, bool) {
 	var df dragIndexFields
 	if !jsonpersist.ReadJSONIfExists(edgeDragPath(root, src, label), &df) {
-		return polarindex.Index{}, false
+		return polarindex.Offset{}, false
 	}
 	if df.IndexPhi == nil || df.IndexTheta == nil || df.IndexR == nil {
-		return polarindex.Index{}, false
+		return polarindex.Offset{}, false
 	}
-	return polarindex.Index{Phi: *df.IndexPhi, Theta: *df.IndexTheta, R: *df.IndexR}, true
+	return polarindex.Offset{Phi: *df.IndexPhi, Theta: *df.IndexTheta, R: *df.IndexR}, true
 }
 
-func WriteEdgeDrag(root, src, label string, idx polarindex.Index) error {
+func WriteEdgeDrag(root, src, label string, off polarindex.Offset) error {
 	path := edgeDragPath(root, src, label)
 	return jsonpersist.WriteJSONAtomic(path, dragIndexFile{
-		IndexPhi:   idx.Phi,
-		IndexTheta: idx.Theta,
-		IndexR:     idx.R,
+		IndexPhi:   off.Phi,
+		IndexTheta: off.Theta,
+		IndexR:     off.R,
 	})
 }

@@ -42,23 +42,23 @@ func (m *NodeGeometry) NeighborKinds() map[string]string { return m.topo.Neighbo
 
 func (m *NodeGeometry) OutTargets() []string { return m.outTargets }
 
-func (m *NodeGeometry) SetBaseDeltaTo(otherID string, idx polarindex.Index) {
-	m.deltas.SetBaseDeltaTo(otherID, idx)
+func (m *NodeGeometry) SetBaseDeltaTo(otherID string, off polarindex.Offset) {
+	m.deltas.SetBaseDeltaTo(otherID, off)
 }
 
-func (m *NodeGeometry) SetDragDeltaTo(otherID string, idx polarindex.Index) {
-	m.deltas.SetDragDeltaTo(otherID, idx)
+func (m *NodeGeometry) SetDragDeltaTo(otherID string, off polarindex.Offset) {
+	m.deltas.SetDragDeltaTo(otherID, off)
 }
 
-func (m *NodeGeometry) DeltaTo(otherID string) (polarindex.Index, bool) {
+func (m *NodeGeometry) DeltaTo(otherID string) (polarindex.Offset, bool) {
 	return m.deltas.DeltaTo(otherID)
 }
 
-func (m *NodeGeometry) DeltaFrom(otherID string) (polarindex.Index, bool) {
+func (m *NodeGeometry) DeltaFrom(otherID string) (polarindex.Offset, bool) {
 	return m.deltas.DeltaFrom(otherID)
 }
 
-func (m *NodeGeometry) ShiftDeltasBy(delta polarindex.Index) { m.deltas.ShiftSelfBy(delta) }
+func (m *NodeGeometry) ShiftDeltasBy(delta polarindex.Offset) { m.deltas.ShiftSelfBy(delta) }
 
 func (m *NodeGeometry) ScenePolar() polar.Polar { return nodegeom.ScenePolarOf(m.geom) }
 

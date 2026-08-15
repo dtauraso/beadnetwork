@@ -12,13 +12,13 @@ func init() {
 	nodedrag.RegisterRequest("Input", equalOutLengths)
 }
 
-func trimOwnDrag(delta polarindex.Index, of nodedrag.Node) polarindex.Index {
+func trimOwnDrag(delta polarindex.Offset, of nodedrag.Node) polarindex.Offset {
 	delta = snapDeltaTheta(delta, of.Constants())
 	delta = nodedrag.TrimToDragRule(delta, of)
 	return holdEqualOutLengths(delta, of)
 }
 
-func snapDeltaTheta(delta polarindex.Index, sc polarindex.SceneConstants) polarindex.Index {
+func snapDeltaTheta(delta polarindex.Offset, sc polarindex.SceneConstants) polarindex.Offset {
 	if sc.MaxIndexTheta == 0 {
 		return delta
 	}
@@ -31,7 +31,7 @@ func snapDeltaTheta(delta polarindex.Index, sc polarindex.SceneConstants) polari
 	return delta
 }
 
-func holdEqualOutLengths(delta polarindex.Index, of nodedrag.Node) polarindex.Index {
+func holdEqualOutLengths(delta polarindex.Offset, of nodedrag.Node) polarindex.Offset {
 	longest, shortest, count := 0, 0, 0
 	for _, to := range of.OutTargets() {
 		d, ok := of.DeltaTo(to)
@@ -53,9 +53,9 @@ func holdEqualOutLengths(delta polarindex.Index, of nodedrag.Node) polarindex.In
 	return delta
 }
 
-func equalOutLengths(delta polarindex.Index, of nodedrag.Node) map[string]polarindex.Index {
+func equalOutLengths(delta polarindex.Offset, of nodedrag.Node) map[string]polarindex.Offset {
 	sc := of.Constants()
-	paths := map[string]polarindex.Index{}
+	paths := map[string]polarindex.Offset{}
 	shared := 0
 	for _, to := range of.OutTargets() {
 		p, ok := of.DeltaTo(to)
@@ -72,7 +72,7 @@ func equalOutLengths(delta polarindex.Index, of nodedrag.Node) map[string]polari
 	}
 	selfWas := of.ComposedIndex()
 	selfNow := polarindex.Compose(selfWas, delta, sc)
-	out := make(map[string]polarindex.Index, len(paths))
+	out := make(map[string]polarindex.Offset, len(paths))
 	for to, p := range paths {
 		wants := p
 		wants.R = shared

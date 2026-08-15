@@ -59,7 +59,7 @@ func (m *NodeGeometry) SetBaseIndex(off polarindex.Index) {
 	m.geom.BaseIndex = off
 }
 
-func (m *NodeGeometry) SetDragIndex(off polarindex.Index) {
+func (m *NodeGeometry) SetDragIndex(off polarindex.Offset) {
 	m.geom.DragIndex = off
 }
 

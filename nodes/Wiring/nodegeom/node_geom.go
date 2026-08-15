@@ -20,7 +20,7 @@ type NodeGeom struct {
 	NodeIdentity
 
 	BaseIndex polarindex.Index
-	DragIndex polarindex.Index
+	DragIndex polarindex.Offset
 	HasPos    bool
 }
 

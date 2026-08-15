@@ -47,7 +47,7 @@ func (n specNode) ToNodeGeom(sceneCenter spatial.Vec3, sc polarindex.SceneConsta
 		g.HasPos = true
 	}
 	if n.DragIndexPhi != nil && n.DragIndexTheta != nil && n.DragIndexR != nil {
-		g.DragIndex = polarindex.Index{Phi: *n.DragIndexPhi, Theta: *n.DragIndexTheta, R: *n.DragIndexR}
+		g.DragIndex = polarindex.Offset{Phi: *n.DragIndexPhi, Theta: *n.DragIndexTheta, R: *n.DragIndexR}
 	}
 	return g
 }

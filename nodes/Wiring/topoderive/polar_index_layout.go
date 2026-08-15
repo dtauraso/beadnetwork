@@ -8,10 +8,10 @@ import (
 	"github.com/dtauraso/wirefold/nodes/spatial"
 )
 
-func ComputeDragIndices(spec loadspec.TopoSpec) map[string]polarindex.Index {
-	out := make(map[string]polarindex.Index, len(spec.Nodes))
+func ComputeDragIndices(spec loadspec.TopoSpec) map[string]polarindex.Offset {
+	out := make(map[string]polarindex.Offset, len(spec.Nodes))
 	for _, n := range spec.Nodes {
-		var o polarindex.Index
+		var o polarindex.Offset
 		if n.DragIndexPhi != nil {
 			o.Phi = *n.DragIndexPhi
 		}
