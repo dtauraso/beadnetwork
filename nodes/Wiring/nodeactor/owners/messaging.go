@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
+	"github.com/dtauraso/wirefold/nodes/Wiring/polarindex"
 )
 
 type Messaging struct {
@@ -19,7 +19,7 @@ type Messaging struct {
 
 	resolveDest func(id string) (func(movemsg.Msg) bool, bool)
 
-	commitLocal func(id string, newPos vec3, targetPolar *polar.Polar)
+	commitLocal func(id string, idx polarindex.Index)
 
 	pending []pendingSend
 }
@@ -36,7 +36,7 @@ func NewMessaging(extIn chan movemsg.Msg, neighborIn map[string]chan movemsg.Msg
 func (n *Messaging) WireMessaging(
 	resolveDest func(id string) (func(movemsg.Msg) bool, bool),
 	sendMove func(id string, msg movemsg.Msg),
-	commitLocal func(id string, newPos vec3, targetPolar *polar.Polar),
+	commitLocal func(id string, idx polarindex.Index),
 ) {
 	n.resolveDest = resolveDest
 	n.sendMove = sendMove
@@ -55,9 +55,9 @@ func (n *Messaging) SeedCenter(center vec3) {
 	n.centerOut <- center
 }
 
-func (n *Messaging) CommitLocal(id string, newPos vec3, targetPolar *polar.Polar) {
+func (n *Messaging) CommitLocal(id string, idx polarindex.Index) {
 	if n.commitLocal != nil {
-		n.commitLocal(id, newPos, targetPolar)
+		n.commitLocal(id, idx)
 	}
 }
 

@@ -98,7 +98,7 @@ func (o *OutEdges) DeriveGeometry(tick int64, self nodegeom.NodeGeom, deltas *De
 		return
 	}
 	selfCenter := nodegeom.NodeWorldPos(self)
-	ownPolar := polar.Cart2polar(selfCenter.Sub(self.SceneCenter))
+	selfIndex := nodegeom.ComposedIndexOf(self)
 
 	for i := range o.edges {
 		e := &o.edges[i]
@@ -106,7 +106,8 @@ func (o *OutEdges) DeriveGeometry(tick int64, self nodegeom.NodeGeom, deltas *De
 		if !ok {
 			continue
 		}
-		targetCenter := polar.Polar2cart(polar.Compose(ownPolar, d)).Add(self.SceneCenter)
+		targetIndex := polarindex.Compose(selfIndex, d, o.constants)
+		targetCenter := polar.Polar2cart(polarindex.ToPolar(targetIndex, o.constants)).Add(self.SceneCenter)
 
 		start, end := selfCenter, targetCenter
 		dir := targetCenter.Sub(selfCenter)
@@ -119,7 +120,7 @@ func (o *OutEdges) DeriveGeometry(tick int64, self nodegeom.NodeGeom, deltas *De
 			e.steps = edgegeom.EdgeStepCount(dist, self.Kind, e.targetKind)
 		}
 		e.start, e.end, e.derived = start, end, true
-		e.deltaR = float32(d.R)
+		e.deltaR = float32(d.R) * float32(o.constants.ConstantR)
 
 		if e.port != nil {
 			e.port.SetGeom(e.steps, start, end)
@@ -133,11 +134,10 @@ func (o *OutEdges) DeriveGeometry(tick int64, self nodegeom.NodeGeom, deltas *De
 	}
 }
 
-func (o *OutEdges) persistDelta(e *outEdge, dragDelta polar.Polar) {
+func (o *OutEdges) persistDelta(e *outEdge, idx polarindex.Index) {
 	if o.persistRoot == "" || o.srcID == "" {
 		return
 	}
-	idx := polarindex.MeasureScalar(dragDelta, o.constants)
 	if e.hasPersisted && e.persistedDragIdx == idx {
 		return
 	}

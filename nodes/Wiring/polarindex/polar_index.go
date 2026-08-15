@@ -104,3 +104,7 @@ func Delta(composed, base Index) Index {
 		R:     composed.R - base.R,
 	}
 }
+
+func Neg(o Index) Index {
+	return Index{Phi: -o.Phi, Theta: -o.Theta, R: -o.R}
+}

@@ -1,8 +1,10 @@
 package input
 
 import (
-	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
+	"math"
+
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodedrag"
+	"github.com/dtauraso/wirefold/nodes/Wiring/polarindex"
 )
 
 func init() {
@@ -10,14 +12,27 @@ func init() {
 	nodedrag.RegisterRequest("Input", equalOutLengths)
 }
 
-func trimOwnDrag(delta polar.Polar, of nodedrag.Node) polar.Polar {
-	delta = polar.SnapDeltaTheta(delta)
+func trimOwnDrag(delta polarindex.Index, of nodedrag.Node) polarindex.Index {
+	delta = snapDeltaTheta(delta, of.Constants())
 	delta = nodedrag.TrimToDragRule(delta, of)
 	return holdEqualOutLengths(delta, of)
 }
 
-func holdEqualOutLengths(delta polar.Polar, of nodedrag.Node) polar.Polar {
-	longest, shortest, count := 0.0, 0.0, 0
+func snapDeltaTheta(delta polarindex.Index, sc polarindex.SceneConstants) polarindex.Index {
+	if sc.MaxIndexTheta == 0 {
+		return delta
+	}
+	half := sc.MaxIndexTheta / 2
+	if half == 0 {
+		return delta
+	}
+	steps := int(math.Round(float64(delta.Theta) / float64(half)))
+	delta.Theta = steps * half
+	return delta
+}
+
+func holdEqualOutLengths(delta polarindex.Index, of nodedrag.Node) polarindex.Index {
+	longest, shortest, count := 0, 0, 0
 	for _, to := range of.OutTargets() {
 		d, ok := of.DeltaTo(to)
 		if !ok {
@@ -34,12 +49,14 @@ func holdEqualOutLengths(delta polar.Polar, of nodedrag.Node) polar.Polar {
 	if count < 2 || longest == shortest {
 		return delta
 	}
-	return polar.Polar{R: delta.R - (longest - shortest), Phi: delta.Phi, Theta: delta.Theta}
+	delta.R -= longest - shortest
+	return delta
 }
 
-func equalOutLengths(delta polar.Polar, of nodedrag.Node) map[string]polar.Polar {
-	paths := map[string]polar.Polar{}
-	shared := 0.0
+func equalOutLengths(delta polarindex.Index, of nodedrag.Node) map[string]polarindex.Index {
+	sc := of.Constants()
+	paths := map[string]polarindex.Index{}
+	shared := 0
 	for _, to := range of.OutTargets() {
 		p, ok := of.DeltaTo(to)
 		if !ok {
@@ -53,13 +70,15 @@ func equalOutLengths(delta polar.Polar, of nodedrag.Node) map[string]polar.Polar
 	if len(paths) == 0 {
 		return nil
 	}
-	selfWas := of.ScenePolar()
-	selfNow := polar.Compose(selfWas, delta)
-	out := make(map[string]polar.Polar, len(paths))
+	selfWas := of.ComposedIndex()
+	selfNow := polarindex.Compose(selfWas, delta, sc)
+	out := make(map[string]polarindex.Index, len(paths))
 	for to, p := range paths {
 		wants := p
 		wants.R = shared
-		out[to] = polar.Between(polar.Compose(selfWas, p), polar.Compose(selfNow, wants))
+		targetOld := polarindex.Compose(selfWas, p, sc)
+		targetNew := polarindex.Compose(selfNow, wants, sc)
+		out[to] = polarindex.Delta(targetNew, targetOld)
 	}
 	return out
 }

@@ -3,7 +3,6 @@ package dispatch
 import (
 	T "github.com/dtauraso/wirefold/Trace"
 	"github.com/dtauraso/wirefold/nodes/Wiring/edgetable"
-	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 	geomseeds "github.com/dtauraso/wirefold/nodes/Wiring/geomseeds"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
@@ -27,8 +26,8 @@ func (md *MoveDispatch) buildNodeMovers(geoms map[string]nodegeom.NodeGeom, tr *
 			return nil, false
 		}
 		ownGeom := ng
-		commitLocal := func(_ string, newPos vec3, targetPolar *polar.Polar) {
-			md.LQ.CommitNodeMoveLocal(md.MR.NodeGeoms(), md.MR.Edges(), &md.UI, ownGeom, newPos, targetPolar)
+		commitLocal := func(_ string, idx polarindex.Index) {
+			md.LQ.CommitNodeMoveLocal(md.MR.NodeGeoms(), md.MR.Edges(), ownGeom, idx)
 		}
 		ng.WireMessaging(resolveDest, md.MR.EnqueueFor(ng), commitLocal)
 		md.MR.NodeGeoms()[id] = ng

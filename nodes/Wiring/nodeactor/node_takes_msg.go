@@ -5,6 +5,7 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
+	"github.com/dtauraso/wirefold/nodes/Wiring/polarindex"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
 
 	T "github.com/dtauraso/wirefold/Trace"
@@ -47,7 +48,8 @@ func (m *NodeGeometry) takeNeighborMove(msg movemsg.Msg) {
 		m.deltas.ShiftOtherBy(msg.SenderID, *msg.Delta)
 	}
 	if msg.Center != nil {
-		m.ApplyCenter(*msg.Center)
+		idx := polarindex.Canonical(polarindex.MeasureScalar(polar.Cart2polar(msg.Center.Sub(m.SceneCenter())), m.Constants()), m.Constants())
+		m.ApplyCenter(idx)
 		return
 	}
 	if m.tr != nil {
@@ -59,11 +61,11 @@ func (m *NodeGeometry) takeDragOfSelf(msg movemsg.Msg) {
 	if msg.Delta == nil {
 		panic("nodeactor.takeDragOfSelf: drag of " + m.id + " carries no delta — a node is TOLD a delta and trims it itself, it is never handed a position")
 	}
-	moved := polar.Compose(m.ScenePolar(), m.TrimOwnDrag(*msg.Delta))
-	newPos := m.SceneCenter().Add(polar.Polar2cart(moved))
+	movedIdx := polarindex.Compose(m.ComposedIndex(), m.TrimOwnDrag(*msg.Delta), m.Constants())
 
-	m.msg.CommitLocal(m.id, newPos, &moved)
+	m.msg.CommitLocal(m.id, movedIdx)
 	if m.tr != nil {
+		newPos := m.SceneCenter().Add(polar.Polar2cart(polarindex.ToPolar(movedIdx, m.Constants())))
 		m.tr.Breadcrumb("drag.commit", m.id, "", fmt.Sprintf("newPos=(%.4f,%.4f,%.4f)", newPos.X, newPos.Y, newPos.Z))
 
 		m.writeStreamFrame([]rowevent.RowEvent{{

@@ -2,13 +2,13 @@ package layoutquant
 
 import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/edgetable"
-	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
+	"github.com/dtauraso/wirefold/nodes/Wiring/polarindex"
 	"github.com/dtauraso/wirefold/nodes/spatial"
 )
 
-func BroadcastToPartners(edges map[string]*edgetable.Edge, nodeGeoms map[string]*nodeactor.NodeGeometry, newCenters map[string]spatial.Vec3, moveDeltas map[string]polar.Polar, enqueue func(id string, msg movemsg.Msg)) {
+func BroadcastToPartners(edges map[string]*edgetable.Edge, nodeGeoms map[string]*nodeactor.NodeGeometry, newCenters map[string]spatial.Vec3, moveDeltas map[string]polarindex.Index, enqueue func(id string, msg movemsg.Msg)) {
 
 	partners := map[string]string{}
 	for _, e := range edges {

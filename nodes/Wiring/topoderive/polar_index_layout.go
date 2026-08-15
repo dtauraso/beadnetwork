@@ -52,15 +52,14 @@ func ComputeQuantizedLayout(spec loadspec.TopoSpec, sphere polar.SceneSphere, ce
 		offsets[n.ID] = polarindex.Index{}
 	}
 
-	derived := polarindex.DeriveCenters(offsets, sphere.Center, spec.Constants)
-	for id, pos := range derived {
+	for id, off := range offsets {
 		if exact[id] {
 			continue
 		}
-		centers[id] = pos
 		if g, ok := nodeGeoms[id]; ok {
-			nodegeom.SetNodeWorld(&g, pos)
+			nodegeom.SetNodeWorld(&g, off)
 			nodeGeoms[id] = g
+			centers[id] = nodegeom.NodeWorldPos(g)
 		}
 	}
 	return offsets

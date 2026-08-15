@@ -4,6 +4,7 @@ import (
 	"math"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
+	"github.com/dtauraso/wirefold/nodes/Wiring/polarindex"
 	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 )
 
@@ -11,19 +12,24 @@ type NodeIdentity struct {
 	Kind  string
 	Label string
 
-	SceneCenter vec3
+	SceneCenter    vec3
+	SceneConstants polarindex.SceneConstants
 }
 
 type NodeGeom struct {
 	NodeIdentity
 
-	BasePolar polar.Polar
-	DragPolar polar.Polar
+	BaseIndex polarindex.Index
+	DragIndex polarindex.Index
 	HasPos    bool
 }
 
+func ComposedIndexOf(g NodeGeom) polarindex.Index {
+	return polarindex.Compose(g.BaseIndex, g.DragIndex, g.SceneConstants)
+}
+
 func ScenePolarOf(g NodeGeom) polar.Polar {
-	return polar.Compose(g.BasePolar, g.DragPolar)
+	return polarindex.ToPolar(ComposedIndexOf(g), g.SceneConstants)
 }
 
 func KindWidthHeight(kind string) (float64, float64) {
@@ -49,9 +55,8 @@ func NodeWorldPos(g NodeGeom) vec3 {
 	return g.SceneCenter.Add(polar.Polar2cart(ScenePolarOf(g)))
 }
 
-func SetNodeWorld(g *NodeGeom, world vec3) {
-	scene := polar.Cart2polar(world.Sub(g.SceneCenter))
-	g.DragPolar = polar.Between(g.BasePolar, scene)
+func SetNodeWorld(g *NodeGeom, composed polarindex.Index) {
+	g.DragIndex = polarindex.Delta(composed, g.BaseIndex)
 	g.HasPos = true
 }
 

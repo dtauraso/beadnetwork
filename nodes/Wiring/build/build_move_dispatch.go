@@ -5,10 +5,10 @@ import (
 	"fmt"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
-	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/nodefiles"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodedrag"
+	"github.com/dtauraso/wirefold/nodes/Wiring/polarindex"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
 )
@@ -101,23 +101,23 @@ func (b *buildCtx) buildMoveDispatch() error {
 	}
 
 	for _, e := range b.spec.Edges {
-		baseD, ok := e.BaseDelta(b.spec.Constants)
+		baseD, ok := e.BaseDeltaIndex()
 		if !ok {
 			continue
 		}
-		dragD := e.DragDelta()
+		dragD := e.DragDeltaIndex()
 		if src, ok := md.MR.NodeGeoms()[e.Source]; ok {
 			src.SetBaseDeltaTo(e.Target, baseD)
 			src.SetDragDeltaTo(e.Target, dragD)
 		}
 		if dst, ok := md.MR.NodeGeoms()[e.Target]; ok {
-			dst.SetBaseDeltaTo(e.Source, baseD.Neg())
-			dst.SetDragDeltaTo(e.Source, dragD.Neg())
+			dst.SetBaseDeltaTo(e.Source, polarindex.Neg(baseD))
+			dst.SetDragDeltaTo(e.Source, polarindex.Neg(dragD))
 		}
 	}
 
 	for _, nm := range md.MR.NodeGeoms() {
-		for to, told := range nodedrag.Requested(nm.SelfKind(), polar.Polar{}, nm) {
+		for to, told := range nodedrag.Requested(nm.SelfKind(), polarindex.Index{}, nm) {
 			if other, ok := md.MR.NodeGeoms()[to]; ok {
 				d := told
 				other.SendExternal(context.TODO(), movemsg.Msg{Kind: movemsg.KindDrag, NodeID: to,

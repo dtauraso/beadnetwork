@@ -6,6 +6,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
+	"github.com/dtauraso/wirefold/nodes/Wiring/polarindex"
 	"github.com/dtauraso/wirefold/nodes/spatial"
 )
 
@@ -29,7 +30,9 @@ func (lq *LayoutQuantizer) RootMove(ctx context.Context, nodeGeoms map[string]*n
 		return false
 	}
 
-	delta := polar.Between(nm.ScenePolar(), polar.Cart2polar(target.Sub(nm.SceneCenter())))
+	sc := nm.Constants()
+	targetIdx := polarindex.Canonical(polarindex.MeasureScalar(polar.Cart2polar(target.Sub(nm.SceneCenter())), sc), sc)
+	delta := polarindex.Delta(targetIdx, nm.ComposedIndex())
 
 	nm.SendExternal(ctx, movemsg.Msg{Kind: movemsg.KindDrag, NodeID: nodeID, Delta: &delta})
 	return true
