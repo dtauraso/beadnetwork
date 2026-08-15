@@ -12,7 +12,11 @@ type Link struct {
 	groupSize int32
 }
 
-func (l *Link) Attach(node *RuleNode) { l.node = node }
+func (l *Link) Attach(node *RuleNode) {
+	l.node = node
+
+	l.groupID, l.groupSize = node.mesh.RuleGroup(node.id)
+}
 
 func (l *Link) Node() *RuleNode { return l.node }
 
