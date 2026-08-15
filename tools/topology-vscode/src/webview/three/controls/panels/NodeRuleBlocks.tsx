@@ -103,7 +103,7 @@ const KIND_SPANNING_RULES: Record<string, string[]> = {
 export function EdgeBlock({ rule, partner }: { rule: NodeRuleRow; partner: EdgePartner }) {
   const holder = rule.holders.find((h) => h.holderRow === partner.otherRow);
   return (
-    <div className="node-rules-holder">
+    <div className={partner.active ? "node-rules-holder" : "node-rules-holder node-rules-holder--inactive"}>
       <div className="node-rules-holder-name">
         <input
           type="checkbox"
@@ -143,7 +143,7 @@ export function SpanningBlock({ rule }: { rule: NodeRuleRow }) {
   if (axis.length === 0 && spanning.length === 0) return null;
   const count = rule.partners.filter((p) => !p.incoming).length;
   return (
-    <div className="node-rules-holder">
+    <div className={rule.kindActive ? "node-rules-holder" : "node-rules-holder node-rules-holder--inactive"}>
       <div className="node-rules-holder-name">
         <input
           type="checkbox"

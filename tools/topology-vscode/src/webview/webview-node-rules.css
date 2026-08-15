@@ -32,6 +32,9 @@
 
 .node-rules-holder { display: flex; align-items: flex-start; gap: 10px; padding-left: 10px; }
 .node-rules-holder-name { color: #666; min-width: 78px; }
+.node-rules-holder--inactive .node-rules-components { opacity: 0.45; }
+.node-rules-holder--inactive .node-rules-holder-name { color: #bbb; }
+.node-rules-holder--inactive .node-rules-node { color: #bbb; font-weight: 400; }
 
 .node-rules-components { display: flex; flex-direction: column; gap: 1px; }
 .node-rules-line {
