@@ -1,8 +1,5 @@
 html, body { margin: 0; padding: 0; height: 100%; background: #fafafa; font-family: ui-sans-serif, system-ui, sans-serif; }
 #app { width: 100vw; height: 100vh; }
-.node { cursor: grab; }
-.node.dragging { cursor: grabbing; }
-.node text { pointer-events: none; user-select: none; }
 /* The column is a layout box only: it must never take a click. It is fixed, z-index 1000
    and as tall as its content, so any empty area inside it sits over the canvas and over
    the scene-tab strip below — which is what swallowed tab clicks. Only the panels
