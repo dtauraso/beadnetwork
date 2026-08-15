@@ -9,6 +9,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/polarindex"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
 	"github.com/dtauraso/wirefold/nodes/spatial"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
@@ -35,8 +36,8 @@ type outEdge struct {
 	steps      int
 	derived    bool
 
-	persistedDelta polar.Polar
-	hasPersisted   bool
+	persistedDragIdx polarindex.Index
+	hasPersisted     bool
 }
 
 type OutEdges struct {
@@ -48,11 +49,14 @@ type OutEdges struct {
 
 	srcID       string
 	persistRoot string
+	constants   polarindex.SceneConstants
 }
 
 func (o *OutEdges) SetSrcID(id string) { o.srcID = id }
 
 func (o *OutEdges) SetPersistRoot(root string) { o.persistRoot = root }
+
+func (o *OutEdges) SetConstants(sc polarindex.SceneConstants) { o.constants = sc }
 
 func (o *OutEdges) edgeFor(label string) *outEdge {
 	for i := range o.edges {
@@ -123,22 +127,25 @@ func (o *OutEdges) DeriveGeometry(tick int64, self nodegeom.NodeGeom, deltas *De
 		if e.dest != nil {
 			e.dest.ReviseInFlightGeometry(tick, e.steps, spatial.WireSegment{Start: start, End: end})
 		}
-		o.persistDelta(e, d)
+		if dragDelta, ok := deltas.DragDeltaTo(e.targetID); ok {
+			o.persistDelta(e, dragDelta)
+		}
 	}
 }
 
-func (o *OutEdges) persistDelta(e *outEdge, d polar.Polar) {
+func (o *OutEdges) persistDelta(e *outEdge, dragDelta polar.Polar) {
 	if o.persistRoot == "" || o.srcID == "" {
 		return
 	}
-	if e.hasPersisted && e.persistedDelta == d {
+	idx := polarindex.MeasureScalar(dragDelta, o.constants)
+	if e.hasPersisted && e.persistedDragIdx == idx {
 		return
 	}
-	if err := edgefile.WriteEdgeDelta(o.persistRoot, o.srcID, e.label, d); err != nil {
+	if err := edgefile.WriteEdgeDrag(o.persistRoot, o.srcID, e.label, idx); err != nil {
 		jsonpersist.LogPersistErr("out_edges", o.srcID+"->"+e.targetID, err)
 		return
 	}
-	e.persistedDelta, e.hasPersisted = d, true
+	e.persistedDragIdx, e.hasPersisted = idx, true
 }
 
 func (o *OutEdges) WriteFrames(tick int64, self nodegeom.NodeGeom, deltas *Deltas) {

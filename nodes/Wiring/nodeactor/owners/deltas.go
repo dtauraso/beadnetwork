@@ -3,25 +3,43 @@ package owners
 import "github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 
 type Deltas struct {
-	toOther map[string]polar.Polar
+	baseTo map[string]polar.Polar
+	dragTo map[string]polar.Polar
 }
 
 func NewDeltas() Deltas { return Deltas{} }
 
-func (d *Deltas) SetDeltaTo(otherID string, p polar.Polar) {
-	if d.toOther == nil {
-		d.toOther = map[string]polar.Polar{}
+func (d *Deltas) SetBaseDeltaTo(otherID string, p polar.Polar) {
+	if d.baseTo == nil {
+		d.baseTo = map[string]polar.Polar{}
 	}
-	d.toOther[otherID] = p
+	d.baseTo[otherID] = p
+}
+
+func (d *Deltas) SetDragDeltaTo(otherID string, p polar.Polar) {
+	if d.dragTo == nil {
+		d.dragTo = map[string]polar.Polar{}
+	}
+	d.dragTo[otherID] = p
 }
 
 func (d *Deltas) DeltaTo(otherID string) (polar.Polar, bool) {
-	p, ok := d.toOther[otherID]
-	return p, ok
+	base, ok := d.baseTo[otherID]
+	if !ok {
+		return polar.Polar{}, false
+	}
+	return polar.Compose(base, d.dragTo[otherID]), true
+}
+
+func (d *Deltas) DragDeltaTo(otherID string) (polar.Polar, bool) {
+	if _, ok := d.baseTo[otherID]; !ok {
+		return polar.Polar{}, false
+	}
+	return d.dragTo[otherID], true
 }
 
 func (d *Deltas) DeltaFrom(otherID string) (polar.Polar, bool) {
-	p, ok := d.toOther[otherID]
+	p, ok := d.DeltaTo(otherID)
 	if !ok {
 		return polar.Polar{}, false
 	}
@@ -29,30 +47,27 @@ func (d *Deltas) DeltaFrom(otherID string) (polar.Polar, bool) {
 }
 
 func (d *Deltas) ShiftSelfBy(delta polar.Polar) {
-	for id, p := range d.toOther {
-		d.toOther[id] = polar.Compose(p, delta.Neg())
+	if d.dragTo == nil {
+		d.dragTo = map[string]polar.Polar{}
+	}
+	for id := range d.baseTo {
+		d.dragTo[id] = polar.Compose(d.dragTo[id], delta.Neg())
 	}
 }
 
 func (d *Deltas) ShiftOtherBy(otherID string, delta polar.Polar) {
-	p, ok := d.toOther[otherID]
-	if !ok {
+	if _, ok := d.baseTo[otherID]; !ok {
 		return
 	}
-	d.toOther[otherID] = polar.Compose(p, delta)
-}
-
-func (d *Deltas) All() []polar.Polar {
-	out := make([]polar.Polar, 0, len(d.toOther))
-	for _, p := range d.toOther {
-		out = append(out, p)
+	if d.dragTo == nil {
+		d.dragTo = map[string]polar.Polar{}
 	}
-	return out
+	d.dragTo[otherID] = polar.Compose(d.dragTo[otherID], delta)
 }
 
 func (d *Deltas) DeltaIDs() []string {
-	ids := make([]string, 0, len(d.toOther))
-	for id := range d.toOther {
+	ids := make([]string, 0, len(d.baseTo))
+	for id := range d.baseTo {
 		ids = append(ids, id)
 	}
 	return ids

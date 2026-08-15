@@ -23,7 +23,7 @@ func (b *buildCtx) buildMoveDispatch() error {
 	for i, e := range b.spec.Edges {
 		edgeOrder[i] = e.Label
 	}
-	md, err := dispatch.NewMoveDispatch(b.nodeGeoms, b.edgeEndpoints, b.tr, nodeOrder, edgeOrder, b.clk, &b.speedSinks, b.spec.RowCount)
+	md, err := dispatch.NewMoveDispatch(b.nodeGeoms, b.edgeEndpoints, b.tr, nodeOrder, edgeOrder, b.clk, &b.speedSinks, b.spec.RowCount, b.spec.Constants)
 	if err != nil {
 		return fmt.Errorf("buildMoveDispatch: %w", err)
 	}
@@ -47,6 +47,11 @@ func (b *buildCtx) buildMoveDispatch() error {
 	for id, off := range b.quantizedOffsets {
 		if nm, ok := md.MR.NodeGeoms()[id]; ok {
 			nm.SetQuantOffset(off)
+		}
+	}
+	for id, off := range b.dragQuantOffsets {
+		if nm, ok := md.MR.NodeGeoms()[id]; ok {
+			nm.SetDragQuantOffset(off)
 		}
 	}
 
@@ -96,15 +101,18 @@ func (b *buildCtx) buildMoveDispatch() error {
 	}
 
 	for _, e := range b.spec.Edges {
-		d, ok := e.Delta()
+		baseD, ok := e.BaseDelta(b.spec.Constants)
 		if !ok {
 			continue
 		}
+		dragD := e.DragDelta()
 		if src, ok := md.MR.NodeGeoms()[e.Source]; ok {
-			src.SetDeltaTo(e.Target, d)
+			src.SetBaseDeltaTo(e.Target, baseD)
+			src.SetDragDeltaTo(e.Target, dragD)
 		}
 		if dst, ok := md.MR.NodeGeoms()[e.Target]; ok {
-			dst.SetDeltaTo(e.Source, d.Neg())
+			dst.SetBaseDeltaTo(e.Source, baseD.Neg())
+			dst.SetDragDeltaTo(e.Source, dragD.Neg())
 		}
 	}
 

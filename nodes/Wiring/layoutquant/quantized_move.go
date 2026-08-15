@@ -3,7 +3,6 @@ package layoutquant
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/nodes/Wiring/edgetable"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
@@ -22,14 +21,6 @@ func HeldCenters(nodeGeoms map[string]*nodeactor.NodeGeometry, centerOf func(id 
 		}
 	}
 	return out
-}
-
-func HeldEdges(edgeTable map[string]*edgetable.Edge) []polar.SphereEdge {
-	edges := make([]polar.SphereEdge, 0, len(edgeTable))
-	for _, e := range edgeTable {
-		edges = append(edges, polar.SphereEdge{Source: e.SrcID(), Target: e.DstID()})
-	}
-	return edges
 }
 
 func (lq *LayoutQuantizer) RootMove(ctx context.Context, nodeGeoms map[string]*nodeactor.NodeGeometry, nodeID string, target spatial.Vec3) bool {

@@ -7,6 +7,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/countspersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/edgefile"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/camera"
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/nodes/Wiring/loadspec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/moverreg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/nodefiles"
@@ -67,7 +68,13 @@ func CreateNode(scenes *sceneswitch.SceneSwitch, ui *viewstate.UIState, mr *move
 	c := ui.SceneSphere.Center
 	off := drop.Sub(c)
 	d := camera.WorldDirToAngles(off)
-	if err := nodefiles.WriteNewNodeFiles(scenes.TreeRoot, target, kind, off.Length(), d.Phi, d.Theta); err != nil {
+	sc, err := loadspec.LoadSceneConstants(scenes.TreeRoot)
+	if err != nil {
+		ui.RefuseStructuralEdit(fmt.Sprintf("could not load scene constants: %v", err))
+		ui.EmitViewFrame(nil)
+		return
+	}
+	if err := nodefiles.WriteNewNodeFiles(scenes.TreeRoot, target, kind, polar.Polar{R: off.Length(), Phi: d.Phi, Theta: d.Theta}, sc); err != nil {
 		ui.RefuseStructuralEdit(fmt.Sprintf("could not write node %s: %v", target, err))
 		ui.EmitViewFrame(nil)
 		return

@@ -22,8 +22,7 @@ type FrameGeometryInputs struct {
 }
 
 type FrameGeometryOutputs struct {
-	Center  vec3
-	SphereR float64
+	Center vec3
 
 	PolePhi, PoleTheta         float64
 	RingAxisPhi, RingAxisTheta float64
@@ -46,8 +45,7 @@ type FrameGeometryOutputs struct {
 
 func DeriveFrameGeometry(in FrameGeometryInputs) FrameGeometryOutputs {
 	out := FrameGeometryOutputs{
-		Center:  nodegeom.NodeWorldPos(in.Geom),
-		SphereR: nodegeom.EffectiveRadius(in.Geom),
+		Center: nodegeom.NodeWorldPos(in.Geom),
 	}
 
 	out.PolePhi, out.PoleTheta = polar.WorldAxisPole()

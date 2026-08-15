@@ -9,13 +9,14 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/polarindex"
 	"github.com/dtauraso/wirefold/nodes/Wiring/rulenode"
 	"github.com/dtauraso/wirefold/nodes/clock"
 )
 
-func (md *MoveDispatch) buildNodeMovers(geoms map[string]nodegeom.NodeGeom, tr *T.Trace, clk clock.Clock) {
+func (md *MoveDispatch) buildNodeMovers(geoms map[string]nodegeom.NodeGeom, tr *T.Trace, clk clock.Clock, constants polarindex.SceneConstants) {
 	for id, g := range geoms {
-		ng := nodeactor.NewNodeGeometry(id, g, tr, clk)
+		ng := nodeactor.NewNodeGeometry(id, g, tr, clk, constants)
 
 		selfID := id
 		resolveDest := func(destID string) (func(movemsg.Msg) bool, bool) {

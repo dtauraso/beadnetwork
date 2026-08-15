@@ -2,13 +2,14 @@ package loadspec
 
 import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
+	"github.com/dtauraso/wirefold/nodes/Wiring/polarindex"
 )
 
 func ResolveEdgeDeltas(spec *TopoSpec) {
-	points := make(map[string]polar.Polar, len(spec.Nodes))
+	indices := make(map[string]polarindex.Index, len(spec.Nodes))
 	for i := range spec.Nodes {
 		if n := &spec.Nodes[i]; n.hasPoint() {
-			points[n.ID] = n.point()
+			indices[n.ID] = n.index()
 		}
 	}
 
@@ -17,12 +18,12 @@ func ResolveEdgeDeltas(spec *TopoSpec) {
 		if e.hasDelta() {
 			continue
 		}
-		a, okA := points[e.Source]
-		b, okB := points[e.Target]
+		a, okA := indices[e.Source]
+		b, okB := indices[e.Target]
 		if !okA || !okB {
 			continue
 		}
-		e.setDelta(polar.Between(a, b))
+		e.setDeltaIndex(polarindex.Delta(b, a))
 	}
 }
 
@@ -50,10 +51,10 @@ func PlaceFromDeltas(spec *TopoSpec) {
 			queue = queue[1:]
 			for _, e := range out[from.ID] {
 				to, known := byID[e.Target]
-				if !known || placed[e.Target] || !e.hasDelta() {
+				if !known || placed[e.Target] || to.hasPoint() || !e.hasDelta() {
 					continue
 				}
-				to.setPoint(polar.Compose(from.point(), e.delta()))
+				to.setIndex(polarindex.Compose(from.index(), e.deltaIndex(), spec.Constants))
 				placed[e.Target] = true
 				queue = append(queue, to)
 			}
@@ -62,32 +63,51 @@ func PlaceFromDeltas(spec *TopoSpec) {
 }
 
 func (n *specNode) hasPoint() bool {
-	return n.ScenePolarR != nil && n.ScenePolarPhi != nil && n.ScenePolarTheta != nil
+	return n.IndexPhi != nil && n.IndexTheta != nil && n.IndexR != nil
 }
 
-func (n *specNode) point() polar.Polar {
-	return polar.Polar{R: *n.ScenePolarR, Phi: *n.ScenePolarPhi, Theta: *n.ScenePolarTheta}
+func (n *specNode) index() polarindex.Index {
+	return polarindex.Index{Phi: *n.IndexPhi, Theta: *n.IndexTheta, R: *n.IndexR}
 }
 
-func (n *specNode) setPoint(p polar.Polar) {
-	n.ScenePolarR, n.ScenePolarPhi, n.ScenePolarTheta = &p.R, &p.Phi, &p.Theta
+func (n *specNode) point(sc polarindex.SceneConstants) polar.Polar {
+	return polarindex.ToPolar(n.index(), sc)
 }
 
-func (e specEdge) Delta() (polar.Polar, bool) {
+func (n *specNode) setIndex(idx polarindex.Index) {
+	n.IndexPhi, n.IndexTheta, n.IndexR = &idx.Phi, &idx.Theta, &idx.R
+}
+
+func (e specEdge) Delta(sc polarindex.SceneConstants) (polar.Polar, bool) {
 	if !e.hasDelta() {
 		return polar.Polar{}, false
 	}
-	return e.delta(), true
+	return e.delta(sc), true
+}
+
+func (e specEdge) BaseDelta(sc polarindex.SceneConstants) (polar.Polar, bool) {
+	return e.Delta(sc)
+}
+
+func (e specEdge) DragDelta() polar.Polar {
+	if e.DragDeltaPolarR == nil || e.DragDeltaPolarPhi == nil || e.DragDeltaPolarTheta == nil {
+		return polar.Polar{}
+	}
+	return polar.Polar{R: *e.DragDeltaPolarR, Phi: *e.DragDeltaPolarPhi, Theta: *e.DragDeltaPolarTheta}
 }
 
 func (e *specEdge) hasDelta() bool {
-	return e.DeltaPolarR != nil && e.DeltaPolarPhi != nil && e.DeltaPolarTheta != nil
+	return e.DeltaIndexR != nil && e.DeltaIndexPhi != nil && e.DeltaIndexTheta != nil
 }
 
-func (e *specEdge) delta() polar.Polar {
-	return polar.Polar{R: *e.DeltaPolarR, Phi: *e.DeltaPolarPhi, Theta: *e.DeltaPolarTheta}
+func (e *specEdge) deltaIndex() polarindex.Index {
+	return polarindex.Index{Phi: *e.DeltaIndexPhi, Theta: *e.DeltaIndexTheta, R: *e.DeltaIndexR}
 }
 
-func (e *specEdge) setDelta(d polar.Polar) {
-	e.DeltaPolarR, e.DeltaPolarPhi, e.DeltaPolarTheta = &d.R, &d.Phi, &d.Theta
+func (e *specEdge) delta(sc polarindex.SceneConstants) polar.Polar {
+	return polarindex.ToPolar(e.deltaIndex(), sc)
+}
+
+func (e *specEdge) setDeltaIndex(idx polarindex.Index) {
+	e.DeltaIndexPhi, e.DeltaIndexTheta, e.DeltaIndexR = &idx.Phi, &idx.Theta, &idx.R
 }

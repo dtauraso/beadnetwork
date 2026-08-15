@@ -10,7 +10,6 @@ import (
 type NodeIdentity struct {
 	Kind  string
 	Label string
-	R     *float64
 
 	SceneCenter vec3
 }
@@ -18,19 +17,13 @@ type NodeIdentity struct {
 type NodeGeom struct {
 	NodeIdentity
 
-	ScenePolar polar.Polar
-	HasPos     bool
-
-	ReachR float64
+	BasePolar polar.Polar
+	DragPolar polar.Polar
+	HasPos    bool
 }
 
-const DefaultNodeR = 200.0
-
-func NodeR(g NodeGeom) float64 {
-	if g.R != nil {
-		return *g.R
-	}
-	return DefaultNodeR
+func ScenePolarOf(g NodeGeom) polar.Polar {
+	return polar.Compose(g.BasePolar, g.DragPolar)
 }
 
 func KindWidthHeight(kind string) (float64, float64) {
@@ -49,22 +42,16 @@ func NodeRadius(kind string) float64 {
 	return NodeTorusOuterR(kind) / (1 + ShadingParamNodeRingTubeRatio)
 }
 
-func EffectiveRadius(g NodeGeom) float64 {
-	if g.ReachR > 0 {
-		return g.ReachR
-	}
-	return NodeR(g)
-}
-
 func NodeWorldPos(g NodeGeom) vec3 {
 	if !g.HasPos {
 		return vec3{}
 	}
-	return g.SceneCenter.Add(polar.Polar2cart(g.ScenePolar))
+	return g.SceneCenter.Add(polar.Polar2cart(ScenePolarOf(g)))
 }
 
 func SetNodeWorld(g *NodeGeom, world vec3) {
-	g.ScenePolar = polar.Cart2polar(world.Sub(g.SceneCenter))
+	scene := polar.Cart2polar(world.Sub(g.SceneCenter))
+	g.DragPolar = polar.Between(g.BasePolar, scene)
 	g.HasPos = true
 }
 

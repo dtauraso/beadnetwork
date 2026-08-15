@@ -102,8 +102,10 @@ tools/topology-vscode/gen-node-defs
 # writer, which is what let sceneFileMu be deleted rather than narrowed. camera/overlays/
 # sphere are the same kind of auto-written, locally-preferred view state scene.json was —
 # not for VCS.
-# nodes/<id>/position.json and local-polars.json are NOT listed here: they carry the same
-# authoritative per-node data meta.json does (which IS tracked), so they stay trackable too.
+# nodes/<id>/local-polars.json is NOT listed here: it carries the same authoritative
+# per-node data base.json does (which IS tracked), so it stays trackable too. A node's
+# position itself lives in base.json (base) plus nodes/<id>/drag/position.json (delta,
+# gitignored above), not a separate position.json.
 /topology/view/camera.json
 /topology/view/camera.json.tmp
 /topology/view/overlays.json
@@ -135,20 +137,18 @@ __pycache__/
 # view-owner goroutine and is rewritten while you orbit or toggle anything, so it stays
 # .gitignore'd the ordinary way.
 #
-# A node's own position and each of its outgoing edges' geometry deltas used to live in a
-# SEPARATE gitignored overlay file (position.json / <label>.geom.json) next to the tracked
-# seed (meta.json / <label>.json). That split is gone: position and delta now live directly
-# in meta.json and <label>.json — the same file that holds type/id/gate/drag or
-# target/sourceHandle/kind — so a fresh clone still loads a laid-out scene from one file per
-# owner, not two. Untracking a runtime write to that ONE file can no longer be done by path
-# (the tracked seed and the drag output are the same path now); instead Go marks the file
-# git-skip-worktree (`nodes/Wiring/gitskip`) right after writing it, so git stops reporting
-# it modified. That is why these paths are NOT listed in this file — .gitignore can't express
-# "ignore future writes to a path that starts out tracked", only skip-worktree can.
+# A node's own position and each of its outgoing edges' geometry delta live under a
+# gitignored drag/ directory (drag/position.json, drag/edges/<label>.json) as an ACCUMULATED
+# DELTA composed onto the tracked base.json/<label>.json seed. skip-worktree (the previous
+# mechanism, `nodes/Wiring/gitskip`) is gone: it only suppressed status/diff reporting, so
+# `git checkout` still refused to switch branches when a marked file differed from the
+# index, forcing drag output into a commit. A plain gitignored subdirectory has no such
+# failure mode.
 topology*/view/*.json
+topology*/nodes/*/drag/
 
 # Whether a node's drag rule is currently ACTIVE is persisted output, deliberately separate
-# from the rule's VALUES (drag.phi/drag.maxTheta), which stay in the tracked meta.json seed.
+# from the rule's VALUES (drag.phi/drag.maxTheta), which stay in the tracked base.json seed.
 topology*/nodes/*/rule-active.json
 
 # Where the running extension listens for "open this file as a tab", and that

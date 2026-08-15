@@ -55,7 +55,3 @@ func thetaOf(v vec3) float64 {
 func Cart2polar(v vec3) Polar {
 	return Polar{R: v.Length(), Phi: thetaOf(v), Theta: math.Atan2(v.Z, v.X)}
 }
-
-func PolarDist(a, b Polar) float64 {
-	return Polar2cart(a).Sub(Polar2cart(b)).Length()
-}

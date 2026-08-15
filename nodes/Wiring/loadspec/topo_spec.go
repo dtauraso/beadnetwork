@@ -6,29 +6,28 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/polarindex"
 	"github.com/dtauraso/wirefold/nodes/spatial"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/outport"
 )
 
 type specNode struct {
-	ID    string    `json:"id"`
-	Type  string    `json:"type"`
-	Index *int      `json:"index,omitempty"`
-	Data  *NodeData `json:"data,omitempty"`
-	R     *float64  `json:"r,omitempty"`
+	ID   string    `json:"id"`
+	Type string    `json:"type"`
+	Data *NodeData `json:"data,omitempty"`
 
-	ScenePolarR     *float64 `json:"scenePolarR,omitempty"`
-	ScenePolarPhi   *float64 `json:"scenePolarPhi,omitempty"`
-	ScenePolarTheta *float64 `json:"scenePolarTheta,omitempty"`
+	DragScenePolarR     *float64 `json:"-"`
+	DragScenePolarPhi   *float64 `json:"-"`
+	DragScenePolarTheta *float64 `json:"-"`
 
-	QuantIPhi   *int `json:"quantIPhi,omitempty"`
-	QuantITheta *int `json:"quantITheta,omitempty"`
-	QuantIR     *int `json:"quantIR,omitempty"`
+	IndexPhi   *int `json:"indexPhi,omitempty"`
+	IndexTheta *int `json:"indexTheta,omitempty"`
+	IndexR     *int `json:"indexR,omitempty"`
 
-	StepPhi   *float64 `json:"stepPhi,omitempty"`
-	StepTheta *float64 `json:"stepTheta,omitempty"`
-	StepR     *float64 `json:"stepR,omitempty"`
+	DragIndexPhi   *int `json:"-"`
+	DragIndexTheta *int `json:"-"`
+	DragIndexR     *int `json:"-"`
 
 	Gate bool `json:"gate,omitempty"`
 
@@ -44,12 +43,15 @@ func (n specNode) label() string {
 	return n.ID
 }
 
-func (n specNode) ToNodeGeom(sceneCenter spatial.Vec3) nodegeom.NodeGeom {
+func (n specNode) ToNodeGeom(sceneCenter spatial.Vec3, sc polarindex.SceneConstants) nodegeom.NodeGeom {
 
-	g := nodegeom.NodeGeom{NodeIdentity: nodegeom.NodeIdentity{Kind: n.Type, Label: n.label(), R: n.R, SceneCenter: sceneCenter}}
-	if n.ScenePolarR != nil && n.ScenePolarPhi != nil && n.ScenePolarTheta != nil {
-		g.ScenePolar = polar.Polar{R: *n.ScenePolarR, Phi: *n.ScenePolarPhi, Theta: *n.ScenePolarTheta}
+	g := nodegeom.NodeGeom{NodeIdentity: nodegeom.NodeIdentity{Kind: n.Type, Label: n.label(), SceneCenter: sceneCenter}}
+	if n.hasPoint() {
+		g.BasePolar = n.point(sc)
 		g.HasPos = true
+	}
+	if n.DragScenePolarR != nil && n.DragScenePolarPhi != nil && n.DragScenePolarTheta != nil {
+		g.DragPolar = polar.Polar{R: *n.DragScenePolarR, Phi: *n.DragScenePolarPhi, Theta: *n.DragScenePolarTheta}
 	}
 	return g
 }
@@ -86,10 +88,14 @@ type specEdge struct {
 	Target       string `json:"target"`
 	TargetHandle string `json:"targetHandle"`
 
-	// pole convention as a node's scenePolar*. See edge_delta.go: A + D = B.
-	DeltaPolarR     *float64 `json:"deltaPolarR,omitempty"`
-	DeltaPolarPhi   *float64 `json:"deltaPolarPhi,omitempty"`
-	DeltaPolarTheta *float64 `json:"deltaPolarTheta,omitempty"`
+	// pole convention as a node's absolute index. See edge_delta.go: A + D = B.
+	DeltaIndexR     *int `json:"deltaIndexR,omitempty"`
+	DeltaIndexPhi   *int `json:"deltaIndexPhi,omitempty"`
+	DeltaIndexTheta *int `json:"deltaIndexTheta,omitempty"`
+
+	DragDeltaPolarR     *float64 `json:"-"`
+	DragDeltaPolarPhi   *float64 `json:"-"`
+	DragDeltaPolarTheta *float64 `json:"-"`
 }
 
 type TopoSpec struct {
@@ -97,6 +103,8 @@ type TopoSpec struct {
 	Edges []specEdge `json:"edges"`
 
 	RowCount int
+
+	Constants polarindex.SceneConstants
 }
 
 type WireRegistry map[string]*wire.PacedWire

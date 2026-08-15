@@ -20,7 +20,7 @@ if [[ ! -f "$PLUMBING_PATH" ]]; then
   exit 1
 fi
 
-NODE_OWNERS=("node_mover.go" "new_node_files.go" "quant_offset_persist.go" "scene_anchor_persist.go" "position_file.go")
+NODE_OWNERS=("node_mover.go" "new_node_files.go" "quant_offset_persist.go" "scene_anchor_persist.go" "drag_file.go")
 
 EDGE_OWNERS=("edge_file.go" "edge_delta_file.go" "out_edges.go")
 

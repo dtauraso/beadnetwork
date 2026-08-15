@@ -6,7 +6,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
-	"github.com/dtauraso/wirefold/nodes/Wiring/quantoffset"
+	"github.com/dtauraso/wirefold/nodes/Wiring/polarindex"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
 )
 
@@ -42,7 +42,13 @@ func (m *NodeGeometry) NeighborKinds() map[string]string { return m.topo.Neighbo
 
 func (m *NodeGeometry) OutTargets() []string { return m.outTargets }
 
-func (m *NodeGeometry) SetDeltaTo(otherID string, p polar.Polar) { m.deltas.SetDeltaTo(otherID, p) }
+func (m *NodeGeometry) SetBaseDeltaTo(otherID string, p polar.Polar) {
+	m.deltas.SetBaseDeltaTo(otherID, p)
+}
+
+func (m *NodeGeometry) SetDragDeltaTo(otherID string, p polar.Polar) {
+	m.deltas.SetDragDeltaTo(otherID, p)
+}
 
 func (m *NodeGeometry) DeltaTo(otherID string) (polar.Polar, bool) { return m.deltas.DeltaTo(otherID) }
 
@@ -52,7 +58,7 @@ func (m *NodeGeometry) DeltaFrom(otherID string) (polar.Polar, bool) {
 
 func (m *NodeGeometry) ShiftDeltasBy(delta polar.Polar) { m.deltas.ShiftSelfBy(delta) }
 
-func (m *NodeGeometry) ScenePolar() polar.Polar { return m.geom.ScenePolar }
+func (m *NodeGeometry) ScenePolar() polar.Polar { return nodegeom.ScenePolarOf(m.geom) }
 
 func (m *NodeGeometry) SceneCenter() vec3 { return m.geom.SceneCenter }
 
@@ -65,17 +71,19 @@ func (m *NodeGeometry) SendMove() func(id string, msg movemsg.Msg) { return m.ms
 func (m *NodeGeometry) NeighborIDs() []string { return m.msg.NeighborIDs() }
 
 func (m *NodeGeometry) QuantOffset() (iTheta, iPhi, iR int) {
-	return m.quantOffset.IPhi, m.quantOffset.ITheta, m.quantOffset.IR
+	c := m.quant.Composed()
+	return c.Phi, c.Theta, c.R
 }
 
-func (m *NodeGeometry) QuantizedOffsetValue() quantoffset.QuantizedOffset { return m.quantOffset }
-
-func (m *NodeGeometry) ReachR() float64 { return m.geom.ReachR }
+func (m *NodeGeometry) IndexValue() polarindex.Index {
+	return m.quant.Composed()
+}
 
 func (m *NodeGeometry) CommitQuantOffset(committedPolar polar.Polar) {
-	off := quantoffset.MeasureScalar(committedPolar, m.quantOffset)
-	m.quantOffset = off
-	m.persistQuantOffset(off, committedPolar)
+	composed := polarindex.Canonical(polarindex.MeasureScalar(committedPolar, m.quant.Constants()), m.quant.Constants())
+	drag := polarindex.Delta(composed, m.quant.Base())
+	m.quant.SetDrag(drag)
+	m.persistQuantOffset(drag)
 }
 
 func (m *NodeGeometry) WriteStreamFrame(events []rowevent.RowEvent) {

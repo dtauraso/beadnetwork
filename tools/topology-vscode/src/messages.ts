@@ -12,7 +12,6 @@ const OVERLAY_FLAG_NAMES = [
   "ringPick",
   "selectionRing",
   "hoverRing",
-  "reachSphere",
   "sceneVectors",
   "ruleChannels",
 ] as const;
@@ -28,7 +27,6 @@ const PANEL_FLAG_NAMES = [
   "node",
   "nodeShape",
   "nodeState",
-  "nodeReach",
   "nodePoles",
   "nodeRules",
   "scene",

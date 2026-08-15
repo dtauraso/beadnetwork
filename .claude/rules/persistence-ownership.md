@@ -18,10 +18,13 @@ Everything about a node lives under its own directory. There is no top-level `ed
 topology/
 ├── counts.json                           {"nodes": 9, "edges": 10}  — nodes = ROW COUNT
 │                                          (largest node id), not a live-node count
+├── constants.json                        {"constantR", "constantPhi", "constantTheta"} — scene-level, read once
 ├── nodes/<id>/
-│   ├── meta.json                         type + position, ONE tracked file — see below
+│   ├── base.json                          type/id/gate/drag-rule + the BASE position — TRACKED, see below
+│   ├── drag/self.json                 the node's accumulated position DELTA — GITIGNORED, see below
 │   ├── data.json  local-polars.json
-│   ├── edges/<label>.json                OUTGOING only — wiring + geometry delta, ONE file
+│   ├── edges/<label>.json                OUTGOING only — wiring + the BASE geometry delta — TRACKED
+│   ├── drag/edges/<label>.json            that edge's accumulated geometry DELTA — GITIGNORED
 │   └── (no *.geom.json — folded into <label>.json)
 └── view/
     └── camera.json  overlays.json  panels.json  sphere.json  scene.json
@@ -56,72 +59,103 @@ points at node 9". Every use of an edge's target is built during a single full p
 edges (`buildEdgeMaps`' `inbound`, `loader_layout`'s `neighbors`). Do NOT "fix" this by also
 recording the edge under the target — that reintroduces the duplication the layout removes.
 
-## One file per owner; git skip-worktree replaces the overlay split
+## Base composed with drag; the delta is gitignored, not skip-worktree'd
 
-There used to be two layers per geometry file — a tracked seed plus a gitignored drag-output
-overlay the loader read second (`meta.json` + `position.json`, `<label>.json` +
-`<label>.geom.json`). That split is GONE. A node's position lives directly in `meta.json`
-alongside its `type`/`id`/`gate`/`drag`; an edge's geometry delta lives directly in
-`<label>.json` alongside its wiring (`target`/`sourceHandle`/`targetHandle`/`kind`). One file,
-one owner, read-modify-write on every write so the keys a write doesn't touch survive
-(`jsonpersist.ReadModifyWriteJSON`, the same pattern `WriteDragRule` used before this
-change).
+**`base.json` and `<label>.json` are TRACKED and never written by the running sim.** They
+hold, respectively, a node's `type`/`id`/`gate`/`drag`-rule plus its BASE position, and an
+edge's wiring (`target`/`sourceHandle`/`targetHandle`/`kind`) plus its BASE geometry delta.
+**Both the base position and the base delta are stored ONLY as an index** —
+`base.json`'s `indexPhi`/`indexTheta`/`indexR` (absolute, folded through
+`polarindex.Canonical`) and `<label>.json`'s `deltaIndexR`/`deltaIndexPhi`/`deltaIndexTheta`
+(a relative integer step count, NEVER folded through `Canonical` — a delta is not a
+position). There is no `scenePolarR`/`scenePolarPhi`/`scenePolarTheta` on a node or
+`deltaPolarR`/`deltaPolarPhi`/`deltaPolarTheta` on an edge anywhere on disk any more; the
+index is the sole authored quantity and `polarindex.ToPolar(idx, sc)` is the only multiply,
+run at load. **A drag is stored the same way — an index delta,
+`indexPhi`/`indexTheta`/`indexR` under `drag/` — and the drag value IS index × constant,
+never a second stored continuous copy.** `drag/`
+`self.json` and `drag/edges/` `<label>.json` are GITIGNORED and are the only files a drag
+writes; both hold exactly that one triple (the offset from `base.json`'s own
+`indexPhi`/`indexTheta`/`indexR`, e.g. a base `indexR` of 25 plus a 4-step drag stores `iR:
+4`, not 29). There is no `dragPolarR`/`dragPolarPhi`/`dragPolarTheta` field anywhere in
+either file — `polarindex.ToPolar(idx, sc)` is the ONLY place the multiply happens, and it
+runs at load and at the moment a drag is measured, never stored as its own field. A
+sub-step drag rounds to the nearest index (`polarindex.MeasureScalar`) and a drag that
+rounds to zero is correct, not lost precision to recover. Neither file carries
+`constantPhi`/`constantTheta`/`constantR` — nor does `base.json` any more; those moved to
+`constants.json` at the scene root (read once per load, fails loudly by path on
+missing/malformed input, and asserts `constantR == lattice.BeadStepR` — the radial grid
+must match the bead lattice's own step size). The loaded triple (`polarindex.SceneConstants`)
+is passed explicitly into every consumer, never a per-instance field or a package-level
+global.
 
-The reason the split existed at all was that **a user drag is the only writer of geometry**
-in the whole program (`CommitNodeMoveLocal` is reached solely from `takeDragOfSelf`, on a
-`KindDrag` message), so "everything a drag changed" was a static set of PATHS, and git keys
-on paths — giving each drag-touched value its own file was how `.gitignore` could express
-"never track this". Collapsing to one file needed a different mechanism for the same
-distinction, because a fresh clone still needs `meta.json`/`<label>.json` to start out
-TRACKED (that's the seed a clone loads from), while a later drag write to that same path must
-NOT show as a tracked-file change.
+**A (base) and B (drag) are held SEPARATELY in the running program, never summed into a
+stored value.** The quantized index rides this split, in `owners.Quant`: `base` (A, loaded
+once from `base.json`'s `indexPhi`/`indexTheta`/`indexR`) and `drag` (B, set by
+`CommitQuantOffset` as `polarindex.Delta(measured, base)`, never reconstructed by
+subtracting later). `Quant.Composed()` returns `polarindex.Compose(base, drag)`, computed at
+each call site and held nowhere else; `nodegeom.ScenePolarOf`/`polar.Compose` derive the
+continuous on-screen position from that composed index the same way, at each call site that
+needs it, held in no field that outlives that call. `persistQuantOffset` writes `drag`
+straight to `drag/` `self.json`'s `indexPhi`/`indexTheta`/`indexR`.
 
-**`nodes/Wiring/gitskip`** is that mechanism. After `positionfile.Write` (node position) or
-`edgefile.WriteEdgeFile`/`WriteEdgeDelta` (edge wiring/delta) writes the file, it calls
-`gitskip.Mark(path)`, which runs `git update-index --skip-worktree <path>` once per path per
-process. From then on git treats the working-tree copy as authoritative and stops diffing it
-against the index, so a drag no longer shows up as a modified file — the same outcome
-`.gitignore` gave the old overlay file, achieved on a path that starts out committed instead
-of a path that never is. `Mark` is a no-op outside a git work tree (headless runs against a
-tmp dir).
+The same split applies to an edge's target vector. `owners.Deltas` holds `baseTo` (A, seeded
+once at build from each edge's `<label>.json`, outgoing straight and incoming negated, never
+mutated after) and `dragTo` (B, the only thing `ShiftSelfBy`/`ShiftOtherBy` mutate).
+`DeltaTo` returns the derived compose; `DragDeltaTo` returns B as a `polar.Polar`.
+`OutEdges.persistDelta` measures that into an index (`polarindex.MeasureScalar`) and writes
+the index straight to `drag/edges/` `<label>.json` — the same shape as the node path, no
+continuous field survives the write.
 
-**`Mark` must never panic, and must never wait.** It runs on the NODE GOROUTINE, inside the
-drag commit path (`positionfile.Write` ← `persistQuantOffset` ← `CommitNodeMoveLocal` ←
-`takeDragOfSelf`). `.git/index.lock` contention is ROUTINE — any concurrent git command in
-this checkout holds that lock — so a fatal `Mark` kills node goroutines mid-drag. It shipped
-that way once: an ordinary `git status` during a drag killed the dragged node's goroutine,
-and the node stopped updating and dropped out of the scene. A file that reads as modified is
-a far cheaper failure than a dead node.
+THE DELTA (a node's standing vector to a neighbor, in `<label>.json`) and THE DRAG (the
+user's accumulated offset, in `drag/`) are different quantities. They are never summed into
+a stored value and never substituted for one another; they combine only at the point
+something is drawn, and persist always writes the DRAG, never the composed value.
 
-A failed mark is NOT recorded, so the next write to that path retries it; geometry writes are
-gated on the value actually changing, so retries arrive with the next real drag rather than in
-a spin. The first failure per path goes to stderr (`go-errors.jsonl`) and later ones are
-suppressed, because a drag writes continuously and would flood it. There is no `time.Sleep`
-backoff — `check-no-wall-clock-wait` forbids parking a goroutine outside the clock, and the
-next-write retry is the backoff.
+On load, `loadspec.ApplyDragOverlay` reads `base.json`/`<label>.json` into the BASE fields
+and `drag/` `self.json`/`drag/edges/` `<label>.json` into separate DRAG fields on the same
+spec struct (`DragScenePolarR/Phi/Theta` on a node, `DragDeltaPolarR/Phi/Theta` on an
+edge) — it composes NOTHING; a node or edge with no `drag/` file simply carries a zero drag
+value forward. `polar.Compose`/`polar.Between` are untouched by this change; this is the
+existing componentwise op, just applied at the render/persist boundary instead of at load.
+
+Do NOT try to keep geometry in one tracked file and hide the drag write with
+`git update-index --skip-worktree`. That was tried and abandoned: skip-worktree suppresses
+`git status`/`git diff` reporting but NOT `git checkout`'s refusal to switch branches when a
+marked file differs from the index — so the first branch switch after a drag forces the drag
+output into a commit to unblock the checkout, the exact outcome the split exists to avoid. A
+gitignored subdirectory has nothing in the index for `checkout` to compare against.
+
+Edge WIRING (`target`/`sourceHandle`/`targetHandle`/`kind`/`label`) is authored data and
+keeps writing to the tracked `<label>.json` (`edgefile.WriteEdgeFile`) whenever it
+legitimately changes. Only the geometry DELTA moved to `drag/`.
 
 A drag touches more than the node you grabbed: the dragged node shifts its own vectors, and
-each neighbour is told how far it moved and shifts its own — so a neighbour's `meta.json` and
-each of ITS outgoing edges' `<label>.json` also get written (and marked) as part of that same
-drag, same as before.
+each neighbour is told how far it moved and shifts its own — so a neighbour's `drag/`
+`self.json` and each of ITS outgoing edges' `drag/edges/` `<label>.json` also get
+written as part of that same drag, same as before.
 
 Consequences to keep in mind:
 
-- A fresh clone has the tracked seed values only (no skip-worktree bit yet — that's set by
-  the first LOCAL write), and loads a complete, self-consistent scene from them.
-- Nothing promotes a drag's live values back into a clean seed for a future clone; that would
-  need an explicit `git update-index --no-skip-worktree` plus a deliberate commit. Whatever
-  is on disk right now is the seed the NEXT clone gets, exactly as `meta.json` always was.
+- A fresh clone has the tracked base values only (no `drag/` directory yet — that only
+  appears on the first LOCAL drag write), and loads a complete, self-consistent scene from
+  them with zero deltas.
+- Nothing promotes a drag's accumulated delta back into the base for a future clone; that
+  would need a deliberate migration and commit (see the migration note below). Whatever is
+  on disk right now under `base.json`/`<label>.json` is the base the NEXT clone gets.
 - There is no more `*.geom.json` to skip when scanning `nodes/*/edges/*.json` — every file
   under an `edges/` dir is a real edge (`loadNodeEdges`, `check-no-fan-in.sh`).
+- The existing `topology/`/`topology-pair/` trees were migrated by treating their
+  already-committed values AS the base and starting with empty `drag/` dirs (zero deltas) —
+  no attempt was made to reconstruct a pre-drag historical base, since none is recoverable.
 
 ## The owner writes, and owns the path
 
 - A node writes its own `position/local-polars` (path construction in
-  `positionfile/position_file.go`). There is no longer a separate `inputs/`/`outputs/` port-geometry
+  `dragfile/drag_file.go`). There is no longer a separate `inputs/`/`outputs/` port-geometry
   file — port geometry was removed with the port model (edges attach on the bead lattice,
   docs/bead-model/bead-lattice.md); this bullet used to list it as a second thing the mover writes.
-- The **SOURCE NODE** owns `nodes/<source>/edges/<label>.json`, and writes it from
+- The **SOURCE NODE** owns `nodes/<source>/drag/edges/<label>.json`, and writes it from
   `nodes/Wiring/nodeactor/owners/out_edges.go`'s `persistDelta` — the same pass that derives that edge's geometry,
   since the node is what holds the vector being stored. The write is gated on the vector
   actually changing: derivation runs every tick, so an ungated write would rewrite the file

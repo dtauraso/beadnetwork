@@ -25,7 +25,6 @@ type OverlayState struct {
 	RingPickVisible      bool
 	SelectionRingVisible bool
 	HoverRingVisible     bool
-	ReachSphereVisible   bool
 	SceneVectorsVisible  bool
 	RuleChannelsVisible  bool
 }
@@ -92,11 +91,6 @@ func (o *OverlayState) ToggleSelectionRing(tr *T.Trace) {
 // ToggleHoverRing flips HoverRingVisible.
 func (o *OverlayState) ToggleHoverRing(tr *T.Trace) {
 	o.setFlag(&o.HoverRingVisible)
-}
-
-// ToggleReachSphere flips ReachSphereVisible.
-func (o *OverlayState) ToggleReachSphere(tr *T.Trace) {
-	o.setFlag(&o.ReachSphereVisible)
 }
 
 // ToggleSceneVectors flips SceneVectorsVisible.

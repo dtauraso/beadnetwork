@@ -49,7 +49,6 @@ func wireNodeStreams(streamFDs SF.StreamFDs, md *W.MoveDispatch) {
 						CY:                  f.CY,
 						CZ:                  f.CZ,
 						Radius:              f.Radius,
-						SphereR:             f.SphereR,
 						VRX:                 f.VRX,
 						VRY:                 f.VRY,
 						VRZ:                 f.VRZ,

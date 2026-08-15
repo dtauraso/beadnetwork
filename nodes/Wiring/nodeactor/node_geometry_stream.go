@@ -66,7 +66,6 @@ func (m *NodeGeometry) writeStreamFrame(events []rowevent.RowEvent) {
 		DefaultLatticePoints: tiltvector.FullTurnPhiIdx,
 	})
 	center := fg.Center
-	sphereR := fg.SphereR
 	polePhi, poleTheta := fg.PolePhi, fg.PoleTheta
 	ringAxisPhi, ringAxisTheta := fg.RingAxisPhi, fg.RingAxisTheta
 	ringMatrix := fg.RingMatrix
@@ -106,7 +105,6 @@ func (m *NodeGeometry) writeStreamFrame(events []rowevent.RowEvent) {
 		CY:                  float32(center.Y),
 		CZ:                  float32(center.Z),
 		Radius:              float32(nodegeom.NodeRadius(m.geom.Kind)),
-		SphereR:             float32(sphereR),
 		VRX:                 loadspec.VerticalRingNormalX,
 		VRY:                 loadspec.VerticalRingNormalY,
 		VRZ:                 loadspec.VerticalRingNormalZ,

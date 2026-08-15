@@ -9,7 +9,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/kindreg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/loadspec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
-	"github.com/dtauraso/wirefold/nodes/Wiring/quantoffset"
+	"github.com/dtauraso/wirefold/nodes/Wiring/polarindex"
 	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
 	"github.com/dtauraso/wirefold/nodes/Wiring/topoderive"
 	"github.com/dtauraso/wirefold/nodes/clock"
@@ -34,7 +34,8 @@ type buildCtx struct {
 	nodeGeoms map[string]nodegeom.NodeGeom
 	centers   map[string]spatial.Vec3
 
-	quantizedOffsets map[string]quantoffset.QuantizedOffset
+	quantizedOffsets map[string]polarindex.Index
+	dragQuantOffsets map[string]polarindex.Index
 
 	destWire      map[string]*wire.PacedWire
 	edgeWire      loadspec.WireRegistry
@@ -66,7 +67,7 @@ func buildFromSpec(ctx context.Context, spec loadspec.TopoSpec, tr *T.Trace, clk
 
 	b.nodeGeoms, b.centers = topoderive.ComputeNodeGeometry(b.spec, b.sphere)
 	b.quantizedOffsets = topoderive.ComputeQuantizedLayout(b.spec, b.sphere, b.centers, b.nodeGeoms)
-	topoderive.ComputeReachRadii(b.spec, b.nodeGeoms)
+	b.dragQuantOffsets = topoderive.ComputeDragQuantOffsets(b.spec)
 	b.destWire, b.edgeWire, b.edgeEndpoints, b.edgeSteps, b.edgeSegments = topoderive.AllocateWires(b.spec, b.nodeGeoms, b.tr)
 	b.vectorOutByNode, b.vectorInByNode = topoderive.AllocateVectorChannels(b.spec)
 	if err := b.buildMoveDispatch(); err != nil {

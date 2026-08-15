@@ -5,10 +5,17 @@ metadata:
   type: feedback
 ---
 
+STALE past-tense of a since-superseded mechanism: drags (including this file's own
+`deltaPolarPhi`/`deltaPolarTheta` churn) moved to index-only persistence in
+`nodes/<id>/drag/edges/<label>.json` (gitignored), and the base delta itself
+(`nodes/<id>/edges/<label>.json`'s `deltaIndexR/Phi/Theta`) is now an authored integer
+step count, not a float the run recomputes. Kept as historical record of the underlying
+lesson below, which still applies to any owner-writes-its-own-file churn.
+
 Any run of the binary — including `scripts/stop-checks.sh` and the `.githooks/pre-push`
-hook that wraps it — leaves `topology/nodes/*/edges/*.json` modified. The edgeMover
-persists its polar delta on geometry recompute, and the round-trip changes the last
-digit or two of `deltaPolarPhi`/`deltaPolarTheta`. Nothing moved; it is float noise.
+hook that wraps it — used to leave `topology/nodes/*/edges/*.json` modified. The edgeMover
+persisted its polar delta on geometry recompute, and the round-trip changed the last
+digit or two of `deltaPolarPhi`/`deltaPolarTheta`. Nothing moved; it was float noise.
 
 **Why:** verification and persistence share the same live code path. The edgeMover
 that recomputes geometry is the same one that owns

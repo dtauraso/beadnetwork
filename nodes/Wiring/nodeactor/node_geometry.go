@@ -6,7 +6,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/owners"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
-	"github.com/dtauraso/wirefold/nodes/Wiring/quantoffset"
+	"github.com/dtauraso/wirefold/nodes/Wiring/polarindex"
 	"github.com/dtauraso/wirefold/nodes/Wiring/rulenode"
 	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
 	"github.com/dtauraso/wirefold/nodes/clock"
@@ -23,8 +23,8 @@ type NodeGeometry struct {
 	persistRoot string
 	selfKind    string
 
-	quantOffset quantoffset.QuantizedOffset
-	tr          *T.Trace
+	quant owners.Quant
+	tr    *T.Trace
 
 	msg owners.Messaging
 
@@ -57,7 +57,7 @@ type NodeGeometry struct {
 	rule rulenode.Link
 }
 
-func NewNodeGeometry(id string, geom nodegeom.NodeGeom, tr *T.Trace, clockSrc clock.Clock) *NodeGeometry {
+func NewNodeGeometry(id string, geom nodegeom.NodeGeom, tr *T.Trace, clockSrc clock.Clock, constants polarindex.SceneConstants) *NodeGeometry {
 	anim := &NodeAnimation{
 		id:     id,
 		clocks: owners.NewClocks(clockSrc, clock.NewRealClock()),
@@ -78,6 +78,8 @@ func NewNodeGeometry(id string, geom nodegeom.NodeGeom, tr *T.Trace, clockSrc cl
 	}
 
 	ng.msg.SeedCenter(nodegeom.NodeWorldPos(geom))
+	ng.quant.SetConstants(constants)
+	ng.outEdges.SetConstants(constants)
 
 	ng.beads.SetBeadTickFn(func() *time.Ticker { return time.NewTicker(clock.TickPeriod) })
 	return ng

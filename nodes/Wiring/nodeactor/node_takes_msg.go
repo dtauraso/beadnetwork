@@ -47,7 +47,7 @@ func (m *NodeGeometry) takeNeighborMove(msg movemsg.Msg) {
 		m.deltas.ShiftOtherBy(msg.SenderID, *msg.Delta)
 	}
 	if msg.Center != nil {
-		m.ApplyCenter(*msg.Center, msg.ReachR)
+		m.ApplyCenter(*msg.Center)
 		return
 	}
 	if m.tr != nil {

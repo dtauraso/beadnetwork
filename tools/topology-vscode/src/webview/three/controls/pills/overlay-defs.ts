@@ -112,16 +112,6 @@ const hoverRingCfg: ToggleCfg = {
   payload: (v) => ({ flag: "hoverRing", was: v }),
 };
 
-const reachSphereCfg: ToggleCfg = {
-  flag: "reachSphere",
-  default: true,
-  active: (v) => v,
-  icon: "⌾",
-  label: "reach sphere",
-  title: (a) => (a ? "Hide the reach sphere" : "Show the reach sphere"),
-  payload: (v) => ({ flag: "reachSphere", was: v }),
-};
-
 const sceneVectorsCfg: ToggleCfg = {
   flag: "sceneVectors",
   default: true,
@@ -163,7 +153,6 @@ export const OVERLAY_GROUPS: OverlayGroup[] = [
     groups: [
       { heading: "SHAPE", cfgs: [nodeBodyCfg, nodeRingCfg, ringPickCfg], panel: "nodeShape" },
       { heading: "STATE", cfgs: [selectionRingCfg, hoverRingCfg], panel: "nodeState" },
-      { heading: "REACH", cfgs: [reachSphereCfg], panel: "nodeReach" },
       { heading: "POLES", cfgs: [nodePolesCfg], panel: "nodePoles" },
     ],
   },

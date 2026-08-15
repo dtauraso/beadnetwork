@@ -5,13 +5,12 @@ import (
 	"path/filepath"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
-	"github.com/dtauraso/wirefold/nodes/Wiring/gitskip"
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
-	"github.com/dtauraso/wirefold/nodes/Wiring/positionfile"
+	"github.com/dtauraso/wirefold/nodes/Wiring/polarindex"
 )
 
-func nodeMetaFilePath(root, id string) string {
-	return filepath.Join(root, "nodes", id, "meta.json")
+func nodeBaseFilePath(root, id string) string {
+	return filepath.Join(root, "nodes", id, "base.json")
 }
 
 func nodeRuleActiveFilePath(root, id string) string {
@@ -23,31 +22,26 @@ func nodeDirPath(root, id string) string {
 }
 
 func entityReadModifyWrite(path string, mutate func(map[string]any)) error {
-	if err := jsonpersist.ReadModifyWriteJSON(path, mutate); err != nil {
-		return err
-	}
-	gitskip.Mark(path)
-	return nil
+	return jsonpersist.ReadModifyWriteJSON(path, mutate)
 }
 
-func WriteNewNodeFiles(root, id, kind string, scenePolarR, phi, theta float64) error {
+func WriteNewNodeFiles(root, id, kind string, p polar.Polar, sc polarindex.SceneConstants) error {
 	dir := nodeDirPath(root, id)
 	if err := os.MkdirAll(filepath.Join(dir, "edges"), 0o755); err != nil {
 		return err
 	}
-	if err := entityReadModifyWrite(nodeMetaFilePath(root, id), func(m map[string]any) {
+	idx := polarindex.Canonical(polarindex.MeasureScalar(p, sc), sc)
+	return entityReadModifyWrite(nodeBaseFilePath(root, id), func(m map[string]any) {
 		m["id"] = id
 		m["type"] = kind
-	}); err != nil {
-		return err
-	}
-	return positionfile.Write(root, id, positionfile.JSON{
-		ScenePolarR: scenePolarR, ScenePolarPhi: phi, ScenePolarTheta: theta,
+		m["indexPhi"] = idx.Phi
+		m["indexTheta"] = idx.Theta
+		m["indexR"] = idx.R
 	})
 }
 
 func WriteDragRule(root, id string, rule *polar.DragRule) error {
-	return entityReadModifyWrite(nodeMetaFilePath(root, id), func(m map[string]any) {
+	return entityReadModifyWrite(nodeBaseFilePath(root, id), func(m map[string]any) {
 		if rule == nil {
 			delete(m, "drag")
 			return

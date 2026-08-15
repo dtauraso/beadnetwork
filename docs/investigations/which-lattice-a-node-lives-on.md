@@ -17,7 +17,7 @@ Drag a node and its own chain of beads slides against it instead of moving with 
 
 | | radial step | angular step | governs |
 |---|---|---|---|
-| **Scene** (`nodes/Wiring/quantoffset/quantized_layout.go`) | **20.0** | π/12 = **15°** | a node's ABSOLUTE position about the scene centre |
+| **Scene** (`nodes/Wiring/polarindex/polar_index.go`) | **20.0** | π/12 = **15°** | a node's ABSOLUTE position about the scene centre |
 | **Local polar** (was `nodes/wire/layout_holder.go`, deleted with the whole local-polar model — MODEL.md "the polar model") | **8.96** | **1°** | a node's distance and bearing to each NEIGHBOUR — what `chain_beads.go` lays beads out from |
 
 20 is not a multiple of 8.96 (it is 2.23×), so a node cannot sit exactly on both at once.
@@ -79,7 +79,7 @@ neighbour distances are.
 
 Would have bought: node and beads share one quantization by construction.
 
-Would have cost: a migration of every stored `quantITheta`/`quantIPhi`/`quantIR` in
+Would have cost: a migration of every stored `indexTheta`/`indexPhi`/`indexR` in
 `topology/nodes/*/meta.json` and `position.json`, with the same distance-preserving
 conversion the local polars just went through. Angular resolution would go from 15° to 1°,
 so stored angular indices would multiply by 15.

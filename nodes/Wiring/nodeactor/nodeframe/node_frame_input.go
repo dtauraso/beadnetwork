@@ -12,7 +12,7 @@ type NodeFrameInput struct {
 
 	CX, CY, CZ float32
 
-	Radius, SphereR float32
+	Radius float32
 
 	VRX, VRY, VRZ float32
 	FRX, FRY, FRZ float32
