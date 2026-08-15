@@ -36,15 +36,19 @@ func (md *MoveDispatch) buildNodeMovers(geoms map[string]nodegeom.NodeGeom, tr *
 }
 
 func (md *MoveDispatch) wireRuleMesh() {
-	geoms := md.MR.NodeGeoms()
-	for id, nm := range geoms {
-		for peerID, peer := range geoms {
+	for id := range md.MR.NodeGeoms() {
+		md.Rules.Claim(id)
+	}
+	rules := md.Rules.All()
+	for id, rn := range rules {
+		for peerID, peer := range rules {
 			if peerID == id {
 				continue
 			}
 
-			nm.LinkRuleDown(peerID, peer.RuleBackChannel(id))
+			rn.LinkRuleDown(peerID, peer.RuleBackChannel(id))
 		}
+		md.MR.NodeGeoms()[id].LinkRuleState(rn.Out(), rn.Wake())
 	}
 }
 

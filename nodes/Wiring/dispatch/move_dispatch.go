@@ -6,6 +6,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/moverreg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeinbox"
 	rowtables "github.com/dtauraso/wirefold/nodes/Wiring/rowtables"
+	"github.com/dtauraso/wirefold/nodes/Wiring/rulereg"
 	sceneswitch "github.com/dtauraso/wirefold/nodes/Wiring/sceneswitch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/streamwire"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewpersist"
@@ -34,4 +35,6 @@ type MoveDispatch struct {
 	RT rowtables.RowTables
 
 	Inboxes nodeinbox.NodeInboxes
+
+	Rules rulereg.RuleRegistry
 }

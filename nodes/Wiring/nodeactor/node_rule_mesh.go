@@ -1,24 +1,28 @@
 package nodeactor
 
 import (
-	"github.com/dtauraso/wirefold/nodes/Wiring/rulemsg"
+	"github.com/dtauraso/wirefold/nodes/Wiring/rulenode"
 )
 
-func (m *NodeGeometry) RuleBackChannel(peerID string) chan rulemsg.Msg {
-	return m.ruleMesh.RuleBackChannel(peerID)
+func (m *NodeGeometry) LinkRuleState(fromRuleNode <-chan rulenode.State, wake <-chan struct{}) {
+	m.ruleCopy.LinkRuleNode(fromRuleNode, wake)
 }
 
-func (m *NodeGeometry) LinkRuleDown(peerID string, down chan rulemsg.Msg) {
-	m.ruleMesh.LinkRuleDown(peerID, down)
-}
-
-func (m *NodeGeometry) BroadcastRule() {
-	m.ruleMesh.SetSelfRuleKey(rulemsg.KeyOf(m.OrbitRule()))
-	m.ruleMesh.BroadcastRule(m.id)
-}
+func (m *NodeGeometry) RuleWake() <-chan struct{} { return m.ruleCopy.Wake() }
 
 func (m *NodeGeometry) drainRuleMesh() {
-	if !m.ruleMesh.DrainRules() {
+	changed := false
+	for {
+		state, ok := m.ruleCopy.TakeState()
+		if !ok {
+			break
+		}
+		m.topo.SetOrbitRule(state.Rule)
+		m.topo.SetOrbitActive(state.Active)
+		m.ruleCopy.SetGroup(state.GroupID, state.GroupSize)
+		changed = true
+	}
+	if !changed {
 		return
 	}
 	if m.tr != nil {
@@ -27,5 +31,5 @@ func (m *NodeGeometry) drainRuleMesh() {
 }
 
 func (m *NodeGeometry) RuleGroup() (groupID, size int32) {
-	return m.ruleMesh.RuleGroup(m.id)
+	return m.ruleCopy.Group()
 }

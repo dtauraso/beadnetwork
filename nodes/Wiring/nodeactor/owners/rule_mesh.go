@@ -54,6 +54,19 @@ func (r *RuleMesh) BroadcastRule(selfID string) {
 	}
 }
 
+func (r *RuleMesh) BackChannels() map[string]chan rulemsg.Msg {
+	return r.backFromPeer
+}
+
+func (r *RuleMesh) ApplyPeerRule(msg rulemsg.Msg) bool {
+	prev, seen := r.peerKey[msg.FromID]
+	if seen && prev == msg.Key {
+		return false
+	}
+	r.peerKey[msg.FromID] = msg.Key
+	return true
+}
+
 func (r *RuleMesh) DrainRules() bool {
 	changed := false
 	for peerID, back := range r.backFromPeer {

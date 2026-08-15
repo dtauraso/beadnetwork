@@ -91,6 +91,7 @@ func (in *TimeStart) Update(ctx context.Context) {
 	}
 
 	clk := in.Clock.Copy()
+	clk.WakeOn(in.Self.RuleWake())
 
 	windowActive := false
 	var windowEndTick int64

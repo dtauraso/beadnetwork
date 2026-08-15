@@ -10,6 +10,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/distancegroups"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
+	"github.com/dtauraso/wirefold/nodes/Wiring/rulenode"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenestructure"
 	"github.com/dtauraso/wirefold/nodes/Wiring/sceneswitch"
@@ -59,7 +60,6 @@ func applyUpdateTiltVector(ctx context.Context, msg inputcodec.StdinMsg, md *dis
 		return
 	}
 
-	scenepersist.BroadcastSpeed(speedSinks, scenepersist.HumanEditSpeed)
 	up := msg.Flag == "up"
 	if md.Inboxes.SendTiltEdit(ctx, id, movemsg.TiltEditMsg{Axis: msg.Attr, Up: up}) {
 		return
@@ -108,7 +108,7 @@ var nodeAttrHandlers = map[string]func(ctx context.Context, msg inputcodec.Stdin
 		if _, ok := md.MR.NodeGeoms()[id]; !ok {
 			return
 		}
-		md.MR.SendMove(ctx, id, movemsg.Msg{Kind: movemsg.KindOrbitPhiToggle, NodeID: id})
+		sendRuleEdit(ctx, md, id, rulenode.Edit{Kind: rulenode.EditPhiToggle})
 	},
 	"orbitMaxTheta": func(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch) {
 		id := strconv.Itoa(msg.Num + 1)
@@ -120,15 +120,23 @@ var nodeAttrHandlers = map[string]func(ctx context.Context, msg inputcodec.Stdin
 			radians := msg.X * math.Pi / 180
 			maxTheta = &radians
 		}
-		md.MR.SendMove(ctx, id, movemsg.Msg{Kind: movemsg.KindOrbitMaxTheta, NodeID: id, OrbitMaxTheta: maxTheta})
+		sendRuleEdit(ctx, md, id, rulenode.Edit{Kind: rulenode.EditMaxTheta, MaxTheta: maxTheta})
 	},
 	"orbitActive": func(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch) {
 		id := strconv.Itoa(msg.Num + 1)
 		if _, ok := md.MR.NodeGeoms()[id]; !ok {
 			return
 		}
-		md.MR.SendMove(ctx, id, movemsg.Msg{Kind: movemsg.KindOrbitActiveToggle, NodeID: id})
+		sendRuleEdit(ctx, md, id, rulenode.Edit{Kind: rulenode.EditActiveToggle})
 	},
+}
+
+func sendRuleEdit(ctx context.Context, md *dispatch.MoveDispatch, id string, edit rulenode.Edit) {
+	rn := md.Rules.MustGet(id)
+	select {
+	case rn.Edits() <- edit:
+	case <-ctx.Done():
+	}
 }
 
 func applyUpdateNode(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks []chan float64) {

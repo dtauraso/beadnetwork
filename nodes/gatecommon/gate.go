@@ -17,6 +17,7 @@ func runGateLoop(ctx context.Context, g *GateNode, captureLeftFn, captureRightFn
 	}
 
 	clk := g.Clock.Copy()
+	clk.WakeOn(g.Self.RuleWake())
 	now := clk.Tick
 
 	sleep := func(ctx context.Context) error {

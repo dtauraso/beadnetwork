@@ -14,8 +14,6 @@ import (
 
 const DefaultPlaybackSpeed = 1.0
 
-const HumanEditSpeed = 1.0
-
 func SliderSpeed(ui *viewstate.UIState) float64 {
 	return EffectiveClockSpeed(ui.Speed, ui.ClockDivisor)
 }

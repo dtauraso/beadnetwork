@@ -18,5 +18,7 @@ type Clock interface {
 
 	SleepPulse(ctx context.Context) error
 
+	WakeOn(wake <-chan struct{})
+
 	Copy() Clock
 }

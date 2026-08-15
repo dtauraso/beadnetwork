@@ -10,6 +10,12 @@ type RealClock struct {
 	lastChange time.Time
 
 	ticker *time.Ticker
+
+	wake <-chan struct{}
+}
+
+func (c *RealClock) WakeOn(wake <-chan struct{}) {
+	c.wake = wake
 }
 
 func NewRealClock() *RealClock {
@@ -42,6 +48,7 @@ func (c *RealClock) SetSpeed(speed float64) {
 func (c *RealClock) Copy() Clock {
 	cp := *c
 	cp.ticker = nil
+	cp.wake = nil
 	return &cp
 }
 
