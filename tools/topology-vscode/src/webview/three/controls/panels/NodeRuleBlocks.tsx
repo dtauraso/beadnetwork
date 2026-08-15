@@ -134,7 +134,7 @@ export function SpanningBlock({ rule }: { rule: NodeRuleRow }) {
   return (
     <div className="node-rules-holder">
       <div className="node-rules-holder-name">
-        {count === 2 ? "both edges" : `all ${count} edges`}
+        {count === 2 ? "both" : `all ${count}`}
       </div>
       <div className="node-rules-components">
         {axis.map((a) => (
