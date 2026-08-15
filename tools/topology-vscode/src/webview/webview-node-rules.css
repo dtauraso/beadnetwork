@@ -25,7 +25,7 @@
 .node-rules-node-block--inactive { opacity: 0.45; }
 
 .node-rules-node-head { display: flex; align-items: center; gap: 6px; }
-.node-rules-node-head input[type="checkbox"] { margin: 0; cursor: pointer; }
+.node-rules-panel input[type="checkbox"] { margin: 0; cursor: pointer; }
 .node-rules-node { color: #222; font-weight: 600; }
 .node-rules-kind { color: #666; }
 .node-rules-kind-rule { padding-left: 10px; color: #444; }
@@ -80,15 +80,15 @@
 .node-rules-shared-close:hover { color: #222; }
 
 .node-rules-shared-row { display: flex; align-items: center; gap: 6px; cursor: pointer; }
-.node-rules-shared-row input[type="checkbox"] { margin: 0; cursor: pointer; }
+.node-rules-shared-menu input[type="checkbox"] { margin: 0; cursor: pointer; }
 .node-rules-shared-row--all { padding-bottom: 2px; border-bottom: 1px solid #f2f2f2; }
 .node-rules-shared-row--self span { font-weight: 600; }
 
 .node-rules-input:focus { outline: none; box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.35); }
-.node-rules-node-head input[type="checkbox"]:focus,
-.node-rules-shared-row input[type="checkbox"]:focus,
-.node-rules-node-head input[type="checkbox"]:focus-visible,
-.node-rules-shared-row input[type="checkbox"]:focus-visible {
+.node-rules-panel input[type="checkbox"]:focus,
+.node-rules-shared-menu input[type="checkbox"]:focus,
+.node-rules-panel input[type="checkbox"]:focus-visible,
+.node-rules-shared-menu input[type="checkbox"]:focus-visible {
   outline: none;
   box-shadow: none;
 }
