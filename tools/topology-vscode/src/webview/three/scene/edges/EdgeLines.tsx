@@ -2,6 +2,7 @@ import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { getEdgeStreamAccessor } from "./edge-stream-blocks";
+import { checkEdgeLandsOnNode } from "./check-edge-lands-on-node";
 import { EDGE_LINE_COLOR, INSTANCE_TINT_BASE } from "../beads/bead-style";
 
 import { DIRECTION_ZERO_EPS } from "../buffer-scene-shared";
@@ -28,6 +29,8 @@ export function EdgeLines({ capacity }: { capacity: number }) {
     const line = lineRef.current;
     const head = headRef.current;
     if (!line || !head) return;
+
+    checkEdgeLandsOnNode();
 
     const edges = getEdgeStreamAccessor();
     if (!edges) { line.count = 0; head.count = 0; return; }
