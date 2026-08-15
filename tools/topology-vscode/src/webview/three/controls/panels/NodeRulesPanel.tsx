@@ -1,133 +1,11 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { postGoRecord } from "../../../vscode-api";
-import {
-  encodeNodeDragPhiToggle,
-  encodeNodeDragMaxTheta,
-  encodeNodeDragActiveToggle,
-} from "../../../../schema/input/input-encode";
-import { useNodeRuleRows, type NodeRuleRow, type RuleHolder } from "../flags/node-rules";
+import { encodeNodeDragActiveToggle } from "../../../../schema/input/input-encode";
+import { useNodeRuleRows, type NodeRuleRow } from "../flags/node-rules";
 import { firePanelToggle, usePanelOpen } from "../pills/panel-toggle";
 import { NodeRuleSharedMenu } from "./NodeRuleSharedMenu";
-
-function ComponentLine({
-  glyph,
-  children,
-  free,
-}: {
-  glyph: string;
-  children: React.ReactNode;
-  free?: boolean;
-}) {
-  return (
-    <div className={free ? "node-rules-line node-rules-line--free" : "node-rules-line"}>
-      <span className="node-rules-glyph">{glyph}</span>
-      <span className="node-rules-value">{children}</span>
-    </div>
-  );
-}
-
-function ThetaLine({ rule }: { rule: NodeRuleRow }) {
-  const [draft, setDraft] = useState<string | null>(null);
-
-  if (draft !== null) {
-    return (
-      <ComponentLine glyph="θ">
-        <input
-          className="node-rules-input"
-          autoFocus
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          onBlur={() => setDraft(null)}
-          onKeyDown={(e) => {
-            if (e.key === "Escape") {
-              setDraft(null);
-              return;
-            }
-            if (e.key !== "Enter") return;
-            const deg = Number.parseFloat(draft);
-            if (Number.isFinite(deg)) postGoRecord(encodeNodeDragMaxTheta(rule.row, deg));
-            setDraft(null);
-          }}
-        />
-        <span className="node-rules-unit">°</span>
-      </ComponentLine>
-    );
-  }
-
-  if (rule.maxThetaDeg === null) {
-    return (
-      <ComponentLine glyph="θ" free>
-        <button className="node-rules-edit" onClick={() => setDraft("90")}>
-          free
-        </button>
-      </ComponentLine>
-    );
-  }
-
-  const deg = Math.round(rule.maxThetaDeg * 10) / 10;
-  return (
-    <ComponentLine glyph="θ">
-      <button className="node-rules-edit" onClick={() => setDraft(String(deg))}>
-        ∈ [−{deg}°, +{deg}°]
-      </button>
-    </ComponentLine>
-  );
-}
-
-function HolderBlock({ rule, holder }: { rule: NodeRuleRow; holder: RuleHolder }) {
-  return (
-    <div className="node-rules-holder">
-      <div className="node-rules-holder-name">
-        drag holds <span className="node-rules-node">{holder.holderLabel}</span>
-      </div>
-      <div className="node-rules-components">
-        <ComponentLine glyph="r">r held {Math.round(holder.r * 10) / 10}</ComponentLine>
-        <ComponentLine glyph="φ" free={!rule.phiLocked}>
-          <button
-            className="node-rules-edit"
-            onClick={() => postGoRecord(encodeNodeDragPhiToggle(rule.row))}
-          >
-            {rule.phiLocked ? "locked" : "free"}
-          </button>
-        </ComponentLine>
-        <ThetaLine rule={rule} />
-      </div>
-    </div>
-  );
-}
-
-function FreeNodeBlock() {
-  return (
-    <div className="node-rules-holder">
-      <div className="node-rules-holder-name node-rules-line--free">drags free</div>
-      <div className="node-rules-components">
-        <ComponentLine glyph="r" free>
-          free
-        </ComponentLine>
-        <ComponentLine glyph="φ" free>
-          free
-        </ComponentLine>
-        <ComponentLine glyph="θ" free>
-          free
-        </ComponentLine>
-      </div>
-    </div>
-  );
-}
-
-const KIND_RULE_TEXT: Record<string, string> = {
-  Input: "θ snaps to half-turns · out-lengths held equal",
-};
-
-function KindRuleLine({ rule }: { rule: NodeRuleRow }) {
-  const text = KIND_RULE_TEXT[rule.kind] ?? "kind rule applies";
-  return (
-    <div className="node-rules-kind-rule">
-      ⤷ <span className="node-rules-kind">{rule.kind}</span> {text}
-    </div>
-  );
-}
+import { FreeNodeBlock, EdgeBlock, SpanningBlock } from "./NodeRuleBlocks";
 
 function NodeBlock({ rule, members }: { rule: NodeRuleRow; members: NodeRuleRow[] }) {
   const [menuAnchor, setMenuAnchor] = useState<DOMRect | null>(null);
@@ -170,12 +48,11 @@ function NodeBlock({ rule, members }: { rule: NodeRuleRow; members: NodeRuleRow[
           onClose={() => setMenuAnchor(null)}
         />
       )}
-      {!rule.hasRule || rule.holders.length === 0 ? (
-        <FreeNodeBlock />
-      ) : (
-        rule.holders.map((h) => <HolderBlock key={h.holderRow} rule={rule} holder={h} />)
-      )}
-      {rule.hasKindRule && <KindRuleLine rule={rule} />}
+      {!rule.hasRule && <FreeNodeBlock />}
+      {rule.partners.map((p) => (
+        <EdgeBlock key={`${p.otherRow}-${p.incoming ? "in" : "out"}`} rule={rule} partner={p} />
+      ))}
+      {rule.hasKindRule && <SpanningBlock rule={rule} />}
     </div>
   );
 }
