@@ -13,7 +13,7 @@ func SelectScene(scenes *SceneSwitch, idx int) {
 	if scenes.AnchorPath == "" || scenes.Quit == nil {
 		return
 	}
-	if idx < 0 || idx >= len(scene.SceneTabs) {
+	if idx < 0 || idx >= len(scene.Scenes) {
 		return
 	}
 	if idx == scene.SelectedSceneIndex(scenes.AnchorPath) {

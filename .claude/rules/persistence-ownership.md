@@ -35,7 +35,7 @@ open/closed state is not an overlay visibility flag, even though the two are per
 streamed, and edited the same way.
 
 **`topology/` is one of several sibling SCENES**, not the only tree. `nodes/Wiring/scene/scene_tabs.go`'s
-`SceneTabs` names each sibling directory (today: `topology/`, `topology-pair/`) resolved
+`Scenes` names each sibling directory (today: `topology/`, `topology-pair/`) resolved
 relative to the ANCHOR's parent — the `-topology` flag the extension host launches with is
 the fixed anchor, and which sibling directory actually loads is resolved from it
 (`ResolveScenePath`). Each sibling is a COMPLETE, independently loadable tree with its own

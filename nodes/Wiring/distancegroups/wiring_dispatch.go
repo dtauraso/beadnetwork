@@ -11,10 +11,11 @@ import (
 )
 
 func ResolveSceneDistanceGroups(ui *viewstate.UIState, scenePath string) {
-	ui.HasDistanceGroups = scene.SceneHasDistanceGroups(scenePath)
+	s := scene.For(scenePath)
+	ui.HasDistanceGroups = s.DistanceGroups
 
-	ui.SceneEditable = scene.SceneIsEditable(scenePath)
-	ui.SceneKinds = scene.SceneKindMask(scenePath)
+	ui.SceneEditable = s.Editable
+	ui.SceneKinds = s.KindMask()
 }
 
 func ApplyDistanceGroupTarget(ctx context.Context, ui *viewstate.UIState, mr *moverreg.MoverRegistry, lq *layoutquant.LayoutQuantizer, groupIdx, dir int) bool {
