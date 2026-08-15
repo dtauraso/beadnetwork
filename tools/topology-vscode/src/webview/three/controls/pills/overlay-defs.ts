@@ -132,6 +132,16 @@ const sceneVectorsCfg: ToggleCfg = {
   payload: (v) => ({ flag: "sceneVectors", was: v }),
 };
 
+const ruleChannelsCfg: ToggleCfg = {
+  flag: "ruleChannels",
+  default: false,
+  active: (v) => v,
+  icon: "⇄",
+  label: "rule channels",
+  title: (a) => (a ? "Hide the rule-channel mesh" : "Show the rule-channel mesh"),
+  payload: (v) => ({ flag: "ruleChannels", was: v }),
+};
+
 export type OverlayGroup = {
   heading: string;
   cfgs: ToggleCfg[];
@@ -164,7 +174,7 @@ export const OVERLAY_GROUPS: OverlayGroup[] = [
     groups: [
       { heading: "GUIDES", cfgs: [ringsCfg, handholdsCfg], panel: "sceneGuides" },
       { heading: "POLES", cfgs: [scenePolesCfg], panel: "scenePoles" },
-      { heading: "VECTORS", cfgs: [sceneVectorsCfg], panel: "sceneVectors" },
+      { heading: "VECTORS", cfgs: [sceneVectorsCfg, ruleChannelsCfg], panel: "sceneVectors" },
       { heading: "LABELS", cfgs: [globalLabelsCfg], panel: "sceneLabels" },
     ],
   },

@@ -17,6 +17,8 @@ type bufLayoutOverlay struct {
 
 	SceneVectors uint8 `buf:"u8"`
 
+	RuleChannels uint8 `buf:"u8"`
+
 	DragNodeRow int32 `buf:"i32"`
 
 	EditRefused uint32 `buf:"u32"`

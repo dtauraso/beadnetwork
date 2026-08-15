@@ -35,6 +35,19 @@ func (md *MoveDispatch) buildNodeMovers(geoms map[string]nodegeom.NodeGeom, tr *
 	}
 }
 
+func (md *MoveDispatch) wireRuleMesh() {
+	geoms := md.MR.NodeGeoms()
+	for id, nm := range geoms {
+		for peerID, peer := range geoms {
+			if peerID == id {
+				continue
+			}
+
+			nm.LinkRuleDown(peerID, peer.RuleBackChannel(id))
+		}
+	}
+}
+
 func (md *MoveDispatch) wireMutualPairs(edgeEndpoints map[string]inputcodec.EdgeEndpoints) {
 	for src, targets := range geomseeds.MutualPairs(edgeEndpoints) {
 		if nm, ok := md.MR.NodeGeoms()[src]; ok {

@@ -12,6 +12,7 @@ import { TiltVectors } from "../nav/TiltVectors";
 import { NodeInstances } from "./nodes/NodeInstances";
 import { SelectionHighlight, HoverHighlight } from "./overlays/SelectionHighlight";
 import { SphereRings } from "./overlays/SphereRings";
+import { RuleChannelLines } from "./overlays/RuleChannelLines";
 import { InteriorBeadInstances } from "./beads/InteriorBeadInstances";
 import { BufferCamera } from "./BufferCamera";
 import { BufferLabelProjector } from "./labels/BufferLabelProjector";
@@ -71,6 +72,7 @@ export function BufferScene({ cameraRef }: {
       <SelectionHighlight />
       <HoverHighlight />
       <SphereRings />
+      <RuleChannelLines capacity={(nodeCap * (nodeCap - 1)) / 2} />
     </>
   );
 }

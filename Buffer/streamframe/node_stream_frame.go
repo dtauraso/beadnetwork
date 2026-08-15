@@ -52,6 +52,8 @@ type NodeStreamFrame struct {
 	OrbitActive                  uint8
 	HasKindRule                  uint8
 
+	RuleGroupID, RuleGroupSize int32
+
 	Label string
 
 	Events []StreamEvent
@@ -76,7 +78,8 @@ func BuildNodeStreamFrame(f NodeStreamFrame) []byte {
 		f.TopTiltVectorPhi, f.BottomTiltVectorPhi,
 		f.CoplanarNormalPhi, f.ReceivedVectorLen, f.ReceivedVectorPhi,
 		f.Selected, f.KindID, 0, uint32(len(labelBytes)), f.Hovered, f.LatchedSel, f.LatticePoints, f.RoundsToParallel, f.MsgsToParallel,
-		f.OrbitRLocked, f.OrbitPhiLocked, f.OrbitThetaMax, f.OrbitActive, f.HasKindRule)
+		f.OrbitRLocked, f.OrbitPhiLocked, f.OrbitThetaMax, f.OrbitActive, f.HasKindRule,
+		f.RuleGroupID, f.RuleGroupSize)
 	off += B.BufNodeStride
 
 	copy(buf[off:off+len(labelBytes)], labelBytes)

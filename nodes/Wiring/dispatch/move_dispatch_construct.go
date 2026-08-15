@@ -21,6 +21,7 @@ func NewMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[strin
 		return nil, err
 	}
 	md.buildNodeMovers(geoms, tr, clk)
+	md.wireRuleMesh()
 	md.wireMutualPairs(edgeEndpoints)
 	md.buildEdgeTable(edgeEndpoints)
 	md.wireNodeEdgeIDs()

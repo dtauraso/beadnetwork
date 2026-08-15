@@ -13,6 +13,7 @@ type ViewOverlayFlags struct {
 	SceneTori, ScenePoles, NodePoles, Handholds, LabelsGlobal, OverlaysVis uint8
 	NodeBody, NodeRing, RingPick, SelectionRing, HoverRing, ReachSphere    uint8
 	SceneVectors                                                           uint8
+	RuleChannels                                                           uint8
 }
 
 type ViewPanelFlags struct {
@@ -87,6 +88,7 @@ func (ui *UIState) EmitViewFrame(events []rowevent.RowEvent) {
 			HoverRing:     boolU8(ui.OV.HoverRingVisible),
 			ReachSphere:   boolU8(ui.OV.ReachSphereVisible),
 			SceneVectors:  boolU8(ui.OV.SceneVectorsVisible),
+			RuleChannels:  boolU8(ui.OV.RuleChannelsVisible),
 		},
 		ViewPanelFlags{
 			Overlays:     boolU8(ui.PN.OverlaysOpen),
