@@ -46,9 +46,9 @@ and none is a source of truth.
   `memory/project/layout-model/project_layout_model_evolution.md`).
 - **A node is a point and an edge is the triple that closes the triangle.** A node's own
   point is `(r,φ,θ)` about the scene-sphere centre, in the QUANTISED integer form
-  (`quantoffset.QuantizedOffset` — `ITheta`/`IPhi`/`IR` × per-node step constants,
-  `nodes/Wiring/quantoffset/quantized_layout.go`), persisted (`nodes/<id>/position.json`
-  `scenePolarR`/`scenePolarPhi`/`scenePolarTheta` + `iTheta`/`iPhi`/`iR`).
+  (`polarindex.Index` — `ITheta`/`IPhi`/`IR` × per-node step constants,
+  `nodes/Wiring/polarindex/polar_index.go`), persisted (`nodes/<id>/position.json`
+  `scenePolarR`/`scenePolarPhi`/`scenePolarTheta` + `indexTheta`/`indexPhi`/`indexR`).
   An edge carries `D`, the triple from its source to its target, persisted in that edge's
   own file under its source (`nodes/<src>/edges/<label>.json`, `deltaPolar*`). The two are
   one triangle:

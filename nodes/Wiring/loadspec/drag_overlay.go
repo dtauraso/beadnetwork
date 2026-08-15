@@ -15,7 +15,7 @@ func ApplyDragOverlay(root string, spec *TopoSpec) {
 		if drag, ok := dragfile.Read(root, n.ID); ok {
 			d := polar.Polar{R: drag.DragPolarR, Phi: drag.DragPolarPhi, Theta: drag.DragPolarTheta}
 			n.DragScenePolarR, n.DragScenePolarPhi, n.DragScenePolarTheta = &d.R, &d.Phi, &d.Theta
-			n.DragIPhi, n.DragITheta, n.DragIR = &drag.IPhi, &drag.ITheta, &drag.IR
+			n.DragIndexPhi, n.DragIndexTheta, n.DragIndexR = &drag.IndexPhi, &drag.IndexTheta, &drag.IndexR
 		}
 	}
 

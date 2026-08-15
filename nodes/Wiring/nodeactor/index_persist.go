@@ -6,10 +6,10 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/dragfile"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
-	"github.com/dtauraso/wirefold/nodes/Wiring/quantoffset"
+	"github.com/dtauraso/wirefold/nodes/Wiring/polarindex"
 )
 
-func (nm *NodeGeometry) persistQuantOffset(off quantoffset.QuantizedOffset) {
+func (nm *NodeGeometry) persistQuantOffset(off polarindex.Index) {
 	if nm.persistRoot == "" {
 		return
 	}
@@ -28,13 +28,13 @@ func (nm *NodeGeometry) persistTiltVectorAngle() {
 	}
 }
 
-func writeQuantOffset(root, id string, off quantoffset.QuantizedOffset, delta polar.Polar, topTiltVectorPhiIdx int32) error {
+func writeQuantOffset(root, id string, off polarindex.Index, delta polar.Polar, topTiltVectorPhiIdx int32) error {
 	if !jsonpersist.SafeTreePathComponent(id) {
 		return fmt.Errorf("unsafe node id %q", id)
 	}
 	return dragfile.Write(root, id, dragfile.JSON{
 		DragPolarR: delta.R, DragPolarPhi: delta.Phi, DragPolarTheta: delta.Theta,
-		IPhi: off.IPhi, ITheta: off.ITheta, IR: off.IR,
+		IndexPhi: off.Phi, IndexTheta: off.Theta, IndexR: off.R,
 		TopTiltVectorPhiIdx: topTiltVectorPhiIdx,
 	})
 }

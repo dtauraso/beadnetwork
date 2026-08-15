@@ -9,7 +9,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/nodeframe"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/owners"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/streamclaim"
-	"github.com/dtauraso/wirefold/nodes/Wiring/quantoffset"
+	"github.com/dtauraso/wirefold/nodes/Wiring/polarindex"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/outport"
@@ -55,11 +55,11 @@ func (m *NodeGeometry) SetSceneFlags(coplanarEdges, upAxis bool) {
 	m.flags.SetSceneFlags(coplanarEdges, upAxis)
 }
 
-func (m *NodeGeometry) SetQuantOffset(off quantoffset.QuantizedOffset) {
+func (m *NodeGeometry) SetQuantOffset(off polarindex.Index) {
 	m.quant.SetBase(off)
 }
 
-func (m *NodeGeometry) SetDragQuantOffset(off quantoffset.QuantizedOffset) {
+func (m *NodeGeometry) SetDragQuantOffset(off polarindex.Index) {
 	m.quant.SetDrag(off)
 }
 

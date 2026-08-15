@@ -14,9 +14,9 @@ type JSON struct {
 	DragPolarR     float64 `json:"dragPolarR"`
 	DragPolarPhi   float64 `json:"dragPolarPhi"`
 	DragPolarTheta float64 `json:"dragPolarTheta"`
-	IPhi           int     `json:"iPhi"`
-	ITheta         int     `json:"iTheta"`
-	IR             int     `json:"iR"`
+	IndexPhi       int     `json:"indexPhi"`
+	IndexTheta     int     `json:"indexTheta"`
+	IndexR         int     `json:"indexR"`
 
 	TopTiltVectorPhiIdx int32 `json:"topTiltVectorThetaIdx,omitempty"`
 }
@@ -27,18 +27,9 @@ func Write(root, id string, j JSON) error {
 		m["dragPolarR"] = j.DragPolarR
 		m["dragPolarPhi"] = j.DragPolarPhi
 		m["dragPolarTheta"] = j.DragPolarTheta
-		m["iPhi"] = j.IPhi
-		m["iTheta"] = j.ITheta
-		m["iR"] = j.IR
-		delete(m, "stepPhi")
-		delete(m, "stepTheta")
-		delete(m, "stepR")
-		delete(m, "quantIPhi")
-		delete(m, "quantITheta")
-		delete(m, "quantIR")
-		delete(m, "deltaPolarR")
-		delete(m, "deltaPolarPhi")
-		delete(m, "deltaPolarTheta")
+		m["indexPhi"] = j.IndexPhi
+		m["indexTheta"] = j.IndexTheta
+		m["indexR"] = j.IndexR
 		if j.TopTiltVectorPhiIdx != 0 {
 			m["topTiltVectorThetaIdx"] = j.TopTiltVectorPhiIdx
 		}

@@ -9,7 +9,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/kindreg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/loadspec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
-	"github.com/dtauraso/wirefold/nodes/Wiring/quantoffset"
+	"github.com/dtauraso/wirefold/nodes/Wiring/polarindex"
 	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
 	"github.com/dtauraso/wirefold/nodes/Wiring/topoderive"
 	"github.com/dtauraso/wirefold/nodes/clock"
@@ -34,8 +34,8 @@ type buildCtx struct {
 	nodeGeoms map[string]nodegeom.NodeGeom
 	centers   map[string]spatial.Vec3
 
-	quantizedOffsets map[string]quantoffset.QuantizedOffset
-	dragQuantOffsets map[string]quantoffset.QuantizedOffset
+	quantizedOffsets map[string]polarindex.Index
+	dragQuantOffsets map[string]polarindex.Index
 
 	destWire      map[string]*wire.PacedWire
 	edgeWire      loadspec.WireRegistry

@@ -18,6 +18,7 @@ Everything about a node lives under its own directory. There is no top-level `ed
 topology/
 ├── counts.json                           {"nodes": 9, "edges": 10}  — nodes = ROW COUNT
 │                                          (largest node id), not a live-node count
+├── constants.json                        {"constantR", "constantPhi", "constantTheta"} — scene-level, read once
 ├── nodes/<id>/
 │   ├── base.json                          type/id/gate/drag-rule + the BASE position — TRACKED, see below
 │   ├── drag/self.json                 the node's accumulated position DELTA — GITIGNORED, see below
@@ -66,12 +67,16 @@ edge's wiring (`target`/`sourceHandle`/`targetHandle`/`kind`) plus its BASE geom
 **`drag/` `self.json` and `drag/edges/` `<label>.json` are GITIGNORED and are the only
 files a drag writes** — each holds an accumulated `polar.Polar` DELTA, not an absolute value, using
 the same `deltaPolarR`/`deltaPolarPhi`/`deltaPolarTheta` field naming the tracked delta files
-use. `drag/` `self.json` also carries `iPhi`/`iTheta`/`iR` — these are
-DELTAS too (the offset from `base.json`'s own `iPhi`/`iTheta`/`iR`, e.g. a
-base `iR` of 25 plus a 4-step drag stores `iR: 4`, not 29), composed with the base
-quant index only at the point of use (`quantoffset.Compose`, mirroring `nodegeom.ScenePolarOf`).
-It does NOT carry `constantPhi`/`constantTheta`/`constantR` — those are constants identical to
-`base.json`'s copy, read from there; a second copy in the drag file could only drift.
+use. `drag/` `self.json` also carries `indexPhi`/`indexTheta`/`indexR` — these are
+DELTAS too (the offset from `base.json`'s own `indexPhi`/`indexTheta`/`indexR`, e.g. a
+base `indexR` of 25 plus a 4-step drag stores `iR: 4`, not 29), composed with the base
+quant index only at the point of use (`polarindex.Compose`, mirroring `nodegeom.ScenePolarOf`).
+It does NOT carry `constantPhi`/`constantTheta`/`constantR` — nor does `base.json` any
+more; those moved to `constants.json` at the scene root (read once per load, fails loudly
+by path on missing/malformed input, and asserts `constantR == lattice.BeadStepR` — the
+radial grid must match the bead lattice's own step size). The loaded triple
+(`polarindex.SceneConstants`) is passed explicitly into every consumer, never a
+per-instance field or a package-level global.
 
 **A (base) and B (drag) are held SEPARATELY in the running program, never summed into a
 stored value.** `nodegeom.NodeGeom` carries `BasePolar` (A, loaded once from `base.json`,
@@ -87,25 +92,22 @@ Persistence (`quant_offset_persist.go`) writes `geom.DragPolar` straight to
 path.
 
 The quantized index rides the same split, in `owners.Quant`: `base` (A, loaded once from
-`base.json`'s `iPhi`/`iTheta`/`iR`) and `drag` (B, set by `CommitQuantOffset`
-as `quantoffset.Delta(measured, base)`, never reconstructed by subtracting later).
-`Quant.Composed()` returns `quantoffset.Compose(base, drag)`, computed at each call site and
+`base.json`'s `indexPhi`/`indexTheta`/`indexR`) and `drag` (B, set by `CommitQuantOffset`
+as `polarindex.Delta(measured, base)`, never reconstructed by subtracting later).
+`Quant.Composed()` returns `polarindex.Compose(base, drag)`, computed at each call site and
 held nowhere else. `persistQuantOffset` writes `drag` straight to `drag/` `self.json`'s
-`iPhi`/`iTheta`/`iR` — a DELTA, same as the polar fields in that file.
+`indexPhi`/`indexTheta`/`indexR` — a DELTA, same as the polar fields in that file.
 
-The same split applies to an edge's target vector. `owners.Deltas` holds two maps,
-`baseTo` (A, seeded once at build time from each edge's `<label>.json` base delta, in both
-directions — outgoing straight, incoming negated — and never mutated afterward) and
-`dragTo` (B, the only thing `ShiftSelfBy`/`ShiftOtherBy` mutate, when this node or a
-neighbor moves). `Deltas.DeltaTo` returns the derived `polar.Compose(base, drag)` for
-geometry/rendering; `Deltas.DragDeltaTo` returns B directly. `owners.OutEdges.persistDelta`
-persists `DragDeltaTo` directly to `drag/edges/` `<label>.json` — it no longer computes
-`polar.Between(baseDelta, composedDelta)` to recover B, because B is never discarded into a
-composed-only value in the first place. THE DELTA (a node's standing vector to a neighbor,
-in `<label>.json`) and THE DRAG (the user's accumulated offset, in `drag/`) are different
-quantities that are never summed into a stored value and never substituted for one another;
-the only place they combine is at the point something is drawn or persisted, and persist
-always writes the DRAG component, never the composed one.
+The same split applies to an edge's target vector. `owners.Deltas` holds `baseTo` (A, seeded
+once at build from each edge's `<label>.json`, outgoing straight and incoming negated, never
+mutated after) and `dragTo` (B, the only thing `ShiftSelfBy`/`ShiftOtherBy` mutate).
+`DeltaTo` returns the derived compose; `DragDeltaTo` returns B. `OutEdges.persistDelta`
+writes `DragDeltaTo` straight to `drag/edges/` `<label>.json`.
+
+THE DELTA (a node's standing vector to a neighbor, in `<label>.json`) and THE DRAG (the
+user's accumulated offset, in `drag/`) are different quantities. They are never summed into
+a stored value and never substituted for one another; they combine only at the point
+something is drawn, and persist always writes the DRAG, never the composed value.
 
 On load, `loadspec.ApplyDragOverlay` reads `base.json`/`<label>.json` into the BASE fields
 and `drag/` `self.json`/`drag/edges/` `<label>.json` into separate DRAG fields on the same
@@ -114,20 +116,16 @@ edge) — it composes NOTHING; a node or edge with no `drag/` file simply carrie
 value forward. `polar.Compose`/`polar.Between` are untouched by this change; this is the
 existing componentwise op, just applied at the render/persist boundary instead of at load.
 
-This REPLACES an earlier design that tried to keep one file per owner and use
-**`nodes/Wiring/gitskip`** (`git update-index --skip-worktree <path>`) to stop a drag write
-to that same tracked path from showing as modified. That mechanism was ABANDONED:
-skip-worktree only suppresses `git status`/`git diff` reporting, it does not suppress
-`git checkout`'s refusal to switch branches when a skip-worktree'd file differs from the
-index — so the very first branch switch after a drag forced the drag output into a commit
-just to unblock the checkout, the exact outcome the split was built to avoid. A plain
-gitignored subdirectory has no such failure mode, because there is nothing in the index for
-`git checkout` to compare against.
+Do NOT try to keep geometry in one tracked file and hide the drag write with
+`git update-index --skip-worktree`. That was tried and abandoned: skip-worktree suppresses
+`git status`/`git diff` reporting but NOT `git checkout`'s refusal to switch branches when a
+marked file differs from the index — so the first branch switch after a drag forces the drag
+output into a commit to unblock the checkout, the exact outcome the split exists to avoid. A
+gitignored subdirectory has nothing in the index for `checkout` to compare against.
 
-Edge WIRING (`target`/`sourceHandle`/`targetHandle`/`kind`/`label`) is authored data,
-unrelated to drag geometry, and keeps writing to the tracked `<label>.json` file exactly as
-before (`edgefile.WriteEdgeFile`) whenever it legitimately changes (e.g. a rewire). Only the
-geometry DELTA moved to `drag/`.
+Edge WIRING (`target`/`sourceHandle`/`targetHandle`/`kind`/`label`) is authored data and
+keeps writing to the tracked `<label>.json` (`edgefile.WriteEdgeFile`) whenever it
+legitimately changes. Only the geometry DELTA moved to `drag/`.
 
 A drag touches more than the node you grabbed: the dragged node shifts its own vectors, and
 each neighbour is told how far it moved and shifts its own — so a neighbour's `drag/`

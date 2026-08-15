@@ -23,7 +23,7 @@ func (b *buildCtx) buildMoveDispatch() error {
 	for i, e := range b.spec.Edges {
 		edgeOrder[i] = e.Label
 	}
-	md, err := dispatch.NewMoveDispatch(b.nodeGeoms, b.edgeEndpoints, b.tr, nodeOrder, edgeOrder, b.clk, &b.speedSinks, b.spec.RowCount)
+	md, err := dispatch.NewMoveDispatch(b.nodeGeoms, b.edgeEndpoints, b.tr, nodeOrder, edgeOrder, b.clk, &b.speedSinks, b.spec.RowCount, b.spec.Constants)
 	if err != nil {
 		return fmt.Errorf("buildMoveDispatch: %w", err)
 	}

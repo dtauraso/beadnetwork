@@ -6,6 +6,7 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/polarindex"
 	"github.com/dtauraso/wirefold/nodes/spatial"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
 	"github.com/dtauraso/wirefold/nodes/wire/outport"
@@ -25,17 +26,13 @@ type specNode struct {
 	DragScenePolarPhi   *float64 `json:"-"`
 	DragScenePolarTheta *float64 `json:"-"`
 
-	IPhi   *int `json:"iPhi,omitempty"`
-	ITheta *int `json:"iTheta,omitempty"`
-	IR     *int `json:"iR,omitempty"`
+	IndexPhi   *int `json:"indexPhi,omitempty"`
+	IndexTheta *int `json:"indexTheta,omitempty"`
+	IndexR     *int `json:"indexR,omitempty"`
 
-	ConstantPhi   *float64 `json:"constantPhi,omitempty"`
-	ConstantTheta *float64 `json:"constantTheta,omitempty"`
-	ConstantR     *float64 `json:"constantR,omitempty"`
-
-	DragIPhi   *int `json:"-"`
-	DragITheta *int `json:"-"`
-	DragIR     *int `json:"-"`
+	DragIndexPhi   *int `json:"-"`
+	DragIndexTheta *int `json:"-"`
+	DragIndexR     *int `json:"-"`
 
 	Gate bool `json:"gate,omitempty"`
 
@@ -111,6 +108,8 @@ type TopoSpec struct {
 	Edges []specEdge `json:"edges"`
 
 	RowCount int
+
+	Constants polarindex.SceneConstants
 }
 
 type WireRegistry map[string]*wire.PacedWire

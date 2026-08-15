@@ -6,7 +6,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
-	"github.com/dtauraso/wirefold/nodes/Wiring/quantoffset"
+	"github.com/dtauraso/wirefold/nodes/Wiring/polarindex"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
 )
 
@@ -72,18 +72,18 @@ func (m *NodeGeometry) NeighborIDs() []string { return m.msg.NeighborIDs() }
 
 func (m *NodeGeometry) QuantOffset() (iTheta, iPhi, iR int) {
 	c := m.quant.Composed()
-	return c.IPhi, c.ITheta, c.IR
+	return c.Phi, c.Theta, c.R
 }
 
-func (m *NodeGeometry) QuantizedOffsetValue() quantoffset.QuantizedOffset {
+func (m *NodeGeometry) IndexValue() polarindex.Index {
 	return m.quant.Composed()
 }
 
 func (m *NodeGeometry) ReachR() float64 { return m.geom.ReachR }
 
 func (m *NodeGeometry) CommitQuantOffset(committedPolar polar.Polar) {
-	composed := quantoffset.MeasureScalar(committedPolar, m.quant.Composed())
-	drag := quantoffset.Delta(composed, m.quant.Base())
+	composed := polarindex.MeasureScalar(committedPolar, m.quant.Constants())
+	drag := polarindex.Delta(composed, m.quant.Base())
 	m.quant.SetDrag(drag)
 	m.persistQuantOffset(drag)
 }

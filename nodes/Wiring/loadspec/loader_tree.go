@@ -22,6 +22,12 @@ func LoadTree(root string) (TopoSpec, error) {
 	}
 	spec.RowCount = rowCount
 
+	constants, err := loadSceneConstants(root)
+	if err != nil {
+		return spec, err
+	}
+	spec.Constants = constants
+
 	for _, nodeID := range nodeDirs {
 		sn, err := loadNodeBase(root, nodesDir, nodeID)
 		if err != nil {
