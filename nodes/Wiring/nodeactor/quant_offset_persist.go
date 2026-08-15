@@ -33,7 +33,7 @@ func writeQuantOffset(root, id string, off quantoffset.QuantizedOffset, scene po
 		return fmt.Errorf("unsafe node id %q", id)
 	}
 	t, p, r := off.EffectiveSteps()
-	return jsonpersist.WriteJSONAtomic(positionfile.FilePath(root, id), positionfile.JSON{
+	return positionfile.Write(root, id, positionfile.JSON{
 		ScenePolarR: scene.R, ScenePolarPhi: scene.Phi, ScenePolarTheta: scene.Theta,
 		QuantIPhi: off.IPhi, QuantITheta: off.ITheta, QuantIR: off.IR,
 		StepPhi: t, StepTheta: p, StepR: r,
