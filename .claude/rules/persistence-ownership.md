@@ -61,10 +61,10 @@ recording the edge under the target — that reintroduces the duplication the la
 There used to be two layers per geometry file — a tracked seed plus a gitignored drag-output
 overlay the loader read second (`meta.json` + `position.json`, `<label>.json` +
 `<label>.geom.json`). That split is GONE. A node's position lives directly in `meta.json`
-alongside its `type`/`id`/`gate`/`orbit`; an edge's geometry delta lives directly in
+alongside its `type`/`id`/`gate`/`drag`; an edge's geometry delta lives directly in
 `<label>.json` alongside its wiring (`target`/`sourceHandle`/`targetHandle`/`kind`). One file,
 one owner, read-modify-write on every write so the keys a write doesn't touch survive
-(`jsonpersist.ReadModifyWriteJSON`, the same pattern `WriteOrbitRule` used before this
+(`jsonpersist.ReadModifyWriteJSON`, the same pattern `WriteDragRule` used before this
 change).
 
 The reason the split existed at all was that **a user drag is the only writer of geometry**

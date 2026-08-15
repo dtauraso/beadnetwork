@@ -1,11 +1,11 @@
 ---
 name: project-rule-off-frees-radius-too
-description: An orbit rule that is absent or inactive frees r as well as phi/theta, so the node follows the drag plane and can land far off the sphere — decided behaviour, not a bug
+description: A drag rule that is absent or inactive frees r as well as phi/theta, so the node follows the drag plane and can land far off the sphere — decided behaviour, not a bug
 metadata:
   type: project
 ---
 
-Turning a node's orbit rule OFF in the polar rules panel frees **r, φ and θ together**, so
+Turning a node's drag rule OFF in the polar rules panel frees **r, φ and θ together**, so
 dragging that node follows the camera-facing drag plane and can land hundreds of world
 units from the scene sphere. Observed 2026-08-14: node 2 went from r≈64 to r≈519 in one
 drag with its rule off, and looked "flung".
@@ -14,12 +14,12 @@ This is DECIDED behaviour, chosen over two alternatives (give `r` its own indepe
 toggleable field; or have the toggle disarm only φ/θ and keep the radius hold). "Off" means
 fully unconstrained.
 
-**Why it looks like a bug and is not:** `polar.OrbitRule` has no radius field.
-`TrimToOrbitRule` (`nodes/Wiring/nodedrag/node_drag.go`) holds `out.R = have.R`
+**Why it looks like a bug and is not:** `polar.DragRule` has no radius field.
+`TrimToDragRule` (`nodes/Wiring/nodedrag/node_drag.go`) holds `out.R = have.R`
 unconditionally whenever a rule applies, so the radius hold is a side effect of having ANY
 rule — it is the only thing keeping a ruled node near the sphere. Dropping the rule drops it.
 
-**The path predates the panel.** Only nodes 2 and 3 carry an `orbit` key; nodes 4–9 have
+**The path predates the panel.** Only nodes 2 and 3 carry a `drag` key; nodes 4–9 have
 none and take the identical `rule == nil` branch, so they have always dragged this freely.
 The active toggle gave 2 and 3 access to existing behaviour, it did not create it.
 

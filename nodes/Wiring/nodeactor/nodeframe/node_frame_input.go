@@ -43,10 +43,10 @@ type NodeFrameInput struct {
 
 	RoundsToParallel, MsgsToParallel int32
 
-	OrbitRLocked, OrbitPhiLocked uint8
-	OrbitThetaMax                float32
-	OrbitActive                  uint8
-	HasKindRule                  uint8
+	DragRLocked, DragPhiLocked uint8
+	DragThetaMax               float32
+	DragActive                 uint8
+	HasKindRule                uint8
 
 	RuleGroupID, RuleGroupSize int32
 

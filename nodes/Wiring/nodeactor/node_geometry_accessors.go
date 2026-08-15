@@ -24,9 +24,9 @@ func (m *NodeGeometry) Kind() string { return m.geom.Kind }
 
 func (m *NodeGeometry) SelfKind() string { return m.selfKind }
 
-func (m *NodeGeometry) OrbitRule() *polar.OrbitRule { return m.topo.OrbitRule() }
+func (m *NodeGeometry) DragRule() *polar.DragRule { return m.topo.DragRule() }
 
-func (m *NodeGeometry) OrbitActive() bool { return m.topo.OrbitActive() }
+func (m *NodeGeometry) DragRuleActive() bool { return m.topo.DragRuleActive() }
 
 func (m *NodeGeometry) Tick() int64 { return m.clocks.Tick() }
 

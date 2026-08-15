@@ -30,7 +30,7 @@ type JSONMeta struct {
 
 	Gate bool `json:"gate,omitempty"`
 
-	Orbit *polar.OrbitRule `json:"orbit,omitempty"`
+	Drag *polar.DragRule `json:"drag,omitempty"`
 
 	TopTiltVectorPhiIdx *int32 `json:"topTiltVectorThetaIdx,omitempty"`
 }
@@ -62,7 +62,7 @@ func loadNodeMeta(root, nodesDir, nodeID string) (specNode, error) {
 		StepTheta:           meta.StepTheta,
 		StepR:               meta.StepR,
 		Gate:                meta.Gate,
-		Orbit:               meta.Orbit,
+		Drag:                meta.Drag,
 		TopTiltVectorPhiIdx: meta.TopTiltVectorPhiIdx,
 	}
 

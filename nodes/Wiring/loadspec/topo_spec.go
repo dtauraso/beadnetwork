@@ -32,7 +32,7 @@ type specNode struct {
 
 	Gate bool `json:"gate,omitempty"`
 
-	Orbit *polar.OrbitRule `json:"orbit,omitempty"`
+	Drag *polar.DragRule `json:"drag,omitempty"`
 
 	TopTiltVectorPhiIdx *int32 `json:"topTiltVectorThetaIdx,omitempty"`
 }

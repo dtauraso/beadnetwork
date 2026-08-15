@@ -28,11 +28,11 @@ const (
 
 	KindTiltVectorReset = "tiltVectorReset"
 
-	KindOrbitPhiToggle = "orbitPhiToggle"
+	KindDragPhiToggle = "dragPhiToggle"
 
-	KindOrbitMaxTheta = "orbitMaxTheta"
+	KindDragMaxTheta = "dragMaxTheta"
 
-	KindOrbitActiveToggle = "orbitActiveToggle"
+	KindDragActiveToggle = "dragActiveToggle"
 )
 
 type TiltEditMsg struct {
@@ -68,7 +68,7 @@ type Msg struct {
 
 	Axis string
 
-	OrbitMaxTheta *float64
+	DragMaxTheta *float64
 
 	TestDone chan struct{}
 }

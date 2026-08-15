@@ -66,9 +66,9 @@ type EditMsg =
   | { type: "edit"; op: "update"; kind: "scene"; attr: "create"; kindId: number; ndcX: number; ndcY: number }
   | { type: "edit"; op: "update"; kind: "scene"; attr: "delete"; row: number }
 
-  | { type: "edit"; op: "update"; kind: "node"; attr: "orbitPhi"; row: number }
-  | { type: "edit"; op: "update"; kind: "node"; attr: "orbitMaxTheta"; row: number; degrees: number }
-  | { type: "edit"; op: "update"; kind: "node"; attr: "orbitActive"; row: number };
+  | { type: "edit"; op: "update"; kind: "node"; attr: "dragPhi"; row: number }
+  | { type: "edit"; op: "update"; kind: "node"; attr: "dragMaxTheta"; row: number; degrees: number }
+  | { type: "edit"; op: "update"; kind: "node"; attr: "dragActive"; row: number };
 // EDIT_MSG_END
 
 // RAW_INPUT_START

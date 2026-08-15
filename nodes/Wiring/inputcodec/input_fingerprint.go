@@ -2,7 +2,7 @@ package inputcodec
 
 import "strings"
 
-const InputLayoutFingerprint = "kinds=save:4,raw-input:10,edit-update:22 eventKinds=pointerdown,pointermove,pointerup,wheel,home hitKinds=port,handhold,node,edge,torus,empty updateKinds=overlays,clock,distanceGroup,scene,tiltVector,panels,node updateAttrs=toggle,speed,length,selected,theta,phi,reset,start,latticePoints,create,delete,orbitPhi,orbitMaxTheta,orbitActive overlayFlags=tori,scenePoles,nodePoles,handholds,labelsGlobal,overlays,nodeBody,nodeRing,ringPick,selectionRing,hoverRing,reachSphere,sceneVectors,ruleChannels panelFlags=overlays,node,nodeShape,nodeState,nodeReach,nodePoles,nodeRules,scene,sceneGuides,scenePoles,sceneVectors,sceneLabels"
+const InputLayoutFingerprint = "kinds=save:4,raw-input:10,edit-update:22 eventKinds=pointerdown,pointermove,pointerup,wheel,home hitKinds=port,handhold,node,edge,torus,empty updateKinds=overlays,clock,distanceGroup,scene,tiltVector,panels,node updateAttrs=toggle,speed,length,selected,theta,phi,reset,start,latticePoints,create,delete,dragPhi,dragMaxTheta,dragActive overlayFlags=tori,scenePoles,nodePoles,handholds,labelsGlobal,overlays,nodeBody,nodeRing,ringPick,selectionRing,hoverRing,reachSphere,sceneVectors,ruleChannels panelFlags=overlays,node,nodeShape,nodeState,nodeReach,nodePoles,nodeRules,scene,sceneGuides,scenePoles,sceneVectors,sceneLabels"
 
 const (
 	InKindSave = 4
@@ -28,9 +28,9 @@ const (
 
 	InPanelAttrToggle = 11
 
-	InNodeAttrOrbitPhi      = 12
-	InNodeAttrOrbitMaxTheta = 13
-	InNodeAttrOrbitActive   = 14
+	InNodeAttrDragPhi      = 12
+	InNodeAttrDragMaxTheta = 13
+	InNodeAttrDragActive   = 14
 )
 
 var (

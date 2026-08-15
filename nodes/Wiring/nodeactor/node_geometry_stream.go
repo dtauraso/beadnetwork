@@ -81,20 +81,20 @@ func (m *NodeGeometry) writeStreamFrame(events []rowevent.RowEvent) {
 	kindID := m.stream.KindID()
 	roundsToParallel, msgsToParallel := m.readout.RoundsToParallel()
 
-	var orbitRLocked, orbitPhiLocked uint8
-	orbitThetaMax := float32(-1)
-	if rule := m.OrbitRule(); rule != nil {
-		orbitRLocked = 1
+	var dragRLocked, dragPhiLocked uint8
+	dragThetaMax := float32(-1)
+	if rule := m.DragRule(); rule != nil {
+		dragRLocked = 1
 		if rule.Phi != nil {
-			orbitPhiLocked = 1
+			dragPhiLocked = 1
 		}
 		if rule.MaxTheta != nil {
-			orbitThetaMax = float32(*rule.MaxTheta)
+			dragThetaMax = float32(*rule.MaxTheta)
 		}
 	}
-	orbitActive := uint8(0)
-	if m.OrbitActive() {
-		orbitActive = 1
+	dragActive := uint8(0)
+	if m.DragRuleActive() {
+		dragActive = 1
 	}
 	ruleGroupID, ruleGroupSize := m.RuleGroup()
 
@@ -135,10 +135,10 @@ func (m *NodeGeometry) writeStreamFrame(events []rowevent.RowEvent) {
 		HasKindRule:         hasKindRuleU8(m.SelfKind()),
 		RuleGroupID:         ruleGroupID,
 		RuleGroupSize:       ruleGroupSize,
-		OrbitRLocked:        orbitRLocked,
-		OrbitPhiLocked:      orbitPhiLocked,
-		OrbitThetaMax:       orbitThetaMax,
-		OrbitActive:         orbitActive,
+		DragRLocked:         dragRLocked,
+		DragPhiLocked:       dragPhiLocked,
+		DragThetaMax:        dragThetaMax,
+		DragActive:          dragActive,
 		Label:               label,
 		Events:              events,
 	})

@@ -56,12 +56,12 @@ func (b *buildCtx) buildMoveDispatch() error {
 			continue
 		}
 		nm.SetSelfKind(n.Type)
-		active := nodefiles.LoadOrbitActive(b.scenePath, n.ID)
-		nm.SetOrbitRule(n.Orbit)
-		nm.SetOrbitActive(active)
+		active := nodefiles.LoadDragActive(b.scenePath, n.ID)
+		nm.SetDragRule(n.Drag)
+		nm.SetDragActive(active)
 		rn := nm.RuleNode()
 		rn.SetPersistRoot(b.scenePath)
-		rn.SeedRule(n.Orbit, active)
+		rn.SeedRule(n.Drag, active)
 		if n.TopTiltVectorPhiIdx != nil {
 			nm.SetTopTiltVectorPhiIdx(*n.TopTiltVectorPhiIdx)
 		}

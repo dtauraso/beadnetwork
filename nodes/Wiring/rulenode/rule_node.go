@@ -25,7 +25,7 @@ type Edit struct {
 }
 
 type State struct {
-	Rule      *polar.OrbitRule
+	Rule      *polar.DragRule
 	Active    bool
 	GroupID   int32
 	GroupSize int32
@@ -37,7 +37,7 @@ type RuleNode struct {
 
 	mesh owners.RuleMesh
 
-	rule   *polar.OrbitRule
+	rule   *polar.DragRule
 	active bool
 
 	edits  chan Edit
@@ -61,7 +61,7 @@ func New(id string) *RuleNode {
 
 func (r *RuleNode) SetPersistRoot(root string) { r.persistRoot = root }
 
-func (r *RuleNode) SeedRule(rule *polar.OrbitRule, active bool) {
+func (r *RuleNode) SeedRule(rule *polar.DragRule, active bool) {
 	r.rule = rule
 	r.active = active
 	r.mesh.SetSelfRuleKey(rulemsg.KeyOf(rule))
@@ -135,7 +135,7 @@ func (r *RuleNode) applyEdit(e Edit) {
 		r.active = !r.active
 		r.persistActive()
 	case EditPhiToggle:
-		var next polar.OrbitRule
+		var next polar.DragRule
 		if r.rule != nil {
 			next = *r.rule
 		}
@@ -148,7 +148,7 @@ func (r *RuleNode) applyEdit(e Edit) {
 		r.rule = &next
 		r.persistRule()
 	case EditMaxTheta:
-		var next polar.OrbitRule
+		var next polar.DragRule
 		if r.rule != nil {
 			next = *r.rule
 		}
@@ -187,7 +187,7 @@ func (r *RuleNode) persistRule() {
 	if r.persistRoot == "" {
 		return
 	}
-	if err := nodefiles.WriteOrbitRule(r.persistRoot, r.id, r.rule); err != nil {
+	if err := nodefiles.WriteDragRule(r.persistRoot, r.id, r.rule); err != nil {
 		jsonpersist.LogPersistErr("rulenode", r.id, err)
 	}
 }
@@ -196,7 +196,7 @@ func (r *RuleNode) persistActive() {
 	if r.persistRoot == "" {
 		return
 	}
-	if err := nodefiles.WriteOrbitActive(r.persistRoot, r.id, r.active); err != nil {
+	if err := nodefiles.WriteDragActive(r.persistRoot, r.id, r.active); err != nil {
 		jsonpersist.LogPersistErr("rulenode", r.id, err)
 	}
 }

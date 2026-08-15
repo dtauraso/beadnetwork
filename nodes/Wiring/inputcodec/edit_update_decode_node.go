@@ -4,13 +4,13 @@ import "github.com/dtauraso/wirefold/nodes/Wiring/recread"
 
 func decodeUpdateNode(r *recread.Reader, attr byte) (StdinMsg, bool) {
 	switch attr {
-	case InNodeAttrOrbitPhi:
+	case InNodeAttrDragPhi:
 		row, err := r.U8()
 		if err != nil {
 			return StdinMsg{}, false
 		}
-		return StdinMsg{Type: "edit", Op: "update", Kind: "node", Attr: "orbitPhi", Num: int(row)}, true
-	case InNodeAttrOrbitMaxTheta:
+		return StdinMsg{Type: "edit", Op: "update", Kind: "node", Attr: "dragPhi", Num: int(row)}, true
+	case InNodeAttrDragMaxTheta:
 		row, errR := r.U8()
 		if errR != nil {
 			return StdinMsg{}, false
@@ -19,13 +19,13 @@ func decodeUpdateNode(r *recread.Reader, attr byte) (StdinMsg, bool) {
 		if errD != nil {
 			return StdinMsg{}, false
 		}
-		return StdinMsg{Type: "edit", Op: "update", Kind: "node", Attr: "orbitMaxTheta", Num: int(row), X: float64(degrees)}, true
-	case InNodeAttrOrbitActive:
+		return StdinMsg{Type: "edit", Op: "update", Kind: "node", Attr: "dragMaxTheta", Num: int(row), X: float64(degrees)}, true
+	case InNodeAttrDragActive:
 		row, err := r.U8()
 		if err != nil {
 			return StdinMsg{}, false
 		}
-		return StdinMsg{Type: "edit", Op: "update", Kind: "node", Attr: "orbitActive", Num: int(row)}, true
+		return StdinMsg{Type: "edit", Op: "update", Kind: "node", Attr: "dragActive", Num: int(row)}, true
 	}
 	return StdinMsg{}, false
 }

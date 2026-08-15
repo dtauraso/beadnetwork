@@ -6,8 +6,8 @@ import (
 
 type Node interface {
 	ScenePolar() polar.Polar
-	OrbitRule() *polar.OrbitRule
-	OrbitActive() bool
+	DragRule() *polar.DragRule
+	DragRuleActive() bool
 	NeighborKinds() map[string]string
 	IsOutTarget(neighborID string) bool
 	DeltaFrom(otherID string) (polar.Polar, bool)
@@ -46,17 +46,17 @@ func HasKindRule(kind string) bool {
 }
 
 func Apply(kind string, delta polar.Polar, of Node) polar.Polar {
-	if !of.OrbitActive() {
+	if !of.DragRuleActive() {
 		return delta
 	}
 	if t, ok := trims[kind]; ok {
 		return t(delta, of)
 	}
-	return TrimToOrbitRule(delta, of)
+	return TrimToDragRule(delta, of)
 }
 
 func Requested(kind string, delta polar.Polar, of Node) map[string]polar.Polar {
-	if !of.OrbitActive() {
+	if !of.DragRuleActive() {
 		return nil
 	}
 	r, ok := requests[kind]
@@ -66,9 +66,9 @@ func Requested(kind string, delta polar.Polar, of Node) map[string]polar.Polar {
 	return r(delta, of)
 }
 
-func TrimToOrbitRule(delta polar.Polar, of Node) polar.Polar {
-	rule := of.OrbitRule()
-	if rule == nil || !of.OrbitActive() {
+func TrimToDragRule(delta polar.Polar, of Node) polar.Polar {
+	rule := of.DragRule()
+	if rule == nil || !of.DragRuleActive() {
 		return delta
 	}
 	for neighborID := range of.NeighborKinds() {

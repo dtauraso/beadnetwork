@@ -9,9 +9,9 @@ import {
   IN_DISTANCE_GROUP_ATTR_LENGTH,
   IN_SCENE_ATTR_SELECTED,
   IN_PANEL_ATTR_TOGGLE,
-  IN_NODE_ATTR_ORBIT_PHI,
-  IN_NODE_ATTR_ORBIT_MAX_THETA,
-  IN_NODE_ATTR_ORBIT_ACTIVE,
+  IN_NODE_ATTR_DRAG_PHI,
+  IN_NODE_ATTR_DRAG_MAX_THETA,
+  IN_NODE_ATTR_DRAG_ACTIVE,
 } from "./input-attrs";
 import type { OverlayFlag, PanelFlag } from "../../messages";
 import { OVERLAY_FLAG_ORDER, PANEL_FLAG_ORDER } from "../../messages";
@@ -62,30 +62,30 @@ export function encodeSceneSelected(tabIndex: number): ArrayBuffer {
   return w.toArrayBuffer();
 }
 
-export function encodeNodeOrbitPhiToggle(nodeRow: number): ArrayBuffer {
+export function encodeNodeDragPhiToggle(nodeRow: number): ArrayBuffer {
   const w = new ByteWriter();
   w.u8(IN_KIND_EDIT_UPDATE);
   w.u8(enumIndex(IN_UPDATE_KINDS, "node"));
-  w.u8(IN_NODE_ATTR_ORBIT_PHI);
+  w.u8(IN_NODE_ATTR_DRAG_PHI);
   w.u8(nodeRow);
   return w.toArrayBuffer();
 }
 
-export function encodeNodeOrbitMaxTheta(nodeRow: number, degrees: number): ArrayBuffer {
+export function encodeNodeDragMaxTheta(nodeRow: number, degrees: number): ArrayBuffer {
   const w = new ByteWriter();
   w.u8(IN_KIND_EDIT_UPDATE);
   w.u8(enumIndex(IN_UPDATE_KINDS, "node"));
-  w.u8(IN_NODE_ATTR_ORBIT_MAX_THETA);
+  w.u8(IN_NODE_ATTR_DRAG_MAX_THETA);
   w.u8(nodeRow);
   w.f32(degrees);
   return w.toArrayBuffer();
 }
 
-export function encodeNodeOrbitActiveToggle(nodeRow: number): ArrayBuffer {
+export function encodeNodeDragActiveToggle(nodeRow: number): ArrayBuffer {
   const w = new ByteWriter();
   w.u8(IN_KIND_EDIT_UPDATE);
   w.u8(enumIndex(IN_UPDATE_KINDS, "node"));
-  w.u8(IN_NODE_ATTR_ORBIT_ACTIVE);
+  w.u8(IN_NODE_ATTR_DRAG_ACTIVE);
   w.u8(nodeRow);
   return w.toArrayBuffer();
 }
