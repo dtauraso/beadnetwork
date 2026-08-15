@@ -20,17 +20,7 @@ type JSON struct {
 
 func Write(root, id string, j JSON) error {
 	path := DragPath(root, id)
-	return jsonpersist.ReadModifyWriteJSON(path, func(m map[string]any) {
-		m["indexPhi"] = j.IndexPhi
-		m["indexTheta"] = j.IndexTheta
-		m["indexR"] = j.IndexR
-		delete(m, "dragPolarR")
-		delete(m, "dragPolarPhi")
-		delete(m, "dragPolarTheta")
-		if j.TopTiltVectorPhiIdx != 0 {
-			m["topTiltVectorThetaIdx"] = j.TopTiltVectorPhiIdx
-		}
-	})
+	return jsonpersist.WriteJSONAtomic(path, j)
 }
 
 func Read(root, id string) (JSON, bool) {

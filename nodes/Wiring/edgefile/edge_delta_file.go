@@ -11,6 +11,12 @@ func edgeDragPath(root, src, label string) string {
 	return filepath.Join(root, "nodes", src, "drag", "edges", label+".json")
 }
 
+type dragIndexFile struct {
+	IndexPhi   int `json:"indexPhi"`
+	IndexTheta int `json:"indexTheta"`
+	IndexR     int `json:"indexR"`
+}
+
 type dragIndexFields struct {
 	IndexPhi   *int `json:"indexPhi,omitempty"`
 	IndexTheta *int `json:"indexTheta,omitempty"`
@@ -30,15 +36,9 @@ func ReadEdgeDragIndex(root, src, label string) (polarindex.Index, bool) {
 
 func WriteEdgeDrag(root, src, label string, idx polarindex.Index) error {
 	path := edgeDragPath(root, src, label)
-	return jsonpersist.ReadModifyWriteJSON(path, func(m map[string]any) {
-		m["indexPhi"] = idx.Phi
-		m["indexTheta"] = idx.Theta
-		m["indexR"] = idx.R
-		delete(m, "dragPolarR")
-		delete(m, "dragPolarPhi")
-		delete(m, "dragPolarTheta")
-		delete(m, "deltaPolarR")
-		delete(m, "deltaPolarPhi")
-		delete(m, "deltaPolarTheta")
+	return jsonpersist.WriteJSONAtomic(path, dragIndexFile{
+		IndexPhi:   idx.Phi,
+		IndexTheta: idx.Theta,
+		IndexR:     idx.R,
 	})
 }
