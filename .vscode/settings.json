@@ -7,12 +7,6 @@
     // silent, since a frame carrying a foreign buffer layout is refused and reported.
     "wirefold.reloadOnHostBuild": false,
 
-    // Non-error webview breadcrumbs (postLog) are dropped unless this is on, so .probe/ts.jsonl
-    // does not exist at all by default. That made "the control did nothing" unreadable: the
-    // scene-tab-click breadcrumb is written on every tab click and none of them were on disk,
-    // which looked like the click never fired.
-    "wirefold.probe.trace": true,
-
     // .probe/ holds the runtime JSONL logs the editor appends to continuously. They are
     // gitignored, but the FILE WATCHER does not honor .gitignore — without these excludes
     // VS Code watches (and search-indexes) multi-hundred-MB files that grow during every
