@@ -68,7 +68,6 @@ func buildFromSpec(ctx context.Context, spec loadspec.TopoSpec, tr *T.Trace, clk
 	b.nodeGeoms, b.centers = topoderive.ComputeNodeGeometry(b.spec, b.sphere)
 	b.quantizedOffsets = topoderive.ComputeQuantizedLayout(b.spec, b.sphere, b.centers, b.nodeGeoms)
 	b.dragQuantOffsets = topoderive.ComputeDragQuantOffsets(b.spec)
-	topoderive.ComputeReachRadii(b.spec, b.nodeGeoms)
 	b.destWire, b.edgeWire, b.edgeEndpoints, b.edgeSteps, b.edgeSegments = topoderive.AllocateWires(b.spec, b.nodeGeoms, b.tr)
 	b.vectorOutByNode, b.vectorInByNode = topoderive.AllocateVectorChannels(b.spec)
 	if err := b.buildMoveDispatch(); err != nil {

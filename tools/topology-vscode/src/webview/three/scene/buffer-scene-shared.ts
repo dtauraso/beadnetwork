@@ -26,10 +26,6 @@ export const RING_BAND_TUBE = NODE_RING_TUBE_RATIO * 0.275;
 export const HOVER_COLOR = "#aaddff";
 export const HOVER_RING_TUBE_RATIO = 0.14;
 
-export const NORMAL_DEGENERATE_EPS = 1e-12;
-
-export const SPHERE_RING_MIN_RADIUS = 1e-3;
-
 export const DIRECTION_ZERO_EPS = 1e-6;
 
 const NODE_DEFAULT_FILL = "#ffffff";

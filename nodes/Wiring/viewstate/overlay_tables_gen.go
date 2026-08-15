@@ -22,7 +22,6 @@ func DefaultOverlayState() OverlayState {
 		RingPickVisible:      true,
 		SelectionRingVisible: true,
 		HoverRingVisible:     true,
-		ReachSphereVisible:   true,
 		SceneVectorsVisible:  true,
 		RuleChannelsVisible:  true,
 	}
@@ -44,7 +43,6 @@ var OverlayToggles = map[string]func(*OverlayState, *T.Trace){
 	"ringPick":      (*OverlayState).ToggleRingPick,
 	"selectionRing": (*OverlayState).ToggleSelectionRing,
 	"hoverRing":     (*OverlayState).ToggleHoverRing,
-	"reachSphere":   (*OverlayState).ToggleReachSphere,
 	"sceneVectors":  (*OverlayState).ToggleSceneVectors,
 	"ruleChannels":  (*OverlayState).ToggleRuleChannels,
 }
@@ -90,7 +88,6 @@ var OverlayFlagTraceKind = map[string]string{
 	"ringPick":      T.KindRingPick,
 	"selectionRing": T.KindSelectionRing,
 	"hoverRing":     T.KindHoverRing,
-	"reachSphere":   T.KindReachSphere,
 	"sceneVectors":  T.KindSceneVectors,
 	"ruleChannels":  T.KindRuleChannels,
 }

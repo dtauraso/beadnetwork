@@ -58,8 +58,6 @@ type Msg struct {
 
 	Centers map[string]vec3
 
-	ReachR float64
-
 	FromCenter vec3
 
 	SenderID string

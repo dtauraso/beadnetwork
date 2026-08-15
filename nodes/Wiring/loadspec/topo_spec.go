@@ -16,7 +16,6 @@ type specNode struct {
 	ID   string    `json:"id"`
 	Type string    `json:"type"`
 	Data *NodeData `json:"data,omitempty"`
-	R    *float64  `json:"r,omitempty"`
 
 	ScenePolarR     *float64 `json:"scenePolarR,omitempty"`
 	ScenePolarPhi   *float64 `json:"scenePolarPhi,omitempty"`
@@ -50,7 +49,7 @@ func (n specNode) label() string {
 
 func (n specNode) ToNodeGeom(sceneCenter spatial.Vec3) nodegeom.NodeGeom {
 
-	g := nodegeom.NodeGeom{NodeIdentity: nodegeom.NodeIdentity{Kind: n.Type, Label: n.label(), R: n.R, SceneCenter: sceneCenter}}
+	g := nodegeom.NodeGeom{NodeIdentity: nodegeom.NodeIdentity{Kind: n.Type, Label: n.label(), SceneCenter: sceneCenter}}
 	if n.ScenePolarR != nil && n.ScenePolarPhi != nil && n.ScenePolarTheta != nil {
 		g.BasePolar = polar.Polar{R: *n.ScenePolarR, Phi: *n.ScenePolarPhi, Theta: *n.ScenePolarTheta}
 		g.HasPos = true

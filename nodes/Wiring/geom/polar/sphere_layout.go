@@ -2,11 +2,6 @@ package polar
 
 import "math"
 
-type SphereEdge struct {
-	Source string
-	Target string
-}
-
 type SceneSphere struct {
 	Center vec3
 	Radius float64

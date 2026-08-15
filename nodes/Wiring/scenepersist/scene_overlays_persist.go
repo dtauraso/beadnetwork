@@ -27,7 +27,6 @@ func InstallOverlays(ui *viewstate.UIState, topologyPath string, tr *T.Trace) {
 		{Kind: T.KindRingPick, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1},
 		{Kind: T.KindSelectionRing, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1},
 		{Kind: T.KindHoverRing, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1},
-		{Kind: T.KindReachSphere, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1},
 		{Kind: T.KindSceneVectors, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1},
 		{Kind: T.KindRuleChannels, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1},
 	})
@@ -59,7 +58,6 @@ func WriteSceneOverlays(overlaysPath string, ov viewstate.OverlayState) error {
 	setVisible("ringPickVisible", ov.RingPickVisible)
 	setVisible("selectionRingVisible", ov.SelectionRingVisible)
 	setVisible("hoverRingVisible", ov.HoverRingVisible)
-	setVisible("reachSphereVisible", ov.ReachSphereVisible)
 	setVisible("sceneVectorsVisible", ov.SceneVectorsVisible)
 	setVisible("ruleChannelsVisible", ov.RuleChannelsVisible)
 	return jsonpersist.WriteJSONAtomic(overlaysPath, obj)
@@ -77,7 +75,6 @@ type sceneOverlaysFile struct {
 	RingPickVisible      *bool `json:"ringPickVisible"`
 	SelectionRingVisible *bool `json:"selectionRingVisible"`
 	HoverRingVisible     *bool `json:"hoverRingVisible"`
-	ReachSphereVisible   *bool `json:"reachSphereVisible"`
 	SceneVectorsVisible  *bool `json:"sceneVectorsVisible"`
 	RuleChannelsVisible  *bool `json:"ruleChannelsVisible"`
 }
@@ -129,10 +126,6 @@ func LoadSceneOverlays(overlaysPath string) (viewstate.OverlayState, bool) {
 	}
 	if sf.HoverRingVisible != nil {
 		ov.HoverRingVisible = *sf.HoverRingVisible
-		found = true
-	}
-	if sf.ReachSphereVisible != nil {
-		ov.ReachSphereVisible = *sf.ReachSphereVisible
 		found = true
 	}
 	if sf.SceneVectorsVisible != nil {

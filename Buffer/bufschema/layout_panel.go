@@ -6,7 +6,6 @@ type bufLayoutPanel struct {
 	Node      uint8 `buf:"u8"`
 	NodeShape uint8 `buf:"u8"`
 	NodeState uint8 `buf:"u8"`
-	NodeReach uint8 `buf:"u8"`
 	NodePoles uint8 `buf:"u8"`
 	NodeRules uint8 `buf:"u8"`
 

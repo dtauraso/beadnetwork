@@ -11,7 +11,6 @@ import { getEdgeStreamAccessor } from "./edges/edge-stream-blocks";
 import { TiltVectors } from "../nav/TiltVectors";
 import { NodeInstances } from "./nodes/NodeInstances";
 import { SelectionHighlight, HoverHighlight } from "./overlays/SelectionHighlight";
-import { SphereRings } from "./overlays/SphereRings";
 import { RuleChannelLines } from "./overlays/RuleChannelLines";
 import { InteriorBeadInstances } from "./beads/InteriorBeadInstances";
 import { BufferCamera } from "./BufferCamera";
@@ -71,7 +70,6 @@ export function BufferScene({ cameraRef }: {
       <InteriorBeadInstances capacity={nodeCap * INTERIOR_SLOTS_PER_NODE} />
       <SelectionHighlight />
       <HoverHighlight />
-      <SphereRings />
       <RuleChannelLines capacity={(nodeCap * (nodeCap - 1)) / 2} />
     </>
   );

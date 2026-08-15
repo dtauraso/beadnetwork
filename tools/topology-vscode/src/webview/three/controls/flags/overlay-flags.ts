@@ -13,7 +13,6 @@ import {
   readOverlayRingPick,
   readOverlaySelectionRing,
   readOverlayHoverRing,
-  readOverlayReachSphere,
   readOverlaySceneVectors,
   readOverlayRuleChannels,
 } from "../../../../schema/buffer-layout/buffer-layout";
@@ -43,7 +42,6 @@ export function readOverlayFlags(): OverlayFlagVals | null {
     ringPick: !!readOverlayRingPick(v),
     selectionRing: !!readOverlaySelectionRing(v),
     hoverRing: !!readOverlayHoverRing(v),
-    reachSphere: !!readOverlayReachSphere(v),
     sceneVectors: !!readOverlaySceneVectors(v),
     ruleChannels: !!readOverlayRuleChannels(v),
   };

@@ -9,7 +9,7 @@ import (
 func buildNodeFrame() nodeFrameFixture {
 	f := nodeFrameFixture{
 		Tick: 4242, NodeRow: 7, NodeId: 8,
-		CX: 11.5, CY: -12.25, CZ: 13.125, Radius: 14.0625, SphereR: 200.5,
+		CX: 11.5, CY: -12.25, CZ: 13.125, Radius: 14.0625,
 		VRX: 21.5, VRY: 22.25, VRZ: 23.125, FRX: 24.0625, FRY: 25.5, FRZ: 26.25,
 		PolePhi: 2.1, PoleTheta: -1.3,
 		RingAxisPhi: 1.4, RingAxisTheta: 0.7,
@@ -45,7 +45,6 @@ func buildNodeFrame() nodeFrameFixture {
 		CY:                  f.CY,
 		CZ:                  f.CZ,
 		Radius:              f.Radius,
-		SphereR:             f.SphereR,
 		VRX:                 f.VRX,
 		VRY:                 f.VRY,
 		VRZ:                 f.VRZ,

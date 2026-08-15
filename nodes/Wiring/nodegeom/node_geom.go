@@ -10,7 +10,6 @@ import (
 type NodeIdentity struct {
 	Kind  string
 	Label string
-	R     *float64
 
 	SceneCenter vec3
 }
@@ -21,21 +20,10 @@ type NodeGeom struct {
 	BasePolar polar.Polar
 	DragPolar polar.Polar
 	HasPos    bool
-
-	ReachR float64
 }
 
 func ScenePolarOf(g NodeGeom) polar.Polar {
 	return polar.Compose(g.BasePolar, g.DragPolar)
-}
-
-const DefaultNodeR = 200.0
-
-func NodeR(g NodeGeom) float64 {
-	if g.R != nil {
-		return *g.R
-	}
-	return DefaultNodeR
 }
 
 func KindWidthHeight(kind string) (float64, float64) {
@@ -52,13 +40,6 @@ func BareNodeRadius(kind string) float64 {
 
 func NodeRadius(kind string) float64 {
 	return NodeTorusOuterR(kind) / (1 + ShadingParamNodeRingTubeRatio)
-}
-
-func EffectiveRadius(g NodeGeom) float64 {
-	if g.ReachR > 0 {
-		return g.ReachR
-	}
-	return NodeR(g)
 }
 
 func NodeWorldPos(g NodeGeom) vec3 {

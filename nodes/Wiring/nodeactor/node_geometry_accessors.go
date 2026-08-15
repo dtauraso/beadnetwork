@@ -79,8 +79,6 @@ func (m *NodeGeometry) IndexValue() polarindex.Index {
 	return m.quant.Composed()
 }
 
-func (m *NodeGeometry) ReachR() float64 { return m.geom.ReachR }
-
 func (m *NodeGeometry) CommitQuantOffset(committedPolar polar.Polar) {
 	composed := polarindex.MeasureScalar(committedPolar, m.quant.Constants())
 	drag := polarindex.Delta(composed, m.quant.Base())

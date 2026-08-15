@@ -33,18 +33,17 @@ export const OVERLAY_COL_NODE_RING               = 7; // u8
 export const OVERLAY_COL_RING_PICK               = 8; // u8
 export const OVERLAY_COL_SELECTION_RING          = 9; // u8
 export const OVERLAY_COL_HOVER_RING              = 10; // u8
-export const OVERLAY_COL_REACH_SPHERE            = 11; // u8
-export const OVERLAY_COL_SCENE_VECTORS           = 12; // u8
-export const OVERLAY_COL_RULE_CHANNELS           = 13; // u8
-export const OVERLAY_COL_DRAG_NODE_ROW           = 14; // i32
-export const OVERLAY_COL_EDIT_REFUSED            = 18; // u32
-export const OVERLAY_COL_SCENE_EDITABLE          = 22; // u8
-export const OVERLAY_COL_SCENE_KINDS             = 23; // u32
-export const OVERLAY_COL_GROUP_LEN_TIME          = 27; // f32
-export const OVERLAY_COL_GROUP_LEN_INPUT         = 31; // f32
-export const OVERLAY_COL_GROUP_LEN_GATE          = 35; // f32
-export const OVERLAY_COL_SPEED                   = 39; // f32
-export const OVERLAY_STRIDE                      = 43;
+export const OVERLAY_COL_SCENE_VECTORS           = 11; // u8
+export const OVERLAY_COL_RULE_CHANNELS           = 12; // u8
+export const OVERLAY_COL_DRAG_NODE_ROW           = 13; // i32
+export const OVERLAY_COL_EDIT_REFUSED            = 17; // u32
+export const OVERLAY_COL_SCENE_EDITABLE          = 21; // u8
+export const OVERLAY_COL_SCENE_KINDS             = 22; // u32
+export const OVERLAY_COL_GROUP_LEN_TIME          = 26; // f32
+export const OVERLAY_COL_GROUP_LEN_INPUT         = 30; // f32
+export const OVERLAY_COL_GROUP_LEN_GATE          = 34; // f32
+export const OVERLAY_COL_SPEED                   = 38; // f32
+export const OVERLAY_STRIDE                      = 42;
 
 export function readOverlaySceneTori(view: DataView): number { return view.getUint8(OVERLAY_COL_SCENE_TORI); }
 export function readOverlayScenePoles(view: DataView): number { return view.getUint8(OVERLAY_COL_SCENE_POLES); }
@@ -57,7 +56,6 @@ export function readOverlayNodeRing(view: DataView): number { return view.getUin
 export function readOverlayRingPick(view: DataView): number { return view.getUint8(OVERLAY_COL_RING_PICK); }
 export function readOverlaySelectionRing(view: DataView): number { return view.getUint8(OVERLAY_COL_SELECTION_RING); }
 export function readOverlayHoverRing(view: DataView): number { return view.getUint8(OVERLAY_COL_HOVER_RING); }
-export function readOverlayReachSphere(view: DataView): number { return view.getUint8(OVERLAY_COL_REACH_SPHERE); }
 export function readOverlaySceneVectors(view: DataView): number { return view.getUint8(OVERLAY_COL_SCENE_VECTORS); }
 export function readOverlayRuleChannels(view: DataView): number { return view.getUint8(OVERLAY_COL_RULE_CHANNELS); }
 export function readOverlayDragNodeRow(view: DataView): number { return view.getInt32(OVERLAY_COL_DRAG_NODE_ROW, true); }
@@ -74,21 +72,19 @@ export const PANEL_COL_OVERLAYS                  = 0; // u8
 export const PANEL_COL_NODE                      = 1; // u8
 export const PANEL_COL_NODE_SHAPE                = 2; // u8
 export const PANEL_COL_NODE_STATE                = 3; // u8
-export const PANEL_COL_NODE_REACH                = 4; // u8
-export const PANEL_COL_NODE_POLES                = 5; // u8
-export const PANEL_COL_NODE_RULES                = 6; // u8
-export const PANEL_COL_SCENE                     = 7; // u8
-export const PANEL_COL_SCENE_GUIDES              = 8; // u8
-export const PANEL_COL_SCENE_POLES               = 9; // u8
-export const PANEL_COL_SCENE_VECTORS             = 10; // u8
-export const PANEL_COL_SCENE_LABELS              = 11; // u8
-export const PANEL_STRIDE                        = 12;
+export const PANEL_COL_NODE_POLES                = 4; // u8
+export const PANEL_COL_NODE_RULES                = 5; // u8
+export const PANEL_COL_SCENE                     = 6; // u8
+export const PANEL_COL_SCENE_GUIDES              = 7; // u8
+export const PANEL_COL_SCENE_POLES               = 8; // u8
+export const PANEL_COL_SCENE_VECTORS             = 9; // u8
+export const PANEL_COL_SCENE_LABELS              = 10; // u8
+export const PANEL_STRIDE                        = 11;
 
 export function readPanelOverlays(view: DataView): number { return view.getUint8(PANEL_COL_OVERLAYS); }
 export function readPanelNode(view: DataView): number { return view.getUint8(PANEL_COL_NODE); }
 export function readPanelNodeShape(view: DataView): number { return view.getUint8(PANEL_COL_NODE_SHAPE); }
 export function readPanelNodeState(view: DataView): number { return view.getUint8(PANEL_COL_NODE_STATE); }
-export function readPanelNodeReach(view: DataView): number { return view.getUint8(PANEL_COL_NODE_REACH); }
 export function readPanelNodePoles(view: DataView): number { return view.getUint8(PANEL_COL_NODE_POLES); }
 export function readPanelNodeRules(view: DataView): number { return view.getUint8(PANEL_COL_NODE_RULES); }
 export function readPanelScene(view: DataView): number { return view.getUint8(PANEL_COL_SCENE); }

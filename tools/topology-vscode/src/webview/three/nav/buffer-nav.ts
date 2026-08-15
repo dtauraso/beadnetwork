@@ -4,7 +4,7 @@ import { type ViewBlocks } from "../scene/view-blocks";
 import { polarToCart } from "../polar-convert";
 import {
   readNodeCX, readNodeCY, readNodeCZ,
-  readNodeRadius, readNodeSphereR, readNodeSelected, readNodeLatchedSel,
+  readNodeRadius, readNodeSelected, readNodeLatchedSel,
   readNodePolePhi, readNodePoleTheta,
   readSceneCX, readSceneCY, readSceneCZ, readSceneRadius,
 } from "../../../schema/buffer-layout/buffer-layout";
@@ -17,7 +17,6 @@ export interface NavNode {
   center: THREE.Vector3;
   radius: number;
 
-  sphereR: number | undefined;
   selected: boolean;
 
   latchedSel: boolean;
@@ -33,7 +32,6 @@ export function decodeNavNodes(decoded: DecodedNodeFrame): NavNode[] {
   const { nodeCount, nodeView } = decoded;
   const out: NavNode[] = [];
   for (let i = 0; i < nodeCount; i++) {
-    const sphereR = readNodeSphereR(nodeView, i);
     out.push({
       row: i,
       label: nodeLabel(decoded, i),
@@ -44,7 +42,6 @@ export function decodeNavNodes(decoded: DecodedNodeFrame): NavNode[] {
       ),
       radius: readNodeRadius(nodeView, i),
 
-      sphereR: sphereR || undefined,
       selected: readNodeSelected(nodeView, i) !== 0,
       latchedSel: readNodeLatchedSel(nodeView, i) !== 0,
       pole: poleVec(readNodePolePhi(nodeView, i), readNodePoleTheta(nodeView, i)),

@@ -13,7 +13,6 @@ type bufLayoutOverlay struct {
 	RingPick      uint8 `buf:"u8"`
 	SelectionRing uint8 `buf:"u8"`
 	HoverRing     uint8 `buf:"u8"`
-	ReachSphere   uint8 `buf:"u8"`
 
 	SceneVectors uint8 `buf:"u8"`
 

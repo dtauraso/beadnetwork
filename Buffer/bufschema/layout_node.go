@@ -1,12 +1,11 @@
 package bufschema
 
 type bufLayoutNode struct {
-	NodeId  int32   `buf:"i32"`
-	CX      float32 `buf:"f32"`
-	CY      float32 `buf:"f32"`
-	CZ      float32 `buf:"f32"`
-	Radius  float32 `buf:"f32"`
-	SphereR float32 `buf:"f32"`
+	NodeId int32   `buf:"i32"`
+	CX     float32 `buf:"f32"`
+	CY     float32 `buf:"f32"`
+	CZ     float32 `buf:"f32"`
+	Radius float32 `buf:"f32"`
 
 	VRX float32 `buf:"f32"`
 	VRY float32 `buf:"f32"`
