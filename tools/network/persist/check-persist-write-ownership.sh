@@ -20,7 +20,7 @@ if [[ ! -f "$PLUMBING_PATH" ]]; then
   exit 1
 fi
 
-NODE_OWNERS=("node_mover.go" "new_node_files.go" "quant_offset_persist.go" "scene_anchor_persist.go")
+NODE_OWNERS=("node_mover.go" "new_node_files.go" "quant_offset_persist.go" "scene_anchor_persist.go" "position_file.go")
 
 EDGE_OWNERS=("edge_file.go" "edge_delta_file.go" "out_edges.go")
 
@@ -48,7 +48,7 @@ done < <(find "$WIRING_DIR" -name "*.go" -not -name "*_test.go")
 
 all_hits=""
 if [[ ${#eligible_files[@]} -gt 0 ]]; then
-  all_hits="$(grep -nE 'jsonpersist\.WriteJSONAtomic\(|entityReadModifyWrite\(' "${eligible_files[@]}" 2>/dev/null || true)"
+  all_hits="$(grep -nE 'jsonpersist\.WriteJSONAtomic\(|jsonpersist\.ReadModifyWriteJSON\(|entityReadModifyWrite\(' "${eligible_files[@]}" 2>/dev/null || true)"
 fi
 
 HITS=0

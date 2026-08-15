@@ -1,12 +1,11 @@
 package nodefiles
 
 import (
-	"encoding/json"
-	"fmt"
 	"os"
 	"path/filepath"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
+	"github.com/dtauraso/wirefold/nodes/Wiring/gitskip"
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/positionfile"
 )
@@ -23,28 +22,12 @@ func nodeDirPath(root, id string) string {
 	return filepath.Join(root, "nodes", id)
 }
 
-type newNodePosition struct {
-	ScenePolarR     float64 `json:"scenePolarR"`
-	ScenePolarPhi   float64 `json:"scenePolarPhi"`
-	ScenePolarTheta float64 `json:"scenePolarTheta"`
-}
-
 func entityReadModifyWrite(path string, mutate func(map[string]any)) error {
-	m := map[string]any{}
-	raw, err := os.ReadFile(path)
-	if err != nil && !os.IsNotExist(err) {
-		return fmt.Errorf("entityReadModifyWrite: read %s: %w", path, err)
+	if err := jsonpersist.ReadModifyWriteJSON(path, mutate); err != nil {
+		return err
 	}
-	if err == nil {
-		if err := json.Unmarshal(raw, &m); err != nil {
-			return fmt.Errorf(
-				"entityReadModifyWrite: %s exists but does not parse as JSON (%w) — refusing to "+
-					"overwrite it, since that would discard every key this write does not set",
-				path, err)
-		}
-	}
-	mutate(m)
-	return jsonpersist.WriteJSONAtomic(path, m)
+	gitskip.Mark(path)
+	return nil
 }
 
 func WriteNewNodeFiles(root, id, kind string, scenePolarR, phi, theta float64) error {
@@ -58,7 +41,7 @@ func WriteNewNodeFiles(root, id, kind string, scenePolarR, phi, theta float64) e
 	}); err != nil {
 		return err
 	}
-	return jsonpersist.WriteJSONAtomic(positionfile.FilePath(root, id), newNodePosition{
+	return positionfile.Write(root, id, positionfile.JSON{
 		ScenePolarR: scenePolarR, ScenePolarPhi: phi, ScenePolarTheta: theta,
 	})
 }

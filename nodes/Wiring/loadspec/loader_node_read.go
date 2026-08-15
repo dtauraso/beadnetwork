@@ -8,10 +8,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/dtauraso/wirefold/nodes/Wiring/edgefile"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
-	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
-	"github.com/dtauraso/wirefold/nodes/Wiring/positionfile"
 )
 
 type JSONMeta struct {
@@ -34,6 +31,8 @@ type JSONMeta struct {
 	Gate bool `json:"gate,omitempty"`
 
 	Orbit *polar.OrbitRule `json:"orbit,omitempty"`
+
+	TopTiltVectorPhiIdx *int32 `json:"topTiltVectorThetaIdx,omitempty"`
 }
 
 func loadNodeMeta(root, nodesDir, nodeID string) (specNode, error) {
@@ -50,32 +49,21 @@ func loadNodeMeta(root, nodesDir, nodeID string) (specNode, error) {
 	}
 
 	sn := specNode{
-		ID:              meta.ID,
-		Type:            meta.Type,
-		R:               meta.R,
-		ScenePolarR:     meta.ScenePolarR,
-		ScenePolarPhi:   meta.ScenePolarPhi,
-		ScenePolarTheta: meta.ScenePolarTheta,
-		QuantIPhi:       meta.QuantIPhi,
-		QuantITheta:     meta.QuantITheta,
-		QuantIR:         meta.QuantIR,
-		StepPhi:         meta.StepPhi,
-		StepTheta:       meta.StepTheta,
-		StepR:           meta.StepR,
-		Gate:            meta.Gate,
-		Orbit:           meta.Orbit,
-	}
-
-	var pf positionfile.JSON
-	if jsonpersist.ReadJSONIfExists(positionfile.FilePath(root, nodeID), &pf) {
-		r, th, ph := pf.ScenePolarR, pf.ScenePolarPhi, pf.ScenePolarTheta
-		qt, qp, qr := pf.QuantIPhi, pf.QuantITheta, pf.QuantIR
-		st, sp, sr := pf.StepPhi, pf.StepTheta, pf.StepR
-		sn.ScenePolarR, sn.ScenePolarPhi, sn.ScenePolarTheta = &r, &th, &ph
-		sn.QuantIPhi, sn.QuantITheta, sn.QuantIR = &qt, &qp, &qr
-		sn.StepPhi, sn.StepTheta, sn.StepR = &st, &sp, &sr
-		vt := pf.TopTiltVectorPhiIdx
-		sn.TopTiltVectorPhiIdx = &vt
+		ID:                  meta.ID,
+		Type:                meta.Type,
+		R:                   meta.R,
+		ScenePolarR:         meta.ScenePolarR,
+		ScenePolarPhi:       meta.ScenePolarPhi,
+		ScenePolarTheta:     meta.ScenePolarTheta,
+		QuantIPhi:           meta.QuantIPhi,
+		QuantITheta:         meta.QuantITheta,
+		QuantIR:             meta.QuantIR,
+		StepPhi:             meta.StepPhi,
+		StepTheta:           meta.StepTheta,
+		StepR:               meta.StepR,
+		Gate:                meta.Gate,
+		Orbit:               meta.Orbit,
+		TopTiltVectorPhiIdx: meta.TopTiltVectorPhiIdx,
 	}
 
 	dataPath := filepath.Join(nodeDir, "data.json")
@@ -132,9 +120,6 @@ func loadNodeEdges(root, nodesDir, nodeID string) ([]specEdge, error) {
 		}
 		e.Source = nodeID
 
-		if d, ok := edgefile.ReadEdgeDelta(root, nodeID, e.Label); ok {
-			e.setDelta(d)
-		}
 		edges = append(edges, e)
 	}
 	return edges, nil

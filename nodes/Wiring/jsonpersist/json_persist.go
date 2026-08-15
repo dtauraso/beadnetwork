@@ -32,6 +32,24 @@ func ReadJSONIfExists(path string, v any) bool {
 	return json.Unmarshal(raw, v) == nil
 }
 
+func ReadModifyWriteJSON(path string, mutate func(map[string]any)) error {
+	m := map[string]any{}
+	raw, err := os.ReadFile(path)
+	if err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("ReadModifyWriteJSON: read %s: %w", path, err)
+	}
+	if err == nil && len(raw) > 0 {
+		if err := json.Unmarshal(raw, &m); err != nil {
+			return fmt.Errorf(
+				"ReadModifyWriteJSON: %s exists but does not parse as JSON (%w) — refusing to "+
+					"overwrite it, since that would discard every key this write does not set",
+				path, err)
+		}
+	}
+	mutate(m)
+	return WriteJSONAtomic(path, m)
+}
+
 func WriteJSONAtomic(path string, v any) error {
 	out, err := json.Marshal(v)
 	if err != nil {
