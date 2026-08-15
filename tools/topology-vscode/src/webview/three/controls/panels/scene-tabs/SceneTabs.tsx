@@ -1,4 +1,5 @@
 import React, { useCallback } from "react";
+import { createPortal } from "react-dom";
 import { postGoRecord } from "../../../../vscode-api";
 import { encodeSceneSelected } from "../../../../../schema/input/input-encode";
 import { postLog } from "../../../../log/post";
@@ -6,12 +7,6 @@ import { useSceneTabs } from "./scene-tabs";
 import * as T from "../../chrome-theme";
 
 const stripStyle: React.CSSProperties = {
-
-  position: "absolute",
-  top: 12,
-  left: "50%",
-  transform: "translateX(-50%)",
-  zIndex: 20,
   pointerEvents: "auto",
   display: "inline-flex",
   flexDirection: "row",
@@ -46,9 +41,11 @@ export function SceneTabs() {
     postGoRecord(encodeSceneSelected(index));
   }, []);
 
+  const mount = document.getElementById("scene-tabs-mount");
+  if (!mount) return null;
   if (names.length === 0) return null;
 
-  return (
+  return createPortal(
     <div style={stripStyle}>
       {names.map((name, i) => (
         <button
@@ -64,6 +61,7 @@ export function SceneTabs() {
           {name}
         </button>
       ))}
-    </div>
+    </div>,
+    mount,
   );
 }

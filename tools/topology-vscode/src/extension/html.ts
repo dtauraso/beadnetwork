@@ -49,6 +49,7 @@ export function buildWebviewHtml(
     <div class="toolbar">
       <span id="run-mount"></span>
     </div>
+    <div id="scene-tabs-mount"></div>
     <div id="node-rules-mount"></div>
   </div>
   <div class="drag-log-row">
