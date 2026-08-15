@@ -71,17 +71,21 @@ func (m *NodeGeometry) SendMove() func(id string, msg movemsg.Msg) { return m.ms
 func (m *NodeGeometry) NeighborIDs() []string { return m.msg.NeighborIDs() }
 
 func (m *NodeGeometry) QuantOffset() (iTheta, iPhi, iR int) {
-	return m.quantOffset.IPhi, m.quantOffset.ITheta, m.quantOffset.IR
+	c := m.quant.Composed()
+	return c.IPhi, c.ITheta, c.IR
 }
 
-func (m *NodeGeometry) QuantizedOffsetValue() quantoffset.QuantizedOffset { return m.quantOffset }
+func (m *NodeGeometry) QuantizedOffsetValue() quantoffset.QuantizedOffset {
+	return m.quant.Composed()
+}
 
 func (m *NodeGeometry) ReachR() float64 { return m.geom.ReachR }
 
 func (m *NodeGeometry) CommitQuantOffset(committedPolar polar.Polar) {
-	off := quantoffset.MeasureScalar(committedPolar, m.quantOffset)
-	m.quantOffset = off
-	m.persistQuantOffset(off)
+	composed := quantoffset.MeasureScalar(committedPolar, m.quant.Composed())
+	drag := quantoffset.Delta(composed, m.quant.Base())
+	m.quant.SetDrag(drag)
+	m.persistQuantOffset(drag)
 }
 
 func (m *NodeGeometry) WriteStreamFrame(events []rowevent.RowEvent) {

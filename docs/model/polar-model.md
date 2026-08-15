@@ -48,7 +48,7 @@ and none is a source of truth.
   point is `(r,φ,θ)` about the scene-sphere centre, in the QUANTISED integer form
   (`quantoffset.QuantizedOffset` — `ITheta`/`IPhi`/`IR` × per-node step constants,
   `nodes/Wiring/quantoffset/quantized_layout.go`), persisted (`nodes/<id>/position.json`
-  `scenePolarR`/`scenePolarPhi`/`scenePolarTheta` + `quantITheta`/`quantIPhi`/`quantIR`).
+  `scenePolarR`/`scenePolarPhi`/`scenePolarTheta` + `iTheta`/`iPhi`/`iR`).
   An edge carries `D`, the triple from its source to its target, persisted in that edge's
   own file under its source (`nodes/<src>/edges/<label>.json`, `deltaPolar*`). The two are
   one triangle:

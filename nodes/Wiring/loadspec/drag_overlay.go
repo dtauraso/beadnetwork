@@ -1,9 +1,9 @@
 package loadspec
 
 import (
+	"github.com/dtauraso/wirefold/nodes/Wiring/dragfile"
 	"github.com/dtauraso/wirefold/nodes/Wiring/edgefile"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
-	"github.com/dtauraso/wirefold/nodes/Wiring/positionfile"
 )
 
 func ApplyDragOverlay(root string, spec *TopoSpec) {
@@ -12,9 +12,10 @@ func ApplyDragOverlay(root string, spec *TopoSpec) {
 		if !n.hasPoint() {
 			continue
 		}
-		if drag, ok := positionfile.Read(root, n.ID); ok {
-			d := polar.Polar{R: drag.DeltaPolarR, Phi: drag.DeltaPolarPhi, Theta: drag.DeltaPolarTheta}
+		if drag, ok := dragfile.Read(root, n.ID); ok {
+			d := polar.Polar{R: drag.DragPolarR, Phi: drag.DragPolarPhi, Theta: drag.DragPolarTheta}
 			n.DragScenePolarR, n.DragScenePolarPhi, n.DragScenePolarTheta = &d.R, &d.Phi, &d.Theta
+			n.DragIPhi, n.DragITheta, n.DragIR = &drag.IPhi, &drag.ITheta, &drag.IR
 		}
 	}
 

@@ -56,7 +56,11 @@ func (m *NodeGeometry) SetSceneFlags(coplanarEdges, upAxis bool) {
 }
 
 func (m *NodeGeometry) SetQuantOffset(off quantoffset.QuantizedOffset) {
-	m.quantOffset = off
+	m.quant.SetBase(off)
+}
+
+func (m *NodeGeometry) SetDragQuantOffset(off quantoffset.QuantizedOffset) {
+	m.quant.SetDrag(off)
 }
 
 func (m *NodeGeometry) SetTopTiltVectorPhiIdx(idx int32) {

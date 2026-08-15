@@ -3,9 +3,9 @@ package nodeactor
 import (
 	"fmt"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/dragfile"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
-	"github.com/dtauraso/wirefold/nodes/Wiring/positionfile"
 	"github.com/dtauraso/wirefold/nodes/Wiring/quantoffset"
 )
 
@@ -23,7 +23,7 @@ func (nm *NodeGeometry) persistTiltVectorAngle() {
 	if nm.persistRoot == "" {
 		return
 	}
-	if err := writeQuantOffset(nm.persistRoot, nm.id, nm.quantOffset, nm.geom.DragPolar, nm.tilt.TopTiltVectorPhiIdx()); err != nil {
+	if err := writeQuantOffset(nm.persistRoot, nm.id, nm.quant.Drag(), nm.geom.DragPolar, nm.tilt.TopTiltVectorPhiIdx()); err != nil {
 		jsonpersist.LogPersistErr("quant_offset_persist", nm.id, err)
 	}
 }
@@ -32,11 +32,9 @@ func writeQuantOffset(root, id string, off quantoffset.QuantizedOffset, delta po
 	if !jsonpersist.SafeTreePathComponent(id) {
 		return fmt.Errorf("unsafe node id %q", id)
 	}
-	t, p, r := off.EffectiveSteps()
-	return positionfile.Write(root, id, positionfile.JSON{
-		DeltaPolarR: delta.R, DeltaPolarPhi: delta.Phi, DeltaPolarTheta: delta.Theta,
-		QuantIPhi: off.IPhi, QuantITheta: off.ITheta, QuantIR: off.IR,
-		StepPhi: t, StepTheta: p, StepR: r,
+	return dragfile.Write(root, id, dragfile.JSON{
+		DragPolarR: delta.R, DragPolarPhi: delta.Phi, DragPolarTheta: delta.Theta,
+		IPhi: off.IPhi, ITheta: off.ITheta, IR: off.IR,
 		TopTiltVectorPhiIdx: topTiltVectorPhiIdx,
 	})
 }

@@ -12,11 +12,10 @@ import (
 )
 
 type specNode struct {
-	ID    string    `json:"id"`
-	Type  string    `json:"type"`
-	Index *int      `json:"index,omitempty"`
-	Data  *NodeData `json:"data,omitempty"`
-	R     *float64  `json:"r,omitempty"`
+	ID   string    `json:"id"`
+	Type string    `json:"type"`
+	Data *NodeData `json:"data,omitempty"`
+	R    *float64  `json:"r,omitempty"`
 
 	ScenePolarR     *float64 `json:"scenePolarR,omitempty"`
 	ScenePolarPhi   *float64 `json:"scenePolarPhi,omitempty"`
@@ -26,13 +25,17 @@ type specNode struct {
 	DragScenePolarPhi   *float64 `json:"-"`
 	DragScenePolarTheta *float64 `json:"-"`
 
-	QuantIPhi   *int `json:"quantIPhi,omitempty"`
-	QuantITheta *int `json:"quantITheta,omitempty"`
-	QuantIR     *int `json:"quantIR,omitempty"`
+	IPhi   *int `json:"iPhi,omitempty"`
+	ITheta *int `json:"iTheta,omitempty"`
+	IR     *int `json:"iR,omitempty"`
 
-	StepPhi   *float64 `json:"stepPhi,omitempty"`
-	StepTheta *float64 `json:"stepTheta,omitempty"`
-	StepR     *float64 `json:"stepR,omitempty"`
+	ConstantPhi   *float64 `json:"constantPhi,omitempty"`
+	ConstantTheta *float64 `json:"constantTheta,omitempty"`
+	ConstantR     *float64 `json:"constantR,omitempty"`
+
+	DragIPhi   *int `json:"-"`
+	DragITheta *int `json:"-"`
+	DragIR     *int `json:"-"`
 
 	Gate bool `json:"gate,omitempty"`
 

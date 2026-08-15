@@ -136,7 +136,7 @@ func (o *OutEdges) persistDelta(e *outEdge, dragDelta polar.Polar) {
 	if e.hasPersisted && e.persistedDrag == dragDelta {
 		return
 	}
-	if err := edgefile.WriteEdgeDelta(o.persistRoot, o.srcID, e.label, dragDelta); err != nil {
+	if err := edgefile.WriteEdgeDrag(o.persistRoot, o.srcID, e.label, dragDelta); err != nil {
 		jsonpersist.LogPersistErr("out_edges", o.srcID+"->"+e.targetID, err)
 		return
 	}

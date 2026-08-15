@@ -8,6 +8,24 @@ import (
 	"github.com/dtauraso/wirefold/nodes/spatial"
 )
 
+func ComputeDragQuantOffsets(spec loadspec.TopoSpec) map[string]quantoffset.QuantizedOffset {
+	out := make(map[string]quantoffset.QuantizedOffset, len(spec.Nodes))
+	for _, n := range spec.Nodes {
+		var o quantoffset.QuantizedOffset
+		if n.DragIPhi != nil {
+			o.IPhi = *n.DragIPhi
+		}
+		if n.DragITheta != nil {
+			o.ITheta = *n.DragITheta
+		}
+		if n.DragIR != nil {
+			o.IR = *n.DragIR
+		}
+		out[n.ID] = o
+	}
+	return out
+}
+
 func ComputeQuantizedLayout(spec loadspec.TopoSpec, sphere polar.SceneSphere, centers map[string]spatial.Vec3, nodeGeoms map[string]nodegeom.NodeGeom) map[string]quantoffset.QuantizedOffset {
 	ids := make(map[string]bool, len(spec.Nodes))
 	for _, n := range spec.Nodes {
@@ -17,14 +35,14 @@ func ComputeQuantizedLayout(spec loadspec.TopoSpec, sphere polar.SceneSphere, ce
 	prior := make(map[string]quantoffset.QuantizedOffset, len(spec.Nodes))
 	for _, n := range spec.Nodes {
 		o := quantoffset.QuantizedOffset{}
-		if n.StepPhi != nil {
-			o.CPhi = *n.StepPhi
+		if n.ConstantPhi != nil {
+			o.ConstantPhi = *n.ConstantPhi
 		}
-		if n.StepTheta != nil {
-			o.CTheta = *n.StepTheta
+		if n.ConstantTheta != nil {
+			o.ConstantTheta = *n.ConstantTheta
 		}
-		if n.StepR != nil {
-			o.CR = *n.StepR
+		if n.ConstantR != nil {
+			o.ConstantR = *n.ConstantR
 		}
 		prior[n.ID] = o
 	}
@@ -43,20 +61,20 @@ func ComputeQuantizedLayout(spec loadspec.TopoSpec, sphere polar.SceneSphere, ce
 			}
 			continue
 		}
-		if n.QuantIPhi != nil && n.QuantITheta != nil && n.QuantIR != nil {
+		if n.IPhi != nil && n.ITheta != nil && n.IR != nil {
 			o := quantoffset.QuantizedOffset{
-				IPhi:   *n.QuantIPhi,
-				ITheta: *n.QuantITheta,
-				IR:     *n.QuantIR,
+				IPhi:   *n.IPhi,
+				ITheta: *n.ITheta,
+				IR:     *n.IR,
 			}
-			if n.StepPhi != nil {
-				o.CPhi = *n.StepPhi
+			if n.ConstantPhi != nil {
+				o.ConstantPhi = *n.ConstantPhi
 			}
-			if n.StepTheta != nil {
-				o.CTheta = *n.StepTheta
+			if n.ConstantTheta != nil {
+				o.ConstantTheta = *n.ConstantTheta
 			}
-			if n.StepR != nil {
-				o.CR = *n.StepR
+			if n.ConstantR != nil {
+				o.ConstantR = *n.ConstantR
 			}
 			offsets[n.ID] = o
 			continue

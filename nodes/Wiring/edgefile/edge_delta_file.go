@@ -28,22 +28,31 @@ func ReadEdgeDelta(root, src, label string) (polar.Polar, bool) {
 	return polar.Polar{R: *df.DeltaPolarR, Phi: *df.DeltaPolarPhi, Theta: *df.DeltaPolarTheta}, true
 }
 
+type dragFields struct {
+	DragPolarR     *float64 `json:"dragPolarR,omitempty"`
+	DragPolarPhi   *float64 `json:"dragPolarPhi,omitempty"`
+	DragPolarTheta *float64 `json:"dragPolarTheta,omitempty"`
+}
+
 func ReadEdgeDragDelta(root, src, label string) (polar.Polar, bool) {
-	var df deltaFields
+	var df dragFields
 	if !jsonpersist.ReadJSONIfExists(edgeDragPath(root, src, label), &df) {
 		return polar.Polar{}, false
 	}
-	if df.DeltaPolarR == nil || df.DeltaPolarPhi == nil || df.DeltaPolarTheta == nil {
+	if df.DragPolarR == nil || df.DragPolarPhi == nil || df.DragPolarTheta == nil {
 		return polar.Polar{}, false
 	}
-	return polar.Polar{R: *df.DeltaPolarR, Phi: *df.DeltaPolarPhi, Theta: *df.DeltaPolarTheta}, true
+	return polar.Polar{R: *df.DragPolarR, Phi: *df.DragPolarPhi, Theta: *df.DragPolarTheta}, true
 }
 
-func WriteEdgeDelta(root, src, label string, d polar.Polar) error {
+func WriteEdgeDrag(root, src, label string, d polar.Polar) error {
 	path := edgeDragPath(root, src, label)
 	return jsonpersist.ReadModifyWriteJSON(path, func(m map[string]any) {
-		m["deltaPolarR"] = d.R
-		m["deltaPolarPhi"] = d.Phi
-		m["deltaPolarTheta"] = d.Theta
+		m["dragPolarR"] = d.R
+		m["dragPolarPhi"] = d.Phi
+		m["dragPolarTheta"] = d.Theta
+		delete(m, "deltaPolarR")
+		delete(m, "deltaPolarPhi")
+		delete(m, "deltaPolarTheta")
 	})
 }

@@ -49,6 +49,11 @@ func (b *buildCtx) buildMoveDispatch() error {
 			nm.SetQuantOffset(off)
 		}
 	}
+	for id, off := range b.dragQuantOffsets {
+		if nm, ok := md.MR.NodeGeoms()[id]; ok {
+			nm.SetDragQuantOffset(off)
+		}
+	}
 
 	for _, n := range b.spec.Nodes {
 		nm, ok := md.MR.NodeGeoms()[n.ID]

@@ -6,7 +6,6 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/owners"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
-	"github.com/dtauraso/wirefold/nodes/Wiring/quantoffset"
 	"github.com/dtauraso/wirefold/nodes/Wiring/rulenode"
 	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
 	"github.com/dtauraso/wirefold/nodes/clock"
@@ -23,8 +22,8 @@ type NodeGeometry struct {
 	persistRoot string
 	selfKind    string
 
-	quantOffset quantoffset.QuantizedOffset
-	tr          *T.Trace
+	quant owners.Quant
+	tr    *T.Trace
 
 	msg owners.Messaging
 

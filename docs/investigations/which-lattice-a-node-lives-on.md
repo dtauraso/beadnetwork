@@ -79,7 +79,7 @@ neighbour distances are.
 
 Would have bought: node and beads share one quantization by construction.
 
-Would have cost: a migration of every stored `quantITheta`/`quantIPhi`/`quantIR` in
+Would have cost: a migration of every stored `iTheta`/`iPhi`/`iR` in
 `topology/nodes/*/meta.json` and `position.json`, with the same distance-preserving
 conversion the local polars just went through. Angular resolution would go from 15° to 1°,
 so stored angular indices would multiply by 15.

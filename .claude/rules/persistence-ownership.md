@@ -20,7 +20,7 @@ topology/
 │                                          (largest node id), not a live-node count
 ├── nodes/<id>/
 │   ├── base.json                          type/id/gate/drag-rule + the BASE position — TRACKED, see below
-│   ├── drag/position.json                 the node's accumulated position DELTA — GITIGNORED, see below
+│   ├── drag/self.json                 the node's accumulated position DELTA — GITIGNORED, see below
 │   ├── data.json  local-polars.json
 │   ├── edges/<label>.json                OUTGOING only — wiring + the BASE geometry delta — TRACKED
 │   ├── drag/edges/<label>.json            that edge's accumulated geometry DELTA — GITIGNORED
@@ -63,10 +63,15 @@ recording the edge under the target — that reintroduces the duplication the la
 **`base.json` and `<label>.json` are TRACKED and never written by the running sim.** They
 hold, respectively, a node's `type`/`id`/`gate`/`drag`-rule plus its BASE position, and an
 edge's wiring (`target`/`sourceHandle`/`targetHandle`/`kind`) plus its BASE geometry delta.
-**`drag/` `position.json` and `drag/edges/` `<label>.json` are GITIGNORED and are the only
+**`drag/` `self.json` and `drag/edges/` `<label>.json` are GITIGNORED and are the only
 files a drag writes** — each holds an accumulated `polar.Polar` DELTA, not an absolute value, using
 the same `deltaPolarR`/`deltaPolarPhi`/`deltaPolarTheta` field naming the tracked delta files
-use.
+use. `drag/` `self.json` also carries `iPhi`/`iTheta`/`iR` — these are
+DELTAS too (the offset from `base.json`'s own `iPhi`/`iTheta`/`iR`, e.g. a
+base `iR` of 25 plus a 4-step drag stores `iR: 4`, not 29), composed with the base
+quant index only at the point of use (`quantoffset.Compose`, mirroring `nodegeom.ScenePolarOf`).
+It does NOT carry `constantPhi`/`constantTheta`/`constantR` — those are constants identical to
+`base.json`'s copy, read from there; a second copy in the drag file could only drift.
 
 **A (base) and B (drag) are held SEPARATELY in the running program, never summed into a
 stored value.** `nodegeom.NodeGeom` carries `BasePolar` (A, loaded once from `base.json`,
@@ -78,8 +83,15 @@ subtracting). The composed on-screen position is `nodegeom.ScenePolarOf(g)` —
 position, rendering, hit-testing) and held in no field that outlives that call. The
 `NodeGeometry.ScenePolar()` accessor is exactly this derived call, not a stored field.
 Persistence (`quant_offset_persist.go`) writes `geom.DragPolar` straight to
-`drag/` `position.json` — there is no `polar.Between(base, scene)` reconstruction left on this
+`drag/` `self.json` — there is no `polar.Between(base, scene)` reconstruction left on this
 path.
+
+The quantized index rides the same split, in `owners.Quant`: `base` (A, loaded once from
+`base.json`'s `iPhi`/`iTheta`/`iR`) and `drag` (B, set by `CommitQuantOffset`
+as `quantoffset.Delta(measured, base)`, never reconstructed by subtracting later).
+`Quant.Composed()` returns `quantoffset.Compose(base, drag)`, computed at each call site and
+held nowhere else. `persistQuantOffset` writes `drag` straight to `drag/` `self.json`'s
+`iPhi`/`iTheta`/`iR` — a DELTA, same as the polar fields in that file.
 
 The same split applies to an edge's target vector. `owners.Deltas` holds two maps,
 `baseTo` (A, seeded once at build time from each edge's `<label>.json` base delta, in both
@@ -96,7 +108,7 @@ the only place they combine is at the point something is drawn or persisted, and
 always writes the DRAG component, never the composed one.
 
 On load, `loadspec.ApplyDragOverlay` reads `base.json`/`<label>.json` into the BASE fields
-and `drag/` `position.json`/`drag/edges/` `<label>.json` into separate DRAG fields on the same
+and `drag/` `self.json`/`drag/edges/` `<label>.json` into separate DRAG fields on the same
 spec struct (`DragScenePolarR/Phi/Theta` on a node, `DragDeltaPolarR/Phi/Theta` on an
 edge) — it composes NOTHING; a node or edge with no `drag/` file simply carries a zero drag
 value forward. `polar.Compose`/`polar.Between` are untouched by this change; this is the
@@ -119,7 +131,7 @@ geometry DELTA moved to `drag/`.
 
 A drag touches more than the node you grabbed: the dragged node shifts its own vectors, and
 each neighbour is told how far it moved and shifts its own — so a neighbour's `drag/`
-`position.json` and each of ITS outgoing edges' `drag/edges/` `<label>.json` also get
+`self.json` and each of ITS outgoing edges' `drag/edges/` `<label>.json` also get
 written as part of that same drag, same as before.
 
 Consequences to keep in mind:
@@ -139,7 +151,7 @@ Consequences to keep in mind:
 ## The owner writes, and owns the path
 
 - A node writes its own `position/local-polars` (path construction in
-  `positionfile/position_file.go`). There is no longer a separate `inputs/`/`outputs/` port-geometry
+  `dragfile/drag_file.go`). There is no longer a separate `inputs/`/`outputs/` port-geometry
   file — port geometry was removed with the port model (edges attach on the bead lattice,
   docs/bead-model/bead-lattice.md); this bullet used to list it as a second thing the mover writes.
 - The **SOURCE NODE** owns `nodes/<source>/drag/edges/<label>.json`, and writes it from

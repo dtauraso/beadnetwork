@@ -20,13 +20,13 @@ type JSONBase struct {
 	ScenePolarPhi   *float64 `json:"scenePolarPhi,omitempty"`
 	ScenePolarTheta *float64 `json:"scenePolarTheta,omitempty"`
 
-	QuantIPhi   *int `json:"quantIPhi,omitempty"`
-	QuantITheta *int `json:"quantITheta,omitempty"`
-	QuantIR     *int `json:"quantIR,omitempty"`
+	IPhi   *int `json:"iPhi,omitempty"`
+	ITheta *int `json:"iTheta,omitempty"`
+	IR     *int `json:"iR,omitempty"`
 
-	StepPhi   *float64 `json:"stepPhi,omitempty"`
-	StepTheta *float64 `json:"stepTheta,omitempty"`
-	StepR     *float64 `json:"stepR,omitempty"`
+	ConstantPhi   *float64 `json:"constantPhi,omitempty"`
+	ConstantTheta *float64 `json:"constantTheta,omitempty"`
+	ConstantR     *float64 `json:"constantR,omitempty"`
 
 	Gate bool `json:"gate,omitempty"`
 
@@ -55,12 +55,12 @@ func loadNodeBase(root, nodesDir, nodeID string) (specNode, error) {
 		ScenePolarR:         base.ScenePolarR,
 		ScenePolarPhi:       base.ScenePolarPhi,
 		ScenePolarTheta:     base.ScenePolarTheta,
-		QuantIPhi:           base.QuantIPhi,
-		QuantITheta:         base.QuantITheta,
-		QuantIR:             base.QuantIR,
-		StepPhi:             base.StepPhi,
-		StepTheta:           base.StepTheta,
-		StepR:               base.StepR,
+		IPhi:                base.IPhi,
+		ITheta:              base.ITheta,
+		IR:                  base.IR,
+		ConstantPhi:         base.ConstantPhi,
+		ConstantTheta:       base.ConstantTheta,
+		ConstantR:           base.ConstantR,
 		Gate:                base.Gate,
 		Drag:                base.Drag,
 		TopTiltVectorPhiIdx: base.TopTiltVectorPhiIdx,
