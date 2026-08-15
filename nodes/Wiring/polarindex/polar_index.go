@@ -97,6 +97,10 @@ func Compose(base, drag Index, sc SceneConstants) Index {
 	}, sc)
 }
 
+func Sum(a, b Index) Index {
+	return Index{Phi: a.Phi + b.Phi, Theta: a.Theta + b.Theta, R: a.R + b.R}
+}
+
 func Delta(composed, base Index) Index {
 	return Index{
 		Phi:   composed.Phi - base.Phi,

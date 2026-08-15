@@ -84,10 +84,10 @@ func TrimToDragRule(delta polarindex.Index, of Node) polarindex.Index {
 			continue
 		}
 		have := polarindex.ToPolar(haveIdx, sc)
-		wantIdx := polarindex.Compose(haveIdx, delta, sc)
+		wantIdx := polarindex.Sum(haveIdx, delta)
 		want := polarindex.ToPolar(wantIdx, sc)
 		trimmed := rule.TrimDelta(have, want)
-		trimmedIdx := polarindex.Canonical(polarindex.MeasureScalar(trimmed, sc), sc)
+		trimmedIdx := polarindex.MeasureScalar(trimmed, sc)
 		delta = polarindex.Delta(trimmedIdx, haveIdx)
 	}
 	return delta
