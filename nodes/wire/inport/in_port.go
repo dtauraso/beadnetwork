@@ -132,8 +132,8 @@ func breadcrumbLabelFor(event string) (uint8, bool) {
 		return T.BreadcrumbNeighborSetCRecv, true
 	case "bead-crud":
 		return T.BreadcrumbBeadCrud, true
-	case "orbit-active-persist":
-		return T.BreadcrumbOrbitActivePersist, true
+	case "drag-active-persist":
+		return T.BreadcrumbDragActivePersist, true
 	default:
 		return 0, false
 	}

@@ -66,10 +66,10 @@ type bufLayoutNode struct {
 
 	MsgsToParallel int32 `buf:"i32"`
 
-	OrbitRLocked   uint8   `buf:"u8"`
-	OrbitPhiLocked uint8   `buf:"u8"`
-	OrbitThetaMax  float32 `buf:"f32"`
-	OrbitActive    uint8   `buf:"u8"`
+	DragRLocked   uint8   `buf:"u8"`
+	DragPhiLocked uint8   `buf:"u8"`
+	DragThetaMax  float32 `buf:"f32"`
+	DragActive    uint8   `buf:"u8"`
 	HasKindRule    uint8   `buf:"u8"`
 
 	RuleGroupId   int32 `buf:"i32"`

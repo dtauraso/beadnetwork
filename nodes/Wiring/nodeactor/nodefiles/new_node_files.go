@@ -46,20 +46,20 @@ func WriteNewNodeFiles(root, id, kind string, scenePolarR, phi, theta float64) e
 	})
 }
 
-func WriteOrbitRule(root, id string, rule *polar.OrbitRule) error {
+func WriteDragRule(root, id string, rule *polar.DragRule) error {
 	return entityReadModifyWrite(nodeMetaFilePath(root, id), func(m map[string]any) {
 		if rule == nil {
-			delete(m, "orbit")
+			delete(m, "drag")
 			return
 		}
-		orbit := map[string]any{}
+		drag := map[string]any{}
 		if rule.Phi != nil {
-			orbit["phi"] = *rule.Phi
+			drag["phi"] = *rule.Phi
 		}
 		if rule.MaxTheta != nil {
-			orbit["maxTheta"] = *rule.MaxTheta
+			drag["maxTheta"] = *rule.MaxTheta
 		}
-		m["orbit"] = orbit
+		m["drag"] = drag
 	})
 }
 
@@ -67,11 +67,11 @@ type ruleActiveFile struct {
 	Active bool `json:"active"`
 }
 
-func WriteOrbitActive(root, id string, active bool) error {
+func WriteDragActive(root, id string, active bool) error {
 	return jsonpersist.WriteJSONAtomic(nodeRuleActiveFilePath(root, id), ruleActiveFile{Active: active})
 }
 
-func LoadOrbitActive(root, id string) bool {
+func LoadDragActive(root, id string) bool {
 	var f ruleActiveFile
 	if !jsonpersist.ReadJSONIfExists(nodeRuleActiveFilePath(root, id), &f) {
 		return true

@@ -12,7 +12,7 @@ func init() {
 
 func trimOwnDrag(delta polar.Polar, of nodedrag.Node) polar.Polar {
 	delta = polar.SnapDeltaTheta(delta)
-	delta = nodedrag.TrimToOrbitRule(delta, of)
+	delta = nodedrag.TrimToDragRule(delta, of)
 	return holdEqualOutLengths(delta, of)
 }
 

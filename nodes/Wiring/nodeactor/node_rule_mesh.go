@@ -30,8 +30,8 @@ func (m *NodeGeometry) drainRuleMesh() {
 		if !ok {
 			break
 		}
-		m.topo.SetOrbitRule(state.Rule)
-		m.topo.SetOrbitActive(state.Active)
+		m.topo.SetDragRule(state.Rule)
+		m.topo.SetDragActive(state.Active)
 		m.rule.SetGroup(state.GroupID, state.GroupSize)
 		changed = true
 	}

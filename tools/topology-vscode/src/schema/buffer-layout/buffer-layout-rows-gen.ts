@@ -50,10 +50,10 @@ export const NODE_COL_LATCHED_SEL                = 167; // u8
 export const NODE_COL_LATTICE_POINTS             = 168; // u8
 export const NODE_COL_ROUNDS_TO_PARALLEL         = 169; // i32
 export const NODE_COL_MSGS_TO_PARALLEL           = 173; // i32
-export const NODE_COL_ORBIT_RLOCKED              = 177; // u8
-export const NODE_COL_ORBIT_PHI_LOCKED           = 178; // u8
-export const NODE_COL_ORBIT_THETA_MAX            = 179; // f32
-export const NODE_COL_ORBIT_ACTIVE               = 183; // u8
+export const NODE_COL_DRAG_RLOCKED               = 177; // u8
+export const NODE_COL_DRAG_PHI_LOCKED            = 178; // u8
+export const NODE_COL_DRAG_THETA_MAX             = 179; // f32
+export const NODE_COL_DRAG_ACTIVE                = 183; // u8
 export const NODE_COL_HAS_KIND_RULE              = 184; // u8
 export const NODE_COL_RULE_GROUP_ID              = 185; // i32
 export const NODE_COL_RULE_GROUP_SIZE            = 189; // i32
@@ -107,10 +107,10 @@ export function readNodeLatchedSel(view: DataView, row: number): number { return
 export function readNodeLatticePoints(view: DataView, row: number): number { return view.getUint8(row * NODE_STRIDE + NODE_COL_LATTICE_POINTS); }
 export function readNodeRoundsToParallel(view: DataView, row: number): number { return view.getInt32(row * NODE_STRIDE + NODE_COL_ROUNDS_TO_PARALLEL, true); }
 export function readNodeMsgsToParallel(view: DataView, row: number): number { return view.getInt32(row * NODE_STRIDE + NODE_COL_MSGS_TO_PARALLEL, true); }
-export function readNodeOrbitRLocked(view: DataView, row: number): number { return view.getUint8(row * NODE_STRIDE + NODE_COL_ORBIT_RLOCKED); }
-export function readNodeOrbitPhiLocked(view: DataView, row: number): number { return view.getUint8(row * NODE_STRIDE + NODE_COL_ORBIT_PHI_LOCKED); }
-export function readNodeOrbitThetaMax(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_ORBIT_THETA_MAX, true); }
-export function readNodeOrbitActive(view: DataView, row: number): number { return view.getUint8(row * NODE_STRIDE + NODE_COL_ORBIT_ACTIVE); }
+export function readNodeDragRLocked(view: DataView, row: number): number { return view.getUint8(row * NODE_STRIDE + NODE_COL_DRAG_RLOCKED); }
+export function readNodeDragPhiLocked(view: DataView, row: number): number { return view.getUint8(row * NODE_STRIDE + NODE_COL_DRAG_PHI_LOCKED); }
+export function readNodeDragThetaMax(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_DRAG_THETA_MAX, true); }
+export function readNodeDragActive(view: DataView, row: number): number { return view.getUint8(row * NODE_STRIDE + NODE_COL_DRAG_ACTIVE); }
 export function readNodeHasKindRule(view: DataView, row: number): number { return view.getUint8(row * NODE_STRIDE + NODE_COL_HAS_KIND_RULE); }
 export function readNodeRuleGroupId(view: DataView, row: number): number { return view.getInt32(row * NODE_STRIDE + NODE_COL_RULE_GROUP_ID, true); }
 export function readNodeRuleGroupSize(view: DataView, row: number): number { return view.getInt32(row * NODE_STRIDE + NODE_COL_RULE_GROUP_SIZE, true); }

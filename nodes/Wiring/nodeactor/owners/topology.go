@@ -8,12 +8,12 @@ type Topology struct {
 	mutualTargets map[string]bool
 	nodeRowFor    func(id string) (int32, bool)
 
-	orbitRule   *polar.OrbitRule
-	orbitActive bool
+	dragRule   *polar.DragRule
+	dragActive bool
 }
 
 func NewTopology() Topology {
-	return Topology{orbitActive: true}
+	return Topology{dragActive: true}
 }
 
 func (t *Topology) EdgeIDs() []string { return t.edgeIDs }
@@ -38,17 +38,17 @@ func (t *Topology) AddNeighborKind(toID, kind string) {
 	t.neighborKinds[toID] = kind
 }
 
-func (t *Topology) SetOrbitRule(rule *polar.OrbitRule) {
-	t.orbitRule = rule
+func (t *Topology) SetDragRule(rule *polar.DragRule) {
+	t.dragRule = rule
 }
 
-func (t *Topology) OrbitRule() *polar.OrbitRule { return t.orbitRule }
+func (t *Topology) DragRule() *polar.DragRule { return t.dragRule }
 
-func (t *Topology) SetOrbitActive(active bool) {
-	t.orbitActive = active
+func (t *Topology) SetDragActive(active bool) {
+	t.dragActive = active
 }
 
-func (t *Topology) OrbitActive() bool { return t.orbitActive }
+func (t *Topology) DragRuleActive() bool { return t.dragActive }
 
 func (t *Topology) NeighborKind(toID string) string {
 	return t.neighborKinds[toID]

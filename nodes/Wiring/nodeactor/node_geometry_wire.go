@@ -43,12 +43,12 @@ func (m *NodeGeometry) SetSelfKind(kind string) {
 	m.selfKind = kind
 }
 
-func (m *NodeGeometry) SetOrbitRule(rule *polar.OrbitRule) {
-	m.topo.SetOrbitRule(rule)
+func (m *NodeGeometry) SetDragRule(rule *polar.DragRule) {
+	m.topo.SetDragRule(rule)
 }
 
-func (m *NodeGeometry) SetOrbitActive(active bool) {
-	m.topo.SetOrbitActive(active)
+func (m *NodeGeometry) SetDragActive(active bool) {
+	m.topo.SetDragActive(active)
 }
 
 func (m *NodeGeometry) SetSceneFlags(coplanarEdges, upAxis bool) {

@@ -12,7 +12,7 @@ type Key struct {
 	MaxTheta float64
 }
 
-func KeyOf(rule *polar.OrbitRule) Key {
+func KeyOf(rule *polar.DragRule) Key {
 	if rule == nil {
 		return Key{}
 	}
