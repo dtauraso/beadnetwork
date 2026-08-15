@@ -22,6 +22,15 @@ export interface RuleHolder {
   r: number;
 }
 
+export interface EdgePartner {
+  otherRow: number;
+  otherLabel: string;
+
+  incoming: boolean;
+
+  r: number;
+}
+
 export interface NodeRuleRow {
   row: number;
   label: string;
@@ -39,6 +48,8 @@ export interface NodeRuleRow {
   maxThetaDeg: number | null;
 
   holders: RuleHolder[];
+
+  partners: EdgePartner[];
 
   groupId: number;
 
@@ -68,6 +79,24 @@ function holdersEqual(a: RuleHolder[], b: RuleHolder[]): boolean {
   return true;
 }
 
+function partnersEqual(a: EdgePartner[], b: EdgePartner[]): boolean {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    const ai = a[i];
+    const bi = b[i];
+    if (!ai || !bi) return false;
+    if (
+      ai.otherRow !== bi.otherRow ||
+      ai.otherLabel !== bi.otherLabel ||
+      ai.incoming !== bi.incoming ||
+      ai.r !== bi.r
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
+
 function ruleRowsEqual(a: NodeRuleRow[], b: NodeRuleRow[]): boolean {
   if (a.length !== b.length) return false;
   for (let i = 0; i < a.length; i++) {
@@ -85,7 +114,8 @@ function ruleRowsEqual(a: NodeRuleRow[], b: NodeRuleRow[]): boolean {
       ai.maxThetaDeg !== bi.maxThetaDeg ||
       ai.groupId !== bi.groupId ||
       ai.groupSize !== bi.groupSize ||
-      !holdersEqual(ai.holders, bi.holders)
+      !holdersEqual(ai.holders, bi.holders) ||
+      !partnersEqual(ai.partners, bi.partners)
     ) {
       return false;
     }
@@ -116,11 +146,37 @@ function holdersByNode(decoded: ReturnType<typeof getNodeFrame>): Map<number, Ru
   return byNode;
 }
 
+function partnersByNode(decoded: ReturnType<typeof getNodeFrame>): Map<number, EdgePartner[]> {
+  const byNode = new Map<number, EdgePartner[]>();
+  const edges = getEdgeStreamAccessor();
+  if (!edges || !decoded) return byNode;
+
+  const add = (row: number, p: EdgePartner) => {
+    const list = byNode.get(row);
+    if (!list) {
+      byNode.set(row, [p]);
+      return;
+    }
+    if (!list.some((q) => q.otherRow === p.otherRow && q.incoming === p.incoming)) list.push(p);
+  };
+
+  for (let edgeRow = 0; edgeRow < edges.edgeCount; edgeRow++) {
+    const src = edges.srcNodeRow(edgeRow);
+    const dst = edges.dstNodeRow(edgeRow);
+    if (src < 0 || dst < 0) continue;
+    const r = Math.abs(edges.deltaR(edgeRow));
+    add(src, { otherRow: dst, otherLabel: nodeLabel(decoded, dst), incoming: false, r });
+    add(dst, { otherRow: src, otherLabel: nodeLabel(decoded, src), incoming: true, r });
+  }
+  return byNode;
+}
+
 export function readNodeRuleRows(): NodeRuleRow[] | null {
   const decoded = getNodeFrame();
   if (!decoded) return cachedRuleRows;
   const { nodeCount, nodeView } = decoded;
   const byNode = holdersByNode(decoded);
+  const partnerByNode = partnersByNode(decoded);
 
   const next: NodeRuleRow[] = [];
   for (let row = 0; row < nodeCount; row++) {
@@ -137,6 +193,7 @@ export function readNodeRuleRows(): NodeRuleRow[] | null {
       phiLocked: !!readNodeDragPhiLocked(nodeView, row),
       maxThetaDeg: thetaMax < 0 ? null : thetaMax * RAD_TO_DEG,
       holders: byNode.get(row) ?? [],
+      partners: partnerByNode.get(row) ?? [],
       groupId: readNodeRuleGroupId(nodeView, row),
       groupSize: readNodeRuleGroupSize(nodeView, row),
     });
