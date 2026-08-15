@@ -26,6 +26,7 @@ func NewMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[strin
 	md.buildEdgeTable(edgeEndpoints)
 	md.wireNodeEdgeIDs()
 	md.buildRowTables(rowCount)
+	md.wireRuleEditRows()
 	md.bindUIClosures()
 
 	return md, nil

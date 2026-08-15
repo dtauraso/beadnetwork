@@ -38,7 +38,7 @@ func (h *TimeEnd) Update(ctx context.Context) {
 	}
 
 	clk := h.Clock.Copy()
-	clk.WakeOn(h.Self.RuleWake())
+	h.Self.StartRule(ctx, clk)
 
 	for {
 		select {

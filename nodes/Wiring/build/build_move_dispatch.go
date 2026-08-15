@@ -59,7 +59,7 @@ func (b *buildCtx) buildMoveDispatch() error {
 		active := nodefiles.LoadOrbitActive(b.scenePath, n.ID)
 		nm.SetOrbitRule(n.Orbit)
 		nm.SetOrbitActive(active)
-		rn := md.Rules.Claim(n.ID)
+		rn := nm.RuleNode()
 		rn.SetPersistRoot(b.scenePath)
 		rn.SeedRule(n.Orbit, active)
 		if n.TopTiltVectorPhiIdx != nil {
@@ -67,8 +67,8 @@ func (b *buildCtx) buildMoveDispatch() error {
 		}
 	}
 
-	for _, rn := range md.Rules.All() {
-		rn.BroadcastSelf()
+	for _, nm := range md.MR.NodeGeoms() {
+		nm.RuleNode().BroadcastSelf()
 	}
 
 	kindByID := make(map[string]string, len(b.spec.Nodes))

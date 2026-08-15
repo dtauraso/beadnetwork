@@ -34,7 +34,7 @@ type Node struct {
 
 func (n *Node) Update(ctx context.Context) {
 	c := n.Clock.Copy()
-	c.WakeOn(n.Self.RuleWake())
+	n.Self.StartRule(ctx, c)
 	n.a, n.b, n.total = noNormal, noNormal, noNormal
 
 	n.Self.EmitGeometryOnce()

@@ -60,7 +60,7 @@ func (g *PulseLeft) Update(ctx context.Context) {
 	}
 
 	clk := g.Clock.Copy()
-	clk.WakeOn(g.Self.RuleWake())
+	g.Self.StartRule(ctx, clk)
 
 	for {
 		if ctx.Err() != nil {
