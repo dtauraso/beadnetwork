@@ -31,7 +31,7 @@ func (d *Deltas) DeltaTo(otherID string) (polarindex.Index, bool) {
 	if !ok {
 		return polarindex.Index{}, false
 	}
-	return polarindex.Compose(base, d.dragTo[otherID], d.constants), true
+	return polarindex.Sum(base, d.dragTo[otherID]), true
 }
 
 func (d *Deltas) DragDeltaTo(otherID string) (polarindex.Index, bool) {
@@ -54,7 +54,7 @@ func (d *Deltas) ShiftSelfBy(delta polarindex.Index) {
 		d.dragTo = map[string]polarindex.Index{}
 	}
 	for id := range d.baseTo {
-		d.dragTo[id] = polarindex.Compose(d.dragTo[id], polarindex.Neg(delta), d.constants)
+		d.dragTo[id] = polarindex.Sum(d.dragTo[id], polarindex.Neg(delta))
 	}
 }
 
@@ -65,7 +65,7 @@ func (d *Deltas) ShiftOtherBy(otherID string, delta polarindex.Index) {
 	if d.dragTo == nil {
 		d.dragTo = map[string]polarindex.Index{}
 	}
-	d.dragTo[otherID] = polarindex.Compose(d.dragTo[otherID], delta, d.constants)
+	d.dragTo[otherID] = polarindex.Sum(d.dragTo[otherID], delta)
 }
 
 func (d *Deltas) DeltaIDs() []string {
