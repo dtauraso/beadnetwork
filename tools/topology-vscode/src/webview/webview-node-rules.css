@@ -85,4 +85,11 @@
 .node-rules-shared-row--self span { font-weight: 600; }
 
 .node-rules-input:focus { outline: none; box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.35); }
+.node-rules-node-head input[type="checkbox"]:focus,
+.node-rules-shared-row input[type="checkbox"]:focus,
+.node-rules-node-head input[type="checkbox"]:focus-visible,
+.node-rules-shared-row input[type="checkbox"]:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
 .node-rules-unit { color: #666; }
