@@ -2,12 +2,13 @@ package nodeactor
 
 import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
+	"github.com/dtauraso/wirefold/nodes/Wiring/polarindex"
 )
 
-func (m *NodeGeometry) ApplyCenter(center vec3) {
-	nodegeom.SetNodeWorld(&m.geom, center)
+func (m *NodeGeometry) ApplyCenter(idx polarindex.Index) {
+	nodegeom.SetNodeWorld(&m.geom, idx)
 
-	m.msg.PublishCenter(center)
+	m.msg.PublishCenter(nodegeom.NodeWorldPos(m.geom))
 
 	if m.tr != nil {
 		m.emitGeometry()

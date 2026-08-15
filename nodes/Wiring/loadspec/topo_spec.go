@@ -17,10 +17,6 @@ type specNode struct {
 	Type string    `json:"type"`
 	Data *NodeData `json:"data,omitempty"`
 
-	DragScenePolarR     *float64 `json:"-"`
-	DragScenePolarPhi   *float64 `json:"-"`
-	DragScenePolarTheta *float64 `json:"-"`
-
 	IndexPhi   *int `json:"indexPhi,omitempty"`
 	IndexTheta *int `json:"indexTheta,omitempty"`
 	IndexR     *int `json:"indexR,omitempty"`
@@ -45,13 +41,13 @@ func (n specNode) label() string {
 
 func (n specNode) ToNodeGeom(sceneCenter spatial.Vec3, sc polarindex.SceneConstants) nodegeom.NodeGeom {
 
-	g := nodegeom.NodeGeom{NodeIdentity: nodegeom.NodeIdentity{Kind: n.Type, Label: n.label(), SceneCenter: sceneCenter}}
+	g := nodegeom.NodeGeom{NodeIdentity: nodegeom.NodeIdentity{Kind: n.Type, Label: n.label(), SceneCenter: sceneCenter, SceneConstants: sc}}
 	if n.hasPoint() {
-		g.BasePolar = n.point(sc)
+		g.BaseIndex = n.index()
 		g.HasPos = true
 	}
-	if n.DragScenePolarR != nil && n.DragScenePolarPhi != nil && n.DragScenePolarTheta != nil {
-		g.DragPolar = polar.Polar{R: *n.DragScenePolarR, Phi: *n.DragScenePolarPhi, Theta: *n.DragScenePolarTheta}
+	if n.DragIndexPhi != nil && n.DragIndexTheta != nil && n.DragIndexR != nil {
+		g.DragIndex = polarindex.Index{Phi: *n.DragIndexPhi, Theta: *n.DragIndexTheta, R: *n.DragIndexR}
 	}
 	return g
 }
@@ -93,9 +89,9 @@ type specEdge struct {
 	DeltaIndexPhi   *int `json:"deltaIndexPhi,omitempty"`
 	DeltaIndexTheta *int `json:"deltaIndexTheta,omitempty"`
 
-	DragDeltaPolarR     *float64 `json:"-"`
-	DragDeltaPolarPhi   *float64 `json:"-"`
-	DragDeltaPolarTheta *float64 `json:"-"`
+	DragDeltaIndexR     *int `json:"-"`
+	DragDeltaIndexPhi   *int `json:"-"`
+	DragDeltaIndexTheta *int `json:"-"`
 }
 
 type TopoSpec struct {

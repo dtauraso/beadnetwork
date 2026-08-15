@@ -8,7 +8,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/spatial"
 )
 
-func ComputeDragQuantOffsets(spec loadspec.TopoSpec) map[string]polarindex.Index {
+func ComputeDragIndices(spec loadspec.TopoSpec) map[string]polarindex.Index {
 	out := make(map[string]polarindex.Index, len(spec.Nodes))
 	for _, n := range spec.Nodes {
 		var o polarindex.Index
@@ -26,7 +26,7 @@ func ComputeDragQuantOffsets(spec loadspec.TopoSpec) map[string]polarindex.Index
 	return out
 }
 
-func ComputeQuantizedLayout(spec loadspec.TopoSpec, sphere polar.SceneSphere, centers map[string]spatial.Vec3, nodeGeoms map[string]nodegeom.NodeGeom) map[string]polarindex.Index {
+func ComputeBaseIndices(spec loadspec.TopoSpec, sphere polar.SceneSphere, centers map[string]spatial.Vec3, nodeGeoms map[string]nodegeom.NodeGeom) map[string]polarindex.Index {
 	ids := make(map[string]bool, len(spec.Nodes))
 	for _, n := range spec.Nodes {
 		ids[n.ID] = true
@@ -52,15 +52,14 @@ func ComputeQuantizedLayout(spec loadspec.TopoSpec, sphere polar.SceneSphere, ce
 		offsets[n.ID] = polarindex.Index{}
 	}
 
-	derived := polarindex.DeriveCenters(offsets, sphere.Center, spec.Constants)
-	for id, pos := range derived {
+	for id, off := range offsets {
 		if exact[id] {
 			continue
 		}
-		centers[id] = pos
 		if g, ok := nodeGeoms[id]; ok {
-			nodegeom.SetNodeWorld(&g, pos)
+			nodegeom.SetNodeWorld(&g, off)
 			nodeGeoms[id] = g
+			centers[id] = nodegeom.NodeWorldPos(g)
 		}
 	}
 	return offsets

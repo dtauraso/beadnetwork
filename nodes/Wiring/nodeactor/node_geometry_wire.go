@@ -18,7 +18,7 @@ import (
 func (m *NodeGeometry) WireMessaging(
 	resolveDest func(id string) (func(movemsg.Msg) bool, bool),
 	sendMove func(id string, msg movemsg.Msg),
-	commitLocal func(id string, newPos vec3, targetPolar *polar.Polar),
+	commitLocal func(id string, idx polarindex.Index),
 ) {
 	m.msg.WireMessaging(resolveDest, sendMove, commitLocal)
 }
@@ -55,12 +55,12 @@ func (m *NodeGeometry) SetSceneFlags(coplanarEdges, upAxis bool) {
 	m.flags.SetSceneFlags(coplanarEdges, upAxis)
 }
 
-func (m *NodeGeometry) SetQuantOffset(off polarindex.Index) {
-	m.quant.SetBase(off)
+func (m *NodeGeometry) SetBaseIndex(off polarindex.Index) {
+	m.geom.BaseIndex = off
 }
 
-func (m *NodeGeometry) SetDragQuantOffset(off polarindex.Index) {
-	m.quant.SetDrag(off)
+func (m *NodeGeometry) SetDragIndex(off polarindex.Index) {
+	m.geom.DragIndex = off
 }
 
 func (m *NodeGeometry) SetTopTiltVectorPhiIdx(idx int32) {

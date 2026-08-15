@@ -1,7 +1,6 @@
 package loadspec
 
 import (
-	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/nodes/Wiring/polarindex"
 )
 
@@ -70,30 +69,22 @@ func (n *specNode) index() polarindex.Index {
 	return polarindex.Index{Phi: *n.IndexPhi, Theta: *n.IndexTheta, R: *n.IndexR}
 }
 
-func (n *specNode) point(sc polarindex.SceneConstants) polar.Polar {
-	return polarindex.ToPolar(n.index(), sc)
-}
-
 func (n *specNode) setIndex(idx polarindex.Index) {
 	n.IndexPhi, n.IndexTheta, n.IndexR = &idx.Phi, &idx.Theta, &idx.R
 }
 
-func (e specEdge) Delta(sc polarindex.SceneConstants) (polar.Polar, bool) {
+func (e specEdge) BaseDeltaIndex() (polarindex.Index, bool) {
 	if !e.hasDelta() {
-		return polar.Polar{}, false
+		return polarindex.Index{}, false
 	}
-	return e.delta(sc), true
+	return e.deltaIndex(), true
 }
 
-func (e specEdge) BaseDelta(sc polarindex.SceneConstants) (polar.Polar, bool) {
-	return e.Delta(sc)
-}
-
-func (e specEdge) DragDelta() polar.Polar {
-	if e.DragDeltaPolarR == nil || e.DragDeltaPolarPhi == nil || e.DragDeltaPolarTheta == nil {
-		return polar.Polar{}
+func (e specEdge) DragDeltaIndex() polarindex.Index {
+	if e.DragDeltaIndexR == nil || e.DragDeltaIndexPhi == nil || e.DragDeltaIndexTheta == nil {
+		return polarindex.Index{}
 	}
-	return polar.Polar{R: *e.DragDeltaPolarR, Phi: *e.DragDeltaPolarPhi, Theta: *e.DragDeltaPolarTheta}
+	return polarindex.Index{Phi: *e.DragDeltaIndexPhi, Theta: *e.DragDeltaIndexTheta, R: *e.DragDeltaIndexR}
 }
 
 func (e *specEdge) hasDelta() bool {
@@ -102,10 +93,6 @@ func (e *specEdge) hasDelta() bool {
 
 func (e *specEdge) deltaIndex() polarindex.Index {
 	return polarindex.Index{Phi: *e.DeltaIndexPhi, Theta: *e.DeltaIndexTheta, R: *e.DeltaIndexR}
-}
-
-func (e *specEdge) delta(sc polarindex.SceneConstants) polar.Polar {
-	return polarindex.ToPolar(e.deltaIndex(), sc)
 }
 
 func (e *specEdge) setDeltaIndex(idx polarindex.Index) {

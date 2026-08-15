@@ -1,7 +1,7 @@
 package movemsg
 
 import (
-	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
+	"github.com/dtauraso/wirefold/nodes/Wiring/polarindex"
 	"github.com/dtauraso/wirefold/nodes/spatial"
 )
 
@@ -54,7 +54,7 @@ type Msg struct {
 
 	Center *vec3
 
-	Delta *polar.Polar
+	Delta *polarindex.Index
 
 	Centers map[string]vec3
 

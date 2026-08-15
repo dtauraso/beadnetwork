@@ -42,23 +42,29 @@ func (m *NodeGeometry) NeighborKinds() map[string]string { return m.topo.Neighbo
 
 func (m *NodeGeometry) OutTargets() []string { return m.outTargets }
 
-func (m *NodeGeometry) SetBaseDeltaTo(otherID string, p polar.Polar) {
-	m.deltas.SetBaseDeltaTo(otherID, p)
+func (m *NodeGeometry) SetBaseDeltaTo(otherID string, idx polarindex.Index) {
+	m.deltas.SetBaseDeltaTo(otherID, idx)
 }
 
-func (m *NodeGeometry) SetDragDeltaTo(otherID string, p polar.Polar) {
-	m.deltas.SetDragDeltaTo(otherID, p)
+func (m *NodeGeometry) SetDragDeltaTo(otherID string, idx polarindex.Index) {
+	m.deltas.SetDragDeltaTo(otherID, idx)
 }
 
-func (m *NodeGeometry) DeltaTo(otherID string) (polar.Polar, bool) { return m.deltas.DeltaTo(otherID) }
+func (m *NodeGeometry) DeltaTo(otherID string) (polarindex.Index, bool) {
+	return m.deltas.DeltaTo(otherID)
+}
 
-func (m *NodeGeometry) DeltaFrom(otherID string) (polar.Polar, bool) {
+func (m *NodeGeometry) DeltaFrom(otherID string) (polarindex.Index, bool) {
 	return m.deltas.DeltaFrom(otherID)
 }
 
-func (m *NodeGeometry) ShiftDeltasBy(delta polar.Polar) { m.deltas.ShiftSelfBy(delta) }
+func (m *NodeGeometry) ShiftDeltasBy(delta polarindex.Index) { m.deltas.ShiftSelfBy(delta) }
 
 func (m *NodeGeometry) ScenePolar() polar.Polar { return nodegeom.ScenePolarOf(m.geom) }
+
+func (m *NodeGeometry) ComposedIndex() polarindex.Index { return nodegeom.ComposedIndexOf(m.geom) }
+
+func (m *NodeGeometry) Constants() polarindex.SceneConstants { return m.geom.SceneConstants }
 
 func (m *NodeGeometry) SceneCenter() vec3 { return m.geom.SceneCenter }
 
@@ -70,11 +76,8 @@ func (m *NodeGeometry) SendMove() func(id string, msg movemsg.Msg) { return m.ms
 
 func (m *NodeGeometry) NeighborIDs() []string { return m.msg.NeighborIDs() }
 
-func (m *NodeGeometry) CommitQuantOffset(committedPolar polar.Polar) {
-	composed := polarindex.Canonical(polarindex.MeasureScalar(committedPolar, m.quant.Constants()), m.quant.Constants())
-	drag := polarindex.Delta(composed, m.quant.Base())
-	m.quant.SetDrag(drag)
-	m.persistQuantOffset(drag)
+func (m *NodeGeometry) CommitIndex() {
+	m.persistIndex(m.geom.DragIndex)
 }
 
 func (m *NodeGeometry) WriteStreamFrame(events []rowevent.RowEvent) {
