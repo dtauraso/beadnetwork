@@ -80,7 +80,7 @@ store — the TS layer is render + forward only (guard:
 
 - **The `topology/` tree** — read directly by the Go loader (`nodes/Wiring/build/loader.go`,
   `loader_tree.go`) at startup; every field maps to live wiring. Edited through `edit`
-  messages. The live form is a directory tree — `nodes/<id>/meta.json`, `data.json`,
+  messages. The live form is a directory tree — `nodes/<id>/base.json`, `data.json`,
   `inputs/`, `outputs/`, and `edges/*.json` (adjacency layout: an edge lives under its
   source node, `nodes/<source>/edges/<label>.json`, no top-level `edges/` dir). The
   earlier monolithic single-file `topology.json` form was deleted; the tree is the only

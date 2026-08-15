@@ -80,6 +80,17 @@ func (e specEdge) Delta() (polar.Polar, bool) {
 	return e.delta(), true
 }
 
+func (e specEdge) BaseDelta() (polar.Polar, bool) {
+	return e.Delta()
+}
+
+func (e specEdge) DragDelta() polar.Polar {
+	if e.DragDeltaPolarR == nil || e.DragDeltaPolarPhi == nil || e.DragDeltaPolarTheta == nil {
+		return polar.Polar{}
+	}
+	return polar.Polar{R: *e.DragDeltaPolarR, Phi: *e.DragDeltaPolarPhi, Theta: *e.DragDeltaPolarTheta}
+}
+
 func (e *specEdge) hasDelta() bool {
 	return e.DeltaPolarR != nil && e.DeltaPolarPhi != nil && e.DeltaPolarTheta != nil
 }

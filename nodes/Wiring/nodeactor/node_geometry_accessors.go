@@ -42,7 +42,13 @@ func (m *NodeGeometry) NeighborKinds() map[string]string { return m.topo.Neighbo
 
 func (m *NodeGeometry) OutTargets() []string { return m.outTargets }
 
-func (m *NodeGeometry) SetDeltaTo(otherID string, p polar.Polar) { m.deltas.SetDeltaTo(otherID, p) }
+func (m *NodeGeometry) SetBaseDeltaTo(otherID string, p polar.Polar) {
+	m.deltas.SetBaseDeltaTo(otherID, p)
+}
+
+func (m *NodeGeometry) SetDragDeltaTo(otherID string, p polar.Polar) {
+	m.deltas.SetDragDeltaTo(otherID, p)
+}
 
 func (m *NodeGeometry) DeltaTo(otherID string) (polar.Polar, bool) { return m.deltas.DeltaTo(otherID) }
 
@@ -52,7 +58,7 @@ func (m *NodeGeometry) DeltaFrom(otherID string) (polar.Polar, bool) {
 
 func (m *NodeGeometry) ShiftDeltasBy(delta polar.Polar) { m.deltas.ShiftSelfBy(delta) }
 
-func (m *NodeGeometry) ScenePolar() polar.Polar { return m.geom.ScenePolar }
+func (m *NodeGeometry) ScenePolar() polar.Polar { return nodegeom.ScenePolarOf(m.geom) }
 
 func (m *NodeGeometry) SceneCenter() vec3 { return m.geom.SceneCenter }
 
@@ -75,7 +81,7 @@ func (m *NodeGeometry) ReachR() float64 { return m.geom.ReachR }
 func (m *NodeGeometry) CommitQuantOffset(committedPolar polar.Polar) {
 	off := quantoffset.MeasureScalar(committedPolar, m.quantOffset)
 	m.quantOffset = off
-	m.persistQuantOffset(off, committedPolar)
+	m.persistQuantOffset(off)
 }
 
 func (m *NodeGeometry) WriteStreamFrame(events []rowevent.RowEvent) {

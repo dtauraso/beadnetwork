@@ -3,18 +3,17 @@ package positionfile
 import (
 	"path/filepath"
 
-	"github.com/dtauraso/wirefold/nodes/Wiring/gitskip"
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
 )
 
-func FilePath(root, id string) string {
-	return filepath.Join(root, "nodes", id, "meta.json")
+func DragPath(root, id string) string {
+	return filepath.Join(root, "nodes", id, "drag", "position.json")
 }
 
 type JSON struct {
-	ScenePolarR     float64 `json:"scenePolarR"`
-	ScenePolarPhi   float64 `json:"scenePolarPhi"`
-	ScenePolarTheta float64 `json:"scenePolarTheta"`
+	DeltaPolarR     float64 `json:"deltaPolarR"`
+	DeltaPolarPhi   float64 `json:"deltaPolarPhi"`
+	DeltaPolarTheta float64 `json:"deltaPolarTheta"`
 	QuantIPhi       int     `json:"quantIPhi"`
 	QuantITheta     int     `json:"quantITheta"`
 	QuantIR         int     `json:"quantIR"`
@@ -26,11 +25,11 @@ type JSON struct {
 }
 
 func Write(root, id string, j JSON) error {
-	path := FilePath(root, id)
-	if err := jsonpersist.ReadModifyWriteJSON(path, func(m map[string]any) {
-		m["scenePolarR"] = j.ScenePolarR
-		m["scenePolarPhi"] = j.ScenePolarPhi
-		m["scenePolarTheta"] = j.ScenePolarTheta
+	path := DragPath(root, id)
+	return jsonpersist.ReadModifyWriteJSON(path, func(m map[string]any) {
+		m["deltaPolarR"] = j.DeltaPolarR
+		m["deltaPolarPhi"] = j.DeltaPolarPhi
+		m["deltaPolarTheta"] = j.DeltaPolarTheta
 		m["quantIPhi"] = j.QuantIPhi
 		m["quantITheta"] = j.QuantITheta
 		m["quantIR"] = j.QuantIR
@@ -40,9 +39,13 @@ func Write(root, id string, j JSON) error {
 		if j.TopTiltVectorPhiIdx != 0 {
 			m["topTiltVectorThetaIdx"] = j.TopTiltVectorPhiIdx
 		}
-	}); err != nil {
-		return err
+	})
+}
+
+func Read(root, id string) (JSON, bool) {
+	var j JSON
+	if !jsonpersist.ReadJSONIfExists(DragPath(root, id), &j) {
+		return JSON{}, false
 	}
-	gitskip.Mark(path)
-	return nil
+	return j, true
 }

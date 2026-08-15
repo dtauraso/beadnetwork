@@ -96,15 +96,18 @@ func (b *buildCtx) buildMoveDispatch() error {
 	}
 
 	for _, e := range b.spec.Edges {
-		d, ok := e.Delta()
+		baseD, ok := e.BaseDelta()
 		if !ok {
 			continue
 		}
+		dragD := e.DragDelta()
 		if src, ok := md.MR.NodeGeoms()[e.Source]; ok {
-			src.SetDeltaTo(e.Target, d)
+			src.SetBaseDeltaTo(e.Target, baseD)
+			src.SetDragDeltaTo(e.Target, dragD)
 		}
 		if dst, ok := md.MR.NodeGeoms()[e.Target]; ok {
-			dst.SetDeltaTo(e.Source, d.Neg())
+			dst.SetBaseDeltaTo(e.Source, baseD.Neg())
+			dst.SetDragDeltaTo(e.Source, dragD.Neg())
 		}
 	}
 

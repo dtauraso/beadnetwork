@@ -11,7 +11,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 )
 
-type JSONMeta struct {
+type JSONBase struct {
 	ID   string   `json:"id"`
 	Type string   `json:"type"`
 	R    *float64 `json:"r,omitempty"`
@@ -35,35 +35,35 @@ type JSONMeta struct {
 	TopTiltVectorPhiIdx *int32 `json:"topTiltVectorThetaIdx,omitempty"`
 }
 
-func loadNodeMeta(root, nodesDir, nodeID string) (specNode, error) {
+func loadNodeBase(root, nodesDir, nodeID string) (specNode, error) {
 	nodeDir := filepath.Join(nodesDir, nodeID)
 
-	metaPath := filepath.Join(nodeDir, "meta.json")
-	metaRaw, err := os.ReadFile(metaPath)
+	basePath := filepath.Join(nodeDir, "base.json")
+	baseRaw, err := os.ReadFile(basePath)
 	if err != nil {
-		return specNode{}, fmt.Errorf("loadTree: node %q meta: %w", nodeID, err)
+		return specNode{}, fmt.Errorf("loadTree: node %q base: %w", nodeID, err)
 	}
-	var meta JSONMeta
-	if err := json.Unmarshal(metaRaw, &meta); err != nil {
-		return specNode{}, fmt.Errorf("loadTree: node %q meta parse: %w", nodeID, err)
+	var base JSONBase
+	if err := json.Unmarshal(baseRaw, &base); err != nil {
+		return specNode{}, fmt.Errorf("loadTree: node %q base parse: %w", nodeID, err)
 	}
 
 	sn := specNode{
-		ID:                  meta.ID,
-		Type:                meta.Type,
-		R:                   meta.R,
-		ScenePolarR:         meta.ScenePolarR,
-		ScenePolarPhi:       meta.ScenePolarPhi,
-		ScenePolarTheta:     meta.ScenePolarTheta,
-		QuantIPhi:           meta.QuantIPhi,
-		QuantITheta:         meta.QuantITheta,
-		QuantIR:             meta.QuantIR,
-		StepPhi:             meta.StepPhi,
-		StepTheta:           meta.StepTheta,
-		StepR:               meta.StepR,
-		Gate:                meta.Gate,
-		Drag:                meta.Drag,
-		TopTiltVectorPhiIdx: meta.TopTiltVectorPhiIdx,
+		ID:                  base.ID,
+		Type:                base.Type,
+		R:                   base.R,
+		ScenePolarR:         base.ScenePolarR,
+		ScenePolarPhi:       base.ScenePolarPhi,
+		ScenePolarTheta:     base.ScenePolarTheta,
+		QuantIPhi:           base.QuantIPhi,
+		QuantITheta:         base.QuantITheta,
+		QuantIR:             base.QuantIR,
+		StepPhi:             base.StepPhi,
+		StepTheta:           base.StepTheta,
+		StepR:               base.StepR,
+		Gate:                base.Gate,
+		Drag:                base.Drag,
+		TopTiltVectorPhiIdx: base.TopTiltVectorPhiIdx,
 	}
 
 	dataPath := filepath.Join(nodeDir, "data.json")

@@ -35,8 +35,8 @@ type outEdge struct {
 	steps      int
 	derived    bool
 
-	persistedDelta polar.Polar
-	hasPersisted   bool
+	persistedDrag polar.Polar
+	hasPersisted  bool
 }
 
 type OutEdges struct {
@@ -123,22 +123,24 @@ func (o *OutEdges) DeriveGeometry(tick int64, self nodegeom.NodeGeom, deltas *De
 		if e.dest != nil {
 			e.dest.ReviseInFlightGeometry(tick, e.steps, spatial.WireSegment{Start: start, End: end})
 		}
-		o.persistDelta(e, d)
+		if dragDelta, ok := deltas.DragDeltaTo(e.targetID); ok {
+			o.persistDelta(e, dragDelta)
+		}
 	}
 }
 
-func (o *OutEdges) persistDelta(e *outEdge, d polar.Polar) {
+func (o *OutEdges) persistDelta(e *outEdge, dragDelta polar.Polar) {
 	if o.persistRoot == "" || o.srcID == "" {
 		return
 	}
-	if e.hasPersisted && e.persistedDelta == d {
+	if e.hasPersisted && e.persistedDrag == dragDelta {
 		return
 	}
-	if err := edgefile.WriteEdgeDelta(o.persistRoot, o.srcID, e.label, d); err != nil {
+	if err := edgefile.WriteEdgeDelta(o.persistRoot, o.srcID, e.label, dragDelta); err != nil {
 		jsonpersist.LogPersistErr("out_edges", o.srcID+"->"+e.targetID, err)
 		return
 	}
-	e.persistedDelta, e.hasPersisted = d, true
+	e.persistedDrag, e.hasPersisted = dragDelta, true
 }
 
 func (o *OutEdges) WriteFrames(tick int64, self nodegeom.NodeGeom, deltas *Deltas) {

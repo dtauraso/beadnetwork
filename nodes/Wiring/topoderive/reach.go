@@ -14,7 +14,7 @@ func ComputeReachRadii(spec loadspec.TopoSpec, nodeGeoms map[string]nodegeom.Nod
 	polars := map[string]polar.Polar{}
 	for id, g := range nodeGeoms {
 		if g.HasPos {
-			polars[id] = g.ScenePolar
+			polars[id] = nodegeom.ScenePolarOf(g)
 		}
 	}
 	for id, r := range ReachRFromPolar(polars, edges) {

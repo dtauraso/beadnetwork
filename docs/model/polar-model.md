@@ -99,7 +99,7 @@ and none is a source of truth.
   (`nodes/Wiring/nodeactor/node_drag_trim.go`).
 
   **The rule is carried by the node it binds, by id, and is applied BY that node.** Each node
-  states its own `drag` in its own `meta.json` (`polar.DragRule`); absent means free, and
+  states its own `drag` in its own `base.json` (`polar.DragRule`); absent means free, and
   most nodes say nothing. No node reads another's rule: a neighbour that wants a node moved
   computes the `Δ` from ITS OWN numbers — its own point before and after, and its own side of
   the edge before and after (`nodes/input/drag.go`) — and TELLS it, and the node told

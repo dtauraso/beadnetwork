@@ -23,7 +23,7 @@ func LoadTree(root string) (TopoSpec, error) {
 	spec.RowCount = rowCount
 
 	for _, nodeID := range nodeDirs {
-		sn, err := loadNodeMeta(root, nodesDir, nodeID)
+		sn, err := loadNodeBase(root, nodesDir, nodeID)
 		if err != nil {
 			return spec, err
 		}
@@ -38,6 +38,7 @@ func LoadTree(root string) (TopoSpec, error) {
 
 	ResolveEdgeDeltas(&spec)
 	PlaceFromDeltas(&spec)
+	ApplyDragOverlay(root, &spec)
 
 	return spec, nil
 }

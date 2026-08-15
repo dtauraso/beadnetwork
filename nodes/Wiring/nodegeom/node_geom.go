@@ -18,10 +18,15 @@ type NodeIdentity struct {
 type NodeGeom struct {
 	NodeIdentity
 
-	ScenePolar polar.Polar
-	HasPos     bool
+	BasePolar polar.Polar
+	DragPolar polar.Polar
+	HasPos    bool
 
 	ReachR float64
+}
+
+func ScenePolarOf(g NodeGeom) polar.Polar {
+	return polar.Compose(g.BasePolar, g.DragPolar)
 }
 
 const DefaultNodeR = 200.0
@@ -60,11 +65,12 @@ func NodeWorldPos(g NodeGeom) vec3 {
 	if !g.HasPos {
 		return vec3{}
 	}
-	return g.SceneCenter.Add(polar.Polar2cart(g.ScenePolar))
+	return g.SceneCenter.Add(polar.Polar2cart(ScenePolarOf(g)))
 }
 
 func SetNodeWorld(g *NodeGeom, world vec3) {
-	g.ScenePolar = polar.Cart2polar(world.Sub(g.SceneCenter))
+	scene := polar.Cart2polar(world.Sub(g.SceneCenter))
+	g.DragPolar = polar.Between(g.BasePolar, scene)
 	g.HasPos = true
 }
 

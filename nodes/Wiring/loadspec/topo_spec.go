@@ -22,6 +22,10 @@ type specNode struct {
 	ScenePolarPhi   *float64 `json:"scenePolarPhi,omitempty"`
 	ScenePolarTheta *float64 `json:"scenePolarTheta,omitempty"`
 
+	DragScenePolarR     *float64 `json:"-"`
+	DragScenePolarPhi   *float64 `json:"-"`
+	DragScenePolarTheta *float64 `json:"-"`
+
 	QuantIPhi   *int `json:"quantIPhi,omitempty"`
 	QuantITheta *int `json:"quantITheta,omitempty"`
 	QuantIR     *int `json:"quantIR,omitempty"`
@@ -48,8 +52,11 @@ func (n specNode) ToNodeGeom(sceneCenter spatial.Vec3) nodegeom.NodeGeom {
 
 	g := nodegeom.NodeGeom{NodeIdentity: nodegeom.NodeIdentity{Kind: n.Type, Label: n.label(), R: n.R, SceneCenter: sceneCenter}}
 	if n.ScenePolarR != nil && n.ScenePolarPhi != nil && n.ScenePolarTheta != nil {
-		g.ScenePolar = polar.Polar{R: *n.ScenePolarR, Phi: *n.ScenePolarPhi, Theta: *n.ScenePolarTheta}
+		g.BasePolar = polar.Polar{R: *n.ScenePolarR, Phi: *n.ScenePolarPhi, Theta: *n.ScenePolarTheta}
 		g.HasPos = true
+	}
+	if n.DragScenePolarR != nil && n.DragScenePolarPhi != nil && n.DragScenePolarTheta != nil {
+		g.DragPolar = polar.Polar{R: *n.DragScenePolarR, Phi: *n.DragScenePolarPhi, Theta: *n.DragScenePolarTheta}
 	}
 	return g
 }
@@ -90,6 +97,10 @@ type specEdge struct {
 	DeltaPolarR     *float64 `json:"deltaPolarR,omitempty"`
 	DeltaPolarPhi   *float64 `json:"deltaPolarPhi,omitempty"`
 	DeltaPolarTheta *float64 `json:"deltaPolarTheta,omitempty"`
+
+	DragDeltaPolarR     *float64 `json:"-"`
+	DragDeltaPolarPhi   *float64 `json:"-"`
+	DragDeltaPolarTheta *float64 `json:"-"`
 }
 
 type TopoSpec struct {

@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/dtauraso/wirefold/nodes/Wiring/gitskip"
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
 )
 
@@ -75,17 +74,13 @@ func handleIsOn(handle, srcPort string) bool {
 func WriteEdgeFile(root, src, srcPort, target, targetPort string) error {
 	label := src + "To" + target
 	path := edgeFilePath(root, src, label)
-	if err := jsonpersist.ReadModifyWriteJSON(path, func(m map[string]any) {
+	return jsonpersist.ReadModifyWriteJSON(path, func(m map[string]any) {
 		m["sourceHandle"] = srcPort
 		m["target"] = target
 		m["targetHandle"] = targetPort
 		m["kind"] = "chain"
 		m["label"] = label
-	}); err != nil {
-		return err
-	}
-	gitskip.Mark(path)
-	return nil
+	})
 }
 
 func RemoveEdgesTo(root, id string, nodeIDs []string) error {
@@ -105,6 +100,9 @@ func RemoveEdgesTo(root, id string, nodeIDs []string) error {
 				continue
 			}
 			if err := os.Remove(path); err != nil {
+				return err
+			}
+			if err := os.Remove(edgeDragPath(root, n, ef.Label)); err != nil && !os.IsNotExist(err) {
 				return err
 			}
 		}
