@@ -70,15 +70,6 @@ func (m *NodeGeometry) SendMove() func(id string, msg movemsg.Msg) { return m.ms
 
 func (m *NodeGeometry) NeighborIDs() []string { return m.msg.NeighborIDs() }
 
-func (m *NodeGeometry) QuantOffset() (iTheta, iPhi, iR int) {
-	c := m.quant.Composed()
-	return c.Phi, c.Theta, c.R
-}
-
-func (m *NodeGeometry) IndexValue() polarindex.Index {
-	return m.quant.Composed()
-}
-
 func (m *NodeGeometry) CommitQuantOffset(committedPolar polar.Polar) {
 	composed := polarindex.Canonical(polarindex.MeasureScalar(committedPolar, m.quant.Constants()), m.quant.Constants())
 	drag := polarindex.Delta(composed, m.quant.Base())
