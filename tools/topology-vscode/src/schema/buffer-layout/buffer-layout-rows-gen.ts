@@ -55,9 +55,13 @@ export const NODE_COL_DRAG_THETA_MAX             = 175; // f32
 export const NODE_COL_DRAG_ACTIVE                = 179; // u8
 export const NODE_COL_HAS_KIND_RULE              = 180; // u8
 export const NODE_COL_KIND_RULE_ACTIVE           = 181; // u8
-export const NODE_COL_RULE_GROUP_ID              = 182; // i32
-export const NODE_COL_RULE_GROUP_SIZE            = 186; // i32
-export const NODE_STRIDE                         = 190;
+export const NODE_COL_SELF_RLOCKED               = 182; // u8
+export const NODE_COL_SELF_PHI_LOCKED            = 183; // u8
+export const NODE_COL_SELF_THETA_MAX             = 184; // f32
+export const NODE_COL_SELF_ACTIVE                = 188; // u8
+export const NODE_COL_RULE_GROUP_ID              = 189; // i32
+export const NODE_COL_RULE_GROUP_SIZE            = 193; // i32
+export const NODE_STRIDE                         = 197;
 
 export function readNodeNodeId(view: DataView, row: number): number { return view.getInt32(row * NODE_STRIDE + NODE_COL_NODE_ID, true); }
 export function readNodeCX(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_CX, true); }
@@ -112,6 +116,10 @@ export function readNodeDragThetaMax(view: DataView, row: number): number { retu
 export function readNodeDragActive(view: DataView, row: number): number { return view.getUint8(row * NODE_STRIDE + NODE_COL_DRAG_ACTIVE); }
 export function readNodeHasKindRule(view: DataView, row: number): number { return view.getUint8(row * NODE_STRIDE + NODE_COL_HAS_KIND_RULE); }
 export function readNodeKindRuleActive(view: DataView, row: number): number { return view.getUint8(row * NODE_STRIDE + NODE_COL_KIND_RULE_ACTIVE); }
+export function readNodeSelfRLocked(view: DataView, row: number): number { return view.getUint8(row * NODE_STRIDE + NODE_COL_SELF_RLOCKED); }
+export function readNodeSelfPhiLocked(view: DataView, row: number): number { return view.getUint8(row * NODE_STRIDE + NODE_COL_SELF_PHI_LOCKED); }
+export function readNodeSelfThetaMax(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_SELF_THETA_MAX, true); }
+export function readNodeSelfActive(view: DataView, row: number): number { return view.getUint8(row * NODE_STRIDE + NODE_COL_SELF_ACTIVE); }
 export function readNodeRuleGroupId(view: DataView, row: number): number { return view.getInt32(row * NODE_STRIDE + NODE_COL_RULE_GROUP_ID, true); }
 export function readNodeRuleGroupSize(view: DataView, row: number): number { return view.getInt32(row * NODE_STRIDE + NODE_COL_RULE_GROUP_SIZE, true); }
 

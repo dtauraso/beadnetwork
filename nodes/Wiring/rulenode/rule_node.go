@@ -15,6 +15,10 @@ const (
 	EditActiveToggle EditKind = iota
 	EditPhiToggle
 	EditMaxTheta
+
+	EditSelfActiveToggle
+	EditSelfPhiToggle
+	EditSelfMaxTheta
 )
 
 type Edit struct {
@@ -27,6 +31,9 @@ type State struct {
 	Active    bool
 	GroupID   int32
 	GroupSize int32
+
+	SelfRule   *polar.DragRule
+	SelfActive bool
 
 	EdgeActive map[string]bool
 
@@ -41,6 +48,9 @@ type RuleNode struct {
 
 	rule   *polar.DragRule
 	active bool
+
+	selfRule   *polar.DragRule
+	selfActive bool
 
 	edits  chan Edit
 	ruleIn chan rulemsg.Msg
@@ -62,6 +72,7 @@ func New(id string) *RuleNode {
 		id:               id,
 		mesh:             owners.NewRuleMesh(),
 		active:           true,
+		selfActive:       true,
 		edits:            make(chan Edit, 8),
 		ruleIn:           make(chan rulemsg.Msg, 8),
 		edgeActive:       map[string]bool{},
@@ -82,6 +93,15 @@ func (r *RuleNode) SeedRule(rule *polar.DragRule, active bool) {
 	r.active = active
 	r.mesh.SetSelfRuleKey(rulemsg.KeyOf(rule))
 }
+
+func (r *RuleNode) SeedSelfRule(rule *polar.DragRule, active bool) {
+	r.selfRule = rule
+	r.selfActive = active
+}
+
+func (r *RuleNode) SelfRule() *polar.DragRule { return r.selfRule }
+
+func (r *RuleNode) SelfActive() bool { return r.selfActive }
 
 func (r *RuleNode) RuleBackChannel(peerID string) chan rulemsg.Msg {
 	return r.mesh.RuleBackChannel(peerID)
@@ -166,6 +186,7 @@ func (r *RuleNode) publish() {
 		GroupID: groupID, GroupSize: groupSize,
 		EdgeActive: edgeActive,
 		KindActive: r.kindActive,
+		SelfRule:   r.selfRule, SelfActive: r.selfActive,
 	}
 
 	select {

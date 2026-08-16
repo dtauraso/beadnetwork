@@ -118,6 +118,20 @@ var nodeAttrHandlers = map[string]func(ctx context.Context, msg inputcodec.Stdin
 	"dragActive": func(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch) {
 		sendRuleEdit(ctx, md, msg.Num, rulenode.Edit{Kind: rulenode.EditActiveToggle})
 	},
+	"selfDragPhi": func(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch) {
+		sendRuleEdit(ctx, md, msg.Num, rulenode.Edit{Kind: rulenode.EditSelfPhiToggle})
+	},
+	"selfDragMaxTheta": func(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch) {
+		var maxTheta *float64
+		if msg.X >= 0 {
+			radians := msg.X * math.Pi / 180
+			maxTheta = &radians
+		}
+		sendRuleEdit(ctx, md, msg.Num, rulenode.Edit{Kind: rulenode.EditSelfMaxTheta, MaxTheta: maxTheta})
+	},
+	"selfDragActive": func(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch) {
+		sendRuleEdit(ctx, md, msg.Num, rulenode.Edit{Kind: rulenode.EditSelfActiveToggle})
+	},
 	"kindActive": func(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch) {
 		row := msg.Num
 		if row < 0 || row >= len(md.Rules.KindTogglesByNodeRow) {

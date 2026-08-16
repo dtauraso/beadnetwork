@@ -10,10 +10,13 @@ type Topology struct {
 
 	dragRule   *polar.DragRule
 	dragActive bool
+
+	selfRule   *polar.DragRule
+	selfActive bool
 }
 
 func NewTopology() Topology {
-	return Topology{dragActive: true}
+	return Topology{dragActive: true, selfActive: true}
 }
 
 func (t *Topology) EdgeIDs() []string { return t.edgeIDs }
@@ -49,6 +52,18 @@ func (t *Topology) SetDragActive(active bool) {
 }
 
 func (t *Topology) DragRuleActive() bool { return t.dragActive }
+
+func (t *Topology) SetSelfRule(rule *polar.DragRule) {
+	t.selfRule = rule
+}
+
+func (t *Topology) SelfRule() *polar.DragRule { return t.selfRule }
+
+func (t *Topology) SetSelfRuleActive(active bool) {
+	t.selfActive = active
+}
+
+func (t *Topology) SelfRuleActive() bool { return t.selfActive }
 
 func (t *Topology) NeighborKind(toID string) string {
 	return t.neighborKinds[toID]

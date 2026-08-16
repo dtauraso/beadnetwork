@@ -67,6 +67,10 @@ func (b *buildCtx) buildMoveDispatch() error {
 		rn.SetPersistRoot(b.scenePath)
 		rn.SeedRule(n.Drag, active)
 		rn.SeedKindActive(nodefiles.LoadKindRuleActive(b.scenePath, n.ID))
+		selfActive := nodefiles.LoadSelfRuleActive(b.scenePath, n.ID)
+		nm.SetSelfRule(n.SelfDrag)
+		nm.SetSelfRuleActive(selfActive)
+		rn.SeedSelfRule(n.SelfDrag, selfActive)
 		if n.TopTiltVectorPhiIdx != nil {
 			nm.SetTopTiltVectorPhiIdx(*n.TopTiltVectorPhiIdx)
 		}

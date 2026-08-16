@@ -98,6 +98,18 @@ func (m *NodeGeometry) writeStreamFrame(events []rowevent.RowEvent) {
 			dragThetaMax = float32(*rule.MaxTheta)
 		}
 	}
+
+	var selfRLocked, selfPhiLocked uint8
+	selfThetaMax := float32(-1)
+	if rule := m.SelfRule(); rule != nil {
+		selfRLocked = 1
+		if rule.Phi != nil {
+			selfPhiLocked = 1
+		}
+		if rule.MaxTheta != nil {
+			selfThetaMax = float32(*rule.MaxTheta)
+		}
+	}
 	dragActive := uint8(0)
 	if m.DragRuleActive() {
 		dragActive = 1
@@ -139,6 +151,10 @@ func (m *NodeGeometry) writeStreamFrame(events []rowevent.RowEvent) {
 		MsgsToParallel:      msgsToParallel,
 		HasKindRule:         hasKindRuleU8(m.SelfKind()),
 		KindRuleActive:      boolU8(m.KindRuleActive()),
+		SelfRLocked:         selfRLocked,
+		SelfPhiLocked:       selfPhiLocked,
+		SelfThetaMax:        selfThetaMax,
+		SelfActive:          boolU8(m.SelfRuleActive()),
 		RuleGroupID:         ruleGroupID,
 		RuleGroupSize:       ruleGroupSize,
 		DragRLocked:         dragRLocked,

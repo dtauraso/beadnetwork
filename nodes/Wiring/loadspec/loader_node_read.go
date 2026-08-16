@@ -23,6 +23,8 @@ type JSONBase struct {
 
 	Drag *polar.DragRule `json:"drag,omitempty"`
 
+	SelfDrag *polar.DragRule `json:"selfDrag,omitempty"`
+
 	TopTiltVectorPhiIdx *int32 `json:"topTiltVectorThetaIdx,omitempty"`
 }
 
@@ -47,6 +49,7 @@ func loadNodeBase(root, nodesDir, nodeID string) (specNode, error) {
 		IndexR:              base.IndexR,
 		Gate:                base.Gate,
 		Drag:                base.Drag,
+		SelfDrag:            base.SelfDrag,
 		TopTiltVectorPhiIdx: base.TopTiltVectorPhiIdx,
 	}
 

@@ -11,6 +11,8 @@ type Node interface {
 	Constants() polarindex.SceneConstants
 	DragRule() *polar.DragRule
 	DragRuleActive() bool
+	SelfRule() *polar.DragRule
+	SelfRuleActive() bool
 	EdgeRuleActive(otherID string) bool
 	KindRuleActive() bool
 	NeighborKinds() map[string]string
@@ -51,13 +53,27 @@ func HasKindRule(kind string) bool {
 }
 
 func Apply(kind string, delta polarindex.Offset, of Node) polarindex.Offset {
-	if !of.DragRuleActive() {
+	if of.DragRuleActive() {
+		if t, ok := trims[kind]; ok {
+			delta = t(delta, of)
+		} else {
+			delta = TrimToDragRule(delta, of)
+		}
+	}
+	return TrimToSelfRule(delta, of)
+}
+
+func TrimToSelfRule(delta polarindex.Offset, of Node) polarindex.Offset {
+	rule := of.SelfRule()
+	if rule == nil || !of.SelfRuleActive() {
 		return delta
 	}
-	if t, ok := trims[kind]; ok {
-		return t(delta, of)
-	}
-	return TrimToDragRule(delta, of)
+	sc := of.Constants()
+	haveIdx := of.ComposedIndex()
+	have := polarindex.ToPolar(haveIdx, sc)
+	want := polarindex.ToPolar(polarindex.Compose(haveIdx, delta, sc), sc)
+	trimmed := rule.TrimDelta(have, want)
+	return polarindex.Delta(polarindex.MeasureIndex(trimmed, sc), haveIdx)
 }
 
 func Requested(kind string, delta polarindex.Offset, of Node) map[string]polarindex.Offset {
