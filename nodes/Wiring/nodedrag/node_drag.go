@@ -1,8 +1,6 @@
 package nodedrag
 
 import (
-	"math"
-
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/nodes/Wiring/polarindex"
 )
@@ -15,7 +13,6 @@ type Node interface {
 	DragRuleActive() bool
 	SelfRule() *polar.DragRule
 	SelfRuleActive() bool
-	BaseIndex() polarindex.Index
 	EdgeRuleActive(otherID string) bool
 	KindRuleActive() bool
 	NeighborKinds() map[string]string
@@ -73,40 +70,10 @@ func TrimToSelfRule(delta polarindex.Offset, of Node) polarindex.Offset {
 	}
 	sc := of.Constants()
 	haveIdx := of.ComposedIndex()
-	wantIdx := polarindex.Compose(haveIdx, delta, sc)
-
-	if rule.R != nil {
-		wantIdx.R = haveIdx.R
-	}
-	if rule.Phi != nil {
-		wantIdx.Phi = haveIdx.Phi
-	}
-	if rule.MaxTheta != nil {
-		wantIdx.Theta = clampThetaToBase(wantIdx.Theta, of.BaseIndex().Theta, *rule.MaxTheta, sc)
-	}
-	return polarindex.Delta(wantIdx, haveIdx)
-}
-
-func clampThetaToBase(wantTheta, baseTheta int, maxTheta float64, sc polarindex.SceneConstants) int {
-	step := sc.ConstantTheta()
-	if step == 0 {
-		return wantTheta
-	}
-	maxIdx := int(math.Round(maxTheta / step))
-	if maxIdx < 0 {
-		maxIdx = 0
-	}
-	drift := shortestDrift(wantTheta-baseTheta, sc.MaxIndexTheta)
-	drift = min(max(drift, -maxIdx), maxIdx)
-	return baseTheta + drift
-}
-
-func shortestDrift(drift, turn int) int {
-	if turn <= 0 {
-		return drift
-	}
-	half := turn / 2
-	return ((drift+half)%turn+turn)%turn - half
+	have := polarindex.ToPolar(haveIdx, sc)
+	want := polarindex.ToPolar(polarindex.Compose(haveIdx, delta, sc), sc)
+	trimmed := rule.TrimDelta(have, want)
+	return polarindex.Delta(polarindex.MeasureIndex(trimmed, sc), haveIdx)
 }
 
 func Requested(kind string, delta polarindex.Offset, of Node) map[string]polarindex.Offset {
