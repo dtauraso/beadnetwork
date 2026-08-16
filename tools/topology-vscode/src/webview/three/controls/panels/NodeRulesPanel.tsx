@@ -6,6 +6,7 @@ import { useNodeRuleRows, type NodeRuleRow } from "../flags/node-rules";
 import { firePanelToggle, usePanelOpen } from "../pills/panel-toggle";
 import { NodeRuleSharedMenu } from "./NodeRuleSharedMenu";
 import { FreeNodeBlock, EdgeBlock, SpanningBlock } from "./NodeRuleBlocks";
+import { SelfBlock } from "./NodeSelfRuleBlock";
 
 function NodeBlock({ rule, members }: { rule: NodeRuleRow; members: NodeRuleRow[] }) {
   const [menuAnchor, setMenuAnchor] = useState<DOMRect | null>(null);
@@ -48,7 +49,8 @@ function NodeBlock({ rule, members }: { rule: NodeRuleRow; members: NodeRuleRow[
           onClose={() => setMenuAnchor(null)}
         />
       )}
-      {!rule.hasRule && <FreeNodeBlock />}
+      {!rule.hasRule && !rule.hasSelfRule && <FreeNodeBlock />}
+      <SelfBlock rule={rule} />
       {rule.partners
         .filter((p) => !p.incoming)
         .map((p) => (

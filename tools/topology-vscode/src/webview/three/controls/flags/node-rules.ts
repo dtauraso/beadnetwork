@@ -9,12 +9,17 @@ import {
   readNodeDragPhiLocked,
   readNodeDragThetaMax,
   readNodeDragActive,
+  readNodeSelfRLocked,
+  readNodeSelfPhiLocked,
+  readNodeSelfThetaMax,
+  readNodeSelfActive,
   readNodeHasKindRule,
   readNodeKindRuleActive,
   readNodeRuleGroupId,
   readNodeRuleGroupSize,
 } from "../../../../schema/buffer-layout/buffer-layout";
 import { nodeLabel } from "../../decode/buffer-decode-node";
+import { ruleRowsEqual } from "./node-rules-equal";
 
 export interface RuleHolder {
   holderRow: number;
@@ -54,6 +59,14 @@ export interface NodeRuleRow {
 
   maxThetaDeg: number | null;
 
+  hasSelfRule: boolean;
+
+  selfActive: boolean;
+
+  selfPhiLocked: boolean;
+
+  selfMaxThetaDeg: number | null;
+
   holders: RuleHolder[];
 
   partners: EdgePartner[];
@@ -73,65 +86,6 @@ function kindNameFor(nodeView: DataView, row: number): string {
 
 let cachedRuleRows: NodeRuleRow[] | null = null;
 
-function holdersEqual(a: RuleHolder[], b: RuleHolder[]): boolean {
-  if (a.length !== b.length) return false;
-  for (let i = 0; i < a.length; i++) {
-    const ai = a[i];
-    const bi = b[i];
-    if (!ai || !bi) return false;
-    if (ai.holderRow !== bi.holderRow || ai.holderLabel !== bi.holderLabel || ai.r !== bi.r) {
-      return false;
-    }
-  }
-  return true;
-}
-
-function partnersEqual(a: EdgePartner[], b: EdgePartner[]): boolean {
-  if (a.length !== b.length) return false;
-  for (let i = 0; i < a.length; i++) {
-    const ai = a[i];
-    const bi = b[i];
-    if (!ai || !bi) return false;
-    if (
-      ai.otherRow !== bi.otherRow ||
-      ai.otherLabel !== bi.otherLabel ||
-      ai.incoming !== bi.incoming ||
-      ai.r !== bi.r ||
-      ai.edgeRow !== bi.edgeRow ||
-      ai.active !== bi.active
-    ) {
-      return false;
-    }
-  }
-  return true;
-}
-
-function ruleRowsEqual(a: NodeRuleRow[], b: NodeRuleRow[]): boolean {
-  if (a.length !== b.length) return false;
-  for (let i = 0; i < a.length; i++) {
-    const ai = a[i];
-    const bi = b[i];
-    if (!ai || !bi) return false;
-    if (
-      ai.row !== bi.row ||
-      ai.label !== bi.label ||
-      ai.kind !== bi.kind ||
-      ai.hasRule !== bi.hasRule ||
-      ai.hasKindRule !== bi.hasKindRule ||
-      ai.kindActive !== bi.kindActive ||
-      ai.active !== bi.active ||
-      ai.phiLocked !== bi.phiLocked ||
-      ai.maxThetaDeg !== bi.maxThetaDeg ||
-      ai.groupId !== bi.groupId ||
-      ai.groupSize !== bi.groupSize ||
-      !holdersEqual(ai.holders, bi.holders) ||
-      !partnersEqual(ai.partners, bi.partners)
-    ) {
-      return false;
-    }
-  }
-  return true;
-}
 
 function holdersByNode(decoded: ReturnType<typeof getNodeFrame>): Map<number, RuleHolder[]> {
   const byNode = new Map<number, RuleHolder[]>();
@@ -193,6 +147,7 @@ export function readNodeRuleRows(): NodeRuleRow[] | null {
   for (let row = 0; row < nodeCount; row++) {
     const hasRule = !!readNodeDragRLocked(nodeView, row);
     const thetaMax = readNodeDragThetaMax(nodeView, row);
+    const selfThetaMax = readNodeSelfThetaMax(nodeView, row);
 
     next.push({
       row,
@@ -204,6 +159,10 @@ export function readNodeRuleRows(): NodeRuleRow[] | null {
       active: !!readNodeDragActive(nodeView, row),
       phiLocked: !!readNodeDragPhiLocked(nodeView, row),
       maxThetaDeg: thetaMax < 0 ? null : thetaMax * RAD_TO_DEG,
+      hasSelfRule: !!readNodeSelfRLocked(nodeView, row),
+      selfActive: !!readNodeSelfActive(nodeView, row),
+      selfPhiLocked: !!readNodeSelfPhiLocked(nodeView, row),
+      selfMaxThetaDeg: selfThetaMax < 0 ? null : selfThetaMax * RAD_TO_DEG,
       holders: byNode.get(row) ?? [],
       partners: partnerByNode.get(row) ?? [],
       groupId: readNodeRuleGroupId(nodeView, row),
