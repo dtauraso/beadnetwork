@@ -1,6 +1,8 @@
 package nodedrag
 
 import (
+	"math"
+
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/nodes/Wiring/polarindex"
 )
@@ -70,10 +72,35 @@ func TrimToSelfRule(delta polarindex.Offset, of Node) polarindex.Offset {
 	}
 	sc := of.Constants()
 	haveIdx := of.ComposedIndex()
-	have := polarindex.ToPolar(haveIdx, sc)
-	want := polarindex.ToPolar(polarindex.Compose(haveIdx, delta, sc), sc)
-	trimmed := rule.TrimDelta(have, want)
-	return polarindex.Delta(polarindex.MeasureIndex(trimmed, sc), haveIdx)
+	wantIdx := polarindex.Compose(haveIdx, delta, sc)
+
+	if rule.R != nil {
+		wantIdx.R = haveIdx.R
+	}
+	if rule.MaxTheta != nil {
+		maxIdx := int(math.Round(*rule.MaxTheta / sc.ConstantTheta()))
+		kept := min(max(wantIdx.Theta, -maxIdx), maxIdx)
+		if farSide(wantIdx.Theta-kept, sc.MaxIndexTheta) {
+			wantIdx.Phi = 0
+		}
+		wantIdx.Theta = kept
+	}
+	if rule.Phi != nil {
+		wantIdx.Phi = haveIdx.Phi
+	}
+	return polarindex.Delta(wantIdx, haveIdx)
+}
+
+func farSide(thetaGap, turn int) bool {
+	if turn <= 0 {
+		return false
+	}
+	half := turn / 2
+	gap := ((thetaGap+half)%turn+turn)%turn - half
+	if gap < 0 {
+		gap = -gap
+	}
+	return gap > turn/4
 }
 
 func Requested(kind string, delta polarindex.Offset, of Node) map[string]polarindex.Offset {
