@@ -21,10 +21,10 @@ func (m *NodeGeometry) take(msg movemsg.Msg) {
 	case movemsg.KindDrag:
 		m.takeDragOfSelf(msg)
 	case movemsg.KindDragStart:
-		m.beads.StartBeadDrag()
+		m.beads.PostBeadDrag(true)
 	case movemsg.KindDragEnd:
 
-		m.beads.EndBeadDrag()
+		m.beads.PostBeadDrag(false)
 	case movemsg.KindSelect:
 		m.handleSelect(msg)
 	case movemsg.KindHover:

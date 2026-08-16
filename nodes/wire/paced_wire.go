@@ -32,6 +32,8 @@ type PacedWire struct {
 	TargetHandle string
 
 	readout wireReadout
+
+	rev revisionSlot
 }
 
 const maxInflightBeads = wireChanBufferSize
@@ -42,5 +44,6 @@ func NewPacedWire(steps int, dwellTicks float64) *PacedWire {
 		inCh:    make(chan placeRequest, wireChanBufferSize),
 		outCh:   make(chan deliveredBead, wireChanBufferSize),
 		readout: wireReadout{breadcrumbCh: make(chan rowevent.RowEvent, 4)},
+		rev:     newRevisionSlot(),
 	}
 }

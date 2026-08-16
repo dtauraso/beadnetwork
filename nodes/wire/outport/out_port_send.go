@@ -57,7 +57,7 @@ func NewOutChanDeadEnd(ch chan<- int, node, port string, tr *T.Trace) *Out {
 }
 
 func newOutChan(ch chan<- int, node, port string, tr *T.Trace) *Out {
-	return &Out{ch: ch, node: node, port: port, trace: tr}
+	return &Out{ch: ch, node: node, port: port, trace: tr, postedGeom: make(chan outGeom, 1)}
 }
 
 func NewOutPaced(pw *wire.PacedWire, ctx context.Context, node, port string, tr *T.Trace, rule SendRule, steps int, seg spatial.WireSegment, edgeLabel string, stream func() rowevent.EventSink, portRow, targetRow, targetPortRow int32) *Out {
@@ -68,8 +68,8 @@ func NewOutPaced(pw *wire.PacedWire, ctx context.Context, node, port string, tr 
 	fileGeom := outGeom{Steps: steps, Start: seg.Start, End: seg.End}
 	o := &Out{
 		pw: pw, ctx: ctx, node: node, port: port, trace: tr, Rule: rule, EdgeLabel: edgeLabel,
-		sendCur: fileGeom,
-		stream:  stream, portRow: portRow, targetRow: targetRow, targetPortRow: targetPortRow,
+		sendCur: fileGeom, postedGeom: make(chan outGeom, 1),
+		stream: stream, portRow: portRow, targetRow: targetRow, targetPortRow: targetPortRow,
 	}
 	return o
 }

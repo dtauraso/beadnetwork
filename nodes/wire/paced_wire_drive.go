@@ -13,6 +13,7 @@ func (pw *PacedWire) DriveOneCycle(ctx context.Context, tick int64) {
 	if ctx.Err() != nil {
 		return
 	}
+	pw.applyRevision(tick)
 	pw.drainPlacements(tick)
 	pw.stepAll(tick)
 }

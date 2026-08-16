@@ -4,10 +4,11 @@ import (
 	"context"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/owners"
 )
 
-func (m *NodeGeometry) NeighborTrySend(fromID string) (func(movemsg.Msg) bool, bool) {
-	return m.msg.NeighborTrySend(fromID)
+func (m *NodeGeometry) NeighborDeposit(fromID string) (owners.Deposit, bool) {
+	return m.msg.NeighborDeposit(fromID)
 }
 
 func (m *NodeGeometry) PollCenter() (vec3, bool) {

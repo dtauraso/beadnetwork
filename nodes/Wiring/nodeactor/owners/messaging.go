@@ -11,30 +11,32 @@ import (
 type Messaging struct {
 	extIn chan movemsg.Msg
 
-	neighborIn map[string]chan movemsg.Msg
+	dragIn *neighborSlot
+
+	neighborIn map[string]*neighborSlot
 
 	centerOut chan vec3
 
 	sendMove func(id string, msg movemsg.Msg)
 
-	resolveDest func(id string) (func(movemsg.Msg) bool, bool)
+	resolveDest func(id string) (Deposit, bool)
 
 	commitLocal func(id string, idx polarindex.Index)
-
-	pending []pendingSend
 }
 
-type pendingSend struct {
-	destID string
-	msg    movemsg.Msg
-}
+type Deposit func(msg movemsg.Msg)
 
-func NewMessaging(extIn chan movemsg.Msg, neighborIn map[string]chan movemsg.Msg, centerOut chan vec3) Messaging {
-	return Messaging{extIn: extIn, neighborIn: neighborIn, centerOut: centerOut}
+func NewMessaging(extIn chan movemsg.Msg, centerOut chan vec3) Messaging {
+	return Messaging{
+		extIn:      extIn,
+		dragIn:     newNeighborSlot(),
+		neighborIn: map[string]*neighborSlot{},
+		centerOut:  centerOut,
+	}
 }
 
 func (n *Messaging) WireMessaging(
-	resolveDest func(id string) (func(movemsg.Msg) bool, bool),
+	resolveDest func(id string) (Deposit, bool),
 	sendMove func(id string, msg movemsg.Msg),
 	commitLocal func(id string, idx polarindex.Index),
 ) {
@@ -45,7 +47,7 @@ func (n *Messaging) WireMessaging(
 
 func (n *Messaging) EnsureNeighborChannel(otherID string) {
 	if _, exists := n.neighborIn[otherID]; !exists {
-		n.neighborIn[otherID] = make(chan movemsg.Msg, inboxDepth)
+		n.neighborIn[otherID] = newNeighborSlot()
 	}
 }
 
@@ -73,15 +75,17 @@ func (n *Messaging) DrainPending(ctx context.Context, handle func(movemsg.Msg)) 
 		progressed = true
 	default:
 	}
-	for _, ch := range n.neighborIn {
-		select {
-		case msg := <-ch:
+	if msg, ok := n.dragIn.take(); ok {
+		handle(msg)
+		progressed = true
+	}
+	for _, slot := range n.neighborIn {
+		if msg, ok := slot.take(); ok {
 			handle(msg)
 			if msg.TestDone != nil {
 				close(msg.TestDone)
 			}
 			progressed = true
-		default:
 		}
 	}
 	return progressed, false
@@ -95,19 +99,12 @@ func (n *Messaging) NeighborIDs() []string {
 	return ids
 }
 
-func (n *Messaging) NeighborTrySend(fromID string) (func(movemsg.Msg) bool, bool) {
-	ch, ok := n.neighborIn[fromID]
+func (n *Messaging) NeighborDeposit(fromID string) (Deposit, bool) {
+	slot, ok := n.neighborIn[fromID]
 	if !ok {
 		return nil, false
 	}
-	return func(msg movemsg.Msg) bool {
-		select {
-		case ch <- msg:
-			return true
-		default:
-			return false
-		}
-	}, true
+	return slot.deposit, true
 }
 
 func (n *Messaging) PollCenter() (vec3, bool) {
@@ -119,14 +116,21 @@ func (n *Messaging) PollCenter() (vec3, bool) {
 	}
 }
 
-func (n *Messaging) SendExternal(ctx context.Context, msg movemsg.Msg) {
-	if ctx == nil {
-		n.extIn <- msg
+func (n *Messaging) SendExternal(_ context.Context, msg movemsg.Msg) {
+	if msg.Kind == movemsg.KindDrag {
+		n.dragIn.deposit(msg)
 		return
 	}
 	select {
 	case n.extIn <- msg:
-	case <-ctx.Done():
+	default:
+		panic(fmt.Sprintf(
+			"NodeGeometry(%s): discrete-event inbox full at %d unread (kind %q); these are "+
+				"human decision-rate events (select/hover/dragStart/dragEnd/tilt) and cannot "+
+				"outrun a geometry loop that runs every real tick — so either this node's "+
+				"geometry goroutine has stopped running, or a continuous per-pointer-move "+
+				"quantity is being sent here instead of onto a coalescing slot",
+			msg.NodeID, inboxDepth, msg.Kind))
 	}
 }
 
@@ -139,41 +143,15 @@ func (n *Messaging) TryRecvExternal() (movemsg.Msg, bool) {
 	}
 }
 
-func (n *Messaging) EnqueueSend(id, destID string, msg movemsg.Msg) {
-	n.pending = append(n.pending, pendingSend{destID: destID, msg: msg})
-	n.FlushPending()
-	if len(n.pending) > maxPendingSends {
-
-		panic(fmt.Sprintf(
-			"NodeGeometry(%s): pending exceeded %d retry-queued sends; either a "+
-				"destination's own goroutine has stopped draining its inbox "+
-				"(wedged or dead), or this node is enqueueing to a peer faster "+
-				"than that peer drains, cycle over cycle",
-			id, maxPendingSends))
-	}
-}
-
-func (n *Messaging) FlushPending() {
-	if len(n.pending) == 0 || n.resolveDest == nil {
+func (n *Messaging) EnqueueSend(_, destID string, msg movemsg.Msg) {
+	if n.resolveDest == nil {
 		return
 	}
-	blocked := map[string]bool{}
-	kept := n.pending[:0]
-	for _, item := range n.pending {
-		if blocked[item.destID] {
-			kept = append(kept, item)
-			continue
-		}
-		trySend, ok := n.resolveDest(item.destID)
-		if !ok {
-			continue
-		}
-		if !trySend(item.msg) {
-			blocked[item.destID] = true
-			kept = append(kept, item)
-		}
+	deposit, ok := n.resolveDest(destID)
+	if !ok {
+		return
 	}
-	n.pending = kept
+	deposit(msg)
 }
 
 func (n *Messaging) PublishCenter(center vec3) {

@@ -9,37 +9,65 @@ frame. Stop, re-read this file, and re-derive from the model.
 ## The network
 
 The network is **nodes and wires**. A node id NAMES a thing that is drawn.
-**A node is ONE goroutine** — the KIND's own `Update` — and that goroutine
-owns, in one paced loop, everything the node is and everything it draws
-about itself: the kind's logic and its interior slots, interaction and
-geometry, its own beads, and **its own OUT-EDGES** (each drawn from the
-node's own polar position composed with that edge's stored delta). It
-writes its own node stream, its own bead stream, and the edge stream of
-every edge leaving it. **An edge has NO goroutine at all** — not for drawing
+**A node is TWO goroutines, paced by two different things**, because it does
+two jobs that have two different clocks:
+
+- The **animation goroutine** — the KIND's own `Update` — is paced by the sim
+  clock. It owns the kind's logic and its interior slots, its own beads, and
+  the `PacedWire`s leaving it (`owners.Outs`). It writes its own bead stream
+  and its own interior stream. It gets the bead half by calling
+  `Self.Step(ctx, tick)` once per pass of its own loop, where `Self` is the
+  `PairNodeSelf` it claimed at build time (`BuildArgs.ClaimSelfDrive`); a kind
+  that holds a value onto an out steps a `gatecommon.HeldDriver` in that same
+  pass rather than handing the value to a goroutine over a channel.
+- The **geometry goroutine** — `PairNodeSelf.RunGeometry`, one per node id — is
+  paced by nothing. It BLOCKS on its own inbox and runs when a message arrives,
+  so a drag is served at the rate of the hand that is dragging. It owns the
+  node's own polar position, its stored vectors to its neighbours
+  (`owners.Deltas`), interaction state, the rule mesh, and **its own OUT-EDGES**
+  (each drawn from the node's own polar position composed with that edge's
+  stored delta). It writes its own node stream and the edge stream of every
+  edge leaving it.
+
+**This is deliberately NOT one clock per node.** It used to be, and that is
+what this split reverses: geometry work was done in the kind's paced loop, so a
+node accepted at most one move per sim cycle — up to ~1 s at low speed — while
+a pointer produces sixty. Dragging a node reliably killed it on the
+`maxPendingSends` bound, correctly reporting that it was "enqueueing to a peer
+faster than that peer drains". A hand movement must not be paced by a simulated
+one.
+
+**The two goroutines share no memory.** Every field of `NodeGeometry` belongs to
+exactly one of them, and the two places the geometry half used to reach into the
+animation half are now messages: the per-edge segment/step-count revision that
+`OutEdges.DeriveGeometry` derives, handed over by `PacedWire.PostGeom` and
+`outport.Out.PostGeom` as a `wire.WireRevision`, and bead-drag start/end, handed
+over by `Beads.PostBeadDrag`. The animation goroutine applies both at ONE point, the top
+of its own pass, never mid-pass — so beads are never drawn against a segment
+that moved halfway through the frame. An atomic or a mutex here would be a
+defect, not a fix (`check-no-network-locks.sh`).
+
+**An edge has NO goroutine at all** — not for drawing
 it and not for anything else. Its segment, its step count, the revision of
 beads already in flight on it, and its persisted file under the source
 node's own directory are all derived by the SOURCE NODE, in that node's
-loop, from the node's own polar position composed with the stored vector to
-that neighbour (`owners.Deltas`, `OutEdges.DeriveGeometry`). Nothing holds a
-copy of the far end's absolute position: when a neighbour moves, the node is
-told how far it moved and shifts its own stored vector by that much, so the
-vector is maintained by composition and never re-derived. An `edgetable.Edge`
-is a plain record of endpoints and plumbing, not an actor. There
-is **no second goroutine per node id** — no mover goroutine beside `Update`,
-and no separate driver goroutine placing a held value onto an out. `Update`
-gets the drawing half by calling `Self.Step(ctx, tick)` once per pass of
-its own loop, where `Self` is the `PairNodeSelf` it claimed at build time
-(`BuildArgs.ClaimSelfDrive`); a kind that holds a value onto an out steps a
-`gatecommon.HeldDriver` in that same pass rather than handing the value to
-a goroutine over a channel. Because the node loop paces beads, it runs at
-its own tick cadence, and the same loop reads input — so input is served at
-that cadence too, deliberately: one clock per node, not one clock per job. A wire
+geometry loop, from the node's own polar position composed with the stored
+vector to that neighbour (`owners.Deltas`, `OutEdges.DeriveGeometry`). Nothing
+holds a copy of the far end's absolute position: when a neighbour moves, the
+node is told how far it moved and shifts its own stored vector by that much, so
+the vector is maintained by composition and never re-derived. An
+`edgetable.Edge` is a plain record of endpoints and plumbing, not an actor.
+There is **no THIRD goroutine per node id** — no separate driver goroutine
+placing a held value onto an out, and no goroutine per edge. A wire
 (`PacedWire`) is not a goroutine at all: it is a PASSIVE delay queue
 with a channel on each end — a channel in from its source node, a channel
-out to its destination node — stepped by its SOURCE NODE's own goroutine.
+out to its destination node — stepped by its SOURCE NODE's ANIMATION goroutine.
 The wire still owns its own beads (`inflight`/`delivered`) and its own
 geometry as data, and exactly one goroutine touches that state: the source
-node's. Nothing else locks or reaches into it. Historically the wire had
+node's ANIMATION goroutine. The source node's geometry goroutine DERIVES the
+wire's new segment and step count but never writes them — it sends them, and
+the animation goroutine applies them. Nothing locks or reaches into the wire.
+Historically the wire had
 its OWN goroutine
 (`PacedWire.run`, one per wire, launched by `Start`) — not stepped by
 another. The wire's own goroutine is the sole thing that touches `inflight`. **An input port is one wire fed by
