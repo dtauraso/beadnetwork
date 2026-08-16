@@ -11,19 +11,20 @@ import (
 // DefaultOverlayState is the startup overlay snapshot used by Wiring's newMoveDispatch.
 func DefaultOverlayState() OverlayState {
 	return OverlayState{
-		SceneToriVisible:     true,
-		ScenePolesVisible:    true,
-		NodePolesVisible:     true,
-		HandholdsVisible:     true,
-		LabelsGlobalVisible:  true,
-		OverlaysVisible:      true,
-		NodeBodyVisible:      true,
-		NodeRingVisible:      true,
-		RingPickVisible:      true,
-		SelectionRingVisible: true,
-		HoverRingVisible:     true,
-		SceneVectorsVisible:  true,
-		RuleChannelsVisible:  true,
+		SceneToriVisible:      true,
+		ScenePolesVisible:     true,
+		NodePolesVisible:      true,
+		HandholdsVisible:      true,
+		LabelsGlobalVisible:   true,
+		OverlaysVisible:       true,
+		NodeBodyVisible:       true,
+		NodeRingVisible:       true,
+		RingPickVisible:       true,
+		SelectionRingVisible:  true,
+		HoverRingVisible:      true,
+		SceneVectorsVisible:   true,
+		RuleChannelsVisible:   true,
+		NodePoleSphereVisible: true,
 	}
 }
 
@@ -32,19 +33,20 @@ func DefaultOverlayState() OverlayState {
 //
 // OVERLAY_TOGGLES_START
 var OverlayToggles = map[string]func(*OverlayState, *T.Trace){
-	"tori":          (*OverlayState).ToggleSceneTori,
-	"scenePoles":    (*OverlayState).ToggleScenePoles,
-	"nodePoles":     (*OverlayState).ToggleNodePoles,
-	"handholds":     (*OverlayState).ToggleHandholds,
-	"labelsGlobal":  (*OverlayState).ToggleLabelsGlobal,
-	"overlays":      (*OverlayState).ToggleOverlaysVis,
-	"nodeBody":      (*OverlayState).ToggleNodeBody,
-	"nodeRing":      (*OverlayState).ToggleNodeRing,
-	"ringPick":      (*OverlayState).ToggleRingPick,
-	"selectionRing": (*OverlayState).ToggleSelectionRing,
-	"hoverRing":     (*OverlayState).ToggleHoverRing,
-	"sceneVectors":  (*OverlayState).ToggleSceneVectors,
-	"ruleChannels":  (*OverlayState).ToggleRuleChannels,
+	"tori":           (*OverlayState).ToggleSceneTori,
+	"scenePoles":     (*OverlayState).ToggleScenePoles,
+	"nodePoles":      (*OverlayState).ToggleNodePoles,
+	"handholds":      (*OverlayState).ToggleHandholds,
+	"labelsGlobal":   (*OverlayState).ToggleLabelsGlobal,
+	"overlays":       (*OverlayState).ToggleOverlaysVis,
+	"nodeBody":       (*OverlayState).ToggleNodeBody,
+	"nodeRing":       (*OverlayState).ToggleNodeRing,
+	"ringPick":       (*OverlayState).ToggleRingPick,
+	"selectionRing":  (*OverlayState).ToggleSelectionRing,
+	"hoverRing":      (*OverlayState).ToggleHoverRing,
+	"sceneVectors":   (*OverlayState).ToggleSceneVectors,
+	"ruleChannels":   (*OverlayState).ToggleRuleChannels,
+	"nodePoleSphere": (*OverlayState).ToggleNodePoleSphere,
 }
 
 // OVERLAY_TOGGLES_END
@@ -77,19 +79,20 @@ var OverlayFlagValue = map[string]func(*OverlayState) bool{
 //
 // OVERLAY_TRACE_KINDS_START
 var OverlayFlagTraceKind = map[string]string{
-	"tori":          T.KindSceneTori,
-	"scenePoles":    T.KindScenePoles,
-	"nodePoles":     T.KindNodePoles,
-	"handholds":     T.KindHandholds,
-	"labelsGlobal":  T.KindLabelsGlobal,
-	"overlays":      T.KindOverlaysVis,
-	"nodeBody":      T.KindNodeBody,
-	"nodeRing":      T.KindNodeRing,
-	"ringPick":      T.KindRingPick,
-	"selectionRing": T.KindSelectionRing,
-	"hoverRing":     T.KindHoverRing,
-	"sceneVectors":  T.KindSceneVectors,
-	"ruleChannels":  T.KindRuleChannels,
+	"tori":           T.KindSceneTori,
+	"scenePoles":     T.KindScenePoles,
+	"nodePoles":      T.KindNodePoles,
+	"handholds":      T.KindHandholds,
+	"labelsGlobal":   T.KindLabelsGlobal,
+	"overlays":       T.KindOverlaysVis,
+	"nodeBody":       T.KindNodeBody,
+	"nodeRing":       T.KindNodeRing,
+	"ringPick":       T.KindRingPick,
+	"selectionRing":  T.KindSelectionRing,
+	"hoverRing":      T.KindHoverRing,
+	"sceneVectors":   T.KindSceneVectors,
+	"ruleChannels":   T.KindRuleChannels,
+	"nodePoleSphere": T.KindNodePoleSphere,
 }
 
 // OVERLAY_TRACE_KINDS_END

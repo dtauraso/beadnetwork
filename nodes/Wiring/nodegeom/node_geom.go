@@ -68,3 +68,9 @@ func NodeTorusSteps(kind string) int {
 func NodeTorusOuterR(kind string) float64 {
 	return float64(NodeTorusSteps(kind)) * lattice.BeadStepR
 }
+
+const PoleRingSteps = 6
+
+func PoleRingR() float64 {
+	return PoleRingSteps * lattice.BeadStepR
+}

@@ -130,6 +130,7 @@ func (m *NodeGeometry) writeStreamFrame(events []rowevent.RowEvent) {
 		FRX:                 loadspec.FlatRingNormalX,
 		FRY:                 loadspec.FlatRingNormalY,
 		FRZ:                 loadspec.FlatRingNormalZ,
+		PoleRingR:           float32(nodegeom.PoleRingR()),
 		PolePhi:             float32(polePhi),
 		PoleTheta:           float32(poleTheta),
 		RingAxisPhi:         float32(ringAxisPhi),

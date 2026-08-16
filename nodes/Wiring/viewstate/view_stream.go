@@ -14,6 +14,7 @@ type ViewOverlayFlags struct {
 	NodeBody, NodeRing, RingPick, SelectionRing, HoverRing                 uint8
 	SceneVectors                                                           uint8
 	RuleChannels                                                           uint8
+	NodePoleSphere                                                         uint8
 }
 
 type ViewPanelFlags struct {
@@ -75,19 +76,20 @@ func (ui *UIState) EmitViewFrame(events []rowevent.RowEvent) {
 		float32(v.Pivot.X), float32(v.Pivot.Y), float32(v.Pivot.Z), float32(v.R),
 		float32(v.Pos.Phi), float32(v.Pos.Theta), float32(v.Up.Phi), float32(v.Up.Theta),
 		ViewOverlayFlags{
-			SceneTori:     boolU8(ui.OV.SceneToriVisible),
-			ScenePoles:    boolU8(ui.OV.ScenePolesVisible),
-			NodePoles:     boolU8(ui.OV.NodePolesVisible),
-			Handholds:     boolU8(ui.OV.HandholdsVisible),
-			LabelsGlobal:  boolU8(ui.OV.LabelsGlobalVisible),
-			OverlaysVis:   boolU8(ui.OV.OverlaysVisible),
-			NodeBody:      boolU8(ui.OV.NodeBodyVisible),
-			NodeRing:      boolU8(ui.OV.NodeRingVisible),
-			RingPick:      boolU8(ui.OV.RingPickVisible),
-			SelectionRing: boolU8(ui.OV.SelectionRingVisible),
-			HoverRing:     boolU8(ui.OV.HoverRingVisible),
-			SceneVectors:  boolU8(ui.OV.SceneVectorsVisible),
-			RuleChannels:  boolU8(ui.OV.RuleChannelsVisible),
+			SceneTori:      boolU8(ui.OV.SceneToriVisible),
+			ScenePoles:     boolU8(ui.OV.ScenePolesVisible),
+			NodePoles:      boolU8(ui.OV.NodePolesVisible),
+			Handholds:      boolU8(ui.OV.HandholdsVisible),
+			LabelsGlobal:   boolU8(ui.OV.LabelsGlobalVisible),
+			OverlaysVis:    boolU8(ui.OV.OverlaysVisible),
+			NodeBody:       boolU8(ui.OV.NodeBodyVisible),
+			NodeRing:       boolU8(ui.OV.NodeRingVisible),
+			RingPick:       boolU8(ui.OV.RingPickVisible),
+			SelectionRing:  boolU8(ui.OV.SelectionRingVisible),
+			HoverRing:      boolU8(ui.OV.HoverRingVisible),
+			SceneVectors:   boolU8(ui.OV.SceneVectorsVisible),
+			RuleChannels:   boolU8(ui.OV.RuleChannelsVisible),
+			NodePoleSphere: boolU8(ui.OV.NodePoleSphereVisible),
 		},
 		ViewPanelFlags{
 			Overlays:     boolU8(ui.PN.OverlaysOpen),
