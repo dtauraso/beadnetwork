@@ -35,6 +35,30 @@ func (r *RuleNode) applyEdit(e Edit) {
 		next.MaxTheta = e.MaxTheta
 		r.rule = &next
 		r.persistRule()
+	case EditSelfActiveToggle:
+		r.selfActive = !r.selfActive
+		r.persistSelfActive()
+	case EditSelfPhiToggle:
+		var next polar.DragRule
+		if r.selfRule != nil {
+			next = *r.selfRule
+		}
+		if next.Phi != nil {
+			next.Phi = nil
+		} else {
+			zero := 0.0
+			next.Phi = &zero
+		}
+		r.selfRule = &next
+		r.persistSelfRule()
+	case EditSelfMaxTheta:
+		var next polar.DragRule
+		if r.selfRule != nil {
+			next = *r.selfRule
+		}
+		next.MaxTheta = e.MaxTheta
+		r.selfRule = &next
+		r.persistSelfRule()
 	default:
 		panic(fmt.Sprintf(
 			"rulenode.applyEdit: node %q was sent edit kind %d, which no case handles, so a rule edit would be "+
@@ -49,6 +73,24 @@ func (r *RuleNode) persistRule() {
 		return
 	}
 	if err := nodefiles.WriteDragRule(r.persistRoot, r.id, r.rule); err != nil {
+		jsonpersist.LogPersistErr("rulenode", r.id, err)
+	}
+}
+
+func (r *RuleNode) persistSelfRule() {
+	if r.persistRoot == "" {
+		return
+	}
+	if err := nodefiles.WriteSelfDragRule(r.persistRoot, r.id, r.selfRule); err != nil {
+		jsonpersist.LogPersistErr("rulenode", r.id, err)
+	}
+}
+
+func (r *RuleNode) persistSelfActive() {
+	if r.persistRoot == "" {
+		return
+	}
+	if err := nodefiles.WriteSelfRuleActive(r.persistRoot, r.id, r.selfActive); err != nil {
 		jsonpersist.LogPersistErr("rulenode", r.id, err)
 	}
 }

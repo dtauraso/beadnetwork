@@ -28,6 +28,10 @@ func (m *NodeGeometry) DragRule() *polar.DragRule { return m.topo.DragRule() }
 
 func (m *NodeGeometry) DragRuleActive() bool { return m.topo.DragRuleActive() }
 
+func (m *NodeGeometry) SelfRule() *polar.DragRule { return m.topo.SelfRule() }
+
+func (m *NodeGeometry) SelfRuleActive() bool { return m.topo.SelfRuleActive() }
+
 func (m *NodeGeometry) Tick() int64 { return m.clocks.Tick() }
 
 func (m *NodeGeometry) Label() string { return m.geom.Label }

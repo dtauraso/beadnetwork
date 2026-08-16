@@ -60,6 +60,7 @@ func WriteDragRule(root, id string, rule *polar.DragRule) error {
 type ruleActiveFile struct {
 	Active     bool            `json:"active"`
 	KindActive *bool           `json:"kindActive,omitempty"`
+	SelfActive *bool           `json:"selfActive,omitempty"`
 	EdgeActive map[string]bool `json:"edgeActive,omitempty"`
 }
 
@@ -98,6 +99,40 @@ func LoadKindRuleActive(root, id string) bool {
 		return true
 	}
 	return *f.KindActive
+}
+
+func WriteSelfDragRule(root, id string, rule *polar.DragRule) error {
+	return entityReadModifyWrite(nodeBaseFilePath(root, id), func(m map[string]any) {
+		if rule == nil {
+			delete(m, "selfDrag")
+			return
+		}
+		drag := map[string]any{}
+		if rule.Phi != nil {
+			drag["phi"] = *rule.Phi
+		}
+		if rule.MaxTheta != nil {
+			drag["maxTheta"] = *rule.MaxTheta
+		}
+		m["selfDrag"] = drag
+	})
+}
+
+func WriteSelfRuleActive(root, id string, active bool) error {
+	return jsonpersist.ReadModifyWriteJSON(nodeRuleActiveFilePath(root, id), func(m map[string]any) {
+		m["selfActive"] = active
+	})
+}
+
+func LoadSelfRuleActive(root, id string) bool {
+	var f ruleActiveFile
+	if !jsonpersist.ReadJSONIfExists(nodeRuleActiveFilePath(root, id), &f) {
+		return true
+	}
+	if f.SelfActive == nil {
+		return true
+	}
+	return *f.SelfActive
 }
 
 func WriteDragActive(root, id string, active bool) error {

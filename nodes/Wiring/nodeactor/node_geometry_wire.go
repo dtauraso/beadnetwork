@@ -52,6 +52,14 @@ func (m *NodeGeometry) SetDragActive(active bool) {
 	m.topo.SetDragActive(active)
 }
 
+func (m *NodeGeometry) SetSelfRule(rule *polar.DragRule) {
+	m.topo.SetSelfRule(rule)
+}
+
+func (m *NodeGeometry) SetSelfRuleActive(active bool) {
+	m.topo.SetSelfRuleActive(active)
+}
+
 func (m *NodeGeometry) SetSceneFlags(coplanarEdges, upAxis bool) {
 	m.flags.SetSceneFlags(coplanarEdges, upAxis)
 }

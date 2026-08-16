@@ -29,6 +29,8 @@ type specNode struct {
 
 	Drag *polar.DragRule `json:"drag,omitempty"`
 
+	SelfDrag *polar.DragRule `json:"selfDrag,omitempty"`
+
 	TopTiltVectorPhiIdx *int32 `json:"topTiltVectorThetaIdx,omitempty"`
 }
 
