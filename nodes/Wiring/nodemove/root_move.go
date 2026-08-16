@@ -22,6 +22,13 @@ func HeldCenters(nodeGeoms map[string]*nodeactor.NodeGeometry, centerOf func(id 
 	return out
 }
 
+func pointerPolar(nm *nodeactor.NodeGeometry, v spatial.Vec3) polar.Polar {
+	if rule := nm.SelfRule(); rule != nil && nm.SelfRuleActive() && rule.MaxTheta != nil {
+		return polar.Cart2polarAtTheta(v, nm.ScenePolar().Theta)
+	}
+	return polar.Cart2polar(v)
+}
+
 func (mv *NodeMover) RootMove(ctx context.Context, nodeGeoms map[string]*nodeactor.NodeGeometry, nodeID string, target spatial.Vec3) bool {
 	nm, ok := nodeGeoms[nodeID]
 	if !ok {
@@ -29,7 +36,7 @@ func (mv *NodeMover) RootMove(ctx context.Context, nodeGeoms map[string]*nodeact
 	}
 
 	sc := nm.Constants()
-	targetIdx := polarindex.MeasureIndex(polar.Cart2polarAtTheta(target.Sub(nm.SceneCenter()), nm.ScenePolar().Theta), sc)
+	targetIdx := polarindex.MeasureIndex(pointerPolar(nm, target.Sub(nm.SceneCenter())), sc)
 
 	nm.SendExternal(ctx, movemsg.Msg{Kind: movemsg.KindDrag, NodeID: nodeID, Target: &targetIdx})
 	return true
