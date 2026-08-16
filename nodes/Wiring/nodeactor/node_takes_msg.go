@@ -58,10 +58,19 @@ func (m *NodeGeometry) takeNeighborMove(msg movemsg.Msg) {
 }
 
 func (m *NodeGeometry) takeDragOfSelf(msg movemsg.Msg) {
-	if msg.Delta == nil {
-		panic("nodeactor.takeDragOfSelf: drag of " + m.id + " carries no delta — a node is TOLD a delta and trims it itself, it is never handed a position")
+	haveIdx := m.ComposedIndex()
+
+	var delta polarindex.Offset
+	switch {
+	case msg.Target != nil:
+		delta = polarindex.Delta(*msg.Target, haveIdx)
+	case msg.Delta != nil:
+		delta = *msg.Delta
+	default:
+		panic("nodeactor.takeDragOfSelf: drag of " + m.id + " carries neither a target nor a delta — a pointer drag names WHERE (Target) and the node measures its own delta from its own index; a peer's request names HOW FAR (Delta). One of the two must be set")
 	}
-	movedIdx := polarindex.Compose(m.ComposedIndex(), m.TrimOwnDrag(*msg.Delta), m.Constants())
+
+	movedIdx := polarindex.Compose(haveIdx, m.TrimOwnDrag(delta), m.Constants())
 
 	m.msg.CommitLocal(m.id, movedIdx)
 	if m.tr != nil {

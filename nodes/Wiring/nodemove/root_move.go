@@ -32,6 +32,6 @@ func (mv *NodeMover) RootMove(ctx context.Context, nodeGeoms map[string]*nodeact
 	targetIdx := polarindex.MeasureIndex(polar.Cart2polarAtTheta(target.Sub(nm.SceneCenter()), nm.ScenePolar().Theta), sc)
 	delta := polarindex.Delta(targetIdx, nm.ComposedIndex())
 
-	nm.SendExternal(ctx, movemsg.Msg{Kind: movemsg.KindDrag, NodeID: nodeID, Delta: &delta})
+	nm.SendExternal(ctx, movemsg.Msg{Kind: movemsg.KindDrag, NodeID: nodeID, Target: &targetIdx})
 	return true
 }

@@ -56,6 +56,8 @@ type Msg struct {
 
 	Delta *polarindex.Offset
 
+	Target *polarindex.Index
+
 	Centers map[string]vec3
 
 	FromCenter vec3
