@@ -43,31 +43,31 @@ export function ThetaLine({ rule }: { rule: NodeRuleRow }) {
               return;
             }
             if (e.key !== "Enter") return;
-            const deg = Number.parseFloat(draft);
-            if (Number.isFinite(deg)) postGoRecord(encodeNodeDragMaxTheta(rule.row, deg));
+            const turns = Number.parseFloat(draft);
+            if (Number.isFinite(turns)) postGoRecord(encodeNodeDragMaxTheta(rule.row, turns));
             setDraft(null);
           }}
         />
-        <span className="node-rules-unit">°</span>
+        <span className="node-rules-unit">π</span>
       </ComponentLine>
     );
   }
 
-  if (rule.maxThetaDeg === null) {
+  if (rule.maxThetaPi === null) {
     return (
       <ComponentLine glyph="θ" free>
-        <button className="node-rules-edit" onClick={() => setDraft("90")}>
+        <button className="node-rules-edit" onClick={() => setDraft("0.5")}>
           free
         </button>
       </ComponentLine>
     );
   }
 
-  const deg = Math.round(rule.maxThetaDeg * 10) / 10;
+  const turns = Math.round(rule.maxThetaPi * 1000) / 1000;
   return (
     <ComponentLine glyph="θ">
-      <button className="node-rules-edit" onClick={() => setDraft(String(deg))}>
-        ∈ [−{deg}°, +{deg}°]
+      <button className="node-rules-edit" onClick={() => setDraft(String(turns))}>
+        ∈ [−{turns}π, +{turns}π]
       </button>
     </ComponentLine>
   );

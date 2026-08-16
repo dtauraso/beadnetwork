@@ -26,31 +26,31 @@ export function SelfThetaLine({ rule }: { rule: NodeRuleRow }) {
               return;
             }
             if (e.key !== "Enter") return;
-            const deg = Number.parseFloat(draft);
-            if (Number.isFinite(deg)) postGoRecord(encodeNodeSelfDragMaxTheta(rule.row, deg));
+            const turns = Number.parseFloat(draft);
+            if (Number.isFinite(turns)) postGoRecord(encodeNodeSelfDragMaxTheta(rule.row, turns));
             setDraft(null);
           }}
         />
-        <span className="node-rules-unit">°</span>
+        <span className="node-rules-unit">π</span>
       </ComponentLine>
     );
   }
 
-  if (rule.selfMaxThetaDeg === null) {
+  if (rule.selfMaxThetaPi === null) {
     return (
       <ComponentLine glyph="θ" free>
-        <button className="node-rules-edit" onClick={() => setDraft("90")}>
+        <button className="node-rules-edit" onClick={() => setDraft("0.5")}>
           free
         </button>
       </ComponentLine>
     );
   }
 
-  const deg = Math.round(rule.selfMaxThetaDeg * 10) / 10;
+  const turns = Math.round(rule.selfMaxThetaPi * 1000) / 1000;
   return (
     <ComponentLine glyph="θ">
-      <button className="node-rules-edit" onClick={() => setDraft(String(deg))}>
-        ∈ [−{deg}°, +{deg}°]
+      <button className="node-rules-edit" onClick={() => setDraft(String(turns))}>
+        ∈ [−{turns}π, +{turns}π]
       </button>
     </ComponentLine>
   );

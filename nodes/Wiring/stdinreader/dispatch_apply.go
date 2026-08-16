@@ -110,7 +110,7 @@ var nodeAttrHandlers = map[string]func(ctx context.Context, msg inputcodec.Stdin
 	"dragMaxTheta": func(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch) {
 		var maxTheta *float64
 		if msg.X >= 0 {
-			radians := msg.X * math.Pi / 180
+			radians := msg.X * math.Pi
 			maxTheta = &radians
 		}
 		sendRuleEdit(ctx, md, msg.Num, rulenode.Edit{Kind: rulenode.EditMaxTheta, MaxTheta: maxTheta})
@@ -124,7 +124,7 @@ var nodeAttrHandlers = map[string]func(ctx context.Context, msg inputcodec.Stdin
 	"selfDragMaxTheta": func(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch) {
 		var maxTheta *float64
 		if msg.X >= 0 {
-			radians := msg.X * math.Pi / 180
+			radians := msg.X * math.Pi
 			maxTheta = &radians
 		}
 		sendRuleEdit(ctx, md, msg.Num, rulenode.Edit{Kind: rulenode.EditSelfMaxTheta, MaxTheta: maxTheta})

@@ -75,13 +75,13 @@ export function encodeNodeDragPhiToggle(nodeRow: number): ArrayBuffer {
   return w.toArrayBuffer();
 }
 
-export function encodeNodeDragMaxTheta(nodeRow: number, degrees: number): ArrayBuffer {
+export function encodeNodeDragMaxTheta(nodeRow: number, piMultiple: number): ArrayBuffer {
   const w = new ByteWriter();
   w.u8(IN_KIND_EDIT_UPDATE);
   w.u8(enumIndex(IN_UPDATE_KINDS, "node"));
   w.u8(IN_NODE_ATTR_DRAG_MAX_THETA);
   w.u8(nodeRow);
-  w.f32(degrees);
+  w.f32(piMultiple);
   return w.toArrayBuffer();
 }
 
@@ -103,13 +103,13 @@ export function encodeNodeSelfDragPhiToggle(nodeRow: number): ArrayBuffer {
   return w.toArrayBuffer();
 }
 
-export function encodeNodeSelfDragMaxTheta(nodeRow: number, degrees: number): ArrayBuffer {
+export function encodeNodeSelfDragMaxTheta(nodeRow: number, piMultiple: number): ArrayBuffer {
   const w = new ByteWriter();
   w.u8(IN_KIND_EDIT_UPDATE);
   w.u8(enumIndex(IN_UPDATE_KINDS, "node"));
   w.u8(IN_NODE_ATTR_SELF_DRAG_MAX_THETA);
   w.u8(nodeRow);
-  w.f32(degrees);
+  w.f32(piMultiple);
   return w.toArrayBuffer();
 }
 
