@@ -3,6 +3,7 @@ package polar
 import "math"
 
 type DragRule struct {
+	R        *float64 `json:"r,omitempty"`
 	Phi      *float64 `json:"phi,omitempty"`
 	MaxTheta *float64 `json:"maxTheta,omitempty"`
 }
@@ -12,7 +13,9 @@ func (r *DragRule) TrimDelta(have, want Polar) Polar {
 		return want
 	}
 	out := want
-	out.R = have.R
+	if r.R != nil {
+		out.R = have.R
+	}
 	if r.Phi != nil {
 		out.Phi = have.Phi
 	}

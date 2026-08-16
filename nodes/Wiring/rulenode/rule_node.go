@@ -19,6 +19,9 @@ const (
 	EditSelfActiveToggle
 	EditSelfPhiToggle
 	EditSelfMaxTheta
+
+	EditRToggle
+	EditSelfRToggle
 )
 
 type Edit struct {

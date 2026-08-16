@@ -90,7 +90,9 @@ func (m *NodeGeometry) writeStreamFrame(events []rowevent.RowEvent) {
 	var dragRLocked, dragPhiLocked uint8
 	dragThetaMax := float32(-1)
 	if rule := m.DragRule(); rule != nil {
-		dragRLocked = 1
+		if rule.R != nil {
+			dragRLocked = 1
+		}
 		if rule.Phi != nil {
 			dragPhiLocked = 1
 		}
@@ -102,7 +104,9 @@ func (m *NodeGeometry) writeStreamFrame(events []rowevent.RowEvent) {
 	var selfRLocked, selfPhiLocked uint8
 	selfThetaMax := float32(-1)
 	if rule := m.SelfRule(); rule != nil {
-		selfRLocked = 1
+		if rule.R != nil {
+			selfRLocked = 1
+		}
 		if rule.Phi != nil {
 			selfPhiLocked = 1
 		}

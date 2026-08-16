@@ -5,6 +5,7 @@ import {
   encodeNodeDragMaxTheta,
   encodeEdgeDragActiveToggle,
   encodeNodeKindActiveToggle,
+  encodeNodeDragRToggle,
 } from "../../../../schema/input/input-encode";
 import { type NodeRuleRow, type EdgePartner } from "../flags/node-rules";
 import { formatPi, formatPiDraft, parsePiDraft } from "./pi-fraction";
@@ -117,7 +118,14 @@ export function EdgeBlock({ rule, partner }: { rule: NodeRuleRow; partner: EdgeP
       <div className="node-rules-components">
         {holder ? (
           <>
-            <ComponentLine glyph="r">r held {Math.round(holder.r * 10) / 10}</ComponentLine>
+            <ComponentLine glyph="r" free={!rule.rLocked}>
+              <button
+                className="node-rules-edit"
+                onClick={() => postGoRecord(encodeNodeDragRToggle(rule.row))}
+              >
+                {rule.rLocked ? `held ${Math.round(holder.r * 10) / 10}` : "free"}
+              </button>
+            </ComponentLine>
             <ComponentLine glyph="φ" free={!rule.phiLocked}>
               <button
                 className="node-rules-edit"

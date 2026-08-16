@@ -35,6 +35,32 @@ func (r *RuleNode) applyEdit(e Edit) {
 		next.MaxTheta = e.MaxTheta
 		r.rule = &next
 		r.persistRule()
+	case EditRToggle:
+		var next polar.DragRule
+		if r.rule != nil {
+			next = *r.rule
+		}
+		if next.R != nil {
+			next.R = nil
+		} else {
+			zero := 0.0
+			next.R = &zero
+		}
+		r.rule = &next
+		r.persistRule()
+	case EditSelfRToggle:
+		var next polar.DragRule
+		if r.selfRule != nil {
+			next = *r.selfRule
+		}
+		if next.R != nil {
+			next.R = nil
+		} else {
+			zero := 0.0
+			next.R = &zero
+		}
+		r.selfRule = &next
+		r.persistSelfRule()
 	case EditSelfActiveToggle:
 		r.selfActive = !r.selfActive
 		r.persistSelfActive()

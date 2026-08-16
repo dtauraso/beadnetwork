@@ -19,3 +19,6 @@ export const IN_NODE_ATTR_KIND_ACTIVE = 15;
 export const IN_NODE_ATTR_SELF_DRAG_PHI = 16;
 export const IN_NODE_ATTR_SELF_DRAG_MAX_THETA = 17;
 export const IN_NODE_ATTR_SELF_DRAG_ACTIVE = 18;
+
+export const IN_NODE_ATTR_DRAG_R = 19;
+export const IN_NODE_ATTR_SELF_DRAG_R = 20;
