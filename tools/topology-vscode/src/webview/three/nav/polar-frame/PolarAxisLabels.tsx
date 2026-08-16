@@ -7,7 +7,7 @@ export function PolarAxisLabels({ poleLen, coneH, arcMid, sfx, octants }: {
   return (
     <>
       {}
-      <AxisLabel text={`+Y pole${sfx}`} color="#22dd55" position={[0, poleLen + coneH * 2, 0]} size={poleLen * 0.12} />
+      <AxisLabel text={`+Y pole φ0 θany${sfx}`} color="#22dd55" position={[0, poleLen + coneH * 2, 0]} size={poleLen * 0.12} />
       <AxisLabel text={`+X φπ/2 θ0${sfx}`} color="#dd3333" position={[poleLen + coneH * 2, 0, 0]} size={poleLen * 0.12} />
       <AxisLabel text={`+Z φπ/2 θπ/2${sfx}`} color="#3366dd" position={[0, 0, poleLen + coneH * 2]} size={poleLen * 0.12} />
       {octants && (<>
