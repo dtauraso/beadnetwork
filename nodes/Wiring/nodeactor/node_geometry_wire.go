@@ -9,6 +9,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/nodeframe"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/owners"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/streamclaim"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/polarindex"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
@@ -57,10 +58,12 @@ func (m *NodeGeometry) SetSceneFlags(coplanarEdges, upAxis bool) {
 
 func (m *NodeGeometry) SetBaseIndex(off polarindex.Index) {
 	m.geom.BaseIndex = off
+	m.msg.PublishCenter(nodegeom.NodeWorldPos(m.geom))
 }
 
 func (m *NodeGeometry) SetDragIndex(off polarindex.Offset) {
 	m.geom.DragIndex = off
+	m.msg.PublishCenter(nodegeom.NodeWorldPos(m.geom))
 }
 
 func (m *NodeGeometry) SetTopTiltVectorPhiIdx(idx int32) {

@@ -61,25 +61,9 @@ func (m *NodeGeometry) takeDragOfSelf(msg movemsg.Msg) {
 	if msg.Delta == nil {
 		panic("nodeactor.takeDragOfSelf: drag of " + m.id + " carries no delta — a node is TOLD a delta and trims it itself, it is never handed a position")
 	}
-	wasIdx := m.ComposedIndex()
-	raw := *msg.Delta
-	trimmed := m.TrimOwnDrag(raw)
-	movedIdx := polarindex.Compose(wasIdx, trimmed, m.Constants())
+	movedIdx := polarindex.Compose(m.ComposedIndex(), m.TrimOwnDrag(*msg.Delta), m.Constants())
 
 	m.msg.CommitLocal(m.id, movedIdx)
-	if m.tr != nil {
-		wasPos := m.SceneCenter().Add(polar.Polar2cart(polarindex.ToPolar(wasIdx, m.Constants())))
-		m.writeStreamFrame([]rowevent.RowEvent{{
-			Kind: T.KindBreadcrumb, Label: T.BreadcrumbDragCommit, Debug: 1,
-			NodeRow: m.stream.NodeRow(), PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: 7,
-			X: wasPos.X, Y: wasPos.Y, Z: wasPos.Z,
-			Text: fmt.Sprintf("was=(%d,%d,%d) raw=(%d,%d,%d) trimmed=(%d,%d,%d) moved=(%d,%d,%d)",
-				wasIdx.Phi, wasIdx.Theta, wasIdx.R,
-				raw.Phi, raw.Theta, raw.R,
-				trimmed.Phi, trimmed.Theta, trimmed.R,
-				movedIdx.Phi, movedIdx.Theta, movedIdx.R),
-		}})
-	}
 	if m.tr != nil {
 		newPos := m.SceneCenter().Add(polar.Polar2cart(polarindex.ToPolar(movedIdx, m.Constants())))
 		m.tr.Breadcrumb("drag.commit", m.id, "", fmt.Sprintf("newPos=(%.4f,%.4f,%.4f)", newPos.X, newPos.Y, newPos.Z))
