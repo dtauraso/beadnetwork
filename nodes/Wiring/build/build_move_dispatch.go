@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
-	"github.com/dtauraso/wirefold/nodes/Wiring/edgefile"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/nodefiles"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodedrag"
@@ -77,7 +76,7 @@ func (b *buildCtx) buildMoveDispatch() error {
 	targetByLabel := make(map[string]string, len(b.spec.Edges))
 	sourceByLabel := make(map[string]string, len(b.spec.Edges))
 	for _, e := range b.spec.Edges {
-		active := edgefile.LoadEdgeRuleActive(b.scenePath, e.Source, e.Label)
+		active := nodefiles.LoadEdgeRuleActive(b.scenePath, e.Source, e.Target)
 		if src, ok := md.MR.NodeGeoms()[e.Source]; ok {
 			src.RuleNode().SeedEdgeActive(e.Target, active)
 		}
