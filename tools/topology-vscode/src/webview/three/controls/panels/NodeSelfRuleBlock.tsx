@@ -7,6 +7,7 @@ import {
 } from "../../../../schema/input/input-encode";
 import { type NodeRuleRow } from "../flags/node-rules";
 import { ComponentLine } from "./NodeRuleBlocks";
+import { formatPi, formatPiDraft, parsePiDraft } from "./pi-fraction";
 
 export function SelfThetaLine({ rule }: { rule: NodeRuleRow }) {
   const [draft, setDraft] = useState<string | null>(null);
@@ -26,31 +27,31 @@ export function SelfThetaLine({ rule }: { rule: NodeRuleRow }) {
               return;
             }
             if (e.key !== "Enter") return;
-            const deg = Number.parseFloat(draft);
-            if (Number.isFinite(deg)) postGoRecord(encodeNodeSelfDragMaxTheta(rule.row, deg));
+            const turns = parsePiDraft(draft);
+            if (Number.isFinite(turns)) postGoRecord(encodeNodeSelfDragMaxTheta(rule.row, turns));
             setDraft(null);
           }}
         />
-        <span className="node-rules-unit">°</span>
+        <span className="node-rules-unit">π</span>
       </ComponentLine>
     );
   }
 
-  if (rule.selfMaxThetaDeg === null) {
+  if (rule.selfMaxThetaPi === null) {
     return (
       <ComponentLine glyph="θ" free>
-        <button className="node-rules-edit" onClick={() => setDraft("90")}>
+        <button className="node-rules-edit" onClick={() => setDraft("1/2")}>
           free
         </button>
       </ComponentLine>
     );
   }
 
-  const deg = Math.round(rule.selfMaxThetaDeg * 10) / 10;
+  const span = formatPi(rule.selfMaxThetaPi);
   return (
     <ComponentLine glyph="θ">
-      <button className="node-rules-edit" onClick={() => setDraft(String(deg))}>
-        ∈ [−{deg}°, +{deg}°]
+      <button className="node-rules-edit" onClick={() => setDraft(formatPiDraft(rule.selfMaxThetaPi!))}>
+        ∈ [−{span}, +{span}]
       </button>
     </ComponentLine>
   );

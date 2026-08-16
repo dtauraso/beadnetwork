@@ -57,7 +57,7 @@ export interface NodeRuleRow {
 
   phiLocked: boolean;
 
-  maxThetaDeg: number | null;
+  maxThetaPi: number | null;
 
   hasSelfRule: boolean;
 
@@ -65,7 +65,7 @@ export interface NodeRuleRow {
 
   selfPhiLocked: boolean;
 
-  selfMaxThetaDeg: number | null;
+  selfMaxThetaPi: number | null;
 
   holders: RuleHolder[];
 
@@ -76,7 +76,7 @@ export interface NodeRuleRow {
   groupSize: number;
 }
 
-const RAD_TO_DEG = 180 / Math.PI;
+const RAD_TO_PI = 1 / Math.PI;
 
 function kindNameFor(nodeView: DataView, row: number): string {
   const kindId = readNodeKindId(nodeView, row);
@@ -158,11 +158,11 @@ export function readNodeRuleRows(): NodeRuleRow[] | null {
       kindActive: !!readNodeKindRuleActive(nodeView, row),
       active: !!readNodeDragActive(nodeView, row),
       phiLocked: !!readNodeDragPhiLocked(nodeView, row),
-      maxThetaDeg: thetaMax < 0 ? null : thetaMax * RAD_TO_DEG,
+      maxThetaPi: thetaMax < 0 ? null : thetaMax * RAD_TO_PI,
       hasSelfRule: !!readNodeSelfRLocked(nodeView, row),
       selfActive: !!readNodeSelfActive(nodeView, row),
       selfPhiLocked: !!readNodeSelfPhiLocked(nodeView, row),
-      selfMaxThetaDeg: selfThetaMax < 0 ? null : selfThetaMax * RAD_TO_DEG,
+      selfMaxThetaPi: selfThetaMax < 0 ? null : selfThetaMax * RAD_TO_PI,
       holders: byNode.get(row) ?? [],
       partners: partnerByNode.get(row) ?? [],
       groupId: readNodeRuleGroupId(nodeView, row),

@@ -7,6 +7,7 @@ import {
   encodeNodeKindActiveToggle,
 } from "../../../../schema/input/input-encode";
 import { type NodeRuleRow, type EdgePartner } from "../flags/node-rules";
+import { formatPi, formatPiDraft, parsePiDraft } from "./pi-fraction";
 
 export function ComponentLine({
   glyph,
@@ -43,31 +44,31 @@ export function ThetaLine({ rule }: { rule: NodeRuleRow }) {
               return;
             }
             if (e.key !== "Enter") return;
-            const deg = Number.parseFloat(draft);
-            if (Number.isFinite(deg)) postGoRecord(encodeNodeDragMaxTheta(rule.row, deg));
+            const turns = parsePiDraft(draft);
+            if (Number.isFinite(turns)) postGoRecord(encodeNodeDragMaxTheta(rule.row, turns));
             setDraft(null);
           }}
         />
-        <span className="node-rules-unit">°</span>
+        <span className="node-rules-unit">π</span>
       </ComponentLine>
     );
   }
 
-  if (rule.maxThetaDeg === null) {
+  if (rule.maxThetaPi === null) {
     return (
       <ComponentLine glyph="θ" free>
-        <button className="node-rules-edit" onClick={() => setDraft("90")}>
+        <button className="node-rules-edit" onClick={() => setDraft("1/2")}>
           free
         </button>
       </ComponentLine>
     );
   }
 
-  const deg = Math.round(rule.maxThetaDeg * 10) / 10;
+  const span = formatPi(rule.maxThetaPi);
   return (
     <ComponentLine glyph="θ">
-      <button className="node-rules-edit" onClick={() => setDraft(String(deg))}>
-        ∈ [−{deg}°, +{deg}°]
+      <button className="node-rules-edit" onClick={() => setDraft(formatPiDraft(rule.maxThetaPi!))}>
+        ∈ [−{span}, +{span}]
       </button>
     </ComponentLine>
   );

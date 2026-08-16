@@ -48,11 +48,11 @@ export function ruleRowsEqual(a: NodeRuleRow[], b: NodeRuleRow[]): boolean {
       ai.kindActive !== bi.kindActive ||
       ai.active !== bi.active ||
       ai.phiLocked !== bi.phiLocked ||
-      ai.maxThetaDeg !== bi.maxThetaDeg ||
+      ai.maxThetaPi !== bi.maxThetaPi ||
       ai.hasSelfRule !== bi.hasSelfRule ||
       ai.selfActive !== bi.selfActive ||
       ai.selfPhiLocked !== bi.selfPhiLocked ||
-      ai.selfMaxThetaDeg !== bi.selfMaxThetaDeg ||
+      ai.selfMaxThetaPi !== bi.selfMaxThetaPi ||
       ai.groupId !== bi.groupId ||
       ai.groupSize !== bi.groupSize ||
       !holdersEqual(ai.holders, bi.holders) ||
