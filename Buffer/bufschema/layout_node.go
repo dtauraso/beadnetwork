@@ -72,6 +72,12 @@ type bufLayoutNode struct {
 	HasKindRule    uint8   `buf:"u8"`
 	KindRuleActive uint8   `buf:"u8"`
 
+	SRX float32 `buf:"f32"`
+	SRY float32 `buf:"f32"`
+	SRZ float32 `buf:"f32"`
+
+	PoleRingR float32 `buf:"f32"`
+
 	SelfRLocked   uint8   `buf:"u8"`
 	SelfPhiLocked uint8   `buf:"u8"`
 	SelfThetaMax  float32 `buf:"f32"`

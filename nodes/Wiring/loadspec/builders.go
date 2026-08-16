@@ -9,6 +9,7 @@ import (
 const (
 	VerticalRingNormalX, VerticalRingNormalY, VerticalRingNormalZ = 0.0, 0.0, 1.0
 	FlatRingNormalX, FlatRingNormalY, FlatRingNormalZ             = 0.0, 1.0, 0.0
+	SideRingNormalX, SideRingNormalY, SideRingNormalZ             = 1.0, 0.0, 0.0
 )
 
 func KindForID(id uint8) (string, bool) {

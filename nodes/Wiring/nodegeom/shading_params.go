@@ -61,6 +61,12 @@ const ShadingParamSceneDirIntensity = 0.8
 
 const ShadingParamNodeRingTubeRatio = 0.08
 
+const ShadingParamPoleRingTubeRatio = 0.08
+
+const ShadingParamPoleRingOpacity = 0.55
+
+const ShadingParamPoleRingEmissiveIntensity = 0.25
+
 const ShadingParamNodeRingSurfaceNu = 32
 
 const ShadingParamNodeRingSurfaceNv = 8
