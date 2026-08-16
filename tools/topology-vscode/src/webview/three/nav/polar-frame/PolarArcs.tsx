@@ -9,19 +9,19 @@ export function PolarArcs({ arcR, arcTube, octants }: {
       {}
       <mesh raycast={() => null}>
         <torusGeometry args={[arcR, arcTube, 8, 48, Math.PI / 2]} />
-        <meshBasicMaterial color="#dd33cc" depthWrite={false} />
+        <meshBasicMaterial color="#dd33cc" />
       </mesh>
       {}
       <mesh rotation={[Math.PI / 2, 0, 0]} raycast={() => null}>
         <torusGeometry args={[arcR, arcTube, 8, 48, Math.PI / 2]} />
-        <meshBasicMaterial color="#dddd22" depthWrite={false} />
+        <meshBasicMaterial color="#dddd22" />
       </mesh>
       </>)}
       {octants && PHI_CIRCLES.map((t) => (
         <group key={`tc-${t.n}`} scale={[t.sx, t.sy, 1]}>
           <mesh raycast={() => null}>
             <torusGeometry args={[arcR, arcTube, 8, 48, Math.PI / 2]} />
-            <meshBasicMaterial color={t.c} depthWrite={false} />
+            <meshBasicMaterial color={t.c} />
           </mesh>
         </group>
       ))}
@@ -32,7 +32,7 @@ export function PolarArcs({ arcR, arcTube, octants }: {
         <group key={`mc-${m.n}`} scale={[1, m.sy, m.sz]}>
           <mesh rotation={[0, -Math.PI / 2, 0]} raycast={() => null}>
             <torusGeometry args={[arcR, arcTube, 8, 48, Math.PI / 2]} />
-            <meshBasicMaterial color={m.c} depthWrite={false} />
+            <meshBasicMaterial color={m.c} />
           </mesh>
         </group>
       ))}
@@ -40,7 +40,7 @@ export function PolarArcs({ arcR, arcTube, octants }: {
         <group key={`pc-${p.n}`} scale={[p.sx, 1, p.sz]}>
           <mesh rotation={[Math.PI / 2, 0, 0]} raycast={() => null}>
             <torusGeometry args={[arcR, arcTube, 8, 48, Math.PI / 2]} />
-            <meshBasicMaterial color={p.c} depthWrite={false} />
+            <meshBasicMaterial color={p.c} />
           </mesh>
         </group>
       ))}
