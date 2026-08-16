@@ -1,4 +1,4 @@
-package layoutquant
+package nodemove
 
 import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/edgetable"

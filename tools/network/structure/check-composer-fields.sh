@@ -9,7 +9,7 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 cd "$REPO_ROOT"
 
 COMPOSERS=(
-  "type MoveDispatch struct {|12|the responsible owner type (rowtables.RowTables/geomseeds.GeomSeeds/streamWiring/uiState/moverRegistry/layoutQuantizer)"
+  "type MoveDispatch struct {|12|the responsible owner type (rowtables.RowTables/geomseeds.GeomSeeds/streamWiring/uiState/moverRegistry/nodeMover)"
   "type NodeGeometry struct {|21|the responsible owner type (owners.Messaging/Clocks/Stream/UI/Tilt/Readout/Outs/Topology/Flags/Beads/Deltas, nodes/Wiring/nodeactor/owners/)"
 )
 

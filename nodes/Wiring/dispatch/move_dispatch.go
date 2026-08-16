@@ -2,9 +2,9 @@ package dispatch
 
 import (
 	geomseeds "github.com/dtauraso/wirefold/nodes/Wiring/geomseeds"
-	"github.com/dtauraso/wirefold/nodes/Wiring/layoutquant"
 	"github.com/dtauraso/wirefold/nodes/Wiring/moverreg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeinbox"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodemove"
 	rowtables "github.com/dtauraso/wirefold/nodes/Wiring/rowtables"
 	"github.com/dtauraso/wirefold/nodes/Wiring/rulechans"
 	sceneswitch "github.com/dtauraso/wirefold/nodes/Wiring/sceneswitch"
@@ -28,7 +28,7 @@ type MoveDispatch struct {
 
 	UI viewstate.UIState
 
-	LQ layoutquant.LayoutQuantizer
+	Mover nodemove.NodeMover
 
 	Scenes sceneswitch.SceneSwitch
 

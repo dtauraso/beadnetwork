@@ -63,8 +63,8 @@ func commitRotateStart(d Deps, g *gesturefsm.GestureState, ev inputcodec.RawInpu
 
 var applyAction = map[gesturefsm.GesturePhase]func(d Deps, g *gesturefsm.GestureState, ev inputcodec.RawInputMsg, tr *T.Trace){
 	gesturefsm.GestDragging: func(d Deps, g *gesturefsm.GestureState, ev inputcodec.RawInputMsg, tr *T.Trace) {
-		nodeGeoms, lq, ctx := d.MR.NodeGeoms(), d.LQ, d.Ctx
-		if applyNodeDragTarget(d.UI, func(id string, target vec3) bool { return lq.RootMove(ctx, nodeGeoms, id, target) }, ev) {
+		nodeGeoms, mv, ctx := d.MR.NodeGeoms(), d.Mover, d.Ctx
+		if applyNodeDragTarget(d.UI, func(id string, target vec3) bool { return mv.RootMove(ctx, nodeGeoms, id, target) }, ev) {
 			g.PrevX, g.PrevY = ev.X, ev.Y
 		}
 	},

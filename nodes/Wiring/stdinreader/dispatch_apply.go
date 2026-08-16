@@ -31,7 +31,7 @@ func applyUpdateDistanceGroup(ctx context.Context, msg inputcodec.StdinMsg, md *
 	if msg.Flag == "up" {
 		dir = 1
 	}
-	if distancegroups.ApplyDistanceGroupTarget(ctx, &md.UI, &md.MR, &md.LQ, msg.Num, dir) {
+	if distancegroups.ApplyDistanceGroupTarget(ctx, &md.UI, &md.MR, &md.Mover, msg.Num, dir) {
 		md.UI.EmitViewFrame(nil)
 	}
 }

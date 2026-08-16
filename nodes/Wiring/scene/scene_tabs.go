@@ -11,8 +11,6 @@ type Scene struct {
 
 	Dir string
 
-	QuantizedDrag bool
-
 	CoplanarEdges bool
 
 	UpAxis bool
@@ -28,7 +26,7 @@ type Scene struct {
 
 var Scenes = []Scene{
 
-	{Name: "ring", Dir: "topology", QuantizedDrag: false, CoplanarEdges: false, UpAxis: false, ClockDivisor: 1, DistanceGroups: true, Editable: true,
+	{Name: "ring", Dir: "topology", CoplanarEdges: false, UpAxis: false, ClockDivisor: 1, DistanceGroups: true, Editable: true,
 		Kinds: []string{
 			"Input", "Time", "TimeStart", "TimeEnd",
 			"Pulse", "PulseLeft", "PulseRight",
@@ -36,10 +34,10 @@ var Scenes = []Scene{
 			"HoldFlip", "Pacer",
 		}},
 
-	{Name: "pair", Dir: "topology-pair", QuantizedDrag: false, CoplanarEdges: true, UpAxis: true, ClockDivisor: 64, DistanceGroups: false, Editable: true, Kinds: []string{"PairNode", "NormalSum"}},
+	{Name: "pair", Dir: "topology-pair", CoplanarEdges: true, UpAxis: true, ClockDivisor: 64, DistanceGroups: false, Editable: true, Kinds: []string{"PairNode", "NormalSum"}},
 }
 
-var Unlisted = Scene{QuantizedDrag: true, ClockDivisor: 1}
+var Unlisted = Scene{ClockDivisor: 1}
 
 func Declared(path string) (Scene, bool) {
 	base := filepath.Base(filepath.Clean(path))

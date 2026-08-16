@@ -9,7 +9,7 @@
   to them — that is the whole mechanism. There is no solver, no constraint system, no
   enumeration across neighbours: each touching bead decides for itself
   (`nodes/Wiring/beadcrud/bead_crud.go`'s `BeadCrudDecide`, wired in `CommitNodeMoveLocal`,
-  `nodes/Wiring/layoutquant/commit_node_move.go`).
+  `nodes/Wiring/nodemove/commit_node_move.go`).
 
   The drag gives the node's own polar vector `v` (its previous position to its
   destination). Each touching bead has its own **source point** — the previous bead's
