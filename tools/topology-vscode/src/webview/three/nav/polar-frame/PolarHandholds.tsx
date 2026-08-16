@@ -1,4 +1,4 @@
-import { HANDHOLD_TERM_TAG, PHI_CIRCLES, THETA_CIRCLES } from "./polar-frame-data";
+import { HANDHOLD_TERM_TAG, PHI_CIRCLES, PHI_CIRCLES_THETA_HALF, THETA_CIRCLES } from "./polar-frame-data";
 
 export function PolarHandholds({ arcR, arcHH, hhR }: {
   arcR: number; arcHH: number; hhR: number;
@@ -27,6 +27,16 @@ export function PolarHandholds({ arcR, arcHH, hhR }: {
         <mesh
           key={`ph-${p.n}`}
           position={[p.sx * arcHH, 0, p.sz * arcHH]}
+          userData={{ [HANDHOLD_TERM_TAG]: true }}
+        >
+          <sphereGeometry args={[hhR, 12, 12]} />
+          <meshStandardMaterial color="#cc8844" emissive="#cc8844" emissiveIntensity={0.6} />
+        </mesh>
+      ))}
+      {PHI_CIRCLES_THETA_HALF.map((m) => (
+        <mesh
+          key={`mh-${m.n}`}
+          position={[0, m.sy * arcHH, m.sz * arcHH]}
           userData={{ [HANDHOLD_TERM_TAG]: true }}
         >
           <sphereGeometry args={[hhR, 12, 12]} />
