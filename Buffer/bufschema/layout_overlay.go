@@ -18,6 +18,8 @@ type bufLayoutOverlay struct {
 
 	RuleChannels uint8 `buf:"u8"`
 
+	NodePoleSphere uint8 `buf:"u8"`
+
 	DragNodeRow int32 `buf:"i32"`
 
 	EditRefused uint32 `buf:"u32"`

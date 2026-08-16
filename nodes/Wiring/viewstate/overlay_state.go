@@ -14,19 +14,20 @@ import (
 // flip/emit logic. Owned by UIState (ui.OV); Wiring's stdin reader's OverlayToggles
 // method-expression table binds these methods directly.
 type OverlayState struct {
-	SceneToriVisible     bool
-	ScenePolesVisible    bool
-	NodePolesVisible     bool
-	HandholdsVisible     bool
-	LabelsGlobalVisible  bool
-	OverlaysVisible      bool
-	NodeBodyVisible      bool
-	NodeRingVisible      bool
-	RingPickVisible      bool
-	SelectionRingVisible bool
-	HoverRingVisible     bool
-	SceneVectorsVisible  bool
-	RuleChannelsVisible  bool
+	SceneToriVisible      bool
+	ScenePolesVisible     bool
+	NodePolesVisible      bool
+	HandholdsVisible      bool
+	LabelsGlobalVisible   bool
+	OverlaysVisible       bool
+	NodeBodyVisible       bool
+	NodeRingVisible       bool
+	RingPickVisible       bool
+	SelectionRingVisible  bool
+	HoverRingVisible      bool
+	SceneVectorsVisible   bool
+	RuleChannelsVisible   bool
+	NodePoleSphereVisible bool
 }
 
 // setFlag flips *field. Shared body of the uniform Toggle* methods. The RowEvent
@@ -101,6 +102,11 @@ func (o *OverlayState) ToggleSceneVectors(tr *T.Trace) {
 // ToggleRuleChannels flips RuleChannelsVisible.
 func (o *OverlayState) ToggleRuleChannels(tr *T.Trace) {
 	o.setFlag(&o.RuleChannelsVisible)
+}
+
+// ToggleNodePoleSphere flips NodePoleSphereVisible.
+func (o *OverlayState) ToggleNodePoleSphere(tr *T.Trace) {
+	o.setFlag(&o.NodePoleSphereVisible)
 }
 
 // SetGuideVisibility installs an explicit-visibility snapshot wholesale (the TS

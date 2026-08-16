@@ -7,7 +7,7 @@ import {
   readNodeVRX, readNodeVRY, readNodeVRZ,
   readNodeFRX, readNodeFRY, readNodeFRZ,
   readNodeSRX, readNodeSRY, readNodeSRZ,
-  readOverlayNodePoles,
+  readOverlayNodePoleSphere,
 } from "../../../../schema/buffer-layout/buffer-layout";
 import { overlayOn } from "../../controls/flags/overlay-flags";
 import { nodeRowColors } from "../buffer-scene-shared";
@@ -104,7 +104,7 @@ export function PoleRings() {
     const decoded = getNodeFrame();
     const next: PoleRing[] = [];
 
-    if (decoded && overlayOn(readOverlayNodePoles)) {
+    if (decoded && overlayOn(readOverlayNodePoleSphere)) {
       const { nodeCount, nodeView } = decoded;
 
       let selectedRow = -1;
