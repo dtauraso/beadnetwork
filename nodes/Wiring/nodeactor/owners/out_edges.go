@@ -106,7 +106,7 @@ func (o *OutEdges) AddOutEdge(label string, edgeRow int32, targetID, targetKind 
 	e.out = w
 }
 
-func (o *OutEdges) DeriveGeometry(tick int64, self nodegeom.NodeGeom, deltas *Deltas) {
+func (o *OutEdges) DeriveGeometry(self nodegeom.NodeGeom, deltas *Deltas) {
 	if !self.HasPos {
 		return
 	}
@@ -136,10 +136,10 @@ func (o *OutEdges) DeriveGeometry(tick int64, self nodegeom.NodeGeom, deltas *De
 		e.deltaR = float32(d.R) * float32(o.constants.ConstantR)
 
 		if e.port != nil {
-			e.port.SetGeom(e.steps, start, end)
+			e.port.PostGeom(e.steps, start, end)
 		}
 		if e.dest != nil {
-			e.dest.ReviseInFlightGeometry(tick, e.steps, spatial.WireSegment{Start: start, End: end})
+			e.dest.PostGeom(e.steps, spatial.WireSegment{Start: start, End: end})
 		}
 		if dragDelta, ok := deltas.DragDeltaTo(e.targetID); ok {
 			o.persistDelta(e, dragDelta)

@@ -26,6 +26,8 @@ type Out struct {
 
 	sendCur outGeom
 
+	postedGeom chan outGeom
+
 	EdgeLabel string
 
 	Rule SendRule
@@ -39,14 +41,33 @@ func (o *Out) Geom() outGeom {
 	if o == nil {
 		return outGeom{}
 	}
+	o.applyPostedGeom()
 	return o.sendCur
 }
 
-func (o *Out) SetGeom(steps int, start, end spatial.Vec3) {
-	if o == nil {
+func (o *Out) PostGeom(steps int, start, end spatial.Vec3) {
+	if o == nil || o.postedGeom == nil {
 		return
 	}
-	o.sendCur = outGeom{Steps: steps, Start: start, End: end}
+	select {
+	case <-o.postedGeom:
+	default:
+	}
+	select {
+	case o.postedGeom <- outGeom{Steps: steps, Start: start, End: end}:
+	default:
+	}
+}
+
+func (o *Out) applyPostedGeom() {
+	if o.postedGeom == nil {
+		return
+	}
+	select {
+	case g := <-o.postedGeom:
+		o.sendCur = g
+	default:
+	}
 }
 
 func (o *Out) placement() wire.BeadPlacement {

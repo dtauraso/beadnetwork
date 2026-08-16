@@ -65,68 +65,95 @@ func (p *PairNodeSelf) Step(ctx context.Context, tick int64) {
 	g := p.geom
 	g.clocks.ApplySpeed(p.speedCh)
 
-	for {
-		progressed, cancelled := g.msg.DrainPending(ctx, g.take)
-		if cancelled {
-			return
-		}
-		if !progressed {
-			break
-		}
-	}
-	g.msg.FlushPending()
-
-	g.drainRuleMesh()
-
-	g.deriveOutEdgeGeometry(tick)
+	g.beads.ApplyBeadDrag()
 
 	g.anim.driveOutWires(ctx, tick)
 
-	g.writeStreamFrame(g.drainSelfEvents())
-	g.writeOutEdgeFrames(tick)
 	g.writeInteriorFrames()
+}
+
+func (g *NodeGeometry) RunGeometry(ctx context.Context) {
+	if g == nil {
+		return
+	}
+	clk := clock.NewRealClock()
+
+	for {
+		if ctx.Err() != nil {
+			return
+		}
+
+		for {
+			progressed, cancelled := g.msg.DrainPending(ctx, g.take)
+			if cancelled {
+				return
+			}
+			if !progressed {
+				break
+			}
+		}
+
+		g.applyKindPosts()
+
+		g.drainRuleMesh()
+
+		g.deriveOutEdgeGeometry()
+
+		g.writeStreamFrame(g.drainSelfEvents())
+		g.writeOutEdgeFrames(clk.Tick())
+
+		if err := clk.SleepPulse(ctx); err != nil {
+			return
+		}
+	}
 }
 
 func (p *PairNodeSelf) SetTiltIndex(theta, normalTheta, bottomTheta int32) {
 	if p == nil || p.geom == nil {
 		return
 	}
-	g := p.geom
-	g.tilt.SetTiltIndex(theta, normalTheta, bottomTheta)
-	g.persistTiltVectorAngle()
-	if g.tr != nil {
-		g.emitGeometry()
-	}
+	p.geom.kindPosts.PostTiltIndex(theta, normalTheta, bottomTheta)
 }
 
 func (p *PairNodeSelf) SetRoundsToParallel(rounds, msgs int32) {
 	if p == nil || p.geom == nil {
 		return
 	}
-	g := p.geom
-	g.readout.SetRoundsToParallel(rounds, msgs)
-	if g.tr != nil {
-		g.emitGeometry()
-	}
+	p.geom.kindPosts.PostRoundsToParallel(rounds, msgs)
 }
 
 func (p *PairNodeSelf) SetReceivedVector(theta int32, set bool) {
 	if p == nil || p.geom == nil {
 		return
 	}
-	g := p.geom
-	g.tilt.SetReceivedVector(theta, set)
-	if g.tr != nil {
-		g.emitGeometry()
-	}
+	p.geom.kindPosts.PostReceivedVector(theta, set)
 }
 
 func (p *PairNodeSelf) SetLatticePoints(points int32) {
 	if p == nil || p.geom == nil {
 		return
 	}
-	g := p.geom
-	g.tilt.SetLatticePoints(points)
+	p.geom.kindPosts.PostLatticePoints(points)
+}
+
+func (g *NodeGeometry) applyKindPosts() {
+	p, ok := g.kindPosts.Take()
+	if !ok {
+		return
+	}
+	if p.Tilt != nil {
+		g.tilt.SetTiltIndex(p.Tilt.Theta, p.Tilt.NormalTheta, p.Tilt.BottomTheta)
+		g.persistTiltVectorAngle()
+	}
+	if p.Received != nil {
+		g.tilt.SetReceivedVector(p.Received.Theta, p.Received.Set)
+	}
+	if p.Rounds != nil {
+		g.readout.SetRoundsToParallel(p.Rounds.Rounds, p.Rounds.Msgs)
+	}
+	if p.Lattice != nil {
+		g.tilt.SetLatticePoints(*p.Lattice)
+	}
 	if g.tr != nil {
 		g.emitGeometry()
 	}

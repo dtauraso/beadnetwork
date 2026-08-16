@@ -10,6 +10,8 @@ import (
 type Beads struct {
 	beadTickFn func() *time.Ticker
 	beadChains map[string]*BeadChain
+
+	dragToAnim chan bool
 }
 
 type BeadChain struct {
@@ -109,14 +111,32 @@ func (nb *Beads) ReconcileBeadChain(to string, count int, offsetAt func(i int) f
 	return c
 }
 
-func (nb *Beads) StartBeadDrag() {
-	for _, c := range nb.beadChains {
-		c.group.StartDrag()
+func (nb *Beads) PostBeadDrag(start bool) {
+	if nb.dragToAnim == nil {
+		nb.dragToAnim = make(chan bool, inboxDepth)
+	}
+	select {
+	case nb.dragToAnim <- start:
+	default:
+		panic("owners.Beads: bead-drag inbox full — a drag start/end is one event per human drag, " +
+			"so a full queue means this node's animation goroutine has stopped running, " +
+			"not that drags arrived too fast")
 	}
 }
 
-func (nb *Beads) EndBeadDrag() {
-	for _, c := range nb.beadChains {
-		c.group.EndDrag()
+func (nb *Beads) ApplyBeadDrag() {
+	for {
+		select {
+		case start := <-nb.dragToAnim:
+			for _, c := range nb.beadChains {
+				if start {
+					c.group.StartDrag()
+				} else {
+					c.group.EndDrag()
+				}
+			}
+		default:
+			return
+		}
 	}
 }

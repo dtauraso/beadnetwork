@@ -16,7 +16,7 @@ import (
 )
 
 func (m *NodeGeometry) WireMessaging(
-	resolveDest func(id string) (func(movemsg.Msg) bool, bool),
+	resolveDest func(id string) (owners.Deposit, bool),
 	sendMove func(id string, msg movemsg.Msg),
 	commitLocal func(id string, idx polarindex.Index),
 ) {
@@ -84,8 +84,8 @@ func (m *NodeGeometry) WireOutEdgeStream(label string, edgeRow int32, targetID, 
 	m.outEdges.AddOutEdge(label, edgeRow, targetID, targetKind, w, nodeRow, dstNodeRow, buildFrame)
 }
 
-func (m *NodeGeometry) deriveOutEdgeGeometry(tick int64) {
-	m.outEdges.DeriveGeometry(tick, m.geom, &m.deltas)
+func (m *NodeGeometry) deriveOutEdgeGeometry() {
+	m.outEdges.DeriveGeometry(m.geom, &m.deltas)
 }
 
 func (m *NodeGeometry) writeOutEdgeFrames(tick int64) {

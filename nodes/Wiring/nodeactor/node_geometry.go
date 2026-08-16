@@ -53,6 +53,8 @@ type NodeGeometry struct {
 
 	interior owners.Interior
 
+	kindPosts owners.KindPosts
+
 	rule rulenode.Link
 }
 
@@ -66,14 +68,14 @@ func NewNodeGeometry(id string, geom nodegeom.NodeGeom, tr *T.Trace, clockSrc cl
 		id: id, geom: geom, tr: tr,
 		msg: owners.NewMessaging(
 			make(chan movemsg.Msg, inboxDepth),
-			map[string]chan movemsg.Msg{},
 			make(chan vec3, 1),
 		),
-		topo:   owners.NewTopology(),
-		deltas: owners.NewDeltas(),
-		clocks: owners.NewClocks(clockSrc, clock.NewRealClock()),
-		tilt:   owners.NewTilt(tiltvector.FullTurnPhiIdx),
-		anim:   anim,
+		topo:      owners.NewTopology(),
+		deltas:    owners.NewDeltas(),
+		clocks:    owners.NewClocks(clockSrc, clock.NewRealClock()),
+		tilt:      owners.NewTilt(tiltvector.FullTurnPhiIdx),
+		anim:      anim,
+		kindPosts: owners.NewKindPosts(),
 	}
 
 	ng.msg.SeedCenter(nodegeom.NodeWorldPos(geom))

@@ -5,8 +5,8 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/edgetable"
 	geomseeds "github.com/dtauraso/wirefold/nodes/Wiring/geomseeds"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
-	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/owners"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/polarindex"
 	"github.com/dtauraso/wirefold/nodes/Wiring/rulenode"
@@ -18,10 +18,10 @@ func (md *MoveDispatch) buildNodeMovers(geoms map[string]nodegeom.NodeGeom, tr *
 		ng := nodeactor.NewNodeGeometry(id, g, tr, clk, constants)
 
 		selfID := id
-		resolveDest := func(destID string) (func(movemsg.Msg) bool, bool) {
+		resolveDest := func(destID string) (owners.Deposit, bool) {
 
 			if other, ok := md.MR.NodeGeoms()[destID]; ok {
-				return other.NeighborTrySend(selfID)
+				return other.NeighborDeposit(selfID)
 			}
 			return nil, false
 		}
