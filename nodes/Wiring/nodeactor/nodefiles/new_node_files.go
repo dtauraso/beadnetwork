@@ -58,14 +58,35 @@ func WriteDragRule(root, id string, rule *polar.DragRule) error {
 }
 
 type ruleActiveFile struct {
-	Active     bool  `json:"active"`
-	KindActive *bool `json:"kindActive,omitempty"`
+	Active     bool            `json:"active"`
+	KindActive *bool           `json:"kindActive,omitempty"`
+	EdgeActive map[string]bool `json:"edgeActive,omitempty"`
 }
 
 func WriteKindRuleActive(root, id string, active bool) error {
 	return jsonpersist.ReadModifyWriteJSON(nodeRuleActiveFilePath(root, id), func(m map[string]any) {
 		m["kindActive"] = active
 	})
+}
+
+func WriteEdgeRuleActive(root, id, target string, active bool) error {
+	return jsonpersist.ReadModifyWriteJSON(nodeRuleActiveFilePath(root, id), func(m map[string]any) {
+		edges, _ := m["edgeActive"].(map[string]any)
+		if edges == nil {
+			edges = map[string]any{}
+		}
+		edges[target] = active
+		m["edgeActive"] = edges
+	})
+}
+
+func LoadEdgeRuleActive(root, id, target string) bool {
+	var f ruleActiveFile
+	if !jsonpersist.ReadJSONIfExists(nodeRuleActiveFilePath(root, id), &f) {
+		return true
+	}
+	active, stored := f.EdgeActive[target]
+	return !stored || active
 }
 
 func LoadKindRuleActive(root, id string) bool {
@@ -80,7 +101,9 @@ func LoadKindRuleActive(root, id string) bool {
 }
 
 func WriteDragActive(root, id string, active bool) error {
-	return jsonpersist.WriteJSONAtomic(nodeRuleActiveFilePath(root, id), ruleActiveFile{Active: active})
+	return jsonpersist.ReadModifyWriteJSON(nodeRuleActiveFilePath(root, id), func(m map[string]any) {
+		m["active"] = active
+	})
 }
 
 func LoadDragActive(root, id string) bool {
