@@ -48,7 +48,7 @@ func (m *NodeGeometry) takeNeighborMove(msg movemsg.Msg) {
 		m.deltas.ShiftOtherBy(msg.SenderID, *msg.Delta)
 	}
 	if msg.Center != nil {
-		idx := polarindex.MeasureIndex(polar.Cart2polarInPlane(msg.Center.Sub(m.SceneCenter()), m.ScenePolar().Theta), m.Constants())
+		idx := polarindex.MeasureIndex(polar.Cart2polarAtTheta(msg.Center.Sub(m.SceneCenter()), m.ScenePolar().Theta), m.Constants())
 		m.ApplyCenter(idx)
 		return
 	}
