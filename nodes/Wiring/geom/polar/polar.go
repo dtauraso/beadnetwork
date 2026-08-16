@@ -58,5 +58,5 @@ func Cart2polar(v vec3) Polar {
 
 func Cart2polarInPlane(v vec3, theta float64) Polar {
 	axial := v.X*math.Cos(theta) + v.Z*math.Sin(theta)
-	return Polar{R: v.Length(), Phi: math.Atan2(axial, v.Y), Theta: theta}
+	return Polar{R: math.Hypot(axial, v.Y), Phi: math.Atan2(axial, v.Y), Theta: theta}
 }
