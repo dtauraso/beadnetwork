@@ -7,6 +7,7 @@ import {
 } from "../../../../schema/input/input-encode";
 import { type NodeRuleRow } from "../flags/node-rules";
 import { ComponentLine } from "./NodeRuleBlocks";
+import { formatPi, formatPiDraft, parsePiDraft } from "./pi-fraction";
 
 export function SelfThetaLine({ rule }: { rule: NodeRuleRow }) {
   const [draft, setDraft] = useState<string | null>(null);
@@ -26,7 +27,7 @@ export function SelfThetaLine({ rule }: { rule: NodeRuleRow }) {
               return;
             }
             if (e.key !== "Enter") return;
-            const turns = Number.parseFloat(draft);
+            const turns = parsePiDraft(draft);
             if (Number.isFinite(turns)) postGoRecord(encodeNodeSelfDragMaxTheta(rule.row, turns));
             setDraft(null);
           }}
@@ -39,18 +40,18 @@ export function SelfThetaLine({ rule }: { rule: NodeRuleRow }) {
   if (rule.selfMaxThetaPi === null) {
     return (
       <ComponentLine glyph="θ" free>
-        <button className="node-rules-edit" onClick={() => setDraft("0.5")}>
+        <button className="node-rules-edit" onClick={() => setDraft("1/2")}>
           free
         </button>
       </ComponentLine>
     );
   }
 
-  const turns = Math.round(rule.selfMaxThetaPi * 1000) / 1000;
+  const span = formatPi(rule.selfMaxThetaPi);
   return (
     <ComponentLine glyph="θ">
-      <button className="node-rules-edit" onClick={() => setDraft(String(turns))}>
-        ∈ [−{turns}π, +{turns}π]
+      <button className="node-rules-edit" onClick={() => setDraft(formatPiDraft(rule.selfMaxThetaPi!))}>
+        ∈ [−{span}, +{span}]
       </button>
     </ComponentLine>
   );
