@@ -68,6 +68,8 @@ func (m *NodeGeometry) ScenePolar() polar.Polar { return nodegeom.ScenePolarOf(m
 
 func (m *NodeGeometry) ComposedIndex() polarindex.Index { return nodegeom.ComposedIndexOf(m.geom) }
 
+func (m *NodeGeometry) BaseIndex() polarindex.Index { return m.geom.BaseIndex }
+
 func (m *NodeGeometry) Constants() polarindex.SceneConstants { return m.geom.SceneConstants }
 
 func (m *NodeGeometry) SceneCenter() vec3 { return m.geom.SceneCenter }
