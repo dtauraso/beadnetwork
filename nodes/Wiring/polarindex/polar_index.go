@@ -46,15 +46,10 @@ func Canonical(o Index, sc SceneConstants) Index {
 	if turnPhi == 0 || turnTheta == 0 {
 		return o
 	}
-	halfPhi, halfTheta := turnPhi/2, turnTheta/2
+	halfTheta := turnTheta / 2
 
 	phi := ((o.Phi % turnPhi) + turnPhi) % turnPhi
-	theta := o.Theta
-	if phi > halfPhi {
-		phi = turnPhi - phi
-		theta += halfTheta
-	}
-	theta = ((theta+halfTheta)%turnTheta+turnTheta)%turnTheta - halfTheta
+	theta := ((o.Theta+halfTheta)%turnTheta+turnTheta)%turnTheta - halfTheta
 	return Index{Phi: phi, Theta: theta, R: o.R}
 }
 
