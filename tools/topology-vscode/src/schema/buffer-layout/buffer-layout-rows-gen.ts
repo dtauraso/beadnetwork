@@ -55,17 +55,14 @@ export const NODE_COL_DRAG_THETA_MAX             = 175; // f32
 export const NODE_COL_DRAG_ACTIVE                = 179; // u8
 export const NODE_COL_HAS_KIND_RULE              = 180; // u8
 export const NODE_COL_KIND_RULE_ACTIVE           = 181; // u8
-export const NODE_COL_SRX                        = 182; // f32
-export const NODE_COL_SRY                        = 186; // f32
-export const NODE_COL_SRZ                        = 190; // f32
-export const NODE_COL_POLE_RING_R                = 194; // f32
-export const NODE_COL_SELF_RLOCKED               = 198; // u8
-export const NODE_COL_SELF_PHI_LOCKED            = 199; // u8
-export const NODE_COL_SELF_THETA_MAX             = 200; // f32
-export const NODE_COL_SELF_ACTIVE                = 204; // u8
-export const NODE_COL_RULE_GROUP_ID              = 205; // i32
-export const NODE_COL_RULE_GROUP_SIZE            = 209; // i32
-export const NODE_STRIDE                         = 213;
+export const NODE_COL_POLE_RING_R                = 182; // f32
+export const NODE_COL_SELF_RLOCKED               = 186; // u8
+export const NODE_COL_SELF_PHI_LOCKED            = 187; // u8
+export const NODE_COL_SELF_THETA_MAX             = 188; // f32
+export const NODE_COL_SELF_ACTIVE                = 192; // u8
+export const NODE_COL_RULE_GROUP_ID              = 193; // i32
+export const NODE_COL_RULE_GROUP_SIZE            = 197; // i32
+export const NODE_STRIDE                         = 201;
 
 export function readNodeNodeId(view: DataView, row: number): number { return view.getInt32(row * NODE_STRIDE + NODE_COL_NODE_ID, true); }
 export function readNodeCX(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_CX, true); }
@@ -120,9 +117,6 @@ export function readNodeDragThetaMax(view: DataView, row: number): number { retu
 export function readNodeDragActive(view: DataView, row: number): number { return view.getUint8(row * NODE_STRIDE + NODE_COL_DRAG_ACTIVE); }
 export function readNodeHasKindRule(view: DataView, row: number): number { return view.getUint8(row * NODE_STRIDE + NODE_COL_HAS_KIND_RULE); }
 export function readNodeKindRuleActive(view: DataView, row: number): number { return view.getUint8(row * NODE_STRIDE + NODE_COL_KIND_RULE_ACTIVE); }
-export function readNodeSRX(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_SRX, true); }
-export function readNodeSRY(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_SRY, true); }
-export function readNodeSRZ(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_SRZ, true); }
 export function readNodePoleRingR(view: DataView, row: number): number { return view.getFloat32(row * NODE_STRIDE + NODE_COL_POLE_RING_R, true); }
 export function readNodeSelfRLocked(view: DataView, row: number): number { return view.getUint8(row * NODE_STRIDE + NODE_COL_SELF_RLOCKED); }
 export function readNodeSelfPhiLocked(view: DataView, row: number): number { return view.getUint8(row * NODE_STRIDE + NODE_COL_SELF_PHI_LOCKED); }

@@ -5,7 +5,7 @@ import { polarToCart } from "../polar-convert";
 import {
   readNodeCX, readNodeCY, readNodeCZ,
   readNodeRadius, readNodeSelected, readNodeLatchedSel,
-  readNodePolePhi, readNodePoleTheta,
+  readNodePolePhi, readNodePoleTheta, readNodePoleRingR,
   readSceneCX, readSceneCY, readSceneCZ, readSceneRadius,
 } from "../../../schema/buffer-layout/buffer-layout";
 
@@ -22,6 +22,8 @@ export interface NavNode {
   latchedSel: boolean;
 
   pole: THREE.Vector3;
+
+  poleRingR: number;
 }
 
 function poleVec(phi: number, theta: number): THREE.Vector3 {
@@ -45,6 +47,7 @@ export function decodeNavNodes(decoded: DecodedNodeFrame): NavNode[] {
       selected: readNodeSelected(nodeView, i) !== 0,
       latchedSel: readNodeLatchedSel(nodeView, i) !== 0,
       pole: poleVec(readNodePolePhi(nodeView, i), readNodePoleTheta(nodeView, i)),
+      poleRingR: readNodePoleRingR(nodeView, i),
     });
   }
   return out;
