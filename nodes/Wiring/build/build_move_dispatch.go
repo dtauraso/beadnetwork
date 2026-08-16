@@ -35,7 +35,6 @@ func (b *buildCtx) buildMoveDispatch() error {
 	}
 
 	s := scene.For(b.scenePath)
-	md.LQ.QuantizedLayout = s.QuantizedDrag
 
 	coplanarEdges := s.CoplanarEdges
 	upAxis := s.UpAxis

@@ -27,7 +27,7 @@ func (md *MoveDispatch) buildNodeMovers(geoms map[string]nodegeom.NodeGeom, tr *
 		}
 		ownGeom := ng
 		commitLocal := func(_ string, idx polarindex.Index) {
-			md.LQ.CommitNodeMoveLocal(md.MR.NodeGeoms(), md.MR.Edges(), ownGeom, idx)
+			md.Mover.CommitNodeMoveLocal(md.MR.NodeGeoms(), md.MR.Edges(), ownGeom, idx)
 		}
 		ng.WireMessaging(resolveDest, md.MR.EnqueueFor(ng), commitLocal)
 		md.MR.NodeGeoms()[id] = ng

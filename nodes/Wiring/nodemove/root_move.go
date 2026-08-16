@@ -1,4 +1,4 @@
-package layoutquant
+package nodemove
 
 import (
 	"context"
@@ -10,9 +10,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/spatial"
 )
 
-type LayoutQuantizer struct {
-	QuantizedLayout bool
-}
+type NodeMover struct{}
 
 func HeldCenters(nodeGeoms map[string]*nodeactor.NodeGeometry, centerOf func(id string) (spatial.Vec3, bool)) map[string]spatial.Vec3 {
 	out := make(map[string]spatial.Vec3, len(nodeGeoms))
@@ -24,7 +22,7 @@ func HeldCenters(nodeGeoms map[string]*nodeactor.NodeGeometry, centerOf func(id 
 	return out
 }
 
-func (lq *LayoutQuantizer) RootMove(ctx context.Context, nodeGeoms map[string]*nodeactor.NodeGeometry, nodeID string, target spatial.Vec3) bool {
+func (mv *NodeMover) RootMove(ctx context.Context, nodeGeoms map[string]*nodeactor.NodeGeometry, nodeID string, target spatial.Vec3) bool {
 	nm, ok := nodeGeoms[nodeID]
 	if !ok {
 		return false

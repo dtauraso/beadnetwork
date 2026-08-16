@@ -1,4 +1,4 @@
-package layoutquant
+package nodemove
 
 import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/edgetable"
@@ -8,7 +8,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/spatial"
 )
 
-func (lq *LayoutQuantizer) CommitNodeMoveLocal(nodeGeoms map[string]*nodeactor.NodeGeometry, edgeTable map[string]*edgetable.Edge, nm *nodeactor.NodeGeometry, committedIdx polarindex.Index) {
+func (mv *NodeMover) CommitNodeMoveLocal(nodeGeoms map[string]*nodeactor.NodeGeometry, edgeTable map[string]*edgetable.Edge, nm *nodeactor.NodeGeometry, committedIdx polarindex.Index) {
 	nodeID := nm.ID()
 
 	deltaIdx := polarindex.Delta(committedIdx, nm.ComposedIndex())

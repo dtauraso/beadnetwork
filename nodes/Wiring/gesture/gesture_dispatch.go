@@ -6,18 +6,18 @@ import (
 	T "github.com/dtauraso/wirefold/Trace"
 	"github.com/dtauraso/wirefold/nodes/Wiring/gesturefsm"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
-	"github.com/dtauraso/wirefold/nodes/Wiring/layoutquant"
 	"github.com/dtauraso/wirefold/nodes/Wiring/moverreg"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodemove"
 	"github.com/dtauraso/wirefold/nodes/Wiring/rowtables"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
 )
 
 type Deps struct {
-	MR  *moverreg.MoverRegistry
-	UI  *viewstate.UIState
-	LQ  *layoutquant.LayoutQuantizer
-	RT  *rowtables.RowTables
-	Ctx context.Context
+	MR    *moverreg.MoverRegistry
+	UI    *viewstate.UIState
+	Mover *nodemove.NodeMover
+	RT    *rowtables.RowTables
+	Ctx   context.Context
 }
 
 func HandleRawInput(d Deps, ev inputcodec.RawInputMsg, slotReg inputcodec.SlotRegistry, tr *T.Trace) {

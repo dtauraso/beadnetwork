@@ -7,12 +7,12 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/camera"
 	"github.com/dtauraso/wirefold/nodes/Wiring/gesturefsm"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
-	"github.com/dtauraso/wirefold/nodes/Wiring/layoutquant"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodemove"
 )
 
 func gestHome(d Deps, ev inputcodec.RawInputMsg, tr *T.Trace) {
-	centers := layoutquant.HeldCenters(d.MR.NodeGeoms(), d.MR.CenterOfNode)
+	centers := nodemove.HeldCenters(d.MR.NodeGeoms(), d.MR.CenterOfNode)
 	radius := make(map[string]float64, len(centers))
 	for id := range centers {
 		radius[id] = d.MR.NodeBodyRadius(id)
@@ -70,8 +70,8 @@ func gestPointerUp(d Deps, ev inputcodec.RawInputMsg) {
 	g := &d.UI.Gest
 	switch {
 	case g.Phase == gesturefsm.GestDragging:
-		nodeGeoms, lq, ctx := d.MR.NodeGeoms(), d.LQ, d.Ctx
-		applyNodeDragTarget(d.UI, func(id string, target vec3) bool { return lq.RootMove(ctx, nodeGeoms, id, target) }, ev)
+		nodeGeoms, mv, ctx := d.MR.NodeGeoms(), d.Mover, d.Ctx
+		applyNodeDragTarget(d.UI, func(id string, target vec3) bool { return mv.RootMove(ctx, nodeGeoms, id, target) }, ev)
 	case g.Phase == gesturefsm.GestHandhold, g.Phase == gesturefsm.GestRotating:
 
 	case g.Phase == gesturefsm.GestPending:
@@ -95,7 +95,7 @@ func gestPointerUp(d Deps, ev inputcodec.RawInputMsg) {
 func gestWheel(d Deps, ev inputcodec.RawInputMsg, tr *T.Trace) {
 	vp := d.UI.VP.Viewpoint
 	eye := camera.EyeOf(vp)
-	pivot := camera.RegionFocus(vp, layoutquant.HeldCenters(d.MR.NodeGeoms(), d.MR.CenterOfNode))
+	pivot := camera.RegionFocus(vp, nodemove.HeldCenters(d.MR.NodeGeoms(), d.MR.CenterOfNode))
 
 	if ev.Ctrl {
 
@@ -104,7 +104,7 @@ func gestWheel(d Deps, ev inputcodec.RawInputMsg, tr *T.Trace) {
 		aspect := d.UI.Gest.Rect.Aspect()
 		target := pivot
 		best := math.Inf(1)
-		for _, c := range layoutquant.HeldCenters(d.MR.NodeGeoms(), d.MR.CenterOfNode) {
+		for _, c := range nodemove.HeldCenters(d.MR.NodeGeoms(), d.MR.CenterOfNode) {
 			nx, ny, inFront := camera.ProjectNDC(c, eye, basis, ev.Fov, aspect)
 			if !inFront {
 				continue
