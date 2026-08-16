@@ -4,6 +4,7 @@ import {
   encodeNodeSelfDragPhiToggle,
   encodeNodeSelfDragMaxTheta,
   encodeNodeSelfDragActiveToggle,
+  encodeNodeSelfDragRToggle,
 } from "../../../../schema/input/input-encode";
 import { type NodeRuleRow } from "../flags/node-rules";
 import { ComponentLine } from "./NodeRuleBlocks";
@@ -70,8 +71,13 @@ export function SelfBlock({ rule }: { rule: NodeRuleRow }) {
         {rule.label} <span className="node-rules-node">itself</span>
       </div>
       <div className="node-rules-components">
-        <ComponentLine glyph="r" free={!rule.hasSelfRule}>
-          {rule.hasSelfRule ? "r held" : "free"}
+        <ComponentLine glyph="r" free={!rule.selfRLocked}>
+          <button
+            className="node-rules-edit"
+            onClick={() => postGoRecord(encodeNodeSelfDragRToggle(rule.row))}
+          >
+            {rule.selfRLocked ? "held" : "free"}
+          </button>
         </ComponentLine>
         <ComponentLine glyph="φ" free={!rule.selfPhiLocked}>
           <button

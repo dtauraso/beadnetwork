@@ -72,6 +72,8 @@ type EditMsg =
   | { type: "edit"; op: "update"; kind: "node"; attr: "selfDragPhi"; row: number }
   | { type: "edit"; op: "update"; kind: "node"; attr: "selfDragMaxTheta"; row: number; piMultiple: number }
   | { type: "edit"; op: "update"; kind: "node"; attr: "selfDragActive"; row: number }
+  | { type: "edit"; op: "update"; kind: "node"; attr: "dragR"; row: number }
+  | { type: "edit"; op: "update"; kind: "node"; attr: "selfDragR"; row: number }
   | { type: "edit"; op: "update"; kind: "edge"; attr: "dragActive"; row: number };
 // EDIT_MSG_END
 

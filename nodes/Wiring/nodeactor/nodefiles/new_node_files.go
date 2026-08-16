@@ -47,6 +47,9 @@ func WriteDragRule(root, id string, rule *polar.DragRule) error {
 			return
 		}
 		drag := map[string]any{}
+		if rule.R != nil {
+			drag["r"] = *rule.R
+		}
 		if rule.Phi != nil {
 			drag["phi"] = *rule.Phi
 		}
@@ -108,6 +111,9 @@ func WriteSelfDragRule(root, id string, rule *polar.DragRule) error {
 			return
 		}
 		drag := map[string]any{}
+		if rule.R != nil {
+			drag["r"] = *rule.R
+		}
 		if rule.Phi != nil {
 			drag["phi"] = *rule.Phi
 		}

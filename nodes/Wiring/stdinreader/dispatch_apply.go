@@ -118,6 +118,12 @@ var nodeAttrHandlers = map[string]func(ctx context.Context, msg inputcodec.Stdin
 	"dragActive": func(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch) {
 		sendRuleEdit(ctx, md, msg.Num, rulenode.Edit{Kind: rulenode.EditActiveToggle})
 	},
+	"dragR": func(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch) {
+		sendRuleEdit(ctx, md, msg.Num, rulenode.Edit{Kind: rulenode.EditRToggle})
+	},
+	"selfDragR": func(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch) {
+		sendRuleEdit(ctx, md, msg.Num, rulenode.Edit{Kind: rulenode.EditSelfRToggle})
+	},
 	"selfDragPhi": func(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch) {
 		sendRuleEdit(ctx, md, msg.Num, rulenode.Edit{Kind: rulenode.EditSelfPhiToggle})
 	},

@@ -44,6 +44,8 @@ export function ruleRowsEqual(a: NodeRuleRow[], b: NodeRuleRow[]): boolean {
       ai.label !== bi.label ||
       ai.kind !== bi.kind ||
       ai.hasRule !== bi.hasRule ||
+      ai.rLocked !== bi.rLocked ||
+      ai.selfRLocked !== bi.selfRLocked ||
       ai.hasKindRule !== bi.hasKindRule ||
       ai.kindActive !== bi.kindActive ||
       ai.active !== bi.active ||

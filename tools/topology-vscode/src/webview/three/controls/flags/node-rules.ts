@@ -49,6 +49,8 @@ export interface NodeRuleRow {
 
   hasRule: boolean;
 
+  rLocked: boolean;
+
   hasKindRule: boolean;
 
   kindActive: boolean;
@@ -60,6 +62,8 @@ export interface NodeRuleRow {
   maxThetaPi: number | null;
 
   hasSelfRule: boolean;
+
+  selfRLocked: boolean;
 
   selfActive: boolean;
 
@@ -145,23 +149,29 @@ export function readNodeRuleRows(): NodeRuleRow[] | null {
 
   const next: NodeRuleRow[] = [];
   for (let row = 0; row < nodeCount; row++) {
-    const hasRule = !!readNodeDragRLocked(nodeView, row);
     const thetaMax = readNodeDragThetaMax(nodeView, row);
     const selfThetaMax = readNodeSelfThetaMax(nodeView, row);
+
+    const rLocked = !!readNodeDragRLocked(nodeView, row);
+    const phiLocked = !!readNodeDragPhiLocked(nodeView, row);
+    const selfRLocked = !!readNodeSelfRLocked(nodeView, row);
+    const selfPhiLocked = !!readNodeSelfPhiLocked(nodeView, row);
 
     next.push({
       row,
       label: nodeLabel(decoded, row),
       kind: kindNameFor(nodeView, row),
-      hasRule,
+      hasRule: rLocked || phiLocked || thetaMax >= 0,
+      rLocked,
       hasKindRule: !!readNodeHasKindRule(nodeView, row),
       kindActive: !!readNodeKindRuleActive(nodeView, row),
       active: !!readNodeDragActive(nodeView, row),
-      phiLocked: !!readNodeDragPhiLocked(nodeView, row),
+      phiLocked,
       maxThetaPi: thetaMax < 0 ? null : thetaMax * RAD_TO_PI,
-      hasSelfRule: !!readNodeSelfRLocked(nodeView, row),
+      hasSelfRule: selfRLocked || selfPhiLocked || selfThetaMax >= 0,
+      selfRLocked,
       selfActive: !!readNodeSelfActive(nodeView, row),
-      selfPhiLocked: !!readNodeSelfPhiLocked(nodeView, row),
+      selfPhiLocked,
       selfMaxThetaPi: selfThetaMax < 0 ? null : selfThetaMax * RAD_TO_PI,
       holders: byNode.get(row) ?? [],
       partners: partnerByNode.get(row) ?? [],

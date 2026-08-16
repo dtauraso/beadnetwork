@@ -16,6 +16,8 @@ import {
   IN_NODE_ATTR_SELF_DRAG_PHI,
   IN_NODE_ATTR_SELF_DRAG_MAX_THETA,
   IN_NODE_ATTR_SELF_DRAG_ACTIVE,
+  IN_NODE_ATTR_DRAG_R,
+  IN_NODE_ATTR_SELF_DRAG_R,
 } from "./input-attrs";
 import type { OverlayFlag, PanelFlag } from "../../messages";
 import { OVERLAY_FLAG_ORDER, PANEL_FLAG_ORDER } from "../../messages";
@@ -90,6 +92,24 @@ export function encodeNodeKindActiveToggle(nodeRow: number): ArrayBuffer {
   w.u8(IN_KIND_EDIT_UPDATE);
   w.u8(enumIndex(IN_UPDATE_KINDS, "node"));
   w.u8(IN_NODE_ATTR_KIND_ACTIVE);
+  w.u8(nodeRow);
+  return w.toArrayBuffer();
+}
+
+export function encodeNodeDragRToggle(nodeRow: number): ArrayBuffer {
+  const w = new ByteWriter();
+  w.u8(IN_KIND_EDIT_UPDATE);
+  w.u8(enumIndex(IN_UPDATE_KINDS, "node"));
+  w.u8(IN_NODE_ATTR_DRAG_R);
+  w.u8(nodeRow);
+  return w.toArrayBuffer();
+}
+
+export function encodeNodeSelfDragRToggle(nodeRow: number): ArrayBuffer {
+  const w = new ByteWriter();
+  w.u8(IN_KIND_EDIT_UPDATE);
+  w.u8(enumIndex(IN_UPDATE_KINDS, "node"));
+  w.u8(IN_NODE_ATTR_SELF_DRAG_R);
   w.u8(nodeRow);
   return w.toArrayBuffer();
 }
