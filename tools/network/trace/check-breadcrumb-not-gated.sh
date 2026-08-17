@@ -9,8 +9,8 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 cd "$REPO_ROOT"
 
 source "$SCRIPT_DIR/lib/gate-audit-common.sh"
-source "$SCRIPT_DIR/lib/check-edge-bead-gate.sh"
-source "$SCRIPT_DIR/lib/check-streams-active-gate.sh"
+source "$SCRIPT_DIR/lib/gate-edge-bead.sh"
+source "$SCRIPT_DIR/lib/gate-streams-active.sh"
 
 fail=0
 report=""

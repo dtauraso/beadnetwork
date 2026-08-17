@@ -6,7 +6,7 @@ import (
 )
 
 func (n *Node) adoptMachine(choice tiltvector.TiltMachine) {
-	if n.tilt.Machine != tiltring.Setting {
+	if n.tilt.Machine != tiltring.Unset() {
 		return
 	}
 	n.tilt.Machine = tiltring.MachineFor(choice)

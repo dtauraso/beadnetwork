@@ -21,12 +21,12 @@ func (m Machine) Choice() tiltvector.TiltMachine { return m.Mode }
 
 func (m Machine) String() string {
 	if m.Mode == tiltvector.TiltMachineNone {
-		return "setting"
+		return "unset"
 	}
 	return m.Mode.String()
 }
 
-var Setting = Machine{Mode: tiltvector.TiltMachineNone}
+func Unset() Machine { return Machine{Mode: tiltvector.TiltMachineNone} }
 
 var knownMachines = map[tiltvector.TiltMachine]bool{
 	tiltvector.TiltMachineNone:     true,

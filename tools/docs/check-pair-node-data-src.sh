@@ -7,13 +7,13 @@ REPO_ROOT="$(git rev-parse --show-toplevel)"
 cd "$REPO_ROOT"
 
 fail=0
-note() { echo "check-docs-symbols: $*" >&2; fail=1; }
+note() { echo "check-pair-node-data-src: $*" >&2; fail=1; }
 
 refs=$(grep -ho 'data-src="[^"]*"' docs/pair-node/*.html docs/pair-node/*/*.html docs/pair-node/*/*/*.html 2>/dev/null \
   | sed -E 's/^data-src="//; s/"$//' | sort -u)
 
 if [ -z "$refs" ]; then
-  echo "check-docs-symbols: MISCONFIGURED — no data-src attributes found; refusing to report success." >&2
+  echo "check-pair-node-data-src: MISCONFIGURED — no data-src attributes found; refusing to report success." >&2
   exit 1
 fi
 

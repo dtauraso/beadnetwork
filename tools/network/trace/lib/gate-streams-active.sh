@@ -1,10 +1,5 @@
 #!/usr/bin/env bash
 
-# Sourced by tools/network/trace/check-breadcrumb-not-gated.sh. Audits StreamsActive:
-# exactly two guarding uses (stepAll's KindEdgeBead append, emitArrive's KindArrive
-# append), neither mentioning breadcrumb, both tied to KindEdgeBead or KindArrive.
-# Reads/writes the caller's globals ($fail, $report) directly.
-
 check_streams_active_gate() {
   local IDENT2="StreamsActive"
 

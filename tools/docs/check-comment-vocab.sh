@@ -56,8 +56,6 @@ readonly DEAD_COMMENT_TOKENS=(
   "reads topology.json"
   "topology/edges/"
 
-  "discovered by reflectPorts"
-
   "falls back to the legacy scene.json"
   "falls back to legacyScenePath"
   "tries camera.json first and falls back"
