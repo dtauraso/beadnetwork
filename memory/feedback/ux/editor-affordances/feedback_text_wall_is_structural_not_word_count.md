@@ -5,7 +5,7 @@ metadata:
   type: feedback
 ---
 
-When the user flags a "text wall" in the spec doc (`docs/go-authoritative-clock/index.html`), do NOT rely on a word-count threshold scan — a >40-word scan returned "0 blocks" yet real walls remained under 40 words. A wall is a dense run-on packing several distinct claims (multiple `;`/`—` separators), typically a `<li>`/`<td>` that does NOT lead with `<strong>`.
+When the user flags a "text wall" in an HTML doc page (first seen in the since-deleted `docs/go-authoritative-clock/` spec), do NOT rely on a word-count threshold scan — a >40-word scan returned "0 blocks" yet real walls remained under 40 words. A wall is a dense run-on packing several distinct claims (multiple `;`/`—` separators), typically a `<li>`/`<td>` that does NOT lead with `<strong>`.
 
 **Why:** the doc's concise pattern leads each bullet with `<strong>lead</strong> — tight claim` (file-refs in `--ts-hue`/`--go-hue` mono spans); walls are the inverse, and many sit just under the 40-word line.
 

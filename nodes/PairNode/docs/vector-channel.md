@@ -46,6 +46,6 @@ loop body) runs:
   own normal on screen. Nothing rotates it on the way out: a rotation has to be undone by the
   receiver's step signs to leave behaviour unchanged, and a half turn in particular cannot
   move where the pair comes to rest, since the bottom tilt is the top plus that same half
-  turn. `docs/pair-node/math/vectors.html`.
+  turn. `docs/pair-node/math/vectors/index.html`.
 
 See [tilt-machine.md](tilt-machine.md) for what happens on receiving a vector.

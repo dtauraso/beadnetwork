@@ -1,63 +1,66 @@
 # docs/ — index
 
-Entry point for the 30 files under `docs/`. Grouped by topic; one line each.
+Entry point for the files under `docs/`. Grouped by topic; one line each.
 
 **Reading the `.html` explainers:** `scripts/block-open-html-hook.py` blocks opening them
 in a browser. Read them as text, or use the editor's HTML preview. They are self-contained
 static pages (no external assets).
 
-**Planning docs are branch-local going forward** (`.claude/rules/planning-docs.md` →
-"Planning docs are branch-local"): new docs under `docs/planning/` carry a `branch:` frontmatter and are
-stripped before merge. The existing untagged ones below predate that rule and stay until
-individually judged.
+**Nothing here is a historical record.** Docs that described removed code, resolved
+investigations, or superseded models were deleted rather than annotated — git history is the
+history, and the repo holds what is current. If a page here is wrong, fix it or delete it.
 
-## Concurrency & lock architecture
+**Planning docs are branch-local** (`.claude/rules/planning-docs.md`): a doc under
+`docs/planning/` carries a `branch:` frontmatter and is stripped before merge by
+`tools/strip-branch-local-docs.sh`, so on `main` that directory is empty between changes.
+An untagged doc there escaped a merge — delete it.
 
-The mutex-removal work: each `sync.Mutex`/`Cond` replaced by single-owner state. Start with
-`framings.md` for the overview, then the per-lock pages.
+## Concurrency
+
+No locks remain in the network; each `sync.Mutex`/`Cond` was replaced by single-owner state.
 
 | Doc | What it covers |
 |---|---|
-| [framings.md](concurrency/framings.md) | The framing ledger — what replaced what, and the architecture built for the old model. No locks remain. |
 | [concurrency-map/index.html](concurrency/concurrency-map/index.html) | Map of the concurrency model — goroutines, channels, who owns what. |
-| [mutex/index.html](concurrency/mutex/index.html) | Overview of the mutex architecture (and its removal). |
-| [outbox/index.html](concurrency/outbox/index.html) | `outbox.mu` resolved — per-direction channels replaced the shared move queue. |
-| [trace-mutex/index.html](concurrency/trace-mutex/index.html) | `Trace.mu` resolved — events ride each owner's own stream. |
-| [persister/index.html](concurrency/persister/index.html) | `debouncedPersister.mu` resolved — inline per-caller writes, no shared timer. |
-| [scene-persist/index.html](concurrency/scene-persist/index.html) | `scene_persist` — the last unexamined locks; per-writer file ownership. |
 | [node1-fanout/index.html](concurrency/node1-fanout/index.html) | Node-1 fan-out — one node driving several outgoing edges. |
 
 ## Investigations
 
 | Doc | What it covers |
 |---|---|
-| [backpressure-investigation-order.md](investigations/backpressure-investigation-order.md) | Recommended order for the 7 backpressure/concurrency investigation branches (the branch docs themselves are branch-local). |
-| [interior-stream-framing.md](investigations/interior-stream-framing.md) | Interior-stream framing corruption — investigation and reproduction. |
-| [which-lattice-a-node-lives-on.md](investigations/which-lattice-a-node-lives-on.md) | Which lattice a node lives on — resolved; kept as history. |
 | [audit-baseline.md](investigations/audit-baseline.md) | Audit baseline — settled findings audit subagents must not re-report. |
 
-## Design specs & audits
+## The model
 
 | Doc | What it covers |
 |---|---|
-| [go-authoritative-clock/index.html](go-authoritative-clock/index.html) | Go-authoritative clock design spec — Go owns the one clock. |
-| [level4-audit/index.html](level4-audit/index.html) | Level-4 audit of the system. |
+| [entities.md](model/entities.md) | The entities: bead, wire, node goroutine, input port, clock. |
+| [editor-surface.md](model/editor-surface.md) | The editor surface — streams, blocks, who writes what. |
+| [timing.md](model/timing.md) | Timing — ticks, dwell, in-flight revision. |
+| [lifecycle.md](model/lifecycle.md) | Lifecycle — load, run, respawn. |
+| [polar-model.md](model/polar-model.md) | The polar model — index × constant, base composed with drag. |
+| [polar-model-drag.md](model/polar-model-drag.md) | The drag half of the polar model. |
+| [scenes.md](model/scenes.md) | Scenes — a scene declares its own tab and its own forks. |
 
 ## Polar geometry & layout
 
 | Doc | What it covers |
 |---|---|
-| [polar-sphere/index.html](polar-geometry/polar-sphere/index.html) | The polar coordinate system for a sphere. |
 | [pole-singularity/index.html](polar-geometry/pole-singularity/index.html) | The layout pole singularity — φ grid vs great-circle bearing. |
 
 ## Bead / edge model
 
 | Doc | What it covers |
 |---|---|
-| [beads-are-the-edge.md](bead-model/beads-are-the-edge.md) | Beads are the edge — the node-owned chain of placeholder beads (superseded on the length model; chain description still current). |
-| [bead-lattice.md](bead-model/bead-lattice.md) | The bead lattice — an edge is one integer; supersedes the arc-length model. |
-| [arc-from-local-polar.md](bead-model/arc-from-local-polar.md) | One integer per edge — the arc comes from the stored LocalPolar (superseded by bead-lattice.md). |
-| [channels-not-ports.md](bead-model/channels-not-ports.md) | A port is a ROLE, not a place — agreed model narrowing MODEL.md. |
+| [bead-lattice.md](bead-model/bead-lattice.md) | The bead lattice — an edge is one integer. |
+| [bead-count.md](bead-model/bead-count.md) | How the source node computes the bead count, and where the rounding is. |
+
+## Pair node
+
+| Doc | What it covers |
+|---|---|
+| [pair-node/index.html](pair-node/index.html) | The pair node — anatomy, channels, cycle, and the tilt rules. |
+| [math/framework/index.html](pair-node/math/framework/index.html) | The tilt rules as one block of modular arithmetic, with the ring diagrams. |
 
 ## Process
 
@@ -65,24 +68,9 @@ The mutex-removal work: each `sync.Mutex`/`Cond` replaced by single-owner state.
 |---|---|
 | [drift-checklist.md](process/drift-checklist.md) | Drift checklist — periodic agent/model-health audit. |
 
-## Visual-editor planning (`docs/planning/visual-editor/`)
+## Planning
 
-Planning/spec (untagged, predate the branch-local rule):
-
-| Doc | What it covers |
-|---|---|
-| [camera-navigation/index.html](planning/visual-editor/camera-navigation/index.html) | 3D camera navigation model. |
-| [edit-hop-audit/index.html](planning/visual-editor/edit-hop-audit/index.html) | Edit round-trip audit — why 12 hops. |
-| [node-edges/index.html](planning/visual-editor/node-edges/index.html) | A node runs its own outgoing edges. |
-| [sphere-chain/index.html](planning/visual-editor/sphere-chain/index.html) | Sphere-chain node layout. |
-| [timing-spec/index.html](planning/visual-editor/timing-spec/index.html) | Wirefold timing spec. |
-| [timing-window/index.html](planning/visual-editor/timing-window/index.html) | Timing-window spec. |
-| [animation-drag-issues.md](planning/visual-editor/animation-drag-issues.md) | Live-observed open issues in animation & dragging. |
-| [double-link-polar-model.md](planning/visual-editor/double-link-polar-model.md) | Double-link polar movement model. |
-| [existing-lock-system-record.md](planning/visual-editor/existing-lock-system-record.md) | Lock-system record kept before the double-link rewrite. |
-| [layout-on-domain-network.md](planning/visual-editor/layout-on-domain-network.md) | Layout on the domain network (rebuild). |
-| [one-clock-sleep-only.md](planning/visual-editor/one-clock-sleep-only.md) | One clock, sleep-only pacing (decided model). |
-| [polar-frame-rewrite.md](planning/visual-editor/polar-frame-rewrite.md) | Polar-frame rewrite plan (preserved from a deleted task branch). |
-
-Screenshots: `planning/visual-editor/screenshots/` — panguide triangle-drift (2026-06-17,
-×2) and saturated pulse-wires (2026-07-14).
+`docs/planning/` is empty on `main` by rule — a plan lives on its branch and leaves with the
+merge. Screenshots taken during a change go under `docs/planning/visual-editor/screenshots/`
+with a date-prefixed kebab name (`tools/repo-hygiene/hooks/check-stray-screenshots.sh`), and
+are referenced from whatever memory file the work lands in.

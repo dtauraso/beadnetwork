@@ -27,7 +27,8 @@ offsets), and the animation is which bead is LIT: the node reads its own
 wires' in-flight fraction `t` — the same `t` step 2 above advances — and
 lights `index = t × count`. The chain is the visual of a traversal; it is
 never a picture of the node-to-node channels, which are the real connection
-and are never drawn. See [docs/bead-model/beads-are-the-edge.md](../bead-model/beads-are-the-edge.md).
+and are never drawn. See [docs/bead-model/bead-lattice.md](../bead-model/bead-lattice.md)
+for how long that chain is.
 
 The source node times its own delivery. There is no TS-driven delivery
 signal — the renderer is told which bead is lit, not asked when a bead has
@@ -38,8 +39,9 @@ arrived.
 - A destination node receives beads over its input port's channel and
   holds them in node-local state.
 - When the node's firing rule is satisfied, it fires.
-- **One edge per input port.** An input port is a channel-binding ROLE (see above,
-  `docs/bead-model/channels-not-ports.md`), one wire, fed by EXACTLY ONE edge — fan-in (several
+- **One edge per input port.** An input port is a channel-binding ROLE — a name in the
+  kind's `[]portwiring.PortSpec` that `a.In("<name>")` binds a channel to at LOAD, never a
+  Go field per channel — and it is one wire, fed by EXACTLY ONE edge. Fan-in (several
   edges into one port) is not part of the model.
   A node that needs several sources uses DISTINCT input ports, each its own
   wire (e.g. a gate's separate left/right ports). Multiple beads may still

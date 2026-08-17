@@ -91,40 +91,21 @@ concurrency hazard: the only writer is `Wiring.RegisterBuilder`
 any goroutine starts; after that it is read-only. Do not report this as a `sync`-free
 shared-state violation.
 
-(Superseded detail, kept because older commits and docs still name it: this used to be
-`wire.KindRegistry` written by `wire.Register`, holding `func() any` constructors that
-returned EMPTY structs for the central reflection pipeline to fill in. Both are gone, and so
-is the one-line `nodes/wire/registry.go` retirement note that replaced them — it held only
-`package wire` and nothing else, so it was deleted outright. The init-only property is
-unchanged; only the writer's name and what it stores changed.)
-
 ## 6. Package-level var maps in `nodes/Wiring` are read-only dispatch tables
 
-`nodes/Wiring/dispatch/gesture_dispatch.go` (`rawInputHandlers`), `gesture_hitclassify.go`
-(`hitClassifiers`), `gesture_graph.go`
-(`commitEdges`, `applyAction`), `distance_groups.go` (`distanceGroupOrder`,
-`distanceGroups`), and `port_wiring.go` (`speedChanFieldNames`) all declare package-level
-`var` maps/slices. Each is a composite literal fully initialized at declaration (function
+`nodes/Wiring/gesture/gesture_dispatch.go` (`rawInputHandlers`), `gesture_handlers.go`
+(`hitClassifiers`), and `gesture_graph.go` (`commitEdges`, `applyAction`) all declare
+package-level `var` maps/slices. Each is a composite literal fully initialized at declaration (function
 dispatch tables, static ordering lists) and is never written to after declaration — grep
 confirms no assignment to these identifiers outside their `var` statement. These are
 read-only dispatch tables, not shared mutable state; do not flag them alongside genuine
 `sync.Mutex`/`atomic.`-style hazards.
-
-## 7. DeltaA/B/C (HISTORICAL — the local-polar model this described is deleted)
-
-This section described `AbcDragLabel.tsx`'s drag-delta-forward overlay, an
-`abc-drag` trace kind, and the local-polar model's DeltaA/B/C vocabulary
-(abc-index × step-constant — `memory/feedback/architecture/geometry/feedback_abc_times_constant_not_rederive.md`). That
-whole model — `wire.LocalPolar`, `requantizeLocalPolars`, `neighborSetC`,
-`AbcDragLabel.tsx`/`DeltaForwardLabel.tsx`, and the delta-forward cascade — was deleted
-(MODEL.md "the polar model": a node has one polar coordinate about the scene centre only,
-no stored coordinate for a neighbour). Kept as history, not current vocabulary.
 
 ## What still counts as a NEW finding
 
 Anything not covered above — e.g. a fingerprint that's gone stale against its guard, a
 "dispatch table" that gained a post-init mutation, a clone-family node whose *behavior*
 (not just structure) has silently diverged from its sibling, an unguarded new lockstep
-cluster, or any of the categories in the audit skill briefs that isn't one of the seven
+cluster, or any of the categories in the audit skill briefs that isn't one of the six
 items above. Verify against current code before reporting — this file itself only holds
 as long as the code underneath it does.

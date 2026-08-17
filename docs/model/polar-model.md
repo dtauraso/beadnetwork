@@ -112,11 +112,10 @@ and none is a source of truth.
   the distance between them, which is what keeps an input node's two outgoing paths equal
   without anything being moved afterwards to repair them.
 
-  They used to be two package constants reached through the HOLDER's kind — a node was
-  constrained because something of kind `Input` pointed at it. That rule could not name the
-  node it was about, so every target inherited the same angles, and the length a drag stated
-  was then imposed on the target's siblings (`HeldSiblings`, deleted): dragging node 2
-  teleported node 3, and the two read as welded together. What remains keyed by kind is only
+  **Do not key a node's constraint on the HOLDER's kind** — "constrained because something of
+  kind `Input` points at it" cannot name the node it is about, so every target inherits the
+  same angles and the length one drag states gets imposed on that target's siblings: dragging
+  node 2 teleports node 3 and the two read as welded together. What is keyed by kind is only
   what is genuinely about being an input node — the shared length across its outgoing paths,
   and the half-turn snap on its own drag — and it is no longer a kind CHECK inside shared
   code. **A node owns the function that trims it, not only the numbers it trims to.** The
@@ -150,11 +149,10 @@ and none is a source of truth.
   stored copy. It is NEVER stored as an independent absolute position — it is computed at
   ONE site by summation: the node's world center (already `sceneCenter +
   polar2cart(polarindex.ToPolar(index, sc))`) plus this node-local vector, at the render/decode boundary
-  — the summation site is GONE. The buffer used to stream a node's world centre and each
-  bead's NODE-LOCAL offset as two columns, summed at one place on decode, so that moving a
-  node cost one centre write rather than degree × N bead positions. That arrangement
-  belonged to a chain a NODE laid toward a neighbour whose position it cached. Beads are
-  now placed by the EDGE they travel, on the segment that edge already holds, and the
+  — the summation site is GONE. **Do not stream a node's centre plus each bead's NODE-LOCAL
+  offset as two columns to be summed on decode.** That saves a write when a node moves, but
+  it belongs to a chain a NODE lays toward a neighbour whose position it caches, and there is
+  no such cache. Beads are placed by the EDGE they travel, on the segment that edge already holds, and the
   buffer streams the world position itself: no offset, no origin, nothing to sum
   (`tools/topology-vscode/src/webview/three/scene/edges/edge-bead-blocks.ts`). Beads after the first
   keep their existing chain-relative placement (index × `lattice.BeadStepR` along the same aim)

@@ -22,7 +22,8 @@
 - Go owns the bead's PROGRESS (the fraction `t`, timed in ticks on the human-speed clock).
   It no longer computes or streams an absolute bead position: nothing draws a moving bead.
   The source node quantises its own `t` onto its own chain and streams which bead is LIT
-  (`readChainBeadLit` from `tools/topology-vscode/src/schema/buffer-layout/buffer-layout.ts`, consumed by
+  (read off the EdgeBead block via `getEdgeBeads` in
+  `tools/topology-vscode/src/webview/three/scene/edges/edge-bead-blocks.ts`, consumed by
   `tools/topology-vscode/src/webview/three/scene/beads/ChainBeadInstances.tsx`). The editor does not
   interpolate, does not own positions, and does not decide which bead is lit.
 - Durations are tick counts: bead traversal (`ticksToCross`) and node processing windows.

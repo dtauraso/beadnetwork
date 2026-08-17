@@ -12,12 +12,10 @@ which one is selected, and the switch — this is the same shape as the overlay 
 a new mechanism.
 
 **A scene declares its own tab.** `Scene.Name` IS the tab, alongside that scene's own
-capabilities — there is no separate tab table to keep in sync with the scene list, and no
-scene's directory name decides whether the others are reachable. This replaces an
-`AnchorIsTabbed` check that compared the anchor's basename against `SceneTabs[0].Dir`: the
-first scene's directory name was privileged, so launching against any other directory
-published ZERO tabs and the strip silently vanished. The strip is now the set of declared
-scenes, always. The `-topology` path the extension host launches with is the fixed ANCHOR;
+capabilities — there is no separate tab table to keep in sync with the scene list. The strip
+is the set of declared scenes, always. Do not gate it on the anchor's directory NAME: that
+privileges one scene's directory, so launching against any other publishes ZERO tabs and the
+strip silently vanishes. The `-topology` path the extension host launches with is the fixed ANCHOR;
 the scenes live beside it (`SceneContainer` — the anchor's parent when the anchor is itself
 a scene directory), which sibling actually loads is resolved from it (`ResolveScenePath`)
 and persisted at the anchor, never inside a scene (a selection stored inside scene B would be unreachable while
@@ -35,17 +33,12 @@ by adding a second, in-process path to do the same thing.
 **A scene may fork small pieces of node behavior, and each fork is a named, reasoned
 choice — not a tuning knob:**
 
-- **Drag mode** (`Scene.QuantizedDrag`). The default is the CONTINUOUS drag: a node is
-  one point, an edge is the distance between two of them, and a drag says where the point
-  went — the bead count on that edge then fills whatever line that leaves. The alternative,
-  quantized drag steps the node one bead length (`lattice.BeadStepR`) at a time, matching its
-  own chain beads' jump size — it exists so a dragged node and its own beads move in the
-  same quanta, instead of the node gliding while its beads jump. That only works when the
-  step is small AGAINST THE SCENE: the ring spans ~500 world units, so a ~9-unit step reads
-  as smooth, while a two-node scene ~40 across moves a fifth of itself per step and cannot
-  be positioned at all. No committed scene uses it today — both tabs drag continuously — but the path
-  stays reachable (and is what an unrecognised tree gets) rather than deleted, since
-  deleting a still-tested, still-reachable mechanism is a model decision, not a cleanup.
+- **There is no drag-mode fork.** Every scene drags CONTINUOUSLY: a node is one point, an
+  edge is the distance between two of them, and a drag says where the point went — the bead
+  count on that edge then fills whatever line that leaves. Do not add a per-scene quantized
+  drag that steps the node one `lattice.BeadStepR` at a time. It only reads as smooth when
+  the step is small AGAINST THE SCENE — the ring spans ~500 world units, but a two-node
+  scene ~40 across moves a fifth of itself per step and cannot be positioned at all.
 - **Coplanar rings** (`Scene.CoplanarEdges`). A node's ring plane normally follows its
   INWARD pole (toward the scene centre), which says nothing about where its neighbour is,
   so an edge lies in that plane only by coincidence — the chain then runs through the
@@ -63,9 +56,8 @@ reads (`buffer-nav.ts`'s `NavNode.pole`). `RingAxisTheta`/`RingAxisPhi` is the a
 node's RING is actually drawn on, defaulting to the torus's own +Z normal (unrotated) and
 diverging from the inward pole only under coplanar rings (above). Keeping them as separate
 columns is what lets a scene ask for coplanar rings without touching what navigation reads,
-and vice versa. Today every node's own local FRAME is held at world +y regardless of its
-pole — an earlier version rotated node 1's frame alone onto its streamed pole, which read as
-a property of that one node rather than of the feature, and was reverted so every frame
-reads the same way. `PoleTheta`/`PolePhi` is consequently live on the wire (navigation still
+and vice versa. Every node's own local FRAME is held at world +y regardless of its
+pole. Do not rotate one node's frame onto its streamed pole: it reads as a property of that
+node rather than of the feature, and the frames stop agreeing with each other. `PoleTheta`/`PolePhi` is consequently live on the wire (navigation still
 reads it) and not rendered as a frame rotation for any node — whether a node's frame should
 instead follow its own pole is an **open question**, not decided here.

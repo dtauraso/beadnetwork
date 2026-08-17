@@ -23,17 +23,14 @@ when a bead has arrived. Go owns the clock.
   BEAD stream per node row (that node's live beads on every wire leaving
   it), and one INTERIOR stream per node row (that node's own
   Update-goroutine's interior beads — the ONLY writer of that node's four
-  interior slots). **There are exactly three per-node streams.** There used
-  to be a fourth: `DriveSlotsPerNode` DRIVE streams per node row, so that
-  the separate `DriveHeld` goroutine of `Pulse`/`PulseLeft`/`PulseRight`/
-  `holdflip` would not share the interior stream's fd — two goroutines
-  racing one fd interleave their frames' header/payload writes into garbage
-  (`docs/investigations/interior-stream-framing.md`). That goroutine no
-  longer exists (a driven out is stepped by the node's own loop), so the
-  second writer it was separating is gone and a driven out's events ride
-  the node's own interior stream like everything else it emits. Do not
-  reintroduce a per-port stream to "keep writers apart" — keep the writers
-  singular instead. Frames on a dedicated fd are `[len:u32-LE][payload]`
+  interior slots). **There are exactly three per-node streams.** A driven
+  out is stepped by the node's own loop, so its events ride that node's
+  interior stream like everything else the node emits. Do not add a fourth
+  per-node or per-port stream to "keep writers apart" — keep the writers
+  singular instead. Two goroutines racing one fd interleave their frames'
+  header and payload writes into garbage, which is why the rule is one pipe
+  per EMITTING GOROUTINE (CLAUDE.md, "Bridge surface") and not one pipe per
+  thing you want to see separately. Frames on a dedicated fd are `[len:u32-LE][payload]`
   with NO tag byte — the fd POSITION identifies the stream/row.
   `WIREFOLD_STREAM_FDS` (the ext host's spawn env var,
   `tools/topology-vscode/src/runCommand.ts`) is **mandatory**: there is no
@@ -61,11 +58,11 @@ when a bead has arrived. Go owns the clock.
   small file; the drawing lives in its siblings under `three/scene/`. Grep the symbol,
   not this filename. The tree covers: node bodies (`tools/topology-vscode/src/webview/three/scene/nodes/NodeInstances.tsx` — sphere
   mesh + ring, keyed off `node.data.fill`/`node.data.stroke` from `NODE_DEFS`; no port
-  geometry — a port is a load-time channel-binding ROLE, never drawn, `docs/bead-model/channels-not-ports.md`),
+  geometry — a port is a load-time channel-binding ROLE, never drawn),
   transit and interior
   beads (`tools/topology-vscode/src/webview/three/scene/beads/ChainBeadInstances.tsx`, `tools/topology-vscode/src/webview/three/scene/beads/InteriorBeadInstances.tsx` — there is no
   per-edge drawn tube any more; the source node's own chain of placeholder beads is the
-  edge's visual, `docs/bead-model/beads-are-the-edge.md`), selection highlight
+  edge's visual, `docs/model/entities.md`), selection highlight
   (`tools/topology-vscode/src/webview/three/scene/overlays/SelectionHighlight.tsx`), and the camera (`tools/topology-vscode/src/webview/three/scene/BufferCamera.tsx` maps the buffer
   Camera row onto the three.js camera). Nothing in this tree owns traversal
   timing, positions, or geometry.

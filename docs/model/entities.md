@@ -73,11 +73,12 @@ mistake to avoid:
 
   **Known boundary:** the bead-actor path is driven by the SOURCE node's own drag (the node
   that owns the chain, per "an edge is stored under its source node" above) —
-  `StartBeadDrag`/`EndBeadDrag` fire only when `g.DragNode` is that source node. Dragging
+  the chain's `StartDrag`/`EndDrag` (reached through `owners.Beads.PostBeadDrag` and
+  `ApplyBeadDrag`) fire only when `g.DragNode` is that source node. Dragging
   the TARGET end of an edge still repositions that edge's beads with no visible lag (every
-  `chainBeads()` call recomputes from the live `partnerCenters` push the target's own
+  chain rebuild recomputes from the live `partnerCenters` push the target's own
   `ApplyCenter` already sends on every commit — unchanged, pre-existing machinery), but it
-  does so through `chainBeads`' own inline placement math for that edge on that call rather
+  does so through `beadcrud`'s own inline placement math for that edge on that call rather
   than through the target also toggling that chain's `BeadWakeGroup` mode flags. The
   `BeadWakeGroup`/`Bead` primitive itself supports either endpoint waking the SAME beads;
   wiring the TARGET's own drag lifecycle through to the
@@ -91,7 +92,7 @@ mistake to avoid:
   below) by driving the wire each cycle, then on traversal-complete sends
   the bead over its out-channel to the destination. The wire is no longer
   the visual depiction either — the source node's own chain of placeholder
-  beads is (docs/bead-model/beads-are-the-edge.md). There is one owner
+  beads is — its length is `docs/bead-model/bead-lattice.md`. There is one owner
   of `inflight`/`delivered` and the in-flight geometry: the source node
   goroutine. Because it is the sole owner, `PacedWire.mu` does not exist
   — ownership replaces locking, the same move that removed `RealClock.mu`.
@@ -119,7 +120,7 @@ mistake to avoid:
   column — `nodes/rowevent/row_event.go`, `Buffer/streamframe/stream_events.go`,
   `Buffer/bufschema/layout.go` — which is a live 2x2 interior VISUAL grid position,
   slot = gridRow*2 + gridCol, for where a held bead is drawn inside a node.)
-- **Input port.** A ROLE, not a place (`docs/bead-model/channels-not-ports.md`): declared by the
+- **Input port.** A ROLE, not a place: declared by the
   node kind as a `Wiring.PortSpec` and bound to a channel at LOAD time
   (`a.In(...)`), never drawn and never hit-testable. One input port is one wire,
   and the wire's out-channel is the connection between them — the node receives

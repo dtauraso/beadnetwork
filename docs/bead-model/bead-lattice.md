@@ -1,8 +1,8 @@
 # The bead lattice — an edge is one integer
 
-Supersedes the arc-length model for edges. Companion to
-[beads-are-the-edge.md](beads-are-the-edge.md), which describes the chain; this file
-describes the LENGTH.
+This file describes an edge's LENGTH. The chain it measures — the node-owned chain of
+placeholder beads that renders a traversal — is described in MODEL.md and
+[docs/model/entities.md](../model/entities.md).
 
 ## The model
 
@@ -15,8 +15,16 @@ bead's surface, its torus tangent in exactly the same way.
 There is no arc. An edge's length is ONE INTEGER: the number of bead steps between the two
 nodes' tori. Everything derives from it.
 
-See [lattice-derivation.md](lattice-derivation.md) for how the bead lattice came to be
-derived from the bead's own authored radius rather than the other way round.
+The bead's radius is the AUTHORED primitive and the lattice derives from it:
+
+	BeadRadius        = 4.0                                   (lattice.BeadRadius)
+	BeadRingTubeRatio = 0.12                                  (lattice.BeadRingTubeRatio)
+	BeadTorusOuterR   = BeadRadius * (1 + BeadRingTubeRatio) = 4.48
+	BeadStepR         = 2 * BeadTorusOuterR                  = 8.96
+
+The scene's radial grid IS that step: `constants.json`'s `constantR` is 8.96, and
+`loadspec.LoadSceneConstants` fails the load by path if it disagrees with
+`lattice.BeadStepR`, so a stored `indexR` counts bead steps directly.
 
 ## Placement
 
@@ -24,8 +32,9 @@ Along the source node's own stored bearing to the target, bead `i` sits at
 
 	srcTorusOuterR + BeadTorusOuterR + i * BeadStepR
 
-where `srcTorusOuterR = nodeTorusOuterR(kind)` — see "The count" below for why this is a
-SNAPPED value, not the raw `nodeRadius(kind) * (1 + ShadingParamNodeRingTubeRatio)`. Bead
+where `srcTorusOuterR = nodegeom.NodeTorusOuterR(kind)` — see "The count" below for why this
+is a SNAPPED value, not the raw `nodegeom.NodeRadius(kind) * (1 +
+ShadingParamNodeRingTubeRatio)`. Bead
 0's torus is tangent to the source node's torus; bead `i`'s torus is tangent to bead
 `i-1`'s; bead `N-1`'s torus is tangent to the target node's torus, EXACTLY (see below, not
 approximately as an earlier draft of this doc had it). "Beads are never inside a node"
@@ -43,28 +52,28 @@ so a longer edge is simply more beads:
 
 	ticksToCross = N * DwellTicksPerBead
 
-which is numerically what `arcLength / pulseSpeed` used to give, with no per-edge division
-and no length to divide. Lighting reads the same integer:
-
-	litBeadIndex(t, N) = floor(t * N)
-
-No length is multiplied anywhere, so layout and lighting cannot read two different values —
-they read the same `N`.
+with no per-edge division and no length to divide. Uniform pulse speed is structural rather
+than computed: a longer edge is more beads, not a bigger number to divide (guard:
+`tools/network/beads/check-uniform-pulse-speed.sh`). Lighting does not read a length either:
+each bead carries its own
+`Lit` flag on its actor (`nodes/wire/beadchain/bead_actor.go`) rather than being selected by
+a fraction of the edge. No length is multiplied anywhere, so layout and lighting cannot read
+two different values.
 
 ## Ownership
 
 - The SOURCE NODE computes `N` and publishes it onto its own `*wire.Out`. It owns the
-  `LocalPolar` the beads are laid out from, it owns the chain, and it owns the edge file
+  bearing the beads are laid out from — its own `owners.Deltas`, read through `DeltaTo` —
+  it owns the chain, and it owns the edge file
   (`topology/nodes/<source>/edges/<label>.json`).
 - The `edgeMover` publishes the SEGMENT (start/end) only. It no longer computes any length.
 
 ## Consequences to keep in mind
 
-- `PacedWire` stores `steps int`, not an arc float. Its per-instance dwell stays a TEST
-  affordance exactly as the per-instance `pulseSpeed` was: production passes the one
-  constant (guard: `tools/network/beads/check-uniform-pulse-speed.sh`), lean tests pass
-  `NewPacedWire(latMs, 1.0)` so `ticksToCross == latMs` and their tick expectations are
-  unchanged.
+- `PacedWire` stores `steps int`, not an arc float. `NewPacedWire(steps int, dwellTicks
+  float64)` takes the dwell as an argument, and every call site passes the one constant
+  `lattice.DwellTicksPerBead` (guard:
+  `tools/network/beads/check-uniform-pulse-speed.sh`) — there is no per-instance speed.
 - The buffer's Event block carries `BeadSteps` where it carried `ArcLength`. Fingerprint
   bump in `Buffer/buffer_layout_gen.go` and its TS mirror.
 - `ShadingParamNodeRingTubeRatio` is a new Go mirror of the TS-side `NODE_RING_TUBE_RATIO`

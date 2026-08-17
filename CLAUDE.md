@@ -24,7 +24,8 @@ The model's real entities live in [MODEL.md](MODEL.md): bead, wire (`PacedWire` 
 PASSIVE delay queue holding its own in-flight beads, with a channel on each end, stepped by
 its SOURCE NODE's own goroutine — it is not a goroutine itself), node goroutine, input port,
 clock, and the node-owned chain of placeholder beads that renders a traversal
-([docs/bead-model/beads-are-the-edge.md](docs/bead-model/beads-are-the-edge.md)). The active node kinds are the structs under `nodes/<Kind>/`.
+([docs/model/entities.md](docs/model/entities.md); its LENGTH is
+[docs/bead-model/bead-lattice.md](docs/bead-model/bead-lattice.md)). The active node kinds are the structs under `nodes/<Kind>/`.
 
 **Drift rule:** see MODEL.md's "Drift rule" section for the full statement (guards:
 `tools/webview/check-no-webview-state.sh`, `tools/bridge/check-no-await-on-bridge.sh`).
@@ -74,7 +75,7 @@ docs, and the auto-memory dir, costing tokens and time.
 - **`grep`**: always scope. For code, use `--include="*.ts" --include="*.tsx"`. For repo-wide searches, exclude noise: `--exclude-dir={node_modules,out,.git,handoff-archive,memory}`.
 - **`find`**: never run `find .` unguarded — `tools/topology-vscode/node_modules/` has multi-MB files. Use `-not -path "*/node_modules/*" -not -path "*/out/*" -not -path "*/.git/*"` or just scope to a specific subtree.
 - **`ls`**: prefer a specific subdir over wide listings; pipe to `head` if you only need a sample.
-- Planning docs (`docs/planning/visual-editor/`, `memory/`) contain domain vocabulary — grep them only when the question is about *planning state*, not when looking for code.
+- `memory/` and any branch-local `docs/planning/` doc contain domain vocabulary — grep them only when the question is about *planning state*, not when looking for code.
 
 ## There are no tests. Do not add any.
 
