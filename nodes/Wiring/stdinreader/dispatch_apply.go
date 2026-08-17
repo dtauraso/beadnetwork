@@ -37,7 +37,7 @@ func applyUpdateDistanceGroup(ctx context.Context, msg inputcodec.StdinMsg, md *
 }
 
 func applyUpdateTiltVector(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
-	if md == nil || (msg.Attr != "theta" && msg.Attr != "reset" && msg.Attr != "start") {
+	if md == nil || (msg.Attr != "phi" && msg.Attr != "reset" && msg.Attr != "start") {
 		return
 	}
 	id := strconv.Itoa(msg.Num + 1)
@@ -62,10 +62,10 @@ func applyUpdateTiltVector(ctx context.Context, msg inputcodec.StdinMsg, md *dis
 	}
 
 	up := msg.Flag == "up"
-	if md.Inboxes.SendTiltEdit(ctx, id, movemsg.TiltEditMsg{Axis: msg.Attr, Up: up}) {
+	if md.Inboxes.SendTiltEdit(ctx, id, movemsg.TiltEditMsg{Up: up}) {
 		return
 	}
-	md.MR.SendMove(ctx, id, movemsg.Msg{Kind: movemsg.KindTiltVectorAngle, NodeID: id, Axis: msg.Attr, Bool: up})
+	md.MR.SendMove(ctx, id, movemsg.Msg{Kind: movemsg.KindTiltVectorAngle, NodeID: id, Bool: up})
 }
 
 func applyUpdateScene(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks []chan float64) {

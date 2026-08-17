@@ -60,7 +60,7 @@ func decodeUpdateTiltVector(r *recread.Reader, attr byte) (StdinMsg, bool) {
 			return StdinMsg{}, false
 		}
 		dir := dirWord(dirUp)
-		return StdinMsg{Type: "edit", Op: "update", Kind: "tiltVector", Attr: "theta", Num: int(row), Flag: dir}, true
+		return StdinMsg{Type: "edit", Op: "update", Kind: "tiltVector", Attr: "phi", Num: int(row), Flag: dir}, true
 	case InTiltVectorAttrReset:
 
 		row, errR := r.U8()
