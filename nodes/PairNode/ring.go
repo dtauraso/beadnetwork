@@ -23,16 +23,7 @@ func (n *Node) topState() *tiltring.State {
 	return n.tilt.Top
 }
 
-func (n *Node) bottomState() *tiltring.State {
-	if n.tilt.Bottom == nil {
-		return n.topState().Opposite
-	}
-	return n.tilt.Bottom
-}
-
-func (n *Node) setTop(top *tiltring.State) { n.tilt.Top, n.tilt.Bottom = top, top.Opposite }
-
-func (n *Node) setBottom(bottom *tiltring.State) { n.tilt.Bottom, n.tilt.Top = bottom, bottom.Opposite }
+func (n *Node) setTop(top *tiltring.State) { n.tilt.Top = top }
 
 func (n *Node) fromAnotherLattice(received tiltvector.TiltVectorMsg) bool {
 	return received.Points != 0 && received.Points != n.ringOf().Points
@@ -61,7 +52,7 @@ func (n *Node) adoptLattice(points int32) {
 		n.plumb.Self.Breadcrumb("pair-lattice-adopt", fmt.Sprintf(
 			"points=%d keptIdx=%d unknown=true loaded=%d", points, keptIdx, top.Idx))
 	}
-	n.vec.ReceivedPhiIdx = 0
+	n.vec.ReceivedPhiIdx = tiltring.Sent(top.Idx, points)
 	n.vec.ReceivedSet = false
 	n.syncReceivedVector()
 	tiltvector.PollRecvVector(n.vec.VectorIn)

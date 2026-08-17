@@ -35,6 +35,7 @@
     <a href="../../structure/cycle.html">Cycle</a>
     <a class="on" href="index.html">Update rules</a>
     <a href="../../math/arith/index.html">Arithmetic instead</a>
+    <a href="../../math/framework/index.html">Framework</a>
   <a href="../code/index.html">In code</a>
     <a href="../../structure/clock.html">Clock</a>
     <a href="../../math/geometry.html">Geometry</a>
@@ -87,25 +88,19 @@
             heading</p>
           <p>the way DOWN never appears: the two ways round the count-ring sum to 12, so asking which
             is shorter is asking whether the way up is at most 6</p>
-          <p>an update writes the END IT COUNTED FROM — the top for half the ring, the bottom for the
-            other half — and reads the other straight off its opposite in the same statement
-            (<span data-src="nodes/PairNode/ring.go#setTop">setTop</span> /
-            <span data-src="nodes/PairNode/ring.go#setBottom">setBottom</span>). The normal still follows,
-            because it is a link and nothing moves it</p>
-          <p>f is a quantity of THIS PAGE, not of the node. One arrival turns the tilt at most one
-            slot, so the code asks a comparison and a subtraction and never works out a distance at
-            all — <span data-src="nodes/PairNode/tiltring/machine.go#Settled">settled</span> tests
-            <var>c</var> against the mode's one stopping count, and
-            <span data-src="nodes/PairNode/tiltring/machine.go#Step">step</span> tests the way up against a
-            quarter turn</p>
-          <p>the deciding never names a mode — by the time it runs, the mode is spent, having
-            produced the one count <span data-src="nodes/PairNode/tiltring/machine.go#Stopping">stopping</span>
-            returns</p>
+          <p>an update writes the TOP only
+            (<span data-src="nodes/PairNode/ring.go#setTop">setTop</span>); the bottom is
+            <span data-src="nodes/PairNode/tiltring/rules.go#Bottom">bottom</span> of it wherever it is
+            wanted, and the normal follows the same way</p>
+          <p>f is a quantity of THIS PAGE, not of the node. The code takes two
+            <span data-src="nodes/PairNode/tiltring/rules.go#Abs">abs</span> distances and compares each
+            against a quarter turn
+            (<span data-src="nodes/PairNode/tiltring/rules.go#Offset">offset</span>) — it never works out
+            how far off a rest it is</p>
+          <p>the deciding never names a mode: the mode only says whether the node has started
+            (<span data-src="nodes/PairNode/tiltring/machine.go#OffsetOn">offsetOn</span>)</p>
           <p>f survives as a page-side measurement, because "each step lands nearer than it started"
             cannot be said without one</p>
-          <p>ℓ, ℓ₊ and ℓ₋ are one function called three times —
-            <span data-src="nodes/PairNode/tiltring/machine.go#Settled">settled</span> uses the first,
-            <span data-src="nodes/PairNode/tiltring/machine.go#Step">step</span> the other two</p>
         </div>
       </div>
 

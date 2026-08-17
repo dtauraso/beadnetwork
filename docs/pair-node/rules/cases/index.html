@@ -36,6 +36,7 @@
     <a href="../../structure/cycle.html">Cycle</a>
     <a href="../updates/index.html">Update rules</a>
     <a href="../../math/arith/index.html">Arithmetic instead</a>
+    <a href="../../math/framework/index.html">Framework</a>
   <a href="../code/index.html">In code</a>
     <a href="../../structure/clock.html">Clock</a>
     <a href="../../math/geometry.html">Geometry</a>
@@ -55,13 +56,10 @@
         <h2>The whole case space</h2>
         <p>A node's tilt machine is ONE instance
           (<span data-src="nodes/PairNode/tiltring/machine.go#Machine">tiltMachine</span>) whose entire state is
-          which mode it is in. So the cases are: three modes, each against every COUNT an arrival can
-          produce — the ring slots between the arrival and the NEARER END of this node's tilt line
-          (<span data-src="nodes/PairNode/tiltring/machine.go#NearerEndCount">nearerEndCount</span>). A node draws two
-          ends a half turn apart, so exactly one count is under a half turn, and that is the one. The grid
-          runs 0 to 11 on a 24-point ring, not 0 to 12: <var>c</var> lives on a ring of a HALF TURN, and 12
-          is 0 at the other end. Nothing else is a case: the turn never sees which mode is running, and there
-          is no fourth input.</p>
+          whether it has started. So the cases are: two modes, each against every arrival — and what an
+          arrival produces is two distances, one from each end of this node's tilt line, compared against a
+          quarter turn (<span data-src="nodes/PairNode/tiltring/rules.go#Offset">offset</span>). Nothing else
+          is a case: the turn reads those two numbers and nothing more.</p>
         <svg width="700" height="252" viewBox="0 0 700 252">
           <text x="150" y="26" class="lbl">count c — slots from the nearer end of the tilt line to the arrival</text>
           <g class="lbl" text-anchor="middle">

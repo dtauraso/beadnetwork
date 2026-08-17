@@ -35,6 +35,7 @@
     <a href="../structure/cycle.html">Cycle</a>
     <a href="../rules/updates/index.html">Update rules</a>
     <a href="arith/index.html">Arithmetic instead</a>
+    <a href="framework/index.html">Framework</a>
   <a href="../rules/code/index.html">In code</a>
     <a href="../structure/clock.html">Clock</a>
     <a href="geometry.html">Geometry</a>
@@ -47,12 +48,11 @@
 
       <div class="card wide">
         <h2>What separation is</h2>
-        <p><span data-src="nodes/PairNode/tiltring/lattice.go#AngleLength">separation</span> is how far apart two states
-          are on the ring, the SHORT way round — never more than a half turn. It is not a resting-state test: it
-          names no halt of its own. Everything the <span
-            data-src="nodes/PairNode/tiltring/machine.go#stoppingCounts">machine</span> decides — what counts
-          as its halt, and which way is closer to it — is read straight off this one
-          number, against the count it stops at.</p>
+        <p>Separation is how far apart two states are on the ring, the SHORT way round — never more
+          than a half turn. It is a picture, not a step the code takes: the rule measures a plain
+          <span data-src="nodes/PairNode/tiltring/rules.go#DistanceTop">distance</span> from each end
+          of the tilt line and turns toward whichever of the two is inside a quarter turn
+          (<span data-src="nodes/PairNode/tiltring/rules.go#Offset">offset</span>).</p>
       </div>
 
       <div class="card">
@@ -90,8 +90,8 @@
           </tr>
           <tr>
             <td class="e">parallel</td>
-            <td class="n">separation is a quarter turn</td>
-            <td class="s" data-src="nodes/PairNode/tiltring/machine.go#Settled">halted</td>
+            <td class="n">neither end is inside a quarter turn, so the offset is 0</td>
+            <td class="s" data-src="nodes/PairNode/tiltring/rules.go#Offset">offset</td>
           </tr>
         </table>
         <p>Separation says nothing about whether the node is running yet — that is <span

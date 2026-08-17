@@ -6,11 +6,6 @@ type State struct {
 	Idx int32
 
 	R *Ring
-
-	Next     *State
-	Prev     *State
-	Opposite *State
-	Quarter  *State
 }
 
 type Ring struct {
@@ -37,13 +32,6 @@ func NewRing(points int32) *Ring {
 		r.States[i].Idx = int32(i)
 		r.States[i].R = r
 	}
-	n := int32(len(r.States))
-	for i := int32(0); i < n; i++ {
-		r.States[i].Next = &r.States[(i+1)%n]
-		r.States[i].Prev = &r.States[(i-1+n)%n]
-		r.States[i].Opposite = &r.States[(i+r.HalfTurn)%n]
-		r.States[i].Quarter = &r.States[(i+r.QuarterTurn)%n]
-	}
 	return r
 }
 
@@ -65,16 +53,4 @@ func (r *Ring) SeedState(idx int32) (s *State, unknown bool) {
 		}
 	}
 	return &r.States[0], true
-}
-
-func (s *State) AngleLength(target *State) int32 {
-
-	d := s.Idx - target.Idx
-	if d < 0 {
-		d = -d
-	}
-	if d > s.R.HalfTurn {
-		d = s.R.Points - d
-	}
-	return d
 }

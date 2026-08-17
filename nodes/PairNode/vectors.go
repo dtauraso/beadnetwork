@@ -1,24 +1,20 @@
 package PairNode
 
 import (
+	"github.com/dtauraso/wirefold/nodes/PairNode/tiltring"
 	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
 )
 
-func (n *Node) bottomTilt() tiltvector.TiltVectorMsg {
-	return tiltvector.TiltVectorMsg{PhiIdx: n.bottomState().Idx}
-}
-
 func (n *Node) coplanarNormal() tiltvector.TiltVectorMsg {
-	return tiltvector.TiltVectorMsg{PhiIdx: n.topState().Quarter.Idx}
+	ring := n.ringOf()
+	return tiltvector.TiltVectorMsg{PhiIdx: tiltring.Sent(n.topState().Idx, ring.Points)}
 }
 
 func (n *Node) syncTiltIndex() {
 	if n.tilt.SyncTiltIndex == nil {
 		return
 	}
-	norm := n.coplanarNormal()
-	bottom := n.bottomTilt()
-	n.tilt.SyncTiltIndex(n.topState().Idx, norm.PhiIdx, bottom.PhiIdx)
+	n.tilt.SyncTiltIndex(n.topState().Idx)
 }
 
 func (n *Node) syncReceivedVector() {

@@ -35,6 +35,7 @@
     <a href="../../structure/cycle.html">Cycle</a>
     <a class="on" href="index.html">Update rules</a>
     <a href="../../math/arith/index.html">Arithmetic instead</a>
+    <a href="../../math/framework/index.html">Framework</a>
   <a href="../code/index.html">In code</a>
     <a href="../../structure/clock.html">Clock</a>
     <a href="../../math/geometry.html">Geometry</a>
@@ -114,18 +115,15 @@
         <div class="keynote">
           <p><i class="sw" style="background:#5fd68a"></i>t — this node's own tilt</p>
           <p><i class="sw" style="background:#f9a825"></i>a — the direction that arrived</p>
-          <p><i class="sw" style="background:#e05fd8"></i>L — short for
-            <span data-src="nodes/PairNode/tiltring/lattice.go#AngleLength">angleLength</span>, the slots between
-            them the short way round, so never more than 12</p>
-          <p>the two slots have TWO arcs between them, one each way round, and L is the shorter —
-            that choice is what min is for. It is not wrap handling: a tilt is a state on the ring
-            and cannot leave it, so turning never does arithmetic at all</p>
-          <p>6 is where parallel stops; every other length — acute below the quarter, obtuse above
-            it — is ordinary, and gets turned over</p>
-          <p><b>the RULE does not read L.</b> It counts from the nearer END of the tilt line
-            (<span data-src="nodes/PairNode/tiltring/machine.go#NearerEndCount">nearerEndCount</span>), which is
-            under 12 by construction and remembers which end it came from — and that fold is why the
-            two lengths 0 and 12 here are ONE count of 0 to the code</p>
+          <p><i class="sw" style="background:#e05fd8"></i>L — the slots between them the short way
+            round, so never more than 12. It is the PICTURE's number</p>
+          <p><b>the RULE does not read L.</b> It takes a plain
+            <span data-src="nodes/PairNode/tiltring/rules.go#Abs">abs</span> distance from EACH end of
+            the tilt line and asks which one is inside a quarter turn
+            (<span data-src="nodes/PairNode/tiltring/rules.go#Offset">offset</span>) — the top gives
+            +1, the bottom −1, neither gives 0</p>
+          <p>so the two panels at L = 0 and L = 12 are both turns: the arrival lying along the node's
+            own line is inside a quarter of one end</p>
           <p>integers, so exact — no dot product, no epsilon to tune</p>
         </div>
         <img class="math" src="../../diagrams/mathblocks/length/length.svg" style="width:396px"

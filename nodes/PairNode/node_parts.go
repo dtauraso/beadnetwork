@@ -33,13 +33,11 @@ type nodePlumbing struct {
 type tiltHeld struct {
 	Top *tiltring.State
 
-	Bottom *tiltring.State
-
 	Machine tiltring.Machine
 
 	TiltEditIn <-chan movemsg.TiltEditMsg
 
-	SyncTiltIndex func(theta, normalTheta, bottomTheta int32)
+	SyncTiltIndex func(theta int32)
 }
 
 type latticeState struct {

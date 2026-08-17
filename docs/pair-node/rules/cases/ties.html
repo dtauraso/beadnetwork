@@ -32,26 +32,16 @@
     <div class="grid">
 
       <div class="card wide">
-        <h2>The two ties, and which way they break</h2>
-        <table class="f">
-          <tr class="h">
-            <td>case</td>
-            <td>why it is a tie</td>
-            <td>what happens</td>
-          </tr>
-          <tr>
-            <td class="e">parallel, c = 0</td>
-            <td class="n">its stop, a quarter turn, is a quarter away going either way round</td>
-            <td class="n">turns UP</td>
-          </tr>
-        </table>
-        <div class="cap">Both fall out of one <code>&lt;=</code> in
-          <span data-src="nodes/PairNode/tiltring/machine.go#Step">step</span>: the way up is measured against a quarter
-          turn, and at exactly a quarter the two ways round are the same length, so the ≤ takes it up. It is
-          a convention, not a measurement — there is no better answer, since the two directions are genuinely
-          the same distance. What matters is that it MOVES: standing still at a tie is the freeze the old
-          "not acute" test produced. There are TWO ties and not four: read from the nearer end, each mode has
-          one stop, so each has one count that sits opposite it.</div>
+        <h2>There is no tie to break</h2>
+        <div class="cap">The rule asks two questions in order — is the TOP inside a quarter turn of the
+          arrival, then is the BOTTOM
+          (<span data-src="nodes/PairNode/tiltring/rules.go#Offset">offset</span>) — and the two can never
+          both be true: the ends are a half turn apart, so an arrival inside a quarter of one is outside a
+          quarter of the other. Checked over every arrival on 12-, 24- and 48-point rings: both inside, 0
+          cases. So no ordering convention is doing any work, and the earlier tie-breaking ≤ is gone with
+          the count it compared.</div>
+        <div class="cap">What remains is the third branch: NEITHER end inside a quarter turn, which is the
+          halt rather than a tie — 108 of the 576 arrivals on a 24-point ring.</div>
       </div>
 
     </div>

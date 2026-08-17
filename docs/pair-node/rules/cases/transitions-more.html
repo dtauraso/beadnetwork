@@ -63,10 +63,9 @@
           </tr>
           <tr>
             <td class="e">the partner's arrow is reversed</td>
-            <td class="n">not a case at all — the count is taken from whichever END is nearer, so a
-              reversed partner lands exactly where an aligned one does and parallel reads both as its one
-              stopping count</td>
-            <td class="s" data-src="nodes/PairNode/tiltring/machine.go#NearerEndCount">nearerEndCount</td>
+            <td class="n">not a case at all — a distance is taken from EACH end, so a reversed partner
+              is the other end's distance and lands on the same line</td>
+            <td class="s" data-src="nodes/PairNode/tiltring/rules.go#Offset">offset</td>
           </tr>
           <tr>
             <td class="e">a mode with no stopping count</td>
