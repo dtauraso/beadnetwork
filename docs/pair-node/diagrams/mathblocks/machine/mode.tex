@@ -4,13 +4,9 @@
 \usepackage{pairmath}
 \begin{document}
 \[\begin{array}{@{}l@{}}
-  S = \{\, {\color{dim}R_{\mathrm{setting}}},\; {\color{perp}R_{\perp}},\;
-        {\color{par}R_{\parallel}} \,\}
+  S = \{\, {\color{dim}R_{\mathrm{setting}}},\; {\color{par}R_{\parallel}} \,\}
   \qquad \Sigma = \{\, a,\; \mathrm{reset} \,\} \\[6pt]
-  \delta(R_{\mathrm{setting}},\, a) = \begin{cases}
-      {\color{perp}R_{\perp}}    & \len(t,\, a_{-6}) = 6 \\
-      {\color{par}R_{\parallel}} & \text{otherwise}
-    \end{cases} \\[6pt]
+  \delta(R_{\mathrm{setting}},\, a) = {\color{par}R_{\parallel}} \\[6pt]
   \delta(R,\, a) = R \qquad R \neq R_{\mathrm{setting}} \\[4pt]
   \delta(R,\, \mathrm{reset}) = R_{\mathrm{setting}}
 \end{array}\]

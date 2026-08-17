@@ -21,7 +21,7 @@ PACES the exchange and marks the round trip; it decides nothing and places nothi
 
 It used to step the tilt index one click in this kind's own fixed direction (a retired
 fixed-direction step), with no reference to anything that arrived, stopping only if it happened to
-land exactly on `Wiring.PerpendicularThetaIdx` — which walking away from perpendicular never
+land exactly on `Wiring.QuarterTurnPhiIdx` — which walking away from it never
 does. That put TWO rules on one index: the fixed bead step and the vector channel's acute-test
 rule. Where they agreed a node double-stepped; where they disagreed they cancelled and it
 froze. Measured on the real formulas, a pair marched +1/+2/+3… one way forever on one click
@@ -46,8 +46,8 @@ mover) carries THREE distinct edits, applied by `applyTiltEdit` (`nodes/PairNode
   `handleVectorCycle` something to reply to. It changes NO index of its own. **START opens
   the exchange from the node whose `PairID` is 1 alone** — the other node's own
   `applyTiltEdit` ignores it, since the exchange is begun from one end only (starting from
-  both would answer each other's opener in the same round). With both nodes of a pair
-  perpendicular, nothing circulates on In — correctly, since there is nothing left to
+  both would answer each other's opener in the same round). With both nodes of a pair already
+  at their halt, nothing circulates on In — correctly, since there is nothing left to
   straighten — so the loop has no way to start on its own; START is what a user clicks to
   begin it.
 

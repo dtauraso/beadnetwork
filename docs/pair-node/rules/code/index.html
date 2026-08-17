@@ -24,7 +24,6 @@
   <a href="../../math/math/index.html">Math</a>
   <a href="../../math/formulas/index.html">Formulas</a>
   <a href="../../math/dots.html">Separation</a>
-  <a href="../../math/perpendicular/index.html">Perpendicular</a>
   <a href="../cases/index.html">Cases</a>
   <a href="../../structure/channels.html">Channels</a>
   <a href="../../structure/cycle.html">Cycle</a>
@@ -61,8 +60,6 @@
         t.opposite <span class="note">a link the ring resolved, not <var>t</var> + <var>h</var></span></p>
       <p class="eq step" data-src="nodes/PairNode/vectors.go#outgoingVector"><span class="lhs wide"><var>a</var></span>=
         the partner's t.quarter <span class="note">its normal, not its tilt</span></p>
-      <p class="eq step" data-src="nodes/PairNode/machine.go#machineForGap"><span class="lhs wide">the partner's
-          tilt</span>= a.quarter.opposite <span class="note">read once, to pick the mode</span></p>
     </div>
   </section>
 
@@ -72,8 +69,6 @@
     <div class="card wide">
       <h2><span data-src="nodes/PairNode/tiltring/machine.go#stoppingCounts">stoppingCounts</span></h2>
       <div class="cap"><span data-src="nodes/PairNode/machine.go">nodes/PairNode/machine.go</span></div>
-      <p class="eq step perp" data-src="nodes/PairNode/tiltring/machine.go#stoppingCounts"><span class="lhs">perpendicular</span>stop
-        = 0</p>
       <p class="eq step par" data-src="nodes/PairNode/tiltring/machine.go#stoppingCounts"><span class="lhs">parallel</span>stop
         = <var>q</var></p>
       <p class="eq step dim" data-src="nodes/PairNode/tiltring/machine.go#stoppingCounts"><span class="lhs">setting</span>anywhere
@@ -83,19 +78,13 @@
     </div>
 
     <div class="card wide">
-      <h2>which row — <span data-src="nodes/PairNode/machine.go#machineForGap">machineForGap</span></h2>
+      <h2>starting it — <span data-src="nodes/PairNode/machine.go#adoptMachine">adoptMachine</span></h2>
       <div class="cap"><span data-src="nodes/PairNode/machine.go">nodes/PairNode/machine.go</span></div>
-      <p class="eq step" data-src="nodes/PairNode/machine.go#machineForGap"><span class="lhs">partner's tilt</span>=
-        <var>a</var>.quarter.opposite</p>
-      <p class="eq step" data-src="nodes/PairNode/tiltring/lattice.go#AngleLength"><span class="lhs"><var>G</var></span>=
-        angleLength(<var>t</var>, partner's tilt)</p>
-      <p class="eq step perp" data-src="nodes/PairNode/machine.go#machineForGap"><span class="lhs"><var>G</var>
-          = <var>q</var></span>perpendicular</p>
-      <p class="eq step par" data-src="nodes/PairNode/machine.go#machineForGap"><span class="lhs">otherwise</span>parallel</p>
-      <p class="eq step dim">the ONE place the gap between the two TILTS is measured, and the one
-        use of <span data-src="nodes/PairNode/tiltring/lattice.go#AngleLength">angleLength</span> left in the rule;
-        <span data-src="nodes/PairNode/machine.go#adoptMachine">adoptMachine</span> makes it stick until a
-        reset</p>
+      <p class="eq step par" data-src="nodes/PairNode/machine.go#adoptMachine"><span class="lhs">first
+          arrival</span>parallel</p>
+      <p class="eq step dim">there is one machine to run, so nothing is read out of the gap to choose
+        it; <span data-src="nodes/PairNode/machine.go#adoptMachine">adoptMachine</span> makes it stick
+        until a reset</p>
     </div>
   </section>
 

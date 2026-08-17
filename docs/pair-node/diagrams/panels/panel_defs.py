@@ -21,8 +21,8 @@ def build_panels():
         o.append('</svg>')
         out[f"triad/{t}"] = "\n".join(o)
 
-    for sep, note in ((0, "perpendicular rests"), (3, "acute — steps"), (6, "parallel rests"),
-                      (11, "obtuse — steps"), (12, "perpendicular rests")):
+    for sep, note in ((0, "steps"), (3, "acute — steps"), (6, "parallel rests"),
+                      (11, "obtuse — steps"), (12, "steps")):
         W, H, cx, cy, R = 186, 218, 93, 82, 66
         o = [f'<svg width="{W}" height="{H}" viewBox="0 0 {W} {H}">', ring(cx, cy, R)]
         if sep:
@@ -69,23 +69,6 @@ def build_panels():
 
     out["links/links"] = build_panel_links()
     out["modes/modes"] = build_panel_modes()
-
-    for name, a, note in (("perp", 12, "gap 6 → perpendicular"), ("par", 9, "gap 3 → parallel")):
-        W, H, cx, cy, R = 200, 232, 100, 84, 68
-        partner = (a - 6) % 24
-        o = [f'<svg width="{W}" height="{H}" viewBox="0 0 {W} {H}">', ring(cx, cy, R)]
-        o.append(arc(cx, cy, round(R * 0.46), 0, partner, HOME))
-        o.append(arrow(cx, cy, R, a, ARR, 2.2))
-
-        px, py = P(cx, cy, R * 0.84, partner)
-        o.append(f'<line x1="{cx}" y1="{cy}" x2="{px}" y2="{py}" stroke="#9a9aa6" stroke-width="2" '
-                 f'stroke-dasharray="5 4"/>')
-        o.append(arrow(cx, cy, R, 0, TOP, 2.8))
-        o.append(f'<text x="{cx}" y="196" text-anchor="middle" {SANS} {DIM}>{note}</text>')
-        o.append(f'<text x="{cx}" y="218" text-anchor="middle" {SANS} {DIM}>a = {a}, partner = {partner}</text>')
-        o.append('</svg>')
-        out[f"gap/{name}"] = "\n".join(o)
-
     out["state/state"] = build_panel_state()
     out["step/step"] = build_panel_step()
     out["frame/frame"] = build_panel_frame()

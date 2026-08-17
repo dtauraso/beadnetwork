@@ -24,7 +24,7 @@ type Ring struct {
 func NewRing(points int32) *Ring {
 	if points < 4 || points%4 != 0 {
 		panic(fmt.Sprintf(
-			"tiltring: a lattice needs a positive multiple of four points — got %d; a quarter turn must be a whole number of states or the coplanar normal and the perpendicular halt name nothing",
+			"tiltring: a lattice needs a positive multiple of four points — got %d; a quarter turn must be a whole number of states or the coplanar normal and the parallel halt name nothing",
 			points))
 	}
 	r := &Ring{

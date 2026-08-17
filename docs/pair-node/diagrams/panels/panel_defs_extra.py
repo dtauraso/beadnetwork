@@ -24,25 +24,20 @@ def build_panel_links():
 
 
 def build_panel_modes():
-    W, H = 620, 250
+    W, H = 620, 170
     o = [f'<svg width="{W}" height="{H}" viewBox="0 0 {W} {H}">']
-    boxes = [(24, 102, 140, 46, "setting", "#9a9aa6"),
-             (400, 30, 190, 46, "perpendicular", HOME),
-             (400, 174, 190, 46, "parallel", ARR)]
+    boxes = [(24, 62, 140, 46, "setting", "#9a9aa6"),
+             (400, 62, 190, 46, "parallel", ARR)]
     for x, y, w, h, name, col in boxes:
         o.append(f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="9" fill="#2b2b33" stroke="{col}"/>')
         o.append(f'<text x="{x + w // 2}" y="{y + 29}" text-anchor="middle" {MONO} fill="{col}">{name}</text>')
 
-    o.append(straight(168, 118, 396, 56, TOP))
-    o.append(straight(168, 132, 396, 194, TOP))
-    o.append(f'<text x="286" y="118" text-anchor="middle" {SANS} fill="{TOP}">the gap, at the</text>')
-    o.append(f'<text x="286" y="136" text-anchor="middle" {SANS} fill="{TOP}">first arrival</text>')
+    o.append(straight(168, 78, 396, 78, TOP))
+    o.append(f'<text x="286" y="70" text-anchor="middle" {SANS} fill="{TOP}">the first arrival</text>')
 
-    o.append(straight(400, 40, 172, 106, "#ff6b6b", ' stroke-dasharray="5 4"'))
-    o.append(straight(400, 210, 172, 144, "#ff6b6b", ' stroke-dasharray="5 4"'))
-    o.append(f'<text x="286" y="60" text-anchor="middle" {SANS} fill="#ff6b6b">RESET</text>')
-    o.append(f'<text x="286" y="204" text-anchor="middle" {SANS} fill="#ff6b6b">RESET</text>')
-    o.append(f'<text x="310" y="240" text-anchor="middle" {SANS} {DIM}>no edge between the two chosen modes — a choice sticks</text>')
+    o.append(straight(400, 100, 172, 100, "#ff6b6b", ' stroke-dasharray="5 4"'))
+    o.append(f'<text x="286" y="124" text-anchor="middle" {SANS} fill="#ff6b6b">RESET</text>')
+    o.append(f'<text x="310" y="158" text-anchor="middle" {SANS} {DIM}>a started machine sticks until a reset</text>')
     o.append('</svg>')
     return "\n".join(o)
 

@@ -15,7 +15,7 @@ never carries a bead value or vice versa.
 Every cycle, this node's own `handleVectorCycle` (its whole per-cycle vector-channel
 loop body) runs:
 
-- **Coplanar normal**: a quarter turn (`Wiring.PerpendicularThetaIdx`, 6 steps of
+- **Coplanar normal**: a quarter turn (`Wiring.QuarterTurnPhiIdx`, 6 steps of
   `Wiring.CurveParamTiltVectorAngleStep`, i.e. 90°) from THIS node's OWN tilt vector —
   pure index arithmetic (`theta+6`), never a cross product — so the normal turns WITH
   the tilt, always staying 90° away, rather than holding still toward the partner. There

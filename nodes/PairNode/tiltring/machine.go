@@ -29,8 +29,6 @@ var stoppingCounts = map[tiltvector.TiltMachine]StoppingCount{
 
 	tiltvector.TiltMachineNone: {Anywhere: true},
 
-	tiltvector.TiltMachinePerpendicular: {At: func(r *Ring) int32 { return 0 }},
-
 	tiltvector.TiltMachineParallel: {At: func(r *Ring) int32 { return r.QuarterTurn }},
 }
 

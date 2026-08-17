@@ -28,7 +28,6 @@
     <a href="../math/math/index.html">Math</a>
     <a href="../math/formulas/index.html">Formulas</a>
     <a href="../math/dots.html">Separation</a>
-    <a href="../math/perpendicular/index.html">Perpendicular</a>
     <a href="cases/index.html">Cases</a>
     <a href="../structure/channels.html">Channels</a>
     <a href="../structure/cycle.html">Cycle</a>
@@ -66,11 +65,9 @@
             <text x="330" y="216" class="lblm" fill="#5fd68a">halts on its own machine's halt</text>
           </svg>
           <div class="cap">Both run the same unmodified code and halt on the same rule: each holds the one
-            machine in one of its chosen modes (<a href="../math/perpendicular/index.html">perpendicular</a> or parallel),
-            read from the gap at START and carried to the other end on every reply — see
-            <span data-src="nodes/PairNode/machine.go#machineForGap">machineForGap</span>. Neither halts on the
-            other's separation; it steps straight over it. The one asymmetry is START, which the node
-            numbered 1 owns alone.</div>
+            machine, started at the first arrival and carried to the other end on every reply — see
+            <span data-src="nodes/PairNode/machine.go#adoptMachine">adoptMachine</span>. The one
+            asymmetry is START, which the node numbered 1 owns alone.</div>
         </div>
 
       </div>
