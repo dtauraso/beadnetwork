@@ -35,9 +35,9 @@
       \text{distance}_{\text{bottom}} &=& |\, \text{bottom} - \text{arrival} \,| \\[3pt]
       \text{offset} &=& 0 \\
       & & \quad\text{if } \text{distance}_{\text{top}} = 0 \text{ or } \text{distance}_{\text{bottom}} = 0 \\
-      & & +1 \\
-      & & \quad\text{if } \text{distance}_{\text{top}} < \tau/4 \\
       & & -1 \\
+      & & \quad\text{if } \text{distance}_{\text{top}} < \tau/4 \\
+      & & +1 \\
       & & \quad\text{if } \text{distance}_{\text{bottom}} < \tau/4 \\
       & & 0 \\
       & & \quad\text{otherwise} \\[3pt]
@@ -77,7 +77,7 @@
       <div class="figs">
         <div class="fig">
           <div data-ring='{"points":12,"numbers":true,"axis":0,"arrival":1,"arrivalLabel":"arrival"}'></div>
-          <div class="cap">arrival \(1\): top \(1\), bottom \(5\) — the top is acute, offset \(+1\)</div>
+          <div class="cap">arrival \(1\): top \(1\), bottom \(5\) — the top is acute, offset \(-1\)</div>
         </div>
         <div class="fig">
           <div data-ring='{"points":12,"numbers":true,"axis":0,"arrival":3,"arrivalLabel":"arrival"}'></div>
@@ -85,7 +85,7 @@
         </div>
         <div class="fig">
           <div data-ring='{"points":12,"numbers":true,"axis":0,"arrival":5,"arrivalLabel":"arrival"}'></div>
-          <div class="cap">arrival \(5\): top \(5\), bottom \(1\) — the bottom is acute, offset \(-1\)</div>
+          <div class="cap">arrival \(5\): top \(5\), bottom \(1\) — the bottom is acute, offset \(+1\)</div>
         </div>
       </div>
       <p class="note">Top is \(0\), so bottom is \(\tau/2\). Each end keeps its own distance, and
@@ -118,7 +118,7 @@
             <div data-ring='{"points":12,"axis":4,"size":150}'></div>
           </div>
           <div class="cap">tops \(1\) and \(4\); arrival \(7\), distances \(6\) and \(0\) — offset
-            \(-1\), still turning</div>
+            \(0\), the distance-zero case</div>
         </div>
       </div>
       <div class="keynote">

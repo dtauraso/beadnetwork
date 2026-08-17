@@ -22,9 +22,9 @@ func Offset(top, arrival, tau int32) int32 {
 	case distanceTop == 0 || distanceBottom == 0:
 		return 0
 	case distanceTop < tau/4:
-		return +1
-	case distanceBottom < tau/4:
 		return -1
+	case distanceBottom < tau/4:
+		return +1
 	default:
 		return 0
 	}
