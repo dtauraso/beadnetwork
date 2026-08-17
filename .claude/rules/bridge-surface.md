@@ -38,22 +38,6 @@ carries the TS → Go vocabulary.
   (Several ops/commands were removed end-to-end with no live TS sender — `edit-create`/
   `edit-delete`, `play`/`pause`, `run`/`stop`, `fade-toggle` — and their kind bytes are left
   as GAPS in `input_codec.go`, never renumbered.)
-
-  **The same never-renumber rule governs the ATTRIBUTE bytes**, not just the kind bytes:
-  `input_fingerprint.go`'s attribute block runs `0,1,2,3,4,` then `6,7,8…` and
-  `input-attrs.ts` mirrors the identical gap. **A new attribute takes the next unused byte
-  above the highest one; it does NOT fill a gap.** Reusing 5 would make an old record decode
-  as a *different* attribute instead of failing to decode — which is the whole reason the
-  gaps stay. The numbers are their own space and are NOT indices into the fingerprint's
-  `updateAttrs=` list (`InPanelAttrToggle` is 11 while `toggle` is first in that list) — do
-  not derive one from the other in either direction.
-
-  **`InTiltVectorAttrPhi` (4) is decoded by Go into `Attr: "theta"`**, which
-  `dispatch_apply.go`'s `applyUpdateTiltVector` then gates on. The quantity the tilt vector
-  moves is PHI, so the constant name is the correct half and the `"theta"` string is the
-  drift — but that string is also a token in `InputLayoutFingerprint` (which GENERATES the TS
-  side) and the dispatch gate, so correcting it is an input-vocabulary change, not a rename.
-  Do not "fix" the constant name to match the string.
 - **`raw-input`** — raw pointer/wheel + stateless raycast hit → Go's gesture FSM. Camera
   orbit, node moves, and port-anchor moves are produced **in-process** by the FSM
   from raw-input; they do not cross this seam as edits.
