@@ -92,7 +92,7 @@ mistake to avoid:
   below) by driving the wire each cycle, then on traversal-complete sends
   the bead over its out-channel to the destination. The wire is no longer
   the visual depiction either — the source node's own chain of placeholder
-  beads is (docs/bead-model/beads-are-the-edge.md). There is one owner
+  beads is — its length is `docs/bead-model/bead-lattice.md`. There is one owner
   of `inflight`/`delivered` and the in-flight geometry: the source node
   goroutine. Because it is the sole owner, `PacedWire.mu` does not exist
   — ownership replaces locking, the same move that removed `RealClock.mu`.

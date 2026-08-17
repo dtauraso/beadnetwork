@@ -75,7 +75,7 @@ docs, and the auto-memory dir, costing tokens and time.
 - **`grep`**: always scope. For code, use `--include="*.ts" --include="*.tsx"`. For repo-wide searches, exclude noise: `--exclude-dir={node_modules,out,.git,handoff-archive,memory}`.
 - **`find`**: never run `find .` unguarded — `tools/topology-vscode/node_modules/` has multi-MB files. Use `-not -path "*/node_modules/*" -not -path "*/out/*" -not -path "*/.git/*"` or just scope to a specific subtree.
 - **`ls`**: prefer a specific subdir over wide listings; pipe to `head` if you only need a sample.
-- Planning docs (`docs/planning/visual-editor/`, `memory/`) contain domain vocabulary — grep them only when the question is about *planning state*, not when looking for code.
+- `memory/` and any branch-local `docs/planning/` doc contain domain vocabulary — grep them only when the question is about *planning state*, not when looking for code.
 
 ## There are no tests. Do not add any.
 

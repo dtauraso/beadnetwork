@@ -10,10 +10,10 @@ static pages (no external assets).
 investigations, or superseded models were deleted rather than annotated — git history is the
 history, and the repo holds what is current. If a page here is wrong, fix it or delete it.
 
-**Planning docs are branch-local going forward** (`.claude/rules/planning-docs.md` →
-"Planning docs are branch-local"): new docs under `docs/planning/` carry a `branch:`
-frontmatter and are stripped before merge by `tools/strip-branch-local-docs.sh`. The
-untagged ones below predate that rule and stay until individually judged.
+**Planning docs are branch-local** (`.claude/rules/planning-docs.md`): a doc under
+`docs/planning/` carries a `branch:` frontmatter and is stripped before merge by
+`tools/strip-branch-local-docs.sh`, so on `main` that directory is empty between changes.
+An untagged doc there escaped a merge — delete it.
 
 ## Concurrency
 
@@ -69,19 +69,9 @@ No locks remain in the network; each `sync.Mutex`/`Cond` was replaced by single-
 |---|---|
 | [drift-checklist.md](process/drift-checklist.md) | Drift checklist — periodic agent/model-health audit. |
 
-## Visual-editor planning (`docs/planning/visual-editor/`)
+## Planning
 
-Planning/spec (untagged, predate the branch-local rule):
-
-| Doc | What it covers |
-|---|---|
-| [edit-hop-audit/index.html](planning/visual-editor/edit-hop-audit/index.html) | Edit round-trip audit — why 12 hops. |
-| [node-edges/index.html](planning/visual-editor/node-edges/index.html) | A node runs its own outgoing edges. |
-| [sphere-chain/index.html](planning/visual-editor/sphere-chain/index.html) | Sphere-chain node layout. |
-| [timing-spec/index.html](planning/visual-editor/timing-spec/index.html) | Wirefold timing spec. |
-| [timing-window/index.html](planning/visual-editor/timing-window/index.html) | Timing-window spec. |
-| [double-link-polar-model.md](planning/visual-editor/double-link-polar-model.md) | Double-link polar movement model. |
-| [polar-frame-rewrite.md](planning/visual-editor/polar-frame-rewrite.md) | Polar-frame rewrite plan (preserved from a deleted task branch). |
-
-Screenshots: `planning/visual-editor/screenshots/` — panguide triangle-drift (2026-06-17,
-×2), saturated pulse-wires (2026-07-14), pair normals mirrored (2026-08-06).
+`docs/planning/` is empty on `main` by rule — a plan lives on its branch and leaves with the
+merge. Screenshots taken during a change go under `docs/planning/visual-editor/screenshots/`
+with a date-prefixed kebab name (`tools/repo-hygiene/hooks/check-stray-screenshots.sh`), and
+are referenced from whatever memory file the work lands in.
