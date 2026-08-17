@@ -1,7 +1,6 @@
 package PairNode
 
 import (
-	"github.com/dtauraso/wirefold/nodes/PairNode/tiltring"
 	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
 )
 
@@ -40,9 +39,7 @@ func (n *Node) handleVectorCycle(tick int64) {
 	}
 	n.recordReceived(received)
 
-	if n.tilt.Machine == tiltring.Setting {
-		n.adoptMachine(n.machineForGap(n.ringOf().ArrivedState(received.PhiIdx)))
-	}
+	n.adoptMachine(tiltvector.TiltMachineParallel)
 	if !n.stepFromVector(received) {
 		return
 	}

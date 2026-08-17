@@ -15,16 +15,11 @@ type TiltMachine int8
 const (
 	TiltMachineNone TiltMachine = iota
 
-	TiltMachinePerpendicular
-
 	TiltMachineParallel
 )
 
 func (m TiltMachine) String() string {
-	switch m {
-	case TiltMachinePerpendicular:
-		return "perpendicular"
-	case TiltMachineParallel:
+	if m == TiltMachineParallel {
 		return "parallel"
 	}
 	return "none"
@@ -62,8 +57,8 @@ func PollRecvVector(ch <-chan TiltVectorMsg) (TiltVectorMsg, bool) {
 	}
 }
 
-const PerpendicularPhiIdx int32 = 6
+const QuarterTurnPhiIdx int32 = 6
 
-const HalfTurnPhiIdx = 2 * PerpendicularPhiIdx
+const HalfTurnPhiIdx = 2 * QuarterTurnPhiIdx
 
 const FullTurnPhiIdx = 2 * HalfTurnPhiIdx

@@ -33,31 +33,11 @@
     <div class="grid">
 
       <div class="card wide">
-        <h2>What the gap read actually asks</h2>
-        <table class="f">
-          <tr class="h">
-            <td>arrival lands at count</td>
-            <td>the two tilts are</td>
-            <td>mode chosen</td>
-          </tr>
-          <tr>
-            <td class="e">c = 0 — on this node's tilt line, either end</td>
-            <td class="n">a quarter turn apart — ALREADY perpendicular. The code measures this the other
-              way about, as the gap between the two TILTS being a quarter turn
-              (<span data-src="nodes/PairNode/machine.go#machineForGap">machineForGap</span>); the two are the
-              same fact, since the arrival is the partner's normal</td>
-            <td class="n">perpendicular</td>
-          </tr>
-          <tr>
-            <td class="e">anything else</td>
-            <td class="n">an acute gap</td>
-            <td class="n">parallel</td>
-          </tr>
-        </table>
-        <div class="cap">The two rows are perpendicular's gap and everything else, which is the honest
-          reading of the rule: it asks "is this setup already perpendicular?", and everything that is not
-          becomes a parallel pair to be closed. A pair set up at a quarter turn is therefore perpendicular
-          and finished on arrival — it has nowhere to walk.</div>
+        <h2>Starting the machine is not a case</h2>
+        <div class="cap">There is one machine, so the first arrival starts it and nothing is read out
+          of the gap to choose between machines
+          (<span data-src="nodes/PairNode/machine.go#adoptMachine">adoptMachine</span>). A pair set up
+          already at its stopping count is finished on arrival — it has nowhere to walk.</div>
       </div>
 
       <div class="card wide">

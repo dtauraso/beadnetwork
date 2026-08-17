@@ -31,7 +31,6 @@
     <a href="../../math/math/index.html">Math</a>
     <a href="../../math/formulas/index.html">Formulas</a>
     <a href="../../math/dots.html">Separation</a>
-    <a href="../../math/perpendicular/index.html">Perpendicular</a>
     <a class="on" href="index.html">Cases</a>
     <a href="../../structure/channels.html">Channels</a>
     <a href="../../structure/cycle.html">Cycle</a>
@@ -89,30 +88,23 @@
             <td>source</td>
           </tr>
           <tr>
-            <td class="e">setting → perpendicular</td>
-            <td class="n">first arrival, and the gap between the two TILTS is a quarter turn</td>
-            <td class="s" data-src="nodes/PairNode/machine.go#machineForGap">machineForGap</td>
-          </tr>
-          <tr>
             <td class="e">setting → parallel</td>
-            <td class="n">first arrival, and the gap is anything else</td>
-            <td class="s" data-src="nodes/PairNode/machine.go#machineForGap">machineForGap</td>
-          </tr>
-          <tr>
-            <td class="e">setting → either</td>
-            <td class="n">the partner already chose and its reply carries the choice</td>
+            <td class="n">the first arrival, which starts the one machine there is</td>
             <td class="s" data-src="nodes/PairNode/machine.go#adoptMachine">adoptMachine</td>
           </tr>
           <tr>
-            <td class="e">perpendicular or parallel → setting</td>
+            <td class="e">setting → parallel</td>
+            <td class="n">the partner already started and its reply carries the choice</td>
+            <td class="s" data-src="nodes/PairNode/machine.go#adoptMachine">adoptMachine</td>
+          </tr>
+          <tr>
+            <td class="e">parallel → setting</td>
             <td class="n">RESET, and nothing else</td>
             <td class="s" data-src="nodes/PairNode/edits.go#clear">clear</td>
           </tr>
         </table>
-        <div class="cap">There is NO perpendicular ↔ parallel edge. A chosen mode STICKS: a second choice —
-          a click landing mid-run, or the partner's own answer arriving after this end already decided —
-          is ignored, because re-deciding on a jitter is what once switched a started perpendicular pair to
-          parallel one step after START.</div>
+        <div class="cap">A started machine STICKS until a reset: a later arrival cannot restart it,
+          which is what once let a jitter one step after START change what a running pair was doing.</div>
       </div>
 
       <div class="card wide">

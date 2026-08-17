@@ -30,7 +30,6 @@
     <a href="math/index.html">Math</a>
     <a href="formulas/index.html">Formulas</a>
     <a class="on" href="dots.html">Separation</a>
-    <a href="perpendicular/index.html">Perpendicular</a>
     <a href="../rules/cases/index.html">Cases</a>
     <a href="../structure/channels.html">Channels</a>
     <a href="../structure/cycle.html">Cycle</a>
@@ -101,10 +100,10 @@
             <td class="s" data-src="nodes/PairNode/tiltring/machine.go#Settled">halted</td>
           </tr>
         </table>
-        <p>Separation says nothing about which of these a node is running — that is <span
-            data-src="nodes/PairNode/machine.go#machineForGap">machineForGap</span>'s job, read once at the first arrival.
-          A quarter turn is an ordinary separation to perpendicular, on its way through; a zero or half-turn
-          separation is an ordinary one to parallel. See <a href="perpendicular/index.html">Perpendicular</a>.</p>
+        <p>Separation says nothing about whether the node is running yet — that is <span
+            data-src="nodes/PairNode/machine.go#adoptMachine">adoptMachine</span>'s job, done once at
+          the first arrival. A zero or half-turn separation is an ordinary one to parallel, on its
+          way through.</p>
       </div>
 
       <div class="card wide">
