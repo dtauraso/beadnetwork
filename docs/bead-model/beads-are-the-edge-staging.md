@@ -2,6 +2,14 @@
 
 [← beads-are-the-edge.md](beads-are-the-edge.md)
 
+**Read as a record of what happened, not of what is there now.** Two kinds of name below no
+longer resolve. Every test it cites is gone — all test files in this repo were deleted, so
+`TestHeadlessEdgeFdDedicatedStream` and the "three headless tests" that duplicated
+`hdrSize` no longer exist and cannot be consulted (CLAUDE.md, "There are no tests"). And
+`LiveBeadFractions` was replaced by `lattice.BeadFraction(nowTick, placementTick,
+crossTicks)`, called per bead in `nodes/wire/live_beads.go`. The events described happened
+as recorded; the surface they happened to has moved.
+
 ## Staging — as BUILT
 
 Recorded after the fact, because two of the four planned steps were wrong about what was

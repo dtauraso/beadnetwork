@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
+<meta name="doc-status" content="historical" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>wirefold — scene_persist, the last unexamined locks</title>
 <link rel="stylesheet" href="../persister/index.css">
@@ -17,6 +18,14 @@
     or settled. These are different in kind: the observer is the <b>filesystem</b>, which has
     no perceptual threshold — so the "who could tell, and at what resolution" test that
     settled the others does not apply here.</p>
+    <p><b>Historical.</b> The file this section analyses,
+    <span style="font-family:var(--mono)">nodes/Wiring/scene_persist.go</span>, no longer
+    exists and neither do its locks: per-owner persistence now lives in
+    <span style="font-family:var(--mono)">nodes/Wiring/scenepersist/</span> (one file per
+    writer) over the atomic write in
+    <span style="font-family:var(--mono)">nodes/Wiring/jsonpersist/json_persist.go</span>,
+    which still does the tmp-file-plus-rename described on page 3. Read this as the
+    reasoning that got there.</p>
   </div>
 </header>
 

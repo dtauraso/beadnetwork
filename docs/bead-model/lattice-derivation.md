@@ -32,24 +32,34 @@ and was looked at, not a theoretical concern — a bead is the one thing a perso
 directly at, and "the lattice happens to imply this exact rendered size" is not a good
 enough reason for that size to be someone else's decision.
 
-**Current (this file, as shipped):** the bead's own radius is the AUTHORED primitive, and
-the node lattice's cell is what derives from it — `BeadStepCells` stays fixed at 4 (the
-property the second draft got right — the bead lattice is still a coarse SUBLATTICE of the
-node lattice, so `iR`'s cell-counted meaning is preserved, only the cell's SIZE
-changes), but now the derivation runs the other way:
+**Third draft (built, shipped, then superseded):** the bead's own radius became the AUTHORED
+primitive and the node lattice's cell derived from it, with `BeadStepCells` still fixed at 4
+so the bead lattice stayed a coarse SUBLATTICE of the node lattice and `iR`'s cell-counted
+meaning was preserved — only the cell's SIZE changed:
 
-	BeadRadius              = 4.0                                  (authored — lattice.BeadRadius)
+	BeadStepCells           = 4
+	LocalStepR              = BeadStepR / BeadStepCells            = 2.24
+
+**Current:** the sublattice is gone. There is no `BeadStepCells` and no `LocalStepR` — the
+radial grid IS the bead lattice, one index step per bead step, and that identity is asserted
+at load:
+
+	BeadRadius              = 4.0                                   (authored — lattice.BeadRadius)
 	BeadRingTubeRatio       = 0.12                                  (authored — lattice.BeadRingTubeRatio)
 	BeadTorusOuterR         = BeadRadius * (1 + BeadRingTubeRatio) = 4.48
 	BeadStepR               = 2 * BeadTorusOuterR                  = 8.96
-	BeadStepCells           = 4                                    (unchanged)
-	LocalStepR              = BeadStepR / BeadStepCells            = 2.24
+	constantR               = BeadStepR                            = 8.96
 
-Tangency is UNCHANGED by this flip — two beads' tori still touch at exactly half
-`BeadStepR`, and a bead's torus is still tangent to a node's torus the same way; only which
-of {bead radius, lattice step} is free and which is computed has swapped. What DOES change:
-`LocalStepR` grows from 2.0 to 2.24, a node-lattice cell now measures 12% more, and stored
-`iR` values are NOT rewritten to compensate — every existing separation, still counted
-in the same integer cells, now spans more world units, so the whole graph expands ~12% on
-load. That expansion is the accepted, agreed cost of getting the bead's own size right; it
-is not compensated for anywhere in this file or its callers.
+`constants.json`'s `constantR` carries that 8.96, and `loadspec.LoadSceneConstants` fails
+the load by path if it disagrees with `lattice.BeadStepR` — the radial grid is required to
+match the bead spacing rather than merely happening to. A node's radial position is
+`indexR * constantR` (`.claude/rules/persistence-ownership.md`), so an authored separation
+is a whole number of bead steps by construction, with no 4-cell conversion left in between.
+
+Tangency is UNCHANGED by every one of these flips — two beads' tori always touch at exactly
+half `BeadStepR`, and a bead's torus is tangent to a node's torus the same way; what moved
+each time was only which of {bead radius, lattice step} is free and which is computed, and
+how many node cells make a bead step. The third draft's flip cost a one-time ~12% expansion
+of the whole graph (`LocalStepR` 2.0 → 2.24 with stored indices not rewritten to
+compensate), accepted to get the bead's own size right; collapsing the sublattice afterwards
+made the radial index step 8.96 outright, so a stored index counts bead steps directly.

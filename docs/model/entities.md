@@ -73,11 +73,12 @@ mistake to avoid:
 
   **Known boundary:** the bead-actor path is driven by the SOURCE node's own drag (the node
   that owns the chain, per "an edge is stored under its source node" above) —
-  `StartBeadDrag`/`EndBeadDrag` fire only when `g.DragNode` is that source node. Dragging
+  the chain's `StartDrag`/`EndDrag` (reached through `owners.Beads.PostBeadDrag` and
+  `ApplyBeadDrag`) fire only when `g.DragNode` is that source node. Dragging
   the TARGET end of an edge still repositions that edge's beads with no visible lag (every
-  `chainBeads()` call recomputes from the live `partnerCenters` push the target's own
+  chain rebuild recomputes from the live `partnerCenters` push the target's own
   `ApplyCenter` already sends on every commit — unchanged, pre-existing machinery), but it
-  does so through `chainBeads`' own inline placement math for that edge on that call rather
+  does so through `beadcrud`'s own inline placement math for that edge on that call rather
   than through the target also toggling that chain's `BeadWakeGroup` mode flags. The
   `BeadWakeGroup`/`Bead` primitive itself supports either endpoint waking the SAME beads;
   wiring the TARGET's own drag lifecycle through to the

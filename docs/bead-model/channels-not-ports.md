@@ -1,6 +1,9 @@
 # A port is a ROLE, not a place
 
-Agreed model. Narrows MODEL.md's "Input port" bullet; MODEL.md is updated when this lands.
+Agreed model, NOT landed. MODEL.md's "Input port" bullet is unchanged, and edge files still
+hold `sourceHandle`/`targetHandle`/`label` rather than the `target` + `targetRole` pair this
+file proposes — so everything below in the future tense is still a proposal. What IS true is
+the headline: role names and load-time binding already work this way.
 
 ## Most of this is already how the code works
 
@@ -10,13 +13,15 @@ of designing something much larger. `SelectRight` embeds `gatecommon.GateNode` a
 binding already happens at LOAD, by name, with no generator:
 
 	Wiring.RegisterBuilder("SelectRight",
-	    []Wiring.PortSpec{{Name: "FromLeft", Dir: Wiring.PortIn}, ...},
-	    func(a Wiring.BuildArgs) (wire.Node, error) {
+	    []portwiring.PortSpec{{Name: "FromLeft", Dir: portwiring.PortIn}, ...},
+	    func(a Wiring.BuildArgs) (nodeapi.Node, error) {
 	        n.FromLeft = a.In("FromLeft")   // channel bound to role — runtime data
 	    })
 
 So "declare roles, bind channels to them at load, keep kinds out of node.go" is not a new
-design. It is `PortSpec` plus `a.In(...)`, already shipped. The node structs do not move.
+design. It is `portwiring.PortSpec` plus `a.In(...)`, already shipped. The node structs do
+not move. (The `Wiring.PortSpec`/`Wiring.PortIn` re-export aliases this file was first
+written against are gone — kinds name `portwiring` directly, `.claude/rules/node-kinds.md`.)
 
 ## Ideas considered and rejected
 

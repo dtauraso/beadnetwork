@@ -2,6 +2,15 @@
 
 [← beads-are-the-edge.md](beads-are-the-edge.md)
 
+**These questions were answered by building it; read
+[beads-are-the-edge-staging.md](beads-are-the-edge-staging.md) for the answers.** In
+particular the per-edge-stream question below was answered NO — the streams kept their
+owner, because only the wire's drive moved. Three names here no longer resolve: every test
+cited is gone (all test files in this repo were deleted — CLAUDE.md, "There are no tests"),
+`bufLayoutBead` is now `bufLayoutEdgeBead` in `Buffer/bufschema/layout_edge_bead.go`, and
+`arcLength`/`pulseSpeed` belong to the arc-length model that
+[bead-lattice.md](bead-lattice.md) replaced.
+
 ## What this deletes
 
 Measured on this branch:
