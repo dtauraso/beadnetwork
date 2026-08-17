@@ -33,7 +33,9 @@
       \text{bottom} &=& (\text{top} + \tau/2) \bmod \tau \\[3pt]
       \text{distance}_{\text{top}} &=& |\, \text{top} - \text{arrival} \,| \\[3pt]
       \text{distance}_{\text{bottom}} &=& |\, \text{bottom} - \text{arrival} \,| \\[3pt]
-      \text{offset} &=& +1 \\
+      \text{offset} &=& 0 \\
+      & & \quad\text{if } \text{distance}_{\text{top}} = 0 \text{ or } \text{distance}_{\text{bottom}} = 0 \\
+      & & +1 \\
       & & \quad\text{if } \text{distance}_{\text{top}} < \tau/4 \\
       & & -1 \\
       & & \quad\text{if } \text{distance}_{\text{bottom}} < \tau/4 \\

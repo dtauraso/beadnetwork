@@ -16,10 +16,14 @@ func DistanceTop(top, arrival int32) int32 { return Abs(top - arrival) }
 func DistanceBottom(top, arrival, tau int32) int32 { return Abs(Bottom(top, tau) - arrival) }
 
 func Offset(top, arrival, tau int32) int32 {
+	distanceTop := DistanceTop(top, arrival)
+	distanceBottom := DistanceBottom(top, arrival, tau)
 	switch {
-	case DistanceTop(top, arrival) < tau/4:
+	case distanceTop == 0 || distanceBottom == 0:
+		return 0
+	case distanceTop < tau/4:
 		return +1
-	case DistanceBottom(top, arrival, tau) < tau/4:
+	case distanceBottom < tau/4:
 		return -1
 	default:
 		return 0
