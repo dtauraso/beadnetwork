@@ -20,6 +20,8 @@ type bufLayoutOverlay struct {
 
 	NodePoleSphere uint8 `buf:"u8"`
 
+	AllPoleSpheres uint8 `buf:"u8"`
+
 	DragNodeRow int32 `buf:"i32"`
 
 	EditRefused uint32 `buf:"u32"`

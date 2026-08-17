@@ -22,6 +22,7 @@ export function NavGuides() {
   const showScenePoles = g && !!bufFlags?.scenePoles;
   const showNodePoles = g && !!bufFlags?.nodePoles;
   const showNodePoleSphere = g && !!bufFlags?.nodePoleSphere;
+  const allPoleSpheres = !!bufFlags?.allPoleSpheres;
   const showHandholds = g && !!bufFlags?.handholds;
   const showSceneVectors = g && !!bufFlags?.sceneVectors;
 
@@ -113,7 +114,7 @@ export function NavGuides() {
       {}
       {showNodePoles && <NodePoles nodes={navNodes} />}
       {}
-      {showNodePoleSphere && <NodePoleSphere nodes={navNodes} />}
+      {showNodePoleSphere && <NodePoleSphere nodes={navNodes} all={allPoleSpheres} />}
     </>
   );
 }

@@ -28,6 +28,7 @@ type OverlayState struct {
 	SceneVectorsVisible   bool
 	RuleChannelsVisible   bool
 	NodePoleSphereVisible bool
+	AllPoleSpheresVisible bool
 }
 
 // setFlag flips *field. Shared body of the uniform Toggle* methods. The RowEvent
@@ -107,6 +108,11 @@ func (o *OverlayState) ToggleRuleChannels(tr *T.Trace) {
 // ToggleNodePoleSphere flips NodePoleSphereVisible.
 func (o *OverlayState) ToggleNodePoleSphere(tr *T.Trace) {
 	o.setFlag(&o.NodePoleSphereVisible)
+}
+
+// ToggleAllPoleSpheres flips AllPoleSpheresVisible.
+func (o *OverlayState) ToggleAllPoleSpheres(tr *T.Trace) {
+	o.setFlag(&o.AllPoleSpheresVisible)
 }
 
 // SetGuideVisibility installs an explicit-visibility snapshot wholesale (the TS

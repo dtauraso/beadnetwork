@@ -36,15 +36,16 @@ export const OVERLAY_COL_HOVER_RING              = 10; // u8
 export const OVERLAY_COL_SCENE_VECTORS           = 11; // u8
 export const OVERLAY_COL_RULE_CHANNELS           = 12; // u8
 export const OVERLAY_COL_NODE_POLE_SPHERE        = 13; // u8
-export const OVERLAY_COL_DRAG_NODE_ROW           = 14; // i32
-export const OVERLAY_COL_EDIT_REFUSED            = 18; // u32
-export const OVERLAY_COL_SCENE_EDITABLE          = 22; // u8
-export const OVERLAY_COL_SCENE_KINDS             = 23; // u32
-export const OVERLAY_COL_GROUP_LEN_TIME          = 27; // f32
-export const OVERLAY_COL_GROUP_LEN_INPUT         = 31; // f32
-export const OVERLAY_COL_GROUP_LEN_GATE          = 35; // f32
-export const OVERLAY_COL_SPEED                   = 39; // f32
-export const OVERLAY_STRIDE                      = 43;
+export const OVERLAY_COL_ALL_POLE_SPHERES        = 14; // u8
+export const OVERLAY_COL_DRAG_NODE_ROW           = 15; // i32
+export const OVERLAY_COL_EDIT_REFUSED            = 19; // u32
+export const OVERLAY_COL_SCENE_EDITABLE          = 23; // u8
+export const OVERLAY_COL_SCENE_KINDS             = 24; // u32
+export const OVERLAY_COL_GROUP_LEN_TIME          = 28; // f32
+export const OVERLAY_COL_GROUP_LEN_INPUT         = 32; // f32
+export const OVERLAY_COL_GROUP_LEN_GATE          = 36; // f32
+export const OVERLAY_COL_SPEED                   = 40; // f32
+export const OVERLAY_STRIDE                      = 44;
 
 export function readOverlaySceneTori(view: DataView): number { return view.getUint8(OVERLAY_COL_SCENE_TORI); }
 export function readOverlayScenePoles(view: DataView): number { return view.getUint8(OVERLAY_COL_SCENE_POLES); }
@@ -60,6 +61,7 @@ export function readOverlayHoverRing(view: DataView): number { return view.getUi
 export function readOverlaySceneVectors(view: DataView): number { return view.getUint8(OVERLAY_COL_SCENE_VECTORS); }
 export function readOverlayRuleChannels(view: DataView): number { return view.getUint8(OVERLAY_COL_RULE_CHANNELS); }
 export function readOverlayNodePoleSphere(view: DataView): number { return view.getUint8(OVERLAY_COL_NODE_POLE_SPHERE); }
+export function readOverlayAllPoleSpheres(view: DataView): number { return view.getUint8(OVERLAY_COL_ALL_POLE_SPHERES); }
 export function readOverlayDragNodeRow(view: DataView): number { return view.getInt32(OVERLAY_COL_DRAG_NODE_ROW, true); }
 export function readOverlayEditRefused(view: DataView): number { return view.getUint32(OVERLAY_COL_EDIT_REFUSED, true); }
 export function readOverlaySceneEditable(view: DataView): number { return view.getUint8(OVERLAY_COL_SCENE_EDITABLE); }

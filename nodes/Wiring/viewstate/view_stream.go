@@ -15,6 +15,7 @@ type ViewOverlayFlags struct {
 	SceneVectors                                                           uint8
 	RuleChannels                                                           uint8
 	NodePoleSphere                                                         uint8
+	AllPoleSpheres                                                         uint8
 }
 
 type ViewPanelFlags struct {
@@ -90,6 +91,7 @@ func (ui *UIState) EmitViewFrame(events []rowevent.RowEvent) {
 			SceneVectors:   boolU8(ui.OV.SceneVectorsVisible),
 			RuleChannels:   boolU8(ui.OV.RuleChannelsVisible),
 			NodePoleSphere: boolU8(ui.OV.NodePoleSphereVisible),
+			AllPoleSpheres: boolU8(ui.OV.AllPoleSpheresVisible),
 		},
 		ViewPanelFlags{
 			Overlays:     boolU8(ui.PN.OverlaysOpen),

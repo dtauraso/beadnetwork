@@ -47,6 +47,7 @@ var OverlayToggles = map[string]func(*OverlayState, *T.Trace){
 	"sceneVectors":   (*OverlayState).ToggleSceneVectors,
 	"ruleChannels":   (*OverlayState).ToggleRuleChannels,
 	"nodePoleSphere": (*OverlayState).ToggleNodePoleSphere,
+	"allPoleSpheres": (*OverlayState).ToggleAllPoleSpheres,
 }
 
 // OVERLAY_TOGGLES_END
@@ -93,6 +94,7 @@ var OverlayFlagTraceKind = map[string]string{
 	"sceneVectors":   T.KindSceneVectors,
 	"ruleChannels":   T.KindRuleChannels,
 	"nodePoleSphere": T.KindNodePoleSphere,
+	"allPoleSpheres": T.KindAllPoleSpheres,
 }
 
 // OVERLAY_TRACE_KINDS_END

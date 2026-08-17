@@ -1,5 +1,6 @@
 import {
   readOverlaySceneTori, readOverlayScenePoles, readOverlayNodePoles, readOverlayNodePoleSphere,
+  readOverlayAllPoleSpheres,
   readOverlayHandholds, readOverlayLabelsGlobal,
   readOverlayOverlaysVis,
   readOverlayNodeBody,
@@ -35,6 +36,7 @@ export function overlayFlag(vb: ViewBlocksOrNull, kind: string): number {
     case "hover-ring": return readOverlayHoverRing(v);
     case "scene-vectors": return readOverlaySceneVectors(v);
     case "node-pole-sphere": return readOverlayNodePoleSphere(v);
+    case "all-pole-spheres": return readOverlayAllPoleSpheres(v);
     default: return 0;
   }
 }
