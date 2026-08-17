@@ -19,10 +19,7 @@ hits=$(grep -nE "$PATTERN" "$FILE" || true)
 if [ -n "$hits" ]; then
   echo "✗ sqrt fingerprint(s) found in live_beads.go — a bead's position must stay a fraction along the segment its edge already holds, never a cartesian distance:"
   echo "$hits"
-  echo "  (math.Sqrt / Vec3.Length() / Vec3.Normalize() are each a sqrt — use BeadFraction and Lerp on the stored segment instead."
-  echo "   An edge has ONE length: the integer bead-step count its source node computed. A sqrt here measures a second,"
-  echo "   independently-derived length that will disagree with the lattice the beads are laid out on, and the bead ends up"
-  echo "   timed to cross a distance the chain is not built to. See memory/feedback/architecture/geometry/feedback_abc_times_constant_not_rederive.md.)"
+  echo "  (math.Sqrt / Vec3.Length() / Vec3.Normalize() are each a sqrt — use BeadFraction and Lerp on the stored segment instead. See memory/feedback/architecture/geometry/feedback_abc_times_constant_not_rederive.md.)"
   exit 1
 fi
 
