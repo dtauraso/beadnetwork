@@ -51,6 +51,16 @@ const nodePoleSphereCfg: ToggleCfg = {
   payload: (v) => ({ flag: "nodePoleSphere", was: v }),
 };
 
+const allPoleSpheresCfg: ToggleCfg = {
+  flag: "allPoleSpheres",
+  default: false,
+  active: (v) => v,
+  icon: "◍",
+  label: "all pole spheres",
+  title: (a) => (a ? "Show pole spheres on selected nodes only" : "Show pole spheres on every node"),
+  payload: (v) => ({ flag: "allPoleSpheres", was: v }),
+};
+
 const handholdsCfg: ToggleCfg = {
   flag: "handholds",
   default: true,
@@ -172,7 +182,7 @@ export const OVERLAY_GROUPS: OverlayGroup[] = [
     panel: "scene",
     groups: [
       { heading: "GUIDES", cfgs: [ringsCfg, handholdsCfg], panel: "sceneGuides" },
-      { heading: "POLES", cfgs: [scenePolesCfg], panel: "scenePoles" },
+      { heading: "POLES", cfgs: [scenePolesCfg, allPoleSpheresCfg], panel: "scenePoles" },
       { heading: "VECTORS", cfgs: [sceneVectorsCfg, ruleChannelsCfg], panel: "sceneVectors" },
       { heading: "LABELS", cfgs: [globalLabelsCfg], panel: "sceneLabels" },
     ],

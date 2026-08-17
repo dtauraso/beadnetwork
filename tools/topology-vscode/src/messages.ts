@@ -15,6 +15,7 @@ const OVERLAY_FLAG_NAMES = [
   "sceneVectors",
   "ruleChannels",
   "nodePoleSphere",
+  "allPoleSpheres",
 ] as const;
 // OVERLAY_FLAGS_END
 

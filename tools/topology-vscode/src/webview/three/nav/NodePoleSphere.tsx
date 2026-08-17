@@ -2,10 +2,10 @@ import React from "react";
 import { type NavNode } from "./buffer-nav";
 import { PolarFrame } from "./polar-frame";
 
-export function NodePoleSphere({ nodes }: { nodes: NavNode[] }) {
+export function NodePoleSphere({ nodes, all }: { nodes: NavNode[]; all: boolean }) {
   return (
     <>
-      {nodes.filter((n) => n.selected || n.latchedSel).map((node) => (
+      {nodes.filter((n) => all || n.selected || n.latchedSel).map((node) => (
         <React.Fragment key={node.row}>
           <PolarFrame
             center={node.center}

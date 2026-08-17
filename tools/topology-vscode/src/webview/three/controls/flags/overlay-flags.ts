@@ -16,6 +16,7 @@ import {
   readOverlaySceneVectors,
   readOverlayRuleChannels,
   readOverlayNodePoleSphere,
+  readOverlayAllPoleSpheres,
 } from "../../../../schema/buffer-layout/buffer-layout";
 
 export type OverlayFlagVals = Record<OverlayFlag, boolean>;
@@ -46,6 +47,7 @@ export function readOverlayFlags(): OverlayFlagVals | null {
     sceneVectors: !!readOverlaySceneVectors(v),
     ruleChannels: !!readOverlayRuleChannels(v),
     nodePoleSphere: !!readOverlayNodePoleSphere(v),
+    allPoleSpheres: !!readOverlayAllPoleSpheres(v),
   };
   if (cachedVals && overlayFlagsEqual(cachedVals, next)) return cachedVals;
   cachedVals = next;

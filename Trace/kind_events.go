@@ -45,6 +45,8 @@ const (
 
 	KindNodePoleSphere = "node-pole-sphere"
 
+	KindAllPoleSpheres = "all-pole-spheres"
+
 	KindSelect = "select"
 
 	KindHover = "hover"
@@ -58,4 +60,4 @@ const (
 	KindBreadcrumb = "breadcrumb"
 )
 
-var TraceEventKinds = []string{KindRecv, KindFire, KindSend, KindEdgeBead, KindGeometry, KindNodeGeometry, KindArrive, KindNodeBead, KindCamera, KindSceneTori, KindScenePoles, KindNodePoles, KindHandholds, KindLabelsGlobal, KindOverlaysVis, KindNodeBody, KindNodeRing, KindRingPick, KindSelectionRing, KindHoverRing, KindSceneVectors, KindRuleChannels, KindNodePoleSphere, KindSelect, KindHover, KindSceneSphere, KindAbcDrag, KindAbcDragReset, KindBreadcrumb}
+var TraceEventKinds = []string{KindRecv, KindFire, KindSend, KindEdgeBead, KindGeometry, KindNodeGeometry, KindArrive, KindNodeBead, KindCamera, KindSceneTori, KindScenePoles, KindNodePoles, KindHandholds, KindLabelsGlobal, KindOverlaysVis, KindNodeBody, KindNodeRing, KindRingPick, KindSelectionRing, KindHoverRing, KindSceneVectors, KindRuleChannels, KindNodePoleSphere, KindAllPoleSpheres, KindSelect, KindHover, KindSceneSphere, KindAbcDrag, KindAbcDragReset, KindBreadcrumb}
