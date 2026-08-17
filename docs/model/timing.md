@@ -5,9 +5,9 @@
 ## Geometry and time
 
 - Wire geometry sets traversal in ticks:
-  `ticksToCross = steps * DwellTicksPerBead` (steps: docs/bead-model/bead-lattice.md "The
-  count", computed by the SOURCE NODE from its own live measured distance to the
-  target — one integer, not an arc length divided by a speed). Geometry has
+  `ticksToCross = steps * DwellTicksPerBead` (steps: `edgegeom.EdgeStepCount`, computed by
+  the SOURCE NODE from its own live measured distance to the target — one integer, not an
+  arc length divided by a speed). Geometry has
   no other effect on timing.
 - A geometry edit re-derives traversal time. While a bead is in flight,
   the in-flight revision PRESERVES the bead's FRACTIONAL progress `t` (its

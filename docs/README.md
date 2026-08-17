@@ -48,13 +48,6 @@ No locks remain in the network; each `sync.Mutex`/`Cond` was replaced by single-
 |---|---|
 | [pole-singularity/index.html](polar-geometry/pole-singularity/index.html) | The layout pole singularity — φ grid vs great-circle bearing. |
 
-## Bead / edge model
-
-| Doc | What it covers |
-|---|---|
-| [bead-lattice.md](bead-model/bead-lattice.md) | The bead lattice — an edge is one integer. |
-| [bead-count.md](bead-model/bead-count.md) | How the source node computes the bead count, and where the rounding is. |
-
 ## Pair node
 
 | Doc | What it covers |
