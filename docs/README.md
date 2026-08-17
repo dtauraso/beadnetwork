@@ -15,10 +15,11 @@ history, and the repo holds what is current. If a page here is wrong, fix it or 
 `tools/strip-branch-local-docs.sh`, so on `main` that directory is empty between changes.
 An untagged doc there escaped a merge — delete it.
 
-## Investigations
+## Audits
 
 | Doc | What it covers |
 |---|---|
+| [audit-skills.md](audit-skills.md) | The three audits — which cost each one measures, and what happens to a finding. |
 | [audit-baseline.md](investigations/audit-baseline.md) | Audit baseline — settled findings audit subagents must not re-report. |
 
 ## The model
