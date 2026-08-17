@@ -7,9 +7,7 @@ win with a guard so it cannot regress.
 None of them edits anything. Each returns candidates; a candidate is not a finding until
 someone confirms it against current code. Several never survive that contact.
 
-`audit-all` runs the first two in parallel and consolidates. All of them read
-[audit-baseline.md](investigations/audit-baseline.md) first, which is the list of things already judged
-deliberate-and-structural, so no run re-derives the same permanent facts.
+`audit-all` runs the first two in parallel and consolidates.
 
 ## The split: three costs, not three severities
 
@@ -80,8 +78,12 @@ Consolidated results split in two, and the split is the point:
 - **Real and actionable** — a defect or an unguarded hazard. Name the concrete fix and
   whether a `check-*.sh` guard can lock it. Fix-order is **code first**: enforce it in a
   guard before writing prose about it.
-- **Deliberate and structural** — the intrinsic cost of this architecture, not a defect.
-  Record it in [audit-baseline.md](investigations/audit-baseline.md) in the same pass, so the next audit
-  spends nothing rediscovering it.
+- **Deliberate and structural** — the intrinsic cost of this architecture, not a defect. Say
+  so, and leave it alone.
+
+Every run starts from scratch. There is no list of settled findings to read first, so the
+same deliberate-and-structural facts surface again each time and have to be judged again
+each time. That is the accepted cost of not keeping a record that goes stale faster than the
+code it describes.
 
 Nothing is auto-fixed. The user picks.

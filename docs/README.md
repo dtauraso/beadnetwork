@@ -20,7 +20,6 @@ An untagged doc there escaped a merge — delete it.
 | Doc | What it covers |
 |---|---|
 | [audit-skills.md](audit-skills.md) | The three audits — which cost each one measures, and what happens to a finding. |
-| [audit-baseline.md](investigations/audit-baseline.md) | Audit baseline — settled findings audit subagents must not re-report. |
 
 ## The model
 
