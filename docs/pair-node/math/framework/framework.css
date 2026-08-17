@@ -1,0 +1,143 @@
+/* The framework page: figures first, math second, prose last. */
+
+.warn {
+  margin: 0 0 1rem;
+  padding: .7rem 1rem;
+  border-left: 3px solid #b4462a;
+  background: rgba(180, 70, 42, .09);
+  font-size: .92rem;
+}
+
+/* A wide formula scrolls inside its own box rather than pushing the card open. */
+mjx-container[display="true"] {
+  margin: .7rem 0;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: .2rem;
+}
+
+.figs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  justify-content: center;
+  margin: .4rem 0 1rem;
+}
+
+.fig {
+  flex: 1 1 210px;
+  max-width: 340px;
+}
+
+.fig .cap {
+  font-size: .86rem;
+  opacity: .8;
+  text-align: center;
+  margin-top: .3rem;
+}
+
+/* The ring: a faint circle of lattice points, one bold line for the axis a node holds,
+   one ray for the direction that arrived on the wire. */
+.ring-line { fill: none; stroke: currentColor; opacity: .22; }
+.ring-dot { fill: currentColor; opacity: .35; }
+.ring-axis { stroke: currentColor; stroke-width: 2.5; }
+.ring-end { fill: currentColor; }
+.ring-arrival { stroke: #c8792f; stroke-width: 2; stroke-dasharray: 4 3; }
+.ring-arrival-dot { fill: #c8792f; }
+
+.ring-pair { stroke: currentColor; opacity: .28; stroke-width: 1; }
+
+.ring-num {
+  fill: currentColor;
+  font-size: 9px;
+  text-anchor: middle;
+  opacity: .55;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The radian key: a few named points on the ring, above the number table. */
+.keyring {
+  max-width: 320px;
+  margin: 0 auto .2rem;
+}
+
+.ring-mark { fill: currentColor; }
+
+/* Turn fractions on the key ring: numerator over denominator, over a bar. */
+.ring-frac {
+  fill: currentColor;
+  font-size: 12px;
+  text-anchor: middle;
+  opacity: .85;
+}
+
+.ring-bar { stroke: currentColor; stroke-width: 1; opacity: .7; }
+.ring-vector { stroke: currentColor; stroke-width: 1.4; opacity: .5; }
+.ring-vector.end { stroke-width: 2.6; opacity: 1; }
+.ring-arrow { fill: currentColor; opacity: .5; }
+.ring-arrow.end { opacity: 1; }
+
+.ring-end-label {
+  fill: currentColor;
+  font-size: 9.5px;
+  text-anchor: middle;
+  opacity: .7;
+}
+
+.ring-radian {
+  fill: currentColor;
+  font-size: 11px;
+  text-anchor: middle;
+  opacity: .85;
+}
+
+.ring-label {
+  fill: currentColor;
+  font-size: 10px;
+  text-anchor: middle;
+  opacity: .75;
+}
+
+.ring-label.arrival { fill: #c8792f; opacity: 1; }
+
+/* A pair: two rings side by side, because the rule holds between them, not inside one. */
+.pair {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+}
+
+.pair > div { flex: 1 1 0; min-width: 0; }
+
+.pair .who {
+  flex: 0 0 auto;
+  font-size: .8rem;
+  opacity: .6;
+}
+
+/* A rule on one ring: resting lines bold green, every other line labelled with the steps
+   left and the way it turns. */
+.ring-rest { stroke: #3f8f6d; stroke-width: 3; }
+
+.ring-steps {
+  fill: currentColor;
+  font-size: 10px;
+  text-anchor: middle;
+  opacity: .75;
+  font-variant-numeric: tabular-nums;
+}
+
+.ring-steps.rest {
+  fill: #3f8f6d;
+  font-size: 8.5px;
+  opacity: 1;
+  letter-spacing: .04em;
+}
+
+.backlink {
+  display: inline-block;
+  margin: 1.4rem 0 0;
+  font-size: .9rem;
+}
