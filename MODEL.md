@@ -32,9 +32,9 @@ two jobs that have two different clocks:
 **This is deliberately NOT one clock per node.** It used to be, and that is
 what this split reverses: geometry work was done in the kind's paced loop, so a
 node accepted at most one move per sim cycle — up to ~1 s at low speed — while
-a pointer produces sixty. Dragging a node reliably killed it on the
-`maxPendingSends` bound, correctly reporting that it was "enqueueing to a peer
-faster than that peer drains". A hand movement must not be paced by a simulated
+a pointer produces sixty. Dragging a node reliably killed it on a pending-send
+bound, correctly reporting that it was "enqueueing to a peer faster than that
+peer drains". A hand movement must not be paced by a simulated
 one.
 
 **The two goroutines share no memory.** Every field of `NodeGeometry` belongs to
@@ -120,8 +120,10 @@ binary-both-ways bridge surface.
 ## Scenes
 
 See [docs/model/scenes.md](docs/model/scenes.md) for what a scene is, how a tab switch
-works, and the two named per-scene forks (drag mode, coplanar rings), plus the ring-axis
-vs. navigation-pole distinction.
+works, and the per-scene fork of node behaviour it documents (coplanar rings), plus the
+ring-axis vs. navigation-pole distinction. `scene.Scene`'s other per-scene fields
+(`UpAxis`, `ClockDivisor`, `DistanceGroups`, `Editable`, `Kinds`) are not written up
+anywhere — read `nodes/Wiring/scene/scene_tabs.go`.
 
 ## Drift rule
 
@@ -202,7 +204,7 @@ for one to fix.
 
 A `panic` in `nodes/`, `Buffer/`, or `Trace/` is an **assertion**, not error handling. It
 fires only via a code bug — never via ordinary traffic, malformed input, or load. Input the
-network cannot trust is rejected at parse (`validateNoFanIn`, `validateSpec`); by the time a
+network cannot trust is rejected at parse (`validateNoFanIn`, `ValidateSpec`); by the time a
 value reaches a goroutine's own state, a violated bound means the code is wrong.
 
 So an assertion states an invariant the structure is supposed to guarantee, and the right
@@ -223,7 +225,7 @@ is the only context they get. It must:
 3. **Name the mechanism that should have prevented it.** This is what turns a crash into a
    diagnosis: *"the per-cycle drain (the source node's own Outs.DriveOutWires ->
    DrainPendingEvents) is not
-   running"*, or `allocateWires`' *"validateNoFanIn should have rejected this fan-in at
+   running"*, or `AllocateWires`' *"validateNoFanIn should have rejected this fan-in at
    parse"* — which names the earlier gate that let it through.
 
 **No `recover()` in the network.** Swallowing an assertion converts a loud, located failure
