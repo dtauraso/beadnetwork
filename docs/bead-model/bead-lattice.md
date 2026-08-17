@@ -1,8 +1,8 @@
 # The bead lattice — an edge is one integer
 
-Supersedes the arc-length model for edges. Companion to
-[beads-are-the-edge.md](beads-are-the-edge.md), which describes the chain; this file
-describes the LENGTH.
+This file describes an edge's LENGTH. The chain it measures — the node-owned chain of
+placeholder beads that renders a traversal — is described in MODEL.md and
+[docs/model/entities.md](../model/entities.md).
 
 ## The model
 
@@ -15,8 +15,16 @@ bead's surface, its torus tangent in exactly the same way.
 There is no arc. An edge's length is ONE INTEGER: the number of bead steps between the two
 nodes' tori. Everything derives from it.
 
-See [lattice-derivation.md](lattice-derivation.md) for how the bead lattice came to be
-derived from the bead's own authored radius rather than the other way round.
+The bead's radius is the AUTHORED primitive and the lattice derives from it:
+
+	BeadRadius        = 4.0                                   (lattice.BeadRadius)
+	BeadRingTubeRatio = 0.12                                  (lattice.BeadRingTubeRatio)
+	BeadTorusOuterR   = BeadRadius * (1 + BeadRingTubeRatio) = 4.48
+	BeadStepR         = 2 * BeadTorusOuterR                  = 8.96
+
+The scene's radial grid IS that step: `constants.json`'s `constantR` is 8.96, and
+`loadspec.LoadSceneConstants` fails the load by path if it disagrees with
+`lattice.BeadStepR`, so a stored `indexR` counts bead steps directly.
 
 ## Placement
 

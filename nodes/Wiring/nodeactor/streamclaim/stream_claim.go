@@ -20,7 +20,8 @@ func Claim(reg ClaimRegistry, key string, w io.Writer) StreamHandle {
 			fmt.Fprintf(os.Stderr,
 				"stream-claim collision: node stream %q already claimed; a second wiring call "+
 					"cannot also claim it — handing it to a second goroutine would reintroduce "+
-					"the two-goroutines-one-fd desync docs/investigations/interior-stream-framing.md documents. "+
+					"the two-goroutines-one-fd desync that interleaves two frames' header and payload "+
+					"writes into garbage (CLAUDE.md: one dedicated pipe per emitting goroutine). "+
 					"This claimant's stream stays unwired (writes nothing) instead.\n",
 				key)
 			return StreamHandle{}

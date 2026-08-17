@@ -28,7 +28,8 @@ when a bead has arrived. Go owns the clock.
   the separate `DriveHeld` goroutine of `Pulse`/`PulseLeft`/`PulseRight`/
   `holdflip` would not share the interior stream's fd — two goroutines
   racing one fd interleave their frames' header/payload writes into garbage
-  (`docs/investigations/interior-stream-framing.md`). That goroutine no
+  — the reason for the one-pipe-per-emitting-goroutine rule in CLAUDE.md's
+  "Bridge surface". That goroutine no
   longer exists (a driven out is stepped by the node's own loop), so the
   second writer it was separating is gone and a driven out's events ride
   the node's own interior stream like everything else it emits. Do not
@@ -65,7 +66,7 @@ when a bead has arrived. Go owns the clock.
   transit and interior
   beads (`tools/topology-vscode/src/webview/three/scene/beads/ChainBeadInstances.tsx`, `tools/topology-vscode/src/webview/three/scene/beads/InteriorBeadInstances.tsx` — there is no
   per-edge drawn tube any more; the source node's own chain of placeholder beads is the
-  edge's visual, `docs/bead-model/beads-are-the-edge.md`), selection highlight
+  edge's visual, `docs/model/entities.md`), selection highlight
   (`tools/topology-vscode/src/webview/three/scene/overlays/SelectionHighlight.tsx`), and the camera (`tools/topology-vscode/src/webview/three/scene/BufferCamera.tsx` maps the buffer
   Camera row onto the three.js camera). Nothing in this tree owns traversal
   timing, positions, or geometry.
