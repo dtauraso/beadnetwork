@@ -49,11 +49,10 @@
         <h2>What separation is</h2>
         <p><span data-src="nodes/PairNode/tiltring/lattice.go#AngleLength">separation</span> is how far apart two states
           are on the ring, the SHORT way round — never more than a half turn. It is not a resting-state test: it
-          names no halt of its own, and it is the ONLY thing <span
-            data-src="nodes/PairNode/tiltring/machine.go#Machine">the perpendicular</span> and <span
-            data-src="nodes/PairNode/tiltring/machine.go#stoppingCounts">parallel modes</span> share. Everything else about
-          each mode — what counts as its halt, and which way is closer to it — is read straight off this one
-          number, against the counts that mode stops at.</p>
+          names no halt of its own. Everything the <span
+            data-src="nodes/PairNode/tiltring/machine.go#stoppingCounts">machine</span> decides — what counts
+          as its halt, and which way is closer to it — is read straight off this one
+          number, against the count it stops at.</p>
       </div>
 
       <div class="card">
@@ -82,17 +81,12 @@
       </div>
 
       <div class="card wide">
-        <h2>Two halts, read off the same number</h2>
+        <h2>The halt, read off that number</h2>
         <table class="f">
           <tr>
             <td>machine</td>
             <td>halted when</td>
             <td>source</td>
-          </tr>
-          <tr>
-            <td class="e">perpendicular</td>
-            <td class="n">separation is 0, or a half turn</td>
-            <td class="s" data-src="nodes/PairNode/tiltring/machine.go#Settled">halted</td>
           </tr>
           <tr>
             <td class="e">parallel</td>

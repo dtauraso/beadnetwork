@@ -105,11 +105,11 @@
       <div class="card wide">
         <h2>The angle length, and what it says the pair is at</h2>
         <div class="strip">
-          <img src="../../diagrams/panels/length/0.svg" alt="angle length 0 — the arrival is on this node's top, so perpendicular stops">
-          <img src="../../diagrams/panels/length/3.svg" alt="angle length 3, an acute angle — neither mode stops here, so the node turns">
+          <img src="../../diagrams/panels/length/0.svg" alt="angle length 0 — the arrival is on this node's top, so the node turns">
+          <img src="../../diagrams/panels/length/3.svg" alt="angle length 3, an acute angle — the machine does not stop here, so the node turns">
           <img src="../../diagrams/panels/length/6.svg" alt="angle length 6 — the arrival is a quarter turn off, so parallel stops">
-          <img src="../../diagrams/panels/length/11.svg" alt="angle length 11, an obtuse angle — neither mode stops here, so the node turns">
-          <img src="../../diagrams/panels/length/12.svg" alt="angle length 12, a half turn — the arrival is on this node's bottom, which is the SAME count of 0 taken at the nearer end, so perpendicular stops">
+          <img src="../../diagrams/panels/length/11.svg" alt="angle length 11, an obtuse angle — the machine does not stop here, so the node turns">
+          <img src="../../diagrams/panels/length/12.svg" alt="angle length 12, a half turn — the arrival is on this node's bottom, the SAME count of 0 taken at the nearer end, so the node turns">
         </div>
         <div class="keynote">
           <p><i class="sw" style="background:#5fd68a"></i>t — this node's own tilt</p>
@@ -120,13 +120,12 @@
           <p>the two slots have TWO arcs between them, one each way round, and L is the shorter —
             that choice is what min is for. It is not wrap handling: a tilt is a state on the ring
             and cannot leave it, so turning never does arithmetic at all</p>
-          <p>0 and 12 are where perpendicular stops and 6 is where parallel does; every other length —
-            acute below the quarter, obtuse above it — is ordinary to both, and gets turned over</p>
+          <p>6 is where parallel stops; every other length — acute below the quarter, obtuse above
+            it — is ordinary, and gets turned over</p>
           <p><b>the RULE does not read L.</b> It counts from the nearer END of the tilt line
             (<span data-src="nodes/PairNode/tiltring/machine.go#NearerEndCount">nearerEndCount</span>), which is
-            under 12 by construction and remembers which end it came from — and that fold is why
-            perpendicular's two lengths here, 0 and 12, are ONE count of 0 to the code. L survives for
-            the one question about the two TILTS rather than the arrival: which mode the pair runs</p>
+            under 12 by construction and remembers which end it came from — and that fold is why the
+            two lengths 0 and 12 here are ONE count of 0 to the code</p>
           <p>integers, so exact — no dot product, no epsilon to tune</p>
         </div>
         <img class="math" src="../../diagrams/mathblocks/length/length.svg" style="width:396px"

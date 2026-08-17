@@ -1,17 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="620" height="250" viewBox="0 0 620 250">
-<rect x="24" y="102" width="140" height="46" rx="9" fill="#2b2b33" stroke="#9a9aa6"/>
-<text x="94" y="131" text-anchor="middle" font-family="ui-monospace,SFMono-Regular,Menlo,monospace" font-size="15" fill="#9a9aa6">setting</text>
-<rect x="400" y="30" width="190" height="46" rx="9" fill="#2b2b33" stroke="#e05fd8"/>
-<text x="495" y="59" text-anchor="middle" font-family="ui-monospace,SFMono-Regular,Menlo,monospace" font-size="15" fill="#e05fd8">perpendicular</text>
-<rect x="400" y="174" width="190" height="46" rx="9" fill="#2b2b33" stroke="#f9a825"/>
-<text x="495" y="203" text-anchor="middle" font-family="ui-monospace,SFMono-Regular,Menlo,monospace" font-size="15" fill="#f9a825">parallel</text>
-<line x1="168" y1="118" x2="385" y2="59" stroke="#5fd68a" stroke-width="2"/><polygon points="396,56 387,64 384,54" fill="#5fd68a"/>
-<line x1="168" y1="132" x2="385" y2="191" stroke="#5fd68a" stroke-width="2"/><polygon points="396,194 384,196 387,186" fill="#5fd68a"/>
-<text x="286" y="118" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="15" fill="#5fd68a">the gap, at the</text>
-<text x="286" y="136" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="15" fill="#5fd68a">first arrival</text>
-<line x1="400" y1="40" x2="183" y2="103" stroke="#ff6b6b" stroke-width="2" stroke-dasharray="5 4"/><polygon points="172,106 181,98 184,108" fill="#ff6b6b"/>
-<line x1="400" y1="210" x2="183" y2="147" stroke="#ff6b6b" stroke-width="2" stroke-dasharray="5 4"/><polygon points="172,144 184,142 181,152" fill="#ff6b6b"/>
-<text x="286" y="60" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="15" fill="#ff6b6b">RESET</text>
-<text x="286" y="204" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="15" fill="#ff6b6b">RESET</text>
-<text x="310" y="240" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="15" fill="#9a9aa6">no edge between the two chosen modes — a choice sticks</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="620" height="170" viewBox="0 0 620 170">
+<rect x="24" y="62" width="140" height="46" rx="9" fill="#2b2b33" stroke="#9a9aa6"/>
+<text x="94" y="91" text-anchor="middle" font-family="ui-monospace,SFMono-Regular,Menlo,monospace" font-size="15" fill="#9a9aa6">setting</text>
+<rect x="400" y="62" width="190" height="46" rx="9" fill="#2b2b33" stroke="#f9a825"/>
+<text x="495" y="91" text-anchor="middle" font-family="ui-monospace,SFMono-Regular,Menlo,monospace" font-size="15" fill="#f9a825">parallel</text>
+<line x1="168" y1="78" x2="385" y2="78" stroke="#5fd68a" stroke-width="2"/><polygon points="396,78 385,83 385,73" fill="#5fd68a"/>
+<text x="286" y="70" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="15" fill="#5fd68a">the first arrival</text>
+<line x1="400" y1="100" x2="183" y2="100" stroke="#ff6b6b" stroke-width="2" stroke-dasharray="5 4"/><polygon points="172,100 183,95 183,105" fill="#ff6b6b"/>
+<text x="286" y="124" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="15" fill="#ff6b6b">RESET</text>
+<text x="310" y="158" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="15" fill="#9a9aa6">a started machine sticks until a reset</text>
 </svg>

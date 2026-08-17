@@ -75,21 +75,21 @@
       </div>
 
       <div class="card wide">
-        <h2>The mode as a state machine — three modes, four transitions</h2>
+        <h2>The mode as a state machine — two modes, two transitions</h2>
         <img class="figure" src="../../diagrams/panels/modes/modes.svg"
-          alt="Three modes: setting, perpendicular and parallel. Setting goes to either of the other two, chosen from the gap at the first arrival. Both go back to setting on a reset. There is no edge between perpendicular and parallel.">
+          alt="Two modes: setting and parallel. Setting goes to parallel at the first arrival, and parallel goes back to setting on a reset.">
         <div class="keynote">
           <p>setting is where a node starts and what a reset restores — it is the zero value, so a
             node is in it without anything having to put it there</p>
-          <p>there is NO edge between perpendicular and parallel: a chosen mode sticks, and a second
-            choice arriving mid-run is ignored</p>
-          <p>every case, mode by mode and length by length, is on <a href="../cases/index.html">Cases</a></p>
+          <p>the first arrival moves it to parallel, and a reset moves it back; a started machine
+            sticks, so a later arrival cannot restart it</p>
+          <p>every case, length by length, is on <a href="../cases/index.html">Cases</a></p>
         </div>
       </div>
 
       <div class="card wide">
-        <h2>Both machines, and the arithmetic they come out of</h2>
-        <p>Moved to their own page: <a href="machines-arith.html">Both machines as a transition function, and the arithmetic they come out of</a>.</p>
+        <h2>The machine, and the arithmetic it comes out of</h2>
+        <p>Moved to its own page: <a href="machines-arith.html">The machine as a transition function, and the arithmetic it comes out of</a>.</p>
       </div>
 
 

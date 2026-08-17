@@ -24,13 +24,9 @@ BODIES = {
   \delta(t,\, \mathrm{prev}) = t - 1 \pmod{24}
 """,
     "machine-mode": r"""
-  S = \{\, {\color{dim}R_{\mathrm{setting}}},\; {\color{perp}R_{\perp}},\;
-        {\color{par}R_{\parallel}} \,\}
+  S = \{\, {\color{dim}R_{\mathrm{setting}}},\; {\color{par}R_{\parallel}} \,\}
   \qquad \Sigma = \{\, a,\; \mathrm{reset} \,\} \\[6pt]
-  \delta(R_{\mathrm{setting}},\, a) = \begin{cases}
-      {\color{perp}R_{\perp}}    & \len(t,\, a_{-6}) = 6 \\
-      {\color{par}R_{\parallel}} & \text{otherwise}
-    \end{cases} \\[6pt]
+  \delta(R_{\mathrm{setting}},\, a) = {\color{par}R_{\parallel}} \\[6pt]
   \delta(R,\, a) = R \qquad R \neq R_{\mathrm{setting}} \\[4pt]
   \delta(R,\, \mathrm{reset}) = R_{\mathrm{setting}}
 """,
@@ -51,33 +47,20 @@ BODIES = {
   \text{\color{acc}the four quarter gaps} \quad g = x - y \\[6pt]
   \quad {\color{par}g = 0 \text{ or } 12} \\[3pt]
   \qquad {\color{dim}x \text{ and } y \text{ name the same line}} \\[6pt]
-  \quad {\color{perp}g = 6 \text{ or } 18} \\[3pt]
+  \quad {\color{dim}g = 6 \text{ or } 18} \\[3pt]
   \qquad {\color{dim}\text{a quarter of the ring between them}}
 """,
     "arith-rests": r"""
   \text{\color{acc}shift one of the two by 6, and only those four land on }
     0,\,6,\,12 \\[6pt]
   \quad {\color{par}g = 0 \text{ or } 12 \;\Rightarrow\; L(x,\,y+6) = 6} \\[5pt]
-  \quad {\color{perp}g = 6 \text{ or } 18 \;\Rightarrow\; L(x,\,y+6) = 0 \text{ or } 12}
+  \quad {\color{dim}g = 6 \text{ or } 18 \;\Rightarrow\; L(x,\,y+6) = 0 \text{ or } 12}
     \\[5pt]
   \quad {\color{dim}\text{every other } g \;\Rightarrow\; L(x,\,y+6)
     \text{ is none of } 0,\,6,\,12}
 """,
 
-    "decide-mode": r"""
-  \text{\color{acc}if } R \neq R_{\mathrm{setting}} :
-    \quad {\color{dim}\text{nothing changes — the choice already stuck}} \\[9pt]
-  \text{\color{acc}otherwise, measure} \\[5pt]
-  \quad p = a_{-6}
-    \quad {\color{dim}\text{the partner's tilt, backed out of the arrival}} \\[5pt]
-  \quad G = \len(t,\, p)
-    \quad {\color{dim}\text{the gap between the two tilts}} \\[9pt]
-  \text{\color{acc}then decide} \\[5pt]
-  \quad \text{if } G = 6 : \quad {\color{perp}R \leftarrow R_{\perp}} \\[5pt]
-  \quad \text{else} : \qquad\;\; {\color{par}R \leftarrow R_{\parallel}}
-""",
     "resting": r"""
-  {\color{perp}R_{\perp} = \{0,\,12\}} \\[5pt]
   {\color{par}R_{\parallel} = \{6\}} \\[5pt]
   {\color{dim}R_{\mathrm{setting}} = \text{any}}
 """,
@@ -92,7 +75,6 @@ BODIES = {
     \quad {\color{dim}f_{+},\, f_{-} \text{ from } \ell_{+},\, \ell_{-} \text{ the same way}}
     \\[5pt]
   \quad {\color{par}\text{parallel} : \; f = \lvert \ell - 6 \rvert} \\[4pt]
-  \quad {\color{perp}\text{perpendicular} : \; f = 6 - \lvert \ell - 6 \rvert} \\[4pt]
   \quad {\color{dim}\text{setting} : \; f = 0} \\[11pt]
   \text{\color{acc}then decide} \\[5pt]
   \quad f = 0 : \qquad\quad\; t_{\mathrm{after}} = t \\[5pt]
