@@ -52,7 +52,7 @@ type EditMsg =
 
   | { type: "edit"; op: "update"; kind: "distanceGroup"; attr: "length"; group: number; dir: "up" | "down" }
 
-  | { type: "edit"; op: "update"; kind: "tiltVector"; attr: "theta" | "phi"; row: number; dir: "up" | "down" }
+  | { type: "edit"; op: "update"; kind: "tiltVector"; attr: "phi"; row: number; dir: "up" | "down" }
 
   | { type: "edit"; op: "update"; kind: "tiltVector"; attr: "reset"; row: number }
 

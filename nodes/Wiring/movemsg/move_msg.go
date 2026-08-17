@@ -36,8 +36,7 @@ const (
 )
 
 type TiltEditMsg struct {
-	Axis string
-	Up   bool
+	Up bool
 
 	Start bool
 
@@ -65,8 +64,6 @@ type Msg struct {
 	SenderID string
 
 	Bool bool
-
-	Axis string
 
 	DragMaxTheta *float64
 
