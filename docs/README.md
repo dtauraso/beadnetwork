@@ -21,7 +21,6 @@ No locks remain in the network; each `sync.Mutex`/`Cond` was replaced by single-
 
 | Doc | What it covers |
 |---|---|
-| [framings.md](concurrency/framings.md) | The framing ledger — which framing produced each lock, and what replaced it. Seven for seven. |
 | [concurrency-map/index.html](concurrency/concurrency-map/index.html) | Map of the concurrency model — goroutines, channels, who owns what. |
 | [node1-fanout/index.html](concurrency/node1-fanout/index.html) | Node-1 fan-out — one node driving several outgoing edges. |
 
