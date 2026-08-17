@@ -14,6 +14,16 @@ func rowBlockSplit(n int) int {
 	return 2
 }
 
+func writeRowsSplitNote(w *bufio.Writer, comment string, blocks []bufBlock) {
+	names := make([]string, 0, len(blocks))
+	for _, blk := range blocks {
+		names = append(names, blk.name)
+	}
+	fmt.Fprintf(w, "%s This half holds the %s block(s). Row blocks are split across two files\n", comment, strings.Join(names, ", "))
+	fmt.Fprintf(w, "%s purely to stay under check-file-size.sh's limit — the division is by position in\n", comment)
+	fmt.Fprintf(w, "%s Buffer/bufschema/layout.go, not by meaning, so neither file is a category.\n", comment)
+}
+
 func rowBlocks(schema BufLayoutSchema) []bufBlock {
 	var blocks []bufBlock
 	for _, blk := range schema.Blocks {
@@ -38,6 +48,8 @@ func writeBufferLayoutGoRowsFile(outPath string, blocks []bufBlock, fp string) e
 	var buf bytes.Buffer
 	w := bufio.NewWriter(&buf)
 	writeBufferLayoutGoPreamble(w, fp)
+	fmt.Fprintln(w)
+	writeRowsSplitNote(w, "//", blocks)
 
 	for _, blk := range blocks {
 		writeBufferLayoutGoBlockConst(w, blk)

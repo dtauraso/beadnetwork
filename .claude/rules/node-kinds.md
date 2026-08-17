@@ -56,3 +56,15 @@ touch — read that diff, do not just commit it.
 Guard: `check-generated.sh`.
 
 The per-kind role is documented in the Go package and SPEC.md, not duplicated in CLAUDE.md.
+
+## Spine registries with one registrant are not collapsible
+
+`nodes/Wiring/nodedrag`'s `trims`/`requests` maps have exactly ONE registrant today —
+`nodes/input`'s `init()` calls `RegisterTrim("Input", …)`/`RegisterRequest("Input", …)`. That
+reads like indirection worth collapsing into a direct call. **It is not.** `nodedrag` is
+SPINE and the trim lives in a node-kind package, so a direct call would make spine import a
+kind — the inversion `tools/network/structure/check-dep-rules.sh` exists to forbid (kinds
+couple to the spine, never the reverse). The map IS the mechanism that keeps the dependency
+pointing the right way. Registrant count is not evidence about it; `kindreg.Registry` has the
+same shape at 13 registrants. Both maps are written only from `init()`, so they are frozen
+before any goroutine starts and are not shared mutable state.

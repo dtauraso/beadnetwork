@@ -10,13 +10,25 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+cd "$REPO_ROOT"
 
-shopt -s nullglob
-guards=("$REPO_ROOT"/tools/*/check-*.sh "$REPO_ROOT"/tools/*/*/check-*.sh)
-shopt -u nullglob
+guards=()
+while IFS= read -r g; do
+  [ -n "$g" ] && guards+=("$g")
+done < <(bash tools/guard-list.sh)
 
 if [ "${#guards[@]}" -eq 0 ]; then
-  echo "check-placement-declared: MISCONFIGURED — no tools/*/check-*.sh found; refusing to report success." >&2
+  echo "check-placement-declared: MISCONFIGURED — tools/guard-list.sh named no guards; refusing to report success." >&2
+  exit 1
+fi
+
+dupes="$(printf '%s\n' "${guards[@]}" | xargs -n1 basename | sort | uniq -d)"
+if [ -n "$dupes" ]; then
+  echo "check-placement-declared: FAIL — guard basename(s) used more than once:"
+  printf '%s\n' "$dupes" | sed 's/^/  /'
+  echo
+  echo "Guard results are reported by name; two guards sharing a basename are"
+  echo "indistinguishable in the failure report. Rename one."
   exit 1
 fi
 

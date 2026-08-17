@@ -1,6 +1,6 @@
 ---
 name: project_lock_propagation_decentralized
-description: Node-move propagation is decentralized (node writes only itself, no central worklist); the rule/gate/anchor equalize/trigger cascade was DELETED 2026-07-18 and replaced by a one-hop neighbor edge re-quantize (neighborSetC)
+description: Node-move propagation is decentralized (node writes only itself, no central worklist); the rule/gate/anchor equalize/trigger cascade was DELETED 2026-07-18 and replaced by a one-hop neighbor re-quantize, today carried by movemsg.KindCenter over a coalescing neighborSlot
 metadata:
   type: project
 ---
@@ -18,14 +18,25 @@ coordinator+collection — the shape MODEL.md forbids — and on an over-constra
 amplified positions past 1e28 and persisted the garbage. Reverted in
 `revert(locks): remove transitive lock-propagation worklist`. Don't reintroduce a worklist.
 
-**CURRENT model (merged 590a119c, 2026-07-18 — verify against `node_move.go`):** dragging
-node X moves ONLY X (to the cursor). Each direct neighbor STAYS PUT and re-quantizes its
-OWN local polar to X from the live offset — θ, φ AND r all fresh — via a single
-`moveMsgKindNeighborSetC` message → `neighborSetCRequantize` → `requantizePoleTraced` with
-X as the one fresh edge (that neighbor's OTHER edges are carried as index×step, not
+**CURRENT model (mechanism merged 590a119c, 2026-07-18; symbols re-verified 2026-08-17):**
+dragging node X moves ONLY X (to the cursor). Each direct neighbor STAYS PUT and
+re-quantizes its OWN local polar to X from the live offset — θ, φ AND r all fresh — with X
+as the one fresh edge (that neighbor's OTHER edges are carried as index×step, not
 re-derived). One hop, no forwarding, no cascade. Distances/angles to the (stationary)
-neighbors change because X moved. `nodeMover` goroutines + per-node `inbox chan moveMsg`
-still exist; routing is still `sendMove`/`sendMoveLossy` node-to-node, no worklist.
+neighbors change because X moved.
+
+**Live symbols as of 2026-08-17 (the 590a119c-era names are ALL gone — `node_move.go`,
+`moveMsgKindNeighborSetC`, `neighborSetCRequantize`, `requantizePoleTraced` do not exist;
+do not grep for them):** a neighbour's move arrives as `movemsg.KindCenter`, and the
+gesture FSM's drag as `movemsg.KindDrag`, over the per-node COALESCING slot
+`nodes/Wiring/nodeactor/owners/neighbor_slot.go` (`neighborSlot.deposit`, buffer of 1). That
+slot panics on any other kind, and on a message carrying neither a `Target` nor a `Delta` —
+because a WHERE collapses by keeping the newest and a HOW FAR collapses by summing, so a new
+kind must state its merge rule before it can ride the slot. Routing is still node-to-node
+(`nodes/Wiring/nodeactor/owners/messaging.go`), no worklist. `Trace`'s
+`BreadcrumbNeighborSetCRecv` / the `"neighbor-setc-recv"` label survive in
+`nodes/wire/inport/in_port.go`'s mapper with NO emitter left — leftover vocabulary, not a
+live path.
 
 **DELETED mechanism (was documented here as live fact; gone as of 590a119c):** the
 rule/gate/anchor cascade — `handleTrigger`, `moveMsgKindEqualize`/`Trigger`/`GatePlace`/

@@ -9,6 +9,10 @@ import (
 	"math"
 )
 
+// This half holds the Edge, EdgeBead, RingPoint, Event block(s). Row blocks are split across two files
+// purely to stay under check-file-size.sh's limit — the division is by position in
+// Buffer/bufschema/layout.go, not by meaning, so neither file is a category.
+
 // ── Edge block ───────────────────────────────────────────────
 const (
 	BufEdgeColSX           = 0  // f32

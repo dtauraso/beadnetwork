@@ -16,4 +16,8 @@ Ring topologies need to prime the feedback wire's destination port once at start
 - commit d87cb332 (2026-05-22): inert Go edgeSeeds path deleted.
 - branch task/architecture-audit: TS edgeSeeds fossil removed from types, parsers, serializers, and `requiredInputDiagnostics`.
 
-**How to apply:** When wiring a ring in `topologies/*.json`, identify the feedback wire (the one closing the loop). Add an Input node (`data.init=[<value>]`, `data.repeat=false`) and wire its output to the receiving node's feedback input port. The prime is one-shot — it does not re-fire. Do NOT use `data.edgeSeeds` on a node or `data.seed` on an edge — both are removed.
+**How to apply:** When wiring a ring, identify the feedback wire (the one closing the loop). Add an Input node whose `topology/nodes/<id>/data.json` is `{"init":[<value>],"repeat":false}` and wire its output to the receiving node's feedback input port via that node's `edges/<label>.json`. The prime is one-shot — it does not re-fire. Do NOT use `data.edgeSeeds` on a node or `data.seed` on an edge — both are removed.
+
+**There is no `topologies/*.json`.** This entry used to say to edit one. A scene is a DIRECTORY TREE (`topology/`, `topology-pair/`) with one directory per node — see `.claude/rules/persistence-ownership.md` for the layout.
+
+**Do not conclude from grep that this entry is stale.** `edgeSeeds` IS still a live identifier in Go — `nodes/Wiring/streamwire/stream_wiring.go` and `nodes/Wiring/rowtables/row_tables.go` use it for EDGE GEOMETRY seeds (`geomseeds.EdgeGeomSeed`), an unrelated concept that happens to share the word. What was removed is the `data.edgeSeeds` SPEC FIELD, which no longer exists anywhere.

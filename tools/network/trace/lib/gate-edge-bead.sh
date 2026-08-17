@@ -1,9 +1,5 @@
 #!/usr/bin/env bash
 
-# Sourced by tools/network/trace/check-breadcrumb-not-gated.sh. Audits
-# edgeBeadTraceEnabled: exactly one guarding use, and it must be tied to KindEdgeBead.
-# Reads/writes the caller's globals ($fail, $report) directly.
-
 check_edge_bead_trace_gate() {
   local IDENT="edgeBeadTraceEnabled"
 

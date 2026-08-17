@@ -52,7 +52,7 @@ func (n *Node) applyTiltEdit(edit movemsg.TiltEditMsg) (placeBead bool) {
 func (n *Node) clear() {
 	n.setTop(n.ringOf().At(0))
 
-	n.tilt.Machine = tiltring.Setting
+	n.tilt.Machine = tiltring.Unset()
 	n.syncTiltIndex()
 
 	n.vec.ReceivedPhiIdx = tiltring.Sent(n.topState().Idx, n.ringOf().Points)

@@ -1,15 +1,18 @@
 #!/usr/bin/env bash
 
-# Sourced by scripts/stop-checks.sh. Discovers and runs every tools/*/check-*.sh (and
-# tools/*/*/check-*.sh) guard except the ones the orchestrator already ran above as part
-# of the language phases. Reads/writes the orchestrator's globals ($out, $fail) directly.
+guard_slug() {
+  local gp="${1#tools/}"
+  gp="${gp%.sh}"
+  printf '%s' "${gp//\//__}"
+}
+export -f guard_slug 2>/dev/null || true
 
 run_one_guard() {
-  local gp="$1" gn go grc
-  gn=$(basename "$gp" .sh)
+  local gp="$1" gs go grc
+  gs=$(guard_slug "$gp")
   go=$(bash "$gp" 2>&1); grc=$?
-  printf '%s' "$go" > "$GDIR/$gn.out"
-  printf '%s' "$grc" > "$GDIR/$gn.rc"
+  printf '%s' "$go" > "$GDIR/$gs.out"
+  printf '%s' "$grc" > "$GDIR/$gs.rc"
 }
 export -f run_one_guard 2>/dev/null || true
 
@@ -17,12 +20,13 @@ run_guards() {
   #   check-staticcheck / check-eslint / check-vitest — expensive; invoked above under their
   local GUARD_EXCLUDE="check-staticcheck|check-eslint|check-vitest|check-no-foreground-sim|check-stray-screenshots|check-no-shell-source-edits"
 
-  shopt -s nullglob
-  local guards=(tools/*/check-*.sh tools/*/*/check-*.sh)
-  shopt -u nullglob
+  local guards=()
+  while IFS= read -r g; do
+    [ -n "$g" ] && guards+=("$g")
+  done < <(bash tools/guard-list.sh)
 
   if [ ${#guards[@]} -eq 0 ]; then
-    echo "stop-checks: MISCONFIGURED — no tools/*/check-*.sh found; refusing to report success." >&2
+    echo "stop-checks: MISCONFIGURED — tools/guard-list.sh named no guards; refusing to report success." >&2
     exit 1
   fi
 
@@ -49,20 +53,15 @@ run_guards() {
 
   printf '%s\n' "${guard_selected[@]}" \
     | grep -vE "/($GUARD_SERIAL)\.sh$" \
-    | GDIR="$GDIR" xargs -P "$JOBS" -I@ bash -c '
-        gp="@"; gn=$(basename "$gp" .sh)
-        go=$(bash "$gp" 2>&1); grc=$?
-        printf "%s" "$go" > "$GDIR/$gn.out"
-        printf "%s" "$grc" > "$GDIR/$gn.rc"
-      '
+    | GDIR="$GDIR" xargs -P "$JOBS" -I@ bash -c 'run_one_guard "@"'
 
-  local grc chk_out
+  local grc chk_out gs
   for chk_path in "${guard_selected[@]}"; do
-    chk=$(basename "$chk_path" .sh)
-    grc=$(cat "$GDIR/$chk.rc" 2>/dev/null || echo 1)
+    gs=$(guard_slug "$chk_path")
+    grc=$(cat "$GDIR/$gs.rc" 2>/dev/null || echo 1)
     if [ "$grc" != "0" ]; then
-      chk_out=$(cat "$GDIR/$chk.out" 2>/dev/null || echo "(no output captured)")
-      out+="$chk failed:\n$chk_out\n\n"
+      chk_out=$(cat "$GDIR/$gs.out" 2>/dev/null || echo "(no output captured)")
+      out+="$chk_path failed:\n$chk_out\n\n"
       fail=1
     fi
   done
