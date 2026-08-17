@@ -2,6 +2,12 @@
 
 [← interior-stream-framing.md](interior-stream-framing.md)
 
+**Shipped; read as a record.** The per-goroutine-fd invariant it establishes is live and is
+stated in CLAUDE.md. The specifics have moved on: the `DriveHeld` goroutine and its
+`StreamKindDrive`/`DriveSlotsPerNode` streams were later removed outright, the guard
+`tools/check-driveheld-uses-driveout.sh` went with them, and every test named below is gone
+(all test files in this repo were deleted).
+
 ## Fix
 
 **Chosen: each emitting goroutine gets its own fd** — the stated bridge invariant

@@ -1,5 +1,12 @@
 # Interior-stream framing corruption — investigation and reproduction
 
+**Resolved; read as a record.** The fix is in
+[interior-stream-framing-fix.md](interior-stream-framing-fix.md). Names below have since
+moved: the separate `DriveHeld` goroutine and its `StreamKindDrive` streams no longer exist
+(a driven out is stepped by the node's own loop — `docs/model/editor-surface.md`), and every
+test cited is gone, since all test files in this repo were deleted (CLAUDE.md, "There are no
+tests").
+
 ## Symptom
 
 Recurring, in live editor sessions only:

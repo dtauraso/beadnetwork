@@ -3,10 +3,12 @@
 This started as a PLAN framing the problem as "pick one of two lattices". That framing was
 WRONG, and this file now records why: the symptom, the (accurate) finding about two
 incommensurate lattices, the three options considered under the wrong framing, what was
-actually measured live, and what was built instead — `walkBeadPath`
-(`nodes/Wiring/nodemove/root_move.go`), which has no grid in the drag path at all, so the two
-lattices cannot disagree there because neither of them is present. Kept as history, not as
-a plan to act on.
+actually measured live, and what was built instead. The two lattices cannot disagree in the
+drag path because that path no longer walks either of them: `RootMove`
+(`nodes/Wiring/nodemove/root_move.go`) reads the pointer as a polar
+(`pointerPolar` → `polarindex.MeasureIndex`) and sends the resulting index as a
+`KindDrag` message — one measurement, no grid walk. The `walkBeadPath` this file describes
+below was that walk, and it is gone. Kept as history, not as a plan to act on.
 
 ## The symptom
 

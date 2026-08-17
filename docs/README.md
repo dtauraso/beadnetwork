@@ -31,7 +31,6 @@ The mutex-removal work: each `sync.Mutex`/`Cond` replaced by single-owner state.
 
 | Doc | What it covers |
 |---|---|
-| [backpressure-investigation-order.md](investigations/backpressure-investigation-order.md) | Recommended order for the 7 backpressure/concurrency investigation branches (the branch docs themselves are branch-local). |
 | [interior-stream-framing.md](investigations/interior-stream-framing.md) | Interior-stream framing corruption — investigation and reproduction. |
 | [which-lattice-a-node-lives-on.md](investigations/which-lattice-a-node-lives-on.md) | Which lattice a node lives on — resolved; kept as history. |
 | [audit-baseline.md](investigations/audit-baseline.md) | Audit baseline — settled findings audit subagents must not re-report. |

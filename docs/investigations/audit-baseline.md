@@ -100,11 +100,11 @@ unchanged; only the writer's name and what it stores changed.)
 
 ## 6. Package-level var maps in `nodes/Wiring` are read-only dispatch tables
 
-`nodes/Wiring/dispatch/gesture_dispatch.go` (`rawInputHandlers`), `gesture_hitclassify.go`
-(`hitClassifiers`), `gesture_graph.go`
-(`commitEdges`, `applyAction`), `distance_groups.go` (`distanceGroupOrder`,
-`distanceGroups`), and `port_wiring.go` (`speedChanFieldNames`) all declare package-level
-`var` maps/slices. Each is a composite literal fully initialized at declaration (function
+`nodes/Wiring/gesture/gesture_dispatch.go` (`rawInputHandlers`), `gesture_handlers.go`
+(`hitClassifiers`), and `gesture_graph.go` (`commitEdges`, `applyAction`) all declare
+package-level `var` maps/slices. (This list used to include `distance_groups.go`'s
+`distanceGroupOrder`/`distanceGroups` and `port_wiring.go`'s `speedChanFieldNames`; those
+tables are gone — distance groups now go through `distancegroups.Lens`.) Each is a composite literal fully initialized at declaration (function
 dispatch tables, static ordering lists) and is never written to after declaration — grep
 confirms no assignment to these identifiers outside their `var` statement. These are
 read-only dispatch tables, not shared mutable state; do not flag them alongside genuine
