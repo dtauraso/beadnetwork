@@ -54,7 +54,8 @@ func (n *Node) clear() {
 
 	n.tilt.Machine = tiltring.Setting
 	n.syncTiltIndex()
-	n.vec.ReceivedPhiIdx = 0
+
+	n.vec.ReceivedPhiIdx = tiltring.Sent(n.topState().Idx, n.ringOf().Points)
 	n.vec.ReceivedSet = false
 	n.syncReceivedVector()
 

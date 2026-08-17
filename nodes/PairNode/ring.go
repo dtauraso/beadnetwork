@@ -52,7 +52,7 @@ func (n *Node) adoptLattice(points int32) {
 		n.plumb.Self.Breadcrumb("pair-lattice-adopt", fmt.Sprintf(
 			"points=%d keptIdx=%d unknown=true loaded=%d", points, keptIdx, top.Idx))
 	}
-	n.vec.ReceivedPhiIdx = 0
+	n.vec.ReceivedPhiIdx = tiltring.Sent(top.Idx, points)
 	n.vec.ReceivedSet = false
 	n.syncReceivedVector()
 	tiltvector.PollRecvVector(n.vec.VectorIn)
