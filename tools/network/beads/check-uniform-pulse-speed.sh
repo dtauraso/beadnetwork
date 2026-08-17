@@ -41,7 +41,7 @@ if ! printf '%s' "$CALLS" | grep -q "$CANONICAL_SPEED"; then
   echo "uniform-pulse-speed: the production call site does not pass $CANONICAL_SPEED:"
   printf '%s\n' "$CALLS" | sed 's/^/  /'
   echo ""
-  echo "  DwellTicksPerBead (docs/bead-model/bead-lattice.md) is ticks per bead-step. A different"
+  echo "  DwellTicksPerBead (nodes/wire/lattice/bead_lattice.go) is ticks per bead-step. A different"
   echo "  constant here (e.g. a raw PulseSpeedWuPerMs/PulseSpeedWuPerTick) would silently"
   echo "  desync this wire's timing from the bead-step count the source node's chain is"
   echo "  laid out on."

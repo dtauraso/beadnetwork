@@ -1,8 +1,0 @@
-
-.idx-list { list-style:none; margin:22px 0 0; padding:0; display:grid; gap:10px; max-width:520px; }
-.idx-list a {
-  display:block; font-family:var(--mono); font-size:14px; color:var(--ink);
-  background:var(--surface); border:1px solid var(--line); border-radius:6px;
-  padding:14px 16px; text-decoration:none;
-}
-.idx-list a:hover { border-color:var(--line-strong); }

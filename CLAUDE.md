@@ -24,8 +24,8 @@ The model's real entities live in [MODEL.md](MODEL.md): bead, wire (`PacedWire` 
 PASSIVE delay queue holding its own in-flight beads, with a channel on each end, stepped by
 its SOURCE NODE's own goroutine — it is not a goroutine itself), node goroutine, input port,
 clock, and the node-owned chain of placeholder beads that renders a traversal
-([docs/model/entities.md](docs/model/entities.md); its LENGTH is
-[docs/bead-model/bead-lattice.md](docs/bead-model/bead-lattice.md)). The active node kinds are the structs under `nodes/<Kind>/`.
+([docs/model/entities.md](docs/model/entities.md); its length is
+`nodes/Wiring/edgegeom/chain_length.go`). The active node kinds are the structs under `nodes/<Kind>/`.
 
 **Drift rule:** see MODEL.md's "Drift rule" section for the full statement (guards:
 `tools/webview/check-no-webview-state.sh`, `tools/bridge/check-no-await-on-bridge.sh`).

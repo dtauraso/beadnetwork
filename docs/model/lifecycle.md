@@ -8,7 +8,7 @@ A bead crosses a wire in one direction:
 
 1. The source node sends the bead over the wire's in-channel with its
    traversal timed in ticks: `ticksToCross = steps * DwellTicksPerBead`
-   (steps the edge's own bead-step count — [docs/bead-model/bead-lattice.md](../bead-model/bead-lattice.md)). The
+   (steps the edge's own bead-step count, `edgegeom.EdgeStepCount`). The
    send does not block on the wire and does not wait for the destination
    — see §Sending.
 2. While in flight, the SOURCE NODE — reading its own clock, its own tick
@@ -27,8 +27,7 @@ offsets), and the animation is which bead is LIT: the node reads its own
 wires' in-flight fraction `t` — the same `t` step 2 above advances — and
 lights `index = t × count`. The chain is the visual of a traversal; it is
 never a picture of the node-to-node channels, which are the real connection
-and are never drawn. See [docs/bead-model/bead-lattice.md](../bead-model/bead-lattice.md)
-for how long that chain is.
+and are never drawn. Its length is `edgegeom.EdgeStepCount`.
 
 The source node times its own delivery. There is no TS-driven delivery
 signal — the renderer is told which bead is lit, not asked when a bead has

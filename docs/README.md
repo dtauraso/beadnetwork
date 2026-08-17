@@ -15,20 +15,11 @@ history, and the repo holds what is current. If a page here is wrong, fix it or 
 `tools/strip-branch-local-docs.sh`, so on `main` that directory is empty between changes.
 An untagged doc there escaped a merge — delete it.
 
-## Concurrency
-
-No locks remain in the network; each `sync.Mutex`/`Cond` was replaced by single-owner state.
+## Audits
 
 | Doc | What it covers |
 |---|---|
-| [concurrency-map/index.html](concurrency/concurrency-map/index.html) | Map of the concurrency model — goroutines, channels, who owns what. |
-| [node1-fanout/index.html](concurrency/node1-fanout/index.html) | Node-1 fan-out — one node driving several outgoing edges. |
-
-## Investigations
-
-| Doc | What it covers |
-|---|---|
-| [audit-baseline.md](investigations/audit-baseline.md) | Audit baseline — settled findings audit subagents must not re-report. |
+| [audit-skills.md](audit-skills.md) | The three audits — which cost each one measures, and what happens to a finding. |
 
 ## The model
 
@@ -47,13 +38,6 @@ No locks remain in the network; each `sync.Mutex`/`Cond` was replaced by single-
 | Doc | What it covers |
 |---|---|
 | [pole-singularity/index.html](polar-geometry/pole-singularity/index.html) | The layout pole singularity — φ grid vs great-circle bearing. |
-
-## Bead / edge model
-
-| Doc | What it covers |
-|---|---|
-| [bead-lattice.md](bead-model/bead-lattice.md) | The bead lattice — an edge is one integer. |
-| [bead-count.md](bead-model/bead-count.md) | How the source node computes the bead count, and where the rounding is. |
 
 ## Pair node
 

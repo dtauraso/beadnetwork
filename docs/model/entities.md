@@ -92,7 +92,7 @@ mistake to avoid:
   below) by driving the wire each cycle, then on traversal-complete sends
   the bead over its out-channel to the destination. The wire is no longer
   the visual depiction either — the source node's own chain of placeholder
-  beads is — its length is `docs/bead-model/bead-lattice.md`. There is one owner
+  beads is — its length is `edgegeom.EdgeStepCount`. There is one owner
   of `inflight`/`delivered` and the in-flight geometry: the source node
   goroutine. Because it is the sole owner, `PacedWire.mu` does not exist
   — ownership replaces locking, the same move that removed `RealClock.mu`.
@@ -125,9 +125,9 @@ mistake to avoid:
   (`a.In(...)`), never drawn and never hit-testable. One input port is one wire,
   and the wire's out-channel is the connection between them — the node receives
   whatever the source node's drive of that wire sends. Ports carry no geometry of their
-  own; an edge attaches at its two nodes' SURFACES (`docs/bead-model/bead-lattice.md`), not at a
+  own; an edge attaches at its two nodes' SURFACES (`nodegeom.NodeTorusOuterR`), not at a
   port position.
-- **Clock (the human-speed clock).** There is exactly one clock: the system monotonic clock, read through a **scale** so it advances in integer **ticks** at human-watchable speed (`tick = ⌊(now − start) / tickPeriod⌋`; the scale is the human-speed / playback-speed knob, `MsPerTick = 16` ⇒ ≈62.5 ticks/sec). All timing is **tick counts**, not wall-clock durations. The model is **sleep-only**: a pacing loop calls `SleepCycle` to wait exactly ONE cycle and re-reads `Tick()`, rather than blocking on a target tick — there is no wait-until-tick-k primitive. The clock is **free-running**: it advances monotonically with wall time and never pauses (there is no play/pause gate). **Everything that animates runs in these ticks:** bead traveling, all in-node animations, and all node/gate processing windows. Per-update tick counts come from formulas, not literals — a bead crossing an edge takes `ticksToCross = steps * DwellTicksPerBead` (steps the edge's own bead-step count, `DwellTicksPerBead` a uniform constant per bead-lattice step across all wires — [docs/bead-model/bead-lattice.md](../bead-model/bead-lattice.md)); node processing windows are tick counts. There is no separate render cadence — the tick IS the animation clock.
+- **Clock (the human-speed clock).** There is exactly one clock: the system monotonic clock, read through a **scale** so it advances in integer **ticks** at human-watchable speed (`tick = ⌊(now − start) / tickPeriod⌋`; the scale is the human-speed / playback-speed knob, `MsPerTick = 16` ⇒ ≈62.5 ticks/sec). All timing is **tick counts**, not wall-clock durations. The model is **sleep-only**: a pacing loop calls `SleepCycle` to wait exactly ONE cycle and re-reads `Tick()`, rather than blocking on a target tick — there is no wait-until-tick-k primitive. The clock is **free-running**: it advances monotonically with wall time and never pauses (there is no play/pause gate). **Everything that animates runs in these ticks:** bead traveling, all in-node animations, and all node/gate processing windows. Per-update tick counts come from formulas, not literals — a bead crossing an edge takes `ticksToCross = steps * DwellTicksPerBead` (steps the edge's own bead-step count, `DwellTicksPerBead` a uniform constant per bead-lattice step across all wires, `nodes/wire/lattice/bead_lattice.go`); node processing windows are tick counts. There is no separate render cadence — the tick IS the animation clock.
   A wire is stepped with its SOURCE NODE's own clock copy and tick reading,
   exactly like every other per-goroutine clock use — there is no shared
   clock to pin a tick against. But a bead's **placement tick** (when it
