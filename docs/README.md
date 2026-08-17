@@ -15,15 +15,6 @@ history, and the repo holds what is current. If a page here is wrong, fix it or 
 `tools/strip-branch-local-docs.sh`, so on `main` that directory is empty between changes.
 An untagged doc there escaped a merge — delete it.
 
-## Concurrency
-
-No locks remain in the network; each `sync.Mutex`/`Cond` was replaced by single-owner state.
-
-| Doc | What it covers |
-|---|---|
-| [concurrency-map/index.html](concurrency/concurrency-map/index.html) | Map of the concurrency model — goroutines, channels, who owns what. |
-| [node1-fanout/index.html](concurrency/node1-fanout/index.html) | Node-1 fan-out — one node driving several outgoing edges. |
-
 ## Investigations
 
 | Doc | What it covers |
