@@ -39,11 +39,12 @@ func (n *Node) applyTiltEdit(edit movemsg.TiltEditMsg) (placeBead bool) {
 		return true
 	}
 
+	ring := n.ringOf()
+	step := int32(-1)
 	if edit.Up {
-		n.setTop(n.topState().Next)
-	} else {
-		n.setTop(n.topState().Prev)
+		step = +1
 	}
+	n.setTop(ring.At(tiltring.Mod(n.topState().Idx+step, ring.Points)))
 
 	return false
 }

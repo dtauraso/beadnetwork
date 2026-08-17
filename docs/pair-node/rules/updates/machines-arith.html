@@ -72,13 +72,12 @@
         <img class="math" src="../../diagrams/mathblocks/arith/rests.svg" style="width:602px"
           alt="Shift one of the two by 6, and only those four land on 0, 6, 12: a gap of 0 or 12 gives L(x, y + 6) = 6; a gap of 6 or 18 gives L(x, y + 6) = 0 or 12; every other gap gives an L(x, y + 6) that is none of 0, 6, 12.">
         <div class="keynote">
-          <p>this is where <span data-src="nodes/PairNode/tiltring/machine.go#stoppingCounts">stoppingCounts</span>
-            comes from. { 6 } and { 0, 12 } are not two facts to remember — they are the four
-            quarter gaps, and the shift by 6 above is the quarter turn the partner adds when it
+          <p>this is where the halt comes from. Neither end being inside a quarter turn
+            (<span data-src="nodes/PairNode/tiltring/rules.go#Offset">offset</span> = 0) is exactly the
+            quarter gaps above, and the shift by 6 is the quarter turn the partner adds when it
             sends its normal instead of its tilt</p>
-          <p>counted from the NEARER END the second of those is a single 0: 0 and 12 are the same
-            count taken at the two ends of one line, which is why a mode's row is { 0 } or
-            { 6 } and never a pair</p>
+          <p>the pair of them, 0 and 12, is why a distance is taken from EACH end rather than folded
+            into one number</p>
         </div>
       </div>
 

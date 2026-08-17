@@ -40,29 +40,20 @@
               <td>source</td>
             </tr>
             <tr>
-              <td class="e">sep = |a.idx − b.idx|, folded to ≤ HALF</td>
-              <td class="n">the short way round, so the number means the same thing whichever side
-                the arrival sits on</td>
-              <td class="s" data-src="nodes/PairNode/tiltring/lattice.go#AngleLength">ring.go</td>
+              <td class="e">bottom = mod(top + tau/2, tau)</td>
+              <td class="n">the other end of the tilt line, derived rather than stored</td>
+              <td class="s" data-src="nodes/PairNode/tiltring/rules.go#Bottom">bottom</td>
             </tr>
             <tr>
-            <tr>
-              <td class="e">c = u if u &lt; HALF, else (b − a) mod points</td>
-              <td class="n">the count from the NEARER END of the tilt line, which is the one measurement
-                the rule makes. It lives on a ring of a half turn</td>
-              <td class="s" data-src="nodes/PairNode/tiltring/machine.go#NearerEndCount">nearerEndCount</td>
+              <td class="e">distance = abs(end − arrival), one per end</td>
+              <td class="n">a plain subtraction from each end — nothing folded, nothing minimised</td>
+              <td class="s" data-src="nodes/PairNode/tiltring/rules.go#DistanceTop">distanceTop</td>
             </tr>
             <tr>
-              <td class="e">settled = (c = stop)</td>
-              <td class="n">parallel stops at a quarter. A comparison — no distance
-                is taken and nothing is minimised</td>
-              <td class="s" data-src="nodes/PairNode/tiltring/machine.go#stoppingCounts">stoppingCounts</td>
-            </tr>
-            <tr>
-              <td class="e">step = next if (stop − c) mod HALF ≤ QUARTER, else prev</td>
-              <td class="n">written ONCE and shared by every mode; the way down is the rest of the circle,
-                so one subtraction settles it. Answerable everywhere on the ring, every halt included</td>
-              <td class="s" data-src="nodes/PairNode/tiltring/machine.go#Step">step</td>
+              <td class="e">offset = +1 / −1 / 0</td>
+              <td class="n">whichever end is inside a quarter turn names the direction; neither being
+                inside it is the halt</td>
+              <td class="s" data-src="nodes/PairNode/tiltring/rules.go#Offset">offset</td>
             </tr>
 
             <tr class="h">

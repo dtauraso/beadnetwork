@@ -75,13 +75,12 @@
             <text x="150" y="132" text-anchor="middle" class="lbl">never more than a half turn</text>
             <text x="150" y="244" text-anchor="middle" class="lblm">gap = |a.idx − b.idx|, folded if it exceeds a half turn</text>
           </svg>
-          <div class="cap">No trig: both states are already on the ring, so the fold is one subtraction
-            against the ring's own half-turn count
-            (<span data-src="nodes/PairNode/tiltring/lattice.go#AngleLength">separation</span>). The turn does not read
-            this number: it counts from the NEARER END of the tilt line instead
-            (<span data-src="nodes/PairNode/tiltring/machine.go#NearerEndCount">nearerEndCount</span>), which keeps
-            the end it measured. There is one machine to run, so nothing reads separation to choose
-            between machines any more — the first arrival simply starts it.</div>
+          <div class="cap">No trig: both states are already on the ring. The rule does not compute this
+            folded separation at all — it takes a plain
+            <span data-src="nodes/PairNode/tiltring/rules.go#Abs">abs</span> distance from EACH end
+            (<span data-src="nodes/PairNode/tiltring/rules.go#Offset">offset</span>) and turns toward
+            whichever is inside a quarter turn. The picture is the geometry; the code is two
+            subtractions and a comparison.</div>
         </div>
 
       </div>

@@ -23,16 +23,7 @@ func (n *Node) topState() *tiltring.State {
 	return n.tilt.Top
 }
 
-func (n *Node) bottomState() *tiltring.State {
-	if n.tilt.Bottom == nil {
-		return n.topState().Opposite
-	}
-	return n.tilt.Bottom
-}
-
-func (n *Node) setTop(top *tiltring.State) { n.tilt.Top, n.tilt.Bottom = top, top.Opposite }
-
-func (n *Node) setBottom(bottom *tiltring.State) { n.tilt.Bottom, n.tilt.Top = bottom, bottom.Opposite }
+func (n *Node) setTop(top *tiltring.State) { n.tilt.Top = top }
 
 func (n *Node) fromAnotherLattice(received tiltvector.TiltVectorMsg) bool {
 	return received.Points != 0 && received.Points != n.ringOf().Points

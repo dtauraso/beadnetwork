@@ -34,51 +34,34 @@
     <h3 class="secname">One update of one node: t moves one slot, or none</h3>
 
     <div class="card wide">
-      <h2>Which end moves, and whether it goes +1, −1 or stays</h2>
-      <p class="eq head"><var>u</var> &lt; 12
-        <span class="note">nearer end = top, so the top is the end that moves</span></p>
-      <p class="eq step"><span class="g"><var>u</var> = 6 :</span>
-        <span class="note par">parallel</span></p>
-      <p class="eq step sub"><var>t</var><sub>after</sub> = <var>t</var></p>
-      <p class="eq step sub"><var>u</var> &lt; 6 :</p>
-      <p class="eq step sub2"><var>t</var><sub>after</sub> = <var>t</var>+1</p>
-      <p class="eq step sub"><var>u</var> &gt; 6 :</p>
-      <p class="eq step sub2"><var>t</var><sub>after</sub> = <var>t</var>−1</p>
+      <h2>Whether the tilt goes +1, −1 or stays</h2>
+      <p class="eq step"><span class="g">distance<sub>top</sub></span>abs(<var>t</var> − <var>a</var>)</p>
+      <p class="eq step"><span class="g">distance<sub>bottom</sub></span>abs(<var>b</var> − <var>a</var>)</p>
+      <p class="eq step par"><span class="g">distance<sub>top</sub> &lt; 6 :</span>
+        <var>t</var><sub>after</sub> = <var>t</var> + 1</p>
+      <p class="eq step par"><span class="g">distance<sub>bottom</sub> &lt; 6 :</span>
+        <var>t</var><sub>after</sub> = <var>t</var> − 1</p>
+      <p class="eq step dim"><span class="g">otherwise :</span>
+        <var>t</var><sub>after</sub> = <var>t</var> <span class="note">the halt</span></p>
       <p class="eq step dim"><var>b</var><sub>after</sub> = <var>t</var><sub>after</sub> + 12
-        (mod 24) — the end that was not measured follows</p>
-      <p class="eq head"><var>u</var> ≥ 12
-        <span class="note">nearer end = bottom, so the bottom is the end that moves</span></p>
-      <p class="eq step"><span class="g"><var>v</var> = 6 :</span>
-        <span class="note par">parallel</span></p>
-      <p class="eq step sub"><var>b</var><sub>after</sub> = <var>b</var></p>
-      <p class="eq step sub"><var>v</var> &lt; 6 :</p>
-      <p class="eq step sub2"><var>b</var><sub>after</sub> = <var>b</var>+1</p>
-      <p class="eq step sub"><var>v</var> &gt; 6 :</p>
-      <p class="eq step sub2"><var>b</var><sub>after</sub> = <var>b</var>−1</p>
-      <p class="eq step dim"><var>t</var><sub>after</sub> = <var>b</var><sub>after</sub> − 12
-        (mod 24) — the end that was not measured follows</p>
-      <p class="eq head">standing still means <var>a</var> lies along one of this node's own
-        two lines</p>
+        (mod 24) — the other end follows, because both are + offset on the same ring</p>
+      <p class="eq head">standing still means neither end is inside a quarter turn of
+        <var>a</var></p>
       <p class="eq step par"><span class="g">parallel</span>
         the normal line: <var>t</var>+6, <var>b</var>+6</p>
       <div class="keynote">
-        <p><b>t<sub>after</sub>, b<sub>after</sub></b> — the two ends after this update. Each half
-          moves the end it measured and derives the other, so the ends never have to agree about
-          who moved: one of them is written and the other is read off it</p>
-        <p>the node stores both ends and runs exactly this:
-          <span data-src="nodes/PairNode/tiltring/machine.go#NearerEndCount">nearerEndCount</span> says which
-          end the count came from, <span data-src="nodes/PairNode/tiltring/machine.go#Step">step</span> returns
-          that end moved one slot, and
-          <span data-src="nodes/PairNode/ring.go#setTop">setTop</span> /
-          <span data-src="nodes/PairNode/ring.go#setBottom">setBottom</span> write it — each writing
-          the other end off its own opposite in the same statement, which is why the two cannot
-          come apart</p>
-        <p>read on the nearer end's OWN count the two halves are the same four lines — u under 12
-          in the first, v under 12 in the second — so no comparison reverses</p>
-        <p>the reversal appears only if the bottom is measured by the complementary angle,
-          12 − c, which counts the other way round: then every comparison flips and the two
-          descriptions still pick the same move</p>
-        <p>the direction is a comparison, not a sign: no value here is negative</p>
+        <p><b>t<sub>after</sub>, b<sub>after</sub></b> — the two ends after this update. The node
+          stores only the top; the bottom is derived by the same rule wherever it is wanted, so the
+          two cannot come apart</p>
+        <p>the node runs exactly this:
+          <span data-src="nodes/PairNode/tiltring/rules.go#Offset">offset</span> returns +1, −1 or 0,
+          and <span data-src="nodes/PairNode/ring.go#setTop">setTop</span> writes
+          <span data-src="nodes/PairNode/tiltring/rules.go#Mod">mod</span>(<var>t</var> + offset,
+          <var>tau</var>)</p>
+        <p>which end is acute is the whole of the direction — the top gives +1 and the bottom −1,
+          and neither being acute is the halt</p>
+        <p>the two distances are plain <span data-src="nodes/PairNode/tiltring/rules.go#Abs">abs</span>
+          subtractions, so no value here is negative and nothing is folded</p>
       </div>
     </div>
 

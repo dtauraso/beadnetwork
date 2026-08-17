@@ -33,8 +33,6 @@ type nodePlumbing struct {
 type tiltHeld struct {
 	Top *tiltring.State
 
-	Bottom *tiltring.State
-
 	Machine tiltring.Machine
 
 	TiltEditIn <-chan movemsg.TiltEditMsg

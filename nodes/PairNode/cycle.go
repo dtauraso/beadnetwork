@@ -1,23 +1,21 @@
 package PairNode
 
 import (
+	"github.com/dtauraso/wirefold/nodes/PairNode/tiltring"
 	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
 )
 
 func (n *Node) stepFromVector(received tiltvector.TiltVectorMsg) bool {
-	arrival := n.ringOf().ArrivedState(received.PhiIdx)
-	before := n.topState()
+	ring := n.ringOf()
+	ring.ArrivedState(received.PhiIdx)
+	top := n.topState().Idx
 
-	if !n.tilt.Machine.Settled(before, arrival) {
-		if moved, atBottom := n.tilt.Machine.Step(before, arrival); atBottom {
-			n.setBottom(moved)
-		} else {
-			n.setTop(moved)
-		}
-	} else {
-
+	offset := n.tilt.Machine.OffsetOn(ring, top, received.PhiIdx)
+	if offset == 0 {
 		n.rest.restedThisCycle = true
+		return true
 	}
+	n.setTop(ring.At(tiltring.Mod(top+offset, ring.Points)))
 	return true
 }
 

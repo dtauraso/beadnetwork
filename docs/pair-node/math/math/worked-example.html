@@ -89,25 +89,24 @@
               <td>where it settled</td>
             </tr>
             <tr>
-              <td class="e">288</td>
+              <td class="e">24</td>
               <td class="n">parallel</td>
               <td class="n">the tilts on one line, pointing the SAME way</td>
             </tr>
             <tr>
-              <td class="e">288</td>
+              <td class="e">552</td>
               <td class="n">parallel</td>
               <td class="n">the tilts on one line, pointing OPPOSITE ways</td>
             </tr>
           </table>
-          <p>Every one of the 576 settles, and none takes more than 3 rounds — a round being both ends
+          <p>Every one of the 576 settles, and none takes more than 10 rounds — a round being both ends
             reading the other's last normal and stepping once.</p>
           <p>Both rows ARE parallel — two arrows on one line are parallel whether or not
             they point the same way, so reversing one changes nothing about the relationship. The rule
-            reads it that way without being told to: its halt is a separation of a quarter turn between
-            this node's top and the arrival, and
-            <span data-src="nodes/PairNode/tiltring/lattice.go#AngleLength">separation</span> folds the long way round
-            into the short one, so a reversed partner lands exactly where an aligned one does. The split
-            is listed here only because the arrows LOOK different in the editor.</p>
+            reads it that way without being told to: it measures a distance from EACH end of the tilt
+            line (<span data-src="nodes/PairNode/tiltring/rules.go#Offset">offset</span>), so a reversed
+            partner is the other end's distance and lands on the same line. The split is listed here
+            only because the arrows LOOK different in the editor.</p>
         </div>
 
       </div>
