@@ -1,9 +1,12 @@
 package owners
 
+import (
+	"github.com/dtauraso/wirefold/nodes/PairNode/tiltring"
+	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
+)
+
 type Tilt struct {
 	topTiltVectorPhiIdx  int32
-	normalPhiIdx         int32
-	bottomPhiIdx         int32
 	receivedVectorPhiIdx int32
 	receivedVectorSet    bool
 
@@ -28,10 +31,15 @@ func (t *Tilt) ResetTopTiltVectorPhiIdx() {
 
 func (t *Tilt) TopTiltVectorPhiIdx() int32 { return t.topTiltVectorPhiIdx }
 
-func (t *Tilt) SetTiltIndex(topIdx, normalIdx, bottomIdx int32) {
+func (t *Tilt) SetTiltIndex(topIdx int32) {
 	t.topTiltVectorPhiIdx = topIdx
-	t.normalPhiIdx = normalIdx
-	t.bottomPhiIdx = bottomIdx
+}
+
+func (t *Tilt) points() int32 {
+	if t.latticePoints <= 0 {
+		return tiltvector.FullTurnPhiIdx
+	}
+	return t.latticePoints
 }
 
 func (t *Tilt) SetReceivedVector(theta int32, set bool) {
@@ -44,5 +52,8 @@ func (t *Tilt) SetLatticePoints(points int32) {
 }
 
 func (t *Tilt) FrameGeometryFields() (topIdx, bottomIdx, normalIdx, receivedIdx int32, receivedSet bool, latticePoints int32) {
-	return t.topTiltVectorPhiIdx, t.bottomPhiIdx, t.normalPhiIdx, t.receivedVectorPhiIdx, t.receivedVectorSet, t.latticePoints
+	top := t.topTiltVectorPhiIdx
+	tau := t.points()
+	return top, tiltring.Bottom(top, tau), tiltring.Sent(top, tau),
+		t.receivedVectorPhiIdx, t.receivedVectorSet, t.latticePoints
 }

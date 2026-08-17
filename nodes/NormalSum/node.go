@@ -93,9 +93,7 @@ func (n *Node) republish() {
 	}
 	n.total = total
 
-	quarter := n.Points / 4
-	half := n.Points / 2
-	n.Self.SetTiltIndex(total, wrapIndex(total+quarter, n.Points), wrapIndex(total+half, n.Points))
+	n.Self.SetTiltIndex(total)
 
 	n.Out.PlaceDrivenAt(int(total), n.Clock.Tick())
 }

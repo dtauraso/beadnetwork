@@ -108,11 +108,11 @@ func (g *NodeGeometry) RunGeometry(ctx context.Context) {
 	}
 }
 
-func (p *PairNodeSelf) SetTiltIndex(theta, normalTheta, bottomTheta int32) {
+func (p *PairNodeSelf) SetTiltIndex(theta int32) {
 	if p == nil || p.geom == nil {
 		return
 	}
-	p.geom.kindPosts.PostTiltIndex(theta, normalTheta, bottomTheta)
+	p.geom.kindPosts.PostTiltIndex(theta)
 }
 
 func (p *PairNodeSelf) SetRoundsToParallel(rounds, msgs int32) {
@@ -142,7 +142,7 @@ func (g *NodeGeometry) applyKindPosts() {
 		return
 	}
 	if p.Tilt != nil {
-		g.tilt.SetTiltIndex(p.Tilt.Theta, p.Tilt.NormalTheta, p.Tilt.BottomTheta)
+		g.tilt.SetTiltIndex(p.Tilt.Theta)
 		g.persistTiltVectorAngle()
 	}
 	if p.Received != nil {

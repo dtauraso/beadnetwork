@@ -37,7 +37,7 @@ type tiltHeld struct {
 
 	TiltEditIn <-chan movemsg.TiltEditMsg
 
-	SyncTiltIndex func(theta, normalTheta, bottomTheta int32)
+	SyncTiltIndex func(theta int32)
 }
 
 type latticeState struct {

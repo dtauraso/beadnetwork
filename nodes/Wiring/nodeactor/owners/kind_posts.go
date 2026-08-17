@@ -1,7 +1,7 @@
 package owners
 
 type TiltIndexPost struct {
-	Theta, NormalTheta, BottomTheta int32
+	Theta int32
 }
 
 type ReceivedVectorPost struct {
@@ -44,9 +44,9 @@ func (k *KindPosts) post(mut func(*KindPost)) {
 	}
 }
 
-func (k *KindPosts) PostTiltIndex(theta, normalTheta, bottomTheta int32) {
+func (k *KindPosts) PostTiltIndex(theta int32) {
 	k.post(func(p *KindPost) {
-		p.Tilt = &TiltIndexPost{Theta: theta, NormalTheta: normalTheta, BottomTheta: bottomTheta}
+		p.Tilt = &TiltIndexPost{Theta: theta}
 	})
 }
 

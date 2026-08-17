@@ -48,8 +48,8 @@ func (n *Node) wireSelfDrive(a Wiring.BuildArgs, latticeSeed int32, seed *tiltri
 		self.Breadcrumb("pair-seed-unknown", fmt.Sprintf(
 			"node=%s persisted=%d loaded=%d", a.Name(), a.TiltVectorAngleSeed(), seed.Idx))
 	}
-	n.tilt.SyncTiltIndex = func(theta, normalTheta, bottomTheta int32) {
-		self.SetTiltIndex(theta, normalTheta, bottomTheta)
+	n.tilt.SyncTiltIndex = func(theta int32) {
+		self.SetTiltIndex(theta)
 	}
 	n.vec.SyncReceivedVector = func(theta int32, set bool) {
 		self.SetReceivedVector(theta, set)
