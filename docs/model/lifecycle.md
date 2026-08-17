@@ -39,8 +39,9 @@ arrived.
 - A destination node receives beads over its input port's channel and
   holds them in node-local state.
 - When the node's firing rule is satisfied, it fires.
-- **One edge per input port.** An input port is a channel-binding ROLE (see above,
-  `docs/bead-model/channels-not-ports.md`), one wire, fed by EXACTLY ONE edge — fan-in (several
+- **One edge per input port.** An input port is a channel-binding ROLE — a name in the
+  kind's `[]portwiring.PortSpec` that `a.In("<name>")` binds a channel to at LOAD, never a
+  Go field per channel — and it is one wire, fed by EXACTLY ONE edge. Fan-in (several
   edges into one port) is not part of the model.
   A node that needs several sources uses DISTINCT input ports, each its own
   wire (e.g. a gate's separate left/right ports). Multiple beads may still

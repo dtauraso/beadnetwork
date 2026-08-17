@@ -120,7 +120,7 @@ mistake to avoid:
   column — `nodes/rowevent/row_event.go`, `Buffer/streamframe/stream_events.go`,
   `Buffer/bufschema/layout.go` — which is a live 2x2 interior VISUAL grid position,
   slot = gridRow*2 + gridCol, for where a held bead is drawn inside a node.)
-- **Input port.** A ROLE, not a place (`docs/bead-model/channels-not-ports.md`): declared by the
+- **Input port.** A ROLE, not a place: declared by the
   node kind as a `Wiring.PortSpec` and bound to a channel at LOAD time
   (`a.In(...)`), never drawn and never hit-testable. One input port is one wire,
   and the wire's out-channel is the connection between them — the node receives

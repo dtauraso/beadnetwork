@@ -26,19 +26,12 @@ node centres, and `round(dist / BeadStepR)` is the count it becomes. So the last
 step is still in the formula, and tangency at the target end is exact only to within half a
 bead step.
 
-An earlier version of this file said otherwise — that `N` was "PURE INTEGER SUBTRACTION —
-no division by a float step, no `round()`", because the separation was stored as a snapped
-`QuantIR` in bead-step multiples, snapped at both write choke points (`SetLocalPolar` and
-`LoadLocalPolars` on a `wire.LayoutHolder`). None of that exists any more: there is no
-`LayoutHolder`, no `SetLocalPolar`, no `BeadStepCells`, and no snapping of the stored index
-to a multiple of the bead step. A node's position is stored as `indexPhi`/`indexTheta`/
-`indexR` on the NODE lattice (`.claude/rules/persistence-ownership.md`), which is a finer
-grid than the bead lattice and is not a whole number of bead steps.
+Do not "fix" this by snapping the stored index to a multiple of the bead step at write
+time. That was tried: it makes the separation exact at the cost of shifting every authored
+position on load, and it does not remove the rounding so much as move it earlier.
 
-What survives from that reasoning is the half worth keeping: the two NODE-extent terms are
-snapped, so they contribute no fraction. The remaining rounding is in the separation only.
-
-`edgeArcPolar` — a sqrt over two scene polars, minus port radii, rounded to a cell width —
-is DELETED. It was a second, independently-measured length that could disagree with the
-lattice the beads were laid out on; that disagreement is the bug class this model removes,
-and it is removed by having ONE length, not by making that length exact.
+**Never measure an edge's length a second way.** One length, read from one place. A second,
+independently-derived length — a sqrt over two scene polars, say — will disagree with the
+lattice the beads are laid out on, and the beads will be timed to cross a distance the
+chain is not built to. That is the bug class this model exists to remove, and it is removed
+by having ONE length, not by making that length exact.

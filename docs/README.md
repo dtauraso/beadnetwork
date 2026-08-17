@@ -54,7 +54,6 @@ No locks remain in the network; each `sync.Mutex`/`Cond` was replaced by single-
 |---|---|
 | [bead-lattice.md](bead-model/bead-lattice.md) | The bead lattice — an edge is one integer. |
 | [bead-count.md](bead-model/bead-count.md) | How the source node computes the bead count, and where the rounding is. |
-| [channels-not-ports.md](bead-model/channels-not-ports.md) | A port is a ROLE, not a place — agreed model, not landed. |
 
 ## Pair node
 

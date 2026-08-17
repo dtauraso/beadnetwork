@@ -52,8 +52,10 @@ so a longer edge is simply more beads:
 
 	ticksToCross = N * DwellTicksPerBead
 
-which is numerically what `arcLength / pulseSpeed` used to give, with no per-edge division
-and no length to divide. Lighting does not read a length either: each bead carries its own
+with no per-edge division and no length to divide. Uniform pulse speed is structural rather
+than computed: a longer edge is more beads, not a bigger number to divide (guard:
+`tools/network/beads/check-uniform-pulse-speed.sh`). Lighting does not read a length either:
+each bead carries its own
 `Lit` flag on its actor (`nodes/wire/beadchain/bead_actor.go`) rather than being selected by
 a fraction of the edge. No length is multiplied anywhere, so layout and lighting cannot read
 two different values.
