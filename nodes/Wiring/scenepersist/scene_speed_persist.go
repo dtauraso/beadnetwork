@@ -6,8 +6,8 @@ import (
 
 	"encoding/json"
 
+	"github.com/dtauraso/wirefold/Scenes"
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
-	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
 
@@ -22,7 +22,7 @@ func SliderSpeed(ui *viewstate.UIState) float64 {
 
 func InstallSpeed(ui *viewstate.UIState, topologyPath string, speedSinks Slider.Sinks, tr *T.Trace) {
 	speed, _ := LoadSceneSpeed(scenepaths.SpeedFilePath(topologyPath))
-	ui.ClockDivisor = scene.For(topologyPath).ClockDivisor
+	ui.ClockDivisor = Scenes.For(topologyPath).ClockDivisor
 	ui.Speed = speed
 	Slider.Broadcast(speedSinks, SliderNum(speed), int64(ui.ClockDivisor))
 	ui.EmitViewFrame(nil)

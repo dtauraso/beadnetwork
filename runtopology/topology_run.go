@@ -8,9 +8,9 @@ import (
 	"github.com/dtauraso/wirefold/nodes/clock"
 
 	SF "github.com/dtauraso/wirefold/Buffer/streamframe"
+	"github.com/dtauraso/wirefold/Scenes"
 	T "github.com/dtauraso/wirefold/Trace"
 	Bld "github.com/dtauraso/wirefold/nodes/Wiring/build"
-	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
 )
 
 func RunTopology(ctx context.Context, cancel context.CancelFunc, topologyPath string, clk clock.Clock) {
@@ -20,9 +20,9 @@ func RunTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 
 	tr := T.New()
 
-	sceneTabNames := scene.SceneTabNames(topologyPath)
-	sceneTabSelected := scene.SelectedSceneIndex(topologyPath)
-	scenePath := scene.ResolveScenePath(topologyPath)
+	sceneTabNames := Scenes.TabNames(topologyPath)
+	sceneTabSelected := Scenes.SelectedIndex(topologyPath)
+	scenePath := Scenes.ResolvePath(topologyPath)
 	nodes, slotReg, md, speedSinks, err := Bld.LoadTopology(ctx, scenePath, tr, clk)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "load topology: %v\n", err)

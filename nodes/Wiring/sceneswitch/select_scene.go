@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
+	"github.com/dtauraso/wirefold/Scenes"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
 )
@@ -13,10 +13,10 @@ func SelectScene(scenes *SceneSwitch, idx int) {
 	if scenes.AnchorPath == "" || scenes.Quit == nil {
 		return
 	}
-	if idx < 0 || idx >= len(scene.Scenes) {
+	if idx < 0 || idx >= len(Scenes.All) {
 		return
 	}
-	if idx == scene.SelectedSceneIndex(scenes.AnchorPath) {
+	if idx == Scenes.SelectedIndex(scenes.AnchorPath) {
 		return
 	}
 	if err := scenepersist.WriteSelectedScene(scenes.AnchorPath, idx); err != nil {

@@ -130,7 +130,7 @@ See [docs/model/scenes.md](docs/model/scenes.md) for what a scene is, how a tab 
 works, and the per-scene fork of node behaviour it documents (coplanar rings), plus the
 ring-axis vs. navigation-pole distinction. `scene.Scene`'s other per-scene fields
 (`UpAxis`, `ClockDivisor`, `DistanceGroups`, `Editable`, `Kinds`) are not written up
-anywhere — read `nodes/Wiring/scene/scene_tabs.go`.
+anywhere — read `Scenes/tabs.go`.
 
 ## Drift rule
 

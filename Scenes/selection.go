@@ -1,4 +1,4 @@
-package scene
+package Scenes
 
 import (
 	"encoding/json"
@@ -9,11 +9,11 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
 )
 
-type SceneSelectionFile struct {
+type SelectionFile struct {
 	Selected string `json:"selected"`
 }
 
-func SceneContainer(anchorPath string) string {
+func Container(anchorPath string) string {
 	clean := filepath.Clean(anchorPath)
 	if _, ok := Declared(clean); ok {
 		return filepath.Dir(clean)
@@ -21,16 +21,16 @@ func SceneContainer(anchorPath string) string {
 	return clean
 }
 
-func SelectedSceneIndex(anchorPath string) int {
+func SelectedIndex(anchorPath string) int {
 	b, err := os.ReadFile(scenepaths.SelectionFilePath(anchorPath))
 	if err != nil {
 		return 0
 	}
-	var f SceneSelectionFile
+	var f SelectionFile
 	if json.Unmarshal(b, &f) != nil {
 		return 0
 	}
-	for i, s := range Scenes {
+	for i, s := range All {
 		if s.Name == f.Selected {
 			return i
 		}
@@ -38,9 +38,9 @@ func SelectedSceneIndex(anchorPath string) int {
 	return 0
 }
 
-func ResolveScenePath(anchorPath string) string {
-	selected := Scenes[SelectedSceneIndex(anchorPath)]
-	container := SceneContainer(anchorPath)
+func ResolvePath(anchorPath string) string {
+	selected := All[SelectedIndex(anchorPath)]
+	container := Container(anchorPath)
 	resolved := filepath.Join(container, selected.Dir)
 	if info, err := os.Stat(resolved); err != nil || !info.IsDir() { // path-resolution-ok: asserting the resolver's own output exists, not resolving a second way
 		panic(fmt.Sprintf(
@@ -51,9 +51,9 @@ func ResolveScenePath(anchorPath string) string {
 	return resolved
 }
 
-func SceneTabNames(anchorPath string) []string {
-	names := make([]string, len(Scenes))
-	for i, s := range Scenes {
+func TabNames(anchorPath string) []string {
+	names := make([]string, len(All))
+	for i, s := range All {
 		names[i] = s.Name
 	}
 	return names
