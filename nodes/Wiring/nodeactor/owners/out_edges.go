@@ -138,9 +138,6 @@ func (o *OutEdges) DeriveGeometry(self nodegeom.NodeGeom, deltas *Deltas) {
 		if e.port != nil {
 			e.port.PostGeom(e.steps, start, end)
 		}
-		if e.dest != nil {
-			e.dest.PostGeom(e.steps, spatial.Segment{Start: start, End: end})
-		}
 		if dragDelta, ok := deltas.DragDeltaTo(e.targetID); ok {
 			o.persistDelta(e, dragDelta)
 		}

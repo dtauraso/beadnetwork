@@ -34,8 +34,6 @@ type BeadRun struct {
 	TargetHandle string
 
 	readout beadReadout
-
-	rev revisionSlot
 }
 
 const maxInflightBeads = beadChanBufferSize
@@ -49,6 +47,5 @@ func NewBeadRun(steps int, dwellTicks float64) *BeadRun {
 		kindToAnimClearCh: make(chan struct{}, 1),
 
 		readout: beadReadout{breadcrumbCh: make(chan rowevent.RowEvent, 4)},
-		rev:     newRevisionSlot(),
 	}
 }

@@ -23,8 +23,8 @@ type inflightBead struct {
 	val  int
 	slot int
 
-	steps   int
 	seg     spatial.Segment
+	steps   int
 	node    string
 	port    string
 	streams bool

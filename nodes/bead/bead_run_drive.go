@@ -14,7 +14,6 @@ func (pw *BeadRun) DriveOneStep(ctx context.Context, tick int64) {
 		return
 	}
 	pw.applyClear()
-	pw.applyRevision()
 	pw.drainPlacements()
 	pw.stepAll(tick)
 }
@@ -27,8 +26,8 @@ func (pw *BeadRun) drainPlacements() {
 			pw.inflight = append(pw.inflight, inflightBead{
 				val:     req.val,
 				slot:    0,
-				steps:   req.bp.Steps,
 				seg:     spatial.Segment{Start: req.bp.Start, End: req.bp.End},
+				steps:   req.bp.Steps,
 				node:    req.bp.Node,
 				port:    req.bp.Port,
 				streams: req.bp.streams(),
@@ -85,12 +84,4 @@ func (pw *BeadRun) slotsPerBead() int {
 		return 1
 	}
 	return n
-}
-
-func (pw *BeadRun) ReviseGeometry(newSteps int, newSeg spatial.Segment) {
-	for i := range pw.inflight {
-		b := &pw.inflight[i]
-		b.steps = newSteps
-		b.seg = newSeg
-	}
 }
