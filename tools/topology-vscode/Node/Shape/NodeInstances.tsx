@@ -31,8 +31,6 @@ export function NodeInstances({ capacity }: { capacity: number }) {
   const matRef  = useRef(new THREE.Matrix4());
   const posRef  = useRef(new THREE.Vector3());
   const quatRef = useRef(new THREE.Quaternion());
-  const ringQuatRef = useRef(new THREE.Quaternion());
-  const ringAxisRef = useRef(new THREE.Vector3());
   const sclRef  = useRef(new THREE.Vector3());
   const colRef  = useRef(new THREE.Color());
   const ringGeomAppliedRef = useRef(false);
@@ -58,8 +56,6 @@ export function NodeInstances({ capacity }: { capacity: number }) {
         mat: matRef.current,
         pos: posRef.current,
         quat: quatRef.current,
-        ringQuat: ringQuatRef.current,
-        ringAxis: ringAxisRef.current,
         scl: sclRef.current,
         col: colRef.current,
       },

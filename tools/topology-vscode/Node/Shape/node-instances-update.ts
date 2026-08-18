@@ -2,8 +2,6 @@ import * as THREE from "three";
 import { getNodeFrame } from "../../src/webview/three/scene/nodes/node-frame-aggregate";
 import { getViewBlocks } from "../../src/webview/three/scene/view-blocks";
 import {
-  readNodeRingAxisPhi,
-  readNodeRingAxisTheta,
   readNodeCX, readNodeCY, readNodeCZ, readNodeRadius,
   readOverlayNodeBody, readOverlayNodeRing, readOverlayRingPick,
   readNodeRingM0, readNodeRingM1, readNodeRingM2, readNodeRingM3,
@@ -11,10 +9,8 @@ import {
   readNodeRingM8, readNodeRingM9, readNodeRingM10, readNodeRingM11,
   readNodeRingM12, readNodeRingM13, readNodeRingM14, readNodeRingM15,
 } from "../../Buffer/buffer-layout";
-import { NODE_SPHERE_RADIUS, nodeRowColors, poleAxis } from "../../src/webview/three/scene/buffer-scene-shared";
+import { NODE_SPHERE_RADIUS, nodeRowColors } from "../../src/webview/three/scene/buffer-scene-shared";
 import { computeNodeDepthOrder, setNodeDrawOrder } from "./node-depth-order";
-
-const TORUS_DEFAULT_NORMAL = new THREE.Vector3(0, 0, 1);
 
 function copyRingMatrix(nodeView: DataView, row: number, ring: THREE.InstancedMesh, slot: number): void {
   const out = ring.instanceMatrix.array;
@@ -45,14 +41,12 @@ export interface NodeInstanceRefs {
   mat: THREE.Matrix4;
   pos: THREE.Vector3;
   quat: THREE.Quaternion;
-  ringQuat: THREE.Quaternion;
-  ringAxis: THREE.Vector3;
   scl: THREE.Vector3;
   col: THREE.Color;
 }
 
 export function updateNodeInstances(refs: NodeInstanceRefs, capacity: number, camera: THREE.Camera): void {
-  const { body, ring, ringPick, ringBand, mat, pos, quat, ringQuat, ringAxis, scl, col } = refs;
+  const { body, ring, ringPick, ringBand, mat, pos, quat, scl, col } = refs;
 
   const blocks = getViewBlocks();
   const decodedNode = getNodeFrame();
@@ -91,16 +85,9 @@ export function updateNodeInstances(refs: NodeInstanceRefs, capacity: number, ca
     mat.compose(pos, quat, scl);
     body.setMatrixAt(slot, mat);
 
-    const poleTheta = readNodeRingAxisPhi(nodeView, row);
-    const polePhi = readNodeRingAxisTheta(nodeView, row);
-    const [ax, ay, az] = poleAxis(poleTheta, polePhi);
-    ringAxis.set(ax, ay, az);
-    ringQuat.setFromUnitVectors(TORUS_DEFAULT_NORMAL, ringAxis);
-    mat.compose(pos, ringQuat, scl);
-    ringPick.setMatrixAt(slot, mat);
-    ringBand.setMatrixAt(slot, mat);
-
     copyRingMatrix(nodeView, row, ring, slot);
+    copyRingMatrix(nodeView, row, ringPick, slot);
+    copyRingMatrix(nodeView, row, ringBand, slot);
 
     const { fill, stroke } = nodeRowColors(nodeView, row);
     body.setColorAt(slot, col.set(fill));

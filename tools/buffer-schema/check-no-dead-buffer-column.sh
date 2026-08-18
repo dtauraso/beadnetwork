@@ -33,6 +33,11 @@ is_allowed() {
   return 1
 }
 
+LAYOUT_EXCLUDES=()
+for LAYOUT in "${LAYOUT_FILES[@]}"; do
+  LAYOUT_EXCLUDES+=(-not -path "*/${LAYOUT#tools/topology-vscode/}")
+done
+
 readers=()
 while IFS= read -r line; do
   [[ -n "$line" ]] && readers+=("$line")
@@ -46,10 +51,7 @@ fi
 prod_files=()
 while IFS= read -r f; do prod_files+=("$f"); done < <(
   find "${TS_ROOTS[@]}" -type f \( -name '*.ts' -o -name '*.tsx' \) \
-    -not -path '*/schema/buffer-layout/buffer-layout.ts' \
-    -not -path '*/schema/buffer-layout/buffer-layout-rows-gen.ts' \
-    -not -path '*/schema/buffer-layout/buffer-layout-rows2-gen.ts' \
-    -not -path '*/schema/buffer-layout/buffer-layout-singletons-gen.ts' \
+    "${LAYOUT_EXCLUDES[@]}" \
     -not -path '*/test/*' \
     -not -name '*.test.ts' 2>/dev/null
 )

@@ -17,9 +17,6 @@ type bufLayoutNode struct {
 	PolePhi   float32 `buf:"f32"`
 	PoleTheta float32 `buf:"f32"`
 
-	RingAxisPhi   float32 `buf:"f32"`
-	RingAxisTheta float32 `buf:"f32"`
-
 	RingM0  float32 `buf:"f32"`
 	RingM1  float32 `buf:"f32"`
 	RingM2  float32 `buf:"f32"`
