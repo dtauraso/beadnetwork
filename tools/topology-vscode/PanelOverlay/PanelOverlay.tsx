@@ -26,15 +26,14 @@ function panelStackBottom(): number {
 }
 
 export function PanelOverlay() {
-  const { size, gl } = useThree();
+  const { gl } = useThree();
   const canvas = useMemo(() => document.createElement("canvas"), []);
   const texRef = useRef<THREE.CanvasTexture | null>(null);
   const sceneRef = useRef(new THREE.Scene());
   const camRef = useRef(new THREE.OrthographicCamera(-1, 1, 1, -1, -1, 1));
   const lastKey = useRef("");
   const lastSize = useRef({ w: 0, h: 0 });
-
-  const dpr = Math.max(1, Math.min(3, window.devicePixelRatio || 1));
+  const viewSize = useMemo(() => new THREE.Vector2(), []);
 
   useEffect(() => {
     const tex = new THREE.CanvasTexture(canvas);
@@ -62,20 +61,35 @@ export function PanelOverlay() {
     const tex = texRef.current;
     if (!tex) return;
 
-    if (size.width !== lastSize.current.w || size.height !== lastSize.current.h) {
-      lastSize.current = { w: size.width, h: size.height };
-      postGoRecord(encodeSceneViewport(size.width, size.height));
+    // The rectangle is read off the renderer on the frame it is drawn, not captured when this
+    // component last rendered. A captured size goes stale the moment the editor is resized —
+    // dragging the panel divider — and the bitmap then gets scaled onto a viewport it was not
+    // drawn for, which is magnification, not layout.
+    gl.getSize(viewSize);
+    const vw = Math.max(1, Math.round(viewSize.x));
+    const vh = Math.max(1, Math.round(viewSize.y));
+    const dpr = Math.min(3, gl.getPixelRatio());
+
+    if (vw !== lastSize.current.w || vh !== lastSize.current.h) {
+      lastSize.current = { w: vw, h: vh };
+      postGoRecord(encodeSceneViewport(vw, vh));
     }
 
-    const key = `${size.width}x${size.height}@${dpr}|${speedPanelKey()}|${tiltPanelKey()}|${anglePillKey()}|${nodesPillKey()}|${overlaysPillKey()}|${fitChipKey()}|${tabStripKey()}|${rulesPanelKey()}`;
+    const key = `${vw}x${vh}@${dpr}|${speedPanelKey()}|${tiltPanelKey()}|${anglePillKey()}|${nodesPillKey()}|${overlaysPillKey()}|${fitChipKey()}|${tabStripKey()}|${rulesPanelKey()}`;
     if (key !== lastKey.current) {
       lastKey.current = key;
-      canvas.width = Math.max(1, Math.round(size.width * dpr));
-      canvas.height = Math.max(1, Math.round(size.height * dpr));
+      const bw = Math.max(1, Math.round(vw * dpr));
+      const bh = Math.max(1, Math.round(vh * dpr));
+      // Assigning width or height reallocates and clears the bitmap, so only do it when the
+      // size actually changed rather than on every redraw.
+      if (canvas.width !== bw || canvas.height !== bh) {
+        canvas.width = bw;
+        canvas.height = bh;
+      }
       const c = canvas.getContext("2d");
       if (c) {
         c.setTransform(dpr, 0, 0, dpr, 0, 0);
-        c.clearRect(0, 0, size.width, size.height);
+        c.clearRect(0, 0, vw, vh);
         drawSpeedPanel(c);
         drawTiltPanel(c);
         drawAnglePill(c);
