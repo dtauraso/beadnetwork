@@ -70,31 +70,3 @@ var OverlayFlagValue = map[string]func(*OverlayState) bool{
 	"scenePoles": func(o *OverlayState) bool { return o.ScenePolesVisible },
 	"nodePoles":  func(o *OverlayState) bool { return o.NodePolesVisible },
 }
-
-// OverlayFlagTraceKind maps the wire FLAG name (same keys as OverlayToggles) to its
-// Trace.Kind* string, so Wiring's applyUpdate case can hand EmitViewFrame the ONE event
-// that flag's toggle logged (matching the per-toggle tr.X(bool) call).
-// Referencing T.Kind<Method> by name means a flag missing its Trace kind constant is a
-// Go compile error here, not a silent no-op — see writeOverlayGen in
-// tools/gen-node-defs/overlay_gen.go.
-//
-// OVERLAY_TRACE_KINDS_START
-var OverlayFlagTraceKind = map[string]string{
-	"tori":           T.KindSceneTori,
-	"scenePoles":     T.KindScenePoles,
-	"nodePoles":      T.KindNodePoles,
-	"handholds":      T.KindHandholds,
-	"labelsGlobal":   T.KindLabelsGlobal,
-	"overlays":       T.KindOverlaysVis,
-	"nodeBody":       T.KindNodeBody,
-	"nodeRing":       T.KindNodeRing,
-	"ringPick":       T.KindRingPick,
-	"selectionRing":  T.KindSelectionRing,
-	"hoverRing":      T.KindHoverRing,
-	"sceneVectors":   T.KindSceneVectors,
-	"ruleChannels":   T.KindRuleChannels,
-	"nodePoleSphere": T.KindNodePoleSphere,
-	"allPoleSpheres": T.KindAllPoleSpheres,
-}
-
-// OVERLAY_TRACE_KINDS_END

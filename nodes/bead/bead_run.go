@@ -1,12 +1,8 @@
 package bead
 
 import (
-	"os"
-
 	"github.com/dtauraso/wirefold/nodes/rowevent"
 )
-
-var edgeBeadTraceEnabled = os.Getenv("WIREFOLD_EDGE_BEAD_TRACE") == "1"
 
 const beadChanBufferSize = 4096
 

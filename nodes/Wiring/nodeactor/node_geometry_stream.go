@@ -10,8 +10,6 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
 	"github.com/dtauraso/wirefold/tools/topology-vscode/TiltPanel"
-
-	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
 )
 
 func boolU8(b bool) uint8 {
@@ -30,10 +28,7 @@ func hasKindRuleU8(kind string) uint8 {
 
 func (m *NodeGeometry) emitGeometry() {
 
-	m.writeStreamFrame([]rowevent.RowEvent{{
-		Kind: T.KindNodeGeometry, NodeRow: m.stream.NodeRow(),
-		PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1,
-	}})
+	m.writeStreamFrame(nil)
 }
 
 func (m *NodeGeometry) postSelfEvents(events []rowevent.RowEvent) {

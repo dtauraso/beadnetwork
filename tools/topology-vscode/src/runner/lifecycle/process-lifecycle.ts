@@ -44,7 +44,6 @@ export function spawnProcess(
       ...process.env,
       WIREFOLD_BUF_OUT_FD: "3",
       WIREFOLD_STREAM_FDS: streamFDsEnv,
-      WIREFOLD_EDGE_BEAD_TRACE: probeTrace ? "1" : "0",
     },
   });
 }

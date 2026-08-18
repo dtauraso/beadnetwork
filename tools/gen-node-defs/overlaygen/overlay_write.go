@@ -62,7 +62,6 @@ func writeOverlayTablesGen(outPath string, flags []overlayFlag) error {
 	writeOverlayDefaultConstructor(w, flags)
 	writeOverlayTogglesMap(w, flags)
 	writeOverlayBreadcrumbTables(w, flags)
-	writeOverlayTraceKindMap(w, flags)
 
 	w.Flush()
 	formatted, err := format.Source(buf.Bytes())

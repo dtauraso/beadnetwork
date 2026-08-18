@@ -6,10 +6,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
-	"github.com/dtauraso/wirefold/nodes/rowevent"
 	"github.com/dtauraso/wirefold/nodes/spatial"
-
-	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
 )
 
 type sceneSphereJSON struct {
@@ -47,5 +44,5 @@ func InstallSceneSphere(ui *viewstate.UIState, gs *geomseeds.GeomSeeds, topology
 		}
 	}
 
-	ui.EmitViewFrame([]rowevent.RowEvent{{Kind: T.KindSceneSphere, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1}})
+	ui.EmitViewFrame(nil)
 }

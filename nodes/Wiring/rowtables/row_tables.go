@@ -2,8 +2,6 @@ package rowtables
 
 import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
-	"github.com/dtauraso/wirefold/nodes/rowevent"
-	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
 )
 
 type EdgeEndpoint struct {
@@ -84,16 +82,6 @@ func (rt *RowTables) NodeFromHit(h inputcodec.RawHit) (node string, ok bool) {
 		return rt.LookupNodeRow(h.NodeRow)
 	}
 	return "", false
-}
-
-func (rt *RowTables) SelectViewEvent(node string) []rowevent.RowEvent {
-	nodeRow := int32(-1)
-	if node != "" {
-		if r, ok := rt.NodeRowFor(node); ok {
-			nodeRow = r
-		}
-	}
-	return []rowevent.RowEvent{{Kind: T.KindSelect, NodeRow: nodeRow, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1}}
 }
 
 func (rt *RowTables) EdgeFromHit(h inputcodec.RawHit) (label string, ok bool) {

@@ -115,7 +115,7 @@ func (o *Animation) drainBeadEvents(pw *BeadRun) []rowevent.RowEvent {
 			Kind: pe.Kind, NodeRow: o.nodeRow, PortRow: -1,
 			TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 			Value: int32(pe.Value), Bead: pe.Gen,
-			X: pe.X, Y: pe.Y, Z: pe.Z, F: pe.T,
+			X: pe.X, Y: pe.Y, Z: pe.Z,
 		})
 	}
 	for _, ev := range pw.DrainBreadcrumbEvents() {

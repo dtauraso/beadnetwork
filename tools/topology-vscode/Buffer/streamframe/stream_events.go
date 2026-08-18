@@ -12,8 +12,8 @@ type StreamEvent struct {
 	NodeRow, PortRow, TargetRow, TargetPortRow, EdgeRow, Slot, Value int32
 	Bead                                                             uint32
 
-	BeadSteps  float32
-	X, Y, Z, F float32
+	BeadSteps float32
+	X, Y, Z   float32
 
 	Label uint8
 	Debug uint8
@@ -50,7 +50,7 @@ func BuildEventsSection(events []StreamEvent) []byte {
 		tb := textBytes[i]
 		B.SetEventRow(rows, i,
 			e.Kind, e.NodeRow, e.PortRow, e.TargetRow, e.TargetPortRow, e.EdgeRow,
-			e.Slot, e.Value, e.Bead, e.BeadSteps, e.X, e.Y, e.Z, e.F,
+			e.Slot, e.Value, e.Bead, e.BeadSteps, e.X, e.Y, e.Z,
 			e.Label, e.Debug, textOff, uint32(len(tb)))
 		copy(buf[off:], tb)
 		off += len(tb)

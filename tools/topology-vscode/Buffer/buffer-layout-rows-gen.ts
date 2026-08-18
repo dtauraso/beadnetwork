@@ -19,12 +19,11 @@ export const EVENT_COL_BEAD_STEPS                = 33; // f32
 export const EVENT_COL_X                         = 37; // f32
 export const EVENT_COL_Y                         = 41; // f32
 export const EVENT_COL_Z                         = 45; // f32
-export const EVENT_COL_F                         = 49; // f32
-export const EVENT_COL_LABEL                     = 53; // u8
-export const EVENT_COL_DEBUG                     = 54; // u8
-export const EVENT_COL_TEXT_OFF                  = 55; // u32
-export const EVENT_COL_TEXT_LEN                  = 59; // u32
-export const EVENT_STRIDE                        = 63;
+export const EVENT_COL_LABEL                     = 49; // u8
+export const EVENT_COL_DEBUG                     = 50; // u8
+export const EVENT_COL_TEXT_OFF                  = 51; // u32
+export const EVENT_COL_TEXT_LEN                  = 55; // u32
+export const EVENT_STRIDE                        = 59;
 
 export function readEventKind(view: DataView, row: number): number { return view.getUint8(row * EVENT_STRIDE + EVENT_COL_KIND); }
 export function readEventNodeRow(view: DataView, row: number): number { return view.getInt32(row * EVENT_STRIDE + EVENT_COL_NODE_ROW, true); }
@@ -39,7 +38,6 @@ export function readEventBeadSteps(view: DataView, row: number): number { return
 export function readEventX(view: DataView, row: number): number { return view.getFloat32(row * EVENT_STRIDE + EVENT_COL_X, true); }
 export function readEventY(view: DataView, row: number): number { return view.getFloat32(row * EVENT_STRIDE + EVENT_COL_Y, true); }
 export function readEventZ(view: DataView, row: number): number { return view.getFloat32(row * EVENT_STRIDE + EVENT_COL_Z, true); }
-export function readEventF(view: DataView, row: number): number { return view.getFloat32(row * EVENT_STRIDE + EVENT_COL_F, true); }
 export function readEventLabel(view: DataView, row: number): number { return view.getUint8(row * EVENT_STRIDE + EVENT_COL_LABEL); }
 export function readEventDebug(view: DataView, row: number): number { return view.getUint8(row * EVENT_STRIDE + EVENT_COL_DEBUG); }
 export function readEventTextOff(view: DataView, row: number): number { return view.getUint32(row * EVENT_STRIDE + EVENT_COL_TEXT_OFF, true); }

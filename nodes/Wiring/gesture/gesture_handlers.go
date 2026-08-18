@@ -24,7 +24,7 @@ func gestHome(d Deps, ev inputcodec.RawInputMsg, tr *T.Trace) {
 	}
 	d.UI.VP.SetViewpoint(pivot, r, pos, up)
 	d.UI.VP.EmitViewpoint(tr)
-	d.UI.EmitViewFrame(CameraViewEvent())
+	d.UI.EmitViewFrame(nil)
 }
 
 func gestPointerDown(d Deps, ev inputcodec.RawInputMsg) {
@@ -128,7 +128,7 @@ func gestWheel(d Deps, ev inputcodec.RawInputMsg, tr *T.Trace) {
 			step = math.Copysign(minStep, amt)
 		}
 		d.UI.VP.PanViewpoint(rayDir.Scale(step), tr)
-		d.UI.EmitViewFrame(CameraViewEvent())
+		d.UI.EmitViewFrame(nil)
 		return
 	}
 
@@ -136,5 +136,5 @@ func gestWheel(d Deps, ev inputcodec.RawInputMsg, tr *T.Trace) {
 	worldPerPixel := (2 * vp.R * math.Tan(fovRad/2)) / d.UI.Gest.Rect.Height
 	disp := camera.PanDisplacementPolar(vp.Pos, vp.Up, ev.DeltaX, ev.DeltaY, worldPerPixel)
 	d.UI.VP.PanViewpoint(disp, tr)
-	d.UI.EmitViewFrame(CameraViewEvent())
+	d.UI.EmitViewFrame(nil)
 }

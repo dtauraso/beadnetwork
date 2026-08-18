@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/dtauraso/wirefold/nodes/spatial"
-	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
 )
 
 func (pw *BeadRun) DriveOneStep(ctx context.Context, tick int64) {
@@ -51,13 +50,6 @@ func (pw *BeadRun) stepAll(tick int64) {
 	for i := range pw.inflight {
 		b := &pw.inflight[i]
 		pw.advance(b)
-		if edgeBeadTraceEnabled && pw.readout.StreamsActive && b.streams {
-			p := b.pos()
-			pw.readout.appendPending(pendingBeadEvent{
-				kind: T.KindEdgeBead, value: b.val,
-				x: p.X, y: p.Y, z: p.Z, t: float64(b.slot), gen: b.gen,
-			}, pw.Owner, pw.Edge)
-		}
 	}
 
 	for len(pw.inflight) > 0 {
