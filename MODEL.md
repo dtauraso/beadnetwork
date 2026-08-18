@@ -109,7 +109,7 @@ send contract.
 ## Geometry, time, and the driver
 
 See [docs/model/timing.md](docs/model/timing.md) for how wire geometry sets traversal
-ticks, how an in-flight geometry edit preserves fractional progress, and the
+slots, why a bead in flight ignores a drag, and the
 self-scheduling driver (each source node's mover, no central walker, no lockstep rounds).
 
 ## Editor surface (TS)

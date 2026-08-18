@@ -44,7 +44,8 @@ export function ScenePanelColumn({ cameraRef, aspect }: { cameraRef: RefObject<T
     >
       {}
       <PillColumnSizer />
-      <HomeButton cameraRef={cameraRef} aspect={aspect} />      <TiltVectorAnglePanel />
+      <HomeButton cameraRef={cameraRef} aspect={aspect} />
+      <TiltVectorAnglePanel />
       {}
       <NodePalette />
       <OverlaysControl />

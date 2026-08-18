@@ -6,28 +6,27 @@
 
 A bead crosses a wire in one direction:
 
-1. The source node sends the bead over the wire's in-channel with its
-   traversal timed in ticks: `ticksToCross = steps * DwellTicksPerBead`
-   (steps the edge's own bead-step count, `edgegeom.EdgeStepCount`). The
-   send does not block on the wire and does not wait for the destination
-   — see §Sending.
-2. While in flight, the SOURCE NODE — reading its own clock, its own tick
-   (see the Clock bullet above) — advances the bead, keeping it in the
-   wire's `inflight` set. The wire has no goroutine of its own: the source
-   node's mover drives `DriveOneCycle` for each of its outgoing wires
-   (`NodeMover.Run`), so a wire is a passive delay queue its source node
-   steps.
-3. On traversal-complete, that same drive sends the bead over the wire's
-   out-channel to the destination node.
+1. The source node places the bead on its own run, on the segment and step
+   count that run currently holds. The send does not block and does not wait
+   for the destination — see §Sending.
+2. While in flight, the SOURCE NODE's own animation goroutine advances it one
+   slot per wake, keeping it in the run's `inflight` set. The run has no
+   goroutine of its own: `bead.Animation.RunAnimation` steps every run the
+   node owns, so a run is a passive delay queue its source node steps. A bead
+   captures its segment and step count when placed and keeps them, so a node
+   moving mid-flight does not touch it.
+3. When the bead reaches its last slot, that same step sends it over the run's
+   out-channel to the destination node. Arrival IS the last slot; no clock is
+   compared against a deadline.
 4. The destination node receives it and holds it in node-local state.
 
-What the RENDERER is told is not a moving position. Each node owns a chain
-of fixed placeholder beads per outgoing edge (`chainBeads`, node-local
-offsets), and the animation is which bead is LIT: the node reads its own
-wires' in-flight fraction `t` — the same `t` step 2 above advances — and
-lights `index = t × count`. The chain is the visual of a traversal; it is
-never a picture of the node-to-node channels, which are the real connection
-and are never drawn. Its length is `edgegeom.EdgeStepCount`.
+What the RENDERER is told is the bead's position, computed in Go as
+`slot × SlotR` along the segment and streamed in the EdgeBead block. The
+editor draws what arrives and interpolates nothing. Each node also owns a
+chain of fixed placeholder beads per outgoing edge (`chainBeads`, node-local
+offsets); the chain is the visual of a traversal, and its length is
+`edgegeom.EdgeStepCount`. It is never a picture of the
+node-to-node channels, which are the real connection and are never drawn.
 
 The source node times its own delivery. There is no TS-driven delivery
 signal — the renderer is told which bead is lit, not asked when a bead has

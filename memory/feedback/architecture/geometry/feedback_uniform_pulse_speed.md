@@ -7,7 +7,7 @@ metadata:
   originSessionId: 643b8a26-d4bb-43c8-831e-5383e886d4bb
 ---
 
-Pulse speed must be the same for all wires. Do not add a per-wire `speed` prop to any wire spec, even if it looks like a clean win for expressiveness. MODEL.md carries the live form of this — `ticksToCross = arcLength / pulseSpeed`, with `pulseSpeed` uniform.
+Pulse speed must be the same for all wires. Do not add a per-wire `speed` prop to any wire spec, even if it looks like a clean win for expressiveness. Pulse speed is uniform by construction now: `bead.NewBeadRun` takes no timing argument at all, which is what check-uniform-pulse-speed asserts.
 
 **Why:** the Go network's correctness rests on uniform pulse speed. An analysis doc once argued per-wire speed was "the strongest single argument for the control-flow model" because it would let "inhibit travel faster than data." **David rejected this when implemented** — variable wire speed is not a property the Go network should have. The control-flow model formalization goes through without it.
 
