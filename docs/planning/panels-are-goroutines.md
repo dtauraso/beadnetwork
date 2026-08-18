@@ -110,7 +110,12 @@ reassemble columns Go already streams separately.
    is a rect, a name and a selected flag, the same as everything else here.
 8. **NodeRulesPanel** — the largest: rows derived from nodes AND edges, six checkboxes,
    eleven buttons.
-9. The subscriptions and derived caches are then unreferenced; delete them and empty
+9. **BufferLabelOverlay** — the node-name pills over the scene. Not a panel and not a
+   subscription, so nothing named it, but it is still DOM: one absolutely-positioned `<div>`
+   per node, inline-styled, kept in place by projecting each label anchor to screen pixels
+   every frame. It is text at a rect, which is what the canvas draws now — and it is the last
+   thing making the projector push positions out to React at all.
+10. The subscriptions and derived caches are then unreferenced; delete them and empty
    `check-no-webview-state.sh`'s allowlist, per `remove-subscriptions.md`.
 
 ## Verification

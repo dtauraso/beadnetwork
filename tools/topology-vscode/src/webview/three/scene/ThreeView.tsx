@@ -9,7 +9,6 @@ import { Scene } from "./scene-content";
 import { BufferScene, BufferLabelProjector } from "./buffer-scene";
 import { ProceduralEnvProvider } from "./scene-env";
 import { NavGuides } from "../nav/NavGuides";
-import { useOverlayFlags } from "../controls/flags/overlay-flags";
 import { useBufferLabelPositions } from "./labels/use-buffer-label-positions";
 import { BufferLabelOverlay } from "./labels/BufferLabelOverlay";
 
@@ -60,9 +59,6 @@ export function ThreeView() {
     return () => el.removeEventListener("wheel", onWheelNative);
   }, [onWheelNative]);
 
-  const bufFlags = useOverlayFlags();
-  const bufLabelsHidden = bufFlags?.labelsGlobal ?? false;
-
   return (
     <div ref={containerRef} style={{ position: "absolute", inset: 0 }}>
       {}
@@ -95,7 +91,8 @@ export function ThreeView() {
       </div>
 
       {}
-      {!bufLabelsHidden && <BufferLabelOverlay positions={bufferLabelPositions} />}
+      {/* The projector emits nothing while labels are hidden, so there is nothing to gate. */}
+      <BufferLabelOverlay positions={bufferLabelPositions} />
 
     </div>
   );

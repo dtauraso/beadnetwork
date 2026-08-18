@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { useOverlayFlags } from "../controls/flags/overlay-flags";
+import { overlayFlag, overlayFlagSignature } from "../controls/flags/overlay-flags";
 import { ownerCounts } from "../../../../Buffer/column-owners";
 import { getViewBlocks } from "../scene/view-blocks";
 import {
@@ -16,24 +16,27 @@ import { NodePoleSphere } from "../../../../Node/Poles/NodePoleSphere";
 
 export function NavGuides() {
 
-  const bufFlags = useOverlayFlags();
-
-  const g = bufFlags?.overlays ?? false;
-  const showTori = g && !!bufFlags?.tori;
-  const showScenePoles = g && !!bufFlags?.scenePoles;
-  const showNodePoles = g && !!bufFlags?.nodePoles;
-  const showNodePoleSphere = g && !!bufFlags?.nodePoleSphere;
-  const allPoleSpheres = !!bufFlags?.allPoleSpheres;
-  const showHandholds = g && !!bufFlags?.handholds;
-  const showSceneVectors = g && !!bufFlags?.sceneVectors;
+  const g = overlayFlag("overlays");
+  const showTori = g && overlayFlag("tori");
+  const showScenePoles = g && overlayFlag("scenePoles");
+  const showNodePoles = g && overlayFlag("nodePoles");
+  const showNodePoleSphere = g && overlayFlag("nodePoleSphere");
+  const allPoleSpheres = overlayFlag("allPoleSpheres");
+  const showHandholds = g && overlayFlag("handholds");
+  const showSceneVectors = g && overlayFlag("sceneVectors");
 
   const [navTick, setNavTick] = useState(0);
   const bufNavRef = useRef<NavNode[]>([]);
   const bufSigRef = useRef("");
+  const flagSigRef = useRef(overlayFlagSignature());
 
   const sceneSphereRef = useRef<{ center: THREE.Vector3; radius: number }>({ center: new THREE.Vector3(), radius: 100 });
   useFrame(() => {
-
+    const flagSig = overlayFlagSignature();
+    if (flagSig !== flagSigRef.current) {
+      flagSigRef.current = flagSig;
+      setNavTick((t) => t + 1);
+    }
     if (!showTori && !showScenePoles && !showNodePoles && !showNodePoleSphere && !showHandholds && !showSceneVectors) return;
     const blocks = getViewBlocks();
     if (!blocks || ownerCounts().nodes <= 0) return;

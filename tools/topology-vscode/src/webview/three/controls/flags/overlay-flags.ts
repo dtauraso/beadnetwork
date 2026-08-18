@@ -1,7 +1,5 @@
-import { useSyncExternalStore } from "react";
 import { OVERLAY_FLAG_ORDER, type OverlayFlag } from "../../../../messages";
 import { columnU8 } from "../../../../../Buffer/column-values";
-import { subscribeFrame } from "../../../frame-tick";
 import {
   COL_STREAM_OVERLAY_SCENE_TORI,
   COL_STREAM_OVERLAY_SCENE_POLES,
@@ -22,14 +20,8 @@ import {
 
 export type OverlayFlagVals = Record<OverlayFlag, boolean>;
 
-let cachedVals: OverlayFlagVals | null = null;
-
-function overlayFlagsEqual(a: OverlayFlagVals, b: OverlayFlagVals): boolean {
-  return OVERLAY_FLAG_ORDER.every((flag) => a[flag] === b[flag]);
-}
-
-export function readOverlayFlags(): OverlayFlagVals | null {
-  const next: OverlayFlagVals = {
+export function readOverlayFlags(): OverlayFlagVals {
+  return {
     tori: !!columnU8(COL_STREAM_OVERLAY_SCENE_TORI),
     scenePoles: !!columnU8(COL_STREAM_OVERLAY_SCENE_POLES),
     nodePoles: !!columnU8(COL_STREAM_OVERLAY_NODE_POLES),
@@ -47,16 +39,13 @@ export function readOverlayFlags(): OverlayFlagVals | null {
     nodePoleSphere: !!columnU8(COL_STREAM_OVERLAY_NODE_POLE_SPHERE),
     allPoleSpheres: !!columnU8(COL_STREAM_OVERLAY_ALL_POLE_SPHERES),
   };
-  if (cachedVals && overlayFlagsEqual(cachedVals, next)) return cachedVals;
-  cachedVals = next;
-  return cachedVals;
 }
 
 export function overlayFlag(name: OverlayFlag): boolean {
-  const vals = readOverlayFlags();
-  return vals ? vals[name] : false;
+  return readOverlayFlags()[name];
 }
 
-export function useOverlayFlags(): OverlayFlagVals | null {
-  return useSyncExternalStore(subscribeFrame, readOverlayFlags, readOverlayFlags);
+export function overlayFlagSignature(): string {
+  const vals = readOverlayFlags();
+  return OVERLAY_FLAG_ORDER.map((flag) => (vals[flag] ? "1" : "0")).join("");
 }

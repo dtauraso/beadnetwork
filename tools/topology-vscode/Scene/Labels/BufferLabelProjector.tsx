@@ -8,6 +8,7 @@ import { nodeColumn, ownerCounts } from "../../Buffer/column-owners";
 import {
   COL_STREAM_NODE_LABEL_ANCHOR_X, COL_STREAM_NODE_LABEL_ANCHOR_Y, COL_STREAM_NODE_LABEL_ANCHOR_Z,
 } from "../../Buffer/column-streams-gen";
+import { overlayFlag } from "../../src/webview/three/controls/flags/overlay-flags";
 import type { BufferLabelPos } from "../../src/webview/three/scene/buffer-scene-shared";
 
 const _bufTopScratch = new THREE.Vector3();
@@ -21,6 +22,10 @@ export function BufferLabelProjector({ onPositions }: {
   useFrame(() => {
     frameCountRef.current++;
     if (frameCountRef.current % 2 !== 0) return;
+    if (overlayFlag("labelsGlobal")) {
+      onPositions([]);
+      return;
+    }
     const { nodes: nodeCount } = ownerCounts();
     if (nodeCount <= 0) return;
     const positions: BufferLabelPos[] = [];

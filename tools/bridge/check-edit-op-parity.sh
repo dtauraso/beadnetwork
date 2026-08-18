@@ -104,7 +104,7 @@ assert_nonempty "$TS_FLAGS" "axis3 messages.ts overlay flags"
 RENDER_READS=$( { grep -aoE 'readOverlay[A-Za-z]+\(v\)' "$OVERLAY_FLAGS_TS" || true;
                   grep -aoE 'COL_STREAM_OVERLAY_[A-Z0-9_]+' "$OVERLAY_FLAGS_TS" || true; } | sort -u)
 
-RENDER_KEYS=$(awk '/OverlayFlagVals = \{/{p=1;next} p&&/^[[:space:]]*};/{p=0} p&&/^[[:space:]]*[a-zA-Z_]+:/{print}' "$OVERLAY_FLAGS_TS" | grep -aoE '^[[:space:]]*[a-zA-Z_]+:' | sort -u)
+RENDER_KEYS=$(awk '/readOverlayFlags\(\): OverlayFlagVals \{/{p=1;next} p&&/^[[:space:]]*\};/{p=0} p&&/^[[:space:]]*[a-zA-Z_]+:/{print}' "$OVERLAY_FLAGS_TS" | grep -aoE '^[[:space:]]*[a-zA-Z_]+:' | sort -u)
 assert_nonempty "$RENDER_READS" "axis3 overlay-flags.ts readOverlay* reads"
 assert_nonempty "$RENDER_KEYS" "axis3 overlay-flags.ts OverlayFlagVals keys"
 N_FLAGS=$(printf '%s\n' "$TS_FLAGS" | grep -c .)

@@ -33,16 +33,7 @@ done < <(grep -arnE '\bcreate[<(]' \
 
 while IFS= read -r line; do
   [[ -z "$line" ]] && continue
-  f="${line%%:*}"
-  base="$(basename "$f")"
-  case "$base" in
-    snapshot-buffer.ts|overlay-flags.ts|panel-flags.ts|buffer-nav.ts|scene-tabs.ts) continue ;;
-    overlay-flags-drag.ts|overlay-flags-edit-refused.ts|overlay-flags-scene.ts) continue ;;
-    overlay-flags-selection.ts) continue ;;
-    overlay-flags-tilt-vectors.ts) continue ;;
-    node-rules.ts) continue ;;
-  esac
-  report "domain-hook: $line  (useSyncExternalStore outside the allowed buffer-reflect resources)"
+  report "domain-hook: $line  (useSyncExternalStore — read the column on the frame instead)"
 done < <(grep -arnE '\buseSyncExternalStore\b' \
   --include="*.ts" --include="*.tsx" "$WEBVIEW_DIR" 2>/dev/null || true)
 
