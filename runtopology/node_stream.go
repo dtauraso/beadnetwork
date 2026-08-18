@@ -59,6 +59,7 @@ func wireNodeStreams(streamFDs SF.StreamFDs, md *W.MoveDispatch) {
 						TopTiltVectorLen: f.TopTiltVectorLen,
 						TopTiltVectorIdx: f.TopTiltVectorIdx,
 						TiltArrows:       toStreamTiltArrows(f.TiltArrows),
+						ChannelVectors:   f.ChannelVectors,
 						Selected:         f.Selected,
 						KindID:           f.KindID,
 						Hovered:          f.Hovered,

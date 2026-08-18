@@ -70,7 +70,7 @@ export function BufferScene({ cameraRef }: {
       <InteriorBeadInstances capacity={nodeCap * INTERIOR_SLOTS_PER_NODE} />
       <SelectionHighlight />
       <HoverHighlight />
-      <RuleChannelLines capacity={(nodeCap * (nodeCap - 1)) / 2} />
+      <RuleChannelLines capacity={2 * nodeCap * (nodeCap - 1)} />
     </>
   );
 }

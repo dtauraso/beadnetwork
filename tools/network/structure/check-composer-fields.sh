@@ -8,12 +8,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 cd "$REPO_ROOT"
 
-# 21 -> 22: owners.ChannelVectors, the node-owned half of the channel-vector overlay.
-# A new OWNER is what the failure message asks for, and each one costs one field here.
 COMPOSERS=(
   "type MoveDispatch struct {|12|the responsible owner type (rowtables.RowTables/geomseeds.GeomSeeds/streamWiring/uiState/moverRegistry/nodeMover)"
-  # 21 -> 22: owners.ChannelVectors, the node-owned half of the channel-vector overlay.
-  # A new OWNER is what this guard's own message asks for, and each one costs one field.
   "type NodeGeometry struct {|22|the responsible owner type (owners.Messaging/Clocks/Stream/UI/Tilt/Readout/Outs/Topology/Flags/Beads/Deltas/ChannelVectors, nodes/Wiring/nodeactor/owners/)"
 )
 
