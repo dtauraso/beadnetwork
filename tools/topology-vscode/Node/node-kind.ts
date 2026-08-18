@@ -1,11 +1,6 @@
 import { readNodeKindId, UNKNOWN_KIND_ID } from "../Buffer/buffer-layout";
 import { NODE_DEFS_ARRAY, NODE_KIND_NAMES } from "../src/schema/node-defs";
 
-// The one reader of the KindId column. Two consumers wanted the kind for two different
-// reasons -- colours for the node body, the name for the rules panel -- and each read the
-// column itself, which is a second reader of a value that is fixed at load and identical
-// both times. They ask here instead.
-
 const NODE_DEFAULT_FILL = "#ffffff";
 const NODE_DEFAULT_STROKE = "#888888";
 
