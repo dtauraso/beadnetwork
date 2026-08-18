@@ -1,5 +1,7 @@
 package speedpanel
 
+import "github.com/dtauraso/wirefold/nodes/Wiring/panelstack"
+
 type Setting struct {
 	Speed float64
 
@@ -25,30 +27,40 @@ const (
 	TickW = 14
 	TickH = 12
 
-	OriginX = 12
-	OriginY = 12
+	TrackTickGap = 2
 )
 
-type Rect struct{ X, Y, W, H float32 }
+type Rect = panelstack.Rect
 
-func Layout() (ticks []Rect, track Rect) {
-	track = Rect{X: OriginX, Y: OriginY, W: TrackW, H: TrackH}
+type Layout struct {
+	Box   Rect
+	Track Rect
+	Ticks []Rect
+}
+
+func Build(st *panelstack.Stack) Layout {
+	box, x, y := st.Add(TrackW, TrackH+TrackTickGap+TickH)
+
+	lay := Layout{
+		Box:   box,
+		Track: Rect{X: x, Y: y, W: TrackW, H: TrackH},
+		Ticks: make([]Rect, len(Settings)),
+	}
 
 	span := float64(TrackW - 2*ThumbInset)
-	ticks = make([]Rect, len(Settings))
 	for i := range Settings {
-		centre := float64(OriginX + ThumbInset)
+		centre := float64(x + ThumbInset)
 		if len(Settings) > 1 {
 			centre += span * float64(i) / float64(len(Settings)-1)
 		}
-		ticks[i] = Rect{
+		lay.Ticks[i] = Rect{
 			X: float32(centre) - TickW/2,
-			Y: OriginY + TrackH + 2,
+			Y: y + TrackH + TrackTickGap,
 			W: TickW,
 			H: TickH,
 		}
 	}
-	return ticks, track
+	return lay
 }
 
 func SelectedIndex(speed float64) int {
@@ -65,10 +77,9 @@ func SelectedIndex(speed float64) int {
 	return best
 }
 
-func Hit(x, y float64) int {
-	ticks, _ := Layout()
-	for i, r := range ticks {
-		if x >= float64(r.X) && x <= float64(r.X+r.W) && y >= float64(r.Y) && y <= float64(r.Y+r.H) {
+func (l Layout) Hit(x, y float64) int {
+	for i, r := range l.Ticks {
+		if panelstack.HitRect(r, x, y) {
 			return i
 		}
 	}

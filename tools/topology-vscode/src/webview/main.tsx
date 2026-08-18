@@ -6,7 +6,6 @@ import { createRoot } from "react-dom/client";
 import "./webview-toolbar.css";
 import "./webview-node-rules.css";
 import { ThreeView } from "./three/scene/ThreeView";
-import { TiltVectorButtons } from "../../TiltPanel/TiltVectorButtons";
 import { NodeRulesPanel } from "../../PolarRulesPanel/NodeRulesPanel";
 import { parseHostToWebview } from "../messages";
 import { ErrorBoundary } from "./log/ErrorBoundary";
@@ -24,7 +23,6 @@ function Root() {
   return (
     <>
       <ThreeView />
-      <TiltVectorButtons />
       <NodeRulesPanel />
     </>
   );

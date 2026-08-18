@@ -8,15 +8,14 @@ import (
 	B "github.com/dtauraso/wirefold/tools/topology-vscode/Buffer"
 )
 
-func (ui *UIState) writeSpeedPanelColumns() {
+func (ui *UIState) writeSpeedPanelColumns(lay speedpanel.Layout) {
 	c := ui.singletonCols
 	if c == nil {
 		return
 	}
-	ticks, track := speedpanel.Layout()
 	selected := speedpanel.SelectedIndex(ui.Speed)
 
-	n := len(ticks)
+	n := len(lay.Ticks)
 	xs := make([]byte, 0, n*4)
 	ys := make([]byte, 0, n*4)
 	ws := make([]byte, 0, n*4)
@@ -26,7 +25,7 @@ func (ui *UIState) writeSpeedPanelColumns() {
 	numLen := make([]byte, 0, n*4)
 	denLen := make([]byte, 0, n*4)
 
-	for i, r := range ticks {
+	for i, r := range lay.Ticks {
 		xs = binary.LittleEndian.AppendUint32(xs, math.Float32bits(r.X))
 		ys = binary.LittleEndian.AppendUint32(ys, math.Float32bits(r.Y))
 		ws = binary.LittleEndian.AppendUint32(ws, math.Float32bits(r.W))
@@ -45,6 +44,11 @@ func (ui *UIState) writeSpeedPanelColumns() {
 		denLen = binary.LittleEndian.AppendUint32(denLen, uint32(len(s.Den)))
 	}
 
+	c.SetF32(B.ColStreamSpeedPanelBoxX, lay.Box.X)
+	c.SetF32(B.ColStreamSpeedPanelBoxY, lay.Box.Y)
+	c.SetF32(B.ColStreamSpeedPanelBoxW, lay.Box.W)
+	c.SetF32(B.ColStreamSpeedPanelBoxH, lay.Box.H)
+
 	c.SetBytes(B.ColStreamSpeedPanelRectX, xs)
 	c.SetBytes(B.ColStreamSpeedPanelRectY, ys)
 	c.SetBytes(B.ColStreamSpeedPanelRectW, ws)
@@ -55,8 +59,8 @@ func (ui *UIState) writeSpeedPanelColumns() {
 	c.SetBytes(B.ColStreamSpeedPanelDenText, denText)
 	c.SetBytes(B.ColStreamSpeedPanelDenLen, denLen)
 
-	c.SetF32(B.ColStreamSpeedPanelTrackX, track.X)
-	c.SetF32(B.ColStreamSpeedPanelTrackY, track.Y)
-	c.SetF32(B.ColStreamSpeedPanelTrackW, track.W)
-	c.SetF32(B.ColStreamSpeedPanelTrackH, track.H)
+	c.SetF32(B.ColStreamSpeedPanelTrackX, lay.Track.X)
+	c.SetF32(B.ColStreamSpeedPanelTrackY, lay.Track.Y)
+	c.SetF32(B.ColStreamSpeedPanelTrackW, lay.Track.W)
+	c.SetF32(B.ColStreamSpeedPanelTrackH, lay.Track.H)
 }

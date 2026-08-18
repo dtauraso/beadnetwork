@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
 	"github.com/dtauraso/wirefold/tools/topology-vscode/AngleDropdown"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/TiltPanel"
+	"strconv"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
@@ -74,6 +76,17 @@ func (b *buildCtx) buildMoveDispatch() error {
 		rn.SeedSelfRule(n.SelfDrag, selfActive)
 		if n.TopTiltVectorPhiIdx != nil {
 			nm.SetTopTiltVectorPhiIdx(*n.TopTiltVectorPhiIdx)
+		}
+	}
+
+	for row := 0; row < b.spec.RowCount; row++ {
+		for _, n := range b.spec.Nodes {
+			id, err := strconv.Atoi(n.ID)
+			if err != nil || id-1 != row || !TiltPanel.KindWantsVectorChannel(n.Type) {
+				continue
+			}
+			md.UI.TiltRows = append(md.UI.TiltRows, int32(row))
+			md.UI.TiltLabels = append(md.UI.TiltLabels, n.ID)
 		}
 	}
 

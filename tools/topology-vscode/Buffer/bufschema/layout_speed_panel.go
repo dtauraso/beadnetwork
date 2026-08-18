@@ -1,6 +1,11 @@
 package bufschema
 
 type bufLayoutSpeedPanel struct {
+	BoxX float32 `buf:"f32"`
+	BoxY float32 `buf:"f32"`
+	BoxW float32 `buf:"f32"`
+	BoxH float32 `buf:"f32"`
+
 	RectX float32 `buf:"f32"`
 	RectY float32 `buf:"f32"`
 	RectW float32 `buf:"f32"`

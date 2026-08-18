@@ -23,6 +23,22 @@ func applyUpdateClock(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch
 	}
 }
 
+func tiltVectorEdit(ctx context.Context, md *dispatch.MoveDispatch, speedSinks SliderPanel.Sinks, row int32, attr string) {
+	id := strconv.Itoa(int(row) + 1)
+	if _, ok := md.MR.NodeGeoms()[id]; !ok {
+		return
+	}
+	SliderPanel.Broadcast(speedSinks, scenepersist.SliderNum(md.UI.Speed), int64(md.UI.ClockDivisor))
+	if attr == "start" {
+		md.Inboxes.SendTiltEdit(ctx, id, movemsg.TiltEditMsg{Start: true})
+		return
+	}
+	if md.Inboxes.SendTiltEdit(ctx, id, movemsg.TiltEditMsg{Reset: true}) {
+		return
+	}
+	md.MR.SendMove(ctx, id, movemsg.Msg{Kind: movemsg.KindTiltVectorReset, NodeID: id})
+}
+
 func applyUpdateTiltVector(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks SliderPanel.Sinks) {
 	if md == nil || (msg.Attr != "phi" && msg.Attr != "reset" && msg.Attr != "start") {
 		return
@@ -31,20 +47,8 @@ func applyUpdateTiltVector(ctx context.Context, msg inputcodec.StdinMsg, md *dis
 	if _, ok := md.MR.NodeGeoms()[id]; !ok {
 		return
 	}
-	if msg.Attr == "reset" {
-
-		SliderPanel.Broadcast(speedSinks, scenepersist.SliderNum(md.UI.Speed), int64(md.UI.ClockDivisor))
-		if md.Inboxes.SendTiltEdit(ctx, id, movemsg.TiltEditMsg{Reset: true}) {
-			return
-		}
-		md.MR.SendMove(ctx, id, movemsg.Msg{Kind: movemsg.KindTiltVectorReset, NodeID: id})
-		return
-	}
-	if msg.Attr == "start" {
-
-		SliderPanel.Broadcast(speedSinks, scenepersist.SliderNum(md.UI.Speed), int64(md.UI.ClockDivisor))
-
-		md.Inboxes.SendTiltEdit(ctx, id, movemsg.TiltEditMsg{Start: true})
+	if msg.Attr == "reset" || msg.Attr == "start" {
+		tiltVectorEdit(ctx, md, speedSinks, int32(msg.Num), msg.Attr)
 		return
 	}
 

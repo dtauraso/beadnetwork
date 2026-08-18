@@ -4,36 +4,7 @@ html, body { margin: 0; padding: 0; height: 100%; background: #fafafa; font-fami
    and as tall as its content, so any empty area inside it sits over the canvas and over
    the scene-tab strip below — which is what swallowed tab clicks. Only the panels
    themselves take pointer events. */
-.top-stack { position: fixed; top: 8px; left: 8px; z-index: 1000; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; max-height: calc(100vh - 16px); pointer-events: none; }
-.top-stack .toolbar, .top-stack .node-rules-panel { pointer-events: auto; }
-.toolbar { padding: 6px 10px; background: #fff; border: 1px solid #ddd; border-radius: 6px; font-size: 12px; display: flex; gap: 12px; align-items: center; z-index: 10; }
-.toolbar:has(> span:empty) { display: none; }
-#run-mount, #tilt-mount { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
-.tilt-vector-btn-row { display: flex; flex-direction: row; gap: 6px; align-items: flex-start; }
-/* A table: one column per node, headed by its name, one row per measure. The
-   grid-template-columns come from the component, since the column count is the node
-   count. This replaced a row-per-node flex list whose dark key+value cells repeated the
-   word "rounds" and "msgs" once per node. */
-.tilt-rounds-readout {
-  display: grid; gap: 3px 6px; align-items: center; justify-items: stretch;
-  font-size: 13px; font-weight: 600; color: #222; white-space: nowrap;
-}
-.tilt-rounds-node { color: #222; font-weight: 700; text-align: center; }
-.tilt-rounds-cell {
-  display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
-  font-variant-numeric: tabular-nums;
-  padding: 2px 7px;
-  border-radius: 3px;
-  background: #222;
-}
-.tilt-rounds-key { color: #e0e0e0; font-weight: 600; font-size: 11px; text-align: left; }
-.tilt-rounds-val { color: #fff; font-weight: 700; text-align: right; }
-.tilt-start-btn { padding: 3px 10px; }
-.tilt-reset-btn { padding: 3px 10px; }
+.top-stack { position: fixed; top: var(--panel-stack-bottom, 8px); left: 8px; z-index: 1000; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; max-height: calc(100vh - 16px); pointer-events: none; }
+.top-stack .node-rules-panel { pointer-events: auto; }
 .clean { color: #2e7d32; }
-.run-btn {
-  border: 1px solid #ddd; background: #fafafa; border-radius: 4px;
-  padding: 2px 8px; cursor: pointer; font: inherit; color: #333;
-}
-.run-btn:hover { background: #f0f0f0; }
 

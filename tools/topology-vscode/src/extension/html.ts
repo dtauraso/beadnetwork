@@ -35,22 +35,11 @@ export function buildWebviewHtml(
   <link rel="stylesheet" href="${styleUri.toString()}" />
 </head>
 <body>
-  <!-- One fixed column pinned to the top-left corner. Every panel is stacked by flex order,
-       not by each carrying its own top/left: the polar rules panel used to be fixed at
-       top:44px, which assumed a one-row toolbar and overlapped it once the toolbar grew.
-       SpeedSlider and TiltVectorButtons used to share one #run-mount and so read as one
-       bar; they are separate boxes now. The bar used to open with a static
-       <span id="status" class="clean">saved</span> — nothing in the webview ever wrote to
-       it, so it read "saved" forever regardless of state; the slider names itself in that
-       spot now. TiltVectorButtons' RESET half had its own row below (#tilt-reset-mount),
-       which is gone with it. -->
+  <!-- What is left of the top-left column. The speed and tilt panels are drawn in the canvas
+       now, by Go's own stack, and their two toolbar boxes went with them; the rules panel is
+       the last one still in the DOM and starts below them, at the offset the canvas stack
+       reports. -->
   <div class="top-stack">
-    <div class="toolbar">
-      <span id="run-mount"></span>
-    </div>
-    <div class="toolbar">
-      <span id="tilt-mount"></span>
-    </div>
     <div id="node-rules-mount"></div>
   </div>
   <div class="drag-log-row">

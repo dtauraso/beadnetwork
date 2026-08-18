@@ -10,6 +10,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/speedpanel"
+	"github.com/dtauraso/wirefold/nodes/Wiring/tiltpanel"
 	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
 )
 
@@ -18,8 +19,21 @@ func HandleRawInputMsg(ctx context.Context, msg inputcodec.StdinMsg, slotReg inp
 		return
 	}
 	if msg.Event.Kind == "pointerdown" {
-		if i := speedpanel.Hit(msg.Event.X, msg.Event.Y); i >= 0 {
+		pl := md.UI.PanelLayout()
+		if i := pl.Speed.Hit(msg.Event.X, msg.Event.Y); i >= 0 {
 			setClockSpeed(md, speedSinks, speedpanel.Settings[i].Speed)
+			return
+		}
+		switch pl.Tilt.Hit(msg.Event.X, msg.Event.Y) {
+		case tiltpanel.ButtonStart:
+			for _, col := range pl.Tilt.Columns {
+				tiltVectorEdit(ctx, md, speedSinks, col.NodeRow, "start")
+			}
+			return
+		case tiltpanel.ButtonReset:
+			for _, col := range pl.Tilt.Columns {
+				tiltVectorEdit(ctx, md, speedSinks, col.NodeRow, "reset")
+			}
 			return
 		}
 	}

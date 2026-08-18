@@ -56,6 +56,9 @@ type UIState struct {
 
 	NodeRowFor func(id string) (int32, bool)
 
+	TiltRows   []int32
+	TiltLabels []string
+
 	viewOut        viewClaimedStream
 	ViewBuildFrame ViewFrameBuilder
 	viewTick       uint32
