@@ -5,20 +5,22 @@ export const PROBE_DIR = ".probe";
 export const PROBE_FILES = {
 
   go: "go.jsonl",
-  goNode: "go-node.jsonl",
-  goEdge: "go-edge.jsonl",
-  goInterior: "go-interior.jsonl",
   goErrors: "go-errors.jsonl",
   ts: "ts.jsonl",
   tsErrors: "ts-errors.jsonl",
   handlerErrorLast: "handler-error-last.json",
 } as const;
 
+export const PROBE_OWNER_DIRS = ["node", "edge", "interior", "bead"] as const;
+
+export type ProbeOwner = (typeof PROBE_OWNER_DIRS)[number];
+
+export function probeOwnerFile(probeDir: string, owner: ProbeOwner, row: number): string {
+  return `${probeDir}/${owner}/${row}.jsonl`;
+}
+
 export const PROBE_TRACE_FILES = [
   PROBE_FILES.go,
-  PROBE_FILES.goNode,
-  PROBE_FILES.goEdge,
-  PROBE_FILES.goInterior,
   PROBE_FILES.ts,
 ] as const;
 

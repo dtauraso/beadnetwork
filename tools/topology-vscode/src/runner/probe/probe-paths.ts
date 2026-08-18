@@ -1,15 +1,14 @@
 import * as vscode from "vscode";
 import * as fs from "fs";
 import * as path from "path";
-import { PROBE_DIR, PROBE_FILES, PROBE_TRACE_FILES } from "../../probe-files";
+import { PROBE_DIR, PROBE_FILES, PROBE_TRACE_FILES, PROBE_OWNER_DIRS } from "../../probe-files";
 import { resolveRepoRoot } from "../../repo-root";
 
 export interface ProbePaths {
 
   probeFile: string;
-  probeNodeFile: string;
-  probeEdgeFile: string;
-  probeInteriorFile: string;
+
+  probeDir: string;
   goErrorsFile: string;
 
 }
@@ -20,6 +19,14 @@ function rotateProbeLog(p: string): void {
     fs.rmSync(`${p}.prev`, { force: true });
     fs.renameSync(p, `${p}.prev`);
   } catch { /* eslint-disable-line no-empty */ }
+}
+
+function rotateProbeOwnerDir(dir: string): void {
+  try {
+    fs.rmSync(`${dir}.prev`, { recursive: true, force: true });
+    if (fs.existsSync(dir)) fs.renameSync(dir, `${dir}.prev`);
+  } catch { /* eslint-disable-line no-empty */ }
+  fs.mkdirSync(dir, { recursive: true });
 }
 
 export function probePathsFor(folder: vscode.WorkspaceFolder): ProbePaths {
@@ -33,11 +40,12 @@ export function probePathsFor(folder: vscode.WorkspaceFolder): ProbePaths {
   for (const name of PROBE_TRACE_FILES) {
     rotateProbeLog(path.join(probeDir, name));
   }
+  for (const owner of PROBE_OWNER_DIRS) {
+    rotateProbeOwnerDir(path.join(probeDir, owner));
+  }
   return {
     probeFile: path.join(probeDir, PROBE_FILES.go),
-    probeNodeFile: path.join(probeDir, PROBE_FILES.goNode),
-    probeEdgeFile: path.join(probeDir, PROBE_FILES.goEdge),
-    probeInteriorFile: path.join(probeDir, PROBE_FILES.goInterior),
+    probeDir,
     goErrorsFile: path.join(probeDir, PROBE_FILES.goErrors),
   };
 }

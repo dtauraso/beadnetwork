@@ -6,9 +6,14 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 PROBE_DIR="$REPO_ROOT/.probe"
 
 GO_FILE="$PROBE_DIR/go.jsonl"
-GO_NODE_FILE="$PROBE_DIR/go-node.jsonl"
-GO_EDGE_FILE="$PROBE_DIR/go-edge.jsonl"
-GO_INTERIOR_FILE="$PROBE_DIR/go-interior.jsonl"
+
+OWNER_FILES=()
+for owner in node edge interior bead; do
+  for f in "$PROBE_DIR/$owner"/*.jsonl; do
+    [[ -f "$f" ]] && OWNER_FILES+=("$f")
+  done
+done
+
 GO_ERR_FILE="$PROBE_DIR/go-errors.jsonl"
 TS_FILE="$PROBE_DIR/ts.jsonl"
 TS_ERR_FILE="$PROBE_DIR/ts-errors.jsonl"
@@ -40,31 +45,27 @@ case "$MODE" in
     STEP="${2:?Usage: probe-merge.sh --step N}"
     {
       read_file "$GO_FILE"
-      read_file "$GO_NODE_FILE"
-      read_file "$GO_EDGE_FILE"
-      read_file "$GO_INTERIOR_FILE"
+      for f in "${OWNER_FILES[@]:-}"; do [[ -n "$f" ]] && read_file "$f"; done
       read_file "$GO_ERR_FILE"
       read_file "$TS_FILE"
       read_file "$TS_ERR_FILE"
     } | jq -s --argjson step "$STEP" '[.[] | select(.step == $step)] | sort_by(.ts_ms) | .[]' -c
     ;;
   --go)
-    merge_and_sort "$GO_FILE" "$GO_NODE_FILE" "$GO_EDGE_FILE" "$GO_INTERIOR_FILE" "$GO_ERR_FILE"
+    merge_and_sort "$GO_FILE" "${OWNER_FILES[@]:-}" "$GO_ERR_FILE"
     ;;
   --debug)
 
     {
       read_file "$GO_FILE"
-      read_file "$GO_NODE_FILE"
-      read_file "$GO_EDGE_FILE"
-      read_file "$GO_INTERIOR_FILE"
+      for f in "${OWNER_FILES[@]:-}"; do [[ -n "$f" ]] && read_file "$f"; done
     } | jq -s '[.[] | select(.kind == "breadcrumb" and .debug == true)] | sort_by(.ts_ms) | .[]' -c
     ;;
   --ts)
     merge_and_sort "$TS_FILE" "$TS_ERR_FILE"
     ;;
   "")
-    merge_and_sort "$GO_FILE" "$GO_NODE_FILE" "$GO_EDGE_FILE" "$GO_INTERIOR_FILE" "$GO_ERR_FILE" "$TS_FILE" "$TS_ERR_FILE"
+    merge_and_sort "$GO_FILE" "${OWNER_FILES[@]:-}" "$GO_ERR_FILE" "$TS_FILE" "$TS_ERR_FILE"
     ;;
   *)
     echo "Unknown option: $MODE" >&2

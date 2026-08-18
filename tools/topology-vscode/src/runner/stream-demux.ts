@@ -35,9 +35,7 @@ export class StreamDemux extends LastFrameStore {
   private stream: StreamParseState;
 
   private probeFile: string | undefined;
-  private probeNodeFile: string | undefined;
-  private probeEdgeFile: string | undefined;
-  private probeInteriorFile: string | undefined;
+  private probeDir: string | undefined;
 
   readonly edgeCount: number;
 
@@ -55,9 +53,7 @@ export class StreamDemux extends LastFrameStore {
     super();
     this.stream = freshStreamState(cfg.edgeCount, cfg.nodeCount);
     this.probeFile = cfg.paths?.probeFile;
-    this.probeNodeFile = cfg.paths?.probeNodeFile;
-    this.probeEdgeFile = cfg.paths?.probeEdgeFile;
-    this.probeInteriorFile = cfg.paths?.probeInteriorFile;
+    this.probeDir = cfg.paths?.probeDir;
     this.edgeCount = cfg.edgeCount;
     this.nodeCount = cfg.nodeCount;
     this.frameCtx = makeFrameDispatchContext(cfg.probeTrace, cfg.gen, cfg.onSnapshot, cfg.onError);
@@ -93,7 +89,7 @@ export class StreamDemux extends LastFrameStore {
       this.stream.edgeBufs[row] ?? Buffer.alloc(0),
       chunk,
       (rest) => { this.stream.edgeBufs[row] = rest; },
-      this.probeEdgeFile,
+      this.probeDir,
       (row, ab) => { this.lastEdgeFrames.set(row, ab); },
     );
   }
@@ -106,7 +102,7 @@ export class StreamDemux extends LastFrameStore {
       this.stream.nodeBufs[row] ?? Buffer.alloc(0),
       chunk,
       (rest) => { this.stream.nodeBufs[row] = rest; },
-      this.probeNodeFile,
+      this.probeDir,
       (row, ab) => { this.lastNodeFrames.set(row, ab); },
     );
   }
@@ -118,7 +114,7 @@ export class StreamDemux extends LastFrameStore {
       this.stream.beadBufs[row] ?? Buffer.alloc(0),
       chunk,
       (rest) => { this.stream.beadBufs[row] = rest; },
-      this.probeNodeFile,
+      this.probeDir,
       (row, ab) => { this.lastBeadFrames.set(row, ab); },
     );
   }
@@ -144,7 +140,7 @@ export class StreamDemux extends LastFrameStore {
   }
 
   handleInteriorFd(row: number, chunk: Buffer) {
-    handleInteriorFdImpl(this.frameCtx, this.stream, this.probeInteriorFile, row, chunk,
+    handleInteriorFdImpl(this.frameCtx, this.stream, this.probeDir, row, chunk,
       (row, ab) => { this.lastInteriorFrames.set(row, ab); });
   }
 }
