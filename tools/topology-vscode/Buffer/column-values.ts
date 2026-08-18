@@ -45,3 +45,17 @@ export function columnU8(col: number, fallback = 0): number {
 export function columnBytes(col: number): DataView | undefined {
   return latest.get(col);
 }
+
+// What the webview actually received, for the probe log. Go's side can be proved from
+// outside by watching the pipes; this end cannot, so it says so itself.
+export function columnDiagnostics(): {
+  received: number; version: number; lowest: number; highest: number;
+} {
+  let lowest = -1;
+  let highest = -1;
+  for (const col of latest.keys()) {
+    if (lowest < 0 || col < lowest) lowest = col;
+    if (col > highest) highest = col;
+  }
+  return { received: latest.size, version, lowest, highest };
+}
