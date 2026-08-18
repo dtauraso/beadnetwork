@@ -22,6 +22,7 @@
     "PolarRulesPanel/**/*.ts", "PolarRulesPanel/**/*.tsx",
     "TiltPanel/**/*.ts", "TiltPanel/**/*.tsx",
     "AngleDropdown/**/*.ts", "AngleDropdown/**/*.tsx",
-    "NodesDropdown/**/*.ts", "NodesDropdown/**/*.tsx"
+    "NodesDropdown/**/*.ts", "NodesDropdown/**/*.tsx",
+    "FitButton/**/*.ts", "FitButton/**/*.tsx"
   ]
 }

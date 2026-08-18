@@ -1,9 +1,9 @@
 import React, { useCallback } from "react";
 import * as THREE from "three";
-import { sendRawInput, buildHomeRaw } from "../../interaction/raw-input";
-import * as T from "../chrome-theme";
+import { sendRawInput, buildHomeRaw } from "../src/webview/three/interaction/raw-input";
+import * as T from "../src/webview/three/controls/chrome-theme";
 
-export function HomeButton({
+export function FitButton({
   cameraRef,
   aspect,
 }: {
