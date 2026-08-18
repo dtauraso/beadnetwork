@@ -21,6 +21,7 @@ func main() {
 	generateCurveParams(repoRoot)
 	generateOverlayGen(repoRoot)
 	generateShadingParams(repoRoot)
+	generateColumnStreams(repoRoot)
 	generateBufferLayout(repoRoot)
 	generateFrameTags(repoRoot)
 	generateInputLayout(repoRoot)
