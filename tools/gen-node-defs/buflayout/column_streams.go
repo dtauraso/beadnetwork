@@ -63,8 +63,6 @@ func WriteColumnStreamsGo(path string, schema BufLayoutSchema) error {
 	}
 	b.WriteString("\n")
 
-	// Event is not a column stream: it is the trailing section every frame carries, so
-	// it has no base here and gets no per-column constants.
 	for _, blk := range schema.Blocks {
 		if !isColumnStreamBlock(blk.name) {
 			continue

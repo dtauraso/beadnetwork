@@ -4,6 +4,7 @@ import { splitJsonlLines } from "./framing";
 import { freshStreamState, type StreamParseState } from "./parse-state";
 import type { ProbePaths } from "./probe/probe-paths";
 import { LastFrameStore } from "./last-frame-store";
+import { ColumnStore } from "./column-store";
 import {
   dispatchViewFrames,
   dispatchEdgeFrames,
@@ -39,6 +40,8 @@ export class StreamDemux extends LastFrameStore {
   readonly edgeCount: number;
 
   readonly nodeCount: number;
+
+  readonly columns = new ColumnStore();
 
   private readonly frameCtx: FrameDispatchContext;
   private readonly onLine: (line: string) => void;
@@ -111,6 +114,10 @@ export class StreamDemux extends LastFrameStore {
       this.probeNodeFile,
       (row, ab) => { this.lastBeadFrames.set(row, ab); },
     );
+  }
+
+  handleColFd(col: number, chunk: Buffer) {
+    this.columns.handle(col, chunk);
   }
 
   handleInteriorFd(row: number, chunk: Buffer) {
