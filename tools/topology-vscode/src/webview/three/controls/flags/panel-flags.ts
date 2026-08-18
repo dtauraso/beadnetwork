@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from "react";
 import { PANEL_FLAG_ORDER, type PanelFlag } from "../../../../messages";
-import { columnU8, subscribeColumns } from "../../../../../Buffer/column-values";
+import { columnU8 } from "../../../../../Buffer/column-values";
+import { subscribeFrame } from "../../../frame-tick";
 import {
   COL_STREAM_PANEL_OVERLAYS,
   COL_STREAM_PANEL_NODE,
@@ -43,5 +44,5 @@ export function readPanelFlags(): PanelFlagVals | null {
 }
 
 export function usePanelFlags(): PanelFlagVals | null {
-  return useSyncExternalStore(subscribeColumns, readPanelFlags, readPanelFlags);
+  return useSyncExternalStore(subscribeFrame, readPanelFlags, readPanelFlags);
 }

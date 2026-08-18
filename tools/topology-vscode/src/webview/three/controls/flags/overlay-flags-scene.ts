@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
-import { columnU8, columnU32, subscribeColumns } from "../../../../../Buffer/column-values";
+import { columnU8, columnU32 } from "../../../../../Buffer/column-values";
+import { subscribeFrame } from "../../../frame-tick";
 import {
   COL_STREAM_OVERLAY_SCENE_EDITABLE,
   COL_STREAM_OVERLAY_SCENE_KINDS,
@@ -10,7 +11,7 @@ export function readSceneEditable(): boolean {
 }
 
 export function useSceneEditable(): boolean {
-  return useSyncExternalStore(subscribeColumns, readSceneEditable, readSceneEditable);
+  return useSyncExternalStore(subscribeFrame, readSceneEditable, readSceneEditable);
 }
 
 export function readSceneKinds(): number {
@@ -18,5 +19,5 @@ export function readSceneKinds(): number {
 }
 
 export function useSceneKinds(): number {
-  return useSyncExternalStore(subscribeColumns, readSceneKinds, readSceneKinds);
+  return useSyncExternalStore(subscribeFrame, readSceneKinds, readSceneKinds);
 }

@@ -2,7 +2,8 @@ import { useSyncExternalStore } from "react";
 import { getEdgeStreamAccessor } from "../src/webview/three/scene/edges/edge-stream-blocks";
 import { nodeKindName } from "../Node/node-kind";
 import { ownerCounts } from "../Buffer/column-owners";
-import { columnF32, columnU8, columnI32, subscribeColumns } from "../Buffer/column-values";
+import { columnF32, columnU8, columnI32 } from "../Buffer/column-values";
+import { subscribeFrame } from "../src/webview/frame-tick";
 import { nodeColumn } from "../Buffer/column-owners";
 import {
   COL_STREAM_NODE_DRAG_RLOCKED, COL_STREAM_NODE_DRAG_PHI_LOCKED,
@@ -177,5 +178,5 @@ export function readNodeRuleRows(): NodeRuleRow[] | null {
 }
 
 export function useNodeRuleRows(): NodeRuleRow[] | null {
-  return useSyncExternalStore(subscribeColumns, readNodeRuleRows, readNodeRuleRows);
+  return useSyncExternalStore(subscribeFrame, readNodeRuleRows, readNodeRuleRows);
 }

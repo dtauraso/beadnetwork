@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
-import { columnU8, subscribeColumns } from "../../../../../Buffer/column-values";
+import { columnU8 } from "../../../../../Buffer/column-values";
+import { subscribeFrame } from "../../../frame-tick";
 import { nodeColumn, ownerCounts } from "../../../../../Buffer/column-owners";
 import { COL_STREAM_NODE_SELECTED } from "../../../../../Buffer/column-streams-gen";
 
@@ -12,5 +13,5 @@ export function readSelectedNodeRow(): number {
 }
 
 export function useSelectedNodeRow(): number {
-  return useSyncExternalStore(subscribeColumns, readSelectedNodeRow, readSelectedNodeRow);
+  return useSyncExternalStore(subscribeFrame, readSelectedNodeRow, readSelectedNodeRow);
 }

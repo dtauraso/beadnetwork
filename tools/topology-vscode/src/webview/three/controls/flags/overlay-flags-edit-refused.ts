@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
-import { columnU32, subscribeColumns } from "../../../../../Buffer/column-values";
+import { columnU32 } from "../../../../../Buffer/column-values";
+import { subscribeFrame } from "../../../frame-tick";
 import { COL_STREAM_OVERLAY_EDIT_REFUSED } from "../../../../../Buffer/column-streams-gen";
 
 export function readEditRefused(): number {
@@ -7,5 +8,5 @@ export function readEditRefused(): number {
 }
 
 export function useEditRefused(): number {
-  return useSyncExternalStore(subscribeColumns, readEditRefused, readEditRefused);
+  return useSyncExternalStore(subscribeFrame, readEditRefused, readEditRefused);
 }

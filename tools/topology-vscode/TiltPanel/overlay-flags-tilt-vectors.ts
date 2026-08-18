@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
-import { columnF32, columnI32, columnU8, subscribeColumns } from "../Buffer/column-values";
+import { columnF32, columnI32, columnU8 } from "../Buffer/column-values";
+import { subscribeFrame } from "../src/webview/frame-tick";
 import { nodeColumn, ownerCounts } from "../Buffer/column-owners";
 import {
   COL_STREAM_NODE_TOP_TILT_VECTOR_LEN, COL_STREAM_NODE_TOP_TILT_VECTOR_IDX,
@@ -63,5 +64,5 @@ export function readTiltVectorRows(): TiltVectorRow[] | null {
 }
 
 export function useTiltVectorRows(): TiltVectorRow[] | null {
-  return useSyncExternalStore(subscribeColumns, readTiltVectorRows, readTiltVectorRows);
+  return useSyncExternalStore(subscribeFrame, readTiltVectorRows, readTiltVectorRows);
 }

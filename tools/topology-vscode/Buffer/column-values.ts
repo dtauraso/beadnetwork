@@ -11,17 +11,6 @@ export function columnVersion(): number {
   return version;
 }
 
-export function subscribeColumns(fn: () => void): () => void {
-  let alive = true;
-  const tick = () => {
-    if (!alive) return;
-    fn();
-    requestAnimationFrame(tick);
-  };
-  requestAnimationFrame(tick);
-  return () => { alive = false; };
-}
-
 export function hasColumn(col: number): boolean {
   return latest.has(col);
 }

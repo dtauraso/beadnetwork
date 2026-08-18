@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
-import { columnI32, subscribeColumns } from "../../../../../Buffer/column-values";
+import { columnI32 } from "../../../../../Buffer/column-values";
+import { subscribeFrame } from "../../../frame-tick";
 import { COL_STREAM_OVERLAY_DRAG_NODE_ROW } from "../../../../../Buffer/column-streams-gen";
 import { nodeLabel } from "../../decode/buffer-decode-node";
 
@@ -8,7 +9,7 @@ export function readDragNodeRow(): number {
 }
 
 export function useDragNodeRow(): number {
-  return useSyncExternalStore(subscribeColumns, readDragNodeRow, readDragNodeRow);
+  return useSyncExternalStore(subscribeFrame, readDragNodeRow, readDragNodeRow);
 }
 
 export function readDraggedNodeName(): string {
@@ -18,7 +19,7 @@ export function readDraggedNodeName(): string {
 }
 
 function subscribeDraggedNodeName(fn: () => void): () => void {
-  return subscribeColumns(fn);
+  return subscribeFrame(fn);
 }
 
 export function useDraggedNodeName(): string {

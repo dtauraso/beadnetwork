@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from "react";
 import { OVERLAY_FLAG_ORDER, type OverlayFlag } from "../../../../messages";
-import { columnU8, subscribeColumns } from "../../../../../Buffer/column-values";
+import { columnU8 } from "../../../../../Buffer/column-values";
+import { subscribeFrame } from "../../../frame-tick";
 import {
   COL_STREAM_OVERLAY_SCENE_TORI,
   COL_STREAM_OVERLAY_SCENE_POLES,
@@ -57,5 +58,5 @@ export function overlayFlag(name: OverlayFlag): boolean {
 }
 
 export function useOverlayFlags(): OverlayFlagVals | null {
-  return useSyncExternalStore(subscribeColumns, readOverlayFlags, readOverlayFlags);
+  return useSyncExternalStore(subscribeFrame, readOverlayFlags, readOverlayFlags);
 }
