@@ -1,6 +1,7 @@
 package gesture
 
 import (
+	"github.com/dtauraso/wirefold/tools/topology-vscode/FitButton"
 	"math"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/camera"
@@ -17,7 +18,7 @@ func gestHome(d Deps, ev inputcodec.RawInputMsg, tr *T.Trace) {
 	for id := range centers {
 		radius[id] = d.MR.NodeBodyRadius(id)
 	}
-	pivot, r, pos, up, ok := camera.HomeFitPose(centers, radius, ev.Fov, d.UI.Gest.Rect.Aspect())
+	pivot, r, pos, up, ok := FitButton.HomeFitPose(centers, radius, ev.Fov, d.UI.Gest.Rect.Aspect())
 	if !ok {
 		return
 	}

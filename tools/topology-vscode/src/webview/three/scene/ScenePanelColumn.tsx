@@ -1,6 +1,6 @@
 import type { RefObject } from "react";
 import * as THREE from "three";
-import { HomeButton } from "../controls/panels/home-button";
+import { FitButton } from "../../../../FitButton/FitButton";
 import { OverlaysControl } from "../controls/pills/overlays-control";
 import { NodesDropdown } from "../../../../NodesDropdown/NodesDropdown";
 import { AngleDropdown } from "../../../../AngleDropdown/AngleDropdown";
@@ -44,7 +44,7 @@ export function ScenePanelColumn({ cameraRef, aspect }: { cameraRef: RefObject<T
     >
       {}
       <PillColumnSizer />
-      <HomeButton cameraRef={cameraRef} aspect={aspect} />
+      <FitButton cameraRef={cameraRef} aspect={aspect} />
       <AngleDropdown />
       {}
       <NodesDropdown />
