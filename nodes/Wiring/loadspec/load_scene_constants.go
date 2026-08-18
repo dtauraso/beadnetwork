@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/polarindex"
-	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
+	lattice "github.com/dtauraso/wirefold/nodes/bead/lattice"
 )
 
 func LoadSceneConstants(root string) (polarindex.SceneConstants, error) {
@@ -31,8 +31,8 @@ func loadSceneConstants(root string) (polarindex.SceneConstants, error) {
 	if c.MaxIndexPhi%2 != 0 || c.MaxIndexTheta%2 != 0 {
 		return polarindex.SceneConstants{}, fmt.Errorf("loadTree: constants.json: %s maxIndexPhi=%d maxIndexTheta=%d must be EVEN — a half turn is maxIndex/2 steps, and an odd ring has no exact half", path, c.MaxIndexPhi, c.MaxIndexTheta)
 	}
-	if math.Abs(c.ConstantR-lattice.BeadStepR) > 1e-9 {
-		return polarindex.SceneConstants{}, fmt.Errorf("loadTree: constants.json: %s constantR=%v disagrees with lattice.BeadStepR=%v — the radial grid is required to match the bead lattice spacing", path, c.ConstantR, lattice.BeadStepR)
+	if math.Abs(c.ConstantR-lattice.SlotR) > 1e-9 {
+		return polarindex.SceneConstants{}, fmt.Errorf("loadTree: constants.json: %s constantR=%v is not lattice.SlotR=%v — one radial index IS one slot, the step a bead takes per wake, so the scene grid and the bead lattice are the same grid (a bead width is %v slots)", path, c.ConstantR, lattice.SlotR, lattice.SlotsPerBead)
 	}
 	return c, nil
 }

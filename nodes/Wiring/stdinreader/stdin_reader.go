@@ -11,7 +11,6 @@
 //       target pair length (×1.1 up / ÷1.1 down) — see ApplyDistanceGroupTarget.
 //     A create/delete op pair (records 20/21) once added or removed an edge by
 //     destination slot; both were removed end-to-end (no live TS sender, and create's
-//     only trigger tore down a live wire's beads via PacedWire.Restore) — records 20/21
 //     are now GAPS. Camera / node-move / port-anchor are NOT edits: the gesture FSM
 //     produces them in-process from raw-input, so they never cross this seam as an edit op.
 //

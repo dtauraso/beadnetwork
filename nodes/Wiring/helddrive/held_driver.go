@@ -3,7 +3,7 @@ package helddrive
 import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/interior"
 	Wiring "github.com/dtauraso/wirefold/nodes/Wiring/kindapi"
-	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
+	lattice "github.com/dtauraso/wirefold/nodes/bead/lattice"
 )
 
 const NoValue = interior.NoValue
@@ -65,7 +65,7 @@ func heldPeriod(out Wiring.DrivenOut) (k int64, known bool) {
 	if steps <= 0 {
 		return 0, false
 	}
-	k = int64(float64(steps)*lattice.DwellTicksPerBead + 0.999999)
+	k = int64(float64(steps)*lattice.PulsesPerSlot + 0.999999)
 	if k < 1 {
 		k = 1
 	}

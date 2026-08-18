@@ -4,20 +4,21 @@ import (
 	"context"
 
 	T "github.com/dtauraso/wirefold/Trace"
+	"github.com/dtauraso/wirefold/nodes/bead"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
 	"github.com/dtauraso/wirefold/nodes/spatial"
-	"github.com/dtauraso/wirefold/nodes/wire"
 )
 
 type outGeom struct {
 	Steps      int
+	SlotR      float64
 	Start, End spatial.Vec3
 }
 
 type Out struct {
 	ch chan<- int
 
-	pw  *wire.PacedWire
+	pw  *bead.BeadRun
 	ctx context.Context
 
 	node  string
@@ -45,7 +46,7 @@ func (o *Out) Geom() outGeom {
 	return o.sendCur
 }
 
-func (o *Out) PostGeom(steps int, start, end spatial.Vec3) {
+func (o *Out) PostGeom(steps int, slotR float64, start, end spatial.Vec3) {
 	if o == nil || o.postedGeom == nil {
 		return
 	}
@@ -54,7 +55,7 @@ func (o *Out) PostGeom(steps int, start, end spatial.Vec3) {
 	default:
 	}
 	select {
-	case o.postedGeom <- outGeom{Steps: steps, Start: start, End: end}:
+	case o.postedGeom <- outGeom{Steps: steps, SlotR: slotR, Start: start, End: end}:
 	default:
 	}
 }
@@ -70,7 +71,7 @@ func (o *Out) applyPostedGeom() {
 	}
 }
 
-func (o *Out) placement() wire.BeadPlacement {
+func (o *Out) placement() bead.BeadPlacement {
 	return o.placementFrom(o.Geom())
 }
 
@@ -79,9 +80,10 @@ func (o *Out) CurrentPlacement() (steps int, start, end spatial.Vec3) {
 	return bp.Steps, bp.Start, bp.End
 }
 
-func (o *Out) placementFrom(g outGeom) wire.BeadPlacement {
-	return wire.BeadPlacement{
+func (o *Out) placementFrom(g outGeom) bead.BeadPlacement {
+	return bead.BeadPlacement{
 		Steps: g.Steps,
+		SlotR: g.SlotR,
 		Start: g.Start,
 		End:   g.End,
 		Node:  o.node,

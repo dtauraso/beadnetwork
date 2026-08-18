@@ -100,16 +100,15 @@ export const EVENT_COL_SLOT                      = 21; // i32
 export const EVENT_COL_VALUE                     = 25; // i32
 export const EVENT_COL_BEAD                      = 29; // u32
 export const EVENT_COL_BEAD_STEPS                = 33; // f32
-export const EVENT_COL_SIM_LATENCY_MS            = 37; // f32
-export const EVENT_COL_X                         = 41; // f32
-export const EVENT_COL_Y                         = 45; // f32
-export const EVENT_COL_Z                         = 49; // f32
-export const EVENT_COL_F                         = 53; // f32
-export const EVENT_COL_LABEL                     = 57; // u8
-export const EVENT_COL_DEBUG                     = 58; // u8
-export const EVENT_COL_TEXT_OFF                  = 59; // u32
-export const EVENT_COL_TEXT_LEN                  = 63; // u32
-export const EVENT_STRIDE                        = 67;
+export const EVENT_COL_X                         = 37; // f32
+export const EVENT_COL_Y                         = 41; // f32
+export const EVENT_COL_Z                         = 45; // f32
+export const EVENT_COL_F                         = 49; // f32
+export const EVENT_COL_LABEL                     = 53; // u8
+export const EVENT_COL_DEBUG                     = 54; // u8
+export const EVENT_COL_TEXT_OFF                  = 55; // u32
+export const EVENT_COL_TEXT_LEN                  = 59; // u32
+export const EVENT_STRIDE                        = 63;
 
 export function readEventKind(view: DataView, row: number): number { return view.getUint8(row * EVENT_STRIDE + EVENT_COL_KIND); }
 export function readEventNodeRow(view: DataView, row: number): number { return view.getInt32(row * EVENT_STRIDE + EVENT_COL_NODE_ROW, true); }
@@ -121,7 +120,6 @@ export function readEventSlot(view: DataView, row: number): number { return view
 export function readEventValue(view: DataView, row: number): number { return view.getInt32(row * EVENT_STRIDE + EVENT_COL_VALUE, true); }
 export function readEventBead(view: DataView, row: number): number { return view.getUint32(row * EVENT_STRIDE + EVENT_COL_BEAD, true); }
 export function readEventBeadSteps(view: DataView, row: number): number { return view.getFloat32(row * EVENT_STRIDE + EVENT_COL_BEAD_STEPS, true); }
-export function readEventSimLatencyMs(view: DataView, row: number): number { return view.getFloat32(row * EVENT_STRIDE + EVENT_COL_SIM_LATENCY_MS, true); }
 export function readEventX(view: DataView, row: number): number { return view.getFloat32(row * EVENT_STRIDE + EVENT_COL_X, true); }
 export function readEventY(view: DataView, row: number): number { return view.getFloat32(row * EVENT_STRIDE + EVENT_COL_Y, true); }
 export function readEventZ(view: DataView, row: number): number { return view.getFloat32(row * EVENT_STRIDE + EVENT_COL_Z, true); }

@@ -1,4 +1,4 @@
-package wire
+package bead
 
 import (
 	"fmt"
@@ -7,29 +7,29 @@ import (
 	"github.com/dtauraso/wirefold/nodes/rowevent"
 )
 
-type wireReadout struct {
+type beadReadout struct {
 	Trace *T.Trace
 
 	StreamsActive bool
 
-	pending []pendingWireEvent
+	pending []pendingBeadEvent
 
 	breadcrumbCh chan rowevent.RowEvent
 
 	droppedBreadcrumbs int
 }
 
-func (pw *PacedWire) SetTrace(tr *T.Trace) { pw.readout.Trace = tr }
+func (pw *BeadRun) SetTrace(tr *T.Trace) { pw.readout.Trace = tr }
 
-func (pw *PacedWire) SetStreamsActive(active bool) { pw.readout.StreamsActive = active }
+func (pw *BeadRun) SetStreamsActive(active bool) { pw.readout.StreamsActive = active }
 
-func (r *wireReadout) flushDroppedBreadcrumbs() {
+func (r *beadReadout) flushDroppedBreadcrumbs() {
 	if r.breadcrumbCh == nil || r.droppedBreadcrumbs == 0 {
 		return
 	}
 	select {
 	case r.breadcrumbCh <- rowevent.RowEvent{
-		Kind: T.KindBreadcrumb, Label: T.BreadcrumbWireBreadcrumbsDropped, Debug: 1,
+		Kind: T.KindBreadcrumb, Label: T.BreadcrumbBeadBreadcrumbsDropped, Debug: 1,
 		NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 		Value: int32(r.droppedBreadcrumbs),
 	}:
@@ -38,7 +38,7 @@ func (r *wireReadout) flushDroppedBreadcrumbs() {
 	}
 }
 
-func (r *wireReadout) drainBreadcrumbEvents() []rowevent.RowEvent {
+func (r *beadReadout) drainBreadcrumbEvents() []rowevent.RowEvent {
 	if r.breadcrumbCh == nil {
 		return nil
 	}
@@ -53,30 +53,30 @@ func (r *wireReadout) drainBreadcrumbEvents() []rowevent.RowEvent {
 	}
 }
 
-func (pw *PacedWire) DrainBreadcrumbEvents() []rowevent.RowEvent {
+func (pw *BeadRun) DrainBreadcrumbEvents() []rowevent.RowEvent {
 	return pw.readout.drainBreadcrumbEvents()
 }
 
-type pendingWireEvent struct {
+type pendingBeadEvent struct {
 	kind       string
 	value      int
 	x, y, z, t float64
 	gen        uint64
 }
 
-const maxPendingEvents = wireChanBufferSize
+const maxPendingEvents = beadChanBufferSize
 
-func (r *wireReadout) appendPending(ev pendingWireEvent, owner, edge string) {
+func (r *beadReadout) appendPending(ev pendingBeadEvent, owner, edge string) {
 	r.pending = append(r.pending, ev)
 	if len(r.pending) > maxPendingEvents {
 		panic(fmt.Sprintf(
-			"paced_wire: pending exceeded %d events on edge %q owned by node %s; the per-cycle "+
-				"drain (the source node's own Outs.DriveOutWires -> DrainPendingEvents) is not running",
+			"bead_run: pending exceeded %d events on edge %q owned by node %s; the per-slot "+
+				"drain (the source node's own Outs.stepBeads -> DrainPendingEvents) is not running",
 			maxPendingEvents, edge, owner))
 	}
 }
 
-func (r *wireReadout) drainPendingEvents() []pendingWireEvent {
+func (r *beadReadout) drainPendingEvents() []pendingBeadEvent {
 	if len(r.pending) == 0 {
 		return nil
 	}
@@ -85,21 +85,21 @@ func (r *wireReadout) drainPendingEvents() []pendingWireEvent {
 	return out
 }
 
-type PendingWireEvent struct {
+type PendingBeadEvent struct {
 	Kind       string
 	Value      int
 	X, Y, Z, T float64
 	Gen        uint64
 }
 
-func (pw *PacedWire) DrainPendingEvents() []PendingWireEvent {
+func (pw *BeadRun) DrainPendingEvents() []PendingBeadEvent {
 	internal := pw.readout.drainPendingEvents()
 	if internal == nil {
 		return nil
 	}
-	out := make([]PendingWireEvent, len(internal))
+	out := make([]PendingBeadEvent, len(internal))
 	for i, pe := range internal {
-		out[i] = PendingWireEvent{Kind: pe.kind, Value: pe.value, X: pe.x, Y: pe.y, Z: pe.z, T: pe.t, Gen: pe.gen}
+		out[i] = PendingBeadEvent{Kind: pe.kind, Value: pe.value, X: pe.x, Y: pe.y, Z: pe.z, T: pe.t, Gen: pe.gen}
 	}
 	return out
 }

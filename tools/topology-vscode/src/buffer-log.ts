@@ -5,7 +5,7 @@ import { decodeEventLine, type ViewBlocksOrNull } from "./webview/three/decode/d
 
 export type DecodedEventLine =
   | { step: number; kind: "recv" | "fire"; node: string; port?: string; value?: number }
-  | { step: number; kind: "send"; node: string; port?: string; value?: number; beadSteps?: number; simLatencyMs?: number; target?: string; targetHandle?: string }
+  | { step: number; kind: "send"; node: string; port?: string; value?: number; beadSteps?: number; target?: string; targetHandle?: string }
   | { step: number; kind: "edge-bead"; node: string; port: string; value?: number; x: number; y: number; z: number; f: number; bead?: number }
   | { step: number; kind: "geometry"; edge: string; sx: number; sy: number; sz: number; ex: number; ey: number; ez: number }
   | { step: number; kind: "arrive"; node: string; port: string; value?: number; bead?: number }

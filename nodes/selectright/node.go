@@ -2,6 +2,7 @@ package selectright
 
 import (
 	"context"
+
 	"github.com/dtauraso/wirefold/nodes/nodeapi"
 
 	Wiring "github.com/dtauraso/wirefold/nodes/Wiring/kindapi"

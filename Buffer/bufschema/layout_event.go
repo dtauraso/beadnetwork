@@ -11,12 +11,11 @@ type bufLayoutEvent struct {
 	Value         int32  `buf:"i32"`
 	Bead          uint32 `buf:"u32"`
 
-	BeadSteps    float32 `buf:"f32"`
-	SimLatencyMs float32 `buf:"f32"`
-	X            float32 `buf:"f32"`
-	Y            float32 `buf:"f32"`
-	Z            float32 `buf:"f32"`
-	F            float32 `buf:"f32"`
+	BeadSteps float32 `buf:"f32"`
+	X         float32 `buf:"f32"`
+	Y         float32 `buf:"f32"`
+	Z         float32 `buf:"f32"`
+	F         float32 `buf:"f32"`
 
 	Label uint8 `buf:"u8"`
 

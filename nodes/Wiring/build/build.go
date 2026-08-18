@@ -12,11 +12,11 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/polarindex"
 	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
 	"github.com/dtauraso/wirefold/nodes/Wiring/topoderive"
+	"github.com/dtauraso/wirefold/nodes/bead"
+	"github.com/dtauraso/wirefold/nodes/bead/outport"
 	"github.com/dtauraso/wirefold/nodes/clock"
 	"github.com/dtauraso/wirefold/nodes/nodeapi"
 	"github.com/dtauraso/wirefold/nodes/spatial"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
-	"github.com/dtauraso/wirefold/nodes/wire/outport"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -37,12 +37,9 @@ type buildCtx struct {
 	baseIndices map[string]polarindex.Index
 	dragIndices map[string]polarindex.Offset
 
-	destWire      map[string]*wire.PacedWire
-	edgeWire      loadspec.WireRegistry
+	destRun       map[string]*bead.BeadRun
+	edgeRun       loadspec.BeadRunRegistry
 	edgeEndpoints map[string]inputcodec.EdgeEndpoints
-
-	edgeSteps    map[string]int
-	edgeSegments map[string]spatial.WireSegment
 
 	md *dispatch.MoveDispatch
 
@@ -68,7 +65,7 @@ func buildFromSpec(ctx context.Context, spec loadspec.TopoSpec, tr *T.Trace, clk
 	b.nodeGeoms, b.centers = topoderive.ComputeNodeGeometry(b.spec, b.sphere)
 	b.baseIndices = topoderive.ComputeBaseIndices(b.spec, b.sphere, b.centers, b.nodeGeoms)
 	b.dragIndices = topoderive.ComputeDragIndices(b.spec)
-	b.destWire, b.edgeWire, b.edgeEndpoints, b.edgeSteps, b.edgeSegments = topoderive.AllocateWires(b.spec, b.nodeGeoms, b.tr)
+	b.destRun, b.edgeRun, b.edgeEndpoints = topoderive.AllocateBeadRuns(b.spec, b.nodeGeoms, b.tr)
 	b.vectorOutByNode, b.vectorInByNode = topoderive.AllocateVectorChannels(b.spec)
 	if err := b.buildMoveDispatch(); err != nil {
 		return nil, nil, nil, nil, err
@@ -79,7 +76,7 @@ func buildFromSpec(ctx context.Context, spec loadspec.TopoSpec, tr *T.Trace, clk
 		return nil, nil, nil, nil, err
 	}
 
-	bindDispatch(b.md, b.outSink, b.destWire)
+	bindDispatch(b.md, b.outSink, b.destRun)
 
-	return b.nodes, inputcodec.SlotRegistry(b.destWire), b.md, b.speedSinks, nil
+	return b.nodes, inputcodec.SlotRegistry(b.destRun), b.md, b.speedSinks, nil
 }

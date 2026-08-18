@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: nodes/wire/beadchain/bead_actor.go,nodes/wire/beadchain/bead_wake_group.go | must have a production call site outside nodes/wire and _test.go
+# PLACEMENT: nodes/bead/beadchain/bead_actor.go,nodes/bead/beadchain/bead_wake_group.go | must have a production call site outside nodes/bead and _test.go
 
 set -euo pipefail
 
@@ -19,7 +19,7 @@ readonly SYMBOLS=(
 prod_files=()
 while IFS= read -r f; do prod_files+=("$f"); done < <(
   find . -type f -name '*.go' \
-    -not -path './nodes/wire/*' \
+    -not -path './nodes/bead/*' \
     -not -name '*_test.go' \
     -not -path '*/node_modules/*' \
     -not -path '*/.git/*' 2>/dev/null
@@ -39,8 +39,8 @@ for sym in "${SYMBOLS[@]}"; do
 done
 
 if [[ "$fail" -eq 1 ]]; then
-  echo "BEAD-ACTOR PRIMITIVE HAS NO PRODUCTION CALL SITE: none of ${SYMBOLS[*]} appear outside nodes/wire or a _test.go file."
-  echo "  The chain-bead actor (nodes/wire/beadchain/bead_actor.go, bead_wake_group.go) has drifted back to a validated-in-isolation primitive with nothing driving it in the live editor."
+  echo "BEAD-ACTOR PRIMITIVE HAS NO PRODUCTION CALL SITE: none of ${SYMBOLS[*]} appear outside nodes/bead or a _test.go file."
+  echo "  The chain-bead actor (nodes/bead/beadchain/bead_actor.go, bead_wake_group.go) has drifted back to a validated-in-isolation primitive with nothing driving it in the live editor."
   echo "  Fix: wire it back into nodes/Wiring's node drag path (see bead_chain.go's history), or if it is being deliberately retired, delete the primitive and its tests together instead of leaving them dead."
 fi
 

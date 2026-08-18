@@ -1,7 +1,5 @@
 package lattice
 
-import "github.com/dtauraso/wirefold/nodes/clock"
-
 func BeadFraction(nowTick, placementTick, crossTicks float64) float64 {
 	if crossTicks <= 0 {
 		return 0
@@ -18,8 +16,4 @@ func BeadFraction(nowTick, placementTick, crossTicks float64) float64 {
 		t = 1
 	}
 	return t
-}
-
-func SimLatencyMs(steps int) float64 {
-	return float64(steps) * DwellTicksPerBead * clock.MsPerTick
 }

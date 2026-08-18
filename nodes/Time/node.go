@@ -2,11 +2,12 @@ package time
 
 import (
 	"context"
+	lattice "github.com/dtauraso/wirefold/nodes/bead/lattice"
+
+	"github.com/dtauraso/wirefold/nodes/bead/inport"
+	"github.com/dtauraso/wirefold/nodes/bead/outport"
 	"github.com/dtauraso/wirefold/nodes/clock"
 	"github.com/dtauraso/wirefold/nodes/nodeapi"
-	"github.com/dtauraso/wirefold/nodes/wire/inport"
-	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
-	"github.com/dtauraso/wirefold/nodes/wire/outport"
 
 	Wiring "github.com/dtauraso/wirefold/nodes/Wiring/kindapi"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
@@ -69,7 +70,7 @@ func (in *Time) consumeInput(clk clock.Clock, value int, held int) (newHeld int,
 			continue
 		}
 		anyLive = true
-		if t := float64(in.ToNext[i].Geom().Steps) * lattice.DwellTicksPerBead; t > maxTicks {
+		if t := float64(in.ToNext[i].Geom().Steps) * lattice.PulsesPerSlot; t > maxTicks {
 			maxTicks = t
 		}
 	}

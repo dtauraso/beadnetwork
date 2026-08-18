@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/interior"
+	"github.com/dtauraso/wirefold/nodes/bead/inport"
+	"github.com/dtauraso/wirefold/nodes/bead/outport"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
-	"github.com/dtauraso/wirefold/nodes/wire/inport"
-	"github.com/dtauraso/wirefold/nodes/wire/outport"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -58,7 +58,7 @@ func NewOutPort(portName string, ctx context.Context, name string, pb PortBindin
 				targetRow = r
 			}
 		}
-		o := outport.NewOutPaced(b.pw, ctx, name, portName, tr, b.rule, b.steps, b.seg, b.label, getSink, NoPortRow, targetRow, NoPortRow)
+		o := outport.NewOutPaced(b.pw, ctx, name, portName, tr, b.rule, b.label, getSink, NoPortRow, targetRow, NoPortRow)
 		*sourceOuts = append(*sourceOuts, o)
 		if pb.OutSink != nil {
 			pb.OutSink[name+"."+portName] = o
@@ -79,7 +79,7 @@ func NewBroadcastPort(portName string, ctx context.Context, name string, pb Port
 					targetRow = r
 				}
 			}
-			o := outport.NewOutPaced(b.pw, ctx, name, b.handle, tr, b.rule, b.steps, b.seg, b.label, getSink, NoPortRow, targetRow, NoPortRow)
+			o := outport.NewOutPaced(b.pw, ctx, name, b.handle, tr, b.rule, b.label, getSink, NoPortRow, targetRow, NoPortRow)
 			outs[i] = o
 			*sourceOuts = append(*sourceOuts, o)
 			if pb.OutSink != nil {

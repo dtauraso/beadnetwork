@@ -29,7 +29,7 @@ check_streams_active_gate() {
     done
     report+=$'\n'
     report+="$IDENT2 exists ONLY to suppress pending-event accumulation when no stream"$'\n'
-    report+="consumer is wired (see PacedWire.StreamsActive's doc comment). Debug breadcrumbs"$'\n'
+    report+="consumer is wired (see BeadRun.StreamsActive's doc comment). Debug breadcrumbs"$'\n'
     report+="(T.KindBreadcrumb, breadcrumbCh, drainBreadcrumbEvents) must NEVER be gated by it —"$'\n'
     report+="reproduces the same silent-swallow regression class as edgeBeadTraceEnabled would."$'\n'
   else

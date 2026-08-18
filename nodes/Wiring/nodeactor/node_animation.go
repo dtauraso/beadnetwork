@@ -5,28 +5,32 @@ import (
 	"io"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/owners"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/bead"
 )
 
 type NodeAnimation struct {
 	id string
 
-	outs   owners.Outs
+	outs   bead.Animation
 	clocks owners.Clocks
 }
 
-func (a *NodeAnimation) AddOutWire(pw *wire.PacedWire, edgeRow int32) {
-	a.outs.AddOutWire(pw, edgeRow)
+func (a *NodeAnimation) AddBeadRun(pw *bead.BeadRun, edgeRow int32) {
+	a.outs.AddBeadRun(pw, edgeRow)
 }
 
-func (a *NodeAnimation) SetBeadStream(w io.Writer, nodeRow int32, buildBeadFrame owners.BeadFrameBuilder) {
+func (a *NodeAnimation) SetBeadStream(w io.Writer, nodeRow int32, buildBeadFrame bead.BeadFrameBuilder) {
 	a.outs.SetBeadStream(w, nodeRow, buildBeadFrame)
 }
 
-func (a *NodeAnimation) ClearOutWires() {
-	a.outs.ClearOutWires()
+func (a *NodeAnimation) ClearBeadRuns() {
+	a.outs.ClearBeadRuns()
 }
 
-func (a *NodeAnimation) driveOutWires(ctx context.Context, tick int64) {
-	a.outs.DriveOutWires(ctx, tick)
+func (a *NodeAnimation) SetSpeedCh(ch <-chan float64) {
+	a.outs.SetSpeedCh(ch)
+}
+
+func (a *NodeAnimation) StartAnimation(ctx context.Context) {
+	go a.outs.RunAnimation(ctx)
 }

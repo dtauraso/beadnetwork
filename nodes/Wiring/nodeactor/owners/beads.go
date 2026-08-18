@@ -3,8 +3,8 @@ package owners
 import (
 	"time"
 
+	beadchain "github.com/dtauraso/wirefold/nodes/bead/beadchain"
 	"github.com/dtauraso/wirefold/nodes/spatial"
-	beadchain "github.com/dtauraso/wirefold/nodes/wire/beadchain"
 )
 
 type Beads struct {

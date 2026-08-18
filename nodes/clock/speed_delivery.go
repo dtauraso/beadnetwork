@@ -10,6 +10,15 @@ func ApplySpeedNonBlocking(clk Clock, speedCh <-chan float64) {
 	}
 }
 
+func RecvSpeedNonBlocking(speedCh <-chan float64) (float64, bool) {
+	select {
+	case sp := <-speedCh:
+		return sp, true
+	default:
+		return 0, false
+	}
+}
+
 func SendSpeedNonBlocking(ch chan float64, speed float64) {
 	select {
 	case ch <- speed:

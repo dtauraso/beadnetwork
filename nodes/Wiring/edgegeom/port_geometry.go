@@ -4,18 +4,18 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 )
 
-func EdgeSegment(src, tgt nodegeom.NodeGeom) wireSegment {
+func EdgeSegment(src, tgt nodegeom.NodeGeom) segment {
 	srcCenter := nodegeom.NodeWorldPos(src)
 	tgtCenter := nodegeom.NodeWorldPos(tgt)
 	dir := tgtCenter.Sub(srcCenter)
 	if dir.Length() < 1e-9 {
 
-		return wireSegment{Start: srcCenter, End: tgtCenter}
+		return segment{Start: srcCenter, End: tgtCenter}
 	}
 	unit := dir.Normalize()
 	start := srcCenter.Add(unit.Scale(nodegeom.NodeTorusOuterR(src.Kind)))
 	end := tgtCenter.Sub(unit.Scale(nodegeom.NodeTorusOuterR(tgt.Kind)))
-	return wireSegment{Start: start, End: end}
+	return segment{Start: start, End: end}
 }
 
 func EdgeCenterDistAndDir(selfCenter, targetCenter vec3) (dist float64, unitDir vec3, ok bool) {

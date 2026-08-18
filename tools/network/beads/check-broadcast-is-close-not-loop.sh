@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: nodes/wire/beadchain/bead_wake_group.go | StartDrag/EndDrag/BroadcastGeometry must call Advance, never loop over beads
+# PLACEMENT: nodes/bead/beadchain/bead_wake_group.go | StartDrag/EndDrag/BroadcastGeometry must call Advance, never loop over beads
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
-FILE="$REPO_ROOT/nodes/wire/beadchain/bead_wake_group.go"
+FILE="$REPO_ROOT/nodes/bead/beadchain/bead_wake_group.go"
 
 if [ ! -f "$FILE" ]; then
   echo "✗ broadcast-is-close-not-loop: MISCONFIGURED — file not found: $FILE" >&2
@@ -40,4 +40,4 @@ if [ "$fail" -ne 0 ]; then
   exit 1
 fi
 
-echo "✓ BeadWakeGroup wake/settle/geometry broadcasts are single closes, not send-loops (nodes/wire/beadchain/bead_wake_group.go)."
+echo "✓ BeadWakeGroup wake/settle/geometry broadcasts are single closes, not send-loops (nodes/bead/beadchain/bead_wake_group.go)."

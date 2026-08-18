@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: Trace/Trace.go,nodes/wire/inport/in_port.go,nodes/**/*.go,Buffer/**/*.go | a .Breadcrumb("label") literal must be added to Trace.BreadcrumbLabels
+# PLACEMENT: Trace/Trace.go,nodes/bead/inport/in_port.go,nodes/**/*.go,Buffer/**/*.go | a .Breadcrumb("label") literal must be added to Trace.BreadcrumbLabels
 
 set -euo pipefail
 
@@ -15,10 +15,10 @@ if [[ ! -d "$TRACE_DIR" ]]; then
   exit 1
 fi
 
-LABEL_FN_FILE=$(grep -rl '^func breadcrumbLabelFor(' --include="*.go" nodes/wire 2>/dev/null | head -1 || true)
+LABEL_FN_FILE=$(grep -rl '^func breadcrumbLabelFor(' --include="*.go" nodes/bead 2>/dev/null | head -1 || true)
 if [[ -z "$LABEL_FN_FILE" ]]; then
   echo "check-breadcrumb-label-registered: MISCONFIGURED — breadcrumbLabelFor not found in" >&2
-  echo "nodes/wire; it was renamed or deleted. The switch this guard exists to keep in sync" >&2
+  echo "nodes/bead; it was renamed or deleted. The switch this guard exists to keep in sync" >&2
   echo "with Trace.BreadcrumbLabels no longer has a home — update this guard in the same commit." >&2
   exit 1
 fi

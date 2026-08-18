@@ -4,11 +4,10 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/interior"
 	"github.com/dtauraso/wirefold/nodes/Wiring/rowtables"
 	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
+	"github.com/dtauraso/wirefold/nodes/bead"
+	"github.com/dtauraso/wirefold/nodes/bead/outport"
 	"github.com/dtauraso/wirefold/nodes/clock"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
-	"github.com/dtauraso/wirefold/nodes/spatial"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
-	"github.com/dtauraso/wirefold/nodes/wire/outport"
 )
 
 type PortDir int
@@ -53,19 +52,15 @@ type PortBindings struct {
 }
 
 type singleBinding struct {
-	pw    *wire.PacedWire
+	pw    *bead.BeadRun
 	rule  outport.SendRule
-	steps int
-	seg   spatial.WireSegment
 	label string
 }
 
 type broadcastBinding struct {
-	pw     *wire.PacedWire
+	pw     *bead.BeadRun
 	handle string
 	rule   outport.SendRule
-	steps  int
-	seg    spatial.WireSegment
 	label  string
 }
 
@@ -76,17 +71,17 @@ func NewPortBindings() PortBindings {
 	}
 }
 
-func (pb *PortBindings) SetSinglePaced(name string, pw *wire.PacedWire) {
+func (pb *PortBindings) SetSinglePaced(name string, pw *bead.BeadRun) {
 	pb.singlePaced[name] = singleBinding{pw: pw}
 }
 
-func (pb *PortBindings) SetSinglePacedRule(name string, pw *wire.PacedWire, rule outport.SendRule, steps int, seg spatial.WireSegment, label string) {
-	pb.singlePaced[name] = singleBinding{pw: pw, rule: rule, steps: steps, seg: seg, label: label}
+func (pb *PortBindings) SetSinglePacedRule(name string, pw *bead.BeadRun, rule outport.SendRule, label string) {
+	pb.singlePaced[name] = singleBinding{pw: pw, rule: rule, label: label}
 }
 
-func (pb *PortBindings) AppendBroadcastWithHandle(name, handle string, pw *wire.PacedWire, rule outport.SendRule, steps int, seg spatial.WireSegment, label string) {
+func (pb *PortBindings) AppendBroadcastWithHandle(name, handle string, pw *bead.BeadRun, rule outport.SendRule, label string) {
 	pb.broadcastPaced[name] = append(pb.broadcastPaced[name], broadcastBinding{
-		pw: pw, handle: handle, rule: rule, steps: steps, seg: seg, label: label,
+		pw: pw, handle: handle, rule: rule, label: label,
 	})
 }
 

@@ -6,4 +6,4 @@ import (
 
 type vec3 = spatial.Vec3
 
-type wireSegment = spatial.WireSegment
+type segment = spatial.Segment

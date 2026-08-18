@@ -8,11 +8,11 @@ const (
 	BreadcrumbWindowOpen
 	BreadcrumbDwellStart
 	BreadcrumbAbcDrag
-	BreadcrumbWireSendBufferFull
+	BreadcrumbBeadPlaceBufferFull
 
 	BreadcrumbDragCommit
 
-	BreadcrumbWireBreadcrumbsDropped
+	BreadcrumbBeadBreadcrumbsDropped
 
 	BreadcrumbChainAim
 
@@ -43,7 +43,7 @@ var BreadcrumbLabels = []string{
 	"window_open",
 	"dwell_start",
 	"abc-drag",
-	"wire-send-buffer-full",
+	"bead-place-buffer-full",
 	"drag.commit",
 	"wire-breadcrumbs-dropped",
 	"chain-aim",

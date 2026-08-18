@@ -10,10 +10,10 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/polarindex"
+	"github.com/dtauraso/wirefold/nodes/bead"
+	"github.com/dtauraso/wirefold/nodes/bead/outport"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
 	"github.com/dtauraso/wirefold/nodes/spatial"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
-	"github.com/dtauraso/wirefold/nodes/wire/outport"
 )
 
 type EdgeFrameBuilder = func(tick uint32, sx, sy, sz, ex, ey, ez float32, srcNodeRow, dstNodeRow int32, deltaR float32, dragActive uint8, label string, events []rowevent.RowEvent) []byte
@@ -30,7 +30,7 @@ type outEdge struct {
 	out io.Writer
 
 	port *outport.Out
-	dest *wire.PacedWire
+	dest *bead.BeadRun
 
 	start, end spatial.Vec3
 	steps      int
@@ -70,7 +70,7 @@ func (o *OutEdges) edgeFor(label string) *outEdge {
 	return &o.edges[len(o.edges)-1]
 }
 
-func (o *OutEdges) BindWire(label, targetID, targetKind string, port *outport.Out, dest *wire.PacedWire) {
+func (o *OutEdges) BindWire(label, targetID, targetKind string, port *outport.Out, dest *bead.BeadRun) {
 	e := o.edgeFor(label)
 	e.port = port
 	e.dest = dest
@@ -136,10 +136,7 @@ func (o *OutEdges) DeriveGeometry(self nodegeom.NodeGeom, deltas *Deltas) {
 		e.deltaR = float32(d.R) * float32(o.constants.ConstantR)
 
 		if e.port != nil {
-			e.port.PostGeom(e.steps, start, end)
-		}
-		if e.dest != nil {
-			e.dest.PostGeom(e.steps, spatial.WireSegment{Start: start, End: end})
+			e.port.PostGeom(e.steps, o.constants.ConstantR, start, end)
 		}
 		if dragDelta, ok := deltas.DragDeltaTo(e.targetID); ok {
 			o.persistDelta(e, dragDelta)
