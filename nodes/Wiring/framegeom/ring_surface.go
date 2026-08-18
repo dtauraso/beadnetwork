@@ -2,22 +2,12 @@ package framegeom
 
 import (
 	"math"
-	"sync"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/camera"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
-	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 )
 
-const (
-	RingSurfaceNu = nodegeom.ShadingParamNodeRingSurfaceNu
-	RingSurfaceNv = nodegeom.ShadingParamNodeRingSurfaceNv
-
-	BeadRingSurfaceNu = nodegeom.ShadingParamBeadRingSurfaceNu
-	BeadRingSurfaceNv = nodegeom.ShadingParamBeadRingSurfaceNv
-)
-
-func canonicalTorusSurfacePoints(a float64, nu, nv int) []vec3 {
+func CanonicalTorusSurfacePoints(a float64, nu, nv int) []vec3 {
 	const rho = 1.0
 
 	pts := make([]vec3, 0, nu*nv)
@@ -44,42 +34,12 @@ func canonicalTorusSurfacePoints(a float64, nu, nv int) []vec3 {
 	return pts
 }
 
-func CanonicalRingSurfacePoints() []vec3 {
-	return canonicalTorusSurfacePoints(nodegeom.ShadingParamNodeRingTubeRatio, RingSurfaceNu, RingSurfaceNv)
-}
-
-func CanonicalBeadRingSurfacePoints() []vec3 {
-	return canonicalTorusSurfacePoints(nodegeom.ShadingParamBeadRingTubeRatio, BeadRingSurfaceNu, BeadRingSurfaceNv)
-}
-
-func flattenPoints(pts []vec3) []float32 {
+func FlattenPoints(pts []vec3) []float32 {
 	flat := make([]float32, 0, len(pts)*3)
 	for _, p := range pts {
 		flat = append(flat, float32(p.X), float32(p.Y), float32(p.Z))
 	}
 	return flat
-}
-
-var (
-	ringSurfaceFlatOnce sync.Once
-	ringSurfaceFlat     []float32
-
-	beadRingSurfaceFlatOnce sync.Once
-	beadRingSurfaceFlat     []float32
-)
-
-func CanonicalRingSurfacePointsFlat() []float32 {
-	ringSurfaceFlatOnce.Do(func() {
-		ringSurfaceFlat = flattenPoints(CanonicalRingSurfacePoints())
-	})
-	return ringSurfaceFlat
-}
-
-func CanonicalBeadRingSurfacePointsFlat() []float32 {
-	beadRingSurfaceFlatOnce.Do(func() {
-		beadRingSurfaceFlat = flattenPoints(CanonicalBeadRingSurfacePoints())
-	})
-	return beadRingSurfaceFlat
 }
 
 func ringAxisBasis(axis vec3) (bx, by, bz vec3) {
