@@ -1,6 +1,7 @@
 package nodeactor
 
 import (
+	"github.com/dtauraso/wirefold/PolarRules"
 	"slices"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
@@ -24,11 +25,11 @@ func (m *NodeGeometry) Kind() string { return m.geom.Kind }
 
 func (m *NodeGeometry) SelfKind() string { return m.selfKind }
 
-func (m *NodeGeometry) DragRule() *polar.DragRule { return m.topo.DragRule() }
+func (m *NodeGeometry) DragRule() *PolarRules.DragRule { return m.topo.DragRule() }
 
 func (m *NodeGeometry) DragRuleActive() bool { return m.topo.DragRuleActive() }
 
-func (m *NodeGeometry) SelfRule() *polar.DragRule { return m.topo.SelfRule() }
+func (m *NodeGeometry) SelfRule() *PolarRules.DragRule { return m.topo.SelfRule() }
 
 func (m *NodeGeometry) SelfRuleActive() bool { return m.topo.SelfRuleActive() }
 

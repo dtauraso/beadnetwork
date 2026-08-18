@@ -1,9 +1,9 @@
 package nodeactor
 
 import (
+	"github.com/dtauraso/wirefold/PolarRules"
 	"io"
 
-	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/nodes/Wiring/interior"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/nodeframe"
@@ -44,7 +44,7 @@ func (m *NodeGeometry) SetSelfKind(kind string) {
 	m.selfKind = kind
 }
 
-func (m *NodeGeometry) SetDragRule(rule *polar.DragRule) {
+func (m *NodeGeometry) SetDragRule(rule *PolarRules.DragRule) {
 	m.topo.SetDragRule(rule)
 }
 
@@ -52,7 +52,7 @@ func (m *NodeGeometry) SetDragActive(active bool) {
 	m.topo.SetDragActive(active)
 }
 
-func (m *NodeGeometry) SetSelfRule(rule *polar.DragRule) {
+func (m *NodeGeometry) SetSelfRule(rule *PolarRules.DragRule) {
 	m.topo.SetSelfRule(rule)
 }
 

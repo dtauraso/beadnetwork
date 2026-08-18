@@ -1,10 +1,10 @@
 package nodeactor
 
 import (
-	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
+	"github.com/dtauraso/wirefold/PolarRules"
 )
 
-func (m *NodeGeometry) SetDragRuleCopy(rule *polar.DragRule, active bool) {
+func (m *NodeGeometry) SetDragRuleCopy(rule *PolarRules.DragRule, active bool) {
 	m.topo.SetDragRule(rule)
 	m.topo.SetDragActive(active)
 }

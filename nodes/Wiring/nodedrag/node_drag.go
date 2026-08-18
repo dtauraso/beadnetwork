@@ -1,6 +1,7 @@
 package nodedrag
 
 import (
+	"github.com/dtauraso/wirefold/PolarRules"
 	"math"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
@@ -11,9 +12,9 @@ type Node interface {
 	ScenePolar() polar.Polar
 	ComposedIndex() polarindex.Index
 	Constants() polarindex.SceneConstants
-	DragRule() *polar.DragRule
+	DragRule() *PolarRules.DragRule
 	DragRuleActive() bool
-	SelfRule() *polar.DragRule
+	SelfRule() *PolarRules.DragRule
 	SelfRuleActive() bool
 	EdgeRuleActive(otherID string) bool
 	KindRuleActive() bool
