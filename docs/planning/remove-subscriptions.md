@@ -71,14 +71,19 @@ addressed edit per control.
 allowlist is empty — checked by the guard itself, with the allowlist emptied in the same
 commit so it cannot pass vacuously.
 
-Then drive the editor: the scene still draws (it never used these), and each panel shows
-correct values on the render after an edit. A panel that goes stale until the next render is
-EXPECTED at this point, not a regression to chase.
+Then drive the editor: the window stays responsive with the topology open, the scene still
+draws (it never used these), and each panel shows correct values on the render after an
+edit. A panel that goes stale until the next render is EXPECTED at this point, not a
+regression to chase.
 
 ## Risks
 
-- **This does not fix the hang.** The subscriber fan-out was a proposed fix for a proposed
-  cause and it did not hold. Do not read a working editor after this as evidence either way.
+- **This is the hang fix.** The coordinator is what hangs the window: 12 hooks recompute
+  their snapshot on every tick, on the workbench renderer's main thread — a webview is an
+  iframe inside it — and `readNodeRuleRows` walks every node AND every edge each time. No
+  build anyone has run had these removed: `8bc4da424` still had all 12, and the two earlier
+  commits only dropped the writer's fan-out and moved the ticker, leaving every snapshot
+  rebuild in place.
 - **Step 4 changes cost, not just shape.** The caches avoided rebuilding row arrays per read;
   without them `readNodeRuleRows` walks every node and edge on each call. It is called during
   render rather than per frame, but that is worth measuring rather than assuming, given the
