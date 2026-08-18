@@ -7,6 +7,8 @@ import (
 
 const NumScale = 4
 
+const Paused int64 = 0
+
 type Sinks struct {
 	Clocks []chan float64
 	Anim   []chan int64
@@ -16,12 +18,11 @@ func SleepMs(num, clockDivisor int64) int64 {
 	if clockDivisor < 1 {
 		clockDivisor = 1
 	}
-	atOne := int64(lattice.PulsesPerSlot) * clock.MsPerTick * NumScale * clockDivisor
 	if num < 1 {
 
-		return atOne * clock.PausedCycleMultiple
+		return Paused
 	}
-	return atOne / num
+	return int64(lattice.PulsesPerSlot) * clock.MsPerTick * NumScale * clockDivisor / num
 }
 
 func Broadcast(sinks Sinks, num, clockDivisor int64) {

@@ -16,15 +16,6 @@ func SendSleepMsNonBlocking(ch chan int64, ms int64) {
 	}
 }
 
-func RecvSleepMsNonBlocking(ch <-chan int64) (int64, bool) {
-	select {
-	case ms := <-ch:
-		return ms, true
-	default:
-		return 0, false
-	}
-}
-
 func ApplySpeedNonBlocking(clk Clock, speedCh <-chan float64) {
 	select {
 	case sp := <-speedCh:

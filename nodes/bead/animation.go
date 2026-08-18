@@ -7,6 +7,7 @@ import (
 	"time"
 
 	SF "github.com/dtauraso/wirefold/Buffer/streamframe"
+	"github.com/dtauraso/wirefold/Slider"
 	"github.com/dtauraso/wirefold/nodes/Wiring/framegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/bead/lattice"
@@ -44,6 +45,9 @@ func (o *Animation) SetBeadStream(w io.Writer, nodeRow int32, buildBeadFrame fun
 func (o *Animation) SetSleepCh(ch <-chan int64) { o.sleepCh = ch }
 
 func (o *Animation) wakeAfter() time.Duration {
+	if o.sleepMs == Slider.Paused {
+		return 0
+	}
 	ms := o.sleepMs
 	if ms < 1 {
 		ms = int64(lattice.PulsesPerSlot) * clock.MsPerTick
@@ -56,16 +60,24 @@ func (o *Animation) RunAnimation(ctx context.Context) {
 		return
 	}
 	clk := clock.NewRealClock()
+	if o.sleepMs == 0 {
+		o.sleepMs = Slider.SleepMs(Slider.NumScale, 1)
+	}
 	for {
 		if ctx.Err() != nil {
 			return
 		}
-		if ms, ok := clock.RecvSleepMsNonBlocking(o.sleepCh); ok {
-			o.sleepMs = ms
+		wait := o.wakeAfter()
+		if wait > 0 {
+			o.stepBeads(ctx, clk.Tick())
 		}
-		o.stepBeads(ctx, clk.Tick())
-		if err := clk.SleepFor(ctx, o.wakeAfter()); err != nil {
+
+		ms, changed, err := clock.SleepForOrChange(ctx, wait, o.sleepCh)
+		if err != nil {
 			return
+		}
+		if changed {
+			o.sleepMs = ms
 		}
 	}
 }
