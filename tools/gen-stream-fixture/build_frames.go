@@ -79,11 +79,7 @@ func buildBeadFrame() beadFrameFixture {
 			{X: -4.5, Y: 5.25, Z: -6.125, Value: 2, EdgeRow: 2},
 		},
 	}
-	beads := make([]streamframe.EdgeBead, 0, len(f.Beads))
-	for _, b := range f.Beads {
-		beads = append(beads, streamframe.EdgeBead{X: b.X, Y: b.Y, Z: b.Z, Value: b.Value, EdgeRow: b.EdgeRow})
-	}
-	f.Hex = hex.EncodeToString(streamframe.BuildBeadStreamFrame(f.Tick, f.NodeRow, beads, nil))
+	f.Hex = hex.EncodeToString(streamframe.BuildBeadStreamFrame(f.Tick, f.NodeRow, nil))
 	return f
 }
 

@@ -1,15 +1,17 @@
+import { columnBytes, columnVersion } from "../../../../../Buffer/column-values";
+import { nodeColumn, ownerCounts } from "../../../../../Buffer/column-owners";
 import {
-  getLatestBeadStreamFrames, getBeadStreamVersion,
-} from "../../../snapshot-buffer";
-import { decodeBeadStreamFrame } from "../../decode/buffer-decode-bead";
-import {
-  readEdgeBeadX, readEdgeBeadY, readEdgeBeadZ, readEdgeBeadValue,
-  readEdgeBeadRingM0, readEdgeBeadRingM1, readEdgeBeadRingM2, readEdgeBeadRingM3,
-  readEdgeBeadRingM4, readEdgeBeadRingM5, readEdgeBeadRingM6, readEdgeBeadRingM7,
-  readEdgeBeadRingM8, readEdgeBeadRingM9, readEdgeBeadRingM10, readEdgeBeadRingM11,
-  readEdgeBeadRingM12, readEdgeBeadRingM13, readEdgeBeadRingM14, readEdgeBeadRingM15,
-  readEdgeBeadEdgeRow,
-} from "../../../../../Buffer/buffer-layout";
+  COL_STREAM_EDGE_BEAD_X, COL_STREAM_EDGE_BEAD_Y, COL_STREAM_EDGE_BEAD_Z,
+  COL_STREAM_EDGE_BEAD_VALUE, COL_STREAM_EDGE_BEAD_EDGE_ROW,
+  COL_STREAM_EDGE_BEAD_RING_M0, COL_STREAM_EDGE_BEAD_RING_M1,
+  COL_STREAM_EDGE_BEAD_RING_M2, COL_STREAM_EDGE_BEAD_RING_M3,
+  COL_STREAM_EDGE_BEAD_RING_M4, COL_STREAM_EDGE_BEAD_RING_M5,
+  COL_STREAM_EDGE_BEAD_RING_M6, COL_STREAM_EDGE_BEAD_RING_M7,
+  COL_STREAM_EDGE_BEAD_RING_M8, COL_STREAM_EDGE_BEAD_RING_M9,
+  COL_STREAM_EDGE_BEAD_RING_M10, COL_STREAM_EDGE_BEAD_RING_M11,
+  COL_STREAM_EDGE_BEAD_RING_M12, COL_STREAM_EDGE_BEAD_RING_M13,
+  COL_STREAM_EDGE_BEAD_RING_M14, COL_STREAM_EDGE_BEAD_RING_M15,
+} from "../../../../../Buffer/column-streams-gen";
 
 export interface EdgeBeadsAgg {
   positions: Float32Array;
@@ -24,20 +26,34 @@ export interface EdgeBeadsAgg {
   count: number;
 }
 
+const RING_COLS = [
+  COL_STREAM_EDGE_BEAD_RING_M0, COL_STREAM_EDGE_BEAD_RING_M1,
+  COL_STREAM_EDGE_BEAD_RING_M2, COL_STREAM_EDGE_BEAD_RING_M3,
+  COL_STREAM_EDGE_BEAD_RING_M4, COL_STREAM_EDGE_BEAD_RING_M5,
+  COL_STREAM_EDGE_BEAD_RING_M6, COL_STREAM_EDGE_BEAD_RING_M7,
+  COL_STREAM_EDGE_BEAD_RING_M8, COL_STREAM_EDGE_BEAD_RING_M9,
+  COL_STREAM_EDGE_BEAD_RING_M10, COL_STREAM_EDGE_BEAD_RING_M11,
+  COL_STREAM_EDGE_BEAD_RING_M12, COL_STREAM_EDGE_BEAD_RING_M13,
+  COL_STREAM_EDGE_BEAD_RING_M14, COL_STREAM_EDGE_BEAD_RING_M15,
+];
+
 let lastVersion = -1;
 let lastAgg: EdgeBeadsAgg | null = null;
 
 export function getEdgeBeads(): EdgeBeadsAgg {
-  const bv = getBeadStreamVersion();
-  if (lastAgg !== null && bv === lastVersion) return lastAgg;
+  const v = columnVersion();
+  if (lastAgg !== null && v === lastVersion) return lastAgg;
 
-  const decoded = [];
+  const { nodes } = ownerCounts();
+  const perNode: Array<{ row: number; count: number }> = [];
   let total = 0;
-  for (const [row, buf] of getLatestBeadStreamFrames()) {
-    const d = decodeBeadStreamFrame(row, buf);
-    if (!d) continue;
-    decoded.push(d);
-    total += d.beadCount;
+  for (let row = 0; row < nodes; row++) {
+    const xs = columnBytes(nodeColumn(row, COL_STREAM_EDGE_BEAD_X));
+    if (!xs) continue;
+    const count = xs.byteLength >> 2;
+    if (count === 0) continue;
+    perNode.push({ row, count });
+    total += count;
   }
 
   const positions = new Float32Array(total * 3);
@@ -45,38 +61,40 @@ export function getEdgeBeads(): EdgeBeadsAgg {
   const value = new Int32Array(total);
   const srcNodeRow = new Int32Array(total);
   const edgeRow = new Int32Array(total);
-  let w = 0;
-  let m = 0;
-  let b = 0;
-  for (const d of decoded) {
-    for (let i = 0; i < d.beadCount; i++) {
-      positions[w++] = readEdgeBeadX(d.beadView, i);
-      positions[w++] = readEdgeBeadY(d.beadView, i);
-      positions[w++] = readEdgeBeadZ(d.beadView, i);
-      value[b] = readEdgeBeadValue(d.beadView, i);
-      edgeRow[b] = readEdgeBeadEdgeRow(d.beadView, i);
-      srcNodeRow[b++] = d.nodeRow;
 
-      ringMatrix[m++] = readEdgeBeadRingM0(d.beadView, i);
-      ringMatrix[m++] = readEdgeBeadRingM1(d.beadView, i);
-      ringMatrix[m++] = readEdgeBeadRingM2(d.beadView, i);
-      ringMatrix[m++] = readEdgeBeadRingM3(d.beadView, i);
-      ringMatrix[m++] = readEdgeBeadRingM4(d.beadView, i);
-      ringMatrix[m++] = readEdgeBeadRingM5(d.beadView, i);
-      ringMatrix[m++] = readEdgeBeadRingM6(d.beadView, i);
-      ringMatrix[m++] = readEdgeBeadRingM7(d.beadView, i);
-      ringMatrix[m++] = readEdgeBeadRingM8(d.beadView, i);
-      ringMatrix[m++] = readEdgeBeadRingM9(d.beadView, i);
-      ringMatrix[m++] = readEdgeBeadRingM10(d.beadView, i);
-      ringMatrix[m++] = readEdgeBeadRingM11(d.beadView, i);
-      ringMatrix[m++] = readEdgeBeadRingM12(d.beadView, i);
-      ringMatrix[m++] = readEdgeBeadRingM13(d.beadView, i);
-      ringMatrix[m++] = readEdgeBeadRingM14(d.beadView, i);
-      ringMatrix[m++] = readEdgeBeadRingM15(d.beadView, i);
+  let b = 0;
+  for (const { row, count } of perNode) {
+    const xs = columnBytes(nodeColumn(row, COL_STREAM_EDGE_BEAD_X))!;
+    const ys = columnBytes(nodeColumn(row, COL_STREAM_EDGE_BEAD_Y));
+    const zs = columnBytes(nodeColumn(row, COL_STREAM_EDGE_BEAD_Z));
+    const vs = columnBytes(nodeColumn(row, COL_STREAM_EDGE_BEAD_VALUE));
+    const es = columnBytes(nodeColumn(row, COL_STREAM_EDGE_BEAD_EDGE_ROW));
+
+    if (!ys || !zs || !vs || !es) continue;
+    if (ys.byteLength < count * 4 || zs.byteLength < count * 4) continue;
+    if (vs.byteLength < count * 4 || es.byteLength < count * 4) continue;
+
+    const rings = RING_COLS.map((c) => columnBytes(nodeColumn(row, c)));
+
+    for (let i = 0; i < count; i++) {
+      const o = i * 4;
+      positions[b * 3] = xs.getFloat32(o, true);
+      positions[b * 3 + 1] = ys.getFloat32(o, true);
+      positions[b * 3 + 2] = zs.getFloat32(o, true);
+      value[b] = vs.getInt32(o, true);
+      edgeRow[b] = es.getInt32(o, true);
+      srcNodeRow[b] = row;
+
+      for (let m = 0; m < 16; m++) {
+        const col = rings[m];
+        ringMatrix[b * 16 + m] = col && col.byteLength >= o + 4 ? col.getFloat32(o, true) : 0;
+      }
+      b++;
     }
   }
 
-  lastVersion = bv;
-  lastAgg = { positions, value, srcNodeRow, edgeRow, ringMatrix, count: total };
+  const count = b;
+  lastVersion = v;
+  lastAgg = { positions, value, srcNodeRow, edgeRow, ringMatrix, count };
   return lastAgg;
 }

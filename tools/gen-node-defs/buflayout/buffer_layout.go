@@ -22,6 +22,7 @@ var movedToColumns = map[string]bool{
 	"Edge":          true,
 	"Node":          true,
 	"Interior":      true,
+	"EdgeBead":      true,
 }
 
 func hasRow(name string) bool { return !movedToColumns[name] }

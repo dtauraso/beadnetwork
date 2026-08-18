@@ -49,7 +49,8 @@ func wireNodeStreams(streamFDs SF.StreamFDs, md *W.MoveDispatch) {
 			md.Sw.SetNodeStreams(md.GS.NodeSeeds, md.MR.NodeGeoms(), nodeBase, interiorBase,
 				beadBase, beadWired,
 				func(tick uint32, nodeRow int32, beads []SF.EdgeBead, events []rowevent.RowEvent) []byte {
-					return SF.BuildBeadStreamFrame(tick, nodeRow, beads, toStreamEvents(events))
+					SF.WriteEdgeBeadColumns(nodeCols(nodeRow), beads)
+					return SF.BuildBeadStreamFrame(tick, nodeRow, toStreamEvents(events))
 				},
 				md.RT.NodeRowFor,
 
