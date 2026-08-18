@@ -23,6 +23,7 @@ var movedToColumns = map[string]bool{
 	"Node":          true,
 	"Interior":      true,
 	"EdgeBead":      true,
+	"SpeedPanel":    true,
 	"TiltArrow":     true,
 	"ChannelVector": true,
 }

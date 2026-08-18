@@ -22,4 +22,5 @@ var _ = [...]any{
 	bufLayoutSend{},
 	bufLayoutArrive{},
 	bufLayoutBreadcrumb{},
+	bufLayoutSpeedPanel{},
 }

@@ -62,6 +62,7 @@ func (ui *UIState) EmitViewFrame(events []rowevent.RowEvent) {
 	ui.writePanelColumns()
 	ui.writeOverlayColumns(dragNodeRow)
 	ui.writeCameraColumns()
+	ui.writeSpeedPanelColumns()
 
 	frame := ui.ViewBuildFrame(ui.viewTick, events)
 	if !ui.viewOut.Ok() {

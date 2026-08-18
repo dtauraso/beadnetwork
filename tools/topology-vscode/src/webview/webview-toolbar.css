@@ -30,11 +30,6 @@ html, body { margin: 0; padding: 0; height: 100%; background: #fafafa; font-fami
 .tilt-rounds-val { color: #fff; font-weight: 700; text-align: right; }
 .tilt-start-btn { padding: 3px 10px; }
 .tilt-reset-btn { padding: 3px 10px; }
-.speed-slider input[type="range"]:focus,
-.speed-slider input[type="range"]:focus-visible {
-  outline: none;
-  box-shadow: none;
-}
 .clean { color: #2e7d32; }
 .run-btn {
   border: 1px solid #ddd; background: #fafafa; border-radius: 4px;

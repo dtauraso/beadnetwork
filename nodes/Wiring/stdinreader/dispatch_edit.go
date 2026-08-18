@@ -9,13 +9,29 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/nodes/Wiring/speedpanel"
 	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
 )
 
-func HandleRawInputMsg(ctx context.Context, msg inputcodec.StdinMsg, slotReg inputcodec.SlotRegistry, md *dispatch.MoveDispatch, tr *T.Trace) {
-	if md != nil && msg.Event != nil {
-		md.HandleRawInput(ctx, *msg.Event, slotReg, tr)
+func HandleRawInputMsg(ctx context.Context, msg inputcodec.StdinMsg, slotReg inputcodec.SlotRegistry, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks SliderPanel.Sinks) {
+	if md == nil || msg.Event == nil {
+		return
 	}
+	if msg.Event.Kind == "pointerdown" {
+		if i := speedpanel.Hit(msg.Event.X, msg.Event.Y); i >= 0 {
+			setClockSpeed(md, speedSinks, speedpanel.Settings[i].Speed)
+			return
+		}
+	}
+	md.HandleRawInput(ctx, *msg.Event, slotReg, tr)
+}
+
+func setClockSpeed(md *dispatch.MoveDispatch, speedSinks SliderPanel.Sinks, speed float64) {
+	divisor := int64(md.UI.ClockDivisor)
+	SliderPanel.Broadcast(speedSinks, int64(speed*SliderPanel.NumScale), divisor)
+	md.UI.Speed = speed
+	md.Persist.Speed().Schedule(speed)
+	md.UI.EmitViewFrame(nil)
 }
 
 func HandleSaveMsg(md *dispatch.MoveDispatch) {

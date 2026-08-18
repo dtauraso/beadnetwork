@@ -39,7 +39,7 @@ while IFS= read -r line; do
     snapshot-buffer.ts|overlay-flags.ts|panel-flags.ts|buffer-nav.ts|scene-tabs.ts) continue ;;
     overlay-flags-drag.ts|overlay-flags-edit-refused.ts|overlay-flags-scene.ts) continue ;;
     overlay-flags-selection.ts) continue ;;
-    overlay-flags-speed.ts|overlay-flags-tilt-vectors.ts) continue ;;
+    overlay-flags-tilt-vectors.ts) continue ;;
     node-rules.ts) continue ;;
   esac
   report "domain-hook: $line  (useSyncExternalStore outside the allowed buffer-reflect resources)"
