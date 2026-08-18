@@ -65,6 +65,20 @@ export function buildHomeRaw(fov: number, aspect: number): RawInputEvent {
   };
 }
 
+export function buildDeleteRaw(): RawInputEvent {
+  const hit: RawHit = { kind: "empty", isInput: false, nodeRow: -1, portRow: -1, edgeRow: -1 };
+  return {
+    kind: "delete",
+    x: 0, y: 0,
+    rectLeft: 0, rectTop: 0, rectWidth: 0, rectHeight: 0,
+    button: -1,
+    ctrl: false, shift: false, alt: false, meta: false,
+    deltaX: 0, deltaY: 0,
+    fov: 0,
+    hit,
+  };
+}
+
 export function buildWheelRaw(
   e: WheelEvent,
   cameraRef: CamRef,

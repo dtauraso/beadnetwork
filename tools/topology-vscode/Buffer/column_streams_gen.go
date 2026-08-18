@@ -7,7 +7,7 @@ const ColumnsPerNodeStream = 145
 
 const ColumnsPerEdgeStream = 11
 
-const ColumnsInSingletonStreams = 137
+const ColumnsInSingletonStreams = 174
 
 // ColumnStreamCount is every column channel a scene of this size needs.
 func ColumnStreamCount(nodes, edges int) int {
@@ -29,6 +29,7 @@ const ColStreamBaseBeadRingPoint = 51
 const ColStreamBaseSpeedPanel = 54
 const ColStreamBaseTiltPanel = 71
 const ColStreamBaseAnglePill = 100
+const ColStreamBaseNodesPill = 137
 
 const ColStreamNodeNodeId = ColStreamBaseNode + 0
 const ColStreamNodeIndexR = ColStreamBaseNode + 1
@@ -323,3 +324,40 @@ const ColStreamAnglePillGroupH = ColStreamBaseAnglePill + 33
 const ColStreamAnglePillGroupOpen = ColStreamBaseAnglePill + 34
 const ColStreamAnglePillGroupHeadText = ColStreamBaseAnglePill + 35
 const ColStreamAnglePillGroupHeadLen = ColStreamBaseAnglePill + 36
+const ColStreamNodesPillPillX = ColStreamBaseNodesPill + 0
+const ColStreamNodesPillPillY = ColStreamBaseNodesPill + 1
+const ColStreamNodesPillPillW = ColStreamBaseNodesPill + 2
+const ColStreamNodesPillPillH = ColStreamBaseNodesPill + 3
+const ColStreamNodesPillOpen = ColStreamBaseNodesPill + 4
+const ColStreamNodesPillPopoverX = ColStreamBaseNodesPill + 5
+const ColStreamNodesPillPopoverY = ColStreamBaseNodesPill + 6
+const ColStreamNodesPillPopoverW = ColStreamBaseNodesPill + 7
+const ColStreamNodesPillPopoverH = ColStreamBaseNodesPill + 8
+const ColStreamNodesPillLabelText = ColStreamBaseNodesPill + 9
+const ColStreamNodesPillRowX = ColStreamBaseNodesPill + 10
+const ColStreamNodesPillRowY = ColStreamBaseNodesPill + 11
+const ColStreamNodesPillRowW = ColStreamBaseNodesPill + 12
+const ColStreamNodesPillRowH = ColStreamBaseNodesPill + 13
+const ColStreamNodesPillRowOpen = ColStreamBaseNodesPill + 14
+const ColStreamNodesPillRowKindText = ColStreamBaseNodesPill + 15
+const ColStreamNodesPillRowKindLen = ColStreamBaseNodesPill + 16
+const ColStreamNodesPillRowFillText = ColStreamBaseNodesPill + 17
+const ColStreamNodesPillRowFillLen = ColStreamBaseNodesPill + 18
+const ColStreamNodesPillRowStrokeText = ColStreamBaseNodesPill + 19
+const ColStreamNodesPillRowStrokeLen = ColStreamBaseNodesPill + 20
+const ColStreamNodesPillSwatchX = ColStreamBaseNodesPill + 21
+const ColStreamNodesPillSwatchY = ColStreamBaseNodesPill + 22
+const ColStreamNodesPillSwatchW = ColStreamBaseNodesPill + 23
+const ColStreamNodesPillSwatchH = ColStreamBaseNodesPill + 24
+const ColStreamNodesPillRowDescText = ColStreamBaseNodesPill + 25
+const ColStreamNodesPillRowDescLen = ColStreamBaseNodesPill + 26
+const ColStreamNodesPillDescX = ColStreamBaseNodesPill + 27
+const ColStreamNodesPillDescY = ColStreamBaseNodesPill + 28
+const ColStreamNodesPillDescW = ColStreamBaseNodesPill + 29
+const ColStreamNodesPillDescH = ColStreamBaseNodesPill + 30
+const ColStreamNodesPillRefusedCount = ColStreamBaseNodesPill + 31
+const ColStreamNodesPillRefusedX = ColStreamBaseNodesPill + 32
+const ColStreamNodesPillRefusedY = ColStreamBaseNodesPill + 33
+const ColStreamNodesPillRefusedW = ColStreamBaseNodesPill + 34
+const ColStreamNodesPillRefusedH = ColStreamBaseNodesPill + 35
+const ColStreamNodesPillRefusedText = ColStreamBaseNodesPill + 36

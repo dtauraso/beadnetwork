@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import * as THREE from "three";
-import { dropKindFromEvent, fireCreateAt } from "../../../../NodesDropdown/place-node-drag";
 import { Tabs } from "../../../../Tabs/Tabs";
+import { sendRawInput, buildDeleteRaw } from "../interaction/raw-input";
 import { useInteractionControls } from "../interaction/interaction-controls";
 import type { PickFn } from "../interaction/pick-types";
 import { Scene } from "./scene-content";
@@ -33,6 +33,17 @@ export function ThreeView() {
     return () => obs.disconnect();
   }, []);
 
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Delete" && e.key !== "Backspace") return;
+      const t = e.target as HTMLElement | null;
+      if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
+      sendRawInput(buildDeleteRaw());
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
   const { onPointerDown, onPointerMove, onPointerUp, onPointerCancel, onWheelNative } = useInteractionControls(
     cameraRef,
     pickRequest,
@@ -59,21 +70,6 @@ export function ThreeView() {
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerCancel}
         onContextMenu={(e) => e.preventDefault()}
-
-        onDragOver={(e) => {
-          if (e.dataTransfer.types.includes("application/x-wirefold-kind")) e.preventDefault();
-        }}
-        onDrop={(e) => {
-          const kindId = dropKindFromEvent(e.nativeEvent);
-          if (kindId === null) return;
-          e.preventDefault();
-          const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
-          fireCreateAt(
-            kindId,
-            ((e.clientX - r.left) / r.width) * 2 - 1,
-            -(((e.clientY - r.top) / r.height) * 2 - 1),
-          );
-        }}
       >
         <Canvas
           camera={{ fov: 50, near: 0.1, far: 20000, position: [0, 0, 500] }}

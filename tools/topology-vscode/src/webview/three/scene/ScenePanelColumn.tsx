@@ -2,7 +2,6 @@ import type { RefObject } from "react";
 import * as THREE from "three";
 import { FitButton } from "../../../../FitButton/FitButton";
 import { OverlaysDropdown } from "../../../../OverlaysDropdown/OverlaysDropdown";
-import { NodesDropdown } from "../../../../NodesDropdown/NodesDropdown";
 import { pillContainerStyle, pillBodyStyle, pillCaretStyle } from "../controls/pills/overlay-chrome";
 
 const COLUMN_GAP = 6;
@@ -44,8 +43,6 @@ export function ScenePanelColumn({ cameraRef, aspect }: { cameraRef: RefObject<T
       {}
       <PillColumnSizer />
       <FitButton cameraRef={cameraRef} aspect={aspect} />
-      {}
-      <NodesDropdown />
       <OverlaysDropdown />
     </div>
   );

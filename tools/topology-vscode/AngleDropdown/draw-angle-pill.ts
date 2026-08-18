@@ -2,6 +2,7 @@ import { columnBytes, columnF32, columnI32, columnU8 } from "../Buffer/column-va
 import { nodeColumn } from "../Buffer/column-owners";
 import { COL_STREAM_NODE_TOP_TILT_VECTOR_IDX } from "../Buffer/column-streams-gen";
 import { panelFont, roundRect } from "../PanelOverlay/panel-box";
+import { drawPill, drawPopoverBox, ROW_PAD_X } from "../PanelOverlay/pill-chrome";
 import { readF32Run, readI32Run, readU32Run, readText, decodeAt } from "../PanelOverlay/panel-columns";
 import * as T from "../src/webview/three/controls/chrome-theme";
 import {
@@ -27,8 +28,6 @@ import {
   COL_STREAM_ANGLE_PILL_GROUP_HEAD_TEXT, COL_STREAM_ANGLE_PILL_GROUP_HEAD_LEN,
 } from "../Buffer/column-streams-gen";
 
-const CARET_W = 20;
-const ROW_PAD_X = 6;
 const ROW_GAP = 2;
 const ARROW_PAD = 2;
 
@@ -38,15 +37,6 @@ function stepperValue(shown: string, valueRow: number, denom: number): string {
   if (idx === 0) return "0";
   const sign = idx < 0 ? "-" : "";
   return `${sign}${Math.abs(idx)}π/${Math.max(1, denom)}`;
-}
-
-function drawChip(c: CanvasRenderingContext2D, x: number, y: number, w: number, h: number): void {
-  roundRect(c, x + 0.5, y + 0.5, w - 1, h - 1, T.RADIUS_CHIP);
-  c.fillStyle = T.CHIP;
-  c.fill();
-  c.strokeStyle = T.BORDER;
-  c.lineWidth = 1;
-  c.stroke();
 }
 
 function drawArrow(
@@ -100,32 +90,15 @@ export function drawAnglePill(c: CanvasRenderingContext2D): void {
   if (pw <= 0 || ph <= 0 || !labelText) return;
   const open = columnU8(COL_STREAM_ANGLE_PILL_OPEN) !== 0;
 
-  drawChip(c, px, py, pw, ph);
-  c.fillStyle = T.TEXT;
-  c.font = panelFont(T.FONT_SIZE, T.FONT_WEIGHT_LABEL);
-  c.textAlign = "left";
-  c.textBaseline = "middle";
-  c.fillText(decodeAt(labelText, 0, labelText.length), px + 9, py + ph / 2);
-  c.font = panelFont(T.FONT_SIZE_GLYPH);
-  c.textAlign = "center";
-  c.fillText(open ? "▲" : "▼", px + pw - CARET_W / 2 - 3, py + ph / 2);
+  drawPill(c, px, py, pw, ph, decodeAt(labelText, 0, labelText.length), open);
 
   if (!open) return;
 
-  const box = {
-    x: columnF32(COL_STREAM_ANGLE_PILL_POPOVER_X),
-    y: columnF32(COL_STREAM_ANGLE_PILL_POPOVER_Y),
-    w: columnF32(COL_STREAM_ANGLE_PILL_POPOVER_W),
-    h: columnF32(COL_STREAM_ANGLE_PILL_POPOVER_H),
-  };
-  if (box.w > 0 && box.h > 0) {
-    roundRect(c, box.x + 0.5, box.y + 0.5, box.w - 1, box.h - 1, T.RADIUS_PANEL);
-    c.fillStyle = T.SURFACE;
-    c.fill();
-    c.strokeStyle = T.BORDER;
-    c.lineWidth = 1;
-    c.stroke();
-  }
+  drawPopoverBox(
+    c,
+    columnF32(COL_STREAM_ANGLE_PILL_POPOVER_X), columnF32(COL_STREAM_ANGLE_PILL_POPOVER_Y),
+    columnF32(COL_STREAM_ANGLE_PILL_POPOVER_W), columnF32(COL_STREAM_ANGLE_PILL_POPOVER_H),
+  );
 
   drawGroups(c);
   drawSteppers(c);

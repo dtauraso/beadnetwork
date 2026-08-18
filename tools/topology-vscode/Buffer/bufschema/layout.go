@@ -25,4 +25,5 @@ var _ = [...]any{
 	bufLayoutSpeedPanel{},
 	bufLayoutTiltPanel{},
 	bufLayoutAnglePill{},
+	bufLayoutNodesPill{},
 }

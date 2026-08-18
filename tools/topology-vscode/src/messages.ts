@@ -79,7 +79,7 @@ type EditMsg =
 
 // RAW_INPUT_START
 
-export type RawPointerKind = "pointerdown" | "pointermove" | "pointerup" | "wheel" | "home";
+export type RawPointerKind = "pointerdown" | "pointermove" | "pointerup" | "wheel" | "home" | "delete";
 
 export type RawHit = {
   kind: "port" | "handhold" | "node" | "edge" | "torus" | "empty";

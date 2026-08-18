@@ -64,6 +64,12 @@ type UIState struct {
 	AngleOpen      bool
 	AngleGroupOpen map[int32]bool
 
+	NodesOpen    bool
+	NodesRowOpen map[uint8]bool
+
+	PlacingKind    uint8
+	PlacingPending bool
+
 	viewOut        viewClaimedStream
 	ViewBuildFrame ViewFrameBuilder
 	viewTick       uint32

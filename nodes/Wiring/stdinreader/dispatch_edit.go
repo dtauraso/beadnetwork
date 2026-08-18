@@ -10,8 +10,10 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/angledropdown"
 	"github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodesdropdown"
 	"github.com/dtauraso/wirefold/nodes/Wiring/speedpanel"
 	"github.com/dtauraso/wirefold/nodes/Wiring/tiltpanel"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/NodesDropdown"
 	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
 )
 
@@ -23,8 +25,35 @@ func HandleRawInputMsg(ctx context.Context, msg inputcodec.StdinMsg, slotReg inp
 		md.UI.ViewW = msg.Event.RectWidth
 		md.UI.ViewH = msg.Event.RectHeight
 	}
+	if msg.Event.Kind == "delete" {
+		if md.UI.SceneEditable && md.UI.Sel.Selected != "" {
+			if row, ok := md.UI.NodeRowFor(md.UI.Sel.Selected); ok {
+				NodesDropdown.DeleteNode(&md.Scenes, &md.UI, &md.RT, int(row), tr)
+			}
+		}
+		return
+	}
+	if msg.Event.Kind == "pointerup" && md.UI.PlacingPending {
+		md.UI.PlacingPending = false
+		placeNodeAt(md, msg.Event, tr)
+		return
+	}
 	if msg.Event.Kind == "pointerdown" {
 		pl := md.UI.PanelLayout()
+		switch h := pl.Nodes.Hit(msg.Event.X, msg.Event.Y); h.Kind {
+		case nodesdropdown.HitPill:
+			md.UI.NodesOpen = !md.UI.NodesOpen
+			md.UI.EmitViewFrame(nil)
+			return
+		case nodesdropdown.HitRow:
+			if md.UI.NodesRowOpen == nil {
+				md.UI.NodesRowOpen = map[uint8]bool{}
+			}
+			md.UI.NodesRowOpen[h.KindID] = !md.UI.NodesRowOpen[h.KindID]
+			md.UI.PlacingKind, md.UI.PlacingPending = h.KindID, true
+			md.UI.EmitViewFrame(nil)
+			return
+		}
 		if i := pl.Speed.Hit(msg.Event.X, msg.Event.Y); i >= 0 {
 			setClockSpeed(md, speedSinks, speedpanel.Settings[i].Speed)
 			return
@@ -47,6 +76,15 @@ func HandleRawInputMsg(ctx context.Context, msg inputcodec.StdinMsg, slotReg inp
 		}
 	}
 	md.HandleRawInput(ctx, *msg.Event, slotReg, tr)
+}
+
+func placeNodeAt(md *dispatch.MoveDispatch, ev *inputcodec.RawInputMsg, tr *T.Trace) {
+	if ev.RectWidth <= 0 || ev.RectHeight <= 0 {
+		return
+	}
+	ndcX := ((ev.X-ev.RectLeft)/ev.RectWidth)*2 - 1
+	ndcY := -((ev.Y-ev.RectTop)/ev.RectHeight)*2 + 1
+	NodesDropdown.CreateNode(&md.Scenes, &md.UI, &md.MR, md.UI.PlacingKind, ndcX, ndcY, tr)
 }
 
 func applyAngleHit(ctx context.Context, md *dispatch.MoveDispatch, speedSinks SliderPanel.Sinks, h angledropdown.Hit) {

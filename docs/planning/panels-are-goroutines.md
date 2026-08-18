@@ -101,12 +101,16 @@ reassemble columns Go already streams separately.
 3. **AngleDropdown** — rows from the same tilt columns; no native controls.
 4. **NodesDropdown** — four separate flag reads today.
 5. **OverlaysDropdown** — 15 overlay flags and 11 panel flags, both bundle objects.
-6. **Tabs** — the scene tab strip. Not a panel on the stack and easy to miss for that reason,
+6. **FitButton** — no subscription, so "remove the subscriptions" never named it, but it is a
+   DOM pill in the same right-hand column as the three dropdowns. Leaving it there keeps that
+   column half DOM and keeps the offset scaffolding alive; it is a rect and a label, and it
+   already speaks raw-input.
+7. **Tabs** — the scene tab strip. Not a panel on the stack and easy to miss for that reason,
    but `Tabs/tab-state.ts` is one of the subscriptions, with its own cached `TabsState`; a tab
    is a rect, a name and a selected flag, the same as everything else here.
-7. **NodeRulesPanel** — the largest: rows derived from nodes AND edges, six checkboxes,
+8. **NodeRulesPanel** — the largest: rows derived from nodes AND edges, six checkboxes,
    eleven buttons.
-8. The subscriptions and derived caches are then unreferenced; delete them and empty
+9. The subscriptions and derived caches are then unreferenced; delete them and empty
    `check-no-webview-state.sh`'s allowlist, per `remove-subscriptions.md`.
 
 ## Verification
