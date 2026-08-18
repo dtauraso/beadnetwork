@@ -7,13 +7,6 @@ type bufLayoutNode struct {
 	CZ     float32 `buf:"f32"`
 	Radius float32 `buf:"f32"`
 
-	VRX float32 `buf:"f32"`
-	VRY float32 `buf:"f32"`
-	VRZ float32 `buf:"f32"`
-	FRX float32 `buf:"f32"`
-	FRY float32 `buf:"f32"`
-	FRZ float32 `buf:"f32"`
-
 	PolePhi   float32 `buf:"f32"`
 	PoleTheta float32 `buf:"f32"`
 
