@@ -1,4 +1,4 @@
-package PolarRules
+package PolarRulesPanel
 
 import (
 	"math"

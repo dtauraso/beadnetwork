@@ -6,11 +6,11 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenecamera"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewpersist"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/Slider"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/SliderPanel"
 	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
 )
 
-func loadSceneState(scenePath string, md *W.MoveDispatch, tr *T.Trace, speedSinks Slider.Sinks) {
+func loadSceneState(scenePath string, md *W.MoveDispatch, tr *T.Trace, speedSinks SliderPanel.Sinks) {
 	scenecamera.SeedInitialViewpoint(scenePath, md.UI.VP.SetViewpoint, md.UI.VP.EmitViewpoint, tr)
 
 	distancegroups.ResolveSceneDistanceGroups(&md.UI, scenePath)

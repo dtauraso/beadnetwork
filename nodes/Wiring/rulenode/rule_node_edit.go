@@ -2,7 +2,7 @@ package rulenode
 
 import (
 	"fmt"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/PolarRules"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/PolarRulesPanel"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/nodefiles"
@@ -14,7 +14,7 @@ func (r *RuleNode) applyEdit(e Edit) {
 		r.active = !r.active
 		r.persistActive()
 	case EditPhiToggle:
-		var next PolarRules.DragRule
+		var next PolarRulesPanel.DragRule
 		if r.rule != nil {
 			next = *r.rule
 		}
@@ -27,7 +27,7 @@ func (r *RuleNode) applyEdit(e Edit) {
 		r.rule = &next
 		r.persistRule()
 	case EditMaxTheta:
-		var next PolarRules.DragRule
+		var next PolarRulesPanel.DragRule
 		if r.rule != nil {
 			next = *r.rule
 		}
@@ -35,7 +35,7 @@ func (r *RuleNode) applyEdit(e Edit) {
 		r.rule = &next
 		r.persistRule()
 	case EditRToggle:
-		var next PolarRules.DragRule
+		var next PolarRulesPanel.DragRule
 		if r.rule != nil {
 			next = *r.rule
 		}
@@ -48,7 +48,7 @@ func (r *RuleNode) applyEdit(e Edit) {
 		r.rule = &next
 		r.persistRule()
 	case EditSelfRToggle:
-		var next PolarRules.DragRule
+		var next PolarRulesPanel.DragRule
 		if r.selfRule != nil {
 			next = *r.selfRule
 		}
@@ -64,7 +64,7 @@ func (r *RuleNode) applyEdit(e Edit) {
 		r.selfActive = !r.selfActive
 		r.persistSelfActive()
 	case EditSelfPhiToggle:
-		var next PolarRules.DragRule
+		var next PolarRulesPanel.DragRule
 		if r.selfRule != nil {
 			next = *r.selfRule
 		}
@@ -77,7 +77,7 @@ func (r *RuleNode) applyEdit(e Edit) {
 		r.selfRule = &next
 		r.persistSelfRule()
 	case EditSelfMaxTheta:
-		var next PolarRules.DragRule
+		var next PolarRulesPanel.DragRule
 		if r.selfRule != nil {
 			next = *r.selfRule
 		}
@@ -89,7 +89,7 @@ func (r *RuleNode) applyEdit(e Edit) {
 			"rulenode.applyEdit: node %q was sent edit kind %d, which no case handles, so a rule edit would be "+
 				"silently dropped after crossing the bridge", r.id, e.Kind))
 	}
-	r.mesh.SetSelfRuleKey(PolarRules.KeyOf(r.rule))
+	r.mesh.SetSelfRuleKey(PolarRulesPanel.KeyOf(r.rule))
 	r.mesh.BroadcastRule(r.id)
 }
 

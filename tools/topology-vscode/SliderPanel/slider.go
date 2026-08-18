@@ -1,4 +1,4 @@
-package Slider
+package SliderPanel
 
 import (
 	lattice "github.com/dtauraso/wirefold/nodes/bead/lattice"

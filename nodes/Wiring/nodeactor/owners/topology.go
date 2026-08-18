@@ -1,7 +1,7 @@
 package owners
 
 import (
-	"github.com/dtauraso/wirefold/tools/topology-vscode/PolarRules"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/PolarRulesPanel"
 )
 
 type Topology struct {
@@ -10,10 +10,10 @@ type Topology struct {
 	mutualTargets map[string]bool
 	nodeRowFor    func(id string) (int32, bool)
 
-	dragRule   *PolarRules.DragRule
+	dragRule   *PolarRulesPanel.DragRule
 	dragActive bool
 
-	selfRule   *PolarRules.DragRule
+	selfRule   *PolarRulesPanel.DragRule
 	selfActive bool
 }
 
@@ -43,11 +43,11 @@ func (t *Topology) AddNeighborKind(toID, kind string) {
 	t.neighborKinds[toID] = kind
 }
 
-func (t *Topology) SetDragRule(rule *PolarRules.DragRule) {
+func (t *Topology) SetDragRule(rule *PolarRulesPanel.DragRule) {
 	t.dragRule = rule
 }
 
-func (t *Topology) DragRule() *PolarRules.DragRule { return t.dragRule }
+func (t *Topology) DragRule() *PolarRulesPanel.DragRule { return t.dragRule }
 
 func (t *Topology) SetDragActive(active bool) {
 	t.dragActive = active
@@ -55,11 +55,11 @@ func (t *Topology) SetDragActive(active bool) {
 
 func (t *Topology) DragRuleActive() bool { return t.dragActive }
 
-func (t *Topology) SetSelfRule(rule *PolarRules.DragRule) {
+func (t *Topology) SetSelfRule(rule *PolarRulesPanel.DragRule) {
 	t.selfRule = rule
 }
 
-func (t *Topology) SelfRule() *PolarRules.DragRule { return t.selfRule }
+func (t *Topology) SelfRule() *PolarRulesPanel.DragRule { return t.selfRule }
 
 func (t *Topology) SetSelfRuleActive(active bool) {
 	t.selfActive = active

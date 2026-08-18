@@ -7,7 +7,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/bead/outport"
 	"github.com/dtauraso/wirefold/nodes/clock"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/Slider"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/SliderPanel"
 	"github.com/dtauraso/wirefold/tools/topology-vscode/TiltPanel"
 )
 
@@ -41,7 +41,7 @@ type PortBindings struct {
 
 	Clock clock.Clock
 
-	SpeedSinks *Slider.Sinks
+	SpeedSinks *SliderPanel.Sinks
 
 	RT rowtables.RowTables
 

@@ -2,7 +2,7 @@ package stdinreader
 
 import (
 	"context"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/Slider"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/SliderPanel"
 
 	"github.com/dtauraso/wirefold/nodes/rowevent"
 
@@ -30,20 +30,20 @@ func HandleSaveMsg(md *dispatch.MoveDispatch) {
 }
 
 // EDIT_OPS_START
-var editOps = map[string]func(context.Context, inputcodec.StdinMsg, *dispatch.MoveDispatch, *T.Trace, Slider.Sinks){
+var editOps = map[string]func(context.Context, inputcodec.StdinMsg, *dispatch.MoveDispatch, *T.Trace, SliderPanel.Sinks){
 	"update": applyUpdate,
 }
 
 // EDIT_OPS_END
 
-func ApplyEdit(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks Slider.Sinks) {
+func ApplyEdit(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks SliderPanel.Sinks) {
 	if h, ok := editOps[msg.Op]; ok {
 		h(ctx, msg, md, tr, speedSinks)
 	}
 }
 
 // EDIT_UPDATE_KINDS_START
-var updateKindHandlers = map[string]func(context.Context, inputcodec.StdinMsg, *dispatch.MoveDispatch, *T.Trace, Slider.Sinks){
+var updateKindHandlers = map[string]func(context.Context, inputcodec.StdinMsg, *dispatch.MoveDispatch, *T.Trace, SliderPanel.Sinks){
 	"clock":         applyUpdateClock,
 	"overlays":      applyUpdateOverlays,
 	"distanceGroup": applyUpdateDistanceGroup,
@@ -56,23 +56,23 @@ var updateKindHandlers = map[string]func(context.Context, inputcodec.StdinMsg, *
 
 // EDIT_UPDATE_KINDS_END
 
-func applyUpdate(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks Slider.Sinks) {
+func applyUpdate(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks SliderPanel.Sinks) {
 	if h, ok := updateKindHandlers[msg.Kind]; ok {
 		h(ctx, msg, md, tr, speedSinks)
 	}
 }
 
-var clockAttrHandlers = map[string]func(msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, speedSinks Slider.Sinks){
-	"speed": func(msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, speedSinks Slider.Sinks) {
+var clockAttrHandlers = map[string]func(msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, speedSinks SliderPanel.Sinks){
+	"speed": func(msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, speedSinks SliderPanel.Sinks) {
 
 		divisor := int64(1)
 		if md != nil {
 			divisor = int64(md.UI.ClockDivisor)
 		}
 
-		Slider.Broadcast(speedSinks, int64(msg.Num), divisor)
+		SliderPanel.Broadcast(speedSinks, int64(msg.Num), divisor)
 
-		userSpeed := float64(msg.Num) / Slider.NumScale
+		userSpeed := float64(msg.Num) / SliderPanel.NumScale
 		if md == nil {
 			return
 		}

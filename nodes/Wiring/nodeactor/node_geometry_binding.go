@@ -1,7 +1,7 @@
 package nodeactor
 
 import (
-	"github.com/dtauraso/wirefold/tools/topology-vscode/PolarRules"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/PolarRulesPanel"
 	"io"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/interior"
@@ -44,7 +44,7 @@ func (m *NodeGeometry) SetSelfKind(kind string) {
 	m.selfKind = kind
 }
 
-func (m *NodeGeometry) SetDragRule(rule *PolarRules.DragRule) {
+func (m *NodeGeometry) SetDragRule(rule *PolarRulesPanel.DragRule) {
 	m.topo.SetDragRule(rule)
 }
 
@@ -52,7 +52,7 @@ func (m *NodeGeometry) SetDragActive(active bool) {
 	m.topo.SetDragActive(active)
 }
 
-func (m *NodeGeometry) SetSelfRule(rule *PolarRules.DragRule) {
+func (m *NodeGeometry) SetSelfRule(rule *PolarRulesPanel.DragRule) {
 	m.topo.SetSelfRule(rule)
 }
 

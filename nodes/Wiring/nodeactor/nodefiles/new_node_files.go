@@ -1,7 +1,7 @@
 package nodefiles
 
 import (
-	"github.com/dtauraso/wirefold/tools/topology-vscode/PolarRules"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/PolarRulesPanel"
 	"os"
 	"path/filepath"
 
@@ -41,7 +41,7 @@ func WriteNewNodeFiles(root, id, kind string, p polar.Polar, sc polarindex.Scene
 	})
 }
 
-func WriteDragRule(root, id string, rule *PolarRules.DragRule) error {
+func WriteDragRule(root, id string, rule *PolarRulesPanel.DragRule) error {
 	return entityReadModifyWrite(nodeBaseFilePath(root, id), func(m map[string]any) {
 		if rule == nil {
 			delete(m, "drag")
@@ -105,7 +105,7 @@ func LoadKindRuleActive(root, id string) bool {
 	return *f.KindActive
 }
 
-func WriteSelfDragRule(root, id string, rule *PolarRules.DragRule) error {
+func WriteSelfDragRule(root, id string, rule *PolarRulesPanel.DragRule) error {
 	return entityReadModifyWrite(nodeBaseFilePath(root, id), func(m map[string]any) {
 		if rule == nil {
 			delete(m, "selfDrag")

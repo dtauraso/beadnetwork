@@ -3,7 +3,7 @@ package rulenode
 import (
 	"context"
 	"fmt"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/PolarRules"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/PolarRulesPanel"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/owners"
 )
@@ -29,12 +29,12 @@ type Edit struct {
 }
 
 type State struct {
-	Rule      *PolarRules.DragRule
+	Rule      *PolarRulesPanel.DragRule
 	Active    bool
 	GroupID   int32
 	GroupSize int32
 
-	SelfRule   *PolarRules.DragRule
+	SelfRule   *PolarRulesPanel.DragRule
 	SelfActive bool
 
 	EdgeActive map[string]bool
@@ -48,14 +48,14 @@ type RuleNode struct {
 
 	mesh owners.RuleMesh
 
-	rule   *PolarRules.DragRule
+	rule   *PolarRulesPanel.DragRule
 	active bool
 
-	selfRule   *PolarRules.DragRule
+	selfRule   *PolarRulesPanel.DragRule
 	selfActive bool
 
 	edits  chan Edit
-	ruleIn chan PolarRules.Msg
+	ruleIn chan PolarRulesPanel.Msg
 
 	edgeActive       map[string]bool
 	toggleSelfToPeer map[string]chan struct{}
@@ -76,7 +76,7 @@ func New(id string) *RuleNode {
 		active:           true,
 		selfActive:       true,
 		edits:            make(chan Edit, 8),
-		ruleIn:           make(chan PolarRules.Msg, 8),
+		ruleIn:           make(chan PolarRulesPanel.Msg, 8),
 		edgeActive:       map[string]bool{},
 		toggleSelfToPeer: map[string]chan struct{}{},
 		toggleIn:         make(chan EdgeToggle, 8),
@@ -90,31 +90,31 @@ func New(id string) *RuleNode {
 
 func (r *RuleNode) SetPersistRoot(root string) { r.persistRoot = root }
 
-func (r *RuleNode) SeedRule(rule *PolarRules.DragRule, active bool) {
+func (r *RuleNode) SeedRule(rule *PolarRulesPanel.DragRule, active bool) {
 	r.rule = rule
 	r.active = active
-	r.mesh.SetSelfRuleKey(PolarRules.KeyOf(rule))
+	r.mesh.SetSelfRuleKey(PolarRulesPanel.KeyOf(rule))
 }
 
-func (r *RuleNode) SeedSelfRule(rule *PolarRules.DragRule, active bool) {
+func (r *RuleNode) SeedSelfRule(rule *PolarRulesPanel.DragRule, active bool) {
 	r.selfRule = rule
 	r.selfActive = active
 }
 
-func (r *RuleNode) SelfRule() *PolarRules.DragRule { return r.selfRule }
+func (r *RuleNode) SelfRule() *PolarRulesPanel.DragRule { return r.selfRule }
 
 func (r *RuleNode) SelfActive() bool { return r.selfActive }
 
-func (r *RuleNode) RuleBackChannel(peerID string) chan PolarRules.Msg {
+func (r *RuleNode) RuleBackChannel(peerID string) chan PolarRulesPanel.Msg {
 	return r.mesh.RuleBackChannel(peerID)
 }
 
-func (r *RuleNode) LinkRuleDown(peerID string, down chan PolarRules.Msg) {
+func (r *RuleNode) LinkRuleDown(peerID string, down chan PolarRulesPanel.Msg) {
 	r.mesh.LinkRuleDown(peerID, down)
 }
 
 func (r *RuleNode) BroadcastSelf() {
-	r.mesh.SetSelfRuleKey(PolarRules.KeyOf(r.rule))
+	r.mesh.SetSelfRuleKey(PolarRulesPanel.KeyOf(r.rule))
 	r.mesh.BroadcastRule(r.id)
 }
 
@@ -156,7 +156,7 @@ func (r *RuleNode) Run(ctx context.Context) {
 	}
 }
 
-func (r *RuleNode) forward(ctx context.Context, peerID string, back chan PolarRules.Msg) {
+func (r *RuleNode) forward(ctx context.Context, peerID string, back chan PolarRulesPanel.Msg) {
 	if back == nil {
 		panic(fmt.Sprintf(
 			"rulenode.forward: node %q has a nil back-channel for peer %q, so that peer's rule could never "+
