@@ -9,6 +9,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/interior"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/nodeframe"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/owners"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/streamclaim"
 	"github.com/dtauraso/wirefold/nodes/bead"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
@@ -50,7 +51,7 @@ func (sw *StreamWiring) SetEdgeStreams(
 	nodeGeoms map[string]*nodeactor.NodeGeometry,
 	baseFd int,
 	nodeRowFor func(id string) (int32, bool),
-	buildFrame func(tick uint32, sx, sy, sz, ex, ey, ez float32, srcNodeRow, dstNodeRow int32, deltaR float32, dragActive uint8, label string, events []rowevent.RowEvent) []byte,
+	buildFrame owners.EdgeFrameBuilder,
 ) {
 	for row, seed := range edgeSeeds {
 		em, ok := edgeTable[seed.Label]

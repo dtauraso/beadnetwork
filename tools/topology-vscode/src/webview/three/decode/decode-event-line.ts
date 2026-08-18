@@ -1,18 +1,22 @@
 import { TRACE_EVENT_KINDS, BREADCRUMB_LABELS } from "../../../../Trace/trace-kinds";
 import { nodeLabel, type DecodedNodeFrame } from "./buffer-decode-node";
-import { edgeLabel, type DecodedEdgeFrame } from "./buffer-decode-edge";
+import { edgeLabel } from "./buffer-decode-edge";
 import { INTERIOR_SLOTS_PER_NODE } from "./buffer-decode-interior";
 import { overlayFlag, OVERLAY_KINDS } from "./decode-event-overlay";
 import { nodeGeometryLine } from "./decode-event-node-geometry";
 import {
   readInteriorPresent, readInteriorValue, readInteriorX, readInteriorY, readInteriorZ,
-  readEdgeSX, readEdgeSY, readEdgeSZ, readEdgeEX, readEdgeEY, readEdgeEZ,
   readEventKind, readEventNodeRow, readEventPortRow, readEventTargetRow, readEventTargetPortRow,
   readEventEdgeRow, readEventSlot, readEventValue, readEventBead,
   readEventBeadSteps, readEventX, readEventY, readEventZ, readEventF,
   readEventLabel, readEventDebug, readEventTextOff, readEventTextLen,
 } from "../../../../Buffer/buffer-layout";
 import { columnF32 } from "../../../../Buffer/column-values";
+import { edgeColumn } from "../../../../Buffer/column-owners";
+import {
+  COL_STREAM_EDGE_SX, COL_STREAM_EDGE_SY, COL_STREAM_EDGE_SZ,
+  COL_STREAM_EDGE_EX, COL_STREAM_EDGE_EY, COL_STREAM_EDGE_EZ,
+} from "../../../../Buffer/column-streams-gen";
 import {
   COL_STREAM_CAMERA_PX, COL_STREAM_CAMERA_PY, COL_STREAM_CAMERA_PZ, COL_STREAM_CAMERA_R,
   COL_STREAM_CAMERA_POS_PHI, COL_STREAM_CAMERA_POS_THETA,
@@ -23,7 +27,7 @@ export type Line = Record<string, unknown>;
 
 const EVENT_TEXT_DECODER = new TextDecoder();
 
-export function decodeEventLine(ev: DataView, eventTextView: DataView, dn: DecodedNodeFrame | null, de: DecodedEdgeFrame | null, i: number): Line | null {
+export function decodeEventLine(ev: DataView, eventTextView: DataView, dn: DecodedNodeFrame | null, i: number): Line | null {
   const kindId = readEventKind(ev, i);
   const kind = TRACE_EVENT_KINDS[kindId];
   if (kind === undefined) return null;
@@ -86,12 +90,16 @@ export function decodeEventLine(ev: DataView, eventTextView: DataView, dn: Decod
       return l;
     }
     case "geometry": {
-      const edge = de ? edgeLabel(de, edgeRow) : "";
 
+      const edge = edgeLabel(edgeRow);
       let sx = 0, sy = 0, sz = 0, ex = 0, ey = 0, ez = 0;
-      if (de && edgeRow >= 0 && edgeRow < de.edgeCount) {
-        sx = readEdgeSX(de.edgeView, edgeRow); sy = readEdgeSY(de.edgeView, edgeRow); sz = readEdgeSZ(de.edgeView, edgeRow);
-        ex = readEdgeEX(de.edgeView, edgeRow); ey = readEdgeEY(de.edgeView, edgeRow); ez = readEdgeEZ(de.edgeView, edgeRow);
+      if (edgeRow >= 0) {
+        sx = columnF32(edgeColumn(edgeRow, COL_STREAM_EDGE_SX));
+        sy = columnF32(edgeColumn(edgeRow, COL_STREAM_EDGE_SY));
+        sz = columnF32(edgeColumn(edgeRow, COL_STREAM_EDGE_SZ));
+        ex = columnF32(edgeColumn(edgeRow, COL_STREAM_EDGE_EX));
+        ey = columnF32(edgeColumn(edgeRow, COL_STREAM_EDGE_EY));
+        ez = columnF32(edgeColumn(edgeRow, COL_STREAM_EDGE_EZ));
       }
       return { kind, edge, sx, sy, sz, ex, ey, ez };
     }

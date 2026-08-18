@@ -5,9 +5,9 @@ package Buffer
 // ColumnsPerNodeStream is how many column channels one node owns.
 const ColumnsPerNodeStream = 142
 
-const ColumnsPerEdgeStream = 12
+const ColumnsPerEdgeStream = 11
 
-const ColumnsInSingletonStreams = 52
+const ColumnsInSingletonStreams = 54
 
 // ColumnStreamCount is every column channel a scene of this size needs.
 func ColumnStreamCount(nodes, edges int) int {
@@ -24,8 +24,8 @@ const ColStreamBaseCamera = 0
 const ColStreamBaseOverlay = 8
 const ColStreamBasePanel = 28
 const ColStreamBaseScene = 39
-const ColStreamBaseNodeRingPoint = 46
-const ColStreamBaseBeadRingPoint = 49
+const ColStreamBaseNodeRingPoint = 48
+const ColStreamBaseBeadRingPoint = 51
 
 const ColStreamNodeNodeId = ColStreamBaseNode + 0
 const ColStreamNodeIndexR = ColStreamBaseNode + 1
@@ -93,8 +93,7 @@ const ColStreamEdgeSrcNodeRow = ColStreamBaseEdge + 6
 const ColStreamEdgeDstNodeRow = ColStreamBaseEdge + 7
 const ColStreamEdgeDeltaR = ColStreamBaseEdge + 8
 const ColStreamEdgeDragActive = ColStreamBaseEdge + 9
-const ColStreamEdgeEdgeLabelOff = ColStreamBaseEdge + 10
-const ColStreamEdgeEdgeLabelLen = ColStreamBaseEdge + 11
+const ColStreamEdgeLabel = ColStreamBaseEdge + 10
 const ColStreamEdgeBeadX = ColStreamBaseEdgeBead + 0
 const ColStreamEdgeBeadY = ColStreamBaseEdgeBead + 1
 const ColStreamEdgeBeadZ = ColStreamBaseEdgeBead + 2
@@ -233,3 +232,5 @@ const ColStreamSceneRadius = ColStreamBaseScene + 3
 const ColStreamSceneConstantR = ColStreamBaseScene + 4
 const ColStreamSceneMaxIndexPhi = ColStreamBaseScene + 5
 const ColStreamSceneMaxIndexTheta = ColStreamBaseScene + 6
+const ColStreamSceneNodeCount = ColStreamBaseScene + 7
+const ColStreamSceneEdgeCount = ColStreamBaseScene + 8

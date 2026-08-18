@@ -32,6 +32,8 @@ type UIState struct {
 
 	singletonCols *colstream.ColumnSet
 
+	OwnerCounts struct{ Nodes, Edges int32 }
+
 	ClockDivisor float64
 
 	VP gesturefsm.ViewpointState

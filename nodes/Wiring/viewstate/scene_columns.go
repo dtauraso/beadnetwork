@@ -25,6 +25,8 @@ func (ui *UIState) writeSceneColumns(sc polar.SceneSphere) {
 	c.SetF32(B.ColStreamSceneConstantR, float32(ui.Constants.ConstantR))
 	c.SetI32(B.ColStreamSceneMaxIndexPhi, int32(ui.Constants.MaxIndexPhi))
 	c.SetI32(B.ColStreamSceneMaxIndexTheta, int32(ui.Constants.MaxIndexTheta))
+	c.SetI32(B.ColStreamSceneNodeCount, ui.OwnerCounts.Nodes)
+	c.SetI32(B.ColStreamSceneEdgeCount, ui.OwnerCounts.Edges)
 }
 
 func writeRingSurfaceColumns(c *colstream.ColumnSet, baseX, baseY, baseZ int, pts []float32) {

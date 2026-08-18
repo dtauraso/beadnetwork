@@ -9,4 +9,7 @@ type bufLayoutScene struct {
 	ConstantR     float32 `buf:"f32"`
 	MaxIndexPhi   int32   `buf:"i32"`
 	MaxIndexTheta int32   `buf:"i32"`
+
+	NodeCount int32 `buf:"i32"`
+	EdgeCount int32 `buf:"i32"`
 }

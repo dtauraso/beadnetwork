@@ -19,6 +19,7 @@ var movedToColumns = map[string]bool{
 	"Camera":        true,
 	"NodeRingPoint": true,
 	"BeadRingPoint": true,
+	"Edge":          true,
 }
 
 func hasRow(name string) bool { return !movedToColumns[name] }

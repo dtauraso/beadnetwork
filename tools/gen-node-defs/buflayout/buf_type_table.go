@@ -49,18 +49,27 @@ var bufTypeTable = map[string]bufTypeInfo{
 	},
 }
 
+func isBytesColumn(t string) bool { return t == "bytes" }
+
 func lookupBufType(t string) bufTypeInfo {
+	if isBytesColumn(t) {
+		fatalf("buf type %q has no row form: a run-valued column exists only as a channel, so the "+
+			"block declaring it must be in movedToColumns", t)
+	}
 	info, ok := bufTypeTable[t]
 	if !ok {
-		fatalf("unknown buf type %q (expected one of: f32, i32, u32, u8 — add it to bufTypeTable)", t)
+		fatalf("unknown buf type %q (expected one of: f32, i32, u32, u8, bytes — add it to bufTypeTable)", t)
 	}
 	return info
 }
 
 func bufTypeSize(t string) (int, error) {
+	if isBytesColumn(t) {
+		return 0, nil
+	}
 	info, ok := bufTypeTable[t]
 	if !ok {
-		return 0, fmt.Errorf("unknown buf type %q (expected f32|i32|u32|u8)", t)
+		return 0, fmt.Errorf("unknown buf type %q (expected f32|i32|u32|u8|bytes)", t)
 	}
 	return info.size, nil
 }

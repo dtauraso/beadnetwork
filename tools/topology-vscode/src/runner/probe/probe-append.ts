@@ -21,26 +21,26 @@ export function appendEdgeProbe(probeFile: string | undefined, row: number, ab: 
   if (!probeFile) return;
   const decoded = decodeEdgeStreamFrame(row, ab);
   if (!decoded || decoded.eventCount === 0) return;
-  appendLines(probeFile, decodeStreamFrameEvents(decoded.eventCount, decoded.eventView, decoded.eventTextView, undefined, undefined, !probeTrace));
+  appendLines(probeFile, decodeStreamFrameEvents(decoded.eventCount, decoded.eventView, decoded.eventTextView, undefined, !probeTrace));
 }
 
 export function appendNodeProbe(probeFile: string | undefined, row: number, ab: ArrayBuffer, probeTrace: boolean): void {
   if (!probeFile) return;
   const decoded = decodeNodeStreamFrame(row, ab);
   if (!decoded || decoded.eventCount === 0) return;
-  appendLines(probeFile, decodeStreamFrameEvents(decoded.eventCount, decoded.eventView, decoded.eventTextView, undefined, undefined, !probeTrace));
+  appendLines(probeFile, decodeStreamFrameEvents(decoded.eventCount, decoded.eventView, decoded.eventTextView, undefined, !probeTrace));
 }
 
 export function appendBeadProbe(probeFile: string | undefined, row: number, ab: ArrayBuffer, probeTrace: boolean): void {
   if (!probeFile) return;
   const decoded = decodeBeadStreamFrame(row, ab);
   if (!decoded || decoded.eventCount === 0) return;
-  appendLines(probeFile, decodeStreamFrameEvents(decoded.eventCount, decoded.eventView, decoded.eventTextView, undefined, undefined, !probeTrace));
+  appendLines(probeFile, decodeStreamFrameEvents(decoded.eventCount, decoded.eventView, decoded.eventTextView, undefined, !probeTrace));
 }
 
 export function appendInteriorProbe(probeFile: string | undefined, row: number, ab: ArrayBuffer, probeTrace: boolean): void {
   if (!probeFile) return;
   const decoded = decodeInteriorStreamFrame(row, ab);
   if (!decoded || decoded.eventCount === 0) return;
-  appendLines(probeFile, decodeStreamFrameEvents(decoded.eventCount, decoded.eventView, decoded.eventTextView, undefined, undefined, !probeTrace));
+  appendLines(probeFile, decodeStreamFrameEvents(decoded.eventCount, decoded.eventView, decoded.eventTextView, undefined, !probeTrace));
 }
