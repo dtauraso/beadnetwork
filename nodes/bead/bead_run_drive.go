@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	T "github.com/dtauraso/wirefold/Trace"
 	"github.com/dtauraso/wirefold/nodes/spatial"
+	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
 )
 
 func (pw *BeadRun) DriveOneStep(ctx context.Context, tick int64) {

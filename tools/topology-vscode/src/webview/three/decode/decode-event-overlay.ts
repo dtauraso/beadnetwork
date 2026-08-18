@@ -9,7 +9,7 @@ import {
   readOverlaySelectionRing,
   readOverlayHoverRing,
   readOverlaySceneVectors,
-} from "../../../schema/buffer-layout/buffer-layout";
+} from "../../../../Buffer/buffer-layout";
 import type { ViewBlocksOrNull } from "./decode-event-line";
 
 export const OVERLAY_KINDS = new Set([

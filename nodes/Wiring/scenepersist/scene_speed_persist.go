@@ -1,17 +1,17 @@
 package scenepersist
 
 import (
-	"github.com/dtauraso/wirefold/Slider"
+	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/Slider"
 	"math"
 
 	"encoding/json"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
-	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
 
-	T "github.com/dtauraso/wirefold/Trace"
+	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
 )
 
 const DefaultPlaybackSpeed = 1.0

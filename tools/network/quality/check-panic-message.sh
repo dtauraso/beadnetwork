@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: nodes/**/*.go,Buffer/*.go,Trace/*.go | a panic must NAME the invariant it broke, not just the symptom
+# PLACEMENT: nodes/**/*.go,tools/topology-vscode/Buffer/*.go,tools/topology-vscode/Trace/*.go | a panic must NAME the invariant it broke, not just the symptom
 
 set -euo pipefail
 

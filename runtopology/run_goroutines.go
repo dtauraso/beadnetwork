@@ -2,16 +2,16 @@ package runtopology
 
 import (
 	"context"
-	"github.com/dtauraso/wirefold/Slider"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/Slider"
 	"os"
 	"sync"
 
 	"github.com/dtauraso/wirefold/nodes/nodeapi"
 
-	T "github.com/dtauraso/wirefold/Trace"
 	W "github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/stdinreader"
+	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
 )
 
 func startStdinReader(ctx context.Context, cancel context.CancelFunc, slotReg inputcodec.SlotRegistry, md *W.MoveDispatch, tr *T.Trace, speedSinks Slider.Sinks) (*sync.WaitGroup, *sync.WaitGroup) {

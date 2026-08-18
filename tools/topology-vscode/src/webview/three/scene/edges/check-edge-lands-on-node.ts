@@ -1,6 +1,6 @@
 import { getNodeFrame } from "../nodes/node-frame-aggregate";
 import { getEdgeStreamAccessor } from "./edge-stream-blocks";
-import { readNodeCX, readNodeCY, readNodeCZ } from "../../../../schema/buffer-layout/buffer-layout";
+import { readNodeCX, readNodeCY, readNodeCZ } from "../../../../../Buffer/buffer-layout";
 import { postLog } from "../../../log/post";
 
 const STEP = 8.96;

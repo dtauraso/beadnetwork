@@ -12,7 +12,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewpersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
 
-	T "github.com/dtauraso/wirefold/Trace"
+	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
 )
 
 type MoveDispatch struct {

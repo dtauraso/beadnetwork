@@ -4,7 +4,7 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	B "github.com/dtauraso/wirefold/Buffer"
+	B "github.com/dtauraso/wirefold/tools/topology-vscode/Buffer"
 )
 
 func BuildEdgeStreamFrame(tick uint32, sx, sy, sz, ex, ey, ez float32, srcNodeRow, dstNodeRow int32, deltaR float32, dragActive uint8, label string, events []StreamEvent) []byte {

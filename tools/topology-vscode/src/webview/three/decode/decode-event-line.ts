@@ -1,4 +1,4 @@
-import { TRACE_EVENT_KINDS, BREADCRUMB_LABELS } from "../../../schema/trace-kinds";
+import { TRACE_EVENT_KINDS, BREADCRUMB_LABELS } from "../../../../Trace/trace-kinds";
 import { nodeLabel, type DecodedNodeFrame } from "./buffer-decode-node";
 import { edgeLabel, type DecodedEdgeFrame } from "./buffer-decode-edge";
 import { INTERIOR_SLOTS_PER_NODE } from "./buffer-decode-interior";
@@ -14,7 +14,7 @@ import {
   readEventBeadSteps, readEventX, readEventY, readEventZ, readEventF,
   readEventLabel, readEventDebug, readEventTextOff, readEventTextLen,
   readSceneCX, readSceneCY, readSceneCZ, readSceneRadius,
-} from "../../../schema/buffer-layout/buffer-layout";
+} from "../../../../Buffer/buffer-layout";
 
 export type Line = Record<string, unknown>;
 

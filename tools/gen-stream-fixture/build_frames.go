@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/hex"
 
-	streamframe "github.com/dtauraso/wirefold/Buffer/streamframe"
+	streamframe "github.com/dtauraso/wirefold/tools/topology-vscode/Buffer/streamframe"
 )
 
 func buildNodeFrame() nodeFrameFixture {

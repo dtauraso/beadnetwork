@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from "react";
 import { getNodeFrame } from "../../scene/nodes/node-frame-aggregate";
 import { subscribeViewBlocks } from "../../scene/view-blocks";
-import { readNodeSelected } from "../../../../schema/buffer-layout/buffer-layout";
+import { readNodeSelected } from "../../../../../Buffer/buffer-layout";
 
 export function readSelectedNodeRow(): number {
   const decoded = getNodeFrame();

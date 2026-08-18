@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: main.go,runtopology/edge_stream.go,runtopology/node_stream.go,Buffer/streamframe/stream_fds.go | every conditionally-wired per-owner StreamKind must have a named stream-fd mismatch report
+# PLACEMENT: main.go,runtopology/edge_stream.go,runtopology/node_stream.go,tools/topology-vscode/Buffer/streamframe/stream_fds.go | every conditionally-wired per-owner StreamKind must have a named stream-fd mismatch report
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 cd "$REPO_ROOT"
 
-KINDS_FILE="Buffer/streamframe/stream_fds.go"
+KINDS_FILE="tools/topology-vscode/Buffer/streamframe/stream_fds.go"
 
 MAIN_FILE="main.go runtopology/edge_stream.go runtopology/node_stream.go"
 

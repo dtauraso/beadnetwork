@@ -3,7 +3,7 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { getNodeFrame } from "../nodes/node-frame-aggregate";
 import { overlayOn } from "../../controls/flags/overlay-flags";
-import { readOverlayRuleChannels, readNodeCX, readNodeCY, readNodeCZ } from "../../../../schema/buffer-layout/buffer-layout";
+import { readOverlayRuleChannels, readNodeCX, readNodeCY, readNodeCZ } from "../../../../../Buffer/buffer-layout";
 import { DIRECTION_ZERO_EPS } from "../buffer-scene-shared";
 
 const CHANNEL_LINE_RADIUS = 0.5;

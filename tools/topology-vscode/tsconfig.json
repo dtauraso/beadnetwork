@@ -14,5 +14,11 @@
     "types": ["node"],
     "jsx": "react-jsx"
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx"]
+  "include": [
+    "src/**/*.ts", "src/**/*.tsx",
+    "Buffer/**/*.ts", "Trace/**/*.ts",
+    "Slider/**/*.ts", "Slider/**/*.tsx",
+    "Tabs/**/*.ts", "Tabs/**/*.tsx",
+    "PolarRules/**/*.ts", "PolarRules/**/*.tsx"
+  ]
 }

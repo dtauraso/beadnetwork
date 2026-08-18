@@ -3,7 +3,6 @@ package scenestructure
 import (
 	"fmt"
 
-	T "github.com/dtauraso/wirefold/Trace"
 	"github.com/dtauraso/wirefold/nodes/Wiring/countspersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/edgefile"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/camera"
@@ -14,6 +13,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/rowtables"
 	"github.com/dtauraso/wirefold/nodes/Wiring/sceneswitch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
+	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
 )
 
 func CreateNode(scenes *sceneswitch.SceneSwitch, ui *viewstate.UIState, mr *moverreg.MoverRegistry, kindID uint8, ndcX, ndcY float64, tr *T.Trace) {

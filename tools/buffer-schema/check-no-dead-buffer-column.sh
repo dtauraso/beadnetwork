@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: Buffer/bufschema/layout*.go,tools/topology-vscode/src/schema/buffer-layout/buffer-layout*.ts | every buffer column needs a non-test production consumer; delete an unused one rather than allowlisting it
+# PLACEMENT: tools/topology-vscode/Buffer/bufschema/layout*.go,tools/topology-vscode/Buffer/buffer-layout*.ts | every buffer column needs a non-test production consumer; delete an unused one rather than allowlisting it
 
 set -euo pipefail
 
@@ -9,11 +9,12 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 cd "$REPO_ROOT"
 
 LAYOUT_FILES=(
-  "tools/topology-vscode/src/schema/buffer-layout/buffer-layout.ts"
-  "tools/topology-vscode/src/schema/buffer-layout/buffer-layout-rows-gen.ts"
-  "tools/topology-vscode/src/schema/buffer-layout/buffer-layout-rows2-gen.ts"
-  "tools/topology-vscode/src/schema/buffer-layout/buffer-layout-singletons-gen.ts"
+  "tools/topology-vscode/Buffer/buffer-layout.ts"
+  "tools/topology-vscode/Buffer/buffer-layout-rows-gen.ts"
+  "tools/topology-vscode/Buffer/buffer-layout-rows2-gen.ts"
+  "tools/topology-vscode/Buffer/buffer-layout-singletons-gen.ts"
 )
+source "$REPO_ROOT/tools/lib/ts-roots.sh"
 SRC="tools/topology-vscode/src"
 
 for LAYOUT in "${LAYOUT_FILES[@]}"; do
@@ -44,7 +45,7 @@ fi
 
 prod_files=()
 while IFS= read -r f; do prod_files+=("$f"); done < <(
-  find "$SRC" -type f \( -name '*.ts' -o -name '*.tsx' \) \
+  find "${TS_ROOTS[@]}" -type f \( -name '*.ts' -o -name '*.tsx' \) \
     -not -path '*/schema/buffer-layout/buffer-layout.ts' \
     -not -path '*/schema/buffer-layout/buffer-layout-rows-gen.ts' \
     -not -path '*/schema/buffer-layout/buffer-layout-rows2-gen.ts' \
@@ -74,7 +75,7 @@ for fn in "${readers[@]}"; do
     continue
   fi
   echo "DEAD BUFFER COLUMN: $fn has no production consumer — the column is packed + decoded but used by nothing."
-  echo "  Fix: consume it, remove the column from Buffer/bufschema/layout.go (regenerate), or (if intentionally staged) add it to ALLOWED_DEAD with a reason."
+  echo "  Fix: consume it, remove the column from tools/topology-vscode/Buffer/bufschema/layout.go (regenerate), or (if intentionally staged) add it to ALLOWED_DEAD with a reason."
   fail=1
 done
 

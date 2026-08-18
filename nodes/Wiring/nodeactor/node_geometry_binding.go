@@ -1,7 +1,7 @@
 package nodeactor
 
 import (
-	"github.com/dtauraso/wirefold/PolarRules"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/PolarRules"
 	"io"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/interior"

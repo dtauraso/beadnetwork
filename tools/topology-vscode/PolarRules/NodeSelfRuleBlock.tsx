@@ -1,14 +1,14 @@
 import { useState } from "react";
-import { postGoRecord } from "../../../vscode-api";
+import { postGoRecord } from "../src/webview/vscode-api";
 import {
   encodeNodeSelfDragPhiToggle,
   encodeNodeSelfDragMaxTheta,
   encodeNodeSelfDragActiveToggle,
   encodeNodeSelfDragRToggle,
-} from "../../../../schema/input/input-encode";
-import { type NodeRuleRow } from "../flags/node-rules";
+} from "../src/schema/input/input-encode";
+import { type NodeRuleRow } from "./node-rules";
 import { ComponentLine } from "./NodeRuleBlocks";
-import { formatPi, formatPiDraft, parsePiDraft } from "./pi-fraction";
+import { formatPi, formatPiDraft, parsePiDraft } from "../src/webview/three/controls/panels/pi-fraction";
 
 export function SelfThetaLine({ rule }: { rule: NodeRuleRow }) {
   const [draft, setDraft] = useState<string | null>(null);

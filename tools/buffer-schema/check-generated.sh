@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: Buffer/bufschema/layout*.go,nodes/Wiring/inputcodec/input_fingerprint.go,nodes/*/SPEC.md | changing a generator source means running `go run ./tools/gen-node-defs` in the SAME commit
+# PLACEMENT: tools/topology-vscode/Buffer/bufschema/layout*.go,nodes/Wiring/inputcodec/input_fingerprint.go,nodes/*/SPEC.md | changing a generator source means running `go run ./tools/gen-node-defs` in the SAME commit
 set -euo pipefail
 
 REPO_ROOT="$(git rev-parse --show-toplevel)" || {

@@ -1,9 +1,9 @@
 import React, { useCallback } from "react";
-import { postGoRecord } from "../../../../vscode-api";
-import { encodeSceneSelected } from "../../../../../schema/input/input-encode";
-import { postLog } from "../../../../log/post";
-import { useSceneTabs } from "./scene-tabs";
-import * as T from "../../chrome-theme";
+import { postGoRecord } from "../src/webview/vscode-api";
+import { encodeSceneSelected } from "../src/schema/input/input-encode";
+import { postLog } from "../src/webview/log/post";
+import { useTabs } from "./tab-state";
+import * as T from "../src/webview/three/controls/chrome-theme";
 
 const stripStyle: React.CSSProperties = {
 
@@ -39,8 +39,8 @@ function tabStyle(active: boolean): React.CSSProperties {
   };
 }
 
-export function SceneTabs() {
-  const { names, selected } = useSceneTabs();
+export function Tabs() {
+  const { names, selected } = useTabs();
   const onPick = useCallback((index: number) => {
     postLog("scene-tab-click", { index });
     postGoRecord(encodeSceneSelected(index));

@@ -8,6 +8,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 cd "$REPO_ROOT"
 
+source "$REPO_ROOT/tools/lib/ts-roots.sh"
 SRC="tools/topology-vscode/src"
 CSS_DIR="$SRC/webview"
 
@@ -35,8 +36,8 @@ is_undecidable() {
 
 class_is_rendered() {
   local c="$1"
-  grep -rqE "(className|class)=[^>]*\b${c}\b" --include="*.ts" --include="*.tsx" "$SRC" 2>/dev/null && return 0
-  grep -rqE "[\"'\`][^\"'\`]*\b${c}\b[^\"'\`]*[\"'\`]" --include="*.ts" --include="*.tsx" "$SRC" 2>/dev/null && return 0
+  grep -rqE "(className|class)=[^>]*\b${c}\b" --include="*.ts" --include="*.tsx" "${TS_ROOTS[@]}" 2>/dev/null && return 0
+  grep -rqE "[\"'\`][^\"'\`]*\b${c}\b[^\"'\`]*[\"'\`]" --include="*.ts" --include="*.tsx" "${TS_ROOTS[@]}" 2>/dev/null && return 0
   return 1
 }
 

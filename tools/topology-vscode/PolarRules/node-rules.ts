@@ -1,8 +1,8 @@
 import { useSyncExternalStore } from "react";
-import { getNodeFrame, subscribeNodeStreamBlocks } from "../../scene/nodes/node-frame-aggregate";
-import { getEdgeStreamAccessor } from "../../scene/edges/edge-stream-blocks";
-import { NODE_KIND_NAMES } from "../../../../schema/node-defs";
-import { UNKNOWN_KIND_ID } from "../../../../schema/buffer-layout/buffer-layout";
+import { getNodeFrame, subscribeNodeStreamBlocks } from "../src/webview/three/scene/nodes/node-frame-aggregate";
+import { getEdgeStreamAccessor } from "../src/webview/three/scene/edges/edge-stream-blocks";
+import { NODE_KIND_NAMES } from "../src/schema/node-defs";
+import { UNKNOWN_KIND_ID } from "../Buffer/buffer-layout";
 import {
   readNodeKindId,
   readNodeDragRLocked,
@@ -17,8 +17,8 @@ import {
   readNodeKindRuleActive,
   readNodeRuleGroupId,
   readNodeRuleGroupSize,
-} from "../../../../schema/buffer-layout/buffer-layout";
-import { nodeLabel } from "../../decode/buffer-decode-node";
+} from "../Buffer/buffer-layout";
+import { nodeLabel } from "../src/webview/three/decode/buffer-decode-node";
 import { ruleRowsEqual } from "./node-rules-equal";
 
 export interface RuleHolder {

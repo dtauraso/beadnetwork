@@ -3,9 +3,9 @@ package nodeactor
 import (
 	"context"
 
-	T "github.com/dtauraso/wirefold/Trace"
 	"github.com/dtauraso/wirefold/nodes/clock"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
+	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
 )
 
 type PairNodeSelf struct {

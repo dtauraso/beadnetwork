@@ -1,8 +1,8 @@
 package bead
 
 import (
-	T "github.com/dtauraso/wirefold/Trace"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
+	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
 )
 
 type SendOutcome uint8

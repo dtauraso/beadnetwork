@@ -3,9 +3,9 @@ package inport
 import (
 	"context"
 
-	T "github.com/dtauraso/wirefold/Trace"
 	"github.com/dtauraso/wirefold/nodes/bead"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
+	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
 )
 
 type In struct {

@@ -15,7 +15,7 @@ when a bead has arrived. Go owns the clock.
   parameters, camera pose, selection, and overlay visibility. There is no
   single combined buffer or central packer: each emitting goroutine packs
   and streams its OWN binary content buffer to its OWN dedicated inherited
-  stdio pipe (`Buffer/streamframe/stream_fds.go`, memory/feedback/architecture/bridge/feedback_no_single_writer_bridge.md)
+  stdio pipe (`tools/topology-vscode/Buffer/streamframe/stream_fds.go`, memory/feedback/architecture/bridge/feedback_no_single_writer_bridge.md)
   — one VIEW stream (camera/overlay/scene, the gesture/stdin-reader
   goroutine), one stream per edge row (that edge's geometry, written by
   the SOURCE node's own goroutine — a node draws its own out-edges), one
@@ -41,7 +41,7 @@ when a bead has arrived. Go owns the clock.
   bytes, and its identity is the buffer ROW INDEX (Go resolves row → node
   for hits). The ext host relays each dedicated-fd frame to the webview
   under a synthetic tag (`BUF_BLOCK_TAG_VIEW`/`_EDGE_STREAM`/`_NODE_STREAM`/
-  `_INTERIOR_STREAM`, `Buffer/frame_tags.go`) purely for cell routing —
+  `_INTERIOR_STREAM`, `tools/topology-vscode/Buffer/frame_tags.go`) purely for cell routing —
   never a wire byte. The webview decodes each stream (`buffer-decode-view.ts`/
   `buffer-decode-edge.ts`/`buffer-decode-node.ts`/`buffer-decode-interior.ts`)
   and renders it; row-keyed reflect resources (`snapshot-buffer.ts`,

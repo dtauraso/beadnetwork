@@ -13,7 +13,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/selectionstate"
 	"github.com/dtauraso/wirefold/nodes/spatial"
 
-	T "github.com/dtauraso/wirefold/Trace"
+	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
 )
 
 type UIState struct {

@@ -26,11 +26,11 @@ func writeOverlayPreamble(w *bufio.Writer, source string, needsFmt bool) {
 		fmt.Fprintln(w, `import (`)
 		fmt.Fprintln(w, "\t\"fmt\"")
 		fmt.Fprintln(w)
-		fmt.Fprintln(w, "\tT \"github.com/dtauraso/wirefold/Trace\"")
+		fmt.Fprintln(w, "\tT \"github.com/dtauraso/wirefold/tools/topology-vscode/Trace\"")
 		fmt.Fprintln(w, `)`)
 	} else {
 		fmt.Fprintln(w, `import (`)
-		fmt.Fprintln(w, "\tT \"github.com/dtauraso/wirefold/Trace\"")
+		fmt.Fprintln(w, "\tT \"github.com/dtauraso/wirefold/tools/topology-vscode/Trace\"")
 		fmt.Fprintln(w, `)`)
 	}
 	fmt.Fprintln(w)

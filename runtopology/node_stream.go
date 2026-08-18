@@ -6,10 +6,10 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/rowevent"
 
-	B "github.com/dtauraso/wirefold/Buffer"
-	SF "github.com/dtauraso/wirefold/Buffer/streamframe"
 	W "github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/nodeframe"
+	B "github.com/dtauraso/wirefold/tools/topology-vscode/Buffer"
+	SF "github.com/dtauraso/wirefold/tools/topology-vscode/Buffer/streamframe"
 )
 
 func wireNodeStreams(streamFDs SF.StreamFDs, md *W.MoveDispatch) {

@@ -130,7 +130,7 @@ See [docs/model/scenes.md](docs/model/scenes.md) for what a scene is, how a tab 
 works, and the per-scene fork of node behaviour it documents (coplanar rings), plus the
 ring-axis vs. navigation-pole distinction. `scene.Scene`'s other per-scene fields
 (`UpAxis`, `ClockDivisor`, `DistanceGroups`, `Editable`, `Kinds`) are not written up
-anywhere — read `nodes/Wiring/scene/scene_tabs.go`.
+anywhere — read `nodes/Wiring/scene/scene.go`.
 
 ## Drift rule
 
@@ -209,7 +209,7 @@ for one to fix.
 
 ## Assertions
 
-A `panic` in `nodes/`, `Buffer/`, or `Trace/` is an **assertion**, not error handling. It
+A `panic` in `nodes/`, `tools/topology-vscode/Buffer/`, or `tools/topology-vscode/Trace/` is an **assertion**, not error handling. It
 fires only via a code bug — never via ordinary traffic, malformed input, or load. Input the
 network cannot trust is rejected at parse (`validateNoFanIn`, `ValidateSpec`); by the time a
 value reaches a goroutine's own state, a violated bound means the code is wrong.

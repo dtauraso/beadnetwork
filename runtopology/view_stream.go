@@ -5,11 +5,11 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/rowevent"
 
-	B "github.com/dtauraso/wirefold/Buffer"
-	SF "github.com/dtauraso/wirefold/Buffer/streamframe"
 	W "github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/framegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
+	B "github.com/dtauraso/wirefold/tools/topology-vscode/Buffer"
+	SF "github.com/dtauraso/wirefold/tools/topology-vscode/Buffer/streamframe"
 )
 
 func wireViewStream(md *W.MoveDispatch, viewFile *os.File, viewStreamWired bool, sceneTabNames []string, sceneTabSelected int) {

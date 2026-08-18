@@ -2,14 +2,14 @@ package stdinreader
 
 import (
 	"context"
-	"github.com/dtauraso/wirefold/Slider"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/Slider"
 
 	"github.com/dtauraso/wirefold/nodes/rowevent"
 
-	T "github.com/dtauraso/wirefold/Trace"
 	"github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
+	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
 )
 
 func HandleRawInputMsg(ctx context.Context, msg inputcodec.StdinMsg, slotReg inputcodec.SlotRegistry, md *dispatch.MoveDispatch, tr *T.Trace) {

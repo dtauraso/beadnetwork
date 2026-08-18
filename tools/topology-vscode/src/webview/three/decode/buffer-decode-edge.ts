@@ -1,5 +1,5 @@
-import { EDGE_STRIDE, readEdgeEdgeLabelOff, readEdgeEdgeLabelLen } from "../../../schema/buffer-layout/buffer-layout";
-import { BUF_EDGE_STREAM_FRAME_HEADER_SIZE } from "../../../schema/buffer-layout/frame-tags";
+import { EDGE_STRIDE, readEdgeEdgeLabelOff, readEdgeEdgeLabelLen } from "../../../../Buffer/buffer-layout";
+import { BUF_EDGE_STREAM_FRAME_HEADER_SIZE } from "../../../../Buffer/frame-tags";
 import { STR_DECODER, decodeTrailingEvents } from "./buffer-decode-shared";
 
 export interface DecodedEdgeFrame {

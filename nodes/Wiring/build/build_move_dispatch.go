@@ -3,13 +3,13 @@ package build
 import (
 	"context"
 	"fmt"
+	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/nodefiles"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodedrag"
 	"github.com/dtauraso/wirefold/nodes/Wiring/polarindex"
-	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
 )
 

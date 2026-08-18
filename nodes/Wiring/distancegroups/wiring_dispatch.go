@@ -2,10 +2,10 @@ package distancegroups
 
 import (
 	"context"
+	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/moverreg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodemove"
-	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
 	"github.com/dtauraso/wirefold/nodes/spatial"
 )

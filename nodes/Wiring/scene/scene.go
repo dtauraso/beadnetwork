@@ -3,7 +3,7 @@ package scene
 import (
 	"path/filepath"
 
-	B "github.com/dtauraso/wirefold/Buffer"
+	B "github.com/dtauraso/wirefold/tools/topology-vscode/Buffer"
 )
 
 type Scene struct {
@@ -24,7 +24,7 @@ type Scene struct {
 	Kinds []string
 }
 
-var Scenes = []Scene{
+var All = []Scene{
 
 	{Name: "ring", Dir: "topology", CoplanarEdges: false, UpAxis: false, ClockDivisor: 1, DistanceGroups: true, Editable: true,
 		Kinds: []string{
@@ -41,7 +41,7 @@ var Unlisted = Scene{ClockDivisor: 1}
 
 func Declared(path string) (Scene, bool) {
 	base := filepath.Base(filepath.Clean(path))
-	for _, s := range Scenes {
+	for _, s := range All {
 		if s.Dir == base {
 			return s, true
 		}

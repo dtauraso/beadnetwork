@@ -3,10 +3,10 @@ package outport
 import (
 	"context"
 
-	T "github.com/dtauraso/wirefold/Trace"
 	"github.com/dtauraso/wirefold/nodes/bead"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
 	"github.com/dtauraso/wirefold/nodes/spatial"
+	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
 )
 
 type outGeom struct {

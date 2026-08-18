@@ -6,14 +6,14 @@ import { createRoot } from "react-dom/client";
 import "./webview-toolbar.css";
 import "./webview-node-rules.css";
 import { ThreeView } from "./three/scene/ThreeView";
-import { SpeedSlider } from "./three/controls/panels/speed/SpeedSlider";
+import { SpeedSlider } from "../../Slider/SpeedSlider";
 import { TiltVectorButtons } from "./three/controls/panels/tilt/TiltVectorButtons";
-import { NodeRulesPanel } from "./three/controls/panels/NodeRulesPanel";
+import { NodeRulesPanel } from "../../PolarRules/NodeRulesPanel";
 import { parseHostToWebview } from "../messages";
 import { ErrorBoundary } from "./log/ErrorBoundary";
 import { CrashListeners } from "./log/CrashListeners";
 import { setLatestViewFrame, setLatestEdgeStreamFrame, setLatestNodeStreamFrame, setLatestInteriorStreamFrame, setLatestBeadStreamFrame } from "./snapshot-buffer";
-import { BUF_BLOCK_TAG_VIEW, BUF_BLOCK_TAG_EDGE_STREAM, BUF_BLOCK_TAG_NODE_STREAM, BUF_BLOCK_TAG_INTERIOR_STREAM, BUF_BLOCK_TAG_BEAD_STREAM } from "../schema/buffer-layout/frame-tags";
+import { BUF_BLOCK_TAG_VIEW, BUF_BLOCK_TAG_EDGE_STREAM, BUF_BLOCK_TAG_NODE_STREAM, BUF_BLOCK_TAG_INTERIOR_STREAM, BUF_BLOCK_TAG_BEAD_STREAM } from "../../Buffer/frame-tags";
 
 function Root() {
   return (

@@ -3,9 +3,9 @@ package dispatch
 import (
 	"context"
 
-	T "github.com/dtauraso/wirefold/Trace"
 	"github.com/dtauraso/wirefold/nodes/Wiring/gesture"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
+	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
 )
 
 func (md *MoveDispatch) HandleRawInput(ctx context.Context, ev inputcodec.RawInputMsg, slotReg inputcodec.SlotRegistry, tr *T.Trace) {

@@ -11,7 +11,7 @@ cd "$REPO_ROOT"
 report="$(python3 - <<'PY'
 import os, re
 
-roots = ["nodes", "Buffer", "Trace"]
+roots = ["nodes", "tools/topology-vscode/Buffer", "tools/topology-vscode/Trace"]
 mutex_pat  = re.compile(r'sync\.(Mutex|RWMutex)\b')
 atomic_pat = re.compile(r'\batomic\.')
 

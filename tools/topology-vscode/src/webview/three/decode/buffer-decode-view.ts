@@ -5,14 +5,14 @@ import {
   SCENE_STRIDE,
   RING_POINT_STRIDE,
   BUF_LAYOUT_FINGERPRINT_HASH,
-} from "../../../schema/buffer-layout/buffer-layout";
-import { BUF_VIEW_FRAME_HEADER_SIZE } from "../../../schema/buffer-layout/frame-tags";
+} from "../../../../Buffer/buffer-layout";
+import { BUF_VIEW_FRAME_HEADER_SIZE } from "../../../../Buffer/frame-tags";
 import {
   SHADING_PARAM_NODE_RING_SURFACE_NU,
   SHADING_PARAM_NODE_RING_SURFACE_NV,
   SHADING_PARAM_BEAD_RING_SURFACE_NU,
   SHADING_PARAM_BEAD_RING_SURFACE_NV,
-} from "../../../schema/buffer-layout/shading-params";
+} from "../../../../Buffer/shading-params";
 import { STR_DECODER, decodeTrailingEvents } from "./buffer-decode-shared";
 
 const RING_SURFACE_POINT_COUNT = SHADING_PARAM_NODE_RING_SURFACE_NU * SHADING_PARAM_NODE_RING_SURFACE_NV;

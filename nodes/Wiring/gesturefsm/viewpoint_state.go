@@ -1,9 +1,9 @@
 package gesturefsm
 
 import (
-	T "github.com/dtauraso/wirefold/Trace"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/camera"
 	"github.com/dtauraso/wirefold/nodes/spatial"
+	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
 )
 
 type ViewpointState struct {

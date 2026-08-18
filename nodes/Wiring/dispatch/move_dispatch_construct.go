@@ -1,13 +1,13 @@
 package dispatch
 
 import (
-	"github.com/dtauraso/wirefold/Slider"
-	T "github.com/dtauraso/wirefold/Trace"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/moverreg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/polarindex"
 	"github.com/dtauraso/wirefold/nodes/clock"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/Slider"
+	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
 )
 
 func NewMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[string]inputcodec.EdgeEndpoints, tr *T.Trace, nodeOrder, edgeOrder []string, clk clock.Clock, speedSinks *Slider.Sinks, rowCount int, constants polarindex.SceneConstants) (*MoveDispatch, error) {

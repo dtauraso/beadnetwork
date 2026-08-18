@@ -3,7 +3,7 @@ package rulenode
 import (
 	"context"
 	"fmt"
-	"github.com/dtauraso/wirefold/PolarRules"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/PolarRules"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/owners"
 )

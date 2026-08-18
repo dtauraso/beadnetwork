@@ -1,13 +1,13 @@
 package runtopology
 
 import (
-	"github.com/dtauraso/wirefold/Slider"
-	T "github.com/dtauraso/wirefold/Trace"
 	W "github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/distancegroups"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenecamera"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewpersist"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/Slider"
+	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
 )
 
 func loadSceneState(scenePath string, md *W.MoveDispatch, tr *T.Trace, speedSinks Slider.Sinks) {

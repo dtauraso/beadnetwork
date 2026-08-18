@@ -1,7 +1,7 @@
 package owners
 
 import (
-	"github.com/dtauraso/wirefold/PolarRules"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/PolarRules"
 )
 
 type Topology struct {

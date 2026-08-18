@@ -3,7 +3,7 @@ package loadspec
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/dtauraso/wirefold/PolarRules"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/PolarRules"
 	"os"
 	"path/filepath"
 	"sort"

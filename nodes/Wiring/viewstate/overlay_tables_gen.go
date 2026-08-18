@@ -5,7 +5,7 @@
 package viewstate
 
 import (
-	T "github.com/dtauraso/wirefold/Trace"
+	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
 )
 
 // DefaultOverlayState is the startup overlay snapshot used by Wiring's newMoveDispatch.
