@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import * as THREE from "three";
-import { sendRawInput, buildDeleteRaw } from "../interaction/raw-input";
+import { sendRawInput, buildDeleteRaw, buildKeyRaw } from "../interaction/raw-input";
+import { rulesDraftOpen } from "../../../../PolarRulesPanel/draw-rules-panel";
 import { useInteractionControls } from "../interaction/interaction-controls";
 import type { PickFn } from "../interaction/pick-types";
 import { Scene } from "./scene-content";
@@ -33,9 +34,14 @@ export function ThreeView() {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key !== "Delete" && e.key !== "Backspace") return;
       const t = e.target as HTMLElement | null;
       if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
+      if (rulesDraftOpen()) {
+        e.preventDefault();
+        sendRawInput(buildKeyRaw(e.key));
+        return;
+      }
+      if (e.key !== "Delete" && e.key !== "Backspace") return;
       sendRawInput(buildDeleteRaw());
     };
     window.addEventListener("keydown", onKey);

@@ -30,6 +30,7 @@ var movedToColumns = map[string]bool{
 	"OverlaysPill":  true,
 	"FitChip":       true,
 	"TabStrip":      true,
+	"RulesPanel":    true,
 	"TiltArrow":     true,
 	"ChannelVector": true,
 }

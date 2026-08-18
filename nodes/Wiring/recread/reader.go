@@ -35,6 +35,20 @@ func (r *Reader) I32() (int32, error) {
 	return v, nil
 }
 
+func (r *Reader) Str() (string, error) {
+	if r.pos+4 > len(r.b) {
+		return "", ErrShort
+	}
+	n := int(binary.LittleEndian.Uint32(r.b[r.pos:]))
+	r.pos += 4
+	if n < 0 || r.pos+n > len(r.b) {
+		return "", ErrShort
+	}
+	s := string(r.b[r.pos : r.pos+n])
+	r.pos += n
+	return s, nil
+}
+
 func (r *Reader) F32() (float32, error) {
 	if r.pos+4 > len(r.b) {
 		return 0, ErrShort

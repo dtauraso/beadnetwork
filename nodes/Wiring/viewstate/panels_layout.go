@@ -5,10 +5,12 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodesdropdown"
 	"github.com/dtauraso/wirefold/nodes/Wiring/overlayspanel"
 	"github.com/dtauraso/wirefold/nodes/Wiring/panelstack"
+	"github.com/dtauraso/wirefold/nodes/Wiring/rulespanel"
 	"github.com/dtauraso/wirefold/nodes/Wiring/speedpanel"
 	"github.com/dtauraso/wirefold/nodes/Wiring/tabstrip"
 	"github.com/dtauraso/wirefold/nodes/Wiring/tiltpanel"
 	B "github.com/dtauraso/wirefold/tools/topology-vscode/Buffer"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/OverlaysDropdown"
 )
 
 type PanelLayout struct {
@@ -21,6 +23,8 @@ type PanelLayout struct {
 	Fit panelstack.Rect
 
 	Tabs tabstrip.Layout
+
+	Rules rulespanel.Layout
 }
 
 const FitLabel = "⌂ fit"
@@ -43,8 +47,12 @@ func (ui *UIState) PanelLayout() PanelLayout {
 	fit := pills.AddChip(FitLabel)
 
 	return PanelLayout{
-		Fit:      fit,
-		Tabs:     tabstrip.Build(float32(ui.ViewW), ui.SceneTabNames, ui.SceneTabSelected),
+		Fit:  fit,
+		Tabs: tabstrip.Build(float32(ui.ViewW), ui.SceneTabNames, ui.SceneTabSelected),
+		Rules: rulespanel.Build(
+			OverlaysDropdown.PanelOpen["nodeRules"](&ui.PN),
+			ui.RuleNodes, ui.RuleEdit, ui.RuleSharedRow,
+		),
 		Speed:    speedpanel.Build(st),
 		Tilt:     tiltpanel.Build(st, ui.TiltRows, ui.TiltLabels),
 		Angle:    angledropdown.Build(pills, ui.AngleOpen, ui.LatticePoints, nodes),

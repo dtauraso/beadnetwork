@@ -8,14 +8,10 @@ export function buildWebviewHtml(
   extensionPath: string,
 ): string {
   const scriptPath = path.join(extensionPath, "out", "webview.js");
-  const stylePath = path.join(extensionPath, "out", "webview.css");
 
   const scriptUri = webview
     .asWebviewUri(vscode.Uri.file(scriptPath))
     .with({ query: `v=${mtimeMs(scriptPath)}` });
-  const styleUri = webview
-    .asWebviewUri(vscode.Uri.file(stylePath))
-    .with({ query: `v=${mtimeMs(stylePath)}` });
   const nonce = randomNonce();
 
   const csp = [
@@ -32,20 +28,17 @@ export function buildWebviewHtml(
   <meta charset="UTF-8" />
   <meta http-equiv="Content-Security-Policy" content="${csp}" />
   <title>Topology Editor</title>
-  <link rel="stylesheet" href="${styleUri.toString()}" />
+  <!-- All that is left of the stylesheet: the page itself. Every panel is drawn in the
+       canvas, so there is nothing else with a class to style. -->
+  <style>
+    html, body { margin: 0; padding: 0; height: 100%; background: #fafafa; }
+    #app { width: 100vw; height: 100vh; }
+  </style>
 </head>
 <body>
-  <!-- What is left of the top-left column. The speed and tilt panels are drawn in the canvas
-       now, by Go's own stack, and their two toolbar boxes went with them; the rules panel is
-       the last one still in the DOM and starts below them, at the offset the canvas stack
-       reports. -->
-  <div class="top-stack">
-    <div id="node-rules-mount"></div>
-  </div>
-  <div class="drag-log-row">
-    <div id="abc-drag-mount"></div>
-    <div id="delta-forward-mount"></div>
-  </div>
+  <!-- Every panel is drawn in the canvas now, by Go's own stacks, so the canvas is all that
+       is mounted. The two drag-log slots went with the rest: nothing had rendered into them
+       since before this change. -->
   <div id="app"></div>
   <script nonce="${nonce}" src="${scriptUri.toString()}"></script>
 </body>

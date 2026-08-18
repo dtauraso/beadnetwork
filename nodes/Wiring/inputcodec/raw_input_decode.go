@@ -54,6 +54,11 @@ func decodeRawInput(r *recread.Reader) (RawInputMsg, bool) {
 	ev.Hit.NodeRow = i()
 	ev.Hit.PortRow = i()
 	ev.Hit.EdgeRow = i()
+	if key, err := r.Str(); err == nil {
+		ev.Key = key
+	} else if e == nil {
+		e = err
+	}
 	if e != nil || ev.Kind == "" || ev.Hit.Kind == "" {
 		return ev, false
 	}

@@ -3,10 +3,7 @@ import { postLog } from "./log/post";
 postLog("lifecycle", { phase: "bundle-eval" });
 
 import { createRoot } from "react-dom/client";
-import "./webview-toolbar.css";
-import "./webview-node-rules.css";
 import { ThreeView } from "./three/scene/ThreeView";
-import { NodeRulesPanel } from "../../PolarRulesPanel/NodeRulesPanel";
 import { parseHostToWebview } from "../messages";
 import { ErrorBoundary } from "./log/ErrorBoundary";
 import { CrashListeners } from "./log/CrashListeners";
@@ -20,12 +17,7 @@ import {
 } from "../../Buffer/column-streams-gen";
 
 function Root() {
-  return (
-    <>
-      <ThreeView />
-      <NodeRulesPanel />
-    </>
-  );
+  return <ThreeView />;
 }
 
 postLog("lifecycle", { phase: "before-render" });

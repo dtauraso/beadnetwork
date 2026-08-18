@@ -29,4 +29,5 @@ var _ = [...]any{
 	bufLayoutOverlaysPill{},
 	bufLayoutFitChip{},
 	bufLayoutTabStrip{},
+	bufLayoutRulesPanel{},
 }

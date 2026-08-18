@@ -107,6 +107,7 @@ export function encodeRawInput(ev: RawInputEvent): ArrayBuffer {
   w.i32(ev.hit.nodeRow);
   w.i32(ev.hit.portRow);
   w.i32(ev.hit.edgeRow);
+  w.str(ev.key ?? "");
   return w.toArrayBuffer();
 }
 

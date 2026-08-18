@@ -51,7 +51,6 @@ type EditMsg =
   | { type: "edit"; op: "update"; kind: "panels"; attr: "toggle"; flag: PanelFlag }
   | { type: "edit"; op: "update"; kind: "clock"; attr: "speed"; value: number }
 
-
   | { type: "edit"; op: "update"; kind: "tiltVector"; attr: "phi"; row: number; dir: "up" | "down" }
 
   | { type: "edit"; op: "update"; kind: "tiltVector"; attr: "reset"; row: number }
@@ -79,7 +78,7 @@ type EditMsg =
 
 // RAW_INPUT_START
 
-export type RawPointerKind = "pointerdown" | "pointermove" | "pointerup" | "wheel" | "home" | "delete";
+export type RawPointerKind = "pointerdown" | "pointermove" | "pointerup" | "wheel" | "home" | "delete" | "key";
 
 export type RawHit = {
   kind: "port" | "handhold" | "node" | "edge" | "torus" | "empty";
@@ -108,6 +107,7 @@ export type RawInputEvent = {
   deltaY: number; 
   fov: number; 
   hit: RawHit;
+  key?: string;
 };
 // RAW_INPUT_END
 

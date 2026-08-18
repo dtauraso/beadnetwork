@@ -20,6 +20,10 @@ func HandleRawInputMsg(ctx context.Context, msg inputcodec.StdinMsg, slotReg inp
 		md.UI.ViewW = msg.Event.RectWidth
 		md.UI.ViewH = msg.Event.RectHeight
 	}
+	if msg.Event.Kind == "key" {
+		applyRuleKey(ctx, md, msg.Event.Key)
+		return
+	}
 	if msg.Event.Kind == "delete" {
 		if md.UI.SceneEditable && md.UI.Sel.Selected != "" {
 			if row, ok := md.UI.NodeRowFor(md.UI.Sel.Selected); ok {

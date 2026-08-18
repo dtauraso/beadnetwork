@@ -42,6 +42,8 @@ type RawInputMsg struct {
 	DeltaY     float64
 	Fov        float64
 	Hit        RawHit
+
+	Key string
 }
 
 type RawHit struct {

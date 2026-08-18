@@ -90,6 +90,8 @@ func (b *buildCtx) buildMoveDispatch() error {
 		}
 	}
 
+	buildRulePanelNodes(md, b.spec)
+
 	targetByLabel := make(map[string]string, len(b.spec.Edges))
 	sourceByLabel := make(map[string]string, len(b.spec.Edges))
 	for _, e := range b.spec.Edges {

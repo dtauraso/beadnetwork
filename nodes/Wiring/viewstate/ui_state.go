@@ -12,6 +12,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/polarindex"
+	"github.com/dtauraso/wirefold/nodes/Wiring/rulespanel"
 	"github.com/dtauraso/wirefold/nodes/Wiring/selectionstate"
 	"github.com/dtauraso/wirefold/nodes/spatial"
 	"github.com/dtauraso/wirefold/tools/topology-vscode/Buffer/colstream"
@@ -69,6 +70,10 @@ type UIState struct {
 
 	SceneTabNames    []string
 	SceneTabSelected int
+
+	RuleNodes     []rulespanel.Node
+	RuleEdit      rulespanel.Edit
+	RuleSharedRow int32
 
 	PlacingKind    uint8
 	PlacingPending bool

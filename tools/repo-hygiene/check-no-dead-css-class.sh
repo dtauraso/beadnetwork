@@ -22,8 +22,14 @@ CSS_FILES=("$CSS_DIR"/*.css)
 shopt -u nullglob
 
 if [[ ${#CSS_FILES[@]} -eq 0 ]]; then
-  echo "check-no-dead-css-class: MISCONFIGURED — no stylesheets under $CSS_DIR; refusing vacuous pass" >&2
-  exit 1
+  STYLED=$(grep -rlE "(className|class)=" --include="*.ts" --include="*.tsx" "${TS_ROOTS[@]}" 2>/dev/null || true)
+  if [[ -n "$STYLED" ]]; then
+    echo "STYLED WITH NO STYLESHEET: no CSS under $CSS_DIR, but these still carry class attributes," >&2
+    echo "so their styles come from somewhere this guard cannot read:" >&2
+    echo "$STYLED" | sed 's/^/  /' >&2
+    exit 1
+  fi
+  exit 0
 fi
 
 readonly UNDECIDABLE=(clean toolbar app)

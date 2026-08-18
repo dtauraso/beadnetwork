@@ -11,6 +11,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodesdropdown"
 	"github.com/dtauraso/wirefold/nodes/Wiring/overlayspanel"
 	"github.com/dtauraso/wirefold/nodes/Wiring/panelstack"
+	"github.com/dtauraso/wirefold/nodes/Wiring/rulespanel"
 	"github.com/dtauraso/wirefold/nodes/Wiring/sceneswitch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/speedpanel"
 	"github.com/dtauraso/wirefold/nodes/Wiring/tiltpanel"
@@ -28,6 +29,11 @@ func panelTookPointerDown(
 	speedSinks SliderPanel.Sinks,
 ) bool {
 	pl := md.UI.PanelLayout()
+
+	if h := pl.Rules.Hit(ev.X, ev.Y); h.Kind != rulespanel.HitNone {
+		applyRulesHit(ctx, md, h)
+		return true
+	}
 
 	if panelstack.HitRect(pl.Fit, ev.X, ev.Y) {
 		home := ev

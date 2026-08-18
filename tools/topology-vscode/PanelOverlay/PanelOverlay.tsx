@@ -8,6 +8,7 @@ import { drawNodesPill, nodesPillKey } from "../NodesDropdown/draw-nodes-pill";
 import { drawOverlaysPill, overlaysPillKey } from "../OverlaysDropdown/draw-overlays-pill";
 import { drawFitChip, fitChipKey } from "../FitButton/draw-fit-chip";
 import { drawTabStrip, tabStripKey } from "../Tabs/draw-tab-strip";
+import { drawRulesPanel, rulesPanelKey } from "../PolarRulesPanel/draw-rules-panel";
 import { postGoRecord } from "../src/webview/vscode-api";
 import { encodeSceneViewport } from "../src/schema/input/input-encode-scene-tilt";
 import { columnF32 } from "../Buffer/column-values";
@@ -66,7 +67,7 @@ export function PanelOverlay() {
       postGoRecord(encodeSceneViewport(size.width, size.height));
     }
 
-    const key = `${size.width}x${size.height}@${dpr}|${speedPanelKey()}|${tiltPanelKey()}|${anglePillKey()}|${nodesPillKey()}|${overlaysPillKey()}|${fitChipKey()}|${tabStripKey()}`;
+    const key = `${size.width}x${size.height}@${dpr}|${speedPanelKey()}|${tiltPanelKey()}|${anglePillKey()}|${nodesPillKey()}|${overlaysPillKey()}|${fitChipKey()}|${tabStripKey()}|${rulesPanelKey()}`;
     if (key !== lastKey.current) {
       lastKey.current = key;
       canvas.width = Math.max(1, Math.round(size.width * dpr));
@@ -82,6 +83,7 @@ export function PanelOverlay() {
         drawOverlaysPill(c);
         drawFitChip(c);
         drawTabStrip(c);
+        drawRulesPanel(c);
       }
       document.documentElement.style.setProperty(
         "--panel-stack-bottom",

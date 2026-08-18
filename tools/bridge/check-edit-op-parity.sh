@@ -19,9 +19,9 @@ HANDLE_MSG="$REPO_ROOT/tools/topology-vscode/src/schema/input/input-layout-gen.t
 
 OVERLAY_FLAGS_TS="$REPO_ROOT/tools/topology-vscode/src/webview/three/controls/flags/overlay-flags.ts"
 
-PANEL_FLAGS_TS="$REPO_ROOT/tools/topology-vscode/src/webview/three/controls/flags/panel-flags.ts"
+PANEL_STATE_GO="$REPO_ROOT/tools/topology-vscode/OverlaysDropdown/panel_state.go"
 
-for f in "$MESSAGES_TS" "$HANDLE_MSG" "$OVERLAY_FLAGS_TS" "$PANEL_FLAGS_TS"; do
+for f in "$MESSAGES_TS" "$HANDLE_MSG" "$OVERLAY_FLAGS_TS" "$PANEL_STATE_GO"; do
   if [[ ! -f "$f" ]]; then
     echo "edit-op-parity: MISCONFIGURED — file not found: $f" >&2
     exit 1
@@ -119,18 +119,19 @@ fi
 TS_PANEL_FLAGS=$(between PANEL_FLAGS_START PANEL_FLAGS_END "$MESSAGES_TS" | quoted) || true
 assert_nonempty "$TS_PANEL_FLAGS" "axis4 messages.ts panel flags"
 
-PANEL_RENDER_READS=$( { grep -aoE 'readPanel[A-Za-z]+\(v\)' "$PANEL_FLAGS_TS" || true;
-                        grep -aoE 'COL_STREAM_PANEL_[A-Z0-9_]+' "$PANEL_FLAGS_TS" || true; } | sort -u)
+PANEL_RENDER_READS=$(awk '/PanelOpen = map\[string\]/{p=1;next} p&&/^}/{p=0} p' "$PANEL_STATE_GO" \
+  | grep -aoE '^[[:space:]]*"[a-zA-Z]+":' | sort -u)
 
-PANEL_RENDER_KEYS=$(awk '/PanelFlagVals = \{/{p=1;next} p&&/^[[:space:]]*};/{p=0} p&&/^[[:space:]]*[a-zA-Z_]+:/{print}' "$PANEL_FLAGS_TS" | grep -aoE '^[[:space:]]*[a-zA-Z_]+:' | sort -u)
-assert_nonempty "$PANEL_RENDER_READS" "axis4 panel-flags.ts readPanel* reads"
-assert_nonempty "$PANEL_RENDER_KEYS" "axis4 panel-flags.ts PanelFlagVals keys"
+PANEL_RENDER_KEYS=$(awk '/PanelToggles = map\[string\]/{p=1;next} p&&/^}/{p=0} p' "$PANEL_STATE_GO" \
+  | grep -aoE '^[[:space:]]*"[a-zA-Z]+":' | sort -u)
+assert_nonempty "$PANEL_RENDER_READS" "axis4 panel_state.go PanelOpen keys"
+assert_nonempty "$PANEL_RENDER_KEYS" "axis4 panel_state.go PanelToggles keys"
 N_PANEL_FLAGS=$(printf '%s\n' "$TS_PANEL_FLAGS" | grep -c .)
 N_PANEL_READS=$(printf '%s\n' "$PANEL_RENDER_READS" | grep -c .)
 N_PANEL_KEYS=$(printf '%s\n' "$PANEL_RENDER_KEYS" | grep -c .)
 if [[ "$N_PANEL_FLAGS" -ne "$N_PANEL_READS" || "$N_PANEL_FLAGS" -ne "$N_PANEL_KEYS" ]]; then
-  echo "  panel flag/renderer cardinality mismatch: PANEL_FLAG_NAMES=$N_PANEL_FLAGS, panel-flags reads=$N_PANEL_READS, PanelFlagVals keys=$N_PANEL_KEYS"
-  echo "    (a flag was added/removed in messages.ts but not wired into panel-flags.ts's renderer, or vice versa)"
+  echo "  panel flag/renderer cardinality mismatch: PANEL_FLAG_NAMES=$N_PANEL_FLAGS, PanelOpen keys=$N_PANEL_READS, PanelToggles keys=$N_PANEL_KEYS"
+  echo "    (a flag was added/removed in messages.ts but not wired into panel_state.go's tables, or vice versa)"
   HITS=$((HITS+1))
 fi
 
