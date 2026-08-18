@@ -40,12 +40,11 @@ OBSERVERS = {
 
 RATCHET = {
     # DRIFT
-    "readNodeCX": 7,
-    "readNodeCY": 7,
-    "readNodeCZ": 7,
+    "readNodeCX": 6,
+    "readNodeCY": 6,
+    "readNodeCZ": 6,
     "readNodeRadius": 4,
     "readNodeSelected": 3,
-    "readNodeTopTiltVectorLen": 2,
 }
 
 readers = set()

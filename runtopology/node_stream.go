@@ -7,6 +7,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/rowevent"
 
 	W "github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
+	"github.com/dtauraso/wirefold/nodes/Wiring/framegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/nodeframe"
 	B "github.com/dtauraso/wirefold/tools/topology-vscode/Buffer"
 	SF "github.com/dtauraso/wirefold/tools/topology-vscode/Buffer/streamframe"
@@ -42,45 +43,41 @@ func wireNodeStreams(streamFDs SF.StreamFDs, md *W.MoveDispatch) {
 
 				func(f nodeframe.NodeFrameInput) []byte {
 					return SF.BuildNodeStreamFrame(SF.NodeStreamFrame{
-						Tick:                f.Tick,
-						NodeRow:             f.NodeRow,
-						NodeID:              f.NodeID,
-						CX:                  f.CX,
-						CY:                  f.CY,
-						CZ:                  f.CZ,
-						Radius:              f.Radius,
-						PolePhi:             f.PolePhi,
-						PoleTheta:           f.PoleTheta,
-						RingMatrix:          f.RingMatrix,
-						TopTiltVectorLen:    f.TopTiltVectorLen,
-						TopTiltVectorIdx:    f.TopTiltVectorIdx,
-						TopTiltVectorPhi:    f.TopTiltVectorPhi,
-						BottomTiltVectorPhi: f.BottomTiltVectorPhi,
-						CoplanarNormalPhi:   f.CoplanarNormalPhi,
-						ReceivedVectorLen:   f.ReceivedVectorLen,
-						ReceivedVectorPhi:   f.ReceivedVectorPhi,
-						Selected:            f.Selected,
-						KindID:              f.KindID,
-						Hovered:             f.Hovered,
-						LatchedSel:          f.LatchedSel,
-						LatticePoints:       f.LatticePoints,
-						RoundsToParallel:    f.RoundsToParallel,
-						MsgsToParallel:      f.MsgsToParallel,
-						DragRLocked:         f.DragRLocked,
-						DragPhiLocked:       f.DragPhiLocked,
-						DragThetaMax:        f.DragThetaMax,
-						DragActive:          f.DragActive,
-						HasKindRule:         f.HasKindRule,
-						KindRuleActive:      f.KindRuleActive,
-						PoleRingR:           f.PoleRingR,
-						SelfRLocked:         f.SelfRLocked,
-						SelfPhiLocked:       f.SelfPhiLocked,
-						SelfThetaMax:        f.SelfThetaMax,
-						SelfActive:          f.SelfActive,
-						RuleGroupID:         f.RuleGroupID,
-						RuleGroupSize:       f.RuleGroupSize,
-						Label:               f.Label,
-						Events:              toStreamEvents(f.Events),
+						Tick:             f.Tick,
+						NodeRow:          f.NodeRow,
+						NodeID:           f.NodeID,
+						CX:               f.CX,
+						CY:               f.CY,
+						CZ:               f.CZ,
+						Radius:           f.Radius,
+						PolePhi:          f.PolePhi,
+						PoleTheta:        f.PoleTheta,
+						RingMatrix:       f.RingMatrix,
+						TopTiltVectorLen: f.TopTiltVectorLen,
+						TopTiltVectorIdx: f.TopTiltVectorIdx,
+						TiltArrows:       toStreamTiltArrows(f.TiltArrows),
+						Selected:         f.Selected,
+						KindID:           f.KindID,
+						Hovered:          f.Hovered,
+						LatchedSel:       f.LatchedSel,
+						LatticePoints:    f.LatticePoints,
+						RoundsToParallel: f.RoundsToParallel,
+						MsgsToParallel:   f.MsgsToParallel,
+						DragRLocked:      f.DragRLocked,
+						DragPhiLocked:    f.DragPhiLocked,
+						DragThetaMax:     f.DragThetaMax,
+						DragActive:       f.DragActive,
+						HasKindRule:      f.HasKindRule,
+						KindRuleActive:   f.KindRuleActive,
+						PoleRingR:        f.PoleRingR,
+						SelfRLocked:      f.SelfRLocked,
+						SelfPhiLocked:    f.SelfPhiLocked,
+						SelfThetaMax:     f.SelfThetaMax,
+						SelfActive:       f.SelfActive,
+						RuleGroupID:      f.RuleGroupID,
+						RuleGroupSize:    f.RuleGroupSize,
+						Label:            f.Label,
+						Events:           toStreamEvents(f.Events),
 					})
 				},
 				func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []rowevent.RowEvent) []byte {
@@ -89,4 +86,19 @@ func wireNodeStreams(streamFDs SF.StreamFDs, md *W.MoveDispatch) {
 				B.NodeKindID)
 		}
 	}
+}
+
+func toStreamTiltArrows(in []framegeom.TiltArrow) []SF.TiltArrow {
+	if len(in) == 0 {
+		return nil
+	}
+	out := make([]SF.TiltArrow, 0, len(in))
+	for _, a := range in {
+		var r uint8
+		if a.Received {
+			r = 1
+		}
+		out = append(out, SF.TiltArrow{Received: r, Shaft: a.Shaft, Head: a.Head})
+	}
+	return out
 }

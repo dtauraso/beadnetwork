@@ -11,6 +11,7 @@ var _ = [...]any{
 	bufLayoutEdgeBead{},
 	bufLayoutNodeRingPoint{},
 	bufLayoutBeadRingPoint{},
+	bufLayoutTiltArrow{},
 	bufLayoutCamera{},
 	bufLayoutOverlay{},
 	bufLayoutPanel{},

@@ -40,6 +40,8 @@ type FrameGeometryOutputs struct {
 
 	ReceivedVectorLen float64
 	ReceivedVectorPhi float64
+
+	TiltArrows []TiltArrow
 }
 
 func DeriveFrameGeometry(in FrameGeometryInputs) FrameGeometryOutputs {
@@ -72,6 +74,19 @@ func DeriveFrameGeometry(in FrameGeometryInputs) FrameGeometryOutputs {
 	if in.ReceivedVectorSet {
 		out.ReceivedVectorLen = nodegeom.NodeRadius(in.Geom.Kind)
 		out.ReceivedVectorPhi = float64(in.ReceivedVectorPhiIdx) * latticePhiStep
+	}
+
+	if out.TopTiltVectorLen > 0 {
+		out.TiltArrows = append(out.TiltArrows,
+			ArrowMatrices(out.Center, out.TopTiltVectorLen, out.TopTiltVectorPhi, false),
+			ArrowMatrices(out.Center, out.TopTiltVectorLen, out.BottomTiltVectorPhi, false),
+			ArrowMatrices(out.Center, out.TopTiltVectorLen, out.CoplanarNormalPhi, false),
+		)
+	}
+	if out.ReceivedVectorLen > 0 {
+		out.TiltArrows = append(out.TiltArrows,
+			ArrowMatrices(out.Center, out.ReceivedVectorLen, out.ReceivedVectorPhi, true),
+		)
 	}
 
 	return out

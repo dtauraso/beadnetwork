@@ -26,16 +26,6 @@ type NodeStreamFrame struct {
 
 	TopTiltVectorIdx int32
 
-	TopTiltVectorPhi float32
-
-	BottomTiltVectorPhi float32
-
-	CoplanarNormalPhi float32
-
-	ReceivedVectorLen float32
-
-	ReceivedVectorPhi float32
-
 	Selected, KindID, Hovered, LatchedSel uint8
 
 	LatticePoints uint8
@@ -57,18 +47,29 @@ type NodeStreamFrame struct {
 
 	Label string
 
+	TiltArrows []TiltArrow
+
 	Events []StreamEvent
+}
+
+type TiltArrow struct {
+	Received uint8
+	Shaft    [16]float32
+	Head     [16]float32
 }
 
 func BuildNodeStreamFrame(f NodeStreamFrame) []byte {
 	labelBytes := []byte(f.Label)
 
-	size := B.BufNodeStreamFrameHeaderSize + B.BufNodeStride + len(labelBytes)
+	arrowsSize := len(f.TiltArrows) * B.BufTiltArrowStride
+	size := B.BufNodeStreamFrameHeaderSize + B.BufNodeStride + len(labelBytes) + arrowsSize
 	buf := make([]byte, size)
 	off := 0
 	binary.LittleEndian.PutUint32(buf[off:], f.Tick)
 	off += 4
 	binary.LittleEndian.PutUint32(buf[off:], uint32(len(labelBytes)))
+	off += 4
+	binary.LittleEndian.PutUint32(buf[off:], uint32(len(f.TiltArrows)))
 	off += 4
 
 	m := f.RingMatrix
@@ -76,8 +77,6 @@ func BuildNodeStreamFrame(f NodeStreamFrame) []byte {
 		f.PolePhi, f.PoleTheta,
 		m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7], m[8], m[9], m[10], m[11], m[12], m[13], m[14], m[15],
 		f.TopTiltVectorLen, f.TopTiltVectorIdx,
-		f.TopTiltVectorPhi, f.BottomTiltVectorPhi,
-		f.CoplanarNormalPhi, f.ReceivedVectorLen, f.ReceivedVectorPhi,
 		f.Selected, f.KindID, 0, uint32(len(labelBytes)), f.Hovered, f.LatchedSel, f.LatticePoints, f.RoundsToParallel, f.MsgsToParallel,
 		f.DragRLocked, f.DragPhiLocked, f.DragThetaMax, f.DragActive, f.HasKindRule, f.KindRuleActive,
 		f.PoleRingR,
@@ -87,6 +86,14 @@ func BuildNodeStreamFrame(f NodeStreamFrame) []byte {
 
 	copy(buf[off:off+len(labelBytes)], labelBytes)
 	off += len(labelBytes)
+
+	for _, a := range f.TiltArrows {
+		s, h := a.Shaft, a.Head
+		B.SetTiltArrowRow(buf[off:off+B.BufTiltArrowStride], 0, a.Received,
+			s[0], s[1], s[2], s[3], s[4], s[5], s[6], s[7], s[8], s[9], s[10], s[11], s[12], s[13], s[14], s[15],
+			h[0], h[1], h[2], h[3], h[4], h[5], h[6], h[7], h[8], h[9], h[10], h[11], h[12], h[13], h[14], h[15])
+		off += B.BufTiltArrowStride
+	}
 
 	if off != size {
 		panic(fmt.Sprintf(

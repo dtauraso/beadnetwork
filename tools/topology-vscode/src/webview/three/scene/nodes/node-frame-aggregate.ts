@@ -6,7 +6,7 @@ import {
 } from "../../decode/buffer-decode-node";
 import { decodeInteriorStreamFrame } from "../../decode/buffer-decode-interior";
 import {
-  NODE_STRIDE, INTERIOR_STRIDE, INTERIOR_SLOTS_PER_NODE,
+  NODE_STRIDE, INTERIOR_STRIDE, INTERIOR_SLOTS_PER_NODE, TILT_ARROW_STRIDE,
   NODE_COL_LABEL_OFF, NODE_COL_LABEL_LEN,
 } from "../../../../../Buffer/buffer-layout";
 
@@ -58,14 +58,19 @@ function buildAggregate(
 
   const decodedByRow = new Map<number, ReturnType<typeof decodeNodeStreamFrame>>();
   let totalLabelBytes = 0;
+  let totalTiltArrows = 0;
   for (let row = 0; row < nodeCount; row++) {
     const buf = nodeFrames.get(row);
     const decoded = buf ? decodeNodeStreamFrame(row, buf) : null;
     decodedByRow.set(row, decoded);
     if (decoded) {
       totalLabelBytes += STR_ENCODER.encode(decoded.label).length;
+      totalTiltArrows += decoded.tiltArrowCount;
     }
   }
+  const tiltArrowBuf = new ArrayBuffer(totalTiltArrows * TILT_ARROW_STRIDE);
+  const tiltArrowOut = new Uint8Array(tiltArrowBuf);
+  let tiltArrowCursor = 0;
 
   const interiorCount = nodeCount * INTERIOR_SLOTS_PER_NODE;
   const nodeBytes = nodeCount * NODE_STRIDE;
@@ -90,6 +95,15 @@ function buildAggregate(
       nodeOut.setUint32(row * NODE_STRIDE + NODE_COL_LABEL_LEN, labelEncoded.length, true);
       labelBytesOut.set(labelEncoded, labelCursor);
       labelCursor += labelEncoded.length;
+
+      const arrowBytes = decoded.tiltArrowCount * TILT_ARROW_STRIDE;
+      if (arrowBytes > 0) {
+        tiltArrowOut.set(
+          new Uint8Array(decoded.tiltArrowView.buffer, decoded.tiltArrowView.byteOffset, arrowBytes),
+          tiltArrowCursor,
+        );
+        tiltArrowCursor += arrowBytes;
+      }
     }
 
     const interiorRowBytes = new Uint8Array(interiorBuf, row * INTERIOR_SLOTS_PER_NODE * INTERIOR_STRIDE, INTERIOR_SLOTS_PER_NODE * INTERIOR_STRIDE);
@@ -113,5 +127,7 @@ function buildAggregate(
     interiorView: new DataView(interiorBuf),
     labelBytesCount: totalLabelBytes,
     labelBytes: labelBytesOut,
+    tiltArrowCount: totalTiltArrows,
+    tiltArrowView: new DataView(tiltArrowBuf),
   };
 }

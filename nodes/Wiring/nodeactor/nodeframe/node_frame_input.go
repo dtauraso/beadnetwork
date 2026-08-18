@@ -1,6 +1,7 @@
 package nodeframe
 
 import (
+	"github.com/dtauraso/wirefold/nodes/Wiring/framegeom"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
 )
 
@@ -24,15 +25,7 @@ type NodeFrameInput struct {
 
 	TopTiltVectorIdx int32
 
-	TopTiltVectorPhi float32
-
-	BottomTiltVectorPhi float32
-
-	CoplanarNormalPhi float32
-
-	ReceivedVectorLen float32
-
-	ReceivedVectorPhi float32
+	TiltArrows []framegeom.TiltArrow
 
 	Selected, KindID, Hovered, LatchedSel uint8
 

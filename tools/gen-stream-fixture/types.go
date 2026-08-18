@@ -23,18 +23,10 @@ type nodeFrameFixture struct {
 
 	TopTiltVectorIdx int32 `json:"topTiltVectorIdx"`
 
-	TopTiltVectorPhi float32 `json:"topTiltVectorPhi"`
-
-	BottomTiltVectorPhi float32 `json:"bottomTiltVectorPhi"`
-
-	CoplanarNormalPhi float32 `json:"coplanarNormalPhi"`
-
-	ReceivedVectorLen float32 `json:"receivedVectorLen"`
-	ReceivedVectorPhi float32 `json:"receivedVectorPhi"`
-	Selected          uint8   `json:"selected"`
-	KindID            uint8   `json:"kindId"`
-	Hovered           uint8   `json:"hovered"`
-	LatchedSel        uint8   `json:"latchedSel"`
+	Selected   uint8 `json:"selected"`
+	KindID     uint8 `json:"kindId"`
+	Hovered    uint8 `json:"hovered"`
+	LatchedSel uint8 `json:"latchedSel"`
 
 	LatticePoints uint8 `json:"latticePoints"`
 
