@@ -91,21 +91,3 @@ export function readPanelScenePoles(view: DataView): number { return view.getUin
 export function readPanelSceneVectors(view: DataView): number { return view.getUint8(PANEL_COL_SCENE_VECTORS); }
 export function readPanelSceneLabels(view: DataView): number { return view.getUint8(PANEL_COL_SCENE_LABELS); }
 
-// ── Scene block ──────────────────────────────────────────────
-export const SCENE_COL_CX                        = 0; // f32
-export const SCENE_COL_CY                        = 4; // f32
-export const SCENE_COL_CZ                        = 8; // f32
-export const SCENE_COL_RADIUS                    = 12; // f32
-export const SCENE_COL_CONSTANT_R                = 16; // f32
-export const SCENE_COL_MAX_INDEX_PHI             = 20; // i32
-export const SCENE_COL_MAX_INDEX_THETA           = 24; // i32
-export const SCENE_STRIDE                        = 28;
-
-export function readSceneCX(view: DataView): number { return view.getFloat32(SCENE_COL_CX, true); }
-export function readSceneCY(view: DataView): number { return view.getFloat32(SCENE_COL_CY, true); }
-export function readSceneCZ(view: DataView): number { return view.getFloat32(SCENE_COL_CZ, true); }
-export function readSceneRadius(view: DataView): number { return view.getFloat32(SCENE_COL_RADIUS, true); }
-export function readSceneConstantR(view: DataView): number { return view.getFloat32(SCENE_COL_CONSTANT_R, true); }
-export function readSceneMaxIndexPhi(view: DataView): number { return view.getInt32(SCENE_COL_MAX_INDEX_PHI, true); }
-export function readSceneMaxIndexTheta(view: DataView): number { return view.getInt32(SCENE_COL_MAX_INDEX_THETA, true); }
-

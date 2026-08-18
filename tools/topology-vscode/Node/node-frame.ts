@@ -7,8 +7,7 @@ import { NODE_SPHERE_RADIUS } from "../src/webview/three/scene/buffer-scene-shar
 import { getViewBlocks } from "../src/webview/three/scene/view-blocks";
 
 function sceneStep() {
-  const blocks = getViewBlocks();
-  return blocks ? sceneSteps(blocks.sceneView) : null;
+  return sceneSteps();
 }
 
 function centerInto(nodeView: DataView, row: number, out: [number, number, number]): void {

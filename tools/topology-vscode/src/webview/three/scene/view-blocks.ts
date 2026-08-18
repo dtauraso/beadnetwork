@@ -5,7 +5,6 @@ export interface ViewBlocks {
   cameraView: DataView;
   overlayView: DataView;
   panelView: DataView;
-  sceneView: DataView;
 
   ringSurfacePointsView: DataView;
   beadRingSurfacePointsView: DataView;

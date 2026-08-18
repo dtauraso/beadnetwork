@@ -49,6 +49,18 @@ if not readers:
           "guard would check nothing", file=sys.stderr)
     sys.exit(1)
 
+COL_STREAMS = pathlib.Path("tools/topology-vscode/Buffer/column-streams-gen.ts")
+if not COL_STREAMS.exists():
+    print(f"check-one-reader-per-column: MISCONFIGURED — {COL_STREAMS} not found (renamed?); "
+          f"the column-channel half would go unchecked", file=sys.stderr)
+    sys.exit(1)
+col_consts = set(re.findall(r"export const (COL_STREAM_[A-Z0-9_]+)", COL_STREAMS.read_text(encoding="utf-8")))
+col_consts = {c for c in col_consts if not c.startswith("COL_STREAM_BASE_")}
+if not col_consts:
+    print("check-one-reader-per-column: MISCONFIGURED — parsed 0 COL_STREAM_* constants; "
+          "format changed, the column-channel half would check nothing", file=sys.stderr)
+    sys.exit(1)
+
 layout_set = {str(p) for p in layouts}
 files = []
 for root in roots:
@@ -58,7 +70,7 @@ for root in roots:
         s = str(f)
         if "node_modules" in s or "/out/" in s or "/test/" in s or s.endswith(".test.ts"):
             continue
-        if s in layout_set or s in OBSERVERS:
+        if s in layout_set or s in OBSERVERS or s == str(COL_STREAMS):
             continue
         files.append(f)
 
@@ -70,7 +82,7 @@ for f in files:
         word.setdefault(tok, []).append(str(f))
 
 fail = False
-for fn in sorted(readers):
+for fn in sorted(readers | col_consts):
     who = word.get(fn, [])
     n = len(who)
     allowed = RATCHET.get(fn)
@@ -98,5 +110,6 @@ for fn in sorted(readers):
 
 if fail:
     sys.exit(1)
-print(f"check-one-reader-per-column: clean ({len(readers)} columns, {len(RATCHET)} on the ratchet)")
+print(f"check-one-reader-per-column: clean ({len(col_consts)} column channels, "
+      f"{len(readers)} row fields still to move, {len(RATCHET)} on the ratchet)")
 PY

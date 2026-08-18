@@ -158,26 +158,3 @@ func SetPanelRow(buf []byte, row PanelRow) {
 	buf[9] = row.SceneVectors
 	buf[10] = row.SceneLabels
 }
-
-// ── Scene block ──────────────────────────────────────────────
-const (
-	BufSceneColCX            = 0  // f32
-	BufSceneColCY            = 4  // f32
-	BufSceneColCZ            = 8  // f32
-	BufSceneColRadius        = 12 // f32
-	BufSceneColConstantR     = 16 // f32
-	BufSceneColMaxIndexPhi   = 20 // i32
-	BufSceneColMaxIndexTheta = 24 // i32
-	BufSceneStride           = 28
-)
-
-// SetSceneRow writes the Scene row into buf (always 1 row; no row param).
-func SetSceneRow(buf []byte, cX float32, cY float32, cZ float32, radius float32, constantR float32, maxIndexPhi int32, maxIndexTheta int32) {
-	binary.LittleEndian.PutUint32(buf[0:], math.Float32bits(cX))
-	binary.LittleEndian.PutUint32(buf[4:], math.Float32bits(cY))
-	binary.LittleEndian.PutUint32(buf[8:], math.Float32bits(cZ))
-	binary.LittleEndian.PutUint32(buf[12:], math.Float32bits(radius))
-	binary.LittleEndian.PutUint32(buf[16:], math.Float32bits(constantR))
-	binary.LittleEndian.PutUint32(buf[20:], uint32(maxIndexPhi))
-	binary.LittleEndian.PutUint32(buf[24:], uint32(maxIndexTheta))
-}

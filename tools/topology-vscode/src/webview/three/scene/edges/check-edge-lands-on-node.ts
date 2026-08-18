@@ -1,8 +1,7 @@
 import { getNodeFrame } from "../nodes/node-frame-aggregate";
 import { getEdgeStreamAccessor } from "./edge-stream-blocks";
 import { nodeCenterX, nodeCenterY, nodeCenterZ } from "../../../../../Node/node-frame";
-import { readSceneConstantR } from "../../../../../Buffer/buffer-layout";
-import { getViewBlocks } from "../view-blocks";
+import { sceneSteps } from "../../../../../Scene/scene-frame";
 import { postLog } from "../../../log/post";
 
 
@@ -13,7 +12,6 @@ const reported = new Set<number>();
 export function checkEdgeLandsOnNode(): void {
   const decoded = getNodeFrame();
   const edges = getEdgeStreamAccessor();
-  const blocks = getViewBlocks();
   if (!decoded || !edges) return;
   const { nodeCount, nodeView } = decoded;
 
@@ -34,7 +32,7 @@ export function checkEdgeLandsOnNode(): void {
     if (cx === 0 && cy === 0 && cz === 0) continue;
 
     const gap = Math.hypot(ex - cx, ey - cy, ez - cz);
-    const step = blocks ? readSceneConstantR(blocks.sceneView) : 0;
+    const step = sceneSteps().constantR;
     if (!(step > 0)) continue;
     const steps = gap / step;
     if (Math.abs(steps - Math.round(steps)) <= TOLERANCE) continue;

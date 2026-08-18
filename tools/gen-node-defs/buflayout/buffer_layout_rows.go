@@ -27,7 +27,7 @@ func writeRowsSplitNote(w *bufio.Writer, comment string, blocks []bufBlock) {
 func rowBlocks(schema BufLayoutSchema) []bufBlock {
 	var blocks []bufBlock
 	for _, blk := range schema.Blocks {
-		if isSingletonBlock(blk.name) {
+		if isSingletonBlock(blk.name) || !hasRow(blk.name) {
 			continue
 		}
 		blocks = append(blocks, blk)

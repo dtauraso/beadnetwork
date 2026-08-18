@@ -12,6 +12,12 @@ func isSingletonBlock(name string) bool {
 	return name == "Overlay" || name == "Camera" || name == "RuleBuilder" || name == "Scene" || name == "Panel"
 }
 
+var movedToColumns = map[string]bool{
+	"Scene": true,
+}
+
+func hasRow(name string) bool { return !movedToColumns[name] }
+
 func WriteBufferLayoutGo(headerPath, rowsPathA, rowsPathB, singletonsPath string, schema BufLayoutSchema) error {
 	fp := buildBufFingerprint(schema)
 

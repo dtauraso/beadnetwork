@@ -13,7 +13,7 @@ func writeBufferLayoutGoSingletons(outPath string, schema BufLayoutSchema, fp st
 	writeBufferLayoutGoPreamble(w, fp)
 
 	for _, blk := range schema.Blocks {
-		if !isSingletonBlock(blk.name) {
+		if !isSingletonBlock(blk.name) || !hasRow(blk.name) {
 			continue
 		}
 		writeBufferLayoutGoBlockConst(w, blk)

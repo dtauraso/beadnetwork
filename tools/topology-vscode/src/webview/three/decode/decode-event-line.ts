@@ -13,7 +13,6 @@ import {
   readEventEdgeRow, readEventSlot, readEventValue, readEventBead,
   readEventBeadSteps, readEventX, readEventY, readEventZ, readEventF,
   readEventLabel, readEventDebug, readEventTextOff, readEventTextLen,
-  readSceneCX, readSceneCY, readSceneCZ, readSceneRadius,
 } from "../../../../Buffer/buffer-layout";
 
 export type Line = Record<string, unknown>;
@@ -23,7 +22,6 @@ const EVENT_TEXT_DECODER = new TextDecoder();
 export interface ViewBlocksOrNull {
   cameraView: DataView | null;
   overlayView: DataView | null;
-  sceneView: DataView | null;
 }
 
 export function decodeEventLine(ev: DataView, eventTextView: DataView, dn: DecodedNodeFrame | null, de: DecodedEdgeFrame | null, vb: ViewBlocksOrNull, i: number): Line | null {
@@ -122,9 +120,8 @@ export function decodeEventLine(ev: DataView, eventTextView: DataView, dn: Decod
       };
     }
     case "scene-sphere": {
-      const sc = vb.sceneView;
-      if (!sc) return { kind };
-      return { kind, cx: readSceneCX(sc), cy: readSceneCY(sc), cz: readSceneCZ(sc), radius: readSceneRadius(sc) };
+
+      return { kind };
     }
     case "select":
 

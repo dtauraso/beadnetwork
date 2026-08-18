@@ -54,8 +54,8 @@ export function decodeNavNodes(decoded: DecodedNodeFrame): NavNode[] {
 }
 
 export function sceneSphereFromSnapshot(decoded: ViewBlocks): { center: THREE.Vector3; radius: number } {
-  const radius = sceneRadius(decoded.sceneView);
+  const radius = sceneRadius();
   if (radius <= 0) return { center: new THREE.Vector3(), radius: 100 };
-  const s = sceneSteps(decoded.sceneView);
+  const s = sceneSteps();
   return { center: new THREE.Vector3(s.centerX, s.centerY, s.centerZ), radius };
 }
