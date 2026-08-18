@@ -1,25 +1,10 @@
 
 const latest = new Map<number, DataView>();
 let version = 0;
-const subs = new Set<() => void>();
-
-let notifyScheduled = false;
-
-function scheduleNotify(): void {
-  if (notifyScheduled) return;
-  notifyScheduled = true;
-  const run = () => {
-    notifyScheduled = false;
-    for (const fn of subs) fn();
-  };
-  if (typeof requestAnimationFrame === "function") requestAnimationFrame(run);
-  else queueMicrotask(run);
-}
 
 export function setColumnValue(col: number, buf: ArrayBuffer): void {
   latest.set(col, new DataView(buf));
   version++;
-  scheduleNotify();
 }
 
 export function columnVersion(): number {
@@ -27,8 +12,14 @@ export function columnVersion(): number {
 }
 
 export function subscribeColumns(fn: () => void): () => void {
-  subs.add(fn);
-  return () => { subs.delete(fn); };
+  let alive = true;
+  const tick = () => {
+    if (!alive) return;
+    fn();
+    requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+  return () => { alive = false; };
 }
 
 export function hasColumn(col: number): boolean {
