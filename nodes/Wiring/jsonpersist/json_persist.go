@@ -50,6 +50,14 @@ func ReadModifyWriteJSON(path string, mutate func(map[string]any)) error {
 	return WriteJSONAtomic(path, m)
 }
 
+func RemoveIfPresent(path string) error {
+	err := os.Remove(path)
+	if os.IsNotExist(err) {
+		return nil
+	}
+	return err
+}
+
 func WriteJSONAtomic(path string, v any) error {
 	out, err := json.Marshal(v)
 	if err != nil {

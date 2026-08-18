@@ -20,7 +20,7 @@ topology/
 │                                          (largest node id), not a live-node count
 ├── constants.json                        {"constantR", "constantPhi", "constantTheta"} — scene-level, read once
 ├── nodes/<id>/
-│   ├── base.json                          type/id/gate/drag-rule + the BASE position — TRACKED, see below
+│   ├── base/                               one value per file: type/gate/index + drag-rule/ and self-rule/ — TRACKED
 │   ├── drag/self.json                 the node's accumulated position DELTA — GITIGNORED, see below
 │   ├── data.json  local-polars.json
 │   ├── edges/<label>.json                OUTGOING only — wiring + the BASE geometry delta — TRACKED

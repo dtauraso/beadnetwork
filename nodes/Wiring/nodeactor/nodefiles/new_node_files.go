@@ -7,19 +7,16 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodefile"
 	"github.com/dtauraso/wirefold/nodes/Wiring/polarindex"
 )
-
-func nodeBaseFilePath(root, id string) string {
-	return filepath.Join(root, "nodes", id, "base.json")
-}
 
 func nodeDirPath(root, id string) string {
 	return filepath.Join(root, "nodes", id)
 }
 
-func entityReadModifyWrite(path string, mutate func(map[string]any)) error {
-	return jsonpersist.ReadModifyWriteJSON(path, mutate)
+func nodeBaseDir(root, id string) string {
+	return nodefile.BaseDir(nodeDirPath(root, id))
 }
 
 func WriteNewNodeFiles(root, id, kind string, p polar.Polar, sc polarindex.SceneConstants) error {
@@ -28,33 +25,24 @@ func WriteNewNodeFiles(root, id, kind string, p polar.Polar, sc polarindex.Scene
 		return err
 	}
 	idx := polarindex.MeasureIndex(p, sc)
-	return entityReadModifyWrite(nodeBaseFilePath(root, id), func(m map[string]any) {
-		m["id"] = id
-		m["type"] = kind
-		m["indexPhi"] = idx.Phi
-		m["indexTheta"] = idx.Theta
-		m["indexR"] = idx.R
-	})
+	base := nodeBaseDir(root, id)
+	if err := jsonpersist.WriteJSONAtomic(filepath.Join(base, nodefile.FileType), kind); err != nil {
+		return err
+	}
+	for name, value := range map[string]int{
+		nodefile.FileIndexPhi:   idx.Phi,
+		nodefile.FileIndexTheta: idx.Theta,
+		nodefile.FileIndexR:     idx.R,
+	} {
+		if err := jsonpersist.WriteJSONAtomic(filepath.Join(base, name), value); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func WriteDragRule(root, id string, rule *PolarRulesPanel.DragRule) error {
-	return entityReadModifyWrite(nodeBaseFilePath(root, id), func(m map[string]any) {
-		if rule == nil {
-			delete(m, "drag")
-			return
-		}
-		drag := map[string]any{}
-		if rule.R != nil {
-			drag["r"] = *rule.R
-		}
-		if rule.Phi != nil {
-			drag["phi"] = *rule.Phi
-		}
-		if rule.MaxTheta != nil {
-			drag["maxTheta"] = *rule.MaxTheta
-		}
-		m["drag"] = drag
-	})
+	return nodefile.WriteDragRule(filepath.Join(nodeBaseDir(root, id), nodefile.DirDragRule), rule)
 }
 
 const (
@@ -97,23 +85,7 @@ func LoadEdgeRuleActive(root, id, target string) bool {
 }
 
 func WriteSelfDragRule(root, id string, rule *PolarRulesPanel.DragRule) error {
-	return entityReadModifyWrite(nodeBaseFilePath(root, id), func(m map[string]any) {
-		if rule == nil {
-			delete(m, "selfDrag")
-			return
-		}
-		drag := map[string]any{}
-		if rule.R != nil {
-			drag["r"] = *rule.R
-		}
-		if rule.Phi != nil {
-			drag["phi"] = *rule.Phi
-		}
-		if rule.MaxTheta != nil {
-			drag["maxTheta"] = *rule.MaxTheta
-		}
-		m["selfDrag"] = drag
-	})
+	return nodefile.WriteDragRule(filepath.Join(nodeBaseDir(root, id), nodefile.DirSelfRule), rule)
 }
 
 func WriteSelfRuleActive(root, id string, active bool) error {
