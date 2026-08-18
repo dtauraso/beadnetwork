@@ -7,7 +7,6 @@ import (
 	"github.com/dtauraso/wirefold/nodes/bead"
 	"github.com/dtauraso/wirefold/nodes/bead/lattice"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
-	"github.com/dtauraso/wirefold/nodes/spatial"
 )
 
 func (o *Out) placeDrivenNoWalker(v int, tick int64) bead.SendOutcome {
@@ -45,7 +44,7 @@ func (o *Out) HasRun() bool {
 }
 
 func NewPacedOutNoGeom(pw *bead.BeadRun, ctx context.Context, node, port string, tr *T.Trace, rule SendRule, steps int, edgeLabel string) *Out {
-	return NewOutPaced(pw, ctx, node, port, tr, rule, steps, spatial.Segment{}, edgeLabel, nil, -1, -1, -1)
+	return NewOutPaced(pw, ctx, node, port, tr, rule, edgeLabel, nil, -1, -1, -1)
 }
 
 func NewOutChanForTest(ch chan<- int, node, port string, tr *T.Trace) *Out {
@@ -60,16 +59,15 @@ func newOutChan(ch chan<- int, node, port string, tr *T.Trace) *Out {
 	return &Out{ch: ch, node: node, port: port, trace: tr, postedGeom: make(chan outGeom, 1)}
 }
 
-func NewOutPaced(pw *bead.BeadRun, ctx context.Context, node, port string, tr *T.Trace, rule SendRule, steps int, seg spatial.Segment, edgeLabel string, stream func() rowevent.EventSink, portRow, targetRow, targetPortRow int32) *Out {
+func NewOutPaced(pw *bead.BeadRun, ctx context.Context, node, port string, tr *T.Trace, rule SendRule, edgeLabel string, stream func() rowevent.EventSink, portRow, targetRow, targetPortRow int32) *Out {
 	if rule == "" {
 		rule = RuleConsumeGated
 	}
 
-	fileGeom := outGeom{Steps: steps, Start: seg.Start, End: seg.End}
 	o := &Out{
 		pw: pw, ctx: ctx, node: node, port: port, trace: tr, Rule: rule, EdgeLabel: edgeLabel,
-		sendCur: fileGeom, postedGeom: make(chan outGeom, 1),
-		stream: stream, portRow: portRow, targetRow: targetRow, targetPortRow: targetPortRow,
+		postedGeom: make(chan outGeom, 1),
+		stream:     stream, portRow: portRow, targetRow: targetRow, targetPortRow: targetPortRow,
 	}
 	return o
 }

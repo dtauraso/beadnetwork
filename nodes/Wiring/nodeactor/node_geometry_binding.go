@@ -99,6 +99,10 @@ func (m *NodeGeometry) deriveOutEdgeGeometry() {
 	m.outEdges.DeriveGeometry(m.geom, &m.deltas)
 }
 
+func (m *NodeGeometry) DeriveOutEdgeGeometryOnce() {
+	m.deriveOutEdgeGeometry()
+}
+
 func (m *NodeGeometry) writeOutEdgeFrames(tick int64) {
 	m.outEdges.WriteFrames(tick, m.geom, &m.deltas)
 }

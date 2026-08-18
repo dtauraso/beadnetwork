@@ -45,6 +45,10 @@ func (mr *MoverRegistry) Bind(outSink map[string]*outport.Out, slotReg inputcode
 }
 
 func (mr *MoverRegistry) Start(ctx context.Context) *sync.WaitGroup {
+	for _, nm := range mr.nodeGeoms {
+		nm.DeriveOutEdgeGeometryOnce()
+	}
+
 	wg := new(sync.WaitGroup)
 	wg.Add(len(mr.nodeGeoms))
 	for _, nm := range mr.nodeGeoms {

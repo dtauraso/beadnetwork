@@ -69,7 +69,7 @@ func (b *buildCtx) buildNodes() error {
 
 					rule := loadspec.NodeSendRule(n, port.Name)
 					lbl := labels[0]
-					pb.SetSinglePacedRule(port.Name, b.edgeRun[lbl], rule, b.edgeSteps[lbl], b.edgeSegments[lbl], lbl)
+					pb.SetSinglePacedRule(port.Name, b.edgeRun[lbl], rule, lbl)
 				}
 
 			case portwiring.PortBroadcast:
@@ -82,7 +82,7 @@ func (b *buildCtx) buildNodes() error {
 					}
 
 					rule := loadspec.NodeSendRule(n, handle)
-					pb.AppendBroadcastWithHandle(port.Name, handle, b.edgeRun[lbl], rule, b.edgeSteps[lbl], b.edgeSegments[lbl], lbl)
+					pb.AppendBroadcastWithHandle(port.Name, handle, b.edgeRun[lbl], rule, lbl)
 				}
 
 			}

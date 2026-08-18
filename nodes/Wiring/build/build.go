@@ -41,9 +41,6 @@ type buildCtx struct {
 	edgeRun       loadspec.BeadRunRegistry
 	edgeEndpoints map[string]inputcodec.EdgeEndpoints
 
-	edgeSteps    map[string]int
-	edgeSegments map[string]spatial.Segment
-
 	md *dispatch.MoveDispatch
 
 	speedSinks []chan float64
@@ -68,7 +65,7 @@ func buildFromSpec(ctx context.Context, spec loadspec.TopoSpec, tr *T.Trace, clk
 	b.nodeGeoms, b.centers = topoderive.ComputeNodeGeometry(b.spec, b.sphere)
 	b.baseIndices = topoderive.ComputeBaseIndices(b.spec, b.sphere, b.centers, b.nodeGeoms)
 	b.dragIndices = topoderive.ComputeDragIndices(b.spec)
-	b.destRun, b.edgeRun, b.edgeEndpoints, b.edgeSteps, b.edgeSegments = topoderive.AllocateBeadRuns(b.spec, b.nodeGeoms, b.tr)
+	b.destRun, b.edgeRun, b.edgeEndpoints = topoderive.AllocateBeadRuns(b.spec, b.nodeGeoms, b.tr)
 	b.vectorOutByNode, b.vectorInByNode = topoderive.AllocateVectorChannels(b.spec)
 	if err := b.buildMoveDispatch(); err != nil {
 		return nil, nil, nil, nil, err

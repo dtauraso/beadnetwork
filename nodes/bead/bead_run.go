@@ -38,7 +38,7 @@ type BeadRun struct {
 
 const maxInflightBeads = beadChanBufferSize
 
-func NewBeadRun(steps int, dwellTicks float64) *BeadRun {
+func NewBeadRun(dwellTicks float64) *BeadRun {
 	return &BeadRun{
 		dwell: dwellTicks,
 		inCh:  make(chan placeRequest, beadChanBufferSize),
