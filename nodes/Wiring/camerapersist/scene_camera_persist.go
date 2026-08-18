@@ -20,26 +20,42 @@ const (
 
 type ViewpointPersister struct {
 	Dir string
+
+	last map[string]float64
 }
 
 func (p *ViewpointPersister) Schedule(v camera.Viewpoint) {
 	if p == nil || p.Dir == "" {
 		return
 	}
-	if err := WriteSceneCamera(p.Dir, v); err != nil {
-		jsonpersist.LogPersistErr("scene_camera_persist", p.Dir, err)
+	if p.last == nil {
+		p.last = map[string]float64{}
+	}
+	for name, value := range viewpointValues(v) {
+		if prev, ok := p.last[name]; ok && prev == value {
+			continue
+		}
+		if err := jsonpersist.WriteJSONAtomic(filepath.Join(p.Dir, name), value); err != nil {
+			jsonpersist.LogPersistErr("scene_camera_persist", p.Dir, err)
+			return
+		}
+		p.last[name] = value
 	}
 }
 
-func WriteSceneCamera(dir string, v camera.Viewpoint) error {
-	for name, value := range map[string]float64{
+func viewpointValues(v camera.Viewpoint) map[string]float64 {
+	return map[string]float64{
 		FilePivotX: v.Pivot.X, FilePivotY: v.Pivot.Y, FilePivotZ: v.Pivot.Z,
 		FileR:        v.R,
 		FilePosPhi:   v.Pos.Phi,
 		FilePosTheta: v.Pos.Theta,
 		FileUpPhi:    v.Up.Phi,
 		FileUpTheta:  v.Up.Theta,
-	} {
+	}
+}
+
+func WriteSceneCamera(dir string, v camera.Viewpoint) error {
+	for name, value := range viewpointValues(v) {
 		if err := jsonpersist.WriteJSONAtomic(filepath.Join(dir, name), value); err != nil {
 			return err
 		}
