@@ -1,8 +1,6 @@
 package runtopology
 
 import (
-	"github.com/dtauraso/wirefold/nodes/bead"
-	NodeShape "github.com/dtauraso/wirefold/tools/topology-vscode/Node/Shape"
 	"os"
 
 	"github.com/dtauraso/wirefold/nodes/rowevent"
@@ -16,9 +14,6 @@ func wireViewStream(md *W.MoveDispatch, viewFile *os.File, viewStreamWired bool,
 		md.UI.SetViewStream(viewFile,
 			func(tick uint32, events []rowevent.RowEvent) []byte {
 				return SF.BuildViewStreamFrame(tick,
-					NodeShape.CanonicalRingSurfacePointsFlat(),
-					bead.CanonicalRingSurfacePointsFlat(),
-
 					sceneTabNames, uint16(sceneTabSelected),
 					toStreamEvents(events))
 			})

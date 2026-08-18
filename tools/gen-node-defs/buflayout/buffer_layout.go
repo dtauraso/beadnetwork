@@ -13,10 +13,12 @@ func isSingletonBlock(name string) bool {
 }
 
 var movedToColumns = map[string]bool{
-	"Scene":   true,
-	"Panel":   true,
-	"Overlay": true,
-	"Camera":  true,
+	"Scene":         true,
+	"Panel":         true,
+	"Overlay":       true,
+	"Camera":        true,
+	"NodeRingPoint": true,
+	"BeadRingPoint": true,
 }
 
 func hasRow(name string) bool { return !movedToColumns[name] }

@@ -1,6 +1,9 @@
 package viewstate
 
 import (
+	"encoding/binary"
+	"math"
+
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 	B "github.com/dtauraso/wirefold/tools/topology-vscode/Buffer"
 	"github.com/dtauraso/wirefold/tools/topology-vscode/Buffer/colstream"
@@ -22,6 +25,34 @@ func (ui *UIState) writeSceneColumns(sc polar.SceneSphere) {
 	c.SetF32(B.ColStreamSceneConstantR, float32(ui.Constants.ConstantR))
 	c.SetI32(B.ColStreamSceneMaxIndexPhi, int32(ui.Constants.MaxIndexPhi))
 	c.SetI32(B.ColStreamSceneMaxIndexTheta, int32(ui.Constants.MaxIndexTheta))
+}
+
+func writeRingSurfaceColumns(c *colstream.ColumnSet, baseX, baseY, baseZ int, pts []float32) {
+	if c == nil || len(pts)%3 != 0 {
+		return
+	}
+	n := len(pts) / 3
+	xs := make([]byte, 0, n*4)
+	ys := make([]byte, 0, n*4)
+	zs := make([]byte, 0, n*4)
+	for i := 0; i < n; i++ {
+		xs = binary.LittleEndian.AppendUint32(xs, math.Float32bits(pts[i*3]))
+		ys = binary.LittleEndian.AppendUint32(ys, math.Float32bits(pts[i*3+1]))
+		zs = binary.LittleEndian.AppendUint32(zs, math.Float32bits(pts[i*3+2]))
+	}
+	c.SetBytes(baseX, xs)
+	c.SetBytes(baseY, ys)
+	c.SetBytes(baseZ, zs)
+}
+
+func (ui *UIState) WriteNodeRingSurfaceColumns(pts []float32) {
+	writeRingSurfaceColumns(ui.singletonCols,
+		B.ColStreamNodeRingPointX, B.ColStreamNodeRingPointY, B.ColStreamNodeRingPointZ, pts)
+}
+
+func (ui *UIState) WriteBeadRingSurfaceColumns(pts []float32) {
+	writeRingSurfaceColumns(ui.singletonCols,
+		B.ColStreamBeadRingPointX, B.ColStreamBeadRingPointY, B.ColStreamBeadRingPointZ, pts)
 }
 
 func (ui *UIState) writeCameraColumns() {

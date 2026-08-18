@@ -3,8 +3,6 @@ import { decodeViewFrame } from "../decode/buffer-decode-view";
 
 export interface ViewBlocks {
 
-  ringSurfacePointsView: DataView;
-  beadRingSurfacePointsView: DataView;
 
   sceneTabs: string[];
   sceneTabSelected: number;

@@ -9,7 +9,7 @@ import (
 	"math"
 )
 
-// This half holds the Edge, EdgeBead, NodeRingPoint, BeadRingPoint, TiltArrow, ChannelVector, Event block(s). Row blocks are split across two files
+// This half holds the Edge, EdgeBead, TiltArrow, ChannelVector, Event block(s). Row blocks are split across two files
 // purely to stay under check-file-size.sh's limit — the division is by position in
 // Buffer/bufschema/layout.go, not by meaning, so neither file is a category.
 
@@ -97,38 +97,6 @@ func SetEdgeBeadRow(buf []byte, row int, x float32, y float32, z float32, value 
 	binary.LittleEndian.PutUint32(buf[off+72:], math.Float32bits(ringM13))
 	binary.LittleEndian.PutUint32(buf[off+76:], math.Float32bits(ringM14))
 	binary.LittleEndian.PutUint32(buf[off+80:], math.Float32bits(ringM15))
-}
-
-// ── NodeRingPoint block ──────────────────────────────────────
-const (
-	BufNodeRingPointColX   = 0 // f32
-	BufNodeRingPointColY   = 4 // f32
-	BufNodeRingPointColZ   = 8 // f32
-	BufNodeRingPointStride = 12
-)
-
-// SetNodeRingPointRow writes one NodeRingPoint row into buf[row*BufNodeRingPointStride:].
-func SetNodeRingPointRow(buf []byte, row int, x float32, y float32, z float32) {
-	off := row * BufNodeRingPointStride
-	binary.LittleEndian.PutUint32(buf[off+0:], math.Float32bits(x))
-	binary.LittleEndian.PutUint32(buf[off+4:], math.Float32bits(y))
-	binary.LittleEndian.PutUint32(buf[off+8:], math.Float32bits(z))
-}
-
-// ── BeadRingPoint block ──────────────────────────────────────
-const (
-	BufBeadRingPointColX   = 0 // f32
-	BufBeadRingPointColY   = 4 // f32
-	BufBeadRingPointColZ   = 8 // f32
-	BufBeadRingPointStride = 12
-)
-
-// SetBeadRingPointRow writes one BeadRingPoint row into buf[row*BufBeadRingPointStride:].
-func SetBeadRingPointRow(buf []byte, row int, x float32, y float32, z float32) {
-	off := row * BufBeadRingPointStride
-	binary.LittleEndian.PutUint32(buf[off+0:], math.Float32bits(x))
-	binary.LittleEndian.PutUint32(buf[off+4:], math.Float32bits(y))
-	binary.LittleEndian.PutUint32(buf[off+8:], math.Float32bits(z))
 }
 
 // ── TiltArrow block ──────────────────────────────────────────
