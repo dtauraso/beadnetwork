@@ -36,14 +36,15 @@ OBSERVERS = {
     "tools/topology-vscode/src/webview/three/decode/decode-event-line.ts",
     "tools/topology-vscode/src/webview/three/decode/decode-event-node-geometry.ts",
     "tools/topology-vscode/src/webview/three/decode/decode-event-overlay.ts",
+    "tools/topology-vscode/src/webview/three/scene/edges/check-edge-lands-on-node.ts",
 }
 
 RATCHET = {
     # DRIFT
-    "readNodeCX": 6,
-    "readNodeCY": 6,
-    "readNodeCZ": 6,
-    "readNodeRadius": 4,
+    "readNodeCX": 4,
+    "readNodeCY": 4,
+    "readNodeCZ": 4,
+    "readNodeRadius": 3,
     "readNodeSelected": 3,
 }
 

@@ -1,6 +1,6 @@
 import { polarToCart } from "../polar-convert";
 
-export interface BufferLabelPos { row: number; label: string; px: number; py: number; cx: number; cy: number; }
+export interface BufferLabelPos { row: number; label: string; px: number; py: number; }
 
 export const BUFFER_NODE_TAG = "bufferNode";
 

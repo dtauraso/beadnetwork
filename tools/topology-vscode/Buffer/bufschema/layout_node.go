@@ -7,6 +7,10 @@ type bufLayoutNode struct {
 	CZ     float32 `buf:"f32"`
 	Radius float32 `buf:"f32"`
 
+	LabelAnchorX float32 `buf:"f32"`
+	LabelAnchorY float32 `buf:"f32"`
+	LabelAnchorZ float32 `buf:"f32"`
+
 	PolePhi   float32 `buf:"f32"`
 	PoleTheta float32 `buf:"f32"`
 

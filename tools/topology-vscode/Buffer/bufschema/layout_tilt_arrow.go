@@ -1,8 +1,5 @@
 package bufschema
 
-// One row per tilt arrow: the two transforms Go composed for it, and which mesh draws it.
-// The render tree used to build these from the node centre, the vector length and a phi
-// -- geometry derived in TS, and the reason TiltVectors read the node centre column.
 type bufLayoutTiltArrow struct {
 	Received uint8 `buf:"u8"`
 

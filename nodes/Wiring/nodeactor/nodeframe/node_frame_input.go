@@ -17,6 +17,8 @@ type NodeFrameInput struct {
 
 	PoleRingR float32
 
+	LabelAnchorX, LabelAnchorY, LabelAnchorZ float32
+
 	PolePhi, PoleTheta float32
 
 	RingMatrix [16]float32

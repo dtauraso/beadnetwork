@@ -30,6 +30,8 @@ type FrameGeometryOutputs struct {
 
 	LatticePoints int32
 
+	LabelAnchor vec3
+
 	TopTiltVectorLen float64
 
 	TopTiltVectorIdx int32
@@ -54,6 +56,8 @@ func DeriveFrameGeometry(in FrameGeometryInputs) FrameGeometryOutputs {
 	ringAxisPhi, ringAxisTheta := TorusDefaultAxisAngles()
 	nodeR := nodegeom.NodeRadius(in.Geom.Kind)
 	out.RingMatrix = RingInstanceMatrixColumnMajor(out.Center, nodeR, ringAxisPhi, ringAxisTheta)
+
+	out.LabelAnchor = out.Center.Add(vec3{Y: nodeR})
 
 	if in.UpAxis && in.Geom.HasPos {
 		out.TopTiltVectorLen = nodegeom.NodeRadius(in.Geom.Kind)

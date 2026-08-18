@@ -6,18 +6,12 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/camera"
 )
 
-// The arrow's proportions. These used to live in TiltVectors.tsx, which composed the
-// shaft and head transforms itself from the node centre, the vector length and its phi
-// -- geometry derived in the render tree, and the reason the tilt consumer read the node
-// centre column at all.
 const (
 	arrowShaftRadiusFrac = 0.035
 	arrowHeadLenFrac     = 0.22
 	arrowHeadRadiusFrac  = 0.09
 )
 
-// A tilt arrow is drawn as a unit cylinder for the shaft and one for the head, so what
-// Go sends is two transforms per arrow and nothing to combine them with.
 type TiltArrow struct {
 	Received bool
 
@@ -25,12 +19,8 @@ type TiltArrow struct {
 	Head  [16]float32
 }
 
-// The disk the tilt vectors lie in. Their direction is a phi alone.
 const ArrowRingDiskTheta = 0
 
-// axisBasisFrom is ringAxisBasis generalized off its hardcoded +z: the rotation taking
-// `from` onto `axis`, which is what THREE's setFromUnitVectors builds. Arrow geometry is
-// a cylinder along +y, so it needs +y, not +z.
 func axisBasisFrom(from, axis vec3) (bx, by, bz vec3) {
 	f := from.Normalize()
 	t := axis.Normalize()
@@ -42,7 +32,6 @@ func axisBasisFrom(from, axis vec3) (bx, by, bz vec3) {
 		return x, y, z
 	}
 	if cosA < -1+1e-9 {
-		// A half turn about any axis perpendicular to `from`.
 		perp := x
 		if math.Abs(f.X) > 0.9 {
 			perp = y
@@ -73,8 +62,6 @@ func composeColumnMajor(bx, by, bz, center vec3, sx, sy, sz float64) [16]float32
 	}
 }
 
-// ArrowMatrices composes the shaft and head transforms for one arrow of length `length`
-// pointing along `phi` from `center`.
 func ArrowMatrices(center vec3, length, phi float64, received bool) TiltArrow {
 	axis := camera.AnglesToWorldOffset(1, phi, ArrowRingDiskTheta).Normalize()
 	up := vec3{X: 0, Y: 1, Z: 0}
