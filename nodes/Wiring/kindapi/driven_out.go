@@ -1,7 +1,7 @@
 package kindapi
 
 import (
-	"github.com/dtauraso/wirefold/nodes/wire/outport"
+	"github.com/dtauraso/wirefold/nodes/bead/outport"
 )
 
 type DrivenOut struct {
@@ -12,7 +12,7 @@ func newDrivenOut(out *outport.Out) DrivenOut { return DrivenOut{out: out} }
 
 func NewDrivenOutForTest(out *outport.Out) DrivenOut { return DrivenOut{out: out} }
 
-func (d DrivenOut) Wired() bool { return d.out.Wired() }
+func (d DrivenOut) HasRun() bool { return d.out.HasRun() }
 
 func (d DrivenOut) Paced() bool { return d.out.Paced() }
 

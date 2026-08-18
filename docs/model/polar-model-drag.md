@@ -60,7 +60,7 @@
   Bead count on an edge falls out of the resulting geometry as one integer subtraction
   (`nodes/Wiring/edgegeom/chain_length.go`'s `EdgeStepCount`), with the near end tangent to the node's
   own torus by construction of the placement formula and one uniform global bead size
-  (`nodes/wire/lattice/bead_lattice.go`).
+  (`nodes/bead/lattice/bead_lattice.go`).
 - **A mutual pair (two nodes each pointing an edge at the other) offsets its two chains to
   opposite sides**, so they do not draw on top of each other. `edgegeom.ParallelChainOffset`
   (`nodes/Wiring/edgegeom/parallel_chain_offset.go`) computes the offset from the pair's own two centres and

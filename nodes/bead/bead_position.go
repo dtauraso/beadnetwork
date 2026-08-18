@@ -1,8 +1,8 @@
-package wire
+package bead
 
 import (
+	"github.com/dtauraso/wirefold/nodes/bead/lattice"
 	"github.com/dtauraso/wirefold/nodes/spatial"
-	"github.com/dtauraso/wirefold/nodes/wire/lattice"
 )
 
 func (b *inflightBead) pos() spatial.Vec3 {

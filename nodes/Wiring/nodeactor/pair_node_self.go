@@ -162,5 +162,5 @@ func (p *PairNodeSelf) ClearOutBeads() {
 	if p == nil || p.geom == nil {
 		return
 	}
-	p.geom.anim.ClearOutWires()
+	p.geom.anim.ClearBeadRuns()
 }

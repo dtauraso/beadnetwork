@@ -1,4 +1,4 @@
-package wire
+package bead
 
 import (
 	"os"
@@ -8,14 +8,14 @@ import (
 
 var edgeBeadTraceEnabled = os.Getenv("WIREFOLD_EDGE_BEAD_TRACE") == "1"
 
-const wireChanBufferSize = 4096
+const beadChanBufferSize = 4096
 
 type deliveredBead struct {
 	val         int
 	deliverTick int64
 }
 
-type PacedWire struct {
+type BeadRun struct {
 	inCh  chan placeRequest
 	outCh chan deliveredBead
 
@@ -33,22 +33,22 @@ type PacedWire struct {
 	Target       string
 	TargetHandle string
 
-	readout wireReadout
+	readout beadReadout
 
 	rev revisionSlot
 }
 
-const maxInflightBeads = wireChanBufferSize
+const maxInflightBeads = beadChanBufferSize
 
-func NewPacedWire(steps int, dwellTicks float64) *PacedWire {
-	return &PacedWire{
+func NewBeadRun(steps int, dwellTicks float64) *BeadRun {
+	return &BeadRun{
 		dwell: dwellTicks,
-		inCh:  make(chan placeRequest, wireChanBufferSize),
-		outCh: make(chan deliveredBead, wireChanBufferSize),
+		inCh:  make(chan placeRequest, beadChanBufferSize),
+		outCh: make(chan deliveredBead, beadChanBufferSize),
 
 		kindToAnimClearCh: make(chan struct{}, 1),
 
-		readout: wireReadout{breadcrumbCh: make(chan rowevent.RowEvent, 4)},
+		readout: beadReadout{breadcrumbCh: make(chan rowevent.RowEvent, 4)},
 		rev:     newRevisionSlot(),
 	}
 }

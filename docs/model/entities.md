@@ -7,7 +7,7 @@
 There are TWO different things this project calls a "bead", and conflating them is the
 mistake to avoid:
 
-- **In-flight VALUE bead (`PacedWire.inflight`).** A value in transit from a source node to
+- **In-flight VALUE bead (`BeadRun.inflight`).** A value in transit from a source node to
   a destination node, timed by the wire's own traversal fraction `t`. This bead is data, not
   a goroutine — see the Wire bullet below, unchanged by the chain-bead goroutine model.
 - **Chain (render/placeholder) bead.** REMOVED. It was the node-owned visual entity that
@@ -16,9 +16,9 @@ mistake to avoid:
   belief was a cache of the neighbour's centre, kept current by a centre broadcast, and
   both are gone. What renders a traversal now is the in-flight value bead itself, placed
   by the edge it travels on the segment that edge already holds
-  (`nodes/wire/live_beads.go`'s `LiveBeadRows`), streamed on the EDGE's own frame as a
+  (`nodes/bead/live_beads.go`'s `LiveBeadRows`), streamed on the EDGE's own frame as a
   world position. The goroutine-per-bead primitive
-  (`nodes/wire/beadchain/bead_actor.go`, `bead_wake_group.go`) survives with no production
+  (`nodes/bead/beadchain/bead_actor.go`, `bead_wake_group.go`) survives with no production
   call site. The rest of this bullet describes that removed entity; it is kept because the
   clock/channel split below is the design a replacement would have to answer to.
 
@@ -66,7 +66,7 @@ mistake to avoid:
   it exists so a person can watch a bead cross a wire, and geometry must never run on it —
   one propagation hop per tick would make even linear traversal visibly slow.)
 
-  This is additive to the transport model below, not a replacement of it: `PacedWire`'s
+  This is additive to the transport model below, not a replacement of it: `BeadRun`'s
   in-flight value beads remain the passive delay queue MODEL.md always described; the chain
   bead is what renders a traversal — the one entity in this codebase that is BOTH a
   goroutine AND owns local per-drag mode state.
@@ -85,7 +85,7 @@ mistake to avoid:
   SOURCE's chain (so target-drags also toggle the mode flag, not just geometry) is future
   work, not yet done.
 
-- **Wire (`PacedWire`).** Transport. A PASSIVE delay queue, not a
+- **Wire (`BeadRun`).** Transport. A PASSIVE delay queue, not a
   goroutine: the source node sends a bead over the wire's in-channel to
   place it, and that SAME source node times the traversal on its own clock
   reading (each goroutine owns its own clock copy — see the Clock bullet
@@ -94,16 +94,16 @@ mistake to avoid:
   the visual depiction either — the source node's own chain of placeholder
   beads is — its length is `edgegeom.EdgeStepCount`. There is one owner
   of `inflight`/`delivered` and the in-flight geometry: the source node
-  goroutine. Because it is the sole owner, `PacedWire.mu` does not exist
+  goroutine. Because it is the sole owner, `BeadRun.mu` does not exist
   — ownership replaces locking, the same move that removed `RealClock.mu`.
   Do not reintroduce a lock here "for safety"; a second lock on top of
   single-goroutine ownership is dead weight, and if two goroutines ever
   need to touch this state again that is a sign the ownership model
   broke, not a reason to add a mutex. The wire applies no send policy —
   see §Sending. A wire's TRANSPORT state and the REPORTING it does for the
-  renderer are separate types: `PacedWire` holds the queue (`inflight`,
+  renderer are separate types: `BeadRun` holds the queue (`inflight`,
   the in/out channels, dwell, the arrival math), and its `readout`
-  (`wireReadout`, `nodes/wire/wire_readout.go`) holds the pending
+  (`wireReadout`, `nodes/bead/readout.go`) holds the pending
   Position/Arrive buffer, the `Trace` handle and the debug-breadcrumb
   channel. Both are owned by the same single source-node goroutine; the
   split says which concern a field belongs to, it does not add an owner.
@@ -127,7 +127,7 @@ mistake to avoid:
   whatever the source node's drive of that wire sends. Ports carry no geometry of their
   own; an edge attaches at its two nodes' SURFACES (`nodegeom.NodeTorusOuterR`), not at a
   port position.
-- **Clock (the human-speed clock).** There is exactly one clock: the system monotonic clock, read through a **scale** so it advances in integer **ticks** at human-watchable speed (`tick = ⌊(now − start) / tickPeriod⌋`; the scale is the human-speed / playback-speed knob, `MsPerTick = 16` ⇒ ≈62.5 ticks/sec). All timing is **tick counts**, not wall-clock durations. The model is **sleep-only**: a pacing loop calls `SleepCycle` to wait exactly ONE cycle and re-reads `Tick()`, rather than blocking on a target tick — there is no wait-until-tick-k primitive. The clock is **free-running**: it advances monotonically with wall time and never pauses (there is no play/pause gate). **Everything that animates runs in these ticks:** bead traveling, all in-node animations, and all node/gate processing windows. Per-update tick counts come from formulas, not literals — a bead crossing an edge takes `ticksToCross = steps * DwellTicksPerBead` (steps the edge's own bead-step count, `DwellTicksPerBead` a uniform constant per bead-lattice step across all wires, `nodes/wire/lattice/bead_lattice.go`); node processing windows are tick counts. There is no separate render cadence — the tick IS the animation clock.
+- **Clock (the human-speed clock).** There is exactly one clock: the system monotonic clock, read through a **scale** so it advances in integer **ticks** at human-watchable speed (`tick = ⌊(now − start) / tickPeriod⌋`; the scale is the human-speed / playback-speed knob, `MsPerTick = 16` ⇒ ≈62.5 ticks/sec). All timing is **tick counts**, not wall-clock durations. The model is **sleep-only**: a pacing loop calls `SleepCycle` to wait exactly ONE cycle and re-reads `Tick()`, rather than blocking on a target tick — there is no wait-until-tick-k primitive. The clock is **free-running**: it advances monotonically with wall time and never pauses (there is no play/pause gate). **Everything that animates runs in these ticks:** bead traveling, all in-node animations, and all node/gate processing windows. Per-update tick counts come from formulas, not literals — a bead crossing an edge takes `ticksToCross = steps * DwellTicksPerBead` (steps the edge's own bead-step count, `DwellTicksPerBead` a uniform constant per bead-lattice step across all wires, `nodes/bead/lattice/bead_lattice.go`); node processing windows are tick counts. There is no separate render cadence — the tick IS the animation clock.
   A wire is stepped with its SOURCE NODE's own clock copy and tick reading,
   exactly like every other per-goroutine clock use — there is no shared
   clock to pin a tick against. But a bead's **placement tick** (when it

@@ -4,14 +4,14 @@ import (
 	"context"
 
 	T "github.com/dtauraso/wirefold/Trace"
+	"github.com/dtauraso/wirefold/nodes/bead"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
-	"github.com/dtauraso/wirefold/nodes/wire"
 )
 
 type In struct {
 	ch <-chan int
 
-	pw  *wire.PacedWire
+	pw  *bead.BeadRun
 	ctx context.Context
 
 	node  string
@@ -65,11 +65,11 @@ func NewInChan(ch <-chan int, node, port string, tr *T.Trace, stream func() rowe
 	return &In{ch: ch, node: node, port: port, trace: tr, portRow: -1, stream: stream}
 }
 
-func NewInPaced(pw *wire.PacedWire, ctx context.Context, node, port string, tr *T.Trace, stream func() rowevent.EventSink, portRow int32) *In {
+func NewInPaced(pw *bead.BeadRun, ctx context.Context, node, port string, tr *T.Trace, stream func() rowevent.EventSink, portRow int32) *In {
 	return &In{pw: pw, ctx: ctx, node: node, port: port, trace: tr, stream: stream, portRow: portRow}
 }
 
-func (i *In) Wired() bool {
+func (i *In) HasRun() bool {
 	if i == nil {
 		return false
 	}
@@ -120,8 +120,8 @@ func breadcrumbLabelFor(event string) (uint8, bool) {
 		return T.BreadcrumbDwellStart, true
 	case "abc-drag":
 		return T.BreadcrumbAbcDrag, true
-	case "wire-send-buffer-full":
-		return T.BreadcrumbWireSendBufferFull, true
+	case "bead-place-buffer-full":
+		return T.BreadcrumbBeadPlaceBufferFull, true
 	case "drag.commit":
 		return T.BreadcrumbDragCommit, true
 	case "chain-aim":

@@ -1,4 +1,4 @@
-package wire
+package bead
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/spatial"
 )
 
-func (pw *PacedWire) DriveOneStep(ctx context.Context, tick int64) {
+func (pw *BeadRun) DriveOneStep(ctx context.Context, tick int64) {
 	if ctx.Err() != nil {
 		return
 	}
@@ -19,7 +19,7 @@ func (pw *PacedWire) DriveOneStep(ctx context.Context, tick int64) {
 	pw.stepAll(tick)
 }
 
-func (pw *PacedWire) drainPlacements() {
+func (pw *BeadRun) drainPlacements() {
 	for {
 		select {
 		case req := <-pw.inCh:
@@ -28,7 +28,7 @@ func (pw *PacedWire) drainPlacements() {
 				val:     req.val,
 				slot:    0,
 				steps:   req.bp.Steps,
-				seg:     spatial.WireSegment{Start: req.bp.Start, End: req.bp.End},
+				seg:     spatial.Segment{Start: req.bp.Start, End: req.bp.End},
 				node:    req.bp.Node,
 				port:    req.bp.Port,
 				streams: req.bp.streams(),
@@ -36,10 +36,10 @@ func (pw *PacedWire) drainPlacements() {
 			})
 			if len(pw.inflight) > maxInflightBeads {
 				panic(fmt.Sprintf(
-					"paced_wire: inflight exceeded %d beads on edge %q owned by node %s (-> %s.%s); "+
+					"bead_run: inflight exceeded %d beads on edge %q owned by node %s (-> %s.%s); "+
 						"beads are being placed faster than they cross and deliver. Two causes reach "+
 						"this: the destination stopped draining outCh (FIFO-head delivery stalled), "+
-						"or the source is placing faster than this wire can carry",
+						"or the source is placing faster than this run can carry",
 					maxInflightBeads, pw.Edge, pw.Owner, pw.Target, pw.TargetHandle))
 			}
 		default:
@@ -48,13 +48,13 @@ func (pw *PacedWire) drainPlacements() {
 	}
 }
 
-func (pw *PacedWire) stepAll(tick int64) {
+func (pw *BeadRun) stepAll(tick int64) {
 	for i := range pw.inflight {
 		b := &pw.inflight[i]
 		pw.advance(b)
 		if edgeBeadTraceEnabled && pw.readout.StreamsActive && b.streams {
 			p := b.pos()
-			pw.readout.appendPending(pendingWireEvent{
+			pw.readout.appendPending(pendingBeadEvent{
 				kind: T.KindEdgeBead, value: b.val,
 				x: p.X, y: p.Y, z: p.Z, t: float64(b.slot), gen: b.gen,
 			}, pw.Owner, pw.Edge)
@@ -79,7 +79,7 @@ func (pw *PacedWire) stepAll(tick int64) {
 	}
 }
 
-func (pw *PacedWire) slotsPerBead() int {
+func (pw *BeadRun) slotsPerBead() int {
 	n := int(math.Round(pw.dwell))
 	if n < 1 {
 		return 1
@@ -87,7 +87,7 @@ func (pw *PacedWire) slotsPerBead() int {
 	return n
 }
 
-func (pw *PacedWire) ReviseGeometry(newSteps int, newSeg spatial.WireSegment) {
+func (pw *BeadRun) ReviseGeometry(newSteps int, newSeg spatial.Segment) {
 	for i := range pw.inflight {
 		b := &pw.inflight[i]
 		b.steps = newSteps

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: nodes/wire/*.go,nodes/Wiring/*.go | only stepAll's KindEdgeBead append may sit behind edgeBeadTraceEnabled; breadcrumbs always emit
+# PLACEMENT: nodes/bead/*.go,nodes/Wiring/*.go | only stepAll's KindEdgeBead append may sit behind edgeBeadTraceEnabled; breadcrumbs always emit
 
 set -euo pipefail
 

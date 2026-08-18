@@ -11,9 +11,9 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/moverreg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
 	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
+	"github.com/dtauraso/wirefold/nodes/bead"
+	"github.com/dtauraso/wirefold/nodes/bead/outport"
 	"github.com/dtauraso/wirefold/nodes/nodeapi"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
-	"github.com/dtauraso/wirefold/nodes/wire/outport"
 )
 
 func (b *buildCtx) buildNodes() error {
@@ -60,7 +60,7 @@ func (b *buildCtx) buildNodes() error {
 			case portwiring.PortIn:
 				dk, ok := b.inbound[n.ID][port.Name]
 				if ok {
-					pb.SetSinglePaced(port.Name, b.destWire[dk])
+					pb.SetSinglePaced(port.Name, b.destRun[dk])
 				}
 
 			case portwiring.PortOut:
@@ -69,7 +69,7 @@ func (b *buildCtx) buildNodes() error {
 
 					rule := loadspec.NodeSendRule(n, port.Name)
 					lbl := labels[0]
-					pb.SetSinglePacedRule(port.Name, b.edgeWire[lbl], rule, b.edgeSteps[lbl], b.edgeSegments[lbl], lbl)
+					pb.SetSinglePacedRule(port.Name, b.edgeRun[lbl], rule, b.edgeSteps[lbl], b.edgeSegments[lbl], lbl)
 				}
 
 			case portwiring.PortBroadcast:
@@ -82,7 +82,7 @@ func (b *buildCtx) buildNodes() error {
 					}
 
 					rule := loadspec.NodeSendRule(n, handle)
-					pb.AppendBroadcastWithHandle(port.Name, handle, b.edgeWire[lbl], rule, b.edgeSteps[lbl], b.edgeSegments[lbl], lbl)
+					pb.AppendBroadcastWithHandle(port.Name, handle, b.edgeRun[lbl], rule, b.edgeSteps[lbl], b.edgeSegments[lbl], lbl)
 				}
 
 			}
@@ -103,6 +103,6 @@ func (b *buildCtx) buildNodes() error {
 	return nil
 }
 
-func bindDispatch(md *dispatch.MoveDispatch, outSink map[string]*outport.Out, destWire map[string]*wire.PacedWire) {
-	md.MR.Bind(outSink, inputcodec.SlotRegistry(destWire), md.RT.EdgeRowForPair)
+func bindDispatch(md *dispatch.MoveDispatch, outSink map[string]*outport.Out, destRun map[string]*bead.BeadRun) {
+	md.MR.Bind(outSink, inputcodec.SlotRegistry(destRun), md.RT.EdgeRowForPair)
 }

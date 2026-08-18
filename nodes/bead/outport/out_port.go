@@ -4,9 +4,9 @@ import (
 	"context"
 
 	T "github.com/dtauraso/wirefold/Trace"
+	"github.com/dtauraso/wirefold/nodes/bead"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
 	"github.com/dtauraso/wirefold/nodes/spatial"
-	"github.com/dtauraso/wirefold/nodes/wire"
 )
 
 type outGeom struct {
@@ -17,7 +17,7 @@ type outGeom struct {
 type Out struct {
 	ch chan<- int
 
-	pw  *wire.PacedWire
+	pw  *bead.BeadRun
 	ctx context.Context
 
 	node  string
@@ -70,7 +70,7 @@ func (o *Out) applyPostedGeom() {
 	}
 }
 
-func (o *Out) placement() wire.BeadPlacement {
+func (o *Out) placement() bead.BeadPlacement {
 	return o.placementFrom(o.Geom())
 }
 
@@ -79,8 +79,8 @@ func (o *Out) CurrentPlacement() (steps int, start, end spatial.Vec3) {
 	return bp.Steps, bp.Start, bp.End
 }
 
-func (o *Out) placementFrom(g outGeom) wire.BeadPlacement {
-	return wire.BeadPlacement{
+func (o *Out) placementFrom(g outGeom) bead.BeadPlacement {
+	return bead.BeadPlacement{
 		Steps: g.Steps,
 		Start: g.Start,
 		End:   g.End,

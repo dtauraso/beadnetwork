@@ -2,10 +2,11 @@ package pacer
 
 import (
 	"context"
+
+	"github.com/dtauraso/wirefold/nodes/bead/inport"
+	"github.com/dtauraso/wirefold/nodes/bead/outport"
 	"github.com/dtauraso/wirefold/nodes/clock"
 	"github.com/dtauraso/wirefold/nodes/nodeapi"
-	"github.com/dtauraso/wirefold/nodes/wire/inport"
-	"github.com/dtauraso/wirefold/nodes/wire/outport"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/interior"
 	Wiring "github.com/dtauraso/wirefold/nodes/Wiring/kindapi"

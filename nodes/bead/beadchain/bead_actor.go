@@ -83,7 +83,6 @@ func (b *Bead) pushObserve() {
 	}
 }
 
-// BEAD-SELECT-START
 func (b *Bead) run() {
 	for {
 		select {
@@ -112,7 +111,5 @@ func (b *Bead) run() {
 		}
 	}
 }
-
-// BEAD-SELECT-END
 
 func (b *Bead) Start() { go b.run() }

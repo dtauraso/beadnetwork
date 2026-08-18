@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/interior"
+	"github.com/dtauraso/wirefold/nodes/bead/inport"
+	"github.com/dtauraso/wirefold/nodes/bead/outport"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
-	"github.com/dtauraso/wirefold/nodes/wire/inport"
-	"github.com/dtauraso/wirefold/nodes/wire/outport"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )

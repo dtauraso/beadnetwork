@@ -1,9 +1,7 @@
-package wire
+package bead
 
 import "github.com/dtauraso/wirefold/nodes/spatial"
 
-// BeadPlacement is exported: it is constructed by nodes/wire/outport.Out and handed
-// across the package boundary to PacedWire.Send. Nothing else about it changed.
 type BeadPlacement struct {
 	Steps int
 
@@ -26,13 +24,13 @@ type inflightBead struct {
 	slot int
 
 	steps   int
-	seg     spatial.WireSegment
+	seg     spatial.Segment
 	node    string
 	port    string
 	streams bool
 	gen     uint64
 }
 
-func (pw *PacedWire) arrived(b *inflightBead) bool {
+func (pw *BeadRun) arrived(b *inflightBead) bool {
 	return b.slot >= b.steps*pw.slotsPerBead()
 }

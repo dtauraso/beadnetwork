@@ -1,21 +1,21 @@
-package wire
+package bead
 
 import "github.com/dtauraso/wirefold/nodes/spatial"
 
-type WireRevision struct {
+type Revision struct {
 	Steps int
-	Seg   spatial.WireSegment
+	Seg   spatial.Segment
 }
 
 type revisionSlot struct {
-	ch chan WireRevision
+	ch chan Revision
 }
 
 func newRevisionSlot() revisionSlot {
-	return revisionSlot{ch: make(chan WireRevision, 1)}
+	return revisionSlot{ch: make(chan Revision, 1)}
 }
 
-func (s *revisionSlot) post(rev WireRevision) {
+func (s *revisionSlot) post(rev Revision) {
 	if s.ch == nil {
 		return
 	}
@@ -29,26 +29,26 @@ func (s *revisionSlot) post(rev WireRevision) {
 	}
 }
 
-func (s *revisionSlot) take() (WireRevision, bool) {
+func (s *revisionSlot) take() (Revision, bool) {
 	if s.ch == nil {
-		return WireRevision{}, false
+		return Revision{}, false
 	}
 	select {
 	case rev := <-s.ch:
 		return rev, true
 	default:
-		return WireRevision{}, false
+		return Revision{}, false
 	}
 }
 
-func (pw *PacedWire) PostGeom(steps int, seg spatial.WireSegment) {
+func (pw *BeadRun) PostGeom(steps int, seg spatial.Segment) {
 	if pw == nil {
 		return
 	}
-	pw.rev.post(WireRevision{Steps: steps, Seg: seg})
+	pw.rev.post(Revision{Steps: steps, Seg: seg})
 }
 
-func (pw *PacedWire) applyRevision() {
+func (pw *BeadRun) applyRevision() {
 	if pw == nil {
 		return
 	}

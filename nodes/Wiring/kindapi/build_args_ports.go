@@ -2,8 +2,8 @@ package kindapi
 
 import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
-	"github.com/dtauraso/wirefold/nodes/wire/inport"
-	"github.com/dtauraso/wirefold/nodes/wire/outport"
+	"github.com/dtauraso/wirefold/nodes/bead/inport"
+	"github.com/dtauraso/wirefold/nodes/bead/outport"
 )
 
 func (a BuildArgs) In(portName string) *inport.In {

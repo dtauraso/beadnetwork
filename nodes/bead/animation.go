@@ -1,4 +1,4 @@
-package owners
+package bead
 
 import (
 	"context"
@@ -11,11 +11,10 @@ import (
 	"github.com/dtauraso/wirefold/nodes/clock"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
 	"github.com/dtauraso/wirefold/nodes/spatial"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
 )
 
-type Outs struct {
-	outWires []*wire.PacedWire
+type Animation struct {
+	outRuns []*BeadRun
 
 	outEdgeRows []int32
 
@@ -28,16 +27,16 @@ type Outs struct {
 
 type BeadFrameBuilder = func(tick uint32, nodeRow int32, beads []SF.EdgeBead, events []rowevent.RowEvent) []byte
 
-func (o *Outs) HasOutWires() bool { return len(o.outWires) > 0 }
+func (o *Animation) HasBeadRuns() bool { return len(o.outRuns) > 0 }
 
-func (o *Outs) SetBeadStream(w io.Writer, nodeRow int32, buildBeadFrame func(tick uint32, nodeRow int32, beads []SF.EdgeBead, events []rowevent.RowEvent) []byte) {
+func (o *Animation) SetBeadStream(w io.Writer, nodeRow int32, buildBeadFrame func(tick uint32, nodeRow int32, beads []SF.EdgeBead, events []rowevent.RowEvent) []byte) {
 	o.beadOut = w
 	o.nodeRow = nodeRow
 	o.buildBeadFrame = buildBeadFrame
 }
 
-func (o *Outs) RunAnimation(ctx context.Context) {
-	if !o.HasOutWires() {
+func (o *Animation) RunAnimation(ctx context.Context) {
+	if !o.HasBeadRuns() {
 		return
 	}
 	clk := clock.NewRealClock()
@@ -52,12 +51,12 @@ func (o *Outs) RunAnimation(ctx context.Context) {
 	}
 }
 
-func (o *Outs) stepBeads(ctx context.Context, tick int64) {
+func (o *Animation) stepBeads(ctx context.Context, tick int64) {
 	axisPhi, axisTheta := framegeom.TorusDefaultAxisAngles()
-	beads := make([]SF.EdgeBead, 0, len(o.outWires))
+	beads := make([]SF.EdgeBead, 0, len(o.outRuns))
 	var events []rowevent.RowEvent
 
-	for i, pw := range o.outWires {
+	for i, pw := range o.outRuns {
 		pw.DriveOneStep(ctx, tick)
 
 		edgeRow := int32(-1)
@@ -73,12 +72,12 @@ func (o *Outs) stepBeads(ctx context.Context, tick int64) {
 					pos, nodegeom.ShadingParamBeadRadius, axisPhi, axisTheta),
 			})
 		}
-		events = append(events, o.drainWireEvents(pw)...)
+		events = append(events, o.drainBeadEvents(pw)...)
 	}
 	o.writeBeadFrame(tick, beads, events)
 }
 
-func (o *Outs) drainWireEvents(pw *wire.PacedWire) []rowevent.RowEvent {
+func (o *Animation) drainBeadEvents(pw *BeadRun) []rowevent.RowEvent {
 	var events []rowevent.RowEvent
 	for _, pe := range pw.DrainPendingEvents() {
 		events = append(events, rowevent.RowEvent{
@@ -97,7 +96,7 @@ func (o *Outs) drainWireEvents(pw *wire.PacedWire) []rowevent.RowEvent {
 	return events
 }
 
-func (o *Outs) writeBeadFrame(tick int64, beads []SF.EdgeBead, events []rowevent.RowEvent) {
+func (o *Animation) writeBeadFrame(tick int64, beads []SF.EdgeBead, events []rowevent.RowEvent) {
 	if o.beadOut == nil || o.buildBeadFrame == nil {
 		return
 	}
@@ -108,13 +107,13 @@ func (o *Outs) writeBeadFrame(tick int64, beads []SF.EdgeBead, events []rowevent
 	_, _ = o.beadOut.Write(frame)
 }
 
-func (o *Outs) ClearOutWires() {
-	for _, pw := range o.outWires {
+func (o *Animation) ClearBeadRuns() {
+	for _, pw := range o.outRuns {
 		pw.ClearInFlight()
 	}
 }
 
-func (o *Outs) AddOutWire(pw *wire.PacedWire, edgeRow int32) {
-	o.outWires = append(o.outWires, pw)
+func (o *Animation) AddBeadRun(pw *BeadRun, edgeRow int32) {
+	o.outRuns = append(o.outRuns, pw)
 	o.outEdgeRows = append(o.outEdgeRows, edgeRow)
 }

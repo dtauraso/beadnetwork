@@ -2,11 +2,12 @@ package timestart
 
 import (
 	"context"
+
+	"github.com/dtauraso/wirefold/nodes/bead/inport"
+	lattice "github.com/dtauraso/wirefold/nodes/bead/lattice"
+	"github.com/dtauraso/wirefold/nodes/bead/outport"
 	"github.com/dtauraso/wirefold/nodes/clock"
 	"github.com/dtauraso/wirefold/nodes/nodeapi"
-	"github.com/dtauraso/wirefold/nodes/wire/inport"
-	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
-	"github.com/dtauraso/wirefold/nodes/wire/outport"
 
 	Wiring "github.com/dtauraso/wirefold/nodes/Wiring/kindapi"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"

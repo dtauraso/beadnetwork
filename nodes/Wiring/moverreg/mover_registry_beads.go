@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
-	"github.com/dtauraso/wirefold/nodes/wire/outport"
+	"github.com/dtauraso/wirefold/nodes/bead/outport"
 )
 
 func (mr *MoverRegistry) Bind(outSink map[string]*outport.Out, slotReg inputcodec.SlotRegistry, edgeRowFor func(src, dst string) (int32, bool)) {
@@ -30,7 +30,7 @@ func (mr *MoverRegistry) Bind(outSink map[string]*outport.Out, slotReg inputcode
 		if dstNM, ok := mr.nodeGeoms[e.DstID()]; ok {
 			dstKind = dstNM.SelfKind()
 		}
-		srcNM.BindOutEdgeWire(e.Label(), e.DstID(), dstKind, port, pw)
+		srcNM.BindOutEdgeRun(e.Label(), e.DstID(), dstKind, port, pw)
 
 		if hasDest {
 			edgeRow := int32(-1)
@@ -39,7 +39,7 @@ func (mr *MoverRegistry) Bind(outSink map[string]*outport.Out, slotReg inputcode
 					edgeRow = r
 				}
 			}
-			srcNM.AddOutWire(pw, edgeRow)
+			srcNM.AddBeadRun(pw, edgeRow)
 		}
 	}
 }

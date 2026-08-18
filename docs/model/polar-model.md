@@ -142,7 +142,7 @@ and none is a source of truth.
   `lattice.BeadStepR` from the source's rim along the path's direction, the first bead
   included. The first bead is no longer a separately-authored vector; its aim and the
   chain's length both read the one stored path above. The placement is owned by that bead's
-  own goroutine (`nodes/wire/beadchain/bead_actor.go`'s
+  own goroutine (`nodes/bead/beadchain/bead_actor.go`'s
   `Bead`) — ownership + message passing, one writer, no locks/atomics
   (`tools/network/concurrency/check-no-network-locks.sh`, empty allowlist) — resolved from the node's own live
   aim broadcast (`BroadcastChain`, see the Chain bead bullet above) rather than a second

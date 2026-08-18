@@ -20,7 +20,7 @@ export interface NodeDef {
 }
 
 // PascalCase Go kind names that have a Go runtime.
-// Single source of truth — derived from wire.Register calls.
+// Single source of truth — derived from bead.Register calls.
 export const RUNTIME_IMPLEMENTED_KINDS: ReadonlySet<string> = new Set([
   "HoldFlip",
   "Input",

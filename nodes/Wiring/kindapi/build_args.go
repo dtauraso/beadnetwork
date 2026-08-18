@@ -8,8 +8,8 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/loadspec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
+	"github.com/dtauraso/wirefold/nodes/bead/outport"
 	"github.com/dtauraso/wirefold/nodes/nodeapi"
-	"github.com/dtauraso/wirefold/nodes/wire/outport"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )

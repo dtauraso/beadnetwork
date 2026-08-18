@@ -1,4 +1,4 @@
-package wire
+package bead
 
 type LiveBeadRow struct {
 	Val     int
@@ -9,7 +9,7 @@ type LiveBeadRow struct {
 	Slot  int
 }
 
-func (pw *PacedWire) LiveBeadRows() []LiveBeadRow {
+func (pw *BeadRun) LiveBeadRows() []LiveBeadRow {
 	rows := make([]LiveBeadRow, 0, len(pw.inflight))
 	for i := range pw.inflight {
 		b := &pw.inflight[i]

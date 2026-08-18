@@ -1,7 +1,7 @@
 # Model
 
 Read this before changing anything in the **Go network** (`nodes/`,
-`nodes/wire/paced_wire.go`, `nodes/Wiring/build/loader.go`,
+`nodes/bead/bead_run.go`, `nodes/Wiring/build/loader.go`,
 `nodes/Wiring/loadspec/builders.go`) or anything that schedules/orders work. If
 your reasoning slips into retired vocabulary, you are in the wrong
 frame. Stop, re-read this file, and re-derive from the model.
@@ -9,17 +9,24 @@ frame. Stop, re-read this file, and re-derive from the model.
 ## The network
 
 The network is **nodes and wires**. A node id NAMES a thing that is drawn.
-**A node is TWO goroutines, paced by two different things**, because it does
-two jobs that have two different clocks:
+**A node is FOUR goroutines, paced by four different things**, because it does
+four jobs that have four different clocks:
 
-- The **animation goroutine** — the KIND's own `Update` — is paced by the sim
-  clock. It owns the kind's logic and its interior slots, its own beads, and
-  the `PacedWire`s leaving it (`owners.Outs`). It writes its own bead stream
-  and its own interior stream. It gets the bead half by calling
-  `Self.Step(ctx, tick)` once per pass of its own loop, where `Self` is the
-  `PairNodeSelf` it claimed at build time (`BuildArgs.ClaimSelfDrive`); a kind
-  that holds a value onto an out steps a `gatecommon.HeldDriver` in that same
-  pass rather than handing the value to a goroutine over a channel.
+- The **kind goroutine** — the KIND's own `Update` — is paced by the sim
+  clock. It owns the kind's logic and its interior slots. It writes its own
+  interior stream. It runs `Self.Step(ctx, tick)` once per pass of its own loop,
+  where `Self` is the `PairNodeSelf` it claimed at build time
+  (`BuildArgs.ClaimSelfDrive`); a kind that holds a value onto an out steps a
+  `gatecommon.HeldDriver` in that same pass rather than handing the value to a
+  goroutine over a channel.
+- The **animation goroutine** — `owners.Outs.RunAnimation`, one per node id with
+  outputs — is paced by the pulse, not the sim clock. It owns the node's beads
+  and writes its own bead stream. It is NOT the kind's loop: beads used to move
+  only when the node's sim cycle came round, which tied how smoothly a bead drew
+  to how fast the network was set to run.
+- The **rule goroutine** — `rulenode.RuleNode.Run` — blocks on its own inbox. It
+  fans out further, one forwarder per peer in the all-pairs rule mesh, so the
+  goroutine count per node grows with the size of the scene.
 - The **geometry goroutine** — `PairNodeSelf.RunGeometry`, one per node id — is
   paced by nothing. It BLOCKS on its own inbox and runs when a message arrives,
   so a drag is served at the rate of the hand that is dragging. It owns the
@@ -37,11 +44,11 @@ bound, correctly reporting that it was "enqueueing to a peer faster than that
 peer drains". A hand movement must not be paced by a simulated
 one.
 
-**The two goroutines share no memory.** Every field of `NodeGeometry` belongs to
-exactly one of them, and the two places the geometry half used to reach into the
-animation half are now messages: the per-edge segment/step-count revision that
-`OutEdges.DeriveGeometry` derives, handed over by `PacedWire.PostGeom` and
-`outport.Out.PostGeom` as a `wire.WireRevision`, and bead-drag start/end, handed
+**The goroutines share no memory.** Every field of `NodeGeometry` belongs to
+exactly one of them, and the places the geometry half used to reach into the
+animation half are messages: the per-edge segment/step-count revision that
+`OutEdges.DeriveGeometry` derives, handed over by `BeadRun.PostGeom` and
+`outport.Out.PostGeom` as a `bead.Revision`, and bead-drag start/end, handed
 over by `Beads.PostBeadDrag`. The animation goroutine applies both at ONE point, the top
 of its own pass, never mid-pass — so beads are never drawn against a segment
 that moved halfway through the frame. An atomic or a mutex here would be a
@@ -57,9 +64,9 @@ holds a copy of the far end's absolute position: when a neighbour moves, the
 node is told how far it moved and shifts its own stored vector by that much, so
 the vector is maintained by composition and never re-derived. An
 `edgetable.Edge` is a plain record of endpoints and plumbing, not an actor.
-There is **no THIRD goroutine per node id** — no separate driver goroutine
-placing a held value onto an out, and no goroutine per edge. A wire
-(`PacedWire`) is not a goroutine at all: it is a PASSIVE delay queue
+There is **no goroutine per edge**, and no separate driver goroutine
+placing a held value onto an out. A wire
+(`BeadRun`) is not a goroutine at all: it is a PASSIVE delay queue
 with a channel on each end — a channel in from its source node, a channel
 out to its destination node — stepped by its SOURCE NODE's ANIMATION goroutine.
 The wire still owns its own beads (`inflight`/`delivered`) and its own
@@ -69,8 +76,8 @@ wire's new segment and step count but never writes them — it sends them, and
 the animation goroutine applies them. Nothing locks or reaches into the wire.
 Historically the wire had
 its OWN goroutine
-(`PacedWire.run`, one per wire, launched by `Start`) — not stepped by
-another. The wire's own goroutine is the sole thing that touches `inflight`. **An input port is one wire fed by
+(`BeadRun.run`, one per wire, launched by `Start`) — not stepped by
+another. **An input port is one wire fed by
 exactly one edge** — fan-in (several edges into one port) is not part of
 the model; multiple sources into one node use distinct input ports (see
 §Node lifecycle). So a wire has exactly one incident edge, and its own
@@ -90,7 +97,7 @@ the network itself is the nodes-and-wires Go runtime.
 ## What things are
 
 See [docs/model/entities.md](docs/model/entities.md) for the full statement of the
-in-flight value bead vs. the chain (render/placeholder) bead vs. the `PacedWire`, the node
+in-flight value bead vs. the chain (render/placeholder) bead vs. the `BeadRun`, the node
 goroutine, the input port, and the human-speed clock.
 
 ## Wire lifecycle, node lifecycle, and sending

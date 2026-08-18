@@ -1,4 +1,4 @@
-package wire
+package bead
 
 import (
 	T "github.com/dtauraso/wirefold/Trace"
@@ -13,7 +13,7 @@ const (
 	SendBufferFull
 )
 
-func (pw *PacedWire) Send(v int, bp BeadPlacement, tick int64) SendOutcome {
+func (pw *BeadRun) Send(v int, bp BeadPlacement, tick int64) SendOutcome {
 
 	pw.readout.flushDroppedBreadcrumbs()
 	select {
@@ -21,13 +21,13 @@ func (pw *PacedWire) Send(v int, bp BeadPlacement, tick int64) SendOutcome {
 		return SendPlaced
 	default:
 		if pw.readout.Trace != nil {
-			pw.readout.Trace.Breadcrumb("wire-send-buffer-full", pw.Owner, pw.Edge, "")
+			pw.readout.Trace.Breadcrumb("bead-place-buffer-full", pw.Owner, pw.Edge, "")
 		}
 
 		if pw.readout.breadcrumbCh != nil {
 			select {
 			case pw.readout.breadcrumbCh <- rowevent.RowEvent{
-				Kind: T.KindBreadcrumb, Label: T.BreadcrumbWireSendBufferFull, Debug: 1,
+				Kind: T.KindBreadcrumb, Label: T.BreadcrumbBeadPlaceBufferFull, Debug: 1,
 				NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 				Value: int32(v),
 			}:
@@ -39,7 +39,7 @@ func (pw *PacedWire) Send(v int, bp BeadPlacement, tick int64) SendOutcome {
 	}
 }
 
-func (pw *PacedWire) RecvTick() (int, int64, bool) {
+func (pw *BeadRun) RecvTick() (int, int64, bool) {
 	select {
 	case db := <-pw.outCh:
 		return db.val, db.deliverTick, true
@@ -48,12 +48,12 @@ func (pw *PacedWire) RecvTick() (int, int64, bool) {
 	}
 }
 
-func (pw *PacedWire) Recv() (int, bool) {
+func (pw *BeadRun) Recv() (int, bool) {
 	v, _, ok := pw.RecvTick()
 	return v, ok
 }
 
-func (pw *PacedWire) ClearInFlight() {
+func (pw *BeadRun) ClearInFlight() {
 	if pw == nil || pw.kindToAnimClearCh == nil {
 		return
 	}
@@ -63,7 +63,7 @@ func (pw *PacedWire) ClearInFlight() {
 	}
 }
 
-func (pw *PacedWire) applyClear() {
+func (pw *BeadRun) applyClear() {
 	select {
 	case <-pw.kindToAnimClearCh:
 	default:

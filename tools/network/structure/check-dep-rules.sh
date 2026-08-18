@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: nodes/*/node.go,nodes/*/*.go | a node-kind package may import only the shared spine (Wiring/gatecommon/wire/nodeapi/clock), never a sibling kind
+# PLACEMENT: nodes/*/node.go,nodes/*/*.go | a node-kind package may import only the shared spine (Wiring/gatecommon/bead/nodeapi/clock), never a sibling kind
 
 set -euo pipefail
 
@@ -18,7 +18,7 @@ fi
 
 MODULE="github.com/dtauraso/wirefold"
 
-is_spine() { [ "$1" = "Wiring" ] || [ "$1" = "gatecommon" ] || [ "$1" = "wire" ] || [ "$1" = "nodeapi" ] || [ "$1" = "clock" ]; }
+is_spine() { [ "$1" = "Wiring" ] || [ "$1" = "gatecommon" ] || [ "$1" = "bead" ] || [ "$1" = "spatial" ] || [ "$1" = "rowevent" ] || [ "$1" = "nodeapi" ] || [ "$1" = "clock" ]; }
 
 fail=0
 for dir in "$NODES_DIR"/*/; do

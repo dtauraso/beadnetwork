@@ -7,9 +7,9 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/polarindex"
+	"github.com/dtauraso/wirefold/nodes/bead"
+	"github.com/dtauraso/wirefold/nodes/bead/outport"
 	"github.com/dtauraso/wirefold/nodes/spatial"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
-	"github.com/dtauraso/wirefold/nodes/wire/outport"
 )
 
 type specNode struct {
@@ -105,7 +105,7 @@ type TopoSpec struct {
 	Constants polarindex.SceneConstants
 }
 
-type WireRegistry map[string]*wire.PacedWire
+type BeadRunRegistry map[string]*bead.BeadRun
 
 func ParseSpec(path string) (TopoSpec, error) {
 	spec, err := readSpec(path)

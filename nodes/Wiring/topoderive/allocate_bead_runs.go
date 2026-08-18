@@ -5,25 +5,25 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/loadspec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
+	"github.com/dtauraso/wirefold/nodes/bead"
+	lattice "github.com/dtauraso/wirefold/nodes/bead/lattice"
 	"github.com/dtauraso/wirefold/nodes/spatial"
-	wire "github.com/dtauraso/wirefold/nodes/wire"
-	lattice "github.com/dtauraso/wirefold/nodes/wire/lattice"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
 
-func AllocateWires(spec loadspec.TopoSpec, nodeGeoms map[string]nodegeom.NodeGeom, tr *T.Trace) (
-	destWire map[string]*wire.PacedWire,
-	edgeWire loadspec.WireRegistry,
+func AllocateBeadRuns(spec loadspec.TopoSpec, nodeGeoms map[string]nodegeom.NodeGeom, tr *T.Trace) (
+	destRun map[string]*bead.BeadRun,
+	edgeRun loadspec.BeadRunRegistry,
 	edgeEndpoints map[string]inputcodec.EdgeEndpoints,
 	edgeSteps map[string]int,
-	edgeSegments map[string]spatial.WireSegment,
+	edgeSegments map[string]spatial.Segment,
 ) {
-	destWire = map[string]*wire.PacedWire{}
-	edgeWire = loadspec.WireRegistry{}
+	destRun = map[string]*bead.BeadRun{}
+	edgeRun = loadspec.BeadRunRegistry{}
 	edgeEndpoints = map[string]inputcodec.EdgeEndpoints{}
 	edgeSteps = map[string]int{}
-	edgeSegments = map[string]spatial.WireSegment{}
+	edgeSegments = map[string]spatial.Segment{}
 	for _, e := range spec.Edges {
 		destKey := e.Target + "." + e.TargetHandle
 
@@ -35,22 +35,22 @@ func AllocateWires(spec loadspec.TopoSpec, nodeGeoms map[string]nodegeom.NodeGeo
 		edgeSteps[e.Label] = steps
 		edgeSegments[e.Label] = seg
 
-		if _, exists := destWire[destKey]; exists {
-			panic("AllocateWires: two edges target " + destKey + " — validateNoFanIn should have rejected this fan-in at parse")
+		if _, exists := destRun[destKey]; exists {
+			panic("AllocateBeadRuns: two edges target " + destKey + " — validateNoFanIn should have rejected this fan-in at parse")
 		}
 
-		pw := wire.NewPacedWire(steps, lattice.DwellTicksPerBead)
+		pw := bead.NewBeadRun(steps, lattice.DwellTicksPerBead)
 		pw.Owner = e.Source
 		pw.Edge = e.Label
 		pw.Target = e.Target
 		pw.TargetHandle = e.TargetHandle
 		pw.SetTrace(tr)
-		destWire[destKey] = pw
-		edgeWire[e.Label] = pw
+		destRun[destKey] = pw
+		edgeRun[e.Label] = pw
 		edgeEndpoints[e.Label] = inputcodec.EdgeEndpoints{
 			Source: e.Source, Target: e.Target,
 			SourceHandle: e.SourceHandle, TargetHandle: e.TargetHandle,
 		}
 	}
-	return destWire, edgeWire, edgeEndpoints, edgeSteps, edgeSegments
+	return destRun, edgeRun, edgeEndpoints, edgeSteps, edgeSegments
 }

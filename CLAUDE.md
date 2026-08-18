@@ -2,7 +2,7 @@
 
 ## Model — read first
 
-Before changing anything in the **Go network** (`nodes/`, `nodes/wire/paced_wire.go`,
+Before changing anything in the **Go network** (`nodes/`, `nodes/bead/bead_run.go`,
 `nodes/Wiring/build/loader.go`, `nodes/Wiring/loadspec/builders.go`) or the **content buffer**
 (`Buffer/`, the render tree under `tools/topology-vscode/src/webview/three/`),
 read [MODEL.md](MODEL.md). It pins the model. Do not propose multi-step
@@ -20,7 +20,7 @@ and never tells Go when a bead arrived. There is no JSON-trace render path and n
 `pump.ts`; the TS layer is **render + forward only** and holds no domain state (guard:
 `tools/webview/check-no-webview-state.sh`).
 
-The model's real entities live in [MODEL.md](MODEL.md): bead, wire (`PacedWire` — a
+The model's real entities live in [MODEL.md](MODEL.md): bead, wire (`BeadRun` — a
 PASSIVE delay queue holding its own in-flight beads, with a channel on each end, stepped by
 its SOURCE NODE's own goroutine — it is not a goroutine itself), node goroutine, input port,
 clock, and the node-owned chain of placeholder beads that renders a traversal

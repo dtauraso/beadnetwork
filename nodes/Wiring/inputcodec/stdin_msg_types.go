@@ -1,7 +1,7 @@
 package inputcodec
 
 import (
-	wire "github.com/dtauraso/wirefold/nodes/wire"
+	"github.com/dtauraso/wirefold/nodes/bead"
 )
 
 type EdgeEndpoints struct {
@@ -55,4 +55,4 @@ type RawHit struct {
 	IsInput bool
 }
 
-type SlotRegistry map[string]*wire.PacedWire
+type SlotRegistry map[string]*bead.BeadRun

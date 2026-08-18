@@ -2,10 +2,11 @@ package input
 
 import (
 	"context"
+
+	"github.com/dtauraso/wirefold/nodes/bead/inport"
+	"github.com/dtauraso/wirefold/nodes/bead/outport"
 	"github.com/dtauraso/wirefold/nodes/clock"
 	"github.com/dtauraso/wirefold/nodes/nodeapi"
-	"github.com/dtauraso/wirefold/nodes/wire/inport"
-	"github.com/dtauraso/wirefold/nodes/wire/outport"
 
 	Wiring "github.com/dtauraso/wirefold/nodes/Wiring/kindapi"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
@@ -42,10 +43,10 @@ func (n *Node) clock() clock.Clock {
 }
 
 func (n *Node) broadcastPlace(v int, tick int64) bool {
-	if n.OutCadence.Wired() && n.OutCadence.PlaceDrivenAt(v, tick).Failed() {
+	if n.OutCadence.HasRun() && n.OutCadence.PlaceDrivenAt(v, tick).Failed() {
 		return false
 	}
-	if n.ToExcitatory.Wired() && n.ToExcitatory.PlaceDrivenAt(v, tick).Failed() {
+	if n.ToExcitatory.HasRun() && n.ToExcitatory.PlaceDrivenAt(v, tick).Failed() {
 		return false
 	}
 	return true
@@ -73,7 +74,7 @@ func (n *Node) Update(ctx context.Context) {
 
 	clk := n.clock().Copy()
 
-	if n.FeedbackIn.Wired() {
+	if n.FeedbackIn.HasRun() {
 		n.updateFeedbackRing(ctx, &working, &backup, init, emitBeads, clk)
 		return
 	}

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: nodes/**/*.go | NewPacedWire must have exactly one non-test production call site, passing DwellTicksPerBead
+# PLACEMENT: nodes/**/*.go | NewBeadRun must have exactly one non-test production call site, passing DwellTicksPerBead
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
@@ -11,15 +11,15 @@ CANONICAL_SPEED="DwellTicksPerBead"
 cd "$REPO_ROOT"
 
 CALLS=$(git ls-files -z --cached --others --exclude-standard '*.go' \
-  | xargs -0 grep -n "NewPacedWire(" -- \
+  | xargs -0 grep -n "NewBeadRun(" -- \
   | grep -v "_test.go" \
-  | grep -v "func NewPacedWire(" \
+  | grep -v "func NewBeadRun(" \
   || true)
 
 COUNT=$(printf '%s' "$CALLS" | grep -c . || true)
 
 if [[ "$COUNT" -eq 0 ]]; then
-  echo "uniform-pulse-speed: EMPTY — no non-test NewPacedWire call site found." >&2
+  echo "uniform-pulse-speed: EMPTY — no non-test NewBeadRun call site found." >&2
   echo "  The constructor was renamed or removed; refusing a vacuous pass." >&2
   echo "  Update CANONICAL_SPEED / the grep in $0 to match the new shape." >&2
   exit 1
@@ -28,7 +28,7 @@ fi
 HITS=0
 
 if [[ "$COUNT" -ne 1 ]]; then
-  echo "uniform-pulse-speed: expected exactly 1 non-test NewPacedWire call site, found $COUNT:"
+  echo "uniform-pulse-speed: expected exactly 1 non-test NewBeadRun call site, found $COUNT:"
   printf '%s\n' "$CALLS" | sed 's/^/  /'
   echo ""
   echo "  Uniform pulse speed is structural ONLY while production builds wires in one place."
@@ -41,7 +41,7 @@ if ! printf '%s' "$CALLS" | grep -q "$CANONICAL_SPEED"; then
   echo "uniform-pulse-speed: the production call site does not pass $CANONICAL_SPEED:"
   printf '%s\n' "$CALLS" | sed 's/^/  /'
   echo ""
-  echo "  DwellTicksPerBead (nodes/wire/lattice/bead_lattice.go) is ticks per bead-step. A different"
+  echo "  DwellTicksPerBead (nodes/bead/lattice/bead_lattice.go) is ticks per bead-step. A different"
   echo "  constant here (e.g. a raw PulseSpeedWuPerMs/PulseSpeedWuPerTick) would silently"
   echo "  desync this wire's timing from the bead-step count the source node's chain is"
   echo "  laid out on."
