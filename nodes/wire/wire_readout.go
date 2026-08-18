@@ -70,8 +70,8 @@ func (r *wireReadout) appendPending(ev pendingWireEvent, owner, edge string) {
 	r.pending = append(r.pending, ev)
 	if len(r.pending) > maxPendingEvents {
 		panic(fmt.Sprintf(
-			"paced_wire: pending exceeded %d events on edge %q owned by node %s; the per-cycle "+
-				"drain (the source node's own Outs.DriveOutWires -> DrainPendingEvents) is not running",
+			"paced_wire: pending exceeded %d events on edge %q owned by node %s; the per-slot "+
+				"drain (the source node's own Outs.stepBeads -> DrainPendingEvents) is not running",
 			maxPendingEvents, edge, owner))
 	}
 }

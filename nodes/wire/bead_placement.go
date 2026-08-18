@@ -22,14 +22,17 @@ type placeRequest struct {
 }
 
 type inflightBead struct {
-	val           int
-	placementTick float64
-	steps         int
-	seg           spatial.WireSegment
-	node          string
-	port          string
-	streams       bool
-	gen           uint64
+	val  int
+	slot int
 
-	finalPending bool
+	steps   int
+	seg     spatial.WireSegment
+	node    string
+	port    string
+	streams bool
+	gen     uint64
+}
+
+func (pw *PacedWire) arrived(b *inflightBead) bool {
+	return b.slot >= b.steps*pw.slotsPerBead()
 }

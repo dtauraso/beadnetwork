@@ -48,7 +48,7 @@ func (pw *PacedWire) PostGeom(steps int, seg spatial.WireSegment) {
 	pw.rev.post(WireRevision{Steps: steps, Seg: seg})
 }
 
-func (pw *PacedWire) applyRevision(tick int64) {
+func (pw *PacedWire) applyRevision() {
 	if pw == nil {
 		return
 	}
@@ -56,5 +56,5 @@ func (pw *PacedWire) applyRevision(tick int64) {
 	if !ok {
 		return
 	}
-	pw.ReviseInFlightGeometry(tick, rev.Steps, rev.Seg)
+	pw.ReviseGeometry(rev.Steps, rev.Seg)
 }

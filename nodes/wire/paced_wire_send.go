@@ -54,6 +54,21 @@ func (pw *PacedWire) Recv() (int, bool) {
 }
 
 func (pw *PacedWire) ClearInFlight() {
+	if pw == nil || pw.kindToAnimClearCh == nil {
+		return
+	}
+	select {
+	case pw.kindToAnimClearCh <- struct{}{}:
+	default:
+	}
+}
+
+func (pw *PacedWire) applyClear() {
+	select {
+	case <-pw.kindToAnimClearCh:
+	default:
+		return
+	}
 	for {
 		select {
 		case <-pw.inCh:

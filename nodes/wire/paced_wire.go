@@ -19,6 +19,8 @@ type PacedWire struct {
 	inCh  chan placeRequest
 	outCh chan deliveredBead
 
+	kindToAnimClearCh chan struct{}
+
 	inflight []inflightBead
 
 	nextGen uint64
@@ -40,9 +42,12 @@ const maxInflightBeads = wireChanBufferSize
 
 func NewPacedWire(steps int, dwellTicks float64) *PacedWire {
 	return &PacedWire{
-		dwell:   dwellTicks,
-		inCh:    make(chan placeRequest, wireChanBufferSize),
-		outCh:   make(chan deliveredBead, wireChanBufferSize),
+		dwell: dwellTicks,
+		inCh:  make(chan placeRequest, wireChanBufferSize),
+		outCh: make(chan deliveredBead, wireChanBufferSize),
+
+		kindToAnimClearCh: make(chan struct{}, 1),
+
 		readout: wireReadout{breadcrumbCh: make(chan rowevent.RowEvent, 4)},
 		rev:     newRevisionSlot(),
 	}

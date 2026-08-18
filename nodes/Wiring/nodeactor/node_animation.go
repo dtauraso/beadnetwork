@@ -27,6 +27,6 @@ func (a *NodeAnimation) ClearOutWires() {
 	a.outs.ClearOutWires()
 }
 
-func (a *NodeAnimation) driveOutWires(ctx context.Context, tick int64) {
-	a.outs.DriveOutWires(ctx, tick)
+func (a *NodeAnimation) StartAnimation(ctx context.Context) {
+	go a.outs.RunAnimation(ctx)
 }

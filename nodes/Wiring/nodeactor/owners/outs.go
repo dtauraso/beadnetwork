@@ -8,6 +8,7 @@ import (
 	SF "github.com/dtauraso/wirefold/Buffer/streamframe"
 	"github.com/dtauraso/wirefold/nodes/Wiring/framegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
+	"github.com/dtauraso/wirefold/nodes/clock"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
 	"github.com/dtauraso/wirefold/nodes/spatial"
 	wire "github.com/dtauraso/wirefold/nodes/wire"
@@ -35,19 +36,35 @@ func (o *Outs) SetBeadStream(w io.Writer, nodeRow int32, buildBeadFrame func(tic
 	o.buildBeadFrame = buildBeadFrame
 }
 
-func (o *Outs) DriveOutWires(ctx context.Context, tick int64) {
+func (o *Outs) RunAnimation(ctx context.Context) {
+	if !o.HasOutWires() {
+		return
+	}
+	clk := clock.NewRealClock()
+	for {
+		if ctx.Err() != nil {
+			return
+		}
+		o.stepBeads(ctx, clk.Tick())
+		if err := clk.SleepPulse(ctx); err != nil {
+			return
+		}
+	}
+}
+
+func (o *Outs) stepBeads(ctx context.Context, tick int64) {
 	axisPhi, axisTheta := framegeom.TorusDefaultAxisAngles()
 	beads := make([]SF.EdgeBead, 0, len(o.outWires))
 	var events []rowevent.RowEvent
 
 	for i, pw := range o.outWires {
-		pw.DriveOneCycle(ctx, tick)
+		pw.DriveOneStep(ctx, tick)
 
 		edgeRow := int32(-1)
 		if i < len(o.outEdgeRows) {
 			edgeRow = o.outEdgeRows[i]
 		}
-		for _, r := range pw.LiveBeadRows(tick) {
+		for _, r := range pw.LiveBeadRows() {
 			pos := spatial.Vec3{X: r.X, Y: r.Y, Z: r.Z}
 			beads = append(beads, SF.EdgeBead{
 				X: float32(r.X), Y: float32(r.Y), Z: float32(r.Z),

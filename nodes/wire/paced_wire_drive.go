@@ -3,30 +3,30 @@ package wire
 import (
 	"context"
 	"fmt"
+	"math"
 
 	T "github.com/dtauraso/wirefold/Trace"
 	"github.com/dtauraso/wirefold/nodes/spatial"
-	"github.com/dtauraso/wirefold/nodes/wire/lattice"
 )
 
-func (pw *PacedWire) DriveOneCycle(ctx context.Context, tick int64) {
+func (pw *PacedWire) DriveOneStep(ctx context.Context, tick int64) {
 	if ctx.Err() != nil {
 		return
 	}
-	pw.applyRevision(tick)
-	pw.drainPlacements(tick)
+	pw.applyClear()
+	pw.applyRevision()
+	pw.drainPlacements()
 	pw.stepAll(tick)
 }
 
-func (pw *PacedWire) drainPlacements(tick int64) {
+func (pw *PacedWire) drainPlacements() {
 	for {
 		select {
 		case req := <-pw.inCh:
 			pw.nextGen++
 			pw.inflight = append(pw.inflight, inflightBead{
-				val:           req.val,
-				placementTick: float64(tick),
-
+				val:     req.val,
+				slot:    0,
 				steps:   req.bp.Steps,
 				seg:     spatial.WireSegment{Start: req.bp.Start, End: req.bp.End},
 				node:    req.bp.Node,
@@ -49,61 +49,48 @@ func (pw *PacedWire) drainPlacements(tick int64) {
 }
 
 func (pw *PacedWire) stepAll(tick int64) {
-	nowTick := float64(tick)
-	for i := 0; i < len(pw.inflight); {
+	for i := range pw.inflight {
 		b := &pw.inflight[i]
-		if !b.finalPending {
-			if nowTick <= b.placementTick {
-				i++
-				continue
-			}
-			emit, pos, final := pw.advanceBead(b, nowTick)
-			if emit && edgeBeadTraceEnabled && pw.readout.StreamsActive {
-				pw.readout.appendPending(pendingWireEvent{
-					kind: T.KindEdgeBead, value: pos.val,
-					x: pos.x, y: pos.y, z: pos.z, t: pos.t, gen: pos.gen,
-				}, pw.Owner, pw.Edge)
-			}
-			if !final {
-				i++
-				continue
-			}
-			b.finalPending = true
+		pw.advance(b)
+		if edgeBeadTraceEnabled && pw.readout.StreamsActive && b.streams {
+			p := b.pos()
+			pw.readout.appendPending(pendingWireEvent{
+				kind: T.KindEdgeBead, value: b.val,
+				x: p.X, y: p.Y, z: p.Z, t: float64(b.slot), gen: b.gen,
+			}, pw.Owner, pw.Edge)
 		}
+	}
 
-		if i != 0 {
-			i++
-			continue
+	for len(pw.inflight) > 0 {
+		b := &pw.inflight[0]
+		if !pw.arrived(b) {
+			return
 		}
 		select {
 		case pw.outCh <- deliveredBead{val: b.val, deliverTick: tick}:
 			pw.emitArrive(arriveInfo{emit: b.streams, node: b.node, port: b.port, value: b.val, gen: b.gen})
 			pw.inflight = pw.inflight[1:]
 			if len(pw.inflight) == 0 {
-
 				pw.inflight = nil
 			}
-
 		default:
-
-			i++
+			return
 		}
 	}
 }
 
-func (pw *PacedWire) ReviseInFlightGeometry(tick int64, newSteps int, newSeg spatial.WireSegment) {
-	if len(pw.inflight) == 0 {
-		return
+func (pw *PacedWire) slotsPerBead() int {
+	n := int(math.Round(pw.dwell))
+	if n < 1 {
+		return 1
 	}
-	nowTick := float64(tick)
+	return n
+}
+
+func (pw *PacedWire) ReviseGeometry(newSteps int, newSeg spatial.WireSegment) {
 	for i := range pw.inflight {
 		b := &pw.inflight[i]
-
-		oldCross := pw.ticksToCross(b.steps)
-		t := lattice.BeadFraction(nowTick, b.placementTick, oldCross)
 		b.steps = newSteps
 		b.seg = newSeg
-
-		b.placementTick = nowTick - t*pw.ticksToCross(newSteps)
 	}
 }
