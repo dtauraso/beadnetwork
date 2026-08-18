@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/binary"
 	"io"
-	"math"
+	"time"
 
 	SF "github.com/dtauraso/wirefold/Buffer/streamframe"
 	"github.com/dtauraso/wirefold/nodes/Wiring/framegeom"
@@ -43,16 +43,12 @@ func (o *Animation) SetBeadStream(w io.Writer, nodeRow int32, buildBeadFrame fun
 
 func (o *Animation) SetSpeedCh(ch <-chan float64) { o.speedCh = ch }
 
-func (o *Animation) wakePulses() int {
+func (o *Animation) wakeAfter() time.Duration {
 	s := o.scalar
 	if s <= 0 {
 		s = 1
 	}
-	n := int(math.Round(lattice.PulsesPerSlot / s))
-	if n < 1 {
-		return 1
-	}
-	return n
+	return time.Duration(float64(lattice.PulsesPerSlot) * float64(clock.TickPeriod) / s)
 }
 
 func (o *Animation) RunAnimation(ctx context.Context) {
@@ -68,7 +64,7 @@ func (o *Animation) RunAnimation(ctx context.Context) {
 			o.scalar = sp
 		}
 		o.stepBeads(ctx, clk.Tick())
-		if err := clk.SleepPulses(ctx, o.wakePulses()); err != nil {
+		if err := clk.SleepFor(ctx, o.wakeAfter()); err != nil {
 			return
 		}
 	}

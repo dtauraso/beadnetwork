@@ -14,4 +14,8 @@ const BeadTorusOuterR = BeadRadius * (1 + BeadRingTubeRatio)
 
 const BeadStepR = 2 * BeadTorusOuterR
 
-const PulsesPerSlot = 14
+const SlotsPerBead = 14
+
+const SlotR = BeadStepR / SlotsPerBead
+
+const PulsesPerSlot = 1

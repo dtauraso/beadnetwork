@@ -62,11 +62,11 @@ func SetNodeWorld(g *NodeGeom, composed polarindex.Index) {
 
 func NodeTorusSteps(kind string) int {
 	unsnapped := BareNodeRadius(kind) * (1 + ShadingParamNodeRingTubeRatio)
-	return int(math.Round(unsnapped / lattice.BeadStepR))
+	return int(math.Round(unsnapped / lattice.SlotR))
 }
 
 func NodeTorusOuterR(kind string) float64 {
-	return float64(NodeTorusSteps(kind)) * lattice.BeadStepR
+	return float64(NodeTorusSteps(kind)) * lattice.SlotR
 }
 
 const PoleRingSteps = 6
