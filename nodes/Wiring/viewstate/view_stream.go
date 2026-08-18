@@ -30,15 +30,7 @@ type ViewSceneState struct {
 	SceneKinds    uint32
 }
 
-type ViewFrameBuilder func(tick uint32,
-	camPX, camPY, camPZ, camR, camPosPhi, camPosTheta, camUpPhi, camUpTheta float32,
-	flags ViewOverlayFlags,
-	panels ViewPanelFlags,
-	dragNodeRow int32,
-	scene ViewSceneState,
-	speed float32,
-	events []rowevent.RowEvent,
-) []byte
+type ViewFrameBuilder func(tick uint32, events []rowevent.RowEvent) []byte
 
 func (ui *UIState) SetViewStream(out io.Writer, buildFrame ViewFrameBuilder) {
 
@@ -57,7 +49,6 @@ func (ui *UIState) EmitViewFrame(events []rowevent.RowEvent) {
 		return
 	}
 	ui.viewTick++
-	v := ui.VP.Viewpoint
 	sc := ui.SceneSphere
 
 	dragNodeRow := int32(-1)
@@ -70,49 +61,9 @@ func (ui *UIState) EmitViewFrame(events []rowevent.RowEvent) {
 	ui.writeSceneColumns(sc)
 	ui.writePanelColumns()
 	ui.writeOverlayColumns(dragNodeRow)
+	ui.writeCameraColumns()
 
-	frame := ui.ViewBuildFrame(ui.viewTick,
-		float32(v.Pivot.X), float32(v.Pivot.Y), float32(v.Pivot.Z), float32(v.R),
-		float32(v.Pos.Phi), float32(v.Pos.Theta), float32(v.Up.Phi), float32(v.Up.Theta),
-		ViewOverlayFlags{
-			SceneTori:      boolU8(ui.OV.SceneToriVisible),
-			ScenePoles:     boolU8(ui.OV.ScenePolesVisible),
-			NodePoles:      boolU8(ui.OV.NodePolesVisible),
-			Handholds:      boolU8(ui.OV.HandholdsVisible),
-			LabelsGlobal:   boolU8(ui.OV.LabelsGlobalVisible),
-			OverlaysVis:    boolU8(ui.OV.OverlaysVisible),
-			NodeBody:       boolU8(ui.OV.NodeBodyVisible),
-			NodeRing:       boolU8(ui.OV.NodeRingVisible),
-			RingPick:       boolU8(ui.OV.RingPickVisible),
-			SelectionRing:  boolU8(ui.OV.SelectionRingVisible),
-			HoverRing:      boolU8(ui.OV.HoverRingVisible),
-			SceneVectors:   boolU8(ui.OV.SceneVectorsVisible),
-			RuleChannels:   boolU8(ui.OV.RuleChannelsVisible),
-			NodePoleSphere: boolU8(ui.OV.NodePoleSphereVisible),
-			AllPoleSpheres: boolU8(ui.OV.AllPoleSpheresVisible),
-		},
-		ViewPanelFlags{
-			Overlays:     boolU8(ui.PN.OverlaysOpen),
-			Node:         boolU8(ui.PN.NodeOpen),
-			NodeShape:    boolU8(ui.PN.NodeShapeOpen),
-			NodeState:    boolU8(ui.PN.NodeStateOpen),
-			NodePoles:    boolU8(ui.PN.NodePolesOpen),
-			NodeRules:    boolU8(ui.PN.NodeRulesOpen),
-			Scene:        boolU8(ui.PN.SceneOpen),
-			SceneGuides:  boolU8(ui.PN.SceneGuidesOpen),
-			ScenePoles:   boolU8(ui.PN.ScenePolesOpen),
-			SceneVectors: boolU8(ui.PN.SceneVectorsOpen),
-			SceneLabels:  boolU8(ui.PN.SceneLabelsOpen),
-		},
-		dragNodeRow,
-		ViewSceneState{
-			EditRefused:   ui.EditRefused,
-			SceneEditable: boolU8(ui.SceneEditable),
-			SceneKinds:    ui.SceneKinds,
-		},
-		float32(ui.Speed),
-		events,
-	)
+	frame := ui.ViewBuildFrame(ui.viewTick, events)
 	if !ui.viewOut.Ok() {
 		return
 	}

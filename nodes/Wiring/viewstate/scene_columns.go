@@ -24,6 +24,22 @@ func (ui *UIState) writeSceneColumns(sc polar.SceneSphere) {
 	c.SetI32(B.ColStreamSceneMaxIndexTheta, int32(ui.Constants.MaxIndexTheta))
 }
 
+func (ui *UIState) writeCameraColumns() {
+	c := ui.singletonCols
+	if c == nil {
+		return
+	}
+	v := ui.VP.Viewpoint
+	c.SetF32(B.ColStreamCameraPX, float32(v.Pivot.X))
+	c.SetF32(B.ColStreamCameraPY, float32(v.Pivot.Y))
+	c.SetF32(B.ColStreamCameraPZ, float32(v.Pivot.Z))
+	c.SetF32(B.ColStreamCameraR, float32(v.R))
+	c.SetF32(B.ColStreamCameraPosPhi, float32(v.Pos.Phi))
+	c.SetF32(B.ColStreamCameraPosTheta, float32(v.Pos.Theta))
+	c.SetF32(B.ColStreamCameraUpPhi, float32(v.Up.Phi))
+	c.SetF32(B.ColStreamCameraUpTheta, float32(v.Up.Theta))
+}
+
 func (ui *UIState) writeOverlayColumns(dragNodeRow int32) {
 	c := ui.singletonCols
 	if c == nil {

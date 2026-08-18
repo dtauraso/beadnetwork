@@ -10,7 +10,19 @@ import (
 func writeBufferLayoutGoSingletons(outPath string, schema BufLayoutSchema, fp string) error {
 	var buf bytes.Buffer
 	w := bufio.NewWriter(&buf)
-	writeBufferLayoutGoPreamble(w, fp)
+
+	anyRow := false
+	for _, blk := range schema.Blocks {
+		if isSingletonBlock(blk.name) && hasRow(blk.name) {
+			anyRow = true
+			break
+		}
+	}
+	if anyRow {
+		writeBufferLayoutGoPreamble(w, fp)
+	} else {
+		writeBufferLayoutGoHeaderPreamble(w, fp)
+	}
 
 	for _, blk := range schema.Blocks {
 		if !isSingletonBlock(blk.name) || !hasRow(blk.name) {

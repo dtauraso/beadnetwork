@@ -7,23 +7,23 @@ import { nodeGeometryLine } from "./decode-event-node-geometry";
 import {
   readInteriorPresent, readInteriorValue, readInteriorX, readInteriorY, readInteriorZ,
   readEdgeSX, readEdgeSY, readEdgeSZ, readEdgeEX, readEdgeEY, readEdgeEZ,
-  readCameraPX, readCameraPY, readCameraPZ, readCameraR,
-  readCameraPosPhi, readCameraPosTheta, readCameraUpPhi, readCameraUpTheta,
   readEventKind, readEventNodeRow, readEventPortRow, readEventTargetRow, readEventTargetPortRow,
   readEventEdgeRow, readEventSlot, readEventValue, readEventBead,
   readEventBeadSteps, readEventX, readEventY, readEventZ, readEventF,
   readEventLabel, readEventDebug, readEventTextOff, readEventTextLen,
 } from "../../../../Buffer/buffer-layout";
+import { columnF32 } from "../../../../Buffer/column-values";
+import {
+  COL_STREAM_CAMERA_PX, COL_STREAM_CAMERA_PY, COL_STREAM_CAMERA_PZ, COL_STREAM_CAMERA_R,
+  COL_STREAM_CAMERA_POS_PHI, COL_STREAM_CAMERA_POS_THETA,
+  COL_STREAM_CAMERA_UP_PHI, COL_STREAM_CAMERA_UP_THETA,
+} from "../../../../Buffer/column-streams-gen";
 
 export type Line = Record<string, unknown>;
 
 const EVENT_TEXT_DECODER = new TextDecoder();
 
-export interface ViewBlocksOrNull {
-  cameraView: DataView | null;
-}
-
-export function decodeEventLine(ev: DataView, eventTextView: DataView, dn: DecodedNodeFrame | null, de: DecodedEdgeFrame | null, vb: ViewBlocksOrNull, i: number): Line | null {
+export function decodeEventLine(ev: DataView, eventTextView: DataView, dn: DecodedNodeFrame | null, de: DecodedEdgeFrame | null, i: number): Line | null {
   const kindId = readEventKind(ev, i);
   const kind = TRACE_EVENT_KINDS[kindId];
   if (kind === undefined) return null;
@@ -109,13 +109,13 @@ export function decodeEventLine(ev: DataView, eventTextView: DataView, dn: Decod
       };
     }
     case "camera": {
-      const c = vb.cameraView;
-      if (!c) return { kind };
+
       return {
         kind,
-        px: readCameraPX(c), py: readCameraPY(c), pz: readCameraPZ(c), r: readCameraR(c),
-        posTheta: readCameraPosPhi(c), posPhi: readCameraPosTheta(c),
-        upTheta: readCameraUpPhi(c), upPhi: readCameraUpTheta(c),
+        px: columnF32(COL_STREAM_CAMERA_PX), py: columnF32(COL_STREAM_CAMERA_PY),
+        pz: columnF32(COL_STREAM_CAMERA_PZ), r: columnF32(COL_STREAM_CAMERA_R),
+        posTheta: columnF32(COL_STREAM_CAMERA_POS_PHI), posPhi: columnF32(COL_STREAM_CAMERA_POS_THETA),
+        upTheta: columnF32(COL_STREAM_CAMERA_UP_PHI), upPhi: columnF32(COL_STREAM_CAMERA_UP_THETA),
       };
     }
     case "scene-sphere": {
