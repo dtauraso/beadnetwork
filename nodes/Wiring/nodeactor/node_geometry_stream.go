@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/framegeom"
-	"github.com/dtauraso/wirefold/nodes/Wiring/loadspec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/nodeframe"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodedrag"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
@@ -127,12 +126,6 @@ func (m *NodeGeometry) writeStreamFrame(events []rowevent.RowEvent) {
 		CY:                  float32(center.Y),
 		CZ:                  float32(center.Z),
 		Radius:              float32(nodegeom.NodeRadius(m.geom.Kind)),
-		VRX:                 loadspec.VerticalRingNormalX,
-		VRY:                 loadspec.VerticalRingNormalY,
-		VRZ:                 loadspec.VerticalRingNormalZ,
-		FRX:                 loadspec.FlatRingNormalX,
-		FRY:                 loadspec.FlatRingNormalY,
-		FRZ:                 loadspec.FlatRingNormalZ,
 		PoleRingR:           float32(nodegeom.PoleRingR()),
 		PolePhi:             float32(polePhi),
 		PoleTheta:           float32(poleTheta),

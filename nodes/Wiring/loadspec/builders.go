@@ -6,11 +6,6 @@ import (
 	B "github.com/dtauraso/wirefold/tools/topology-vscode/Buffer"
 )
 
-const (
-	VerticalRingNormalX, VerticalRingNormalY, VerticalRingNormalZ = 0.0, 0.0, 1.0
-	FlatRingNormalX, FlatRingNormalY, FlatRingNormalZ             = 0.0, 1.0, 0.0
-)
-
 func KindForID(id uint8) (string, bool) {
 	for _, k := range B.KnownKinds() {
 		if B.NodeKindID(k) == id {

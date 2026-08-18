@@ -16,12 +16,6 @@ type nodeFrameFixture struct {
 	CY        float32 `json:"cy"`
 	CZ        float32 `json:"cz"`
 	Radius    float32 `json:"radius"`
-	VRX       float32 `json:"vrx"`
-	VRY       float32 `json:"vry"`
-	VRZ       float32 `json:"vrz"`
-	FRX       float32 `json:"frx"`
-	FRY       float32 `json:"fry"`
-	FRZ       float32 `json:"frz"`
 	PolePhi   float32 `json:"polePhi"`
 	PoleTheta float32 `json:"poleTheta"`
 

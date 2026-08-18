@@ -5,15 +5,13 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/edgegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
-	"github.com/dtauraso/wirefold/nodes/Wiring/loadspec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/spatial"
 )
 
 type NodeGeomSeed struct {
-	ID, Label, Kind              string
-	CX, CY, CZ, Radius           float64
-	VRX, VRY, VRZ, FRX, FRY, FRZ float64
+	ID, Label, Kind    string
+	CX, CY, CZ, Radius float64
 
 	Row int
 }
@@ -54,9 +52,7 @@ func BuildNodeSeed(id string, i int, g nodegeom.NodeGeom, row int) NodeGeomSeed 
 		ID: id, Label: label, Kind: g.Kind,
 		CX: cx, CY: cy, CZ: cz,
 		Radius: nodegeom.NodeRadius(g.Kind),
-		VRX:    loadspec.VerticalRingNormalX, VRY: loadspec.VerticalRingNormalY, VRZ: loadspec.VerticalRingNormalZ,
-		FRX: loadspec.FlatRingNormalX, FRY: loadspec.FlatRingNormalY, FRZ: loadspec.FlatRingNormalZ,
-		Row: row,
+		Row:    row,
 	}
 }
 
