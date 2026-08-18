@@ -1,4 +1,4 @@
-package scenestructure
+package NodesDropdown
 
 import (
 	"fmt"

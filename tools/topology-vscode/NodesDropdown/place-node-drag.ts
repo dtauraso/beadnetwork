@@ -1,5 +1,5 @@
-import { postGoRecord } from "../../../../vscode-api";
-import { encodeSceneCreate } from "../../../../../schema/input/input-encode-scene-tilt";
+import { postGoRecord } from "../src/webview/vscode-api";
+import { encodeSceneCreate } from "../src/schema/input/input-encode-scene-tilt";
 
 export const NODE_PALETTE_KIND_MIME = "application/x-wirefold-kind";
 
