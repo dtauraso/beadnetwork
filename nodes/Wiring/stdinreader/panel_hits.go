@@ -11,6 +11,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodesdropdown"
 	"github.com/dtauraso/wirefold/nodes/Wiring/overlayspanel"
 	"github.com/dtauraso/wirefold/nodes/Wiring/panelstack"
+	"github.com/dtauraso/wirefold/nodes/Wiring/sceneswitch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/speedpanel"
 	"github.com/dtauraso/wirefold/nodes/Wiring/tiltpanel"
 	"github.com/dtauraso/wirefold/tools/topology-vscode/NodesDropdown"
@@ -32,6 +33,11 @@ func panelTookPointerDown(
 		home := ev
 		home.Kind = "home"
 		md.HandleRawInput(ctx, home, nil, tr)
+		return true
+	}
+
+	if i := pl.Tabs.Hit(ev.X, ev.Y); i >= 0 {
+		sceneswitch.SelectScene(&md.Scenes, i)
 		return true
 	}
 

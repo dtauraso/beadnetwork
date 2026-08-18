@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import * as THREE from "three";
-import { Tabs } from "../../../../Tabs/Tabs";
 import { sendRawInput, buildDeleteRaw } from "../interaction/raw-input";
 import { useInteractionControls } from "../interaction/interaction-controls";
 import type { PickFn } from "../interaction/pick-types";
@@ -92,7 +91,6 @@ export function ThreeView() {
       {}
       {!bufLabelsHidden && <BufferLabelOverlay positions={bufferLabelPositions} />}
 
-      <Tabs />
     </div>
   );
 }

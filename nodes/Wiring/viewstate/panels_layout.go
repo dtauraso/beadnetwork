@@ -6,6 +6,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/overlayspanel"
 	"github.com/dtauraso/wirefold/nodes/Wiring/panelstack"
 	"github.com/dtauraso/wirefold/nodes/Wiring/speedpanel"
+	"github.com/dtauraso/wirefold/nodes/Wiring/tabstrip"
 	"github.com/dtauraso/wirefold/nodes/Wiring/tiltpanel"
 	B "github.com/dtauraso/wirefold/tools/topology-vscode/Buffer"
 )
@@ -18,6 +19,8 @@ type PanelLayout struct {
 	Overlays overlayspanel.Layout
 
 	Fit panelstack.Rect
+
+	Tabs tabstrip.Layout
 }
 
 const FitLabel = "⌂ fit"
@@ -41,6 +44,7 @@ func (ui *UIState) PanelLayout() PanelLayout {
 
 	return PanelLayout{
 		Fit:      fit,
+		Tabs:     tabstrip.Build(float32(ui.ViewW), ui.SceneTabNames, ui.SceneTabSelected),
 		Speed:    speedpanel.Build(st),
 		Tilt:     tiltpanel.Build(st, ui.TiltRows, ui.TiltLabels),
 		Angle:    angledropdown.Build(pills, ui.AngleOpen, ui.LatticePoints, nodes),

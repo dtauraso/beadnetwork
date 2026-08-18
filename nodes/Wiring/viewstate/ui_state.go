@@ -67,6 +67,9 @@ type UIState struct {
 	NodesOpen    bool
 	NodesRowOpen map[uint8]bool
 
+	SceneTabNames    []string
+	SceneTabSelected int
+
 	PlacingKind    uint8
 	PlacingPending bool
 
