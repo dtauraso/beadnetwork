@@ -1,10 +1,14 @@
 package bufschema
 
 type bufLayoutNode struct {
-	NodeId int32   `buf:"i32"`
-	CX     float32 `buf:"f32"`
-	CY     float32 `buf:"f32"`
-	CZ     float32 `buf:"f32"`
+	NodeId int32 `buf:"i32"`
+
+	IndexR     int32 `buf:"i32"`
+	IndexPhi   int32 `buf:"i32"`
+	IndexTheta int32 `buf:"i32"`
+
+	HasPos uint8 `buf:"u8"`
+
 	Radius float32 `buf:"f32"`
 
 	LabelAnchorX float32 `buf:"f32"`

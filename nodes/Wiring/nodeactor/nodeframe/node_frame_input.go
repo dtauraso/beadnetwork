@@ -12,7 +12,8 @@ type NodeFrameInput struct {
 	NodeRow int32
 	NodeID  int32
 
-	CX, CY, CZ float32
+	IndexR, IndexPhi, IndexTheta int32
+	HasPos                       uint8
 
 	Radius float32
 

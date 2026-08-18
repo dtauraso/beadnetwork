@@ -11,7 +11,8 @@ func BuildViewStreamFrame(tick uint32,
 	camPX, camPY, camPZ, camR, camPosPhi, camPosTheta, camUpPhi, camUpTheta float32,
 	overlay B.OverlayRow,
 	panel B.PanelRow,
-	sceneCX, sceneCY, sceneCZ, sceneRadius float32,
+	sceneCX, sceneCY, sceneCZ, sceneRadius, sceneConstantR float32,
+	sceneMaxIndexPhi, sceneMaxIndexTheta int32,
 	ringSurfacePoints []float32,
 	beadRingSurfacePoints []float32,
 	tabNames []string, tabSelected uint16,
@@ -42,7 +43,7 @@ func BuildViewStreamFrame(tick uint32,
 	off += B.BufOverlayStride
 	B.SetPanelRow(buf[off:], panel)
 	off += B.BufPanelStride
-	B.SetSceneRow(buf[off:], sceneCX, sceneCY, sceneCZ, sceneRadius)
+	B.SetSceneRow(buf[off:], sceneCX, sceneCY, sceneCZ, sceneRadius, sceneConstantR, sceneMaxIndexPhi, sceneMaxIndexTheta)
 	off += B.BufSceneStride
 
 	for i := 0; i < ringPointCount; i++ {

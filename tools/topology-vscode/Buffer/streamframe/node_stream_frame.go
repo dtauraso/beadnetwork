@@ -14,7 +14,8 @@ type NodeStreamFrame struct {
 
 	NodeID int32
 
-	CX, CY, CZ float32
+	IndexR, IndexPhi, IndexTheta int32
+	HasPos                       uint8
 
 	Radius float32
 
@@ -85,7 +86,7 @@ func BuildNodeStreamFrame(f NodeStreamFrame) []byte {
 	off += 4
 
 	m := f.RingMatrix
-	B.SetNodeRow(buf[off:off+B.BufNodeStride], 0, f.NodeID, f.CX, f.CY, f.CZ, f.Radius,
+	B.SetNodeRow(buf[off:off+B.BufNodeStride], 0, f.NodeID, f.IndexR, f.IndexPhi, f.IndexTheta, f.HasPos, f.Radius,
 		f.LabelAnchorX, f.LabelAnchorY, f.LabelAnchorZ,
 		f.PolePhi, f.PoleTheta,
 		m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7], m[8], m[9], m[10], m[11], m[12], m[13], m[14], m[15],

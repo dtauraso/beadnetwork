@@ -11,6 +11,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/gesturefsm"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
+	"github.com/dtauraso/wirefold/nodes/Wiring/polarindex"
 	"github.com/dtauraso/wirefold/nodes/Wiring/selectionstate"
 	"github.com/dtauraso/wirefold/nodes/spatial"
 
@@ -25,6 +26,8 @@ type UIState struct {
 	SceneKinds uint32
 
 	SceneSphere polar.SceneSphere
+
+	Constants polarindex.SceneConstants
 
 	ClockDivisor float64
 

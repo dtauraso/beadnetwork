@@ -71,7 +71,7 @@ func (m *NodeGeometry) writeStreamFrame(events []rowevent.RowEvent) {
 		LatticePoints:        latticePoints,
 		DefaultLatticePoints: TiltPanel.FullTurnPhiIdx,
 	})
-	center := fg.Center
+	composedIdx := nodegeom.ComposedIndexOf(m.geom)
 	polePhi, poleTheta := fg.PolePhi, fg.PoleTheta
 	ringMatrix := fg.RingMatrix
 	points := fg.LatticePoints
@@ -121,9 +121,10 @@ func (m *NodeGeometry) writeStreamFrame(events []rowevent.RowEvent) {
 		Tick:             uint32(m.clocks.Tick()),
 		NodeRow:          row,
 		NodeID:           row + 1,
-		CX:               float32(center.X),
-		CY:               float32(center.Y),
-		CZ:               float32(center.Z),
+		IndexR:           int32(composedIdx.R),
+		IndexPhi:         int32(composedIdx.Phi),
+		IndexTheta:       int32(composedIdx.Theta),
+		HasPos:           boolU8(m.geom.HasPos),
 		Radius:           float32(nodegeom.NodeRadius(m.geom.Kind)),
 		PoleRingR:        float32(nodegeom.PoleRingR()),
 		PolePhi:          float32(polePhi),

@@ -3,10 +3,10 @@ import { type DecodedNodeFrame, nodeLabel } from "../decode/buffer-decode-node";
 import { type ViewBlocks } from "../scene/view-blocks";
 import { polarToCart } from "../polar-convert";
 import { nodeCenterX, nodeCenterY, nodeCenterZ, nodeRadiusRaw, nodeSelected } from "../../../../Node/node-frame";
+import { sceneSteps, sceneRadius } from "../../../../Scene/scene-frame";
 import {
   readNodeLatchedSel,
   readNodePolePhi, readNodePoleTheta, readNodePoleRingR,
-  readSceneCX, readSceneCY, readSceneCZ, readSceneRadius,
 } from "../../../../Buffer/buffer-layout";
 
 export interface NavNode {
@@ -54,14 +54,8 @@ export function decodeNavNodes(decoded: DecodedNodeFrame): NavNode[] {
 }
 
 export function sceneSphereFromSnapshot(decoded: ViewBlocks): { center: THREE.Vector3; radius: number } {
-  const radius = readSceneRadius(decoded.sceneView);
+  const radius = sceneRadius(decoded.sceneView);
   if (radius <= 0) return { center: new THREE.Vector3(), radius: 100 };
-  return {
-    center: new THREE.Vector3(
-      readSceneCX(decoded.sceneView),
-      readSceneCY(decoded.sceneView),
-      readSceneCZ(decoded.sceneView),
-    ),
-    radius,
-  };
+  const s = sceneSteps(decoded.sceneView);
+  return { center: new THREE.Vector3(s.centerX, s.centerY, s.centerZ), radius };
 }

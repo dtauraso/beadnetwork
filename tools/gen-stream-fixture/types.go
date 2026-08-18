@@ -9,15 +9,16 @@ type chainBeadFixture struct {
 }
 
 type nodeFrameFixture struct {
-	Tick      uint32  `json:"tick"`
-	NodeRow   int32   `json:"nodeRow"`
-	NodeId    int32   `json:"nodeId"`
-	CX        float32 `json:"cx"`
-	CY        float32 `json:"cy"`
-	CZ        float32 `json:"cz"`
-	Radius    float32 `json:"radius"`
-	PolePhi   float32 `json:"polePhi"`
-	PoleTheta float32 `json:"poleTheta"`
+	Tick       uint32  `json:"tick"`
+	NodeRow    int32   `json:"nodeRow"`
+	NodeId     int32   `json:"nodeId"`
+	IndexR     int32   `json:"indexR"`
+	IndexPhi   int32   `json:"indexPhi"`
+	IndexTheta int32   `json:"indexTheta"`
+	HasPos     uint8   `json:"hasPos"`
+	Radius     float32 `json:"radius"`
+	PolePhi    float32 `json:"polePhi"`
+	PoleTheta  float32 `json:"poleTheta"`
 
 	TopTiltVectorLen float32 `json:"topTiltVectorLen"`
 

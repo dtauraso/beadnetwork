@@ -37,7 +37,8 @@ type ViewFrameBuilder func(tick uint32,
 	dragNodeRow int32,
 	scene ViewSceneState,
 	speed float32,
-	sceneCX, sceneCY, sceneCZ, sceneRadius float32,
+	sceneCX, sceneCY, sceneCZ, sceneRadius, sceneConstantR float32,
+	sceneMaxIndexPhi, sceneMaxIndexTheta int32,
 	events []rowevent.RowEvent,
 ) []byte
 
@@ -109,6 +110,7 @@ func (ui *UIState) EmitViewFrame(events []rowevent.RowEvent) {
 		},
 		float32(ui.Speed),
 		float32(sc.Center.X), float32(sc.Center.Y), float32(sc.Center.Z), float32(sc.Radius),
+		float32(ui.Constants.ConstantR), int32(ui.Constants.MaxIndexPhi), int32(ui.Constants.MaxIndexTheta),
 		events,
 	)
 	if !ui.viewOut.Ok() {

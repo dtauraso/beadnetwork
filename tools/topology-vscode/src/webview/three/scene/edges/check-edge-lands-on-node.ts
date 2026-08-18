@@ -1,9 +1,10 @@
 import { getNodeFrame } from "../nodes/node-frame-aggregate";
 import { getEdgeStreamAccessor } from "./edge-stream-blocks";
-import { readNodeCX, readNodeCY, readNodeCZ } from "../../../../../Buffer/buffer-layout";
+import { nodeCenterX, nodeCenterY, nodeCenterZ } from "../../../../../Node/node-frame";
+import { readSceneConstantR } from "../../../../../Buffer/buffer-layout";
+import { getViewBlocks } from "../view-blocks";
 import { postLog } from "../../../log/post";
 
-const STEP = 8.96;
 
 const TOLERANCE = 0.25;
 
@@ -12,6 +13,7 @@ const reported = new Set<number>();
 export function checkEdgeLandsOnNode(): void {
   const decoded = getNodeFrame();
   const edges = getEdgeStreamAccessor();
+  const blocks = getViewBlocks();
   if (!decoded || !edges) return;
   const { nodeCount, nodeView } = decoded;
 
@@ -26,13 +28,15 @@ export function checkEdgeLandsOnNode(): void {
     const ez = seg[5] ?? 0;
     if (ex === 0 && ey === 0 && ez === 0) continue;
 
-    const cx = readNodeCX(nodeView, dst);
-    const cy = readNodeCY(nodeView, dst);
-    const cz = readNodeCZ(nodeView, dst);
+    const cx = nodeCenterX(nodeView, dst);
+    const cy = nodeCenterY(nodeView, dst);
+    const cz = nodeCenterZ(nodeView, dst);
     if (cx === 0 && cy === 0 && cz === 0) continue;
 
     const gap = Math.hypot(ex - cx, ey - cy, ez - cz);
-    const steps = gap / STEP;
+    const step = blocks ? readSceneConstantR(blocks.sceneView) : 0;
+    if (!(step > 0)) continue;
+    const steps = gap / step;
     if (Math.abs(steps - Math.round(steps)) <= TOLERANCE) continue;
 
     reported.add(edgeRow);

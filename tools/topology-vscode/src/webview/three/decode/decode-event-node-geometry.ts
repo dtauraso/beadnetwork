@@ -1,17 +1,18 @@
 import { NODE_KIND_NAMES } from "../../../schema/node-defs";
 import type { DecodedNodeFrame } from "./buffer-decode-node";
 import {
-  readNodeCX, readNodeCY, readNodeCZ, readNodeRadius,
+  readNodeRadius,
   readNodeKindId,
   UNKNOWN_KIND_ID,
 } from "../../../../Buffer/buffer-layout";
 import type { Line } from "./decode-event-line";
+import { nodeCenterX, nodeCenterY, nodeCenterZ } from "../../../../Node/node-frame";
 
 export function nodeGeometryLine(dn: DecodedNodeFrame, nodeRow: number, node: string): Line {
 
   if (nodeRow < 0 || nodeRow >= dn.nodeCount) return { kind: "node-geometry", node };
   const n = dn.nodeView;
-  const cx = readNodeCX(n, nodeRow), cy = readNodeCY(n, nodeRow), cz = readNodeCZ(n, nodeRow);
+  const cx = nodeCenterX(n, nodeRow), cy = nodeCenterY(n, nodeRow), cz = nodeCenterZ(n, nodeRow);
   const radius = readNodeRadius(n, nodeRow);
   const kindId = readNodeKindId(n, nodeRow);
 
