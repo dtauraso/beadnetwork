@@ -24,8 +24,7 @@ type FrameGeometryInputs struct {
 type FrameGeometryOutputs struct {
 	Center vec3
 
-	PolePhi, PoleTheta         float64
-	RingAxisPhi, RingAxisTheta float64
+	PolePhi, PoleTheta float64
 
 	RingMatrix [16]float32
 
@@ -50,10 +49,9 @@ func DeriveFrameGeometry(in FrameGeometryInputs) FrameGeometryOutputs {
 
 	out.PolePhi, out.PoleTheta = polar.WorldAxisPole()
 
-	out.RingAxisPhi, out.RingAxisTheta = TorusDefaultAxisAngles()
-
+	ringAxisPhi, ringAxisTheta := TorusDefaultAxisAngles()
 	nodeR := nodegeom.NodeRadius(in.Geom.Kind)
-	out.RingMatrix = RingInstanceMatrixColumnMajor(out.Center, nodeR, out.RingAxisPhi, out.RingAxisTheta)
+	out.RingMatrix = RingInstanceMatrixColumnMajor(out.Center, nodeR, ringAxisPhi, ringAxisTheta)
 
 	if in.UpAxis && in.Geom.HasPos {
 		out.TopTiltVectorLen = nodegeom.NodeRadius(in.Geom.Kind)
