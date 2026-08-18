@@ -12,6 +12,10 @@ import { NavGuides } from "../nav/NavGuides";
 import { useBufferLabelPositions } from "./labels/use-buffer-label-positions";
 import { BufferLabelOverlay } from "./labels/BufferLabelOverlay";
 
+function consumedByDraft(key: string): boolean {
+  return key.length === 1 || key === "Enter" || key === "Escape" || key === "Backspace";
+}
+
 export function ThreeView() {
 
   const [bufferLabelPositions, onBufferPositions] = useBufferLabelPositions();
@@ -35,7 +39,8 @@ export function ThreeView() {
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement | null;
       if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
-      if (rulesDraftOpen()) {
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      if (rulesDraftOpen() && consumedByDraft(e.key)) {
         e.preventDefault();
         sendRawInput(buildKeyRaw(e.key));
         return;
