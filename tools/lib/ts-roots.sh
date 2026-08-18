@@ -7,4 +7,5 @@ TS_ROOTS=(
   "tools/topology-vscode/Slider"
   "tools/topology-vscode/Tabs"
   "tools/topology-vscode/PolarRules"
+  "tools/topology-vscode/TiltPanel"
 )

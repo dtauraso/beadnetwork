@@ -3,8 +3,8 @@ package PairNode
 import (
 	"github.com/dtauraso/wirefold/nodes/PairNode/tiltring"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
-	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
 	"github.com/dtauraso/wirefold/nodes/clock"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/TiltPanel"
 )
 
 func (n *Node) drainTiltEdit(clk clock.Clock) {
@@ -26,7 +26,7 @@ func (n *Node) applyTiltEdit(edit movemsg.TiltEditMsg) (placeBead bool) {
 	if edit.Reset {
 		n.clear()
 
-		tiltvector.SendVectorLatestNonBlocking(n.vec.VectorOut, tiltvector.TiltVectorMsg{Reset: true})
+		TiltPanel.SendVectorLatestNonBlocking(n.vec.VectorOut, TiltPanel.TiltVectorMsg{Reset: true})
 		return false
 	}
 	if edit.Start {
@@ -35,7 +35,7 @@ func (n *Node) applyTiltEdit(edit movemsg.TiltEditMsg) (placeBead bool) {
 			return false
 		}
 
-		tiltvector.SendVectorLatestNonBlocking(n.vec.VectorOut, n.outgoingVector())
+		TiltPanel.SendVectorLatestNonBlocking(n.vec.VectorOut, n.outgoingVector())
 		return true
 	}
 
@@ -63,7 +63,7 @@ func (n *Node) clear() {
 	if n.plumb.Self != nil {
 		n.plumb.Self.SetRoundsToParallel(0, 0)
 	}
-	tiltvector.PollRecvVector(n.vec.VectorIn)
+	TiltPanel.PollRecvVector(n.vec.VectorIn)
 	n.drainIn()
 	if n.plumb.ClearOutBeads != nil {
 		n.plumb.ClearOutBeads()
