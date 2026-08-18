@@ -5,60 +5,23 @@ import { columnBytes } from "../../../../Buffer/column-values";
 import { nodeColumn, ownerCounts } from "../../../../Buffer/column-owners";
 import {
   COL_STREAM_TILT_ARROW_RECEIVED,
-  COL_STREAM_TILT_ARROW_SHAFT_M0, COL_STREAM_TILT_ARROW_SHAFT_M1,
-  COL_STREAM_TILT_ARROW_SHAFT_M2, COL_STREAM_TILT_ARROW_SHAFT_M3,
-  COL_STREAM_TILT_ARROW_SHAFT_M4, COL_STREAM_TILT_ARROW_SHAFT_M5,
-  COL_STREAM_TILT_ARROW_SHAFT_M6, COL_STREAM_TILT_ARROW_SHAFT_M7,
-  COL_STREAM_TILT_ARROW_SHAFT_M8, COL_STREAM_TILT_ARROW_SHAFT_M9,
-  COL_STREAM_TILT_ARROW_SHAFT_M10, COL_STREAM_TILT_ARROW_SHAFT_M11,
-  COL_STREAM_TILT_ARROW_SHAFT_M12, COL_STREAM_TILT_ARROW_SHAFT_M13,
-  COL_STREAM_TILT_ARROW_SHAFT_M14, COL_STREAM_TILT_ARROW_SHAFT_M15,
-  COL_STREAM_TILT_ARROW_HEAD_M0, COL_STREAM_TILT_ARROW_HEAD_M1,
-  COL_STREAM_TILT_ARROW_HEAD_M2, COL_STREAM_TILT_ARROW_HEAD_M3,
-  COL_STREAM_TILT_ARROW_HEAD_M4, COL_STREAM_TILT_ARROW_HEAD_M5,
-  COL_STREAM_TILT_ARROW_HEAD_M6, COL_STREAM_TILT_ARROW_HEAD_M7,
-  COL_STREAM_TILT_ARROW_HEAD_M8, COL_STREAM_TILT_ARROW_HEAD_M9,
-  COL_STREAM_TILT_ARROW_HEAD_M10, COL_STREAM_TILT_ARROW_HEAD_M11,
-  COL_STREAM_TILT_ARROW_HEAD_M12, COL_STREAM_TILT_ARROW_HEAD_M13,
-  COL_STREAM_TILT_ARROW_HEAD_M14, COL_STREAM_TILT_ARROW_HEAD_M15,
+  COL_STREAM_TILT_ARROW_SHAFT,
+  COL_STREAM_TILT_ARROW_HEAD,
 } from "../../../../Buffer/column-streams-gen";
 
 const VECTOR_COLOR = "#FF2E88";
 
 const RECEIVED_VECTOR_COLOR = "#00E5FF";
 
-const SHAFT_COLS = [
-  COL_STREAM_TILT_ARROW_SHAFT_M0, COL_STREAM_TILT_ARROW_SHAFT_M1,
-  COL_STREAM_TILT_ARROW_SHAFT_M2, COL_STREAM_TILT_ARROW_SHAFT_M3,
-  COL_STREAM_TILT_ARROW_SHAFT_M4, COL_STREAM_TILT_ARROW_SHAFT_M5,
-  COL_STREAM_TILT_ARROW_SHAFT_M6, COL_STREAM_TILT_ARROW_SHAFT_M7,
-  COL_STREAM_TILT_ARROW_SHAFT_M8, COL_STREAM_TILT_ARROW_SHAFT_M9,
-  COL_STREAM_TILT_ARROW_SHAFT_M10, COL_STREAM_TILT_ARROW_SHAFT_M11,
-  COL_STREAM_TILT_ARROW_SHAFT_M12, COL_STREAM_TILT_ARROW_SHAFT_M13,
-  COL_STREAM_TILT_ARROW_SHAFT_M14, COL_STREAM_TILT_ARROW_SHAFT_M15,
-];
-
-const HEAD_COLS = [
-  COL_STREAM_TILT_ARROW_HEAD_M0, COL_STREAM_TILT_ARROW_HEAD_M1,
-  COL_STREAM_TILT_ARROW_HEAD_M2, COL_STREAM_TILT_ARROW_HEAD_M3,
-  COL_STREAM_TILT_ARROW_HEAD_M4, COL_STREAM_TILT_ARROW_HEAD_M5,
-  COL_STREAM_TILT_ARROW_HEAD_M6, COL_STREAM_TILT_ARROW_HEAD_M7,
-  COL_STREAM_TILT_ARROW_HEAD_M8, COL_STREAM_TILT_ARROW_HEAD_M9,
-  COL_STREAM_TILT_ARROW_HEAD_M10, COL_STREAM_TILT_ARROW_HEAD_M11,
-  COL_STREAM_TILT_ARROW_HEAD_M12, COL_STREAM_TILT_ARROW_HEAD_M13,
-  COL_STREAM_TILT_ARROW_HEAD_M14, COL_STREAM_TILT_ARROW_HEAD_M15,
-];
-
 function copyMatrix(
-  cols: Array<DataView | undefined>, arrow: number,
+  matrices: DataView | undefined, arrow: number,
   mesh: THREE.InstancedMesh, slot: number,
 ): void {
   const out = mesh.instanceMatrix.array;
   const b = slot * 16;
-  const o = arrow * 4;
+  const o = arrow * 64;
   for (let m = 0; m < 16; m++) {
-    const col = cols[m];
-    out[b + m] = col && col.byteLength >= o + 4 ? col.getFloat32(o, true) : 0;
+    out[b + m] = matrices && matrices.byteLength >= o + 64 ? matrices.getFloat32(o + m * 4, true) : 0;
   }
 }
 
@@ -82,20 +45,20 @@ export function TiltVectors({ capacity, receivedCapacity }: { capacity: number; 
     for (let row = 0; row < nodes; row++) {
       const received = columnBytes(nodeColumn(row, COL_STREAM_TILT_ARROW_RECEIVED));
       if (!received || received.byteLength === 0) continue;
-      const shaftCols = SHAFT_COLS.map((c) => columnBytes(nodeColumn(row, c)));
-      const headCols = HEAD_COLS.map((c) => columnBytes(nodeColumn(row, c)));
+      const shaftMatrices = columnBytes(nodeColumn(row, COL_STREAM_TILT_ARROW_SHAFT));
+      const headMatrices = columnBytes(nodeColumn(row, COL_STREAM_TILT_ARROW_HEAD));
 
       for (let arrow = 0; arrow < received.byteLength; arrow++) {
         if (received.getUint8(arrow) !== 0) {
           if (receivedDrawn >= receivedCapacity) continue;
-          copyMatrix(shaftCols, arrow, receivedShaft, receivedDrawn);
-          copyMatrix(headCols, arrow, receivedHead, receivedDrawn);
+          copyMatrix(shaftMatrices, arrow, receivedShaft, receivedDrawn);
+          copyMatrix(headMatrices, arrow, receivedHead, receivedDrawn);
           receivedDrawn++;
           continue;
         }
         if (drawn >= capacity) continue;
-        copyMatrix(shaftCols, arrow, shaft, drawn);
-        copyMatrix(headCols, arrow, head, drawn);
+        copyMatrix(shaftMatrices, arrow, shaft, drawn);
+        copyMatrix(headMatrices, arrow, head, drawn);
         drawn++;
       }
     }
