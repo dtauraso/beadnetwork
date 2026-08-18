@@ -2,13 +2,13 @@ import * as THREE from "three";
 import { getNodeFrame } from "../../src/webview/three/scene/nodes/node-frame-aggregate";
 import { getViewBlocks } from "../../src/webview/three/scene/view-blocks";
 import {
-  readNodeCX, readNodeCY, readNodeCZ, readNodeRadius, readNodeSelected, readNodeHovered,
+  readNodeHovered,
   readNodeRingM0, readNodeRingM1, readNodeRingM2, readNodeRingM3,
   readNodeRingM4, readNodeRingM5, readNodeRingM6, readNodeRingM7,
   readNodeRingM8, readNodeRingM9, readNodeRingM10, readNodeRingM11,
   readNodeRingM12, readNodeRingM13, readNodeRingM14, readNodeRingM15,
 } from "../../Buffer/buffer-layout";
-import { NODE_SPHERE_RADIUS } from "../../src/webview/three/scene/buffer-scene-shared";
+import { nodeCenterX, nodeCenterY, nodeCenterZ, nodeRadius, nodeSelected } from "../node-frame";
 import { nodeRowColors } from "../node-kind";
 import { computeNodeDepthOrder, setNodeDrawOrder } from "./node-depth-order";
 import { SELECTION_HALO_R_RATIO } from "./node-highlight-shape";
@@ -71,19 +71,19 @@ export function updateNodeInstances(refs: NodeInstanceRefs, capacity: number, ca
 
   const order = computeNodeDepthOrder(
     n,
-    (row) => readNodeCX(nodeView, row),
-    (row) => readNodeCY(nodeView, row),
-    (row) => readNodeCZ(nodeView, row),
+    (row) => nodeCenterX(nodeView, row),
+    (row) => nodeCenterY(nodeView, row),
+    (row) => nodeCenterZ(nodeView, row),
     camera.position.x, camera.position.y, camera.position.z,
   );
   setNodeDrawOrder(order);
   for (let slot = 0; slot < n; slot++) {
     const row = order[slot]!;
-    const r = readNodeRadius(nodeView, row) || NODE_SPHERE_RADIUS;
+    const r = nodeRadius(nodeView, row);
     pos.set(
-      readNodeCX(nodeView, row),
-      readNodeCY(nodeView, row),
-      readNodeCZ(nodeView, row),
+      nodeCenterX(nodeView, row),
+      nodeCenterY(nodeView, row),
+      nodeCenterZ(nodeView, row),
     );
 
     scl.setScalar(r);
@@ -111,17 +111,19 @@ export function updateNodeInstances(refs: NodeInstanceRefs, capacity: number, ca
   if (body.instanceColor) body.instanceColor.needsUpdate = true;
   if (ring.instanceColor) ring.instanceColor.needsUpdate = true;
 
-  placeHighlight(nodeView, n, readNodeSelected, selRing, overlayFlag("selectionRing"), 1, mat, pos, quat, scl);
-  placeHighlight(nodeView, n, readNodeSelected, selHalo, overlayFlag("selectionRing"), SELECTION_HALO_R_RATIO, mat, pos, quat, scl);
+  placeHighlight(nodeView, n, selectedFlag, selRing, overlayFlag("selectionRing"), 1, mat, pos, quat, scl);
+  placeHighlight(nodeView, n, selectedFlag, selHalo, overlayFlag("selectionRing"), SELECTION_HALO_R_RATIO, mat, pos, quat, scl);
 
   const hoveredRow = firstRowWhere(nodeView, n, readNodeHovered);
   const hoverSuppressed =
-    hoveredRow >= 0 && readNodeSelected(nodeView, hoveredRow) !== 0 && overlayFlag("selectionRing");
+    hoveredRow >= 0 && nodeSelected(nodeView, hoveredRow) && overlayFlag("selectionRing");
   placeHighlight(nodeView, n, readNodeHovered, hoverRing, overlayFlag("hoverRing") && !hoverSuppressed, 1, mat, pos, quat, scl);
 
   if (showBody) body.computeBoundingSphere();
   ringPick.computeBoundingSphere();
 }
+
+const selectedFlag = (v: DataView, row: number): number => (nodeSelected(v, row) ? 1 : 0);
 
 function firstRowWhere(
   nodeView: DataView, n: number, read: (v: DataView, row: number) => number,
@@ -143,8 +145,8 @@ function placeHighlight(
     mesh.count = 0;
     return;
   }
-  const r = (readNodeRadius(nodeView, row) || NODE_SPHERE_RADIUS) * rRatio;
-  pos.set(readNodeCX(nodeView, row), readNodeCY(nodeView, row), readNodeCZ(nodeView, row));
+  const r = nodeRadius(nodeView, row) * rRatio;
+  pos.set(nodeCenterX(nodeView, row), nodeCenterY(nodeView, row), nodeCenterZ(nodeView, row));
   scl.setScalar(r);
   mat.compose(pos, quat, scl);
   mesh.setMatrixAt(0, mat);

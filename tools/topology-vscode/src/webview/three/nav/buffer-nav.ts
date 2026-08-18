@@ -2,9 +2,9 @@ import * as THREE from "three";
 import { type DecodedNodeFrame, nodeLabel } from "../decode/buffer-decode-node";
 import { type ViewBlocks } from "../scene/view-blocks";
 import { polarToCart } from "../polar-convert";
+import { nodeCenterX, nodeCenterY, nodeCenterZ, nodeRadiusRaw, nodeSelected } from "../../../../Node/node-frame";
 import {
-  readNodeCX, readNodeCY, readNodeCZ,
-  readNodeRadius, readNodeSelected, readNodeLatchedSel,
+  readNodeLatchedSel,
   readNodePolePhi, readNodePoleTheta, readNodePoleRingR,
   readSceneCX, readSceneCY, readSceneCZ, readSceneRadius,
 } from "../../../../Buffer/buffer-layout";
@@ -38,13 +38,13 @@ export function decodeNavNodes(decoded: DecodedNodeFrame): NavNode[] {
       row: i,
       label: nodeLabel(decoded, i),
       center: new THREE.Vector3(
-        readNodeCX(nodeView, i),
-        readNodeCY(nodeView, i),
-        readNodeCZ(nodeView, i),
+        nodeCenterX(nodeView, i),
+        nodeCenterY(nodeView, i),
+        nodeCenterZ(nodeView, i),
       ),
-      radius: readNodeRadius(nodeView, i),
+      radius: nodeRadiusRaw(nodeView, i),
 
-      selected: readNodeSelected(nodeView, i) !== 0,
+      selected: nodeSelected(nodeView, i),
       latchedSel: readNodeLatchedSel(nodeView, i) !== 0,
       pole: poleVec(readNodePolePhi(nodeView, i), readNodePoleTheta(nodeView, i)),
       poleRingR: readNodePoleRingR(nodeView, i),
