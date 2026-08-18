@@ -13,11 +13,10 @@ const (
 )
 
 const (
-	InOverlayAttrToggle       = 0
-	InClockAttrSpeed          = 1
-	InDistanceGroupAttrLength = 2
-	InSceneAttrSelected       = 3
-	InTiltVectorAttrPhi       = 4
+	InOverlayAttrToggle = 0
+	InClockAttrSpeed    = 1
+	InSceneAttrSelected = 3
+	InTiltVectorAttrPhi = 4
 
 	InTiltVectorAttrReset    = 6
 	InTiltVectorAttrStart    = 7
