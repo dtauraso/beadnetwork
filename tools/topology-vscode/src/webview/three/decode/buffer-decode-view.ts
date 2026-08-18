@@ -1,6 +1,5 @@
 import {
   CAMERA_STRIDE,
-  OVERLAY_STRIDE,
   NODE_RING_POINT_STRIDE,
   BEAD_RING_POINT_STRIDE,
   BUF_LAYOUT_FINGERPRINT_HASH,
@@ -72,7 +71,6 @@ function decodeSceneTabs(buf: ArrayBuffer, offset: number): { names: string[]; s
 export interface DecodedViewFrame {
   tick: number;
   cameraView: DataView;
-  overlayView: DataView;
 
   ringSurfacePointsView: DataView;
   beadRingSurfacePointsView: DataView;
@@ -97,7 +95,7 @@ export function decodeViewFrame(buf: ArrayBuffer): DecodedViewFrame | null {
 }
 
 function decodeViewFrameUncached(buf: ArrayBuffer): DecodedViewFrame | null {
-  const expectedLen = BUF_VIEW_FRAME_HEADER_SIZE + CAMERA_STRIDE + OVERLAY_STRIDE + RING_SURFACE_STRIDE + BEAD_RING_SURFACE_STRIDE + SCENE_TABS_HEADER_SIZE;
+  const expectedLen = BUF_VIEW_FRAME_HEADER_SIZE + CAMERA_STRIDE + RING_SURFACE_STRIDE + BEAD_RING_SURFACE_STRIDE + SCENE_TABS_HEADER_SIZE;
   if (buf.byteLength < expectedLen) return null;
 
   const hdr = new DataView(buf, 0, BUF_VIEW_FRAME_HEADER_SIZE);
@@ -114,8 +112,6 @@ function decodeViewFrameUncached(buf: ArrayBuffer): DecodedViewFrame | null {
   const cameraView = new DataView(buf, off, CAMERA_STRIDE);
   off += CAMERA_STRIDE;
 
-  const overlayView = new DataView(buf, off, OVERLAY_STRIDE);
-  off += OVERLAY_STRIDE;
 
 
 
@@ -131,7 +127,7 @@ function decodeViewFrameUncached(buf: ArrayBuffer): DecodedViewFrame | null {
   const { count: eventCount, view: eventView, textView: eventTextView } = decodeTrailingEvents(buf, off);
 
   return {
-    tick, cameraView, overlayView,
+    tick, cameraView,
     ringSurfacePointsView, beadRingSurfacePointsView,
     sceneTabs: tabs.names, sceneTabSelected: tabs.selected,
     eventCount, eventView, eventTextView,

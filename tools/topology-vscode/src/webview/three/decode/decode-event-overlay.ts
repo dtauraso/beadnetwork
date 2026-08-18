@@ -1,16 +1,16 @@
+import { columnU8 } from "../../../../Buffer/column-values";
 import {
-  readOverlaySceneTori, readOverlayScenePoles, readOverlayNodePoles, readOverlayNodePoleSphere,
-  readOverlayAllPoleSpheres,
-  readOverlayHandholds, readOverlayLabelsGlobal,
-  readOverlayOverlaysVis,
-  readOverlayNodeBody,
-  readOverlayNodeRing,
-  readOverlayRingPick,
-  readOverlaySelectionRing,
-  readOverlayHoverRing,
-  readOverlaySceneVectors,
-} from "../../../../Buffer/buffer-layout";
-import type { ViewBlocksOrNull } from "./decode-event-line";
+  COL_STREAM_OVERLAY_SCENE_TORI, COL_STREAM_OVERLAY_SCENE_POLES, COL_STREAM_OVERLAY_NODE_POLES,
+  COL_STREAM_OVERLAY_NODE_POLE_SPHERE, COL_STREAM_OVERLAY_ALL_POLE_SPHERES,
+  COL_STREAM_OVERLAY_HANDHOLDS, COL_STREAM_OVERLAY_LABELS_GLOBAL,
+  COL_STREAM_OVERLAY_OVERLAYS_VIS,
+  COL_STREAM_OVERLAY_NODE_BODY,
+  COL_STREAM_OVERLAY_NODE_RING,
+  COL_STREAM_OVERLAY_RING_PICK,
+  COL_STREAM_OVERLAY_SELECTION_RING,
+  COL_STREAM_OVERLAY_HOVER_RING,
+  COL_STREAM_OVERLAY_SCENE_VECTORS,
+} from "../../../../Buffer/column-streams-gen";
 
 export const OVERLAY_KINDS = new Set([
   "scene-tori", "scene-poles", "node-poles",
@@ -19,24 +19,22 @@ export const OVERLAY_KINDS = new Set([
   "scene-vectors",
 ]);
 
-export function overlayFlag(vb: ViewBlocksOrNull, kind: string): number {
-  const v = vb.overlayView;
-  if (!v) return 0;
+export function overlayFlag(kind: string): number {
   switch (kind) {
-    case "scene-tori": return readOverlaySceneTori(v);
-    case "scene-poles": return readOverlayScenePoles(v);
-    case "node-poles": return readOverlayNodePoles(v);
-    case "handholds": return readOverlayHandholds(v);
-    case "labels-global": return readOverlayLabelsGlobal(v);
-    case "overlays-vis": return readOverlayOverlaysVis(v);
-    case "node-body": return readOverlayNodeBody(v);
-    case "node-ring": return readOverlayNodeRing(v);
-    case "ring-pick": return readOverlayRingPick(v);
-    case "selection-ring": return readOverlaySelectionRing(v);
-    case "hover-ring": return readOverlayHoverRing(v);
-    case "scene-vectors": return readOverlaySceneVectors(v);
-    case "node-pole-sphere": return readOverlayNodePoleSphere(v);
-    case "all-pole-spheres": return readOverlayAllPoleSpheres(v);
+    case "scene-tori": return columnU8(COL_STREAM_OVERLAY_SCENE_TORI);
+    case "scene-poles": return columnU8(COL_STREAM_OVERLAY_SCENE_POLES);
+    case "node-poles": return columnU8(COL_STREAM_OVERLAY_NODE_POLES);
+    case "handholds": return columnU8(COL_STREAM_OVERLAY_HANDHOLDS);
+    case "labels-global": return columnU8(COL_STREAM_OVERLAY_LABELS_GLOBAL);
+    case "overlays-vis": return columnU8(COL_STREAM_OVERLAY_OVERLAYS_VIS);
+    case "node-body": return columnU8(COL_STREAM_OVERLAY_NODE_BODY);
+    case "node-ring": return columnU8(COL_STREAM_OVERLAY_NODE_RING);
+    case "ring-pick": return columnU8(COL_STREAM_OVERLAY_RING_PICK);
+    case "selection-ring": return columnU8(COL_STREAM_OVERLAY_SELECTION_RING);
+    case "hover-ring": return columnU8(COL_STREAM_OVERLAY_HOVER_RING);
+    case "scene-vectors": return columnU8(COL_STREAM_OVERLAY_SCENE_VECTORS);
+    case "node-pole-sphere": return columnU8(COL_STREAM_OVERLAY_NODE_POLE_SPHERE);
+    case "all-pole-spheres": return columnU8(COL_STREAM_OVERLAY_ALL_POLE_SPHERES);
     default: return 0;
   }
 }

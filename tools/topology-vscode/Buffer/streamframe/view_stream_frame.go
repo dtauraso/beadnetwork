@@ -9,7 +9,6 @@ import (
 
 func BuildViewStreamFrame(tick uint32,
 	camPX, camPY, camPZ, camR, camPosPhi, camPosTheta, camUpPhi, camUpTheta float32,
-	overlay B.OverlayRow,
 	ringSurfacePoints []float32,
 	beadRingSurfacePoints []float32,
 	tabNames []string, tabSelected uint16,
@@ -30,14 +29,12 @@ func BuildViewStreamFrame(tick uint32,
 	beadRingPointCount := len(beadRingSurfacePoints) / 3
 	beadRingSurfaceSize := beadRingPointCount * B.BufBeadRingPointStride
 
-	buf := make([]byte, B.BufViewFrameHeaderSize+B.BufCameraStride+B.BufOverlayStride+ringSurfaceSize+beadRingSurfaceSize)
+	buf := make([]byte, B.BufViewFrameHeaderSize+B.BufCameraStride+ringSurfaceSize+beadRingSurfaceSize)
 	binary.LittleEndian.PutUint32(buf[0:], tick)
 	binary.LittleEndian.PutUint32(buf[4:], B.BufLayoutFingerprintHash)
 	off := B.BufViewFrameHeaderSize
 	B.SetCameraRow(buf[off:], camPX, camPY, camPZ, camR, camPosPhi, camPosTheta, camUpPhi, camUpTheta)
 	off += B.BufCameraStride
-	B.SetOverlayRow(buf[off:], overlay)
-	off += B.BufOverlayStride
 
 	for i := 0; i < ringPointCount; i++ {
 		rowOff := off + i*B.BufNodeRingPointStride

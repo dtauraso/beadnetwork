@@ -1,17 +1,15 @@
 import { useSyncExternalStore } from "react";
 import { getNodeFrame, subscribeNodeStreamBlocks } from "../../scene/nodes/node-frame-aggregate";
-import { getViewBlocks, subscribeViewBlocks } from "../../scene/view-blocks";
-import { readOverlayDragNodeRow } from "../../../../../Buffer/buffer-layout";
+import { columnI32, subscribeColumns } from "../../../../../Buffer/column-values";
+import { COL_STREAM_OVERLAY_DRAG_NODE_ROW } from "../../../../../Buffer/column-streams-gen";
 import { nodeLabel } from "../../decode/buffer-decode-node";
 
 export function readDragNodeRow(): number {
-  const blocks = getViewBlocks();
-  if (!blocks) return -1;
-  return readOverlayDragNodeRow(blocks.overlayView);
+  return columnI32(COL_STREAM_OVERLAY_DRAG_NODE_ROW, -1);
 }
 
 export function useDragNodeRow(): number {
-  return useSyncExternalStore(subscribeViewBlocks, readDragNodeRow, readDragNodeRow);
+  return useSyncExternalStore(subscribeColumns, readDragNodeRow, readDragNodeRow);
 }
 
 export function readDraggedNodeName(): string {
@@ -23,10 +21,10 @@ export function readDraggedNodeName(): string {
 }
 
 function subscribeDraggedNodeName(fn: () => void): () => void {
-  const unsubView = subscribeViewBlocks(fn);
+  const unsubCols = subscribeColumns(fn);
   const unsubNode = subscribeNodeStreamBlocks(fn);
   return () => {
-    unsubView();
+    unsubCols();
     unsubNode();
   };
 }

@@ -35,7 +35,7 @@ export type DecodedEventLine =
 export function decodeBufferLog(viewFrameBuf: ArrayBuffer, breadcrumbsOnly = false): string {
   const dv = decodeViewFrame(viewFrameBuf);
   if (!dv || dv.eventCount === 0) return "";
-  const vb: ViewBlocksOrNull = { cameraView: dv.cameraView, overlayView: dv.overlayView };
+  const vb: ViewBlocksOrNull = { cameraView: dv.cameraView };
   return decodeEventsFromView(dv.eventCount, dv.eventView, dv.eventTextView, null, null, vb, breadcrumbsOnly);
 }
 
@@ -55,7 +55,7 @@ export function decodeStreamFrameEvents(eventCount: number, eventView: DataView,
   const now = Date.now();
   let out = "";
   for (let i = 0; i < eventCount; i++) {
-    const line = decodeEventLine(eventView, eventTextView, dn ?? null, de ?? null, { cameraView: null, overlayView: null }, i);
+    const line = decodeEventLine(eventView, eventTextView, dn ?? null, de ?? null, { cameraView: null }, i);
     if (!line) continue;
     if (breadcrumbsOnly && line.kind !== "breadcrumb") continue;
     out += JSON.stringify({ ts_ms: now, src: "go", ...line }) + "\n";

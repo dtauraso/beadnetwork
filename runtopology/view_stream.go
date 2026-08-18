@@ -9,7 +9,6 @@ import (
 
 	W "github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
-	B "github.com/dtauraso/wirefold/tools/topology-vscode/Buffer"
 	SF "github.com/dtauraso/wirefold/tools/topology-vscode/Buffer/streamframe"
 )
 
@@ -27,22 +26,6 @@ func wireViewStream(md *W.MoveDispatch, viewFile *os.File, viewStreamWired bool,
 			) []byte {
 				return SF.BuildViewStreamFrame(tick,
 					camPX, camPY, camPZ, camR, camPosPhi, camPosTheta, camUpPhi, camUpTheta,
-					B.OverlayRow{
-						SceneTori: flags.SceneTori, ScenePoles: flags.ScenePoles, NodePoles: flags.NodePoles,
-						Handholds:    flags.Handholds,
-						LabelsGlobal: flags.LabelsGlobal, OverlaysVis: flags.OverlaysVis,
-						NodeBody: flags.NodeBody, NodeRing: flags.NodeRing, RingPick: flags.RingPick,
-						SelectionRing: flags.SelectionRing, HoverRing: flags.HoverRing,
-						SceneVectors:   flags.SceneVectors,
-						RuleChannels:   flags.RuleChannels,
-						NodePoleSphere: flags.NodePoleSphere,
-						AllPoleSpheres: flags.AllPoleSpheres,
-						DragNodeRow:    dragNodeRow,
-						EditRefused:    scene.EditRefused,
-						SceneEditable:  scene.SceneEditable,
-						SceneKinds:     scene.SceneKinds,
-						Speed:          speed,
-					},
 					NodeShape.CanonicalRingSurfacePointsFlat(),
 					bead.CanonicalRingSurfacePointsFlat(),
 

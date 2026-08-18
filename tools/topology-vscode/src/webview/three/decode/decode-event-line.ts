@@ -21,7 +21,6 @@ const EVENT_TEXT_DECODER = new TextDecoder();
 
 export interface ViewBlocksOrNull {
   cameraView: DataView | null;
-  overlayView: DataView | null;
 }
 
 export function decodeEventLine(ev: DataView, eventTextView: DataView, dn: DecodedNodeFrame | null, de: DecodedEdgeFrame | null, vb: ViewBlocksOrNull, i: number): Line | null {
@@ -129,7 +128,7 @@ export function decodeEventLine(ev: DataView, eventTextView: DataView, dn: Decod
     case "hover":
       return { kind, node, port, value };
     default:
-      if (OVERLAY_KINDS.has(kind)) return { kind, visible: overlayFlag(vb, kind) === 1 };
+      if (OVERLAY_KINDS.has(kind)) return { kind, visible: overlayFlag(kind) === 1 };
       return { kind, node, port, value };
   }
 }
