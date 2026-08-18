@@ -3,12 +3,11 @@ package loadspec
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/dtauraso/wirefold/PolarRules"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
-
-	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 )
 
 type JSONBase struct {
@@ -21,9 +20,9 @@ type JSONBase struct {
 
 	Gate bool `json:"gate,omitempty"`
 
-	Drag *polar.DragRule `json:"drag,omitempty"`
+	Drag *PolarRules.DragRule `json:"drag,omitempty"`
 
-	SelfDrag *polar.DragRule `json:"selfDrag,omitempty"`
+	SelfDrag *PolarRules.DragRule `json:"selfDrag,omitempty"`
 
 	TopTiltVectorPhiIdx *int32 `json:"topTiltVectorThetaIdx,omitempty"`
 }

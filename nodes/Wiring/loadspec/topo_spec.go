@@ -2,9 +2,9 @@ package loadspec
 
 import (
 	"fmt"
+	"github.com/dtauraso/wirefold/PolarRules"
 	"os"
 
-	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/polarindex"
 	"github.com/dtauraso/wirefold/nodes/bead"
@@ -27,9 +27,9 @@ type specNode struct {
 
 	Gate bool `json:"gate,omitempty"`
 
-	Drag *polar.DragRule `json:"drag,omitempty"`
+	Drag *PolarRules.DragRule `json:"drag,omitempty"`
 
-	SelfDrag *polar.DragRule `json:"selfDrag,omitempty"`
+	SelfDrag *PolarRules.DragRule `json:"selfDrag,omitempty"`
 
 	TopTiltVectorPhiIdx *int32 `json:"topTiltVectorThetaIdx,omitempty"`
 }
