@@ -16,7 +16,11 @@ type PanelLayout struct {
 	Angle    angledropdown.Layout
 	Nodes    nodesdropdown.Layout
 	Overlays overlayspanel.Layout
+
+	Fit panelstack.Rect
 }
+
+const FitLabel = "⌂ fit"
 
 var PillLabels = []string{angledropdown.Label, nodesdropdown.Label, overlayspanel.Label}
 
@@ -33,7 +37,10 @@ func (ui *UIState) PanelLayout() PanelLayout {
 		}
 	}
 
+	fit := pills.AddChip(FitLabel)
+
 	return PanelLayout{
+		Fit:      fit,
 		Speed:    speedpanel.Build(st),
 		Tilt:     tiltpanel.Build(st, ui.TiltRows, ui.TiltLabels),
 		Angle:    angledropdown.Build(pills, ui.AngleOpen, ui.LatticePoints, nodes),

@@ -40,6 +40,14 @@ func (s *PillStack) Width() float32 { return s.width }
 
 func (s *PillStack) X() float32 { return s.viewW - PillRight - s.width }
 
+func (s *PillStack) AddChip(label string) Rect {
+	w := TextWidth(label, PillFontPx) + 2*8 + 2
+	h := LineHeight(PillFontPx) + 2*3 + 2
+	r := Rect{X: s.viewW - PillRight - w, Y: s.y, W: w, H: h}
+	s.y += h + PillGap
+	return r
+}
+
 func (s *PillStack) AddPill() Rect {
 	h := LineHeight(PillFontPx) + 2*PillPadY + 2
 	r := Rect{X: s.X(), Y: s.y, W: s.width, H: h}

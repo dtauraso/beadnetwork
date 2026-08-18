@@ -10,6 +10,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodesdropdown"
 	"github.com/dtauraso/wirefold/nodes/Wiring/overlayspanel"
+	"github.com/dtauraso/wirefold/nodes/Wiring/panelstack"
 	"github.com/dtauraso/wirefold/nodes/Wiring/speedpanel"
 	"github.com/dtauraso/wirefold/nodes/Wiring/tiltpanel"
 	"github.com/dtauraso/wirefold/tools/topology-vscode/NodesDropdown"
@@ -26,6 +27,13 @@ func panelTookPointerDown(
 	speedSinks SliderPanel.Sinks,
 ) bool {
 	pl := md.UI.PanelLayout()
+
+	if panelstack.HitRect(pl.Fit, ev.X, ev.Y) {
+		home := ev
+		home.Kind = "home"
+		md.HandleRawInput(ctx, home, nil, tr)
+		return true
+	}
 
 	switch h := pl.Nodes.Hit(ev.X, ev.Y); h.Kind {
 	case nodesdropdown.HitPill:

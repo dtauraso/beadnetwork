@@ -6,15 +6,13 @@ import { drawTiltPanel, tiltPanelKey } from "../TiltPanel/draw-tilt-panel";
 import { drawAnglePill, anglePillKey } from "../AngleDropdown/draw-angle-pill";
 import { drawNodesPill, nodesPillKey } from "../NodesDropdown/draw-nodes-pill";
 import { drawOverlaysPill, overlaysPillKey } from "../OverlaysDropdown/draw-overlays-pill";
+import { drawFitChip, fitChipKey } from "../FitButton/draw-fit-chip";
 import { postGoRecord } from "../src/webview/vscode-api";
 import { encodeSceneViewport } from "../src/schema/input/input-encode-scene-tilt";
-import { columnF32, columnU8 } from "../Buffer/column-values";
+import { columnF32 } from "../Buffer/column-values";
 import {
   COL_STREAM_SPEED_PANEL_BOX_Y, COL_STREAM_SPEED_PANEL_BOX_H,
   COL_STREAM_TILT_PANEL_BOX_Y, COL_STREAM_TILT_PANEL_BOX_H,
-  COL_STREAM_ANGLE_PILL_OPEN,
-  COL_STREAM_ANGLE_PILL_PILL_Y, COL_STREAM_ANGLE_PILL_PILL_H,
-  COL_STREAM_ANGLE_PILL_POPOVER_Y, COL_STREAM_ANGLE_PILL_POPOVER_H,
 } from "../Buffer/column-streams-gen";
 
 const STACK_GAP = 6;
@@ -23,13 +21,6 @@ function panelStackBottom(): number {
   const speed = columnF32(COL_STREAM_SPEED_PANEL_BOX_Y) + columnF32(COL_STREAM_SPEED_PANEL_BOX_H);
   const tilt = columnF32(COL_STREAM_TILT_PANEL_BOX_Y) + columnF32(COL_STREAM_TILT_PANEL_BOX_H);
   return Math.max(speed, tilt) + STACK_GAP;
-}
-
-function pillStackBottom(): number {
-  const open = columnU8(COL_STREAM_ANGLE_PILL_OPEN) !== 0;
-  const pill = columnF32(COL_STREAM_ANGLE_PILL_PILL_Y) + columnF32(COL_STREAM_ANGLE_PILL_PILL_H);
-  if (!open) return pill + STACK_GAP;
-  return columnF32(COL_STREAM_ANGLE_PILL_POPOVER_Y) + columnF32(COL_STREAM_ANGLE_PILL_POPOVER_H) + STACK_GAP;
 }
 
 export function PanelOverlay() {
@@ -74,7 +65,7 @@ export function PanelOverlay() {
       postGoRecord(encodeSceneViewport(size.width, size.height));
     }
 
-    const key = `${size.width}x${size.height}@${dpr}|${speedPanelKey()}|${tiltPanelKey()}|${anglePillKey()}|${nodesPillKey()}|${overlaysPillKey()}`;
+    const key = `${size.width}x${size.height}@${dpr}|${speedPanelKey()}|${tiltPanelKey()}|${anglePillKey()}|${nodesPillKey()}|${overlaysPillKey()}|${fitChipKey()}`;
     if (key !== lastKey.current) {
       lastKey.current = key;
       canvas.width = Math.max(1, Math.round(size.width * dpr));
@@ -88,14 +79,11 @@ export function PanelOverlay() {
         drawAnglePill(c);
         drawNodesPill(c);
         drawOverlaysPill(c);
+        drawFitChip(c);
       }
       document.documentElement.style.setProperty(
         "--panel-stack-bottom",
         `${Math.round(panelStackBottom())}px`,
-      );
-      document.documentElement.style.setProperty(
-        "--pill-stack-bottom",
-        `${Math.round(pillStackBottom())}px`,
       );
       tex.needsUpdate = true;
     }

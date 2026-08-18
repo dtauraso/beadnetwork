@@ -55,6 +55,18 @@ func (ui *UIState) writeOverlaysPillColumns(lay overlayspanel.Layout) {
 	)
 }
 
+func (ui *UIState) writeFitChipColumns(r overlayspanel.Rect) {
+	c := ui.singletonCols
+	if c == nil {
+		return
+	}
+	c.SetF32(B.ColStreamFitChipX, r.X)
+	c.SetF32(B.ColStreamFitChipY, r.Y)
+	c.SetF32(B.ColStreamFitChipW, r.W)
+	c.SetF32(B.ColStreamFitChipH, r.H)
+	c.SetBytes(B.ColStreamFitChipLabelText, []byte(FitLabel))
+}
+
 func disclosureGlyph(open bool) string {
 	if open {
 		return "▼"

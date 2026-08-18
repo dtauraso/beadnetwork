@@ -12,7 +12,6 @@ import { NavGuides } from "../nav/NavGuides";
 import { useOverlayFlags } from "../controls/flags/overlay-flags";
 import { useBufferLabelPositions } from "./labels/use-buffer-label-positions";
 import { BufferLabelOverlay } from "./labels/BufferLabelOverlay";
-import { ScenePanelColumn } from "./ScenePanelColumn";
 
 export function ThreeView() {
 
@@ -93,8 +92,6 @@ export function ThreeView() {
       {}
       {!bufLabelsHidden && <BufferLabelOverlay positions={bufferLabelPositions} />}
 
-      {}
-      <ScenePanelColumn cameraRef={cameraRef} aspect={canvasSize.w / canvasSize.h} />
       <Tabs />
     </div>
   );

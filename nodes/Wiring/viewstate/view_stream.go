@@ -68,6 +68,7 @@ func (ui *UIState) EmitViewFrame(events []rowevent.RowEvent) {
 	ui.writeAnglePillColumns(pl.Angle)
 	ui.writeNodesPillColumns(pl.Nodes)
 	ui.writeOverlaysPillColumns(pl.Overlays)
+	ui.writeFitChipColumns(pl.Fit)
 
 	frame := ui.ViewBuildFrame(ui.viewTick, events)
 	if !ui.viewOut.Ok() {

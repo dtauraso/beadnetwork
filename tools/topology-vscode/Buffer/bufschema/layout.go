@@ -27,4 +27,5 @@ var _ = [...]any{
 	bufLayoutAnglePill{},
 	bufLayoutNodesPill{},
 	bufLayoutOverlaysPill{},
+	bufLayoutFitChip{},
 }
