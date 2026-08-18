@@ -1,6 +1,7 @@
 package dispatch
 
 import (
+	"github.com/dtauraso/wirefold/Slider"
 	T "github.com/dtauraso/wirefold/Trace"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/moverreg"
@@ -9,7 +10,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/clock"
 )
 
-func NewMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[string]inputcodec.EdgeEndpoints, tr *T.Trace, nodeOrder, edgeOrder []string, clk clock.Clock, speedSinks *[]chan float64, rowCount int, constants polarindex.SceneConstants) (*MoveDispatch, error) {
+func NewMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[string]inputcodec.EdgeEndpoints, tr *T.Trace, nodeOrder, edgeOrder []string, clk clock.Clock, speedSinks *Slider.Sinks, rowCount int, constants polarindex.SceneConstants) (*MoveDispatch, error) {
 	nodeOrder, edgeOrder = resolveSeedOrders(geoms, edgeEndpoints, nodeOrder, edgeOrder)
 
 	md := &MoveDispatch{

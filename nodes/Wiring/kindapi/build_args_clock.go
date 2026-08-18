@@ -11,6 +11,6 @@ func (a BuildArgs) SpeedCh() <-chan float64 {
 		return nil
 	}
 	speedCh := make(chan float64, 1)
-	*a.pb.SpeedSinks = append(*a.pb.SpeedSinks, speedCh)
+	a.pb.SpeedSinks.Clocks = append(a.pb.SpeedSinks.Clocks, speedCh)
 	return speedCh
 }

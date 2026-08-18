@@ -40,12 +40,14 @@ export function encodePanelsToggle(flag: PanelFlag): ArrayBuffer {
   return w.toArrayBuffer();
 }
 
+export const SLIDER_NUM_SCALE = 4;
+
 export function encodeClockSpeed(speed: number): ArrayBuffer {
   const w = new ByteWriter();
   w.u8(IN_KIND_EDIT_UPDATE);
   w.u8(enumIndex(IN_UPDATE_KINDS, "clock"));
   w.u8(IN_CLOCK_ATTR_SPEED);
-  w.u8(Math.round(speed * 4));
+  w.u8(Math.round(speed * SLIDER_NUM_SCALE));
   return w.toArrayBuffer();
 }
 
@@ -159,4 +161,3 @@ export function encodeNodeDragActiveToggle(nodeRow: number): ArrayBuffer {
   w.u8(nodeRow);
   return w.toArrayBuffer();
 }
-

@@ -1,3 +1,4 @@
+import { SLIDER_NUM_SCALE } from "./input-encode";
 import { ByteReader } from "./byte-reader";
 import { IN_KIND_SAVE, IN_KIND_RAW_INPUT, IN_KIND_EDIT_UPDATE, IN_EVENT_KINDS, IN_HIT_KINDS, IN_UPDATE_KINDS } from "./input-layout-gen";
 import { IN_OVERLAY_ATTR_TOGGLE, IN_CLOCK_ATTR_SPEED, IN_DISTANCE_GROUP_ATTR_LENGTH, IN_PANEL_ATTR_TOGGLE } from "./input-attrs";
@@ -71,7 +72,7 @@ export function decodeInputRecord(record: ArrayBuffer): DecodedInput | undefined
         const attr = r.u8();
         if (attr === IN_CLOCK_ATTR_SPEED) {
 
-          const value = r.u8() / 4;
+          const value = r.u8() / SLIDER_NUM_SCALE;
           return { kind: "edit-update", entity: "clock", attr: "speed", value };
         }
         return undefined;

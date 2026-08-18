@@ -14,11 +14,11 @@ func (a BuildArgs) ClaimSelfDrive() *nodeactor.PairNodeSelf {
 	var speedCh chan float64
 	if a.pb.SpeedSinks != nil {
 		speedCh = make(chan float64, 1)
-		*a.pb.SpeedSinks = append(*a.pb.SpeedSinks, speedCh)
+		a.pb.SpeedSinks.Clocks = append(a.pb.SpeedSinks.Clocks, speedCh)
 
-		sliderToAnimSpeedCh := make(chan float64, 1)
-		*a.pb.SpeedSinks = append(*a.pb.SpeedSinks, sliderToAnimSpeedCh)
-		ng.SetAnimSpeedCh(sliderToAnimSpeedCh)
+		sliderToAnimSleepCh := make(chan int64, 1)
+		a.pb.SpeedSinks.Anim = append(a.pb.SpeedSinks.Anim, sliderToAnimSleepCh)
+		ng.SetAnimSleepCh(sliderToAnimSleepCh)
 	}
 
 	return nodeactor.NewPairNodeSelf(ng, speedCh)

@@ -2,6 +2,7 @@ package runtopology
 
 import (
 	"context"
+	"github.com/dtauraso/wirefold/Slider"
 	"os"
 	"sync"
 
@@ -13,7 +14,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/stdinreader"
 )
 
-func startStdinReader(ctx context.Context, cancel context.CancelFunc, slotReg inputcodec.SlotRegistry, md *W.MoveDispatch, tr *T.Trace, speedSinks []chan float64) (*sync.WaitGroup, *sync.WaitGroup) {
+func startStdinReader(ctx context.Context, cancel context.CancelFunc, slotReg inputcodec.SlotRegistry, md *W.MoveDispatch, tr *T.Trace, speedSinks Slider.Sinks) (*sync.WaitGroup, *sync.WaitGroup) {
 	inbox, gestureWG := startGestureActor(ctx, slotReg, md, tr, speedSinks)
 
 	stdinWG := new(sync.WaitGroup)

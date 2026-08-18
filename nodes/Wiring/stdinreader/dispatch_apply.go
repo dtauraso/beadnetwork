@@ -3,6 +3,7 @@ package stdinreader
 import (
 	"context"
 	"fmt"
+	"github.com/dtauraso/wirefold/Slider"
 	"math"
 	"strconv"
 
@@ -17,13 +18,13 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/sceneswitch"
 )
 
-func applyUpdateClock(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
+func applyUpdateClock(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks Slider.Sinks) {
 	if h, ok := clockAttrHandlers[msg.Attr]; ok {
 		h(msg, md, speedSinks)
 	}
 }
 
-func applyUpdateDistanceGroup(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
+func applyUpdateDistanceGroup(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks Slider.Sinks) {
 	if md == nil || msg.Attr != "length" {
 		return
 	}
@@ -36,7 +37,7 @@ func applyUpdateDistanceGroup(ctx context.Context, msg inputcodec.StdinMsg, md *
 	}
 }
 
-func applyUpdateTiltVector(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
+func applyUpdateTiltVector(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks Slider.Sinks) {
 	if md == nil || (msg.Attr != "phi" && msg.Attr != "reset" && msg.Attr != "start") {
 		return
 	}
@@ -46,7 +47,7 @@ func applyUpdateTiltVector(ctx context.Context, msg inputcodec.StdinMsg, md *dis
 	}
 	if msg.Attr == "reset" {
 
-		scenepersist.BroadcastSpeed(speedSinks, scenepersist.SliderSpeed(&md.UI))
+		Slider.Broadcast(speedSinks, scenepersist.SliderNum(md.UI.Speed), int64(md.UI.ClockDivisor))
 		if md.Inboxes.SendTiltEdit(ctx, id, movemsg.TiltEditMsg{Reset: true}) {
 			return
 		}
@@ -55,7 +56,7 @@ func applyUpdateTiltVector(ctx context.Context, msg inputcodec.StdinMsg, md *dis
 	}
 	if msg.Attr == "start" {
 
-		scenepersist.BroadcastSpeed(speedSinks, scenepersist.SliderSpeed(&md.UI))
+		Slider.Broadcast(speedSinks, scenepersist.SliderNum(md.UI.Speed), int64(md.UI.ClockDivisor))
 
 		md.Inboxes.SendTiltEdit(ctx, id, movemsg.TiltEditMsg{Start: true})
 		return
@@ -68,7 +69,7 @@ func applyUpdateTiltVector(ctx context.Context, msg inputcodec.StdinMsg, md *dis
 	md.MR.SendMove(ctx, id, movemsg.Msg{Kind: movemsg.KindTiltVectorAngle, NodeID: id, Bool: up})
 }
 
-func applyUpdateScene(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
+func applyUpdateScene(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks Slider.Sinks) {
 	if md == nil {
 		return
 	}
@@ -92,7 +93,7 @@ func applyUpdateScene(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch
 	}
 }
 
-func applyUpdateOverlays(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
+func applyUpdateOverlays(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks Slider.Sinks) {
 	if md == nil {
 		return
 	}
@@ -174,7 +175,7 @@ func sendRuleEdit(ctx context.Context, md *dispatch.MoveDispatch, row int, edit 
 	}
 }
 
-func applyUpdateNode(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
+func applyUpdateNode(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks Slider.Sinks) {
 	if md == nil {
 		return
 	}
@@ -183,7 +184,7 @@ func applyUpdateNode(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.
 	}
 }
 
-func applyUpdatePanels(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
+func applyUpdatePanels(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks Slider.Sinks) {
 	if md == nil {
 		return
 	}

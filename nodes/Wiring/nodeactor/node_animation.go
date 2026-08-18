@@ -27,8 +27,8 @@ func (a *NodeAnimation) ClearBeadRuns() {
 	a.outs.ClearBeadRuns()
 }
 
-func (a *NodeAnimation) SetSpeedCh(ch <-chan float64) {
-	a.outs.SetSpeedCh(ch)
+func (a *NodeAnimation) SetSleepCh(ch <-chan int64) {
+	a.outs.SetSleepCh(ch)
 }
 
 func (a *NodeAnimation) StartAnimation(ctx context.Context) {

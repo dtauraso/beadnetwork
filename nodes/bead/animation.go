@@ -16,9 +16,9 @@ import (
 )
 
 type Animation struct {
-	speedCh <-chan float64
+	sleepCh <-chan int64
 
-	scalar float64
+	sleepMs int64
 
 	outRuns []*BeadRun
 
@@ -41,14 +41,14 @@ func (o *Animation) SetBeadStream(w io.Writer, nodeRow int32, buildBeadFrame fun
 	o.buildBeadFrame = buildBeadFrame
 }
 
-func (o *Animation) SetSpeedCh(ch <-chan float64) { o.speedCh = ch }
+func (o *Animation) SetSleepCh(ch <-chan int64) { o.sleepCh = ch }
 
 func (o *Animation) wakeAfter() time.Duration {
-	s := o.scalar
-	if s <= 0 {
-		s = 1
+	ms := o.sleepMs
+	if ms < 1 {
+		ms = int64(lattice.PulsesPerSlot) * clock.MsPerTick
 	}
-	return time.Duration(float64(lattice.PulsesPerSlot) * float64(clock.TickPeriod) / s)
+	return time.Duration(ms) * time.Millisecond
 }
 
 func (o *Animation) RunAnimation(ctx context.Context) {
@@ -60,8 +60,8 @@ func (o *Animation) RunAnimation(ctx context.Context) {
 		if ctx.Err() != nil {
 			return
 		}
-		if sp, ok := clock.RecvSpeedNonBlocking(o.speedCh); ok {
-			o.scalar = sp
+		if ms, ok := clock.RecvSleepMsNonBlocking(o.sleepCh); ok {
+			o.sleepMs = ms
 		}
 		o.stepBeads(ctx, clk.Tick())
 		if err := clk.SleepFor(ctx, o.wakeAfter()); err != nil {

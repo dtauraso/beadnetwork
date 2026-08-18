@@ -1,6 +1,7 @@
 package runtopology
 
 import (
+	"github.com/dtauraso/wirefold/Slider"
 	T "github.com/dtauraso/wirefold/Trace"
 	W "github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/distancegroups"
@@ -9,7 +10,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewpersist"
 )
 
-func loadSceneState(scenePath string, md *W.MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
+func loadSceneState(scenePath string, md *W.MoveDispatch, tr *T.Trace, speedSinks Slider.Sinks) {
 	scenecamera.SeedInitialViewpoint(scenePath, md.UI.VP.SetViewpoint, md.UI.VP.EmitViewpoint, tr)
 
 	distancegroups.ResolveSceneDistanceGroups(&md.UI, scenePath)

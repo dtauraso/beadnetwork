@@ -2,14 +2,13 @@ package stdinreader
 
 import (
 	"context"
+	"github.com/dtauraso/wirefold/Slider"
 
-	"github.com/dtauraso/wirefold/nodes/clock"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
 
 	T "github.com/dtauraso/wirefold/Trace"
 	"github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
-	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
 )
 
@@ -31,20 +30,20 @@ func HandleSaveMsg(md *dispatch.MoveDispatch) {
 }
 
 // EDIT_OPS_START
-var editOps = map[string]func(context.Context, inputcodec.StdinMsg, *dispatch.MoveDispatch, *T.Trace, []chan float64){
+var editOps = map[string]func(context.Context, inputcodec.StdinMsg, *dispatch.MoveDispatch, *T.Trace, Slider.Sinks){
 	"update": applyUpdate,
 }
 
 // EDIT_OPS_END
 
-func ApplyEdit(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
+func ApplyEdit(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks Slider.Sinks) {
 	if h, ok := editOps[msg.Op]; ok {
 		h(ctx, msg, md, tr, speedSinks)
 	}
 }
 
 // EDIT_UPDATE_KINDS_START
-var updateKindHandlers = map[string]func(context.Context, inputcodec.StdinMsg, *dispatch.MoveDispatch, *T.Trace, []chan float64){
+var updateKindHandlers = map[string]func(context.Context, inputcodec.StdinMsg, *dispatch.MoveDispatch, *T.Trace, Slider.Sinks){
 	"clock":         applyUpdateClock,
 	"overlays":      applyUpdateOverlays,
 	"distanceGroup": applyUpdateDistanceGroup,
@@ -57,26 +56,23 @@ var updateKindHandlers = map[string]func(context.Context, inputcodec.StdinMsg, *
 
 // EDIT_UPDATE_KINDS_END
 
-func applyUpdate(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
+func applyUpdate(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks Slider.Sinks) {
 	if h, ok := updateKindHandlers[msg.Kind]; ok {
 		h(ctx, msg, md, tr, speedSinks)
 	}
 }
 
-var clockAttrHandlers = map[string]func(msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, speedSinks []chan float64){
-	"speed": func(msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, speedSinks []chan float64) {
+var clockAttrHandlers = map[string]func(msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, speedSinks Slider.Sinks){
+	"speed": func(msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, speedSinks Slider.Sinks) {
 
-		userSpeed := float64(msg.Num) / 4.0
-
-		divisor := 1.0
+		divisor := int64(1)
 		if md != nil {
-			divisor = md.UI.ClockDivisor
+			divisor = int64(md.UI.ClockDivisor)
 		}
-		effective := scenepersist.EffectiveClockSpeed(userSpeed, divisor)
 
-		for _, ch := range speedSinks {
-			clock.SendSpeedNonBlocking(ch, effective)
-		}
+		Slider.Broadcast(speedSinks, int64(msg.Num), divisor)
+
+		userSpeed := float64(msg.Num) / Slider.NumScale
 		if md == nil {
 			return
 		}
