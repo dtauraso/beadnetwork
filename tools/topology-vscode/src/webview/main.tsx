@@ -13,7 +13,8 @@ import { parseHostToWebview } from "../messages";
 import { ErrorBoundary } from "./log/ErrorBoundary";
 import { CrashListeners } from "./log/CrashListeners";
 import { setLatestViewFrame, setLatestEdgeStreamFrame, setLatestNodeStreamFrame, setLatestInteriorStreamFrame, setLatestBeadStreamFrame } from "./snapshot-buffer";
-import { BUF_BLOCK_TAG_VIEW, BUF_BLOCK_TAG_EDGE_STREAM, BUF_BLOCK_TAG_NODE_STREAM, BUF_BLOCK_TAG_INTERIOR_STREAM, BUF_BLOCK_TAG_BEAD_STREAM } from "../../Buffer/frame-tags";
+import { BUF_BLOCK_TAG_VIEW, BUF_BLOCK_TAG_EDGE_STREAM, BUF_BLOCK_TAG_NODE_STREAM, BUF_BLOCK_TAG_INTERIOR_STREAM, BUF_BLOCK_TAG_BEAD_STREAM, BUF_BLOCK_TAG_COLUMN } from "../../Buffer/frame-tags";
+import { setColumnValue } from "../../Buffer/column-values";
 
 function Root() {
   return (
@@ -65,6 +66,11 @@ window.addEventListener("message", (e) => {
 
       if (typeof msg.row === "number") {
         setLatestBeadStreamFrame(msg.row, msg.buffer, msg.gen);
+      }
+    } else if (msg.tag === BUF_BLOCK_TAG_COLUMN) {
+
+      if (typeof msg.row === "number") {
+        setColumnValue(msg.row, msg.buffer);
       }
     }
     bufSnapCount += 1;

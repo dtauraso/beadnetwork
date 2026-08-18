@@ -31,6 +31,8 @@ func RunTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 	}
 	wireEdgeStreams(streamFDs, md)
 	wireNodeStreams(streamFDs, md)
+	cols := SF.NewColumnStreams(streamFDs, len(md.RT.NodeRowTable), len(md.RT.EdgeRowTable))
+	md.UI.SetSingletonColumns(cols.SingletonColumns())
 	wireViewStream(md, viewFile, viewStreamWired, sceneTabNames, sceneTabSelected)
 	emitStartupBreadcrumbs(tr, md, scenePath, len(nodes))
 	checkRowSeedCount(tr, md, len(nodes))

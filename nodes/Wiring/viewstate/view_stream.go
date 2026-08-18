@@ -69,6 +69,8 @@ func (ui *UIState) EmitViewFrame(events []rowevent.RowEvent) {
 		}
 	}
 
+	ui.writeSceneColumns(sc)
+
 	frame := ui.ViewBuildFrame(ui.viewTick,
 		float32(v.Pivot.X), float32(v.Pivot.Y), float32(v.Pivot.Z), float32(v.R),
 		float32(v.Pos.Phi), float32(v.Pos.Theta), float32(v.Up.Phi), float32(v.Up.Theta),

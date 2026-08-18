@@ -29,5 +29,8 @@ const BufInteriorStreamFrameHeaderSize = 4
 //frametag:ts=BUF_BLOCK_TAG_BEAD_STREAM
 const BufBlockTagBeadStream byte = 8
 
+//frametag:ts=BUF_BLOCK_TAG_COLUMN
+const BufBlockTagColumn byte = 9
+
 //frametag:ts=BUF_BEAD_STREAM_FRAME_HEADER_SIZE
 const BufBeadStreamFrameHeaderSize = 12

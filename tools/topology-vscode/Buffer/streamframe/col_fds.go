@@ -24,16 +24,16 @@ func NewColumnStreams(fds StreamFDs, nodes, edges int) ColumnStreams {
 
 func (c ColumnStreams) On() bool { return c.on }
 
+func (c ColumnStreams) singletonBase() int {
+	return c.base
+}
+
 func (c ColumnStreams) nodeBase(row int) int {
-	return c.base + row*B.ColumnsPerNodeStream
+	return c.base + B.ColumnsInSingletonStreams + row*B.ColumnsPerNodeStream
 }
 
 func (c ColumnStreams) edgeBase(row int) int {
-	return c.base + c.nodes*B.ColumnsPerNodeStream + row*B.ColumnsPerEdgeStream
-}
-
-func (c ColumnStreams) singletonBase() int {
-	return c.base + c.nodes*B.ColumnsPerNodeStream + c.edges*B.ColumnsPerEdgeStream
+	return c.base + B.ColumnsInSingletonStreams + c.nodes*B.ColumnsPerNodeStream + row*B.ColumnsPerEdgeStream
 }
 
 func (c ColumnStreams) open(base, col int, what string) *os.File {

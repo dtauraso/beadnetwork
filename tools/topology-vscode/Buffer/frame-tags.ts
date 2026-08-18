@@ -22,4 +22,10 @@ export const BUF_INTERIOR_STREAM_FRAME_HEADER_SIZE = 4;
 
 export const BUF_BLOCK_TAG_BEAD_STREAM = 8;
 
+/**
+ * A single column channel value. The snapshot message carries the column index where a
+ * row frame carries its row, so a column needs no message kind of its own.
+ */
+export const BUF_BLOCK_TAG_COLUMN = 9;
+
 export const BUF_BEAD_STREAM_FRAME_HEADER_SIZE = 12;

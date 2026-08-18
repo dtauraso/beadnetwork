@@ -5,6 +5,7 @@ import { freshStreamState, type StreamParseState } from "./parse-state";
 import type { ProbePaths } from "./probe/probe-paths";
 import { LastFrameStore } from "./last-frame-store";
 import { ColumnStore } from "./column-store";
+import { BUF_BLOCK_TAG_COLUMN } from "../../Buffer/frame-tags";
 import {
   dispatchViewFrames,
   dispatchEdgeFrames,
@@ -43,6 +44,9 @@ export class StreamDemux extends LastFrameStore {
 
   readonly columns = new ColumnStore();
 
+  private readonly onSnapshot: ((msg: HostToWebviewMsg & { type: "buffer-snapshot" }) => void) | undefined;
+  private readonly gen: number;
+
   private readonly frameCtx: FrameDispatchContext;
   private readonly onLine: (line: string) => void;
 
@@ -57,6 +61,8 @@ export class StreamDemux extends LastFrameStore {
     this.nodeCount = cfg.nodeCount;
     this.frameCtx = makeFrameDispatchContext(cfg.probeTrace, cfg.gen, cfg.onSnapshot, cfg.onError);
     this.onLine = cfg.onLine;
+    this.onSnapshot = cfg.onSnapshot;
+    this.gen = cfg.gen;
   }
 
   handleStdout(chunk: string) {
@@ -117,7 +123,12 @@ export class StreamDemux extends LastFrameStore {
   }
 
   handleColFd(col: number, chunk: Buffer) {
-    this.columns.handle(col, chunk);
+    if (!this.columns.handle(col, chunk)) return;
+    const value = this.columns.get(col);
+    if (!value || !this.onSnapshot) return;
+
+    const ab = value.buffer.slice(value.byteOffset, value.byteOffset + value.byteLength) as ArrayBuffer;
+    this.onSnapshot({ type: "buffer-snapshot", buffer: ab, tag: BUF_BLOCK_TAG_COLUMN, row: col, gen: this.gen });
   }
 
   handleInteriorFd(row: number, chunk: Buffer) {
