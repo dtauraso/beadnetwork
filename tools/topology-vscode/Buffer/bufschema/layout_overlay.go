@@ -30,9 +30,5 @@ type bufLayoutOverlay struct {
 
 	SceneKinds uint32 `buf:"u32"`
 
-	GroupLenTime  float32 `buf:"f32"`
-	GroupLenInput float32 `buf:"f32"`
-	GroupLenGate  float32 `buf:"f32"`
-
 	Speed float32 `buf:"f32"`
 }

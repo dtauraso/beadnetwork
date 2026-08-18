@@ -44,14 +44,13 @@ func ApplyEdit(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDi
 
 // EDIT_UPDATE_KINDS_START
 var updateKindHandlers = map[string]func(context.Context, inputcodec.StdinMsg, *dispatch.MoveDispatch, *T.Trace, SliderPanel.Sinks){
-	"clock":         applyUpdateClock,
-	"overlays":      applyUpdateOverlays,
-	"distanceGroup": applyUpdateDistanceGroup,
-	"scene":         applyUpdateScene,
-	"tiltVector":    applyUpdateTiltVector,
-	"panels":        applyUpdatePanels,
-	"node":          applyUpdateNode,
-	"edge":          applyUpdateEdge,
+	"clock":      applyUpdateClock,
+	"overlays":   applyUpdateOverlays,
+	"scene":      applyUpdateScene,
+	"tiltVector": applyUpdateTiltVector,
+	"panels":     applyUpdatePanels,
+	"node":       applyUpdateNode,
+	"edge":       applyUpdateEdge,
 }
 
 // EDIT_UPDATE_KINDS_END

@@ -109,7 +109,7 @@ send contract.
 ## Geometry, time, and the driver
 
 See [docs/model/timing.md](docs/model/timing.md) for how wire geometry sets traversal
-ticks, how an in-flight geometry edit preserves fractional progress, and the
+slots, why a bead in flight ignores a drag, and the
 self-scheduling driver (each source node's mover, no central walker, no lockstep rounds).
 
 ## Editor surface (TS)
@@ -129,7 +129,7 @@ binary-both-ways bridge surface.
 See [docs/model/scenes.md](docs/model/scenes.md) for what a scene is, how a tab switch
 works, and the per-scene fork of node behaviour it documents (coplanar rings), plus the
 ring-axis vs. navigation-pole distinction. `scene.Scene`'s other per-scene fields
-(`UpAxis`, `ClockDivisor`, `DistanceGroups`, `Editable`, `Kinds`) are not written up
+(`UpAxis`, `ClockDivisor`, `Editable`, `Kinds`) are not written up
 anywhere — read `nodes/Wiring/scene/scene.go`.
 
 ## Drift rule

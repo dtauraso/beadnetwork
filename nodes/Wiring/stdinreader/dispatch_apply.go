@@ -8,7 +8,6 @@ import (
 	"strconv"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
-	"github.com/dtauraso/wirefold/nodes/Wiring/distancegroups"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/rulenode"
@@ -21,19 +20,6 @@ import (
 func applyUpdateClock(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks SliderPanel.Sinks) {
 	if h, ok := clockAttrHandlers[msg.Attr]; ok {
 		h(msg, md, speedSinks)
-	}
-}
-
-func applyUpdateDistanceGroup(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks SliderPanel.Sinks) {
-	if md == nil || msg.Attr != "length" {
-		return
-	}
-	dir := -1
-	if msg.Flag == "up" {
-		dir = 1
-	}
-	if distancegroups.ApplyDistanceGroupTarget(ctx, &md.UI, &md.MR, &md.Mover, msg.Num, dir) {
-		md.UI.EmitViewFrame(nil)
 	}
 }
 

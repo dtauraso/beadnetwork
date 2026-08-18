@@ -17,8 +17,6 @@ func decodeEditUpdate(r *recread.Reader) (StdinMsg, bool) {
 		return decodeUpdateOverlays(r, attr)
 	case "clock":
 		return decodeUpdateClock(r, attr)
-	case "distanceGroup":
-		return decodeUpdateDistanceGroup(r, attr)
 	case "scene":
 		return decodeUpdateScene(r, attr)
 	case "tiltVector":
@@ -72,21 +70,4 @@ func decodeUpdateClock(r *recread.Reader, attr byte) (StdinMsg, bool) {
 		return StdinMsg{}, false
 	}
 	return StdinMsg{Type: "edit", Op: "update", Kind: "clock", Attr: "speed", Num: int(speed)}, true
-}
-
-func decodeUpdateDistanceGroup(r *recread.Reader, attr byte) (StdinMsg, bool) {
-	if attr != InDistanceGroupAttrLength {
-		return StdinMsg{}, false
-	}
-
-	groupIdx, errG := r.U8()
-	if errG != nil {
-		return StdinMsg{}, false
-	}
-	dirUp, errD := r.U8()
-	if errD != nil {
-		return StdinMsg{}, false
-	}
-	dir := dirWord(dirUp)
-	return StdinMsg{Type: "edit", Op: "update", Kind: "distanceGroup", Attr: "length", Num: int(groupIdx), Flag: dir}, true
 }

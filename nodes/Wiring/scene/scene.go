@@ -17,8 +17,6 @@ type Scene struct {
 
 	ClockDivisor float64
 
-	DistanceGroups bool
-
 	Editable bool
 
 	Kinds []string
@@ -26,7 +24,7 @@ type Scene struct {
 
 var All = []Scene{
 
-	{Name: "ring", Dir: "topology", CoplanarEdges: false, UpAxis: false, ClockDivisor: 1, DistanceGroups: true, Editable: true,
+	{Name: "ring", Dir: "topology", CoplanarEdges: false, UpAxis: false, ClockDivisor: 1, Editable: true,
 		Kinds: []string{
 			"Input", "Time", "TimeStart", "TimeEnd",
 			"Pulse", "PulseLeft", "PulseRight",
@@ -34,7 +32,7 @@ var All = []Scene{
 			"HoldFlip", "Pacer",
 		}},
 
-	{Name: "pair", Dir: "topology-pair", CoplanarEdges: true, UpAxis: true, ClockDivisor: 64, DistanceGroups: false, Editable: true, Kinds: []string{"PairNode", "NormalSum"}},
+	{Name: "pair", Dir: "topology-pair", CoplanarEdges: true, UpAxis: true, ClockDivisor: 64, Editable: true, Kinds: []string{"PairNode", "NormalSum"}},
 }
 
 var Unlisted = Scene{ClockDivisor: 1}

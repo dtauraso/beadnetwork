@@ -1,7 +1,7 @@
 import { SLIDER_NUM_SCALE } from "./input-encode";
 import { ByteReader } from "./byte-reader";
 import { IN_KIND_SAVE, IN_KIND_RAW_INPUT, IN_KIND_EDIT_UPDATE, IN_EVENT_KINDS, IN_HIT_KINDS, IN_UPDATE_KINDS } from "./input-layout-gen";
-import { IN_OVERLAY_ATTR_TOGGLE, IN_CLOCK_ATTR_SPEED, IN_DISTANCE_GROUP_ATTR_LENGTH, IN_PANEL_ATTR_TOGGLE } from "./input-attrs";
+import { IN_OVERLAY_ATTR_TOGGLE, IN_CLOCK_ATTR_SPEED, IN_PANEL_ATTR_TOGGLE } from "./input-attrs";
 import type { RawInputEvent, OverlayFlag, PanelFlag } from "../../messages";
 import { OVERLAY_FLAG_ORDER, PANEL_FLAG_ORDER } from "../../messages";
 
@@ -10,8 +10,7 @@ export type DecodedInput =
   | { kind: "raw-input"; event: RawInputEvent }
   | { kind: "edit-update"; entity: "overlays"; attr: "toggle"; flag: OverlayFlag }
   | { kind: "edit-update"; entity: "panels"; attr: "toggle"; flag: PanelFlag }
-  | { kind: "edit-update"; entity: "clock"; attr: "speed"; value: number }
-  | { kind: "edit-update"; entity: "distanceGroup"; attr: "length"; group: number; dir: "up" | "down" };
+  | { kind: "edit-update"; entity: "clock"; attr: "speed"; value: number };
 
 export function decodeInputRecord(record: ArrayBuffer): DecodedInput | undefined {
   const bytes = new Uint8Array(record);
@@ -74,15 +73,6 @@ export function decodeInputRecord(record: ArrayBuffer): DecodedInput | undefined
 
           const value = r.u8() / SLIDER_NUM_SCALE;
           return { kind: "edit-update", entity: "clock", attr: "speed", value };
-        }
-        return undefined;
-      }
-      if (entityKind === "distanceGroup") {
-        const attr = r.u8();
-        if (attr === IN_DISTANCE_GROUP_ATTR_LENGTH) {
-          const group = r.u8();
-          const dirUp = r.u8();
-          return { kind: "edit-update", entity: "distanceGroup", attr: "length", group, dir: dirUp ? "up" : "down" };
         }
         return undefined;
       }

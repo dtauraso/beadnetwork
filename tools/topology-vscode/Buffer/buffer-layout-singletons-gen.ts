@@ -41,11 +41,8 @@ export const OVERLAY_COL_DRAG_NODE_ROW           = 15; // i32
 export const OVERLAY_COL_EDIT_REFUSED            = 19; // u32
 export const OVERLAY_COL_SCENE_EDITABLE          = 23; // u8
 export const OVERLAY_COL_SCENE_KINDS             = 24; // u32
-export const OVERLAY_COL_GROUP_LEN_TIME          = 28; // f32
-export const OVERLAY_COL_GROUP_LEN_INPUT         = 32; // f32
-export const OVERLAY_COL_GROUP_LEN_GATE          = 36; // f32
-export const OVERLAY_COL_SPEED                   = 40; // f32
-export const OVERLAY_STRIDE                      = 44;
+export const OVERLAY_COL_SPEED                   = 28; // f32
+export const OVERLAY_STRIDE                      = 32;
 
 export function readOverlaySceneTori(view: DataView): number { return view.getUint8(OVERLAY_COL_SCENE_TORI); }
 export function readOverlayScenePoles(view: DataView): number { return view.getUint8(OVERLAY_COL_SCENE_POLES); }
@@ -66,9 +63,6 @@ export function readOverlayDragNodeRow(view: DataView): number { return view.get
 export function readOverlayEditRefused(view: DataView): number { return view.getUint32(OVERLAY_COL_EDIT_REFUSED, true); }
 export function readOverlaySceneEditable(view: DataView): number { return view.getUint8(OVERLAY_COL_SCENE_EDITABLE); }
 export function readOverlaySceneKinds(view: DataView): number { return view.getUint32(OVERLAY_COL_SCENE_KINDS, true); }
-export function readOverlayGroupLenTime(view: DataView): number { return view.getFloat32(OVERLAY_COL_GROUP_LEN_TIME, true); }
-export function readOverlayGroupLenInput(view: DataView): number { return view.getFloat32(OVERLAY_COL_GROUP_LEN_INPUT, true); }
-export function readOverlayGroupLenGate(view: DataView): number { return view.getFloat32(OVERLAY_COL_GROUP_LEN_GATE, true); }
 export function readOverlaySpeed(view: DataView): number { return view.getFloat32(OVERLAY_COL_SPEED, true); }
 
 // ── Panel block ──────────────────────────────────────────────

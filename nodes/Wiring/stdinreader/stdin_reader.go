@@ -4,11 +4,8 @@
 // MSG_TYPES_DOC_START
 //
 //  1. "edit" — geometry-CRUD. The sole op is update, which sets an ATTRIBUTE on a
-//     typed entity; the live entities are overlays, clock, and distanceGroup:
 //       update overlays attr=toggle: flip one named overlay flag.
 //       update clock attr=speed: set the playback multiplier.
-//       update distanceGroup attr=length: adjust one "distance home button" group's
-//       target pair length (×1.1 up / ÷1.1 down) — see ApplyDistanceGroupTarget.
 //     A create/delete op pair (records 20/21) once added or removed an edge by
 //     destination slot; both were removed end-to-end (no live TS sender, and create's
 //     are now GAPS. Camera / node-move / port-anchor are NOT edits: the gesture FSM

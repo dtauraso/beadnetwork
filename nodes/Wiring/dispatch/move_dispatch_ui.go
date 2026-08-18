@@ -15,8 +15,4 @@ func initMoveDispatchUIDefaults(md *MoveDispatch) {
 
 func (md *MoveDispatch) bindUIClosures() {
 	md.UI.NodeRowFor = md.RT.NodeRowFor
-	mrForLens, uiForLens := &md.MR, &md.UI
-	md.UI.DistanceGroupLensFn = func() (float32, float32, float32) {
-		return DistanceGroupLens(uiForLens, mrForLens)
-	}
 }
