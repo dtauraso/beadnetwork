@@ -99,8 +99,8 @@ func (m *NodeGeometry) deriveOutEdgeGeometry() {
 	m.outEdges.DeriveGeometry(m.geom, &m.deltas)
 }
 
-func (m *NodeGeometry) SetAnimSpeedCh(ch <-chan float64) {
-	m.anim.SetSpeedCh(ch)
+func (m *NodeGeometry) SetAnimSleepCh(ch <-chan int64) {
+	m.anim.SetSleepCh(ch)
 }
 
 func (m *NodeGeometry) DeriveOutEdgeGeometryOnce() {

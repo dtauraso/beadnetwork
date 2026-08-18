@@ -37,6 +37,27 @@ func (c *RealClock) SleepFor(ctx context.Context, d time.Duration) error {
 	}
 }
 
+func SleepForOrChange(ctx context.Context, d time.Duration, ch <-chan int64) (v int64, changed bool, err error) {
+	if d <= 0 {
+		select {
+		case v = <-ch:
+			return v, true, nil
+		case <-ctx.Done():
+			return 0, false, ctx.Err()
+		}
+	}
+	t := time.NewTimer(d)
+	defer t.Stop()
+	select {
+	case <-t.C:
+		return 0, false, nil
+	case v = <-ch:
+		return v, true, nil
+	case <-ctx.Done():
+		return 0, false, ctx.Err()
+	}
+}
+
 func (c *RealClock) sleepPulses(ctx context.Context, n int) error {
 	if c.ticker == nil {
 		c.ticker = time.NewTicker(tickPeriod)

@@ -1,6 +1,7 @@
 package portwiring
 
 import (
+	"github.com/dtauraso/wirefold/Slider"
 	"github.com/dtauraso/wirefold/nodes/Wiring/interior"
 	"github.com/dtauraso/wirefold/nodes/Wiring/rowtables"
 	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
@@ -40,7 +41,7 @@ type PortBindings struct {
 
 	Clock clock.Clock
 
-	SpeedSinks *[]chan float64
+	SpeedSinks *Slider.Sinks
 
 	RT rowtables.RowTables
 

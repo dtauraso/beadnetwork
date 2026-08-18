@@ -2,6 +2,7 @@ package build
 
 import (
 	"context"
+	"github.com/dtauraso/wirefold/Slider"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
@@ -15,11 +16,11 @@ import (
 	T "github.com/dtauraso/wirefold/Trace"
 )
 
-func LoadTopology(ctx context.Context, jsonPath string, tr *T.Trace, clk clock.Clock) ([]nodeapi.Node, inputcodec.SlotRegistry, *dispatch.MoveDispatch, []chan float64, error) {
+func LoadTopology(ctx context.Context, jsonPath string, tr *T.Trace, clk clock.Clock) ([]nodeapi.Node, inputcodec.SlotRegistry, *dispatch.MoveDispatch, Slider.Sinks, error) {
 	kindreg.BuildRegistry()
 	spec, err := loadspec.ParseSpec(jsonPath)
 	if err != nil {
-		return nil, nil, nil, nil, err
+		return nil, nil, nil, Slider.Sinks{}, err
 	}
 
 	kindPorts := make(map[string][]portwiring.PortSpec, len(kindreg.Registry))
@@ -27,7 +28,7 @@ func LoadTopology(ctx context.Context, jsonPath string, tr *T.Trace, clk clock.C
 		kindPorts[kind] = bind.Ports
 	}
 	if err := loadspec.ValidateSpec(&spec, kindPorts); err != nil {
-		return nil, nil, nil, nil, err
+		return nil, nil, nil, Slider.Sinks{}, err
 	}
 
 	sphere, hasScene := scenepersist.LoadSceneSphere(jsonPath)

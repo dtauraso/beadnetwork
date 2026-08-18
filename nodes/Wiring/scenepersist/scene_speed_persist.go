@@ -1,13 +1,15 @@
 package scenepersist
 
 import (
+	"github.com/dtauraso/wirefold/Slider"
+	"math"
+
 	"encoding/json"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
-	"github.com/dtauraso/wirefold/nodes/clock"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -18,12 +20,11 @@ func SliderSpeed(ui *viewstate.UIState) float64 {
 	return EffectiveClockSpeed(ui.Speed, ui.ClockDivisor)
 }
 
-func InstallSpeed(ui *viewstate.UIState, topologyPath string, speedSinks []chan float64, tr *T.Trace) {
+func InstallSpeed(ui *viewstate.UIState, topologyPath string, speedSinks Slider.Sinks, tr *T.Trace) {
 	speed, _ := LoadSceneSpeed(scenepaths.SpeedFilePath(topologyPath))
 	ui.ClockDivisor = scene.For(topologyPath).ClockDivisor
 	ui.Speed = speed
-	effective := EffectiveClockSpeed(speed, ui.ClockDivisor)
-	BroadcastSpeed(speedSinks, effective)
+	Slider.Broadcast(speedSinks, SliderNum(speed), int64(ui.ClockDivisor))
 	ui.EmitViewFrame(nil)
 }
 
@@ -62,8 +63,6 @@ func LoadSceneSpeed(speedPath string) (float64, bool) {
 	return *sf.Speed, true
 }
 
-func BroadcastSpeed(speedSinks []chan float64, effective float64) {
-	for _, ch := range speedSinks {
-		clock.SendSpeedNonBlocking(ch, effective)
-	}
+func SliderNum(userSpeed float64) int64 {
+	return int64(math.Round(userSpeed * Slider.NumScale))
 }

@@ -9,6 +9,8 @@ const MsPerTick = 16
 
 const tickPeriod = MsPerTick * time.Millisecond
 
+const PausedCycleMultiple = maxPulsesPerCycle
+
 const TickPeriod = tickPeriod
 
 type Clock interface {

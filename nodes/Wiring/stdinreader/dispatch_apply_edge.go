@@ -3,13 +3,14 @@ package stdinreader
 import (
 	"context"
 	"fmt"
+	"github.com/dtauraso/wirefold/Slider"
 
 	T "github.com/dtauraso/wirefold/Trace"
 	"github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 )
 
-func applyUpdateEdge(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks []chan float64) {
+func applyUpdateEdge(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks Slider.Sinks) {
 	if md == nil || msg.Attr != "dragActive" {
 		return
 	}

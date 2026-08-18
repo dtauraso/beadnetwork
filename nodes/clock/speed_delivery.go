@@ -1,5 +1,21 @@
 package clock
 
+func SendSleepMsNonBlocking(ch chan int64, ms int64) {
+	select {
+	case ch <- ms:
+		return
+	default:
+	}
+	select {
+	case <-ch:
+	default:
+	}
+	select {
+	case ch <- ms:
+	default:
+	}
+}
+
 func ApplySpeedNonBlocking(clk Clock, speedCh <-chan float64) {
 	select {
 	case sp := <-speedCh:
