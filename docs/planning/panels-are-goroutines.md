@@ -14,6 +14,22 @@ coordinates are viewport coordinates and never mention the camera, so there is n
 recompute when the camera moves and nothing that could move it. Not "kept fixed"; simply
 not expressed in world terms.
 
+## A widget is not the thing it wraps
+
+`SpeedSlider` looks like a continuous slider and is not one: `min=0`, `max=5`, `step=1`. It
+picks an INDEX into six fixed settings — `0`, ¼, ½, ¾, `1`, `2`. Six positions, one current.
+The six are already drawn by us directly beneath it, as labelled ticks with the current one
+bold; the `<input type="range">` above them is a widget wrapped around a six-way choice and
+contributes nothing to the model.
+
+The same holds for the rules panel's `<input type="checkbox">`: a checkbox is a rect, a mark,
+and a boolean Go owns.
+
+So there is no native appearance to reproduce, because the native control is not the thing.
+Reading `type="range"` as "this panel's look is platform-drawn and cannot be matched" was the
+same error this whole change exists to remove — mistaking the implementation that grew around
+a thing for the thing.
+
 ## What each control is
 
 One control — a checkmark, a button, a readout — is one row, and Go owns three things about
@@ -43,8 +59,15 @@ was wrong — Go already has the coordinates.
 The panel is drawn in the canvas, in an orthographic overlay pass with its own camera that
 never moves, so viewport pixels map 1:1 and nothing skews under perspective.
 
-**Appearance is not a design question — it must match what is on screen today**, which the
-CSS already fully specifies: `ui-sans-serif, system-ui, sans-serif` at 11–13px, weights
+**Appearance is not a design question — the canvas version must look the same as the one on
+screen today.** Each panel is compared against the current one before its commit lands.
+
+For everything our CSS specifies that is exact, because the same rasteriser draws it. For the
+chrome a native widget contributed — a range track and thumb, a checkbox mark — we draw the
+equivalent and match what is there now as closely as the platform allows; that chrome then
+belongs to us, like every other rect in the scene.
+
+The CSS specifies: `ui-sans-serif, system-ui, sans-serif` at 11–13px, weights
 600/700, `#222` on `#fff`, 1px `#ddd` borders, 3–6px radii, `tabular-nums` on numeric
 readouts (`src/webview/webview-toolbar.css`).
 
@@ -69,16 +92,19 @@ rather than replacing them, and it removes the derived caches with them —
 `cachedRuleRows`, `cachedTiltVectorRows`, and the overlay/panel bundle objects that
 reassemble columns Go already streams separately.
 
-## Order
+## Order — one panel per commit, all of them, then merge
 
-1. **SpeedSlider** — one value, one control, no rows. Establishes the rect column, the
-   orthographic pass, the text rasterisation and the point-in-rect hit test end to end, on
-   the smallest surface that exercises all of them.
-2. Stop and judge. Five panels is a lot of surface to commit to an unproven shape.
-3. **TiltVectorButtons** — rows that vary with node count; the first run-valued panel columns.
-4. **NodeRulesPanel** — the largest, and the one deriving rows from nodes AND edges today.
-5. **AngleDropdown**, **NodesDropdown**, **OverlaysDropdown** — 8 of the 22 hook sites and
-   both bundle objects live in these three.
+1. **SpeedSlider** — six positions, one current. Small, but it exercises everything: the rect
+   column, run-valued rows, the orthographic pass, text rasterisation (including the stacked
+   fractions) and point-in-rect hit-testing.
+2. **TiltVectorButtons** — two buttons and a readout; rows that vary with node count.
+3. **AngleDropdown** — rows from the same tilt columns; no native controls.
+4. **NodesDropdown** — four separate flag reads today.
+5. **OverlaysDropdown** — 15 overlay flags and 11 panel flags, both bundle objects.
+6. **NodeRulesPanel** — the largest: rows derived from nodes AND edges, six checkboxes,
+   eleven buttons.
+7. The subscriptions and derived caches are then unreferenced; delete them and empty
+   `check-no-webview-state.sh`'s allowlist, per `remove-subscriptions.md`.
 
 ## Verification
 
