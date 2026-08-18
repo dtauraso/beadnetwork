@@ -92,6 +92,7 @@ func (g *NodeGeometry) RunGeometry(ctx context.Context) {
 
 		g.applyKindPosts()
 
+		g.pollChannelVectors()
 		g.drainRuleMesh()
 
 		g.deriveOutEdgeGeometry()

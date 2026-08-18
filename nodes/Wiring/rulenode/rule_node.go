@@ -6,6 +6,7 @@ import (
 	"github.com/dtauraso/wirefold/tools/topology-vscode/PolarRulesPanel"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/owners"
+	"github.com/dtauraso/wirefold/nodes/spatial"
 )
 
 type EditKind uint8
@@ -40,6 +41,8 @@ type State struct {
 	EdgeActive map[string]bool
 
 	KindActive bool
+
+	PeerCenters map[string]spatial.Vec3
 }
 
 type RuleNode struct {
@@ -65,26 +68,29 @@ type RuleNode struct {
 	toggleSelfKind chan struct{}
 	kindIn         chan struct{}
 
+	geomToRuleCenterIn chan spatial.Vec3
+
 	out  chan State
 	wake chan struct{}
 }
 
 func New(id string) *RuleNode {
 	return &RuleNode{
-		id:               id,
-		mesh:             owners.NewRuleMesh(),
-		active:           true,
-		selfActive:       true,
-		edits:            make(chan Edit, 8),
-		ruleIn:           make(chan PolarRulesPanel.Msg, 8),
-		edgeActive:       map[string]bool{},
-		toggleSelfToPeer: map[string]chan struct{}{},
-		toggleIn:         make(chan EdgeToggle, 8),
-		kindActive:       true,
-		toggleSelfKind:   make(chan struct{}, 4),
-		kindIn:           make(chan struct{}, 4),
-		out:              make(chan State, 1),
-		wake:             make(chan struct{}, 1),
+		id:                 id,
+		mesh:               owners.NewRuleMesh(),
+		active:             true,
+		selfActive:         true,
+		edits:              make(chan Edit, 8),
+		ruleIn:             make(chan PolarRulesPanel.Msg, 8),
+		geomToRuleCenterIn: make(chan spatial.Vec3, 1),
+		edgeActive:         map[string]bool{},
+		toggleSelfToPeer:   map[string]chan struct{}{},
+		toggleIn:           make(chan EdgeToggle, 8),
+		kindActive:         true,
+		toggleSelfKind:     make(chan struct{}, 4),
+		kindIn:             make(chan struct{}, 4),
+		out:                make(chan State, 1),
+		wake:               make(chan struct{}, 1),
 	}
 }
 
@@ -120,6 +126,8 @@ func (r *RuleNode) BroadcastSelf() {
 
 func (r *RuleNode) Edits() chan<- Edit { return r.edits }
 
+func (r *RuleNode) CenterIn() chan<- spatial.Vec3 { return r.geomToRuleCenterIn }
+
 func (r *RuleNode) Out() <-chan State { return r.out }
 
 func (r *RuleNode) Wake() <-chan struct{} { return r.wake }
@@ -152,6 +160,9 @@ func (r *RuleNode) Run(ctx context.Context) {
 		case <-r.kindIn:
 			r.applyKindToggle()
 			r.publish()
+		case c := <-r.geomToRuleCenterIn:
+			r.mesh.SetSelfCenter(c)
+			r.mesh.BroadcastCenter(r.id)
 		}
 	}
 }
@@ -179,6 +190,10 @@ func (r *RuleNode) forward(ctx context.Context, peerID string, back chan PolarRu
 
 func (r *RuleNode) publish() {
 	groupID, groupSize := r.mesh.RuleGroup(r.id)
+	peerCenters := make(map[string]spatial.Vec3, len(r.mesh.PeerCenters()))
+	for id, c := range r.mesh.PeerCenters() {
+		peerCenters[id] = c
+	}
 	edgeActive := make(map[string]bool, len(r.edgeActive))
 	for target, active := range r.edgeActive {
 		edgeActive[target] = active
@@ -189,6 +204,7 @@ func (r *RuleNode) publish() {
 		EdgeActive: edgeActive,
 		KindActive: r.kindActive,
 		SelfRule:   r.selfRule, SelfActive: r.selfActive,
+		PeerCenters: peerCenters,
 	}
 
 	select {

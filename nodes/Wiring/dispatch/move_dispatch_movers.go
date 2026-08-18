@@ -30,6 +30,7 @@ func (md *MoveDispatch) buildNodeMovers(geoms map[string]nodegeom.NodeGeom, tr *
 			md.Mover.CommitNodeMoveLocal(md.MR.NodeGeoms(), md.MR.Edges(), ownGeom, idx)
 		}
 		ng.WireMessaging(resolveDest, md.MR.EnqueueFor(ng), commitLocal)
+		md.Inboxes.ClaimChannelVectorsIn(id, ng.ChannelVectorsIn())
 		md.MR.NodeGeoms()[id] = ng
 
 		md.MR.SeedCenter(id, nodegeom.NodeWorldPos(g))

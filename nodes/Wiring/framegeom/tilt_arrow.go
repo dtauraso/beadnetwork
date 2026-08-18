@@ -4,6 +4,7 @@ import (
 	"math"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/camera"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 )
 
 const (
@@ -60,6 +61,26 @@ func composeColumnMajor(bx, by, bz, center vec3, sx, sy, sz float64) [16]float32
 		float32(bz.X), float32(bz.Y), float32(bz.Z), 0,
 		float32(center.X), float32(center.Y), float32(center.Z), 1,
 	}
+}
+
+const (
+	ChannelLineRadius = nodegeom.ShadingParamChannelLineRadius
+	ChannelHeadRadius = nodegeom.ShadingParamChannelHeadRadius
+	ChannelHeadLength = nodegeom.ShadingParamChannelHeadLength
+)
+
+func ChannelArrow(from, to vec3) (shaft, head [16]float32, ok bool) {
+	dir := to.Sub(from)
+	length := dir.Length()
+	if length < 1e-9 {
+		return shaft, head, false
+	}
+	axis := dir.Normalize()
+	bx, by, bz := axisBasisFrom(vec3{X: 0, Y: 1, Z: 0}, axis)
+
+	shaft = composeColumnMajor(bx, by, bz, from.Add(axis.Scale(length/2)), 1, length, 1)
+	head = composeColumnMajor(bx, by, bz, to.Sub(axis.Scale(ChannelHeadLength)), 1, 1, 1)
+	return shaft, head, true
 }
 
 func ArrowMatrices(center vec3, length, phi float64, received bool) TiltArrow {

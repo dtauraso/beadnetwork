@@ -21,7 +21,7 @@ const BufBlockTagNodeStream byte = 6
 const BufBlockTagInteriorStream byte = 7
 
 //frametag:ts=BUF_NODE_STREAM_FRAME_HEADER_SIZE
-const BufNodeStreamFrameHeaderSize = 12
+const BufNodeStreamFrameHeaderSize = 16
 
 //frametag:ts=BUF_INTERIOR_STREAM_FRAME_HEADER_SIZE
 const BufInteriorStreamFrameHeaderSize = 4

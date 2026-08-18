@@ -2,6 +2,7 @@ package owners
 
 import (
 	"fmt"
+	"github.com/dtauraso/wirefold/nodes/spatial"
 	"github.com/dtauraso/wirefold/tools/topology-vscode/PolarRulesPanel"
 	"strconv"
 )
@@ -14,6 +15,10 @@ type RuleMesh struct {
 	peerKey map[string]PolarRulesPanel.Key
 
 	selfKey PolarRulesPanel.Key
+
+	peerCenter map[string]spatial.Vec3
+
+	selfCenter spatial.Vec3
 }
 
 func NewRuleMesh() RuleMesh {
@@ -21,8 +26,27 @@ func NewRuleMesh() RuleMesh {
 		backFromPeer: map[string]chan PolarRulesPanel.Msg{},
 		downToPeer:   map[string]chan PolarRulesPanel.Msg{},
 		peerKey:      map[string]PolarRulesPanel.Key{},
+		peerCenter:   map[string]spatial.Vec3{},
 	}
 }
+
+func (r *RuleMesh) SetSelfCenter(c spatial.Vec3) { r.selfCenter = c }
+
+func (r *RuleMesh) BroadcastCenter(selfID string) {
+	msg := PolarRulesPanel.Msg{FromID: selfID, Key: r.selfKey, Center: r.selfCenter, HasCenter: true}
+	for _, down := range r.downToPeer {
+		select {
+		case <-down:
+		default:
+		}
+		select {
+		case down <- msg:
+		default:
+		}
+	}
+}
+
+func (r *RuleMesh) PeerCenters() map[string]spatial.Vec3 { return r.peerCenter }
 
 func (r *RuleMesh) RuleBackChannel(peerID string) chan PolarRulesPanel.Msg {
 	ch, ok := r.backFromPeer[peerID]
@@ -58,9 +82,16 @@ func (r *RuleMesh) BackChannels() map[string]chan PolarRulesPanel.Msg {
 }
 
 func (r *RuleMesh) ApplyPeerRule(msg PolarRulesPanel.Msg) bool {
+	changed := false
+	if msg.HasCenter {
+		if prev, seen := r.peerCenter[msg.FromID]; !seen || prev != msg.Center {
+			r.peerCenter[msg.FromID] = msg.Center
+			changed = true
+		}
+	}
 	prev, seen := r.peerKey[msg.FromID]
 	if seen && prev == msg.Key {
-		return false
+		return changed
 	}
 	r.peerKey[msg.FromID] = msg.Key
 	return true
@@ -74,6 +105,12 @@ func (r *RuleMesh) DrainRules() bool {
 			if prev, seen := r.peerKey[peerID]; !seen || prev != msg.Key {
 				r.peerKey[peerID] = msg.Key
 				changed = true
+			}
+			if msg.HasCenter {
+				if prev, seen := r.peerCenter[peerID]; !seen || prev != msg.Center {
+					r.peerCenter[peerID] = msg.Center
+					changed = true
+				}
 			}
 		default:
 		}

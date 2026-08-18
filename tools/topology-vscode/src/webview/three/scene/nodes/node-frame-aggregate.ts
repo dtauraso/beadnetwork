@@ -6,7 +6,7 @@ import {
 } from "../../decode/buffer-decode-node";
 import { decodeInteriorStreamFrame } from "../../decode/buffer-decode-interior";
 import {
-  NODE_STRIDE, INTERIOR_STRIDE, INTERIOR_SLOTS_PER_NODE, TILT_ARROW_STRIDE,
+  NODE_STRIDE, INTERIOR_STRIDE, INTERIOR_SLOTS_PER_NODE, TILT_ARROW_STRIDE, CHANNEL_VECTOR_STRIDE,
   NODE_COL_LABEL_OFF, NODE_COL_LABEL_LEN,
 } from "../../../../../Buffer/buffer-layout";
 
@@ -59,6 +59,7 @@ function buildAggregate(
   const decodedByRow = new Map<number, ReturnType<typeof decodeNodeStreamFrame>>();
   let totalLabelBytes = 0;
   let totalTiltArrows = 0;
+  let totalChannelVectors = 0;
   for (let row = 0; row < nodeCount; row++) {
     const buf = nodeFrames.get(row);
     const decoded = buf ? decodeNodeStreamFrame(row, buf) : null;
@@ -66,11 +67,15 @@ function buildAggregate(
     if (decoded) {
       totalLabelBytes += STR_ENCODER.encode(decoded.label).length;
       totalTiltArrows += decoded.tiltArrowCount;
+      totalChannelVectors += decoded.channelVectorCount;
     }
   }
   const tiltArrowBuf = new ArrayBuffer(totalTiltArrows * TILT_ARROW_STRIDE);
   const tiltArrowOut = new Uint8Array(tiltArrowBuf);
   let tiltArrowCursor = 0;
+  const channelVectorBuf = new ArrayBuffer(totalChannelVectors * CHANNEL_VECTOR_STRIDE);
+  const channelVectorOut = new Uint8Array(channelVectorBuf);
+  let channelVectorCursor = 0;
 
   const interiorCount = nodeCount * INTERIOR_SLOTS_PER_NODE;
   const nodeBytes = nodeCount * NODE_STRIDE;
@@ -104,6 +109,15 @@ function buildAggregate(
         );
         tiltArrowCursor += arrowBytes;
       }
+
+      const channelBytes = decoded.channelVectorCount * CHANNEL_VECTOR_STRIDE;
+      if (channelBytes > 0) {
+        channelVectorOut.set(
+          new Uint8Array(decoded.channelVectorView.buffer, decoded.channelVectorView.byteOffset, channelBytes),
+          channelVectorCursor,
+        );
+        channelVectorCursor += channelBytes;
+      }
     }
 
     const interiorRowBytes = new Uint8Array(interiorBuf, row * INTERIOR_SLOTS_PER_NODE * INTERIOR_STRIDE, INTERIOR_SLOTS_PER_NODE * INTERIOR_STRIDE);
@@ -129,5 +143,7 @@ function buildAggregate(
     labelBytes: labelBytesOut,
     tiltArrowCount: totalTiltArrows,
     tiltArrowView: new DataView(tiltArrowBuf),
+    channelVectorCount: totalChannelVectors,
+    channelVectorView: new DataView(channelVectorBuf),
   };
 }

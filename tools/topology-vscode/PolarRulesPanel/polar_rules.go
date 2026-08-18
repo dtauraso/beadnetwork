@@ -4,6 +4,7 @@ import (
 	"math"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
+	"github.com/dtauraso/wirefold/nodes/spatial"
 )
 
 type DragRule struct {
@@ -60,4 +61,7 @@ func KeyOf(rule *DragRule) Key {
 type Msg struct {
 	FromID string
 	Key    Key
+
+	Center    spatial.Vec3
+	HasCenter bool
 }

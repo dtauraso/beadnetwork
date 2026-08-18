@@ -1,0 +1,37 @@
+package owners
+
+import "github.com/dtauraso/wirefold/nodes/spatial"
+
+type ChannelVectors struct {
+	sceneToNodeOn chan bool
+
+	on bool
+
+	peerCenters map[string]spatial.Vec3
+}
+
+func (c *ChannelVectors) In() chan bool {
+	if c.sceneToNodeOn == nil {
+		c.sceneToNodeOn = make(chan bool, 1) // chan-name-ok: sceneToNodeOn names both ends
+	}
+	return c.sceneToNodeOn
+}
+
+func (c *ChannelVectors) TakeOn() (on, turnedOn bool) {
+	if c.sceneToNodeOn == nil {
+		return c.on, false
+	}
+	select {
+	case next := <-c.sceneToNodeOn:
+		turnedOn = next && !c.on
+		c.on = next
+	default:
+	}
+	return c.on, turnedOn
+}
+
+func (c *ChannelVectors) On() bool { return c.on }
+
+func (c *ChannelVectors) SetPeerCenters(m map[string]spatial.Vec3) { c.peerCenters = m }
+
+func (c *ChannelVectors) PeerCenters() map[string]spatial.Vec3 { return c.peerCenters }

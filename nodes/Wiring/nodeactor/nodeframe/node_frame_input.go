@@ -3,6 +3,7 @@ package nodeframe
 import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/framegeom"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/Buffer/streamframe"
 )
 
 type NodeFrameInput struct {
@@ -28,6 +29,8 @@ type NodeFrameInput struct {
 	TopTiltVectorIdx int32
 
 	TiltArrows []framegeom.TiltArrow
+
+	ChannelVectors []streamframe.ChannelVector
 
 	Selected, KindID, Hovered, LatchedSel uint8
 

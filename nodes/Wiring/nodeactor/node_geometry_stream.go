@@ -132,6 +132,7 @@ func (m *NodeGeometry) writeStreamFrame(events []rowevent.RowEvent) {
 		TopTiltVectorLen: float32(topTiltVectorLen),
 		TopTiltVectorIdx: fg.TopTiltVectorIdx,
 		TiltArrows:       fg.TiltArrows,
+		ChannelVectors:   m.channelVectors(),
 		Selected:         selected,
 		KindID:           kindID,
 		Hovered:          hovered,

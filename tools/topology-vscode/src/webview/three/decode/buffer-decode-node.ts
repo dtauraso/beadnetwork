@@ -1,6 +1,7 @@
 import {
   NODE_STRIDE,
   TILT_ARROW_STRIDE,
+  CHANNEL_VECTOR_STRIDE,
   readNodeLabelOff,
   readNodeLabelLen,
   readNodeNodeId,
@@ -57,6 +58,10 @@ export interface DecodedNodeFrame {
 
   tiltArrowView: DataView;
 
+  channelVectorCount: number;
+
+  channelVectorView: DataView;
+
   nodeView: DataView;
 
   interiorCount: number;
@@ -87,6 +92,9 @@ export interface DecodedNodeStreamFrame {
 
   tiltArrowCount: number;
   tiltArrowView: DataView;
+
+  channelVectorCount: number;
+  channelVectorView: DataView;
 
   eventCount: number;
   eventView: DataView;
@@ -120,9 +128,11 @@ function decodeNodeStreamFrameUncached(buf: ArrayBuffer): DecodedNodeStreamFrame
   const tick               = hdr.getUint32(0,  true);
   const labelLen           = hdr.getUint32(4,  true);
   const tiltArrowCount     = hdr.getUint32(8,  true);
+  const channelVectorCount = hdr.getUint32(12, true);
 
   const expectedLen = BUF_NODE_STREAM_FRAME_HEADER_SIZE + NODE_STRIDE + labelLen
-    + tiltArrowCount * TILT_ARROW_STRIDE;
+    + tiltArrowCount * TILT_ARROW_STRIDE
+    + channelVectorCount * CHANNEL_VECTOR_STRIDE;
   if (buf.byteLength < expectedLen) {
     reportShortNodeFrame(buf.byteLength, expectedLen, labelLen);
     return null;
@@ -139,7 +149,10 @@ function decodeNodeStreamFrameUncached(buf: ArrayBuffer): DecodedNodeStreamFrame
   const tiltArrowView = new DataView(buf, off, tiltArrowCount * TILT_ARROW_STRIDE);
   off += tiltArrowCount * TILT_ARROW_STRIDE;
 
+  const channelVectorView = new DataView(buf, off, channelVectorCount * CHANNEL_VECTOR_STRIDE);
+  off += channelVectorCount * CHANNEL_VECTOR_STRIDE;
+
   const { count: eventCount, view: eventView, textView: eventTextView } = decodeTrailingEvents(buf, off);
 
-  return { tick, nodeView, label, tiltArrowCount, tiltArrowView, eventCount, eventView, eventTextView };
+  return { tick, nodeView, label, tiltArrowCount, tiltArrowView, channelVectorCount, channelVectorView, eventCount, eventView, eventTextView };
 }
