@@ -25,10 +25,6 @@ func NewColumnStreams(fds StreamFDs, nodes, edges int) ColumnStreams {
 		return ColumnStreams{}
 	}
 
-	// The host allocated a fixed number of pipes from ITS copy of the schema. If this
-	// binary's copy disagrees, every column past the divergence lands on the wrong fd --
-	// which draws as nodes in the wrong positions and edges pointing at nothing, with no
-	// error anywhere. Say it instead.
 	want := B.ColumnStreamCount(nodes, edges)
 	if got, ok := fds[streamKindColCount]; ok && got != want {
 		panic(fmt.Sprintf(

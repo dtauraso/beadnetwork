@@ -16,6 +16,11 @@ export class ColumnStore {
     return true;
   }
 
+  seed(col: number, value: Buffer): void {
+    this.latest.set(col, value);
+    this.version++;
+  }
+
   get(col: number): Buffer | undefined {
     return this.latest.get(col);
   }

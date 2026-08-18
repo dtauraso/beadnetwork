@@ -32,6 +32,13 @@ import os, re, sys, pathlib
 roots = os.environ["TS_ROOTS_JOINED"].split()
 layouts = [pathlib.Path(p) for p in os.environ["LAYOUT_JOINED"].split()]
 
+# The extension host WRITES these two: it allocated the pipes, so it is the one that
+# knows how many owners there are, and it seeds the counts before any column can arrive.
+# One writer, one reader still holds -- this end is the writer.
+WRITERS = {
+    "tools/topology-vscode/src/runner/stream-demux.ts",
+}
+
 OBSERVERS = {
     "tools/topology-vscode/src/webview/three/decode/decode-event-line.ts",
     "tools/topology-vscode/src/webview/three/decode/decode-event-node-geometry.ts",
@@ -70,7 +77,7 @@ for root in roots:
         s = str(f)
         if "node_modules" in s or "/out/" in s or "/test/" in s or s.endswith(".test.ts"):
             continue
-        if s in layout_set or s in OBSERVERS or s == str(COL_STREAMS):
+        if s in layout_set or s in OBSERVERS or s in WRITERS or s == str(COL_STREAMS):
             continue
         files.append(f)
 
