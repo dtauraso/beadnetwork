@@ -11,7 +11,14 @@ cd "$REPO_ROOT"
 python3 - <<'PY'
 import re, sys
 
+# BOTH hops. A node's values pass through two field-by-field literals on their way to the
+# wire -- the geometry actor fills NodeFrameInput, runtopology copies it into
+# NodeStreamFrame -- and a field dropped at EITHER hop streams a zero just as silently.
+# Checking only the second hop is what let LabelAnchor go quiet at the first: the labels
+# projected to the scene origin and vanished, with the build green.
 PAIRS = [
+    ("nodes/Wiring/nodeactor/nodeframe/node_frame_input.go", "NodeFrameInput",
+     "nodes/Wiring/nodeactor/node_geometry_stream.go"),
     ("tools/topology-vscode/Buffer/streamframe/node_stream_frame.go", "NodeStreamFrame",
      "runtopology/node_stream.go"),
 ]
