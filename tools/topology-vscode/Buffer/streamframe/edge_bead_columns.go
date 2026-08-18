@@ -26,17 +26,24 @@ func WriteEdgeBeadColumns(c *colstream.ColumnSet, beads []EdgeBead) {
 		values = binary.LittleEndian.AppendUint32(values, uint32(b.Value))
 		edgeRows = binary.LittleEndian.AppendUint32(edgeRows, uint32(b.EdgeRow))
 	}
-	rings := make([]byte, 0, n*16*4)
-	for _, b := range beads {
-		for m := 0; m < 16; m++ {
-			rings = binary.LittleEndian.AppendUint32(rings, math.Float32bits(b.RingMatrix[m]))
-		}
-	}
-
 	c.SetBytes(B.ColStreamEdgeBeadX, xs)
 	c.SetBytes(B.ColStreamEdgeBeadY, ys)
 	c.SetBytes(B.ColStreamEdgeBeadZ, zs)
 	c.SetBytes(B.ColStreamEdgeBeadValue, values)
 	c.SetBytes(B.ColStreamEdgeBeadEdgeRow, edgeRows)
-	c.SetBytes(B.ColStreamEdgeBeadRingMatrix, rings)
+
+	for m := 0; m < 16; m++ {
+		col := make([]byte, 0, n*4)
+		for _, b := range beads {
+			col = binary.LittleEndian.AppendUint32(col, math.Float32bits(b.RingMatrix[m]))
+		}
+		c.SetBytes(edgeBeadRingCols[m], col)
+	}
+}
+
+var edgeBeadRingCols = [16]int{
+	B.ColStreamEdgeBeadRingM0, B.ColStreamEdgeBeadRingM1, B.ColStreamEdgeBeadRingM2, B.ColStreamEdgeBeadRingM3,
+	B.ColStreamEdgeBeadRingM4, B.ColStreamEdgeBeadRingM5, B.ColStreamEdgeBeadRingM6, B.ColStreamEdgeBeadRingM7,
+	B.ColStreamEdgeBeadRingM8, B.ColStreamEdgeBeadRingM9, B.ColStreamEdgeBeadRingM10, B.ColStreamEdgeBeadRingM11,
+	B.ColStreamEdgeBeadRingM12, B.ColStreamEdgeBeadRingM13, B.ColStreamEdgeBeadRingM14, B.ColStreamEdgeBeadRingM15,
 }

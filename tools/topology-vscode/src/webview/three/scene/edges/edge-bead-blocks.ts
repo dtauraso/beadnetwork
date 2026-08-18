@@ -3,7 +3,14 @@ import { nodeColumn, ownerCounts } from "../../../../../Buffer/column-owners";
 import {
   COL_STREAM_EDGE_BEAD_X, COL_STREAM_EDGE_BEAD_Y, COL_STREAM_EDGE_BEAD_Z,
   COL_STREAM_EDGE_BEAD_VALUE, COL_STREAM_EDGE_BEAD_EDGE_ROW,
-  COL_STREAM_EDGE_BEAD_RING_MATRIX,
+  COL_STREAM_EDGE_BEAD_RING_M0, COL_STREAM_EDGE_BEAD_RING_M1,
+  COL_STREAM_EDGE_BEAD_RING_M2, COL_STREAM_EDGE_BEAD_RING_M3,
+  COL_STREAM_EDGE_BEAD_RING_M4, COL_STREAM_EDGE_BEAD_RING_M5,
+  COL_STREAM_EDGE_BEAD_RING_M6, COL_STREAM_EDGE_BEAD_RING_M7,
+  COL_STREAM_EDGE_BEAD_RING_M8, COL_STREAM_EDGE_BEAD_RING_M9,
+  COL_STREAM_EDGE_BEAD_RING_M10, COL_STREAM_EDGE_BEAD_RING_M11,
+  COL_STREAM_EDGE_BEAD_RING_M12, COL_STREAM_EDGE_BEAD_RING_M13,
+  COL_STREAM_EDGE_BEAD_RING_M14, COL_STREAM_EDGE_BEAD_RING_M15,
 } from "../../../../../Buffer/column-streams-gen";
 
 export interface EdgeBeadsAgg {
@@ -18,6 +25,17 @@ export interface EdgeBeadsAgg {
 
   count: number;
 }
+
+const RING_COLS = [
+  COL_STREAM_EDGE_BEAD_RING_M0, COL_STREAM_EDGE_BEAD_RING_M1,
+  COL_STREAM_EDGE_BEAD_RING_M2, COL_STREAM_EDGE_BEAD_RING_M3,
+  COL_STREAM_EDGE_BEAD_RING_M4, COL_STREAM_EDGE_BEAD_RING_M5,
+  COL_STREAM_EDGE_BEAD_RING_M6, COL_STREAM_EDGE_BEAD_RING_M7,
+  COL_STREAM_EDGE_BEAD_RING_M8, COL_STREAM_EDGE_BEAD_RING_M9,
+  COL_STREAM_EDGE_BEAD_RING_M10, COL_STREAM_EDGE_BEAD_RING_M11,
+  COL_STREAM_EDGE_BEAD_RING_M12, COL_STREAM_EDGE_BEAD_RING_M13,
+  COL_STREAM_EDGE_BEAD_RING_M14, COL_STREAM_EDGE_BEAD_RING_M15,
+];
 
 let lastVersion = -1;
 let lastAgg: EdgeBeadsAgg | null = null;
@@ -51,12 +69,12 @@ export function getEdgeBeads(): EdgeBeadsAgg {
     const zs = columnBytes(nodeColumn(row, COL_STREAM_EDGE_BEAD_Z));
     const vs = columnBytes(nodeColumn(row, COL_STREAM_EDGE_BEAD_VALUE));
     const es = columnBytes(nodeColumn(row, COL_STREAM_EDGE_BEAD_EDGE_ROW));
-    const rings = columnBytes(nodeColumn(row, COL_STREAM_EDGE_BEAD_RING_MATRIX));
 
-    if (!ys || !zs || !vs || !es || !rings) continue;
+    if (!ys || !zs || !vs || !es) continue;
     if (ys.byteLength < count * 4 || zs.byteLength < count * 4) continue;
     if (vs.byteLength < count * 4 || es.byteLength < count * 4) continue;
-    if (rings.byteLength < count * 64) continue;
+
+    const rings = RING_COLS.map((c) => columnBytes(nodeColumn(row, c)));
 
     for (let i = 0; i < count; i++) {
       const o = i * 4;
@@ -68,7 +86,8 @@ export function getEdgeBeads(): EdgeBeadsAgg {
       srcNodeRow[b] = row;
 
       for (let m = 0; m < 16; m++) {
-        ringMatrix[b * 16 + m] = rings.getFloat32(i * 64 + m * 4, true);
+        const col = rings[m];
+        ringMatrix[b * 16 + m] = col && col.byteLength >= o + 4 ? col.getFloat32(o, true) : 0;
       }
       b++;
     }

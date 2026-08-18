@@ -1,10 +1,13 @@
 import * as THREE from "three";
-import { columnF32, columnI32, columnU8, columnBytes } from "../../Buffer/column-values";
+import { columnF32, columnI32, columnU8 } from "../../Buffer/column-values";
 import { nodeColumn, ownerCounts } from "../../Buffer/column-owners";
 import {
   COL_STREAM_NODE_INDEX_R, COL_STREAM_NODE_INDEX_PHI, COL_STREAM_NODE_INDEX_THETA,
   COL_STREAM_NODE_HAS_POS, COL_STREAM_NODE_RADIUS, COL_STREAM_NODE_HOVERED,
-  COL_STREAM_NODE_RING_MATRIX,
+  COL_STREAM_NODE_RING_M0, COL_STREAM_NODE_RING_M1, COL_STREAM_NODE_RING_M2, COL_STREAM_NODE_RING_M3,
+  COL_STREAM_NODE_RING_M4, COL_STREAM_NODE_RING_M5, COL_STREAM_NODE_RING_M6, COL_STREAM_NODE_RING_M7,
+  COL_STREAM_NODE_RING_M8, COL_STREAM_NODE_RING_M9, COL_STREAM_NODE_RING_M10, COL_STREAM_NODE_RING_M11,
+  COL_STREAM_NODE_RING_M12, COL_STREAM_NODE_RING_M13, COL_STREAM_NODE_RING_M14, COL_STREAM_NODE_RING_M15,
 } from "../../Buffer/column-streams-gen";
 import { sceneSteps } from "../../Scene/scene-frame";
 import { NODE_SPHERE_RADIUS } from "../../src/webview/three/scene/buffer-scene-shared";
@@ -46,10 +49,13 @@ import { overlayFlag } from "../../src/webview/three/controls/flags/overlay-flag
 function copyRingMatrix(row: number, ring: THREE.InstancedMesh, slot: number): void {
   const out = ring.instanceMatrix.array;
   const base = slot * 16;
-  const m = columnBytes(nodeColumn(row, COL_STREAM_NODE_RING_MATRIX));
-  for (let i = 0; i < 16; i++) {
-    out[base + i] = m && m.byteLength >= 64 ? m.getFloat32(i * 4, true) : 0;
-  }
+  const cols = [
+    COL_STREAM_NODE_RING_M0, COL_STREAM_NODE_RING_M1, COL_STREAM_NODE_RING_M2, COL_STREAM_NODE_RING_M3,
+    COL_STREAM_NODE_RING_M4, COL_STREAM_NODE_RING_M5, COL_STREAM_NODE_RING_M6, COL_STREAM_NODE_RING_M7,
+    COL_STREAM_NODE_RING_M8, COL_STREAM_NODE_RING_M9, COL_STREAM_NODE_RING_M10, COL_STREAM_NODE_RING_M11,
+    COL_STREAM_NODE_RING_M12, COL_STREAM_NODE_RING_M13, COL_STREAM_NODE_RING_M14, COL_STREAM_NODE_RING_M15,
+  ];
+  for (let i = 0; i < 16; i++) out[base + i] = columnF32(nodeColumn(row, cols[i]!));
 }
 
 export interface NodeInstanceRefs {

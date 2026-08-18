@@ -1,9 +1,6 @@
 package streamframe
 
 import (
-	"encoding/binary"
-	"math"
-
 	B "github.com/dtauraso/wirefold/tools/topology-vscode/Buffer"
 	"github.com/dtauraso/wirefold/tools/topology-vscode/Buffer/colstream"
 )
@@ -32,11 +29,15 @@ func WriteNodeColumns(c *colstream.ColumnSet, f NodeStreamFrame) {
 	c.SetF32(B.ColStreamNodePoleTheta, f.PoleTheta)
 	c.SetF32(B.ColStreamNodePoleRingR, f.PoleRingR)
 
-	ring := make([]byte, 0, 16*4)
-	for _, v := range f.RingMatrix {
-		ring = binary.LittleEndian.AppendUint32(ring, math.Float32bits(v))
+	m := f.RingMatrix
+	for i, col := range []int{
+		B.ColStreamNodeRingM0, B.ColStreamNodeRingM1, B.ColStreamNodeRingM2, B.ColStreamNodeRingM3,
+		B.ColStreamNodeRingM4, B.ColStreamNodeRingM5, B.ColStreamNodeRingM6, B.ColStreamNodeRingM7,
+		B.ColStreamNodeRingM8, B.ColStreamNodeRingM9, B.ColStreamNodeRingM10, B.ColStreamNodeRingM11,
+		B.ColStreamNodeRingM12, B.ColStreamNodeRingM13, B.ColStreamNodeRingM14, B.ColStreamNodeRingM15,
+	} {
+		c.SetF32(col, m[i])
 	}
-	c.SetBytes(B.ColStreamNodeRingMatrix, ring)
 
 	c.SetF32(B.ColStreamNodeTopTiltVectorLen, f.TopTiltVectorLen)
 	c.SetI32(B.ColStreamNodeTopTiltVectorIdx, f.TopTiltVectorIdx)
