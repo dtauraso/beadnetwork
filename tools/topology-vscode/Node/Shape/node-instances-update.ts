@@ -1,6 +1,6 @@
 import * as THREE from "three";
-import { getNodeFrame } from "./node-frame-aggregate";
-import { getViewBlocks } from "../view-blocks";
+import { getNodeFrame } from "../../src/webview/three/scene/nodes/node-frame-aggregate";
+import { getViewBlocks } from "../../src/webview/three/scene/view-blocks";
 import {
   readNodeRingAxisPhi,
   readNodeRingAxisTheta,
@@ -10,8 +10,8 @@ import {
   readNodeRingM4, readNodeRingM5, readNodeRingM6, readNodeRingM7,
   readNodeRingM8, readNodeRingM9, readNodeRingM10, readNodeRingM11,
   readNodeRingM12, readNodeRingM13, readNodeRingM14, readNodeRingM15,
-} from "../../../../../Buffer/buffer-layout";
-import { NODE_SPHERE_RADIUS, nodeRowColors, poleAxis } from "../buffer-scene-shared";
+} from "../../Buffer/buffer-layout";
+import { NODE_SPHERE_RADIUS, nodeRowColors, poleAxis } from "../../src/webview/three/scene/buffer-scene-shared";
 import { computeNodeDepthOrder, setNodeDrawOrder } from "./node-depth-order";
 
 const TORUS_DEFAULT_NORMAL = new THREE.Vector3(0, 0, 1);

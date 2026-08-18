@@ -6,7 +6,11 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
-SCAN_DIR="$REPO_ROOT/tools/topology-vscode/src/webview/three"
+SCAN_DIR=(
+  "$REPO_ROOT/tools/topology-vscode/src/webview/three"
+  "$REPO_ROOT/tools/topology-vscode/Node"
+  "$REPO_ROOT/tools/topology-vscode/Scene"
+)
 
 if [[ ! -d "$SCAN_DIR" ]]; then
   echo "ts-shading-from-go: render dir not found at $SCAN_DIR" >&2
@@ -32,7 +36,7 @@ PROPS=(
   emissiveIntensity
 )
 
-EXCLUDED_FILES=(SelectionHighlight.tsx NavGuides.tsx polar-frame.tsx PolarHandholds.tsx)
+EXCLUDED_FILES=(SelectionHighlight.tsx SceneGuides.tsx PolarFrame.tsx PolarHandholds.tsx)
 
 NUM='-?(0x[0-9a-fA-F]+|[0-9]+\.?[0-9]*([eE][-+]?[0-9]+)?)'
 
@@ -54,14 +58,14 @@ for prop in "${PROPS[@]}"; do
     printf '%s  (forbidden shading literal: prop "%s" assigned a numeric literal — must reference a shading-params.ts import)\n' "$line" "$prop"
     HITS=$((HITS + 1))
   done < <(grep -arnE "\b${prop}[[:space:]]*=\{[[:space:]]*${NUM}[[:space:]]*\}|\b${prop}:[[:space:]]*${NUM}\b" \
-    --include='*.ts' --include='*.tsx' "$SCAN_DIR" 2>/dev/null || true)
+    --include='*.ts' --include='*.tsx' "${SCAN_DIR[@]}" 2>/dev/null || true)
 done
 
-if ! grep -arq --include='*.ts' --include='*.tsx' '/Buffer/shading-params"' "$SCAN_DIR"; then
+if ! grep -arq --include='*.ts' --include='*.tsx' '/Buffer/shading-params"' "${SCAN_DIR[@]}"; then
   echo 'ts-shading-from-go: three/ does not import from "../../../../Buffer/shading-params" — shading params must come from Go'
   HITS=$((HITS + 1))
 fi
-if ! grep -arq --include='*.ts' --include='*.tsx' 'SHADING_PARAM_NODE_TRANSMISSION' "$SCAN_DIR"; then
+if ! grep -arq --include='*.ts' --include='*.tsx' 'SHADING_PARAM_NODE_TRANSMISSION' "${SCAN_DIR[@]}"; then
   echo 'ts-shading-from-go: SHADING_PARAM_NODE_TRANSMISSION not used — node glass material is not reading Go params'
   HITS=$((HITS + 1))
 fi

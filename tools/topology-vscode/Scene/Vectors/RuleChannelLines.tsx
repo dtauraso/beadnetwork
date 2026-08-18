@@ -1,10 +1,10 @@
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { getNodeFrame } from "../nodes/node-frame-aggregate";
-import { overlayOn } from "../../controls/flags/overlay-flags";
-import { readOverlayRuleChannels, readNodeCX, readNodeCY, readNodeCZ } from "../../../../../Buffer/buffer-layout";
-import { DIRECTION_ZERO_EPS } from "../buffer-scene-shared";
+import { getNodeFrame } from "../../src/webview/three/scene/nodes/node-frame-aggregate";
+import { overlayOn } from "../../src/webview/three/controls/flags/overlay-flags";
+import { readOverlayRuleChannels, readNodeCX, readNodeCY, readNodeCZ } from "../../Buffer/buffer-layout";
+import { DIRECTION_ZERO_EPS } from "../../src/webview/three/scene/buffer-scene-shared";
 
 const CHANNEL_LINE_RADIUS = 0.5;
 const CHANNEL_HEAD_RADIUS = 1.6;

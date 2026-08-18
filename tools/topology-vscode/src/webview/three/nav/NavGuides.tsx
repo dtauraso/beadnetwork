@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect, useRef } from "react";
+import React, { useMemo, useState, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { useOverlayFlags } from "../controls/flags/overlay-flags";
@@ -8,10 +8,11 @@ import {
   type NavNode, decodeNavNodes, sceneSphereFromSnapshot,
 } from "./buffer-nav";
 import { navSignature } from "./nav-signature";
-import { PolarFrame } from "./polar-frame";
-import { SceneVectors } from "./SceneVectors";
-import { NodePoles } from "./NodePoles";
-import { NodePoleSphere } from "./NodePoleSphere";
+import { SceneGuides } from "../../../../Scene/Guides/SceneGuides";
+import { PolarFrame } from "../../../../Scene/Poles/PolarFrame";
+import { SceneVectors } from "../../../../Scene/Vectors/SceneVectors";
+import { NodePoles } from "../../../../Node/Poles/NodePoles";
+import { NodePoleSphere } from "../../../../Node/Poles/NodePoleSphere";
 
 export function NavGuides() {
 
@@ -52,68 +53,26 @@ export function NavGuides() {
     [navTick],
   );
 
-
   const cs = sceneSphereRef.current;
   const tube = navNodes.length > 0 ? Math.max(0.5, navNodes[0]!.radius * 0.08) : 1;
 
   const radiusKey = Math.round(cs.radius);
   const tubeKey = Math.round(tube * 10);
-  const { geoA, geoB } = useMemo(
-    () => ({
-      geoA: new THREE.TorusGeometry(radiusKey, tubeKey / 10, 12, 96),
-      geoB: new THREE.TorusGeometry(radiusKey, tubeKey / 10, 12, 96),
-    }),
-    [radiusKey, tubeKey],
-  );
-
-  useEffect(() => {
-    return () => {
-      geoA.dispose();
-      geoB.dispose();
-    };
-  }, [geoA, geoB]);
-  const rotB = useMemo(() => new THREE.Euler(Math.PI / 2, 0, 0), []);
-
-  const hhAngles = [0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2];
-  const hhRadius = Math.max(radiusKey * 0.04, 3); 
-  const handholds = (rotation?: THREE.Euler) => (
-    <group rotation={rotation}>
-      {hhAngles.map((a) => (
-        <mesh key={a} position={[radiusKey * Math.cos(a), radiusKey * Math.sin(a), 0]} userData={{ handhold: true }}>
-          <sphereGeometry args={[hhRadius, 16, 16]} />
-          <meshStandardMaterial color="#cc8844" emissive="#cc8844" emissiveIntensity={0.6} transparent opacity={0.9} />
-        </mesh>
-      ))}
-    </group>
-  );
 
   if (navNodes.length < 1) return null;
 
-  const pos: [number, number, number] = [cs.center.x, cs.center.y, cs.center.z];
   return (
     <>
-      <group position={pos}>
-        {showTori && (
-          <>
-            <mesh geometry={geoA} raycast={() => null}>
-              <meshBasicMaterial color="#cc8844" transparent opacity={0.4} depthWrite={false} />
-            </mesh>
-            <mesh geometry={geoB} rotation={rotB} raycast={() => null}>
-              <meshBasicMaterial color="#cc8844" transparent opacity={0.4} depthWrite={false} />
-            </mesh>
-          </>
-        )}
-        {}
-        {showHandholds && handholds()}
-        {showHandholds && handholds(rotB)}
-      </group>
-      {}
+      <SceneGuides
+        center={cs.center}
+        radius={radiusKey}
+        tube={tubeKey / 10}
+        showTori={showTori}
+        showHandholds={showHandholds}
+      />
       {showSceneVectors && <SceneVectors center={cs.center} nodes={navNodes} tube={tube * 0.35} />}
-      {}
       {showScenePoles && <PolarFrame center={cs.center} scale={radiusKey} />}
-      {}
       {showNodePoles && <NodePoles nodes={navNodes} />}
-      {}
       {showNodePoleSphere && <NodePoleSphere nodes={navNodes} all={allPoleSpheres} />}
     </>
   );

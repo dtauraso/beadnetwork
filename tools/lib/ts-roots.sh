@@ -11,4 +11,6 @@ TS_ROOTS=(
   "tools/topology-vscode/AngleDropdown"
   "tools/topology-vscode/NodesDropdown"
   "tools/topology-vscode/FitButton"
+  "tools/topology-vscode/Node"
+  "tools/topology-vscode/Scene"
 )

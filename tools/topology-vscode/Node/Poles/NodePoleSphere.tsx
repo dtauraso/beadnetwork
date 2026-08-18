@@ -1,6 +1,6 @@
 import React from "react";
-import { type NavNode } from "./buffer-nav";
-import { PolarFrame } from "./polar-frame";
+import { type NavNode } from "../../src/webview/three/nav/buffer-nav";
+import { PolarFrame } from "../../Scene/Poles/PolarFrame";
 
 export function NodePoleSphere({ nodes, all }: { nodes: NavNode[]; all: boolean }) {
   return (

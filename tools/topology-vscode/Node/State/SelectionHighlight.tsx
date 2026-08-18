@@ -1,13 +1,13 @@
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { getNodeFrame } from "../nodes/node-frame-aggregate";
+import { getNodeFrame } from "../../src/webview/three/scene/nodes/node-frame-aggregate";
 import {
   readNodeCX, readNodeCY, readNodeCZ, readNodeRadius, readNodeSelected, readNodeHovered,
-} from "../../../../../Buffer/buffer-layout";
-import { readOverlaySelectionRing, readOverlayHoverRing } from "../../../../../Buffer/buffer-layout";
-import { overlayOn } from "../../controls/flags/overlay-flags";
-import { NODE_SPHERE_RADIUS, HOVER_COLOR, HOVER_RING_TUBE_RATIO } from "../buffer-scene-shared";
+} from "../../Buffer/buffer-layout";
+import { readOverlaySelectionRing, readOverlayHoverRing } from "../../Buffer/buffer-layout";
+import { overlayOn } from "../../src/webview/three/controls/flags/overlay-flags";
+import { NODE_SPHERE_RADIUS, HOVER_COLOR, HOVER_RING_TUBE_RATIO } from "../../src/webview/three/scene/buffer-scene-shared";
 
 const SELECTION_RING_TUBE_RATIO = 0.14;
 const SELECTION_RING_RADIAL_SEGMENTS = 8;
