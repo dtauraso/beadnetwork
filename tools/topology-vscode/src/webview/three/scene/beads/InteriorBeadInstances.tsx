@@ -5,8 +5,7 @@ import { getNodeFrame } from "../nodes/node-frame-aggregate";
 import { INTERIOR_SLOTS_PER_NODE } from "../../decode/buffer-decode-interior";
 import { interiorBeadStyleForValue } from "./bead-style";
 import {
-  readNodeCX, readNodeCY, readNodeCZ,
-  readInteriorPresent, readInteriorValue, readInteriorOX, readInteriorOY, readInteriorOZ,
+  readInteriorPresent, readInteriorValue, readInteriorX, readInteriorY, readInteriorZ,
 } from "../../../../../Buffer/buffer-layout";
 
 const INTERIOR_BEAD_R = 5;
@@ -34,9 +33,6 @@ export function InteriorBeadInstances({ capacity }: { capacity: number }) {
     sclRef.current.setScalar(INTERIOR_BEAD_R);
     let slot = 0;
     for (let i = 0; i < nodeCount && slot < capacity; i++) {
-      const cx = readNodeCX(nodeView, i);
-      const cy = readNodeCY(nodeView, i);
-      const cz = readNodeCZ(nodeView, i);
       for (let s = 0; s < INTERIOR_SLOTS_PER_NODE && slot < capacity; s++) {
         const row = i * INTERIOR_SLOTS_PER_NODE + s;
         if (!readInteriorPresent(interiorView, row)) continue;
@@ -44,9 +40,9 @@ export function InteriorBeadInstances({ capacity }: { capacity: number }) {
         if (!style) continue; 
 
         posRef.current.set(
-          cx + readInteriorOX(interiorView, row),
-          cy + readInteriorOY(interiorView, row),
-          cz + readInteriorOZ(interiorView, row),
+          readInteriorX(interiorView, row),
+          readInteriorY(interiorView, row),
+          readInteriorZ(interiorView, row),
         );
         matRef.current.compose(posRef.current, q, sclRef.current);
         body.setMatrixAt(slot, matRef.current);

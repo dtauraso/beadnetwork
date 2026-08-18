@@ -119,7 +119,7 @@ func (m *NodeGeometry) WireInteriorStream(w io.Writer, row int32, buildFrame fun
 }
 
 func (m *NodeGeometry) writeInteriorFrames() {
-	m.interior.WriteFrames()
+	m.interior.WriteFrames(m.geom)
 }
 
 func (m *NodeGeometry) WireBeadStream(w io.Writer, row int32, buildBeadFrame bead.BeadFrameBuilder) {

@@ -67,8 +67,6 @@ func (p *PairNodeSelf) Step(ctx context.Context, tick int64) {
 	g.clocks.ApplySpeed(p.speedCh)
 
 	g.beads.ApplyBeadDrag()
-
-	g.writeInteriorFrames()
 }
 
 func (g *NodeGeometry) RunGeometry(ctx context.Context) {
@@ -100,6 +98,8 @@ func (g *NodeGeometry) RunGeometry(ctx context.Context) {
 
 		g.writeStreamFrame(g.drainSelfEvents())
 		g.writeOutEdgeFrames(clk.Tick())
+
+		g.writeInteriorFrames()
 
 		if err := clk.SleepPulse(ctx); err != nil {
 			return

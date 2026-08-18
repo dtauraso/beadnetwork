@@ -5,7 +5,7 @@ import { INTERIOR_SLOTS_PER_NODE } from "./buffer-decode-interior";
 import { overlayFlag, OVERLAY_KINDS } from "./decode-event-overlay";
 import { nodeGeometryLine } from "./decode-event-node-geometry";
 import {
-  readInteriorPresent, readInteriorValue, readInteriorOX, readInteriorOY, readInteriorOZ,
+  readInteriorPresent, readInteriorValue, readInteriorX, readInteriorY, readInteriorZ,
   readEdgeSX, readEdgeSY, readEdgeSZ, readEdgeEX, readEdgeEY, readEdgeEZ,
   readCameraPX, readCameraPY, readCameraPZ, readCameraR,
   readCameraPosPhi, readCameraPosTheta, readCameraUpPhi, readCameraUpTheta,
@@ -108,7 +108,7 @@ export function decodeEventLine(ev: DataView, eventTextView: DataView, dn: Decod
         kind, node, row: Math.floor(slot / 2), col: slot % 2,
         present: readInteriorPresent(dn.interiorView, irow) === 1,
         value: readInteriorValue(dn.interiorView, irow),
-        x: readInteriorOX(dn.interiorView, irow), y: readInteriorOY(dn.interiorView, irow), z: readInteriorOZ(dn.interiorView, irow),
+        x: readInteriorX(dn.interiorView, irow), y: readInteriorY(dn.interiorView, irow), z: readInteriorZ(dn.interiorView, irow),
       };
     }
     case "camera": {

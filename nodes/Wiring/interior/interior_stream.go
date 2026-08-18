@@ -34,25 +34,49 @@ func (s *InteriorStream) OutWriter() io.Writer { return s.out }
 
 func (s *InteriorStream) NodeRowOf() int32 { return s.nodeRow }
 
-func (s *InteriorStream) write(present []uint8, value []int32, ox, oy, oz []float32, events []rowevent.RowEvent) {
+func (s *InteriorStream) write(present []uint8, value []int32, ox, oy, oz []float32, events []rowevent.RowEvent, center vec3) {
 	if s == nil {
 		return
 	}
 	s.lastPresent, s.lastValue = present, value
 	s.lastOx, s.lastOy, s.lastOz = ox, oy, oz
 	s.tick++
-	writeInteriorStreamFrame(s.out, s.buildFrame, s.tick, present, value, ox, oy, oz, events)
+	wx, wy, wz := worldOf(ox, oy, oz, center)
+	writeInteriorStreamFrame(s.out, s.buildFrame, s.tick, present, value, wx, wy, wz, events)
 }
 
-func (s *InteriorStream) WriteFull(present []uint8, value []int32, ox, oy, oz []float32, events []rowevent.RowEvent) {
-	s.write(present, value, ox, oy, oz, events)
+func worldOf(ox, oy, oz []float32, center vec3) ([]float32, []float32, []float32) {
+	wx := make([]float32, len(ox))
+	wy := make([]float32, len(oy))
+	wz := make([]float32, len(oz))
+	for i := range ox {
+		wx[i] = ox[i] + float32(center.X)
+	}
+	for i := range oy {
+		wy[i] = oy[i] + float32(center.Y)
+	}
+	for i := range oz {
+		wz[i] = oz[i] + float32(center.Z)
+	}
+	return wx, wy, wz
 }
 
-func (s *InteriorStream) WriteEvents(events []rowevent.RowEvent) {
+func (s *InteriorStream) WriteFull(present []uint8, value []int32, ox, oy, oz []float32, events []rowevent.RowEvent, center vec3) {
+	s.write(present, value, ox, oy, oz, events, center)
+}
+
+func (s *InteriorStream) WriteEvents(events []rowevent.RowEvent, center vec3) {
 	if s == nil {
 		return
 	}
-	s.write(s.lastPresent, s.lastValue, s.lastOx, s.lastOy, s.lastOz, events)
+	s.write(s.lastPresent, s.lastValue, s.lastOx, s.lastOy, s.lastOz, events, center)
+}
+
+func (s *InteriorStream) RewriteAtCenter(center vec3) {
+	if s == nil {
+		return
+	}
+	s.write(s.lastPresent, s.lastValue, s.lastOx, s.lastOy, s.lastOz, nil, center)
 }
 
 func boolU8(b bool) uint8 {
