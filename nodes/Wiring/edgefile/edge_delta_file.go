@@ -31,7 +31,7 @@ func WriteEdgeDrag(root, src, label string, off polarindex.Offset) error {
 		FileDragIndexTheta: off.Theta,
 		FileDragIndexR:     off.R,
 	} {
-		if err := jsonpersist.WriteJSONAtomic(filepath.Join(dir, name), value); err != nil {
+		if err := jsonpersist.WriteJSONAtomicIfChanged(filepath.Join(dir, name), value); err != nil {
 			return err
 		}
 	}

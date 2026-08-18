@@ -33,7 +33,7 @@ func Write(root, id string, j JSON) error {
 		FileIndexR:     j.IndexR,
 		FileTiltIdx:    int(j.TopTiltVectorPhiIdx),
 	} {
-		if err := jsonpersist.WriteJSONAtomic(filepath.Join(dir, name), value); err != nil {
+		if err := jsonpersist.WriteJSONAtomicIfChanged(filepath.Join(dir, name), value); err != nil {
 			return err
 		}
 	}

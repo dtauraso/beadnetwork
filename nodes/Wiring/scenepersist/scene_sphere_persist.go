@@ -35,7 +35,7 @@ func WriteSceneSphere(sphereDir string, s polar.SceneSphere) error {
 		FileSphereCX: s.Center.X, FileSphereCY: s.Center.Y, FileSphereCZ: s.Center.Z,
 		FileSphereRadius: s.Radius,
 	} {
-		if err := jsonpersist.WriteJSONAtomic(filepath.Join(sphereDir, name), value); err != nil {
+		if err := jsonpersist.WriteJSONAtomicIfChanged(filepath.Join(sphereDir, name), value); err != nil {
 			return err
 		}
 	}

@@ -20,26 +20,17 @@ const (
 
 type ViewpointPersister struct {
 	Dir string
-
-	last map[string]float64
 }
 
 func (p *ViewpointPersister) Schedule(v camera.Viewpoint) {
 	if p == nil || p.Dir == "" {
 		return
 	}
-	if p.last == nil {
-		p.last = map[string]float64{}
-	}
 	for name, value := range viewpointValues(v) {
-		if prev, ok := p.last[name]; ok && prev == value {
-			continue
-		}
-		if err := jsonpersist.WriteJSONAtomic(filepath.Join(p.Dir, name), value); err != nil {
+		if err := jsonpersist.WriteJSONAtomicIfChanged(filepath.Join(p.Dir, name), value); err != nil {
 			jsonpersist.LogPersistErr("scene_camera_persist", p.Dir, err)
 			return
 		}
-		p.last[name] = value
 	}
 }
 
