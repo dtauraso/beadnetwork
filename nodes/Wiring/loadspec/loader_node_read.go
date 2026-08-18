@@ -3,11 +3,11 @@ package loadspec
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/dtauraso/wirefold/nodes/Wiring/edgefile"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodefile"
 	"os"
 	"path/filepath"
 	"sort"
-	"strings"
 )
 
 func readJSONFile(path string, v any) bool {
@@ -80,34 +80,19 @@ func loadNodeEdges(root, nodesDir, nodeID string) ([]specEdge, error) {
 	sort.Strings(edgeFiles)
 
 	var edges []specEdge
-	for _, fname := range edgeFiles {
-		if !strings.HasSuffix(fname, ".json") {
+	for _, label := range edgeFiles {
+		edgeDir := filepath.Join(edgesDir, label)
+		if st, err := os.Stat(edgeDir); err != nil || !st.IsDir() { // path-resolution-ok: an edge is a directory; skipping strays under edges/
 			continue
 		}
-
-		if strings.HasSuffix(fname, ".geom.json") {
-			continue
-		}
-		fpath := filepath.Join(edgesDir, fname)
-		raw, err := os.ReadFile(fpath)
-		if err != nil {
-			return nil, fmt.Errorf("loadTree: read edge file %s: %w", fpath, err)
-		}
-		var e specEdge
-		if err := json.Unmarshal(raw, &e); err != nil {
-			return nil, fmt.Errorf("loadTree: parse edge file %s: %w", fpath, err)
-		}
-
-		if e.Source != "" && e.Source != nodeID {
-			panic(fmt.Sprintf(
-				"loadTree: edge file %s has stale source %q that disagrees with its "+
-					"containing node directory %q — the adjacency layout (topology/nodes/<id>/edges/) "+
-					"derives an edge's source from the directory it is stored under, not from a "+
-					"\"source\" key in the file; whatever wrote/moved this file should have dropped "+
-					"the redundant source key or kept it in sync with the directory",
-				fpath, e.Source, nodeID))
-		}
-		e.Source = nodeID
+		e := specEdge{Label: label, Source: nodeID}
+		readJSONFile(filepath.Join(edgeDir, edgefile.FileKind), &e.Kind)
+		readJSONFile(filepath.Join(edgeDir, edgefile.FileSourceHandle), &e.SourceHandle)
+		readJSONFile(filepath.Join(edgeDir, edgefile.FileTarget), &e.Target)
+		readJSONFile(filepath.Join(edgeDir, edgefile.FileTargetHandle), &e.TargetHandle)
+		e.DeltaIndexR = readOptInt(filepath.Join(edgeDir, edgefile.FileDeltaIndexR))
+		e.DeltaIndexPhi = readOptInt(filepath.Join(edgeDir, edgefile.FileDeltaIndexPhi))
+		e.DeltaIndexTheta = readOptInt(filepath.Join(edgeDir, edgefile.FileDeltaIndexTheta))
 
 		edges = append(edges, e)
 	}

@@ -9,16 +9,14 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
 )
 
-type edgeFile struct {
-	SourceHandle string `json:"sourceHandle"`
-	Target       string `json:"target"`
-	TargetHandle string `json:"targetHandle"`
-	Kind         string `json:"kind"`
-	Label        string `json:"label"`
+func edgeDirPath(root, src, label string) string {
+	return filepath.Join(root, "nodes", src, "edges", label)
 }
 
-func edgeFilePath(root, src, label string) string {
-	return filepath.Join(root, "nodes", src, "edges", label+".json")
+func readEdgeString(root, src, label, name string) string {
+	var v string
+	jsonpersist.ReadJSONIfExists(filepath.Join(edgeDirPath(root, src, label), name), &v)
+	return v
 }
 
 func edgesDirPath(root, id string) string {
@@ -43,12 +41,10 @@ func countHandlesOn(root, src, srcPort string) int {
 	}
 	used := 0
 	for _, e := range entries {
-		if e.IsDir() { // path-resolution-ok: skipping a stray directory, not resolving a scene path
+		if !e.IsDir() { // path-resolution-ok: an edge is a directory now; skip strays
 			continue
 		}
-		var ef edgeFile
-		jsonpersist.ReadJSONBestEffort(filepath.Join(edgesDirPath(root, src), e.Name()), &ef)
-		if handleIsOn(ef.SourceHandle, srcPort) {
+		if handleIsOn(readEdgeString(root, src, e.Name(), FileSourceHandle), srcPort) {
 			used++
 		}
 	}
@@ -72,15 +68,18 @@ func handleIsOn(handle, srcPort string) bool {
 }
 
 func WriteEdgeFile(root, src, srcPort, target, targetPort string) error {
-	label := src + "To" + target
-	path := edgeFilePath(root, src, label)
-	return jsonpersist.ReadModifyWriteJSON(path, func(m map[string]any) {
-		m["sourceHandle"] = srcPort
-		m["target"] = target
-		m["targetHandle"] = targetPort
-		m["kind"] = "chain"
-		m["label"] = label
-	})
+	dir := edgeDirPath(root, src, src+"To"+target)
+	for name, value := range map[string]string{
+		FileSourceHandle: srcPort,
+		FileTarget:       target,
+		FileTargetHandle: targetPort,
+		FileKind:         "chain",
+	} {
+		if err := jsonpersist.WriteJSONAtomic(filepath.Join(dir, name), value); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func RemoveEdgesTo(root, id string, nodeIDs []string) error {
@@ -90,19 +89,17 @@ func RemoveEdgesTo(root, id string, nodeIDs []string) error {
 			continue
 		}
 		for _, e := range entries {
-			if e.IsDir() { // path-resolution-ok: skipping a stray directory, not resolving a scene path
+			if !e.IsDir() { // path-resolution-ok: an edge is a directory now; skip strays
 				continue
 			}
-			path := filepath.Join(edgesDirPath(root, n), e.Name())
-			var ef edgeFile
-			jsonpersist.ReadJSONBestEffort(path, &ef)
-			if ef.Target != id {
+			label := e.Name()
+			if readEdgeString(root, n, label, FileTarget) != id {
 				continue
 			}
-			if err := os.Remove(path); err != nil {
+			if err := os.RemoveAll(edgeDirPath(root, n, label)); err != nil {
 				return err
 			}
-			if err := os.Remove(edgeDragPath(root, n, ef.Label)); err != nil && !os.IsNotExist(err) {
+			if err := os.RemoveAll(edgeDragDir(root, n, label)); err != nil {
 				return err
 			}
 		}

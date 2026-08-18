@@ -23,8 +23,8 @@ topology/
 │   ├── base/                               one value per file: type/gate/index + drag-rule/ and self-rule/ — TRACKED
 │   ├── drag/self.json                 the node's accumulated position DELTA — GITIGNORED, see below
 │   ├── data.json  local-polars.json
-│   ├── edges/<label>.json                OUTGOING only — wiring + the BASE geometry delta — TRACKED
-│   ├── drag/edges/<label>.json            that edge's accumulated geometry DELTA — GITIGNORED
+│   ├── edges/<label>/                     OUTGOING only, one value per file: wiring + delta — TRACKED
+│   ├── drag/edges/<label>/                that edge's accumulated geometry DELTA — GITIGNORED
 │   └── (no *.geom.json — folded into <label>.json)
 └── view/
     └── camera/ overlays/ panels/ sphere/ — one value per file — plus scene.json

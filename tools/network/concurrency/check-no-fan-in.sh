@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: topology/nodes/*/edges/*.json | two committed edges may not target the same target+targetHandle (fan-in)
+# PLACEMENT: topology/nodes/*/edges/*/target.json | two committed edges may not target the same target+targetHandle (fan-in)
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
@@ -16,9 +16,9 @@ if [ ! -d "$NODES_DIR" ]; then
   exit 1
 fi
 
-edge_count=$(find "$NODES_DIR" -mindepth 3 -maxdepth 3 -path '*/edges/*.json' | wc -l | tr -d ' ')
+edge_count=$(find "$NODES_DIR" -mindepth 3 -maxdepth 3 -type d -path '*/edges/*' | wc -l | tr -d ' ')
 if [ "$edge_count" -eq 0 ]; then
-  echo "check-no-fan-in: MISCONFIGURED — 0 edge files found under $NODES_DIR/*/edges/*.json." >&2
+  echo "check-no-fan-in: MISCONFIGURED — 0 edge dirs found under $NODES_DIR/*/edges/*/." >&2
   echo "  The scan must actually see real edges; refusing a vacuous pass. If the committed" >&2
   echo "  topology legitimately has no edges yet, allowlist that state deliberately instead" >&2
   echo "  of letting this guard read as clean by accident." >&2
@@ -29,14 +29,17 @@ report=$(python3 - "$NODES_DIR" <<'PY'
 import json, glob, os, sys, collections
 nodes_dir = sys.argv[1]
 seen = collections.defaultdict(list)
-for f in sorted(glob.glob(os.path.join(nodes_dir, "*", "edges", "*.json"))):
+def read(edge_dir, name):
     try:
-        d = json.load(open(f))
-    except Exception as ex:
-        print(f"unreadable edge file {os.path.basename(f)}: {ex}")
+        return json.load(open(os.path.join(edge_dir, name)))
+    except Exception:
+        return None
+
+for edge_dir in sorted(glob.glob(os.path.join(nodes_dir, "*", "edges", "*"))):
+    if not os.path.isdir(edge_dir):
         continue
-    key = (d.get("target"), d.get("targetHandle"))
-    seen[key].append(d.get("label", os.path.basename(f)))
+    key = (read(edge_dir, "target.json"), read(edge_dir, "target-handle.json"))
+    seen[key].append(os.path.basename(edge_dir))
 for (target, handle), labels in sorted(seen.items()):
     if len(labels) > 1:
         print(f"fan-in: edges {labels} all target input port {target}.{handle}")
