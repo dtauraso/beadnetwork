@@ -3,7 +3,6 @@ import * as THREE from "three";
 import { HomeButton } from "../controls/panels/home-button";
 import { OverlaysControl } from "../controls/pills/overlays-control";
 import { NodePalette } from "../controls/panels/palette/NodePalette";
-import { DistanceHomePanel } from "../controls/panels/DistanceHomePanel";
 import { TiltVectorAnglePanel } from "../../../../TiltPanel/TiltVectorAnglePanel";
 import { pillContainerStyle, pillBodyStyle, pillCaretStyle } from "../controls/pills/overlay-chrome";
 
@@ -45,9 +44,7 @@ export function ScenePanelColumn({ cameraRef, aspect }: { cameraRef: RefObject<T
     >
       {}
       <PillColumnSizer />
-      <HomeButton cameraRef={cameraRef} aspect={aspect} />
-      <DistanceHomePanel />
-      <TiltVectorAnglePanel />
+      <HomeButton cameraRef={cameraRef} aspect={aspect} />      <TiltVectorAnglePanel />
       {}
       <NodePalette />
       <OverlaysControl />

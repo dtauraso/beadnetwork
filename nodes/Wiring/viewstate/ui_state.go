@@ -27,8 +27,6 @@ type UIState struct {
 
 	ClockDivisor float64
 
-	HasDistanceGroups bool
-
 	VP gesturefsm.ViewpointState
 
 	OV OverlayState
@@ -48,8 +46,6 @@ type UIState struct {
 	LatticePoints int32
 
 	NodeRowFor func(id string) (int32, bool)
-
-	DistanceGroupLensFn func() (timeLen, inputLen, gateLen float32)
 
 	viewOut        viewClaimedStream
 	ViewBuildFrame ViewFrameBuilder

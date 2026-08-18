@@ -2,7 +2,6 @@ package runtopology
 
 import (
 	W "github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
-	"github.com/dtauraso/wirefold/nodes/Wiring/distancegroups"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenecamera"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewpersist"
@@ -12,8 +11,6 @@ import (
 
 func loadSceneState(scenePath string, md *W.MoveDispatch, tr *T.Trace, speedSinks SliderPanel.Sinks) {
 	scenecamera.SeedInitialViewpoint(scenePath, md.UI.VP.SetViewpoint, md.UI.VP.EmitViewpoint, tr)
-
-	distancegroups.ResolveSceneDistanceGroups(&md.UI, scenePath)
 
 	scenepersist.InstallOverlays(&md.UI, scenePath, tr)
 

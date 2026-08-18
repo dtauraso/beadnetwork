@@ -36,7 +36,6 @@ type ViewFrameBuilder func(tick uint32,
 	panels ViewPanelFlags,
 	dragNodeRow int32,
 	scene ViewSceneState,
-	groupLenTime, groupLenInput, groupLenGate float32,
 	speed float32,
 	sceneCX, sceneCY, sceneCZ, sceneRadius float32,
 	events []rowevent.RowEvent,
@@ -69,10 +68,6 @@ func (ui *UIState) EmitViewFrame(events []rowevent.RowEvent) {
 		}
 	}
 
-	var groupLenTime, groupLenInput, groupLenGate float32
-	if ui.DistanceGroupLensFn != nil {
-		groupLenTime, groupLenInput, groupLenGate = ui.DistanceGroupLensFn()
-	}
 	frame := ui.ViewBuildFrame(ui.viewTick,
 		float32(v.Pivot.X), float32(v.Pivot.Y), float32(v.Pivot.Z), float32(v.R),
 		float32(v.Pos.Phi), float32(v.Pos.Theta), float32(v.Up.Phi), float32(v.Up.Theta),
@@ -112,7 +107,6 @@ func (ui *UIState) EmitViewFrame(events []rowevent.RowEvent) {
 			SceneEditable: boolU8(ui.SceneEditable),
 			SceneKinds:    ui.SceneKinds,
 		},
-		groupLenTime, groupLenInput, groupLenGate,
 		float32(ui.Speed),
 		float32(sc.Center.X), float32(sc.Center.Y), float32(sc.Center.Z), float32(sc.Radius),
 		events,

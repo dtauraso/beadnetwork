@@ -1,6 +1,5 @@
 export const IN_OVERLAY_ATTR_TOGGLE = 0;
 export const IN_CLOCK_ATTR_SPEED = 1;
-export const IN_DISTANCE_GROUP_ATTR_LENGTH = 2;
 export const IN_SCENE_ATTR_SELECTED = 3;
 export const IN_TILT_VECTOR_ATTR_PHI = 4;
 

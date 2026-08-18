@@ -6,8 +6,7 @@ import {
 import {
   IN_OVERLAY_ATTR_TOGGLE,
   IN_CLOCK_ATTR_SPEED,
-  IN_DISTANCE_GROUP_ATTR_LENGTH,
-  IN_SCENE_ATTR_SELECTED,
+    IN_SCENE_ATTR_SELECTED,
   IN_PANEL_ATTR_TOGGLE,
   IN_NODE_ATTR_DRAG_PHI,
   IN_NODE_ATTR_DRAG_MAX_THETA,
@@ -48,16 +47,6 @@ export function encodeClockSpeed(speed: number): ArrayBuffer {
   w.u8(enumIndex(IN_UPDATE_KINDS, "clock"));
   w.u8(IN_CLOCK_ATTR_SPEED);
   w.u8(Math.round(speed * SLIDER_NUM_SCALE));
-  return w.toArrayBuffer();
-}
-
-export function encodeDistanceGroupAdjust(groupIndex: number, dir: "up" | "down"): ArrayBuffer {
-  const w = new ByteWriter();
-  w.u8(IN_KIND_EDIT_UPDATE);
-  w.u8(enumIndex(IN_UPDATE_KINDS, "distanceGroup"));
-  w.u8(IN_DISTANCE_GROUP_ATTR_LENGTH);
-  w.u8(groupIndex);
-  w.u8(dir === "up" ? 1 : 0);
   return w.toArrayBuffer();
 }
 

@@ -18,7 +18,6 @@ EXEMPT_FILES = {
 
 ALLOWED = {
 
-    ("nodes/Wiring/distancegroups/distance_groups.go", "time.Sleep(time.Millisecond)"),
     ("nodes/Wiring/nodeactor/node_geometry.go", "ng.beads.SetBeadTickFn(func() *time.Ticker { return time.NewTicker(clock.TickPeriod) })"),
 }
 
