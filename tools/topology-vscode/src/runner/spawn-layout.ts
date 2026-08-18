@@ -78,7 +78,11 @@ export function computeSpawnLayout(counts: { nodes: number; edges: number }): Sp
       `node:${nodeBaseFd}`, `interior:${interiorBaseFd}`, `bead:${beadBaseFd}`,
     );
   }
-  if (colCount > 0) streamFDsEnvParts.push(`col:${colBaseFd}`);
+  // The child computes the same count from the same schema. Sending it lets Go REFUSE a
+  // layout the host did not allocate for, instead of opening fds past the end and
+  // writing every column into the wrong place -- which renders as nodes in the wrong
+  // positions and edges pointing at nothing.
+  if (colCount > 0) streamFDsEnvParts.push(`col:${colBaseFd}`, `colcount:${colCount}`);
   const streamFDsEnv = streamFDsEnvParts.join(",");
 
   return {

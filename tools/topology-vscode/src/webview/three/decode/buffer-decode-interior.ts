@@ -2,8 +2,6 @@ import { BUF_INTERIOR_STREAM_FRAME_HEADER_SIZE } from "../../../../Buffer/frame-
 import { decodeTrailingEvents } from "./buffer-decode-shared";
 export { INTERIOR_SLOTS_PER_NODE } from "../../../../Buffer/buffer-layout";
 
-// An interior frame is only its events: the slots are runs on each node's own interior
-// channels.
 export interface DecodedInteriorStreamFrame {
   tick: number;
 

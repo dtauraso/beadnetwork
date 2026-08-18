@@ -17,9 +17,29 @@ type ColumnStreams struct {
 	on    bool
 }
 
+const streamKindColCount = "colcount"
+
 func NewColumnStreams(fds StreamFDs, nodes, edges int) ColumnStreams {
 	base, ok := fds[StreamKindCol]
-	return ColumnStreams{base: base, nodes: nodes, edges: edges, on: ok}
+	if !ok {
+		return ColumnStreams{}
+	}
+
+	// The host allocated a fixed number of pipes from ITS copy of the schema. If this
+	// binary's copy disagrees, every column past the divergence lands on the wrong fd --
+	// which draws as nodes in the wrong positions and edges pointing at nothing, with no
+	// error anywhere. Say it instead.
+	want := B.ColumnStreamCount(nodes, edges)
+	if got, ok := fds[streamKindColCount]; ok && got != want {
+		panic(fmt.Sprintf(
+			"column-stream layout skew: the extension host allocated %d column pipes for %d nodes / "+
+				"%d edges, this binary's schema wants %d. The two were built from different "+
+				"layouts, so every column would land on the wrong fd. Run \"Developer: Reload "+
+				"Window\" — reopening the file reloads only the webview, not the extension host "+
+				"that allocates these pipes.",
+			got, nodes, edges, want))
+	}
+	return ColumnStreams{base: base, nodes: nodes, edges: edges, on: true}
 }
 
 func (c ColumnStreams) On() bool { return c.on }
