@@ -61,10 +61,6 @@ export function PanelOverlay() {
     const tex = texRef.current;
     if (!tex) return;
 
-    // The rectangle is read off the renderer on the frame it is drawn, not captured when this
-    // component last rendered. A captured size goes stale the moment the editor is resized —
-    // dragging the panel divider — and the bitmap then gets scaled onto a viewport it was not
-    // drawn for, which is magnification, not layout.
     gl.getSize(viewSize);
     const vw = Math.max(1, Math.round(viewSize.x));
     const vh = Math.max(1, Math.round(viewSize.y));
@@ -80,8 +76,6 @@ export function PanelOverlay() {
       lastKey.current = key;
       const bw = Math.max(1, Math.round(vw * dpr));
       const bh = Math.max(1, Math.round(vh * dpr));
-      // Assigning width or height reallocates and clears the bitmap, so only do it when the
-      // size actually changed rather than on every redraw.
       if (canvas.width !== bw || canvas.height !== bh) {
         canvas.width = bw;
         canvas.height = bh;
