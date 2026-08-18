@@ -43,6 +43,17 @@ func decodeUpdateScene(r *recread.Reader, attr byte) (StdinMsg, bool) {
 			return StdinMsg{}, false
 		}
 		return StdinMsg{Type: "edit", Op: "update", Kind: "scene", Attr: "delete", Num: int(row)}, true
+	case InSceneAttrViewport:
+
+		w, errW := r.F32()
+		if errW != nil {
+			return StdinMsg{}, false
+		}
+		h, errH := r.F32()
+		if errH != nil {
+			return StdinMsg{}, false
+		}
+		return StdinMsg{Type: "edit", Op: "update", Kind: "scene", Attr: "viewport", X: float64(w), Y: float64(h)}, true
 	}
 	return StdinMsg{}, false
 }

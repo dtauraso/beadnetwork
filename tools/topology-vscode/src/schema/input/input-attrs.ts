@@ -21,3 +21,5 @@ export const IN_NODE_ATTR_SELF_DRAG_ACTIVE = 18;
 
 export const IN_NODE_ATTR_DRAG_R = 19;
 export const IN_NODE_ATTR_SELF_DRAG_R = 20;
+
+export const IN_SCENE_ATTR_VIEWPORT = 21;

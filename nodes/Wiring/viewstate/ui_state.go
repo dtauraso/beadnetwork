@@ -59,6 +59,11 @@ type UIState struct {
 	TiltRows   []int32
 	TiltLabels []string
 
+	ViewW, ViewH float64
+
+	AngleOpen      bool
+	AngleGroupOpen map[int32]bool
+
 	viewOut        viewClaimedStream
 	ViewBuildFrame ViewFrameBuilder
 	viewTick       uint32

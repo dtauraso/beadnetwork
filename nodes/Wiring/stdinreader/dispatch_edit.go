@@ -7,6 +7,7 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/rowevent"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/angledropdown"
 	"github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/speedpanel"
@@ -18,10 +19,18 @@ func HandleRawInputMsg(ctx context.Context, msg inputcodec.StdinMsg, slotReg inp
 	if md == nil || msg.Event == nil {
 		return
 	}
+	if msg.Event.RectWidth > 0 && msg.Event.RectHeight > 0 {
+		md.UI.ViewW = msg.Event.RectWidth
+		md.UI.ViewH = msg.Event.RectHeight
+	}
 	if msg.Event.Kind == "pointerdown" {
 		pl := md.UI.PanelLayout()
 		if i := pl.Speed.Hit(msg.Event.X, msg.Event.Y); i >= 0 {
 			setClockSpeed(md, speedSinks, speedpanel.Settings[i].Speed)
+			return
+		}
+		if h := pl.Angle.Hit(msg.Event.X, msg.Event.Y); h.Kind != angledropdown.HitNone {
+			applyAngleHit(ctx, md, speedSinks, h)
 			return
 		}
 		switch pl.Tilt.Hit(msg.Event.X, msg.Event.Y) {
@@ -38,6 +47,27 @@ func HandleRawInputMsg(ctx context.Context, msg inputcodec.StdinMsg, slotReg inp
 		}
 	}
 	md.HandleRawInput(ctx, *msg.Event, slotReg, tr)
+}
+
+func applyAngleHit(ctx context.Context, md *dispatch.MoveDispatch, speedSinks SliderPanel.Sinks, h angledropdown.Hit) {
+	switch h.Kind {
+	case angledropdown.HitPill:
+		md.UI.AngleOpen = !md.UI.AngleOpen
+	case angledropdown.HitGroup:
+		if md.UI.AngleGroupOpen == nil {
+			md.UI.AngleGroupOpen = map[int32]bool{}
+		}
+		md.UI.AngleGroupOpen[h.NodeRow] = !md.UI.AngleGroupOpen[h.NodeRow]
+	case angledropdown.HitLatticeUp:
+		setLatticePoints(md, md.UI.LatticePoints+angledropdown.LatticePointsStep)
+	case angledropdown.HitLatticeDown:
+		setLatticePoints(md, md.UI.LatticePoints-angledropdown.LatticePointsStep)
+	case angledropdown.HitPhiUp:
+		adjustTiltPhi(ctx, md, h.NodeRow, true)
+	case angledropdown.HitPhiDown:
+		adjustTiltPhi(ctx, md, h.NodeRow, false)
+	}
+	md.UI.EmitViewFrame(nil)
 }
 
 func setClockSpeed(md *dispatch.MoveDispatch, speedSinks SliderPanel.Sinks, speed float64) {

@@ -7,6 +7,7 @@ import (
 	"math"
 	"strconv"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/angledropdown"
 	"github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
@@ -52,11 +53,27 @@ func applyUpdateTiltVector(ctx context.Context, msg inputcodec.StdinMsg, md *dis
 		return
 	}
 
-	up := msg.Flag == "up"
+	adjustTiltPhi(ctx, md, int32(msg.Num), msg.Flag == "up")
+}
+
+func adjustTiltPhi(ctx context.Context, md *dispatch.MoveDispatch, row int32, up bool) {
+	id := strconv.Itoa(int(row) + 1)
+	if _, ok := md.MR.NodeGeoms()[id]; !ok {
+		return
+	}
 	if md.Inboxes.SendTiltEdit(ctx, id, movemsg.TiltEditMsg{Up: up}) {
 		return
 	}
 	md.MR.SendMove(ctx, id, movemsg.Msg{Kind: movemsg.KindTiltVectorAngle, NodeID: id, Bool: up})
+}
+
+func setLatticePoints(md *dispatch.MoveDispatch, points int32) {
+	if points < angledropdown.LatticePointsMin || points > angledropdown.LatticePointsMax || points%4 != 0 {
+		return
+	}
+	md.UI.LatticePoints = points
+	md.Persist.Lattice().Schedule(points)
+	md.Inboxes.BroadcastLatticePoints(points)
 }
 
 func applyUpdateScene(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks SliderPanel.Sinks) {
@@ -67,13 +84,11 @@ func applyUpdateScene(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch
 	case "selected":
 		sceneswitch.SelectScene(&md.Scenes, int(msg.Num))
 	case "latticePoints":
-		points := int32(msg.Num)
-		if points < 4 || points > 64 || points%4 != 0 {
-			return
-		}
-		md.UI.LatticePoints = points
-		md.Persist.Lattice().Schedule(points)
-		md.Inboxes.BroadcastLatticePoints(points)
+		setLatticePoints(md, int32(msg.Num))
+	case "viewport":
+		md.UI.ViewW = msg.X
+		md.UI.ViewH = msg.Y
+		md.UI.EmitViewFrame(nil)
 	case "create":
 
 		NodesDropdown.CreateNode(&md.Scenes, &md.UI, &md.MR, uint8(msg.Num), msg.X, msg.Y, tr)

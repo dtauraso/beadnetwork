@@ -65,6 +65,7 @@ func (ui *UIState) EmitViewFrame(events []rowevent.RowEvent) {
 	pl := ui.PanelLayout()
 	ui.writeSpeedPanelColumns(pl.Speed)
 	ui.writeTiltPanelColumns(pl.Tilt)
+	ui.writeAnglePillColumns(pl.Angle)
 
 	frame := ui.ViewBuildFrame(ui.viewTick, events)
 	if !ui.viewOut.Ok() {

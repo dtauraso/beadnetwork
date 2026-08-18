@@ -7,7 +7,7 @@ const ColumnsPerNodeStream = 145
 
 const ColumnsPerEdgeStream = 11
 
-const ColumnsInSingletonStreams = 100
+const ColumnsInSingletonStreams = 137
 
 // ColumnStreamCount is every column channel a scene of this size needs.
 func ColumnStreamCount(nodes, edges int) int {
@@ -28,6 +28,7 @@ const ColStreamBaseNodeRingPoint = 48
 const ColStreamBaseBeadRingPoint = 51
 const ColStreamBaseSpeedPanel = 54
 const ColStreamBaseTiltPanel = 71
+const ColStreamBaseAnglePill = 100
 
 const ColStreamNodeNodeId = ColStreamBaseNode + 0
 const ColStreamNodeIndexR = ColStreamBaseNode + 1
@@ -285,3 +286,40 @@ const ColStreamTiltPanelMsgsX = ColStreamBaseTiltPanel + 25
 const ColStreamTiltPanelMsgsY = ColStreamBaseTiltPanel + 26
 const ColStreamTiltPanelMsgsW = ColStreamBaseTiltPanel + 27
 const ColStreamTiltPanelMsgsH = ColStreamBaseTiltPanel + 28
+const ColStreamAnglePillPillX = ColStreamBaseAnglePill + 0
+const ColStreamAnglePillPillY = ColStreamBaseAnglePill + 1
+const ColStreamAnglePillPillW = ColStreamBaseAnglePill + 2
+const ColStreamAnglePillPillH = ColStreamBaseAnglePill + 3
+const ColStreamAnglePillOpen = ColStreamBaseAnglePill + 4
+const ColStreamAnglePillPopoverX = ColStreamBaseAnglePill + 5
+const ColStreamAnglePillPopoverY = ColStreamBaseAnglePill + 6
+const ColStreamAnglePillPopoverW = ColStreamBaseAnglePill + 7
+const ColStreamAnglePillPopoverH = ColStreamBaseAnglePill + 8
+const ColStreamAnglePillLabelText = ColStreamBaseAnglePill + 9
+const ColStreamAnglePillStepX = ColStreamBaseAnglePill + 10
+const ColStreamAnglePillStepY = ColStreamBaseAnglePill + 11
+const ColStreamAnglePillStepW = ColStreamBaseAnglePill + 12
+const ColStreamAnglePillStepH = ColStreamBaseAnglePill + 13
+const ColStreamAnglePillStepNameText = ColStreamBaseAnglePill + 14
+const ColStreamAnglePillStepNameLen = ColStreamBaseAnglePill + 15
+const ColStreamAnglePillStepShownText = ColStreamBaseAnglePill + 16
+const ColStreamAnglePillStepShownLen = ColStreamBaseAnglePill + 17
+const ColStreamAnglePillStepValueRow = ColStreamBaseAnglePill + 18
+const ColStreamAnglePillStepDenom = ColStreamBaseAnglePill + 19
+const ColStreamAnglePillStepUpX = ColStreamBaseAnglePill + 20
+const ColStreamAnglePillStepUpY = ColStreamBaseAnglePill + 21
+const ColStreamAnglePillStepUpW = ColStreamBaseAnglePill + 22
+const ColStreamAnglePillStepUpH = ColStreamBaseAnglePill + 23
+const ColStreamAnglePillStepDownX = ColStreamBaseAnglePill + 24
+const ColStreamAnglePillStepDownY = ColStreamBaseAnglePill + 25
+const ColStreamAnglePillStepDownW = ColStreamBaseAnglePill + 26
+const ColStreamAnglePillStepDownH = ColStreamBaseAnglePill + 27
+const ColStreamAnglePillStepUpOn = ColStreamBaseAnglePill + 28
+const ColStreamAnglePillStepDownOn = ColStreamBaseAnglePill + 29
+const ColStreamAnglePillGroupX = ColStreamBaseAnglePill + 30
+const ColStreamAnglePillGroupY = ColStreamBaseAnglePill + 31
+const ColStreamAnglePillGroupW = ColStreamBaseAnglePill + 32
+const ColStreamAnglePillGroupH = ColStreamBaseAnglePill + 33
+const ColStreamAnglePillGroupOpen = ColStreamBaseAnglePill + 34
+const ColStreamAnglePillGroupHeadText = ColStreamBaseAnglePill + 35
+const ColStreamAnglePillGroupHeadLen = ColStreamBaseAnglePill + 36

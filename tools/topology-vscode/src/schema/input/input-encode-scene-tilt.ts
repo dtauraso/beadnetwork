@@ -13,6 +13,7 @@ import {
   IN_SCENE_ATTR_LATTICE_POINTS,
   IN_SCENE_ATTR_CREATE,
   IN_SCENE_ATTR_DELETE,
+  IN_SCENE_ATTR_VIEWPORT,
 } from "./input-attrs";
 import type { RawInputEvent } from "../../messages";
 
@@ -42,6 +43,16 @@ export function encodeSceneLatticePoints(points: number): ArrayBuffer {
   w.u8(enumIndex(IN_UPDATE_KINDS, "scene"));
   w.u8(IN_SCENE_ATTR_LATTICE_POINTS);
   w.u8(points);
+  return w.toArrayBuffer();
+}
+
+export function encodeSceneViewport(width: number, height: number): ArrayBuffer {
+  const w = new ByteWriter();
+  w.u8(IN_KIND_EDIT_UPDATE);
+  w.u8(enumIndex(IN_UPDATE_KINDS, "scene"));
+  w.u8(IN_SCENE_ATTR_VIEWPORT);
+  w.f32(width);
+  w.f32(height);
   return w.toArrayBuffer();
 }
 
