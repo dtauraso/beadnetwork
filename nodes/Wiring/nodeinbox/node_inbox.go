@@ -2,9 +2,9 @@ package nodeinbox
 
 import (
 	"context"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/AngleDropdown"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
-	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
 )
 
 type NodeInboxes struct {
@@ -29,7 +29,7 @@ func (ib *NodeInboxes) ClaimTiltEditIn(id string, ch chan movemsg.TiltEditMsg) {
 
 func (ib *NodeInboxes) BroadcastLatticePoints(points int32) {
 	for _, ch := range ib.lattice {
-		scenepersist.SendLatticePointsNonBlocking(ch, points)
+		AngleDropdown.SendLatticePointsNonBlocking(ch, points)
 	}
 }
 

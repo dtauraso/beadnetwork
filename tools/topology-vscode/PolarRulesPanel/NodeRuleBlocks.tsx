@@ -8,7 +8,7 @@ import {
   encodeNodeDragRToggle,
 } from "../src/schema/input/input-encode";
 import { type NodeRuleRow, type EdgePartner } from "./node-rules";
-import { formatPi, formatPiDraft, parsePiDraft } from "../src/webview/three/controls/panels/pi-fraction";
+import { formatPi, formatPiDraft, parsePiDraft } from "./pi-fraction";
 
 export function ComponentLine({
   glyph,

@@ -6,6 +6,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/AngleDropdown"
 )
 
 type Persisters struct {
@@ -42,7 +43,7 @@ func (p *Persisters) ArmEdit(topologyPath string) {
 		Path: scenepaths.SpeedFilePath(topologyPath), Write: scenepersist.WriteSceneSpeed, Tag: "scene_speed_persist",
 	}
 	p.lattice = &scenepersist.Persister[int32]{
-		Path: scenepaths.LatticeFilePath(topologyPath), Write: scenepersist.WriteSceneLattice, Tag: "scene_lattice_persist",
+		Path: scenepaths.LatticeFilePath(topologyPath), Write: AngleDropdown.WriteSceneLattice, Tag: "scene_lattice_persist",
 	}
 }
 

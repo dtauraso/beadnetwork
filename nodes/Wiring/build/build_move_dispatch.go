@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/AngleDropdown"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/nodefiles"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodedrag"
 	"github.com/dtauraso/wirefold/nodes/Wiring/polarindex"
-	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
 )
 
 func (b *buildCtx) buildMoveDispatch() error {
@@ -28,7 +28,7 @@ func (b *buildCtx) buildMoveDispatch() error {
 		return fmt.Errorf("buildMoveDispatch: %w", err)
 	}
 
-	scenepersist.LoadLatticePoints(&md.UI, b.scenePath)
+	AngleDropdown.LoadLatticePoints(&md.UI, b.scenePath)
 	if b.hasScene {
 
 		md.UI.SceneSphere = b.sphere

@@ -1,10 +1,10 @@
 package kindapi
 
-import "github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
+import "github.com/dtauraso/wirefold/tools/topology-vscode/AngleDropdown"
 
 func (a BuildArgs) LatticePointsSeed() int32 {
 	if a.deps.ClaimLatticeIn == nil {
-		return scenepersist.DefaultLatticePoints
+		return AngleDropdown.DefaultLatticePoints
 	}
 	return a.deps.LatticePoints
 }

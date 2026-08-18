@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { postGoRecord } from "../src/webview/vscode-api";
 import { encodeTiltVectorAdjust, encodeSceneLatticePoints } from "../src/schema/input/input-encode-scene-tilt";
-import { useTiltVectorRows, type TiltVectorRow } from "./overlay-flags-tilt-vectors";
-import { formatAngle, widestAngle } from "./tilt-vector-angle-format";
+import { useTiltVectorRows, type TiltVectorRow } from "../TiltPanel/overlay-flags-tilt-vectors";
+import { formatAngle, widestAngle } from "./angle-format";
 import {
   pillContainerStyle,
   pillBodyStyle,
@@ -84,7 +84,7 @@ function LatticePointsRow({ points }: { points: number }) {
   );
 }
 
-export function TiltVectorAnglePanel() {
+export function AngleDropdown() {
   const rows = useTiltVectorRows();
   const [open, setOpen] = useState(false);
 

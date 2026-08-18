@@ -3,7 +3,7 @@ import * as THREE from "three";
 import { HomeButton } from "../controls/panels/home-button";
 import { OverlaysControl } from "../controls/pills/overlays-control";
 import { NodePalette } from "../controls/panels/palette/NodePalette";
-import { TiltVectorAnglePanel } from "../../../../TiltPanel/TiltVectorAnglePanel";
+import { AngleDropdown } from "../../../../AngleDropdown/AngleDropdown";
 import { pillContainerStyle, pillBodyStyle, pillCaretStyle } from "../controls/pills/overlay-chrome";
 
 const COLUMN_GAP = 6;
@@ -45,7 +45,7 @@ export function ScenePanelColumn({ cameraRef, aspect }: { cameraRef: RefObject<T
       {}
       <PillColumnSizer />
       <HomeButton cameraRef={cameraRef} aspect={aspect} />
-      <TiltVectorAnglePanel />
+      <AngleDropdown />
       {}
       <NodePalette />
       <OverlaysControl />

@@ -8,7 +8,7 @@ import {
 } from "../src/schema/input/input-encode";
 import { type NodeRuleRow } from "./node-rules";
 import { ComponentLine } from "./NodeRuleBlocks";
-import { formatPi, formatPiDraft, parsePiDraft } from "../src/webview/three/controls/panels/pi-fraction";
+import { formatPi, formatPiDraft, parsePiDraft } from "./pi-fraction";
 
 export function SelfThetaLine({ rule }: { rule: NodeRuleRow }) {
   const [draft, setDraft] = useState<string | null>(null);

@@ -8,4 +8,5 @@ TS_ROOTS=(
   "tools/topology-vscode/Tabs"
   "tools/topology-vscode/PolarRulesPanel"
   "tools/topology-vscode/TiltPanel"
+  "tools/topology-vscode/AngleDropdown"
 )
