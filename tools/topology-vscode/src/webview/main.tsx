@@ -7,7 +7,7 @@ import "./webview-toolbar.css";
 import "./webview-node-rules.css";
 import { ThreeView } from "./three/scene/ThreeView";
 import { SpeedSlider } from "../../Slider/SpeedSlider";
-import { TiltVectorButtons } from "./three/controls/panels/tilt/TiltVectorButtons";
+import { TiltVectorButtons } from "../../TiltPanel/TiltVectorButtons";
 import { NodeRulesPanel } from "../../PolarRules/NodeRulesPanel";
 import { parseHostToWebview } from "../messages";
 import { ErrorBoundary } from "./log/ErrorBoundary";

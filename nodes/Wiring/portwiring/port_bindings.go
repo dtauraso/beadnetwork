@@ -3,12 +3,12 @@ package portwiring
 import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/interior"
 	"github.com/dtauraso/wirefold/nodes/Wiring/rowtables"
-	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
 	"github.com/dtauraso/wirefold/nodes/bead"
 	"github.com/dtauraso/wirefold/nodes/bead/outport"
 	"github.com/dtauraso/wirefold/nodes/clock"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
 	"github.com/dtauraso/wirefold/tools/topology-vscode/Slider"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/TiltPanel"
 )
 
 type PortDir int
@@ -48,8 +48,8 @@ type PortBindings struct {
 	InteriorEmitters   *map[string]*interior.Emitter
 	BuildInteriorFrame *func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []rowevent.RowEvent) []byte
 
-	VectorOut map[string]chan tiltvector.TiltVectorMsg
-	VectorIn  map[string]chan tiltvector.TiltVectorMsg
+	VectorOut map[string]chan TiltPanel.TiltVectorMsg
+	VectorIn  map[string]chan TiltPanel.TiltVectorMsg
 }
 
 type singleBinding struct {

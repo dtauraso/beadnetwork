@@ -2,10 +2,10 @@ package PairNode
 
 import (
 	"github.com/dtauraso/wirefold/nodes/PairNode/tiltring"
-	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/TiltPanel"
 )
 
-func (n *Node) stepFromVector(received tiltvector.TiltVectorMsg) bool {
+func (n *Node) stepFromVector(received TiltPanel.TiltVectorMsg) bool {
 	ring := n.ringOf()
 	ring.ArrivedState(received.PhiIdx)
 	top := n.topState().Idx
@@ -20,7 +20,7 @@ func (n *Node) stepFromVector(received tiltvector.TiltVectorMsg) bool {
 }
 
 func (n *Node) handleVectorCycle(tick int64) {
-	received, ok := tiltvector.PollRecvVector(n.vec.VectorIn)
+	received, ok := TiltPanel.PollRecvVector(n.vec.VectorIn)
 	if !ok {
 		return
 	}
@@ -37,7 +37,7 @@ func (n *Node) handleVectorCycle(tick int64) {
 	}
 	n.recordReceived(received)
 
-	n.adoptMachine(tiltvector.TiltMachineParallel)
+	n.adoptMachine(TiltPanel.TiltMachineParallel)
 	if !n.stepFromVector(received) {
 		return
 	}

@@ -4,10 +4,10 @@ import (
 	"fmt"
 
 	"github.com/dtauraso/wirefold/nodes/PairNode/tiltring"
-	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/TiltPanel"
 )
 
-var defaultRing = tiltring.NewRing(tiltvector.FullTurnPhiIdx)
+var defaultRing = tiltring.NewRing(TiltPanel.FullTurnPhiIdx)
 
 func (n *Node) ringOf() *tiltring.Ring {
 	if n.lattice.Ring == nil {
@@ -25,7 +25,7 @@ func (n *Node) topState() *tiltring.State {
 
 func (n *Node) setTop(top *tiltring.State) { n.tilt.Top = top }
 
-func (n *Node) fromAnotherLattice(received tiltvector.TiltVectorMsg) bool {
+func (n *Node) fromAnotherLattice(received TiltPanel.TiltVectorMsg) bool {
 	return received.Points != 0 && received.Points != n.ringOf().Points
 }
 
@@ -55,7 +55,7 @@ func (n *Node) adoptLattice(points int32) {
 	n.vec.ReceivedPhiIdx = tiltring.Sent(top.Idx, points)
 	n.vec.ReceivedSet = false
 	n.syncReceivedVector()
-	tiltvector.PollRecvVector(n.vec.VectorIn)
+	TiltPanel.PollRecvVector(n.vec.VectorIn)
 	if n.lattice.SyncLatticePoints != nil {
 		n.lattice.SyncLatticePoints(points)
 	}

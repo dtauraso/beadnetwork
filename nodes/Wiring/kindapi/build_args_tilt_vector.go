@@ -2,7 +2,7 @@ package kindapi
 
 import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
-	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/TiltPanel"
 )
 
 func (a BuildArgs) TiltVectorAngleSeed() (theta int32) {
@@ -16,14 +16,14 @@ func (a BuildArgs) TiltEditIn() <-chan movemsg.TiltEditMsg {
 	return a.deps.ClaimTiltEditIn(a.name)
 }
 
-func (a BuildArgs) VectorOut() chan<- tiltvector.TiltVectorMsg {
+func (a BuildArgs) VectorOut() chan<- TiltPanel.TiltVectorMsg {
 	if a.pb.VectorOut == nil {
 		return nil
 	}
 	return a.pb.VectorOut[a.name]
 }
 
-func (a BuildArgs) VectorIn() <-chan tiltvector.TiltVectorMsg {
+func (a BuildArgs) VectorIn() <-chan TiltPanel.TiltVectorMsg {
 	if a.pb.VectorIn == nil {
 		return nil
 	}

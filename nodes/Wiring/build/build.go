@@ -11,13 +11,13 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/loadspec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/polarindex"
-	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
 	"github.com/dtauraso/wirefold/nodes/Wiring/topoderive"
 	"github.com/dtauraso/wirefold/nodes/bead"
 	"github.com/dtauraso/wirefold/nodes/bead/outport"
 	"github.com/dtauraso/wirefold/nodes/clock"
 	"github.com/dtauraso/wirefold/nodes/nodeapi"
 	"github.com/dtauraso/wirefold/nodes/spatial"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/TiltPanel"
 
 	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
 )
@@ -56,8 +56,8 @@ type buildCtx struct {
 	outSink map[string]*outport.Out
 	nodes   []nodeapi.Node
 
-	vectorOutByNode map[string]chan tiltvector.TiltVectorMsg
-	vectorInByNode  map[string]chan tiltvector.TiltVectorMsg
+	vectorOutByNode map[string]chan TiltPanel.TiltVectorMsg
+	vectorInByNode  map[string]chan TiltPanel.TiltVectorMsg
 }
 
 func buildFromSpec(ctx context.Context, spec loadspec.TopoSpec, tr *T.Trace, clk clock.Clock, sphere polar.SceneSphere, hasScene bool, scenePath string) ([]nodeapi.Node, inputcodec.SlotRegistry, *dispatch.MoveDispatch, Slider.Sinks, error) {

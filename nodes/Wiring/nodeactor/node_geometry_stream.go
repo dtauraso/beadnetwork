@@ -8,8 +8,8 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/nodeframe"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodedrag"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
-	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/TiltPanel"
 
 	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
 )
@@ -70,7 +70,7 @@ func (m *NodeGeometry) writeStreamFrame(events []rowevent.RowEvent) {
 		ReceivedVectorPhiIdx: receivedIdx,
 		ReceivedVectorSet:    receivedSet,
 		LatticePoints:        latticePoints,
-		DefaultLatticePoints: tiltvector.FullTurnPhiIdx,
+		DefaultLatticePoints: TiltPanel.FullTurnPhiIdx,
 	})
 	center := fg.Center
 	polePhi, poleTheta := fg.PolePhi, fg.PoleTheta

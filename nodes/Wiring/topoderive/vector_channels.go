@@ -2,21 +2,21 @@ package topoderive
 
 import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/loadspec"
-	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/TiltPanel"
 )
 
-func AllocateVectorChannels(spec loadspec.TopoSpec) (vectorOutByNode, vectorInByNode map[string]chan tiltvector.TiltVectorMsg) {
+func AllocateVectorChannels(spec loadspec.TopoSpec) (vectorOutByNode, vectorInByNode map[string]chan TiltPanel.TiltVectorMsg) {
 	kindByID := make(map[string]string, len(spec.Nodes))
 	for _, n := range spec.Nodes {
 		kindByID[n.ID] = n.Type
 	}
-	vectorOutByNode = map[string]chan tiltvector.TiltVectorMsg{}
-	vectorInByNode = map[string]chan tiltvector.TiltVectorMsg{}
+	vectorOutByNode = map[string]chan TiltPanel.TiltVectorMsg{}
+	vectorInByNode = map[string]chan TiltPanel.TiltVectorMsg{}
 	for _, e := range spec.Edges {
-		if !tiltvector.KindWantsVectorChannel(kindByID[e.Source]) || !tiltvector.KindWantsVectorChannel(kindByID[e.Target]) {
+		if !TiltPanel.KindWantsVectorChannel(kindByID[e.Source]) || !TiltPanel.KindWantsVectorChannel(kindByID[e.Target]) {
 			continue
 		}
-		sourceToTargetVectorCh := make(chan tiltvector.TiltVectorMsg, 1)
+		sourceToTargetVectorCh := make(chan TiltPanel.TiltVectorMsg, 1)
 		vectorOutByNode[e.Source] = sourceToTargetVectorCh
 		vectorInByNode[e.Target] = sourceToTargetVectorCh
 	}

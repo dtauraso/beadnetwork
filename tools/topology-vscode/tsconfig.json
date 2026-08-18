@@ -19,6 +19,7 @@
     "Buffer/**/*.ts", "Trace/**/*.ts",
     "Slider/**/*.ts", "Slider/**/*.tsx",
     "Tabs/**/*.ts", "Tabs/**/*.tsx",
-    "PolarRules/**/*.ts", "PolarRules/**/*.tsx"
+    "PolarRules/**/*.ts", "PolarRules/**/*.tsx",
+    "TiltPanel/**/*.ts", "TiltPanel/**/*.tsx"
   ]
 }

@@ -1,13 +1,13 @@
 import { useSyncExternalStore } from "react";
-import { getNodeFrame, subscribeNodeStreamBlocks } from "../../scene/nodes/node-frame-aggregate";
+import { getNodeFrame, subscribeNodeStreamBlocks } from "../src/webview/three/scene/nodes/node-frame-aggregate";
 import {
   readNodeTopTiltVectorLen,
   readNodeTopTiltVectorIdx,
   readNodeLatticePoints,
   readNodeRoundsToParallel,
   readNodeMsgsToParallel,
-} from "../../../../../Buffer/buffer-layout";
-import { nodeLabel } from "../../decode/buffer-decode-node";
+} from "../Buffer/buffer-layout";
+import { nodeLabel } from "../src/webview/three/decode/buffer-decode-node";
 
 export interface TiltVectorRow {
   row: number;

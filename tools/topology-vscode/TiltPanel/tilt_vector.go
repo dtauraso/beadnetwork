@@ -1,4 +1,4 @@
-package tiltvector
+package TiltPanel
 
 type TiltVectorMsg struct {
 	PhiIdx int32

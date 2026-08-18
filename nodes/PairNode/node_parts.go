@@ -8,7 +8,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/PairNode/tiltring"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
-	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/TiltPanel"
 )
 
 type nodePlumbing struct {
@@ -49,8 +49,8 @@ type latticeState struct {
 }
 
 type vectorExchange struct {
-	VectorOut chan<- tiltvector.TiltVectorMsg
-	VectorIn  <-chan tiltvector.TiltVectorMsg
+	VectorOut chan<- TiltPanel.TiltVectorMsg
+	VectorIn  <-chan TiltPanel.TiltVectorMsg
 
 	ReceivedPhiIdx int32
 	ReceivedSet    bool

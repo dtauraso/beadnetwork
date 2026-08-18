@@ -1,7 +1,7 @@
 import { createPortal } from "react-dom";
-import { postGoRecord } from "../../../../vscode-api";
-import { encodeTiltVectorStart, encodeTiltVectorReset } from "../../../../../schema/input/input-encode-scene-tilt";
-import { useTiltVectorRows } from "../../flags/overlay-flags-tilt-vectors";
+import { postGoRecord } from "../src/webview/vscode-api";
+import { encodeTiltVectorStart, encodeTiltVectorReset } from "../src/schema/input/input-encode-scene-tilt";
+import { useTiltVectorRows } from "./overlay-flags-tilt-vectors";
 
 export function TiltVectorButtons() {
   const rows = useTiltVectorRows();

@@ -8,8 +8,8 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/polarindex"
 	"github.com/dtauraso/wirefold/nodes/Wiring/rulenode"
-	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
 	"github.com/dtauraso/wirefold/nodes/clock"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/TiltPanel"
 
 	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
 )
@@ -73,7 +73,7 @@ func NewNodeGeometry(id string, geom nodegeom.NodeGeom, tr *T.Trace, clockSrc cl
 		topo:      owners.NewTopology(),
 		deltas:    owners.NewDeltas(),
 		clocks:    owners.NewClocks(clockSrc, clock.NewRealClock()),
-		tilt:      owners.NewTilt(tiltvector.FullTurnPhiIdx),
+		tilt:      owners.NewTilt(TiltPanel.FullTurnPhiIdx),
 		anim:      anim,
 		kindPosts: owners.NewKindPosts(),
 	}

@@ -4,7 +4,7 @@ import { HomeButton } from "../controls/panels/home-button";
 import { OverlaysControl } from "../controls/pills/overlays-control";
 import { NodePalette } from "../controls/panels/palette/NodePalette";
 import { DistanceHomePanel } from "../controls/panels/DistanceHomePanel";
-import { TiltVectorAnglePanel } from "../controls/panels/tilt/TiltVectorAnglePanel";
+import { TiltVectorAnglePanel } from "../../../../TiltPanel/TiltVectorAnglePanel";
 import { pillContainerStyle, pillBodyStyle, pillCaretStyle } from "../controls/pills/overlay-chrome";
 
 const COLUMN_GAP = 6;

@@ -5,11 +5,11 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
-	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/TiltPanel"
 )
 
-const DefaultLatticePoints int32 = tiltvector.FullTurnPhiIdx
+const DefaultLatticePoints int32 = TiltPanel.FullTurnPhiIdx
 
 func WriteSceneLattice(latticePath string, points int32) error {
 	obj := map[string]json.RawMessage{

@@ -2,7 +2,7 @@ package owners
 
 import (
 	"github.com/dtauraso/wirefold/nodes/PairNode/tiltring"
-	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/TiltPanel"
 )
 
 type Tilt struct {
@@ -37,7 +37,7 @@ func (t *Tilt) SetTiltIndex(topIdx int32) {
 
 func (t *Tilt) points() int32 {
 	if t.latticePoints <= 0 {
-		return tiltvector.FullTurnPhiIdx
+		return TiltPanel.FullTurnPhiIdx
 	}
 	return t.latticePoints
 }
