@@ -2,7 +2,7 @@ package inputcodec
 
 import "strings"
 
-const InputLayoutFingerprint = "kinds=save:4,raw-input:10,edit-update:22 eventKinds=pointerdown,pointermove,pointerup,wheel,home hitKinds=port,handhold,node,edge,torus,empty updateKinds=overlays,clock,removed-distanceGroup,scene,tiltVector,panels,node,edge updateAttrs=toggle,speed,removed-length,selected,phi,reset,start,latticePoints,create,delete,dragPhi,dragMaxTheta,dragActive,kindActive,selfDragPhi,selfDragMaxTheta,selfDragActive,dragR,selfDragR overlayFlags=tori,scenePoles,nodePoles,handholds,labelsGlobal,overlays,nodeBody,nodeRing,ringPick,selectionRing,hoverRing,sceneVectors,ruleChannels,nodePoleSphere,allPoleSpheres panelFlags=overlays,node,nodeShape,nodeState,nodePoles,nodeRules,scene,sceneGuides,scenePoles,sceneVectors,sceneLabels"
+const InputLayoutFingerprint = "kinds=save:4,raw-input:10,edit-update:22 eventKinds=pointerdown,pointermove,pointerup,wheel,home hitKinds=port,handhold,node,edge,torus,empty updateKinds=overlays,clock,scene,tiltVector,panels,node,edge updateAttrs=toggle,speed,selected,phi,reset,start,latticePoints,create,delete,dragPhi,dragMaxTheta,dragActive,kindActive,selfDragPhi,selfDragMaxTheta,selfDragActive,dragR,selfDragR overlayFlags=tori,scenePoles,nodePoles,handholds,labelsGlobal,overlays,nodeBody,nodeRing,ringPick,selectionRing,hoverRing,sceneVectors,ruleChannels,nodePoleSphere,allPoleSpheres panelFlags=overlays,node,nodeShape,nodeState,nodePoles,nodeRules,scene,sceneGuides,scenePoles,sceneVectors,sceneLabels"
 
 const (
 	InKindSave = 4

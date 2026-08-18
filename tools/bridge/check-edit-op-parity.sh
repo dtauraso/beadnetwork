@@ -89,7 +89,7 @@ report_diff "$(comm -13 <(echo "$GO_OPS") <(echo "$TS_OPS"))" "nodes/Wiring ops"
 
 TS_KINDS=$(between EDIT_MSG_START EDIT_MSG_END "$MESSAGES_TS" | grep -aoE 'kind: "[^"]+"' | quoted) || true
 GO_KINDS=$(between EDIT_UPDATE_KINDS_START EDIT_UPDATE_KINDS_END $GO_KINDS_FILES | toplevel_case | quoted) || true
-HM_KINDS=$(between EDIT_UPDATE_KINDS_START EDIT_UPDATE_KINDS_END "$HANDLE_MSG" | quoted | grep -av '^removed-') || true
+HM_KINDS=$(between EDIT_UPDATE_KINDS_START EDIT_UPDATE_KINDS_END "$HANDLE_MSG" | quoted) || true
 assert_nonempty "$TS_KINDS" "axis2 messages.ts update kinds"
 assert_nonempty "$GO_KINDS" "axis2 nodes/Wiring update kinds"
 assert_nonempty "$HM_KINDS" "axis2 handle-message.ts update kinds"
