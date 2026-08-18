@@ -9,85 +9,9 @@ import (
 	"math"
 )
 
-// This half holds the TiltArrow, ChannelVector block(s). Row blocks are split across two files
+// This half holds the ChannelVector, Event block(s). Row blocks are split across two files
 // purely to stay under check-file-size.sh's limit — the division is by position in
 // Buffer/bufschema/layout.go, not by meaning, so neither file is a category.
-
-// ── TiltArrow block ──────────────────────────────────────────
-const (
-	BufTiltArrowColReceived = 0   // u8
-	BufTiltArrowColShaftM0  = 1   // f32
-	BufTiltArrowColShaftM1  = 5   // f32
-	BufTiltArrowColShaftM2  = 9   // f32
-	BufTiltArrowColShaftM3  = 13  // f32
-	BufTiltArrowColShaftM4  = 17  // f32
-	BufTiltArrowColShaftM5  = 21  // f32
-	BufTiltArrowColShaftM6  = 25  // f32
-	BufTiltArrowColShaftM7  = 29  // f32
-	BufTiltArrowColShaftM8  = 33  // f32
-	BufTiltArrowColShaftM9  = 37  // f32
-	BufTiltArrowColShaftM10 = 41  // f32
-	BufTiltArrowColShaftM11 = 45  // f32
-	BufTiltArrowColShaftM12 = 49  // f32
-	BufTiltArrowColShaftM13 = 53  // f32
-	BufTiltArrowColShaftM14 = 57  // f32
-	BufTiltArrowColShaftM15 = 61  // f32
-	BufTiltArrowColHeadM0   = 65  // f32
-	BufTiltArrowColHeadM1   = 69  // f32
-	BufTiltArrowColHeadM2   = 73  // f32
-	BufTiltArrowColHeadM3   = 77  // f32
-	BufTiltArrowColHeadM4   = 81  // f32
-	BufTiltArrowColHeadM5   = 85  // f32
-	BufTiltArrowColHeadM6   = 89  // f32
-	BufTiltArrowColHeadM7   = 93  // f32
-	BufTiltArrowColHeadM8   = 97  // f32
-	BufTiltArrowColHeadM9   = 101 // f32
-	BufTiltArrowColHeadM10  = 105 // f32
-	BufTiltArrowColHeadM11  = 109 // f32
-	BufTiltArrowColHeadM12  = 113 // f32
-	BufTiltArrowColHeadM13  = 117 // f32
-	BufTiltArrowColHeadM14  = 121 // f32
-	BufTiltArrowColHeadM15  = 125 // f32
-	BufTiltArrowStride      = 129
-)
-
-// SetTiltArrowRow writes one TiltArrow row into buf[row*BufTiltArrowStride:].
-func SetTiltArrowRow(buf []byte, row int, received uint8, shaftM0 float32, shaftM1 float32, shaftM2 float32, shaftM3 float32, shaftM4 float32, shaftM5 float32, shaftM6 float32, shaftM7 float32, shaftM8 float32, shaftM9 float32, shaftM10 float32, shaftM11 float32, shaftM12 float32, shaftM13 float32, shaftM14 float32, shaftM15 float32, headM0 float32, headM1 float32, headM2 float32, headM3 float32, headM4 float32, headM5 float32, headM6 float32, headM7 float32, headM8 float32, headM9 float32, headM10 float32, headM11 float32, headM12 float32, headM13 float32, headM14 float32, headM15 float32) {
-	off := row * BufTiltArrowStride
-	buf[off+0] = received
-	binary.LittleEndian.PutUint32(buf[off+1:], math.Float32bits(shaftM0))
-	binary.LittleEndian.PutUint32(buf[off+5:], math.Float32bits(shaftM1))
-	binary.LittleEndian.PutUint32(buf[off+9:], math.Float32bits(shaftM2))
-	binary.LittleEndian.PutUint32(buf[off+13:], math.Float32bits(shaftM3))
-	binary.LittleEndian.PutUint32(buf[off+17:], math.Float32bits(shaftM4))
-	binary.LittleEndian.PutUint32(buf[off+21:], math.Float32bits(shaftM5))
-	binary.LittleEndian.PutUint32(buf[off+25:], math.Float32bits(shaftM6))
-	binary.LittleEndian.PutUint32(buf[off+29:], math.Float32bits(shaftM7))
-	binary.LittleEndian.PutUint32(buf[off+33:], math.Float32bits(shaftM8))
-	binary.LittleEndian.PutUint32(buf[off+37:], math.Float32bits(shaftM9))
-	binary.LittleEndian.PutUint32(buf[off+41:], math.Float32bits(shaftM10))
-	binary.LittleEndian.PutUint32(buf[off+45:], math.Float32bits(shaftM11))
-	binary.LittleEndian.PutUint32(buf[off+49:], math.Float32bits(shaftM12))
-	binary.LittleEndian.PutUint32(buf[off+53:], math.Float32bits(shaftM13))
-	binary.LittleEndian.PutUint32(buf[off+57:], math.Float32bits(shaftM14))
-	binary.LittleEndian.PutUint32(buf[off+61:], math.Float32bits(shaftM15))
-	binary.LittleEndian.PutUint32(buf[off+65:], math.Float32bits(headM0))
-	binary.LittleEndian.PutUint32(buf[off+69:], math.Float32bits(headM1))
-	binary.LittleEndian.PutUint32(buf[off+73:], math.Float32bits(headM2))
-	binary.LittleEndian.PutUint32(buf[off+77:], math.Float32bits(headM3))
-	binary.LittleEndian.PutUint32(buf[off+81:], math.Float32bits(headM4))
-	binary.LittleEndian.PutUint32(buf[off+85:], math.Float32bits(headM5))
-	binary.LittleEndian.PutUint32(buf[off+89:], math.Float32bits(headM6))
-	binary.LittleEndian.PutUint32(buf[off+93:], math.Float32bits(headM7))
-	binary.LittleEndian.PutUint32(buf[off+97:], math.Float32bits(headM8))
-	binary.LittleEndian.PutUint32(buf[off+101:], math.Float32bits(headM9))
-	binary.LittleEndian.PutUint32(buf[off+105:], math.Float32bits(headM10))
-	binary.LittleEndian.PutUint32(buf[off+109:], math.Float32bits(headM11))
-	binary.LittleEndian.PutUint32(buf[off+113:], math.Float32bits(headM12))
-	binary.LittleEndian.PutUint32(buf[off+117:], math.Float32bits(headM13))
-	binary.LittleEndian.PutUint32(buf[off+121:], math.Float32bits(headM14))
-	binary.LittleEndian.PutUint32(buf[off+125:], math.Float32bits(headM15))
-}
 
 // ── ChannelVector block ──────────────────────────────────────
 const (
@@ -161,4 +85,50 @@ func SetChannelVectorRow(buf []byte, row int, shaftM0 float32, shaftM1 float32, 
 	binary.LittleEndian.PutUint32(buf[off+116:], math.Float32bits(headM13))
 	binary.LittleEndian.PutUint32(buf[off+120:], math.Float32bits(headM14))
 	binary.LittleEndian.PutUint32(buf[off+124:], math.Float32bits(headM15))
+}
+
+// ── Event block ──────────────────────────────────────────────
+const (
+	BufEventColKind          = 0  // u8
+	BufEventColNodeRow       = 1  // i32
+	BufEventColPortRow       = 5  // i32
+	BufEventColTargetRow     = 9  // i32
+	BufEventColTargetPortRow = 13 // i32
+	BufEventColEdgeRow       = 17 // i32
+	BufEventColSlot          = 21 // i32
+	BufEventColValue         = 25 // i32
+	BufEventColBead          = 29 // u32
+	BufEventColBeadSteps     = 33 // f32
+	BufEventColX             = 37 // f32
+	BufEventColY             = 41 // f32
+	BufEventColZ             = 45 // f32
+	BufEventColF             = 49 // f32
+	BufEventColLabel         = 53 // u8
+	BufEventColDebug         = 54 // u8
+	BufEventColTextOff       = 55 // u32
+	BufEventColTextLen       = 59 // u32
+	BufEventStride           = 63
+)
+
+// SetEventRow writes one Event row into buf[row*BufEventStride:].
+func SetEventRow(buf []byte, row int, kind uint8, nodeRow int32, portRow int32, targetRow int32, targetPortRow int32, edgeRow int32, slot int32, value int32, bead uint32, beadSteps float32, x float32, y float32, z float32, f float32, label uint8, debug uint8, textOff uint32, textLen uint32) {
+	off := row * BufEventStride
+	buf[off+0] = kind
+	binary.LittleEndian.PutUint32(buf[off+1:], uint32(nodeRow))
+	binary.LittleEndian.PutUint32(buf[off+5:], uint32(portRow))
+	binary.LittleEndian.PutUint32(buf[off+9:], uint32(targetRow))
+	binary.LittleEndian.PutUint32(buf[off+13:], uint32(targetPortRow))
+	binary.LittleEndian.PutUint32(buf[off+17:], uint32(edgeRow))
+	binary.LittleEndian.PutUint32(buf[off+21:], uint32(slot))
+	binary.LittleEndian.PutUint32(buf[off+25:], uint32(value))
+	binary.LittleEndian.PutUint32(buf[off+29:], bead)
+	binary.LittleEndian.PutUint32(buf[off+33:], math.Float32bits(beadSteps))
+	binary.LittleEndian.PutUint32(buf[off+37:], math.Float32bits(x))
+	binary.LittleEndian.PutUint32(buf[off+41:], math.Float32bits(y))
+	binary.LittleEndian.PutUint32(buf[off+45:], math.Float32bits(z))
+	binary.LittleEndian.PutUint32(buf[off+49:], math.Float32bits(f))
+	buf[off+53] = label
+	buf[off+54] = debug
+	binary.LittleEndian.PutUint32(buf[off+55:], textOff)
+	binary.LittleEndian.PutUint32(buf[off+59:], textLen)
 }

@@ -66,10 +66,10 @@ func generateBufferLayout(repoRoot string) {
 	if err := buflayout.WriteBufferLayoutGo(bufLayoutGenGoPath, bufLayoutGenGoRowsPath, bufLayoutGenGoRows2Path, bufLayoutGenGoSingletonsPath, bufSchema); err != nil {
 		fatalf("write buffer layout go: %v", err)
 	}
-	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d blocks)\n", bufLayoutGenGoPath, len(bufSchema.Blocks))
-	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d blocks)\n", bufLayoutGenGoRowsPath, len(bufSchema.Blocks))
-	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d blocks)\n", bufLayoutGenGoRows2Path, len(bufSchema.Blocks))
-	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d blocks)\n", bufLayoutGenGoSingletonsPath, len(bufSchema.Blocks))
+	announceWrote(bufLayoutGenGoPath, len(bufSchema.Blocks))
+	announceWrote(bufLayoutGenGoRowsPath, len(bufSchema.Blocks))
+	announceWrote(bufLayoutGenGoRows2Path, len(bufSchema.Blocks))
+	announceWrote(bufLayoutGenGoSingletonsPath, len(bufSchema.Blocks))
 
 	schemaDir := filepath.Join(repoRoot, "tools", "topology-vscode", "Buffer")
 	bufLayoutTSPath := filepath.Join(schemaDir, "buffer-layout.ts")
@@ -79,10 +79,17 @@ func generateBufferLayout(repoRoot string) {
 	if err := buflayout.WriteBufferLayoutTS(bufLayoutTSPath, bufLayoutTSRowsPath, bufLayoutTSRows2Path, bufLayoutTSSingletonsPath, bufSchema); err != nil {
 		fatalf("write buffer layout ts: %v", err)
 	}
-	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d blocks)\n", bufLayoutTSPath, len(bufSchema.Blocks))
-	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d blocks)\n", bufLayoutTSRowsPath, len(bufSchema.Blocks))
-	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d blocks)\n", bufLayoutTSRows2Path, len(bufSchema.Blocks))
-	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d blocks)\n", bufLayoutTSSingletonsPath, len(bufSchema.Blocks))
+	announceWrote(bufLayoutTSPath, len(bufSchema.Blocks))
+	announceWrote(bufLayoutTSRowsPath, len(bufSchema.Blocks))
+	announceWrote(bufLayoutTSRows2Path, len(bufSchema.Blocks))
+	announceWrote(bufLayoutTSSingletonsPath, len(bufSchema.Blocks))
+}
+
+func announceWrote(path string, blocks int) {
+	if _, err := os.Stat(path); err != nil {
+		return
+	}
+	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d blocks)\n", path, blocks)
 }
 
 func generateFrameTags(repoRoot string) {

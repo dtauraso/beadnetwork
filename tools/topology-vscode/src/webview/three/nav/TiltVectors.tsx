@@ -1,63 +1,65 @@
 import React, { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { getNodeSections } from "../scene/nodes/node-sections";
+import { columnBytes } from "../../../../Buffer/column-values";
+import { nodeColumn, ownerCounts } from "../../../../Buffer/column-owners";
 import {
-  readTiltArrowReceived,
-  readTiltArrowShaftM0, readTiltArrowShaftM1, readTiltArrowShaftM2, readTiltArrowShaftM3,
-  readTiltArrowShaftM4, readTiltArrowShaftM5, readTiltArrowShaftM6, readTiltArrowShaftM7,
-  readTiltArrowShaftM8, readTiltArrowShaftM9, readTiltArrowShaftM10, readTiltArrowShaftM11,
-  readTiltArrowShaftM12, readTiltArrowShaftM13, readTiltArrowShaftM14, readTiltArrowShaftM15,
-  readTiltArrowHeadM0, readTiltArrowHeadM1, readTiltArrowHeadM2, readTiltArrowHeadM3,
-  readTiltArrowHeadM4, readTiltArrowHeadM5, readTiltArrowHeadM6, readTiltArrowHeadM7,
-  readTiltArrowHeadM8, readTiltArrowHeadM9, readTiltArrowHeadM10, readTiltArrowHeadM11,
-  readTiltArrowHeadM12, readTiltArrowHeadM13, readTiltArrowHeadM14, readTiltArrowHeadM15,
-} from "../../../../Buffer/buffer-layout";
+  COL_STREAM_TILT_ARROW_RECEIVED,
+  COL_STREAM_TILT_ARROW_SHAFT_M0, COL_STREAM_TILT_ARROW_SHAFT_M1,
+  COL_STREAM_TILT_ARROW_SHAFT_M2, COL_STREAM_TILT_ARROW_SHAFT_M3,
+  COL_STREAM_TILT_ARROW_SHAFT_M4, COL_STREAM_TILT_ARROW_SHAFT_M5,
+  COL_STREAM_TILT_ARROW_SHAFT_M6, COL_STREAM_TILT_ARROW_SHAFT_M7,
+  COL_STREAM_TILT_ARROW_SHAFT_M8, COL_STREAM_TILT_ARROW_SHAFT_M9,
+  COL_STREAM_TILT_ARROW_SHAFT_M10, COL_STREAM_TILT_ARROW_SHAFT_M11,
+  COL_STREAM_TILT_ARROW_SHAFT_M12, COL_STREAM_TILT_ARROW_SHAFT_M13,
+  COL_STREAM_TILT_ARROW_SHAFT_M14, COL_STREAM_TILT_ARROW_SHAFT_M15,
+  COL_STREAM_TILT_ARROW_HEAD_M0, COL_STREAM_TILT_ARROW_HEAD_M1,
+  COL_STREAM_TILT_ARROW_HEAD_M2, COL_STREAM_TILT_ARROW_HEAD_M3,
+  COL_STREAM_TILT_ARROW_HEAD_M4, COL_STREAM_TILT_ARROW_HEAD_M5,
+  COL_STREAM_TILT_ARROW_HEAD_M6, COL_STREAM_TILT_ARROW_HEAD_M7,
+  COL_STREAM_TILT_ARROW_HEAD_M8, COL_STREAM_TILT_ARROW_HEAD_M9,
+  COL_STREAM_TILT_ARROW_HEAD_M10, COL_STREAM_TILT_ARROW_HEAD_M11,
+  COL_STREAM_TILT_ARROW_HEAD_M12, COL_STREAM_TILT_ARROW_HEAD_M13,
+  COL_STREAM_TILT_ARROW_HEAD_M14, COL_STREAM_TILT_ARROW_HEAD_M15,
+} from "../../../../Buffer/column-streams-gen";
 
 const VECTOR_COLOR = "#FF2E88";
 
 const RECEIVED_VECTOR_COLOR = "#00E5FF";
 
-function copyShaft(view: DataView, row: number, mesh: THREE.InstancedMesh, slot: number): void {
-  const out = mesh.instanceMatrix.array;
-  const b = slot * 16;
-  out[b]      = readTiltArrowShaftM0(view, row);
-  out[b + 1]  = readTiltArrowShaftM1(view, row);
-  out[b + 2]  = readTiltArrowShaftM2(view, row);
-  out[b + 3]  = readTiltArrowShaftM3(view, row);
-  out[b + 4]  = readTiltArrowShaftM4(view, row);
-  out[b + 5]  = readTiltArrowShaftM5(view, row);
-  out[b + 6]  = readTiltArrowShaftM6(view, row);
-  out[b + 7]  = readTiltArrowShaftM7(view, row);
-  out[b + 8]  = readTiltArrowShaftM8(view, row);
-  out[b + 9]  = readTiltArrowShaftM9(view, row);
-  out[b + 10] = readTiltArrowShaftM10(view, row);
-  out[b + 11] = readTiltArrowShaftM11(view, row);
-  out[b + 12] = readTiltArrowShaftM12(view, row);
-  out[b + 13] = readTiltArrowShaftM13(view, row);
-  out[b + 14] = readTiltArrowShaftM14(view, row);
-  out[b + 15] = readTiltArrowShaftM15(view, row);
-}
+const SHAFT_COLS = [
+  COL_STREAM_TILT_ARROW_SHAFT_M0, COL_STREAM_TILT_ARROW_SHAFT_M1,
+  COL_STREAM_TILT_ARROW_SHAFT_M2, COL_STREAM_TILT_ARROW_SHAFT_M3,
+  COL_STREAM_TILT_ARROW_SHAFT_M4, COL_STREAM_TILT_ARROW_SHAFT_M5,
+  COL_STREAM_TILT_ARROW_SHAFT_M6, COL_STREAM_TILT_ARROW_SHAFT_M7,
+  COL_STREAM_TILT_ARROW_SHAFT_M8, COL_STREAM_TILT_ARROW_SHAFT_M9,
+  COL_STREAM_TILT_ARROW_SHAFT_M10, COL_STREAM_TILT_ARROW_SHAFT_M11,
+  COL_STREAM_TILT_ARROW_SHAFT_M12, COL_STREAM_TILT_ARROW_SHAFT_M13,
+  COL_STREAM_TILT_ARROW_SHAFT_M14, COL_STREAM_TILT_ARROW_SHAFT_M15,
+];
 
-function copyHead(view: DataView, row: number, mesh: THREE.InstancedMesh, slot: number): void {
+const HEAD_COLS = [
+  COL_STREAM_TILT_ARROW_HEAD_M0, COL_STREAM_TILT_ARROW_HEAD_M1,
+  COL_STREAM_TILT_ARROW_HEAD_M2, COL_STREAM_TILT_ARROW_HEAD_M3,
+  COL_STREAM_TILT_ARROW_HEAD_M4, COL_STREAM_TILT_ARROW_HEAD_M5,
+  COL_STREAM_TILT_ARROW_HEAD_M6, COL_STREAM_TILT_ARROW_HEAD_M7,
+  COL_STREAM_TILT_ARROW_HEAD_M8, COL_STREAM_TILT_ARROW_HEAD_M9,
+  COL_STREAM_TILT_ARROW_HEAD_M10, COL_STREAM_TILT_ARROW_HEAD_M11,
+  COL_STREAM_TILT_ARROW_HEAD_M12, COL_STREAM_TILT_ARROW_HEAD_M13,
+  COL_STREAM_TILT_ARROW_HEAD_M14, COL_STREAM_TILT_ARROW_HEAD_M15,
+];
+
+function copyMatrix(
+  cols: Array<DataView | undefined>, arrow: number,
+  mesh: THREE.InstancedMesh, slot: number,
+): void {
   const out = mesh.instanceMatrix.array;
   const b = slot * 16;
-  out[b]      = readTiltArrowHeadM0(view, row);
-  out[b + 1]  = readTiltArrowHeadM1(view, row);
-  out[b + 2]  = readTiltArrowHeadM2(view, row);
-  out[b + 3]  = readTiltArrowHeadM3(view, row);
-  out[b + 4]  = readTiltArrowHeadM4(view, row);
-  out[b + 5]  = readTiltArrowHeadM5(view, row);
-  out[b + 6]  = readTiltArrowHeadM6(view, row);
-  out[b + 7]  = readTiltArrowHeadM7(view, row);
-  out[b + 8]  = readTiltArrowHeadM8(view, row);
-  out[b + 9]  = readTiltArrowHeadM9(view, row);
-  out[b + 10] = readTiltArrowHeadM10(view, row);
-  out[b + 11] = readTiltArrowHeadM11(view, row);
-  out[b + 12] = readTiltArrowHeadM12(view, row);
-  out[b + 13] = readTiltArrowHeadM13(view, row);
-  out[b + 14] = readTiltArrowHeadM14(view, row);
-  out[b + 15] = readTiltArrowHeadM15(view, row);
+  const o = arrow * 4;
+  for (let m = 0; m < 16; m++) {
+    const col = cols[m];
+    out[b + m] = col && col.byteLength >= o + 4 ? col.getFloat32(o, true) : 0;
+  }
 }
 
 export function TiltVectors({ capacity, receivedCapacity }: { capacity: number; receivedCapacity: number }) {
@@ -73,31 +75,29 @@ export function TiltVectors({ capacity, receivedCapacity }: { capacity: number; 
     const receivedHead = receivedHeadRef.current;
     if (!shaft || !head || !receivedShaft || !receivedHead) return;
 
-    const decoded = getNodeSections();
-    if (!decoded) {
-      shaft.count = 0;
-      head.count = 0;
-      receivedShaft.count = 0;
-      receivedHead.count = 0;
-      return;
-    }
-    const { tiltArrowCount, tiltArrowView } = decoded;
-
     let drawn = 0;
     let receivedDrawn = 0;
 
-    for (let row = 0; row < tiltArrowCount; row++) {
-      if (readTiltArrowReceived(tiltArrowView, row) !== 0) {
-        if (receivedDrawn >= receivedCapacity) continue;
-        copyShaft(tiltArrowView, row, receivedShaft, receivedDrawn);
-        copyHead(tiltArrowView, row, receivedHead, receivedDrawn);
-        receivedDrawn++;
-        continue;
+    const { nodes } = ownerCounts();
+    for (let row = 0; row < nodes; row++) {
+      const received = columnBytes(nodeColumn(row, COL_STREAM_TILT_ARROW_RECEIVED));
+      if (!received || received.byteLength === 0) continue;
+      const shaftCols = SHAFT_COLS.map((c) => columnBytes(nodeColumn(row, c)));
+      const headCols = HEAD_COLS.map((c) => columnBytes(nodeColumn(row, c)));
+
+      for (let arrow = 0; arrow < received.byteLength; arrow++) {
+        if (received.getUint8(arrow) !== 0) {
+          if (receivedDrawn >= receivedCapacity) continue;
+          copyMatrix(shaftCols, arrow, receivedShaft, receivedDrawn);
+          copyMatrix(headCols, arrow, receivedHead, receivedDrawn);
+          receivedDrawn++;
+          continue;
+        }
+        if (drawn >= capacity) continue;
+        copyMatrix(shaftCols, arrow, shaft, drawn);
+        copyMatrix(headCols, arrow, head, drawn);
+        drawn++;
       }
-      if (drawn >= capacity) continue;
-      copyShaft(tiltArrowView, row, shaft, drawn);
-      copyHead(tiltArrowView, row, head, drawn);
-      drawn++;
     }
 
     shaft.count = drawn;

@@ -103,6 +103,7 @@ func wireNodeStreams(streamFDs SF.StreamFDs, md *W.MoveDispatch) {
 					}
 
 					SF.WriteNodeColumns(nodeCols(f.NodeRow), frame)
+					SF.WriteTiltArrowColumns(nodeCols(f.NodeRow), frame.TiltArrows)
 					return SF.BuildNodeStreamFrame(frame)
 				},
 				func(tick uint32, events []rowevent.RowEvent) []byte {

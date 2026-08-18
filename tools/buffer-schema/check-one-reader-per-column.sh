@@ -10,18 +10,16 @@ cd "$REPO_ROOT"
 
 source "$REPO_ROOT/tools/lib/ts-roots.sh"
 
-LAYOUT_FILES=(
-  "tools/topology-vscode/Buffer/buffer-layout.ts"
-  "tools/topology-vscode/Buffer/buffer-layout-rows-gen.ts"
-  "tools/topology-vscode/Buffer/buffer-layout-rows2-gen.ts"
-  "tools/topology-vscode/Buffer/buffer-layout-singletons-gen.ts"
-)
-for LAYOUT in "${LAYOUT_FILES[@]}"; do
-  if [[ ! -f "$LAYOUT" ]]; then
-    echo "check-one-reader-per-column: MISCONFIGURED — $LAYOUT not found (renamed?); refusing vacuous pass" >&2
-    exit 1
-  fi
+LAYOUT_FILES=()
+for LAYOUT in "tools/topology-vscode/Buffer/buffer-layout.ts" \
+              tools/topology-vscode/Buffer/buffer-layout-rows*-gen.ts \
+              "tools/topology-vscode/Buffer/buffer-layout-singletons-gen.ts"; do
+  [[ -f "$LAYOUT" ]] && LAYOUT_FILES+=("$LAYOUT")
 done
+if [[ ! -f "tools/topology-vscode/Buffer/buffer-layout.ts" ]] || (( ${#LAYOUT_FILES[@]} < 2 )); then
+  echo "check-one-reader-per-column: MISCONFIGURED — found ${#LAYOUT_FILES[@]} layout file(s) under Buffer/ (renamed?); refusing vacuous pass" >&2
+  exit 1
+fi
 
 export TS_ROOTS_JOINED="${TS_ROOTS[*]}"
 export LAYOUT_JOINED="${LAYOUT_FILES[*]}"

@@ -8,21 +8,19 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 cd "$REPO_ROOT"
 
-LAYOUT_FILES=(
-  "tools/topology-vscode/Buffer/buffer-layout.ts"
-  "tools/topology-vscode/Buffer/buffer-layout-rows-gen.ts"
-  "tools/topology-vscode/Buffer/buffer-layout-rows2-gen.ts"
-  "tools/topology-vscode/Buffer/buffer-layout-singletons-gen.ts"
-)
+LAYOUT_FILES=()
+for LAYOUT in "tools/topology-vscode/Buffer/buffer-layout.ts" \
+              tools/topology-vscode/Buffer/buffer-layout-rows*-gen.ts \
+              "tools/topology-vscode/Buffer/buffer-layout-singletons-gen.ts"; do
+  [[ -f "$LAYOUT" ]] && LAYOUT_FILES+=("$LAYOUT")
+done
 source "$REPO_ROOT/tools/lib/ts-roots.sh"
 SRC="tools/topology-vscode/src"
 
-for LAYOUT in "${LAYOUT_FILES[@]}"; do
-  if [[ ! -f "$LAYOUT" ]]; then
-    echo "check-no-dead-buffer-column: MISCONFIGURED — $LAYOUT not found (renamed?); refusing vacuous pass" >&2
-    exit 1
-  fi
-done
+if [[ ! -f "tools/topology-vscode/Buffer/buffer-layout.ts" ]] || (( ${#LAYOUT_FILES[@]} < 2 )); then
+  echo "check-no-dead-buffer-column: MISCONFIGURED — found ${#LAYOUT_FILES[@]} layout file(s) under Buffer/ (renamed?); refusing vacuous pass" >&2
+  exit 1
+fi
 
 readonly ALLOWED_DEAD=()
 

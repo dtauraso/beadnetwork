@@ -1,4 +1,4 @@
-import { TILT_ARROW_STRIDE, CHANNEL_VECTOR_STRIDE } from "../../../../Buffer/buffer-layout";
+import { CHANNEL_VECTOR_STRIDE } from "../../../../Buffer/buffer-layout";
 import { BUF_NODE_STREAM_FRAME_HEADER_SIZE } from "../../../../Buffer/frame-tags";
 import { STR_DECODER, decodeTrailingEvents } from "./buffer-decode-shared";
 import { columnBytes } from "../../../../Buffer/column-values";
@@ -7,9 +7,6 @@ import { COL_STREAM_NODE_LABEL } from "../../../../Buffer/column-streams-gen";
 
 export interface DecodedNodeStreamFrame {
   tick: number;
-
-  tiltArrowCount: number;
-  tiltArrowView: DataView;
 
   channelVectorCount: number;
   channelVectorView: DataView;
@@ -57,11 +54,9 @@ function decodeNodeStreamFrameUncached(buf: ArrayBuffer): DecodedNodeStreamFrame
   if (buf.byteLength < BUF_NODE_STREAM_FRAME_HEADER_SIZE) return null;
   const hdr = new DataView(buf, 0, BUF_NODE_STREAM_FRAME_HEADER_SIZE);
   const tick               = hdr.getUint32(0,  true);
-  const tiltArrowCount     = hdr.getUint32(8,  true);
   const channelVectorCount = hdr.getUint32(12, true);
 
   const expectedLen = BUF_NODE_STREAM_FRAME_HEADER_SIZE
-    + tiltArrowCount * TILT_ARROW_STRIDE
     + channelVectorCount * CHANNEL_VECTOR_STRIDE;
   if (buf.byteLength < expectedLen) {
     reportShortNodeFrame(buf.byteLength, expectedLen);
@@ -69,15 +64,12 @@ function decodeNodeStreamFrameUncached(buf: ArrayBuffer): DecodedNodeStreamFrame
   }
 
   let off = BUF_NODE_STREAM_FRAME_HEADER_SIZE;
-  const tiltArrowView = new DataView(buf, off, tiltArrowCount * TILT_ARROW_STRIDE);
-  off += tiltArrowCount * TILT_ARROW_STRIDE;
-
   const channelVectorView = new DataView(buf, off, channelVectorCount * CHANNEL_VECTOR_STRIDE);
   off += channelVectorCount * CHANNEL_VECTOR_STRIDE;
 
   const { count: eventCount, view: eventView, textView: eventTextView } = decodeTrailingEvents(buf, off);
 
-  return { tick, tiltArrowCount, tiltArrowView, channelVectorCount, channelVectorView, eventCount, eventView, eventTextView };
+  return { tick, channelVectorCount, channelVectorView, eventCount, eventView, eventTextView };
 }
 
 export function nodeLabel(row: number): string {

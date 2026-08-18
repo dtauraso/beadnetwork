@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"os"
 	"strings"
 )
 
@@ -12,6 +13,14 @@ func rowBlockSplit(n int) int {
 		return n
 	}
 	return 2
+}
+
+func removeIfPresent(path string) error {
+	err := os.Remove(path)
+	if os.IsNotExist(err) {
+		return nil
+	}
+	return err
 }
 
 func writeRowsSplitNote(w *bufio.Writer, comment string, blocks []bufBlock) {
@@ -41,13 +50,16 @@ func writeBufferLayoutGoRows(outPathA, outPathB string, schema BufLayoutSchema, 
 	if err := writeBufferLayoutGoRowsFile(outPathA, blocks[:split], fp); err != nil {
 		return err
 	}
+	if len(blocks[split:]) == 0 {
+		return removeIfPresent(outPathB)
+	}
 	return writeBufferLayoutGoRowsFile(outPathB, blocks[split:], fp)
 }
 
 func writeBufferLayoutGoRowsFile(outPath string, blocks []bufBlock, fp string) error {
 	var buf bytes.Buffer
 	w := bufio.NewWriter(&buf)
-	writeBufferLayoutGoPreamble(w, fp)
+	writeBufferLayoutGoPreambleFor(w, fp, len(blocks) > 0)
 	fmt.Fprintln(w)
 	writeRowsSplitNote(w, "//", blocks)
 
