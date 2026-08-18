@@ -1,10 +1,8 @@
 import { useSyncExternalStore } from "react";
 import { getNodeFrame, subscribeNodeStreamBlocks } from "../src/webview/three/scene/nodes/node-frame-aggregate";
 import { getEdgeStreamAccessor } from "../src/webview/three/scene/edges/edge-stream-blocks";
-import { NODE_KIND_NAMES } from "../src/schema/node-defs";
-import { UNKNOWN_KIND_ID } from "../Buffer/buffer-layout";
+import { nodeKindName } from "../Node/node-kind";
 import {
-  readNodeKindId,
   readNodeDragRLocked,
   readNodeDragPhiLocked,
   readNodeDragThetaMax,
@@ -83,9 +81,7 @@ export interface NodeRuleRow {
 const RAD_TO_PI = 1 / Math.PI;
 
 function kindNameFor(nodeView: DataView, row: number): string {
-  const kindId = readNodeKindId(nodeView, row);
-  if (kindId === UNKNOWN_KIND_ID) return "";
-  return NODE_KIND_NAMES[kindId] ?? "";
+  return nodeKindName(nodeView, row);
 }
 
 let cachedRuleRows: NodeRuleRow[] | null = null;

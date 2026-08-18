@@ -45,7 +45,6 @@ RATCHET = {
     "readNodeCZ": 7,
     "readNodeRadius": 4,
     "readNodeSelected": 3,
-    "readNodeKindId": 2,
     "readNodeTopTiltVectorLen": 2,
 }
 

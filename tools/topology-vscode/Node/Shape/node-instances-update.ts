@@ -8,7 +8,8 @@ import {
   readNodeRingM8, readNodeRingM9, readNodeRingM10, readNodeRingM11,
   readNodeRingM12, readNodeRingM13, readNodeRingM14, readNodeRingM15,
 } from "../../Buffer/buffer-layout";
-import { NODE_SPHERE_RADIUS, nodeRowColors } from "../../src/webview/three/scene/buffer-scene-shared";
+import { NODE_SPHERE_RADIUS } from "../../src/webview/three/scene/buffer-scene-shared";
+import { nodeRowColors } from "../node-kind";
 import { computeNodeDepthOrder, setNodeDrawOrder } from "./node-depth-order";
 import { overlayFlag } from "../../src/webview/three/controls/flags/overlay-flags";
 
