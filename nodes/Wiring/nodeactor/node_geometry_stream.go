@@ -2,6 +2,7 @@ package nodeactor
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/framegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/nodeframe"
@@ -126,6 +127,10 @@ func (m *NodeGeometry) writeStreamFrame(events []rowevent.RowEvent) {
 		IndexTheta:       int32(composedIdx.Theta),
 		HasPos:           boolU8(m.geom.HasPos),
 		Radius:           float32(nodegeom.NodeRadius(m.geom.Kind)),
+		NavTubeR:         float32(math.Max(0.5, nodegeom.NodeRadius(m.geom.Kind)*0.08)),
+		PoleAnchorX:      float32(fg.Center.X),
+		PoleAnchorY:      float32(fg.Center.Y),
+		PoleAnchorZ:      float32(fg.Center.Z),
 		LabelAnchorX:     float32(fg.LabelAnchor.X),
 		LabelAnchorY:     float32(fg.LabelAnchor.Y),
 		LabelAnchorZ:     float32(fg.LabelAnchor.Z),

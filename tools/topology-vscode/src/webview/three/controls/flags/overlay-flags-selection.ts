@@ -1,17 +1,16 @@
 import { useSyncExternalStore } from "react";
-import { getNodeFrame } from "../../scene/nodes/node-frame-aggregate";
-import { subscribeViewBlocks } from "../../scene/view-blocks";
-import { nodeSelected } from "../../../../../Node/node-frame";
+import { columnU8, subscribeColumns } from "../../../../../Buffer/column-values";
+import { nodeColumn, ownerCounts } from "../../../../../Buffer/column-owners";
+import { COL_STREAM_NODE_SELECTED } from "../../../../../Buffer/column-streams-gen";
 
 export function readSelectedNodeRow(): number {
-  const decoded = getNodeFrame();
-  if (!decoded) return -1;
-  for (let i = 0; i < decoded.nodeCount; i++) {
-    if (nodeSelected(decoded.nodeView, i)) return i;
+  const { nodes } = ownerCounts();
+  for (let i = 0; i < nodes; i++) {
+    if (columnU8(nodeColumn(i, COL_STREAM_NODE_SELECTED))) return i;
   }
   return -1;
 }
 
 export function useSelectedNodeRow(): number {
-  return useSyncExternalStore(subscribeViewBlocks, readSelectedNodeRow, readSelectedNodeRow);
+  return useSyncExternalStore(subscribeColumns, readSelectedNodeRow, readSelectedNodeRow);
 }

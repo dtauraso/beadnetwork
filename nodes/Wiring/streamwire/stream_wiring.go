@@ -13,12 +13,13 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/streamclaim"
 	"github.com/dtauraso/wirefold/nodes/bead"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/Buffer/colstream"
 )
 
 type StreamWiring struct {
 	interiorEmitters map[string]*interior.Emitter
 
-	buildInteriorFrame func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []rowevent.RowEvent) []byte
+	buildInteriorFrame func(tick uint32, events []rowevent.RowEvent) []byte
 
 	nodeClaims streamclaim.ClaimRegistry
 }
@@ -27,7 +28,7 @@ func (sw *StreamWiring) InteriorEmittersPtr() *map[string]*interior.Emitter {
 	return &sw.interiorEmitters
 }
 
-func (sw *StreamWiring) BuildInteriorFramePtr() *func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []rowevent.RowEvent) []byte {
+func (sw *StreamWiring) BuildInteriorFramePtr() *func(tick uint32, events []rowevent.RowEvent) []byte {
 	return &sw.buildInteriorFrame
 }
 
@@ -91,7 +92,8 @@ func (sw *StreamWiring) SetNodeStreams(
 	buildBeadFrame bead.BeadFrameBuilder,
 	nodeRowFor func(id string) (int32, bool),
 	buildFrame nodeframe.NodeFrameBuilder,
-	buildInteriorFrame func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []rowevent.RowEvent) []byte,
+	buildInteriorFrame func(tick uint32, events []rowevent.RowEvent) []byte,
+	interiorCols func(row int32) *colstream.ColumnSet,
 	kindIDFor func(kind string) uint8,
 ) {
 	sw.interiorEmitters = map[string]*interior.Emitter{}
@@ -120,6 +122,6 @@ func (sw *StreamWiring) SetNodeStreams(
 
 		iFd := interiorBase + row
 		rawInteriorOut := os.NewFile(uintptr(iFd), fmt.Sprintf("interior-fd%d", iFd))
-		sw.interiorEmitters[seed.ID] = nm.WireInteriorStream(rawInteriorOut, int32(row), buildInteriorFrame)
+		sw.interiorEmitters[seed.ID] = nm.WireInteriorStream(rawInteriorOut, int32(row), buildInteriorFrame, interiorCols(int32(row)))
 	}
 }

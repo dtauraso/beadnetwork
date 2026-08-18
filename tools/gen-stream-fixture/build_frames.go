@@ -100,7 +100,8 @@ func buildInteriorFrame() interiorFrameFixture {
 	for i, p := range f.Present {
 		present[i] = uint8(p)
 	}
-	raw := streamframe.BuildInteriorStreamFrame(f.Tick, present, f.Value, f.OX, f.OY, f.OZ, nil)
+	_ = present
+	raw := streamframe.BuildInteriorStreamFrame(f.Tick, nil)
 	f.Hex = hex.EncodeToString(raw)
 	return f
 }

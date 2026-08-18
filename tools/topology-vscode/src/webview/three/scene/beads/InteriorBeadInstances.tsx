@@ -1,12 +1,29 @@
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { getNodeFrame } from "../nodes/node-frame-aggregate";
 import { INTERIOR_SLOTS_PER_NODE } from "../../decode/buffer-decode-interior";
 import { interiorBeadStyleForValue } from "./bead-style";
+import { columnBytes } from "../../../../../Buffer/column-values";
+import { nodeColumn, ownerCounts } from "../../../../../Buffer/column-owners";
 import {
-  readInteriorPresent, readInteriorValue, readInteriorX, readInteriorY, readInteriorZ,
-} from "../../../../../Buffer/buffer-layout";
+  COL_STREAM_INTERIOR_PRESENT, COL_STREAM_INTERIOR_VALUE,
+  COL_STREAM_INTERIOR_X, COL_STREAM_INTERIOR_Y, COL_STREAM_INTERIOR_Z,
+} from "../../../../../Buffer/column-streams-gen";
+
+function presentAt(node: number, slot: number): number {
+  const b = columnBytes(nodeColumn(node, COL_STREAM_INTERIOR_PRESENT));
+  return b && slot < b.byteLength ? b.getUint8(slot) : 0;
+}
+
+function valueAt(node: number, slot: number): number {
+  const b = columnBytes(nodeColumn(node, COL_STREAM_INTERIOR_VALUE));
+  return b && slot * 4 + 4 <= b.byteLength ? b.getInt32(slot * 4, true) : 0;
+}
+
+function coordAt(node: number, slot: number, col: number): number {
+  const b = columnBytes(nodeColumn(node, col));
+  return b && slot * 4 + 4 <= b.byteLength ? b.getFloat32(slot * 4, true) : 0;
+}
 
 const INTERIOR_BEAD_R = 5;
 const INTERIOR_RING_TUBE_RATIO = 0.12;
@@ -25,24 +42,22 @@ export function InteriorBeadInstances({ capacity }: { capacity: number }) {
     const ring = ringRef.current;
     if (!body || !ring) return;
 
-    const decoded = getNodeFrame();
-    if (!decoded) { body.count = 0; ring.count = 0; return; }
-    const { nodeCount, nodeView, interiorView } = decoded;
+    const { nodes: nodeCount } = ownerCounts();
+    if (nodeCount <= 0) { body.count = 0; ring.count = 0; return; }
 
     const q = quatRef.current; 
     sclRef.current.setScalar(INTERIOR_BEAD_R);
     let slot = 0;
     for (let i = 0; i < nodeCount && slot < capacity; i++) {
       for (let s = 0; s < INTERIOR_SLOTS_PER_NODE && slot < capacity; s++) {
-        const row = i * INTERIOR_SLOTS_PER_NODE + s;
-        if (!readInteriorPresent(interiorView, row)) continue;
-        const style = interiorBeadStyleForValue(readInteriorValue(interiorView, row));
+                if (!presentAt(i, s)) continue;
+        const style = interiorBeadStyleForValue(valueAt(i, s));
         if (!style) continue; 
 
         posRef.current.set(
-          readInteriorX(interiorView, row),
-          readInteriorY(interiorView, row),
-          readInteriorZ(interiorView, row),
+          coordAt(i, s, COL_STREAM_INTERIOR_X),
+          coordAt(i, s, COL_STREAM_INTERIOR_Y),
+          coordAt(i, s, COL_STREAM_INTERIOR_Z),
         );
         matRef.current.compose(posRef.current, q, sclRef.current);
         body.setMatrixAt(slot, matRef.current);

@@ -3,13 +3,16 @@ package interior
 import (
 	"encoding/binary"
 	"io"
+	"math"
 
 	"github.com/dtauraso/wirefold/nodes/rowevent"
+	B "github.com/dtauraso/wirefold/tools/topology-vscode/Buffer"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/Buffer/colstream"
 )
 
 type InteriorStream struct {
 	out        io.Writer
-	buildFrame func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []rowevent.RowEvent) []byte
+	buildFrame func(tick uint32, events []rowevent.RowEvent) []byte
 	tick       uint32
 
 	nodeRow int32
@@ -17,9 +20,11 @@ type InteriorStream struct {
 	lastPresent            []uint8
 	lastValue              []int32
 	lastOx, lastOy, lastOz []float32
+
+	cols *colstream.ColumnSet
 }
 
-func NewInteriorStream(out io.Writer, buildFrame func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []rowevent.RowEvent) []byte, nodeRow int32, slots int) *InteriorStream {
+func NewInteriorStream(out io.Writer, buildFrame func(tick uint32, events []rowevent.RowEvent) []byte, nodeRow int32, slots int) *InteriorStream {
 	absent := make([]uint8, slots)
 	zeroI := make([]int32, slots)
 	zeroF := make([]float32, slots)
@@ -42,8 +47,34 @@ func (s *InteriorStream) write(present []uint8, value []int32, ox, oy, oz []floa
 	s.lastOx, s.lastOy, s.lastOz = ox, oy, oz
 	s.tick++
 	wx, wy, wz := worldOf(ox, oy, oz, center)
-	writeInteriorStreamFrame(s.out, s.buildFrame, s.tick, present, value, wx, wy, wz, events)
+
+	if s.cols != nil {
+		s.cols.SetBytes(B.ColStreamInteriorPresent, present)
+		s.cols.SetBytes(B.ColStreamInteriorValue, packI32(value))
+		s.cols.SetBytes(B.ColStreamInteriorX, packF32(wx))
+		s.cols.SetBytes(B.ColStreamInteriorY, packF32(wy))
+		s.cols.SetBytes(B.ColStreamInteriorZ, packF32(wz))
+	}
+	writeInteriorStreamFrame(s.out, s.buildFrame, s.tick, events)
 }
+
+func packI32(v []int32) []byte {
+	b := make([]byte, 0, len(v)*4)
+	for _, x := range v {
+		b = binary.LittleEndian.AppendUint32(b, uint32(x))
+	}
+	return b
+}
+
+func packF32(v []float32) []byte {
+	b := make([]byte, 0, len(v)*4)
+	for _, x := range v {
+		b = binary.LittleEndian.AppendUint32(b, math.Float32bits(x))
+	}
+	return b
+}
+
+func (s *InteriorStream) SetColumns(c *colstream.ColumnSet) { s.cols = c }
 
 func worldOf(ox, oy, oz []float32, center vec3) ([]float32, []float32, []float32) {
 	wx := make([]float32, len(ox))
@@ -86,11 +117,11 @@ func boolU8(b bool) uint8 {
 	return 0
 }
 
-func writeInteriorStreamFrame(out io.Writer, buildFrame func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []rowevent.RowEvent) []byte, tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []rowevent.RowEvent) {
+func writeInteriorStreamFrame(out io.Writer, buildFrame func(tick uint32, events []rowevent.RowEvent) []byte, tick uint32, events []rowevent.RowEvent) {
 	if out == nil || buildFrame == nil {
 		return
 	}
-	frame := buildFrame(tick, present, value, ox, oy, oz, events)
+	frame := buildFrame(tick, events)
 
 	buf := make([]byte, 4+len(frame))
 	binary.LittleEndian.PutUint32(buf[:4], uint32(len(frame)))

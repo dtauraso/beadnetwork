@@ -1,17 +1,20 @@
 import { TRACE_EVENT_KINDS, BREADCRUMB_LABELS } from "../../../../Trace/trace-kinds";
-import { nodeLabel, type DecodedNodeFrame } from "./buffer-decode-node";
+import { nodeLabel } from "./buffer-decode-node";
 import { edgeLabel } from "./buffer-decode-edge";
-import { INTERIOR_SLOTS_PER_NODE } from "./buffer-decode-interior";
 import { overlayFlag, OVERLAY_KINDS } from "./decode-event-overlay";
 import { nodeGeometryLine } from "./decode-event-node-geometry";
 import {
-  readInteriorPresent, readInteriorValue, readInteriorX, readInteriorY, readInteriorZ,
   readEventKind, readEventNodeRow, readEventPortRow, readEventTargetRow, readEventTargetPortRow,
   readEventEdgeRow, readEventSlot, readEventValue, readEventBead,
   readEventBeadSteps, readEventX, readEventY, readEventZ, readEventF,
   readEventLabel, readEventDebug, readEventTextOff, readEventTextLen,
 } from "../../../../Buffer/buffer-layout";
-import { columnF32 } from "../../../../Buffer/column-values";
+import { columnF32, columnBytes } from "../../../../Buffer/column-values";
+import { nodeColumn } from "../../../../Buffer/column-owners";
+import {
+  COL_STREAM_INTERIOR_PRESENT, COL_STREAM_INTERIOR_VALUE,
+  COL_STREAM_INTERIOR_X, COL_STREAM_INTERIOR_Y, COL_STREAM_INTERIOR_Z,
+} from "../../../../Buffer/column-streams-gen";
 import { edgeColumn } from "../../../../Buffer/column-owners";
 import {
   COL_STREAM_EDGE_SX, COL_STREAM_EDGE_SY, COL_STREAM_EDGE_SZ,
@@ -27,7 +30,7 @@ export type Line = Record<string, unknown>;
 
 const EVENT_TEXT_DECODER = new TextDecoder();
 
-export function decodeEventLine(ev: DataView, eventTextView: DataView, dn: DecodedNodeFrame | null, i: number): Line | null {
+export function decodeEventLine(ev: DataView, eventTextView: DataView, i: number): Line | null {
   const kindId = readEventKind(ev, i);
   const kind = TRACE_EVENT_KINDS[kindId];
   if (kind === undefined) return null;
@@ -38,7 +41,7 @@ export function decodeEventLine(ev: DataView, eventTextView: DataView, dn: Decod
   const edgeRow = readEventEdgeRow(ev, i);
   const value = readEventValue(ev, i);
   const bead = readEventBead(ev, i);
-  const node = dn && nodeRow >= 0 ? nodeLabel(dn, nodeRow) : "";
+  const node = nodeRow >= 0 ? nodeLabel(nodeRow) : "";
 
   const port = "";
 
@@ -51,7 +54,7 @@ export function decodeEventLine(ev: DataView, eventTextView: DataView, dn: Decod
     const text = textLen > 0 && eventTextView.byteLength >= textOff + textLen
       ? EVENT_TEXT_DECODER.decode(new Uint8Array(eventTextView.buffer, eventTextView.byteOffset + textOff, textLen))
       : "";
-    const t = dn && targetRow >= 0 ? nodeLabel(dn, targetRow) : "";
+    const t = targetRow >= 0 ? nodeLabel(targetRow) : "";
     const line: Line = {
       kind, label, debug: readEventDebug(ev, i) === 1,
       node, port, value,
@@ -72,7 +75,7 @@ export function decodeEventLine(ev: DataView, eventTextView: DataView, dn: Decod
       const beadSteps = readEventBeadSteps(ev, i);
       if (beadSteps !== 0) {
         const l: Line = { kind, node, port, value, beadSteps };
-        const t = dn && targetRow >= 0 ? nodeLabel(dn, targetRow) : "";
+        const t = targetRow >= 0 ? nodeLabel(targetRow) : "";
         if (t) l.target = t;
 
         return l;
@@ -104,16 +107,23 @@ export function decodeEventLine(ev: DataView, eventTextView: DataView, dn: Decod
       return { kind, edge, sx, sy, sz, ex, ey, ez };
     }
     case "node-geometry":
-      return dn ? nodeGeometryLine(dn, nodeRow, node) : { kind, node };
+      return nodeGeometryLine(nodeRow, node);
     case "node-bead": {
-      if (!dn) return { kind, node };
+
       const slot = readEventSlot(ev, i);
-      const irow = nodeRow * INTERIOR_SLOTS_PER_NODE + slot;
+      const present = columnBytes(nodeColumn(nodeRow, COL_STREAM_INTERIOR_PRESENT));
+      const values = columnBytes(nodeColumn(nodeRow, COL_STREAM_INTERIOR_VALUE));
+      const xs = columnBytes(nodeColumn(nodeRow, COL_STREAM_INTERIOR_X));
+      const ys = columnBytes(nodeColumn(nodeRow, COL_STREAM_INTERIOR_Y));
+      const zs = columnBytes(nodeColumn(nodeRow, COL_STREAM_INTERIOR_Z));
+      if (!present || slot < 0 || slot >= present.byteLength) return { kind, node };
       return {
         kind, node, row: Math.floor(slot / 2), col: slot % 2,
-        present: readInteriorPresent(dn.interiorView, irow) === 1,
-        value: readInteriorValue(dn.interiorView, irow),
-        x: readInteriorX(dn.interiorView, irow), y: readInteriorY(dn.interiorView, irow), z: readInteriorZ(dn.interiorView, irow),
+        present: present.getUint8(slot) === 1,
+        value: values ? values.getInt32(slot * 4, true) : 0,
+        x: xs ? xs.getFloat32(slot * 4, true) : 0,
+        y: ys ? ys.getFloat32(slot * 4, true) : 0,
+        z: zs ? zs.getFloat32(slot * 4, true) : 0,
       };
     }
     case "camera": {

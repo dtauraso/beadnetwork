@@ -20,6 +20,8 @@ var movedToColumns = map[string]bool{
 	"NodeRingPoint": true,
 	"BeadRingPoint": true,
 	"Edge":          true,
+	"Node":          true,
+	"Interior":      true,
 }
 
 func hasRow(name string) bool { return !movedToColumns[name] }

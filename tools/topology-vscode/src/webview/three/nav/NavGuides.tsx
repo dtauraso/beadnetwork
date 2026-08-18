@@ -2,10 +2,10 @@ import React, { useMemo, useState, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { useOverlayFlags } from "../controls/flags/overlay-flags";
-import { getNodeFrame } from "../scene/nodes/node-frame-aggregate";
+import { getNodeSections } from "../scene/nodes/node-sections";
 import { getViewBlocks } from "../scene/view-blocks";
 import {
-  type NavNode, decodeNavNodes, sceneSphereFromSnapshot,
+  type NavNode, decodeNavNodes, sceneSphereFromColumns,
 } from "./buffer-nav";
 import { navSignature } from "./nav-signature";
 import { SceneGuides } from "../../../../Scene/Guides/SceneGuides";
@@ -36,10 +36,10 @@ export function NavGuides() {
 
     if (!showTori && !showScenePoles && !showNodePoles && !showNodePoleSphere && !showHandholds && !showSceneVectors) return;
     const blocks = getViewBlocks();
-    const decodedNode = getNodeFrame();
+    const decodedNode = getNodeSections();
     if (!decodedNode || !blocks) return;
-    bufNavRef.current = decodeNavNodes(decodedNode);
-    sceneSphereRef.current = sceneSphereFromSnapshot(blocks);
+    bufNavRef.current = decodeNavNodes();
+    sceneSphereRef.current = sceneSphereFromColumns();
     const sig = navSignature(bufNavRef.current);
     if (sig !== bufSigRef.current) {
       bufSigRef.current = sig;
@@ -54,7 +54,7 @@ export function NavGuides() {
   );
 
   const cs = sceneSphereRef.current;
-  const tube = navNodes.length > 0 ? Math.max(0.5, navNodes[0]!.radius * 0.08) : 1;
+  const tube = navNodes.length > 0 ? navNodes[0]!.radius : 1;
 
   const radiusKey = Math.round(cs.radius);
   const tubeKey = Math.round(tube * 10);

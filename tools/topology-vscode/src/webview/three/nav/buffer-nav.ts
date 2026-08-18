@@ -1,13 +1,16 @@
 import * as THREE from "three";
-import { type DecodedNodeFrame, nodeLabel } from "../decode/buffer-decode-node";
-import { type ViewBlocks } from "../scene/view-blocks";
+import { nodeLabel } from "../decode/buffer-decode-node";
 import { polarToCart } from "../polar-convert";
-import { nodeCenterX, nodeCenterY, nodeCenterZ, nodeRadiusRaw, nodeSelected } from "../../../../Node/node-frame";
 import { sceneSteps, sceneRadius } from "../../../../Scene/scene-frame";
+import { columnF32, columnU8 } from "../../../../Buffer/column-values";
+import { nodeColumn, ownerCounts } from "../../../../Buffer/column-owners";
 import {
-  readNodeLatchedSel,
-  readNodePolePhi, readNodePoleTheta, readNodePoleRingR,
-} from "../../../../Buffer/buffer-layout";
+  COL_STREAM_NODE_POLE_ANCHOR_X, COL_STREAM_NODE_POLE_ANCHOR_Y, COL_STREAM_NODE_POLE_ANCHOR_Z,
+  COL_STREAM_NODE_NAV_TUBE_R,
+  COL_STREAM_NODE_LATCHED_SEL,
+  COL_STREAM_NODE_POLE_PHI, COL_STREAM_NODE_POLE_THETA, COL_STREAM_NODE_POLE_RING_R,
+} from "../../../../Buffer/column-streams-gen";
+import { readSelectedNodeRow } from "../controls/flags/overlay-flags-selection";
 
 export interface NavNode {
 
@@ -30,30 +33,34 @@ function poleVec(phi: number, theta: number): THREE.Vector3 {
   return new THREE.Vector3(...polarToCart(1, phi, theta));
 }
 
-export function decodeNavNodes(decoded: DecodedNodeFrame): NavNode[] {
-  const { nodeCount, nodeView } = decoded;
+export function decodeNavNodes(): NavNode[] {
+  const { nodes } = ownerCounts();
+  const selected = readSelectedNodeRow();
   const out: NavNode[] = [];
-  for (let i = 0; i < nodeCount; i++) {
+  for (let i = 0; i < nodes; i++) {
     out.push({
       row: i,
-      label: nodeLabel(decoded, i),
+      label: nodeLabel(i),
       center: new THREE.Vector3(
-        nodeCenterX(nodeView, i),
-        nodeCenterY(nodeView, i),
-        nodeCenterZ(nodeView, i),
+        columnF32(nodeColumn(i, COL_STREAM_NODE_POLE_ANCHOR_X)),
+        columnF32(nodeColumn(i, COL_STREAM_NODE_POLE_ANCHOR_Y)),
+        columnF32(nodeColumn(i, COL_STREAM_NODE_POLE_ANCHOR_Z)),
       ),
-      radius: nodeRadiusRaw(nodeView, i),
+      radius: columnF32(nodeColumn(i, COL_STREAM_NODE_NAV_TUBE_R)),
 
-      selected: nodeSelected(nodeView, i),
-      latchedSel: readNodeLatchedSel(nodeView, i) !== 0,
-      pole: poleVec(readNodePolePhi(nodeView, i), readNodePoleTheta(nodeView, i)),
-      poleRingR: readNodePoleRingR(nodeView, i),
+      selected: selected === i,
+      latchedSel: columnU8(nodeColumn(i, COL_STREAM_NODE_LATCHED_SEL)) !== 0,
+      pole: poleVec(
+        columnF32(nodeColumn(i, COL_STREAM_NODE_POLE_PHI)),
+        columnF32(nodeColumn(i, COL_STREAM_NODE_POLE_THETA)),
+      ),
+      poleRingR: columnF32(nodeColumn(i, COL_STREAM_NODE_POLE_RING_R)),
     });
   }
   return out;
 }
 
-export function sceneSphereFromSnapshot(decoded: ViewBlocks): { center: THREE.Vector3; radius: number } {
+export function sceneSphereFromColumns(): { center: THREE.Vector3; radius: number } {
   const radius = sceneRadius();
   if (radius <= 0) return { center: new THREE.Vector3(), radius: 100 };
   const s = sceneSteps();

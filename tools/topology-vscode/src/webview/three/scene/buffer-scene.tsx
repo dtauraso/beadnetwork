@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import type * as THREE from "three";
 import { getEdgeBeads } from "./edges/edge-bead-blocks";
-import { getNodeFrame } from "./nodes/node-frame-aggregate";
+import { ownerCounts } from "../../../../Buffer/column-owners";
 import { INTERIOR_SLOTS_PER_NODE } from "../decode/buffer-decode-interior";
 
 import { ChainBeadInstances } from "./beads/ChainBeadInstances";
@@ -46,9 +46,9 @@ export function BufferScene({ cameraRef }: {
       grow.push({ count: edges.edgeCount, cap: edgeCap, set: setEdgeCap });
     }
 
-    const decodedNode = getNodeFrame();
-    if (decodedNode) {
-      grow.push({ count: decodedNode.nodeCount, cap: nodeCap, set: setNodeCap });
+    const nodeTotal = ownerCounts().nodes;
+    if (nodeTotal > 0) {
+      grow.push({ count: nodeTotal, cap: nodeCap, set: setNodeCap });
     }
 
     for (const g of grow) {

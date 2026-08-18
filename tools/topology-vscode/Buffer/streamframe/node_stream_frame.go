@@ -19,6 +19,8 @@ type NodeStreamFrame struct {
 
 	Radius float32
 
+	NavTubeR                                 float32
+	PoleAnchorX, PoleAnchorY, PoleAnchorZ    float32
 	LabelAnchorX, LabelAnchorY, LabelAnchorZ float32
 
 	PolePhi, PoleTheta float32
@@ -69,37 +71,19 @@ type ChannelVector struct {
 }
 
 func BuildNodeStreamFrame(f NodeStreamFrame) []byte {
-	labelBytes := []byte(f.Label)
-
 	arrowsSize := len(f.TiltArrows) * B.BufTiltArrowStride
 	channelsSize := len(f.ChannelVectors) * B.BufChannelVectorStride
-	size := B.BufNodeStreamFrameHeaderSize + B.BufNodeStride + len(labelBytes) + arrowsSize + channelsSize
+	size := B.BufNodeStreamFrameHeaderSize + arrowsSize + channelsSize
 	buf := make([]byte, size)
 	off := 0
 	binary.LittleEndian.PutUint32(buf[off:], f.Tick)
 	off += 4
-	binary.LittleEndian.PutUint32(buf[off:], uint32(len(labelBytes)))
+	binary.LittleEndian.PutUint32(buf[off:], 0)
 	off += 4
 	binary.LittleEndian.PutUint32(buf[off:], uint32(len(f.TiltArrows)))
 	off += 4
 	binary.LittleEndian.PutUint32(buf[off:], uint32(len(f.ChannelVectors)))
 	off += 4
-
-	m := f.RingMatrix
-	B.SetNodeRow(buf[off:off+B.BufNodeStride], 0, f.NodeID, f.IndexR, f.IndexPhi, f.IndexTheta, f.HasPos, f.Radius,
-		f.LabelAnchorX, f.LabelAnchorY, f.LabelAnchorZ,
-		f.PolePhi, f.PoleTheta,
-		m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7], m[8], m[9], m[10], m[11], m[12], m[13], m[14], m[15],
-		f.TopTiltVectorLen, f.TopTiltVectorIdx,
-		f.Selected, f.KindID, 0, uint32(len(labelBytes)), f.Hovered, f.LatchedSel, f.LatticePoints, f.RoundsToParallel, f.MsgsToParallel,
-		f.DragRLocked, f.DragPhiLocked, f.DragThetaMax, f.DragActive, f.HasKindRule, f.KindRuleActive,
-		f.PoleRingR,
-		f.SelfRLocked, f.SelfPhiLocked, f.SelfThetaMax, f.SelfActive,
-		f.RuleGroupID, f.RuleGroupSize)
-	off += B.BufNodeStride
-
-	copy(buf[off:off+len(labelBytes)], labelBytes)
-	off += len(labelBytes)
 
 	for _, a := range f.TiltArrows {
 		s, h := a.Shaft, a.Head
@@ -126,24 +110,8 @@ func BuildNodeStreamFrame(f NodeStreamFrame) []byte {
 	return append(buf, BuildEventsSection(f.Events)...)
 }
 
-func BuildInteriorStreamFrame(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []StreamEvent) []byte {
-	n := len(present)
-
-	for _, s := range []struct {
-		name string
-		n    int
-	}{{"value", len(value)}, {"ox", len(ox)}, {"oy", len(oy)}, {"oz", len(oz)}} {
-		if s.n != n {
-			panic(fmt.Sprintf(
-				"BuildInteriorStreamFrame: %d present slots but %s has %d entries — the interior slot slices are parallel, one entry per slot",
-				n, s.name, s.n))
-		}
-	}
-	buf := make([]byte, B.BufInteriorStreamFrameHeaderSize+n*B.BufInteriorStride)
+func BuildInteriorStreamFrame(tick uint32, events []StreamEvent) []byte {
+	buf := make([]byte, B.BufInteriorStreamFrameHeaderSize)
 	binary.LittleEndian.PutUint32(buf[0:], tick)
-	interiorBuf := buf[4:]
-	for i := 0; i < n; i++ {
-		B.SetInteriorRow(interiorBuf, i, present[i], value[i], ox[i], oy[i], oz[i])
-	}
 	return append(buf, BuildEventsSection(events)...)
 }

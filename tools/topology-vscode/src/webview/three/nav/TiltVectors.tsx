@@ -1,7 +1,7 @@
 import React, { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { getNodeFrame } from "../scene/nodes/node-frame-aggregate";
+import { getNodeSections } from "../scene/nodes/node-sections";
 import {
   readTiltArrowReceived,
   readTiltArrowShaftM0, readTiltArrowShaftM1, readTiltArrowShaftM2, readTiltArrowShaftM3,
@@ -73,7 +73,7 @@ export function TiltVectors({ capacity, receivedCapacity }: { capacity: number; 
     const receivedHead = receivedHeadRef.current;
     if (!shaft || !head || !receivedShaft || !receivedHead) return;
 
-    const decoded = getNodeFrame();
+    const decoded = getNodeSections();
     if (!decoded) {
       shaft.count = 0;
       head.count = 0;

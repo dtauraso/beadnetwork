@@ -1,5 +1,4 @@
 import { decodeViewFrame } from "./webview/three/decode/buffer-decode-view";
-import type { DecodedNodeFrame } from "./webview/three/decode/buffer-decode-node";
 import { decodeEventLine } from "./webview/three/decode/decode-event-line";
 
 export type DecodedEventLine =
@@ -34,14 +33,14 @@ export type DecodedEventLine =
 export function decodeBufferLog(viewFrameBuf: ArrayBuffer, breadcrumbsOnly = false): string {
   const dv = decodeViewFrame(viewFrameBuf);
   if (!dv || dv.eventCount === 0) return "";
-  return decodeEventsFromView(dv.eventCount, dv.eventView, dv.eventTextView, null, breadcrumbsOnly);
+  return decodeEventsFromView(dv.eventCount, dv.eventView, dv.eventTextView, breadcrumbsOnly);
 }
 
-function decodeEventsFromView(eventCount: number, eventView: DataView, eventTextView: DataView, dn: DecodedNodeFrame | null, breadcrumbsOnly: boolean): string {
+function decodeEventsFromView(eventCount: number, eventView: DataView, eventTextView: DataView, breadcrumbsOnly: boolean): string {
   const now = Date.now();
   let out = "";
   for (let i = 0; i < eventCount; i++) {
-    const line = decodeEventLine(eventView, eventTextView, dn, i);
+    const line = decodeEventLine(eventView, eventTextView, i);
     if (!line) continue;
     if (breadcrumbsOnly && line.kind !== "breadcrumb") continue;
     out += JSON.stringify({ ts_ms: now, src: "go", ...line }) + "\n";
@@ -49,11 +48,11 @@ function decodeEventsFromView(eventCount: number, eventView: DataView, eventText
   return out;
 }
 
-export function decodeStreamFrameEvents(eventCount: number, eventView: DataView, eventTextView: DataView, dn?: DecodedNodeFrame | null, breadcrumbsOnly = false): string {
+export function decodeStreamFrameEvents(eventCount: number, eventView: DataView, eventTextView: DataView, breadcrumbsOnly = false): string {
   const now = Date.now();
   let out = "";
   for (let i = 0; i < eventCount; i++) {
-    const line = decodeEventLine(eventView, eventTextView, dn ?? null, i);
+    const line = decodeEventLine(eventView, eventTextView, i);
     if (!line) continue;
     if (breadcrumbsOnly && line.kind !== "breadcrumb") continue;
     out += JSON.stringify({ ts_ms: now, src: "go", ...line }) + "\n";

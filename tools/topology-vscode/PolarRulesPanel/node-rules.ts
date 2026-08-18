@@ -1,21 +1,18 @@
 import { useSyncExternalStore } from "react";
-import { getNodeFrame, subscribeNodeStreamBlocks } from "../src/webview/three/scene/nodes/node-frame-aggregate";
+import { getNodeSections, subscribeNodeStreamBlocks } from "../src/webview/three/scene/nodes/node-sections";
 import { getEdgeStreamAccessor } from "../src/webview/three/scene/edges/edge-stream-blocks";
 import { nodeKindName } from "../Node/node-kind";
+import { ownerCounts } from "../Buffer/column-owners";
+import { columnF32, columnU8, columnI32 } from "../Buffer/column-values";
+import { nodeColumn } from "../Buffer/column-owners";
 import {
-  readNodeDragRLocked,
-  readNodeDragPhiLocked,
-  readNodeDragThetaMax,
-  readNodeDragActive,
-  readNodeSelfRLocked,
-  readNodeSelfPhiLocked,
-  readNodeSelfThetaMax,
-  readNodeSelfActive,
-  readNodeHasKindRule,
-  readNodeKindRuleActive,
-  readNodeRuleGroupId,
-  readNodeRuleGroupSize,
-} from "../Buffer/buffer-layout";
+  COL_STREAM_NODE_DRAG_RLOCKED, COL_STREAM_NODE_DRAG_PHI_LOCKED,
+  COL_STREAM_NODE_DRAG_THETA_MAX, COL_STREAM_NODE_DRAG_ACTIVE,
+  COL_STREAM_NODE_HAS_KIND_RULE, COL_STREAM_NODE_KIND_RULE_ACTIVE,
+  COL_STREAM_NODE_SELF_RLOCKED, COL_STREAM_NODE_SELF_PHI_LOCKED,
+  COL_STREAM_NODE_SELF_THETA_MAX, COL_STREAM_NODE_SELF_ACTIVE,
+  COL_STREAM_NODE_RULE_GROUP_ID, COL_STREAM_NODE_RULE_GROUP_SIZE,
+} from "../Buffer/column-streams-gen";
 import { nodeLabel } from "../src/webview/three/decode/buffer-decode-node";
 import { ruleRowsEqual } from "./node-rules-equal";
 
@@ -80,24 +77,24 @@ export interface NodeRuleRow {
 
 const RAD_TO_PI = 1 / Math.PI;
 
-function kindNameFor(nodeView: DataView, row: number): string {
-  return nodeKindName(nodeView, row);
+function kindNameFor(row: number): string {
+  return nodeKindName(row);
 }
 
 let cachedRuleRows: NodeRuleRow[] | null = null;
 
 
-function holdersByNode(decoded: ReturnType<typeof getNodeFrame>): Map<number, RuleHolder[]> {
+function holdersByNode(nodeCount: number): Map<number, RuleHolder[]> {
   const byNode = new Map<number, RuleHolder[]>();
   const edges = getEdgeStreamAccessor();
-  if (!edges || !decoded) return byNode;
+  if (!edges || nodeCount <= 0) return byNode;
   for (let edgeRow = 0; edgeRow < edges.edgeCount; edgeRow++) {
     const src = edges.srcNodeRow(edgeRow);
     const dst = edges.dstNodeRow(edgeRow);
     if (src < 0 || dst < 0) continue;
     const holder: RuleHolder = {
       holderRow: src,
-      holderLabel: nodeLabel(decoded, src),
+      holderLabel: nodeLabel(src),
       r: Math.abs(edges.deltaR(edgeRow)),
     };
     const holders = byNode.get(dst);
@@ -110,10 +107,10 @@ function holdersByNode(decoded: ReturnType<typeof getNodeFrame>): Map<number, Ru
   return byNode;
 }
 
-function partnersByNode(decoded: ReturnType<typeof getNodeFrame>): Map<number, EdgePartner[]> {
+function partnersByNode(nodeCount: number): Map<number, EdgePartner[]> {
   const byNode = new Map<number, EdgePartner[]>();
   const edges = getEdgeStreamAccessor();
-  if (!edges || !decoded) return byNode;
+  if (!edges || nodeCount <= 0) return byNode;
 
   const add = (row: number, p: EdgePartner) => {
     const list = byNode.get(row);
@@ -130,49 +127,48 @@ function partnersByNode(decoded: ReturnType<typeof getNodeFrame>): Map<number, E
     if (src < 0 || dst < 0) continue;
     const r = Math.abs(edges.deltaR(edgeRow));
     const active = edges.dragActive(edgeRow);
-    add(src, { otherRow: dst, otherLabel: nodeLabel(decoded, dst), incoming: false, r, edgeRow, active });
-    add(dst, { otherRow: src, otherLabel: nodeLabel(decoded, src), incoming: true, r, edgeRow, active });
+    add(src, { otherRow: dst, otherLabel: nodeLabel(dst), incoming: false, r, edgeRow, active });
+    add(dst, { otherRow: src, otherLabel: nodeLabel(src), incoming: true, r, edgeRow, active });
   }
   return byNode;
 }
 
 export function readNodeRuleRows(): NodeRuleRow[] | null {
-  const decoded = getNodeFrame();
-  if (!decoded) return cachedRuleRows;
-  const { nodeCount, nodeView } = decoded;
-  const byNode = holdersByNode(decoded);
-  const partnerByNode = partnersByNode(decoded);
+  const nodeCount = ownerCounts().nodes;
+  if (nodeCount <= 0) return cachedRuleRows;
+  const byNode = holdersByNode(nodeCount);
+  const partnerByNode = partnersByNode(nodeCount);
 
   const next: NodeRuleRow[] = [];
   for (let row = 0; row < nodeCount; row++) {
-    const thetaMax = readNodeDragThetaMax(nodeView, row);
-    const selfThetaMax = readNodeSelfThetaMax(nodeView, row);
+    const thetaMax = columnF32(nodeColumn(row, COL_STREAM_NODE_DRAG_THETA_MAX));
+    const selfThetaMax = columnF32(nodeColumn(row, COL_STREAM_NODE_SELF_THETA_MAX));
 
-    const rLocked = !!readNodeDragRLocked(nodeView, row);
-    const phiLocked = !!readNodeDragPhiLocked(nodeView, row);
-    const selfRLocked = !!readNodeSelfRLocked(nodeView, row);
-    const selfPhiLocked = !!readNodeSelfPhiLocked(nodeView, row);
+    const rLocked = !!columnU8(nodeColumn(row, COL_STREAM_NODE_DRAG_RLOCKED));
+    const phiLocked = !!columnU8(nodeColumn(row, COL_STREAM_NODE_DRAG_PHI_LOCKED));
+    const selfRLocked = !!columnU8(nodeColumn(row, COL_STREAM_NODE_SELF_RLOCKED));
+    const selfPhiLocked = !!columnU8(nodeColumn(row, COL_STREAM_NODE_SELF_PHI_LOCKED));
 
     next.push({
       row,
-      label: nodeLabel(decoded, row),
-      kind: kindNameFor(nodeView, row),
+      label: nodeLabel(row),
+      kind: kindNameFor(row),
       hasRule: rLocked || phiLocked || thetaMax >= 0,
       rLocked,
-      hasKindRule: !!readNodeHasKindRule(nodeView, row),
-      kindActive: !!readNodeKindRuleActive(nodeView, row),
-      active: !!readNodeDragActive(nodeView, row),
+      hasKindRule: !!columnU8(nodeColumn(row, COL_STREAM_NODE_HAS_KIND_RULE)),
+      kindActive: !!columnU8(nodeColumn(row, COL_STREAM_NODE_KIND_RULE_ACTIVE)),
+      active: !!columnU8(nodeColumn(row, COL_STREAM_NODE_DRAG_ACTIVE)),
       phiLocked,
       maxThetaPi: thetaMax < 0 ? null : thetaMax * RAD_TO_PI,
       hasSelfRule: selfRLocked || selfPhiLocked || selfThetaMax >= 0,
       selfRLocked,
-      selfActive: !!readNodeSelfActive(nodeView, row),
+      selfActive: !!columnU8(nodeColumn(row, COL_STREAM_NODE_SELF_ACTIVE)),
       selfPhiLocked,
       selfMaxThetaPi: selfThetaMax < 0 ? null : selfThetaMax * RAD_TO_PI,
       holders: byNode.get(row) ?? [],
       partners: partnerByNode.get(row) ?? [],
-      groupId: readNodeRuleGroupId(nodeView, row),
-      groupSize: readNodeRuleGroupSize(nodeView, row),
+      groupId: columnI32(nodeColumn(row, COL_STREAM_NODE_RULE_GROUP_ID)),
+      groupSize: columnI32(nodeColumn(row, COL_STREAM_NODE_RULE_GROUP_SIZE)),
     });
   }
 

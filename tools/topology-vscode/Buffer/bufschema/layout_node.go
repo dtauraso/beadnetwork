@@ -11,6 +11,12 @@ type bufLayoutNode struct {
 
 	Radius float32 `buf:"f32"`
 
+	NavTubeR float32 `buf:"f32"`
+
+	PoleAnchorX float32 `buf:"f32"`
+	PoleAnchorY float32 `buf:"f32"`
+	PoleAnchorZ float32 `buf:"f32"`
+
 	LabelAnchorX float32 `buf:"f32"`
 	LabelAnchorY float32 `buf:"f32"`
 	LabelAnchorZ float32 `buf:"f32"`
@@ -43,8 +49,7 @@ type bufLayoutNode struct {
 
 	KindId uint8 `buf:"u8"`
 
-	LabelOff uint32 `buf:"u32"`
-	LabelLen uint32 `buf:"u32"`
+	Label []byte `buf:"bytes"`
 
 	Hovered uint8 `buf:"u8"`
 

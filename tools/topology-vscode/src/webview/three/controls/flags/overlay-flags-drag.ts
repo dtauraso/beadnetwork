@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import { getNodeFrame, subscribeNodeStreamBlocks } from "../../scene/nodes/node-frame-aggregate";
+import { subscribeNodeStreamBlocks } from "../../scene/nodes/node-sections";
 import { columnI32, subscribeColumns } from "../../../../../Buffer/column-values";
 import { COL_STREAM_OVERLAY_DRAG_NODE_ROW } from "../../../../../Buffer/column-streams-gen";
 import { nodeLabel } from "../../decode/buffer-decode-node";
@@ -15,9 +15,7 @@ export function useDragNodeRow(): number {
 export function readDraggedNodeName(): string {
   const row = readDragNodeRow();
   if (row < 0) return "";
-  const decoded = getNodeFrame();
-  if (!decoded || row >= decoded.nodeCount) return "";
-  return nodeLabel(decoded, row);
+  return nodeLabel(row);
 }
 
 function subscribeDraggedNodeName(fn: () => void): () => void {

@@ -10,10 +10,22 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/framegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/nodeframe"
 	B "github.com/dtauraso/wirefold/tools/topology-vscode/Buffer"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/Buffer/colstream"
 	SF "github.com/dtauraso/wirefold/tools/topology-vscode/Buffer/streamframe"
 )
 
 func wireNodeStreams(streamFDs SF.StreamFDs, md *W.MoveDispatch) {
+	cols := SF.NewColumnStreams(streamFDs, len(md.RT.NodeRowTable), len(md.RT.EdgeRowTable))
+
+	nodeSets := map[int32]*colstream.ColumnSet{}
+	nodeCols := func(row int32) *colstream.ColumnSet {
+		if s, ok := nodeSets[row]; ok {
+			return s
+		}
+		s := cols.NodeColumns(int(row))
+		nodeSets[row] = s
+		return s
+	}
 	_, nodeFDsWired := streamFDs[SF.StreamKindNode]
 	_, interiorFDsWired := streamFDs[SF.StreamKindInterior]
 	_, beadFDsWired := streamFDs[SF.StreamKindBead]
@@ -42,7 +54,7 @@ func wireNodeStreams(streamFDs SF.StreamFDs, md *W.MoveDispatch) {
 				md.RT.NodeRowFor,
 
 				func(f nodeframe.NodeFrameInput) []byte {
-					return SF.BuildNodeStreamFrame(SF.NodeStreamFrame{
+					frame := SF.NodeStreamFrame{
 						Tick:             f.Tick,
 						NodeRow:          f.NodeRow,
 						NodeID:           f.NodeID,
@@ -51,6 +63,10 @@ func wireNodeStreams(streamFDs SF.StreamFDs, md *W.MoveDispatch) {
 						IndexTheta:       f.IndexTheta,
 						HasPos:           f.HasPos,
 						Radius:           f.Radius,
+						NavTubeR:         f.NavTubeR,
+						PoleAnchorX:      f.PoleAnchorX,
+						PoleAnchorY:      f.PoleAnchorY,
+						PoleAnchorZ:      f.PoleAnchorZ,
 						LabelAnchorX:     f.LabelAnchorX,
 						LabelAnchorY:     f.LabelAnchorY,
 						LabelAnchorZ:     f.LabelAnchorZ,
@@ -83,11 +99,15 @@ func wireNodeStreams(streamFDs SF.StreamFDs, md *W.MoveDispatch) {
 						RuleGroupSize:    f.RuleGroupSize,
 						Label:            f.Label,
 						Events:           toStreamEvents(f.Events),
-					})
+					}
+
+					SF.WriteNodeColumns(nodeCols(f.NodeRow), frame)
+					return SF.BuildNodeStreamFrame(frame)
 				},
-				func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []rowevent.RowEvent) []byte {
-					return SF.BuildInteriorStreamFrame(tick, present, value, ox, oy, oz, toStreamEvents(events))
+				func(tick uint32, events []rowevent.RowEvent) []byte {
+					return SF.BuildInteriorStreamFrame(tick, toStreamEvents(events))
 				},
+				nodeCols,
 				B.NodeKindID)
 		}
 	}

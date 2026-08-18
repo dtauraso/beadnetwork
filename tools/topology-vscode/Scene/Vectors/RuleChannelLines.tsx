@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { getNodeFrame } from "../../src/webview/three/scene/nodes/node-frame-aggregate";
+import { getNodeSections } from "../../src/webview/three/scene/nodes/node-sections";
 import { overlayFlag } from "../../src/webview/three/controls/flags/overlay-flags";
 import {
   readChannelVectorShaftM0, readChannelVectorShaftM1, readChannelVectorShaftM2, readChannelVectorShaftM3,
@@ -81,7 +81,7 @@ export function RuleChannelLines({ capacity }: { capacity: number }) {
       return;
     }
 
-    const decoded = getNodeFrame();
+    const decoded = getNodeSections();
     if (!decoded) {
       line.count = 0;
       head.count = 0;
