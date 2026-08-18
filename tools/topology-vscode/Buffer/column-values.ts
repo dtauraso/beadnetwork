@@ -3,10 +3,23 @@ const latest = new Map<number, DataView>();
 let version = 0;
 const subs = new Set<() => void>();
 
+let notifyScheduled = false;
+
+function scheduleNotify(): void {
+  if (notifyScheduled) return;
+  notifyScheduled = true;
+  const run = () => {
+    notifyScheduled = false;
+    for (const fn of subs) fn();
+  };
+  if (typeof requestAnimationFrame === "function") requestAnimationFrame(run);
+  else queueMicrotask(run);
+}
+
 export function setColumnValue(col: number, buf: ArrayBuffer): void {
   latest.set(col, new DataView(buf));
   version++;
-  for (const fn of subs) fn();
+  scheduleNotify();
 }
 
 export function columnVersion(): number {
