@@ -1,10 +1,10 @@
 import React, { useRef, useState } from "react";
-import { NODE_DEFS } from "../../../../../schema/node-defs";
-import { NODE_PALETTE_KIND_MIME } from "./node-palette-drag";
-import { popoverRowStyle, DISCLOSURE_GLYPH_STYLE, REVEALED_LIST_STYLE } from "../../pills/overlay-chrome";
-import * as T from "../../chrome-theme";
+import { NODE_DEFS } from "../src/schema/node-defs";
+import { NODE_PALETTE_KIND_MIME } from "./place-node-drag";
+import { popoverRowStyle, DISCLOSURE_GLYPH_STYLE, REVEALED_LIST_STYLE } from "../src/webview/three/controls/pills/overlay-chrome";
+import * as T from "../src/webview/three/controls/chrome-theme";
 
-export function PaletteRow({ kind, kindId }: { kind: string; kindId: number }) {
+export function NodeKindRow({ kind, kindId }: { kind: string; kindId: number }) {
   const [hover, setHover] = useState(false);
 
   const [open, setOpen] = useState(false);

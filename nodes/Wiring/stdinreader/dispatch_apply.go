@@ -12,8 +12,8 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/rulenode"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
-	"github.com/dtauraso/wirefold/nodes/Wiring/scenestructure"
 	"github.com/dtauraso/wirefold/nodes/Wiring/sceneswitch"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/NodesDropdown"
 	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
 )
 
@@ -72,10 +72,10 @@ func applyUpdateScene(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch
 		md.Inboxes.BroadcastLatticePoints(points)
 	case "create":
 
-		scenestructure.CreateNode(&md.Scenes, &md.UI, &md.MR, uint8(msg.Num), msg.X, msg.Y, tr)
+		NodesDropdown.CreateNode(&md.Scenes, &md.UI, &md.MR, uint8(msg.Num), msg.X, msg.Y, tr)
 	case "delete":
 
-		scenestructure.DeleteNode(&md.Scenes, &md.UI, &md.RT, msg.Num, tr)
+		NodesDropdown.DeleteNode(&md.Scenes, &md.UI, &md.RT, msg.Num, tr)
 	}
 }
 

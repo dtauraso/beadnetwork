@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { postGoRecord } from "../../../../vscode-api";
-import { encodeSceneDelete } from "../../../../../schema/input/input-encode-scene-tilt";
-import { NODE_KIND_NAMES } from "../../../../../schema/node-defs";
-import { useSelectedNodeRow } from "../../flags/overlay-flags-selection";
-import { useSceneEditable, useSceneKinds } from "../../flags/overlay-flags-scene";
-import { useEditRefused } from "../../flags/overlay-flags-edit-refused";
-import { PaletteRow } from "./PaletteRow";
+import { postGoRecord } from "../src/webview/vscode-api";
+import { encodeSceneDelete } from "../src/schema/input/input-encode-scene-tilt";
+import { NODE_KIND_NAMES } from "../src/schema/node-defs";
+import { useSelectedNodeRow } from "../src/webview/three/controls/flags/overlay-flags-selection";
+import { useSceneEditable, useSceneKinds } from "../src/webview/three/controls/flags/overlay-flags-scene";
+import { useEditRefused } from "../src/webview/three/controls/flags/overlay-flags-edit-refused";
+import { NodeKindRow } from "./NodeKindRow";
 import {
   pillContainerStyle,
   pillBodyStyle,
@@ -14,10 +14,10 @@ import {
   inFlowPopoverStyle,
   CHROME_TEXT,
   CHROME_FONT_STACK,
-} from "../../pills/overlay-chrome";
-import * as T from "../../chrome-theme";
+} from "../src/webview/three/controls/pills/overlay-chrome";
+import * as T from "../src/webview/three/controls/chrome-theme";
 
-export function NodePalette() {
+export function NodesDropdown() {
   const editable = useSceneEditable();
   const sceneKinds = useSceneKinds();
   const [open, setOpen] = useState(false);
@@ -68,7 +68,7 @@ export function NodePalette() {
         <div style={inFlowPopoverStyle()}>
           {}
           {NODE_KIND_NAMES.map((kind, kindId) =>
-            sceneKinds & (1 << kindId) ? <PaletteRow key={kind} kind={kind} kindId={kindId} /> : null,
+            sceneKinds & (1 << kindId) ? <NodeKindRow key={kind} kind={kind} kindId={kindId} /> : null,
           )}
         </div>
       )}

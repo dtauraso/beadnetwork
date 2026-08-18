@@ -21,6 +21,7 @@
     "Tabs/**/*.ts", "Tabs/**/*.tsx",
     "PolarRulesPanel/**/*.ts", "PolarRulesPanel/**/*.tsx",
     "TiltPanel/**/*.ts", "TiltPanel/**/*.tsx",
-    "AngleDropdown/**/*.ts", "AngleDropdown/**/*.tsx"
+    "AngleDropdown/**/*.ts", "AngleDropdown/**/*.tsx",
+    "NodesDropdown/**/*.ts", "NodesDropdown/**/*.tsx"
   ]
 }
