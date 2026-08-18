@@ -1,6 +1,6 @@
 package input
 
-import "github.com/dtauraso/wirefold/nodes/bead/lattice"
+import lattice "github.com/dtauraso/wirefold/nodes/bead/lattice"
 
 func popEnd(working, backup *[]int, init []int) int {
 	v := (*working)[len(*working)-1]
@@ -14,7 +14,7 @@ func popEnd(working, backup *[]int, init []int) int {
 }
 
 func cadenceTicks(steps int) int64 {
-	c := int64(float64(steps) * lattice.DwellTicksPerBead)
+	c := int64(float64(steps) * lattice.PulsesPerSlot)
 	if c < 1 {
 		return 1
 	}

@@ -3,7 +3,6 @@ package bead
 import (
 	"context"
 	"fmt"
-	"math"
 
 	T "github.com/dtauraso/wirefold/Trace"
 	"github.com/dtauraso/wirefold/nodes/spatial"
@@ -28,6 +27,7 @@ func (pw *BeadRun) drainPlacements() {
 				slot:    0,
 				seg:     spatial.Segment{Start: req.bp.Start, End: req.bp.End},
 				steps:   req.bp.Steps,
+				slotR:   req.bp.SlotR,
 				node:    req.bp.Node,
 				port:    req.bp.Port,
 				streams: req.bp.streams(),
@@ -76,12 +76,4 @@ func (pw *BeadRun) stepAll(tick int64) {
 			return
 		}
 	}
-}
-
-func (pw *BeadRun) slotsPerBead() int {
-	n := int(math.Round(pw.dwell))
-	if n < 1 {
-		return 1
-	}
-	return n
 }

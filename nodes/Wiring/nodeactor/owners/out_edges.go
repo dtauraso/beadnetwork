@@ -136,7 +136,7 @@ func (o *OutEdges) DeriveGeometry(self nodegeom.NodeGeom, deltas *Deltas) {
 		e.deltaR = float32(d.R) * float32(o.constants.ConstantR)
 
 		if e.port != nil {
-			e.port.PostGeom(e.steps, start, end)
+			e.port.PostGeom(e.steps, o.constants.ConstantR, start, end)
 		}
 		if dragDelta, ok := deltas.DragDeltaTo(e.targetID); ok {
 			o.persistDelta(e, dragDelta)

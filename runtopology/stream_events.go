@@ -23,7 +23,6 @@ func toStreamEvents(events []rowevent.RowEvent) []SF.StreamEvent {
 			Value:         e.Value,
 			Bead:          uint32(e.Bead),
 			BeadSteps:     float32(e.BeadSteps),
-			SimLatencyMs:  float32(e.SimLatencyMs),
 			X:             float32(e.X),
 			Y:             float32(e.Y),
 			Z:             float32(e.Z),

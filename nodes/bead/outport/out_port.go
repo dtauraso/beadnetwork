@@ -11,6 +11,7 @@ import (
 
 type outGeom struct {
 	Steps      int
+	SlotR      float64
 	Start, End spatial.Vec3
 }
 
@@ -45,7 +46,7 @@ func (o *Out) Geom() outGeom {
 	return o.sendCur
 }
 
-func (o *Out) PostGeom(steps int, start, end spatial.Vec3) {
+func (o *Out) PostGeom(steps int, slotR float64, start, end spatial.Vec3) {
 	if o == nil || o.postedGeom == nil {
 		return
 	}
@@ -54,7 +55,7 @@ func (o *Out) PostGeom(steps int, start, end spatial.Vec3) {
 	default:
 	}
 	select {
-	case o.postedGeom <- outGeom{Steps: steps, Start: start, End: end}:
+	case o.postedGeom <- outGeom{Steps: steps, SlotR: slotR, Start: start, End: end}:
 	default:
 	}
 }
@@ -82,6 +83,7 @@ func (o *Out) CurrentPlacement() (steps int, start, end spatial.Vec3) {
 func (o *Out) placementFrom(g outGeom) bead.BeadPlacement {
 	return bead.BeadPlacement{
 		Steps: g.Steps,
+		SlotR: g.SlotR,
 		Start: g.Start,
 		End:   g.End,
 		Node:  o.node,

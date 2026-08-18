@@ -11,7 +11,7 @@ import {
   readCameraPosPhi, readCameraPosTheta, readCameraUpPhi, readCameraUpTheta,
   readEventKind, readEventNodeRow, readEventPortRow, readEventTargetRow, readEventTargetPortRow,
   readEventEdgeRow, readEventSlot, readEventValue, readEventBead,
-  readEventBeadSteps, readEventSimLatencyMs, readEventX, readEventY, readEventZ, readEventF,
+  readEventBeadSteps, readEventX, readEventY, readEventZ, readEventF,
   readEventLabel, readEventDebug, readEventTextOff, readEventTextLen,
   readSceneCX, readSceneCY, readSceneCZ, readSceneRadius,
 } from "../../../schema/buffer-layout/buffer-layout";
@@ -69,9 +69,8 @@ export function decodeEventLine(ev: DataView, eventTextView: DataView, dn: Decod
       return { kind, node };
     case "send": {
       const beadSteps = readEventBeadSteps(ev, i);
-      const lat = readEventSimLatencyMs(ev, i);
-      if (beadSteps !== 0 || lat !== 0) {
-        const l: Line = { kind, node, port, value, beadSteps, simLatencyMs: lat };
+      if (beadSteps !== 0) {
+        const l: Line = { kind, node, port, value, beadSteps };
         const t = dn && targetRow >= 0 ? nodeLabel(dn, targetRow) : "";
         if (t) l.target = t;
 

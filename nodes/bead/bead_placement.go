@@ -5,6 +5,8 @@ import "github.com/dtauraso/wirefold/nodes/spatial"
 type BeadPlacement struct {
 	Steps int
 
+	SlotR float64
+
 	Start, End spatial.Vec3
 	Node, Port string
 }
@@ -25,6 +27,7 @@ type inflightBead struct {
 
 	seg     spatial.Segment
 	steps   int
+	slotR   float64
 	node    string
 	port    string
 	streams bool
@@ -32,5 +35,5 @@ type inflightBead struct {
 }
 
 func (pw *BeadRun) arrived(b *inflightBead) bool {
-	return b.slot >= b.steps*pw.slotsPerBead()
+	return b.slot >= b.steps
 }

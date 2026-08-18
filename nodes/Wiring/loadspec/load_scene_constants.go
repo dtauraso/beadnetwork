@@ -31,8 +31,9 @@ func loadSceneConstants(root string) (polarindex.SceneConstants, error) {
 	if c.MaxIndexPhi%2 != 0 || c.MaxIndexTheta%2 != 0 {
 		return polarindex.SceneConstants{}, fmt.Errorf("loadTree: constants.json: %s maxIndexPhi=%d maxIndexTheta=%d must be EVEN — a half turn is maxIndex/2 steps, and an odd ring has no exact half", path, c.MaxIndexPhi, c.MaxIndexTheta)
 	}
-	if math.Abs(c.ConstantR-lattice.BeadStepR) > 1e-9 {
-		return polarindex.SceneConstants{}, fmt.Errorf("loadTree: constants.json: %s constantR=%v disagrees with lattice.BeadStepR=%v — the radial grid is required to match the bead lattice spacing", path, c.ConstantR, lattice.BeadStepR)
+	slotsPerBead := lattice.BeadStepR / c.ConstantR
+	if math.Abs(slotsPerBead-math.Round(slotsPerBead)) > 1e-9 {
+		return polarindex.SceneConstants{}, fmt.Errorf("loadTree: constants.json: %s constantR=%v does not divide lattice.BeadStepR=%v a whole number of times (got %v) — one radial index is one slot a bead steps onto, so a bead width has to be a whole number of them or beads land off the bead lattice", path, c.ConstantR, lattice.BeadStepR, slotsPerBead)
 	}
 	return c, nil
 }

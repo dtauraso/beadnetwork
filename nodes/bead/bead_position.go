@@ -1,7 +1,6 @@
 package bead
 
 import (
-	"github.com/dtauraso/wirefold/nodes/bead/lattice"
 	"github.com/dtauraso/wirefold/nodes/spatial"
 )
 
@@ -10,5 +9,5 @@ func (b *inflightBead) pos() spatial.Vec3 {
 	if dir.Length() < 1e-9 {
 		return b.seg.Start
 	}
-	return b.seg.Start.Add(dir.Normalize().Scale(float64(b.slot) * lattice.PulseSpeedWuPerTick))
+	return b.seg.Start.Add(dir.Normalize().Scale(float64(b.slot) * b.slotR))
 }

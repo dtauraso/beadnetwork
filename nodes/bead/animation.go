@@ -4,16 +4,22 @@ import (
 	"context"
 	"encoding/binary"
 	"io"
+	"math"
 
 	SF "github.com/dtauraso/wirefold/Buffer/streamframe"
 	"github.com/dtauraso/wirefold/nodes/Wiring/framegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
+	"github.com/dtauraso/wirefold/nodes/bead/lattice"
 	"github.com/dtauraso/wirefold/nodes/clock"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
 	"github.com/dtauraso/wirefold/nodes/spatial"
 )
 
 type Animation struct {
+	speedCh <-chan float64
+
+	scalar float64
+
 	outRuns []*BeadRun
 
 	outEdgeRows []int32
@@ -35,6 +41,20 @@ func (o *Animation) SetBeadStream(w io.Writer, nodeRow int32, buildBeadFrame fun
 	o.buildBeadFrame = buildBeadFrame
 }
 
+func (o *Animation) SetSpeedCh(ch <-chan float64) { o.speedCh = ch }
+
+func (o *Animation) wakePulses() int {
+	s := o.scalar
+	if s <= 0 {
+		s = 1
+	}
+	n := int(math.Round(lattice.PulsesPerSlot / s))
+	if n < 1 {
+		return 1
+	}
+	return n
+}
+
 func (o *Animation) RunAnimation(ctx context.Context) {
 	if !o.HasBeadRuns() {
 		return
@@ -44,8 +64,11 @@ func (o *Animation) RunAnimation(ctx context.Context) {
 		if ctx.Err() != nil {
 			return
 		}
+		if sp, ok := clock.RecvSpeedNonBlocking(o.speedCh); ok {
+			o.scalar = sp
+		}
 		o.stepBeads(ctx, clk.Tick())
-		if err := clk.SleepPulse(ctx); err != nil {
+		if err := clk.SleepPulses(ctx, o.wakePulses()); err != nil {
 			return
 		}
 	}

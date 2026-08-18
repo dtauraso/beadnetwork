@@ -2,9 +2,9 @@ package timestart
 
 import (
 	"context"
+	lattice "github.com/dtauraso/wirefold/nodes/bead/lattice"
 
 	"github.com/dtauraso/wirefold/nodes/bead/inport"
-	lattice "github.com/dtauraso/wirefold/nodes/bead/lattice"
 	"github.com/dtauraso/wirefold/nodes/bead/outport"
 	"github.com/dtauraso/wirefold/nodes/clock"
 	"github.com/dtauraso/wirefold/nodes/nodeapi"
@@ -70,7 +70,7 @@ func (in *TimeStart) consumeInput(clk clock.Clock, value int, held int) (newHeld
 			continue
 		}
 		anyLive = true
-		if t := float64(in.ToNext[i].Geom().Steps) * lattice.DwellTicksPerBead; t > maxTicks {
+		if t := float64(in.ToNext[i].Geom().Steps) * lattice.PulsesPerSlot; t > maxTicks {
 			maxTicks = t
 		}
 	}

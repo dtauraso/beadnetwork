@@ -14,6 +14,4 @@ const BeadTorusOuterR = BeadRadius * (1 + BeadRingTubeRatio)
 
 const BeadStepR = 2 * BeadTorusOuterR
 
-const DwellTicksPerBead = BeadStepR / PulseSpeedWuPerTick * PulseSubStepsPerBead
-
-const PulseSubStepsPerBead = 1
+const PulsesPerSlot = 14

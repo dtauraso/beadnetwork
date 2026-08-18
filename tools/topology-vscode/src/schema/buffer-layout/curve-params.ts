@@ -2,6 +2,5 @@
 // Source: nodes/Wiring/nodegeom/curve_params.go CurveParam* constants.
 // Regenerate with: npm run gen:node-defs
 
-export const CURVE_PARAM_PULSE_SPEED_WU_PER_MS = 0.04;
 export const CURVE_PARAM_NODE_RADIUS_DIVISOR = 4;
 export const CURVE_PARAM_TILT_VECTOR_ANGLE_STEP = 0.2617993877991494;

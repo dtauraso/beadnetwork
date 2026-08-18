@@ -25,8 +25,6 @@ type BeadRun struct {
 
 	nextGen uint64
 
-	dwell float64
-
 	Owner string
 	Edge  string
 
@@ -38,9 +36,8 @@ type BeadRun struct {
 
 const maxInflightBeads = beadChanBufferSize
 
-func NewBeadRun(dwellTicks float64) *BeadRun {
+func NewBeadRun() *BeadRun {
 	return &BeadRun{
-		dwell: dwellTicks,
 		inCh:  make(chan placeRequest, beadChanBufferSize),
 		outCh: make(chan deliveredBead, beadChanBufferSize),
 

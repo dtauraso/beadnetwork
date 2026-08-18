@@ -5,7 +5,6 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/loadspec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/bead"
-	lattice "github.com/dtauraso/wirefold/nodes/bead/lattice"
 
 	T "github.com/dtauraso/wirefold/Trace"
 )
@@ -25,7 +24,7 @@ func AllocateBeadRuns(spec loadspec.TopoSpec, nodeGeoms map[string]nodegeom.Node
 			panic("AllocateBeadRuns: two edges target " + destKey + " — validateNoFanIn should have rejected this fan-in at parse")
 		}
 
-		pw := bead.NewBeadRun(lattice.DwellTicksPerBead)
+		pw := bead.NewBeadRun()
 		pw.Owner = e.Source
 		pw.Edge = e.Label
 		pw.Target = e.Target
