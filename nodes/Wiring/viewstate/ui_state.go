@@ -139,7 +139,7 @@ func (ui *UIState) DragPlaneHit(ev inputcodec.RawInputMsg) (hit spatial.Vec3, ok
 	eye := camera.EyeOf(vp)
 	basis := camera.BasisFromViewpoint(vp.Pos, vp.Up)
 	nx, ny := g.PixelToNDC(ev.X, ev.Y)
-	dir := camera.RayDirThroughNDC(nx, ny, basis, ev.Fov, g.Rect.Aspect())
+	dir := camera.RayDirThroughNDC(nx, ny, basis, ui.FovDeg(), g.Rect.Aspect())
 	forward := basis.Pole.Scale(-1)
 	denom := dir.Dot(forward)
 	if denom == 0 {
