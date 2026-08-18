@@ -12,7 +12,7 @@ const BufViewFrameHeaderSize = 8
 const BufBlockTagEdgeStream byte = 5
 
 //frametag:ts=BUF_EDGE_STREAM_FRAME_HEADER_SIZE
-const BufEdgeStreamFrameHeaderSize = 8
+const BufEdgeStreamFrameHeaderSize = 4
 
 //frametag:ts=BUF_BLOCK_TAG_NODE_STREAM
 const BufBlockTagNodeStream byte = 6
@@ -21,7 +21,7 @@ const BufBlockTagNodeStream byte = 6
 const BufBlockTagInteriorStream byte = 7
 
 //frametag:ts=BUF_NODE_STREAM_FRAME_HEADER_SIZE
-const BufNodeStreamFrameHeaderSize = 16
+const BufNodeStreamFrameHeaderSize = 4
 
 //frametag:ts=BUF_INTERIOR_STREAM_FRAME_HEADER_SIZE
 const BufInteriorStreamFrameHeaderSize = 4
@@ -33,4 +33,4 @@ const BufBlockTagBeadStream byte = 8
 const BufBlockTagColumn byte = 9
 
 //frametag:ts=BUF_BEAD_STREAM_FRAME_HEADER_SIZE
-const BufBeadStreamFrameHeaderSize = 12
+const BufBeadStreamFrameHeaderSize = 8

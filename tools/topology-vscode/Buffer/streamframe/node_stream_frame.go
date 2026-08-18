@@ -2,7 +2,6 @@ package streamframe
 
 import (
 	"encoding/binary"
-	"fmt"
 
 	B "github.com/dtauraso/wirefold/tools/topology-vscode/Buffer"
 )
@@ -71,24 +70,8 @@ type ChannelVector struct {
 }
 
 func BuildNodeStreamFrame(f NodeStreamFrame) []byte {
-	size := B.BufNodeStreamFrameHeaderSize
-	buf := make([]byte, size)
-	off := 0
-	binary.LittleEndian.PutUint32(buf[off:], f.Tick)
-	off += 4
-	binary.LittleEndian.PutUint32(buf[off:], 0)
-	off += 4
-	binary.LittleEndian.PutUint32(buf[off:], 0)
-	off += 4
-	binary.LittleEndian.PutUint32(buf[off:], 0)
-	off += 4
-
-	if off != size {
-		panic(fmt.Sprintf(
-			"BuildNodeStreamFrame: packed %d bytes for node row %d but allocated %d — the section walk and the size formula disagree; a section was added, reordered, or resized in one of the two and not the other",
-			off, f.NodeRow, size))
-	}
-
+	buf := make([]byte, B.BufNodeStreamFrameHeaderSize)
+	binary.LittleEndian.PutUint32(buf[0:], f.Tick)
 	return append(buf, BuildEventsSection(f.Events)...)
 }
 
