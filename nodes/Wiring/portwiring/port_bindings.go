@@ -1,7 +1,6 @@
 package portwiring
 
 import (
-	"github.com/dtauraso/wirefold/Slider"
 	"github.com/dtauraso/wirefold/nodes/Wiring/interior"
 	"github.com/dtauraso/wirefold/nodes/Wiring/rowtables"
 	"github.com/dtauraso/wirefold/nodes/Wiring/tiltvector"
@@ -9,6 +8,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/bead/outport"
 	"github.com/dtauraso/wirefold/nodes/clock"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/Slider"
 )
 
 type PortDir int

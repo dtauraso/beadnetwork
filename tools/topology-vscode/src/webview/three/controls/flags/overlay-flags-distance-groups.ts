@@ -4,7 +4,7 @@ import {
   readOverlayGroupLenTime,
   readOverlayGroupLenInput,
   readOverlayGroupLenGate,
-} from "../../../../../../../Buffer/buffer-layout";
+} from "../../../../../Buffer/buffer-layout";
 
 export interface DistanceGroupLens {
   time: number;

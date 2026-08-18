@@ -9,7 +9,7 @@ import {
   readEdgeBeadRingM8, readEdgeBeadRingM9, readEdgeBeadRingM10, readEdgeBeadRingM11,
   readEdgeBeadRingM12, readEdgeBeadRingM13, readEdgeBeadRingM14, readEdgeBeadRingM15,
   readEdgeBeadEdgeRow,
-} from "../../../../../../../Buffer/buffer-layout";
+} from "../../../../../Buffer/buffer-layout";
 
 export interface EdgeBeadsAgg {
   positions: Float32Array;

@@ -9,7 +9,7 @@ import {
   readNodeBottomTiltVectorPhi,
   readNodeCoplanarNormalPhi,
   readNodeReceivedVectorLen, readNodeReceivedVectorPhi,
-} from "../../../../../../Buffer/buffer-layout";
+} from "../../../../Buffer/buffer-layout";
 
 const SHAFT_RADIUS_FRAC = 0.035;
 const HEAD_LEN_FRAC = 0.22;

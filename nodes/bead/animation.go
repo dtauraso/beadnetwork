@@ -6,14 +6,14 @@ import (
 	"io"
 	"time"
 
-	SF "github.com/dtauraso/wirefold/Buffer/streamframe"
-	"github.com/dtauraso/wirefold/Slider"
 	"github.com/dtauraso/wirefold/nodes/Wiring/framegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/bead/lattice"
 	"github.com/dtauraso/wirefold/nodes/clock"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
 	"github.com/dtauraso/wirefold/nodes/spatial"
+	SF "github.com/dtauraso/wirefold/tools/topology-vscode/Buffer/streamframe"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/Slider"
 )
 
 type Animation struct {

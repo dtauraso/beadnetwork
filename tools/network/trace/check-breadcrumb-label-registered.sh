@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: Trace/Trace.go,nodes/bead/inport/in_port.go,nodes/**/*.go,Buffer/**/*.go | a .Breadcrumb("label") literal must be added to Trace.BreadcrumbLabels
+# PLACEMENT: tools/topology-vscode/Trace/Trace.go,nodes/bead/inport/in_port.go,nodes/**/*.go,tools/topology-vscode/Buffer/**/*.go | a .Breadcrumb("label") literal must be added to Trace.BreadcrumbLabels
 
 set -euo pipefail
 
@@ -8,7 +8,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 cd "$REPO_ROOT"
 
-TRACE_DIR="Trace"
+TRACE_DIR="tools/topology-vscode/Trace"
 
 if [[ ! -d "$TRACE_DIR" ]]; then
   echo "check-breadcrumb-label-registered: MISCONFIGURED — dir not found: $TRACE_DIR" >&2
@@ -45,7 +45,7 @@ call_site_hits() {
 CALL_HITS=$(call_site_hits)
 if [[ -z "$(printf '%s' "$CALL_HITS" | tr -d '[:space:]')" ]]; then
   echo "check-breadcrumb-label-registered: MISCONFIGURED — no .Breadcrumb(\"...\") call" >&2
-  echo "sites found under nodes/Buffer/Trace; the extraction pattern itself is likely stale." >&2
+  echo "sites found under nodes/tools/topology-vscode/Buffer/Trace; the extraction pattern itself is likely stale." >&2
   exit 1
 fi
 

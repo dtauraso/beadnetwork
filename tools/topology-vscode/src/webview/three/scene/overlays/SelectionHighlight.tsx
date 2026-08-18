@@ -4,8 +4,8 @@ import * as THREE from "three";
 import { getNodeFrame } from "../nodes/node-frame-aggregate";
 import {
   readNodeCX, readNodeCY, readNodeCZ, readNodeRadius, readNodeSelected, readNodeHovered,
-} from "../../../../../../../Buffer/buffer-layout";
-import { readOverlaySelectionRing, readOverlayHoverRing } from "../../../../../../../Buffer/buffer-layout";
+} from "../../../../../Buffer/buffer-layout";
+import { readOverlaySelectionRing, readOverlayHoverRing } from "../../../../../Buffer/buffer-layout";
 import { overlayOn } from "../../controls/flags/overlay-flags";
 import { NODE_SPHERE_RADIUS, HOVER_COLOR, HOVER_RING_TUBE_RATIO } from "../buffer-scene-shared";
 

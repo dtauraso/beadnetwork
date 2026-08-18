@@ -5,8 +5,8 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/rowevent"
 
-	T "github.com/dtauraso/wirefold/Trace"
 	W "github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
+	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
 )
 
 func emitStartupBreadcrumbs(tr *T.Trace, md *W.MoveDispatch, scenePath string, nodeCount int) {

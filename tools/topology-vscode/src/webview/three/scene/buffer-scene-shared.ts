@@ -1,4 +1,4 @@
-import { readNodeKindId, UNKNOWN_KIND_ID } from "../../../../../../Buffer/buffer-layout";
+import { readNodeKindId, UNKNOWN_KIND_ID } from "../../../../Buffer/buffer-layout";
 import { NODE_DEFS_ARRAY } from "../../../schema/node-defs";
 import { polarToCart } from "../polar-convert";
 

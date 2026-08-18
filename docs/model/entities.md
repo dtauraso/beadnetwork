@@ -117,8 +117,8 @@ mistake to avoid:
   holds them in node-local state until its firing rule is satisfied,
   then fires. There is no held-value slot in this model sense — node-local held
   state replaces it. (This is a different concept from the buffer's `Slot`
-  column — `nodes/rowevent/row_event.go`, `Buffer/streamframe/stream_events.go`,
-  `Buffer/bufschema/layout.go` — which is a live 2x2 interior VISUAL grid position,
+  column — `nodes/rowevent/row_event.go`, `tools/topology-vscode/Buffer/streamframe/stream_events.go`,
+  `tools/topology-vscode/Buffer/bufschema/layout.go` — which is a live 2x2 interior VISUAL grid position,
   slot = gridRow*2 + gridCol, for where a held bead is drawn inside a node.)
 - **Input port.** A ROLE, not a place: declared by the
   node kind as a `Wiring.PortSpec` and bound to a channel at LOAD time

@@ -7,7 +7,7 @@ package viewstate
 import (
 	"fmt"
 
-	T "github.com/dtauraso/wirefold/Trace"
+	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
 )
 
 // OverlayState groups the per-toggle overlay-visibility booleans and their

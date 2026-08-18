@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from "react";
 import { getNodeFrame, subscribeNodeStreamBlocks } from "../../scene/nodes/node-frame-aggregate";
 import { getViewBlocks, subscribeViewBlocks } from "../../scene/view-blocks";
-import { readOverlayDragNodeRow } from "../../../../../../../Buffer/buffer-layout";
+import { readOverlayDragNodeRow } from "../../../../../Buffer/buffer-layout";
 import { nodeLabel } from "../../decode/buffer-decode-node";
 
 export function readDragNodeRow(): number {

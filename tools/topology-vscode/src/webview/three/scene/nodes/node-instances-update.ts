@@ -10,7 +10,7 @@ import {
   readNodeRingM4, readNodeRingM5, readNodeRingM6, readNodeRingM7,
   readNodeRingM8, readNodeRingM9, readNodeRingM10, readNodeRingM11,
   readNodeRingM12, readNodeRingM13, readNodeRingM14, readNodeRingM15,
-} from "../../../../../../../Buffer/buffer-layout";
+} from "../../../../../Buffer/buffer-layout";
 import { NODE_SPHERE_RADIUS, nodeRowColors, poleAxis } from "../buffer-scene-shared";
 import { computeNodeDepthOrder, setNodeDrawOrder } from "./node-depth-order";
 

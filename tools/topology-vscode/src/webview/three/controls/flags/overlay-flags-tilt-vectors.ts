@@ -6,7 +6,7 @@ import {
   readNodeLatticePoints,
   readNodeRoundsToParallel,
   readNodeMsgsToParallel,
-} from "../../../../../../../Buffer/buffer-layout";
+} from "../../../../../Buffer/buffer-layout";
 import { nodeLabel } from "../../decode/buffer-decode-node";
 
 export interface TiltVectorRow {

@@ -16,7 +16,7 @@ import {
   SHADING_PARAM_ENV_RIM_COLOR,
   SHADING_PARAM_ENV_RIM_INTENSITY,
   SHADING_PARAM_ENV_PMREM_BLUR,
-} from "../../../../../../Buffer/shading-params";
+} from "../../../../Buffer/shading-params";
 
 export const EnvTexContext = createContext<THREE.Texture | null>(null);
 

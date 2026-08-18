@@ -4,7 +4,6 @@
 # per-identifier audits use: find the files mentioning an identifier, then narrow to the
 # lines where it actually GUARDS code (if/&&/||), not just comments it.
 
-# find_ident_files IDENT — prints matching non-test .go files under nodes/Buffer/Trace,
 # one per line (nothing if none found).
 find_ident_files() {
   local ident="$1"

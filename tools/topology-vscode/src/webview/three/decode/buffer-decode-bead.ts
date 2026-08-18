@@ -1,5 +1,5 @@
-import { EDGE_BEAD_STRIDE } from "../../../../../../Buffer/buffer-layout";
-import { BUF_BEAD_STREAM_FRAME_HEADER_SIZE } from "../../../../../../Buffer/frame-tags";
+import { EDGE_BEAD_STRIDE } from "../../../../Buffer/buffer-layout";
+import { BUF_BEAD_STREAM_FRAME_HEADER_SIZE } from "../../../../Buffer/frame-tags";
 import { decodeTrailingEvents } from "./buffer-decode-shared";
 
 export interface DecodedBeadStreamFrame {

@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
-import { postGoRecord } from "../tools/topology-vscode/src/webview/vscode-api";
-import { encodeNodeDragActiveToggle } from "../tools/topology-vscode/src/schema/input/input-encode";
+import { postGoRecord } from "../src/webview/vscode-api";
+import { encodeNodeDragActiveToggle } from "../src/schema/input/input-encode";
 import { useNodeRuleRows, type NodeRuleRow } from "./node-rules";
-import { firePanelToggle, usePanelOpen } from "../tools/topology-vscode/src/webview/three/controls/pills/panel-toggle";
+import { firePanelToggle, usePanelOpen } from "../src/webview/three/controls/pills/panel-toggle";
 import { NodeRuleSharedMenu } from "./NodeRuleSharedMenu";
 import { FreeNodeBlock, EdgeBlock, SpanningBlock } from "./NodeRuleBlocks";
 import { SelfBlock } from "./NodeSelfRuleBlock";

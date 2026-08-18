@@ -8,10 +8,10 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/clock"
 
-	SF "github.com/dtauraso/wirefold/Buffer/streamframe"
-	"github.com/dtauraso/wirefold/Tabs"
-	T "github.com/dtauraso/wirefold/Trace"
 	Bld "github.com/dtauraso/wirefold/nodes/Wiring/build"
+	SF "github.com/dtauraso/wirefold/tools/topology-vscode/Buffer/streamframe"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/Tabs"
+	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
 )
 
 func RunTopology(ctx context.Context, cancel context.CancelFunc, topologyPath string, clk clock.Clock) {

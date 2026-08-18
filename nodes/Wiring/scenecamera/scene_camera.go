@@ -3,12 +3,12 @@ package scenecamera
 import (
 	"math"
 
-	T "github.com/dtauraso/wirefold/Trace"
 	"github.com/dtauraso/wirefold/nodes/Wiring/camerapersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/camera"
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
 	"github.com/dtauraso/wirefold/nodes/spatial"
+	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
 )
 
 type vec3 = spatial.Vec3

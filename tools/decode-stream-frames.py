@@ -6,7 +6,7 @@ success while the screen shows otherwise.
 
 Each write is [len u32][frame]; a frame is [tick u32][labelLen u32][row][label][events].
 Strides come from BUF_LAYOUT_FINGERPRINT in
-Buffer/buffer-layout.ts -- if that moves and
+tools/topology-vscode/Buffer/buffer-layout.ts -- if that moves and
 these do not, the decode reports nonsense, so it is checked below.
 """
 
@@ -22,7 +22,7 @@ HDR = 8
 
 def strides(repo_root):
     path = os.path.join(
-        repo_root, "Buffer/buffer-layout.ts"
+        repo_root, "tools/topology-vscode/Buffer/buffer-layout.ts"
     )
     with open(path, encoding="utf8") as fh:
         text = fh.read(8192)

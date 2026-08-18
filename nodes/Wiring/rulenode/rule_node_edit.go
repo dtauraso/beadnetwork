@@ -2,7 +2,7 @@ package rulenode
 
 import (
 	"fmt"
-	"github.com/dtauraso/wirefold/PolarRules"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/PolarRules"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/nodefiles"

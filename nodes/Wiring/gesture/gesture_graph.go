@@ -1,12 +1,12 @@
 package gesture
 
 import (
-	T "github.com/dtauraso/wirefold/Trace"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/camera"
 	"github.com/dtauraso/wirefold/nodes/Wiring/gesturefsm"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
+	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
 )
 
 type gestureEdge struct {

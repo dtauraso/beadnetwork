@@ -3,7 +3,7 @@ import { decodeEdgeStreamFrame, type DecodedEdgeStreamFrame } from "../../decode
 import {
   readEdgeSX, readEdgeSY, readEdgeSZ, readEdgeEX, readEdgeEY, readEdgeEZ,
   readEdgeSrcNodeRow, readEdgeDstNodeRow, readEdgeDeltaR, readEdgeDragActive,
-} from "../../../../../../../Buffer/buffer-layout";
+} from "../../../../../Buffer/buffer-layout";
 
 export interface EdgeAccessor {
 

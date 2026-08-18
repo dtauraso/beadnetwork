@@ -1,7 +1,7 @@
 package bead
 
 import (
-	T "github.com/dtauraso/wirefold/Trace"
+	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
 )
 
 type arriveInfo struct {

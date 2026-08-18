@@ -1,7 +1,7 @@
 ---
 paths:
-  - "Buffer/**/*.go"
-  - "Buffer/buffer-layout.ts"
+  - "tools/topology-vscode/Buffer/**/*.go"
+  - "tools/topology-vscode/Buffer/buffer-layout.ts"
   - "tools/topology-vscode/src/webview/three/**/*.tsx"
   - "tools/topology-vscode/src/webview/three/**/*.ts"
 ---
@@ -9,8 +9,8 @@ paths:
 # Content buffer schema — adding or changing a column
 
 If a change needs a **new column in the content buffer**, add it to the hand-authored
-schema (`Buffer/bufschema/layout.go`, the `buf:"…"` struct tags) and regenerate in the same
-commit. `Buffer/buffer_layout_gen.go` and `Buffer/buffer-layout.ts`
+schema (`tools/topology-vscode/Buffer/bufschema/layout.go`, the `buf:"…"` struct tags) and regenerate in the same
+commit. `tools/topology-vscode/Buffer/buffer_layout_gen.go` and `tools/topology-vscode/Buffer/buffer-layout.ts`
 are BOTH generated from `layout.go`, and `check-generated.sh` fails if either is stale
 relative to it (it regenerates and diffs).
 

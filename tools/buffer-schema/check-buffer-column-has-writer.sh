@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: Buffer/bufschema/layout_node.go,Buffer/bufschema/layout_overlay.go,Buffer/bufschema/layout_panel.go,runtopology/node_stream.go,runtopology/view_stream.go | a Node/Overlay/Panel column must be named by the runtopology adapter that fills its row, or it silently streams zeros
+# PLACEMENT: tools/topology-vscode/Buffer/bufschema/layout_node.go,tools/topology-vscode/Buffer/bufschema/layout_overlay.go,tools/topology-vscode/Buffer/bufschema/layout_panel.go,runtopology/node_stream.go,runtopology/view_stream.go | a Node/Overlay/Panel column must be named by the runtopology adapter that fills its row, or it silently streams zeros
 
 set -euo pipefail
 
@@ -12,9 +12,9 @@ python3 - <<'PY'
 import re, sys
 
 PAIRS = [
-    ("Buffer/bufschema/layout_node.go",    "bufLayoutNode",    "runtopology/node_stream.go"),
-    ("Buffer/bufschema/layout_overlay.go", "bufLayoutOverlay", "runtopology/view_stream.go"),
-    ("Buffer/bufschema/layout_panel.go",   "bufLayoutPanel",   "runtopology/view_stream.go"),
+    ("tools/topology-vscode/Buffer/bufschema/layout_node.go",    "bufLayoutNode",    "runtopology/node_stream.go"),
+    ("tools/topology-vscode/Buffer/bufschema/layout_overlay.go", "bufLayoutOverlay", "runtopology/view_stream.go"),
+    ("tools/topology-vscode/Buffer/bufschema/layout_panel.go",   "bufLayoutPanel",   "runtopology/view_stream.go"),
 ]
 
 DERIVED = [

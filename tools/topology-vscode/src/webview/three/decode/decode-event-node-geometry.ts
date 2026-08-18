@@ -5,7 +5,7 @@ import {
   readNodeVRX, readNodeVRY, readNodeVRZ, readNodeFRX, readNodeFRY, readNodeFRZ,
   readNodeKindId,
   UNKNOWN_KIND_ID,
-} from "../../../../../../Buffer/buffer-layout";
+} from "../../../../Buffer/buffer-layout";
 import type { Line } from "./decode-event-line";
 
 export function nodeGeometryLine(dn: DecodedNodeFrame, nodeRow: number, node: string): Line {

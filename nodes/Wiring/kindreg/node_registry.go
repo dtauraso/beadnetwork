@@ -10,7 +10,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/portwiring"
 	"github.com/dtauraso/wirefold/nodes/nodeapi"
 
-	T "github.com/dtauraso/wirefold/Trace"
+	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
 )
 
 type BuildDeps struct {

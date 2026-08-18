@@ -3,8 +3,8 @@ package streamframe
 import (
 	"encoding/binary"
 
-	B "github.com/dtauraso/wirefold/Buffer"
-	T "github.com/dtauraso/wirefold/Trace"
+	B "github.com/dtauraso/wirefold/tools/topology-vscode/Buffer"
+	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
 )
 
 type StreamEvent struct {

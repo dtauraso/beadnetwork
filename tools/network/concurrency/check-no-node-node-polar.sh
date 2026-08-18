@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: nodes/**/*.go,Buffer/**/*.go,tools/topology-vscode/src/**/*.ts | no DOUBLE-LINK node-node polar record (LocalPolar et al. — the edge's own triple D is the model, not this); a bead streams its world position, never a node-local offset to be summed
+# PLACEMENT: nodes/**/*.go,tools/topology-vscode/Buffer/**/*.go,tools/topology-vscode/src/**/*.ts | no DOUBLE-LINK node-node polar record (LocalPolar et al. — the edge's own triple D is the model, not this); a bead streams its world position, never a node-local offset to be summed
 
 set -euo pipefail
 

@@ -3,7 +3,7 @@ package runtopology
 import (
 	"github.com/dtauraso/wirefold/nodes/rowevent"
 
-	SF "github.com/dtauraso/wirefold/Buffer/streamframe"
+	SF "github.com/dtauraso/wirefold/tools/topology-vscode/Buffer/streamframe"
 )
 
 func toStreamEvents(events []rowevent.RowEvent) []SF.StreamEvent {

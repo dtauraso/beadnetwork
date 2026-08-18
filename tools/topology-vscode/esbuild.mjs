@@ -8,11 +8,6 @@ const common = {
   target: "es2022",
   logLevel: "info",
   minify: !watch,
-
-  // Slider/, Scenes/ and PolarRules/ keep their TS beside their Go at the repo
-  // root, so those files sit above this node_modules rather than under it.
-  // Node resolution only looks upward, so react and friends need naming here.
-  nodePaths: ["node_modules"],
 };
 
 const extension = {

@@ -8,7 +8,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
 
-	T "github.com/dtauraso/wirefold/Trace"
+	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
 )
 
 func updateHover(d Deps, ev inputcodec.RawInputMsg) {

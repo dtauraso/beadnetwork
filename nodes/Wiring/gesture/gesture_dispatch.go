@@ -3,13 +3,13 @@ package gesture
 import (
 	"context"
 
-	T "github.com/dtauraso/wirefold/Trace"
 	"github.com/dtauraso/wirefold/nodes/Wiring/gesturefsm"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/moverreg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodemove"
 	"github.com/dtauraso/wirefold/nodes/Wiring/rowtables"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
+	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
 )
 
 type Deps struct {

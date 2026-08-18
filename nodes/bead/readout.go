@@ -3,8 +3,8 @@ package bead
 import (
 	"fmt"
 
-	T "github.com/dtauraso/wirefold/Trace"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
+	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
 )
 
 type beadReadout struct {

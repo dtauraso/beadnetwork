@@ -5,9 +5,9 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
 	"os"
 
-	"github.com/dtauraso/wirefold/Tabs"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/Tabs"
 )
 
 func SelectScene(scenes *SceneSwitch, idx int) {

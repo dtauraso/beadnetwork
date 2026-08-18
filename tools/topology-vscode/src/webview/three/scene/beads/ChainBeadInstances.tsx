@@ -4,7 +4,7 @@ import * as THREE from "three";
 import { getEdgeBeads } from "../edges/edge-bead-blocks";
 import { beadStyleForValue } from "./bead-style";
 import { getCanonicalBeadRingSurfaceGeometry } from "./bead-ring-surface-geometry";
-import { SHADING_PARAM_BEAD_RADIUS } from "../../../../../../../Buffer/shading-params";
+import { SHADING_PARAM_BEAD_RADIUS } from "../../../../../Buffer/shading-params";
 
 const RING_COLOR = beadStyleForValue(1)!.ring;
 

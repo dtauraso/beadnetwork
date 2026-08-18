@@ -13,7 +13,7 @@ import {
   readPanelScenePoles,
   readPanelSceneVectors,
   readPanelSceneLabels,
-} from "../../../../../../../Buffer/buffer-layout";
+} from "../../../../../Buffer/buffer-layout";
 
 export type PanelFlagVals = Record<PanelFlag, boolean>;
 

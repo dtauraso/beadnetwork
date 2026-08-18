@@ -2,7 +2,7 @@ package owners
 
 import (
 	"fmt"
-	"github.com/dtauraso/wirefold/PolarRules"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/PolarRules"
 	"strconv"
 )
 

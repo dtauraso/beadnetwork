@@ -3,11 +3,11 @@ package stdinreader
 import (
 	"context"
 	"fmt"
-	"github.com/dtauraso/wirefold/Slider"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/Slider"
 
-	T "github.com/dtauraso/wirefold/Trace"
 	"github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
+	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
 )
 
 func applyUpdateEdge(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks Slider.Sinks) {
