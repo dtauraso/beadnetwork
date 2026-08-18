@@ -39,11 +39,6 @@ OBSERVERS = {
     "tools/topology-vscode/src/webview/three/scene/edges/check-edge-lands-on-node.ts",
 }
 
-# EMPTY, and that is the point: every column has exactly one reader. It started at 13
-# entries (48 before the observer exemption) and came down one consumer at a time, each
-# either sent its own geometry by Go or asking the module that already reads the column.
-# An entry here is a regression, not a place to record one -- add the reader's fix
-# instead.
 RATCHET = {}
 
 readers = set()
