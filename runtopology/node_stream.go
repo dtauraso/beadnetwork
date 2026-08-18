@@ -50,7 +50,7 @@ func wireNodeStreams(streamFDs SF.StreamFDs, md *W.MoveDispatch) {
 				beadBase, beadWired,
 				func(tick uint32, nodeRow int32, beads []SF.EdgeBead, events []rowevent.RowEvent) []byte {
 					SF.WriteEdgeBeadColumns(nodeCols(nodeRow), beads)
-					return SF.BuildBeadStreamFrame(tick, nodeRow, toStreamEvents(events))
+					return SF.BuildBeadStreamFrame(tick, nodeRow, events)
 				},
 				md.RT.NodeRowFor,
 
@@ -99,7 +99,7 @@ func wireNodeStreams(streamFDs SF.StreamFDs, md *W.MoveDispatch) {
 						RuleGroupID:      f.RuleGroupID,
 						RuleGroupSize:    f.RuleGroupSize,
 						Label:            f.Label,
-						Events:           toStreamEvents(f.Events),
+						Events:           f.Events,
 					}
 
 					SF.WriteNodeColumns(nodeCols(f.NodeRow), frame)
@@ -108,7 +108,7 @@ func wireNodeStreams(streamFDs SF.StreamFDs, md *W.MoveDispatch) {
 					return SF.BuildNodeStreamFrame(frame)
 				},
 				func(tick uint32, events []rowevent.RowEvent) []byte {
-					return SF.BuildInteriorStreamFrame(tick, toStreamEvents(events))
+					return SF.BuildInteriorStreamFrame(tick, events)
 				},
 				nodeCols,
 				B.NodeKindID)

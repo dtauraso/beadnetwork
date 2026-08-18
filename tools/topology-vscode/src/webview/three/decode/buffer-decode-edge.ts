@@ -1,5 +1,5 @@
 import { BUF_EDGE_STREAM_FRAME_HEADER_SIZE } from "../../../../Buffer/frame-tags";
-import { STR_DECODER, decodeTrailingEvents } from "./buffer-decode-shared";
+import { STR_DECODER, decodeTrailingEvents, type DecodedEvents } from "./buffer-decode-shared";
 import { columnBytes } from "../../../../Buffer/column-values";
 import { edgeColumn } from "../../../../Buffer/column-owners";
 import { COL_STREAM_EDGE_LABEL } from "../../../../Buffer/column-streams-gen";
@@ -7,9 +7,7 @@ import { COL_STREAM_EDGE_LABEL } from "../../../../Buffer/column-streams-gen";
 export interface DecodedEdgeStreamFrame {
   tick: number;
 
-  eventCount: number;
-  eventView: DataView;
-  eventTextView: DataView;
+  events: DecodedEvents;
 }
 
 const lastEdgeStreamBufByRow = new Map<number, ArrayBuffer>();
@@ -30,10 +28,10 @@ function decodeEdgeStreamFrameUncached(buf: ArrayBuffer): DecodedEdgeStreamFrame
   const hdr = new DataView(buf, 0, BUF_EDGE_STREAM_FRAME_HEADER_SIZE);
   const tick = hdr.getUint32(0, true);
 
-  const { count: eventCount, view: eventView, textView: eventTextView } = decodeTrailingEvents(
+  const events = decodeTrailingEvents(
     buf, BUF_EDGE_STREAM_FRAME_HEADER_SIZE);
 
-  return { tick, eventCount, eventView, eventTextView };
+  return { tick, events };
 }
 
 export function edgeLabel(row: number): string {

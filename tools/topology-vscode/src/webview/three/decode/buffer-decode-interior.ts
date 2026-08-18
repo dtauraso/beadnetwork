@@ -1,13 +1,11 @@
 import { BUF_INTERIOR_STREAM_FRAME_HEADER_SIZE } from "../../../../Buffer/frame-tags";
-import { decodeTrailingEvents } from "./buffer-decode-shared";
+import { decodeTrailingEvents, type DecodedEvents } from "./buffer-decode-shared";
 export { INTERIOR_SLOTS_PER_NODE } from "../../../../Buffer/buffer-layout";
 
 export interface DecodedInteriorStreamFrame {
   tick: number;
 
-  eventCount: number;
-  eventView: DataView;
-  eventTextView: DataView;
+  events: DecodedEvents;
 }
 
 const lastInteriorStreamBufByRow = new Map<number, ArrayBuffer>();
@@ -28,8 +26,8 @@ function decodeInteriorStreamFrameUncached(buf: ArrayBuffer): DecodedInteriorStr
   const hdr = new DataView(buf, 0, BUF_INTERIOR_STREAM_FRAME_HEADER_SIZE);
   const tick = hdr.getUint32(0, true);
 
-  const { count: eventCount, view: eventView, textView: eventTextView } = decodeTrailingEvents(
+  const events = decodeTrailingEvents(
     buf, BUF_INTERIOR_STREAM_FRAME_HEADER_SIZE);
 
-  return { tick, eventCount, eventView, eventTextView };
+  return { tick, events };
 }

@@ -15,7 +15,7 @@ func wireViewStream(md *W.MoveDispatch, viewFile *os.File, viewStreamWired bool,
 			func(tick uint32, events []rowevent.RowEvent) []byte {
 				return SF.BuildViewStreamFrame(tick,
 					sceneTabNames, uint16(sceneTabSelected),
-					toStreamEvents(events))
+					events)
 			})
 	}
 }

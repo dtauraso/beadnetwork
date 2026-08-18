@@ -1,14 +1,12 @@
 import { BUF_BEAD_STREAM_FRAME_HEADER_SIZE } from "../../../../Buffer/frame-tags";
-import { decodeTrailingEvents } from "./buffer-decode-shared";
+import { decodeTrailingEvents, type DecodedEvents } from "./buffer-decode-shared";
 
 export interface DecodedBeadStreamFrame {
   tick: number;
 
   nodeRow: number;
 
-  eventCount: number;
-  eventView: DataView;
-  eventTextView: DataView;
+  events: DecodedEvents;
 }
 
 const lastBeadStreamBufByRow = new Map<number, ArrayBuffer>();
@@ -30,8 +28,7 @@ function decodeBeadStreamFrameUncached(buf: ArrayBuffer): DecodedBeadStreamFrame
   const tick = hdr.getUint32(0, true);
   const nodeRow = hdr.getInt32(4, true);
 
-  const { count: eventCount, view: eventView, textView: eventTextView } =
-    decodeTrailingEvents(buf, BUF_BEAD_STREAM_FRAME_HEADER_SIZE);
+  const events = decodeTrailingEvents(buf, BUF_BEAD_STREAM_FRAME_HEADER_SIZE);
 
-  return { tick, nodeRow, eventCount, eventView, eventTextView };
+  return { tick, nodeRow, events };
 }

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: tools/topology-vscode/Buffer/bufschema/layout_event.go | bufLayoutEvent may declare at most one `<Name>Off uint32` free-form string section
+# PLACEMENT: tools/topology-vscode/Buffer/bufschema/layout_event.go | bufLayoutBreadcrumb may declare at most one `<Name>Off uint32` free-form string section
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
@@ -13,13 +13,13 @@ if [[ ! -f "$LAYOUT_FILE" ]]; then
 fi
 
 BODY="$(awk '
-  /^type bufLayoutEvent struct \{/ { grab=1; next }
+  /^type bufLayoutBreadcrumb struct \{/ { grab=1; next }
   grab && /^\}/                    { grab=0 }
   grab                             { print }
 ' "$LAYOUT_FILE")"
 
 if [[ -z "$BODY" ]]; then
-  echo "check-event-string-section-singular: MISCONFIGURED — bufLayoutEvent struct not found"
+  echo "check-event-string-section-singular: MISCONFIGURED — bufLayoutBreadcrumb struct not found"
   echo "  in $LAYOUT_FILE. If the struct was renamed, update this guard to match."
   exit 1
 fi
@@ -28,7 +28,7 @@ OFF_FIELDS="$(printf '%s\n' "$BODY" | grep -oE '^[[:space:]]*[A-Za-z0-9_]+Off[[:
 OFF_COUNT="$(printf '%s' "$OFF_FIELDS" | grep -c . || true)"
 
 if [[ "$OFF_COUNT" -gt 1 ]]; then
-  echo "check-event-string-section-singular: bufLayoutEvent declares $OFF_COUNT string sections"
+  echo "check-event-string-section-singular: bufLayoutBreadcrumb declares $OFF_COUNT string sections"
   echo "  (fields matching '<Name>Off uint32'):"
   printf '%s\n' "$OFF_FIELDS" | sed 's/^[[:space:]]*/    /'
   echo

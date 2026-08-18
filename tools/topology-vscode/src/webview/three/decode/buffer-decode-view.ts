@@ -1,6 +1,6 @@
 import { BUF_LAYOUT_FINGERPRINT_HASH } from "../../../../Buffer/buffer-layout";
 import { BUF_VIEW_FRAME_HEADER_SIZE } from "../../../../Buffer/frame-tags";
-import { STR_DECODER, decodeTrailingEvents } from "./buffer-decode-shared";
+import { STR_DECODER, decodeTrailingEvents, type DecodedEvents } from "./buffer-decode-shared";
 
 export const SCENE_TABS_HEADER_SIZE = 4;
 
@@ -58,9 +58,7 @@ export interface DecodedViewFrame {
   sceneTabs: string[];
   sceneTabSelected: number;
 
-  eventCount: number;
-  eventView: DataView;
-  eventTextView: DataView;
+  events: DecodedEvents;
 }
 
 let lastViewBuf: ArrayBuffer | null = null;
@@ -98,11 +96,11 @@ function decodeViewFrameUncached(buf: ArrayBuffer): DecodedViewFrame | null {
   const tabs = decodeSceneTabs(buf, off);
   off = tabs.end;
 
-  const { count: eventCount, view: eventView, textView: eventTextView } = decodeTrailingEvents(buf, off);
+  const events = decodeTrailingEvents(buf, off);
 
   return {
     tick,
     sceneTabs: tabs.names, sceneTabSelected: tabs.selected,
-    eventCount, eventView, eventTextView,
+    events,
   };
 }

@@ -2,6 +2,7 @@ package streamframe
 
 import (
 	"encoding/binary"
+	"github.com/dtauraso/wirefold/nodes/rowevent"
 
 	B "github.com/dtauraso/wirefold/tools/topology-vscode/Buffer"
 )
@@ -13,7 +14,7 @@ type EdgeBead struct {
 	RingMatrix [16]float32
 }
 
-func BuildBeadStreamFrame(tick uint32, nodeRow int32, events []StreamEvent) []byte {
+func BuildBeadStreamFrame(tick uint32, nodeRow int32, events []rowevent.RowEvent) []byte {
 	buf := make([]byte, B.BufBeadStreamFrameHeaderSize)
 	binary.LittleEndian.PutUint32(buf[0:], tick)
 	binary.LittleEndian.PutUint32(buf[4:], uint32(nodeRow))

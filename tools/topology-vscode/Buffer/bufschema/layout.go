@@ -17,5 +17,9 @@ var _ = [...]any{
 	bufLayoutOverlay{},
 	bufLayoutPanel{},
 	bufLayoutScene{},
-	bufLayoutEvent{},
+	bufLayoutRecv{},
+	bufLayoutFire{},
+	bufLayoutSend{},
+	bufLayoutArrive{},
+	bufLayoutBreadcrumb{},
 }

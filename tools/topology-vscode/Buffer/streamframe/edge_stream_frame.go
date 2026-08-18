@@ -2,6 +2,7 @@ package streamframe
 
 import (
 	"encoding/binary"
+	"github.com/dtauraso/wirefold/nodes/rowevent"
 
 	B "github.com/dtauraso/wirefold/tools/topology-vscode/Buffer"
 	"github.com/dtauraso/wirefold/tools/topology-vscode/Buffer/colstream"
@@ -27,7 +28,7 @@ func WriteEdgeColumns(c *colstream.ColumnSet,
 	c.SetBytes(B.ColStreamEdgeLabel, []byte(label))
 }
 
-func BuildEdgeStreamFrame(tick uint32, events []StreamEvent) []byte {
+func BuildEdgeStreamFrame(tick uint32, events []rowevent.RowEvent) []byte {
 	buf := make([]byte, B.BufEdgeStreamFrameHeaderSize)
 	binary.LittleEndian.PutUint32(buf[0:], tick)
 	return append(buf, BuildEventsSection(events)...)

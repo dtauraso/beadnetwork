@@ -2,6 +2,7 @@ package streamframe
 
 import (
 	"encoding/binary"
+	"github.com/dtauraso/wirefold/nodes/rowevent"
 
 	B "github.com/dtauraso/wirefold/tools/topology-vscode/Buffer"
 )
@@ -55,7 +56,7 @@ type NodeStreamFrame struct {
 
 	ChannelVectors []ChannelVector
 
-	Events []StreamEvent
+	Events []rowevent.RowEvent
 }
 
 type TiltArrow struct {
@@ -75,7 +76,7 @@ func BuildNodeStreamFrame(f NodeStreamFrame) []byte {
 	return append(buf, BuildEventsSection(f.Events)...)
 }
 
-func BuildInteriorStreamFrame(tick uint32, events []StreamEvent) []byte {
+func BuildInteriorStreamFrame(tick uint32, events []rowevent.RowEvent) []byte {
 	buf := make([]byte, B.BufInteriorStreamFrameHeaderSize)
 	binary.LittleEndian.PutUint32(buf[0:], tick)
 	return append(buf, BuildEventsSection(events)...)

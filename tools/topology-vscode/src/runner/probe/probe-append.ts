@@ -5,6 +5,7 @@ import { decodeEdgeStreamFrame } from "../../webview/three/decode/buffer-decode-
 import { decodeBeadStreamFrame } from "../../webview/three/decode/buffer-decode-bead";
 import { decodeInteriorStreamFrame } from "../../webview/three/decode/buffer-decode-interior";
 import { probeOwnerFile, type ProbeOwner } from "../../probe-files";
+import type { DecodedEvents } from "../../webview/three/decode/buffer-decode-shared";
 
 function appendLines(probeFile: string, lines: string): void {
   if (lines.length === 0) return;
@@ -20,13 +21,13 @@ export function appendViewProbe(probeFile: string | undefined, ab: ArrayBuffer, 
 
 function appendOwnerProbe(
   probeDir: string | undefined, owner: ProbeOwner, row: number,
-  decoded: { eventCount: number; eventView: DataView; eventTextView: DataView } | null,
+  decoded: { events: DecodedEvents } | null,
   probeTrace: boolean,
 ): void {
-  if (!probeDir || !decoded || decoded.eventCount === 0) return;
+  if (!probeDir || !decoded) return;
   appendLines(
     probeOwnerFile(probeDir, owner, row),
-    decodeStreamFrameEvents(decoded.eventCount, decoded.eventView, decoded.eventTextView, !probeTrace),
+    decodeStreamFrameEvents(decoded.events, !probeTrace),
   );
 }
 
