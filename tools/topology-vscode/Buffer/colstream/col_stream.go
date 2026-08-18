@@ -1,6 +1,7 @@
 package colstream
 
 import (
+	"bytes"
 	"encoding/binary"
 	"io"
 	"math"
@@ -28,13 +29,18 @@ type ColumnSet struct {
 
 	lastU64 []uint64
 	written []bool
+
+	lastBytes    [][]byte
+	writtenBytes []bool
 }
 
 func NewColumnSet(n int) *ColumnSet {
 	return &ColumnSet{
-		writers: make([]*Writer, n),
-		lastU64: make([]uint64, n),
-		written: make([]bool, n),
+		writers:      make([]*Writer, n),
+		lastU64:      make([]uint64, n),
+		written:      make([]bool, n),
+		lastBytes:    make([][]byte, n),
+		writtenBytes: make([]bool, n),
 	}
 }
 
@@ -102,5 +108,10 @@ func (c *ColumnSet) SetBytes(col int, payload []byte) {
 	if c == nil || col < 0 || col >= len(c.writers) {
 		return
 	}
+	if c.writtenBytes[col] && bytes.Equal(c.lastBytes[col], payload) {
+		return
+	}
+	c.lastBytes[col] = append(c.lastBytes[col][:0], payload...)
+	c.writtenBytes[col] = true
 	c.writers[col].write(payload)
 }
