@@ -1,0 +1,13 @@
+export const SELECTION_RING_TUBE_RATIO = 0.14;
+export const SELECTION_RING_RADIAL_SEGMENTS = 8;
+export const SELECTION_RING_TUBULAR_SEGMENTS = 32;
+
+export const SELECTION_HALO_R_RATIO = 1.45;
+export const SELECTION_HALO_WIDTH_SEGMENTS = 16;
+export const SELECTION_HALO_HEIGHT_SEGMENTS = 16;
+
+export const SELECTION_COLOR = "#ffcc00";
+export const SELECTION_EMISSIVE_INTENSITY = 0.3;
+
+export const HALO_COLOR = "#ff5a00";
+export const HALO_OPACITY = 0.5;

@@ -17,10 +17,15 @@ import {
 import {
   BUFFER_NODE_TAG, BUFFER_RING_TAG,
   RING_PICK_TUBE_RATIO, RING_PICK_COLOR, RING_PICK_OPACITY,
-  RING_BAND_MAJOR, RING_BAND_TUBE,
+  RING_BAND_MAJOR, RING_BAND_TUBE, HOVER_COLOR, HOVER_RING_TUBE_RATIO,
 } from "../../src/webview/three/scene/buffer-scene-shared";
 import { updateNodeInstances } from "./node-instances-update";
 import { getCanonicalRingSurfaceGeometry } from "./ring-surface-geometry";
+import {
+  SELECTION_RING_TUBE_RATIO, SELECTION_RING_RADIAL_SEGMENTS, SELECTION_RING_TUBULAR_SEGMENTS,
+  SELECTION_HALO_WIDTH_SEGMENTS, SELECTION_HALO_HEIGHT_SEGMENTS,
+  SELECTION_COLOR, SELECTION_EMISSIVE_INTENSITY, HALO_COLOR, HALO_OPACITY,
+} from "./node-highlight-shape";
 
 export function NodeInstances({ capacity }: { capacity: number }) {
   const envTex = useContext(EnvTexContext);
@@ -28,6 +33,9 @@ export function NodeInstances({ capacity }: { capacity: number }) {
   const ringRef = useRef<THREE.InstancedMesh>(null);
   const ringPickRef = useRef<THREE.InstancedMesh>(null);
   const ringBandRef = useRef<THREE.InstancedMesh>(null);
+  const selRingRef = useRef<THREE.InstancedMesh>(null);
+  const selHaloRef = useRef<THREE.InstancedMesh>(null);
+  const hoverRingRef = useRef<THREE.InstancedMesh>(null);
   const matRef  = useRef(new THREE.Matrix4());
   const posRef  = useRef(new THREE.Vector3());
   const quatRef = useRef(new THREE.Quaternion());
@@ -40,7 +48,10 @@ export function NodeInstances({ capacity }: { capacity: number }) {
     const ring = ringRef.current;
     const ringPick = ringPickRef.current;
     const ringBand = ringBandRef.current;
-    if (!body || !ring || !ringPick || !ringBand) return;
+    const selRing = selRingRef.current;
+    const selHalo = selHaloRef.current;
+    const hoverRing = hoverRingRef.current;
+    if (!body || !ring || !ringPick || !ringBand || !selRing || !selHalo || !hoverRing) return;
 
     if (!ringGeomAppliedRef.current) {
       const geom = getCanonicalRingSurfaceGeometry();
@@ -52,7 +63,7 @@ export function NodeInstances({ capacity }: { capacity: number }) {
 
     updateNodeInstances(
       {
-        body, ring, ringPick, ringBand,
+        body, ring, ringPick, ringBand, selRing, selHalo, hoverRing,
         mat: matRef.current,
         pos: posRef.current,
         quat: quatRef.current,
@@ -103,6 +114,19 @@ export function NodeInstances({ capacity }: { capacity: number }) {
           opacity={RING_PICK_OPACITY}
           depthWrite={false}
         />
+      </instancedMesh>
+      {}
+      <instancedMesh ref={selRingRef} args={[undefined, undefined, 1]} frustumCulled={false} raycast={() => null}>
+        <torusGeometry args={[1, SELECTION_RING_TUBE_RATIO, SELECTION_RING_RADIAL_SEGMENTS, SELECTION_RING_TUBULAR_SEGMENTS]} />
+        <meshStandardMaterial color={SELECTION_COLOR} emissive={SELECTION_COLOR} emissiveIntensity={SELECTION_EMISSIVE_INTENSITY} />
+      </instancedMesh>
+      <instancedMesh ref={selHaloRef} args={[undefined, undefined, 1]} frustumCulled={false} raycast={() => null}>
+        <sphereGeometry args={[1, SELECTION_HALO_WIDTH_SEGMENTS, SELECTION_HALO_HEIGHT_SEGMENTS]} />
+        <meshBasicMaterial color={HALO_COLOR} transparent opacity={HALO_OPACITY} side={THREE.DoubleSide} depthWrite={false} />
+      </instancedMesh>
+      <instancedMesh ref={hoverRingRef} args={[undefined, undefined, 1]} frustumCulled={false} raycast={() => null}>
+        <torusGeometry args={[1, HOVER_RING_TUBE_RATIO, 8, 32]} />
+        <meshStandardMaterial color={HOVER_COLOR} emissive={HOVER_COLOR} emissiveIntensity={SELECTION_EMISSIVE_INTENSITY} />
       </instancedMesh>
     </>
   );

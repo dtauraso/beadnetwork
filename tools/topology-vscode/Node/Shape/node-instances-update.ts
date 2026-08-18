@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { getNodeFrame } from "../../src/webview/three/scene/nodes/node-frame-aggregate";
 import { getViewBlocks } from "../../src/webview/three/scene/view-blocks";
 import {
-  readNodeCX, readNodeCY, readNodeCZ, readNodeRadius,
+  readNodeCX, readNodeCY, readNodeCZ, readNodeRadius, readNodeSelected, readNodeHovered,
   readNodeRingM0, readNodeRingM1, readNodeRingM2, readNodeRingM3,
   readNodeRingM4, readNodeRingM5, readNodeRingM6, readNodeRingM7,
   readNodeRingM8, readNodeRingM9, readNodeRingM10, readNodeRingM11,
@@ -11,6 +11,7 @@ import {
 import { NODE_SPHERE_RADIUS } from "../../src/webview/three/scene/buffer-scene-shared";
 import { nodeRowColors } from "../node-kind";
 import { computeNodeDepthOrder, setNodeDrawOrder } from "./node-depth-order";
+import { SELECTION_HALO_R_RATIO } from "./node-highlight-shape";
 import { overlayFlag } from "../../src/webview/three/controls/flags/overlay-flags";
 
 function copyRingMatrix(nodeView: DataView, row: number, ring: THREE.InstancedMesh, slot: number): void {
@@ -39,6 +40,9 @@ export interface NodeInstanceRefs {
   ring: THREE.InstancedMesh;
   ringPick: THREE.InstancedMesh;
   ringBand: THREE.InstancedMesh;
+  selRing: THREE.InstancedMesh;
+  selHalo: THREE.InstancedMesh;
+  hoverRing: THREE.InstancedMesh;
   mat: THREE.Matrix4;
   pos: THREE.Vector3;
   quat: THREE.Quaternion;
@@ -47,12 +51,13 @@ export interface NodeInstanceRefs {
 }
 
 export function updateNodeInstances(refs: NodeInstanceRefs, capacity: number, camera: THREE.Camera): void {
-  const { body, ring, ringPick, ringBand, mat, pos, quat, scl, col } = refs;
+  const { body, ring, ringPick, ringBand, selRing, selHalo, hoverRing, mat, pos, quat, scl, col } = refs;
 
   const blocks = getViewBlocks();
   const decodedNode = getNodeFrame();
   if (!decodedNode || !blocks) {
     body.count = 0; ring.count = 0; ringPick.count = 0; ringBand.count = 0;
+    selRing.count = 0; selHalo.count = 0; hoverRing.count = 0;
     return;
   }
   const { nodeCount, nodeView } = decodedNode;
@@ -106,6 +111,43 @@ export function updateNodeInstances(refs: NodeInstanceRefs, capacity: number, ca
   if (body.instanceColor) body.instanceColor.needsUpdate = true;
   if (ring.instanceColor) ring.instanceColor.needsUpdate = true;
 
+  placeHighlight(nodeView, n, readNodeSelected, selRing, overlayFlag("selectionRing"), 1, mat, pos, quat, scl);
+  placeHighlight(nodeView, n, readNodeSelected, selHalo, overlayFlag("selectionRing"), SELECTION_HALO_R_RATIO, mat, pos, quat, scl);
+
+  const hoveredRow = firstRowWhere(nodeView, n, readNodeHovered);
+  const hoverSuppressed =
+    hoveredRow >= 0 && readNodeSelected(nodeView, hoveredRow) !== 0 && overlayFlag("selectionRing");
+  placeHighlight(nodeView, n, readNodeHovered, hoverRing, overlayFlag("hoverRing") && !hoverSuppressed, 1, mat, pos, quat, scl);
+
   if (showBody) body.computeBoundingSphere();
   ringPick.computeBoundingSphere();
+}
+
+function firstRowWhere(
+  nodeView: DataView, n: number, read: (v: DataView, row: number) => number,
+): number {
+  for (let i = 0; i < n; i++) {
+    if (read(nodeView, i)) return i;
+  }
+  return -1;
+}
+
+function placeHighlight(
+  nodeView: DataView, n: number,
+  read: (v: DataView, row: number) => number,
+  mesh: THREE.InstancedMesh, visible: boolean, rRatio: number,
+  mat: THREE.Matrix4, pos: THREE.Vector3, quat: THREE.Quaternion, scl: THREE.Vector3,
+): void {
+  const row = visible ? firstRowWhere(nodeView, n, read) : -1;
+  if (row < 0) {
+    mesh.count = 0;
+    return;
+  }
+  const r = (readNodeRadius(nodeView, row) || NODE_SPHERE_RADIUS) * rRatio;
+  pos.set(readNodeCX(nodeView, row), readNodeCY(nodeView, row), readNodeCZ(nodeView, row));
+  scl.setScalar(r);
+  mat.compose(pos, quat, scl);
+  mesh.setMatrixAt(0, mat);
+  mesh.count = 1;
+  mesh.instanceMatrix.needsUpdate = true;
 }

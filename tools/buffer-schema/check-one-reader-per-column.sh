@@ -41,10 +41,10 @@ OBSERVERS = {
 
 RATCHET = {
     # DRIFT
-    "readNodeCX": 3,
-    "readNodeCY": 3,
-    "readNodeCZ": 3,
-    "readNodeRadius": 3,
+    "readNodeCX": 2,
+    "readNodeCY": 2,
+    "readNodeCZ": 2,
+    "readNodeRadius": 2,
     "readNodeSelected": 3,
 }
 
