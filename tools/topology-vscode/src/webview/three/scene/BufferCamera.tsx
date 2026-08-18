@@ -6,7 +6,7 @@ import { anglesToWorldOffset } from "../nav/viewpoint-bridge";
 import {
   readCameraPX, readCameraPY, readCameraPZ, readCameraR,
   readCameraPosPhi, readCameraPosTheta, readCameraUpPhi, readCameraUpTheta,
-} from "../../../schema/buffer-layout/buffer-layout";
+} from "../../../../../../Buffer/buffer-layout";
 
 export function BufferCamera({ cameraRef }: {
   cameraRef?: React.MutableRefObject<THREE.PerspectiveCamera | null>;

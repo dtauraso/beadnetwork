@@ -17,7 +17,7 @@ func generateCurveParams(repoRoot string) {
 	if err != nil {
 		fatalf("parse curve params: %v", err)
 	}
-	curveParamsTsPath := filepath.Join(repoRoot, "tools", "topology-vscode", "src", "schema", "buffer-layout", "curve-params.ts")
+	curveParamsTsPath := filepath.Join(repoRoot, "Buffer", "curve-params.ts")
 	if err := params.WriteCurveParams(curveParamsTsPath, curveParams); err != nil {
 		fatalf("write %s: %v", curveParamsTsPath, err)
 	}
@@ -46,7 +46,7 @@ func generateShadingParams(repoRoot string) {
 	if err != nil {
 		fatalf("parse shading params: %v", err)
 	}
-	shadingParamsTsPath := filepath.Join(repoRoot, "tools", "topology-vscode", "src", "schema", "buffer-layout", "shading-params.ts")
+	shadingParamsTsPath := filepath.Join(repoRoot, "Buffer", "shading-params.ts")
 	if err := params.WriteShadingParams(shadingParamsTsPath, shadingParams); err != nil {
 		fatalf("write %s: %v", shadingParamsTsPath, err)
 	}
@@ -71,7 +71,7 @@ func generateBufferLayout(repoRoot string) {
 	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d blocks)\n", bufLayoutGenGoRows2Path, len(bufSchema.Blocks))
 	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s (%d blocks)\n", bufLayoutGenGoSingletonsPath, len(bufSchema.Blocks))
 
-	schemaDir := filepath.Join(repoRoot, "tools", "topology-vscode", "src", "schema", "buffer-layout")
+	schemaDir := filepath.Join(repoRoot, "Buffer")
 	bufLayoutTSPath := filepath.Join(schemaDir, "buffer-layout.ts")
 	bufLayoutTSRowsPath := filepath.Join(schemaDir, "buffer-layout-rows-gen.ts")
 	bufLayoutTSRows2Path := filepath.Join(schemaDir, "buffer-layout-rows2-gen.ts")
@@ -91,7 +91,7 @@ func generateFrameTags(repoRoot string) {
 	if err != nil {
 		fatalf("parse frame tags: %v", err)
 	}
-	frameTagsTSPath := filepath.Join(repoRoot, "tools", "topology-vscode", "src", "schema", "buffer-layout", "frame-tags.ts")
+	frameTagsTSPath := filepath.Join(repoRoot, "Buffer", "frame-tags.ts")
 	if err := writeFrameTags(frameTagsTSPath, frameTagsHeader, frameTagConsts); err != nil {
 		fatalf("write %s: %v", frameTagsTSPath, err)
 	}

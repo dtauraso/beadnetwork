@@ -50,7 +50,7 @@ func generateTraceKinds(repoRoot string) {
 	if err != nil {
 		fatalf("parse breadcrumb labels: %v", err)
 	}
-	traceKindsPath := filepath.Join(repoRoot, "tools", "topology-vscode", "src", "schema", "trace-kinds.ts")
+	traceKindsPath := filepath.Join(repoRoot, "Trace", "trace-kinds.ts")
 	if err := tracekinds.WriteTraceKinds(traceKindsPath, traceKinds, breadcrumbLabels); err != nil {
 		fatalf("write %s: %v", traceKindsPath, err)
 	}

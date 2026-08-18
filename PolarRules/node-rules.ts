@@ -1,8 +1,8 @@
 import { useSyncExternalStore } from "react";
-import { getNodeFrame, subscribeNodeStreamBlocks } from "../../scene/nodes/node-frame-aggregate";
-import { getEdgeStreamAccessor } from "../../scene/edges/edge-stream-blocks";
-import { NODE_KIND_NAMES } from "../../../../schema/node-defs";
-import { UNKNOWN_KIND_ID } from "../../../../schema/buffer-layout/buffer-layout";
+import { getNodeFrame, subscribeNodeStreamBlocks } from "../tools/topology-vscode/src/webview/three/scene/nodes/node-frame-aggregate";
+import { getEdgeStreamAccessor } from "../tools/topology-vscode/src/webview/three/scene/edges/edge-stream-blocks";
+import { NODE_KIND_NAMES } from "../tools/topology-vscode/src/schema/node-defs";
+import { UNKNOWN_KIND_ID } from "../Buffer/buffer-layout";
 import {
   readNodeKindId,
   readNodeDragRLocked,
@@ -17,8 +17,8 @@ import {
   readNodeKindRuleActive,
   readNodeRuleGroupId,
   readNodeRuleGroupSize,
-} from "../../../../schema/buffer-layout/buffer-layout";
-import { nodeLabel } from "../../decode/buffer-decode-node";
+} from "../Buffer/buffer-layout";
+import { nodeLabel } from "../tools/topology-vscode/src/webview/three/decode/buffer-decode-node";
 import { ruleRowsEqual } from "./node-rules-equal";
 
 export interface RuleHolder {

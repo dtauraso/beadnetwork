@@ -3,15 +3,15 @@ package distancegroups
 import (
 	"context"
 
+	"github.com/dtauraso/wirefold/Scenes"
 	"github.com/dtauraso/wirefold/nodes/Wiring/moverreg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodemove"
-	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
 	"github.com/dtauraso/wirefold/nodes/spatial"
 )
 
 func ResolveSceneDistanceGroups(ui *viewstate.UIState, scenePath string) {
-	s := scene.For(scenePath)
+	s := Scenes.For(scenePath)
 	ui.HasDistanceGroups = s.DistanceGroups
 
 	ui.SceneEditable = s.Editable

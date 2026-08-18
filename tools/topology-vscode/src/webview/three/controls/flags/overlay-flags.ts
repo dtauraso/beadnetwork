@@ -17,7 +17,7 @@ import {
   readOverlayRuleChannels,
   readOverlayNodePoleSphere,
   readOverlayAllPoleSpheres,
-} from "../../../../schema/buffer-layout/buffer-layout";
+} from "../../../../../../../Buffer/buffer-layout";
 
 export type OverlayFlagVals = Record<OverlayFlag, boolean>;
 

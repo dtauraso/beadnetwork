@@ -1,14 +1,14 @@
 import { useState } from "react";
-import { postGoRecord } from "../../../vscode-api";
+import { postGoRecord } from "../tools/topology-vscode/src/webview/vscode-api";
 import {
   encodeNodeDragPhiToggle,
   encodeNodeDragMaxTheta,
   encodeEdgeDragActiveToggle,
   encodeNodeKindActiveToggle,
   encodeNodeDragRToggle,
-} from "../../../../schema/input/input-encode";
-import { type NodeRuleRow, type EdgePartner } from "../flags/node-rules";
-import { formatPi, formatPiDraft, parsePiDraft } from "./pi-fraction";
+} from "../tools/topology-vscode/src/schema/input/input-encode";
+import { type NodeRuleRow, type EdgePartner } from "./node-rules";
+import { formatPi, formatPiDraft, parsePiDraft } from "../tools/topology-vscode/src/webview/three/controls/panels/pi-fraction";
 
 export function ComponentLine({
   glyph,

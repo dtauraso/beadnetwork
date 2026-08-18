@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import { getViewBlocks, subscribeViewBlocks } from "../../../scene/view-blocks";
+import { getViewBlocks, subscribeViewBlocks } from "../tools/topology-vscode/src/webview/three/scene/view-blocks";
 
 export interface SceneTabsState {
   names: string[];

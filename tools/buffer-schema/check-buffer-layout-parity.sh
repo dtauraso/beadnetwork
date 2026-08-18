@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: Buffer/buffer_layout_gen.go,tools/topology-vscode/src/schema/buffer-layout/buffer-layout.ts | BUF_LAYOUT_FINGERPRINT must match between the two generated layout files
+# PLACEMENT: Buffer/buffer_layout_gen.go,Buffer/buffer-layout.ts | BUF_LAYOUT_FINGERPRINT must match between the two generated layout files
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 GO_FILE="$REPO_ROOT/Buffer/buffer_layout_gen.go"
-TS_FILE="$REPO_ROOT/tools/topology-vscode/src/schema/buffer-layout/buffer-layout.ts"
+TS_FILE="$REPO_ROOT/Buffer/buffer-layout.ts"
 
 for f in "$GO_FILE" "$TS_FILE"; do
   if [[ ! -f "$f" ]]; then

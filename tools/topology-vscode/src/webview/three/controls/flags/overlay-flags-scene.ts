@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from "react";
 import { getViewBlocks, subscribeViewBlocks } from "../../scene/view-blocks";
-import { readOverlaySceneEditable, readOverlaySceneKinds } from "../../../../schema/buffer-layout/buffer-layout";
+import { readOverlaySceneEditable, readOverlaySceneKinds } from "../../../../../../../Buffer/buffer-layout";
 
 export function readSceneEditable(): boolean {
   const blocks = getViewBlocks();

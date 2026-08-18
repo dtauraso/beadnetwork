@@ -12,7 +12,20 @@
     "isolatedModules": true,
     "resolveJsonModule": true,
     "types": ["node"],
-    "jsx": "react-jsx"
+    "typeRoots": ["node_modules/@types"],
+    "jsx": "react-jsx",
+    "baseUrl": ".",
+    "paths": {
+      "react": ["node_modules/@types/react"],
+      "react/jsx-runtime": ["node_modules/@types/react/jsx-runtime"],
+      "react-dom": ["node_modules/@types/react-dom"],
+    }
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx"]
+  "include": [
+    "../../Buffer/**/*.ts", "../../Trace/**/*.ts",
+    "src/**/*.ts", "src/**/*.tsx",
+    "../../Slider/**/*.ts", "../../Slider/**/*.tsx",
+    "../../Scenes/**/*.ts", "../../Scenes/**/*.tsx",
+    "../../PolarRules/**/*.ts", "../../PolarRules/**/*.tsx"
+  ]
 }

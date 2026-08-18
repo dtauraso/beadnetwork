@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from "react";
 import { getViewBlocks, subscribeViewBlocks } from "../../scene/view-blocks";
-import { readOverlayEditRefused } from "../../../../schema/buffer-layout/buffer-layout";
+import { readOverlayEditRefused } from "../../../../../../../Buffer/buffer-layout";
 
 export function readEditRefused(): number {
   const blocks = getViewBlocks();

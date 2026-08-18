@@ -1,9 +1,9 @@
 import React, { useCallback } from "react";
-import { postGoRecord } from "../../../../vscode-api";
-import { encodeSceneSelected } from "../../../../../schema/input/input-encode";
-import { postLog } from "../../../../log/post";
+import { postGoRecord } from "../tools/topology-vscode/src/webview/vscode-api";
+import { encodeSceneSelected } from "../tools/topology-vscode/src/schema/input/input-encode";
+import { postLog } from "../tools/topology-vscode/src/webview/log/post";
 import { useSceneTabs } from "./scene-tabs";
-import * as T from "../../chrome-theme";
+import * as T from "../tools/topology-vscode/src/webview/three/controls/chrome-theme";
 
 const stripStyle: React.CSSProperties = {
 

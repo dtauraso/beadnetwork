@@ -1,6 +1,6 @@
-import { postGoRecord } from "../../../vscode-api";
-import { encodeNodeDragActiveToggle } from "../../../../schema/input/input-encode";
-import type { NodeRuleRow } from "../flags/node-rules";
+import { postGoRecord } from "../tools/topology-vscode/src/webview/vscode-api";
+import { encodeNodeDragActiveToggle } from "../tools/topology-vscode/src/schema/input/input-encode";
+import type { NodeRuleRow } from "./node-rules";
 
 export function NodeRuleSharedMenu({
   rule,

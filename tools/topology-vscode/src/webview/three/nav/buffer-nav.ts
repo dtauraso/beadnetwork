@@ -7,7 +7,7 @@ import {
   readNodeRadius, readNodeSelected, readNodeLatchedSel,
   readNodePolePhi, readNodePoleTheta, readNodePoleRingR,
   readSceneCX, readSceneCY, readSceneCZ, readSceneRadius,
-} from "../../../schema/buffer-layout/buffer-layout";
+} from "../../../../../../Buffer/buffer-layout";
 
 export interface NavNode {
 
