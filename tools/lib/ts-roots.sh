@@ -5,6 +5,6 @@ TS_ROOTS=(
   "Buffer"
   "Trace"
   "Slider"
-  "Scenes"
+  "Tabs"
   "PolarRules"
 )

@@ -6,7 +6,7 @@
 
 A **scene** is a complete, independently loadable topology tree — its own `counts.json`,
 its own `nodes/`, its own `view/`. There is more than one: they are SIBLING directories next
-to each other (`Scenes/tabs.go`'s `Scenes`, e.g. `topology/` and
+to each other (`nodes/Wiring/scene/scene.go`'s `Scenes`, e.g. `topology/` and
 `topology-pair/`), not one topology with variants inside it. Go owns the list, the labels,
 which one is selected, and the switch — this is the same shape as the overlay toggles, not
 a new mechanism.

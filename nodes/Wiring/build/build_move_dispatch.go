@@ -3,8 +3,8 @@ package build
 import (
 	"context"
 	"fmt"
+	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
 
-	"github.com/dtauraso/wirefold/Scenes"
 	"github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/nodefiles"
@@ -34,7 +34,7 @@ func (b *buildCtx) buildMoveDispatch() error {
 		md.UI.SceneSphere = b.sphere
 	}
 
-	s := Scenes.For(b.scenePath)
+	s := scene.For(b.scenePath)
 
 	coplanarEdges := s.CoplanarEdges
 	upAxis := s.UpAxis

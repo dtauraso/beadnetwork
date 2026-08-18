@@ -25,7 +25,7 @@
     "../../Buffer/**/*.ts", "../../Trace/**/*.ts",
     "src/**/*.ts", "src/**/*.tsx",
     "../../Slider/**/*.ts", "../../Slider/**/*.tsx",
-    "../../Scenes/**/*.ts", "../../Scenes/**/*.tsx",
+    "../../Tabs/**/*.ts", "../../Tabs/**/*.tsx",
     "../../PolarRules/**/*.ts", "../../PolarRules/**/*.tsx"
   ]
 }

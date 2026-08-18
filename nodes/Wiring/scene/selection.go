@@ -1,4 +1,4 @@
-package Scenes
+package scene
 
 import (
 	"encoding/json"
@@ -45,16 +45,8 @@ func ResolvePath(anchorPath string) string {
 	if info, err := os.Stat(resolved); err != nil || !info.IsDir() { // path-resolution-ok: asserting the resolver's own output exists, not resolving a second way
 		panic(fmt.Sprintf(
 			"ResolveScenePath: scene %q selected at anchor %s resolves to %s, which is not a directory — "+
-				"every scene in scene.Scenes must exist beside the anchor, since the tab strip offers all of them",
+				"every scene in scene.All must exist beside the anchor, since the tab strip offers all of them",
 			selected.Name, anchorPath, resolved))
 	}
 	return resolved
-}
-
-func TabNames(anchorPath string) []string {
-	names := make([]string, len(All))
-	for i, s := range All {
-		names[i] = s.Name
-	}
-	return names
 }

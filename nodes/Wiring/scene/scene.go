@@ -1,4 +1,4 @@
-package Scenes
+package scene
 
 import (
 	"path/filepath"

@@ -2,7 +2,7 @@ import React, { useCallback } from "react";
 import { postGoRecord } from "../tools/topology-vscode/src/webview/vscode-api";
 import { encodeSceneSelected } from "../tools/topology-vscode/src/schema/input/input-encode";
 import { postLog } from "../tools/topology-vscode/src/webview/log/post";
-import { useSceneTabs } from "./scene-tabs";
+import { useTabs } from "./tab-state";
 import * as T from "../tools/topology-vscode/src/webview/three/controls/chrome-theme";
 
 const stripStyle: React.CSSProperties = {
@@ -39,8 +39,8 @@ function tabStyle(active: boolean): React.CSSProperties {
   };
 }
 
-export function SceneTabs() {
-  const { names, selected } = useSceneTabs();
+export function Tabs() {
+  const { names, selected } = useTabs();
   const onPick = useCallback((index: number) => {
     postLog("scene-tab-click", { index });
     postGoRecord(encodeSceneSelected(index));

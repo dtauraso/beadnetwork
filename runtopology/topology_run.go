@@ -3,12 +3,13 @@ package runtopology
 import (
 	"context"
 	"fmt"
+	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
 	"os"
 
 	"github.com/dtauraso/wirefold/nodes/clock"
 
 	SF "github.com/dtauraso/wirefold/Buffer/streamframe"
-	"github.com/dtauraso/wirefold/Scenes"
+	"github.com/dtauraso/wirefold/Tabs"
 	T "github.com/dtauraso/wirefold/Trace"
 	Bld "github.com/dtauraso/wirefold/nodes/Wiring/build"
 )
@@ -20,9 +21,9 @@ func RunTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 
 	tr := T.New()
 
-	sceneTabNames := Scenes.TabNames(topologyPath)
-	sceneTabSelected := Scenes.SelectedIndex(topologyPath)
-	scenePath := Scenes.ResolvePath(topologyPath)
+	sceneTabNames := Tabs.TabNames()
+	sceneTabSelected := Tabs.SelectedIndex(topologyPath)
+	scenePath := scene.ResolvePath(topologyPath)
 	nodes, slotReg, md, speedSinks, err := Bld.LoadTopology(ctx, scenePath, tr, clk)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "load topology: %v\n", err)

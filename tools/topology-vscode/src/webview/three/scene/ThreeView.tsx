@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import * as THREE from "three";
 import { dropKindFromEvent, fireCreateAt } from "../controls/panels/palette/node-palette-drag";
-import { SceneTabs } from "../../../../../../Scenes/SceneTabs";
+import { Tabs } from "../../../../../../Tabs/Tabs";
 import { useInteractionControls } from "../interaction/interaction-controls";
 import type { PickFn } from "../interaction/pick-types";
 import { Scene } from "./scene-content";
@@ -99,7 +99,7 @@ export function ThreeView() {
 
       {}
       <ScenePanelColumn cameraRef={cameraRef} aspect={canvasSize.w / canvasSize.h} />
-      <SceneTabs />
+      <Tabs />
     </div>
   );
 }
