@@ -5,6 +5,7 @@ import { drawSpeedPanel, speedPanelKey } from "../SliderPanel/draw-speed-panel";
 import { drawTiltPanel, tiltPanelKey } from "../TiltPanel/draw-tilt-panel";
 import { drawAnglePill, anglePillKey } from "../AngleDropdown/draw-angle-pill";
 import { drawNodesPill, nodesPillKey } from "../NodesDropdown/draw-nodes-pill";
+import { drawOverlaysPill, overlaysPillKey } from "../OverlaysDropdown/draw-overlays-pill";
 import { postGoRecord } from "../src/webview/vscode-api";
 import { encodeSceneViewport } from "../src/schema/input/input-encode-scene-tilt";
 import { columnF32, columnU8 } from "../Buffer/column-values";
@@ -73,7 +74,7 @@ export function PanelOverlay() {
       postGoRecord(encodeSceneViewport(size.width, size.height));
     }
 
-    const key = `${size.width}x${size.height}@${dpr}|${speedPanelKey()}|${tiltPanelKey()}|${anglePillKey()}|${nodesPillKey()}`;
+    const key = `${size.width}x${size.height}@${dpr}|${speedPanelKey()}|${tiltPanelKey()}|${anglePillKey()}|${nodesPillKey()}|${overlaysPillKey()}`;
     if (key !== lastKey.current) {
       lastKey.current = key;
       canvas.width = Math.max(1, Math.round(size.width * dpr));
@@ -86,6 +87,7 @@ export function PanelOverlay() {
         drawTiltPanel(c);
         drawAnglePill(c);
         drawNodesPill(c);
+        drawOverlaysPill(c);
       }
       document.documentElement.style.setProperty(
         "--panel-stack-bottom",

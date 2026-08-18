@@ -26,4 +26,5 @@ var _ = [...]any{
 	bufLayoutTiltPanel{},
 	bufLayoutAnglePill{},
 	bufLayoutNodesPill{},
+	bufLayoutOverlaysPill{},
 }

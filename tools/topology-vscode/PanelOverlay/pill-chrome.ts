@@ -10,16 +10,16 @@ export const PILL_PAD_X = 9;
 export function drawPill(
   c: CanvasRenderingContext2D,
   x: number, y: number, w: number, h: number,
-  label: string, open: boolean,
+  label: string, open: boolean, active = false,
 ): void {
   roundRect(c, x + 0.5, y + 0.5, w - 1, h - 1, T.RADIUS_CHIP);
-  c.fillStyle = T.CHIP;
+  c.fillStyle = active ? T.ACCENT : T.CHIP;
   c.fill();
-  c.strokeStyle = T.BORDER;
+  c.strokeStyle = active ? T.ACCENT : T.BORDER;
   c.lineWidth = 1;
   c.stroke();
 
-  c.fillStyle = T.TEXT;
+  c.fillStyle = active ? T.ACCENT_INK : T.TEXT;
   c.font = panelFont(T.FONT_SIZE, T.FONT_WEIGHT_LABEL);
   c.textAlign = "left";
   c.textBaseline = "middle";

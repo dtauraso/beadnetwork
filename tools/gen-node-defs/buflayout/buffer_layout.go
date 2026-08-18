@@ -27,6 +27,7 @@ var movedToColumns = map[string]bool{
 	"TiltPanel":     true,
 	"AnglePill":     true,
 	"NodesPill":     true,
+	"OverlaysPill":  true,
 	"TiltArrow":     true,
 	"ChannelVector": true,
 }

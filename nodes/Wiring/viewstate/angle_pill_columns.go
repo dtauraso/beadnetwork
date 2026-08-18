@@ -33,6 +33,10 @@ func (r *runCols) I32(col int, v int32) {
 	r.i32[col] = binary.LittleEndian.AppendUint32(r.i32[col], uint32(v))
 }
 
+func (r *runCols) U32(col int, v uint32) {
+	r.u32[col] = binary.LittleEndian.AppendUint32(r.u32[col], v)
+}
+
 func (r *runCols) Str(textCol, lenCol int, s string) {
 	r.text[textCol] = append(r.text[textCol], s...)
 	r.u32[lenCol] = binary.LittleEndian.AppendUint32(r.u32[lenCol], uint32(len(s)))

@@ -2,17 +2,12 @@ package stdinreader
 
 import (
 	"context"
+
 	"github.com/dtauraso/wirefold/tools/topology-vscode/OverlaysDropdown"
 	"github.com/dtauraso/wirefold/tools/topology-vscode/SliderPanel"
 
-	"github.com/dtauraso/wirefold/nodes/rowevent"
-
-	"github.com/dtauraso/wirefold/nodes/Wiring/angledropdown"
 	"github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
-	"github.com/dtauraso/wirefold/nodes/Wiring/nodesdropdown"
-	"github.com/dtauraso/wirefold/nodes/Wiring/speedpanel"
-	"github.com/dtauraso/wirefold/nodes/Wiring/tiltpanel"
 	"github.com/dtauraso/wirefold/tools/topology-vscode/NodesDropdown"
 	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
 )
@@ -38,82 +33,10 @@ func HandleRawInputMsg(ctx context.Context, msg inputcodec.StdinMsg, slotReg inp
 		placeNodeAt(md, msg.Event, tr)
 		return
 	}
-	if msg.Event.Kind == "pointerdown" {
-		pl := md.UI.PanelLayout()
-		switch h := pl.Nodes.Hit(msg.Event.X, msg.Event.Y); h.Kind {
-		case nodesdropdown.HitPill:
-			md.UI.NodesOpen = !md.UI.NodesOpen
-			md.UI.EmitViewFrame(nil)
-			return
-		case nodesdropdown.HitRow:
-			if md.UI.NodesRowOpen == nil {
-				md.UI.NodesRowOpen = map[uint8]bool{}
-			}
-			md.UI.NodesRowOpen[h.KindID] = !md.UI.NodesRowOpen[h.KindID]
-			md.UI.PlacingKind, md.UI.PlacingPending = h.KindID, true
-			md.UI.EmitViewFrame(nil)
-			return
-		}
-		if i := pl.Speed.Hit(msg.Event.X, msg.Event.Y); i >= 0 {
-			setClockSpeed(md, speedSinks, speedpanel.Settings[i].Speed)
-			return
-		}
-		if h := pl.Angle.Hit(msg.Event.X, msg.Event.Y); h.Kind != angledropdown.HitNone {
-			applyAngleHit(ctx, md, speedSinks, h)
-			return
-		}
-		switch pl.Tilt.Hit(msg.Event.X, msg.Event.Y) {
-		case tiltpanel.ButtonStart:
-			for _, col := range pl.Tilt.Columns {
-				tiltVectorEdit(ctx, md, speedSinks, col.NodeRow, "start")
-			}
-			return
-		case tiltpanel.ButtonReset:
-			for _, col := range pl.Tilt.Columns {
-				tiltVectorEdit(ctx, md, speedSinks, col.NodeRow, "reset")
-			}
-			return
-		}
-	}
-	md.HandleRawInput(ctx, *msg.Event, slotReg, tr)
-}
-
-func placeNodeAt(md *dispatch.MoveDispatch, ev *inputcodec.RawInputMsg, tr *T.Trace) {
-	if ev.RectWidth <= 0 || ev.RectHeight <= 0 {
+	if msg.Event.Kind == "pointerdown" && panelTookPointerDown(ctx, *msg.Event, md, tr, speedSinks) {
 		return
 	}
-	ndcX := ((ev.X-ev.RectLeft)/ev.RectWidth)*2 - 1
-	ndcY := -((ev.Y-ev.RectTop)/ev.RectHeight)*2 + 1
-	NodesDropdown.CreateNode(&md.Scenes, &md.UI, &md.MR, md.UI.PlacingKind, ndcX, ndcY, tr)
-}
-
-func applyAngleHit(ctx context.Context, md *dispatch.MoveDispatch, speedSinks SliderPanel.Sinks, h angledropdown.Hit) {
-	switch h.Kind {
-	case angledropdown.HitPill:
-		md.UI.AngleOpen = !md.UI.AngleOpen
-	case angledropdown.HitGroup:
-		if md.UI.AngleGroupOpen == nil {
-			md.UI.AngleGroupOpen = map[int32]bool{}
-		}
-		md.UI.AngleGroupOpen[h.NodeRow] = !md.UI.AngleGroupOpen[h.NodeRow]
-	case angledropdown.HitLatticeUp:
-		setLatticePoints(md, md.UI.LatticePoints+angledropdown.LatticePointsStep)
-	case angledropdown.HitLatticeDown:
-		setLatticePoints(md, md.UI.LatticePoints-angledropdown.LatticePointsStep)
-	case angledropdown.HitPhiUp:
-		adjustTiltPhi(ctx, md, h.NodeRow, true)
-	case angledropdown.HitPhiDown:
-		adjustTiltPhi(ctx, md, h.NodeRow, false)
-	}
-	md.UI.EmitViewFrame(nil)
-}
-
-func setClockSpeed(md *dispatch.MoveDispatch, speedSinks SliderPanel.Sinks, speed float64) {
-	divisor := int64(md.UI.ClockDivisor)
-	SliderPanel.Broadcast(speedSinks, int64(speed*SliderPanel.NumScale), divisor)
-	md.UI.Speed = speed
-	md.Persist.Speed().Schedule(speed)
-	md.UI.EmitViewFrame(nil)
+	md.HandleRawInput(ctx, *msg.Event, slotReg, tr)
 }
 
 func HandleSaveMsg(md *dispatch.MoveDispatch) {
@@ -190,19 +113,7 @@ var panelAttrHandlers = map[string]func(msg inputcodec.StdinMsg, md *dispatch.Mo
 
 var overlayAttrHandlers = map[string]func(msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace){
 	"toggle": func(msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace) {
-
-		if fn, ok := OverlaysDropdown.OverlayToggles[msg.Flag]; ok {
-			fn(&md.UI.OV, tr)
-
-			if msg.Flag == "ruleChannels" {
-				md.Inboxes.BroadcastChannelVectorsOn(md.UI.OV.RuleChannelsVisible)
-			}
-
-			if scope, ok := OverlaysDropdown.OverlayFlagBreadcrumbScope[msg.Flag]; ok {
-				md.UI.EmitBreadcrumb(rowevent.RowEvent{Label: T.BreadcrumbPoleToggleGo, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1, Value: int32(boolU8(OverlaysDropdown.OverlayFlagValue[msg.Flag](&md.UI.OV))), Text: scope})
-			}
-
-			md.UI.EmitViewFrame(nil)
-		}
+		toggleOverlayFlag(md, tr, msg.Flag)
+		md.UI.EmitViewFrame(nil)
 	},
 }

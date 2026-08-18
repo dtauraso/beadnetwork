@@ -3,6 +3,7 @@ package viewstate
 import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/angledropdown"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodesdropdown"
+	"github.com/dtauraso/wirefold/nodes/Wiring/overlayspanel"
 	"github.com/dtauraso/wirefold/nodes/Wiring/panelstack"
 	"github.com/dtauraso/wirefold/nodes/Wiring/speedpanel"
 	"github.com/dtauraso/wirefold/nodes/Wiring/tiltpanel"
@@ -10,13 +11,14 @@ import (
 )
 
 type PanelLayout struct {
-	Speed speedpanel.Layout
-	Tilt  tiltpanel.Layout
-	Angle angledropdown.Layout
-	Nodes nodesdropdown.Layout
+	Speed    speedpanel.Layout
+	Tilt     tiltpanel.Layout
+	Angle    angledropdown.Layout
+	Nodes    nodesdropdown.Layout
+	Overlays overlayspanel.Layout
 }
 
-var PillLabels = []string{angledropdown.Label, "Nodes", "Overlays"}
+var PillLabels = []string{angledropdown.Label, nodesdropdown.Label, overlayspanel.Label}
 
 func (ui *UIState) PanelLayout() PanelLayout {
 	st := panelstack.New()
@@ -32,10 +34,11 @@ func (ui *UIState) PanelLayout() PanelLayout {
 	}
 
 	return PanelLayout{
-		Speed: speedpanel.Build(st),
-		Tilt:  tiltpanel.Build(st, ui.TiltRows, ui.TiltLabels),
-		Angle: angledropdown.Build(pills, ui.AngleOpen, ui.LatticePoints, nodes),
-		Nodes: nodesdropdown.Build(pills, ui.NodesOpen && ui.SceneEditable, ui.paletteKinds()),
+		Speed:    speedpanel.Build(st),
+		Tilt:     tiltpanel.Build(st, ui.TiltRows, ui.TiltLabels),
+		Angle:    angledropdown.Build(pills, ui.AngleOpen, ui.LatticePoints, nodes),
+		Nodes:    nodesdropdown.Build(pills, ui.NodesOpen && ui.SceneEditable, ui.paletteKinds()),
+		Overlays: overlayspanel.Build(pills, &ui.OV, &ui.PN),
 	}
 }
 

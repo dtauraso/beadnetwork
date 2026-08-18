@@ -63,6 +63,20 @@ var PanelToggles = map[string]func(*PanelState){
 
 // PANEL_TOGGLES_END
 
+var PanelOpen = map[string]func(*PanelState) bool{
+	"overlays":     func(p *PanelState) bool { return p.OverlaysOpen },
+	"node":         func(p *PanelState) bool { return p.NodeOpen },
+	"nodeShape":    func(p *PanelState) bool { return p.NodeShapeOpen },
+	"nodeState":    func(p *PanelState) bool { return p.NodeStateOpen },
+	"nodePoles":    func(p *PanelState) bool { return p.NodePolesOpen },
+	"nodeRules":    func(p *PanelState) bool { return p.NodeRulesOpen },
+	"scene":        func(p *PanelState) bool { return p.SceneOpen },
+	"sceneGuides":  func(p *PanelState) bool { return p.SceneGuidesOpen },
+	"scenePoles":   func(p *PanelState) bool { return p.ScenePolesOpen },
+	"sceneVectors": func(p *PanelState) bool { return p.SceneVectorsOpen },
+	"sceneLabels":  func(p *PanelState) bool { return p.SceneLabelsOpen },
+}
+
 func (p *PanelState) SetPanelState(v PanelState) {
 	*p = v
 }

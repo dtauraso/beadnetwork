@@ -7,7 +7,7 @@ const ColumnsPerNodeStream = 145
 
 const ColumnsPerEdgeStream = 11
 
-const ColumnsInSingletonStreams = 174
+const ColumnsInSingletonStreams = 203
 
 // ColumnStreamCount is every column channel a scene of this size needs.
 func ColumnStreamCount(nodes, edges int) int {
@@ -30,6 +30,7 @@ const ColStreamBaseSpeedPanel = 54
 const ColStreamBaseTiltPanel = 71
 const ColStreamBaseAnglePill = 100
 const ColStreamBaseNodesPill = 137
+const ColStreamBaseOverlaysPill = 174
 
 const ColStreamNodeNodeId = ColStreamBaseNode + 0
 const ColStreamNodeIndexR = ColStreamBaseNode + 1
@@ -361,3 +362,32 @@ const ColStreamNodesPillRefusedY = ColStreamBaseNodesPill + 33
 const ColStreamNodesPillRefusedW = ColStreamBaseNodesPill + 34
 const ColStreamNodesPillRefusedH = ColStreamBaseNodesPill + 35
 const ColStreamNodesPillRefusedText = ColStreamBaseNodesPill + 36
+const ColStreamOverlaysPillPillX = ColStreamBaseOverlaysPill + 0
+const ColStreamOverlaysPillPillY = ColStreamBaseOverlaysPill + 1
+const ColStreamOverlaysPillPillW = ColStreamBaseOverlaysPill + 2
+const ColStreamOverlaysPillPillH = ColStreamBaseOverlaysPill + 3
+const ColStreamOverlaysPillOpen = ColStreamBaseOverlaysPill + 4
+const ColStreamOverlaysPillActive = ColStreamBaseOverlaysPill + 5
+const ColStreamOverlaysPillPopoverX = ColStreamBaseOverlaysPill + 6
+const ColStreamOverlaysPillPopoverY = ColStreamBaseOverlaysPill + 7
+const ColStreamOverlaysPillPopoverW = ColStreamBaseOverlaysPill + 8
+const ColStreamOverlaysPillPopoverH = ColStreamBaseOverlaysPill + 9
+const ColStreamOverlaysPillLabelText = ColStreamBaseOverlaysPill + 10
+const ColStreamOverlaysPillRowKind = ColStreamBaseOverlaysPill + 11
+const ColStreamOverlaysPillRowDepth = ColStreamBaseOverlaysPill + 12
+const ColStreamOverlaysPillRowX = ColStreamBaseOverlaysPill + 13
+const ColStreamOverlaysPillRowY = ColStreamBaseOverlaysPill + 14
+const ColStreamOverlaysPillRowW = ColStreamBaseOverlaysPill + 15
+const ColStreamOverlaysPillRowH = ColStreamBaseOverlaysPill + 16
+const ColStreamOverlaysPillRowTextData = ColStreamBaseOverlaysPill + 17
+const ColStreamOverlaysPillRowTextLen = ColStreamBaseOverlaysPill + 18
+const ColStreamOverlaysPillRowIconData = ColStreamBaseOverlaysPill + 19
+const ColStreamOverlaysPillRowIconLen = ColStreamBaseOverlaysPill + 20
+const ColStreamOverlaysPillRowOn = ColStreamBaseOverlaysPill + 21
+const ColStreamOverlaysPillRowDisabled = ColStreamBaseOverlaysPill + 22
+const ColStreamOverlaysPillRowCountOn = ColStreamBaseOverlaysPill + 23
+const ColStreamOverlaysPillRowCountAll = ColStreamBaseOverlaysPill + 24
+const ColStreamOverlaysPillCountX = ColStreamBaseOverlaysPill + 25
+const ColStreamOverlaysPillCountY = ColStreamBaseOverlaysPill + 26
+const ColStreamOverlaysPillCountW = ColStreamBaseOverlaysPill + 27
+const ColStreamOverlaysPillCountH = ColStreamBaseOverlaysPill + 28

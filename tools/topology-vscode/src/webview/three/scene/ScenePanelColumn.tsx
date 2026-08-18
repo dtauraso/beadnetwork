@@ -1,7 +1,6 @@
 import type { RefObject } from "react";
 import * as THREE from "three";
 import { FitButton } from "../../../../FitButton/FitButton";
-import { OverlaysDropdown } from "../../../../OverlaysDropdown/OverlaysDropdown";
 import { pillContainerStyle, pillBodyStyle, pillCaretStyle } from "../controls/pills/overlay-chrome";
 
 const COLUMN_GAP = 6;
@@ -42,8 +41,9 @@ export function ScenePanelColumn({ cameraRef, aspect }: { cameraRef: RefObject<T
     >
       {}
       <PillColumnSizer />
+      {/* The sizer stays until the fit button moves into Go's pill column too — it is what
+          gives the button the pills' width. */}
       <FitButton cameraRef={cameraRef} aspect={aspect} />
-      <OverlaysDropdown />
     </div>
   );
 }
