@@ -8,7 +8,23 @@ type ChannelVectors struct {
 	on bool
 
 	peerCenters map[string]spatial.Vec3
+
+	sentCenter    spatial.Vec3
+	hasSentCenter bool
 }
+
+func (c *ChannelVectors) NeedsBroadcast(center spatial.Vec3) bool {
+	if !c.on {
+		return false
+	}
+	if c.hasSentCenter && c.sentCenter == center {
+		return false
+	}
+	c.sentCenter, c.hasSentCenter = center, true
+	return true
+}
+
+func (c *ChannelVectors) Forget() { c.hasSentCenter = false }
 
 func (c *ChannelVectors) In() chan bool {
 	if c.sceneToNodeOn == nil {

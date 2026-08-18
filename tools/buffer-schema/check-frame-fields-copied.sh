@@ -11,17 +11,11 @@ cd "$REPO_ROOT"
 python3 - <<'PY'
 import re, sys
 
-# The frame struct and the literal that fills it, field by field. A field added to the
-# struct but not to the literal is not a compile error -- Go zero-fills it -- so the
-# feature ships silently dead: composed, typed, packed, and empty on the wire. That has
-# happened three times (LabelAnchor, and ChannelVectors twice), each time because a bulk
-# substitution matched nothing and nothing said so.
 PAIRS = [
     ("tools/topology-vscode/Buffer/streamframe/node_stream_frame.go", "NodeStreamFrame",
      "runtopology/node_stream.go"),
 ]
 
-# Fields the adapter legitimately does not name, with the reason.
 EXEMPT = {
     "NodeStreamFrame": {
         "NodeRow": "the adapter passes it as f.NodeRow under a different literal key",

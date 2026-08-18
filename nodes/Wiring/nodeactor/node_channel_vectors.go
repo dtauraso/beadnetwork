@@ -10,12 +10,16 @@ func (m *NodeGeometry) ChannelVectorsIn() chan bool { return m.channels.In() }
 
 func (m *NodeGeometry) pollChannelVectors() {
 	_, turnedOn := m.channels.TakeOn()
-	if !turnedOn {
+	if turnedOn {
+		m.channels.Forget()
+	}
+	center := nodegeom.NodeWorldPos(m.geom)
+	if !m.channels.NeedsBroadcast(center) {
 		return
 	}
 	if rn := m.RuleNode(); rn != nil {
 		select {
-		case rn.CenterIn() <- nodegeom.NodeWorldPos(m.geom):
+		case rn.CenterIn() <- center:
 		default:
 		}
 	}
