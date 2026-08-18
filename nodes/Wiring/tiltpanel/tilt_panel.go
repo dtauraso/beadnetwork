@@ -54,12 +54,12 @@ func buttonSize(label string) (w, h float32) {
 		panelstack.LineHeight(ButtonFontPx) + 2*ButtonPadY + 2
 }
 
-const valueDigits = 6
+const valueField = "000"
 
 func colWidth(label string) float32 {
 	head := panelstack.TextWidth("node "+label, HeadFontPx)
 	cell := panelstack.TextWidth(KeyRounds, KeyFontPx) + CellGapX +
-		panelstack.TextWidth("000000"[:valueDigits], ValFontPx) + 2*CellPadX
+		panelstack.TextWidth(valueField, ValFontPx) + 2*CellPadX
 	if head > cell {
 		return head
 	}

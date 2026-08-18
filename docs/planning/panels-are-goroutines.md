@@ -101,9 +101,12 @@ reassemble columns Go already streams separately.
 3. **AngleDropdown** — rows from the same tilt columns; no native controls.
 4. **NodesDropdown** — four separate flag reads today.
 5. **OverlaysDropdown** — 15 overlay flags and 11 panel flags, both bundle objects.
-6. **NodeRulesPanel** — the largest: rows derived from nodes AND edges, six checkboxes,
+6. **Tabs** — the scene tab strip. Not a panel on the stack and easy to miss for that reason,
+   but `Tabs/tab-state.ts` is one of the subscriptions, with its own cached `TabsState`; a tab
+   is a rect, a name and a selected flag, the same as everything else here.
+7. **NodeRulesPanel** — the largest: rows derived from nodes AND edges, six checkboxes,
    eleven buttons.
-7. The subscriptions and derived caches are then unreferenced; delete them and empty
+8. The subscriptions and derived caches are then unreferenced; delete them and empty
    `check-no-webview-state.sh`'s allowlist, per `remove-subscriptions.md`.
 
 ## Verification
