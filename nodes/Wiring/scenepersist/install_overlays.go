@@ -9,13 +9,13 @@ import (
 )
 
 func InstallOverlays(ui *viewstate.UIState, topologyPath string, tr *T.Trace) {
-	ov, _ := OverlaysDropdown.LoadSceneOverlays(scenepaths.OverlaysFilePath(topologyPath))
+	ov, _ := OverlaysDropdown.LoadSceneOverlays(scenepaths.OverlaysDirPath(topologyPath))
 	ui.OV.SetGuideVisibility(ov)
 
 	ui.EmitViewFrame(nil)
 }
 
 func InstallPanels(ui *viewstate.UIState, topologyPath string) {
-	pn, _ := OverlaysDropdown.LoadScenePanels(scenepaths.PanelsFilePath(topologyPath))
+	pn, _ := OverlaysDropdown.LoadScenePanels(scenepaths.PanelsDirPath(topologyPath))
 	ui.PN.SetPanelState(pn)
 }

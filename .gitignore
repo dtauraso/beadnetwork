@@ -108,10 +108,13 @@ tools/topology-vscode/gen-node-defs
 # gitignored above), not a separate position.json.
 /topology/view/camera.json
 /topology/view/camera.json.tmp
-/topology/view/overlays.json
-/topology/view/overlays.json.tmp
 /topology/view/sphere.json
 /topology/view/sphere.json.tmp
+
+# One flag, one file: the overlays and panels dirs hold a bool per flag, same locally-
+# preferred view state the single files were.
+/topology/view/overlays/
+/topology/view/panels/
 
 # Hook block log (local audit trail, not for VCS)
 .claude/hooks/go-blocks.log

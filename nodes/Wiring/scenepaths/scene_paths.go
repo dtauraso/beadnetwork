@@ -14,12 +14,12 @@ func CameraFilePath(topologyPath string) string {
 	return ViewFilePath(topologyPath, "camera.json")
 }
 
-func OverlaysFilePath(topologyPath string) string {
-	return ViewFilePath(topologyPath, "overlays.json")
+func OverlaysDirPath(topologyPath string) string {
+	return ViewFilePath(topologyPath, "overlays")
 }
 
-func PanelsFilePath(topologyPath string) string {
-	return ViewFilePath(topologyPath, "panels.json")
+func PanelsDirPath(topologyPath string) string {
+	return ViewFilePath(topologyPath, "panels")
 }
 
 func SphereFilePath(topologyPath string) string {

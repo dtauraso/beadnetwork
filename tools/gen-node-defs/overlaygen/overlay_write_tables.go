@@ -60,4 +60,20 @@ func writeOverlayBreadcrumbTables(w *bufio.Writer, flags []overlayFlag) {
 	}
 	fmt.Fprintln(w, `}`)
 	fmt.Fprintln(w)
+
+	fmt.Fprintln(w, `// OverlayFlagRead and OverlayFlagWrite cover EVERY flag, so persistence can walk them`)
+	fmt.Fprintln(w, `// one file at a time without a hand-written case per flag going stale.`)
+	fmt.Fprintln(w, `var OverlayFlagRead = map[string]func(*OverlayState) bool{`)
+	for _, f := range flags {
+		fmt.Fprintf(w, "\t%q: func(o *OverlayState) bool { return o.%s },\n", f.flag, exportField(f.field))
+	}
+	fmt.Fprintln(w, `}`)
+	fmt.Fprintln(w)
+
+	fmt.Fprintln(w, `var OverlayFlagWrite = map[string]func(*OverlayState, bool){`)
+	for _, f := range flags {
+		fmt.Fprintf(w, "\t%q: func(o *OverlayState, v bool) { o.%s = v },\n", f.flag, exportField(f.field))
+	}
+	fmt.Fprintln(w, `}`)
+	fmt.Fprintln(w)
 }
