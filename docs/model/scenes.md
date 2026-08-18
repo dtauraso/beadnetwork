@@ -4,7 +4,7 @@
 
 ## Scenes
 
-A **scene** is a complete, independently loadable topology tree — its own `counts.json`,
+A **scene** is a complete, independently loadable topology tree — its own `counts/`,
 its own `nodes/`, its own `view/`. There is more than one: they are SIBLING directories next
 to each other (`nodes/Wiring/scene/scene.go`'s `Scenes`, e.g. `topology/` and
 `topology-pair/`), not one topology with variants inside it. Go owns the list, the labels,

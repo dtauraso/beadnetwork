@@ -16,7 +16,7 @@ Everything about a node lives under its own directory. There is no top-level `ed
 
 ```
 topology/
-├── counts.json                           {"nodes": 9, "edges": 10}  — nodes = ROW COUNT
+├── counts/nodes.json  counts/edges.json   one integer each — nodes = ROW COUNT
 │                                          (largest node id), not a live-node count
 ├── constants.json                        {"constantR", "constantPhi", "constantTheta"} — scene-level, read once
 ├── nodes/<id>/
@@ -41,7 +41,7 @@ streamed, and edited the same way.
 relative to the ANCHOR's parent — the `-topology` flag the extension host launches with is
 the fixed anchor, and which sibling directory actually loads is resolved from it
 (`ResolveScenePath`). Each sibling is a COMPLETE, independently loadable tree with its own
-`counts.json` and `view/`, laid out exactly as above. `topology/view/scene.json`
+`counts/` and `view/`, laid out exactly as above. `topology/view/scene.json`
 (`{"selected": "<tab name>"}`) is the ONE piece of state that lives at the ANCHOR rather than
 inside whichever scene is loaded — it has to, since it is what says which sibling to load, and
 a selection stored inside scene B would be unreachable while scene A is showing. Switching
@@ -191,7 +191,7 @@ minus one, IS the node's buffer row directly. There is no ordering step left —
 declared by the id, never derived by sorting or by position in a list, so there is nothing
 for a "10" vs "2" comparison to get wrong any more. A node directory name that fails to
 parse as a number, an id below 1 (ids are 1-based), or a duplicate parsed id is each a LOAD
-ERROR, loud and naming the offending directory, like a missing/malformed `counts.json`
+ERROR, loud and naming the offending directory, like a missing/malformed count file
 below — never a silent fallback. The id itself stays a `string` everywhere downstream (it is
 a map key across the codebase); only the row derivation parses it to an int.
 
@@ -216,7 +216,7 @@ monolithic topology form covered above.
 
 ## Counts are stored, never re-derived
 
-`counts.json` exists because the extension host SPAWNS Go, and Node's `spawn()` takes the
+`topology/counts/nodes.json` and `topology/counts/edges.json` exist because the extension host SPAWNS Go, and Node's `spawn()` takes the
 stdio array up front — with one dedicated pipe per emitting goroutine, the pipe count must
 be known before the child exists, and Go cannot answer because Go is not running yet.
 
@@ -230,12 +230,12 @@ count would under-allocate the moment any id is missing from the middle of the r
 **Nobody re-derives it — not TS, and not Go.** Go's own load (`loadTree`) walks `nodes/`
 and computes its own `RowCount` independently, from the SAME rule (largest id), but that is
 LOADING (reading each node's data to build the graph and its own row space), not reading
-`counts.json` — Go never opens that file at all; it exists solely so something can size the
+those files — Go never opens them at all; it exists solely so something can size the
 stdio array BEFORE Go is running to answer. Correctness is single-writer: the one operation
 that creates, deletes, or renumbers a node, or creates/deletes an edge, updates
-`counts.json`. Nothing else writes it.
+both count files. Nothing else writes them.
 
-A missing or malformed `counts.json` must fail LOUDLY. Returning 0 allocates no dedicated
+A missing or malformed count file must fail LOUDLY. Returning 0 allocates no dedicated
 streams and degrades the bridge invisibly — the behaviour the old `countEdges` had. The
 extension host reader (`tools/topology-vscode/src/runCommand.ts`'s `readCounts`) and the Go
 headless test harness (`headless_stream_helpers_test.go`) must fail the same way if the
