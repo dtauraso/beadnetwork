@@ -97,9 +97,11 @@ The index is what position IS; the matrix is a projection for the GPU.
 
 ## What breaks
 
-- **`BUF_LAYOUT_FINGERPRINT`** exists to catch offset drift; with no offsets there is
-  nothing to catch. It goes at step 5, not before, or the intermediate states lose their
-  only layout check.
+- **`BUF_LAYOUT_FINGERPRINT`** exists to catch offset drift. It does NOT go: the Event
+  block stays a row, so offsets survive and the fingerprint still has something to catch.
+  The Event block is a stream of occurrences, not the state of a thing, and a column is
+  last-write-wins — two events between reads would collapse to one, which is data loss in a
+  log. Events stay a framed trailing section on each stream, which is what they already are.
 - **`buildAggregate`** splices rows into a contiguous table. Per-column channels are
   already contiguous per column; it thins to a per-column write at step 5.
 - **Every generated reader and writer**, at step 5 only.
