@@ -9,7 +9,7 @@ import {
   pillCaretStyle,
   popoverStyle,
   PILL_ANCHOR_STYLE,
-} from "./overlay-chrome";
+} from "../src/webview/three/controls/pills/overlay-chrome";
 
 const OPEN_WIDTH = "150%";
 
@@ -17,7 +17,7 @@ const OPEN_PULL_LEFT = "-50%";
 
 const POPOVER_MAX_HEIGHT = "60vh";
 
-export function OverlaysControl() {
+export function OverlaysDropdown() {
   const open = usePanelOpen("overlays");
   const val = useToggleVal(guidelinesCfg);
   const active = guidelinesCfg.active(val);

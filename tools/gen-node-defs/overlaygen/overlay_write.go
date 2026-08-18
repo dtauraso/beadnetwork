@@ -20,7 +20,7 @@ func writeOverlayPreamble(w *bufio.Writer, source string, needsFmt bool) {
 	fmt.Fprintf(w, "// Source: %s\n", source)
 	fmt.Fprintln(w, `// Regenerate with: cd tools/topology-vscode && npm run gen:node-defs`)
 	fmt.Fprintln(w)
-	fmt.Fprintln(w, `package viewstate`)
+	fmt.Fprintln(w, `package OverlaysDropdown`)
 	fmt.Fprintln(w)
 	if needsFmt {
 		fmt.Fprintln(w, `import (`)

@@ -1,14 +1,14 @@
 import type { RefObject } from "react";
 import * as THREE from "three";
 import { FitButton } from "../../../../FitButton/FitButton";
-import { OverlaysControl } from "../controls/pills/overlays-control";
+import { OverlaysDropdown } from "../../../../OverlaysDropdown/OverlaysDropdown";
 import { NodesDropdown } from "../../../../NodesDropdown/NodesDropdown";
 import { AngleDropdown } from "../../../../AngleDropdown/AngleDropdown";
 import { pillContainerStyle, pillBodyStyle, pillCaretStyle } from "../controls/pills/overlay-chrome";
 
 const COLUMN_GAP = 6;
 
-const PILL_LABELS = ["Distances", "Angles", "Nodes", "Overlays"];
+const PILL_LABELS = ["Angles", "Nodes", "Overlays"];
 
 function PillColumnSizer() {
   return (
@@ -48,7 +48,7 @@ export function ScenePanelColumn({ cameraRef, aspect }: { cameraRef: RefObject<T
       <AngleDropdown />
       {}
       <NodesDropdown />
-      <OverlaysControl />
+      <OverlaysDropdown />
     </div>
   );
 }

@@ -1,8 +1,8 @@
-import { postGoRecord } from "../../../vscode-api";
-import { encodeOverlaysToggle } from "../../../../schema/input/input-encode";
-import type { OverlayFlag } from "../../../../messages";
-import { postLog } from "../../../log/post";
-import { useOverlayFlags } from "../flags/overlay-flags";
+import { postGoRecord } from "../src/webview/vscode-api";
+import { encodeOverlaysToggle } from "../src/schema/input/input-encode";
+import type { OverlayFlag } from "../src/messages";
+import { postLog } from "../src/webview/log/post";
+import { useOverlayFlags } from "../src/webview/three/controls/flags/overlay-flags";
 
 export type ToggleCfg = {
   flag: OverlayFlag;

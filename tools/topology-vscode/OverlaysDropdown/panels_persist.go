@@ -1,15 +1,8 @@
-package scenepersist
+package OverlaysDropdown
 
 import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
-	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
-	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
 )
-
-func InstallPanels(ui *viewstate.UIState, topologyPath string) {
-	pn, _ := LoadScenePanels(scenepaths.PanelsFilePath(topologyPath))
-	ui.PN.SetPanelState(pn)
-}
 
 type scenePanelsFile struct {
 	Overlays bool `json:"overlays"`
@@ -27,7 +20,7 @@ type scenePanelsFile struct {
 	SceneLabels  bool `json:"sceneLabels"`
 }
 
-func WriteScenePanels(panelsPath string, pn viewstate.PanelState) error {
+func WriteScenePanels(panelsPath string, pn PanelState) error {
 	return jsonpersist.WriteJSONAtomic(panelsPath, scenePanelsFile{
 		Overlays: pn.OverlaysOpen,
 
@@ -45,8 +38,8 @@ func WriteScenePanels(panelsPath string, pn viewstate.PanelState) error {
 	})
 }
 
-func LoadScenePanels(panelsPath string) (viewstate.PanelState, bool) {
-	pn := viewstate.DefaultPanelState()
+func LoadScenePanels(panelsPath string) (PanelState, bool) {
+	pn := DefaultPanelState()
 	var sf scenePanelsFile
 	jsonpersist.ReadJSONBestEffort(panelsPath, &sf)
 	found := true
