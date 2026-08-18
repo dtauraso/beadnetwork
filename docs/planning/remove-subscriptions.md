@@ -1,3 +1,7 @@
+---
+branch: task/remove-subscriptions
+---
+
 # Remove the subscriptions; redo what they coordinated in the CRUD system
 
 ## The target
@@ -50,10 +54,9 @@ rather than being told to re-render.
 ## The redo
 
 A panel becomes a goroutine that owns its rows, their values and its screen rect, and streams
-them; TS positions and paints. `docs/planning/panels-are-goroutines.md` carries that plan,
-including the one decision to settle first: once Go owns the layout, TS knows only WHERE a
-click landed, so panel input becomes raw-input plus hit-testing in Go rather than an
-addressed edit per control.
+them; TS positions and paints. `docs/planning/panels-are-goroutines.md` carries that plan. It needs no bridge change: the
+panel sits on the camera rectangle, so its rects and the click Go already receives are in the
+same viewport coordinates and the hit test is point-in-rect.
 
 ## Order
 
