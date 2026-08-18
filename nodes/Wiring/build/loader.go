@@ -2,7 +2,7 @@ package build
 
 import (
 	"context"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/Slider"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/SliderPanel"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
@@ -16,11 +16,11 @@ import (
 	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
 )
 
-func LoadTopology(ctx context.Context, jsonPath string, tr *T.Trace, clk clock.Clock) ([]nodeapi.Node, inputcodec.SlotRegistry, *dispatch.MoveDispatch, Slider.Sinks, error) {
+func LoadTopology(ctx context.Context, jsonPath string, tr *T.Trace, clk clock.Clock) ([]nodeapi.Node, inputcodec.SlotRegistry, *dispatch.MoveDispatch, SliderPanel.Sinks, error) {
 	kindreg.BuildRegistry()
 	spec, err := loadspec.ParseSpec(jsonPath)
 	if err != nil {
-		return nil, nil, nil, Slider.Sinks{}, err
+		return nil, nil, nil, SliderPanel.Sinks{}, err
 	}
 
 	kindPorts := make(map[string][]portwiring.PortSpec, len(kindreg.Registry))
@@ -28,7 +28,7 @@ func LoadTopology(ctx context.Context, jsonPath string, tr *T.Trace, clk clock.C
 		kindPorts[kind] = bind.Ports
 	}
 	if err := loadspec.ValidateSpec(&spec, kindPorts); err != nil {
-		return nil, nil, nil, Slider.Sinks{}, err
+		return nil, nil, nil, SliderPanel.Sinks{}, err
 	}
 
 	sphere, hasScene := scenepersist.LoadSceneSphere(jsonPath)

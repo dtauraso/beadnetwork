@@ -2,7 +2,7 @@ package nodeactor
 
 import (
 	"context"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/PolarRules"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/PolarRulesPanel"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/rulenode"
 )
@@ -13,7 +13,7 @@ func (m *NodeGeometry) AttachRuleNode(rn *rulenode.RuleNode) {
 
 func (m *NodeGeometry) RuleNode() *rulenode.RuleNode { return m.rule.Node() }
 
-func (m *NodeGeometry) RuleBackChannel(peerID string) chan PolarRules.Msg {
+func (m *NodeGeometry) RuleBackChannel(peerID string) chan PolarRulesPanel.Msg {
 	return m.rule.Node().RuleBackChannel(peerID)
 }
 

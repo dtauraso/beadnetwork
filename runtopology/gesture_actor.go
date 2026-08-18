@@ -2,7 +2,7 @@ package runtopology
 
 import (
 	"context"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/Slider"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/SliderPanel"
 	"sync"
 
 	W "github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
@@ -28,7 +28,7 @@ type gestureInboxMsg struct {
 
 const gestureInboxDepth = 64
 
-func startGestureActor(ctx context.Context, slotReg inputcodec.SlotRegistry, md *W.MoveDispatch, tr *T.Trace, speedSinks Slider.Sinks) (chan gestureInboxMsg, *sync.WaitGroup) {
+func startGestureActor(ctx context.Context, slotReg inputcodec.SlotRegistry, md *W.MoveDispatch, tr *T.Trace, speedSinks SliderPanel.Sinks) (chan gestureInboxMsg, *sync.WaitGroup) {
 	inbox := make(chan gestureInboxMsg, gestureInboxDepth)
 	wg := new(sync.WaitGroup)
 	wg.Add(1)

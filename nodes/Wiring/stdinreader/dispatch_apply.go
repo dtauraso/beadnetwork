@@ -3,7 +3,7 @@ package stdinreader
 import (
 	"context"
 	"fmt"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/Slider"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/SliderPanel"
 	"math"
 	"strconv"
 
@@ -18,13 +18,13 @@ import (
 	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
 )
 
-func applyUpdateClock(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks Slider.Sinks) {
+func applyUpdateClock(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks SliderPanel.Sinks) {
 	if h, ok := clockAttrHandlers[msg.Attr]; ok {
 		h(msg, md, speedSinks)
 	}
 }
 
-func applyUpdateDistanceGroup(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks Slider.Sinks) {
+func applyUpdateDistanceGroup(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks SliderPanel.Sinks) {
 	if md == nil || msg.Attr != "length" {
 		return
 	}
@@ -37,7 +37,7 @@ func applyUpdateDistanceGroup(ctx context.Context, msg inputcodec.StdinMsg, md *
 	}
 }
 
-func applyUpdateTiltVector(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks Slider.Sinks) {
+func applyUpdateTiltVector(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks SliderPanel.Sinks) {
 	if md == nil || (msg.Attr != "phi" && msg.Attr != "reset" && msg.Attr != "start") {
 		return
 	}
@@ -47,7 +47,7 @@ func applyUpdateTiltVector(ctx context.Context, msg inputcodec.StdinMsg, md *dis
 	}
 	if msg.Attr == "reset" {
 
-		Slider.Broadcast(speedSinks, scenepersist.SliderNum(md.UI.Speed), int64(md.UI.ClockDivisor))
+		SliderPanel.Broadcast(speedSinks, scenepersist.SliderNum(md.UI.Speed), int64(md.UI.ClockDivisor))
 		if md.Inboxes.SendTiltEdit(ctx, id, movemsg.TiltEditMsg{Reset: true}) {
 			return
 		}
@@ -56,7 +56,7 @@ func applyUpdateTiltVector(ctx context.Context, msg inputcodec.StdinMsg, md *dis
 	}
 	if msg.Attr == "start" {
 
-		Slider.Broadcast(speedSinks, scenepersist.SliderNum(md.UI.Speed), int64(md.UI.ClockDivisor))
+		SliderPanel.Broadcast(speedSinks, scenepersist.SliderNum(md.UI.Speed), int64(md.UI.ClockDivisor))
 
 		md.Inboxes.SendTiltEdit(ctx, id, movemsg.TiltEditMsg{Start: true})
 		return
@@ -69,7 +69,7 @@ func applyUpdateTiltVector(ctx context.Context, msg inputcodec.StdinMsg, md *dis
 	md.MR.SendMove(ctx, id, movemsg.Msg{Kind: movemsg.KindTiltVectorAngle, NodeID: id, Bool: up})
 }
 
-func applyUpdateScene(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks Slider.Sinks) {
+func applyUpdateScene(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks SliderPanel.Sinks) {
 	if md == nil {
 		return
 	}
@@ -93,7 +93,7 @@ func applyUpdateScene(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch
 	}
 }
 
-func applyUpdateOverlays(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks Slider.Sinks) {
+func applyUpdateOverlays(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks SliderPanel.Sinks) {
 	if md == nil {
 		return
 	}
@@ -175,7 +175,7 @@ func sendRuleEdit(ctx context.Context, md *dispatch.MoveDispatch, row int, edit 
 	}
 }
 
-func applyUpdateNode(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks Slider.Sinks) {
+func applyUpdateNode(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks SliderPanel.Sinks) {
 	if md == nil {
 		return
 	}
@@ -184,7 +184,7 @@ func applyUpdateNode(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.
 	}
 }
 
-func applyUpdatePanels(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks Slider.Sinks) {
+func applyUpdatePanels(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks SliderPanel.Sinks) {
 	if md == nil {
 		return
 	}

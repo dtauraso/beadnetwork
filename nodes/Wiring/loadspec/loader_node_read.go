@@ -3,7 +3,7 @@ package loadspec
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/PolarRules"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/PolarRulesPanel"
 	"os"
 	"path/filepath"
 	"sort"
@@ -20,9 +20,9 @@ type JSONBase struct {
 
 	Gate bool `json:"gate,omitempty"`
 
-	Drag *PolarRules.DragRule `json:"drag,omitempty"`
+	Drag *PolarRulesPanel.DragRule `json:"drag,omitempty"`
 
-	SelfDrag *PolarRules.DragRule `json:"selfDrag,omitempty"`
+	SelfDrag *PolarRulesPanel.DragRule `json:"selfDrag,omitempty"`
 
 	TopTiltVectorPhiIdx *int32 `json:"topTiltVectorThetaIdx,omitempty"`
 }

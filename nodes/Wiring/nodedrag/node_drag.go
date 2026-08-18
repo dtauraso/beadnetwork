@@ -1,7 +1,7 @@
 package nodedrag
 
 import (
-	"github.com/dtauraso/wirefold/tools/topology-vscode/PolarRules"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/PolarRulesPanel"
 	"math"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
@@ -12,9 +12,9 @@ type Node interface {
 	ScenePolar() polar.Polar
 	ComposedIndex() polarindex.Index
 	Constants() polarindex.SceneConstants
-	DragRule() *PolarRules.DragRule
+	DragRule() *PolarRulesPanel.DragRule
 	DragRuleActive() bool
-	SelfRule() *PolarRules.DragRule
+	SelfRule() *PolarRulesPanel.DragRule
 	SelfRuleActive() bool
 	EdgeRuleActive(otherID string) bool
 	KindRuleActive() bool

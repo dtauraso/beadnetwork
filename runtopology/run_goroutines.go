@@ -2,7 +2,7 @@ package runtopology
 
 import (
 	"context"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/Slider"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/SliderPanel"
 	"os"
 	"sync"
 
@@ -14,7 +14,7 @@ import (
 	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
 )
 
-func startStdinReader(ctx context.Context, cancel context.CancelFunc, slotReg inputcodec.SlotRegistry, md *W.MoveDispatch, tr *T.Trace, speedSinks Slider.Sinks) (*sync.WaitGroup, *sync.WaitGroup) {
+func startStdinReader(ctx context.Context, cancel context.CancelFunc, slotReg inputcodec.SlotRegistry, md *W.MoveDispatch, tr *T.Trace, speedSinks SliderPanel.Sinks) (*sync.WaitGroup, *sync.WaitGroup) {
 	inbox, gestureWG := startGestureActor(ctx, slotReg, md, tr, speedSinks)
 
 	stdinWG := new(sync.WaitGroup)

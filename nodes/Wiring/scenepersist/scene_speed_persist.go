@@ -2,7 +2,7 @@ package scenepersist
 
 import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/Slider"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/SliderPanel"
 	"math"
 
 	"encoding/json"
@@ -20,11 +20,11 @@ func SliderSpeed(ui *viewstate.UIState) float64 {
 	return EffectiveClockSpeed(ui.Speed, ui.ClockDivisor)
 }
 
-func InstallSpeed(ui *viewstate.UIState, topologyPath string, speedSinks Slider.Sinks, tr *T.Trace) {
+func InstallSpeed(ui *viewstate.UIState, topologyPath string, speedSinks SliderPanel.Sinks, tr *T.Trace) {
 	speed, _ := LoadSceneSpeed(scenepaths.SpeedFilePath(topologyPath))
 	ui.ClockDivisor = scene.For(topologyPath).ClockDivisor
 	ui.Speed = speed
-	Slider.Broadcast(speedSinks, SliderNum(speed), int64(ui.ClockDivisor))
+	SliderPanel.Broadcast(speedSinks, SliderNum(speed), int64(ui.ClockDivisor))
 	ui.EmitViewFrame(nil)
 }
 
@@ -64,5 +64,5 @@ func LoadSceneSpeed(speedPath string) (float64, bool) {
 }
 
 func SliderNum(userSpeed float64) int64 {
-	return int64(math.Round(userSpeed * Slider.NumScale))
+	return int64(math.Round(userSpeed * SliderPanel.NumScale))
 }

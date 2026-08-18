@@ -13,7 +13,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/rowevent"
 	"github.com/dtauraso/wirefold/nodes/spatial"
 	SF "github.com/dtauraso/wirefold/tools/topology-vscode/Buffer/streamframe"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/Slider"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/SliderPanel"
 )
 
 type Animation struct {
@@ -45,7 +45,7 @@ func (o *Animation) SetBeadStream(w io.Writer, nodeRow int32, buildBeadFrame fun
 func (o *Animation) SetSleepCh(ch <-chan int64) { o.sleepCh = ch }
 
 func (o *Animation) wakeAfter() time.Duration {
-	if o.sleepMs == Slider.Paused {
+	if o.sleepMs == SliderPanel.Paused {
 		return 0
 	}
 	ms := o.sleepMs
@@ -61,7 +61,7 @@ func (o *Animation) RunAnimation(ctx context.Context) {
 	}
 	clk := clock.NewRealClock()
 	if o.sleepMs == 0 {
-		o.sleepMs = Slider.SleepMs(Slider.NumScale, 1)
+		o.sleepMs = SliderPanel.SleepMs(SliderPanel.NumScale, 1)
 	}
 	for {
 		if ctx.Err() != nil {

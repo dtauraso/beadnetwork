@@ -2,45 +2,45 @@ package owners
 
 import (
 	"fmt"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/PolarRules"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/PolarRulesPanel"
 	"strconv"
 )
 
 type RuleMesh struct {
-	backFromPeer map[string]chan PolarRules.Msg
+	backFromPeer map[string]chan PolarRulesPanel.Msg
 
-	downToPeer map[string]chan PolarRules.Msg
+	downToPeer map[string]chan PolarRulesPanel.Msg
 
-	peerKey map[string]PolarRules.Key
+	peerKey map[string]PolarRulesPanel.Key
 
-	selfKey PolarRules.Key
+	selfKey PolarRulesPanel.Key
 }
 
 func NewRuleMesh() RuleMesh {
 	return RuleMesh{
-		backFromPeer: map[string]chan PolarRules.Msg{},
-		downToPeer:   map[string]chan PolarRules.Msg{},
-		peerKey:      map[string]PolarRules.Key{},
+		backFromPeer: map[string]chan PolarRulesPanel.Msg{},
+		downToPeer:   map[string]chan PolarRulesPanel.Msg{},
+		peerKey:      map[string]PolarRulesPanel.Key{},
 	}
 }
 
-func (r *RuleMesh) RuleBackChannel(peerID string) chan PolarRules.Msg {
+func (r *RuleMesh) RuleBackChannel(peerID string) chan PolarRulesPanel.Msg {
 	ch, ok := r.backFromPeer[peerID]
 	if !ok {
-		ch = make(chan PolarRules.Msg, 1) // chan-name-ok: ch IS backFromPeer[peerID]
+		ch = make(chan PolarRulesPanel.Msg, 1) // chan-name-ok: ch IS backFromPeer[peerID]
 		r.backFromPeer[peerID] = ch
 	}
 	return ch
 }
 
-func (r *RuleMesh) LinkRuleDown(peerID string, down chan PolarRules.Msg) {
+func (r *RuleMesh) LinkRuleDown(peerID string, down chan PolarRulesPanel.Msg) {
 	r.downToPeer[peerID] = down
 }
 
-func (r *RuleMesh) SetSelfRuleKey(key PolarRules.Key) { r.selfKey = key }
+func (r *RuleMesh) SetSelfRuleKey(key PolarRulesPanel.Key) { r.selfKey = key }
 
 func (r *RuleMesh) BroadcastRule(selfID string) {
-	msg := PolarRules.Msg{FromID: selfID, Key: r.selfKey}
+	msg := PolarRulesPanel.Msg{FromID: selfID, Key: r.selfKey}
 	for _, down := range r.downToPeer {
 		select {
 		case <-down:
@@ -53,11 +53,11 @@ func (r *RuleMesh) BroadcastRule(selfID string) {
 	}
 }
 
-func (r *RuleMesh) BackChannels() map[string]chan PolarRules.Msg {
+func (r *RuleMesh) BackChannels() map[string]chan PolarRulesPanel.Msg {
 	return r.backFromPeer
 }
 
-func (r *RuleMesh) ApplyPeerRule(msg PolarRules.Msg) bool {
+func (r *RuleMesh) ApplyPeerRule(msg PolarRulesPanel.Msg) bool {
 	prev, seen := r.peerKey[msg.FromID]
 	if seen && prev == msg.Key {
 		return false
