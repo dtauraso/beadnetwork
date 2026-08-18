@@ -43,13 +43,6 @@ func wireViewStream(md *W.MoveDispatch, viewFile *os.File, viewStreamWired bool,
 						SceneKinds:     scene.SceneKinds,
 						Speed:          speed,
 					},
-					B.PanelRow{
-						Overlays: panels.Overlays, Node: panels.Node, NodeShape: panels.NodeShape,
-						NodeState: panels.NodeState, NodePoles: panels.NodePoles,
-						NodeRules: panels.NodeRules,
-						Scene:     panels.Scene, SceneGuides: panels.SceneGuides, ScenePoles: panels.ScenePoles,
-						SceneVectors: panels.SceneVectors, SceneLabels: panels.SceneLabels,
-					},
 					NodeShape.CanonicalRingSurfacePointsFlat(),
 					bead.CanonicalRingSurfacePointsFlat(),
 

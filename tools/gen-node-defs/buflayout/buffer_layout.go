@@ -14,6 +14,7 @@ func isSingletonBlock(name string) bool {
 
 var movedToColumns = map[string]bool{
 	"Scene": true,
+	"Panel": true,
 }
 
 func hasRow(name string) bool { return !movedToColumns[name] }

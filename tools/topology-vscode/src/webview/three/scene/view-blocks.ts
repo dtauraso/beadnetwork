@@ -4,7 +4,6 @@ import { decodeViewFrame } from "../decode/buffer-decode-view";
 export interface ViewBlocks {
   cameraView: DataView;
   overlayView: DataView;
-  panelView: DataView;
 
   ringSurfacePointsView: DataView;
   beadRingSurfacePointsView: DataView;

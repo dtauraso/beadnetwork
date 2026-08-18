@@ -118,7 +118,8 @@ fi
 TS_PANEL_FLAGS=$(between PANEL_FLAGS_START PANEL_FLAGS_END "$MESSAGES_TS" | quoted) || true
 assert_nonempty "$TS_PANEL_FLAGS" "axis4 messages.ts panel flags"
 
-PANEL_RENDER_READS=$(grep -aoE 'readPanel[A-Za-z]+\(v\)' "$PANEL_FLAGS_TS" | sort -u)
+PANEL_RENDER_READS=$( { grep -aoE 'readPanel[A-Za-z]+\(v\)' "$PANEL_FLAGS_TS" || true;
+                        grep -aoE 'COL_STREAM_PANEL_[A-Z0-9_]+' "$PANEL_FLAGS_TS" || true; } | sort -u)
 
 PANEL_RENDER_KEYS=$(awk '/PanelFlagVals = \{/{p=1;next} p&&/^[[:space:]]*};/{p=0} p&&/^[[:space:]]*[a-zA-Z_]+:/{print}' "$PANEL_FLAGS_TS" | grep -aoE '^[[:space:]]*[a-zA-Z_]+:' | sort -u)
 assert_nonempty "$PANEL_RENDER_READS" "axis4 panel-flags.ts readPanel* reads"
