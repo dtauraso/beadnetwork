@@ -1,12 +1,13 @@
 package runtopology
 
 import (
+	"github.com/dtauraso/wirefold/nodes/bead"
+	NodeShape "github.com/dtauraso/wirefold/tools/topology-vscode/Node/Shape"
 	"os"
 
 	"github.com/dtauraso/wirefold/nodes/rowevent"
 
 	W "github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
-	"github.com/dtauraso/wirefold/nodes/Wiring/framegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
 	B "github.com/dtauraso/wirefold/tools/topology-vscode/Buffer"
 	SF "github.com/dtauraso/wirefold/tools/topology-vscode/Buffer/streamframe"
@@ -51,8 +52,8 @@ func wireViewStream(md *W.MoveDispatch, viewFile *os.File, viewStreamWired bool,
 						SceneVectors: panels.SceneVectors, SceneLabels: panels.SceneLabels,
 					},
 					sceneCX, sceneCY, sceneCZ, sceneRadius,
-					framegeom.CanonicalRingSurfacePointsFlat(),
-					framegeom.CanonicalBeadRingSurfacePointsFlat(),
+					NodeShape.CanonicalRingSurfacePointsFlat(),
+					bead.CanonicalRingSurfacePointsFlat(),
 
 					sceneTabNames, uint16(sceneTabSelected),
 					toStreamEvents(events))

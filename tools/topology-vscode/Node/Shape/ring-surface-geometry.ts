@@ -1,10 +1,10 @@
 import * as THREE from "three";
-import { getViewBlocks } from "../view-blocks";
-import { readRingPointX, readRingPointY, readRingPointZ } from "../../../../../Buffer/buffer-layout";
+import { getViewBlocks } from "../../src/webview/three/scene/view-blocks";
+import { readRingPointX, readRingPointY, readRingPointZ } from "../../Buffer/buffer-layout";
 import {
   SHADING_PARAM_NODE_RING_SURFACE_NU,
   SHADING_PARAM_NODE_RING_SURFACE_NV,
-} from "../../../../../Buffer/shading-params";
+} from "../../Buffer/shading-params";
 
 let cachedGeometry: THREE.BufferGeometry | null = null;
 

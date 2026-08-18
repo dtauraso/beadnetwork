@@ -9,12 +9,12 @@ import { ChainBeadInstances } from "./beads/ChainBeadInstances";
 import { EdgeLines } from "./edges/EdgeLines";
 import { getEdgeStreamAccessor } from "./edges/edge-stream-blocks";
 import { TiltVectors } from "../nav/TiltVectors";
-import { NodeInstances } from "./nodes/NodeInstances";
-import { SelectionHighlight, HoverHighlight } from "./overlays/SelectionHighlight";
-import { RuleChannelLines } from "./overlays/RuleChannelLines";
+import { NodeInstances } from "../../../../Node/Shape/NodeInstances";
+import { SelectionHighlight, HoverHighlight } from "../../../../Node/State/SelectionHighlight";
+import { RuleChannelLines } from "../../../../Scene/Vectors/RuleChannelLines";
 import { InteriorBeadInstances } from "./beads/InteriorBeadInstances";
 import { BufferCamera } from "./BufferCamera";
-import { BufferLabelProjector } from "./labels/BufferLabelProjector";
+import { BufferLabelProjector } from "../../../../Scene/Labels/BufferLabelProjector";
 
 export type { BufferLabelPos } from "./buffer-scene-shared";
 export {
