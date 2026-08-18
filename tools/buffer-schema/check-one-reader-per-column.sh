@@ -47,12 +47,6 @@ RATCHET = {
     "readNodeSelected": 3,
     "readNodeKindId": 2,
     "readNodeTopTiltVectorLen": 2,
-    "readOverlayHoverRing": 2,
-    "readOverlayNodeBody": 2,
-    "readOverlayNodeRing": 2,
-    "readOverlayRingPick": 2,
-    "readOverlayRuleChannels": 2,
-    "readOverlaySelectionRing": 2,
 }
 
 readers = set()

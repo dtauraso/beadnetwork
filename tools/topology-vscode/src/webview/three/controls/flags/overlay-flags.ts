@@ -54,13 +54,11 @@ export function readOverlayFlags(): OverlayFlagVals | null {
   return cachedVals;
 }
 
-export function overlayOn(read: (v: DataView) => number): boolean {
-  const blocks = getViewBlocks();
-  if (!blocks) return false;
-  return read(blocks.overlayView) !== 0;
+export function overlayFlag(name: OverlayFlag): boolean {
+  const vals = readOverlayFlags();
+  return vals ? vals[name] : false;
 }
 
 export function useOverlayFlags(): OverlayFlagVals | null {
   return useSyncExternalStore(subscribeViewBlocks, readOverlayFlags, readOverlayFlags);
 }
-

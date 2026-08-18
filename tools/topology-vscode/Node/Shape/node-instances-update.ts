@@ -3,7 +3,6 @@ import { getNodeFrame } from "../../src/webview/three/scene/nodes/node-frame-agg
 import { getViewBlocks } from "../../src/webview/three/scene/view-blocks";
 import {
   readNodeCX, readNodeCY, readNodeCZ, readNodeRadius,
-  readOverlayNodeBody, readOverlayNodeRing, readOverlayRingPick,
   readNodeRingM0, readNodeRingM1, readNodeRingM2, readNodeRingM3,
   readNodeRingM4, readNodeRingM5, readNodeRingM6, readNodeRingM7,
   readNodeRingM8, readNodeRingM9, readNodeRingM10, readNodeRingM11,
@@ -11,6 +10,7 @@ import {
 } from "../../Buffer/buffer-layout";
 import { NODE_SPHERE_RADIUS, nodeRowColors } from "../../src/webview/three/scene/buffer-scene-shared";
 import { computeNodeDepthOrder, setNodeDrawOrder } from "./node-depth-order";
+import { overlayFlag } from "../../src/webview/three/controls/flags/overlay-flags";
 
 function copyRingMatrix(nodeView: DataView, row: number, ring: THREE.InstancedMesh, slot: number): void {
   const out = ring.instanceMatrix.array;
@@ -54,13 +54,12 @@ export function updateNodeInstances(refs: NodeInstanceRefs, capacity: number, ca
     body.count = 0; ring.count = 0; ringPick.count = 0; ringBand.count = 0;
     return;
   }
-  const { overlayView } = blocks;
   const { nodeCount, nodeView } = decodedNode;
 
-  const showBody = readOverlayNodeBody(overlayView) !== 0;
-  const showRing = readOverlayNodeRing(overlayView) !== 0;
+  const showBody = overlayFlag("nodeBody");
+  const showRing = overlayFlag("nodeRing");
 
-  const showPickBand = readOverlayRingPick(overlayView) !== 0;
+  const showPickBand = overlayFlag("ringPick");
 
   const n = Math.min(nodeCount, capacity);
 

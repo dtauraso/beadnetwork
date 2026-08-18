@@ -5,8 +5,7 @@ import { getNodeFrame } from "../../src/webview/three/scene/nodes/node-frame-agg
 import {
   readNodeCX, readNodeCY, readNodeCZ, readNodeRadius, readNodeSelected, readNodeHovered,
 } from "../../Buffer/buffer-layout";
-import { readOverlaySelectionRing, readOverlayHoverRing } from "../../Buffer/buffer-layout";
-import { overlayOn } from "../../src/webview/three/controls/flags/overlay-flags";
+import { overlayFlag } from "../../src/webview/three/controls/flags/overlay-flags";
 import { NODE_SPHERE_RADIUS, HOVER_COLOR, HOVER_RING_TUBE_RATIO } from "../../src/webview/three/scene/buffer-scene-shared";
 
 const SELECTION_RING_TUBE_RATIO = 0.14;
@@ -46,7 +45,7 @@ export function SelectionHighlight() {
       }
     }
 
-    g.visible = show && overlayOn(readOverlaySelectionRing);
+    g.visible = show && overlayFlag("selectionRing");
   });
 
   return (
@@ -91,7 +90,7 @@ export function HoverHighlight() {
       if (hoveredRow >= 0) {
 
         const suppressed =
-          readNodeSelected(nodeView, hoveredRow) !== 0 && overlayOn(readOverlaySelectionRing);
+          readNodeSelected(nodeView, hoveredRow) !== 0 && overlayFlag("selectionRing");
         if (!suppressed) {
           const r = readNodeRadius(nodeView, hoveredRow) || NODE_SPHERE_RADIUS;
           ring.position.set(
@@ -104,7 +103,7 @@ export function HoverHighlight() {
         }
       }
     }
-    ring.visible = show && overlayOn(readOverlayHoverRing);
+    ring.visible = show && overlayFlag("hoverRing");
   });
 
   return (
