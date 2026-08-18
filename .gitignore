@@ -150,7 +150,8 @@ topology*/nodes/*/drag/
 
 # Whether a node's drag rule is currently ACTIVE is persisted output, deliberately separate
 # from the rule's VALUES (drag.phi/drag.maxTheta), which stay in the tracked base.json seed.
-topology*/nodes/*/rule-active.json
+# One flag per file under rule-active/, including one per edge under rule-active/edges/.
+topology*/nodes/*/rule-active/
 
 # Where the running extension listens for "open this file as a tab", and that
 # session's token. Written on activation, removed on shutdown.

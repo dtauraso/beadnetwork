@@ -14,10 +14,6 @@ func nodeBaseFilePath(root, id string) string {
 	return filepath.Join(root, "nodes", id, "base.json")
 }
 
-func nodeRuleActiveFilePath(root, id string) string {
-	return filepath.Join(root, "nodes", id, "rule-active.json")
-}
-
 func nodeDirPath(root, id string) string {
 	return filepath.Join(root, "nodes", id)
 }
@@ -61,48 +57,43 @@ func WriteDragRule(root, id string, rule *PolarRulesPanel.DragRule) error {
 	})
 }
 
-type ruleActiveFile struct {
-	Active     bool            `json:"active"`
-	KindActive *bool           `json:"kindActive,omitempty"`
-	SelfActive *bool           `json:"selfActive,omitempty"`
-	EdgeActive map[string]bool `json:"edgeActive,omitempty"`
+const (
+	FileDragActive = "drag.json"
+	FileKindActive = "kind.json"
+	FileSelfActive = "self.json"
+	DirEdgeActive  = "edges"
+)
+
+func ruleActiveFilePath(root, id, name string) string {
+	return filepath.Join(root, "nodes", id, "rule-active", name)
+}
+
+func edgeActiveFilePath(root, id, target string) string {
+	return filepath.Join(root, "nodes", id, "rule-active", DirEdgeActive, target+".json")
+}
+
+func readActive(path string) bool {
+	var v bool
+	if !jsonpersist.ReadJSONIfExists(path, &v) {
+		return true
+	}
+	return v
 }
 
 func WriteKindRuleActive(root, id string, active bool) error {
-	return jsonpersist.ReadModifyWriteJSON(nodeRuleActiveFilePath(root, id), func(m map[string]any) {
-		m["kindActive"] = active
-	})
-}
-
-func WriteEdgeRuleActive(root, id, target string, active bool) error {
-	return jsonpersist.ReadModifyWriteJSON(nodeRuleActiveFilePath(root, id), func(m map[string]any) {
-		edges, _ := m["edgeActive"].(map[string]any)
-		if edges == nil {
-			edges = map[string]any{}
-		}
-		edges[target] = active
-		m["edgeActive"] = edges
-	})
-}
-
-func LoadEdgeRuleActive(root, id, target string) bool {
-	var f ruleActiveFile
-	if !jsonpersist.ReadJSONIfExists(nodeRuleActiveFilePath(root, id), &f) {
-		return true
-	}
-	active, stored := f.EdgeActive[target]
-	return !stored || active
+	return jsonpersist.WriteJSONAtomic(ruleActiveFilePath(root, id, FileKindActive), active)
 }
 
 func LoadKindRuleActive(root, id string) bool {
-	var f ruleActiveFile
-	if !jsonpersist.ReadJSONIfExists(nodeRuleActiveFilePath(root, id), &f) {
-		return true
-	}
-	if f.KindActive == nil {
-		return true
-	}
-	return *f.KindActive
+	return readActive(ruleActiveFilePath(root, id, FileKindActive))
+}
+
+func WriteEdgeRuleActive(root, id, target string, active bool) error {
+	return jsonpersist.WriteJSONAtomic(edgeActiveFilePath(root, id, target), active)
+}
+
+func LoadEdgeRuleActive(root, id, target string) bool {
+	return readActive(edgeActiveFilePath(root, id, target))
 }
 
 func WriteSelfDragRule(root, id string, rule *PolarRulesPanel.DragRule) error {
@@ -126,34 +117,19 @@ func WriteSelfDragRule(root, id string, rule *PolarRulesPanel.DragRule) error {
 }
 
 func WriteSelfRuleActive(root, id string, active bool) error {
-	return jsonpersist.ReadModifyWriteJSON(nodeRuleActiveFilePath(root, id), func(m map[string]any) {
-		m["selfActive"] = active
-	})
+	return jsonpersist.WriteJSONAtomic(ruleActiveFilePath(root, id, FileSelfActive), active)
 }
 
 func LoadSelfRuleActive(root, id string) bool {
-	var f ruleActiveFile
-	if !jsonpersist.ReadJSONIfExists(nodeRuleActiveFilePath(root, id), &f) {
-		return true
-	}
-	if f.SelfActive == nil {
-		return true
-	}
-	return *f.SelfActive
+	return readActive(ruleActiveFilePath(root, id, FileSelfActive))
 }
 
 func WriteDragActive(root, id string, active bool) error {
-	return jsonpersist.ReadModifyWriteJSON(nodeRuleActiveFilePath(root, id), func(m map[string]any) {
-		m["active"] = active
-	})
+	return jsonpersist.WriteJSONAtomic(ruleActiveFilePath(root, id, FileDragActive), active)
 }
 
 func LoadDragActive(root, id string) bool {
-	var f ruleActiveFile
-	if !jsonpersist.ReadJSONIfExists(nodeRuleActiveFilePath(root, id), &f) {
-		return true
-	}
-	return f.Active
+	return readActive(ruleActiveFilePath(root, id, FileDragActive))
 }
 
 func RemoveNodeDir(root, id string) error {
