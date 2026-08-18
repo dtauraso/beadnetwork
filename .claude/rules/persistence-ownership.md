@@ -27,7 +27,7 @@ topology/
 │   ├── drag/edges/<label>.json            that edge's accumulated geometry DELTA — GITIGNORED
 │   └── (no *.geom.json — folded into <label>.json)
 └── view/
-    └── camera.json  overlays.json  panels.json  sphere.json  scene.json
+    └── camera/ overlays/ panels/ sphere/ — one value per file — plus scene.json
 ```
 
 The panels.json file under view/ holds the overlays popover's disclosure open/closed

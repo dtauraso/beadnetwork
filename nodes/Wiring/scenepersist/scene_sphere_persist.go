@@ -1,35 +1,45 @@
 package scenepersist
 
 import (
+	"path/filepath"
+
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geomseeds"
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
-	"github.com/dtauraso/wirefold/nodes/spatial"
 )
 
-type sceneSphereJSON struct {
-	Center *[3]float64 `json:"center"`
-	Radius *float64    `json:"radius"`
-}
+const (
+	FileSphereCX     = "cx.json"
+	FileSphereCY     = "cy.json"
+	FileSphereCZ     = "cz.json"
+	FileSphereRadius = "radius.json"
+)
 
 func LoadSceneSphere(topologyPath string) (polar.SceneSphere, bool) {
-	var sj sceneSphereJSON
-	jsonpersist.ReadJSONBestEffort(scenepaths.SphereFilePath(topologyPath), &sj)
-	if sj.Center == nil || sj.Radius == nil {
+	dir := scenepaths.SphereDirPath(topologyPath)
+	var s polar.SceneSphere
+	read := func(name string, dst *float64) bool {
+		return jsonpersist.ReadJSONIfExists(filepath.Join(dir, name), dst)
+	}
+	if !read(FileSphereCX, &s.Center.X) || !read(FileSphereCY, &s.Center.Y) ||
+		!read(FileSphereCZ, &s.Center.Z) || !read(FileSphereRadius, &s.Radius) {
 		return polar.SceneSphere{}, false
 	}
-	return polar.SceneSphere{
-		Center: spatial.Vec3{X: sj.Center[0], Y: sj.Center[1], Z: sj.Center[2]},
-		Radius: *sj.Radius,
-	}, true
+	return s, true
 }
 
-func WriteSceneSphere(sphereJSONPath string, s polar.SceneSphere) error {
-	center := [3]float64{s.Center.X, s.Center.Y, s.Center.Z}
-	radius := s.Radius
-	return jsonpersist.WriteJSONAtomic(sphereJSONPath, sceneSphereJSON{Center: &center, Radius: &radius})
+func WriteSceneSphere(sphereDir string, s polar.SceneSphere) error {
+	for name, value := range map[string]float64{
+		FileSphereCX: s.Center.X, FileSphereCY: s.Center.Y, FileSphereCZ: s.Center.Z,
+		FileSphereRadius: s.Radius,
+	} {
+		if err := jsonpersist.WriteJSONAtomic(filepath.Join(sphereDir, name), value); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func InstallSceneSphere(ui *viewstate.UIState, gs *geomseeds.GeomSeeds, topologyPath string) {
@@ -40,7 +50,7 @@ func InstallSceneSphere(ui *viewstate.UIState, gs *geomseeds.GeomSeeds, topology
 		ui.SceneSphere = polar.ContentFitSceneSphere(gs.LoadTimeCenters())
 
 		if topologyPath != "" {
-			_ = WriteSceneSphere(scenepaths.SphereFilePath(topologyPath), ui.SceneSphere)
+			_ = WriteSceneSphere(scenepaths.SphereDirPath(topologyPath), ui.SceneSphere)
 		}
 	}
 

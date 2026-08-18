@@ -106,10 +106,8 @@ tools/topology-vscode/gen-node-defs
 # per-node data base.json does (which IS tracked), so it stays trackable too. A node's
 # position itself lives in base.json (base) plus nodes/<id>/drag/position.json (delta,
 # gitignored above), not a separate position.json.
-/topology/view/camera.json
-/topology/view/camera.json.tmp
-/topology/view/sphere.json
-/topology/view/sphere.json.tmp
+/topology/view/camera/
+/topology/view/sphere/
 
 # One flag, one file: the overlays and panels dirs hold a bool per flag, same locally-
 # preferred view state the single files were.

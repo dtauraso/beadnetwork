@@ -10,8 +10,8 @@ func SelectionFilePath(anchorPath string) string {
 	return ViewFilePath(anchorPath, "scene.json")
 }
 
-func CameraFilePath(topologyPath string) string {
-	return ViewFilePath(topologyPath, "camera.json")
+func CameraDirPath(topologyPath string) string {
+	return ViewFilePath(topologyPath, "camera")
 }
 
 func OverlaysDirPath(topologyPath string) string {
@@ -22,8 +22,8 @@ func PanelsDirPath(topologyPath string) string {
 	return ViewFilePath(topologyPath, "panels")
 }
 
-func SphereFilePath(topologyPath string) string {
-	return ViewFilePath(topologyPath, "sphere.json")
+func SphereDirPath(topologyPath string) string {
+	return ViewFilePath(topologyPath, "sphere")
 }
 
 func SpeedFilePath(topologyPath string) string {

@@ -24,7 +24,7 @@ type Persisters struct {
 }
 
 func (p *Persisters) ArmViewpoint(topologyPath string) *camerapersist.ViewpointPersister {
-	vp := &camerapersist.ViewpointPersister{Path: scenepaths.CameraFilePath(topologyPath)}
+	vp := &camerapersist.ViewpointPersister{Dir: scenepaths.CameraDirPath(topologyPath)}
 	p.vp = vp
 	return vp
 }
@@ -37,7 +37,7 @@ func (p *Persisters) ArmEdit(topologyPath string) {
 		Path: scenepaths.PanelsDirPath(topologyPath), Write: OverlaysDropdown.WriteScenePanels, Tag: "scene_panels_persist",
 	}
 	p.sphere = &scenepersist.Persister[polar.SceneSphere]{
-		Path: scenepaths.SphereFilePath(topologyPath), Write: scenepersist.WriteSceneSphere, Tag: "scene_sphere_persist",
+		Path: scenepaths.SphereDirPath(topologyPath), Write: scenepersist.WriteSceneSphere, Tag: "scene_sphere_persist",
 	}
 	p.speed = &scenepersist.Persister[float64]{
 		Path: scenepaths.SpeedFilePath(topologyPath), Write: scenepersist.WriteSceneSpeed, Tag: "scene_speed_persist",
