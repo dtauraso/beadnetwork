@@ -1,6 +1,5 @@
 import { useSyncExternalStore } from "react";
-import { getNodeSections, subscribeNodeStreamBlocks } from "../src/webview/three/scene/nodes/node-sections";
-import { columnF32, columnI32, columnU8 } from "../Buffer/column-values";
+import { columnF32, columnI32, columnU8, subscribeColumns } from "../Buffer/column-values";
 import { nodeColumn, ownerCounts } from "../Buffer/column-owners";
 import {
   COL_STREAM_NODE_TOP_TILT_VECTOR_LEN, COL_STREAM_NODE_TOP_TILT_VECTOR_IDX,
@@ -64,5 +63,5 @@ export function readTiltVectorRows(): TiltVectorRow[] | null {
 }
 
 export function useTiltVectorRows(): TiltVectorRow[] | null {
-  return useSyncExternalStore(subscribeNodeStreamBlocks, readTiltVectorRows, readTiltVectorRows);
+  return useSyncExternalStore(subscribeColumns, readTiltVectorRows, readTiltVectorRows);
 }

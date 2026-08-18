@@ -71,8 +71,7 @@ type ChannelVector struct {
 }
 
 func BuildNodeStreamFrame(f NodeStreamFrame) []byte {
-	channelsSize := len(f.ChannelVectors) * B.BufChannelVectorStride
-	size := B.BufNodeStreamFrameHeaderSize + channelsSize
+	size := B.BufNodeStreamFrameHeaderSize
 	buf := make([]byte, size)
 	off := 0
 	binary.LittleEndian.PutUint32(buf[off:], f.Tick)
@@ -81,16 +80,8 @@ func BuildNodeStreamFrame(f NodeStreamFrame) []byte {
 	off += 4
 	binary.LittleEndian.PutUint32(buf[off:], 0)
 	off += 4
-	binary.LittleEndian.PutUint32(buf[off:], uint32(len(f.ChannelVectors)))
+	binary.LittleEndian.PutUint32(buf[off:], 0)
 	off += 4
-
-	for _, c := range f.ChannelVectors {
-		s, h := c.Shaft, c.Head
-		B.SetChannelVectorRow(buf[off:off+B.BufChannelVectorStride], 0,
-			s[0], s[1], s[2], s[3], s[4], s[5], s[6], s[7], s[8], s[9], s[10], s[11], s[12], s[13], s[14], s[15],
-			h[0], h[1], h[2], h[3], h[4], h[5], h[6], h[7], h[8], h[9], h[10], h[11], h[12], h[13], h[14], h[15])
-		off += B.BufChannelVectorStride
-	}
 
 	if off != size {
 		panic(fmt.Sprintf(

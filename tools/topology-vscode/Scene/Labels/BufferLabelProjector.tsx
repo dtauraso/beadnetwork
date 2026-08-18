@@ -2,7 +2,6 @@ import { useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { nodeLabel } from "../../src/webview/three/decode/buffer-decode-node";
-import { getNodeSections } from "../../src/webview/three/scene/nodes/node-sections";
 import { ndcToPixel } from "../../src/webview/three/interaction/geometry-helpers";
 import { columnF32 } from "../../Buffer/column-values";
 import { nodeColumn, ownerCounts } from "../../Buffer/column-owners";

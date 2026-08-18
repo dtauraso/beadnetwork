@@ -2,7 +2,7 @@ import React, { useMemo, useState, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { useOverlayFlags } from "../controls/flags/overlay-flags";
-import { getNodeSections } from "../scene/nodes/node-sections";
+import { ownerCounts } from "../../../../Buffer/column-owners";
 import { getViewBlocks } from "../scene/view-blocks";
 import {
   type NavNode, decodeNavNodes, sceneSphereFromColumns,
@@ -36,8 +36,7 @@ export function NavGuides() {
 
     if (!showTori && !showScenePoles && !showNodePoles && !showNodePoleSphere && !showHandholds && !showSceneVectors) return;
     const blocks = getViewBlocks();
-    const decodedNode = getNodeSections();
-    if (!decodedNode || !blocks) return;
+    if (!blocks || ownerCounts().nodes <= 0) return;
     bufNavRef.current = decodeNavNodes();
     sceneSphereRef.current = sceneSphereFromColumns();
     const sig = navSignature(bufNavRef.current);

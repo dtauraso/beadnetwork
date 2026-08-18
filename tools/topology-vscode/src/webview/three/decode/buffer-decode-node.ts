@@ -1,4 +1,3 @@
-import { CHANNEL_VECTOR_STRIDE } from "../../../../Buffer/buffer-layout";
 import { BUF_NODE_STREAM_FRAME_HEADER_SIZE } from "../../../../Buffer/frame-tags";
 import { STR_DECODER, decodeTrailingEvents } from "./buffer-decode-shared";
 import { columnBytes } from "../../../../Buffer/column-values";
@@ -7,9 +6,6 @@ import { COL_STREAM_NODE_LABEL } from "../../../../Buffer/column-streams-gen";
 
 export interface DecodedNodeStreamFrame {
   tick: number;
-
-  channelVectorCount: number;
-  channelVectorView: DataView;
 
   eventCount: number;
   eventView: DataView;
@@ -53,23 +49,12 @@ export function decodeNodeStreamFrame(row: number, buf: ArrayBuffer): DecodedNod
 function decodeNodeStreamFrameUncached(buf: ArrayBuffer): DecodedNodeStreamFrame | null {
   if (buf.byteLength < BUF_NODE_STREAM_FRAME_HEADER_SIZE) return null;
   const hdr = new DataView(buf, 0, BUF_NODE_STREAM_FRAME_HEADER_SIZE);
-  const tick               = hdr.getUint32(0,  true);
-  const channelVectorCount = hdr.getUint32(12, true);
+  const tick = hdr.getUint32(0, true);
 
-  const expectedLen = BUF_NODE_STREAM_FRAME_HEADER_SIZE
-    + channelVectorCount * CHANNEL_VECTOR_STRIDE;
-  if (buf.byteLength < expectedLen) {
-    reportShortNodeFrame(buf.byteLength, expectedLen);
-    return null;
-  }
+  const { count: eventCount, view: eventView, textView: eventTextView } =
+    decodeTrailingEvents(buf, BUF_NODE_STREAM_FRAME_HEADER_SIZE);
 
-  let off = BUF_NODE_STREAM_FRAME_HEADER_SIZE;
-  const channelVectorView = new DataView(buf, off, channelVectorCount * CHANNEL_VECTOR_STRIDE);
-  off += channelVectorCount * CHANNEL_VECTOR_STRIDE;
-
-  const { count: eventCount, view: eventView, textView: eventTextView } = decodeTrailingEvents(buf, off);
-
-  return { tick, channelVectorCount, channelVectorView, eventCount, eventView, eventTextView };
+  return { tick, eventCount, eventView, eventTextView };
 }
 
 export function nodeLabel(row: number): string {

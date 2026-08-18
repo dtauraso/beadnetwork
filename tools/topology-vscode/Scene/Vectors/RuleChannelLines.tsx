@@ -1,18 +1,27 @@
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { getNodeSections } from "../../src/webview/three/scene/nodes/node-sections";
+import { columnBytes } from "../../Buffer/column-values";
+import { nodeColumn, ownerCounts } from "../../Buffer/column-owners";
 import { overlayFlag } from "../../src/webview/three/controls/flags/overlay-flags";
 import {
-  readChannelVectorShaftM0, readChannelVectorShaftM1, readChannelVectorShaftM2, readChannelVectorShaftM3,
-  readChannelVectorShaftM4, readChannelVectorShaftM5, readChannelVectorShaftM6, readChannelVectorShaftM7,
-  readChannelVectorShaftM8, readChannelVectorShaftM9, readChannelVectorShaftM10, readChannelVectorShaftM11,
-  readChannelVectorShaftM12, readChannelVectorShaftM13, readChannelVectorShaftM14, readChannelVectorShaftM15,
-  readChannelVectorHeadM0, readChannelVectorHeadM1, readChannelVectorHeadM2, readChannelVectorHeadM3,
-  readChannelVectorHeadM4, readChannelVectorHeadM5, readChannelVectorHeadM6, readChannelVectorHeadM7,
-  readChannelVectorHeadM8, readChannelVectorHeadM9, readChannelVectorHeadM10, readChannelVectorHeadM11,
-  readChannelVectorHeadM12, readChannelVectorHeadM13, readChannelVectorHeadM14, readChannelVectorHeadM15,
-} from "../../Buffer/buffer-layout";
+  COL_STREAM_CHANNEL_VECTOR_SHAFT_M0, COL_STREAM_CHANNEL_VECTOR_SHAFT_M1,
+  COL_STREAM_CHANNEL_VECTOR_SHAFT_M2, COL_STREAM_CHANNEL_VECTOR_SHAFT_M3,
+  COL_STREAM_CHANNEL_VECTOR_SHAFT_M4, COL_STREAM_CHANNEL_VECTOR_SHAFT_M5,
+  COL_STREAM_CHANNEL_VECTOR_SHAFT_M6, COL_STREAM_CHANNEL_VECTOR_SHAFT_M7,
+  COL_STREAM_CHANNEL_VECTOR_SHAFT_M8, COL_STREAM_CHANNEL_VECTOR_SHAFT_M9,
+  COL_STREAM_CHANNEL_VECTOR_SHAFT_M10, COL_STREAM_CHANNEL_VECTOR_SHAFT_M11,
+  COL_STREAM_CHANNEL_VECTOR_SHAFT_M12, COL_STREAM_CHANNEL_VECTOR_SHAFT_M13,
+  COL_STREAM_CHANNEL_VECTOR_SHAFT_M14, COL_STREAM_CHANNEL_VECTOR_SHAFT_M15,
+  COL_STREAM_CHANNEL_VECTOR_HEAD_M0, COL_STREAM_CHANNEL_VECTOR_HEAD_M1,
+  COL_STREAM_CHANNEL_VECTOR_HEAD_M2, COL_STREAM_CHANNEL_VECTOR_HEAD_M3,
+  COL_STREAM_CHANNEL_VECTOR_HEAD_M4, COL_STREAM_CHANNEL_VECTOR_HEAD_M5,
+  COL_STREAM_CHANNEL_VECTOR_HEAD_M6, COL_STREAM_CHANNEL_VECTOR_HEAD_M7,
+  COL_STREAM_CHANNEL_VECTOR_HEAD_M8, COL_STREAM_CHANNEL_VECTOR_HEAD_M9,
+  COL_STREAM_CHANNEL_VECTOR_HEAD_M10, COL_STREAM_CHANNEL_VECTOR_HEAD_M11,
+  COL_STREAM_CHANNEL_VECTOR_HEAD_M12, COL_STREAM_CHANNEL_VECTOR_HEAD_M13,
+  COL_STREAM_CHANNEL_VECTOR_HEAD_M14, COL_STREAM_CHANNEL_VECTOR_HEAD_M15,
+} from "../../Buffer/column-streams-gen";
 import {
   SHADING_PARAM_CHANNEL_LINE_RADIUS,
   SHADING_PARAM_CHANNEL_HEAD_RADIUS,
@@ -24,46 +33,39 @@ const CHANNEL_COLOR = "#7b6bd6";
 const CHANNEL_LINE_OPACITY = 0.2584;
 const CHANNEL_HEAD_OPACITY = 0.3675;
 
-function copyShaft(view: DataView, row: number, mesh: THREE.InstancedMesh, slot: number): void {
-  const out = mesh.instanceMatrix.array;
-  const b = slot * 16;
-  out[b]      = readChannelVectorShaftM0(view, row);
-  out[b + 1]  = readChannelVectorShaftM1(view, row);
-  out[b + 2]  = readChannelVectorShaftM2(view, row);
-  out[b + 3]  = readChannelVectorShaftM3(view, row);
-  out[b + 4]  = readChannelVectorShaftM4(view, row);
-  out[b + 5]  = readChannelVectorShaftM5(view, row);
-  out[b + 6]  = readChannelVectorShaftM6(view, row);
-  out[b + 7]  = readChannelVectorShaftM7(view, row);
-  out[b + 8]  = readChannelVectorShaftM8(view, row);
-  out[b + 9]  = readChannelVectorShaftM9(view, row);
-  out[b + 10] = readChannelVectorShaftM10(view, row);
-  out[b + 11] = readChannelVectorShaftM11(view, row);
-  out[b + 12] = readChannelVectorShaftM12(view, row);
-  out[b + 13] = readChannelVectorShaftM13(view, row);
-  out[b + 14] = readChannelVectorShaftM14(view, row);
-  out[b + 15] = readChannelVectorShaftM15(view, row);
-}
+const SHAFT_COLS = [
+  COL_STREAM_CHANNEL_VECTOR_SHAFT_M0, COL_STREAM_CHANNEL_VECTOR_SHAFT_M1,
+  COL_STREAM_CHANNEL_VECTOR_SHAFT_M2, COL_STREAM_CHANNEL_VECTOR_SHAFT_M3,
+  COL_STREAM_CHANNEL_VECTOR_SHAFT_M4, COL_STREAM_CHANNEL_VECTOR_SHAFT_M5,
+  COL_STREAM_CHANNEL_VECTOR_SHAFT_M6, COL_STREAM_CHANNEL_VECTOR_SHAFT_M7,
+  COL_STREAM_CHANNEL_VECTOR_SHAFT_M8, COL_STREAM_CHANNEL_VECTOR_SHAFT_M9,
+  COL_STREAM_CHANNEL_VECTOR_SHAFT_M10, COL_STREAM_CHANNEL_VECTOR_SHAFT_M11,
+  COL_STREAM_CHANNEL_VECTOR_SHAFT_M12, COL_STREAM_CHANNEL_VECTOR_SHAFT_M13,
+  COL_STREAM_CHANNEL_VECTOR_SHAFT_M14, COL_STREAM_CHANNEL_VECTOR_SHAFT_M15,
+];
 
-function copyHead(view: DataView, row: number, mesh: THREE.InstancedMesh, slot: number): void {
+const HEAD_COLS = [
+  COL_STREAM_CHANNEL_VECTOR_HEAD_M0, COL_STREAM_CHANNEL_VECTOR_HEAD_M1,
+  COL_STREAM_CHANNEL_VECTOR_HEAD_M2, COL_STREAM_CHANNEL_VECTOR_HEAD_M3,
+  COL_STREAM_CHANNEL_VECTOR_HEAD_M4, COL_STREAM_CHANNEL_VECTOR_HEAD_M5,
+  COL_STREAM_CHANNEL_VECTOR_HEAD_M6, COL_STREAM_CHANNEL_VECTOR_HEAD_M7,
+  COL_STREAM_CHANNEL_VECTOR_HEAD_M8, COL_STREAM_CHANNEL_VECTOR_HEAD_M9,
+  COL_STREAM_CHANNEL_VECTOR_HEAD_M10, COL_STREAM_CHANNEL_VECTOR_HEAD_M11,
+  COL_STREAM_CHANNEL_VECTOR_HEAD_M12, COL_STREAM_CHANNEL_VECTOR_HEAD_M13,
+  COL_STREAM_CHANNEL_VECTOR_HEAD_M14, COL_STREAM_CHANNEL_VECTOR_HEAD_M15,
+];
+
+function copyMatrix(
+  cols: Array<DataView | undefined>, vector: number,
+  mesh: THREE.InstancedMesh, slot: number,
+): void {
   const out = mesh.instanceMatrix.array;
   const b = slot * 16;
-  out[b]      = readChannelVectorHeadM0(view, row);
-  out[b + 1]  = readChannelVectorHeadM1(view, row);
-  out[b + 2]  = readChannelVectorHeadM2(view, row);
-  out[b + 3]  = readChannelVectorHeadM3(view, row);
-  out[b + 4]  = readChannelVectorHeadM4(view, row);
-  out[b + 5]  = readChannelVectorHeadM5(view, row);
-  out[b + 6]  = readChannelVectorHeadM6(view, row);
-  out[b + 7]  = readChannelVectorHeadM7(view, row);
-  out[b + 8]  = readChannelVectorHeadM8(view, row);
-  out[b + 9]  = readChannelVectorHeadM9(view, row);
-  out[b + 10] = readChannelVectorHeadM10(view, row);
-  out[b + 11] = readChannelVectorHeadM11(view, row);
-  out[b + 12] = readChannelVectorHeadM12(view, row);
-  out[b + 13] = readChannelVectorHeadM13(view, row);
-  out[b + 14] = readChannelVectorHeadM14(view, row);
-  out[b + 15] = readChannelVectorHeadM15(view, row);
+  const o = vector * 4;
+  for (let m = 0; m < 16; m++) {
+    const col = cols[m];
+    out[b + m] = col && col.byteLength >= o + 4 ? col.getFloat32(o, true) : 0;
+  }
 }
 
 export function RuleChannelLines({ capacity }: { capacity: number }) {
@@ -81,19 +83,20 @@ export function RuleChannelLines({ capacity }: { capacity: number }) {
       return;
     }
 
-    const decoded = getNodeSections();
-    if (!decoded) {
-      line.count = 0;
-      head.count = 0;
-      return;
-    }
-    const { channelVectorCount, channelVectorView } = decoded;
-
     let drawn = 0;
-    for (let row = 0; row < channelVectorCount && drawn < capacity; row++) {
-      copyShaft(channelVectorView, row, line, drawn);
-      copyHead(channelVectorView, row, head, drawn);
-      drawn++;
+    const { nodes } = ownerCounts();
+    for (let row = 0; row < nodes && drawn < capacity; row++) {
+      const shaftCols = SHAFT_COLS.map((c) => columnBytes(nodeColumn(row, c)));
+      const headCols = HEAD_COLS.map((c) => columnBytes(nodeColumn(row, c)));
+      const first = shaftCols[0];
+      if (!first || first.byteLength === 0) continue;
+
+      const vectors = first.byteLength >> 2;
+      for (let v = 0; v < vectors && drawn < capacity; v++) {
+        copyMatrix(shaftCols, v, line, drawn);
+        copyMatrix(headCols, v, head, drawn);
+        drawn++;
+      }
     }
 
     line.count = drawn;

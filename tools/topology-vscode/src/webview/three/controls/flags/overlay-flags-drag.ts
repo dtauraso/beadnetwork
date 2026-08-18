@@ -1,5 +1,4 @@
 import { useSyncExternalStore } from "react";
-import { subscribeNodeStreamBlocks } from "../../scene/nodes/node-sections";
 import { columnI32, subscribeColumns } from "../../../../../Buffer/column-values";
 import { COL_STREAM_OVERLAY_DRAG_NODE_ROW } from "../../../../../Buffer/column-streams-gen";
 import { nodeLabel } from "../../decode/buffer-decode-node";
@@ -19,12 +18,7 @@ export function readDraggedNodeName(): string {
 }
 
 function subscribeDraggedNodeName(fn: () => void): () => void {
-  const unsubCols = subscribeColumns(fn);
-  const unsubNode = subscribeNodeStreamBlocks(fn);
-  return () => {
-    unsubCols();
-    unsubNode();
-  };
+  return subscribeColumns(fn);
 }
 
 export function useDraggedNodeName(): string {
