@@ -24,20 +24,20 @@ type Persisters struct {
 }
 
 func (p *Persisters) ArmViewpoint(topologyPath string) *camerapersist.ViewpointPersister {
-	vp := &camerapersist.ViewpointPersister{Path: scenepaths.CameraFilePath(topologyPath)}
+	vp := &camerapersist.ViewpointPersister{Dir: scenepaths.CameraDirPath(topologyPath)}
 	p.vp = vp
 	return vp
 }
 
 func (p *Persisters) ArmEdit(topologyPath string) {
 	p.overlays = &scenepersist.Persister[OverlaysDropdown.OverlayState]{
-		Path: scenepaths.OverlaysFilePath(topologyPath), Write: OverlaysDropdown.WriteSceneOverlays, Tag: "scene_overlays_persist",
+		Path: scenepaths.OverlaysDirPath(topologyPath), Write: OverlaysDropdown.WriteSceneOverlays, Tag: "scene_overlays_persist",
 	}
 	p.panels = &scenepersist.Persister[OverlaysDropdown.PanelState]{
-		Path: scenepaths.PanelsFilePath(topologyPath), Write: OverlaysDropdown.WriteScenePanels, Tag: "scene_panels_persist",
+		Path: scenepaths.PanelsDirPath(topologyPath), Write: OverlaysDropdown.WriteScenePanels, Tag: "scene_panels_persist",
 	}
 	p.sphere = &scenepersist.Persister[polar.SceneSphere]{
-		Path: scenepaths.SphereFilePath(topologyPath), Write: scenepersist.WriteSceneSphere, Tag: "scene_sphere_persist",
+		Path: scenepaths.SphereDirPath(topologyPath), Write: scenepersist.WriteSceneSphere, Tag: "scene_sphere_persist",
 	}
 	p.speed = &scenepersist.Persister[float64]{
 		Path: scenepaths.SpeedFilePath(topologyPath), Write: scenepersist.WriteSceneSpeed, Tag: "scene_speed_persist",

@@ -71,30 +71,40 @@ var OverlayFlagValue = map[string]func(*OverlayState) bool{
 	"nodePoles":  func(o *OverlayState) bool { return o.NodePolesVisible },
 }
 
-// OverlayFlagTraceKind maps the wire FLAG name (same keys as OverlayToggles) to its
-// Trace.Kind* string, so Wiring's applyUpdate case can hand EmitViewFrame the ONE event
-// that flag's toggle logged (matching the per-toggle tr.X(bool) call).
-// Referencing T.Kind<Method> by name means a flag missing its Trace kind constant is a
-// Go compile error here, not a silent no-op — see writeOverlayGen in
-// tools/gen-node-defs/overlay_gen.go.
-//
-// OVERLAY_TRACE_KINDS_START
-var OverlayFlagTraceKind = map[string]string{
-	"tori":           T.KindSceneTori,
-	"scenePoles":     T.KindScenePoles,
-	"nodePoles":      T.KindNodePoles,
-	"handholds":      T.KindHandholds,
-	"labelsGlobal":   T.KindLabelsGlobal,
-	"overlays":       T.KindOverlaysVis,
-	"nodeBody":       T.KindNodeBody,
-	"nodeRing":       T.KindNodeRing,
-	"ringPick":       T.KindRingPick,
-	"selectionRing":  T.KindSelectionRing,
-	"hoverRing":      T.KindHoverRing,
-	"sceneVectors":   T.KindSceneVectors,
-	"ruleChannels":   T.KindRuleChannels,
-	"nodePoleSphere": T.KindNodePoleSphere,
-	"allPoleSpheres": T.KindAllPoleSpheres,
+// OverlayFlagRead and OverlayFlagWrite cover EVERY flag, so persistence can walk them
+// one file at a time without a hand-written case per flag going stale.
+var OverlayFlagRead = map[string]func(*OverlayState) bool{
+	"tori":           func(o *OverlayState) bool { return o.SceneToriVisible },
+	"scenePoles":     func(o *OverlayState) bool { return o.ScenePolesVisible },
+	"nodePoles":      func(o *OverlayState) bool { return o.NodePolesVisible },
+	"handholds":      func(o *OverlayState) bool { return o.HandholdsVisible },
+	"labelsGlobal":   func(o *OverlayState) bool { return o.LabelsGlobalVisible },
+	"overlays":       func(o *OverlayState) bool { return o.OverlaysVisible },
+	"nodeBody":       func(o *OverlayState) bool { return o.NodeBodyVisible },
+	"nodeRing":       func(o *OverlayState) bool { return o.NodeRingVisible },
+	"ringPick":       func(o *OverlayState) bool { return o.RingPickVisible },
+	"selectionRing":  func(o *OverlayState) bool { return o.SelectionRingVisible },
+	"hoverRing":      func(o *OverlayState) bool { return o.HoverRingVisible },
+	"sceneVectors":   func(o *OverlayState) bool { return o.SceneVectorsVisible },
+	"ruleChannels":   func(o *OverlayState) bool { return o.RuleChannelsVisible },
+	"nodePoleSphere": func(o *OverlayState) bool { return o.NodePoleSphereVisible },
+	"allPoleSpheres": func(o *OverlayState) bool { return o.AllPoleSpheresVisible },
 }
 
-// OVERLAY_TRACE_KINDS_END
+var OverlayFlagWrite = map[string]func(*OverlayState, bool){
+	"tori":           func(o *OverlayState, v bool) { o.SceneToriVisible = v },
+	"scenePoles":     func(o *OverlayState, v bool) { o.ScenePolesVisible = v },
+	"nodePoles":      func(o *OverlayState, v bool) { o.NodePolesVisible = v },
+	"handholds":      func(o *OverlayState, v bool) { o.HandholdsVisible = v },
+	"labelsGlobal":   func(o *OverlayState, v bool) { o.LabelsGlobalVisible = v },
+	"overlays":       func(o *OverlayState, v bool) { o.OverlaysVisible = v },
+	"nodeBody":       func(o *OverlayState, v bool) { o.NodeBodyVisible = v },
+	"nodeRing":       func(o *OverlayState, v bool) { o.NodeRingVisible = v },
+	"ringPick":       func(o *OverlayState, v bool) { o.RingPickVisible = v },
+	"selectionRing":  func(o *OverlayState, v bool) { o.SelectionRingVisible = v },
+	"hoverRing":      func(o *OverlayState, v bool) { o.HoverRingVisible = v },
+	"sceneVectors":   func(o *OverlayState, v bool) { o.SceneVectorsVisible = v },
+	"ruleChannels":   func(o *OverlayState, v bool) { o.RuleChannelsVisible = v },
+	"nodePoleSphere": func(o *OverlayState, v bool) { o.NodePoleSphereVisible = v },
+	"allPoleSpheres": func(o *OverlayState, v bool) { o.AllPoleSpheresVisible = v },
+}

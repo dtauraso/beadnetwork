@@ -106,12 +106,13 @@ tools/topology-vscode/gen-node-defs
 # per-node data base.json does (which IS tracked), so it stays trackable too. A node's
 # position itself lives in base.json (base) plus nodes/<id>/drag/position.json (delta,
 # gitignored above), not a separate position.json.
-/topology/view/camera.json
-/topology/view/camera.json.tmp
-/topology/view/overlays.json
-/topology/view/overlays.json.tmp
-/topology/view/sphere.json
-/topology/view/sphere.json.tmp
+/topology/view/camera/
+/topology/view/sphere/
+
+# One flag, one file: the overlays and panels dirs hold a bool per flag, same locally-
+# preferred view state the single files were.
+/topology/view/overlays/
+/topology/view/panels/
 
 # Hook block log (local audit trail, not for VCS)
 .claude/hooks/go-blocks.log
@@ -138,7 +139,7 @@ __pycache__/
 # .gitignore'd the ordinary way.
 #
 # A node's own position and each of its outgoing edges' geometry delta live under a
-# gitignored drag/ directory (drag/position.json, drag/edges/<label>.json) as an ACCUMULATED
+# gitignored drag/ directory (drag/index-*.json, drag/edges/<label>.json) as an ACCUMULATED
 # DELTA composed onto the tracked base.json/<label>.json seed. skip-worktree (the previous
 # mechanism, `nodes/Wiring/gitskip`) is gone: it only suppressed status/diff reporting, so
 # `git checkout` still refused to switch branches when a marked file differed from the
@@ -149,7 +150,8 @@ topology*/nodes/*/drag/
 
 # Whether a node's drag rule is currently ACTIVE is persisted output, deliberately separate
 # from the rule's VALUES (drag.phi/drag.maxTheta), which stay in the tracked base.json seed.
-topology*/nodes/*/rule-active.json
+# One flag per file under rule-active/, including one per edge under rule-active/edges/.
+topology*/nodes/*/rule-active/
 
 # Where the running extension listens for "open this file as a tab", and that
 # session's token. Written on activation, removed on shutdown.

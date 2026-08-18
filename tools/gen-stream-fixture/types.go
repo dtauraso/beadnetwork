@@ -9,32 +9,25 @@ type chainBeadFixture struct {
 }
 
 type nodeFrameFixture struct {
-	Tick      uint32  `json:"tick"`
-	NodeRow   int32   `json:"nodeRow"`
-	NodeId    int32   `json:"nodeId"`
-	CX        float32 `json:"cx"`
-	CY        float32 `json:"cy"`
-	CZ        float32 `json:"cz"`
-	Radius    float32 `json:"radius"`
-	PolePhi   float32 `json:"polePhi"`
-	PoleTheta float32 `json:"poleTheta"`
+	Tick       uint32  `json:"tick"`
+	NodeRow    int32   `json:"nodeRow"`
+	NodeId     int32   `json:"nodeId"`
+	IndexR     int32   `json:"indexR"`
+	IndexPhi   int32   `json:"indexPhi"`
+	IndexTheta int32   `json:"indexTheta"`
+	HasPos     uint8   `json:"hasPos"`
+	Radius     float32 `json:"radius"`
+	PolePhi    float32 `json:"polePhi"`
+	PoleTheta  float32 `json:"poleTheta"`
 
 	TopTiltVectorLen float32 `json:"topTiltVectorLen"`
 
 	TopTiltVectorIdx int32 `json:"topTiltVectorIdx"`
 
-	TopTiltVectorPhi float32 `json:"topTiltVectorPhi"`
-
-	BottomTiltVectorPhi float32 `json:"bottomTiltVectorPhi"`
-
-	CoplanarNormalPhi float32 `json:"coplanarNormalPhi"`
-
-	ReceivedVectorLen float32 `json:"receivedVectorLen"`
-	ReceivedVectorPhi float32 `json:"receivedVectorPhi"`
-	Selected          uint8   `json:"selected"`
-	KindID            uint8   `json:"kindId"`
-	Hovered           uint8   `json:"hovered"`
-	LatchedSel        uint8   `json:"latchedSel"`
+	Selected   uint8 `json:"selected"`
+	KindID     uint8 `json:"kindId"`
+	Hovered    uint8 `json:"hovered"`
+	LatchedSel uint8 `json:"latchedSel"`
 
 	LatticePoints uint8 `json:"latticePoints"`
 

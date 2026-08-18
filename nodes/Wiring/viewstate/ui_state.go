@@ -11,8 +11,10 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/gesturefsm"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
+	"github.com/dtauraso/wirefold/nodes/Wiring/polarindex"
 	"github.com/dtauraso/wirefold/nodes/Wiring/selectionstate"
 	"github.com/dtauraso/wirefold/nodes/spatial"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/Buffer/colstream"
 
 	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
 )
@@ -25,6 +27,12 @@ type UIState struct {
 	SceneKinds uint32
 
 	SceneSphere polar.SceneSphere
+
+	Constants polarindex.SceneConstants
+
+	singletonCols *colstream.ColumnSet
+
+	OwnerCounts struct{ Nodes, Edges int32 }
 
 	ClockDivisor float64
 

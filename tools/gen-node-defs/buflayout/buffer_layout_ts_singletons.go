@@ -15,8 +15,11 @@ func writeBufferLayoutTSSingletons(outPath string, schema BufLayoutSchema) error
 	fmt.Fprintln(w, `// Source: Buffer/bufschema/layout.go  Regenerate: npm run gen:node-defs`)
 	fmt.Fprintln(w)
 
+	fmt.Fprintln(w, `export {};`)
+	fmt.Fprintln(w)
+
 	for _, blk := range schema.Blocks {
-		if !isSingletonBlock(blk.name) {
+		if !isSingletonBlock(blk.name) || !hasRow(blk.name) {
 			continue
 		}
 		writeTSBlockConstsAndReaders(w, blk, true)

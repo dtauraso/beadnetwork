@@ -1,7 +1,9 @@
 package nodeframe
 
 import (
+	"github.com/dtauraso/wirefold/nodes/Wiring/framegeom"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/Buffer/streamframe"
 )
 
 type NodeFrameInput struct {
@@ -10,11 +12,16 @@ type NodeFrameInput struct {
 	NodeRow int32
 	NodeID  int32
 
-	CX, CY, CZ float32
+	IndexR, IndexPhi, IndexTheta int32
+	HasPos                       uint8
 
 	Radius float32
 
 	PoleRingR float32
+
+	NavTubeR                                 float32
+	PoleAnchorX, PoleAnchorY, PoleAnchorZ    float32
+	LabelAnchorX, LabelAnchorY, LabelAnchorZ float32
 
 	PolePhi, PoleTheta float32
 
@@ -24,15 +31,9 @@ type NodeFrameInput struct {
 
 	TopTiltVectorIdx int32
 
-	TopTiltVectorPhi float32
+	TiltArrows []framegeom.TiltArrow
 
-	BottomTiltVectorPhi float32
-
-	CoplanarNormalPhi float32
-
-	ReceivedVectorLen float32
-
-	ReceivedVectorPhi float32
+	ChannelVectors []streamframe.ChannelVector
 
 	Selected, KindID, Hovered, LatchedSel uint8
 

@@ -1,13 +1,12 @@
 import { useSyncExternalStore } from "react";
-import { getViewBlocks, subscribeViewBlocks } from "../../scene/view-blocks";
-import { readOverlaySpeed } from "../../../../../Buffer/buffer-layout";
+import { columnF32 } from "../../../../../Buffer/column-values";
+import { subscribeFrame } from "../../../frame-tick";
+import { COL_STREAM_OVERLAY_SPEED } from "../../../../../Buffer/column-streams-gen";
 
 export function readPlaybackSpeed(): number | null {
-  const blocks = getViewBlocks();
-  if (!blocks) return null;
-  return readOverlaySpeed(blocks.overlayView);
+  return columnF32(COL_STREAM_OVERLAY_SPEED);
 }
 
 export function usePlaybackSpeed(): number | null {
-  return useSyncExternalStore(subscribeViewBlocks, readPlaybackSpeed, readPlaybackSpeed);
+  return useSyncExternalStore(subscribeFrame, readPlaybackSpeed, readPlaybackSpeed);
 }

@@ -8,8 +8,11 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/clock"
 
+	"github.com/dtauraso/wirefold/nodes/bead"
+
 	Bld "github.com/dtauraso/wirefold/nodes/Wiring/build"
 	SF "github.com/dtauraso/wirefold/tools/topology-vscode/Buffer/streamframe"
+	NodeShape "github.com/dtauraso/wirefold/tools/topology-vscode/Node/Shape"
 	"github.com/dtauraso/wirefold/tools/topology-vscode/Tabs"
 	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
 )
@@ -31,6 +34,12 @@ func RunTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 	}
 	wireEdgeStreams(streamFDs, md)
 	wireNodeStreams(streamFDs, md)
+	cols := SF.NewColumnStreams(streamFDs, len(md.RT.NodeRowTable), len(md.RT.EdgeRowTable))
+	md.UI.OwnerCounts.Nodes = int32(len(md.RT.NodeRowTable))
+	md.UI.OwnerCounts.Edges = int32(len(md.RT.EdgeRowTable))
+	md.UI.SetSingletonColumns(cols.SingletonColumns())
+	md.UI.WriteNodeRingSurfaceColumns(NodeShape.CanonicalRingSurfacePointsFlat())
+	md.UI.WriteBeadRingSurfaceColumns(bead.CanonicalRingSurfacePointsFlat())
 	wireViewStream(md, viewFile, viewStreamWired, sceneTabNames, sceneTabSelected)
 	emitStartupBreadcrumbs(tr, md, scenePath, len(nodes))
 	checkRowSeedCount(tr, md, len(nodes))

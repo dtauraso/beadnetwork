@@ -1,13 +1,12 @@
 import { useSyncExternalStore } from "react";
-import { getViewBlocks, subscribeViewBlocks } from "../../scene/view-blocks";
-import { readOverlayEditRefused } from "../../../../../Buffer/buffer-layout";
+import { columnU32 } from "../../../../../Buffer/column-values";
+import { subscribeFrame } from "../../../frame-tick";
+import { COL_STREAM_OVERLAY_EDIT_REFUSED } from "../../../../../Buffer/column-streams-gen";
 
 export function readEditRefused(): number {
-  const blocks = getViewBlocks();
-  if (!blocks) return 0;
-  return readOverlayEditRefused(blocks.overlayView);
+  return columnU32(COL_STREAM_OVERLAY_EDIT_REFUSED);
 }
 
 export function useEditRefused(): number {
-  return useSyncExternalStore(subscribeViewBlocks, readEditRefused, readEditRefused);
+  return useSyncExternalStore(subscribeFrame, readEditRefused, readEditRefused);
 }

@@ -1,19 +1,20 @@
 import { useSyncExternalStore } from "react";
 import { PANEL_FLAG_ORDER, type PanelFlag } from "../../../../messages";
-import { getViewBlocks, subscribeViewBlocks } from "../../scene/view-blocks";
+import { columnU8 } from "../../../../../Buffer/column-values";
+import { subscribeFrame } from "../../../frame-tick";
 import {
-  readPanelOverlays,
-  readPanelNode,
-  readPanelNodeShape,
-  readPanelNodeState,
-  readPanelNodePoles,
-  readPanelNodeRules,
-  readPanelScene,
-  readPanelSceneGuides,
-  readPanelScenePoles,
-  readPanelSceneVectors,
-  readPanelSceneLabels,
-} from "../../../../../Buffer/buffer-layout";
+  COL_STREAM_PANEL_OVERLAYS,
+  COL_STREAM_PANEL_NODE,
+  COL_STREAM_PANEL_NODE_SHAPE,
+  COL_STREAM_PANEL_NODE_STATE,
+  COL_STREAM_PANEL_NODE_POLES,
+  COL_STREAM_PANEL_NODE_RULES,
+  COL_STREAM_PANEL_SCENE,
+  COL_STREAM_PANEL_SCENE_GUIDES,
+  COL_STREAM_PANEL_SCENE_POLES,
+  COL_STREAM_PANEL_SCENE_VECTORS,
+  COL_STREAM_PANEL_SCENE_LABELS,
+} from "../../../../../Buffer/column-streams-gen";
 
 export type PanelFlagVals = Record<PanelFlag, boolean>;
 
@@ -24,33 +25,24 @@ function panelFlagsEqual(a: PanelFlagVals, b: PanelFlagVals): boolean {
 }
 
 export function readPanelFlags(): PanelFlagVals | null {
-  const blocks = getViewBlocks();
-  if (!blocks) return cachedVals;
-  const v = blocks.panelView;
   const next: PanelFlagVals = {
-    overlays: !!readPanelOverlays(v),
-    node: !!readPanelNode(v),
-    nodeShape: !!readPanelNodeShape(v),
-    nodeState: !!readPanelNodeState(v),
-    nodePoles: !!readPanelNodePoles(v),
-    nodeRules: !!readPanelNodeRules(v),
-    scene: !!readPanelScene(v),
-    sceneGuides: !!readPanelSceneGuides(v),
-    scenePoles: !!readPanelScenePoles(v),
-    sceneVectors: !!readPanelSceneVectors(v),
-    sceneLabels: !!readPanelSceneLabels(v),
+    overlays: !!columnU8(COL_STREAM_PANEL_OVERLAYS),
+    node: !!columnU8(COL_STREAM_PANEL_NODE),
+    nodeShape: !!columnU8(COL_STREAM_PANEL_NODE_SHAPE),
+    nodeState: !!columnU8(COL_STREAM_PANEL_NODE_STATE),
+    nodePoles: !!columnU8(COL_STREAM_PANEL_NODE_POLES),
+    nodeRules: !!columnU8(COL_STREAM_PANEL_NODE_RULES),
+    scene: !!columnU8(COL_STREAM_PANEL_SCENE),
+    sceneGuides: !!columnU8(COL_STREAM_PANEL_SCENE_GUIDES),
+    scenePoles: !!columnU8(COL_STREAM_PANEL_SCENE_POLES),
+    sceneVectors: !!columnU8(COL_STREAM_PANEL_SCENE_VECTORS),
+    sceneLabels: !!columnU8(COL_STREAM_PANEL_SCENE_LABELS),
   };
   if (cachedVals && panelFlagsEqual(cachedVals, next)) return cachedVals;
   cachedVals = next;
   return cachedVals;
 }
 
-export function panelOn(read: (v: DataView) => number): boolean {
-  const blocks = getViewBlocks();
-  if (!blocks) return false;
-  return read(blocks.panelView) !== 0;
-}
-
 export function usePanelFlags(): PanelFlagVals | null {
-  return useSyncExternalStore(subscribeViewBlocks, readPanelFlags, readPanelFlags);
+  return useSyncExternalStore(subscribeFrame, readPanelFlags, readPanelFlags);
 }

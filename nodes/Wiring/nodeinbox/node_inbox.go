@@ -11,6 +11,28 @@ type NodeInboxes struct {
 	tiltEdit map[string]chan movemsg.TiltEditMsg
 
 	lattice map[string]chan int32
+
+	channelVectors map[string]chan bool
+}
+
+func (ib *NodeInboxes) ClaimChannelVectorsIn(id string, ch chan bool) {
+	if ib.channelVectors == nil {
+		ib.channelVectors = map[string]chan bool{}
+	}
+	ib.channelVectors[id] = ch
+}
+
+func (ib *NodeInboxes) BroadcastChannelVectorsOn(on bool) {
+	for _, ch := range ib.channelVectors {
+		select {
+		case <-ch:
+		default:
+		}
+		select {
+		case ch <- on:
+		default:
+		}
+	}
 }
 
 func (ib *NodeInboxes) ClaimLatticeIn(id string, ch chan int32) {

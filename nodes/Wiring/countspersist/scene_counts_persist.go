@@ -6,11 +6,13 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
 )
 
-type countsFile struct {
-	Nodes int `json:"nodes"`
-	Edges int `json:"edges"`
-}
+func NodesPath(root string) string { return filepath.Join(root, "counts", "nodes.json") }
+
+func EdgesPath(root string) string { return filepath.Join(root, "counts", "edges.json") }
 
 func WriteCounts(root string, nodes, edges int) error {
-	return jsonpersist.WriteJSONAtomic(filepath.Join(root, "counts.json"), countsFile{Nodes: nodes, Edges: edges})
+	if err := jsonpersist.WriteJSONAtomic(NodesPath(root), nodes); err != nil {
+		return err
+	}
+	return jsonpersist.WriteJSONAtomic(EdgesPath(root), edges)
 }

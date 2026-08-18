@@ -1,9 +1,11 @@
-import { getLatestEdgeStreamFrames } from "../../../snapshot-buffer";
-import { decodeEdgeStreamFrame, type DecodedEdgeStreamFrame } from "../../decode/buffer-decode-edge";
+import { columnF32, columnI32, columnU8, hasColumn } from "../../../../../Buffer/column-values";
+import { edgeColumn, ownerCounts } from "../../../../../Buffer/column-owners";
 import {
-  readEdgeSX, readEdgeSY, readEdgeSZ, readEdgeEX, readEdgeEY, readEdgeEZ,
-  readEdgeSrcNodeRow, readEdgeDstNodeRow, readEdgeDeltaR, readEdgeDragActive,
-} from "../../../../../Buffer/buffer-layout";
+  COL_STREAM_EDGE_SX, COL_STREAM_EDGE_SY, COL_STREAM_EDGE_SZ,
+  COL_STREAM_EDGE_EX, COL_STREAM_EDGE_EY, COL_STREAM_EDGE_EZ,
+  COL_STREAM_EDGE_SRC_NODE_ROW, COL_STREAM_EDGE_DST_NODE_ROW,
+  COL_STREAM_EDGE_DELTA_R, COL_STREAM_EDGE_DRAG_ACTIVE,
+} from "../../../../../Buffer/column-streams-gen";
 
 export interface EdgeAccessor {
 
@@ -21,42 +23,36 @@ export interface EdgeAccessor {
 
 }
 
-function decodedFor(frames: ReadonlyMap<number, ArrayBuffer>, row: number): DecodedEdgeStreamFrame | null {
-  const buf = frames.get(row);
-  return buf ? decodeEdgeStreamFrame(row, buf) : null;
-}
-
 export function getEdgeStreamAccessor(): EdgeAccessor | null {
-  const frames = getLatestEdgeStreamFrames();
-  if (frames.size === 0) return null;
-  let maxRow = -1;
-  for (const r of frames.keys()) if (r > maxRow) maxRow = r;
-  const edgeCount = maxRow + 1;
+  const { edges } = ownerCounts();
+  if (edges <= 0) return null;
+  if (!hasColumn(edgeColumn(0, COL_STREAM_EDGE_SX))) return null;
+
   return {
-    edgeCount,
+    edgeCount: edges,
     segment(row) {
-      const d = decodedFor(frames, row);
-      if (!d) return [0, 0, 0, 0, 0, 0];
       return [
-        readEdgeSX(d.edgeView, 0), readEdgeSY(d.edgeView, 0), readEdgeSZ(d.edgeView, 0),
-        readEdgeEX(d.edgeView, 0), readEdgeEY(d.edgeView, 0), readEdgeEZ(d.edgeView, 0),
+        columnF32(edgeColumn(row, COL_STREAM_EDGE_SX)),
+        columnF32(edgeColumn(row, COL_STREAM_EDGE_SY)),
+        columnF32(edgeColumn(row, COL_STREAM_EDGE_SZ)),
+        columnF32(edgeColumn(row, COL_STREAM_EDGE_EX)),
+        columnF32(edgeColumn(row, COL_STREAM_EDGE_EY)),
+        columnF32(edgeColumn(row, COL_STREAM_EDGE_EZ)),
       ];
     },
     srcNodeRow(row) {
-      const d = decodedFor(frames, row);
-      return d ? readEdgeSrcNodeRow(d.edgeView, 0) : -1;
+      return columnI32(edgeColumn(row, COL_STREAM_EDGE_SRC_NODE_ROW), -1);
     },
     dstNodeRow(row) {
-      const d = decodedFor(frames, row);
-      return d ? readEdgeDstNodeRow(d.edgeView, 0) : -1;
+      return columnI32(edgeColumn(row, COL_STREAM_EDGE_DST_NODE_ROW), -1);
     },
     deltaR(row) {
-      const d = decodedFor(frames, row);
-      return d ? readEdgeDeltaR(d.edgeView, 0) : 0;
+      return columnF32(edgeColumn(row, COL_STREAM_EDGE_DELTA_R));
     },
     dragActive(row) {
-      const d = decodedFor(frames, row);
-      return d ? readEdgeDragActive(d.edgeView, 0) !== 0 : true;
+
+      const col = edgeColumn(row, COL_STREAM_EDGE_DRAG_ACTIVE);
+      return hasColumn(col) ? columnU8(col) !== 0 : true;
     },
   };
 }

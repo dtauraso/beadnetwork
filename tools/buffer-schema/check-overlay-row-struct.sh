@@ -16,6 +16,11 @@ for f in "$GEN_FILE" "$GENERATOR"; do
   fi
 done
 
+if ! grep -q "func SetOverlayRow(" "$GEN_FILE"; then
+  echo "check-overlay-row-struct: no Overlay row (moved to column channels); nothing to check"
+  exit 0
+fi
+
 FAIL=0
 
 if ! grep -qE '^func SetOverlayRow\(buf \[\]byte, row OverlayRow\) \{$' "$GEN_FILE"; then

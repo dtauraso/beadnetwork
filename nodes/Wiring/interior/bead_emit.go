@@ -5,7 +5,6 @@ import (
 
 	lattice "github.com/dtauraso/wirefold/nodes/bead/lattice"
 	"github.com/dtauraso/wirefold/nodes/clock"
-	"github.com/dtauraso/wirefold/nodes/rowevent"
 
 	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
 )
@@ -15,11 +14,6 @@ func EmitNodeBeads(tr *T.Trace, nodeName string, working, backup []int, emitter 
 	present := make([]uint8, 0, 4)
 	value := make([]int32, 0, 4)
 	ox, oy, oz := make([]float32, 0, 4), make([]float32, 0, 4), make([]float32, 0, 4)
-	nodeRow := int32(-1)
-	if emitter != nil {
-		nodeRow = emitter.NodeRowOf()
-	}
-	var events []rowevent.RowEvent
 	emitRow := func(row int, slice []int) {
 		for col := 0; col < cols; col++ {
 			p := InteriorSlotOffset(row, col)
@@ -28,11 +22,6 @@ func EmitNodeBeads(tr *T.Trace, nodeName string, working, backup []int, emitter 
 			if has {
 				v = slice[col]
 			}
-			events = append(events, rowevent.RowEvent{
-				Kind: T.KindNodeBead, NodeRow: nodeRow, Slot: int32(row*cols + col), Value: int32(v),
-				PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1,
-				X: p.X, Y: p.Y, Z: p.Z,
-			})
 			present = append(present, boolU8(has))
 			value = append(value, int32(v))
 			ox, oy, oz = append(ox, float32(p.X)), append(oy, float32(p.Y)), append(oz, float32(p.Z))
@@ -40,7 +29,7 @@ func EmitNodeBeads(tr *T.Trace, nodeName string, working, backup []int, emitter 
 	}
 	emitRow(0, backup)
 	emitRow(1, working)
-	emitter.write(present, value, ox, oy, oz, events)
+	emitter.write(present, value, ox, oy, oz, nil)
 }
 
 const NoValue = -1
@@ -52,19 +41,11 @@ func EmitHeldBead(tr *T.Trace, nodeName string, held int, emitter *Emitter) {
 	if has {
 		v = held
 	}
-	nodeRow := int32(-1)
-	if emitter != nil {
-		nodeRow = emitter.NodeRowOf()
-	}
-	events := []rowevent.RowEvent{{
-		Kind: T.KindNodeBead, NodeRow: nodeRow, Slot: 0, Value: int32(v),
-		PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1,
-	}}
 	emitter.write(
 		[]uint8{boolU8(has), 0, 0, 0},
 		[]int32{int32(v), 0, 0, 0},
 		[]float32{0, 0, 0, 0}, []float32{0, 0, 0, 0}, []float32{0, 0, 0, 0},
-		events,
+		nil,
 	)
 }
 
@@ -78,19 +59,11 @@ func EmitInputBeads(tr *T.Trace, nodeName string, left, right int, emitter *Emit
 	if hasR {
 		vR = right
 	}
-	nodeRow := int32(-1)
-	if emitter != nil {
-		nodeRow = emitter.NodeRowOf()
-	}
-	events := []rowevent.RowEvent{
-		{Kind: T.KindNodeBead, NodeRow: nodeRow, Slot: 0, Value: int32(vL), PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, X: -s},
-		{Kind: T.KindNodeBead, NodeRow: nodeRow, Slot: 1, Value: int32(vR), PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, X: s},
-	}
 	emitter.write(
 		[]uint8{boolU8(hasL), boolU8(hasR), 0, 0},
 		[]int32{int32(vL), int32(vR), 0, 0},
 		[]float32{float32(-s), float32(s), 0, 0}, []float32{0, 0, 0, 0}, []float32{0, 0, 0, 0},
-		events,
+		nil,
 	)
 }
 
@@ -106,16 +79,6 @@ func EmitRefillSlide(ctx context.Context, tr *T.Trace, nodeName string, clk cloc
 
 	start := clk.Tick()
 	emitFrame := func(t float64) {
-		for col := 0; col < len(beads); col++ {
-			a := InteriorSlotOffset(0, col)
-			b := InteriorSlotOffset(1, col)
-			tr.NodeBead(nodeName, 1, col, true, beads[col],
-				a.X+(b.X-a.X)*t, a.Y+(b.Y-a.Y)*t, a.Z+(b.Z-a.Z)*t)
-		}
-		for col := 0; col < len(beads); col++ {
-			p := InteriorSlotOffset(0, col)
-			tr.NodeBead(nodeName, 0, col, false, 0, p.X, p.Y, p.Z)
-		}
 	}
 
 	emitFrame(0)

@@ -6,7 +6,6 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/rowtables"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
-	"github.com/dtauraso/wirefold/nodes/rowevent"
 
 	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
 )
@@ -22,8 +21,8 @@ func updateHover(d Deps, ev inputcodec.RawInputMsg) {
 	}
 	mr, ctx := d.MR, d.Ctx
 	sendMoveFn := func(id string, msg movemsg.Msg) { mr.SendMove(ctx, id, msg) }
-	if events, changed := setHover(d.UI, sendMoveFn, d.RT, node, "", false); changed {
-		d.UI.EmitViewFrame(events)
+	if setHover(d.UI, sendMoveFn, d.RT, node, "", false) {
+		d.UI.EmitViewFrame(nil)
 	}
 }
 
@@ -44,7 +43,7 @@ func applyOrbit(d Deps, ev inputcodec.RawInputMsg, tr *T.Trace) {
 	prevDir := camera.ToWorldDir(basis, prev)
 	currDir := camera.ToWorldDir(basis, curr)
 	d.UI.OrbitViewpoint(camera.WorldDirToAngles(currDir), camera.WorldDirToAngles(prevDir), tr)
-	d.UI.EmitViewFrame(CameraViewEvent())
+	d.UI.EmitViewFrame(nil)
 }
 
 func applyOrbitLocked(d Deps, ev inputcodec.RawInputMsg, tr *T.Trace) {
@@ -56,7 +55,7 @@ func applyOrbitLocked(d Deps, ev inputcodec.RawInputMsg, tr *T.Trace) {
 	prevDir := camera.ToWorldDir(basis, prev)
 	currDir := camera.ToWorldDir(basis, curr)
 	d.UI.OrbitLockedViewpoint(camera.WorldDirToAngles(currDir), camera.WorldDirToAngles(prevDir), tr)
-	d.UI.EmitViewFrame(CameraViewEvent())
+	d.UI.EmitViewFrame(nil)
 }
 
 func applyNodeDragTarget(ui *viewstate.UIState, rootMove func(id string, target vec3) bool, ev inputcodec.RawInputMsg) bool {
@@ -69,37 +68,27 @@ func applyNodeDragTarget(ui *viewstate.UIState, rootMove func(id string, target 
 	return true
 }
 
-func setHover(ui *viewstate.UIState, sendMoveFn func(id string, msg movemsg.Msg), RT *rowtables.RowTables, node, port string, isInput bool) (events []rowevent.RowEvent, changed bool) {
+func setHover(ui *viewstate.UIState, sendMoveFn func(id string, msg movemsg.Msg), RT *rowtables.RowTables, node, port string, isInput bool) (changed bool) {
 	if node == ui.Sel.HoverNode && port == ui.Sel.HoverPort && isInput == ui.Sel.HoverInput {
-		return nil, false
+		return false
 	}
 
 	ui.SetHoverUI(sendMoveFn, node, port, isInput)
-	nodeRow := int32(-1)
-	if r, ok := RT.NodeRowFor(node); ok {
-		nodeRow = r
-	}
-
-	portRow := int32(-1)
-	value := int32(0)
-	if isInput {
-		value = 1
-	}
-	return []rowevent.RowEvent{{Kind: T.KindHover, NodeRow: nodeRow, PortRow: portRow, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Value: value}}, true
+	return true
 }
 
 func applySelect(d Deps, ev inputcodec.RawInputMsg) {
 
 	if ev.Hit.Kind == "empty" {
 		setSelectionUI(d.UI, d.MR, d.Ctx, "", "")
-		d.UI.EmitViewFrame(d.RT.SelectViewEvent(""))
+		d.UI.EmitViewFrame(nil)
 		return
 	}
 	if ev.Hit.Kind == "edge" {
 		if label, ok := d.RT.EdgeFromHit(ev.Hit); ok {
 			setSelectionUI(d.UI, d.MR, d.Ctx, "", label)
 
-			d.UI.EmitViewFrame(d.RT.SelectViewEvent(""))
+			d.UI.EmitViewFrame(nil)
 			return
 		}
 
@@ -112,5 +101,5 @@ func applySelect(d Deps, ev inputcodec.RawInputMsg) {
 		}
 	}
 	setSelectionUI(d.UI, d.MR, d.Ctx, node, "")
-	d.UI.EmitViewFrame(d.RT.SelectViewEvent(node))
+	d.UI.EmitViewFrame(nil)
 }

@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"os"
 	"strings"
 )
 
@@ -12,6 +13,28 @@ func rowBlockSplit(n int) int {
 		return n
 	}
 	return 2
+}
+
+func blocksNeedImports(blocks []bufBlock) (needsBinary, needsMath bool) {
+	for _, blk := range blocks {
+		for _, c := range blk.columns {
+			if c.bufType != "u8" {
+				needsBinary = true
+			}
+			if c.bufType == "f32" {
+				needsMath = true
+			}
+		}
+	}
+	return needsBinary, needsMath
+}
+
+func removeIfPresent(path string) error {
+	err := os.Remove(path)
+	if os.IsNotExist(err) {
+		return nil
+	}
+	return err
 }
 
 func writeRowsSplitNote(w *bufio.Writer, comment string, blocks []bufBlock) {
@@ -27,7 +50,7 @@ func writeRowsSplitNote(w *bufio.Writer, comment string, blocks []bufBlock) {
 func rowBlocks(schema BufLayoutSchema) []bufBlock {
 	var blocks []bufBlock
 	for _, blk := range schema.Blocks {
-		if isSingletonBlock(blk.name) {
+		if isSingletonBlock(blk.name) || !hasRow(blk.name) {
 			continue
 		}
 		blocks = append(blocks, blk)
@@ -41,13 +64,17 @@ func writeBufferLayoutGoRows(outPathA, outPathB string, schema BufLayoutSchema, 
 	if err := writeBufferLayoutGoRowsFile(outPathA, blocks[:split], fp); err != nil {
 		return err
 	}
+	if len(blocks[split:]) == 0 {
+		return removeIfPresent(outPathB)
+	}
 	return writeBufferLayoutGoRowsFile(outPathB, blocks[split:], fp)
 }
 
 func writeBufferLayoutGoRowsFile(outPath string, blocks []bufBlock, fp string) error {
 	var buf bytes.Buffer
 	w := bufio.NewWriter(&buf)
-	writeBufferLayoutGoPreamble(w, fp)
+	needsBinary, needsMath := blocksNeedImports(blocks)
+	writeBufferLayoutGoPreambleFor(w, fp, needsBinary, needsMath)
 	fmt.Fprintln(w)
 	writeRowsSplitNote(w, "//", blocks)
 

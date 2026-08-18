@@ -33,6 +33,7 @@ func (b *buildCtx) buildMoveDispatch() error {
 
 		md.UI.SceneSphere = b.sphere
 	}
+	md.UI.Constants = b.spec.Constants
 
 	s := scene.For(b.scenePath)
 

@@ -1,34 +1,25 @@
 import { useSyncExternalStore } from "react";
-import { getNodeFrame, subscribeNodeStreamBlocks } from "../../scene/nodes/node-frame-aggregate";
-import { getViewBlocks, subscribeViewBlocks } from "../../scene/view-blocks";
-import { readOverlayDragNodeRow } from "../../../../../Buffer/buffer-layout";
+import { columnI32 } from "../../../../../Buffer/column-values";
+import { subscribeFrame } from "../../../frame-tick";
+import { COL_STREAM_OVERLAY_DRAG_NODE_ROW } from "../../../../../Buffer/column-streams-gen";
 import { nodeLabel } from "../../decode/buffer-decode-node";
 
 export function readDragNodeRow(): number {
-  const blocks = getViewBlocks();
-  if (!blocks) return -1;
-  return readOverlayDragNodeRow(blocks.overlayView);
+  return columnI32(COL_STREAM_OVERLAY_DRAG_NODE_ROW, -1);
 }
 
 export function useDragNodeRow(): number {
-  return useSyncExternalStore(subscribeViewBlocks, readDragNodeRow, readDragNodeRow);
+  return useSyncExternalStore(subscribeFrame, readDragNodeRow, readDragNodeRow);
 }
 
 export function readDraggedNodeName(): string {
   const row = readDragNodeRow();
   if (row < 0) return "";
-  const decoded = getNodeFrame();
-  if (!decoded || row >= decoded.nodeCount) return "";
-  return nodeLabel(decoded, row);
+  return nodeLabel(row);
 }
 
 function subscribeDraggedNodeName(fn: () => void): () => void {
-  const unsubView = subscribeViewBlocks(fn);
-  const unsubNode = subscribeNodeStreamBlocks(fn);
-  return () => {
-    unsubView();
-    unsubNode();
-  };
+  return subscribeFrame(fn);
 }
 
 export function useDraggedNodeName(): string {

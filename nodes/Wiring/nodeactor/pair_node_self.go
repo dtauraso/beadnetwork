@@ -51,12 +51,6 @@ func (p *PairNodeSelf) EmitGeometryOnce() {
 	}
 
 	p.geom.clocks.CopyClockSrc()
-	if p.geom.tr != nil {
-		p.geom.postSelfEvents([]rowevent.RowEvent{{
-			Kind: T.KindNodeGeometry, NodeRow: p.geom.NodeRow(),
-			PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1,
-		}})
-	}
 }
 
 func (p *PairNodeSelf) Step(ctx context.Context, tick int64) {
@@ -67,8 +61,6 @@ func (p *PairNodeSelf) Step(ctx context.Context, tick int64) {
 	g.clocks.ApplySpeed(p.speedCh)
 
 	g.beads.ApplyBeadDrag()
-
-	g.writeInteriorFrames()
 }
 
 func (g *NodeGeometry) RunGeometry(ctx context.Context) {
@@ -94,12 +86,15 @@ func (g *NodeGeometry) RunGeometry(ctx context.Context) {
 
 		g.applyKindPosts()
 
+		g.pollChannelVectors()
 		g.drainRuleMesh()
 
 		g.deriveOutEdgeGeometry()
 
 		g.writeStreamFrame(g.drainSelfEvents())
 		g.writeOutEdgeFrames(clk.Tick())
+
+		g.writeInteriorFrames()
 
 		if err := clk.SleepPulse(ctx); err != nil {
 			return

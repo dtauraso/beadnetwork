@@ -1,40 +1,74 @@
 package camerapersist
 
 import (
+	"path/filepath"
+
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/camera"
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
 )
 
-type PolarCamera struct {
-	Pivot *[3]float64 `json:"pivot"`
-	R     *float64    `json:"r"`
-	Pos   *[2]float64 `json:"pos"`
-	Up    *[2]float64 `json:"up"`
-}
+const (
+	FilePivotX   = "pivot-x.json"
+	FilePivotY   = "pivot-y.json"
+	FilePivotZ   = "pivot-z.json"
+	FileR        = "r.json"
+	FilePosPhi   = "pos-phi.json"
+	FilePosTheta = "pos-theta.json"
+	FileUpPhi    = "up-phi.json"
+	FileUpTheta  = "up-theta.json"
+)
 
 type ViewpointPersister struct {
-	Path string
+	Dir string
 }
 
 func (p *ViewpointPersister) Schedule(v camera.Viewpoint) {
-	if p == nil || p.Path == "" {
+	if p == nil || p.Dir == "" {
 		return
 	}
-	cam := ViewpointToPolar(v)
-	if err := WriteSceneCameraPolar(p.Path, cam); err != nil {
-		jsonpersist.LogPersistErr("scene_camera_persist", p.Path, err)
-		return
+	for name, value := range viewpointValues(v) {
+		if err := jsonpersist.WriteJSONAtomicIfChanged(filepath.Join(p.Dir, name), value); err != nil {
+			jsonpersist.LogPersistErr("scene_camera_persist", p.Dir, err)
+			return
+		}
 	}
 }
 
-func ViewpointToPolar(v camera.Viewpoint) *PolarCamera {
-	pivot := [3]float64{v.Pivot.X, v.Pivot.Y, v.Pivot.Z}
-	r := v.R
-	pos := [2]float64{v.Pos.Phi, v.Pos.Theta}
-	up := [2]float64{v.Up.Phi, v.Up.Theta}
-	return &PolarCamera{Pivot: &pivot, R: &r, Pos: &pos, Up: &up}
+func viewpointValues(v camera.Viewpoint) map[string]float64 {
+	return map[string]float64{
+		FilePivotX: v.Pivot.X, FilePivotY: v.Pivot.Y, FilePivotZ: v.Pivot.Z,
+		FileR:        v.R,
+		FilePosPhi:   v.Pos.Phi,
+		FilePosTheta: v.Pos.Theta,
+		FileUpPhi:    v.Up.Phi,
+		FileUpTheta:  v.Up.Theta,
+	}
 }
 
-func WriteSceneCameraPolar(path string, cam *PolarCamera) error {
-	return jsonpersist.WriteJSONAtomic(path, cam)
+func WriteSceneCamera(dir string, v camera.Viewpoint) error {
+	for name, value := range viewpointValues(v) {
+		if err := jsonpersist.WriteJSONAtomic(filepath.Join(dir, name), value); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func ReadSceneCamera(dir string) (v camera.Viewpoint, ok bool) {
+	read := func(name string, dst *float64) bool {
+		return jsonpersist.ReadJSONIfExists(filepath.Join(dir, name), dst)
+	}
+	if !read(FilePivotX, &v.Pivot.X) || !read(FilePivotY, &v.Pivot.Y) || !read(FilePivotZ, &v.Pivot.Z) {
+		return camera.Viewpoint{}, false
+	}
+	if !read(FileR, &v.R) {
+		return camera.Viewpoint{}, false
+	}
+	if !read(FilePosPhi, &v.Pos.Phi) || !read(FilePosTheta, &v.Pos.Theta) {
+		return camera.Viewpoint{}, false
+	}
+	if !read(FileUpPhi, &v.Up.Phi) || !read(FileUpTheta, &v.Up.Theta) {
+		return camera.Viewpoint{}, false
+	}
+	return v, true
 }

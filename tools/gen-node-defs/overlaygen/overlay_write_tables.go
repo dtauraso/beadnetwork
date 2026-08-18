@@ -60,23 +60,20 @@ func writeOverlayBreadcrumbTables(w *bufio.Writer, flags []overlayFlag) {
 	}
 	fmt.Fprintln(w, `}`)
 	fmt.Fprintln(w)
-}
 
-func writeOverlayTraceKindMap(w *bufio.Writer, flags []overlayFlag) {
-	fmt.Fprintln(w, `// OverlayFlagTraceKind maps the wire FLAG name (same keys as OverlayToggles) to its`)
-	fmt.Fprintln(w, `// Trace.Kind* string, so Wiring's applyUpdate case can hand EmitViewFrame the ONE event`)
-	fmt.Fprintln(w, `// that flag's toggle logged (matching the per-toggle tr.X(bool) call).`)
-	fmt.Fprintln(w, `// Referencing T.Kind<Method> by name means a flag missing its Trace kind constant is a`)
-	fmt.Fprintln(w, `// Go compile error here, not a silent no-op — see writeOverlayGen in`)
-	fmt.Fprintln(w, `// tools/gen-node-defs/overlay_gen.go.`)
-	fmt.Fprintln(w, `//`)
-	fmt.Fprintln(w, `// OVERLAY_TRACE_KINDS_START`)
-	fmt.Fprintln(w, `var OverlayFlagTraceKind = map[string]string{`)
+	fmt.Fprintln(w, `// OverlayFlagRead and OverlayFlagWrite cover EVERY flag, so persistence can walk them`)
+	fmt.Fprintln(w, `// one file at a time without a hand-written case per flag going stale.`)
+	fmt.Fprintln(w, `var OverlayFlagRead = map[string]func(*OverlayState) bool{`)
 	for _, f := range flags {
-		fmt.Fprintf(w, "\t%q: T.Kind%s,\n", f.flag, f.method)
+		fmt.Fprintf(w, "\t%q: func(o *OverlayState) bool { return o.%s },\n", f.flag, exportField(f.field))
 	}
 	fmt.Fprintln(w, `}`)
 	fmt.Fprintln(w)
-	fmt.Fprintln(w, `// OVERLAY_TRACE_KINDS_END`)
+
+	fmt.Fprintln(w, `var OverlayFlagWrite = map[string]func(*OverlayState, bool){`)
+	for _, f := range flags {
+		fmt.Fprintf(w, "\t%q: func(o *OverlayState, v bool) { o.%s = v },\n", f.flag, exportField(f.field))
+	}
+	fmt.Fprintln(w, `}`)
 	fmt.Fprintln(w)
 }

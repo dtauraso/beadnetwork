@@ -2,6 +2,7 @@ package nodeactor
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/framegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/nodeframe"
@@ -9,8 +10,6 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
 	"github.com/dtauraso/wirefold/tools/topology-vscode/TiltPanel"
-
-	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
 )
 
 func boolU8(b bool) uint8 {
@@ -29,10 +28,7 @@ func hasKindRuleU8(kind string) uint8 {
 
 func (m *NodeGeometry) emitGeometry() {
 
-	m.writeStreamFrame([]rowevent.RowEvent{{
-		Kind: T.KindNodeGeometry, NodeRow: m.stream.NodeRow(),
-		PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1,
-	}})
+	m.writeStreamFrame(nil)
 }
 
 func (m *NodeGeometry) postSelfEvents(events []rowevent.RowEvent) {
@@ -71,12 +67,11 @@ func (m *NodeGeometry) writeStreamFrame(events []rowevent.RowEvent) {
 		LatticePoints:        latticePoints,
 		DefaultLatticePoints: TiltPanel.FullTurnPhiIdx,
 	})
-	center := fg.Center
+	composedIdx := nodegeom.ComposedIndexOf(m.geom)
 	polePhi, poleTheta := fg.PolePhi, fg.PoleTheta
 	ringMatrix := fg.RingMatrix
 	points := fg.LatticePoints
 	topTiltVectorLen := fg.TopTiltVectorLen
-	receivedVectorLen := fg.ReceivedVectorLen
 	label := m.geom.Label
 	if label == "" {
 		label = m.id
@@ -119,44 +114,49 @@ func (m *NodeGeometry) writeStreamFrame(events []rowevent.RowEvent) {
 	ruleGroupID, ruleGroupSize := m.RuleGroup()
 
 	m.stream.WriteFrame(nodeframe.NodeFrameInput{
-		Tick:                uint32(m.clocks.Tick()),
-		NodeRow:             row,
-		NodeID:              row + 1,
-		CX:                  float32(center.X),
-		CY:                  float32(center.Y),
-		CZ:                  float32(center.Z),
-		Radius:              float32(nodegeom.NodeRadius(m.geom.Kind)),
-		PoleRingR:           float32(nodegeom.PoleRingR()),
-		PolePhi:             float32(polePhi),
-		PoleTheta:           float32(poleTheta),
-		RingMatrix:          ringMatrix,
-		TopTiltVectorLen:    float32(topTiltVectorLen),
-		TopTiltVectorIdx:    fg.TopTiltVectorIdx,
-		TopTiltVectorPhi:    float32(fg.TopTiltVectorPhi),
-		BottomTiltVectorPhi: float32(fg.BottomTiltVectorPhi),
-		CoplanarNormalPhi:   float32(fg.CoplanarNormalPhi),
-		ReceivedVectorLen:   float32(receivedVectorLen),
-		ReceivedVectorPhi:   float32(fg.ReceivedVectorPhi),
-		Selected:            selected,
-		KindID:              kindID,
-		Hovered:             hovered,
-		LatchedSel:          latchedSel,
-		LatticePoints:       uint8(points),
-		RoundsToParallel:    roundsToParallel,
-		MsgsToParallel:      msgsToParallel,
-		HasKindRule:         hasKindRuleU8(m.SelfKind()),
-		KindRuleActive:      boolU8(m.KindRuleActive()),
-		SelfRLocked:         selfRLocked,
-		SelfPhiLocked:       selfPhiLocked,
-		SelfThetaMax:        selfThetaMax,
-		SelfActive:          boolU8(m.SelfRuleActive()),
-		RuleGroupID:         ruleGroupID,
-		RuleGroupSize:       ruleGroupSize,
-		DragRLocked:         dragRLocked,
-		DragPhiLocked:       dragPhiLocked,
-		DragThetaMax:        dragThetaMax,
-		DragActive:          dragActive,
-		Label:               label,
-		Events:              events,
+		Tick:             uint32(m.clocks.Tick()),
+		NodeRow:          row,
+		NodeID:           row + 1,
+		IndexR:           int32(composedIdx.R),
+		IndexPhi:         int32(composedIdx.Phi),
+		IndexTheta:       int32(composedIdx.Theta),
+		HasPos:           boolU8(m.geom.HasPos),
+		Radius:           float32(nodegeom.NodeRadius(m.geom.Kind)),
+		NavTubeR:         float32(math.Max(0.5, nodegeom.NodeRadius(m.geom.Kind)*0.08)),
+		PoleAnchorX:      float32(fg.Center.X),
+		PoleAnchorY:      float32(fg.Center.Y),
+		PoleAnchorZ:      float32(fg.Center.Z),
+		LabelAnchorX:     float32(fg.LabelAnchor.X),
+		LabelAnchorY:     float32(fg.LabelAnchor.Y),
+		LabelAnchorZ:     float32(fg.LabelAnchor.Z),
+		PoleRingR:        float32(nodegeom.PoleRingR()),
+		PolePhi:          float32(polePhi),
+		PoleTheta:        float32(poleTheta),
+		RingMatrix:       ringMatrix,
+		TopTiltVectorLen: float32(topTiltVectorLen),
+		TopTiltVectorIdx: fg.TopTiltVectorIdx,
+		TiltArrows:       fg.TiltArrows,
+		ChannelVectors:   m.channelVectors(),
+		Selected:         selected,
+		KindID:           kindID,
+		Hovered:          hovered,
+		LatchedSel:       latchedSel,
+		LatticePoints:    uint8(points),
+		RoundsToParallel: roundsToParallel,
+		MsgsToParallel:   msgsToParallel,
+		HasKindRule:      hasKindRuleU8(m.SelfKind()),
+		KindRuleActive:   boolU8(m.KindRuleActive()),
+		SelfRLocked:      selfRLocked,
+		SelfPhiLocked:    selfPhiLocked,
+		SelfThetaMax:     selfThetaMax,
+		SelfActive:       boolU8(m.SelfRuleActive()),
+		RuleGroupID:      ruleGroupID,
+		RuleGroupSize:    ruleGroupSize,
+		DragRLocked:      dragRLocked,
+		DragPhiLocked:    dragPhiLocked,
+		DragThetaMax:     dragThetaMax,
+		DragActive:       dragActive,
+		Label:            label,
+		Events:           events,
 	})
 }

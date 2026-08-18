@@ -20,10 +20,10 @@ check_streams_active_gate() {
     [ -n "$h" ] && guard_hits2+=("$h")
   done < <(find_guarding_hits "$IDENT2" "${files2[@]}")
 
-  if [ ${#guard_hits2[@]} -ne 2 ]; then
+  if [ ${#guard_hits2[@]} -ne 1 ]; then
     fail=1
-    report+="Expected exactly TWO guarding uses of $IDENT2 (stepAll's KindEdgeBead append and"$'\n'
-    report+="emitArrive's KindArrive append); found ${#guard_hits2[@]}:"$'\n'
+    report+="Expected exactly ONE guarding use of $IDENT2 (emitArrive's KindArrive"$'\n'
+    report+="append); found ${#guard_hits2[@]}:"$'\n'
     for h in "${guard_hits2[@]:-}"; do
       [ -n "$h" ] && report+="  $h"$'\n'
     done

@@ -67,6 +67,14 @@ export abstract class RunnerLifecycle {
     return this.demux.getLastViewFrame();
   }
 
+  getLastColumnValues(): Array<{ col: number; buffer: ArrayBuffer }> {
+    const out: Array<{ col: number; buffer: ArrayBuffer }> = [];
+    for (const [col, v] of this.demux.columns.entries()) {
+      out.push({ col, buffer: v.buffer.slice(v.byteOffset, v.byteOffset + v.byteLength) as ArrayBuffer });
+    }
+    return out;
+  }
+
   getLastEdgeFrames(): Array<{ row: number; buffer: ArrayBuffer }> {
     return this.demux.getLastEdgeFrames();
   }

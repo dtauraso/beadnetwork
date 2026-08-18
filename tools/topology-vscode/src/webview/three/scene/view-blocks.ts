@@ -2,13 +2,7 @@ import { getLatestViewFrame, subscribeViewFrame } from "../../snapshot-buffer";
 import { decodeViewFrame } from "../decode/buffer-decode-view";
 
 export interface ViewBlocks {
-  cameraView: DataView;
-  overlayView: DataView;
-  panelView: DataView;
-  sceneView: DataView;
 
-  ringSurfacePointsView: DataView;
-  beadRingSurfacePointsView: DataView;
 
   sceneTabs: string[];
   sceneTabSelected: number;

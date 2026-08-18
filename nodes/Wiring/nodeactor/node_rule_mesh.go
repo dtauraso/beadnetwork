@@ -35,6 +35,7 @@ func (m *NodeGeometry) drainRuleMesh() {
 		m.topo.SetSelfRule(state.SelfRule)
 		m.topo.SetSelfRuleActive(state.SelfActive)
 		m.rule.SetGroup(state.GroupID, state.GroupSize)
+		m.channels.SetPeerCenters(state.PeerCenters)
 		for target, active := range state.EdgeActive {
 			m.outEdges.SetEdgeRuleActive(m.id+"To"+target, active)
 		}

@@ -1,38 +1,72 @@
 import React, { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { getNodeFrame } from "../scene/nodes/node-frame-aggregate";
-import { poleAxis } from "../scene/buffer-scene-shared";
+import { columnBytes } from "../../../../Buffer/column-values";
+import { nodeColumn, ownerCounts } from "../../../../Buffer/column-owners";
 import {
-  readNodeCX, readNodeCY, readNodeCZ,
-  readNodeTopTiltVectorLen, readNodeTopTiltVectorPhi,
-  readNodeBottomTiltVectorPhi,
-  readNodeCoplanarNormalPhi,
-  readNodeReceivedVectorLen, readNodeReceivedVectorPhi,
-} from "../../../../Buffer/buffer-layout";
-
-const SHAFT_RADIUS_FRAC = 0.035;
-const HEAD_LEN_FRAC = 0.22;
-const HEAD_RADIUS_FRAC = 0.09;
+  COL_STREAM_TILT_ARROW_RECEIVED,
+  COL_STREAM_TILT_ARROW_SHAFT_M0, COL_STREAM_TILT_ARROW_SHAFT_M1,
+  COL_STREAM_TILT_ARROW_SHAFT_M2, COL_STREAM_TILT_ARROW_SHAFT_M3,
+  COL_STREAM_TILT_ARROW_SHAFT_M4, COL_STREAM_TILT_ARROW_SHAFT_M5,
+  COL_STREAM_TILT_ARROW_SHAFT_M6, COL_STREAM_TILT_ARROW_SHAFT_M7,
+  COL_STREAM_TILT_ARROW_SHAFT_M8, COL_STREAM_TILT_ARROW_SHAFT_M9,
+  COL_STREAM_TILT_ARROW_SHAFT_M10, COL_STREAM_TILT_ARROW_SHAFT_M11,
+  COL_STREAM_TILT_ARROW_SHAFT_M12, COL_STREAM_TILT_ARROW_SHAFT_M13,
+  COL_STREAM_TILT_ARROW_SHAFT_M14, COL_STREAM_TILT_ARROW_SHAFT_M15,
+  COL_STREAM_TILT_ARROW_HEAD_M0, COL_STREAM_TILT_ARROW_HEAD_M1,
+  COL_STREAM_TILT_ARROW_HEAD_M2, COL_STREAM_TILT_ARROW_HEAD_M3,
+  COL_STREAM_TILT_ARROW_HEAD_M4, COL_STREAM_TILT_ARROW_HEAD_M5,
+  COL_STREAM_TILT_ARROW_HEAD_M6, COL_STREAM_TILT_ARROW_HEAD_M7,
+  COL_STREAM_TILT_ARROW_HEAD_M8, COL_STREAM_TILT_ARROW_HEAD_M9,
+  COL_STREAM_TILT_ARROW_HEAD_M10, COL_STREAM_TILT_ARROW_HEAD_M11,
+  COL_STREAM_TILT_ARROW_HEAD_M12, COL_STREAM_TILT_ARROW_HEAD_M13,
+  COL_STREAM_TILT_ARROW_HEAD_M14, COL_STREAM_TILT_ARROW_HEAD_M15,
+} from "../../../../Buffer/column-streams-gen";
 
 const VECTOR_COLOR = "#FF2E88";
 
 const RECEIVED_VECTOR_COLOR = "#00E5FF";
 
-const GEOMETRY_AXIS = new THREE.Vector3(0, 1, 0);
+const SHAFT_COLS = [
+  COL_STREAM_TILT_ARROW_SHAFT_M0, COL_STREAM_TILT_ARROW_SHAFT_M1,
+  COL_STREAM_TILT_ARROW_SHAFT_M2, COL_STREAM_TILT_ARROW_SHAFT_M3,
+  COL_STREAM_TILT_ARROW_SHAFT_M4, COL_STREAM_TILT_ARROW_SHAFT_M5,
+  COL_STREAM_TILT_ARROW_SHAFT_M6, COL_STREAM_TILT_ARROW_SHAFT_M7,
+  COL_STREAM_TILT_ARROW_SHAFT_M8, COL_STREAM_TILT_ARROW_SHAFT_M9,
+  COL_STREAM_TILT_ARROW_SHAFT_M10, COL_STREAM_TILT_ARROW_SHAFT_M11,
+  COL_STREAM_TILT_ARROW_SHAFT_M12, COL_STREAM_TILT_ARROW_SHAFT_M13,
+  COL_STREAM_TILT_ARROW_SHAFT_M14, COL_STREAM_TILT_ARROW_SHAFT_M15,
+];
 
-const RING_DISK_THETA = 0;
+const HEAD_COLS = [
+  COL_STREAM_TILT_ARROW_HEAD_M0, COL_STREAM_TILT_ARROW_HEAD_M1,
+  COL_STREAM_TILT_ARROW_HEAD_M2, COL_STREAM_TILT_ARROW_HEAD_M3,
+  COL_STREAM_TILT_ARROW_HEAD_M4, COL_STREAM_TILT_ARROW_HEAD_M5,
+  COL_STREAM_TILT_ARROW_HEAD_M6, COL_STREAM_TILT_ARROW_HEAD_M7,
+  COL_STREAM_TILT_ARROW_HEAD_M8, COL_STREAM_TILT_ARROW_HEAD_M9,
+  COL_STREAM_TILT_ARROW_HEAD_M10, COL_STREAM_TILT_ARROW_HEAD_M11,
+  COL_STREAM_TILT_ARROW_HEAD_M12, COL_STREAM_TILT_ARROW_HEAD_M13,
+  COL_STREAM_TILT_ARROW_HEAD_M14, COL_STREAM_TILT_ARROW_HEAD_M15,
+];
+
+function copyMatrix(
+  cols: Array<DataView | undefined>, arrow: number,
+  mesh: THREE.InstancedMesh, slot: number,
+): void {
+  const out = mesh.instanceMatrix.array;
+  const b = slot * 16;
+  const o = arrow * 4;
+  for (let m = 0; m < 16; m++) {
+    const col = cols[m];
+    out[b + m] = col && col.byteLength >= o + 4 ? col.getFloat32(o, true) : 0;
+  }
+}
 
 export function TiltVectors({ capacity, receivedCapacity }: { capacity: number; receivedCapacity: number }) {
   const shaftRef = useRef<THREE.InstancedMesh>(null);
   const headRef = useRef<THREE.InstancedMesh>(null);
   const receivedShaftRef = useRef<THREE.InstancedMesh>(null);
   const receivedHeadRef = useRef<THREE.InstancedMesh>(null);
-  const matRef = useRef(new THREE.Matrix4());
-  const posRef = useRef(new THREE.Vector3());
-  const axisRef = useRef(new THREE.Vector3());
-  const quatRef = useRef(new THREE.Quaternion());
-  const sclRef = useRef(new THREE.Vector3());
 
   useFrame(() => {
     const shaft = shaftRef.current;
@@ -41,73 +75,28 @@ export function TiltVectors({ capacity, receivedCapacity }: { capacity: number; 
     const receivedHead = receivedHeadRef.current;
     if (!shaft || !head || !receivedShaft || !receivedHead) return;
 
-    const decoded = getNodeFrame();
-    if (!decoded) {
-      shaft.count = 0;
-      head.count = 0;
-      receivedShaft.count = 0;
-      receivedHead.count = 0;
-      return;
-    }
-    const { nodeCount, nodeView } = decoded;
-
-    const writeArrowInto = (
-      targetShaft: THREE.InstancedMesh, targetHead: THREE.InstancedMesh, idx: number,
-      cx: number, cy: number, cz: number, len: number, phi: number,
-    ) => {
-
-      axisRef.current.set(...poleAxis(phi, RING_DISK_THETA));
-      quatRef.current.setFromUnitVectors(GEOMETRY_AXIS, axisRef.current);
-
-      const shaftLen = len * (1 - HEAD_LEN_FRAC);
-      posRef.current.set(
-        cx + axisRef.current.x * (shaftLen / 2),
-        cy + axisRef.current.y * (shaftLen / 2),
-        cz + axisRef.current.z * (shaftLen / 2),
-      );
-      sclRef.current.set(len * SHAFT_RADIUS_FRAC, shaftLen, len * SHAFT_RADIUS_FRAC);
-      matRef.current.compose(posRef.current, quatRef.current, sclRef.current);
-      targetShaft.setMatrixAt(idx, matRef.current);
-
-      const headLen = len * HEAD_LEN_FRAC;
-      const headCentre = len - headLen / 2;
-      posRef.current.set(
-        cx + axisRef.current.x * headCentre,
-        cy + axisRef.current.y * headCentre,
-        cz + axisRef.current.z * headCentre,
-      );
-      sclRef.current.set(len * HEAD_RADIUS_FRAC, headLen, len * HEAD_RADIUS_FRAC);
-      matRef.current.compose(posRef.current, quatRef.current, sclRef.current);
-      targetHead.setMatrixAt(idx, matRef.current);
-    };
-
     let drawn = 0;
-
     let receivedDrawn = 0;
 
-    for (let row = 0; row < nodeCount; row++) {
-      const cx = readNodeCX(nodeView, row);
-      const cy = readNodeCY(nodeView, row);
-      const cz = readNodeCZ(nodeView, row);
+    const { nodes } = ownerCounts();
+    for (let row = 0; row < nodes; row++) {
+      const received = columnBytes(nodeColumn(row, COL_STREAM_TILT_ARROW_RECEIVED));
+      if (!received || received.byteLength === 0) continue;
+      const shaftCols = SHAFT_COLS.map((c) => columnBytes(nodeColumn(row, c)));
+      const headCols = HEAD_COLS.map((c) => columnBytes(nodeColumn(row, c)));
 
-      const len = readNodeTopTiltVectorLen(nodeView, row);
-      if (len > 0 && drawn + 2 < capacity) {
-        writeArrowInto(shaft, head, drawn, cx, cy, cz, len, readNodeTopTiltVectorPhi(nodeView, row));
+      for (let arrow = 0; arrow < received.byteLength; arrow++) {
+        if (received.getUint8(arrow) !== 0) {
+          if (receivedDrawn >= receivedCapacity) continue;
+          copyMatrix(shaftCols, arrow, receivedShaft, receivedDrawn);
+          copyMatrix(headCols, arrow, receivedHead, receivedDrawn);
+          receivedDrawn++;
+          continue;
+        }
+        if (drawn >= capacity) continue;
+        copyMatrix(shaftCols, arrow, shaft, drawn);
+        copyMatrix(headCols, arrow, head, drawn);
         drawn++;
-        writeArrowInto(shaft, head, drawn, cx, cy, cz, len, readNodeBottomTiltVectorPhi(nodeView, row));
-        drawn++;
-        writeArrowInto(shaft, head, drawn, cx, cy, cz, len, readNodeCoplanarNormalPhi(nodeView, row));
-        drawn++;
-      }
-
-      const receivedLen = readNodeReceivedVectorLen(nodeView, row);
-      if (receivedLen > 0 && receivedDrawn < receivedCapacity) {
-        writeArrowInto(
-          receivedShaft, receivedHead, receivedDrawn,
-          cx, cy, cz, receivedLen,
-          readNodeReceivedVectorPhi(nodeView, row),
-        );
-        receivedDrawn++;
       }
     }
 
@@ -132,7 +121,6 @@ export function TiltVectors({ capacity, receivedCapacity }: { capacity: number; 
         <coneGeometry args={[1, 1, 14]} />
         <meshBasicMaterial color={VECTOR_COLOR} />
       </instancedMesh>
-      {}
       <instancedMesh ref={receivedShaftRef} args={[undefined, undefined, receivedCapacity]} frustumCulled={false} raycast={() => null}>
         <cylinderGeometry args={[1, 1, 1, 12]} />
         <meshBasicMaterial color={RECEIVED_VECTOR_COLOR} />

@@ -35,6 +35,8 @@ type NodeGeometry struct {
 
 	tilt owners.Tilt
 
+	channels owners.ChannelVectors
+
 	readout owners.Readout
 
 	outTargets []string

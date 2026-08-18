@@ -30,6 +30,8 @@ type FrameGeometryOutputs struct {
 
 	LatticePoints int32
 
+	LabelAnchor vec3
+
 	TopTiltVectorLen float64
 
 	TopTiltVectorIdx int32
@@ -40,6 +42,8 @@ type FrameGeometryOutputs struct {
 
 	ReceivedVectorLen float64
 	ReceivedVectorPhi float64
+
+	TiltArrows []TiltArrow
 }
 
 func DeriveFrameGeometry(in FrameGeometryInputs) FrameGeometryOutputs {
@@ -52,6 +56,8 @@ func DeriveFrameGeometry(in FrameGeometryInputs) FrameGeometryOutputs {
 	ringAxisPhi, ringAxisTheta := TorusDefaultAxisAngles()
 	nodeR := nodegeom.NodeRadius(in.Geom.Kind)
 	out.RingMatrix = RingInstanceMatrixColumnMajor(out.Center, nodeR, ringAxisPhi, ringAxisTheta)
+
+	out.LabelAnchor = out.Center.Add(vec3{Y: nodeR})
 
 	if in.UpAxis && in.Geom.HasPos {
 		out.TopTiltVectorLen = nodegeom.NodeRadius(in.Geom.Kind)
@@ -72,6 +78,19 @@ func DeriveFrameGeometry(in FrameGeometryInputs) FrameGeometryOutputs {
 	if in.ReceivedVectorSet {
 		out.ReceivedVectorLen = nodegeom.NodeRadius(in.Geom.Kind)
 		out.ReceivedVectorPhi = float64(in.ReceivedVectorPhiIdx) * latticePhiStep
+	}
+
+	if out.TopTiltVectorLen > 0 {
+		out.TiltArrows = append(out.TiltArrows,
+			ArrowMatrices(out.Center, out.TopTiltVectorLen, out.TopTiltVectorPhi, false),
+			ArrowMatrices(out.Center, out.TopTiltVectorLen, out.BottomTiltVectorPhi, false),
+			ArrowMatrices(out.Center, out.TopTiltVectorLen, out.CoplanarNormalPhi, false),
+		)
+	}
+	if out.ReceivedVectorLen > 0 {
+		out.TiltArrows = append(out.TiltArrows,
+			ArrowMatrices(out.Center, out.ReceivedVectorLen, out.ReceivedVectorPhi, true),
+		)
 	}
 
 	return out

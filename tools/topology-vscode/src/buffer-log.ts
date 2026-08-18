@@ -1,7 +1,6 @@
 import { decodeViewFrame } from "./webview/three/decode/buffer-decode-view";
-import type { DecodedNodeFrame } from "./webview/three/decode/buffer-decode-node";
-import type { DecodedEdgeFrame } from "./webview/three/decode/buffer-decode-edge";
-import { decodeEventLine, type ViewBlocksOrNull } from "./webview/three/decode/decode-event-line";
+import { decodeEventLines } from "./webview/three/decode/decode-event-line";
+import type { DecodedEvents } from "./webview/three/decode/buffer-decode-shared";
 
 export type DecodedEventLine =
   | { step: number; kind: "recv" | "fire"; node: string; port?: string; value?: number }
@@ -34,30 +33,14 @@ export type DecodedEventLine =
 
 export function decodeBufferLog(viewFrameBuf: ArrayBuffer, breadcrumbsOnly = false): string {
   const dv = decodeViewFrame(viewFrameBuf);
-  if (!dv || dv.eventCount === 0) return "";
-  const vb: ViewBlocksOrNull = { cameraView: dv.cameraView, overlayView: dv.overlayView, sceneView: dv.sceneView };
-  return decodeEventsFromView(dv.eventCount, dv.eventView, dv.eventTextView, null, null, vb, breadcrumbsOnly);
+  if (!dv) return "";
+  return decodeStreamFrameEvents(dv.events, breadcrumbsOnly);
 }
 
-function decodeEventsFromView(eventCount: number, eventView: DataView, eventTextView: DataView, dn: DecodedNodeFrame | null, de: DecodedEdgeFrame | null, vb: ViewBlocksOrNull, breadcrumbsOnly: boolean): string {
+export function decodeStreamFrameEvents(events: DecodedEvents, breadcrumbsOnly = false): string {
   const now = Date.now();
   let out = "";
-  for (let i = 0; i < eventCount; i++) {
-    const line = decodeEventLine(eventView, eventTextView, dn, de, vb, i);
-    if (!line) continue;
-    if (breadcrumbsOnly && line.kind !== "breadcrumb") continue;
-    out += JSON.stringify({ ts_ms: now, src: "go", ...line }) + "\n";
-  }
-  return out;
-}
-
-export function decodeStreamFrameEvents(eventCount: number, eventView: DataView, eventTextView: DataView, dn?: DecodedNodeFrame | null, de?: DecodedEdgeFrame | null, breadcrumbsOnly = false): string {
-  const now = Date.now();
-  let out = "";
-  for (let i = 0; i < eventCount; i++) {
-    const line = decodeEventLine(eventView, eventTextView, dn ?? null, de ?? null, { cameraView: null, overlayView: null, sceneView: null }, i);
-    if (!line) continue;
-    if (breadcrumbsOnly && line.kind !== "breadcrumb") continue;
+  for (const line of decodeEventLines(events, breadcrumbsOnly)) {
     out += JSON.stringify({ ts_ms: now, src: "go", ...line }) + "\n";
   }
   return out;

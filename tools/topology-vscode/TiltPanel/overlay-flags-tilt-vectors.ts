@@ -1,12 +1,12 @@
 import { useSyncExternalStore } from "react";
-import { getNodeFrame, subscribeNodeStreamBlocks } from "../src/webview/three/scene/nodes/node-frame-aggregate";
+import { columnF32, columnI32, columnU8 } from "../Buffer/column-values";
+import { subscribeFrame } from "../src/webview/frame-tick";
+import { nodeColumn, ownerCounts } from "../Buffer/column-owners";
 import {
-  readNodeTopTiltVectorLen,
-  readNodeTopTiltVectorIdx,
-  readNodeLatticePoints,
-  readNodeRoundsToParallel,
-  readNodeMsgsToParallel,
-} from "../Buffer/buffer-layout";
+  COL_STREAM_NODE_TOP_TILT_VECTOR_LEN, COL_STREAM_NODE_TOP_TILT_VECTOR_IDX,
+  COL_STREAM_NODE_LATTICE_POINTS,
+  COL_STREAM_NODE_ROUNDS_TO_PARALLEL, COL_STREAM_NODE_MSGS_TO_PARALLEL,
+} from "../Buffer/column-streams-gen";
 import { nodeLabel } from "../src/webview/three/decode/buffer-decode-node";
 
 export interface TiltVectorRow {
@@ -44,19 +44,18 @@ function tiltVectorRowsEqual(a: TiltVectorRow[], b: TiltVectorRow[]): boolean {
 }
 
 export function readTiltVectorRows(): TiltVectorRow[] | null {
-  const decoded = getNodeFrame();
-  if (!decoded) return cachedTiltVectorRows;
-  const { nodeCount, nodeView } = decoded;
+  const nodeCount = ownerCounts().nodes;
+  if (nodeCount <= 0) return cachedTiltVectorRows;
   const next: TiltVectorRow[] = [];
   for (let row = 0; row < nodeCount; row++) {
-    if (!(readNodeTopTiltVectorLen(nodeView, row) > 0)) continue;
+    if (!(columnF32(nodeColumn(row, COL_STREAM_NODE_TOP_TILT_VECTOR_LEN)) > 0)) continue;
     next.push({
       row,
-      label: nodeLabel(decoded, row),
-      idx: readNodeTopTiltVectorIdx(nodeView, row),
-      points: readNodeLatticePoints(nodeView, row),
-      roundsToParallel: readNodeRoundsToParallel(nodeView, row),
-      msgsToParallel: readNodeMsgsToParallel(nodeView, row),
+      label: nodeLabel(row),
+      idx: columnI32(nodeColumn(row, COL_STREAM_NODE_TOP_TILT_VECTOR_IDX)),
+      points: columnU8(nodeColumn(row, COL_STREAM_NODE_LATTICE_POINTS)),
+      roundsToParallel: columnI32(nodeColumn(row, COL_STREAM_NODE_ROUNDS_TO_PARALLEL)),
+      msgsToParallel: columnI32(nodeColumn(row, COL_STREAM_NODE_MSGS_TO_PARALLEL)),
     });
   }
   if (cachedTiltVectorRows && tiltVectorRowsEqual(cachedTiltVectorRows, next)) return cachedTiltVectorRows;
@@ -65,5 +64,5 @@ export function readTiltVectorRows(): TiltVectorRow[] | null {
 }
 
 export function useTiltVectorRows(): TiltVectorRow[] | null {
-  return useSyncExternalStore(subscribeNodeStreamBlocks, readTiltVectorRows, readTiltVectorRows);
+  return useSyncExternalStore(subscribeFrame, readTiltVectorRows, readTiltVectorRows);
 }

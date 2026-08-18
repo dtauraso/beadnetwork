@@ -1,36 +1,61 @@
 import * as THREE from "three";
-import { getNodeFrame } from "../../src/webview/three/scene/nodes/node-frame-aggregate";
-import { getViewBlocks } from "../../src/webview/three/scene/view-blocks";
+import { columnF32, columnI32, columnU8 } from "../../Buffer/column-values";
+import { nodeColumn, ownerCounts } from "../../Buffer/column-owners";
 import {
-  readNodeCX, readNodeCY, readNodeCZ, readNodeRadius,
-  readOverlayNodeBody, readOverlayNodeRing, readOverlayRingPick,
-  readNodeRingM0, readNodeRingM1, readNodeRingM2, readNodeRingM3,
-  readNodeRingM4, readNodeRingM5, readNodeRingM6, readNodeRingM7,
-  readNodeRingM8, readNodeRingM9, readNodeRingM10, readNodeRingM11,
-  readNodeRingM12, readNodeRingM13, readNodeRingM14, readNodeRingM15,
-} from "../../Buffer/buffer-layout";
-import { NODE_SPHERE_RADIUS, nodeRowColors } from "../../src/webview/three/scene/buffer-scene-shared";
-import { computeNodeDepthOrder, setNodeDrawOrder } from "./node-depth-order";
+  COL_STREAM_NODE_INDEX_R, COL_STREAM_NODE_INDEX_PHI, COL_STREAM_NODE_INDEX_THETA,
+  COL_STREAM_NODE_HAS_POS, COL_STREAM_NODE_RADIUS, COL_STREAM_NODE_HOVERED,
+  COL_STREAM_NODE_RING_M0, COL_STREAM_NODE_RING_M1, COL_STREAM_NODE_RING_M2, COL_STREAM_NODE_RING_M3,
+  COL_STREAM_NODE_RING_M4, COL_STREAM_NODE_RING_M5, COL_STREAM_NODE_RING_M6, COL_STREAM_NODE_RING_M7,
+  COL_STREAM_NODE_RING_M8, COL_STREAM_NODE_RING_M9, COL_STREAM_NODE_RING_M10, COL_STREAM_NODE_RING_M11,
+  COL_STREAM_NODE_RING_M12, COL_STREAM_NODE_RING_M13, COL_STREAM_NODE_RING_M14, COL_STREAM_NODE_RING_M15,
+} from "../../Buffer/column-streams-gen";
+import { sceneSteps } from "../../Scene/scene-frame";
+import { NODE_SPHERE_RADIUS } from "../../src/webview/three/scene/buffer-scene-shared";
+import { readSelectedNodeRow } from "../../src/webview/three/controls/flags/overlay-flags-selection";
 
-function copyRingMatrix(nodeView: DataView, row: number, ring: THREE.InstancedMesh, slot: number): void {
+const centerScratch: [number, number, number] = [0, 0, 0];
+
+function centerInto(row: number, out: [number, number, number]): void {
+  if (!columnU8(nodeColumn(row, COL_STREAM_NODE_HAS_POS))) {
+    out[0] = 0; out[1] = 0; out[2] = 0;
+    return;
+  }
+  const s = sceneSteps();
+  const r = columnI32(nodeColumn(row, COL_STREAM_NODE_INDEX_R)) * s.constantR;
+  const phi = columnI32(nodeColumn(row, COL_STREAM_NODE_INDEX_PHI)) * s.constantPhi;
+  const theta = columnI32(nodeColumn(row, COL_STREAM_NODE_INDEX_THETA)) * s.constantTheta;
+  const st = Math.sin(phi);
+  out[0] = s.centerX + r * st * Math.cos(theta);
+  out[1] = s.centerY + r * Math.cos(phi);
+  out[2] = s.centerZ + r * st * Math.sin(theta);
+}
+
+function nodeCenterX(row: number): number { centerInto(row, centerScratch); return centerScratch[0]; }
+function nodeCenterY(row: number): number { centerInto(row, centerScratch); return centerScratch[1]; }
+function nodeCenterZ(row: number): number { centerInto(row, centerScratch); return centerScratch[2]; }
+
+function nodeRadius(row: number): number {
+  return columnF32(nodeColumn(row, COL_STREAM_NODE_RADIUS)) || NODE_SPHERE_RADIUS;
+}
+
+function nodeCount(): number { return ownerCounts().nodes; }
+
+const hoveredFlag = (row: number): boolean => columnU8(nodeColumn(row, COL_STREAM_NODE_HOVERED)) !== 0;
+import { nodeRowColors } from "../node-kind";
+import { computeNodeDepthOrder, setNodeDrawOrder } from "./node-depth-order";
+import { SELECTION_HALO_R_RATIO } from "./node-highlight-shape";
+import { overlayFlag } from "../../src/webview/three/controls/flags/overlay-flags";
+
+function copyRingMatrix(row: number, ring: THREE.InstancedMesh, slot: number): void {
   const out = ring.instanceMatrix.array;
   const base = slot * 16;
-  out[base]      = readNodeRingM0(nodeView, row);
-  out[base + 1]  = readNodeRingM1(nodeView, row);
-  out[base + 2]  = readNodeRingM2(nodeView, row);
-  out[base + 3]  = readNodeRingM3(nodeView, row);
-  out[base + 4]  = readNodeRingM4(nodeView, row);
-  out[base + 5]  = readNodeRingM5(nodeView, row);
-  out[base + 6]  = readNodeRingM6(nodeView, row);
-  out[base + 7]  = readNodeRingM7(nodeView, row);
-  out[base + 8]  = readNodeRingM8(nodeView, row);
-  out[base + 9]  = readNodeRingM9(nodeView, row);
-  out[base + 10] = readNodeRingM10(nodeView, row);
-  out[base + 11] = readNodeRingM11(nodeView, row);
-  out[base + 12] = readNodeRingM12(nodeView, row);
-  out[base + 13] = readNodeRingM13(nodeView, row);
-  out[base + 14] = readNodeRingM14(nodeView, row);
-  out[base + 15] = readNodeRingM15(nodeView, row);
+  const cols = [
+    COL_STREAM_NODE_RING_M0, COL_STREAM_NODE_RING_M1, COL_STREAM_NODE_RING_M2, COL_STREAM_NODE_RING_M3,
+    COL_STREAM_NODE_RING_M4, COL_STREAM_NODE_RING_M5, COL_STREAM_NODE_RING_M6, COL_STREAM_NODE_RING_M7,
+    COL_STREAM_NODE_RING_M8, COL_STREAM_NODE_RING_M9, COL_STREAM_NODE_RING_M10, COL_STREAM_NODE_RING_M11,
+    COL_STREAM_NODE_RING_M12, COL_STREAM_NODE_RING_M13, COL_STREAM_NODE_RING_M14, COL_STREAM_NODE_RING_M15,
+  ];
+  for (let i = 0; i < 16; i++) out[base + i] = columnF32(nodeColumn(row, cols[i]!));
 }
 
 export interface NodeInstanceRefs {
@@ -38,6 +63,9 @@ export interface NodeInstanceRefs {
   ring: THREE.InstancedMesh;
   ringPick: THREE.InstancedMesh;
   ringBand: THREE.InstancedMesh;
+  selRing: THREE.InstancedMesh;
+  selHalo: THREE.InstancedMesh;
+  hoverRing: THREE.InstancedMesh;
   mat: THREE.Matrix4;
   pos: THREE.Vector3;
   quat: THREE.Quaternion;
@@ -46,50 +74,48 @@ export interface NodeInstanceRefs {
 }
 
 export function updateNodeInstances(refs: NodeInstanceRefs, capacity: number, camera: THREE.Camera): void {
-  const { body, ring, ringPick, ringBand, mat, pos, quat, scl, col } = refs;
+  const { body, ring, ringPick, ringBand, selRing, selHalo, hoverRing, mat, pos, quat, scl, col } = refs;
 
-  const blocks = getViewBlocks();
-  const decodedNode = getNodeFrame();
-  if (!decodedNode || !blocks) {
+  const n0 = nodeCount();
+  if (n0 <= 0) {
     body.count = 0; ring.count = 0; ringPick.count = 0; ringBand.count = 0;
+    selRing.count = 0; selHalo.count = 0; hoverRing.count = 0;
     return;
   }
-  const { overlayView } = blocks;
-  const { nodeCount, nodeView } = decodedNode;
 
-  const showBody = readOverlayNodeBody(overlayView) !== 0;
-  const showRing = readOverlayNodeRing(overlayView) !== 0;
+  const showBody = overlayFlag("nodeBody");
+  const showRing = overlayFlag("nodeRing");
 
-  const showPickBand = readOverlayRingPick(overlayView) !== 0;
+  const showPickBand = overlayFlag("ringPick");
 
-  const n = Math.min(nodeCount, capacity);
+  const n = Math.min(n0, capacity);
 
   const order = computeNodeDepthOrder(
     n,
-    (row) => readNodeCX(nodeView, row),
-    (row) => readNodeCY(nodeView, row),
-    (row) => readNodeCZ(nodeView, row),
+    (row) => nodeCenterX(row),
+    (row) => nodeCenterY(row),
+    (row) => nodeCenterZ(row),
     camera.position.x, camera.position.y, camera.position.z,
   );
   setNodeDrawOrder(order);
   for (let slot = 0; slot < n; slot++) {
     const row = order[slot]!;
-    const r = readNodeRadius(nodeView, row) || NODE_SPHERE_RADIUS;
+    const r = nodeRadius(row);
     pos.set(
-      readNodeCX(nodeView, row),
-      readNodeCY(nodeView, row),
-      readNodeCZ(nodeView, row),
+      nodeCenterX(row),
+      nodeCenterY(row),
+      nodeCenterZ(row),
     );
 
     scl.setScalar(r);
     mat.compose(pos, quat, scl);
     body.setMatrixAt(slot, mat);
 
-    copyRingMatrix(nodeView, row, ring, slot);
-    copyRingMatrix(nodeView, row, ringPick, slot);
-    copyRingMatrix(nodeView, row, ringBand, slot);
+    copyRingMatrix(row, ring, slot);
+    copyRingMatrix(row, ringPick, slot);
+    copyRingMatrix(row, ringBand, slot);
 
-    const { fill, stroke } = nodeRowColors(nodeView, row);
+    const { fill, stroke } = nodeRowColors(row);
     body.setColorAt(slot, col.set(fill));
     ring.setColorAt(slot, col.set(stroke));
   }
@@ -106,6 +132,43 @@ export function updateNodeInstances(refs: NodeInstanceRefs, capacity: number, ca
   if (body.instanceColor) body.instanceColor.needsUpdate = true;
   if (ring.instanceColor) ring.instanceColor.needsUpdate = true;
 
+  placeHighlight(n, selectedFlag, selRing, overlayFlag("selectionRing"), 1, mat, pos, quat, scl);
+  placeHighlight(n, selectedFlag, selHalo, overlayFlag("selectionRing"), SELECTION_HALO_R_RATIO, mat, pos, quat, scl);
+
+  const hoveredRow = firstRowWhere(n, hoveredFlag);
+  const hoverSuppressed =
+    hoveredRow >= 0 && readSelectedNodeRow() === hoveredRow && overlayFlag("selectionRing");
+  placeHighlight(n, hoveredFlag, hoverRing, overlayFlag("hoverRing") && !hoverSuppressed, 1, mat, pos, quat, scl);
+
   if (showBody) body.computeBoundingSphere();
   ringPick.computeBoundingSphere();
+}
+
+const selectedFlag = (row: number): boolean => readSelectedNodeRow() === row;
+
+function firstRowWhere(n: number, read: (row: number) => boolean): number {
+  for (let i = 0; i < n; i++) {
+    if (read(i)) return i;
+  }
+  return -1;
+}
+
+function placeHighlight(
+  n: number,
+  read: (row: number) => boolean,
+  mesh: THREE.InstancedMesh, visible: boolean, rRatio: number,
+  mat: THREE.Matrix4, pos: THREE.Vector3, quat: THREE.Quaternion, scl: THREE.Vector3,
+): void {
+  const row = visible ? firstRowWhere(n, read) : -1;
+  if (row < 0) {
+    mesh.count = 0;
+    return;
+  }
+  const r = nodeRadius(row) * rRatio;
+  pos.set(nodeCenterX(row), nodeCenterY(row), nodeCenterZ(row));
+  scl.setScalar(r);
+  mat.compose(pos, quat, scl);
+  mesh.setMatrixAt(0, mat);
+  mesh.count = 1;
+  mesh.instanceMatrix.needsUpdate = true;
 }

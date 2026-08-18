@@ -1,23 +1,24 @@
 import { useSyncExternalStore } from "react";
 import { OVERLAY_FLAG_ORDER, type OverlayFlag } from "../../../../messages";
-import { getViewBlocks, subscribeViewBlocks } from "../../scene/view-blocks";
+import { columnU8 } from "../../../../../Buffer/column-values";
+import { subscribeFrame } from "../../../frame-tick";
 import {
-  readOverlaySceneTori,
-  readOverlayScenePoles,
-  readOverlayNodePoles,
-  readOverlayHandholds,
-  readOverlayLabelsGlobal,
-  readOverlayOverlaysVis,
-  readOverlayNodeBody,
-  readOverlayNodeRing,
-  readOverlayRingPick,
-  readOverlaySelectionRing,
-  readOverlayHoverRing,
-  readOverlaySceneVectors,
-  readOverlayRuleChannels,
-  readOverlayNodePoleSphere,
-  readOverlayAllPoleSpheres,
-} from "../../../../../Buffer/buffer-layout";
+  COL_STREAM_OVERLAY_SCENE_TORI,
+  COL_STREAM_OVERLAY_SCENE_POLES,
+  COL_STREAM_OVERLAY_NODE_POLES,
+  COL_STREAM_OVERLAY_HANDHOLDS,
+  COL_STREAM_OVERLAY_LABELS_GLOBAL,
+  COL_STREAM_OVERLAY_OVERLAYS_VIS,
+  COL_STREAM_OVERLAY_NODE_BODY,
+  COL_STREAM_OVERLAY_NODE_RING,
+  COL_STREAM_OVERLAY_RING_PICK,
+  COL_STREAM_OVERLAY_SELECTION_RING,
+  COL_STREAM_OVERLAY_HOVER_RING,
+  COL_STREAM_OVERLAY_SCENE_VECTORS,
+  COL_STREAM_OVERLAY_RULE_CHANNELS,
+  COL_STREAM_OVERLAY_NODE_POLE_SPHERE,
+  COL_STREAM_OVERLAY_ALL_POLE_SPHERES,
+} from "../../../../../Buffer/column-streams-gen";
 
 export type OverlayFlagVals = Record<OverlayFlag, boolean>;
 
@@ -28,39 +29,34 @@ function overlayFlagsEqual(a: OverlayFlagVals, b: OverlayFlagVals): boolean {
 }
 
 export function readOverlayFlags(): OverlayFlagVals | null {
-  const blocks = getViewBlocks();
-  if (!blocks) return cachedVals;
-  const v = blocks.overlayView;
   const next: OverlayFlagVals = {
-    tori: !!readOverlaySceneTori(v),
-    scenePoles: !!readOverlayScenePoles(v),
-    nodePoles: !!readOverlayNodePoles(v),
-    handholds: !!readOverlayHandholds(v),
+    tori: !!columnU8(COL_STREAM_OVERLAY_SCENE_TORI),
+    scenePoles: !!columnU8(COL_STREAM_OVERLAY_SCENE_POLES),
+    nodePoles: !!columnU8(COL_STREAM_OVERLAY_NODE_POLES),
+    handholds: !!columnU8(COL_STREAM_OVERLAY_HANDHOLDS),
 
-    labelsGlobal: !readOverlayLabelsGlobal(v),
-    overlays: !!readOverlayOverlaysVis(v),
-    nodeBody: !!readOverlayNodeBody(v),
-    nodeRing: !!readOverlayNodeRing(v),
-    ringPick: !!readOverlayRingPick(v),
-    selectionRing: !!readOverlaySelectionRing(v),
-    hoverRing: !!readOverlayHoverRing(v),
-    sceneVectors: !!readOverlaySceneVectors(v),
-    ruleChannels: !!readOverlayRuleChannels(v),
-    nodePoleSphere: !!readOverlayNodePoleSphere(v),
-    allPoleSpheres: !!readOverlayAllPoleSpheres(v),
+    labelsGlobal: !columnU8(COL_STREAM_OVERLAY_LABELS_GLOBAL),
+    overlays: !!columnU8(COL_STREAM_OVERLAY_OVERLAYS_VIS),
+    nodeBody: !!columnU8(COL_STREAM_OVERLAY_NODE_BODY),
+    nodeRing: !!columnU8(COL_STREAM_OVERLAY_NODE_RING),
+    ringPick: !!columnU8(COL_STREAM_OVERLAY_RING_PICK),
+    selectionRing: !!columnU8(COL_STREAM_OVERLAY_SELECTION_RING),
+    hoverRing: !!columnU8(COL_STREAM_OVERLAY_HOVER_RING),
+    sceneVectors: !!columnU8(COL_STREAM_OVERLAY_SCENE_VECTORS),
+    ruleChannels: !!columnU8(COL_STREAM_OVERLAY_RULE_CHANNELS),
+    nodePoleSphere: !!columnU8(COL_STREAM_OVERLAY_NODE_POLE_SPHERE),
+    allPoleSpheres: !!columnU8(COL_STREAM_OVERLAY_ALL_POLE_SPHERES),
   };
   if (cachedVals && overlayFlagsEqual(cachedVals, next)) return cachedVals;
   cachedVals = next;
   return cachedVals;
 }
 
-export function overlayOn(read: (v: DataView) => number): boolean {
-  const blocks = getViewBlocks();
-  if (!blocks) return false;
-  return read(blocks.overlayView) !== 0;
+export function overlayFlag(name: OverlayFlag): boolean {
+  const vals = readOverlayFlags();
+  return vals ? vals[name] : false;
 }
 
 export function useOverlayFlags(): OverlayFlagVals | null {
-  return useSyncExternalStore(subscribeViewBlocks, readOverlayFlags, readOverlayFlags);
+  return useSyncExternalStore(subscribeFrame, readOverlayFlags, readOverlayFlags);
 }
-

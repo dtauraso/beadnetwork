@@ -56,7 +56,9 @@ func writeBufferLayoutTSHeader(outPath string, schema BufLayoutSchema, fp string
 	fmt.Fprintln(w, `export const UNKNOWN_KIND_ID = 0xff;`)
 	fmt.Fprintln(w)
 	fmt.Fprintln(w, `export * from './buffer-layout-rows-gen';`)
-	fmt.Fprintln(w, `export * from './buffer-layout-rows2-gen';`)
+	if blocks := rowBlocks(schema); len(blocks[rowBlockSplit(len(blocks)):]) > 0 {
+		fmt.Fprintln(w, `export * from './buffer-layout-rows2-gen';`)
+	}
 	fmt.Fprintln(w, `export * from './buffer-layout-singletons-gen';`)
 
 	w.Flush()

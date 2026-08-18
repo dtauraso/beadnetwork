@@ -43,7 +43,7 @@ done < <(find "$WIRING_DIR" -name "*.go" -not -path "*/node_modules/*")
 
 all_hits=""
 if [[ ${#eligible_files[@]} -gt 0 ]]; then
-  all_hits="$(grep -nE 'IsDir\(\)|scenepaths\.CameraFilePath\(|scenepaths\.OverlaysFilePath\(|scenepaths\.SphereFilePath\(|scenepaths\.ViewFilePath\(|filepath\.Join\(' \
+  all_hits="$(grep -nE 'IsDir\(\)|scenepaths\.CameraDirPath\(|scenepaths\.OverlaysDirPath\(|scenepaths\.SphereDirPath\(|scenepaths\.ViewFilePath\(|filepath\.Join\(' \
     "${eligible_files[@]}" 2>/dev/null || true)"
 fi
 
@@ -66,12 +66,12 @@ while IFS= read -r hit; do
   [[ -z "$hit" ]] && continue
   content="${hit#*:*:}"
   case "$content" in
-    *scenepaths.CameraFilePath\(*|*scenepaths.OverlaysFilePath\(*|*scenepaths.SphereFilePath\(*|*scenepaths.ViewFilePath\(*) CALL_SITES=$((CALL_SITES + 1)) ;;
+    *scenepaths.CameraDirPath\(*|*scenepaths.OverlaysDirPath\(*|*scenepaths.SphereDirPath\(*|*scenepaths.ViewFilePath\(*) CALL_SITES=$((CALL_SITES + 1)) ;;
   esac
 done <<< "$all_hits"
 
 if [[ "$CALL_SITES" -eq 0 ]]; then
-  echo "check-scene-path-resolution: MISCONFIGURED — zero call sites of scenepaths.CameraFilePath()/scenepaths.OverlaysFilePath()/scenepaths.SphereFilePath()/scenepaths.ViewFilePath() found outside scenepaths/scene_paths.go." >&2
+  echo "check-scene-path-resolution: MISCONFIGURED — zero call sites of scenepaths.CameraDirPath()/scenepaths.OverlaysDirPath()/scenepaths.SphereDirPath()/scenepaths.ViewFilePath() found outside scenepaths/scene_paths.go." >&2
   echo "  The resolvers exist but nothing calls them; the IsDir-only scan above would pass vacuously." >&2
   exit 1
 fi

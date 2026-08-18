@@ -1,138 +1,87 @@
-import { TRACE_EVENT_KINDS, BREADCRUMB_LABELS } from "../../../../Trace/trace-kinds";
-import { nodeLabel, type DecodedNodeFrame } from "./buffer-decode-node";
-import { edgeLabel, type DecodedEdgeFrame } from "./buffer-decode-edge";
-import { INTERIOR_SLOTS_PER_NODE } from "./buffer-decode-interior";
-import { overlayFlag, OVERLAY_KINDS } from "./decode-event-overlay";
-import { nodeGeometryLine } from "./decode-event-node-geometry";
+import { BREADCRUMB_LABELS } from "../../../../Trace/trace-kinds";
+import { nodeLabel } from "./buffer-decode-node";
 import {
-  readInteriorPresent, readInteriorValue, readInteriorOX, readInteriorOY, readInteriorOZ,
-  readEdgeSX, readEdgeSY, readEdgeSZ, readEdgeEX, readEdgeEY, readEdgeEZ,
-  readCameraPX, readCameraPY, readCameraPZ, readCameraR,
-  readCameraPosPhi, readCameraPosTheta, readCameraUpPhi, readCameraUpTheta,
-  readEventKind, readEventNodeRow, readEventPortRow, readEventTargetRow, readEventTargetPortRow,
-  readEventEdgeRow, readEventSlot, readEventValue, readEventBead,
-  readEventBeadSteps, readEventX, readEventY, readEventZ, readEventF,
-  readEventLabel, readEventDebug, readEventTextOff, readEventTextLen,
-  readSceneCX, readSceneCY, readSceneCZ, readSceneRadius,
+  readRecvNodeRow, readRecvValue,
+  readFireNodeRow,
+  readSendNodeRow, readSendTargetRow, readSendValue, readSendBeadSteps,
+  readArriveNodeRow, readArriveValue, readArriveBead,
+  readBreadcrumbNodeRow, readBreadcrumbPortRow, readBreadcrumbTargetRow,
+  readBreadcrumbTargetPortRow, readBreadcrumbEdgeRow, readBreadcrumbSlot, readBreadcrumbValue,
+  readBreadcrumbX, readBreadcrumbY, readBreadcrumbZ,
+  readBreadcrumbLabel, readBreadcrumbDebug, readBreadcrumbTextOff, readBreadcrumbTextLen,
 } from "../../../../Buffer/buffer-layout";
+import type { DecodedEvents } from "./buffer-decode-shared";
 
 export type Line = Record<string, unknown>;
 
 const EVENT_TEXT_DECODER = new TextDecoder();
 
-export interface ViewBlocksOrNull {
-  cameraView: DataView | null;
-  overlayView: DataView | null;
-  sceneView: DataView | null;
+const nameOf = (row: number): string => (row >= 0 ? nodeLabel(row) : "");
+
+function recvLine(ev: DataView, i: number): Line {
+  return { kind: "recv", node: nameOf(readRecvNodeRow(ev, i)), port: "", value: readRecvValue(ev, i) };
 }
 
-export function decodeEventLine(ev: DataView, eventTextView: DataView, dn: DecodedNodeFrame | null, de: DecodedEdgeFrame | null, vb: ViewBlocksOrNull, i: number): Line | null {
-  const kindId = readEventKind(ev, i);
-  const kind = TRACE_EVENT_KINDS[kindId];
-  if (kind === undefined) return null;
-  const nodeRow = readEventNodeRow(ev, i);
-  const portRow = readEventPortRow(ev, i);
-  const targetRow = readEventTargetRow(ev, i);
-  const targetPortRow = readEventTargetPortRow(ev, i);
-  const edgeRow = readEventEdgeRow(ev, i);
-  const value = readEventValue(ev, i);
-  const bead = readEventBead(ev, i);
-  const node = dn && nodeRow >= 0 ? nodeLabel(dn, nodeRow) : "";
+function fireLine(ev: DataView, i: number): Line {
+  return { kind: "fire", node: nameOf(readFireNodeRow(ev, i)) };
+}
 
-  const port = "";
-
-  if (kind === "breadcrumb") {
-
-    const labelId = readEventLabel(ev, i);
-    const label = BREADCRUMB_LABELS[labelId] ?? String(labelId);
-    const textOff = readEventTextOff(ev, i);
-    const textLen = readEventTextLen(ev, i);
-    const text = textLen > 0 && eventTextView.byteLength >= textOff + textLen
-      ? EVENT_TEXT_DECODER.decode(new Uint8Array(eventTextView.buffer, eventTextView.byteOffset + textOff, textLen))
-      : "";
-    const t = dn && targetRow >= 0 ? nodeLabel(dn, targetRow) : "";
-    const line: Line = {
-      kind, label, debug: readEventDebug(ev, i) === 1,
-      node, port, value,
-      x: readEventX(ev, i), y: readEventY(ev, i), z: readEventZ(ev, i),
-      nodeRow, portRow, targetRow, targetPortRow, edgeRow, slot: readEventSlot(ev, i),
-    };
-    if (t) line.target = t;
-    if (text) line.text = text;
-    return line;
+function sendLine(ev: DataView, i: number): Line {
+  const line: Line = {
+    kind: "send", node: nameOf(readSendNodeRow(ev, i)), port: "", value: readSendValue(ev, i),
+  };
+  const beadSteps = readSendBeadSteps(ev, i);
+  if (beadSteps !== 0) {
+    line.beadSteps = beadSteps;
+    const target = nameOf(readSendTargetRow(ev, i));
+    if (target) line.target = target;
   }
+  return line;
+}
 
-  switch (kind) {
-    case "recv":
-      return { kind, node, port, value };
-    case "fire":
-      return { kind, node };
-    case "send": {
-      const beadSteps = readEventBeadSteps(ev, i);
-      if (beadSteps !== 0) {
-        const l: Line = { kind, node, port, value, beadSteps };
-        const t = dn && targetRow >= 0 ? nodeLabel(dn, targetRow) : "";
-        if (t) l.target = t;
+function arriveLine(ev: DataView, i: number): Line {
+  const line: Line = {
+    kind: "arrive", node: nameOf(readArriveNodeRow(ev, i)), port: "", value: readArriveValue(ev, i),
+  };
+  const bead = readArriveBead(ev, i);
+  if (bead !== 0) line.bead = bead;
+  return line;
+}
 
-        return l;
-      }
-      return { kind, node, port, value };
-    }
-    case "edge-bead": {
-      const l: Line = { kind, node, port, value, x: readEventX(ev, i), y: readEventY(ev, i), z: readEventZ(ev, i), f: readEventF(ev, i) };
-      if (bead !== 0) l.bead = bead;
-      return l;
-    }
-    case "arrive": {
-      const l: Line = { kind, node, port, value };
-      if (bead !== 0) l.bead = bead;
-      return l;
-    }
-    case "geometry": {
-      const edge = de ? edgeLabel(de, edgeRow) : "";
+function breadcrumbLine(ev: DataView, textView: DataView, i: number): Line {
+  const labelId = readBreadcrumbLabel(ev, i);
+  const textOff = readBreadcrumbTextOff(ev, i);
+  const textLen = readBreadcrumbTextLen(ev, i);
+  const text = textLen > 0 && textView.byteLength >= textOff + textLen
+    ? EVENT_TEXT_DECODER.decode(new Uint8Array(textView.buffer, textView.byteOffset + textOff, textLen))
+    : "";
+  const targetRow = readBreadcrumbTargetRow(ev, i);
+  const line: Line = {
+    kind: "breadcrumb",
+    label: BREADCRUMB_LABELS[labelId] ?? String(labelId),
+    debug: readBreadcrumbDebug(ev, i) === 1,
+    node: nameOf(readBreadcrumbNodeRow(ev, i)), port: "", value: readBreadcrumbValue(ev, i),
+    x: readBreadcrumbX(ev, i), y: readBreadcrumbY(ev, i), z: readBreadcrumbZ(ev, i),
+    nodeRow: readBreadcrumbNodeRow(ev, i), portRow: readBreadcrumbPortRow(ev, i),
+    targetRow, targetPortRow: readBreadcrumbTargetPortRow(ev, i),
+    edgeRow: readBreadcrumbEdgeRow(ev, i), slot: readBreadcrumbSlot(ev, i),
+  };
+  const target = nameOf(targetRow);
+  if (target) line.target = target;
+  if (text) line.text = text;
+  return line;
+}
 
-      let sx = 0, sy = 0, sz = 0, ex = 0, ey = 0, ez = 0;
-      if (de && edgeRow >= 0 && edgeRow < de.edgeCount) {
-        sx = readEdgeSX(de.edgeView, edgeRow); sy = readEdgeSY(de.edgeView, edgeRow); sz = readEdgeSZ(de.edgeView, edgeRow);
-        ex = readEdgeEX(de.edgeView, edgeRow); ey = readEdgeEY(de.edgeView, edgeRow); ez = readEdgeEZ(de.edgeView, edgeRow);
-      }
-      return { kind, edge, sx, sy, sz, ex, ey, ez };
-    }
-    case "node-geometry":
-      return dn ? nodeGeometryLine(dn, nodeRow, node) : { kind, node };
-    case "node-bead": {
-      if (!dn) return { kind, node };
-      const slot = readEventSlot(ev, i);
-      const irow = nodeRow * INTERIOR_SLOTS_PER_NODE + slot;
-      return {
-        kind, node, row: Math.floor(slot / 2), col: slot % 2,
-        present: readInteriorPresent(dn.interiorView, irow) === 1,
-        value: readInteriorValue(dn.interiorView, irow),
-        x: readInteriorOX(dn.interiorView, irow), y: readInteriorOY(dn.interiorView, irow), z: readInteriorOZ(dn.interiorView, irow),
-      };
-    }
-    case "camera": {
-      const c = vb.cameraView;
-      if (!c) return { kind };
-      return {
-        kind,
-        px: readCameraPX(c), py: readCameraPY(c), pz: readCameraPZ(c), r: readCameraR(c),
-        posTheta: readCameraPosPhi(c), posPhi: readCameraPosTheta(c),
-        upTheta: readCameraUpPhi(c), upPhi: readCameraUpTheta(c),
-      };
-    }
-    case "scene-sphere": {
-      const sc = vb.sceneView;
-      if (!sc) return { kind };
-      return { kind, cx: readSceneCX(sc), cy: readSceneCY(sc), cz: readSceneCZ(sc), radius: readSceneRadius(sc) };
-    }
-    case "select":
-
-      return { kind, node, port: "", value };
-    case "hover":
-      return { kind, node, port, value };
-    default:
-      if (OVERLAY_KINDS.has(kind)) return { kind, visible: overlayFlag(vb, kind) === 1 };
-      return { kind, node, port, value };
+export function decodeEventLines(ev: DecodedEvents, breadcrumbsOnly: boolean): Line[] {
+  const out: Line[] = [];
+  if (!breadcrumbsOnly) {
+    for (let i = 0; i < ev.recv.count; i++) out.push(recvLine(ev.recv.view, i));
+    for (let i = 0; i < ev.fire.count; i++) out.push(fireLine(ev.fire.view, i));
+    for (let i = 0; i < ev.send.count; i++) out.push(sendLine(ev.send.view, i));
+    for (let i = 0; i < ev.arrive.count; i++) out.push(arriveLine(ev.arrive.view, i));
   }
+  for (let i = 0; i < ev.breadcrumb.count; i++) {
+    out.push(breadcrumbLine(ev.breadcrumb.view, ev.breadcrumbTextView, i));
+  }
+  return out;
 }

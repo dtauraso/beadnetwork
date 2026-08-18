@@ -5,7 +5,6 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/camerapersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/camera"
-	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
 	"github.com/dtauraso/wirefold/nodes/spatial"
 	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
@@ -26,17 +25,11 @@ func SeedInitialViewpoint(topologyPath string, setViewpoint func(pivot vec3, r f
 }
 
 func LoadSceneViewpoint(topologyPath string) (pivot vec3, r float64, pos, up camera.Dir, ok bool) {
-	var cp camerapersist.PolarCamera
-	jsonpersist.ReadJSONBestEffort(scenepaths.CameraFilePath(topologyPath), &cp)
-
-	if cp.Pivot == nil || cp.R == nil || cp.Pos == nil || cp.Up == nil {
+	v, ok := camerapersist.ReadSceneCamera(scenepaths.CameraDirPath(topologyPath))
+	if !ok {
 		return vec3{}, 0, camera.Dir{}, camera.Dir{}, false
 	}
-	pivot = vec3{X: cp.Pivot[0], Y: cp.Pivot[1], Z: cp.Pivot[2]}
-	r = *cp.R
-	pos = camera.Dir{Phi: cp.Pos[0], Theta: cp.Pos[1]}
-	up = camera.Dir{Phi: cp.Up[0], Theta: cp.Up[1]}
-	return pivot, r, pos, up, true
+	return v.Pivot, v.R, v.Pos, v.Up, true
 }
 
 const DefaultViewpointR = 500.0

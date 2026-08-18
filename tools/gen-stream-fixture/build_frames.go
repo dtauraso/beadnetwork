@@ -9,12 +9,9 @@ import (
 func buildNodeFrame() nodeFrameFixture {
 	f := nodeFrameFixture{
 		Tick: 4242, NodeRow: 7, NodeId: 8,
-		CX: 11.5, CY: -12.25, CZ: 13.125, Radius: 14.0625,
+		IndexR: 3, IndexPhi: 5, IndexTheta: 7, HasPos: 1, Radius: 14.0625,
 		PolePhi: 2.1, PoleTheta: -1.3,
-		TopTiltVectorLen: 9.5, TopTiltVectorIdx: 2, TopTiltVectorPhi: 0.5,
-		CoplanarNormalPhi:   0.55,
-		BottomTiltVectorPhi: 2.9,
-		ReceivedVectorLen:   8.75, ReceivedVectorPhi: 0.25,
+		TopTiltVectorLen: 9.5, TopTiltVectorIdx: 2,
 		Selected: 1, KindID: 3, Hovered: 1, LatchedSel: 0,
 		LatticePoints:    12,
 		RoundsToParallel: 3,
@@ -36,31 +33,27 @@ func buildNodeFrame() nodeFrameFixture {
 	}
 
 	raw := streamframe.BuildNodeStreamFrame(streamframe.NodeStreamFrame{
-		Tick:                f.Tick,
-		NodeRow:             f.NodeRow,
-		NodeID:              f.NodeId,
-		CX:                  f.CX,
-		CY:                  f.CY,
-		CZ:                  f.CZ,
-		Radius:              f.Radius,
-		PolePhi:             f.PolePhi,
-		PoleTheta:           f.PoleTheta,
-		TopTiltVectorLen:    f.TopTiltVectorLen,
-		TopTiltVectorIdx:    f.TopTiltVectorIdx,
-		TopTiltVectorPhi:    f.TopTiltVectorPhi,
-		BottomTiltVectorPhi: f.BottomTiltVectorPhi,
-		CoplanarNormalPhi:   f.CoplanarNormalPhi,
-		ReceivedVectorLen:   f.ReceivedVectorLen,
-		ReceivedVectorPhi:   f.ReceivedVectorPhi,
-		Selected:            f.Selected,
-		KindID:              f.KindID,
-		Hovered:             f.Hovered,
-		LatchedSel:          f.LatchedSel,
-		LatticePoints:       f.LatticePoints,
-		RoundsToParallel:    f.RoundsToParallel,
-		MsgsToParallel:      f.MsgsToParallel,
-		Label:               f.Label,
-		Events:              nil,
+		Tick:             f.Tick,
+		NodeRow:          f.NodeRow,
+		NodeID:           f.NodeId,
+		IndexR:           f.IndexR,
+		IndexPhi:         f.IndexPhi,
+		IndexTheta:       f.IndexTheta,
+		HasPos:           f.HasPos,
+		Radius:           f.Radius,
+		PolePhi:          f.PolePhi,
+		PoleTheta:        f.PoleTheta,
+		TopTiltVectorLen: f.TopTiltVectorLen,
+		TopTiltVectorIdx: f.TopTiltVectorIdx,
+		Selected:         f.Selected,
+		KindID:           f.KindID,
+		Hovered:          f.Hovered,
+		LatchedSel:       f.LatchedSel,
+		LatticePoints:    f.LatticePoints,
+		RoundsToParallel: f.RoundsToParallel,
+		MsgsToParallel:   f.MsgsToParallel,
+		Label:            f.Label,
+		Events:           nil,
 	})
 	f.Hex = hex.EncodeToString(raw)
 	return f
@@ -72,7 +65,7 @@ func buildEdgeFrame() edgeFrameFixture {
 		SrcNodeRow: 3,
 		Label:      "edgeLabel",
 	}
-	raw := streamframe.BuildEdgeStreamFrame(f.Tick, f.SX, f.SY, f.SZ, f.EX, f.EY, f.EZ, f.SrcNodeRow, f.DstNodeRow, f.DeltaR, 1, f.Label, nil)
+	raw := streamframe.BuildEdgeStreamFrame(f.Tick, nil)
 	f.Hex = hex.EncodeToString(raw)
 	return f
 }
@@ -86,11 +79,7 @@ func buildBeadFrame() beadFrameFixture {
 			{X: -4.5, Y: 5.25, Z: -6.125, Value: 2, EdgeRow: 2},
 		},
 	}
-	beads := make([]streamframe.EdgeBead, 0, len(f.Beads))
-	for _, b := range f.Beads {
-		beads = append(beads, streamframe.EdgeBead{X: b.X, Y: b.Y, Z: b.Z, Value: b.Value, EdgeRow: b.EdgeRow})
-	}
-	f.Hex = hex.EncodeToString(streamframe.BuildBeadStreamFrame(f.Tick, f.NodeRow, beads, nil))
+	f.Hex = hex.EncodeToString(streamframe.BuildBeadStreamFrame(f.Tick, f.NodeRow, nil))
 	return f
 }
 
@@ -107,7 +96,8 @@ func buildInteriorFrame() interiorFrameFixture {
 	for i, p := range f.Present {
 		present[i] = uint8(p)
 	}
-	raw := streamframe.BuildInteriorStreamFrame(f.Tick, present, f.Value, f.OX, f.OY, f.OZ, nil)
+	_ = present
+	raw := streamframe.BuildInteriorStreamFrame(f.Tick, nil)
 	f.Hex = hex.EncodeToString(raw)
 	return f
 }

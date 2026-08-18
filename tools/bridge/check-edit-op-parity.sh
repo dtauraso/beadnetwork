@@ -101,7 +101,8 @@ report_diff "$(comm -13 <(echo "$HM_KINDS") <(echo "$TS_KINDS"))" "handle-messag
 TS_FLAGS=$(between OVERLAY_FLAGS_START OVERLAY_FLAGS_END "$MESSAGES_TS" | quoted) || true
 assert_nonempty "$TS_FLAGS" "axis3 messages.ts overlay flags"
 
-RENDER_READS=$(grep -aoE 'readOverlay[A-Za-z]+\(v\)' "$OVERLAY_FLAGS_TS" | sort -u)
+RENDER_READS=$( { grep -aoE 'readOverlay[A-Za-z]+\(v\)' "$OVERLAY_FLAGS_TS" || true;
+                  grep -aoE 'COL_STREAM_OVERLAY_[A-Z0-9_]+' "$OVERLAY_FLAGS_TS" || true; } | sort -u)
 
 RENDER_KEYS=$(awk '/OverlayFlagVals = \{/{p=1;next} p&&/^[[:space:]]*};/{p=0} p&&/^[[:space:]]*[a-zA-Z_]+:/{print}' "$OVERLAY_FLAGS_TS" | grep -aoE '^[[:space:]]*[a-zA-Z_]+:' | sort -u)
 assert_nonempty "$RENDER_READS" "axis3 overlay-flags.ts readOverlay* reads"
@@ -118,7 +119,8 @@ fi
 TS_PANEL_FLAGS=$(between PANEL_FLAGS_START PANEL_FLAGS_END "$MESSAGES_TS" | quoted) || true
 assert_nonempty "$TS_PANEL_FLAGS" "axis4 messages.ts panel flags"
 
-PANEL_RENDER_READS=$(grep -aoE 'readPanel[A-Za-z]+\(v\)' "$PANEL_FLAGS_TS" | sort -u)
+PANEL_RENDER_READS=$( { grep -aoE 'readPanel[A-Za-z]+\(v\)' "$PANEL_FLAGS_TS" || true;
+                        grep -aoE 'COL_STREAM_PANEL_[A-Z0-9_]+' "$PANEL_FLAGS_TS" || true; } | sort -u)
 
 PANEL_RENDER_KEYS=$(awk '/PanelFlagVals = \{/{p=1;next} p&&/^[[:space:]]*};/{p=0} p&&/^[[:space:]]*[a-zA-Z_]+:/{print}' "$PANEL_FLAGS_TS" | grep -aoE '^[[:space:]]*[a-zA-Z_]+:' | sort -u)
 assert_nonempty "$PANEL_RENDER_READS" "axis4 panel-flags.ts readPanel* reads"

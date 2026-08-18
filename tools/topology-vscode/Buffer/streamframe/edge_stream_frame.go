@@ -2,30 +2,34 @@ package streamframe
 
 import (
 	"encoding/binary"
-	"fmt"
+	"github.com/dtauraso/wirefold/nodes/rowevent"
 
 	B "github.com/dtauraso/wirefold/tools/topology-vscode/Buffer"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/Buffer/colstream"
 )
 
-func BuildEdgeStreamFrame(tick uint32, sx, sy, sz, ex, ey, ez float32, srcNodeRow, dstNodeRow int32, deltaR float32, dragActive uint8, label string, events []StreamEvent) []byte {
-	labelBytes := []byte(label)
-	size := B.BufEdgeStreamFrameHeaderSize + B.BufEdgeStride + len(labelBytes)
-	buf := make([]byte, size)
-	off := 0
-	binary.LittleEndian.PutUint32(buf[off:], tick)
-	off += 4
-	binary.LittleEndian.PutUint32(buf[off:], uint32(len(labelBytes)))
-	off += 4
-
-	B.SetEdgeRow(buf[off:off+B.BufEdgeStride], 0, sx, sy, sz, ex, ey, ez, srcNodeRow, dstNodeRow, deltaR, dragActive, 0, uint32(len(labelBytes)))
-	off += B.BufEdgeStride
-	copy(buf[off:off+len(labelBytes)], labelBytes)
-	off += len(labelBytes)
-
-	if off != size {
-		panic(fmt.Sprintf(
-			"BuildEdgeStreamFrame: packed %d bytes for edge %q but allocated %d — the section walk and the size formula disagree",
-			off, label, size))
+func WriteEdgeColumns(c *colstream.ColumnSet,
+	sx, sy, sz, ex, ey, ez float32,
+	srcNodeRow, dstNodeRow int32, deltaR float32, dragActive uint8, label string,
+) {
+	if c == nil {
+		return
 	}
+	c.SetF32(B.ColStreamEdgeSX, sx)
+	c.SetF32(B.ColStreamEdgeSY, sy)
+	c.SetF32(B.ColStreamEdgeSZ, sz)
+	c.SetF32(B.ColStreamEdgeEX, ex)
+	c.SetF32(B.ColStreamEdgeEY, ey)
+	c.SetF32(B.ColStreamEdgeEZ, ez)
+	c.SetI32(B.ColStreamEdgeSrcNodeRow, srcNodeRow)
+	c.SetI32(B.ColStreamEdgeDstNodeRow, dstNodeRow)
+	c.SetF32(B.ColStreamEdgeDeltaR, deltaR)
+	c.SetU8(B.ColStreamEdgeDragActive, dragActive)
+	c.SetBytes(B.ColStreamEdgeLabel, []byte(label))
+}
+
+func BuildEdgeStreamFrame(tick uint32, events []rowevent.RowEvent) []byte {
+	buf := make([]byte, B.BufEdgeStreamFrameHeaderSize)
+	binary.LittleEndian.PutUint32(buf[0:], tick)
 	return append(buf, BuildEventsSection(events)...)
 }

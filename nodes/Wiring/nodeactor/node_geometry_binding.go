@@ -14,6 +14,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/bead"
 	"github.com/dtauraso/wirefold/nodes/bead/outport"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/Buffer/colstream"
 )
 
 func (m *NodeGeometry) WireMessaging(
@@ -111,15 +112,16 @@ func (m *NodeGeometry) writeOutEdgeFrames(tick int64) {
 	m.outEdges.WriteFrames(tick, m.geom, &m.deltas)
 }
 
-func (m *NodeGeometry) WireInteriorStream(w io.Writer, row int32, buildFrame func(tick uint32, present []uint8, value []int32, ox, oy, oz []float32, events []rowevent.RowEvent) []byte) *interior.Emitter {
+func (m *NodeGeometry) WireInteriorStream(w io.Writer, row int32, buildFrame func(tick uint32, events []rowevent.RowEvent) []byte, cols *colstream.ColumnSet) *interior.Emitter {
 	stream := interior.NewInteriorStream(w, buildFrame, row, interior.SlotsPerNode)
+	stream.SetColumns(cols)
 	mailbox := interior.NewMailbox(row)
 	m.interior.SetInteriorStream(stream, mailbox)
 	return interior.NewEmitter(mailbox, row)
 }
 
 func (m *NodeGeometry) writeInteriorFrames() {
-	m.interior.WriteFrames()
+	m.interior.WriteFrames(m.geom)
 }
 
 func (m *NodeGeometry) WireBeadStream(w io.Writer, row int32, buildBeadFrame bead.BeadFrameBuilder) {

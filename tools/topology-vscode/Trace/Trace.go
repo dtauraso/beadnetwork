@@ -37,18 +37,3 @@ func (t *Trace) Breadcrumb(label, node, port, value string) {
 	b = append(b, '\n')
 	_, _ = t.sink.Write(b)
 }
-
-func (t *Trace) NodeBead(nodeID string, row, col int, present bool, value int, x, y, z float64) {
-	if t == nil {
-		return
-	}
-	ev := Event{Kind: KindNodeBead, Node: nodeID, Row: row, Col: col, Present: present, Value: value, X: x, Y: y, Z: z}
-	if t.sink != nil {
-		if b, err := marshalNodeBead(ev); err == nil {
-			_, _ = t.sink.Write(append(b, '\n'))
-		}
-	}
-	if t.onEvent != nil {
-		t.onEvent(ev)
-	}
-}

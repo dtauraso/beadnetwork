@@ -66,8 +66,8 @@ export function makeDemuxFactory(hooks: {
   appendLine: (line: string) => void;
   reportError: (msg: string) => void;
 }): (paths: ProbePaths | undefined, probeTrace: boolean, edgeCount: number, nodeCount: number, gen: number) => StreamDemux {
-  return (paths, probeTrace, edgeCount, nodeCount, gen) =>
-    new StreamDemux({
+  return (paths, probeTrace, edgeCount, nodeCount, gen) => {
+    const demux = new StreamDemux({
       paths,
       probeTrace,
       edgeCount,
@@ -77,6 +77,10 @@ export function makeDemuxFactory(hooks: {
       onLine: (line) => hooks.appendLine(line),
       onError: (msg) => hooks.reportError(msg),
     });
+
+    demux.seedOwnerCounts(nodeCount, edgeCount);
+    return demux;
+  };
 }
 
 export interface ExitHandlerHooks {

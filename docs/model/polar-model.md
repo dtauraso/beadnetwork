@@ -154,7 +154,7 @@ and none is a source of truth.
   it belongs to a chain a NODE lays toward a neighbour whose position it caches, and there is
   no such cache. Beads are placed by the EDGE they travel, on the segment that edge already holds, and the
   buffer streams the world position itself: no offset, no origin, nothing to sum
-  (`tools/topology-vscode/src/webview/three/scene/edges/edge-bead-blocks.ts`). Beads after the first
+  (`tools/topology-vscode/src/webview/three/scene/beads/ChainBeadInstances.tsx`). Beads after the first
   keep their existing chain-relative placement (index × `lattice.BeadStepR` along the same aim)
   — this model change is about the node's coordinate, the per-edge first-bead vector, and
   this one summation site, not the rest of the chain.

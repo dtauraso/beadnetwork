@@ -12,3 +12,5 @@ export function rowForNodeId(nodeId: number): number {
 }
 
 export const MAX_NODE_STREAMS = 256;
+
+export const MAX_COLUMN_STREAMS = 4096;

@@ -1,6 +1,7 @@
 package jsonpersist
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -50,11 +51,34 @@ func ReadModifyWriteJSON(path string, mutate func(map[string]any)) error {
 	return WriteJSONAtomic(path, m)
 }
 
+func RemoveIfPresent(path string) error {
+	err := os.Remove(path)
+	if os.IsNotExist(err) {
+		return nil
+	}
+	return err
+}
+
+func WriteJSONAtomicIfChanged(path string, v any) error {
+	out, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	if prev, err := os.ReadFile(path); err == nil && bytes.Equal(prev, out) {
+		return nil
+	}
+	return writeBytesAtomic(path, out)
+}
+
 func WriteJSONAtomic(path string, v any) error {
 	out, err := json.Marshal(v)
 	if err != nil {
 		return err
 	}
+	return writeBytesAtomic(path, out)
+}
+
+func writeBytesAtomic(path string, out []byte) error {
 	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
 		return err
 	}

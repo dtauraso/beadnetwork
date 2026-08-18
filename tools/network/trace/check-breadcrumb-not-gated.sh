@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: nodes/bead/*.go,nodes/Wiring/*.go | only stepAll's KindEdgeBead append may sit behind edgeBeadTraceEnabled; breadcrumbs always emit
+# PLACEMENT: nodes/bead/*.go,nodes/Wiring/*.go | only emitArrive's KindArrive append may sit behind StreamsActive; breadcrumbs always emit
 
 set -euo pipefail
 
@@ -9,13 +9,11 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 cd "$REPO_ROOT"
 
 source "$SCRIPT_DIR/lib/gate-audit-common.sh"
-source "$SCRIPT_DIR/lib/gate-edge-bead.sh"
 source "$SCRIPT_DIR/lib/gate-streams-active.sh"
 
 fail=0
 report=""
 
-check_edge_bead_trace_gate
 check_streams_active_gate
 
 if [ $fail -ne 0 ]; then

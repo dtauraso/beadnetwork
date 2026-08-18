@@ -7,23 +7,16 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
+	"github.com/dtauraso/wirefold/nodes/Wiring/nodefile"
 	"github.com/dtauraso/wirefold/nodes/Wiring/polarindex"
 )
-
-func nodeBaseFilePath(root, id string) string {
-	return filepath.Join(root, "nodes", id, "base.json")
-}
-
-func nodeRuleActiveFilePath(root, id string) string {
-	return filepath.Join(root, "nodes", id, "rule-active.json")
-}
 
 func nodeDirPath(root, id string) string {
 	return filepath.Join(root, "nodes", id)
 }
 
-func entityReadModifyWrite(path string, mutate func(map[string]any)) error {
-	return jsonpersist.ReadModifyWriteJSON(path, mutate)
+func nodeBaseDir(root, id string) string {
+	return nodefile.BaseDir(nodeDirPath(root, id))
 }
 
 func WriteNewNodeFiles(root, id, kind string, p polar.Polar, sc polarindex.SceneConstants) error {
@@ -32,128 +25,83 @@ func WriteNewNodeFiles(root, id, kind string, p polar.Polar, sc polarindex.Scene
 		return err
 	}
 	idx := polarindex.MeasureIndex(p, sc)
-	return entityReadModifyWrite(nodeBaseFilePath(root, id), func(m map[string]any) {
-		m["id"] = id
-		m["type"] = kind
-		m["indexPhi"] = idx.Phi
-		m["indexTheta"] = idx.Theta
-		m["indexR"] = idx.R
-	})
+	base := nodeBaseDir(root, id)
+	if err := jsonpersist.WriteJSONAtomic(filepath.Join(base, nodefile.FileType), kind); err != nil {
+		return err
+	}
+	for name, value := range map[string]int{
+		nodefile.FileIndexPhi:   idx.Phi,
+		nodefile.FileIndexTheta: idx.Theta,
+		nodefile.FileIndexR:     idx.R,
+	} {
+		if err := jsonpersist.WriteJSONAtomic(filepath.Join(base, name), value); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func WriteDragRule(root, id string, rule *PolarRulesPanel.DragRule) error {
-	return entityReadModifyWrite(nodeBaseFilePath(root, id), func(m map[string]any) {
-		if rule == nil {
-			delete(m, "drag")
-			return
-		}
-		drag := map[string]any{}
-		if rule.R != nil {
-			drag["r"] = *rule.R
-		}
-		if rule.Phi != nil {
-			drag["phi"] = *rule.Phi
-		}
-		if rule.MaxTheta != nil {
-			drag["maxTheta"] = *rule.MaxTheta
-		}
-		m["drag"] = drag
-	})
+	return nodefile.WriteDragRule(filepath.Join(nodeBaseDir(root, id), nodefile.DirDragRule), rule)
 }
 
-type ruleActiveFile struct {
-	Active     bool            `json:"active"`
-	KindActive *bool           `json:"kindActive,omitempty"`
-	SelfActive *bool           `json:"selfActive,omitempty"`
-	EdgeActive map[string]bool `json:"edgeActive,omitempty"`
+const (
+	FileDragActive = "drag.json"
+	FileKindActive = "kind.json"
+	FileSelfActive = "self.json"
+	DirEdgeActive  = "edges"
+)
+
+func ruleActiveFilePath(root, id, name string) string {
+	return filepath.Join(root, "nodes", id, "rule-active", name)
+}
+
+func edgeActiveFilePath(root, id, target string) string {
+	return filepath.Join(root, "nodes", id, "rule-active", DirEdgeActive, target+".json")
+}
+
+func readActive(path string) bool {
+	var v bool
+	if !jsonpersist.ReadJSONIfExists(path, &v) {
+		return true
+	}
+	return v
 }
 
 func WriteKindRuleActive(root, id string, active bool) error {
-	return jsonpersist.ReadModifyWriteJSON(nodeRuleActiveFilePath(root, id), func(m map[string]any) {
-		m["kindActive"] = active
-	})
-}
-
-func WriteEdgeRuleActive(root, id, target string, active bool) error {
-	return jsonpersist.ReadModifyWriteJSON(nodeRuleActiveFilePath(root, id), func(m map[string]any) {
-		edges, _ := m["edgeActive"].(map[string]any)
-		if edges == nil {
-			edges = map[string]any{}
-		}
-		edges[target] = active
-		m["edgeActive"] = edges
-	})
-}
-
-func LoadEdgeRuleActive(root, id, target string) bool {
-	var f ruleActiveFile
-	if !jsonpersist.ReadJSONIfExists(nodeRuleActiveFilePath(root, id), &f) {
-		return true
-	}
-	active, stored := f.EdgeActive[target]
-	return !stored || active
+	return jsonpersist.WriteJSONAtomic(ruleActiveFilePath(root, id, FileKindActive), active)
 }
 
 func LoadKindRuleActive(root, id string) bool {
-	var f ruleActiveFile
-	if !jsonpersist.ReadJSONIfExists(nodeRuleActiveFilePath(root, id), &f) {
-		return true
-	}
-	if f.KindActive == nil {
-		return true
-	}
-	return *f.KindActive
+	return readActive(ruleActiveFilePath(root, id, FileKindActive))
+}
+
+func WriteEdgeRuleActive(root, id, target string, active bool) error {
+	return jsonpersist.WriteJSONAtomic(edgeActiveFilePath(root, id, target), active)
+}
+
+func LoadEdgeRuleActive(root, id, target string) bool {
+	return readActive(edgeActiveFilePath(root, id, target))
 }
 
 func WriteSelfDragRule(root, id string, rule *PolarRulesPanel.DragRule) error {
-	return entityReadModifyWrite(nodeBaseFilePath(root, id), func(m map[string]any) {
-		if rule == nil {
-			delete(m, "selfDrag")
-			return
-		}
-		drag := map[string]any{}
-		if rule.R != nil {
-			drag["r"] = *rule.R
-		}
-		if rule.Phi != nil {
-			drag["phi"] = *rule.Phi
-		}
-		if rule.MaxTheta != nil {
-			drag["maxTheta"] = *rule.MaxTheta
-		}
-		m["selfDrag"] = drag
-	})
+	return nodefile.WriteDragRule(filepath.Join(nodeBaseDir(root, id), nodefile.DirSelfRule), rule)
 }
 
 func WriteSelfRuleActive(root, id string, active bool) error {
-	return jsonpersist.ReadModifyWriteJSON(nodeRuleActiveFilePath(root, id), func(m map[string]any) {
-		m["selfActive"] = active
-	})
+	return jsonpersist.WriteJSONAtomic(ruleActiveFilePath(root, id, FileSelfActive), active)
 }
 
 func LoadSelfRuleActive(root, id string) bool {
-	var f ruleActiveFile
-	if !jsonpersist.ReadJSONIfExists(nodeRuleActiveFilePath(root, id), &f) {
-		return true
-	}
-	if f.SelfActive == nil {
-		return true
-	}
-	return *f.SelfActive
+	return readActive(ruleActiveFilePath(root, id, FileSelfActive))
 }
 
 func WriteDragActive(root, id string, active bool) error {
-	return jsonpersist.ReadModifyWriteJSON(nodeRuleActiveFilePath(root, id), func(m map[string]any) {
-		m["active"] = active
-	})
+	return jsonpersist.WriteJSONAtomic(ruleActiveFilePath(root, id, FileDragActive), active)
 }
 
 func LoadDragActive(root, id string) bool {
-	var f ruleActiveFile
-	if !jsonpersist.ReadJSONIfExists(nodeRuleActiveFilePath(root, id), &f) {
-		return true
-	}
-	return f.Active
+	return readActive(ruleActiveFilePath(root, id, FileDragActive))
 }
 
 func RemoveNodeDir(root, id string) error {

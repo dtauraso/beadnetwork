@@ -40,8 +40,22 @@ def columns(path, struct):
         sys.exit(1)
     return out
 
+GENERATED_GO = "tools/topology-vscode/Buffer/buffer_layout_gen_singletons.go"
+try:
+    generated = open(GENERATED_GO, encoding="utf-8").read()
+except OSError:
+    print(f"check-buffer-column-has-writer: MISCONFIGURED — {GENERATED_GO} not found (renamed?); "
+          f"cannot tell which blocks still have rows", file=sys.stderr)
+    sys.exit(1)
+
+def has_row(struct):
+    block = struct.replace("bufLayout", "")
+    return f"func Set{block}Row(" in generated
+
 fail = False
 for schema_path, struct, adapter_path in PAIRS:
+    if not has_row(struct):
+        continue
     try:
         adapter = {w.lower() for w in re.findall(r"[A-Za-z0-9_]+",
                                                  open(adapter_path, encoding="utf-8").read())}

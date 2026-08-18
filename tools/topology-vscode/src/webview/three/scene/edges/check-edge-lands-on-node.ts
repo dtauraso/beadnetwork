@@ -1,19 +1,20 @@
-import { getNodeFrame } from "../nodes/node-frame-aggregate";
+import { columnF32 } from "../../../../../Buffer/column-values";
+import { nodeColumn, ownerCounts } from "../../../../../Buffer/column-owners";
+import {
+  COL_STREAM_NODE_POLE_ANCHOR_X, COL_STREAM_NODE_POLE_ANCHOR_Y, COL_STREAM_NODE_POLE_ANCHOR_Z,
+} from "../../../../../Buffer/column-streams-gen";
 import { getEdgeStreamAccessor } from "./edge-stream-blocks";
-import { readNodeCX, readNodeCY, readNodeCZ } from "../../../../../Buffer/buffer-layout";
+import { sceneSteps } from "../../../../../Scene/scene-frame";
 import { postLog } from "../../../log/post";
-
-const STEP = 8.96;
 
 const TOLERANCE = 0.25;
 
 const reported = new Set<number>();
 
 export function checkEdgeLandsOnNode(): void {
-  const decoded = getNodeFrame();
   const edges = getEdgeStreamAccessor();
-  if (!decoded || !edges) return;
-  const { nodeCount, nodeView } = decoded;
+  if (!edges) return;
+  const { nodes: nodeCount } = ownerCounts();
 
   for (let edgeRow = 0; edgeRow < edges.edgeCount; edgeRow++) {
     if (reported.has(edgeRow)) continue;
@@ -26,13 +27,15 @@ export function checkEdgeLandsOnNode(): void {
     const ez = seg[5] ?? 0;
     if (ex === 0 && ey === 0 && ez === 0) continue;
 
-    const cx = readNodeCX(nodeView, dst);
-    const cy = readNodeCY(nodeView, dst);
-    const cz = readNodeCZ(nodeView, dst);
+    const cx = columnF32(nodeColumn(dst, COL_STREAM_NODE_POLE_ANCHOR_X));
+    const cy = columnF32(nodeColumn(dst, COL_STREAM_NODE_POLE_ANCHOR_Y));
+    const cz = columnF32(nodeColumn(dst, COL_STREAM_NODE_POLE_ANCHOR_Z));
     if (cx === 0 && cy === 0 && cz === 0) continue;
 
     const gap = Math.hypot(ex - cx, ey - cy, ez - cz);
-    const steps = gap / STEP;
+    const step = sceneSteps().constantR;
+    if (!(step > 0)) continue;
+    const steps = gap / step;
     if (Math.abs(steps - Math.round(steps)) <= TOLERANCE) continue;
 
     reported.add(edgeRow);

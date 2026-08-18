@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import type * as THREE from "three";
-import { getEdgeBeads } from "./edges/edge-bead-blocks";
-import { getNodeFrame } from "./nodes/node-frame-aggregate";
+import { ownerCounts } from "../../../../Buffer/column-owners";
 import { INTERIOR_SLOTS_PER_NODE } from "../decode/buffer-decode-interior";
 
 import { ChainBeadInstances } from "./beads/ChainBeadInstances";
@@ -10,7 +9,6 @@ import { EdgeLines } from "./edges/EdgeLines";
 import { getEdgeStreamAccessor } from "./edges/edge-stream-blocks";
 import { TiltVectors } from "../nav/TiltVectors";
 import { NodeInstances } from "../../../../Node/Shape/NodeInstances";
-import { SelectionHighlight, HoverHighlight } from "../../../../Node/State/SelectionHighlight";
 import { RuleChannelLines } from "../../../../Scene/Vectors/RuleChannelLines";
 import { InteriorBeadInstances } from "./beads/InteriorBeadInstances";
 import { BufferCamera } from "./BufferCamera";
@@ -39,17 +37,14 @@ export function BufferScene({ cameraRef }: {
   useFrame(() => {
     const grow: { count: number; cap: number; set: (n: number) => void }[] = [];
 
-    const { count: chainBeadCount } = getEdgeBeads();
-    grow.push({ count: chainBeadCount, cap: chainBeadCap, set: setChainBeadCap });
-
     const edges = getEdgeStreamAccessor();
     if (edges) {
       grow.push({ count: edges.edgeCount, cap: edgeCap, set: setEdgeCap });
     }
 
-    const decodedNode = getNodeFrame();
-    if (decodedNode) {
-      grow.push({ count: decodedNode.nodeCount, cap: nodeCap, set: setNodeCap });
+    const nodeTotal = ownerCounts().nodes;
+    if (nodeTotal > 0) {
+      grow.push({ count: nodeTotal, cap: nodeCap, set: setNodeCap });
     }
 
     for (const g of grow) {
@@ -62,15 +57,16 @@ export function BufferScene({ cameraRef }: {
       <BufferCamera cameraRef={cameraRef} />
       {}
       <EdgeLines capacity={edgeCap} />
-      <ChainBeadInstances capacity={chainBeadCap} />
+      <ChainBeadInstances
+        capacity={chainBeadCap}
+        onCount={(n) => { if (n > chainBeadCap) setChainBeadCap(Math.ceil(n * 1.5)); }}
+      />
       <NodeInstances capacity={nodeCap} />
       {}
       {}
       <TiltVectors capacity={nodeCap * 3} receivedCapacity={nodeCap} />
       <InteriorBeadInstances capacity={nodeCap * INTERIOR_SLOTS_PER_NODE} />
-      <SelectionHighlight />
-      <HoverHighlight />
-      <RuleChannelLines capacity={(nodeCap * (nodeCap - 1)) / 2} />
+      <RuleChannelLines capacity={2 * nodeCap * (nodeCap - 1)} />
     </>
   );
 }

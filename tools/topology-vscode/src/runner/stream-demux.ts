@@ -4,6 +4,9 @@ import { splitJsonlLines } from "./framing";
 import { freshStreamState, type StreamParseState } from "./parse-state";
 import type { ProbePaths } from "./probe/probe-paths";
 import { LastFrameStore } from "./last-frame-store";
+import { ColumnStore } from "./column-store";
+import { BUF_BLOCK_TAG_COLUMN } from "../../Buffer/frame-tags";
+import { COL_STREAM_SCENE_NODE_COUNT, COL_STREAM_SCENE_EDGE_COUNT } from "../../Buffer/column-streams-gen";
 import {
   dispatchViewFrames,
   dispatchEdgeFrames,
@@ -32,13 +35,16 @@ export class StreamDemux extends LastFrameStore {
   private stream: StreamParseState;
 
   private probeFile: string | undefined;
-  private probeNodeFile: string | undefined;
-  private probeEdgeFile: string | undefined;
-  private probeInteriorFile: string | undefined;
+  private probeDir: string | undefined;
 
   readonly edgeCount: number;
 
   readonly nodeCount: number;
+
+  readonly columns = new ColumnStore();
+
+  private readonly onSnapshot: ((msg: HostToWebviewMsg & { type: "buffer-snapshot" }) => void) | undefined;
+  private readonly gen: number;
 
   private readonly frameCtx: FrameDispatchContext;
   private readonly onLine: (line: string) => void;
@@ -47,13 +53,13 @@ export class StreamDemux extends LastFrameStore {
     super();
     this.stream = freshStreamState(cfg.edgeCount, cfg.nodeCount);
     this.probeFile = cfg.paths?.probeFile;
-    this.probeNodeFile = cfg.paths?.probeNodeFile;
-    this.probeEdgeFile = cfg.paths?.probeEdgeFile;
-    this.probeInteriorFile = cfg.paths?.probeInteriorFile;
+    this.probeDir = cfg.paths?.probeDir;
     this.edgeCount = cfg.edgeCount;
     this.nodeCount = cfg.nodeCount;
     this.frameCtx = makeFrameDispatchContext(cfg.probeTrace, cfg.gen, cfg.onSnapshot, cfg.onError);
     this.onLine = cfg.onLine;
+    this.onSnapshot = cfg.onSnapshot;
+    this.gen = cfg.gen;
   }
 
   handleStdout(chunk: string) {
@@ -83,7 +89,7 @@ export class StreamDemux extends LastFrameStore {
       this.stream.edgeBufs[row] ?? Buffer.alloc(0),
       chunk,
       (rest) => { this.stream.edgeBufs[row] = rest; },
-      this.probeEdgeFile,
+      this.probeDir,
       (row, ab) => { this.lastEdgeFrames.set(row, ab); },
     );
   }
@@ -96,7 +102,7 @@ export class StreamDemux extends LastFrameStore {
       this.stream.nodeBufs[row] ?? Buffer.alloc(0),
       chunk,
       (rest) => { this.stream.nodeBufs[row] = rest; },
-      this.probeNodeFile,
+      this.probeDir,
       (row, ab) => { this.lastNodeFrames.set(row, ab); },
     );
   }
@@ -108,13 +114,33 @@ export class StreamDemux extends LastFrameStore {
       this.stream.beadBufs[row] ?? Buffer.alloc(0),
       chunk,
       (rest) => { this.stream.beadBufs[row] = rest; },
-      this.probeNodeFile,
+      this.probeDir,
       (row, ab) => { this.lastBeadFrames.set(row, ab); },
     );
   }
 
+  seedOwnerCounts(nodes: number, edges: number): void {
+    if (!this.onSnapshot) return;
+    for (const [col, value] of [[COL_STREAM_SCENE_NODE_COUNT, nodes], [COL_STREAM_SCENE_EDGE_COUNT, edges]] as const) {
+      const buf = Buffer.alloc(4);
+      buf.writeInt32LE(value, 0);
+      const ab = buf.buffer.slice(buf.byteOffset, buf.byteOffset + 4);
+      this.columns.seed(col, buf);
+      this.onSnapshot({ type: "buffer-snapshot", buffer: ab, tag: BUF_BLOCK_TAG_COLUMN, row: col, gen: this.gen });
+    }
+  }
+
+  handleColFd(col: number, chunk: Buffer) {
+    if (!this.columns.handle(col, chunk)) return;
+    const value = this.columns.get(col);
+    if (!value || !this.onSnapshot) return;
+
+    const ab = value.buffer.slice(value.byteOffset, value.byteOffset + value.byteLength) as ArrayBuffer;
+    this.onSnapshot({ type: "buffer-snapshot", buffer: ab, tag: BUF_BLOCK_TAG_COLUMN, row: col, gen: this.gen });
+  }
+
   handleInteriorFd(row: number, chunk: Buffer) {
-    handleInteriorFdImpl(this.frameCtx, this.stream, this.probeInteriorFile, row, chunk,
+    handleInteriorFdImpl(this.frameCtx, this.stream, this.probeDir, row, chunk,
       (row, ab) => { this.lastInteriorFrames.set(row, ab); });
   }
 }

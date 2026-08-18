@@ -96,13 +96,15 @@ var overlayAttrHandlers = map[string]func(msg inputcodec.StdinMsg, md *dispatch.
 		if fn, ok := OverlaysDropdown.OverlayToggles[msg.Flag]; ok {
 			fn(&md.UI.OV, tr)
 
+			if msg.Flag == "ruleChannels" {
+				md.Inboxes.BroadcastChannelVectorsOn(md.UI.OV.RuleChannelsVisible)
+			}
+
 			if scope, ok := OverlaysDropdown.OverlayFlagBreadcrumbScope[msg.Flag]; ok {
 				md.UI.EmitBreadcrumb(rowevent.RowEvent{Label: T.BreadcrumbPoleToggleGo, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1, Value: int32(boolU8(OverlaysDropdown.OverlayFlagValue[msg.Flag](&md.UI.OV))), Text: scope})
 			}
 
-			if kind, ok := OverlaysDropdown.OverlayFlagTraceKind[msg.Flag]; ok {
-				md.UI.EmitViewFrame([]rowevent.RowEvent{{Kind: kind, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1}})
-			}
+			md.UI.EmitViewFrame(nil)
 		}
 	},
 }

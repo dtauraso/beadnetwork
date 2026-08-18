@@ -13,6 +13,9 @@ func writeBufferLayoutTSRows(outPathA, outPathB string, schema BufLayoutSchema) 
 	if err := writeBufferLayoutTSRowsFile(outPathA, blocks[:split]); err != nil {
 		return err
 	}
+	if len(blocks[split:]) == 0 {
+		return removeIfPresent(outPathB)
+	}
 	return writeBufferLayoutTSRowsFile(outPathB, blocks[split:])
 }
 
