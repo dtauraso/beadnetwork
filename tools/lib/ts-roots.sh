@@ -13,4 +13,5 @@ TS_ROOTS=(
   "tools/topology-vscode/FitButton"
   "tools/topology-vscode/Node"
   "tools/topology-vscode/Scene"
+  "tools/topology-vscode/OverlaysDropdown"
 )

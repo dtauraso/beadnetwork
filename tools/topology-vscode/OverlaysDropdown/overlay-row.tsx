@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from "react";
 import { fireToggle, useToggleVal, type ToggleCfg } from "./overlay-toggle";
-import { popoverRowStyle } from "./overlay-chrome";
-import * as T from "../chrome-theme";
+import { popoverRowStyle } from "../src/webview/three/controls/pills/overlay-chrome";
+import * as T from "../src/webview/three/controls/chrome-theme";
 
 export function OverlayRow({ cfg, disabled, indent = 0 }: { cfg: ToggleCfg; disabled?: boolean; indent?: number }) {
   const val = useToggleVal(cfg);

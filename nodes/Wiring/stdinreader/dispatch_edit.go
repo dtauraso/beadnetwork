@@ -2,13 +2,13 @@ package stdinreader
 
 import (
 	"context"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/OverlaysDropdown"
 	"github.com/dtauraso/wirefold/tools/topology-vscode/SliderPanel"
 
 	"github.com/dtauraso/wirefold/nodes/rowevent"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
-	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
 	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
 )
 
@@ -84,7 +84,7 @@ var clockAttrHandlers = map[string]func(msg inputcodec.StdinMsg, md *dispatch.Mo
 
 var panelAttrHandlers = map[string]func(msg inputcodec.StdinMsg, md *dispatch.MoveDispatch){
 	"toggle": func(msg inputcodec.StdinMsg, md *dispatch.MoveDispatch) {
-		if fn, ok := viewstate.PanelToggles[msg.Flag]; ok {
+		if fn, ok := OverlaysDropdown.PanelToggles[msg.Flag]; ok {
 			fn(&md.UI.PN)
 		}
 	},
@@ -93,14 +93,14 @@ var panelAttrHandlers = map[string]func(msg inputcodec.StdinMsg, md *dispatch.Mo
 var overlayAttrHandlers = map[string]func(msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace){
 	"toggle": func(msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace) {
 
-		if fn, ok := viewstate.OverlayToggles[msg.Flag]; ok {
+		if fn, ok := OverlaysDropdown.OverlayToggles[msg.Flag]; ok {
 			fn(&md.UI.OV, tr)
 
-			if scope, ok := viewstate.OverlayFlagBreadcrumbScope[msg.Flag]; ok {
-				md.UI.EmitBreadcrumb(rowevent.RowEvent{Label: T.BreadcrumbPoleToggleGo, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1, Value: int32(boolU8(viewstate.OverlayFlagValue[msg.Flag](&md.UI.OV))), Text: scope})
+			if scope, ok := OverlaysDropdown.OverlayFlagBreadcrumbScope[msg.Flag]; ok {
+				md.UI.EmitBreadcrumb(rowevent.RowEvent{Label: T.BreadcrumbPoleToggleGo, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1, Value: int32(boolU8(OverlaysDropdown.OverlayFlagValue[msg.Flag](&md.UI.OV))), Text: scope})
 			}
 
-			if kind, ok := viewstate.OverlayFlagTraceKind[msg.Flag]; ok {
+			if kind, ok := OverlaysDropdown.OverlayFlagTraceKind[msg.Flag]; ok {
 				md.UI.EmitViewFrame([]rowevent.RowEvent{{Kind: kind, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1}})
 			}
 		}

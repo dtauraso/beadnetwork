@@ -1,13 +1,13 @@
 package dispatch
 
 import (
-	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
 	"github.com/dtauraso/wirefold/tools/topology-vscode/AngleDropdown"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/OverlaysDropdown"
 )
 
 func initMoveDispatchUIDefaults(md *MoveDispatch) {
-	md.UI.OV = viewstate.DefaultOverlayState()
-	md.UI.PN = viewstate.DefaultPanelState()
+	md.UI.OV = OverlaysDropdown.DefaultOverlayState()
+	md.UI.PN = OverlaysDropdown.DefaultPanelState()
 	md.UI.Speed = 1
 	md.UI.ClockDivisor = 1
 	md.UI.LatticePoints = AngleDropdown.DefaultLatticePoints

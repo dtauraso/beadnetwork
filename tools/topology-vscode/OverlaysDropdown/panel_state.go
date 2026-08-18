@@ -1,4 +1,4 @@
-package viewstate
+package OverlaysDropdown
 
 type PanelState struct {
 	OverlaysOpen bool

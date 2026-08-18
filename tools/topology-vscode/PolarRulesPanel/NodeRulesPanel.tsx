@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { postGoRecord } from "../src/webview/vscode-api";
 import { encodeNodeDragActiveToggle } from "../src/schema/input/input-encode";
 import { useNodeRuleRows, type NodeRuleRow } from "./node-rules";
-import { firePanelToggle, usePanelOpen } from "../src/webview/three/controls/pills/panel-toggle";
+import { firePanelToggle, usePanelOpen } from "../OverlaysDropdown/panel-toggle";
 import { NodeRuleSharedMenu } from "./NodeRuleSharedMenu";
 import { FreeNodeBlock, EdgeBlock, SpanningBlock } from "./NodeRuleBlocks";
 import { SelfBlock } from "./NodeSelfRuleBlock";

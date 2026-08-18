@@ -2,6 +2,7 @@ package viewstate
 
 import (
 	"fmt"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/OverlaysDropdown"
 	"math"
 	"os"
 
@@ -29,9 +30,9 @@ type UIState struct {
 
 	VP gesturefsm.ViewpointState
 
-	OV OverlayState
+	OV OverlaysDropdown.OverlayState
 
-	PN PanelState
+	PN OverlaysDropdown.PanelState
 
 	Gest gesturefsm.GestureState
 

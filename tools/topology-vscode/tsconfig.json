@@ -25,6 +25,7 @@
     "NodesDropdown/**/*.ts", "NodesDropdown/**/*.tsx",
     "FitButton/**/*.ts", "FitButton/**/*.tsx",
     "Node/**/*.ts", "Node/**/*.tsx",
-    "Scene/**/*.ts", "Scene/**/*.tsx"
+    "Scene/**/*.ts", "Scene/**/*.tsx",
+    "OverlaysDropdown/**/*.ts", "OverlaysDropdown/**/*.tsx"
   ]
 }

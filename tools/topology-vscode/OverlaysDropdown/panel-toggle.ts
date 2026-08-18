@@ -1,8 +1,8 @@
-import { postGoRecord } from "../../../vscode-api";
-import { encodePanelsToggle } from "../../../../schema/input/input-encode";
-import type { PanelFlag } from "../../../../messages";
-import { postLog } from "../../../log/post";
-import { usePanelFlags } from "../flags/panel-flags";
+import { postGoRecord } from "../src/webview/vscode-api";
+import { encodePanelsToggle } from "../src/schema/input/input-encode";
+import type { PanelFlag } from "../src/messages";
+import { postLog } from "../src/webview/log/post";
+import { usePanelFlags } from "../src/webview/three/controls/flags/panel-flags";
 
 export function firePanelToggle(flag: PanelFlag, wasOpen: boolean) {
   postLog("panel-toggle-click", { flag, wasOpen });

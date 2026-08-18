@@ -2,7 +2,7 @@
 // Source: OVERLAY_FLAG_NAMES in tools/topology-vscode/src/messages.ts.
 // Regenerate with: cd tools/topology-vscode && npm run gen:node-defs
 
-package viewstate
+package OverlaysDropdown
 
 import (
 	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"

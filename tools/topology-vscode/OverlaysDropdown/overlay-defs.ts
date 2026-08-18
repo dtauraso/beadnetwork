@@ -1,5 +1,5 @@
 import type { ToggleCfg } from "./overlay-toggle";
-import type { PanelFlag } from "../../../../messages";
+import type { PanelFlag } from "../src/messages";
 
 export const guidelinesCfg: ToggleCfg = {
   flag: "overlays",

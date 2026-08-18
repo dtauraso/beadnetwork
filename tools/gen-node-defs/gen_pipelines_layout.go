@@ -30,7 +30,7 @@ func generateOverlayGen(repoRoot string) {
 	if err != nil {
 		fatalf("parse overlay flags: %v", err)
 	}
-	viewstateDir := filepath.Join(repoRoot, "nodes", "Wiring", "viewstate")
+	viewstateDir := filepath.Join(repoRoot, "tools", "topology-vscode", "OverlaysDropdown")
 	overlayGenGoPath := filepath.Join(viewstateDir, "overlay_state.go")
 	overlayTablesGoPath := filepath.Join(viewstateDir, "overlay_tables_gen.go")
 	if err := overlaygen.WriteOverlayGen(overlayGenGoPath, overlayTablesGoPath, overlayFlags); err != nil {

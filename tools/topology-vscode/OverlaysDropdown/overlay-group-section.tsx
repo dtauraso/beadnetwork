@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from "react";
 import { fireToggle, toggleVal } from "./overlay-toggle";
-import { useOverlayFlags } from "../flags/overlay-flags";
+import { useOverlayFlags } from "../src/webview/three/controls/flags/overlay-flags";
 import { firePanelToggle, usePanelOpen } from "./panel-toggle";
 import { groupCfgs, type OverlayGroup } from "./overlay-defs";
 import { OverlayRow } from "./overlay-row";
@@ -9,8 +9,8 @@ import {
   DISCLOSURE_GLYPH_STYLE,
   CHROME_TEXT,
   REVEALED_LIST_STYLE,
-} from "./overlay-chrome";
-import * as T from "../chrome-theme";
+} from "../src/webview/three/controls/pills/overlay-chrome";
+import * as T from "../src/webview/three/controls/chrome-theme";
 
 export function OverlayGroupSection({
   group,
