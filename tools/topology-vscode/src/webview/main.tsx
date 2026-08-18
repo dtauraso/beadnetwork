@@ -86,11 +86,6 @@ window.addEventListener("message", (e) => {
       postLog("buf-snapshot", {
         byteLength: msg.buffer.byteLength, sinceLast: bufSnapCount, windowMs: now - bufSnapLogAt,
 
-        // Whether the column channels are arriving at THIS end. Go's end can be proved
-        // from outside by watching the pipes; the webview's cannot, so it reports the
-        // two reads the scene actually places geometry from: every node's polar index
-        // (with hasPos, since a missing one silently places the node at the origin) and
-        // every edge's start point.
         colsReceived: cols.received, colVersion: cols.version,
         colLowest: cols.lowest, colHighest: cols.highest,
         ownerNodes: counts.nodes, ownerEdges: counts.edges,
