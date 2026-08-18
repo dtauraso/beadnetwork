@@ -20,6 +20,7 @@
     "SliderPanel/**/*.ts", "SliderPanel/**/*.tsx",
     "Tabs/**/*.ts", "Tabs/**/*.tsx",
     "PolarRulesPanel/**/*.ts", "PolarRulesPanel/**/*.tsx",
-    "TiltPanel/**/*.ts", "TiltPanel/**/*.tsx"
+    "TiltPanel/**/*.ts", "TiltPanel/**/*.tsx",
+    "AngleDropdown/**/*.ts", "AngleDropdown/**/*.tsx"
   ]
 }
