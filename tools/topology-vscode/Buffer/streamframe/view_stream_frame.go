@@ -28,9 +28,9 @@ func BuildViewStreamFrame(tick uint32,
 			len(beadRingSurfacePoints)))
 	}
 	ringPointCount := len(ringSurfacePoints) / 3
-	ringSurfaceSize := ringPointCount * B.BufRingPointStride
+	ringSurfaceSize := ringPointCount * B.BufNodeRingPointStride
 	beadRingPointCount := len(beadRingSurfacePoints) / 3
-	beadRingSurfaceSize := beadRingPointCount * B.BufRingPointStride
+	beadRingSurfaceSize := beadRingPointCount * B.BufBeadRingPointStride
 
 	buf := make([]byte, B.BufViewFrameHeaderSize+B.BufCameraStride+B.BufOverlayStride+B.BufPanelStride+B.BufSceneStride+ringSurfaceSize+beadRingSurfaceSize)
 	binary.LittleEndian.PutUint32(buf[0:], tick)
@@ -46,14 +46,14 @@ func BuildViewStreamFrame(tick uint32,
 	off += B.BufSceneStride
 
 	for i := 0; i < ringPointCount; i++ {
-		rowOff := off + i*B.BufRingPointStride
-		B.SetRingPointRow(buf[rowOff:rowOff+B.BufRingPointStride], 0, ringSurfacePoints[i*3], ringSurfacePoints[i*3+1], ringSurfacePoints[i*3+2])
+		rowOff := off + i*B.BufNodeRingPointStride
+		B.SetNodeRingPointRow(buf[rowOff:rowOff+B.BufNodeRingPointStride], 0, ringSurfacePoints[i*3], ringSurfacePoints[i*3+1], ringSurfacePoints[i*3+2])
 	}
 	off += ringSurfaceSize
 
 	for i := 0; i < beadRingPointCount; i++ {
-		rowOff := off + i*B.BufRingPointStride
-		B.SetRingPointRow(buf[rowOff:rowOff+B.BufRingPointStride], 0, beadRingSurfacePoints[i*3], beadRingSurfacePoints[i*3+1], beadRingSurfacePoints[i*3+2])
+		rowOff := off + i*B.BufBeadRingPointStride
+		B.SetBeadRingPointRow(buf[rowOff:rowOff+B.BufBeadRingPointStride], 0, beadRingSurfacePoints[i*3], beadRingSurfacePoints[i*3+1], beadRingSurfacePoints[i*3+2])
 	}
 	off += beadRingSurfaceSize
 

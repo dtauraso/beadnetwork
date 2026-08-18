@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { getViewBlocks } from "../../src/webview/three/scene/view-blocks";
-import { readRingPointX, readRingPointY, readRingPointZ } from "../../Buffer/buffer-layout";
+import { readNodeRingPointX, readNodeRingPointY, readNodeRingPointZ } from "../../Buffer/buffer-layout";
 import {
   SHADING_PARAM_NODE_RING_SURFACE_NU,
   SHADING_PARAM_NODE_RING_SURFACE_NV,
@@ -21,9 +21,9 @@ export function getCanonicalRingSurfaceGeometry(): THREE.BufferGeometry | null {
 
   const positions = new Float32Array(count * 3);
   for (let k = 0; k < count; k++) {
-    positions[k * 3]     = readRingPointX(view, k);
-    positions[k * 3 + 1] = readRingPointY(view, k);
-    positions[k * 3 + 2] = readRingPointZ(view, k);
+    positions[k * 3]     = readNodeRingPointX(view, k);
+    positions[k * 3 + 1] = readNodeRingPointY(view, k);
+    positions[k * 3 + 2] = readNodeRingPointZ(view, k);
   }
 
   const indices = new Uint32Array(nu * nv * 6);
