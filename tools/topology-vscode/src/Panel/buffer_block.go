@@ -1,4 +1,6 @@
-package bufschema
+package Panel
+
+var _ = bufLayoutPanel{}
 
 type bufLayoutPanel struct {
 	Overlays uint8 `buf:"u8"`

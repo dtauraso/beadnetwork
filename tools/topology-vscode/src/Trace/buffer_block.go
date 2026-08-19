@@ -1,13 +1,19 @@
-package bufschema
+package Trace
+
+var _ = bufLayoutRecv{}
 
 type bufLayoutRecv struct {
 	NodeRow int32 `buf:"i32"`
 	Value   int32 `buf:"i32"`
 }
 
+var _ = bufLayoutFire{}
+
 type bufLayoutFire struct {
 	NodeRow int32 `buf:"i32"`
 }
+
+var _ = bufLayoutSend{}
 
 type bufLayoutSend struct {
 	NodeRow   int32   `buf:"i32"`
@@ -16,11 +22,15 @@ type bufLayoutSend struct {
 	BeadSteps float32 `buf:"f32"`
 }
 
+var _ = bufLayoutArrive{}
+
 type bufLayoutArrive struct {
 	NodeRow int32  `buf:"i32"`
 	Value   int32  `buf:"i32"`
 	Bead    uint32 `buf:"u32"`
 }
+
+var _ = bufLayoutBreadcrumb{}
 
 type bufLayoutBreadcrumb struct {
 	NodeRow       int32 `buf:"i32"`

@@ -1,4 +1,6 @@
-package bufschema
+package Overlay
+
+var _ = bufLayoutOverlay{}
 
 type bufLayoutOverlay struct {
 	SceneTori    uint8 `buf:"u8"`

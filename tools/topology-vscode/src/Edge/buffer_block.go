@@ -1,4 +1,6 @@
-package bufschema
+package Edge
+
+var _ = bufLayoutEdge{}
 
 type bufLayoutEdge struct {
 	SX float32 `buf:"f32"`

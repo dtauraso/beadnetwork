@@ -1,4 +1,6 @@
-package bufschema
+package Scene
+
+var _ = bufLayoutScene{}
 
 type bufLayoutScene struct {
 	CX     float32 `buf:"f32"`

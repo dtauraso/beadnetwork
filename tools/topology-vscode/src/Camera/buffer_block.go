@@ -1,4 +1,6 @@
-package bufschema
+package Camera
+
+var _ = bufLayoutCamera{}
 
 type bufLayoutCamera struct {
 	PX       float32 `buf:"f32"`

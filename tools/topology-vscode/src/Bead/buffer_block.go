@@ -1,4 +1,6 @@
-package bufschema
+package Bead
+
+var _ = bufLayoutEdgeBead{}
 
 type bufLayoutEdgeBead struct {
 	X float32 `buf:"f32"`

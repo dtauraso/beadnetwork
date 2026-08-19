@@ -1,14 +1,14 @@
 import * as THREE from "three";
-import { columnBytes } from "../../../../Buffer/column-values";
+import { columnBytes } from "../Buffer/column-values";
 import {
   COL_STREAM_BEAD_RING_POINT_X,
   COL_STREAM_BEAD_RING_POINT_Y,
   COL_STREAM_BEAD_RING_POINT_Z,
-} from "../../../../Buffer/column-streams-gen";
+} from "../Buffer/column-streams-gen";
 import {
   SHADING_PARAM_BEAD_RING_SURFACE_NU,
   SHADING_PARAM_BEAD_RING_SURFACE_NV,
-} from "../../../../Buffer/shading-params";
+} from "../Buffer/shading-params";
 
 let cachedGeometry: THREE.BufferGeometry | null = null;
 

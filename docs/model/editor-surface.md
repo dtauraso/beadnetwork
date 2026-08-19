@@ -60,12 +60,12 @@ when a bead has arrived. Go owns the clock.
   mesh + ring, keyed off `node.data.fill`/`node.data.stroke` from `NODE_DEFS`; no port
   geometry — a port is a load-time channel-binding ROLE, never drawn),
   transit and interior
-  beads (`tools/topology-vscode/src/webview/three/scene/beads/ChainBeadInstances.tsx`, `tools/topology-vscode/src/webview/three/scene/beads/InteriorBeadInstances.tsx` — there is no
+  beads (`tools/topology-vscode/src/Bead/ChainBeadInstances.tsx`, `tools/topology-vscode/src/webview/three/scene/beads/InteriorBeadInstances.tsx` — there is no
   per-edge drawn tube any more; the source node's own chain of placeholder beads is the
   edge's visual, `docs/model/entities.md`), the selection ring, its halo and the hover
   ring (placed with everything else drawn at a node's own frame, in
   `tools/topology-vscode/src/Node/Shape/node-instances-update.ts`; their shape lives in
-  `tools/topology-vscode/src/Node/Shape/node-highlight-shape.ts`), and the camera (`tools/topology-vscode/src/webview/three/scene/BufferCamera.tsx` maps the buffer
+  `tools/topology-vscode/src/Node/Shape/node-highlight-shape.ts`), and the camera (`tools/topology-vscode/src/Camera/BufferCamera.tsx` maps the buffer
   Camera row onto the three.js camera). Nothing in this tree owns traversal
   timing, positions, or geometry.
 - **Bridge surface — binary BOTH ways.** **Go → TS:** the binary content

@@ -38,7 +38,7 @@ OBSERVERS = {
     "tools/topology-vscode/src/webview/three/decode/decode-event-line.ts",
     "tools/topology-vscode/src/webview/three/decode/decode-event-node-geometry.ts",
     "tools/topology-vscode/src/webview/three/decode/decode-event-overlay.ts",
-    "tools/topology-vscode/src/webview/three/scene/edges/check-edge-lands-on-node.ts",
+    "tools/topology-vscode/src/Edge/check-edge-lands-on-node.ts",
 
     "tools/topology-vscode/src/webview/main.tsx",
 }

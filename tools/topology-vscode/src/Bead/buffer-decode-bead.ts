@@ -1,5 +1,5 @@
-import { BUF_BEAD_STREAM_FRAME_HEADER_SIZE } from "../../../Buffer/frame-tags";
-import { decodeTrailingEvents, type DecodedEvents } from "./buffer-decode-shared";
+import { BUF_BEAD_STREAM_FRAME_HEADER_SIZE } from "../Buffer/frame-tags";
+import { decodeTrailingEvents, type DecodedEvents } from "../webview/three/decode/buffer-decode-shared";
 
 export interface DecodedBeadStreamFrame {
   tick: number;

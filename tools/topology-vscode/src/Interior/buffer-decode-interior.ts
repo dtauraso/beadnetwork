@@ -1,6 +1,6 @@
-import { BUF_INTERIOR_STREAM_FRAME_HEADER_SIZE } from "../../../Buffer/frame-tags";
-import { decodeTrailingEvents, type DecodedEvents } from "./buffer-decode-shared";
-export { INTERIOR_SLOTS_PER_NODE } from "../../../Buffer/buffer-layout";
+import { BUF_INTERIOR_STREAM_FRAME_HEADER_SIZE } from "../Buffer/frame-tags";
+import { decodeTrailingEvents, type DecodedEvents } from "../webview/three/decode/buffer-decode-shared";
+export { INTERIOR_SLOTS_PER_NODE } from "../Buffer/buffer-layout";
 
 export interface DecodedInteriorStreamFrame {
   tick: number;

@@ -1,14 +1,14 @@
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { INTERIOR_SLOTS_PER_NODE } from "../../decode/buffer-decode-interior";
-import { interiorBeadStyleForValue } from "./bead-style";
-import { columnBytes } from "../../../../Buffer/column-values";
-import { nodeColumn, ownerCounts } from "../../../../Buffer/column-owners";
+import { INTERIOR_SLOTS_PER_NODE } from "./buffer-decode-interior";
+import { interiorBeadStyleForValue } from "../Bead/bead-style";
+import { columnBytes } from "../Buffer/column-values";
+import { nodeColumn, ownerCounts } from "../Buffer/column-owners";
 import {
   COL_STREAM_INTERIOR_PRESENT, COL_STREAM_INTERIOR_VALUE,
   COL_STREAM_INTERIOR_X, COL_STREAM_INTERIOR_Y, COL_STREAM_INTERIOR_Z,
-} from "../../../../Buffer/column-streams-gen";
+} from "../Buffer/column-streams-gen";
 
 function presentAt(node: number, slot: number): number {
   const b = columnBytes(nodeColumn(node, COL_STREAM_INTERIOR_PRESENT));

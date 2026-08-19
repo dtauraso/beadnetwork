@@ -1,6 +1,10 @@
-package bufschema
+package SceneTiltVectors
 
-type bufLayoutChannelVector struct {
+var _ = bufLayoutTiltArrow{}
+
+type bufLayoutTiltArrow struct {
+	Received uint8 `buf:"u8"`
+
 	ShaftM0  float32 `buf:"f32"`
 	ShaftM1  float32 `buf:"f32"`
 	ShaftM2  float32 `buf:"f32"`

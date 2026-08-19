@@ -2,17 +2,17 @@ import { useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import type * as THREE from "three";
 import { ownerCounts } from "../../../Buffer/column-owners";
-import { INTERIOR_SLOTS_PER_NODE } from "../decode/buffer-decode-interior";
+import { INTERIOR_SLOTS_PER_NODE } from "../../../Interior/buffer-decode-interior";
 
-import { ChainBeadInstances } from "./beads/ChainBeadInstances";
-import { EdgeLines } from "./edges/EdgeLines";
-import { getEdgeStreamAccessor } from "./edges/edge-stream-blocks";
+import { ChainBeadInstances } from "../../../Bead/ChainBeadInstances";
+import { EdgeLines } from "../../../Edge/EdgeLines";
+import { getEdgeStreamAccessor } from "../../../Edge/edge-stream-blocks";
 import { TiltVectors } from "../nav/TiltVectors";
 import { NodeInstances } from "../../../Node/Shape/NodeInstances";
 import { RuleChannelLines } from "../../../Scene/Vectors/RuleChannelLines";
 import { PanelOverlay } from "../../../PanelOverlay/PanelOverlay";
-import { InteriorBeadInstances } from "./beads/InteriorBeadInstances";
-import { BufferCamera } from "./BufferCamera";
+import { InteriorBeadInstances } from "../../../Interior/InteriorBeadInstances";
+import { BufferCamera } from "../../../Camera/BufferCamera";
 import { BufferLabelProjector } from "../../../Scene/Labels/BufferLabelProjector";
 
 export type { BufferLabelPos } from "./buffer-scene-shared";

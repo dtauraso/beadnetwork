@@ -1,11 +1,11 @@
-import { columnF32, columnI32, columnU8, hasColumn } from "../../../../Buffer/column-values";
-import { edgeColumn, ownerCounts } from "../../../../Buffer/column-owners";
+import { columnF32, columnI32, columnU8, hasColumn } from "../Buffer/column-values";
+import { edgeColumn, ownerCounts } from "../Buffer/column-owners";
 import {
   COL_STREAM_EDGE_SX, COL_STREAM_EDGE_SY, COL_STREAM_EDGE_SZ,
   COL_STREAM_EDGE_EX, COL_STREAM_EDGE_EY, COL_STREAM_EDGE_EZ,
   COL_STREAM_EDGE_SRC_NODE_ROW, COL_STREAM_EDGE_DST_NODE_ROW,
   COL_STREAM_EDGE_DELTA_R, COL_STREAM_EDGE_DRAG_ACTIVE,
-} from "../../../../Buffer/column-streams-gen";
+} from "../Buffer/column-streams-gen";
 
 export interface EdgeAccessor {
 

@@ -1,4 +1,6 @@
-package bufschema
+package Interior
+
+var _ = bufLayoutInterior{}
 
 type bufLayoutInterior struct {
 	Present uint8   `buf:"u8"`
