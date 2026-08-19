@@ -1,5 +1,4 @@
 import type { BufferLabelPos } from "../buffer-scene-shared";
-import { appliedPositions } from "./label-elements";
 import { postLog } from "../../../log/post";
 
 const REPORT_ABOVE_PX = 1.5;
@@ -9,8 +8,9 @@ let peak = 0;
 let frames = 0;
 let sequence = 0;
 
-export function probeLabelLag(wanted: BufferLabelPos[]): void {
-  const shown = appliedPositions();
+export function probeLabelLag(
+  wanted: BufferLabelPos[], shown: Map<number, { px: number; py: number }>,
+): void {
   if (shown.size === 0) return;
 
   let worst = 0;

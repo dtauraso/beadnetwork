@@ -9,7 +9,6 @@ import { Scene } from "./scene-content";
 import { BufferScene, BufferLabelProjector } from "./buffer-scene";
 import { ProceduralEnvProvider } from "./scene-env";
 import { NavGuides } from "../nav/NavGuides";
-import { useBufferLabelPositions } from "./labels/use-buffer-label-positions";
 import { BufferLabelOverlay } from "./labels/BufferLabelOverlay";
 
 function consumedByDraft(key: string): boolean {
@@ -17,9 +16,6 @@ function consumedByDraft(key: string): boolean {
 }
 
 export function ThreeView() {
-
-  const [bufferLabelPositions, onBufferPositions] = useBufferLabelPositions();
-
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const pickRequest = useRef<PickFn | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -84,13 +80,12 @@ export function ThreeView() {
           <ProceduralEnvProvider>
             <BufferScene cameraRef={cameraRef} />
           </ProceduralEnvProvider>
-          <BufferLabelProjector onPositions={onBufferPositions} />
+          <BufferLabelProjector />
         </Canvas>
       </div>
 
-      {}
-      {/* The projector emits nothing while labels are hidden, so there is nothing to gate. */}
-      <BufferLabelOverlay positions={bufferLabelPositions} />
+      {/* Just the layer. What is in it comes from the buffer, not from here. */}
+      <BufferLabelOverlay />
 
     </div>
   );

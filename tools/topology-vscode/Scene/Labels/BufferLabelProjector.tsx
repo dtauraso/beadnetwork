@@ -1,4 +1,3 @@
-import { useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { nodeLabel } from "../../src/webview/three/decode/buffer-decode-node";
@@ -9,28 +8,30 @@ import {
   COL_STREAM_NODE_LABEL_ANCHOR_X, COL_STREAM_NODE_LABEL_ANCHOR_Y, COL_STREAM_NODE_LABEL_ANCHOR_Z,
 } from "../../Buffer/column-streams-gen";
 import { overlayFlag } from "../../src/webview/three/controls/flags/overlay-flags";
+import { applyLabels } from "../../src/webview/three/scene/labels/label-elements";
 import type { BufferLabelPos } from "../../src/webview/three/scene/buffer-scene-shared";
 
 const _bufTopScratch = new THREE.Vector3();
 
-export function BufferLabelProjector({ onPositions }: {
-  onPositions: (positions: BufferLabelPos[]) => void;
-}) {
-  const { camera, size } = useThree();
-  const frameCountRef = useRef(0);
+export function BufferLabelProjector() {
+  const { camera, gl } = useThree();
 
   useFrame(() => {
-    frameCountRef.current++;
-    if (frameCountRef.current % 2 !== 0) return;
     if (overlayFlag("labelsGlobal")) {
-      onPositions([]);
+      applyLabels([]);
       return;
     }
     const { nodes: nodeCount } = ownerCounts();
     if (nodeCount <= 0) return;
+
+    const el = gl.domElement;
+    const size = {
+      width: Math.max(1, el.clientWidth),
+      height: Math.max(1, el.clientHeight),
+    };
+
     const positions: BufferLabelPos[] = [];
     for (let i = 0; i < nodeCount; i++) {
-
       _bufTopScratch.set(
         columnF32(nodeColumn(i, COL_STREAM_NODE_LABEL_ANCHOR_X)),
         columnF32(nodeColumn(i, COL_STREAM_NODE_LABEL_ANCHOR_Y)),
@@ -39,7 +40,7 @@ export function BufferLabelProjector({ onPositions }: {
       const topPx = ndcToPixel(_bufTopScratch.x, _bufTopScratch.y, size);
       positions.push({ row: i, label: nodeLabel(i), px: topPx.px, py: topPx.py });
     }
-    onPositions(positions);
+    applyLabels(positions);
   });
 
   return null;
