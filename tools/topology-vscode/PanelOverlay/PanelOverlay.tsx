@@ -82,8 +82,12 @@ export function PanelOverlay() {
       }
       const c = canvas.getContext("2d");
       if (c) {
+        // Clear the whole bitmap in its own pixels. Clearing through the scaled transform
+        // relies on the scale being right, and if it is not, the old frame survives and the
+        // next one stacks on top of it.
+        c.setTransform(1, 0, 0, 1, 0, 0);
+        c.clearRect(0, 0, canvas.width, canvas.height);
         c.setTransform(scaleX, 0, 0, scaleY, 0, 0);
-        c.clearRect(0, 0, vw, vh);
         drawSpeedPanel(c);
         drawTiltPanel(c);
         drawAnglePill(c);
@@ -92,8 +96,6 @@ export function PanelOverlay() {
         drawFitChip(c);
         drawTabStrip(c);
         drawRulesPanel(c);
-        // TEMPORARY: the four numbers the overlay's mapping depends on, drawn where a
-        // screenshot can read them. Remove once the panels sit still.
         c.setTransform(1, 0, 0, 1, 0, 0);
         c.fillStyle = "#f00";
         c.font = "16px monospace";
