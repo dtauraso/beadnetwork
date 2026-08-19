@@ -15,6 +15,8 @@ func (ui *UIState) writeOverlaysPillColumns(lay overlayspanel.Layout) {
 	c.SetF32(B.ColStreamOverlaysPillPillY, lay.Pill.Y)
 	c.SetF32(B.ColStreamOverlaysPillPillW, lay.Pill.W)
 	c.SetF32(B.ColStreamOverlaysPillPillH, lay.Pill.H)
+	c.SetF32(B.ColStreamOverlaysPillScrollY, lay.Scroll)
+	c.SetF32(B.ColStreamOverlaysPillScrollMaxY, lay.MaxScroll)
 	c.SetU8(B.ColStreamOverlaysPillOpen, boolU8(lay.Open))
 	c.SetU8(B.ColStreamOverlaysPillActive, boolU8(lay.Active))
 	c.SetF32(B.ColStreamOverlaysPillPopoverX, lay.Popover.X)

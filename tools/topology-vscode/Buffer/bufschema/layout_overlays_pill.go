@@ -1,6 +1,9 @@
 package bufschema
 
 type bufLayoutOverlaysPill struct {
+	ScrollY    float32 `buf:"f32"`
+	ScrollMaxY float32 `buf:"f32"`
+
 	PillX float32 `buf:"f32"`
 	PillY float32 `buf:"f32"`
 	PillW float32 `buf:"f32"`

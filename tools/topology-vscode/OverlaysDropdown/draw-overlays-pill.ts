@@ -19,6 +19,7 @@ import {
   COL_STREAM_OVERLAYS_PILL_ROW_COUNT_ON, COL_STREAM_OVERLAYS_PILL_ROW_COUNT_ALL,
   COL_STREAM_OVERLAYS_PILL_COUNT_X, COL_STREAM_OVERLAYS_PILL_COUNT_Y,
   COL_STREAM_OVERLAYS_PILL_COUNT_W, COL_STREAM_OVERLAYS_PILL_COUNT_H,
+  COL_STREAM_OVERLAYS_PILL_SCROLL_Y, COL_STREAM_OVERLAYS_PILL_SCROLL_MAX_Y,
 } from "../Buffer/column-streams-gen";
 
 const ROW_HEADING = 0;
@@ -38,6 +39,7 @@ export function overlaysPillKey(): string {
     columnF32(COL_STREAM_OVERLAYS_PILL_PILL_X), columnF32(COL_STREAM_OVERLAYS_PILL_PILL_Y),
     columnU8(COL_STREAM_OVERLAYS_PILL_OPEN), columnU8(COL_STREAM_OVERLAYS_PILL_ACTIVE),
     columnF32(COL_STREAM_OVERLAYS_PILL_POPOVER_H),
+    columnF32(COL_STREAM_OVERLAYS_PILL_SCROLL_Y),
     bytes(kinds), bytes(on),
   ].join(",");
 }
@@ -55,12 +57,43 @@ export function drawOverlaysPill(c: CanvasRenderingContext2D): void {
   drawPill(c, px, py, pw, ph, decodeAt(labelText, 0, labelText.length), open, active);
   if (!open) return;
 
-  drawPopoverBox(
-    c,
-    columnF32(COL_STREAM_OVERLAYS_PILL_POPOVER_X), columnF32(COL_STREAM_OVERLAYS_PILL_POPOVER_Y),
-    columnF32(COL_STREAM_OVERLAYS_PILL_POPOVER_W), columnF32(COL_STREAM_OVERLAYS_PILL_POPOVER_H),
-  );
+  const bx = columnF32(COL_STREAM_OVERLAYS_PILL_POPOVER_X);
+  const by = columnF32(COL_STREAM_OVERLAYS_PILL_POPOVER_Y);
+  const bw = columnF32(COL_STREAM_OVERLAYS_PILL_POPOVER_W);
+  const bh = columnF32(COL_STREAM_OVERLAYS_PILL_POPOVER_H);
+  drawPopoverBox(c, bx, by, bw, bh);
+
+  c.save();
+  roundRect(c, bx, by, bw, bh, T.RADIUS_PANEL);
+  c.clip();
   drawRows(c);
+  c.restore();
+
+  drawScrollHint(c, bx, by, bw, bh);
+}
+
+function drawScrollHint(
+  c: CanvasRenderingContext2D, bx: number, by: number, bw: number, bh: number,
+): void {
+  const scroll = columnF32(COL_STREAM_OVERLAYS_PILL_SCROLL_Y);
+  const max = columnF32(COL_STREAM_OVERLAYS_PILL_SCROLL_MAX_Y);
+  if (max <= 0) return;
+
+  const fade = 14;
+  if (scroll > 0.5) {
+    const g = c.createLinearGradient(0, by, 0, by + fade);
+    g.addColorStop(0, T.SURFACE);
+    g.addColorStop(1, "rgba(0,0,0,0)");
+    c.fillStyle = g;
+    c.fillRect(bx + 1, by + 1, bw - 2, fade);
+  }
+  if (scroll < max - 0.5) {
+    const g = c.createLinearGradient(0, by + bh - fade, 0, by + bh);
+    g.addColorStop(0, "rgba(0,0,0,0)");
+    g.addColorStop(1, T.SURFACE);
+    c.fillStyle = g;
+    c.fillRect(bx + 1, by + bh - fade - 1, bw - 2, fade);
+  }
 }
 
 function drawCheckbox(c: CanvasRenderingContext2D, x: number, y: number, on: boolean): void {

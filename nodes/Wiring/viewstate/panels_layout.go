@@ -33,7 +33,7 @@ var PillLabels = []string{angledropdown.Label, nodesdropdown.Label, overlayspane
 
 func (ui *UIState) PanelLayout() PanelLayout {
 	st := panelstack.New()
-	pills := panelstack.NewPillStack(float32(ui.ViewW), PillLabels)
+	pills := panelstack.NewPillStack(float32(ui.ViewW), float32(ui.ViewH), PillLabels)
 
 	nodes := make([]angledropdown.Node, len(ui.TiltRows))
 	for i, row := range ui.TiltRows {
@@ -55,7 +55,7 @@ func (ui *UIState) PanelLayout() PanelLayout {
 
 	angle := angledropdown.Build(pills, ui.AngleOpen, ui.LatticePoints, nodes)
 	nodesPill := nodesdropdown.Build(pills, ui.NodesOpen && ui.SceneEditable, ui.paletteKinds())
-	overlays := overlayspanel.Build(pills, &ui.OV, &ui.PN)
+	overlays := overlayspanel.Build(pills, &ui.OV, &ui.PN, ui.OverlaysScroll)
 
 	return PanelLayout{
 		Fit:      fit,

@@ -43,6 +43,9 @@ func HandleRawInputMsg(ctx context.Context, msg inputcodec.StdinMsg, slotReg inp
 			md.UI.EmitViewFrame(nil)
 		}
 	}
+	if msg.Event.Kind == "wheel" && panelTookWheel(*msg.Event, md) {
+		return
+	}
 	if msg.Event.Kind == "pointerdown" && panelTookPointerDown(ctx, *msg.Event, md, tr, speedSinks) {
 		return
 	}

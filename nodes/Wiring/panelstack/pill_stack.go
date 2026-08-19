@@ -22,18 +22,19 @@ const (
 
 type PillStack struct {
 	viewW float32
+	viewH float32
 	width float32
 	y     float32
 }
 
-func NewPillStack(viewW float32, labels []string) *PillStack {
+func NewPillStack(viewW, viewH float32, labels []string) *PillStack {
 	var w float32
 	for _, l := range labels {
 		if t := TextWidth(l, PillFontPx); t > w {
 			w = t
 		}
 	}
-	return &PillStack{viewW: viewW, width: w + 2*PillPadX + CaretW + 2, y: PillTop}
+	return &PillStack{viewW: viewW, viewH: viewH, width: w + 2*PillPadX + CaretW + 2, y: PillTop}
 }
 
 func (s *PillStack) Width() float32 { return s.width }
@@ -60,6 +61,39 @@ func (s *PillStack) AddPopover(contentH float32) (box Rect, contentX, contentY f
 	box = Rect{X: s.X(), Y: s.y, W: s.width, H: contentH + 2*PopoverPad}
 	s.y += box.H
 	return box, box.X + PopoverPad, box.Y + PopoverPad
+}
+
+const PopoverMaxViewFraction = 0.6
+
+func (s *PillStack) AddScrollingPopover(contentH, scroll float32) (box Rect, contentX, contentY, maxScroll float32) {
+	s.y += PopoverGap
+
+	full := contentH + 2*PopoverPad
+	visible := full
+	if s.viewH > 0 {
+		room := s.viewH - s.y - PopoverPad
+		if cap := s.viewH * PopoverMaxViewFraction; room > cap {
+			room = cap
+		}
+		if room > 0 && room < visible {
+			visible = room
+		}
+	}
+
+	maxScroll = full - visible
+	if maxScroll < 0 {
+		maxScroll = 0
+	}
+	if scroll > maxScroll {
+		scroll = maxScroll
+	}
+	if scroll < 0 {
+		scroll = 0
+	}
+
+	box = Rect{X: s.X(), Y: s.y, W: s.width, H: visible}
+	s.y += box.H
+	return box, box.X + PopoverPad, box.Y + PopoverPad - scroll, maxScroll
 }
 
 func (s *PillStack) EndGroup() { s.y += PillGap }
