@@ -86,7 +86,6 @@ type specEdge struct {
 	Target       string `json:"target"`
 	TargetHandle string `json:"targetHandle"`
 
-	// pole convention as a node's absolute index. See edge_delta.go: A + D = B.
 	DeltaIndexR     *int `json:"deltaIndexR,omitempty"`
 	DeltaIndexPhi   *int `json:"deltaIndexPhi,omitempty"`
 	DeltaIndexTheta *int `json:"deltaIndexTheta,omitempty"`

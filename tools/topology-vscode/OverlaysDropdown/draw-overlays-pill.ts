@@ -63,9 +63,6 @@ export function drawOverlaysPill(c: CanvasRenderingContext2D): void {
   const bh = columnF32(COL_STREAM_OVERLAYS_PILL_POPOVER_H);
   drawPopoverBox(c, bx, by, bw, bh);
 
-  // The rows are laid out in full, already shifted by the scroll, and the box decides how
-  // much of that is seen. Clipping is the whole of scrolling here: Go moved the contents,
-  // and this stops them being drawn where the box is not.
   c.save();
   roundRect(c, bx, by, bw, bh, T.RADIUS_PANEL);
   c.clip();

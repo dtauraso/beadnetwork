@@ -105,8 +105,6 @@ func RunStdinReader(ctx context.Context, r io.Reader, h Handlers) {
 			if !decoded {
 				continue
 			}
-			// The authoritative per-type doc is the MSG_TYPES_DOC block in this file's
-
 			// MSG_TYPES_START
 			switch msg.Type {
 			case "edit":
