@@ -14,6 +14,7 @@ import {
 } from "./draw-pointer-target";
 import { drawLabels, labelEpoch } from "../Scene/Labels/label-canvas";
 import { postGoRecord } from "../webview/vscode-api";
+import { postLog } from "../webview/log/post";
 import { encodeSceneViewport } from "../schema/input/input-encode-scene-tilt";
 
 const OVERLAY_SURFACE_H = 2048;
@@ -68,6 +69,16 @@ export function PanelOverlay() {
     if (vw !== lastSize.current.w || vh !== lastSize.current.h) {
       lastSize.current = { w: vw, h: vh };
       postGoRecord(encodeSceneViewport(vw, vh));
+      postLog("panel-overlay-size", {
+        clientCss: `${vw}x${vh}`,
+        target: `${targetW}x${targetH}`,
+        surface: `${bw}x${bh}`,
+        canvasNow: `${canvas.width}x${canvas.height}`,
+        ratioMeasured: ratio,
+        ratioRenderer: gl.getPixelRatio(),
+        devicePixelRatio: window.devicePixelRatio,
+        styleCss: `${el.style.width}x${el.style.height}`,
+      });
     }
 
     const key = `${vw}@${bw}x${bh}|${speedPanelKey()}|${tiltPanelKey()}|${anglePillKey()}|${nodesPillKey()}|${overlaysPillKey()}|${fitChipKey()}|${tabStripKey()}|${rulesPanelKey()}|${pointerTargetKey()}|${labelEpoch()}`;
