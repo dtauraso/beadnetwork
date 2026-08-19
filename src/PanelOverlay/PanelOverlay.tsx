@@ -13,6 +13,7 @@ import {
   drawPointerHighlight, drawPointerTip, pointerTargetCursor, pointerTargetKey,
 } from "./draw-pointer-target";
 import { drawLabels, labelEpoch } from "../Scene/Labels/label-canvas";
+import { drawScaleRuler } from "./draw-scale-ruler";
 import { postGoRecord } from "../webview/vscode-api";
 import { postLog } from "../webview/log/post";
 import { encodeSceneViewport } from "../schema/input/input-encode-scene-tilt";
@@ -130,7 +131,7 @@ export function PanelOverlay() {
       });
     }
 
-    const key = `${vw}@${bw}x${bh}|${speedPanelKey()}|${tiltPanelKey()}|${anglePillKey()}|${nodesPillKey()}|${overlaysPillKey()}|${fitChipKey()}|${tabStripKey()}|${rulesPanelKey()}|${pointerTargetKey()}|${labelEpoch()}`;
+    const key = `${vw}x${vh}@${bw}x${bh}|${speedPanelKey()}|${tiltPanelKey()}|${anglePillKey()}|${nodesPillKey()}|${overlaysPillKey()}|${fitChipKey()}|${tabStripKey()}|${rulesPanelKey()}|${pointerTargetKey()}|${labelEpoch()}`;
     if (key !== lastKey.current) {
       lastKey.current = key;
       if (canvas.width !== bw || canvas.height !== bh) {
@@ -153,6 +154,7 @@ export function PanelOverlay() {
         drawTabStrip(c);
         drawRulesPanel(c);
         drawPointerTip(c);
+        drawScaleRuler(c, vw, vh);
       }
       el.style.cursor = pointerTargetCursor();
       tex.needsUpdate = true;
