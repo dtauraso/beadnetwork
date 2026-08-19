@@ -32,7 +32,7 @@ const FitLabel = "⌂ fit"
 var PillLabels = []string{angledropdown.Label, nodesdropdown.Label, overlayspanel.Label}
 
 func (ui *UIState) PanelLayout() PanelLayout {
-	st := panelstack.New()
+	st := panelstack.New(float32(ui.ViewH))
 	pills := panelstack.NewPillStack(float32(ui.ViewW), float32(ui.ViewH), PillLabels)
 
 	nodes := make([]angledropdown.Node, len(ui.TiltRows))
@@ -50,7 +50,7 @@ func (ui *UIState) PanelLayout() PanelLayout {
 	tilt := tiltpanel.Build(st, ui.TiltRows, ui.TiltLabels)
 	rules := rulespanel.Build(
 		st, OverlaysDropdown.PanelOpen["nodeRules"](&ui.PN),
-		ui.RuleNodes, ui.RuleEdit, ui.RuleSharedRow,
+		ui.RuleNodes, ui.RuleEdit, ui.RuleSharedRow, ui.RulesScroll,
 	)
 
 	angle := angledropdown.Build(pills, ui.AngleOpen, ui.LatticePoints, nodes)

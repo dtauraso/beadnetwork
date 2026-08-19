@@ -65,21 +65,11 @@ func (s *PillStack) AddPopover(contentH float32) (box Rect, contentX, contentY f
 
 const PopoverMaxViewFraction = 0.6
 
-func (s *PillStack) AddScrollingPopover(contentH, scroll float32) (box Rect, contentX, contentY, maxScroll float32) {
-	s.y += PopoverGap
-
-	full := contentH + 2*PopoverPad
-	visible := full
-	if s.viewH > 0 {
-		room := s.viewH - s.y - PopoverPad
-		if cap := s.viewH * PopoverMaxViewFraction; room > cap {
-			room = cap
-		}
-		if room > 0 && room < visible {
-			visible = room
-		}
+func ClipToRoom(full, room, scroll float32) (visible, applied, maxScroll float32) {
+	visible = full
+	if room > 0 && room < visible {
+		visible = room
 	}
-
 	maxScroll = full - visible
 	if maxScroll < 0 {
 		maxScroll = 0
@@ -90,6 +80,25 @@ func (s *PillStack) AddScrollingPopover(contentH, scroll float32) (box Rect, con
 	if scroll < 0 {
 		scroll = 0
 	}
+	return visible, scroll, maxScroll
+}
+
+func RoomBelow(viewH, y, pad float32) float32 {
+	if viewH <= 0 {
+		return 0
+	}
+	room := viewH - y - pad
+	if cap := viewH * PopoverMaxViewFraction; room > cap {
+		room = cap
+	}
+	return room
+}
+
+func (s *PillStack) AddScrollingPopover(contentH, scroll float32) (box Rect, contentX, contentY, maxScroll float32) {
+	s.y += PopoverGap
+
+	full := contentH + 2*PopoverPad
+	visible, scroll, maxScroll := ClipToRoom(full, RoomBelow(s.viewH, s.y, PopoverPad), scroll)
 
 	box = Rect{X: s.X(), Y: s.y, W: s.width, H: visible}
 	s.y += box.H

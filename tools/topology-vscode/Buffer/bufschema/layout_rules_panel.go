@@ -1,6 +1,11 @@
 package bufschema
 
 type bufLayoutRulesPanel struct {
+	ClipY      float32 `buf:"f32"`
+	ClipH      float32 `buf:"f32"`
+	ScrollY    float32 `buf:"f32"`
+	ScrollMaxY float32 `buf:"f32"`
+
 	BoxX float32 `buf:"f32"`
 	BoxY float32 `buf:"f32"`
 	BoxW float32 `buf:"f32"`

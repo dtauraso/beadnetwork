@@ -103,6 +103,10 @@ type Layout struct {
 
 	Toggle Rect
 
+	Scroll    float32
+	MaxScroll float32
+	RowsClip  Rect
+
 	Rows []Row
 
 	Draft     string
@@ -137,7 +141,14 @@ type Edit struct {
 	Draft   string
 }
 
-func Build(st *panelstack.Stack, open bool, nodes []Node, edit Edit, sharedMenuRow int32) Layout {
+func shiftRow(r *Row, dy float32) {
+	r.Rect.Y += dy
+	r.CheckRect.Y += dy
+	r.ValueRect.Y += dy
+	r.SharedRect.Y += dy
+}
+
+func Build(st *panelstack.Stack, open bool, nodes []Node, edit Edit, sharedMenuRow int32, scroll float32) Layout {
 	toggleH := panelstack.LineHeight(HeadFontPx) + 4
 	top := st.Next()
 	lay := Layout{
@@ -159,8 +170,23 @@ func Build(st *panelstack.Stack, open bool, nodes []Node, edit Edit, sharedMenuR
 		}
 	}
 
+	headerH := PadY + toggleH
+	rowsTop := top + headerH
+	rowsFull := b.y - rowsTop + PadY
+
+	rowsVisible, scroll, maxScroll := panelstack.ClipToRoom(rowsFull, st.RoomBelow(rowsTop), scroll)
+	lay.Scroll = scroll
+	lay.MaxScroll = maxScroll
+	lay.RowsClip = Rect{X: OriginX, Y: rowsTop, W: Width, H: rowsVisible}
+
+	if scroll != 0 {
+		for i := range b.rows {
+			shiftRow(&b.rows[i], -scroll)
+		}
+	}
+
 	lay.Rows = b.rows
-	lay.Box = Rect{X: OriginX, Y: top, W: Width, H: b.y - top + PadY}
+	lay.Box = Rect{X: OriginX, Y: top, W: Width, H: headerH + rowsVisible}
 	st.Took(lay.Box.H)
 	if edit.Active {
 		lay.Draft = edit.Draft

@@ -1,6 +1,7 @@
 import { columnBytes, columnF32, columnU8 } from "../Buffer/column-values";
 import { panelFont, roundRect } from "../PanelOverlay/panel-box";
 import { drawPill, drawPopoverBox, drawHeadingText, ROW_PAD_X } from "../PanelOverlay/pill-chrome";
+import { drawScrollHint } from "../PanelOverlay/scroll-hint";
 import { readF32Run, readU32Run, readText, decodeAt } from "../PanelOverlay/panel-columns";
 import * as T from "../src/webview/three/controls/chrome-theme";
 import {
@@ -69,31 +70,12 @@ export function drawOverlaysPill(c: CanvasRenderingContext2D): void {
   drawRows(c);
   c.restore();
 
-  drawScrollHint(c, bx, by, bw, bh);
-}
-
-function drawScrollHint(
-  c: CanvasRenderingContext2D, bx: number, by: number, bw: number, bh: number,
-): void {
-  const scroll = columnF32(COL_STREAM_OVERLAYS_PILL_SCROLL_Y);
-  const max = columnF32(COL_STREAM_OVERLAYS_PILL_SCROLL_MAX_Y);
-  if (max <= 0) return;
-
-  const fade = 14;
-  if (scroll > 0.5) {
-    const g = c.createLinearGradient(0, by, 0, by + fade);
-    g.addColorStop(0, T.SURFACE);
-    g.addColorStop(1, "rgba(0,0,0,0)");
-    c.fillStyle = g;
-    c.fillRect(bx + 1, by + 1, bw - 2, fade);
-  }
-  if (scroll < max - 0.5) {
-    const g = c.createLinearGradient(0, by + bh - fade, 0, by + bh);
-    g.addColorStop(0, "rgba(0,0,0,0)");
-    g.addColorStop(1, T.SURFACE);
-    c.fillStyle = g;
-    c.fillRect(bx + 1, by + bh - fade - 1, bw - 2, fade);
-  }
+  drawScrollHint(
+    c, bx, by, bw, bh,
+    columnF32(COL_STREAM_OVERLAYS_PILL_SCROLL_Y),
+    columnF32(COL_STREAM_OVERLAYS_PILL_SCROLL_MAX_Y),
+    T.SURFACE, 14,
+  );
 }
 
 function drawCheckbox(c: CanvasRenderingContext2D, x: number, y: number, on: boolean): void {
