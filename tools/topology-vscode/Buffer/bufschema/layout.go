@@ -30,4 +30,5 @@ var _ = [...]any{
 	bufLayoutFitChip{},
 	bufLayoutTabStrip{},
 	bufLayoutRulesPanel{},
+	bufLayoutPointerTarget{},
 }

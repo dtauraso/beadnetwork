@@ -60,6 +60,7 @@ func (ui *UIState) EmitViewFrame(events []rowevent.RowEvent) {
 
 	ui.writeSceneColumns(sc)
 	ui.writePanelColumns()
+	ui.writePointerTargetColumns()
 	ui.writeOverlayColumns(dragNodeRow)
 	ui.writeCameraColumns()
 	pl := ui.PanelLayout()

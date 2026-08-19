@@ -8,7 +8,7 @@ import {
   COL_STREAM_NODE_LABEL_ANCHOR_X, COL_STREAM_NODE_LABEL_ANCHOR_Y, COL_STREAM_NODE_LABEL_ANCHOR_Z,
 } from "../../Buffer/column-streams-gen";
 import { overlayFlag } from "../../src/webview/three/controls/flags/overlay-flags";
-import { applyLabels } from "../../src/webview/three/scene/labels/label-elements";
+import { setLabelPositions } from "./label-canvas";
 import type { BufferLabelPos } from "../../src/webview/three/scene/buffer-scene-shared";
 
 const _bufTopScratch = new THREE.Vector3();
@@ -18,7 +18,7 @@ export function BufferLabelProjector() {
 
   useFrame(() => {
     if (overlayFlag("labelsGlobal")) {
-      applyLabels([]);
+      setLabelPositions([]);
       return;
     }
     const { nodes: nodeCount } = ownerCounts();
@@ -40,7 +40,7 @@ export function BufferLabelProjector() {
       const topPx = ndcToPixel(_bufTopScratch.x, _bufTopScratch.y, size);
       positions.push({ row: i, label: nodeLabel(i), px: topPx.px, py: topPx.py });
     }
-    applyLabels(positions);
+    setLabelPositions(positions);
   });
 
   return null;

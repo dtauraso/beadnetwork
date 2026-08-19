@@ -9,7 +9,6 @@ import { Scene } from "./scene-content";
 import { BufferScene, BufferLabelProjector } from "./buffer-scene";
 import { ProceduralEnvProvider } from "./scene-env";
 import { NavGuides } from "../nav/NavGuides";
-import { BufferLabelOverlay } from "./labels/BufferLabelOverlay";
 
 function consumedByDraft(key: string): boolean {
   return key.length === 1 || key === "Enter" || key === "Escape" || key === "Backspace";
@@ -83,10 +82,8 @@ export function ThreeView() {
           <BufferLabelProjector />
         </Canvas>
       </div>
-
-      {/* Just the layer. What is in it comes from the buffer, not from here. */}
-      <BufferLabelOverlay />
-
+      {/* Nothing outside the canvas. The labels were the last thing mounted here and are
+          drawn now, so the whole editor is one surface. */}
     </div>
   );
 }

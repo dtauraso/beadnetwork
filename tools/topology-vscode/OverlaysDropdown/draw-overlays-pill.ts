@@ -1,6 +1,6 @@
 import { columnBytes, columnF32, columnU8 } from "../Buffer/column-values";
 import { panelFont, roundRect } from "../PanelOverlay/panel-box";
-import { drawPill, drawPopoverBox, ROW_PAD_X } from "../PanelOverlay/pill-chrome";
+import { drawPill, drawPopoverBox, drawHeadingText, ROW_PAD_X } from "../PanelOverlay/pill-chrome";
 import { readF32Run, readU32Run, readText, decodeAt } from "../PanelOverlay/panel-columns";
 import * as T from "../src/webview/three/controls/chrome-theme";
 import {
@@ -120,8 +120,7 @@ function drawRows(c: CanvasRenderingContext2D): void {
       c.fillStyle = T.TEXT;
       c.font = panelFont(8);
       c.fillText(icon, left, mid);
-      c.font = panelFont(T.FONT_SIZE_HEADING);
-      c.fillText(text, left + GAP + 5, mid);
+      drawHeadingText(c, text, left + GAP + 5, mid);
 
       const n = countOn[i]!;
       c.fillStyle = n > 0 ? T.ACCENT : T.TEXT;

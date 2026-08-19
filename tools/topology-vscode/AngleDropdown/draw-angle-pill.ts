@@ -2,7 +2,7 @@ import { columnBytes, columnF32, columnI32, columnU8 } from "../Buffer/column-va
 import { nodeColumn } from "../Buffer/column-owners";
 import { COL_STREAM_NODE_TOP_TILT_VECTOR_IDX } from "../Buffer/column-streams-gen";
 import { panelFont, roundRect } from "../PanelOverlay/panel-box";
-import { drawPill, drawPopoverBox, ROW_PAD_X } from "../PanelOverlay/pill-chrome";
+import { drawPill, drawPopoverBox, drawHeadingText, ROW_PAD_X } from "../PanelOverlay/pill-chrome";
 import { readF32Run, readI32Run, readU32Run, readText, decodeAt } from "../PanelOverlay/panel-columns";
 import * as T from "../src/webview/three/controls/chrome-theme";
 import {
@@ -124,8 +124,7 @@ function drawGroups(c: CanvasRenderingContext2D): void {
     c.textAlign = "left";
     c.font = panelFont(8);
     c.fillText(openRun.getUint8(i) !== 0 ? "▼" : "▶", x[i]! + ROW_PAD_X, mid);
-    c.font = panelFont(T.FONT_SIZE_HEADING);
-    c.fillText(head.toUpperCase(), x[i]! + ROW_PAD_X + 13, mid);
+    drawHeadingText(c, head, x[i]! + ROW_PAD_X + 13, mid);
   }
 }
 

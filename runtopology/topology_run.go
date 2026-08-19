@@ -49,6 +49,7 @@ func RunTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 
 	md.Scenes.AnchorPath = topologyPath
 	md.Scenes.Quit = cancel
+	md.Scenes.Loaded = sceneTabSelected
 
 	moverWG := md.Start(ctx)
 

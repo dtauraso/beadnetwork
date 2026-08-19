@@ -37,6 +37,12 @@ func HandleRawInputMsg(ctx context.Context, msg inputcodec.StdinMsg, slotReg inp
 		placeNodeAt(md, msg.Event, tr)
 		return
 	}
+	if msg.Event.Kind == "pointermove" {
+		if t := panelPointerTarget(md, msg.Event.X, msg.Event.Y); t != md.UI.Pointer {
+			md.UI.Pointer = t
+			md.UI.EmitViewFrame(nil)
+		}
+	}
 	if msg.Event.Kind == "pointerdown" && panelTookPointerDown(ctx, *msg.Event, md, tr, speedSinks) {
 		return
 	}

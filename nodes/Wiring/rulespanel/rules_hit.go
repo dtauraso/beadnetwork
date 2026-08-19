@@ -26,11 +26,13 @@ type Hit struct {
 
 	NodeRow int32
 	EdgeRow int32
+
+	Rect Rect
 }
 
 func (l Layout) Hit(x, y float64) Hit {
 	if panelstack.HitRect(l.Toggle, x, y) {
-		return Hit{Kind: HitToggle}
+		return Hit{Kind: HitToggle, Rect: l.Toggle}
 	}
 	if !l.Open {
 		return Hit{}
@@ -38,19 +40,19 @@ func (l Layout) Hit(x, y float64) Hit {
 	if l.MenuOpen {
 		for _, m := range l.MenuRows {
 			if panelstack.HitRect(m.Rect, x, y) {
-				return Hit{Kind: HitMenuRow, NodeRow: m.NodeRow}
+				return Hit{Kind: HitMenuRow, NodeRow: m.NodeRow, Rect: m.Rect}
 			}
 		}
 	}
 	for _, r := range l.Rows {
 		if r.Check != CheckNone && panelstack.HitRect(r.CheckRect, x, y) {
-			return Hit{Kind: HitCheck, Check: r.Check, NodeRow: r.NodeRow, EdgeRow: r.EdgeRow}
+			return Hit{Kind: HitCheck, Check: r.Check, NodeRow: r.NodeRow, EdgeRow: r.EdgeRow, Rect: r.CheckRect}
 		}
 		if r.Kind == RowNodeHead && panelstack.HitRect(r.SharedRect, x, y) {
-			return Hit{Kind: HitShared, NodeRow: r.NodeRow}
+			return Hit{Kind: HitShared, NodeRow: r.NodeRow, Rect: r.SharedRect}
 		}
 		if r.Kind == RowLine && r.Value != ValNone && panelstack.HitRect(r.ValueRect, x, y) {
-			return Hit{Kind: HitValue, Value: r.Value, NodeRow: r.NodeRow, EdgeRow: r.EdgeRow}
+			return Hit{Kind: HitValue, Value: r.Value, NodeRow: r.NodeRow, EdgeRow: r.EdgeRow, Rect: r.ValueRect}
 		}
 	}
 	return Hit{}

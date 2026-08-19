@@ -107,6 +107,24 @@ func (ui *UIState) writeOverlayColumns(dragNodeRow int32) {
 	c.SetF32(B.ColStreamOverlaySpeed, float32(ui.Speed))
 }
 
+func (ui *UIState) writePointerTargetColumns() {
+	c := ui.singletonCols
+	if c == nil {
+		return
+	}
+	t := ui.Pointer
+	c.SetF32(B.ColStreamPointerTargetX, t.Rect.X)
+	c.SetF32(B.ColStreamPointerTargetY, t.Rect.Y)
+	c.SetF32(B.ColStreamPointerTargetW, t.Rect.W)
+	c.SetF32(B.ColStreamPointerTargetH, t.Rect.H)
+	c.SetU8(B.ColStreamPointerTargetKind, uint8(t.Kind))
+
+	tx, ty, _, _ := t.TipRect(float32(ui.ViewW))
+	c.SetF32(B.ColStreamPointerTargetTipX, tx)
+	c.SetF32(B.ColStreamPointerTargetTipY, ty)
+	c.SetBytes(B.ColStreamPointerTargetTipText, []byte(t.Tip))
+}
+
 func (ui *UIState) writePanelColumns() {
 	c := ui.singletonCols
 	if c == nil {

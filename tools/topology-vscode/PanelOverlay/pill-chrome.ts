@@ -30,14 +30,34 @@ export function drawPill(
   c.fillText(open ? "▲" : "▼", x + w - CARET_W / 2 - 3, y + h / 2);
 }
 
+export function drawHeadingText(
+  c: CanvasRenderingContext2D, text: string, x: number, y: number,
+): void {
+  c.font = panelFont(T.FONT_SIZE_HEADING);
+  c.letterSpacing = T.HEADING_TRACKING;
+  c.fillText(text.toUpperCase(), x, y);
+  c.letterSpacing = "0px";
+}
+
+const SHADOW_COLOR = "rgba(0,0,0,0.5)";
+const SHADOW_BLUR = 24;
+const SHADOW_DY = 8;
+
 export function drawPopoverBox(
   c: CanvasRenderingContext2D,
   x: number, y: number, w: number, h: number,
 ): void {
   if (w <= 0 || h <= 0) return;
   roundRect(c, x + 0.5, y + 0.5, w - 1, h - 1, T.RADIUS_PANEL);
+
+  c.save();
+  c.shadowColor = SHADOW_COLOR;
+  c.shadowBlur = SHADOW_BLUR;
+  c.shadowOffsetY = SHADOW_DY;
   c.fillStyle = T.SURFACE;
   c.fill();
+  c.restore();
+
   c.strokeStyle = T.BORDER;
   c.lineWidth = 1;
   c.stroke();

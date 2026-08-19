@@ -169,33 +169,35 @@ const (
 type Hit struct {
 	Kind    HitKind
 	NodeRow int32
+
+	Rect Rect
 }
 
 func (l Layout) Hit(x, y float64) Hit {
 	if panelstack.HitRect(l.Pill, x, y) {
-		return Hit{Kind: HitPill}
+		return Hit{Kind: HitPill, Rect: l.Pill}
 	}
 	if !l.Open {
 		return Hit{}
 	}
 	if l.Lattice.UpEnabled && panelstack.HitRect(l.Lattice.Up, x, y) {
-		return Hit{Kind: HitLatticeUp}
+		return Hit{Kind: HitLatticeUp, Rect: l.Lattice.Up}
 	}
 	if l.Lattice.DownEnabled && panelstack.HitRect(l.Lattice.Down, x, y) {
-		return Hit{Kind: HitLatticeDown}
+		return Hit{Kind: HitLatticeDown, Rect: l.Lattice.Down}
 	}
 	for _, g := range l.Groups {
 		if panelstack.HitRect(g.Head, x, y) {
-			return Hit{Kind: HitGroup, NodeRow: g.NodeRow}
+			return Hit{Kind: HitGroup, NodeRow: g.NodeRow, Rect: g.Head}
 		}
 		if !g.Open {
 			continue
 		}
 		if panelstack.HitRect(g.Phi.Up, x, y) {
-			return Hit{Kind: HitPhiUp, NodeRow: g.NodeRow}
+			return Hit{Kind: HitPhiUp, NodeRow: g.NodeRow, Rect: g.Phi.Up}
 		}
 		if panelstack.HitRect(g.Phi.Down, x, y) {
-			return Hit{Kind: HitPhiDown, NodeRow: g.NodeRow}
+			return Hit{Kind: HitPhiDown, NodeRow: g.NodeRow, Rect: g.Phi.Down}
 		}
 	}
 	return Hit{}

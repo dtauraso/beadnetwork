@@ -33,6 +33,7 @@ var movedToColumns = map[string]bool{
 	"RulesPanel":    true,
 	"TiltArrow":     true,
 	"ChannelVector": true,
+	"PointerTarget": true,
 }
 
 func hasRow(name string) bool { return !movedToColumns[name] }

@@ -126,18 +126,20 @@ const (
 type Hit struct {
 	Kind   HitKind
 	KindID uint8
+
+	Rect Rect
 }
 
 func (l Layout) Hit(x, y float64) Hit {
 	if panelstack.HitRect(l.Pill, x, y) {
-		return Hit{Kind: HitPill}
+		return Hit{Kind: HitPill, Rect: l.Pill}
 	}
 	if !l.Open {
 		return Hit{}
 	}
 	for _, r := range l.Rows {
 		if panelstack.HitRect(r.Head, x, y) {
-			return Hit{Kind: HitRow, KindID: r.KindID}
+			return Hit{Kind: HitRow, KindID: r.KindID, Rect: r.Head}
 		}
 	}
 	return Hit{}
