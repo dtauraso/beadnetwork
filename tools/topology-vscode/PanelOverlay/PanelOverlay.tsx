@@ -60,13 +60,20 @@ export function PanelOverlay() {
     const tex = texRef.current;
     if (!tex) return;
 
+    // The bitmap is sized from the element's client box alone, so it always has the
+    // viewport's aspect. The quad stretches the whole bitmap over the whole viewport, so any
+    // other aspect squashes everything to fit — which is what a collapsing editor looked
+    // like. Matching the aspect makes a panel too tall for the viewport run off the bottom
+    // instead, the way content in a scroll does.
+    //
+    // The drawing buffer is NOT used for this: it lags the element while a divider is being
+    // dragged, and a lagging aspect is the squash.
     const el = gl.domElement;
     const vw = Math.max(1, el.clientWidth);
     const vh = Math.max(1, el.clientHeight);
-    const bw = Math.max(1, el.width);
-    const bh = Math.max(1, el.height);
-    const scaleX = bw / vw;
-    const scaleY = bh / vh;
+    const ratio = Math.max(1, Math.min(3, gl.getPixelRatio()));
+    const bw = Math.max(1, Math.round(vw * ratio));
+    const bh = Math.max(1, Math.round(vh * ratio));
 
     if (vw !== lastSize.current.w || vh !== lastSize.current.h) {
       lastSize.current = { w: vw, h: vh };
@@ -82,12 +89,9 @@ export function PanelOverlay() {
       }
       const c = canvas.getContext("2d");
       if (c) {
-        // Clear the whole bitmap in its own pixels. Clearing through the scaled transform
-        // relies on the scale being right, and if it is not, the old frame survives and the
-        // next one stacks on top of it.
         c.setTransform(1, 0, 0, 1, 0, 0);
         c.clearRect(0, 0, canvas.width, canvas.height);
-        c.setTransform(scaleX, 0, 0, scaleY, 0, 0);
+        c.setTransform(ratio, 0, 0, ratio, 0, 0);
         drawSpeedPanel(c);
         drawTiltPanel(c);
         drawAnglePill(c);
