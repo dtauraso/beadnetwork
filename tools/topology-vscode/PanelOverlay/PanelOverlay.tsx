@@ -50,9 +50,6 @@ export function PanelOverlay() {
     const el = gl.domElement;
     const vw = Math.max(1, el.clientWidth);
     const vh = Math.max(1, el.clientHeight);
-    // The scale is the device pixel ratio and nothing else. It is never a ratio between two
-    // measured sizes, and never a separate x and y — two axes can disagree, one scalar
-    // cannot. That is what made a wrong size smear instead of clip.
     const ratio = Math.max(1, Math.min(3, gl.getPixelRatio()));
     const bw = Math.max(1, Math.round(vw * ratio));
     const bh = Math.max(1, Math.round(vh * ratio));
@@ -86,11 +83,6 @@ export function PanelOverlay() {
       tex.needsUpdate = true;
     }
 
-    // Blit the bitmap one device pixel to one device pixel, anchored top-left, by sampling
-    // only the part of it the render target covers. The quad no longer stretches the whole
-    // bitmap over the whole viewport, so a surface that disagrees with the viewport clips
-    // instead of scaling: panels keep their size and the bottom of the stack runs off the
-    // edge. A canvas that misreports its box can no longer smear anything.
     const targetW = Math.max(1, el.width);
     const targetH = Math.max(1, el.height);
     const uSpan = Math.min(1, targetW / canvas.width);
