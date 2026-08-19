@@ -5,7 +5,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/clock"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
 
-	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
+	T "github.com/dtauraso/wirefold/tools/topology-vscode/src/Trace"
 )
 
 func (a BuildArgs) Fire() func() {

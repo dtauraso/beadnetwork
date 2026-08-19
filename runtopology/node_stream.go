@@ -9,9 +9,9 @@ import (
 	W "github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/framegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/nodeframe"
-	B "github.com/dtauraso/wirefold/tools/topology-vscode/Buffer"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/Buffer/colstream"
-	SF "github.com/dtauraso/wirefold/tools/topology-vscode/Buffer/streamframe"
+	B "github.com/dtauraso/wirefold/tools/topology-vscode/src/Buffer"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/src/Buffer/colstream"
+	SF "github.com/dtauraso/wirefold/tools/topology-vscode/src/Buffer/streamframe"
 )
 
 func wireNodeStreams(streamFDs SF.StreamFDs, md *W.MoveDispatch) {

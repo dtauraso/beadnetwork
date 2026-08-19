@@ -1,7 +1,7 @@
 ---
 paths:
-  - "tools/topology-vscode/Buffer/**/*.go"
-  - "tools/topology-vscode/Buffer/buffer-layout.ts"
+  - "tools/topology-vscode/src/Buffer/**/*.go"
+  - "tools/topology-vscode/src/Buffer/buffer-layout.ts"
   - "tools/topology-vscode/src/webview/three/**/*.tsx"
   - "tools/topology-vscode/src/webview/three/**/*.ts"
 ---
@@ -9,8 +9,8 @@ paths:
 # Content buffer schema — adding or changing a column
 
 **A block's columns live in the directory of the thing they describe.** The rules panel's
-columns are `tools/topology-vscode/PolarRulesPanel/buffer_block.go`, the overlays popover's are
-`tools/topology-vscode/OverlaysDropdown/buffer_block.go`, and so on — a column is part of its concern, not part of
+columns are `tools/topology-vscode/src/PolarRulesPanel/buffer_block.go`, the overlays popover's are
+`tools/topology-vscode/src/OverlaysDropdown/buffer_block.go`, and so on — a column is part of its concern, not part of
 a schema directory. What remains in `Buffer/bufschema/` is what has no owner elsewhere: the
 model blocks (Node, Edge, Camera, Scene…) and the trace events.
 
@@ -20,7 +20,7 @@ description of the layout, and this generator exists because two descriptions of
 format is exactly how the Go and TS halves drift apart.
 
 **Two things stay central, and only two.** `BufLayoutVersion` and `BufInteriorSlotsPerNode`
-in `tools/topology-vscode/Buffer/bufschema/layout.go`, and `bufBlockOrder` in
+in `tools/topology-vscode/src/Buffer/bufschema/layout.go`, and `bufBlockOrder` in
 `tools/gen-node-defs/buflayout/buf_layout_parse.go` — that order IS the wire format, so it
 belongs in one place. Where a block's file sits is not part of the wire format.
 

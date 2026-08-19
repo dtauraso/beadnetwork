@@ -10,7 +10,7 @@ import {
 import { appendWebviewLog } from "./webview-log";
 import { PROBE_DIR, PROBE_FILES } from "../probe-files";
 import { resolveRepoRoot } from "../repo-root";
-import { BUF_BLOCK_TAG_COLUMN, BUF_BLOCK_TAG_VIEW, BUF_BLOCK_TAG_EDGE_STREAM, BUF_BLOCK_TAG_NODE_STREAM, BUF_BLOCK_TAG_INTERIOR_STREAM, BUF_BLOCK_TAG_BEAD_STREAM } from "../../Buffer/frame-tags";
+import { BUF_BLOCK_TAG_COLUMN, BUF_BLOCK_TAG_VIEW, BUF_BLOCK_TAG_EDGE_STREAM, BUF_BLOCK_TAG_NODE_STREAM, BUF_BLOCK_TAG_INTERIOR_STREAM, BUF_BLOCK_TAG_BEAD_STREAM } from "../Buffer/frame-tags";
 
 export type MessageCtx = {
   logUri: vscode.Uri | undefined;

@@ -8,13 +8,13 @@ import { parseHostToWebview } from "../messages";
 import { ErrorBoundary } from "./log/ErrorBoundary";
 import { CrashListeners } from "./log/CrashListeners";
 import { setLatestViewFrame, setLatestEdgeStreamFrame, setLatestNodeStreamFrame, setLatestInteriorStreamFrame, setLatestBeadStreamFrame } from "./snapshot-buffer";
-import { BUF_BLOCK_TAG_VIEW, BUF_BLOCK_TAG_EDGE_STREAM, BUF_BLOCK_TAG_NODE_STREAM, BUF_BLOCK_TAG_INTERIOR_STREAM, BUF_BLOCK_TAG_BEAD_STREAM, BUF_BLOCK_TAG_COLUMN } from "../../Buffer/frame-tags";
-import { setColumnValue, columnDiagnostics, columnI32, columnF32, columnU8 } from "../../Buffer/column-values";
-import { nodeColumn, edgeColumn, ownerCounts } from "../../Buffer/column-owners";
+import { BUF_BLOCK_TAG_VIEW, BUF_BLOCK_TAG_EDGE_STREAM, BUF_BLOCK_TAG_NODE_STREAM, BUF_BLOCK_TAG_INTERIOR_STREAM, BUF_BLOCK_TAG_BEAD_STREAM, BUF_BLOCK_TAG_COLUMN } from "../Buffer/frame-tags";
+import { setColumnValue, columnDiagnostics, columnI32, columnF32, columnU8 } from "../Buffer/column-values";
+import { nodeColumn, edgeColumn, ownerCounts } from "../Buffer/column-owners";
 import {
   COL_STREAM_NODE_INDEX_R, COL_STREAM_NODE_INDEX_PHI, COL_STREAM_NODE_INDEX_THETA,
   COL_STREAM_NODE_HAS_POS, COL_STREAM_EDGE_SX,
-} from "../../Buffer/column-streams-gen";
+} from "../Buffer/column-streams-gen";
 
 function Root() {
   return <ThreeView />;

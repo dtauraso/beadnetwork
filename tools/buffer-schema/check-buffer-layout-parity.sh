@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: tools/topology-vscode/Buffer/buffer_layout_gen.go,tools/topology-vscode/Buffer/buffer-layout.ts | BUF_LAYOUT_FINGERPRINT must match between the two generated layout files
+# PLACEMENT: tools/topology-vscode/src/Buffer/buffer_layout_gen.go,tools/topology-vscode/src/Buffer/buffer-layout.ts | BUF_LAYOUT_FINGERPRINT must match between the two generated layout files
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
-GO_FILE="$REPO_ROOT/tools/topology-vscode/Buffer/buffer_layout_gen.go"
-TS_FILE="$REPO_ROOT/tools/topology-vscode/Buffer/buffer-layout.ts"
+GO_FILE="$REPO_ROOT/tools/topology-vscode/src/Buffer/buffer_layout_gen.go"
+TS_FILE="$REPO_ROOT/tools/topology-vscode/src/Buffer/buffer-layout.ts"
 
 for f in "$GO_FILE" "$TS_FILE"; do
   if [[ ! -f "$f" ]]; then
@@ -36,7 +36,7 @@ assert_nonempty() {
 FP_GO=$(fingerprint_go)
 FP_TS=$(fingerprint_ts)
 
-assert_nonempty "$FP_GO" "tools/topology-vscode/Buffer/buffer_layout_gen.go"
+assert_nonempty "$FP_GO" "tools/topology-vscode/src/Buffer/buffer_layout_gen.go"
 assert_nonempty "$FP_TS" "buffer-layout.ts"
 
 if [[ "$FP_GO" != "$FP_TS" ]]; then

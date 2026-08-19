@@ -9,7 +9,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodedrag"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/TiltPanel"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/src/TiltPanel"
 )
 
 func boolU8(b bool) uint8 {

@@ -5,7 +5,7 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/bead"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
-	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
+	T "github.com/dtauraso/wirefold/tools/topology-vscode/src/Trace"
 )
 
 type In struct {

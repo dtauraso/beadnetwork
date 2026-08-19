@@ -6,8 +6,8 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/polarindex"
 	"github.com/dtauraso/wirefold/nodes/clock"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/SliderPanel"
-	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/src/SliderPanel"
+	T "github.com/dtauraso/wirefold/tools/topology-vscode/src/Trace"
 )
 
 func NewMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[string]inputcodec.EdgeEndpoints, tr *T.Trace, nodeOrder, edgeOrder []string, clk clock.Clock, speedSinks *SliderPanel.Sinks, rowCount int, constants polarindex.SceneConstants) (*MoveDispatch, error) {

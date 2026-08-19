@@ -3,7 +3,7 @@ package viewstate
 import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodesdropdown"
 	"github.com/dtauraso/wirefold/nodes/Wiring/panelstack"
-	B "github.com/dtauraso/wirefold/tools/topology-vscode/Buffer"
+	B "github.com/dtauraso/wirefold/tools/topology-vscode/src/Buffer"
 )
 
 const refusedNotice = "edit refused — see the output channel"

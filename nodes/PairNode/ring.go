@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/dtauraso/wirefold/nodes/PairNode/tiltring"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/TiltPanel"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/src/TiltPanel"
 )
 
 var defaultRing = tiltring.NewRing(TiltPanel.FullTurnPhiIdx)

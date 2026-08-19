@@ -50,7 +50,7 @@ choice — not a tuning knob:**
   which is why it is a per-scene choice rather than a global rule.
 
 **The drawn ring axis and the navigation pole are two different streamed values, on
-purpose.** `PoleTheta`/`PolePhi` (`tools/topology-vscode/Buffer/bufschema/layout.go`) is a node's own INWARD pole — its own
+purpose.** `PoleTheta`/`PolePhi` (`tools/topology-vscode/src/Buffer/bufschema/layout.go`) is a node's own INWARD pole — its own
 scene-polar direction reversed, pointing back at the scene centre — and is what navigation
 reads (`buffer-nav.ts`'s `NavNode.pole`). `RingAxisTheta`/`RingAxisPhi` is the axis the
 node's RING is actually drawn on, defaulting to the torus's own +Z normal (unrotated) and

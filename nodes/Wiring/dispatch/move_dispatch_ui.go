@@ -1,8 +1,8 @@
 package dispatch
 
 import (
-	"github.com/dtauraso/wirefold/tools/topology-vscode/AngleDropdown"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/OverlaysDropdown"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/src/AngleDropdown"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/src/OverlaysDropdown"
 )
 
 func initMoveDispatchUIDefaults(md *MoveDispatch) {

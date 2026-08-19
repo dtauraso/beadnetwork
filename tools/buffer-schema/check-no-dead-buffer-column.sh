@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: tools/topology-vscode/**/buffer_block.go,tools/topology-vscode/Buffer/bufschema/layout*.go,tools/topology-vscode/Buffer/buffer-layout*.ts | every buffer column needs a non-test production consumer; delete an unused one rather than allowlisting it
+# PLACEMENT: tools/topology-vscode/**/buffer_block.go,tools/topology-vscode/src/Buffer/bufschema/layout*.go,tools/topology-vscode/src/Buffer/buffer-layout*.ts | every buffer column needs a non-test production consumer; delete an unused one rather than allowlisting it
 
 set -euo pipefail
 
@@ -9,15 +9,15 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 cd "$REPO_ROOT"
 
 LAYOUT_FILES=()
-for LAYOUT in "tools/topology-vscode/Buffer/buffer-layout.ts" \
-              tools/topology-vscode/Buffer/buffer-layout-rows*-gen.ts \
-              "tools/topology-vscode/Buffer/buffer-layout-singletons-gen.ts"; do
+for LAYOUT in "tools/topology-vscode/src/Buffer/buffer-layout.ts" \
+              tools/topology-vscode/src/Buffer/buffer-layout-rows*-gen.ts \
+              "tools/topology-vscode/src/Buffer/buffer-layout-singletons-gen.ts"; do
   [[ -f "$LAYOUT" ]] && LAYOUT_FILES+=("$LAYOUT")
 done
 source "$REPO_ROOT/tools/lib/ts-roots.sh"
 SRC="tools/topology-vscode/src"
 
-if [[ ! -f "tools/topology-vscode/Buffer/buffer-layout.ts" ]] || (( ${#LAYOUT_FILES[@]} < 2 )); then
+if [[ ! -f "tools/topology-vscode/src/Buffer/buffer-layout.ts" ]] || (( ${#LAYOUT_FILES[@]} < 2 )); then
   echo "check-no-dead-buffer-column: MISCONFIGURED — found ${#LAYOUT_FILES[@]} layout file(s) under Buffer/ (renamed?); refusing vacuous pass" >&2
   exit 1
 fi

@@ -17,7 +17,7 @@ func generateCurveParams(repoRoot string) {
 	if err != nil {
 		fatalf("parse curve params: %v", err)
 	}
-	curveParamsTsPath := filepath.Join(repoRoot, "tools", "topology-vscode", "Buffer", "curve-params.ts")
+	curveParamsTsPath := filepath.Join(repoRoot, "tools", "topology-vscode", "src", "Buffer", "curve-params.ts")
 	if err := params.WriteCurveParams(curveParamsTsPath, curveParams); err != nil {
 		fatalf("write %s: %v", curveParamsTsPath, err)
 	}
@@ -30,7 +30,7 @@ func generateOverlayGen(repoRoot string) {
 	if err != nil {
 		fatalf("parse overlay flags: %v", err)
 	}
-	viewstateDir := filepath.Join(repoRoot, "tools", "topology-vscode", "OverlaysDropdown")
+	viewstateDir := filepath.Join(repoRoot, "tools", "topology-vscode", "src", "OverlaysDropdown")
 	overlayGenGoPath := filepath.Join(viewstateDir, "overlay_state.go")
 	overlayTablesGoPath := filepath.Join(viewstateDir, "overlay_tables_gen.go")
 	if err := overlaygen.WriteOverlayGen(overlayGenGoPath, overlayTablesGoPath, overlayFlags); err != nil {
@@ -46,7 +46,7 @@ func generateShadingParams(repoRoot string) {
 	if err != nil {
 		fatalf("parse shading params: %v", err)
 	}
-	shadingParamsTsPath := filepath.Join(repoRoot, "tools", "topology-vscode", "Buffer", "shading-params.ts")
+	shadingParamsTsPath := filepath.Join(repoRoot, "tools", "topology-vscode", "src", "Buffer", "shading-params.ts")
 	if err := params.WriteShadingParams(shadingParamsTsPath, shadingParams); err != nil {
 		fatalf("write %s: %v", shadingParamsTsPath, err)
 	}
@@ -59,10 +59,10 @@ func generateBufferLayout(repoRoot string) {
 	if err != nil {
 		fatalf("parse buffer layout: %v", err)
 	}
-	bufLayoutGenGoPath := filepath.Join(repoRoot, "tools", "topology-vscode", "Buffer", "buffer_layout_gen.go")
-	bufLayoutGenGoRowsPath := filepath.Join(repoRoot, "tools", "topology-vscode", "Buffer", "buffer_layout_gen_rows.go")
-	bufLayoutGenGoRows2Path := filepath.Join(repoRoot, "tools", "topology-vscode", "Buffer", "buffer_layout_gen_rows2.go")
-	bufLayoutGenGoSingletonsPath := filepath.Join(repoRoot, "tools", "topology-vscode", "Buffer", "buffer_layout_gen_singletons.go")
+	bufLayoutGenGoPath := filepath.Join(repoRoot, "tools", "topology-vscode", "src", "Buffer", "buffer_layout_gen.go")
+	bufLayoutGenGoRowsPath := filepath.Join(repoRoot, "tools", "topology-vscode", "src", "Buffer", "buffer_layout_gen_rows.go")
+	bufLayoutGenGoRows2Path := filepath.Join(repoRoot, "tools", "topology-vscode", "src", "Buffer", "buffer_layout_gen_rows2.go")
+	bufLayoutGenGoSingletonsPath := filepath.Join(repoRoot, "tools", "topology-vscode", "src", "Buffer", "buffer_layout_gen_singletons.go")
 	if err := buflayout.WriteBufferLayoutGo(bufLayoutGenGoPath, bufLayoutGenGoRowsPath, bufLayoutGenGoRows2Path, bufLayoutGenGoSingletonsPath, bufSchema); err != nil {
 		fatalf("write buffer layout go: %v", err)
 	}
@@ -71,7 +71,7 @@ func generateBufferLayout(repoRoot string) {
 	announceWrote(bufLayoutGenGoRows2Path, len(bufSchema.Blocks))
 	announceWrote(bufLayoutGenGoSingletonsPath, len(bufSchema.Blocks))
 
-	schemaDir := filepath.Join(repoRoot, "tools", "topology-vscode", "Buffer")
+	schemaDir := filepath.Join(repoRoot, "tools", "topology-vscode", "src", "Buffer")
 	bufLayoutTSPath := filepath.Join(schemaDir, "buffer-layout.ts")
 	bufLayoutTSRowsPath := filepath.Join(schemaDir, "buffer-layout-rows-gen.ts")
 	bufLayoutTSRows2Path := filepath.Join(schemaDir, "buffer-layout-rows2-gen.ts")
@@ -93,12 +93,12 @@ func announceWrote(path string, blocks int) {
 }
 
 func generateFrameTags(repoRoot string) {
-	frameTagsGoPath := filepath.Join(repoRoot, "tools", "topology-vscode", "Buffer", "frame_tags.go")
+	frameTagsGoPath := filepath.Join(repoRoot, "tools", "topology-vscode", "src", "Buffer", "frame_tags.go")
 	frameTagsHeader, frameTagConsts, err := parseFrameTags(frameTagsGoPath)
 	if err != nil {
 		fatalf("parse frame tags: %v", err)
 	}
-	frameTagsTSPath := filepath.Join(repoRoot, "tools", "topology-vscode", "Buffer", "frame-tags.ts")
+	frameTagsTSPath := filepath.Join(repoRoot, "tools", "topology-vscode", "src", "Buffer", "frame-tags.ts")
 	if err := writeFrameTags(frameTagsTSPath, frameTagsHeader, frameTagConsts); err != nil {
 		fatalf("write %s: %v", frameTagsTSPath, err)
 	}

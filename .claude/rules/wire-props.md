@@ -18,7 +18,7 @@ rides the Edge block's EdgeLabelOff/EdgeLabelLen columns solely for that same `.
 never for drawing.
 
 If a NEW wire prop needs to affect rendering, it must be packed into the Edge block
-(`tools/topology-vscode/Buffer/` + `buffer-layout.ts`) and read by whatever the render path is at the time in the
+(`tools/topology-vscode/src/Buffer/` + `buffer-layout.ts`) and read by whatever the render path is at the time in the
 same commit — a `wire:"prop,..."` tag alone does not reach the screen.
 
 (An `EdgeKind`-typed `kind` prop was tried and removed: it had no Edge-block column and

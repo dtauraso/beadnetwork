@@ -2,7 +2,7 @@ package nodeactor
 
 import (
 	"context"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/PolarRulesPanel"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/src/PolarRulesPanel"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/rulenode"
 )

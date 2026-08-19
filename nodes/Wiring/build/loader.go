@@ -2,7 +2,7 @@ package build
 
 import (
 	"context"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/SliderPanel"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/src/SliderPanel"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
@@ -13,7 +13,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/clock"
 	"github.com/dtauraso/wirefold/nodes/nodeapi"
 
-	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
+	T "github.com/dtauraso/wirefold/tools/topology-vscode/src/Trace"
 )
 
 func LoadTopology(ctx context.Context, jsonPath string, tr *T.Trace, clk clock.Clock) ([]nodeapi.Node, inputcodec.SlotRegistry, *dispatch.MoveDispatch, SliderPanel.Sinks, error) {

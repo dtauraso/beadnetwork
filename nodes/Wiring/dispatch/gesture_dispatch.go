@@ -5,7 +5,7 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/gesture"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
-	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
+	T "github.com/dtauraso/wirefold/tools/topology-vscode/src/Trace"
 )
 
 func (md *MoveDispatch) HandleRawInput(ctx context.Context, ev inputcodec.RawInputMsg, slotReg inputcodec.SlotRegistry, tr *T.Trace) {

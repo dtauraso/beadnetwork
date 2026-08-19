@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: tools/topology-vscode/Buffer/buffer_layout_gen_singletons.go,tools/gen-node-defs/buflayout/buffer_layout_singletons.go | SetOverlayRow must take one named OverlayRow struct, never positional same-typed scalars
+# PLACEMENT: tools/topology-vscode/src/Buffer/buffer_layout_gen_singletons.go,tools/gen-node-defs/buflayout/buffer_layout_singletons.go | SetOverlayRow must take one named OverlayRow struct, never positional same-typed scalars
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
-GEN_FILE="$REPO_ROOT/tools/topology-vscode/Buffer/buffer_layout_gen_singletons.go"
+GEN_FILE="$REPO_ROOT/tools/topology-vscode/src/Buffer/buffer_layout_gen_singletons.go"
 GENERATOR="$REPO_ROOT/tools/gen-node-defs/buflayout/buffer_layout_singletons.go"
 
 for f in "$GEN_FILE" "$GENERATOR"; do

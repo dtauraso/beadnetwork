@@ -4,7 +4,7 @@
 
 Before changing anything in the **Go network** (`nodes/`, `nodes/bead/bead_run.go`,
 `nodes/Wiring/build/loader.go`, `nodes/Wiring/loadspec/builders.go`) or the **content buffer**
-(`tools/topology-vscode/Buffer/`, the render tree under `tools/topology-vscode/src/webview/three/`),
+(`tools/topology-vscode/src/Buffer/`, the render tree under `tools/topology-vscode/src/webview/three/`),
 read [MODEL.md](MODEL.md). It pins the model. Do not propose multi-step
 plans with options for network/wire work; name the single concrete next
 step and get the model agreed first. "Agreed first" gates the START of the

@@ -1,4 +1,4 @@
-import { BUF_BEAD_STREAM_FRAME_HEADER_SIZE } from "../../../../Buffer/frame-tags";
+import { BUF_BEAD_STREAM_FRAME_HEADER_SIZE } from "../../../Buffer/frame-tags";
 import { decodeTrailingEvents, type DecodedEvents } from "./buffer-decode-shared";
 
 export interface DecodedBeadStreamFrame {

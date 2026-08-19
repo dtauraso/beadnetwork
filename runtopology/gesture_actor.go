@@ -2,13 +2,13 @@ package runtopology
 
 import (
 	"context"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/SliderPanel"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/src/SliderPanel"
 	"sync"
 
 	W "github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/stdinreader"
-	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
+	T "github.com/dtauraso/wirefold/tools/topology-vscode/src/Trace"
 )
 
 type gestureMsgKind int

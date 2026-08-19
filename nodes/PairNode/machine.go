@@ -2,7 +2,7 @@ package PairNode
 
 import (
 	"github.com/dtauraso/wirefold/nodes/PairNode/tiltring"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/TiltPanel"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/src/TiltPanel"
 )
 
 func (n *Node) adoptMachine(choice TiltPanel.TiltMachine) {

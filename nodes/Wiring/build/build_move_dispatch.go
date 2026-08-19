@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/AngleDropdown"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/TiltPanel"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/src/AngleDropdown"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/src/TiltPanel"
 	"strconv"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/dispatch"

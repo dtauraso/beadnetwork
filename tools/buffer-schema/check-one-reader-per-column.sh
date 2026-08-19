@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: tools/topology-vscode/Buffer/buffer-layout*.ts | every buffer column is a channel: one writer, one reader. A second reader means a consumer is re-deriving something Go should send it.
+# PLACEMENT: tools/topology-vscode/src/Buffer/buffer-layout*.ts | every buffer column is a channel: one writer, one reader. A second reader means a consumer is re-deriving something Go should send it.
 
 set -euo pipefail
 
@@ -11,12 +11,12 @@ cd "$REPO_ROOT"
 source "$REPO_ROOT/tools/lib/ts-roots.sh"
 
 LAYOUT_FILES=()
-for LAYOUT in "tools/topology-vscode/Buffer/buffer-layout.ts" \
-              tools/topology-vscode/Buffer/buffer-layout-rows*-gen.ts \
-              "tools/topology-vscode/Buffer/buffer-layout-singletons-gen.ts"; do
+for LAYOUT in "tools/topology-vscode/src/Buffer/buffer-layout.ts" \
+              tools/topology-vscode/src/Buffer/buffer-layout-rows*-gen.ts \
+              "tools/topology-vscode/src/Buffer/buffer-layout-singletons-gen.ts"; do
   [[ -f "$LAYOUT" ]] && LAYOUT_FILES+=("$LAYOUT")
 done
-if [[ ! -f "tools/topology-vscode/Buffer/buffer-layout.ts" ]] || (( ${#LAYOUT_FILES[@]} < 2 )); then
+if [[ ! -f "tools/topology-vscode/src/Buffer/buffer-layout.ts" ]] || (( ${#LAYOUT_FILES[@]} < 2 )); then
   echo "check-one-reader-per-column: MISCONFIGURED — found ${#LAYOUT_FILES[@]} layout file(s) under Buffer/ (renamed?); refusing vacuous pass" >&2
   exit 1
 fi
@@ -53,7 +53,7 @@ if not readers:
           "guard would check nothing", file=sys.stderr)
     sys.exit(1)
 
-COL_STREAMS = pathlib.Path("tools/topology-vscode/Buffer/column-streams-gen.ts")
+COL_STREAMS = pathlib.Path("tools/topology-vscode/src/Buffer/column-streams-gen.ts")
 if not COL_STREAMS.exists():
     print(f"check-one-reader-per-column: MISCONFIGURED — {COL_STREAMS} not found (renamed?); "
           f"the column-channel half would go unchecked", file=sys.stderr)

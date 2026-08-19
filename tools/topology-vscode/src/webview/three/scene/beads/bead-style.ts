@@ -2,7 +2,7 @@ import {
   SHADING_PARAM_INTERIOR_BEAD_FILL0,
   SHADING_PARAM_INTERIOR_BEAD_FILL1,
   SHADING_PARAM_EDGE_LINE_COLOR,
-} from "../../../../../Buffer/shading-params";
+} from "../../../../Buffer/shading-params";
 
 const VALUE_BEAD_STYLE: Record<number, { fill: string; ring: string }> = {
   0: { fill: "#000000", ring: "#000000" },
