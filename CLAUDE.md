@@ -66,6 +66,30 @@ no delivery signal (guard: `src/check-no-await-on-bridge.sh`).
 
 Vocabulary detail, parity guards, and the no-sidecar rule: `.claude/rules/bridge-surface.md`.
 
+## Repo layout — a thing and everything about it share a directory
+
+There is **no `tools/`**. It was removed because it had stopped meaning anything: it held
+the whole editor (107 Go files in production packages), the generators, and every guard.
+
+- **`src/`** — the npm package's source root, and the editor: each concern directory holds
+  the Go that packs the thing and the TS that draws it, plus its `buffer_block.go`, its
+  generated `columns-gen.ts`, and the guards that protect it. `src` keeps that name because
+  npm, tsconfig and esbuild all assume it; directory naming for an npm package is medium,
+  not substance. The package root is the REPO root — `package.json`, `tsconfig.json` and
+  `node_modules/` live there, so there is one npm project and no path mappings.
+- **`nodes/`** — the Go network. **`cmd/`** — the generators, where Go keeps executables;
+  `go generate ./...` runs them. **`scripts/`** — what serves the repo rather than one
+  concern: `stop-checks.sh`, the git-workflow scripts, `lib/`, and `checks/` for guards
+  that guard nothing in particular (clustered by concern: prose, hooks, lang, meta, source).
+- **A guard lives beside what it guards**, named by its own `PLACEMENT:` header — there is
+  no table mapping guard to folder that could disagree with the header. `scripts/guard-list.sh`
+  finds them by searching the repo, and refuses to report fewer than 40.
+- Two guards keep this from rotting: `check-guard-paths-exist.sh` fails when any script
+  names a path that no longer resolves (a guard greping a moved path still exits 0, which
+  reads as coverage), and `check-dir-size.sh` fails when a directory outgrows its ceiling.
+  Deliberate absences are declared in `scripts/checks/meta/paths-may-be-absent.tsv`, one
+  reason per line.
+
 ## Bash hygiene (keep AI round-trips snappy)
 
 Bash output goes straight into the AI's context. Wide-fan commands
