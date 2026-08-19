@@ -19,6 +19,40 @@ import { encodeSceneViewport } from "../schema/input/input-encode-scene-tilt";
 
 const OVERLAY_SURFACE_H = 2048;
 
+const SCALE_EXACT = 0.005;
+
+function reportScale(
+  axis: "x" | "y",
+  cssSize: number,
+  targetSize: number,
+  surfaceSize: number,
+  span: number,
+  ratio: number,
+  last: { current: string },
+): void {
+  const drawn = (ratio * targetSize) / Math.max(1, surfaceSize * span);
+  const want = targetSize / cssSize;
+  const factor = drawn / want;
+  const status = Math.abs(factor - 1) <= SCALE_EXACT
+    ? "exact"
+    : factor > 1 ? "stretched" : "shrunk";
+  const site = `${axis}|${status}|${factor.toFixed(3)}|${cssSize}`;
+  if (site === last.current) return;
+  last.current = site;
+  postLog(`panel-overlay-${status}-${axis}`, {
+    axis,
+    status,
+    factor: Number(factor.toFixed(4)),
+    cssSize,
+    targetSize,
+    surfaceSize,
+    span: Number(span.toFixed(4)),
+    ratio: Number(ratio.toFixed(4)),
+    drawnDevicePxPerCssPx: Number(drawn.toFixed(4)),
+    wantDevicePxPerCssPx: Number(want.toFixed(4)),
+  });
+}
+
 export function PanelOverlay() {
   const { gl } = useThree();
   const canvas = useMemo(() => document.createElement("canvas"), []);
@@ -27,6 +61,8 @@ export function PanelOverlay() {
   const camRef = useRef(new THREE.OrthographicCamera(-1, 1, 1, -1, -1, 1));
   const lastKey = useRef("");
   const lastSize = useRef({ w: 0, h: 0 });
+  const lastScaleX = useRef("");
+  const lastScaleY = useRef("");
 
   useEffect(() => {
     const tex = new THREE.CanvasTexture(canvas);
@@ -113,6 +149,9 @@ export function PanelOverlay() {
     const vSpan = Math.min(1, targetH / canvas.height);
     tex.repeat.set(uSpan, vSpan);
     tex.offset.set(0, 1 - vSpan);
+
+    reportScale("x", vw, targetW, canvas.width, uSpan, ratio, lastScaleX);
+    reportScale("y", vh, targetH, canvas.height, vSpan, ratio, lastScaleY);
 
     gl.autoClear = false;
     gl.clearDepth();
