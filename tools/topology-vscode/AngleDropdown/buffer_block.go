@@ -1,4 +1,6 @@
-package bufschema
+package AngleDropdown
+
+var _ = bufLayoutAnglePill{}
 
 type bufLayoutAnglePill struct {
 	PillX float32 `buf:"f32"`

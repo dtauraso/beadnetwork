@@ -54,8 +54,8 @@ func generateShadingParams(repoRoot string) {
 }
 
 func generateBufferLayout(repoRoot string) {
-	bufferDir := filepath.Join(repoRoot, "tools", "topology-vscode", "Buffer", "bufschema")
-	bufSchema, err := buflayout.ParseBufferLayoutDir(bufferDir)
+	bufferDir := repoRoot
+	bufSchema, err := buflayout.ParseBufferLayoutTree(bufferDir)
 	if err != nil {
 		fatalf("parse buffer layout: %v", err)
 	}

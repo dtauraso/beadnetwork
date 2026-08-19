@@ -9,8 +9,8 @@ import (
 )
 
 func generateColumnStreams(repoRoot string) {
-	schemaDir := filepath.Join(repoRoot, "tools", "topology-vscode", "Buffer", "bufschema")
-	schema, err := buflayout.ParseBufferLayoutDir(schemaDir)
+	schemaDir := repoRoot
+	schema, err := buflayout.ParseBufferLayoutTree(schemaDir)
 	if err != nil {
 		fatalf("parse buffer layout for column streams: %v", err)
 	}

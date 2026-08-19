@@ -22,13 +22,4 @@ var _ = [...]any{
 	bufLayoutSend{},
 	bufLayoutArrive{},
 	bufLayoutBreadcrumb{},
-	bufLayoutSpeedPanel{},
-	bufLayoutTiltPanel{},
-	bufLayoutAnglePill{},
-	bufLayoutNodesPill{},
-	bufLayoutOverlaysPill{},
-	bufLayoutFitChip{},
-	bufLayoutTabStrip{},
-	bufLayoutRulesPanel{},
-	bufLayoutPointerTarget{},
 }

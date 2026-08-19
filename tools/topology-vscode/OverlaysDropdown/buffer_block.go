@@ -1,4 +1,6 @@
-package bufschema
+package OverlaysDropdown
+
+var _ = bufLayoutOverlaysPill{}
 
 type bufLayoutOverlaysPill struct {
 	ScrollY float32 `buf:"f32"`
