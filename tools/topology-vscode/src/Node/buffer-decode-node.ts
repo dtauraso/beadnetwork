@@ -1,8 +1,8 @@
-import { BUF_NODE_STREAM_FRAME_HEADER_SIZE } from "../../../Buffer/frame-tags";
-import { STR_DECODER, decodeTrailingEvents, type DecodedEvents } from "./buffer-decode-shared";
-import { columnBytes } from "../../../Buffer/column-values";
-import { nodeColumn } from "../../../Buffer/column-owners";
-import { COL_STREAM_NODE_LABEL } from "../../../Buffer/column-streams-gen";
+import { BUF_NODE_STREAM_FRAME_HEADER_SIZE } from "../Buffer/frame-tags";
+import { STR_DECODER, decodeTrailingEvents, type DecodedEvents } from "../webview/three/decode/buffer-decode-shared";
+import { columnBytes } from "../Buffer/column-values";
+import { nodeColumn } from "../Buffer/column-owners";
+import { COL_STREAM_NODE_LABEL } from "../Buffer/column-streams-gen";
 
 export interface DecodedNodeStreamFrame {
   tick: number;
@@ -26,7 +26,7 @@ function reportShortNodeFrame(got: number, expected: number): void {
     console.error(`[wirefold] node-frame-layout-skew: ${message}`);
     return;
   }
-  void import("../../log/post").then(({ postLog }) => {
+  void import("../webview/log/post").then(({ postLog }) => {
     postLog("load-error", { reason: "node-frame-layout-skew", message, gotBytes: got, expectedBytes: expected });
   });
 }

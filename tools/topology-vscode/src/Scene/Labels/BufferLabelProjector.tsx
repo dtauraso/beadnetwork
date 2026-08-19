@@ -1,6 +1,6 @@
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
-import { nodeLabel } from "../../webview/three/decode/buffer-decode-node";
+import { nodeLabel } from "../../Node/buffer-decode-node";
 import { ndcToPixel } from "../../webview/three/interaction/geometry-helpers";
 import { columnF32 } from "../../Buffer/column-values";
 import { nodeColumn, ownerCounts } from "../../Buffer/column-owners";

@@ -1,4 +1,6 @@
-package bufschema
+package Node
+
+var _ = bufLayoutNode{}
 
 type bufLayoutNode struct {
 	NodeId int32 `buf:"i32"`

@@ -1,14 +1,13 @@
 package loadspec
 
 import (
+	NodeBuf "github.com/dtauraso/wirefold/tools/topology-vscode/src/Node"
 	"strconv"
-
-	B "github.com/dtauraso/wirefold/tools/topology-vscode/src/Buffer"
 )
 
 func KindForID(id uint8) (string, bool) {
-	for _, k := range B.KnownKinds() {
-		if B.NodeKindID(k) == id {
+	for _, k := range NodeBuf.KnownKinds() {
+		if NodeBuf.NodeKindID(k) == id {
 			return k, true
 		}
 	}

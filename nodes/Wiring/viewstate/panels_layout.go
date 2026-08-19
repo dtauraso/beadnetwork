@@ -9,7 +9,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/speedpanel"
 	"github.com/dtauraso/wirefold/nodes/Wiring/tabstrip"
 	"github.com/dtauraso/wirefold/nodes/Wiring/tiltpanel"
-	B "github.com/dtauraso/wirefold/tools/topology-vscode/src/Buffer"
+	NodeBuf "github.com/dtauraso/wirefold/tools/topology-vscode/src/Node"
 	"github.com/dtauraso/wirefold/tools/topology-vscode/src/OverlaysDropdown"
 )
 
@@ -73,7 +73,7 @@ func (ui *UIState) paletteKinds() []nodesdropdown.Kind {
 	if !ui.SceneEditable {
 		return nil
 	}
-	names := B.KindNameByID()
+	names := NodeBuf.KindNameByID()
 	out := make([]nodesdropdown.Kind, 0, len(names))
 	for id, name := range names {
 		if name == "" || ui.SceneKinds&(1<<uint(id)) == 0 {

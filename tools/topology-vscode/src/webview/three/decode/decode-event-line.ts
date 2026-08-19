@@ -1,5 +1,5 @@
 import { BREADCRUMB_LABELS } from "../../../Trace/trace-kinds";
-import { nodeLabel } from "./buffer-decode-node";
+import { nodeLabel } from "../../../Node/buffer-decode-node";
 import {
   readRecvNodeRow, readRecvValue,
   readFireNodeRow,

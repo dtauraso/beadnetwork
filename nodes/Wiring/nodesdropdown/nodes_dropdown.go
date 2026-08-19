@@ -2,7 +2,7 @@ package nodesdropdown
 
 import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/panelstack"
-	B "github.com/dtauraso/wirefold/tools/topology-vscode/src/Buffer"
+	NodeBuf "github.com/dtauraso/wirefold/tools/topology-vscode/src/Node"
 )
 
 const Label = "Nodes"
@@ -78,7 +78,7 @@ func Build(st *panelstack.PillStack, open bool, kinds []Kind) Layout {
 	for _, k := range kinds {
 		contentH += rowH
 		if k.Open {
-			a, _ := B.AppearanceOf(k.Name)
+			a, _ := NodeBuf.AppearanceOf(k.Name)
 			contentH += float32(descLines(a.Desc, w)) * lineH
 		}
 	}
@@ -88,7 +88,7 @@ func Build(st *panelstack.PillStack, open bool, kinds []Kind) Layout {
 
 	lay.Rows = make([]Row, len(kinds))
 	for i, k := range kinds {
-		a, _ := B.AppearanceOf(k.Name)
+		a, _ := NodeBuf.AppearanceOf(k.Name)
 		r := Row{
 			KindID: k.KindID,
 			Kind:   k.Name,

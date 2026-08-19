@@ -57,7 +57,7 @@ func writeNodeKindID(outPath string, kinds []kindscan.KindEntry) error {
 	fmt.Fprintln(w, `// Source: nodes/<Kind>/SPEC.md + bead.Register calls.`)
 	fmt.Fprintln(w, `// Regenerate with: cd tools/topology-vscode && npm run gen:node-defs`)
 	fmt.Fprintln(w)
-	fmt.Fprintln(w, `package Buffer`)
+	fmt.Fprintln(w, `package Node`)
 	fmt.Fprintln(w)
 	fmt.Fprintln(w, `// KindIDUnknown is the sentinel KindId value when a node's kind is not in kindIDMap.`)
 	fmt.Fprintln(w, `const KindIDUnknown uint8 = 0xFF`)

@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { nodeLabel } from "../decode/buffer-decode-node";
+import { nodeLabel } from "../../../Node/buffer-decode-node";
 import { polarToCart } from "../polar-convert";
 import { sceneSteps, sceneRadius } from "../../../Scene/scene-frame";
 import { columnF32, columnU8 } from "../../../Buffer/column-values";

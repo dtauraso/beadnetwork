@@ -1,9 +1,8 @@
 package scene
 
 import (
+	NodeBuf "github.com/dtauraso/wirefold/tools/topology-vscode/src/Node"
 	"path/filepath"
-
-	B "github.com/dtauraso/wirefold/tools/topology-vscode/src/Buffer"
 )
 
 type Scene struct {
@@ -60,7 +59,7 @@ func (s Scene) KindMask() uint32 {
 	}
 	var mask uint32
 	for _, k := range s.Kinds {
-		if id := B.NodeKindID(k); id != B.KindIDUnknown {
+		if id := NodeBuf.NodeKindID(k); id != NodeBuf.KindIDUnknown {
 			mask |= 1 << uint(id)
 		}
 	}

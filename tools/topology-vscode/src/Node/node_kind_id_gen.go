@@ -2,7 +2,7 @@
 // Source: nodes/<Kind>/SPEC.md + bead.Register calls.
 // Regenerate with: cd tools/topology-vscode && npm run gen:node-defs
 
-package Buffer
+package Node
 
 // KindIDUnknown is the sentinel KindId value when a node's kind is not in kindIDMap.
 const KindIDUnknown uint8 = 0xFF

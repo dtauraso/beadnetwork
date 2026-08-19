@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import { decodeBufferLog, decodeStreamFrameEvents } from "../../buffer-log";
-import { decodeNodeStreamFrame } from "../../webview/three/decode/buffer-decode-node";
+import { decodeNodeStreamFrame } from "../../Node/buffer-decode-node";
 import { decodeEdgeStreamFrame } from "../../webview/three/decode/buffer-decode-edge";
 import { decodeBeadStreamFrame } from "../../webview/three/decode/buffer-decode-bead";
 import { decodeInteriorStreamFrame } from "../../webview/three/decode/buffer-decode-interior";

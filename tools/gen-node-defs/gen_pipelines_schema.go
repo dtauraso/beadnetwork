@@ -66,7 +66,7 @@ func generateNodeDims(repoRoot string, kinds []kindscan.KindEntry) {
 }
 
 func generateNodeKindID(repoRoot string, kinds []kindscan.KindEntry) {
-	nodeKindIDGoPath := filepath.Join(repoRoot, "tools", "topology-vscode", "src", "Buffer", "node_kind_id_gen.go")
+	nodeKindIDGoPath := filepath.Join(repoRoot, "tools", "topology-vscode", "src", "Node", "node_kind_id_gen.go")
 	if err := writeNodeKindID(nodeKindIDGoPath, kinds); err != nil {
 		fatalf("write %s: %v", nodeKindIDGoPath, err)
 	}
