@@ -44,6 +44,9 @@ func (l Layout) Hit(x, y float64) Hit {
 			}
 		}
 	}
+	if !panelstack.HitRect(l.RowsClip, x, y) {
+		return Hit{}
+	}
 	for _, r := range l.Rows {
 		if r.Check != CheckNone && panelstack.HitRect(r.CheckRect, x, y) {
 			return Hit{Kind: HitCheck, Check: r.Check, NodeRow: r.NodeRow, EdgeRow: r.EdgeRow, Rect: r.CheckRect}

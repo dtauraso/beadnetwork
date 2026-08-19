@@ -66,6 +66,8 @@ type UIState struct {
 
 	OverlaysScroll float32
 
+	RulesScroll float32
+
 	AngleOpen      bool
 	AngleGroupOpen map[int32]bool
 

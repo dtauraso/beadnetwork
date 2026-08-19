@@ -14,9 +14,14 @@ const (
 
 type Rect struct{ X, Y, W, H float32 }
 
-type Stack struct{ y float32 }
+type Stack struct {
+	y     float32
+	viewH float32
+}
 
-func New() *Stack { return &Stack{y: OriginY} }
+func New(viewH float32) *Stack { return &Stack{y: OriginY, viewH: viewH} }
+
+func (s *Stack) RoomBelow(y float32) float32 { return RoomBelow(s.viewH, y, Gap) }
 
 func (s *Stack) Next() float32 { return s.y }
 

@@ -13,6 +13,8 @@ import { drawThetaDraft, draftText, isRowEditing } from "./draw-theta-draft";
 import {
   COL_STREAM_RULES_PANEL_BOX_X, COL_STREAM_RULES_PANEL_BOX_Y,
   COL_STREAM_RULES_PANEL_BOX_W, COL_STREAM_RULES_PANEL_BOX_H,
+  COL_STREAM_RULES_PANEL_CLIP_Y, COL_STREAM_RULES_PANEL_CLIP_H,
+  COL_STREAM_RULES_PANEL_SCROLL_Y,
   COL_STREAM_RULES_PANEL_OPEN,
   COL_STREAM_RULES_PANEL_TOGGLE_X, COL_STREAM_RULES_PANEL_TOGGLE_Y,
   COL_STREAM_RULES_PANEL_TOGGLE_H, COL_STREAM_RULES_PANEL_TOGGLE_TEXT,
@@ -41,9 +43,10 @@ export function rulesPanelKey(): string {
   const parts: string[] = [
     String(columnU8(COL_STREAM_RULES_PANEL_OPEN)),
     String(columnF32(COL_STREAM_RULES_PANEL_BOX_H)),
+    String(columnF32(COL_STREAM_RULES_PANEL_SCROLL_Y)),
     String(columnU8(COL_STREAM_RULES_PANEL_MENU_OPEN)),
+    draftText(),
   ];
-  parts.push(draftText());
   if (nodeRows && values && edgeRows && checks) {
     for (let i = 0; i < nodeRows.length; i++) {
       const v = values[i]!;
@@ -84,8 +87,20 @@ export function drawRulesPanel(c: CanvasRenderingContext2D): void {
   );
 
   if (columnU8(COL_STREAM_RULES_PANEL_OPEN) === 0) return;
+
+  const clipY = columnF32(COL_STREAM_RULES_PANEL_CLIP_Y);
+  const clipH = columnF32(COL_STREAM_RULES_PANEL_CLIP_H);
+  const boxX = columnF32(COL_STREAM_RULES_PANEL_BOX_X);
+  c.save();
+  c.beginPath();
+  c.rect(boxX, clipY, boxW, clipH);
+  c.clip();
   drawRows(c);
   drawThetaDraft(c);
+  c.restore();
+
+  // Outside the clip: the shared menu hangs off the side of the panel by design, and
+  // clipping it to the rows would cut it in half.
   if (columnU8(COL_STREAM_RULES_PANEL_MENU_OPEN) !== 0) drawSharedMenu(c);
 }
 
@@ -197,6 +212,4 @@ function drawRows(c: CanvasRenderingContext2D): void {
   }
 }
 
-
 export { rulesDraftOpen } from "./draw-theta-draft";
-
