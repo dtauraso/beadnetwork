@@ -40,8 +40,8 @@ type RawInputMsg struct {
 	Meta       bool
 	DeltaX     float64
 	DeltaY     float64
-	Fov        float64
-	Hit        RawHit
+
+	Hit RawHit
 
 	Key string
 }

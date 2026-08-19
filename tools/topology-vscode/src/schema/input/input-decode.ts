@@ -35,7 +35,6 @@ export function decodeInputRecord(record: ArrayBuffer): DecodedInput | undefined
         meta: r.bool(),
         deltaX: r.f64(),
         deltaY: r.f64(),
-        fov: r.f64(),
         hit: {
           kind: IN_HIT_KINDS[r.u8()] ?? "empty",
           isInput: r.bool(),

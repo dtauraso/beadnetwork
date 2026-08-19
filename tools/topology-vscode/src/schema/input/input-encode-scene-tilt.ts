@@ -101,7 +101,6 @@ export function encodeRawInput(ev: RawInputEvent): ArrayBuffer {
   w.bool(ev.meta);
   w.f64(ev.deltaX);
   w.f64(ev.deltaY);
-  w.f64(ev.fov);
   w.u8(enumIndex(IN_HIT_KINDS, ev.hit.kind));
   w.bool(ev.hit.isInput);
   w.i32(ev.hit.nodeRow);

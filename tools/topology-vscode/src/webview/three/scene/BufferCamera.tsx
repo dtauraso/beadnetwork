@@ -9,7 +9,6 @@ import {
   COL_STREAM_CAMERA_UP_PHI, COL_STREAM_CAMERA_UP_THETA,
   COL_STREAM_CAMERA_FOCAL_PX,
 } from "../../../../Buffer/column-streams-gen";
-import { probeSceneSizeOnResize } from "./scene-size-probe";
 
 export function BufferCamera({ cameraRef }: {
   cameraRef?: React.MutableRefObject<THREE.PerspectiveCamera | null>;
@@ -54,8 +53,6 @@ export function BufferCamera({ cameraRef }: {
     }
 
     cam.updateMatrixWorld(true);
-
-    probeSceneSizeOnResize(cam, pivot, focalPx, widthPx, heightPx);
   });
 
   return null;
