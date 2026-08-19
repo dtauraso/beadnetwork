@@ -104,8 +104,7 @@ export type RawInputEvent = {
   alt: boolean;
   meta: boolean;
   deltaX: number; 
-  deltaY: number; 
-  fov: number; 
+  deltaY: number;
   hit: RawHit;
   key?: string;
 };

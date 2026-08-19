@@ -46,12 +46,11 @@ export function buildPointerRaw(
     button: e.button,
     ctrl: e.ctrlKey, shift: e.shiftKey, alt: e.altKey, meta: e.metaKey,
     deltaX: 0, deltaY: 0,
-    fov: cam.fov,
     hit,
   };
 }
 
-export function buildHomeRaw(fov: number, aspect: number): RawInputEvent {
+export function buildHomeRaw(aspect: number): RawInputEvent {
   const hit: RawHit = { kind: "empty", isInput: false, nodeRow: -1, portRow: -1, edgeRow: -1 };
   return {
     kind: "home",
@@ -60,7 +59,6 @@ export function buildHomeRaw(fov: number, aspect: number): RawInputEvent {
     button: -1,
     ctrl: false, shift: false, alt: false, meta: false,
     deltaX: 0, deltaY: 0,
-    fov,
     hit,
   };
 }
@@ -74,7 +72,6 @@ export function buildDeleteRaw(): RawInputEvent {
     button: -1,
     ctrl: false, shift: false, alt: false, meta: false,
     deltaX: 0, deltaY: 0,
-    fov: 0,
     hit,
   };
 }
@@ -88,7 +85,6 @@ export function buildKeyRaw(key: string): RawInputEvent {
     button: -1,
     ctrl: false, shift: false, alt: false, meta: false,
     deltaX: 0, deltaY: 0,
-    fov: 0,
     hit,
     key,
   };
@@ -112,7 +108,6 @@ export function buildWheelRaw(
     button: -1,
     ctrl: e.ctrlKey, shift: e.shiftKey, alt: e.altKey, meta: e.metaKey,
     deltaX: e.deltaX, deltaY: e.deltaY,
-    fov: cam.fov,
     hit,
   };
 }

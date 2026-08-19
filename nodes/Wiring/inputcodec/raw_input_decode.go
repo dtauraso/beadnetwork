@@ -48,7 +48,6 @@ func decodeRawInput(r *recread.Reader) (RawInputMsg, bool) {
 	ev.Meta = b()
 	ev.DeltaX = f()
 	ev.DeltaY = f()
-	ev.Fov = f()
 	ev.Hit.Kind = recread.EnumAt(InHitKinds, u())
 	ev.Hit.IsInput = b()
 	ev.Hit.NodeRow = i()
