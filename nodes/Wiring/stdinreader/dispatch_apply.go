@@ -7,6 +7,8 @@ import (
 	"math"
 	"strconv"
 
+	"github.com/dtauraso/wirefold/nodes/rowevent"
+
 	"github.com/dtauraso/wirefold/nodes/Wiring/angledropdown"
 	"github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
@@ -88,7 +90,12 @@ func applyUpdateScene(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch
 	case "viewport":
 		md.UI.ViewW = msg.X
 		md.UI.ViewH = msg.Y
-		md.UI.EmitViewFrame(nil)
+		md.UI.EmitBreadcrumb(rowevent.RowEvent{
+			Label: T.BreadcrumbViewport, NodeRow: -1, PortRow: -1, TargetRow: -1,
+			TargetPortRow: -1, EdgeRow: -1, Slot: -1,
+			Value: int32(md.UI.FovDeg()),
+			Text:  fmt.Sprintf("%.0fx%.0f", msg.X, msg.Y),
+		})
 	case "create":
 
 		NodesDropdown.CreateNode(&md.Scenes, &md.UI, &md.MR, uint8(msg.Num), msg.X, msg.Y, tr)

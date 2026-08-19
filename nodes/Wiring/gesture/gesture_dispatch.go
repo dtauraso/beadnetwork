@@ -22,8 +22,8 @@ type Deps struct {
 
 func HandleRawInput(d Deps, ev inputcodec.RawInputMsg, slotReg inputcodec.SlotRegistry, tr *T.Trace) {
 	g := &d.UI.Gest
-	g.Fov = ev.Fov
 	g.Rect = gesturefsm.GestureRect{Left: ev.RectLeft, Top: ev.RectTop, Width: ev.RectWidth, Height: ev.RectHeight}
+	g.Fov = d.UI.FovDeg()
 	if h := rawInputHandlers[ev.Kind]; h != nil {
 		h(d, ev, slotReg, tr)
 	}

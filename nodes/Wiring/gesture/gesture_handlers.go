@@ -18,7 +18,7 @@ func gestHome(d Deps, ev inputcodec.RawInputMsg, tr *T.Trace) {
 	for id := range centers {
 		radius[id] = d.MR.NodeBodyRadius(id)
 	}
-	pivot, r, pos, up, ok := FitButton.HomeFitPose(centers, radius, ev.Fov, d.UI.Gest.Rect.Aspect())
+	pivot, r, pos, up, ok := FitButton.HomeFitPose(centers, radius, d.UI.FovDeg(), d.UI.Gest.Rect.Aspect())
 	if !ok {
 		return
 	}
@@ -106,7 +106,7 @@ func gestWheel(d Deps, ev inputcodec.RawInputMsg, tr *T.Trace) {
 		target := pivot
 		best := math.Inf(1)
 		for _, c := range nodemove.HeldCenters(d.MR.NodeGeoms(), d.MR.CenterOfNode) {
-			nx, ny, inFront := camera.ProjectNDC(c, eye, basis, ev.Fov, aspect)
+			nx, ny, inFront := camera.ProjectNDC(c, eye, basis, d.UI.FovDeg(), aspect)
 			if !inFront {
 				continue
 			}
@@ -132,7 +132,7 @@ func gestWheel(d Deps, ev inputcodec.RawInputMsg, tr *T.Trace) {
 		return
 	}
 
-	fovRad := ev.Fov * math.Pi / 180
+	fovRad := d.UI.FovDeg() * math.Pi / 180
 	worldPerPixel := (2 * vp.R * math.Tan(fovRad/2)) / d.UI.Gest.Rect.Height
 	disp := camera.PanDisplacementPolar(vp.Pos, vp.Up, ev.DeltaX, ev.DeltaY, worldPerPixel)
 	d.UI.VP.PanViewpoint(disp, tr)

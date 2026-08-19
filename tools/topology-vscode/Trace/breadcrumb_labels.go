@@ -33,6 +33,8 @@ const (
 	BreadcrumbEdgeBeads
 
 	BreadcrumbDragActivePersist
+
+	BreadcrumbViewport
 )
 
 var BreadcrumbLabels = []string{
@@ -56,6 +58,7 @@ var BreadcrumbLabels = []string{
 	"edge-geom",
 	"edge-beads",
 	"drag-active-persist",
+	"viewport",
 }
 
 func BreadcrumbLabelID(name string) (uint8, bool) {

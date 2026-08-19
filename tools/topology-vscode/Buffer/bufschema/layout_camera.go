@@ -9,4 +9,6 @@ type bufLayoutCamera struct {
 	PosTheta float32 `buf:"f32"`
 	UpPhi    float32 `buf:"f32"`
 	UpTheta  float32 `buf:"f32"`
+
+	FovDeg float32 `buf:"f32"`
 }

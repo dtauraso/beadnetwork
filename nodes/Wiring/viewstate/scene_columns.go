@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"math"
 
+	"github.com/dtauraso/wirefold/nodes/Wiring/geom/camera"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
 	B "github.com/dtauraso/wirefold/tools/topology-vscode/Buffer"
 	"github.com/dtauraso/wirefold/tools/topology-vscode/Buffer/colstream"
@@ -71,6 +72,11 @@ func (ui *UIState) writeCameraColumns() {
 	c.SetF32(B.ColStreamCameraPosTheta, float32(v.Pos.Theta))
 	c.SetF32(B.ColStreamCameraUpPhi, float32(v.Up.Phi))
 	c.SetF32(B.ColStreamCameraUpTheta, float32(v.Up.Theta))
+	c.SetF32(B.ColStreamCameraFovDeg, float32(ui.FovDeg()))
+}
+
+func (ui *UIState) FovDeg() float64 {
+	return camera.FovDegForHeight(ui.ViewH)
 }
 
 func (ui *UIState) writeOverlayColumns(dragNodeRow int32) {

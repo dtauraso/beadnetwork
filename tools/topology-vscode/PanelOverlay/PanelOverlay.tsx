@@ -11,19 +11,16 @@ import { drawTabStrip, tabStripKey } from "../Tabs/draw-tab-strip";
 import { drawRulesPanel, rulesPanelKey } from "../PolarRulesPanel/draw-rules-panel";
 import { postGoRecord } from "../src/webview/vscode-api";
 import { encodeSceneViewport } from "../src/schema/input/input-encode-scene-tilt";
+import { postLog } from "../src/webview/log/post";
 import { columnF32 } from "../Buffer/column-values";
 import {
-  COL_STREAM_SPEED_PANEL_BOX_Y, COL_STREAM_SPEED_PANEL_BOX_H,
-  COL_STREAM_TILT_PANEL_BOX_Y, COL_STREAM_TILT_PANEL_BOX_H,
+  COL_STREAM_RULES_PANEL_BOX_X, COL_STREAM_RULES_PANEL_BOX_Y,
+  COL_STREAM_RULES_PANEL_BOX_W, COL_STREAM_RULES_PANEL_BOX_H,
+  COL_STREAM_OVERLAYS_PILL_PILL_X, COL_STREAM_OVERLAYS_PILL_PILL_Y,
+  COL_STREAM_OVERLAYS_PILL_PILL_W, COL_STREAM_OVERLAYS_PILL_PILL_H,
 } from "../Buffer/column-streams-gen";
 
-const STACK_GAP = 6;
-
-function panelStackBottom(): number {
-  const speed = columnF32(COL_STREAM_SPEED_PANEL_BOX_Y) + columnF32(COL_STREAM_SPEED_PANEL_BOX_H);
-  const tilt = columnF32(COL_STREAM_TILT_PANEL_BOX_Y) + columnF32(COL_STREAM_TILT_PANEL_BOX_H);
-  return Math.max(speed, tilt) + STACK_GAP;
-}
+const OVERLAY_SURFACE_H = 2048;
 
 export function PanelOverlay() {
   const { gl } = useThree();
@@ -33,7 +30,6 @@ export function PanelOverlay() {
   const camRef = useRef(new THREE.OrthographicCamera(-1, 1, 1, -1, -1, 1));
   const lastKey = useRef("");
   const lastSize = useRef({ w: 0, h: 0 });
-  const viewSize = useMemo(() => new THREE.Vector2(), []);
 
   useEffect(() => {
     const tex = new THREE.CanvasTexture(canvas);
@@ -61,29 +57,60 @@ export function PanelOverlay() {
     const tex = texRef.current;
     if (!tex) return;
 
-    gl.getSize(viewSize);
-    const vw = Math.max(1, Math.round(viewSize.x));
-    const vh = Math.max(1, Math.round(viewSize.y));
-    const dpr = Math.min(3, gl.getPixelRatio());
+    const el = gl.domElement;
+    const vw = Math.max(1, el.clientWidth);
+    const vh = Math.max(1, el.clientHeight);
+    const ratio = Math.max(1, Math.min(3, gl.getPixelRatio()));
+    const bw = Math.max(1, Math.round(vw * ratio));
+    const bh = Math.max(1, Math.round(OVERLAY_SURFACE_H * ratio));
 
     if (vw !== lastSize.current.w || vh !== lastSize.current.h) {
+      const prev = lastSize.current;
       lastSize.current = { w: vw, h: vh };
       postGoRecord(encodeSceneViewport(vw, vh));
+
+      const rect = (x: number, y: number, w: number, h: number) =>
+        `${columnF32(x).toFixed(1)},${columnF32(y).toFixed(1)} ${columnF32(w).toFixed(1)}x${columnF32(h).toFixed(1)}`;
+      const box = (n: Element | null) =>
+        n ? `${Math.round(n.clientWidth)}x${Math.round(n.clientHeight)}` : "none";
+      postLog("panel-size-on-resize", {
+        viewWas: `${prev.w}x${prev.h}`,
+        viewNow: `${vw}x${vh}`,
+        renderTarget: `${el.width}x${el.height}`,
+        pixelRatio: ratio,
+        devicePixelRatio: window.devicePixelRatio,
+        window: `${window.innerWidth}x${window.innerHeight}`,
+        outer: `${window.outerWidth}x${window.outerHeight}`,
+        visualViewport: window.visualViewport
+          ? `${Math.round(window.visualViewport.width)}x${Math.round(window.visualViewport.height)} scale=${window.visualViewport.scale}`
+          : "none",
+        body: box(document.body),
+        app: box(document.getElementById("app")),
+        canvasParent: box(el.parentElement),
+        canvasCss: `${Math.round(el.getBoundingClientRect().width)}x${Math.round(el.getBoundingClientRect().height)}`,
+        rulesPanel: rect(
+          COL_STREAM_RULES_PANEL_BOX_X, COL_STREAM_RULES_PANEL_BOX_Y,
+          COL_STREAM_RULES_PANEL_BOX_W, COL_STREAM_RULES_PANEL_BOX_H,
+        ),
+        overlaysPill: rect(
+          COL_STREAM_OVERLAYS_PILL_PILL_X, COL_STREAM_OVERLAYS_PILL_PILL_Y,
+          COL_STREAM_OVERLAYS_PILL_PILL_W, COL_STREAM_OVERLAYS_PILL_PILL_H,
+        ),
+      });
     }
 
-    const key = `${vw}x${vh}@${dpr}|${speedPanelKey()}|${tiltPanelKey()}|${anglePillKey()}|${nodesPillKey()}|${overlaysPillKey()}|${fitChipKey()}|${tabStripKey()}|${rulesPanelKey()}`;
+    const key = `${vw}@${bw}x${bh}|${speedPanelKey()}|${tiltPanelKey()}|${anglePillKey()}|${nodesPillKey()}|${overlaysPillKey()}|${fitChipKey()}|${tabStripKey()}|${rulesPanelKey()}`;
     if (key !== lastKey.current) {
       lastKey.current = key;
-      const bw = Math.max(1, Math.round(vw * dpr));
-      const bh = Math.max(1, Math.round(vh * dpr));
       if (canvas.width !== bw || canvas.height !== bh) {
         canvas.width = bw;
         canvas.height = bh;
       }
       const c = canvas.getContext("2d");
       if (c) {
-        c.setTransform(dpr, 0, 0, dpr, 0, 0);
-        c.clearRect(0, 0, vw, vh);
+        c.setTransform(1, 0, 0, 1, 0, 0);
+        c.clearRect(0, 0, canvas.width, canvas.height);
+        c.setTransform(ratio, 0, 0, ratio, 0, 0);
         drawSpeedPanel(c);
         drawTiltPanel(c);
         drawAnglePill(c);
@@ -93,12 +120,16 @@ export function PanelOverlay() {
         drawTabStrip(c);
         drawRulesPanel(c);
       }
-      document.documentElement.style.setProperty(
-        "--panel-stack-bottom",
-        `${Math.round(panelStackBottom())}px`,
-      );
       tex.needsUpdate = true;
     }
+
+    const targetW = Math.max(1, el.width);
+    const targetH = Math.max(1, el.height);
+
+    const uSpan = Math.min(1, targetW / canvas.width);
+    const vSpan = Math.min(1, targetH / canvas.height);
+    tex.repeat.set(uSpan, vSpan);
+    tex.offset.set(0, 1 - vSpan);
 
     gl.autoClear = false;
     gl.clearDepth();
