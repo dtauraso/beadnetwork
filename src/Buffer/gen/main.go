@@ -1,6 +1,3 @@
-// The Buffer generator: everything whose source of truth is the buffer's own
-// shape — the block layout in both languages, the per-block column files, the
-// frame tags, and the curve and shading params that ride in the buffer.
 package main
 
 //go:generate go run .
@@ -98,9 +95,6 @@ func generateBufferLayout(repoRoot, srcRoot string) {
 	announceBlocks(bufSchema.Blocks, tsPath, tsRowsPath, tsRows2Path, tsSingletonsPath)
 }
 
-// announceBlocks reports only the files that actually landed: a layout with no
-// rows writes no rows file, and announcing one that is not there would be a lie
-// about what the generator did.
 func announceBlocks[T any](blocks []T, paths ...string) {
 	for _, path := range paths {
 		if _, err := os.Stat(path); err != nil {

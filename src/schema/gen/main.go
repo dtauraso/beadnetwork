@@ -1,6 +1,3 @@
-// The schema generator: the registries TS reads to know what a node kind is,
-// what a wire's props are, and which scenes exist — plus the Go import list that
-// makes each kind exist in the binary at all.
 package main
 
 //go:generate go run .

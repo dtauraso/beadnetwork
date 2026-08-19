@@ -1,5 +1,3 @@
-// The Trace generator: the trace kinds and breadcrumb labels, read from the
-// Trace directory's own sources.
 package main
 
 //go:generate go run .

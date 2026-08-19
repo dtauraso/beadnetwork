@@ -1,5 +1,3 @@
-// The overlays generator: the overlay flag state and lookup tables, read from
-// the flag names messages.ts already declares.
 package main
 
 //go:generate go run .

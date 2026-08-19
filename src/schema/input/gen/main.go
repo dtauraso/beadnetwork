@@ -1,5 +1,3 @@
-// The input-codec generator: the layout fingerprint TS must agree with before
-// it encodes an input record Go will decode.
 package main
 
 //go:generate go run .

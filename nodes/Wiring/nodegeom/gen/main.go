@@ -1,5 +1,3 @@
-// The node-geometry generator: each kind's drawn size, and the kind ID the
-// buffer carries — both derived from the kinds' own SPEC.md.
 package main
 
 //go:generate go run .
