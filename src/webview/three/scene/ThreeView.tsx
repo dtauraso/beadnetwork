@@ -9,6 +9,7 @@ import { Scene } from "./scene-content";
 import { BufferScene, BufferLabelProjector } from "./buffer-scene";
 import { ProceduralEnvProvider } from "./scene-env";
 import { NavGuides } from "../nav/NavGuides";
+import { PaneSizeSync } from "./pane-size-sync";
 
 function consumedByDraft(key: string): boolean {
   return key.length === 1 || key === "Enter" || key === "Escape" || key === "Backspace";
@@ -70,6 +71,7 @@ export function ThreeView() {
           style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%" }}
           frameloop="always"
         >
+          <PaneSizeSync />
           <Scene
             onPickRequest={pickRequest}
           />
