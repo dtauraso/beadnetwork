@@ -13,7 +13,7 @@ import os, re, subprocess, collections
 CEILING = 20
 
 ALLOWED = {
-    "scripts/kindscan":
+    "src/Node/Wiring/kindscan":
         "one parse-a-kind pipeline; 7 unexported symbols cross file boundaries",
     "src/Buffer/gen/buflayout":
         "one parse-then-emit pipeline; 29 unexported symbols cross file boundaries",
@@ -41,7 +41,7 @@ def generator_sources():
     for root, dirs, files in os.walk("."):
         dirs[:] = [d for d in dirs if d not in ("node_modules", "out", ".git", ".probe")]
         rel = os.path.relpath(root, ".")
-        if "gen" not in rel.split(os.sep) and not rel.startswith("scripts/kindscan"):
+        if "gen" not in rel.split(os.sep) and not rel.startswith("src/Node/Wiring/kindscan"):
             continue
         for f in files:
             if f.endswith(".go"):

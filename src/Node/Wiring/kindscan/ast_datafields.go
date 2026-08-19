@@ -40,7 +40,7 @@ func parseDataFieldsFromAST(pkgDir string) ([]DataField, error) {
 	var files []*ast.File
 	for _, entry := range entries {
 		name := entry.Name()
-		if entry.IsDir() || !strings.HasSuffix(name, ".go") || strings.HasSuffix(name, "_test.go") {
+		if entry.IsDir() || !strings.HasSuffix(name, ".go") || strings.HasSuffix(name, "_test.go") {  // path-resolution-ok: a package directory listing, not a scene path
 			continue
 		}
 		fullPath := filepath.Join(pkgDir, name)

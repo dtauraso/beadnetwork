@@ -114,7 +114,7 @@ The `## View` section is required for any kind that has a TSX render. It drives 
 | height | 60 |
 ```
 
-- `kind` — required (non-empty), but **write-only/vestigial today**: `scripts/kindscan`
+- `kind` — required (non-empty), but **write-only/vestigial today**: `src/Node/Wiring/kindscan`
   parses it and fails loudly if it's empty, but it is never used as the `NODE_DEFS` key. The
   actual `node-defs.ts` key is the **PascalCase Go kind name** from `Wiring.Register(...)`
   (`goKind`), matching `CLAUDE.md`. Keep `kind` populated (any non-empty string; convention is
@@ -128,7 +128,7 @@ The `## View` section is required for any kind that has a TSX render. It drives 
   110×60 if omitted.
 
 A missing `## View` section (or one missing the `Field`/`Value` table columns) is a **hard
-error**: the kind scanner (`scripts/kindscan`) fails the whole build, it is
+error**: the kind scanner (`src/Node/Wiring/kindscan`) fails the whole build, it is
 not skipped or treated as not-yet-migrated. Every `src/Node/<Kind>/` directory with a
 `Wiring.Register(...)` call MUST have a valid `## View` section.
 

@@ -23,7 +23,7 @@ func CollectKinds(nodesDir string) []KindEntry {
 	var kinds []KindEntry
 	seenGoKind := map[string]string{}
 	for _, e := range entries {
-		if !e.IsDir() {
+		if !e.IsDir() { // path-resolution-ok: a candidate kind package, not a scene path
 			continue
 		}
 		pkgDir := filepath.Join(nodesDir, e.Name())
@@ -100,7 +100,7 @@ func hasRegister(dir string) bool {
 	}
 	for _, e := range entries {
 
-		if e.IsDir() || !strings.HasSuffix(e.Name(), ".go") || strings.HasSuffix(e.Name(), "_test.go") {
+		if e.IsDir() || !strings.HasSuffix(e.Name(), ".go") || strings.HasSuffix(e.Name(), "_test.go") { // path-resolution-ok: a package directory listing, not a scene path
 			continue
 		}
 		data, err := os.ReadFile(filepath.Join(dir, e.Name()))

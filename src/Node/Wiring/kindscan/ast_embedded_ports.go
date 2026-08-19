@@ -18,7 +18,7 @@ func parseEmbeddedPorts(nodesDir, pkgDir string, visited map[string]bool) ([]Por
 	var ports []Port
 	for _, entry := range entries {
 		name := entry.Name()
-		if entry.IsDir() || !strings.HasSuffix(name, ".go") || strings.HasSuffix(name, "_test.go") {
+		if entry.IsDir() || !strings.HasSuffix(name, ".go") || strings.HasSuffix(name, "_test.go") {  // path-resolution-ok: a package directory listing, not a scene path
 			continue
 		}
 		f, err := parser.ParseFile(fset, filepath.Join(pkgDir, name), nil, 0)

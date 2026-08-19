@@ -3,7 +3,7 @@
 [← SPEC.md](../SPEC.md)
 
 The `## View`, `## Ports`, and `## Description` sections stay in SPEC.md because
-`scripts/kindscan/spec_md_table.go`'s `readSpecMDLines` reads exactly
+`src/Node/Wiring/kindscan/spec_md_table.go`'s `readSpecMDLines` reads exactly
 `src/Node/<Kind>/SPEC.md` and `parseSpecMD` parses only those sections from it. Everything
 else the generator does not read lives in the pages below.
 
