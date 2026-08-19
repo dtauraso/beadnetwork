@@ -3,8 +3,8 @@ package FitButton
 import (
 	"math"
 
-	"github.com/dtauraso/wirefold/nodes/Wiring/geom/camera"
-	"github.com/dtauraso/wirefold/nodes/spatial"
+	"github.com/dtauraso/wirefold/src/Node/Wiring/geom/camera"
+	"github.com/dtauraso/wirefold/src/Node/spatial"
 )
 
 func FitDistance(fovDeg, aspect, width, height float64) float64 {

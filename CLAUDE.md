@@ -2,8 +2,8 @@
 
 ## Model — read first
 
-Before changing anything in the **Go network** (`nodes/`, `nodes/bead/bead_run.go`,
-`nodes/Wiring/build/loader.go`, `nodes/Wiring/loadspec/builders.go`) or the **content buffer**
+Before changing anything in the **Go network** (`src/Node/`, `src/Node/bead/bead_run.go`,
+`src/Node/Wiring/build/loader.go`, `src/Node/Wiring/loadspec/builders.go`) or the **content buffer**
 (`src/Buffer/`, the render tree under `src/webview/three/`),
 read [MODEL.md](MODEL.md). It pins the model. Do not propose multi-step
 plans with options for network/wire work; name the single concrete next
@@ -25,7 +25,7 @@ PASSIVE delay queue holding its own in-flight beads, with a channel on each end,
 its SOURCE NODE's own goroutine — it is not a goroutine itself), node goroutine, input port,
 clock, and the node-owned chain of placeholder beads that renders a traversal
 ([docs/model/entities.md](docs/model/entities.md); its length is
-`nodes/Wiring/edgegeom/chain_length.go`). The active node kinds are the structs under `nodes/<Kind>/`.
+`src/Node/Wiring/edgegeom/chain_length.go`). The active node kinds are the structs under `src/Node/<Kind>/`.
 
 **Drift rule:** see MODEL.md's "Drift rule" section for the full statement (guards:
 `src/webview/check-no-webview-state.sh`, `src/check-no-await-on-bridge.sh`).
@@ -40,7 +40,7 @@ clock, and the node-owned chain of placeholder beads that renders a traversal
    (the generated buffer wire format plus the curve/shading params that ride in it) and
    `schema/input/` (the TS<->Go input-record codec: byte reader/writer, attrs, layout
    fingerprint, encode/decode). Adding a node kind touches only `node-defs.ts`.
-3. The Go node package under `nodes/<Kind>/`, with its logic always in `node.go` (never
+3. The Go node package under `src/Node/<Kind>/`, with its logic always in `node.go` (never
    `<Kind>.go`) plus `SPEC.md`. Directory casing is mixed and both are live: PascalCase
    (`Time`, `TimeEnd`, `TimeStart`, `PulseLeft`, `PulseRight`) and lowercase (`holdflip`,
    `input`, `pacer`, `pulse`, `selectleft`, `selectright`) — don't infer one from the other.
@@ -83,7 +83,7 @@ own package is already there. `go generate ./...` runs all of them.
   npm, tsconfig and esbuild all assume it; directory naming for an npm package is medium,
   not substance. The package root is the REPO root — `package.json`, `tsconfig.json` and
   `node_modules/` live there, so there is one npm project and no path mappings.
-- **`nodes/`** — the Go network, and ONLY node kinds and wiring: the kind scanner walks it
+- **`src/Node/`** — the Go network, and ONLY node kinds and wiring: the kind scanner walks it
   and treats every directory it finds as a kind, so a helper parked there grows a phantom
   node kind. **`scripts/`** — what serves the repo rather than one concern: `stop-checks.sh`,
   the git-workflow scripts, `lib/`, `checks/` for guards that guard nothing in particular
@@ -126,8 +126,8 @@ fire instead of fall silent. Nothing here is a guarantee; the only real check is
 noticing behavior.
 
 Prefer, in order: an assertion that fires in the running system with a site tag
-(`nodes/check-panic-message.sh`); a guard whose failure state is loud and
-whose allowlist is empty (`nodes/check-no-network-locks.sh`); a `.probe`
+(`src/Node/check-panic-message.sh`); a guard whose failure state is loud and
+whose allowlist is empty (`src/Node/check-no-network-locks.sh`); a `.probe`
 breadcrumb (`.claude/rules/go-debugging.md`). Never a test.
 
 ## Workflow

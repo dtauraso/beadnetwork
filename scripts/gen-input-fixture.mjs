@@ -7,7 +7,7 @@ import { execFileSync } from "child_process";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, "../../..");
-const outPath = process.argv[2] ?? path.join(repoRoot, "nodes/Wiring/testdata/input_fixture.json");
+const outPath = process.argv[2] ?? path.join(repoRoot, "src/Node/Wiring/testdata/input_fixture.json");
 
 const bundlePath = path.join(os.tmpdir(), `gen-input-fixture-${process.pid}.cjs`);
 

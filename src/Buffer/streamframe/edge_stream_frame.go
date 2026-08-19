@@ -2,7 +2,7 @@ package streamframe
 
 import (
 	"encoding/binary"
-	"github.com/dtauraso/wirefold/nodes/rowevent"
+	"github.com/dtauraso/wirefold/src/Node/rowevent"
 
 	B "github.com/dtauraso/wirefold/src/Buffer"
 	"github.com/dtauraso/wirefold/src/Buffer/colstream"

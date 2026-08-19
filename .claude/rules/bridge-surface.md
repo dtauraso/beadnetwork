@@ -1,6 +1,6 @@
 ---
 paths:
-  - "nodes/Wiring/**/*.go"
+  - "src/Node/Wiring/**/*.go"
   - "src/messages.ts"
   - "src/extension/handle-message.ts"
   - "src/runCommand.ts"
@@ -15,7 +15,7 @@ carries the TS → Go vocabulary.
 **TS → Go** is framed binary records on stdin. Two shapes, and the distinction is the model:
 
 - **Addressed edits** — a single geometry-CRUD `edit` message whose sole op is `update`
-  (see `nodes/Wiring/stdinreader/dispatch_edit.go` `applyEdit`, fenced by `EDIT_OPS_START`/
+  (see `src/Node/Wiring/stdinreader/dispatch_edit.go` `applyEdit`, fenced by `EDIT_OPS_START`/
   `EDIT_OPS_END`, and `src/messages.ts` `EditMsg`): **`update` sets
   an ATTRIBUTE on a typed entity** (`kind` = node / edge / camera / overlays / panels /
   scene) — there is no per-feature op. New *addressed* capability is a new entity kind or
@@ -62,8 +62,8 @@ and `memory/feedback/architecture/bridge/feedback_per_goroutine_bridge.md`.
 
 ## Parity
 
-Keep all of it in parity across `messages.ts`, the `nodes/Wiring` stdin reader/dispatch
+Keep all of it in parity across `messages.ts`, the `src/Node/Wiring` stdin reader/dispatch
 (`stdin_reader.go`'s `MSG_TYPES` fence, `dispatch_edit.go`'s edit tables), and `handle-message.ts`
-(guards: `nodes/Wiring/stdinreader/check-edit-op-parity.sh`, `nodes/Wiring/stdinreader/check-message-kind-parity.sh`, and the
+(guards: `src/Node/Wiring/stdinreader/check-edit-op-parity.sh`, `src/Node/Wiring/stdinreader/check-message-kind-parity.sh`, and the
 `INPUT_LAYOUT_FINGERPRINT` in `input_codec.go` /
 `src/schema/input/input-layout-gen.ts`).

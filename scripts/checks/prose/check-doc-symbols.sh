@@ -32,7 +32,7 @@ git ls-files -z '*.go' '*.ts' '*.tsx' 2>/dev/null \
   | sort -u > "$TMP/from_go.txt" || true
 
 DOCS=(CLAUDE.md MODEL.md)
-while IFS= read -r spec; do DOCS+=("$spec"); done < <(git ls-files 'nodes/*/SPEC.md' 2>/dev/null || true)
+while IFS= read -r spec; do DOCS+=("$spec"); done < <(git ls-files 'src/Node/*/SPEC.md' 2>/dev/null || true)
 
 : > "$TMP/from_md.txt"
 for d in "${DOCS[@]}"; do
@@ -87,7 +87,7 @@ while IFS= read -r sym; do
   echo "  ghost: \`$sym\`"
 
   git grep -nE "(\`[^\`]*${sym}[^\`]*\`|<code[^>]*>[^<]*${sym}[^<]*</code>)" \
-    -- '*.go' '*.ts' '*.tsx' CLAUDE.md MODEL.md 'nodes/*/SPEC.md' 'docs/**/*.html' 'docs/**/*.html' 2>/dev/null \
+    -- '*.go' '*.ts' '*.tsx' CLAUDE.md MODEL.md 'src/Node/*/SPEC.md' 'docs/**/*.html' 'docs/**/*.html' 2>/dev/null \
     | head -3 | sed 's/^/      /' || true
 done < "$TMP/ghosts.txt"
 

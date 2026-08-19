@@ -23,7 +23,7 @@ func main() {
 }
 
 func generateCurveParams(repoRoot, srcRoot string) {
-	goPath := filepath.Join(repoRoot, "nodes", "Wiring", "nodegeom", "curve_params.go")
+	goPath := filepath.Join(genpaths.NetworkDir(repoRoot), "Wiring", "nodegeom", "curve_params.go")
 	curveParams, err := params.ParseCurveParams(goPath)
 	if err != nil {
 		genpaths.Fatalf("parse curve params: %v", err)
@@ -36,7 +36,7 @@ func generateCurveParams(repoRoot, srcRoot string) {
 }
 
 func generateShadingParams(repoRoot, srcRoot string) {
-	goPath := filepath.Join(repoRoot, "nodes", "Wiring", "nodegeom", "shading_params.go")
+	goPath := filepath.Join(genpaths.NetworkDir(repoRoot), "Wiring", "nodegeom", "shading_params.go")
 	shadingParams, err := params.ParseShadingParams(repoRoot, goPath)
 	if err != nil {
 		genpaths.Fatalf("parse shading params: %v", err)

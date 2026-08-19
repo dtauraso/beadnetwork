@@ -8,13 +8,13 @@
   connect to a node; you move the node by removing links from those chains or adding links
   to them — that is the whole mechanism. There is no solver, no constraint system, no
   enumeration across neighbours: each touching bead decides for itself
-  (`nodes/Wiring/beadcrud/bead_crud.go`'s `BeadCrudDecide`, wired in `CommitNodeMoveLocal`,
-  `nodes/Wiring/nodemove/commit_node_move.go`).
+  (`src/Node/Wiring/beadcrud/bead_crud.go`'s `BeadCrudDecide`, wired in `CommitNodeMoveLocal`,
+  `src/Node/Wiring/nodemove/commit_node_move.go`).
 
   The drag gives the node's own polar vector `v` (its previous position to its
   destination). Each touching bead has its own **source point** — the previous bead's
   centre along its chain, or the chain origin on the neighbour's torus surface when it is
-  the only bead (`nodes/Wiring/beadcrud/touching_beads.go`'s `DragTouchingBeads`) — NEVER the
+  the only bead (`src/Node/Wiring/beadcrud/touching_beads.go`'s `DragTouchingBeads`) — NEVER the
   touching bead's own centre; using the centre instead is wrong by one bead. The **third
   polar vector** runs from the bead's source point to the node's destination point.
   Compare its length to one bead length (`lattice.BeadStepR`):
@@ -34,7 +34,7 @@
   OPERATION, never from `v`.** Every touching bead performs the same judgement against the
   same `v`, but `v` (the drag) supplies only the third-vector test and the angle gate above
   — it never sets the node's new position or its direction of travel
-  (`nodes/Wiring/beadcrud/bead_crud.go`'s `BeadCrudImpliedCentre`, resolved across every touching
+  (`src/Node/Wiring/beadcrud/bead_crud.go`'s `BeadCrudImpliedCentre`, resolved across every touching
   bead by `ResolveBeadCrudMove`):
 
   - **REMOVE** → the node's new centre IS the removed bead's own former centre exactly — it
@@ -58,17 +58,17 @@
   jump (the edge step count re-counts against the live distance every commit).
 
   Bead count on an edge falls out of the resulting geometry as one integer subtraction
-  (`nodes/Wiring/edgegeom/chain_length.go`'s `EdgeStepCount`), with the near end tangent to the node's
+  (`src/Node/Wiring/edgegeom/chain_length.go`'s `EdgeStepCount`), with the near end tangent to the node's
   own torus by construction of the placement formula and one uniform global bead size
-  (`nodes/bead/lattice/bead_lattice.go`).
+  (`src/Node/bead/lattice/bead_lattice.go`).
 - **A mutual pair (two nodes each pointing an edge at the other) offsets its two chains to
   opposite sides**, so they do not draw on top of each other. `edgegeom.ParallelChainOffset`
-  (`nodes/Wiring/edgegeom/parallel_chain_offset.go`) computes the offset from the pair's own two centres and
+  (`src/Node/Wiring/edgegeom/parallel_chain_offset.go`) computes the offset from the pair's own two centres and
   the scene centre, in CANONICAL id order (NUMERICALLY smaller id first — a string compare
   would put "10" before "2" and hand both ends the same side, collapsing the two chains back
   onto one line) so both
   endpoints derive the SAME side independently — neither node needs to know what the other
   decided. The offset stays INSIDE that pair's own ring plane (not along a fixed world
   axis), so it composes with coplanar rings rather than fighting them. `chain_beads.go` is
-  guarded against doing this vector math itself (`nodes/bead/check-no-sqrt-in-chain-beads.sh`);
-  it calls into `nodes/Wiring/edgegeom/port_geometry.go` for it, same split as `edgegeom.EdgeCenterDistAndDir`.
+  guarded against doing this vector math itself (`src/Node/bead/check-no-sqrt-in-chain-beads.sh`);
+  it calls into `src/Node/Wiring/edgegeom/port_geometry.go` for it, same split as `edgegeom.EdgeCenterDistAndDir`.

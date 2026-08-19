@@ -3,9 +3,9 @@ package NodeShape
 import (
 	"sync"
 
-	"github.com/dtauraso/wirefold/nodes/Wiring/framegeom"
-	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
-	"github.com/dtauraso/wirefold/nodes/spatial"
+	"github.com/dtauraso/wirefold/src/Node/Wiring/framegeom"
+	"github.com/dtauraso/wirefold/src/Node/Wiring/nodegeom"
+	"github.com/dtauraso/wirefold/src/Node/spatial"
 )
 
 const (

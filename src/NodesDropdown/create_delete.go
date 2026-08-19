@@ -3,16 +3,16 @@ package NodesDropdown
 import (
 	"fmt"
 
-	"github.com/dtauraso/wirefold/nodes/Wiring/countspersist"
-	"github.com/dtauraso/wirefold/nodes/Wiring/edgefile"
-	"github.com/dtauraso/wirefold/nodes/Wiring/geom/camera"
-	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
-	"github.com/dtauraso/wirefold/nodes/Wiring/loadspec"
-	"github.com/dtauraso/wirefold/nodes/Wiring/moverreg"
-	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/nodefiles"
-	"github.com/dtauraso/wirefold/nodes/Wiring/rowtables"
-	"github.com/dtauraso/wirefold/nodes/Wiring/sceneswitch"
-	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
+	"github.com/dtauraso/wirefold/src/Node/Wiring/countspersist"
+	"github.com/dtauraso/wirefold/src/Node/Wiring/edgefile"
+	"github.com/dtauraso/wirefold/src/Node/Wiring/geom/camera"
+	"github.com/dtauraso/wirefold/src/Node/Wiring/geom/polar"
+	"github.com/dtauraso/wirefold/src/Node/Wiring/loadspec"
+	"github.com/dtauraso/wirefold/src/Node/Wiring/moverreg"
+	"github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor/nodefiles"
+	"github.com/dtauraso/wirefold/src/Node/Wiring/rowtables"
+	"github.com/dtauraso/wirefold/src/Node/Wiring/sceneswitch"
+	"github.com/dtauraso/wirefold/src/Node/Wiring/viewstate"
 	T "github.com/dtauraso/wirefold/src/Trace"
 )
 

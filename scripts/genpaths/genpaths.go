@@ -3,8 +3,11 @@ package genpaths
 import (
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 	"sort"
+
+	"strings"
 
 	"github.com/dtauraso/wirefold/scripts/kindscan"
 )
@@ -16,13 +19,13 @@ func Roots() (repoRoot, srcRoot string) {
 	}
 	repoRoot = FindRepoRoot(cwd)
 	if repoRoot == "" {
-		Fatalf("could not locate repo root (no nodes/ dir found from %s)", cwd)
+		Fatalf("could not locate repo root (no go.mod found from %s)", cwd)
 	}
 	return repoRoot, SrcRoot(repoRoot)
 }
 
 func Kinds(repoRoot string) []kindscan.KindEntry {
-	nodesDir := filepath.Join(repoRoot, "nodes")
+	nodesDir := NetworkDir(repoRoot)
 	kinds := kindscan.CollectKinds(nodesDir)
 	kindscan.AssignKindIDs(kinds, nodesDir)
 	sort.Slice(kinds, func(i, j int) bool {
@@ -30,6 +33,31 @@ func Kinds(repoRoot string) []kindscan.KindEntry {
 	})
 	return kinds
 }
+
+func NetworkDir(repoRoot string) string {
+	return filepath.Join(repoRoot, networkSegments[0], networkSegments[1])
+}
+
+func NetworkPkg(repoRoot string) string {
+	modPath := filepath.Join(repoRoot, "go.mod")
+	src, err := os.ReadFile(modPath)
+	if err != nil {
+		Fatalf("read %s: %v", modPath, err)
+	}
+	var module string
+	for _, line := range strings.Split(string(src), "\n") {
+		if rest, ok := strings.CutPrefix(strings.TrimSpace(line), "module "); ok {
+			module = strings.TrimSpace(rest)
+			break
+		}
+	}
+	if module == "" {
+		Fatalf("%s declares no module path", modPath)
+	}
+	return path.Join(append([]string{module}, networkSegments[:]...)...)
+}
+
+var networkSegments = [2]string{"src", "Node"}
 
 func Fatalf(format string, args ...any) {
 	fmt.Fprintf(os.Stderr, Self()+": "+format+"\n", args...)

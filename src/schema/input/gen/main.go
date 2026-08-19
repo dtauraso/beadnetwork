@@ -13,7 +13,7 @@ func main() {
 	genpaths.Name = "schema/input/gen"
 	repoRoot, srcRoot := genpaths.Roots()
 
-	wiringGoDir := filepath.Join(repoRoot, "nodes", "Wiring", "inputcodec")
+	wiringGoDir := filepath.Join(genpaths.NetworkDir(repoRoot), "Wiring", "inputcodec")
 	inputFP, err := inputlayout.ParseInputLayoutFingerprintDir(wiringGoDir)
 	if err != nil {
 		genpaths.Fatalf("parse input layout fingerprint: %v", err)

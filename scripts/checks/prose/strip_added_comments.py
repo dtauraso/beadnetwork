@@ -20,6 +20,9 @@ KEEP = re.compile(
     r"^!|go:|frametag:|^\+build|nolint|shellcheck|eslint|@ts-|prettier|istanbul|coding[:=]|"
     r"Code generated|DO NOT EDIT|@generated|PLACEMENT:|^[A-Z][A-Z0-9_]{3,}$")
 
+FENCE_START = re.compile(r"^[A-Z][A-Z0-9_]*_START$")
+FENCE_END = re.compile(r"^[A-Z][A-Z0-9_]*_END$")
+
 def added_lines(path):
     """New-file line numbers added since base, read out of the diff's own hunk
     headers rather than by matching text — the same line can appear twice."""
@@ -43,8 +46,16 @@ def strip(path, marker, added):
     except OSError:
         return []
     cut, killed, in_block = set(), [], False
+    fenced = False
     for i, raw in enumerate(src, start=1):
         s = raw.strip()
+        body = s.lstrip("/*# ").strip()
+        if FENCE_START.match(body):
+            fenced = True
+        if fenced:
+            if FENCE_END.match(body):
+                fenced = False
+            continue
         is_c = False
         if in_block:
             is_c = True

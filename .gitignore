@@ -150,7 +150,7 @@ __pycache__/
 # A node's own position and each of its outgoing edges' geometry delta live under a
 # gitignored drag/ directory (drag/index-*.json, drag/edges/<label>.json) as an ACCUMULATED
 # DELTA composed onto the tracked base.json/<label>.json seed. skip-worktree (the previous
-# mechanism, `nodes/Wiring/gitskip`) is gone: it only suppressed status/diff reporting, so
+# mechanism, `src/Node/Wiring/gitskip`) is gone: it only suppressed status/diff reporting, so
 # `git checkout` still refused to switch branches when a marked file differed from the
 # index, forcing drag output into a commit. A plain gitignored subdirectory has no such
 # failure mode.

@@ -3,8 +3,8 @@ package PolarRulesPanel
 import (
 	"math"
 
-	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
-	"github.com/dtauraso/wirefold/nodes/spatial"
+	"github.com/dtauraso/wirefold/src/Node/Wiring/geom/polar"
+	"github.com/dtauraso/wirefold/src/Node/spatial"
 )
 
 type DragRule struct {

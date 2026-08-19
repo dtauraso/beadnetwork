@@ -29,13 +29,13 @@ neighbors change because X moved.
 `moveMsgKindNeighborSetC`, `neighborSetCRequantize`, `requantizePoleTraced` do not exist;
 do not grep for them):** a neighbour's move arrives as `movemsg.KindCenter`, and the
 gesture FSM's drag as `movemsg.KindDrag`, over the per-node COALESCING slot
-`nodes/Wiring/nodeactor/owners/neighbor_slot.go` (`neighborSlot.deposit`, buffer of 1). That
+`src/Node/Wiring/nodeactor/owners/neighbor_slot.go` (`neighborSlot.deposit`, buffer of 1). That
 slot panics on any other kind, and on a message carrying neither a `Target` nor a `Delta` —
 because a WHERE collapses by keeping the newest and a HOW FAR collapses by summing, so a new
 kind must state its merge rule before it can ride the slot. Routing is still node-to-node
-(`nodes/Wiring/nodeactor/owners/messaging.go`), no worklist. `Trace`'s
+(`src/Node/Wiring/nodeactor/owners/messaging.go`), no worklist. `Trace`'s
 `BreadcrumbNeighborSetCRecv` / the `"neighbor-setc-recv"` label survive in
-`nodes/bead/inport/in_port.go`'s mapper with NO emitter left — leftover vocabulary, not a
+`src/Node/bead/inport/in_port.go`'s mapper with NO emitter left — leftover vocabulary, not a
 live path.
 
 **DELETED mechanism (was documented here as live fact; gone as of 590a119c):** the
@@ -56,5 +56,5 @@ agent trusted the header after those symbols were deleted and told another agent
 code INTO a file that no longer existed — real wasted time. Grep `node_move.go` fresh for
 any symbol before acting; treat symbol names here as historical, the MECHANISM as durable.
 Initial layout does NOT depend on any cascade — it is a pure forward computation
-(`quantoffset.DeriveCenters`, `nodes/Wiring/polarindex/polar_index.go`) from each node's stored triple; that is why the
+(`quantoffset.DeriveCenters`, `src/Node/Wiring/polarindex/polar_index.go`) from each node's stored triple; that is why the
 cascade could be deleted without leaving nodes unplaced on load.

@@ -3,9 +3,9 @@ package runtopology
 import (
 	"fmt"
 
-	"github.com/dtauraso/wirefold/nodes/rowevent"
+	"github.com/dtauraso/wirefold/src/Node/rowevent"
 
-	W "github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
+	W "github.com/dtauraso/wirefold/src/Node/Wiring/dispatch"
 	T "github.com/dtauraso/wirefold/src/Trace"
 )
 

@@ -4,7 +4,7 @@ import (
 	"path/filepath"
 	"sort"
 
-	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
+	"github.com/dtauraso/wirefold/src/Node/Wiring/jsonpersist"
 )
 
 var PanelFlagRead = map[string]func(*PanelState) bool{

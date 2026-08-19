@@ -5,7 +5,7 @@ metadata:
   type: project
 ---
 
-`MoveDispatch.RootMove` (nodes/Wiring/node_move.go) is called from
+`MoveDispatch.RootMove` (src/Node/Wiring/node_move.go) is called from
 `applyNodeDragTarget` in gesture.go on **every pointer-move event** during a drag
 (~8ms apart), plus once on pointer-up. It is NOT called once per drag, despite
 reading like it is.

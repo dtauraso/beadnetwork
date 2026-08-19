@@ -17,9 +17,9 @@ ALLOWED = {
         "one parse-a-kind pipeline; 7 unexported symbols cross file boundaries",
     "src/Buffer/gen/buflayout":
         "one parse-then-emit pipeline; 29 unexported symbols cross file boundaries",
-    "nodes/Wiring/nodeactor/owners":
+    "src/Node/Wiring/nodeactor/owners":
         "splitting re-exports the leaf fields the owners package exists to hide",
-    "nodes/PairNode":
+    "src/Node/PairNode":
         "kindscan joins pkgDir with the literal SPEC.md; tiltring took the exported-call seam",
     ".":
         "go.mod, LICENSE and the main package live at the module root",
@@ -121,7 +121,7 @@ while IFS= read -r line; do
     OVER)
       echo "DIRECTORY OVER CEILING: a directory holds more hand-edited files at its own top level"
       echo "than the ceiling. Cluster by concern, or add it to ALLOWED in this script with a"
-      echo "mechanism. NOTE: file count is a prompt to look, not a verdict — nodes/Wiring/nodeactor"
+      echo "mechanism. NOTE: file count is a prompt to look, not a verdict — src/Node/Wiring/nodeactor"
       echo "went 16 -> 23 files while its god object shrank, then 23 -> 12 with no code change but"
       echo "a package boundary. Check the design, not the number:"
       fail=1; continue ;;

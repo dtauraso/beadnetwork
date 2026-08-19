@@ -7,7 +7,7 @@ import (
 
 func FindRepoRoot(dir string) string {
 	for {
-		if _, err := os.Stat(filepath.Join(dir, "nodes")); err == nil {
+		if _, err := os.Stat(filepath.Join(dir, "go.mod")); err == nil {
 			return dir
 		}
 		parent := filepath.Dir(dir)

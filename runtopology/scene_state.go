@@ -1,11 +1,11 @@
 package runtopology
 
 import (
-	W "github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
-	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
-	"github.com/dtauraso/wirefold/nodes/Wiring/scenecamera"
-	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
-	"github.com/dtauraso/wirefold/nodes/Wiring/viewpersist"
+	W "github.com/dtauraso/wirefold/src/Node/Wiring/dispatch"
+	"github.com/dtauraso/wirefold/src/Node/Wiring/scene"
+	"github.com/dtauraso/wirefold/src/Node/Wiring/scenecamera"
+	"github.com/dtauraso/wirefold/src/Node/Wiring/scenepersist"
+	"github.com/dtauraso/wirefold/src/Node/Wiring/viewpersist"
 	"github.com/dtauraso/wirefold/src/SliderPanel"
 	T "github.com/dtauraso/wirefold/src/Trace"
 )

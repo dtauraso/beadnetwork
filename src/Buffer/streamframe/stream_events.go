@@ -3,7 +3,7 @@ package streamframe
 import (
 	"encoding/binary"
 
-	"github.com/dtauraso/wirefold/nodes/rowevent"
+	"github.com/dtauraso/wirefold/src/Node/rowevent"
 	B "github.com/dtauraso/wirefold/src/Buffer"
 	T "github.com/dtauraso/wirefold/src/Trace"
 )

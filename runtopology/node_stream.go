@@ -5,11 +5,11 @@ import (
 	NodeBuf "github.com/dtauraso/wirefold/src/Node"
 	"os"
 
-	"github.com/dtauraso/wirefold/nodes/rowevent"
+	"github.com/dtauraso/wirefold/src/Node/rowevent"
 
-	W "github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
-	"github.com/dtauraso/wirefold/nodes/Wiring/framegeom"
-	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/nodeframe"
+	W "github.com/dtauraso/wirefold/src/Node/Wiring/dispatch"
+	"github.com/dtauraso/wirefold/src/Node/Wiring/framegeom"
+	"github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor/nodeframe"
 	"github.com/dtauraso/wirefold/src/Buffer/colstream"
 	SF "github.com/dtauraso/wirefold/src/Buffer/streamframe"
 )

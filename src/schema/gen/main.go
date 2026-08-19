@@ -24,7 +24,7 @@ func main() {
 
 func generateKindImports(repoRoot string, kinds []kindscan.KindEntry) {
 	path := filepath.Join(repoRoot, "kinds_generated.go")
-	if err := kindscan.WriteKindImports(path, kinds); err != nil {
+	if err := kindscan.WriteKindImports(path, genpaths.NetworkPkg(repoRoot), kinds); err != nil {
 		genpaths.Fatalf("write %s: %v", path, err)
 	}
 	genpaths.Announce(path, len(kinds), "kinds")
@@ -39,7 +39,7 @@ func generateNodeDefs(srcRoot string, kinds []kindscan.KindEntry) {
 }
 
 func generateWireDefs(repoRoot, srcRoot string) {
-	loaderPath := filepath.Join(repoRoot, "nodes", "Wiring", "loadspec", "topo_spec.go")
+	loaderPath := filepath.Join(genpaths.NetworkDir(repoRoot), "Wiring", "loadspec", "topo_spec.go")
 	wireProps, err := wiredefs.ParseWirePropsFromFile(loaderPath)
 	if err != nil {
 		genpaths.Fatalf("parse wire props from loadspec/topo_spec.go: %v", err)

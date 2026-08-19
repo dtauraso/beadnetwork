@@ -6,11 +6,11 @@ import (
 	"os"
 	"sync"
 
-	"github.com/dtauraso/wirefold/nodes/nodeapi"
+	"github.com/dtauraso/wirefold/src/Node/nodeapi"
 
-	W "github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
-	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
-	"github.com/dtauraso/wirefold/nodes/Wiring/stdinreader"
+	W "github.com/dtauraso/wirefold/src/Node/Wiring/dispatch"
+	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/src/Node/Wiring/stdinreader"
 	T "github.com/dtauraso/wirefold/src/Trace"
 )
 

@@ -3,9 +3,9 @@ package runtopology
 import (
 	"os"
 
-	"github.com/dtauraso/wirefold/nodes/rowevent"
+	"github.com/dtauraso/wirefold/src/Node/rowevent"
 
-	W "github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
+	W "github.com/dtauraso/wirefold/src/Node/Wiring/dispatch"
 	SF "github.com/dtauraso/wirefold/src/Buffer/streamframe"
 )
 

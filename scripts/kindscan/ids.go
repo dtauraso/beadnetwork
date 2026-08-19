@@ -45,7 +45,7 @@ func AssignKindIDs(kinds []KindEntry, nodesDir string) {
 		if err := writeBackKindID(nodesDir, kinds[i].Dir, id); err != nil {
 			fatalf("kind %q: auto-assigned KindId %d but failed to write it back into SPEC.md: %v", kinds[i].GoKind, id, err)
 		}
-		fmt.Fprintf(os.Stderr, "gen-node-defs: auto-assigned KindId %d to new kind %q (written to nodes/%s/SPEC.md)\n", id, kinds[i].GoKind, kinds[i].Dir)
+		fmt.Fprintf(os.Stderr, "gen-node-defs: auto-assigned KindId %d to new kind %q (written to src/Node/%s/SPEC.md)\n", id, kinds[i].GoKind, kinds[i].Dir)
 	}
 }
 

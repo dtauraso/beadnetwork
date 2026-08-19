@@ -3,9 +3,9 @@ package AngleDropdown
 import (
 	"encoding/json"
 
-	"github.com/dtauraso/wirefold/nodes/Wiring/jsonpersist"
-	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
-	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
+	"github.com/dtauraso/wirefold/src/Node/Wiring/jsonpersist"
+	"github.com/dtauraso/wirefold/src/Node/Wiring/scenepaths"
+	"github.com/dtauraso/wirefold/src/Node/Wiring/viewstate"
 	"github.com/dtauraso/wirefold/src/TiltPanel"
 )
 

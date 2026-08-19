@@ -5,9 +5,9 @@ import (
 	"github.com/dtauraso/wirefold/src/SliderPanel"
 	"sync"
 
-	W "github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
-	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
-	"github.com/dtauraso/wirefold/nodes/Wiring/stdinreader"
+	W "github.com/dtauraso/wirefold/src/Node/Wiring/dispatch"
+	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/src/Node/Wiring/stdinreader"
 	T "github.com/dtauraso/wirefold/src/Trace"
 )
 

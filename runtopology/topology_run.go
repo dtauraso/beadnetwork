@@ -3,14 +3,14 @@ package runtopology
 import (
 	"context"
 	"fmt"
-	"github.com/dtauraso/wirefold/nodes/Wiring/scene"
+	"github.com/dtauraso/wirefold/src/Node/Wiring/scene"
 	"os"
 
-	"github.com/dtauraso/wirefold/nodes/clock"
+	"github.com/dtauraso/wirefold/src/Node/clock"
 
-	"github.com/dtauraso/wirefold/nodes/bead"
+	"github.com/dtauraso/wirefold/src/Node/bead"
 
-	Bld "github.com/dtauraso/wirefold/nodes/Wiring/build"
+	Bld "github.com/dtauraso/wirefold/src/Node/Wiring/build"
 	SF "github.com/dtauraso/wirefold/src/Buffer/streamframe"
 	NodeShape "github.com/dtauraso/wirefold/src/Node/Shape"
 	"github.com/dtauraso/wirefold/src/Tabs"

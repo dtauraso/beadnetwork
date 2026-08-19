@@ -12,8 +12,8 @@ python3 - <<'PY'
 import re, sys
 
 PAIRS = [
-    ("nodes/Wiring/nodeactor/nodeframe/node_frame_input.go", "NodeFrameInput",
-     "nodes/Wiring/nodeactor/node_geometry_stream.go"),
+    ("src/Node/Wiring/nodeactor/nodeframe/node_frame_input.go", "NodeFrameInput",
+     "src/Node/Wiring/nodeactor/node_geometry_stream.go"),
     ("src/Buffer/streamframe/node_stream_frame.go", "NodeStreamFrame",
      "runtopology/node_stream.go"),
 ]

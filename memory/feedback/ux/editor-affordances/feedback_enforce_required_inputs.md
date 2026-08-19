@@ -6,7 +6,7 @@ originSessionId: 96608f66-f9a2-47a3-bd1f-48841e9eb98a
 ---
 **REVERSED 2026-05-25** — the prior posture (fail parseSpec / reject the graph) was demoted.
 
-`nodes/Wiring/validate.go` Check 4 (missing required inbound edge) was demoted to
+`src/Node/Wiring/validate.go` Check 4 (missing required inbound edge) was demoted to
 non-fatal in commit 0e8d843. Go no longer rejects a topology for a missing
 required inbound edge.
 

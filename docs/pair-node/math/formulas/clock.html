@@ -42,27 +42,27 @@
             <tr>
               <td class="e">effective = userSpeed / divisor</td>
               <td class="n">divisor ≤ 0 → userSpeed</td>
-              <td class="s" data-src="nodes/Wiring/scenepersist/scene_speed_persist.go">scene_speed_persist.go</td>
+              <td class="s" data-src="src/Node/Wiring/scenepersist/scene_speed_persist.go">scene_speed_persist.go</td>
             </tr>
             <tr>
               <td class="e">divisor = 64</td>
               <td class="n">the pair scene's own</td>
-              <td class="s" data-src="nodes/Wiring/scene/scene.go">scene_tabs.go</td>
+              <td class="s" data-src="src/Node/Wiring/scene/scene.go">scene_tabs.go</td>
             </tr>
             <tr>
               <td class="e">pulses = clamp(⌈1 / speed⌉, 1, 64)</td>
               <td class="n">speed ≤ 0 → 64</td>
-              <td class="s" data-src="nodes/clock/sleep_cycle.go">clock/sleep_cycle.go</td>
+              <td class="s" data-src="src/Node/clock/sleep_cycle.go">clock/sleep_cycle.go</td>
             </tr>
             <tr>
               <td class="e">one cycle = pulses × 16 ms</td>
               <td class="n">each clock owns its own ticker</td>
-              <td class="s" data-src="nodes/clock/sleep_cycle.go">clock/sleep_cycle.go</td>
+              <td class="s" data-src="src/Node/clock/sleep_cycle.go">clock/sleep_cycle.go</td>
             </tr>
             <tr>
               <td class="e">HumanEditSpeed = 1.0</td>
               <td class="n">broadcast while a ▲▼ click applies</td>
-              <td class="s" data-src="nodes/Wiring/scenepersist/scene_speed_persist.go">scene_speed_persist.go</td>
+              <td class="s" data-src="src/Node/Wiring/scenepersist/scene_speed_persist.go">scene_speed_persist.go</td>
             </tr>
 
             <tr class="h">
@@ -73,32 +73,32 @@
             <tr>
               <td class="e">θ = idx × step</td>
               <td class="n">radians, measured from world +y</td>
-              <td class="s" data-src="nodes/Wiring/nodegeom/curve_params.go">curve_params.go</td>
+              <td class="s" data-src="src/Node/Wiring/nodegeom/curve_params.go">curve_params.go</td>
             </tr>
             <tr>
               <td class="e">x = r·sinθ·cosφ</td>
               <td class="n">the one trig site</td>
-              <td class="s" data-src="nodes/Wiring/geom/camera/camera_angles.go">camera_angles.go</td>
+              <td class="s" data-src="src/Node/Wiring/geom/camera/camera_angles.go">camera_angles.go</td>
             </tr>
             <tr>
               <td class="e">y = r·cosθ</td>
               <td class="n">θ from +y, so y is the cosine</td>
-              <td class="s" data-src="nodes/Wiring/geom/camera/camera_angles.go">camera_angles.go</td>
+              <td class="s" data-src="src/Node/Wiring/geom/camera/camera_angles.go">camera_angles.go</td>
             </tr>
             <tr>
               <td class="e">z = r·sinθ·sinφ</td>
               <td class="n">the other in-ring component</td>
-              <td class="s" data-src="nodes/Wiring/geom/camera/camera_angles.go">camera_angles.go</td>
+              <td class="s" data-src="src/Node/Wiring/geom/camera/camera_angles.go">camera_angles.go</td>
             </tr>
             <tr>
               <td class="e">r = nodeRadius(kind)</td>
               <td class="n">arrow length; 0 = draw none</td>
-              <td class="s" data-src="nodes/Wiring/nodegeom/node_geom.go">node_geom.go</td>
+              <td class="s" data-src="src/Node/Wiring/nodegeom/node_geom.go">node_geom.go</td>
             </tr>
             <tr>
               <td class="e">nodeRadius = outerR / (1 + tubeRatio)</td>
               <td class="n">the ring's own radius</td>
-              <td class="s" data-src="nodes/Wiring/nodegeom/node_geom.go">node_geom.go</td>
+              <td class="s" data-src="src/Node/Wiring/nodegeom/node_geom.go">node_geom.go</td>
             </tr>
           </table>
           <div class="cap">Four columns carry it to the renderer: <code>TopTiltVectorLen</code>,
