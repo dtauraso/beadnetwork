@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: nodes/Wiring/*.go | view/*.json path resolution lives only in scene_paths.go; nodes/ path Join lives only in node_mover.go/new_node_files.go/edge_mover.go/loader_tree.go/tree_shape.go
+# PLACEMENT: nodes/Wiring/**/*.go | view/*.json path resolution lives only in scene_paths.go; nodes/ path Join lives only in node_mover.go/new_node_files.go/edge_mover.go/loader_tree.go/tree_shape.go
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"

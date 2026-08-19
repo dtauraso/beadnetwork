@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: nodes/Wiring/*.go,nodes/bead/*.go,tools/topology-vscode/src/schema/types.ts | a new SendRule const must also appear in the SEND_RULES array in types.ts (types.ts stays at schema/ top level — it is a registry, not part of the buffer-layout or input clusters)
+# PLACEMENT: nodes/Wiring/**/*.go,nodes/bead/*.go,tools/topology-vscode/src/schema/types.ts | a new SendRule const must also appear in the SEND_RULES array in types.ts (types.ts stays at schema/ top level — it is a registry, not part of the buffer-layout or input clusters)
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
@@ -25,7 +25,7 @@ fi
 
 rules_from_go() {
   local go_files
-  go_files=$(cd "$REPO_ROOT" && git ls-files 'nodes/Wiring/*.go' 'nodes/Wiring/**/*.go' 'nodes/bead/*.go' 'nodes/bead/**/*.go')
+  go_files=$(cd "$REPO_ROOT" && git ls-files 'nodes/Wiring/**/*.go' 'nodes/Wiring/**/*.go' 'nodes/bead/*.go' 'nodes/bead/**/*.go')
   [[ -z "$go_files" ]] && return
   ( cd "$REPO_ROOT" && grep -haE 'SendRule[[:space:]]*=[[:space:]]*"[^"]+"' $go_files ) \
     | grep -o '"[^"]*"' \
@@ -49,7 +49,7 @@ assert_nonempty() {
     exit 1
   fi
 }
-assert_nonempty "$GO_RULES" "SendRule consts (nodes/bead/send_rule.go)"
+assert_nonempty "$GO_RULES" "SendRule consts (nodes/bead/outport/send_rule.go)"
 assert_nonempty "$TS_RULES" "SEND_RULES array (types.ts)"
 
 MISSING=$(comm -23 <(echo "$GO_RULES") <(echo "$TS_RULES"))

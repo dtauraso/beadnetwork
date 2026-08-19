@@ -53,7 +53,7 @@ while IFS= read -r page; do
     | grep -oE '<code[^>]*>[^<]*</code>' \
     | sed -e 's/<[^>]*>//g' \
     | grep -oE "$IDENT_RE" >> "$TMP/from_html.txt" || true
-done < <(git ls-files 'docs/*.html' 'docs/**/*.html' 2>/dev/null || true)
+done < <(git ls-files 'docs/**/*.html' 'docs/**/*.html' 2>/dev/null || true)
 sort -u -o "$TMP/from_html.txt" "$TMP/from_html.txt"
 
 cat "$TMP/from_go.txt" "$TMP/from_md.txt" "$TMP/from_html.txt" | sort -u > "$TMP/candidates.txt"
@@ -87,7 +87,7 @@ while IFS= read -r sym; do
   echo "  ghost: \`$sym\`"
 
   git grep -nE "(\`[^\`]*${sym}[^\`]*\`|<code[^>]*>[^<]*${sym}[^<]*</code>)" \
-    -- '*.go' '*.ts' '*.tsx' CLAUDE.md MODEL.md 'nodes/*/SPEC.md' 'docs/*.html' 'docs/**/*.html' 2>/dev/null \
+    -- '*.go' '*.ts' '*.tsx' CLAUDE.md MODEL.md 'nodes/*/SPEC.md' 'docs/**/*.html' 'docs/**/*.html' 2>/dev/null \
     | head -3 | sed 's/^/      /' || true
 done < "$TMP/ghosts.txt"
 

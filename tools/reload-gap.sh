@@ -90,7 +90,7 @@ cat <<'EOF'
 reading it:
   ~1.8s  healthy baseline for this repo
   >4s    regressed — reboot the machine. A VS Code quit+relaunch was measured
-         and does NOT fix it; host memory/swap pressure does (see header).
+         and does NOT fix it; host memory or swap pressure does (see header).
 
 this gap is process respawn only; extension activation is ~200ms and is never
 the cause. Confirm with: grep "Eager extensions activated" on the same log.

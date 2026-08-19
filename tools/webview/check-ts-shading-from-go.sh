@@ -76,5 +76,5 @@ if [[ $HITS -eq 0 ]]; then
 fi
 
 echo ""
-echo "ts-shading-from-go: $HITS hit(s) — shading parameter VALUES must live in Go (nodes/Wiring/shading_params.go), not TS"
+echo "ts-shading-from-go: $HITS hit(s) — shading parameter VALUES must live in Go (nodes/Wiring/nodegeom/shading_params.go), not TS"
 exit 1

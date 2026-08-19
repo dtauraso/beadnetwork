@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: nodes/Wiring/move_dispatch.go,nodes/Wiring/nodeactor/node_geometry.go | a composer struct (MoveDispatch, nodeactor.NodeGeometry) stays THIN: new state belongs in a named sub-struct, not a new loose field
+# PLACEMENT: nodes/Wiring/dispatch/move_dispatch_api.go,nodes/Wiring/nodeactor/node_geometry.go | a composer struct (MoveDispatch, nodeactor.NodeGeometry) stays THIN: new state belongs in a named sub-struct, not a new loose field
 
 set -euo pipefail
 
@@ -23,7 +23,7 @@ for row in "${COMPOSERS[@]}"; do
 
   FILE=$( (grep -rl "^${decl}\$" nodes/Wiring/ --include="*.go" || true) | grep -v _test | head -1 || true)
   if [[ -z "${FILE:-}" || ! -f "$FILE" ]]; then
-    echo "check-composer-fields: MISCONFIGURED — could not locate '${decl}' under nodes/Wiring/*.go; refusing vacuous pass" >&2
+    echo "check-composer-fields: MISCONFIGURED — could not locate '${decl}' under nodes/Wiring/**/*.go; refusing vacuous pass" >&2
     fail=1
     continue
   fi

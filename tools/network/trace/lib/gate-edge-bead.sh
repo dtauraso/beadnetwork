@@ -33,7 +33,7 @@ check_edge_bead_trace_gate() {
     report+="(wrapping drainPendingEvents, a breadcrumb append, or a future kind's emit site)"$'\n'
     report+="reproduces the exact silent-swallow regression this guard exists to prevent — see"$'\n'
     report+=".claude/rules/go-debugging.md's 'Debugging the Go layer (probe breadcrumbs)' section and"$'\n'
-    report+="memory/feedback_make_bug_class_unrepresentable.md."$'\n'
+    report+="memory/feedback/architecture/geometry/feedback_make_bug_class_unrepresentable.md."$'\n'
   else
     local h="${guard_hits[0]}"
     local gfile="${h%%:*}"
@@ -50,7 +50,7 @@ check_edge_bead_trace_gate() {
       report+="nodes/bead/bead_run.go's edgeBeadTraceEnabled doc comment). A guard use that"$'\n'
       report+="does not guard a KindEdgeBead emit site means the gate has spread to a different"$'\n'
       report+="event kind — most dangerously KindBreadcrumb, whose failure mode is SILENCE (see"$'\n'
-      report+="memory/feedback_make_bug_class_unrepresentable.md)."$'\n'
+      report+="memory/feedback/architecture/geometry/feedback_make_bug_class_unrepresentable.md)."$'\n'
     fi
   fi
 }

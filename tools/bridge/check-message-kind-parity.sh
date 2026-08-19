@@ -8,7 +8,6 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
-# (memory/feedback_guards_hardcoding_single_file_break_on_split.md): the MSG_TYPES fence and
 # its MSG_TYPES_DOC header sit in stdin_reader.go today, but that file has already been split
 
 GO_PKG_DIR="$REPO_ROOT/nodes/Wiring"

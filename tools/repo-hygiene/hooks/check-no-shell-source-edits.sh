@@ -6,7 +6,6 @@
 #     without the brief naming the guard rules that will apply to it;
 #   * the harness's read-before-edit and file-state tracking are skipped, so an edit can
 #     land on content that has changed underneath it;
-#   * memory/feedback_hook_block_means_stop.md names python3/sed -i/shell redirect
 #     EXPLICITLY as the route-around that must not be taken when a write hook says no.
 #     A guard that only fires on Write|Edit is not a guard if Bash can write the file.
 #
@@ -103,5 +102,5 @@ fi
 
 hit="$(printf '%s' "$stripped" | grep -Eo "$SOURCE_RE" | head -1 | tr -d '[:space:]')"
 
-emit deny "Shell write to a source file blocked ($mechanism, targeting ${hit}). Edit source with the Edit/Write TOOLS — a shell write skips placement-brief-hook.sh, skips read-before-edit tracking, and is the exact route-around memory/feedback_hook_block_means_stop.md names. The Edit tool handles several changes to one file natively; make several Edit calls rather than one heredoc."
+emit deny "Shell write to a source file blocked ($mechanism, targeting ${hit}). Edit source with the Edit/Write TOOLS — a shell write skips placement-brief-hook.sh, skips read-before-edit tracking, and is the exact route-around memory/feedback/process/guardrails/feedback_hook_block_means_stop.md names. The Edit tool handles several changes to one file natively; make several Edit calls rather than one heredoc."
 exit 0

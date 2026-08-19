@@ -59,7 +59,7 @@ check_streams_active_gate() {
         report+="This flag exists only to gate those two bulk-event appends — a guard use that"$'\n'
         report+="does not sit next to either means it has spread to a different emit site,"$'\n'
         report+="most dangerously a breadcrumb one (see"$'\n'
-        report+="memory/feedback_make_bug_class_unrepresentable.md)."$'\n'
+        report+="memory/feedback/architecture/geometry/feedback_make_bug_class_unrepresentable.md)."$'\n'
       fi
     done
   fi

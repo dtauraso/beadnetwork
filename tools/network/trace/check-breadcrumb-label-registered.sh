@@ -45,7 +45,7 @@ call_site_hits() {
 CALL_HITS=$(call_site_hits)
 if [[ -z "$(printf '%s' "$CALL_HITS" | tr -d '[:space:]')" ]]; then
   echo "check-breadcrumb-label-registered: MISCONFIGURED — no .Breadcrumb(\"...\") call" >&2
-  echo "sites found under nodes/tools/topology-vscode/src/Buffer/Trace; the extraction pattern itself is likely stale." >&2
+  echo "sites found under nodes/ or tools/topology-vscode/src/Trace; the extraction pattern itself is likely stale." >&2
   exit 1
 fi
 
