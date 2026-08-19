@@ -19,37 +19,48 @@ import { encodeSceneViewport } from "../schema/input/input-encode-scene-tilt";
 
 const OVERLAY_SURFACE_H = 2048;
 
-const SCALE_EXACT = 0.005;
+const SCALE_EXACT = 0.02;
 
-function reportScale(
-  axis: "x" | "y",
-  cssSize: number,
-  targetSize: number,
-  surfaceSize: number,
-  span: number,
+function keyField(key: string, index: number): number {
+  const n = Number(key.split(",")[index]);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function reportPanelSize(
+  name: string,
+  goRectW: number,
+  goRectH: number,
+  vw: number,
+  targetW: number,
+  surfaceW: number,
+  uSpan: number,
   ratio: number,
+  first: { current: number },
   last: { current: string },
 ): void {
-  const drawn = (ratio * targetSize) / Math.max(1, surfaceSize * span);
-  const want = targetSize / cssSize;
-  const factor = drawn / want;
+  if (goRectW <= 0) return;
+  const surfacePxPerScreenPx = (surfaceW * uSpan) / targetW;
+  const onScreenCss = (goRectW * ratio * surfacePxPerScreenPx) / (targetW / vw);
+  if (first.current === 0) first.current = onScreenCss;
+  const factor = onScreenCss / first.current;
   const status = Math.abs(factor - 1) <= SCALE_EXACT
-    ? "exact"
+    ? "held"
     : factor > 1 ? "stretched" : "shrunk";
-  const site = `${axis}|${status}|${factor.toFixed(3)}|${cssSize}`;
+  const site = `${status}|${factor.toFixed(3)}|${vw}`;
   if (site === last.current) return;
   last.current = site;
-  postLog(`panel-overlay-${status}-${axis}`, {
-    axis,
+  postLog(`panel-overlay-${status}`, {
+    panel: name,
     status,
     factor: Number(factor.toFixed(4)),
-    cssSize,
-    targetSize,
-    surfaceSize,
-    span: Number(span.toFixed(4)),
+    onScreenCss: Number(onScreenCss.toFixed(2)),
+    firstSeenCss: Number(first.current.toFixed(2)),
+    goRect: `${goRectW.toFixed(2)}x${goRectH.toFixed(2)}`,
+    viewCss: vw,
+    targetW,
+    surfaceW,
+    uSpan: Number(uSpan.toFixed(4)),
     ratio: Number(ratio.toFixed(4)),
-    drawnDevicePxPerCssPx: Number(drawn.toFixed(4)),
-    wantDevicePxPerCssPx: Number(want.toFixed(4)),
   });
 }
 
@@ -61,8 +72,10 @@ export function PanelOverlay() {
   const camRef = useRef(new THREE.OrthographicCamera(-1, 1, 1, -1, -1, 1));
   const lastKey = useRef("");
   const lastSize = useRef({ w: 0, h: 0 });
-  const lastScaleX = useRef("");
-  const lastScaleY = useRef("");
+  const firstChip = useRef(0);
+  const lastChip = useRef("");
+  const firstSpeed = useRef(0);
+  const lastSpeed = useRef("");
 
   useEffect(() => {
     const tex = new THREE.CanvasTexture(canvas);
@@ -150,8 +163,16 @@ export function PanelOverlay() {
     tex.repeat.set(uSpan, vSpan);
     tex.offset.set(0, 1 - vSpan);
 
-    reportScale("x", vw, targetW, canvas.width, uSpan, ratio, lastScaleX);
-    reportScale("y", vh, targetH, canvas.height, vSpan, ratio, lastScaleY);
+    const chipKey = fitChipKey();
+    reportPanelSize(
+      "fit-chip", keyField(chipKey, 2), 0,
+      vw, targetW, canvas.width, uSpan, ratio, firstChip, lastChip,
+    );
+    const speedKey = speedPanelKey();
+    reportPanelSize(
+      "speed-panel", keyField(speedKey, 2), keyField(speedKey, 3),
+      vw, targetW, canvas.width, uSpan, ratio, firstSpeed, lastSpeed,
+    );
 
     gl.autoClear = false;
     gl.clearDepth();
