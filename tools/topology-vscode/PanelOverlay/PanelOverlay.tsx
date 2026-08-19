@@ -11,6 +11,7 @@ import { drawTabStrip, tabStripKey } from "../Tabs/draw-tab-strip";
 import { drawRulesPanel, rulesPanelKey } from "../PolarRulesPanel/draw-rules-panel";
 import { postGoRecord } from "../src/webview/vscode-api";
 import { encodeSceneViewport } from "../src/schema/input/input-encode-scene-tilt";
+import { postLog } from "../src/webview/log/post";
 
 export function PanelOverlay() {
   const { gl } = useThree();
@@ -20,6 +21,7 @@ export function PanelOverlay() {
   const camRef = useRef(new THREE.OrthographicCamera(-1, 1, 1, -1, -1, 1));
   const lastKey = useRef("");
   const lastSize = useRef({ w: 0, h: 0 });
+  const lastSkew = useRef("");
 
   useEffect(() => {
     const tex = new THREE.CanvasTexture(canvas);
@@ -85,6 +87,29 @@ export function PanelOverlay() {
 
     const targetW = Math.max(1, el.width);
     const targetH = Math.max(1, el.height);
+
+    // The canvas' client box and its render target must describe the same rectangle. When
+    // they do not, every size read off this element is wrong and the panels are laid out for
+    // a viewport that is not the one they are shown in. The overlay clips rather than scales
+    // now, so that failure is quiet — which is exactly why it has to announce itself.
+    const skewX = Math.abs(targetW - bw);
+    const skewY = Math.abs(targetH - bh);
+    if (skewX > 2 || skewY > 2) {
+      const site = `${vw}x${vh}@${ratio}->${targetW}x${targetH}`;
+      if (site !== lastSkew.current) {
+        lastSkew.current = site;
+        postLog("panel-overlay-box-skew", {
+          clientCss: `${vw}x${vh}`,
+          expectedTarget: `${bw}x${bh}`,
+          actualTarget: `${targetW}x${targetH}`,
+          pixelRatio: ratio,
+          note: "canvas client box disagrees with its render target; panels are clipped to the wrong rectangle",
+        });
+      }
+    } else if (lastSkew.current !== "") {
+      lastSkew.current = "";
+      postLog("panel-overlay-box-agrees", { clientCss: `${vw}x${vh}`, target: `${targetW}x${targetH}` });
+    }
     const uSpan = Math.min(1, targetW / canvas.width);
     const vSpan = Math.min(1, targetH / canvas.height);
     tex.repeat.set(uSpan, vSpan);

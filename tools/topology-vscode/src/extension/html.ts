@@ -32,9 +32,6 @@ export function buildWebviewHtml(
        canvas, so there is nothing else with a class to style. -->
   <style>
     html, body { margin: 0; padding: 0; height: 100%; background: #fafafa; }
-    /* 100% of the real box, not 100vh. Viewport units resolve against the initial
-       containing block, which in an embedded webview does not reliably track the frame
-       being resized — the canvas then reports a box that disagrees with what is shown. */
     #app { width: 100%; height: 100%; }
   </style>
 </head>
