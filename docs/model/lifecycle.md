@@ -48,7 +48,7 @@ arrived.
   never stored as one shared value on the wire, so the wire reshaping
   mid-flight (a node drag) re-derives each bead correctly. The loader
   rejects a fan-in topology at parse (`validateNoFanIn`); the guard
-  `topology/nodes/check-no-fan-in.sh` keeps it out of the committed diagram.
+  `nodes/Wiring/loadspec/check-no-fan-in.sh` keeps it out of the committed diagram.
 
 ## Sending
 
