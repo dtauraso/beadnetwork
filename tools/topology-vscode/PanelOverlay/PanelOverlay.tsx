@@ -20,6 +20,8 @@ import {
   COL_STREAM_OVERLAYS_PILL_PILL_W, COL_STREAM_OVERLAYS_PILL_PILL_H,
 } from "../Buffer/column-streams-gen";
 
+const OVERLAY_SURFACE_H = 2048;
+
 export function PanelOverlay() {
   const { gl } = useThree();
   const canvas = useMemo(() => document.createElement("canvas"), []);
@@ -28,7 +30,6 @@ export function PanelOverlay() {
   const camRef = useRef(new THREE.OrthographicCamera(-1, 1, 1, -1, -1, 1));
   const lastKey = useRef("");
   const lastSize = useRef({ w: 0, h: 0 });
-  const lastSkew = useRef("");
 
   useEffect(() => {
     const tex = new THREE.CanvasTexture(canvas);
@@ -61,7 +62,7 @@ export function PanelOverlay() {
     const vh = Math.max(1, el.clientHeight);
     const ratio = Math.max(1, Math.min(3, gl.getPixelRatio()));
     const bw = Math.max(1, Math.round(vw * ratio));
-    const bh = Math.max(1, Math.round(vh * ratio));
+    const bh = Math.max(1, Math.round(OVERLAY_SURFACE_H * ratio));
 
     if (vw !== lastSize.current.w || vh !== lastSize.current.h) {
       const prev = lastSize.current;
@@ -98,7 +99,7 @@ export function PanelOverlay() {
       });
     }
 
-    const key = `${vw}x${vh}@${bw}x${bh}|${speedPanelKey()}|${tiltPanelKey()}|${anglePillKey()}|${nodesPillKey()}|${overlaysPillKey()}|${fitChipKey()}|${tabStripKey()}|${rulesPanelKey()}`;
+    const key = `${vw}@${bw}x${bh}|${speedPanelKey()}|${tiltPanelKey()}|${anglePillKey()}|${nodesPillKey()}|${overlaysPillKey()}|${fitChipKey()}|${tabStripKey()}|${rulesPanelKey()}`;
     if (key !== lastKey.current) {
       lastKey.current = key;
       if (canvas.width !== bw || canvas.height !== bh) {
@@ -125,24 +126,6 @@ export function PanelOverlay() {
     const targetW = Math.max(1, el.width);
     const targetH = Math.max(1, el.height);
 
-    const skewX = Math.abs(targetW - bw);
-    const skewY = Math.abs(targetH - bh);
-    if (skewX > 2 || skewY > 2) {
-      const site = `${vw}x${vh}@${ratio}->${targetW}x${targetH}`;
-      if (site !== lastSkew.current) {
-        lastSkew.current = site;
-        postLog("panel-overlay-box-skew", {
-          clientCss: `${vw}x${vh}`,
-          expectedTarget: `${bw}x${bh}`,
-          actualTarget: `${targetW}x${targetH}`,
-          pixelRatio: ratio,
-          note: "canvas client box disagrees with its render target; panels are clipped to the wrong rectangle",
-        });
-      }
-    } else if (lastSkew.current !== "") {
-      lastSkew.current = "";
-      postLog("panel-overlay-box-agrees", { clientCss: `${vw}x${vh}`, target: `${targetW}x${targetH}` });
-    }
     const uSpan = Math.min(1, targetW / canvas.width);
     const vSpan = Math.min(1, targetH / canvas.height);
     tex.repeat.set(uSpan, vSpan);
