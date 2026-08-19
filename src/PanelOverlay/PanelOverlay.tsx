@@ -32,6 +32,8 @@ export function PanelOverlay() {
     tex.colorSpace = THREE.SRGBColorSpace;
     tex.minFilter = THREE.LinearFilter;
     tex.magFilter = THREE.LinearFilter;
+    tex.wrapS = THREE.ClampToEdgeWrapping;
+    tex.wrapT = THREE.ClampToEdgeWrapping;
     texRef.current = tex;
     const mesh = new THREE.Mesh(
       new THREE.PlaneGeometry(2, 2),
@@ -57,8 +59,10 @@ export function PanelOverlay() {
     const el = gl.domElement;
     const vw = Math.max(1, el.clientWidth);
     const vh = Math.max(1, el.clientHeight);
-    const ratio = Math.max(1, Math.min(3, gl.getPixelRatio()));
-    const bw = Math.max(1, Math.round(vw * ratio));
+    const targetW = Math.max(1, el.width);
+    const targetH = Math.max(1, el.height);
+    const ratio = targetW / vw;
+    const bw = targetW;
     const bh = Math.max(1, Math.round(OVERLAY_SURFACE_H * ratio));
 
     if (vw !== lastSize.current.w || vh !== lastSize.current.h) {
@@ -93,9 +97,6 @@ export function PanelOverlay() {
       el.style.cursor = pointerTargetCursor();
       tex.needsUpdate = true;
     }
-
-    const targetW = Math.max(1, el.width);
-    const targetH = Math.max(1, el.height);
 
     const uSpan = Math.min(1, targetW / canvas.width);
     const vSpan = Math.min(1, targetH / canvas.height);
