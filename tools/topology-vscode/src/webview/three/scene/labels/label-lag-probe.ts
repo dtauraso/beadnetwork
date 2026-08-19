@@ -1,4 +1,5 @@
 import type { BufferLabelPos } from "../buffer-scene-shared";
+import { appliedPositions } from "./label-elements";
 import { postLog } from "../../../log/post";
 
 const REPORT_ABOVE_PX = 1.5;
@@ -8,15 +9,15 @@ let peak = 0;
 let frames = 0;
 let sequence = 0;
 
-export function probeLabelLag(shown: BufferLabelPos[], wanted: BufferLabelPos[]): void {
-  if (shown.length === 0 || shown.length !== wanted.length) return;
+export function probeLabelLag(wanted: BufferLabelPos[]): void {
+  const shown = appliedPositions();
+  if (shown.size === 0) return;
 
   let worst = 0;
   let worstRow = -1;
-  for (let i = 0; i < wanted.length; i++) {
-    const a = shown[i];
-    const b = wanted[i];
-    if (!a || !b || a.row !== b.row) continue;
+  for (const b of wanted) {
+    const a = shown.get(b.row);
+    if (!a) continue;
     const d = Math.hypot(a.px - b.px, a.py - b.py);
     if (d > worst) {
       worst = d;
@@ -47,7 +48,7 @@ export function probeLabelLag(shown: BufferLabelPos[], wanted: BufferLabelPos[])
     moving = false;
     postLog("label-lag-settled", {
       sequence,
-      framesBehind: frames,
+      motionFrames: frames,
       peakPx: peak.toFixed(2),
       restingPx: worst.toFixed(2),
     });
