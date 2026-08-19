@@ -1,7 +1,7 @@
 package nodeactor
 
 import (
-	"github.com/dtauraso/wirefold/tools/topology-vscode/PolarRulesPanel"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/src/PolarRulesPanel"
 	"io"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/interior"
@@ -14,7 +14,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/bead"
 	"github.com/dtauraso/wirefold/nodes/bead/outport"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/Buffer/colstream"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/src/Buffer/colstream"
 )
 
 func (m *NodeGeometry) WireMessaging(

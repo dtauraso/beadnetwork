@@ -1,7 +1,7 @@
 package gesture
 
 import (
-	"github.com/dtauraso/wirefold/tools/topology-vscode/FitButton"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/src/FitButton"
 	"math"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/camera"
@@ -9,7 +9,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodemove"
-	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
+	T "github.com/dtauraso/wirefold/tools/topology-vscode/src/Trace"
 )
 
 func gestHome(d Deps, ev inputcodec.RawInputMsg, tr *T.Trace) {

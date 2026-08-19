@@ -11,10 +11,10 @@ import (
 	"github.com/dtauraso/wirefold/nodes/bead"
 
 	Bld "github.com/dtauraso/wirefold/nodes/Wiring/build"
-	SF "github.com/dtauraso/wirefold/tools/topology-vscode/Buffer/streamframe"
-	NodeShape "github.com/dtauraso/wirefold/tools/topology-vscode/Node/Shape"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/Tabs"
-	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
+	SF "github.com/dtauraso/wirefold/tools/topology-vscode/src/Buffer/streamframe"
+	NodeShape "github.com/dtauraso/wirefold/tools/topology-vscode/src/Node/Shape"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/src/Tabs"
+	T "github.com/dtauraso/wirefold/tools/topology-vscode/src/Trace"
 )
 
 func RunTopology(ctx context.Context, cancel context.CancelFunc, topologyPath string, clk clock.Clock) {

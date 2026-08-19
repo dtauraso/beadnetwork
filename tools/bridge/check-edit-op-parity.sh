@@ -19,7 +19,7 @@ HANDLE_MSG="$REPO_ROOT/tools/topology-vscode/src/schema/input/input-layout-gen.t
 
 OVERLAY_FLAGS_TS="$REPO_ROOT/tools/topology-vscode/src/webview/three/controls/flags/overlay-flags.ts"
 
-PANEL_STATE_GO="$REPO_ROOT/tools/topology-vscode/OverlaysDropdown/panel_state.go"
+PANEL_STATE_GO="$REPO_ROOT/tools/topology-vscode/src/OverlaysDropdown/panel_state.go"
 
 for f in "$MESSAGES_TS" "$HANDLE_MSG" "$OVERLAY_FLAGS_TS" "$PANEL_STATE_GO"; do
   if [[ ! -f "$f" ]]; then

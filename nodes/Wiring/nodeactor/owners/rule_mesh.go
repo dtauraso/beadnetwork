@@ -3,7 +3,7 @@ package owners
 import (
 	"fmt"
 	"github.com/dtauraso/wirefold/nodes/spatial"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/PolarRulesPanel"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/src/PolarRulesPanel"
 	"strconv"
 )
 

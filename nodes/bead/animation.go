@@ -12,8 +12,8 @@ import (
 	"github.com/dtauraso/wirefold/nodes/clock"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
 	"github.com/dtauraso/wirefold/nodes/spatial"
-	SF "github.com/dtauraso/wirefold/tools/topology-vscode/Buffer/streamframe"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/SliderPanel"
+	SF "github.com/dtauraso/wirefold/tools/topology-vscode/src/Buffer/streamframe"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/src/SliderPanel"
 )
 
 type Animation struct {

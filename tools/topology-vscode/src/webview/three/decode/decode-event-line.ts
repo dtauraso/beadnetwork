@@ -1,4 +1,4 @@
-import { BREADCRUMB_LABELS } from "../../../../Trace/trace-kinds";
+import { BREADCRUMB_LABELS } from "../../../Trace/trace-kinds";
 import { nodeLabel } from "./buffer-decode-node";
 import {
   readRecvNodeRow, readRecvValue,
@@ -9,7 +9,7 @@ import {
   readBreadcrumbTargetPortRow, readBreadcrumbEdgeRow, readBreadcrumbSlot, readBreadcrumbValue,
   readBreadcrumbX, readBreadcrumbY, readBreadcrumbZ,
   readBreadcrumbLabel, readBreadcrumbDebug, readBreadcrumbTextOff, readBreadcrumbTextLen,
-} from "../../../../Buffer/buffer-layout";
+} from "../../../Buffer/buffer-layout";
 import type { DecodedEvents } from "./buffer-decode-shared";
 
 export type Line = Record<string, unknown>;

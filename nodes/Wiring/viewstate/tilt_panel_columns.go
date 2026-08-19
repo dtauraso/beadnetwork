@@ -5,7 +5,7 @@ import (
 	"math"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/tiltpanel"
-	B "github.com/dtauraso/wirefold/tools/topology-vscode/Buffer"
+	B "github.com/dtauraso/wirefold/tools/topology-vscode/src/Buffer"
 )
 
 func (ui *UIState) writeTiltPanelColumns(lay tiltpanel.Layout) {

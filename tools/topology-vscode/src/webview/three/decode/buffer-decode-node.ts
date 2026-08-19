@@ -1,8 +1,8 @@
-import { BUF_NODE_STREAM_FRAME_HEADER_SIZE } from "../../../../Buffer/frame-tags";
+import { BUF_NODE_STREAM_FRAME_HEADER_SIZE } from "../../../Buffer/frame-tags";
 import { STR_DECODER, decodeTrailingEvents, type DecodedEvents } from "./buffer-decode-shared";
-import { columnBytes } from "../../../../Buffer/column-values";
-import { nodeColumn } from "../../../../Buffer/column-owners";
-import { COL_STREAM_NODE_LABEL } from "../../../../Buffer/column-streams-gen";
+import { columnBytes } from "../../../Buffer/column-values";
+import { nodeColumn } from "../../../Buffer/column-owners";
+import { COL_STREAM_NODE_LABEL } from "../../../Buffer/column-streams-gen";
 
 export interface DecodedNodeStreamFrame {
   tick: number;

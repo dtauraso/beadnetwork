@@ -7,8 +7,8 @@ import (
 	"github.com/dtauraso/wirefold/nodes/rowevent"
 
 	W "github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/Buffer/colstream"
-	SF "github.com/dtauraso/wirefold/tools/topology-vscode/Buffer/streamframe"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/src/Buffer/colstream"
+	SF "github.com/dtauraso/wirefold/tools/topology-vscode/src/Buffer/streamframe"
 )
 
 func wireEdgeStreams(streamFDs SF.StreamFDs, md *W.MoveDispatch) {

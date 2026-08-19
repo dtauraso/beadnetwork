@@ -5,8 +5,8 @@ import { freshStreamState, type StreamParseState } from "./parse-state";
 import type { ProbePaths } from "./probe/probe-paths";
 import { LastFrameStore } from "./last-frame-store";
 import { ColumnStore } from "./column-store";
-import { BUF_BLOCK_TAG_COLUMN } from "../../Buffer/frame-tags";
-import { COL_STREAM_SCENE_NODE_COUNT, COL_STREAM_SCENE_EDGE_COUNT } from "../../Buffer/column-streams-gen";
+import { BUF_BLOCK_TAG_COLUMN } from "../Buffer/frame-tags";
+import { COL_STREAM_SCENE_NODE_COUNT, COL_STREAM_SCENE_EDGE_COUNT } from "../Buffer/column-streams-gen";
 import {
   dispatchViewFrames,
   dispatchEdgeFrames,

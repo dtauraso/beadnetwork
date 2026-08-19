@@ -3,7 +3,7 @@ package scene
 import (
 	"path/filepath"
 
-	B "github.com/dtauraso/wirefold/tools/topology-vscode/Buffer"
+	B "github.com/dtauraso/wirefold/tools/topology-vscode/src/Buffer"
 )
 
 type Scene struct {

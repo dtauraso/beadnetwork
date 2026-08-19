@@ -1,8 +1,8 @@
 import React, { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { columnBytes } from "../../../../Buffer/column-values";
-import { nodeColumn, ownerCounts } from "../../../../Buffer/column-owners";
+import { columnBytes } from "../../../Buffer/column-values";
+import { nodeColumn, ownerCounts } from "../../../Buffer/column-owners";
 import {
   COL_STREAM_TILT_ARROW_RECEIVED,
   COL_STREAM_TILT_ARROW_SHAFT_M0, COL_STREAM_TILT_ARROW_SHAFT_M1,
@@ -21,7 +21,7 @@ import {
   COL_STREAM_TILT_ARROW_HEAD_M10, COL_STREAM_TILT_ARROW_HEAD_M11,
   COL_STREAM_TILT_ARROW_HEAD_M12, COL_STREAM_TILT_ARROW_HEAD_M13,
   COL_STREAM_TILT_ARROW_HEAD_M14, COL_STREAM_TILT_ARROW_HEAD_M15,
-} from "../../../../Buffer/column-streams-gen";
+} from "../../../Buffer/column-streams-gen";
 
 const VECTOR_COLOR = "#FF2E88";
 

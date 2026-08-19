@@ -1,6 +1,6 @@
 package kindapi
 
-import "github.com/dtauraso/wirefold/tools/topology-vscode/AngleDropdown"
+import "github.com/dtauraso/wirefold/tools/topology-vscode/src/AngleDropdown"
 
 func (a BuildArgs) LatticePointsSeed() int32 {
 	if a.deps.ClaimLatticeIn == nil {

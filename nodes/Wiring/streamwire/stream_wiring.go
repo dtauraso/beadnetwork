@@ -13,7 +13,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/streamclaim"
 	"github.com/dtauraso/wirefold/nodes/bead"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/Buffer/colstream"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/src/Buffer/colstream"
 )
 
 type StreamWiring struct {

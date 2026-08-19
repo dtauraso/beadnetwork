@@ -3,7 +3,7 @@ package stdinreader
 import (
 	"context"
 	"fmt"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/SliderPanel"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/src/SliderPanel"
 	"math"
 	"strconv"
 
@@ -16,8 +16,8 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/rulenode"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/sceneswitch"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/NodesDropdown"
-	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/src/NodesDropdown"
+	T "github.com/dtauraso/wirefold/tools/topology-vscode/src/Trace"
 )
 
 func applyUpdateClock(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks SliderPanel.Sinks) {

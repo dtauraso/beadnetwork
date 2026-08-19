@@ -8,8 +8,8 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 SCAN_DIR=(
   "$REPO_ROOT/tools/topology-vscode/src/webview/three"
-  "$REPO_ROOT/tools/topology-vscode/Node"
-  "$REPO_ROOT/tools/topology-vscode/Scene"
+  "$REPO_ROOT/tools/topology-vscode/src/Node"
+  "$REPO_ROOT/tools/topology-vscode/src/Scene"
 )
 
 if [[ ! -d "$SCAN_DIR" ]]; then

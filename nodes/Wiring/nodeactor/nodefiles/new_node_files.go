@@ -1,7 +1,7 @@
 package nodefiles
 
 import (
-	"github.com/dtauraso/wirefold/tools/topology-vscode/PolarRulesPanel"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/src/PolarRulesPanel"
 	"os"
 	"path/filepath"
 

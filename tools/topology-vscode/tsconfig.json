@@ -14,18 +14,5 @@
     "types": ["node"],
     "jsx": "react-jsx"
   },
-  "include": [
-    "src/**/*.ts", "src/**/*.tsx",
-    "Buffer/**/*.ts", "Trace/**/*.ts",
-    "SliderPanel/**/*.ts", "SliderPanel/**/*.tsx",
-    "Tabs/**/*.ts", "Tabs/**/*.tsx",
-    "PolarRulesPanel/**/*.ts", "PolarRulesPanel/**/*.tsx",
-    "TiltPanel/**/*.ts", "TiltPanel/**/*.tsx",
-    "AngleDropdown/**/*.ts", "AngleDropdown/**/*.tsx",
-    "NodesDropdown/**/*.ts", "NodesDropdown/**/*.tsx",
-    "FitButton/**/*.ts", "FitButton/**/*.tsx",
-    "Node/**/*.ts", "Node/**/*.tsx",
-    "Scene/**/*.ts", "Scene/**/*.tsx",
-    "OverlaysDropdown/**/*.ts", "OverlaysDropdown/**/*.tsx"
-  ]
+  "include": ["src/**/*.ts", "src/**/*.tsx"]
 }

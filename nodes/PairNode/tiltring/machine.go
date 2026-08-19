@@ -3,7 +3,7 @@ package tiltring
 import (
 	"strconv"
 
-	"github.com/dtauraso/wirefold/tools/topology-vscode/TiltPanel"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/src/TiltPanel"
 )
 
 type Machine struct {

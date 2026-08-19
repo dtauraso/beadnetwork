@@ -1,10 +1,10 @@
-import { columnF32 } from "../../../../../Buffer/column-values";
-import { nodeColumn, ownerCounts } from "../../../../../Buffer/column-owners";
+import { columnF32 } from "../../../../Buffer/column-values";
+import { nodeColumn, ownerCounts } from "../../../../Buffer/column-owners";
 import {
   COL_STREAM_NODE_POLE_ANCHOR_X, COL_STREAM_NODE_POLE_ANCHOR_Y, COL_STREAM_NODE_POLE_ANCHOR_Z,
-} from "../../../../../Buffer/column-streams-gen";
+} from "../../../../Buffer/column-streams-gen";
 import { getEdgeStreamAccessor } from "./edge-stream-blocks";
-import { sceneSteps } from "../../../../../Scene/scene-frame";
+import { sceneSteps } from "../../../../Scene/scene-frame";
 import { postLog } from "../../../log/post";
 
 const TOLERANCE = 0.25;

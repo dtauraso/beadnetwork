@@ -15,10 +15,10 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/sceneswitch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/speedpanel"
 	"github.com/dtauraso/wirefold/nodes/Wiring/tiltpanel"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/NodesDropdown"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/OverlaysDropdown"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/SliderPanel"
-	T "github.com/dtauraso/wirefold/tools/topology-vscode/Trace"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/src/NodesDropdown"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/src/OverlaysDropdown"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/src/SliderPanel"
+	T "github.com/dtauraso/wirefold/tools/topology-vscode/src/Trace"
 )
 
 func panelTookPointerDown(

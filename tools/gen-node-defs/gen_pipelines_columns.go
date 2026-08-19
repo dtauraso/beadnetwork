@@ -15,11 +15,11 @@ func generateColumnStreams(repoRoot string) {
 		fatalf("parse buffer layout for column streams: %v", err)
 	}
 
-	goPath := filepath.Join(repoRoot, "tools", "topology-vscode", "Buffer", "column_streams_gen.go")
+	goPath := filepath.Join(repoRoot, "tools", "topology-vscode", "src", "Buffer", "column_streams_gen.go")
 	if err := buflayout.WriteColumnStreamsGo(goPath, schema); err != nil {
 		fatalf("write %s: %v", goPath, err)
 	}
-	tsPath := filepath.Join(repoRoot, "tools", "topology-vscode", "Buffer", "column-streams-gen.ts")
+	tsPath := filepath.Join(repoRoot, "tools", "topology-vscode", "src", "Buffer", "column-streams-gen.ts")
 	if err := buflayout.WriteColumnStreamsTS(tsPath, schema); err != nil {
 		fatalf("write %s: %v", tsPath, err)
 	}

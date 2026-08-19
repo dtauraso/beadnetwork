@@ -7,7 +7,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/rulenode"
 	"github.com/dtauraso/wirefold/nodes/Wiring/rulespanel"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/OverlaysDropdown"
+	"github.com/dtauraso/wirefold/tools/topology-vscode/src/OverlaysDropdown"
 )
 
 func applyRulesHit(ctx context.Context, md *dispatch.MoveDispatch, h rulespanel.Hit) {

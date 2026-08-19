@@ -1,5 +1,5 @@
 import { OVERLAY_FLAG_ORDER, type OverlayFlag } from "../../../../messages";
-import { columnU8 } from "../../../../../Buffer/column-values";
+import { columnU8 } from "../../../../Buffer/column-values";
 import {
   COL_STREAM_OVERLAY_SCENE_TORI,
   COL_STREAM_OVERLAY_SCENE_POLES,
@@ -16,7 +16,7 @@ import {
   COL_STREAM_OVERLAY_RULE_CHANNELS,
   COL_STREAM_OVERLAY_NODE_POLE_SPHERE,
   COL_STREAM_OVERLAY_ALL_POLE_SPHERES,
-} from "../../../../../Buffer/column-streams-gen";
+} from "../../../../Buffer/column-streams-gen";
 
 export type OverlayFlagVals = Record<OverlayFlag, boolean>;
 
