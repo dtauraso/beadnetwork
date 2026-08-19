@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: src/Buffer/buffer_layout_gen_singletons.go,tools/gen-node-defs/buflayout/buffer_layout_singletons.go | SetOverlayRow must take one named OverlayRow struct, never positional same-typed scalars
+# PLACEMENT: src/Buffer/buffer_layout_gen_singletons.go,cmd/gen-node-defs/buflayout/buffer_layout_singletons.go | SetOverlayRow must take one named OverlayRow struct, never positional same-typed scalars
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 GEN_FILE="$REPO_ROOT/src/Buffer/buffer_layout_gen_singletons.go"
-GENERATOR="$REPO_ROOT/tools/gen-node-defs/buflayout/buffer_layout_singletons.go"
+GENERATOR="$REPO_ROOT/cmd/gen-node-defs/buflayout/buffer_layout_singletons.go"
 
 for f in "$GEN_FILE" "$GENERATOR"; do
   if [[ ! -f "$f" ]]; then

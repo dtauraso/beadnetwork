@@ -72,7 +72,7 @@ Struct fields populated from the node's `data.json` at load time (not wires). Ex
 The kind's stable buffer `KindId` (the numeric value stored in the buffer's node
 KindId column). Assigned once, the first time a kind is generated, and never
 renumbered afterward — adding a new kind must not change any existing kind's id.
-Leave it blank on a brand-new kind's first generation: `tools/gen-node-defs`
+Leave it blank on a brand-new kind's first generation: `cmd/gen-node-defs`
 auto-assigns `max(existing ids) + 1` and writes it back into this file, so it's
 stable from then on. Do not hand-edit an existing kind's `kindId` — that would
 change the buffer's numeric encoding for every node of that kind.
@@ -114,7 +114,7 @@ The `## View` section is required for any kind that has a TSX render. It drives 
 | height | 60 |
 ```
 
-- `kind` — required (non-empty), but **write-only/vestigial today**: `tools/gen-node-defs/main.go`
+- `kind` — required (non-empty), but **write-only/vestigial today**: `cmd/gen-node-defs/main.go`
   parses it and fails loudly if it's empty, but it is never used as the `NODE_DEFS` key. The
   actual `node-defs.ts` key is the **PascalCase Go kind name** from `Wiring.Register(...)`
   (`goKind`), matching `CLAUDE.md`. Keep `kind` populated (any non-empty string; convention is
@@ -128,7 +128,7 @@ The `## View` section is required for any kind that has a TSX render. It drives 
   110×60 if omitted.
 
 A missing `## View` section (or one missing the `Field`/`Value` table columns) is a **hard
-error**: the generator (`tools/gen-node-defs/main.go`) fails the whole build (`fatalf`), it is
+error**: the generator (`cmd/gen-node-defs/main.go`) fails the whole build (`fatalf`), it is
 not skipped or treated as not-yet-migrated. Every `nodes/<Kind>/` directory with a
 `Wiring.Register(...)` call MUST have a valid `## View` section.
 

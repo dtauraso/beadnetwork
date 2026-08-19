@@ -67,7 +67,7 @@ for fence, marker, what in (
         print(f"  Both lists hold the same names in a DIFFERENT ORDER — the index is positional, so every")
         print(f"  toggle past the first difference addresses the wrong flag.")
     print(f"  Fix: make the {marker} list in {FINGERPRINT} match the {fence} fence exactly, then")
-    print(f"  regenerate (go run ./tools/gen-node-defs).")
+    print(f"  regenerate (go run ./cmd/gen-node-defs).")
     print(f"  Note: check-input-layout-parity stays GREEN through this. input-layout-gen.ts is")
     print(f"  generated FROM the fingerprint, so those two agree by construction whatever the")
     print(f"  registry says — this guard is the only one comparing the wire order to the registry.")

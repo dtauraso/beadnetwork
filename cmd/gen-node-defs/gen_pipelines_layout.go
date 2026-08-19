@@ -5,10 +5,10 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/dtauraso/wirefold/tools/gen-node-defs/buflayout"
-	"github.com/dtauraso/wirefold/tools/gen-node-defs/inputlayout"
-	"github.com/dtauraso/wirefold/tools/gen-node-defs/overlaygen"
-	"github.com/dtauraso/wirefold/tools/gen-node-defs/params"
+	"github.com/dtauraso/wirefold/cmd/gen-node-defs/buflayout"
+	"github.com/dtauraso/wirefold/cmd/gen-node-defs/inputlayout"
+	"github.com/dtauraso/wirefold/cmd/gen-node-defs/overlaygen"
+	"github.com/dtauraso/wirefold/cmd/gen-node-defs/params"
 )
 
 func generateCurveParams(repoRoot string) {

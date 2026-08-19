@@ -44,7 +44,7 @@ clock, and the node-owned chain of placeholder beads that renders a traversal
    `<Kind>.go`) plus `SPEC.md`. Directory casing is mixed and both are live: PascalCase
    (`Time`, `TimeEnd`, `TimeStart`, `PulseLeft`, `PulseRight`) and lowercase (`holdflip`,
    `input`, `pacer`, `pulse`, `selectleft`, `selectright`) — don't infer one from the other.
-4. `go run ./tools/gen-node-defs`. **Skip this and the kind does not exist in the binary** —
+4. `go run ./cmd/gen-node-defs`. **Skip this and the kind does not exist in the binary** —
    it fails at runtime with `unknown type "X"` while everything else looks correct.
    Guard: `check-generated.sh`.
 

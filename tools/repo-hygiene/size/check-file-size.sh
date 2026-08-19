@@ -29,7 +29,7 @@ def generator_written():
     """Paths the generator writes, read out of its own source — never a hardcoded
     list, so moving generated output cannot blind this check."""
     out = set()
-    for root, _dirs, files in os.walk("tools/gen-node-defs"):
+    for root, _dirs, files in os.walk("cmd/gen-node-defs"):
         for f in files:
             if not f.endswith(".go"):
                 continue

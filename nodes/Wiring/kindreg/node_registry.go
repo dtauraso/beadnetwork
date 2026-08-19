@@ -36,6 +36,6 @@ func init() {
 
 func BuildRegistry() {
 	if len(Registry) == 0 {
-		panic("kindreg.BuildRegistry: no node kinds registered — kinds_generated.go's blank imports are what run each kind's init(); regenerate with `go run ./tools/gen-node-defs`")
+		panic("kindreg.BuildRegistry: no node kinds registered — kinds_generated.go's blank imports are what run each kind's init(); regenerate with `go run ./cmd/gen-node-defs`")
 	}
 }

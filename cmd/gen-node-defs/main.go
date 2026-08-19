@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"sort"
 
-	"github.com/dtauraso/wirefold/tools/gen-node-defs/kindscan"
+	"github.com/dtauraso/wirefold/cmd/gen-node-defs/kindscan"
 )
 
 func main() {

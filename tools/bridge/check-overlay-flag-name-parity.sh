@@ -32,7 +32,7 @@ if [ "$ts_names" != "$go_names" ]; then
   echo "OverlayToggles keys (overlay_tables_gen.go) diverge. Diff (< messages.ts, > overlay_tables_gen.go):"
   diff <(printf '%s\n' "$ts_names") <(printf '%s\n' "$go_names") || true
   echo "If you changed the overlay vocabulary, edit OVERLAY_FLAG_NAMES in messages.ts and"
-  echo "regenerate (go run ./tools/gen-node-defs) so overlay_tables_gen.go matches."
+  echo "regenerate (go run ./cmd/gen-node-defs) so overlay_tables_gen.go matches."
   exit 1
 fi
 

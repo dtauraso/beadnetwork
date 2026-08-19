@@ -37,16 +37,12 @@ var overlayOverrides = map[string]overlayOverride{
 	"allPoleSpheres": {defaultOff: true},
 }
 
-// OVERLAY_FLAGS_START / OVERLAY_FLAGS_END sentinels) and returns the flag metadata in
-
 func ParseOverlayFlags(messagesPath string) ([]overlayFlag, error) {
 	data, err := os.ReadFile(messagesPath)
 	if err != nil {
 		return nil, err
 	}
 	lines := strings.Split(string(data), "\n")
-
-	// sentinel (e.g. "the flags below are fenced by OVERLAY_FLAGS_START/END", exactly the
 
 	start, end := -1, -1
 	for i, l := range lines {

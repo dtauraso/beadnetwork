@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/dtauraso/wirefold/tools/gen-node-defs/buflayout"
+	"github.com/dtauraso/wirefold/cmd/gen-node-defs/buflayout"
 )
 
 func generateColumnStreams(repoRoot string) {

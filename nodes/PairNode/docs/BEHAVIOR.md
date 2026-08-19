@@ -3,7 +3,7 @@
 [← SPEC.md](../SPEC.md)
 
 The `## View`, `## Ports`, and `## Description` sections stay in SPEC.md because
-`tools/gen-node-defs/kindscan/spec_md_table.go`'s `readSpecMDLines` reads exactly
+`cmd/gen-node-defs/kindscan/spec_md_table.go`'s `readSpecMDLines` reads exactly
 `nodes/<Kind>/SPEC.md` and `parseSpecMD` parses only those sections from it. Everything
 else the generator does not read lives in the pages below.
 

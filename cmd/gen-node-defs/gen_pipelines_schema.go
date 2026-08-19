@@ -5,10 +5,10 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/dtauraso/wirefold/tools/gen-node-defs/kindscan"
-	"github.com/dtauraso/wirefold/tools/gen-node-defs/nodedefs"
-	"github.com/dtauraso/wirefold/tools/gen-node-defs/tracekinds"
-	"github.com/dtauraso/wirefold/tools/gen-node-defs/wiredefs"
+	"github.com/dtauraso/wirefold/cmd/gen-node-defs/kindscan"
+	"github.com/dtauraso/wirefold/cmd/gen-node-defs/nodedefs"
+	"github.com/dtauraso/wirefold/cmd/gen-node-defs/tracekinds"
+	"github.com/dtauraso/wirefold/cmd/gen-node-defs/wiredefs"
 )
 
 func generateKindImports(repoRoot string, kinds []kindscan.KindEntry) {

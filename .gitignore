@@ -69,7 +69,7 @@ dist/
 /topogend
 # go build output if accidentally run from the repo root
 /gen-node-defs
-# compiled gen-node-defs binary (build artifact); source is tools/gen-node-defs/
+# compiled gen-node-defs binary (build artifact); source is cmd/gen-node-defs/
 /gen-node-defs
 
 # Local working notes / scratch

@@ -36,7 +36,7 @@ partner, one step per arrival.
 
 See [BEHAVIOR.md](./docs/BEHAVIOR.md) for the firing rule, the vector channel, why a tilt does not
 move the node, pacing/clock speed, and the third (received-direction) vector — none of
-which `tools/gen-node-defs` parses.
+which `cmd/gen-node-defs` parses.
 
 ## Runtime status
 
