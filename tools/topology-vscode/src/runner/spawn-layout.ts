@@ -5,7 +5,9 @@ import {
   MAX_COLUMN_STREAMS,
   VIEW_FD,
 } from "./stream-fds";
-import { columnStreamCount } from "../Buffer/column-streams-gen";
+import {
+  columnStreamCount,
+} from "../Buffer/column-streams-gen";
 
 export interface SpawnLayout {
   edgeCount: number;

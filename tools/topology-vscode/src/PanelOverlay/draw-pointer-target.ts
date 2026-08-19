@@ -3,12 +3,11 @@ import { panelFont, roundRect } from "./panel-box";
 import { readText, decodeAt } from "./panel-columns";
 import * as T from "../webview/three/controls/chrome-theme";
 import {
-  COL_STREAM_POINTER_TARGET_X, COL_STREAM_POINTER_TARGET_Y,
-  COL_STREAM_POINTER_TARGET_W, COL_STREAM_POINTER_TARGET_H,
-  COL_STREAM_POINTER_TARGET_KIND,
+  COL_STREAM_POINTER_TARGET_X, COL_STREAM_POINTER_TARGET_Y, COL_STREAM_POINTER_TARGET_W,
+  COL_STREAM_POINTER_TARGET_H, COL_STREAM_POINTER_TARGET_KIND,
   COL_STREAM_POINTER_TARGET_TIP_X, COL_STREAM_POINTER_TARGET_TIP_Y,
   COL_STREAM_POINTER_TARGET_TIP_TEXT,
-} from "../Buffer/column-streams-gen";
+} from "./columns-gen";
 
 const KIND_NOTHING = 0;
 const KIND_REFUSING = 2;

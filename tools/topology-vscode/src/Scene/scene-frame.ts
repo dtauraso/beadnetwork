@@ -1,8 +1,9 @@
 import { columnF32, columnI32 } from "../Buffer/column-values";
 import {
   COL_STREAM_SCENE_CX, COL_STREAM_SCENE_CY, COL_STREAM_SCENE_CZ, COL_STREAM_SCENE_RADIUS,
-  COL_STREAM_SCENE_CONSTANT_R, COL_STREAM_SCENE_MAX_INDEX_PHI, COL_STREAM_SCENE_MAX_INDEX_THETA,
-} from "../Buffer/column-streams-gen";
+  COL_STREAM_SCENE_CONSTANT_R, COL_STREAM_SCENE_MAX_INDEX_PHI,
+  COL_STREAM_SCENE_MAX_INDEX_THETA,
+} from "./columns-gen";
 
 export interface SceneSteps {
   centerX: number;

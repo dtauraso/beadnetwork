@@ -3,10 +3,9 @@ import { panelFont, roundRect } from "../PanelOverlay/panel-box";
 import { readText, decodeAt } from "../PanelOverlay/panel-columns";
 import * as T from "../webview/three/controls/chrome-theme";
 import {
-  COL_STREAM_FIT_CHIP_X, COL_STREAM_FIT_CHIP_Y,
-  COL_STREAM_FIT_CHIP_W, COL_STREAM_FIT_CHIP_H,
+  COL_STREAM_FIT_CHIP_X, COL_STREAM_FIT_CHIP_Y, COL_STREAM_FIT_CHIP_W, COL_STREAM_FIT_CHIP_H,
   COL_STREAM_FIT_CHIP_LABEL_TEXT,
-} from "../Buffer/column-streams-gen";
+} from "./columns-gen";
 
 export function fitChipKey(): string {
   return [

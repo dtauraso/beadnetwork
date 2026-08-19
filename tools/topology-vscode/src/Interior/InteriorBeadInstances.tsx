@@ -6,9 +6,9 @@ import { interiorBeadStyleForValue } from "../Bead/bead-style";
 import { columnBytes } from "../Buffer/column-values";
 import { nodeColumn, ownerCounts } from "../Buffer/column-owners";
 import {
-  COL_STREAM_INTERIOR_PRESENT, COL_STREAM_INTERIOR_VALUE,
-  COL_STREAM_INTERIOR_X, COL_STREAM_INTERIOR_Y, COL_STREAM_INTERIOR_Z,
-} from "../Buffer/column-streams-gen";
+  COL_STREAM_INTERIOR_PRESENT, COL_STREAM_INTERIOR_VALUE, COL_STREAM_INTERIOR_X,
+  COL_STREAM_INTERIOR_Y, COL_STREAM_INTERIOR_Z,
+} from "./columns-gen";
 
 function presentAt(node: number, slot: number): number {
   const b = columnBytes(nodeColumn(node, COL_STREAM_INTERIOR_PRESENT));

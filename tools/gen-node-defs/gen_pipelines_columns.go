@@ -23,5 +23,10 @@ func generateColumnStreams(repoRoot string) {
 	if err := buflayout.WriteColumnStreamsTS(tsPath, schema); err != nil {
 		fatalf("write %s: %v", tsPath, err)
 	}
-	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s and %s\n", goPath, tsPath)
+	perBlock, err := buflayout.WriteBlockColumnsTS(schema, tsPath)
+	if err != nil {
+		fatalf("write per-block columns: %v", err)
+	}
+	fmt.Fprintf(os.Stderr, "gen-node-defs: wrote %s and %s, plus %d per-block column file(s)\n",
+		goPath, tsPath, len(perBlock))
 }

@@ -1,8 +1,9 @@
 import { columnF32 } from "../Buffer/column-values";
 import { nodeColumn, ownerCounts } from "../Buffer/column-owners";
 import {
-  COL_STREAM_NODE_POLE_ANCHOR_X, COL_STREAM_NODE_POLE_ANCHOR_Y, COL_STREAM_NODE_POLE_ANCHOR_Z,
-} from "../Buffer/column-streams-gen";
+  COL_STREAM_NODE_POLE_ANCHOR_X, COL_STREAM_NODE_POLE_ANCHOR_Y,
+  COL_STREAM_NODE_POLE_ANCHOR_Z,
+} from "../Node/columns-gen";
 import { getEdgeStreamAccessor } from "./edge-stream-blocks";
 import { sceneSteps } from "../Scene/scene-frame";
 import { postLog } from "../webview/log/post";

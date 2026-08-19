@@ -1,6 +1,8 @@
 import { columnU8 } from "../Buffer/column-values";
 import { nodeColumn } from "../Buffer/column-owners";
-import { COL_STREAM_NODE_KIND_ID } from "../Buffer/column-streams-gen";
+import {
+  COL_STREAM_NODE_KIND_ID,
+} from "./columns-gen";
 import { NODE_DEFS_ARRAY, NODE_KIND_NAMES } from "../schema/node-defs";
 import { UNKNOWN_KIND_ID } from "../Buffer/buffer-layout";
 

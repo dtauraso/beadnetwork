@@ -20,6 +20,8 @@ type bufBlock struct {
 	name    string
 	columns []bufCol
 	stride  int
+
+	dir string
 }
 
 type BufLayoutSchema struct {
@@ -84,7 +86,10 @@ func ParseBufferLayoutTree(root string) (BufLayoutSchema, error) {
 		if fileSchema.interiorSlotsPerNode != 0 {
 			schema.interiorSlotsPerNode = fileSchema.interiorSlotsPerNode
 		}
-		blocks = append(blocks, fileSchema.Blocks...)
+		for _, b := range fileSchema.Blocks {
+			b.dir = filepath.Dir(p)
+			blocks = append(blocks, b)
+		}
 	}
 
 	if schema.version == 0 {

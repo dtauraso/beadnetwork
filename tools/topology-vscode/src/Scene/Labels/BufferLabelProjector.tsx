@@ -5,8 +5,9 @@ import { ndcToPixel } from "../../webview/three/interaction/geometry-helpers";
 import { columnF32 } from "../../Buffer/column-values";
 import { nodeColumn, ownerCounts } from "../../Buffer/column-owners";
 import {
-  COL_STREAM_NODE_LABEL_ANCHOR_X, COL_STREAM_NODE_LABEL_ANCHOR_Y, COL_STREAM_NODE_LABEL_ANCHOR_Z,
-} from "../../Buffer/column-streams-gen";
+  COL_STREAM_NODE_LABEL_ANCHOR_X, COL_STREAM_NODE_LABEL_ANCHOR_Y,
+  COL_STREAM_NODE_LABEL_ANCHOR_Z,
+} from "../../Node/columns-gen";
 import { overlayFlag } from "../../webview/three/controls/flags/overlay-flags";
 import { setLabelPositions } from "./label-canvas";
 import type { BufferLabelPos } from "../../webview/three/scene/buffer-scene-shared";

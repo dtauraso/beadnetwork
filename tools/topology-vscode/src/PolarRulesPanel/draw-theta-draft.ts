@@ -3,11 +3,10 @@ import { panelFont, roundRect } from "../PanelOverlay/panel-box";
 import { readText, decodeAt } from "../PanelOverlay/panel-columns";
 import { EDIT_BG, EDIT_EDGE, FONT_PX } from "./rules-values";
 import {
-  COL_STREAM_RULES_PANEL_ROW_EDITING,
-  COL_STREAM_RULES_PANEL_DRAFT_TEXT,
+  COL_STREAM_RULES_PANEL_ROW_EDITING, COL_STREAM_RULES_PANEL_DRAFT_TEXT,
   COL_STREAM_RULES_PANEL_DRAFT_X, COL_STREAM_RULES_PANEL_DRAFT_Y,
   COL_STREAM_RULES_PANEL_DRAFT_W, COL_STREAM_RULES_PANEL_DRAFT_H,
-} from "../Buffer/column-streams-gen";
+} from "./columns-gen";
 
 export function rulesDraftOpen(): boolean {
   const editing = columnBytes(COL_STREAM_RULES_PANEL_ROW_EDITING);

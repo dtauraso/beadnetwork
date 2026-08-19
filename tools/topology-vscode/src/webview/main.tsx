@@ -12,9 +12,12 @@ import { BUF_BLOCK_TAG_VIEW, BUF_BLOCK_TAG_EDGE_STREAM, BUF_BLOCK_TAG_NODE_STREA
 import { setColumnValue, columnDiagnostics, columnI32, columnF32, columnU8 } from "../Buffer/column-values";
 import { nodeColumn, edgeColumn, ownerCounts } from "../Buffer/column-owners";
 import {
+  COL_STREAM_EDGE_SX,
+} from "../Edge/columns-gen";
+import {
   COL_STREAM_NODE_INDEX_R, COL_STREAM_NODE_INDEX_PHI, COL_STREAM_NODE_INDEX_THETA,
-  COL_STREAM_NODE_HAS_POS, COL_STREAM_EDGE_SX,
-} from "../Buffer/column-streams-gen";
+  COL_STREAM_NODE_HAS_POS,
+} from "../Node/columns-gen";
 
 function Root() {
   return <ThreeView />;

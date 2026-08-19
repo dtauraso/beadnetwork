@@ -53,12 +53,16 @@ if not readers:
           "guard would check nothing", file=sys.stderr)
     sys.exit(1)
 
-COL_STREAMS = pathlib.Path("tools/topology-vscode/src/Buffer/column-streams-gen.ts")
-if not COL_STREAMS.exists():
-    print(f"check-one-reader-per-column: MISCONFIGURED — {COL_STREAMS} not found (renamed?); "
-          f"the column-channel half would go unchecked", file=sys.stderr)
+# The column names live beside their blocks now, one generated file per concern, so this
+# collects them from wherever they are rather than from one file it was told about.
+COL_FILES = sorted(pathlib.Path("tools/topology-vscode/src").rglob("columns-gen.ts"))
+if not COL_FILES:
+    print("check-one-reader-per-column: MISCONFIGURED — no columns-gen.ts found under src "
+          "(renamed?); the column-channel half would go unchecked", file=sys.stderr)
     sys.exit(1)
-col_consts = set(re.findall(r"export const (COL_STREAM_[A-Z0-9_]+)", COL_STREAMS.read_text(encoding="utf-8")))
+col_consts = set()
+for p in COL_FILES:
+    col_consts |= set(re.findall(r"export const (COL_STREAM_[A-Z0-9_]+)", p.read_text(encoding="utf-8")))
 col_consts = {c for c in col_consts if not c.startswith("COL_STREAM_BASE_")}
 if not col_consts:
     print("check-one-reader-per-column: MISCONFIGURED — parsed 0 COL_STREAM_* constants; "
@@ -74,7 +78,7 @@ for root in roots:
         s = str(f)
         if "node_modules" in s or "/out/" in s or "/test/" in s or s.endswith(".test.ts"):
             continue
-        if s in layout_set or s in OBSERVERS or s in WRITERS or s == str(COL_STREAMS):
+        if s in layout_set or s in OBSERVERS or s in WRITERS or f.name == "columns-gen.ts":
             continue
         files.append(f)
 

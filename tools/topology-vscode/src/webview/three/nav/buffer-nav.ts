@@ -5,11 +5,10 @@ import { sceneSteps, sceneRadius } from "../../../Scene/scene-frame";
 import { columnF32, columnU8 } from "../../../Buffer/column-values";
 import { nodeColumn, ownerCounts } from "../../../Buffer/column-owners";
 import {
-  COL_STREAM_NODE_POLE_ANCHOR_X, COL_STREAM_NODE_POLE_ANCHOR_Y, COL_STREAM_NODE_POLE_ANCHOR_Z,
-  COL_STREAM_NODE_NAV_TUBE_R,
-  COL_STREAM_NODE_LATCHED_SEL,
+  COL_STREAM_NODE_POLE_ANCHOR_X, COL_STREAM_NODE_POLE_ANCHOR_Y,
+  COL_STREAM_NODE_POLE_ANCHOR_Z, COL_STREAM_NODE_NAV_TUBE_R, COL_STREAM_NODE_LATCHED_SEL,
   COL_STREAM_NODE_POLE_PHI, COL_STREAM_NODE_POLE_THETA, COL_STREAM_NODE_POLE_RING_R,
-} from "../../../Buffer/column-streams-gen";
+} from "../../../Node/columns-gen";
 import { readSelectedNodeRow } from "../controls/flags/overlay-flags-selection";
 
 export interface NavNode {

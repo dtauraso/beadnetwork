@@ -1,6 +1,8 @@
 import { columnU8 } from "../../../../Buffer/column-values";
 import { nodeColumn, ownerCounts } from "../../../../Buffer/column-owners";
-import { COL_STREAM_NODE_SELECTED } from "../../../../Buffer/column-streams-gen";
+import {
+  COL_STREAM_NODE_SELECTED,
+} from "../../../../Node/columns-gen";
 
 export function readSelectedNodeRow(): number {
   const { nodes } = ownerCounts();
