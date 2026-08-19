@@ -22,14 +22,33 @@ TOPS = tuple(sorted(p.name + "/" for p in pathlib.Path(".").iterdir()
 PATHISH = re.compile(r"(?<![A-Za-z0-9_./-])((?:%s)[A-Za-z0-9_./*{}-]*)" %
                      "|".join(re.escape(t) for t in TOPS))
 
+SCRIPT_SUFFIXES = (".sh", ".py")
+CODE_SUFFIXES = (".go", ".ts", ".tsx")
+STRING_LITERAL = re.compile(r'"([^"\n\\]{2,200})"|`([^`\n]{2,200})`')
+
 files = []
 for d in SCAN_DIRS:
     for f in pathlib.Path(d).rglob("*"):
-        if f.suffix not in (".sh", ".py"):
+        if f.suffix not in SCRIPT_SUFFIXES + CODE_SUFFIXES:
             continue
         if SKIP_DIRS & set(f.parts):
             continue
+        if f.name.endswith("-gen.ts") or f.name.endswith("_gen.go"):
+            continue
         files.append(f)
+
+def scannable(path, text):
+    """The regions of a file whose path-shaped words are meant to be real paths."""
+    if path.suffix in SCRIPT_SUFFIXES:
+        return [text]
+    out = []
+    for m in STRING_LITERAL.finditer(text):
+        s = m.group(1) if m.group(1) is not None else m.group(2)
+        if any(ch in s for ch in "%${}") or "\\" in s:
+            continue
+        out.append(s)
+    return out
+
 files = [pathlib.Path(str(f)[2:]) if str(f).startswith("./") else f for f in files]
 
 if len(files) < 20:
@@ -65,7 +84,8 @@ checked = 0
 for f in sorted(files):
     text = f.read_text(encoding="utf-8", errors="replace")
     allowed = declared.get(str(f), set())
-    for m in PATHISH.finditer(text):
+    for region in scannable(f, text):
+      for m in PATHISH.finditer(region):
         raw = m.group(1).rstrip("/.,:;\"')")
         if not raw or raw.endswith("-") or "{" in raw or "}" in raw:
             continue

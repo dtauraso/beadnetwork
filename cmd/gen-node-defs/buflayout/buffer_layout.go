@@ -111,7 +111,7 @@ func writeBufferLayoutGoHeader(outPath string, schema BufLayoutSchema, fp string
 	fmt.Fprintln(w, `// BufHeaderSize is the byte width of the retired combined-snapshot frame's header.`)
 	fmt.Fprintln(w, `// The combined SCENE/BEAD/NODE/EDGE frame is gone entirely — each goroutine now streams`)
 	fmt.Fprintln(w, `// its own per-owner frame (VIEW/EDGE_STREAM/NODE_STREAM/INTERIOR_STREAM — see`)
-	fmt.Fprintln(w, `// Buffer/frame_tags.go and memory/feedback_no_single_writer_bridge.md); this constant`)
+	fmt.Fprintln(w, `// Buffer/frame_tags.go and memory/feedback/architecture/bridge/feedback_no_single_writer_bridge.md); this constant`)
 	fmt.Fprintln(w, `// is a historical layout marker, not consumed by any live decoder:`)
 	fmt.Fprintln(w, `// [tick:u32][layoutLinkCount:u32]`)
 	fmt.Fprintln(w, `const BufHeaderSize = 8`)
