@@ -99,8 +99,6 @@ async function dispatch(msg: WebviewToHostMsg, ctx: MessageCtx): Promise<void> {
       return;
     // LIVE_CASES_END
 
-    // kinds stdin_reader.go's msg.Type switch dispatches (its MSG_TYPES fence). A kind here
-
     // DECLARED_NOT_SENT_START
     case "raw-input":
     case "save":

@@ -99,8 +99,6 @@ export function drawRulesPanel(c: CanvasRenderingContext2D): void {
   drawThetaDraft(c);
   c.restore();
 
-  // Outside the clip: the shared menu hangs off the side of the panel by design, and
-  // clipping it to the rows would cut it in half.
   if (columnU8(COL_STREAM_RULES_PANEL_MENU_OPEN) !== 0) drawSharedMenu(c);
 }
 

@@ -84,7 +84,6 @@ func parsePortsFromAST(pkgDir string) ([]Port, error) {
 }
 
 func chanDirection(expr ast.Expr) (string, bool) {
-	// here so a kind's ports can mix inport.In with outport.Out/outport.Broadcast.
 	isWirePkg := func(pkg *ast.Ident) bool {
 		return pkg.Name == "Wiring" || pkg.Name == "wire" || pkg.Name == "outport" || pkg.Name == "inport"
 	}

@@ -19,8 +19,6 @@ const (
 	gestureMsgSave
 )
 
-// discriminated union RunStdinReader already decodes (stdin_reader.go's MSG_TYPES_DOC).
-
 type gestureInboxMsg struct {
 	kind gestureMsgKind
 	msg  inputcodec.StdinMsg
