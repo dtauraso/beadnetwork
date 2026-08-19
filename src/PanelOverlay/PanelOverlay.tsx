@@ -18,7 +18,8 @@ import { postGoRecord } from "../webview/vscode-api";
 import { postLog } from "../webview/log/post";
 import { encodeSceneViewport } from "../schema/input/input-encode-scene-tilt";
 
-const OVERLAY_SURFACE_H = 2048;
+const OVERLAY_SURFACE_W = 4096;
+const OVERLAY_SURFACE_H = 4096;
 
 const SCALE_EXACT = 0.02;
 
@@ -113,8 +114,8 @@ export function PanelOverlay() {
     const targetW = Math.max(1, el.width);
     const targetH = Math.max(1, el.height);
     const ratio = targetW / vw;
-    const bw = targetW;
-    const bh = Math.max(1, Math.round(OVERLAY_SURFACE_H * ratio));
+    const bw = OVERLAY_SURFACE_W;
+    const bh = OVERLAY_SURFACE_H;
 
     if (vw !== lastSize.current.w || vh !== lastSize.current.h) {
       lastSize.current = { w: vw, h: vh };
@@ -158,6 +159,14 @@ export function PanelOverlay() {
       }
       el.style.cursor = pointerTargetCursor();
       tex.needsUpdate = true;
+    }
+
+    if (targetW > OVERLAY_SURFACE_W || targetH > OVERLAY_SURFACE_H) {
+      postLog("panel-overlay-surface-too-small", {
+        target: `${targetW}x${targetH}`,
+        surface: `${OVERLAY_SURFACE_W}x${OVERLAY_SURFACE_H}`,
+        note: "the overlay sheet is smaller than the render target; the panels are being spread across it",
+      });
     }
 
     const uSpan = Math.min(1, targetW / canvas.width);
