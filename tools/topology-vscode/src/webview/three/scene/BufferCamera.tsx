@@ -9,11 +9,12 @@ import {
   COL_STREAM_CAMERA_UP_PHI, COL_STREAM_CAMERA_UP_THETA,
   COL_STREAM_CAMERA_FOV_DEG,
 } from "../../../../Buffer/column-streams-gen";
+import { probeSceneSizeOnResize } from "./scene-size-probe";
 
 export function BufferCamera({ cameraRef }: {
   cameraRef?: React.MutableRefObject<THREE.PerspectiveCamera | null>;
 }) {
-  const { camera } = useThree();
+  const { camera, gl } = useThree();
   const pivotRef = useRef(new THREE.Vector3());
 
   useFrame(() => {
@@ -45,6 +46,10 @@ export function BufferCamera({ cameraRef }: {
     }
 
     cam.updateMatrixWorld(true);
+
+    const el = gl.domElement;
+    probeSceneSizeOnResize(
+      cam, pivot, fov, Math.max(1, el.clientWidth), Math.max(1, el.clientHeight));
   });
 
   return null;
