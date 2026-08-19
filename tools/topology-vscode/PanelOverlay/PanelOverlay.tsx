@@ -79,6 +79,10 @@ export function PanelOverlay() {
         pixelRatio: ratio,
         devicePixelRatio: window.devicePixelRatio,
         window: `${window.innerWidth}x${window.innerHeight}`,
+        outer: `${window.outerWidth}x${window.outerHeight}`,
+        visualViewport: window.visualViewport
+          ? `${Math.round(window.visualViewport.width)}x${Math.round(window.visualViewport.height)} scale=${window.visualViewport.scale}`
+          : "none",
         body: box(document.body),
         app: box(document.getElementById("app")),
         canvasParent: box(el.parentElement),
