@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: tools/topology-vscode/src/webview/three/interaction/interaction-controls.ts | the nav handler does no Cartesian math; angle/sphere math lives in the polar helpers
+# PLACEMENT: src/webview/three/interaction/interaction-controls.ts | the nav handler does no Cartesian math; angle/sphere math lives in the polar helpers
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-NAV_DIR="$REPO_ROOT/tools/topology-vscode/src/webview/three/interaction"
+NAV_DIR="$REPO_ROOT/src/webview/three/interaction"
 
 shopt -s nullglob
 NAV_FILES=( "$NAV_DIR"/interaction-*.ts )

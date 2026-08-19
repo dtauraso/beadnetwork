@@ -4,8 +4,8 @@
 # ($ts_changed, $css_changed, $out, $fail) directly.
 
 webview_bundle_stale() {
-  local webview_out="tools/topology-vscode/out/webview.js"
-  local src_dir="tools/topology-vscode/src"
+  local webview_out="out/webview.js"
+  local src_dir="src"
 
   if [ ! -d "$src_dir" ]; then
     out+="ts-checks: MISCONFIGURED — webview source dir not found: $src_dir\n\n"
@@ -23,7 +23,7 @@ webview_bundle_stale() {
 
 run_ts_checks() {
   if webview_bundle_stale; then
-    if ! build_out=$(cd tools/topology-vscode && npm run --silent build 2>&1); then
+    if ! build_out=$(npm run --silent build 2>&1); then
       out+="webview build failed:\n$build_out\n\n"
       fail=1
     fi
@@ -33,7 +33,7 @@ run_ts_checks() {
     return
   fi
 
-  if [ -n "$ts_changed" ] && ! tsc_out=$(cd tools/topology-vscode && npx --no-install tsc --noEmit 2>&1); then
+  if [ -n "$ts_changed" ] && ! tsc_out=$(npx --no-install tsc --noEmit 2>&1); then
     out+="tsc --noEmit failed:\n$tsc_out\n\n"
     fail=1
   fi

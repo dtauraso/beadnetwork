@@ -1,10 +1,10 @@
 ---
 paths:
   - "nodes/Wiring/**/*.go"
-  - "tools/topology-vscode/src/messages.ts"
-  - "tools/topology-vscode/src/extension/handle-message.ts"
-  - "tools/topology-vscode/src/runCommand.ts"
-  - "tools/topology-vscode/src/schema/input/input-layout-gen.ts"
+  - "src/messages.ts"
+  - "src/extension/handle-message.ts"
+  - "src/runCommand.ts"
+  - "src/schema/input/input-layout-gen.ts"
 ---
 
 # Bridge surface — TS → Go vocabulary detail
@@ -16,7 +16,7 @@ carries the TS → Go vocabulary.
 
 - **Addressed edits** — a single geometry-CRUD `edit` message whose sole op is `update`
   (see `nodes/Wiring/stdinreader/dispatch_edit.go` `applyEdit`, fenced by `EDIT_OPS_START`/
-  `EDIT_OPS_END`, and `tools/topology-vscode/src/messages.ts` `EditMsg`): **`update` sets
+  `EDIT_OPS_END`, and `src/messages.ts` `EditMsg`): **`update` sets
   an ATTRIBUTE on a typed entity** (`kind` = node / edge / camera / overlays / panels /
   scene) — there is no per-feature op. New *addressed* capability is a new entity kind or
   attribute, NOT a new op. `panels` is its OWN entity kind, deliberately separate from
@@ -32,7 +32,7 @@ carries the TS → Go vocabulary.
   `resend` command: the ext host caches the last frame per dedicated stream (view, plus one
   per edge/node/interior row) and replays all of them to a remounted webview on `ready`
   instead (`BuildAndRunRunner.getLastViewFrame`/`getLastEdgeFrames`/`getLastNodeFrames`/
-  `getLastInteriorFrames` in `tools/topology-vscode/src/runCommand.ts`) — Go only ever emits
+  `getLastInteriorFrames` in `src/runCommand.ts`) — Go only ever emits
   a frame when something changes, and that stays true.
 
   (Several ops/commands were removed end-to-end with no live TS sender — `edit-create`/
@@ -66,4 +66,4 @@ Keep all of it in parity across `messages.ts`, the `nodes/Wiring` stdin reader/d
 (`stdin_reader.go`'s `MSG_TYPES` fence, `dispatch_edit.go`'s edit tables), and `handle-message.ts`
 (guards: `tools/bridge/check-edit-op-parity.sh`, `tools/bridge/check-message-kind-parity.sh`, and the
 `INPUT_LAYOUT_FINGERPRINT` in `input_codec.go` /
-`tools/topology-vscode/src/schema/input/input-layout-gen.ts`).
+`src/schema/input/input-layout-gen.ts`).

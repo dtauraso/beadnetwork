@@ -6,7 +6,7 @@ import (
 	lattice "github.com/dtauraso/wirefold/nodes/bead/lattice"
 	"github.com/dtauraso/wirefold/nodes/clock"
 
-	T "github.com/dtauraso/wirefold/tools/topology-vscode/src/Trace"
+	T "github.com/dtauraso/wirefold/src/Trace"
 )
 
 func EmitNodeBeads(tr *T.Trace, nodeName string, working, backup []int, emitter *Emitter) {

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: nodes/**/*.go,tools/topology-vscode/src/Buffer/**/*.go,tools/topology-vscode/src/**/*.ts | no DOUBLE-LINK node-node polar record (LocalPolar et al. — the edge's own triple D is the model, not this); a bead streams its world position, never a node-local offset to be summed
+# PLACEMENT: nodes/**/*.go,src/Buffer/**/*.go,src/**/*.ts | no DOUBLE-LINK node-node polar record (LocalPolar et al. — the edge's own triple D is the model, not this); a bead streams its world position, never a node-local offset to be summed
 
 set -euo pipefail
 
@@ -47,7 +47,7 @@ if [ -n "$hits" ]; then
   fail=1
 fi
 
-TS_DIR="tools/topology-vscode/src"
+TS_DIR="src"
 
 sum_hits=$(grep -rlnE 'readChainBeadO[XYZ]\(|readEdgeBeadO[XYZ]\(' \
   --include='*.ts' --include='*.tsx' \

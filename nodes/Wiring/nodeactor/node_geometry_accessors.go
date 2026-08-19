@@ -1,7 +1,7 @@
 package nodeactor
 
 import (
-	"github.com/dtauraso/wirefold/tools/topology-vscode/src/PolarRulesPanel"
+	"github.com/dtauraso/wirefold/src/PolarRulesPanel"
 	"slices"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"

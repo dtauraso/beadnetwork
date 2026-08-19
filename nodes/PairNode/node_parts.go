@@ -8,7 +8,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/PairNode/tiltring"
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/src/TiltPanel"
+	"github.com/dtauraso/wirefold/src/TiltPanel"
 )
 
 type nodePlumbing struct {

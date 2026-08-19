@@ -2,7 +2,7 @@ package runtopology
 
 import (
 	"fmt"
-	NodeBuf "github.com/dtauraso/wirefold/tools/topology-vscode/src/Node"
+	NodeBuf "github.com/dtauraso/wirefold/src/Node"
 	"os"
 
 	"github.com/dtauraso/wirefold/nodes/rowevent"
@@ -10,8 +10,8 @@ import (
 	W "github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/framegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/nodeframe"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/src/Buffer/colstream"
-	SF "github.com/dtauraso/wirefold/tools/topology-vscode/src/Buffer/streamframe"
+	"github.com/dtauraso/wirefold/src/Buffer/colstream"
+	SF "github.com/dtauraso/wirefold/src/Buffer/streamframe"
 )
 
 func wireNodeStreams(streamFDs SF.StreamFDs, md *W.MoveDispatch) {

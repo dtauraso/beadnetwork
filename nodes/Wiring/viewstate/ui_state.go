@@ -2,7 +2,7 @@ package viewstate
 
 import (
 	"fmt"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/src/OverlaysDropdown"
+	"github.com/dtauraso/wirefold/src/OverlaysDropdown"
 	"math"
 	"os"
 
@@ -15,9 +15,9 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/rulespanel"
 	"github.com/dtauraso/wirefold/nodes/Wiring/selectionstate"
 	"github.com/dtauraso/wirefold/nodes/spatial"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/src/Buffer/colstream"
+	"github.com/dtauraso/wirefold/src/Buffer/colstream"
 
-	T "github.com/dtauraso/wirefold/tools/topology-vscode/src/Trace"
+	T "github.com/dtauraso/wirefold/src/Trace"
 )
 
 type UIState struct {

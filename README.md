@@ -12,7 +12,7 @@ Two things in one repo:
 
 1. **A concurrent dataflow runtime in Go.** Behavior emerges from how nodes are wired together, not from procedural code. Goroutines and channels replace conventional control flow.
 
-2. **A visual editor** (vscode webview, Three.js / React Three Fiber). The diagram is the spec for **topology/wiring** — interpreted data, no codegen step on that path: the editor writes a directory tree of `topology/nodes/<id>/base.json`, `inputs|outputs/*.json`, and `topology/nodes/<id>/edges/*.json` (an adjacency list — an edge lives under its source node, no top-level `edges/` dir), which the runtime loader reads directly at startup. (Node-kind behavior and the content-buffer schema are a *separate*, code-generated axis — `nodes/*/SPEC.md` and `tools/topology-vscode/src/Buffer/layout.go` drive `gen-node-defs`, staleness-guarded by `check-generated.sh`.) The directory tree is the only supported form — the earlier monolithic `topology.json` form was deleted.
+2. **A visual editor** (vscode webview, Three.js / React Three Fiber). The diagram is the spec for **topology/wiring** — interpreted data, no codegen step on that path: the editor writes a directory tree of `topology/nodes/<id>/base.json`, `inputs|outputs/*.json`, and `topology/nodes/<id>/edges/*.json` (an adjacency list — an edge lives under its source node, no top-level `edges/` dir), which the runtime loader reads directly at startup. (Node-kind behavior and the content-buffer schema are a *separate*, code-generated axis — `nodes/*/SPEC.md` and `src/Buffer/layout.go` drive `gen-node-defs`, staleness-guarded by `check-generated.sh`.) The directory tree is the only supported form — the earlier monolithic `topology.json` form was deleted.
 
 ## Running it
 
@@ -21,7 +21,7 @@ go build ./...
 go run .
 ```
 
-The editor lives in [tools/topology-vscode/](tools/topology-vscode/). See its README for vscode extension build/run instructions.
+The editor is this repo: its source is [src/](src/), and [EDITOR.md](EDITOR.md) has the vscode extension build/run instructions.
 
 ## License
 

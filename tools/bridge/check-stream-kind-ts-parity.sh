@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: tools/topology-vscode/src/Buffer/streamframe/stream_fds.go,tools/topology-vscode/src/runCommand.ts,tools/topology-vscode/src/runner/stream-fds.ts,tools/topology-vscode/src/runner/spawn-layout.ts,tools/topology-vscode/src/runner/stream-demux.ts | a new StreamKind must gain a WIREFOLD_STREAM_FDS env entry (runner/spawn-layout.ts builds the string, runCommand.ts's spawn env assigns it) and its own handle<Kind>Fd reader (runner/stream-demux.ts) in the ext host
+# PLACEMENT: src/Buffer/streamframe/stream_fds.go,src/runCommand.ts,src/runner/stream-fds.ts,src/runner/spawn-layout.ts,src/runner/stream-demux.ts | a new StreamKind must gain a WIREFOLD_STREAM_FDS env entry (runner/spawn-layout.ts builds the string, runCommand.ts's spawn env assigns it) and its own handle<Kind>Fd reader (runner/stream-demux.ts) in the ext host
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 cd "$REPO_ROOT"
 
-TS_SRC="tools/topology-vscode/src"
+TS_SRC="src"
 
 if [ ! -d "$TS_SRC" ]; then
   echo "check-stream-kind-ts-parity: MISCONFIGURED — ext-host source dir not found: $TS_SRC"

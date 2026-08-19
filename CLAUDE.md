@@ -4,7 +4,7 @@
 
 Before changing anything in the **Go network** (`nodes/`, `nodes/bead/bead_run.go`,
 `nodes/Wiring/build/loader.go`, `nodes/Wiring/loadspec/builders.go`) or the **content buffer**
-(`tools/topology-vscode/src/Buffer/`, the render tree under `tools/topology-vscode/src/webview/three/`),
+(`src/Buffer/`, the render tree under `src/webview/three/`),
 read [MODEL.md](MODEL.md). It pins the model. Do not propose multi-step
 plans with options for network/wire work; name the single concrete next
 step and get the model agreed first. "Agreed first" gates the START of the
@@ -33,7 +33,7 @@ clock, and the node-owned chain of placeholder beads that renders a traversal
 ## Primitive landing rule (narrowed)
 
 **Node kinds:** adding a kind requires four things in the same commit:
-1. An entry in `NODE_DEFS` (`tools/topology-vscode/src/schema/node-defs.ts`, generated).
+1. An entry in `NODE_DEFS` (`src/schema/node-defs.ts`, generated).
 2. No separate `registry.ts` — `node-defs.ts` is the single node-kind registry. The schema
    dir also holds `wire-defs.ts`, `trace-kinds.ts`, `types.ts`, and `node-dims.ts` at its top
    level (registries and shared types), plus two clustered subdirs: `schema/buffer-layout/`
@@ -73,7 +73,7 @@ return hundreds of irrelevant matches from `node_modules/`, planning
 docs, and the auto-memory dir, costing tokens and time.
 
 - **`grep`**: always scope. For code, use `--include="*.ts" --include="*.tsx"`. For repo-wide searches, exclude noise: `--exclude-dir={node_modules,out,.git,handoff-archive,memory}`.
-- **`find`**: never run `find .` unguarded — `tools/topology-vscode/node_modules/` has multi-MB files. Use `-not -path "*/node_modules/*" -not -path "*/out/*" -not -path "*/.git/*"` or just scope to a specific subtree.
+- **`find`**: never run `find .` unguarded — `node_modules/` has multi-MB files. Use `-not -path "*/node_modules/*" -not -path "*/out/*" -not -path "*/.git/*"` or just scope to a specific subtree.
 - **`ls`**: prefer a specific subdir over wide listings; pipe to `head` if you only need a sample.
 - `memory/` and any branch-local `docs/planning/` doc contain domain vocabulary — grep them only when the question is about *planning state*, not when looking for code.
 

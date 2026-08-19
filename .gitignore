@@ -59,16 +59,16 @@ dkms.conf
 node_modules
 dist/
 .vite/
-tools/topology-vscode/out/
-tools/topology-vscode/playwright-report/
-tools/topology-vscode/e2e/tier4/.tmp/
-tools/topology-vscode/test-results/
+/out/
+/playwright-report/
+/e2e/tier4/.tmp/
+/test-results/
 
 # Local dev binaries (build outputs from go build at project root)
 /topogen
 /topogend
-# go build output if accidentally run from the tools/topology-vscode dir
-tools/topology-vscode/gen-node-defs
+# go build output if accidentally run from the repo root
+/gen-node-defs
 # compiled gen-node-defs binary (build artifact); source is tools/gen-node-defs/
 /gen-node-defs
 
@@ -82,7 +82,7 @@ tools/topology-vscode/gen-node-defs
 
 # Pulse-probe dump from the visual editor's webview (workspace-local, transient)
 # Anchored on purpose: the repo root is the ONLY place a probe dir belongs (see
-# tools/topology-vscode/src/repo-root.ts). One written anywhere else is a bug,
+# src/repo-root.ts). One written anywhere else is a bug,
 # and leaving it unignored is what surfaces it — it shows up as an untracked
 # dir and blocks tools/new-task.sh instead of sitting there unnoticed.
 /.probe/

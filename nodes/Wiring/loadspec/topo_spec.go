@@ -2,7 +2,7 @@ package loadspec
 
 import (
 	"fmt"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/src/PolarRulesPanel"
+	"github.com/dtauraso/wirefold/src/PolarRulesPanel"
 	"os"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"

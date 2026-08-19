@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: tools/topology-vscode/src/webview/three/**/*.ts,tools/topology-vscode/src/webview/three/**/*.tsx | only buffer-decode-edge.ts/buffer-layout.ts may read EdgeLabelOff/Len; the renderer must not
+# PLACEMENT: src/webview/three/**/*.ts,src/webview/three/**/*.tsx | only buffer-decode-edge.ts/buffer-layout.ts may read EdgeLabelOff/Len; the renderer must not
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-THREE_DIR="$REPO_ROOT/tools/topology-vscode/src/webview/three"
+THREE_DIR="$REPO_ROOT/src/webview/three"
 
 if [ ! -d "$THREE_DIR" ]; then
   echo "check-edge-label-usage: MISCONFIGURED — $THREE_DIR not found; refusing a vacuous pass." >&2

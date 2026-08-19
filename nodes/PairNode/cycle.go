@@ -2,7 +2,7 @@ package PairNode
 
 import (
 	"github.com/dtauraso/wirefold/nodes/PairNode/tiltring"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/src/TiltPanel"
+	"github.com/dtauraso/wirefold/src/TiltPanel"
 )
 
 func (n *Node) stepFromVector(received TiltPanel.TiltVectorMsg) bool {

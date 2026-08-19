@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: tools/topology-vscode/src/messages.ts,tools/topology-vscode/src/OverlaysDropdown/overlay_tables_gen.go | OVERLAY_FLAG_NAMES (TS) and OverlayToggles keys (Go) must be the exact same name set
+# PLACEMENT: src/messages.ts,src/OverlaysDropdown/overlay_tables_gen.go | OVERLAY_FLAG_NAMES (TS) and OverlayToggles keys (Go) must be the exact same name set
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-TS="$REPO_ROOT/tools/topology-vscode/src/messages.ts"
-GO="$REPO_ROOT/tools/topology-vscode/src/OverlaysDropdown/overlay_tables_gen.go"
+TS="$REPO_ROOT/src/messages.ts"
+GO="$REPO_ROOT/src/OverlaysDropdown/overlay_tables_gen.go"
 
 if [ ! -f "$TS" ] || [ ! -f "$GO" ]; then
   echo "check-overlay-flag-name-parity: MISCONFIGURED — one or both of these are missing:" >&2

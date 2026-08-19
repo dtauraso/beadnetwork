@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	outPath := "tools/topology-vscode/test/fixtures/stream_fixture.json"
+	outPath := "src/test/fixtures/stream_fixture.json"
 	if len(os.Args) > 1 {
 		outPath = os.Args[1]
 	}

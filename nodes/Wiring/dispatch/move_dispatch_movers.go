@@ -10,7 +10,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/polarindex"
 	"github.com/dtauraso/wirefold/nodes/Wiring/rulenode"
 	"github.com/dtauraso/wirefold/nodes/clock"
-	T "github.com/dtauraso/wirefold/tools/topology-vscode/src/Trace"
+	T "github.com/dtauraso/wirefold/src/Trace"
 )
 
 func (md *MoveDispatch) buildNodeMovers(geoms map[string]nodegeom.NodeGeom, tr *T.Trace, clk clock.Clock, constants polarindex.SceneConstants) {

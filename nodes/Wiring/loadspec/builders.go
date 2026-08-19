@@ -1,7 +1,7 @@
 package loadspec
 
 import (
-	NodeBuf "github.com/dtauraso/wirefold/tools/topology-vscode/src/Node"
+	NodeBuf "github.com/dtauraso/wirefold/src/Node"
 	"strconv"
 )
 

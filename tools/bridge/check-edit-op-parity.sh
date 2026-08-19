@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: nodes/Wiring/stdinreader/dispatch_edit.go,tools/topology-vscode/src/messages.ts,tools/topology-vscode/src/schema/input/input-layout-gen.ts,tools/topology-vscode/src/webview/three/controls/flags/overlay-flags.ts | edit ops/update-kinds/overlay flags must stay listed identically on both sides of the bridge
+# PLACEMENT: nodes/Wiring/stdinreader/dispatch_edit.go,src/messages.ts,src/schema/input/input-layout-gen.ts,src/webview/three/controls/flags/overlay-flags.ts | edit ops/update-kinds/overlay flags must stay listed identically on both sides of the bridge
 
 # Sentinel comments (X_START / X_END) bound each region so the greps cannot sweep in
 
@@ -13,13 +13,13 @@ go_fence_files() {
   grep -rl --include='*.go' -E "^[[:space:]]*//[[:space:]]*$1[[:space:]]*$" "$GO_PKG_DIR" \
     | grep -v '_test\.go$' || true
 }
-MESSAGES_TS="$REPO_ROOT/tools/topology-vscode/src/messages.ts"
+MESSAGES_TS="$REPO_ROOT/src/messages.ts"
 
-HANDLE_MSG="$REPO_ROOT/tools/topology-vscode/src/schema/input/input-layout-gen.ts"
+HANDLE_MSG="$REPO_ROOT/src/schema/input/input-layout-gen.ts"
 
-OVERLAY_FLAGS_TS="$REPO_ROOT/tools/topology-vscode/src/webview/three/controls/flags/overlay-flags.ts"
+OVERLAY_FLAGS_TS="$REPO_ROOT/src/webview/three/controls/flags/overlay-flags.ts"
 
-PANEL_STATE_GO="$REPO_ROOT/tools/topology-vscode/src/OverlaysDropdown/panel_state.go"
+PANEL_STATE_GO="$REPO_ROOT/src/OverlaysDropdown/panel_state.go"
 
 for f in "$MESSAGES_TS" "$HANDLE_MSG" "$OVERLAY_FLAGS_TS" "$PANEL_STATE_GO"; do
   if [[ ! -f "$f" ]]; then

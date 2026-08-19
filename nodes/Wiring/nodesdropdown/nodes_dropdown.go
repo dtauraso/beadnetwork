@@ -2,7 +2,7 @@ package nodesdropdown
 
 import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/panelstack"
-	NodeBuf "github.com/dtauraso/wirefold/tools/topology-vscode/src/Node"
+	NodeBuf "github.com/dtauraso/wirefold/src/Node"
 )
 
 const Label = "Nodes"

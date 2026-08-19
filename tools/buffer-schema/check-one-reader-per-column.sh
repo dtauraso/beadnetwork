@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: tools/topology-vscode/src/Buffer/buffer-layout*.ts | every buffer column is a channel: one writer, one reader. A second reader means a consumer is re-deriving something Go should send it.
+# PLACEMENT: src/Buffer/buffer-layout*.ts | every buffer column is a channel: one writer, one reader. A second reader means a consumer is re-deriving something Go should send it.
 
 set -euo pipefail
 
@@ -11,12 +11,12 @@ cd "$REPO_ROOT"
 source "$REPO_ROOT/tools/lib/ts-roots.sh"
 
 LAYOUT_FILES=()
-for LAYOUT in "tools/topology-vscode/src/Buffer/buffer-layout.ts" \
-              tools/topology-vscode/src/Buffer/buffer-layout-rows*-gen.ts \
-              "tools/topology-vscode/src/Buffer/buffer-layout-singletons-gen.ts"; do
+for LAYOUT in "src/Buffer/buffer-layout.ts" \
+              src/Buffer/buffer-layout-rows*-gen.ts \
+              "src/Buffer/buffer-layout-singletons-gen.ts"; do
   [[ -f "$LAYOUT" ]] && LAYOUT_FILES+=("$LAYOUT")
 done
-if [[ ! -f "tools/topology-vscode/src/Buffer/buffer-layout.ts" ]] || (( ${#LAYOUT_FILES[@]} < 2 )); then
+if [[ ! -f "src/Buffer/buffer-layout.ts" ]] || (( ${#LAYOUT_FILES[@]} < 2 )); then
   echo "check-one-reader-per-column: MISCONFIGURED — found ${#LAYOUT_FILES[@]} layout file(s) under Buffer/ (renamed?); refusing vacuous pass" >&2
   exit 1
 fi
@@ -31,14 +31,14 @@ roots = os.environ["TS_ROOTS_JOINED"].split()
 layouts = [pathlib.Path(p) for p in os.environ["LAYOUT_JOINED"].split()]
 
 WRITERS = {
-    "tools/topology-vscode/src/runner/stream-demux.ts",
+    "src/runner/stream-demux.ts",
 }
 
 OBSERVERS = {
-    "tools/topology-vscode/src/webview/three/decode/decode-event-line.ts",
-    "tools/topology-vscode/src/Edge/check-edge-lands-on-node.ts",
+    "src/webview/three/decode/decode-event-line.ts",
+    "src/Edge/check-edge-lands-on-node.ts",
 
-    "tools/topology-vscode/src/webview/main.tsx",
+    "src/webview/main.tsx",
 }
 
 RATCHET = {}
@@ -51,7 +51,7 @@ if not readers:
           "guard would check nothing", file=sys.stderr)
     sys.exit(1)
 
-COL_FILES = sorted(pathlib.Path("tools/topology-vscode/src").rglob("columns-gen.ts"))
+COL_FILES = sorted(pathlib.Path("src").rglob("columns-gen.ts"))
 if not COL_FILES:
     print("check-one-reader-per-column: MISCONFIGURED — no columns-gen.ts found under src "
           "(renamed?); the column-channel half would go unchecked", file=sys.stderr)

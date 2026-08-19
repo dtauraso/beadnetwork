@@ -6,8 +6,8 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/camera"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
-	B "github.com/dtauraso/wirefold/tools/topology-vscode/src/Buffer"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/src/Buffer/colstream"
+	B "github.com/dtauraso/wirefold/src/Buffer"
+	"github.com/dtauraso/wirefold/src/Buffer/colstream"
 )
 
 func (ui *UIState) SetSingletonColumns(set *colstream.ColumnSet) {

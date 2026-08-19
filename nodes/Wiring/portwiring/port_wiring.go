@@ -8,7 +8,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/bead/outport"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
 
-	T "github.com/dtauraso/wirefold/tools/topology-vscode/src/Trace"
+	T "github.com/dtauraso/wirefold/src/Trace"
 )
 
 const BufInteriorSlotsPerNode = 4

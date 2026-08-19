@@ -5,7 +5,7 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/bead"
 	"github.com/dtauraso/wirefold/nodes/rowevent"
-	T "github.com/dtauraso/wirefold/tools/topology-vscode/src/Trace"
+	T "github.com/dtauraso/wirefold/src/Trace"
 )
 
 func (o *Out) placeDrivenNoWalker(v int, tick int64) bead.SendOutcome {

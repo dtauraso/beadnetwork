@@ -3,7 +3,7 @@ package nodeactor
 import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/framegeom"
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodegeom"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/src/Buffer/streamframe"
+	"github.com/dtauraso/wirefold/src/Buffer/streamframe"
 )
 
 func (m *NodeGeometry) ChannelVectorsIn() chan bool { return m.channels.In() }

@@ -2,7 +2,7 @@ package nodeinbox
 
 import (
 	"context"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/src/AngleDropdown"
+	"github.com/dtauraso/wirefold/src/AngleDropdown"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
 )

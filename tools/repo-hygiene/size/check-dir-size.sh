@@ -26,7 +26,7 @@ ALLOWED = {
         "kindscan joins pkgDir with the literal SPEC.md; tiltring took the exported-call seam",
     ".":
         "go.mod, LICENSE and the main package live at the module root",
-    "tools/topology-vscode/src/Buffer/bufschema":
+    "src/Buffer/bufschema":
         "ParseBufferLayoutDir globs *.go in exactly this dir; a subdir is not parsed at all",
 }
 

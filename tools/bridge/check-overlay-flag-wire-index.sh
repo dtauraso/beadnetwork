@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: tools/topology-vscode/src/messages.ts,nodes/Wiring/inputcodec/input_fingerprint.go | the overlay/panel flag REGISTRY and the wire ordering in INPUT_LAYOUT_FINGERPRINT must list the same flags in the same order
+# PLACEMENT: src/messages.ts,nodes/Wiring/inputcodec/input_fingerprint.go | the overlay/panel flag REGISTRY and the wire ordering in INPUT_LAYOUT_FINGERPRINT must list the same flags in the same order
 
 set -euo pipefail
 
@@ -11,7 +11,7 @@ cd "$REPO_ROOT"
 python3 - <<'PY'
 import re, sys
 
-REGISTRY = "tools/topology-vscode/src/messages.ts"
+REGISTRY = "src/messages.ts"
 FINGERPRINT = "nodes/Wiring/inputcodec/input_fingerprint.go"
 
 def registry_list(fence):

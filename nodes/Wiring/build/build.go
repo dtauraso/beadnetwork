@@ -2,7 +2,7 @@ package build
 
 import (
 	"context"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/src/SliderPanel"
+	"github.com/dtauraso/wirefold/src/SliderPanel"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"
@@ -17,9 +17,9 @@ import (
 	"github.com/dtauraso/wirefold/nodes/clock"
 	"github.com/dtauraso/wirefold/nodes/nodeapi"
 	"github.com/dtauraso/wirefold/nodes/spatial"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/src/TiltPanel"
+	"github.com/dtauraso/wirefold/src/TiltPanel"
 
-	T "github.com/dtauraso/wirefold/tools/topology-vscode/src/Trace"
+	T "github.com/dtauraso/wirefold/src/Trace"
 )
 
 type buildCtx struct {

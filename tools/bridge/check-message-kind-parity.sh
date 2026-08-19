@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: nodes/Wiring/stdinreader/stdin_reader.go,tools/topology-vscode/src/messages.ts,tools/topology-vscode/src/extension/handle-message.ts,tools/topology-vscode/src/webview/** | a new message kind needs matching entries in Go's MSG_TYPES fence+doc, messages.ts, and a live sender
+# PLACEMENT: nodes/Wiring/stdinreader/stdin_reader.go,src/messages.ts,src/extension/handle-message.ts,src/webview/** | a new message kind needs matching entries in Go's MSG_TYPES fence+doc, messages.ts, and a live sender
 
 #      MSG_TYPES_DOC block, and vice versa — so the header cannot undercount its switch.
 
@@ -11,9 +11,9 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 # its MSG_TYPES_DOC header sit in stdin_reader.go today, but that file has already been split
 
 GO_PKG_DIR="$REPO_ROOT/nodes/Wiring"
-MESSAGES_TS="$REPO_ROOT/tools/topology-vscode/src/messages.ts"
-HANDLE_MESSAGE_TS="$REPO_ROOT/tools/topology-vscode/src/extension/handle-message.ts"
-WEBVIEW_SRC_DIR="$REPO_ROOT/tools/topology-vscode/src/webview"
+MESSAGES_TS="$REPO_ROOT/src/messages.ts"
+HANDLE_MESSAGE_TS="$REPO_ROOT/src/extension/handle-message.ts"
+WEBVIEW_SRC_DIR="$REPO_ROOT/src/webview"
 
 source "$SCRIPT_DIR/lib/msg-kind-extract.sh"
 source "$SCRIPT_DIR/lib/msg-kind-checks.sh"

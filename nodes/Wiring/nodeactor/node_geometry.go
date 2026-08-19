@@ -9,9 +9,9 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/polarindex"
 	"github.com/dtauraso/wirefold/nodes/Wiring/rulenode"
 	"github.com/dtauraso/wirefold/nodes/clock"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/src/TiltPanel"
+	"github.com/dtauraso/wirefold/src/TiltPanel"
 
-	T "github.com/dtauraso/wirefold/tools/topology-vscode/src/Trace"
+	T "github.com/dtauraso/wirefold/src/Trace"
 )
 
 const inboxDepth = 8

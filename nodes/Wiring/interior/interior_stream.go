@@ -6,8 +6,8 @@ import (
 	"math"
 
 	"github.com/dtauraso/wirefold/nodes/rowevent"
-	B "github.com/dtauraso/wirefold/tools/topology-vscode/src/Buffer"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/src/Buffer/colstream"
+	B "github.com/dtauraso/wirefold/src/Buffer"
+	"github.com/dtauraso/wirefold/src/Buffer/colstream"
 )
 
 type InteriorStream struct {

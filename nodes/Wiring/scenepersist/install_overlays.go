@@ -4,8 +4,8 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
 
-	"github.com/dtauraso/wirefold/tools/topology-vscode/src/OverlaysDropdown"
-	T "github.com/dtauraso/wirefold/tools/topology-vscode/src/Trace"
+	"github.com/dtauraso/wirefold/src/OverlaysDropdown"
+	T "github.com/dtauraso/wirefold/src/Trace"
 )
 
 func InstallOverlays(ui *viewstate.UIState, topologyPath string, tr *T.Trace) {

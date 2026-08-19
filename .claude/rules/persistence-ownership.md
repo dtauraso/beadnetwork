@@ -1,7 +1,7 @@
 ---
 paths:
   - nodes/Wiring/**
-  - tools/topology-vscode/src/runCommand.ts
+  - src/runCommand.ts
   - topology/**
 ---
 
@@ -31,7 +31,7 @@ topology/
 ```
 
 The panels.json file under view/ holds the overlays popover's disclosure open/closed
-state (`viewstate.PanelState`, `tools/topology-vscode/src/OverlaysDropdown/panels_persist.go`) — its
+state (`viewstate.PanelState`, `src/OverlaysDropdown/panels_persist.go`) — its
 own file, deliberately separate from the overlays.json overlay-visibility file: a panel's
 open/closed state is not an overlay visibility flag, even though the two are persisted,
 streamed, and edited the same way.
@@ -237,7 +237,7 @@ both count files. Nothing else writes them.
 
 A missing or malformed count file must fail LOUDLY. Returning 0 allocates no dedicated
 streams and degrades the bridge invisibly — the behaviour the old `countEdges` had. The
-extension host reader (`tools/topology-vscode/src/runCommand.ts`'s `readCounts`) and the Go
+extension host reader (`src/runCommand.ts`'s `readCounts`) and the Go
 headless test harness (`headless_stream_helpers_test.go`) must fail the same way if the
 stored `nodes` value disagrees with the tree's own largest id — not just on a missing file.
 

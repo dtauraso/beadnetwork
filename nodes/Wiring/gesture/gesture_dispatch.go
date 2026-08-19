@@ -9,7 +9,7 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodemove"
 	"github.com/dtauraso/wirefold/nodes/Wiring/rowtables"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewstate"
-	T "github.com/dtauraso/wirefold/tools/topology-vscode/src/Trace"
+	T "github.com/dtauraso/wirefold/src/Trace"
 )
 
 type Deps struct {

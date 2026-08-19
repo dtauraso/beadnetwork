@@ -9,8 +9,8 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/speedpanel"
 	"github.com/dtauraso/wirefold/nodes/Wiring/tabstrip"
 	"github.com/dtauraso/wirefold/nodes/Wiring/tiltpanel"
-	NodeBuf "github.com/dtauraso/wirefold/tools/topology-vscode/src/Node"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/src/OverlaysDropdown"
+	NodeBuf "github.com/dtauraso/wirefold/src/Node"
+	"github.com/dtauraso/wirefold/src/OverlaysDropdown"
 )
 
 type PanelLayout struct {

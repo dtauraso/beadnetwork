@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: tools/topology-vscode/src/webview/**/*.ts,tools/topology-vscode/src/webview/**/*.tsx | TS plots what Go streams: no bead positions, no edge curves, no traversal timing computed here
+# PLACEMENT: src/webview/**/*.ts,src/webview/**/*.tsx | TS plots what Go streams: no bead positions, no edge curves, no traversal timing computed here
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
-SRC_DIR="$REPO_ROOT/tools/topology-vscode/src"
+SRC_DIR="$REPO_ROOT/src"
 
 if [[ ! -d "$SRC_DIR" ]]; then
   echo "ts-computes-no-geometry: MISCONFIGURED — scan dir not found: $SRC_DIR" >&2

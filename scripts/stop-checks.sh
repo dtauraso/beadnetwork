@@ -29,8 +29,8 @@ cd_to_root_or_die
 
 changed="$(collect_changed_files)"
 go_changed=$(echo "$changed" | grep -E '\.go$' || true)
-ts_changed=$(echo "$changed" | grep -E 'tools/topology-vscode/.*\.(ts|tsx)$' || true)
-css_changed=$(echo "$changed" | grep -E 'tools/topology-vscode/.*\.css$' || true)
+ts_changed=$(echo "$changed" | grep -E '^src/' | grep -E '\.(ts|tsx)$' || true)
+css_changed=$(echo "$changed" | grep -E '^src/' | grep -E '\.css$' || true)
 
 fail=0
 out=""

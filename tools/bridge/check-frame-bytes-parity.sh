@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: nodes/Wiring/stdinreader/stdin_reader.go,tools/topology-vscode/src/runner/framing.ts | maxFrameBytes and MAX_FRAME_BYTES must be numerically equal
+# PLACEMENT: nodes/Wiring/stdinreader/stdin_reader.go,src/runner/framing.ts | maxFrameBytes and MAX_FRAME_BYTES must be numerically equal
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 GO_FILE="$REPO_ROOT/nodes/Wiring/stdinreader/stdin_reader.go"
-TS_FILE="$REPO_ROOT/tools/topology-vscode/src/runner/framing.ts"
+TS_FILE="$REPO_ROOT/src/runner/framing.ts"
 
 for f in "$GO_FILE" "$TS_FILE"; do
   if [[ ! -f "$f" ]]; then

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: tools/topology-vscode/src/webview/*.css | every CSS class needs a renderer; delete an unused one rather than allowlisting it
+# PLACEMENT: src/webview/*.css | every CSS class needs a renderer; delete an unused one rather than allowlisting it
 
 set -euo pipefail
 
@@ -9,7 +9,7 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 cd "$REPO_ROOT"
 
 source "$REPO_ROOT/tools/lib/ts-roots.sh"
-SRC="tools/topology-vscode/src"
+SRC="src"
 CSS_DIR="$SRC/webview"
 
 if [[ ! -d "$CSS_DIR" ]]; then

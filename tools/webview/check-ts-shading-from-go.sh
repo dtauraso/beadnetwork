@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: tools/topology-vscode/src/webview/three/**/*.ts,tools/topology-vscode/src/webview/three/**/*.tsx | Go-owned shading props (roughness, ior, etc.) must reference shading-params.ts, not a numeric literal
+# PLACEMENT: src/webview/three/**/*.ts,src/webview/three/**/*.tsx | Go-owned shading props (roughness, ior, etc.) must reference shading-params.ts, not a numeric literal
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 SCAN_DIR=(
-  "$REPO_ROOT/tools/topology-vscode/src/webview/three"
-  "$REPO_ROOT/tools/topology-vscode/src/Node"
-  "$REPO_ROOT/tools/topology-vscode/src/Scene"
+  "$REPO_ROOT/src/webview/three"
+  "$REPO_ROOT/src/Node"
+  "$REPO_ROOT/src/Scene"
 )
 
 if [[ ! -d "$SCAN_DIR" ]]; then

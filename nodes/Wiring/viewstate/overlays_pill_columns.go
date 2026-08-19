@@ -2,7 +2,7 @@ package viewstate
 
 import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/overlayspanel"
-	B "github.com/dtauraso/wirefold/tools/topology-vscode/src/Buffer"
+	B "github.com/dtauraso/wirefold/src/Buffer"
 )
 
 func (ui *UIState) writeOverlaysPillColumns(lay overlayspanel.Layout) {

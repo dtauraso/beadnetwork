@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: tools/topology-vscode/src/Buffer/streamframe/node_stream_frame.go,runtopology/node_stream.go | every NodeStreamFrame field must be named by the adapter that fills it, or it streams a zero while everything compiles
+# PLACEMENT: src/Buffer/streamframe/node_stream_frame.go,runtopology/node_stream.go | every NodeStreamFrame field must be named by the adapter that fills it, or it streams a zero while everything compiles
 
 set -euo pipefail
 
@@ -14,7 +14,7 @@ import re, sys
 PAIRS = [
     ("nodes/Wiring/nodeactor/nodeframe/node_frame_input.go", "NodeFrameInput",
      "nodes/Wiring/nodeactor/node_geometry_stream.go"),
-    ("tools/topology-vscode/src/Buffer/streamframe/node_stream_frame.go", "NodeStreamFrame",
+    ("src/Buffer/streamframe/node_stream_frame.go", "NodeStreamFrame",
      "runtopology/node_stream.go"),
 ]
 

@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: tools/topology-vscode/src/webview/three/** | camera/nav code must not reconstruct angles from a Cartesian position (setFromVector3/makeSafe/THREE.Spherical banned outside polar.ts, PanPolarOverlay.tsx)
+# PLACEMENT: src/webview/three/** | camera/nav code must not reconstruct angles from a Cartesian position (setFromVector3/makeSafe/THREE.Spherical banned outside polar.ts, PanPolarOverlay.tsx)
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-DIR="$REPO_ROOT/tools/topology-vscode/src/webview/three"
+DIR="$REPO_ROOT/src/webview/three"
 if [ ! -d "$DIR" ]; then
   echo "✗ no-camera-roundtrip: MISCONFIGURED — scan dir not found: $DIR" >&2
   exit 1

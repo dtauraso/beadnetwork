@@ -3,13 +3,13 @@ package stdinreader
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/tools/topology-vscode/src/OverlaysDropdown"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/src/SliderPanel"
+	"github.com/dtauraso/wirefold/src/OverlaysDropdown"
+	"github.com/dtauraso/wirefold/src/SliderPanel"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/nodes/Wiring/inputcodec"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/src/NodesDropdown"
-	T "github.com/dtauraso/wirefold/tools/topology-vscode/src/Trace"
+	"github.com/dtauraso/wirefold/src/NodesDropdown"
+	T "github.com/dtauraso/wirefold/src/Trace"
 )
 
 func HandleRawInputMsg(ctx context.Context, msg inputcodec.StdinMsg, slotReg inputcodec.SlotRegistry, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks SliderPanel.Sinks) {

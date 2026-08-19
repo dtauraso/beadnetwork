@@ -22,7 +22,7 @@
   placed after the move use the new geometry, which they get from the placement. There is
   no in-flight revision and no fractional progress to preserve.
 - Go computes and streams the absolute bead position, on the EdgeBead columns, read and drawn by
-  `tools/topology-vscode/src/Bead/ChainBeadInstances.tsx`. The editor
+  `src/Bead/ChainBeadInstances.tsx`. The editor
   does not interpolate, does not own positions, and is never asked when a bead arrived.
 - Durations are counted in slots at `lattice.PulsesPerSlot`, the one number every duration
   shares: the animation goroutine sleeps it per slot, and Time, TimeStart, input's cadence

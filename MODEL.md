@@ -209,7 +209,7 @@ for one to fix.
 
 ## Assertions
 
-A `panic` in `nodes/`, `tools/topology-vscode/src/Buffer/`, or `tools/topology-vscode/src/Trace/` is an **assertion**, not error handling. It
+A `panic` in `nodes/`, `src/Buffer/`, or `src/Trace/` is an **assertion**, not error handling. It
 fires only via a code bug — never via ordinary traffic, malformed input, or load. Input the
 network cannot trust is rejected at parse (`validateNoFanIn`, `ValidateSpec`); by the time a
 value reaches a goroutine's own state, a violated bound means the code is wrong.

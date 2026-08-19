@@ -1,7 +1,7 @@
 package nodedrag
 
 import (
-	"github.com/dtauraso/wirefold/tools/topology-vscode/src/PolarRulesPanel"
+	"github.com/dtauraso/wirefold/src/PolarRulesPanel"
 	"math"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/geom/polar"

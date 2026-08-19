@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: nodes/Wiring/**/*.go,nodes/bead/*.go,tools/topology-vscode/src/schema/types.ts | a new SendRule const must also appear in the SEND_RULES array in types.ts (types.ts stays at schema/ top level — it is a registry, not part of the buffer-layout or input clusters)
+# PLACEMENT: nodes/Wiring/**/*.go,nodes/bead/*.go,src/schema/types.ts | a new SendRule const must also appear in the SEND_RULES array in types.ts (types.ts stays at schema/ top level — it is a registry, not part of the buffer-layout or input clusters)
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 WIRING_DIR="$REPO_ROOT/nodes/Wiring"
 WIRE_DIR="$REPO_ROOT/nodes/bead"
-TYPES_TS="$REPO_ROOT/tools/topology-vscode/src/schema/types.ts"
+TYPES_TS="$REPO_ROOT/src/schema/types.ts"
 
 if [[ ! -d "$WIRING_DIR" ]]; then
   echo "send-rule-parity: MISCONFIGURED — dir not found: $WIRING_DIR" >&2

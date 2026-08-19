@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: tools/topology-vscode/src/webview/**/*.ts,tools/topology-vscode/src/webview/**/*.tsx | no zustand and no useSyncExternalStore outside the named buffer-reflect resources
+# PLACEMENT: src/webview/**/*.ts,src/webview/**/*.tsx | no zustand and no useSyncExternalStore outside the named buffer-reflect resources
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
-WEBVIEW_DIR="$REPO_ROOT/tools/topology-vscode/src/webview"
+WEBVIEW_DIR="$REPO_ROOT/src/webview"
 
 if [[ ! -d "$WEBVIEW_DIR" ]]; then
   echo "no-webview-state: MISCONFIGURED — webview dir not found at $WEBVIEW_DIR" >&2

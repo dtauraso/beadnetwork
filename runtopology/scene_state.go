@@ -6,8 +6,8 @@ import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenecamera"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
 	"github.com/dtauraso/wirefold/nodes/Wiring/viewpersist"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/src/SliderPanel"
-	T "github.com/dtauraso/wirefold/tools/topology-vscode/src/Trace"
+	"github.com/dtauraso/wirefold/src/SliderPanel"
+	T "github.com/dtauraso/wirefold/src/Trace"
 )
 
 func loadSceneState(scenePath string, md *W.MoveDispatch, tr *T.Trace, speedSinks SliderPanel.Sinks) {

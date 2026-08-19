@@ -1,6 +1,6 @@
 tools/docs/check-doc-symbols.sh	docs/planning/*	plan docs are written per change and deleted when it lands, so this skip pattern matches nothing between changes
 tools/docs/lib/collect-citing-files.sh	docs/planning/*	plan docs are written per change and deleted when it lands, so this skip pattern matches nothing between changes
 tools/repo-hygiene/hooks/check-stray-screenshots.sh	docs/planning/visual-editor/screenshots	the destination this hook names in its message; it need not exist until there are screenshots to put there
-tools/repo-hygiene/check-no-dead-css-class.sh	tools/topology-vscode/src/webview/*.css	there is no stylesheet today; the guard handles that case itself by proving nothing still carries class attributes
+tools/repo-hygiene/check-no-dead-css-class.sh	src/webview/*.css	there is no stylesheet today; the guard handles that case itself by proving nothing still carries class attributes
 tools/network/concurrency/check-no-fan-in.sh	topology/edges	named only to say where the dir USED to be; the live one is topology/nodes/<source>/edges
 tools/docs/check-comment-vocab.sh	topology/edges	listed as retired vocabulary; naming it is the point, it must not come back

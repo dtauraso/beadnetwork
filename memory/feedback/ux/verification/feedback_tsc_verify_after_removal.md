@@ -7,7 +7,7 @@ metadata:
 
 When removing or refactoring TypeScript in the webview (deleting a
 variable, field, function, or feature), verify with
-`cd tools/topology-vscode && npx tsc --noEmit` in addition to
+`npx tsc --noEmit` in addition to
 `npm run build`.
 
 **Why:** `npm run build` uses esbuild, which **bundles without

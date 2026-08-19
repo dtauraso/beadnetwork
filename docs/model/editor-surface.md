@@ -15,7 +15,7 @@ when a bead has arrived. Go owns the clock.
   parameters, camera pose, selection, and overlay visibility. There is no
   single combined buffer or central packer: each emitting goroutine packs
   and streams its OWN binary content buffer to its OWN dedicated inherited
-  stdio pipe (`tools/topology-vscode/src/Buffer/streamframe/stream_fds.go`, memory/feedback/architecture/bridge/feedback_no_single_writer_bridge.md)
+  stdio pipe (`src/Buffer/streamframe/stream_fds.go`, memory/feedback/architecture/bridge/feedback_no_single_writer_bridge.md)
   — one VIEW stream (camera/overlay/scene, the gesture/stdin-reader
   goroutine), one stream per edge row (that edge's geometry, written by
   the SOURCE node's own goroutine — a node draws its own out-edges), one
@@ -33,7 +33,7 @@ when a bead has arrived. Go owns the clock.
   thing you want to see separately. Frames on a dedicated fd are `[len:u32-LE][payload]`
   with NO tag byte — the fd POSITION identifies the stream/row.
   `WIREFOLD_STREAM_FDS` (the ext host's spawn env var,
-  `tools/topology-vscode/src/runCommand.ts`) is **mandatory**: there is no
+  `src/runCommand.ts`) is **mandatory**: there is no
   central accumulator and no fallback path left to fall back to.
 - **Go → TS is binary content buffers** (`buffer-snapshot`) ALONE — no
   sidecar. Each node's kind is a numeric `KindId` column (TS maps it to
@@ -41,7 +41,7 @@ when a bead has arrived. Go owns the clock.
   bytes, and its identity is the buffer ROW INDEX (Go resolves row → node
   for hits). The ext host relays each dedicated-fd frame to the webview
   under a synthetic tag (`BUF_BLOCK_TAG_VIEW`/`_EDGE_STREAM`/`_NODE_STREAM`/
-  `_INTERIOR_STREAM`, `tools/topology-vscode/src/Buffer/frame_tags.go`) purely for cell routing —
+  `_INTERIOR_STREAM`, `src/Buffer/frame_tags.go`) purely for cell routing —
   never a wire byte. The webview decodes each stream (`buffer-decode-view.ts`/
   `buffer-decode-edge.ts`/`buffer-decode-node.ts`/`buffer-decode-interior.ts`)
   and renders it; row-keyed reflect resources (`snapshot-buffer.ts`,
@@ -52,20 +52,20 @@ when a bead has arrived. Go owns the clock.
   per-owner stream's own trailing EVENTS section (`buffer-log.ts`), not a
   stdout parse. Stdout carries only the DEBUG BREADCRUMB channel's sparse
   `{"kind":"breadcrumb",...}` control-event lines.
-- **`BufferScene`** (`tools/topology-vscode/src/webview/three/scene/buffer-scene.tsx`)
+- **`BufferScene`** (`src/webview/three/scene/buffer-scene.tsx`)
   is the composition root of the render tree — it decodes the buffer and
   assembles the per-concern components that draw ALL geometry from it. It is a
   small file; the drawing lives in its siblings under `three/scene/`. Grep the symbol,
-  not this filename. The tree covers: node bodies (`tools/topology-vscode/src/Node/Shape/NodeInstances.tsx` — sphere
+  not this filename. The tree covers: node bodies (`src/Node/Shape/NodeInstances.tsx` — sphere
   mesh + ring, keyed off `node.data.fill`/`node.data.stroke` from `NODE_DEFS`; no port
   geometry — a port is a load-time channel-binding ROLE, never drawn),
   transit and interior
-  beads (`tools/topology-vscode/src/Bead/ChainBeadInstances.tsx`, `tools/topology-vscode/src/webview/three/scene/beads/InteriorBeadInstances.tsx` — there is no
+  beads (`src/Bead/ChainBeadInstances.tsx`, `src/webview/three/scene/beads/InteriorBeadInstances.tsx` — there is no
   per-edge drawn tube any more; the source node's own chain of placeholder beads is the
   edge's visual, `docs/model/entities.md`), the selection ring, its halo and the hover
   ring (placed with everything else drawn at a node's own frame, in
-  `tools/topology-vscode/src/Node/Shape/node-instances-update.ts`; their shape lives in
-  `tools/topology-vscode/src/Node/Shape/node-highlight-shape.ts`), and the camera (`tools/topology-vscode/src/Camera/BufferCamera.tsx` maps the buffer
+  `src/Node/Shape/node-instances-update.ts`; their shape lives in
+  `src/Node/Shape/node-highlight-shape.ts`), and the camera (`src/Camera/BufferCamera.tsx` maps the buffer
   Camera row onto the three.js camera). Nothing in this tree owns traversal
   timing, positions, or geometry.
 - **Bridge surface — binary BOTH ways.** **Go → TS:** the binary content

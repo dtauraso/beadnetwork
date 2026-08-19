@@ -4,7 +4,7 @@ description: Editor visual fixes should use general mechanisms that scale across
 type: feedback
 ---
 
-Visual fixes in the visual editor (tools/topology-vscode/) should be
+Visual fixes in the visual editor (the repo root) should be
 built on general mechanisms that scale and stay flexible to future
 visual audits, not point patches tuned to the current observation.
 

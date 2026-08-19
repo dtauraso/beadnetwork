@@ -3,7 +3,7 @@ package rulenode
 import (
 	"context"
 	"fmt"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/src/PolarRulesPanel"
+	"github.com/dtauraso/wirefold/src/PolarRulesPanel"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/nodeactor/owners"
 	"github.com/dtauraso/wirefold/nodes/spatial"

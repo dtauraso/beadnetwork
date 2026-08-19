@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: tools/topology-vscode/src/**/*.ts,tools/topology-vscode/src/**/*.tsx | TS→Go sends (postGoRecord/sendRawInput/writeStdin/postMessage) must be fire-and-forget, no await/.then
+# PLACEMENT: src/**/*.ts,src/**/*.tsx | TS→Go sends (postGoRecord/sendRawInput/writeStdin/postMessage) must be fire-and-forget, no await/.then
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
-SRC_DIR="$REPO_ROOT/tools/topology-vscode/src"
+SRC_DIR="$REPO_ROOT/src"
 
 WRITESTDIN_FILES=$(grep -rlE '\bwriteStdin\(' --include="*.ts" "$SRC_DIR" 2>/dev/null \
   | xargs grep -lE '\bwriteStdin\([^)]*\)[[:space:]]*:' 2>/dev/null || true)

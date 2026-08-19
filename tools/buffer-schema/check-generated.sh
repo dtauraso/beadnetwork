@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: tools/topology-vscode/**/buffer_block.go,tools/topology-vscode/src/Buffer/bufschema/layout*.go,nodes/Wiring/inputcodec/input_fingerprint.go,nodes/*/SPEC.md | changing a generator source means running `go run ./tools/gen-node-defs` in the SAME commit
+# PLACEMENT: src/**/buffer_block.go,src/Buffer/bufschema/layout*.go,nodes/Wiring/inputcodec/input_fingerprint.go,nodes/*/SPEC.md | changing a generator source means running `go run ./tools/gen-node-defs` in the SAME commit
 set -euo pipefail
 
 REPO_ROOT="$(git rev-parse --show-toplevel)" || {
@@ -9,7 +9,7 @@ REPO_ROOT="$(git rev-parse --show-toplevel)" || {
 }
 cd "$REPO_ROOT"
 
-GEN_OUT=$(cd tools/topology-vscode && npm run --silent gen:node-defs 2>&1) || {
+GEN_OUT=$(npm run --silent gen:node-defs 2>&1) || {
   echo "check-generated: generator failed" >&2
   echo "$GEN_OUT" >&2
   exit 1

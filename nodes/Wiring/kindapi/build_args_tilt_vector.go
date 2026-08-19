@@ -2,7 +2,7 @@ package kindapi
 
 import (
 	"github.com/dtauraso/wirefold/nodes/Wiring/movemsg"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/src/TiltPanel"
+	"github.com/dtauraso/wirefold/src/TiltPanel"
 )
 
 func (a BuildArgs) TiltVectorAngleSeed() (theta int32) {

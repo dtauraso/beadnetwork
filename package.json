@@ -1,0 +1,80 @@
+{
+  "name": "topology-vscode",
+  "displayName": "Topology Editor",
+  "description": "Drag-and-drop editor for topology.json (wirefold)",
+  "version": "0.0.1",
+  "publisher": "dtauraso",
+  "private": true,
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "main": "./out/extension.js",
+  "activationEvents": [
+    "onCommand:topology.openEditor",
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "topology.openEditor",
+        "title": "Topology: Open Editor"
+      }
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "topology.openEditor",
+          "when": "explorerResourceIsFolder && resourceFilename == topology",
+          "group": "navigation"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Topology Editor",
+      "properties": {
+        "wirefold.probe.trace": {
+          "type": "boolean",
+          "default": false,
+          "description": "Write the high-volume per-owner .probe/ trace logs (go.jsonl, go-node.jsonl, go-edge.jsonl, go-interior.jsonl, ts.jsonl). Off by default because these can grow to gigabytes in a long session. Error logs (go-errors.jsonl, ts-errors.jsonl, handler-error-last.json) are always written regardless of this setting."
+        },
+        "wirefold.reloadOnHostBuild": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically run 'Developer: Reload Window' when the built extension-host bundle (out/extension.js) changes. OFF by default: it reloads the window at a moment you did not choose — including mid-write during a rebuild, which presents as a 10-second stall and a missing 'Topology: Open Editor' command. It was on to stop a rebuilt host running stale code silently, but staleness is no longer silent: a frame whose buffer layout differs from the bundle's is refused and reported (see BufLayoutFingerprintHash). Turn it on if you want the editor to reload itself on every rebuild."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "gen:node-defs": "go run ./tools/gen-node-defs",
+    "gen:input-fixture": "node scripts/gen-input-fixture.mjs",
+    "build": "npm run gen:node-defs && node esbuild.mjs",
+    "watch": "npm run gen:node-defs && node esbuild.mjs --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint src",
+    "knip": "knip",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.4",
+    "@types/node": "^20.0.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@types/three": "^0.184.1",
+    "@types/vscode": "^1.85.0",
+    "esbuild": "^0.28.0",
+    "eslint": "^9.39.4",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "typescript": "^5.3.0",
+    "typescript-eslint": "^8.62.1",
+    "vitest": "^3.2.4"
+  },
+  "dependencies": {
+    "@react-three/fiber": "^9.6.1",
+    "immer": "^11.1.4",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "three": "^0.184.0"
+  }
+}

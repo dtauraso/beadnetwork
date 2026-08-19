@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/panelstack"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/src/OverlaysDropdown"
+	"github.com/dtauraso/wirefold/src/OverlaysDropdown"
 )
 
 type Rect = panelstack.Rect
