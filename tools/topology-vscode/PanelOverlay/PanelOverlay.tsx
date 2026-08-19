@@ -12,6 +12,13 @@ import { drawRulesPanel, rulesPanelKey } from "../PolarRulesPanel/draw-rules-pan
 import { postGoRecord } from "../src/webview/vscode-api";
 import { encodeSceneViewport } from "../src/schema/input/input-encode-scene-tilt";
 import { postLog } from "../src/webview/log/post";
+import { columnF32 } from "../Buffer/column-values";
+import {
+  COL_STREAM_RULES_PANEL_BOX_X, COL_STREAM_RULES_PANEL_BOX_Y,
+  COL_STREAM_RULES_PANEL_BOX_W, COL_STREAM_RULES_PANEL_BOX_H,
+  COL_STREAM_OVERLAYS_PILL_PILL_X, COL_STREAM_OVERLAYS_PILL_PILL_Y,
+  COL_STREAM_OVERLAYS_PILL_PILL_W, COL_STREAM_OVERLAYS_PILL_PILL_H,
+} from "../Buffer/column-streams-gen";
 
 export function PanelOverlay() {
   const { gl } = useThree();
@@ -57,8 +64,29 @@ export function PanelOverlay() {
     const bh = Math.max(1, Math.round(vh * ratio));
 
     if (vw !== lastSize.current.w || vh !== lastSize.current.h) {
+      const prev = lastSize.current;
       lastSize.current = { w: vw, h: vh };
       postGoRecord(encodeSceneViewport(vw, vh));
+
+      // One line per viewport change, carrying the same two panels' rects every time. If a
+      // panel's w/h move when the view's do, its size depends on the view; if they hold, the
+      // size is right and anything that looks different is the drawing.
+      const rect = (x: number, y: number, w: number, h: number) =>
+        `${columnF32(x).toFixed(1)},${columnF32(y).toFixed(1)} ${columnF32(w).toFixed(1)}x${columnF32(h).toFixed(1)}`;
+      postLog("panel-size-on-resize", {
+        viewWas: `${prev.w}x${prev.h}`,
+        viewNow: `${vw}x${vh}`,
+        renderTarget: `${el.width}x${el.height}`,
+        pixelRatio: ratio,
+        rulesPanel: rect(
+          COL_STREAM_RULES_PANEL_BOX_X, COL_STREAM_RULES_PANEL_BOX_Y,
+          COL_STREAM_RULES_PANEL_BOX_W, COL_STREAM_RULES_PANEL_BOX_H,
+        ),
+        overlaysPill: rect(
+          COL_STREAM_OVERLAYS_PILL_PILL_X, COL_STREAM_OVERLAYS_PILL_PILL_Y,
+          COL_STREAM_OVERLAYS_PILL_PILL_W, COL_STREAM_OVERLAYS_PILL_PILL_H,
+        ),
+      });
     }
 
     const key = `${vw}x${vh}@${bw}x${bh}|${speedPanelKey()}|${tiltPanelKey()}|${anglePillKey()}|${nodesPillKey()}|${overlaysPillKey()}|${fitChipKey()}|${tabStripKey()}|${rulesPanelKey()}`;
@@ -88,10 +116,6 @@ export function PanelOverlay() {
     const targetW = Math.max(1, el.width);
     const targetH = Math.max(1, el.height);
 
-    // The canvas' client box and its render target must describe the same rectangle. When
-    // they do not, every size read off this element is wrong and the panels are laid out for
-    // a viewport that is not the one they are shown in. The overlay clips rather than scales
-    // now, so that failure is quiet — which is exactly why it has to announce itself.
     const skewX = Math.abs(targetW - bw);
     const skewY = Math.abs(targetH - bh);
     if (skewX > 2 || skewY > 2) {
