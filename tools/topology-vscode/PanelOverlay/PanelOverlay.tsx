@@ -60,11 +60,6 @@ export function PanelOverlay() {
     const tex = texRef.current;
     if (!tex) return;
 
-    // Take the rectangle from the canvas element itself. Its drawing buffer is exactly what
-    // gets rendered and its client box is exactly what the viewer sees, so the two cannot
-    // disagree with each other the way a reported size can. A bitmap sized from anything else
-    // is stretched onto a viewport it was not drawn for, which moves the panels down the
-    // screen and enlarges them — the further off the size, the further down they go.
     const el = gl.domElement;
     const vw = Math.max(1, el.clientWidth);
     const vh = Math.max(1, el.clientHeight);
@@ -81,15 +76,12 @@ export function PanelOverlay() {
     const key = `${vw}x${vh}@${bw}x${bh}|${speedPanelKey()}|${tiltPanelKey()}|${anglePillKey()}|${nodesPillKey()}|${overlaysPillKey()}|${fitChipKey()}|${tabStripKey()}|${rulesPanelKey()}`;
     if (key !== lastKey.current) {
       lastKey.current = key;
-      // The bitmap IS the drawing buffer, so the overlay quad maps it one to one.
       if (canvas.width !== bw || canvas.height !== bh) {
         canvas.width = bw;
         canvas.height = bh;
       }
       const c = canvas.getContext("2d");
       if (c) {
-        // Go lays the panels out in CSS pixels; this is the only place that becomes device
-        // pixels, and it is derived from the element rather than assumed.
         c.setTransform(scaleX, 0, 0, scaleY, 0, 0);
         c.clearRect(0, 0, vw, vh);
         drawSpeedPanel(c);
