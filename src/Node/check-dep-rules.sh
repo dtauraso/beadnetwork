@@ -20,10 +20,15 @@ MODULE="github.com/dtauraso/wirefold"
 
 is_spine() { [ "$1" = "Wiring" ] || [ "$1" = "gatecommon" ] || [ "$1" = "bead" ] || [ "$1" = "spatial" ] || [ "$1" = "rowevent" ] || [ "$1" = "nodeapi" ] || [ "$1" = "clock" ]; }
 
+is_kind() { grep -rqE 'Register(Builder)?\(' "$1" --include="*.go" 2>/dev/null; }
+
+KINDS_SEEN=0
 fail=0
 for dir in "$NODES_DIR"/*/; do
   kind="$(basename "$dir")"
   is_spine "$kind" && continue
+  is_kind "$dir" || continue
+  KINDS_SEEN=$((KINDS_SEEN + 1))
 
   imported="$(grep -rhoE "\"$MODULE/src/Node/[A-Za-z0-9_]+(/[A-Za-z0-9_/]+)?\"" "$dir" --include="*.go" 2>/dev/null \
       | sed -E "s#\"$MODULE/src/Node/([A-Za-z0-9_]+)(/[A-Za-z0-9_/]+)?\"#\1#" | sort -u || true)"
@@ -32,9 +37,16 @@ for dir in "$NODES_DIR"/*/; do
     [ -z "$dep" ] && continue
     [ "$dep" = "$kind" ] && continue
     is_spine "$dep" && continue
-    echo "ILLEGAL DEP: nodes/$kind imports sibling nodes/$dep — kinds must couple only through the shared spine (Wiring/gatecommon)"
+    echo "ILLEGAL DEP: src/Node/$kind imports sibling src/Node/$dep — kinds must couple only through the shared spine (Wiring/gatecommon)"
     fail=1
   done <<< "$imported"
 done
+
+if [ "$KINDS_SEEN" -eq 0 ]; then
+  echo "check-dep-rules: MISCONFIGURED — found no node-kind packages under $NODES_DIR." >&2
+  echo "  A kind is a package calling Register(...); if that call site changed shape, this" >&2
+  echo "  guard now polices nothing while still exiting 0. Update is_kind() deliberately." >&2
+  exit 1
+fi
 
 exit $fail

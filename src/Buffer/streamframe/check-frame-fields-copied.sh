@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: src/Buffer/streamframe/node_stream_frame.go,runtopology/node_stream.go | every NodeStreamFrame field must be named by the adapter that fills it, or it streams a zero while everything compiles
+# PLACEMENT: src/Buffer/streamframe/node_stream_frame.go,src/Node/runtopology/node_stream.go | every NodeStreamFrame field must be named by the adapter that fills it, or it streams a zero while everything compiles
 
 set -euo pipefail
 
@@ -15,7 +15,7 @@ PAIRS = [
     ("src/Node/Wiring/nodeactor/nodeframe/node_frame_input.go", "NodeFrameInput",
      "src/Node/Wiring/nodeactor/node_geometry_stream.go"),
     ("src/Buffer/streamframe/node_stream_frame.go", "NodeStreamFrame",
-     "runtopology/node_stream.go"),
+     "src/Node/runtopology/node_stream.go"),
 ]
 
 EXEMPT = {
