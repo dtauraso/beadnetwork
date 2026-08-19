@@ -28,6 +28,7 @@ export function PanelOverlay() {
 
   useEffect(() => {
     const tex = new THREE.CanvasTexture(canvas);
+    tex.colorSpace = THREE.SRGBColorSpace;
     tex.minFilter = THREE.LinearFilter;
     tex.magFilter = THREE.LinearFilter;
     texRef.current = tex;
