@@ -70,6 +70,7 @@ dist/
 # a generator compiled by hand instead of run through `go generate ./...`; every
 # generator's package is called gen, so `go build ./src/Trace/gen` drops ./gen here
 /gen
+/gen-node-defs
 
 # Local working notes / scratch
 /notes/
