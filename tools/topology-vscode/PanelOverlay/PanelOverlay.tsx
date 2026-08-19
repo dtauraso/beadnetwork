@@ -33,7 +33,6 @@ export function PanelOverlay() {
   const camRef = useRef(new THREE.OrthographicCamera(-1, 1, 1, -1, -1, 1));
   const lastKey = useRef("");
   const lastSize = useRef({ w: 0, h: 0 });
-  const viewSize = useMemo(() => new THREE.Vector2(), []);
 
   useEffect(() => {
     const tex = new THREE.CanvasTexture(canvas);
@@ -61,28 +60,37 @@ export function PanelOverlay() {
     const tex = texRef.current;
     if (!tex) return;
 
-    gl.getSize(viewSize);
-    const vw = Math.max(1, Math.round(viewSize.x));
-    const vh = Math.max(1, Math.round(viewSize.y));
-    const dpr = Math.min(3, gl.getPixelRatio());
+    // Take the rectangle from the canvas element itself. Its drawing buffer is exactly what
+    // gets rendered and its client box is exactly what the viewer sees, so the two cannot
+    // disagree with each other the way a reported size can. A bitmap sized from anything else
+    // is stretched onto a viewport it was not drawn for, which moves the panels down the
+    // screen and enlarges them — the further off the size, the further down they go.
+    const el = gl.domElement;
+    const vw = Math.max(1, el.clientWidth);
+    const vh = Math.max(1, el.clientHeight);
+    const bw = Math.max(1, el.width);
+    const bh = Math.max(1, el.height);
+    const scaleX = bw / vw;
+    const scaleY = bh / vh;
 
     if (vw !== lastSize.current.w || vh !== lastSize.current.h) {
       lastSize.current = { w: vw, h: vh };
       postGoRecord(encodeSceneViewport(vw, vh));
     }
 
-    const key = `${vw}x${vh}@${dpr}|${speedPanelKey()}|${tiltPanelKey()}|${anglePillKey()}|${nodesPillKey()}|${overlaysPillKey()}|${fitChipKey()}|${tabStripKey()}|${rulesPanelKey()}`;
+    const key = `${vw}x${vh}@${bw}x${bh}|${speedPanelKey()}|${tiltPanelKey()}|${anglePillKey()}|${nodesPillKey()}|${overlaysPillKey()}|${fitChipKey()}|${tabStripKey()}|${rulesPanelKey()}`;
     if (key !== lastKey.current) {
       lastKey.current = key;
-      const bw = Math.max(1, Math.round(vw * dpr));
-      const bh = Math.max(1, Math.round(vh * dpr));
+      // The bitmap IS the drawing buffer, so the overlay quad maps it one to one.
       if (canvas.width !== bw || canvas.height !== bh) {
         canvas.width = bw;
         canvas.height = bh;
       }
       const c = canvas.getContext("2d");
       if (c) {
-        c.setTransform(dpr, 0, 0, dpr, 0, 0);
+        // Go lays the panels out in CSS pixels; this is the only place that becomes device
+        // pixels, and it is derived from the element rather than assumed.
+        c.setTransform(scaleX, 0, 0, scaleY, 0, 0);
         c.clearRect(0, 0, vw, vh);
         drawSpeedPanel(c);
         drawTiltPanel(c);
