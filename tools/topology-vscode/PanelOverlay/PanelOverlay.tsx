@@ -70,11 +70,19 @@ export function PanelOverlay() {
 
       const rect = (x: number, y: number, w: number, h: number) =>
         `${columnF32(x).toFixed(1)},${columnF32(y).toFixed(1)} ${columnF32(w).toFixed(1)}x${columnF32(h).toFixed(1)}`;
+      const box = (n: Element | null) =>
+        n ? `${Math.round(n.clientWidth)}x${Math.round(n.clientHeight)}` : "none";
       postLog("panel-size-on-resize", {
         viewWas: `${prev.w}x${prev.h}`,
         viewNow: `${vw}x${vh}`,
         renderTarget: `${el.width}x${el.height}`,
         pixelRatio: ratio,
+        devicePixelRatio: window.devicePixelRatio,
+        window: `${window.innerWidth}x${window.innerHeight}`,
+        body: box(document.body),
+        app: box(document.getElementById("app")),
+        canvasParent: box(el.parentElement),
+        canvasCss: `${Math.round(el.getBoundingClientRect().width)}x${Math.round(el.getBoundingClientRect().height)}`,
         rulesPanel: rect(
           COL_STREAM_RULES_PANEL_BOX_X, COL_STREAM_RULES_PANEL_BOX_Y,
           COL_STREAM_RULES_PANEL_BOX_W, COL_STREAM_RULES_PANEL_BOX_H,
