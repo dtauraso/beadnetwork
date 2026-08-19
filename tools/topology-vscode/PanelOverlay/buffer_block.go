@@ -1,4 +1,6 @@
-package bufschema
+package PanelOverlay
+
+var _ = bufLayoutPointerTarget{}
 
 type bufLayoutPointerTarget struct {
 	X float32 `buf:"f32"`

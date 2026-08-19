@@ -8,11 +8,28 @@ paths:
 
 # Content buffer schema — adding or changing a column
 
-If a change needs a **new column in the content buffer**, add it to the hand-authored
-schema (`tools/topology-vscode/Buffer/bufschema/layout.go`, the `buf:"…"` struct tags) and regenerate in the same
-commit. `tools/topology-vscode/Buffer/buffer_layout_gen.go` and `tools/topology-vscode/Buffer/buffer-layout.ts`
-are BOTH generated from `layout.go`, and `check-generated.sh` fails if either is stale
-relative to it (it regenerates and diffs).
+**A block's columns live in the directory of the thing they describe.** The rules panel's
+columns are `tools/topology-vscode/PolarRulesPanel/buffer_block.go`, the overlays popover's are
+`tools/topology-vscode/OverlaysDropdown/buffer_block.go`, and so on — a column is part of its concern, not part of
+a schema directory. What remains in `Buffer/bufschema/` is what has no owner elsewhere: the
+model blocks (Node, Edge, Camera, Scene…) and the trace events.
+
+The generator does not need telling where they are. It walks the repo for `bufLayout*`
+structs, so a block is found by BEING one — a list of locations would be a second
+description of the layout, and this generator exists because two descriptions of the wire
+format is exactly how the Go and TS halves drift apart.
+
+**Two things stay central, and only two.** `BufLayoutVersion` and `BufInteriorSlotsPerNode`
+in `tools/topology-vscode/Buffer/bufschema/layout.go`, and `bufBlockOrder` in
+`tools/gen-node-defs/buflayout/buf_layout_parse.go` — that order IS the wire format, so it
+belongs in one place. Where a block's file sits is not part of the wire format.
+
+To add a column: add the field with its `buf:"…"` tag to that block's `buffer_block.go`, and
+regenerate in the SAME commit. `buffer_layout_gen.go` and `buffer-layout.ts` are both
+generated, and `check-generated.sh` fails if either is stale (it regenerates and diffs).
+
+A new BLOCK also needs its name in `bufBlockOrder`, and a `var _ = bufLayoutX{}` beside it
+so it is not dead code in a package nothing imports it from.
 
 ## Which guard catches what
 

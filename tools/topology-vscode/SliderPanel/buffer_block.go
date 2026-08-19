@@ -1,4 +1,6 @@
-package bufschema
+package SliderPanel
+
+var _ = bufLayoutSpeedPanel{}
 
 type bufLayoutSpeedPanel struct {
 	BoxX float32 `buf:"f32"`

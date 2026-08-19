@@ -1,4 +1,6 @@
-package bufschema
+package FitButton
+
+var _ = bufLayoutFitChip{}
 
 type bufLayoutFitChip struct {
 	X float32 `buf:"f32"`

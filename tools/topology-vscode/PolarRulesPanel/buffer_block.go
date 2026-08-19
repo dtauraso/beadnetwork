@@ -1,4 +1,6 @@
-package bufschema
+package PolarRulesPanel
+
+var _ = bufLayoutRulesPanel{}
 
 type bufLayoutRulesPanel struct {
 	ClipY   float32 `buf:"f32"`

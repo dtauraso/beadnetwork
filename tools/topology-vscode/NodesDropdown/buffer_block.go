@@ -1,4 +1,6 @@
-package bufschema
+package NodesDropdown
+
+var _ = bufLayoutNodesPill{}
 
 type bufLayoutNodesPill struct {
 	PillX float32 `buf:"f32"`

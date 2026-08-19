@@ -1,7 +1,10 @@
 package buflayout
 
 import (
+	"bytes"
 	"fmt"
+	"io/fs"
+	"os"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -32,8 +35,31 @@ var bufBlockOrder = []string{
 	"PointerTarget",
 }
 
-func ParseBufferLayoutDir(dir string) (BufLayoutSchema, error) {
-	paths, err := filepath.Glob(filepath.Join(dir, "*.go"))
+func ParseBufferLayoutTree(root string) (BufLayoutSchema, error) {
+	var paths []string
+	err := filepath.WalkDir(root, func(p string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() {
+			switch d.Name() {
+			case "node_modules", "out", ".git", ".probe", ".wirefold-cache":
+				return filepath.SkipDir
+			}
+			return nil
+		}
+		if !strings.HasSuffix(p, ".go") || strings.HasSuffix(p, "_test.go") {
+			return nil
+		}
+		b, readErr := os.ReadFile(p)
+		if readErr != nil {
+			return readErr
+		}
+		if bytes.Contains(b, []byte("bufLayout")) || bytes.Contains(b, []byte("BufLayoutVersion")) {
+			paths = append(paths, p)
+		}
+		return nil
+	})
 	if err != nil {
 		return BufLayoutSchema{}, err
 	}
@@ -62,13 +88,13 @@ func ParseBufferLayoutDir(dir string) (BufLayoutSchema, error) {
 	}
 
 	if schema.version == 0 {
-		return BufLayoutSchema{}, fmt.Errorf("BufLayoutVersion const not found under %s", dir)
+		return BufLayoutSchema{}, fmt.Errorf("BufLayoutVersion const not found under %s", root)
 	}
 	if schema.interiorSlotsPerNode == 0 {
-		return BufLayoutSchema{}, fmt.Errorf("BufInteriorSlotsPerNode const not found under %s", dir)
+		return BufLayoutSchema{}, fmt.Errorf("BufInteriorSlotsPerNode const not found under %s", root)
 	}
 	if len(blocks) == 0 {
-		return BufLayoutSchema{}, fmt.Errorf("no bufLayout* struct types found under %s", dir)
+		return BufLayoutSchema{}, fmt.Errorf("no bufLayout* struct types found under %s", root)
 	}
 
 	byName := map[string]bufBlock{}
@@ -76,12 +102,12 @@ func ParseBufferLayoutDir(dir string) (BufLayoutSchema, error) {
 		byName[b.name] = b
 	}
 	if len(byName) != len(blocks) {
-		return BufLayoutSchema{}, fmt.Errorf("duplicate bufLayout block name found under %s", dir)
+		return BufLayoutSchema{}, fmt.Errorf("duplicate bufLayout block name found under %s", root)
 	}
 	for _, name := range bufBlockOrder {
 		b, ok := byName[name]
 		if !ok {
-			return BufLayoutSchema{}, fmt.Errorf("bufBlockOrder names block %q but no bufLayout%s struct was found under %s", name, name, dir)
+			return BufLayoutSchema{}, fmt.Errorf("bufBlockOrder names block %q but no bufLayout%s struct was found under %s", name, name, root)
 		}
 		schema.Blocks = append(schema.Blocks, b)
 		delete(byName, name)
@@ -92,7 +118,7 @@ func ParseBufferLayoutDir(dir string) (BufLayoutSchema, error) {
 			leftover = append(leftover, name)
 		}
 		sort.Strings(leftover)
-		return BufLayoutSchema{}, fmt.Errorf("bufLayout block(s) %v found under %s but missing from bufBlockOrder — add them there", leftover, dir)
+		return BufLayoutSchema{}, fmt.Errorf("bufLayout block(s) %v found under %s but missing from bufBlockOrder — add them there", leftover, root)
 	}
 
 	return schema, nil

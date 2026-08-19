@@ -1,4 +1,6 @@
-package bufschema
+package Tabs
+
+var _ = bufLayoutTabStrip{}
 
 type bufLayoutTabStrip struct {
 	StripX float32 `buf:"f32"`

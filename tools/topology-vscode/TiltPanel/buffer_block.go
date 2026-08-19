@@ -1,4 +1,6 @@
-package bufschema
+package TiltPanel
+
+var _ = bufLayoutTiltPanel{}
 
 type bufLayoutTiltPanel struct {
 	BoxX float32 `buf:"f32"`
