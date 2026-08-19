@@ -46,7 +46,7 @@
     }
   },
   "scripts": {
-    "gen:node-defs": "go run ./cmd/gen-node-defs",
+    "gen:node-defs": "go generate ./...",
     "gen:input-fixture": "node scripts/gen-input-fixture.mjs",
     "build": "npm run gen:node-defs && node esbuild.mjs",
     "watch": "npm run gen:node-defs && node esbuild.mjs --watch",

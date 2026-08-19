@@ -96,6 +96,10 @@ fi
 NODE_PATH_OWNERS=("new_node_files.go" "edge_file.go" "edge_delta_file.go" "loader_tree.go" "tree_shape.go" "drag_file.go")
 is_node_path_owner() {
   local f="$1"
+  # A generator is not a mover. Files under a gen/ directory join "nodes" to name
+  # their own OUTPUT file in the source tree — nodes/Wiring/nodegeom/node_dims_gen.go —
+  # which is not a scene path and has no owning mover to route through.
+  [[ "$f" == */gen/* ]] && return 0
   for owner in "${NODE_PATH_OWNERS[@]}"; do
     [[ "${f##*/}" == "$owner" ]] && return 0
   done

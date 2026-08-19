@@ -21,7 +21,7 @@ format is exactly how the Go and TS halves drift apart.
 
 **Two things stay central, and only two.** `BufLayoutVersion` and `BufInteriorSlotsPerNode`
 in `src/Buffer/bufschema/layout.go`, and `bufBlockOrder` in
-`cmd/gen-node-defs/buflayout/buf_layout_parse.go` — that order IS the wire format, so it
+`src/Buffer/gen/buflayout/buf_layout_parse.go` — that order IS the wire format, so it
 belongs in one place. Where a block's file sits is not part of the wire format.
 
 To add a column: add the field with its `buf:"…"` tag to that block's `buffer_block.go`, and

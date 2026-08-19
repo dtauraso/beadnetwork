@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: src/**/buffer_block.go,src/Buffer/bufschema/layout*.go,nodes/Wiring/inputcodec/input_fingerprint.go,nodes/*/SPEC.md | changing a generator source means running `go run ./cmd/gen-node-defs` in the SAME commit
+# PLACEMENT: src/**/buffer_block.go,src/Buffer/bufschema/layout*.go,nodes/Wiring/inputcodec/input_fingerprint.go,nodes/*/SPEC.md | changing a generator source means running `go generate ./...` in the SAME commit
 set -euo pipefail
 
 REPO_ROOT="$(git rev-parse --show-toplevel)" || {
@@ -16,7 +16,7 @@ GEN_OUT=$(npm run --silent gen:node-defs 2>&1) || {
 }
 
 FILES=$(printf '%s\n' "$GEN_OUT" \
-  | sed -nE 's|^gen-node-defs: wrote ([^ ]+).*$|\1|p' \
+  | sed -nE 's|^[A-Za-z][A-Za-z0-9/]*: wrote ([^ ]+).*$|\1|p' \
   | sed "s|^$REPO_ROOT/||" \
   | sort -u)
 

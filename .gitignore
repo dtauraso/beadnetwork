@@ -67,10 +67,9 @@ dist/
 # Local dev binaries (build outputs from go build at project root)
 /topogen
 /topogend
-# go build output if accidentally run from the repo root
-/gen-node-defs
-# compiled gen-node-defs binary (build artifact); source is cmd/gen-node-defs/
-/gen-node-defs
+# a generator compiled by hand instead of run through `go generate ./...`; every
+# generator's package is called gen, so `go build ./src/Trace/gen` drops ./gen here
+/gen
 
 # Local working notes / scratch
 /notes/

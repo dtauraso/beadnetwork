@@ -44,7 +44,7 @@ clock, and the node-owned chain of placeholder beads that renders a traversal
    `<Kind>.go`) plus `SPEC.md`. Directory casing is mixed and both are live: PascalCase
    (`Time`, `TimeEnd`, `TimeStart`, `PulseLeft`, `PulseRight`) and lowercase (`holdflip`,
    `input`, `pacer`, `pulse`, `selectleft`, `selectright`) — don't infer one from the other.
-4. `go run ./cmd/gen-node-defs`. **Skip this and the kind does not exist in the binary** —
+4. `go generate ./...`. **Skip this and the kind does not exist in the binary** —
    it fails at runtime with `unknown type "X"` while everything else looks correct.
    Guard: `check-generated.sh`.
 
@@ -71,16 +71,24 @@ Vocabulary detail, parity guards, and the no-sidecar rule: `.claude/rules/bridge
 There is **no `tools/`**. It was removed because it had stopped meaning anything: it held
 the whole editor (107 Go files in production packages), the generators, and every guard.
 
+There is **no `cmd/`** either, and for the same reason. It grouped code by what it compiled
+to rather than by what it was about, so the buffer layout's generator sat one tree away from
+the buffer layout. Each generator now lives with the thing it generates, in that concern's
+`gen/` package — one directory out, because a directory is one Go package and the concern's
+own package is already there. `go generate ./...` runs all of them.
+
 - **`src/`** — the npm package's source root, and the editor: each concern directory holds
   the Go that packs the thing and the TS that draws it, plus its `buffer_block.go`, its
   generated `columns-gen.ts`, and the guards that protect it. `src` keeps that name because
   npm, tsconfig and esbuild all assume it; directory naming for an npm package is medium,
   not substance. The package root is the REPO root — `package.json`, `tsconfig.json` and
   `node_modules/` live there, so there is one npm project and no path mappings.
-- **`nodes/`** — the Go network. **`cmd/`** — the generators, where Go keeps executables;
-  `go generate ./...` runs them. **`scripts/`** — what serves the repo rather than one
-  concern: `stop-checks.sh`, the git-workflow scripts, `lib/`, and `checks/` for guards
-  that guard nothing in particular (clustered by concern: prose, hooks, lang, meta, source).
+- **`nodes/`** — the Go network, and ONLY node kinds and wiring: the kind scanner walks it
+  and treats every directory it finds as a kind, so a helper parked there grows a phantom
+  node kind. **`scripts/`** — what serves the repo rather than one concern: `stop-checks.sh`,
+  the git-workflow scripts, `lib/`, `checks/` for guards that guard nothing in particular
+  (clustered by concern: prose, hooks, lang, meta, source), and the two packages every
+  generator shares — `kindscan/` (reads the kinds) and `genpaths/` (finds the roots).
 - **A guard lives beside what it guards**, named by its own `PLACEMENT:` header — there is
   no table mapping guard to folder that could disagree with the header. `scripts/guard-list.sh`
   finds them by searching the repo, and refuses to report fewer than 40.
