@@ -68,9 +68,6 @@ export function PanelOverlay() {
       lastSize.current = { w: vw, h: vh };
       postGoRecord(encodeSceneViewport(vw, vh));
 
-      // One line per viewport change, carrying the same two panels' rects every time. If a
-      // panel's w/h move when the view's do, its size depends on the view; if they hold, the
-      // size is right and anything that looks different is the drawing.
       const rect = (x: number, y: number, w: number, h: number) =>
         `${columnF32(x).toFixed(1)},${columnF32(y).toFixed(1)} ${columnF32(w).toFixed(1)}x${columnF32(h).toFixed(1)}`;
       postLog("panel-size-on-resize", {

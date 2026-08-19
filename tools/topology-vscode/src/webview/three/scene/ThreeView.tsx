@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { Canvas } from "@react-three/fiber";
 import * as THREE from "three";
 import { sendRawInput, buildDeleteRaw, buildKeyRaw } from "../interaction/raw-input";
@@ -24,17 +24,6 @@ export function ThreeView() {
   const pickRequest = useRef<PickFn | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const captureRef = useRef<HTMLDivElement | null>(null);
-  const [canvasSize, setCanvasSize] = useState({ w: 800, h: 600 });
-
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    const obs = new ResizeObserver(() => setCanvasSize({ w: el.clientWidth, h: el.clientHeight }));
-    obs.observe(el);
-    setCanvasSize({ w: el.clientWidth, h: el.clientHeight });
-    return () => obs.disconnect();
-  }, []);
-
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement | null;
@@ -76,10 +65,14 @@ export function ThreeView() {
         onPointerCancel={onPointerCancel}
         onContextMenu={(e) => e.preventDefault()}
       >
+        {/* width/height, not inset. A canvas is a REPLACED element: absolutely positioned
+            with an auto width, CSS takes its INTRINSIC size and ignores the opposite
+            offset, so `inset: 0` sized it 300x150 — which is the size the viewport
+            breadcrumb reported. A percentage is the only thing that stretches it. */}
         <Canvas
           camera={{ fov: 50, near: 0.1, far: 20000, position: [0, 0, 500] }}
           gl={{ antialias: true }}
-          style={{ position: "absolute", inset: 0 }}
+          style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%" }}
           frameloop="always"
         >
           <Scene
