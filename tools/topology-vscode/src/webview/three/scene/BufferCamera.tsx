@@ -14,8 +14,7 @@ import { probeSceneSizeOnResize } from "./scene-size-probe";
 export function BufferCamera({ cameraRef }: {
   cameraRef?: React.MutableRefObject<THREE.PerspectiveCamera | null>;
 }) {
-  const { camera } = useThree();
-  const size = useThree((s) => s.size);
+  const { camera, gl } = useThree();
   const pivotRef = useRef(new THREE.Vector3());
 
   useFrame(() => {
@@ -41,19 +40,22 @@ export function BufferCamera({ cameraRef }: {
     cam.lookAt(pivot);
 
     const focalPx = columnF32(COL_STREAM_CAMERA_FOCAL_PX);
-    const heightPx = Math.max(1, size.height);
+    const el = gl.domElement;
+    const widthPx = Math.max(1, el.clientWidth);
+    const heightPx = Math.max(1, el.clientHeight);
     if (focalPx > 0) {
       const fov = 2 * Math.atan(heightPx / (2 * focalPx)) * 180 / Math.PI;
-      if (fov !== cam.fov) {
+      const aspect = widthPx / heightPx;
+      if (fov !== cam.fov || aspect !== cam.aspect) {
         cam.fov = fov;
+        cam.aspect = aspect;
         cam.updateProjectionMatrix();
       }
     }
 
     cam.updateMatrixWorld(true);
 
-    probeSceneSizeOnResize(
-      cam, pivot, focalPx, Math.max(1, size.width), Math.max(1, size.height));
+    probeSceneSizeOnResize(cam, pivot, focalPx, widthPx, heightPx);
   });
 
   return null;
