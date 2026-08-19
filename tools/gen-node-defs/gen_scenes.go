@@ -100,7 +100,7 @@ func generateScenes(repoRoot string) {
 	if err != nil {
 		fatalf("parse scenes: %v", err)
 	}
-	outPath := filepath.Join(repoRoot, "tools", "topology-vscode", "src", "schema", "scenes-gen.ts")
+	outPath := filepath.Join(srcRoot(repoRoot), "schema", "scenes-gen.ts")
 	if err := writeScenes(outPath, scenes); err != nil {
 		fatalf("write %s: %v", outPath, err)
 	}

@@ -20,7 +20,7 @@ func generateKindImports(repoRoot string, kinds []kindscan.KindEntry) {
 }
 
 func generateNodeDefs(repoRoot string, kinds []kindscan.KindEntry) {
-	outPath := filepath.Join(repoRoot, "tools", "topology-vscode", "src", "schema", "node-defs.ts")
+	outPath := filepath.Join(srcRoot(repoRoot), "schema", "node-defs.ts")
 	if err := nodedefs.WriteNodeDefs(outPath, kinds); err != nil {
 		fatalf("write %s: %v", outPath, err)
 	}
@@ -33,7 +33,7 @@ func generateWireDefs(repoRoot string) {
 	if err != nil {
 		fatalf("parse wire props from loadspec/topo_spec.go: %v", err)
 	}
-	wireDefsPath := filepath.Join(repoRoot, "tools", "topology-vscode", "src", "schema", "wire-defs.ts")
+	wireDefsPath := filepath.Join(srcRoot(repoRoot), "schema", "wire-defs.ts")
 	if err := wiredefs.WriteWireDefs(wireDefsPath, wireProps); err != nil {
 		fatalf("write %s: %v", wireDefsPath, err)
 	}
@@ -41,7 +41,7 @@ func generateWireDefs(repoRoot string) {
 }
 
 func generateTraceKinds(repoRoot string) {
-	traceDir := filepath.Join(repoRoot, "tools", "topology-vscode", "src", "Trace")
+	traceDir := filepath.Join(srcRoot(repoRoot), "Trace")
 	traceKinds, err := tracekinds.ParseTraceKinds(traceDir)
 	if err != nil {
 		fatalf("parse trace kinds: %v", err)
@@ -50,7 +50,7 @@ func generateTraceKinds(repoRoot string) {
 	if err != nil {
 		fatalf("parse breadcrumb labels: %v", err)
 	}
-	traceKindsPath := filepath.Join(repoRoot, "tools", "topology-vscode", "src", "Trace", "trace-kinds.ts")
+	traceKindsPath := filepath.Join(srcRoot(repoRoot), "Trace", "trace-kinds.ts")
 	if err := tracekinds.WriteTraceKinds(traceKindsPath, traceKinds, breadcrumbLabels); err != nil {
 		fatalf("write %s: %v", traceKindsPath, err)
 	}
@@ -66,7 +66,7 @@ func generateNodeDims(repoRoot string, kinds []kindscan.KindEntry) {
 }
 
 func generateNodeKindID(repoRoot string, kinds []kindscan.KindEntry) {
-	nodeKindIDGoPath := filepath.Join(repoRoot, "tools", "topology-vscode", "src", "Node", "node_kind_id_gen.go")
+	nodeKindIDGoPath := filepath.Join(srcRoot(repoRoot), "Node", "node_kind_id_gen.go")
 	if err := writeNodeKindID(nodeKindIDGoPath, kinds); err != nil {
 		fatalf("write %s: %v", nodeKindIDGoPath, err)
 	}

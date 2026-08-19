@@ -53,8 +53,6 @@ if not readers:
           "guard would check nothing", file=sys.stderr)
     sys.exit(1)
 
-# The column names live beside their blocks now, one generated file per concern, so this
-# collects them from wherever they are rather than from one file it was told about.
 COL_FILES = sorted(pathlib.Path("tools/topology-vscode/src").rglob("columns-gen.ts"))
 if not COL_FILES:
     print("check-one-reader-per-column: MISCONFIGURED — no columns-gen.ts found under src "

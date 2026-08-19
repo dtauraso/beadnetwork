@@ -2,7 +2,8 @@
 // Source: the NodeRingPoint, BeadRingPoint block(s) in this directory.
 
 import {
-  COL_STREAM_BASE_NODE_RING_POINT, COL_STREAM_BASE_BEAD_RING_POINT,
+  COL_STREAM_BASE_NODE_RING_POINT,
+  COL_STREAM_BASE_BEAD_RING_POINT,
 } from "../Buffer/column-streams-gen";
 
 export const COL_STREAM_NODE_RING_POINT_X = COL_STREAM_BASE_NODE_RING_POINT + 0;
