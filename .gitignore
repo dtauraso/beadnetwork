@@ -118,7 +118,16 @@ dist/
 .claude/hooks/go-blocks.log
 
 # Editor settings
-.vscode/
+.vscode/*
+# These four are shared, not personal: launch.json is the only way into the Extension
+# Development Host, tasks.json is the build it runs, settings.json carries the watcher
+# excludes the probe logs need, and the guard checks the first of them still works. They
+# were tracked before the ignore above existed, which made them survive by accident; named
+# here so a new one does not silently go missing instead.
+!.vscode/launch.json
+!.vscode/tasks.json
+!.vscode/settings.json
+!.vscode/check-launch-config.sh
 
 # macOS
 .DS_Store
