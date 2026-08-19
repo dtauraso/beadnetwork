@@ -46,18 +46,26 @@ func (ui *UIState) PanelLayout() PanelLayout {
 
 	fit := pills.AddChip(FitLabel)
 
+	speed := speedpanel.Build(st)
+	tilt := tiltpanel.Build(st, ui.TiltRows, ui.TiltLabels)
+	rules := rulespanel.Build(
+		st, OverlaysDropdown.PanelOpen["nodeRules"](&ui.PN),
+		ui.RuleNodes, ui.RuleEdit, ui.RuleSharedRow,
+	)
+
+	angle := angledropdown.Build(pills, ui.AngleOpen, ui.LatticePoints, nodes)
+	nodesPill := nodesdropdown.Build(pills, ui.NodesOpen && ui.SceneEditable, ui.paletteKinds())
+	overlays := overlayspanel.Build(pills, &ui.OV, &ui.PN)
+
 	return PanelLayout{
-		Fit:  fit,
-		Tabs: tabstrip.Build(float32(ui.ViewW), ui.SceneTabNames, ui.SceneTabSelected),
-		Rules: rulespanel.Build(
-			OverlaysDropdown.PanelOpen["nodeRules"](&ui.PN),
-			ui.RuleNodes, ui.RuleEdit, ui.RuleSharedRow,
-		),
-		Speed:    speedpanel.Build(st),
-		Tilt:     tiltpanel.Build(st, ui.TiltRows, ui.TiltLabels),
-		Angle:    angledropdown.Build(pills, ui.AngleOpen, ui.LatticePoints, nodes),
-		Nodes:    nodesdropdown.Build(pills, ui.NodesOpen && ui.SceneEditable, ui.paletteKinds()),
-		Overlays: overlayspanel.Build(pills, &ui.OV, &ui.PN),
+		Fit:      fit,
+		Tabs:     tabstrip.Build(float32(ui.ViewW), ui.SceneTabNames, ui.SceneTabSelected),
+		Rules:    rules,
+		Speed:    speed,
+		Tilt:     tilt,
+		Angle:    angle,
+		Nodes:    nodesPill,
+		Overlays: overlays,
 	}
 }
 

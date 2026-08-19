@@ -8,7 +8,6 @@ const (
 	LabelOpen   = "▾ polar rules"
 
 	OriginX = 8
-	Top     = 8
 
 	PadX = 10
 	PadY = 6
@@ -138,17 +137,18 @@ type Edit struct {
 	Draft   string
 }
 
-func Build(open bool, nodes []Node, edit Edit, sharedMenuRow int32) Layout {
+func Build(st *panelstack.Stack, open bool, nodes []Node, edit Edit, sharedMenuRow int32) Layout {
 	toggleH := panelstack.LineHeight(HeadFontPx) + 4
+	top := st.Next()
 	lay := Layout{
 		Open:   open,
-		Toggle: Rect{X: OriginX + PadX, Y: Top + PadY, W: 90, H: toggleH},
+		Toggle: Rect{X: OriginX + PadX, Y: top + PadY, W: 90, H: toggleH},
 	}
 
 	b := &builder{
 		x:    OriginX + PadX,
 		w:    Width - 2*PadX,
-		y:    Top + PadY + toggleH,
+		y:    top + PadY + toggleH,
 		edit: edit,
 	}
 
@@ -160,7 +160,8 @@ func Build(open bool, nodes []Node, edit Edit, sharedMenuRow int32) Layout {
 	}
 
 	lay.Rows = b.rows
-	lay.Box = Rect{X: OriginX, Y: Top, W: Width, H: b.y - Top + PadY}
+	lay.Box = Rect{X: OriginX, Y: top, W: Width, H: b.y - top + PadY}
+	st.Took(lay.Box.H)
 	if edit.Active {
 		lay.Draft = edit.Draft
 		for _, r := range b.rows {

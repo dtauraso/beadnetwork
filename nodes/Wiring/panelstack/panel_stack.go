@@ -18,6 +18,10 @@ type Stack struct{ y float32 }
 
 func New() *Stack { return &Stack{y: OriginY} }
 
+func (s *Stack) Next() float32 { return s.y }
+
+func (s *Stack) Took(h float32) { s.y += h + Gap }
+
 func (s *Stack) Add(contentW, contentH float32) (box Rect, contentX, contentY float32) {
 	box = Rect{
 		X: OriginX,
