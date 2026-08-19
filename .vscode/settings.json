@@ -7,6 +7,11 @@
     // silent, since a frame carrying a foreign buffer layout is refused and reported.
     "wirefold.reloadOnHostBuild": false,
 
+    // Without this the extension drops every webview log that is not an ERROR label, so
+    // .probe/ts.jsonl is never written at all and a breadcrumb added to find a bug reads
+    // as "the code never ran". On while the overlay scale is being chased.
+    "wirefold.probe.trace": true,
+
     // .probe/ holds the runtime JSONL logs the editor appends to continuously. They are
     // gitignored, but the FILE WATCHER does not honor .gitignore — without these excludes
     // VS Code watches (and search-indexes) multi-hundred-MB files that grow during every
