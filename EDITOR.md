@@ -39,10 +39,10 @@ code .
 That opens this folder in VS Code. Press **F5**. A second VS Code window opens
 (the Extension Development Host). In that new window:
 
-1. **File → Open Folder** and choose the repo root — the folder containing
-   `go.mod` and `topology/` (`~/Documents/wirefold`). The extension resolves
-   everything relative to the first workspace folder, so opening a subfolder
-   makes it fail to find the topology tree.
+1. It already has this repo open as its folder — the launch config passes
+   `${workspaceFolder}` for exactly that. The extension resolves everything
+   relative to the FIRST workspace folder, so if you open a subfolder instead it
+   fails to find the topology tree.
 2. In the file list on the left, right-click the `topology` folder →
    **Topology: Open Editor**. (Or `Cmd`+`Shift`+`P` → **Topology: Open Editor**,
    which resolves `topology/` from the workspace root.)
