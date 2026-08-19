@@ -92,6 +92,17 @@ export function PanelOverlay() {
         drawFitChip(c);
         drawTabStrip(c);
         drawRulesPanel(c);
+        // TEMPORARY: the four numbers the overlay's mapping depends on, drawn where a
+        // screenshot can read them. Remove once the panels sit still.
+        c.setTransform(1, 0, 0, 1, 0, 0);
+        c.fillStyle = "#f00";
+        c.font = "16px monospace";
+        c.textAlign = "left";
+        c.textBaseline = "top";
+        c.fillText(
+          `client=${vw}x${vh} buffer=${bw}x${bh} dpr=${window.devicePixelRatio} inner=${window.innerWidth}x${window.innerHeight}`,
+          4, 4,
+        );
       }
       document.documentElement.style.setProperty(
         "--panel-stack-bottom",
