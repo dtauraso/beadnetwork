@@ -155,15 +155,23 @@ type Hit struct {
 
 	Flags  []string
 	Target bool
+
+	Rect     Rect
+	Tip      string
+	Disabled bool
 }
 
 func (l Layout) Hit(x, y float64) Hit {
 	if panelstack.HitRect(l.Pill, x, y) {
 		caret := Rect{X: l.Pill.X + l.Pill.W - panelstack.CaretW, Y: l.Pill.Y, W: panelstack.CaretW, H: l.Pill.H}
 		if panelstack.HitRect(caret, x, y) {
-			return Hit{Kind: HitPillCaret, Panel: "overlays"}
+			tip := "Open overlay list"
+			if l.Open {
+				tip = "Close overlay list"
+			}
+			return Hit{Kind: HitPillCaret, Panel: "overlays", Rect: caret, Tip: tip}
 		}
-		return Hit{Kind: HitPillBody, Flag: GuidelinesFlag}
+		return Hit{Kind: HitPillBody, Flag: GuidelinesFlag, Rect: l.Pill, Tip: "Toggle guidelines"}
 	}
 	if !l.Open {
 		return Hit{}
@@ -174,14 +182,25 @@ func (l Layout) Hit(x, y float64) Hit {
 		}
 		if r.Kind == RowHeading {
 			if !r.Disabled && panelstack.HitRect(r.Count, x, y) {
-				return Hit{Kind: HitCount, Flags: headingFlags(r.Heading), Target: r.CountOn == 0}
+				tip := "Turn all " + r.Heading + " off"
+				if r.CountOn == 0 {
+					tip = "Turn all " + r.Heading + " on"
+				}
+				return Hit{
+					Kind: HitCount, Flags: headingFlags(r.Heading), Target: r.CountOn == 0,
+					Rect: r.Count, Tip: tip,
+				}
 			}
-			return Hit{Kind: HitHeading, Panel: r.Panel}
+			tip := "Expand " + r.Heading
+			if r.Open {
+				tip = "Collapse " + r.Heading
+			}
+			return Hit{Kind: HitHeading, Panel: r.Panel, Rect: r.Rect, Tip: tip}
 		}
 		if r.Disabled {
-			return Hit{}
+			return Hit{Rect: r.Rect, Disabled: true}
 		}
-		return Hit{Kind: HitFlag, Flag: r.Flag}
+		return Hit{Kind: HitFlag, Flag: r.Flag, Rect: r.Rect, Tip: r.Label}
 	}
 	return Hit{}
 }

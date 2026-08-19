@@ -62,6 +62,8 @@ type UIState struct {
 
 	ViewW, ViewH float64
 
+	Pointer PointerTarget
+
 	AngleOpen      bool
 	AngleGroupOpen map[int32]bool
 
