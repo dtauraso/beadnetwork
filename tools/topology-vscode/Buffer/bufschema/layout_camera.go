@@ -10,5 +10,5 @@ type bufLayoutCamera struct {
 	UpPhi    float32 `buf:"f32"`
 	UpTheta  float32 `buf:"f32"`
 
-	FovDeg float32 `buf:"f32"`
+	FocalPx float32 `buf:"f32"`
 }

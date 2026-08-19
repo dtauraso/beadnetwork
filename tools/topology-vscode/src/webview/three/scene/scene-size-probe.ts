@@ -15,7 +15,7 @@ let lastH = 0;
 let sequence = 0;
 
 export function probeSceneSizeOnResize(
-  cam: THREE.PerspectiveCamera, pivot: THREE.Vector3, fovColumn: number,
+  cam: THREE.PerspectiveCamera, pivot: THREE.Vector3, focalPx: number,
   viewW: number, viewH: number,
 ): void {
   if (viewW !== lastW || viewH !== lastH) {
@@ -37,7 +37,7 @@ export function probeSceneSizeOnResize(
     sequence,
     frame,
     view: `${viewW}x${viewH}`,
-    fovColumn: fovColumn.toFixed(3),
+    focalPx: focalPx.toFixed(1),
     fovCamera: cam.fov.toFixed(3),
     aspect: cam.aspect.toFixed(4),
     pixelsPerWorldUnit: (px / PROBE_WORLD_SPAN).toFixed(4),
