@@ -6,7 +6,7 @@ type: feedback
 
 **Rule:** when a tool measures a process by reading that process's own log, it cannot see the instances that died before flushing — and those are precisely the fast ones the measurement is about. The observer is blind to one end of the distribution it exists to measure.
 
-**Where this was paid for (2026-07-28, reload-gap):** `tools/reload-gap.sh` paired VS Code's `exthost.log` "exiting" line with the next "started" line. A host that lived one second produced NEITHER line — absent from the file entirely, not merely partial — so the pairing spanned the invisible host and reported **3.5s for what were two ~1.7s reloads**. One slow reload was reported where two fast ones happened.
+**Where this was paid for (2026-07-28, reload-gap):** `scripts/reload-gap.sh` paired VS Code's `exthost.log` "exiting" line with the next "started" line. A host that lived one second produced NEITHER line — absent from the file entirely, not merely partial — so the pairing spanned the invisible host and reported **3.5s for what were two ~1.7s reloads**. One slow reload was reported where two fast ones happened.
 
 Fixed by taking exits from `main.log`, written by the SUPERVISING process, which logs an `exited with code` line for every pid, and pairing each `started` with the latest exit before it. A gap over 60s is a window that sat closed, not a respawn, and is dropped.
 

@@ -15,7 +15,7 @@ branch: task/<short-name>
 ---
 ```
 
-Before merging a task branch, run `tools/strip-branch-local-docs.sh task/<branch>` to
+Before merging a task branch, run `scripts/strip-branch-local-docs.sh task/<branch>` to
 remove all docs tagged with that branch. The script is the source of truth — no judgment
 per file required at merge time.
 

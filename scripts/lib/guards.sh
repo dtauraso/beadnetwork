@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 guard_slug() {
-  local gp="${1#tools/}"
+  local gp="$1"
   gp="${gp%.sh}"
   printf '%s' "${gp//\//__}"
 }
@@ -23,10 +23,10 @@ run_guards() {
   local guards=()
   while IFS= read -r g; do
     [ -n "$g" ] && guards+=("$g")
-  done < <(bash tools/guard-list.sh)
+  done < <(bash scripts/guard-list.sh)
 
   if [ ${#guards[@]} -eq 0 ]; then
-    echo "stop-checks: MISCONFIGURED — tools/guard-list.sh named no guards; refusing to report success." >&2
+    echo "stop-checks: MISCONFIGURED — scripts/guard-list.sh named no guards; refusing to report success." >&2
     exit 1
   fi
 

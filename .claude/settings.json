@@ -16,15 +16,15 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/tools/repo-hygiene/hooks/check-stray-screenshots.sh\""
+            "command": "bash \"$CLAUDE_PROJECT_DIR/scripts/checks/hooks/check-stray-screenshots.sh\""
           },
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/tools/bash-approve-guard.sh\""
+            "command": "bash \"$CLAUDE_PROJECT_DIR/scripts/hooks/bash-approve-guard.sh\""
           },
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/tools/repo-hygiene/hooks/check-no-foreground-sim.sh\""
+            "command": "bash \"$CLAUDE_PROJECT_DIR/scripts/checks/hooks/check-no-foreground-sim.sh\""
           },
           {
             "type": "command",
@@ -32,7 +32,7 @@
           },
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/tools/repo-hygiene/hooks/check-no-shell-source-edits.sh\""
+            "command": "bash \"$CLAUDE_PROJECT_DIR/scripts/checks/hooks/check-no-shell-source-edits.sh\""
           }
         ]
       },
@@ -41,7 +41,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/tools/placement-brief-hook.sh\""
+            "command": "bash \"$CLAUDE_PROJECT_DIR/scripts/hooks/placement-brief-hook.sh\""
           }
         ]
       }

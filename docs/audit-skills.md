@@ -51,7 +51,7 @@ categories:
    be grep-confirmed to exist right now: line pointers in prose drift, so this category
    trusts grep and never the prose it is auditing.
 
-`tools/docs/check-comment-vocab.sh` already enforces retired vocabulary deterministically.
+`scripts/checks/prose/check-comment-vocab.sh` already enforces retired vocabulary deterministically.
 This audit's job is to find NEW drift worth adding to that guard's token list — which is the
 shape the whole program wants: the audit finds it once, the guard holds it forever.
 

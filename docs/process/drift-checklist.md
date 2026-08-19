@@ -7,7 +7,7 @@ CLAUDE.md so it costs nothing on turns that aren't running it.
 (Borrowed, ECC agent-architecture-audit — keep the questions, not the rest.)
 
 Each question is tagged with how it's checked: **[guarded]** = a deterministic
-`tools/*/check-*.sh` enforces it (run automatically by stop-checks); **[partial]** =
+`check-*.sh` enforces it (run automatically by stop-checks); **[partial]** =
 only slices are mechanizable; **[manual]** = inherently behavioral, no repo proxy exists.
 
 1. Can the model skip a required step/tool and still answer? → not code-gated. **[partial —

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # .githooks/pre-push — run the full verify suite before anything leaves this machine.
 #
-# WHY THIS EXISTS: until now every tools/check-*.sh ran in exactly ONE place — the Claude
+# WHY THIS EXISTS: until now every check-*.sh ran in exactly ONE place — the Claude
 # Stop hook in .claude/settings.json. Anything that commits without that hook firing was
 # unverified: a `git commit` typed at the terminal, a subagent committing on a task branch,
 # or a session that ends some other way. Push is the moment content stops being local and
@@ -16,7 +16,7 @@
 #
 #   git config core.hooksPath .githooks
 #
-# tools/repo-hygiene/hooks/check-hooks-allowlist.sh FAILS when that config is missing, so an uninstalled hook
+# .claude/check-hooks-allowlist.sh FAILS when that config is missing, so an uninstalled hook
 # is loud rather than silently inert — the failure mode that would otherwise make this
 # whole file theatre.
 #

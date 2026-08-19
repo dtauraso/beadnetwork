@@ -30,7 +30,7 @@ stop-checks.sh);
 `branch.<name>.description` (git has no safety check for descriptions — they are
 local config and deletion is unrecoverable); `git status` on the file I edited
 rather than on what a regeneration then rewrote; guard *wrappers* instead of the
-audit scripts they wrap; `.claude/hooks/` instead of `tools/` for a hook that
+audit scripts they wrap; `.claude/hooks/` instead of a guard dir for a hook that
 existed all along. And twice: relaying a subagent's claim as fact without probing
 it — one of which (`settings.local.json` allowlisting `git merge`) was simply
 invented, and I repeated it to David in two summaries.

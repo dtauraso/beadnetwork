@@ -17,7 +17,7 @@ run_go_checks() {
   fi
   # go vet + staticcheck. staticcheck COMPILES the whole module, so it is
 
-  if ! sc_out=$(bash tools/lang/check-staticcheck.sh 2>&1); then
+  if ! sc_out=$(bash scripts/checks/lang/check-staticcheck.sh 2>&1); then
     out+="check-staticcheck failed:\n$sc_out\n\n"
     fail=1
   fi

@@ -1,5 +1,5 @@
 # Stray cmd/pseudo build output at repo root (normal path is `go run ./cmd/pseudo`).
-# Anchored so it does not match the tools/pseudo or cmd/pseudo source dirs.
+# Anchored so it does not match the cmd/pseudo source dirs.
 /pseudo
 
 # Prerequisites
@@ -84,7 +84,7 @@ dist/
 # Anchored on purpose: the repo root is the ONLY place a probe dir belongs (see
 # src/repo-root.ts). One written anywhere else is a bug,
 # and leaving it unignored is what surfaces it — it shows up as an untracked
-# dir and blocks tools/new-task.sh instead of sitting there unnoticed.
+# dir and blocks scripts/new-task.sh instead of sitting there unnoticed.
 /.probe/
 
 # Prebuilt Go binary cache (built once by the editor runner; not for VCS)

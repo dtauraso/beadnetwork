@@ -11,7 +11,7 @@ Editor/runtime diagnostics are written to five files under `.probe/` — `go.jso
 
 **Envelope.** Every line carries `{ts_ms, src, step?}` — `ts_ms` is `Date.now()` wall-clock (cross-process comparable on one machine), `step` is the Go event ordinal, present only on Go-derived lines. Go's `marshalEvent`/canonical form is untouched (contract fixture `trace-events.jsonl` pins it); the envelope is added extension-side at the disk-write boundary.
 
-**Reading across files.** `tools/probe-merge.sh` (no-arg = all by `ts_ms`; `--errors`, `--step N`, `--go`, `--ts`, `--debug`). Retired filenames: `phase4-pump.jsonl`→`go.jsonl`, `webview-log.jsonl`→split.
+**Reading across files.** `scripts/probe-merge.sh` (no-arg = all by `ts_ms`; `--errors`, `--step N`, `--go`, `--ts`, `--debug`). Retired filenames: `phase4-pump.jsonl`→`go.jsonl`, `webview-log.jsonl`→split.
 
 **Gating (`wirefold.probe.trace`, default off).** The bulk, per-tick trace rows in
 `go.jsonl`/`go-node.jsonl`/`go-edge.jsonl`/`go-interior.jsonl`/`ts.jsonl` only get

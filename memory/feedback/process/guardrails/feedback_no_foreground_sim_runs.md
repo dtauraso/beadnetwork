@@ -1,6 +1,6 @@
 ---
 name: Never run the sim in the foreground; bound or background it
-description: The sim and anything parked on a paced wire can fail to exit; a foreground run-and-grep blocks until the harness limit. Background it or wrap in tools/run-bounded.sh, and keep these checks in the main session.
+description: The sim and anything parked on a paced wire can fail to exit; a foreground run-and-grep blocks until the harness limit. Background it or wrap in scripts/run-bounded.sh, and keep these checks in the main session.
 type: feedback
 ---
 
@@ -16,7 +16,7 @@ shows up as a long, silent stall the user has to interrupt.
 **How to apply:**
 - Never run the sim in the foreground. Run it **backgrounded** (the runtime
   streams the trace live and re-invokes you on exit), or wrap any
-  potentially-blocking command in `tools/run-bounded.sh <seconds> <cmd…>`.
+  potentially-blocking command in `scripts/run-bounded.sh <seconds> <cmd…>`.
 - Capture geometry/startup events from the streamed trace file, not by
   waiting on process exit — startup geometry is emitted during
   `LoadTopology`, before any pacing.

@@ -64,6 +64,6 @@ and `memory/feedback/architecture/bridge/feedback_per_goroutine_bridge.md`.
 
 Keep all of it in parity across `messages.ts`, the `nodes/Wiring` stdin reader/dispatch
 (`stdin_reader.go`'s `MSG_TYPES` fence, `dispatch_edit.go`'s edit tables), and `handle-message.ts`
-(guards: `tools/bridge/check-edit-op-parity.sh`, `tools/bridge/check-message-kind-parity.sh`, and the
+(guards: `nodes/Wiring/stdinreader/check-edit-op-parity.sh`, `nodes/Wiring/stdinreader/check-message-kind-parity.sh`, and the
 `INPUT_LAYOUT_FINGERPRINT` in `input_codec.go` /
 `src/schema/input/input-layout-gen.ts`).

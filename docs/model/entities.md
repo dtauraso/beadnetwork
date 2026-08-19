@@ -51,13 +51,13 @@ mistake to avoid:
   starting one goroutine per added bead (at the chain end, matching bead CRUD's own
   convention, `bead_crud.go`) and shrinks it by closing each removed bead's OWN dedicated
   stop channel, which the removed bead's `run` loop observes and returns from immediately —
-  no goroutine outlives its bead. `tools/network/beads/check-bead-actor-has-call-site.sh` fails the build if
+  no goroutine outlives its bead. `nodes/bead/beadchain/check-bead-actor-has-call-site.sh` fails the build if
   this primitive ever loses its last production reference.
 
   The bead's own goroutine is ONE `select` over all three channel sets, with **no
   `default:` case** — parked at zero CPU when idle, never spinning
-  (`tools/network/beads/check-no-select-default.sh`). A node's wake/settle/geometry broadcast is a single
-  channel close, never a loop over N beads (`tools/network/beads/check-broadcast-is-close-not-loop.sh`,
+  (`nodes/bead/beadchain/check-no-select-default.sh`). A node's wake/settle/geometry broadcast is a single
+  channel close, never a loop over N beads (`nodes/bead/beadchain/check-broadcast-is-close-not-loop.sh`,
   via the lock-free `BroadcastChain` generation-chain primitive: the owning goroutine writes
   `Next` before closing `Fire`, so a woken receiver can read `Next` with no lock/atomic —
   Go's memory model makes the close a happens-before edge for that read).

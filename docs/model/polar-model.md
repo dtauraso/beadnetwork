@@ -144,7 +144,7 @@ and none is a source of truth.
   chain's length both read the one stored path above. The placement is owned by that bead's
   own goroutine (`nodes/bead/beadchain/bead_actor.go`'s
   `Bead`) — ownership + message passing, one writer, no locks/atomics
-  (`tools/network/concurrency/check-no-network-locks.sh`, empty allowlist) — resolved from the node's own live
+  (`nodes/check-no-network-locks.sh`, empty allowlist) — resolved from the node's own live
   aim broadcast (`BroadcastChain`, see the Chain bead bullet above) rather than a second
   stored copy. It is NEVER stored as an independent absolute position — it is computed at
   ONE site by summation: the node's world center (already `sceneCenter +
@@ -168,7 +168,7 @@ and none is a source of truth.
   bug that made positions fly to infinity. A moved center rigidly translates its satellites
   (offset unchanged ⇒ locks stay satisfied ⇒ the wave terminates). This is STRUCTURAL, not a
   test: the reconstruction that caused the blow-up has no call site to write. Nav is held
-  polar-only by `tools/webview/check-polar-only-nav.sh`.
+  polar-only by `src/webview/three/interaction/check-polar-only-nav.sh`.
 - **Panel-authored locks must be structurally incapable of a position blow-up.** If one
   happens, the implementation is wrong (an offset was reconstructed from a moving reference),
   not the locks.

@@ -26,7 +26,7 @@ grep-first; scope out `node_modules,out,.git,handoff-archive,memory`):
 Rank each High/Med/Low thrash cost. Concrete paths. No fixes — findings only, as raw
 material for a categorized table.
 
-Note: `tools/docs/check-comment-vocab.sh` already guards retired comment vocabulary
+Note: `scripts/checks/prose/check-comment-vocab.sh` already guards retired comment vocabulary
 deterministically — this audit finds NEW drift to add to that guard's token list.
 
 When it returns, present the findings as a table by category and rank.

@@ -12,7 +12,7 @@ history, and the repo holds what is current. If a page here is wrong, fix it or 
 
 **Planning docs are branch-local** (`.claude/rules/planning-docs.md`): a doc under
 `docs/planning/` carries a `branch:` frontmatter and is stripped before merge by
-`tools/strip-branch-local-docs.sh`, so on `main` that directory is empty between changes.
+`scripts/strip-branch-local-docs.sh`, so on `main` that directory is empty between changes.
 An untagged doc there escaped a merge — delete it.
 
 ## Audits
@@ -56,5 +56,5 @@ An untagged doc there escaped a merge — delete it.
 
 `docs/planning/` is empty on `main` by rule — a plan lives on its branch and leaves with the
 merge. Screenshots taken during a change go under `docs/planning/visual-editor/screenshots/`
-with a date-prefixed kebab name (`tools/repo-hygiene/hooks/check-stray-screenshots.sh`), and
+with a date-prefixed kebab name (`scripts/checks/hooks/check-stray-screenshots.sh`), and
 are referenced from whatever memory file the work lands in.

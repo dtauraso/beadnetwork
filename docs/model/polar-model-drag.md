@@ -70,5 +70,5 @@
   endpoints derive the SAME side independently — neither node needs to know what the other
   decided. The offset stays INSIDE that pair's own ring plane (not along a fixed world
   axis), so it composes with coplanar rings rather than fighting them. `chain_beads.go` is
-  guarded against doing this vector math itself (`tools/network/beads/check-no-sqrt-in-chain-beads.sh`);
+  guarded against doing this vector math itself (`nodes/bead/check-no-sqrt-in-chain-beads.sh`);
   it calls into `nodes/Wiring/edgegeom/port_geometry.go` for it, same split as `edgegeom.EdgeCenterDistAndDir`.

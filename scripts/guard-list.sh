@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
+FOUND=$(find . -name 'check-*.sh' -type f \
+  -not -path '*/node_modules/*' \
+  -not -path '*/out/*' \
+  -not -path '*/.git/*' \
+  | sed 's|^\./||' | sort)
+
+if [ "$(printf '%s\n' "$FOUND" | grep -c .)" -lt 40 ]; then
+  echo "guard-list: MISCONFIGURED — found $(printf '%s\n' "$FOUND" | grep -c .) guards, expected at least 40." >&2
+  echo "  Guards live beside what they guard, so they are found by searching, not by a list." >&2
+  echo "  A search that suddenly finds far fewer means the search is wrong, not that the" >&2
+  echo "  guards are gone — and a short list here silently shrinks every run that uses it." >&2
+  exit 1
+fi
+
+printf '%s\n' "$FOUND"

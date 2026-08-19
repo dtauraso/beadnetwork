@@ -2,7 +2,7 @@
 paths:
   - "nodes/**/*.go"
   - "src/Buffer/**/*.go"
-  - "tools/probe-merge.sh"
+  - "scripts/probe-merge.sh"
 ---
 
 # Debugging the Go layer (probe breadcrumbs)
@@ -13,7 +13,7 @@ site: it is a structured `Kind==KindBreadcrumb` row on the EMITTING goroutine's 
 per-owner content-buffer stream (node/edge/interior/VIEW — no per-node stream emits
 onto the VIEW stream instead), decoded by the ext host exactly like every other
 buffer-carried trace event (`buffer-log.ts`'s `"breadcrumb"` case) — there is no
-separate JSON-on-stdout debug sink. Read it with `tools/probe-merge.sh --debug`, which
+separate JSON-on-stdout debug sink. Read it with `scripts/probe-merge.sh --debug`, which
 filters the buffer-decoded `.probe` logs (`go.jsonl`/`go-node.jsonl`/`go-edge.jsonl`/
 `go-interior.jsonl`) to `kind=="breadcrumb" && debug==true` — separate from genuine
 stderr errors (`go-errors.jsonl`). Do NOT scatter `fmt.Fprintf(os.Stderr, ...)` for
@@ -27,7 +27,7 @@ The `wirefold.probe.trace` setting (default **off**) gates the non-breadcrumb bu
 these same four files plus `ts.jsonl` — the per-tick firehose (recv/send/edge-bead/
 node-geometry/etc.) that once grew `go-edge.jsonl` past a gigabyte. It does NOT gate
 breadcrumb rows: every write site decodes the full frame regardless and appends
-breadcrumb-only lines when the setting is off, so `tools/probe-merge.sh --debug` and the
+breadcrumb-only lines when the setting is off, so `scripts/probe-merge.sh --debug` and the
 always-on error logs (`go-errors.jsonl`/`ts-errors.jsonl`/`handler-error-last.json`) work
 out of the box on a fresh install with no setting change. Turn the setting on only when
 you need the full per-tick trace, not just breadcrumbs.

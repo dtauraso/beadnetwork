@@ -179,8 +179,8 @@ a second copy of that vector from mirrored absolute positions and persisting the
 the node writing the file is a goroutine writing what it already owns — not a request, and
 one fewer representation of the same quantity.
 
-Guards: `tools/network/persist/check-persist-write-ownership.sh` (who may write which path pattern),
-`tools/network/persist/check-scene-path-resolution.sh` (who may construct a `nodes/` path).
+Guards: `nodes/Wiring/check-persist-write-ownership.sh` (who may write which path pattern),
+`nodes/Wiring/check-scene-path-resolution.sh` (who may construct a `nodes/` path).
 
 ## A topology is a directory tree, always
 

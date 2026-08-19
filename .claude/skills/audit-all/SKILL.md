@@ -25,7 +25,7 @@ live in the sibling skills — keep each subagent's task faithful to them:
 
 **grep-load is on-demand, not run by default.** Its four categories (string/key duplication,
 doc-claim drift, runtime-only validation, generated-file drift) now largely overlap with the
-`tools/*/check-*-parity.sh` guard suite, so a full run mostly re-confirms what's already
+`check-*-parity.sh` guard suite, so a full run mostly re-confirms what's already
 guarded. Measured cost on a completed run: 85
 tool calls and ~98k tokens to return one net-new finding. Only spawn it — via
 `.claude/skills/audit-grep-load/SKILL.md` — when the user explicitly asks for a grep-load

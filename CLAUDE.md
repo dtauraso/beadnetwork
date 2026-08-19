@@ -18,7 +18,7 @@ overlays) into a **binary content buffer** and streams it. The render tree under
 and draws that buffer; it computes no positions, no geometry, and no traversal timing,
 and never tells Go when a bead arrived. There is no JSON-trace render path and no
 `pump.ts`; the TS layer is **render + forward only** and holds no domain state (guard:
-`tools/webview/check-no-webview-state.sh`).
+`src/webview/check-no-webview-state.sh`).
 
 The model's real entities live in [MODEL.md](MODEL.md): bead, wire (`BeadRun` — a
 PASSIVE delay queue holding its own in-flight beads, with a channel on each end, stepped by
@@ -28,7 +28,7 @@ clock, and the node-owned chain of placeholder beads that renders a traversal
 `nodes/Wiring/edgegeom/chain_length.go`). The active node kinds are the structs under `nodes/<Kind>/`.
 
 **Drift rule:** see MODEL.md's "Drift rule" section for the full statement (guards:
-`tools/webview/check-no-webview-state.sh`, `tools/bridge/check-no-await-on-bridge.sh`).
+`src/webview/check-no-webview-state.sh`, `src/check-no-await-on-bridge.sh`).
 
 ## Primitive landing rule (narrowed)
 
@@ -62,7 +62,7 @@ entity kind or attribute, NOT a new op), **bare commands** (`save` only), and **
 produced in-process by the FSM, they do not cross this seam as edits).
 
 The TS → Go send is **fire-and-forget** — no `await`, no Promise chain, no request/response,
-no delivery signal (guard: `tools/bridge/check-no-await-on-bridge.sh`).
+no delivery signal (guard: `src/check-no-await-on-bridge.sh`).
 
 Vocabulary detail, parity guards, and the no-sidecar rule: `.claude/rules/bridge-surface.md`.
 
@@ -94,8 +94,8 @@ fire instead of fall silent. Nothing here is a guarantee; the only real check is
 noticing behavior.
 
 Prefer, in order: an assertion that fires in the running system with a site tag
-(`tools/network/quality/check-panic-message.sh`); a guard whose failure state is loud and
-whose allowlist is empty (`tools/network/concurrency/check-no-network-locks.sh`); a `.probe`
+(`nodes/check-panic-message.sh`); a guard whose failure state is loud and
+whose allowlist is empty (`nodes/check-no-network-locks.sh`); a `.probe`
 breadcrumb (`.claude/rules/go-debugging.md`). Never a test.
 
 ## Workflow
@@ -110,9 +110,9 @@ breadcrumb (`.claude/rules/go-debugging.md`). Never a test.
 - One logical change per commit. Push each commit to the current task branch.
 - **Git hooks live in `.githooks/` (tracked) and need one command per clone:** `git config core.hooksPath .githooks`. `.githooks/pre-push` runs `scripts/verify.sh` and aborts the push if it fails, so anything that commits WITHOUT the Claude Stop hook firing — a `git commit` you type, a subagent on a task branch, a session that ends another way — is still verified before it leaves the machine. This is local git, NOT GitHub Actions: no remote service, no minutes, works offline. `check-hooks-allowlist.sh` fails when `core.hooksPath` is unset, because a tracked hook git was never pointed at is inert while reading as coverage. Deliberate override: `git push --no-verify`.
 - **Cost markers:** only record a `($N.NN)` cost marker on a commit (or bundle of commits) when the work was sized at **≥$5 expected** beforehand. Sub-$5 work lands without a marker. Bundle small commits into ≥$5 chunks for marker purposes. Pre-v0 sub-$5 markers stay as historical record but are no longer the convention.
-- **Plain branches in the one checkout — start every change with `tools/new-task.sh <short-kebab-name> "one-line description"`.** It creates the `task/<name>` branch from `origin/main`, checks it out, and sets the branch description `tools/next.sh` reads. There is no worktree step: this repo tried one-worktree-per-change and dropped it — the extra tree cost more than it bought in practice, so plain `git checkout -b`-style branch switching in the single checkout is back to normal.
-  - When done: merge to `main` (no sign-off — see the landing rule above), then `git branch -d task/<name>`. Deleting it is what removes the item from `tools/next.sh`.
-  - **Concurrent sessions share this one checkout — treat its state as other people's too.** Before switching branches, make sure your own work is committed (`git status`), since checking out a different branch changes what everyone in this tree sees. **Do not use `git stash`.** The stash stack is repo-global: an entry pushed by one session is visible and poppable by every other session working in this checkout, so two sessions stashing concurrently can pop each other's work, and `stash@{0}` means something different depending on who pushed last. Commit the WIP on your own branch instead (`tools/wip.sh`) — it is private to your branch, survives a crash, and costs one `git reset --soft HEAD~1` to undo. This includes `git rebase --autostash`, which is the same global stack: commit first, then rebase with a clean tree. (Prose-only: git has no pre-stash hook, so there is nothing to enforce it with.)
+- **Plain branches in the one checkout — start every change with `scripts/new-task.sh <short-kebab-name> "one-line description"`.** It creates the `task/<name>` branch from `origin/main`, checks it out, and sets the branch description `scripts/next.sh` reads. There is no worktree step: this repo tried one-worktree-per-change and dropped it — the extra tree cost more than it bought in practice, so plain `git checkout -b`-style branch switching in the single checkout is back to normal.
+  - When done: merge to `main` (no sign-off — see the landing rule above), then `git branch -d task/<name>`. Deleting it is what removes the item from `scripts/next.sh`.
+  - **Concurrent sessions share this one checkout — treat its state as other people's too.** Before switching branches, make sure your own work is committed (`git status`), since checking out a different branch changes what everyone in this tree sees. **Do not use `git stash`.** The stash stack is repo-global: an entry pushed by one session is visible and poppable by every other session working in this checkout, so two sessions stashing concurrently can pop each other's work, and `stash@{0}` means something different depending on who pushed last. Commit the WIP on your own branch instead (`scripts/wip.sh`) — it is private to your branch, survives a crash, and costs one `git reset --soft HEAD~1` to undo. This includes `git rebase --autostash`, which is the same global stack: commit first, then rebase with a clean tree. (Prose-only: git has no pre-stash hook, so there is nothing to enforce it with.)
   - Branches stay short-lived and merge to `main` quickly. Avoid long-lived feature branches like the v0 `visual-editor` pattern.
 - Channel names encode which two nodes are connected — preserve this convention.
 - **Medium vs. substance.** Before adopting a **medium** dependency (rendering library, framework, parser, bundler, file watcher, test runner, package manager, language/runtime version, editor integration), explicitly ask "what's the dominant choice the rest of the world converged on for this category?" and justify deviating if not adopting it. The medium is where industry has solved your problem; being weird there is pure overhead. Do **not** apply this heuristic to the **substance** of the system — the execution model, what a node is, how time/ticks work, what a wire is, how nodes coordinate, the Go network that runs nodes. Industry defaults there encode "logic in procedures, topology as plumbing," which is the inversion this project exists to challenge. For substance, ask "what does this system actually need?" and ignore industry — the whole point is that the answer is different. (Prior failure: the await/Promise execution model was the industry-correct JS translation of goroutines+channels, and it hid pacing inside the event loop, coupling nodes that should have been independent. Right answer for the medium, wrong answer for the substance.)
@@ -132,7 +132,7 @@ breadcrumb (`.claude/rules/go-debugging.md`). Never a test.
 Live task state is NOT stored in a hand-maintained doc (that kept drifting — it was a
 cache of state whose authoritative source is git/memory/MODEL.md). It is DERIVED:
 `task/*` branches carry a one-line `git config branch.<name>.description`, and
-**`tools/next.sh`** prints the live view (current branch, task branches, recent merges,
+**`scripts/next.sh`** prints the live view (current branch, task branches, recent merges,
 pointers to durable docs). Run it first in a fresh session.
 
 Do not recreate a handoff.md or a continuation-prompt template; if state needs a home,
@@ -151,4 +151,4 @@ Visual editor reached v0. New work is friction-driven, not phase-driven; justify
 
 **Plan docs are allowed, per change, in `docs/planning/`.** The old blanket "per-phase plans were deleted, git history is the archive" is gone: a change that reverses a documented invariant, or ripples across code and several pages at once, is worth writing down BEFORE it is made — what breaks, in what order, and how it is verified. Write one when the change is that shape; skip it when the change is a page edit or a rename.
 
-A plan doc states intent, not live state: the target, the ripple list, the order, the verification, the risks. It must NOT become a status board — no "current step", no checkboxes updated as work lands, no summary of what is done. That is what `check-no-state-cache.sh` bans and what branch descriptions plus `tools/next.sh` already answer. Delete the plan when the change lands; git history is the archive for the plan itself.
+A plan doc states intent, not live state: the target, the ripple list, the order, the verification, the risks. It must NOT become a status board — no "current step", no checkboxes updated as work lands, no summary of what is done. That is what `check-no-state-cache.sh` bans and what branch descriptions plus `scripts/next.sh` already answer. Delete the plan when the change lands; git history is the archive for the plan itself.

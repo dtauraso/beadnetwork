@@ -38,7 +38,7 @@ run_ts_checks() {
     fail=1
   fi
 
-  if ! eslint_out=$(bash tools/lang/check-eslint.sh 2>&1); then
+  if ! eslint_out=$(bash scripts/checks/lang/check-eslint.sh 2>&1); then
     out+="check-eslint failed:\n$eslint_out\n\n"
     fail=1
   fi

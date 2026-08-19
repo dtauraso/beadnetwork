@@ -29,6 +29,6 @@ into two commits in one session, each needing a `--amend` + force-push to undo. 
 the files the change actually touched, or discard the topology churn first. Note the
 pre-push hook re-runs stop-checks, so the churn reappears in the working tree AFTER a
 clean commit — the tree being dirty right after a successful push is expected, and
-`tools/new-task.sh` will refuse to start the next task until it is discarded.
+`scripts/new-task.sh` will refuse to start the next task until it is discarded.
 
 Related: [[feedback_verify_subagent_commits]], [[feedback_check_the_signal_the_check_emits]].
