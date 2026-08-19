@@ -7,7 +7,6 @@ import (
 
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepaths"
 	"github.com/dtauraso/wirefold/nodes/Wiring/scenepersist"
-	"github.com/dtauraso/wirefold/tools/topology-vscode/Tabs"
 )
 
 func SelectScene(scenes *SceneSwitch, idx int) {
@@ -17,7 +16,7 @@ func SelectScene(scenes *SceneSwitch, idx int) {
 	if idx < 0 || idx >= len(scene.All) {
 		return
 	}
-	if idx == Tabs.SelectedIndex(scenes.AnchorPath) {
+	if idx == scenes.Loaded {
 		return
 	}
 	if err := scenepersist.WriteSelectedScene(scenes.AnchorPath, idx); err != nil {

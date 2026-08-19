@@ -25,6 +25,7 @@ func main() {
 	generateBufferLayout(repoRoot)
 	generateFrameTags(repoRoot)
 	generateInputLayout(repoRoot)
+	generateScenes(repoRoot)
 }
 
 func resolveRepoRootAndKinds() (string, []kindscan.KindEntry) {

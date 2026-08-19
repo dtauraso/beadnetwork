@@ -5,4 +5,6 @@ type SceneSwitch struct {
 	Quit       func()
 
 	TreeRoot string
+
+	Loaded int
 }

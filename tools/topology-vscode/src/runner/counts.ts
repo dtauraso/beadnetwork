@@ -1,5 +1,6 @@
 import * as fs from "fs";
 import * as path from "path";
+import { SCENES } from "../schema/scenes-gen";
 
 function readCount(topologyPath: string, name: "nodes" | "edges"): number {
   const countPath = path.join(topologyPath, "counts", `${name}.json`);
@@ -21,6 +22,27 @@ function readCount(topologyPath: string, name: "nodes" | "edges"): number {
   return parsed;
 }
 
-export function readCounts(topologyPath: string): { nodes: number; edges: number } {
-  return { nodes: readCount(topologyPath, "nodes"), edges: readCount(topologyPath, "edges") };
+export function resolveScenePath(anchorPath: string): string {
+  let selected: string;
+  try {
+    const raw = fs.readFileSync(path.join(anchorPath, "view", "scene.json"), "utf8");
+    const parsed: unknown = JSON.parse(raw);
+    selected =
+      typeof parsed === "object" && parsed !== null && typeof (parsed as { selected?: unknown }).selected === "string"
+        ? (parsed as { selected: string }).selected
+        : "";
+  } catch {
+    selected = "";
+  }
+
+  const scene = SCENES.find((s) => s.name === selected) ?? SCENES[0];
+  if (!scene) return anchorPath;
+
+  const container = path.dirname(anchorPath);
+  return path.join(container, scene.dir);
+}
+
+export function readCounts(anchorPath: string): { nodes: number; edges: number } {
+  const scenePath = resolveScenePath(anchorPath);
+  return { nodes: readCount(scenePath, "nodes"), edges: readCount(scenePath, "edges") };
 }
