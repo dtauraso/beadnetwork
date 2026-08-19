@@ -55,6 +55,22 @@ That is the same shape as the overlay flags and the tilt rows that were just rem
 Go needs, held on the other side of the bridge and echoed across it. When Go derives the FOV,
 `ev.Fov` stops being an input and becomes a value Go already has.
 
+## Known, and not to be re-derived
+
+- The canvas element misreports its box while a divider is dragged: `client=492x35` and
+  `buffer=984x70` while the editor was visibly around 335 CSS px tall. Under the rule above
+  this stops being able to smear anything, which is a hazard — it hides the symptom without
+  explaining why the element lies. The container, not the overlay, is where that lives.
+- There is no Go memory leak. An earlier reading of ~1 MB/s came from matching `pgrep -f`
+  against the probe harness rather than the sim; the heap trace is flat at 7 MB live and RSS
+  plateaus near 20 MB. Do not inherit the leak, or the comparison table drawn from it.
+- `--panel-stack-bottom` is dead. It positioned the DOM rules panel below the canvas stack;
+  nothing reads it now, and it is a position derived from another element's size.
+- The closed rules panel is a fixed 260px slab holding only its toggle. Closed, it should hug
+  its label the way the pills do.
+- `BufferLabelOverlay` is still DOM — one positioned div per node label. It is text at a rect
+  and belongs in the canvas.
+
 ## Open — decide before building
 
 1. **What does zoom mean?** Zoom currently changes the camera's distance `d`. Under a derived
@@ -75,9 +91,39 @@ Go needs, held on the other side of the bridge and echoed across it. When Go der
 - `DropPointFromNDC` and `DragPlaneHit` already take a fov argument; they take Go's.
 - The input-layout fingerprint changes if `fov` is dropped from the raw-input record.
 
+## The same rule for the panels, stated so it cannot be broken
+
+**A panel's drawing surface is sized by its contents, never by the viewer. The viewer only
+decides where drawing stops.**
+
+The scene and the panels are one rule, not two: resizing reveals more, it never rescales.
+
+The bug class is **two sizes and a mapping between them**. The overlay draws into a bitmap and
+then stretches that bitmap over the viewport, so any disagreement between the two — stale,
+lagging, wrong aspect — cannot fail as nothing. It must resolve as a scale. That is why the
+same fault appeared as magnified panels, panels drifting down the screen, panels squashed
+flat, and everything flattening as the editor collapsed. Four symptoms, one dependency.
+
+Chasing which size to read is the wrong repair, and was tried three times
+(`useThree().size`, `gl.getSize()`, `el.clientWidth`). The repair is that no size is read to
+compute a scale:
+
+- the transform is `devicePixelRatio` alone, never a ratio between two measured sizes, and
+  never a separate `scaleX`/`scaleY` — two axes can disagree, one scalar cannot;
+- the bitmap has a fixed extent, from the panel content, not from the viewport;
+- it is blitted 1:1 anchored top-left, so a panel too tall for the viewport runs off the
+  bottom the way content in a scroll does, and a canvas that misreports its box cannot smear
+  anything.
+
+Go's layout already obeys this: `viewW` appears only in X positions — the right edge for the
+pills, the centre for the tab strip — and never in a width or a height. That one positional
+input is irreducible: nothing can anchor to the right edge without knowing where it is.
+
 ## Verification
 
 - Drag the panel divider across its full range: a node's pixel size does not change, and more
   or less of the scene is visible above and below it.
+- The panels keep their pixel size across that same drag; the stack is progressively clipped
+  from the bottom rather than compressed.
 - Read the FOV column off the wire at two rectangle heights and confirm it opens with height.
 - Orbit, zoom and fit still behave; the fit button still frames the whole diagram.

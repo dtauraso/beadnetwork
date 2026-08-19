@@ -11,19 +11,6 @@ import { drawTabStrip, tabStripKey } from "../Tabs/draw-tab-strip";
 import { drawRulesPanel, rulesPanelKey } from "../PolarRulesPanel/draw-rules-panel";
 import { postGoRecord } from "../src/webview/vscode-api";
 import { encodeSceneViewport } from "../src/schema/input/input-encode-scene-tilt";
-import { columnF32 } from "../Buffer/column-values";
-import {
-  COL_STREAM_SPEED_PANEL_BOX_Y, COL_STREAM_SPEED_PANEL_BOX_H,
-  COL_STREAM_TILT_PANEL_BOX_Y, COL_STREAM_TILT_PANEL_BOX_H,
-} from "../Buffer/column-streams-gen";
-
-const STACK_GAP = 6;
-
-function panelStackBottom(): number {
-  const speed = columnF32(COL_STREAM_SPEED_PANEL_BOX_Y) + columnF32(COL_STREAM_SPEED_PANEL_BOX_H);
-  const tilt = columnF32(COL_STREAM_TILT_PANEL_BOX_Y) + columnF32(COL_STREAM_TILT_PANEL_BOX_H);
-  return Math.max(speed, tilt) + STACK_GAP;
-}
 
 export function PanelOverlay() {
   const { gl } = useThree();
@@ -63,6 +50,9 @@ export function PanelOverlay() {
     const el = gl.domElement;
     const vw = Math.max(1, el.clientWidth);
     const vh = Math.max(1, el.clientHeight);
+    // The scale is the device pixel ratio and nothing else. It is never a ratio between two
+    // measured sizes, and never a separate x and y — two axes can disagree, one scalar
+    // cannot. That is what made a wrong size smear instead of clip.
     const ratio = Math.max(1, Math.min(3, gl.getPixelRatio()));
     const bw = Math.max(1, Math.round(vw * ratio));
     const bh = Math.max(1, Math.round(vh * ratio));
@@ -92,22 +82,21 @@ export function PanelOverlay() {
         drawFitChip(c);
         drawTabStrip(c);
         drawRulesPanel(c);
-        c.setTransform(1, 0, 0, 1, 0, 0);
-        c.fillStyle = "#f00";
-        c.font = "16px monospace";
-        c.textAlign = "left";
-        c.textBaseline = "top";
-        c.fillText(
-          `client=${vw}x${vh} buffer=${bw}x${bh} dpr=${window.devicePixelRatio} inner=${window.innerWidth}x${window.innerHeight}`,
-          4, 4,
-        );
       }
-      document.documentElement.style.setProperty(
-        "--panel-stack-bottom",
-        `${Math.round(panelStackBottom())}px`,
-      );
       tex.needsUpdate = true;
     }
+
+    // Blit the bitmap one device pixel to one device pixel, anchored top-left, by sampling
+    // only the part of it the render target covers. The quad no longer stretches the whole
+    // bitmap over the whole viewport, so a surface that disagrees with the viewport clips
+    // instead of scaling: panels keep their size and the bottom of the stack runs off the
+    // edge. A canvas that misreports its box can no longer smear anything.
+    const targetW = Math.max(1, el.width);
+    const targetH = Math.max(1, el.height);
+    const uSpan = Math.min(1, targetW / canvas.width);
+    const vSpan = Math.min(1, targetH / canvas.height);
+    tex.repeat.set(uSpan, vSpan);
+    tex.offset.set(0, 1 - vSpan);
 
     gl.autoClear = false;
     gl.clearDepth();
