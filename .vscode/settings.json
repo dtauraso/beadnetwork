@@ -7,10 +7,6 @@
     // silent, since a frame carrying a foreign buffer layout is refused and reported.
     "wirefold.reloadOnHostBuild": false,
 
-    // Non-error webview logs are dropped unless this is on, which is why the panel-size
-    // lines never reached .probe/ts.jsonl while the panel sizing was being chased.
-    "wirefold.probe.trace": true,
-
     // .probe/ holds the runtime JSONL logs the editor appends to continuously. They are
     // gitignored, but the FILE WATCHER does not honor .gitignore — without these excludes
     // VS Code watches (and search-indexes) multi-hundred-MB files that grow during every
