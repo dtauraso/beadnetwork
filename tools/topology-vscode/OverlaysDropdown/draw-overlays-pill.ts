@@ -1,7 +1,6 @@
 import { columnBytes, columnF32, columnU8 } from "../Buffer/column-values";
 import { panelFont, roundRect } from "../PanelOverlay/panel-box";
 import { drawPill, drawPopoverBox, drawHeadingText, ROW_PAD_X } from "../PanelOverlay/pill-chrome";
-import { drawScrollHint } from "../PanelOverlay/scroll-hint";
 import { readF32Run, readU32Run, readText, decodeAt } from "../PanelOverlay/panel-columns";
 import * as T from "../src/webview/three/controls/chrome-theme";
 import {
@@ -20,7 +19,7 @@ import {
   COL_STREAM_OVERLAYS_PILL_ROW_COUNT_ON, COL_STREAM_OVERLAYS_PILL_ROW_COUNT_ALL,
   COL_STREAM_OVERLAYS_PILL_COUNT_X, COL_STREAM_OVERLAYS_PILL_COUNT_Y,
   COL_STREAM_OVERLAYS_PILL_COUNT_W, COL_STREAM_OVERLAYS_PILL_COUNT_H,
-  COL_STREAM_OVERLAYS_PILL_SCROLL_Y, COL_STREAM_OVERLAYS_PILL_SCROLL_MAX_Y,
+  COL_STREAM_OVERLAYS_PILL_SCROLL_Y,
 } from "../Buffer/column-streams-gen";
 
 const ROW_HEADING = 0;
@@ -64,18 +63,14 @@ export function drawOverlaysPill(c: CanvasRenderingContext2D): void {
   const bh = columnF32(COL_STREAM_OVERLAYS_PILL_POPOVER_H);
   drawPopoverBox(c, bx, by, bw, bh);
 
+  // The rows are laid out in full, already shifted by the scroll, and the box decides how
+  // much of that is seen. Clipping is the whole of scrolling here: Go moved the contents,
+  // and this stops them being drawn where the box is not.
   c.save();
   roundRect(c, bx, by, bw, bh, T.RADIUS_PANEL);
   c.clip();
   drawRows(c);
   c.restore();
-
-  drawScrollHint(
-    c, bx, by, bw, bh,
-    columnF32(COL_STREAM_OVERLAYS_PILL_SCROLL_Y),
-    columnF32(COL_STREAM_OVERLAYS_PILL_SCROLL_MAX_Y),
-    T.SURFACE, 14,
-  );
 }
 
 function drawCheckbox(c: CanvasRenderingContext2D, x: number, y: number, on: boolean): void {

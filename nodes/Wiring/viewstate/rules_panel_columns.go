@@ -14,7 +14,6 @@ func (ui *UIState) writeRulesPanelColumns(lay rulespanel.Layout) {
 	c.SetF32(B.ColStreamRulesPanelClipY, lay.RowsClip.Y)
 	c.SetF32(B.ColStreamRulesPanelClipH, lay.RowsClip.H)
 	c.SetF32(B.ColStreamRulesPanelScrollY, lay.Scroll)
-	c.SetF32(B.ColStreamRulesPanelScrollMaxY, lay.MaxScroll)
 	c.SetF32(B.ColStreamRulesPanelBoxX, lay.Box.X)
 	c.SetF32(B.ColStreamRulesPanelBoxY, lay.Box.Y)
 	c.SetF32(B.ColStreamRulesPanelBoxW, lay.Box.W)

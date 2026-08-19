@@ -1,8 +1,9 @@
 package bufschema
 
 type bufLayoutOverlaysPill struct {
-	ScrollY    float32 `buf:"f32"`
-	ScrollMaxY float32 `buf:"f32"`
+	// How far the contents are scrolled inside the popover. How far they CAN scroll is
+	// Go's business — it clamps the wheel against it — and the drawing never needed it.
+	ScrollY float32 `buf:"f32"`
 
 	PillX float32 `buf:"f32"`
 	PillY float32 `buf:"f32"`

@@ -1,10 +1,12 @@
 package bufschema
 
 type bufLayoutRulesPanel struct {
-	ClipY      float32 `buf:"f32"`
-	ClipH      float32 `buf:"f32"`
-	ScrollY    float32 `buf:"f32"`
-	ScrollMaxY float32 `buf:"f32"`
+	// The rows scroll inside this rect; the toggle sits above it and stays put. No
+	// ScrollMaxY: how far it CAN scroll is Go's business, used to clamp the wheel, and
+	// nothing on the drawing side ever needed to know.
+	ClipY   float32 `buf:"f32"`
+	ClipH   float32 `buf:"f32"`
+	ScrollY float32 `buf:"f32"`
 
 	BoxX float32 `buf:"f32"`
 	BoxY float32 `buf:"f32"`
