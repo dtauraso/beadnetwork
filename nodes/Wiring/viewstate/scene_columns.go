@@ -72,7 +72,7 @@ func (ui *UIState) writeCameraColumns() {
 	c.SetF32(B.ColStreamCameraPosTheta, float32(v.Pos.Theta))
 	c.SetF32(B.ColStreamCameraUpPhi, float32(v.Up.Phi))
 	c.SetF32(B.ColStreamCameraUpTheta, float32(v.Up.Theta))
-	c.SetF32(B.ColStreamCameraFovDeg, float32(ui.FovDeg()))
+	c.SetF32(B.ColStreamCameraFocalPx, float32(camera.FocalPixels))
 }
 
 func (ui *UIState) FovDeg() float64 {

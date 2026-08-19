@@ -1,5 +1,6 @@
 import type { BufferLabelPos } from "../buffer-scene";
 import * as T from "../../controls/chrome-theme";
+import { registerLabelElement } from "./label-elements";
 
 const PILL_STYLE: React.CSSProperties = {
   background: T.CHIP,
@@ -14,11 +15,12 @@ export function BufferLabelOverlay({ positions }: { positions: BufferLabelPos[] 
       {positions.map((pos) => (
         <div
           key={pos.row}
+          ref={(el) => registerLabelElement(pos.row, el)}
           style={{
             position: "absolute",
-            left: pos.px,
-            top: pos.py - 4,
-            transform: "translate(-50%, -100%)",
+            left: 0,
+            top: 0,
+            transform: `translate(${pos.px}px, ${pos.py - 4}px) translate(-50%, -100%)`,
             fontSize: T.FONT_SIZE,
             fontFamily: T.FONT_STACK,
             fontVariantNumeric: "tabular-nums",
