@@ -12,6 +12,7 @@ import { drawRulesPanel, rulesPanelKey } from "../PolarRulesPanel/draw-rules-pan
 import {
   drawPointerHighlight, drawPointerTip, pointerTargetCursor, pointerTargetKey,
 } from "./draw-pointer-target";
+import { drawLabels, labelEpoch } from "../Scene/Labels/label-canvas";
 import { postGoRecord } from "../src/webview/vscode-api";
 import { encodeSceneViewport } from "../src/schema/input/input-encode-scene-tilt";
 
@@ -65,7 +66,7 @@ export function PanelOverlay() {
       postGoRecord(encodeSceneViewport(vw, vh));
     }
 
-    const key = `${vw}@${bw}x${bh}|${speedPanelKey()}|${tiltPanelKey()}|${anglePillKey()}|${nodesPillKey()}|${overlaysPillKey()}|${fitChipKey()}|${tabStripKey()}|${rulesPanelKey()}|${pointerTargetKey()}`;
+    const key = `${vw}@${bw}x${bh}|${speedPanelKey()}|${tiltPanelKey()}|${anglePillKey()}|${nodesPillKey()}|${overlaysPillKey()}|${fitChipKey()}|${tabStripKey()}|${rulesPanelKey()}|${pointerTargetKey()}|${labelEpoch()}`;
     if (key !== lastKey.current) {
       lastKey.current = key;
       if (canvas.width !== bw || canvas.height !== bh) {
@@ -77,6 +78,7 @@ export function PanelOverlay() {
         c.setTransform(1, 0, 0, 1, 0, 0);
         c.clearRect(0, 0, canvas.width, canvas.height);
         c.setTransform(ratio, 0, 0, ratio, 0, 0);
+        drawLabels(c);
         drawPointerHighlight(c);
         drawSpeedPanel(c);
         drawTiltPanel(c);
