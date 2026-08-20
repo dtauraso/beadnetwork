@@ -12,7 +12,6 @@ import (
 	"github.com/dtauraso/wirefold/src/Ring/Bead"
 
 	"github.com/dtauraso/wirefold/src/Chrome/Tabs"
-	Bld "github.com/dtauraso/wirefold/src/Node/Wiring/build"
 	SW "github.com/dtauraso/wirefold/src/Node/Wiring/streamwire"
 	NodeShape "github.com/dtauraso/wirefold/src/Ring/NodeShape"
 )
@@ -25,7 +24,7 @@ func RunTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 	sceneTabNames := Tabs.TabNames()
 	sceneTabSelected := Tabs.SelectedIndex(topologyPath)
 	scenePath := scene.ResolvePath(topologyPath)
-	nodes, slotReg, md, speedSinks, err := Bld.LoadTopology(ctx, scenePath, clk)
+	nodes, slotReg, md, speedSinks, err := LoadTopology(ctx, scenePath, clk)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "load topology: %v\n", err)
 		os.Exit(1)
