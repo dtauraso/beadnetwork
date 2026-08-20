@@ -2,7 +2,7 @@
 
 ## Model — read first
 
-Before changing anything in the **Go network** (`src/Node/`, `src/Node/bead/bead_run.go`,
+Before changing anything in the **Go network** (`src/Node/`, `src/NodeKinds/`, `src/Node/bead/bead_run.go`,
 `src/Node/Wiring/build/loader.go`, `src/Node/Wiring/loadspec/builders.go`) or the **content buffer**
 (`src/schema/buffer-layout/`, the render tree under `src/webview/three/`),
 read [MODEL.md](MODEL.md). It pins the model. Do not propose multi-step
@@ -83,12 +83,16 @@ own package is already there. `go generate ./...` runs all of them.
   npm, tsconfig and esbuild all assume it; directory naming for an npm package is medium,
   not substance. The package root is the REPO root — `package.json`, `tsconfig.json` and
   `node_modules/` live there, so there is one npm project and no path mappings.
-- **`src/Node/`** — the Go network, and ONLY node kinds and wiring: the kind scanner walks it
-  and treats every directory it finds as a kind, so a helper parked there grows a phantom
-  node kind. **`scripts/`** — what serves the repo rather than one concern: `stop-checks.sh`,
-  the git-workflow scripts, `lib/`, `checks/` for guards that guard nothing in particular
-  (clustered by concern: prose, hooks, lang, meta, source), and the two packages every
-  generator shares — `kindscan/` (reads the kinds) and `genpaths/` (finds the roots).
+- **`src/NodeKinds/`** — the node kinds, and ONLY those: the kind scanner walks it and treats
+  every directory it finds as a kind, so a helper parked there grows a phantom node kind.
+- **`src/Node/`** — what a node USES: the spine the kinds are built from (`Wiring/`, `bead/`,
+  `clock/`, `nodeapi/`, `gatecommon/`, `rowevent/`, `spatial/`), the startup wiring
+  (`runtopology/`), and the TS that draws a node. A directory here is NOT a kind — both the
+  scanner and `check-dep-rules.sh` decide that by the `Register(...)` call, not by placement.
+- **`scripts/`** — what serves the repo rather than one concern: `stop-checks.sh`, the
+  git-workflow scripts, `lib/`, `checks/` for guards that guard nothing in particular
+  (clustered by concern: prose, hooks, lang, meta, source), and `genpaths/`, which every
+  generator uses to find the roots.
 - **A guard lives beside what it guards**, named by its own `PLACEMENT:` header — there is
   no table mapping guard to folder that could disagree with the header. `scripts/guard-list.sh`
   finds them by searching the repo, and refuses to report fewer than 40.
