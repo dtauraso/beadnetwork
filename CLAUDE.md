@@ -125,6 +125,11 @@ own package is already there. `go generate ./...` runs all of them.
   for: `BeadLine` (the line beads travel, state with no goroutine of its own), the `Sender`
   and `Receiver` on each end, the slot `lattice/`, and the animation goroutine that steps it.
   The split line is `inflightBead` — the files that share it are the bead animation.
+- **`src/Camera/`** — the camera, all of it: the basis/projection/angles math and the
+  `Viewpoint` itself, the eight scalar files it persists under `view/camera/` and the read
+  that seeds it at load, its buffer block and generated columns, and the TSX that draws
+  through it. The math imports only `polar` and `spatial`, so nothing held it in `Wiring/`
+  but placement.
 - **`src/Chrome/`** — the UI that is NOT the diagram: the pills, panels, dropdowns, tab strip
   and fit chip, plus the `chrome-theme.ts` they share. "Chrome" is the industry word for the
   frame around the content, and this repo reached for it twice on its own before the cluster
