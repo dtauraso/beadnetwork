@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/dtauraso/wirefold/src/Node/Wiring/scene"
+	"github.com/dtauraso/wirefold/src/Scene/scene"
 
 	"github.com/dtauraso/wirefold/src/Clock"
 
 	"github.com/dtauraso/wirefold/src/Ring/Bead"
 
 	"github.com/dtauraso/wirefold/src/Chrome/Tabs"
-	SW "github.com/dtauraso/wirefold/src/Node/Wiring/streamwire"
+	SW "github.com/dtauraso/wirefold/src/runtopology/streamwire"
 	NodeShape "github.com/dtauraso/wirefold/src/Ring/NodeShape"
 )
 

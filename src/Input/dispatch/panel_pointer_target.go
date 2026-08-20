@@ -6,7 +6,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Chrome/Pills"
 	"github.com/dtauraso/wirefold/src/Chrome/Pills/AngleDropdown"
 	"github.com/dtauraso/wirefold/src/Chrome/Pills/NodesDropdown"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/viewstate"
+	"github.com/dtauraso/wirefold/src/Scene/viewstate"
 )
 
 func panelPointerTarget(md *MoveDispatch, x, y float64) viewstate.PointerTarget {

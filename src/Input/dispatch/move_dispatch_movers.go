@@ -2,14 +2,14 @@ package dispatch
 
 import (
 	clock "github.com/dtauraso/wirefold/src/Clock"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/edgetable"
-	geomseeds "github.com/dtauraso/wirefold/src/Node/Wiring/geomseeds"
+	"github.com/dtauraso/wirefold/src/Node/Edge/edgetable"
+	geomseeds "github.com/dtauraso/wirefold/src/runtopology/geomseeds"
 	"github.com/dtauraso/wirefold/src/Input/inputcodec"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor/owners"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/nodegeom"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/polarindex"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/rulenode"
+	"github.com/dtauraso/wirefold/src/Node/nodeactor"
+	"github.com/dtauraso/wirefold/src/Node/nodeactor/owners"
+	"github.com/dtauraso/wirefold/src/Node/nodegeom"
+	"github.com/dtauraso/wirefold/src/Polar/polarindex"
+	"github.com/dtauraso/wirefold/src/Node/rulenode"
 )
 
 func (md *MoveDispatch) buildNodeMovers(geoms map[string]nodegeom.NodeGeom, clk clock.Clock, constants polarindex.SceneConstants) {

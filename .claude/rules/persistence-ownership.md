@@ -36,7 +36,7 @@ own file, deliberately separate from the overlays.json overlay-visibility file: 
 open/closed state is not an overlay visibility flag, even though the two are persisted,
 streamed, and edited the same way.
 
-**`topology/` is one of several sibling SCENES**, not the only tree. `src/Node/Wiring/scene/scene.go`'s
+**`topology/` is one of several sibling SCENES**, not the only tree. `src/Scene/scene/scene.go`'s
 `Scenes` names each sibling directory (today: `topology/`, `topology-pair/`) resolved
 relative to the ANCHOR's parent — the `-topology` flag the extension host launches with is
 the fixed anchor, and which sibling directory actually loads is resolved from it
@@ -156,7 +156,7 @@ Consequences to keep in mind:
   file — port geometry was removed with the port model (edges attach on the bead lattice,
   `src/Node/BeadAnimation/lattice/bead_lattice.go`); this bullet used to list it as a second thing the mover writes.
 - The **SOURCE NODE** owns `nodes/<source>/drag/edges/<label>.json`, and writes it from
-  `src/Node/Wiring/nodeactor/owners/out_edges.go`'s `persistDelta` — the same pass that derives that edge's geometry,
+  `src/Node/nodeactor/owners/out_edges.go`'s `persistDelta` — the same pass that derives that edge's geometry,
   since the node is what holds the vector being stored. The write is gated on the vector
   actually changing: derivation runs every tick, so an ungated write would rewrite the file
   every tick. (This bullet used to claim "an `edgeMover` owns" it and "no Go writer exists
@@ -179,8 +179,8 @@ a second copy of that vector from mirrored absolute positions and persisting the
 the node writing the file is a goroutine writing what it already owns — not a request, and
 one fewer representation of the same quantity.
 
-Guards: `src/Node/Wiring/check-persist-write-ownership.sh` (who may write which path pattern),
-`src/Node/Wiring/check-scene-path-resolution.sh` (who may construct a `nodes/` path).
+Guards: `src/jsonpersist/check-persist-write-ownership.sh` (who may write which path pattern),
+`src/Scene/scenepaths/check-scene-path-resolution.sh` (who may construct a `nodes/` path).
 
 ## A topology is a directory tree, always
 

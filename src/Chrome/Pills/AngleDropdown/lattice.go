@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/TiltPanel"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/jsonpersist"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/scenepaths"
+	"github.com/dtauraso/wirefold/src/jsonpersist"
+	"github.com/dtauraso/wirefold/src/Scene/scenepaths"
 )
 
 const DefaultLatticePoints int32 = TiltPanel.FullTurnPhiIdx

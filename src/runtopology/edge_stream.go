@@ -8,7 +8,7 @@ import (
 
 	EdgeB "github.com/dtauraso/wirefold/src/Node/Edge"
 	W "github.com/dtauraso/wirefold/src/Input/dispatch"
-	SW "github.com/dtauraso/wirefold/src/Node/Wiring/streamwire"
+	SW "github.com/dtauraso/wirefold/src/runtopology/streamwire"
 	"github.com/dtauraso/wirefold/src/schema/buffer-layout/colstream"
 )
 

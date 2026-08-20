@@ -4,7 +4,7 @@ import (
 	"path/filepath"
 	"sort"
 
-	"github.com/dtauraso/wirefold/src/Node/Wiring/jsonpersist"
+	"github.com/dtauraso/wirefold/src/jsonpersist"
 )
 
 func OverlayFlagFile(overlaysDir, flag string) string {

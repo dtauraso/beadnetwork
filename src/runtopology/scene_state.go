@@ -3,10 +3,10 @@ package runtopology
 import (
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
 	W "github.com/dtauraso/wirefold/src/Input/dispatch"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/scene"
+	"github.com/dtauraso/wirefold/src/Scene/scene"
 	"github.com/dtauraso/wirefold/src/Camera"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/scenepersist"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/viewpersist"
+	"github.com/dtauraso/wirefold/src/Scene/scenepersist"
+	"github.com/dtauraso/wirefold/src/Scene/viewpersist"
 )
 
 func loadSceneState(scenePath string, md *W.MoveDispatch, speedSinks SliderPanel.Sinks) {

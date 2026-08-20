@@ -13,15 +13,18 @@ import os, re, subprocess, collections
 CEILING = 20
 
 ALLOWED = {
-    "src/Node/Wiring/kindscan":
+    "scripts/kindscan":
         "one parse-a-kind pipeline; 7 unexported symbols cross file boundaries",
     "src/schema/buffer-layout/gen/buflayout":
         "one parse-then-emit pipeline; 29 unexported symbols cross file boundaries",
-    "src/Node/Wiring/nodeactor/owners":
+    "src/Node/nodeactor/owners":
         "splitting re-exports the leaf fields the owners package exists to hide",
     "src/Node":
         "12 guards pinned here by their own PLACEMENT: src/Node/** headers, plus the bead "
         "lifecycle dissolved out of wire/; that half shrinks when the animation owns it",
+    "src/Node/BeadAnimation":
+        "one Go package by the compiler: 9 unexported symbols cross its files, and Sender "
+        "and Receiver reach BeadLine's unexported queue; plus its own TS and 3 guards",
     "src/NodeKinds/PairNode":
         "kindscan joins pkgDir with the literal SPEC.md; tiltring took the exported-call seam",
     ".":
@@ -44,7 +47,7 @@ def generator_sources():
     for root, dirs, files in os.walk("."):
         dirs[:] = [d for d in dirs if d not in ("node_modules", "out", ".git", ".probe")]
         rel = os.path.relpath(root, ".")
-        if "gen" not in rel.split(os.sep) and not rel.startswith("src/Node/Wiring/kindscan"):
+        if "gen" not in rel.split(os.sep) and not rel.startswith("scripts/kindscan"):
             continue
         for f in files:
             if f.endswith(".go"):
@@ -124,7 +127,7 @@ while IFS= read -r line; do
     OVER)
       echo "DIRECTORY OVER CEILING: a directory holds more hand-edited files at its own top level"
       echo "than the ceiling. Cluster by concern, or add it to ALLOWED in this script with a"
-      echo "mechanism. NOTE: file count is a prompt to look, not a verdict — src/Node/Wiring/nodeactor"
+      echo "mechanism. NOTE: file count is a prompt to look, not a verdict — src/Node/nodeactor"
       echo "went 16 -> 23 files while its god object shrank, then 23 -> 12 with no code change but"
       echo "a package boundary. Check the design, not the number:"
       fail=1; continue ;;

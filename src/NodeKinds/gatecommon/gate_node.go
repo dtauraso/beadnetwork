@@ -5,7 +5,7 @@ import (
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 
 	"github.com/dtauraso/wirefold/src/Node/Interior"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor"
+	"github.com/dtauraso/wirefold/src/Node/nodeactor"
 )
 
 const WindowMs = 3000

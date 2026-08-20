@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/dtauraso/wirefold/src/Node/Wiring/kindscan"
+	"github.com/dtauraso/wirefold/scripts/kindscan"
 )
 
 func WriteNodeDefs(outPath string, kinds []kindscan.KindEntry) error {

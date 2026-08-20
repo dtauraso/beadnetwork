@@ -3,7 +3,7 @@ package Camera
 import (
 	"path/filepath"
 
-	"github.com/dtauraso/wirefold/src/Node/Wiring/jsonpersist"
+	"github.com/dtauraso/wirefold/src/jsonpersist"
 )
 
 const (

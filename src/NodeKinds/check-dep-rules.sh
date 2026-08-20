@@ -18,7 +18,7 @@ fi
 
 MODULE="github.com/dtauraso/wirefold"
 
-is_spine() { [ "$1" = "Wiring" ] || [ "$1" = "gatecommon" ] || [ "$1" = "bead" ] || [ "$1" = "spatial" ] || [ "$1" = "rowevent" ] || [ "$1" = "nodeapi" ] || [ "$1" = "clock" ]; }
+is_spine() { [ "$1" = "Wiring" ] || [ "$1" = "gatecommon" ] || [ "$1" = "bead" ] || [ "$1" = "spatial" ] || [ "$1" = "rowevent" ] || [ "$1" = "nodeapi" ] || [ "$1" = "clock" ] || [ "$1" = "kindapi" ] || [ "$1" = "kindreg" ] || [ "$1" = "portwiring" ] || [ "$1" = "helddrive" ]; }
 
 is_kind() { grep -rqE 'Register(Builder)?\(' "$1" --include="*.go" 2>/dev/null; }
 

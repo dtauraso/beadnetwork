@@ -5,7 +5,7 @@ package main
 import (
 	"path/filepath"
 
-	"github.com/dtauraso/wirefold/src/Node/Wiring/kindscan"
+	"github.com/dtauraso/wirefold/scripts/kindscan"
 	"github.com/dtauraso/wirefold/scripts/genpaths"
 	"github.com/dtauraso/wirefold/src/schema/gen/nodedefs"
 	"github.com/dtauraso/wirefold/src/schema/gen/wiredefs"
@@ -39,7 +39,7 @@ func generateNodeDefs(srcRoot string, kinds []kindscan.KindEntry) {
 }
 
 func generateWireDefs(repoRoot, srcRoot string) {
-	loaderPath := filepath.Join(genpaths.NetworkDir(repoRoot), "Wiring", "loadspec", "topo_spec.go")
+	loaderPath := filepath.Join(srcRoot, "runtopology", "loadspec", "topo_spec.go")
 	wireProps, err := wiredefs.ParseWirePropsFromFile(loaderPath)
 	if err != nil {
 		genpaths.Fatalf("parse wire props from loadspec/topo_spec.go: %v", err)

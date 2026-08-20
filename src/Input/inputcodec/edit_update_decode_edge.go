@@ -1,6 +1,6 @@
 package inputcodec
 
-import "github.com/dtauraso/wirefold/src/Node/Wiring/recread"
+import "github.com/dtauraso/wirefold/src/Input/recread"
 
 func decodeUpdateEdge(r *recread.Reader, attr byte) (StdinMsg, bool) {
 	switch attr {

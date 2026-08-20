@@ -7,9 +7,9 @@ import (
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/src/NodeKinds/nodeapi"
 
-	"github.com/dtauraso/wirefold/src/Node/Wiring/helddrive"
-	Wiring "github.com/dtauraso/wirefold/src/Node/Wiring/kindapi"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor"
+	"github.com/dtauraso/wirefold/src/NodeKinds/helddrive"
+	Wiring "github.com/dtauraso/wirefold/src/NodeKinds/kindapi"
+	"github.com/dtauraso/wirefold/src/Node/nodeactor"
 	"github.com/dtauraso/wirefold/src/NodeKinds/gatecommon"
 )
 

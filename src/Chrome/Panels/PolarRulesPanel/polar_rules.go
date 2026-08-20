@@ -3,7 +3,7 @@ package PolarRulesPanel
 import (
 	"math"
 
-	"github.com/dtauraso/wirefold/src/Node/Wiring/geom/polar"
+	"github.com/dtauraso/wirefold/src/Polar/polar"
 	"github.com/dtauraso/wirefold/src/spatial"
 )
 

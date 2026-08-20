@@ -6,7 +6,7 @@ import (
 
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/Panel"
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/PolarRulesPanel"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/rulenode"
+	"github.com/dtauraso/wirefold/src/Node/rulenode"
 )
 
 func applyRulesHit(ctx context.Context, md *MoveDispatch, h PolarRulesPanel.Hit) {

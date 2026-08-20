@@ -1,6 +1,6 @@
 package inputcodec
 
-import "github.com/dtauraso/wirefold/src/Node/Wiring/recread"
+import "github.com/dtauraso/wirefold/src/Input/recread"
 
 func decodeRawInput(r *recread.Reader) (RawInputMsg, bool) {
 	var ev RawInputMsg

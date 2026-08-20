@@ -43,7 +43,7 @@ func ParseBufferLayoutTree(root string) (BufLayoutSchema, error) {
 		if err != nil {
 			return err
 		}
-		if d.IsDir() {
+		if d.IsDir() { // path-resolution-ok: a generator walking its own source tree, not a scene path
 			switch d.Name() {
 			case "node_modules", "out", ".git", ".probe", ".wirefold-cache":
 				return filepath.SkipDir

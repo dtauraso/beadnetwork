@@ -1,13 +1,13 @@
 ---
 paths:
-  - "src/Node/Wiring/loader.go"
+  - "src/runtopology/load_topology.go"
   - "src/schema/wire-defs.ts"
 ---
 
 # Wire props — a tag alone does not reach the screen
 
 Wire props (`WireProps` from `src/schema/wire-defs.ts`, generated from
-`wire:"prop,..."` tags on `specEdge` in `src/Node/Wiring/loadspec/topo_spec.go`) are Go-owned edge
+`wire:"prop,..."` tags on `specEdge` in `src/runtopology/loadspec/topo_spec.go`) are Go-owned edge
 metadata from the spec JSON.
 
 Today the only prop is `label`, and it does **NOT** feed the render path: there is no

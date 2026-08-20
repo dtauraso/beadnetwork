@@ -47,7 +47,7 @@ and none is a source of truth.
 - **A node is a point and an edge is the triple that closes the triangle.** A node's own
   point is `(r,φ,θ)` about the scene-sphere centre, in the QUANTISED integer form
   (`polarindex.Index` — `IndexTheta`/`IndexPhi`/`IndexR` × the scene's own constants,
-  `src/Node/Wiring/polarindex/polar_index.go`), persisted (`nodes/<id>/base.json`'s
+  `src/Polar/polarindex/polar_index.go`), persisted (`nodes/<id>/base.json`'s
   `indexPhi`/`indexTheta`/`indexR` — the SOLE authored position; there is no continuous
   `scenePolar*` shadow any more, so the value IS index × constant, never a second stored
   copy). An edge carries `D`, the triple from its source to its target, persisted the same
@@ -90,7 +90,7 @@ and none is a source of truth.
   node 3 — the blow-up this page says cannot happen, reached through an arithmetic that
   quietly moved what it claimed to tidy.
 - **A node holds its own side of every edge it touches** (`owners.Deltas`,
-  `src/Node/Wiring/nodeactor/owners/deltas.go`): the triple FROM ITSELF TO the node at the
+  `src/Node/nodeactor/owners/deltas.go`): the triple FROM ITSELF TO the node at the
   other end, stored from-self whichever way the edge points, so a move is uniform across
   in-edges and out-edges alike. The edge's own `D` is the out entry as-is and the negation
   of the in entry.
@@ -98,7 +98,7 @@ and none is a source of truth.
   The angle constraints (`φ = π/2`, `|θ| ≤ π/2`) are constraints ON `D`. They always were —
   they describe where a node sits about the one it hangs from, not its place in the world —
   so they are applied to the triple directly, with no holder frame to convert in and out of
-  (`src/Node/Wiring/nodeactor/node_drag_trim.go`).
+  (`src/Node/nodeactor/node_drag_trim.go`).
 
   **The rule is carried by the node it binds, by id, and is applied BY that node.** Each node
   states its own `drag` in its own `base.json` (`polar.DragRule`); absent means free, and
@@ -174,6 +174,6 @@ and none is a source of truth.
   not the locks.
 
 A drag commits a polar INDEX: `CommitNodeMoveLocal`
-(`src/Node/Wiring/nodemove/commit_node_move.go`) takes the committed index, shifts the node's
+(`src/Node/nodemove/commit_node_move.go`) takes the committed index, shifts the node's
 own deltas by the difference, applies its centre, and broadcasts the move to its partners.
 Beads are not consulted and do not move the node.
