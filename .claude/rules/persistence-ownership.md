@@ -16,7 +16,7 @@ Everything about a node lives under its own directory. There is no top-level `ed
 
 ```
 topology/
-├── counts/nodes.json  counts/edges.json   one integer each — nodes = ROW COUNT
+├── counts/nodes.bin  counts/edges.bin   one integer each — nodes = ROW COUNT
 │                                          (largest node id), not a live-node count
 ├── constants/                             constant-r, max-index-phi, max-index-theta — read once
 ├── nodes/<id>/
@@ -26,18 +26,18 @@ topology/
 │   ├── edges/<label>/                     OUTGOING only, one value per file: wiring + delta — TRACKED
 │   └── drag/edges/<label>/                that edge's accumulated geometry DELTA — GITIGNORED
 └── view/
-    └── camera/ overlays/ panels/ sphere/ scene/ speed.json — one value per file
+    └── camera/ overlays/ panels/ sphere/ scene/ speed.bin — one value per file
 ```
 
 **One primitive per file, and the DIRECTORY HIERARCHY IS THE NESTED DICT.** A directory is an
-object, a file is a leaf holding one JSON primitive, numbered files are an ordered array
+object, a file is a leaf holding one primitive, numbered files are an ordered array
 indexed by filename — sorted NUMERICALLY, since `10` follows `9` but sorts after `1`. A
 non-integer name in an array directory is a load error, never a skipped element: skipping one
 silently shortens the array and shifts the rest.
 
-The panels.json file under view/ holds the overlays popover's disclosure open/closed
+The `view/panels/` directory holds the overlays popover's disclosure open/closed
 state (`viewstate.PanelState`, `src/Chrome/Panels/Panel/panels_persist.go`) — its
-own file, deliberately separate from the overlays.json overlay-visibility file: a panel's
+own directory, deliberately separate from the `view/overlays/` visibility flags: a panel's
 open/closed state is not an overlay visibility flag, even though the two are persisted,
 streamed, and edited the same way.
 
@@ -46,7 +46,7 @@ streamed, and edited the same way.
 relative to the ANCHOR's parent — the `-topology` flag the extension host launches with is
 the fixed anchor, and which sibling directory actually loads is resolved from it
 (`ResolveScenePath`). Each sibling is a COMPLETE, independently loadable tree with its own
-`counts/` and `view/`, laid out exactly as above. `topology/view/scene/selected.json`
+`counts/` and `view/`, laid out exactly as above. `topology/view/scene/selected.bin`
 (the selected tab name, one string) is the ONE piece of state that lives at the ANCHOR rather than
 inside whichever scene is loaded — it has to, since it is what says which sibling to load, and
 a selection stored inside scene B would be unreachable while scene A is showing. Switching
@@ -66,12 +66,12 @@ recording the edge under the target — that reintroduces the duplication the la
 
 ## Base composed with drag; the delta is gitignored, not skip-worktree'd
 
-**`base.json` and `<label>.json` are TRACKED and never written by the running sim.** They
+**`base/` and `<label>/` are TRACKED and never written by the running sim.** They
 hold, respectively, a node's `type`/`id`/`gate`/`drag`-rule plus its BASE position, and an
 edge's wiring (`target`/`sourceHandle`/`targetHandle`/`kind`) plus its BASE geometry delta.
 **Both the base position and the base delta are stored ONLY as an index** —
-`base.json`'s `indexPhi`/`indexTheta`/`indexR` (absolute, folded through
-`polarindex.Canonical`) and `<label>.json`'s `deltaIndexR`/`deltaIndexPhi`/`deltaIndexTheta`
+`base/`'s `indexPhi`/`indexTheta`/`indexR` (absolute, folded through
+`polarindex.Canonical`) and `<label>/`'s `deltaIndexR`/`deltaIndexPhi`/`deltaIndexTheta`
 (a relative integer step count, NEVER folded through `Canonical` — a delta is not a
 position). There is no `scenePolarR`/`scenePolarPhi`/`scenePolarTheta` on a node or
 `deltaPolarR`/`deltaPolarPhi`/`deltaPolarTheta` on an edge anywhere on disk any more; the
@@ -79,15 +79,15 @@ index is the sole authored quantity and `polarindex.ToPolar(idx, sc)` is the onl
 run at load. **A drag is stored the same way — an index delta,
 `indexPhi`/`indexTheta`/`indexR` under `drag/` — and the drag value IS index × constant,
 never a second stored continuous copy.** `drag/`
-`self.json` and `drag/edges/` `<label>.json` are GITIGNORED and are the only files a drag
-writes; both hold exactly that one triple (the offset from `base.json`'s own
+`drag/` and `drag/edges/<label>/` are GITIGNORED and are the only files a drag
+writes; both hold exactly that one triple (the offset from `base/`'s own
 `indexPhi`/`indexTheta`/`indexR`, e.g. a base `indexR` of 25 plus a 4-step drag stores `iR:
 4`, not 29). There is no `dragPolarR`/`dragPolarPhi`/`dragPolarTheta` field anywhere in
 either file — `polarindex.ToPolar(idx, sc)` is the ONLY place the multiply happens, and it
 runs at load and at the moment a drag is measured, never stored as its own field. A
 sub-step drag rounds to the nearest index (`polarindex.MeasureScalar`) and a drag that
 rounds to zero is correct, not lost precision to recover. Neither file carries
-`constantPhi`/`constantTheta`/`constantR` — nor does `base.json` any more; those moved to
+`constantPhi`/`constantTheta`/`constantR` — nor does `base/` any more; those moved to
 `constants/` at the scene root (read once per load, fails loudly by path on
 missing/malformed input, and asserts `constantR == lattice.BeadStepR` — the radial grid
 must match the bead lattice's own step size). The loaded triple (`polarindex.SceneConstants`)
@@ -96,29 +96,29 @@ global.
 
 **A (base) and B (drag) are held SEPARATELY in the running program, never summed into a
 stored value.** The quantized index rides this split, in `owners.Quant`: `base` (A, loaded
-once from `base.json`'s `indexPhi`/`indexTheta`/`indexR`) and `drag` (B, set by
+once from `base/`'s `indexPhi`/`indexTheta`/`indexR`) and `drag` (B, set by
 `CommitQuantOffset` as `polarindex.Delta(measured, base)`, never reconstructed by
 subtracting later). `Quant.Composed()` returns `polarindex.Compose(base, drag)`, computed at
 each call site and held nowhere else; `nodegeom.ScenePolarOf`/`polar.Compose` derive the
 continuous on-screen position from that composed index the same way, at each call site that
 needs it, held in no field that outlives that call. `persistQuantOffset` writes `drag`
-straight to `drag/` `self.json`'s `indexPhi`/`indexTheta`/`indexR`.
+straight to `drag/`'s `index-phi`/`index-theta`/`index-r` leaves.
 
 The same split applies to an edge's target vector. `owners.Deltas` holds `baseTo` (A, seeded
-once at build from each edge's `<label>.json`, outgoing straight and incoming negated, never
+once at build from each edge's `<label>/`, outgoing straight and incoming negated, never
 mutated after) and `dragTo` (B, the only thing `ShiftSelfBy`/`ShiftOtherBy` mutate).
 `DeltaTo` returns the derived compose; `DragDeltaTo` returns B as a `polar.Polar`.
 `OutEdges.persistDelta` measures that into an index (`polarindex.MeasureScalar`) and writes
-the index straight to `drag/edges/` `<label>.json` — the same shape as the node path, no
+the index straight to `drag/edges/` `<label>/` — the same shape as the node path, no
 continuous field survives the write.
 
-THE DELTA (a node's standing vector to a neighbor, in `<label>.json`) and THE DRAG (the
+THE DELTA (a node's standing vector to a neighbor, in `<label>/`) and THE DRAG (the
 user's accumulated offset, in `drag/`) are different quantities. They are never summed into
 a stored value and never substituted for one another; they combine only at the point
 something is drawn, and persist always writes the DRAG, never the composed value.
 
-On load, `loadspec.ApplyDragOverlay` reads `base.json`/`<label>.json` into the BASE fields
-and `drag/` `self.json`/`drag/edges/` `<label>.json` into separate DRAG fields on the same
+On load, `loadspec.ApplyDragOverlay` reads `base/`/`<label>/` into the BASE fields
+and `drag/` and `drag/edges/<label>/` into separate DRAG fields on the same
 spec struct (`DragScenePolarR/Phi/Theta` on a node, `DragDeltaPolarR/Phi/Theta` on an
 edge) — it composes NOTHING; a node or edge with no `drag/` file simply carries a zero drag
 value forward. `polar.Compose`/`polar.Between` are untouched by this change; this is the
@@ -132,12 +132,12 @@ output into a commit to unblock the checkout, the exact outcome the split exists
 gitignored subdirectory has nothing in the index for `checkout` to compare against.
 
 Edge WIRING (`target`/`sourceHandle`/`targetHandle`/`kind`/`label`) is authored data and
-keeps writing to the tracked `<label>.json` (`edgefile.WriteEdgeFile`) whenever it
+keeps writing to the tracked `<label>/` (`edgefile.WriteEdgeFile`) whenever it
 legitimately changes. Only the geometry DELTA moved to `drag/`.
 
 A drag touches more than the node you grabbed: the dragged node shifts its own vectors, and
 each neighbour is told how far it moved and shifts its own — so a neighbour's `drag/`
-`self.json` and each of ITS outgoing edges' `drag/edges/` `<label>.json` also get
+`drag/` leaves and each of ITS outgoing edges' `drag/edges/<label>/` also get
 written as part of that same drag, same as before.
 
 Consequences to keep in mind:
@@ -147,8 +147,8 @@ Consequences to keep in mind:
   them with zero deltas.
 - Nothing promotes a drag's accumulated delta back into the base for a future clone; that
   would need a deliberate migration and commit (see the migration note below). Whatever is
-  on disk right now under `base.json`/`<label>.json` is the base the NEXT clone gets.
-- There is no more `*.geom.json` to skip when scanning `nodes/*/edges/*.json` — every file
+  on disk right now under `base/`/`<label>/` is the base the NEXT clone gets.
+- There is no more `*.geom.bin` to skip when scanning `nodes/*/edges/*.bin` — every file
   under an `edges/` dir is a real edge (`loadNodeEdges`, `check-no-fan-in.sh`).
 - The existing `topology/`/`topology-pair/` trees were migrated by treating their
   already-committed values AS the base and starting with empty `drag/` dirs (zero deltas) —
@@ -160,7 +160,7 @@ Consequences to keep in mind:
   `dragfile/drag_file.go`). There is no longer a separate `inputs/`/`outputs/` port-geometry
   file — port geometry was removed with the port model (edges attach on the bead lattice,
   `src/Node/BeadAnimation/lattice/bead_lattice.go`); this bullet used to list it as a second thing the mover writes.
-- The **SOURCE NODE** owns `nodes/<source>/drag/edges/<label>.json`, and writes it from
+- The **SOURCE NODE** owns `nodes/<source>/drag/edges/<label>.bin`, and writes it from
   `src/Node/nodeactor/owners/out_edges.go`'s `persistDelta` — the same pass that derives that edge's geometry,
   since the node is what holds the vector being stored. The write is gated on the vector
   actually changing: derivation runs every tick, so an ungated write would rewrite the file
@@ -184,7 +184,7 @@ a second copy of that vector from mirrored absolute positions and persisting the
 the node writing the file is a goroutine writing what it already owns — not a request, and
 one fewer representation of the same quantity.
 
-Guards: `src/jsonpersist/check-persist-write-ownership.sh` (who may write which path pattern),
+Guards: `src/valuefile/check-persist-write-ownership.sh` (who may write which path pattern),
 `src/Scene/scenepaths/check-scene-path-resolution.sh` (who may construct a `nodes/` path).
 
 ## A topology is a directory tree, always
@@ -216,7 +216,7 @@ its camera pose, overlay flags and sphere on load and falls back to defaults.
 
 ## Counts are stored, never re-derived
 
-`topology/counts/nodes.json` and `topology/counts/edges.json` exist because the extension host SPAWNS Go, and Node's `spawn()` takes the
+`topology/counts/nodes.bin` and `topology/counts/edges.bin` exist because the extension host SPAWNS Go, and Node's `spawn()` takes the
 stdio array up front — with one dedicated pipe per emitting goroutine, the pipe count must
 be known before the child exists, and Go cannot answer because Go is not running yet.
 

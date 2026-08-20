@@ -47,8 +47,8 @@ when a bead has arrived. Go owns the clock.
   and renders it; row-keyed reflect resources (`snapshot-buffer.ts`,
   `overlay-flags.ts`) mirror Go — they author nothing. There is **no
   JSON-trace render path and no `pump.ts`**; Go emits no trace-event JSON
-  on stdout at all — the `.probe` trace logs (`go.jsonl`/`go-node.jsonl`/
-  `go-edge.jsonl`/`go-interior.jsonl`) are the ext host's DECODE of each
+  on stdout at all — the `.probe` trace logs (`go.log`/`go-node.log`/
+  `go-edge.log`/`go-interior.log`) are the ext host's DECODE of each
   per-owner stream's own trailing EVENTS section (`buffer-log.ts`), not a
   stdout parse. Stdout carries only the DEBUG BREADCRUMB channel's sparse
   `{"kind":"breadcrumb",...}` control-event lines.

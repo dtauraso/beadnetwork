@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/dtauraso/wirefold/src/jsonpersist"
+	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
 func edgeDirPath(root, src, label string) string {
@@ -15,7 +15,7 @@ func edgeDirPath(root, src, label string) string {
 
 func readEdgeString(root, src, label, name string) string {
 	var v string
-	jsonpersist.ReadJSONIfExists(filepath.Join(edgeDirPath(root, src, label), name), &v)
+	valuefile.ReadIfExists(filepath.Join(edgeDirPath(root, src, label), name), &v)
 	return v
 }
 
@@ -75,7 +75,7 @@ func WriteEdgeFile(root, src, srcPort, target, targetPort string) error {
 		FileTargetHandle: targetPort,
 		FileKind:         "chain",
 	} {
-		if err := jsonpersist.WriteJSONAtomic(filepath.Join(dir, name), value); err != nil {
+		if err := valuefile.WriteAtomic(filepath.Join(dir, name), value); err != nil {
 			return err
 		}
 	}

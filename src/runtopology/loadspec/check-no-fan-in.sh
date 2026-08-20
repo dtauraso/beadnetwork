@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: topology/nodes/*/edges/*/target.json | two committed edges may not target the same target+targetHandle (fan-in)
+# PLACEMENT: topology/nodes/*/edges/*/target.bin | two committed edges may not target the same target+targetHandle (fan-in)
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
@@ -31,14 +31,14 @@ nodes_dir = sys.argv[1]
 seen = collections.defaultdict(list)
 def read(edge_dir, name):
     try:
-        return json.load(open(os.path.join(edge_dir, name)))
+        return open(os.path.join(edge_dir, name), "rb").read().decode()
     except Exception:
         return None
 
 for edge_dir in sorted(glob.glob(os.path.join(nodes_dir, "*", "edges", "*"))):
     if not os.path.isdir(edge_dir):
         continue
-    key = (read(edge_dir, "target.json"), read(edge_dir, "target-handle.json"))
+    key = (read(edge_dir, "target.bin"), read(edge_dir, "target-handle.bin"))
     seen[key].append(os.path.basename(edge_dir))
 for (target, handle), labels in sorted(seen.items()):
     if len(labels) > 1:

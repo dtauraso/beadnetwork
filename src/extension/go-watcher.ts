@@ -1,3 +1,4 @@
+import { logfmt } from "./probe/logfmt";
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
@@ -12,7 +13,7 @@ export function armGoWatcher(
 ): vscode.FileSystemWatcher | undefined {
   if (!repoRoot) return undefined;
   const binPath = path.join(repoRoot, ".wirefold-cache", "wirefold");
-  const goErrorsFile = path.join(repoRoot, ".probe", "go-errors.jsonl");
+  const goErrorsFile = path.join(repoRoot, ".probe", "go-errors.log");
   const goChannel = vscode.window.createOutputChannel("topology go-build");
   const goWatcher = vscode.workspace.createFileSystemWatcher(
     new vscode.RelativePattern(repoRoot, "**/*.go"),
@@ -33,7 +34,7 @@ export function armGoWatcher(
           fs.mkdirSync(path.dirname(goErrorsFile), { recursive: true });
           fs.appendFileSync(
             goErrorsFile,
-            JSON.stringify({ ts_ms: Date.now(), src: "go", kind: "error", message: res.error }) + "\n",
+            logfmt({ ts_ms: Date.now(), src: "go", kind: "error", message: res.error }) + "\n",
             "utf8",
           );
         } catch { /* eslint-disable-line no-empty */ }

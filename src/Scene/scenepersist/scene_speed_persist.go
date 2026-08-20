@@ -8,7 +8,7 @@ import (
 
 	"github.com/dtauraso/wirefold/src/Scene/scenepaths"
 	"github.com/dtauraso/wirefold/src/Scene/viewstate"
-	"github.com/dtauraso/wirefold/src/jsonpersist"
+	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
 const DefaultPlaybackSpeed = 1.0
@@ -33,12 +33,12 @@ func EffectiveClockSpeed(userSpeed, divisor float64) float64 {
 }
 
 func WriteSceneSpeed(speedPath string, speed float64) error {
-	return jsonpersist.WriteJSONAtomic(speedPath, speed)
+	return valuefile.WriteAtomic(speedPath, speed)
 }
 
 func LoadSceneSpeed(speedPath string) (float64, bool) {
 	var speed float64
-	if !jsonpersist.ReadJSONIfExists(speedPath, &speed) {
+	if !valuefile.ReadIfExists(speedPath, &speed) {
 		return DefaultPlaybackSpeed, false
 	}
 	return speed, true

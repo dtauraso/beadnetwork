@@ -8,9 +8,9 @@ import (
 )
 
 type DragRule struct {
-	R        *float64 `json:"r,omitempty"`
-	Phi      *float64 `json:"phi,omitempty"`
-	MaxTheta *float64 `json:"maxTheta,omitempty"`
+	R        *float64
+	Phi      *float64
+	MaxTheta *float64
 }
 
 func (r *DragRule) TrimDelta(have, want polar.Polar) polar.Polar {

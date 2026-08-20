@@ -44,6 +44,9 @@ export function serveDocsOpen(context: vscode.ExtensionContext): void {
   const portFile = path.join(docsDir, "port.js");
 
   const token = crypto.randomBytes(16).toString("hex");
+  if (!/^[0-9a-f]{32}$/.test(token)) {
+    throw new Error(`docs-open: token is not 32 hex characters, so it cannot be written into port.js unescaped: ${token}`);
+  }
   const log = vscode.window.createOutputChannel("topology docs");
   context.subscriptions.push(log);
 
@@ -100,7 +103,7 @@ export function serveDocsOpen(context: vscode.ExtensionContext): void {
       portFile,
       "// Written by the topology extension while it runs — gitignored.\n" +
       "// Where the docs pages ask for a file to be opened as an editor tab.\n" +
-      `window.WIREFOLD_DOCS_OPEN = ${JSON.stringify({ port: addr.port, token })};\n`,
+      `window.WIREFOLD_DOCS_OPEN = { port: ${addr.port}, token: "${token}" };\n`,
     );
     log.appendLine(`listening on localhost:${addr.port}, wrote ${portFile}`);
   });

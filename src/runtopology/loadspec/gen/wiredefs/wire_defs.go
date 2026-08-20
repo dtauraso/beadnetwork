@@ -9,7 +9,7 @@ import (
 )
 
 type wireProp struct {
-	jsonName string
+	propName string
 	tsType   string
 	required bool
 }
@@ -77,17 +77,11 @@ func ParseWirePropsFromFile(filePath string) ([]wireProp, error) {
 						"specEdge.%s: wire tag %q has no tsType:<T> segment", fieldName, wireVal)
 				}
 
-				jsonName := ""
-				_, after, found := strings.Cut(rawTag, `json:"`)
-				if found {
-					jsonName, _, _ = strings.Cut(after, `"`)
-
-					jsonName, _, _ = strings.Cut(jsonName, ",")
+				propName := ""
+				if len(field.Names) > 0 {
+					propName = strings.ToLower(field.Names[0].Name[:1]) + field.Names[0].Name[1:]
 				}
-				if jsonName == "" && len(field.Names) > 0 {
-					jsonName = strings.ToLower(field.Names[0].Name[:1]) + field.Names[0].Name[1:]
-				}
-				props = append(props, wireProp{jsonName: jsonName, tsType: tsType, required: required})
+				props = append(props, wireProp{propName: propName, tsType: tsType, required: required})
 			}
 		}
 	}

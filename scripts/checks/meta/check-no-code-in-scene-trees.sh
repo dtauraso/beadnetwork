@@ -45,7 +45,7 @@ if offenders or bad_ids:
     print()
     print("  loadTree parses every entry under <scene>/nodes/ as a node id and refuses the")
     print("  whole scene when one does not, so a single script dropped in here takes the")
-    print("  editor down to a blank window with the reason only in .probe/go-errors.jsonl.")
+    print("  editor down to a blank window with the reason only in .probe/go-errors.log.")
     print("  A guard belongs next to the CODE that depends on the data, not inside the data.")
     sys.exit(1)
 

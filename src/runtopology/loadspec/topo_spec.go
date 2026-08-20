@@ -12,25 +12,25 @@ import (
 )
 
 type specNode struct {
-	ID   string    `json:"id"`
-	Type string    `json:"type"`
-	Data *NodeData `json:"data,omitempty"`
+	ID   string
+	Type string
+	Data *NodeData
 
-	IndexPhi   *int `json:"indexPhi,omitempty"`
-	IndexTheta *int `json:"indexTheta,omitempty"`
-	IndexR     *int `json:"indexR,omitempty"`
+	IndexPhi   *int
+	IndexTheta *int
+	IndexR     *int
 
-	DragIndexPhi   *int `json:"-"`
-	DragIndexTheta *int `json:"-"`
-	DragIndexR     *int `json:"-"`
+	DragIndexPhi   *int
+	DragIndexTheta *int
+	DragIndexR     *int
 
-	Gate bool `json:"gate,omitempty"`
+	Gate bool
 
-	Drag *PolarRulesPanel.DragRule `json:"drag,omitempty"`
+	Drag *PolarRulesPanel.DragRule
 
-	SelfDrag *PolarRulesPanel.DragRule `json:"selfDrag,omitempty"`
+	SelfDrag *PolarRulesPanel.DragRule
 
-	TopTiltVectorPhiIdx *int32 `json:"topTiltVectorThetaIdx,omitempty"`
+	TopTiltVectorPhiIdx *int32
 }
 
 func (n specNode) label() string {
@@ -69,34 +69,34 @@ func BroadcastBaseName(handle, kind string, kindBroadcastPorts map[string]map[st
 }
 
 type NodeData struct {
-	Label  string         `json:"label,omitempty"`
-	Init   []int          `json:"init,omitempty"`
-	Repeat bool           `json:"repeat,omitempty"`
-	State  map[string]int `json:"state,omitempty"`
+	Label  string
+	Init   []int
+	Repeat bool
+	State  map[string]int
 
-	SendRules map[string]string `json:"sendRules,omitempty"`
+	SendRules map[string]string
 }
 
 type specEdge struct {
-	Label        string `json:"label"          wire:"prop,required,tsType:string"`
-	Kind         string `json:"kind"`
-	Source       string `json:"source"`
-	SourceHandle string `json:"sourceHandle"`
-	Target       string `json:"target"`
-	TargetHandle string `json:"targetHandle"`
+	Label        string `wire:"prop,required,tsType:string"`
+	Kind         string
+	Source       string
+	SourceHandle string
+	Target       string
+	TargetHandle string
 
-	DeltaIndexR     *int `json:"deltaIndexR,omitempty"`
-	DeltaIndexPhi   *int `json:"deltaIndexPhi,omitempty"`
-	DeltaIndexTheta *int `json:"deltaIndexTheta,omitempty"`
+	DeltaIndexR     *int
+	DeltaIndexPhi   *int
+	DeltaIndexTheta *int
 
-	DragDeltaIndexR     *int `json:"-"`
-	DragDeltaIndexPhi   *int `json:"-"`
-	DragDeltaIndexTheta *int `json:"-"`
+	DragDeltaIndexR     *int
+	DragDeltaIndexPhi   *int
+	DragDeltaIndexTheta *int
 }
 
 type TopoSpec struct {
-	Nodes []specNode `json:"nodes"`
-	Edges []specEdge `json:"edges"`
+	Nodes []specNode
+	Edges []specEdge
 
 	RowCount int
 

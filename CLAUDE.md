@@ -107,8 +107,8 @@ one directory out, since a directory is one Go package. `go generate ./...` runs
 - **`src/spatial/`** — `Vec3`, `Segment`, eight operations, 37 lines, importing only `math`. It
   is the MEDIUM, deliberately unremarkable; the substance sits on top in **`src/Polar/`** —
   `polar` (coordinate/composition) and `polarindex` (index × constant) — never inside it.
-  **`src/jsonpersist/`** is the other medium, atomic write plus read-if-exists, with the
-  write-ownership guard beside it.
+  **`src/valuefile/`** is the other medium — one primitive per file, fixed-width LE, atomic
+  rename — with the write-ownership guard beside it.
 - **`src/runtopology/`** — starting the program: claim the stream fds, resolve the scene,
   load the graph, wire every per-owner stream, seed the static columns, then launch one
   goroutine per node and block. `main.go` calls it and nothing else does. It is NOT a

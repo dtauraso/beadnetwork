@@ -3,7 +3,7 @@ package edgefile
 import (
 	"path/filepath"
 
-	"github.com/dtauraso/wirefold/src/jsonpersist"
+	"github.com/dtauraso/wirefold/src/valuefile"
 	"github.com/dtauraso/wirefold/src/Polar/polarindex"
 )
 
@@ -15,7 +15,7 @@ func ReadEdgeDragIndex(root, src, label string) (polarindex.Offset, bool) {
 	dir := edgeDragDir(root, src, label)
 	var off polarindex.Offset
 	read := func(name string, dst *int) bool {
-		return jsonpersist.ReadJSONIfExists(filepath.Join(dir, name), dst)
+		return valuefile.ReadIfExists(filepath.Join(dir, name), dst)
 	}
 	if !read(FileDragIndexPhi, &off.Phi) || !read(FileDragIndexTheta, &off.Theta) ||
 		!read(FileDragIndexR, &off.R) {
@@ -31,7 +31,7 @@ func WriteEdgeDrag(root, src, label string, off polarindex.Offset) error {
 		FileDragIndexTheta: off.Theta,
 		FileDragIndexR:     off.R,
 	} {
-		if err := jsonpersist.WriteJSONAtomicIfChanged(filepath.Join(dir, name), value); err != nil {
+		if err := valuefile.WriteAtomicIfChanged(filepath.Join(dir, name), value); err != nil {
 			return err
 		}
 	}

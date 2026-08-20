@@ -4,11 +4,11 @@ export const PROBE_DIR = ".probe";
 
 export const PROBE_FILES = {
 
-  go: "go.jsonl",
-  goErrors: "go-errors.jsonl",
-  ts: "ts.jsonl",
-  tsErrors: "ts-errors.jsonl",
-  handlerErrorLast: "handler-error-last.json",
+  go: "go.log",
+  goErrors: "go-errors.log",
+  ts: "ts.log",
+  tsErrors: "ts-errors.log",
+  handlerErrorLast: "handler-error-last.log",
 } as const;
 
 export const PROBE_OWNER_DIRS = ["node", "edge", "interior", "bead"] as const;
@@ -16,7 +16,7 @@ export const PROBE_OWNER_DIRS = ["node", "edge", "interior", "bead"] as const;
 export type ProbeOwner = (typeof PROBE_OWNER_DIRS)[number];
 
 export function probeOwnerFile(probeDir: string, owner: ProbeOwner, row: number): string {
-  return `${probeDir}/${owner}/${row}.jsonl`;
+  return `${probeDir}/${owner}/${row}.log`;
 }
 
 export const PROBE_TRACE_FILES = [

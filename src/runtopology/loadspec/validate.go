@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
-	"github.com/dtauraso/wirefold/src/jsonpersist"
+	"github.com/dtauraso/wirefold/src/valuefile"
 	"github.com/dtauraso/wirefold/src/NodeKinds/portwiring"
 )
 
@@ -52,7 +52,7 @@ func ValidateSpec(spec *TopoSpec, kindPorts map[string][]portwiring.PortSpec) er
 	}
 
 	for _, n := range spec.Nodes {
-		if !jsonpersist.SafeTreePathComponent(n.ID) {
+		if !valuefile.SafeTreePathComponent(n.ID) {
 			errs = append(errs, fmt.Sprintf("node id %q is not a safe path component", n.ID))
 		}
 	}

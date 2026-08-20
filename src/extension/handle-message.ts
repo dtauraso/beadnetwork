@@ -1,3 +1,4 @@
+import { logfmt } from "./probe/logfmt";
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
@@ -19,7 +20,7 @@ export type MessageCtx = {
 };
 
 function assertNever(msg: never): never {
-  throw new Error(`handle-message: unhandled webview message kind ${JSON.stringify(msg)}`);
+  throw new Error(`handle-message: unhandled webview message kind ${String((msg as { type?: unknown }).type)}`);
 }
 
 export async function handleMessage(raw: unknown, ctx: MessageCtx): Promise<void> {
@@ -40,11 +41,11 @@ export async function handleMessage(raw: unknown, ctx: MessageCtx): Promise<void
         const probeDir = path.join(repoRoot, PROBE_DIR);
         fs.mkdirSync(probeDir, { recursive: true });
         const probeFile = path.join(probeDir, PROBE_FILES.handlerErrorLast);
-        const entry = JSON.stringify({
-          timestamp: new Date().toISOString(),
+        const entry = logfmt({
+          ts_ms: Date.now(),
           msgType: msg.type,
           message: error.message,
-          stack: error.stack ?? null,
+          stack: error.stack ?? "",
         });
         fs.appendFileSync(probeFile, entry + "\n", "utf8");
       } catch (probeErr) {

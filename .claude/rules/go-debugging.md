@@ -14,9 +14,9 @@ per-owner content-buffer stream (node/edge/interior/VIEW — no per-node stream 
 onto the VIEW stream instead), decoded by the ext host exactly like every other
 buffer-carried trace event (`buffer-log.ts`'s `"breadcrumb"` case) — there is no
 separate JSON-on-stdout debug sink. Read it with `scripts/probe-merge.sh --debug`, which
-filters the buffer-decoded `.probe` logs (`go.jsonl`/`go-node.jsonl`/`go-edge.jsonl`/
-`go-interior.jsonl`) to `kind=="breadcrumb" && debug==true` — separate from genuine
-stderr errors (`go-errors.jsonl`). Do NOT scatter `fmt.Fprintf(os.Stderr, ...)` for
+filters the buffer-decoded `.probe` logs (`go.log`/`go-node.log`/`go-edge.log`/
+`go-interior.log`) to `kind=="breadcrumb" && debug==true` — separate from genuine
+stderr errors (`go-errors.log`). Do NOT scatter `fmt.Fprintf(os.Stderr, ...)` for
 diagnosis; use a breadcrumb. Keep it SPARSE — it is a debug tool for control events, not
 a per-tick firehose (see the log-flood lesson). It is a cheap no-op when no stream is
 wired (headless tests).
@@ -24,11 +24,11 @@ wired (headless tests).
 ## What the trace setting gates
 
 The `wirefold.probe.trace` setting (default **off**) gates the non-breadcrumb bulk of
-these same four files plus `ts.jsonl` — the per-tick firehose (recv/send/edge-bead/
-node-geometry/etc.) that once grew `go-edge.jsonl` past a gigabyte. It does NOT gate
+these same four files plus `ts.log` — the per-tick firehose (recv/send/edge-bead/
+node-geometry/etc.) that once grew `go-edge.log` past a gigabyte. It does NOT gate
 breadcrumb rows: every write site decodes the full frame regardless and appends
 breadcrumb-only lines when the setting is off, so `scripts/probe-merge.sh --debug` and the
-always-on error logs (`go-errors.jsonl`/`ts-errors.jsonl`/`handler-error-last.json`) work
+always-on error logs (`go-errors.log`/`ts-errors.log`/`handler-error-last.log`) work
 out of the box on a fresh install with no setting change. Turn the setting on only when
 you need the full per-tick trace, not just breadcrumbs.
 
