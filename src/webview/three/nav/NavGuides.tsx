@@ -2,7 +2,7 @@ import React, { useMemo, useState, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { overlayFlag, overlayFlagSignature } from "../controls/flags/overlay-flags";
-import { ownerCounts } from "../../../Buffer/column-owners";
+import { ownerCounts } from "../../../schema/buffer-layout/column-owners";
 import { getViewBlocks } from "../scene/view-blocks";
 import {
   type NavNode, decodeNavNodes, sceneSphereFromColumns,

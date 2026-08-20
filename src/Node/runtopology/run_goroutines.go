@@ -2,9 +2,10 @@ package runtopology
 
 import (
 	"context"
-	"github.com/dtauraso/wirefold/src/SliderPanel"
 	"os"
 	"sync"
+
+	"github.com/dtauraso/wirefold/src/SliderPanel"
 
 	"github.com/dtauraso/wirefold/src/Node/nodeapi"
 

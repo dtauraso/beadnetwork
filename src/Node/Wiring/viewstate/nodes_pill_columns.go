@@ -3,7 +3,7 @@ package viewstate
 import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodesdropdown"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/panelstack"
-	B "github.com/dtauraso/wirefold/src/Buffer"
+	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 )
 
 const refusedNotice = "edit refused — see the output channel"

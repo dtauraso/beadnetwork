@@ -118,8 +118,8 @@ mistake to avoid:
   holds them in node-local state until its firing rule is satisfied,
   then fires. There is no held-value slot in this model sense — node-local held
   state replaces it. (This is a different concept from the buffer's `Slot`
-  column — `src/Node/rowevent/row_event.go`, `src/Buffer/streamframe/stream_events.go`,
-  `src/Buffer/bufschema/layout.go` — which is a live 2x2 interior VISUAL grid position,
+  column — `src/Node/rowevent/row_event.go`, `src/Trace/events_section.go`,
+  `src/schema/buffer-layout/layout_version.go` — which is a live 2x2 interior VISUAL grid position,
   slot = gridRow*2 + gridCol, for where a held bead is drawn inside a node.)
 - **Input port.** A ROLE, not a place: declared by the
   node kind as a `Wiring.PortSpec` and bound to a channel at LOAD time

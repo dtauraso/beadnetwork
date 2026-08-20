@@ -3,24 +3,25 @@ package runtopology
 import (
 	"context"
 	"fmt"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/scene"
 	"os"
+
+	"github.com/dtauraso/wirefold/src/Node/Wiring/scene"
 
 	"github.com/dtauraso/wirefold/src/Node/clock"
 
 	"github.com/dtauraso/wirefold/src/Node/bead"
 
-	Bld "github.com/dtauraso/wirefold/src/Node/Wiring/build"
-	SF "github.com/dtauraso/wirefold/src/Buffer/streamframe"
 	NodeShape "github.com/dtauraso/wirefold/src/Node/Shape"
+	Bld "github.com/dtauraso/wirefold/src/Node/Wiring/build"
+	SW "github.com/dtauraso/wirefold/src/Node/Wiring/streamwire"
 	"github.com/dtauraso/wirefold/src/Tabs"
 	T "github.com/dtauraso/wirefold/src/Trace"
 )
 
 func RunTopology(ctx context.Context, cancel context.CancelFunc, topologyPath string, clk clock.Clock) {
 
-	streamFDs := SF.ParseStreamFDs(os.Getenv("WIREFOLD_STREAM_FDS"))
-	viewFile, viewStreamWired := streamFDs.Open(SF.StreamKindView, 0)
+	streamFDs := SW.ParseStreamFDs(os.Getenv("WIREFOLD_STREAM_FDS"))
+	viewFile, viewStreamWired := streamFDs.Open(SW.StreamKindView, 0)
 
 	tr := T.New()
 
@@ -34,7 +35,7 @@ func RunTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 	}
 	wireEdgeStreams(streamFDs, md)
 	wireNodeStreams(streamFDs, md)
-	cols := SF.NewColumnStreams(streamFDs, len(md.RT.NodeRowTable), len(md.RT.EdgeRowTable))
+	cols := SW.NewColumnStreams(streamFDs, len(md.RT.NodeRowTable), len(md.RT.EdgeRowTable))
 	md.UI.OwnerCounts.Nodes = int32(len(md.RT.NodeRowTable))
 	md.UI.OwnerCounts.Edges = int32(len(md.RT.EdgeRowTable))
 	md.UI.SceneTabNames = sceneTabNames

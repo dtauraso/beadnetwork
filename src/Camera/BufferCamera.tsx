@@ -2,7 +2,7 @@ import { useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { anglesToWorldOffset } from "../webview/three/nav/viewpoint-bridge";
-import { columnF32 } from "../Buffer/column-values";
+import { columnF32 } from "../schema/buffer-layout/column-values";
 import {
   COL_STREAM_CAMERA_PX, COL_STREAM_CAMERA_PY, COL_STREAM_CAMERA_PZ, COL_STREAM_CAMERA_R,
   COL_STREAM_CAMERA_POS_PHI, COL_STREAM_CAMERA_POS_THETA, COL_STREAM_CAMERA_UP_PHI,

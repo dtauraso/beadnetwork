@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: src/Trace/Trace.go,src/Node/bead/inport/in_port.go,src/Node/**/*.go,src/Buffer/**/*.go | a .Breadcrumb("label") literal must be added to Trace.BreadcrumbLabels
+# PLACEMENT: src/Trace/Trace.go,src/Node/bead/inport/in_port.go,src/Node/**/*.go,src/schema/buffer-layout/**/*.go | a .Breadcrumb("label") literal must be added to Trace.BreadcrumbLabels
 
 set -euo pipefail
 
@@ -38,7 +38,7 @@ if [[ -z "$(printf '%s' "$REGISTERED" | tr -d '[:space:]')" ]]; then
 fi
 
 call_site_hits() {
-  grep -rnoE '\.Breadcrumb\("[^"]*"' --include="*.go" src/Node src/Buffer src/Trace 2>/dev/null \
+  grep -rnoE '\.Breadcrumb\("[^"]*"' --include="*.go" src/Node src/schema/buffer-layout src/Trace 2>/dev/null \
     | grep -v '_test\.go:' || true
 }
 

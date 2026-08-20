@@ -1,7 +1,7 @@
 ---
 paths:
-  - "src/Buffer/**/*.go"
-  - "src/Buffer/buffer-layout.ts"
+  - "src/schema/buffer-layout/**/*.go"
+  - "src/schema/buffer-layout/buffer-layout.ts"
   - "src/webview/three/**/*.tsx"
   - "src/webview/three/**/*.ts"
 ---
@@ -20,8 +20,8 @@ description of the layout, and this generator exists because two descriptions of
 format is exactly how the Go and TS halves drift apart.
 
 **Two things stay central, and only two.** `BufLayoutVersion` and `BufInteriorSlotsPerNode`
-in `src/Buffer/bufschema/layout.go`, and `bufBlockOrder` in
-`src/Buffer/gen/buflayout/buf_layout_parse.go` — that order IS the wire format, so it
+in `src/schema/buffer-layout/layout_version.go`, and `bufBlockOrder` in
+`src/schema/buffer-layout/gen/buflayout/buf_layout_parse.go` — that order IS the wire format, so it
 belongs in one place. Where a block's file sits is not part of the wire format.
 
 To add a column: add the field with its `buf:"…"` tag to that block's `buffer_block.go`, and

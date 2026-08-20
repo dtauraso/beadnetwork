@@ -1,5 +1,5 @@
-import { columnF32, columnI32 } from "../Buffer/column-values";
-import { nodeColumn } from "../Buffer/column-owners";
+import { columnF32, columnI32 } from "../schema/buffer-layout/column-values";
+import { nodeColumn } from "../schema/buffer-layout/column-owners";
 import {
   COL_STREAM_NODE_ROUNDS_TO_PARALLEL, COL_STREAM_NODE_MSGS_TO_PARALLEL,
 } from "../Node/columns-gen";

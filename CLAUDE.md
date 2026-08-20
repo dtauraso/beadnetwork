@@ -4,7 +4,7 @@
 
 Before changing anything in the **Go network** (`src/Node/`, `src/Node/bead/bead_run.go`,
 `src/Node/Wiring/build/loader.go`, `src/Node/Wiring/loadspec/builders.go`) or the **content buffer**
-(`src/Buffer/`, the render tree under `src/webview/three/`),
+(`src/schema/buffer-layout/`, the render tree under `src/webview/three/`),
 read [MODEL.md](MODEL.md). It pins the model. Do not propose multi-step
 plans with options for network/wire work; name the single concrete next
 step and get the model agreed first. "Agreed first" gates the START of the

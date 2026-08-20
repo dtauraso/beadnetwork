@@ -15,7 +15,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/rulespanel"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/selectionstate"
 	"github.com/dtauraso/wirefold/src/Node/spatial"
-	"github.com/dtauraso/wirefold/src/Buffer/colstream"
+	"github.com/dtauraso/wirefold/src/schema/buffer-layout/colstream"
 
 	T "github.com/dtauraso/wirefold/src/Trace"
 )

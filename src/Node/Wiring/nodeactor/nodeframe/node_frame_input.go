@@ -3,7 +3,7 @@ package nodeframe
 import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/framegeom"
 	"github.com/dtauraso/wirefold/src/Node/rowevent"
-	"github.com/dtauraso/wirefold/src/Buffer/streamframe"
+	streamframe "github.com/dtauraso/wirefold/src/Scene/Vectors"
 )
 
 type NodeFrameInput struct {

@@ -1,6 +1,6 @@
 import * as THREE from "three";
-import { columnF32, columnI32, columnU8 } from "../../Buffer/column-values";
-import { nodeColumn, ownerCounts } from "../../Buffer/column-owners";
+import { columnF32, columnI32, columnU8 } from "../../schema/buffer-layout/column-values";
+import { nodeColumn, ownerCounts } from "../../schema/buffer-layout/column-owners";
 import {
   COL_STREAM_NODE_INDEX_R, COL_STREAM_NODE_INDEX_PHI, COL_STREAM_NODE_INDEX_THETA,
   COL_STREAM_NODE_HAS_POS, COL_STREAM_NODE_RADIUS, COL_STREAM_NODE_HOVERED,

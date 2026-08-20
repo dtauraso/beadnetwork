@@ -14,7 +14,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/bead"
 	"github.com/dtauraso/wirefold/src/Node/bead/outport"
 	"github.com/dtauraso/wirefold/src/Node/rowevent"
-	"github.com/dtauraso/wirefold/src/Buffer/colstream"
+	"github.com/dtauraso/wirefold/src/schema/buffer-layout/colstream"
 )
 
 func (m *NodeGeometry) WireMessaging(

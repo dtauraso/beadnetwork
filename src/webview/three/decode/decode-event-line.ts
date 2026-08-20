@@ -9,7 +9,7 @@ import {
   readBreadcrumbTargetPortRow, readBreadcrumbEdgeRow, readBreadcrumbSlot, readBreadcrumbValue,
   readBreadcrumbX, readBreadcrumbY, readBreadcrumbZ,
   readBreadcrumbLabel, readBreadcrumbDebug, readBreadcrumbTextOff, readBreadcrumbTextLen,
-} from "../../../Buffer/buffer-layout";
+} from "../../../schema/buffer-layout/buffer-layout";
 import type { DecodedEvents } from "./buffer-decode-shared";
 
 export type Line = Record<string, unknown>;

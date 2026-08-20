@@ -5,7 +5,7 @@
 Alongside its own tilt vector and the coplanar normal, this node draws a THIRD arrow:
 the direction that last ARRIVED on its vector channel (`ReceivedThetaIdx`/
 streamed as the buffer's `ReceivedVectorLen`/`ReceivedVectorTheta` columns,
-`src/Buffer/bufschema/layout.go`). It:
+`src/schema/buffer-layout/layout_version.go`). It:
 
 - Persists indefinitely once set — it is NOT cleared when the straightening exchange
   settles (i.e. the arrival lands on this node's own top, so nothing steps and nothing is

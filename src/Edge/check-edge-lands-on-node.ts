@@ -1,5 +1,5 @@
-import { columnF32 } from "../Buffer/column-values";
-import { nodeColumn, ownerCounts } from "../Buffer/column-owners";
+import { columnF32 } from "../schema/buffer-layout/column-values";
+import { nodeColumn, ownerCounts } from "../schema/buffer-layout/column-owners";
 import {
   COL_STREAM_NODE_POLE_ANCHOR_X, COL_STREAM_NODE_POLE_ANCHOR_Y,
   COL_STREAM_NODE_POLE_ANCHOR_Z,

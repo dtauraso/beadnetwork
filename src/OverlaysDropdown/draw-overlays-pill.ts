@@ -1,4 +1,4 @@
-import { columnBytes, columnF32, columnU8 } from "../Buffer/column-values";
+import { columnBytes, columnF32, columnU8 } from "../schema/buffer-layout/column-values";
 import { panelFont, roundRect } from "../PanelOverlay/panel-box";
 import { drawPill, drawPopoverBox, drawHeadingText, ROW_PAD_X } from "../PanelOverlay/pill-chrome";
 import { readF32Run, readU32Run, readText, decodeAt } from "../PanelOverlay/panel-columns";

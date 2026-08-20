@@ -2,8 +2,9 @@ package runtopology
 
 import (
 	"context"
-	"github.com/dtauraso/wirefold/src/SliderPanel"
 	"sync"
+
+	"github.com/dtauraso/wirefold/src/SliderPanel"
 
 	W "github.com/dtauraso/wirefold/src/Node/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"

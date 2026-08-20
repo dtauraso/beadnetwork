@@ -2,7 +2,7 @@ package viewstate
 
 import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/tabstrip"
-	B "github.com/dtauraso/wirefold/src/Buffer"
+	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 )
 
 func (ui *UIState) writeTabStripColumns(lay tabstrip.Layout) {

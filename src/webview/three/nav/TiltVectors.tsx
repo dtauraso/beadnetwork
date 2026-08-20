@@ -1,8 +1,8 @@
 import React, { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { columnBytes } from "../../../Buffer/column-values";
-import { nodeColumn, ownerCounts } from "../../../Buffer/column-owners";
+import { columnBytes } from "../../../schema/buffer-layout/column-values";
+import { nodeColumn, ownerCounts } from "../../../schema/buffer-layout/column-owners";
 import {
   COL_STREAM_TILT_ARROW_RECEIVED, COL_STREAM_TILT_ARROW_SHAFT_M0,
   COL_STREAM_TILT_ARROW_SHAFT_M1, COL_STREAM_TILT_ARROW_SHAFT_M2,

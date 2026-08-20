@@ -2,8 +2,8 @@ import * as THREE from "three";
 import { nodeLabel } from "../../../Node/buffer-decode-node";
 import { polarToCart } from "../polar-convert";
 import { sceneSteps, sceneRadius } from "../../../Scene/scene-frame";
-import { columnF32, columnU8 } from "../../../Buffer/column-values";
-import { nodeColumn, ownerCounts } from "../../../Buffer/column-owners";
+import { columnF32, columnU8 } from "../../../schema/buffer-layout/column-values";
+import { nodeColumn, ownerCounts } from "../../../schema/buffer-layout/column-owners";
 import {
   COL_STREAM_NODE_POLE_ANCHOR_X, COL_STREAM_NODE_POLE_ANCHOR_Y,
   COL_STREAM_NODE_POLE_ANCHOR_Z, COL_STREAM_NODE_NAV_TUBE_R, COL_STREAM_NODE_LATCHED_SEL,

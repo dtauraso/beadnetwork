@@ -5,7 +5,7 @@ import type { PickRef } from "../interaction/pick-types";
 import {
   SHADING_PARAM_SCENE_AMBIENT_INTENSITY,
   SHADING_PARAM_SCENE_DIR_INTENSITY,
-} from "../../../Buffer/shading-params";
+} from "../../../schema/buffer-layout/shading-params";
 import { BUFFER_NODE_TAG, BUFFER_EDGE_TAG, BUFFER_RING_TAG } from "./buffer-scene";
 import { resolveNodeDrawSlot } from "../../../Node/Shape/node-depth-order";
 

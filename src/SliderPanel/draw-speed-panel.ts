@@ -1,4 +1,4 @@
-import { columnBytes, columnF32 } from "../Buffer/column-values";
+import { columnBytes, columnF32 } from "../schema/buffer-layout/column-values";
 import { drawPanelBox, panelFont } from "../PanelOverlay/panel-box";
 import {
   COL_STREAM_SPEED_PANEL_BOX_X, COL_STREAM_SPEED_PANEL_BOX_Y, COL_STREAM_SPEED_PANEL_BOX_W,

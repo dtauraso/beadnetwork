@@ -1,10 +1,10 @@
-import { columnU8 } from "../Buffer/column-values";
-import { nodeColumn } from "../Buffer/column-owners";
+import { columnU8 } from "../schema/buffer-layout/column-values";
+import { nodeColumn } from "../schema/buffer-layout/column-owners";
 import {
   COL_STREAM_NODE_KIND_ID,
 } from "./columns-gen";
 import { NODE_DEFS_ARRAY, NODE_KIND_NAMES } from "../schema/node-defs";
-import { UNKNOWN_KIND_ID } from "../Buffer/buffer-layout";
+import { UNKNOWN_KIND_ID } from "../schema/buffer-layout/buffer-layout";
 
 const NODE_DEFAULT_FILL = "#ffffff";
 const NODE_DEFAULT_STROKE = "#888888";

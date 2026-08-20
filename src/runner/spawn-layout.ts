@@ -7,7 +7,7 @@ import {
 } from "./stream-fds";
 import {
   columnStreamCount,
-} from "../Buffer/column-streams-gen";
+} from "../schema/buffer-layout/column-streams-gen";
 
 export interface SpawnLayout {
   edgeCount: number;

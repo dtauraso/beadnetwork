@@ -5,7 +5,7 @@ import (
 	"math"
 
 	"github.com/dtauraso/wirefold/src/Node/Wiring/angledropdown"
-	B "github.com/dtauraso/wirefold/src/Buffer"
+	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 )
 
 type runCols struct {

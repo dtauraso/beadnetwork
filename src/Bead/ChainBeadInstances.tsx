@@ -1,8 +1,8 @@
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { columnBytes } from "../Buffer/column-values";
-import { nodeColumn, ownerCounts } from "../Buffer/column-owners";
+import { columnBytes } from "../schema/buffer-layout/column-values";
+import { nodeColumn, ownerCounts } from "../schema/buffer-layout/column-owners";
 import {
   COL_STREAM_EDGE_BEAD_X, COL_STREAM_EDGE_BEAD_Y, COL_STREAM_EDGE_BEAD_Z,
   COL_STREAM_EDGE_BEAD_VALUE, COL_STREAM_EDGE_BEAD_RING_M0, COL_STREAM_EDGE_BEAD_RING_M1,
@@ -15,7 +15,7 @@ import {
 } from "./columns-gen";
 import { beadStyleForValue } from "./bead-style";
 import { getCanonicalBeadRingSurfaceGeometry } from "./bead-ring-surface-geometry";
-import { SHADING_PARAM_BEAD_RADIUS } from "../Buffer/shading-params";
+import { SHADING_PARAM_BEAD_RADIUS } from "../schema/buffer-layout/shading-params";
 
 const RING_COLS = [
   COL_STREAM_EDGE_BEAD_RING_M0, COL_STREAM_EDGE_BEAD_RING_M1,

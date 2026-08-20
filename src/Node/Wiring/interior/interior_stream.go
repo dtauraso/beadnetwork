@@ -6,8 +6,8 @@ import (
 	"math"
 
 	"github.com/dtauraso/wirefold/src/Node/rowevent"
-	B "github.com/dtauraso/wirefold/src/Buffer"
-	"github.com/dtauraso/wirefold/src/Buffer/colstream"
+	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
+	"github.com/dtauraso/wirefold/src/schema/buffer-layout/colstream"
 )
 
 type InteriorStream struct {

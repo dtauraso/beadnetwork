@@ -1,4 +1,4 @@
-import { columnBytes, columnF32 } from "../Buffer/column-values";
+import { columnBytes, columnF32 } from "../schema/buffer-layout/column-values";
 import { panelFont, roundRect } from "../PanelOverlay/panel-box";
 import { readText, decodeAt } from "../PanelOverlay/panel-columns";
 import { EDIT_BG, EDIT_EDGE, FONT_PX } from "./rules-values";

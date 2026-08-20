@@ -1,4 +1,4 @@
-import { columnBytes, columnF32 } from "../Buffer/column-values";
+import { columnBytes, columnF32 } from "../schema/buffer-layout/column-values";
 import { panelFont, roundRect } from "../PanelOverlay/panel-box";
 import { readF32Run, readU32Run, readText, decodeAt } from "../PanelOverlay/panel-columns";
 import * as T from "../webview/three/controls/chrome-theme";

@@ -1,4 +1,4 @@
-import { columnBytes } from "../Buffer/column-values";
+import { columnBytes } from "../schema/buffer-layout/column-values";
 
 const TEXT = new TextDecoder();
 
