@@ -7,7 +7,7 @@ import (
 
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
 
-	"github.com/dtauraso/wirefold/src/Node/nodeapi"
+	"github.com/dtauraso/wirefold/src/NodeKinds/nodeapi"
 
 	W "github.com/dtauraso/wirefold/src/Node/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"

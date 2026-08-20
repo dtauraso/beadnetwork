@@ -2,7 +2,7 @@ package PairNode
 
 import (
 	"github.com/dtauraso/wirefold/src/Clock"
-	"github.com/dtauraso/wirefold/src/Node/nodeapi"
+	"github.com/dtauraso/wirefold/src/NodeKinds/nodeapi"
 )
 
 func (n *Node) clock() clock.Clock {

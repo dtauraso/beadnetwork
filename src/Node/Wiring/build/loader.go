@@ -11,7 +11,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/portwiring"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/scenepersist"
 	"github.com/dtauraso/wirefold/src/Clock"
-	"github.com/dtauraso/wirefold/src/Node/nodeapi"
+	"github.com/dtauraso/wirefold/src/NodeKinds/nodeapi"
 )
 
 func LoadTopology(ctx context.Context, jsonPath string, clk clock.Clock) ([]nodeapi.Node, inputcodec.SlotRegistry, *dispatch.MoveDispatch, SliderPanel.Sinks, error) {

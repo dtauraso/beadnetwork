@@ -86,7 +86,8 @@ own package is already there. `go generate ./...` runs all of them.
   npm, tsconfig and esbuild all assume it; directory naming for an npm package is medium,
   not substance. The package root is the REPO root — `package.json`, `tsconfig.json` and
   `node_modules/` live there, so there is one npm project and no path mappings.
-- **`src/NodeKinds/`** — the node kinds, plus `gatecommon/`, the firing rule 8 of them share
+- **`src/NodeKinds/`** — the node kinds, plus what only they use: `nodeapi/` (the `Node`
+  interface a kind implements — `Update(ctx)`, one method wide) and `gatecommon/`, the firing rule 8 of them share
   (window opens on the first input, fires on dwell, clears otherwise). The scanner reads a
   directory here as a kind only if it calls `Register(...)`, so `gatecommon` is invisible to
   it — but it IS visible to `parsePortsFromAST`, which walks every struct in a shared package
@@ -99,7 +100,7 @@ own package is already there. `go generate ./...` runs all of them.
   It is the ONLY place a `time.Sleep`/`After`/`NewTicker` may park a goroutine
   (`check-no-wall-clock-wait.sh`, whose exempt list names two files here and nothing else).
 - **`src/Node/`** — what a node USES: the spine the kinds are built from (`Wiring/`,
-  `nodeapi/`, `rowevent/`, `spatial/`), the startup wiring
+  `rowevent/`, `spatial/`), the startup wiring
   (`runtopology/`), and the TS that draws a node. A directory here is NOT a kind — both the
   scanner and `check-dep-rules.sh` decide that by the `Register(...)` call, not by placement.
 - **`src/Bead/`** — ONE bead, and nothing else: its ring surface, its style, its buffer-block
