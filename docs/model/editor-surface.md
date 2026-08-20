@@ -60,7 +60,7 @@ when a bead has arrived. Go owns the clock.
   mesh + ring, keyed off `node.data.fill`/`node.data.stroke` from `NODE_DEFS`; no port
   geometry — a port is a load-time channel-binding ROLE, never drawn),
   transit and interior
-  beads (`src/Node/ChainBeadInstances.tsx`, `src/webview/scene/beads/InteriorBeadInstances.tsx` — there is no
+  beads (`src/Node/wire/ChainBeadInstances.tsx`, `src/webview/scene/beads/InteriorBeadInstances.tsx` — there is no
   per-edge drawn tube any more; the source node's own chain of placeholder beads is the
   edge's visual, `docs/model/entities.md`), the selection ring, its halo and the hover
   ring (placed with everything else drawn at a node's own frame, in

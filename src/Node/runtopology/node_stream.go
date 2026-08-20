@@ -5,16 +5,15 @@ import (
 	"os"
 
 	NodeKind "github.com/dtauraso/wirefold/src/Node"
-	NodeB "github.com/dtauraso/wirefold/src/Node/nodestream"
 
 	"github.com/dtauraso/wirefold/src/Node/rowevent"
 
-	BeadB "github.com/dtauraso/wirefold/src/Node/wire"
 	EdgeB "github.com/dtauraso/wirefold/src/Node/Edge"
 	W "github.com/dtauraso/wirefold/src/Node/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/framegeom"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor/nodeframe"
 	SW "github.com/dtauraso/wirefold/src/Node/Wiring/streamwire"
+	BeadB "github.com/dtauraso/wirefold/src/Node/wire"
 	TiltB "github.com/dtauraso/wirefold/src/Scene/TiltVectors"
 	VecB "github.com/dtauraso/wirefold/src/Scene/Vectors"
 	"github.com/dtauraso/wirefold/src/schema/buffer-layout/colstream"
@@ -61,7 +60,7 @@ func wireNodeStreams(streamFDs SW.StreamFDs, md *W.MoveDispatch) {
 				md.RT.NodeRowFor,
 
 				func(f nodeframe.NodeFrameInput) []byte {
-					frame := NodeB.NodeStreamFrame{
+					frame := NodeKind.NodeStreamFrame{
 						Tick:             f.Tick,
 						NodeRow:          f.NodeRow,
 						NodeID:           f.NodeID,
@@ -108,13 +107,13 @@ func wireNodeStreams(streamFDs SW.StreamFDs, md *W.MoveDispatch) {
 						Events:           f.Events,
 					}
 
-					NodeB.WriteNodeColumns(nodeCols(f.NodeRow), frame)
+					NodeKind.WriteNodeColumns(nodeCols(f.NodeRow), frame)
 					TiltB.WriteTiltArrowColumns(nodeCols(f.NodeRow), frame.TiltArrows)
 					VecB.WriteChannelVectorColumns(nodeCols(f.NodeRow), frame.ChannelVectors)
-					return NodeB.BuildNodeStreamFrame(frame)
+					return NodeKind.BuildNodeStreamFrame(frame)
 				},
 				func(tick uint32, events []rowevent.RowEvent) []byte {
-					return NodeB.BuildInteriorStreamFrame(tick, events)
+					return NodeKind.BuildInteriorStreamFrame(tick, events)
 				},
 				nodeCols,
 				NodeKind.NodeKindID)

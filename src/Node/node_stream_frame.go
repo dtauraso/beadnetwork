@@ -1,4 +1,4 @@
-package nodestream
+package Node
 
 import (
 	"encoding/binary"
