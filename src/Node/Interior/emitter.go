@@ -1,6 +1,6 @@
 package interior
 
-import B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
+import B "github.com/dtauraso/wirefold/src/Buffer"
 
 const SlotsPerNode = 4
 

@@ -1,6 +1,6 @@
-import { columnBytes, columnF32, columnI32, columnU8 } from "../../../schema/buffer-layout/column-values";
+import { columnBytes, columnF32, columnI32, columnU8 } from "../../../Buffer/column-values";
 import { canvasFont, roundRect } from "../../../webview/canvas-box";
-import { readF32Run, readI32Run, readU32Run, readText, decodeAt } from "../../../schema/buffer-layout/column-reads";
+import { readF32Run, readI32Run, readU32Run, readText, decodeAt } from "../../../Buffer/column-reads";
 import {
   ROW_NODE_HEAD, ROW_HOLDER_HEAD, ROW_LINE,
   CHECK_NONE, VAL_NONE,

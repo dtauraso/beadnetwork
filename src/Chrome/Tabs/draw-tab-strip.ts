@@ -1,6 +1,6 @@
-import { columnBytes, columnF32 } from "../../schema/buffer-layout/column-values";
+import { columnBytes, columnF32 } from "../../Buffer/column-values";
 import { canvasFont, roundRect } from "../../webview/canvas-box";
-import { readF32Run, readU32Run, readText, decodeAt } from "../../schema/buffer-layout/column-reads";
+import { readF32Run, readU32Run, readText, decodeAt } from "../../Buffer/column-reads";
 import * as T from "../../webview/canvas-theme";
 import {
   COL_STREAM_TAB_STRIP_STRIP_X, COL_STREAM_TAB_STRIP_STRIP_Y, COL_STREAM_TAB_STRIP_STRIP_W,

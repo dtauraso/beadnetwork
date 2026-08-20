@@ -9,7 +9,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/nodeactor/nodeframe"
 	"github.com/dtauraso/wirefold/src/Node/nodedrag"
 	"github.com/dtauraso/wirefold/src/Node/nodegeom"
-	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
+	B "github.com/dtauraso/wirefold/src/Buffer"
 )
 
 func boolU8(b bool) uint8 {

@@ -3,7 +3,7 @@ package beadanimation
 import (
 	"fmt"
 
-	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
+	B "github.com/dtauraso/wirefold/src/Buffer"
 )
 
 type beadReadout struct {

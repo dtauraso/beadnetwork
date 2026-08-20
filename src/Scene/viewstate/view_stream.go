@@ -4,7 +4,7 @@ import (
 	"encoding/binary"
 	"io"
 
-	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
+	B "github.com/dtauraso/wirefold/src/Buffer"
 )
 
 type ViewOverlayFlags struct {

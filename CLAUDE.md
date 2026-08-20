@@ -4,7 +4,7 @@
 
 Before changing anything in the **Go network** (`src/Node/`, `src/NodeKinds/`, `src/Node/BeadAnimation/bead_line.go`,
 `src/runtopology/load_topology.go`, `src/runtopology/loadspec/builders.go`) or the **content buffer**
-(`src/schema/buffer-layout/`, the render tree under `src/webview/`),
+(`src/Buffer/`, the render tree under `src/webview/`),
 read [MODEL.md](MODEL.md). It pins the model. Do not propose multi-step
 plans with options for network/bead work; name the single concrete next
 step and get the model agreed first. "Agreed first" gates the START of the
@@ -33,12 +33,12 @@ delivery), node goroutine, node input, and clock
 ## Primitive landing rule (narrowed)
 
 **Node kinds:** adding a kind requires four things in the same commit:
-1. An entry in `NODE_DEFS` (`src/schema/node-defs.ts`, generated).
+1. An entry in `NODE_DEFS` (`src/NodeKinds/node-defs.ts`, generated).
 2. No separate `registry.ts` — `node-defs.ts` is the single node-kind registry. The schema
    dir also holds `wire-defs.ts`, `types.ts`, `node-dims.ts`, and `messages.ts` at its top
    level (registries and shared types — `messages.ts` is the TS↔Go message vocabulary, read
    by the webview, the host AND the overlays generator, which is why it is a registry rather
-   than host code), plus two clustered subdirs: `schema/buffer-layout/`
+   than host code), plus two clustered subdirs: `Buffer/`
    (the generated buffer wire format, the curve/shading params that ride in it, and the
    trace kinds/labels/blocks that ride in every frame) and
    `schema/input/` (the TS<->Go input-record codec: byte reader/writer, attrs, layout

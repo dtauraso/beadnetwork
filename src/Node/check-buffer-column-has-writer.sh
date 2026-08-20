@@ -40,7 +40,7 @@ def columns(path, struct):
         sys.exit(1)
     return out
 
-GENERATED_GO = "src/schema/buffer-layout/buffer_layout_gen_singletons.go"
+GENERATED_GO = "src/Buffer/buffer_layout_gen_singletons.go"
 try:
     generated = open(GENERATED_GO, encoding="utf-8").read()
 except OSError:

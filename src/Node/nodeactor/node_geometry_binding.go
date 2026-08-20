@@ -12,8 +12,8 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/nodeactor/streamclaim"
 	"github.com/dtauraso/wirefold/src/Node/nodegeom"
 	"github.com/dtauraso/wirefold/src/Polar/polarindex"
-	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
-	"github.com/dtauraso/wirefold/src/schema/buffer-layout/colstream"
+	B "github.com/dtauraso/wirefold/src/Buffer"
+	"github.com/dtauraso/wirefold/src/Buffer/colstream"
 )
 
 func (m *NodeGeometry) WireMessaging(

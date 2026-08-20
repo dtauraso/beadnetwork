@@ -45,7 +45,7 @@
   state until its firing rule is satisfied, then fires.
 
   Held values live in node-local state. (That is a different concept from the buffer's `Slot`
-  column — `src/schema/buffer-layout/row_event.go`, `events_section.go`, `layout_version.go` —
+  column — `src/Buffer/row_event.go`, `events_section.go`, `layout_version.go` —
   which is a live 2×2 interior VISUAL grid position, `slot = gridRow*2 + gridCol`, for where a
   held bead is drawn inside a node.)
 

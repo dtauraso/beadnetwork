@@ -6,8 +6,8 @@ import (
 
 	"github.com/dtauraso/wirefold/src/Camera"
 	"github.com/dtauraso/wirefold/src/Polar/polar"
-	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
-	"github.com/dtauraso/wirefold/src/schema/buffer-layout/colstream"
+	B "github.com/dtauraso/wirefold/src/Buffer"
+	"github.com/dtauraso/wirefold/src/Buffer/colstream"
 )
 
 func (ui *UIState) SetSingletonColumns(set *colstream.ColumnSet) {

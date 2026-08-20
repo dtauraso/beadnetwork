@@ -4,8 +4,8 @@ import (
 	"encoding/binary"
 	"math"
 
-	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
-	"github.com/dtauraso/wirefold/src/schema/buffer-layout/colstream"
+	B "github.com/dtauraso/wirefold/src/Buffer"
+	"github.com/dtauraso/wirefold/src/Buffer/colstream"
 )
 
 type ChannelVector struct {

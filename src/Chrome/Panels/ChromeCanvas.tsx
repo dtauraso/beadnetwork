@@ -15,7 +15,7 @@ import {
 import { drawLabels, labelEpoch } from "../../Scene/Labels/label-canvas";
 import { postGoRecord } from "../../webview/vscode-api";
 import { postLog } from "../../webview/log/post";
-import { encodeSceneViewport } from "../../schema/input/input-encode-scene-tilt";
+import { encodeSceneViewport } from "../../Input/input-encode-scene-tilt";
 
 const OVERLAY_SURFACE_W = 4096;
 const OVERLAY_SURFACE_H = 4096;

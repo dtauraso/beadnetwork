@@ -12,8 +12,8 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/nodeactor/owners"
 	"github.com/dtauraso/wirefold/src/Node/nodeactor/streamclaim"
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
-	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
-	"github.com/dtauraso/wirefold/src/schema/buffer-layout/colstream"
+	B "github.com/dtauraso/wirefold/src/Buffer"
+	"github.com/dtauraso/wirefold/src/Buffer/colstream"
 )
 
 type StreamWiring struct {

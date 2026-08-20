@@ -1,6 +1,6 @@
-import { columnF32, columnU8 } from "../../schema/buffer-layout/column-values";
+import { columnF32, columnU8 } from "../../Buffer/column-values";
 import { canvasFont, roundRect } from "../../webview/canvas-box";
-import { readText, decodeAt } from "../../schema/buffer-layout/column-reads";
+import { readText, decodeAt } from "../../Buffer/column-reads";
 import * as T from "../../webview/canvas-theme";
 import {
   COL_STREAM_POINTER_TARGET_X, COL_STREAM_POINTER_TARGET_Y, COL_STREAM_POINTER_TARGET_W,

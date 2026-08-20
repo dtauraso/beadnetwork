@@ -1,8 +1,8 @@
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { columnBytes } from "../../schema/buffer-layout/column-values";
-import { nodeColumn, ownerCounts } from "../../schema/buffer-layout/column-owners";
+import { columnBytes } from "../../Buffer/column-values";
+import { nodeColumn, ownerCounts } from "../../Buffer/column-owners";
 import { overlayFlag } from "../../webview/flags/overlay-flags";
 import {
   COL_STREAM_CHANNEL_VECTOR_SHAFT_M0, COL_STREAM_CHANNEL_VECTOR_SHAFT_M1,
@@ -26,7 +26,7 @@ import {
   SHADING_PARAM_CHANNEL_LINE_RADIUS,
   SHADING_PARAM_CHANNEL_HEAD_RADIUS,
   SHADING_PARAM_CHANNEL_HEAD_LENGTH,
-} from "../../schema/buffer-layout/shading-params";
+} from "../../Buffer/shading-params";
 
 const CHANNEL_COLOR = "#7b6bd6";
 

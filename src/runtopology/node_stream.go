@@ -7,7 +7,7 @@ import (
 	NodeKind "github.com/dtauraso/wirefold/src/Node"
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 
-	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
+	B "github.com/dtauraso/wirefold/src/Buffer"
 
 	EdgeB "github.com/dtauraso/wirefold/src/Node/Edge"
 	W "github.com/dtauraso/wirefold/src/Input/dispatch"
@@ -16,7 +16,7 @@ import (
 	SW "github.com/dtauraso/wirefold/src/runtopology/streamwire"
 	TiltB "github.com/dtauraso/wirefold/src/Scene/TiltVectors"
 	VecB "github.com/dtauraso/wirefold/src/Scene/Vectors"
-	"github.com/dtauraso/wirefold/src/schema/buffer-layout/colstream"
+	"github.com/dtauraso/wirefold/src/Buffer/colstream"
 )
 
 func wireNodeStreams(streamFDs SW.StreamFDs, md *W.MoveDispatch) {

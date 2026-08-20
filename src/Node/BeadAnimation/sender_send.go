@@ -3,7 +3,7 @@ package beadanimation
 import (
 	"context"
 
-	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
+	B "github.com/dtauraso/wirefold/src/Buffer"
 )
 
 func (o *Sender) placeDrivenNoWalker(v int, tick int64) SendOutcome {

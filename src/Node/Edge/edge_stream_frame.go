@@ -3,8 +3,8 @@ package edge
 import (
 	"encoding/binary"
 
-	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
-	"github.com/dtauraso/wirefold/src/schema/buffer-layout/colstream"
+	B "github.com/dtauraso/wirefold/src/Buffer"
+	"github.com/dtauraso/wirefold/src/Buffer/colstream"
 )
 
 func WriteEdgeColumns(c *colstream.ColumnSet,

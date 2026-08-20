@@ -15,7 +15,7 @@ CEILING = 20
 ALLOWED = {
     "scripts/kindscan":
         "one parse-a-kind pipeline; 7 unexported symbols cross file boundaries",
-    "src/schema/buffer-layout/gen/buflayout":
+    "src/Buffer/gen/buflayout":
         "one parse-then-emit pipeline; 29 unexported symbols cross file boundaries",
     "src/Node/nodeactor/owners":
         "splitting re-exports the leaf fields the owners package exists to hide",
@@ -29,7 +29,7 @@ ALLOWED = {
         "kindscan joins pkgDir with the literal SPEC.md; tiltring took the exported-call seam",
     ".":
         "go.mod, LICENSE and the main package live at the module root",
-    "src/schema/buffer-layout":
+    "src/Buffer":
         "ParseBufferLayoutDir globs *.go in exactly this dir; a subdir is not parsed at all",
 }
 

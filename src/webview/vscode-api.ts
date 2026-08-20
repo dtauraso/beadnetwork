@@ -1,4 +1,4 @@
-import type { WebviewToHostMsg } from "../schema/messages";
+import type { WebviewToHostMsg } from "../Input/messages";
 
 declare function acquireVsCodeApi(): {
   postMessage(msg: WebviewToHostMsg): void;

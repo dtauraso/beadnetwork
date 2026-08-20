@@ -1,5 +1,5 @@
-import { BUF_LAYOUT_FINGERPRINT_HASH } from "../../schema/buffer-layout/buffer-layout";
-import { BUF_VIEW_FRAME_HEADER_SIZE } from "../../schema/buffer-layout/frame-tags";
+import { BUF_LAYOUT_FINGERPRINT_HASH } from "../../Buffer/buffer-layout";
+import { BUF_VIEW_FRAME_HEADER_SIZE } from "../../Buffer/frame-tags";
 import { STR_DECODER, decodeTrailingEvents, type DecodedEvents } from "./buffer-decode-shared";
 
 export const SCENE_TABS_HEADER_SIZE = 4;

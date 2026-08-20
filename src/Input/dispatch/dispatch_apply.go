@@ -15,7 +15,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/rulenode"
 	"github.com/dtauraso/wirefold/src/Scene/scenepersist"
 	"github.com/dtauraso/wirefold/src/Scene/sceneswitch"
-	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
+	B "github.com/dtauraso/wirefold/src/Buffer"
 )
 
 func applyUpdateClock(ctx context.Context, msg inputcodec.StdinMsg, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
