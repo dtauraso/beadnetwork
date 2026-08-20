@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"os"
 
-	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
+	B "github.com/dtauraso/wirefold/src/Buffer"
 
 	EdgeB "github.com/dtauraso/wirefold/src/Node/Edge"
 	W "github.com/dtauraso/wirefold/src/Input/dispatch"
 	SW "github.com/dtauraso/wirefold/src/runtopology/streamwire"
-	"github.com/dtauraso/wirefold/src/schema/buffer-layout/colstream"
+	"github.com/dtauraso/wirefold/src/Buffer/colstream"
 )
 
 func wireEdgeStreams(streamFDs SW.StreamFDs, md *W.MoveDispatch) {

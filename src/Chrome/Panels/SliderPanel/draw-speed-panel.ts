@@ -1,4 +1,4 @@
-import { columnBytes, columnF32 } from "../../../schema/buffer-layout/column-values";
+import { columnBytes, columnF32 } from "../../../Buffer/column-values";
 import { drawBox, canvasFont } from "../../../webview/canvas-box";
 import {
   COL_STREAM_SPEED_PANEL_BOX_X, COL_STREAM_SPEED_PANEL_BOX_Y, COL_STREAM_SPEED_PANEL_BOX_W,
@@ -10,7 +10,7 @@ import {
   COL_STREAM_SPEED_PANEL_TRACK_Y, COL_STREAM_SPEED_PANEL_TRACK_W,
   COL_STREAM_SPEED_PANEL_TRACK_H,
 } from "./columns-gen";
-import { readF32Run, readU32Run, readText, decodeAt } from "../../../schema/buffer-layout/column-reads";
+import { readF32Run, readU32Run, readText, decodeAt } from "../../../Buffer/column-reads";
 
 const TICK_FONT_PX = 11;
 const FRAC_SCALE = 0.62;

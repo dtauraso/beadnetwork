@@ -1,7 +1,7 @@
 package beadanimation
 
 import (
-	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
+	B "github.com/dtauraso/wirefold/src/Buffer"
 )
 
 type arriveInfo struct {

@@ -16,7 +16,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/PolarRulesPanel"
 	"github.com/dtauraso/wirefold/src/Scene/selectionstate"
 	"github.com/dtauraso/wirefold/src/spatial"
-	"github.com/dtauraso/wirefold/src/schema/buffer-layout/colstream"
+	"github.com/dtauraso/wirefold/src/Buffer/colstream"
 )
 
 type UIState struct {

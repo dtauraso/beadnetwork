@@ -5,7 +5,7 @@ import (
 
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/src/Node/Interior"
-	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
+	B "github.com/dtauraso/wirefold/src/Buffer"
 )
 
 const BufInteriorSlotsPerNode = 4

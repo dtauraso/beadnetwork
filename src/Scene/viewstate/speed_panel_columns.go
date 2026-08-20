@@ -5,7 +5,7 @@ import (
 	"math"
 
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
-	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
+	B "github.com/dtauraso/wirefold/src/Buffer"
 )
 
 func (ui *UIState) writeSpeedPanelColumns(lay SliderPanel.Layout) {

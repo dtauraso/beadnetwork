@@ -41,7 +41,7 @@ when a bead has arrived. Go owns the clock.
   bytes, and its identity is the buffer ROW INDEX (Go resolves row → node
   for hits). The ext host relays each dedicated-fd frame to the webview
   under a synthetic tag (`BUF_BLOCK_TAG_VIEW`/`_EDGE_STREAM`/`_NODE_STREAM`/
-  `_INTERIOR_STREAM`, `src/schema/buffer-layout/frame_tags.go`) purely for cell routing —
+  `_INTERIOR_STREAM`, `src/Buffer/frame_tags.go`) purely for cell routing —
   never a wire byte. The webview decodes each stream (`buffer-decode-view.ts`/
   `buffer-decode-edge.ts`/`buffer-decode-node.ts`/`buffer-decode-interior.ts`)
   and renders it; row-keyed reflect resources (`snapshot-buffer.ts`,

@@ -14,7 +14,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/nodecrud"
 	"github.com/dtauraso/wirefold/src/Scene/sceneswitch"
 	"github.com/dtauraso/wirefold/src/Overlay"
-	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
+	B "github.com/dtauraso/wirefold/src/Buffer"
 )
 
 func panelTookPointerDown(

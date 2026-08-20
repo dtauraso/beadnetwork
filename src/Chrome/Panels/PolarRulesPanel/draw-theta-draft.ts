@@ -1,6 +1,6 @@
-import { columnBytes, columnF32 } from "../../../schema/buffer-layout/column-values";
+import { columnBytes, columnF32 } from "../../../Buffer/column-values";
 import { canvasFont, roundRect } from "../../../webview/canvas-box";
-import { readText, decodeAt } from "../../../schema/buffer-layout/column-reads";
+import { readText, decodeAt } from "../../../Buffer/column-reads";
 import { EDIT_BG, EDIT_EDGE, FONT_PX } from "./rules-values";
 import {
   COL_STREAM_RULES_PANEL_ROW_EDITING, COL_STREAM_RULES_PANEL_DRAFT_TEXT,

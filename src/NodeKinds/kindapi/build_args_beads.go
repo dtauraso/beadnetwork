@@ -4,7 +4,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Clock"
 	"github.com/dtauraso/wirefold/src/Node/Interior"
 
-	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
+	B "github.com/dtauraso/wirefold/src/Buffer"
 )
 
 func (a BuildArgs) Fire() func() {

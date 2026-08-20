@@ -12,7 +12,7 @@ import (
 	SF "github.com/dtauraso/wirefold/src/Node/Edge"
 	"github.com/dtauraso/wirefold/src/Node/framegeom"
 	"github.com/dtauraso/wirefold/src/Node/nodegeom"
-	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
+	B "github.com/dtauraso/wirefold/src/Buffer"
 	"github.com/dtauraso/wirefold/src/spatial"
 )
 

@@ -3,7 +3,7 @@ package Scene
 import (
 	"encoding/binary"
 
-	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
+	B "github.com/dtauraso/wirefold/src/Buffer"
 )
 
 func BuildViewStreamFrame(tick uint32,

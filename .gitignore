@@ -68,7 +68,7 @@ dist/
 /topogen
 /topogend
 # a generator compiled by hand instead of run through `go generate ./...`; every
-# generator's package is called gen, so `go build ./src/schema/buffer-layout/gen` drops ./gen here
+# generator's package is called gen, so `go build ./src/Buffer/gen` drops ./gen here
 /gen
 /gen-node-defs
 

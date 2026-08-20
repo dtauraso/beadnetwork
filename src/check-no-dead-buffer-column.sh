@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: src/**/buffer_block.go,src/schema/buffer-layout/layout_version.go,src/schema/buffer-layout/buffer-layout*.ts | every buffer column needs a non-test production consumer; delete an unused one rather than allowlisting it
+# PLACEMENT: src/**/buffer_block.go,src/Buffer/layout_version.go,src/Buffer/buffer-layout*.ts | every buffer column needs a non-test production consumer; delete an unused one rather than allowlisting it
 
 set -euo pipefail
 
@@ -9,15 +9,15 @@ REPO_ROOT="$(git rev-parse --show-toplevel)"
 cd "$REPO_ROOT"
 
 LAYOUT_FILES=()
-for LAYOUT in "src/schema/buffer-layout/buffer-layout.ts" \
-              src/schema/buffer-layout/buffer-layout-rows*-gen.ts \
-              "src/schema/buffer-layout/buffer-layout-singletons-gen.ts"; do
+for LAYOUT in "src/Buffer/buffer-layout.ts" \
+              src/Buffer/buffer-layout-rows*-gen.ts \
+              "src/Buffer/buffer-layout-singletons-gen.ts"; do
   [[ -f "$LAYOUT" ]] && LAYOUT_FILES+=("$LAYOUT")
 done
 source "$REPO_ROOT/scripts/lib/ts-roots.sh"
 SRC="src"
 
-if [[ ! -f "src/schema/buffer-layout/buffer-layout.ts" ]] || (( ${#LAYOUT_FILES[@]} < 2 )); then
+if [[ ! -f "src/Buffer/buffer-layout.ts" ]] || (( ${#LAYOUT_FILES[@]} < 2 )); then
   echo "check-no-dead-buffer-column: MISCONFIGURED — found ${#LAYOUT_FILES[@]} layout file(s) under Buffer/ (renamed?); refusing vacuous pass" >&2
   exit 1
 fi

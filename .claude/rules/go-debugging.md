@@ -1,7 +1,7 @@
 ---
 paths:
   - "src/Node/**/*.go"
-  - "src/schema/buffer-layout/**/*.go"
+  - "src/Buffer/**/*.go"
   - "scripts/probe-merge.sh"
 ---
 

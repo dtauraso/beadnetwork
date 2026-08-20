@@ -1,5 +1,5 @@
-import { OVERLAY_FLAG_ORDER, type OverlayFlag } from "../../schema/messages";
-import { columnU8 } from "../../schema/buffer-layout/column-values";
+import { OVERLAY_FLAG_ORDER, type OverlayFlag } from "../../Input/messages";
+import { columnU8 } from "../../Buffer/column-values";
 import {
   COL_STREAM_OVERLAY_SCENE_TORI, COL_STREAM_OVERLAY_SCENE_POLES,
   COL_STREAM_OVERLAY_NODE_POLES, COL_STREAM_OVERLAY_HANDHOLDS,

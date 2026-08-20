@@ -3,7 +3,7 @@ package interior
 import (
 	"fmt"
 
-	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
+	B "github.com/dtauraso/wirefold/src/Buffer"
 )
 
 const MailboxDepth = 64

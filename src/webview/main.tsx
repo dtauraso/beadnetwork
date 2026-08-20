@@ -4,13 +4,13 @@ postLog("lifecycle", { phase: "bundle-eval" });
 
 import { createRoot } from "react-dom/client";
 import { ThreeView } from "./scene/ThreeView";
-import { parseHostToWebview } from "../schema/messages";
+import { parseHostToWebview } from "../Input/messages";
 import { ErrorBoundary } from "./log/ErrorBoundary";
 import { CrashListeners } from "./log/CrashListeners";
 import { setLatestViewFrame, setLatestEdgeStreamFrame, setLatestNodeStreamFrame, setLatestInteriorStreamFrame, setLatestBeadStreamFrame } from "./snapshot-buffer";
-import { BUF_BLOCK_TAG_VIEW, BUF_BLOCK_TAG_EDGE_STREAM, BUF_BLOCK_TAG_NODE_STREAM, BUF_BLOCK_TAG_INTERIOR_STREAM, BUF_BLOCK_TAG_BEAD_STREAM, BUF_BLOCK_TAG_COLUMN } from "../schema/buffer-layout/frame-tags";
-import { setColumnValue, columnDiagnostics, columnI32, columnF32, columnU8 } from "../schema/buffer-layout/column-values";
-import { nodeColumn, edgeColumn, ownerCounts } from "../schema/buffer-layout/column-owners";
+import { BUF_BLOCK_TAG_VIEW, BUF_BLOCK_TAG_EDGE_STREAM, BUF_BLOCK_TAG_NODE_STREAM, BUF_BLOCK_TAG_INTERIOR_STREAM, BUF_BLOCK_TAG_BEAD_STREAM, BUF_BLOCK_TAG_COLUMN } from "../Buffer/frame-tags";
+import { setColumnValue, columnDiagnostics, columnI32, columnF32, columnU8 } from "../Buffer/column-values";
+import { nodeColumn, edgeColumn, ownerCounts } from "../Buffer/column-owners";
 import {
   COL_STREAM_EDGE_SX,
 } from "../Node/Edge/columns-gen";

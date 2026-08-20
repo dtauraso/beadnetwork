@@ -8,7 +8,7 @@ metadata:
 ---
 
 **Superseded 2026-07-14.** This note described a small cluster of hand-authored + generated
-TS schema-validation files under `src/schema/` (a spec parser, its
+TS schema-validation files under `src/` (a spec parser, its
 node/edge/meta/primitive helpers, and a generated node-data validator) — left over from
 before Go owned all spec parsing. A code-smell audit (task/audit-2-fixes) confirmed by
 import trace and bundle grep that this whole cluster had ZERO production importers — only

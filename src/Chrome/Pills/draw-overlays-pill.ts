@@ -1,7 +1,7 @@
-import { columnBytes, columnF32, columnU8 } from "../../schema/buffer-layout/column-values";
+import { columnBytes, columnF32, columnU8 } from "../../Buffer/column-values";
 import { canvasFont, roundRect } from "../../webview/canvas-box";
 import { drawPill, drawPopoverBox, drawHeadingText, ROW_PAD_X } from "./pill";
-import { readF32Run, readU32Run, readText, decodeAt } from "../../schema/buffer-layout/column-reads";
+import { readF32Run, readU32Run, readText, decodeAt } from "../../Buffer/column-reads";
 import * as T from "../../webview/canvas-theme";
 import {
   COL_STREAM_OVERLAYS_PILL_PILL_X, COL_STREAM_OVERLAYS_PILL_PILL_Y,

@@ -1,10 +1,10 @@
-import { columnF32, columnI32 } from "../../../schema/buffer-layout/column-values";
-import { nodeColumn } from "../../../schema/buffer-layout/column-owners";
+import { columnF32, columnI32 } from "../../../Buffer/column-values";
+import { nodeColumn } from "../../../Buffer/column-owners";
 import {
   COL_STREAM_NODE_ROUNDS_TO_PARALLEL, COL_STREAM_NODE_MSGS_TO_PARALLEL,
 } from "../../../Node/columns-gen";
 import { drawBox, canvasFont, roundRect } from "../../../webview/canvas-box";
-import { readF32Run, readI32Run, readU32Run, readText, decodeAt } from "../../../schema/buffer-layout/column-reads";
+import { readF32Run, readI32Run, readU32Run, readText, decodeAt } from "../../../Buffer/column-reads";
 import {
   COL_STREAM_TILT_PANEL_BOX_X, COL_STREAM_TILT_PANEL_BOX_Y, COL_STREAM_TILT_PANEL_BOX_W,
   COL_STREAM_TILT_PANEL_BOX_H, COL_STREAM_TILT_PANEL_START_X, COL_STREAM_TILT_PANEL_START_Y,

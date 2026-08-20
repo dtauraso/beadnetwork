@@ -1,7 +1,7 @@
-import { BUF_NODE_STREAM_FRAME_HEADER_SIZE } from "../schema/buffer-layout/frame-tags";
+import { BUF_NODE_STREAM_FRAME_HEADER_SIZE } from "../Buffer/frame-tags";
 import { STR_DECODER, decodeTrailingEvents, type DecodedEvents } from "../webview/decode/buffer-decode-shared";
-import { columnBytes } from "../schema/buffer-layout/column-values";
-import { nodeColumn } from "../schema/buffer-layout/column-owners";
+import { columnBytes } from "../Buffer/column-values";
+import { nodeColumn } from "../Buffer/column-owners";
 import {
   COL_STREAM_NODE_LABEL,
 } from "./columns-gen";

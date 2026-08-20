@@ -5,7 +5,7 @@ import (
 
 	"github.com/dtauraso/wirefold/src/Node/nodeactor/nodeframe"
 	"github.com/dtauraso/wirefold/src/Node/nodeactor/streamclaim"
-	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
+	B "github.com/dtauraso/wirefold/src/Buffer"
 )
 
 type Stream struct {

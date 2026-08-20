@@ -1,6 +1,6 @@
 import {
   RECV_STRIDE, FIRE_STRIDE, SEND_STRIDE, ARRIVE_STRIDE, BREADCRUMB_STRIDE,
-} from "../../schema/buffer-layout/buffer-layout";
+} from "../../Buffer/buffer-layout";
 
 export const STR_DECODER = new TextDecoder();
 

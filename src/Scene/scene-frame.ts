@@ -1,4 +1,4 @@
-import { columnF32, columnI32 } from "../schema/buffer-layout/column-values";
+import { columnF32, columnI32 } from "../Buffer/column-values";
 import {
   COL_STREAM_SCENE_CX, COL_STREAM_SCENE_CY, COL_STREAM_SCENE_CZ, COL_STREAM_SCENE_RADIUS,
   COL_STREAM_SCENE_CONSTANT_R, COL_STREAM_SCENE_MAX_INDEX_PHI,

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: src/Input/dispatch/dispatch_edit.go,src/schema/messages.ts,src/schema/input/input-layout-gen.ts,src/webview/flags/overlay-flags.ts | edit ops/update-kinds/overlay flags must stay listed identically on both sides of the bridge
+# PLACEMENT: src/Input/dispatch/dispatch_edit.go,src/Input/messages.ts,src/Input/input-layout-gen.ts,src/webview/flags/overlay-flags.ts | edit ops/update-kinds/overlay flags must stay listed identically on both sides of the bridge
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
@@ -11,9 +11,9 @@ go_fence_files() {
   grep -rl --include='*.go' -E "^[[:space:]]*//[[:space:]]*$1[[:space:]]*$" "$GO_PKG_DIR" \
     | grep -v '_test\.go$' || true
 }
-MESSAGES_TS="$REPO_ROOT/src/schema/messages.ts"
+MESSAGES_TS="$REPO_ROOT/src/Input/messages.ts"
 
-HANDLE_MSG="$REPO_ROOT/src/schema/input/input-layout-gen.ts"
+HANDLE_MSG="$REPO_ROOT/src/Input/input-layout-gen.ts"
 
 OVERLAY_FLAGS_TS="$REPO_ROOT/src/webview/flags/overlay-flags.ts"
 

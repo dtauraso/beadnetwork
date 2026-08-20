@@ -3,7 +3,7 @@ package beadanimation
 import (
 	"context"
 
-	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
+	B "github.com/dtauraso/wirefold/src/Buffer"
 	"github.com/dtauraso/wirefold/src/spatial"
 )
 

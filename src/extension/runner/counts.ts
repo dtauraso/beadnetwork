@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import * as path from "path";
-import { SCENES } from "../../schema/scenes-gen";
+import { SCENES } from "../../Scene/scenes-gen";
 
 function readCount(topologyPath: string, name: "nodes" | "edges"): number {
   const countPath = path.join(topologyPath, "counts", `${name}.json`);

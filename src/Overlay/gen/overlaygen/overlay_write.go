@@ -27,7 +27,7 @@ func writeOverlayPreamble(w *bufio.Writer, source string) {
 func writeOverlayStateGen(outPath string, flags []overlayFlag) error {
 	var buf bytes.Buffer
 	w := bufio.NewWriter(&buf)
-	writeOverlayPreamble(w, "OVERLAY_FLAG_NAMES in src/schema/messages.ts.")
+	writeOverlayPreamble(w, "OVERLAY_FLAG_NAMES in src/Input/messages.ts.")
 
 	writeOverlayStateStruct(w, flags)
 	writeOverlaySetFlagHelper(w)
@@ -45,7 +45,7 @@ func writeOverlayStateGen(outPath string, flags []overlayFlag) error {
 func writeOverlayTablesGen(outPath string, flags []overlayFlag) error {
 	var buf bytes.Buffer
 	w := bufio.NewWriter(&buf)
-	writeOverlayPreamble(w, "OVERLAY_FLAG_NAMES in src/schema/messages.ts.")
+	writeOverlayPreamble(w, "OVERLAY_FLAG_NAMES in src/Input/messages.ts.")
 
 	writeOverlayDefaultConstructor(w, flags)
 	writeOverlayTogglesMap(w, flags)

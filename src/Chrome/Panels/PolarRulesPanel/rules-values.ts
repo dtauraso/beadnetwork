@@ -1,5 +1,5 @@
-import { columnF32, columnI32, columnU8 } from "../../../schema/buffer-layout/column-values";
-import { nodeColumn } from "../../../schema/buffer-layout/column-owners";
+import { columnF32, columnI32, columnU8 } from "../../../Buffer/column-values";
+import { nodeColumn } from "../../../Buffer/column-owners";
 import { getEdgeStreamAccessor } from "../../../Node/Edge/edge-stream-blocks";
 import {
   COL_STREAM_NODE_DRAG_RLOCKED, COL_STREAM_NODE_DRAG_PHI_LOCKED,

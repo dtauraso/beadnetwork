@@ -2,7 +2,7 @@ import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
 import { BuildAndRunRunner } from "./runCommand";
-import type { HostToWebviewMsg } from "../schema/messages";
+import type { HostToWebviewMsg } from "../Input/messages";
 import { buildWebviewHtml } from "./html";
 import { handleMessage } from "./handle-message";
 import { serveDocsOpen } from "./docs-open";

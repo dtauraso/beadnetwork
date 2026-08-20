@@ -3,7 +3,7 @@ package beadanimation
 import (
 	"encoding/binary"
 
-	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
+	B "github.com/dtauraso/wirefold/src/Buffer"
 )
 
 func BuildBeadStreamFrame(tick uint32, nodeRow int32, events []B.RowEvent) []byte {

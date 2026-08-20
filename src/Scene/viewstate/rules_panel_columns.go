@@ -2,7 +2,7 @@ package viewstate
 
 import (
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/PolarRulesPanel"
-	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
+	B "github.com/dtauraso/wirefold/src/Buffer"
 )
 
 func (ui *UIState) writeRulesPanelColumns(lay PolarRulesPanel.Layout) {

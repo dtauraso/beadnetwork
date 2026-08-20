@@ -3,7 +3,7 @@ package runtopology
 import (
 	"os"
 
-	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
+	B "github.com/dtauraso/wirefold/src/Buffer"
 
 	W "github.com/dtauraso/wirefold/src/Input/dispatch"
 	SceneB "github.com/dtauraso/wirefold/src/Scene"

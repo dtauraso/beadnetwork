@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: src/Node/**/*.go,src/schema/buffer-layout/*.go,src/schema/buffer-layout/*.go | a panic must NAME the invariant it broke, not just the symptom
+# PLACEMENT: src/Node/**/*.go,src/Buffer/*.go,src/Buffer/*.go | a panic must NAME the invariant it broke, not just the symptom
 
 set -euo pipefail
 
@@ -11,7 +11,7 @@ cd "$REPO_ROOT"
 readonly MIN_MSG_LEN=30
 
 ROOTS=()
-for d in src/Node src/NodeKinds src/Ring/Bead src/schema/buffer-layout src/schema/buffer-layout; do
+for d in src/Node src/NodeKinds src/Ring/Bead src/Buffer src/Buffer; do
   [ -d "$d" ] && ROOTS+=("$d")
 done
 
