@@ -118,27 +118,22 @@ own package is already there. `go generate ./...` runs all of them.
   points computed in Go, meshed in TS. `Ring/NodeShape/` and `Ring/Bead/` are the two that
   share it. "Ring" over "torus" because the codebase already votes that way — `RingM0`,
   `ringPick` and `ringBand` against a handful of torus names in the low-level math.
-- **`src/Ring/Bead/`** — ONE bead, and nothing else: its ring surface, its style, its buffer-block
-  row. Anything about several beads — how they are spaced, chained, or framed — is not a
-  bead, it is what a node does with beads, and lives under `src/Node/`.
+- **`src/Ring/Bead/`** — ONE bead: its ring surface, style, buffer-block row. SEVERAL beads —
+  spacing, chaining, framing — is what a node does with beads, and belongs to the next bullet.
 - **`src/Node/BeadAnimation/`** — the whole bead process, which is what a node uses beads
   for: `BeadLine` (the line beads travel, state with no goroutine of its own), the `Sender`
   and `Receiver` on each end, the slot `lattice/`, and the animation goroutine that steps it.
   The split line is `inflightBead` — the files that share it are the bead animation.
-- **`src/Camera/`** — the camera, all of it: the basis/projection/angles math and the
-  `Viewpoint` itself, the eight scalar files it persists under `view/camera/` and the read
-  that seeds it at load, its buffer block and generated columns, and the TSX that draws
-  through it. The math imports only `polar` and `spatial`, so nothing held it in `Wiring/`
-  but placement.
+- **`src/Camera/`** — the camera, all of it: the basis/projection/angles math and `Viewpoint`,
+  the files it persists under `view/camera/`, its buffer block, and the TSX drawing through it.
 - **`src/Chrome/`** — the UI that is NOT the diagram: the pills, panels, dropdowns, tab strip
-  and fit chip, plus the `chrome-theme.ts` they share. "Chrome" is the industry word for the
-  frame around the content, and this repo reached for it twice on its own before the cluster
-  existed. The test is a `draw-*.ts`: chrome is drawn onto `ChromeCanvas`'s canvas, while the
-  diagram is drawn in the scene. Each piece holds ALL of itself: the Go that lays it out and
-  hit-tests it, its `buffer_block.go`, its generated `columns-gen.ts`, and its `draw-*.ts`.
-  A chrome piece does not perform topology edits — creating and deleting nodes is
-  `Wiring/nodecrud`, not the dropdown that offers it. `src/Overlay/` and `src/RingPoint/` are
-  NOT chrome — they are buffer blocks for the diagram.
+  and fit chip, plus the `chrome-theme.ts` they share ("Chrome" is the industry word for the
+  frame around the content, and this repo reached for it twice on its own). The test is a
+  `draw-*.ts`: chrome is drawn onto `ChromeCanvas`'s canvas, while the diagram is drawn in
+  the scene. Each piece holds ALL of itself: its layout/hit-testing Go,
+  `buffer_block.go`, generated `columns-gen.ts`, `draw-*.ts`. A chrome piece does not perform
+  topology edits — node create/delete is `Wiring/nodecrud`, not the dropdown offering it.
+  `src/Overlay/` and `src/RingPoint/` are NOT chrome — they are buffer blocks for the diagram.
 - **`src/extension/`** — the VS Code extension: our code, which RUNS IN the extension host
   (the Node process VS Code spawns) and is not that host — naming it `Host` said we were the
   container rather than the guest. Everything that is neither Go nor the
