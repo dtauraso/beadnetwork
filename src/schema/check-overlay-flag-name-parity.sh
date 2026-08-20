@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: src/schema/messages.ts,src/Chrome/OverlaysDropdown/overlay_tables_gen.go | OVERLAY_FLAG_NAMES (TS) and OverlayToggles keys (Go) must be the exact same name set
+# PLACEMENT: src/schema/messages.ts,src/Overlay/overlay_tables_gen.go | OVERLAY_FLAG_NAMES (TS) and OverlayToggles keys (Go) must be the exact same name set
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 TS="$REPO_ROOT/src/schema/messages.ts"
-GO="$REPO_ROOT/src/Chrome/OverlaysDropdown/overlay_tables_gen.go"
+GO="$REPO_ROOT/src/Overlay/overlay_tables_gen.go"
 
 if [ ! -f "$TS" ] || [ ! -f "$GO" ]; then
   echo "check-overlay-flag-name-parity: MISCONFIGURED — one or both of these are missing:" >&2

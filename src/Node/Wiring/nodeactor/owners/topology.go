@@ -1,7 +1,7 @@
 package owners
 
 import (
-	"github.com/dtauraso/wirefold/src/Chrome/PolarRulesPanel"
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/PolarRulesPanel"
 )
 
 type Topology struct {

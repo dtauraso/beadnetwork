@@ -2,7 +2,8 @@ package viewstate
 
 import (
 	"fmt"
-	"github.com/dtauraso/wirefold/src/Chrome/OverlaysDropdown"
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/Panel"
+	"github.com/dtauraso/wirefold/src/Overlay"
 	"math"
 	"os"
 
@@ -37,9 +38,9 @@ type UIState struct {
 
 	VP gesturefsm.ViewpointState
 
-	OV OverlaysDropdown.OverlayState
+	OV Overlay.OverlayState
 
-	PN OverlaysDropdown.PanelState
+	PN Panel.PanelState
 
 	Gest gesturefsm.GestureState
 

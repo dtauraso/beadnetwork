@@ -1,7 +1,7 @@
 package dispatch
 
 import (
-	"github.com/dtauraso/wirefold/src/Chrome/SliderPanel"
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/moverreg"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodegeom"

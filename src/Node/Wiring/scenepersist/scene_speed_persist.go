@@ -1,7 +1,7 @@
 package scenepersist
 
 import (
-	"github.com/dtauraso/wirefold/src/Chrome/SliderPanel"
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/scene"
 	"math"
 

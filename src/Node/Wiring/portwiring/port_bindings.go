@@ -7,8 +7,8 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/wire/outport"
 	"github.com/dtauraso/wirefold/src/Clock"
 	"github.com/dtauraso/wirefold/src/Node/rowevent"
-	"github.com/dtauraso/wirefold/src/Chrome/SliderPanel"
-	"github.com/dtauraso/wirefold/src/Chrome/TiltPanel"
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/TiltPanel"
 )
 
 type PortDir int

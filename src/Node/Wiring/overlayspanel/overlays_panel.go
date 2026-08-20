@@ -3,8 +3,9 @@ package overlayspanel
 import (
 	"fmt"
 
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/Panel"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/panelstack"
-	"github.com/dtauraso/wirefold/src/Chrome/OverlaysDropdown"
+	"github.com/dtauraso/wirefold/src/Overlay"
 )
 
 type Rect = panelstack.Rect
@@ -58,10 +59,10 @@ type Layout struct {
 	Rows []Row
 }
 
-func countOn(g Group, ov *OverlaysDropdown.OverlayState) (on, all int) {
+func countOn(g Group, ov *Overlay.OverlayState) (on, all int) {
 	flags := allFlags(g)
 	for _, f := range flags {
-		if read, ok := OverlaysDropdown.OverlayFlagRead[f]; ok && read(ov) {
+		if read, ok := Overlay.OverlayFlagRead[f]; ok && read(ov) {
 			on++
 		}
 	}
@@ -70,13 +71,13 @@ func countOn(g Group, ov *OverlaysDropdown.OverlayState) (on, all int) {
 
 func Build(
 	st *panelstack.PillStack,
-	ov *OverlaysDropdown.OverlayState,
-	pn *OverlaysDropdown.PanelState,
+	ov *Overlay.OverlayState,
+	pn *Panel.PanelState,
 	scroll float32,
 ) Layout {
 	pill := st.AddPill()
-	active := OverlaysDropdown.OverlayFlagRead[GuidelinesFlag](ov)
-	open := OverlaysDropdown.PanelOpen["overlays"](pn)
+	active := Overlay.OverlayFlagRead[GuidelinesFlag](ov)
+	open := Panel.PanelOpen["overlays"](pn)
 
 	lay := Layout{Pill: pill, Open: open, Active: active}
 	if !open {
@@ -89,7 +90,7 @@ func Build(
 	var walk func(g Group, depth int)
 	walk = func(g Group, depth int) {
 		on, all := countOn(g, ov)
-		gopen := OverlaysDropdown.PanelOpen[g.Panel](pn)
+		gopen := Panel.PanelOpen[g.Panel](pn)
 		rows = append(rows, Row{
 			Kind: RowHeading, Depth: depth, Rect: Rect{Y: h, H: panelstack.HeadingH()},
 			Heading: g.Heading, Panel: g.Panel, Open: gopen,
@@ -102,7 +103,7 @@ func Build(
 		for _, it := range g.Items {
 			icon := it.Icon
 			isOn := false
-			if read, ok := OverlaysDropdown.OverlayFlagRead[it.Flag]; ok {
+			if read, ok := Overlay.OverlayFlagRead[it.Flag]; ok {
 				isOn = read(ov)
 			}
 			if it.Flag == "labelsGlobal" {

@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/dtauraso/wirefold/src/NodeKinds/PairNode/tiltring"
-	"github.com/dtauraso/wirefold/src/Chrome/TiltPanel"
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/TiltPanel"
 )
 
 var defaultRing = tiltring.NewRing(TiltPanel.FullTurnPhiIdx)

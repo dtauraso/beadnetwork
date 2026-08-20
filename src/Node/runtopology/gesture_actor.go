@@ -4,7 +4,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/dtauraso/wirefold/src/Chrome/SliderPanel"
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
 
 	W "github.com/dtauraso/wirefold/src/Node/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"

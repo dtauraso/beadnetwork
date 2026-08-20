@@ -3,7 +3,7 @@ package rulenode
 import (
 	"context"
 	"fmt"
-	"github.com/dtauraso/wirefold/src/Chrome/PolarRulesPanel"
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/PolarRulesPanel"
 
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor/owners"
 	"github.com/dtauraso/wirefold/src/Node/spatial"

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: src/Node/buffer_block.go,src/Overlay/buffer_block.go,src/Chrome/Panel/buffer_block.go,src/Node/runtopology/node_stream.go,src/Node/runtopology/view_stream.go | a Node/Overlay/Panel column must be named by the runtopology adapter that fills its row, or it silently streams zeros
+# PLACEMENT: src/Node/buffer_block.go,src/Overlay/buffer_block.go,src/Chrome/Panels/Panel/buffer_block.go,src/Node/runtopology/node_stream.go,src/Node/runtopology/view_stream.go | a Node/Overlay/Panel column must be named by the runtopology adapter that fills its row, or it silently streams zeros
 
 set -euo pipefail
 
@@ -14,7 +14,7 @@ import re, sys
 PAIRS = [
     ("src/Node/buffer_block.go",    "bufLayoutNode",    "src/Node/runtopology/node_stream.go"),
     ("src/Overlay/buffer_block.go", "bufLayoutOverlay", "src/Node/runtopology/view_stream.go"),
-    ("src/Chrome/Panel/buffer_block.go",   "bufLayoutPanel",   "src/Node/runtopology/view_stream.go"),
+    ("src/Chrome/Panels/Panel/buffer_block.go",   "bufLayoutPanel",   "src/Node/runtopology/view_stream.go"),
 ]
 
 DERIVED = [

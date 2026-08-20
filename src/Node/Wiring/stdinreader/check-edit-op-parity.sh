@@ -17,7 +17,7 @@ HANDLE_MSG="$REPO_ROOT/src/schema/input/input-layout-gen.ts"
 
 OVERLAY_FLAGS_TS="$REPO_ROOT/src/webview/flags/overlay-flags.ts"
 
-PANEL_STATE_GO="$REPO_ROOT/src/Chrome/OverlaysDropdown/panel_state.go"
+PANEL_STATE_GO="$REPO_ROOT/src/Chrome/Panels/Panel/panel_state.go"
 
 for f in "$MESSAGES_TS" "$HANDLE_MSG" "$OVERLAY_FLAGS_TS" "$PANEL_STATE_GO"; do
   if [[ ! -f "$f" ]]; then

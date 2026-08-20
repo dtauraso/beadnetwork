@@ -1,7 +1,7 @@
 package gesture
 
 import (
-	"github.com/dtauraso/wirefold/src/Chrome/FitButton"
+	"github.com/dtauraso/wirefold/src/Chrome/Pills/FitButton"
 	"math"
 
 	"github.com/dtauraso/wirefold/src/Node/Wiring/geom/camera"

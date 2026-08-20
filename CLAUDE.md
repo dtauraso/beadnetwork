@@ -112,7 +112,7 @@ own package is already there. `go generate ./...` runs all of them.
 - **`src/Chrome/`** — the UI that is NOT the diagram: the pills, panels, dropdowns, tab strip
   and fit chip, plus the `chrome-theme.ts` they share. "Chrome" is the industry word for the
   frame around the content, and this repo reached for it twice on its own before the cluster
-  existed. The test is a `draw-*.ts`: chrome is drawn onto `PanelOverlay`'s canvas, while the
+  existed. The test is a `draw-*.ts`: chrome is drawn onto `ChromeCanvas`'s canvas, while the
   diagram is drawn in the scene. `src/Overlay/` and `src/RingPoint/` are NOT chrome — they
   are buffer blocks for the diagram.
 - **`src/extension/`** — the VS Code extension: our code, which RUNS IN the extension host

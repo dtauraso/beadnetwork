@@ -1,6 +1,6 @@
 package kindapi
 
-import "github.com/dtauraso/wirefold/src/Chrome/AngleDropdown"
+import "github.com/dtauraso/wirefold/src/Chrome/Pills/AngleDropdown"
 
 func (a BuildArgs) LatticePointsSeed() int32 {
 	if a.deps.ClaimLatticeIn == nil {

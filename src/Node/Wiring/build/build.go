@@ -2,9 +2,9 @@ package build
 
 import (
 	"context"
-	"github.com/dtauraso/wirefold/src/Chrome/SliderPanel"
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
 
-	"github.com/dtauraso/wirefold/src/Chrome/TiltPanel"
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/TiltPanel"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"

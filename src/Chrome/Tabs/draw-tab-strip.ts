@@ -1,7 +1,7 @@
 import { columnBytes, columnF32 } from "../../schema/buffer-layout/column-values";
-import { panelFont, roundRect } from "../PanelOverlay/panel-box";
-import { readF32Run, readU32Run, readText, decodeAt } from "../PanelOverlay/panel-columns";
-import * as T from "../chrome-theme";
+import { canvasFont, roundRect } from "../../webview/canvas-box";
+import { readF32Run, readU32Run, readText, decodeAt } from "../../schema/buffer-layout/column-reads";
+import * as T from "../../webview/canvas-theme";
 import {
   COL_STREAM_TAB_STRIP_STRIP_X, COL_STREAM_TAB_STRIP_STRIP_Y, COL_STREAM_TAB_STRIP_STRIP_W,
   COL_STREAM_TAB_STRIP_STRIP_H, COL_STREAM_TAB_STRIP_TAB_X, COL_STREAM_TAB_STRIP_TAB_Y,
@@ -52,7 +52,7 @@ export function drawTabStrip(c: CanvasRenderingContext2D): void {
       c.fill();
     }
     c.fillStyle = on ? T.ACCENT_INK : T.TEXT;
-    c.font = panelFont(T.FONT_SIZE);
+    c.font = canvasFont(T.FONT_SIZE);
     c.textAlign = "center";
     c.textBaseline = "middle";
     c.fillText(name, x[i]! + w[i]! / 2, y[i]! + h[i]! / 2);

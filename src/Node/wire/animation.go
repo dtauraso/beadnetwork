@@ -13,7 +13,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/rowevent"
 	"github.com/dtauraso/wirefold/src/Node/spatial"
 	SF "github.com/dtauraso/wirefold/src/Node/Edge"
-	"github.com/dtauraso/wirefold/src/Chrome/SliderPanel"
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
 )
 
 type Animation struct {

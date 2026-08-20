@@ -3,8 +3,8 @@ package build
 import (
 	"context"
 	"fmt"
-	"github.com/dtauraso/wirefold/src/Chrome/AngleDropdown"
-	"github.com/dtauraso/wirefold/src/Chrome/TiltPanel"
+	"github.com/dtauraso/wirefold/src/Chrome/Pills/AngleDropdown"
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/TiltPanel"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/scene"
 	"strconv"
 

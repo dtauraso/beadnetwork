@@ -3,10 +3,10 @@ package stdinreader
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/src/Chrome/OverlaysDropdown"
-	"github.com/dtauraso/wirefold/src/Chrome/SliderPanel"
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/Panel"
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
 
-	"github.com/dtauraso/wirefold/src/Chrome/NodesDropdown"
+	"github.com/dtauraso/wirefold/src/Chrome/Pills/NodesDropdown"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"
 )
@@ -117,7 +117,7 @@ var clockAttrHandlers = map[string]func(msg inputcodec.StdinMsg, md *dispatch.Mo
 
 var panelAttrHandlers = map[string]func(msg inputcodec.StdinMsg, md *dispatch.MoveDispatch){
 	"toggle": func(msg inputcodec.StdinMsg, md *dispatch.MoveDispatch) {
-		if fn, ok := OverlaysDropdown.PanelToggles[msg.Flag]; ok {
+		if fn, ok := Panel.PanelToggles[msg.Flag]; ok {
 			fn(&md.UI.PN)
 		}
 	},

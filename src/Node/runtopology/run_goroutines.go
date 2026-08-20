@@ -5,7 +5,7 @@ import (
 	"os"
 	"sync"
 
-	"github.com/dtauraso/wirefold/src/Chrome/SliderPanel"
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
 
 	"github.com/dtauraso/wirefold/src/Node/nodeapi"
 

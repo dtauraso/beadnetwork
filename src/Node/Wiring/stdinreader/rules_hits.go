@@ -4,16 +4,16 @@ import (
 	"context"
 	"math"
 
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/Panel"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/rulenode"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/rulespanel"
-	"github.com/dtauraso/wirefold/src/Chrome/OverlaysDropdown"
 )
 
 func applyRulesHit(ctx context.Context, md *dispatch.MoveDispatch, h rulespanel.Hit) {
 	switch h.Kind {
 	case rulespanel.HitToggle:
-		if fn, ok := OverlaysDropdown.PanelToggles["nodeRules"]; ok {
+		if fn, ok := Panel.PanelToggles["nodeRules"]; ok {
 			fn(&md.UI.PN)
 			md.Persist.Panels().Schedule(md.UI.PN)
 		}

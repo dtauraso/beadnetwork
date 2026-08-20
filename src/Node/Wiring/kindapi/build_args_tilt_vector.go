@@ -2,7 +2,7 @@ package kindapi
 
 import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/movemsg"
-	"github.com/dtauraso/wirefold/src/Chrome/TiltPanel"
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/TiltPanel"
 )
 
 func (a BuildArgs) TiltVectorAngleSeed() (theta int32) {

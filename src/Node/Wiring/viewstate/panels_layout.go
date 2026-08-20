@@ -1,6 +1,8 @@
 package viewstate
 
 import (
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/Panel"
+	NodeBuf "github.com/dtauraso/wirefold/src/Node"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/angledropdown"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodesdropdown"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/overlayspanel"
@@ -9,8 +11,6 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/speedpanel"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/tabstrip"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/tiltpanel"
-	NodeBuf "github.com/dtauraso/wirefold/src/Node"
-	"github.com/dtauraso/wirefold/src/Chrome/OverlaysDropdown"
 )
 
 type PanelLayout struct {
@@ -49,7 +49,7 @@ func (ui *UIState) PanelLayout() PanelLayout {
 	speed := speedpanel.Build(st)
 	tilt := tiltpanel.Build(st, ui.TiltRows, ui.TiltLabels)
 	rules := rulespanel.Build(
-		st, OverlaysDropdown.PanelOpen["nodeRules"](&ui.PN),
+		st, Panel.PanelOpen["nodeRules"](&ui.PN),
 		ui.RuleNodes, ui.RuleEdit, ui.RuleSharedRow, ui.RulesScroll,
 	)
 

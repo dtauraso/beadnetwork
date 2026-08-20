@@ -5,9 +5,9 @@ import (
 
 	"github.com/dtauraso/wirefold/src/Node/rowevent"
 
-	"github.com/dtauraso/wirefold/src/Chrome/NodesDropdown"
-	"github.com/dtauraso/wirefold/src/Chrome/OverlaysDropdown"
-	"github.com/dtauraso/wirefold/src/Chrome/SliderPanel"
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/Panel"
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
+	"github.com/dtauraso/wirefold/src/Chrome/Pills/NodesDropdown"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/angledropdown"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"
@@ -18,6 +18,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/sceneswitch"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/speedpanel"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/tiltpanel"
+	"github.com/dtauraso/wirefold/src/Overlay"
 	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 )
 
@@ -100,7 +101,7 @@ func placeNodeAt(md *dispatch.MoveDispatch, ev *inputcodec.RawInputMsg) {
 func applyOverlaysHit(md *dispatch.MoveDispatch, h overlayspanel.Hit) {
 	switch h.Kind {
 	case overlayspanel.HitPillCaret, overlayspanel.HitHeading:
-		if fn, ok := OverlaysDropdown.PanelToggles[h.Panel]; ok {
+		if fn, ok := Panel.PanelToggles[h.Panel]; ok {
 			fn(&md.UI.PN)
 			md.Persist.Panels().Schedule(md.UI.PN)
 		}
@@ -109,7 +110,7 @@ func applyOverlaysHit(md *dispatch.MoveDispatch, h overlayspanel.Hit) {
 		md.Persist.Overlays().Schedule(md.UI.OV)
 	case overlayspanel.HitCount:
 		for _, flag := range h.Flags {
-			read, ok := OverlaysDropdown.OverlayFlagRead[flag]
+			read, ok := Overlay.OverlayFlagRead[flag]
 			if !ok || read(&md.UI.OV) == h.Target {
 				continue
 			}
@@ -121,7 +122,7 @@ func applyOverlaysHit(md *dispatch.MoveDispatch, h overlayspanel.Hit) {
 }
 
 func toggleOverlayFlag(md *dispatch.MoveDispatch, flag string) {
-	fn, ok := OverlaysDropdown.OverlayToggles[flag]
+	fn, ok := Overlay.OverlayToggles[flag]
 	if !ok {
 		return
 	}
@@ -129,11 +130,11 @@ func toggleOverlayFlag(md *dispatch.MoveDispatch, flag string) {
 	if flag == "ruleChannels" {
 		md.Inboxes.BroadcastChannelVectorsOn(md.UI.OV.RuleChannelsVisible)
 	}
-	if scope, ok := OverlaysDropdown.OverlayFlagBreadcrumbScope[flag]; ok {
+	if scope, ok := Overlay.OverlayFlagBreadcrumbScope[flag]; ok {
 		md.UI.EmitBreadcrumb(rowevent.RowEvent{
 			Label: B.BreadcrumbPoleToggleGo, NodeRow: -1, PortRow: -1, TargetRow: -1,
 			TargetPortRow: -1, EdgeRow: -1, Slot: -1,
-			Value: int32(boolU8(OverlaysDropdown.OverlayFlagValue[flag](&md.UI.OV))), Text: scope,
+			Value: int32(boolU8(Overlay.OverlayFlagValue[flag](&md.UI.OV))), Text: scope,
 		})
 	}
 }

@@ -9,8 +9,8 @@ paths:
 # Content buffer schema — adding or changing a column
 
 **A block's columns live in the directory of the thing they describe.** The rules panel's
-columns are `src/Chrome/PolarRulesPanel/buffer_block.go`, the overlays popover's are
-`src/Chrome/OverlaysDropdown/buffer_block.go`, and so on — a column is part of its concern, not part of
+columns are `src/Chrome/Panels/PolarRulesPanel/buffer_block.go`, the overlays popover's are
+`src/Chrome/Pills/overlays_pill_block.go`, and so on — a column is part of its concern, not part of
 a schema directory. What remains in `Buffer/bufschema/` is what has no owner elsewhere: the
 model blocks (Node, Edge, Camera, Scene…) and the trace events.
 

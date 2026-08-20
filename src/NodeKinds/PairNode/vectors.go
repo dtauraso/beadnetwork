@@ -2,7 +2,7 @@ package PairNode
 
 import (
 	"github.com/dtauraso/wirefold/src/NodeKinds/PairNode/tiltring"
-	"github.com/dtauraso/wirefold/src/Chrome/TiltPanel"
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/TiltPanel"
 )
 
 func (n *Node) coplanarNormal() TiltPanel.TiltVectorMsg {

@@ -4,7 +4,7 @@ import (
 	"path/filepath"
 
 	"github.com/dtauraso/wirefold/src/Node/Wiring/jsonpersist"
-	"github.com/dtauraso/wirefold/src/Chrome/PolarRulesPanel"
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/PolarRulesPanel"
 )
 
 const (

@@ -1,6 +1,6 @@
 import type { BufferLabelPos } from "../../webview/scene/buffer-scene-shared";
-import { panelFont, roundRect } from "../../Chrome/PanelOverlay/panel-box";
-import * as T from "../../Chrome/chrome-theme";
+import { canvasFont, roundRect } from "../../webview/canvas-box";
+import * as T from "../../webview/canvas-theme";
 
 const PAD_X = 8;
 const PAD_Y = 3;
@@ -22,7 +22,7 @@ export function labelEpoch(): number {
 export function drawLabels(c: CanvasRenderingContext2D): void {
   if (positions.length === 0) return;
 
-  c.font = panelFont(T.FONT_SIZE);
+  c.font = canvasFont(T.FONT_SIZE);
   c.textAlign = "left";
   c.textBaseline = "middle";
 

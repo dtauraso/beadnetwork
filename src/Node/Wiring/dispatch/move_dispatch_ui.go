@@ -1,13 +1,14 @@
 package dispatch
 
 import (
-	"github.com/dtauraso/wirefold/src/Chrome/AngleDropdown"
-	"github.com/dtauraso/wirefold/src/Chrome/OverlaysDropdown"
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/Panel"
+	"github.com/dtauraso/wirefold/src/Chrome/Pills/AngleDropdown"
+	"github.com/dtauraso/wirefold/src/Overlay"
 )
 
 func initMoveDispatchUIDefaults(md *MoveDispatch) {
-	md.UI.OV = OverlaysDropdown.DefaultOverlayState()
-	md.UI.PN = OverlaysDropdown.DefaultPanelState()
+	md.UI.OV = Overlay.DefaultOverlayState()
+	md.UI.PN = Panel.DefaultPanelState()
 	md.UI.Speed = 1
 	md.UI.ClockDivisor = 1
 	md.UI.LatticePoints = AngleDropdown.DefaultLatticePoints

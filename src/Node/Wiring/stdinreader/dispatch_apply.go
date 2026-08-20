@@ -3,13 +3,13 @@ package stdinreader
 import (
 	"context"
 	"fmt"
-	"github.com/dtauraso/wirefold/src/Chrome/SliderPanel"
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
 	"math"
 	"strconv"
 
 	"github.com/dtauraso/wirefold/src/Node/rowevent"
 
-	"github.com/dtauraso/wirefold/src/Chrome/NodesDropdown"
+	"github.com/dtauraso/wirefold/src/Chrome/Pills/NodesDropdown"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/angledropdown"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"

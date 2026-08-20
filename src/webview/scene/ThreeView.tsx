@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { Canvas } from "@react-three/fiber";
 import * as THREE from "three";
 import { sendRawInput, buildDeleteRaw, buildKeyRaw } from "../interaction/raw-input";
-import { rulesDraftOpen } from "../../Chrome/PolarRulesPanel/draw-rules-panel";
+import { rulesDraftOpen } from "../../Chrome/Panels/PolarRulesPanel/draw-rules-panel";
 import { useInteractionControls } from "../interaction/interaction-controls";
 import type { PickFn } from "../interaction/pick-types";
 import { Scene } from "./scene-content";

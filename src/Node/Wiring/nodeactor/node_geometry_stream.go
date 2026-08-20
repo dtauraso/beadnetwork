@@ -9,7 +9,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodedrag"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/src/Node/rowevent"
-	"github.com/dtauraso/wirefold/src/Chrome/TiltPanel"
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/TiltPanel"
 )
 
 func boolU8(b bool) uint8 {

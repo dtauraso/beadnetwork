@@ -1,20 +1,21 @@
 package viewpersist
 
 import (
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/Panel"
+	"github.com/dtauraso/wirefold/src/Chrome/Pills/AngleDropdown"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/camerapersist"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/scenepaths"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/scenepersist"
-	"github.com/dtauraso/wirefold/src/Chrome/AngleDropdown"
-	"github.com/dtauraso/wirefold/src/Chrome/OverlaysDropdown"
+	"github.com/dtauraso/wirefold/src/Overlay"
 )
 
 type Persisters struct {
 	vp *camerapersist.ViewpointPersister
 
-	overlays *scenepersist.Persister[OverlaysDropdown.OverlayState]
+	overlays *scenepersist.Persister[Overlay.OverlayState]
 
-	panels *scenepersist.Persister[OverlaysDropdown.PanelState]
+	panels *scenepersist.Persister[Panel.PanelState]
 
 	sphere *scenepersist.Persister[polar.SceneSphere]
 
@@ -30,11 +31,11 @@ func (p *Persisters) ArmViewpoint(topologyPath string) *camerapersist.ViewpointP
 }
 
 func (p *Persisters) ArmEdit(topologyPath string) {
-	p.overlays = &scenepersist.Persister[OverlaysDropdown.OverlayState]{
-		Path: scenepaths.OverlaysDirPath(topologyPath), Write: OverlaysDropdown.WriteSceneOverlays, Tag: "scene_overlays_persist",
+	p.overlays = &scenepersist.Persister[Overlay.OverlayState]{
+		Path: scenepaths.OverlaysDirPath(topologyPath), Write: Overlay.WriteSceneOverlays, Tag: "scene_overlays_persist",
 	}
-	p.panels = &scenepersist.Persister[OverlaysDropdown.PanelState]{
-		Path: scenepaths.PanelsDirPath(topologyPath), Write: OverlaysDropdown.WriteScenePanels, Tag: "scene_panels_persist",
+	p.panels = &scenepersist.Persister[Panel.PanelState]{
+		Path: scenepaths.PanelsDirPath(topologyPath), Write: Panel.WriteScenePanels, Tag: "scene_panels_persist",
 	}
 	p.sphere = &scenepersist.Persister[polar.SceneSphere]{
 		Path: scenepaths.SphereDirPath(topologyPath), Write: scenepersist.WriteSceneSphere, Tag: "scene_sphere_persist",
@@ -47,11 +48,11 @@ func (p *Persisters) ArmEdit(topologyPath string) {
 	}
 }
 
-func (p *Persisters) Overlays() *scenepersist.Persister[OverlaysDropdown.OverlayState] {
+func (p *Persisters) Overlays() *scenepersist.Persister[Overlay.OverlayState] {
 	return p.overlays
 }
 
-func (p *Persisters) Panels() *scenepersist.Persister[OverlaysDropdown.PanelState] { return p.panels }
+func (p *Persisters) Panels() *scenepersist.Persister[Panel.PanelState] { return p.panels }
 
 func (p *Persisters) Sphere() *scenepersist.Persister[polar.SceneSphere] { return p.sphere }
 

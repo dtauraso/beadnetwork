@@ -10,7 +10,7 @@ import { getEdgeStreamAccessor } from "../../Node/Edge/edge-stream-blocks";
 import { TiltVectors } from "../../Scene/TiltVectors/TiltVectors";
 import { NodeInstances } from "../../Node/Shape/NodeInstances";
 import { RuleChannelLines } from "../../Scene/Vectors/RuleChannelLines";
-import { PanelOverlay } from "../../Chrome/PanelOverlay/PanelOverlay";
+import { ChromeCanvas } from "../../Chrome/Panels/ChromeCanvas";
 import { InteriorBeadInstances } from "../../Node/Interior/InteriorBeadInstances";
 import { BufferCamera } from "../../Camera/BufferCamera";
 import { BufferLabelProjector } from "../../Scene/Labels/BufferLabelProjector";
@@ -68,7 +68,7 @@ export function BufferScene({ cameraRef }: {
       <TiltVectors capacity={nodeCap * 3} receivedCapacity={nodeCap} />
       <InteriorBeadInstances capacity={nodeCap * INTERIOR_SLOTS_PER_NODE} />
       <RuleChannelLines capacity={2 * nodeCap * (nodeCap - 1)} />
-      <PanelOverlay />
+      <ChromeCanvas />
     </>
   );
 }
