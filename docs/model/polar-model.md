@@ -173,6 +173,7 @@ and none is a source of truth.
   happens, the implementation is wrong (an offset was reconstructed from a moving reference),
   not the locks.
 
-See [docs/model/polar-model-drag.md](polar-model-drag.md) for how a drag mutates the touching
-edge beads (add/remove CRUD, the angle gate, the smallest-displacement commit rule) and how a
-mutual pair offsets its two chains.
+A drag commits a polar INDEX: `CommitNodeMoveLocal`
+(`src/Node/Wiring/nodemove/commit_node_move.go`) takes the committed index, shifts the node's
+own deltas by the difference, applies its centre, and broadcasts the move to its partners.
+Beads are not consulted and do not move the node.
