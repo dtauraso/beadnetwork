@@ -3,10 +3,9 @@ package outport
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/src/Node/wire"
 	"github.com/dtauraso/wirefold/src/Node/rowevent"
 	"github.com/dtauraso/wirefold/src/Node/spatial"
-	T "github.com/dtauraso/wirefold/src/Trace"
+	"github.com/dtauraso/wirefold/src/Node/wire"
 )
 
 type outGeom struct {
@@ -21,9 +20,8 @@ type Out struct {
 	pw  *wire.BeadRun
 	ctx context.Context
 
-	node  string
-	port  string
-	trace *T.Trace
+	node string
+	port string
 
 	sendCur outGeom
 

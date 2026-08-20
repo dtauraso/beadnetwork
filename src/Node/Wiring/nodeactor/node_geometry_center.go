@@ -10,7 +10,5 @@ func (m *NodeGeometry) ApplyCenter(idx polarindex.Index) {
 
 	m.msg.PublishCenter(nodegeom.NodeWorldPos(m.geom))
 
-	if m.tr != nil {
-		m.emitGeometry()
-	}
+	m.emitGeometry()
 }

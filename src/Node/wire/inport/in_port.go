@@ -3,8 +3,8 @@ package inport
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/src/Node/wire"
 	"github.com/dtauraso/wirefold/src/Node/rowevent"
+	"github.com/dtauraso/wirefold/src/Node/wire"
 	T "github.com/dtauraso/wirefold/src/Trace"
 )
 
@@ -14,9 +14,8 @@ type In struct {
 	pw  *wire.BeadRun
 	ctx context.Context
 
-	node  string
-	port  string
-	trace *T.Trace
+	node string
+	port string
 
 	stream func() rowevent.EventSink
 
@@ -61,12 +60,12 @@ func (i *In) flushRecvEvent(value int) {
 	}})
 }
 
-func NewInChan(ch <-chan int, node, port string, tr *T.Trace, stream func() rowevent.EventSink) *In {
-	return &In{ch: ch, node: node, port: port, trace: tr, portRow: -1, stream: stream}
+func NewInChan(ch <-chan int, node, port string, stream func() rowevent.EventSink) *In {
+	return &In{ch: ch, node: node, port: port, portRow: -1, stream: stream}
 }
 
-func NewInPaced(pw *wire.BeadRun, ctx context.Context, node, port string, tr *T.Trace, stream func() rowevent.EventSink, portRow int32) *In {
-	return &In{pw: pw, ctx: ctx, node: node, port: port, trace: tr, stream: stream, portRow: portRow}
+func NewInPaced(pw *wire.BeadRun, ctx context.Context, node, port string, stream func() rowevent.EventSink, portRow int32) *In {
+	return &In{pw: pw, ctx: ctx, node: node, port: port, stream: stream, portRow: portRow}
 }
 
 func (i *In) HasRun() bool {
@@ -77,16 +76,7 @@ func (i *In) HasRun() bool {
 }
 
 func (i *In) Breadcrumb(event, detail string) {
-	if i == nil || i.trace == nil {
-		return
-	}
-	node, port := i.node, i.port
-	if i.pw != nil {
-		node, port = i.pw.Target, i.pw.TargetHandle
-	}
-	i.trace.Breadcrumb(event, node, port, detail)
-
-	if i.stream == nil {
+	if i == nil || i.stream == nil {
 		return
 	}
 	label, ok := breadcrumbLabelFor(event)

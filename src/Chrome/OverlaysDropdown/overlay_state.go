@@ -39,79 +39,77 @@ func (o *OverlayState) setFlag(field *bool) {
 }
 
 // ToggleSceneTori flips SceneToriVisible.
-func (o *OverlayState) ToggleSceneTori(tr *T.Trace) {
+func (o *OverlayState) ToggleSceneTori() {
 	o.setFlag(&o.SceneToriVisible)
 }
 
 // ToggleScenePoles flips ScenePolesVisible.
-func (o *OverlayState) ToggleScenePoles(tr *T.Trace) {
+func (o *OverlayState) ToggleScenePoles() {
 	o.ScenePolesVisible = !o.ScenePolesVisible
-	tr.Breadcrumb("pole-toggle-go", "scene", "", fmt.Sprintf("visible=%v", o.ScenePolesVisible))
 }
 
 // ToggleNodePoles flips NodePolesVisible.
-func (o *OverlayState) ToggleNodePoles(tr *T.Trace) {
+func (o *OverlayState) ToggleNodePoles() {
 	o.NodePolesVisible = !o.NodePolesVisible
-	tr.Breadcrumb("pole-toggle-go", "nodes", "", fmt.Sprintf("visible=%v", o.NodePolesVisible))
 }
 
 // ToggleHandholds flips HandholdsVisible.
-func (o *OverlayState) ToggleHandholds(tr *T.Trace) {
+func (o *OverlayState) ToggleHandholds() {
 	o.setFlag(&o.HandholdsVisible)
 }
 
 // ToggleLabelsGlobal flips LabelsGlobalVisible.
-func (o *OverlayState) ToggleLabelsGlobal(tr *T.Trace) {
+func (o *OverlayState) ToggleLabelsGlobal() {
 	o.setFlag(&o.LabelsGlobalVisible)
 }
 
 // ToggleOverlaysVis flips OverlaysVisible.
-func (o *OverlayState) ToggleOverlaysVis(tr *T.Trace) {
+func (o *OverlayState) ToggleOverlaysVis() {
 	o.setFlag(&o.OverlaysVisible)
 }
 
 // ToggleNodeBody flips NodeBodyVisible.
-func (o *OverlayState) ToggleNodeBody(tr *T.Trace) {
+func (o *OverlayState) ToggleNodeBody() {
 	o.setFlag(&o.NodeBodyVisible)
 }
 
 // ToggleNodeRing flips NodeRingVisible.
-func (o *OverlayState) ToggleNodeRing(tr *T.Trace) {
+func (o *OverlayState) ToggleNodeRing() {
 	o.setFlag(&o.NodeRingVisible)
 }
 
 // ToggleRingPick flips RingPickVisible.
-func (o *OverlayState) ToggleRingPick(tr *T.Trace) {
+func (o *OverlayState) ToggleRingPick() {
 	o.setFlag(&o.RingPickVisible)
 }
 
 // ToggleSelectionRing flips SelectionRingVisible.
-func (o *OverlayState) ToggleSelectionRing(tr *T.Trace) {
+func (o *OverlayState) ToggleSelectionRing() {
 	o.setFlag(&o.SelectionRingVisible)
 }
 
 // ToggleHoverRing flips HoverRingVisible.
-func (o *OverlayState) ToggleHoverRing(tr *T.Trace) {
+func (o *OverlayState) ToggleHoverRing() {
 	o.setFlag(&o.HoverRingVisible)
 }
 
 // ToggleSceneVectors flips SceneVectorsVisible.
-func (o *OverlayState) ToggleSceneVectors(tr *T.Trace) {
+func (o *OverlayState) ToggleSceneVectors() {
 	o.setFlag(&o.SceneVectorsVisible)
 }
 
 // ToggleRuleChannels flips RuleChannelsVisible.
-func (o *OverlayState) ToggleRuleChannels(tr *T.Trace) {
+func (o *OverlayState) ToggleRuleChannels() {
 	o.setFlag(&o.RuleChannelsVisible)
 }
 
 // ToggleNodePoleSphere flips NodePoleSphereVisible.
-func (o *OverlayState) ToggleNodePoleSphere(tr *T.Trace) {
+func (o *OverlayState) ToggleNodePoleSphere() {
 	o.setFlag(&o.NodePoleSphereVisible)
 }
 
 // ToggleAllPoleSpheres flips AllPoleSpheresVisible.
-func (o *OverlayState) ToggleAllPoleSpheres(tr *T.Trace) {
+func (o *OverlayState) ToggleAllPoleSpheres() {
 	o.setFlag(&o.AllPoleSpheresVisible)
 }
 

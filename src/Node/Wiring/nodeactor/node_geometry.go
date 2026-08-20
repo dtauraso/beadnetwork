@@ -1,15 +1,13 @@
 package nodeactor
 
 import (
+	"github.com/dtauraso/wirefold/src/Chrome/TiltPanel"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor/owners"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/polarindex"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/rulenode"
 	"github.com/dtauraso/wirefold/src/Node/clock"
-	"github.com/dtauraso/wirefold/src/Chrome/TiltPanel"
-
-	T "github.com/dtauraso/wirefold/src/Trace"
 )
 
 const inboxDepth = 8
@@ -20,8 +18,6 @@ type NodeGeometry struct {
 
 	persistRoot string
 	selfKind    string
-
-	tr *T.Trace
 
 	msg owners.Messaging
 
@@ -58,14 +54,14 @@ type NodeGeometry struct {
 	rule rulenode.Link
 }
 
-func NewNodeGeometry(id string, geom nodegeom.NodeGeom, tr *T.Trace, clockSrc clock.Clock, constants polarindex.SceneConstants) *NodeGeometry {
+func NewNodeGeometry(id string, geom nodegeom.NodeGeom, clockSrc clock.Clock, constants polarindex.SceneConstants) *NodeGeometry {
 	anim := &NodeAnimation{
 		id:     id,
 		clocks: owners.NewClocks(clockSrc, clock.NewRealClock()),
 	}
 
 	ng := &NodeGeometry{
-		id: id, geom: geom, tr: tr,
+		id: id, geom: geom,
 		msg: owners.NewMessaging(
 			make(chan movemsg.Msg, inboxDepth),
 			make(chan vec3, 1),

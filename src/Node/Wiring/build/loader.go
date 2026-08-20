@@ -12,11 +12,9 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/scenepersist"
 	"github.com/dtauraso/wirefold/src/Node/clock"
 	"github.com/dtauraso/wirefold/src/Node/nodeapi"
-
-	T "github.com/dtauraso/wirefold/src/Trace"
 )
 
-func LoadTopology(ctx context.Context, jsonPath string, tr *T.Trace, clk clock.Clock) ([]nodeapi.Node, inputcodec.SlotRegistry, *dispatch.MoveDispatch, SliderPanel.Sinks, error) {
+func LoadTopology(ctx context.Context, jsonPath string, clk clock.Clock) ([]nodeapi.Node, inputcodec.SlotRegistry, *dispatch.MoveDispatch, SliderPanel.Sinks, error) {
 	kindreg.BuildRegistry()
 	spec, err := loadspec.ParseSpec(jsonPath)
 	if err != nil {
@@ -32,5 +30,5 @@ func LoadTopology(ctx context.Context, jsonPath string, tr *T.Trace, clk clock.C
 	}
 
 	sphere, hasScene := scenepersist.LoadSceneSphere(jsonPath)
-	return buildFromSpec(ctx, spec, tr, clk, sphere, hasScene, jsonPath)
+	return buildFromSpec(ctx, spec, clk, sphere, hasScene, jsonPath)
 }

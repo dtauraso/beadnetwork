@@ -16,8 +16,6 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/selectionstate"
 	"github.com/dtauraso/wirefold/src/Node/spatial"
 	"github.com/dtauraso/wirefold/src/schema/buffer-layout/colstream"
-
-	T "github.com/dtauraso/wirefold/src/Trace"
 )
 
 type UIState struct {
@@ -159,14 +157,14 @@ func (ui *UIState) DragPlaneHit(ev inputcodec.RawInputMsg) (hit spatial.Vec3, ok
 	return hit, true
 }
 
-func (ui *UIState) OrbitViewpoint(from, to camera.Dir, tr *T.Trace) {
-	ui.VP.OrbitViewpoint(from, to, tr)
+func (ui *UIState) OrbitViewpoint(from, to camera.Dir) {
+	ui.VP.OrbitViewpoint(from, to)
 }
-func (ui *UIState) OrbitLockedViewpoint(from, to camera.Dir, tr *T.Trace) {
-	ui.VP.OrbitLockedViewpoint(from, to, tr)
+func (ui *UIState) OrbitLockedViewpoint(from, to camera.Dir) {
+	ui.VP.OrbitLockedViewpoint(from, to)
 }
-func (ui *UIState) ZoomViewpoint(factor float64, tr *T.Trace) {
-	ui.VP.ZoomViewpoint(factor, tr)
+func (ui *UIState) ZoomViewpoint(factor float64) {
+	ui.VP.ZoomViewpoint(factor)
 }
 
 func (ui *UIState) RefuseStructuralEdit(why string) {

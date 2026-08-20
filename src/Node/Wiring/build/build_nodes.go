@@ -11,9 +11,9 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/moverreg"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/portwiring"
+	"github.com/dtauraso/wirefold/src/Node/nodeapi"
 	"github.com/dtauraso/wirefold/src/Node/wire"
 	"github.com/dtauraso/wirefold/src/Node/wire/outport"
-	"github.com/dtauraso/wirefold/src/Node/nodeapi"
 )
 
 func (b *buildCtx) buildNodes() error {
@@ -92,7 +92,7 @@ func (b *buildCtx) buildNodes() error {
 		if n.TopTiltVectorPhiIdx != nil {
 			tiltPhiIdx = *n.TopTiltVectorPhiIdx
 		}
-		nd, err := bind.Build(b.ctx, n.ID, n.Data, pb, b.tr, b.nodeGeoms[n.ID], tiltPhiIdx, deps)
+		nd, err := bind.Build(b.ctx, n.ID, n.Data, pb, b.nodeGeoms[n.ID], tiltPhiIdx, deps)
 		if err != nil {
 			return fmt.Errorf("LoadTopology: build node %q: %w", n.ID, err)
 		}

@@ -24,7 +24,7 @@ func writeOverlayTogglesMap(w *bufio.Writer, flags []overlayFlag) {
 	fmt.Fprintln(w, `// OverlayState method that flips it.`)
 	fmt.Fprintln(w, `//`)
 	fmt.Fprintln(w, `// OVERLAY_TOGGLES_START`)
-	fmt.Fprintln(w, `var OverlayToggles = map[string]func(*OverlayState, *T.Trace){`)
+	fmt.Fprintln(w, `var OverlayToggles = map[string]func(*OverlayState){`)
 	for _, f := range flags {
 		fmt.Fprintf(w, "\t%q: (*OverlayState).Toggle%s,\n", f.flag, f.method)
 	}

@@ -6,8 +6,6 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/rowtables"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/viewstate"
-
-	T "github.com/dtauraso/wirefold/src/Trace"
 )
 
 func updateHover(d Deps, ev inputcodec.RawInputMsg) {
@@ -34,7 +32,7 @@ func seedOrbitPivot(d Deps, pivot vec3) {
 	d.UI.VP.SetViewpoint(pivot, r, pos, vp.Up)
 }
 
-func applyOrbit(d Deps, ev inputcodec.RawInputMsg, tr *T.Trace) {
+func applyOrbit(d Deps, ev inputcodec.RawInputMsg) {
 	g := &d.UI.Gest
 	vp := d.UI.VP.Viewpoint
 	basis := camera.BasisFromViewpoint(vp.Pos, vp.Up)
@@ -42,11 +40,11 @@ func applyOrbit(d Deps, ev inputcodec.RawInputMsg, tr *T.Trace) {
 	curr := camera.ScreenToPolar(ev.X-g.RotCx, ev.Y-g.RotCy, g.RotPxPerRad)
 	prevDir := camera.ToWorldDir(basis, prev)
 	currDir := camera.ToWorldDir(basis, curr)
-	d.UI.OrbitViewpoint(camera.WorldDirToAngles(currDir), camera.WorldDirToAngles(prevDir), tr)
+	d.UI.OrbitViewpoint(camera.WorldDirToAngles(currDir), camera.WorldDirToAngles(prevDir))
 	d.UI.EmitViewFrame(nil)
 }
 
-func applyOrbitLocked(d Deps, ev inputcodec.RawInputMsg, tr *T.Trace) {
+func applyOrbitLocked(d Deps, ev inputcodec.RawInputMsg) {
 	g := &d.UI.Gest
 	vp := d.UI.VP.Viewpoint
 	basis := camera.BasisFromViewpoint(vp.Pos, vp.Up)
@@ -54,7 +52,7 @@ func applyOrbitLocked(d Deps, ev inputcodec.RawInputMsg, tr *T.Trace) {
 	curr := camera.ScreenToPolar(ev.X-g.RotCx, ev.Y-g.RotCy, g.RotPxPerRad)
 	prevDir := camera.ToWorldDir(basis, prev)
 	currDir := camera.ToWorldDir(basis, curr)
-	d.UI.OrbitLockedViewpoint(camera.WorldDirToAngles(currDir), camera.WorldDirToAngles(prevDir), tr)
+	d.UI.OrbitLockedViewpoint(camera.WorldDirToAngles(currDir), camera.WorldDirToAngles(prevDir))
 	d.UI.EmitViewFrame(nil)
 }
 

@@ -6,7 +6,6 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/viewstate"
-	T "github.com/dtauraso/wirefold/src/Trace"
 )
 
 type gestureEdge struct {
@@ -61,27 +60,27 @@ func commitRotateStart(d Deps, g *gesturefsm.GestureState, ev inputcodec.RawInpu
 	seedOrbitPivot(d, g.RotPivot)
 }
 
-var applyAction = map[gesturefsm.GesturePhase]func(d Deps, g *gesturefsm.GestureState, ev inputcodec.RawInputMsg, tr *T.Trace){
-	gesturefsm.GestDragging: func(d Deps, g *gesturefsm.GestureState, ev inputcodec.RawInputMsg, tr *T.Trace) {
+var applyAction = map[gesturefsm.GesturePhase]func(d Deps, g *gesturefsm.GestureState, ev inputcodec.RawInputMsg){
+	gesturefsm.GestDragging: func(d Deps, g *gesturefsm.GestureState, ev inputcodec.RawInputMsg) {
 		nodeGeoms, mv, ctx := d.MR.NodeGeoms(), d.Mover, d.Ctx
 		if applyNodeDragTarget(d.UI, func(id string, target vec3) bool { return mv.RootMove(ctx, nodeGeoms, id, target) }, ev) {
 			g.PrevX, g.PrevY = ev.X, ev.Y
 		}
 	},
-	gesturefsm.GestRotating: func(d Deps, g *gesturefsm.GestureState, ev inputcodec.RawInputMsg, tr *T.Trace) {
+	gesturefsm.GestRotating: func(d Deps, g *gesturefsm.GestureState, ev inputcodec.RawInputMsg) {
 		g.SmoothX += camera.RotSmoothAlpha * (ev.X - g.SmoothX)
 		g.SmoothY += camera.RotSmoothAlpha * (ev.Y - g.SmoothY)
 		smoothEv := ev
 		smoothEv.X, smoothEv.Y = g.SmoothX, g.SmoothY
-		applyOrbit(d, smoothEv, tr)
+		applyOrbit(d, smoothEv)
 		g.PrevX, g.PrevY = g.SmoothX, g.SmoothY
 	},
-	gesturefsm.GestHandhold: func(d Deps, g *gesturefsm.GestureState, ev inputcodec.RawInputMsg, tr *T.Trace) {
+	gesturefsm.GestHandhold: func(d Deps, g *gesturefsm.GestureState, ev inputcodec.RawInputMsg) {
 		g.SmoothX += camera.RotSmoothAlpha * (ev.X - g.SmoothX)
 		g.SmoothY += camera.RotSmoothAlpha * (ev.Y - g.SmoothY)
 		smoothEv := ev
 		smoothEv.X, smoothEv.Y = g.SmoothX, g.SmoothY
-		applyOrbitLocked(d, smoothEv, tr)
+		applyOrbitLocked(d, smoothEv)
 		g.PrevX, g.PrevY = g.SmoothX, g.SmoothY
 	},
 }

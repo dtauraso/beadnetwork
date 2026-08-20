@@ -8,8 +8,6 @@ import (
 )
 
 type beadReadout struct {
-	Trace *T.Trace
-
 	StreamsActive bool
 
 	pending []pendingBeadEvent
@@ -18,8 +16,6 @@ type beadReadout struct {
 
 	droppedBreadcrumbs int
 }
-
-func (pw *BeadRun) SetTrace(tr *T.Trace) { pw.readout.Trace = tr }
 
 func (pw *BeadRun) SetStreamsActive(active bool) { pw.readout.StreamsActive = active }
 

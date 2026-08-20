@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: src/Trace/Trace.go,src/Node/wire/inport/in_port.go,src/Node/**/*.go,src/schema/buffer-layout/**/*.go | a .Breadcrumb("label") literal must be added to Trace.BreadcrumbLabels
+# PLACEMENT: src/Trace/breadcrumb_labels.go,src/Node/wire/inport/in_port.go,src/Node/**/*.go,src/schema/buffer-layout/**/*.go | a .Breadcrumb("label") literal must be added to Trace.BreadcrumbLabels
 
 set -euo pipefail
 

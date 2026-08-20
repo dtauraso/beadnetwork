@@ -11,16 +11,12 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/streamwire"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/viewpersist"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/viewstate"
-
-	T "github.com/dtauraso/wirefold/src/Trace"
 )
 
 type MoveDispatch struct {
 	MR moverreg.MoverRegistry
 
 	GS geomseeds.GeomSeeds
-
-	TR *T.Trace
 
 	Persist viewpersist.Persisters
 

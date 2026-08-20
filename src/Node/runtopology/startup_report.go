@@ -1,17 +1,13 @@
 package runtopology
 
 import (
-	"fmt"
-
 	"github.com/dtauraso/wirefold/src/Node/rowevent"
 
 	W "github.com/dtauraso/wirefold/src/Node/Wiring/dispatch"
 	T "github.com/dtauraso/wirefold/src/Trace"
 )
 
-func emitStartupBreadcrumbs(tr *T.Trace, md *W.MoveDispatch, scenePath string, nodeCount int) {
-
-	tr.Breadcrumb("topology-loaded", scenePath, "", fmt.Sprintf("nodes=%d", nodeCount))
+func emitStartupBreadcrumbs(md *W.MoveDispatch, scenePath string, nodeCount int) {
 
 	md.UI.EmitBreadcrumb(rowevent.RowEvent{
 		Label: T.BreadcrumbTopologyLoaded, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
@@ -19,9 +15,8 @@ func emitStartupBreadcrumbs(tr *T.Trace, md *W.MoveDispatch, scenePath string, n
 	})
 }
 
-func checkRowSeedCount(tr *T.Trace, md *W.MoveDispatch, nodeCount int) {
+func checkRowSeedCount(md *W.MoveDispatch, nodeCount int) {
 	if len(md.GS.NodeSeedsFn()) != nodeCount {
-		tr.Breadcrumb("row-seed-count-mismatch", "", "", fmt.Sprintf("NodeSeeds=%d nodes=%d", len(md.GS.NodeSeedsFn()), nodeCount))
 
 		md.UI.EmitBreadcrumb(rowevent.RowEvent{
 			Label: T.BreadcrumbRowSeedCountMismatch, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,

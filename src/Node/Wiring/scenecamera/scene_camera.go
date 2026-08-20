@@ -7,12 +7,11 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/geom/camera"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/scenepaths"
 	"github.com/dtauraso/wirefold/src/Node/spatial"
-	T "github.com/dtauraso/wirefold/src/Trace"
 )
 
 type vec3 = spatial.Vec3
 
-func SeedInitialViewpoint(topologyPath string, setViewpoint func(pivot vec3, r float64, pos, up camera.Dir), emitViewpoint func(tr *T.Trace), tr *T.Trace) {
+func SeedInitialViewpoint(topologyPath string, setViewpoint func(pivot vec3, r float64, pos, up camera.Dir), emitViewpoint func()) {
 	if setViewpoint == nil || emitViewpoint == nil {
 		return
 	}
@@ -21,7 +20,7 @@ func SeedInitialViewpoint(topologyPath string, setViewpoint func(pivot vec3, r f
 		pivot, r, pos, up = DefaultViewpoint()
 	}
 	setViewpoint(pivot, r, pos, up)
-	emitViewpoint(tr)
+	emitViewpoint()
 }
 
 func LoadSceneViewpoint(topologyPath string) (pivot vec3, r float64, pos, up camera.Dir, ok bool) {

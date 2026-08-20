@@ -97,10 +97,9 @@ func writeOverlayToggleMethods(w *bufio.Writer, flags []overlayFlag) {
 	for _, f := range flags {
 		field := exportField(f.field)
 		fmt.Fprintf(w, "// Toggle%s flips %s.\n", f.method, field)
-		fmt.Fprintf(w, "func (o *OverlayState) Toggle%s(tr *T.Trace) {\n", f.method)
+		fmt.Fprintf(w, "func (o *OverlayState) Toggle%s() {\n", f.method)
 		if f.breadcrumb != "" {
 			fmt.Fprintf(w, "\to.%s = !o.%s\n", field, field)
-			fmt.Fprintf(w, "\ttr.Breadcrumb(\"pole-toggle-go\", %q, \"\", fmt.Sprintf(\"visible=%%v\", o.%s))\n", f.breadcrumb, field)
 		} else {
 			fmt.Fprintf(w, "\to.setFlag(&o.%s)\n", field)
 		}

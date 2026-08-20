@@ -8,10 +8,8 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/loadspec"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/portwiring"
-	"github.com/dtauraso/wirefold/src/Node/wire/outport"
 	"github.com/dtauraso/wirefold/src/Node/nodeapi"
-
-	T "github.com/dtauraso/wirefold/src/Trace"
+	"github.com/dtauraso/wirefold/src/Node/wire/outport"
 )
 
 type BuildArgs struct {
@@ -19,7 +17,6 @@ type BuildArgs struct {
 	name string
 	data *loadspec.NodeData
 	pb   portwiring.PortBindings
-	tr   *T.Trace
 	geom nodegeom.NodeGeom
 
 	tiltPhiIdx int32
@@ -41,10 +38,10 @@ func RegisterBuilder(kind string, ports []portwiring.PortSpec, build func(BuildA
 	}
 	kindreg.Registry[kind] = kindreg.NodeBuilder{
 		Ports: ports,
-		Build: func(ctx context.Context, name string, data *loadspec.NodeData, pb portwiring.PortBindings, tr *T.Trace, geom nodegeom.NodeGeom, tiltPhiIdx int32, deps kindreg.BuildDeps) (nodeapi.Node, error) {
+		Build: func(ctx context.Context, name string, data *loadspec.NodeData, pb portwiring.PortBindings, geom nodegeom.NodeGeom, tiltPhiIdx int32, deps kindreg.BuildDeps) (nodeapi.Node, error) {
 			var sourceOuts []*outport.Out
 			return build(BuildArgs{
-				ctx: ctx, name: name, data: data, pb: pb, tr: tr,
+				ctx: ctx, name: name, data: data, pb: pb,
 				geom:       geom,
 				sourceOuts: &sourceOuts,
 				getEmitter: portwiring.NewInteriorEmitterGetter(name, pb),

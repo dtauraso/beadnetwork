@@ -1,8 +1,8 @@
 package scenepersist
 
 import (
-	"github.com/dtauraso/wirefold/src/Node/Wiring/scene"
 	"github.com/dtauraso/wirefold/src/Chrome/SliderPanel"
+	"github.com/dtauraso/wirefold/src/Node/Wiring/scene"
 	"math"
 
 	"encoding/json"
@@ -10,8 +10,6 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/jsonpersist"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/scenepaths"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/viewstate"
-
-	T "github.com/dtauraso/wirefold/src/Trace"
 )
 
 const DefaultPlaybackSpeed = 1.0
@@ -20,7 +18,7 @@ func SliderSpeed(ui *viewstate.UIState) float64 {
 	return EffectiveClockSpeed(ui.Speed, ui.ClockDivisor)
 }
 
-func InstallSpeed(ui *viewstate.UIState, topologyPath string, speedSinks SliderPanel.Sinks, tr *T.Trace) {
+func InstallSpeed(ui *viewstate.UIState, topologyPath string, speedSinks SliderPanel.Sinks) {
 	speed, _ := LoadSceneSpeed(scenepaths.SpeedFilePath(topologyPath))
 	ui.ClockDivisor = scene.For(topologyPath).ClockDivisor
 	ui.Speed = speed

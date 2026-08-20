@@ -32,7 +32,7 @@ func DefaultOverlayState() OverlayState {
 // OverlayState method that flips it.
 //
 // OVERLAY_TOGGLES_START
-var OverlayToggles = map[string]func(*OverlayState, *T.Trace){
+var OverlayToggles = map[string]func(*OverlayState){
 	"tori":           (*OverlayState).ToggleSceneTori,
 	"scenePoles":     (*OverlayState).ToggleScenePoles,
 	"nodePoles":      (*OverlayState).ToggleNodePoles,

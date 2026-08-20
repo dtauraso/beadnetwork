@@ -9,8 +9,6 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/portwiring"
 	"github.com/dtauraso/wirefold/src/Node/nodeapi"
-
-	T "github.com/dtauraso/wirefold/src/Trace"
 )
 
 type BuildDeps struct {
@@ -25,7 +23,7 @@ type BuildDeps struct {
 
 type NodeBuilder struct {
 	Ports []portwiring.PortSpec
-	Build func(ctx context.Context, name string, data *loadspec.NodeData, pb portwiring.PortBindings, tr *T.Trace, geom nodegeom.NodeGeom, tiltPhiIdx int32, deps BuildDeps) (nodeapi.Node, error)
+	Build func(ctx context.Context, name string, data *loadspec.NodeData, pb portwiring.PortBindings, geom nodegeom.NodeGeom, tiltPhiIdx int32, deps BuildDeps) (nodeapi.Node, error)
 }
 
 var Registry map[string]NodeBuilder

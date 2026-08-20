@@ -9,10 +9,9 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodemove"
-	T "github.com/dtauraso/wirefold/src/Trace"
 )
 
-func gestHome(d Deps, ev inputcodec.RawInputMsg, tr *T.Trace) {
+func gestHome(d Deps, ev inputcodec.RawInputMsg) {
 	centers := nodemove.HeldCenters(d.MR.NodeGeoms(), d.MR.CenterOfNode)
 	radius := make(map[string]float64, len(centers))
 	for id := range centers {
@@ -23,7 +22,7 @@ func gestHome(d Deps, ev inputcodec.RawInputMsg, tr *T.Trace) {
 		return
 	}
 	d.UI.VP.SetViewpoint(pivot, r, pos, up)
-	d.UI.VP.EmitViewpoint(tr)
+	d.UI.VP.EmitViewpoint()
 	d.UI.EmitViewFrame(nil)
 }
 
@@ -43,7 +42,7 @@ func gestPointerDown(d Deps, ev inputcodec.RawInputMsg) {
 	}
 }
 
-func gestPointerMove(d Deps, ev inputcodec.RawInputMsg, tr *T.Trace) {
+func gestPointerMove(d Deps, ev inputcodec.RawInputMsg) {
 	g := &d.UI.Gest
 	if g.Phase == gesturefsm.GestIdle {
 		return
@@ -63,7 +62,7 @@ func gestPointerMove(d Deps, ev inputcodec.RawInputMsg, tr *T.Trace) {
 	}
 
 	if apply, ok := applyAction[g.Phase]; ok {
-		apply(d, g, ev, tr)
+		apply(d, g, ev)
 	}
 }
 
@@ -93,7 +92,7 @@ func gestPointerUp(d Deps, ev inputcodec.RawInputMsg) {
 	}
 }
 
-func gestWheel(d Deps, ev inputcodec.RawInputMsg, tr *T.Trace) {
+func gestWheel(d Deps, ev inputcodec.RawInputMsg) {
 	vp := d.UI.VP.Viewpoint
 	eye := camera.EyeOf(vp)
 	pivot := camera.RegionFocus(vp, nodemove.HeldCenters(d.MR.NodeGeoms(), d.MR.CenterOfNode))
@@ -127,7 +126,7 @@ func gestWheel(d Deps, ev inputcodec.RawInputMsg, tr *T.Trace) {
 		if minStep := vp.R * (camera.GestureZoomBase - 1); math.Abs(step) < minStep {
 			step = math.Copysign(minStep, amt)
 		}
-		d.UI.VP.PanViewpoint(rayDir.Scale(step), tr)
+		d.UI.VP.PanViewpoint(rayDir.Scale(step))
 		d.UI.EmitViewFrame(nil)
 		return
 	}
@@ -135,6 +134,6 @@ func gestWheel(d Deps, ev inputcodec.RawInputMsg, tr *T.Trace) {
 	fovRad := d.UI.FovDeg() * math.Pi / 180
 	worldPerPixel := (2 * vp.R * math.Tan(fovRad/2)) / d.UI.Gest.Rect.Height
 	disp := camera.PanDisplacementPolar(vp.Pos, vp.Up, ev.DeltaX, ev.DeltaY, worldPerPixel)
-	d.UI.VP.PanViewpoint(disp, tr)
+	d.UI.VP.PanViewpoint(disp)
 	d.UI.EmitViewFrame(nil)
 }

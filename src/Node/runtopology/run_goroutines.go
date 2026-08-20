@@ -12,11 +12,10 @@ import (
 	W "github.com/dtauraso/wirefold/src/Node/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/stdinreader"
-	T "github.com/dtauraso/wirefold/src/Trace"
 )
 
-func startStdinReader(ctx context.Context, cancel context.CancelFunc, slotReg inputcodec.SlotRegistry, md *W.MoveDispatch, tr *T.Trace, speedSinks SliderPanel.Sinks) (*sync.WaitGroup, *sync.WaitGroup) {
-	inbox, gestureWG := startGestureActor(ctx, slotReg, md, tr, speedSinks)
+func startStdinReader(ctx context.Context, cancel context.CancelFunc, slotReg inputcodec.SlotRegistry, md *W.MoveDispatch, speedSinks SliderPanel.Sinks) (*sync.WaitGroup, *sync.WaitGroup) {
+	inbox, gestureWG := startGestureActor(ctx, slotReg, md, speedSinks)
 
 	stdinWG := new(sync.WaitGroup)
 	stdinWG.Add(1)

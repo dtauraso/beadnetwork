@@ -7,15 +7,15 @@ import (
 )
 
 func (a BuildArgs) In(portName string) *inport.In {
-	return portwiring.NewInPort(portName, a.ctx, a.name, a.pb, a.tr, portwiring.InteriorEventSinkGetter(a.getEmitter))
+	return portwiring.NewInPort(portName, a.ctx, a.name, a.pb, portwiring.InteriorEventSinkGetter(a.getEmitter))
 }
 
 func (a BuildArgs) Out(portName string) *outport.Out {
-	return portwiring.NewOutPort(portName, a.ctx, a.name, a.pb, a.tr, a.sourceOuts, portwiring.InteriorEventSinkGetter(a.getEmitter))
+	return portwiring.NewOutPort(portName, a.ctx, a.name, a.pb, a.sourceOuts, portwiring.InteriorEventSinkGetter(a.getEmitter))
 }
 
 func (a BuildArgs) Broadcast(portName string) outport.Broadcast {
-	return portwiring.NewBroadcastPort(portName, a.ctx, a.name, a.pb, a.tr, a.sourceOuts, portwiring.InteriorEventSinkGetter(a.getEmitter))
+	return portwiring.NewBroadcastPort(portName, a.ctx, a.name, a.pb, a.sourceOuts, portwiring.InteriorEventSinkGetter(a.getEmitter))
 }
 
 func (a BuildArgs) DriveOut(portName string) DrivenOut {

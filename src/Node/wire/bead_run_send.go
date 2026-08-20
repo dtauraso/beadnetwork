@@ -20,10 +20,6 @@ func (pw *BeadRun) Send(v int, bp BeadPlacement, tick int64) SendOutcome {
 	case pw.inCh <- placeRequest{val: v, bp: bp, placementTick: tick}:
 		return SendPlaced
 	default:
-		if pw.readout.Trace != nil {
-			pw.readout.Trace.Breadcrumb("bead-place-buffer-full", pw.Owner, pw.Edge, "")
-		}
-
 		if pw.readout.breadcrumbCh != nil {
 			select {
 			case pw.readout.breadcrumbCh <- rowevent.RowEvent{

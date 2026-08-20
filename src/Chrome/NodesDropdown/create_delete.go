@@ -13,10 +13,9 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/rowtables"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/sceneswitch"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/viewstate"
-	T "github.com/dtauraso/wirefold/src/Trace"
 )
 
-func CreateNode(scenes *sceneswitch.SceneSwitch, ui *viewstate.UIState, mr *moverreg.MoverRegistry, kindID uint8, ndcX, ndcY float64, tr *T.Trace) {
+func CreateNode(scenes *sceneswitch.SceneSwitch, ui *viewstate.UIState, mr *moverreg.MoverRegistry, kindID uint8, ndcX, ndcY float64) {
 	if scenes == nil || scenes.TreeRoot == "" || scenes.Quit == nil {
 		return
 	}
@@ -97,7 +96,7 @@ func CreateNode(scenes *sceneswitch.SceneSwitch, ui *viewstate.UIState, mr *move
 	scenes.Quit()
 }
 
-func DeleteNode(scenes *sceneswitch.SceneSwitch, ui *viewstate.UIState, rt *rowtables.RowTables, row int, tr *T.Trace) {
+func DeleteNode(scenes *sceneswitch.SceneSwitch, ui *viewstate.UIState, rt *rowtables.RowTables, row int) {
 	if scenes == nil || scenes.TreeRoot == "" || scenes.Quit == nil {
 		return
 	}

@@ -9,6 +9,7 @@ import (
 
 	"github.com/dtauraso/wirefold/src/Node/rowevent"
 
+	"github.com/dtauraso/wirefold/src/Chrome/NodesDropdown"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/angledropdown"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"
@@ -16,11 +17,10 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/rulenode"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/scenepersist"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/sceneswitch"
-	"github.com/dtauraso/wirefold/src/Chrome/NodesDropdown"
 	T "github.com/dtauraso/wirefold/src/Trace"
 )
 
-func applyUpdateClock(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks SliderPanel.Sinks) {
+func applyUpdateClock(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, speedSinks SliderPanel.Sinks) {
 	if h, ok := clockAttrHandlers[msg.Attr]; ok {
 		h(msg, md, speedSinks)
 	}
@@ -42,7 +42,7 @@ func tiltVectorEdit(ctx context.Context, md *dispatch.MoveDispatch, speedSinks S
 	md.MR.SendMove(ctx, id, movemsg.Msg{Kind: movemsg.KindTiltVectorReset, NodeID: id})
 }
 
-func applyUpdateTiltVector(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks SliderPanel.Sinks) {
+func applyUpdateTiltVector(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, speedSinks SliderPanel.Sinks) {
 	if md == nil || (msg.Attr != "phi" && msg.Attr != "reset" && msg.Attr != "start") {
 		return
 	}
@@ -78,7 +78,7 @@ func setLatticePoints(md *dispatch.MoveDispatch, points int32) {
 	md.Inboxes.BroadcastLatticePoints(points)
 }
 
-func applyUpdateScene(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks SliderPanel.Sinks) {
+func applyUpdateScene(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, speedSinks SliderPanel.Sinks) {
 	if md == nil {
 		return
 	}
@@ -98,19 +98,19 @@ func applyUpdateScene(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch
 		})
 	case "create":
 
-		NodesDropdown.CreateNode(&md.Scenes, &md.UI, &md.MR, uint8(msg.Num), msg.X, msg.Y, tr)
+		NodesDropdown.CreateNode(&md.Scenes, &md.UI, &md.MR, uint8(msg.Num), msg.X, msg.Y)
 	case "delete":
 
-		NodesDropdown.DeleteNode(&md.Scenes, &md.UI, &md.RT, msg.Num, tr)
+		NodesDropdown.DeleteNode(&md.Scenes, &md.UI, &md.RT, msg.Num)
 	}
 }
 
-func applyUpdateOverlays(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks SliderPanel.Sinks) {
+func applyUpdateOverlays(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, speedSinks SliderPanel.Sinks) {
 	if md == nil {
 		return
 	}
 	if h, ok := overlayAttrHandlers[msg.Attr]; ok {
-		h(msg, md, tr)
+		h(msg, md)
 	}
 
 	md.Persist.Overlays().Schedule(md.UI.OV)
@@ -187,7 +187,7 @@ func sendRuleEdit(ctx context.Context, md *dispatch.MoveDispatch, row int, edit 
 	}
 }
 
-func applyUpdateNode(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks SliderPanel.Sinks) {
+func applyUpdateNode(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, speedSinks SliderPanel.Sinks) {
 	if md == nil {
 		return
 	}
@@ -196,7 +196,7 @@ func applyUpdateNode(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.
 	}
 }
 
-func applyUpdatePanels(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, tr *T.Trace, speedSinks SliderPanel.Sinks) {
+func applyUpdatePanels(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, speedSinks SliderPanel.Sinks) {
 	if md == nil {
 		return
 	}

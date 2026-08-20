@@ -28,11 +28,9 @@ func (p *PairNodeSelf) StartRule(ctx context.Context, clk clock.Clock) {
 }
 
 func (p *PairNodeSelf) Breadcrumb(label, value string) {
-	if p == nil || p.geom == nil || p.geom.tr == nil {
+	if p == nil || p.geom == nil {
 		return
 	}
-
-	p.geom.tr.Breadcrumb(label, p.geom.id, "", value)
 
 	id, ok := T.BreadcrumbLabelID(label)
 	if !ok {
@@ -148,9 +146,7 @@ func (g *NodeGeometry) applyKindPosts() {
 	if p.Lattice != nil {
 		g.tilt.SetLatticePoints(*p.Lattice)
 	}
-	if g.tr != nil {
-		g.emitGeometry()
-	}
+	g.emitGeometry()
 }
 
 func (p *PairNodeSelf) ClearOutBeads() {

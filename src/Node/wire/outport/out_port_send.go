@@ -3,8 +3,8 @@ package outport
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/src/Node/wire"
 	"github.com/dtauraso/wirefold/src/Node/rowevent"
+	"github.com/dtauraso/wirefold/src/Node/wire"
 	T "github.com/dtauraso/wirefold/src/Trace"
 )
 
@@ -41,29 +41,29 @@ func (o *Out) HasRun() bool {
 	return o.pw != nil
 }
 
-func NewPacedOutNoGeom(pw *wire.BeadRun, ctx context.Context, node, port string, tr *T.Trace, rule SendRule, steps int, edgeLabel string) *Out {
-	return NewOutPaced(pw, ctx, node, port, tr, rule, edgeLabel, nil, -1, -1, -1)
+func NewPacedOutNoGeom(pw *wire.BeadRun, ctx context.Context, node, port string, rule SendRule, steps int, edgeLabel string) *Out {
+	return NewOutPaced(pw, ctx, node, port, rule, edgeLabel, nil, -1, -1, -1)
 }
 
-func NewOutChanForTest(ch chan<- int, node, port string, tr *T.Trace) *Out {
-	return newOutChan(ch, node, port, tr)
+func NewOutChanForTest(ch chan<- int, node, port string) *Out {
+	return newOutChan(ch, node, port)
 }
 
-func NewOutChanDeadEnd(ch chan<- int, node, port string, tr *T.Trace) *Out {
-	return newOutChan(ch, node, port, tr)
+func NewOutChanDeadEnd(ch chan<- int, node, port string) *Out {
+	return newOutChan(ch, node, port)
 }
 
-func newOutChan(ch chan<- int, node, port string, tr *T.Trace) *Out {
-	return &Out{ch: ch, node: node, port: port, trace: tr, postedGeom: make(chan outGeom, 1)}
+func newOutChan(ch chan<- int, node, port string) *Out {
+	return &Out{ch: ch, node: node, port: port, postedGeom: make(chan outGeom, 1)}
 }
 
-func NewOutPaced(pw *wire.BeadRun, ctx context.Context, node, port string, tr *T.Trace, rule SendRule, edgeLabel string, stream func() rowevent.EventSink, portRow, targetRow, targetPortRow int32) *Out {
+func NewOutPaced(pw *wire.BeadRun, ctx context.Context, node, port string, rule SendRule, edgeLabel string, stream func() rowevent.EventSink, portRow, targetRow, targetPortRow int32) *Out {
 	if rule == "" {
 		rule = RuleConsumeGated
 	}
 
 	o := &Out{
-		pw: pw, ctx: ctx, node: node, port: port, trace: tr, Rule: rule, EdgeLabel: edgeLabel,
+		pw: pw, ctx: ctx, node: node, port: port, Rule: rule, EdgeLabel: edgeLabel,
 		postedGeom: make(chan outGeom, 1),
 		stream:     stream, portRow: portRow, targetRow: targetRow, targetPortRow: targetPortRow,
 	}

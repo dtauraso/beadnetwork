@@ -3,9 +3,9 @@ package build
 import (
 	"context"
 	"fmt"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/scene"
 	"github.com/dtauraso/wirefold/src/Chrome/AngleDropdown"
 	"github.com/dtauraso/wirefold/src/Chrome/TiltPanel"
+	"github.com/dtauraso/wirefold/src/Node/Wiring/scene"
 	"strconv"
 
 	"github.com/dtauraso/wirefold/src/Node/Wiring/dispatch"
@@ -25,7 +25,7 @@ func (b *buildCtx) buildMoveDispatch() error {
 	for i, e := range b.spec.Edges {
 		edgeOrder[i] = e.Label
 	}
-	md, err := dispatch.NewMoveDispatch(b.nodeGeoms, b.edgeEndpoints, b.tr, nodeOrder, edgeOrder, b.clk, &b.speedSinks, b.spec.RowCount, b.spec.Constants)
+	md, err := dispatch.NewMoveDispatch(b.nodeGeoms, b.edgeEndpoints, nodeOrder, edgeOrder, b.clk, &b.speedSinks, b.spec.RowCount, b.spec.Constants)
 	if err != nil {
 		return fmt.Errorf("buildMoveDispatch: %w", err)
 	}

@@ -5,11 +5,9 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/loadspec"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/src/Node/wire"
-
-	T "github.com/dtauraso/wirefold/src/Trace"
 )
 
-func AllocateBeadRuns(spec loadspec.TopoSpec, nodeGeoms map[string]nodegeom.NodeGeom, tr *T.Trace) (
+func AllocateBeadRuns(spec loadspec.TopoSpec, nodeGeoms map[string]nodegeom.NodeGeom) (
 	destRun map[string]*wire.BeadRun,
 	edgeRun loadspec.BeadRunRegistry,
 	edgeEndpoints map[string]inputcodec.EdgeEndpoints,
@@ -29,7 +27,6 @@ func AllocateBeadRuns(spec loadspec.TopoSpec, nodeGeoms map[string]nodegeom.Node
 		pw.Edge = e.Label
 		pw.Target = e.Target
 		pw.TargetHandle = e.TargetHandle
-		pw.SetTrace(tr)
 		destRun[destKey] = pw
 		edgeRun[e.Label] = pw
 		edgeEndpoints[e.Label] = inputcodec.EdgeEndpoints{

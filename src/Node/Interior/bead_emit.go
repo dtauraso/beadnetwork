@@ -3,13 +3,11 @@ package interior
 import (
 	"context"
 
-	lattice "github.com/dtauraso/wirefold/src/Node/wire/lattice"
 	"github.com/dtauraso/wirefold/src/Node/clock"
-
-	T "github.com/dtauraso/wirefold/src/Trace"
+	lattice "github.com/dtauraso/wirefold/src/Node/wire/lattice"
 )
 
-func EmitNodeBeads(tr *T.Trace, nodeName string, working, backup []int, emitter *Emitter) {
+func EmitNodeBeads(nodeName string, working, backup []int, emitter *Emitter) {
 	const cols = 2
 	present := make([]uint8, 0, 4)
 	value := make([]int32, 0, 4)
@@ -34,7 +32,7 @@ func EmitNodeBeads(tr *T.Trace, nodeName string, working, backup []int, emitter 
 
 const NoValue = -1
 
-func EmitHeldBead(tr *T.Trace, nodeName string, held int, emitter *Emitter) {
+func EmitHeldBead(nodeName string, held int, emitter *Emitter) {
 	has := held != NoValue
 
 	v := 0
@@ -49,7 +47,7 @@ func EmitHeldBead(tr *T.Trace, nodeName string, held int, emitter *Emitter) {
 	)
 }
 
-func EmitInputBeads(tr *T.Trace, nodeName string, left, right int, emitter *Emitter) {
+func EmitInputBeads(nodeName string, left, right int, emitter *Emitter) {
 	s := InteriorSlot
 	hasL, hasR := left != NoValue, right != NoValue
 	vL, vR := 0, 0
@@ -67,7 +65,7 @@ func EmitInputBeads(tr *T.Trace, nodeName string, left, right int, emitter *Emit
 	)
 }
 
-func EmitRefillSlide(ctx context.Context, tr *T.Trace, nodeName string, clk clock.Clock, speedCh <-chan float64, beads []int) {
+func EmitRefillSlide(ctx context.Context, nodeName string, clk clock.Clock, speedCh <-chan float64, beads []int) {
 	if clk == nil || len(beads) == 0 {
 		return
 	}

@@ -9,7 +9,6 @@ import (
 	W "github.com/dtauraso/wirefold/src/Node/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/stdinreader"
-	T "github.com/dtauraso/wirefold/src/Trace"
 )
 
 type gestureMsgKind int
@@ -27,7 +26,7 @@ type gestureInboxMsg struct {
 
 const gestureInboxDepth = 64
 
-func startGestureActor(ctx context.Context, slotReg inputcodec.SlotRegistry, md *W.MoveDispatch, tr *T.Trace, speedSinks SliderPanel.Sinks) (chan gestureInboxMsg, *sync.WaitGroup) {
+func startGestureActor(ctx context.Context, slotReg inputcodec.SlotRegistry, md *W.MoveDispatch, speedSinks SliderPanel.Sinks) (chan gestureInboxMsg, *sync.WaitGroup) {
 	inbox := make(chan gestureInboxMsg, gestureInboxDepth)
 	wg := new(sync.WaitGroup)
 	wg.Add(1)
@@ -40,9 +39,9 @@ func startGestureActor(ctx context.Context, slotReg inputcodec.SlotRegistry, md 
 			case gm := <-inbox:
 				switch gm.kind {
 				case gestureMsgEdit:
-					stdinreader.ApplyEdit(ctx, gm.msg, md, tr, speedSinks)
+					stdinreader.ApplyEdit(ctx, gm.msg, md, speedSinks)
 				case gestureMsgRawInput:
-					stdinreader.HandleRawInputMsg(ctx, gm.msg, slotReg, md, tr, speedSinks)
+					stdinreader.HandleRawInputMsg(ctx, gm.msg, slotReg, md, speedSinks)
 				case gestureMsgSave:
 					stdinreader.HandleSaveMsg(md)
 				}

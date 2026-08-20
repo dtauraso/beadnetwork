@@ -5,10 +5,9 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/viewstate"
 
 	"github.com/dtauraso/wirefold/src/Chrome/OverlaysDropdown"
-	T "github.com/dtauraso/wirefold/src/Trace"
 )
 
-func InstallOverlays(ui *viewstate.UIState, topologyPath string, tr *T.Trace) {
+func InstallOverlays(ui *viewstate.UIState, topologyPath string) {
 	ov, _ := OverlaysDropdown.LoadSceneOverlays(scenepaths.OverlaysDirPath(topologyPath))
 	ui.OV.SetGuideVisibility(ov)
 

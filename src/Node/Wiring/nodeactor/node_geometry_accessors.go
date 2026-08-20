@@ -13,14 +13,6 @@ import (
 
 func (m *NodeGeometry) ID() string { return m.id }
 
-func (m *NodeGeometry) Traced() bool { return m.tr != nil }
-
-func (m *NodeGeometry) Breadcrumb(label, node, port, value string) {
-	if m.tr != nil {
-		m.tr.Breadcrumb(label, node, port, value)
-	}
-}
-
 func (m *NodeGeometry) Kind() string { return m.geom.Kind }
 
 func (m *NodeGeometry) SelfKind() string { return m.selfKind }

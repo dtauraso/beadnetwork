@@ -11,11 +11,10 @@ import (
 
 	"github.com/dtauraso/wirefold/src/Bead"
 
+	"github.com/dtauraso/wirefold/src/Chrome/Tabs"
 	NodeShape "github.com/dtauraso/wirefold/src/Node/Shape"
 	Bld "github.com/dtauraso/wirefold/src/Node/Wiring/build"
 	SW "github.com/dtauraso/wirefold/src/Node/Wiring/streamwire"
-	"github.com/dtauraso/wirefold/src/Chrome/Tabs"
-	T "github.com/dtauraso/wirefold/src/Trace"
 )
 
 func RunTopology(ctx context.Context, cancel context.CancelFunc, topologyPath string, clk clock.Clock) {
@@ -23,12 +22,10 @@ func RunTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 	streamFDs := SW.ParseStreamFDs(os.Getenv("WIREFOLD_STREAM_FDS"))
 	viewFile, viewStreamWired := streamFDs.Open(SW.StreamKindView, 0)
 
-	tr := T.New()
-
 	sceneTabNames := Tabs.TabNames()
 	sceneTabSelected := Tabs.SelectedIndex(topologyPath)
 	scenePath := scene.ResolvePath(topologyPath)
-	nodes, slotReg, md, speedSinks, err := Bld.LoadTopology(ctx, scenePath, tr, clk)
+	nodes, slotReg, md, speedSinks, err := Bld.LoadTopology(ctx, scenePath, clk)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "load topology: %v\n", err)
 		os.Exit(1)
@@ -44,9 +41,9 @@ func RunTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 	md.UI.WriteNodeRingSurfaceColumns(NodeShape.CanonicalRingSurfacePointsFlat())
 	md.UI.WriteBeadRingSurfaceColumns(bead.CanonicalRingSurfacePointsFlat())
 	wireViewStream(md, viewFile, viewStreamWired, sceneTabNames, sceneTabSelected)
-	emitStartupBreadcrumbs(tr, md, scenePath, len(nodes))
-	checkRowSeedCount(tr, md, len(nodes))
-	loadSceneState(scenePath, md, tr, speedSinks)
+	emitStartupBreadcrumbs(md, scenePath, len(nodes))
+	checkRowSeedCount(md, len(nodes))
+	loadSceneState(scenePath, md, speedSinks)
 
 	md.Scenes.AnchorPath = topologyPath
 	md.Scenes.Quit = cancel
@@ -54,7 +51,7 @@ func RunTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 
 	moverWG := md.Start(ctx)
 
-	stdinWG, gestureWG := startStdinReader(ctx, cancel, slotReg, md, tr, speedSinks)
+	stdinWG, gestureWG := startStdinReader(ctx, cancel, slotReg, md, speedSinks)
 	wg := launchNodeGoroutines(ctx, nodes)
 	joinAll(wg, moverWG, stdinWG, gestureWG)
 }

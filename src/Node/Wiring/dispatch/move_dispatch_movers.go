@@ -10,12 +10,11 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/polarindex"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/rulenode"
 	"github.com/dtauraso/wirefold/src/Node/clock"
-	T "github.com/dtauraso/wirefold/src/Trace"
 )
 
-func (md *MoveDispatch) buildNodeMovers(geoms map[string]nodegeom.NodeGeom, tr *T.Trace, clk clock.Clock, constants polarindex.SceneConstants) {
+func (md *MoveDispatch) buildNodeMovers(geoms map[string]nodegeom.NodeGeom, clk clock.Clock, constants polarindex.SceneConstants) {
 	for id, g := range geoms {
-		ng := nodeactor.NewNodeGeometry(id, g, tr, clk, constants)
+		ng := nodeactor.NewNodeGeometry(id, g, clk, constants)
 
 		selfID := id
 		resolveDest := func(destID string) (owners.Deposit, bool) {

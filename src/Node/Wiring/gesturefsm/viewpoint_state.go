@@ -3,7 +3,6 @@ package gesturefsm
 import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/geom/camera"
 	"github.com/dtauraso/wirefold/src/Node/spatial"
-	T "github.com/dtauraso/wirefold/src/Trace"
 )
 
 type ViewpointState struct {
@@ -20,29 +19,29 @@ func (v *ViewpointState) SetViewpoint(pivot spatial.Vec3, r float64, pos, up cam
 	v.LockedAxis = nil
 }
 
-func (v *ViewpointState) EmitViewpoint(tr *T.Trace) {
+func (v *ViewpointState) EmitViewpoint() {
 
 	if v.Persist != nil {
 		v.Persist(v.Viewpoint)
 	}
 }
 
-func (v *ViewpointState) OrbitViewpoint(from, to camera.Dir, tr *T.Trace) {
+func (v *ViewpointState) OrbitViewpoint(from, to camera.Dir) {
 	v.Orbit(from, to)
-	v.EmitViewpoint(tr)
+	v.EmitViewpoint()
 }
 
-func (v *ViewpointState) OrbitLockedViewpoint(from, to camera.Dir, tr *T.Trace) {
+func (v *ViewpointState) OrbitLockedViewpoint(from, to camera.Dir) {
 	v.OrbitLocked(from, to)
-	v.EmitViewpoint(tr)
+	v.EmitViewpoint()
 }
 
-func (v *ViewpointState) ZoomViewpoint(factor float64, tr *T.Trace) {
+func (v *ViewpointState) ZoomViewpoint(factor float64) {
 	v.Zoom(factor)
-	v.EmitViewpoint(tr)
+	v.EmitViewpoint()
 }
 
-func (v *ViewpointState) PanViewpoint(delta spatial.Vec3, tr *T.Trace) {
+func (v *ViewpointState) PanViewpoint(delta spatial.Vec3) {
 	v.Pan(delta)
-	v.EmitViewpoint(tr)
+	v.EmitViewpoint()
 }

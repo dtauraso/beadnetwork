@@ -1,8 +1,6 @@
 package nodeactor
 
 import (
-	"fmt"
-
 	"github.com/dtauraso/wirefold/src/Node/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/polarindex"
@@ -37,9 +35,7 @@ func (m *NodeGeometry) take(msg movemsg.Msg) {
 		m.handleTiltVectorReset()
 	default:
 
-		if m.tr != nil {
-			m.emitGeometry()
-		}
+		m.emitGeometry()
 	}
 }
 
@@ -52,9 +48,7 @@ func (m *NodeGeometry) takeNeighborMove(msg movemsg.Msg) {
 		m.ApplyCenter(idx)
 		return
 	}
-	if m.tr != nil {
-		m.emitGeometry()
-	}
+	m.emitGeometry()
 }
 
 func (m *NodeGeometry) takeDragOfSelf(msg movemsg.Msg) {
@@ -73,16 +67,13 @@ func (m *NodeGeometry) takeDragOfSelf(msg movemsg.Msg) {
 	movedIdx := polarindex.Compose(haveIdx, m.TrimOwnDrag(delta), m.Constants())
 
 	m.msg.CommitLocal(m.id, movedIdx)
-	if m.tr != nil {
-		newPos := m.SceneCenter().Add(polar.Polar2cart(polarindex.ToPolar(movedIdx, m.Constants())))
-		m.tr.Breadcrumb("drag.commit", m.id, "", fmt.Sprintf("newPos=(%.4f,%.4f,%.4f)", newPos.X, newPos.Y, newPos.Z))
+	newPos := m.SceneCenter().Add(polar.Polar2cart(polarindex.ToPolar(movedIdx, m.Constants())))
 
-		m.writeStreamFrame([]rowevent.RowEvent{{
-			Kind: T.KindBreadcrumb, Label: T.BreadcrumbDragCommit, Debug: 1,
-			NodeRow: m.stream.NodeRow(), PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
-			X: newPos.X, Y: newPos.Y, Z: newPos.Z,
-		}})
-	}
+	m.writeStreamFrame([]rowevent.RowEvent{{
+		Kind: T.KindBreadcrumb, Label: T.BreadcrumbDragCommit, Debug: 1,
+		NodeRow: m.stream.NodeRow(), PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
+		X: newPos.X, Y: newPos.Y, Z: newPos.Z,
+	}})
 }
 
 func (m *NodeGeometry) handleSelect(msg movemsg.Msg) {
@@ -104,15 +95,11 @@ func (m *NodeGeometry) handleTiltVectorAngle(msg movemsg.Msg) {
 	}
 	m.tilt.BumpTopTiltVectorPhiIdx(delta)
 	m.persistTiltVectorAngle()
-	if m.tr != nil {
-		m.emitGeometry()
-	}
+	m.emitGeometry()
 }
 
 func (m *NodeGeometry) handleTiltVectorReset() {
 	m.tilt.ResetTopTiltVectorPhiIdx()
 	m.persistTiltVectorAngle()
-	if m.tr != nil {
-		m.emitGeometry()
-	}
+	m.emitGeometry()
 }

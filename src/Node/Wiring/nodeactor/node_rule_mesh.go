@@ -44,9 +44,7 @@ func (m *NodeGeometry) drainRuleMesh() {
 	if !changed {
 		return
 	}
-	if m.tr != nil {
-		m.emitGeometry()
-	}
+	m.emitGeometry()
 }
 
 func (m *NodeGeometry) RuleGroup() (groupID, size int32) {

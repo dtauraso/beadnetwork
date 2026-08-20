@@ -5,6 +5,9 @@ import (
 
 	"github.com/dtauraso/wirefold/src/Node/rowevent"
 
+	"github.com/dtauraso/wirefold/src/Chrome/NodesDropdown"
+	"github.com/dtauraso/wirefold/src/Chrome/OverlaysDropdown"
+	"github.com/dtauraso/wirefold/src/Chrome/SliderPanel"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/angledropdown"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"
@@ -15,9 +18,6 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/sceneswitch"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/speedpanel"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/tiltpanel"
-	"github.com/dtauraso/wirefold/src/Chrome/NodesDropdown"
-	"github.com/dtauraso/wirefold/src/Chrome/OverlaysDropdown"
-	"github.com/dtauraso/wirefold/src/Chrome/SliderPanel"
 	T "github.com/dtauraso/wirefold/src/Trace"
 )
 
@@ -25,7 +25,6 @@ func panelTookPointerDown(
 	ctx context.Context,
 	ev inputcodec.RawInputMsg,
 	md *dispatch.MoveDispatch,
-	tr *T.Trace,
 	speedSinks SliderPanel.Sinks,
 ) bool {
 	pl := md.UI.PanelLayout()
@@ -38,7 +37,7 @@ func panelTookPointerDown(
 	if panelstack.HitRect(pl.Fit, ev.X, ev.Y) {
 		home := ev
 		home.Kind = "home"
-		md.HandleRawInput(ctx, home, nil, tr)
+		md.HandleRawInput(ctx, home, nil)
 		return true
 	}
 
@@ -67,7 +66,7 @@ func panelTookPointerDown(
 		return true
 	}
 	if h := pl.Overlays.Hit(ev.X, ev.Y); h.Kind != overlayspanel.HitNone {
-		applyOverlaysHit(md, tr, h)
+		applyOverlaysHit(md, h)
 		return true
 	}
 	if h := pl.Angle.Hit(ev.X, ev.Y); h.Kind != angledropdown.HitNone {
@@ -89,16 +88,16 @@ func panelTookPointerDown(
 	return false
 }
 
-func placeNodeAt(md *dispatch.MoveDispatch, ev *inputcodec.RawInputMsg, tr *T.Trace) {
+func placeNodeAt(md *dispatch.MoveDispatch, ev *inputcodec.RawInputMsg) {
 	if ev.RectWidth <= 0 || ev.RectHeight <= 0 {
 		return
 	}
 	ndcX := ((ev.X-ev.RectLeft)/ev.RectWidth)*2 - 1
 	ndcY := -((ev.Y-ev.RectTop)/ev.RectHeight)*2 + 1
-	NodesDropdown.CreateNode(&md.Scenes, &md.UI, &md.MR, md.UI.PlacingKind, ndcX, ndcY, tr)
+	NodesDropdown.CreateNode(&md.Scenes, &md.UI, &md.MR, md.UI.PlacingKind, ndcX, ndcY)
 }
 
-func applyOverlaysHit(md *dispatch.MoveDispatch, tr *T.Trace, h overlayspanel.Hit) {
+func applyOverlaysHit(md *dispatch.MoveDispatch, h overlayspanel.Hit) {
 	switch h.Kind {
 	case overlayspanel.HitPillCaret, overlayspanel.HitHeading:
 		if fn, ok := OverlaysDropdown.PanelToggles[h.Panel]; ok {
@@ -106,7 +105,7 @@ func applyOverlaysHit(md *dispatch.MoveDispatch, tr *T.Trace, h overlayspanel.Hi
 			md.Persist.Panels().Schedule(md.UI.PN)
 		}
 	case overlayspanel.HitPillBody, overlayspanel.HitFlag:
-		toggleOverlayFlag(md, tr, h.Flag)
+		toggleOverlayFlag(md, h.Flag)
 		md.Persist.Overlays().Schedule(md.UI.OV)
 	case overlayspanel.HitCount:
 		for _, flag := range h.Flags {
@@ -114,19 +113,19 @@ func applyOverlaysHit(md *dispatch.MoveDispatch, tr *T.Trace, h overlayspanel.Hi
 			if !ok || read(&md.UI.OV) == h.Target {
 				continue
 			}
-			toggleOverlayFlag(md, tr, flag)
+			toggleOverlayFlag(md, flag)
 		}
 		md.Persist.Overlays().Schedule(md.UI.OV)
 	}
 	md.UI.EmitViewFrame(nil)
 }
 
-func toggleOverlayFlag(md *dispatch.MoveDispatch, tr *T.Trace, flag string) {
+func toggleOverlayFlag(md *dispatch.MoveDispatch, flag string) {
 	fn, ok := OverlaysDropdown.OverlayToggles[flag]
 	if !ok {
 		return
 	}
-	fn(&md.UI.OV, tr)
+	fn(&md.UI.OV)
 	if flag == "ruleChannels" {
 		md.Inboxes.BroadcastChannelVectorsOn(md.UI.OV.RuleChannelsVisible)
 	}

@@ -21,23 +21,23 @@ func (a BuildArgs) Fire() func() {
 }
 
 func (a BuildArgs) EmitNodeBeads() func(working, backup []int) {
-	tr, name, getEmitter := a.tr, a.name, a.getEmitter
-	return func(working, backup []int) { interior.EmitNodeBeads(tr, name, working, backup, getEmitter()) }
+	name, getEmitter := a.name, a.getEmitter
+	return func(working, backup []int) { interior.EmitNodeBeads(name, working, backup, getEmitter()) }
 }
 
 func (a BuildArgs) EmitHeldBead() func(held int) {
-	tr, name, getEmitter := a.tr, a.name, a.getEmitter
-	return func(held int) { interior.EmitHeldBead(tr, name, held, getEmitter()) }
+	name, getEmitter := a.name, a.getEmitter
+	return func(held int) { interior.EmitHeldBead(name, held, getEmitter()) }
 }
 
 func (a BuildArgs) EmitInputBeads() func(left, right int) {
-	tr, name, getEmitter := a.tr, a.name, a.getEmitter
-	return func(left, right int) { interior.EmitInputBeads(tr, name, left, right, getEmitter()) }
+	name, getEmitter := a.name, a.getEmitter
+	return func(left, right int) { interior.EmitInputBeads(name, left, right, getEmitter()) }
 }
 
 func (a BuildArgs) EmitRefillSlide() func(clk clock.Clock, speedCh <-chan float64, beads []int) {
-	ctx, tr, name := a.ctx, a.tr, a.name
+	ctx, name := a.ctx, a.name
 	return func(clk clock.Clock, speedCh <-chan float64, beads []int) {
-		interior.EmitRefillSlide(ctx, tr, name, clk, speedCh, beads)
+		interior.EmitRefillSlide(ctx, name, clk, speedCh, beads)
 	}
 }
