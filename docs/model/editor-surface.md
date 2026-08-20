@@ -10,7 +10,7 @@ forwards raw input to Go. It holds NO domain state — no render stores, no
 spec store, no camera store — never sets node state and never tells Go
 when a bead has arrived. Go owns the clock.
 
-- **Go runtime** owns all node-local held state, firing rules, wire
+- **Go runtime** owns all node-local held state, firing rules, bead
   traversal timing, node positions, per-edge curve geometry, shading
   parameters, camera pose, selection, and overlay visibility. There is no
   single combined buffer or central packer: each emitting goroutine packs
@@ -20,7 +20,7 @@ when a bead has arrived. Go owns the clock.
   goroutine), one stream per edge row (that edge's geometry, written by
   the SOURCE node's own goroutine — a node draws its own out-edges), one
   stream per node row (that node's own geometry+ports+label), one
-  BEAD stream per node row (that node's live beads on every wire leaving
+  BEAD stream per node row (that node's live beads on every edge leaving
   it), and one INTERIOR stream per node row (that node's own
   Update-goroutine's interior beads — the ONLY writer of that node's four
   interior slots). **There are exactly three per-node streams.** A driven
@@ -60,7 +60,7 @@ when a bead has arrived. Go owns the clock.
   mesh + ring, keyed off `node.data.fill`/`node.data.stroke` from `NODE_DEFS`; no port
   geometry — a port is a load-time channel-binding ROLE, never drawn),
   transit and interior
-  beads (`src/Node/BeadAnimation/ChainBeadInstances.tsx`, `src/webview/scene/beads/InteriorBeadInstances.tsx` — there is no
+  beads (`src/Node/BeadAnimation/ChainBeadInstances.tsx`, `src/Node/Interior/InteriorBeadInstances.tsx` — there is no
   per-edge drawn tube any more; the source node's own chain of placeholder beads is the
   edge's visual, `docs/model/entities.md`), the selection ring, its halo and the hover
   ring (placed with everything else drawn at a node's own frame, in
