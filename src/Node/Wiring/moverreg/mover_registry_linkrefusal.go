@@ -3,8 +3,8 @@ package moverreg
 import (
 	"fmt"
 
-	"github.com/dtauraso/wirefold/src/Node/Wiring/kindreg"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/portwiring"
+	"github.com/dtauraso/wirefold/src/NodeKinds/kindreg"
+	"github.com/dtauraso/wirefold/src/NodeKinds/portwiring"
 )
 
 type Link struct {

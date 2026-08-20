@@ -4,7 +4,7 @@ paths:
   - "src/Node/**/SPEC.md"
   - "src/schema/node-defs.ts"
   - "**/gen/**/*.go"
-  - "src/Node/Wiring/kindscan/**"
+  - "scripts/kindscan/**"
 ---
 
 # Node kind registration — detail
@@ -27,10 +27,10 @@ separate `registry.ts` exists. The schema dir is `src/schema/`.
 pipeline; it also refreshes `kinds_generated.go`. That file's blank imports are what make a
 package's `init()` — and therefore its `Wiring.RegisterBuilder` call — run at all.
 
-`RegisterBuilder(kind, ports, build)` (`src/Node/Wiring/kindapi/build_args.go`) populates
+`RegisterBuilder(kind, ports, build)` (`src/NodeKinds/kindapi/build_args.go`) populates
 `kindreg.Registry` directly, so the registry is complete before `main` runs (`Wiring` here
-aliases `src/Node/Wiring/kindapi` — the kind-API package node kinds import, decoupled from the
-dispatch core; `src/Node/Wiring/kindreg` holds the registry itself — `Registry`, `NodeBuilder`,
+aliases `src/NodeKinds/kindapi` — the kind-API package node kinds import, decoupled from the
+dispatch core; `src/NodeKinds/kindreg` holds the registry itself — `Registry`, `NodeBuilder`,
 `BuildDeps`, `BuildRegistry`, `BuildTypeMaps` — which `kindapi` calls into but node kinds
 never import directly). The kind
 does not pass its ports at all: `RegisterBuilder(kind, build)` reads the generated

@@ -9,7 +9,7 @@ import (
 
 	"strings"
 
-	"github.com/dtauraso/wirefold/src/Node/Wiring/kindscan"
+	"github.com/dtauraso/wirefold/scripts/kindscan"
 )
 
 func Roots() (repoRoot, srcRoot string) {

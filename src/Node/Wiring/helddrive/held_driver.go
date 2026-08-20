@@ -2,7 +2,7 @@ package helddrive
 
 import (
 	"github.com/dtauraso/wirefold/src/Node/Interior"
-	Wiring "github.com/dtauraso/wirefold/src/Node/Wiring/kindapi"
+	Wiring "github.com/dtauraso/wirefold/src/NodeKinds/kindapi"
 	lattice "github.com/dtauraso/wirefold/src/Node/BeadAnimation/lattice"
 )
 

@@ -19,7 +19,7 @@ func parseGoKindName(pkgDir string) (string, error) {
 	markers := []string{`Wiring.RegisterBuilder("`}
 	for _, entry := range entries {
 		name := entry.Name()
-		if entry.IsDir() || !strings.HasSuffix(name, ".go") || strings.HasSuffix(name, "_test.go") {  // path-resolution-ok: a package directory listing, not a scene path
+		if entry.IsDir() || !strings.HasSuffix(name, ".go") || strings.HasSuffix(name, "_test.go") { // path-resolution-ok: a package directory listing, not a scene path
 			continue
 		}
 		data, err := os.ReadFile(filepath.Join(pkgDir, name))

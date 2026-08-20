@@ -5,8 +5,8 @@ import (
 	"github.com/dtauraso/wirefold/src/Chrome/Pills/AngleDropdown"
 	"github.com/dtauraso/wirefold/src/Camera"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/geom/polar"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/scenepaths"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/scenepersist"
+	"github.com/dtauraso/wirefold/src/Scene/scenepaths"
+	"github.com/dtauraso/wirefold/src/Scene/scenepersist"
 	"github.com/dtauraso/wirefold/src/Overlay"
 )
 

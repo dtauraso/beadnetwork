@@ -6,7 +6,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/geomseeds"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/jsonpersist"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/scenepaths"
+	"github.com/dtauraso/wirefold/src/Scene/scenepaths"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/viewstate"
 )
 

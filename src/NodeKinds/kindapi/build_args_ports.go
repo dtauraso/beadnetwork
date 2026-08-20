@@ -2,7 +2,7 @@ package kindapi
 
 import (
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/portwiring"
+	"github.com/dtauraso/wirefold/src/NodeKinds/portwiring"
 )
 
 func (a BuildArgs) In(portName string) *beadanimation.Receiver {

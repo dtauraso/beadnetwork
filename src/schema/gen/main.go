@@ -5,7 +5,7 @@ package main
 import (
 	"path/filepath"
 
-	"github.com/dtauraso/wirefold/src/Node/Wiring/kindscan"
+	"github.com/dtauraso/wirefold/scripts/kindscan"
 	"github.com/dtauraso/wirefold/scripts/genpaths"
 	"github.com/dtauraso/wirefold/src/schema/gen/nodedefs"
 	"github.com/dtauraso/wirefold/src/schema/gen/wiredefs"

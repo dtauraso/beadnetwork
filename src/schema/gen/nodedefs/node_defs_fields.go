@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/dtauraso/wirefold/src/Node/Wiring/kindscan"
+	"github.com/dtauraso/wirefold/scripts/kindscan"
 )
 
 func buildDef(v kindscan.ViewDef, ports []kindscan.Port) string {

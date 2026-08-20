@@ -2,13 +2,13 @@ package scenepersist
 
 import (
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/scene"
+	"github.com/dtauraso/wirefold/src/Scene/scene"
 	"math"
 
 	"encoding/json"
 
 	"github.com/dtauraso/wirefold/src/Node/Wiring/jsonpersist"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/scenepaths"
+	"github.com/dtauraso/wirefold/src/Scene/scenepaths"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/viewstate"
 )
 

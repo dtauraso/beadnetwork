@@ -8,7 +8,7 @@ import (
 	"github.com/dtauraso/wirefold/src/NodeKinds/nodeapi"
 
 	interior "github.com/dtauraso/wirefold/src/Node/Interior"
-	Wiring "github.com/dtauraso/wirefold/src/Node/Wiring/kindapi"
+	Wiring "github.com/dtauraso/wirefold/src/NodeKinds/kindapi"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor"
 )
 

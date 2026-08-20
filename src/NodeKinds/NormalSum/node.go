@@ -5,7 +5,7 @@ import (
 
 	clock "github.com/dtauraso/wirefold/src/Clock"
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
-	Wiring "github.com/dtauraso/wirefold/src/Node/Wiring/kindapi"
+	Wiring "github.com/dtauraso/wirefold/src/NodeKinds/kindapi"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor"
 	"github.com/dtauraso/wirefold/src/NodeKinds/nodeapi"
 )

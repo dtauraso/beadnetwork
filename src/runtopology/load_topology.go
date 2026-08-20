@@ -6,10 +6,10 @@ import (
 
 	"github.com/dtauraso/wirefold/src/Input/dispatch"
 	"github.com/dtauraso/wirefold/src/Input/inputcodec"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/kindreg"
+	"github.com/dtauraso/wirefold/src/NodeKinds/kindreg"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/loadspec"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/portwiring"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/scenepersist"
+	"github.com/dtauraso/wirefold/src/NodeKinds/portwiring"
+	"github.com/dtauraso/wirefold/src/Scene/scenepersist"
 	"github.com/dtauraso/wirefold/src/Clock"
 	"github.com/dtauraso/wirefold/src/NodeKinds/nodeapi"
 )

@@ -10,7 +10,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/moverreg"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor/nodefiles"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/rowtables"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/sceneswitch"
+	"github.com/dtauraso/wirefold/src/Scene/sceneswitch"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/viewstate"
 )
 

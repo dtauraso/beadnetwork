@@ -5,8 +5,8 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
-WIRING_DIR="$REPO_ROOT/src/Node/Wiring"
-RESOLVER="$WIRING_DIR/scenepaths/scene_paths.go"
+WIRING_DIR="$REPO_ROOT/src"
+RESOLVER="$REPO_ROOT/src/Scene/scenepaths/scene_paths.go"
 
 if [[ ! -d "$WIRING_DIR" ]]; then
   echo "check-scene-path-resolution: MISCONFIGURED — $WIRING_DIR not found (moved/renamed?)." >&2

@@ -7,7 +7,7 @@ import (
 
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/jsonpersist"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/portwiring"
+	"github.com/dtauraso/wirefold/src/NodeKinds/portwiring"
 )
 
 func ValidateSpec(spec *TopoSpec, kindPorts map[string][]portwiring.PortSpec) error {

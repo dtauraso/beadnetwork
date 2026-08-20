@@ -3,7 +3,7 @@ package Camera
 import (
 	"math"
 
-	"github.com/dtauraso/wirefold/src/Node/Wiring/scenepaths"
+	"github.com/dtauraso/wirefold/src/Scene/scenepaths"
 )
 
 func SeedInitialViewpoint(topologyPath string, setViewpoint func(pivot vec3, r float64, pos, up Dir), emitViewpoint func()) {

@@ -1,7 +1,7 @@
 package Tabs
 
 import (
-	"github.com/dtauraso/wirefold/src/Node/Wiring/scene"
+	"github.com/dtauraso/wirefold/src/Scene/scene"
 )
 
 func TabNames() []string {

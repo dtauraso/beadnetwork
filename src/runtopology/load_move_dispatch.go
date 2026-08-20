@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/dtauraso/wirefold/src/Chrome/Pills/AngleDropdown"
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/TiltPanel"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/scene"
+	"github.com/dtauraso/wirefold/src/Scene/scene"
 	"strconv"
 
 	"github.com/dtauraso/wirefold/src/Input/dispatch"

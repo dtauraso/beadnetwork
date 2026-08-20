@@ -7,7 +7,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodemove"
 	rowtables "github.com/dtauraso/wirefold/src/Node/Wiring/rowtables"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/rulechans"
-	sceneswitch "github.com/dtauraso/wirefold/src/Node/Wiring/sceneswitch"
+	sceneswitch "github.com/dtauraso/wirefold/src/Scene/sceneswitch"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/streamwire"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/viewpersist"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/viewstate"

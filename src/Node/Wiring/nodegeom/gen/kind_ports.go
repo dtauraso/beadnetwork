@@ -7,7 +7,7 @@ import (
 	"go/format"
 	"os"
 
-	"github.com/dtauraso/wirefold/src/Node/Wiring/kindscan"
+	"github.com/dtauraso/wirefold/scripts/kindscan"
 )
 
 func portDirExpr(p kindscan.Port) (string, bool) {

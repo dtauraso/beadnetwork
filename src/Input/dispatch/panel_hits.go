@@ -12,7 +12,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Chrome/Pills/NodesDropdown"
 	"github.com/dtauraso/wirefold/src/Input/inputcodec"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodecrud"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/sceneswitch"
+	"github.com/dtauraso/wirefold/src/Scene/sceneswitch"
 	"github.com/dtauraso/wirefold/src/Overlay"
 	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 )

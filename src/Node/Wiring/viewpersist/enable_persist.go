@@ -2,7 +2,7 @@ package viewpersist
 
 import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/moverreg"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/sceneswitch"
+	"github.com/dtauraso/wirefold/src/Scene/sceneswitch"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/viewstate"
 )
 

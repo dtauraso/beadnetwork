@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/dtauraso/wirefold/src/Node/Wiring/scene"
+	"github.com/dtauraso/wirefold/src/Scene/scene"
 
 	"github.com/dtauraso/wirefold/src/Clock"
 

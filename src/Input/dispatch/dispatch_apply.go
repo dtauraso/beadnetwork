@@ -13,8 +13,8 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodecrud"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/rulenode"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/scenepersist"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/sceneswitch"
+	"github.com/dtauraso/wirefold/src/Scene/scenepersist"
+	"github.com/dtauraso/wirefold/src/Scene/sceneswitch"
 	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 )
 

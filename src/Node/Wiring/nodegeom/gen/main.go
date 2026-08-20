@@ -19,7 +19,7 @@ func main() {
 	}
 	genpaths.Announce(dimsPath, len(kinds), "kinds")
 
-	portsPath := filepath.Join(genpaths.NetworkDir(repoRoot), "Wiring", "portwiring", "kind_ports_gen.go")
+	portsPath := filepath.Join(genpaths.KindsDir(repoRoot), "portwiring", "kind_ports_gen.go")
 	if err := writeKindPorts(portsPath, kinds); err != nil {
 		genpaths.Fatalf("write %s: %v", portsPath, err)
 	}
