@@ -19,8 +19,6 @@ ALLOWED = {
         "one parse-then-emit pipeline; 29 unexported symbols cross file boundaries",
     "src/Node/Wiring/nodeactor/owners":
         "splitting re-exports the leaf fields the owners package exists to hide",
-    "src/Node":
-        "12 of these are guards, pinned here by their own PLACEMENT: src/Node/** headers",
     "src/NodeKinds/PairNode":
         "kindscan joins pkgDir with the literal SPEC.md; tiltring took the exported-call seam",
     ".":

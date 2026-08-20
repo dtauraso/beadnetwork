@@ -1,6 +1,6 @@
 import * as THREE from "three";
-import { columnF32, columnI32, columnU8 } from "../schema/buffer-layout/column-values";
-import { nodeColumn, ownerCounts } from "../schema/buffer-layout/column-owners";
+import { columnF32, columnI32, columnU8 } from "../../schema/buffer-layout/column-values";
+import { nodeColumn, ownerCounts } from "../../schema/buffer-layout/column-owners";
 import {
   COL_STREAM_NODE_INDEX_R, COL_STREAM_NODE_INDEX_PHI, COL_STREAM_NODE_INDEX_THETA,
   COL_STREAM_NODE_HAS_POS, COL_STREAM_NODE_RADIUS, COL_STREAM_NODE_HOVERED,
@@ -10,10 +10,10 @@ import {
   COL_STREAM_NODE_RING_M9, COL_STREAM_NODE_RING_M10, COL_STREAM_NODE_RING_M11,
   COL_STREAM_NODE_RING_M12, COL_STREAM_NODE_RING_M13, COL_STREAM_NODE_RING_M14,
   COL_STREAM_NODE_RING_M15,
-} from "./columns-gen";
-import { sceneSteps } from "../Scene/scene-frame";
-import { NODE_SPHERE_RADIUS } from "../webview/scene/buffer-scene-shared";
-import { readSelectedNodeRow } from "../webview/flags/overlay-flags-selection";
+} from "../../Node/columns-gen";
+import { sceneSteps } from "../../Scene/scene-frame";
+import { NODE_SPHERE_RADIUS } from "../../webview/scene/buffer-scene-shared";
+import { readSelectedNodeRow } from "../../webview/flags/overlay-flags-selection";
 
 const centerScratch: [number, number, number] = [0, 0, 0];
 
@@ -43,10 +43,10 @@ function nodeRadius(row: number): number {
 function nodeCount(): number { return ownerCounts().nodes; }
 
 const hoveredFlag = (row: number): boolean => columnU8(nodeColumn(row, COL_STREAM_NODE_HOVERED)) !== 0;
-import { nodeRowColors } from "./node-kind";
+import { nodeRowColors } from "../../Node/node-kind";
 import { computeNodeDepthOrder, setNodeDrawOrder } from "./node-depth-order";
 import { SELECTION_HALO_R_RATIO } from "./node-highlight-shape";
-import { overlayFlag } from "../webview/flags/overlay-flags";
+import { overlayFlag } from "../../webview/flags/overlay-flags";
 
 function copyRingMatrix(row: number, ring: THREE.InstancedMesh, slot: number): void {
   const out = ring.instanceMatrix.array;

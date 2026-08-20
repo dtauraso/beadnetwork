@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: src/webview/**/*.ts,src/webview/**/*.tsx | Go-owned shading props (roughness, ior, etc.) must reference shading-params.ts, not a numeric literal
+# PLACEMENT: src/webview/**,src/Node/**,src/Scene/**,src/Ring/**,src/Chrome/** | Go-owned shading props (roughness, ior, etc.) must reference shading-params.ts, not a numeric literal
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
@@ -10,6 +10,8 @@ SCAN_DIR=(
   "$REPO_ROOT/src/webview"
   "$REPO_ROOT/src/Node"
   "$REPO_ROOT/src/Scene"
+  "$REPO_ROOT/src/Ring"
+  "$REPO_ROOT/src/Chrome"
 )
 
 if [[ ! -d "$SCAN_DIR" ]]; then
