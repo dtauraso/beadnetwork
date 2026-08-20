@@ -66,26 +66,17 @@ the vector is maintained by composition and never re-derived. An
 `edgetable.Edge` is a plain record of endpoints and plumbing, not an actor.
 There is **no goroutine per edge**.
 
-**THERE IS NO WIRE.** A bead is not carried by anything; the SOURCE NODE's
-ANIMATION goroutine owns the whole of a bead's behaviour — it accepts the value,
-holds it at a slot, advances that slot on its own pulse, computes the position as
-`slot × slotR` along the vector to the neighbour, decides arrival when the slot
-reaches the step count, and hands the value on. Bead behaviour IS node animation;
-there is no second entity between two nodes.
+**A bead is node behaviour.** The SOURCE NODE's ANIMATION goroutine owns the whole
+of it: it accepts the value, holds it at a slot, advances that slot on its own
+pulse, computes the position as `slot × slotR` along the vector to the neighbour,
+decides arrival when the slot reaches the step count, and hands the value on. One
+goroutine owns that state from placement to delivery.
 
-This reverses what this file said for a long time: that a wire was a `BeadRun`, "a
-PASSIVE delay queue with a channel on each end", owning `inflight` as data. That
-description survived because the type survived — but everything it named was
-already being done by the node's animation goroutine, and calling the remaining
-struct a "wire" made a channel pair sound like an entity. Before that it was worse:
-the wire had its OWN goroutine (`BeadRun.run`, one per wire).
-
-A channel between two nodes is a channel, not a wire — it is the goroutine
-boundary the model requires, nothing more. **A node's input is fed by exactly one
-edge** — fan-in is not part of the model; multiple sources into one node use
-distinct inputs (see §Node lifecycle). The network is self-scheduling: there is
-no central runner, no walker, no underlying layer that "runs" the nodes. The
-network IS the running program.
+**A node's input is fed by exactly one edge** — fan-in is not part of the model;
+multiple sources into one node use distinct inputs (see §Node lifecycle). A channel
+between two nodes is the goroutine boundary, nothing more. The network is
+self-scheduling: there is no central runner, no walker, no underlying layer that
+"runs" the nodes. The network IS the running program.
 
 A channel here does NOT mean a blocking, backpressured handshake — see
 §Sending below. The source places a bead and moves on; it never waits on the
@@ -231,10 +222,9 @@ is the only context they get. It must:
 2. **Name the invariant and the actual values**, not a category. `pending exceeded %d events
    on edge -> %s.%s`, not `limit exceeded`.
 3. **Name the mechanism that should have prevented it.** This is what turns a crash into a
-   diagnosis: *"the per-cycle drain (the source node's own Outs.DriveOutWires ->
-   DrainPendingEvents) is not
-   running"*, or `AllocateWires`' *"validateNoFanIn should have rejected this fan-in at
-   parse"* — which names the earlier gate that let it through.
+   diagnosis: *"the per-cycle drain (the source node's own `Animation.stepBeads` ->
+   `DrainPendingEvents`) is not running"*, or *"`validateNoFanIn` should have rejected
+   this fan-in at parse"* — which names the earlier gate that let it through.
 
 **No `recover()` in the network.** Swallowing an assertion converts a loud, located failure
 into a silent wrong answer.
