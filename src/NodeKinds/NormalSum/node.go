@@ -8,7 +8,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/portwiring"
 	"github.com/dtauraso/wirefold/src/Node/wire/inport"
 	"github.com/dtauraso/wirefold/src/Node/wire/outport"
-	"github.com/dtauraso/wirefold/src/Node/clock"
+	"github.com/dtauraso/wirefold/src/Clock"
 	"github.com/dtauraso/wirefold/src/Node/nodeapi"
 )
 

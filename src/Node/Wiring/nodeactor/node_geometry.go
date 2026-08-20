@@ -7,7 +7,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/polarindex"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/rulenode"
-	"github.com/dtauraso/wirefold/src/Node/clock"
+	"github.com/dtauraso/wirefold/src/Clock"
 )
 
 const inboxDepth = 8

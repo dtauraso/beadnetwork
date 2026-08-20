@@ -2,7 +2,7 @@ package SliderPanel
 
 import (
 	lattice "github.com/dtauraso/wirefold/src/Node/wire/lattice"
-	"github.com/dtauraso/wirefold/src/Node/clock"
+	"github.com/dtauraso/wirefold/src/Clock"
 )
 
 const NumScale = 4

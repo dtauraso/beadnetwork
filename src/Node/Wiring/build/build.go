@@ -13,7 +13,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/polarindex"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/topoderive"
-	"github.com/dtauraso/wirefold/src/Node/clock"
+	"github.com/dtauraso/wirefold/src/Clock"
 	"github.com/dtauraso/wirefold/src/Node/nodeapi"
 	"github.com/dtauraso/wirefold/src/Node/spatial"
 	"github.com/dtauraso/wirefold/src/Node/wire"

@@ -3,7 +3,7 @@ package input
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/src/Node/clock"
+	"github.com/dtauraso/wirefold/src/Clock"
 )
 
 func (n *Node) runPeriodicEmit(ctx context.Context, working, backup *[]int, init []int, emitBeads func(), clk clock.Clock) {

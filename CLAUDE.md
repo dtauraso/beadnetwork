@@ -88,8 +88,13 @@ own package is already there. `go generate ./...` runs all of them.
   `node_modules/` live there, so there is one npm project and no path mappings.
 - **`src/NodeKinds/`** — the node kinds, and ONLY those: the kind scanner walks it and treats
   every directory it finds as a kind, so a helper parked there grows a phantom node kind.
+- **`src/Clock/`** — the human-speed clock, one of MODEL.md's own entities alongside the
+  bead and the wire, so it is a sibling of `Node/` rather than a part of it: `MsPerTick`, the
+  `Clock` interface every goroutine holds its own `Copy()` of, and the sleep/speed delivery.
+  It is the ONLY place a `time.Sleep`/`After`/`NewTicker` may park a goroutine
+  (`check-no-wall-clock-wait.sh`, whose exempt list names two files here and nothing else).
 - **`src/Node/`** — what a node USES: the spine the kinds are built from (`Wiring/`,
-  `clock/`, `nodeapi/`, `gatecommon/`, `rowevent/`, `spatial/`), the startup wiring
+  `nodeapi/`, `gatecommon/`, `rowevent/`, `spatial/`), the startup wiring
   (`runtopology/`), and the TS that draws a node. A directory here is NOT a kind — both the
   scanner and `check-dep-rules.sh` decide that by the `Register(...)` call, not by placement.
 - **`src/Bead/`** — ONE bead, and nothing else: its ring surface, its style, its buffer-block

@@ -7,7 +7,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/dtauraso/wirefold/src/Node/clock"
+	"github.com/dtauraso/wirefold/src/Clock"
 	"github.com/dtauraso/wirefold/src/Node/runtopology"
 )
 

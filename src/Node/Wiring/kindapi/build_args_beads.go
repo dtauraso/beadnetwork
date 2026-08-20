@@ -2,7 +2,7 @@ package kindapi
 
 import (
 	"github.com/dtauraso/wirefold/src/Node/Interior"
-	"github.com/dtauraso/wirefold/src/Node/clock"
+	"github.com/dtauraso/wirefold/src/Clock"
 	"github.com/dtauraso/wirefold/src/Node/rowevent"
 
 	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"

@@ -3,7 +3,7 @@
 [← BEHAVIOR.md](BEHAVIOR.md)
 
 The clock a bead's round trip is measured in (`clk.Tick()`) and the clock that PACES this
-node's own cycle (`clk.SleepCycle`, `src/Node/clock/clock.go`) are scaled by the scene's
+node's own cycle (`clk.SleepCycle`, `src/Clock/clock.go`) are scaled by the scene's
 playback speed: `SleepCycle` waits `pulsesPerCycle()` broadcaster pulses, `1/speed`
 rounded up and clamped to `[1, 64]`, so one cycle is one SCALED tick's worth of wall time
 and this goroutine itself runs slower when the slider says slower. The bead marks the

@@ -5,7 +5,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/rowtables"
 	"github.com/dtauraso/wirefold/src/Node/wire"
 	"github.com/dtauraso/wirefold/src/Node/wire/outport"
-	"github.com/dtauraso/wirefold/src/Node/clock"
+	"github.com/dtauraso/wirefold/src/Clock"
 	"github.com/dtauraso/wirefold/src/Node/rowevent"
 	"github.com/dtauraso/wirefold/src/Chrome/SliderPanel"
 	"github.com/dtauraso/wirefold/src/Chrome/TiltPanel"
