@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: src/webview/three/**/*.ts,src/webview/three/**/*.tsx | only buffer-decode-edge.ts/buffer-layout.ts may read EdgeLabelOff/Len; the renderer must not
+# PLACEMENT: src/webview/**/*.ts,src/webview/**/*.tsx | only buffer-decode-edge.ts/buffer-layout.ts may read EdgeLabelOff/Len; the renderer must not
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
-THREE_DIR="$REPO_ROOT/src/webview/three"
+WEBVIEW_DIR="$REPO_ROOT/src/webview"
 
-if [ ! -d "$THREE_DIR" ]; then
-  echo "check-edge-label-usage: MISCONFIGURED — $THREE_DIR not found; refusing a vacuous pass." >&2
+if [ ! -d "$WEBVIEW_DIR" ]; then
+  echo "check-edge-label-usage: MISCONFIGURED — $WEBVIEW_DIR not found; refusing a vacuous pass." >&2
   echo "  This is the render tree the guard exists to police (EdgeTube.tsx et al.); if it" >&2
   echo "  moved or was deleted, the invariant it enforces no longer has a home. Update the" >&2
   echo "  guard deliberately." >&2
@@ -17,7 +17,7 @@ fi
 
 PATTERN='readEdgeEdgeLabelOff|readEdgeEdgeLabelLen|EdgeLabelOff|EdgeLabelLen'
 
-hits=$(grep -rnE "$PATTERN" "$THREE_DIR" --include="*.ts" --include="*.tsx" \
+hits=$(grep -rnE "$PATTERN" "$WEBVIEW_DIR" --include="*.ts" --include="*.tsx" \
   | grep -v '/buffer-decode-edge.ts:' \
   | grep -v '/buffer-layout.ts:' \
   || true)

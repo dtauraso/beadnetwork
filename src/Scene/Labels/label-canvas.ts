@@ -1,4 +1,4 @@
-import type { BufferLabelPos } from "../../webview/three/scene/buffer-scene-shared";
+import type { BufferLabelPos } from "../../webview/scene/buffer-scene-shared";
 import { panelFont, roundRect } from "../../Chrome/PanelOverlay/panel-box";
 import * as T from "../../Chrome/chrome-theme";
 

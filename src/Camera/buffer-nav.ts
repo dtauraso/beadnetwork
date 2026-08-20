@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { nodeLabel } from "../Node/buffer-decode-node";
-import { polarToCart } from "../webview/three/polar-convert";
+import { polarToCart } from "../webview/polar-convert";
 import { sceneSteps, sceneRadius } from "../Scene/scene-frame";
 import { columnF32, columnU8 } from "../schema/buffer-layout/column-values";
 import { nodeColumn, ownerCounts } from "../schema/buffer-layout/column-owners";
@@ -9,7 +9,7 @@ import {
   COL_STREAM_NODE_POLE_ANCHOR_Z, COL_STREAM_NODE_NAV_TUBE_R, COL_STREAM_NODE_LATCHED_SEL,
   COL_STREAM_NODE_POLE_PHI, COL_STREAM_NODE_POLE_THETA, COL_STREAM_NODE_POLE_RING_R,
 } from "../Node/columns-gen";
-import { readSelectedNodeRow } from "../webview/three/controls/flags/overlay-flags-selection";
+import { readSelectedNodeRow } from "../webview/flags/overlay-flags-selection";
 
 export interface NavNode {
 

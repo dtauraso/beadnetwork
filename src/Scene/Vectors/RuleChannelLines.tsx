@@ -3,7 +3,7 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { columnBytes } from "../../schema/buffer-layout/column-values";
 import { nodeColumn, ownerCounts } from "../../schema/buffer-layout/column-owners";
-import { overlayFlag } from "../../webview/three/controls/flags/overlay-flags";
+import { overlayFlag } from "../../webview/flags/overlay-flags";
 import {
   COL_STREAM_CHANNEL_VECTOR_SHAFT_M0, COL_STREAM_CHANNEL_VECTOR_SHAFT_M1,
   COL_STREAM_CHANNEL_VECTOR_SHAFT_M2, COL_STREAM_CHANNEL_VECTOR_SHAFT_M3,

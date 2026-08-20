@@ -1,8 +1,8 @@
-import { columnU8 } from "../../../../schema/buffer-layout/column-values";
-import { nodeColumn, ownerCounts } from "../../../../schema/buffer-layout/column-owners";
+import { columnU8 } from "../../schema/buffer-layout/column-values";
+import { nodeColumn, ownerCounts } from "../../schema/buffer-layout/column-owners";
 import {
   COL_STREAM_NODE_SELECTED,
-} from "../../../../Node/columns-gen";
+} from "../../Node/columns-gen";
 
 export function readSelectedNodeRow(): number {
   const { nodes } = ownerCounts();

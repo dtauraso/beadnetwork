@@ -1,9 +1,9 @@
 import React, { useMemo, useState, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { overlayFlag, overlayFlagSignature } from "../webview/three/controls/flags/overlay-flags";
+import { overlayFlag, overlayFlagSignature } from "../webview/flags/overlay-flags";
 import { ownerCounts } from "../schema/buffer-layout/column-owners";
-import { getViewBlocks } from "../webview/three/scene/view-blocks";
+import { getViewBlocks } from "../webview/scene/view-blocks";
 import {
   type NavNode, decodeNavNodes, sceneSphereFromColumns,
 } from "./buffer-nav";

@@ -1,4 +1,4 @@
-import { decodeViewFrame } from "./three/decode/buffer-decode-view";
+import { decodeViewFrame } from "./decode/buffer-decode-view";
 
 let latestViewFrame: ArrayBuffer | null = null;
 

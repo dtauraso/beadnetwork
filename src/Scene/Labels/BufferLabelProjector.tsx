@@ -1,16 +1,16 @@
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { nodeLabel } from "../../Node/buffer-decode-node";
-import { ndcToPixel } from "../../webview/three/interaction/geometry-helpers";
+import { ndcToPixel } from "../../webview/interaction/geometry-helpers";
 import { columnF32 } from "../../schema/buffer-layout/column-values";
 import { nodeColumn, ownerCounts } from "../../schema/buffer-layout/column-owners";
 import {
   COL_STREAM_NODE_LABEL_ANCHOR_X, COL_STREAM_NODE_LABEL_ANCHOR_Y,
   COL_STREAM_NODE_LABEL_ANCHOR_Z,
 } from "../../Node/columns-gen";
-import { overlayFlag } from "../../webview/three/controls/flags/overlay-flags";
+import { overlayFlag } from "../../webview/flags/overlay-flags";
 import { setLabelPositions } from "./label-canvas";
-import type { BufferLabelPos } from "../../webview/three/scene/buffer-scene-shared";
+import type { BufferLabelPos } from "../../webview/scene/buffer-scene-shared";
 
 const _bufTopScratch = new THREE.Vector3();
 

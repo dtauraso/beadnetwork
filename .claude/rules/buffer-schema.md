@@ -2,8 +2,8 @@
 paths:
   - "src/schema/buffer-layout/**/*.go"
   - "src/schema/buffer-layout/buffer-layout.ts"
-  - "src/webview/three/**/*.tsx"
-  - "src/webview/three/**/*.ts"
+  - "src/webview/**/*.tsx"
+  - "src/webview/**/*.ts"
 ---
 
 # Content buffer schema — adding or changing a column

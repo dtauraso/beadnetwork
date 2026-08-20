@@ -1,4 +1,4 @@
-import { getLatestViewFrame, subscribeViewFrame } from "../../snapshot-buffer";
+import { getLatestViewFrame, subscribeViewFrame } from "../snapshot-buffer";
 import { decodeViewFrame } from "../decode/buffer-decode-view";
 
 export interface ViewBlocks {

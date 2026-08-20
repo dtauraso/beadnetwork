@@ -2,13 +2,13 @@ import { useEffect, useRef } from "react";
 import { Canvas } from "@react-three/fiber";
 import * as THREE from "three";
 import { sendRawInput, buildDeleteRaw, buildKeyRaw } from "../interaction/raw-input";
-import { rulesDraftOpen } from "../../../Chrome/PolarRulesPanel/draw-rules-panel";
+import { rulesDraftOpen } from "../../Chrome/PolarRulesPanel/draw-rules-panel";
 import { useInteractionControls } from "../interaction/interaction-controls";
 import type { PickFn } from "../interaction/pick-types";
 import { Scene } from "./scene-content";
 import { BufferScene, BufferLabelProjector } from "./buffer-scene";
 import { ProceduralEnvProvider } from "./scene-env";
-import { NavGuides } from "../../../Camera/NavGuides";
+import { NavGuides } from "../../Camera/NavGuides";
 import { PaneSizeSync } from "./pane-size-sync";
 
 function consumedByDraft(key: string): boolean {

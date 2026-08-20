@@ -5,7 +5,7 @@ import { decodeEdgeStreamFrame } from "../../../Node/Edge/buffer-decode-edge";
 import { decodeBeadStreamFrame } from "../../../Node/buffer-decode-bead";
 import { decodeInteriorStreamFrame } from "../../../Node/Interior/buffer-decode-interior";
 import { probeOwnerFile, type ProbeOwner } from "../../probe-files";
-import type { DecodedEvents } from "../../../webview/three/decode/buffer-decode-shared";
+import type { DecodedEvents } from "../../../webview/decode/buffer-decode-shared";
 
 function appendLines(probeFile: string, lines: string): void {
   if (lines.length === 0) return;

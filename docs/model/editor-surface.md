@@ -52,7 +52,7 @@ when a bead has arrived. Go owns the clock.
   per-owner stream's own trailing EVENTS section (`buffer-log.ts`), not a
   stdout parse. Stdout carries only the DEBUG BREADCRUMB channel's sparse
   `{"kind":"breadcrumb",...}` control-event lines.
-- **`BufferScene`** (`src/webview/three/scene/buffer-scene.tsx`)
+- **`BufferScene`** (`src/webview/scene/buffer-scene.tsx`)
   is the composition root of the render tree — it decodes the buffer and
   assembles the per-concern components that draw ALL geometry from it. It is a
   small file; the drawing lives in its siblings under `three/scene/`. Grep the symbol,
@@ -60,7 +60,7 @@ when a bead has arrived. Go owns the clock.
   mesh + ring, keyed off `node.data.fill`/`node.data.stroke` from `NODE_DEFS`; no port
   geometry — a port is a load-time channel-binding ROLE, never drawn),
   transit and interior
-  beads (`src/Node/ChainBeadInstances.tsx`, `src/webview/three/scene/beads/InteriorBeadInstances.tsx` — there is no
+  beads (`src/Node/ChainBeadInstances.tsx`, `src/webview/scene/beads/InteriorBeadInstances.tsx` — there is no
   per-edge drawn tube any more; the source node's own chain of placeholder beads is the
   edge's visual, `docs/model/entities.md`), the selection ring, its halo and the hover
   ring (placed with everything else drawn at a node's own frame, in

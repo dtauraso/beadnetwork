@@ -1,8 +1,8 @@
 import { useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
-import { postLog } from "../../log/post";
+import { postLog } from "../log/post";
 
-// PLACEMENT: src/webview/three/scene/ — mounted inside the Canvas by ThreeView, which owns
+// PLACEMENT: src/webview/scene/ — mounted inside the Canvas by ThreeView, which owns
 
 const APPEARS_COLLAPSED_W = 300;
 const APPEARS_COLLAPSED_H = 150;

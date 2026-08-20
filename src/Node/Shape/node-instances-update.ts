@@ -12,8 +12,8 @@ import {
   COL_STREAM_NODE_RING_M15,
 } from "../columns-gen";
 import { sceneSteps } from "../../Scene/scene-frame";
-import { NODE_SPHERE_RADIUS } from "../../webview/three/scene/buffer-scene-shared";
-import { readSelectedNodeRow } from "../../webview/three/controls/flags/overlay-flags-selection";
+import { NODE_SPHERE_RADIUS } from "../../webview/scene/buffer-scene-shared";
+import { readSelectedNodeRow } from "../../webview/flags/overlay-flags-selection";
 
 const centerScratch: [number, number, number] = [0, 0, 0];
 
@@ -46,7 +46,7 @@ const hoveredFlag = (row: number): boolean => columnU8(nodeColumn(row, COL_STREA
 import { nodeRowColors } from "../node-kind";
 import { computeNodeDepthOrder, setNodeDrawOrder } from "./node-depth-order";
 import { SELECTION_HALO_R_RATIO } from "./node-highlight-shape";
-import { overlayFlag } from "../../webview/three/controls/flags/overlay-flags";
+import { overlayFlag } from "../../webview/flags/overlay-flags";
 
 function copyRingMatrix(row: number, ring: THREE.InstancedMesh, slot: number): void {
   const out = ring.instanceMatrix.array;

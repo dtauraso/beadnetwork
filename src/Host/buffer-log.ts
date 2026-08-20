@@ -1,6 +1,6 @@
-import { decodeViewFrame } from "../webview/three/decode/buffer-decode-view";
-import { decodeEventLines } from "../webview/three/decode/decode-event-line";
-import type { DecodedEvents } from "../webview/three/decode/buffer-decode-shared";
+import { decodeViewFrame } from "../webview/decode/buffer-decode-view";
+import { decodeEventLines } from "../webview/decode/decode-event-line";
+import type { DecodedEvents } from "../webview/decode/buffer-decode-shared";
 
 export type DecodedEventLine =
   | { step: number; kind: "recv" | "fire"; node: string; port?: string; value?: number }

@@ -1,5 +1,5 @@
-import { BUF_LAYOUT_FINGERPRINT_HASH } from "../../../schema/buffer-layout/buffer-layout";
-import { BUF_VIEW_FRAME_HEADER_SIZE } from "../../../schema/buffer-layout/frame-tags";
+import { BUF_LAYOUT_FINGERPRINT_HASH } from "../../schema/buffer-layout/buffer-layout";
+import { BUF_VIEW_FRAME_HEADER_SIZE } from "../../schema/buffer-layout/frame-tags";
 import { STR_DECODER, decodeTrailingEvents, type DecodedEvents } from "./buffer-decode-shared";
 
 export const SCENE_TABS_HEADER_SIZE = 4;
@@ -21,7 +21,7 @@ function reportLayoutSkew(frameLayout: number): void {
     console.error(`[wirefold] buffer-layout-skew: ${message}`);
     return;
   }
-  void import("../../log/post").then(({ postLog }) => {
+  void import("../log/post").then(({ postLog }) => {
     postLog("load-error", {
       reason: "buffer-layout-skew",
       message,

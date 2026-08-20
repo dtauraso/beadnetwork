@@ -4,7 +4,7 @@
 
 Before changing anything in the **Go network** (`src/Node/`, `src/NodeKinds/`, `src/Node/wire/bead_run.go`,
 `src/Node/Wiring/build/loader.go`, `src/Node/Wiring/loadspec/builders.go`) or the **content buffer**
-(`src/schema/buffer-layout/`, the render tree under `src/webview/three/`),
+(`src/schema/buffer-layout/`, the render tree under `src/webview/`),
 read [MODEL.md](MODEL.md). It pins the model. Do not propose multi-step
 plans with options for network/wire work; name the single concrete next
 step and get the model agreed first. "Agreed first" gates the START of the
@@ -14,7 +14,7 @@ through to done; do not halt after every step to re-ask.
 Go owns the one clock and times its own bead delivery. It packs the whole scene (bead
 positions, node/port geometry, edge curves, shading params, camera pose, selection,
 overlays) into a **binary content buffer** and streams it. The render tree under
-`three/` (rooted at `buffer-scene.tsx`, which composes it) decodes
+`src/webview/` (rooted at `src/webview/scene/buffer-scene.tsx`, which composes it) decodes
 and draws that buffer; it computes no positions, no geometry, and no traversal timing,
 and never tells Go when a bead arrived. There is no JSON-trace render path and no
 `pump.ts`; the TS layer is **render + forward only** and holds no domain state (guard:
