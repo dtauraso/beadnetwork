@@ -33,8 +33,7 @@ topology/
 object, a file is a leaf holding one JSON primitive, numbered files are an ordered array
 indexed by filename — sorted NUMERICALLY, since `10` follows `9` but sorts after `1`. A
 non-integer name in an array directory is a load error, never a skipped element: skipping one
-silently shortens the array and shifts the rest. Accepted cost: **an empty collection is not
-representable**, since git cannot track an empty directory, so absent and empty read alike.
+silently shortens the array and shifts the rest.
 
 The panels.json file under view/ holds the overlays popover's disclosure open/closed
 state (`viewstate.PanelState`, `src/Chrome/Panels/Panel/panels_persist.go`) — its
