@@ -7,7 +7,7 @@ import { INTERIOR_SLOTS_PER_NODE } from "../../../Node/Interior/buffer-decode-in
 import { ChainBeadInstances } from "../../../Node/ChainBeadInstances";
 import { EdgeLines } from "../../../Node/Edge/EdgeLines";
 import { getEdgeStreamAccessor } from "../../../Node/Edge/edge-stream-blocks";
-import { TiltVectors } from "../nav/TiltVectors";
+import { TiltVectors } from "../../../Scene/TiltVectors/TiltVectors";
 import { NodeInstances } from "../../../Node/Shape/NodeInstances";
 import { RuleChannelLines } from "../../../Scene/Vectors/RuleChannelLines";
 import { PanelOverlay } from "../../../Chrome/PanelOverlay/PanelOverlay";

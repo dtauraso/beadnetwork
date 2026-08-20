@@ -1,18 +1,18 @@
 import React, { useMemo, useState, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { overlayFlag, overlayFlagSignature } from "../controls/flags/overlay-flags";
-import { ownerCounts } from "../../../schema/buffer-layout/column-owners";
-import { getViewBlocks } from "../scene/view-blocks";
+import { overlayFlag, overlayFlagSignature } from "../webview/three/controls/flags/overlay-flags";
+import { ownerCounts } from "../schema/buffer-layout/column-owners";
+import { getViewBlocks } from "../webview/three/scene/view-blocks";
 import {
   type NavNode, decodeNavNodes, sceneSphereFromColumns,
 } from "./buffer-nav";
 import { navSignature } from "./nav-signature";
-import { SceneGuides } from "../../../Scene/Guides/SceneGuides";
-import { PolarFrame } from "../../../Scene/Poles/PolarFrame";
-import { SceneVectors } from "../../../Scene/Vectors/SceneVectors";
-import { NodePoles } from "../../../Node/Poles/NodePoles";
-import { NodePoleSphere } from "../../../Node/Poles/NodePoleSphere";
+import { SceneGuides } from "../Scene/Guides/SceneGuides";
+import { PolarFrame } from "../Scene/Poles/PolarFrame";
+import { SceneVectors } from "../Scene/Vectors/SceneVectors";
+import { NodePoles } from "../Node/Poles/NodePoles";
+import { NodePoleSphere } from "../Node/Poles/NodePoleSphere";
 
 export function NavGuides() {
 

@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import * as THREE from "three";
-import { type NavNode } from "../../webview/three/nav/buffer-nav";
+import { type NavNode } from "../../Camera/buffer-nav";
 
 const UP = new THREE.Vector3(0, 1, 0);
 

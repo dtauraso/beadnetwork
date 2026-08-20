@@ -1,22 +1,22 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: src/webview/three/** | camera/nav code must not reconstruct angles from a Cartesian position (setFromVector3/makeSafe/THREE.Spherical banned outside polar.ts, PanPolarOverlay.tsx)
+# PLACEMENT: src/webview/three/**,src/Camera/** | camera/nav code must not reconstruct angles from a Cartesian position (setFromVector3/makeSafe/THREE.Spherical banned outside polar.ts, PanPolarOverlay.tsx)
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
-DIR="$REPO_ROOT/src/webview/three"
-if [ ! -d "$DIR" ]; then
-  echo "✗ no-camera-roundtrip: MISCONFIGURED — scan dir not found: $DIR" >&2
+DIRS=("$REPO_ROOT/src/webview/three" "$REPO_ROOT/src/Camera")
+for d in "${DIRS[@]}"; do if [ ! -d "$d" ]; then
+  echo "✗ no-camera-roundtrip: MISCONFIGURED — scan dir not found: $d" >&2
   exit 1
-fi
+fi; done
 
 EXCLUDE='polar\.ts|PanPolarOverlay\.tsx'
 
 PATTERN='setFromVector3|setFromCartesianCoords|\.makeSafe\(|new THREE\.Spherical'
 
-hits=$(grep -arnE "$PATTERN" "$DIR" --include='*.ts' --include='*.tsx' 2>/dev/null \
+hits=$(grep -arnE "$PATTERN" "${DIRS[@]}" --include='*.ts' --include='*.tsx' 2>/dev/null \
        | grep -vE "$EXCLUDE" || true)
 
 if [ -n "$hits" ]; then

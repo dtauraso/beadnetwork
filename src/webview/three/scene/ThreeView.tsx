@@ -8,7 +8,7 @@ import type { PickFn } from "../interaction/pick-types";
 import { Scene } from "./scene-content";
 import { BufferScene, BufferLabelProjector } from "./buffer-scene";
 import { ProceduralEnvProvider } from "./scene-env";
-import { NavGuides } from "../nav/NavGuides";
+import { NavGuides } from "../../../Camera/NavGuides";
 import { PaneSizeSync } from "./pane-size-sync";
 
 function consumedByDraft(key: string): boolean {
