@@ -3,7 +3,7 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { getEdgeStreamAccessor } from "./edge-stream-blocks";
 import { checkEdgeLandsOnNode } from "./check-edge-lands-on-node";
-import { EDGE_LINE_COLOR, INSTANCE_TINT_BASE } from "../../Bead/bead-style";
+import { EDGE_LINE_COLOR, INSTANCE_TINT_BASE } from "../../Ring/Bead/bead-style";
 
 import { DIRECTION_ZERO_EPS } from "../../webview/scene/buffer-scene-shared";
 

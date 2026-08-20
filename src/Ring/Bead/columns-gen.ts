@@ -3,7 +3,7 @@
 
 import {
   COL_STREAM_BASE_EDGE_BEAD,
-} from "../schema/buffer-layout/column-streams-gen";
+} from "../../schema/buffer-layout/column-streams-gen";
 
 export const COL_STREAM_EDGE_BEAD_X = COL_STREAM_BASE_EDGE_BEAD + 0;
 export const COL_STREAM_EDGE_BEAD_Y = COL_STREAM_BASE_EDGE_BEAD + 1;

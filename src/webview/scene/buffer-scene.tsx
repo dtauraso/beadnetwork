@@ -8,7 +8,7 @@ import { ChainBeadInstances } from "../../Node/wire/ChainBeadInstances";
 import { EdgeLines } from "../../Node/Edge/EdgeLines";
 import { getEdgeStreamAccessor } from "../../Node/Edge/edge-stream-blocks";
 import { TiltVectors } from "../../Scene/TiltVectors/TiltVectors";
-import { NodeInstances } from "../../Node/Shape/NodeInstances";
+import { NodeInstances } from "../../Node/NodeInstances";
 import { RuleChannelLines } from "../../Scene/Vectors/RuleChannelLines";
 import { ChromeCanvas } from "../../Chrome/Panels/ChromeCanvas";
 import { InteriorBeadInstances } from "../../Node/Interior/InteriorBeadInstances";

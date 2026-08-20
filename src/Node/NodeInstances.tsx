@@ -1,7 +1,7 @@
 import { useRef, useContext } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { EnvTexContext } from "../../webview/scene/scene-env";
+import { EnvTexContext } from "../webview/scene/scene-env";
 import {
   SHADING_PARAM_NODE_TRANSMISSION,
   SHADING_PARAM_NODE_THICKNESS,
@@ -13,14 +13,14 @@ import {
   SHADING_PARAM_NODE_ENV_MAP_INTENSITY,
   SHADING_PARAM_NODE_OPACITY,
   SHADING_PARAM_RING_ROUGHNESS,
-} from "../../schema/buffer-layout/shading-params";
+} from "../schema/buffer-layout/shading-params";
 import {
   BUFFER_NODE_TAG, BUFFER_RING_TAG,
   RING_PICK_TUBE_RATIO, RING_PICK_COLOR, RING_PICK_OPACITY,
   RING_BAND_MAJOR, RING_BAND_TUBE, HOVER_COLOR, HOVER_RING_TUBE_RATIO,
-} from "../../webview/scene/buffer-scene-shared";
+} from "../webview/scene/buffer-scene-shared";
 import { updateNodeInstances } from "./node-instances-update";
-import { getCanonicalRingSurfaceGeometry } from "./ring-surface-geometry";
+import { getCanonicalRingSurfaceGeometry } from "../Ring/NodeShape/ring-surface-geometry";
 import {
   SELECTION_RING_TUBE_RATIO, SELECTION_RING_RADIAL_SEGMENTS, SELECTION_RING_TUBULAR_SEGMENTS,
   SELECTION_HALO_WIDTH_SEGMENTS, SELECTION_HALO_HEIGHT_SEGMENTS,

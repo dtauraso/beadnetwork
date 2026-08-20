@@ -14,7 +14,7 @@ SELF="$(basename "$0")"
 BANNED_SYMBOLS='\bLocalPolar\b|\bLayoutHolder\b|\bSetLocalPolar\(|\bLocalPolarsSnapshot\(|\bLoadLocalPolars\(|\brequantizeLocalPolars\(|\brequantizePoleTraced\(|\bneighborSetCRequantize\('
 
 hits=$(
-  find src/Node src/NodeKinds src/Bead src/schema/buffer-layout -name '*.go' -print0 2>/dev/null \
+  find src/Node src/NodeKinds src/Ring/Bead src/schema/buffer-layout -name '*.go' -print0 2>/dev/null \
     | xargs -0 awk '
         {
           line = $0

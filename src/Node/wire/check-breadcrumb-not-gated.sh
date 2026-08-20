@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: src/Bead/*.go,src/Node/Wiring/**/*.go | only emitArrive's KindArrive append may sit behind StreamsActive; breadcrumbs always emit
+# PLACEMENT: src/Ring/Bead/*.go,src/Node/Wiring/**/*.go | only emitArrive's KindArrive append may sit behind StreamsActive; breadcrumbs always emit
 
 set -euo pipefail
 

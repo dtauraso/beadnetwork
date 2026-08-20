@@ -9,10 +9,10 @@ import (
 
 	"github.com/dtauraso/wirefold/src/Clock"
 
-	"github.com/dtauraso/wirefold/src/Bead"
+	"github.com/dtauraso/wirefold/src/Ring/Bead"
 
 	"github.com/dtauraso/wirefold/src/Chrome/Tabs"
-	NodeShape "github.com/dtauraso/wirefold/src/Node/Shape"
+	NodeShape "github.com/dtauraso/wirefold/src/Ring/NodeShape"
 	Bld "github.com/dtauraso/wirefold/src/Node/Wiring/build"
 	SW "github.com/dtauraso/wirefold/src/Node/Wiring/streamwire"
 )

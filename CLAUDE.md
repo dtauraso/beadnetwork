@@ -107,7 +107,11 @@ own package is already there. `go generate ./...` runs all of them.
   load the graph, wire every per-owner stream, seed the static columns, then launch one
   goroutine per node and block. `main.go` calls it and nothing else does. It is NOT a
   coordinator — it constructs and starts, and the network runs itself from there.
-- **`src/Bead/`** — ONE bead, and nothing else: its ring surface, its style, its buffer-block
+- **`src/Ring/`** — the ring, the shape a node and a bead are both drawn as: canonical torus
+  points computed in Go, meshed in TS. `Ring/NodeShape/` and `Ring/Bead/` are the two that
+  share it. "Ring" over "torus" because the codebase already votes that way — `RingM0`,
+  `ringPick` and `ringBand` against a handful of torus names in the low-level math.
+- **`src/Ring/Bead/`** — ONE bead, and nothing else: its ring surface, its style, its buffer-block
   row. Anything about several beads — how they are spaced, chained, or framed — is not a
   bead, it is what a node does with beads, and lives under `src/Node/`.
 - **`src/Node/wire/`** — the wire, which is what a node uses beads for: `BeadRun` (a passive

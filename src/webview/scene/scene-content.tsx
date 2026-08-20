@@ -7,7 +7,7 @@ import {
   SHADING_PARAM_SCENE_DIR_INTENSITY,
 } from "../../schema/buffer-layout/shading-params";
 import { BUFFER_NODE_TAG, BUFFER_EDGE_TAG, BUFFER_RING_TAG } from "./buffer-scene";
-import { resolveNodeDrawSlot } from "../../Node/Shape/node-depth-order";
+import { resolveNodeDrawSlot } from "../../Node/node-depth-order";
 
 function pickBufferEdge(hits: THREE.Intersection[]): string | null {
   for (const hit of hits) {

@@ -38,7 +38,7 @@ if [[ -z "$(printf '%s' "$REGISTERED" | tr -d '[:space:]')" ]]; then
 fi
 
 call_site_hits() {
-  grep -rnoE '\.Breadcrumb\("[^"]*"' --include="*.go" src/Node src/NodeKinds src/Bead src/schema/buffer-layout src/schema/buffer-layout 2>/dev/null \
+  grep -rnoE '\.Breadcrumb\("[^"]*"' --include="*.go" src/Node src/NodeKinds src/Ring/Bead src/schema/buffer-layout src/schema/buffer-layout 2>/dev/null \
     | grep -v '_test\.go:' || true
 }
 

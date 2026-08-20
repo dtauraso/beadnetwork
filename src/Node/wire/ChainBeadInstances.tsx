@@ -12,9 +12,9 @@ import {
   COL_STREAM_EDGE_BEAD_RING_M11, COL_STREAM_EDGE_BEAD_RING_M12,
   COL_STREAM_EDGE_BEAD_RING_M13, COL_STREAM_EDGE_BEAD_RING_M14,
   COL_STREAM_EDGE_BEAD_RING_M15,
-} from "../../Bead/columns-gen";
-import { beadStyleForValue } from "../../Bead/bead-style";
-import { getCanonicalBeadRingSurfaceGeometry } from "../../Bead/bead-ring-surface-geometry";
+} from "../../Ring/Bead/columns-gen";
+import { beadStyleForValue } from "../../Ring/Bead/bead-style";
+import { getCanonicalBeadRingSurfaceGeometry } from "../../Ring/Bead/bead-ring-surface-geometry";
 import { SHADING_PARAM_BEAD_RADIUS } from "../../schema/buffer-layout/shading-params";
 
 const RING_COLS = [
