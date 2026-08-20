@@ -30,7 +30,7 @@ is told which bead is lit, not asked when a bead has arrived.
   state.
 - When the node's firing rule is satisfied, it fires.
 - **One edge per input.** An input is a channel-binding ROLE — a name in the kind's
-  `[]portwiring.PortSpec` that `a.In("<name>")` binds a channel to at LOAD, never a Go field
+  SPEC.md `## Ports` table that `a.In("<name>")` binds a channel to at LOAD, never a Go field
   per channel — and it is fed by EXACTLY ONE edge. Fan-in (several edges into one input) is
   not part of the model. A node that needs several sources declares DISTINCT inputs (e.g. a
   gate's separate left/right inputs). Several beads may still be in flight toward one input at

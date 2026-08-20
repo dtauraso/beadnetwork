@@ -6,7 +6,6 @@ import (
 	"github.com/dtauraso/wirefold/src/NodeKinds/nodeapi"
 
 	Wiring "github.com/dtauraso/wirefold/src/Node/Wiring/kindapi"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/portwiring"
 	"github.com/dtauraso/wirefold/src/NodeKinds/gatecommon"
 )
 
@@ -21,11 +20,6 @@ func (g *SelectRight) Update(ctx context.Context) {
 func init() {
 
 	Wiring.RegisterBuilder("SelectRight",
-		[]portwiring.PortSpec{
-			{Name: "FromLeft", Dir: portwiring.PortIn},
-			{Name: "FromRight", Dir: portwiring.PortIn},
-			{Name: "ToPassed", Dir: portwiring.PortOut},
-		},
 		func(a Wiring.BuildArgs) (nodeapi.Node, error) {
 			n := &SelectRight{}
 			n.Fire = a.Fire()

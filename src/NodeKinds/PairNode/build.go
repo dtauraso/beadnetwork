@@ -4,12 +4,11 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/dtauraso/wirefold/src/Clock"
+	clock "github.com/dtauraso/wirefold/src/Clock"
 	"github.com/dtauraso/wirefold/src/NodeKinds/nodeapi"
 
-	"github.com/dtauraso/wirefold/src/NodeKinds/PairNode/tiltring"
 	Wiring "github.com/dtauraso/wirefold/src/Node/Wiring/kindapi"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/portwiring"
+	"github.com/dtauraso/wirefold/src/NodeKinds/PairNode/tiltring"
 )
 
 func (n *Node) wirePlumbing(a Wiring.BuildArgs) {
@@ -65,10 +64,6 @@ func (n *Node) wireVectorChannels(a Wiring.BuildArgs) {
 func init() {
 
 	Wiring.RegisterBuilder("PairNode",
-		[]portwiring.PortSpec{
-			{Name: "In", Dir: portwiring.PortIn},
-			{Name: "Out", Dir: portwiring.PortOut},
-		},
 		func(a Wiring.BuildArgs) (nodeapi.Node, error) {
 			n := &Node{
 				plumb: nodePlumbing{Clock: clock.NewRealClock()},

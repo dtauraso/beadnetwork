@@ -49,8 +49,8 @@
   which is a live 2×2 interior VISUAL grid position, `slot = gridRow*2 + gridCol`, for where a
   held bead is drawn inside a node.)
 
-- **Node input.** A ROLE, not a place: declared by the node kind as a `Wiring.PortSpec` and
-  bound to a channel at LOAD time (`a.In(...)`), never drawn and never hit-testable, and read
+- **Node input.** A ROLE, not a place: declared by the node kind in its SPEC.md `## Ports`
+  table — the one declaration, which the Go side reads generated — and bound to a channel at LOAD time (`a.In(...)`), never drawn and never hit-testable, and read
   through a `Receiver` (`src/Node/BeadAnimation/receiver.go`). **One input is fed by exactly one
   edge**; a node that needs several sources declares several inputs (see §Node lifecycle).
   Inputs carry no geometry of their own — an edge attaches at its two nodes' SURFACES

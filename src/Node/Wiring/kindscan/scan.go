@@ -44,7 +44,7 @@ func CollectKinds(nodesDir string) []KindEntry {
 			fatalf("duplicate kind name %q registered by both %q and %q", goKind, prev, e.Name())
 		}
 		seenGoKind[goKind] = e.Name()
-		view, accentOverrides, edgeKindOverrides, optionalPorts, specPortNames, err := parseSpecMD(pkgDir)
+		view, accentOverrides, edgeKindOverrides, optionalPorts, err := parseSpecMD(pkgDir)
 		if err != nil {
 
 			fatalf("kind %q registers a Go runtime but its SPEC.md View section is missing/broken: %v", e.Name(), err)
@@ -53,14 +53,10 @@ func CollectKinds(nodesDir string) []KindEntry {
 			fatalf("kind %q registers a Go runtime but its SPEC.md ## View has an empty view.kind", e.Name())
 		}
 
-		astPortIDs := map[string]bool{}
-		for _, p := range ports {
-			astPortIDs[p.ID] = true
-		}
-		for name := range specPortNames {
-			if !astPortIDs[name] {
-				fatalf("kind %q: SPEC.md Ports table Name %q does not match any Go channel-typed port (got: %v)", e.Name(), name, sortedKeys(astPortIDs))
-			}
+		checkPortRequests(e.Name(), pkgDir, ports)
+
+		if len(ports) == 0 {
+			fatalf("kind %q registers a Go runtime but its SPEC.md has no ## Ports rows: the table is the only declaration of a kind's inputs and outputs, so a kind without one binds nothing", e.Name())
 		}
 
 		for i, p := range ports {

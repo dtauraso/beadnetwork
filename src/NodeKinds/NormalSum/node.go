@@ -3,11 +3,10 @@ package NormalSum
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/src/Clock"
+	clock "github.com/dtauraso/wirefold/src/Clock"
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	Wiring "github.com/dtauraso/wirefold/src/Node/Wiring/kindapi"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/portwiring"
 	"github.com/dtauraso/wirefold/src/NodeKinds/nodeapi"
 )
 
@@ -114,11 +113,6 @@ func wrapIndex(i, points int32) int32 {
 
 func init() {
 	Wiring.RegisterBuilder("NormalSum",
-		[]portwiring.PortSpec{
-			{Name: "NormalA", Dir: portwiring.PortIn},
-			{Name: "NormalB", Dir: portwiring.PortIn},
-			{Name: "Out", Dir: portwiring.PortOut},
-		},
 		func(a Wiring.BuildArgs) (nodeapi.Node, error) {
 			n := &Node{}
 			n.Fire = a.Fire()
