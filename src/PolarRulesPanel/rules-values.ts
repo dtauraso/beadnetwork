@@ -1,6 +1,6 @@
 import { columnF32, columnI32, columnU8 } from "../schema/buffer-layout/column-values";
 import { nodeColumn } from "../schema/buffer-layout/column-owners";
-import { getEdgeStreamAccessor } from "../Edge/edge-stream-blocks";
+import { getEdgeStreamAccessor } from "../Node/Edge/edge-stream-blocks";
 import {
   COL_STREAM_NODE_DRAG_RLOCKED, COL_STREAM_NODE_DRAG_PHI_LOCKED,
   COL_STREAM_NODE_DRAG_THETA_MAX, COL_STREAM_NODE_DRAG_ACTIVE,

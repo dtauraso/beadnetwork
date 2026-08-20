@@ -6,7 +6,7 @@ import (
 
 	"github.com/dtauraso/wirefold/src/Node/rowevent"
 
-	EdgeB "github.com/dtauraso/wirefold/src/Edge"
+	EdgeB "github.com/dtauraso/wirefold/src/Node/Edge"
 	W "github.com/dtauraso/wirefold/src/Node/Wiring/dispatch"
 	SW "github.com/dtauraso/wirefold/src/Node/Wiring/streamwire"
 	"github.com/dtauraso/wirefold/src/schema/buffer-layout/colstream"

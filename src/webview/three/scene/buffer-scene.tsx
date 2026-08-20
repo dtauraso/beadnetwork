@@ -5,8 +5,8 @@ import { ownerCounts } from "../../../schema/buffer-layout/column-owners";
 import { INTERIOR_SLOTS_PER_NODE } from "../../../Node/Interior/buffer-decode-interior";
 
 import { ChainBeadInstances } from "../../../Node/ChainBeadInstances";
-import { EdgeLines } from "../../../Edge/EdgeLines";
-import { getEdgeStreamAccessor } from "../../../Edge/edge-stream-blocks";
+import { EdgeLines } from "../../../Node/Edge/EdgeLines";
+import { getEdgeStreamAccessor } from "../../../Node/Edge/edge-stream-blocks";
 import { TiltVectors } from "../nav/TiltVectors";
 import { NodeInstances } from "../../../Node/Shape/NodeInstances";
 import { RuleChannelLines } from "../../../Scene/Vectors/RuleChannelLines";

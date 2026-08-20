@@ -10,7 +10,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/rowevent"
 
 	BeadB "github.com/dtauraso/wirefold/src/Node/wire"
-	EdgeB "github.com/dtauraso/wirefold/src/Edge"
+	EdgeB "github.com/dtauraso/wirefold/src/Node/Edge"
 	W "github.com/dtauraso/wirefold/src/Node/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/framegeom"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor/nodeframe"

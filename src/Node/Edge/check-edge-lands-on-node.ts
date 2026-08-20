@@ -1,12 +1,12 @@
-import { columnF32 } from "../schema/buffer-layout/column-values";
-import { nodeColumn, ownerCounts } from "../schema/buffer-layout/column-owners";
+import { columnF32 } from "../../schema/buffer-layout/column-values";
+import { nodeColumn, ownerCounts } from "../../schema/buffer-layout/column-owners";
 import {
   COL_STREAM_NODE_POLE_ANCHOR_X, COL_STREAM_NODE_POLE_ANCHOR_Y,
   COL_STREAM_NODE_POLE_ANCHOR_Z,
-} from "../Node/columns-gen";
+} from "../columns-gen";
 import { getEdgeStreamAccessor } from "./edge-stream-blocks";
-import { sceneSteps } from "../Scene/scene-frame";
-import { postLog } from "../webview/log/post";
+import { sceneSteps } from "../../Scene/scene-frame";
+import { postLog } from "../../webview/log/post";
 
 const TOLERANCE = 0.25;
 

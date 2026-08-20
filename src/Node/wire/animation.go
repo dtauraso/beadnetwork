@@ -12,7 +12,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/clock"
 	"github.com/dtauraso/wirefold/src/Node/rowevent"
 	"github.com/dtauraso/wirefold/src/Node/spatial"
-	SF "github.com/dtauraso/wirefold/src/Edge"
+	SF "github.com/dtauraso/wirefold/src/Node/Edge"
 	"github.com/dtauraso/wirefold/src/SliderPanel"
 )
 

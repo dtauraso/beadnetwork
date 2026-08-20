@@ -1,7 +1,7 @@
-import { BUF_EDGE_STREAM_FRAME_HEADER_SIZE } from "../schema/buffer-layout/frame-tags";
-import { STR_DECODER, decodeTrailingEvents, type DecodedEvents } from "../webview/three/decode/buffer-decode-shared";
-import { columnBytes } from "../schema/buffer-layout/column-values";
-import { edgeColumn } from "../schema/buffer-layout/column-owners";
+import { BUF_EDGE_STREAM_FRAME_HEADER_SIZE } from "../../schema/buffer-layout/frame-tags";
+import { STR_DECODER, decodeTrailingEvents, type DecodedEvents } from "../../webview/three/decode/buffer-decode-shared";
+import { columnBytes } from "../../schema/buffer-layout/column-values";
+import { edgeColumn } from "../../schema/buffer-layout/column-owners";
 import {
   COL_STREAM_EDGE_LABEL,
 } from "./columns-gen";

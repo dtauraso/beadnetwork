@@ -1,4 +1,4 @@
-package Edge
+package edge
 
 var _ = bufLayoutEdge{}
 

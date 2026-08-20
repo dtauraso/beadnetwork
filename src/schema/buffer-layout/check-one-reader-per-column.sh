@@ -36,7 +36,7 @@ WRITERS = {
 
 OBSERVERS = {
     "src/webview/three/decode/decode-event-line.ts",
-    "src/Edge/check-edge-lands-on-node.ts",
+    "src/Node/Edge/check-edge-lands-on-node.ts",
 
     "src/webview/main.tsx",
 }

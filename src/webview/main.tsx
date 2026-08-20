@@ -13,7 +13,7 @@ import { setColumnValue, columnDiagnostics, columnI32, columnF32, columnU8 } fro
 import { nodeColumn, edgeColumn, ownerCounts } from "../schema/buffer-layout/column-owners";
 import {
   COL_STREAM_EDGE_SX,
-} from "../Edge/columns-gen";
+} from "../Node/Edge/columns-gen";
 import {
   COL_STREAM_NODE_INDEX_R, COL_STREAM_NODE_INDEX_PHI, COL_STREAM_NODE_INDEX_THETA,
   COL_STREAM_NODE_HAS_POS,
