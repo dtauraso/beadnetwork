@@ -38,7 +38,7 @@ The highest-volume of these — `KindEdgeBead`, emitted per in-flight bead per t
 `src/Node/BeadAnimation/bead_line_drive.go`'s `stepAll` — is gated at the SOURCE, not just at the TS
 write. `stepAll` reads a package-level `edgeBeadTraceEnabled` bool set ONCE at process
 startup from the `WIREFOLD_EDGE_BEAD_TRACE` env var (same "one env var, read once before
-any goroutine starts" shape as `WIREFOLD_STREAM_FDS` — see `src/Node/Wiring/streamwire/stream_fds.go`); the
+any goroutine starts" shape as `WIREFOLD_STREAM_FDS` — see `src/runtopology/streamwire/stream_fds.go`); the
 ext host (`src/extension/runCommand.ts`) sets it from the SAME
 `isProbeTraceEnabled()` that gates the TS-side write, so there is one source of truth for
 the setting. With tracing off, Go never appends the event to the frame at all — TS

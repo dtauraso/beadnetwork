@@ -9,10 +9,10 @@ import (
 	"strconv"
 
 	"github.com/dtauraso/wirefold/src/Input/dispatch"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/movemsg"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor/nodefiles"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/nodedrag"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/polarindex"
+	"github.com/dtauraso/wirefold/src/Node/movemsg"
+	"github.com/dtauraso/wirefold/src/Node/nodeactor/nodefiles"
+	"github.com/dtauraso/wirefold/src/Node/nodedrag"
+	"github.com/dtauraso/wirefold/src/Polar/polarindex"
 )
 
 func (b *buildCtx) buildMoveDispatch() error {

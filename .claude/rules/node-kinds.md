@@ -34,7 +34,7 @@ dispatch core; `src/NodeKinds/kindreg` holds the registry itself — `Registry`,
 `BuildDeps`, `BuildRegistry`, `BuildTypeMaps` — which `kindapi` calls into but node kinds
 never import directly). The kind
 does not pass its ports at all: `RegisterBuilder(kind, build)` reads the generated
-`portwiring.KindPorts`, which `src/Node/Wiring/nodegeom/gen` writes from the SPEC.md `## Ports`
+`portwiring.KindPorts`, which `src/Node/nodegeom/gen` writes from the SPEC.md `## Ports`
 table. The kind used to pass an explicit `[]portwiring.PortSpec` literal, which was a SECOND
 declaration of the same inputs and outputs and free to drift from the table the editor draws
 from. `BuildRegistry()` survives but no longer BUILDS

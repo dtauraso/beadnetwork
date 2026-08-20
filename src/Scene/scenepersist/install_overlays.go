@@ -2,7 +2,7 @@ package scenepersist
 
 import (
 	"github.com/dtauraso/wirefold/src/Scene/scenepaths"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/viewstate"
+	"github.com/dtauraso/wirefold/src/Scene/viewstate"
 
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/Panel"
 	"github.com/dtauraso/wirefold/src/Overlay"

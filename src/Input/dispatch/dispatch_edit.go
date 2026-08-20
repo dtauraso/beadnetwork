@@ -7,7 +7,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
 
 	"github.com/dtauraso/wirefold/src/Input/inputcodec"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/nodecrud"
+	"github.com/dtauraso/wirefold/src/Node/nodecrud"
 )
 
 func HandleRawInputMsg(ctx context.Context, msg inputcodec.StdinMsg, slotReg inputcodec.SlotRegistry, md *MoveDispatch, speedSinks SliderPanel.Sinks) {

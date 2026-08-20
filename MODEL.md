@@ -2,7 +2,7 @@
 
 Read this before changing anything in the **Go network** (`src/Node/`,
 `src/Node/BeadAnimation/bead_animation.go`, `src/runtopology/load_topology.go`,
-`src/Node/Wiring/loadspec/builders.go`) or anything that schedules/orders work. If
+`src/runtopology/loadspec/builders.go`) or anything that schedules/orders work. If
 your reasoning slips into retired vocabulary, you are in the wrong
 frame. Stop, re-read this file, and re-derive from the model.
 
@@ -172,7 +172,7 @@ matrix per torus that Go composes**. TS uploads both and draws. It generates no 
 composes no transform, and holds no tube ratio.
 
 The surface is the unit torus at `rho = 1`, tube `a` = the kind's tube ratio, on the
-`theta == 0` disk (`src/Node/Wiring/framegeom/ring_surface.go`):
+`theta == 0` disk (`src/Node/framegeom/ring_surface.go`):
 
 ```
 w   = rho + a*cos(v)

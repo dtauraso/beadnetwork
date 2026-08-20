@@ -3,7 +3,7 @@
 ## Model — read first
 
 Before changing anything in the **Go network** (`src/Node/`, `src/NodeKinds/`, `src/Node/BeadAnimation/bead_line.go`,
-`src/runtopology/load_topology.go`, `src/Node/Wiring/loadspec/builders.go`) or the **content buffer**
+`src/runtopology/load_topology.go`, `src/runtopology/loadspec/builders.go`) or the **content buffer**
 (`src/schema/buffer-layout/`, the render tree under `src/webview/`),
 read [MODEL.md](MODEL.md). It pins the model. Do not propose multi-step
 plans with options for network/bead work; name the single concrete next
@@ -25,7 +25,7 @@ and step count), bead line (`BeadLine` — the line a bead travels, holding the 
 stepped by its SOURCE NODE's animation goroutine, which owns a bead from placement to
 delivery), node goroutine, node input, and clock
 ([docs/model/entities.md](docs/model/entities.md); a line's step count is
-`src/Node/Wiring/edgegeom/chain_length.go`). The active node kinds are the structs under `src/NodeKinds/<Kind>/`.
+`src/Node/Edge/edgegeom/chain_length.go`). The active node kinds are the structs under `src/NodeKinds/<Kind>/`.
 
 **Drift rule:** see MODEL.md's "Drift rule" section for the full statement (guards:
 `src/webview/check-no-webview-state.sh`, `src/check-no-await-on-bridge.sh`).

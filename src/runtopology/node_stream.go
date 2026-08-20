@@ -11,9 +11,9 @@ import (
 
 	EdgeB "github.com/dtauraso/wirefold/src/Node/Edge"
 	W "github.com/dtauraso/wirefold/src/Input/dispatch"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/framegeom"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor/nodeframe"
-	SW "github.com/dtauraso/wirefold/src/Node/Wiring/streamwire"
+	"github.com/dtauraso/wirefold/src/Node/framegeom"
+	"github.com/dtauraso/wirefold/src/Node/nodeactor/nodeframe"
+	SW "github.com/dtauraso/wirefold/src/runtopology/streamwire"
 	TiltB "github.com/dtauraso/wirefold/src/Scene/TiltVectors"
 	VecB "github.com/dtauraso/wirefold/src/Scene/Vectors"
 	"github.com/dtauraso/wirefold/src/schema/buffer-layout/colstream"

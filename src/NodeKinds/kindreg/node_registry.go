@@ -3,10 +3,10 @@ package kindreg
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/src/Node/Wiring/loadspec"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/movemsg"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/nodegeom"
+	"github.com/dtauraso/wirefold/src/runtopology/loadspec"
+	"github.com/dtauraso/wirefold/src/Node/movemsg"
+	"github.com/dtauraso/wirefold/src/Node/nodeactor"
+	"github.com/dtauraso/wirefold/src/Node/nodegeom"
 	"github.com/dtauraso/wirefold/src/NodeKinds/portwiring"
 	"github.com/dtauraso/wirefold/src/NodeKinds/nodeapi"
 )

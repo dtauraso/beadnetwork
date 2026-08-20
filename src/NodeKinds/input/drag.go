@@ -3,8 +3,8 @@ package input
 import (
 	"math"
 
-	"github.com/dtauraso/wirefold/src/Node/Wiring/nodedrag"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/polarindex"
+	"github.com/dtauraso/wirefold/src/Node/nodedrag"
+	"github.com/dtauraso/wirefold/src/Polar/polarindex"
 )
 
 func init() {

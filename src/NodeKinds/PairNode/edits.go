@@ -2,7 +2,7 @@ package PairNode
 
 import (
 	"github.com/dtauraso/wirefold/src/NodeKinds/PairNode/tiltring"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/movemsg"
+	"github.com/dtauraso/wirefold/src/Node/movemsg"
 	"github.com/dtauraso/wirefold/src/Clock"
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/TiltPanel"
 )

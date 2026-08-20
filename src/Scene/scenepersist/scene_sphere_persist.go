@@ -3,11 +3,11 @@ package scenepersist
 import (
 	"path/filepath"
 
-	"github.com/dtauraso/wirefold/src/Node/Wiring/geom/polar"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/geomseeds"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/jsonpersist"
+	"github.com/dtauraso/wirefold/src/Polar/polar"
+	"github.com/dtauraso/wirefold/src/runtopology/geomseeds"
+	"github.com/dtauraso/wirefold/src/jsonpersist"
 	"github.com/dtauraso/wirefold/src/Scene/scenepaths"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/viewstate"
+	"github.com/dtauraso/wirefold/src/Scene/viewstate"
 )
 
 const (

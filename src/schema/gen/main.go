@@ -39,7 +39,7 @@ func generateNodeDefs(srcRoot string, kinds []kindscan.KindEntry) {
 }
 
 func generateWireDefs(repoRoot, srcRoot string) {
-	loaderPath := filepath.Join(genpaths.NetworkDir(repoRoot), "Wiring", "loadspec", "topo_spec.go")
+	loaderPath := filepath.Join(srcRoot, "runtopology", "loadspec", "topo_spec.go")
 	wireProps, err := wiredefs.ParseWirePropsFromFile(loaderPath)
 	if err != nil {
 		genpaths.Fatalf("parse wire props from loadspec/topo_spec.go: %v", err)

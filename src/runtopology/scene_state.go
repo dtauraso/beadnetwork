@@ -6,7 +6,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Scene/scene"
 	"github.com/dtauraso/wirefold/src/Camera"
 	"github.com/dtauraso/wirefold/src/Scene/scenepersist"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/viewpersist"
+	"github.com/dtauraso/wirefold/src/Scene/viewpersist"
 )
 
 func loadSceneState(scenePath string, md *W.MoveDispatch, speedSinks SliderPanel.Sinks) {

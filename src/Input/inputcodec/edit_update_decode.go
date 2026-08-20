@@ -1,6 +1,6 @@
 package inputcodec
 
-import "github.com/dtauraso/wirefold/src/Node/Wiring/recread"
+import "github.com/dtauraso/wirefold/src/Input/recread"
 
 func decodeEditUpdate(r *recread.Reader) (StdinMsg, bool) {
 	kindByte, err1 := r.U8()

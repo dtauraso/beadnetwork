@@ -1,6 +1,6 @@
 package inputcodec
 
-import "github.com/dtauraso/wirefold/src/Node/Wiring/recread"
+import "github.com/dtauraso/wirefold/src/Input/recread"
 
 func DecodeInputRecord(rec []byte) (StdinMsg, bool) {
 	if len(rec) == 0 {

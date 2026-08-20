@@ -10,7 +10,7 @@ import (
 	"github.com/dtauraso/wirefold/src/NodeKinds/nodeapi"
 
 	Wiring "github.com/dtauraso/wirefold/src/NodeKinds/kindapi"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor"
+	"github.com/dtauraso/wirefold/src/Node/nodeactor"
 	"github.com/dtauraso/wirefold/src/NodeKinds/gatecommon"
 )
 

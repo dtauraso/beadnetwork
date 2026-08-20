@@ -1,7 +1,7 @@
 package kindreg
 
 import (
-	"github.com/dtauraso/wirefold/src/Node/Wiring/loadspec"
+	"github.com/dtauraso/wirefold/src/runtopology/loadspec"
 	"github.com/dtauraso/wirefold/src/NodeKinds/portwiring"
 )
 

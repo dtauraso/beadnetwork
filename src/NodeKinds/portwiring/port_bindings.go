@@ -6,7 +6,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Clock"
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/src/Node/Interior"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/rowtables"
+	"github.com/dtauraso/wirefold/src/Scene/rowtables"
 	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 )
 

@@ -4,7 +4,7 @@ import (
 	"math"
 
 	"github.com/dtauraso/wirefold/src/Camera"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/geom/polar"
+	"github.com/dtauraso/wirefold/src/Polar/polar"
 	"github.com/dtauraso/wirefold/src/Input/inputcodec"
 	"github.com/dtauraso/wirefold/src/spatial"
 )

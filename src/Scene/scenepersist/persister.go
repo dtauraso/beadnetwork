@@ -1,6 +1,6 @@
 package scenepersist
 
-import "github.com/dtauraso/wirefold/src/Node/Wiring/jsonpersist"
+import "github.com/dtauraso/wirefold/src/jsonpersist"
 
 type Persister[T any] struct {
 	Path  string

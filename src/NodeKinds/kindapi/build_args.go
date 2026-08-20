@@ -7,8 +7,8 @@ import (
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/src/Node/Interior"
 	"github.com/dtauraso/wirefold/src/NodeKinds/kindreg"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/loadspec"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/nodegeom"
+	"github.com/dtauraso/wirefold/src/runtopology/loadspec"
+	"github.com/dtauraso/wirefold/src/Node/nodegeom"
 	"github.com/dtauraso/wirefold/src/NodeKinds/portwiring"
 	"github.com/dtauraso/wirefold/src/NodeKinds/nodeapi"
 )

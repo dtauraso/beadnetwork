@@ -5,10 +5,10 @@ import (
 
 	"github.com/dtauraso/wirefold/src/Input/gesturefsm"
 	"github.com/dtauraso/wirefold/src/Input/inputcodec"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/moverreg"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/nodemove"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/rowtables"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/viewstate"
+	"github.com/dtauraso/wirefold/src/Node/moverreg"
+	"github.com/dtauraso/wirefold/src/Node/nodemove"
+	"github.com/dtauraso/wirefold/src/Scene/rowtables"
+	"github.com/dtauraso/wirefold/src/Scene/viewstate"
 )
 
 type Deps struct {

@@ -3,7 +3,7 @@ package gesture
 import (
 	"github.com/dtauraso/wirefold/src/Input/gesturefsm"
 	"github.com/dtauraso/wirefold/src/Input/inputcodec"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/nodemove"
+	"github.com/dtauraso/wirefold/src/Node/nodemove"
 )
 
 var hitClassifiers = map[string]func(d Deps, g *gesturefsm.GestureState, ev inputcodec.RawInputMsg){

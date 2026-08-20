@@ -1,6 +1,6 @@
 package kindapi
 
-import "github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor"
+import "github.com/dtauraso/wirefold/src/Node/nodeactor"
 
 func (a BuildArgs) ClaimSelfDrive() *nodeactor.PairNodeSelf {
 	if a.deps.ClaimSelfDriveGeom == nil {

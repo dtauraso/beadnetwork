@@ -1,7 +1,7 @@
 package kindapi
 
 import (
-	"github.com/dtauraso/wirefold/src/Node/Wiring/movemsg"
+	"github.com/dtauraso/wirefold/src/Node/movemsg"
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/TiltPanel"
 )
 

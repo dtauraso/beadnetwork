@@ -5,8 +5,8 @@ import (
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/TiltPanel"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/movemsg"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor"
+	"github.com/dtauraso/wirefold/src/Node/movemsg"
+	"github.com/dtauraso/wirefold/src/Node/nodeactor"
 	"github.com/dtauraso/wirefold/src/NodeKinds/PairNode/tiltring"
 )
 

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/TiltPanel"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/jsonpersist"
+	"github.com/dtauraso/wirefold/src/jsonpersist"
 	"github.com/dtauraso/wirefold/src/Scene/scenepaths"
 )
 

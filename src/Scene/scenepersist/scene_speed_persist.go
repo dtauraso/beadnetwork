@@ -7,9 +7,9 @@ import (
 
 	"encoding/json"
 
-	"github.com/dtauraso/wirefold/src/Node/Wiring/jsonpersist"
+	"github.com/dtauraso/wirefold/src/jsonpersist"
 	"github.com/dtauraso/wirefold/src/Scene/scenepaths"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/viewstate"
+	"github.com/dtauraso/wirefold/src/Scene/viewstate"
 )
 
 const DefaultPlaybackSpeed = 1.0

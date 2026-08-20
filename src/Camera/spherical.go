@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/dtauraso/wirefold/src/Node/Wiring/geom/polar"
+	"github.com/dtauraso/wirefold/src/Polar/polar"
 )
 
 type Dir struct {
