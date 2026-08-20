@@ -3,12 +3,11 @@ package NormalSum
 import (
 	"context"
 
+	"github.com/dtauraso/wirefold/src/Clock"
+	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	Wiring "github.com/dtauraso/wirefold/src/Node/Wiring/kindapi"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/portwiring"
-	"github.com/dtauraso/wirefold/src/Node/wire/inport"
-	"github.com/dtauraso/wirefold/src/Node/wire/outport"
-	"github.com/dtauraso/wirefold/src/Clock"
 	"github.com/dtauraso/wirefold/src/NodeKinds/nodeapi"
 )
 
@@ -22,9 +21,9 @@ type Node struct {
 
 	Points int32
 
-	NormalA *inport.In
-	NormalB *inport.In
-	Out     *outport.Out
+	NormalA *beadanimation.Receiver
+	NormalB *beadanimation.Receiver
+	Out     *beadanimation.Sender
 	SpeedCh <-chan float64
 
 	LatticeIn <-chan int32

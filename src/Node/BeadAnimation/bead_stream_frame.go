@@ -1,4 +1,4 @@
-package wire
+package beadanimation
 
 import (
 	"encoding/binary"

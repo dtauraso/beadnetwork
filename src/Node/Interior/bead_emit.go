@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/dtauraso/wirefold/src/Clock"
-	lattice "github.com/dtauraso/wirefold/src/Node/wire/lattice"
+	lattice "github.com/dtauraso/wirefold/src/Node/BeadAnimation/lattice"
 )
 
 func EmitNodeBeads(nodeName string, working, backup []int, emitter *Emitter) {

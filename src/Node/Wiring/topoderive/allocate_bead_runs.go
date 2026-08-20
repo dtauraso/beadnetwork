@@ -4,25 +4,25 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/loadspec"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodegeom"
-	"github.com/dtauraso/wirefold/src/Node/wire"
+	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 )
 
-func AllocateBeadRuns(spec loadspec.TopoSpec, nodeGeoms map[string]nodegeom.NodeGeom) (
-	destRun map[string]*wire.BeadRun,
-	edgeRun loadspec.BeadRunRegistry,
+func AllocateBeadLines(spec loadspec.TopoSpec, nodeGeoms map[string]nodegeom.NodeGeom) (
+	destRun map[string]*beadanimation.BeadLine,
+	edgeRun loadspec.BeadLineRegistry,
 	edgeEndpoints map[string]inputcodec.EdgeEndpoints,
 ) {
-	destRun = map[string]*wire.BeadRun{}
-	edgeRun = loadspec.BeadRunRegistry{}
+	destRun = map[string]*beadanimation.BeadLine{}
+	edgeRun = loadspec.BeadLineRegistry{}
 	edgeEndpoints = map[string]inputcodec.EdgeEndpoints{}
 	for _, e := range spec.Edges {
 		destKey := e.Target + "." + e.TargetHandle
 
 		if _, exists := destRun[destKey]; exists {
-			panic("AllocateBeadRuns: two edges target " + destKey + " — validateNoFanIn should have rejected this fan-in at parse")
+			panic("AllocateBeadLines: two edges target " + destKey + " — validateNoFanIn should have rejected this fan-in at parse")
 		}
 
-		pw := wire.NewBeadRun()
+		pw := beadanimation.NewBeadLine()
 		pw.Owner = e.Source
 		pw.Edge = e.Label
 		pw.Target = e.Target

@@ -1,16 +1,15 @@
-package inport
+package beadanimation
 
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/src/Node/wire"
 	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 )
 
-type In struct {
+type Receiver struct {
 	ch <-chan int
 
-	pw  *wire.BeadRun
+	line  *BeadLine
 	ctx context.Context
 
 	node string
@@ -21,12 +20,12 @@ type In struct {
 	portRow int32
 }
 
-func (i *In) PollRecv() (int, bool) {
+func (i *Receiver) PollRecv() (int, bool) {
 	if i == nil {
 		return 0, false
 	}
-	if i.pw != nil {
-		n, ok := i.pw.Recv()
+	if i.line != nil {
+		n, ok := i.line.Recv()
 		if !ok {
 			return 0, false
 		}
@@ -45,7 +44,7 @@ func (i *In) PollRecv() (int, bool) {
 	}
 }
 
-func (i *In) flushRecvEvent(value int) {
+func (i *Receiver) flushRecvEvent(value int) {
 	if i.stream == nil {
 		return
 	}
@@ -59,22 +58,22 @@ func (i *In) flushRecvEvent(value int) {
 	}})
 }
 
-func NewInChan(ch <-chan int, node, port string, stream func() B.EventSink) *In {
-	return &In{ch: ch, node: node, port: port, portRow: -1, stream: stream}
+func NewInChan(ch <-chan int, node, port string, stream func() B.EventSink) *Receiver {
+	return &Receiver{ch: ch, node: node, port: port, portRow: -1, stream: stream}
 }
 
-func NewInPaced(pw *wire.BeadRun, ctx context.Context, node, port string, stream func() B.EventSink, portRow int32) *In {
-	return &In{pw: pw, ctx: ctx, node: node, port: port, stream: stream, portRow: portRow}
+func NewInPaced(line *BeadLine, ctx context.Context, node, port string, stream func() B.EventSink, portRow int32) *Receiver {
+	return &Receiver{line: line, ctx: ctx, node: node, port: port, stream: stream, portRow: portRow}
 }
 
-func (i *In) HasRun() bool {
+func (i *Receiver) HasRun() bool {
 	if i == nil {
 		return false
 	}
-	return i.pw != nil
+	return i.line != nil
 }
 
-func (i *In) Breadcrumb(event, detail string) {
+func (i *Receiver) Breadcrumb(event, detail string) {
 	if i == nil || i.stream == nil {
 		return
 	}
@@ -107,22 +106,10 @@ func breadcrumbLabelFor(event string) (uint8, bool) {
 		return B.BreadcrumbWindowOpen, true
 	case "dwell_start":
 		return B.BreadcrumbDwellStart, true
-	case "abc-drag":
-		return B.BreadcrumbAbcDrag, true
 	case "bead-place-buffer-full":
 		return B.BreadcrumbBeadPlaceBufferFull, true
 	case "drag.commit":
 		return B.BreadcrumbDragCommit, true
-	case "chain-aim":
-		return B.BreadcrumbChainAim, true
-	case "neighbor-center-recv":
-		return B.BreadcrumbNeighborCenterRecv, true
-	case "neighbor-setc-recv":
-		return B.BreadcrumbNeighborSetCRecv, true
-	case "bead-crud":
-		return B.BreadcrumbBeadCrud, true
-	case "drag-active-persist":
-		return B.BreadcrumbDragActivePersist, true
 	default:
 		return 0, false
 	}

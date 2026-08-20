@@ -7,33 +7,11 @@ const (
 	BreadcrumbWindowClear
 	BreadcrumbWindowOpen
 	BreadcrumbDwellStart
-	BreadcrumbAbcDrag
 	BreadcrumbBeadPlaceBufferFull
-
 	BreadcrumbDragCommit
-
 	BreadcrumbBeadBreadcrumbsDropped
-
-	BreadcrumbChainAim
-
-	BreadcrumbNeighborCenterRecv
-
-	BreadcrumbNeighborSetCRecv
-
-	BreadcrumbBeadCrud
-
 	BreadcrumbPairSeedUnknown
-
 	BreadcrumbPairLatticeAdopt
-
-	BreadcrumbOutAngleFix
-
-	BreadcrumbEdgeGeom
-
-	BreadcrumbEdgeBeads
-
-	BreadcrumbDragActivePersist
-
 	BreadcrumbViewport
 )
 
@@ -44,20 +22,11 @@ var BreadcrumbLabels = []string{
 	"window_clear",
 	"window_open",
 	"dwell_start",
-	"abc-drag",
 	"bead-place-buffer-full",
 	"drag.commit",
-	"wire-breadcrumbs-dropped",
-	"chain-aim",
-	"neighbor-center-recv",
-	"neighbor-setc-recv",
-	"bead-crud",
+	"bead-breadcrumbs-dropped",
 	"pair-seed-unknown",
 	"pair-lattice-adopt",
-	"out-angle-fix",
-	"edge-geom",
-	"edge-beads",
-	"drag-active-persist",
 	"viewport",
 }
 

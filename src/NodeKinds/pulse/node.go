@@ -3,8 +3,8 @@ package pulse
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/src/Node/wire/inport"
 	"github.com/dtauraso/wirefold/src/Clock"
+	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/src/NodeKinds/nodeapi"
 
 	"github.com/dtauraso/wirefold/src/Node/Wiring/helddrive"
@@ -26,7 +26,7 @@ type Pulse struct {
 
 	SpeedCh <-chan float64
 
-	In  *inport.In
+	In  *beadanimation.Receiver
 	Out Wiring.DrivenOut
 
 	OutFanout Wiring.DrivenOut

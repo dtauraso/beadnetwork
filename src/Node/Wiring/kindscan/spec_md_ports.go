@@ -22,10 +22,17 @@ func parsePortsFromSpec(pkgDir string) []Port {
 		}
 		name := row[nameIdx]
 		dir := row[dirIdx]
-		if name == "" || (dir != "in" && dir != "out") {
+		if name == "" {
 			continue
 		}
-		ports = append(ports, Port{ID: name, Direction: dir})
+		multi := dir == "broadcast"
+		if multi {
+			dir = "out"
+		}
+		if dir != "in" && dir != "out" {
+			continue
+		}
+		ports = append(ports, Port{ID: name, Direction: dir, IsMulti: multi})
 	}
 	return ports
 }

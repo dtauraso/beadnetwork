@@ -1,20 +1,19 @@
 package kindapi
 
 import (
+	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/portwiring"
-	"github.com/dtauraso/wirefold/src/Node/wire/inport"
-	"github.com/dtauraso/wirefold/src/Node/wire/outport"
 )
 
-func (a BuildArgs) In(portName string) *inport.In {
+func (a BuildArgs) In(portName string) *beadanimation.Receiver {
 	return portwiring.NewInPort(portName, a.ctx, a.name, a.pb, portwiring.InteriorEventSinkGetter(a.getEmitter))
 }
 
-func (a BuildArgs) Out(portName string) *outport.Out {
+func (a BuildArgs) Out(portName string) *beadanimation.Sender {
 	return portwiring.NewOutPort(portName, a.ctx, a.name, a.pb, a.sourceOuts, portwiring.InteriorEventSinkGetter(a.getEmitter))
 }
 
-func (a BuildArgs) Broadcast(portName string) outport.Broadcast {
+func (a BuildArgs) Broadcast(portName string) beadanimation.Broadcast {
 	return portwiring.NewBroadcastPort(portName, a.ctx, a.name, a.pb, a.sourceOuts, portwiring.InteriorEventSinkGetter(a.getEmitter))
 }
 

@@ -5,6 +5,8 @@ import (
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
 
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/TiltPanel"
+	"github.com/dtauraso/wirefold/src/Clock"
+	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"
@@ -13,11 +15,8 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/polarindex"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/topoderive"
-	"github.com/dtauraso/wirefold/src/Clock"
 	"github.com/dtauraso/wirefold/src/NodeKinds/nodeapi"
 	"github.com/dtauraso/wirefold/src/spatial"
-	"github.com/dtauraso/wirefold/src/Node/wire"
-	"github.com/dtauraso/wirefold/src/Node/wire/outport"
 )
 
 type buildCtx struct {
@@ -35,8 +34,8 @@ type buildCtx struct {
 	baseIndices map[string]polarindex.Index
 	dragIndices map[string]polarindex.Offset
 
-	destRun       map[string]*wire.BeadRun
-	edgeRun       loadspec.BeadRunRegistry
+	destRun       map[string]*beadanimation.BeadLine
+	edgeRun       loadspec.BeadLineRegistry
 	edgeEndpoints map[string]inputcodec.EdgeEndpoints
 
 	md *dispatch.MoveDispatch
@@ -50,7 +49,7 @@ type buildCtx struct {
 	outbound       map[string]map[string][]string
 	outboundHandle map[string]map[string][]string
 
-	outSink map[string]*outport.Out
+	outSink map[string]*beadanimation.Sender
 	nodes   []nodeapi.Node
 
 	vectorOutByNode map[string]chan TiltPanel.TiltVectorMsg
@@ -63,7 +62,7 @@ func buildFromSpec(ctx context.Context, spec loadspec.TopoSpec, clk clock.Clock,
 	b.nodeGeoms, b.centers = topoderive.ComputeNodeGeometry(b.spec, b.sphere)
 	b.baseIndices = topoderive.ComputeBaseIndices(b.spec, b.sphere, b.centers, b.nodeGeoms)
 	b.dragIndices = topoderive.ComputeDragIndices(b.spec)
-	b.destRun, b.edgeRun, b.edgeEndpoints = topoderive.AllocateBeadRuns(b.spec, b.nodeGeoms)
+	b.destRun, b.edgeRun, b.edgeEndpoints = topoderive.AllocateBeadLines(b.spec, b.nodeGeoms)
 	b.vectorOutByNode, b.vectorInByNode = topoderive.AllocateVectorChannels(b.spec)
 	if err := b.buildMoveDispatch(); err != nil {
 		return nil, nil, nil, SliderPanel.Sinks{}, err

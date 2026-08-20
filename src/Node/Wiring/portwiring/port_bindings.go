@@ -4,10 +4,9 @@ import (
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/TiltPanel"
 	"github.com/dtauraso/wirefold/src/Clock"
+	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/src/Node/Interior"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/rowtables"
-	"github.com/dtauraso/wirefold/src/Node/wire"
-	"github.com/dtauraso/wirefold/src/Node/wire/outport"
 	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 )
 
@@ -37,7 +36,7 @@ type PortBindings struct {
 	singlePaced    map[string]singleBinding
 	broadcastPaced map[string][]broadcastBinding
 
-	OutSink map[string]*outport.Out
+	OutSink map[string]*beadanimation.Sender
 
 	Clock clock.Clock
 
@@ -53,15 +52,15 @@ type PortBindings struct {
 }
 
 type singleBinding struct {
-	pw    *wire.BeadRun
-	rule  outport.SendRule
+	pw    *beadanimation.BeadLine
+	rule  beadanimation.SendRule
 	label string
 }
 
 type broadcastBinding struct {
-	pw     *wire.BeadRun
+	pw     *beadanimation.BeadLine
 	handle string
-	rule   outport.SendRule
+	rule   beadanimation.SendRule
 	label  string
 }
 
@@ -72,15 +71,15 @@ func NewPortBindings() PortBindings {
 	}
 }
 
-func (pb *PortBindings) SetSinglePaced(name string, pw *wire.BeadRun) {
+func (pb *PortBindings) SetSinglePaced(name string, pw *beadanimation.BeadLine) {
 	pb.singlePaced[name] = singleBinding{pw: pw}
 }
 
-func (pb *PortBindings) SetSinglePacedRule(name string, pw *wire.BeadRun, rule outport.SendRule, label string) {
+func (pb *PortBindings) SetSinglePacedRule(name string, pw *beadanimation.BeadLine, rule beadanimation.SendRule, label string) {
 	pb.singlePaced[name] = singleBinding{pw: pw, rule: rule, label: label}
 }
 
-func (pb *PortBindings) AppendBroadcastWithHandle(name, handle string, pw *wire.BeadRun, rule outport.SendRule, label string) {
+func (pb *PortBindings) AppendBroadcastWithHandle(name, handle string, pw *beadanimation.BeadLine, rule beadanimation.SendRule, label string) {
 	pb.broadcastPaced[name] = append(pb.broadcastPaced[name], broadcastBinding{
 		pw: pw, handle: handle, rule: rule, label: label,
 	})

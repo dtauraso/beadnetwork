@@ -22,8 +22,6 @@ export type DecodedEventLine =
   | { step: number; kind: "select"; node: string }
   | { step: number; kind: "hover"; node: string; port?: string; value?: number }
 
-  | { step: number; kind: "abc-drag"; node: string; port?: string; value?: number }
-
   | {
       step: number; kind: "breadcrumb"; label: string; debug: boolean;
       node: string; port?: string; value?: number; x: number; y: number; z: number;

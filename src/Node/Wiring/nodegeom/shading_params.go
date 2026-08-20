@@ -1,7 +1,7 @@
 package nodegeom
 
 import (
-	lattice "github.com/dtauraso/wirefold/src/Node/wire/lattice"
+	lattice "github.com/dtauraso/wirefold/src/Node/BeadAnimation/lattice"
 )
 
 const ShadingParamNodeTransmission = 1.0

@@ -1,4 +1,4 @@
-package wire
+package beadanimation
 
 import (
 	"fmt"
@@ -16,7 +16,7 @@ type beadReadout struct {
 	droppedBreadcrumbs int
 }
 
-func (pw *BeadRun) SetStreamsActive(active bool) { pw.readout.StreamsActive = active }
+func (bl *BeadLine) SetStreamsActive(active bool) { bl.readout.StreamsActive = active }
 
 func (r *beadReadout) flushDroppedBreadcrumbs() {
 	if r.breadcrumbCh == nil || r.droppedBreadcrumbs == 0 {
@@ -48,8 +48,8 @@ func (r *beadReadout) drainBreadcrumbEvents() []B.RowEvent {
 	}
 }
 
-func (pw *BeadRun) DrainBreadcrumbEvents() []B.RowEvent {
-	return pw.readout.drainBreadcrumbEvents()
+func (bl *BeadLine) DrainBreadcrumbEvents() []B.RowEvent {
+	return bl.readout.drainBreadcrumbEvents()
 }
 
 type pendingBeadEvent struct {
@@ -65,7 +65,7 @@ func (r *beadReadout) appendPending(ev pendingBeadEvent, owner, edge string) {
 	r.pending = append(r.pending, ev)
 	if len(r.pending) > maxPendingEvents {
 		panic(fmt.Sprintf(
-			"bead_run: pending exceeded %d events on edge %q owned by node %s; the per-slot "+
+			"BeadAnimation: pending exceeded %d events on edge %q owned by node %s; the per-slot "+
 				"drain (the source node's own Outs.stepBeads -> DrainPendingEvents) is not running",
 			maxPendingEvents, edge, owner))
 	}
@@ -87,8 +87,8 @@ type PendingBeadEvent struct {
 	Gen        uint64
 }
 
-func (pw *BeadRun) DrainPendingEvents() []PendingBeadEvent {
-	internal := pw.readout.drainPendingEvents()
+func (bl *BeadLine) DrainPendingEvents() []PendingBeadEvent {
+	internal := bl.readout.drainPendingEvents()
 	if internal == nil {
 		return nil
 	}

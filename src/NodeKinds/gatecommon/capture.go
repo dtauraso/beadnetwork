@@ -1,8 +1,8 @@
 package gatecommon
 
-import "github.com/dtauraso/wirefold/src/Node/wire/inport"
+import beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 
-func drainLatestReal(in *inport.In) (int, bool) {
+func drainLatestReal(in *beadanimation.Receiver) (int, bool) {
 	v, got := NoValue, false
 	for {
 		nv, ok := in.PollRecv()

@@ -41,16 +41,19 @@ error instead of a silently nil one. `BuildRegistry()` survives but no longer BU
 anything — it is the loader's "registry is ready" assertion, and panics on an empty
 registry, which is what a `kinds_generated.go` that lost its blank imports looks like.
 
-**The generator still reads structs for PORT NAMES, and it reads ALL of them.**
-`kindscan.parsePortsFromAST` walks every struct declared in the kind's package directory —
-and in a shared package a kind embeds, such as `gatecommon` — taking any field whose type is
-`inport.In`/`outport.Out`/`outport.Broadcast`/`Wiring.DrivenOut` as a port named after the
-FIELD. So an unrelated helper struct that merely HOLDS one of those types, placed in such a
-package, silently grows a phantom port on every kind that package serves. That is why
-`helddrive.HeldDriver` (which holds a `DrivenOut`) lives in `src/Node/Wiring/helddrive/` and
-not in `gatecommon/`, where it gave `SelectLeft`/`SelectRight` a bogus `out` output. The
-symptom is a `node-defs.ts` diff appearing in `check-generated` for a kind you did not
-touch — read that diff, do not just commit it.
+**A kind's ports come from its SPEC.md `## Ports` table, and from nothing else.**
+`Name` and `Direction` are the columns that matter; `Direction` is `in`, `out`, or
+`broadcast` — an out that fans to every downstream edge, which is the only fact about a
+port the table did not already carry.
+
+The generator used to read Go STRUCTS for port names instead: `parsePortsFromAST` walked
+every struct in the kind's package — and in any shared package it embedded, such as
+`gatecommon` — taking any field typed `inport.In`/`outport.Out`/`outport.Broadcast` as a
+port named after the FIELD. A helper struct that merely HELD one of those types grew a
+phantom port on every kind that package served; that is why `helddrive.HeldDriver` sits in
+`Wiring/` rather than `gatecommon/`, where it once gave `SelectLeft`/`SelectRight` a bogus
+`out`. Reading the table instead removes the whole class: a struct field cannot declare a
+port any more. The check after touching a kind is still a `node-defs.ts` diff.
 
 **Skip step 4 and the kind does not exist in the binary**: it fails at runtime with
 `unknown type "X"` while its SPEC.md, Go package, and `NODE_DEFS` entry all look correct.

@@ -3,13 +3,13 @@ package kindapi
 import (
 	"context"
 
+	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/src/Node/Interior"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/kindreg"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/loadspec"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/portwiring"
 	"github.com/dtauraso/wirefold/src/NodeKinds/nodeapi"
-	"github.com/dtauraso/wirefold/src/Node/wire/outport"
 )
 
 type BuildArgs struct {
@@ -21,7 +21,7 @@ type BuildArgs struct {
 
 	tiltPhiIdx int32
 
-	sourceOuts *[]*outport.Out
+	sourceOuts *[]*beadanimation.Sender
 
 	getEmitter func() *interior.Emitter
 
@@ -39,7 +39,7 @@ func RegisterBuilder(kind string, ports []portwiring.PortSpec, build func(BuildA
 	kindreg.Registry[kind] = kindreg.NodeBuilder{
 		Ports: ports,
 		Build: func(ctx context.Context, name string, data *loadspec.NodeData, pb portwiring.PortBindings, geom nodegeom.NodeGeom, tiltPhiIdx int32, deps kindreg.BuildDeps) (nodeapi.Node, error) {
-			var sourceOuts []*outport.Out
+			var sourceOuts []*beadanimation.Sender
 			return build(BuildArgs{
 				ctx: ctx, name: name, data: data, pb: pb,
 				geom:       geom,

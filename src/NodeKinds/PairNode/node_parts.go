@@ -1,14 +1,13 @@
 package PairNode
 
 import (
-	"github.com/dtauraso/wirefold/src/Node/wire/inport"
-	"github.com/dtauraso/wirefold/src/Node/wire/outport"
 	"github.com/dtauraso/wirefold/src/Clock"
+	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 
-	"github.com/dtauraso/wirefold/src/NodeKinds/PairNode/tiltring"
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/TiltPanel"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor"
-	"github.com/dtauraso/wirefold/src/Chrome/Panels/TiltPanel"
+	"github.com/dtauraso/wirefold/src/NodeKinds/PairNode/tiltring"
 )
 
 type nodePlumbing struct {
@@ -21,9 +20,9 @@ type nodePlumbing struct {
 
 	SpeedCh <-chan float64
 
-	In *inport.In
+	In *beadanimation.Receiver
 
-	Out *outport.Out
+	Out *beadanimation.Sender
 
 	ClearOutBeads func()
 

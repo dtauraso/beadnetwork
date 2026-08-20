@@ -1,14 +1,14 @@
 # Model
 
 Read this before changing anything in the **Go network** (`src/Node/`,
-`src/Node/wire/bead_run.go`, `src/Node/Wiring/build/loader.go`,
+`src/Node/BeadAnimation/bead_animation.go`, `src/Node/Wiring/build/loader.go`,
 `src/Node/Wiring/loadspec/builders.go`) or anything that schedules/orders work. If
 your reasoning slips into retired vocabulary, you are in the wrong
 frame. Stop, re-read this file, and re-derive from the model.
 
 ## The network
 
-The network is **nodes and wires**. A node id NAMES a thing that is drawn.
+The network is **nodes and the edges between them**. A node id NAMES a thing that is drawn.
 **A node is FOUR goroutines, paced by four different things**, because it does
 four jobs that have four different clocks:
 
@@ -19,7 +19,7 @@ four jobs that have four different clocks:
   (`BuildArgs.ClaimSelfDrive`); a kind that holds a value onto an out steps a
   `gatecommon.HeldDriver` in that same pass rather than handing the value to a
   goroutine over a channel.
-- The **animation goroutine** — `owners.Outs.RunAnimation`, one per node id with
+- The **animation goroutine** — `owners.Outs.RunBeadAnimation`, one per node id with
   outputs — is paced by the pulse, not the sim clock. It owns the node's beads
   and writes its own bead stream. It is NOT the kind's loop: beads used to move
   only when the node's sim cycle came round, which tied how smoothly a bead drew
@@ -47,7 +47,7 @@ one.
 **The goroutines share no memory.** Every field of `NodeGeometry` belongs to
 exactly one of them, and the places the geometry half used to reach into the
 animation half are messages: the per-edge segment/step-count revision that
-`OutEdges.DeriveGeometry` derives, handed over by `BeadRun.PostGeom` and
+`OutEdges.DeriveGeometry` derives, handed over by the animation inbox and
 `outport.Out.PostGeom` as a `bead.Revision`, and bead-drag start/end, handed
 over by `Beads.PostBeadDrag`. The animation goroutine applies both at ONE point, the top
 of its own pass, never mid-pass — so beads are never drawn against a segment
@@ -64,51 +64,43 @@ holds a copy of the far end's absolute position: when a neighbour moves, the
 node is told how far it moved and shifts its own stored vector by that much, so
 the vector is maintained by composition and never re-derived. An
 `edgetable.Edge` is a plain record of endpoints and plumbing, not an actor.
-There is **no goroutine per edge**, and no separate driver goroutine
-placing a held value onto an out. A wire
-(`BeadRun`) is not a goroutine at all: it is a PASSIVE delay queue
-with a channel on each end — a channel in from its source node, a channel
-out to its destination node — stepped by its SOURCE NODE's ANIMATION goroutine.
-The wire still owns its own beads (`inflight`/`delivered`) and its own
-geometry as data, and exactly one goroutine touches that state: the source
-node's ANIMATION goroutine. The source node's geometry goroutine DERIVES the
-wire's new segment and step count but never writes them — it sends them, and
-the animation goroutine applies them. Nothing locks or reaches into the wire.
-Historically the wire had
-its OWN goroutine
-(`BeadRun.run`, one per wire, launched by `Start`) — not stepped by
-another. **An input port is one wire fed by
-exactly one edge** — fan-in (several edges into one port) is not part of
-the model; multiple sources into one node use distinct input ports (see
-§Node lifecycle). So a wire has exactly one incident edge, and its own
-goroutine owns its beads with no sharing. The
-network is self-scheduling: there is no central runner, no walker, no
-underlying layer that "runs" the nodes. The network IS the running program.
+There is **no goroutine per edge**.
+
+**A bead is node behaviour.** The SOURCE NODE's ANIMATION goroutine owns the whole
+of it: it accepts the value, holds it at a slot, advances that slot on its own
+pulse, computes the position as `slot × slotR` along the vector to the neighbour,
+decides arrival when the slot reaches the step count, and hands the value on. One
+goroutine owns that state from placement to delivery.
+
+**A node's input is fed by exactly one edge** — fan-in is not part of the model;
+multiple sources into one node use distinct inputs (see §Node lifecycle). A channel
+between two nodes is the goroutine boundary, nothing more. The network is
+self-scheduling: there is no central runner, no walker, no underlying layer that
+"runs" the nodes. The network IS the running program.
 
 A channel here does NOT mean a blocking, backpressured handshake — see
-§Sending below. The source places a bead on its out-channel and moves
-on; it never waits on the wire or the destination.
+§Sending below. The source places a bead and moves on; it never waits on the
+destination.
 
 Behavior emerges from wiring — the topology is the logic.
 
 The visual editor is the medium for authoring and observing the network;
-the network itself is the nodes-and-wires Go runtime.
+the network itself is the Go runtime of nodes and their edges.
 
 ## What things are
 
 See [docs/model/entities.md](docs/model/entities.md) for the full statement of the
-in-flight value bead vs. the chain (render/placeholder) bead vs. the `BeadRun`, the node
-goroutine, the input port, and the human-speed clock.
+in-flight value bead, the node goroutine, the node's input, and the human-speed clock.
 
-## Wire lifecycle, node lifecycle, and sending
+## Bead lifecycle, node lifecycle, and sending
 
-See [docs/model/lifecycle.md](docs/model/lifecycle.md) for how a bead crosses a wire, what
-the renderer is told, node lifecycle (including the one-edge-per-input-port rule), and the
+See [docs/model/lifecycle.md](docs/model/lifecycle.md) for how a bead crosses an edge, what
+the renderer is told, node lifecycle (including the one-edge-per-input rule), and the
 send contract.
 
 ## Geometry, time, and the driver
 
-See [docs/model/timing.md](docs/model/timing.md) for how wire geometry sets traversal
+See [docs/model/timing.md](docs/model/timing.md) for how edge geometry sets traversal
 slots, why a bead in flight ignores a drag, and the
 self-scheduling driver (each source node's mover, no central walker, no lockstep rounds).
 
@@ -134,7 +126,7 @@ anywhere — read `src/Node/Wiring/scene/scene.go`.
 
 ## Drift rule
 
-Traversal-timing or firing-rule logic outside the Go node and wire
+Traversal-timing or firing-rule logic outside the Go node
 goroutines is drift — move it back into Go. Likewise any domain state
 (node/edge/pulse/geometry/camera/selection) authored on the TS side, or
 any TS-side geometry/position/timing computation, is drift: Go owns the
@@ -225,15 +217,14 @@ pacing to another's, which is the coupling the whole model exists to avoid.
 is the only context they get. It must:
 
 1. **Open with a site tag** — the detecting function, method, or subsystem, then a colon —
-   so the message greps back to its source: `paced_wire: `, `interior.Mailbox.Send: `,
+   so the message greps back to its source: `Animation.stepBeads: `, `interior.Mailbox.Send: `,
    `BuildEdgeStreamFrame: `.
 2. **Name the invariant and the actual values**, not a category. `pending exceeded %d events
-   on wire -> %s.%s`, not `limit exceeded`.
+   on edge -> %s.%s`, not `limit exceeded`.
 3. **Name the mechanism that should have prevented it.** This is what turns a crash into a
-   diagnosis: *"the per-cycle drain (the source node's own Outs.DriveOutWires ->
-   DrainPendingEvents) is not
-   running"*, or `AllocateWires`' *"validateNoFanIn should have rejected this fan-in at
-   parse"* — which names the earlier gate that let it through.
+   diagnosis: *"the per-cycle drain (the source node's own `Animation.stepBeads` ->
+   `DrainPendingEvents`) is not running"*, or *"`validateNoFanIn` should have rejected
+   this fan-in at parse"* — which names the earlier gate that let it through.
 
 **No `recover()` in the network.** Swallowing an assertion converts a loud, located failure
 into a silent wrong answer.
@@ -244,10 +235,10 @@ the shape, not the content — (3) is the part only a human can write, and the p
 ## Allowed vocabulary
 
 - bead, in-flight, held (node-local) state
-- channel, input port, output port (one edge per input port — no fan-in)
+- channel, node input, node output (one edge per input — no fan-in)
 - arc length, pulse speed (world-units per tick), ticks-to-cross,
   tick-count processing window
 - tick, human-speed clock (the one system monotonic clock scaled to ticks
   at human speed), scale, `SleepCycle`, `Tick`
-- node receives, node holds, node fires, wire advances, wire delivers,
-  wire emits position
+- node receives, node holds, node fires, the node advances its beads, delivers,
+  and emits their positions

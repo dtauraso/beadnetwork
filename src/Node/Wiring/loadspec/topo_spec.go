@@ -5,10 +5,9 @@ import (
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/PolarRulesPanel"
 	"os"
 
+	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/polarindex"
-	"github.com/dtauraso/wirefold/src/Node/wire"
-	"github.com/dtauraso/wirefold/src/Node/wire/outport"
 	"github.com/dtauraso/wirefold/src/spatial"
 )
 
@@ -104,7 +103,7 @@ type TopoSpec struct {
 	Constants polarindex.SceneConstants
 }
 
-type BeadRunRegistry map[string]*wire.BeadRun
+type BeadLineRegistry map[string]*beadanimation.BeadLine
 
 func ParseSpec(path string) (TopoSpec, error) {
 	spec, err := readSpec(path)
@@ -142,11 +141,11 @@ func validateNoFanIn(spec TopoSpec) error {
 	return nil
 }
 
-func NodeSendRule(n specNode, port string) outport.SendRule {
+func NodeSendRule(n specNode, port string) beadanimation.SendRule {
 	if n.Data == nil || n.Data.SendRules == nil {
-		return outport.RuleConsumeGated
+		return beadanimation.RuleConsumeGated
 	}
 
-	rule, _ := outport.ParseSendRule(n.Data.SendRules[port])
+	rule, _ := beadanimation.ParseSendRule(n.Data.SendRules[port])
 	return rule
 }

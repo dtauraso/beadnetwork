@@ -1,9 +1,8 @@
 package gatecommon
 
 import (
-	"github.com/dtauraso/wirefold/src/Node/wire/inport"
-	"github.com/dtauraso/wirefold/src/Node/wire/outport"
 	"github.com/dtauraso/wirefold/src/Clock"
+	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 
 	"github.com/dtauraso/wirefold/src/Node/Interior"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor"
@@ -31,9 +30,9 @@ type GateNode struct {
 	HasLeft   bool
 	Right     int
 	HasRight  bool
-	FromLeft  *inport.In
-	FromRight *inport.In
-	ToPassed  *outport.Out
+	FromLeft  *beadanimation.Receiver
+	FromRight *beadanimation.Receiver
+	ToPassed  *beadanimation.Sender
 }
 
 const windowTicks = int64(WindowMs / clock.MsPerTick)

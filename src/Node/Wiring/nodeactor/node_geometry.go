@@ -35,7 +35,7 @@ type NodeGeometry struct {
 
 	outTargets []string
 
-	anim *NodeAnimation
+	anim *NodeBeadAnimation
 
 	topo owners.Topology
 
@@ -55,7 +55,7 @@ type NodeGeometry struct {
 }
 
 func NewNodeGeometry(id string, geom nodegeom.NodeGeom, clockSrc clock.Clock, constants polarindex.SceneConstants) *NodeGeometry {
-	anim := &NodeAnimation{
+	anim := &NodeBeadAnimation{
 		id:     id,
 		clocks: owners.NewClocks(clockSrc, clock.NewRealClock()),
 	}
@@ -81,6 +81,6 @@ func NewNodeGeometry(id string, geom nodegeom.NodeGeom, clockSrc clock.Clock, co
 	return ng
 }
 
-func (m *NodeGeometry) Animation() *NodeAnimation {
+func (m *NodeGeometry) BeadAnimation() *NodeBeadAnimation {
 	return m.anim
 }

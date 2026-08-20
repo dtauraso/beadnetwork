@@ -1,4 +1,4 @@
-package wire
+package beadanimation
 
 import "github.com/dtauraso/wirefold/src/spatial"
 
@@ -34,6 +34,6 @@ type inflightBead struct {
 	gen     uint64
 }
 
-func (pw *BeadRun) arrived(b *inflightBead) bool {
+func (bl *BeadLine) arrived(b *inflightBead) bool {
 	return b.slot >= b.steps
 }

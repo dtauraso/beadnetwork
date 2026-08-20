@@ -2,11 +2,10 @@ package timestart
 
 import (
 	"context"
-	lattice "github.com/dtauraso/wirefold/src/Node/wire/lattice"
+	lattice "github.com/dtauraso/wirefold/src/Node/BeadAnimation/lattice"
 
-	"github.com/dtauraso/wirefold/src/Node/wire/inport"
-	"github.com/dtauraso/wirefold/src/Node/wire/outport"
 	"github.com/dtauraso/wirefold/src/Clock"
+	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/src/NodeKinds/nodeapi"
 
 	Wiring "github.com/dtauraso/wirefold/src/Node/Wiring/kindapi"
@@ -27,11 +26,11 @@ type TimeStart struct {
 
 	SpeedCh <-chan float64
 
-	In     *inport.In
-	ToNext outport.Broadcast
+	In     *beadanimation.Receiver
+	ToNext beadanimation.Broadcast
 }
 
-func placeHeld(outs outport.Broadcast, held int, items []outport.DriveItem, tick int64) []outport.DriveItem {
+func placeHeld(outs beadanimation.Broadcast, held int, items []beadanimation.DriveItem, tick int64) []beadanimation.DriveItem {
 	if held == gatecommon.NoValue {
 		return items
 	}
@@ -58,7 +57,7 @@ func (in *TimeStart) consumeInput(clk clock.Clock, value int, held int) (newHeld
 	}
 
 	placeTick := clk.Tick()
-	var items []outport.DriveItem
+	var items []beadanimation.DriveItem
 	prevHeld := in.Held
 	items = placeHeld(in.ToNext, prevHeld, items, placeTick)
 	in.Held = value

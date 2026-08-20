@@ -9,6 +9,22 @@ This document defines what goes in a SPEC and what each section means.
 ```markdown
 # <Kind>
 
+## Ports
+
+**Required, and the ONLY declaration of a kind's ports** — `node-defs.ts` is generated
+from this table, so a port that is not a row here does not exist to the editor. Nothing
+reads the kind's Go struct fields to find ports.
+
+| Name | Direction | Kind | Notes |
+|------|-----------|------|-------|
+| In | in | chain | what arrives |
+| ToNext | broadcast | chain | fans to every downstream edge |
+
+`Direction` is `in`, `out`, or `broadcast`. **`broadcast` is an out that fans to every
+downstream edge** — the one fact `in`/`out` cannot express — and it generates
+`isMulti: true`. A row whose Direction is none of the three is skipped silently, so a typo
+removes a port rather than failing.
+
 ## Loader-managed channels
 
 (Optional. Channels the loader creates internally — not wirable.)
