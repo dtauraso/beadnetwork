@@ -4,13 +4,13 @@ import (
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
 	W "github.com/dtauraso/wirefold/src/Node/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/scene"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/scenecamera"
+	"github.com/dtauraso/wirefold/src/Camera"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/scenepersist"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/viewpersist"
 )
 
 func loadSceneState(scenePath string, md *W.MoveDispatch, speedSinks SliderPanel.Sinks) {
-	scenecamera.SeedInitialViewpoint(scenePath, md.UI.VP.SetViewpoint, md.UI.VP.EmitViewpoint)
+	Camera.SeedInitialViewpoint(scenePath, md.UI.VP.SetViewpoint, md.UI.VP.EmitViewpoint)
 
 	s := scene.For(scenePath)
 	md.UI.SceneEditable = s.Editable

@@ -3,7 +3,7 @@ package FitButton
 import (
 	"math"
 
-	"github.com/dtauraso/wirefold/src/Node/Wiring/geom/camera"
+	"github.com/dtauraso/wirefold/src/Camera"
 	"github.com/dtauraso/wirefold/src/spatial"
 )
 
@@ -13,9 +13,9 @@ func FitDistance(fovDeg, aspect, width, height float64) float64 {
 	return math.Max(height/2, width/2/aspect) / halfTan
 }
 
-func HomeFitPose(centers map[string]spatial.Vec3, radius map[string]float64, fovDeg, aspect float64) (pivot spatial.Vec3, r float64, pos, up camera.Dir, ok bool) {
+func HomeFitPose(centers map[string]spatial.Vec3, radius map[string]float64, fovDeg, aspect float64) (pivot spatial.Vec3, r float64, pos, up Camera.Dir, ok bool) {
 	if len(centers) == 0 {
-		return spatial.Vec3{}, 0, camera.Dir{}, camera.Dir{}, false
+		return spatial.Vec3{}, 0, Camera.Dir{}, Camera.Dir{}, false
 	}
 	minX, minY, minZ := math.Inf(1), math.Inf(1), math.Inf(1)
 	maxX, maxY, maxZ := math.Inf(-1), math.Inf(-1), math.Inf(-1)
@@ -29,7 +29,7 @@ func HomeFitPose(centers map[string]spatial.Vec3, radius map[string]float64, fov
 	sizeX, sizeY, sizeZ := maxX-minX, maxY-minY, maxZ-minZ
 	dist := FitDistance(fovDeg, aspect, sizeX, sizeY) + sizeZ/2
 	paddedDist := dist * 1.2
-	pos = camera.WorldDirToAngles(spatial.Vec3{X: 0, Y: 0, Z: 1})
-	up = camera.WorldDirToAngles(spatial.Vec3{X: 0, Y: 1, Z: 0})
+	pos = Camera.WorldDirToAngles(spatial.Vec3{X: 0, Y: 0, Z: 1})
+	up = Camera.WorldDirToAngles(spatial.Vec3{X: 0, Y: 1, Z: 0})
 	return center, paddedDist, pos, up, true
 }

@@ -3,7 +3,7 @@ package framegeom
 import (
 	"math"
 
-	"github.com/dtauraso/wirefold/src/Node/Wiring/geom/camera"
+	"github.com/dtauraso/wirefold/src/Camera"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodegeom"
 )
 
@@ -84,7 +84,7 @@ func ChannelArrow(from, to vec3) (shaft, head [16]float32, ok bool) {
 }
 
 func ArrowMatrices(center vec3, length, phi float64, received bool) TiltArrow {
-	axis := camera.AnglesToWorldOffset(1, phi, ArrowRingDiskTheta).Normalize()
+	axis := Camera.AnglesToWorldOffset(1, phi, ArrowRingDiskTheta).Normalize()
 	up := vec3{X: 0, Y: 1, Z: 0}
 	bx, by, bz := axisBasisFrom(up, axis)
 

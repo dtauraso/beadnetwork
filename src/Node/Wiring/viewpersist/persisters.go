@@ -3,7 +3,7 @@ package viewpersist
 import (
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/Panel"
 	"github.com/dtauraso/wirefold/src/Chrome/Pills/AngleDropdown"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/camerapersist"
+	"github.com/dtauraso/wirefold/src/Camera"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/scenepaths"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/scenepersist"
@@ -11,7 +11,7 @@ import (
 )
 
 type Persisters struct {
-	vp *camerapersist.ViewpointPersister
+	vp *Camera.ViewpointPersister
 
 	overlays *scenepersist.Persister[Overlay.OverlayState]
 
@@ -24,8 +24,8 @@ type Persisters struct {
 	lattice *scenepersist.Persister[int32]
 }
 
-func (p *Persisters) ArmViewpoint(topologyPath string) *camerapersist.ViewpointPersister {
-	vp := &camerapersist.ViewpointPersister{Dir: scenepaths.CameraDirPath(topologyPath)}
+func (p *Persisters) ArmViewpoint(topologyPath string) *Camera.ViewpointPersister {
+	vp := &Camera.ViewpointPersister{Dir: scenepaths.CameraDirPath(topologyPath)}
 	p.vp = vp
 	return vp
 }

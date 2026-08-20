@@ -1,4 +1,4 @@
-package camera
+package Camera
 
 import (
 	"github.com/dtauraso/wirefold/src/spatial"

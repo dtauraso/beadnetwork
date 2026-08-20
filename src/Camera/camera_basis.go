@@ -1,4 +1,4 @@
-package camera
+package Camera
 
 type CamBasis struct {
 	RefX vec3

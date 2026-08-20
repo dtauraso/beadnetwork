@@ -7,7 +7,7 @@ import (
 	"math"
 	"os"
 
-	"github.com/dtauraso/wirefold/src/Node/Wiring/geom/camera"
+	"github.com/dtauraso/wirefold/src/Camera"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/gesturefsm"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"
@@ -111,9 +111,9 @@ func (ui *UIState) SetSelectionUI(sendMove func(id string, msg movemsg.Msg), nod
 
 func (ui *UIState) DropPointFromNDC(ndcX, ndcY float64) (spatial.Vec3, bool) {
 	vp := ui.VP.Viewpoint
-	eye := camera.EyeOf(vp)
-	basis := camera.BasisFromViewpoint(vp.Pos, vp.Up)
-	dir := camera.RayDirThroughNDC(ndcX, ndcY, basis, ui.Gest.Fov, ui.Gest.Rect.Aspect())
+	eye := Camera.EyeOf(vp)
+	basis := Camera.BasisFromViewpoint(vp.Pos, vp.Up)
+	dir := Camera.RayDirThroughNDC(ndcX, ndcY, basis, ui.Gest.Fov, ui.Gest.Rect.Aspect())
 	forward := basis.Pole.Scale(-1)
 	denom := dir.Dot(forward)
 	if denom == 0 {
@@ -141,10 +141,10 @@ func (ui *UIState) SetHoverUI(sendMove func(id string, msg movemsg.Msg), node, p
 func (ui *UIState) DragPlaneHit(ev inputcodec.RawInputMsg) (hit spatial.Vec3, ok bool) {
 	g := &ui.Gest
 	vp := ui.VP.Viewpoint
-	eye := camera.EyeOf(vp)
-	basis := camera.BasisFromViewpoint(vp.Pos, vp.Up)
+	eye := Camera.EyeOf(vp)
+	basis := Camera.BasisFromViewpoint(vp.Pos, vp.Up)
 	nx, ny := g.PixelToNDC(ev.X, ev.Y)
-	dir := camera.RayDirThroughNDC(nx, ny, basis, ui.FovDeg(), g.Rect.Aspect())
+	dir := Camera.RayDirThroughNDC(nx, ny, basis, ui.FovDeg(), g.Rect.Aspect())
 	forward := basis.Pole.Scale(-1)
 	denom := dir.Dot(forward)
 	if denom == 0 {
@@ -158,10 +158,10 @@ func (ui *UIState) DragPlaneHit(ev inputcodec.RawInputMsg) (hit spatial.Vec3, ok
 	return hit, true
 }
 
-func (ui *UIState) OrbitViewpoint(from, to camera.Dir) {
+func (ui *UIState) OrbitViewpoint(from, to Camera.Dir) {
 	ui.VP.OrbitViewpoint(from, to)
 }
-func (ui *UIState) OrbitLockedViewpoint(from, to camera.Dir) {
+func (ui *UIState) OrbitLockedViewpoint(from, to Camera.Dir) {
 	ui.VP.OrbitLockedViewpoint(from, to)
 }
 func (ui *UIState) ZoomViewpoint(factor float64) {
