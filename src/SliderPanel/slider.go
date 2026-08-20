@@ -1,7 +1,7 @@
 package SliderPanel
 
 import (
-	lattice "github.com/dtauraso/wirefold/src/Bead/lattice"
+	lattice "github.com/dtauraso/wirefold/src/Node/wire/lattice"
 	"github.com/dtauraso/wirefold/src/Node/clock"
 )
 

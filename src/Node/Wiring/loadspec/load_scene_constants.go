@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/dtauraso/wirefold/src/Node/Wiring/polarindex"
-	lattice "github.com/dtauraso/wirefold/src/Bead/lattice"
+	lattice "github.com/dtauraso/wirefold/src/Node/wire/lattice"
 )
 
 func LoadSceneConstants(root string) (polarindex.SceneConstants, error) {

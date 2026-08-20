@@ -2,7 +2,7 @@ import * as fs from "fs";
 import { decodeBufferLog, decodeStreamFrameEvents } from "../../buffer-log";
 import { decodeNodeStreamFrame } from "../../Node/buffer-decode-node";
 import { decodeEdgeStreamFrame } from "../../Edge/buffer-decode-edge";
-import { decodeBeadStreamFrame } from "../../Bead/buffer-decode-bead";
+import { decodeBeadStreamFrame } from "../../Node/buffer-decode-bead";
 import { decodeInteriorStreamFrame } from "../../Interior/buffer-decode-interior";
 import { probeOwnerFile, type ProbeOwner } from "../../probe-files";
 import type { DecodedEvents } from "../../webview/three/decode/buffer-decode-shared";

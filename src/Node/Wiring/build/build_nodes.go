@@ -11,8 +11,8 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/moverreg"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/portwiring"
-	"github.com/dtauraso/wirefold/src/Bead"
-	"github.com/dtauraso/wirefold/src/Bead/outport"
+	"github.com/dtauraso/wirefold/src/Node/wire"
+	"github.com/dtauraso/wirefold/src/Node/wire/outport"
 	"github.com/dtauraso/wirefold/src/Node/nodeapi"
 )
 
@@ -103,6 +103,6 @@ func (b *buildCtx) buildNodes() error {
 	return nil
 }
 
-func bindDispatch(md *dispatch.MoveDispatch, outSink map[string]*outport.Out, destRun map[string]*bead.BeadRun) {
+func bindDispatch(md *dispatch.MoveDispatch, outSink map[string]*outport.Out, destRun map[string]*wire.BeadRun) {
 	md.MR.Bind(outSink, inputcodec.SlotRegistry(destRun), md.RT.EdgeRowForPair)
 }

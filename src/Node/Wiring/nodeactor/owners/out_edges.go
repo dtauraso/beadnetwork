@@ -10,8 +10,8 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/jsonpersist"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/polarindex"
-	"github.com/dtauraso/wirefold/src/Bead"
-	"github.com/dtauraso/wirefold/src/Bead/outport"
+	"github.com/dtauraso/wirefold/src/Node/wire"
+	"github.com/dtauraso/wirefold/src/Node/wire/outport"
 	"github.com/dtauraso/wirefold/src/Node/rowevent"
 	"github.com/dtauraso/wirefold/src/Node/spatial"
 )
@@ -30,7 +30,7 @@ type outEdge struct {
 	out io.Writer
 
 	port *outport.Out
-	dest *bead.BeadRun
+	dest *wire.BeadRun
 
 	start, end spatial.Vec3
 	steps      int
@@ -70,7 +70,7 @@ func (o *OutEdges) edgeFor(label string) *outEdge {
 	return &o.edges[len(o.edges)-1]
 }
 
-func (o *OutEdges) BindWire(label, targetID, targetKind string, port *outport.Out, dest *bead.BeadRun) {
+func (o *OutEdges) BindWire(label, targetID, targetKind string, port *outport.Out, dest *wire.BeadRun) {
 	e := o.edgeFor(label)
 	e.port = port
 	e.dest = dest

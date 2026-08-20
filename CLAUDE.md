@@ -2,7 +2,7 @@
 
 ## Model — read first
 
-Before changing anything in the **Go network** (`src/Node/`, `src/NodeKinds/`, `src/Bead/bead_run.go`,
+Before changing anything in the **Go network** (`src/Node/`, `src/NodeKinds/`, `src/Node/wire/bead_run.go`,
 `src/Node/Wiring/build/loader.go`, `src/Node/Wiring/loadspec/builders.go`) or the **content buffer**
 (`src/schema/buffer-layout/`, the render tree under `src/webview/three/`),
 read [MODEL.md](MODEL.md). It pins the model. Do not propose multi-step
@@ -89,9 +89,13 @@ own package is already there. `go generate ./...` runs all of them.
   `clock/`, `nodeapi/`, `gatecommon/`, `rowevent/`, `spatial/`), the startup wiring
   (`runtopology/`), and the TS that draws a node. A directory here is NOT a kind — both the
   scanner and `check-dep-rules.sh` decide that by the `Register(...)` call, not by placement.
-- **`src/Bead/`** — the bead, whole: the wire (`BeadRun`, a passive delay queue), its ports,
-  the lattice, the placeholder-bead chain, and the TS that draws beads. It is its own object,
-  not a part of a node — a node drives it, and so does an edge's geometry.
+- **`src/Bead/`** — ONE bead, and nothing else: its ring surface, its style, its buffer-block
+  row. Anything about several beads — how they are spaced, chained, or framed — is not a
+  bead, it is what a node does with beads, and lives under `src/Node/`.
+- **`src/Node/wire/`** — the wire, which is what a node uses beads for: `BeadRun` (a passive
+  delay queue, no goroutine of its own), the in/out ports, the slot `lattice/`, and the
+  animation goroutine that steps it. The split line is `inflightBead` — the files that share
+  it are the wire. 
 - **`scripts/`** — what serves the repo rather than one concern: `stop-checks.sh`, the
   git-workflow scripts, `lib/`, `checks/` for guards that guard nothing in particular
   (clustered by concern: prose, hooks, lang, meta, source), and `genpaths/`, which every

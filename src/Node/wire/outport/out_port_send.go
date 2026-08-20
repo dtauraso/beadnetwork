@@ -3,19 +3,19 @@ package outport
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/src/Bead"
+	"github.com/dtauraso/wirefold/src/Node/wire"
 	"github.com/dtauraso/wirefold/src/Node/rowevent"
 	T "github.com/dtauraso/wirefold/src/Trace"
 )
 
-func (o *Out) placeDrivenNoWalker(v int, tick int64) bead.SendOutcome {
+func (o *Out) placeDrivenNoWalker(v int, tick int64) wire.SendOutcome {
 	g := o.Geom()
 	outcome := o.pw.Send(v, o.placementFrom(g), tick)
-	if outcome != bead.SendPlaced {
+	if outcome != wire.SendPlaced {
 		return outcome
 	}
 	o.flushSendEvent(v, g.Steps)
-	return bead.SendPlaced
+	return wire.SendPlaced
 }
 
 func (o *Out) flushSendEvent(value int, steps int) {
@@ -41,7 +41,7 @@ func (o *Out) HasRun() bool {
 	return o.pw != nil
 }
 
-func NewPacedOutNoGeom(pw *bead.BeadRun, ctx context.Context, node, port string, tr *T.Trace, rule SendRule, steps int, edgeLabel string) *Out {
+func NewPacedOutNoGeom(pw *wire.BeadRun, ctx context.Context, node, port string, tr *T.Trace, rule SendRule, steps int, edgeLabel string) *Out {
 	return NewOutPaced(pw, ctx, node, port, tr, rule, edgeLabel, nil, -1, -1, -1)
 }
 
@@ -57,7 +57,7 @@ func newOutChan(ch chan<- int, node, port string, tr *T.Trace) *Out {
 	return &Out{ch: ch, node: node, port: port, trace: tr, postedGeom: make(chan outGeom, 1)}
 }
 
-func NewOutPaced(pw *bead.BeadRun, ctx context.Context, node, port string, tr *T.Trace, rule SendRule, edgeLabel string, stream func() rowevent.EventSink, portRow, targetRow, targetPortRow int32) *Out {
+func NewOutPaced(pw *wire.BeadRun, ctx context.Context, node, port string, tr *T.Trace, rule SendRule, edgeLabel string, stream func() rowevent.EventSink, portRow, targetRow, targetPortRow int32) *Out {
 	if rule == "" {
 		rule = RuleConsumeGated
 	}

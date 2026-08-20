@@ -1,7 +1,7 @@
 package kindapi
 
 import (
-	"github.com/dtauraso/wirefold/src/Bead/outport"
+	"github.com/dtauraso/wirefold/src/Node/wire/outport"
 )
 
 type DrivenOut struct {

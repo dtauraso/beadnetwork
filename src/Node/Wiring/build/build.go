@@ -12,8 +12,8 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/polarindex"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/topoderive"
-	"github.com/dtauraso/wirefold/src/Bead"
-	"github.com/dtauraso/wirefold/src/Bead/outport"
+	"github.com/dtauraso/wirefold/src/Node/wire"
+	"github.com/dtauraso/wirefold/src/Node/wire/outport"
 	"github.com/dtauraso/wirefold/src/Node/clock"
 	"github.com/dtauraso/wirefold/src/Node/nodeapi"
 	"github.com/dtauraso/wirefold/src/Node/spatial"
@@ -38,7 +38,7 @@ type buildCtx struct {
 	baseIndices map[string]polarindex.Index
 	dragIndices map[string]polarindex.Offset
 
-	destRun       map[string]*bead.BeadRun
+	destRun       map[string]*wire.BeadRun
 	edgeRun       loadspec.BeadRunRegistry
 	edgeEndpoints map[string]inputcodec.EdgeEndpoints
 

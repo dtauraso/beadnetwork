@@ -4,7 +4,7 @@ import type * as THREE from "three";
 import { ownerCounts } from "../../../schema/buffer-layout/column-owners";
 import { INTERIOR_SLOTS_PER_NODE } from "../../../Interior/buffer-decode-interior";
 
-import { ChainBeadInstances } from "../../../Bead/ChainBeadInstances";
+import { ChainBeadInstances } from "../../../Node/ChainBeadInstances";
 import { EdgeLines } from "../../../Edge/EdgeLines";
 import { getEdgeStreamAccessor } from "../../../Edge/edge-stream-blocks";
 import { TiltVectors } from "../nav/TiltVectors";

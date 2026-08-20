@@ -3,7 +3,7 @@ package inport
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/src/Bead"
+	"github.com/dtauraso/wirefold/src/Node/wire"
 	"github.com/dtauraso/wirefold/src/Node/rowevent"
 	T "github.com/dtauraso/wirefold/src/Trace"
 )
@@ -11,7 +11,7 @@ import (
 type In struct {
 	ch <-chan int
 
-	pw  *bead.BeadRun
+	pw  *wire.BeadRun
 	ctx context.Context
 
 	node  string
@@ -65,7 +65,7 @@ func NewInChan(ch <-chan int, node, port string, tr *T.Trace, stream func() rowe
 	return &In{ch: ch, node: node, port: port, trace: tr, portRow: -1, stream: stream}
 }
 
-func NewInPaced(pw *bead.BeadRun, ctx context.Context, node, port string, tr *T.Trace, stream func() rowevent.EventSink, portRow int32) *In {
+func NewInPaced(pw *wire.BeadRun, ctx context.Context, node, port string, tr *T.Trace, stream func() rowevent.EventSink, portRow int32) *In {
 	return &In{pw: pw, ctx: ctx, node: node, port: port, trace: tr, stream: stream, portRow: portRow}
 }
 

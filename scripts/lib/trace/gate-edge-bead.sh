@@ -47,7 +47,7 @@ check_edge_bead_trace_gate() {
       report+="  $h"$'\n'
       report+=$'\n'
       report+="This flag exists ONLY to gate T.KindEdgeBead volume (see"$'\n'
-      report+="src/Bead/bead_run.go's edgeBeadTraceEnabled doc comment). A guard use that"$'\n'
+      report+="src/Node/wire/bead_run.go's edgeBeadTraceEnabled doc comment). A guard use that"$'\n'
       report+="does not guard a KindEdgeBead emit site means the gate has spread to a different"$'\n'
       report+="event kind — most dangerously KindBreadcrumb, whose failure mode is SILENCE (see"$'\n'
       report+="memory/feedback/architecture/geometry/feedback_make_bug_class_unrepresentable.md)."$'\n'

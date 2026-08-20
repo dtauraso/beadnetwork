@@ -1,8 +1,8 @@
 package edgetable
 
 import (
-	"github.com/dtauraso/wirefold/src/Bead"
-	"github.com/dtauraso/wirefold/src/Bead/outport"
+	"github.com/dtauraso/wirefold/src/Node/wire"
+	"github.com/dtauraso/wirefold/src/Node/wire/outport"
 )
 
 type Edge struct {
@@ -13,7 +13,7 @@ type Edge struct {
 	dstH  string
 
 	out  *outport.Out
-	dest *bead.BeadRun
+	dest *wire.BeadRun
 }
 
 func New(label, srcID, dstID, srcHandle, dstHandle string) *Edge {
@@ -29,5 +29,5 @@ func (e *Edge) DstHandle() string { return e.dstH }
 func (e *Edge) SetOut(out *outport.Out) { e.out = out }
 func (e *Edge) Out() *outport.Out       { return e.out }
 
-func (e *Edge) SetDest(dest *bead.BeadRun) { e.dest = dest }
-func (e *Edge) Dest() *bead.BeadRun        { return e.dest }
+func (e *Edge) SetDest(dest *wire.BeadRun) { e.dest = dest }
+func (e *Edge) Dest() *wire.BeadRun        { return e.dest }

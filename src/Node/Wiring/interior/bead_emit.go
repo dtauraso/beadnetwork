@@ -3,7 +3,7 @@ package interior
 import (
 	"context"
 
-	lattice "github.com/dtauraso/wirefold/src/Bead/lattice"
+	lattice "github.com/dtauraso/wirefold/src/Node/wire/lattice"
 	"github.com/dtauraso/wirefold/src/Node/clock"
 
 	T "github.com/dtauraso/wirefold/src/Trace"

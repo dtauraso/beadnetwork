@@ -1,6 +1,6 @@
 package outport
 
-import "github.com/dtauraso/wirefold/src/Bead"
+import "github.com/dtauraso/wirefold/src/Node/wire"
 
 type DriveOutcome uint8
 
@@ -36,7 +36,7 @@ func (o *Out) PlaceDrivenAt(v int, tick int64) DriveItem {
 	}
 	if o.pw != nil {
 		switch o.placeDrivenNoWalker(v, tick) {
-		case bead.SendPlaced:
+		case wire.SendPlaced:
 			return DriveItem{outcome: DrivePlaced}
 		default:
 			return DriveItem{outcome: DriveBufferFull}

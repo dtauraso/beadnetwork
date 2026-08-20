@@ -1,4 +1,4 @@
-package bead
+package wire
 
 import (
 	T "github.com/dtauraso/wirefold/src/Trace"

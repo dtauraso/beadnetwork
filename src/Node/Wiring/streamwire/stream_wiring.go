@@ -11,7 +11,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor/nodeframe"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor/owners"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor/streamclaim"
-	"github.com/dtauraso/wirefold/src/Bead"
+	"github.com/dtauraso/wirefold/src/Node/wire"
 	"github.com/dtauraso/wirefold/src/Node/rowevent"
 	"github.com/dtauraso/wirefold/src/schema/buffer-layout/colstream"
 )
@@ -89,7 +89,7 @@ func (sw *StreamWiring) SetNodeStreams(
 	nodeMovers map[string]*nodeactor.NodeGeometry,
 	nodeBase, interiorBase int,
 	beadBase int, beadWired bool,
-	buildBeadFrame bead.BeadFrameBuilder,
+	buildBeadFrame wire.BeadFrameBuilder,
 	nodeRowFor func(id string) (int32, bool),
 	buildFrame nodeframe.NodeFrameBuilder,
 	buildInteriorFrame func(tick uint32, events []rowevent.RowEvent) []byte,

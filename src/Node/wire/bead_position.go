@@ -1,4 +1,4 @@
-package bead
+package wire
 
 import (
 	"github.com/dtauraso/wirefold/src/Node/spatial"

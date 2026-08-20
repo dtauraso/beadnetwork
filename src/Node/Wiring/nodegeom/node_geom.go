@@ -5,7 +5,7 @@ import (
 
 	"github.com/dtauraso/wirefold/src/Node/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/polarindex"
-	lattice "github.com/dtauraso/wirefold/src/Bead/lattice"
+	lattice "github.com/dtauraso/wirefold/src/Node/wire/lattice"
 )
 
 type NodeIdentity struct {

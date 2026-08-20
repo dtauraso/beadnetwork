@@ -3,7 +3,7 @@ package pulseright
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/src/Bead/inport"
+	"github.com/dtauraso/wirefold/src/Node/wire/inport"
 	"github.com/dtauraso/wirefold/src/Node/clock"
 	"github.com/dtauraso/wirefold/src/Node/nodeapi"
 

@@ -16,10 +16,7 @@ EXEMPT_FILES = {
     os.path.join("src", "Node", "clock", "sleep_cycle.go"),
 }
 
-ALLOWED = {
-
-    ("src/Node/Wiring/nodeactor/node_geometry.go", "ng.beads.SetBeadTickFn(func() *time.Ticker { return time.NewTicker(clock.TickPeriod) })"),
-}
+ALLOWED = set()
 
 hits = []
 seen_allowed = set()

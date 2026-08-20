@@ -4,7 +4,7 @@ import (
 	"math"
 	"strconv"
 
-	lattice "github.com/dtauraso/wirefold/src/Bead/lattice"
+	lattice "github.com/dtauraso/wirefold/src/Node/wire/lattice"
 )
 
 func ParallelChainOffset(selfID, targetID string, selfCenter, targetCenter, sceneCenter vec3) (vec3, bool) {

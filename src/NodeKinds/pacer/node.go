@@ -3,8 +3,8 @@ package pacer
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/src/Bead/inport"
-	"github.com/dtauraso/wirefold/src/Bead/outport"
+	"github.com/dtauraso/wirefold/src/Node/wire/inport"
+	"github.com/dtauraso/wirefold/src/Node/wire/outport"
 	"github.com/dtauraso/wirefold/src/Node/clock"
 	"github.com/dtauraso/wirefold/src/Node/nodeapi"
 

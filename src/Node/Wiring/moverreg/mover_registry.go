@@ -3,7 +3,7 @@ package moverreg
 import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/edgetable"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor"
-	"github.com/dtauraso/wirefold/src/Bead/outport"
+	"github.com/dtauraso/wirefold/src/Node/wire/outport"
 )
 
 const InboxDepth = 8
