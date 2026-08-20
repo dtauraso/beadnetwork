@@ -1,18 +1,9 @@
-// Package inputfile is the current input, as one file.
-//
-// The bytes are the SAME record the stdin path carries — the encoder, the
-// decoder and INPUT_LAYOUT_FINGERPRINT are unchanged, so the two sides cannot
-// drift and no second format exists. What changes is that the reader looks when
-// it wakes, instead of being handed work by a queue.
 package inputfile
 
 import (
 	"os"
 )
 
-// Reader hands back a record only when the bytes on disk differ from the ones
-// it last returned. Reading the same input twice would apply it twice, and a
-// wheel delta applied twice is a zoom that keeps going.
 type Reader struct {
 	path string
 	last []byte

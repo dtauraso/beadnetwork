@@ -35,9 +35,11 @@ func startGestureActor(ctx context.Context, slotReg inputcodec.SlotRegistry, md 
 		defer wg.Done()
 		reader := inputfile.NewReader(inputPath)
 		mine := clk.Copy()
+		wheel := &wheelTotals{}
 		for {
 			if raw, fresh := reader.Read(); fresh {
 				if msg, ok := inputcodec.DecodeInputRecord(raw); ok && msg.Type == "raw-input" {
+					wheel.difference(msg.Event)
 					dispatch.HandleRawInputMsg(ctx, msg, slotReg, md, speedSinks)
 				}
 			}
@@ -67,6 +69,31 @@ func startGestureActor(ctx context.Context, slotReg inputcodec.SlotRegistry, md 
 		}
 	}()
 	return inbox, wg
+}
+
+// The webview sends the scroll accumulated since it loaded, because a delta has
+// no current reading and identical ticks would encode identical bytes. This
+// turns the total back into the amount to apply.
+type wheelTotals struct {
+	x, y float64
+	seen bool
+}
+
+func (w *wheelTotals) difference(ev *inputcodec.RawInputMsg) {
+	if ev == nil || ev.Kind != "wheel" {
+		return
+	}
+	totalX, totalY := ev.DeltaX, ev.DeltaY
+	if !w.seen {
+		// First wheel record since this process started: adopt the total
+		// without applying it. A respawn would otherwise zoom by everything
+		// scrolled since the webview loaded.
+		w.x, w.y, w.seen = totalX, totalY, true
+		ev.DeltaX, ev.DeltaY = 0, 0
+		return
+	}
+	ev.DeltaX, ev.DeltaY = totalX-w.x, totalY-w.y
+	w.x, w.y = totalX, totalY
 }
 
 func sendGestureMsgBlocking(ctx context.Context, inbox chan gestureInboxMsg, gm gestureInboxMsg) {
