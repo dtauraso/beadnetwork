@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/src/Input/inputcodec"
 )
 
 func (mr *MoverRegistry) Bind(outSink map[string]*beadanimation.Sender, slotReg inputcodec.SlotRegistry, edgeRowFor func(src, dst string) (int32, bool)) {

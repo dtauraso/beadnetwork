@@ -1,7 +1,7 @@
 package rowtables
 
 import (
-	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/src/Input/inputcodec"
 )
 
 type EdgeEndpoint struct {

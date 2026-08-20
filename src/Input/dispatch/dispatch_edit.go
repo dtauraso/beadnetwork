@@ -1,4 +1,4 @@
-package stdinreader
+package dispatch
 
 import (
 	"context"
@@ -6,12 +6,11 @@ import (
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/Panel"
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
 
-	"github.com/dtauraso/wirefold/src/Node/Wiring/dispatch"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/src/Input/inputcodec"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodecrud"
 )
 
-func HandleRawInputMsg(ctx context.Context, msg inputcodec.StdinMsg, slotReg inputcodec.SlotRegistry, md *dispatch.MoveDispatch, speedSinks SliderPanel.Sinks) {
+func HandleRawInputMsg(ctx context.Context, msg inputcodec.StdinMsg, slotReg inputcodec.SlotRegistry, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
 	if md == nil || msg.Event == nil {
 		return
 	}
@@ -51,7 +50,7 @@ func HandleRawInputMsg(ctx context.Context, msg inputcodec.StdinMsg, slotReg inp
 	md.HandleRawInput(ctx, *msg.Event, slotReg)
 }
 
-func HandleSaveMsg(md *dispatch.MoveDispatch) {
+func HandleSaveMsg(md *MoveDispatch) {
 	if md == nil {
 		return
 	}
@@ -63,20 +62,20 @@ func HandleSaveMsg(md *dispatch.MoveDispatch) {
 }
 
 // EDIT_OPS_START
-var editOps = map[string]func(context.Context, inputcodec.StdinMsg, *dispatch.MoveDispatch, SliderPanel.Sinks){
+var editOps = map[string]func(context.Context, inputcodec.StdinMsg, *MoveDispatch, SliderPanel.Sinks){
 	"update": applyUpdate,
 }
 
 // EDIT_OPS_END
 
-func ApplyEdit(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, speedSinks SliderPanel.Sinks) {
+func ApplyEdit(ctx context.Context, msg inputcodec.StdinMsg, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
 	if h, ok := editOps[msg.Op]; ok {
 		h(ctx, msg, md, speedSinks)
 	}
 }
 
 // EDIT_UPDATE_KINDS_START
-var updateKindHandlers = map[string]func(context.Context, inputcodec.StdinMsg, *dispatch.MoveDispatch, SliderPanel.Sinks){
+var updateKindHandlers = map[string]func(context.Context, inputcodec.StdinMsg, *MoveDispatch, SliderPanel.Sinks){
 	"clock":      applyUpdateClock,
 	"overlays":   applyUpdateOverlays,
 	"scene":      applyUpdateScene,
@@ -88,14 +87,14 @@ var updateKindHandlers = map[string]func(context.Context, inputcodec.StdinMsg, *
 
 // EDIT_UPDATE_KINDS_END
 
-func applyUpdate(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, speedSinks SliderPanel.Sinks) {
+func applyUpdate(ctx context.Context, msg inputcodec.StdinMsg, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
 	if h, ok := updateKindHandlers[msg.Kind]; ok {
 		h(ctx, msg, md, speedSinks)
 	}
 }
 
-var clockAttrHandlers = map[string]func(msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, speedSinks SliderPanel.Sinks){
-	"speed": func(msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, speedSinks SliderPanel.Sinks) {
+var clockAttrHandlers = map[string]func(msg inputcodec.StdinMsg, md *MoveDispatch, speedSinks SliderPanel.Sinks){
+	"speed": func(msg inputcodec.StdinMsg, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
 
 		divisor := int64(1)
 		if md != nil {
@@ -115,16 +114,16 @@ var clockAttrHandlers = map[string]func(msg inputcodec.StdinMsg, md *dispatch.Mo
 	},
 }
 
-var panelAttrHandlers = map[string]func(msg inputcodec.StdinMsg, md *dispatch.MoveDispatch){
-	"toggle": func(msg inputcodec.StdinMsg, md *dispatch.MoveDispatch) {
+var panelAttrHandlers = map[string]func(msg inputcodec.StdinMsg, md *MoveDispatch){
+	"toggle": func(msg inputcodec.StdinMsg, md *MoveDispatch) {
 		if fn, ok := Panel.PanelToggles[msg.Flag]; ok {
 			fn(&md.UI.PN)
 		}
 	},
 }
 
-var overlayAttrHandlers = map[string]func(msg inputcodec.StdinMsg, md *dispatch.MoveDispatch){
-	"toggle": func(msg inputcodec.StdinMsg, md *dispatch.MoveDispatch) {
+var overlayAttrHandlers = map[string]func(msg inputcodec.StdinMsg, md *MoveDispatch){
+	"toggle": func(msg inputcodec.StdinMsg, md *MoveDispatch) {
 		toggleOverlayFlag(md, msg.Flag)
 		md.UI.EmitViewFrame(nil)
 	},

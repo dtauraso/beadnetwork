@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: src/Node/Wiring/inputcodec/edit_update_decode.go,src/Node/Wiring/inputcodec/edit_update_decode_scene.go,src/Node/Wiring/stdinreader/dispatch_edit.go | a new addressed-edit attribute must reach a handler, not just decode off the wire
+# PLACEMENT: src/Input/inputcodec/edit_update_decode.go,src/Input/inputcodec/edit_update_decode_scene.go,src/Input/dispatch/dispatch_edit.go | a new addressed-edit attribute must reach a handler, not just decode off the wire
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel)"

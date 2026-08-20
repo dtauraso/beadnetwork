@@ -1,12 +1,11 @@
-package stdinreader
+package dispatch
 
 import (
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/Panel"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/dispatch"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/src/Input/inputcodec"
 )
 
-func panelTookWheel(ev inputcodec.RawInputMsg, md *dispatch.MoveDispatch) bool {
+func panelTookWheel(ev inputcodec.RawInputMsg, md *MoveDispatch) bool {
 	pl := md.UI.PanelLayout()
 
 	if pl.Overlays.Open && Panel.HitRect(pl.Overlays.Popover, ev.X, ev.Y) {
@@ -18,7 +17,7 @@ func panelTookWheel(ev inputcodec.RawInputMsg, md *dispatch.MoveDispatch) bool {
 	return false
 }
 
-func scrollBy(md *dispatch.MoveDispatch, scroll *float32, max float32, delta float64) bool {
+func scrollBy(md *MoveDispatch, scroll *float32, max float32, delta float64) bool {
 	if max <= 0 {
 		return true
 	}

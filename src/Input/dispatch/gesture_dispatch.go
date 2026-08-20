@@ -3,8 +3,8 @@ package dispatch
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/src/Node/Wiring/gesture"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/src/Input/gesture"
+	"github.com/dtauraso/wirefold/src/Input/inputcodec"
 )
 
 func (md *MoveDispatch) HandleRawInput(ctx context.Context, ev inputcodec.RawInputMsg, slotReg inputcodec.SlotRegistry) {

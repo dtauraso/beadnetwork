@@ -1,4 +1,4 @@
-package stdinreader
+package dispatch
 
 func boolU8(b bool) uint8 {
 	if b {

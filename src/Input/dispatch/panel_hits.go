@@ -1,4 +1,4 @@
-package stdinreader
+package dispatch
 
 import (
 	"context"
@@ -10,8 +10,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Chrome/Pills"
 	"github.com/dtauraso/wirefold/src/Chrome/Pills/AngleDropdown"
 	"github.com/dtauraso/wirefold/src/Chrome/Pills/NodesDropdown"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/dispatch"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/src/Input/inputcodec"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodecrud"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/sceneswitch"
 	"github.com/dtauraso/wirefold/src/Overlay"
@@ -21,7 +20,7 @@ import (
 func panelTookPointerDown(
 	ctx context.Context,
 	ev inputcodec.RawInputMsg,
-	md *dispatch.MoveDispatch,
+	md *MoveDispatch,
 	speedSinks SliderPanel.Sinks,
 ) bool {
 	pl := md.UI.PanelLayout()
@@ -85,7 +84,7 @@ func panelTookPointerDown(
 	return false
 }
 
-func placeNodeAt(md *dispatch.MoveDispatch, ev *inputcodec.RawInputMsg) {
+func placeNodeAt(md *MoveDispatch, ev *inputcodec.RawInputMsg) {
 	if ev.RectWidth <= 0 || ev.RectHeight <= 0 {
 		return
 	}
@@ -94,7 +93,7 @@ func placeNodeAt(md *dispatch.MoveDispatch, ev *inputcodec.RawInputMsg) {
 	nodecrud.CreateNode(&md.Scenes, &md.UI, &md.MR, md.UI.PlacingKind, ndcX, ndcY)
 }
 
-func applyOverlaysHit(md *dispatch.MoveDispatch, h Pills.Hit) {
+func applyOverlaysHit(md *MoveDispatch, h Pills.Hit) {
 	switch h.Kind {
 	case Pills.HitPillCaret, Pills.HitHeading:
 		if fn, ok := Panel.PanelToggles[h.Panel]; ok {
@@ -117,7 +116,7 @@ func applyOverlaysHit(md *dispatch.MoveDispatch, h Pills.Hit) {
 	md.UI.EmitViewFrame(nil)
 }
 
-func toggleOverlayFlag(md *dispatch.MoveDispatch, flag string) {
+func toggleOverlayFlag(md *MoveDispatch, flag string) {
 	fn, ok := Overlay.OverlayToggles[flag]
 	if !ok {
 		return
@@ -135,7 +134,7 @@ func toggleOverlayFlag(md *dispatch.MoveDispatch, flag string) {
 	}
 }
 
-func applyAngleHit(ctx context.Context, md *dispatch.MoveDispatch, speedSinks SliderPanel.Sinks, h AngleDropdown.Hit) {
+func applyAngleHit(ctx context.Context, md *MoveDispatch, speedSinks SliderPanel.Sinks, h AngleDropdown.Hit) {
 	switch h.Kind {
 	case AngleDropdown.HitPill:
 		md.UI.AngleOpen = !md.UI.AngleOpen
@@ -156,7 +155,7 @@ func applyAngleHit(ctx context.Context, md *dispatch.MoveDispatch, speedSinks Sl
 	md.UI.EmitViewFrame(nil)
 }
 
-func setClockSpeed(md *dispatch.MoveDispatch, speedSinks SliderPanel.Sinks, speed float64) {
+func setClockSpeed(md *MoveDispatch, speedSinks SliderPanel.Sinks, speed float64) {
 	divisor := int64(md.UI.ClockDivisor)
 	SliderPanel.Broadcast(speedSinks, int64(speed*SliderPanel.NumScale), divisor)
 	md.UI.Speed = speed

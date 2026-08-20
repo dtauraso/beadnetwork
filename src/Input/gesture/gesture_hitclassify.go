@@ -1,8 +1,8 @@
 package gesture
 
 import (
-	"github.com/dtauraso/wirefold/src/Node/Wiring/gesturefsm"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/src/Input/gesturefsm"
+	"github.com/dtauraso/wirefold/src/Input/inputcodec"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodemove"
 )
 

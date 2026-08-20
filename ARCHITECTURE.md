@@ -36,7 +36,7 @@ for the full bridge-surface model, not duplicated here.
 
 **Do not restate the kind list here.** The authority is
 `INPUT_LAYOUT_FINGERPRINT` — one string encoding every kind byte, update kind,
-attr, and overlay flag, defined in `src/Node/Wiring/inputcodec/input_fingerprint.go`. The TS side
+attr, and overlay flag, defined in `src/Input/inputcodec/input_fingerprint.go`. The TS side
 (`src/schema/input/input-layout-gen.ts`) is GENERATED from that Go string by
 the generators, so it cannot drift — there is no second hand-kept copy to compare.
 Read the fingerprint to learn the current surface; prose copied into this file cannot fail
@@ -67,7 +67,7 @@ generically from the decoded content buffer, keyed off `NODE_DEFS`
 | `src/webview/snapshot-buffer.ts` | Raw buffer receive/framing on the webview side |
 | `src/webview/decode/buffer-decode-view.ts` / `-edge.ts` / `-node.ts` / `-interior.ts` | Decode each per-owner stream frame into a typed snapshot (shared trailing-EVENTS decode in `buffer-decode-shared.ts`) |
 | `src/webview/scene/buffer-scene.tsx` | Draws the whole scene generically from the decoded snapshot |
-| `src/webview/scene/ThreeView.tsx` | R3F `<Canvas>` root. Holds NO gesture state — raw pointer/wheel events forward verbatim to Go's FSM (`src/Node/Wiring/gesture` package) |
+| `src/webview/scene/ThreeView.tsx` | R3F `<Canvas>` root. Holds NO gesture state — raw pointer/wheel events forward verbatim to Go's FSM (`src/Input/gesture` package) |
 | `src/webview/interaction/raw-input.ts` | Raw pointer/wheel + raycast hit → binary `raw-input` record to Go |
 | `src/webview/flags/overlay-flags.ts` | Read-only reflection of Go-owned overlay-toggle state (`useSyncExternalStore`; no store) |
 | `webview/log/*` | Crash listeners, error boundary, log posting to the extension host |

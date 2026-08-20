@@ -7,7 +7,7 @@ import (
 	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 
 	EdgeB "github.com/dtauraso/wirefold/src/Node/Edge"
-	W "github.com/dtauraso/wirefold/src/Node/Wiring/dispatch"
+	W "github.com/dtauraso/wirefold/src/Input/dispatch"
 	SW "github.com/dtauraso/wirefold/src/Node/Wiring/streamwire"
 	"github.com/dtauraso/wirefold/src/schema/buffer-layout/colstream"
 )

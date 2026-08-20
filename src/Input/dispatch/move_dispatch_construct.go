@@ -2,11 +2,11 @@ package dispatch
 
 import (
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"
+	clock "github.com/dtauraso/wirefold/src/Clock"
+	"github.com/dtauraso/wirefold/src/Input/inputcodec"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/moverreg"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/polarindex"
-	"github.com/dtauraso/wirefold/src/Clock"
 )
 
 func NewMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[string]inputcodec.EdgeEndpoints, nodeOrder, edgeOrder []string, clk clock.Clock, speedSinks *SliderPanel.Sinks, rowCount int, constants polarindex.SceneConstants) (*MoveDispatch, error) {

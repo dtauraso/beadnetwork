@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	geomseeds "github.com/dtauraso/wirefold/src/Node/Wiring/geomseeds"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/src/Input/inputcodec"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodegeom"
 	rowtables "github.com/dtauraso/wirefold/src/Node/Wiring/rowtables"
 )

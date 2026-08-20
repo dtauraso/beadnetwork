@@ -8,7 +8,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/scene"
 	"strconv"
 
-	"github.com/dtauraso/wirefold/src/Node/Wiring/dispatch"
+	"github.com/dtauraso/wirefold/src/Input/dispatch"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor/nodefiles"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodedrag"

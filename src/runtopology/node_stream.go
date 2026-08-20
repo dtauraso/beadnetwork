@@ -10,7 +10,7 @@ import (
 	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 
 	EdgeB "github.com/dtauraso/wirefold/src/Node/Edge"
-	W "github.com/dtauraso/wirefold/src/Node/Wiring/dispatch"
+	W "github.com/dtauraso/wirefold/src/Input/dispatch"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/framegeom"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor/nodeframe"
 	SW "github.com/dtauraso/wirefold/src/Node/Wiring/streamwire"

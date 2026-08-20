@@ -9,9 +9,9 @@ import (
 
 	"github.com/dtauraso/wirefold/src/NodeKinds/nodeapi"
 
-	W "github.com/dtauraso/wirefold/src/Node/Wiring/dispatch"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/stdinreader"
+	W "github.com/dtauraso/wirefold/src/Input/dispatch"
+	"github.com/dtauraso/wirefold/src/Input/inputcodec"
+	"github.com/dtauraso/wirefold/src/Input/stdinreader"
 )
 
 func startStdinReader(ctx context.Context, cancel context.CancelFunc, slotReg inputcodec.SlotRegistry, md *W.MoveDispatch, speedSinks SliderPanel.Sinks) (*sync.WaitGroup, *sync.WaitGroup) {
