@@ -20,22 +20,21 @@ func firstParagraph(sec []string) string {
 	return strings.Join(out, " ")
 }
 
-func parseSpecMD(pkgDir string) (ViewDef, map[string]string, map[string]string, map[string]bool, map[string]bool, error) {
-	specPortNames := map[string]bool{}
+func parseSpecMD(pkgDir string) (ViewDef, map[string]string, map[string]string, map[string]bool, error) {
 	lines, err := readSpecMDLines(pkgDir)
 	if err != nil {
-		return ViewDef{}, nil, nil, nil, nil, err
+		return ViewDef{}, nil, nil, nil, err
 	}
 
 	viewLines := sectionLines(lines, "View")
 	if viewLines == nil {
-		return ViewDef{}, nil, nil, nil, nil, fmt.Errorf("no View section")
+		return ViewDef{}, nil, nil, nil, fmt.Errorf("no View section")
 	}
 	headers, rows := parseMDTable(viewLines)
 	fieldIdx := indexOf(headers, "Field")
 	valueIdx := indexOf(headers, "Value")
 	if fieldIdx == -1 || valueIdx == -1 {
-		return ViewDef{}, nil, nil, nil, nil, fmt.Errorf("view table missing Field/Value columns")
+		return ViewDef{}, nil, nil, nil, fmt.Errorf("view table missing Field/Value columns")
 	}
 	vmap := map[string]string{}
 	for _, row := range rows {
@@ -77,7 +76,6 @@ func parseSpecMD(pkgDir string) (ViewDef, map[string]string, map[string]string, 
 				continue
 			}
 
-			specPortNames[name] = true
 			if accentIdx != -1 && accentIdx < len(row) && row[accentIdx] != "" {
 				accentOverrides[name] = row[accentIdx]
 			}
@@ -90,5 +88,5 @@ func parseSpecMD(pkgDir string) (ViewDef, map[string]string, map[string]string, 
 		}
 	}
 
-	return view, accentOverrides, edgeKindOverrides, optionalPorts, specPortNames, nil
+	return view, accentOverrides, edgeKindOverrides, optionalPorts, nil
 }

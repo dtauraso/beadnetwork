@@ -3,14 +3,13 @@ package pulseleft
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/src/Clock"
+	clock "github.com/dtauraso/wirefold/src/Clock"
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/src/NodeKinds/nodeapi"
 
 	"github.com/dtauraso/wirefold/src/Node/Wiring/helddrive"
 	Wiring "github.com/dtauraso/wirefold/src/Node/Wiring/kindapi"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/portwiring"
 	"github.com/dtauraso/wirefold/src/NodeKinds/gatecommon"
 )
 
@@ -80,10 +79,6 @@ func (g *PulseLeft) Update(ctx context.Context) {
 func init() {
 
 	Wiring.RegisterBuilder("PulseLeft",
-		[]portwiring.PortSpec{
-			{Name: "In", Dir: portwiring.PortIn},
-			{Name: "Out", Dir: portwiring.PortOut},
-		},
 		func(a Wiring.BuildArgs) (nodeapi.Node, error) {
 			n := &PulseLeft{}
 			n.Fire = a.Fire()

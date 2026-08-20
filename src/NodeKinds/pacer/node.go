@@ -3,14 +3,13 @@ package pacer
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/src/Clock"
+	clock "github.com/dtauraso/wirefold/src/Clock"
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/src/NodeKinds/nodeapi"
 
-	"github.com/dtauraso/wirefold/src/Node/Interior"
+	interior "github.com/dtauraso/wirefold/src/Node/Interior"
 	Wiring "github.com/dtauraso/wirefold/src/Node/Wiring/kindapi"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/portwiring"
 )
 
 const noValue = interior.NoValue
@@ -81,10 +80,6 @@ func (p *Node) Update(ctx context.Context) {
 func init() {
 
 	Wiring.RegisterBuilder("Pacer",
-		[]portwiring.PortSpec{
-			{Name: "In", Dir: portwiring.PortIn},
-			{Name: "FeedbackOut", Dir: portwiring.PortOut},
-		},
 		func(a Wiring.BuildArgs) (nodeapi.Node, error) {
 			n := &Node{
 

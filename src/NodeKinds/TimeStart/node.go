@@ -2,15 +2,15 @@ package timestart
 
 import (
 	"context"
+
 	lattice "github.com/dtauraso/wirefold/src/Node/BeadAnimation/lattice"
 
-	"github.com/dtauraso/wirefold/src/Clock"
+	clock "github.com/dtauraso/wirefold/src/Clock"
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/src/NodeKinds/nodeapi"
 
 	Wiring "github.com/dtauraso/wirefold/src/Node/Wiring/kindapi"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/portwiring"
 	"github.com/dtauraso/wirefold/src/NodeKinds/gatecommon"
 )
 
@@ -123,10 +123,6 @@ func (in *TimeStart) Update(ctx context.Context) {
 func init() {
 
 	Wiring.RegisterBuilder("TimeStart",
-		[]portwiring.PortSpec{
-			{Name: "In", Dir: portwiring.PortIn},
-			{Name: "ToNext", Dir: portwiring.PortBroadcast},
-		},
 		func(a Wiring.BuildArgs) (nodeapi.Node, error) {
 			n := &TimeStart{
 
