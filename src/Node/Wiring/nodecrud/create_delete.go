@@ -3,7 +3,6 @@ package nodecrud
 import (
 	"fmt"
 
-	"github.com/dtauraso/wirefold/src/Node/Wiring/countspersist"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/edgefile"
 	"github.com/dtauraso/wirefold/src/Camera"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/geom/polar"
@@ -88,7 +87,7 @@ func CreateNode(scenes *sceneswitch.SceneSwitch, ui *viewstate.UIState, mr *move
 		edges++
 	}
 
-	if err := countspersist.WriteCounts(scenes.TreeRoot, loadspec.LargestNodeID(scenes.TreeRoot), edges); err != nil {
+	if err := writeCounts(scenes.TreeRoot, loadspec.LargestNodeID(scenes.TreeRoot), edges); err != nil {
 		ui.RefuseStructuralEdit(fmt.Sprintf("could not update counts.json: %v", err))
 		ui.EmitViewFrame(nil)
 		return
@@ -124,7 +123,7 @@ func DeleteNode(scenes *sceneswitch.SceneSwitch, ui *viewstate.UIState, rt *rowt
 		return
 	}
 
-	if err := countspersist.WriteCounts(root, loadspec.LargestNodeID(root), loadspec.CountEdgeFiles(root)); err != nil {
+	if err := writeCounts(root, loadspec.LargestNodeID(root), loadspec.CountEdgeFiles(root)); err != nil {
 		ui.RefuseStructuralEdit(fmt.Sprintf("could not update counts.json: %v", err))
 		ui.EmitViewFrame(nil)
 		return
