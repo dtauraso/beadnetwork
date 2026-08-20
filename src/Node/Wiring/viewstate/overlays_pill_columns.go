@@ -1,11 +1,11 @@
 package viewstate
 
 import (
-	"github.com/dtauraso/wirefold/src/Node/Wiring/overlayspanel"
+	"github.com/dtauraso/wirefold/src/Chrome/Pills"
 	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 )
 
-func (ui *UIState) writeOverlaysPillColumns(lay overlayspanel.Layout) {
+func (ui *UIState) writeOverlaysPillColumns(lay Pills.Layout) {
 	c := ui.singletonCols
 	if c == nil {
 		return
@@ -22,7 +22,7 @@ func (ui *UIState) writeOverlaysPillColumns(lay overlayspanel.Layout) {
 	c.SetF32(B.ColStreamOverlaysPillPopoverY, lay.Popover.Y)
 	c.SetF32(B.ColStreamOverlaysPillPopoverW, lay.Popover.W)
 	c.SetF32(B.ColStreamOverlaysPillPopoverH, lay.Popover.H)
-	c.SetBytes(B.ColStreamOverlaysPillLabelText, []byte(overlayspanel.Label))
+	c.SetBytes(B.ColStreamOverlaysPillLabelText, []byte(Pills.Label))
 
 	rows := newRunCols()
 	for _, r := range lay.Rows {
@@ -32,7 +32,7 @@ func (ui *UIState) writeOverlaysPillColumns(lay overlayspanel.Layout) {
 
 		text := r.Label
 		icon := r.Icon
-		if r.Kind == overlayspanel.RowHeading {
+		if r.Kind == Pills.RowHeading {
 			text = r.Heading
 			icon = disclosureGlyph(r.Open)
 		}
@@ -56,7 +56,7 @@ func (ui *UIState) writeOverlaysPillColumns(lay overlayspanel.Layout) {
 	)
 }
 
-func (ui *UIState) writeFitChipColumns(r overlayspanel.Rect) {
+func (ui *UIState) writeFitChipColumns(r Pills.Rect) {
 	c := ui.singletonCols
 	if c == nil {
 		return

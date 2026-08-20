@@ -129,8 +129,11 @@ own package is already there. `go generate ./...` runs all of them.
   and fit chip, plus the `chrome-theme.ts` they share. "Chrome" is the industry word for the
   frame around the content, and this repo reached for it twice on its own before the cluster
   existed. The test is a `draw-*.ts`: chrome is drawn onto `ChromeCanvas`'s canvas, while the
-  diagram is drawn in the scene. `src/Overlay/` and `src/RingPoint/` are NOT chrome — they
-  are buffer blocks for the diagram.
+  diagram is drawn in the scene. Each piece holds ALL of itself: the Go that lays it out and
+  hit-tests it, its `buffer_block.go`, its generated `columns-gen.ts`, and its `draw-*.ts`.
+  A chrome piece does not perform topology edits — creating and deleting nodes is
+  `Wiring/nodecrud`, not the dropdown that offers it. `src/Overlay/` and `src/RingPoint/` are
+  NOT chrome — they are buffer blocks for the diagram.
 - **`src/extension/`** — the VS Code extension: our code, which RUNS IN the extension host
   (the Node process VS Code spawns) and is not that host — naming it `Host` said we were the
   container rather than the guest. Everything that is neither Go nor the

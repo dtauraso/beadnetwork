@@ -13,7 +13,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/polarindex"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/rulespanel"
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/PolarRulesPanel"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/selectionstate"
 	"github.com/dtauraso/wirefold/src/spatial"
 	"github.com/dtauraso/wirefold/src/schema/buffer-layout/colstream"
@@ -76,8 +76,8 @@ type UIState struct {
 	SceneTabNames    []string
 	SceneTabSelected int
 
-	RuleNodes     []rulespanel.Node
-	RuleEdit      rulespanel.Edit
+	RuleNodes     []PolarRulesPanel.Node
+	RuleEdit      PolarRulesPanel.Edit
 	RuleSharedRow int32
 
 	PlacingKind    uint8

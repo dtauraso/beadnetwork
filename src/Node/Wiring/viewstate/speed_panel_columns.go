@@ -4,16 +4,16 @@ import (
 	"encoding/binary"
 	"math"
 
-	"github.com/dtauraso/wirefold/src/Node/Wiring/speedpanel"
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
 	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 )
 
-func (ui *UIState) writeSpeedPanelColumns(lay speedpanel.Layout) {
+func (ui *UIState) writeSpeedPanelColumns(lay SliderPanel.Layout) {
 	c := ui.singletonCols
 	if c == nil {
 		return
 	}
-	selected := speedpanel.SelectedIndex(ui.Speed)
+	selected := SliderPanel.SelectedIndex(ui.Speed)
 
 	n := len(lay.Ticks)
 	xs := make([]byte, 0, n*4)
@@ -37,7 +37,7 @@ func (ui *UIState) writeSpeedPanelColumns(lay speedpanel.Layout) {
 		}
 		sel = append(sel, on)
 
-		s := speedpanel.Settings[i]
+		s := SliderPanel.Settings[i]
 		numText = append(numText, s.Num...)
 		denText = append(denText, s.Den...)
 		numLen = binary.LittleEndian.AppendUint32(numLen, uint32(len(s.Num)))

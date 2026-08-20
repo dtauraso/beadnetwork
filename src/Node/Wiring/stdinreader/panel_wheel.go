@@ -1,18 +1,18 @@
 package stdinreader
 
 import (
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/Panel"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/panelstack"
 )
 
 func panelTookWheel(ev inputcodec.RawInputMsg, md *dispatch.MoveDispatch) bool {
 	pl := md.UI.PanelLayout()
 
-	if pl.Overlays.Open && panelstack.HitRect(pl.Overlays.Popover, ev.X, ev.Y) {
+	if pl.Overlays.Open && Panel.HitRect(pl.Overlays.Popover, ev.X, ev.Y) {
 		return scrollBy(md, &md.UI.OverlaysScroll, pl.Overlays.MaxScroll, ev.DeltaY)
 	}
-	if pl.Rules.Open && panelstack.HitRect(pl.Rules.RowsClip, ev.X, ev.Y) {
+	if pl.Rules.Open && Panel.HitRect(pl.Rules.RowsClip, ev.X, ev.Y) {
 		return scrollBy(md, &md.UI.RulesScroll, pl.Rules.MaxScroll, ev.DeltaY)
 	}
 	return false

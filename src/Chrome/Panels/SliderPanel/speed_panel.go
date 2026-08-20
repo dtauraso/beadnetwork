@@ -1,6 +1,6 @@
-package speedpanel
+package SliderPanel
 
-import "github.com/dtauraso/wirefold/src/Node/Wiring/panelstack"
+import "github.com/dtauraso/wirefold/src/Chrome/Panels/Panel"
 
 type Setting struct {
 	Speed float64
@@ -30,7 +30,7 @@ const (
 	TrackTickGap = 2
 )
 
-type Rect = panelstack.Rect
+type Rect = Panel.Rect
 
 type Layout struct {
 	Box   Rect
@@ -38,7 +38,7 @@ type Layout struct {
 	Ticks []Rect
 }
 
-func Build(st *panelstack.Stack) Layout {
+func Build(st *Panel.Stack) Layout {
 	box, x, y := st.Add(TrackW, TrackH+TrackTickGap+TickH)
 
 	lay := Layout{
@@ -79,7 +79,7 @@ func SelectedIndex(speed float64) int {
 
 func (l Layout) Hit(x, y float64) int {
 	for i, r := range l.Ticks {
-		if panelstack.HitRect(r, x, y) {
+		if Panel.HitRect(r, x, y) {
 			return i
 		}
 	}

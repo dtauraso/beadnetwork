@@ -1,10 +1,10 @@
-package rulespanel
+package PolarRulesPanel
 
 import (
 	"strconv"
 	"strings"
 
-	"github.com/dtauraso/wirefold/src/Node/Wiring/panelstack"
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/Panel"
 )
 
 type HitKind int
@@ -31,7 +31,7 @@ type Hit struct {
 }
 
 func (l Layout) Hit(x, y float64) Hit {
-	if panelstack.HitRect(l.Toggle, x, y) {
+	if Panel.HitRect(l.Toggle, x, y) {
 		return Hit{Kind: HitToggle, Rect: l.Toggle}
 	}
 	if !l.Open {
@@ -39,22 +39,22 @@ func (l Layout) Hit(x, y float64) Hit {
 	}
 	if l.MenuOpen {
 		for _, m := range l.MenuRows {
-			if panelstack.HitRect(m.Rect, x, y) {
+			if Panel.HitRect(m.Rect, x, y) {
 				return Hit{Kind: HitMenuRow, NodeRow: m.NodeRow, Rect: m.Rect}
 			}
 		}
 	}
-	if !panelstack.HitRect(l.RowsClip, x, y) {
+	if !Panel.HitRect(l.RowsClip, x, y) {
 		return Hit{}
 	}
 	for _, r := range l.Rows {
-		if r.Check != CheckNone && panelstack.HitRect(r.CheckRect, x, y) {
+		if r.Check != CheckNone && Panel.HitRect(r.CheckRect, x, y) {
 			return Hit{Kind: HitCheck, Check: r.Check, NodeRow: r.NodeRow, EdgeRow: r.EdgeRow, Rect: r.CheckRect}
 		}
-		if r.Kind == RowNodeHead && panelstack.HitRect(r.SharedRect, x, y) {
+		if r.Kind == RowNodeHead && Panel.HitRect(r.SharedRect, x, y) {
 			return Hit{Kind: HitShared, NodeRow: r.NodeRow, Rect: r.SharedRect}
 		}
-		if r.Kind == RowLine && r.Value != ValNone && panelstack.HitRect(r.ValueRect, x, y) {
+		if r.Kind == RowLine && r.Value != ValNone && Panel.HitRect(r.ValueRect, x, y) {
 			return Hit{Kind: HitValue, Value: r.Value, NodeRow: r.NodeRow, EdgeRow: r.EdgeRow, Rect: r.ValueRect}
 		}
 	}

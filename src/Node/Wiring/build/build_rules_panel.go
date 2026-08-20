@@ -4,9 +4,10 @@ import (
 	"sort"
 	"strconv"
 
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/PolarRulesPanel"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/loadspec"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/rulespanel"
+	"github.com/dtauraso/wirefold/src/Node/Wiring/nodedrag"
 )
 
 func buildRulePanelNodes(md *dispatch.MoveDispatch, spec loadspec.TopoSpec) {
@@ -31,13 +32,13 @@ func buildRulePanelNodes(md *dispatch.MoveDispatch, spec loadspec.TopoSpec) {
 		reverse[e.Target][e.Source] = true
 	}
 
-	nodes := make([]rulespanel.Node, 0, len(spec.Nodes))
+	nodes := make([]PolarRulesPanel.Node, 0, len(spec.Nodes))
 	for _, n := range spec.Nodes {
 		row, ok := rowOf(n.ID)
 		if !ok {
 			continue
 		}
-		rn := rulespanel.Node{Row: row, Label: n.ID, Kind: n.Type}
+		rn := PolarRulesPanel.Node{Row: row, Label: n.ID, Kind: n.Type, HasKindRule: nodedrag.HasKindRule(n.Type)}
 		for _, e := range spec.Edges {
 			if e.Source != n.ID {
 				continue
@@ -46,7 +47,7 @@ func buildRulePanelNodes(md *dispatch.MoveDispatch, spec loadspec.TopoSpec) {
 			if !ok {
 				continue
 			}
-			rn.Out = append(rn.Out, rulespanel.Edge{
+			rn.Out = append(rn.Out, PolarRulesPanel.Edge{
 				EdgeRow: edgeRowOf[e.Label], OtherRow: otherRow, OtherLabel: e.Target,
 			})
 			rn.HasReverse = append(rn.HasReverse, reverse[n.ID][e.Target])

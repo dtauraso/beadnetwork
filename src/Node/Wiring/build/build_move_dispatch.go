@@ -30,7 +30,7 @@ func (b *buildCtx) buildMoveDispatch() error {
 		return fmt.Errorf("buildMoveDispatch: %w", err)
 	}
 
-	AngleDropdown.LoadLatticePoints(&md.UI, b.scenePath)
+	md.UI.LatticePoints = AngleDropdown.LatticePointsFor(b.scenePath)
 	if b.hasScene {
 
 		md.UI.SceneSphere = b.sphere

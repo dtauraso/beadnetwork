@@ -6,9 +6,9 @@ import (
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/Panel"
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
 
-	"github.com/dtauraso/wirefold/src/Chrome/Pills/NodesDropdown"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/src/Node/Wiring/nodecrud"
 )
 
 func HandleRawInputMsg(ctx context.Context, msg inputcodec.StdinMsg, slotReg inputcodec.SlotRegistry, md *dispatch.MoveDispatch, speedSinks SliderPanel.Sinks) {
@@ -26,7 +26,7 @@ func HandleRawInputMsg(ctx context.Context, msg inputcodec.StdinMsg, slotReg inp
 	if msg.Event.Kind == "delete" {
 		if md.UI.SceneEditable && md.UI.Sel.Selected != "" {
 			if row, ok := md.UI.NodeRowFor(md.UI.Sel.Selected); ok {
-				NodesDropdown.DeleteNode(&md.Scenes, &md.UI, &md.RT, int(row))
+				nodecrud.DeleteNode(&md.Scenes, &md.UI, &md.RT, int(row))
 			}
 		}
 		return

@@ -4,18 +4,16 @@ import (
 	"context"
 
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/Panel"
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/PolarRulesPanel"
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/TiltPanel"
+	"github.com/dtauraso/wirefold/src/Chrome/Pills"
+	"github.com/dtauraso/wirefold/src/Chrome/Pills/AngleDropdown"
 	"github.com/dtauraso/wirefold/src/Chrome/Pills/NodesDropdown"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/angledropdown"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/nodesdropdown"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/overlayspanel"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/panelstack"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/rulespanel"
+	"github.com/dtauraso/wirefold/src/Node/Wiring/nodecrud"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/sceneswitch"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/speedpanel"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/tiltpanel"
 	"github.com/dtauraso/wirefold/src/Overlay"
 	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 )
@@ -28,12 +26,12 @@ func panelTookPointerDown(
 ) bool {
 	pl := md.UI.PanelLayout()
 
-	if h := pl.Rules.Hit(ev.X, ev.Y); h.Kind != rulespanel.HitNone {
+	if h := pl.Rules.Hit(ev.X, ev.Y); h.Kind != PolarRulesPanel.HitNone {
 		applyRulesHit(ctx, md, h)
 		return true
 	}
 
-	if panelstack.HitRect(pl.Fit, ev.X, ev.Y) {
+	if Panel.HitRect(pl.Fit, ev.X, ev.Y) {
 		home := ev
 		home.Kind = "home"
 		md.HandleRawInput(ctx, home, nil)
@@ -46,11 +44,11 @@ func panelTookPointerDown(
 	}
 
 	switch h := pl.Nodes.Hit(ev.X, ev.Y); h.Kind {
-	case nodesdropdown.HitPill:
+	case NodesDropdown.HitPill:
 		md.UI.NodesOpen = !md.UI.NodesOpen
 		md.UI.EmitViewFrame(nil)
 		return true
-	case nodesdropdown.HitRow:
+	case NodesDropdown.HitRow:
 		if md.UI.NodesRowOpen == nil {
 			md.UI.NodesRowOpen = map[uint8]bool{}
 		}
@@ -61,24 +59,24 @@ func panelTookPointerDown(
 	}
 
 	if i := pl.Speed.Hit(ev.X, ev.Y); i >= 0 {
-		setClockSpeed(md, speedSinks, speedpanel.Settings[i].Speed)
+		setClockSpeed(md, speedSinks, SliderPanel.Settings[i].Speed)
 		return true
 	}
-	if h := pl.Overlays.Hit(ev.X, ev.Y); h.Kind != overlayspanel.HitNone {
+	if h := pl.Overlays.Hit(ev.X, ev.Y); h.Kind != Pills.HitNone {
 		applyOverlaysHit(md, h)
 		return true
 	}
-	if h := pl.Angle.Hit(ev.X, ev.Y); h.Kind != angledropdown.HitNone {
+	if h := pl.Angle.Hit(ev.X, ev.Y); h.Kind != AngleDropdown.HitNone {
 		applyAngleHit(ctx, md, speedSinks, h)
 		return true
 	}
 	switch pl.Tilt.Hit(ev.X, ev.Y) {
-	case tiltpanel.ButtonStart:
+	case TiltPanel.ButtonStart:
 		for _, col := range pl.Tilt.Columns {
 			tiltVectorEdit(ctx, md, speedSinks, col.NodeRow, "start")
 		}
 		return true
-	case tiltpanel.ButtonReset:
+	case TiltPanel.ButtonReset:
 		for _, col := range pl.Tilt.Columns {
 			tiltVectorEdit(ctx, md, speedSinks, col.NodeRow, "reset")
 		}
@@ -93,20 +91,20 @@ func placeNodeAt(md *dispatch.MoveDispatch, ev *inputcodec.RawInputMsg) {
 	}
 	ndcX := ((ev.X-ev.RectLeft)/ev.RectWidth)*2 - 1
 	ndcY := -((ev.Y-ev.RectTop)/ev.RectHeight)*2 + 1
-	NodesDropdown.CreateNode(&md.Scenes, &md.UI, &md.MR, md.UI.PlacingKind, ndcX, ndcY)
+	nodecrud.CreateNode(&md.Scenes, &md.UI, &md.MR, md.UI.PlacingKind, ndcX, ndcY)
 }
 
-func applyOverlaysHit(md *dispatch.MoveDispatch, h overlayspanel.Hit) {
+func applyOverlaysHit(md *dispatch.MoveDispatch, h Pills.Hit) {
 	switch h.Kind {
-	case overlayspanel.HitPillCaret, overlayspanel.HitHeading:
+	case Pills.HitPillCaret, Pills.HitHeading:
 		if fn, ok := Panel.PanelToggles[h.Panel]; ok {
 			fn(&md.UI.PN)
 			md.Persist.Panels().Schedule(md.UI.PN)
 		}
-	case overlayspanel.HitPillBody, overlayspanel.HitFlag:
+	case Pills.HitPillBody, Pills.HitFlag:
 		toggleOverlayFlag(md, h.Flag)
 		md.Persist.Overlays().Schedule(md.UI.OV)
-	case overlayspanel.HitCount:
+	case Pills.HitCount:
 		for _, flag := range h.Flags {
 			read, ok := Overlay.OverlayFlagRead[flag]
 			if !ok || read(&md.UI.OV) == h.Target {
@@ -137,22 +135,22 @@ func toggleOverlayFlag(md *dispatch.MoveDispatch, flag string) {
 	}
 }
 
-func applyAngleHit(ctx context.Context, md *dispatch.MoveDispatch, speedSinks SliderPanel.Sinks, h angledropdown.Hit) {
+func applyAngleHit(ctx context.Context, md *dispatch.MoveDispatch, speedSinks SliderPanel.Sinks, h AngleDropdown.Hit) {
 	switch h.Kind {
-	case angledropdown.HitPill:
+	case AngleDropdown.HitPill:
 		md.UI.AngleOpen = !md.UI.AngleOpen
-	case angledropdown.HitGroup:
+	case AngleDropdown.HitGroup:
 		if md.UI.AngleGroupOpen == nil {
 			md.UI.AngleGroupOpen = map[int32]bool{}
 		}
 		md.UI.AngleGroupOpen[h.NodeRow] = !md.UI.AngleGroupOpen[h.NodeRow]
-	case angledropdown.HitLatticeUp:
-		setLatticePoints(md, md.UI.LatticePoints+angledropdown.LatticePointsStep)
-	case angledropdown.HitLatticeDown:
-		setLatticePoints(md, md.UI.LatticePoints-angledropdown.LatticePointsStep)
-	case angledropdown.HitPhiUp:
+	case AngleDropdown.HitLatticeUp:
+		setLatticePoints(md, md.UI.LatticePoints+AngleDropdown.LatticePointsStep)
+	case AngleDropdown.HitLatticeDown:
+		setLatticePoints(md, md.UI.LatticePoints-AngleDropdown.LatticePointsStep)
+	case AngleDropdown.HitPhiUp:
 		adjustTiltPhi(ctx, md, h.NodeRow, true)
-	case angledropdown.HitPhiDown:
+	case AngleDropdown.HitPhiDown:
 		adjustTiltPhi(ctx, md, h.NodeRow, false)
 	}
 	md.UI.EmitViewFrame(nil)

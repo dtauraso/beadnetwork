@@ -1,11 +1,11 @@
 package viewstate
 
 import (
-	"github.com/dtauraso/wirefold/src/Node/Wiring/tabstrip"
+	"github.com/dtauraso/wirefold/src/Chrome/Tabs"
 	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 )
 
-func (ui *UIState) writeTabStripColumns(lay tabstrip.Layout) {
+func (ui *UIState) writeTabStripColumns(lay Tabs.Layout) {
 	c := ui.singletonCols
 	if c == nil {
 		return

@@ -1,11 +1,11 @@
 package viewstate
 
 import (
-	"github.com/dtauraso/wirefold/src/Node/Wiring/rulespanel"
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/PolarRulesPanel"
 	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 )
 
-func (ui *UIState) writeRulesPanelColumns(lay rulespanel.Layout) {
+func (ui *UIState) writeRulesPanelColumns(lay PolarRulesPanel.Layout) {
 	c := ui.singletonCols
 	if c == nil {
 		return
@@ -24,9 +24,9 @@ func (ui *UIState) writeRulesPanelColumns(lay rulespanel.Layout) {
 	c.SetF32(B.ColStreamRulesPanelToggleY, lay.Toggle.Y)
 	c.SetF32(B.ColStreamRulesPanelToggleW, lay.Toggle.W)
 	c.SetF32(B.ColStreamRulesPanelToggleH, lay.Toggle.H)
-	toggle := rulespanel.LabelClosed
+	toggle := PolarRulesPanel.LabelClosed
 	if lay.Open {
-		toggle = rulespanel.LabelOpen
+		toggle = PolarRulesPanel.LabelOpen
 	}
 	c.SetBytes(B.ColStreamRulesPanelToggleText, []byte(toggle))
 

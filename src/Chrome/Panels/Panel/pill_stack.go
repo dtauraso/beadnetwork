@@ -1,4 +1,4 @@
-package panelstack
+package Panel
 
 const (
 	PillTop   = 44

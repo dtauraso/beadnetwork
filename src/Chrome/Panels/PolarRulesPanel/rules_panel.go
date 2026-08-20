@@ -1,6 +1,6 @@
-package rulespanel
+package PolarRulesPanel
 
-import "github.com/dtauraso/wirefold/src/Node/Wiring/panelstack"
+import "github.com/dtauraso/wirefold/src/Chrome/Panels/Panel"
 
 const (
 	Label       = "polar rules"
@@ -28,7 +28,7 @@ const (
 	Gap       = 6
 )
 
-type Rect = panelstack.Rect
+type Rect = Panel.Rect
 
 type RowKind int
 
@@ -126,6 +126,8 @@ type Node struct {
 	Out []Edge
 
 	HasReverse []bool
+
+	HasKindRule bool
 }
 
 type Edge struct {
@@ -148,8 +150,8 @@ func shiftRow(r *Row, dy float32) {
 	r.SharedRect.Y += dy
 }
 
-func Build(st *panelstack.Stack, open bool, nodes []Node, edit Edit, sharedMenuRow int32, scroll float32) Layout {
-	toggleH := panelstack.LineHeight(HeadFontPx) + 4
+func Build(st *Panel.Stack, open bool, nodes []Node, edit Edit, sharedMenuRow int32, scroll float32) Layout {
+	toggleH := Panel.LineHeight(HeadFontPx) + 4
 	top := st.Next()
 	lay := Layout{
 		Open:   open,
@@ -174,7 +176,7 @@ func Build(st *panelstack.Stack, open bool, nodes []Node, edit Edit, sharedMenuR
 	rowsTop := top + headerH
 	rowsFull := b.y - rowsTop + PadY
 
-	rowsVisible, scroll, maxScroll := panelstack.ClipToRoom(rowsFull, st.RoomBelow(rowsTop), scroll)
+	rowsVisible, scroll, maxScroll := Panel.ClipToRoom(rowsFull, st.RoomBelow(rowsTop), scroll)
 	lay.Scroll = scroll
 	lay.MaxScroll = maxScroll
 	lay.RowsClip = Rect{X: OriginX, Y: rowsTop, W: Width, H: rowsVisible}

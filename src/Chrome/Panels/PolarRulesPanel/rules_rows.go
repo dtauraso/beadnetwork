@@ -1,10 +1,9 @@
-package rulespanel
+package PolarRulesPanel
 
 import (
 	"fmt"
 
-	"github.com/dtauraso/wirefold/src/Node/Wiring/nodedrag"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/panelstack"
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/Panel"
 )
 
 type builder struct {
@@ -16,7 +15,7 @@ type builder struct {
 }
 
 func (b *builder) line(depth int, glyph, text string, free bool, node, edge int32, v ValueKind, editing bool) {
-	h := panelstack.LineHeight(FontPx) + 2*RowPadY
+	h := Panel.LineHeight(FontPx) + 2*RowPadY
 	x := b.x + float32(depth)*IndentLine
 	r := Row{
 		Kind: RowLine, Rect: Rect{X: x, Y: b.y, W: b.w - float32(depth)*IndentLine, H: h},
@@ -29,7 +28,7 @@ func (b *builder) line(depth int, glyph, text string, free bool, node, edge int3
 }
 
 func (b *builder) holderHead(depth int, text string, check CheckKind, node, edge int32) {
-	h := panelstack.LineHeight(FontPx) + 2*RowPadY
+	h := Panel.LineHeight(FontPx) + 2*RowPadY
 	x := b.x + float32(depth)*IndentName
 	r := Row{
 		Kind: RowHolderHead, Rect: Rect{X: x, Y: b.y, W: b.w - float32(depth)*IndentName, H: h},
@@ -41,7 +40,7 @@ func (b *builder) holderHead(depth int, text string, check CheckKind, node, edge
 }
 
 func (b *builder) text(depth int, text string, free bool) {
-	h := panelstack.LineHeight(FontPx) + 2*RowPadY
+	h := Panel.LineHeight(FontPx) + 2*RowPadY
 	x := b.x + float32(depth)*IndentLine
 	b.rows = append(b.rows, Row{
 		Kind: RowText, Rect: Rect{X: x, Y: b.y, W: b.w - float32(depth)*IndentLine, H: h},
@@ -51,13 +50,13 @@ func (b *builder) text(depth int, text string, free bool) {
 }
 
 func buildNode(b *builder, n Node) {
-	headH := panelstack.LineHeight(FontPx) + 2*RowPadY
+	headH := Panel.LineHeight(FontPx) + 2*RowPadY
 	head := Row{
 		Kind: RowNodeHead, Rect: Rect{X: b.x, Y: b.y, W: b.w, H: headH},
 		Text: n.Label, Glyph: n.Kind, NodeRow: n.Row, Check: CheckNodeDrag,
 	}
 	head.CheckRect = Rect{X: b.x, Y: b.y + (headH-CheckSize)/2, W: CheckSize, H: CheckSize}
-	sharedW := panelstack.TextWidth("⇄ shared ×00", FontPx) + 10
+	sharedW := Panel.TextWidth("⇄ shared ×00", FontPx) + 10
 	head.SharedRect = Rect{X: b.x + b.w - sharedW, Y: b.y, W: sharedW, H: headH}
 	b.rows = append(b.rows, head)
 	b.y += headH
@@ -80,7 +79,7 @@ func buildNode(b *builder, n Node) {
 		b.line(2, "—", "no rule of its own", true, n.Row, -1, ValNone, false)
 	}
 
-	if !nodedrag.HasKindRule(n.Kind) {
+	if !n.HasKindRule {
 		return
 	}
 	count := len(n.Out)
@@ -108,11 +107,11 @@ func buildSharedMenu(lay *Layout, nodes []Node, anchorRow int32) {
 		return
 	}
 
-	rowH := panelstack.LineHeight(HeadFontPx) + 4
+	rowH := Panel.LineHeight(HeadFontPx) + 4
 	headH := rowH
 	w := float32(128)
 	for _, n := range nodes {
-		if t := panelstack.TextWidth(n.Label, HeadFontPx) + CheckSize + 3*Gap; t > w {
+		if t := Panel.TextWidth(n.Label, HeadFontPx) + CheckSize + 3*Gap; t > w {
 			w = t
 		}
 	}
