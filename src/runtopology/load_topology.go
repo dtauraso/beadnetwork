@@ -2,16 +2,17 @@ package runtopology
 
 import (
 	"context"
+
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
+	clock "github.com/dtauraso/wirefold/src/Clock"
 
 	"github.com/dtauraso/wirefold/src/Input/dispatch"
 	"github.com/dtauraso/wirefold/src/Input/inputcodec"
 	"github.com/dtauraso/wirefold/src/NodeKinds/kindreg"
-	"github.com/dtauraso/wirefold/src/runtopology/loadspec"
+	"github.com/dtauraso/wirefold/src/NodeKinds/nodeapi"
 	"github.com/dtauraso/wirefold/src/NodeKinds/portwiring"
 	"github.com/dtauraso/wirefold/src/Scene/scenepersist"
-	"github.com/dtauraso/wirefold/src/Clock"
-	"github.com/dtauraso/wirefold/src/NodeKinds/nodeapi"
+	"github.com/dtauraso/wirefold/src/runtopology/loadspec"
 )
 
 func LoadTopology(ctx context.Context, jsonPath string, clk clock.Clock) ([]nodeapi.Node, inputcodec.SlotRegistry, *dispatch.MoveDispatch, SliderPanel.Sinks, error) {

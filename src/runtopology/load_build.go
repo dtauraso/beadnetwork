@@ -2,20 +2,21 @@ package runtopology
 
 import (
 	"context"
+
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
+	clock "github.com/dtauraso/wirefold/src/Clock"
 
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/TiltPanel"
-	"github.com/dtauraso/wirefold/src/Clock"
-	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/src/Input/dispatch"
-	"github.com/dtauraso/wirefold/src/Polar/polar"
 	"github.com/dtauraso/wirefold/src/Input/inputcodec"
-	"github.com/dtauraso/wirefold/src/NodeKinds/kindreg"
-	"github.com/dtauraso/wirefold/src/runtopology/loadspec"
+	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/src/Node/nodegeom"
-	"github.com/dtauraso/wirefold/src/Polar/polarindex"
-	"github.com/dtauraso/wirefold/src/runtopology/topoderive"
+	"github.com/dtauraso/wirefold/src/NodeKinds/kindreg"
 	"github.com/dtauraso/wirefold/src/NodeKinds/nodeapi"
+	"github.com/dtauraso/wirefold/src/Polar/polar"
+	"github.com/dtauraso/wirefold/src/Polar/polarindex"
+	"github.com/dtauraso/wirefold/src/runtopology/loadspec"
+	"github.com/dtauraso/wirefold/src/runtopology/topoderive"
 	"github.com/dtauraso/wirefold/src/spatial"
 )
 

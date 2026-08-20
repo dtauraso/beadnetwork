@@ -3,16 +3,16 @@ package runtopology
 import (
 	"fmt"
 
-	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/src/Input/dispatch"
 	"github.com/dtauraso/wirefold/src/Input/inputcodec"
-	"github.com/dtauraso/wirefold/src/NodeKinds/kindreg"
-	"github.com/dtauraso/wirefold/src/runtopology/loadspec"
+	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/src/Node/movemsg"
 	"github.com/dtauraso/wirefold/src/Node/moverreg"
 	"github.com/dtauraso/wirefold/src/Node/nodeactor"
-	"github.com/dtauraso/wirefold/src/NodeKinds/portwiring"
+	"github.com/dtauraso/wirefold/src/NodeKinds/kindreg"
 	"github.com/dtauraso/wirefold/src/NodeKinds/nodeapi"
+	"github.com/dtauraso/wirefold/src/NodeKinds/portwiring"
+	"github.com/dtauraso/wirefold/src/runtopology/loadspec"
 )
 
 func (b *buildCtx) buildNodes() error {

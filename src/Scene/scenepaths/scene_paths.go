@@ -6,6 +6,11 @@ func ViewFilePath(topologyPath, name string) string {
 	return filepath.Join(topologyPath, "view", name)
 }
 
+// InputFilePath is the current input the gesture goroutine reads when it wakes.
+func InputFilePath(topologyPath string) string {
+	return ViewFilePath(topologyPath, filepath.Join("input", "current.bin"))
+}
+
 func SelectionFilePath(anchorPath string) string {
 	return ViewFilePath(anchorPath, filepath.Join("scene", "selected.bin"))
 }

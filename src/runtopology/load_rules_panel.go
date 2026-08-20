@@ -6,8 +6,8 @@ import (
 
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/PolarRulesPanel"
 	"github.com/dtauraso/wirefold/src/Input/dispatch"
-	"github.com/dtauraso/wirefold/src/runtopology/loadspec"
 	"github.com/dtauraso/wirefold/src/Node/nodedrag"
+	"github.com/dtauraso/wirefold/src/runtopology/loadspec"
 )
 
 func buildRulePanelNodes(md *dispatch.MoveDispatch, spec loadspec.TopoSpec) {
