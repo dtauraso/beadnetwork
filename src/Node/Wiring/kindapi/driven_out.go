@@ -10,8 +10,6 @@ type DrivenOut struct {
 
 func newDrivenOut(out *outport.Out) DrivenOut { return DrivenOut{out: out} }
 
-func NewDrivenOutForTest(out *outport.Out) DrivenOut { return DrivenOut{out: out} }
-
 func (d DrivenOut) HasRun() bool { return d.out.HasRun() }
 
 func (d DrivenOut) Paced() bool { return d.out.Paced() }

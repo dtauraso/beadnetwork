@@ -40,14 +40,6 @@ func (o *Out) HasRun() bool {
 	return o.pw != nil
 }
 
-func NewPacedOutNoGeom(pw *wire.BeadRun, ctx context.Context, node, port string, rule SendRule, steps int, edgeLabel string) *Out {
-	return NewOutPaced(pw, ctx, node, port, rule, edgeLabel, nil, -1, -1, -1)
-}
-
-func NewOutChanForTest(ch chan<- int, node, port string) *Out {
-	return newOutChan(ch, node, port)
-}
-
 func NewOutChanDeadEnd(ch chan<- int, node, port string) *Out {
 	return newOutChan(ch, node, port)
 }

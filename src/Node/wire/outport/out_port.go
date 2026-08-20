@@ -69,15 +69,6 @@ func (o *Out) applyPostedGeom() {
 	}
 }
 
-func (o *Out) placement() wire.BeadPlacement {
-	return o.placementFrom(o.Geom())
-}
-
-func (o *Out) CurrentPlacement() (steps int, start, end spatial.Vec3) {
-	bp := o.placement()
-	return bp.Steps, bp.Start, bp.End
-}
-
 func (o *Out) placementFrom(g outGeom) wire.BeadPlacement {
 	return wire.BeadPlacement{
 		Steps: g.Steps,

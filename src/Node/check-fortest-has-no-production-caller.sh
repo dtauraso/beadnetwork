@@ -11,7 +11,7 @@ cd "$REPO_ROOT"
 report="$(python3 - <<'PY'
 import os, re
 
-root = "nodes"
+root = "src/Node"
 def_pat = re.compile(r'\bfunc\s+(\w*ForTest)\b')
 ref_pat = re.compile(r'\b(\w*ForTest)\b')
 
@@ -49,6 +49,14 @@ for dp, _dn, fns in os.walk(root):
                     if is_def and def_pat.search(code).group(1) == name:
                         continue  # the definition line itself, not a call site
                     hits.append(f"{p}:{i}: {line.strip()}")
+
+if files_scanned == 0:
+    raise SystemExit(
+        f"check-fortest-has-no-production-caller: MISCONFIGURED — walked {root!r} and found\n"
+        "  no .go files, so every ForTest symbol would read as unused. This guard reported\n"
+        "  a clean scan of zero files for a whole day after nodes/ became src/Node/; a bare\n"
+        "  directory name is invisible to check-guard-paths-exist.sh. Repoint root."
+    )
 
 out = []
 out.append(f"SCANNED {files_scanned} src/Node/**/*.go production files, {len(symbols)} *ForTest symbol(s): {', '.join(sorted(symbols)) if symbols else '(none found)'}")
