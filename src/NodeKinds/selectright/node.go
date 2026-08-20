@@ -7,7 +7,7 @@ import (
 
 	Wiring "github.com/dtauraso/wirefold/src/Node/Wiring/kindapi"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/portwiring"
-	"github.com/dtauraso/wirefold/src/Node/gatecommon"
+	"github.com/dtauraso/wirefold/src/NodeKinds/gatecommon"
 )
 
 type SelectRight struct {

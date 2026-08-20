@@ -86,15 +86,20 @@ own package is already there. `go generate ./...` runs all of them.
   npm, tsconfig and esbuild all assume it; directory naming for an npm package is medium,
   not substance. The package root is the REPO root — `package.json`, `tsconfig.json` and
   `node_modules/` live there, so there is one npm project and no path mappings.
-- **`src/NodeKinds/`** — the node kinds, and ONLY those: the kind scanner walks it and treats
-  every directory it finds as a kind, so a helper parked there grows a phantom node kind.
+- **`src/NodeKinds/`** — the node kinds, plus `gatecommon/`, the firing rule 8 of them share
+  (window opens on the first input, fires on dwell, clears otherwise). The scanner reads a
+  directory here as a kind only if it calls `Register(...)`, so `gatecommon` is invisible to
+  it — but it IS visible to `parsePortsFromAST`, which walks every struct in a shared package
+  a kind embeds: a port-typed field added to a helper struct here grows a phantom port on all
+  8 (`.claude/rules/node-kinds.md`; this is why `helddrive` lives under `Wiring/`). The check
+  after touching this directory is a `node-defs.ts` diff, not a build.
 - **`src/Clock/`** — the human-speed clock, one of MODEL.md's own entities alongside the
   bead and the wire, so it is a sibling of `Node/` rather than a part of it: `MsPerTick`, the
   `Clock` interface every goroutine holds its own `Copy()` of, and the sleep/speed delivery.
   It is the ONLY place a `time.Sleep`/`After`/`NewTicker` may park a goroutine
   (`check-no-wall-clock-wait.sh`, whose exempt list names two files here and nothing else).
 - **`src/Node/`** — what a node USES: the spine the kinds are built from (`Wiring/`,
-  `nodeapi/`, `gatecommon/`, `rowevent/`, `spatial/`), the startup wiring
+  `nodeapi/`, `rowevent/`, `spatial/`), the startup wiring
   (`runtopology/`), and the TS that draws a node. A directory here is NOT a kind — both the
   scanner and `check-dep-rules.sh` decide that by the `Register(...)` call, not by placement.
 - **`src/Bead/`** — ONE bead, and nothing else: its ring surface, its style, its buffer-block
