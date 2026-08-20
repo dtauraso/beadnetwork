@@ -20,8 +20,8 @@ loop body) runs:
   pure index arithmetic (`theta+6`), never a cross product — so the normal turns WITH
   the tilt, always staying 90° away, rather than holding still toward the partner. There
   is no φ. Both nodes of a pair run this same unmodified addition — there is no per-node
-  sign. `coplanarNormal` (`src/Node/PairNode/vectors.go`) reads it straight off the tilt's own
-  `quarter` link on the ring (`src/Node/PairNode/ring.go`) — the ring is built with that link
+  sign. `coplanarNormal` (`src/NodeKinds/PairNode/vectors.go`) reads it straight off the tilt's own
+  `quarter` link on the ring (`src/NodeKinds/PairNode/ring.go`) — the ring is built with that link
   already wrapped onto `0…Wiring.FullTurnThetaIdx-1`, so there is no addition here to
   overflow and nothing to subtract back into range. There is no pole and nothing to cross:
   the renderer decodes an index as `(sin θ, cos θ, 0)`, a plain circle, so there is no φ to

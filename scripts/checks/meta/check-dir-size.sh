@@ -19,7 +19,7 @@ ALLOWED = {
         "one parse-then-emit pipeline; 29 unexported symbols cross file boundaries",
     "src/Node/Wiring/nodeactor/owners":
         "splitting re-exports the leaf fields the owners package exists to hide",
-    "src/Node/PairNode":
+    "src/NodeKinds/PairNode":
         "kindscan joins pkgDir with the literal SPEC.md; tiltring took the exported-call seam",
     ".":
         "go.mod, LICENSE and the main package live at the module root",

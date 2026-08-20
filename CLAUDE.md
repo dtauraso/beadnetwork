@@ -25,7 +25,7 @@ PASSIVE delay queue holding its own in-flight beads, with a channel on each end,
 its SOURCE NODE's own goroutine — it is not a goroutine itself), node goroutine, input port,
 clock, and the node-owned chain of placeholder beads that renders a traversal
 ([docs/model/entities.md](docs/model/entities.md); its length is
-`src/Node/Wiring/edgegeom/chain_length.go`). The active node kinds are the structs under `src/Node/<Kind>/`.
+`src/Node/Wiring/edgegeom/chain_length.go`). The active node kinds are the structs under `src/NodeKinds/<Kind>/`.
 
 **Drift rule:** see MODEL.md's "Drift rule" section for the full statement (guards:
 `src/webview/check-no-webview-state.sh`, `src/check-no-await-on-bridge.sh`).
@@ -40,7 +40,7 @@ clock, and the node-owned chain of placeholder beads that renders a traversal
    (the generated buffer wire format plus the curve/shading params that ride in it) and
    `schema/input/` (the TS<->Go input-record codec: byte reader/writer, attrs, layout
    fingerprint, encode/decode). Adding a node kind touches only `node-defs.ts`.
-3. The Go node package under `src/Node/<Kind>/`, with its logic always in `node.go` (never
+3. The Go node package under `src/NodeKinds/<Kind>/`, with its logic always in `node.go` (never
    `<Kind>.go`) plus `SPEC.md`. Directory casing is mixed and both are live: PascalCase
    (`Time`, `TimeEnd`, `TimeStart`, `PulseLeft`, `PulseRight`) and lowercase (`holdflip`,
    `input`, `pacer`, `pulse`, `selectleft`, `selectright`) — don't infer one from the other.

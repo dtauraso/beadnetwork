@@ -1,6 +1,6 @@
 # Node Kind SPEC Format
 
-Each `src/Node/<Kind>/SPEC.md` is the canonical description of one Go node kind. It is the source of truth that drives the Go runtime (firing rule + struct), the TSX render (port positions + label), and the AI-assisted parity check.
+Each `src/NodeKinds/<Kind>/SPEC.md` is the canonical description of one Go node kind. It is the source of truth that drives the Go runtime (firing rule + struct), the TSX render (port positions + label), and the AI-assisted parity check.
 
 This document defines what goes in a SPEC and what each section means.
 
@@ -129,7 +129,7 @@ The `## View` section is required for any kind that has a TSX render. It drives 
 
 A missing `## View` section (or one missing the `Field`/`Value` table columns) is a **hard
 error**: the kind scanner (`src/Node/Wiring/kindscan`) fails the whole build, it is
-not skipped or treated as not-yet-migrated. Every `src/Node/<Kind>/` directory with a
+not skipped or treated as not-yet-migrated. Every `src/NodeKinds/<Kind>/` directory with a
 `Wiring.Register(...)` call MUST have a valid `## View` section.
 
 ## Banned content

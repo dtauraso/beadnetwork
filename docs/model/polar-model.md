@@ -104,7 +104,7 @@ and none is a source of truth.
   states its own `drag` in its own `base.json` (`polar.DragRule`); absent means free, and
   most nodes say nothing. No node reads another's rule: a neighbour that wants a node moved
   computes the `Δ` from ITS OWN numbers — its own point before and after, and its own side of
-  the edge before and after (`src/Node/input/drag.go`) — and TELLS it, and the node told
+  the edge before and after (`src/NodeKinds/input/drag.go`) — and TELLS it, and the node told
   trims that `Δ` against its own rules before committing it (`TrimOwnDrag`). A `Δ` an input
   node states to equalise its outgoing paths is therefore a request, not an imposition: a
   target whose own rule holds `D.r` keeps its distance and takes only the angles.
@@ -120,7 +120,7 @@ and none is a source of truth.
   and the half-turn snap on its own drag — and it is no longer a kind CHECK inside shared
   code. **A node owns the function that trims it, not only the numbers it trims to.** The
   kind states its own drag behaviour from its own package (`nodedrag.RegisterTrim` /
-  `RegisterRequest` in `src/Node/input/drag.go`), exactly as it states its ports; a kind that
+  `RegisterRequest` in `src/NodeKinds/input/drag.go`), exactly as it states its ports; a kind that
   registers nothing is trimmed by its own drag rule alone. `nodeactor` composes the delta,
   asks the node to trim it, and commits — it does not know what an `Input` is.
 

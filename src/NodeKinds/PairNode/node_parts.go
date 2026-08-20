@@ -5,7 +5,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/bead/outport"
 	"github.com/dtauraso/wirefold/src/Node/clock"
 
-	"github.com/dtauraso/wirefold/src/Node/PairNode/tiltring"
+	"github.com/dtauraso/wirefold/src/NodeKinds/PairNode/tiltring"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor"
 	"github.com/dtauraso/wirefold/src/TiltPanel"

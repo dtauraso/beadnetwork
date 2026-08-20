@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: src/Node/*/node.go | a kind's wire.Register("<Kind>") name must be unique across every node package
+# PLACEMENT: src/NodeKinds/*/node.go | a kind's wire.Register("<Kind>") name must be unique across every node package
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 
 shopt -s nullglob
-node_files=("$REPO_ROOT"/src/Node/*/node.go)
+node_files=("$REPO_ROOT"/src/NodeKinds/*/node.go)
 shopt -u nullglob
 
 if [ ${#node_files[@]} -eq 0 ]; then

@@ -4,7 +4,7 @@
 
 The `## View`, `## Ports`, and `## Description` sections stay in SPEC.md because
 `src/Node/Wiring/kindscan/spec_md_table.go`'s `readSpecMDLines` reads exactly
-`src/Node/<Kind>/SPEC.md` and `parseSpecMD` parses only those sections from it. Everything
+`src/NodeKinds/<Kind>/SPEC.md` and `parseSpecMD` parses only those sections from it. Everything
 else the generator does not read lives in the pages below.
 
 - [firing-rule.md](firing-rule.md) — when this node acts: the reactive loop, the In

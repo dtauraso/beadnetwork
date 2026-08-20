@@ -1,23 +1,23 @@
-# PulseRightNode
+# PulseLeftNode
 
 ## Description
 
-Holds and drives a value like Pulse, feeding the RIGHT input of a select gate.
+Holds and drives a value like Pulse, feeding the LEFT input of a select gate.
 
 ## View
 
 | Field | Value |
 |-------|-------|
-| kindId | 9 |
-| kind | pulseRight |
+| kindId | 8 |
+| kind | pulseLeft |
 | bg | #e1f5fe |
-| border | #01579b |
+| border | #90caf9 |
 | text | #01579b |
-| accent | #01579b |
+| accent | #90caf9 |
 | minWidth | 90 |
 | shape | rect |
 | fill | #e1f5fe |
-| stroke | #01579b |
+| stroke | #90caf9 |
 | width | 90 |
 | height | 60 |
 
@@ -33,9 +33,9 @@ Holds and drives a value like Pulse, feeding the RIGHT input of a select gate.
 Sample-and-hold. Holds one int value (initialized to -1) and drives it out
 continuously, even before any input arrives. When a value arrives on In,
 the held value is updated and subsequent outputs emit the new value. The output
-is not precondition-gated — PulseRight self-emits -1 from the start.
+is not precondition-gated — PulseLeft self-emits -1 from the start.
 
-A clone of the Pulse kind (src/Node/pulse). Its firing rule is identical to Pulse's;
+A clone of the Pulse kind (src/NodeKinds/pulse). Its firing rule is identical to Pulse's;
 the layout-cascade rule that was its only divergence is gone with the cascade
 system, so this kind is currently a Pulse under another name.
 

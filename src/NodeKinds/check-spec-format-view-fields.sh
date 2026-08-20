@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: src/Node/SPEC-FORMAT.md,src/Node/Wiring/kindscan/spec_md.go | the `## View` field table must name exactly the view.* fields parseSpecMD reads
+# PLACEMENT: src/NodeKinds/SPEC-FORMAT.md,src/Node/Wiring/kindscan/spec_md.go | the `## View` field table must name exactly the view.* fields parseSpecMD reads
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -8,7 +8,7 @@ REPO_ROOT="$(git rev-parse --show-toplevel)"
 cd "$REPO_ROOT"
 
 GEN_DIR="src/Node/Wiring/kindscan"
-DOC="src/Node/SPEC-FORMAT.md"
+DOC="src/NodeKinds/SPEC-FORMAT.md"
 
 if [[ ! -d "$GEN_DIR" ]]; then
   echo "check-spec-format-view-fields: MISSING $GEN_DIR — cannot verify parity, refusing vacuous pass" >&2

@@ -33,7 +33,7 @@ actually move this node (`handleVectorCycle`), so one message carries one visibl
 the bead loop lives and dies with the exchange it paces.
 
 `TiltEditIn` (`BuildArgs.TiltEditIn`, a panel-driven edit routed HERE instead of to a
-mover) carries THREE distinct edits, applied by `applyTiltEdit` (`src/Node/PairNode/edits.go`):
+mover) carries THREE distinct edits, applied by `applyTiltEdit` (`src/NodeKinds/PairNode/edits.go`):
 
 - **A ▲/▼ panel click** (`TiltVectorAnglePanel.tsx`): applies exactly one ±1 step to the
   named axis, marks this end HELD (a tilt a user set is intent, not error — this end keeps

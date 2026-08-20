@@ -24,7 +24,7 @@ func main() {
 
 func generateKindImports(repoRoot string, kinds []kindscan.KindEntry) {
 	path := filepath.Join(repoRoot, "kinds_generated.go")
-	if err := kindscan.WriteKindImports(path, genpaths.NetworkPkg(repoRoot), kinds); err != nil {
+	if err := kindscan.WriteKindImports(path, genpaths.KindsPkg(repoRoot), kinds); err != nil {
 		genpaths.Fatalf("write %s: %v", path, err)
 	}
 	genpaths.Announce(path, len(kinds), "kinds")

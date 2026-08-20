@@ -25,7 +25,7 @@ func Roots() (repoRoot, srcRoot string) {
 }
 
 func Kinds(repoRoot string) []kindscan.KindEntry {
-	nodesDir := NetworkDir(repoRoot)
+	nodesDir := KindsDir(repoRoot)
 	kinds := kindscan.CollectKinds(nodesDir)
 	kindscan.AssignKindIDs(kinds, nodesDir)
 	sort.Slice(kinds, func(i, j int) bool {
@@ -38,7 +38,11 @@ func NetworkDir(repoRoot string) string {
 	return filepath.Join(repoRoot, networkSegments[0], networkSegments[1])
 }
 
-func NetworkPkg(repoRoot string) string {
+func KindsDir(repoRoot string) string {
+	return filepath.Join(repoRoot, kindsSegments[0], kindsSegments[1])
+}
+
+func KindsPkg(repoRoot string) string {
 	modPath := filepath.Join(repoRoot, "go.mod")
 	src, err := os.ReadFile(modPath)
 	if err != nil {
@@ -54,10 +58,12 @@ func NetworkPkg(repoRoot string) string {
 	if module == "" {
 		Fatalf("%s declares no module path", modPath)
 	}
-	return path.Join(append([]string{module}, networkSegments[:]...)...)
+	return path.Join(append([]string{module}, kindsSegments[:]...)...)
 }
 
 var networkSegments = [2]string{"src", "Node"}
+
+var kindsSegments = [2]string{"src", "NodeKinds"}
 
 func Fatalf(format string, args ...any) {
 	fmt.Fprintf(os.Stderr, Self()+": "+format+"\n", args...)

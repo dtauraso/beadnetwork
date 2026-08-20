@@ -9,7 +9,7 @@ passive-mirror shape as `SyncTiltIndex`, and likewise a direct call rather than 
 message) — REPLACING whatever it received last time,
 regardless of whether the step below fires. THEN the step decision (`stepFromVector`).
 
-THE RULE IS THE ARITHMETIC, and it is written once in `src/Node/PairNode/tiltring/rules.go` as plain
+THE RULE IS THE ARITHMETIC, and it is written once in `src/NodeKinds/PairNode/tiltring/rules.go` as plain
 functions over numbers — no state machine dispatch, no ring links, no receivers:
 
     tau              the lattice size, r.Points

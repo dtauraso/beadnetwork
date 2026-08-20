@@ -36,7 +36,7 @@
         <h2>Starting the machine is not a case</h2>
         <div class="cap">There is one machine, so the first arrival starts it and nothing is read out
           of the gap to choose between machines
-          (<span data-src="src/Node/PairNode/machine.go#adoptMachine">adoptMachine</span>). A pair set up
+          (<span data-src="src/NodeKinds/PairNode/machine.go#adoptMachine">adoptMachine</span>). A pair set up
           already at its stopping count is finished on arrival — it has nowhere to walk.</div>
       </div>
 
@@ -53,25 +53,25 @@
             <td class="n">the stopping count is read from the ring at every call, never stored, so a mode
               that stopped at 12 on a 48-ring stops at 6 on a 24-ring with nothing to migrate. The INDEX is
               what survives, not the angle</td>
-            <td class="s" data-src="src/Node/PairNode/ring.go#adoptLattice">adoptLattice</td>
+            <td class="s" data-src="src/NodeKinds/PairNode/ring.go#adoptLattice">adoptLattice</td>
           </tr>
           <tr>
             <td class="e">the arrival lands on this node's own top</td>
             <td class="n">the exchange comes to rest: nothing is sent and no bead is placed. That is the
               halt of the EXCHANGE, not of a mode</td>
-            <td class="s" data-src="src/Node/PairNode/cycle.go#handleVectorCycle">handleVectorCycle</td>
+            <td class="s" data-src="src/NodeKinds/PairNode/cycle.go#handleVectorCycle">handleVectorCycle</td>
           </tr>
           <tr>
             <td class="e">the partner's arrow is reversed</td>
             <td class="n">not a case at all — a distance is taken from EACH end, so a reversed partner
               is the other end's distance and lands on the same line</td>
-            <td class="s" data-src="src/Node/PairNode/tiltring/rules.go#Offset">offset</td>
+            <td class="s" data-src="src/NodeKinds/PairNode/tiltring/rules.go#Offset">offset</td>
           </tr>
           <tr>
             <td class="e">a mode with no stopping count</td>
             <td class="n">refused where the broken invariant can still be named, rather than silently
               behaving like some other mode</td>
-            <td class="s" data-src="src/Node/PairNode/tiltring/machine.go#MachineFor">machineFor</td>
+            <td class="s" data-src="src/NodeKinds/PairNode/tiltring/machine.go#MachineFor">machineFor</td>
           </tr>
         </table>
       </div>
