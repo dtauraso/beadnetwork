@@ -13,7 +13,7 @@ func main() {
 	genpaths.Name = "Chrome/OverlaysDropdown/gen"
 	_, srcRoot := genpaths.Roots()
 
-	messagesTSPath := filepath.Join(srcRoot, "messages.ts")
+	messagesTSPath := filepath.Join(srcRoot, "schema", "messages.ts")
 	flags, err := overlaygen.ParseOverlayFlags(messagesTSPath)
 	if err != nil {
 		genpaths.Fatalf("parse overlay flags: %v", err)

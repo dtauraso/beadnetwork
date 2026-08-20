@@ -33,7 +33,7 @@ when a bead has arrived. Go owns the clock.
   thing you want to see separately. Frames on a dedicated fd are `[len:u32-LE][payload]`
   with NO tag byte — the fd POSITION identifies the stream/row.
   `WIREFOLD_STREAM_FDS` (the ext host's spawn env var,
-  `src/runCommand.ts`) is **mandatory**: there is no
+  `src/Host/runCommand.ts`) is **mandatory**: there is no
   central accumulator and no fallback path left to fall back to.
 - **Go → TS is binary content buffers** (`buffer-snapshot`) ALONE — no
   sidecar. Each node's kind is a numeric `KindId` column (TS maps it to

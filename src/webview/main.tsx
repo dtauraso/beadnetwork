@@ -4,7 +4,7 @@ postLog("lifecycle", { phase: "bundle-eval" });
 
 import { createRoot } from "react-dom/client";
 import { ThreeView } from "./three/scene/ThreeView";
-import { parseHostToWebview } from "../messages";
+import { parseHostToWebview } from "../schema/messages";
 import { ErrorBoundary } from "./log/ErrorBoundary";
 import { CrashListeners } from "./log/CrashListeners";
 import { setLatestViewFrame, setLatestEdgeStreamFrame, setLatestNodeStreamFrame, setLatestInteriorStreamFrame, setLatestBeadStreamFrame } from "./snapshot-buffer";

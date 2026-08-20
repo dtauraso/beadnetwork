@@ -1,15 +1,15 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
-import { BuildAndRunRunner } from "../runCommand";
+import { BuildAndRunRunner } from "./runCommand";
 import {
   parseWebviewToHost,
   type HostToWebviewMsg,
   type WebviewToHostMsg,
-} from "../messages";
+} from "../schema/messages";
 import { appendWebviewLog } from "./webview-log";
-import { PROBE_DIR, PROBE_FILES } from "../probe-files";
-import { resolveRepoRoot } from "../repo-root";
+import { PROBE_DIR, PROBE_FILES } from "./probe-files";
+import { resolveRepoRoot } from "./repo-root";
 import { BUF_BLOCK_TAG_COLUMN, BUF_BLOCK_TAG_VIEW, BUF_BLOCK_TAG_EDGE_STREAM, BUF_BLOCK_TAG_NODE_STREAM, BUF_BLOCK_TAG_INTERIOR_STREAM, BUF_BLOCK_TAG_BEAD_STREAM } from "../schema/buffer-layout/frame-tags";
 
 export type MessageCtx = {

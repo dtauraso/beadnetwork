@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: src/Node/Wiring/streamwire/stream_fds.go,src/runCommand.ts,src/runner/stream-fds.ts,src/runner/spawn-layout.ts,src/runner/stream-demux.ts | a new StreamKind must gain a WIREFOLD_STREAM_FDS env entry (runner/spawn-layout.ts builds the string, runCommand.ts's spawn env assigns it) and its own handle<Kind>Fd reader (runner/stream-demux.ts) in the ext host
+# PLACEMENT: src/Node/Wiring/streamwire/stream_fds.go,src/Host/runCommand.ts,src/Host/runner/stream-fds.ts,src/Host/runner/spawn-layout.ts,src/Host/runner/stream-demux.ts | a new StreamKind must gain a WIREFOLD_STREAM_FDS env entry (runner/spawn-layout.ts builds the string, runCommand.ts's spawn env assigns it) and its own handle<Kind>Fd reader (runner/stream-demux.ts) in the ext host
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel)"

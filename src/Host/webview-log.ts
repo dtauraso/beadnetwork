@@ -2,7 +2,7 @@ import * as fs from "fs/promises";
 import * as fsSync from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
-import { PROBE_DIR, PROBE_FILES, isProbeTraceEnabled } from "../probe-files";
+import { PROBE_DIR, PROBE_FILES, isProbeTraceEnabled } from "./probe-files";
 
 const ERROR_LABELS = new Set([
   "window-error", "unhandled-rejection", "render-error",

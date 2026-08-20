@@ -3,7 +3,7 @@ import * as http from "http";
 import * as path from "path";
 import * as crypto from "crypto";
 import * as vscode from "vscode";
-import { resolveRepoRoot } from "../repo-root";
+import { resolveRepoRoot } from "./repo-root";
 
 export function findDefinitionLine(abs: string, symbol: string): number {
   let text: string;

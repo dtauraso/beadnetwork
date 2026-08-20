@@ -6,7 +6,7 @@ import { appendGoError } from "../probe/go-errors";
 import { probePathsFor, type ProbePaths } from "../probe/probe-paths";
 import { computeSpawnLayout, type SpawnLayout } from "../spawn-layout";
 import { StreamDemux } from "../stream-demux";
-import type { HostToWebviewMsg } from "../../messages";
+import type { HostToWebviewMsg } from "../../../schema/messages";
 
 export interface PreparedRun {
   goErrorsFile: string;

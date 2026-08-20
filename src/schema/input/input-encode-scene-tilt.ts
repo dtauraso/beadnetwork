@@ -15,7 +15,7 @@ import {
   IN_SCENE_ATTR_DELETE,
   IN_SCENE_ATTR_VIEWPORT,
 } from "./input-attrs";
-import type { RawInputEvent } from "../../messages";
+import type { RawInputEvent } from "../messages";
 
 export function encodeSceneCreate(kindId: number, ndcX: number, ndcY: number): ArrayBuffer {
   const w = new ByteWriter();

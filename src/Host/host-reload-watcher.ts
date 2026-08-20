@@ -1,8 +1,8 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
-import { TrailingDebouncer } from "../hotRestart";
-import { hashBundle, isHostReloadEnabled, shouldReloadHost } from "../hostReload";
+import { TrailingDebouncer } from "./hotRestart";
+import { hashBundle, isHostReloadEnabled, shouldReloadHost } from "./hostReload";
 
 export function armHostReloadWatcher(context: vscode.ExtensionContext): void {
   const hostBundlePath = path.join(context.extensionPath, "out", "extension.js");

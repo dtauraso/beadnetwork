@@ -18,8 +18,8 @@ import {
   IN_NODE_ATTR_DRAG_R,
   IN_NODE_ATTR_SELF_DRAG_R,
 } from "./input-attrs";
-import type { OverlayFlag, PanelFlag } from "../../messages";
-import { OVERLAY_FLAG_ORDER, PANEL_FLAG_ORDER } from "../../messages";
+import type { OverlayFlag, PanelFlag } from "../messages";
+import { OVERLAY_FLAG_ORDER, PANEL_FLAG_ORDER } from "../messages";
 
 export function encodeOverlaysToggle(flag: OverlayFlag): ArrayBuffer {
   const w = new ByteWriter();
