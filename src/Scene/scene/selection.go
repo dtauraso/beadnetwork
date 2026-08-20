@@ -1,12 +1,12 @@
 package scene
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
 
 	"github.com/dtauraso/wirefold/src/Scene/scenepaths"
+	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
 func Container(anchorPath string) string {
@@ -18,12 +18,8 @@ func Container(anchorPath string) string {
 }
 
 func SelectedIndex(anchorPath string) int {
-	b, err := os.ReadFile(scenepaths.SelectionFilePath(anchorPath))
-	if err != nil {
-		return 0
-	}
 	var selected string
-	if json.Unmarshal(b, &selected) != nil {
+	if !valuefile.ReadIfExists(scenepaths.SelectionFilePath(anchorPath), &selected) {
 		return 0
 	}
 	for i, s := range All {

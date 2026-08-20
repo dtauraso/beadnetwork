@@ -4,7 +4,7 @@ import (
 	"path/filepath"
 	"sort"
 
-	"github.com/dtauraso/wirefold/src/jsonpersist"
+	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
 var PanelFlagRead = map[string]func(*PanelState) bool{
@@ -46,7 +46,7 @@ func WriteScenePanels(panelsDir string, pn PanelState) error {
 	}
 	sort.Strings(names)
 	for _, name := range names {
-		if err := jsonpersist.WriteJSONAtomic(PanelFlagFile(panelsDir, name), PanelFlagRead[name](&pn)); err != nil {
+		if err := valuefile.WriteAtomic(PanelFlagFile(panelsDir, name), PanelFlagRead[name](&pn)); err != nil {
 			return err
 		}
 	}
@@ -58,7 +58,7 @@ func LoadScenePanels(panelsDir string) (PanelState, bool) {
 	found := false
 	for name, set := range PanelFlagWrite {
 		var v bool
-		if jsonpersist.ReadJSONIfExists(PanelFlagFile(panelsDir, name), &v) {
+		if valuefile.ReadIfExists(PanelFlagFile(panelsDir, name), &v) {
 			set(&pn, v)
 			found = true
 		}

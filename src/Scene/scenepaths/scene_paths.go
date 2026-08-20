@@ -7,7 +7,7 @@ func ViewFilePath(topologyPath, name string) string {
 }
 
 func SelectionFilePath(anchorPath string) string {
-	return ViewFilePath(anchorPath, filepath.Join("scene", "selected.json"))
+	return ViewFilePath(anchorPath, filepath.Join("scene", "selected.bin"))
 }
 
 func CameraDirPath(topologyPath string) string {
@@ -27,9 +27,9 @@ func SphereDirPath(topologyPath string) string {
 }
 
 func SpeedFilePath(topologyPath string) string {
-	return ViewFilePath(topologyPath, "speed.json")
+	return ViewFilePath(topologyPath, "speed.bin")
 }
 
 func LatticeFilePath(topologyPath string) string {
-	return ViewFilePath(topologyPath, "lattice.json")
+	return ViewFilePath(topologyPath, "lattice.bin")
 }

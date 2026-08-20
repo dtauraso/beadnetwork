@@ -2,32 +2,31 @@ import * as fs from "fs";
 import * as path from "path";
 import { SCENES } from "../../Scene/scenes-gen";
 
+function readIntLeaf(leafPath: string): number {
+  let raw: Buffer;
+  try {
+    raw = fs.readFileSync(leafPath);
+  } catch (err) {
+    throw new Error(`cannot read ${leafPath}: ${err instanceof Error ? err.message : String(err)}`);
+  }
+  if (raw.length !== 8) {
+    throw new Error(`${leafPath} must be an 8-byte integer leaf, got ${raw.length} bytes`);
+  }
+  const value = Number(new DataView(raw.buffer, raw.byteOffset, raw.length).getBigInt64(0, true));
+  if (!Number.isSafeInteger(value) || value < 0) {
+    throw new Error(`${leafPath} must be a non-negative integer, got: ${value}`);
+  }
+  return value;
+}
+
 function readCount(topologyPath: string, name: "nodes" | "edges"): number {
-  const countPath = path.join(topologyPath, "counts", `${name}.json`);
-  let raw: string;
-  try {
-    raw = fs.readFileSync(countPath, "utf8");
-  } catch (err) {
-    throw new Error(`cannot read ${countPath}: ${err instanceof Error ? err.message : String(err)}`);
-  }
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(raw);
-  } catch (err) {
-    throw new Error(`cannot parse ${countPath}: ${err instanceof Error ? err.message : String(err)}`);
-  }
-  if (typeof parsed !== "number" || !Number.isInteger(parsed) || parsed < 0) {
-    throw new Error(`${countPath} must be a single non-negative integer, got: ${raw}`);
-  }
-  return parsed;
+  return readIntLeaf(path.join(topologyPath, "counts", `${name}.bin`));
 }
 
 export function resolveScenePath(anchorPath: string): string {
   let selected: string;
   try {
-    const raw = fs.readFileSync(path.join(anchorPath, "view", "scene", "selected.json"), "utf8");
-    const parsed: unknown = JSON.parse(raw);
-    selected = typeof parsed === "string" ? parsed : "";
+    selected = fs.readFileSync(path.join(anchorPath, "view", "scene", "selected.bin"), "utf8");
   } catch {
     selected = "";
   }

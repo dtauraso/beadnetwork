@@ -3,7 +3,7 @@ package rulenode
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/src/jsonpersist"
+	"github.com/dtauraso/wirefold/src/valuefile"
 	"github.com/dtauraso/wirefold/src/Node/nodeactor/nodefiles"
 )
 
@@ -38,7 +38,7 @@ func (r *RuleNode) applyKindToggle() {
 		return
 	}
 	if err := nodefiles.WriteKindRuleActive(r.persistRoot, r.id, r.kindActive); err != nil {
-		jsonpersist.LogPersistErr("rulenode", r.id, err)
+		valuefile.LogPersistErr("rulenode", r.id, err)
 	}
 }
 
@@ -85,6 +85,6 @@ func (r *RuleNode) applyEdgeToggle(t EdgeToggle) {
 		return
 	}
 	if err := nodefiles.WriteEdgeRuleActive(r.persistRoot, r.id, t.Target, next); err != nil {
-		jsonpersist.LogPersistErr("rulenode", r.id+"To"+t.Target, err)
+		valuefile.LogPersistErr("rulenode", r.id+"To"+t.Target, err)
 	}
 }

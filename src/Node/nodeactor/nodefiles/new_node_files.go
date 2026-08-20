@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/dtauraso/wirefold/src/Polar/polar"
-	"github.com/dtauraso/wirefold/src/jsonpersist"
+	"github.com/dtauraso/wirefold/src/valuefile"
 	"github.com/dtauraso/wirefold/src/Node/nodefile"
 	"github.com/dtauraso/wirefold/src/Polar/polarindex"
 )
@@ -26,7 +26,7 @@ func WriteNewNodeFiles(root, id, kind string, p polar.Polar, sc polarindex.Scene
 	}
 	idx := polarindex.MeasureIndex(p, sc)
 	base := nodeBaseDir(root, id)
-	if err := jsonpersist.WriteJSONAtomic(filepath.Join(base, nodefile.FileType), kind); err != nil {
+	if err := valuefile.WriteAtomic(filepath.Join(base, nodefile.FileType), kind); err != nil {
 		return err
 	}
 	for name, value := range map[string]int{
@@ -34,7 +34,7 @@ func WriteNewNodeFiles(root, id, kind string, p polar.Polar, sc polarindex.Scene
 		nodefile.FileIndexTheta: idx.Theta,
 		nodefile.FileIndexR:     idx.R,
 	} {
-		if err := jsonpersist.WriteJSONAtomic(filepath.Join(base, name), value); err != nil {
+		if err := valuefile.WriteAtomic(filepath.Join(base, name), value); err != nil {
 			return err
 		}
 	}
@@ -46,9 +46,9 @@ func WriteDragRule(root, id string, rule *PolarRulesPanel.DragRule) error {
 }
 
 const (
-	FileDragActive = "drag.json"
-	FileKindActive = "kind.json"
-	FileSelfActive = "self.json"
+	FileDragActive = "drag.bin"
+	FileKindActive = "kind.bin"
+	FileSelfActive = "self.bin"
 	DirEdgeActive  = "edges"
 )
 
@@ -62,14 +62,14 @@ func edgeActiveFilePath(root, id, target string) string {
 
 func readActive(path string) bool {
 	var v bool
-	if !jsonpersist.ReadJSONIfExists(path, &v) {
+	if !valuefile.ReadIfExists(path, &v) {
 		return true
 	}
 	return v
 }
 
 func WriteKindRuleActive(root, id string, active bool) error {
-	return jsonpersist.WriteJSONAtomic(ruleActiveFilePath(root, id, FileKindActive), active)
+	return valuefile.WriteAtomic(ruleActiveFilePath(root, id, FileKindActive), active)
 }
 
 func LoadKindRuleActive(root, id string) bool {
@@ -77,7 +77,7 @@ func LoadKindRuleActive(root, id string) bool {
 }
 
 func WriteEdgeRuleActive(root, id, target string, active bool) error {
-	return jsonpersist.WriteJSONAtomic(edgeActiveFilePath(root, id, target), active)
+	return valuefile.WriteAtomic(edgeActiveFilePath(root, id, target), active)
 }
 
 func LoadEdgeRuleActive(root, id, target string) bool {
@@ -89,7 +89,7 @@ func WriteSelfDragRule(root, id string, rule *PolarRulesPanel.DragRule) error {
 }
 
 func WriteSelfRuleActive(root, id string, active bool) error {
-	return jsonpersist.WriteJSONAtomic(ruleActiveFilePath(root, id, FileSelfActive), active)
+	return valuefile.WriteAtomic(ruleActiveFilePath(root, id, FileSelfActive), active)
 }
 
 func LoadSelfRuleActive(root, id string) bool {
@@ -97,7 +97,7 @@ func LoadSelfRuleActive(root, id string) bool {
 }
 
 func WriteDragActive(root, id string, active bool) error {
-	return jsonpersist.WriteJSONAtomic(ruleActiveFilePath(root, id, FileDragActive), active)
+	return valuefile.WriteAtomic(ruleActiveFilePath(root, id, FileDragActive), active)
 }
 
 func LoadDragActive(root, id string) bool {

@@ -3,14 +3,14 @@ package dragfile
 import (
 	"path/filepath"
 
-	"github.com/dtauraso/wirefold/src/jsonpersist"
+	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
 const (
-	FileIndexPhi   = "index-phi.json"
-	FileIndexTheta = "index-theta.json"
-	FileIndexR     = "index-r.json"
-	FileTiltIdx    = "top-tilt-vector-phi-idx.json"
+	FileIndexPhi   = "index-phi.bin"
+	FileIndexTheta = "index-theta.bin"
+	FileIndexR     = "index-r.bin"
+	FileTiltIdx    = "top-tilt-vector-phi-idx.bin"
 )
 
 func DragDir(root, id string) string {
@@ -33,7 +33,7 @@ func Write(root, id string, j JSON) error {
 		FileIndexR:     j.IndexR,
 		FileTiltIdx:    int(j.TopTiltVectorPhiIdx),
 	} {
-		if err := jsonpersist.WriteJSONAtomicIfChanged(filepath.Join(dir, name), value); err != nil {
+		if err := valuefile.WriteAtomicIfChanged(filepath.Join(dir, name), value); err != nil {
 			return err
 		}
 	}
@@ -45,7 +45,7 @@ func Read(root, id string) (JSON, bool) {
 	var j JSON
 	found := false
 	read := func(name string, dst *int) {
-		if jsonpersist.ReadJSONIfExists(filepath.Join(dir, name), dst) {
+		if valuefile.ReadIfExists(filepath.Join(dir, name), dst) {
 			found = true
 		}
 	}

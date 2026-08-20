@@ -7,14 +7,14 @@ import (
 
 	lattice "github.com/dtauraso/wirefold/src/Node/BeadAnimation/lattice"
 	"github.com/dtauraso/wirefold/src/Polar/polarindex"
-	"github.com/dtauraso/wirefold/src/jsonpersist"
+	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
 const (
 	ConstantsDirName  = "constants"
-	FileConstantR     = "constant-r.json"
-	FileMaxIndexPhi   = "max-index-phi.json"
-	FileMaxIndexTheta = "max-index-theta.json"
+	FileConstantR     = "constant-r.bin"
+	FileMaxIndexPhi   = "max-index-phi.bin"
+	FileMaxIndexTheta = "max-index-theta.bin"
 )
 
 func ConstantsDir(root string) string { return filepath.Join(root, ConstantsDirName) }
@@ -27,13 +27,13 @@ func loadSceneConstants(root string) (polarindex.SceneConstants, error) {
 	dir := ConstantsDir(root)
 	var c polarindex.SceneConstants
 	missing := []string{}
-	if !jsonpersist.ReadJSONIfExists(filepath.Join(dir, FileConstantR), &c.ConstantR) {
+	if !valuefile.ReadIfExists(filepath.Join(dir, FileConstantR), &c.ConstantR) {
 		missing = append(missing, FileConstantR)
 	}
-	if !jsonpersist.ReadJSONIfExists(filepath.Join(dir, FileMaxIndexPhi), &c.MaxIndexPhi) {
+	if !valuefile.ReadIfExists(filepath.Join(dir, FileMaxIndexPhi), &c.MaxIndexPhi) {
 		missing = append(missing, FileMaxIndexPhi)
 	}
-	if !jsonpersist.ReadJSONIfExists(filepath.Join(dir, FileMaxIndexTheta), &c.MaxIndexTheta) {
+	if !valuefile.ReadIfExists(filepath.Join(dir, FileMaxIndexTheta), &c.MaxIndexTheta) {
 		missing = append(missing, FileMaxIndexTheta)
 	}
 	if len(missing) > 0 {

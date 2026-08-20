@@ -1,16 +1,16 @@
 package edgefile
 
 const (
-	FileSourceHandle = "source-handle.json"
-	FileTarget       = "target.json"
-	FileTargetHandle = "target-handle.json"
-	FileKind         = "kind.json"
+	FileSourceHandle = "source-handle.bin"
+	FileTarget       = "target.bin"
+	FileTargetHandle = "target-handle.bin"
+	FileKind         = "kind.bin"
 
-	FileDeltaIndexR     = "delta-index-r.json"
-	FileDeltaIndexPhi   = "delta-index-phi.json"
-	FileDeltaIndexTheta = "delta-index-theta.json"
+	FileDeltaIndexR     = "delta-index-r.bin"
+	FileDeltaIndexPhi   = "delta-index-phi.bin"
+	FileDeltaIndexTheta = "delta-index-theta.bin"
 
-	FileDragIndexR     = "index-r.json"
-	FileDragIndexPhi   = "index-phi.json"
-	FileDragIndexTheta = "index-theta.json"
+	FileDragIndexR     = "index-r.bin"
+	FileDragIndexPhi   = "index-phi.bin"
+	FileDragIndexTheta = "index-theta.bin"
 )

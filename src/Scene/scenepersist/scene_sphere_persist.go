@@ -5,23 +5,23 @@ import (
 
 	"github.com/dtauraso/wirefold/src/Polar/polar"
 	"github.com/dtauraso/wirefold/src/runtopology/geomseeds"
-	"github.com/dtauraso/wirefold/src/jsonpersist"
+	"github.com/dtauraso/wirefold/src/valuefile"
 	"github.com/dtauraso/wirefold/src/Scene/scenepaths"
 	"github.com/dtauraso/wirefold/src/Scene/viewstate"
 )
 
 const (
-	FileSphereCX     = "cx.json"
-	FileSphereCY     = "cy.json"
-	FileSphereCZ     = "cz.json"
-	FileSphereRadius = "radius.json"
+	FileSphereCX     = "cx.bin"
+	FileSphereCY     = "cy.bin"
+	FileSphereCZ     = "cz.bin"
+	FileSphereRadius = "radius.bin"
 )
 
 func LoadSceneSphere(topologyPath string) (polar.SceneSphere, bool) {
 	dir := scenepaths.SphereDirPath(topologyPath)
 	var s polar.SceneSphere
 	read := func(name string, dst *float64) bool {
-		return jsonpersist.ReadJSONIfExists(filepath.Join(dir, name), dst)
+		return valuefile.ReadIfExists(filepath.Join(dir, name), dst)
 	}
 	if !read(FileSphereCX, &s.Center.X) || !read(FileSphereCY, &s.Center.Y) ||
 		!read(FileSphereCZ, &s.Center.Z) || !read(FileSphereRadius, &s.Radius) {
@@ -35,7 +35,7 @@ func WriteSceneSphere(sphereDir string, s polar.SceneSphere) error {
 		FileSphereCX: s.Center.X, FileSphereCY: s.Center.Y, FileSphereCZ: s.Center.Z,
 		FileSphereRadius: s.Radius,
 	} {
-		if err := jsonpersist.WriteJSONAtomicIfChanged(filepath.Join(sphereDir, name), value); err != nil {
+		if err := valuefile.WriteAtomicIfChanged(filepath.Join(sphereDir, name), value); err != nil {
 			return err
 		}
 	}

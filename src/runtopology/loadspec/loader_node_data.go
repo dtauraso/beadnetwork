@@ -7,6 +7,8 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+
+	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
 const (
@@ -14,11 +16,11 @@ const (
 	DirInit     = "init"
 	DirState    = "state"
 	DirSendRule = "send-rules"
-	FileLabel   = "label.json"
-	FileRepeat  = "repeat.json"
+	FileLabel   = "label.bin"
+	FileRepeat  = "repeat.bin"
 )
 
-func trimJSONExt(name string) string { return strings.TrimSuffix(name, ".json") }
+func trimLeafExt(name string) string { return strings.TrimSuffix(name, valuefile.Ext) }
 
 func readIntDir(dir string) (map[string]int, error) {
 	names, err := readDirNames(dir)
@@ -27,12 +29,12 @@ func readIntDir(dir string) (map[string]int, error) {
 	}
 	out := map[string]int{}
 	for _, n := range names {
-		if !strings.HasSuffix(n, ".json") {
+		if !strings.HasSuffix(n, valuefile.Ext) {
 			continue
 		}
 		var v int
-		if readJSONFile(filepath.Join(dir, n), &v) {
-			out[trimJSONExt(n)] = v
+		if readLeaf(filepath.Join(dir, n), &v) {
+			out[trimLeafExt(n)] = v
 		}
 	}
 	return out, nil
@@ -45,12 +47,12 @@ func readStringDir(dir string) map[string]string {
 	}
 	out := map[string]string{}
 	for _, n := range names {
-		if !strings.HasSuffix(n, ".json") {
+		if !strings.HasSuffix(n, valuefile.Ext) {
 			continue
 		}
 		var v string
-		if readJSONFile(filepath.Join(dir, n), &v) {
-			out[trimJSONExt(n)] = v
+		if readLeaf(filepath.Join(dir, n), &v) {
+			out[trimLeafExt(n)] = v
 		}
 	}
 	return out
@@ -67,15 +69,15 @@ func readIntArrayDir(dir string) ([]int, error) {
 	}
 	items := make([]item, 0, len(names))
 	for _, n := range names {
-		if !strings.HasSuffix(n, ".json") {
+		if !strings.HasSuffix(n, valuefile.Ext) {
 			continue
 		}
-		idx, err := strconv.Atoi(trimJSONExt(n))
+		idx, err := strconv.Atoi(trimLeafExt(n))
 		if err != nil {
 			return nil, fmt.Errorf("%s: element name %q is not an integer — an array directory is indexed by filename", dir, n)
 		}
 		var v int
-		if readJSONFile(filepath.Join(dir, n), &v) {
+		if readLeaf(filepath.Join(dir, n), &v) {
 			items = append(items, item{idx: idx, val: v})
 		}
 	}
@@ -94,8 +96,8 @@ func readNodeData(nodeDir string) (*NodeData, error) {
 	}
 
 	var nd NodeData
-	readJSONFile(filepath.Join(dataDir, FileLabel), &nd.Label)
-	readJSONFile(filepath.Join(dataDir, FileRepeat), &nd.Repeat)
+	readLeaf(filepath.Join(dataDir, FileLabel), &nd.Label)
+	readLeaf(filepath.Join(dataDir, FileRepeat), &nd.Repeat)
 
 	init, err := readIntArrayDir(filepath.Join(dataDir, DirInit))
 	if err != nil {

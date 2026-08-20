@@ -1,7 +1,6 @@
 package loadspec
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -9,19 +8,16 @@ import (
 
 	"github.com/dtauraso/wirefold/src/Node/Edge/edgefile"
 	"github.com/dtauraso/wirefold/src/Node/nodefile"
+	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
-func readJSONFile(path string, v any) bool {
-	raw, err := os.ReadFile(path)
-	if err != nil {
-		return false
-	}
-	return json.Unmarshal(raw, v) == nil
+func readLeaf(path string, v any) bool {
+	return valuefile.ReadIfExists(path, v)
 }
 
 func readOptInt(path string) *int {
 	var v int
-	if !readJSONFile(path, &v) {
+	if !readLeaf(path, &v) {
 		return nil
 	}
 	return &v
@@ -29,7 +25,7 @@ func readOptInt(path string) *int {
 
 func readOptInt32(path string) *int32 {
 	var v int32
-	if !readJSONFile(path, &v) {
+	if !readLeaf(path, &v) {
 		return nil
 	}
 	return &v
@@ -40,7 +36,7 @@ func loadNodeBase(root, nodesDir, nodeID string) (specNode, error) {
 
 	baseDir := nodefile.BaseDir(nodeDir)
 	var nodeType string
-	if !readJSONFile(filepath.Join(baseDir, nodefile.FileType), &nodeType) {
+	if !readLeaf(filepath.Join(baseDir, nodefile.FileType), &nodeType) {
 		return specNode{}, fmt.Errorf("loadTree: node %q has no %s", nodeID, nodefile.FileType)
 	}
 
@@ -54,7 +50,7 @@ func loadNodeBase(root, nodesDir, nodeID string) (specNode, error) {
 		SelfDrag:            nodefile.ReadDragRule(filepath.Join(baseDir, nodefile.DirSelfRule)),
 		TopTiltVectorPhiIdx: readOptInt32(filepath.Join(baseDir, nodefile.FileTiltIdx)),
 	}
-	readJSONFile(filepath.Join(baseDir, nodefile.FileGate), &sn.Gate)
+	readLeaf(filepath.Join(baseDir, nodefile.FileGate), &sn.Gate)
 
 	nd, err := readNodeData(nodeDir)
 	if err != nil {
@@ -84,10 +80,10 @@ func loadNodeEdges(root, nodesDir, nodeID string) ([]specEdge, error) {
 			continue
 		}
 		e := specEdge{Label: label, Source: nodeID}
-		readJSONFile(filepath.Join(edgeDir, edgefile.FileKind), &e.Kind)
-		readJSONFile(filepath.Join(edgeDir, edgefile.FileSourceHandle), &e.SourceHandle)
-		readJSONFile(filepath.Join(edgeDir, edgefile.FileTarget), &e.Target)
-		readJSONFile(filepath.Join(edgeDir, edgefile.FileTargetHandle), &e.TargetHandle)
+		readLeaf(filepath.Join(edgeDir, edgefile.FileKind), &e.Kind)
+		readLeaf(filepath.Join(edgeDir, edgefile.FileSourceHandle), &e.SourceHandle)
+		readLeaf(filepath.Join(edgeDir, edgefile.FileTarget), &e.Target)
+		readLeaf(filepath.Join(edgeDir, edgefile.FileTargetHandle), &e.TargetHandle)
 		e.DeltaIndexR = readOptInt(filepath.Join(edgeDir, edgefile.FileDeltaIndexR))
 		e.DeltaIndexPhi = readOptInt(filepath.Join(edgeDir, edgefile.FileDeltaIndexPhi))
 		e.DeltaIndexTheta = readOptInt(filepath.Join(edgeDir, edgefile.FileDeltaIndexTheta))

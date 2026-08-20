@@ -1,6 +1,6 @@
 package scenepersist
 
-import "github.com/dtauraso/wirefold/src/jsonpersist"
+import "github.com/dtauraso/wirefold/src/valuefile"
 
 type Persister[T any] struct {
 	Path  string
@@ -13,6 +13,6 @@ func (p *Persister[T]) Schedule(v T) {
 		return
 	}
 	if err := p.Write(p.Path, v); err != nil {
-		jsonpersist.LogPersistErr(p.Tag, p.Path, err)
+		valuefile.LogPersistErr(p.Tag, p.Path, err)
 	}
 }

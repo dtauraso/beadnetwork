@@ -8,7 +8,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Edge/edgefile"
 	"github.com/dtauraso/wirefold/src/Node/Edge/edgegeom"
 	"github.com/dtauraso/wirefold/src/Polar/polar"
-	"github.com/dtauraso/wirefold/src/jsonpersist"
+	"github.com/dtauraso/wirefold/src/valuefile"
 	"github.com/dtauraso/wirefold/src/Node/nodegeom"
 	"github.com/dtauraso/wirefold/src/Polar/polarindex"
 	B "github.com/dtauraso/wirefold/src/Buffer"
@@ -151,7 +151,7 @@ func (o *OutEdges) persistDelta(e *outEdge, off polarindex.Offset) {
 		return
 	}
 	if err := edgefile.WriteEdgeDrag(o.persistRoot, o.srcID, e.label, off); err != nil {
-		jsonpersist.LogPersistErr("out_edges", o.srcID+"->"+e.targetID, err)
+		valuefile.LogPersistErr("out_edges", o.srcID+"->"+e.targetID, err)
 		return
 	}
 	e.persistedDragIdx, e.hasPersisted = off, true

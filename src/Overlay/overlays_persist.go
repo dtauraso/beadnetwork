@@ -4,7 +4,7 @@ import (
 	"path/filepath"
 	"sort"
 
-	"github.com/dtauraso/wirefold/src/jsonpersist"
+	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
 func OverlayFlagFile(overlaysDir, flag string) string {
@@ -18,7 +18,7 @@ func WriteSceneOverlays(overlaysDir string, ov OverlayState) error {
 	}
 	sort.Strings(flags)
 	for _, flag := range flags {
-		if err := jsonpersist.WriteJSONAtomic(OverlayFlagFile(overlaysDir, flag), OverlayFlagRead[flag](&ov)); err != nil {
+		if err := valuefile.WriteAtomic(OverlayFlagFile(overlaysDir, flag), OverlayFlagRead[flag](&ov)); err != nil {
 			return err
 		}
 	}
@@ -30,7 +30,7 @@ func LoadSceneOverlays(overlaysDir string) (OverlayState, bool) {
 	found := false
 	for flag, set := range OverlayFlagWrite {
 		var v bool
-		if jsonpersist.ReadJSONIfExists(OverlayFlagFile(overlaysDir, flag), &v) {
+		if valuefile.ReadIfExists(OverlayFlagFile(overlaysDir, flag), &v) {
 			set(&ov, v)
 			found = true
 		}
