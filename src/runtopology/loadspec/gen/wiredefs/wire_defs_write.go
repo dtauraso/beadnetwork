@@ -45,7 +45,7 @@ func WriteWireDefs(outPath string, props []wireProp) error {
 			req = "true"
 		}
 		fmt.Fprintf(w, "  %-12s { tsType: %-12s required: %s },\n",
-			p.jsonName+":", `"`+p.tsType+`",`, req)
+			p.propName+":", `"`+p.tsType+`",`, req)
 	}
 	fmt.Fprintln(w, `};`)
 	fmt.Fprintln(w)
@@ -56,7 +56,7 @@ func WriteWireDefs(outPath string, props []wireProp) error {
 		if p.required {
 			opt = ""
 		}
-		fmt.Fprintf(w, "  %s%s: %s;\n", p.jsonName, opt, p.tsType)
+		fmt.Fprintf(w, "  %s%s: %s;\n", p.propName, opt, p.tsType)
 	}
 	fmt.Fprintln(w, `};`)
 

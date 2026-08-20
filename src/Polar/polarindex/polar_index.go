@@ -10,9 +10,9 @@ import (
 type vec3 = spatial.Vec3
 
 type SceneConstants struct {
-	ConstantR     float64 `json:"constantR"`
-	MaxIndexPhi   int     `json:"maxIndexPhi"`
-	MaxIndexTheta int     `json:"maxIndexTheta"`
+	ConstantR     float64
+	MaxIndexPhi   int
+	MaxIndexTheta int
 }
 
 func (sc SceneConstants) ConstantPhi() float64 {
