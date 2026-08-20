@@ -18,7 +18,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/sceneswitch"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/speedpanel"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/tiltpanel"
-	T "github.com/dtauraso/wirefold/src/Trace"
+	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 )
 
 func panelTookPointerDown(
@@ -131,7 +131,7 @@ func toggleOverlayFlag(md *dispatch.MoveDispatch, flag string) {
 	}
 	if scope, ok := OverlaysDropdown.OverlayFlagBreadcrumbScope[flag]; ok {
 		md.UI.EmitBreadcrumb(rowevent.RowEvent{
-			Label: T.BreadcrumbPoleToggleGo, NodeRow: -1, PortRow: -1, TargetRow: -1,
+			Label: B.BreadcrumbPoleToggleGo, NodeRow: -1, PortRow: -1, TargetRow: -1,
 			TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 			Value: int32(boolU8(OverlaysDropdown.OverlayFlagValue[flag](&md.UI.OV))), Text: scope,
 		})

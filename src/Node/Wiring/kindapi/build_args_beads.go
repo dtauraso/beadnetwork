@@ -5,7 +5,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/clock"
 	"github.com/dtauraso/wirefold/src/Node/rowevent"
 
-	T "github.com/dtauraso/wirefold/src/Trace"
+	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 )
 
 func (a BuildArgs) Fire() func() {
@@ -13,7 +13,7 @@ func (a BuildArgs) Fire() func() {
 	return func() {
 		if e := getEmitter(); e != nil {
 			e.WriteEvents([]rowevent.RowEvent{{
-				Kind: T.KindFire, NodeRow: e.NodeRowOf(),
+				Kind: B.KindFire, NodeRow: e.NodeRowOf(),
 				PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1,
 			}})
 		}

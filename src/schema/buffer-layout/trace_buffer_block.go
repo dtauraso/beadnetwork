@@ -1,4 +1,4 @@
-package Trace
+package bufferlayout
 
 var _ = bufLayoutRecv{}
 

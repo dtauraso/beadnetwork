@@ -9,6 +9,7 @@ import (
 	"github.com/dtauraso/wirefold/scripts/genpaths"
 	"github.com/dtauraso/wirefold/src/schema/buffer-layout/gen/buflayout"
 	"github.com/dtauraso/wirefold/src/schema/buffer-layout/gen/params"
+	"github.com/dtauraso/wirefold/src/schema/buffer-layout/gen/tracekinds"
 )
 
 func main() {
@@ -20,6 +21,24 @@ func main() {
 	generateColumnStreams(repoRoot, srcRoot)
 	generateBufferLayout(repoRoot, srcRoot)
 	generateFrameTags(srcRoot)
+	generateTraceKinds(srcRoot)
+}
+
+func generateTraceKinds(srcRoot string) {
+	dir := filepath.Join(srcRoot, "schema", "buffer-layout")
+	kinds, err := tracekinds.ParseTraceKinds(dir)
+	if err != nil {
+		genpaths.Fatalf("parse trace kinds: %v", err)
+	}
+	labels, err := tracekinds.ParseBreadcrumbLabels(dir)
+	if err != nil {
+		genpaths.Fatalf("parse breadcrumb labels: %v", err)
+	}
+	outPath := filepath.Join(dir, "trace-kinds.ts")
+	if err := tracekinds.WriteTraceKinds(outPath, kinds, labels); err != nil {
+		genpaths.Fatalf("write %s: %v", outPath, err)
+	}
+	genpaths.Announce(outPath, len(kinds), "kinds")
 }
 
 func generateCurveParams(repoRoot, srcRoot string) {

@@ -4,12 +4,6 @@
 
 package OverlaysDropdown
 
-import (
-	"fmt"
-
-	T "github.com/dtauraso/wirefold/src/Trace"
-)
-
 // OverlayState groups the per-toggle overlay-visibility booleans and their
 // flip/emit logic. Owned by UIState (ui.OV); Wiring's stdin reader's OverlayToggles
 // method-expression table binds these methods directly.

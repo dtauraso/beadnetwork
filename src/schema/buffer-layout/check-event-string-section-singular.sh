@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: src/Trace/buffer_block.go | bufLayoutBreadcrumb may declare at most one `<Name>Off uint32` free-form string section
+# PLACEMENT: src/schema/buffer-layout/trace_buffer_block.go | bufLayoutBreadcrumb may declare at most one `<Name>Off uint32` free-form string section
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
-LAYOUT_FILE="$REPO_ROOT/src/Trace/buffer_block.go"
+LAYOUT_FILE="$REPO_ROOT/src/schema/buffer-layout/trace_buffer_block.go"
 
 if [[ ! -f "$LAYOUT_FILE" ]]; then
   echo "check-event-string-section-singular: MISCONFIGURED — file not found: $LAYOUT_FILE" >&2
@@ -36,7 +36,7 @@ if [[ "$OFF_COUNT" -gt 1 ]]; then
   echo "  sections reintroduce the per-payload opaque-string sprawl the binary breadcrumb"
   echo "  conversion removed. New payload data must either REUSE an existing typed column"
   echo "  (Value/X/Y/Z/NodeRow/...) or ride the single sanctioned free-form text section —"
-  echo "  never a new *Off/*Len string blob. See src/Trace/check-event-string-section-singular.sh."
+  echo "  never a new *Off/*Len string blob. See src/schema/buffer-layout/check-event-string-section-singular.sh."
   exit 1
 fi
 

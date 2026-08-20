@@ -5,7 +5,7 @@ import (
 
 	"github.com/dtauraso/wirefold/src/Node/rowevent"
 	"github.com/dtauraso/wirefold/src/Node/wire"
-	T "github.com/dtauraso/wirefold/src/Trace"
+	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 )
 
 func (o *Out) placeDrivenNoWalker(v int, tick int64) wire.SendOutcome {
@@ -27,7 +27,7 @@ func (o *Out) flushSendEvent(value int, steps int) {
 		return
 	}
 	s.WriteEvents([]rowevent.RowEvent{{
-		Kind: T.KindSend, NodeRow: s.NodeRowOf(), PortRow: o.portRow,
+		Kind: B.KindSend, NodeRow: s.NodeRowOf(), PortRow: o.portRow,
 		TargetRow: o.targetRow, TargetPortRow: o.targetPortRow, EdgeRow: -1,
 		Value:     int32(value),
 		BeadSteps: float64(steps),

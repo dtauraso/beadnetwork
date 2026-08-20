@@ -1,10 +1,9 @@
-package Trace
+package bufferlayout
 
 import (
 	"encoding/binary"
 
 	"github.com/dtauraso/wirefold/src/Node/rowevent"
-	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 )
 
 func BuildEventsSection(events []rowevent.RowEvent) []byte {
@@ -40,36 +39,36 @@ func appendCount(buf []byte, n int) []byte {
 
 func appendRecvSection(buf []byte, events []rowevent.RowEvent) []byte {
 	buf = appendCount(buf, len(events))
-	rows := make([]byte, len(events)*B.BufRecvStride)
+	rows := make([]byte, len(events)*BufRecvStride)
 	for i, e := range events {
-		B.SetRecvRow(rows, i, e.NodeRow, e.Value)
+		SetRecvRow(rows, i, e.NodeRow, e.Value)
 	}
 	return append(buf, rows...)
 }
 
 func appendFireSection(buf []byte, events []rowevent.RowEvent) []byte {
 	buf = appendCount(buf, len(events))
-	rows := make([]byte, len(events)*B.BufFireStride)
+	rows := make([]byte, len(events)*BufFireStride)
 	for i, e := range events {
-		B.SetFireRow(rows, i, e.NodeRow)
+		SetFireRow(rows, i, e.NodeRow)
 	}
 	return append(buf, rows...)
 }
 
 func appendSendSection(buf []byte, events []rowevent.RowEvent) []byte {
 	buf = appendCount(buf, len(events))
-	rows := make([]byte, len(events)*B.BufSendStride)
+	rows := make([]byte, len(events)*BufSendStride)
 	for i, e := range events {
-		B.SetSendRow(rows, i, e.NodeRow, e.TargetRow, e.Value, float32(e.BeadSteps))
+		SetSendRow(rows, i, e.NodeRow, e.TargetRow, e.Value, float32(e.BeadSteps))
 	}
 	return append(buf, rows...)
 }
 
 func appendArriveSection(buf []byte, events []rowevent.RowEvent) []byte {
 	buf = appendCount(buf, len(events))
-	rows := make([]byte, len(events)*B.BufArriveStride)
+	rows := make([]byte, len(events)*BufArriveStride)
 	for i, e := range events {
-		B.SetArriveRow(rows, i, e.NodeRow, e.Value, uint32(e.Bead))
+		SetArriveRow(rows, i, e.NodeRow, e.Value, uint32(e.Bead))
 	}
 	return append(buf, rows...)
 }
@@ -82,10 +81,10 @@ func appendBreadcrumbSection(buf []byte, events []rowevent.RowEvent) []byte {
 		textLen += len(textBytes[i])
 	}
 	buf = appendCount(buf, len(events))
-	rows := make([]byte, len(events)*B.BufBreadcrumbStride)
+	rows := make([]byte, len(events)*BufBreadcrumbStride)
 	textOff := uint32(0)
 	for i, e := range events {
-		B.SetBreadcrumbRow(rows, i,
+		SetBreadcrumbRow(rows, i,
 			e.NodeRow, e.PortRow, e.TargetRow, e.TargetPortRow, e.EdgeRow, e.Slot, e.Value,
 			float32(e.X), float32(e.Y), float32(e.Z),
 			e.Label, e.Debug, textOff, uint32(len(textBytes[i])))

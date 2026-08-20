@@ -4,10 +4,6 @@
 
 package OverlaysDropdown
 
-import (
-	T "github.com/dtauraso/wirefold/src/Trace"
-)
-
 // DefaultOverlayState is the startup overlay snapshot used by Wiring's newMoveDispatch.
 func DefaultOverlayState() OverlayState {
 	return OverlayState{

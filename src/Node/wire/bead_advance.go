@@ -1,7 +1,7 @@
 package wire
 
 import (
-	T "github.com/dtauraso/wirefold/src/Trace"
+	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 )
 
 type arriveInfo struct {
@@ -13,7 +13,7 @@ type arriveInfo struct {
 
 func (pw *BeadRun) emitArrive(ai arriveInfo) {
 	if ai.emit && pw.readout.StreamsActive {
-		pw.readout.appendPending(pendingBeadEvent{kind: T.KindArrive, value: ai.value, gen: ai.gen},
+		pw.readout.appendPending(pendingBeadEvent{kind: B.KindArrive, value: ai.value, gen: ai.gen},
 			pw.Owner, pw.Edge)
 	}
 }

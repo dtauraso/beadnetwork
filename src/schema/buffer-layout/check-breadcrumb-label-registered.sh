@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: src/Trace/breadcrumb_labels.go,src/Node/wire/inport/in_port.go,src/Node/**/*.go,src/schema/buffer-layout/**/*.go | a .Breadcrumb("label") literal must be added to Trace.BreadcrumbLabels
+# PLACEMENT: src/schema/buffer-layout/breadcrumb_labels.go,src/Node/wire/inport/in_port.go,src/Node/**/*.go,src/schema/buffer-layout/**/*.go | a .Breadcrumb("label") literal must be added to Trace.BreadcrumbLabels
 
 set -euo pipefail
 
@@ -8,7 +8,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 cd "$REPO_ROOT"
 
-TRACE_DIR="src/Trace"
+TRACE_DIR="src/schema/buffer-layout"
 
 if [[ ! -d "$TRACE_DIR" ]]; then
   echo "check-breadcrumb-label-registered: MISCONFIGURED — dir not found: $TRACE_DIR" >&2
@@ -38,14 +38,14 @@ if [[ -z "$(printf '%s' "$REGISTERED" | tr -d '[:space:]')" ]]; then
 fi
 
 call_site_hits() {
-  grep -rnoE '\.Breadcrumb\("[^"]*"' --include="*.go" src/Node src/NodeKinds src/Bead src/schema/buffer-layout src/Trace 2>/dev/null \
+  grep -rnoE '\.Breadcrumb\("[^"]*"' --include="*.go" src/Node src/NodeKinds src/Bead src/schema/buffer-layout src/schema/buffer-layout 2>/dev/null \
     | grep -v '_test\.go:' || true
 }
 
 CALL_HITS=$(call_site_hits)
 if [[ -z "$(printf '%s' "$CALL_HITS" | tr -d '[:space:]')" ]]; then
   echo "check-breadcrumb-label-registered: MISCONFIGURED — no .Breadcrumb(\"...\") call" >&2
-  echo "sites found under src/Node/ or src/Trace; the extraction pattern itself is likely stale." >&2
+  echo "sites found under src/Node/ or src/schema/buffer-layout; the extraction pattern itself is likely stale." >&2
   exit 1
 fi
 

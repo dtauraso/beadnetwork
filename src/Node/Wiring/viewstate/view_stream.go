@@ -6,7 +6,7 @@ import (
 
 	"github.com/dtauraso/wirefold/src/Node/rowevent"
 
-	T "github.com/dtauraso/wirefold/src/Trace"
+	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 )
 
 type ViewOverlayFlags struct {
@@ -39,7 +39,7 @@ func (ui *UIState) SetViewStream(out io.Writer, buildFrame ViewFrameBuilder) {
 }
 
 func (ui *UIState) EmitBreadcrumb(ev rowevent.RowEvent) {
-	ev.Kind = T.KindBreadcrumb
+	ev.Kind = B.KindBreadcrumb
 	ev.Debug = 1
 	ui.EmitViewFrame([]rowevent.RowEvent{ev})
 }

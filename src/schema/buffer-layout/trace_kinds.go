@@ -1,4 +1,4 @@
-package Trace
+package bufferlayout
 
 const (
 	KindRecv = "recv"

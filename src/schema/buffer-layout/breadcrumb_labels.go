@@ -1,4 +1,4 @@
-package Trace
+package bufferlayout
 
 const (
 	BreadcrumbTopologyLoaded uint8 = iota

@@ -5,7 +5,7 @@ import (
 
 	"github.com/dtauraso/wirefold/src/Node/rowevent"
 	"github.com/dtauraso/wirefold/src/Node/wire"
-	T "github.com/dtauraso/wirefold/src/Trace"
+	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 )
 
 type In struct {
@@ -55,7 +55,7 @@ func (i *In) flushRecvEvent(value int) {
 		return
 	}
 	s.WriteEvents([]rowevent.RowEvent{{
-		Kind: T.KindRecv, NodeRow: s.NodeRowOf(), PortRow: i.portRow,
+		Kind: B.KindRecv, NodeRow: s.NodeRowOf(), PortRow: i.portRow,
 		TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Value: int32(value),
 	}})
 }
@@ -88,7 +88,7 @@ func (i *In) Breadcrumb(event, detail string) {
 		return
 	}
 	s.WriteEvents([]rowevent.RowEvent{{
-		Kind: T.KindBreadcrumb, Label: label, Debug: 1,
+		Kind: B.KindBreadcrumb, Label: label, Debug: 1,
 		NodeRow: s.NodeRowOf(), PortRow: i.portRow,
 		TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 	}})
@@ -97,33 +97,33 @@ func (i *In) Breadcrumb(event, detail string) {
 func breadcrumbLabelFor(event string) (uint8, bool) {
 	switch event {
 	case "topology-loaded":
-		return T.BreadcrumbTopologyLoaded, true
+		return B.BreadcrumbTopologyLoaded, true
 	case "row-seed-count-mismatch":
-		return T.BreadcrumbRowSeedCountMismatch, true
+		return B.BreadcrumbRowSeedCountMismatch, true
 	case "pole-toggle-go":
-		return T.BreadcrumbPoleToggleGo, true
+		return B.BreadcrumbPoleToggleGo, true
 	case "window_clear":
-		return T.BreadcrumbWindowClear, true
+		return B.BreadcrumbWindowClear, true
 	case "window_open":
-		return T.BreadcrumbWindowOpen, true
+		return B.BreadcrumbWindowOpen, true
 	case "dwell_start":
-		return T.BreadcrumbDwellStart, true
+		return B.BreadcrumbDwellStart, true
 	case "abc-drag":
-		return T.BreadcrumbAbcDrag, true
+		return B.BreadcrumbAbcDrag, true
 	case "bead-place-buffer-full":
-		return T.BreadcrumbBeadPlaceBufferFull, true
+		return B.BreadcrumbBeadPlaceBufferFull, true
 	case "drag.commit":
-		return T.BreadcrumbDragCommit, true
+		return B.BreadcrumbDragCommit, true
 	case "chain-aim":
-		return T.BreadcrumbChainAim, true
+		return B.BreadcrumbChainAim, true
 	case "neighbor-center-recv":
-		return T.BreadcrumbNeighborCenterRecv, true
+		return B.BreadcrumbNeighborCenterRecv, true
 	case "neighbor-setc-recv":
-		return T.BreadcrumbNeighborSetCRecv, true
+		return B.BreadcrumbNeighborSetCRecv, true
 	case "bead-crud":
-		return T.BreadcrumbBeadCrud, true
+		return B.BreadcrumbBeadCrud, true
 	case "drag-active-persist":
-		return T.BreadcrumbDragActivePersist, true
+		return B.BreadcrumbDragActivePersist, true
 	default:
 		return 0, false
 	}

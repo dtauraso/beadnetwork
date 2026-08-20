@@ -6,7 +6,6 @@ import (
 
 	TiltB "github.com/dtauraso/wirefold/src/Scene/TiltVectors"
 	VecB "github.com/dtauraso/wirefold/src/Scene/Vectors"
-	T "github.com/dtauraso/wirefold/src/Trace"
 	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 )
 
@@ -65,11 +64,11 @@ type NodeStreamFrame struct {
 func BuildNodeStreamFrame(f NodeStreamFrame) []byte {
 	buf := make([]byte, B.BufNodeStreamFrameHeaderSize)
 	binary.LittleEndian.PutUint32(buf[0:], f.Tick)
-	return append(buf, T.BuildEventsSection(f.Events)...)
+	return append(buf, B.BuildEventsSection(f.Events)...)
 }
 
 func BuildInteriorStreamFrame(tick uint32, events []rowevent.RowEvent) []byte {
 	buf := make([]byte, B.BufInteriorStreamFrameHeaderSize)
 	binary.LittleEndian.PutUint32(buf[0:], tick)
-	return append(buf, T.BuildEventsSection(events)...)
+	return append(buf, B.BuildEventsSection(events)...)
 }

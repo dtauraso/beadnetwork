@@ -1,4 +1,4 @@
-import { BREADCRUMB_LABELS } from "../../../Trace/trace-kinds";
+import { BREADCRUMB_LABELS } from "../../../schema/buffer-layout/trace-kinds";
 import { nodeLabel } from "../../../Node/buffer-decode-node";
 import {
   readRecvNodeRow, readRecvValue,
