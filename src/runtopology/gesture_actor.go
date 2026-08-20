@@ -6,8 +6,8 @@ import (
 
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
 
-	"github.com/dtauraso/wirefold/src/Node/Wiring/dispatch"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/src/Input/dispatch"
+	"github.com/dtauraso/wirefold/src/Input/inputcodec"
 )
 
 type gestureMsgKind int

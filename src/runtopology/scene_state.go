@@ -2,7 +2,7 @@ package runtopology
 
 import (
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
-	W "github.com/dtauraso/wirefold/src/Node/Wiring/dispatch"
+	W "github.com/dtauraso/wirefold/src/Input/dispatch"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/scene"
 	"github.com/dtauraso/wirefold/src/Camera"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/scenepersist"

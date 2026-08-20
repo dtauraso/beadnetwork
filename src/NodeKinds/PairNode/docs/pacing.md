@@ -12,7 +12,7 @@ all — is what the dial actually paces.
 
 While a ▲/▼ panel click is being applied, every clock in the scene is broadcast to
 `Wiring.HumanEditSpeed` (1.0, unscaled) instead of the slider's speed
-(`applyUpdateTiltVector`, `src/Node/Wiring/dispatch/dispatch_apply.go`), so a click is answered on the
+(`applyUpdateTiltVector`, `src/Input/dispatch/dispatch_apply.go`), so a click is answered on the
 next real-time cycle rather than sitting unanswered for a scaled cycle (up to ~1 second at
 a slow divisor). START and RESET both restore the slider's own speed
 (`md.SliderSpeed()`) before doing anything else — START because running the exchange is

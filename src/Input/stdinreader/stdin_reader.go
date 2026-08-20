@@ -20,7 +20,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/src/Input/inputcodec"
 )
 
 type Handlers struct {

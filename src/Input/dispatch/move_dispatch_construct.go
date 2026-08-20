@@ -3,7 +3,7 @@ package dispatch
 import (
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
 	clock "github.com/dtauraso/wirefold/src/Clock"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/src/Input/inputcodec"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/moverreg"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/polarindex"

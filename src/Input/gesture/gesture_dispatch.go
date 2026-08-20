@@ -3,8 +3,8 @@ package gesture
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/src/Node/Wiring/gesturefsm"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/src/Input/gesturefsm"
+	"github.com/dtauraso/wirefold/src/Input/inputcodec"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/moverreg"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodemove"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/rowtables"

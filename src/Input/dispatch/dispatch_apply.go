@@ -9,7 +9,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
 
 	"github.com/dtauraso/wirefold/src/Chrome/Pills/AngleDropdown"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/src/Input/inputcodec"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodecrud"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/rulenode"

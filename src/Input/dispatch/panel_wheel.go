@@ -2,7 +2,7 @@ package dispatch
 
 import (
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/Panel"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/src/Input/inputcodec"
 )
 
 func panelTookWheel(ev inputcodec.RawInputMsg, md *MoveDispatch) bool {

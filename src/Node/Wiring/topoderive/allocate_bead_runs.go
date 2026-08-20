@@ -1,7 +1,7 @@
 package topoderive
 
 import (
-	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/src/Input/inputcodec"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/loadspec"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodegeom"
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"

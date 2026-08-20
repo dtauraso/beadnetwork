@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: src/Node/Wiring/stdinreader/stdin_reader.go,src/extension/runner/framing.ts | maxFrameBytes and MAX_FRAME_BYTES must be numerically equal
+# PLACEMENT: src/Input/stdinreader/stdin_reader.go,src/extension/runner/framing.ts | maxFrameBytes and MAX_FRAME_BYTES must be numerically equal
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 
-GO_FILE="$REPO_ROOT/src/Node/Wiring/stdinreader/stdin_reader.go"
+GO_FILE="$REPO_ROOT/src/Input/stdinreader/stdin_reader.go"
 TS_FILE="$REPO_ROOT/src/extension/runner/framing.ts"
 
 for f in "$GO_FILE" "$TS_FILE"; do
@@ -37,7 +37,7 @@ assert_nonempty() { # value label
 RAW_GO=$(value_go)
 RAW_TS=$(value_ts)
 
-assert_nonempty "$RAW_GO" "src/Node/Wiring/stdinreader/stdin_reader.go maxFrameBytes"
+assert_nonempty "$RAW_GO" "src/Input/stdinreader/stdin_reader.go maxFrameBytes"
 assert_nonempty "$RAW_TS" "runner/framing.ts MAX_FRAME_BYTES"
 
 VAL_GO=$(( RAW_GO ))

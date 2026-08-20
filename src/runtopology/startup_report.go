@@ -1,7 +1,7 @@
 package runtopology
 
 import (
-	W "github.com/dtauraso/wirefold/src/Node/Wiring/dispatch"
+	W "github.com/dtauraso/wirefold/src/Input/dispatch"
 	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 )
 

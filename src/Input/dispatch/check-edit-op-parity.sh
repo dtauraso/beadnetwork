@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: src/Node/Wiring/dispatch/dispatch_edit.go,src/schema/messages.ts,src/schema/input/input-layout-gen.ts,src/webview/flags/overlay-flags.ts | edit ops/update-kinds/overlay flags must stay listed identically on both sides of the bridge
+# PLACEMENT: src/Input/dispatch/dispatch_edit.go,src/schema/messages.ts,src/schema/input/input-layout-gen.ts,src/webview/flags/overlay-flags.ts | edit ops/update-kinds/overlay flags must stay listed identically on both sides of the bridge
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 
-GO_PKG_DIR="$REPO_ROOT/src/Node/Wiring"
+GO_PKG_DIR="$REPO_ROOT/src/Input"
 go_fence_files() {
   grep -rl --include='*.go' -E "^[[:space:]]*//[[:space:]]*$1[[:space:]]*$" "$GO_PKG_DIR" \
     | grep -v '_test\.go$' || true
@@ -79,17 +79,17 @@ report_diff() {
 TS_OPS=$(between EDIT_MSG_START EDIT_MSG_END "$MESSAGES_TS" | grep -aoE 'op: "[^"]+"' | quoted) || true
 GO_OPS=$(between EDIT_OPS_START EDIT_OPS_END $GO_OPS_FILES | toplevel_case | quoted) || true
 assert_nonempty "$TS_OPS" "axis1 messages.ts ops"
-assert_nonempty "$GO_OPS" "axis1 src/Node/Wiring ops"
-report_diff "$(comm -13 <(echo "$GO_OPS") <(echo "$TS_OPS"))" "src/Node/Wiring ops" \
+assert_nonempty "$GO_OPS" "axis1 src/Input ops"
+report_diff "$(comm -13 <(echo "$GO_OPS") <(echo "$TS_OPS"))" "src/Input ops" \
             "$(comm -23 <(echo "$GO_OPS") <(echo "$TS_OPS"))" "messages.ts ops"
 
 TS_KINDS=$(between EDIT_MSG_START EDIT_MSG_END "$MESSAGES_TS" | grep -aoE 'kind: "[^"]+"' | quoted) || true
 GO_KINDS=$(between EDIT_UPDATE_KINDS_START EDIT_UPDATE_KINDS_END $GO_KINDS_FILES | toplevel_case | quoted) || true
 HM_KINDS=$(between EDIT_UPDATE_KINDS_START EDIT_UPDATE_KINDS_END "$HANDLE_MSG" | quoted) || true
 assert_nonempty "$TS_KINDS" "axis2 messages.ts update kinds"
-assert_nonempty "$GO_KINDS" "axis2 src/Node/Wiring update kinds"
+assert_nonempty "$GO_KINDS" "axis2 src/Input update kinds"
 assert_nonempty "$HM_KINDS" "axis2 handle-message.ts update kinds"
-report_diff "$(comm -13 <(echo "$GO_KINDS") <(echo "$TS_KINDS"))" "src/Node/Wiring kinds" \
+report_diff "$(comm -13 <(echo "$GO_KINDS") <(echo "$TS_KINDS"))" "src/Input kinds" \
             "$(comm -23 <(echo "$GO_KINDS") <(echo "$TS_KINDS"))" "messages.ts kinds"
 report_diff "$(comm -13 <(echo "$HM_KINDS") <(echo "$TS_KINDS"))" "handle-message.ts kinds" \
             "$(comm -23 <(echo "$HM_KINDS") <(echo "$TS_KINDS"))" "messages.ts kinds"

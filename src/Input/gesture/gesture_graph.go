@@ -2,8 +2,8 @@ package gesture
 
 import (
 	"github.com/dtauraso/wirefold/src/Camera"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/gesturefsm"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/src/Input/gesturefsm"
+	"github.com/dtauraso/wirefold/src/Input/inputcodec"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/viewstate"
 )

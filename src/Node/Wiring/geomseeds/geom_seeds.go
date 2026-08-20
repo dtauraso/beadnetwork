@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/dtauraso/wirefold/src/Node/Wiring/edgegeom"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/src/Input/inputcodec"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/src/spatial"
 )

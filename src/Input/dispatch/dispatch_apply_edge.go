@@ -6,7 +6,7 @@ import (
 
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
 
-	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"
+	"github.com/dtauraso/wirefold/src/Input/inputcodec"
 )
 
 func applyUpdateEdge(ctx context.Context, msg inputcodec.StdinMsg, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
