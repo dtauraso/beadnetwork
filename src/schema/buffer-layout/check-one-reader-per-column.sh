@@ -31,7 +31,7 @@ roots = os.environ["TS_ROOTS_JOINED"].split()
 layouts = [pathlib.Path(p) for p in os.environ["LAYOUT_JOINED"].split()]
 
 WRITERS = {
-    "src/Host/runner/stream-demux.ts",
+    "src/extension/runner/stream-demux.ts",
 }
 
 OBSERVERS = {

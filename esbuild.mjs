@@ -12,7 +12,7 @@ const common = {
 
 const extension = {
   ...common,
-  entryPoints: ["src/Host/extension.ts"],
+  entryPoints: ["src/extension/extension.ts"],
   outfile: "out/extension.js",
   platform: "node",
   format: "cjs",

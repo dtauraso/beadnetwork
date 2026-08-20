@@ -10,11 +10,11 @@ this file is only the file-layout map for this package.
 ```
 extension host (Node)                webview (browser)
 ─────────────────────                ─────────────────
-  src/Host/extension.ts            ◄──►   src/webview/main.tsx
-  src/Host/runCommand.ts                  src/webview/scene/ThreeView.tsx
-  src/Host/handle-message.ts    src/webview/scene/buffer-scene.tsx
-  src/Host/html.ts              src/webview/decode/buffer-decode-{view,edge,node,interior}.ts
-  src/Host/goBuild.ts                     src/webview/snapshot-buffer.ts
+  src/extension/extension.ts            ◄──►   src/webview/main.tsx
+  src/extension/runCommand.ts                  src/webview/scene/ThreeView.tsx
+  src/extension/handle-message.ts    src/webview/scene/buffer-scene.tsx
+  src/extension/html.ts              src/webview/decode/buffer-decode-{view,edge,node,interior}.ts
+  src/extension/goBuild.ts                     src/webview/snapshot-buffer.ts
   src/schema/* (shared)
 ```
 
@@ -29,7 +29,7 @@ Communication is `panel.webview.postMessage` ↔ `vscode.postMessage`, wired in
 encoded editor→Go record built via `src/schema/input/input-encode.ts` and written
 FRAMED to Go's stdin by `runCommand.ts`); `HostToWebviewMsg` carries the
 decoded content-buffer snapshot. Extension-side dispatch is
-`src/Host/handle-message.ts`. Per CLAUDE.md, Go → TS is the binary
+`src/extension/handle-message.ts`. Per CLAUDE.md, Go → TS is the binary
 content buffer and nothing else; TS → Go is framed binary records
 (addressed `edit` ops, or the bare `save` command) — see CLAUDE.md
 for the full bridge-surface model, not duplicated here.
@@ -48,8 +48,8 @@ never renumbered.)
 | File | Owns |
 |---|---|
 | `extension.ts` | `topology.openEditor` command → `createWebviewPanel`; message dispatch |
-| `src/Host/handle-message.ts` | Routes `WebviewToHostMsg` to the Go process / disk |
-| `src/Host/html.ts` | Webview HTML shell + CSP |
+| `src/extension/handle-message.ts` | Routes `WebviewToHostMsg` to the Go process / disk |
+| `src/extension/html.ts` | Webview HTML shell + CSP |
 | `runCommand.ts` | Spawns/streams the Go process; frames stdin records; decodes breadcrumbs |
 | `goBuild.ts` | Compiles the Go binary; invoked automatically on `ready`, not by a button |
 | `schema/` | Node-type registry (`node-defs.ts`), wire props (`wire-defs.ts`), trace kinds, shared types — plus `schema/buffer-layout/` (generated buffer wire format + curve/shading params) and `schema/input/` (the TS<->Go input-record codec) — shared with the webview |

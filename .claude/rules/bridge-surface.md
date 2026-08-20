@@ -2,8 +2,8 @@
 paths:
   - "src/Node/Wiring/**/*.go"
   - "src/schema/messages.ts"
-  - "src/Host/handle-message.ts"
-  - "src/Host/runCommand.ts"
+  - "src/extension/handle-message.ts"
+  - "src/extension/runCommand.ts"
   - "src/schema/input/input-layout-gen.ts"
 ---
 
@@ -32,7 +32,7 @@ carries the TS → Go vocabulary.
   `resend` command: the ext host caches the last frame per dedicated stream (view, plus one
   per edge/node/interior row) and replays all of them to a remounted webview on `ready`
   instead (`BuildAndRunRunner.getLastViewFrame`/`getLastEdgeFrames`/`getLastNodeFrames`/
-  `getLastInteriorFrames` in `src/Host/runCommand.ts`) — Go only ever emits
+  `getLastInteriorFrames` in `src/extension/runCommand.ts`) — Go only ever emits
   a frame when something changes, and that stays true.
 
   (Several ops/commands were removed end-to-end with no live TS sender — `edit-create`/

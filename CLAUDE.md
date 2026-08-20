@@ -105,11 +105,13 @@ own package is already there. `go generate ./...` runs all of them.
   existed. The test is a `draw-*.ts`: chrome is drawn onto `PanelOverlay`'s canvas, while the
   diagram is drawn in the scene. `src/Overlay/` and `src/RingPoint/` are NOT chrome — they
   are buffer blocks for the diagram.
-- **`src/Host/`** — the VS Code extension host, the process that is neither Go nor the
+- **`src/extension/`** — the VS Code extension: our code, which RUNS IN the extension host
+  (the Node process VS Code spawns) and is not that host — naming it `Host` said we were the
+  container rather than the guest. Everything that is neither Go nor the
   webview: activation and spawn (`extension.ts`, `runCommand.ts`, `goBuild.ts`), the VS Code
   side (`html.ts`, `handle-message.ts`, the three dev-loop watchers), and `runner/`, the Go
   side — stdio sizing, per-owner stream demux, last-frame cache. `esbuild.mjs`'s entry point
-  is `src/Host/extension.ts`; the bundle is still `out/extension.js`, which `package.json`'s
+  is `src/extension/extension.ts`; the bundle is still `out/extension.js`, which `package.json`'s
   `main` names.
 - **`scripts/`** — what serves the repo rather than one concern: `stop-checks.sh`, the
   git-workflow scripts, `lib/`, `checks/` for guards that guard nothing in particular

@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: src/Node/Wiring/stdinreader/stdin_reader.go,src/Host/runner/framing.ts | maxFrameBytes and MAX_FRAME_BYTES must be numerically equal
+# PLACEMENT: src/Node/Wiring/stdinreader/stdin_reader.go,src/extension/runner/framing.ts | maxFrameBytes and MAX_FRAME_BYTES must be numerically equal
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 
 GO_FILE="$REPO_ROOT/src/Node/Wiring/stdinreader/stdin_reader.go"
-TS_FILE="$REPO_ROOT/src/Host/runner/framing.ts"
+TS_FILE="$REPO_ROOT/src/extension/runner/framing.ts"
 
 for f in "$GO_FILE" "$TS_FILE"; do
   if [[ ! -f "$f" ]]; then

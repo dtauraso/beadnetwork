@@ -1,7 +1,7 @@
 ---
 paths:
   - src/Node/Wiring/**
-  - src/Host/runCommand.ts
+  - src/extension/runCommand.ts
   - topology/**
 ---
 
@@ -237,7 +237,7 @@ both count files. Nothing else writes them.
 
 A missing or malformed count file must fail LOUDLY. Returning 0 allocates no dedicated
 streams and degrades the bridge invisibly — the behaviour the old `countEdges` had. The
-extension host reader (`src/Host/runCommand.ts`'s `readCounts`) and the Go
+extension host reader (`src/extension/runCommand.ts`'s `readCounts`) and the Go
 headless test harness (`headless_stream_helpers_test.go`) must fail the same way if the
 stored `nodes` value disagrees with the tree's own largest id — not just on a missing file.
 
