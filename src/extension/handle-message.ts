@@ -20,7 +20,9 @@ export type MessageCtx = {
 };
 
 function assertNever(msg: never): never {
-  throw new Error(`handle-message: unhandled webview message kind ${JSON.stringify(msg)}`);
+  // The kind is what identifies the message; dumping the whole object told the
+  // reader less and needed a document format to do it.
+  throw new Error(`handle-message: unhandled webview message kind ${String((msg as { type?: unknown }).type)}`);
 }
 
 export async function handleMessage(raw: unknown, ctx: MessageCtx): Promise<void> {

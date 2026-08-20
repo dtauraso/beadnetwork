@@ -18,8 +18,6 @@ GO_ERR_FILE="$PROBE_DIR/go-errors.log"
 TS_FILE="$PROBE_DIR/ts.log"
 TS_ERR_FILE="$PROBE_DIR/ts-errors.log"
 
-# A probe line is logfmt with ts_ms first, so ordering the merge is a numeric
-# sort on that leading field. No parser, and the lines stay greppable as-is.
 sort_by_ts() {
   sed -E 's/^ts_ms=([0-9]+)/\1\'$'\t''&/' | sort -n -k1,1 | cut -f2-
 }

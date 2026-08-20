@@ -1,6 +1,3 @@
-// A probe log line is flat key=value pairs, space separated — every record the
-// decoder emits is scalars only, so there is nothing for a document format to
-// describe. Values containing a space, a quote or an equals sign are quoted.
 export type LogFields = Record<string, string | number | boolean | undefined | null>;
 
 function encodeValue(v: string | number | boolean): string {
@@ -19,8 +16,6 @@ export function logfmt(fields: LogFields): string {
   return parts.join(" ");
 }
 
-// fieldOf reads one key back out of a line — the only read the pipeline needs,
-// for routing a line to the error log by its label.
 export function fieldOf(line: string, key: string): string | undefined {
   const m = new RegExp(`(?:^| )${key}=("(?:[^"\\\\]|\\\\.)*"|[^ ]*)`).exec(line);
   if (!m) return undefined;
