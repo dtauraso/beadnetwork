@@ -5,14 +5,13 @@ import (
 	"io"
 	"math"
 
-	"github.com/dtauraso/wirefold/src/Node/rowevent"
 	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 	"github.com/dtauraso/wirefold/src/schema/buffer-layout/colstream"
 )
 
 type InteriorStream struct {
 	out        io.Writer
-	buildFrame func(tick uint32, events []rowevent.RowEvent) []byte
+	buildFrame func(tick uint32, events []B.RowEvent) []byte
 	tick       uint32
 
 	nodeRow int32
@@ -24,7 +23,7 @@ type InteriorStream struct {
 	cols *colstream.ColumnSet
 }
 
-func NewInteriorStream(out io.Writer, buildFrame func(tick uint32, events []rowevent.RowEvent) []byte, nodeRow int32, slots int) *InteriorStream {
+func NewInteriorStream(out io.Writer, buildFrame func(tick uint32, events []B.RowEvent) []byte, nodeRow int32, slots int) *InteriorStream {
 	absent := make([]uint8, slots)
 	zeroI := make([]int32, slots)
 	zeroF := make([]float32, slots)
@@ -39,7 +38,7 @@ func (s *InteriorStream) OutWriter() io.Writer { return s.out }
 
 func (s *InteriorStream) NodeRowOf() int32 { return s.nodeRow }
 
-func (s *InteriorStream) write(present []uint8, value []int32, ox, oy, oz []float32, events []rowevent.RowEvent, center vec3) {
+func (s *InteriorStream) write(present []uint8, value []int32, ox, oy, oz []float32, events []B.RowEvent, center vec3) {
 	if s == nil {
 		return
 	}
@@ -92,11 +91,11 @@ func worldOf(ox, oy, oz []float32, center vec3) ([]float32, []float32, []float32
 	return wx, wy, wz
 }
 
-func (s *InteriorStream) WriteFull(present []uint8, value []int32, ox, oy, oz []float32, events []rowevent.RowEvent, center vec3) {
+func (s *InteriorStream) WriteFull(present []uint8, value []int32, ox, oy, oz []float32, events []B.RowEvent, center vec3) {
 	s.write(present, value, ox, oy, oz, events, center)
 }
 
-func (s *InteriorStream) WriteEvents(events []rowevent.RowEvent, center vec3) {
+func (s *InteriorStream) WriteEvents(events []B.RowEvent, center vec3) {
 	if s == nil {
 		return
 	}
@@ -117,7 +116,7 @@ func boolU8(b bool) uint8 {
 	return 0
 }
 
-func writeInteriorStreamFrame(out io.Writer, buildFrame func(tick uint32, events []rowevent.RowEvent) []byte, tick uint32, events []rowevent.RowEvent) {
+func writeInteriorStreamFrame(out io.Writer, buildFrame func(tick uint32, events []B.RowEvent) []byte, tick uint32, events []B.RowEvent) {
 	if out == nil || buildFrame == nil {
 		return
 	}

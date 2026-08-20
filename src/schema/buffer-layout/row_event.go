@@ -1,4 +1,4 @@
-package rowevent
+package bufferlayout
 
 type RowEvent struct {
 	Kind                                                             string

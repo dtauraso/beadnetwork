@@ -4,22 +4,22 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/dtauraso/wirefold/src/Node/Interior"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/edgetable"
 	geomseeds "github.com/dtauraso/wirefold/src/Node/Wiring/geomseeds"
-	"github.com/dtauraso/wirefold/src/Node/Interior"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor/nodeframe"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor/owners"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor/streamclaim"
 	"github.com/dtauraso/wirefold/src/Node/wire"
-	"github.com/dtauraso/wirefold/src/Node/rowevent"
+	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 	"github.com/dtauraso/wirefold/src/schema/buffer-layout/colstream"
 )
 
 type StreamWiring struct {
 	interiorEmitters map[string]*interior.Emitter
 
-	buildInteriorFrame func(tick uint32, events []rowevent.RowEvent) []byte
+	buildInteriorFrame func(tick uint32, events []B.RowEvent) []byte
 
 	nodeClaims streamclaim.ClaimRegistry
 }
@@ -28,7 +28,7 @@ func (sw *StreamWiring) InteriorEmittersPtr() *map[string]*interior.Emitter {
 	return &sw.interiorEmitters
 }
 
-func (sw *StreamWiring) BuildInteriorFramePtr() *func(tick uint32, events []rowevent.RowEvent) []byte {
+func (sw *StreamWiring) BuildInteriorFramePtr() *func(tick uint32, events []B.RowEvent) []byte {
 	return &sw.buildInteriorFrame
 }
 
@@ -92,7 +92,7 @@ func (sw *StreamWiring) SetNodeStreams(
 	buildBeadFrame wire.BeadFrameBuilder,
 	nodeRowFor func(id string) (int32, bool),
 	buildFrame nodeframe.NodeFrameBuilder,
-	buildInteriorFrame func(tick uint32, events []rowevent.RowEvent) []byte,
+	buildInteriorFrame func(tick uint32, events []B.RowEvent) []byte,
 	interiorCols func(row int32) *colstream.ColumnSet,
 	kindIDFor func(kind string) uint8,
 ) {

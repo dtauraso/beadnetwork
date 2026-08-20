@@ -3,7 +3,6 @@ package wire
 import (
 	"fmt"
 
-	"github.com/dtauraso/wirefold/src/Node/rowevent"
 	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 )
 
@@ -12,7 +11,7 @@ type beadReadout struct {
 
 	pending []pendingBeadEvent
 
-	breadcrumbCh chan rowevent.RowEvent
+	breadcrumbCh chan B.RowEvent
 
 	droppedBreadcrumbs int
 }
@@ -24,7 +23,7 @@ func (r *beadReadout) flushDroppedBreadcrumbs() {
 		return
 	}
 	select {
-	case r.breadcrumbCh <- rowevent.RowEvent{
+	case r.breadcrumbCh <- B.RowEvent{
 		Kind: B.KindBreadcrumb, Label: B.BreadcrumbBeadBreadcrumbsDropped, Debug: 1,
 		NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 		Value: int32(r.droppedBreadcrumbs),
@@ -34,11 +33,11 @@ func (r *beadReadout) flushDroppedBreadcrumbs() {
 	}
 }
 
-func (r *beadReadout) drainBreadcrumbEvents() []rowevent.RowEvent {
+func (r *beadReadout) drainBreadcrumbEvents() []B.RowEvent {
 	if r.breadcrumbCh == nil {
 		return nil
 	}
-	var out []rowevent.RowEvent
+	var out []B.RowEvent
 	for {
 		select {
 		case ev := <-r.breadcrumbCh:
@@ -49,7 +48,7 @@ func (r *beadReadout) drainBreadcrumbEvents() []rowevent.RowEvent {
 	}
 }
 
-func (pw *BeadRun) DrainBreadcrumbEvents() []rowevent.RowEvent {
+func (pw *BeadRun) DrainBreadcrumbEvents() []B.RowEvent {
 	return pw.readout.drainBreadcrumbEvents()
 }
 

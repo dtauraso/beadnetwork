@@ -8,7 +8,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/polarindex"
-	"github.com/dtauraso/wirefold/src/Node/rowevent"
+	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 )
 
 func (m *NodeGeometry) ID() string { return m.id }
@@ -91,6 +91,6 @@ func (m *NodeGeometry) CommitIndex() {
 	m.persistIndex(m.geom.DragIndex)
 }
 
-func (m *NodeGeometry) WriteStreamFrame(events []rowevent.RowEvent) {
+func (m *NodeGeometry) WriteStreamFrame(events []B.RowEvent) {
 	m.writeStreamFrame(events)
 }

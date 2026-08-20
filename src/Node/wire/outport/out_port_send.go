@@ -3,7 +3,6 @@ package outport
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/src/Node/rowevent"
 	"github.com/dtauraso/wirefold/src/Node/wire"
 	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 )
@@ -26,7 +25,7 @@ func (o *Out) flushSendEvent(value int, steps int) {
 	if s == nil {
 		return
 	}
-	s.WriteEvents([]rowevent.RowEvent{{
+	s.WriteEvents([]B.RowEvent{{
 		Kind: B.KindSend, NodeRow: s.NodeRowOf(), PortRow: o.portRow,
 		TargetRow: o.targetRow, TargetPortRow: o.targetPortRow, EdgeRow: -1,
 		Value:     int32(value),
@@ -57,7 +56,7 @@ func newOutChan(ch chan<- int, node, port string) *Out {
 	return &Out{ch: ch, node: node, port: port, postedGeom: make(chan outGeom, 1)}
 }
 
-func NewOutPaced(pw *wire.BeadRun, ctx context.Context, node, port string, rule SendRule, edgeLabel string, stream func() rowevent.EventSink, portRow, targetRow, targetPortRow int32) *Out {
+func NewOutPaced(pw *wire.BeadRun, ctx context.Context, node, port string, rule SendRule, edgeLabel string, stream func() B.EventSink, portRow, targetRow, targetPortRow int32) *Out {
 	if rule == "" {
 		rule = RuleConsumeGated
 	}

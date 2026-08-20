@@ -13,7 +13,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/polarindex"
 	"github.com/dtauraso/wirefold/src/Node/wire"
 	"github.com/dtauraso/wirefold/src/Node/wire/outport"
-	"github.com/dtauraso/wirefold/src/Node/rowevent"
+	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 	"github.com/dtauraso/wirefold/src/schema/buffer-layout/colstream"
 )
 
@@ -112,7 +112,7 @@ func (m *NodeGeometry) writeOutEdgeFrames(tick int64) {
 	m.outEdges.WriteFrames(tick, m.geom, &m.deltas)
 }
 
-func (m *NodeGeometry) WireInteriorStream(w io.Writer, row int32, buildFrame func(tick uint32, events []rowevent.RowEvent) []byte, cols *colstream.ColumnSet) *interior.Emitter {
+func (m *NodeGeometry) WireInteriorStream(w io.Writer, row int32, buildFrame func(tick uint32, events []B.RowEvent) []byte, cols *colstream.ColumnSet) *interior.Emitter {
 	stream := interior.NewInteriorStream(w, buildFrame, row, interior.SlotsPerNode)
 	stream.SetColumns(cols)
 	mailbox := interior.NewMailbox(row)

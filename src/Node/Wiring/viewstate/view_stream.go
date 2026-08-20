@@ -4,8 +4,6 @@ import (
 	"encoding/binary"
 	"io"
 
-	"github.com/dtauraso/wirefold/src/Node/rowevent"
-
 	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 )
 
@@ -30,7 +28,7 @@ type ViewSceneState struct {
 	SceneKinds    uint32
 }
 
-type ViewFrameBuilder func(tick uint32, events []rowevent.RowEvent) []byte
+type ViewFrameBuilder func(tick uint32, events []B.RowEvent) []byte
 
 func (ui *UIState) SetViewStream(out io.Writer, buildFrame ViewFrameBuilder) {
 
@@ -38,13 +36,13 @@ func (ui *UIState) SetViewStream(out io.Writer, buildFrame ViewFrameBuilder) {
 	ui.ViewBuildFrame = buildFrame
 }
 
-func (ui *UIState) EmitBreadcrumb(ev rowevent.RowEvent) {
+func (ui *UIState) EmitBreadcrumb(ev B.RowEvent) {
 	ev.Kind = B.KindBreadcrumb
 	ev.Debug = 1
-	ui.EmitViewFrame([]rowevent.RowEvent{ev})
+	ui.EmitViewFrame([]B.RowEvent{ev})
 }
 
-func (ui *UIState) EmitViewFrame(events []rowevent.RowEvent) {
+func (ui *UIState) EmitViewFrame(events []B.RowEvent) {
 	if ui.ViewBuildFrame == nil {
 		return
 	}

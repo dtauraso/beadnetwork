@@ -4,7 +4,6 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/polarindex"
-	"github.com/dtauraso/wirefold/src/Node/rowevent"
 
 	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 )
@@ -69,7 +68,7 @@ func (m *NodeGeometry) takeDragOfSelf(msg movemsg.Msg) {
 	m.msg.CommitLocal(m.id, movedIdx)
 	newPos := m.SceneCenter().Add(polar.Polar2cart(polarindex.ToPolar(movedIdx, m.Constants())))
 
-	m.writeStreamFrame([]rowevent.RowEvent{{
+	m.writeStreamFrame([]B.RowEvent{{
 		Kind: B.KindBreadcrumb, Label: B.BreadcrumbDragCommit, Debug: 1,
 		NodeRow: m.stream.NodeRow(), PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 		X: newPos.X, Y: newPos.Y, Z: newPos.Z,

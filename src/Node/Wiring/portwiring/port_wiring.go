@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"github.com/dtauraso/wirefold/src/Node/Interior"
-	"github.com/dtauraso/wirefold/src/Node/rowevent"
 	"github.com/dtauraso/wirefold/src/Node/wire/inport"
 	"github.com/dtauraso/wirefold/src/Node/wire/outport"
+	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 )
 
 const BufInteriorSlotsPerNode = 4
@@ -27,8 +27,8 @@ func NewInteriorEmitterGetter(name string, pb PortBindings) func() *interior.Emi
 	}
 }
 
-func InteriorEventSinkGetter(g func() *interior.Emitter) func() rowevent.EventSink {
-	return func() rowevent.EventSink {
+func InteriorEventSinkGetter(g func() *interior.Emitter) func() B.EventSink {
+	return func() B.EventSink {
 		e := g()
 		if e == nil {
 			return nil
@@ -39,7 +39,7 @@ func InteriorEventSinkGetter(g func() *interior.Emitter) func() rowevent.EventSi
 
 const NoPortRow = int32(-1)
 
-func NewInPort(portName string, ctx context.Context, name string, pb PortBindings, getSink func() rowevent.EventSink) *inport.In {
+func NewInPort(portName string, ctx context.Context, name string, pb PortBindings, getSink func() B.EventSink) *inport.In {
 	if b := pb.singlePaced[portName]; b.pw != nil {
 		return inport.NewInPaced(b.pw, ctx, name, portName, getSink, NoPortRow)
 	} else {
@@ -48,7 +48,7 @@ func NewInPort(portName string, ctx context.Context, name string, pb PortBinding
 	}
 }
 
-func NewOutPort(portName string, ctx context.Context, name string, pb PortBindings, sourceOuts *[]*outport.Out, getSink func() rowevent.EventSink) *outport.Out {
+func NewOutPort(portName string, ctx context.Context, name string, pb PortBindings, sourceOuts *[]*outport.Out, getSink func() B.EventSink) *outport.Out {
 	if b := pb.singlePaced[portName]; b.pw != nil {
 		targetRow := int32(-1)
 		if b.pw.Target != "" {
@@ -67,7 +67,7 @@ func NewOutPort(portName string, ctx context.Context, name string, pb PortBindin
 	return outport.NewOutChanDeadEnd(ch, name, portName)
 }
 
-func NewBroadcastPort(portName string, ctx context.Context, name string, pb PortBindings, sourceOuts *[]*outport.Out, getSink func() rowevent.EventSink) outport.Broadcast {
+func NewBroadcastPort(portName string, ctx context.Context, name string, pb PortBindings, sourceOuts *[]*outport.Out, getSink func() B.EventSink) outport.Broadcast {
 	if bs := pb.broadcastPaced[portName]; len(bs) > 0 {
 		outs := make(outport.Broadcast, len(bs))
 		for i, b := range bs {

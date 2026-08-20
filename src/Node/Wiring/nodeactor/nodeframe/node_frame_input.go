@@ -2,8 +2,8 @@ package nodeframe
 
 import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/framegeom"
-	"github.com/dtauraso/wirefold/src/Node/rowevent"
 	streamframe "github.com/dtauraso/wirefold/src/Scene/Vectors"
+	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 )
 
 type NodeFrameInput struct {
@@ -54,7 +54,7 @@ type NodeFrameInput struct {
 
 	Label string
 
-	Events []rowevent.RowEvent
+	Events []B.RowEvent
 }
 
 type NodeFrameBuilder func(f NodeFrameInput) []byte

@@ -10,13 +10,13 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/jsonpersist"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/polarindex"
+	"github.com/dtauraso/wirefold/src/Node/spatial"
 	"github.com/dtauraso/wirefold/src/Node/wire"
 	"github.com/dtauraso/wirefold/src/Node/wire/outport"
-	"github.com/dtauraso/wirefold/src/Node/rowevent"
-	"github.com/dtauraso/wirefold/src/Node/spatial"
+	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 )
 
-type EdgeFrameBuilder = func(tick uint32, edgeRow int32, sx, sy, sz, ex, ey, ez float32, srcNodeRow, dstNodeRow int32, deltaR float32, dragActive uint8, label string, events []rowevent.RowEvent) []byte
+type EdgeFrameBuilder = func(tick uint32, edgeRow int32, sx, sy, sz, ex, ey, ez float32, srcNodeRow, dstNodeRow int32, deltaR float32, dragActive uint8, label string, events []B.RowEvent) []byte
 
 type outEdge struct {
 	label      string

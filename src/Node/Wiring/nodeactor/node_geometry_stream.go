@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"math"
 
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/TiltPanel"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/framegeom"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor/nodeframe"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodedrag"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodegeom"
-	"github.com/dtauraso/wirefold/src/Node/rowevent"
-	"github.com/dtauraso/wirefold/src/Chrome/Panels/TiltPanel"
+	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 )
 
 func boolU8(b bool) uint8 {
@@ -31,15 +31,15 @@ func (m *NodeGeometry) emitGeometry() {
 	m.writeStreamFrame(nil)
 }
 
-func (m *NodeGeometry) postSelfEvents(events []rowevent.RowEvent) {
+func (m *NodeGeometry) postSelfEvents(events []B.RowEvent) {
 	m.stream.PostSelfEvents(events)
 }
 
-func (m *NodeGeometry) drainSelfEvents() []rowevent.RowEvent {
+func (m *NodeGeometry) drainSelfEvents() []B.RowEvent {
 	return m.stream.DrainSelfEvents()
 }
 
-func (m *NodeGeometry) writeStreamFrame(events []rowevent.RowEvent) {
+func (m *NodeGeometry) writeStreamFrame(events []B.RowEvent) {
 	if !m.stream.Ready() {
 		return
 	}

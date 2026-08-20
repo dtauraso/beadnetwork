@@ -2,7 +2,6 @@ package edge
 
 import (
 	"encoding/binary"
-	"github.com/dtauraso/wirefold/src/Node/rowevent"
 
 	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 	"github.com/dtauraso/wirefold/src/schema/buffer-layout/colstream"
@@ -28,7 +27,7 @@ func WriteEdgeColumns(c *colstream.ColumnSet,
 	c.SetBytes(B.ColStreamEdgeLabel, []byte(label))
 }
 
-func BuildEdgeStreamFrame(tick uint32, events []rowevent.RowEvent) []byte {
+func BuildEdgeStreamFrame(tick uint32, events []B.RowEvent) []byte {
 	buf := make([]byte, B.BufEdgeStreamFrameHeaderSize)
 	binary.LittleEndian.PutUint32(buf[0:], tick)
 	return append(buf, B.BuildEventsSection(events)...)

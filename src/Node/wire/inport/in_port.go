@@ -3,7 +3,6 @@ package inport
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/src/Node/rowevent"
 	"github.com/dtauraso/wirefold/src/Node/wire"
 	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 )
@@ -17,7 +16,7 @@ type In struct {
 	node string
 	port string
 
-	stream func() rowevent.EventSink
+	stream func() B.EventSink
 
 	portRow int32
 }
@@ -54,17 +53,17 @@ func (i *In) flushRecvEvent(value int) {
 	if s == nil {
 		return
 	}
-	s.WriteEvents([]rowevent.RowEvent{{
+	s.WriteEvents([]B.RowEvent{{
 		Kind: B.KindRecv, NodeRow: s.NodeRowOf(), PortRow: i.portRow,
 		TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Value: int32(value),
 	}})
 }
 
-func NewInChan(ch <-chan int, node, port string, stream func() rowevent.EventSink) *In {
+func NewInChan(ch <-chan int, node, port string, stream func() B.EventSink) *In {
 	return &In{ch: ch, node: node, port: port, portRow: -1, stream: stream}
 }
 
-func NewInPaced(pw *wire.BeadRun, ctx context.Context, node, port string, stream func() rowevent.EventSink, portRow int32) *In {
+func NewInPaced(pw *wire.BeadRun, ctx context.Context, node, port string, stream func() B.EventSink, portRow int32) *In {
 	return &In{pw: pw, ctx: ctx, node: node, port: port, stream: stream, portRow: portRow}
 }
 
@@ -87,7 +86,7 @@ func (i *In) Breadcrumb(event, detail string) {
 	if s == nil {
 		return
 	}
-	s.WriteEvents([]rowevent.RowEvent{{
+	s.WriteEvents([]B.RowEvent{{
 		Kind: B.KindBreadcrumb, Label: label, Debug: 1,
 		NodeRow: s.NodeRowOf(), PortRow: i.portRow,
 		TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,

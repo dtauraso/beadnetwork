@@ -1,7 +1,6 @@
 package wire
 
 import (
-	"github.com/dtauraso/wirefold/src/Node/rowevent"
 	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 )
 
@@ -22,7 +21,7 @@ func (pw *BeadRun) Send(v int, bp BeadPlacement, tick int64) SendOutcome {
 	default:
 		if pw.readout.breadcrumbCh != nil {
 			select {
-			case pw.readout.breadcrumbCh <- rowevent.RowEvent{
+			case pw.readout.breadcrumbCh <- B.RowEvent{
 				Kind: B.KindBreadcrumb, Label: B.BreadcrumbBeadPlaceBufferFull, Debug: 1,
 				NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 				Value: int32(v),

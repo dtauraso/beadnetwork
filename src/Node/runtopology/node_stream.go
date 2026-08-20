@@ -6,7 +6,7 @@ import (
 
 	NodeKind "github.com/dtauraso/wirefold/src/Node"
 
-	"github.com/dtauraso/wirefold/src/Node/rowevent"
+	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 
 	EdgeB "github.com/dtauraso/wirefold/src/Node/Edge"
 	W "github.com/dtauraso/wirefold/src/Node/Wiring/dispatch"
@@ -53,7 +53,7 @@ func wireNodeStreams(streamFDs SW.StreamFDs, md *W.MoveDispatch) {
 
 			md.Sw.SetNodeStreams(md.GS.NodeSeeds, md.MR.NodeGeoms(), nodeBase, interiorBase,
 				beadBase, beadWired,
-				func(tick uint32, nodeRow int32, beads []EdgeB.EdgeBead, events []rowevent.RowEvent) []byte {
+				func(tick uint32, nodeRow int32, beads []EdgeB.EdgeBead, events []B.RowEvent) []byte {
 					EdgeB.WriteEdgeBeadColumns(nodeCols(nodeRow), beads)
 					return BeadB.BuildBeadStreamFrame(tick, nodeRow, events)
 				},
@@ -112,7 +112,7 @@ func wireNodeStreams(streamFDs SW.StreamFDs, md *W.MoveDispatch) {
 					VecB.WriteChannelVectorColumns(nodeCols(f.NodeRow), frame.ChannelVectors)
 					return NodeKind.BuildNodeStreamFrame(frame)
 				},
-				func(tick uint32, events []rowevent.RowEvent) []byte {
+				func(tick uint32, events []B.RowEvent) []byte {
 					return NodeKind.BuildInteriorStreamFrame(tick, events)
 				},
 				nodeCols,

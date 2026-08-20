@@ -2,14 +2,13 @@ package Scene
 
 import (
 	"encoding/binary"
-	"github.com/dtauraso/wirefold/src/Node/rowevent"
 
 	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 )
 
 func BuildViewStreamFrame(tick uint32,
 	tabNames []string, tabSelected uint16,
-	events []rowevent.RowEvent,
+	events []B.RowEvent,
 ) []byte {
 	buf := make([]byte, B.BufViewFrameHeaderSize)
 	binary.LittleEndian.PutUint32(buf[0:], tick)

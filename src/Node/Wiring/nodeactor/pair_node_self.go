@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/dtauraso/wirefold/src/Clock"
-	"github.com/dtauraso/wirefold/src/Node/rowevent"
 	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 )
 
@@ -36,7 +35,7 @@ func (p *PairNodeSelf) Breadcrumb(label, value string) {
 	if !ok {
 		return
 	}
-	p.geom.postSelfEvents([]rowevent.RowEvent{{
+	p.geom.postSelfEvents([]B.RowEvent{{
 		Kind: B.KindBreadcrumb, Label: id, Debug: 1,
 		NodeRow: p.geom.NodeRow(), PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 		Text: value,

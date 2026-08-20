@@ -2,12 +2,10 @@ package bufferlayout
 
 import (
 	"encoding/binary"
-
-	"github.com/dtauraso/wirefold/src/Node/rowevent"
 )
 
-func BuildEventsSection(events []rowevent.RowEvent) []byte {
-	var recv, fire, send, arrive, crumb []rowevent.RowEvent
+func BuildEventsSection(events []RowEvent) []byte {
+	var recv, fire, send, arrive, crumb []RowEvent
 	for _, e := range events {
 		switch e.Kind {
 		case KindRecv:
@@ -37,7 +35,7 @@ func appendCount(buf []byte, n int) []byte {
 	return append(buf, hdr[:]...)
 }
 
-func appendRecvSection(buf []byte, events []rowevent.RowEvent) []byte {
+func appendRecvSection(buf []byte, events []RowEvent) []byte {
 	buf = appendCount(buf, len(events))
 	rows := make([]byte, len(events)*BufRecvStride)
 	for i, e := range events {
@@ -46,7 +44,7 @@ func appendRecvSection(buf []byte, events []rowevent.RowEvent) []byte {
 	return append(buf, rows...)
 }
 
-func appendFireSection(buf []byte, events []rowevent.RowEvent) []byte {
+func appendFireSection(buf []byte, events []RowEvent) []byte {
 	buf = appendCount(buf, len(events))
 	rows := make([]byte, len(events)*BufFireStride)
 	for i, e := range events {
@@ -55,7 +53,7 @@ func appendFireSection(buf []byte, events []rowevent.RowEvent) []byte {
 	return append(buf, rows...)
 }
 
-func appendSendSection(buf []byte, events []rowevent.RowEvent) []byte {
+func appendSendSection(buf []byte, events []RowEvent) []byte {
 	buf = appendCount(buf, len(events))
 	rows := make([]byte, len(events)*BufSendStride)
 	for i, e := range events {
@@ -64,7 +62,7 @@ func appendSendSection(buf []byte, events []rowevent.RowEvent) []byte {
 	return append(buf, rows...)
 }
 
-func appendArriveSection(buf []byte, events []rowevent.RowEvent) []byte {
+func appendArriveSection(buf []byte, events []RowEvent) []byte {
 	buf = appendCount(buf, len(events))
 	rows := make([]byte, len(events)*BufArriveStride)
 	for i, e := range events {
@@ -73,7 +71,7 @@ func appendArriveSection(buf []byte, events []rowevent.RowEvent) []byte {
 	return append(buf, rows...)
 }
 
-func appendBreadcrumbSection(buf []byte, events []rowevent.RowEvent) []byte {
+func appendBreadcrumbSection(buf []byte, events []RowEvent) []byte {
 	textBytes := make([][]byte, len(events))
 	textLen := 0
 	for i, e := range events {

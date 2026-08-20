@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/dtauraso/wirefold/src/Node/rowevent"
+	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 
 	EdgeB "github.com/dtauraso/wirefold/src/Node/Edge"
 	W "github.com/dtauraso/wirefold/src/Node/Wiring/dispatch"
@@ -37,7 +37,7 @@ func wireEdgeStreams(streamFDs SW.StreamFDs, md *W.MoveDispatch) {
 	if edgeBase, ok := streamFDs[SW.StreamKindEdge]; ok {
 
 		md.Sw.SetEdgeStreams(md.GS.EdgeSeeds, md.MR.Edges(), md.MR.NodeGeoms(), edgeBase, md.RT.NodeRowFor,
-			func(tick uint32, edgeRow int32, sx, sy, sz, ex, ey, ez float32, srcNodeRow, dstNodeRow int32, deltaR float32, dragActive uint8, label string, events []rowevent.RowEvent) []byte {
+			func(tick uint32, edgeRow int32, sx, sy, sz, ex, ey, ez float32, srcNodeRow, dstNodeRow int32, deltaR float32, dragActive uint8, label string, events []B.RowEvent) []byte {
 				EdgeB.WriteEdgeColumns(edgeCols(edgeRow), sx, sy, sz, ex, ey, ez, srcNodeRow, dstNodeRow, deltaR, dragActive, label)
 				return EdgeB.BuildEdgeStreamFrame(tick, events)
 			})

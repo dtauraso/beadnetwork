@@ -1,6 +1,6 @@
 package interior
 
-import "github.com/dtauraso/wirefold/src/Node/rowevent"
+import B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 
 const SlotsPerNode = 4
 
@@ -20,14 +20,14 @@ func (e *Emitter) NodeRowOf() int32 {
 	return e.nodeRow
 }
 
-func (e *Emitter) WriteEvents(events []rowevent.RowEvent) {
+func (e *Emitter) WriteEvents(events []B.RowEvent) {
 	if e == nil {
 		return
 	}
 	e.mailbox.Send(Snapshot{EventsOnly: true, Events: events})
 }
 
-func (e *Emitter) write(present []uint8, value []int32, ox, oy, oz []float32, events []rowevent.RowEvent) {
+func (e *Emitter) write(present []uint8, value []int32, ox, oy, oz []float32, events []B.RowEvent) {
 	if e == nil {
 		return
 	}

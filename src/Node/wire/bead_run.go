@@ -1,7 +1,7 @@
 package wire
 
 import (
-	"github.com/dtauraso/wirefold/src/Node/rowevent"
+	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 )
 
 const beadChanBufferSize = 4096
@@ -39,6 +39,6 @@ func NewBeadRun() *BeadRun {
 
 		kindToAnimClearCh: make(chan struct{}, 1),
 
-		readout: beadReadout{breadcrumbCh: make(chan rowevent.RowEvent, 4)},
+		readout: beadReadout{breadcrumbCh: make(chan B.RowEvent, 4)},
 	}
 }

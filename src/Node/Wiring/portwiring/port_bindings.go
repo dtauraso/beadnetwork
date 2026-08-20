@@ -1,14 +1,14 @@
 package portwiring
 
 import (
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/TiltPanel"
+	"github.com/dtauraso/wirefold/src/Clock"
 	"github.com/dtauraso/wirefold/src/Node/Interior"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/rowtables"
 	"github.com/dtauraso/wirefold/src/Node/wire"
 	"github.com/dtauraso/wirefold/src/Node/wire/outport"
-	"github.com/dtauraso/wirefold/src/Clock"
-	"github.com/dtauraso/wirefold/src/Node/rowevent"
-	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
-	"github.com/dtauraso/wirefold/src/Chrome/Panels/TiltPanel"
+	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 )
 
 type PortDir int
@@ -46,7 +46,7 @@ type PortBindings struct {
 	RT rowtables.RowTables
 
 	InteriorEmitters   *map[string]*interior.Emitter
-	BuildInteriorFrame *func(tick uint32, events []rowevent.RowEvent) []byte
+	BuildInteriorFrame *func(tick uint32, events []B.RowEvent) []byte
 
 	VectorOut map[string]chan TiltPanel.TiltVectorMsg
 	VectorIn  map[string]chan TiltPanel.TiltVectorMsg

@@ -3,9 +3,9 @@ package outport
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/src/Node/rowevent"
 	"github.com/dtauraso/wirefold/src/Node/spatial"
 	"github.com/dtauraso/wirefold/src/Node/wire"
+	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 )
 
 type outGeom struct {
@@ -31,7 +31,7 @@ type Out struct {
 
 	Rule SendRule
 
-	stream func() rowevent.EventSink
+	stream func() B.EventSink
 
 	portRow, targetRow, targetPortRow int32
 }

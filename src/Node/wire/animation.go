@@ -6,14 +6,14 @@ import (
 	"io"
 	"time"
 
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
+	"github.com/dtauraso/wirefold/src/Clock"
+	SF "github.com/dtauraso/wirefold/src/Node/Edge"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/framegeom"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodegeom"
-	"github.com/dtauraso/wirefold/src/Node/wire/lattice"
-	"github.com/dtauraso/wirefold/src/Clock"
-	"github.com/dtauraso/wirefold/src/Node/rowevent"
 	"github.com/dtauraso/wirefold/src/Node/spatial"
-	SF "github.com/dtauraso/wirefold/src/Node/Edge"
-	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
+	"github.com/dtauraso/wirefold/src/Node/wire/lattice"
+	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 )
 
 type Animation struct {
@@ -29,14 +29,14 @@ type Animation struct {
 
 	nodeRow int32
 
-	buildBeadFrame func(tick uint32, nodeRow int32, beads []SF.EdgeBead, events []rowevent.RowEvent) []byte
+	buildBeadFrame func(tick uint32, nodeRow int32, beads []SF.EdgeBead, events []B.RowEvent) []byte
 }
 
-type BeadFrameBuilder = func(tick uint32, nodeRow int32, beads []SF.EdgeBead, events []rowevent.RowEvent) []byte
+type BeadFrameBuilder = func(tick uint32, nodeRow int32, beads []SF.EdgeBead, events []B.RowEvent) []byte
 
 func (o *Animation) HasBeadRuns() bool { return len(o.outRuns) > 0 }
 
-func (o *Animation) SetBeadStream(w io.Writer, nodeRow int32, buildBeadFrame func(tick uint32, nodeRow int32, beads []SF.EdgeBead, events []rowevent.RowEvent) []byte) {
+func (o *Animation) SetBeadStream(w io.Writer, nodeRow int32, buildBeadFrame func(tick uint32, nodeRow int32, beads []SF.EdgeBead, events []B.RowEvent) []byte) {
 	o.beadOut = w
 	o.nodeRow = nodeRow
 	o.buildBeadFrame = buildBeadFrame
@@ -85,7 +85,7 @@ func (o *Animation) RunAnimation(ctx context.Context) {
 func (o *Animation) stepBeads(ctx context.Context, tick int64) {
 	axisPhi, axisTheta := framegeom.TorusDefaultAxisAngles()
 	beads := make([]SF.EdgeBead, 0, len(o.outRuns))
-	var events []rowevent.RowEvent
+	var events []B.RowEvent
 
 	for i, pw := range o.outRuns {
 		pw.DriveOneStep(ctx, tick)
@@ -108,10 +108,10 @@ func (o *Animation) stepBeads(ctx context.Context, tick int64) {
 	o.writeBeadFrame(tick, beads, events)
 }
 
-func (o *Animation) drainBeadEvents(pw *BeadRun) []rowevent.RowEvent {
-	var events []rowevent.RowEvent
+func (o *Animation) drainBeadEvents(pw *BeadRun) []B.RowEvent {
+	var events []B.RowEvent
 	for _, pe := range pw.DrainPendingEvents() {
-		events = append(events, rowevent.RowEvent{
+		events = append(events, B.RowEvent{
 			Kind: pe.Kind, NodeRow: o.nodeRow, PortRow: -1,
 			TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 			Value: int32(pe.Value), Bead: pe.Gen,
@@ -127,7 +127,7 @@ func (o *Animation) drainBeadEvents(pw *BeadRun) []rowevent.RowEvent {
 	return events
 }
 
-func (o *Animation) writeBeadFrame(tick int64, beads []SF.EdgeBead, events []rowevent.RowEvent) {
+func (o *Animation) writeBeadFrame(tick int64, beads []SF.EdgeBead, events []B.RowEvent) {
 	if o.beadOut == nil || o.buildBeadFrame == nil {
 		return
 	}

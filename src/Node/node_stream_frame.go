@@ -2,7 +2,6 @@ package Node
 
 import (
 	"encoding/binary"
-	"github.com/dtauraso/wirefold/src/Node/rowevent"
 
 	TiltB "github.com/dtauraso/wirefold/src/Scene/TiltVectors"
 	VecB "github.com/dtauraso/wirefold/src/Scene/Vectors"
@@ -58,7 +57,7 @@ type NodeStreamFrame struct {
 
 	ChannelVectors []VecB.ChannelVector
 
-	Events []rowevent.RowEvent
+	Events []B.RowEvent
 }
 
 func BuildNodeStreamFrame(f NodeStreamFrame) []byte {
@@ -67,7 +66,7 @@ func BuildNodeStreamFrame(f NodeStreamFrame) []byte {
 	return append(buf, B.BuildEventsSection(f.Events)...)
 }
 
-func BuildInteriorStreamFrame(tick uint32, events []rowevent.RowEvent) []byte {
+func BuildInteriorStreamFrame(tick uint32, events []B.RowEvent) []byte {
 	buf := make([]byte, B.BufInteriorStreamFrameHeaderSize)
 	binary.LittleEndian.PutUint32(buf[0:], tick)
 	return append(buf, B.BuildEventsSection(events)...)

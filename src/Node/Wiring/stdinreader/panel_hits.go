@@ -3,8 +3,6 @@ package stdinreader
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/src/Node/rowevent"
-
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/Panel"
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
 	"github.com/dtauraso/wirefold/src/Chrome/Pills/NodesDropdown"
@@ -131,7 +129,7 @@ func toggleOverlayFlag(md *dispatch.MoveDispatch, flag string) {
 		md.Inboxes.BroadcastChannelVectorsOn(md.UI.OV.RuleChannelsVisible)
 	}
 	if scope, ok := Overlay.OverlayFlagBreadcrumbScope[flag]; ok {
-		md.UI.EmitBreadcrumb(rowevent.RowEvent{
+		md.UI.EmitBreadcrumb(B.RowEvent{
 			Label: B.BreadcrumbPoleToggleGo, NodeRow: -1, PortRow: -1, TargetRow: -1,
 			TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 			Value: int32(boolU8(Overlay.OverlayFlagValue[flag](&md.UI.OV))), Text: scope,
