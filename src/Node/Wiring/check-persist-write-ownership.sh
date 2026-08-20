@@ -26,7 +26,7 @@ EDGE_OWNERS=("edge_file.go" "edge_delta_file.go" "edge_rule_active.go" "out_edge
 
 VIEW_OWNERS=("scene_camera_persist.go" "scene_overlays_persist.go" "scene_panels_persist.go" "scene_sphere_persist.go" "scene_selection_persist.go" "scene_speed_persist.go" "scene_lattice_persist.go")
 
-TREE_OWNERS=("scene_counts_persist.go")
+TREE_OWNERS=("counts.go")
 
 in_list() {
   local needle="$1"; shift
