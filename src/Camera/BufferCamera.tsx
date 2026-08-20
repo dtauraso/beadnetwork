@@ -21,7 +21,7 @@ export function BufferCamera({ cameraRef }: {
           const pose = await readCameraPose(paths);
           if (pose) poseRef.current = pose;
         }
-        await new Promise((r) => setTimeout(r, 16));
+        await new Promise((r) => requestAnimationFrame(() => r(undefined)));
       }
     };
     void pump();

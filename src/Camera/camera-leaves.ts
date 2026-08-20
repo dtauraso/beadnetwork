@@ -60,11 +60,12 @@ export async function loadCameraPaths(): Promise<Map<CameraPrimitive, string> | 
 export async function readCameraPose(paths: Map<CameraPrimitive, string>): Promise<CameraPose | undefined> {
   const b = bases();
   if (!b) return undefined;
+  const rels = PRIMITIVES.map((name) => paths.get(name));
+  if (rels.some((rel) => rel === undefined)) return undefined;
+  const values = await Promise.all(rels.map((rel) => readFloat64(`${b.scene}/${rel ?? ""}`)));
   const pose = { focalPx: FOCAL_PIXELS } as CameraPose;
-  for (const name of PRIMITIVES) {
-    const rel = paths.get(name);
-    if (rel === undefined) return undefined;
-    const v = await readFloat64(`${b.scene}/${rel}`);
+  for (const [i, name] of PRIMITIVES.entries()) {
+    const v = values[i];
     if (v === undefined) return undefined;
     pose[name] = v;
   }
