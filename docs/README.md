@@ -30,7 +30,6 @@ An untagged doc there escaped a merge — delete it.
 | [timing.md](model/timing.md) | Timing — ticks, dwell, in-flight revision. |
 | [lifecycle.md](model/lifecycle.md) | Lifecycle — load, run, respawn. |
 | [polar-model.md](model/polar-model.md) | The polar model — index × constant, base composed with drag. |
-| [polar-model-drag.md](model/polar-model-drag.md) | The drag half of the polar model. |
 | [scenes.md](model/scenes.md) | Scenes — a scene declares its own tab and its own forks. |
 
 ## Polar geometry & layout
