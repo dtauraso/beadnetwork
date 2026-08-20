@@ -10,7 +10,7 @@ import (
 type In struct {
 	ch <-chan int
 
-	pw  *Node.BeadRun
+	pw  *Node.BeadLine
 	ctx context.Context
 
 	node string
@@ -63,7 +63,7 @@ func NewInChan(ch <-chan int, node, port string, stream func() B.EventSink) *In 
 	return &In{ch: ch, node: node, port: port, portRow: -1, stream: stream}
 }
 
-func NewInPaced(pw *Node.BeadRun, ctx context.Context, node, port string, stream func() B.EventSink, portRow int32) *In {
+func NewInPaced(pw *Node.BeadLine, ctx context.Context, node, port string, stream func() B.EventSink, portRow int32) *In {
 	return &In{pw: pw, ctx: ctx, node: node, port: port, stream: stream, portRow: portRow}
 }
 

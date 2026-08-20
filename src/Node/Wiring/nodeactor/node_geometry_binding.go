@@ -83,11 +83,11 @@ func (m *NodeGeometry) AddOutTarget(target string) {
 	m.outTargets = append(m.outTargets, target)
 }
 
-func (m *NodeGeometry) AddBeadRun(pw *Node.BeadRun, edgeRow int32) {
-	m.anim.AddBeadRun(pw, edgeRow)
+func (m *NodeGeometry) AddBeadLine(pw *Node.BeadLine, edgeRow int32) {
+	m.anim.AddBeadLine(pw, edgeRow)
 }
 
-func (m *NodeGeometry) BindOutEdgeRun(label, targetID, targetKind string, port *outport.Out, dest *Node.BeadRun) {
+func (m *NodeGeometry) BindOutEdgeRun(label, targetID, targetKind string, port *outport.Out, dest *Node.BeadLine) {
 	m.outEdges.BindWire(label, targetID, targetKind, port, dest)
 	m.outEdges.SetSrcID(m.id)
 }

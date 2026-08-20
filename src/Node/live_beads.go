@@ -9,10 +9,10 @@ type LiveBeadRow struct {
 	Slot  int
 }
 
-func (pw *BeadRun) LiveBeadRows() []LiveBeadRow {
-	rows := make([]LiveBeadRow, 0, len(pw.inflight))
-	for i := range pw.inflight {
-		b := &pw.inflight[i]
+func (bl *BeadLine) LiveBeadRows() []LiveBeadRow {
+	rows := make([]LiveBeadRow, 0, len(bl.inflight))
+	for i := range bl.inflight {
+		b := &bl.inflight[i]
 		if !b.streams {
 			continue
 		}

@@ -11,13 +11,13 @@ type arriveInfo struct {
 	gen        uint64
 }
 
-func (pw *BeadRun) emitArrive(ai arriveInfo) {
-	if ai.emit && pw.readout.StreamsActive {
-		pw.readout.appendPending(pendingBeadEvent{kind: B.KindArrive, value: ai.value, gen: ai.gen},
-			pw.Owner, pw.Edge)
+func (bl *BeadLine) emitArrive(ai arriveInfo) {
+	if ai.emit && bl.readout.StreamsActive {
+		bl.readout.appendPending(pendingBeadEvent{kind: B.KindArrive, value: ai.value, gen: ai.gen},
+			bl.Owner, bl.Edge)
 	}
 }
 
-func (pw *BeadRun) advance(b *inflightBead) {
+func (bl *BeadLine) advance(b *inflightBead) {
 	b.slot++
 }

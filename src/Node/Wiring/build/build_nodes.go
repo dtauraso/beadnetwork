@@ -103,6 +103,6 @@ func (b *buildCtx) buildNodes() error {
 	return nil
 }
 
-func bindDispatch(md *dispatch.MoveDispatch, outSink map[string]*outport.Out, destRun map[string]*Node.BeadRun) {
+func bindDispatch(md *dispatch.MoveDispatch, outSink map[string]*outport.Out, destRun map[string]*Node.BeadLine) {
 	md.MR.Bind(outSink, inputcodec.SlotRegistry(destRun), md.RT.EdgeRowForPair)
 }

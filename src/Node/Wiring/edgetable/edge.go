@@ -13,7 +13,7 @@ type Edge struct {
 	dstH  string
 
 	out  *outport.Out
-	dest *Node.BeadRun
+	dest *Node.BeadLine
 }
 
 func New(label, srcID, dstID, srcHandle, dstHandle string) *Edge {
@@ -29,5 +29,5 @@ func (e *Edge) DstHandle() string { return e.dstH }
 func (e *Edge) SetOut(out *outport.Out) { e.out = out }
 func (e *Edge) Out() *outport.Out       { return e.out }
 
-func (e *Edge) SetDest(dest *Node.BeadRun) { e.dest = dest }
-func (e *Edge) Dest() *Node.BeadRun        { return e.dest }
+func (e *Edge) SetDest(dest *Node.BeadLine) { e.dest = dest }
+func (e *Edge) Dest() *Node.BeadLine        { return e.dest }

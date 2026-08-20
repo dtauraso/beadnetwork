@@ -39,7 +39,7 @@ func (mr *MoverRegistry) Bind(outSink map[string]*outport.Out, slotReg inputcode
 					edgeRow = r
 				}
 			}
-			srcNM.AddBeadRun(pw, edgeRow)
+			srcNM.AddBeadLine(pw, edgeRow)
 		}
 	}
 }

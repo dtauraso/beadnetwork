@@ -53,13 +53,13 @@ type PortBindings struct {
 }
 
 type singleBinding struct {
-	pw    *Node.BeadRun
+	pw    *Node.BeadLine
 	rule  outport.SendRule
 	label string
 }
 
 type broadcastBinding struct {
-	pw     *Node.BeadRun
+	pw     *Node.BeadLine
 	handle string
 	rule   outport.SendRule
 	label  string
@@ -72,15 +72,15 @@ func NewPortBindings() PortBindings {
 	}
 }
 
-func (pb *PortBindings) SetSinglePaced(name string, pw *Node.BeadRun) {
+func (pb *PortBindings) SetSinglePaced(name string, pw *Node.BeadLine) {
 	pb.singlePaced[name] = singleBinding{pw: pw}
 }
 
-func (pb *PortBindings) SetSinglePacedRule(name string, pw *Node.BeadRun, rule outport.SendRule, label string) {
+func (pb *PortBindings) SetSinglePacedRule(name string, pw *Node.BeadLine, rule outport.SendRule, label string) {
 	pb.singlePaced[name] = singleBinding{pw: pw, rule: rule, label: label}
 }
 
-func (pb *PortBindings) AppendBroadcastWithHandle(name, handle string, pw *Node.BeadRun, rule outport.SendRule, label string) {
+func (pb *PortBindings) AppendBroadcastWithHandle(name, handle string, pw *Node.BeadLine, rule outport.SendRule, label string) {
 	pb.broadcastPaced[name] = append(pb.broadcastPaced[name], broadcastBinding{
 		pw: pw, handle: handle, rule: rule, label: label,
 	})

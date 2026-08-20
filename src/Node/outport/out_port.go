@@ -17,7 +17,7 @@ type outGeom struct {
 type Out struct {
 	ch chan<- int
 
-	pw  *Node.BeadRun
+	pw  *Node.BeadLine
 	ctx context.Context
 
 	node string

@@ -35,8 +35,8 @@ type buildCtx struct {
 	baseIndices map[string]polarindex.Index
 	dragIndices map[string]polarindex.Offset
 
-	destRun       map[string]*Node.BeadRun
-	edgeRun       loadspec.BeadRunRegistry
+	destRun       map[string]*Node.BeadLine
+	edgeRun       loadspec.BeadLineRegistry
 	edgeEndpoints map[string]inputcodec.EdgeEndpoints
 
 	md *dispatch.MoveDispatch
@@ -63,7 +63,7 @@ func buildFromSpec(ctx context.Context, spec loadspec.TopoSpec, clk clock.Clock,
 	b.nodeGeoms, b.centers = topoderive.ComputeNodeGeometry(b.spec, b.sphere)
 	b.baseIndices = topoderive.ComputeBaseIndices(b.spec, b.sphere, b.centers, b.nodeGeoms)
 	b.dragIndices = topoderive.ComputeDragIndices(b.spec)
-	b.destRun, b.edgeRun, b.edgeEndpoints = topoderive.AllocateBeadRuns(b.spec, b.nodeGeoms)
+	b.destRun, b.edgeRun, b.edgeEndpoints = topoderive.AllocateBeadLines(b.spec, b.nodeGeoms)
 	b.vectorOutByNode, b.vectorInByNode = topoderive.AllocateVectorChannels(b.spec)
 	if err := b.buildMoveDispatch(); err != nil {
 		return nil, nil, nil, SliderPanel.Sinks{}, err

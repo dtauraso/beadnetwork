@@ -35,7 +35,7 @@ you need the full per-tick trace, not just breadcrumbs.
 ## Source-gated edge-bead trace
 
 The highest-volume of these — `KindEdgeBead`, emitted per in-flight bead per tick by
-`src/Node/bead_run_drive.go`'s `stepAll` — is gated at the SOURCE, not just at the TS
+`src/Node/bead_line_drive.go`'s `stepAll` — is gated at the SOURCE, not just at the TS
 write. `stepAll` reads a package-level `edgeBeadTraceEnabled` bool set ONCE at process
 startup from the `WIREFOLD_EDGE_BEAD_TRACE` env var (same "one env var, read once before
 any goroutine starts" shape as `WIREFOLD_STREAM_FDS` — see `src/Node/Wiring/streamwire/stream_fds.go`); the

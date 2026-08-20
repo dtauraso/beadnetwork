@@ -11,7 +11,7 @@ type deliveredBead struct {
 	deliverTick int64
 }
 
-type BeadRun struct {
+type BeadLine struct {
 	inCh  chan placeRequest
 	outCh chan deliveredBead
 
@@ -32,8 +32,8 @@ type BeadRun struct {
 
 const maxInflightBeads = beadChanBufferSize
 
-func NewBeadRun() *BeadRun {
-	return &BeadRun{
+func NewBeadLine() *BeadLine {
+	return &BeadLine{
 		inCh:  make(chan placeRequest, beadChanBufferSize),
 		outCh: make(chan deliveredBead, beadChanBufferSize),
 

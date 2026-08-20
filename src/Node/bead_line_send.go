@@ -12,63 +12,63 @@ const (
 	SendBufferFull
 )
 
-func (pw *BeadRun) Send(v int, bp BeadPlacement, tick int64) SendOutcome {
+func (bl *BeadLine) Send(v int, bp BeadPlacement, tick int64) SendOutcome {
 
-	pw.readout.flushDroppedBreadcrumbs()
+	bl.readout.flushDroppedBreadcrumbs()
 	select {
-	case pw.inCh <- placeRequest{val: v, bp: bp, placementTick: tick}:
+	case bl.inCh <- placeRequest{val: v, bp: bp, placementTick: tick}:
 		return SendPlaced
 	default:
-		if pw.readout.breadcrumbCh != nil {
+		if bl.readout.breadcrumbCh != nil {
 			select {
-			case pw.readout.breadcrumbCh <- B.RowEvent{
+			case bl.readout.breadcrumbCh <- B.RowEvent{
 				Kind: B.KindBreadcrumb, Label: B.BreadcrumbBeadPlaceBufferFull, Debug: 1,
 				NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 				Value: int32(v),
 			}:
 			default:
-				pw.readout.droppedBreadcrumbs++
+				bl.readout.droppedBreadcrumbs++
 			}
 		}
 		return SendBufferFull
 	}
 }
 
-func (pw *BeadRun) RecvTick() (int, int64, bool) {
+func (bl *BeadLine) RecvTick() (int, int64, bool) {
 	select {
-	case db := <-pw.outCh:
+	case db := <-bl.outCh:
 		return db.val, db.deliverTick, true
 	default:
 		return 0, 0, false
 	}
 }
 
-func (pw *BeadRun) Recv() (int, bool) {
-	v, _, ok := pw.RecvTick()
+func (bl *BeadLine) Recv() (int, bool) {
+	v, _, ok := bl.RecvTick()
 	return v, ok
 }
 
-func (pw *BeadRun) ClearInFlight() {
-	if pw == nil || pw.kindToAnimClearCh == nil {
+func (bl *BeadLine) ClearInFlight() {
+	if bl == nil || bl.kindToAnimClearCh == nil {
 		return
 	}
 	select {
-	case pw.kindToAnimClearCh <- struct{}{}:
+	case bl.kindToAnimClearCh <- struct{}{}:
 	default:
 	}
 }
 
-func (pw *BeadRun) applyClear() {
+func (bl *BeadLine) applyClear() {
 	select {
-	case <-pw.kindToAnimClearCh:
+	case <-bl.kindToAnimClearCh:
 	default:
 		return
 	}
 	for {
 		select {
-		case <-pw.inCh:
+		case <-bl.inCh:
 		default:
-			pw.inflight = nil
+			bl.inflight = nil
 			return
 		}
 	}

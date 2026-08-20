@@ -57,4 +57,4 @@ type RawHit struct {
 	IsInput bool
 }
 
-type SlotRegistry map[string]*Node.BeadRun
+type SlotRegistry map[string]*Node.BeadLine

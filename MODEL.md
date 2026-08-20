@@ -1,7 +1,7 @@
 # Model
 
 Read this before changing anything in the **Go network** (`src/Node/`,
-`src/Node/animation.go`, `src/Node/Wiring/build/loader.go`,
+`src/Node/bead_animation.go`, `src/Node/Wiring/build/loader.go`,
 `src/Node/Wiring/loadspec/builders.go`) or anything that schedules/orders work. If
 your reasoning slips into retired vocabulary, you are in the wrong
 frame. Stop, re-read this file, and re-derive from the model.
@@ -19,7 +19,7 @@ four jobs that have four different clocks:
   (`BuildArgs.ClaimSelfDrive`); a kind that holds a value onto an out steps a
   `gatecommon.HeldDriver` in that same pass rather than handing the value to a
   goroutine over a channel.
-- The **animation goroutine** — `owners.Outs.RunAnimation`, one per node id with
+- The **animation goroutine** — `owners.Outs.RunBeadAnimation`, one per node id with
   outputs — is paced by the pulse, not the sim clock. It owns the node's beads
   and writes its own bead stream. It is NOT the kind's loop: beads used to move
   only when the node's sim cycle came round, which tied how smoothly a bead drew

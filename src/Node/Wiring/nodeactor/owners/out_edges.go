@@ -30,7 +30,7 @@ type outEdge struct {
 	out io.Writer
 
 	port *outport.Out
-	dest *Node.BeadRun
+	dest *Node.BeadLine
 
 	start, end spatial.Vec3
 	steps      int
@@ -70,7 +70,7 @@ func (o *OutEdges) edgeFor(label string) *outEdge {
 	return &o.edges[len(o.edges)-1]
 }
 
-func (o *OutEdges) BindWire(label, targetID, targetKind string, port *outport.Out, dest *Node.BeadRun) {
+func (o *OutEdges) BindWire(label, targetID, targetKind string, port *outport.Out, dest *Node.BeadLine) {
 	e := o.edgeFor(label)
 	e.port = port
 	e.dest = dest

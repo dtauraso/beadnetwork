@@ -22,7 +22,7 @@ func (p *PairNodeSelf) StartRule(ctx context.Context, clk clock.Clock) {
 		return
 	}
 	p.geom.StartRuleNode(ctx)
-	p.geom.anim.StartAnimation(ctx)
+	p.geom.anim.StartBeadAnimation(ctx)
 	clk.WakeOn(p.geom.RuleWake())
 }
 
@@ -152,5 +152,5 @@ func (p *PairNodeSelf) ClearOutBeads() {
 	if p == nil || p.geom == nil {
 		return
 	}
-	p.geom.anim.ClearBeadRuns()
+	p.geom.anim.ClearBeadLines()
 }

@@ -48,7 +48,7 @@ func newOutChan(ch chan<- int, node, port string) *Out {
 	return &Out{ch: ch, node: node, port: port, postedGeom: make(chan outGeom, 1)}
 }
 
-func NewOutPaced(pw *Node.BeadRun, ctx context.Context, node, port string, rule SendRule, edgeLabel string, stream func() B.EventSink, portRow, targetRow, targetPortRow int32) *Out {
+func NewOutPaced(pw *Node.BeadLine, ctx context.Context, node, port string, rule SendRule, edgeLabel string, stream func() B.EventSink, portRow, targetRow, targetPortRow int32) *Out {
 	if rule == "" {
 		rule = RuleConsumeGated
 	}

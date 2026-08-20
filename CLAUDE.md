@@ -2,7 +2,7 @@
 
 ## Model — read first
 
-Before changing anything in the **Go network** (`src/Node/`, `src/NodeKinds/`, `src/Node/bead_run.go`,
+Before changing anything in the **Go network** (`src/Node/`, `src/NodeKinds/`, `src/Node/bead_line.go`,
 `src/Node/Wiring/build/loader.go`, `src/Node/Wiring/loadspec/builders.go`) or the **content buffer**
 (`src/schema/buffer-layout/`, the render tree under `src/webview/`),
 read [MODEL.md](MODEL.md). It pins the model. Do not propose multi-step
