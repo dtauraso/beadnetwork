@@ -1,3 +1,4 @@
+import { fieldOf, logfmt } from "./probe/logfmt";
 import * as fs from "fs/promises";
 import * as fsSync from "fs";
 import * as path from "path";
@@ -19,15 +20,8 @@ export async function appendWebviewLog(
 ): Promise<void> {
 
   if (documentUri === undefined) return;
-  let parsed: { label?: string } | undefined;
-  try {
-    const raw: unknown = JSON.parse(entry);
-    if (typeof raw === "object" && raw !== null) {
-      const label = (raw as Record<string, unknown>).label;
-      parsed = typeof label === "string" ? { label } : {};
-    }
-  } catch { /* eslint-disable-line no-empty */ }
-  const isError = parsed?.label !== undefined && ERROR_LABELS.has(parsed.label);
+  const label = fieldOf(entry, "label");
+  const isError = label !== undefined && ERROR_LABELS.has(label);
   if (isError) {
     pendingTsErrors = pendingTsErrors.then(() => doAppend(entry, documentUri, PROBE_FILES.tsErrors));
     return pendingTsErrors;
@@ -53,7 +47,7 @@ async function doAppend(entry: string, documentUri: vscode.Uri, filename: string
 
     try {
       const errFile = path.join(dir, PROBE_FILES.tsErrors);
-      fsSync.appendFileSync(errFile, JSON.stringify({ ts_ms: Date.now(), src: "ts-ext", label: "ext.webview-log-append-failed", message: String(err) }) + "\n", "utf8");
+      fsSync.appendFileSync(errFile, logfmt({ ts_ms: Date.now(), src: "ts-ext", label: "ext.webview-log-append-failed", message: String(err) }) + "\n", "utf8");
     } catch { /* eslint-disable-line no-empty */ }
   }
 }

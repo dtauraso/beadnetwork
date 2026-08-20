@@ -1,15 +1,16 @@
+import { logfmt, type LogFields } from "../../extension/probe/logfmt";
 import { vscode } from "../vscode-api";
 
 export function postLog(label: string, data?: Record<string, unknown>): void {
   const stepVal = typeof data?.step === "number" ? data.step
     : typeof data?.simStep === "number" ? data.simStep
     : undefined;
-  const entry = JSON.stringify({
+  const entry = logfmt({
     ts_ms: Date.now(),
     src: "ts-webview",
     ...(stepVal !== undefined ? { step: stepVal } : {}),
     label,
-    ...data,
+    ...(data as LogFields),
   });
   console.log(`[wirefold] ${label}`, data ?? {});
   if (typeof window === "undefined") return;

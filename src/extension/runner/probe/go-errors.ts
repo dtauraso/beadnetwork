@@ -1,7 +1,8 @@
+import { logfmt } from "../../probe/logfmt";
 import * as fs from "fs";
 
 export function goErrorLine(message: string): string {
-  return JSON.stringify({ ts_ms: Date.now(), src: "go", kind: "error", message }) + "\n";
+  return logfmt({ ts_ms: Date.now(), src: "go", kind: "error", message }) + "\n";
 }
 
 export function appendGoError(goErrorsFile: string | undefined, message: string): void {
