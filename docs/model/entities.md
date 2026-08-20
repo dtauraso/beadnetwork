@@ -17,7 +17,7 @@ mistake to avoid:
   belief was a cache of the neighbour's centre, kept current by a centre broadcast, and
   both are gone. What renders a traversal now is the in-flight value bead itself, placed
   by the edge it travels on the segment that edge already holds
-  (`src/Node/live_beads.go`'s `LiveBeadRows`), streamed on the EDGE's own frame as a
+  (`src/Node/BeadAnimation/live_beads.go`'s `LiveBeadRows`), streamed on the EDGE's own frame as a
   world position. The goroutine-per-bead primitive (`beadchain`'s `bead_actor.go`,
   `bead_wake_group.go`) was DELETED: it had no production call site, and the one that its
   guard matched — `ReconcileBeadChain` — was itself called by nothing, so no bead actor was
@@ -106,7 +106,7 @@ mistake to avoid:
   see §Sending. A wire's TRANSPORT state and the REPORTING it does for the
   renderer are separate types: `BeadRun` holds the queue (`inflight`,
   the in/out channels, dwell, the arrival math), and its `readout`
-  (`wireReadout`, `src/Node/readout.go`) holds the pending
+  (`wireReadout`, `src/Node/BeadAnimation/readout.go`) holds the pending
   Position/Arrive buffer, the `Trace` handle and the debug-breadcrumb
   channel. Both are owned by the same single source-node goroutine; the
   split says which concern a field belongs to, it does not add an owner.
@@ -130,7 +130,7 @@ mistake to avoid:
   whatever the source node's drive of that wire sends. Ports carry no geometry of their
   own; an edge attaches at its two nodes' SURFACES (`nodegeom.NodeTorusOuterR`), not at a
   port position.
-- **Clock (the human-speed clock).** There is exactly one clock: the system monotonic clock, read through a **scale** so it advances in integer **ticks** at human-watchable speed (`tick = ⌊(now − start) / tickPeriod⌋`; the scale is the human-speed / playback-speed knob, `MsPerTick = 16` ⇒ ≈62.5 ticks/sec). All timing is **tick counts**, not wall-clock durations. The model is **sleep-only**: a pacing loop calls `SleepCycle` to wait exactly ONE cycle and re-reads `Tick()`, rather than blocking on a target tick — there is no wait-until-tick-k primitive. The clock is **free-running**: it advances monotonically with wall time and never pauses (there is no play/pause gate). **Everything that animates runs in these ticks:** bead traveling, all in-node animations, and all node/gate processing windows. Per-update tick counts come from formulas, not literals — a bead crossing an edge takes `steps` slots at `lattice.PulsesPerSlot` pulses each (steps the edge own slot count, `PulsesPerSlot` uniform across all runs, `src/Node/lattice/bead_lattice.go`); node processing windows are tick counts. There is no separate render cadence — the tick IS the animation clock.
+- **Clock (the human-speed clock).** There is exactly one clock: the system monotonic clock, read through a **scale** so it advances in integer **ticks** at human-watchable speed (`tick = ⌊(now − start) / tickPeriod⌋`; the scale is the human-speed / playback-speed knob, `MsPerTick = 16` ⇒ ≈62.5 ticks/sec). All timing is **tick counts**, not wall-clock durations. The model is **sleep-only**: a pacing loop calls `SleepCycle` to wait exactly ONE cycle and re-reads `Tick()`, rather than blocking on a target tick — there is no wait-until-tick-k primitive. The clock is **free-running**: it advances monotonically with wall time and never pauses (there is no play/pause gate). **Everything that animates runs in these ticks:** bead traveling, all in-node animations, and all node/gate processing windows. Per-update tick counts come from formulas, not literals — a bead crossing an edge takes `steps` slots at `lattice.PulsesPerSlot` pulses each (steps the edge own slot count, `PulsesPerSlot` uniform across all runs, `src/Node/BeadAnimation/lattice/bead_lattice.go`); node processing windows are tick counts. There is no separate render cadence — the tick IS the animation clock.
   A wire is stepped with its SOURCE NODE's own clock copy and tick reading,
   exactly like every other per-goroutine clock use — there is no shared
   clock to pin a tick against. But a bead's **placement tick** (when it

@@ -11,7 +11,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor/streamclaim"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/polarindex"
-	"github.com/dtauraso/wirefold/src/Node"
+	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/src/Node/outport"
 	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 	"github.com/dtauraso/wirefold/src/schema/buffer-layout/colstream"
@@ -83,11 +83,11 @@ func (m *NodeGeometry) AddOutTarget(target string) {
 	m.outTargets = append(m.outTargets, target)
 }
 
-func (m *NodeGeometry) AddBeadLine(pw *Node.BeadLine, edgeRow int32) {
+func (m *NodeGeometry) AddBeadLine(pw *beadanimation.BeadLine, edgeRow int32) {
 	m.anim.AddBeadLine(pw, edgeRow)
 }
 
-func (m *NodeGeometry) BindOutEdgeRun(label, targetID, targetKind string, port *outport.Out, dest *Node.BeadLine) {
+func (m *NodeGeometry) BindOutEdgeRun(label, targetID, targetKind string, port *outport.Out, dest *beadanimation.BeadLine) {
 	m.outEdges.BindWire(label, targetID, targetKind, port, dest)
 	m.outEdges.SetSrcID(m.id)
 }
@@ -124,7 +124,7 @@ func (m *NodeGeometry) writeInteriorFrames() {
 	m.interior.WriteFrames(m.geom)
 }
 
-func (m *NodeGeometry) WireBeadStream(w io.Writer, row int32, buildBeadFrame Node.BeadFrameBuilder) {
+func (m *NodeGeometry) WireBeadStream(w io.Writer, row int32, buildBeadFrame beadanimation.BeadFrameBuilder) {
 	m.anim.SetBeadStream(w, row, buildBeadFrame)
 }
 

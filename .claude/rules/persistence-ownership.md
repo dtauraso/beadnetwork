@@ -154,7 +154,7 @@ Consequences to keep in mind:
 - A node writes its own `position/local-polars` (path construction in
   `dragfile/drag_file.go`). There is no longer a separate `inputs/`/`outputs/` port-geometry
   file — port geometry was removed with the port model (edges attach on the bead lattice,
-  `src/Node/lattice/bead_lattice.go`); this bullet used to list it as a second thing the mover writes.
+  `src/Node/BeadAnimation/lattice/bead_lattice.go`); this bullet used to list it as a second thing the mover writes.
 - The **SOURCE NODE** owns `nodes/<source>/drag/edges/<label>.json`, and writes it from
   `src/Node/Wiring/nodeactor/owners/out_edges.go`'s `persistDelta` — the same pass that derives that edge's geometry,
   since the node is what holds the vector being stored. The write is gated on the vector

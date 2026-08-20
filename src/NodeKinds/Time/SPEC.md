@@ -33,7 +33,7 @@ Holds what arrives and sends on what it was holding, so a value comes out one ar
 | Name | Direction | EdgeKind | Notes |
 |------|-----------|----------|-------|
 | In | in | chain | sole input: the value that, on the NEXT receive, triggers a broadcast of the value held from the PREVIOUS receive |
-| ToNext | out | chain | broadcast to downstream nodes (multi-output) |
+| ToNext | broadcast | chain | broadcast to downstream nodes (multi-output) |
 
 ## Firing rule
 

@@ -1,4 +1,4 @@
-package Node
+package beadanimation
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/framegeom"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/src/spatial"
-	"github.com/dtauraso/wirefold/src/Node/lattice"
+	"github.com/dtauraso/wirefold/src/Node/BeadAnimation/lattice"
 	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 )
 

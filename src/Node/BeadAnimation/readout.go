@@ -1,4 +1,4 @@
-package Node
+package beadanimation
 
 import (
 	"fmt"

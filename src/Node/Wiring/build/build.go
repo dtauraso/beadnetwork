@@ -16,7 +16,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Clock"
 	"github.com/dtauraso/wirefold/src/NodeKinds/nodeapi"
 	"github.com/dtauraso/wirefold/src/spatial"
-	"github.com/dtauraso/wirefold/src/Node"
+	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/src/Node/outport"
 )
 
@@ -35,7 +35,7 @@ type buildCtx struct {
 	baseIndices map[string]polarindex.Index
 	dragIndices map[string]polarindex.Offset
 
-	destRun       map[string]*Node.BeadLine
+	destRun       map[string]*beadanimation.BeadLine
 	edgeRun       loadspec.BeadLineRegistry
 	edgeEndpoints map[string]inputcodec.EdgeEndpoints
 

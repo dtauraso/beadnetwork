@@ -4,15 +4,15 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/loadspec"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodegeom"
-	"github.com/dtauraso/wirefold/src/Node"
+	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 )
 
 func AllocateBeadLines(spec loadspec.TopoSpec, nodeGeoms map[string]nodegeom.NodeGeom) (
-	destRun map[string]*Node.BeadLine,
+	destRun map[string]*beadanimation.BeadLine,
 	edgeRun loadspec.BeadLineRegistry,
 	edgeEndpoints map[string]inputcodec.EdgeEndpoints,
 ) {
-	destRun = map[string]*Node.BeadLine{}
+	destRun = map[string]*beadanimation.BeadLine{}
 	edgeRun = loadspec.BeadLineRegistry{}
 	edgeEndpoints = map[string]inputcodec.EdgeEndpoints{}
 	for _, e := range spec.Edges {
@@ -22,7 +22,7 @@ func AllocateBeadLines(spec loadspec.TopoSpec, nodeGeoms map[string]nodegeom.Nod
 			panic("AllocateBeadLines: two edges target " + destKey + " — validateNoFanIn should have rejected this fan-in at parse")
 		}
 
-		pw := Node.NewBeadLine()
+		pw := beadanimation.NewBeadLine()
 		pw.Owner = e.Source
 		pw.Edge = e.Label
 		pw.Target = e.Target

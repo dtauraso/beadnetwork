@@ -30,20 +30,7 @@ func CollectKinds(nodesDir string) []KindEntry {
 		if !hasRegister(pkgDir) {
 			continue
 		}
-		ports, err := parsePortsFromAST(pkgDir)
-		if err != nil {
-			fatalf("parse ports %s: %v", e.Name(), err)
-		}
-
-		embedded, err := parseEmbeddedPorts(nodesDir, pkgDir, map[string]bool{})
-		if err != nil {
-			fatalf("parse embedded ports %s: %v", e.Name(), err)
-		}
-		ports = append(ports, embedded...)
-
-		if len(ports) == 0 {
-			ports = parsePortsFromSpec(pkgDir)
-		}
+		ports := parsePortsFromSpec(pkgDir)
 		dataFields, err := parseDataFieldsFromAST(pkgDir)
 		if err != nil {
 			fatalf("parse data fields %s: %v", e.Name(), err)

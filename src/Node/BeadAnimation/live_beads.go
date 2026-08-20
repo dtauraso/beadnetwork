@@ -1,4 +1,4 @@
-package Node
+package beadanimation
 
 type LiveBeadRow struct {
 	Val     int

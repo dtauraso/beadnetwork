@@ -2,7 +2,7 @@ package time
 
 import (
 	"context"
-	lattice "github.com/dtauraso/wirefold/src/Node/lattice"
+	lattice "github.com/dtauraso/wirefold/src/Node/BeadAnimation/lattice"
 
 	"github.com/dtauraso/wirefold/src/Node/inport"
 	"github.com/dtauraso/wirefold/src/Node/outport"

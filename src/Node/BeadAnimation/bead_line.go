@@ -1,4 +1,4 @@
-package Node
+package beadanimation
 
 import (
 	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"

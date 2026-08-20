@@ -2,7 +2,7 @@
 
 ## Model — read first
 
-Before changing anything in the **Go network** (`src/Node/`, `src/NodeKinds/`, `src/Node/bead_line.go`,
+Before changing anything in the **Go network** (`src/Node/`, `src/NodeKinds/`, `src/Node/BeadAnimation/bead_line.go`,
 `src/Node/Wiring/build/loader.go`, `src/Node/Wiring/loadspec/builders.go`) or the **content buffer**
 (`src/schema/buffer-layout/`, the render tree under `src/webview/`),
 read [MODEL.md](MODEL.md). It pins the model. Do not propose multi-step
@@ -89,11 +89,11 @@ own package is already there. `go generate ./...` runs all of them.
 - **`src/NodeKinds/`** — the node kinds, plus what only they use: `nodeapi/` (the `Node`
   interface a kind implements — `Update(ctx)`, one method wide) and `gatecommon/`, the firing rule 8 of them share
   (window opens on the first input, fires on dwell, clears otherwise). The scanner reads a
-  directory here as a kind only if it calls `Register(...)`, so `gatecommon` is invisible to
-  it — but it IS visible to `parsePortsFromAST`, which walks every struct in a shared package
-  a kind embeds: a port-typed field added to a helper struct here grows a phantom port on all
-  8 (`.claude/rules/node-kinds.md`; this is why `helddrive` lives under `Wiring/`). The check
-  after touching this directory is a `node-defs.ts` diff, not a build.
+  directory here as a kind only if it calls `Register(...)`. A kind's ports come from its
+  SPEC.md `## Ports` table and NOWHERE else — direction `in`, `out`, or `broadcast` (an out
+  that fans to every downstream edge). Deriving them from Go field types instead is what let
+  a port-typed field on any struct in a shared package grow a phantom port on all 8 kinds.
+  The check after touching this directory is a `node-defs.ts` diff, not a build.
 - **`src/Clock/`** — the human-speed clock, one of MODEL.md's own entities alongside the
   bead and the wire, so it is a sibling of `Node/` rather than a part of it: `MsPerTick`, the
   `Clock` interface every goroutine holds its own `Copy()` of, and the sleep/speed delivery.

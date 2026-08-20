@@ -12,7 +12,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/portwiring"
 	"github.com/dtauraso/wirefold/src/NodeKinds/nodeapi"
-	"github.com/dtauraso/wirefold/src/Node"
+	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/src/Node/outport"
 )
 
@@ -103,6 +103,6 @@ func (b *buildCtx) buildNodes() error {
 	return nil
 }
 
-func bindDispatch(md *dispatch.MoveDispatch, outSink map[string]*outport.Out, destRun map[string]*Node.BeadLine) {
+func bindDispatch(md *dispatch.MoveDispatch, outSink map[string]*outport.Out, destRun map[string]*beadanimation.BeadLine) {
 	md.MR.Bind(outSink, inputcodec.SlotRegistry(destRun), md.RT.EdgeRowForPair)
 }

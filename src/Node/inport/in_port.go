@@ -3,14 +3,14 @@ package inport
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/src/Node"
+	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 )
 
 type In struct {
 	ch <-chan int
 
-	pw  *Node.BeadLine
+	pw  *beadanimation.BeadLine
 	ctx context.Context
 
 	node string
@@ -63,7 +63,7 @@ func NewInChan(ch <-chan int, node, port string, stream func() B.EventSink) *In 
 	return &In{ch: ch, node: node, port: port, portRow: -1, stream: stream}
 }
 
-func NewInPaced(pw *Node.BeadLine, ctx context.Context, node, port string, stream func() B.EventSink, portRow int32) *In {
+func NewInPaced(pw *beadanimation.BeadLine, ctx context.Context, node, port string, stream func() B.EventSink, portRow int32) *In {
 	return &In{pw: pw, ctx: ctx, node: node, port: port, stream: stream, portRow: portRow}
 }
 
