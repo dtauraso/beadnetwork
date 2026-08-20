@@ -44,9 +44,6 @@ export function serveDocsOpen(context: vscode.ExtensionContext): void {
   const portFile = path.join(docsDir, "port.js");
 
   const token = crypto.randomBytes(16).toString("hex");
-  // port.js is generated JavaScript, so the token is interpolated into a string
-  // literal. Hex cannot carry a quote or a backslash — assert that rather than
-  // assume it, since the escaping used to be someone else's job.
   if (!/^[0-9a-f]{32}$/.test(token)) {
     throw new Error(`docs-open: token is not 32 hex characters, so it cannot be written into port.js unescaped: ${token}`);
   }
