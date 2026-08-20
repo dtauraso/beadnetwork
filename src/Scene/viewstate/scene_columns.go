@@ -4,10 +4,10 @@ import (
 	"encoding/binary"
 	"math"
 
-	"github.com/dtauraso/wirefold/src/Camera"
-	"github.com/dtauraso/wirefold/src/Polar/polar"
 	B "github.com/dtauraso/wirefold/src/Buffer"
 	"github.com/dtauraso/wirefold/src/Buffer/colstream"
+	"github.com/dtauraso/wirefold/src/Camera"
+	"github.com/dtauraso/wirefold/src/Polar/polar"
 )
 
 func (ui *UIState) SetSingletonColumns(set *colstream.ColumnSet) {
@@ -56,23 +56,6 @@ func (ui *UIState) WriteNodeRingSurfaceColumns(pts []float32) {
 func (ui *UIState) WriteBeadRingSurfaceColumns(pts []float32) {
 	writeRingSurfaceColumns(ui.singletonCols,
 		B.ColStreamBeadRingPointX, B.ColStreamBeadRingPointY, B.ColStreamBeadRingPointZ, pts)
-}
-
-func (ui *UIState) writeCameraColumns() {
-	c := ui.singletonCols
-	if c == nil {
-		return
-	}
-	v := ui.VP.Viewpoint
-	c.SetF32(B.ColStreamCameraPX, float32(v.Pivot.X))
-	c.SetF32(B.ColStreamCameraPY, float32(v.Pivot.Y))
-	c.SetF32(B.ColStreamCameraPZ, float32(v.Pivot.Z))
-	c.SetF32(B.ColStreamCameraR, float32(v.R))
-	c.SetF32(B.ColStreamCameraPosPhi, float32(v.Pos.Phi))
-	c.SetF32(B.ColStreamCameraPosTheta, float32(v.Pos.Theta))
-	c.SetF32(B.ColStreamCameraUpPhi, float32(v.Up.Phi))
-	c.SetF32(B.ColStreamCameraUpTheta, float32(v.Up.Theta))
-	c.SetF32(B.ColStreamCameraFocalPx, float32(Camera.FocalPixels))
 }
 
 func (ui *UIState) FovDeg() float64 {

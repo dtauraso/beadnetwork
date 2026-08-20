@@ -2,7 +2,7 @@ import * as path from "path";
 import * as vscode from "vscode";
 import { buildWebviewHtml } from "./html";
 
-export function armBundleWatcher(panel: vscode.WebviewPanel, context: vscode.ExtensionContext): vscode.FileSystemWatcher {
+export function armBundleWatcher(panel: vscode.WebviewPanel, context: vscode.ExtensionContext, scenePath: string): vscode.FileSystemWatcher {
   const bundleWatcher = vscode.workspace.createFileSystemWatcher(
     new vscode.RelativePattern(
       vscode.Uri.file(path.join(context.extensionPath, "out")),
@@ -16,7 +16,7 @@ export function armBundleWatcher(panel: vscode.WebviewPanel, context: vscode.Ext
     if (pending) clearTimeout(pending);
     pending = setTimeout(() => {
       console.log("[topology] hot-reload: re-rendering webview.html");
-      panel.webview.html = buildWebviewHtml(panel.webview, context.extensionPath);
+      panel.webview.html = buildWebviewHtml(panel.webview, context.extensionPath, scenePath);
     }, 150);
   };
   bundleWatcher.onDidChange(reload("change"));
