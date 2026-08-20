@@ -19,7 +19,7 @@ export type MessageCtx = {
   logUri: vscode.Uri | undefined;
   runner: BuildAndRunRunner;
   post: (msg: HostToWebviewMsg) => void;
-  scenePath?: string;
+  scenePath: string;
 };
 
 function assertNever(msg: never): never {
@@ -103,7 +103,9 @@ async function dispatch(msg: WebviewToHostMsg, ctx: MessageCtx): Promise<void> {
       // a queue of input replays history after the fingers stop. Edits and save
       // are one-shot commands, not state, and stay on stdin.
       const first = new Uint8Array(msg.record instanceof Uint8Array ? msg.record : new Uint8Array(msg.record))[0];
-      if (first === IN_KIND_RAW_INPUT && ctx.scenePath) {
+      if (first === IN_KIND_RAW_INPUT) {
+        // No fallback to the pipe: Go no longer reads raw input from it, so a
+        // silent fallback would drop every gesture while looking like it works.
         writeInputFile(ctx.scenePath, msg.record);
         return;
       }

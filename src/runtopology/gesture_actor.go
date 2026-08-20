@@ -16,7 +16,6 @@ type gestureMsgKind int
 
 const (
 	gestureMsgEdit gestureMsgKind = iota
-	gestureMsgRawInput
 	gestureMsgSave
 )
 
@@ -53,8 +52,6 @@ func startGestureActor(ctx context.Context, slotReg inputcodec.SlotRegistry, md 
 					switch gm.kind {
 					case gestureMsgEdit:
 						dispatch.ApplyEdit(ctx, gm.msg, md, speedSinks)
-					case gestureMsgRawInput:
-						dispatch.HandleRawInputMsg(ctx, gm.msg, slotReg, md, speedSinks)
 					case gestureMsgSave:
 						dispatch.HandleSaveMsg(md)
 					}
@@ -71,9 +68,6 @@ func startGestureActor(ctx context.Context, slotReg inputcodec.SlotRegistry, md 
 	return inbox, wg
 }
 
-// The webview sends the scroll accumulated since it loaded, because a delta has
-// no current reading and identical ticks would encode identical bytes. This
-// turns the total back into the amount to apply.
 type wheelTotals struct {
 	x, y float64
 	seen bool
@@ -85,9 +79,6 @@ func (w *wheelTotals) difference(ev *inputcodec.RawInputMsg) {
 	}
 	totalX, totalY := ev.DeltaX, ev.DeltaY
 	if !w.seen {
-		// First wheel record since this process started: adopt the total
-		// without applying it. A respawn would otherwise zoom by everything
-		// scrolled since the webview loaded.
 		w.x, w.y, w.seen = totalX, totalY, true
 		ev.DeltaX, ev.DeltaY = 0, 0
 		return

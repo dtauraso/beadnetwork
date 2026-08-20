@@ -24,9 +24,6 @@ func startStdinReader(ctx context.Context, cancel context.CancelFunc, slotReg in
 		ApplyEdit: func(msg inputcodec.StdinMsg) {
 			sendGestureMsgBlocking(ctx, inbox, gestureInboxMsg{kind: gestureMsgEdit, msg: msg})
 		},
-		HandleRawInput: func(msg inputcodec.StdinMsg) {
-			sendGestureMsgBlocking(ctx, inbox, gestureInboxMsg{kind: gestureMsgRawInput, msg: msg})
-		},
 		HandleSave: func() {
 			sendGestureMsgBlocking(ctx, inbox, gestureInboxMsg{kind: gestureMsgSave})
 		},

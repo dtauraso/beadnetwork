@@ -11,7 +11,6 @@ export function sendRawInput(event: RawInputEvent): void {
   postGoRecord(encodeRawInput(event));
 }
 
-// The scroll accumulated since this webview loaded. See buildWheelRaw.
 const wheelTotal = { x: 0, y: 0 };
 
 function classifyHit(pickRequest: PickRef, ndcX: number, ndcY: number): { kind: RawHit["kind"]; isInput: boolean; nodeRow: number; portRow: number; edgeRow: number } {
@@ -112,11 +111,6 @@ export function buildWheelRaw(
     rectLeft: rect.left, rectTop: rect.top, rectWidth: rect.width, rectHeight: rect.height,
     button: -1,
     ctrl: e.ctrlKey, shift: e.shiftKey, alt: e.altKey, meta: e.metaKey,
-    // A RUNNING TOTAL, not this event's delta. Go reads the current input when
-    // it wakes, and a delta has no current reading — two identical scroll ticks
-    // encode identical bytes, so the second is indistinguishable from no scroll
-    // at all and is lost. A total always differs from the last one, and Go
-    // applies exactly the difference: nothing lost, nothing replayed.
     deltaX: wheelTotal.x, deltaY: wheelTotal.y,
     hit,
   };
