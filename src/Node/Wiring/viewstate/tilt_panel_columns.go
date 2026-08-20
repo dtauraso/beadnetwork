@@ -4,11 +4,11 @@ import (
 	"encoding/binary"
 	"math"
 
-	"github.com/dtauraso/wirefold/src/Node/Wiring/tiltpanel"
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/TiltPanel"
 	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 )
 
-func (ui *UIState) writeTiltPanelColumns(lay tiltpanel.Layout) {
+func (ui *UIState) writeTiltPanelColumns(lay TiltPanel.Layout) {
 	c := ui.singletonCols
 	if c == nil {
 		return
@@ -74,8 +74,8 @@ func (ui *UIState) writeTiltPanelColumns(lay tiltpanel.Layout) {
 	c.SetF32(B.ColStreamTiltPanelResetW, lay.Reset.W)
 	c.SetF32(B.ColStreamTiltPanelResetH, lay.Reset.H)
 
-	c.SetBytes(B.ColStreamTiltPanelStartText, []byte(tiltpanel.StartLabel))
-	c.SetBytes(B.ColStreamTiltPanelResetText, []byte(tiltpanel.ResetLabel))
+	c.SetBytes(B.ColStreamTiltPanelStartText, []byte(TiltPanel.StartLabel))
+	c.SetBytes(B.ColStreamTiltPanelResetText, []byte(TiltPanel.ResetLabel))
 
 	c.SetBytes(B.ColStreamTiltPanelColNodeRow, rows)
 	c.SetBytes(B.ColStreamTiltPanelColLabelText, labelText)

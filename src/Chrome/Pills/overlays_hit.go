@@ -1,6 +1,6 @@
-package overlayspanel
+package Pills
 
-import "github.com/dtauraso/wirefold/src/Node/Wiring/panelstack"
+import "github.com/dtauraso/wirefold/src/Chrome/Panels/Panel"
 
 type HitKind int
 
@@ -27,9 +27,9 @@ type Hit struct {
 }
 
 func (l Layout) Hit(x, y float64) Hit {
-	if panelstack.HitRect(l.Pill, x, y) {
-		caret := Rect{X: l.Pill.X + l.Pill.W - panelstack.CaretW, Y: l.Pill.Y, W: panelstack.CaretW, H: l.Pill.H}
-		if panelstack.HitRect(caret, x, y) {
+	if Panel.HitRect(l.Pill, x, y) {
+		caret := Rect{X: l.Pill.X + l.Pill.W - Panel.CaretW, Y: l.Pill.Y, W: Panel.CaretW, H: l.Pill.H}
+		if Panel.HitRect(caret, x, y) {
 			tip := "Open overlay list"
 			if l.Open {
 				tip = "Close overlay list"
@@ -41,15 +41,15 @@ func (l Layout) Hit(x, y float64) Hit {
 	if !l.Open {
 		return Hit{}
 	}
-	if !panelstack.HitRect(l.Popover, x, y) {
+	if !Panel.HitRect(l.Popover, x, y) {
 		return Hit{}
 	}
 	for _, r := range l.Rows {
-		if !panelstack.HitRect(r.Rect, x, y) {
+		if !Panel.HitRect(r.Rect, x, y) {
 			continue
 		}
 		if r.Kind == RowHeading {
-			if !r.Disabled && panelstack.HitRect(r.Count, x, y) {
+			if !r.Disabled && Panel.HitRect(r.Count, x, y) {
 				tip := "Turn all " + r.Heading + " off"
 				if r.CountOn == 0 {
 					tip = "Turn all " + r.Heading + " on"

@@ -1,4 +1,4 @@
-package overlayspanel
+package Pills
 
 type Item struct {
 	Flag  string

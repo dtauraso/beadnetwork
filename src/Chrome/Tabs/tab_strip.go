@@ -1,6 +1,6 @@
-package tabstrip
+package Tabs
 
-import "github.com/dtauraso/wirefold/src/Node/Wiring/panelstack"
+import "github.com/dtauraso/wirefold/src/Chrome/Panels/Panel"
 
 const (
 	Top     = 12
@@ -12,7 +12,7 @@ const (
 	FontPx  = 11
 )
 
-type Rect = panelstack.Rect
+type Rect = Panel.Rect
 
 type Tab struct {
 	Index int
@@ -32,11 +32,11 @@ func Build(viewW float32, names []string, selected int) Layout {
 		return Layout{}
 	}
 
-	tabH := panelstack.LineHeight(FontPx) + 2*TabPadY
+	tabH := Panel.LineHeight(FontPx) + 2*TabPadY
 	widths := make([]float32, len(names))
 	var inner float32
 	for i, n := range names {
-		widths[i] = panelstack.TextWidth(n, FontPx) + 2*TabPadX
+		widths[i] = Panel.TextWidth(n, FontPx) + 2*TabPadX
 		inner += widths[i]
 		if i > 0 {
 			inner += Gap
@@ -66,7 +66,7 @@ func Build(viewW float32, names []string, selected int) Layout {
 
 func (l Layout) Hit(x, y float64) int {
 	for _, t := range l.Tabs {
-		if panelstack.HitRect(t.Rect, x, y) {
+		if Panel.HitRect(t.Rect, x, y) {
 			return t.Index
 		}
 	}

@@ -1,7 +1,7 @@
-package nodesdropdown
+package NodesDropdown
 
 import (
-	"github.com/dtauraso/wirefold/src/Node/Wiring/panelstack"
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/Panel"
 	NodeBuf "github.com/dtauraso/wirefold/src/Node"
 )
 
@@ -16,7 +16,7 @@ const (
 	DescLineH   = 1.35
 )
 
-type Rect = panelstack.Rect
+type Rect = Panel.Rect
 
 type Row struct {
 	KindID uint8
@@ -51,7 +51,7 @@ func descLines(desc string, w float32) int {
 	if desc == "" {
 		return 0
 	}
-	perLine := int((w - DescPadLeft) / panelstack.Advance(panelstack.PillFontPx))
+	perLine := int((w - DescPadLeft) / Panel.Advance(Panel.PillFontPx))
 	if perLine < 1 {
 		perLine = 1
 	}
@@ -62,7 +62,7 @@ func descLines(desc string, w float32) int {
 	return n
 }
 
-func Build(st *panelstack.PillStack, open bool, kinds []Kind) Layout {
+func Build(st *Panel.PillStack, open bool, kinds []Kind) Layout {
 	pill := st.AddPill()
 	lay := Layout{Pill: pill, Open: open}
 	if !open {
@@ -70,9 +70,9 @@ func Build(st *panelstack.PillStack, open bool, kinds []Kind) Layout {
 		return lay
 	}
 
-	w := pill.W - 2*panelstack.PopoverPad
-	rowH := panelstack.RowH()
-	lineH := panelstack.LineHeight(panelstack.PillFontPx) * DescLineH
+	w := pill.W - 2*Panel.PopoverPad
+	rowH := Panel.RowH()
+	lineH := Panel.LineHeight(Panel.PillFontPx) * DescLineH
 
 	var contentH float32
 	for _, k := range kinds {
@@ -96,7 +96,7 @@ func Build(st *panelstack.PillStack, open bool, kinds []Kind) Layout {
 			Stroke: a.Stroke,
 			Head:   Rect{X: x, Y: y, W: w, H: rowH},
 			Swatch: Rect{
-				X: x + panelstack.RowPadX + GlyphW + SwatchGap,
+				X: x + Panel.RowPadX + GlyphW + SwatchGap,
 				Y: y + (rowH-SwatchSize)/2,
 				W: SwatchSize, H: SwatchSize,
 			},
@@ -131,14 +131,14 @@ type Hit struct {
 }
 
 func (l Layout) Hit(x, y float64) Hit {
-	if panelstack.HitRect(l.Pill, x, y) {
+	if Panel.HitRect(l.Pill, x, y) {
 		return Hit{Kind: HitPill, Rect: l.Pill}
 	}
 	if !l.Open {
 		return Hit{}
 	}
 	for _, r := range l.Rows {
-		if panelstack.HitRect(r.Head, x, y) {
+		if Panel.HitRect(r.Head, x, y) {
 			return Hit{Kind: HitRow, KindID: r.KindID, Rect: r.Head}
 		}
 	}

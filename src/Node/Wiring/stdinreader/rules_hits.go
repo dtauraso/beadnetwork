@@ -5,25 +5,25 @@ import (
 	"math"
 
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/Panel"
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/PolarRulesPanel"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/rulenode"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/rulespanel"
 )
 
-func applyRulesHit(ctx context.Context, md *dispatch.MoveDispatch, h rulespanel.Hit) {
+func applyRulesHit(ctx context.Context, md *dispatch.MoveDispatch, h PolarRulesPanel.Hit) {
 	switch h.Kind {
-	case rulespanel.HitToggle:
+	case PolarRulesPanel.HitToggle:
 		if fn, ok := Panel.PanelToggles["nodeRules"]; ok {
 			fn(&md.UI.PN)
 			md.Persist.Panels().Schedule(md.UI.PN)
 		}
-	case rulespanel.HitShared:
+	case PolarRulesPanel.HitShared:
 		if md.UI.RuleSharedRow == h.NodeRow {
 			md.UI.RuleSharedRow = -1
 		} else {
 			md.UI.RuleSharedRow = h.NodeRow
 		}
-	case rulespanel.HitMenuRow:
+	case PolarRulesPanel.HitMenuRow:
 		if h.NodeRow < 0 {
 			for _, n := range md.UI.RuleNodes {
 				sendRuleEdit(ctx, md, int(n.Row), rulenode.Edit{Kind: rulenode.EditActiveToggle})
@@ -31,42 +31,42 @@ func applyRulesHit(ctx context.Context, md *dispatch.MoveDispatch, h rulespanel.
 			break
 		}
 		sendRuleEdit(ctx, md, int(h.NodeRow), rulenode.Edit{Kind: rulenode.EditActiveToggle})
-	case rulespanel.HitCheck:
+	case PolarRulesPanel.HitCheck:
 		applyRuleCheck(ctx, md, h)
-	case rulespanel.HitValue:
+	case PolarRulesPanel.HitValue:
 		applyRuleValue(ctx, md, h)
 	}
 	md.UI.EmitViewFrame(nil)
 }
 
-func applyRuleCheck(ctx context.Context, md *dispatch.MoveDispatch, h rulespanel.Hit) {
+func applyRuleCheck(ctx context.Context, md *dispatch.MoveDispatch, h PolarRulesPanel.Hit) {
 	switch h.Check {
-	case rulespanel.CheckNodeDrag:
+	case PolarRulesPanel.CheckNodeDrag:
 		sendRuleEdit(ctx, md, int(h.NodeRow), rulenode.Edit{Kind: rulenode.EditActiveToggle})
-	case rulespanel.CheckSelfDrag:
+	case PolarRulesPanel.CheckSelfDrag:
 		sendRuleEdit(ctx, md, int(h.NodeRow), rulenode.Edit{Kind: rulenode.EditSelfActiveToggle})
-	case rulespanel.CheckKindRule:
+	case PolarRulesPanel.CheckKindRule:
 		toggleKindRule(ctx, md, int(h.NodeRow))
-	case rulespanel.CheckEdgeDrag:
+	case PolarRulesPanel.CheckEdgeDrag:
 		toggleEdgeDragActive(ctx, md, h.EdgeRow)
 	}
 }
 
-func applyRuleValue(ctx context.Context, md *dispatch.MoveDispatch, h rulespanel.Hit) {
+func applyRuleValue(ctx context.Context, md *dispatch.MoveDispatch, h PolarRulesPanel.Hit) {
 	switch h.Value {
-	case rulespanel.ValSelfR:
+	case PolarRulesPanel.ValSelfR:
 		sendRuleEdit(ctx, md, int(h.NodeRow), rulenode.Edit{Kind: rulenode.EditSelfRToggle})
-	case rulespanel.ValSelfPhi:
+	case PolarRulesPanel.ValSelfPhi:
 		sendRuleEdit(ctx, md, int(h.NodeRow), rulenode.Edit{Kind: rulenode.EditSelfPhiToggle})
-	case rulespanel.ValDragR:
+	case PolarRulesPanel.ValDragR:
 		sendRuleEdit(ctx, md, int(h.NodeRow), rulenode.Edit{Kind: rulenode.EditRToggle})
-	case rulespanel.ValDragPhi:
+	case PolarRulesPanel.ValDragPhi:
 		sendRuleEdit(ctx, md, int(h.NodeRow), rulenode.Edit{Kind: rulenode.EditPhiToggle})
-	case rulespanel.ValSelfTheta, rulespanel.ValDragTheta:
-		md.UI.RuleEdit = rulespanel.Edit{
+	case PolarRulesPanel.ValSelfTheta, PolarRulesPanel.ValDragTheta:
+		md.UI.RuleEdit = PolarRulesPanel.Edit{
 			Active:  true,
 			NodeRow: h.NodeRow,
-			Self:    h.Value == rulespanel.ValSelfTheta,
+			Self:    h.Value == PolarRulesPanel.ValSelfTheta,
 			Draft:   "1/2",
 		}
 	}
@@ -79,12 +79,12 @@ func applyRuleKey(ctx context.Context, md *dispatch.MoveDispatch, key string) {
 	}
 	switch key {
 	case "Escape":
-		*e = rulespanel.Edit{}
+		*e = PolarRulesPanel.Edit{}
 	case "Enter":
-		if turns, ok := rulespanel.ParsePiDraft(e.Draft); ok {
+		if turns, ok := PolarRulesPanel.ParsePiDraft(e.Draft); ok {
 			commitMaxTheta(ctx, md, e.NodeRow, e.Self, turns)
 		}
-		*e = rulespanel.Edit{}
+		*e = PolarRulesPanel.Edit{}
 	case "Backspace":
 		if len(e.Draft) > 0 {
 			e.Draft = e.Draft[:len(e.Draft)-1]

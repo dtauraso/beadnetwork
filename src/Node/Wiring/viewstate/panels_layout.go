@@ -3,41 +3,40 @@ package viewstate
 import (
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/Panel"
 	NodeBuf "github.com/dtauraso/wirefold/src/Node"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/angledropdown"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/nodesdropdown"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/overlayspanel"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/panelstack"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/rulespanel"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/speedpanel"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/tabstrip"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/tiltpanel"
+	"github.com/dtauraso/wirefold/src/Chrome/Pills/AngleDropdown"
+	"github.com/dtauraso/wirefold/src/Chrome/Pills/NodesDropdown"
+	"github.com/dtauraso/wirefold/src/Chrome/Pills"
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/PolarRulesPanel"
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
+	"github.com/dtauraso/wirefold/src/Chrome/Tabs"
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/TiltPanel"
 )
 
 type PanelLayout struct {
-	Speed    speedpanel.Layout
-	Tilt     tiltpanel.Layout
-	Angle    angledropdown.Layout
-	Nodes    nodesdropdown.Layout
-	Overlays overlayspanel.Layout
+	Speed    SliderPanel.Layout
+	Tilt     TiltPanel.Layout
+	Angle    AngleDropdown.Layout
+	Nodes    NodesDropdown.Layout
+	Overlays Pills.Layout
 
-	Fit panelstack.Rect
+	Fit Panel.Rect
 
-	Tabs tabstrip.Layout
+	Tabs Tabs.Layout
 
-	Rules rulespanel.Layout
+	Rules PolarRulesPanel.Layout
 }
 
 const FitLabel = "⌂ fit"
 
-var PillLabels = []string{angledropdown.Label, nodesdropdown.Label, overlayspanel.Label}
+var PillLabels = []string{AngleDropdown.Label, NodesDropdown.Label, Pills.Label}
 
 func (ui *UIState) PanelLayout() PanelLayout {
-	st := panelstack.New(float32(ui.ViewH))
-	pills := panelstack.NewPillStack(float32(ui.ViewW), float32(ui.ViewH), PillLabels)
+	st := Panel.New(float32(ui.ViewH))
+	pills := Panel.NewPillStack(float32(ui.ViewW), float32(ui.ViewH), PillLabels)
 
-	nodes := make([]angledropdown.Node, len(ui.TiltRows))
+	nodes := make([]AngleDropdown.Node, len(ui.TiltRows))
 	for i, row := range ui.TiltRows {
-		nodes[i] = angledropdown.Node{
+		nodes[i] = AngleDropdown.Node{
 			Row:   row,
 			Label: ui.TiltLabels[i],
 			Open:  ui.AngleGroupOpen[row],
@@ -46,20 +45,20 @@ func (ui *UIState) PanelLayout() PanelLayout {
 
 	fit := pills.AddChip(FitLabel)
 
-	speed := speedpanel.Build(st)
-	tilt := tiltpanel.Build(st, ui.TiltRows, ui.TiltLabels)
-	rules := rulespanel.Build(
+	speed := SliderPanel.Build(st)
+	tilt := TiltPanel.Build(st, ui.TiltRows, ui.TiltLabels)
+	rules := PolarRulesPanel.Build(
 		st, Panel.PanelOpen["nodeRules"](&ui.PN),
 		ui.RuleNodes, ui.RuleEdit, ui.RuleSharedRow, ui.RulesScroll,
 	)
 
-	angle := angledropdown.Build(pills, ui.AngleOpen, ui.LatticePoints, nodes)
-	nodesPill := nodesdropdown.Build(pills, ui.NodesOpen && ui.SceneEditable, ui.paletteKinds())
-	overlays := overlayspanel.Build(pills, &ui.OV, &ui.PN, ui.OverlaysScroll)
+	angle := AngleDropdown.Build(pills, ui.AngleOpen, ui.LatticePoints, nodes)
+	nodesPill := NodesDropdown.Build(pills, ui.NodesOpen && ui.SceneEditable, ui.paletteKinds())
+	overlays := Pills.Build(pills, &ui.OV, &ui.PN, ui.OverlaysScroll)
 
 	return PanelLayout{
 		Fit:      fit,
-		Tabs:     tabstrip.Build(float32(ui.ViewW), ui.SceneTabNames, ui.SceneTabSelected),
+		Tabs:     Tabs.Build(float32(ui.ViewW), ui.SceneTabNames, ui.SceneTabSelected),
 		Rules:    rules,
 		Speed:    speed,
 		Tilt:     tilt,
@@ -69,17 +68,17 @@ func (ui *UIState) PanelLayout() PanelLayout {
 	}
 }
 
-func (ui *UIState) paletteKinds() []nodesdropdown.Kind {
+func (ui *UIState) paletteKinds() []NodesDropdown.Kind {
 	if !ui.SceneEditable {
 		return nil
 	}
 	names := NodeBuf.KindNameByID()
-	out := make([]nodesdropdown.Kind, 0, len(names))
+	out := make([]NodesDropdown.Kind, 0, len(names))
 	for id, name := range names {
 		if name == "" || ui.SceneKinds&(1<<uint(id)) == 0 {
 			continue
 		}
-		out = append(out, nodesdropdown.Kind{
+		out = append(out, NodesDropdown.Kind{
 			KindID: uint8(id),
 			Name:   name,
 			Open:   ui.NodesRowOpen[uint8(id)],

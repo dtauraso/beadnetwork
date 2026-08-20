@@ -1,9 +1,9 @@
-package angledropdown
+package AngleDropdown
 
 import (
 	"fmt"
 
-	"github.com/dtauraso/wirefold/src/Node/Wiring/panelstack"
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/Panel"
 )
 
 const (
@@ -17,7 +17,7 @@ const (
 	LatticePointsStep = 4
 )
 
-type Rect = panelstack.Rect
+type Rect = Panel.Rect
 
 type Stepper struct {
 	Row  Rect
@@ -79,9 +79,9 @@ type Node struct {
 const arrowW = 18
 
 func stepper(x, y, w float32, name, shown string, valueRow, denom int32, widest string, upOn, downOn bool) Stepper {
-	h := panelstack.StepperH()
-	arrowH := panelstack.LineHeight(panelstack.PillGlyphPx) + 2*2
-	arrowY := y + h - panelstack.RowPadY - arrowH
+	h := Panel.StepperH()
+	arrowH := Panel.LineHeight(Panel.PillGlyphPx) + 2*2
+	arrowY := y + h - Panel.RowPadY - arrowH
 	return Stepper{
 		Row:         Rect{X: x, Y: y, W: w, H: h},
 		Name:        name,
@@ -89,18 +89,18 @@ func stepper(x, y, w float32, name, shown string, valueRow, denom int32, widest 
 		ValueRow:    valueRow,
 		Denom:       denom,
 		Widest:      widest,
-		Down:        Rect{X: x + w - panelstack.RowPadX - arrowW, Y: arrowY, W: arrowW, H: arrowH},
-		Up:          Rect{X: x + w - panelstack.RowPadX - 2*arrowW - 4, Y: arrowY, W: arrowW, H: arrowH},
+		Down:        Rect{X: x + w - Panel.RowPadX - arrowW, Y: arrowY, W: arrowW, H: arrowH},
+		Up:          Rect{X: x + w - Panel.RowPadX - 2*arrowW - 4, Y: arrowY, W: arrowW, H: arrowH},
 		UpEnabled:   upOn,
 		DownEnabled: downOn,
 	}
 }
 
-func Build(st *panelstack.PillStack, open bool, latticePoints int32, nodes []Node) Layout {
+func Build(st *Panel.PillStack, open bool, latticePoints int32, nodes []Node) Layout {
 	pill := st.AddPill()
 	lay := Layout{
 		Pill:  pill,
-		Caret: Rect{X: pill.X + pill.W - panelstack.CaretW, Y: pill.Y, W: panelstack.CaretW, H: pill.H},
+		Caret: Rect{X: pill.X + pill.W - Panel.CaretW, Y: pill.Y, W: Panel.CaretW, H: pill.H},
 		Open:  open,
 	}
 	if !open {
@@ -108,24 +108,24 @@ func Build(st *panelstack.PillStack, open bool, latticePoints int32, nodes []Nod
 		return lay
 	}
 
-	contentH := panelstack.StepperH()
+	contentH := Panel.StepperH()
 	for _, n := range nodes {
-		contentH += panelstack.HeadingH()
+		contentH += Panel.HeadingH()
 		if n.Open {
-			contentH += panelstack.StepperH()
+			contentH += Panel.StepperH()
 		}
 	}
 
 	box, x, y := st.AddPopover(contentH)
 	lay.Popover = box
-	w := box.W - 2*panelstack.PopoverPad
+	w := box.W - 2*Panel.PopoverPad
 
 	lay.Lattice = stepper(
 		x, y, w, LatticeName,
 		fmt.Sprintf("%d", latticePoints), -1, 0, fmt.Sprintf("%d", LatticePointsMax),
 		latticePoints < LatticePointsMax, latticePoints > LatticePointsMin,
 	)
-	y += panelstack.StepperH()
+	y += Panel.StepperH()
 
 	lay.Groups = make([]Group, len(nodes))
 	for i, n := range nodes {
@@ -136,17 +136,17 @@ func Build(st *panelstack.PillStack, open bool, latticePoints int32, nodes []Nod
 		g := Group{
 			NodeRow: n.Row,
 			Heading: heading,
-			Head:    Rect{X: x, Y: y, W: w, H: panelstack.HeadingH()},
+			Head:    Rect{X: x, Y: y, W: w, H: Panel.HeadingH()},
 			Open:    n.Open,
 		}
-		y += panelstack.HeadingH()
+		y += Panel.HeadingH()
 		if n.Open {
 			g.Phi = stepper(
 				x, y, w, AxisName,
 				"", n.Row, AngleDenom(latticePoints), WidestAngle(latticePoints),
 				true, true,
 			)
-			y += panelstack.StepperH()
+			y += Panel.StepperH()
 		}
 		lay.Groups[i] = g
 	}
@@ -174,29 +174,29 @@ type Hit struct {
 }
 
 func (l Layout) Hit(x, y float64) Hit {
-	if panelstack.HitRect(l.Pill, x, y) {
+	if Panel.HitRect(l.Pill, x, y) {
 		return Hit{Kind: HitPill, Rect: l.Pill}
 	}
 	if !l.Open {
 		return Hit{}
 	}
-	if l.Lattice.UpEnabled && panelstack.HitRect(l.Lattice.Up, x, y) {
+	if l.Lattice.UpEnabled && Panel.HitRect(l.Lattice.Up, x, y) {
 		return Hit{Kind: HitLatticeUp, Rect: l.Lattice.Up}
 	}
-	if l.Lattice.DownEnabled && panelstack.HitRect(l.Lattice.Down, x, y) {
+	if l.Lattice.DownEnabled && Panel.HitRect(l.Lattice.Down, x, y) {
 		return Hit{Kind: HitLatticeDown, Rect: l.Lattice.Down}
 	}
 	for _, g := range l.Groups {
-		if panelstack.HitRect(g.Head, x, y) {
+		if Panel.HitRect(g.Head, x, y) {
 			return Hit{Kind: HitGroup, NodeRow: g.NodeRow, Rect: g.Head}
 		}
 		if !g.Open {
 			continue
 		}
-		if panelstack.HitRect(g.Phi.Up, x, y) {
+		if Panel.HitRect(g.Phi.Up, x, y) {
 			return Hit{Kind: HitPhiUp, NodeRow: g.NodeRow, Rect: g.Phi.Up}
 		}
-		if panelstack.HitRect(g.Phi.Down, x, y) {
+		if Panel.HitRect(g.Phi.Down, x, y) {
 			return Hit{Kind: HitPhiDown, NodeRow: g.NodeRow, Rect: g.Phi.Down}
 		}
 	}

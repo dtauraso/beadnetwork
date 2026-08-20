@@ -4,7 +4,7 @@ import (
 	"encoding/binary"
 	"math"
 
-	"github.com/dtauraso/wirefold/src/Node/Wiring/angledropdown"
+	"github.com/dtauraso/wirefold/src/Chrome/Pills/AngleDropdown"
 	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 )
 
@@ -42,7 +42,7 @@ func (r *runCols) Str(textCol, lenCol int, s string) {
 	r.u32[lenCol] = binary.LittleEndian.AppendUint32(r.u32[lenCol], uint32(len(s)))
 }
 
-func (r *runCols) Rect(xc, yc, wc, hc int, rect angledropdown.Rect) {
+func (r *runCols) Rect(xc, yc, wc, hc int, rect AngleDropdown.Rect) {
 	r.F32(xc, rect.X)
 	r.F32(yc, rect.Y)
 	r.F32(wc, rect.W)
@@ -68,7 +68,7 @@ func (r *runCols) writeTo(set interface{ SetBytes(int, []byte) }, cols ...int) {
 	}
 }
 
-func (ui *UIState) writeAnglePillColumns(lay angledropdown.Layout) {
+func (ui *UIState) writeAnglePillColumns(lay AngleDropdown.Layout) {
 	c := ui.singletonCols
 	if c == nil {
 		return
@@ -83,10 +83,10 @@ func (ui *UIState) writeAnglePillColumns(lay angledropdown.Layout) {
 	c.SetF32(B.ColStreamAnglePillPopoverY, lay.Popover.Y)
 	c.SetF32(B.ColStreamAnglePillPopoverW, lay.Popover.W)
 	c.SetF32(B.ColStreamAnglePillPopoverH, lay.Popover.H)
-	c.SetBytes(B.ColStreamAnglePillLabelText, []byte(angledropdown.Label))
+	c.SetBytes(B.ColStreamAnglePillLabelText, []byte(AngleDropdown.Label))
 
 	steps := newRunCols()
-	addStep := func(s angledropdown.Stepper) {
+	addStep := func(s AngleDropdown.Stepper) {
 		steps.Rect(B.ColStreamAnglePillStepX, B.ColStreamAnglePillStepY, B.ColStreamAnglePillStepW, B.ColStreamAnglePillStepH, s.Row)
 		steps.Str(B.ColStreamAnglePillStepNameText, B.ColStreamAnglePillStepNameLen, s.Name)
 		steps.Str(B.ColStreamAnglePillStepShownText, B.ColStreamAnglePillStepShownLen, s.Shown)

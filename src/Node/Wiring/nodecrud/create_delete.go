@@ -1,4 +1,4 @@
-package NodesDropdown
+package nodecrud
 
 import (
 	"fmt"

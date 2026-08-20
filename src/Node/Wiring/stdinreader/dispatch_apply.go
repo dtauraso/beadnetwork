@@ -3,15 +3,16 @@ package stdinreader
 import (
 	"context"
 	"fmt"
-	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
 	"math"
 	"strconv"
 
-	"github.com/dtauraso/wirefold/src/Chrome/Pills/NodesDropdown"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/angledropdown"
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
+
+	"github.com/dtauraso/wirefold/src/Chrome/Pills/AngleDropdown"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/movemsg"
+	"github.com/dtauraso/wirefold/src/Node/Wiring/nodecrud"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/rulenode"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/scenepersist"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/sceneswitch"
@@ -68,7 +69,7 @@ func adjustTiltPhi(ctx context.Context, md *dispatch.MoveDispatch, row int32, up
 }
 
 func setLatticePoints(md *dispatch.MoveDispatch, points int32) {
-	if points < angledropdown.LatticePointsMin || points > angledropdown.LatticePointsMax || points%4 != 0 {
+	if points < AngleDropdown.LatticePointsMin || points > AngleDropdown.LatticePointsMax || points%4 != 0 {
 		return
 	}
 	md.UI.LatticePoints = points
@@ -96,10 +97,10 @@ func applyUpdateScene(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch
 		})
 	case "create":
 
-		NodesDropdown.CreateNode(&md.Scenes, &md.UI, &md.MR, uint8(msg.Num), msg.X, msg.Y)
+		nodecrud.CreateNode(&md.Scenes, &md.UI, &md.MR, uint8(msg.Num), msg.X, msg.Y)
 	case "delete":
 
-		NodesDropdown.DeleteNode(&md.Scenes, &md.UI, &md.RT, msg.Num)
+		nodecrud.DeleteNode(&md.Scenes, &md.UI, &md.RT, msg.Num)
 	}
 }
 

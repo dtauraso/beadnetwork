@@ -1,6 +1,6 @@
 package viewstate
 
-import "github.com/dtauraso/wirefold/src/Node/Wiring/panelstack"
+import "github.com/dtauraso/wirefold/src/Chrome/Panels/Panel"
 
 type PointerKind uint8
 
@@ -11,7 +11,7 @@ const (
 )
 
 type PointerTarget struct {
-	Rect panelstack.Rect
+	Rect Panel.Rect
 	Kind PointerKind
 	Tip  string
 }

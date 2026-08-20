@@ -1,6 +1,6 @@
-package tiltpanel
+package TiltPanel
 
-import "github.com/dtauraso/wirefold/src/Node/Wiring/panelstack"
+import "github.com/dtauraso/wirefold/src/Chrome/Panels/Panel"
 
 const (
 	StartLabel = "start tilt"
@@ -30,7 +30,7 @@ const (
 	SectionGap = 6
 )
 
-type Rect = panelstack.Rect
+type Rect = Panel.Rect
 
 type Column struct {
 	NodeRow int32
@@ -50,28 +50,28 @@ type Layout struct {
 }
 
 func buttonSize(label string) (w, h float32) {
-	return panelstack.TextWidth(label, ButtonFontPx) + 2*ButtonPadX + 2,
-		panelstack.LineHeight(ButtonFontPx) + 2*ButtonPadY + 2
+	return Panel.TextWidth(label, ButtonFontPx) + 2*ButtonPadX + 2,
+		Panel.LineHeight(ButtonFontPx) + 2*ButtonPadY + 2
 }
 
 const valueField = "000"
 
 func colWidth(label string) float32 {
-	head := panelstack.TextWidth("node "+label, HeadFontPx)
-	cell := panelstack.TextWidth(KeyRounds, KeyFontPx) + CellGapX +
-		panelstack.TextWidth(valueField, ValFontPx) + 2*CellPadX
+	head := Panel.TextWidth("node "+label, HeadFontPx)
+	cell := Panel.TextWidth(KeyRounds, KeyFontPx) + CellGapX +
+		Panel.TextWidth(valueField, ValFontPx) + 2*CellPadX
 	if head > cell {
 		return head
 	}
 	return cell
 }
 
-func Build(st *panelstack.Stack, rows []int32, labels []string) Layout {
+func Build(st *Panel.Stack, rows []int32, labels []string) Layout {
 	startW, btnH := buttonSize(StartLabel)
 	resetW, _ := buttonSize(ResetLabel)
 
-	headH := panelstack.LineHeight(HeadFontPx)
-	cellH := panelstack.LineHeight(ValFontPx) + 2*CellPadY
+	headH := Panel.LineHeight(HeadFontPx)
+	cellH := Panel.LineHeight(ValFontPx) + 2*CellPadY
 
 	widths := make([]float32, len(rows))
 	var tableW float32
@@ -126,10 +126,10 @@ const (
 )
 
 func (l Layout) Hit(x, y float64) Button {
-	if panelstack.HitRect(l.Start, x, y) {
+	if Panel.HitRect(l.Start, x, y) {
 		return ButtonStart
 	}
-	if panelstack.HitRect(l.Reset, x, y) {
+	if Panel.HitRect(l.Reset, x, y) {
 		return ButtonReset
 	}
 	return ButtonNone

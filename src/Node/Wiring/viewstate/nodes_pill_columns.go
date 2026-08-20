@@ -1,14 +1,14 @@
 package viewstate
 
 import (
-	"github.com/dtauraso/wirefold/src/Node/Wiring/nodesdropdown"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/panelstack"
+	"github.com/dtauraso/wirefold/src/Chrome/Pills/NodesDropdown"
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/Panel"
 	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 )
 
 const refusedNotice = "edit refused — see the output channel"
 
-func (ui *UIState) writeNodesPillColumns(lay nodesdropdown.Layout) {
+func (ui *UIState) writeNodesPillColumns(lay NodesDropdown.Layout) {
 	c := ui.singletonCols
 	if c == nil {
 		return
@@ -23,7 +23,7 @@ func (ui *UIState) writeNodesPillColumns(lay nodesdropdown.Layout) {
 	c.SetF32(B.ColStreamNodesPillPopoverY, lay.Popover.Y)
 	c.SetF32(B.ColStreamNodesPillPopoverW, lay.Popover.W)
 	c.SetF32(B.ColStreamNodesPillPopoverH, lay.Popover.H)
-	c.SetBytes(B.ColStreamNodesPillLabelText, []byte(nodesdropdown.Label))
+	c.SetBytes(B.ColStreamNodesPillLabelText, []byte(NodesDropdown.Label))
 
 	rows := newRunCols()
 	for _, r := range lay.Rows {
@@ -51,11 +51,11 @@ func (ui *UIState) writeNodesPillColumns(lay nodesdropdown.Layout) {
 		B.ColStreamNodesPillDescX, B.ColStreamNodesPillDescY, B.ColStreamNodesPillDescW, B.ColStreamNodesPillDescH,
 	)
 
-	noticeW := panelstack.TextWidth(refusedNotice, panelstack.PillFontPx) + 16
-	noticeH := panelstack.LineHeight(panelstack.PillFontPx) + 8
-	noticeY := lay.Pill.Y + lay.Pill.H + panelstack.PillGap
+	noticeW := Panel.TextWidth(refusedNotice, Panel.PillFontPx) + 16
+	noticeH := Panel.LineHeight(Panel.PillFontPx) + 8
+	noticeY := lay.Pill.Y + lay.Pill.H + Panel.PillGap
 	if lay.Open {
-		noticeY = lay.Popover.Y + lay.Popover.H + panelstack.PillGap
+		noticeY = lay.Popover.Y + lay.Popover.H + Panel.PillGap
 	}
 	c.SetU32(B.ColStreamNodesPillRefusedCount, ui.EditRefused)
 	c.SetF32(B.ColStreamNodesPillRefusedX, lay.Pill.X+lay.Pill.W-noticeW)
