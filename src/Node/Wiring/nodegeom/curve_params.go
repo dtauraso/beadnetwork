@@ -1,7 +1,7 @@
 package nodegeom
 
 import (
-	"github.com/dtauraso/wirefold/src/Node/spatial"
+	"github.com/dtauraso/wirefold/src/spatial"
 )
 
 const CurveParamNodeRadiusDivisor = 4

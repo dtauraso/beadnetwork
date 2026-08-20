@@ -9,7 +9,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/polarindex"
 	"github.com/dtauraso/wirefold/src/Node/wire"
 	"github.com/dtauraso/wirefold/src/Node/wire/outport"
-	"github.com/dtauraso/wirefold/src/Node/spatial"
+	"github.com/dtauraso/wirefold/src/spatial"
 )
 
 type specNode struct {

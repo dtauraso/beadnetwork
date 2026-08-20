@@ -1,6 +1,6 @@
 package owners
 
-import "github.com/dtauraso/wirefold/src/Node/spatial"
+import "github.com/dtauraso/wirefold/src/spatial"
 
 type ChannelVectors struct {
 	sceneToNodeOn chan bool

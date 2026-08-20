@@ -1,5 +1,5 @@
 package moverreg
 
-import "github.com/dtauraso/wirefold/src/Node/spatial"
+import "github.com/dtauraso/wirefold/src/spatial"
 
 type vec3 = spatial.Vec3

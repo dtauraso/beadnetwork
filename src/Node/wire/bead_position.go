@@ -1,7 +1,7 @@
 package wire
 
 import (
-	"github.com/dtauraso/wirefold/src/Node/spatial"
+	"github.com/dtauraso/wirefold/src/spatial"
 )
 
 func (b *inflightBead) pos() spatial.Vec3 {

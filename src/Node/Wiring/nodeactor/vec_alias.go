@@ -1,7 +1,7 @@
 package nodeactor
 
 import (
-	"github.com/dtauraso/wirefold/src/Node/spatial"
+	"github.com/dtauraso/wirefold/src/spatial"
 )
 
 type vec3 = spatial.Vec3

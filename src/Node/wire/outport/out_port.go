@@ -3,7 +3,7 @@ package outport
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/src/Node/spatial"
+	"github.com/dtauraso/wirefold/src/spatial"
 	"github.com/dtauraso/wirefold/src/Node/wire"
 	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 )

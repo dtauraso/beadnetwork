@@ -99,10 +99,14 @@ own package is already there. `go generate ./...` runs all of them.
   `Clock` interface every goroutine holds its own `Copy()` of, and the sleep/speed delivery.
   It is the ONLY place a `time.Sleep`/`After`/`NewTicker` may park a goroutine
   (`check-no-wall-clock-wait.sh`, whose exempt list names two files here and nothing else).
-- **`src/Node/`** — what a node USES: the spine the kinds are built from (`Wiring/`,
-  `spatial/`), the per-owner streams it writes (`wire/`, `Edge/`, `Interior/`), and the TS
-  that draws a node. A directory here is NOT a kind — both the scanner and
-  `check-dep-rules.sh` decide that by the `Register(...)` call, not by placement.
+- **`src/Node/`** — what a node USES: the spine the kinds are built from (`Wiring/`), the
+  per-owner streams it writes (`wire/`, `Edge/`, `Interior/`), its poles, and its own buffer
+  block. A directory here is NOT a kind — both the scanner and `check-dep-rules.sh` decide
+  that by the `Register(...)` call, not by placement.
+- **`src/spatial/`** — `Vec3`, `Segment`, and eight operations. 37 lines, imports only
+  `math`, imported by 28 directories. It is the MEDIUM, deliberately unremarkable: the
+  substance (polar indices, the `A + D = B` triangle) is built on top of it in `polar`/
+  `polarindex`/`nodegeom`, never inside it.
 - **`src/runtopology/`** — starting the program: claim the stream fds, resolve the scene,
   load the graph, wire every per-owner stream, seed the static columns, then launch one
   goroutine per node and block. `main.go` calls it and nothing else does. It is NOT a

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/dtauraso/wirefold/src/Node/spatial"
+	"github.com/dtauraso/wirefold/src/spatial"
 )
 
 func (pw *BeadRun) DriveOneStep(ctx context.Context, tick int64) {

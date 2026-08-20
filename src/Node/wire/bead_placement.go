@@ -1,6 +1,6 @@
 package wire
 
-import "github.com/dtauraso/wirefold/src/Node/spatial"
+import "github.com/dtauraso/wirefold/src/spatial"
 
 type BeadPlacement struct {
 	Steps int

@@ -6,7 +6,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/geom/camera"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"
-	"github.com/dtauraso/wirefold/src/Node/spatial"
+	"github.com/dtauraso/wirefold/src/spatial"
 )
 
 func (g *GestureState) BeginSphereRotation(vp camera.Viewpoint, heldCenters func() map[string]spatial.Vec3, ev inputcodec.RawInputMsg) {

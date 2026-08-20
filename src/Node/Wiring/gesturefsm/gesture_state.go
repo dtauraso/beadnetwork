@@ -2,7 +2,7 @@ package gesturefsm
 
 import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/geom/camera"
-	"github.com/dtauraso/wirefold/src/Node/spatial"
+	"github.com/dtauraso/wirefold/src/spatial"
 )
 
 type GesturePhase int

@@ -4,7 +4,7 @@ import (
 	"math"
 
 	"github.com/dtauraso/wirefold/src/Node/Wiring/geom/polar"
-	"github.com/dtauraso/wirefold/src/Node/spatial"
+	"github.com/dtauraso/wirefold/src/spatial"
 )
 
 type DragRule struct {

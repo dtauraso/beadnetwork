@@ -6,7 +6,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/camerapersist"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/geom/camera"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/scenepaths"
-	"github.com/dtauraso/wirefold/src/Node/spatial"
+	"github.com/dtauraso/wirefold/src/spatial"
 )
 
 type vec3 = spatial.Vec3

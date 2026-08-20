@@ -4,7 +4,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/loadspec"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodegeom"
-	"github.com/dtauraso/wirefold/src/Node/spatial"
+	"github.com/dtauraso/wirefold/src/spatial"
 )
 
 func ComputeNodeGeometry(spec loadspec.TopoSpec, sphere polar.SceneSphere) (map[string]nodegeom.NodeGeom, map[string]spatial.Vec3) {

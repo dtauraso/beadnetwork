@@ -15,7 +15,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/polarindex"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/rulespanel"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/selectionstate"
-	"github.com/dtauraso/wirefold/src/Node/spatial"
+	"github.com/dtauraso/wirefold/src/spatial"
 	"github.com/dtauraso/wirefold/src/schema/buffer-layout/colstream"
 )
 
