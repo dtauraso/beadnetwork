@@ -36,7 +36,7 @@ export function BufferCamera({ cameraRef }: {
     if (!pose || !(pose.r > 0)) return;
 
     const pivot = pivotRef.current;
-    pivot.set(pose["pivot-x"], pose["pivot-y"], pose["pivot-z"]);
+    pivot.set(pose.pivotX, pose.pivotY, pose.pivotZ);
     const posOffset = anglesToWorldOffset(pose.r, pose["pos-phi"], pose["pos-theta"]);
     cam.position.copy(pivot).add(posOffset);
     const upDir = anglesToWorldOffset(1, pose["up-phi"], pose["up-theta"]).normalize();

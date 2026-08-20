@@ -1,13 +1,23 @@
 import { FOCAL_PIXELS } from "./camera-consts";
 
+// "pivot" is THREE float64s in one file. Its components change together — a pan
+// or a wheel zoom moves all of them — and as separate files there is no
+// atomicity across them: a read could take x from after the write and y from
+// before it, placing the camera where it never was. Values that change together
+// arrive together.
+const VEC_LEN: Record<string, number> = { pivot: 3 };
+
 const PRIMITIVES = [
-  "pivot-x", "pivot-y", "pivot-z", "r",
+  "pivot", "r",
   "pos-phi", "pos-theta", "up-phi", "up-theta",
 ] as const;
 
 export type CameraPrimitive = (typeof PRIMITIVES)[number];
 
-export type CameraPose = Record<CameraPrimitive, number> & { focalPx: number };
+export type CameraPose = Record<Exclude<CameraPrimitive, "pivot">, number> & {
+  pivotX: number; pivotY: number; pivotZ: number;
+  focalPx: number;
+};
 
 declare global {
   interface Window {
@@ -23,6 +33,7 @@ function bases(): { scene: string; src: string } | undefined {
   return { scene, src };
 }
 
+
 async function readText(url: string): Promise<string | undefined> {
   try {
     const res = await fetch(url, { cache: "no-store" });
@@ -33,13 +44,16 @@ async function readText(url: string): Promise<string | undefined> {
   }
 }
 
-async function readFloat64(url: string): Promise<number | undefined> {
+async function readFloats(url: string, n: number): Promise<number[] | undefined> {
   try {
     const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) return undefined;
     const buf = await res.arrayBuffer();
-    if (buf.byteLength !== 8) return undefined;
-    return new DataView(buf).getFloat64(0, true);
+    if (buf.byteLength !== n * 8) return undefined;
+    const dv = new DataView(buf);
+    const out: number[] = [];
+    for (let i = 0; i < n; i++) out.push(dv.getFloat64(i * 8, true));
+    return out;
   } catch {
     return undefined;
   }
@@ -62,12 +76,18 @@ export async function readCameraPose(paths: Map<CameraPrimitive, string>): Promi
   if (!b) return undefined;
   const rels = PRIMITIVES.map((name) => paths.get(name));
   if (rels.some((rel) => rel === undefined)) return undefined;
-  const values = await Promise.all(rels.map((rel) => readFloat64(`${b.scene}/${rel ?? ""}`)));
+  const values = await Promise.all(
+    PRIMITIVES.map((name, i) => readFloats(`${b.scene}/${rels[i] ?? ""}`, VEC_LEN[name] ?? 1)),
+  );
   const pose = { focalPx: FOCAL_PIXELS } as CameraPose;
   for (const [i, name] of PRIMITIVES.entries()) {
     const v = values[i];
     if (v === undefined) return undefined;
-    pose[name] = v;
+    if (name === "pivot") {
+      [pose.pivotX, pose.pivotY, pose.pivotZ] = [v[0] ?? 0, v[1] ?? 0, v[2] ?? 0];
+    } else {
+      pose[name] = v[0] ?? 0;
+    }
   }
   return pose;
 }

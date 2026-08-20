@@ -7,9 +7,10 @@ import (
 )
 
 const (
-	FilePivotX   = "pivot-x.bin"
-	FilePivotY   = "pivot-y.bin"
-	FilePivotZ   = "pivot-z.bin"
+	// One file, three components: a pivot is a vector, and its parts are only
+	// meaningful together.
+	FilePivot = "pivot.bin"
+
 	FileR        = "r.bin"
 	FilePosPhi   = "pos-phi.bin"
 	FilePosTheta = "pos-theta.bin"
@@ -21,8 +22,16 @@ type ViewpointPersister struct {
 	Dir string
 }
 
+// Pivot's three components are ONE file. They change together — a pan or a
+// wheel zoom moves all three — and written as three files there is no
+// atomicity across them, so a reader could take x from after the write and y
+// from before it and place the camera where it never was.
 func (p *ViewpointPersister) Schedule(v Viewpoint) {
 	if p == nil || p.Dir == "" {
+		return
+	}
+	if err := valuefile.WriteVecAtomicIfChanged(filepath.Join(p.Dir, FilePivot), v.Pivot.X, v.Pivot.Y, v.Pivot.Z); err != nil {
+		valuefile.LogPersistErr("scene_camera_persist", p.Dir, err)
 		return
 	}
 	for name, value := range viewpointValues(v) {
@@ -35,7 +44,6 @@ func (p *ViewpointPersister) Schedule(v Viewpoint) {
 
 func viewpointValues(v Viewpoint) map[string]float64 {
 	return map[string]float64{
-		FilePivotX: v.Pivot.X, FilePivotY: v.Pivot.Y, FilePivotZ: v.Pivot.Z,
 		FileR:        v.R,
 		FilePosPhi:   v.Pos.Phi,
 		FilePosTheta: v.Pos.Theta,
@@ -57,9 +65,11 @@ func ReadSceneCamera(dir string) (v Viewpoint, ok bool) {
 	read := func(name string, dst *float64) bool {
 		return valuefile.ReadIfExists(filepath.Join(dir, name), dst)
 	}
-	if !read(FilePivotX, &v.Pivot.X) || !read(FilePivotY, &v.Pivot.Y) || !read(FilePivotZ, &v.Pivot.Z) {
+	pivot, ok := valuefile.ReadVecIfExists(filepath.Join(dir, FilePivot), 3)
+	if !ok {
 		return Viewpoint{}, false
 	}
+	v.Pivot.X, v.Pivot.Y, v.Pivot.Z = pivot[0], pivot[1], pivot[2]
 	if !read(FileR, &v.R) {
 		return Viewpoint{}, false
 	}
