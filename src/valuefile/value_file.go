@@ -128,10 +128,6 @@ func WriteAtomic(path string, v any) error {
 	return writeBytesAtomic(path, out)
 }
 
-// WriteVecAtomicIfChanged writes several float64s as ONE file, so a reader sees
-// all of them or none. Values that change together must arrive together: three
-// components of a vector in three files have no atomicity across them, and a
-// read landing between two writes returns a vector that never existed.
 func WriteVecAtomicIfChanged(path string, vs ...float64) error {
 	out := make([]byte, 0, len(vs)*8)
 	for _, v := range vs {

@@ -1,10 +1,5 @@
 import { FOCAL_PIXELS } from "./camera-consts";
 
-// "pivot" is THREE float64s in one file. Its components change together — a pan
-// or a wheel zoom moves all of them — and as separate files there is no
-// atomicity across them: a read could take x from after the write and y from
-// before it, placing the camera where it never was. Values that change together
-// arrive together.
 const VEC_LEN: Record<string, number> = { pivot: 3 };
 
 const PRIMITIVES = [
@@ -32,7 +27,6 @@ function bases(): { scene: string; src: string } | undefined {
   if (!scene || !src) return undefined;
   return { scene, src };
 }
-
 
 async function readText(url: string): Promise<string | undefined> {
   try {

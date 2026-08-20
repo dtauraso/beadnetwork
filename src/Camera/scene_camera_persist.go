@@ -7,8 +7,6 @@ import (
 )
 
 const (
-	// One file, three components: a pivot is a vector, and its parts are only
-	// meaningful together.
 	FilePivot = "pivot.bin"
 
 	FileR        = "r.bin"
@@ -22,10 +20,6 @@ type ViewpointPersister struct {
 	Dir string
 }
 
-// Pivot's three components are ONE file. They change together — a pan or a
-// wheel zoom moves all three — and written as three files there is no
-// atomicity across them, so a reader could take x from after the write and y
-// from before it and place the camera where it never was.
 func (p *ViewpointPersister) Schedule(v Viewpoint) {
 	if p == nil || p.Dir == "" {
 		return
