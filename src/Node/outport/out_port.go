@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/dtauraso/wirefold/src/spatial"
-	"github.com/dtauraso/wirefold/src/Node/wire"
+	"github.com/dtauraso/wirefold/src/Node"
 	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 )
 
@@ -17,7 +17,7 @@ type outGeom struct {
 type Out struct {
 	ch chan<- int
 
-	pw  *wire.BeadRun
+	pw  *Node.BeadRun
 	ctx context.Context
 
 	node string
@@ -69,8 +69,8 @@ func (o *Out) applyPostedGeom() {
 	}
 }
 
-func (o *Out) placementFrom(g outGeom) wire.BeadPlacement {
-	return wire.BeadPlacement{
+func (o *Out) placementFrom(g outGeom) Node.BeadPlacement {
+	return Node.BeadPlacement{
 		Steps: g.Steps,
 		SlotR: g.SlotR,
 		Start: g.Start,

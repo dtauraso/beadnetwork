@@ -5,21 +5,21 @@ import (
 	"io"
 
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor/owners"
-	"github.com/dtauraso/wirefold/src/Node/wire"
+	"github.com/dtauraso/wirefold/src/Node"
 )
 
 type NodeAnimation struct {
 	id string
 
-	outs   wire.Animation
+	outs   Node.Animation
 	clocks owners.Clocks
 }
 
-func (a *NodeAnimation) AddBeadRun(pw *wire.BeadRun, edgeRow int32) {
+func (a *NodeAnimation) AddBeadRun(pw *Node.BeadRun, edgeRow int32) {
 	a.outs.AddBeadRun(pw, edgeRow)
 }
 
-func (a *NodeAnimation) SetBeadStream(w io.Writer, nodeRow int32, buildBeadFrame wire.BeadFrameBuilder) {
+func (a *NodeAnimation) SetBeadStream(w io.Writer, nodeRow int32, buildBeadFrame Node.BeadFrameBuilder) {
 	a.outs.SetBeadStream(w, nodeRow, buildBeadFrame)
 }
 

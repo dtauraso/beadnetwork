@@ -1,4 +1,4 @@
-package wire
+package Node
 
 type LiveBeadRow struct {
 	Val     int

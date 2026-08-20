@@ -3,14 +3,14 @@ package inport
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/src/Node/wire"
+	"github.com/dtauraso/wirefold/src/Node"
 	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 )
 
 type In struct {
 	ch <-chan int
 
-	pw  *wire.BeadRun
+	pw  *Node.BeadRun
 	ctx context.Context
 
 	node string
@@ -63,7 +63,7 @@ func NewInChan(ch <-chan int, node, port string, stream func() B.EventSink) *In 
 	return &In{ch: ch, node: node, port: port, portRow: -1, stream: stream}
 }
 
-func NewInPaced(pw *wire.BeadRun, ctx context.Context, node, port string, stream func() B.EventSink, portRow int32) *In {
+func NewInPaced(pw *Node.BeadRun, ctx context.Context, node, port string, stream func() B.EventSink, portRow int32) *In {
 	return &In{pw: pw, ctx: ctx, node: node, port: port, stream: stream, portRow: portRow}
 }
 

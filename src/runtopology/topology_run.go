@@ -12,9 +12,9 @@ import (
 	"github.com/dtauraso/wirefold/src/Ring/Bead"
 
 	"github.com/dtauraso/wirefold/src/Chrome/Tabs"
-	NodeShape "github.com/dtauraso/wirefold/src/Ring/NodeShape"
 	Bld "github.com/dtauraso/wirefold/src/Node/Wiring/build"
 	SW "github.com/dtauraso/wirefold/src/Node/Wiring/streamwire"
+	NodeShape "github.com/dtauraso/wirefold/src/Ring/NodeShape"
 )
 
 func RunTopology(ctx context.Context, cancel context.CancelFunc, topologyPath string, clk clock.Clock) {

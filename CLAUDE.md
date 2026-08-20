@@ -2,7 +2,7 @@
 
 ## Model — read first
 
-Before changing anything in the **Go network** (`src/Node/`, `src/NodeKinds/`, `src/Node/wire/bead_run.go`,
+Before changing anything in the **Go network** (`src/Node/`, `src/NodeKinds/`, `src/Node/bead_run.go`,
 `src/Node/Wiring/build/loader.go`, `src/Node/Wiring/loadspec/builders.go`) or the **content buffer**
 (`src/schema/buffer-layout/`, the render tree under `src/webview/`),
 read [MODEL.md](MODEL.md). It pins the model. Do not propose multi-step
@@ -118,7 +118,7 @@ own package is already there. `go generate ./...` runs all of them.
 - **`src/Ring/Bead/`** — ONE bead, and nothing else: its ring surface, its style, its buffer-block
   row. Anything about several beads — how they are spaced, chained, or framed — is not a
   bead, it is what a node does with beads, and lives under `src/Node/`.
-- **`src/Node/wire/`** — the wire, which is what a node uses beads for: `BeadRun` (a passive
+- **`src/Node/`** — the wire, which is what a node uses beads for: `BeadRun` (a passive
   delay queue, no goroutine of its own), the in/out ports, the slot `lattice/`, and the
   animation goroutine that steps it. The split line is `inflightBead` — the files that share
   it are the wire.

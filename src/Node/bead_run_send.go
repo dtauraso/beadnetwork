@@ -1,4 +1,4 @@
-package wire
+package Node
 
 import (
 	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"

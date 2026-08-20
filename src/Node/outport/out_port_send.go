@@ -3,18 +3,18 @@ package outport
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/src/Node/wire"
+	"github.com/dtauraso/wirefold/src/Node"
 	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 )
 
-func (o *Out) placeDrivenNoWalker(v int, tick int64) wire.SendOutcome {
+func (o *Out) placeDrivenNoWalker(v int, tick int64) Node.SendOutcome {
 	g := o.Geom()
 	outcome := o.pw.Send(v, o.placementFrom(g), tick)
-	if outcome != wire.SendPlaced {
+	if outcome != Node.SendPlaced {
 		return outcome
 	}
 	o.flushSendEvent(v, g.Steps)
-	return wire.SendPlaced
+	return Node.SendPlaced
 }
 
 func (o *Out) flushSendEvent(value int, steps int) {
@@ -48,7 +48,7 @@ func newOutChan(ch chan<- int, node, port string) *Out {
 	return &Out{ch: ch, node: node, port: port, postedGeom: make(chan outGeom, 1)}
 }
 
-func NewOutPaced(pw *wire.BeadRun, ctx context.Context, node, port string, rule SendRule, edgeLabel string, stream func() B.EventSink, portRow, targetRow, targetPortRow int32) *Out {
+func NewOutPaced(pw *Node.BeadRun, ctx context.Context, node, port string, rule SendRule, edgeLabel string, stream func() B.EventSink, portRow, targetRow, targetPortRow int32) *Out {
 	if rule == "" {
 		rule = RuleConsumeGated
 	}

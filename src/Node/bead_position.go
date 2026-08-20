@@ -1,4 +1,4 @@
-package wire
+package Node
 
 import (
 	"github.com/dtauraso/wirefold/src/spatial"

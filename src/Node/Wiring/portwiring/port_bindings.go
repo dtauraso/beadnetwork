@@ -6,8 +6,8 @@ import (
 	"github.com/dtauraso/wirefold/src/Clock"
 	"github.com/dtauraso/wirefold/src/Node/Interior"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/rowtables"
-	"github.com/dtauraso/wirefold/src/Node/wire"
-	"github.com/dtauraso/wirefold/src/Node/wire/outport"
+	"github.com/dtauraso/wirefold/src/Node"
+	"github.com/dtauraso/wirefold/src/Node/outport"
 	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 )
 
@@ -53,13 +53,13 @@ type PortBindings struct {
 }
 
 type singleBinding struct {
-	pw    *wire.BeadRun
+	pw    *Node.BeadRun
 	rule  outport.SendRule
 	label string
 }
 
 type broadcastBinding struct {
-	pw     *wire.BeadRun
+	pw     *Node.BeadRun
 	handle string
 	rule   outport.SendRule
 	label  string
@@ -72,15 +72,15 @@ func NewPortBindings() PortBindings {
 	}
 }
 
-func (pb *PortBindings) SetSinglePaced(name string, pw *wire.BeadRun) {
+func (pb *PortBindings) SetSinglePaced(name string, pw *Node.BeadRun) {
 	pb.singlePaced[name] = singleBinding{pw: pw}
 }
 
-func (pb *PortBindings) SetSinglePacedRule(name string, pw *wire.BeadRun, rule outport.SendRule, label string) {
+func (pb *PortBindings) SetSinglePacedRule(name string, pw *Node.BeadRun, rule outport.SendRule, label string) {
 	pb.singlePaced[name] = singleBinding{pw: pw, rule: rule, label: label}
 }
 
-func (pb *PortBindings) AppendBroadcastWithHandle(name, handle string, pw *wire.BeadRun, rule outport.SendRule, label string) {
+func (pb *PortBindings) AppendBroadcastWithHandle(name, handle string, pw *Node.BeadRun, rule outport.SendRule, label string) {
 	pb.broadcastPaced[name] = append(pb.broadcastPaced[name], broadcastBinding{
 		pw: pw, handle: handle, rule: rule, label: label,
 	})

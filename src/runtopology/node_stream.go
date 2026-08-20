@@ -13,7 +13,6 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/framegeom"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor/nodeframe"
 	SW "github.com/dtauraso/wirefold/src/Node/Wiring/streamwire"
-	BeadB "github.com/dtauraso/wirefold/src/Node/wire"
 	TiltB "github.com/dtauraso/wirefold/src/Scene/TiltVectors"
 	VecB "github.com/dtauraso/wirefold/src/Scene/Vectors"
 	"github.com/dtauraso/wirefold/src/schema/buffer-layout/colstream"
@@ -55,7 +54,7 @@ func wireNodeStreams(streamFDs SW.StreamFDs, md *W.MoveDispatch) {
 				beadBase, beadWired,
 				func(tick uint32, nodeRow int32, beads []EdgeB.EdgeBead, events []B.RowEvent) []byte {
 					EdgeB.WriteEdgeBeadColumns(nodeCols(nodeRow), beads)
-					return BeadB.BuildBeadStreamFrame(tick, nodeRow, events)
+					return NodeKind.BuildBeadStreamFrame(tick, nodeRow, events)
 				},
 				md.RT.NodeRowFor,
 

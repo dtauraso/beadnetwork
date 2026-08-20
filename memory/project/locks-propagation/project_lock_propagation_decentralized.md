@@ -35,7 +35,7 @@ because a WHERE collapses by keeping the newest and a HOW FAR collapses by summi
 kind must state its merge rule before it can ride the slot. Routing is still node-to-node
 (`src/Node/Wiring/nodeactor/owners/messaging.go`), no worklist. `Trace`'s
 `BreadcrumbNeighborSetCRecv` / the `"neighbor-setc-recv"` label survive in
-`src/Node/wire/inport/in_port.go`'s mapper with NO emitter left — leftover vocabulary, not a
+`src/Node/inport/in_port.go`'s mapper with NO emitter left — leftover vocabulary, not a
 live path.
 
 **DELETED mechanism (was documented here as live fact; gone as of 590a119c):** the
