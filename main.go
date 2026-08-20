@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/dtauraso/wirefold/src/Clock"
-	"github.com/dtauraso/wirefold/src/Node/runtopology"
+	"github.com/dtauraso/wirefold/src/runtopology"
 )
 
 func Run(topologyPath string) {

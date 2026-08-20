@@ -100,9 +100,13 @@ own package is already there. `go generate ./...` runs all of them.
   It is the ONLY place a `time.Sleep`/`After`/`NewTicker` may park a goroutine
   (`check-no-wall-clock-wait.sh`, whose exempt list names two files here and nothing else).
 - **`src/Node/`** — what a node USES: the spine the kinds are built from (`Wiring/`,
-  `rowevent/`, `spatial/`), the startup wiring
-  (`runtopology/`), and the TS that draws a node. A directory here is NOT a kind — both the
-  scanner and `check-dep-rules.sh` decide that by the `Register(...)` call, not by placement.
+  `spatial/`), the per-owner streams it writes (`wire/`, `Edge/`, `Interior/`), and the TS
+  that draws a node. A directory here is NOT a kind — both the scanner and
+  `check-dep-rules.sh` decide that by the `Register(...)` call, not by placement.
+- **`src/runtopology/`** — starting the program: claim the stream fds, resolve the scene,
+  load the graph, wire every per-owner stream, seed the static columns, then launch one
+  goroutine per node and block. `main.go` calls it and nothing else does. It is NOT a
+  coordinator — it constructs and starts, and the network runs itself from there.
 - **`src/Bead/`** — ONE bead, and nothing else: its ring surface, its style, its buffer-block
   row. Anything about several beads — how they are spaced, chained, or framed — is not a
   bead, it is what a node does with beads, and lives under `src/Node/`.

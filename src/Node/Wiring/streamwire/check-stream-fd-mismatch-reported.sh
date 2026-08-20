@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: main.go,src/Node/runtopology/edge_stream.go,src/Node/runtopology/node_stream.go,src/Node/Wiring/streamwire/stream_fds.go | every conditionally-wired per-owner StreamKind must have a named stream-fd mismatch report
+# PLACEMENT: main.go,src/runtopology/edge_stream.go,src/runtopology/node_stream.go,src/Node/Wiring/streamwire/stream_fds.go | every conditionally-wired per-owner StreamKind must have a named stream-fd mismatch report
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
@@ -9,7 +9,7 @@ cd "$REPO_ROOT"
 
 KINDS_FILE="src/Node/Wiring/streamwire/stream_fds.go"
 
-MAIN_FILE="main.go src/Node/runtopology/edge_stream.go src/Node/runtopology/node_stream.go"
+MAIN_FILE="main.go src/runtopology/edge_stream.go src/runtopology/node_stream.go"
 
 for f in "$KINDS_FILE" $MAIN_FILE; do
   if [ ! -f "$f" ]; then
