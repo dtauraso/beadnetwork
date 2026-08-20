@@ -1,4 +1,4 @@
-package stdinreader
+package dispatch
 
 import (
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/Panel"
@@ -6,11 +6,10 @@ import (
 	"github.com/dtauraso/wirefold/src/Chrome/Pills"
 	"github.com/dtauraso/wirefold/src/Chrome/Pills/AngleDropdown"
 	"github.com/dtauraso/wirefold/src/Chrome/Pills/NodesDropdown"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/viewstate"
 )
 
-func panelPointerTarget(md *dispatch.MoveDispatch, x, y float64) viewstate.PointerTarget {
+func panelPointerTarget(md *MoveDispatch, x, y float64) viewstate.PointerTarget {
 	pl := md.UI.PanelLayout()
 
 	if h := pl.Rules.Hit(x, y); h.Kind != PolarRulesPanel.HitNone {

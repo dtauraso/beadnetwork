@@ -1,4 +1,4 @@
-package stdinreader
+package dispatch
 
 import (
 	"context"
@@ -9,7 +9,6 @@ import (
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
 
 	"github.com/dtauraso/wirefold/src/Chrome/Pills/AngleDropdown"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodecrud"
@@ -19,13 +18,13 @@ import (
 	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 )
 
-func applyUpdateClock(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, speedSinks SliderPanel.Sinks) {
+func applyUpdateClock(ctx context.Context, msg inputcodec.StdinMsg, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
 	if h, ok := clockAttrHandlers[msg.Attr]; ok {
 		h(msg, md, speedSinks)
 	}
 }
 
-func tiltVectorEdit(ctx context.Context, md *dispatch.MoveDispatch, speedSinks SliderPanel.Sinks, row int32, attr string) {
+func tiltVectorEdit(ctx context.Context, md *MoveDispatch, speedSinks SliderPanel.Sinks, row int32, attr string) {
 	id := strconv.Itoa(int(row) + 1)
 	if _, ok := md.MR.NodeGeoms()[id]; !ok {
 		return
@@ -41,7 +40,7 @@ func tiltVectorEdit(ctx context.Context, md *dispatch.MoveDispatch, speedSinks S
 	md.MR.SendMove(ctx, id, movemsg.Msg{Kind: movemsg.KindTiltVectorReset, NodeID: id})
 }
 
-func applyUpdateTiltVector(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, speedSinks SliderPanel.Sinks) {
+func applyUpdateTiltVector(ctx context.Context, msg inputcodec.StdinMsg, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
 	if md == nil || (msg.Attr != "phi" && msg.Attr != "reset" && msg.Attr != "start") {
 		return
 	}
@@ -57,7 +56,7 @@ func applyUpdateTiltVector(ctx context.Context, msg inputcodec.StdinMsg, md *dis
 	adjustTiltPhi(ctx, md, int32(msg.Num), msg.Flag == "up")
 }
 
-func adjustTiltPhi(ctx context.Context, md *dispatch.MoveDispatch, row int32, up bool) {
+func adjustTiltPhi(ctx context.Context, md *MoveDispatch, row int32, up bool) {
 	id := strconv.Itoa(int(row) + 1)
 	if _, ok := md.MR.NodeGeoms()[id]; !ok {
 		return
@@ -68,7 +67,7 @@ func adjustTiltPhi(ctx context.Context, md *dispatch.MoveDispatch, row int32, up
 	md.MR.SendMove(ctx, id, movemsg.Msg{Kind: movemsg.KindTiltVectorAngle, NodeID: id, Bool: up})
 }
 
-func setLatticePoints(md *dispatch.MoveDispatch, points int32) {
+func setLatticePoints(md *MoveDispatch, points int32) {
 	if points < AngleDropdown.LatticePointsMin || points > AngleDropdown.LatticePointsMax || points%4 != 0 {
 		return
 	}
@@ -77,7 +76,7 @@ func setLatticePoints(md *dispatch.MoveDispatch, points int32) {
 	md.Inboxes.BroadcastLatticePoints(points)
 }
 
-func applyUpdateScene(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, speedSinks SliderPanel.Sinks) {
+func applyUpdateScene(ctx context.Context, msg inputcodec.StdinMsg, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
 	if md == nil {
 		return
 	}
@@ -104,7 +103,7 @@ func applyUpdateScene(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch
 	}
 }
 
-func applyUpdateOverlays(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, speedSinks SliderPanel.Sinks) {
+func applyUpdateOverlays(ctx context.Context, msg inputcodec.StdinMsg, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
 	if md == nil {
 		return
 	}
@@ -115,11 +114,11 @@ func applyUpdateOverlays(ctx context.Context, msg inputcodec.StdinMsg, md *dispa
 	md.Persist.Overlays().Schedule(md.UI.OV)
 }
 
-var nodeAttrHandlers = map[string]func(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch){
-	"dragPhi": func(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch) {
+var nodeAttrHandlers = map[string]func(ctx context.Context, msg inputcodec.StdinMsg, md *MoveDispatch){
+	"dragPhi": func(ctx context.Context, msg inputcodec.StdinMsg, md *MoveDispatch) {
 		sendRuleEdit(ctx, md, msg.Num, rulenode.Edit{Kind: rulenode.EditPhiToggle})
 	},
-	"dragMaxTheta": func(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch) {
+	"dragMaxTheta": func(ctx context.Context, msg inputcodec.StdinMsg, md *MoveDispatch) {
 		var maxTheta *float64
 		if msg.X >= 0 {
 			radians := msg.X * math.Pi
@@ -127,19 +126,19 @@ var nodeAttrHandlers = map[string]func(ctx context.Context, msg inputcodec.Stdin
 		}
 		sendRuleEdit(ctx, md, msg.Num, rulenode.Edit{Kind: rulenode.EditMaxTheta, MaxTheta: maxTheta})
 	},
-	"dragActive": func(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch) {
+	"dragActive": func(ctx context.Context, msg inputcodec.StdinMsg, md *MoveDispatch) {
 		sendRuleEdit(ctx, md, msg.Num, rulenode.Edit{Kind: rulenode.EditActiveToggle})
 	},
-	"dragR": func(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch) {
+	"dragR": func(ctx context.Context, msg inputcodec.StdinMsg, md *MoveDispatch) {
 		sendRuleEdit(ctx, md, msg.Num, rulenode.Edit{Kind: rulenode.EditRToggle})
 	},
-	"selfDragR": func(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch) {
+	"selfDragR": func(ctx context.Context, msg inputcodec.StdinMsg, md *MoveDispatch) {
 		sendRuleEdit(ctx, md, msg.Num, rulenode.Edit{Kind: rulenode.EditSelfRToggle})
 	},
-	"selfDragPhi": func(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch) {
+	"selfDragPhi": func(ctx context.Context, msg inputcodec.StdinMsg, md *MoveDispatch) {
 		sendRuleEdit(ctx, md, msg.Num, rulenode.Edit{Kind: rulenode.EditSelfPhiToggle})
 	},
-	"selfDragMaxTheta": func(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch) {
+	"selfDragMaxTheta": func(ctx context.Context, msg inputcodec.StdinMsg, md *MoveDispatch) {
 		var maxTheta *float64
 		if msg.X >= 0 {
 			radians := msg.X * math.Pi
@@ -147,10 +146,10 @@ var nodeAttrHandlers = map[string]func(ctx context.Context, msg inputcodec.Stdin
 		}
 		sendRuleEdit(ctx, md, msg.Num, rulenode.Edit{Kind: rulenode.EditSelfMaxTheta, MaxTheta: maxTheta})
 	},
-	"selfDragActive": func(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch) {
+	"selfDragActive": func(ctx context.Context, msg inputcodec.StdinMsg, md *MoveDispatch) {
 		sendRuleEdit(ctx, md, msg.Num, rulenode.Edit{Kind: rulenode.EditSelfActiveToggle})
 	},
-	"kindActive": func(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch) {
+	"kindActive": func(ctx context.Context, msg inputcodec.StdinMsg, md *MoveDispatch) {
 		row := msg.Num
 		if row < 0 || row >= len(md.Rules.KindTogglesByNodeRow) {
 			panic(fmt.Sprintf(
@@ -169,7 +168,7 @@ var nodeAttrHandlers = map[string]func(ctx context.Context, msg inputcodec.Stdin
 	},
 }
 
-func sendRuleEdit(ctx context.Context, md *dispatch.MoveDispatch, row int, edit rulenode.Edit) {
+func sendRuleEdit(ctx context.Context, md *MoveDispatch, row int, edit rulenode.Edit) {
 	if row < 0 || row >= len(md.Rules.EditsByNodeRow) {
 		panic(fmt.Sprintf(
 			"sendRuleEdit: node row %d is outside the %d rows the tree declares, so a rule edit names an entity "+
@@ -186,7 +185,7 @@ func sendRuleEdit(ctx context.Context, md *dispatch.MoveDispatch, row int, edit 
 	}
 }
 
-func applyUpdateNode(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, speedSinks SliderPanel.Sinks) {
+func applyUpdateNode(ctx context.Context, msg inputcodec.StdinMsg, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
 	if md == nil {
 		return
 	}
@@ -195,7 +194,7 @@ func applyUpdateNode(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.
 	}
 }
 
-func applyUpdatePanels(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, speedSinks SliderPanel.Sinks) {
+func applyUpdatePanels(ctx context.Context, msg inputcodec.StdinMsg, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
 	if md == nil {
 		return
 	}

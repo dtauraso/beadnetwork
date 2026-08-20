@@ -1,4 +1,4 @@
-package stdinreader
+package dispatch
 
 import (
 	"context"
@@ -6,11 +6,10 @@ import (
 
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/Panel"
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/PolarRulesPanel"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/rulenode"
 )
 
-func applyRulesHit(ctx context.Context, md *dispatch.MoveDispatch, h PolarRulesPanel.Hit) {
+func applyRulesHit(ctx context.Context, md *MoveDispatch, h PolarRulesPanel.Hit) {
 	switch h.Kind {
 	case PolarRulesPanel.HitToggle:
 		if fn, ok := Panel.PanelToggles["nodeRules"]; ok {
@@ -39,7 +38,7 @@ func applyRulesHit(ctx context.Context, md *dispatch.MoveDispatch, h PolarRulesP
 	md.UI.EmitViewFrame(nil)
 }
 
-func applyRuleCheck(ctx context.Context, md *dispatch.MoveDispatch, h PolarRulesPanel.Hit) {
+func applyRuleCheck(ctx context.Context, md *MoveDispatch, h PolarRulesPanel.Hit) {
 	switch h.Check {
 	case PolarRulesPanel.CheckNodeDrag:
 		sendRuleEdit(ctx, md, int(h.NodeRow), rulenode.Edit{Kind: rulenode.EditActiveToggle})
@@ -52,7 +51,7 @@ func applyRuleCheck(ctx context.Context, md *dispatch.MoveDispatch, h PolarRules
 	}
 }
 
-func applyRuleValue(ctx context.Context, md *dispatch.MoveDispatch, h PolarRulesPanel.Hit) {
+func applyRuleValue(ctx context.Context, md *MoveDispatch, h PolarRulesPanel.Hit) {
 	switch h.Value {
 	case PolarRulesPanel.ValSelfR:
 		sendRuleEdit(ctx, md, int(h.NodeRow), rulenode.Edit{Kind: rulenode.EditSelfRToggle})
@@ -72,7 +71,7 @@ func applyRuleValue(ctx context.Context, md *dispatch.MoveDispatch, h PolarRules
 	}
 }
 
-func applyRuleKey(ctx context.Context, md *dispatch.MoveDispatch, key string) {
+func applyRuleKey(ctx context.Context, md *MoveDispatch, key string) {
 	e := &md.UI.RuleEdit
 	if !e.Active {
 		return
@@ -97,14 +96,14 @@ func applyRuleKey(ctx context.Context, md *dispatch.MoveDispatch, key string) {
 	md.UI.EmitViewFrame(nil)
 }
 
-func toggleKindRule(ctx context.Context, md *dispatch.MoveDispatch, row int) {
+func toggleKindRule(ctx context.Context, md *MoveDispatch, row int) {
 	if row < 0 || row >= len(md.Rules.KindTogglesByNodeRow) {
 		return
 	}
 	sendToggle(ctx, md.Rules.KindTogglesByNodeRow[row])
 }
 
-func toggleEdgeDragActive(ctx context.Context, md *dispatch.MoveDispatch, row int32) {
+func toggleEdgeDragActive(ctx context.Context, md *MoveDispatch, row int32) {
 	if row < 0 || int(row) >= len(md.Rules.TogglesByEdgeRow) {
 		return
 	}
@@ -121,7 +120,7 @@ func sendToggle(ctx context.Context, ch chan<- struct{}) {
 	}
 }
 
-func commitMaxTheta(ctx context.Context, md *dispatch.MoveDispatch, row int32, self bool, turns float64) {
+func commitMaxTheta(ctx context.Context, md *MoveDispatch, row int32, self bool, turns float64) {
 	var maxTheta *float64
 	if turns >= 0 {
 		radians := turns * math.Pi

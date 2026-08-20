@@ -1,4 +1,4 @@
-package stdinreader
+package dispatch
 
 import (
 	"context"
@@ -6,11 +6,10 @@ import (
 
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
 
-	"github.com/dtauraso/wirefold/src/Node/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"
 )
 
-func applyUpdateEdge(ctx context.Context, msg inputcodec.StdinMsg, md *dispatch.MoveDispatch, speedSinks SliderPanel.Sinks) {
+func applyUpdateEdge(ctx context.Context, msg inputcodec.StdinMsg, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
 	if md == nil || msg.Attr != "dragActive" {
 		return
 	}

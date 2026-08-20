@@ -1,6 +1,7 @@
 package dispatch
 
 import (
+	clock "github.com/dtauraso/wirefold/src/Clock"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/edgetable"
 	geomseeds "github.com/dtauraso/wirefold/src/Node/Wiring/geomseeds"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"
@@ -9,7 +10,6 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/polarindex"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/rulenode"
-	"github.com/dtauraso/wirefold/src/Clock"
 )
 
 func (md *MoveDispatch) buildNodeMovers(geoms map[string]nodegeom.NodeGeom, clk clock.Clock, constants polarindex.SceneConstants) {
