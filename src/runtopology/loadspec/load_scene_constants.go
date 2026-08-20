@@ -1,38 +1,52 @@
 package loadspec
 
 import (
-	"encoding/json"
 	"fmt"
 	"math"
-	"os"
 	"path/filepath"
 
-	"github.com/dtauraso/wirefold/src/Polar/polarindex"
 	lattice "github.com/dtauraso/wirefold/src/Node/BeadAnimation/lattice"
+	"github.com/dtauraso/wirefold/src/Polar/polarindex"
+	"github.com/dtauraso/wirefold/src/jsonpersist"
 )
+
+const (
+	ConstantsDirName  = "constants"
+	FileConstantR     = "constant-r.json"
+	FileMaxIndexPhi   = "max-index-phi.json"
+	FileMaxIndexTheta = "max-index-theta.json"
+)
+
+func ConstantsDir(root string) string { return filepath.Join(root, ConstantsDirName) }
 
 func LoadSceneConstants(root string) (polarindex.SceneConstants, error) {
 	return loadSceneConstants(root)
 }
 
 func loadSceneConstants(root string) (polarindex.SceneConstants, error) {
-	path := filepath.Join(root, "constants.json")
-	raw, err := os.ReadFile(path)
-	if err != nil {
-		return polarindex.SceneConstants{}, fmt.Errorf("loadTree: constants.json: read %s: %w", path, err)
-	}
+	dir := ConstantsDir(root)
 	var c polarindex.SceneConstants
-	if err := json.Unmarshal(raw, &c); err != nil {
-		return polarindex.SceneConstants{}, fmt.Errorf("loadTree: constants.json: parse %s: %w", path, err)
+	missing := []string{}
+	if !jsonpersist.ReadJSONIfExists(filepath.Join(dir, FileConstantR), &c.ConstantR) {
+		missing = append(missing, FileConstantR)
+	}
+	if !jsonpersist.ReadJSONIfExists(filepath.Join(dir, FileMaxIndexPhi), &c.MaxIndexPhi) {
+		missing = append(missing, FileMaxIndexPhi)
+	}
+	if !jsonpersist.ReadJSONIfExists(filepath.Join(dir, FileMaxIndexTheta), &c.MaxIndexTheta) {
+		missing = append(missing, FileMaxIndexTheta)
+	}
+	if len(missing) > 0 {
+		return polarindex.SceneConstants{}, fmt.Errorf("loadTree: %s: missing %v — each scene constant is one file holding one value", dir, missing)
 	}
 	if c.ConstantR == 0 || c.MaxIndexPhi <= 0 || c.MaxIndexTheta <= 0 {
-		return polarindex.SceneConstants{}, fmt.Errorf("loadTree: constants.json: %s is missing constantR, or maxIndexPhi/maxIndexTheta is not a positive step count", path)
+		return polarindex.SceneConstants{}, fmt.Errorf("loadTree: %s: constant-r is zero, or max-index-phi/max-index-theta is not a positive step count", dir)
 	}
 	if c.MaxIndexPhi%2 != 0 || c.MaxIndexTheta%2 != 0 {
-		return polarindex.SceneConstants{}, fmt.Errorf("loadTree: constants.json: %s maxIndexPhi=%d maxIndexTheta=%d must be EVEN — a half turn is maxIndex/2 steps, and an odd ring has no exact half", path, c.MaxIndexPhi, c.MaxIndexTheta)
+		return polarindex.SceneConstants{}, fmt.Errorf("loadTree: %s: maxIndexPhi=%d maxIndexTheta=%d must be EVEN — a half turn is maxIndex/2 steps, and an odd ring has no exact half", dir, c.MaxIndexPhi, c.MaxIndexTheta)
 	}
 	if math.Abs(c.ConstantR-lattice.SlotR) > 1e-9 {
-		return polarindex.SceneConstants{}, fmt.Errorf("loadTree: constants.json: %s constantR=%v is not lattice.SlotR=%v — one radial index IS one slot, the step a bead takes per wake, so the scene grid and the bead lattice are the same grid (a bead width is %v slots)", path, c.ConstantR, lattice.SlotR, lattice.SlotsPerBead)
+		return polarindex.SceneConstants{}, fmt.Errorf("loadTree: %s: constantR=%v is not lattice.SlotR=%v — one radial index IS one slot, the step a bead takes per wake, so the scene grid and the bead lattice are the same grid (a bead width is %v slots)", dir, c.ConstantR, lattice.SlotR, lattice.SlotsPerBead)
 	}
 	return c, nil
 }

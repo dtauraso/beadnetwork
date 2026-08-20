@@ -25,12 +25,9 @@ function readCount(topologyPath: string, name: "nodes" | "edges"): number {
 export function resolveScenePath(anchorPath: string): string {
   let selected: string;
   try {
-    const raw = fs.readFileSync(path.join(anchorPath, "view", "scene.json"), "utf8");
+    const raw = fs.readFileSync(path.join(anchorPath, "view", "scene", "selected.json"), "utf8");
     const parsed: unknown = JSON.parse(raw);
-    selected =
-      typeof parsed === "object" && parsed !== null && typeof (parsed as { selected?: unknown }).selected === "string"
-        ? (parsed as { selected: string }).selected
-        : "";
+    selected = typeof parsed === "string" ? parsed : "";
   } catch {
     selected = "";
   }

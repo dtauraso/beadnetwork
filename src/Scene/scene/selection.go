@@ -9,10 +9,6 @@ import (
 	"github.com/dtauraso/wirefold/src/Scene/scenepaths"
 )
 
-type SelectionFile struct {
-	Selected string `json:"selected"`
-}
-
 func Container(anchorPath string) string {
 	clean := filepath.Clean(anchorPath)
 	if _, ok := Declared(clean); ok {
@@ -26,12 +22,12 @@ func SelectedIndex(anchorPath string) int {
 	if err != nil {
 		return 0
 	}
-	var f SelectionFile
-	if json.Unmarshal(b, &f) != nil {
+	var selected string
+	if json.Unmarshal(b, &selected) != nil {
 		return 0
 	}
 	for i, s := range All {
-		if s.Name == f.Selected {
+		if s.Name == selected {
 			return i
 		}
 	}

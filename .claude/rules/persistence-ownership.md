@@ -18,17 +18,22 @@ Everything about a node lives under its own directory. There is no top-level `ed
 topology/
 ├── counts/nodes.json  counts/edges.json   one integer each — nodes = ROW COUNT
 │                                          (largest node id), not a live-node count
-├── constants.json                        {"constantR", "constantPhi", "constantTheta"} — scene-level, read once
+├── constants/                             constant-r, max-index-phi, max-index-theta — read once
 ├── nodes/<id>/
 │   ├── base/                               one value per file: type/gate/index + drag-rule/ and self-rule/ — TRACKED
-│   ├── drag/self.json                 the node's accumulated position DELTA — GITIGNORED, see below
-│   ├── data.json  local-polars.json
+│   ├── drag/                               index-phi/-theta/-r — the node's position DELTA — GITIGNORED
+│   ├── data/                               init/<n>, repeat, state/<k>, send-rules/<port> — TRACKED
 │   ├── edges/<label>/                     OUTGOING only, one value per file: wiring + delta — TRACKED
-│   ├── drag/edges/<label>/                that edge's accumulated geometry DELTA — GITIGNORED
-│   └── (no *.geom.json — folded into <label>.json)
+│   └── drag/edges/<label>/                that edge's accumulated geometry DELTA — GITIGNORED
 └── view/
-    └── camera/ overlays/ panels/ sphere/ — one value per file — plus scene.json
+    └── camera/ overlays/ panels/ sphere/ scene/ speed.json — one value per file
 ```
+
+**One primitive per file, and the DIRECTORY HIERARCHY IS THE NESTED DICT.** A directory is an
+object, a file is a leaf holding one JSON primitive, numbered files are an ordered array
+indexed by filename — sorted NUMERICALLY, since `10` follows `9` but sorts after `1`. A
+non-integer name in an array directory is a load error, never a skipped element: skipping one
+silently shortens the array and shifts the rest.
 
 The panels.json file under view/ holds the overlays popover's disclosure open/closed
 state (`viewstate.PanelState`, `src/Chrome/Panels/Panel/panels_persist.go`) — its
@@ -41,8 +46,8 @@ streamed, and edited the same way.
 relative to the ANCHOR's parent — the `-topology` flag the extension host launches with is
 the fixed anchor, and which sibling directory actually loads is resolved from it
 (`ResolveScenePath`). Each sibling is a COMPLETE, independently loadable tree with its own
-`counts/` and `view/`, laid out exactly as above. `topology/view/scene.json`
-(`{"selected": "<tab name>"}`) is the ONE piece of state that lives at the ANCHOR rather than
+`counts/` and `view/`, laid out exactly as above. `topology/view/scene/selected.json`
+(the selected tab name, one string) is the ONE piece of state that lives at the ANCHOR rather than
 inside whichever scene is loaded — it has to, since it is what says which sibling to load, and
 a selection stored inside scene B would be unreachable while scene A is showing. Switching
 tabs writes this file and ends the Go process; the extension host's already-looping runner
@@ -83,7 +88,7 @@ runs at load and at the moment a drag is measured, never stored as its own field
 sub-step drag rounds to the nearest index (`polarindex.MeasureScalar`) and a drag that
 rounds to zero is correct, not lost precision to recover. Neither file carries
 `constantPhi`/`constantTheta`/`constantR` — nor does `base.json` any more; those moved to
-`constants.json` at the scene root (read once per load, fails loudly by path on
+`constants/` at the scene root (read once per load, fails loudly by path on
 missing/malformed input, and asserts `constantR == lattice.BeadStepR` — the radial grid
 must match the bead lattice's own step size). The loaded triple (`polarindex.SceneConstants`)
 is passed explicitly into every consumer, never a per-instance field or a package-level
@@ -206,13 +211,8 @@ Per-node `edges/` file order is a PLAIN `sort.Strings` — those names are label
 numbers, and must stay lexicographic. Port order is alphabetical by port name — neither is
 authored order, because a tree has no array.
 
-The pre-split scene sidecar (a single `scene.json` under the view dir, holding what is now
-split across camera/overlays/sphere) and its best-effort read fallback (`sceneCameraPath`/
-`sceneJSONPath`) were REMOVED — no such file existed anywhere in this repo, and nothing
-wrote it once the one-file-per-writer split landed. A topology directory holding only that
-legacy sidecar now loses its camera pose, overlay flags and scene sphere on load (falls back
-to defaults) instead of migrating them forward. That was a DIFFERENT legacy from the
-monolithic topology form covered above.
+There is no migration from any pre-split form: a tree holding only a legacy sidecar loses
+its camera pose, overlay flags and sphere on load and falls back to defaults.
 
 ## Counts are stored, never re-derived
 

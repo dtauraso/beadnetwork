@@ -3,11 +3,12 @@ package loadspec
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/dtauraso/wirefold/src/Node/Edge/edgefile"
-	"github.com/dtauraso/wirefold/src/Node/nodefile"
 	"os"
 	"path/filepath"
 	"sort"
+
+	"github.com/dtauraso/wirefold/src/Node/Edge/edgefile"
+	"github.com/dtauraso/wirefold/src/Node/nodefile"
 )
 
 func readJSONFile(path string, v any) bool {
@@ -55,14 +56,11 @@ func loadNodeBase(root, nodesDir, nodeID string) (specNode, error) {
 	}
 	readJSONFile(filepath.Join(baseDir, nodefile.FileGate), &sn.Gate)
 
-	dataPath := filepath.Join(nodeDir, "data.json")
-	if raw, err := os.ReadFile(dataPath); err == nil {
-		var nd NodeData
-		if err := json.Unmarshal(raw, &nd); err != nil {
-			return specNode{}, fmt.Errorf("loadTree: node %q data parse: %w", nodeID, err)
-		}
-		sn.Data = &nd
+	nd, err := readNodeData(nodeDir)
+	if err != nil {
+		return specNode{}, fmt.Errorf("loadTree: node %q data: %w", nodeID, err)
 	}
+	sn.Data = nd
 
 	return sn, nil
 }

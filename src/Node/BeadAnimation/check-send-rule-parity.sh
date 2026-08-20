@@ -27,7 +27,7 @@ rules_from_go() {
   local go_files
   go_files=$(cd "$REPO_ROOT" && git ls-files 'src/**/*.go')
   [[ -z "$go_files" ]] && return
-  ( cd "$REPO_ROOT" && grep -haE 'SendRule[[:space:]]*=[[:space:]]*"[^"]+"' $go_files ) \
+  ( cd "$REPO_ROOT" && grep -haE '[A-Za-z0-9_]+[[:space:]]+SendRule[[:space:]]*=[[:space:]]*"[^"]+"' $go_files ) \
     | grep -o '"[^"]*"' \
     | tr -d '"' \
     | sort

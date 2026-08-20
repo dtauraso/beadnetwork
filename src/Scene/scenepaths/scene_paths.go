@@ -7,7 +7,7 @@ func ViewFilePath(topologyPath, name string) string {
 }
 
 func SelectionFilePath(anchorPath string) string {
-	return ViewFilePath(anchorPath, "scene.json")
+	return ViewFilePath(anchorPath, filepath.Join("scene", "selected.json"))
 }
 
 func CameraDirPath(topologyPath string) string {
