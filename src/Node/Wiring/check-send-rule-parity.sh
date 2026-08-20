@@ -49,7 +49,7 @@ assert_nonempty() {
     exit 1
   fi
 }
-assert_nonempty "$GO_RULES" "SendRule consts (src/Node/outport/send_rule.go)"
+assert_nonempty "$GO_RULES" "SendRule consts (src/Node/BeadAnimation/send_rule.go)"
 assert_nonempty "$TS_RULES" "SEND_RULES array (types.ts)"
 
 MISSING=$(comm -23 <(echo "$GO_RULES") <(echo "$TS_RULES"))

@@ -5,9 +5,9 @@ import (
 
 	"strings"
 
+	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/jsonpersist"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/portwiring"
-	"github.com/dtauraso/wirefold/src/Node/outport"
 )
 
 func ValidateSpec(spec *TopoSpec, kindPorts map[string][]portwiring.PortSpec) error {
@@ -89,7 +89,7 @@ func ValidateSpec(spec *TopoSpec, kindPorts map[string][]portwiring.PortSpec) er
 			continue
 		}
 		for port, raw := range n.Data.SendRules {
-			if _, err := outport.ParseSendRule(raw); err != nil {
+			if _, err := beadanimation.ParseSendRule(raw); err != nil {
 				errs = append(errs, fmt.Sprintf("node %q port %q: %v", n.ID, port, err))
 			}
 		}

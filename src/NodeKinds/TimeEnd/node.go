@@ -3,8 +3,8 @@ package timeend
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/src/Node/inport"
 	"github.com/dtauraso/wirefold/src/Clock"
+	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/src/NodeKinds/nodeapi"
 
 	"github.com/dtauraso/wirefold/src/Node/Interior"
@@ -26,7 +26,7 @@ type TimeEnd struct {
 	Clock clock.Clock
 
 	SpeedCh <-chan float64
-	In      *inport.In
+	In      *beadanimation.Receiver
 }
 
 func (h *TimeEnd) Update(ctx context.Context) {

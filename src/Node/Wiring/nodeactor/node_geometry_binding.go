@@ -4,6 +4,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/PolarRulesPanel"
 	"io"
 
+	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/src/Node/Interior"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor/nodeframe"
@@ -11,8 +12,6 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor/streamclaim"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/polarindex"
-	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
-	"github.com/dtauraso/wirefold/src/Node/outport"
 	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 	"github.com/dtauraso/wirefold/src/schema/buffer-layout/colstream"
 )
@@ -87,7 +86,7 @@ func (m *NodeGeometry) AddBeadLine(pw *beadanimation.BeadLine, edgeRow int32) {
 	m.anim.AddBeadLine(pw, edgeRow)
 }
 
-func (m *NodeGeometry) BindOutEdgeRun(label, targetID, targetKind string, port *outport.Out, dest *beadanimation.BeadLine) {
+func (m *NodeGeometry) BindOutEdgeRun(label, targetID, targetKind string, port *beadanimation.Sender, dest *beadanimation.BeadLine) {
 	m.outEdges.BindWire(label, targetID, targetKind, port, dest)
 	m.outEdges.SetSrcID(m.id)
 }

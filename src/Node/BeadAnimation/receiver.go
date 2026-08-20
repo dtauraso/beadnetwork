@@ -1,16 +1,15 @@
-package inport
+package beadanimation
 
 import (
 	"context"
 
-	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 )
 
-type In struct {
+type Receiver struct {
 	ch <-chan int
 
-	pw  *beadanimation.BeadLine
+	pw  *BeadLine
 	ctx context.Context
 
 	node string
@@ -21,7 +20,7 @@ type In struct {
 	portRow int32
 }
 
-func (i *In) PollRecv() (int, bool) {
+func (i *Receiver) PollRecv() (int, bool) {
 	if i == nil {
 		return 0, false
 	}
@@ -45,7 +44,7 @@ func (i *In) PollRecv() (int, bool) {
 	}
 }
 
-func (i *In) flushRecvEvent(value int) {
+func (i *Receiver) flushRecvEvent(value int) {
 	if i.stream == nil {
 		return
 	}
@@ -59,22 +58,22 @@ func (i *In) flushRecvEvent(value int) {
 	}})
 }
 
-func NewInChan(ch <-chan int, node, port string, stream func() B.EventSink) *In {
-	return &In{ch: ch, node: node, port: port, portRow: -1, stream: stream}
+func NewInChan(ch <-chan int, node, port string, stream func() B.EventSink) *Receiver {
+	return &Receiver{ch: ch, node: node, port: port, portRow: -1, stream: stream}
 }
 
-func NewInPaced(pw *beadanimation.BeadLine, ctx context.Context, node, port string, stream func() B.EventSink, portRow int32) *In {
-	return &In{pw: pw, ctx: ctx, node: node, port: port, stream: stream, portRow: portRow}
+func NewInPaced(pw *BeadLine, ctx context.Context, node, port string, stream func() B.EventSink, portRow int32) *Receiver {
+	return &Receiver{pw: pw, ctx: ctx, node: node, port: port, stream: stream, portRow: portRow}
 }
 
-func (i *In) HasRun() bool {
+func (i *Receiver) HasRun() bool {
 	if i == nil {
 		return false
 	}
 	return i.pw != nil
 }
 
-func (i *In) Breadcrumb(event, detail string) {
+func (i *Receiver) Breadcrumb(event, detail string) {
 	if i == nil || i.stream == nil {
 		return
 	}

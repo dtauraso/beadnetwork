@@ -3,8 +3,8 @@ package holdflip
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/src/Node/inport"
 	"github.com/dtauraso/wirefold/src/Clock"
+	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/src/NodeKinds/nodeapi"
 
 	"github.com/dtauraso/wirefold/src/Node/Wiring/helddrive"
@@ -25,7 +25,7 @@ type Node struct {
 	Clock clock.Clock
 
 	SpeedCh <-chan float64
-	In      *inport.In
+	In      *beadanimation.Receiver
 	Out     Wiring.DrivenOut
 }
 

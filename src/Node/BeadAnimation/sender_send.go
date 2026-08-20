@@ -1,23 +1,22 @@
-package outport
+package beadanimation
 
 import (
 	"context"
 
-	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 )
 
-func (o *Out) placeDrivenNoWalker(v int, tick int64) beadanimation.SendOutcome {
+func (o *Sender) placeDrivenNoWalker(v int, tick int64) SendOutcome {
 	g := o.Geom()
 	outcome := o.pw.Send(v, o.placementFrom(g), tick)
-	if outcome != beadanimation.SendPlaced {
+	if outcome != SendPlaced {
 		return outcome
 	}
 	o.flushSendEvent(v, g.Steps)
-	return beadanimation.SendPlaced
+	return SendPlaced
 }
 
-func (o *Out) flushSendEvent(value int, steps int) {
+func (o *Sender) flushSendEvent(value int, steps int) {
 	if o.stream == nil {
 		return
 	}
@@ -33,27 +32,27 @@ func (o *Out) flushSendEvent(value int, steps int) {
 	}})
 }
 
-func (o *Out) HasRun() bool {
+func (o *Sender) HasRun() bool {
 	if o == nil {
 		return false
 	}
 	return o.pw != nil
 }
 
-func NewOutChanDeadEnd(ch chan<- int, node, port string) *Out {
+func NewOutChanDeadEnd(ch chan<- int, node, port string) *Sender {
 	return newOutChan(ch, node, port)
 }
 
-func newOutChan(ch chan<- int, node, port string) *Out {
-	return &Out{ch: ch, node: node, port: port, postedGeom: make(chan outGeom, 1)}
+func newOutChan(ch chan<- int, node, port string) *Sender {
+	return &Sender{ch: ch, node: node, port: port, postedGeom: make(chan outGeom, 1)}
 }
 
-func NewOutPaced(pw *beadanimation.BeadLine, ctx context.Context, node, port string, rule SendRule, edgeLabel string, stream func() B.EventSink, portRow, targetRow, targetPortRow int32) *Out {
+func NewOutPaced(pw *BeadLine, ctx context.Context, node, port string, rule SendRule, edgeLabel string, stream func() B.EventSink, portRow, targetRow, targetPortRow int32) *Sender {
 	if rule == "" {
 		rule = RuleConsumeGated
 	}
 
-	o := &Out{
+	o := &Sender{
 		pw: pw, ctx: ctx, node: node, port: port, Rule: rule, EdgeLabel: edgeLabel,
 		postedGeom: make(chan outGeom, 1),
 		stream:     stream, portRow: portRow, targetRow: targetRow, targetPortRow: targetPortRow,

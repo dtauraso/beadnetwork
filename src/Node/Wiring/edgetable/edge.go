@@ -2,7 +2,6 @@ package edgetable
 
 import (
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
-	"github.com/dtauraso/wirefold/src/Node/outport"
 )
 
 type Edge struct {
@@ -12,7 +11,7 @@ type Edge struct {
 	srcH  string
 	dstH  string
 
-	out  *outport.Out
+	out  *beadanimation.Sender
 	dest *beadanimation.BeadLine
 }
 
@@ -26,8 +25,8 @@ func (e *Edge) DstID() string     { return e.dstID }
 func (e *Edge) SrcHandle() string { return e.srcH }
 func (e *Edge) DstHandle() string { return e.dstH }
 
-func (e *Edge) SetOut(out *outport.Out) { e.out = out }
-func (e *Edge) Out() *outport.Out       { return e.out }
+func (e *Edge) SetOut(out *beadanimation.Sender) { e.out = out }
+func (e *Edge) Out() *beadanimation.Sender       { return e.out }
 
 func (e *Edge) SetDest(dest *beadanimation.BeadLine) { e.dest = dest }
 func (e *Edge) Dest() *beadanimation.BeadLine        { return e.dest }

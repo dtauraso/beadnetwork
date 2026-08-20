@@ -3,9 +3,8 @@ package pacer
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/src/Node/inport"
-	"github.com/dtauraso/wirefold/src/Node/outport"
 	"github.com/dtauraso/wirefold/src/Clock"
+	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/src/NodeKinds/nodeapi"
 
 	"github.com/dtauraso/wirefold/src/Node/Interior"
@@ -28,8 +27,8 @@ type Node struct {
 
 	SpeedCh <-chan float64
 
-	In          *inport.In
-	FeedbackOut *outport.Out
+	In          *beadanimation.Receiver
+	FeedbackOut *beadanimation.Sender
 }
 
 func (p *Node) Update(ctx context.Context) {

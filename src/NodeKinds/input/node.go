@@ -3,9 +3,8 @@ package input
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/src/Node/inport"
-	"github.com/dtauraso/wirefold/src/Node/outport"
 	"github.com/dtauraso/wirefold/src/Clock"
+	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/src/NodeKinds/nodeapi"
 
 	Wiring "github.com/dtauraso/wirefold/src/Node/Wiring/kindapi"
@@ -29,10 +28,10 @@ type Node struct {
 	Init    []int `wire:"data.init"`
 	Repeat  bool  `wire:"data.repeat"`
 
-	OutCadence *outport.Out
+	OutCadence *beadanimation.Sender
 
-	ToExcitatory *outport.Out
-	FeedbackIn   *inport.In
+	ToExcitatory *beadanimation.Sender
+	FeedbackIn   *beadanimation.Receiver
 }
 
 func (n *Node) clock() clock.Clock {

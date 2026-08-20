@@ -1,6 +1,6 @@
-package outport
+package beadanimation
 
-type Broadcast []*Out
+type Broadcast []*Sender
 
 func (outs Broadcast) PlaceDrivenAllAt(v int, dst []DriveItem, tick int64) []DriveItem {
 	for _, o := range outs {

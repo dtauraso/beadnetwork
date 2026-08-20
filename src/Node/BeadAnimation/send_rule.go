@@ -1,4 +1,4 @@
-package outport
+package beadanimation
 
 import "fmt"
 

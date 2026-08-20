@@ -1,11 +1,10 @@
-package outport
+package beadanimation
 
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/src/spatial"
-	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
+	"github.com/dtauraso/wirefold/src/spatial"
 )
 
 type outGeom struct {
@@ -14,10 +13,10 @@ type outGeom struct {
 	Start, End spatial.Vec3
 }
 
-type Out struct {
+type Sender struct {
 	ch chan<- int
 
-	pw  *beadanimation.BeadLine
+	pw  *BeadLine
 	ctx context.Context
 
 	node string
@@ -36,7 +35,7 @@ type Out struct {
 	portRow, targetRow, targetPortRow int32
 }
 
-func (o *Out) Geom() outGeom {
+func (o *Sender) Geom() outGeom {
 	if o == nil {
 		return outGeom{}
 	}
@@ -44,7 +43,7 @@ func (o *Out) Geom() outGeom {
 	return o.sendCur
 }
 
-func (o *Out) PostGeom(steps int, slotR float64, start, end spatial.Vec3) {
+func (o *Sender) PostGeom(steps int, slotR float64, start, end spatial.Vec3) {
 	if o == nil || o.postedGeom == nil {
 		return
 	}
@@ -58,7 +57,7 @@ func (o *Out) PostGeom(steps int, slotR float64, start, end spatial.Vec3) {
 	}
 }
 
-func (o *Out) applyPostedGeom() {
+func (o *Sender) applyPostedGeom() {
 	if o.postedGeom == nil {
 		return
 	}
@@ -69,8 +68,8 @@ func (o *Out) applyPostedGeom() {
 	}
 }
 
-func (o *Out) placementFrom(g outGeom) beadanimation.BeadPlacement {
-	return beadanimation.BeadPlacement{
+func (o *Sender) placementFrom(g outGeom) BeadPlacement {
+	return BeadPlacement{
 		Steps: g.Steps,
 		SlotR: g.SlotR,
 		Start: g.Start,
@@ -80,11 +79,11 @@ func (o *Out) placementFrom(g outGeom) beadanimation.BeadPlacement {
 	}
 }
 
-func (o *Out) Paced() bool {
+func (o *Sender) Paced() bool {
 	return o != nil && o.pw != nil
 }
 
-func (o *Out) Gated() bool {
+func (o *Sender) Gated() bool {
 	if o == nil {
 		return true
 	}

@@ -8,12 +8,12 @@ import (
 
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
 	"github.com/dtauraso/wirefold/src/Clock"
+	"github.com/dtauraso/wirefold/src/Node/BeadAnimation/lattice"
 	SF "github.com/dtauraso/wirefold/src/Node/Edge"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/framegeom"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodegeom"
-	"github.com/dtauraso/wirefold/src/spatial"
-	"github.com/dtauraso/wirefold/src/Node/BeadAnimation/lattice"
 	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
+	"github.com/dtauraso/wirefold/src/spatial"
 )
 
 type BeadAnimation struct {

@@ -4,16 +4,15 @@ import (
 	"encoding/binary"
 	"io"
 
+	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/edgefile"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/edgegeom"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/jsonpersist"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/polarindex"
-	"github.com/dtauraso/wirefold/src/spatial"
-	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
-	"github.com/dtauraso/wirefold/src/Node/outport"
 	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
+	"github.com/dtauraso/wirefold/src/spatial"
 )
 
 type EdgeFrameBuilder = func(tick uint32, edgeRow int32, sx, sy, sz, ex, ey, ez float32, srcNodeRow, dstNodeRow int32, deltaR float32, dragActive uint8, label string, events []B.RowEvent) []byte
@@ -29,7 +28,7 @@ type outEdge struct {
 
 	out io.Writer
 
-	port *outport.Out
+	port *beadanimation.Sender
 	dest *beadanimation.BeadLine
 
 	start, end spatial.Vec3
@@ -70,7 +69,7 @@ func (o *OutEdges) edgeFor(label string) *outEdge {
 	return &o.edges[len(o.edges)-1]
 }
 
-func (o *OutEdges) BindWire(label, targetID, targetKind string, port *outport.Out, dest *beadanimation.BeadLine) {
+func (o *OutEdges) BindWire(label, targetID, targetKind string, port *beadanimation.Sender, dest *beadanimation.BeadLine) {
 	e := o.edgeFor(label)
 	e.port = port
 	e.dest = dest

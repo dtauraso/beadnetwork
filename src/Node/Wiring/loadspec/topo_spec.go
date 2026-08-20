@@ -5,10 +5,9 @@ import (
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/PolarRulesPanel"
 	"os"
 
+	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/polarindex"
-	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
-	"github.com/dtauraso/wirefold/src/Node/outport"
 	"github.com/dtauraso/wirefold/src/spatial"
 )
 
@@ -142,11 +141,11 @@ func validateNoFanIn(spec TopoSpec) error {
 	return nil
 }
 
-func NodeSendRule(n specNode, port string) outport.SendRule {
+func NodeSendRule(n specNode, port string) beadanimation.SendRule {
 	if n.Data == nil || n.Data.SendRules == nil {
-		return outport.RuleConsumeGated
+		return beadanimation.RuleConsumeGated
 	}
 
-	rule, _ := outport.ParseSendRule(n.Data.SendRules[port])
+	rule, _ := beadanimation.ParseSendRule(n.Data.SendRules[port])
 	return rule
 }

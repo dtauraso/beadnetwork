@@ -3,9 +3,8 @@ package portwiring
 import (
 	"context"
 
+	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/src/Node/Interior"
-	"github.com/dtauraso/wirefold/src/Node/inport"
-	"github.com/dtauraso/wirefold/src/Node/outport"
 	B "github.com/dtauraso/wirefold/src/schema/buffer-layout"
 )
 
@@ -39,16 +38,16 @@ func InteriorEventSinkGetter(g func() *interior.Emitter) func() B.EventSink {
 
 const NoPortRow = int32(-1)
 
-func NewInPort(portName string, ctx context.Context, name string, pb PortBindings, getSink func() B.EventSink) *inport.In {
+func NewInPort(portName string, ctx context.Context, name string, pb PortBindings, getSink func() B.EventSink) *beadanimation.Receiver {
 	if b := pb.singlePaced[portName]; b.pw != nil {
-		return inport.NewInPaced(b.pw, ctx, name, portName, getSink, NoPortRow)
+		return beadanimation.NewInPaced(b.pw, ctx, name, portName, getSink, NoPortRow)
 	} else {
 		ch := pb.deadEndIn(portName)
-		return inport.NewInChan(ch, name, portName, getSink)
+		return beadanimation.NewInChan(ch, name, portName, getSink)
 	}
 }
 
-func NewOutPort(portName string, ctx context.Context, name string, pb PortBindings, sourceOuts *[]*outport.Out, getSink func() B.EventSink) *outport.Out {
+func NewOutPort(portName string, ctx context.Context, name string, pb PortBindings, sourceOuts *[]*beadanimation.Sender, getSink func() B.EventSink) *beadanimation.Sender {
 	if b := pb.singlePaced[portName]; b.pw != nil {
 		targetRow := int32(-1)
 		if b.pw.Target != "" {
@@ -56,7 +55,7 @@ func NewOutPort(portName string, ctx context.Context, name string, pb PortBindin
 				targetRow = r
 			}
 		}
-		o := outport.NewOutPaced(b.pw, ctx, name, portName, b.rule, b.label, getSink, NoPortRow, targetRow, NoPortRow)
+		o := beadanimation.NewOutPaced(b.pw, ctx, name, portName, b.rule, b.label, getSink, NoPortRow, targetRow, NoPortRow)
 		*sourceOuts = append(*sourceOuts, o)
 		if pb.OutSink != nil {
 			pb.OutSink[name+"."+portName] = o
@@ -64,12 +63,12 @@ func NewOutPort(portName string, ctx context.Context, name string, pb PortBindin
 		return o
 	}
 	ch := pb.deadEndOut(portName)
-	return outport.NewOutChanDeadEnd(ch, name, portName)
+	return beadanimation.NewOutChanDeadEnd(ch, name, portName)
 }
 
-func NewBroadcastPort(portName string, ctx context.Context, name string, pb PortBindings, sourceOuts *[]*outport.Out, getSink func() B.EventSink) outport.Broadcast {
+func NewBroadcastPort(portName string, ctx context.Context, name string, pb PortBindings, sourceOuts *[]*beadanimation.Sender, getSink func() B.EventSink) beadanimation.Broadcast {
 	if bs := pb.broadcastPaced[portName]; len(bs) > 0 {
-		outs := make(outport.Broadcast, len(bs))
+		outs := make(beadanimation.Broadcast, len(bs))
 		for i, b := range bs {
 			targetRow := int32(-1)
 			if b.pw.Target != "" {
@@ -77,7 +76,7 @@ func NewBroadcastPort(portName string, ctx context.Context, name string, pb Port
 					targetRow = r
 				}
 			}
-			o := outport.NewOutPaced(b.pw, ctx, name, b.handle, b.rule, b.label, getSink, NoPortRow, targetRow, NoPortRow)
+			o := beadanimation.NewOutPaced(b.pw, ctx, name, b.handle, b.rule, b.label, getSink, NoPortRow, targetRow, NoPortRow)
 			outs[i] = o
 			*sourceOuts = append(*sourceOuts, o)
 			if pb.OutSink != nil {
@@ -88,9 +87,9 @@ func NewBroadcastPort(portName string, ctx context.Context, name string, pb Port
 	}
 	{
 		chs := pb.deadEndOutSlice(portName)
-		outs := make(outport.Broadcast, len(chs))
+		outs := make(beadanimation.Broadcast, len(chs))
 		for i, c := range chs {
-			outs[i] = outport.NewOutChanDeadEnd(c, name, portName)
+			outs[i] = beadanimation.NewOutChanDeadEnd(c, name, portName)
 		}
 		return outs
 	}

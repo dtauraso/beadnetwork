@@ -4,13 +4,13 @@ import (
 	"context"
 	"sync"
 
+	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"
-	"github.com/dtauraso/wirefold/src/Node/outport"
 )
 
-func (mr *MoverRegistry) Bind(outSink map[string]*outport.Out, slotReg inputcodec.SlotRegistry, edgeRowFor func(src, dst string) (int32, bool)) {
+func (mr *MoverRegistry) Bind(outSink map[string]*beadanimation.Sender, slotReg inputcodec.SlotRegistry, edgeRowFor func(src, dst string) (int32, bool)) {
 	for edgeID, e := range mr.edges {
-		var port *outport.Out
+		var port *beadanimation.Sender
 		if oo, ok := outSink[e.SrcID()+"."+e.SrcHandle()]; ok {
 			e.SetOut(oo)
 			mr.edgeOut[edgeID] = oo

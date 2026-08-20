@@ -5,6 +5,8 @@ import (
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
 
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/TiltPanel"
+	"github.com/dtauraso/wirefold/src/Clock"
+	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"
@@ -13,11 +15,8 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/polarindex"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/topoderive"
-	"github.com/dtauraso/wirefold/src/Clock"
 	"github.com/dtauraso/wirefold/src/NodeKinds/nodeapi"
 	"github.com/dtauraso/wirefold/src/spatial"
-	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
-	"github.com/dtauraso/wirefold/src/Node/outport"
 )
 
 type buildCtx struct {
@@ -50,7 +49,7 @@ type buildCtx struct {
 	outbound       map[string]map[string][]string
 	outboundHandle map[string]map[string][]string
 
-	outSink map[string]*outport.Out
+	outSink map[string]*beadanimation.Sender
 	nodes   []nodeapi.Node
 
 	vectorOutByNode map[string]chan TiltPanel.TiltVectorMsg

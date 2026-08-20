@@ -1,6 +1,4 @@
-package outport
-
-import beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
+package beadanimation
 
 type DriveOutcome uint8
 
@@ -30,13 +28,13 @@ func (di DriveItem) BufferFull() bool {
 	return di.outcome == DriveBufferFull
 }
 
-func (o *Out) PlaceDrivenAt(v int, tick int64) DriveItem {
+func (o *Sender) PlaceDrivenAt(v int, tick int64) DriveItem {
 	if o == nil {
 		return DriveItem{outcome: DriveFailed}
 	}
 	if o.pw != nil {
 		switch o.placeDrivenNoWalker(v, tick) {
-		case beadanimation.SendPlaced:
+		case SendPlaced:
 			return DriveItem{outcome: DrivePlaced}
 		default:
 			return DriveItem{outcome: DriveBufferFull}

@@ -3,6 +3,7 @@ package build
 import (
 	"fmt"
 
+	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/kindreg"
@@ -12,8 +13,6 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/portwiring"
 	"github.com/dtauraso/wirefold/src/NodeKinds/nodeapi"
-	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
-	"github.com/dtauraso/wirefold/src/Node/outport"
 )
 
 func (b *buildCtx) buildNodes() error {
@@ -39,7 +38,7 @@ func (b *buildCtx) buildNodes() error {
 			return ng
 		},
 	}
-	outSink := map[string]*outport.Out{}
+	outSink := map[string]*beadanimation.Sender{}
 	nodes := make([]nodeapi.Node, 0, len(b.spec.Nodes))
 	for _, n := range b.spec.Nodes {
 		bind := kindreg.Registry[n.Type]
@@ -103,6 +102,6 @@ func (b *buildCtx) buildNodes() error {
 	return nil
 }
 
-func bindDispatch(md *dispatch.MoveDispatch, outSink map[string]*outport.Out, destRun map[string]*beadanimation.BeadLine) {
+func bindDispatch(md *dispatch.MoveDispatch, outSink map[string]*beadanimation.Sender, destRun map[string]*beadanimation.BeadLine) {
 	md.MR.Bind(outSink, inputcodec.SlotRegistry(destRun), md.RT.EdgeRowForPair)
 }
