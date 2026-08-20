@@ -128,6 +128,33 @@ func WriteAtomic(path string, v any) error {
 	return writeBytesAtomic(path, out)
 }
 
+func WriteVecAtomicIfChanged(path string, vs ...float64) error {
+	out := make([]byte, 0, len(vs)*8)
+	for _, v := range vs {
+		out = binary.LittleEndian.AppendUint64(out, math.Float64bits(v))
+	}
+	if prev, err := os.ReadFile(path); err == nil && string(prev) == string(out) {
+		return nil
+	}
+	return writeBytesAtomic(path, out)
+}
+
+func ReadVecIfExists(path string, n int) ([]float64, bool) {
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		return nil, false
+	}
+	if len(raw) != n*8 {
+		LogPersistErr("valuefile: CORRUPT VEC", path, fmt.Errorf("vec leaf is %d bytes, want %d", len(raw), n*8))
+		return nil, false
+	}
+	out := make([]float64, n)
+	for i := range out {
+		out[i] = math.Float64frombits(binary.LittleEndian.Uint64(raw[i*8:]))
+	}
+	return out, true
+}
+
 func writeBytesAtomic(path string, out []byte) error {
 	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
 		return err

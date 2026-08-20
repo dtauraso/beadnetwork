@@ -7,7 +7,7 @@ const ColumnsPerNodeStream = 145
 
 const ColumnsPerEdgeStream = 11
 
-const ColumnsInSingletonStreams = 292
+const ColumnsInSingletonStreams = 283
 
 // ColumnStreamCount is every column channel a scene of this size needs.
 func ColumnStreamCount(nodes, edges int) int {
@@ -21,20 +21,20 @@ const ColStreamBaseTiltArrow = 80
 const ColStreamBaseChannelVector = 113
 const ColStreamBaseEdge = 0
 const ColStreamBaseCamera = 0
-const ColStreamBaseOverlay = 9
-const ColStreamBasePanel = 29
-const ColStreamBaseScene = 40
-const ColStreamBaseNodeRingPoint = 49
-const ColStreamBaseBeadRingPoint = 52
-const ColStreamBaseSpeedPanel = 55
-const ColStreamBaseTiltPanel = 72
-const ColStreamBaseAnglePill = 101
-const ColStreamBaseNodesPill = 138
-const ColStreamBaseOverlaysPill = 175
-const ColStreamBaseFitChip = 205
-const ColStreamBaseTabStrip = 210
-const ColStreamBaseRulesPanel = 221
-const ColStreamBasePointerTarget = 284
+const ColStreamBaseOverlay = 0
+const ColStreamBasePanel = 20
+const ColStreamBaseScene = 31
+const ColStreamBaseNodeRingPoint = 40
+const ColStreamBaseBeadRingPoint = 43
+const ColStreamBaseSpeedPanel = 46
+const ColStreamBaseTiltPanel = 63
+const ColStreamBaseAnglePill = 92
+const ColStreamBaseNodesPill = 129
+const ColStreamBaseOverlaysPill = 166
+const ColStreamBaseFitChip = 196
+const ColStreamBaseTabStrip = 201
+const ColStreamBaseRulesPanel = 212
+const ColStreamBasePointerTarget = 275
 
 const ColStreamNodeNodeId = ColStreamBaseNode + 0
 const ColStreamNodeIndexR = ColStreamBaseNode + 1
@@ -198,15 +198,6 @@ const ColStreamChannelVectorHeadM12 = ColStreamBaseChannelVector + 28
 const ColStreamChannelVectorHeadM13 = ColStreamBaseChannelVector + 29
 const ColStreamChannelVectorHeadM14 = ColStreamBaseChannelVector + 30
 const ColStreamChannelVectorHeadM15 = ColStreamBaseChannelVector + 31
-const ColStreamCameraPX = ColStreamBaseCamera + 0
-const ColStreamCameraPY = ColStreamBaseCamera + 1
-const ColStreamCameraPZ = ColStreamBaseCamera + 2
-const ColStreamCameraR = ColStreamBaseCamera + 3
-const ColStreamCameraPosPhi = ColStreamBaseCamera + 4
-const ColStreamCameraPosTheta = ColStreamBaseCamera + 5
-const ColStreamCameraUpPhi = ColStreamBaseCamera + 6
-const ColStreamCameraUpTheta = ColStreamBaseCamera + 7
-const ColStreamCameraFocalPx = ColStreamBaseCamera + 8
 const ColStreamOverlaySceneTori = ColStreamBaseOverlay + 0
 const ColStreamOverlayScenePoles = ColStreamBaseOverlay + 1
 const ColStreamOverlayNodePoles = ColStreamBaseOverlay + 2

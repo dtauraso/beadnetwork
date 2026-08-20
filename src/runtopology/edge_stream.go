@@ -6,10 +6,10 @@ import (
 
 	B "github.com/dtauraso/wirefold/src/Buffer"
 
-	EdgeB "github.com/dtauraso/wirefold/src/Node/Edge"
-	W "github.com/dtauraso/wirefold/src/Input/dispatch"
-	SW "github.com/dtauraso/wirefold/src/runtopology/streamwire"
 	"github.com/dtauraso/wirefold/src/Buffer/colstream"
+	W "github.com/dtauraso/wirefold/src/Input/dispatch"
+	EdgeB "github.com/dtauraso/wirefold/src/Node/Edge"
+	SW "github.com/dtauraso/wirefold/src/runtopology/streamwire"
 )
 
 func wireEdgeStreams(streamFDs SW.StreamFDs, md *W.MoveDispatch) {

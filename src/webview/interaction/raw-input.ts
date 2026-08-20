@@ -11,6 +11,8 @@ export function sendRawInput(event: RawInputEvent): void {
   postGoRecord(encodeRawInput(event));
 }
 
+const wheelTotal = { x: 0, y: 0 };
+
 function classifyHit(pickRequest: PickRef, ndcX: number, ndcY: number): { kind: RawHit["kind"]; isInput: boolean; nodeRow: number; portRow: number; edgeRow: number } {
 
   const edgeStr = pickRequest.current?.(ndcX, ndcY, { edgeOnly: true }) ?? null;
@@ -101,13 +103,15 @@ export function buildWheelRaw(
   const { ndcX, ndcY } = pixelToNDC(e.clientX, e.clientY, rect);
   const c = classifyHit(pickRequest, ndcX, ndcY);
   const hit: RawHit = { kind: c.kind, isInput: c.isInput, nodeRow: c.nodeRow, portRow: c.portRow, edgeRow: c.edgeRow };
+  wheelTotal.x += e.deltaX;
+  wheelTotal.y += e.deltaY;
   return {
     kind: "wheel",
     x: e.clientX, y: e.clientY,
     rectLeft: rect.left, rectTop: rect.top, rectWidth: rect.width, rectHeight: rect.height,
     button: -1,
     ctrl: e.ctrlKey, shift: e.shiftKey, alt: e.altKey, meta: e.metaKey,
-    deltaX: e.deltaX, deltaY: e.deltaY,
+    deltaX: wheelTotal.x, deltaY: wheelTotal.y,
     hit,
   };
 }

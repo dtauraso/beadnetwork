@@ -9,14 +9,14 @@ import (
 
 	B "github.com/dtauraso/wirefold/src/Buffer"
 
-	EdgeB "github.com/dtauraso/wirefold/src/Node/Edge"
+	"github.com/dtauraso/wirefold/src/Buffer/colstream"
 	W "github.com/dtauraso/wirefold/src/Input/dispatch"
+	EdgeB "github.com/dtauraso/wirefold/src/Node/Edge"
 	"github.com/dtauraso/wirefold/src/Node/framegeom"
 	"github.com/dtauraso/wirefold/src/Node/nodeactor/nodeframe"
-	SW "github.com/dtauraso/wirefold/src/runtopology/streamwire"
 	TiltB "github.com/dtauraso/wirefold/src/Scene/TiltVectors"
 	VecB "github.com/dtauraso/wirefold/src/Scene/Vectors"
-	"github.com/dtauraso/wirefold/src/Buffer/colstream"
+	SW "github.com/dtauraso/wirefold/src/runtopology/streamwire"
 )
 
 func wireNodeStreams(streamFDs SW.StreamFDs, md *W.MoveDispatch) {

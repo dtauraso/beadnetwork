@@ -26,8 +26,6 @@ import (
 type Handlers struct {
 	ApplyEdit func(msg inputcodec.StdinMsg)
 
-	HandleRawInput func(msg inputcodec.StdinMsg)
-
 	HandleSave func()
 }
 
@@ -97,9 +95,14 @@ func RunStdinReader(ctx context.Context, r io.Reader, h Handlers) {
 					h.ApplyEdit(msg)
 				}
 			case "raw-input":
-				if h.HandleRawInput != nil {
-					h.HandleRawInput(msg)
-				}
+				// Raw input is the current input, and it arrives as a file the
+				// gesture goroutine reads when it wakes. A record here means
+				// something is still sending it down the pipe, where it would
+				// queue and replay after the fingers stop.
+				fmt.Fprintf(os.Stderr,
+					"stdin_reader: a raw-input record arrived on stdin, but raw input crosses as %s; "+
+						"the sender was not updated and this event is dropped rather than queued\n",
+					"view/input/current.bin")
 			case "save":
 				if h.HandleSave != nil {
 					h.HandleSave()

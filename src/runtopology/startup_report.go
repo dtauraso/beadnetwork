@@ -1,8 +1,8 @@
 package runtopology
 
 import (
-	W "github.com/dtauraso/wirefold/src/Input/dispatch"
 	B "github.com/dtauraso/wirefold/src/Buffer"
+	W "github.com/dtauraso/wirefold/src/Input/dispatch"
 )
 
 func emitStartupBreadcrumbs(md *W.MoveDispatch, scenePath string, nodeCount int) {

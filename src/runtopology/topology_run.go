@@ -6,14 +6,15 @@ import (
 	"os"
 
 	"github.com/dtauraso/wirefold/src/Scene/scene"
+	"github.com/dtauraso/wirefold/src/Scene/scenepaths"
 
-	"github.com/dtauraso/wirefold/src/Clock"
+	clock "github.com/dtauraso/wirefold/src/Clock"
 
-	"github.com/dtauraso/wirefold/src/Ring/Bead"
+	bead "github.com/dtauraso/wirefold/src/Ring/Bead"
 
 	"github.com/dtauraso/wirefold/src/Chrome/Tabs"
-	SW "github.com/dtauraso/wirefold/src/runtopology/streamwire"
 	NodeShape "github.com/dtauraso/wirefold/src/Ring/NodeShape"
+	SW "github.com/dtauraso/wirefold/src/runtopology/streamwire"
 )
 
 func RunTopology(ctx context.Context, cancel context.CancelFunc, topologyPath string, clk clock.Clock) {
@@ -50,7 +51,7 @@ func RunTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 
 	moverWG := md.Start(ctx)
 
-	stdinWG, gestureWG := startStdinReader(ctx, cancel, slotReg, md, speedSinks)
+	stdinWG, gestureWG := startStdinReader(ctx, cancel, slotReg, md, speedSinks, clk, scenepaths.InputFilePath(scenePath))
 	wg := launchNodeGoroutines(ctx, nodes)
 	joinAll(wg, moverWG, stdinWG, gestureWG)
 }

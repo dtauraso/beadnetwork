@@ -6,8 +6,11 @@ import * as vscode from "vscode";
 export function buildWebviewHtml(
   webview: vscode.Webview,
   extensionPath: string,
+  scenePath: string,
 ): string {
   const scriptPath = path.join(extensionPath, "out", "webview.js");
+  const sceneBase = webview.asWebviewUri(vscode.Uri.file(scenePath)).toString();
+  const srcBase = webview.asWebviewUri(vscode.Uri.file(path.join(extensionPath, "src"))).toString();
 
   const scriptUri = webview
     .asWebviewUri(vscode.Uri.file(scriptPath))
@@ -20,6 +23,7 @@ export function buildWebviewHtml(
     `style-src ${webview.cspSource} 'unsafe-inline'`,
     `script-src 'nonce-${nonce}'`,
     `font-src ${webview.cspSource}`,
+    `connect-src ${webview.cspSource}`,
   ].join("; ");
 
   return `<!DOCTYPE html>
@@ -40,6 +44,10 @@ export function buildWebviewHtml(
        is mounted. The two drag-log slots went with the rest: nothing had rendered into them
        since before this change. -->
   <div id="app"></div>
+  <script nonce="${nonce}">
+    window.WIREFOLD_SCENE_BASE = "${sceneBase}";
+    window.WIREFOLD_SRC_BASE = "${srcBase}";
+  </script>
   <script nonce="${nonce}" src="${scriptUri.toString()}"></script>
 </body>
 </html>`;

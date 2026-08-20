@@ -7,9 +7,8 @@ import (
 )
 
 const (
-	FilePivotX   = "pivot-x.bin"
-	FilePivotY   = "pivot-y.bin"
-	FilePivotZ   = "pivot-z.bin"
+	FilePivot = "pivot.bin"
+
 	FileR        = "r.bin"
 	FilePosPhi   = "pos-phi.bin"
 	FilePosTheta = "pos-theta.bin"
@@ -25,6 +24,10 @@ func (p *ViewpointPersister) Schedule(v Viewpoint) {
 	if p == nil || p.Dir == "" {
 		return
 	}
+	if err := valuefile.WriteVecAtomicIfChanged(filepath.Join(p.Dir, FilePivot), v.Pivot.X, v.Pivot.Y, v.Pivot.Z); err != nil {
+		valuefile.LogPersistErr("scene_camera_persist", p.Dir, err)
+		return
+	}
 	for name, value := range viewpointValues(v) {
 		if err := valuefile.WriteAtomicIfChanged(filepath.Join(p.Dir, name), value); err != nil {
 			valuefile.LogPersistErr("scene_camera_persist", p.Dir, err)
@@ -35,7 +38,6 @@ func (p *ViewpointPersister) Schedule(v Viewpoint) {
 
 func viewpointValues(v Viewpoint) map[string]float64 {
 	return map[string]float64{
-		FilePivotX: v.Pivot.X, FilePivotY: v.Pivot.Y, FilePivotZ: v.Pivot.Z,
 		FileR:        v.R,
 		FilePosPhi:   v.Pos.Phi,
 		FilePosTheta: v.Pos.Theta,
@@ -57,9 +59,11 @@ func ReadSceneCamera(dir string) (v Viewpoint, ok bool) {
 	read := func(name string, dst *float64) bool {
 		return valuefile.ReadIfExists(filepath.Join(dir, name), dst)
 	}
-	if !read(FilePivotX, &v.Pivot.X) || !read(FilePivotY, &v.Pivot.Y) || !read(FilePivotZ, &v.Pivot.Z) {
+	pivot, ok := valuefile.ReadVecIfExists(filepath.Join(dir, FilePivot), 3)
+	if !ok {
 		return Viewpoint{}, false
 	}
+	v.Pivot.X, v.Pivot.Y, v.Pivot.Z = pivot[0], pivot[1], pivot[2]
 	if !read(FileR, &v.R) {
 		return Viewpoint{}, false
 	}

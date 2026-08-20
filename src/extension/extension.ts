@@ -4,6 +4,7 @@ import * as vscode from "vscode";
 import { BuildAndRunRunner } from "./runCommand";
 import type { HostToWebviewMsg } from "../Input/messages";
 import { buildWebviewHtml } from "./html";
+import { resolveScenePath } from "./runner/counts";
 import { handleMessage } from "./handle-message";
 import { serveDocsOpen } from "./docs-open";
 import { armHostReloadWatcher } from "./host-reload-watcher";
@@ -50,6 +51,7 @@ function wireMessageHandler(
   folderUri: vscode.Uri | undefined,
   runner: BuildAndRunRunner,
   post: (msg: HostToWebviewMsg) => void,
+  scenePath: string,
 ): void {
   panel.webview.onDidReceiveMessage((raw) => {
     const workspaceFolder = folderUri ? vscode.workspace.getWorkspaceFolder(folderUri) : undefined;
@@ -59,7 +61,7 @@ function wireMessageHandler(
       return root ? vscode.Uri.file(root) : undefined;
     })();
     const logUri = workspaceFolder?.uri ?? folderUri ?? repoRootUri;
-    void handleMessage(raw, { logUri, runner, post }).catch((err: unknown) => {
+    void handleMessage(raw, { logUri, runner, post, scenePath }).catch((err: unknown) => {
       console.error("topology: handleMessage failed", err);
     });
   });
@@ -71,6 +73,12 @@ function openTopologyEditor(context: vscode.ExtensionContext, folderUri?: vscode
   const probeRoot = resolveRepoRoot(vscode.workspace.workspaceFolders?.[0]?.uri.fsPath);
   if (probeRoot) resetProbeLogs(probeRoot);
 
+  if (topologyPath === undefined) {
+    void vscode.window.showErrorMessage("Topology Editor: no topology directory found in this workspace.");
+    return;
+  }
+  const scenePath = resolveScenePath(topologyPath);
+
   const panel = vscode.window.createWebviewPanel(
     "topology.editor",
     "Topology Editor",
@@ -78,10 +86,14 @@ function openTopologyEditor(context: vscode.ExtensionContext, folderUri?: vscode
     {
       enableScripts: true,
       retainContextWhenHidden: true,
-      localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, "out"))],
+      localResourceRoots: [
+        vscode.Uri.file(path.join(context.extensionPath, "out")),
+        vscode.Uri.file(path.join(context.extensionPath, "src")),
+        vscode.Uri.file(scenePath),
+      ],
     },
   );
-  panel.webview.html = buildWebviewHtml(panel.webview, context.extensionPath);
+  panel.webview.html = buildWebviewHtml(panel.webview, context.extensionPath, scenePath);
 
   const post = (msg: HostToWebviewMsg): void => {
     void panel.webview.postMessage(msg);
@@ -91,7 +103,7 @@ function openTopologyEditor(context: vscode.ExtensionContext, folderUri?: vscode
     (snapshot) => post(snapshot),
   );
 
-  const bundleWatcher = armBundleWatcher(panel, context);
+  const bundleWatcher = armBundleWatcher(panel, context, scenePath);
 
   const repoRoot = resolveRepoRoot(vscode.workspace.workspaceFolders?.[0]?.uri.fsPath);
   const goWatcher = armGoWatcher(repoRoot, runner, panel);
@@ -104,7 +116,7 @@ function openTopologyEditor(context: vscode.ExtensionContext, folderUri?: vscode
     runner.dispose();
   });
 
-  wireMessageHandler(panel, folderUri, runner, post);
+  wireMessageHandler(panel, folderUri, runner, post, scenePath);
 
   runner.run(topologyPath);
 }

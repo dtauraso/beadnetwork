@@ -114,6 +114,11 @@ dist/
 /topology/view/overlays/
 /topology/view/panels/
 
+# The current input the gesture goroutine reads. It is the live pointer, not
+# saved state — committing it would commit where a mouse was.
+/topology/view/input/
+/topology-pair/view/input/
+
 # Hook block log (local audit trail, not for VCS)
 .claude/hooks/go-blocks.log
 
