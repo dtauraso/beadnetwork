@@ -9,7 +9,7 @@ import (
 type Receiver struct {
 	ch <-chan int
 
-	pw  *BeadLine
+	line  *BeadLine
 	ctx context.Context
 
 	node string
@@ -24,8 +24,8 @@ func (i *Receiver) PollRecv() (int, bool) {
 	if i == nil {
 		return 0, false
 	}
-	if i.pw != nil {
-		n, ok := i.pw.Recv()
+	if i.line != nil {
+		n, ok := i.line.Recv()
 		if !ok {
 			return 0, false
 		}
@@ -62,15 +62,15 @@ func NewInChan(ch <-chan int, node, port string, stream func() B.EventSink) *Rec
 	return &Receiver{ch: ch, node: node, port: port, portRow: -1, stream: stream}
 }
 
-func NewInPaced(pw *BeadLine, ctx context.Context, node, port string, stream func() B.EventSink, portRow int32) *Receiver {
-	return &Receiver{pw: pw, ctx: ctx, node: node, port: port, stream: stream, portRow: portRow}
+func NewInPaced(line *BeadLine, ctx context.Context, node, port string, stream func() B.EventSink, portRow int32) *Receiver {
+	return &Receiver{line: line, ctx: ctx, node: node, port: port, stream: stream, portRow: portRow}
 }
 
 func (i *Receiver) HasRun() bool {
 	if i == nil {
 		return false
 	}
-	return i.pw != nil
+	return i.line != nil
 }
 
 func (i *Receiver) Breadcrumb(event, detail string) {

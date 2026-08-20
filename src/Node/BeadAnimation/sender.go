@@ -16,7 +16,7 @@ type outGeom struct {
 type Sender struct {
 	ch chan<- int
 
-	pw  *BeadLine
+	line  *BeadLine
 	ctx context.Context
 
 	node string
@@ -80,7 +80,7 @@ func (o *Sender) placementFrom(g outGeom) BeadPlacement {
 }
 
 func (o *Sender) Paced() bool {
-	return o != nil && o.pw != nil
+	return o != nil && o.line != nil
 }
 
 func (o *Sender) Gated() bool {

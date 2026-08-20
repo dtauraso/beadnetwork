@@ -32,7 +32,7 @@ func (o *Sender) PlaceDrivenAt(v int, tick int64) DriveItem {
 	if o == nil {
 		return DriveItem{outcome: DriveFailed}
 	}
-	if o.pw != nil {
+	if o.line != nil {
 		switch o.placeDrivenNoWalker(v, tick) {
 		case SendPlaced:
 			return DriveItem{outcome: DrivePlaced}
