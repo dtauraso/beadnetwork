@@ -7,7 +7,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/rulenode"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/rulespanel"
-	"github.com/dtauraso/wirefold/src/OverlaysDropdown"
+	"github.com/dtauraso/wirefold/src/Chrome/OverlaysDropdown"
 )
 
 func applyRulesHit(ctx context.Context, md *dispatch.MoveDispatch, h rulespanel.Hit) {

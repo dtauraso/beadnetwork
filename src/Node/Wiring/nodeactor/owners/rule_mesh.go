@@ -3,7 +3,7 @@ package owners
 import (
 	"fmt"
 	"github.com/dtauraso/wirefold/src/Node/spatial"
-	"github.com/dtauraso/wirefold/src/PolarRulesPanel"
+	"github.com/dtauraso/wirefold/src/Chrome/PolarRulesPanel"
 	"strconv"
 )
 

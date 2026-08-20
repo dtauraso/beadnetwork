@@ -5,8 +5,8 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/scenepaths"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/scenepersist"
-	"github.com/dtauraso/wirefold/src/AngleDropdown"
-	"github.com/dtauraso/wirefold/src/OverlaysDropdown"
+	"github.com/dtauraso/wirefold/src/Chrome/AngleDropdown"
+	"github.com/dtauraso/wirefold/src/Chrome/OverlaysDropdown"
 )
 
 type Persisters struct {

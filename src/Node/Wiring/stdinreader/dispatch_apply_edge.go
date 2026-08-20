@@ -3,7 +3,7 @@ package stdinreader
 import (
 	"context"
 	"fmt"
-	"github.com/dtauraso/wirefold/src/SliderPanel"
+	"github.com/dtauraso/wirefold/src/Chrome/SliderPanel"
 
 	"github.com/dtauraso/wirefold/src/Node/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"

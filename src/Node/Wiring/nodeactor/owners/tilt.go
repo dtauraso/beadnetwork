@@ -2,7 +2,7 @@ package owners
 
 import (
 	"github.com/dtauraso/wirefold/src/NodeKinds/PairNode/tiltring"
-	"github.com/dtauraso/wirefold/src/TiltPanel"
+	"github.com/dtauraso/wirefold/src/Chrome/TiltPanel"
 )
 
 type Tilt struct {

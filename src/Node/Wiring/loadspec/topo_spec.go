@@ -2,7 +2,7 @@ package loadspec
 
 import (
 	"fmt"
-	"github.com/dtauraso/wirefold/src/PolarRulesPanel"
+	"github.com/dtauraso/wirefold/src/Chrome/PolarRulesPanel"
 	"os"
 
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodegeom"

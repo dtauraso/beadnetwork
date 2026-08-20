@@ -2,7 +2,7 @@ package nodeinbox
 
 import (
 	"context"
-	"github.com/dtauraso/wirefold/src/AngleDropdown"
+	"github.com/dtauraso/wirefold/src/Chrome/AngleDropdown"
 
 	"github.com/dtauraso/wirefold/src/Node/Wiring/movemsg"
 )

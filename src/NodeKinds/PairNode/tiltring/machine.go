@@ -3,7 +3,7 @@ package tiltring
 import (
 	"strconv"
 
-	"github.com/dtauraso/wirefold/src/TiltPanel"
+	"github.com/dtauraso/wirefold/src/Chrome/TiltPanel"
 )
 
 type Machine struct {

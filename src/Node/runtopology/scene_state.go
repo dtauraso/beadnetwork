@@ -6,7 +6,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/scenecamera"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/scenepersist"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/viewpersist"
-	"github.com/dtauraso/wirefold/src/SliderPanel"
+	"github.com/dtauraso/wirefold/src/Chrome/SliderPanel"
 	T "github.com/dtauraso/wirefold/src/Trace"
 )
 

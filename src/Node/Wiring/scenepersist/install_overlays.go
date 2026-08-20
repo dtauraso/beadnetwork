@@ -4,7 +4,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/scenepaths"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/viewstate"
 
-	"github.com/dtauraso/wirefold/src/OverlaysDropdown"
+	"github.com/dtauraso/wirefold/src/Chrome/OverlaysDropdown"
 	T "github.com/dtauraso/wirefold/src/Trace"
 )
 

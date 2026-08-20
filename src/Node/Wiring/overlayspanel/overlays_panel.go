@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/dtauraso/wirefold/src/Node/Wiring/panelstack"
-	"github.com/dtauraso/wirefold/src/OverlaysDropdown"
+	"github.com/dtauraso/wirefold/src/Chrome/OverlaysDropdown"
 )
 
 type Rect = panelstack.Rect

@@ -10,7 +10,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/tabstrip"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/tiltpanel"
 	NodeBuf "github.com/dtauraso/wirefold/src/Node"
-	"github.com/dtauraso/wirefold/src/OverlaysDropdown"
+	"github.com/dtauraso/wirefold/src/Chrome/OverlaysDropdown"
 )
 
 type PanelLayout struct {

@@ -10,7 +10,7 @@ import { getEdgeStreamAccessor } from "../../../Node/Edge/edge-stream-blocks";
 import { TiltVectors } from "../nav/TiltVectors";
 import { NodeInstances } from "../../../Node/Shape/NodeInstances";
 import { RuleChannelLines } from "../../../Scene/Vectors/RuleChannelLines";
-import { PanelOverlay } from "../../../PanelOverlay/PanelOverlay";
+import { PanelOverlay } from "../../../Chrome/PanelOverlay/PanelOverlay";
 import { InteriorBeadInstances } from "../../../Node/Interior/InteriorBeadInstances";
 import { BufferCamera } from "../../../Camera/BufferCamera";
 import { BufferLabelProjector } from "../../../Scene/Labels/BufferLabelProjector";

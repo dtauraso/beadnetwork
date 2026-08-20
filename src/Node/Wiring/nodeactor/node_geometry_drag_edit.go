@@ -1,7 +1,7 @@
 package nodeactor
 
 import (
-	"github.com/dtauraso/wirefold/src/PolarRulesPanel"
+	"github.com/dtauraso/wirefold/src/Chrome/PolarRulesPanel"
 )
 
 func (m *NodeGeometry) SetDragRuleCopy(rule *PolarRulesPanel.DragRule, active bool) {

@@ -1,7 +1,7 @@
 package nodeactor
 
 import (
-	"github.com/dtauraso/wirefold/src/PolarRulesPanel"
+	"github.com/dtauraso/wirefold/src/Chrome/PolarRulesPanel"
 	"io"
 
 	"github.com/dtauraso/wirefold/src/Node/Interior"

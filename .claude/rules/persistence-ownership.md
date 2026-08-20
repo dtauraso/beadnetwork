@@ -31,7 +31,7 @@ topology/
 ```
 
 The panels.json file under view/ holds the overlays popover's disclosure open/closed
-state (`viewstate.PanelState`, `src/OverlaysDropdown/panels_persist.go`) — its
+state (`viewstate.PanelState`, `src/Chrome/OverlaysDropdown/panels_persist.go`) — its
 own file, deliberately separate from the overlays.json overlay-visibility file: a panel's
 open/closed state is not an overlay visibility flag, even though the two are persisted,
 streamed, and edited the same way.

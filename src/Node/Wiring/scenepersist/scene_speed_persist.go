@@ -2,7 +2,7 @@ package scenepersist
 
 import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/scene"
-	"github.com/dtauraso/wirefold/src/SliderPanel"
+	"github.com/dtauraso/wirefold/src/Chrome/SliderPanel"
 	"math"
 
 	"encoding/json"

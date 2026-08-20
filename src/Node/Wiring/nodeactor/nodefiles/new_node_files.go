@@ -1,7 +1,7 @@
 package nodefiles
 
 import (
-	"github.com/dtauraso/wirefold/src/PolarRulesPanel"
+	"github.com/dtauraso/wirefold/src/Chrome/PolarRulesPanel"
 	"os"
 	"path/filepath"
 

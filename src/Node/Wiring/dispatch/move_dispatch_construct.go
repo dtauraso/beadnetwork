@@ -6,7 +6,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/polarindex"
 	"github.com/dtauraso/wirefold/src/Node/clock"
-	"github.com/dtauraso/wirefold/src/SliderPanel"
+	"github.com/dtauraso/wirefold/src/Chrome/SliderPanel"
 	T "github.com/dtauraso/wirefold/src/Trace"
 )
 

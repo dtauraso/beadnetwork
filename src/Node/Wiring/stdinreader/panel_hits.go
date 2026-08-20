@@ -15,9 +15,9 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/sceneswitch"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/speedpanel"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/tiltpanel"
-	"github.com/dtauraso/wirefold/src/NodesDropdown"
-	"github.com/dtauraso/wirefold/src/OverlaysDropdown"
-	"github.com/dtauraso/wirefold/src/SliderPanel"
+	"github.com/dtauraso/wirefold/src/Chrome/NodesDropdown"
+	"github.com/dtauraso/wirefold/src/Chrome/OverlaysDropdown"
+	"github.com/dtauraso/wirefold/src/Chrome/SliderPanel"
 	T "github.com/dtauraso/wirefold/src/Trace"
 )
 

@@ -3,7 +3,7 @@ package stdinreader
 import (
 	"context"
 	"fmt"
-	"github.com/dtauraso/wirefold/src/SliderPanel"
+	"github.com/dtauraso/wirefold/src/Chrome/SliderPanel"
 	"math"
 	"strconv"
 
@@ -16,7 +16,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/rulenode"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/scenepersist"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/sceneswitch"
-	"github.com/dtauraso/wirefold/src/NodesDropdown"
+	"github.com/dtauraso/wirefold/src/Chrome/NodesDropdown"
 	T "github.com/dtauraso/wirefold/src/Trace"
 )
 

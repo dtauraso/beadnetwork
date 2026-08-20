@@ -2,7 +2,7 @@ package viewstate
 
 import (
 	"fmt"
-	"github.com/dtauraso/wirefold/src/OverlaysDropdown"
+	"github.com/dtauraso/wirefold/src/Chrome/OverlaysDropdown"
 	"math"
 	"os"
 

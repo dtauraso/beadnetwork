@@ -14,7 +14,7 @@ import (
 	NodeShape "github.com/dtauraso/wirefold/src/Node/Shape"
 	Bld "github.com/dtauraso/wirefold/src/Node/Wiring/build"
 	SW "github.com/dtauraso/wirefold/src/Node/Wiring/streamwire"
-	"github.com/dtauraso/wirefold/src/Tabs"
+	"github.com/dtauraso/wirefold/src/Chrome/Tabs"
 	T "github.com/dtauraso/wirefold/src/Trace"
 )
 

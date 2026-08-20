@@ -2,7 +2,7 @@ package build
 
 import (
 	"context"
-	"github.com/dtauraso/wirefold/src/SliderPanel"
+	"github.com/dtauraso/wirefold/src/Chrome/SliderPanel"
 
 	"github.com/dtauraso/wirefold/src/Node/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/geom/polar"
@@ -17,7 +17,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/clock"
 	"github.com/dtauraso/wirefold/src/Node/nodeapi"
 	"github.com/dtauraso/wirefold/src/Node/spatial"
-	"github.com/dtauraso/wirefold/src/TiltPanel"
+	"github.com/dtauraso/wirefold/src/Chrome/TiltPanel"
 
 	T "github.com/dtauraso/wirefold/src/Trace"
 )

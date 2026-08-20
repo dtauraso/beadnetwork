@@ -1,6 +1,6 @@
 import type { BufferLabelPos } from "../../webview/three/scene/buffer-scene-shared";
-import { panelFont, roundRect } from "../../PanelOverlay/panel-box";
-import * as T from "../../webview/three/controls/chrome-theme";
+import { panelFont, roundRect } from "../../Chrome/PanelOverlay/panel-box";
+import * as T from "../../Chrome/chrome-theme";
 
 const PAD_X = 8;
 const PAD_Y = 3;

@@ -3,12 +3,12 @@ package stdinreader
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/src/OverlaysDropdown"
-	"github.com/dtauraso/wirefold/src/SliderPanel"
+	"github.com/dtauraso/wirefold/src/Chrome/OverlaysDropdown"
+	"github.com/dtauraso/wirefold/src/Chrome/SliderPanel"
 
 	"github.com/dtauraso/wirefold/src/Node/Wiring/dispatch"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"
-	"github.com/dtauraso/wirefold/src/NodesDropdown"
+	"github.com/dtauraso/wirefold/src/Chrome/NodesDropdown"
 	T "github.com/dtauraso/wirefold/src/Trace"
 )
 

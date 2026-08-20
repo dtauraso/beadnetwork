@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/scene"
-	"github.com/dtauraso/wirefold/src/AngleDropdown"
-	"github.com/dtauraso/wirefold/src/TiltPanel"
+	"github.com/dtauraso/wirefold/src/Chrome/AngleDropdown"
+	"github.com/dtauraso/wirefold/src/Chrome/TiltPanel"
 	"strconv"
 
 	"github.com/dtauraso/wirefold/src/Node/Wiring/dispatch"
