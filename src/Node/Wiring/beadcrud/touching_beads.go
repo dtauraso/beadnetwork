@@ -3,7 +3,7 @@ package beadcrud
 import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/edgegeom"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodegeom"
-	lattice "github.com/dtauraso/wirefold/src/Node/bead/lattice"
+	lattice "github.com/dtauraso/wirefold/src/Bead/lattice"
 )
 
 type TouchingBead struct {

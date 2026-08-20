@@ -1,8 +1,8 @@
 package PairNode
 
 import (
-	"github.com/dtauraso/wirefold/src/Node/bead/inport"
-	"github.com/dtauraso/wirefold/src/Node/bead/outport"
+	"github.com/dtauraso/wirefold/src/Bead/inport"
+	"github.com/dtauraso/wirefold/src/Bead/outport"
 	"github.com/dtauraso/wirefold/src/Node/clock"
 
 	"github.com/dtauraso/wirefold/src/NodeKinds/PairNode/tiltring"

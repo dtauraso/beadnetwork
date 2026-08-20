@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/dtauraso/wirefold/src/Node/Wiring/interior"
-	"github.com/dtauraso/wirefold/src/Node/bead/inport"
-	"github.com/dtauraso/wirefold/src/Node/bead/outport"
+	"github.com/dtauraso/wirefold/src/Bead/inport"
+	"github.com/dtauraso/wirefold/src/Bead/outport"
 	"github.com/dtauraso/wirefold/src/Node/rowevent"
 
 	T "github.com/dtauraso/wirefold/src/Trace"

@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: src/Node/bead/beadchain/bead_actor.go,src/Node/bead/*.go | a bead goroutine's select must have NO default: case — it parks, it never spins
+# PLACEMENT: src/Bead/beadchain/bead_actor.go,src/Bead/*.go | a bead goroutine's select must have NO default: case — it parks, it never spins
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
-FILE="$REPO_ROOT/src/Node/bead/beadchain/bead_actor.go"
+FILE="$REPO_ROOT/src/Bead/beadchain/bead_actor.go"
 
 if [ ! -f "$FILE" ]; then
   echo "✗ no-select-default: MISCONFIGURED — file not found: $FILE" >&2
@@ -26,4 +26,4 @@ if echo "$body" | grep -qE '^\s*default:'; then
   exit 1
 fi
 
-echo "✓ no default: in Bead.run's select (src/Node/bead/beadchain/bead_actor.go) — the loop parks, it does not spin."
+echo "✓ no default: in Bead.run's select (src/Bead/beadchain/bead_actor.go) — the loop parks, it does not spin."

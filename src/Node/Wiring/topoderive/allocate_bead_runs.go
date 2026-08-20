@@ -4,7 +4,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/loadspec"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodegeom"
-	"github.com/dtauraso/wirefold/src/Node/bead"
+	"github.com/dtauraso/wirefold/src/Bead"
 
 	T "github.com/dtauraso/wirefold/src/Trace"
 )

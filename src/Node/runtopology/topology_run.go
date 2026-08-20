@@ -9,7 +9,7 @@ import (
 
 	"github.com/dtauraso/wirefold/src/Node/clock"
 
-	"github.com/dtauraso/wirefold/src/Node/bead"
+	"github.com/dtauraso/wirefold/src/Bead"
 
 	NodeShape "github.com/dtauraso/wirefold/src/Node/Shape"
 	Bld "github.com/dtauraso/wirefold/src/Node/Wiring/build"

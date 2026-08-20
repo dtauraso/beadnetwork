@@ -11,7 +11,7 @@ cd "$REPO_ROOT"
 readonly MIN_MSG_LEN=30
 
 ROOTS=()
-for d in src/Node src/schema/buffer-layout src/Trace; do
+for d in src/Node src/NodeKinds src/Bead src/schema/buffer-layout src/Trace; do
   [ -d "$d" ] && ROOTS+=("$d")
 done
 

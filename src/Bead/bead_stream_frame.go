@@ -1,4 +1,4 @@
-package Bead
+package bead
 
 import (
 	"encoding/binary"

@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: src/Node/bead/live_beads.go | no math.Sqrt/.Length()/.Normalize(); bead placement stays a fraction along the edge's own segment
+# PLACEMENT: src/Bead/live_beads.go | no math.Sqrt/.Length()/.Normalize(); bead placement stays a fraction along the edge's own segment
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
-FILE="$REPO_ROOT/src/Node/bead/live_beads.go"
+FILE="$REPO_ROOT/src/Bead/live_beads.go"
 
 if [ ! -f "$FILE" ]; then
   echo "✗ no-sqrt-in-chain-beads: MISCONFIGURED — file not found: $FILE" >&2

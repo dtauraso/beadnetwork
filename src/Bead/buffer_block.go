@@ -1,4 +1,4 @@
-package Bead
+package bead
 
 var _ = bufLayoutEdgeBead{}
 

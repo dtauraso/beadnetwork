@@ -3,7 +3,7 @@ package owners
 import (
 	"time"
 
-	beadchain "github.com/dtauraso/wirefold/src/Node/bead/beadchain"
+	beadchain "github.com/dtauraso/wirefold/src/Bead/beadchain"
 	"github.com/dtauraso/wirefold/src/Node/spatial"
 )
 

@@ -10,8 +10,8 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/jsonpersist"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodegeom"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/polarindex"
-	"github.com/dtauraso/wirefold/src/Node/bead"
-	"github.com/dtauraso/wirefold/src/Node/bead/outport"
+	"github.com/dtauraso/wirefold/src/Bead"
+	"github.com/dtauraso/wirefold/src/Bead/outport"
 	"github.com/dtauraso/wirefold/src/Node/rowevent"
 	"github.com/dtauraso/wirefold/src/Node/spatial"
 )

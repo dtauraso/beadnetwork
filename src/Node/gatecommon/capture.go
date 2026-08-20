@@ -1,6 +1,6 @@
 package gatecommon
 
-import "github.com/dtauraso/wirefold/src/Node/bead/inport"
+import "github.com/dtauraso/wirefold/src/Bead/inport"
 
 func drainLatestReal(in *inport.In) (int, bool) {
 	v, got := NoValue, false

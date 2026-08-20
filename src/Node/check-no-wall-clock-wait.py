@@ -8,7 +8,7 @@ shape of check-no-network-locks.sh.
 import os
 import re
 
-roots = ["src/Node"]
+roots = ["src/Node", "src/NodeKinds", "src/Bead"]
 wait_pat = re.compile(r'\btime\.(Sleep|After|NewTicker)\s*\(')
 
 EXEMPT_FILES = {

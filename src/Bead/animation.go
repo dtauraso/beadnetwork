@@ -8,7 +8,7 @@ import (
 
 	"github.com/dtauraso/wirefold/src/Node/Wiring/framegeom"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodegeom"
-	"github.com/dtauraso/wirefold/src/Node/bead/lattice"
+	"github.com/dtauraso/wirefold/src/Bead/lattice"
 	"github.com/dtauraso/wirefold/src/Node/clock"
 	"github.com/dtauraso/wirefold/src/Node/rowevent"
 	"github.com/dtauraso/wirefold/src/Node/spatial"

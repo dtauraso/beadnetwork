@@ -11,7 +11,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor/nodeframe"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor/owners"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor/streamclaim"
-	"github.com/dtauraso/wirefold/src/Node/bead"
+	"github.com/dtauraso/wirefold/src/Bead"
 	"github.com/dtauraso/wirefold/src/Node/rowevent"
 	"github.com/dtauraso/wirefold/src/schema/buffer-layout/colstream"
 )

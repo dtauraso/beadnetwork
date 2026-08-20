@@ -1,6 +1,6 @@
 package input
 
-import lattice "github.com/dtauraso/wirefold/src/Node/bead/lattice"
+import lattice "github.com/dtauraso/wirefold/src/Bead/lattice"
 
 func popEnd(working, backup *[]int, init []int) int {
 	v := (*working)[len(*working)-1]

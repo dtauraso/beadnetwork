@@ -1,6 +1,6 @@
 package outport
 
-import "github.com/dtauraso/wirefold/src/Node/bead"
+import "github.com/dtauraso/wirefold/src/Bead"
 
 type DriveOutcome uint8
 

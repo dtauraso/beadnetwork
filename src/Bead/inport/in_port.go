@@ -3,7 +3,7 @@ package inport
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/src/Node/bead"
+	"github.com/dtauraso/wirefold/src/Bead"
 	"github.com/dtauraso/wirefold/src/Node/rowevent"
 	T "github.com/dtauraso/wirefold/src/Trace"
 )

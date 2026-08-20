@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"
-	"github.com/dtauraso/wirefold/src/Node/bead/outport"
+	"github.com/dtauraso/wirefold/src/Bead/outport"
 )
 
 func (mr *MoverRegistry) Bind(outSink map[string]*outport.Out, slotReg inputcodec.SlotRegistry, edgeRowFor func(src, dst string) (int32, bool)) {

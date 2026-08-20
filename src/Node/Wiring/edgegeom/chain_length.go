@@ -4,7 +4,7 @@ import (
 	"math"
 
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodegeom"
-	lattice "github.com/dtauraso/wirefold/src/Node/bead/lattice"
+	lattice "github.com/dtauraso/wirefold/src/Bead/lattice"
 )
 
 func EdgeStepCount(dist float64, srcKind, dstKind string) int {

@@ -5,7 +5,7 @@ import (
 	"io"
 
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor/owners"
-	"github.com/dtauraso/wirefold/src/Node/bead"
+	"github.com/dtauraso/wirefold/src/Bead"
 )
 
 type NodeAnimation struct {

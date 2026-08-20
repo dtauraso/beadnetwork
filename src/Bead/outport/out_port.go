@@ -3,7 +3,7 @@ package outport
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/src/Node/bead"
+	"github.com/dtauraso/wirefold/src/Bead"
 	"github.com/dtauraso/wirefold/src/Node/rowevent"
 	"github.com/dtauraso/wirefold/src/Node/spatial"
 	T "github.com/dtauraso/wirefold/src/Trace"

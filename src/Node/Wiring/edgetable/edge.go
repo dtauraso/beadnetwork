@@ -1,8 +1,8 @@
 package edgetable
 
 import (
-	"github.com/dtauraso/wirefold/src/Node/bead"
-	"github.com/dtauraso/wirefold/src/Node/bead/outport"
+	"github.com/dtauraso/wirefold/src/Bead"
+	"github.com/dtauraso/wirefold/src/Bead/outport"
 )
 
 type Edge struct {

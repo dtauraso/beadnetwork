@@ -1,7 +1,7 @@
 package inputcodec
 
 import (
-	"github.com/dtauraso/wirefold/src/Node/bead"
+	"github.com/dtauraso/wirefold/src/Bead"
 )
 
 type EdgeEndpoints struct {
