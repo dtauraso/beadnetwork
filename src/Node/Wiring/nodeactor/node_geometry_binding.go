@@ -4,7 +4,7 @@ import (
 	"github.com/dtauraso/wirefold/src/PolarRulesPanel"
 	"io"
 
-	"github.com/dtauraso/wirefold/src/Node/Wiring/interior"
+	"github.com/dtauraso/wirefold/src/Node/Interior"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor/nodeframe"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor/owners"

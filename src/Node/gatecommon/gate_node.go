@@ -5,7 +5,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/wire/outport"
 	"github.com/dtauraso/wirefold/src/Node/clock"
 
-	"github.com/dtauraso/wirefold/src/Node/Wiring/interior"
+	"github.com/dtauraso/wirefold/src/Node/Interior"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor"
 )
 

@@ -7,7 +7,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/clock"
 	"github.com/dtauraso/wirefold/src/Node/nodeapi"
 
-	"github.com/dtauraso/wirefold/src/Node/Wiring/interior"
+	"github.com/dtauraso/wirefold/src/Node/Interior"
 	Wiring "github.com/dtauraso/wirefold/src/Node/Wiring/kindapi"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/portwiring"

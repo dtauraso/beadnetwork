@@ -3,7 +3,7 @@ package kindapi
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/src/Node/Wiring/interior"
+	"github.com/dtauraso/wirefold/src/Node/Interior"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/kindreg"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/loadspec"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodegeom"

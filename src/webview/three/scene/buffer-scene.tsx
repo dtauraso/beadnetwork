@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import type * as THREE from "three";
 import { ownerCounts } from "../../../schema/buffer-layout/column-owners";
-import { INTERIOR_SLOTS_PER_NODE } from "../../../Interior/buffer-decode-interior";
+import { INTERIOR_SLOTS_PER_NODE } from "../../../Node/Interior/buffer-decode-interior";
 
 import { ChainBeadInstances } from "../../../Node/ChainBeadInstances";
 import { EdgeLines } from "../../../Edge/EdgeLines";
@@ -11,7 +11,7 @@ import { TiltVectors } from "../nav/TiltVectors";
 import { NodeInstances } from "../../../Node/Shape/NodeInstances";
 import { RuleChannelLines } from "../../../Scene/Vectors/RuleChannelLines";
 import { PanelOverlay } from "../../../PanelOverlay/PanelOverlay";
-import { InteriorBeadInstances } from "../../../Interior/InteriorBeadInstances";
+import { InteriorBeadInstances } from "../../../Node/Interior/InteriorBeadInstances";
 import { BufferCamera } from "../../../Camera/BufferCamera";
 import { BufferLabelProjector } from "../../../Scene/Labels/BufferLabelProjector";
 

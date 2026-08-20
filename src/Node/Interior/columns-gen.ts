@@ -3,7 +3,7 @@
 
 import {
   COL_STREAM_BASE_INTERIOR,
-} from "../schema/buffer-layout/column-streams-gen";
+} from "../../schema/buffer-layout/column-streams-gen";
 
 export const COL_STREAM_INTERIOR_PRESENT = COL_STREAM_BASE_INTERIOR + 0;
 export const COL_STREAM_INTERIOR_VALUE = COL_STREAM_BASE_INTERIOR + 1;

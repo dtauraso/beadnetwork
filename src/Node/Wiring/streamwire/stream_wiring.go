@@ -6,7 +6,7 @@ import (
 
 	"github.com/dtauraso/wirefold/src/Node/Wiring/edgetable"
 	geomseeds "github.com/dtauraso/wirefold/src/Node/Wiring/geomseeds"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/interior"
+	"github.com/dtauraso/wirefold/src/Node/Interior"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor/nodeframe"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/nodeactor/owners"

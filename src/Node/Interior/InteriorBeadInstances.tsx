@@ -2,9 +2,9 @@ import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { INTERIOR_SLOTS_PER_NODE } from "./buffer-decode-interior";
-import { interiorBeadStyleForValue } from "../Bead/bead-style";
-import { columnBytes } from "../schema/buffer-layout/column-values";
-import { nodeColumn, ownerCounts } from "../schema/buffer-layout/column-owners";
+import { interiorBeadStyleForValue } from "../../Bead/bead-style";
+import { columnBytes } from "../../schema/buffer-layout/column-values";
+import { nodeColumn, ownerCounts } from "../../schema/buffer-layout/column-owners";
 import {
   COL_STREAM_INTERIOR_PRESENT, COL_STREAM_INTERIOR_VALUE, COL_STREAM_INTERIOR_X,
   COL_STREAM_INTERIOR_Y, COL_STREAM_INTERIOR_Z,

@@ -1,4 +1,4 @@
-package Interior
+package interior
 
 var _ = bufLayoutInterior{}
 
