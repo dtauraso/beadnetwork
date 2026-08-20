@@ -1,4 +1,4 @@
-package camera
+package Camera
 
 const ViewpointMinDist = 5.0
 

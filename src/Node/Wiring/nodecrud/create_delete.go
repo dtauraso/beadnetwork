@@ -5,7 +5,7 @@ import (
 
 	"github.com/dtauraso/wirefold/src/Node/Wiring/countspersist"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/edgefile"
-	"github.com/dtauraso/wirefold/src/Node/Wiring/geom/camera"
+	"github.com/dtauraso/wirefold/src/Camera"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/geom/polar"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/loadspec"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/moverreg"
@@ -66,7 +66,7 @@ func CreateNode(scenes *sceneswitch.SceneSwitch, ui *viewstate.UIState, mr *move
 
 	c := ui.SceneSphere.Center
 	off := drop.Sub(c)
-	d := camera.WorldDirToAngles(off)
+	d := Camera.WorldDirToAngles(off)
 	sc, err := loadspec.LoadSceneConstants(scenes.TreeRoot)
 	if err != nil {
 		ui.RefuseStructuralEdit(fmt.Sprintf("could not load scene constants: %v", err))

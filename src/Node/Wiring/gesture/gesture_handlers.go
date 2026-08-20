@@ -4,7 +4,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Chrome/Pills/FitButton"
 	"math"
 
-	"github.com/dtauraso/wirefold/src/Node/Wiring/geom/camera"
+	"github.com/dtauraso/wirefold/src/Camera"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/gesturefsm"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/movemsg"
@@ -94,18 +94,18 @@ func gestPointerUp(d Deps, ev inputcodec.RawInputMsg) {
 
 func gestWheel(d Deps, ev inputcodec.RawInputMsg) {
 	vp := d.UI.VP.Viewpoint
-	eye := camera.EyeOf(vp)
-	pivot := camera.RegionFocus(vp, nodemove.HeldCenters(d.MR.NodeGeoms(), d.MR.CenterOfNode))
+	eye := Camera.EyeOf(vp)
+	pivot := Camera.RegionFocus(vp, nodemove.HeldCenters(d.MR.NodeGeoms(), d.MR.CenterOfNode))
 
 	if ev.Ctrl {
 
 		mouseNdcX, mouseNdcY := d.UI.Gest.PixelToNDC(ev.X, ev.Y)
-		basis := camera.BasisFromViewpoint(vp.Pos, vp.Up)
+		basis := Camera.BasisFromViewpoint(vp.Pos, vp.Up)
 		aspect := d.UI.Gest.Rect.Aspect()
 		target := pivot
 		best := math.Inf(1)
 		for _, c := range nodemove.HeldCenters(d.MR.NodeGeoms(), d.MR.CenterOfNode) {
-			nx, ny, inFront := camera.ProjectNDC(c, eye, basis, d.UI.FovDeg(), aspect)
+			nx, ny, inFront := Camera.ProjectNDC(c, eye, basis, d.UI.FovDeg(), aspect)
 			if !inFront {
 				continue
 			}
@@ -116,14 +116,14 @@ func gestWheel(d Deps, ev inputcodec.RawInputMsg) {
 		}
 		toTarget := target.Sub(eye)
 		distP := toTarget.Length()
-		rayDir := camera.AnglesToWorldOffset(1, vp.Pos.Phi, vp.Pos.Theta).Scale(-1)
+		rayDir := Camera.AnglesToWorldOffset(1, vp.Pos.Phi, vp.Pos.Theta).Scale(-1)
 		if distP > 1e-9 {
 			rayDir = toTarget.Scale(1 / distP)
 		}
 
-		amt := 1 - math.Pow(camera.GestureZoomBase, ev.DeltaY)
+		amt := 1 - math.Pow(Camera.GestureZoomBase, ev.DeltaY)
 		step := distP * amt
-		if minStep := vp.R * (camera.GestureZoomBase - 1); math.Abs(step) < minStep {
+		if minStep := vp.R * (Camera.GestureZoomBase - 1); math.Abs(step) < minStep {
 			step = math.Copysign(minStep, amt)
 		}
 		d.UI.VP.PanViewpoint(rayDir.Scale(step))
@@ -133,7 +133,7 @@ func gestWheel(d Deps, ev inputcodec.RawInputMsg) {
 
 	fovRad := d.UI.FovDeg() * math.Pi / 180
 	worldPerPixel := (2 * vp.R * math.Tan(fovRad/2)) / d.UI.Gest.Rect.Height
-	disp := camera.PanDisplacementPolar(vp.Pos, vp.Up, ev.DeltaX, ev.DeltaY, worldPerPixel)
+	disp := Camera.PanDisplacementPolar(vp.Pos, vp.Up, ev.DeltaX, ev.DeltaY, worldPerPixel)
 	d.UI.VP.PanViewpoint(disp)
 	d.UI.EmitViewFrame(nil)
 }

@@ -1,7 +1,7 @@
 package gesture
 
 import (
-	"github.com/dtauraso/wirefold/src/Node/Wiring/geom/camera"
+	"github.com/dtauraso/wirefold/src/Camera"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/movemsg"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/rowtables"
@@ -26,33 +26,33 @@ func updateHover(d Deps, ev inputcodec.RawInputMsg) {
 
 func seedOrbitPivot(d Deps, pivot vec3) {
 	vp := d.UI.VP.Viewpoint
-	eye := camera.EyeOf(vp)
+	eye := Camera.EyeOf(vp)
 	r := eye.Sub(pivot).Length()
-	pos := camera.WorldDirToAngles(eye.Sub(pivot))
+	pos := Camera.WorldDirToAngles(eye.Sub(pivot))
 	d.UI.VP.SetViewpoint(pivot, r, pos, vp.Up)
 }
 
 func applyOrbit(d Deps, ev inputcodec.RawInputMsg) {
 	g := &d.UI.Gest
 	vp := d.UI.VP.Viewpoint
-	basis := camera.BasisFromViewpoint(vp.Pos, vp.Up)
-	prev := camera.ScreenToPolar(g.PrevX-g.RotCx, g.PrevY-g.RotCy, g.RotPxPerRad)
-	curr := camera.ScreenToPolar(ev.X-g.RotCx, ev.Y-g.RotCy, g.RotPxPerRad)
-	prevDir := camera.ToWorldDir(basis, prev)
-	currDir := camera.ToWorldDir(basis, curr)
-	d.UI.OrbitViewpoint(camera.WorldDirToAngles(currDir), camera.WorldDirToAngles(prevDir))
+	basis := Camera.BasisFromViewpoint(vp.Pos, vp.Up)
+	prev := Camera.ScreenToPolar(g.PrevX-g.RotCx, g.PrevY-g.RotCy, g.RotPxPerRad)
+	curr := Camera.ScreenToPolar(ev.X-g.RotCx, ev.Y-g.RotCy, g.RotPxPerRad)
+	prevDir := Camera.ToWorldDir(basis, prev)
+	currDir := Camera.ToWorldDir(basis, curr)
+	d.UI.OrbitViewpoint(Camera.WorldDirToAngles(currDir), Camera.WorldDirToAngles(prevDir))
 	d.UI.EmitViewFrame(nil)
 }
 
 func applyOrbitLocked(d Deps, ev inputcodec.RawInputMsg) {
 	g := &d.UI.Gest
 	vp := d.UI.VP.Viewpoint
-	basis := camera.BasisFromViewpoint(vp.Pos, vp.Up)
-	prev := camera.ScreenToPolar(g.PrevX-g.RotCx, g.PrevY-g.RotCy, g.RotPxPerRad)
-	curr := camera.ScreenToPolar(ev.X-g.RotCx, ev.Y-g.RotCy, g.RotPxPerRad)
-	prevDir := camera.ToWorldDir(basis, prev)
-	currDir := camera.ToWorldDir(basis, curr)
-	d.UI.OrbitLockedViewpoint(camera.WorldDirToAngles(currDir), camera.WorldDirToAngles(prevDir))
+	basis := Camera.BasisFromViewpoint(vp.Pos, vp.Up)
+	prev := Camera.ScreenToPolar(g.PrevX-g.RotCx, g.PrevY-g.RotCy, g.RotPxPerRad)
+	curr := Camera.ScreenToPolar(ev.X-g.RotCx, ev.Y-g.RotCy, g.RotPxPerRad)
+	prevDir := Camera.ToWorldDir(basis, prev)
+	currDir := Camera.ToWorldDir(basis, curr)
+	d.UI.OrbitLockedViewpoint(Camera.WorldDirToAngles(currDir), Camera.WorldDirToAngles(prevDir))
 	d.UI.EmitViewFrame(nil)
 }
 

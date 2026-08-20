@@ -1,9 +1,8 @@
-package camerapersist
+package Camera
 
 import (
 	"path/filepath"
 
-	"github.com/dtauraso/wirefold/src/Node/Wiring/geom/camera"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/jsonpersist"
 )
 
@@ -22,7 +21,7 @@ type ViewpointPersister struct {
 	Dir string
 }
 
-func (p *ViewpointPersister) Schedule(v camera.Viewpoint) {
+func (p *ViewpointPersister) Schedule(v Viewpoint) {
 	if p == nil || p.Dir == "" {
 		return
 	}
@@ -34,7 +33,7 @@ func (p *ViewpointPersister) Schedule(v camera.Viewpoint) {
 	}
 }
 
-func viewpointValues(v camera.Viewpoint) map[string]float64 {
+func viewpointValues(v Viewpoint) map[string]float64 {
 	return map[string]float64{
 		FilePivotX: v.Pivot.X, FilePivotY: v.Pivot.Y, FilePivotZ: v.Pivot.Z,
 		FileR:        v.R,
@@ -45,7 +44,7 @@ func viewpointValues(v camera.Viewpoint) map[string]float64 {
 	}
 }
 
-func WriteSceneCamera(dir string, v camera.Viewpoint) error {
+func WriteSceneCamera(dir string, v Viewpoint) error {
 	for name, value := range viewpointValues(v) {
 		if err := jsonpersist.WriteJSONAtomic(filepath.Join(dir, name), value); err != nil {
 			return err
@@ -54,21 +53,21 @@ func WriteSceneCamera(dir string, v camera.Viewpoint) error {
 	return nil
 }
 
-func ReadSceneCamera(dir string) (v camera.Viewpoint, ok bool) {
+func ReadSceneCamera(dir string) (v Viewpoint, ok bool) {
 	read := func(name string, dst *float64) bool {
 		return jsonpersist.ReadJSONIfExists(filepath.Join(dir, name), dst)
 	}
 	if !read(FilePivotX, &v.Pivot.X) || !read(FilePivotY, &v.Pivot.Y) || !read(FilePivotZ, &v.Pivot.Z) {
-		return camera.Viewpoint{}, false
+		return Viewpoint{}, false
 	}
 	if !read(FileR, &v.R) {
-		return camera.Viewpoint{}, false
+		return Viewpoint{}, false
 	}
 	if !read(FilePosPhi, &v.Pos.Phi) || !read(FilePosTheta, &v.Pos.Theta) {
-		return camera.Viewpoint{}, false
+		return Viewpoint{}, false
 	}
 	if !read(FileUpPhi, &v.Up.Phi) || !read(FileUpTheta, &v.Up.Theta) {
-		return camera.Viewpoint{}, false
+		return Viewpoint{}, false
 	}
 	return v, true
 }

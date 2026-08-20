@@ -3,7 +3,7 @@ package framegeom
 import (
 	"math"
 
-	"github.com/dtauraso/wirefold/src/Node/Wiring/geom/camera"
+	"github.com/dtauraso/wirefold/src/Camera"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/geom/polar"
 )
 
@@ -61,7 +61,7 @@ func ringAxisBasis(axis vec3) (bx, by, bz vec3) {
 }
 
 func RingInstanceMatrixColumnMajor(center vec3, radius, axisPhi, axisTheta float64) [16]float32 {
-	axis := camera.AnglesToWorldOffset(1, axisPhi, axisTheta)
+	axis := Camera.AnglesToWorldOffset(1, axisPhi, axisTheta)
 	bx, by, bz := ringAxisBasis(axis)
 	bx = bx.Scale(radius)
 	by = by.Scale(radius)

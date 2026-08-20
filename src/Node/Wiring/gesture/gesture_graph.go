@@ -1,7 +1,7 @@
 package gesture
 
 import (
-	"github.com/dtauraso/wirefold/src/Node/Wiring/geom/camera"
+	"github.com/dtauraso/wirefold/src/Camera"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/gesturefsm"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/inputcodec"
 	"github.com/dtauraso/wirefold/src/Node/Wiring/movemsg"
@@ -68,16 +68,16 @@ var applyAction = map[gesturefsm.GesturePhase]func(d Deps, g *gesturefsm.Gesture
 		}
 	},
 	gesturefsm.GestRotating: func(d Deps, g *gesturefsm.GestureState, ev inputcodec.RawInputMsg) {
-		g.SmoothX += camera.RotSmoothAlpha * (ev.X - g.SmoothX)
-		g.SmoothY += camera.RotSmoothAlpha * (ev.Y - g.SmoothY)
+		g.SmoothX += Camera.RotSmoothAlpha * (ev.X - g.SmoothX)
+		g.SmoothY += Camera.RotSmoothAlpha * (ev.Y - g.SmoothY)
 		smoothEv := ev
 		smoothEv.X, smoothEv.Y = g.SmoothX, g.SmoothY
 		applyOrbit(d, smoothEv)
 		g.PrevX, g.PrevY = g.SmoothX, g.SmoothY
 	},
 	gesturefsm.GestHandhold: func(d Deps, g *gesturefsm.GestureState, ev inputcodec.RawInputMsg) {
-		g.SmoothX += camera.RotSmoothAlpha * (ev.X - g.SmoothX)
-		g.SmoothY += camera.RotSmoothAlpha * (ev.Y - g.SmoothY)
+		g.SmoothX += Camera.RotSmoothAlpha * (ev.X - g.SmoothX)
+		g.SmoothY += Camera.RotSmoothAlpha * (ev.Y - g.SmoothY)
 		smoothEv := ev
 		smoothEv.X, smoothEv.Y = g.SmoothX, g.SmoothY
 		applyOrbitLocked(d, smoothEv)
