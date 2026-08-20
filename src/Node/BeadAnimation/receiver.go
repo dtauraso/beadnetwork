@@ -106,22 +106,10 @@ func breadcrumbLabelFor(event string) (uint8, bool) {
 		return B.BreadcrumbWindowOpen, true
 	case "dwell_start":
 		return B.BreadcrumbDwellStart, true
-	case "abc-drag":
-		return B.BreadcrumbAbcDrag, true
 	case "bead-place-buffer-full":
 		return B.BreadcrumbBeadPlaceBufferFull, true
 	case "drag.commit":
 		return B.BreadcrumbDragCommit, true
-	case "chain-aim":
-		return B.BreadcrumbChainAim, true
-	case "neighbor-center-recv":
-		return B.BreadcrumbNeighborCenterRecv, true
-	case "neighbor-setc-recv":
-		return B.BreadcrumbNeighborSetCRecv, true
-	case "bead-crud":
-		return B.BreadcrumbBeadCrud, true
-	case "drag-active-persist":
-		return B.BreadcrumbDragActivePersist, true
 	default:
 		return 0, false
 	}

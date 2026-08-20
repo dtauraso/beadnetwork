@@ -33,10 +33,10 @@ gesture FSM's drag as `movemsg.KindDrag`, over the per-node COALESCING slot
 slot panics on any other kind, and on a message carrying neither a `Target` nor a `Delta` —
 because a WHERE collapses by keeping the newest and a HOW FAR collapses by summing, so a new
 kind must state its merge rule before it can ride the slot. Routing is still node-to-node
-(`src/Node/Wiring/nodeactor/owners/messaging.go`), no worklist. `Trace`'s
-`BreadcrumbNeighborSetCRecv` / the `"neighbor-setc-recv"` label survive in
-`src/Node/BeadAnimation/receiver.go`'s mapper with NO emitter left — leftover vocabulary, not a
-live path.
+(`src/Node/Wiring/nodeactor/owners/messaging.go`), no worklist. The
+`BreadcrumbNeighborSetCRecv` const and its `"neighbor-setc-recv"` label are GONE — they
+outlived their emitter as leftover vocabulary in the label registry, and were removed with
+the other eight emitterless labels.
 
 **DELETED mechanism (was documented here as live fact; gone as of 590a119c):** the
 rule/gate/anchor cascade — `handleTrigger`, `moveMsgKindEqualize`/`Trigger`/`GatePlace`/
