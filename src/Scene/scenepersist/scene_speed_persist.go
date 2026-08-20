@@ -1,15 +1,14 @@
 package scenepersist
 
 import (
-	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
-	"github.com/dtauraso/wirefold/src/Scene/scene"
 	"math"
 
-	"encoding/json"
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
+	"github.com/dtauraso/wirefold/src/Scene/scene"
 
-	"github.com/dtauraso/wirefold/src/jsonpersist"
 	"github.com/dtauraso/wirefold/src/Scene/scenepaths"
 	"github.com/dtauraso/wirefold/src/Scene/viewstate"
+	"github.com/dtauraso/wirefold/src/jsonpersist"
 )
 
 const DefaultPlaybackSpeed = 1.0
@@ -34,31 +33,15 @@ func EffectiveClockSpeed(userSpeed, divisor float64) float64 {
 }
 
 func WriteSceneSpeed(speedPath string, speed float64) error {
-	obj := map[string]json.RawMessage{
-		"speed": json.RawMessage(FormatSpeedJSON(speed)),
-	}
-	return jsonpersist.WriteJSONAtomic(speedPath, obj)
-}
-
-func FormatSpeedJSON(speed float64) []byte {
-	b, err := json.Marshal(speed)
-	if err != nil {
-		b = []byte("1")
-	}
-	return b
-}
-
-type sceneSpeedFile struct {
-	Speed *float64 `json:"speed"`
+	return jsonpersist.WriteJSONAtomic(speedPath, speed)
 }
 
 func LoadSceneSpeed(speedPath string) (float64, bool) {
-	var sf sceneSpeedFile
-	jsonpersist.ReadJSONBestEffort(speedPath, &sf)
-	if sf.Speed == nil {
+	var speed float64
+	if !jsonpersist.ReadJSONIfExists(speedPath, &speed) {
 		return DefaultPlaybackSpeed, false
 	}
-	return *sf.Speed, true
+	return speed, true
 }
 
 func SliderNum(userSpeed float64) int64 {

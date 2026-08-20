@@ -7,5 +7,5 @@ import (
 )
 
 func WriteSelectedScene(anchorPath string, idx int) error {
-	return jsonpersist.WriteJSONAtomic(scenepaths.SelectionFilePath(anchorPath), scene.SelectionFile{Selected: scene.All[idx].Name})
+	return jsonpersist.WriteJSONAtomic(scenepaths.SelectionFilePath(anchorPath), scene.All[idx].Name)
 }

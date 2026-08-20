@@ -1,41 +1,23 @@
 package AngleDropdown
 
 import (
-	"encoding/json"
-
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/TiltPanel"
-	"github.com/dtauraso/wirefold/src/jsonpersist"
 	"github.com/dtauraso/wirefold/src/Scene/scenepaths"
+	"github.com/dtauraso/wirefold/src/jsonpersist"
 )
 
 const DefaultLatticePoints int32 = TiltPanel.FullTurnPhiIdx
 
 func WriteSceneLattice(latticePath string, points int32) error {
-	obj := map[string]json.RawMessage{
-		"points": json.RawMessage(FormatLatticeJSON(points)),
-	}
-	return jsonpersist.WriteJSONAtomic(latticePath, obj)
-}
-
-func FormatLatticeJSON(points int32) []byte {
-	b, err := json.Marshal(points)
-	if err != nil {
-		b = []byte("24")
-	}
-	return b
-}
-
-type sceneLatticeFile struct {
-	Points *int32 `json:"points"`
+	return jsonpersist.WriteJSONAtomic(latticePath, points)
 }
 
 func LoadSceneLattice(latticePath string) (int32, bool) {
-	var lf sceneLatticeFile
-	jsonpersist.ReadJSONBestEffort(latticePath, &lf)
-	if lf.Points == nil {
+	var points int32
+	if !jsonpersist.ReadJSONIfExists(latticePath, &points) {
 		return DefaultLatticePoints, false
 	}
-	return *lf.Points, true
+	return points, true
 }
 
 func LatticePointsFor(topologyPath string) int32 {
