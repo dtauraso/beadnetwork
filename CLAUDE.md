@@ -74,11 +74,9 @@ Vocabulary detail, parity guards, and the no-sidecar rule: `.claude/rules/bridge
 There is **no `tools/`**. It was removed because it had stopped meaning anything: it held
 the whole editor (107 Go files in production packages), the generators, and every guard.
 
-There is **no `cmd/`** either, and for the same reason. It grouped code by what it compiled
-to rather than by what it was about, so the buffer layout's generator sat one tree away from
-the buffer layout. Each generator now lives with the thing it generates, in that concern's
-`gen/` package — one directory out, because a directory is one Go package and the concern's
-own package is already there. `go generate ./...` runs all of them.
+There is **no `cmd/`** either: it grouped code by what it compiled to rather than what it was
+about. Each generator lives with the thing it generates, in that concern's `gen/` package —
+one directory out, since a directory is one Go package. `go generate ./...` runs all of them.
 
 - **`src/`** — the npm package's source root, and the editor: each concern directory holds
   the Go that packs the thing and the TS that draws it, plus its `buffer_block.go`, its
@@ -103,9 +101,12 @@ own package is already there. `go generate ./...` runs all of them.
   It is the ONLY place a `time.Sleep`/`After`/`NewTicker` may park a goroutine
   (`check-no-wall-clock-wait.sh`, whose exempt list names two files here and nothing else).
 - **`src/Node/`** — what a node USES: the spine the kinds are built from (`Wiring/`), the
-  per-owner streams it writes (`BeadAnimation/`, `Edge/`, `Interior/`), its poles, and its own buffer
-  block. A directory here is NOT a kind — both the scanner and `check-dep-rules.sh` decide
-  that by the `Register(...)` call, not by placement.
+  per-owner streams it writes (`BeadAnimation/`, `Edge/`, `Interior/`), its poles, its buffer
+  block. A directory here is NOT a kind — the scanner and `check-dep-rules.sh` decide that by
+  the `Register(...)` call, not by placement.
+- **`src/Input/`** — the TS→Go half of the bridge, end to end: `stdinreader` (framed records off
+  stdin, knowing nothing of what they mean), `inputcodec` (decode), `gesture`/`gesturefsm` (raw
+  pointer/wheel → drags, orbits), `dispatch` (the `MoveDispatch` composer, and what an edit does).
 - **`src/spatial/`** — `Vec3`, `Segment`, and eight operations. 37 lines, imports only
   `math`, imported by 28 directories. It is the MEDIUM, deliberately unremarkable: the
   substance (polar indices, the `A + D = B` triangle) is built on top of it in `polar`/
@@ -118,8 +119,7 @@ own package is already there. `go generate ./...` runs all of them.
   points computed in Go, meshed in TS. `Ring/NodeShape/` and `Ring/Bead/` are the two that
   share it. "Ring" over "torus" because the codebase already votes that way — `RingM0`,
   `ringPick` and `ringBand` against a handful of torus names in the low-level math.
-- **`src/Ring/Bead/`** — ONE bead: its ring surface, style, buffer-block row. SEVERAL beads —
-  spacing, chaining, framing — is what a node does with beads, and belongs to the next bullet.
+- **`src/Ring/Bead/`** — ONE bead: ring surface, style, buffer-block row. SEVERAL beads — spacing, chaining, framing — is what a node does with beads, and belongs to the next bullet.
 - **`src/Node/BeadAnimation/`** — the whole bead process, which is what a node uses beads
   for: `BeadLine` (the line beads travel, state with no goroutine of its own), the `Sender`
   and `Receiver` on each end, the slot `lattice/`, and the animation goroutine that steps it.
