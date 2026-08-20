@@ -100,17 +100,18 @@ one directory out, since a directory is one Go package. `go generate ./...` runs
   `Clock` interface every goroutine holds its own `Copy()` of, and the sleep/speed delivery.
   It is the ONLY place a `time.Sleep`/`After`/`NewTicker` may park a goroutine
   (`check-no-wall-clock-wait.sh`, whose exempt list names two files here and nothing else).
-- **`src/Node/`** — what a node USES: the spine the kinds are built from (`Wiring/`), the
+- **`src/Node/`** — the node itself: its actor and geometry, its movers and rules, the
   per-owner streams it writes (`BeadAnimation/`, `Edge/`, `Interior/`), its poles, its buffer
   block. A directory here is NOT a kind — the scanner and `check-dep-rules.sh` decide that by
   the `Register(...)` call, not by placement.
 - **`src/Input/`** — the TS→Go half of the bridge, end to end: `stdinreader` (framed records off
   stdin, knowing nothing of what they mean), `inputcodec` (decode), `gesture`/`gesturefsm` (raw
   pointer/wheel → drags, orbits), `dispatch` (the `MoveDispatch` composer, and what an edit does).
-- **`src/spatial/`** — `Vec3`, `Segment`, and eight operations. 37 lines, imports only
-  `math`, imported by 28 directories. It is the MEDIUM, deliberately unremarkable: the
-  substance (polar indices, the `A + D = B` triangle) is built on top of it in `polar`/
-  `polarindex`/`nodegeom`, never inside it.
+- **`src/spatial/`** — `Vec3`, `Segment`, eight operations, 37 lines, importing only `math`. It
+  is the MEDIUM, deliberately unremarkable; the substance sits on top in **`src/Polar/`** —
+  `polar` (coordinate/composition) and `polarindex` (index × constant) — never inside it.
+  **`src/jsonpersist/`** is the other medium, atomic write plus read-if-exists, with the
+  write-ownership guard beside it.
 - **`src/runtopology/`** — starting the program: claim the stream fds, resolve the scene,
   load the graph, wire every per-owner stream, seed the static columns, then launch one
   goroutine per node and block. `main.go` calls it and nothing else does. It is NOT a
@@ -132,7 +133,7 @@ one directory out, since a directory is one Go package. `go generate ./...` runs
   `draw-*.ts`: chrome is drawn onto `ChromeCanvas`'s canvas, while the diagram is drawn in
   the scene. Each piece holds ALL of itself: its layout/hit-testing Go,
   `buffer_block.go`, generated `columns-gen.ts`, `draw-*.ts`. A chrome piece does not perform
-  topology edits — node create/delete is `Wiring/nodecrud`, not the dropdown offering it.
+  topology edits — node create/delete is `Node/nodecrud`, not the dropdown offering it.
   `src/Overlay/` and `src/RingPoint/` are NOT chrome — they are buffer blocks for the diagram.
 - **`src/extension/`** — the VS Code extension: our code, which RUNS IN the extension host
   (the Node process VS Code spawns) and is not that host — naming it `Host` said we were the
