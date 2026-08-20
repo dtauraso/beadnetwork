@@ -35,9 +35,12 @@ clock, and the node-owned chain of placeholder beads that renders a traversal
 **Node kinds:** adding a kind requires four things in the same commit:
 1. An entry in `NODE_DEFS` (`src/schema/node-defs.ts`, generated).
 2. No separate `registry.ts` — `node-defs.ts` is the single node-kind registry. The schema
-   dir also holds `wire-defs.ts`, `trace-kinds.ts`, `types.ts`, and `node-dims.ts` at its top
-   level (registries and shared types), plus two clustered subdirs: `schema/buffer-layout/`
-   (the generated buffer wire format plus the curve/shading params that ride in it) and
+   dir also holds `wire-defs.ts`, `types.ts`, `node-dims.ts`, and `messages.ts` at its top
+   level (registries and shared types — `messages.ts` is the TS↔Go message vocabulary, read
+   by the webview, the host AND the overlays generator, which is why it is a registry rather
+   than host code), plus two clustered subdirs: `schema/buffer-layout/`
+   (the generated buffer wire format, the curve/shading params that ride in it, and the
+   trace kinds/labels/blocks that ride in every frame) and
    `schema/input/` (the TS<->Go input-record codec: byte reader/writer, attrs, layout
    fingerprint, encode/decode). Adding a node kind touches only `node-defs.ts`.
 3. The Go node package under `src/NodeKinds/<Kind>/`, with its logic always in `node.go` (never
@@ -102,6 +105,12 @@ own package is already there. `go generate ./...` runs all of them.
   existed. The test is a `draw-*.ts`: chrome is drawn onto `PanelOverlay`'s canvas, while the
   diagram is drawn in the scene. `src/Overlay/` and `src/RingPoint/` are NOT chrome — they
   are buffer blocks for the diagram.
+- **`src/Host/`** — the VS Code extension host, the process that is neither Go nor the
+  webview: activation and spawn (`extension.ts`, `runCommand.ts`, `goBuild.ts`), the VS Code
+  side (`html.ts`, `handle-message.ts`, the three dev-loop watchers), and `runner/`, the Go
+  side — stdio sizing, per-owner stream demux, last-frame cache. `esbuild.mjs`'s entry point
+  is `src/Host/extension.ts`; the bundle is still `out/extension.js`, which `package.json`'s
+  `main` names.
 - **`scripts/`** — what serves the repo rather than one concern: `stop-checks.sh`, the
   git-workflow scripts, `lib/`, `checks/` for guards that guard nothing in particular
   (clustered by concern: prose, hooks, lang, meta, source), and `genpaths/`, which every
