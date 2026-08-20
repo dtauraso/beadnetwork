@@ -6,7 +6,7 @@ Before changing anything in the **Go network** (`src/Node/`, `src/NodeKinds/`, `
 `src/Node/Wiring/build/loader.go`, `src/Node/Wiring/loadspec/builders.go`) or the **content buffer**
 (`src/schema/buffer-layout/`, the render tree under `src/webview/`),
 read [MODEL.md](MODEL.md). It pins the model. Do not propose multi-step
-plans with options for network/wire work; name the single concrete next
+plans with options for network/bead work; name the single concrete next
 step and get the model agreed first. "Agreed first" gates the START of the
 work, not each step of it — once the model is settled, build the feature
 through to done; do not halt after every step to re-ask.
@@ -20,11 +20,11 @@ and never tells Go when a bead arrived. There is no JSON-trace render path and n
 `pump.ts`; the TS layer is **render + forward only** and holds no domain state (guard:
 `src/webview/check-no-webview-state.sh`).
 
-The model's real entities live in [MODEL.md](MODEL.md): bead, wire (`BeadRun` — a
-PASSIVE delay queue holding its own in-flight beads, with a channel on each end, stepped by
-its SOURCE NODE's own goroutine — it is not a goroutine itself), node goroutine, input port,
-clock, and the node-owned chain of placeholder beads that renders a traversal
-([docs/model/entities.md](docs/model/entities.md); its length is
+The model's real entities live in [MODEL.md](MODEL.md): bead (data carrying its own segment
+and step count), bead line (`BeadLine` — the line a bead travels, holding the beads on it,
+stepped by its SOURCE NODE's animation goroutine, which owns a bead from placement to
+delivery), node goroutine, node input, and clock
+([docs/model/entities.md](docs/model/entities.md); a line's step count is
 `src/Node/Wiring/edgegeom/chain_length.go`). The active node kinds are the structs under `src/NodeKinds/<Kind>/`.
 
 **Drift rule:** see MODEL.md's "Drift rule" section for the full statement (guards:
@@ -93,14 +93,17 @@ own package is already there. `go generate ./...` runs all of them.
   SPEC.md `## Ports` table and NOWHERE else — direction `in`, `out`, or `broadcast` (an out
   that fans to every downstream edge). Deriving them from Go field types instead is what let
   a port-typed field on any struct in a shared package grow a phantom port on all 8 kinds.
-  The check after touching this directory is a `node-defs.ts` diff, not a build.
+  Both `node-defs.ts` and Go's `portwiring.KindPorts` are generated from that table, so the
+  kind passes no port list to `RegisterBuilder`, and `go generate` FAILS if a kind's code
+  binds a name the table does not carry (an undeclared name silently binds a dead-end
+  channel). The check after touching this directory is a `node-defs.ts` diff, not a build.
 - **`src/Clock/`** — the human-speed clock, one of MODEL.md's own entities alongside the
-  bead and the wire, so it is a sibling of `Node/` rather than a part of it: `MsPerTick`, the
+  bead and the node, so it is a sibling of `Node/` rather than a part of it: `MsPerTick`, the
   `Clock` interface every goroutine holds its own `Copy()` of, and the sleep/speed delivery.
   It is the ONLY place a `time.Sleep`/`After`/`NewTicker` may park a goroutine
   (`check-no-wall-clock-wait.sh`, whose exempt list names two files here and nothing else).
 - **`src/Node/`** — what a node USES: the spine the kinds are built from (`Wiring/`), the
-  per-owner streams it writes (`wire/`, `Edge/`, `Interior/`), its poles, and its own buffer
+  per-owner streams it writes (`BeadAnimation/`, `Edge/`, `Interior/`), its poles, and its own buffer
   block. A directory here is NOT a kind — both the scanner and `check-dep-rules.sh` decide
   that by the `Register(...)` call, not by placement.
 - **`src/spatial/`** — `Vec3`, `Segment`, and eight operations. 37 lines, imports only
@@ -118,10 +121,10 @@ own package is already there. `go generate ./...` runs all of them.
 - **`src/Ring/Bead/`** — ONE bead, and nothing else: its ring surface, its style, its buffer-block
   row. Anything about several beads — how they are spaced, chained, or framed — is not a
   bead, it is what a node does with beads, and lives under `src/Node/`.
-- **`src/Node/`** — the wire, which is what a node uses beads for: `BeadRun` (a passive
-  delay queue, no goroutine of its own), the in/out ports, the slot `lattice/`, and the
-  animation goroutine that steps it. The split line is `inflightBead` — the files that share
-  it are the wire.
+- **`src/Node/BeadAnimation/`** — the whole bead process, which is what a node uses beads
+  for: `BeadLine` (the line beads travel, state with no goroutine of its own), the `Sender`
+  and `Receiver` on each end, the slot `lattice/`, and the animation goroutine that steps it.
+  The split line is `inflightBead` — the files that share it are the bead animation.
 - **`src/Chrome/`** — the UI that is NOT the diagram: the pills, panels, dropdowns, tab strip
   and fit chip, plus the `chrome-theme.ts` they share. "Chrome" is the industry word for the
   frame around the content, and this repo reached for it twice on its own before the cluster
@@ -198,7 +201,7 @@ breadcrumb (`.claude/rules/go-debugging.md`). Never a test.
   - **Concurrent sessions share this one checkout — treat its state as other people's too.** Before switching branches, make sure your own work is committed (`git status`), since checking out a different branch changes what everyone in this tree sees. **Do not use `git stash`.** The stash stack is repo-global: an entry pushed by one session is visible and poppable by every other session working in this checkout, so two sessions stashing concurrently can pop each other's work, and `stash@{0}` means something different depending on who pushed last. Commit the WIP on your own branch instead (`scripts/wip.sh`) — it is private to your branch, survives a crash, and costs one `git reset --soft HEAD~1` to undo. This includes `git rebase --autostash`, which is the same global stack: commit first, then rebase with a clean tree. (Prose-only: git has no pre-stash hook, so there is nothing to enforce it with.)
   - Branches stay short-lived and merge to `main` quickly. Avoid long-lived feature branches like the v0 `visual-editor` pattern.
 - Channel names encode which two nodes are connected — preserve this convention.
-- **Medium vs. substance.** Before adopting a **medium** dependency (rendering library, framework, parser, bundler, file watcher, test runner, package manager, language/runtime version, editor integration), explicitly ask "what's the dominant choice the rest of the world converged on for this category?" and justify deviating if not adopting it. The medium is where industry has solved your problem; being weird there is pure overhead. Do **not** apply this heuristic to the **substance** of the system — the execution model, what a node is, how time/ticks work, what a wire is, how nodes coordinate, the Go network that runs nodes. Industry defaults there encode "logic in procedures, topology as plumbing," which is the inversion this project exists to challenge. For substance, ask "what does this system actually need?" and ignore industry — the whole point is that the answer is different. (Prior failure: the await/Promise execution model was the industry-correct JS translation of goroutines+channels, and it hid pacing inside the event loop, coupling nodes that should have been independent. Right answer for the medium, wrong answer for the substance.)
+- **Medium vs. substance.** Before adopting a **medium** dependency (rendering library, framework, parser, bundler, file watcher, test runner, package manager, language/runtime version, editor integration), explicitly ask "what's the dominant choice the rest of the world converged on for this category?" and justify deviating if not adopting it. The medium is where industry has solved your problem; being weird there is pure overhead. Do **not** apply this heuristic to the **substance** of the system — the execution model, what a node is, how time/ticks work, what a bead is, how nodes coordinate, the Go network that runs nodes. Industry defaults there encode "logic in procedures, topology as plumbing," which is the inversion this project exists to challenge. For substance, ask "what does this system actually need?" and ignore industry — the whole point is that the answer is different. (Prior failure: the await/Promise execution model was the industry-correct JS translation of goroutines+channels, and it hid pacing inside the event loop, coupling nodes that should have been independent. Right answer for the medium, wrong answer for the substance.)
 
 ## Memory and doctrine layout
 

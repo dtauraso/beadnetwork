@@ -33,11 +33,11 @@ aliases `src/Node/Wiring/kindapi` — the kind-API package node kinds import, de
 dispatch core; `src/Node/Wiring/kindreg` holds the registry itself — `Registry`, `NodeBuilder`,
 `BuildDeps`, `BuildRegistry`, `BuildTypeMaps` — which `kindapi` calls into but node kinds
 never import directly). The kind
-declares its ports as an explicit `[]portwiring.PortSpec` argument (imported from
-`src/Node/Wiring/portwiring`, named directly — `Wiring.PortSpec`/`Wiring.PortIn`/
-`Wiring.PortOut`/`Wiring.PortBroadcast` were re-export aliases and no longer exist) rather
-than having them reflected off its struct, which is why a forgotten field is now a compile
-error instead of a silently nil one. `BuildRegistry()` survives but no longer BUILDS
+does not pass its ports at all: `RegisterBuilder(kind, build)` reads the generated
+`portwiring.KindPorts`, which `src/Node/Wiring/nodegeom/gen` writes from the SPEC.md `## Ports`
+table. The kind used to pass an explicit `[]portwiring.PortSpec` literal, which was a SECOND
+declaration of the same inputs and outputs and free to drift from the table the editor draws
+from. `BuildRegistry()` survives but no longer BUILDS
 anything — it is the loader's "registry is ready" assertion, and panics on an empty
 registry, which is what a `kinds_generated.go` that lost its blank imports looks like.
 
@@ -54,6 +54,19 @@ phantom port on every kind that package served; that is why `helddrive.HeldDrive
 `Wiring/` rather than `gatecommon/`, where it once gave `SelectLeft`/`SelectRight` a bogus
 `out`. Reading the table instead removes the whole class: a struct field cannot declare a
 port any more. The check after touching a kind is still a `node-defs.ts` diff.
+
+**What a kind's code may BIND is checked against that table.** `kindscan`'s
+`checkPortRequests` reads every `a.In("X")`/`a.Out("X")`/`a.Broadcast("X")`/`a.DriveOut("X")`
+literal in the kind's package and fails `go generate` when the name is not a row, or is a row
+with the other direction; `kindapi.mustDeclare` panics on the same condition at build time.
+Without it an undeclared name binds a DEAD-END channel (`PortBindings.deadEndIn`) and the kind
+runs silently — reading nothing, emitting nothing, indistinguishable from a port with no edge
+attached. That silence is what let a SPEC.md rename reach `node-defs.ts` while the Go code
+still asked for the old spelling.
+
+Note the direction of the read: this checks the names the code REQUESTS against the table. It
+does not derive ports from Go types — that is the phantom-port hazard above, and it stays
+removed.
 
 **Skip step 4 and the kind does not exist in the binary**: it fails at runtime with
 `unknown type "X"` while its SPEC.md, Go package, and `NODE_DEFS` entry all look correct.
