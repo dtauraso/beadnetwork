@@ -2,22 +2,24 @@
 // Source: the PANEL_FLAGS block in src/Input/messages.ts.
 // Regenerate with: go generate ./...
 //
-// The same paths src/Chrome/Panels/Panel/paths/ hands the renderer. Neither
-// side builds this string itself.
+// The flags ride ONE file, in this order. The order IS the layout: each value
+// is a u32 length then that many bytes. src/Chrome/Panels/Panel/paths/block.bin
+// hands the renderer the same path, so neither side builds this string itself.
 
 package Panel
 
-// FlagPath maps a flag to its file, relative to the SCENE ROOT.
-var FlagPath = map[string]string{
-	"overlays":     "view/panels/overlays.bin",
-	"node":         "view/panels/node.bin",
-	"nodeShape":    "view/panels/nodeShape.bin",
-	"nodeState":    "view/panels/nodeState.bin",
-	"nodePoles":    "view/panels/nodePoles.bin",
-	"nodeRules":    "view/panels/nodeRules.bin",
-	"scene":        "view/panels/scene.bin",
-	"sceneGuides":  "view/panels/sceneGuides.bin",
-	"scenePoles":   "view/panels/scenePoles.bin",
-	"sceneVectors": "view/panels/sceneVectors.bin",
-	"sceneLabels":  "view/panels/sceneLabels.bin",
+const BlockRelPath = "view/panels.bin"
+
+var FlagNames = []string{
+	"overlays",
+	"node",
+	"nodeShape",
+	"nodeState",
+	"nodePoles",
+	"nodeRules",
+	"scene",
+	"sceneGuides",
+	"scenePoles",
+	"sceneVectors",
+	"sceneLabels",
 }

@@ -5,20 +5,15 @@ import (
 	"path/filepath"
 )
 
-const RelDir = "view/panels"
+const RelFile = "view/panels.bin"
 
 func WritePathFiles(pathsDir string, flags []string) error {
 	if err := os.MkdirAll(pathsDir, 0o755); err != nil {
 		return err
 	}
-	keep := map[string]bool{}
-	for _, flag := range flags {
-		name := flag + ".bin"
-		keep[name] = true
-		rel := RelDir + "/" + flag + ".bin"
-		if err := os.WriteFile(filepath.Join(pathsDir, name), []byte(rel), 0o644); err != nil {
-			return err
-		}
+	keep := map[string]bool{"block.bin": true}
+	if err := os.WriteFile(filepath.Join(pathsDir, "block.bin"), []byte(RelFile), 0o644); err != nil {
+		return err
 	}
 
 	if err := writeGoPaths(filepath.Dir(pathsDir), flags); err != nil {

@@ -14,15 +14,17 @@ func writeGoPaths(overlayDir string, flags []overlayFlag) error {
 	fmt.Fprintln(&buf, `// Source: the OVERLAY_FLAGS block in src/Input/messages.ts.`)
 	fmt.Fprintln(&buf, `// Regenerate with: go generate ./...`)
 	fmt.Fprintln(&buf, `//`)
-	fmt.Fprintln(&buf, `// The same paths src/Overlay/paths/ hands the renderer. Neither side builds`)
-	fmt.Fprintln(&buf, `// this string itself.`)
+	fmt.Fprintln(&buf, `// The flags ride ONE file, in this order. The order IS the layout: each value is`)
+	fmt.Fprintln(&buf, `// a u32 length then that many bytes. src/Overlay/paths/block.bin hands the`)
+	fmt.Fprintln(&buf, `// renderer the same path, so neither side builds this string itself.`)
 	fmt.Fprintln(&buf)
 	fmt.Fprintln(&buf, `package Overlay`)
 	fmt.Fprintln(&buf)
-	fmt.Fprintln(&buf, `// FlagPath maps a flag to its file, relative to the SCENE ROOT.`)
-	fmt.Fprintln(&buf, `var FlagPath = map[string]string{`)
+	fmt.Fprintf(&buf, "const BlockRelPath = %q\n", RelFile)
+	fmt.Fprintln(&buf)
+	fmt.Fprintln(&buf, `var FlagNames = []string{`)
 	for _, f := range flags {
-		fmt.Fprintf(&buf, "\t%q: %q,\n", f.flag, RelDir+"/"+f.flag+".bin")
+		fmt.Fprintf(&buf, "\t%q,\n", f.flag)
 	}
 	fmt.Fprintln(&buf, `}`)
 

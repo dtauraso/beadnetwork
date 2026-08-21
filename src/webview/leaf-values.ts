@@ -4,6 +4,9 @@ export interface LeafValues<N extends string> {
   i32: (name: N, fallback?: number) => number;
   u32: (name: N, fallback?: number) => number;
   u8: (name: N, fallback?: number) => number;
+  f64: (name: N, fallback?: number) => number;
+  i64: (name: N, fallback?: number) => number;
+  f64Run: (name: N) => number[];
   f32Run: (name: N) => Float32Array | null;
   i32Run: (name: N) => Int32Array | null;
   u32Run: (name: N) => Uint32Array | null;
@@ -89,6 +92,21 @@ export function makeLeafValues<N extends string>(
     i32: (name, fallback = 0) => {
       const v = view(name);
       return v && v.byteLength >= 4 ? v.getInt32(0, true) : fallback;
+    },
+    f64: (name, fallback = 0) => {
+      const v = view(name);
+      return v && v.byteLength >= 8 ? v.getFloat64(0, true) : fallback;
+    },
+    i64: (name, fallback = 0) => {
+      const v = view(name);
+      return v && v.byteLength >= 8 ? Number(v.getBigInt64(0, true)) : fallback;
+    },
+    f64Run: (name) => {
+      const v = view(name);
+      if (!v || v.byteLength === 0) return [];
+      const out: number[] = [];
+      for (let i = 0; i < v.byteLength / 8; i++) out.push(v.getFloat64(i * 8, true));
+      return out;
     },
     u32: (name, fallback = 0) => {
       const v = view(name);

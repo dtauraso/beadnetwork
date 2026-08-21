@@ -51,6 +51,14 @@ func (w *BlobWriter) U32(name string, v uint32) {
 	w.put(name, binary.LittleEndian.AppendUint32(w.pending[name], v))
 }
 
+func (w *BlobWriter) F64(name string, v float64) {
+	w.put(name, binary.LittleEndian.AppendUint64(w.pending[name], math.Float64bits(v)))
+}
+
+func (w *BlobWriter) I64(name string, v int64) {
+	w.put(name, binary.LittleEndian.AppendUint64(w.pending[name], uint64(v)))
+}
+
 func (w *BlobWriter) Bool(name string, v bool) {
 	if v {
 		w.U8(name, 1)

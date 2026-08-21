@@ -2,7 +2,6 @@ package Panel
 
 import (
 	"path/filepath"
-	"sort"
 
 	"github.com/dtauraso/wirefold/src/valuefile"
 )
@@ -35,37 +34,33 @@ var PanelFlagWrite = map[string]func(*PanelState, bool){
 	"sceneLabels":  func(p *PanelState, v bool) { p.SceneLabelsOpen = v },
 }
 
-func PanelFlagFile(sceneRoot, name string) string {
-	rel, ok := FlagPath[name]
-	if !ok {
-		panic("Panel.PanelFlagFile: flag " + name + " has no entry in the generated FlagPath, so Go and the renderer disagree about where it lives; run go generate ./...")
-	}
-	return filepath.Join(sceneRoot, rel)
+func BlockPath(sceneRoot string) string {
+	return filepath.Join(sceneRoot, filepath.FromSlash(BlockRelPath))
 }
 
 func WriteScenePanels(sceneRoot string, pn PanelState) error {
-	names := make([]string, 0, len(PanelFlagRead))
-	for name := range PanelFlagRead {
-		names = append(names, name)
+	w := valuefile.NewBlobWriter(BlockPath(sceneRoot), FlagNames)
+	w.Begin()
+	for _, name := range FlagNames {
+		w.Bool(name, PanelFlagRead[name](&pn))
 	}
-	sort.Strings(names)
-	for _, name := range names {
-		if err := valuefile.WriteAtomic(PanelFlagFile(sceneRoot, name), PanelFlagRead[name](&pn)); err != nil {
-			return err
-		}
-	}
-	return nil
+	return w.Flush()
 }
 
 func LoadScenePanels(sceneRoot string) (PanelState, bool) {
 	pn := DefaultPanelState()
+	r, ok := valuefile.ReadBlob(BlockPath(sceneRoot), FlagNames)
+	if !ok {
+		return pn, false
+	}
 	found := false
-	for name, set := range PanelFlagWrite {
-		var v bool
-		if valuefile.ReadIfExists(PanelFlagFile(sceneRoot, name), &v) {
-			set(&pn, v)
-			found = true
+	for _, name := range FlagNames {
+		v, got := r.Bool(name)
+		if !got {
+			continue
 		}
+		PanelFlagWrite[name](&pn, v)
+		found = true
 	}
 	return pn, found
 }

@@ -14,15 +14,17 @@ func writeGoPaths(panelDir string, flags []string) error {
 	fmt.Fprintln(&buf, `// Source: the PANEL_FLAGS block in src/Input/messages.ts.`)
 	fmt.Fprintln(&buf, `// Regenerate with: go generate ./...`)
 	fmt.Fprintln(&buf, `//`)
-	fmt.Fprintln(&buf, `// The same paths src/Chrome/Panels/Panel/paths/ hands the renderer. Neither`)
-	fmt.Fprintln(&buf, `// side builds this string itself.`)
+	fmt.Fprintln(&buf, `// The flags ride ONE file, in this order. The order IS the layout: each value`)
+	fmt.Fprintln(&buf, `// is a u32 length then that many bytes. src/Chrome/Panels/Panel/paths/block.bin`)
+	fmt.Fprintln(&buf, `// hands the renderer the same path, so neither side builds this string itself.`)
 	fmt.Fprintln(&buf)
 	fmt.Fprintln(&buf, `package Panel`)
 	fmt.Fprintln(&buf)
-	fmt.Fprintln(&buf, `// FlagPath maps a flag to its file, relative to the SCENE ROOT.`)
-	fmt.Fprintln(&buf, `var FlagPath = map[string]string{`)
+	fmt.Fprintf(&buf, "const BlockRelPath = %q\n", RelFile)
+	fmt.Fprintln(&buf)
+	fmt.Fprintln(&buf, `var FlagNames = []string{`)
 	for _, flag := range flags {
-		fmt.Fprintf(&buf, "\t%q: %q,\n", flag, RelDir+"/"+flag+".bin")
+		fmt.Fprintf(&buf, "\t%q,\n", flag)
 	}
 	fmt.Fprintln(&buf, `}`)
 

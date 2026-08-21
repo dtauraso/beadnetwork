@@ -96,13 +96,14 @@ report_diff "$(comm -13 <(echo "$HM_KINDS") <(echo "$TS_KINDS"))" "handle-messag
 TS_FLAGS=$(between OVERLAY_FLAGS_START OVERLAY_FLAGS_END "$MESSAGES_TS" | quoted) || true
 assert_nonempty "$TS_FLAGS" "axis3 messages.ts overlay flags"
 
-RENDER_READS=$(ls "$REPO_ROOT/src/Overlay/paths" 2>/dev/null | grep -aE '\.bin$' | sed 's/\.bin$//' | sort -u)
-assert_nonempty "$RENDER_READS" "axis3 src/Overlay/paths/ flag path files"
+RENDER_READS=$(awk '/^var FlagNames = \[\]string\{/{p=1;next} p&&/^\}/{p=0} p' \
+  "$REPO_ROOT/src/Overlay/flag_paths_gen.go" | grep -aoE '"[a-zA-Z]+"' | tr -d '"' | sort -u)
+assert_nonempty "$RENDER_READS" "axis3 Overlay FlagNames block layout"
 N_FLAGS=$(printf '%s\n' "$TS_FLAGS" | grep -c .)
 N_READS=$(printf '%s\n' "$RENDER_READS" | grep -c .)
 if [[ "$N_FLAGS" -ne "$N_READS" ]]; then
-  echo "  overlay flag/renderer cardinality mismatch: OVERLAY_FLAG_NAMES=$N_FLAGS, src/Overlay/paths/ files=$N_READS"
-  echo "    (a flag was added/removed in messages.ts without regenerating src/Overlay/paths/, so the renderer cannot read it)"
+  echo "  overlay flag/renderer cardinality mismatch: OVERLAY_FLAG_NAMES=$N_FLAGS, Overlay FlagNames=$N_READS"
+  echo "    (a flag was added/removed in messages.ts without regenerating flag_paths_gen.go, so it has no slot in the block the renderer reads)"
   HITS=$((HITS+1))
 fi
 
@@ -125,12 +126,13 @@ if [[ "$N_PANEL_FLAGS" -ne "$N_PANEL_READS" || "$N_PANEL_FLAGS" -ne "$N_PANEL_KE
   HITS=$((HITS+1))
 fi
 
-PANEL_PATH_FILES=$(ls "$REPO_ROOT/src/Chrome/Panels/Panel/paths" 2>/dev/null | grep -aE '\.bin$' | sed 's/\.bin$//' | sort -u)
-assert_nonempty "$PANEL_PATH_FILES" "axis4 src/Chrome/Panels/Panel/paths/ flag path files"
+PANEL_PATH_FILES=$(awk '/^var FlagNames = \[\]string\{/{p=1;next} p&&/^\}/{p=0} p' \
+  "$REPO_ROOT/src/Chrome/Panels/Panel/flag_paths_gen.go" | grep -aoE '"[a-zA-Z]+"' | tr -d '"' | sort -u)
+assert_nonempty "$PANEL_PATH_FILES" "axis4 Panel FlagNames block layout"
 N_PANEL_PATHS=$(printf '%s\n' "$PANEL_PATH_FILES" | grep -c .)
 if [[ "$N_PANEL_FLAGS" -ne "$N_PANEL_PATHS" ]]; then
-  echo "  panel flag/renderer cardinality mismatch: PANEL_FLAG_NAMES=$N_PANEL_FLAGS, src/Chrome/Panels/Panel/paths/ files=$N_PANEL_PATHS"
-  echo "    (a flag was added/removed in messages.ts without regenerating src/Chrome/Panels/Panel/paths/, so the renderer cannot read it)"
+  echo "  panel flag/renderer cardinality mismatch: PANEL_FLAG_NAMES=$N_PANEL_FLAGS, Panel FlagNames=$N_PANEL_PATHS"
+  echo "    (a flag was added/removed in messages.ts without regenerating flag_paths_gen.go, so it has no slot in the block the renderer reads)"
   HITS=$((HITS+1))
 fi
 
