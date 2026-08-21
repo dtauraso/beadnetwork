@@ -1,5 +1,5 @@
 package bufferlayout
 
-const BufLayoutVersion = 52
+const BufLayoutVersion = 53
 
 const BufInteriorSlotsPerNode = 4

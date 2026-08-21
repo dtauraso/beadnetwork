@@ -18,7 +18,6 @@ var movedToColumns = map[string]bool{
 	"Overlay":       true,
 	"Camera":        true,
 	"Node":          true,
-	"EdgeBead":      true,
 	"TiltArrow":     true,
 	"ChannelVector": true,
 }

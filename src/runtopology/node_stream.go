@@ -12,6 +12,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Buffer/colstream"
 	W "github.com/dtauraso/wirefold/src/Input/dispatch"
 	EdgeB "github.com/dtauraso/wirefold/src/Node/Edge"
+	BeadB "github.com/dtauraso/wirefold/src/Ring/Bead"
 	"github.com/dtauraso/wirefold/src/Node/framegeom"
 	"github.com/dtauraso/wirefold/src/Node/nodeactor/nodeframe"
 	TiltB "github.com/dtauraso/wirefold/src/Scene/TiltVectors"
@@ -21,6 +22,11 @@ import (
 
 func wireNodeStreams(streamFDs SW.StreamFDs, md *W.MoveDispatch, sceneRoot string) {
 	cols := SW.NewColumnStreams(streamFDs, len(md.RT.NodeRowTable), len(md.RT.EdgeRowTable))
+
+	beadValues := make([]*BeadB.ValueWriter, len(md.RT.NodeRowTable))
+	for row := range beadValues {
+		beadValues[row] = BeadB.NewValueWriter(sceneRoot, row)
+	}
 
 	nodeSets := map[int32]*colstream.ColumnSet{}
 	nodeCols := func(row int32) *colstream.ColumnSet {
@@ -54,7 +60,11 @@ func wireNodeStreams(streamFDs SW.StreamFDs, md *W.MoveDispatch, sceneRoot strin
 			md.Sw.SetNodeStreams(md.GS.NodeSeeds, md.MR.NodeGeoms(), sceneRoot, nodeBase, interiorBase,
 				beadBase, beadWired,
 				func(tick uint32, nodeRow int32, beads []EdgeB.EdgeBead, events []B.RowEvent) []byte {
-					EdgeB.WriteEdgeBeadColumns(nodeCols(nodeRow), beads)
+					if int(nodeRow) < len(beadValues) {
+						if err := EdgeB.WriteEdgeBeadValues(beadValues[nodeRow], beads); err != nil {
+							fmt.Fprintf(os.Stderr, "bead values write (node row %d): %v\n", nodeRow, err)
+						}
+					}
 					return beadanimation.BuildBeadStreamFrame(tick, nodeRow, events)
 				},
 				md.RT.NodeRowFor,
