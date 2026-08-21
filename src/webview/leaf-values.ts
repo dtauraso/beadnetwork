@@ -29,6 +29,8 @@ const READ_INTERVAL_MS = 100;
 export function makeLeafValues<N extends string>(
   pathsDir: string,
   names: readonly N[],
+
+  cadence: "interval" | "frame" = "interval",
 ): LeafValues<N> {
   const latest = new Map<string, DataView>();
   let started = false;
@@ -64,7 +66,9 @@ export function makeLeafValues<N extends string>(
             if (buf) split(buf);
           }
         }
-        await new Promise((r) => setTimeout(r, READ_INTERVAL_MS));
+        await (cadence === "frame"
+          ? new Promise((r) => requestAnimationFrame(() => r(undefined)))
+          : new Promise((r) => setTimeout(r, READ_INTERVAL_MS)));
       }
     };
     void pump();
