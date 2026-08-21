@@ -7,10 +7,6 @@ import (
 	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
-// OverlayFlagFile resolves a flag against the SCENE ROOT using the generated
-// declaration — the same one src/Overlay/paths/ hands the renderer. Building
-// the name here instead is how Go came to write <flag>.json while the renderer
-// read <flag>.bin.
 func OverlayFlagFile(sceneRoot, flag string) string {
 	rel, ok := FlagPath[flag]
 	if !ok {

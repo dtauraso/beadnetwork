@@ -32,7 +32,5 @@ func main() {
 		genpaths.Fatalf("write overlay paths: %v", err)
 	}
 	genpaths.Announce(pathsDir, len(flags), "overlay paths")
-	// Announced so check-generated has it in the checked set: a generated file
-	// it never hears about can never be reported stale.
 	genpaths.Announce(filepath.Join(dir, "flag_paths_gen.go"), len(flags), "overlay paths")
 }
