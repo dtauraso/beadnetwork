@@ -29,14 +29,17 @@ structs, so a block is found by BEING one — a list of locations would be a sec
 description of the layout, and this generator exists because two descriptions of the wire
 format is exactly how the Go and TS halves drift apart.
 
-**Two things stay central, and only two.** `BufLayoutVersion` and `BufInteriorSlotsPerNode`
-in `src/Buffer/layout_version.go`, and `bufBlockOrder` in
+**Two things stay central, and only two.** `BufLayoutVersion` in
+`src/Buffer/layout_version.go`, and `bufBlockOrder` in
 `src/Buffer/gen/buflayout/buf_layout_parse.go` — that order IS the wire format, so it
 belongs in one place. Where a block's file sits is not part of the wire format.
 
-To add a column: add the field with its `buf:"…"` tag to that block's `buffer_block.go`, and
-regenerate in the SAME commit. `buffer_layout_gen.go` and `buffer-layout.ts` are both
-generated, and `check-generated.sh` fails if either is stale (it regenerates and diffs).
+`bufBlockOrder` now names only the trace events (Recv, Fire, Send, Arrive, Breadcrumb).
+Everything else that once had a `buffer_block.go` has a `*_values.go` instead: a Go name
+list, a generated TS name list beside it, and a `paths/block.bin` naming the file. To add a
+value, add its name to that list and regenerate in the SAME commit — `check-generated.sh`
+fails if the generated half is stale, and `check-no-dead-buffer-column.sh` fails if nothing
+reads the new name.
 
 A new BLOCK also needs its name in `bufBlockOrder`, and a `var _ = bufLayoutX{}` beside it
 so it is not dead code in a package nothing imports it from.

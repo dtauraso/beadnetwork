@@ -107,14 +107,27 @@ self-scheduling driver (each source node's mover, no central walker, no lockstep
 ## Editor surface (TS)
 
 The model lives entirely in Go. The TS/React layer is **render + forward
-only**: it decodes the binary content buffer Go streams and draws it, and
-forwards raw input to Go. It holds NO domain state — no render stores, no
-spec store, no camera store — never sets node state and never tells Go
-when a bead has arrived. Go owns the clock.
+only**: it reads what Go wrote and draws it, and forwards raw input to Go.
+It holds NO domain state — no render stores, no spec store, no camera
+store — never sets node state and never tells Go when a bead has arrived.
+Go owns the clock.
+
+**Go writes the scene to BLOCK FILES; TS pulls them.** Each owner's own
+goroutine writes its own file — `view/nodes/<row>/node.bin`, `.../beads.bin`,
+`.../interior.bin`, `.../channel-vectors.bin`, `.../tilt-arrows.bin`,
+`view/edges/<row>/edge.bin`, and the singletons beside them — as sections of
+`u32 length + bytes` in a generated name order, written whole through
+tmp+rename. The row is in the PATH, never in the file, so the goroutine that
+owns a thing is the only writer of its bytes. The renderer fetches one file
+per block and slices the sections (`src/webview/leaf-values.ts`,
+`row-leaf-values.ts`), at one of two cadences: an interval for what changes at
+human speed, a frame for what follows the cursor, a drag, or a tick.
+
+This REPLACED a streamed binary content buffer that carried the whole scene.
+Nothing of the scene streams any more.
 
 See [docs/model/editor-surface.md](docs/model/editor-surface.md) for what the Go runtime
-owns and streams, the Go → TS binary content buffer, `BufferScene`'s render tree, and the
-binary-both-ways bridge surface.
+owns and writes, `BufferScene`'s render tree, and the binary-both-ways bridge surface.
 
 ## Scenes
 
@@ -130,7 +143,7 @@ Traversal-timing or firing-rule logic outside the Go node
 goroutines is drift — move it back into Go. Likewise any domain state
 (node/edge/pulse/geometry/camera/selection) authored on the TS side, or
 any TS-side geometry/position/timing computation, is drift: Go owns the
-model and streams it as the content buffer; TS decodes and draws.
+model and writes it to the block files; TS reads them and draws.
 
 ## Node positions & movement locks (the polar model)
 
