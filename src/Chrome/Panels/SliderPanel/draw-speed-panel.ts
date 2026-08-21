@@ -1,16 +1,8 @@
-import { columnBytes, columnF32 } from "../../../Buffer/column-values";
 import { drawBox, canvasFont } from "../../../webview/canvas-box";
+import { decodeAt } from "../../../Buffer/column-reads";
 import {
-  COL_STREAM_SPEED_PANEL_BOX_X, COL_STREAM_SPEED_PANEL_BOX_Y, COL_STREAM_SPEED_PANEL_BOX_W,
-  COL_STREAM_SPEED_PANEL_BOX_H, COL_STREAM_SPEED_PANEL_RECT_X, COL_STREAM_SPEED_PANEL_RECT_Y,
-  COL_STREAM_SPEED_PANEL_RECT_W, COL_STREAM_SPEED_PANEL_RECT_H,
-  COL_STREAM_SPEED_PANEL_SELECTED, COL_STREAM_SPEED_PANEL_NUM_TEXT,
-  COL_STREAM_SPEED_PANEL_NUM_LEN, COL_STREAM_SPEED_PANEL_DEN_TEXT,
-  COL_STREAM_SPEED_PANEL_DEN_LEN, COL_STREAM_SPEED_PANEL_TRACK_X,
-  COL_STREAM_SPEED_PANEL_TRACK_Y, COL_STREAM_SPEED_PANEL_TRACK_W,
-  COL_STREAM_SPEED_PANEL_TRACK_H,
-} from "./columns-gen";
-import { readF32Run, readU32Run, readText, decodeAt } from "../../../Buffer/column-reads";
+  sliderBytes, sliderF32, sliderF32Run, sliderU32Run, sliderText,
+} from "./panel-leaves";
 
 const TICK_FONT_PX = 11;
 const FRAC_SCALE = 0.62;
@@ -22,45 +14,45 @@ const THUMB_EDGE = "#999";
 const THUMB_R = 6;
 
 function selectedIndex(): number {
-  const sel = columnBytes(COL_STREAM_SPEED_PANEL_SELECTED);
+  const sel = sliderBytes("selected");
   if (!sel) return -1;
   for (let i = 0; i < sel.byteLength; i++) if (sel.getUint8(i) !== 0) return i;
   return -1;
 }
 
 export function speedPanelKey(): string {
-  const x = readF32Run(COL_STREAM_SPEED_PANEL_RECT_X);
+  const x = sliderF32Run("rectX");
   return [
-    columnF32(COL_STREAM_SPEED_PANEL_BOX_X), columnF32(COL_STREAM_SPEED_PANEL_BOX_Y),
-    columnF32(COL_STREAM_SPEED_PANEL_BOX_W), columnF32(COL_STREAM_SPEED_PANEL_BOX_H),
+    sliderF32("boxX"), sliderF32("boxY"),
+    sliderF32("boxW"), sliderF32("boxH"),
     x ? x.length : 0, selectedIndex(),
   ].join(",");
 }
 
 export function drawSpeedPanel(c: CanvasRenderingContext2D): void {
-  const x = readF32Run(COL_STREAM_SPEED_PANEL_RECT_X);
-  const y = readF32Run(COL_STREAM_SPEED_PANEL_RECT_Y);
-  const w = readF32Run(COL_STREAM_SPEED_PANEL_RECT_W);
-  const h = readF32Run(COL_STREAM_SPEED_PANEL_RECT_H);
-  const sel = columnBytes(COL_STREAM_SPEED_PANEL_SELECTED);
-  const numText = readText(COL_STREAM_SPEED_PANEL_NUM_TEXT);
-  const numLen = readU32Run(COL_STREAM_SPEED_PANEL_NUM_LEN);
-  const denText = readText(COL_STREAM_SPEED_PANEL_DEN_TEXT);
-  const denLen = readU32Run(COL_STREAM_SPEED_PANEL_DEN_LEN);
+  const x = sliderF32Run("rectX");
+  const y = sliderF32Run("rectY");
+  const w = sliderF32Run("rectW");
+  const h = sliderF32Run("rectH");
+  const sel = sliderBytes("selected");
+  const numText = sliderText("numText");
+  const numLen = sliderU32Run("numLen");
+  const denText = sliderText("denText");
+  const denLen = sliderU32Run("denLen");
   if (!x || !y || !w || !h || !sel || !numText || !numLen || !denText || !denLen) return;
 
   drawBox(
     c,
-    columnF32(COL_STREAM_SPEED_PANEL_BOX_X),
-    columnF32(COL_STREAM_SPEED_PANEL_BOX_Y),
-    columnF32(COL_STREAM_SPEED_PANEL_BOX_W),
-    columnF32(COL_STREAM_SPEED_PANEL_BOX_H),
+    sliderF32("boxX"),
+    sliderF32("boxY"),
+    sliderF32("boxW"),
+    sliderF32("boxH"),
   );
 
-  const trackX = columnF32(COL_STREAM_SPEED_PANEL_TRACK_X);
-  const trackY = columnF32(COL_STREAM_SPEED_PANEL_TRACK_Y);
-  const trackW = columnF32(COL_STREAM_SPEED_PANEL_TRACK_W);
-  const trackH = columnF32(COL_STREAM_SPEED_PANEL_TRACK_H);
+  const trackX = sliderF32("trackX");
+  const trackY = sliderF32("trackY");
+  const trackW = sliderF32("trackW");
+  const trackH = sliderF32("trackH");
 
   c.fillStyle = TRACK_FILL;
   c.fillRect(trackX, trackY, trackW, trackH);

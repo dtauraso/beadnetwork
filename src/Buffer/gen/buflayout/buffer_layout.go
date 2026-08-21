@@ -19,7 +19,6 @@ var movedToColumns = map[string]bool{
 	"Camera":        true,
 	"Node":          true,
 	"EdgeBead":      true,
-	"SpeedPanel":    true,
 	"TiltArrow":     true,
 	"ChannelVector": true,
 }
