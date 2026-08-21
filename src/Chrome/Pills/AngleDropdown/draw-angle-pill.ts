@@ -1,8 +1,4 @@
-import { columnBytes } from "../../../Buffer/column-values";
-import { nodeColumn } from "../../../Buffer/column-owners";
-import {
-  COL_STREAM_NODE_TOP_TILT_VECTOR_TEXT,
-} from "../../../Node/columns-gen";
+import { nodeBytes } from "../../../Node/node-leaves";
 import { canvasFont, roundRect } from "../../../webview/canvas-box";
 import { drawPill, drawPopoverBox, drawHeadingText, ROW_PAD_X } from "../pill";
 import { decodeAt } from "../../../Buffer/column-reads";
@@ -17,7 +13,7 @@ const ARROW_PAD = 2;
 
 function stepperValue(shown: string, valueRow: number): string {
   if (valueRow < 0) return shown;
-  const text = columnBytes(nodeColumn(valueRow, COL_STREAM_NODE_TOP_TILT_VECTOR_TEXT));
+  const text = nodeBytes(valueRow, "topTiltVectorText");
   if (!text) return shown;
   return decodeAt(new Uint8Array(text.buffer, text.byteOffset, text.byteLength), 0, text.byteLength);
 }

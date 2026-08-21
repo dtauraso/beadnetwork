@@ -115,9 +115,9 @@ one directory out, since a directory is one Go package. `go generate ./...` runs
   coordinator — it constructs and starts, and the network runs itself from there.
 - **`src/Ring/`** — the ring, the shape a node and a bead are both drawn as: canonical torus
   points computed in Go, meshed in TS. `Ring/NodeShape/` and `Ring/Bead/` are the two that
-  share it. "Ring" over "torus" because the codebase already votes that way — `RingM0`,
+  share it. "Ring" over "torus" because the codebase already votes that way — `ringM0`,
   `ringPick` and `ringBand` against a handful of torus names in the low-level math.
-- **`src/Ring/Bead/`** — ONE bead: ring surface, style, buffer-block row. SEVERAL beads — spacing, chaining, framing — is what a node does with beads, and belongs to the next bullet.
+- **`src/Ring/Bead/`** — ONE bead: ring surface, style, its block file. SEVERAL beads — spacing, chaining, framing — is what a node does with beads, and belongs to the next bullet.
 - **`src/Node/BeadAnimation/`** — the whole bead process, which is what a node uses beads
   for: `BeadLine` (the line beads travel, state with no goroutine of its own), the `Sender`
   and `Receiver` on each end, the slot `lattice/`, and the animation goroutine that steps it.

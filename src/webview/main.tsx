@@ -20,10 +20,7 @@ import { BUF_BLOCK_TAG_VIEW, BUF_BLOCK_TAG_EDGE_STREAM, BUF_BLOCK_TAG_NODE_STREA
 import { setColumnValue, columnDiagnostics, columnI32, columnF32, columnU8 } from "../Buffer/column-values";
 import { nodeColumn, edgeColumn, ownerCounts } from "../Buffer/column-owners";
 import { edgeF32 } from "../Node/Edge/edge-leaves";
-import {
-  COL_STREAM_NODE_INDEX_R, COL_STREAM_NODE_INDEX_PHI, COL_STREAM_NODE_INDEX_THETA,
-  COL_STREAM_NODE_HAS_POS,
-} from "../Node/columns-gen";
+import { nodeI32, nodeU8 } from "../Node/node-leaves";
 
 function Root() {
   return <ThreeView />;
@@ -104,10 +101,10 @@ window.addEventListener("message", (e) => {
         colLowest: cols.lowest, colHighest: cols.highest,
         ownerNodes: counts.nodes, ownerEdges: counts.edges,
         nodeIndex: Array.from({ length: counts.nodes }, (_unused, row) => [
-          columnU8(nodeColumn(row, COL_STREAM_NODE_HAS_POS)),
-          columnI32(nodeColumn(row, COL_STREAM_NODE_INDEX_R)),
-          columnI32(nodeColumn(row, COL_STREAM_NODE_INDEX_PHI)),
-          columnI32(nodeColumn(row, COL_STREAM_NODE_INDEX_THETA)),
+          nodeU8(row, "hasPos"),
+          nodeI32(row, "indexR"),
+          nodeI32(row, "indexPhi"),
+          nodeI32(row, "indexTheta"),
         ].join("/")),
         edgeStart: Array.from({ length: counts.edges }, (_unused, row) =>
           edgeF32(row, "sx").toFixed(1)),

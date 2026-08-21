@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: src/Node/buffer_block.go,src/runtopology/node_stream.go | a Node column must be named by the runtopology adapter that fills its row, or it silently streams zeros
+# PLACEMENT: src/Node/node_values.go | a declared node value must be written by WriteNodeValues, or it crosses as an empty section and the renderer silently reads its fallback
 
 set -euo pipefail
 
@@ -11,72 +11,51 @@ cd "$REPO_ROOT"
 python3 - <<'PY'
 import re, sys
 
-PAIRS = [
-    ("src/Node/buffer_block.go",    "bufLayoutNode",    "src/runtopology/node_stream.go"),
-]
+PATH = "src/Node/node_values.go"
 
-DERIVED = [
-    (re.compile(r"^RingM\d+$"),        "RingMatrix", "the whole matrix rides one [16]float32 field"),
-    (re.compile(r"^Label(Off|Len)$"),  "Label",      "the offset and length are computed from the label bytes"),
-]
-
-def columns(path, struct):
-    src = open(path, encoding="utf-8").read()
-    m = re.search(r"type " + struct + r" struct \{(.*?)\n\}", src, re.S)
-    if not m:
-        print(f"check-buffer-column-has-writer: MISCONFIGURED — {struct} not found in {path} "
-              f"(renamed?); refusing vacuous pass", file=sys.stderr)
-        sys.exit(1)
-    out = []
-    for line in m.group(1).split("\n"):
-        mm = re.match(r"\s*([A-Za-z0-9_, ]+?)\s+\S+\s+`buf:", line)
-        if mm:
-            out.extend(n.strip() for n in mm.group(1).split(",") if n.strip())
-    if not out:
-        print(f"check-buffer-column-has-writer: MISCONFIGURED — parsed 0 `buf:` columns out of "
-              f"{struct}; the struct format changed and this guard would check nothing", file=sys.stderr)
-        sys.exit(1)
-    return out
-
-GENERATED_GO = "src/Buffer/buffer_layout_gen_singletons.go"
 try:
-    generated = open(GENERATED_GO, encoding="utf-8").read()
+    src = open(PATH, encoding="utf-8").read()
 except OSError:
-    print(f"check-buffer-column-has-writer: MISCONFIGURED — {GENERATED_GO} not found (renamed?); "
-          f"cannot tell which blocks still have rows", file=sys.stderr)
+    print(f"check-buffer-column-has-writer: MISCONFIGURED — {PATH} not found (moved?); "
+          f"refusing vacuous pass", file=sys.stderr)
     sys.exit(1)
 
-def has_row(struct):
-    block = struct.replace("bufLayout", "")
-    return f"func Set{block}Row(" in generated
-
-fail = False
-for schema_path, struct, adapter_path in PAIRS:
-    if not has_row(struct):
-        continue
-    try:
-        adapter = {w.lower() for w in re.findall(r"[A-Za-z0-9_]+",
-                                                 open(adapter_path, encoding="utf-8").read())}
-    except OSError:
-        print(f"check-buffer-column-has-writer: MISCONFIGURED — adapter {adapter_path} not found "
-              f"(moved?); refusing vacuous pass", file=sys.stderr)
-        sys.exit(1)
-
-    for col in columns(schema_path, struct):
-        if col.lower() in adapter:
-            continue
-        source = next((s for pat, s, _ in DERIVED if pat.match(col)), None)
-        if source and source.lower() in adapter:
-            continue
-        fail = True
-        print(f"BUFFER COLUMN WITH NO WRITER: {struct}.{col} is never named in {adapter_path}.")
-        print(f"  That literal sets the row field by field, so the column streams a zero value while")
-        print(f"  packing, decoding and every other check pass. Fix: set it in the {adapter_path}")
-        print(f"  literal, or derive it there from a field that IS set (see DERIVED in this guard).")
-        print(f"  check-no-dead-buffer-column stays GREEN through this: it guards the CONSUMER end")
-        print(f"  (a TS reader must exist), and the column is unwritten at the PRODUCER end.")
-
-if fail:
+m = re.search(r"func buildNodeValueNames\(\) \[\]string \{(.*?)\n\}", src, re.S)
+if not m:
+    print("check-buffer-column-has-writer: MISCONFIGURED — buildNodeValueNames not found in "
+          f"{PATH} (renamed?); refusing vacuous pass", file=sys.stderr)
     sys.exit(1)
-print("check-buffer-column-has-writer: clean (every Node column is named by its adapter)")
+
+declared = set(re.findall(r'"([a-zA-Z0-9]+)"', m.group(1)))
+
+for i in range(16):
+    declared.add(f"ringM{i}")
+
+if len(declared) < 20:
+    print(f"check-buffer-column-has-writer: MISCONFIGURED — parsed only {len(declared)} declared "
+          f"values; the declaration format changed and this guard would check almost nothing",
+          file=sys.stderr)
+    sys.exit(1)
+
+w = re.search(r"func WriteNodeValues\(.*?\n\}", src, re.S)
+if not w:
+    print("check-buffer-column-has-writer: MISCONFIGURED — WriteNodeValues not found in "
+          f"{PATH} (renamed?); refusing vacuous pass", file=sys.stderr)
+    sys.exit(1)
+
+body = w.group(0)
+written = set(re.findall(r'w\.(?:F32|I32|U8|U32|F64|I64|Bool|Text|Bytes)\("([a-zA-Z0-9]+)"', body))
+if "RingName(m)" in body:
+    written |= {f"ringM{i}" for i in range(16)}
+
+missing = sorted(declared - written)
+if missing:
+    for name in missing:
+        print(f"NODE VALUE WITH NO WRITER: {name} is declared in NodeValueNames but WriteNodeValues")
+        print(f"  never sets it. It crosses as a ZERO-LENGTH section, so the renderer silently reads")
+        print(f"  its fallback while packing, decoding and every other check pass. Fix: write it in")
+        print(f"  WriteNodeValues, or drop it from NodeValueNames.")
+    sys.exit(1)
+
+print(f"check-buffer-column-has-writer: clean (all {len(declared)} node values are written)")
 PY

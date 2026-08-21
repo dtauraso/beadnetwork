@@ -1,8 +1,4 @@
-import { columnF32, columnI32 } from "../../../Buffer/column-values";
-import { nodeColumn } from "../../../Buffer/column-owners";
-import {
-  COL_STREAM_NODE_ROUNDS_TO_PARALLEL, COL_STREAM_NODE_MSGS_TO_PARALLEL,
-} from "../../../Node/columns-gen";
+import { nodeI32 } from "../../../Node/node-leaves";
 import { drawBox, canvasFont, roundRect } from "../../../webview/canvas-box";
 import { decodeAt } from "../../../Buffer/column-reads";
 import {
@@ -74,8 +70,8 @@ export function tiltPanelKey(): string {
   if (rows) {
     for (const row of rows) {
       values.push(
-        columnI32(nodeColumn(row, COL_STREAM_NODE_ROUNDS_TO_PARALLEL)),
-        columnI32(nodeColumn(row, COL_STREAM_NODE_MSGS_TO_PARALLEL)),
+        nodeI32(row, "roundsToParallel"),
+        nodeI32(row, "msgsToParallel"),
       );
     }
   }
@@ -147,11 +143,11 @@ export function drawTiltPanel(c: CanvasRenderingContext2D): void {
 
     drawCell(
       c, roundsX[i]!, roundsY[i]!, roundsW[i]!, roundsH[i]!,
-      "rounds", columnI32(nodeColumn(row, COL_STREAM_NODE_ROUNDS_TO_PARALLEL)),
+      "rounds", nodeI32(row, "roundsToParallel"),
     );
     drawCell(
       c, msgsX[i]!, msgsY[i]!, msgsW[i]!, msgsH[i]!,
-      "msgs", columnI32(nodeColumn(row, COL_STREAM_NODE_MSGS_TO_PARALLEL)),
+      "msgs", nodeI32(row, "msgsToParallel"),
     );
   }
 }

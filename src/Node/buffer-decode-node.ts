@@ -1,10 +1,6 @@
 import { BUF_NODE_STREAM_FRAME_HEADER_SIZE } from "../Buffer/frame-tags";
 import { STR_DECODER, decodeTrailingEvents, type DecodedEvents } from "../webview/decode/buffer-decode-shared";
-import { columnBytes } from "../Buffer/column-values";
-import { nodeColumn } from "../Buffer/column-owners";
-import {
-  COL_STREAM_NODE_LABEL,
-} from "./columns-gen";
+import { nodeBytes } from "./node-leaves";
 
 export interface DecodedNodeStreamFrame {
   tick: number;
@@ -58,7 +54,7 @@ function decodeNodeStreamFrameUncached(buf: ArrayBuffer): DecodedNodeStreamFrame
 
 export function nodeLabel(row: number): string {
   if (row < 0) return "";
-  const bytes = columnBytes(nodeColumn(row, COL_STREAM_NODE_LABEL));
+  const bytes = nodeBytes(row, "label");
   if (!bytes || bytes.byteLength === 0) return "";
   return STR_DECODER.decode(new Uint8Array(bytes.buffer, bytes.byteOffset, bytes.byteLength));
 }

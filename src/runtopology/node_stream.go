@@ -9,7 +9,6 @@ import (
 
 	B "github.com/dtauraso/wirefold/src/Buffer"
 
-	"github.com/dtauraso/wirefold/src/Buffer/colstream"
 	W "github.com/dtauraso/wirefold/src/Input/dispatch"
 	EdgeB "github.com/dtauraso/wirefold/src/Node/Edge"
 	BeadB "github.com/dtauraso/wirefold/src/Ring/Bead"
@@ -21,26 +20,17 @@ import (
 )
 
 func wireNodeStreams(streamFDs SW.StreamFDs, md *W.MoveDispatch, sceneRoot string) {
-	cols := SW.NewColumnStreams(streamFDs, len(md.RT.NodeRowTable), len(md.RT.EdgeRowTable))
-
 	beadValues := make([]*BeadB.ValueWriter, len(md.RT.NodeRowTable))
+	nodeValues := make([]*NodeKind.ValueWriter, len(md.RT.NodeRowTable))
 	tiltValues := make([]*TiltB.ValueWriter, len(md.RT.NodeRowTable))
 	vecValues := make([]*VecB.ValueWriter, len(md.RT.NodeRowTable))
 	for row := range beadValues {
 		beadValues[row] = BeadB.NewValueWriter(sceneRoot, row)
+		nodeValues[row] = NodeKind.NewValueWriter(sceneRoot, row)
 		tiltValues[row] = TiltB.NewValueWriter(sceneRoot, row)
 		vecValues[row] = VecB.NewValueWriter(sceneRoot, row)
 	}
 
-	nodeSets := map[int32]*colstream.ColumnSet{}
-	nodeCols := func(row int32) *colstream.ColumnSet {
-		if s, ok := nodeSets[row]; ok {
-			return s
-		}
-		s := cols.NodeColumns(int(row))
-		nodeSets[row] = s
-		return s
-	}
 	_, nodeFDsWired := streamFDs[SW.StreamKindNode]
 	_, interiorFDsWired := streamFDs[SW.StreamKindInterior]
 	_, beadFDsWired := streamFDs[SW.StreamKindBead]
@@ -121,8 +111,10 @@ func wireNodeStreams(streamFDs SW.StreamFDs, md *W.MoveDispatch, sceneRoot strin
 						Events:           f.Events,
 					}
 
-					NodeKind.WriteNodeColumns(nodeCols(f.NodeRow), frame)
 					if int(f.NodeRow) < len(tiltValues) {
+						if err := NodeKind.WriteNodeValues(nodeValues[f.NodeRow], frame); err != nil {
+							fmt.Fprintf(os.Stderr, "node values write (node row %d): %v\n", f.NodeRow, err)
+						}
 						if err := TiltB.WriteTiltArrowValues(tiltValues[f.NodeRow], frame.TiltArrows); err != nil {
 							fmt.Fprintf(os.Stderr, "tilt arrow values write (node row %d): %v\n", f.NodeRow, err)
 						}

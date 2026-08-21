@@ -2,13 +2,8 @@ import * as THREE from "three";
 import { nodeLabel } from "../Node/buffer-decode-node";
 import { polarToCart } from "../webview/polar-convert";
 import { sceneSteps, sceneRadius } from "../Scene/scene-frame";
-import { columnF32, columnU8 } from "../Buffer/column-values";
-import { nodeColumn, ownerCounts } from "../Buffer/column-owners";
-import {
-  COL_STREAM_NODE_POLE_ANCHOR_X, COL_STREAM_NODE_POLE_ANCHOR_Y,
-  COL_STREAM_NODE_POLE_ANCHOR_Z, COL_STREAM_NODE_NAV_TUBE_R, COL_STREAM_NODE_LATCHED_SEL,
-  COL_STREAM_NODE_POLE_PHI, COL_STREAM_NODE_POLE_THETA, COL_STREAM_NODE_POLE_RING_R,
-} from "../Node/columns-gen";
+import { ownerCounts } from "../Buffer/column-owners";
+import { nodeF32, nodeU8 } from "../Node/node-leaves";
 import { readSelectedNodeRow } from "../webview/flags/overlay-flags-selection";
 
 export interface NavNode {
@@ -41,19 +36,19 @@ export function decodeNavNodes(): NavNode[] {
       row: i,
       label: nodeLabel(i),
       center: new THREE.Vector3(
-        columnF32(nodeColumn(i, COL_STREAM_NODE_POLE_ANCHOR_X)),
-        columnF32(nodeColumn(i, COL_STREAM_NODE_POLE_ANCHOR_Y)),
-        columnF32(nodeColumn(i, COL_STREAM_NODE_POLE_ANCHOR_Z)),
+        nodeF32(i, "poleAnchorX"),
+        nodeF32(i, "poleAnchorY"),
+        nodeF32(i, "poleAnchorZ"),
       ),
-      radius: columnF32(nodeColumn(i, COL_STREAM_NODE_NAV_TUBE_R)),
+      radius: nodeF32(i, "navTubeR"),
 
       selected: selected === i,
-      latchedSel: columnU8(nodeColumn(i, COL_STREAM_NODE_LATCHED_SEL)) !== 0,
+      latchedSel: nodeU8(i, "latchedSel") !== 0,
       pole: poleVec(
-        columnF32(nodeColumn(i, COL_STREAM_NODE_POLE_PHI)),
-        columnF32(nodeColumn(i, COL_STREAM_NODE_POLE_THETA)),
+        nodeF32(i, "polePhi"),
+        nodeF32(i, "poleTheta"),
       ),
-      poleRingR: columnF32(nodeColumn(i, COL_STREAM_NODE_POLE_RING_R)),
+      poleRingR: nodeF32(i, "poleRingR"),
     });
   }
   return out;
