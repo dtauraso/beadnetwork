@@ -12,10 +12,10 @@ export function PaneSizeSync() {
   const size = useThree((s) => s.size);
   const lastReport = useRef("");
 
-  useFrame(() => {
-    const doc = document.documentElement;
-    const w = Math.max(1, doc.clientWidth);
-    const h = Math.max(1, doc.clientHeight);
+  useFrame(({ gl }) => {
+    const pane = gl.domElement.parentElement ?? document.documentElement;
+    const w = Math.max(1, pane.clientWidth);
+    const h = Math.max(1, pane.clientHeight);
     if (w === Math.round(size.width) && h === Math.round(size.height)) return;
 
     const site = `${size.width}x${size.height}->${w}x${h}`;
