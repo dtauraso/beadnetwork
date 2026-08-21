@@ -5,7 +5,7 @@ declare global {
   }
 }
 
-const READ_INTERVAL_MS = 250;
+const READ_INTERVAL_MS = 100;
 
 let seq = 0;
 let started = false;

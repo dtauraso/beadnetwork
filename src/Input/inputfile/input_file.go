@@ -21,11 +21,6 @@ func NewReader(inputDir string) *Reader {
 	for _, kind := range inputcodec.EventKinds {
 		path := filepath.Join(inputDir, kind+".bin")
 
-		// Seed last with what is already there. A slot holds the LAST event of
-		// its kind, and it outlives the process: without this, every start reads
-		// all seven slots as fresh and replays the previous session's final
-		// press, motion, home, delete and key. Only what is written after we
-		// start is input.
 		raw, err := os.ReadFile(path)
 		if err != nil {
 			raw = nil
