@@ -1,8 +1,11 @@
 package gesture
 
 import (
-	"github.com/dtauraso/wirefold/src/Chrome/Pills/FitButton"
+	"fmt"
 	"math"
+
+	"github.com/dtauraso/wirefold/src/Chrome/Pills/FitButton"
+	B "github.com/dtauraso/wirefold/src/Buffer"
 
 	"github.com/dtauraso/wirefold/src/Camera"
 	"github.com/dtauraso/wirefold/src/Input/gesturefsm"
@@ -40,6 +43,15 @@ func gestPointerDown(d Deps, ev inputcodec.RawInputMsg) {
 	if h, ok := hitClassifiers[ev.Hit.Kind]; ok {
 		h(d, g, ev)
 	}
+
+	d.UI.EmitBreadcrumb(B.RowEvent{
+		Label: B.BreadcrumbPointerDown, NodeRow: -1, PortRow: -1, TargetRow: -1,
+		TargetPortRow: -1, EdgeRow: -1, Slot: -1,
+		Value: int32(ev.Button),
+		Text: fmt.Sprintf("hit=%q empty=%t handhold=%t node=%q xy=%.0f,%.0f rect=%.0f,%.0f,%.0fx%.0f pxPerRad=%.2f",
+			ev.Hit.Kind, g.EmptyDown, g.HandholdDown, g.DragNode,
+			ev.X, ev.Y, g.Rect.Left, g.Rect.Top, g.Rect.Width, g.Rect.Height, g.RotPxPerRad),
+	})
 }
 
 func gestPointerMove(d Deps, ev inputcodec.RawInputMsg) {

@@ -13,6 +13,7 @@ const (
 	BreadcrumbPairSeedUnknown
 	BreadcrumbPairLatticeAdopt
 	BreadcrumbViewport
+	BreadcrumbPointerDown
 )
 
 var BreadcrumbLabels = []string{
@@ -28,6 +29,7 @@ var BreadcrumbLabels = []string{
 	"pair-seed-unknown",
 	"pair-lattice-adopt",
 	"viewport",
+	"pointer-down",
 }
 
 func BreadcrumbLabelID(name string) (uint8, bool) {
