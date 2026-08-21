@@ -19,7 +19,7 @@ import (
 	SW "github.com/dtauraso/wirefold/src/runtopology/streamwire"
 )
 
-func wireNodeStreams(streamFDs SW.StreamFDs, md *W.MoveDispatch) {
+func wireNodeStreams(streamFDs SW.StreamFDs, md *W.MoveDispatch, sceneRoot string) {
 	cols := SW.NewColumnStreams(streamFDs, len(md.RT.NodeRowTable), len(md.RT.EdgeRowTable))
 
 	nodeSets := map[int32]*colstream.ColumnSet{}
@@ -51,7 +51,7 @@ func wireNodeStreams(streamFDs SW.StreamFDs, md *W.MoveDispatch) {
 				beadBase = 0
 			}
 
-			md.Sw.SetNodeStreams(md.GS.NodeSeeds, md.MR.NodeGeoms(), nodeBase, interiorBase,
+			md.Sw.SetNodeStreams(md.GS.NodeSeeds, md.MR.NodeGeoms(), sceneRoot, nodeBase, interiorBase,
 				beadBase, beadWired,
 				func(tick uint32, nodeRow int32, beads []EdgeB.EdgeBead, events []B.RowEvent) []byte {
 					EdgeB.WriteEdgeBeadColumns(nodeCols(nodeRow), beads)
@@ -115,7 +115,6 @@ func wireNodeStreams(streamFDs SW.StreamFDs, md *W.MoveDispatch) {
 				func(tick uint32, events []B.RowEvent) []byte {
 					return NodeKind.BuildInteriorStreamFrame(tick, events)
 				},
-				nodeCols,
 				NodeKind.NodeKindID)
 		}
 	}

@@ -31,7 +31,7 @@ func RunTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 		os.Exit(1)
 	}
 	wireEdgeStreams(streamFDs, md)
-	wireNodeStreams(streamFDs, md)
+	wireNodeStreams(streamFDs, md, scenePath)
 	cols := SW.NewColumnStreams(streamFDs, len(md.RT.NodeRowTable), len(md.RT.EdgeRowTable))
 	md.UI.OwnerCounts.Nodes = int32(len(md.RT.NodeRowTable))
 	md.UI.OwnerCounts.Edges = int32(len(md.RT.EdgeRowTable))
