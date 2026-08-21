@@ -16,6 +16,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/PolarRulesPanel"
 	"github.com/dtauraso/wirefold/src/Chrome/Pills/AngleDropdown"
 	"github.com/dtauraso/wirefold/src/Chrome/Pills/NodesDropdown"
+	"github.com/dtauraso/wirefold/src/Chrome/Tabs"
 	"github.com/dtauraso/wirefold/src/Scene/selectionstate"
 	"github.com/dtauraso/wirefold/src/spatial"
 	"github.com/dtauraso/wirefold/src/Buffer/colstream"
@@ -37,6 +38,7 @@ type UIState struct {
 	rulesValues     *PolarRulesPanel.ValueWriter
 	nodesPillValues *NodesDropdown.ValueWriter
 	anglePillValues *AngleDropdown.ValueWriter
+	tabStripValues  *Tabs.ValueWriter
 
 	OwnerCounts struct{ Nodes, Edges int32 }
 

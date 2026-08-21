@@ -1,28 +1,22 @@
-import { columnBytes, columnF32 } from "../../Buffer/column-values";
 import { canvasFont, roundRect } from "../../webview/canvas-box";
-import { readF32Run, readU32Run, readText, decodeAt } from "../../Buffer/column-reads";
+import { decodeAt } from "../../Buffer/column-reads";
 import * as T from "../../webview/canvas-theme";
-import {
-  COL_STREAM_TAB_STRIP_STRIP_X, COL_STREAM_TAB_STRIP_STRIP_Y, COL_STREAM_TAB_STRIP_STRIP_W,
-  COL_STREAM_TAB_STRIP_STRIP_H, COL_STREAM_TAB_STRIP_TAB_X, COL_STREAM_TAB_STRIP_TAB_Y,
-  COL_STREAM_TAB_STRIP_TAB_W, COL_STREAM_TAB_STRIP_TAB_H, COL_STREAM_TAB_STRIP_TAB_NAME_TEXT,
-  COL_STREAM_TAB_STRIP_TAB_NAME_LEN, COL_STREAM_TAB_STRIP_TAB_SELECTED,
-} from "./columns-gen";
+import { stripBytes, stripF32, stripF32Run, stripU32Run, stripText } from "./strip-leaves";
 
 export function tabStripKey(): string {
-  const sel = columnBytes(COL_STREAM_TAB_STRIP_TAB_SELECTED);
+  const sel = stripBytes("tabSelected");
   return [
-    columnF32(COL_STREAM_TAB_STRIP_STRIP_X), columnF32(COL_STREAM_TAB_STRIP_STRIP_W),
+    stripF32("stripX"), stripF32("stripW"),
     sel ? new Uint8Array(sel.buffer, sel.byteOffset, sel.byteLength).join(".") : "",
   ].join(",");
 }
 
 export function drawTabStrip(c: CanvasRenderingContext2D): void {
-  const sw = columnF32(COL_STREAM_TAB_STRIP_STRIP_W);
-  const sh = columnF32(COL_STREAM_TAB_STRIP_STRIP_H);
+  const sw = stripF32("stripW");
+  const sh = stripF32("stripH");
   if (sw <= 0 || sh <= 0) return;
-  const sx = columnF32(COL_STREAM_TAB_STRIP_STRIP_X);
-  const sy = columnF32(COL_STREAM_TAB_STRIP_STRIP_Y);
+  const sx = stripF32("stripX");
+  const sy = stripF32("stripY");
 
   roundRect(c, sx + 0.5, sy + 0.5, sw - 1, sh - 1, T.RADIUS_CHIP);
   c.fillStyle = T.CHIP;
@@ -31,13 +25,13 @@ export function drawTabStrip(c: CanvasRenderingContext2D): void {
   c.lineWidth = 1;
   c.stroke();
 
-  const x = readF32Run(COL_STREAM_TAB_STRIP_TAB_X);
-  const y = readF32Run(COL_STREAM_TAB_STRIP_TAB_Y);
-  const w = readF32Run(COL_STREAM_TAB_STRIP_TAB_W);
-  const h = readF32Run(COL_STREAM_TAB_STRIP_TAB_H);
-  const nameText = readText(COL_STREAM_TAB_STRIP_TAB_NAME_TEXT);
-  const nameLen = readU32Run(COL_STREAM_TAB_STRIP_TAB_NAME_LEN);
-  const sel = columnBytes(COL_STREAM_TAB_STRIP_TAB_SELECTED);
+  const x = stripF32Run("tabX");
+  const y = stripF32Run("tabY");
+  const w = stripF32Run("tabW");
+  const h = stripF32Run("tabH");
+  const nameText = stripText("tabNameText");
+  const nameLen = stripU32Run("tabNameLen");
+  const sel = stripBytes("tabSelected");
   if (!x || !y || !w || !h || !nameText || !nameLen || !sel) return;
 
   let off = 0;

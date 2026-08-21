@@ -57,7 +57,7 @@ func (ui *UIState) EmitViewFrame(events []B.RowEvent) {
 	ui.writeNodesPillValues(pl.Nodes)
 	ui.writeOverlaysPillColumns(pl.Overlays)
 	ui.writeFitChipColumns(pl.Fit)
-	ui.writeTabStripColumns(pl.Tabs)
+	ui.writeTabStripValues(pl.Tabs)
 	ui.writeRulesPanelValues(pl.Rules)
 
 	frame := ui.ViewBuildFrame(ui.viewTick, events)

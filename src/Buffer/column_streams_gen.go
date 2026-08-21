@@ -7,7 +7,7 @@ const ColumnsPerNodeStream = 140
 
 const ColumnsPerEdgeStream = 11
 
-const ColumnsInSingletonStreams = 108
+const ColumnsInSingletonStreams = 97
 
 // ColumnStreamCount is every column channel a scene of this size needs.
 func ColumnStreamCount(nodes, edges int) int {
@@ -28,8 +28,7 @@ const ColStreamBaseSpeedPanel = 8
 const ColStreamBaseTiltPanel = 25
 const ColStreamBaseOverlaysPill = 54
 const ColStreamBaseFitChip = 84
-const ColStreamBaseTabStrip = 89
-const ColStreamBasePointerTarget = 100
+const ColStreamBasePointerTarget = 89
 
 const ColStreamNodeIndexR = ColStreamBaseNode + 0
 const ColStreamNodeIndexPhi = ColStreamBaseNode + 1
@@ -271,17 +270,6 @@ const ColStreamFitChipY = ColStreamBaseFitChip + 1
 const ColStreamFitChipW = ColStreamBaseFitChip + 2
 const ColStreamFitChipH = ColStreamBaseFitChip + 3
 const ColStreamFitChipLabelText = ColStreamBaseFitChip + 4
-const ColStreamTabStripStripX = ColStreamBaseTabStrip + 0
-const ColStreamTabStripStripY = ColStreamBaseTabStrip + 1
-const ColStreamTabStripStripW = ColStreamBaseTabStrip + 2
-const ColStreamTabStripStripH = ColStreamBaseTabStrip + 3
-const ColStreamTabStripTabX = ColStreamBaseTabStrip + 4
-const ColStreamTabStripTabY = ColStreamBaseTabStrip + 5
-const ColStreamTabStripTabW = ColStreamBaseTabStrip + 6
-const ColStreamTabStripTabH = ColStreamBaseTabStrip + 7
-const ColStreamTabStripTabNameText = ColStreamBaseTabStrip + 8
-const ColStreamTabStripTabNameLen = ColStreamBaseTabStrip + 9
-const ColStreamTabStripTabSelected = ColStreamBaseTabStrip + 10
 const ColStreamPointerTargetX = ColStreamBasePointerTarget + 0
 const ColStreamPointerTargetY = ColStreamBasePointerTarget + 1
 const ColStreamPointerTargetW = ColStreamBasePointerTarget + 2

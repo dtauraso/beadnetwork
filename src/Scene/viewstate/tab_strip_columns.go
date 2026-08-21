@@ -2,29 +2,25 @@ package viewstate
 
 import (
 	"github.com/dtauraso/wirefold/src/Chrome/Tabs"
-	B "github.com/dtauraso/wirefold/src/Buffer"
+	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
-func (ui *UIState) writeTabStripColumns(lay Tabs.Layout) {
-	c := ui.singletonCols
-	if c == nil {
+func (ui *UIState) writeTabStripValues(lay Tabs.Layout) {
+	w := ui.tabStripValues
+	if w == nil {
 		return
 	}
+	w.Begin()
 
-	c.SetF32(B.ColStreamTabStripStripX, lay.Strip.X)
-	c.SetF32(B.ColStreamTabStripStripY, lay.Strip.Y)
-	c.SetF32(B.ColStreamTabStripStripW, lay.Strip.W)
-	c.SetF32(B.ColStreamTabStripStripH, lay.Strip.H)
+	w.Rect("stripX", "stripY", "stripW", "stripH", lay.Strip)
 
-	tabs := newRunCols()
 	for _, t := range lay.Tabs {
-		tabs.Rect(B.ColStreamTabStripTabX, B.ColStreamTabStripTabY, B.ColStreamTabStripTabW, B.ColStreamTabStripTabH, t.Rect)
-		tabs.Str(B.ColStreamTabStripTabNameText, B.ColStreamTabStripTabNameLen, t.Name)
-		tabs.U8(B.ColStreamTabStripTabSelected, boolU8(t.Selected))
+		w.Rect("tabX", "tabY", "tabW", "tabH", t.Rect)
+		w.Str("tabNameText", "tabNameLen", t.Name)
+		w.Bool("tabSelected", t.Selected)
 	}
-	tabs.writeTo(c,
-		B.ColStreamTabStripTabX, B.ColStreamTabStripTabY, B.ColStreamTabStripTabW, B.ColStreamTabStripTabH,
-		B.ColStreamTabStripTabNameText, B.ColStreamTabStripTabNameLen,
-		B.ColStreamTabStripTabSelected,
-	)
+
+	if err := w.Flush(); err != nil {
+		valuefile.LogPersistErr("tab_strip_values", "", err)
+	}
 }
