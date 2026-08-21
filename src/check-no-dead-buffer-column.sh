@@ -22,7 +22,19 @@ if [[ ! -f "src/Buffer/buffer-layout.ts" ]] || (( ${#LAYOUT_FILES[@]} < 2 )); th
   exit 1
 fi
 
-readonly ALLOWED_DEAD=()
+readonly ALLOWED_DEAD=(
+  COL_STREAM_NODE_NODE_ID
+  COL_STREAM_NODE_HAS_KIND_RULE
+  COL_STREAM_NODE_LATTICE_POINTS
+  COL_STREAM_NODE_TOP_TILT_VECTOR_LEN
+  COL_STREAM_EDGE_BEAD_EDGE_ROW
+  COL_STREAM_RULES_PANEL_TOGGLE_W
+  COL_STREAM_RULES_PANEL_ROW_DEPTH
+  COL_STREAM_RULES_PANEL_ROW_VALUE_W
+  COL_STREAM_RULES_PANEL_ROW_VALUE_H
+  COL_STREAM_RULES_PANEL_MENU_CHECK_W
+  COL_STREAM_RULES_PANEL_MENU_CHECK_H
+)
 
 is_allowed() {
   local fn="$1"
@@ -79,18 +91,82 @@ for fn in "${readers[@]}"; do
   fail=1
 done
 
+COLUMNS_GEN_FILES=()
+while IFS= read -r f; do [[ -n "$f" ]] && COLUMNS_GEN_FILES+=("$f"); done < <(git ls-files '*/columns-gen.ts')
+if [[ ${#COLUMNS_GEN_FILES[@]} -eq 0 ]]; then
+  echo "check-no-dead-buffer-column: MISCONFIGURED — no */columns-gen.ts is tracked; the per-column" >&2
+  echo "  constants moved or are no longer generated, so this half of the guard checks nothing." >&2
+  exit 1
+fi
+
+constants=()
+while IFS= read -r line; do [[ -n "$line" ]] && constants+=("$line"); done < <(
+  grep -ohE 'export const COL_STREAM_[A-Z0-9_]+' "${COLUMNS_GEN_FILES[@]}" \
+    | awk '{print $3}' | grep -v '^COL_STREAM_BASE_' | sort -u
+)
+if [[ ${#constants[@]} -eq 0 ]]; then
+  echo "check-no-dead-buffer-column: MISCONFIGURED — parsed 0 COL_STREAM_* constants from" >&2
+  echo "  ${#COLUMNS_GEN_FILES[@]} columns-gen.ts file(s); the generated form changed." >&2
+  exit 1
+fi
+
+CONST_CORPUS="$(mktemp)"
+trap 'rm -f "$CODE_ONLY_CORPUS" "$CONST_CORPUS"' EXIT
+const_consumers=()
+for f in "${prod_files[@]}"; do
+  [[ "$(basename "$f")" == "columns-gen.ts" ]] && continue
+  const_consumers+=("$f")
+done
+if [[ ${#const_consumers[@]} -gt 0 ]]; then
+  strip_ts_comments "${const_consumers[@]}" | grep -ohE '[A-Za-z0-9_]+' | sort -u > "$CONST_CORPUS"
+else
+  : > "$CONST_CORPUS"
+fi
+
+for c in "${constants[@]}"; do
+  if grep -qxF "$c" "$CONST_CORPUS"; then
+    continue
+  fi
+  if is_allowed "$c"; then
+    continue
+  fi
+  echo "DEAD BUFFER COLUMN: $c is generated but named by no production file — Go packs the column"
+  echo "  every frame and nothing reads it. A singleton column has no generated read* helper, so the"
+  echo "  half of this guard above cannot see it; this half is what covers it."
+  echo "  Fix: consume it, or remove the field from its block's buffer_block.go and regenerate."
+  fail=1
+done
+
 for a in "${ALLOWED_DEAD[@]+"${ALLOWED_DEAD[@]}"}"; do
   present=false
+  corpus="$CODE_ONLY_CORPUS"
   for fn in "${readers[@]}"; do [[ "$fn" == "$a" ]] && present=true && break; done
   if ! $present; then
-    echo "STALE ALLOWLIST: '$a' is no longer a generated read* helper — remove it from ALLOWED_DEAD."
+    for c in "${constants[@]}"; do
+      [[ "$c" == "$a" ]] && present=true && corpus="$CONST_CORPUS" && break
+    done
+  fi
+  if ! $present; then
+    echo "STALE ALLOWLIST: '$a' is neither a generated read* helper nor a generated COL_STREAM_*"
+    echo "  constant — the column is gone; remove it from ALLOWED_DEAD."
     fail=1
     continue
   fi
-  if grep -qxF "$a" "$CODE_ONLY_CORPUS"; then
+  if grep -qxF "$a" "$corpus"; then
     echo "STALE ALLOWLIST: '$a' now HAS a production consumer — remove it from ALLOWED_DEAD (no longer dead)."
     fail=1
   fi
 done
+
+if [[ $fail -eq 0 && ${#ALLOWED_DEAD[@]} -gt 0 ]]; then
+  echo "check-no-dead-buffer-column: clean, but ${#ALLOWED_DEAD[@]} column(s) are packed every frame and read by nothing:"
+  printf '  %s\n' "${ALLOWED_DEAD[@]}"
+  echo "  They are allowlisted, NOT resolved. Each is plausibly a half-wired feature rather than"
+  echo "  dead weight, so deleting would cement the renderer's omission - the RULES_PANEL entries"
+  echo "  are the W/H of Rect groups whose X/Y ARE read, so the renderer sizes those rects some"
+  echo "  other way. NODE_NODE_ID is the id-vs-row check .claude/rules/bridge-surface.md describes"
+  echo "  and decodeNodeStreamFrame never performs. Decide per entry: consume it, or delete the"
+  echo "  field from its buffer_block.go and regenerate."
+fi
 
 exit $fail

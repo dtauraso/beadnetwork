@@ -47,16 +47,9 @@ func (ui *UIState) EmitViewFrame(events []B.RowEvent) {
 		return
 	}
 	ui.viewTick++
-	dragNodeRow := int32(-1)
-	if ui.LastDraggedNode != "" && ui.NodeRowFor != nil {
-		if r, ok := ui.NodeRowFor(ui.LastDraggedNode); ok {
-			dragNodeRow = r
-		}
-	}
 
 	ui.writeSceneColumns()
 	ui.writePointerTargetColumns()
-	ui.writeOverlayColumns(dragNodeRow)
 	pl := ui.PanelLayout()
 	ui.writeSpeedPanelColumns(pl.Speed)
 	ui.writeTiltPanelColumns(pl.Tilt)

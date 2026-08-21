@@ -7,7 +7,7 @@ const ColumnsPerNodeStream = 145
 
 const ColumnsPerEdgeStream = 11
 
-const ColumnsInSingletonStreams = 250
+const ColumnsInSingletonStreams = 245
 
 // ColumnStreamCount is every column channel a scene of this size needs.
 func ColumnStreamCount(nodes, edges int) int {
@@ -21,19 +21,18 @@ const ColStreamBaseTiltArrow = 80
 const ColStreamBaseChannelVector = 113
 const ColStreamBaseEdge = 0
 const ColStreamBaseCamera = 0
-const ColStreamBaseOverlay = 0
-const ColStreamBaseScene = 5
-const ColStreamBaseNodeRingPoint = 7
-const ColStreamBaseBeadRingPoint = 10
-const ColStreamBaseSpeedPanel = 13
-const ColStreamBaseTiltPanel = 30
-const ColStreamBaseAnglePill = 59
-const ColStreamBaseNodesPill = 96
-const ColStreamBaseOverlaysPill = 133
-const ColStreamBaseFitChip = 163
-const ColStreamBaseTabStrip = 168
-const ColStreamBaseRulesPanel = 179
-const ColStreamBasePointerTarget = 242
+const ColStreamBaseScene = 0
+const ColStreamBaseNodeRingPoint = 2
+const ColStreamBaseBeadRingPoint = 5
+const ColStreamBaseSpeedPanel = 8
+const ColStreamBaseTiltPanel = 25
+const ColStreamBaseAnglePill = 54
+const ColStreamBaseNodesPill = 91
+const ColStreamBaseOverlaysPill = 128
+const ColStreamBaseFitChip = 158
+const ColStreamBaseTabStrip = 163
+const ColStreamBaseRulesPanel = 174
+const ColStreamBasePointerTarget = 237
 
 const ColStreamNodeNodeId = ColStreamBaseNode + 0
 const ColStreamNodeIndexR = ColStreamBaseNode + 1
@@ -197,11 +196,6 @@ const ColStreamChannelVectorHeadM12 = ColStreamBaseChannelVector + 28
 const ColStreamChannelVectorHeadM13 = ColStreamBaseChannelVector + 29
 const ColStreamChannelVectorHeadM14 = ColStreamBaseChannelVector + 30
 const ColStreamChannelVectorHeadM15 = ColStreamBaseChannelVector + 31
-const ColStreamOverlayDragNodeRow = ColStreamBaseOverlay + 0
-const ColStreamOverlayEditRefused = ColStreamBaseOverlay + 1
-const ColStreamOverlaySceneEditable = ColStreamBaseOverlay + 2
-const ColStreamOverlaySceneKinds = ColStreamBaseOverlay + 3
-const ColStreamOverlaySpeed = ColStreamBaseOverlay + 4
 const ColStreamSceneNodeCount = ColStreamBaseScene + 0
 const ColStreamSceneEdgeCount = ColStreamBaseScene + 1
 const ColStreamSpeedPanelBoxX = ColStreamBaseSpeedPanel + 0

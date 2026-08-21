@@ -54,18 +54,6 @@ func (ui *UIState) FovDeg() float64 {
 	return Camera.FovDegForHeight(ui.ViewH)
 }
 
-func (ui *UIState) writeOverlayColumns(dragNodeRow int32) {
-	c := ui.singletonCols
-	if c == nil {
-		return
-	}
-	c.SetI32(B.ColStreamOverlayDragNodeRow, dragNodeRow)
-	c.SetU32(B.ColStreamOverlayEditRefused, ui.EditRefused)
-	c.SetU8(B.ColStreamOverlaySceneEditable, boolU8(ui.SceneEditable))
-	c.SetU32(B.ColStreamOverlaySceneKinds, ui.SceneKinds)
-	c.SetF32(B.ColStreamOverlaySpeed, float32(ui.Speed))
-}
-
 func (ui *UIState) writePointerTargetColumns() {
 	c := ui.singletonCols
 	if c == nil {

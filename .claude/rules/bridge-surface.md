@@ -50,9 +50,12 @@ buffer's Label section via off/len columns. Identity used to be reconstructed fr
 buffer's row index alone — the loader/mover enforce `NodeId == row + 1` by construction
 (`ROW ID = NODE ID - 1`, `.claude/rules/persistence-ownership.md`), so today the two always
 agree, but a bare row could never have been CONTRADICTED by the frame that carried it: a
-misrouted or permuted frame would render silently in the wrong place. `NodeId` closes that —
-`decodeNodeStreamFrame` (buffer-decode-node.ts) compares the frame's stated id against its
-arrival row and reports a mismatch loudly instead of trusting the row. (A test asserts the
+misrouted or permuted frame would render silently in the wrong place. `NodeId` was added to
+close that, and **the check it describes does not exist**: `decodeNodeStreamFrame`
+(buffer-decode-node.ts) reads only `COL_STREAM_NODE_LABEL` and compares nothing, so Go packs
+`NodeId` every frame and no reader looks at it. It is named in `ALLOWED_DEAD`
+(`src/check-no-dead-buffer-column.sh`) until someone either writes the comparison or drops
+the column — this paragraph described the intent as though it had shipped. (A test asserts the
 removed id/label/kind SIDECAR MESSAGE is rejected; a column inside the Node block is the
 same shape as `KindId`, not a second channel, and does not reintroduce one.)
 

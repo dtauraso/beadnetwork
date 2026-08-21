@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: src/Node/buffer_block.go,src/Overlay/buffer_block.go,src/runtopology/node_stream.go,src/runtopology/view_stream.go | a Node/Overlay column must be named by the runtopology adapter that fills its row, or it silently streams zeros
+# PLACEMENT: src/Node/buffer_block.go,src/runtopology/node_stream.go | a Node column must be named by the runtopology adapter that fills its row, or it silently streams zeros
 
 set -euo pipefail
 
@@ -13,7 +13,6 @@ import re, sys
 
 PAIRS = [
     ("src/Node/buffer_block.go",    "bufLayoutNode",    "src/runtopology/node_stream.go"),
-    ("src/Overlay/buffer_block.go", "bufLayoutOverlay", "src/runtopology/view_stream.go"),
 ]
 
 DERIVED = [
@@ -79,5 +78,5 @@ for schema_path, struct, adapter_path in PAIRS:
 
 if fail:
     sys.exit(1)
-print("check-buffer-column-has-writer: clean (every Node/Overlay column is named by its adapter)")
+print("check-buffer-column-has-writer: clean (every Node column is named by its adapter)")
 PY
