@@ -64,13 +64,22 @@ func gestPointerMove(d Deps, ev inputcodec.RawInputMsg) {
 	dist := math.Hypot(dx, dy)
 
 	if g.Phase == gesturefsm.GestPending && dist > 0 && !g.Secondary {
-		for _, edge := range commitEdges {
+		committed := -1
+		for i, edge := range commitEdges {
 			if edge.guard(g) {
 				edge.action(d, g, ev)
 				g.Phase = edge.to
+				committed = i
 				break
 			}
 		}
+		d.UI.EmitBreadcrumb(B.RowEvent{
+			Label: B.BreadcrumbGestureCommit, NodeRow: -1, PortRow: -1, TargetRow: -1,
+			TargetPortRow: -1, EdgeRow: -1, Slot: -1,
+			Value: int32(committed),
+			Text: fmt.Sprintf("edge=%d phase=%d dist=%.1f empty=%t handhold=%t node=%q secondary=%t",
+				committed, int(g.Phase), dist, g.EmptyDown, g.HandholdDown, g.DragNode, g.Secondary),
+		})
 	}
 
 	if apply, ok := applyAction[g.Phase]; ok {

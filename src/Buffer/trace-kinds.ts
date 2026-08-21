@@ -7,4 +7,4 @@ export type TraceEventKind = (typeof TRACE_EVENT_KINDS)[number];
 
 // BREADCRUMB_LABELS is indexed by the buffer EVENT block's Label column
 // (Kind==KindBreadcrumb rows only) — see Trace.go's BreadcrumbLabel* consts.
-export const BREADCRUMB_LABELS = ["topology-loaded", "row-seed-count-mismatch", "pole-toggle-go", "window_clear", "window_open", "dwell_start", "bead-place-buffer-full", "drag.commit", "bead-breadcrumbs-dropped", "pair-seed-unknown", "pair-lattice-adopt", "viewport", "pointer-down"] as const;
+export const BREADCRUMB_LABELS = ["topology-loaded", "row-seed-count-mismatch", "pole-toggle-go", "window_clear", "window_open", "dwell_start", "bead-place-buffer-full", "drag.commit", "bead-breadcrumbs-dropped", "pair-seed-unknown", "pair-lattice-adopt", "viewport", "pointer-down", "gesture-commit", "orbit-step"] as const;
