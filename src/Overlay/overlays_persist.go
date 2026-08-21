@@ -8,7 +8,7 @@ import (
 )
 
 func OverlayFlagFile(overlaysDir, flag string) string {
-	return filepath.Join(overlaysDir, flag+".json")
+	return filepath.Join(overlaysDir, flag+valuefile.Ext)
 }
 
 func WriteSceneOverlays(overlaysDir string, ov OverlayState) error {
