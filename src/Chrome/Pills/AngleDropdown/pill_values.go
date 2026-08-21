@@ -6,7 +6,7 @@ import (
 	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
-const ValueRelDir = "view/chrome/angle-pill"
+const ValueRelFile = "view/chrome/angle-pill.bin"
 
 var PillValueNames = []string{
 	"pillX", "pillY", "pillW", "pillH",
@@ -25,17 +25,15 @@ var PillValueNames = []string{
 	"groupHeadText", "groupHeadLen",
 }
 
-func ValueRelPath(name string) string {
-	return ValueRelDir + "/" + valuefile.BlobFileName(name)
-}
+func ValueRelPath() string { return ValueRelFile }
 
 type ValueWriter struct {
 	*valuefile.BlobWriter
 }
 
 func NewValueWriter(sceneRoot string) *ValueWriter {
-	dir := filepath.Join(sceneRoot, filepath.FromSlash(ValueRelDir))
-	return &ValueWriter{BlobWriter: valuefile.NewBlobWriter(dir, PillValueNames)}
+	path := filepath.Join(sceneRoot, filepath.FromSlash(ValueRelFile))
+	return &ValueWriter{BlobWriter: valuefile.NewBlobWriter(path, PillValueNames)}
 }
 
 func (w *ValueWriter) Rect(xName, yName, wName, hName string, r Rect) {

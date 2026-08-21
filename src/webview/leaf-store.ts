@@ -29,19 +29,19 @@ export function makeLeafStore<N extends string>(
 ): LeafStore<N> {
   const latest = new Map<string, DataView>();
   let started = false;
-  let paths: Map<string, string> | undefined;
+  let blockPath: string | undefined;
 
-  const loadPaths = async (src: string): Promise<Map<string, string> | undefined> => {
-    const bufs = await Promise.all(
-      names.map((n) => readUrl(`${src}/${pathsDir}/${n}.bin`, "default")),
-    );
-    const out = new Map<string, string>();
-    for (const [i, name] of names.entries()) {
-      const buf = bufs[i];
-      if (buf === undefined) return undefined;
-      out.set(name, new TextDecoder().decode(buf));
+  const split = (buf: ArrayBuffer): void => {
+    const dv = new DataView(buf);
+    let off = 0;
+    for (const name of names) {
+      if (off + 4 > buf.byteLength) return;
+      const len = dv.getUint32(off, true);
+      off += 4;
+      if (off + len > buf.byteLength) return;
+      latest.set(name, new DataView(buf, off, len));
+      off += len;
     }
-    return out;
   };
 
   const start = (): void => {
@@ -52,16 +52,13 @@ export function makeLeafStore<N extends string>(
         const scene = window.WIREFOLD_SCENE_BASE;
         const src = window.WIREFOLD_SRC_BASE;
         if (scene && src) {
-          paths ??= await loadPaths(src);
-          if (paths) {
-            const bufs = await Promise.all(
-              names.map((n) => readUrl(`${scene}/${paths?.get(n) ?? ""}?r=${++seq}`, "no-store")),
-            );
-            for (const [i, name] of names.entries()) {
-              const b = bufs[i];
-              if (b === undefined) continue;
-              latest.set(name, new DataView(b));
-            }
+          if (blockPath === undefined) {
+            const p = await readUrl(`${src}/${pathsDir}/block.bin`, "default");
+            if (p) blockPath = new TextDecoder().decode(p);
+          }
+          if (blockPath !== undefined) {
+            const buf = await readUrl(`${scene}/${blockPath}?r=${++seq}`, "no-store");
+            if (buf) split(buf);
           }
         }
         await new Promise((r) => setTimeout(r, READ_INTERVAL_MS));

@@ -1,8 +1,6 @@
 package PolarRulesPanel
 
-import "github.com/dtauraso/wirefold/src/valuefile"
-
-const ValueRelDir = "view/chrome/rules-panel"
+const ValueRelFile = "view/chrome/rules-panel.bin"
 
 var PanelValueNames = []string{
 	"clipY", "clipH", "scrollY",
@@ -28,15 +26,4 @@ var PanelValueNames = []string{
 	"menuNodeRow",
 }
 
-func ValueRelPath(name string) string {
-	return ValueRelDir + "/" + valuefile.BlobFileName(name)
-}
-
-func ValuePath(sceneRoot, name string) string {
-	for _, n := range PanelValueNames {
-		if n == name {
-			return sceneRoot + "/" + ValueRelPath(name)
-		}
-	}
-	panic("PolarRulesPanel.ValuePath: " + name + " is not a panel value, so Go and the renderer disagree about where it lives; add it to PanelValueNames in src/Chrome/Panels/PolarRulesPanel/panel_values.go")
-}
+func ValueRelPath() string { return ValueRelFile }

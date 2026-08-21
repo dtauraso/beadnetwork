@@ -6,7 +6,7 @@ import (
 	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
-const ValueRelDir = "view/chrome/tab-strip"
+const ValueRelFile = "view/chrome/tab-strip.bin"
 
 var StripValueNames = []string{
 	"stripX", "stripY", "stripW", "stripH",
@@ -15,17 +15,15 @@ var StripValueNames = []string{
 	"tabSelected",
 }
 
-func ValueRelPath(name string) string {
-	return ValueRelDir + "/" + valuefile.BlobFileName(name)
-}
+func ValueRelPath() string { return ValueRelFile }
 
 type ValueWriter struct {
 	*valuefile.BlobWriter
 }
 
 func NewValueWriter(sceneRoot string) *ValueWriter {
-	dir := filepath.Join(sceneRoot, filepath.FromSlash(ValueRelDir))
-	return &ValueWriter{BlobWriter: valuefile.NewBlobWriter(dir, StripValueNames)}
+	path := filepath.Join(sceneRoot, filepath.FromSlash(ValueRelFile))
+	return &ValueWriter{BlobWriter: valuefile.NewBlobWriter(path, StripValueNames)}
 }
 
 func (w *ValueWriter) Rect(xName, yName, wName, hName string, r Rect) {

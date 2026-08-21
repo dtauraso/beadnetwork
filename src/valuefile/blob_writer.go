@@ -6,39 +6,22 @@ import (
 	"math"
 	"os"
 	"path/filepath"
-	"strings"
 )
 
-func BlobFileName(name string) string {
-	var b strings.Builder
-	for i, r := range name {
-		if r >= 'A' && r <= 'Z' {
-			if i > 0 {
-				b.WriteByte('-')
-			}
-			b.WriteRune(r - 'A' + 'a')
-			continue
-		}
-		b.WriteRune(r)
-	}
-	b.WriteString(".bin")
-	return b.String()
-}
-
 type BlobWriter struct {
-	dir     string
+	path    string
 	names   []string
 	known   map[string]bool
 	pending map[string][]byte
-	last    map[string][]byte
+	last    []byte
 }
 
-func NewBlobWriter(dir string, names []string) *BlobWriter {
+func NewBlobWriter(path string, names []string) *BlobWriter {
 	known := make(map[string]bool, len(names))
 	for _, n := range names {
 		known[n] = true
 	}
-	return &BlobWriter{dir: dir, names: names, known: known, last: map[string][]byte{}}
+	return &BlobWriter{path: path, names: names, known: known}
 }
 
 func (w *BlobWriter) Begin() {
@@ -86,28 +69,27 @@ func (w *BlobWriter) Str(dataName, lenName, s string) {
 }
 
 func (w *BlobWriter) Flush() error {
-	made := false
+	var out []byte
 	for _, name := range w.names {
-		next := w.pending[name]
-		if bytes.Equal(w.last[name], next) {
-			continue
-		}
-		if !made {
-			if err := os.MkdirAll(w.dir, 0o755); err != nil {
-				return err
-			}
-			made = true
-		}
-		path := filepath.Join(w.dir, BlobFileName(name))
-		tmp := path + ".tmp"
-		if err := os.WriteFile(tmp, next, 0o644); err != nil {
-			return err
-		}
-		if err := os.Rename(tmp, path); err != nil {
-			return err
-		}
-		w.last[name] = append(w.last[name][:0:0], next...)
+		v := w.pending[name]
+		out = binary.LittleEndian.AppendUint32(out, uint32(len(v)))
+		out = append(out, v...)
 	}
 	w.pending = nil
+
+	if bytes.Equal(w.last, out) {
+		return nil
+	}
+	if err := os.MkdirAll(filepath.Dir(w.path), 0o755); err != nil {
+		return err
+	}
+	tmp := w.path + ".tmp"
+	if err := os.WriteFile(tmp, out, 0o644); err != nil {
+		return err
+	}
+	if err := os.Rename(tmp, w.path); err != nil {
+		return err
+	}
+	w.last = out
 	return nil
 }

@@ -11,8 +11,8 @@ type ValueWriter struct {
 }
 
 func NewValueWriter(sceneRoot string) *ValueWriter {
-	dir := filepath.Join(sceneRoot, filepath.FromSlash(ValueRelDir))
-	return &ValueWriter{BlobWriter: valuefile.NewBlobWriter(dir, PanelValueNames)}
+	path := filepath.Join(sceneRoot, filepath.FromSlash(ValueRelFile))
+	return &ValueWriter{BlobWriter: valuefile.NewBlobWriter(path, PanelValueNames)}
 }
 
 func (w *ValueWriter) Rect(xName, yName, wName, hName string, r Rect) {
