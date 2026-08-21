@@ -52,7 +52,7 @@ func (ui *UIState) EmitViewFrame(events []B.RowEvent) {
 	ui.writePointerTargetColumns()
 	pl := ui.PanelLayout()
 	ui.writeSpeedPanelColumns(pl.Speed)
-	ui.writeTiltPanelColumns(pl.Tilt)
+	ui.writeTiltPanelValues(pl.Tilt)
 	ui.writeAnglePillValues(pl.Angle)
 	ui.writeNodesPillValues(pl.Nodes)
 	ui.writeOverlaysPillColumns(pl.Overlays)

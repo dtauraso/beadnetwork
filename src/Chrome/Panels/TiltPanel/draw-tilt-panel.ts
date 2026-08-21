@@ -4,22 +4,10 @@ import {
   COL_STREAM_NODE_ROUNDS_TO_PARALLEL, COL_STREAM_NODE_MSGS_TO_PARALLEL,
 } from "../../../Node/columns-gen";
 import { drawBox, canvasFont, roundRect } from "../../../webview/canvas-box";
-import { readF32Run, readI32Run, readU32Run, readText, decodeAt } from "../../../Buffer/column-reads";
+import { decodeAt } from "../../../Buffer/column-reads";
 import {
-  COL_STREAM_TILT_PANEL_BOX_X, COL_STREAM_TILT_PANEL_BOX_Y, COL_STREAM_TILT_PANEL_BOX_W,
-  COL_STREAM_TILT_PANEL_BOX_H, COL_STREAM_TILT_PANEL_START_X, COL_STREAM_TILT_PANEL_START_Y,
-  COL_STREAM_TILT_PANEL_START_W, COL_STREAM_TILT_PANEL_START_H,
-  COL_STREAM_TILT_PANEL_RESET_X, COL_STREAM_TILT_PANEL_RESET_Y,
-  COL_STREAM_TILT_PANEL_RESET_W, COL_STREAM_TILT_PANEL_RESET_H,
-  COL_STREAM_TILT_PANEL_START_TEXT, COL_STREAM_TILT_PANEL_RESET_TEXT,
-  COL_STREAM_TILT_PANEL_COL_NODE_ROW, COL_STREAM_TILT_PANEL_COL_LABEL_TEXT,
-  COL_STREAM_TILT_PANEL_COL_LABEL_LEN, COL_STREAM_TILT_PANEL_HEAD_X,
-  COL_STREAM_TILT_PANEL_HEAD_Y, COL_STREAM_TILT_PANEL_HEAD_W, COL_STREAM_TILT_PANEL_HEAD_H,
-  COL_STREAM_TILT_PANEL_ROUNDS_X, COL_STREAM_TILT_PANEL_ROUNDS_Y,
-  COL_STREAM_TILT_PANEL_ROUNDS_W, COL_STREAM_TILT_PANEL_ROUNDS_H,
-  COL_STREAM_TILT_PANEL_MSGS_X, COL_STREAM_TILT_PANEL_MSGS_Y, COL_STREAM_TILT_PANEL_MSGS_W,
-  COL_STREAM_TILT_PANEL_MSGS_H,
-} from "./columns-gen";
+  tiltF32, tiltF32Run, tiltI32Run, tiltU32Run, tiltText,
+} from "./panel-leaves";
 
 const BTN_FILL = "#fafafa";
 const BTN_EDGE = "#ddd";
@@ -81,7 +69,7 @@ function drawCell(
 }
 
 export function tiltPanelKey(): string {
-  const rows = readI32Run(COL_STREAM_TILT_PANEL_COL_NODE_ROW);
+  const rows = tiltI32Run("colNodeRow");
   const values: number[] = [];
   if (rows) {
     for (const row of rows) {
@@ -92,55 +80,55 @@ export function tiltPanelKey(): string {
     }
   }
   return [
-    columnF32(COL_STREAM_TILT_PANEL_BOX_X), columnF32(COL_STREAM_TILT_PANEL_BOX_Y),
-    columnF32(COL_STREAM_TILT_PANEL_BOX_W), columnF32(COL_STREAM_TILT_PANEL_BOX_H),
+    tiltF32("boxX"), tiltF32("boxY"),
+    tiltF32("boxW"), tiltF32("boxH"),
     rows ? rows.join(".") : "", values.join("."),
   ].join(",");
 }
 
 export function drawTiltPanel(c: CanvasRenderingContext2D): void {
-  const rows = readI32Run(COL_STREAM_TILT_PANEL_COL_NODE_ROW);
+  const rows = tiltI32Run("colNodeRow");
   if (!rows || rows.length === 0) return;
 
   drawBox(
     c,
-    columnF32(COL_STREAM_TILT_PANEL_BOX_X),
-    columnF32(COL_STREAM_TILT_PANEL_BOX_Y),
-    columnF32(COL_STREAM_TILT_PANEL_BOX_W),
-    columnF32(COL_STREAM_TILT_PANEL_BOX_H),
+    tiltF32("boxX"),
+    tiltF32("boxY"),
+    tiltF32("boxW"),
+    tiltF32("boxH"),
   );
 
-  const startText = readText(COL_STREAM_TILT_PANEL_START_TEXT);
-  const resetText = readText(COL_STREAM_TILT_PANEL_RESET_TEXT);
+  const startText = tiltText("startText");
+  const resetText = tiltText("resetText");
   if (startText && resetText) {
     drawButton(
       c,
-      columnF32(COL_STREAM_TILT_PANEL_START_X), columnF32(COL_STREAM_TILT_PANEL_START_Y),
-      columnF32(COL_STREAM_TILT_PANEL_START_W), columnF32(COL_STREAM_TILT_PANEL_START_H),
+      tiltF32("startX"), tiltF32("startY"),
+      tiltF32("startW"), tiltF32("startH"),
       decodeAt(startText, 0, startText.length),
     );
     drawButton(
       c,
-      columnF32(COL_STREAM_TILT_PANEL_RESET_X), columnF32(COL_STREAM_TILT_PANEL_RESET_Y),
-      columnF32(COL_STREAM_TILT_PANEL_RESET_W), columnF32(COL_STREAM_TILT_PANEL_RESET_H),
+      tiltF32("resetX"), tiltF32("resetY"),
+      tiltF32("resetW"), tiltF32("resetH"),
       decodeAt(resetText, 0, resetText.length),
     );
   }
 
-  const labelText = readText(COL_STREAM_TILT_PANEL_COL_LABEL_TEXT);
-  const labelLen = readU32Run(COL_STREAM_TILT_PANEL_COL_LABEL_LEN);
-  const headX = readF32Run(COL_STREAM_TILT_PANEL_HEAD_X);
-  const headY = readF32Run(COL_STREAM_TILT_PANEL_HEAD_Y);
-  const headW = readF32Run(COL_STREAM_TILT_PANEL_HEAD_W);
-  const headH = readF32Run(COL_STREAM_TILT_PANEL_HEAD_H);
-  const roundsX = readF32Run(COL_STREAM_TILT_PANEL_ROUNDS_X);
-  const roundsY = readF32Run(COL_STREAM_TILT_PANEL_ROUNDS_Y);
-  const roundsW = readF32Run(COL_STREAM_TILT_PANEL_ROUNDS_W);
-  const roundsH = readF32Run(COL_STREAM_TILT_PANEL_ROUNDS_H);
-  const msgsX = readF32Run(COL_STREAM_TILT_PANEL_MSGS_X);
-  const msgsY = readF32Run(COL_STREAM_TILT_PANEL_MSGS_Y);
-  const msgsW = readF32Run(COL_STREAM_TILT_PANEL_MSGS_W);
-  const msgsH = readF32Run(COL_STREAM_TILT_PANEL_MSGS_H);
+  const labelText = tiltText("colLabelText");
+  const labelLen = tiltU32Run("colLabelLen");
+  const headX = tiltF32Run("headX");
+  const headY = tiltF32Run("headY");
+  const headW = tiltF32Run("headW");
+  const headH = tiltF32Run("headH");
+  const roundsX = tiltF32Run("roundsX");
+  const roundsY = tiltF32Run("roundsY");
+  const roundsW = tiltF32Run("roundsW");
+  const roundsH = tiltF32Run("roundsH");
+  const msgsX = tiltF32Run("msgsX");
+  const msgsY = tiltF32Run("msgsY");
+  const msgsW = tiltF32Run("msgsW");
+  const msgsH = tiltF32Run("msgsH");
   if (!labelText || !labelLen || !headX || !headY || !headW || !headH) return;
   if (!roundsX || !roundsY || !roundsW || !roundsH) return;
   if (!msgsX || !msgsY || !msgsW || !msgsH) return;
@@ -167,3 +155,4 @@ export function drawTiltPanel(c: CanvasRenderingContext2D): void {
     );
   }
 }
+

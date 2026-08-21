@@ -17,6 +17,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Chrome/Pills/AngleDropdown"
 	"github.com/dtauraso/wirefold/src/Chrome/Pills/NodesDropdown"
 	"github.com/dtauraso/wirefold/src/Chrome/Pills/FitButton"
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/TiltPanel"
 	"github.com/dtauraso/wirefold/src/Chrome/Tabs"
 	"github.com/dtauraso/wirefold/src/Scene/selectionstate"
 	"github.com/dtauraso/wirefold/src/spatial"
@@ -40,6 +41,7 @@ type UIState struct {
 	nodesPillValues *NodesDropdown.ValueWriter
 	anglePillValues *AngleDropdown.ValueWriter
 	tabStripValues  *Tabs.ValueWriter
+	tiltPanelValues *TiltPanel.ValueWriter
 	fitChipValues   *FitButton.ValueWriter
 
 	OwnerCounts struct{ Nodes, Edges int32 }

@@ -24,7 +24,6 @@ var movedToColumns = map[string]bool{
 	"Interior":      true,
 	"EdgeBead":      true,
 	"SpeedPanel":    true,
-	"TiltPanel":     true,
 	"OverlaysPill":  true,
 	"TiltArrow":     true,
 	"ChannelVector": true,

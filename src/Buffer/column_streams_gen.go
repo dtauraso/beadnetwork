@@ -7,7 +7,7 @@ const ColumnsPerNodeStream = 140
 
 const ColumnsPerEdgeStream = 11
 
-const ColumnsInSingletonStreams = 92
+const ColumnsInSingletonStreams = 63
 
 // ColumnStreamCount is every column channel a scene of this size needs.
 func ColumnStreamCount(nodes, edges int) int {
@@ -25,9 +25,8 @@ const ColStreamBaseScene = 0
 const ColStreamBaseNodeRingPoint = 2
 const ColStreamBaseBeadRingPoint = 5
 const ColStreamBaseSpeedPanel = 8
-const ColStreamBaseTiltPanel = 25
-const ColStreamBaseOverlaysPill = 54
-const ColStreamBasePointerTarget = 84
+const ColStreamBaseOverlaysPill = 25
+const ColStreamBasePointerTarget = 55
 
 const ColStreamNodeIndexR = ColStreamBaseNode + 0
 const ColStreamNodeIndexPhi = ColStreamBaseNode + 1
@@ -205,35 +204,6 @@ const ColStreamSpeedPanelTrackX = ColStreamBaseSpeedPanel + 13
 const ColStreamSpeedPanelTrackY = ColStreamBaseSpeedPanel + 14
 const ColStreamSpeedPanelTrackW = ColStreamBaseSpeedPanel + 15
 const ColStreamSpeedPanelTrackH = ColStreamBaseSpeedPanel + 16
-const ColStreamTiltPanelBoxX = ColStreamBaseTiltPanel + 0
-const ColStreamTiltPanelBoxY = ColStreamBaseTiltPanel + 1
-const ColStreamTiltPanelBoxW = ColStreamBaseTiltPanel + 2
-const ColStreamTiltPanelBoxH = ColStreamBaseTiltPanel + 3
-const ColStreamTiltPanelStartX = ColStreamBaseTiltPanel + 4
-const ColStreamTiltPanelStartY = ColStreamBaseTiltPanel + 5
-const ColStreamTiltPanelStartW = ColStreamBaseTiltPanel + 6
-const ColStreamTiltPanelStartH = ColStreamBaseTiltPanel + 7
-const ColStreamTiltPanelResetX = ColStreamBaseTiltPanel + 8
-const ColStreamTiltPanelResetY = ColStreamBaseTiltPanel + 9
-const ColStreamTiltPanelResetW = ColStreamBaseTiltPanel + 10
-const ColStreamTiltPanelResetH = ColStreamBaseTiltPanel + 11
-const ColStreamTiltPanelStartText = ColStreamBaseTiltPanel + 12
-const ColStreamTiltPanelResetText = ColStreamBaseTiltPanel + 13
-const ColStreamTiltPanelColNodeRow = ColStreamBaseTiltPanel + 14
-const ColStreamTiltPanelColLabelText = ColStreamBaseTiltPanel + 15
-const ColStreamTiltPanelColLabelLen = ColStreamBaseTiltPanel + 16
-const ColStreamTiltPanelHeadX = ColStreamBaseTiltPanel + 17
-const ColStreamTiltPanelHeadY = ColStreamBaseTiltPanel + 18
-const ColStreamTiltPanelHeadW = ColStreamBaseTiltPanel + 19
-const ColStreamTiltPanelHeadH = ColStreamBaseTiltPanel + 20
-const ColStreamTiltPanelRoundsX = ColStreamBaseTiltPanel + 21
-const ColStreamTiltPanelRoundsY = ColStreamBaseTiltPanel + 22
-const ColStreamTiltPanelRoundsW = ColStreamBaseTiltPanel + 23
-const ColStreamTiltPanelRoundsH = ColStreamBaseTiltPanel + 24
-const ColStreamTiltPanelMsgsX = ColStreamBaseTiltPanel + 25
-const ColStreamTiltPanelMsgsY = ColStreamBaseTiltPanel + 26
-const ColStreamTiltPanelMsgsW = ColStreamBaseTiltPanel + 27
-const ColStreamTiltPanelMsgsH = ColStreamBaseTiltPanel + 28
 const ColStreamOverlaysPillScrollY = ColStreamBaseOverlaysPill + 0
 const ColStreamOverlaysPillPillX = ColStreamBaseOverlaysPill + 1
 const ColStreamOverlaysPillPillY = ColStreamBaseOverlaysPill + 2
