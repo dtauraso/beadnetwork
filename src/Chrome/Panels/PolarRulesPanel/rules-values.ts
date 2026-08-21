@@ -1,14 +1,6 @@
-import { columnF32, columnI32, columnU8 } from "../../../Buffer/column-values";
-import { nodeColumn } from "../../../Buffer/column-owners";
 import { getEdgeStreamAccessor } from "../../../Node/Edge/edge-stream-blocks";
-import {
-  COL_STREAM_NODE_DRAG_RLOCKED, COL_STREAM_NODE_DRAG_PHI_LOCKED,
-  COL_STREAM_NODE_DRAG_THETA_MAX, COL_STREAM_NODE_DRAG_ACTIVE,
-  COL_STREAM_NODE_KIND_RULE_ACTIVE, COL_STREAM_NODE_SELF_RLOCKED,
-  COL_STREAM_NODE_SELF_PHI_LOCKED, COL_STREAM_NODE_SELF_THETA_MAX,
-  COL_STREAM_NODE_SELF_ACTIVE, COL_STREAM_NODE_RULE_GROUP_ID,
-  COL_STREAM_NODE_RULE_GROUP_SIZE,
-} from "../../../Node/columns-gen";
+import { nodeF32, nodeI32, nodeU8 as nodeU8Value } from "../../../Node/node-leaves";
+import type { NodeValueName } from "../../../Node/node-values-gen";
 import { formatPi } from "./pi-fraction";
 import { canvasFont, roundRect } from "../../../webview/canvas-box";
 
@@ -32,26 +24,24 @@ export const VAL_DRAG_THETA = 7;
 
 const RAD_TO_PI = 1 / Math.PI;
 
-export const nodeU8 = (row: number, col: number) => columnU8(nodeColumn(row, col)) !== 0;
-export const nodeF32 = (row: number, col: number) => columnF32(nodeColumn(row, col));
-export const nodeI32 = (row: number, col: number) => columnI32(nodeColumn(row, col));
+const nodeOn = (row: number, name: NodeValueName) => nodeU8Value(row, name) !== 0;
 
 export function nodeDragActive(row: number): boolean {
-  return nodeU8(row, COL_STREAM_NODE_DRAG_ACTIVE);
+  return nodeOn(row, "dragActive");
 }
 
 export function nodeRuleGroup(row: number): { id: number; size: number } {
   return {
-    id: nodeI32(row, COL_STREAM_NODE_RULE_GROUP_ID),
-    size: nodeI32(row, COL_STREAM_NODE_RULE_GROUP_SIZE),
+    id: nodeI32(row, "ruleGroupId"),
+    size: nodeI32(row, "ruleGroupSize"),
   };
 }
 
 export function checkValue(check: number, nodeRow: number, edgeRow: number): boolean {
   switch (check) {
     case CHECK_NODE_DRAG: return nodeDragActive(nodeRow);
-    case CHECK_SELF_DRAG: return nodeU8(nodeRow, COL_STREAM_NODE_SELF_ACTIVE);
-    case CHECK_KIND_RULE: return nodeU8(nodeRow, COL_STREAM_NODE_KIND_RULE_ACTIVE);
+    case CHECK_SELF_DRAG: return nodeOn(nodeRow, "selfActive");
+    case CHECK_KIND_RULE: return nodeOn(nodeRow, "kindRuleActive");
     case CHECK_EDGE_DRAG: {
       const edges = getEdgeStreamAccessor();
       return edgeRow >= 0 && !!edges && edges.dragActive(edgeRow);
@@ -73,30 +63,30 @@ export function valueText(
 ): { text: string; free: boolean } {
   switch (value) {
     case VAL_SELF_R: {
-      const on = nodeU8(nodeRow, COL_STREAM_NODE_SELF_RLOCKED);
+      const on = nodeOn(nodeRow, "selfRLocked");
       return { text: on ? "held" : "free", free: !on };
     }
     case VAL_SELF_PHI: {
-      const on = nodeU8(nodeRow, COL_STREAM_NODE_SELF_PHI_LOCKED);
+      const on = nodeOn(nodeRow, "selfPhiLocked");
       return { text: on ? "locked" : "free", free: !on };
     }
     case VAL_SELF_THETA: {
-      const t = nodeF32(nodeRow, COL_STREAM_NODE_SELF_THETA_MAX);
+      const t = nodeF32(nodeRow, "selfThetaMax");
       return { text: thetaText(t), free: t < 0 };
     }
     case VAL_DRAG_R: {
-      const on = nodeU8(nodeRow, COL_STREAM_NODE_DRAG_RLOCKED);
+      const on = nodeOn(nodeRow, "dragRLocked");
       if (!on) return { text: "free", free: true };
       const edges = getEdgeStreamAccessor();
       const r = edgeRow >= 0 && edges ? Math.abs(edges.deltaR(edgeRow)) : 0;
       return { text: `held ${Math.round(r * 10) / 10}`, free: false };
     }
     case VAL_DRAG_PHI: {
-      const on = nodeU8(nodeRow, COL_STREAM_NODE_DRAG_PHI_LOCKED);
+      const on = nodeOn(nodeRow, "dragPhiLocked");
       return { text: on ? "locked" : "free", free: !on };
     }
     case VAL_DRAG_THETA: {
-      const t = nodeF32(nodeRow, COL_STREAM_NODE_DRAG_THETA_MAX);
+      const t = nodeF32(nodeRow, "dragThetaMax");
       return { text: thetaText(t), free: t < 0 };
     }
     default: return { text: "", free: false };

@@ -2,12 +2,8 @@ import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { nodeLabel } from "../../Node/buffer-decode-node";
 import { ndcToPixel } from "../../webview/interaction/geometry-helpers";
-import { columnF32 } from "../../Buffer/column-values";
-import { nodeColumn, ownerCounts } from "../../Buffer/column-owners";
-import {
-  COL_STREAM_NODE_LABEL_ANCHOR_X, COL_STREAM_NODE_LABEL_ANCHOR_Y,
-  COL_STREAM_NODE_LABEL_ANCHOR_Z,
-} from "../../Node/columns-gen";
+import { ownerCounts } from "../../Buffer/column-owners";
+import { nodeF32 } from "../../Node/node-leaves";
 import { overlayFlag } from "../../webview/flags/overlay-flags";
 import { setLabelPositions } from "./label-canvas";
 import type { BufferLabelPos } from "../../webview/scene/buffer-scene-shared";
@@ -34,9 +30,9 @@ export function BufferLabelProjector() {
     const positions: BufferLabelPos[] = [];
     for (let i = 0; i < nodeCount; i++) {
       _bufTopScratch.set(
-        columnF32(nodeColumn(i, COL_STREAM_NODE_LABEL_ANCHOR_X)),
-        columnF32(nodeColumn(i, COL_STREAM_NODE_LABEL_ANCHOR_Y)),
-        columnF32(nodeColumn(i, COL_STREAM_NODE_LABEL_ANCHOR_Z)),
+        nodeF32(i, "labelAnchorX"),
+        nodeF32(i, "labelAnchorY"),
+        nodeF32(i, "labelAnchorZ"),
       ).project(camera);
       const topPx = ndcToPixel(_bufTopScratch.x, _bufTopScratch.y, size);
       positions.push({ row: i, label: nodeLabel(i), px: topPx.px, py: topPx.py });

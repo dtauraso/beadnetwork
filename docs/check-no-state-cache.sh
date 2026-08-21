@@ -8,10 +8,6 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 cd "$REPO_ROOT"
 
-# The scene's view/ tree is prune'd because Go rewrites it constantly through
-# tmp+rename: find walking it while the editor runs hits entries that vanish
-# mid-walk, exits nonzero, and under set -e kills this guard with NO output —
-# which reads as a guard failure with an empty reason. It can hold no doc.
 hits="$(find . \
   -type d \( -name node_modules -o -name .git -o -name out -o -name handoff-archive -o -name view -o -path './.claude/worktrees' \) -prune -o \
   -type f \( \

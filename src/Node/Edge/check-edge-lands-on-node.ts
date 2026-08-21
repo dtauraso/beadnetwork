@@ -1,9 +1,5 @@
-import { columnF32 } from "../../Buffer/column-values";
-import { nodeColumn, ownerCounts } from "../../Buffer/column-owners";
-import {
-  COL_STREAM_NODE_POLE_ANCHOR_X, COL_STREAM_NODE_POLE_ANCHOR_Y,
-  COL_STREAM_NODE_POLE_ANCHOR_Z,
-} from "../columns-gen";
+import { ownerCounts } from "../../Buffer/column-owners";
+import { nodeF32 } from "../node-leaves";
 import { getEdgeStreamAccessor } from "./edge-stream-blocks";
 import { sceneSteps } from "../../Scene/scene-frame";
 import { postLog } from "../../webview/log/post";
@@ -28,9 +24,9 @@ export function checkEdgeLandsOnNode(): void {
     const ez = seg[5] ?? 0;
     if (ex === 0 && ey === 0 && ez === 0) continue;
 
-    const cx = columnF32(nodeColumn(dst, COL_STREAM_NODE_POLE_ANCHOR_X));
-    const cy = columnF32(nodeColumn(dst, COL_STREAM_NODE_POLE_ANCHOR_Y));
-    const cz = columnF32(nodeColumn(dst, COL_STREAM_NODE_POLE_ANCHOR_Z));
+    const cx = nodeF32(dst, "poleAnchorX");
+    const cy = nodeF32(dst, "poleAnchorY");
+    const cz = nodeF32(dst, "poleAnchorZ");
     if (cx === 0 && cy === 0 && cz === 0) continue;
 
     const gap = Math.hypot(ex - cx, ey - cy, ez - cz);

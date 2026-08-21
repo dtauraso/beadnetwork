@@ -1,16 +1,6 @@
 import * as THREE from "three";
-import { columnF32, columnI32, columnU8 } from "../../Buffer/column-values";
-import { nodeColumn, ownerCounts } from "../../Buffer/column-owners";
-import {
-  COL_STREAM_NODE_INDEX_R, COL_STREAM_NODE_INDEX_PHI, COL_STREAM_NODE_INDEX_THETA,
-  COL_STREAM_NODE_HAS_POS, COL_STREAM_NODE_RADIUS, COL_STREAM_NODE_HOVERED,
-  COL_STREAM_NODE_RING_M0, COL_STREAM_NODE_RING_M1, COL_STREAM_NODE_RING_M2,
-  COL_STREAM_NODE_RING_M3, COL_STREAM_NODE_RING_M4, COL_STREAM_NODE_RING_M5,
-  COL_STREAM_NODE_RING_M6, COL_STREAM_NODE_RING_M7, COL_STREAM_NODE_RING_M8,
-  COL_STREAM_NODE_RING_M9, COL_STREAM_NODE_RING_M10, COL_STREAM_NODE_RING_M11,
-  COL_STREAM_NODE_RING_M12, COL_STREAM_NODE_RING_M13, COL_STREAM_NODE_RING_M14,
-  COL_STREAM_NODE_RING_M15,
-} from "../../Node/columns-gen";
+import { ownerCounts } from "../../Buffer/column-owners";
+import { nodeF32, nodeI32, nodeU8, NODE_RING_NAMES } from "../../Node/node-leaves";
 import { sceneSteps } from "../../Scene/scene-frame";
 import { NODE_SPHERE_RADIUS } from "../../webview/scene/buffer-scene-shared";
 import { readSelectedNodeRow } from "../../webview/flags/overlay-flags-selection";
@@ -18,14 +8,14 @@ import { readSelectedNodeRow } from "../../webview/flags/overlay-flags-selection
 const centerScratch: [number, number, number] = [0, 0, 0];
 
 function centerInto(row: number, out: [number, number, number]): void {
-  if (!columnU8(nodeColumn(row, COL_STREAM_NODE_HAS_POS))) {
+  if (!nodeU8(row, "hasPos")) {
     out[0] = 0; out[1] = 0; out[2] = 0;
     return;
   }
   const s = sceneSteps();
-  const r = columnI32(nodeColumn(row, COL_STREAM_NODE_INDEX_R)) * s.constantR;
-  const phi = columnI32(nodeColumn(row, COL_STREAM_NODE_INDEX_PHI)) * s.constantPhi;
-  const theta = columnI32(nodeColumn(row, COL_STREAM_NODE_INDEX_THETA)) * s.constantTheta;
+  const r = nodeI32(row, "indexR") * s.constantR;
+  const phi = nodeI32(row, "indexPhi") * s.constantPhi;
+  const theta = nodeI32(row, "indexTheta") * s.constantTheta;
   const st = Math.sin(phi);
   out[0] = s.centerX + r * st * Math.cos(theta);
   out[1] = s.centerY + r * Math.cos(phi);
@@ -37,12 +27,12 @@ function nodeCenterY(row: number): number { centerInto(row, centerScratch); retu
 function nodeCenterZ(row: number): number { centerInto(row, centerScratch); return centerScratch[2]; }
 
 function nodeRadius(row: number): number {
-  return columnF32(nodeColumn(row, COL_STREAM_NODE_RADIUS)) || NODE_SPHERE_RADIUS;
+  return nodeF32(row, "radius") || NODE_SPHERE_RADIUS;
 }
 
 function nodeCount(): number { return ownerCounts().nodes; }
 
-const hoveredFlag = (row: number): boolean => columnU8(nodeColumn(row, COL_STREAM_NODE_HOVERED)) !== 0;
+const hoveredFlag = (row: number): boolean => nodeU8(row, "hovered") !== 0;
 import { nodeRowColors } from "../../Node/node-kind";
 import { computeNodeDepthOrder, setNodeDrawOrder } from "./node-depth-order";
 import { SELECTION_HALO_R_RATIO } from "./node-highlight-shape";
@@ -51,13 +41,7 @@ import { overlayFlag } from "../../webview/flags/overlay-flags";
 function copyRingMatrix(row: number, ring: THREE.InstancedMesh, slot: number): void {
   const out = ring.instanceMatrix.array;
   const base = slot * 16;
-  const cols = [
-    COL_STREAM_NODE_RING_M0, COL_STREAM_NODE_RING_M1, COL_STREAM_NODE_RING_M2, COL_STREAM_NODE_RING_M3,
-    COL_STREAM_NODE_RING_M4, COL_STREAM_NODE_RING_M5, COL_STREAM_NODE_RING_M6, COL_STREAM_NODE_RING_M7,
-    COL_STREAM_NODE_RING_M8, COL_STREAM_NODE_RING_M9, COL_STREAM_NODE_RING_M10, COL_STREAM_NODE_RING_M11,
-    COL_STREAM_NODE_RING_M12, COL_STREAM_NODE_RING_M13, COL_STREAM_NODE_RING_M14, COL_STREAM_NODE_RING_M15,
-  ];
-  for (let i = 0; i < 16; i++) out[base + i] = columnF32(nodeColumn(row, cols[i]!));
+  for (let i = 0; i < 16; i++) out[base + i] = nodeF32(row, NODE_RING_NAMES[i]!);
 }
 
 export interface NodeInstanceRefs {

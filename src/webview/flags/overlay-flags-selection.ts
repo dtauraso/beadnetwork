@@ -1,13 +1,10 @@
-import { columnU8 } from "../../Buffer/column-values";
-import { nodeColumn, ownerCounts } from "../../Buffer/column-owners";
-import {
-  COL_STREAM_NODE_SELECTED,
-} from "../../Node/columns-gen";
+import { ownerCounts } from "../../Buffer/column-owners";
+import { nodeU8 } from "../../Node/node-leaves";
 
 export function readSelectedNodeRow(): number {
   const { nodes } = ownerCounts();
   for (let i = 0; i < nodes; i++) {
-    if (columnU8(nodeColumn(i, COL_STREAM_NODE_SELECTED))) return i;
+    if (nodeU8(i, "selected")) return i;
   }
   return -1;
 }
