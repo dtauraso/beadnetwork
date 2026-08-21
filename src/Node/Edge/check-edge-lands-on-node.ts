@@ -1,4 +1,4 @@
-import { ownerCounts } from "../../Buffer/column-owners";
+import { ownerCounts } from "../../Scene/owner-counts";
 import { nodeF32 } from "../node-leaves";
 import { getEdgeStreamAccessor } from "./edge-stream-blocks";
 import { sceneSteps } from "../../Scene/scene-frame";

@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { ownerCounts } from "../../Buffer/column-owners";
+import { ownerCounts } from "../../Scene/owner-counts";
 import { overlayFlag } from "../../webview/flags/overlay-flags";
 import {
   channelVectorBytes, VECTOR_SHAFT_NAMES, VECTOR_HEAD_NAMES,

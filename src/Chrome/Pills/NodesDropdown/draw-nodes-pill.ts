@@ -1,6 +1,6 @@
 import { canvasFont, roundRect } from "../../../webview/canvas-box";
 import { drawPill, drawPopoverBox, ROW_PAD_X } from "../pill";
-import { decodeAt } from "../../../Buffer/column-reads";
+import { decodeAt } from "../../../webview/leaf-text";
 import * as T from "../../../webview/canvas-theme";
 import {
   pillBytes, pillF32, pillU8, pillU32, pillU32Run, pillF32Run, pillText,

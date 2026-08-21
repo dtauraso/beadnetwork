@@ -16,9 +16,9 @@ import { parseHostToWebview } from "../Input/messages";
 import { ErrorBoundary } from "./log/ErrorBoundary";
 import { CrashListeners } from "./log/CrashListeners";
 import { setLatestViewFrame, setLatestEdgeStreamFrame, setLatestNodeStreamFrame, setLatestInteriorStreamFrame, setLatestBeadStreamFrame } from "./snapshot-buffer";
-import { BUF_BLOCK_TAG_VIEW, BUF_BLOCK_TAG_EDGE_STREAM, BUF_BLOCK_TAG_NODE_STREAM, BUF_BLOCK_TAG_INTERIOR_STREAM, BUF_BLOCK_TAG_BEAD_STREAM, BUF_BLOCK_TAG_COLUMN } from "../Buffer/frame-tags";
-import { setColumnValue, columnDiagnostics, columnI32, columnF32, columnU8 } from "../Buffer/column-values";
-import { ownerCounts } from "../Buffer/column-owners";
+import { BUF_BLOCK_TAG_VIEW, BUF_BLOCK_TAG_EDGE_STREAM, BUF_BLOCK_TAG_NODE_STREAM, BUF_BLOCK_TAG_INTERIOR_STREAM, BUF_BLOCK_TAG_BEAD_STREAM } from "../Buffer/frame-tags";
+
+import { ownerCounts } from "../Scene/owner-counts";
 import { edgeF32 } from "../Node/Edge/edge-leaves";
 import { nodeI32, nodeU8 } from "../Node/node-leaves";
 
@@ -83,22 +83,13 @@ window.addEventListener("message", (e) => {
       if (typeof msg.row === "number") {
         setLatestBeadStreamFrame(msg.row, msg.buffer, msg.gen);
       }
-    } else if (msg.tag === BUF_BLOCK_TAG_COLUMN) {
-
-      if (typeof msg.row === "number") {
-        setColumnValue(msg.row, msg.buffer);
-      }
     }
     bufSnapCount += 1;
     const now = Date.now();
     if (now - bufSnapLogAt >= 1000) {
-      const cols = columnDiagnostics();
       const counts = ownerCounts();
       postLog("buf-snapshot", {
         byteLength: msg.buffer.byteLength, sinceLast: bufSnapCount, windowMs: now - bufSnapLogAt,
-
-        colsReceived: cols.received, colVersion: cols.version,
-        colLowest: cols.lowest, colHighest: cols.highest,
         ownerNodes: counts.nodes, ownerEdges: counts.edges,
         nodeIndex: Array.from({ length: counts.nodes }, (_unused, row) => [
           nodeU8(row, "hasPos"),

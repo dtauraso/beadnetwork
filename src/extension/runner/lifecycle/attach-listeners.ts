@@ -38,11 +38,4 @@ export function attachStreamListeners(proc: cp.ChildProcess, demux: StreamDemux,
       beadFd.on("data", (d: Buffer) => demux.handleBeadFd(row, d));
     }
   }
-
-  for (let col = 0; col < layout.colCount; col++) {
-    const fd = (proc.stdio as (NodeJS.ReadableStream | null)[])[layout.colBaseFd + col];
-    if (fd) {
-      fd.on("data", (d: Buffer) => demux.handleColFd(col, d));
-    }
-  }
 }

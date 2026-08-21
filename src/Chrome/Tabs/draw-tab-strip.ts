@@ -1,5 +1,5 @@
 import { canvasFont, roundRect } from "../../webview/canvas-box";
-import { decodeAt } from "../../Buffer/column-reads";
+import { decodeAt } from "../../webview/leaf-text";
 import * as T from "../../webview/canvas-theme";
 import { stripBytes, stripF32, stripF32Run, stripU32Run, stripText } from "./strip-leaves";
 

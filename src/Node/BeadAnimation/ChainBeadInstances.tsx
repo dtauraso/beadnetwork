@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { ownerCounts } from "../../Buffer/column-owners";
+import { ownerCounts } from "../../Scene/owner-counts";
 import { beadBytes, BEAD_RING_NAMES } from "../../Ring/Bead/bead-leaves";
 import { beadStyleForValue } from "../../Ring/Bead/bead-style";
 import { getCanonicalBeadRingSurfaceGeometry } from "../../Ring/Bead/bead-ring-surface-geometry";

@@ -32,12 +32,10 @@ func RunTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 	}
 	wireEdgeStreams(streamFDs, md, scenePath)
 	wireNodeStreams(streamFDs, md, scenePath)
-	cols := SW.NewColumnStreams(streamFDs, len(md.RT.NodeRowTable), len(md.RT.EdgeRowTable))
 	md.UI.OwnerCounts.Nodes = int32(len(md.RT.NodeRowTable))
 	md.UI.OwnerCounts.Edges = int32(len(md.RT.EdgeRowTable))
 	md.UI.SceneTabNames = sceneTabNames
 	md.UI.SceneTabSelected = sceneTabSelected
-	md.UI.SetSingletonColumns(cols.SingletonColumns())
 	md.UI.SetSceneRoot(scenePath)
 	md.UI.WriteRingSurfaces(NodeShape.CanonicalRingSurfacePointsFlat(), bead.CanonicalRingSurfacePointsFlat())
 	wireViewStream(md, viewFile, viewStreamWired, sceneTabNames, sceneTabSelected)

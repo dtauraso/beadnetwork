@@ -1,5 +1,5 @@
 import { drawBox, canvasFont } from "../../../webview/canvas-box";
-import { decodeAt } from "../../../Buffer/column-reads";
+import { decodeAt } from "../../../webview/leaf-text";
 import {
   sliderBytes, sliderF32, sliderF32Run, sliderU32Run, sliderText,
 } from "./panel-leaves";

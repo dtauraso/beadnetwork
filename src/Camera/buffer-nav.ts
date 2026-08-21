@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { nodeLabel } from "../Node/buffer-decode-node";
 import { polarToCart } from "../webview/polar-convert";
 import { sceneSteps, sceneRadius } from "../Scene/scene-frame";
-import { ownerCounts } from "../Buffer/column-owners";
+import { ownerCounts } from "../Scene/owner-counts";
 import { nodeF32, nodeU8 } from "../Node/node-leaves";
 import { readSelectedNodeRow } from "../webview/flags/overlay-flags-selection";
 

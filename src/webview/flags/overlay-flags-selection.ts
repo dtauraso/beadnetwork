@@ -1,4 +1,4 @@
-import { ownerCounts } from "../../Buffer/column-owners";
+import { ownerCounts } from "../../Scene/owner-counts";
 import { nodeU8 } from "../../Node/node-leaves";
 
 export function readSelectedNodeRow(): number {

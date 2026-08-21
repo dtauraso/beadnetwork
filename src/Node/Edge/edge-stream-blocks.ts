@@ -1,4 +1,4 @@
-import { ownerCounts } from "../../Buffer/column-owners";
+import { ownerCounts } from "../../Scene/owner-counts";
 import { edgeBytes, edgeF32, edgeI32, edgeU8 } from "./edge-leaves";
 
 export interface EdgeAccessor {

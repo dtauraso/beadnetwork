@@ -1,7 +1,7 @@
 import { makeLeafValues } from "../webview/leaf-values";
 import {
   OWNER_COUNTS_VALUE_NAMES, type OwnerCountsValueName,
-} from "../Scene/owner-counts-values-gen";
+} from "./owner-counts-values-gen";
 
 const values = makeLeafValues<OwnerCountsValueName>(
   "Scene/owner-counts-paths",
