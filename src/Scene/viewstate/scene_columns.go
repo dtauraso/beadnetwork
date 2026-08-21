@@ -12,6 +12,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Chrome/Pills/NodesDropdown"
 	"github.com/dtauraso/wirefold/src/Chrome/Pills/FitButton"
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/TiltPanel"
+	"github.com/dtauraso/wirefold/src/Chrome/Pills"
 	"github.com/dtauraso/wirefold/src/Chrome/Tabs"
 )
 
@@ -29,6 +30,7 @@ func (ui *UIState) SetSceneRoot(sceneRoot string) {
 	ui.tabStripValues = Tabs.NewValueWriter(sceneRoot)
 	ui.fitChipValues = FitButton.NewValueWriter(sceneRoot)
 	ui.tiltPanelValues = TiltPanel.NewValueWriter(sceneRoot)
+	ui.overlaysPillValues = Pills.NewValueWriter(sceneRoot)
 }
 
 func (ui *UIState) writeSceneColumns() {

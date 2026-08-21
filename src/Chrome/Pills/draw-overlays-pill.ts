@@ -1,25 +1,10 @@
-import { columnBytes, columnF32, columnU8 } from "../../Buffer/column-values";
 import { canvasFont, roundRect } from "../../webview/canvas-box";
 import { drawPill, drawPopoverBox, drawHeadingText, ROW_PAD_X } from "./pill";
-import { readF32Run, readU32Run, readText, decodeAt } from "../../Buffer/column-reads";
+import { decodeAt } from "../../Buffer/column-reads";
 import * as T from "../../webview/canvas-theme";
 import {
-  COL_STREAM_OVERLAYS_PILL_PILL_X, COL_STREAM_OVERLAYS_PILL_PILL_Y,
-  COL_STREAM_OVERLAYS_PILL_PILL_W, COL_STREAM_OVERLAYS_PILL_PILL_H,
-  COL_STREAM_OVERLAYS_PILL_OPEN, COL_STREAM_OVERLAYS_PILL_ACTIVE,
-  COL_STREAM_OVERLAYS_PILL_POPOVER_X, COL_STREAM_OVERLAYS_PILL_POPOVER_Y,
-  COL_STREAM_OVERLAYS_PILL_POPOVER_W, COL_STREAM_OVERLAYS_PILL_POPOVER_H,
-  COL_STREAM_OVERLAYS_PILL_LABEL_TEXT, COL_STREAM_OVERLAYS_PILL_ROW_KIND,
-  COL_STREAM_OVERLAYS_PILL_ROW_DEPTH, COL_STREAM_OVERLAYS_PILL_ROW_X,
-  COL_STREAM_OVERLAYS_PILL_ROW_Y, COL_STREAM_OVERLAYS_PILL_ROW_W,
-  COL_STREAM_OVERLAYS_PILL_ROW_H, COL_STREAM_OVERLAYS_PILL_ROW_TEXT_DATA,
-  COL_STREAM_OVERLAYS_PILL_ROW_TEXT_LEN, COL_STREAM_OVERLAYS_PILL_ROW_ICON_DATA,
-  COL_STREAM_OVERLAYS_PILL_ROW_ICON_LEN, COL_STREAM_OVERLAYS_PILL_ROW_ON,
-  COL_STREAM_OVERLAYS_PILL_ROW_DISABLED, COL_STREAM_OVERLAYS_PILL_ROW_COUNT_ON,
-  COL_STREAM_OVERLAYS_PILL_ROW_COUNT_ALL, COL_STREAM_OVERLAYS_PILL_COUNT_X,
-  COL_STREAM_OVERLAYS_PILL_COUNT_Y, COL_STREAM_OVERLAYS_PILL_COUNT_W,
-  COL_STREAM_OVERLAYS_PILL_COUNT_H, COL_STREAM_OVERLAYS_PILL_SCROLL_Y,
-} from "./columns-gen";
+  overlaysBytes, overlaysF32, overlaysU8, overlaysF32Run, overlaysU32Run, overlaysText,
+} from "./pill-leaves";
 
 const ROW_HEADING = 0;
 
@@ -30,36 +15,36 @@ const ICON_W = 11;
 const GAP = 7;
 
 export function overlaysPillKey(): string {
-  const kinds = columnBytes(COL_STREAM_OVERLAYS_PILL_ROW_KIND);
-  const on = columnBytes(COL_STREAM_OVERLAYS_PILL_ROW_ON);
+  const kinds = overlaysBytes("rowKind");
+  const on = overlaysBytes("rowOn");
   const bytes = (v: DataView | undefined) =>
     v ? new Uint8Array(v.buffer, v.byteOffset, v.byteLength).join(".") : "";
   return [
-    columnF32(COL_STREAM_OVERLAYS_PILL_PILL_X), columnF32(COL_STREAM_OVERLAYS_PILL_PILL_Y),
-    columnU8(COL_STREAM_OVERLAYS_PILL_OPEN), columnU8(COL_STREAM_OVERLAYS_PILL_ACTIVE),
-    columnF32(COL_STREAM_OVERLAYS_PILL_POPOVER_H),
-    columnF32(COL_STREAM_OVERLAYS_PILL_SCROLL_Y),
+    overlaysF32("pillX"), overlaysF32("pillY"),
+    overlaysU8("open"), overlaysU8("active"),
+    overlaysF32("popoverH"),
+    overlaysF32("scrollY"),
     bytes(kinds), bytes(on),
   ].join(",");
 }
 
 export function drawOverlaysPill(c: CanvasRenderingContext2D): void {
-  const labelText = readText(COL_STREAM_OVERLAYS_PILL_LABEL_TEXT);
-  const pw = columnF32(COL_STREAM_OVERLAYS_PILL_PILL_W);
-  const ph = columnF32(COL_STREAM_OVERLAYS_PILL_PILL_H);
+  const labelText = overlaysText("labelText");
+  const pw = overlaysF32("pillW");
+  const ph = overlaysF32("pillH");
   if (!labelText || pw <= 0 || ph <= 0) return;
-  const px = columnF32(COL_STREAM_OVERLAYS_PILL_PILL_X);
-  const py = columnF32(COL_STREAM_OVERLAYS_PILL_PILL_Y);
-  const open = columnU8(COL_STREAM_OVERLAYS_PILL_OPEN) !== 0;
-  const active = columnU8(COL_STREAM_OVERLAYS_PILL_ACTIVE) !== 0;
+  const px = overlaysF32("pillX");
+  const py = overlaysF32("pillY");
+  const open = overlaysU8("open") !== 0;
+  const active = overlaysU8("active") !== 0;
 
   drawPill(c, px, py, pw, ph, decodeAt(labelText, 0, labelText.length), open, active);
   if (!open) return;
 
-  const bx = columnF32(COL_STREAM_OVERLAYS_PILL_POPOVER_X);
-  const by = columnF32(COL_STREAM_OVERLAYS_PILL_POPOVER_Y);
-  const bw = columnF32(COL_STREAM_OVERLAYS_PILL_POPOVER_W);
-  const bh = columnF32(COL_STREAM_OVERLAYS_PILL_POPOVER_H);
+  const bx = overlaysF32("popoverX");
+  const by = overlaysF32("popoverY");
+  const bw = overlaysF32("popoverW");
+  const bh = overlaysF32("popoverH");
   drawPopoverBox(c, bx, by, bw, bh);
 
   c.save();
@@ -85,24 +70,24 @@ function drawCheckbox(c: CanvasRenderingContext2D, x: number, y: number, on: boo
 }
 
 function drawRows(c: CanvasRenderingContext2D): void {
-  const kinds = columnBytes(COL_STREAM_OVERLAYS_PILL_ROW_KIND);
-  const depths = columnBytes(COL_STREAM_OVERLAYS_PILL_ROW_DEPTH);
-  const x = readF32Run(COL_STREAM_OVERLAYS_PILL_ROW_X);
-  const y = readF32Run(COL_STREAM_OVERLAYS_PILL_ROW_Y);
-  const w = readF32Run(COL_STREAM_OVERLAYS_PILL_ROW_W);
-  const h = readF32Run(COL_STREAM_OVERLAYS_PILL_ROW_H);
-  const textData = readText(COL_STREAM_OVERLAYS_PILL_ROW_TEXT_DATA);
-  const textLen = readU32Run(COL_STREAM_OVERLAYS_PILL_ROW_TEXT_LEN);
-  const iconData = readText(COL_STREAM_OVERLAYS_PILL_ROW_ICON_DATA);
-  const iconLen = readU32Run(COL_STREAM_OVERLAYS_PILL_ROW_ICON_LEN);
-  const on = columnBytes(COL_STREAM_OVERLAYS_PILL_ROW_ON);
-  const disabled = columnBytes(COL_STREAM_OVERLAYS_PILL_ROW_DISABLED);
-  const countOn = readU32Run(COL_STREAM_OVERLAYS_PILL_ROW_COUNT_ON);
-  const countAll = readU32Run(COL_STREAM_OVERLAYS_PILL_ROW_COUNT_ALL);
-  const cx = readF32Run(COL_STREAM_OVERLAYS_PILL_COUNT_X);
-  const cy = readF32Run(COL_STREAM_OVERLAYS_PILL_COUNT_Y);
-  const cw = readF32Run(COL_STREAM_OVERLAYS_PILL_COUNT_W);
-  const ch = readF32Run(COL_STREAM_OVERLAYS_PILL_COUNT_H);
+  const kinds = overlaysBytes("rowKind");
+  const depths = overlaysBytes("rowDepth");
+  const x = overlaysF32Run("rowX");
+  const y = overlaysF32Run("rowY");
+  const w = overlaysF32Run("rowW");
+  const h = overlaysF32Run("rowH");
+  const textData = overlaysText("rowTextData");
+  const textLen = overlaysU32Run("rowTextLen");
+  const iconData = overlaysText("rowIconData");
+  const iconLen = overlaysU32Run("rowIconLen");
+  const on = overlaysBytes("rowOn");
+  const disabled = overlaysBytes("rowDisabled");
+  const countOn = overlaysU32Run("rowCountOn");
+  const countAll = overlaysU32Run("rowCountAll");
+  const cx = overlaysF32Run("countX");
+  const cy = overlaysF32Run("countY");
+  const cw = overlaysF32Run("countW");
+  const ch = overlaysF32Run("countH");
   if (!kinds || !depths || !x || !y || !w || !h) return;
   if (!textData || !textLen || !iconData || !iconLen || !on || !disabled) return;
   if (!countOn || !countAll || !cx || !cy || !cw || !ch) return;
@@ -147,3 +132,4 @@ function drawRows(c: CanvasRenderingContext2D): void {
     c.globalAlpha = 1;
   }
 }
+

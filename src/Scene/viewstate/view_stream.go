@@ -55,7 +55,7 @@ func (ui *UIState) EmitViewFrame(events []B.RowEvent) {
 	ui.writeTiltPanelValues(pl.Tilt)
 	ui.writeAnglePillValues(pl.Angle)
 	ui.writeNodesPillValues(pl.Nodes)
-	ui.writeOverlaysPillColumns(pl.Overlays)
+	ui.writeOverlaysPillValues(pl.Overlays)
 	ui.writeFitChipValues(pl.Fit)
 	ui.writeTabStripValues(pl.Tabs)
 	ui.writeRulesPanelValues(pl.Rules)
@@ -71,9 +71,3 @@ func (ui *UIState) EmitViewFrame(events []B.RowEvent) {
 	_, _ = ui.viewOut.Write(frame)
 }
 
-func boolU8(b bool) uint8 {
-	if b {
-		return 1
-	}
-	return 0
-}

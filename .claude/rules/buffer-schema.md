@@ -8,17 +8,17 @@ paths:
 
 # Content buffer schema — adding or changing a column
 
-**A block's columns live in the directory of the thing they describe.** The overlays popover's
-columns are `src/Chrome/Pills/overlays_pill_block.go`, the speed slider's are
-`src/Chrome/Panels/SliderPanel/buffer_block.go`, and so on — a column is part of its concern,
-not part of a schema directory.
+**A block's columns live in the directory of the thing they describe.** The speed slider's
+columns are `src/Chrome/Panels/SliderPanel/buffer_block.go`, the pointer target's are
+`src/Chrome/Panels/buffer_block.go`, and so on — a column is part of its concern, not part of
+a schema directory.
 
-Chrome has been leaving the buffer as it goes: the rules panel, both dropdowns, the tab
-strip, the fit chip and the tilt panel have no block at all now. Each crosses as ONE file
-whose layout is its generated value list, found through that piece's `paths/block.bin`. What
-still has columns is what a poll cannot serve — the pointer target follows the cursor, the
-speed slider is dragged, the overlays popover scrolls — plus the per-tick geometry the buffer
-exists for. What remains in `Buffer/bufschema/` is what has no owner elsewhere: the
+Chrome has left the buffer. The rules panel, both dropdowns, the tab strip, the fit chip, the
+tilt panel and the overlays popover have no block at all: each crosses as ONE file whose
+layout is its generated value list, found through that piece's `paths/block.bin`. Two chrome
+blocks remain, and both are there because a hundred-millisecond poll cannot serve them — the
+pointer target follows the cursor, and the speed slider is dragged. Everything else in the
+buffer is the per-tick geometry it exists for. What remains in `Buffer/bufschema/` is what has no owner elsewhere: the
 model blocks (Node, Edge, Camera, Scene…) and the trace events.
 
 The generator does not need telling where they are. It walks the repo for `bufLayout*`
