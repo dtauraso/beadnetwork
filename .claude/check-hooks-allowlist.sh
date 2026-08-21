@@ -58,6 +58,7 @@ done <<< "$cmds"
 HOOKS_DIR=".githooks"
 readonly EXPECTED_GIT_HOOKS=(
   "pre-push"
+  "pre-commit"
 )
 
 for h in "${EXPECTED_GIT_HOOKS[@]}"; do
