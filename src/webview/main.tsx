@@ -3,6 +3,7 @@ import { postLog } from "./log/post";
 postLog("lifecycle", { phase: "bundle-eval" });
 
 import { createRoot } from "react-dom/client";
+import { startSceneBaseReads } from "./scene-base";
 import { ThreeView } from "./scene/ThreeView";
 import { parseHostToWebview } from "../Input/messages";
 import { ErrorBoundary } from "./log/ErrorBoundary";
@@ -23,6 +24,7 @@ function Root() {
   return <ThreeView />;
 }
 
+startSceneBaseReads();
 postLog("lifecycle", { phase: "before-render" });
 const app = document.getElementById("app")!;
 createRoot(app).render(
