@@ -10,18 +10,8 @@ import (
 	"strings"
 )
 
-// RelDir is where a scene keeps the camera's primitives, relative to the scene
-// root. It matches scenepaths.CameraDirPath, which is what Go resolves against.
 const RelDir = "view/camera"
 
-// writeCameraPaths emits one file per camera primitive, each holding that
-// primitive's path relative to the scene root, FROM Go's own File* constants.
-//
-// The renderer read these path files while Go built the same string from those
-// constants — agreement by convention, not construction. Generating the
-// renderer's half from Go's constants makes them one declaration, so the
-// overlay failure (Go writing .json while the renderer read .bin) cannot happen
-// here either.
 func writeCameraPaths(cameraDir string, names []string) error {
 	pathsDir := filepath.Join(cameraDir, "paths")
 	if err := os.MkdirAll(pathsDir, 0o755); err != nil {
@@ -36,8 +26,6 @@ func writeCameraPaths(cameraDir string, names []string) error {
 		}
 	}
 
-	// A primitive that leaves Go's constants loses its path file, or the
-	// renderer keeps reading a value nothing writes.
 	entries, err := os.ReadDir(pathsDir)
 	if err != nil {
 		return err
@@ -53,7 +41,6 @@ func writeCameraPaths(cameraDir string, names []string) error {
 	return nil
 }
 
-// cameraFileConsts reads the File* constants that name the camera's primitives.
 func cameraFileConsts(path string) ([]string, error) {
 	fset := token.NewFileSet()
 	f, err := parser.ParseFile(fset, path, nil, 0)
