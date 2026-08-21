@@ -22,7 +22,6 @@ func (ui *UIState) writeRulesPanelColumns(lay PolarRulesPanel.Layout) {
 
 	c.SetF32(B.ColStreamRulesPanelToggleX, lay.Toggle.X)
 	c.SetF32(B.ColStreamRulesPanelToggleY, lay.Toggle.Y)
-	c.SetF32(B.ColStreamRulesPanelToggleW, lay.Toggle.W)
 	c.SetF32(B.ColStreamRulesPanelToggleH, lay.Toggle.H)
 	toggle := PolarRulesPanel.LabelClosed
 	if lay.Open {
@@ -33,7 +32,6 @@ func (ui *UIState) writeRulesPanelColumns(lay PolarRulesPanel.Layout) {
 	rows := newRunCols()
 	for _, r := range lay.Rows {
 		rows.U8(B.ColStreamRulesPanelRowKind, uint8(r.Kind))
-		rows.U8(B.ColStreamRulesPanelRowDepth, uint8(r.Depth))
 		rows.Rect(B.ColStreamRulesPanelRowX, B.ColStreamRulesPanelRowY, B.ColStreamRulesPanelRowW, B.ColStreamRulesPanelRowH, r.Rect)
 		rows.Str(B.ColStreamRulesPanelRowTextData, B.ColStreamRulesPanelRowTextLen, r.Text)
 		rows.Str(B.ColStreamRulesPanelRowGlyphData, B.ColStreamRulesPanelRowGlyphLen, r.Glyph)
@@ -43,12 +41,12 @@ func (ui *UIState) writeRulesPanelColumns(lay PolarRulesPanel.Layout) {
 		rows.U8(B.ColStreamRulesPanelRowCheck, uint8(r.Check))
 		rows.Rect(B.ColStreamRulesPanelRowCheckX, B.ColStreamRulesPanelRowCheckY, B.ColStreamRulesPanelRowCheckW, B.ColStreamRulesPanelRowCheckH, r.CheckRect)
 		rows.U8(B.ColStreamRulesPanelRowValue, uint8(r.Value))
-		rows.Rect(B.ColStreamRulesPanelRowValueX, B.ColStreamRulesPanelRowValueY, B.ColStreamRulesPanelRowValueW, B.ColStreamRulesPanelRowValueH, r.ValueRect)
+		rows.Point(B.ColStreamRulesPanelRowValueX, B.ColStreamRulesPanelRowValueY, r.ValueRect)
 		rows.Rect(B.ColStreamRulesPanelRowSharedX, B.ColStreamRulesPanelRowSharedY, B.ColStreamRulesPanelRowSharedW, B.ColStreamRulesPanelRowSharedH, r.SharedRect)
 		rows.U8(B.ColStreamRulesPanelRowEditing, boolU8(r.Editing))
 	}
 	rows.writeTo(c,
-		B.ColStreamRulesPanelRowKind, B.ColStreamRulesPanelRowDepth,
+		B.ColStreamRulesPanelRowKind,
 		B.ColStreamRulesPanelRowX, B.ColStreamRulesPanelRowY, B.ColStreamRulesPanelRowW, B.ColStreamRulesPanelRowH,
 		B.ColStreamRulesPanelRowTextData, B.ColStreamRulesPanelRowTextLen,
 		B.ColStreamRulesPanelRowGlyphData, B.ColStreamRulesPanelRowGlyphLen,
@@ -57,7 +55,7 @@ func (ui *UIState) writeRulesPanelColumns(lay PolarRulesPanel.Layout) {
 		B.ColStreamRulesPanelRowCheck,
 		B.ColStreamRulesPanelRowCheckX, B.ColStreamRulesPanelRowCheckY, B.ColStreamRulesPanelRowCheckW, B.ColStreamRulesPanelRowCheckH,
 		B.ColStreamRulesPanelRowValue,
-		B.ColStreamRulesPanelRowValueX, B.ColStreamRulesPanelRowValueY, B.ColStreamRulesPanelRowValueW, B.ColStreamRulesPanelRowValueH,
+		B.ColStreamRulesPanelRowValueX, B.ColStreamRulesPanelRowValueY,
 		B.ColStreamRulesPanelRowSharedX, B.ColStreamRulesPanelRowSharedY, B.ColStreamRulesPanelRowSharedW, B.ColStreamRulesPanelRowSharedH,
 		B.ColStreamRulesPanelRowEditing,
 	)
@@ -78,13 +76,13 @@ func (ui *UIState) writeRulesPanelColumns(lay PolarRulesPanel.Layout) {
 	menu := newRunCols()
 	for _, m := range lay.MenuRows {
 		menu.Rect(B.ColStreamRulesPanelMenuRowX, B.ColStreamRulesPanelMenuRowY, B.ColStreamRulesPanelMenuRowW, B.ColStreamRulesPanelMenuRowH, m.Rect)
-		menu.Rect(B.ColStreamRulesPanelMenuCheckX, B.ColStreamRulesPanelMenuCheckY, B.ColStreamRulesPanelMenuCheckW, B.ColStreamRulesPanelMenuCheckH, m.CheckRect)
+		menu.Point(B.ColStreamRulesPanelMenuCheckX, B.ColStreamRulesPanelMenuCheckY, m.CheckRect)
 		menu.Str(B.ColStreamRulesPanelMenuLabelData, B.ColStreamRulesPanelMenuLabelLen, m.Label)
 		menu.I32(B.ColStreamRulesPanelMenuNodeRow, m.NodeRow)
 	}
 	menu.writeTo(c,
 		B.ColStreamRulesPanelMenuRowX, B.ColStreamRulesPanelMenuRowY, B.ColStreamRulesPanelMenuRowW, B.ColStreamRulesPanelMenuRowH,
-		B.ColStreamRulesPanelMenuCheckX, B.ColStreamRulesPanelMenuCheckY, B.ColStreamRulesPanelMenuCheckW, B.ColStreamRulesPanelMenuCheckH,
+		B.ColStreamRulesPanelMenuCheckX, B.ColStreamRulesPanelMenuCheckY,
 		B.ColStreamRulesPanelMenuLabelData, B.ColStreamRulesPanelMenuLabelLen,
 		B.ColStreamRulesPanelMenuNodeRow,
 	)

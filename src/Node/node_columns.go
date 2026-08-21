@@ -9,7 +9,6 @@ func WriteNodeColumns(c *colstream.ColumnSet, f NodeStreamFrame) {
 	if c == nil {
 		return
 	}
-	c.SetI32(B.ColStreamNodeNodeId, f.NodeID)
 	c.SetI32(B.ColStreamNodeIndexR, f.IndexR)
 	c.SetI32(B.ColStreamNodeIndexPhi, f.IndexPhi)
 	c.SetI32(B.ColStreamNodeIndexTheta, f.IndexTheta)
@@ -39,7 +38,6 @@ func WriteNodeColumns(c *colstream.ColumnSet, f NodeStreamFrame) {
 		c.SetF32(col, m[i])
 	}
 
-	c.SetF32(B.ColStreamNodeTopTiltVectorLen, f.TopTiltVectorLen)
 	c.SetI32(B.ColStreamNodeTopTiltVectorIdx, f.TopTiltVectorIdx)
 
 	c.SetU8(B.ColStreamNodeSelected, f.Selected)
@@ -48,7 +46,6 @@ func WriteNodeColumns(c *colstream.ColumnSet, f NodeStreamFrame) {
 	c.SetU8(B.ColStreamNodeLatchedSel, f.LatchedSel)
 	c.SetBytes(B.ColStreamNodeLabel, []byte(f.Label))
 
-	c.SetU8(B.ColStreamNodeLatticePoints, f.LatticePoints)
 	c.SetI32(B.ColStreamNodeRoundsToParallel, f.RoundsToParallel)
 	c.SetI32(B.ColStreamNodeMsgsToParallel, f.MsgsToParallel)
 
@@ -56,7 +53,6 @@ func WriteNodeColumns(c *colstream.ColumnSet, f NodeStreamFrame) {
 	c.SetU8(B.ColStreamNodeDragPhiLocked, f.DragPhiLocked)
 	c.SetF32(B.ColStreamNodeDragThetaMax, f.DragThetaMax)
 	c.SetU8(B.ColStreamNodeDragActive, f.DragActive)
-	c.SetU8(B.ColStreamNodeHasKindRule, f.HasKindRule)
 	c.SetU8(B.ColStreamNodeKindRuleActive, f.KindRuleActive)
 
 	c.SetU8(B.ColStreamNodeSelfRLocked, f.SelfRLocked)

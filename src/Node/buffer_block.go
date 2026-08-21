@@ -3,7 +3,6 @@ package Node
 var _ = bufLayoutNode{}
 
 type bufLayoutNode struct {
-	NodeId int32 `buf:"i32"`
 
 	IndexR     int32 `buf:"i32"`
 	IndexPhi   int32 `buf:"i32"`
@@ -43,7 +42,6 @@ type bufLayoutNode struct {
 	RingM14 float32 `buf:"f32"`
 	RingM15 float32 `buf:"f32"`
 
-	TopTiltVectorLen float32 `buf:"f32"`
 
 	TopTiltVectorIdx int32 `buf:"i32"`
 
@@ -57,7 +55,6 @@ type bufLayoutNode struct {
 
 	LatchedSel uint8 `buf:"u8"`
 
-	LatticePoints uint8 `buf:"u8"`
 
 	RoundsToParallel int32 `buf:"i32"`
 
@@ -67,7 +64,6 @@ type bufLayoutNode struct {
 	DragPhiLocked  uint8   `buf:"u8"`
 	DragThetaMax   float32 `buf:"f32"`
 	DragActive     uint8   `buf:"u8"`
-	HasKindRule    uint8   `buf:"u8"`
 	KindRuleActive uint8   `buf:"u8"`
 
 	PoleRingR float32 `buf:"f32"`

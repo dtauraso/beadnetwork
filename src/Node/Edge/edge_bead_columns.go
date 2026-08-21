@@ -37,7 +37,6 @@ func WriteEdgeBeadColumns(c *colstream.ColumnSet, beads []EdgeBead) {
 	c.SetBytes(B.ColStreamEdgeBeadY, ys)
 	c.SetBytes(B.ColStreamEdgeBeadZ, zs)
 	c.SetBytes(B.ColStreamEdgeBeadValue, values)
-	c.SetBytes(B.ColStreamEdgeBeadEdgeRow, edgeRows)
 
 	for m := 0; m < 16; m++ {
 		col := make([]byte, 0, n*4)

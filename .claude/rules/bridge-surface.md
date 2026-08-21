@@ -44,18 +44,22 @@ carries the TS → Go vocabulary.
 
 ## No sidecar
 
-There is **no id/label/kind sidecar**: node identity, like kind, is a numeric column on the
-Node block (`NodeId`, `.claude/rules/buffer-schema.md`), and the human label rides the
-buffer's Label section via off/len columns. Identity used to be reconstructed from the
-buffer's row index alone — the loader/mover enforce `NodeId == row + 1` by construction
-(`ROW ID = NODE ID - 1`, `.claude/rules/persistence-ownership.md`), so today the two always
-agree, but a bare row could never have been CONTRADICTED by the frame that carried it: a
-misrouted or permuted frame would render silently in the wrong place. `NodeId` was added to
-close that, and **the check it describes does not exist**: `decodeNodeStreamFrame`
-(buffer-decode-node.ts) reads only `COL_STREAM_NODE_LABEL` and compares nothing, so Go packs
-`NodeId` every frame and no reader looks at it. It is named in `ALLOWED_DEAD`
-(`src/check-no-dead-buffer-column.sh`) until someone either writes the comparison or drops
-the column — this paragraph described the intent as though it had shipped. (A test asserts the
+There is **no id/label/kind sidecar**: node identity is the buffer's ROW INDEX, and the human
+label rides the buffer's Label section via off/len columns. The loader/mover enforce
+`NodeId == row + 1` by construction (`ROW ID = NODE ID - 1`,
+`.claude/rules/persistence-ownership.md`), so the row is the identity.
+
+A `NodeId` COLUMN briefly existed to close a hole the row alone cannot: a bare row can never be
+CONTRADICTED by the frame that carried it, so a misrouted or permuted stream would render
+silently against the wrong node. **That column is gone, and the hole is open.** This paragraph
+used to claim `decodeNodeStreamFrame` compared the stated id against the arrival row and
+reported a mismatch loudly; it never did — that function reads `COL_STREAM_NODE_LABEL` and
+compares nothing, so Go packed the column every frame and nothing read it. Writing the check
+where the column was read is not possible either: `decodeNodeStreamFrame`'s only caller is
+`probe-append.ts` in the EXTENSION HOST, and `column-values.ts` fills its `latest` map only in
+the WEBVIEW, so a comparison there reads the zero fallback and can never fire. Closing this
+properly means checking the fd-to-row mapping where frames are demuxed
+(`src/extension/runner/stream-demux.ts`), not decoding an id out of a column. (A test asserts the
 removed id/label/kind SIDECAR MESSAGE is rejected; a column inside the Node block is the
 same shape as `KindId`, not a second channel, and does not reintroduce one.)
 

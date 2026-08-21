@@ -9,7 +9,6 @@ type bufLayoutEdgeBead struct {
 
 	Value int32 `buf:"i32"`
 
-	EdgeRow int32 `buf:"i32"`
 
 	RingM0  float32 `buf:"f32"`
 	RingM1  float32 `buf:"f32"`

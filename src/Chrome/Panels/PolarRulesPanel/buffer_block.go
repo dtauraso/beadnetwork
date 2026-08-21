@@ -16,13 +16,11 @@ type bufLayoutRulesPanel struct {
 
 	ToggleX float32 `buf:"f32"`
 	ToggleY float32 `buf:"f32"`
-	ToggleW float32 `buf:"f32"`
 	ToggleH float32 `buf:"f32"`
 
 	ToggleText []byte `buf:"bytes"`
 
-	RowKind  uint8 `buf:"u8"`
-	RowDepth uint8 `buf:"u8"`
+	RowKind uint8 `buf:"u8"`
 
 	RowX float32 `buf:"f32"`
 	RowY float32 `buf:"f32"`
@@ -49,8 +47,6 @@ type bufLayoutRulesPanel struct {
 	RowValue  uint8   `buf:"u8"`
 	RowValueX float32 `buf:"f32"`
 	RowValueY float32 `buf:"f32"`
-	RowValueW float32 `buf:"f32"`
-	RowValueH float32 `buf:"f32"`
 
 	RowSharedX float32 `buf:"f32"`
 	RowSharedY float32 `buf:"f32"`
@@ -79,8 +75,6 @@ type bufLayoutRulesPanel struct {
 
 	MenuCheckX float32 `buf:"f32"`
 	MenuCheckY float32 `buf:"f32"`
-	MenuCheckW float32 `buf:"f32"`
-	MenuCheckH float32 `buf:"f32"`
 
 	MenuLabelData []byte `buf:"bytes"`
 	MenuLabelLen  uint32 `buf:"u32"`

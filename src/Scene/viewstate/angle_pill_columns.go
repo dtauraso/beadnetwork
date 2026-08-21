@@ -49,6 +49,11 @@ func (r *runCols) Rect(xc, yc, wc, hc int, rect AngleDropdown.Rect) {
 	r.F32(hc, rect.H)
 }
 
+func (r *runCols) Point(xc, yc int, rect AngleDropdown.Rect) {
+	r.F32(xc, rect.X)
+	r.F32(yc, rect.Y)
+}
+
 func (r *runCols) writeTo(set interface{ SetBytes(int, []byte) }, cols ...int) {
 	for _, c := range cols {
 		switch {

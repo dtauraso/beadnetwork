@@ -22,19 +22,7 @@ if [[ ! -f "src/Buffer/buffer-layout.ts" ]] || (( ${#LAYOUT_FILES[@]} < 2 )); th
   exit 1
 fi
 
-readonly ALLOWED_DEAD=(
-  COL_STREAM_NODE_NODE_ID
-  COL_STREAM_NODE_HAS_KIND_RULE
-  COL_STREAM_NODE_LATTICE_POINTS
-  COL_STREAM_NODE_TOP_TILT_VECTOR_LEN
-  COL_STREAM_EDGE_BEAD_EDGE_ROW
-  COL_STREAM_RULES_PANEL_TOGGLE_W
-  COL_STREAM_RULES_PANEL_ROW_DEPTH
-  COL_STREAM_RULES_PANEL_ROW_VALUE_W
-  COL_STREAM_RULES_PANEL_ROW_VALUE_H
-  COL_STREAM_RULES_PANEL_MENU_CHECK_W
-  COL_STREAM_RULES_PANEL_MENU_CHECK_H
-)
+readonly ALLOWED_DEAD=()
 
 is_allowed() {
   local fn="$1"
@@ -161,12 +149,7 @@ done
 if [[ $fail -eq 0 && ${#ALLOWED_DEAD[@]} -gt 0 ]]; then
   echo "check-no-dead-buffer-column: clean, but ${#ALLOWED_DEAD[@]} column(s) are packed every frame and read by nothing:"
   printf '  %s\n' "${ALLOWED_DEAD[@]}"
-  echo "  They are allowlisted, NOT resolved. Each is plausibly a half-wired feature rather than"
-  echo "  dead weight, so deleting would cement the renderer's omission - the RULES_PANEL entries"
-  echo "  are the W/H of Rect groups whose X/Y ARE read, so the renderer sizes those rects some"
-  echo "  other way. NODE_NODE_ID is the id-vs-row check .claude/rules/bridge-surface.md describes"
-  echo "  and decodeNodeStreamFrame never performs. Decide per entry: consume it, or delete the"
-  echo "  field from its buffer_block.go and regenerate."
+  echo "  Allowlisted, NOT resolved: consume it, or delete the field from its buffer_block.go."
 fi
 
 exit $fail
