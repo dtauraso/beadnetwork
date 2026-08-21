@@ -19,7 +19,18 @@ type Reader struct {
 func NewReader(inputDir string) *Reader {
 	slots := make([]slot, 0, len(inputcodec.EventKinds))
 	for _, kind := range inputcodec.EventKinds {
-		slots = append(slots, slot{path: filepath.Join(inputDir, kind+".bin")})
+		path := filepath.Join(inputDir, kind+".bin")
+
+		// Seed last with what is already there. A slot holds the LAST event of
+		// its kind, and it outlives the process: without this, every start reads
+		// all seven slots as fresh and replays the previous session's final
+		// press, motion, home, delete and key. Only what is written after we
+		// start is input.
+		raw, err := os.ReadFile(path)
+		if err != nil {
+			raw = nil
+		}
+		slots = append(slots, slot{path: path, last: raw})
 	}
 	return &Reader{slots: slots}
 }
