@@ -10,12 +10,11 @@ import (
 )
 
 func InstallOverlays(ui *viewstate.UIState, topologyPath string) {
-	dir := scenepaths.OverlaysDirPath(topologyPath)
-	ov, _ := Overlay.LoadSceneOverlays(dir)
+	ov, _ := Overlay.LoadSceneOverlays(topologyPath)
 	ui.OV.SetGuideVisibility(ov)
 
-	if err := Overlay.WriteSceneOverlays(dir, ui.OV); err != nil {
-		valuefile.LogPersistErr("install_overlays", dir, err)
+	if err := Overlay.WriteSceneOverlays(topologyPath, ui.OV); err != nil {
+		valuefile.LogPersistErr("install_overlays", topologyPath, err)
 	}
 
 	ui.EmitViewFrame(nil)

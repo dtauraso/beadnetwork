@@ -21,6 +21,10 @@ func WritePathFiles(pathsDir string, flags []overlayFlag) error {
 		}
 	}
 
+	if err := writeGoPaths(filepath.Dir(pathsDir), flags); err != nil {
+		return err
+	}
+
 	entries, err := os.ReadDir(pathsDir)
 	if err != nil {
 		return err
