@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: src/**/buffer_block.go,src/Buffer/layout_version.go,src/Buffer/buffer-layout*.ts | every buffer column needs a non-test production consumer; delete an unused one rather than allowlisting it
+# PLACEMENT: src/**/*_values.go,src/Buffer/layout_version.go,src/Buffer/buffer-layout*.ts | every buffer column and every declared block value needs a non-test production consumer; delete an unused one rather than allowlisting it
 
 set -euo pipefail
 
@@ -79,49 +79,71 @@ for fn in "${readers[@]}"; do
   fail=1
 done
 
-COLUMNS_GEN_FILES=()
-while IFS= read -r f; do [[ -n "$f" ]] && COLUMNS_GEN_FILES+=("$f"); done < <(git ls-files '*/columns-gen.ts')
-if [[ ${#COLUMNS_GEN_FILES[@]} -eq 0 ]]; then
-  echo "check-no-dead-buffer-column: MISCONFIGURED — no */columns-gen.ts is tracked; the per-column" >&2
-  echo "  constants moved or are no longer generated, so this half of the guard checks nothing." >&2
+VALUES_GEN_FILES=()
+while IFS= read -r f; do [[ -n "$f" ]] && VALUES_GEN_FILES+=("$f"); done < <(git ls-files '*-values-gen.ts')
+if (( ${#VALUES_GEN_FILES[@]} < 5 )); then
+  echo "check-no-dead-buffer-column: MISCONFIGURED — found only ${#VALUES_GEN_FILES[@]} *-values-gen.ts" >&2
+  echo "  file(s); the generated value lists moved or are no longer generated, so this half of the" >&2
+  echo "  guard checks almost nothing." >&2
   exit 1
 fi
 
-constants=()
-while IFS= read -r line; do [[ -n "$line" ]] && constants+=("$line"); done < <(
-  grep -ohE 'export const COL_STREAM_[A-Z0-9_]+' "${COLUMNS_GEN_FILES[@]}" \
-    | awk '{print $3}' | grep -v '^COL_STREAM_BASE_' | sort -u
+readonly DERIVED_FAMILIES=(
+  '^ringM[0-9]+$:RING_NAMES'
+  '^shaftM[0-9]+$:SHAFT_NAMES'
+  '^headM[0-9]+$:HEAD_NAMES'
 )
-if [[ ${#constants[@]} -eq 0 ]]; then
-  echo "check-no-dead-buffer-column: MISCONFIGURED — parsed 0 COL_STREAM_* constants from" >&2
-  echo "  ${#COLUMNS_GEN_FILES[@]} columns-gen.ts file(s); the generated form changed." >&2
+
+VALUE_CORPUS="$(mktemp)"
+trap 'rm -f "$CODE_ONLY_CORPUS" "$VALUE_CORPUS"' EXIT
+value_consumers=()
+for f in "${prod_files[@]}"; do
+  case "$(basename "$f")" in *-values-gen.ts) continue ;; esac
+  value_consumers+=("$f")
+done
+if [[ ${#value_consumers[@]} -gt 0 ]]; then
+  strip_ts_comments "${value_consumers[@]}" \
+    | grep -ohE '"[A-Za-z0-9_]+"|'"'"'[A-Za-z0-9_]+'"'"'|[A-Z0-9_]*NAMES' \
+    | tr -d "\"'" | sort -u > "$VALUE_CORPUS"
+else
+  : > "$VALUE_CORPUS"
+fi
+
+names=()
+while IFS= read -r line; do [[ -n "$line" ]] && names+=("$line"); done < <(
+  grep -ohE '^  "[A-Za-z0-9_]+",$' "${VALUES_GEN_FILES[@]}" | tr -d ' ",' | sort -u
+)
+if (( ${#names[@]} < 50 )); then
+  echo "check-no-dead-buffer-column: MISCONFIGURED — parsed only ${#names[@]} value names from" >&2
+  echo "  ${#VALUES_GEN_FILES[@]} *-values-gen.ts file(s); the generated form changed." >&2
   exit 1
 fi
 
-CONST_CORPUS="$(mktemp)"
-trap 'rm -f "$CODE_ONLY_CORPUS" "$CONST_CORPUS"' EXIT
-const_consumers=()
-for f in "${prod_files[@]}"; do
-  [[ "$(basename "$f")" == "columns-gen.ts" ]] && continue
-  const_consumers+=("$f")
-done
-if [[ ${#const_consumers[@]} -gt 0 ]]; then
-  strip_ts_comments "${const_consumers[@]}" | grep -ohE '[A-Za-z0-9_]+' | sort -u > "$CONST_CORPUS"
-else
-  : > "$CONST_CORPUS"
-fi
+covered_by_family() {
+  local name="$1" entry pattern const
+  for entry in "${DERIVED_FAMILIES[@]}"; do
+    pattern="${entry%%:*}"
+    const="${entry##*:}"
+    if [[ "$name" =~ $pattern ]] && grep -q "$const" "$VALUE_CORPUS"; then
+      return 0
+    fi
+  done
+  return 1
+}
 
-for c in "${constants[@]}"; do
-  if grep -qxF "$c" "$CONST_CORPUS"; then
+for n in "${names[@]}"; do
+  if grep -qxF "$n" "$VALUE_CORPUS"; then
     continue
   fi
-  if is_allowed "$c"; then
+  if covered_by_family "$n"; then
     continue
   fi
-  echo "DEAD BUFFER COLUMN: $c is generated but named by no production file — Go packs the column"
-  echo "  every frame and nothing reads it. A singleton column has no generated read* helper, so the"
-  echo "  half of this guard above cannot see it; this half is what covers it."
-  echo "  Fix: consume it, or remove the field from its block's buffer_block.go and regenerate."
+  if is_allowed "$n"; then
+    continue
+  fi
+  echo "DEAD BLOCK VALUE: \"$n\" is declared in a *-values-gen.ts list but no production file names"
+  echo "  it. Go writes that section of the block file every tick and nothing reads it."
+  echo "  Fix: read it, or drop it from the Go *ValueNames list and regenerate."
   fail=1
 done
 
@@ -130,13 +152,13 @@ for a in "${ALLOWED_DEAD[@]+"${ALLOWED_DEAD[@]}"}"; do
   corpus="$CODE_ONLY_CORPUS"
   for fn in "${readers[@]}"; do [[ "$fn" == "$a" ]] && present=true && break; done
   if ! $present; then
-    for c in "${constants[@]}"; do
-      [[ "$c" == "$a" ]] && present=true && corpus="$CONST_CORPUS" && break
+    for c in "${names[@]}"; do
+      [[ "$c" == "$a" ]] && present=true && corpus="$VALUE_CORPUS" && break
     done
   fi
   if ! $present; then
-    echo "STALE ALLOWLIST: '$a' is neither a generated read* helper nor a generated COL_STREAM_*"
-    echo "  constant — the column is gone; remove it from ALLOWED_DEAD."
+    echo "STALE ALLOWLIST: '$a' is neither a generated read* helper nor a declared block value"
+    echo "  — the thing is gone; remove it from ALLOWED_DEAD."
     fail=1
     continue
   fi

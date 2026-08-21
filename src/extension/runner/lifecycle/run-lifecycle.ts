@@ -78,7 +78,6 @@ export function makeDemuxFactory(hooks: {
       onError: (msg) => hooks.reportError(msg),
     });
 
-    demux.seedOwnerCounts(nodeCount, edgeCount);
     return demux;
   };
 }

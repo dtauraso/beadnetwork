@@ -125,4 +125,6 @@ func main() {
 		genpaths.Fatalf("write %s: %v", valuesPath, err)
 	}
 	genpaths.Announce(valuesPath, len(Scene.SceneValues), "scene values")
+
+	generateOwnerCounts(srcRoot)
 }
