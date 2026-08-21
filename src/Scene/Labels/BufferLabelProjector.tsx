@@ -18,7 +18,7 @@ export function BufferLabelProjector() {
   const { camera, gl } = useThree();
 
   useFrame(() => {
-    if (overlayFlag("labelsGlobal")) {
+    if (!overlayFlag("labelsGlobal")) {
       setLabelPositions([]);
       return;
     }

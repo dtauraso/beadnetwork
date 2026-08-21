@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: src/Input/dispatch/dispatch_edit.go,src/Input/messages.ts,src/Input/input-layout-gen.ts,src/webview/flags/overlay-flags.ts | edit ops/update-kinds/overlay flags must stay listed identically on both sides of the bridge
+# PLACEMENT: src/Input/dispatch/dispatch_edit.go,src/Input/messages.ts,src/Input/input-layout-gen.ts,src/Overlay/paths/ | edit ops/update-kinds/overlay flags must stay listed identically on both sides of the bridge
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
@@ -15,11 +15,10 @@ MESSAGES_TS="$REPO_ROOT/src/Input/messages.ts"
 
 HANDLE_MSG="$REPO_ROOT/src/Input/input-layout-gen.ts"
 
-OVERLAY_FLAGS_TS="$REPO_ROOT/src/webview/flags/overlay-flags.ts"
 
 PANEL_STATE_GO="$REPO_ROOT/src/Chrome/Panels/Panel/panel_state.go"
 
-for f in "$MESSAGES_TS" "$HANDLE_MSG" "$OVERLAY_FLAGS_TS" "$PANEL_STATE_GO"; do
+for f in "$MESSAGES_TS" "$HANDLE_MSG" "$PANEL_STATE_GO"; do
   if [[ ! -f "$f" ]]; then
     echo "edit-op-parity: MISCONFIGURED — file not found: $f" >&2
     exit 1
@@ -97,18 +96,13 @@ report_diff "$(comm -13 <(echo "$HM_KINDS") <(echo "$TS_KINDS"))" "handle-messag
 TS_FLAGS=$(between OVERLAY_FLAGS_START OVERLAY_FLAGS_END "$MESSAGES_TS" | quoted) || true
 assert_nonempty "$TS_FLAGS" "axis3 messages.ts overlay flags"
 
-RENDER_READS=$( { grep -aoE 'readOverlay[A-Za-z]+\(v\)' "$OVERLAY_FLAGS_TS" || true;
-                  grep -aoE 'COL_STREAM_OVERLAY_[A-Z0-9_]+' "$OVERLAY_FLAGS_TS" || true; } | sort -u)
-
-RENDER_KEYS=$(awk '/readOverlayFlags\(\): OverlayFlagVals \{/{p=1;next} p&&/^[[:space:]]*\};/{p=0} p&&/^[[:space:]]*[a-zA-Z_]+:/{print}' "$OVERLAY_FLAGS_TS" | grep -aoE '^[[:space:]]*[a-zA-Z_]+:' | sort -u)
-assert_nonempty "$RENDER_READS" "axis3 overlay-flags.ts readOverlay* reads"
-assert_nonempty "$RENDER_KEYS" "axis3 overlay-flags.ts OverlayFlagVals keys"
+RENDER_READS=$(ls "$REPO_ROOT/src/Overlay/paths" 2>/dev/null | grep -aE '\.bin$' | sed 's/\.bin$//' | sort -u)
+assert_nonempty "$RENDER_READS" "axis3 src/Overlay/paths/ flag path files"
 N_FLAGS=$(printf '%s\n' "$TS_FLAGS" | grep -c .)
 N_READS=$(printf '%s\n' "$RENDER_READS" | grep -c .)
-N_KEYS=$(printf '%s\n' "$RENDER_KEYS" | grep -c .)
-if [[ "$N_FLAGS" -ne "$N_READS" || "$N_FLAGS" -ne "$N_KEYS" ]]; then
-  echo "  overlay flag/renderer cardinality mismatch: OVERLAY_FLAG_NAMES=$N_FLAGS, overlay-flags reads=$N_READS, OverlayFlagVals keys=$N_KEYS"
-  echo "    (a flag was added/removed in messages.ts but not wired into overlay-flags.ts's renderer, or vice versa)"
+if [[ "$N_FLAGS" -ne "$N_READS" ]]; then
+  echo "  overlay flag/renderer cardinality mismatch: OVERLAY_FLAG_NAMES=$N_FLAGS, src/Overlay/paths/ files=$N_READS"
+  echo "    (a flag was added/removed in messages.ts without regenerating src/Overlay/paths/, so the renderer cannot read it)"
   HITS=$((HITS+1))
 fi
 
