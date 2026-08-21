@@ -8,10 +8,11 @@ paths:
 
 # Content buffer schema — adding or changing a column
 
-**A block's columns live in the directory of the thing they describe.** The rules panel's
-columns are `src/Chrome/Panels/PolarRulesPanel/buffer_block.go`, the overlays popover's are
+**A block's columns live in the directory of the thing they describe.** The tilt panel's
+columns are `src/Chrome/Panels/TiltPanel/buffer_block.go`, the overlays popover's are
 `src/Chrome/Pills/overlays_pill_block.go`, and so on — a column is part of its concern, not part of
-a schema directory. What remains in `Buffer/bufschema/` is what has no owner elsewhere: the
+a schema directory. (The rules panel used to be the example here; it no longer has a block at
+all — its values cross as one file each under `src/Chrome/Panels/PolarRulesPanel/paths/`.) What remains in `Buffer/bufschema/` is what has no owner elsewhere: the
 model blocks (Node, Edge, Camera, Scene…) and the trace events.
 
 The generator does not need telling where they are. It walks the repo for `bufLayout*`

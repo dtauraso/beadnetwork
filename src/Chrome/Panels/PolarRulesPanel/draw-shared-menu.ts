@@ -1,26 +1,19 @@
-import { columnF32, columnI32 } from "../../../Buffer/column-values";
 import { canvasFont, roundRect } from "../../../webview/canvas-box";
-import { readF32Run, readI32Run, readU32Run, readText, decodeAt } from "../../../Buffer/column-reads";
+import { decodeAt } from "../../../Buffer/column-reads";
 import {
   nodeRuleGroup, nodeDragActive, drawCheckbox,
   INK, PILL_EDGE, PILL_INK, INACTIVE_ALPHA, HEAD_FONT_PX,
 } from "./rules-values";
 import {
-  COL_STREAM_RULES_PANEL_MENU_ANCHOR_ROW, COL_STREAM_RULES_PANEL_MENU_X,
-  COL_STREAM_RULES_PANEL_MENU_Y, COL_STREAM_RULES_PANEL_MENU_W,
-  COL_STREAM_RULES_PANEL_MENU_H, COL_STREAM_RULES_PANEL_MENU_ROW_X,
-  COL_STREAM_RULES_PANEL_MENU_ROW_Y, COL_STREAM_RULES_PANEL_MENU_ROW_W,
-  COL_STREAM_RULES_PANEL_MENU_ROW_H, COL_STREAM_RULES_PANEL_MENU_CHECK_X,
-  COL_STREAM_RULES_PANEL_MENU_CHECK_Y, COL_STREAM_RULES_PANEL_MENU_LABEL_DATA,
-  COL_STREAM_RULES_PANEL_MENU_LABEL_LEN, COL_STREAM_RULES_PANEL_MENU_NODE_ROW,
-} from "./columns-gen";
+  rulesF32, rulesI32, rulesF32Run, rulesI32Run, rulesU32Run, rulesText,
+} from "./rules-leaves";
 
 export function drawSharedMenu(c: CanvasRenderingContext2D): void {
-  const w = columnF32(COL_STREAM_RULES_PANEL_MENU_W);
-  const h = columnF32(COL_STREAM_RULES_PANEL_MENU_H);
+  const w = rulesF32("menuW");
+  const h = rulesF32("menuH");
   if (w <= 0 || h <= 0) return;
-  const x = columnF32(COL_STREAM_RULES_PANEL_MENU_X);
-  const y = columnF32(COL_STREAM_RULES_PANEL_MENU_Y);
+  const x = rulesF32("menuX");
+  const y = rulesF32("menuY");
 
   roundRect(c, x + 0.5, y + 0.5, w - 1, h - 1, 6);
   c.fillStyle = "#fff";
@@ -29,7 +22,7 @@ export function drawSharedMenu(c: CanvasRenderingContext2D): void {
   c.lineWidth = 1;
   c.stroke();
 
-  const anchorRow = columnI32(COL_STREAM_RULES_PANEL_MENU_ANCHOR_ROW);
+  const anchorRow = rulesI32("menuAnchorRow");
   const group = anchorRow >= 0 ? nodeRuleGroup(anchorRow) : { id: -1, size: 0 };
 
   c.fillStyle = PILL_INK;
@@ -38,15 +31,15 @@ export function drawSharedMenu(c: CanvasRenderingContext2D): void {
   c.textBaseline = "middle";
   c.fillText(`shared by ${group.size}`, x + 6, y + 10);
 
-  const rx = readF32Run(COL_STREAM_RULES_PANEL_MENU_ROW_X);
-  const ry = readF32Run(COL_STREAM_RULES_PANEL_MENU_ROW_Y);
-  const rw = readF32Run(COL_STREAM_RULES_PANEL_MENU_ROW_W);
-  const rh = readF32Run(COL_STREAM_RULES_PANEL_MENU_ROW_H);
-  const cx = readF32Run(COL_STREAM_RULES_PANEL_MENU_CHECK_X);
-  const cy = readF32Run(COL_STREAM_RULES_PANEL_MENU_CHECK_Y);
-  const labelData = readText(COL_STREAM_RULES_PANEL_MENU_LABEL_DATA);
-  const labelLen = readU32Run(COL_STREAM_RULES_PANEL_MENU_LABEL_LEN);
-  const rows = readI32Run(COL_STREAM_RULES_PANEL_MENU_NODE_ROW);
+  const rx = rulesF32Run("menuRowX");
+  const ry = rulesF32Run("menuRowY");
+  const rw = rulesF32Run("menuRowW");
+  const rh = rulesF32Run("menuRowH");
+  const cx = rulesF32Run("menuCheckX");
+  const cy = rulesF32Run("menuCheckY");
+  const labelData = rulesText("menuLabelData");
+  const labelLen = rulesU32Run("menuLabelLen");
+  const rows = rulesI32Run("menuNodeRow");
   if (!rx || !ry || !rw || !rh || !cx || !cy || !labelData || !labelLen || !rows) return;
 
   let allOn = true;

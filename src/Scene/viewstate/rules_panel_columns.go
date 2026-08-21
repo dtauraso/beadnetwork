@@ -2,88 +2,62 @@ package viewstate
 
 import (
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/PolarRulesPanel"
-	B "github.com/dtauraso/wirefold/src/Buffer"
+	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
-func (ui *UIState) writeRulesPanelColumns(lay PolarRulesPanel.Layout) {
-	c := ui.singletonCols
-	if c == nil {
+func (ui *UIState) writeRulesPanelValues(lay PolarRulesPanel.Layout) {
+	w := ui.rulesValues
+	if w == nil {
 		return
 	}
+	w.Begin()
 
-	c.SetF32(B.ColStreamRulesPanelClipY, lay.RowsClip.Y)
-	c.SetF32(B.ColStreamRulesPanelClipH, lay.RowsClip.H)
-	c.SetF32(B.ColStreamRulesPanelScrollY, lay.Scroll)
-	c.SetF32(B.ColStreamRulesPanelBoxX, lay.Box.X)
-	c.SetF32(B.ColStreamRulesPanelBoxY, lay.Box.Y)
-	c.SetF32(B.ColStreamRulesPanelBoxW, lay.Box.W)
-	c.SetF32(B.ColStreamRulesPanelBoxH, lay.Box.H)
-	c.SetU8(B.ColStreamRulesPanelOpen, boolU8(lay.Open))
+	w.F32("clipY", lay.RowsClip.Y)
+	w.F32("clipH", lay.RowsClip.H)
+	w.F32("scrollY", lay.Scroll)
+	w.Rect("boxX", "boxY", "boxW", "boxH", lay.Box)
+	w.Bool("open", lay.Open)
 
-	c.SetF32(B.ColStreamRulesPanelToggleX, lay.Toggle.X)
-	c.SetF32(B.ColStreamRulesPanelToggleY, lay.Toggle.Y)
-	c.SetF32(B.ColStreamRulesPanelToggleH, lay.Toggle.H)
+	w.F32("toggleX", lay.Toggle.X)
+	w.F32("toggleY", lay.Toggle.Y)
+	w.F32("toggleH", lay.Toggle.H)
 	toggle := PolarRulesPanel.LabelClosed
 	if lay.Open {
 		toggle = PolarRulesPanel.LabelOpen
 	}
-	c.SetBytes(B.ColStreamRulesPanelToggleText, []byte(toggle))
+	w.Text("toggleText", toggle)
 
-	rows := newRunCols()
 	for _, r := range lay.Rows {
-		rows.U8(B.ColStreamRulesPanelRowKind, uint8(r.Kind))
-		rows.Rect(B.ColStreamRulesPanelRowX, B.ColStreamRulesPanelRowY, B.ColStreamRulesPanelRowW, B.ColStreamRulesPanelRowH, r.Rect)
-		rows.Str(B.ColStreamRulesPanelRowTextData, B.ColStreamRulesPanelRowTextLen, r.Text)
-		rows.Str(B.ColStreamRulesPanelRowGlyphData, B.ColStreamRulesPanelRowGlyphLen, r.Glyph)
-		rows.U8(B.ColStreamRulesPanelRowFree, boolU8(r.Free))
-		rows.I32(B.ColStreamRulesPanelRowNodeRow, r.NodeRow)
-		rows.I32(B.ColStreamRulesPanelRowEdgeRow, r.EdgeRow)
-		rows.U8(B.ColStreamRulesPanelRowCheck, uint8(r.Check))
-		rows.Rect(B.ColStreamRulesPanelRowCheckX, B.ColStreamRulesPanelRowCheckY, B.ColStreamRulesPanelRowCheckW, B.ColStreamRulesPanelRowCheckH, r.CheckRect)
-		rows.U8(B.ColStreamRulesPanelRowValue, uint8(r.Value))
-		rows.Point(B.ColStreamRulesPanelRowValueX, B.ColStreamRulesPanelRowValueY, r.ValueRect)
-		rows.Rect(B.ColStreamRulesPanelRowSharedX, B.ColStreamRulesPanelRowSharedY, B.ColStreamRulesPanelRowSharedW, B.ColStreamRulesPanelRowSharedH, r.SharedRect)
-		rows.U8(B.ColStreamRulesPanelRowEditing, boolU8(r.Editing))
+		w.U8("rowKind", uint8(r.Kind))
+		w.Rect("rowX", "rowY", "rowW", "rowH", r.Rect)
+		w.Str("rowTextData", "rowTextLen", r.Text)
+		w.Str("rowGlyphData", "rowGlyphLen", r.Glyph)
+		w.Bool("rowFree", r.Free)
+		w.I32("rowNodeRow", r.NodeRow)
+		w.I32("rowEdgeRow", r.EdgeRow)
+		w.U8("rowCheck", uint8(r.Check))
+		w.Rect("rowCheckX", "rowCheckY", "rowCheckW", "rowCheckH", r.CheckRect)
+		w.U8("rowValue", uint8(r.Value))
+		w.Point("rowValueX", "rowValueY", r.ValueRect)
+		w.Rect("rowSharedX", "rowSharedY", "rowSharedW", "rowSharedH", r.SharedRect)
+		w.Bool("rowEditing", r.Editing)
 	}
-	rows.writeTo(c,
-		B.ColStreamRulesPanelRowKind,
-		B.ColStreamRulesPanelRowX, B.ColStreamRulesPanelRowY, B.ColStreamRulesPanelRowW, B.ColStreamRulesPanelRowH,
-		B.ColStreamRulesPanelRowTextData, B.ColStreamRulesPanelRowTextLen,
-		B.ColStreamRulesPanelRowGlyphData, B.ColStreamRulesPanelRowGlyphLen,
-		B.ColStreamRulesPanelRowFree,
-		B.ColStreamRulesPanelRowNodeRow, B.ColStreamRulesPanelRowEdgeRow,
-		B.ColStreamRulesPanelRowCheck,
-		B.ColStreamRulesPanelRowCheckX, B.ColStreamRulesPanelRowCheckY, B.ColStreamRulesPanelRowCheckW, B.ColStreamRulesPanelRowCheckH,
-		B.ColStreamRulesPanelRowValue,
-		B.ColStreamRulesPanelRowValueX, B.ColStreamRulesPanelRowValueY,
-		B.ColStreamRulesPanelRowSharedX, B.ColStreamRulesPanelRowSharedY, B.ColStreamRulesPanelRowSharedW, B.ColStreamRulesPanelRowSharedH,
-		B.ColStreamRulesPanelRowEditing,
-	)
 
-	c.SetBytes(B.ColStreamRulesPanelDraftText, []byte(lay.Draft))
-	c.SetF32(B.ColStreamRulesPanelDraftX, lay.DraftRect.X)
-	c.SetF32(B.ColStreamRulesPanelDraftY, lay.DraftRect.Y)
-	c.SetF32(B.ColStreamRulesPanelDraftW, lay.DraftRect.W)
-	c.SetF32(B.ColStreamRulesPanelDraftH, lay.DraftRect.H)
+	w.Text("draftText", lay.Draft)
+	w.Rect("draftX", "draftY", "draftW", "draftH", lay.DraftRect)
 
-	c.SetU8(B.ColStreamRulesPanelMenuOpen, boolU8(lay.MenuOpen))
-	c.SetI32(B.ColStreamRulesPanelMenuAnchorRow, lay.MenuAnchorRow)
-	c.SetF32(B.ColStreamRulesPanelMenuX, lay.MenuBox.X)
-	c.SetF32(B.ColStreamRulesPanelMenuY, lay.MenuBox.Y)
-	c.SetF32(B.ColStreamRulesPanelMenuW, lay.MenuBox.W)
-	c.SetF32(B.ColStreamRulesPanelMenuH, lay.MenuBox.H)
+	w.Bool("menuOpen", lay.MenuOpen)
+	w.I32("menuAnchorRow", lay.MenuAnchorRow)
+	w.Rect("menuX", "menuY", "menuW", "menuH", lay.MenuBox)
 
-	menu := newRunCols()
 	for _, m := range lay.MenuRows {
-		menu.Rect(B.ColStreamRulesPanelMenuRowX, B.ColStreamRulesPanelMenuRowY, B.ColStreamRulesPanelMenuRowW, B.ColStreamRulesPanelMenuRowH, m.Rect)
-		menu.Point(B.ColStreamRulesPanelMenuCheckX, B.ColStreamRulesPanelMenuCheckY, m.CheckRect)
-		menu.Str(B.ColStreamRulesPanelMenuLabelData, B.ColStreamRulesPanelMenuLabelLen, m.Label)
-		menu.I32(B.ColStreamRulesPanelMenuNodeRow, m.NodeRow)
+		w.Rect("menuRowX", "menuRowY", "menuRowW", "menuRowH", m.Rect)
+		w.Point("menuCheckX", "menuCheckY", m.CheckRect)
+		w.Str("menuLabelData", "menuLabelLen", m.Label)
+		w.I32("menuNodeRow", m.NodeRow)
 	}
-	menu.writeTo(c,
-		B.ColStreamRulesPanelMenuRowX, B.ColStreamRulesPanelMenuRowY, B.ColStreamRulesPanelMenuRowW, B.ColStreamRulesPanelMenuRowH,
-		B.ColStreamRulesPanelMenuCheckX, B.ColStreamRulesPanelMenuCheckY,
-		B.ColStreamRulesPanelMenuLabelData, B.ColStreamRulesPanelMenuLabelLen,
-		B.ColStreamRulesPanelMenuNodeRow,
-	)
+
+	if err := w.Flush(); err != nil {
+		valuefile.LogPersistErr("rules_panel_values", "", err)
+	}
 }

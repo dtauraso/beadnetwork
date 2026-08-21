@@ -7,10 +7,18 @@ import (
 	B "github.com/dtauraso/wirefold/src/Buffer"
 	"github.com/dtauraso/wirefold/src/Buffer/colstream"
 	"github.com/dtauraso/wirefold/src/Camera"
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/PolarRulesPanel"
 )
 
 func (ui *UIState) SetSingletonColumns(set *colstream.ColumnSet) {
 	ui.singletonCols = set
+}
+
+func (ui *UIState) SetSceneRoot(sceneRoot string) {
+	if sceneRoot == "" {
+		return
+	}
+	ui.rulesValues = PolarRulesPanel.NewValueWriter(sceneRoot)
 }
 
 func (ui *UIState) writeSceneColumns() {

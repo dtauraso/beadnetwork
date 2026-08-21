@@ -1,15 +1,10 @@
-import { columnBytes, columnF32 } from "../../../Buffer/column-values";
 import { canvasFont, roundRect } from "../../../webview/canvas-box";
-import { readText, decodeAt } from "../../../Buffer/column-reads";
+import { decodeAt } from "../../../Buffer/column-reads";
 import { EDIT_BG, EDIT_EDGE, FONT_PX } from "./rules-values";
-import {
-  COL_STREAM_RULES_PANEL_ROW_EDITING, COL_STREAM_RULES_PANEL_DRAFT_TEXT,
-  COL_STREAM_RULES_PANEL_DRAFT_X, COL_STREAM_RULES_PANEL_DRAFT_Y,
-  COL_STREAM_RULES_PANEL_DRAFT_W, COL_STREAM_RULES_PANEL_DRAFT_H,
-} from "./columns-gen";
+import { rulesBytes, rulesF32, rulesText } from "./rules-leaves";
 
 export function rulesDraftOpen(): boolean {
-  const editing = columnBytes(COL_STREAM_RULES_PANEL_ROW_EDITING);
+  const editing = rulesBytes("rowEditing");
   if (!editing) return false;
   for (let i = 0; i < editing.byteLength; i++) {
     if (editing.getUint8(i) !== 0) return true;
@@ -18,23 +13,23 @@ export function rulesDraftOpen(): boolean {
 }
 
 export function isRowEditing(row: number): boolean {
-  const editing = columnBytes(COL_STREAM_RULES_PANEL_ROW_EDITING);
+  const editing = rulesBytes("rowEditing");
   return !!editing && row < editing.byteLength && editing.getUint8(row) !== 0;
 }
 
 export function draftText(): string {
-  const text = readText(COL_STREAM_RULES_PANEL_DRAFT_TEXT);
+  const text = rulesText("draftText");
   return text ? decodeAt(text, 0, text.length) : "";
 }
 
 export function drawThetaDraft(c: CanvasRenderingContext2D): void {
   if (!rulesDraftOpen()) return;
-  const text = readText(COL_STREAM_RULES_PANEL_DRAFT_TEXT);
-  const w = columnF32(COL_STREAM_RULES_PANEL_DRAFT_W);
-  const h = columnF32(COL_STREAM_RULES_PANEL_DRAFT_H);
+  const text = rulesText("draftText");
+  const w = rulesF32("draftW");
+  const h = rulesF32("draftH");
   if (!text || w <= 0 || h <= 0) return;
-  const x = columnF32(COL_STREAM_RULES_PANEL_DRAFT_X);
-  const y = columnF32(COL_STREAM_RULES_PANEL_DRAFT_Y);
+  const x = rulesF32("draftX");
+  const y = rulesF32("draftY");
 
   roundRect(c, x + 0.5, y + 0.5, Math.min(w, 60) - 1, h - 1, 3);
   c.fillStyle = EDIT_BG;

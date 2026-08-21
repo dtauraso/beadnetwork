@@ -2,7 +2,7 @@
 
 export const COLUMNS_PER_NODE_STREAM = 140;
 export const COLUMNS_PER_EDGE_STREAM = 11;
-export const COLUMNS_IN_SINGLETON_STREAMS = 239;
+export const COLUMNS_IN_SINGLETON_STREAMS = 182;
 
 export function columnStreamCount(nodes: number, edges: number): number {
   return nodes * COLUMNS_PER_NODE_STREAM + edges * COLUMNS_PER_EDGE_STREAM + COLUMNS_IN_SINGLETON_STREAMS;
@@ -25,6 +25,5 @@ export const COL_STREAM_BASE_NODES_PILL = 91;
 export const COL_STREAM_BASE_OVERLAYS_PILL = 128;
 export const COL_STREAM_BASE_FIT_CHIP = 158;
 export const COL_STREAM_BASE_TAB_STRIP = 163;
-export const COL_STREAM_BASE_RULES_PANEL = 174;
-export const COL_STREAM_BASE_POINTER_TARGET = 231;
+export const COL_STREAM_BASE_POINTER_TARGET = 174;
 

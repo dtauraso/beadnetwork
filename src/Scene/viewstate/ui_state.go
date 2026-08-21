@@ -32,6 +32,8 @@ type UIState struct {
 
 	singletonCols *colstream.ColumnSet
 
+	rulesValues *PolarRulesPanel.ValueWriter
+
 	OwnerCounts struct{ Nodes, Edges int32 }
 
 	ClockDivisor float64

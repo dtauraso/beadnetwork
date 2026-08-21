@@ -38,6 +38,7 @@ func RunTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 	md.UI.SceneTabNames = sceneTabNames
 	md.UI.SceneTabSelected = sceneTabSelected
 	md.UI.SetSingletonColumns(cols.SingletonColumns())
+	md.UI.SetSceneRoot(scenePath)
 	md.UI.WriteNodeRingSurfaceColumns(NodeShape.CanonicalRingSurfacePointsFlat())
 	md.UI.WriteBeadRingSurfaceColumns(bead.CanonicalRingSurfacePointsFlat())
 	wireViewStream(md, viewFile, viewStreamWired, sceneTabNames, sceneTabSelected)
