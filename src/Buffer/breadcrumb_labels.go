@@ -14,8 +14,6 @@ const (
 	BreadcrumbPairLatticeAdopt
 	BreadcrumbViewport
 	BreadcrumbPointerDown
-	BreadcrumbGestureCommit
-	BreadcrumbOrbitStep
 )
 
 var BreadcrumbLabels = []string{
@@ -32,8 +30,6 @@ var BreadcrumbLabels = []string{
 	"pair-lattice-adopt",
 	"viewport",
 	"pointer-down",
-	"gesture-commit",
-	"orbit-step",
 }
 
 func BreadcrumbLabelID(name string) (uint8, bool) {

@@ -1,9 +1,6 @@
 package gesture
 
 import (
-	"fmt"
-
-	B "github.com/dtauraso/wirefold/src/Buffer"
 	"github.com/dtauraso/wirefold/src/Camera"
 	"github.com/dtauraso/wirefold/src/Input/inputcodec"
 	"github.com/dtauraso/wirefold/src/Node/movemsg"
@@ -44,14 +41,6 @@ func applyOrbit(d Deps, ev inputcodec.RawInputMsg) {
 	prevDir := Camera.ToWorldDir(basis, prev)
 	currDir := Camera.ToWorldDir(basis, curr)
 	d.UI.OrbitViewpoint(Camera.WorldDirToAngles(currDir), Camera.WorldDirToAngles(prevDir))
-	after := d.UI.VP.Viewpoint
-	d.UI.EmitBreadcrumb(B.RowEvent{
-		Label: B.BreadcrumbOrbitStep, NodeRow: -1, PortRow: -1, TargetRow: -1,
-		TargetPortRow: -1, EdgeRow: -1, Slot: -1, Value: 0,
-		Text: fmt.Sprintf("prevxy=%.0f,%.0f xy=%.0f,%.0f cxy=%.0f,%.0f pxPerRad=%.2f posBefore=%.3f,%.3f posAfter=%.3f,%.3f r=%.1f",
-			g.PrevX, g.PrevY, ev.X, ev.Y, g.RotCx, g.RotCy, g.RotPxPerRad,
-			vp.Pos.Phi, vp.Pos.Theta, after.Pos.Phi, after.Pos.Theta, after.R),
-	})
 	d.UI.EmitViewFrame(nil)
 }
 
