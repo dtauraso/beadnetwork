@@ -34,7 +34,6 @@ var bufBlockOrder = []string{
 	"Node", "EdgeBead", "TiltArrow", "ChannelVector", "Scene",
 	"Recv", "Fire", "Send", "Arrive", "Breadcrumb",
 	"SpeedPanel",
-	"PointerTarget",
 }
 
 func ParseBufferLayoutTree(root string) (BufLayoutSchema, error) {

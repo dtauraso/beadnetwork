@@ -1,13 +1,7 @@
-import { columnF32, columnU8 } from "../../Buffer/column-values";
 import { canvasFont, roundRect } from "../../webview/canvas-box";
-import { readText, decodeAt } from "../../Buffer/column-reads";
+import { decodeAt } from "../../Buffer/column-reads";
 import * as T from "../../webview/canvas-theme";
-import {
-  COL_STREAM_POINTER_TARGET_X, COL_STREAM_POINTER_TARGET_Y, COL_STREAM_POINTER_TARGET_W,
-  COL_STREAM_POINTER_TARGET_H, COL_STREAM_POINTER_TARGET_KIND,
-  COL_STREAM_POINTER_TARGET_TIP_X, COL_STREAM_POINTER_TARGET_TIP_Y,
-  COL_STREAM_POINTER_TARGET_TIP_TEXT,
-} from "./columns-gen";
+import { pointerF32, pointerU8, pointerText } from "./pointer-target-leaves";
 
 const KIND_NOTHING = 0;
 const KIND_REFUSING = 2;
@@ -19,15 +13,15 @@ const TIP_BG = "rgba(20,20,24,0.92)";
 
 export function pointerTargetKey(): string {
   return [
-    columnF32(COL_STREAM_POINTER_TARGET_X), columnF32(COL_STREAM_POINTER_TARGET_Y),
-    columnF32(COL_STREAM_POINTER_TARGET_W), columnF32(COL_STREAM_POINTER_TARGET_H),
-    columnU8(COL_STREAM_POINTER_TARGET_KIND),
-    columnF32(COL_STREAM_POINTER_TARGET_TIP_X), columnF32(COL_STREAM_POINTER_TARGET_TIP_Y),
+    pointerF32("x"), pointerF32("y"),
+    pointerF32("w"), pointerF32("h"),
+    pointerU8("kind"),
+    pointerF32("tipX"), pointerF32("tipY"),
   ].join(",");
 }
 
 export function pointerTargetCursor(): string {
-  switch (columnU8(COL_STREAM_POINTER_TARGET_KIND)) {
+  switch (pointerU8("kind")) {
     case KIND_NOTHING: return "default";
     case KIND_REFUSING: return "not-allowed";
     default: return "pointer";
@@ -35,12 +29,12 @@ export function pointerTargetCursor(): string {
 }
 
 export function drawPointerHighlight(c: CanvasRenderingContext2D): void {
-  if (columnU8(COL_STREAM_POINTER_TARGET_KIND) === KIND_NOTHING) return;
-  const w = columnF32(COL_STREAM_POINTER_TARGET_W);
-  const h = columnF32(COL_STREAM_POINTER_TARGET_H);
+  if (pointerU8("kind") === KIND_NOTHING) return;
+  const w = pointerF32("w");
+  const h = pointerF32("h");
   if (w <= 0 || h <= 0) return;
   roundRect(
-    c, columnF32(COL_STREAM_POINTER_TARGET_X), columnF32(COL_STREAM_POINTER_TARGET_Y),
+    c, pointerF32("x"), pointerF32("y"),
     w, h, T.RADIUS_ITEM,
   );
   c.fillStyle = T.HOVER_ROW;
@@ -48,13 +42,13 @@ export function drawPointerHighlight(c: CanvasRenderingContext2D): void {
 }
 
 export function drawPointerTip(c: CanvasRenderingContext2D): void {
-  const text = readText(COL_STREAM_POINTER_TARGET_TIP_TEXT);
+  const text = pointerText("tipText");
   if (!text || text.length === 0) return;
   const label = decodeAt(text, 0, text.length);
   if (!label) return;
 
-  const x = columnF32(COL_STREAM_POINTER_TARGET_TIP_X);
-  const y = columnF32(COL_STREAM_POINTER_TARGET_TIP_Y);
+  const x = pointerF32("tipX");
+  const y = pointerF32("tipY");
 
   c.font = canvasFont(T.FONT_SIZE);
   const w = c.measureText(label).width + 2 * TIP_PAD_X;

@@ -17,14 +17,11 @@ var movedToColumns = map[string]bool{
 	"Panel":         true,
 	"Overlay":       true,
 	"Camera":        true,
-	"Edge":          true,
 	"Node":          true,
-	"Interior":      true,
 	"EdgeBead":      true,
 	"SpeedPanel":    true,
 	"TiltArrow":     true,
 	"ChannelVector": true,
-	"PointerTarget": true,
 }
 
 func hasRow(name string) bool { return !movedToColumns[name] }
