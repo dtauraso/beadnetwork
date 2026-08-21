@@ -1,8 +1,6 @@
 import { BUF_LAYOUT_FINGERPRINT_HASH } from "../../Buffer/buffer-layout";
 import { BUF_VIEW_FRAME_HEADER_SIZE } from "../../Buffer/frame-tags";
-import { STR_DECODER, decodeTrailingEvents, type DecodedEvents } from "./buffer-decode-shared";
-
-export const SCENE_TABS_HEADER_SIZE = 4;
+import { decodeTrailingEvents, type DecodedEvents } from "./buffer-decode-shared";
 
 const reportedLayoutSkews = new Set<number>();
 
@@ -31,32 +29,8 @@ function reportLayoutSkew(frameLayout: number): void {
   });
 }
 
-function decodeSceneTabs(buf: ArrayBuffer, offset: number): { names: string[]; selected: number; end: number } {
-  if (buf.byteLength < offset + SCENE_TABS_HEADER_SIZE) {
-    return { names: [], selected: 0, end: offset };
-  }
-  const head = new DataView(buf, offset, SCENE_TABS_HEADER_SIZE);
-  const count = head.getUint16(0, true);
-  const selected = head.getUint16(2, true);
-  let off = offset + SCENE_TABS_HEADER_SIZE;
-  const names: string[] = [];
-  for (let i = 0; i < count; i++) {
-    if (buf.byteLength < off + 2) return { names: [], selected: 0, end: off };
-    const len = new DataView(buf, off, 2).getUint16(0, true);
-    off += 2;
-    if (buf.byteLength < off + len) return { names: [], selected: 0, end: off };
-    names.push(STR_DECODER.decode(new Uint8Array(buf, off, len)));
-    off += len;
-  }
-  return { names, selected, end: off };
-}
-
 export interface DecodedViewFrame {
   tick: number;
-
-
-  sceneTabs: string[];
-  sceneTabSelected: number;
 
   events: DecodedEvents;
 }
@@ -73,8 +47,7 @@ export function decodeViewFrame(buf: ArrayBuffer): DecodedViewFrame | null {
 }
 
 function decodeViewFrameUncached(buf: ArrayBuffer): DecodedViewFrame | null {
-  const expectedLen = BUF_VIEW_FRAME_HEADER_SIZE + SCENE_TABS_HEADER_SIZE;
-  if (buf.byteLength < expectedLen) return null;
+  if (buf.byteLength < BUF_VIEW_FRAME_HEADER_SIZE) return null;
 
   const hdr = new DataView(buf, 0, BUF_VIEW_FRAME_HEADER_SIZE);
   const tick = hdr.getUint32(0, true);
@@ -85,22 +58,7 @@ function decodeViewFrameUncached(buf: ArrayBuffer): DecodedViewFrame | null {
     return null;
   }
 
-  let off = BUF_VIEW_FRAME_HEADER_SIZE;
+  const events = decodeTrailingEvents(buf, BUF_VIEW_FRAME_HEADER_SIZE);
 
-
-
-
-
-
-
-  const tabs = decodeSceneTabs(buf, off);
-  off = tabs.end;
-
-  const events = decodeTrailingEvents(buf, off);
-
-  return {
-    tick,
-    sceneTabs: tabs.names, sceneTabSelected: tabs.selected,
-    events,
-  };
+  return { tick, events };
 }
