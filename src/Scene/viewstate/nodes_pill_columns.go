@@ -32,7 +32,9 @@ func (ui *UIState) writeNodesPillValues(lay NodesDropdown.Layout) {
 			desc = r.Desc
 		}
 		w.Str("rowDescText", "rowDescLen", desc)
-		w.Rect("descX", "descY", "descW", "descH", r.DescRect)
+		w.F32("descX", r.DescRect.X)
+		w.F32("descY", r.DescRect.Y)
+		w.F32("descW", r.DescRect.W)
 	}
 
 	noticeW := Panel.TextWidth(refusedNotice, Panel.PillFontPx) + 16

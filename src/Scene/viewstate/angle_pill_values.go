@@ -18,7 +18,9 @@ func (ui *UIState) writeAnglePillValues(lay AngleDropdown.Layout) {
 	w.Text("labelText", AngleDropdown.Label)
 
 	addStep := func(s AngleDropdown.Stepper) {
-		w.Rect("stepX", "stepY", "stepW", "stepH", s.Row)
+		w.F32("stepX", s.Row.X)
+		w.F32("stepY", s.Row.Y)
+		w.F32("stepH", s.Row.H)
 		w.Str("stepNameText", "stepNameLen", s.Name)
 		w.Str("stepShownText", "stepShownLen", s.Shown)
 		w.I32("stepValueRow", s.ValueRow)
@@ -32,7 +34,9 @@ func (ui *UIState) writeAnglePillValues(lay AngleDropdown.Layout) {
 	if lay.Open {
 		addStep(lay.Lattice)
 		for _, g := range lay.Groups {
-			w.Rect("groupX", "groupY", "groupW", "groupH", g.Head)
+			w.F32("groupX", g.Head.X)
+			w.F32("groupY", g.Head.Y)
+			w.F32("groupH", g.Head.H)
 			w.Bool("groupOpen", g.Open)
 			w.Str("groupHeadText", "groupHeadLen", g.Heading)
 			if g.Open {

@@ -22,6 +22,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/TiltPanel"
 	"github.com/dtauraso/wirefold/src/Chrome/Pills"
 	"github.com/dtauraso/wirefold/src/RingPoint"
+	"github.com/dtauraso/wirefold/src/Scene"
 	"github.com/dtauraso/wirefold/src/Chrome/Tabs"
 	"github.com/dtauraso/wirefold/src/Scene/selectionstate"
 	"github.com/dtauraso/wirefold/src/spatial"
@@ -51,6 +52,7 @@ type UIState struct {
 	ringPointValues    *RingPoint.ValueWriter
 	pointerTargetValues *Panels.ValueWriter
 	sliderPanelValues   *SliderPanel.ValueWriter
+	ownerCountsValues   *Scene.CountsValueWriter
 	fitChipValues   *FitButton.ValueWriter
 
 	OwnerCounts struct{ Nodes, Edges int32 }

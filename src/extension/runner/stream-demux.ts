@@ -7,9 +7,6 @@ import { LastFrameStore } from "./last-frame-store";
 import { ColumnStore } from "./column-store";
 import { BUF_BLOCK_TAG_COLUMN } from "../../Buffer/frame-tags";
 import {
-  COL_STREAM_SCENE_NODE_COUNT, COL_STREAM_SCENE_EDGE_COUNT,
-} from "../../Scene/columns-gen";
-import {
   dispatchViewFrames,
   dispatchEdgeFrames,
   dispatchNodeFrames,
@@ -119,17 +116,6 @@ export class StreamDemux extends LastFrameStore {
       this.probeDir,
       (row, ab) => { this.lastBeadFrames.set(row, ab); },
     );
-  }
-
-  seedOwnerCounts(nodes: number, edges: number): void {
-    if (!this.onSnapshot) return;
-    for (const [col, value] of [[COL_STREAM_SCENE_NODE_COUNT, nodes], [COL_STREAM_SCENE_EDGE_COUNT, edges]] as const) {
-      const buf = Buffer.alloc(4);
-      buf.writeInt32LE(value, 0);
-      const ab = buf.buffer.slice(buf.byteOffset, buf.byteOffset + 4);
-      this.columns.seed(col, buf);
-      this.onSnapshot({ type: "buffer-snapshot", buffer: ab, tag: BUF_BLOCK_TAG_COLUMN, row: col, gen: this.gen });
-    }
   }
 
   handleColFd(col: number, chunk: Buffer) {

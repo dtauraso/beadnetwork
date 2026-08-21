@@ -20,7 +20,7 @@ var PillValueNames = []string{
 	"rowStrokeText", "rowStrokeLen",
 	"swatchX", "swatchY", "swatchW", "swatchH",
 	"rowDescText", "rowDescLen",
-	"descX", "descY", "descW", "descH",
+	"descX", "descY", "descW",
 	"refusedCount", "refusedX", "refusedY", "refusedW", "refusedH", "refusedText",
 }
 

@@ -36,7 +36,6 @@ export const NODES_PILL_VALUE_NAMES = [
   "descX",
   "descY",
   "descW",
-  "descH",
   "refusedCount",
   "refusedX",
   "refusedY",

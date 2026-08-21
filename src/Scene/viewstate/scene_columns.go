@@ -1,7 +1,6 @@
 package viewstate
 
 import (
-	B "github.com/dtauraso/wirefold/src/Buffer"
 	"github.com/dtauraso/wirefold/src/Buffer/colstream"
 	"github.com/dtauraso/wirefold/src/Camera"
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/PolarRulesPanel"
@@ -10,6 +9,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Chrome/Pills/FitButton"
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/TiltPanel"
 	"github.com/dtauraso/wirefold/src/RingPoint"
+	"github.com/dtauraso/wirefold/src/Scene"
 	"github.com/dtauraso/wirefold/src/Chrome/Panels"
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
 	"github.com/dtauraso/wirefold/src/valuefile"
@@ -35,15 +35,17 @@ func (ui *UIState) SetSceneRoot(sceneRoot string) {
 	ui.ringPointValues = RingPoint.NewValueWriter(sceneRoot)
 	ui.pointerTargetValues = Panels.NewValueWriter(sceneRoot)
 	ui.sliderPanelValues = SliderPanel.NewValueWriter(sceneRoot)
+	ui.ownerCountsValues = Scene.NewCountsValueWriter(sceneRoot)
 }
 
 func (ui *UIState) writeSceneColumns() {
-	c := ui.singletonCols
-	if c == nil {
+	w := ui.ownerCountsValues
+	if w == nil {
 		return
 	}
-	c.SetI32(B.ColStreamSceneNodeCount, ui.OwnerCounts.Nodes)
-	c.SetI32(B.ColStreamSceneEdgeCount, ui.OwnerCounts.Edges)
+	if err := w.Write(ui.OwnerCounts.Nodes, ui.OwnerCounts.Edges); err != nil {
+		valuefile.LogPersistErr("owner_counts_values", "", err)
+	}
 }
 
 func (ui *UIState) WriteRingSurfaces(nodePts, beadPts []float32) {
