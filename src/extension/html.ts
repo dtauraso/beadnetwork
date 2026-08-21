@@ -7,14 +7,10 @@ export function buildWebviewHtml(
   webview: vscode.Webview,
   extensionPath: string,
   scenePath: string,
-  anchorPath?: string,
 ): string {
   const scriptPath = path.join(extensionPath, "out", "webview.js");
   const sceneBase = webview.asWebviewUri(vscode.Uri.file(scenePath)).toString();
   const srcBase = webview.asWebviewUri(vscode.Uri.file(path.join(extensionPath, "src"))).toString();
-  const anchor = anchorPath ?? scenePath;
-  const anchorBase = webview.asWebviewUri(vscode.Uri.file(anchor)).toString();
-  const containerBase = webview.asWebviewUri(vscode.Uri.file(path.dirname(anchor))).toString();
 
   const scriptUri = webview
     .asWebviewUri(vscode.Uri.file(scriptPath))
@@ -51,8 +47,6 @@ export function buildWebviewHtml(
   <script nonce="${nonce}">
     window.WIREFOLD_SCENE_BASE = "${sceneBase}";
     window.WIREFOLD_SRC_BASE = "${srcBase}";
-    window.WIREFOLD_CONTAINER_BASE = "${containerBase}";
-    window.WIREFOLD_ANCHOR_BASE = "${anchorBase}";
   </script>
   <script nonce="${nonce}" src="${scriptUri.toString()}"></script>
 </body>

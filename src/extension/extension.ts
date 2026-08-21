@@ -12,7 +12,6 @@ import { armBundleWatcher } from "./bundle-watcher";
 import { armGoWatcher } from "./go-watcher";
 import { PROBE_FILES } from "./probe-files";
 import { resolveRepoRoot } from "./repo-root";
-import { sceneRoots } from "./scene-roots";
 
 export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
@@ -90,11 +89,11 @@ function openTopologyEditor(context: vscode.ExtensionContext, folderUri?: vscode
       localResourceRoots: [
         vscode.Uri.file(path.join(context.extensionPath, "out")),
         vscode.Uri.file(path.join(context.extensionPath, "src")),
-        ...sceneRoots(topologyPath).map((dir) => vscode.Uri.file(dir)),
+        vscode.Uri.file(scenePath),
       ],
     },
   );
-  panel.webview.html = buildWebviewHtml(panel.webview, context.extensionPath, scenePath, topologyPath);
+  panel.webview.html = buildWebviewHtml(panel.webview, context.extensionPath, scenePath);
 
   const post = (msg: HostToWebviewMsg): void => {
     void panel.webview.postMessage(msg);
