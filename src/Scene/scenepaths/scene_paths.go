@@ -6,8 +6,8 @@ func ViewFilePath(topologyPath, name string) string {
 	return filepath.Join(topologyPath, "view", name)
 }
 
-func InputFilePath(topologyPath string) string {
-	return ViewFilePath(topologyPath, filepath.Join("input", "current.bin"))
+func InputDirPath(topologyPath string) string {
+	return ViewFilePath(topologyPath, "input")
 }
 
 func SelectionFilePath(anchorPath string) string {

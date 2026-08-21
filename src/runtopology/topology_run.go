@@ -52,7 +52,7 @@ func RunTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 
 	moverWG := md.Start(ctx)
 
-	stdinWG, gestureWG := startStdinReader(ctx, cancel, slotReg, md, speedSinks, clk, scenepaths.InputFilePath(scenePath))
+	stdinWG, gestureWG := startStdinReader(ctx, cancel, slotReg, md, speedSinks, clk, scenepaths.InputDirPath(scenePath))
 	wg := launchNodeGoroutines(ctx, nodes)
 	joinAll(wg, moverWG, stdinWG, gestureWG)
 }

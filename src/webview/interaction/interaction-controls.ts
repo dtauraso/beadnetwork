@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import * as THREE from "three";
 import { sendRawInput, buildPointerRaw, buildWheelRaw } from "./raw-input";
 import type { PickRef } from "./pick-types";
+import { postLog } from "../log/post";
 
 export function useInteractionControls(
   cameraRef: React.MutableRefObject<THREE.PerspectiveCamera | null>,
@@ -9,6 +10,13 @@ export function useInteractionControls(
 ) {
   const onPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
     const ev = buildPointerRaw(e, "pointerdown", cameraRef, pickRequest);
+    postLog("ts-pointer-down", {
+      handler: true,
+      built: ev !== null,
+      cam: cameraRef.current !== null,
+      pick: pickRequest.current !== null,
+      hit: ev?.hit.kind ?? "",
+    });
     if (ev) sendRawInput(ev);
     e.currentTarget.setPointerCapture(e.pointerId);
   }, [cameraRef, pickRequest]);

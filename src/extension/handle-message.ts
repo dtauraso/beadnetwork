@@ -1,6 +1,7 @@
 import { logfmt } from "./probe/logfmt";
 import { IN_KIND_RAW_INPUT } from "../Input/input-layout-gen";
 import { writeInputFile } from "./runner/input-file";
+import { resolveScenePath } from "./runner/counts";
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
@@ -20,6 +21,7 @@ export type MessageCtx = {
   runner: BuildAndRunRunner;
   post: (msg: HostToWebviewMsg) => void;
   scenePath: string;
+  anchorPath?: string;
 };
 
 function assertNever(msg: never): never {
@@ -106,7 +108,10 @@ async function dispatch(msg: WebviewToHostMsg, ctx: MessageCtx): Promise<void> {
       if (first === IN_KIND_RAW_INPUT) {
         // No fallback to the pipe: Go no longer reads raw input from it, so a
         // silent fallback would drop every gesture while looking like it works.
-        writeInputFile(ctx.scenePath, msg.record);
+        writeInputFile(
+          ctx.anchorPath === undefined ? ctx.scenePath : resolveScenePath(ctx.anchorPath),
+          msg.record,
+        );
         return;
       }
       runner.writeStdin(msg.record);

@@ -53,6 +53,7 @@ function wireMessageHandler(
   runner: BuildAndRunRunner,
   post: (msg: HostToWebviewMsg) => void,
   scenePath: string,
+  anchorPath: string,
 ): void {
   panel.webview.onDidReceiveMessage((raw) => {
     const workspaceFolder = folderUri ? vscode.workspace.getWorkspaceFolder(folderUri) : undefined;
@@ -62,7 +63,7 @@ function wireMessageHandler(
       return root ? vscode.Uri.file(root) : undefined;
     })();
     const logUri = workspaceFolder?.uri ?? folderUri ?? repoRootUri;
-    void handleMessage(raw, { logUri, runner, post, scenePath }).catch((err: unknown) => {
+    void handleMessage(raw, { logUri, runner, post, scenePath, anchorPath }).catch((err: unknown) => {
       console.error("topology: handleMessage failed", err);
     });
   });
@@ -117,7 +118,7 @@ function openTopologyEditor(context: vscode.ExtensionContext, folderUri?: vscode
     runner.dispose();
   });
 
-  wireMessageHandler(panel, folderUri, runner, post, scenePath);
+  wireMessageHandler(panel, folderUri, runner, post, scenePath, topologyPath);
 
   runner.run(topologyPath);
 }

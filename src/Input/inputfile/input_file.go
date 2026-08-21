@@ -2,23 +2,41 @@ package inputfile
 
 import (
 	"os"
+	"path/filepath"
+
+	"github.com/dtauraso/wirefold/src/Input/inputcodec"
 )
 
-type Reader struct {
+type slot struct {
 	path string
 	last []byte
 }
 
-func NewReader(inputPath string) *Reader { return &Reader{path: inputPath} }
+type Reader struct {
+	slots []slot
+}
 
-func (r *Reader) Read() ([]byte, bool) {
-	raw, err := os.ReadFile(r.path)
-	if err != nil || len(raw) == 0 {
-		return nil, false
+func NewReader(inputDir string) *Reader {
+	slots := make([]slot, 0, len(inputcodec.EventKinds))
+	for _, kind := range inputcodec.EventKinds {
+		slots = append(slots, slot{path: filepath.Join(inputDir, kind+".bin")})
 	}
-	if string(raw) == string(r.last) {
-		return nil, false
+	return &Reader{slots: slots}
+}
+
+func (r *Reader) ReadAll() [][]byte {
+	var out [][]byte
+	for i := range r.slots {
+		s := &r.slots[i]
+		raw, err := os.ReadFile(s.path)
+		if err != nil || len(raw) == 0 {
+			continue
+		}
+		if string(raw) == string(s.last) {
+			continue
+		}
+		s.last = append(s.last[:0], raw...)
+		out = append(out, append([]byte(nil), raw...))
 	}
-	r.last = append(r.last[:0], raw...)
-	return raw, true
+	return out
 }

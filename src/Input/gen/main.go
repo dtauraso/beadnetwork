@@ -23,4 +23,10 @@ func main() {
 		genpaths.Fatalf("write %s: %v", outPath, err)
 	}
 	genpaths.Announce(outPath, 1+len(inputFP.KindNames)+4, "constants")
+
+	goKindsPath := filepath.Join(srcRoot, "Input", "inputcodec", "event_kinds_gen.go")
+	if err := inputlayout.WriteGoEventKinds(goKindsPath, inputFP); err != nil {
+		genpaths.Fatalf("write %s: %v", goKindsPath, err)
+	}
+	genpaths.Announce(goKindsPath, 1, "event kinds")
 }

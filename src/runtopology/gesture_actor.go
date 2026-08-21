@@ -36,7 +36,7 @@ func startGestureActor(ctx context.Context, slotReg inputcodec.SlotRegistry, md 
 		mine := clk.Copy()
 		wheel := &wheelTotals{}
 		for {
-			if raw, fresh := reader.Read(); fresh {
+			for _, raw := range reader.ReadAll() {
 				if msg, ok := inputcodec.DecodeInputRecord(raw); ok && msg.Type == "raw-input" {
 					wheel.difference(msg.Event)
 					dispatch.HandleRawInputMsg(ctx, msg, slotReg, md, speedSinks)
