@@ -1,8 +1,5 @@
 import * as THREE from "three";
-import { columnBytes } from "../../Buffer/column-values";
-import {
-  COL_STREAM_NODE_RING_POINT_X, COL_STREAM_NODE_RING_POINT_Y, COL_STREAM_NODE_RING_POINT_Z,
-} from "../../RingPoint/columns-gen";
+import { ringPointBytes } from "../../RingPoint/point-leaves";
 import {
   SHADING_PARAM_NODE_RING_SURFACE_NU,
   SHADING_PARAM_NODE_RING_SURFACE_NV,
@@ -13,9 +10,9 @@ let cachedGeometry: THREE.BufferGeometry | null = null;
 export function getCanonicalRingSurfaceGeometry(): THREE.BufferGeometry | null {
   if (cachedGeometry) return cachedGeometry;
 
-  const xs = columnBytes(COL_STREAM_NODE_RING_POINT_X);
-  const ys = columnBytes(COL_STREAM_NODE_RING_POINT_Y);
-  const zs = columnBytes(COL_STREAM_NODE_RING_POINT_Z);
+  const xs = ringPointBytes("nodeX");
+  const ys = ringPointBytes("nodeY");
+  const zs = ringPointBytes("nodeZ");
   if (!xs || !ys || !zs) return null;
 
   const nu = SHADING_PARAM_NODE_RING_SURFACE_NU;

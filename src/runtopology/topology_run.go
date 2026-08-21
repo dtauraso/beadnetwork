@@ -39,8 +39,7 @@ func RunTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 	md.UI.SceneTabSelected = sceneTabSelected
 	md.UI.SetSingletonColumns(cols.SingletonColumns())
 	md.UI.SetSceneRoot(scenePath)
-	md.UI.WriteNodeRingSurfaceColumns(NodeShape.CanonicalRingSurfacePointsFlat())
-	md.UI.WriteBeadRingSurfaceColumns(bead.CanonicalRingSurfacePointsFlat())
+	md.UI.WriteRingSurfaces(NodeShape.CanonicalRingSurfacePointsFlat(), bead.CanonicalRingSurfacePointsFlat())
 	wireViewStream(md, viewFile, viewStreamWired, sceneTabNames, sceneTabSelected)
 	emitStartupBreadcrumbs(md, scenePath, len(nodes))
 	checkRowSeedCount(md, len(nodes))

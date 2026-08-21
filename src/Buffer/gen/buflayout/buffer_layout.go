@@ -17,8 +17,6 @@ var movedToColumns = map[string]bool{
 	"Panel":         true,
 	"Overlay":       true,
 	"Camera":        true,
-	"NodeRingPoint": true,
-	"BeadRingPoint": true,
 	"Edge":          true,
 	"Node":          true,
 	"Interior":      true,

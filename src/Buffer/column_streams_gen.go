@@ -7,7 +7,7 @@ const ColumnsPerNodeStream = 140
 
 const ColumnsPerEdgeStream = 11
 
-const ColumnsInSingletonStreams = 33
+const ColumnsInSingletonStreams = 27
 
 // ColumnStreamCount is every column channel a scene of this size needs.
 func ColumnStreamCount(nodes, edges int) int {
@@ -22,10 +22,8 @@ const ColStreamBaseChannelVector = 108
 const ColStreamBaseEdge = 0
 const ColStreamBaseCamera = 0
 const ColStreamBaseScene = 0
-const ColStreamBaseNodeRingPoint = 2
-const ColStreamBaseBeadRingPoint = 5
-const ColStreamBaseSpeedPanel = 8
-const ColStreamBasePointerTarget = 25
+const ColStreamBaseSpeedPanel = 2
+const ColStreamBasePointerTarget = 19
 
 const ColStreamNodeIndexR = ColStreamBaseNode + 0
 const ColStreamNodeIndexPhi = ColStreamBaseNode + 1
@@ -113,12 +111,6 @@ const ColStreamEdgeBeadRingM12 = ColStreamBaseEdgeBead + 16
 const ColStreamEdgeBeadRingM13 = ColStreamBaseEdgeBead + 17
 const ColStreamEdgeBeadRingM14 = ColStreamBaseEdgeBead + 18
 const ColStreamEdgeBeadRingM15 = ColStreamBaseEdgeBead + 19
-const ColStreamNodeRingPointX = ColStreamBaseNodeRingPoint + 0
-const ColStreamNodeRingPointY = ColStreamBaseNodeRingPoint + 1
-const ColStreamNodeRingPointZ = ColStreamBaseNodeRingPoint + 2
-const ColStreamBeadRingPointX = ColStreamBaseBeadRingPoint + 0
-const ColStreamBeadRingPointY = ColStreamBaseBeadRingPoint + 1
-const ColStreamBeadRingPointZ = ColStreamBaseBeadRingPoint + 2
 const ColStreamTiltArrowReceived = ColStreamBaseTiltArrow + 0
 const ColStreamTiltArrowShaftM0 = ColStreamBaseTiltArrow + 1
 const ColStreamTiltArrowShaftM1 = ColStreamBaseTiltArrow + 2
