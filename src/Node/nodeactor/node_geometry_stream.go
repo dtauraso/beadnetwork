@@ -1,6 +1,7 @@
 package nodeactor
 
 import (
+	T "github.com/dtauraso/wirefold/src/Trace"
 	"fmt"
 	"math"
 
@@ -9,7 +10,6 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/nodeactor/nodeframe"
 	"github.com/dtauraso/wirefold/src/Node/nodedrag"
 	"github.com/dtauraso/wirefold/src/Node/nodegeom"
-	B "github.com/dtauraso/wirefold/src/Buffer"
 )
 
 func boolU8(b bool) uint8 {
@@ -31,15 +31,15 @@ func (m *NodeGeometry) emitGeometry() {
 	m.writeStreamFrame(nil)
 }
 
-func (m *NodeGeometry) postSelfEvents(events []B.RowEvent) {
+func (m *NodeGeometry) postSelfEvents(events []T.RowEvent) {
 	m.stream.PostSelfEvents(events)
 }
 
-func (m *NodeGeometry) drainSelfEvents() []B.RowEvent {
+func (m *NodeGeometry) drainSelfEvents() []T.RowEvent {
 	return m.stream.DrainSelfEvents()
 }
 
-func (m *NodeGeometry) writeStreamFrame(events []B.RowEvent) {
+func (m *NodeGeometry) writeStreamFrame(events []T.RowEvent) {
 	if !m.stream.Ready() {
 		return
 	}

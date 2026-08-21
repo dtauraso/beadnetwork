@@ -41,11 +41,13 @@ func writeBufferLayoutTSHeader(outPath string, schema BufLayoutSchema, fp string
 	fmt.Fprintln(w, ` * version number can. */`)
 	fmt.Fprintf(w, "export const BUF_LAYOUT_FINGERPRINT_HASH = %d;\n", fnv1aHash(fp))
 	fmt.Fprintln(w)
-	fmt.Fprintln(w, `export * from './buffer-layout-rows-gen';`)
-	if blocks := rowBlocks(schema); len(blocks[rowBlockSplit(len(blocks)):]) > 0 {
-		fmt.Fprintln(w, `export * from './buffer-layout-rows2-gen';`)
+	if len(schema.Blocks) > 0 {
+		fmt.Fprintln(w, `export * from './buffer-layout-rows-gen';`)
+		if blocks := rowBlocks(schema); len(blocks[rowBlockSplit(len(blocks)):]) > 0 {
+			fmt.Fprintln(w, `export * from './buffer-layout-rows2-gen';`)
+		}
+		fmt.Fprintln(w, `export * from './buffer-layout-singletons-gen';`)
 	}
-	fmt.Fprintln(w, `export * from './buffer-layout-singletons-gen';`)
 
 	w.Flush()
 	return os.WriteFile(outPath, buf.Bytes(), 0644)

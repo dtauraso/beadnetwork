@@ -1,11 +1,11 @@
 package portwiring
 
 import (
+	T "github.com/dtauraso/wirefold/src/Trace"
 	"context"
 
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/src/Node/Interior"
-	B "github.com/dtauraso/wirefold/src/Buffer"
 )
 
 
@@ -25,8 +25,8 @@ func NewInteriorEmitterGetter(name string, pb PortBindings) func() *interior.Emi
 	}
 }
 
-func InteriorEventSinkGetter(g func() *interior.Emitter) func() B.EventSink {
-	return func() B.EventSink {
+func InteriorEventSinkGetter(g func() *interior.Emitter) func() T.EventSink {
+	return func() T.EventSink {
 		e := g()
 		if e == nil {
 			return nil
@@ -37,7 +37,7 @@ func InteriorEventSinkGetter(g func() *interior.Emitter) func() B.EventSink {
 
 const NoPortRow = int32(-1)
 
-func NewInPort(portName string, ctx context.Context, name string, pb PortBindings, getSink func() B.EventSink) *beadanimation.Receiver {
+func NewInPort(portName string, ctx context.Context, name string, pb PortBindings, getSink func() T.EventSink) *beadanimation.Receiver {
 	if b := pb.singlePaced[portName]; b.pw != nil {
 		return beadanimation.NewInPaced(b.pw, ctx, name, portName, getSink, NoPortRow)
 	} else {
@@ -46,7 +46,7 @@ func NewInPort(portName string, ctx context.Context, name string, pb PortBinding
 	}
 }
 
-func NewOutPort(portName string, ctx context.Context, name string, pb PortBindings, sourceOuts *[]*beadanimation.Sender, getSink func() B.EventSink) *beadanimation.Sender {
+func NewOutPort(portName string, ctx context.Context, name string, pb PortBindings, sourceOuts *[]*beadanimation.Sender, getSink func() T.EventSink) *beadanimation.Sender {
 	if b := pb.singlePaced[portName]; b.pw != nil {
 		targetRow := int32(-1)
 		if b.pw.Target != "" {
@@ -65,7 +65,7 @@ func NewOutPort(portName string, ctx context.Context, name string, pb PortBindin
 	return beadanimation.NewOutChanDeadEnd(ch, name, portName)
 }
 
-func NewBroadcastPort(portName string, ctx context.Context, name string, pb PortBindings, sourceOuts *[]*beadanimation.Sender, getSink func() B.EventSink) beadanimation.Broadcast {
+func NewBroadcastPort(portName string, ctx context.Context, name string, pb PortBindings, sourceOuts *[]*beadanimation.Sender, getSink func() T.EventSink) beadanimation.Broadcast {
 	if bs := pb.broadcastPaced[portName]; len(bs) > 0 {
 		outs := make(beadanimation.Broadcast, len(bs))
 		for i, b := range bs {

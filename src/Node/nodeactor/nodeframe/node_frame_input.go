@@ -1,9 +1,9 @@
 package nodeframe
 
 import (
+	T "github.com/dtauraso/wirefold/src/Trace"
 	"github.com/dtauraso/wirefold/src/Node/framegeom"
 	streamframe "github.com/dtauraso/wirefold/src/Scene/Vectors"
-	B "github.com/dtauraso/wirefold/src/Buffer"
 )
 
 type NodeFrameInput struct {
@@ -54,7 +54,7 @@ type NodeFrameInput struct {
 
 	Label string
 
-	Events []B.RowEvent
+	Events []T.RowEvent
 }
 
 type NodeFrameBuilder func(f NodeFrameInput) []byte

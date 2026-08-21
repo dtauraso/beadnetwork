@@ -30,7 +30,7 @@ type BufLayoutSchema struct {
 }
 
 var bufBlockOrder = []string{
-	"Recv", "Fire", "Send", "Arrive", "Breadcrumb",
+
 }
 
 func ParseBufferLayoutTree(root string) (BufLayoutSchema, error) {
@@ -88,8 +88,11 @@ func ParseBufferLayoutTree(root string) (BufLayoutSchema, error) {
 	if schema.version == 0 {
 		return BufLayoutSchema{}, fmt.Errorf("BufLayoutVersion const not found under %s", root)
 	}
-	if len(blocks) == 0 {
-		return BufLayoutSchema{}, fmt.Errorf("no bufLayout* struct types found under %s", root)
+	if len(blocks) != len(bufBlockOrder) {
+		return BufLayoutSchema{}, fmt.Errorf(
+			"found %d bufLayout* struct types under %s but bufBlockOrder names %d; "+
+				"a row block must be declared in both or it is silently dropped from the frame",
+			len(blocks), root, len(bufBlockOrder))
 	}
 
 	byName := map[string]bufBlock{}

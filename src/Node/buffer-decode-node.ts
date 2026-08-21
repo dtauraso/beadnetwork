@@ -1,11 +1,9 @@
 import { BUF_NODE_STREAM_FRAME_HEADER_SIZE } from "../Buffer/frame-tags";
-import { STR_DECODER, decodeTrailingEvents, type DecodedEvents } from "../webview/decode/buffer-decode-shared";
+const STR_DECODER = new TextDecoder();
 import { nodeBytes } from "./node-leaves";
 
 export interface DecodedNodeStreamFrame {
   tick: number;
-
-  events: DecodedEvents;
 }
 
 let reportedShortFrame = false;
@@ -47,9 +45,7 @@ function decodeNodeStreamFrameUncached(buf: ArrayBuffer): DecodedNodeStreamFrame
   const hdr = new DataView(buf, 0, BUF_NODE_STREAM_FRAME_HEADER_SIZE);
   const tick = hdr.getUint32(0, true);
 
-  const events = decodeTrailingEvents(buf, BUF_NODE_STREAM_FRAME_HEADER_SIZE);
-
-  return { tick, events };
+  return { tick };
 }
 
 export function nodeLabel(row: number): string {

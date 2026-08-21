@@ -1,6 +1,7 @@
 package dispatch
 
 import (
+	T "github.com/dtauraso/wirefold/src/Trace"
 	"context"
 	"fmt"
 	"math"
@@ -15,7 +16,6 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/rulenode"
 	"github.com/dtauraso/wirefold/src/Scene/scenepersist"
 	"github.com/dtauraso/wirefold/src/Scene/sceneswitch"
-	B "github.com/dtauraso/wirefold/src/Buffer"
 )
 
 func applyUpdateClock(ctx context.Context, msg inputcodec.StdinMsg, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
@@ -88,8 +88,8 @@ func applyUpdateScene(ctx context.Context, msg inputcodec.StdinMsg, md *MoveDisp
 	case "viewport":
 		md.UI.ViewW = msg.X
 		md.UI.ViewH = msg.Y
-		md.UI.EmitBreadcrumb(B.RowEvent{
-			Label: B.BreadcrumbViewport, NodeRow: -1, PortRow: -1, TargetRow: -1,
+		md.UI.EmitBreadcrumb(T.RowEvent{
+			Label: T.BreadcrumbViewport, NodeRow: -1, PortRow: -1, TargetRow: -1,
 			TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 			Value: int32(md.UI.FovDeg()),
 			Text:  fmt.Sprintf("%.0fx%.0f", msg.X, msg.Y),

@@ -1,7 +1,7 @@
 package beadanimation
 
 import (
-	B "github.com/dtauraso/wirefold/src/Buffer"
+	T "github.com/dtauraso/wirefold/src/Trace"
 )
 
 type arriveInfo struct {
@@ -13,7 +13,7 @@ type arriveInfo struct {
 
 func (bl *BeadLine) emitArrive(ai arriveInfo) {
 	if ai.emit && bl.readout.StreamsActive {
-		bl.readout.appendPending(pendingBeadEvent{kind: B.KindArrive, value: ai.value, gen: ai.gen},
+		bl.readout.appendPending(pendingBeadEvent{kind: T.KindArrive, value: ai.value, gen: ai.gen},
 			bl.Owner, bl.Edge)
 	}
 }

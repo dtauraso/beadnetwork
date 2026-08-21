@@ -1,6 +1,7 @@
 package streamwire
 
 import (
+	T "github.com/dtauraso/wirefold/src/Trace"
 	"fmt"
 	"os"
 
@@ -12,13 +13,12 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/nodeactor/owners"
 	"github.com/dtauraso/wirefold/src/Node/nodeactor/streamclaim"
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
-	B "github.com/dtauraso/wirefold/src/Buffer"
 )
 
 type StreamWiring struct {
 	interiorEmitters map[string]*interior.Emitter
 
-	buildInteriorFrame func(tick uint32, events []B.RowEvent) []byte
+	buildInteriorFrame func(tick uint32, nodeRow int32, events []T.RowEvent) []byte
 
 	nodeClaims streamclaim.ClaimRegistry
 }
@@ -27,7 +27,7 @@ func (sw *StreamWiring) InteriorEmittersPtr() *map[string]*interior.Emitter {
 	return &sw.interiorEmitters
 }
 
-func (sw *StreamWiring) BuildInteriorFramePtr() *func(tick uint32, events []B.RowEvent) []byte {
+func (sw *StreamWiring) BuildInteriorFramePtr() *func(tick uint32, nodeRow int32, events []T.RowEvent) []byte {
 	return &sw.buildInteriorFrame
 }
 
@@ -92,7 +92,7 @@ func (sw *StreamWiring) SetNodeStreams(
 	buildBeadFrame beadanimation.BeadFrameBuilder,
 	nodeRowFor func(id string) (int32, bool),
 	buildFrame nodeframe.NodeFrameBuilder,
-	buildInteriorFrame func(tick uint32, events []B.RowEvent) []byte,
+	buildInteriorFrame func(tick uint32, nodeRow int32, events []T.RowEvent) []byte,
 	kindIDFor func(kind string) uint8,
 ) {
 	sw.interiorEmitters = map[string]*interior.Emitter{}
@@ -121,6 +121,8 @@ func (sw *StreamWiring) SetNodeStreams(
 
 		iFd := interiorBase + row
 		rawInteriorOut := os.NewFile(uintptr(iFd), fmt.Sprintf("interior-fd%d", iFd))
-		sw.interiorEmitters[seed.ID] = nm.WireInteriorStream(rawInteriorOut, int32(row), buildInteriorFrame, sceneRoot)
+		sw.interiorEmitters[seed.ID] = nm.WireInteriorStream(rawInteriorOut, int32(row), func(tick uint32, events []T.RowEvent) []byte {
+				return buildInteriorFrame(tick, int32(row), events)
+			}, sceneRoot)
 	}
 }

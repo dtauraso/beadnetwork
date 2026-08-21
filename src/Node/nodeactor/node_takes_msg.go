@@ -1,11 +1,11 @@
 package nodeactor
 
 import (
+	T "github.com/dtauraso/wirefold/src/Trace"
 	"github.com/dtauraso/wirefold/src/Polar/polar"
 	"github.com/dtauraso/wirefold/src/Node/movemsg"
 	"github.com/dtauraso/wirefold/src/Polar/polarindex"
 
-	B "github.com/dtauraso/wirefold/src/Buffer"
 )
 
 func (m *NodeGeometry) take(msg movemsg.Msg) {
@@ -68,8 +68,8 @@ func (m *NodeGeometry) takeDragOfSelf(msg movemsg.Msg) {
 	m.msg.CommitLocal(m.id, movedIdx)
 	newPos := m.SceneCenter().Add(polar.Polar2cart(polarindex.ToPolar(movedIdx, m.Constants())))
 
-	m.writeStreamFrame([]B.RowEvent{{
-		Kind: B.KindBreadcrumb, Label: B.BreadcrumbDragCommit, Debug: 1,
+	m.writeStreamFrame([]T.RowEvent{{
+		Kind: T.KindBreadcrumb, Label: T.BreadcrumbDragCommit, Debug: 1,
 		NodeRow: m.stream.NodeRow(), PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 		X: newPos.X, Y: newPos.Y, Z: newPos.Z,
 	}})

@@ -1,11 +1,11 @@
 package gesture
 
 import (
+	T "github.com/dtauraso/wirefold/src/Trace"
 	"fmt"
 	"math"
 
 	"github.com/dtauraso/wirefold/src/Chrome/Pills/FitButton"
-	B "github.com/dtauraso/wirefold/src/Buffer"
 
 	"github.com/dtauraso/wirefold/src/Camera"
 	"github.com/dtauraso/wirefold/src/Input/gesturefsm"
@@ -44,8 +44,8 @@ func gestPointerDown(d Deps, ev inputcodec.RawInputMsg) {
 		h(d, g, ev)
 	}
 
-	d.UI.EmitBreadcrumb(B.RowEvent{
-		Label: B.BreadcrumbPointerDown, NodeRow: -1, PortRow: -1, TargetRow: -1,
+	d.UI.EmitBreadcrumb(T.RowEvent{
+		Label: T.BreadcrumbPointerDown, NodeRow: -1, PortRow: -1, TargetRow: -1,
 		TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 		Value: int32(ev.Button),
 		Text: fmt.Sprintf("hit=%q empty=%t handhold=%t node=%q xy=%.0f,%.0f rect=%.0f,%.0f,%.0fx%.0f pxPerRad=%.2f",

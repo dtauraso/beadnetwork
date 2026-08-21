@@ -44,10 +44,9 @@
   loop. The kind's own job receives values over its input channel, holds them in node-local
   state until its firing rule is satisfied, then fires.
 
-  Held values live in node-local state. (That is a different concept from the buffer's `Slot`
-  column — `src/Buffer/row_event.go`, `events_section.go`, `layout_version.go` —
-  which is a live 2×2 interior VISUAL grid position, `slot = gridRow*2 + gridCol`, for where a
-  held bead is drawn inside a node.)
+  Held values live in node-local state. (That is a different concept from a trace event's `Slot`
+  field — `src/Trace/row_event.go` — which is a live 2×2 interior VISUAL grid position,
+  `slot = gridRow*2 + gridCol`, for where a held bead is drawn inside a node.)
 
 - **Node input.** A ROLE, not a place: declared by the node kind in its SPEC.md `## Ports`
   table — the one declaration, which the Go side reads generated — and bound to a channel at LOAD time (`a.In(...)`), never drawn and never hit-testable, and read

@@ -1,6 +1,7 @@
 package nodeactor
 
 import (
+	T "github.com/dtauraso/wirefold/src/Trace"
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/PolarRulesPanel"
 	"io"
 
@@ -12,7 +13,6 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/nodeactor/streamclaim"
 	"github.com/dtauraso/wirefold/src/Node/nodegeom"
 	"github.com/dtauraso/wirefold/src/Polar/polarindex"
-	B "github.com/dtauraso/wirefold/src/Buffer"
 )
 
 func (m *NodeGeometry) WireMessaging(
@@ -110,7 +110,7 @@ func (m *NodeGeometry) writeOutEdgeFrames(tick int64) {
 	m.outEdges.WriteFrames(tick, m.geom, &m.deltas)
 }
 
-func (m *NodeGeometry) WireInteriorStream(w io.Writer, row int32, buildFrame func(tick uint32, events []B.RowEvent) []byte, sceneRoot string) *interior.Emitter {
+func (m *NodeGeometry) WireInteriorStream(w io.Writer, row int32, buildFrame func(tick uint32, events []T.RowEvent) []byte, sceneRoot string) *interior.Emitter {
 	stream := interior.NewInteriorStream(w, buildFrame, row, interior.SlotsPerNode)
 	stream.SetValueWriter(interior.NewValueWriter(sceneRoot, int(row)))
 	mailbox := interior.NewMailbox(row)
