@@ -114,6 +114,16 @@ dist/
 /topology/view/overlays/
 /topology/view/panels/
 
+# The same state, now one block file per concern instead of a directory of
+# one-value files. The dirs above stay listed so an older scene tree is still
+# ignored while its leftovers sit there.
+/topology/view/overlays.bin
+/topology/view/panels.bin
+/topology/view/camera.bin
+/topology-pair/view/overlays.bin
+/topology-pair/view/panels.bin
+/topology-pair/view/camera.bin
+
 # One value, one file, for chrome Go draws rather than streams: each piece writes
 # its layout here every time it changes. It is DERIVED - Go recomputes the whole
 # piece from the model each frame - so it is the same not-for-VCS kind as the dirs
