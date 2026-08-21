@@ -58,10 +58,6 @@ export function buildWebviewHtml(
        since before this change. -->
   <div id="app"></div>
   <script nonce="${nonce}">
-    // A webview whose bundle never runs is INDISTINGUISHABLE from one that ran and
-    // drew nothing: the panel is blank either way, and every diagnostic we have is a
-    // postLog from inside the bundle, so it reports nothing at all. This says so on
-    // the panel itself. main.tsx sets the flag as its first act.
     setTimeout(function () {
       if (window.WIREFOLD_BOOTED) return;
       var app = document.getElementById("app");
