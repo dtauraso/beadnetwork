@@ -1,7 +1,7 @@
-import { columnI32 } from "../../../Buffer/column-values";
+import { columnBytes } from "../../../Buffer/column-values";
 import { nodeColumn } from "../../../Buffer/column-owners";
 import {
-  COL_STREAM_NODE_TOP_TILT_VECTOR_IDX,
+  COL_STREAM_NODE_TOP_TILT_VECTOR_TEXT,
 } from "../../../Node/columns-gen";
 import { canvasFont, roundRect } from "../../../webview/canvas-box";
 import { drawPill, drawPopoverBox, drawHeadingText, ROW_PAD_X } from "../pill";
@@ -15,12 +15,11 @@ import {
 const ROW_GAP = 2;
 const ARROW_PAD = 2;
 
-function stepperValue(shown: string, valueRow: number, denom: number): string {
+function stepperValue(shown: string, valueRow: number): string {
   if (valueRow < 0) return shown;
-  const idx = columnI32(nodeColumn(valueRow, COL_STREAM_NODE_TOP_TILT_VECTOR_IDX));
-  if (idx === 0) return "0";
-  const sign = idx < 0 ? "-" : "";
-  return `${sign}${Math.abs(idx)}π/${Math.max(1, denom)}`;
+  const text = columnBytes(nodeColumn(valueRow, COL_STREAM_NODE_TOP_TILT_VECTOR_TEXT));
+  if (!text) return shown;
+  return decodeAt(new Uint8Array(text.buffer, text.byteOffset, text.byteLength), 0, text.byteLength);
 }
 
 function drawArrow(
@@ -53,7 +52,7 @@ export function anglePillKey(): string {
     for (let i = 0; i < rows.length; i++) {
       const shown = decodeAt(shownText, off, shownLen[i]!);
       off += shownLen[i]!;
-      values.push(stepperValue(shown, rows[i]!, denom[i]!));
+      values.push(stepperValue(shown, rows[i]!));
     }
   }
   const groupOpen = anglePillBytes("groupOpen");
@@ -151,7 +150,7 @@ function drawSteppers(c: CanvasRenderingContext2D): void {
     const lineH = T.FONT_SIZE * 1.2;
     c.fillText(name, x[i]! + ROW_PAD_X, y[i]! + ARROW_PAD * 2);
     c.fillText(
-      stepperValue(shown, valueRow[i]!, denom[i]!),
+      stepperValue(shown, valueRow[i]!),
       x[i]! + ROW_PAD_X,
       y[i]! + ARROW_PAD * 2 + lineH + ROW_GAP,
     );

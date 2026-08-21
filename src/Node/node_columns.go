@@ -3,6 +3,7 @@ package Node
 import (
 	B "github.com/dtauraso/wirefold/src/Buffer"
 	"github.com/dtauraso/wirefold/src/Buffer/colstream"
+	"github.com/dtauraso/wirefold/src/Polar/polarindex"
 )
 
 func WriteNodeColumns(c *colstream.ColumnSet, f NodeStreamFrame) {
@@ -38,7 +39,8 @@ func WriteNodeColumns(c *colstream.ColumnSet, f NodeStreamFrame) {
 		c.SetF32(col, m[i])
 	}
 
-	c.SetI32(B.ColStreamNodeTopTiltVectorIdx, f.TopTiltVectorIdx)
+	c.SetBytes(B.ColStreamNodeTopTiltVectorText,
+		[]byte(polarindex.AngleText(f.TopTiltVectorIdx, int32(f.LatticePoints))))
 
 	c.SetU8(B.ColStreamNodeSelected, f.Selected)
 	c.SetU8(B.ColStreamNodeKindId, f.KindID)

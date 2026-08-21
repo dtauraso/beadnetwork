@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/Panel"
+	"github.com/dtauraso/wirefold/src/Polar/polarindex"
 )
 
 const (
@@ -56,18 +57,13 @@ type Layout struct {
 	Groups  []Group
 }
 
-func AngleDenom(points int32) int32 {
-	if points/2 < 1 {
-		return 1
-	}
-	return points / 2
-}
+func AngleDenom(points int32) int32 { return polarindex.AngleDenom(points) }
 
 func WidestAngle(points int32) string {
 	if points < 1 {
 		points = 1
 	}
-	return fmt.Sprintf("-%dπ/%d", points, AngleDenom(points))
+	return polarindex.AngleText(-points, points)
 }
 
 type Node struct {

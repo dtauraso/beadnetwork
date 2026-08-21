@@ -43,7 +43,7 @@ type bufLayoutNode struct {
 	RingM15 float32 `buf:"f32"`
 
 
-	TopTiltVectorIdx int32 `buf:"i32"`
+	TopTiltVectorText []byte `buf:"bytes"`
 
 	Selected uint8 `buf:"u8"`
 
