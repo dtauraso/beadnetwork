@@ -18,7 +18,10 @@ export function BufferLabelProjector() {
   const { camera, gl } = useThree();
 
   useFrame(() => {
-    if (overlayFlag("labelsGlobal")) {
+    // labelsGlobal means VISIBLE, as every flag does and as Go's
+    // LabelsGlobalVisible always did. It used to be read inverted here, so the
+    // TS flag meant "suppressed" and one flag in fifteen ran backwards.
+    if (!overlayFlag("labelsGlobal")) {
       setLabelPositions([]);
       return;
     }
