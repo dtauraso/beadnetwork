@@ -1,10 +1,6 @@
 import { BUF_EDGE_STREAM_FRAME_HEADER_SIZE } from "../../Buffer/frame-tags";
 import { STR_DECODER, decodeTrailingEvents, type DecodedEvents } from "../../webview/decode/buffer-decode-shared";
-import { columnBytes } from "../../Buffer/column-values";
-import { edgeColumn } from "../../Buffer/column-owners";
-import {
-  COL_STREAM_EDGE_LABEL,
-} from "./columns-gen";
+import { edgeBytes } from "./edge-leaves";
 
 export interface DecodedEdgeStreamFrame {
   tick: number;
@@ -38,7 +34,7 @@ function decodeEdgeStreamFrameUncached(buf: ArrayBuffer): DecodedEdgeStreamFrame
 
 export function edgeLabel(row: number): string {
   if (row < 0) return "";
-  const bytes = columnBytes(edgeColumn(row, COL_STREAM_EDGE_LABEL));
+  const bytes = edgeBytes(row, "label");
   if (!bytes || bytes.byteLength === 0) return "";
   return STR_DECODER.decode(new Uint8Array(bytes.buffer, bytes.byteOffset, bytes.byteLength));
 }
