@@ -14,10 +14,6 @@ func InstallOverlays(ui *viewstate.UIState, topologyPath string) {
 	ov, _ := Overlay.LoadSceneOverlays(dir)
 	ui.OV.SetGuideVisibility(ov)
 
-	// The files ARE what the renderer reads, so they hold Go's state from the
-	// start rather than only after the first toggle. On a fresh tree the
-	// defaults would otherwise live in Go alone, and the renderer would read
-	// nothing and draw a scene with every overlay off.
 	if err := Overlay.WriteSceneOverlays(dir, ui.OV); err != nil {
 		valuefile.LogPersistErr("install_overlays", dir, err)
 	}
