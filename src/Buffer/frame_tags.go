@@ -18,6 +18,4 @@ const BufInteriorStreamFrameHeaderSize = 4
 
 const BufBlockTagBeadStream byte = 8
 
-const BufBlockTagColumn byte = 9
-
 const BufBeadStreamFrameHeaderSize = 8

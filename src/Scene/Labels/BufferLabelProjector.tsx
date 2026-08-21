@@ -2,7 +2,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { nodeLabel } from "../../Node/buffer-decode-node";
 import { ndcToPixel } from "../../webview/interaction/geometry-helpers";
-import { ownerCounts } from "../../Buffer/column-owners";
+import { ownerCounts } from "../../Scene/owner-counts";
 import { nodeF32 } from "../../Node/node-leaves";
 import { overlayFlag } from "../../webview/flags/overlay-flags";
 import { setLabelPositions } from "./label-canvas";

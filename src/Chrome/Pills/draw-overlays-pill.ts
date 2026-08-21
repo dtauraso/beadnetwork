@@ -1,6 +1,6 @@
 import { canvasFont, roundRect } from "../../webview/canvas-box";
 import { drawPill, drawPopoverBox, drawHeadingText, ROW_PAD_X } from "./pill";
-import { decodeAt } from "../../Buffer/column-reads";
+import { decodeAt } from "../../webview/leaf-text";
 import * as T from "../../webview/canvas-theme";
 import {
   overlaysBytes, overlaysF32, overlaysU8, overlaysF32Run, overlaysU32Run, overlaysText,

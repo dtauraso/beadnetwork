@@ -18,7 +18,6 @@ func main() {
 
 	generateCurveParams(repoRoot, srcRoot)
 	generateShadingParams(repoRoot, srcRoot)
-	generateColumnStreams(repoRoot, srcRoot)
 	generateBufferLayout(repoRoot, srcRoot)
 	generateFrameTags(srcRoot)
 	generateTraceKinds(srcRoot)
@@ -65,28 +64,6 @@ func generateShadingParams(repoRoot, srcRoot string) {
 		genpaths.Fatalf("write %s: %v", tsPath, err)
 	}
 	genpaths.Announce(tsPath, len(shadingParams), "constants")
-}
-
-func generateColumnStreams(repoRoot, srcRoot string) {
-	schema, err := buflayout.ParseBufferLayoutTree(repoRoot)
-	if err != nil {
-		genpaths.Fatalf("parse buffer layout for column streams: %v", err)
-	}
-
-	goPath := filepath.Join(srcRoot, "Buffer", "column_streams_gen.go")
-	if err := buflayout.WriteColumnStreamsGo(goPath, schema); err != nil {
-		genpaths.Fatalf("write %s: %v", goPath, err)
-	}
-	tsPath := filepath.Join(srcRoot, "Buffer", "column-streams-gen.ts")
-	if err := buflayout.WriteColumnStreamsTS(tsPath, schema); err != nil {
-		genpaths.Fatalf("write %s: %v", tsPath, err)
-	}
-	perBlock, err := buflayout.WriteBlockColumnsTS(schema, tsPath)
-	if err != nil {
-		genpaths.Fatalf("write per-block columns: %v", err)
-	}
-	genpaths.Announce(goPath, 1, "column stream file")
-	genpaths.Announce(tsPath, len(perBlock), "per-block column files")
 }
 
 func generateBufferLayout(repoRoot, srcRoot string) {

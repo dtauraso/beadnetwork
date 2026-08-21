@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { ownerCounts } from "../../Buffer/column-owners";
+import { ownerCounts } from "../../Scene/owner-counts";
 import { nodeF32, nodeI32, nodeU8, NODE_RING_NAMES } from "../../Node/node-leaves";
 import { sceneSteps } from "../../Scene/scene-frame";
 import { NODE_SPHERE_RADIUS } from "../../webview/scene/buffer-scene-shared";

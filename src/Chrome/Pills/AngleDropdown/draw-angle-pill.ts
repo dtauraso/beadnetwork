@@ -1,7 +1,7 @@
 import { nodeBytes } from "../../../Node/node-leaves";
 import { canvasFont, roundRect } from "../../../webview/canvas-box";
 import { drawPill, drawPopoverBox, drawHeadingText, ROW_PAD_X } from "../pill";
-import { decodeAt } from "../../../Buffer/column-reads";
+import { decodeAt } from "../../../webview/leaf-text";
 import * as T from "../../../webview/canvas-theme";
 import {
   anglePillBytes, anglePillF32, anglePillU8, anglePillF32Run, anglePillI32Run,

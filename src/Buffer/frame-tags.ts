@@ -22,6 +22,4 @@ export const BUF_INTERIOR_STREAM_FRAME_HEADER_SIZE = 4;
 
 export const BUF_BLOCK_TAG_BEAD_STREAM = 8;
 
-export const BUF_BLOCK_TAG_COLUMN = 9;
-
 export const BUF_BEAD_STREAM_FRAME_HEADER_SIZE = 8;

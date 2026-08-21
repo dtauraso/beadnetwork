@@ -1,7 +1,6 @@
 package viewstate
 
 import (
-	"github.com/dtauraso/wirefold/src/Buffer/colstream"
 	"github.com/dtauraso/wirefold/src/Camera"
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/PolarRulesPanel"
 	"github.com/dtauraso/wirefold/src/Chrome/Pills/AngleDropdown"
@@ -16,10 +15,6 @@ import (
 	"github.com/dtauraso/wirefold/src/Chrome/Pills"
 	"github.com/dtauraso/wirefold/src/Chrome/Tabs"
 )
-
-func (ui *UIState) SetSingletonColumns(set *colstream.ColumnSet) {
-	ui.singletonCols = set
-}
 
 func (ui *UIState) SetSceneRoot(sceneRoot string) {
 	if sceneRoot == "" {
