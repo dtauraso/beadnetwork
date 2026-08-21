@@ -9,13 +9,11 @@ import (
 	SceneB "github.com/dtauraso/wirefold/src/Scene"
 )
 
-func wireViewStream(md *W.MoveDispatch, viewFile *os.File, viewStreamWired bool, sceneTabNames []string, sceneTabSelected int) {
+func wireViewStream(md *W.MoveDispatch, viewFile *os.File, viewStreamWired bool) {
 	if viewStreamWired {
 		md.UI.SetViewStream(viewFile,
 			func(tick uint32, events []B.RowEvent) []byte {
-				return SceneB.BuildViewStreamFrame(tick,
-					sceneTabNames, uint16(sceneTabSelected),
-					events)
+				return SceneB.BuildViewStreamFrame(tick, events)
 			})
 	}
 }

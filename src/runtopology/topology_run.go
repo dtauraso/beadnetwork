@@ -38,7 +38,7 @@ func RunTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 	md.UI.SceneTabSelected = sceneTabSelected
 	md.UI.SetSceneRoot(scenePath)
 	md.UI.WriteRingSurfaces(NodeShape.CanonicalRingSurfacePointsFlat(), bead.CanonicalRingSurfacePointsFlat())
-	wireViewStream(md, viewFile, viewStreamWired, sceneTabNames, sceneTabSelected)
+	wireViewStream(md, viewFile, viewStreamWired)
 	emitStartupBreadcrumbs(md, scenePath, len(nodes))
 	checkRowSeedCount(md, len(nodes))
 	loadSceneState(scenePath, md, speedSinks)
