@@ -136,6 +136,26 @@ dist/
 /topology/view/input/
 /topology-pair/view/input/
 
+# The per-tick scene, now that the content buffer's blocks cross as files: one
+# block file per owner under nodes/<row>/ and edges/<row>/, plus the singletons
+# beside them. Go rewrites every one of these from the model on the tick that
+# changes it, so they are DERIVED — the same not-for-VCS kind as chrome/ above,
+# and committing them would commit a moment mid-animation.
+/topology/view/nodes/
+/topology/view/edges/
+/topology-pair/view/nodes/
+/topology-pair/view/edges/
+/topology/view/owner-counts.bin
+/topology/view/pointer-target.bin
+/topology/view/ring-points.bin
+/topology/view/slider-panel.bin
+/topology/view/speed.bin
+/topology-pair/view/owner-counts.bin
+/topology-pair/view/pointer-target.bin
+/topology-pair/view/ring-points.bin
+/topology-pair/view/slider-panel.bin
+/topology-pair/view/speed.bin
+
 # Hook block log (local audit trail, not for VCS)
 .claude/hooks/go-blocks.log
 
