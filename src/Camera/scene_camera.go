@@ -3,7 +3,6 @@ package Camera
 import (
 	"math"
 
-	"github.com/dtauraso/wirefold/src/Scene/scenepaths"
 )
 
 func SeedInitialViewpoint(topologyPath string, setViewpoint func(pivot vec3, r float64, pos, up Dir), emitViewpoint func()) {
@@ -19,7 +18,7 @@ func SeedInitialViewpoint(topologyPath string, setViewpoint func(pivot vec3, r f
 }
 
 func LoadSceneViewpoint(topologyPath string) (pivot vec3, r float64, pos, up Dir, ok bool) {
-	v, ok := ReadSceneCamera(scenepaths.CameraDirPath(topologyPath))
+	v, ok := ReadSceneCamera(BlockPath(topologyPath))
 	if !ok {
 		return vec3{}, 0, Dir{}, Dir{}, false
 	}

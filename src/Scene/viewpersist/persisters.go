@@ -25,7 +25,7 @@ type Persisters struct {
 }
 
 func (p *Persisters) ArmViewpoint(topologyPath string) *Camera.ViewpointPersister {
-	vp := &Camera.ViewpointPersister{Dir: scenepaths.CameraDirPath(topologyPath)}
+	vp := &Camera.ViewpointPersister{Path: Camera.BlockPath(topologyPath)}
 	p.vp = vp
 	return vp
 }

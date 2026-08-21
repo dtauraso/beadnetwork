@@ -1,18 +1,15 @@
 import { FOCAL_PIXELS } from "./camera-consts";
 
-const VEC_LEN: Record<string, number> = { pivot: 3 };
-
-const PRIMITIVES = [
-  "pivot", "r",
-  "pos-phi", "pos-theta", "up-phi", "up-theta",
+const VALUE_NAMES = [
+  "pivotX", "pivotY", "pivotZ",
+  "r",
+  "posPhi", "posTheta",
+  "upPhi", "upTheta",
 ] as const;
 
-export type CameraPrimitive = (typeof PRIMITIVES)[number];
+type CameraValueName = (typeof VALUE_NAMES)[number];
 
-export type CameraPose = Record<Exclude<CameraPrimitive, "pivot">, number> & {
-  pivotX: number; pivotY: number; pivotZ: number;
-  focalPx: number;
-};
+export type CameraPose = Record<CameraValueName, number> & { focalPx: number };
 
 declare global {
   interface Window {
@@ -28,9 +25,11 @@ function bases(): { scene: string; src: string } | undefined {
   return { scene, src };
 }
 
-async function readText(url: string): Promise<string | undefined> {
+export async function loadCameraBlockPath(): Promise<string | undefined> {
+  const b = bases();
+  if (!b) return undefined;
   try {
-    const res = await fetch(url, { cache: "no-store" });
+    const res = await fetch(`${b.src}/Camera/paths/block.bin`, { cache: "default" });
     if (!res.ok) return undefined;
     return await res.text();
   } catch {
@@ -38,50 +37,28 @@ async function readText(url: string): Promise<string | undefined> {
   }
 }
 
-async function readFloats(url: string, n: number): Promise<number[] | undefined> {
+export async function readCameraPose(blockPath: string): Promise<CameraPose | undefined> {
+  const b = bases();
+  if (!b) return undefined;
+  let buf: ArrayBuffer;
   try {
-    const res = await fetch(url, { cache: "no-store" });
+    const res = await fetch(`${b.scene}/${blockPath}`, { cache: "no-store" });
     if (!res.ok) return undefined;
-    const buf = await res.arrayBuffer();
-    if (buf.byteLength !== n * 8) return undefined;
-    const dv = new DataView(buf);
-    const out: number[] = [];
-    for (let i = 0; i < n; i++) out.push(dv.getFloat64(i * 8, true));
-    return out;
+    buf = await res.arrayBuffer();
   } catch {
     return undefined;
   }
-}
 
-export async function loadCameraPaths(): Promise<Map<CameraPrimitive, string> | undefined> {
-  const b = bases();
-  if (!b) return undefined;
-  const out = new Map<CameraPrimitive, string>();
-  for (const name of PRIMITIVES) {
-    const rel = await readText(`${b.src}/Camera/paths/${name}.bin`);
-    if (rel === undefined) return undefined;
-    out.set(name, rel);
-  }
-  return out;
-}
-
-export async function readCameraPose(paths: Map<CameraPrimitive, string>): Promise<CameraPose | undefined> {
-  const b = bases();
-  if (!b) return undefined;
-  const rels = PRIMITIVES.map((name) => paths.get(name));
-  if (rels.some((rel) => rel === undefined)) return undefined;
-  const values = await Promise.all(
-    PRIMITIVES.map((name, i) => readFloats(`${b.scene}/${rels[i] ?? ""}`, VEC_LEN[name] ?? 1)),
-  );
+  const dv = new DataView(buf);
   const pose = { focalPx: FOCAL_PIXELS } as CameraPose;
-  for (const [i, name] of PRIMITIVES.entries()) {
-    const v = values[i];
-    if (v === undefined) return undefined;
-    if (name === "pivot") {
-      [pose.pivotX, pose.pivotY, pose.pivotZ] = [v[0] ?? 0, v[1] ?? 0, v[2] ?? 0];
-    } else {
-      pose[name] = v[0] ?? 0;
-    }
+  let off = 0;
+  for (const name of VALUE_NAMES) {
+    if (off + 4 > buf.byteLength) return undefined;
+    const len = dv.getUint32(off, true);
+    off += 4;
+    if (len < 8 || off + len > buf.byteLength) return undefined;
+    pose[name] = dv.getFloat64(off, true);
+    off += len;
   }
   return pose;
 }

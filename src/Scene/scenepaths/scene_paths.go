@@ -14,10 +14,6 @@ func SelectionFilePath(anchorPath string) string {
 	return ViewFilePath(anchorPath, filepath.Join("scene", "selected.bin"))
 }
 
-func CameraDirPath(topologyPath string) string {
-	return ViewFilePath(topologyPath, "camera")
-}
-
 func SpeedFilePath(topologyPath string) string {
 	return ViewFilePath(topologyPath, "speed.bin")
 }

@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { anglesToWorldOffset } from "./viewpoint-bridge";
-import { loadCameraPaths, readCameraPose, type CameraPose, type CameraPrimitive } from "./camera-leaves";
+import { loadCameraBlockPath, readCameraPose, type CameraPose } from "./camera-leaves";
 
 export function BufferCamera({ cameraRef }: {
   cameraRef?: React.MutableRefObject<THREE.PerspectiveCamera | null>;
@@ -13,12 +13,12 @@ export function BufferCamera({ cameraRef }: {
 
   useEffect(() => {
     let live = true;
-    let paths: Map<CameraPrimitive, string> | undefined;
+    let blockPath: string | undefined;
     const pump = async () => {
       while (live) {
-        paths ??= await loadCameraPaths();
-        if (paths) {
-          const pose = await readCameraPose(paths);
+        blockPath ??= await loadCameraBlockPath();
+        if (blockPath !== undefined) {
+          const pose = await readCameraPose(blockPath);
           if (pose) poseRef.current = pose;
         }
         await new Promise((r) => requestAnimationFrame(() => r(undefined)));
@@ -37,9 +37,9 @@ export function BufferCamera({ cameraRef }: {
 
     const pivot = pivotRef.current;
     pivot.set(pose.pivotX, pose.pivotY, pose.pivotZ);
-    const posOffset = anglesToWorldOffset(pose.r, pose["pos-phi"], pose["pos-theta"]);
+    const posOffset = anglesToWorldOffset(pose.r, pose.posPhi, pose.posTheta);
     cam.position.copy(pivot).add(posOffset);
-    const upDir = anglesToWorldOffset(1, pose["up-phi"], pose["up-theta"]).normalize();
+    const upDir = anglesToWorldOffset(1, pose.upPhi, pose.upTheta).normalize();
     cam.up.copy(upDir);
     cam.lookAt(pivot);
 
