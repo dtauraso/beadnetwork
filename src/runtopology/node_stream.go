@@ -24,8 +24,12 @@ func wireNodeStreams(streamFDs SW.StreamFDs, md *W.MoveDispatch, sceneRoot strin
 	cols := SW.NewColumnStreams(streamFDs, len(md.RT.NodeRowTable), len(md.RT.EdgeRowTable))
 
 	beadValues := make([]*BeadB.ValueWriter, len(md.RT.NodeRowTable))
+	tiltValues := make([]*TiltB.ValueWriter, len(md.RT.NodeRowTable))
+	vecValues := make([]*VecB.ValueWriter, len(md.RT.NodeRowTable))
 	for row := range beadValues {
 		beadValues[row] = BeadB.NewValueWriter(sceneRoot, row)
+		tiltValues[row] = TiltB.NewValueWriter(sceneRoot, row)
+		vecValues[row] = VecB.NewValueWriter(sceneRoot, row)
 	}
 
 	nodeSets := map[int32]*colstream.ColumnSet{}
@@ -118,8 +122,14 @@ func wireNodeStreams(streamFDs SW.StreamFDs, md *W.MoveDispatch, sceneRoot strin
 					}
 
 					NodeKind.WriteNodeColumns(nodeCols(f.NodeRow), frame)
-					TiltB.WriteTiltArrowColumns(nodeCols(f.NodeRow), frame.TiltArrows)
-					VecB.WriteChannelVectorColumns(nodeCols(f.NodeRow), frame.ChannelVectors)
+					if int(f.NodeRow) < len(tiltValues) {
+						if err := TiltB.WriteTiltArrowValues(tiltValues[f.NodeRow], frame.TiltArrows); err != nil {
+							fmt.Fprintf(os.Stderr, "tilt arrow values write (node row %d): %v\n", f.NodeRow, err)
+						}
+						if err := VecB.WriteChannelVectorValues(vecValues[f.NodeRow], frame.ChannelVectors); err != nil {
+							fmt.Fprintf(os.Stderr, "channel vector values write (node row %d): %v\n", f.NodeRow, err)
+						}
+					}
 					return NodeKind.BuildNodeStreamFrame(frame)
 				},
 				func(tick uint32, events []B.RowEvent) []byte {
