@@ -11,6 +11,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/TiltPanel"
 	"github.com/dtauraso/wirefold/src/RingPoint"
 	"github.com/dtauraso/wirefold/src/Chrome/Panels"
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
 	"github.com/dtauraso/wirefold/src/valuefile"
 	"github.com/dtauraso/wirefold/src/Chrome/Pills"
 	"github.com/dtauraso/wirefold/src/Chrome/Tabs"
@@ -33,6 +34,7 @@ func (ui *UIState) SetSceneRoot(sceneRoot string) {
 	ui.overlaysPillValues = Pills.NewValueWriter(sceneRoot)
 	ui.ringPointValues = RingPoint.NewValueWriter(sceneRoot)
 	ui.pointerTargetValues = Panels.NewValueWriter(sceneRoot)
+	ui.sliderPanelValues = SliderPanel.NewValueWriter(sceneRoot)
 }
 
 func (ui *UIState) writeSceneColumns() {

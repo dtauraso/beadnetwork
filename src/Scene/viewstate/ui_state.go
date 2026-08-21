@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/dtauraso/wirefold/src/Chrome/Panels"
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/Panel"
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
 	"github.com/dtauraso/wirefold/src/Overlay"
 	"math"
 	"os"
@@ -49,6 +50,7 @@ type UIState struct {
 	overlaysPillValues *Pills.ValueWriter
 	ringPointValues    *RingPoint.ValueWriter
 	pointerTargetValues *Panels.ValueWriter
+	sliderPanelValues   *SliderPanel.ValueWriter
 	fitChipValues   *FitButton.ValueWriter
 
 	OwnerCounts struct{ Nodes, Edges int32 }

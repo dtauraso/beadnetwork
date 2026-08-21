@@ -8,23 +8,21 @@ paths:
 
 # Content buffer schema — adding or changing a column
 
-**A block's columns live in the directory of the thing they describe.** The speed slider's
-columns are `src/Chrome/Panels/SliderPanel/buffer_block.go`, and so on — a column is part of
+**A block's columns live in the directory of the thing they describe** — a column is part of
 its concern, not part of a schema directory.
 
-Chrome has left the buffer, and so has the geometry that was per-row. Each of these crosses
-as a block FILE whose layout is its generated value list, found through that piece's
-`paths/block.bin`: the rules panel, both dropdowns, the tab strip, the fit chip, the tilt
-panel, the overlays popover, the pointer target, the interior beads (one file per node) and
-the edges (one file per edge). The row sits in the PATH, not in the file, so the goroutine
-that owned the stream is still the only writer.
+**Chrome has left the buffer entirely**, and so has the geometry that was per-row. Each of
+these crosses as a block FILE whose layout is its generated value list, found through that
+piece's `paths/block.bin`: the rules panel, both dropdowns, the tab strip, the fit chip, the
+tilt panel, the overlays popover, the pointer target, the speed slider, the interior beads
+(one file per node) and the edges (one file per edge). The row sits in the PATH, not in the
+file, so the goroutine that owned the stream is still the only writer.
 
 **The read cadence is the reason a file can serve any of them.** `makeLeafValues` and
 `makeRowLeafValues` take `"interval"` (a hundred milliseconds, for what changes at human
-speed) or `"frame"` (requestAnimationFrame, for what follows the cursor or a tick). One
-chrome block remains — the speed slider, which is dragged. Everything else in the buffer is
-the per-tick geometry it exists for: the model blocks (Node, Camera, Scene…) and the trace
-events.
+speed) or `"frame"` (requestAnimationFrame, for what follows the cursor, a drag, or a tick).
+What remains in the buffer is the per-tick geometry it exists for: the model blocks (Node,
+Camera, Scene…) and the trace events.
 
 The generator does not need telling where they are. It walks the repo for `bufLayout*`
 structs, so a block is found by BEING one — a list of locations would be a second

@@ -33,7 +33,6 @@ type BufLayoutSchema struct {
 var bufBlockOrder = []string{
 	"Node", "EdgeBead", "TiltArrow", "ChannelVector", "Scene",
 	"Recv", "Fire", "Send", "Arrive", "Breadcrumb",
-	"SpeedPanel",
 }
 
 func ParseBufferLayoutTree(root string) (BufLayoutSchema, error) {

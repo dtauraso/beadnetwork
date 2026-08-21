@@ -7,7 +7,7 @@ const ColumnsPerNodeStream = 135
 
 const ColumnsPerEdgeStream = 0
 
-const ColumnsInSingletonStreams = 19
+const ColumnsInSingletonStreams = 2
 
 // ColumnStreamCount is every column channel a scene of this size needs.
 func ColumnStreamCount(nodes, edges int) int {
@@ -22,7 +22,6 @@ const ColStreamBaseChannelVector = 103
 const ColStreamBaseEdge = 0
 const ColStreamBaseCamera = 0
 const ColStreamBaseScene = 0
-const ColStreamBaseSpeedPanel = 2
 
 const ColStreamNodeIndexR = ColStreamBaseNode + 0
 const ColStreamNodeIndexPhi = ColStreamBaseNode + 1
@@ -161,20 +160,3 @@ const ColStreamChannelVectorHeadM14 = ColStreamBaseChannelVector + 30
 const ColStreamChannelVectorHeadM15 = ColStreamBaseChannelVector + 31
 const ColStreamSceneNodeCount = ColStreamBaseScene + 0
 const ColStreamSceneEdgeCount = ColStreamBaseScene + 1
-const ColStreamSpeedPanelBoxX = ColStreamBaseSpeedPanel + 0
-const ColStreamSpeedPanelBoxY = ColStreamBaseSpeedPanel + 1
-const ColStreamSpeedPanelBoxW = ColStreamBaseSpeedPanel + 2
-const ColStreamSpeedPanelBoxH = ColStreamBaseSpeedPanel + 3
-const ColStreamSpeedPanelRectX = ColStreamBaseSpeedPanel + 4
-const ColStreamSpeedPanelRectY = ColStreamBaseSpeedPanel + 5
-const ColStreamSpeedPanelRectW = ColStreamBaseSpeedPanel + 6
-const ColStreamSpeedPanelRectH = ColStreamBaseSpeedPanel + 7
-const ColStreamSpeedPanelSelected = ColStreamBaseSpeedPanel + 8
-const ColStreamSpeedPanelNumText = ColStreamBaseSpeedPanel + 9
-const ColStreamSpeedPanelNumLen = ColStreamBaseSpeedPanel + 10
-const ColStreamSpeedPanelDenText = ColStreamBaseSpeedPanel + 11
-const ColStreamSpeedPanelDenLen = ColStreamBaseSpeedPanel + 12
-const ColStreamSpeedPanelTrackX = ColStreamBaseSpeedPanel + 13
-const ColStreamSpeedPanelTrackY = ColStreamBaseSpeedPanel + 14
-const ColStreamSpeedPanelTrackW = ColStreamBaseSpeedPanel + 15
-const ColStreamSpeedPanelTrackH = ColStreamBaseSpeedPanel + 16
