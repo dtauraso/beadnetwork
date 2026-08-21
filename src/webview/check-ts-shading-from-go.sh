@@ -54,7 +54,7 @@ for prop in "${PROPS[@]}"; do
     [[ $skip -eq 1 ]] && continue
 
     if [[ "$prop" == "metalness" || "$prop" == "emissiveIntensity" ]] \
-      && printf '%s' "$line" | grep -qE "${prop}=\{0\}|${prop}:[[:space:]]*0([^0-9.]|\$)"; then
+      && grep -qE "${prop}=\{0\}|${prop}:[[:space:]]*0([^0-9.]|\$)" <<< "$line"; then
       continue
     fi
     printf '%s  (forbidden shading literal: prop "%s" assigned a numeric literal — must reference a shading-params.ts import)\n' "$line" "$prop"

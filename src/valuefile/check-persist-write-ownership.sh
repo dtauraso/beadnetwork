@@ -60,7 +60,7 @@ while IFS= read -r hit; do
   file="${hit%%:*}"; rest="${hit#*:}"; lineno="${rest%%:*}"; content="${rest#*:}"
   base="${file##*/}"
 
-  if printf '%s\n' "$content" | grep -qE '^[[:space:]]*func[[:space:]]+(\([^)]*\)[[:space:]]+)?(writeJSONAtomic|entityReadModifyWrite)[[:space:]]*\('; then
+  if grep -qE '^[[:space:]]*func[[:space:]]+(\([^)]*\)[[:space:]]+)?(writeJSONAtomic|entityReadModifyWrite)[[:space:]]*\(' <<< "$content"; then
     continue
   fi
   TOTAL_CALLS=$((TOTAL_CALLS + 1))

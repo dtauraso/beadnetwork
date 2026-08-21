@@ -90,7 +90,7 @@ while read -r kind attr; do
 $(var_block "$tbl" || true)"
   done
 
-  if ! printf '%s\n' "$BODY" | grep -qF "\"$attr\""; then
+  if ! grep -qF "\"$attr\"" <<< "$BODY"; then
     echo "check-input-attr-dispatched: attr \"$attr\" on entity \"$kind\" is DECODED but never"
     echo "  DISPATCHED: $handler (and any *AttrHandlers table it routes through) never mentions"
     echo "  \"$attr\". The edit crosses the wire intact and is then silently ignored — the click"

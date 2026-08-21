@@ -7,7 +7,7 @@ input="$(cat)"
 cmd="$(printf '%s' "$input" | jq -r '.tool_input.command // empty')"
 
 if [ -z "$cmd" ]; then exit 0; fi
-if ! printf '%s' "$cmd" | grep -Eq '(^|[;&|[:space:]])git[[:space:]]+commit([[:space:]]|$)'; then
+if ! grep -Eq '(^|[;&|[:space:]])git[[:space:]]+commit([[:space:]]|$)' <<< "$cmd"; then
   exit 0
 fi
 

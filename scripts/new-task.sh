@@ -14,7 +14,7 @@ DESC="${2:-}"
 case "$NAME" in
   task/*) die "pass the SHORT name, not the branch: '${NAME#task/}' rather than '$NAME'" ;;
 esac
-printf '%s' "$NAME" | grep -Eq '^[a-z0-9]+(-[a-z0-9]+)*$' \
+grep -Eq '^[a-z0-9]+(-[a-z0-9]+)*$' <<< "$NAME" \
   || die "name must be lower-case kebab (a-z, 0-9, single hyphens): got '$NAME'"
 
 BRANCH="task/$NAME"

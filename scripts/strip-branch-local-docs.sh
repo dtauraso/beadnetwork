@@ -19,12 +19,12 @@ matched=()
 while IFS= read -r -d '' file; do
   head10=$(head -10 "$file" 2>/dev/null || true)
 
-  if echo "$head10" | grep -qE "^branch: ${BRANCH}$"; then
+  if grep -qE "^branch: ${BRANCH}$" <<< "$head10"; then
     matched+=("$file")
     continue
   fi
 
-  if echo "$head10" | grep -qE "^[[:space:]]*<!--[[:space:]]*branch:[[:space:]]*${BRANCH}[[:space:]]*-->[[:space:]]*$"; then
+  if grep -qE "^[[:space:]]*<!--[[:space:]]*branch:[[:space:]]*${BRANCH}[[:space:]]*-->[[:space:]]*$" <<< "$head10"; then
     matched+=("$file")
   fi
 done < <(find "$DOCS_DIR" -type f \( -name "*.md" -o -name "*.html" \) -print0)

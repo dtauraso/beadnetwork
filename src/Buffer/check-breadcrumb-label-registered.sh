@@ -55,7 +55,7 @@ while IFS= read -r hit; do
   [[ -z "$hit" ]] && continue
   loc="${hit%%:.Breadcrumb*}"
   label="$(echo "$hit" | grep -oE '"[^"]*"' | tr -d '"')"
-  if ! printf '%s\n' "$REGISTERED" | grep -qxF "$label"; then
+  if ! grep -qxF "$label" <<< "$REGISTERED"; then
     report+="  $loc: label \"$label\" is not in Trace.BreadcrumbLabels"$'\n'
     MISSING=$((MISSING + 1))
   fi

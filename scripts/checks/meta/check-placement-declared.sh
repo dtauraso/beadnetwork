@@ -22,7 +22,9 @@ if [ "${#guards[@]}" -eq 0 ]; then
   exit 1
 fi
 
-dupes="$(printf '%s\n' "${guards[@]}" | xargs -n1 basename | sort | uniq -d)"
+basenames=()
+for g in "${guards[@]}"; do basenames+=("${g##*/}"); done
+dupes="$(printf '%s\n' "${basenames[@]}" | sort | uniq -d)"
 if [ -n "$dupes" ]; then
   echo "check-placement-declared: FAIL — guard basename(s) used more than once:"
   printf '%s\n' "$dupes" | sed 's/^/  /'

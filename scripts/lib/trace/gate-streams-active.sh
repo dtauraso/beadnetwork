@@ -36,7 +36,7 @@ check_streams_active_gate() {
     local h content_lc
     for h in "${guard_hits2[@]}"; do
       content_lc="$(echo "$h" | tr '[:upper:]' '[:lower:]')"
-      if echo "$content_lc" | grep -qi "breadcrumb"; then
+      if grep -qi "breadcrumb" <<< "$content_lc"; then
         fail=1
         report+="A guarding use of $IDENT2 mentions breadcrumb — this flag must never gate"$'\n'
         report+="breadcrumb emission:"$'\n'
@@ -51,7 +51,7 @@ check_streams_active_gate() {
       glineno="${rest%%:*}"
       window_end=$((glineno + 3))
       window="$(sed -n "${glineno},${window_end}p" "$gfile")"
-      if ! echo "$window" | grep -qE "KindEdgeBead|KindArrive"; then
+      if ! grep -qE "KindEdgeBead|KindArrive" <<< "$window"; then
         fail=1
         report+="A guarding use of $IDENT2 is not tied to KindEdgeBead or KindArrive:"$'\n'
         report+="  $h"$'\n'

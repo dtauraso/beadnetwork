@@ -42,8 +42,8 @@ for k in "${kinds[@]}"; do
   grep -qE "streamFDs\[[A-Za-z_][A-Za-z0-9_]*\.$k\]" $MAIN_FILE || continue
   checked=$((checked + 1))
 
-  if ! grep -F 'stream-fd mismatch' $MAIN_FILE | grep -qE "[A-Za-z_][A-Za-z0-9_]*\.$k\b"; then
-    if ! grep -A6 'stream-fd mismatch' $MAIN_FILE | grep -qE "[A-Za-z_][A-Za-z0-9_]*\.$k\b"; then
+  if ! grep -qE "[A-Za-z_][A-Za-z0-9_]*\.$k\b" <<< "$(grep -F 'stream-fd mismatch' $MAIN_FILE)"; then
+    if ! grep -qE "[A-Za-z_][A-Za-z0-9_]*\.$k\b" <<< "$(grep -A6 'stream-fd mismatch' $MAIN_FILE)"; then
       missing="$missing $k"
     fi
   fi

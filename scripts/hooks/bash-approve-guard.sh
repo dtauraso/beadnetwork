@@ -72,13 +72,13 @@ NETWORK_PATTERNS=(
 )
 
 for pat in "${CATASTROPHIC_PATTERNS[@]}"; do
-  if printf '%s' "$cmd" | grep -Eq "$pat"; then emit deny "catastrophic command blocked"; exit 0; fi
+  if grep -Eq "$pat" <<< "$cmd"; then emit deny "catastrophic command blocked"; exit 0; fi
 done
 for pat in "${DESTRUCTIVE_PATTERNS[@]}"; do
-  if printf '%s' "$cmd" | grep -Eq "$pat"; then exit 0; fi
+  if grep -Eq "$pat" <<< "$cmd"; then exit 0; fi
 done
 for pat in "${NETWORK_PATTERNS[@]}"; do
-  if printf '%s' "$cmd" | grep -Eq "$pat"; then exit 0; fi
+  if grep -Eq "$pat" <<< "$cmd"; then exit 0; fi
 done
 emit allow "no flagged pattern matched"
 exit 0

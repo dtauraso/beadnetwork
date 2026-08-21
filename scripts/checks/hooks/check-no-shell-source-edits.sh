@@ -24,8 +24,8 @@ WRITE_CALL_RE="\.write[[:alnum:]_]*\(|open\([^)]*['\"][wa]|write_text\(|writeFil
 mechanism=""
 
 if [ -z "$mechanism" ] \
-  && printf '%s' "$cmd" | grep -Eq "$INPLACE_RE" \
-  && printf '%s' "$cmd" | grep -Eq "$WRITE_CALL_RE"; then
+  && grep -Eq "$INPLACE_RE" <<< "$cmd" \
+  && grep -Eq "$WRITE_CALL_RE" <<< "$cmd"; then
   mechanism="an inline script that writes a file"
 fi
 targets="$(printf '%s' "$cmd" | grep -Eo '>>?[[:space:]]*[^&[:space:]]+|(^|[;&|(])[[:space:]]*tee[[:space:]]+(-a[[:space:]]+)?[^[:space:]]+' | sed -E 's/^.*(>|tee)[[:space:]]*//; s/^-a[[:space:]]+//')"
@@ -43,7 +43,7 @@ stripped="$(printf '%s' "$scan" \
 
 SOURCE_RE='[^[:space:]"'"'"'<>|;&()]+\.(go|ts|tsx|js|jsx|css|html|json|md|sh|py|mod|sum)([[:space:]"'"'"'<>|;&)]|$)'
 
-if ! printf '%s' "$stripped" | grep -Eq "$SOURCE_RE"; then
+if ! grep -Eq "$SOURCE_RE" <<< "$stripped"; then
   emit allow "write mechanism, but no source path targeted"; exit 0
 fi
 
