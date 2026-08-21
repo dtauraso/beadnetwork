@@ -17,7 +17,6 @@ export function PaneSizeSync() {
     const w = Math.max(1, doc.clientWidth);
     const h = Math.max(1, doc.clientHeight);
     if (w === Math.round(size.width) && h === Math.round(size.height)) return;
-    if (w <= APPEARS_COLLAPSED_W && h <= APPEARS_COLLAPSED_H) return;
 
     const site = `${size.width}x${size.height}->${w}x${h}`;
     if (site !== lastReport.current) {
