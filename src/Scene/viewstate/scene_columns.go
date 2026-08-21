@@ -7,25 +7,17 @@ import (
 	B "github.com/dtauraso/wirefold/src/Buffer"
 	"github.com/dtauraso/wirefold/src/Buffer/colstream"
 	"github.com/dtauraso/wirefold/src/Camera"
-	"github.com/dtauraso/wirefold/src/Polar/polar"
 )
 
 func (ui *UIState) SetSingletonColumns(set *colstream.ColumnSet) {
 	ui.singletonCols = set
 }
 
-func (ui *UIState) writeSceneColumns(sc polar.SceneSphere) {
+func (ui *UIState) writeSceneColumns() {
 	c := ui.singletonCols
 	if c == nil {
 		return
 	}
-	c.SetF32(B.ColStreamSceneCX, float32(sc.Center.X))
-	c.SetF32(B.ColStreamSceneCY, float32(sc.Center.Y))
-	c.SetF32(B.ColStreamSceneCZ, float32(sc.Center.Z))
-	c.SetF32(B.ColStreamSceneRadius, float32(sc.Radius))
-	c.SetF32(B.ColStreamSceneConstantR, float32(ui.Constants.ConstantR))
-	c.SetI32(B.ColStreamSceneMaxIndexPhi, int32(ui.Constants.MaxIndexPhi))
-	c.SetI32(B.ColStreamSceneMaxIndexTheta, int32(ui.Constants.MaxIndexTheta))
 	c.SetI32(B.ColStreamSceneNodeCount, ui.OwnerCounts.Nodes)
 	c.SetI32(B.ColStreamSceneEdgeCount, ui.OwnerCounts.Edges)
 }

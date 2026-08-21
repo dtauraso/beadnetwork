@@ -18,10 +18,6 @@ func CameraDirPath(topologyPath string) string {
 	return ViewFilePath(topologyPath, "camera")
 }
 
-func SphereDirPath(topologyPath string) string {
-	return ViewFilePath(topologyPath, "sphere")
-}
-
 func SpeedFilePath(topologyPath string) string {
 	return ViewFilePath(topologyPath, "speed.bin")
 }

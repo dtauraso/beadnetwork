@@ -38,7 +38,7 @@ func (p *Persisters) ArmEdit(topologyPath string) {
 		Path: topologyPath, Write: Panel.WriteScenePanels, Tag: "scene_panels_persist",
 	}
 	p.sphere = &scenepersist.Persister[polar.SceneSphere]{
-		Path: scenepaths.SphereDirPath(topologyPath), Write: scenepersist.WriteSceneSphere, Tag: "scene_sphere_persist",
+		Path: topologyPath, Write: scenepersist.WriteSceneSphere, Tag: "scene_sphere_persist",
 	}
 	p.speed = &scenepersist.Persister[float64]{
 		Path: scenepaths.SpeedFilePath(topologyPath), Write: scenepersist.WriteSceneSpeed, Tag: "scene_speed_persist",

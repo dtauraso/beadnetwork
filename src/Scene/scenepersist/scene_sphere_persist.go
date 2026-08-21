@@ -1,41 +1,31 @@
 package scenepersist
 
 import (
-	"path/filepath"
-
 	"github.com/dtauraso/wirefold/src/Polar/polar"
 	"github.com/dtauraso/wirefold/src/runtopology/geomseeds"
 	"github.com/dtauraso/wirefold/src/valuefile"
-	"github.com/dtauraso/wirefold/src/Scene/scenepaths"
+	"github.com/dtauraso/wirefold/src/Scene"
 	"github.com/dtauraso/wirefold/src/Scene/viewstate"
 )
 
-const (
-	FileSphereCX     = "cx.bin"
-	FileSphereCY     = "cy.bin"
-	FileSphereCZ     = "cz.bin"
-	FileSphereRadius = "radius.bin"
-)
-
 func LoadSceneSphere(topologyPath string) (polar.SceneSphere, bool) {
-	dir := scenepaths.SphereDirPath(topologyPath)
 	var s polar.SceneSphere
 	read := func(name string, dst *float64) bool {
-		return valuefile.ReadIfExists(filepath.Join(dir, name), dst)
+		return valuefile.ReadIfExists(Scene.SceneValuePath(topologyPath, name), dst)
 	}
-	if !read(FileSphereCX, &s.Center.X) || !read(FileSphereCY, &s.Center.Y) ||
-		!read(FileSphereCZ, &s.Center.Z) || !read(FileSphereRadius, &s.Radius) {
+	if !read("cx", &s.Center.X) || !read("cy", &s.Center.Y) ||
+		!read("cz", &s.Center.Z) || !read("radius", &s.Radius) {
 		return polar.SceneSphere{}, false
 	}
 	return s, true
 }
 
-func WriteSceneSphere(sphereDir string, s polar.SceneSphere) error {
+func WriteSceneSphere(sceneRoot string, s polar.SceneSphere) error {
 	for name, value := range map[string]float64{
-		FileSphereCX: s.Center.X, FileSphereCY: s.Center.Y, FileSphereCZ: s.Center.Z,
-		FileSphereRadius: s.Radius,
+		"cx": s.Center.X, "cy": s.Center.Y, "cz": s.Center.Z,
+		"radius": s.Radius,
 	} {
-		if err := valuefile.WriteAtomicIfChanged(filepath.Join(sphereDir, name), value); err != nil {
+		if err := valuefile.WriteAtomicIfChanged(Scene.SceneValuePath(sceneRoot, name), value); err != nil {
 			return err
 		}
 	}
@@ -50,7 +40,7 @@ func InstallSceneSphere(ui *viewstate.UIState, gs *geomseeds.GeomSeeds, topology
 		ui.SceneSphere = polar.ContentFitSceneSphere(gs.LoadTimeCenters())
 
 		if topologyPath != "" {
-			_ = WriteSceneSphere(scenepaths.SphereDirPath(topologyPath), ui.SceneSphere)
+			_ = WriteSceneSphere(topologyPath, ui.SceneSphere)
 		}
 	}
 

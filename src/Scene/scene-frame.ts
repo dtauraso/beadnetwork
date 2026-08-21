@@ -1,9 +1,4 @@
-import { columnF32, columnI32 } from "../Buffer/column-values";
-import {
-  COL_STREAM_SCENE_CX, COL_STREAM_SCENE_CY, COL_STREAM_SCENE_CZ, COL_STREAM_SCENE_RADIUS,
-  COL_STREAM_SCENE_CONSTANT_R, COL_STREAM_SCENE_MAX_INDEX_PHI,
-  COL_STREAM_SCENE_MAX_INDEX_THETA,
-} from "./columns-gen";
+import { sceneValue, startSceneReads } from "./scene-leaves";
 
 export interface SceneSteps {
   centerX: number;
@@ -16,19 +11,24 @@ export interface SceneSteps {
   constantTheta: number;
 }
 
+function read(name: string): number {
+  startSceneReads();
+  return sceneValue(name);
+}
+
 export function sceneSteps(): SceneSteps {
-  const maxPhi = columnI32(COL_STREAM_SCENE_MAX_INDEX_PHI);
-  const maxTheta = columnI32(COL_STREAM_SCENE_MAX_INDEX_THETA);
+  const maxPhi = read("maxIndexPhi");
+  const maxTheta = read("maxIndexTheta");
   return {
-    centerX: columnF32(COL_STREAM_SCENE_CX),
-    centerY: columnF32(COL_STREAM_SCENE_CY),
-    centerZ: columnF32(COL_STREAM_SCENE_CZ),
-    constantR: columnF32(COL_STREAM_SCENE_CONSTANT_R),
+    centerX: read("cx"),
+    centerY: read("cy"),
+    centerZ: read("cz"),
+    constantR: read("constantR"),
     constantPhi: maxPhi === 0 ? 0 : (2 * Math.PI) / maxPhi,
     constantTheta: maxTheta === 0 ? 0 : (2 * Math.PI) / maxTheta,
   };
 }
 
 export function sceneRadius(): number {
-  return columnF32(COL_STREAM_SCENE_RADIUS);
+  return read("radius");
 }
