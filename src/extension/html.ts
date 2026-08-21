@@ -2,15 +2,27 @@ import * as crypto from "crypto";
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
+import { SCENES } from "../Scene/scenes-gen";
 
 export function buildWebviewHtml(
   webview: vscode.Webview,
   extensionPath: string,
   scenePath: string,
+  anchorPath?: string,
 ): string {
   const scriptPath = path.join(extensionPath, "out", "webview.js");
   const sceneBase = webview.asWebviewUri(vscode.Uri.file(scenePath)).toString();
   const srcBase = webview.asWebviewUri(vscode.Uri.file(path.join(extensionPath, "src"))).toString();
+
+  const anchor = anchorPath ?? scenePath;
+  const anchorBase = webview.asWebviewUri(vscode.Uri.file(anchor)).toString();
+  const container = path.dirname(anchor);
+  const sceneBases: Record<string, string> = {};
+  for (const scene of SCENES) {
+    sceneBases[scene.name] = webview
+      .asWebviewUri(vscode.Uri.file(path.join(container, scene.dir)))
+      .toString();
+  }
 
   const scriptUri = webview
     .asWebviewUri(vscode.Uri.file(scriptPath))
@@ -47,6 +59,8 @@ export function buildWebviewHtml(
   <script nonce="${nonce}">
     window.WIREFOLD_SCENE_BASE = "${sceneBase}";
     window.WIREFOLD_SRC_BASE = "${srcBase}";
+    window.WIREFOLD_ANCHOR_BASE = "${anchorBase}";
+    window.WIREFOLD_SCENE_BASES = ${JSON.stringify(sceneBases)};
   </script>
   <script nonce="${nonce}" src="${scriptUri.toString()}"></script>
 </body>
