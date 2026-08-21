@@ -6,10 +6,12 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 cd "$REPO_ROOT"
 
-FOUND=$(find . -name 'check-*.sh' -type f \
-  -not -path '*/node_modules/*' \
-  -not -path '*/out/*' \
-  -not -path '*/.git/*' \
+# -prune, not -not -path: the scene's view/ tree is rewritten constantly through
+# tmp+rename, so a walk that DESCENDS into it hits entries that vanish mid-walk
+# and exits nonzero, which under set -e kills this script with no output.
+FOUND=$(find . \
+  -type d \( -name node_modules -o -name out -o -name .git -o -name view \) -prune -o \
+  -name 'check-*.sh' -type f -print \
   | sed 's|^\./||' | sort)
 
 if [ "$(printf '%s\n' "$FOUND" | grep -c .)" -lt 40 ]; then
