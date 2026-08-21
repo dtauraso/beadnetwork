@@ -26,4 +26,10 @@ func main() {
 	}
 	genpaths.Announce(statePath, len(flags), "overlay flags")
 	genpaths.Announce(tablesPath, len(flags), "overlay flags")
+
+	pathsDir := filepath.Join(dir, "paths")
+	if err := overlaygen.WritePathFiles(pathsDir, flags); err != nil {
+		genpaths.Fatalf("write overlay paths: %v", err)
+	}
+	genpaths.Announce(pathsDir, len(flags), "overlay paths")
 }
