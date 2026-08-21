@@ -1,26 +1,19 @@
-import { columnF32 } from "../../../Buffer/column-values";
 import { canvasFont, roundRect } from "../../../webview/canvas-box";
-import { readText, decodeAt } from "../../../Buffer/column-reads";
+import { decodeAt } from "../../../Buffer/column-reads";
 import * as T from "../../../webview/canvas-theme";
-import {
-  COL_STREAM_FIT_CHIP_X, COL_STREAM_FIT_CHIP_Y, COL_STREAM_FIT_CHIP_W, COL_STREAM_FIT_CHIP_H,
-  COL_STREAM_FIT_CHIP_LABEL_TEXT,
-} from "./columns-gen";
+import { chipF32, chipText } from "./chip-leaves";
 
 export function fitChipKey(): string {
-  return [
-    columnF32(COL_STREAM_FIT_CHIP_X), columnF32(COL_STREAM_FIT_CHIP_Y),
-    columnF32(COL_STREAM_FIT_CHIP_W),
-  ].join(",");
+  return [chipF32("x"), chipF32("y"), chipF32("w")].join(",");
 }
 
 export function drawFitChip(c: CanvasRenderingContext2D): void {
-  const label = readText(COL_STREAM_FIT_CHIP_LABEL_TEXT);
-  const w = columnF32(COL_STREAM_FIT_CHIP_W);
-  const h = columnF32(COL_STREAM_FIT_CHIP_H);
+  const label = chipText("labelText");
+  const w = chipF32("w");
+  const h = chipF32("h");
   if (!label || w <= 0 || h <= 0) return;
-  const x = columnF32(COL_STREAM_FIT_CHIP_X);
-  const y = columnF32(COL_STREAM_FIT_CHIP_Y);
+  const x = chipF32("x");
+  const y = chipF32("y");
 
   roundRect(c, x + 0.5, y + 0.5, w - 1, h - 1, T.RADIUS_CHIP);
   c.fillStyle = T.CHIP;

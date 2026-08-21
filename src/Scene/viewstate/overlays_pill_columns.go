@@ -2,6 +2,7 @@ package viewstate
 
 import (
 	"github.com/dtauraso/wirefold/src/Chrome/Pills"
+	"github.com/dtauraso/wirefold/src/valuefile"
 	B "github.com/dtauraso/wirefold/src/Buffer"
 )
 
@@ -56,16 +57,17 @@ func (ui *UIState) writeOverlaysPillColumns(lay Pills.Layout) {
 	)
 }
 
-func (ui *UIState) writeFitChipColumns(r Pills.Rect) {
-	c := ui.singletonCols
-	if c == nil {
+func (ui *UIState) writeFitChipValues(r Pills.Rect) {
+	w := ui.fitChipValues
+	if w == nil {
 		return
 	}
-	c.SetF32(B.ColStreamFitChipX, r.X)
-	c.SetF32(B.ColStreamFitChipY, r.Y)
-	c.SetF32(B.ColStreamFitChipW, r.W)
-	c.SetF32(B.ColStreamFitChipH, r.H)
-	c.SetBytes(B.ColStreamFitChipLabelText, []byte(FitLabel))
+	w.Begin()
+	w.Rect("x", "y", "w", "h", r)
+	w.Text("labelText", FitLabel)
+	if err := w.Flush(); err != nil {
+		valuefile.LogPersistErr("fit_chip_values", "", err)
+	}
 }
 
 func disclosureGlyph(open bool) string {

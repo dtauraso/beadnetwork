@@ -7,7 +7,7 @@ const ColumnsPerNodeStream = 140
 
 const ColumnsPerEdgeStream = 11
 
-const ColumnsInSingletonStreams = 97
+const ColumnsInSingletonStreams = 92
 
 // ColumnStreamCount is every column channel a scene of this size needs.
 func ColumnStreamCount(nodes, edges int) int {
@@ -27,8 +27,7 @@ const ColStreamBaseBeadRingPoint = 5
 const ColStreamBaseSpeedPanel = 8
 const ColStreamBaseTiltPanel = 25
 const ColStreamBaseOverlaysPill = 54
-const ColStreamBaseFitChip = 84
-const ColStreamBasePointerTarget = 89
+const ColStreamBasePointerTarget = 84
 
 const ColStreamNodeIndexR = ColStreamBaseNode + 0
 const ColStreamNodeIndexPhi = ColStreamBaseNode + 1
@@ -265,11 +264,6 @@ const ColStreamOverlaysPillCountX = ColStreamBaseOverlaysPill + 26
 const ColStreamOverlaysPillCountY = ColStreamBaseOverlaysPill + 27
 const ColStreamOverlaysPillCountW = ColStreamBaseOverlaysPill + 28
 const ColStreamOverlaysPillCountH = ColStreamBaseOverlaysPill + 29
-const ColStreamFitChipX = ColStreamBaseFitChip + 0
-const ColStreamFitChipY = ColStreamBaseFitChip + 1
-const ColStreamFitChipW = ColStreamBaseFitChip + 2
-const ColStreamFitChipH = ColStreamBaseFitChip + 3
-const ColStreamFitChipLabelText = ColStreamBaseFitChip + 4
 const ColStreamPointerTargetX = ColStreamBasePointerTarget + 0
 const ColStreamPointerTargetY = ColStreamBasePointerTarget + 1
 const ColStreamPointerTargetW = ColStreamBasePointerTarget + 2

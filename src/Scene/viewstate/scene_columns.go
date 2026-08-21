@@ -10,6 +10,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/PolarRulesPanel"
 	"github.com/dtauraso/wirefold/src/Chrome/Pills/AngleDropdown"
 	"github.com/dtauraso/wirefold/src/Chrome/Pills/NodesDropdown"
+	"github.com/dtauraso/wirefold/src/Chrome/Pills/FitButton"
 	"github.com/dtauraso/wirefold/src/Chrome/Tabs"
 )
 
@@ -25,6 +26,7 @@ func (ui *UIState) SetSceneRoot(sceneRoot string) {
 	ui.nodesPillValues = NodesDropdown.NewValueWriter(sceneRoot)
 	ui.anglePillValues = AngleDropdown.NewValueWriter(sceneRoot)
 	ui.tabStripValues = Tabs.NewValueWriter(sceneRoot)
+	ui.fitChipValues = FitButton.NewValueWriter(sceneRoot)
 }
 
 func (ui *UIState) writeSceneColumns() {
