@@ -14,8 +14,16 @@ export function overlayFlagVals(): OverlayFlagVals { return vals; }
 
 let seq = 0;
 async function readBytes(url: string): Promise<ArrayBuffer | undefined> {
+  return readUrl(`${url}?r=${++seq}`, "no-store");
+}
+
+async function readGenerated(url: string): Promise<ArrayBuffer | undefined> {
+  return readUrl(url, "default");
+}
+
+async function readUrl(url: string, cache: RequestCache): Promise<ArrayBuffer | undefined> {
   try {
-    const res = await fetch(`${url}?r=${++seq}`, { cache: "no-store" });
+    const res = await fetch(url, { cache });
     return res.ok ? await res.arrayBuffer() : undefined;
   } catch {
     return undefined;
@@ -23,9 +31,12 @@ async function readBytes(url: string): Promise<ArrayBuffer | undefined> {
 }
 
 async function loadPaths(src: string): Promise<Map<OverlayFlag, string> | undefined> {
+  const bufs = await Promise.all(
+    OVERLAY_FLAG_ORDER.map((flag) => readGenerated(`${src}/Overlay/paths/${flag}.bin`)),
+  );
   const out = new Map<OverlayFlag, string>();
-  for (const flag of OVERLAY_FLAG_ORDER) {
-    const buf = await readBytes(`${src}/Overlay/paths/${flag}.bin`);
+  for (const [i, flag] of OVERLAY_FLAG_ORDER.entries()) {
+    const buf = bufs[i];
     if (buf === undefined) return undefined;
     out.set(flag, new TextDecoder().decode(buf));
   }
