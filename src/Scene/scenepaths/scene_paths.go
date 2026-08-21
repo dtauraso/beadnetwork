@@ -18,10 +18,6 @@ func CameraDirPath(topologyPath string) string {
 	return ViewFilePath(topologyPath, "camera")
 }
 
-func OverlaysDirPath(topologyPath string) string {
-	return ViewFilePath(topologyPath, "overlays")
-}
-
 func PanelsDirPath(topologyPath string) string {
 	return ViewFilePath(topologyPath, "panels")
 }

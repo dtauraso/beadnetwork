@@ -36,6 +36,19 @@ func main() {
 		genpaths.Fatalf("write %s: %v", outPath, err)
 	}
 	genpaths.Announce(outPath, 1, "constants")
+
+	cameraDir := filepath.Join(srcRoot, "Camera")
+	names, err := cameraFileConsts(filepath.Join(cameraDir, "scene_camera_persist.go"))
+	if err != nil {
+		genpaths.Fatalf("parse camera file constants: %v", err)
+	}
+	if len(names) == 0 {
+		genpaths.Fatalf("parsed no File* constants from scene_camera_persist.go; the renderer would be told about no primitives at all")
+	}
+	if err := writeCameraPaths(cameraDir, names); err != nil {
+		genpaths.Fatalf("write camera paths: %v", err)
+	}
+	genpaths.Announce(filepath.Join(cameraDir, "paths"), len(names), "camera paths")
 }
 
 func parseFloatConst(path, name string) (float64, error) {

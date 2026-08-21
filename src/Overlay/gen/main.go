@@ -32,4 +32,5 @@ func main() {
 		genpaths.Fatalf("write overlay paths: %v", err)
 	}
 	genpaths.Announce(pathsDir, len(flags), "overlay paths")
+	genpaths.Announce(filepath.Join(dir, "flag_paths_gen.go"), len(flags), "overlay paths")
 }

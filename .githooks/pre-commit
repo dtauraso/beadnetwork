@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+# .githooks/pre-commit — strip added comments BEFORE the commit, not after it.
+#
+# WHY THIS EXISTS: the comment policy was enforced only by the Claude Stop hook, which runs
+# AFTER a commit lands. Every commit that added a comment therefore produced a SECOND commit
+# removing it — four of them in one session. The rule was right; its timing was wrong. Doing
+# it here means one commit, already clean, and no fixup pair in the history.
+#
+# This is a FIXUP, not a gate. pre-push is the gate (see .githooks/pre-push, which explains
+# why commit stays ungated); this hook does not reject anything, it edits the staged content
+# to match the policy and re-stages it.
+#
+# SCOPED TO STAGED FILES on purpose. scripts/strip-comments.sh with no arguments rewrites
+# every tracked source file in the tree, which in a checkout shared by concurrent sessions
+# would edit work that is not part of this commit.
+#
+# A file with BOTH staged and unstaged edits is skipped, not stripped: stripping the working
+# copy and re-adding it would sweep the unstaged half into the commit. Those are named on
+# stderr so the skip is visible rather than silent.
+#
+# To commit past it (rare, deliberate): git commit --no-verify
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
+staged=()
+skipped=()
+while IFS= read -r f; do
+  [ -n "$f" ] || continue
+  if [ -n "$(git diff --name-only -- "$f")" ]; then
+    skipped+=("$f")
+  else
+    staged+=("$f")
+  fi
+done < <(git diff --cached --name-only --diff-filter=ACM -- '*.go' '*.ts' '*.tsx')
+
+if [ "${#skipped[@]}" -gt 0 ]; then
+  printf 'pre-commit: not stripping (staged and unstaged edits both present): %s\n' "${skipped[@]}" >&2
+fi
+
+[ "${#staged[@]}" -eq 0 ] && exit 0
+
+before="$(bash scripts/strip-comments.sh "${staged[@]}" | tail -1)"
+case "$before" in "strip-comments: 0 "*) exit 0 ;; esac
+
+bash scripts/strip-comments.sh --apply "${staged[@]}" >&2
+git add -- "${staged[@]}"

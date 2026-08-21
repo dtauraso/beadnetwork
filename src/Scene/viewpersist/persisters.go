@@ -1,13 +1,13 @@
 package viewpersist
 
 import (
+	"github.com/dtauraso/wirefold/src/Camera"
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/Panel"
 	"github.com/dtauraso/wirefold/src/Chrome/Pills/AngleDropdown"
-	"github.com/dtauraso/wirefold/src/Camera"
+	"github.com/dtauraso/wirefold/src/Overlay"
 	"github.com/dtauraso/wirefold/src/Polar/polar"
 	"github.com/dtauraso/wirefold/src/Scene/scenepaths"
 	"github.com/dtauraso/wirefold/src/Scene/scenepersist"
-	"github.com/dtauraso/wirefold/src/Overlay"
 )
 
 type Persisters struct {
@@ -32,7 +32,7 @@ func (p *Persisters) ArmViewpoint(topologyPath string) *Camera.ViewpointPersiste
 
 func (p *Persisters) ArmEdit(topologyPath string) {
 	p.overlays = &scenepersist.Persister[Overlay.OverlayState]{
-		Path: scenepaths.OverlaysDirPath(topologyPath), Write: Overlay.WriteSceneOverlays, Tag: "scene_overlays_persist",
+		Path: topologyPath, Write: Overlay.WriteSceneOverlays, Tag: "scene_overlays_persist",
 	}
 	p.panels = &scenepersist.Persister[Panel.PanelState]{
 		Path: scenepaths.PanelsDirPath(topologyPath), Write: Panel.WriteScenePanels, Tag: "scene_panels_persist",
