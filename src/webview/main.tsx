@@ -19,9 +19,7 @@ import { setLatestViewFrame, setLatestEdgeStreamFrame, setLatestNodeStreamFrame,
 import { BUF_BLOCK_TAG_VIEW, BUF_BLOCK_TAG_EDGE_STREAM, BUF_BLOCK_TAG_NODE_STREAM, BUF_BLOCK_TAG_INTERIOR_STREAM, BUF_BLOCK_TAG_BEAD_STREAM, BUF_BLOCK_TAG_COLUMN } from "../Buffer/frame-tags";
 import { setColumnValue, columnDiagnostics, columnI32, columnF32, columnU8 } from "../Buffer/column-values";
 import { nodeColumn, edgeColumn, ownerCounts } from "../Buffer/column-owners";
-import {
-  COL_STREAM_EDGE_SX,
-} from "../Node/Edge/columns-gen";
+import { edgeF32 } from "../Node/Edge/edge-leaves";
 import {
   COL_STREAM_NODE_INDEX_R, COL_STREAM_NODE_INDEX_PHI, COL_STREAM_NODE_INDEX_THETA,
   COL_STREAM_NODE_HAS_POS,
@@ -112,7 +110,7 @@ window.addEventListener("message", (e) => {
           columnI32(nodeColumn(row, COL_STREAM_NODE_INDEX_THETA)),
         ].join("/")),
         edgeStart: Array.from({ length: counts.edges }, (_unused, row) =>
-          columnF32(edgeColumn(row, COL_STREAM_EDGE_SX)).toFixed(1)),
+          edgeF32(row, "sx").toFixed(1)),
       });
       bufSnapLogAt = now;
       bufSnapCount = 0;

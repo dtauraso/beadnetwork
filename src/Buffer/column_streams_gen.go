@@ -5,7 +5,7 @@ package bufferlayout
 // ColumnsPerNodeStream is how many column channels one node owns.
 const ColumnsPerNodeStream = 135
 
-const ColumnsPerEdgeStream = 11
+const ColumnsPerEdgeStream = 0
 
 const ColumnsInSingletonStreams = 27
 
@@ -75,17 +75,6 @@ const ColStreamNodeSelfThetaMax = ColStreamBaseNode + 46
 const ColStreamNodeSelfActive = ColStreamBaseNode + 47
 const ColStreamNodeRuleGroupId = ColStreamBaseNode + 48
 const ColStreamNodeRuleGroupSize = ColStreamBaseNode + 49
-const ColStreamEdgeSX = ColStreamBaseEdge + 0
-const ColStreamEdgeSY = ColStreamBaseEdge + 1
-const ColStreamEdgeSZ = ColStreamBaseEdge + 2
-const ColStreamEdgeEX = ColStreamBaseEdge + 3
-const ColStreamEdgeEY = ColStreamBaseEdge + 4
-const ColStreamEdgeEZ = ColStreamBaseEdge + 5
-const ColStreamEdgeSrcNodeRow = ColStreamBaseEdge + 6
-const ColStreamEdgeDstNodeRow = ColStreamBaseEdge + 7
-const ColStreamEdgeDeltaR = ColStreamBaseEdge + 8
-const ColStreamEdgeDragActive = ColStreamBaseEdge + 9
-const ColStreamEdgeLabel = ColStreamBaseEdge + 10
 const ColStreamEdgeBeadX = ColStreamBaseEdgeBead + 0
 const ColStreamEdgeBeadY = ColStreamBaseEdgeBead + 1
 const ColStreamEdgeBeadZ = ColStreamBaseEdgeBead + 2

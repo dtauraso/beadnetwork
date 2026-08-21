@@ -31,7 +31,7 @@ type BufLayoutSchema struct {
 }
 
 var bufBlockOrder = []string{
-	"Node", "Edge", "EdgeBead", "TiltArrow", "ChannelVector", "Scene",
+	"Node", "EdgeBead", "TiltArrow", "ChannelVector", "Scene",
 	"Recv", "Fire", "Send", "Arrive", "Breadcrumb",
 	"SpeedPanel",
 	"PointerTarget",

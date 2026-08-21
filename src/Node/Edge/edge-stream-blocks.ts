@@ -1,10 +1,5 @@
-import { columnF32, columnI32, columnU8, hasColumn } from "../../Buffer/column-values";
-import { edgeColumn, ownerCounts } from "../../Buffer/column-owners";
-import {
-  COL_STREAM_EDGE_SX, COL_STREAM_EDGE_SY, COL_STREAM_EDGE_SZ, COL_STREAM_EDGE_EX,
-  COL_STREAM_EDGE_EY, COL_STREAM_EDGE_EZ, COL_STREAM_EDGE_SRC_NODE_ROW,
-  COL_STREAM_EDGE_DST_NODE_ROW, COL_STREAM_EDGE_DELTA_R, COL_STREAM_EDGE_DRAG_ACTIVE,
-} from "./columns-gen";
+import { ownerCounts } from "../../Buffer/column-owners";
+import { edgeBytes, edgeF32, edgeI32, edgeU8 } from "./edge-leaves";
 
 export interface EdgeAccessor {
 
@@ -25,33 +20,32 @@ export interface EdgeAccessor {
 export function getEdgeStreamAccessor(): EdgeAccessor | null {
   const { edges } = ownerCounts();
   if (edges <= 0) return null;
-  if (!hasColumn(edgeColumn(0, COL_STREAM_EDGE_SX))) return null;
+  if (!edgeBytes(0, "sx")) return null;
 
   return {
     edgeCount: edges,
     segment(row) {
       return [
-        columnF32(edgeColumn(row, COL_STREAM_EDGE_SX)),
-        columnF32(edgeColumn(row, COL_STREAM_EDGE_SY)),
-        columnF32(edgeColumn(row, COL_STREAM_EDGE_SZ)),
-        columnF32(edgeColumn(row, COL_STREAM_EDGE_EX)),
-        columnF32(edgeColumn(row, COL_STREAM_EDGE_EY)),
-        columnF32(edgeColumn(row, COL_STREAM_EDGE_EZ)),
+        edgeF32(row, "sx"),
+        edgeF32(row, "sy"),
+        edgeF32(row, "sz"),
+        edgeF32(row, "ex"),
+        edgeF32(row, "ey"),
+        edgeF32(row, "ez"),
       ];
     },
     srcNodeRow(row) {
-      return columnI32(edgeColumn(row, COL_STREAM_EDGE_SRC_NODE_ROW), -1);
+      return edgeI32(row, "srcNodeRow", -1);
     },
     dstNodeRow(row) {
-      return columnI32(edgeColumn(row, COL_STREAM_EDGE_DST_NODE_ROW), -1);
+      return edgeI32(row, "dstNodeRow", -1);
     },
     deltaR(row) {
-      return columnF32(edgeColumn(row, COL_STREAM_EDGE_DELTA_R));
+      return edgeF32(row, "deltaR");
     },
     dragActive(row) {
 
-      const col = edgeColumn(row, COL_STREAM_EDGE_DRAG_ACTIVE);
-      return hasColumn(col) ? columnU8(col) !== 0 : true;
+      return edgeBytes(row, "dragActive") ? edgeU8(row, "dragActive") !== 0 : true;
     },
   };
 }
