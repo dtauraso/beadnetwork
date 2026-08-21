@@ -1,4 +1,4 @@
-export interface LeafStore<N extends string> {
+export interface LeafValues<N extends string> {
   bytes: (name: N) => DataView | undefined;
   f32: (name: N, fallback?: number) => number;
   i32: (name: N, fallback?: number) => number;
@@ -23,10 +23,10 @@ async function readUrl(url: string, cache: RequestCache): Promise<ArrayBuffer | 
 
 const READ_INTERVAL_MS = 100;
 
-export function makeLeafStore<N extends string>(
+export function makeLeafValues<N extends string>(
   pathsDir: string,
   names: readonly N[],
-): LeafStore<N> {
+): LeafValues<N> {
   const latest = new Map<string, DataView>();
   let started = false;
   let blockPath: string | undefined;
