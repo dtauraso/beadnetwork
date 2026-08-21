@@ -10,7 +10,7 @@ import {
   SHADING_PARAM_CHANNEL_LINE_RADIUS,
   SHADING_PARAM_CHANNEL_HEAD_RADIUS,
   SHADING_PARAM_CHANNEL_HEAD_LENGTH,
-} from "../../Buffer/shading-params";
+} from "../../Node/nodegeom/shading-params";
 
 const CHANNEL_COLOR = "#7b6bd6";
 

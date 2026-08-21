@@ -1,6 +1,6 @@
 import { nodeU8 } from "./node-leaves";
 import { NODE_DEFS_ARRAY, NODE_KIND_NAMES } from "../NodeKinds/node-defs";
-import { UNKNOWN_KIND_ID } from "../Buffer/buffer-layout";
+import { UNKNOWN_KIND_ID } from "../NodeKinds/node-defs";
 
 const NODE_DEFAULT_FILL = "#ffffff";
 const NODE_DEFAULT_STROKE = "#888888";

@@ -76,6 +76,11 @@ func WriteNodeDefs(outPath string, kinds []kindscan.KindEntry) error {
 		arrayType = "readonly (NodeDef | undefined)[]"
 		namesType = "readonly (string | undefined)[]"
 	}
+	fmt.Fprintln(w, `/** The KindId a node carries when its kind is not in the registry — the one`)
+	fmt.Fprintln(w, ` * index NODE_DEFS_ARRAY below must never be asked for. Matches KindIDUnknown`)
+	fmt.Fprintln(w, ` * in src/Node/node_kind_id_gen.go. */`)
+	fmt.Fprintln(w, `export const UNKNOWN_KIND_ID = 0xff;`)
+	fmt.Fprintln(w)
 	fmt.Fprintf(w, "export const NODE_DEFS_ARRAY: %s = [\n", arrayType)
 	for id := 0; id <= maxID; id++ {
 		if kd, ok := byID[uint8(id)]; ok {

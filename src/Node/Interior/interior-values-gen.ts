@@ -13,3 +13,7 @@ export const INTERIOR_VALUE_NAMES = [
 ] as const;
 
 export type InteriorValueName = (typeof INTERIOR_VALUE_NAMES)[number];
+
+// How many interior slots a node has. Declared once, as SlotsPerNode in
+// emitter.go, because it is the interior's own number and nothing else's.
+export const INTERIOR_SLOTS_PER_NODE = 4;

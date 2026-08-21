@@ -8,7 +8,6 @@ import (
 	B "github.com/dtauraso/wirefold/src/Buffer"
 )
 
-const BufInteriorSlotsPerNode = 4
 
 func NewInteriorEmitterGetter(name string, pb PortBindings) func() *interior.Emitter {
 	var built bool

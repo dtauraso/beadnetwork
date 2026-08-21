@@ -39,8 +39,6 @@ func parseBufferLayoutFile(layoutPath string) (BufLayoutSchema, error) {
 						switch {
 						case nm.Name == "BufLayoutVersion":
 							schema.version = ival
-						case nm.Name == "BufInteriorSlotsPerNode":
-							schema.interiorSlotsPerNode = ival
 						}
 					}
 				}
