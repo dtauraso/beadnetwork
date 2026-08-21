@@ -27,7 +27,6 @@ type bufBlock struct {
 type BufLayoutSchema struct {
 	version              int
 	Blocks               []bufBlock
-	interiorSlotsPerNode int
 }
 
 var bufBlockOrder = []string{
@@ -80,9 +79,6 @@ func ParseBufferLayoutTree(root string) (BufLayoutSchema, error) {
 			}
 			schema.version = fileSchema.version
 		}
-		if fileSchema.interiorSlotsPerNode != 0 {
-			schema.interiorSlotsPerNode = fileSchema.interiorSlotsPerNode
-		}
 		for _, b := range fileSchema.Blocks {
 			b.dir = filepath.Dir(p)
 			blocks = append(blocks, b)
@@ -91,9 +87,6 @@ func ParseBufferLayoutTree(root string) (BufLayoutSchema, error) {
 
 	if schema.version == 0 {
 		return BufLayoutSchema{}, fmt.Errorf("BufLayoutVersion const not found under %s", root)
-	}
-	if schema.interiorSlotsPerNode == 0 {
-		return BufLayoutSchema{}, fmt.Errorf("BufInteriorSlotsPerNode const not found under %s", root)
 	}
 	if len(blocks) == 0 {
 		return BufLayoutSchema{}, fmt.Errorf("no bufLayout* struct types found under %s", root)
@@ -140,7 +133,6 @@ func fnv1aHash(s string) uint32 {
 func buildBufFingerprint(schema BufLayoutSchema) string {
 	var parts []string
 	parts = append(parts, fmt.Sprintf("version:%d", schema.version))
-	parts = append(parts, fmt.Sprintf("interiorSlotsPerNode:%d", schema.interiorSlotsPerNode))
 	for _, blk := range schema.Blocks {
 		var cols []string
 		for _, c := range blk.columns {

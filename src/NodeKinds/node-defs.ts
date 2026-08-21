@@ -53,6 +53,11 @@ export const NODE_DEFS: Record<string, NodeDef> = {
   TimeStart: { bg: "#fff3e0", border: "#ffc400", text: "#bf360c", minWidth: 90, shape: "rect", fill: "#fff3e0", stroke: "#ffc400", width: 90, height: 60, desc: "The head of a time chain: holds what arrives and fans the value it was holding to every downstream node at once.", inputs: [{ name: "In", kind: "chain" }], outputs: [{ name: "ToNext", kind: "chain", isMulti: true }] },
 };
 
+/** The KindId a node carries when its kind is not in the registry — the one
+ * index NODE_DEFS_ARRAY below must never be asked for. Matches KindIDUnknown
+ * in src/Node/node_kind_id_gen.go. */
+export const UNKNOWN_KIND_ID = 0xff;
+
 export const NODE_DEFS_ARRAY: readonly NodeDef[] = [
   { bg: "#fff3e0", border: "#7f0000", text: "#bf360c", minWidth: 60, shape: "rect", fill: "#fff3e0", stroke: "#7f0000", width: 60, height: 60, desc: "The end of a time chain: holds what arrives and sends nothing on.", inputs: [{ name: "In", kind: "chain" }] },
   { bg: "#eceff1", border: "#263238", text: "#263238", minWidth: 36, shape: "rect", fill: "#eceff1", stroke: "#263238", width: 36, height: 36, desc: "Inverts what it receives: a 0 goes out as 1, a 1 as 0.", inputs: [{ name: "In", kind: "chain" }], outputs: [{ name: "Out", kind: "chain" }] },

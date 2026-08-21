@@ -46,7 +46,10 @@ func writeNames(path string) error {
 		fmt.Fprintf(&b, "  %q,\n", name)
 	}
 	b.WriteString("] as const;\n\n")
-	b.WriteString("export type InteriorValueName = (typeof INTERIOR_VALUE_NAMES)[number];\n")
+	b.WriteString("export type InteriorValueName = (typeof INTERIOR_VALUE_NAMES)[number];\n\n")
+	b.WriteString("// How many interior slots a node has. Declared once, as SlotsPerNode in\n")
+	b.WriteString("// emitter.go, because it is the interior's own number and nothing else's.\n")
+	fmt.Fprintf(&b, "export const INTERIOR_SLOTS_PER_NODE = %d;\n", interior.SlotsPerNode)
 	return os.WriteFile(path, []byte(b.String()), 0o644)
 }
 

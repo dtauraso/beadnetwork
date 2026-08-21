@@ -16,7 +16,6 @@ func main() {
 	genpaths.Name = "Buffer/gen"
 	repoRoot, srcRoot := genpaths.Roots()
 
-	generateCurveParams(repoRoot, srcRoot)
 	generateShadingParams(repoRoot, srcRoot)
 	generateBufferLayout(repoRoot, srcRoot)
 	generateFrameTags(srcRoot)
@@ -40,26 +39,13 @@ func generateTraceKinds(srcRoot string) {
 	genpaths.Announce(outPath, len(kinds), "kinds")
 }
 
-func generateCurveParams(repoRoot, srcRoot string) {
-	goPath := filepath.Join(genpaths.NetworkDir(repoRoot), "nodegeom", "curve_params.go")
-	curveParams, err := params.ParseCurveParams(goPath)
-	if err != nil {
-		genpaths.Fatalf("parse curve params: %v", err)
-	}
-	tsPath := filepath.Join(srcRoot, "Buffer", "curve-params.ts")
-	if err := params.WriteCurveParams(tsPath, curveParams); err != nil {
-		genpaths.Fatalf("write %s: %v", tsPath, err)
-	}
-	genpaths.Announce(tsPath, len(curveParams), "constants")
-}
-
 func generateShadingParams(repoRoot, srcRoot string) {
 	goPath := filepath.Join(genpaths.NetworkDir(repoRoot), "nodegeom", "shading_params.go")
 	shadingParams, err := params.ParseShadingParams(repoRoot, goPath)
 	if err != nil {
 		genpaths.Fatalf("parse shading params: %v", err)
 	}
-	tsPath := filepath.Join(srcRoot, "Buffer", "shading-params.ts")
+	tsPath := filepath.Join(genpaths.NetworkDir(repoRoot), "nodegeom", "shading-params.ts")
 	if err := params.WriteShadingParams(tsPath, shadingParams); err != nil {
 		genpaths.Fatalf("write %s: %v", tsPath, err)
 	}

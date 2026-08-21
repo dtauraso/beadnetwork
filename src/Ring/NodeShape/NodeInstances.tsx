@@ -13,7 +13,7 @@ import {
   SHADING_PARAM_NODE_ENV_MAP_INTENSITY,
   SHADING_PARAM_NODE_OPACITY,
   SHADING_PARAM_RING_ROUGHNESS,
-} from "../../Buffer/shading-params";
+} from "../../Node/nodegeom/shading-params";
 import {
   BUFFER_NODE_TAG, BUFFER_RING_TAG,
   RING_PICK_TUBE_RATIO, RING_PICK_COLOR, RING_PICK_OPACITY,
