@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: src/**/*_values.go,src/Buffer/layout_version.go,src/Buffer/buffer-layout*.ts | every buffer column and every declared block value needs a non-test production consumer; delete an unused one rather than allowlisting it
+# PLACEMENT: src/**/*_values.go | every declared block value needs a non-test production consumer; delete an unused one rather than allowlisting it. The buffer-column half of this guard went with the trace events: the buffer layout declares no columns any more, so there are no read* helpers left to find a consumer for.
 
 set -euo pipefail
 
@@ -8,19 +8,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 cd "$REPO_ROOT"
 
-LAYOUT_FILES=()
-for LAYOUT in "src/Buffer/buffer-layout.ts" \
-              src/Buffer/buffer-layout-rows*-gen.ts \
-              "src/Buffer/buffer-layout-singletons-gen.ts"; do
-  [[ -f "$LAYOUT" ]] && LAYOUT_FILES+=("$LAYOUT")
-done
 source "$REPO_ROOT/scripts/lib/ts-roots.sh"
 SRC="src"
-
-if [[ ! -f "src/Buffer/buffer-layout.ts" ]] || (( ${#LAYOUT_FILES[@]} < 2 )); then
-  echo "check-no-dead-buffer-column: MISCONFIGURED — found ${#LAYOUT_FILES[@]} layout file(s) under Buffer/ (renamed?); refusing vacuous pass" >&2
-  exit 1
-fi
 
 readonly ALLOWED_DEAD=()
 
@@ -31,25 +20,9 @@ is_allowed() {
   return 1
 }
 
-LAYOUT_EXCLUDES=()
-for LAYOUT in "${LAYOUT_FILES[@]}"; do
-  LAYOUT_EXCLUDES+=(-not -path "*/${LAYOUT}")
-done
-
-readers=()
-while IFS= read -r line; do
-  [[ -n "$line" ]] && readers+=("$line")
-done < <(grep -ohE 'export function (read[A-Za-z0-9_]+)' "${LAYOUT_FILES[@]}" | awk '{print $3}' | sort -u)
-
-if [[ ${#readers[@]} -eq 0 ]]; then
-  echo "check-no-dead-buffer-column: MISCONFIGURED — parsed 0 read* helpers from ${LAYOUT_FILES[*]}; format changed, guard would check nothing" >&2
-  exit 1
-fi
-
 prod_files=()
 while IFS= read -r f; do prod_files+=("$f"); done < <(
   find "${TS_ROOTS[@]}" -type f \( -name '*.ts' -o -name '*.tsx' \) \
-    "${LAYOUT_EXCLUDES[@]}" \
     -not -path '*/test/*' \
     -not -name '*.test.ts' 2>/dev/null
 )
@@ -67,17 +40,6 @@ else
 fi
 
 fail=0
-for fn in "${readers[@]}"; do
-  if grep -qxF "$fn" "$CODE_ONLY_CORPUS"; then
-    continue
-  fi
-  if is_allowed "$fn"; then
-    continue
-  fi
-  echo "DEAD BUFFER COLUMN: $fn has no production consumer — the column is packed + decoded but used by nothing."
-  echo "  Fix: consume it, remove the column from its block (Buffer/bufschema/ for a model block, the concern's own buffer_block.go otherwise) and regenerate, or (if intentionally staged) add it to ALLOWED_DEAD with a reason."
-  fail=1
-done
 
 VALUES_GEN_FILES=()
 while IFS= read -r f; do [[ -n "$f" ]] && VALUES_GEN_FILES+=("$f"); done < <(git ls-files '*-values-gen.ts')

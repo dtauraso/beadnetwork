@@ -1,6 +1,5 @@
 import type { HostToWebviewMsg } from "../../../Input/messages";
 import { BUF_BLOCK_TAG_VIEW, BUF_BLOCK_TAG_EDGE_STREAM, BUF_BLOCK_TAG_NODE_STREAM, BUF_BLOCK_TAG_INTERIOR_STREAM, BUF_BLOCK_TAG_BEAD_STREAM } from "../../../Buffer/frame-tags";
-import { appendViewProbe, appendEdgeProbe, appendNodeProbe, appendBeadProbe, appendInteriorProbe } from "./probe-append";
 import { splitFrames } from "../framing";
 
 export interface FrameDispatchContext {
@@ -51,7 +50,6 @@ export function dispatchViewFrames(
 ): void {
   ctx.dispatch("view", carry, chunk, storeRest, "handleViewFd", (frames) => {
     for (const ab of frames) {
-      appendViewProbe(probeFile, ab, ctx.probeTrace);
       setLast(ab.slice(0));
       if (ctx.onSnapshot) {
         ctx.onSnapshot({ type: "buffer-snapshot", buffer: ab, tag: BUF_BLOCK_TAG_VIEW, gen: ctx.gen });
@@ -71,7 +69,6 @@ export function dispatchEdgeFrames(
 ): void {
   ctx.dispatch(`edge:${row}`, carry, chunk, storeRest, `handleEdgeFd(row=${row})`, (frames) => {
     for (const ab of frames) {
-      appendEdgeProbe(probeFile, row, ab, ctx.probeTrace);
       setLast(row, ab.slice(0));
       if (ctx.onSnapshot) {
         ctx.onSnapshot({ type: "buffer-snapshot", buffer: ab, tag: BUF_BLOCK_TAG_EDGE_STREAM, row, gen: ctx.gen });
@@ -92,7 +89,6 @@ export function dispatchNodeFrames(
 ): void {
   ctx.dispatch(`node:${row}`, carry, chunk, storeRest, errorContextLabel, (frames) => {
     for (const ab of frames) {
-      appendNodeProbe(probeFile, row, ab, ctx.probeTrace);
       setLast(row, ab.slice(0));
       if (ctx.onSnapshot) {
         ctx.onSnapshot({ type: "buffer-snapshot", buffer: ab, tag: BUF_BLOCK_TAG_NODE_STREAM, row, gen: ctx.gen });
@@ -112,7 +108,6 @@ export function dispatchBeadFrames(
 ): void {
   ctx.dispatch(`bead:${row}`, carry, chunk, storeRest, `handleBeadFd(row=${row})`, (frames) => {
     for (const ab of frames) {
-      appendBeadProbe(probeFile, row, ab, ctx.probeTrace);
       setLast(row, ab.slice(0));
       if (ctx.onSnapshot) {
         ctx.onSnapshot({ type: "buffer-snapshot", buffer: ab, tag: BUF_BLOCK_TAG_BEAD_STREAM, row, gen: ctx.gen });
@@ -135,7 +130,6 @@ export function dispatchInteriorLikeFrames(
 ): void {
   ctx.dispatch(key, carry, chunk, storeRest, errorContextLabel, (frames) => {
     for (const ab of frames) {
-      appendInteriorProbe(probeFile, row, ab, ctx.probeTrace);
       if (!assertsSlots) continue;
       setLast(row, ab.slice(0));
       if (ctx.onSnapshot) {

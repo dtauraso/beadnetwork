@@ -1,9 +1,9 @@
 package beadanimation
 
 import (
+	T "github.com/dtauraso/wirefold/src/Trace"
 	"context"
 
-	B "github.com/dtauraso/wirefold/src/Buffer"
 )
 
 type Receiver struct {
@@ -15,7 +15,7 @@ type Receiver struct {
 	node string
 	port string
 
-	stream func() B.EventSink
+	stream func() T.EventSink
 
 	portRow int32
 }
@@ -52,17 +52,17 @@ func (i *Receiver) flushRecvEvent(value int) {
 	if s == nil {
 		return
 	}
-	s.WriteEvents([]B.RowEvent{{
-		Kind: B.KindRecv, NodeRow: s.NodeRowOf(), PortRow: i.portRow,
+	s.WriteEvents([]T.RowEvent{{
+		Kind: T.KindRecv, NodeRow: s.NodeRowOf(), PortRow: i.portRow,
 		TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Value: int32(value),
 	}})
 }
 
-func NewInChan(ch <-chan int, node, port string, stream func() B.EventSink) *Receiver {
+func NewInChan(ch <-chan int, node, port string, stream func() T.EventSink) *Receiver {
 	return &Receiver{ch: ch, node: node, port: port, portRow: -1, stream: stream}
 }
 
-func NewInPaced(line *BeadLine, ctx context.Context, node, port string, stream func() B.EventSink, portRow int32) *Receiver {
+func NewInPaced(line *BeadLine, ctx context.Context, node, port string, stream func() T.EventSink, portRow int32) *Receiver {
 	return &Receiver{line: line, ctx: ctx, node: node, port: port, stream: stream, portRow: portRow}
 }
 
@@ -85,8 +85,8 @@ func (i *Receiver) Breadcrumb(event, detail string) {
 	if s == nil {
 		return
 	}
-	s.WriteEvents([]B.RowEvent{{
-		Kind: B.KindBreadcrumb, Label: label, Debug: 1,
+	s.WriteEvents([]T.RowEvent{{
+		Kind: T.KindBreadcrumb, Label: label, Debug: 1,
 		NodeRow: s.NodeRowOf(), PortRow: i.portRow,
 		TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 	}})
@@ -95,21 +95,21 @@ func (i *Receiver) Breadcrumb(event, detail string) {
 func breadcrumbLabelFor(event string) (uint8, bool) {
 	switch event {
 	case "topology-loaded":
-		return B.BreadcrumbTopologyLoaded, true
+		return T.BreadcrumbTopologyLoaded, true
 	case "row-seed-count-mismatch":
-		return B.BreadcrumbRowSeedCountMismatch, true
+		return T.BreadcrumbRowSeedCountMismatch, true
 	case "pole-toggle-go":
-		return B.BreadcrumbPoleToggleGo, true
+		return T.BreadcrumbPoleToggleGo, true
 	case "window_clear":
-		return B.BreadcrumbWindowClear, true
+		return T.BreadcrumbWindowClear, true
 	case "window_open":
-		return B.BreadcrumbWindowOpen, true
+		return T.BreadcrumbWindowOpen, true
 	case "dwell_start":
-		return B.BreadcrumbDwellStart, true
+		return T.BreadcrumbDwellStart, true
 	case "bead-place-buffer-full":
-		return B.BreadcrumbBeadPlaceBufferFull, true
+		return T.BreadcrumbBeadPlaceBufferFull, true
 	case "drag.commit":
-		return B.BreadcrumbDragCommit, true
+		return T.BreadcrumbDragCommit, true
 	default:
 		return 0, false
 	}

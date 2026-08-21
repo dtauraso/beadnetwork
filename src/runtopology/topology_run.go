@@ -1,6 +1,7 @@
 package runtopology
 
 import (
+	T "github.com/dtauraso/wirefold/src/Trace"
 	"context"
 	"fmt"
 	"os"
@@ -25,6 +26,7 @@ func RunTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 	sceneTabNames := Tabs.TabNames()
 	sceneTabSelected := Tabs.SelectedIndex(topologyPath)
 	scenePath := scene.ResolvePath(topologyPath)
+	T.SetSceneRoot(scenePath)
 	nodes, slotReg, md, speedSinks, err := LoadTopology(ctx, scenePath, clk)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "load topology: %v\n", err)

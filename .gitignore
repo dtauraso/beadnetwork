@@ -204,6 +204,15 @@ topology*/nodes/*/drag/
 # One flag per file under rule-active/, including one per edge under rule-active/edges/.
 topology*/nodes/*/rule-active/
 
+# Trace events. Go appends one fixed-width binary record per event to the file
+# belonging to the item the event is ABOUT, beside that item's other blocks.
+# The per-item ones need no rule — view/nodes/ and view/edges/ are already
+# ignored wholesale above, so trace.bin, interior-trace.bin and beads-trace.bin
+# are covered there. Only the VIEW owner's own file sits directly under view/,
+# which IS otherwise tracked, so it is the one that needs naming. Diagnostics,
+# not scene state, and they grow without bound while the editor runs.
+topology*/view/trace.bin
+
 # Where the running extension listens for "open this file as a tab", and that
 # session's token. Written on activation, removed on shutdown.
 docs/pair-node/port.js

@@ -1,9 +1,9 @@
 package beadanimation
 
 import (
+	T "github.com/dtauraso/wirefold/src/Trace"
 	"context"
 
-	B "github.com/dtauraso/wirefold/src/Buffer"
 )
 
 func (o *Sender) placeDrivenNoWalker(v int, tick int64) SendOutcome {
@@ -24,8 +24,8 @@ func (o *Sender) flushSendEvent(value int, steps int) {
 	if s == nil {
 		return
 	}
-	s.WriteEvents([]B.RowEvent{{
-		Kind: B.KindSend, NodeRow: s.NodeRowOf(), PortRow: o.portRow,
+	s.WriteEvents([]T.RowEvent{{
+		Kind: T.KindSend, NodeRow: s.NodeRowOf(), PortRow: o.portRow,
 		TargetRow: o.targetRow, TargetPortRow: o.targetPortRow, EdgeRow: -1,
 		Value:     int32(value),
 		BeadSteps: float64(steps),
@@ -47,7 +47,7 @@ func newOutChan(ch chan<- int, node, port string) *Sender {
 	return &Sender{ch: ch, node: node, port: port, postedGeom: make(chan outGeom, 1)}
 }
 
-func NewOutPaced(line *BeadLine, ctx context.Context, node, port string, rule SendRule, edgeLabel string, stream func() B.EventSink, portRow, targetRow, targetPortRow int32) *Sender {
+func NewOutPaced(line *BeadLine, ctx context.Context, node, port string, rule SendRule, edgeLabel string, stream func() T.EventSink, portRow, targetRow, targetPortRow int32) *Sender {
 	if rule == "" {
 		rule = RuleConsumeGated
 	}

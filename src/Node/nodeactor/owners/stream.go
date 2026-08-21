@@ -1,11 +1,11 @@
 package owners
 
 import (
+	T "github.com/dtauraso/wirefold/src/Trace"
 	"encoding/binary"
 
 	"github.com/dtauraso/wirefold/src/Node/nodeactor/nodeframe"
 	"github.com/dtauraso/wirefold/src/Node/nodeactor/streamclaim"
-	B "github.com/dtauraso/wirefold/src/Buffer"
 )
 
 type Stream struct {
@@ -15,10 +15,10 @@ type Stream struct {
 
 	buildFrame nodeframe.NodeFrameBuilder
 
-	selfEvents chan []B.RowEvent
+	selfEvents chan []T.RowEvent
 }
 
-func (s *Stream) PostSelfEvents(events []B.RowEvent) {
+func (s *Stream) PostSelfEvents(events []T.RowEvent) {
 	if s.selfEvents == nil {
 		return
 	}
@@ -28,8 +28,8 @@ func (s *Stream) PostSelfEvents(events []B.RowEvent) {
 	}
 }
 
-func (s *Stream) DrainSelfEvents() []B.RowEvent {
-	var out []B.RowEvent
+func (s *Stream) DrainSelfEvents() []T.RowEvent {
+	var out []T.RowEvent
 	for {
 		select {
 		case ev := <-s.selfEvents:
@@ -48,7 +48,7 @@ func (s *Stream) Ready() bool { return s.streamOut.Ok() && s.buildFrame != nil }
 
 func (s *Stream) SetStream(streamOut streamclaim.StreamHandle, row int32, kindID uint8, buildFrame nodeframe.NodeFrameBuilder) {
 	if s.selfEvents == nil {
-		s.selfEvents = make(chan []B.RowEvent, selfEventDepth)
+		s.selfEvents = make(chan []T.RowEvent, selfEventDepth)
 	}
 	s.streamOut = streamOut
 	s.nodeRow = row

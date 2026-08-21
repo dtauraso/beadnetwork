@@ -1,10 +1,10 @@
 package viewstate
 
 import (
+	T "github.com/dtauraso/wirefold/src/Trace"
 	"encoding/binary"
 	"io"
 
-	B "github.com/dtauraso/wirefold/src/Buffer"
 )
 
 type ViewOverlayFlags struct {
@@ -28,7 +28,7 @@ type ViewSceneState struct {
 	SceneKinds    uint32
 }
 
-type ViewFrameBuilder func(tick uint32, events []B.RowEvent) []byte
+type ViewFrameBuilder func(tick uint32, events []T.RowEvent) []byte
 
 func (ui *UIState) SetViewStream(out io.Writer, buildFrame ViewFrameBuilder) {
 
@@ -36,13 +36,13 @@ func (ui *UIState) SetViewStream(out io.Writer, buildFrame ViewFrameBuilder) {
 	ui.ViewBuildFrame = buildFrame
 }
 
-func (ui *UIState) EmitBreadcrumb(ev B.RowEvent) {
-	ev.Kind = B.KindBreadcrumb
+func (ui *UIState) EmitBreadcrumb(ev T.RowEvent) {
+	ev.Kind = T.KindBreadcrumb
 	ev.Debug = 1
-	ui.EmitViewFrame([]B.RowEvent{ev})
+	ui.EmitViewFrame([]T.RowEvent{ev})
 }
 
-func (ui *UIState) EmitViewFrame(events []B.RowEvent) {
+func (ui *UIState) EmitViewFrame(events []T.RowEvent) {
 	if ui.ViewBuildFrame == nil {
 		return
 	}

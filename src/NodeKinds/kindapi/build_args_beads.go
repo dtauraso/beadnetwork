@@ -1,18 +1,18 @@
 package kindapi
 
 import (
+	T "github.com/dtauraso/wirefold/src/Trace"
 	"github.com/dtauraso/wirefold/src/Clock"
 	"github.com/dtauraso/wirefold/src/Node/Interior"
 
-	B "github.com/dtauraso/wirefold/src/Buffer"
 )
 
 func (a BuildArgs) Fire() func() {
 	getEmitter := a.getEmitter
 	return func() {
 		if e := getEmitter(); e != nil {
-			e.WriteEvents([]B.RowEvent{{
-				Kind: B.KindFire, NodeRow: e.NodeRowOf(),
+			e.WriteEvents([]T.RowEvent{{
+				Kind: T.KindFire, NodeRow: e.NodeRowOf(),
 				PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1,
 			}})
 		}

@@ -1,6 +1,7 @@
 package nodeactor
 
 import (
+	T "github.com/dtauraso/wirefold/src/Trace"
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/PolarRulesPanel"
 	"slices"
 
@@ -8,7 +9,6 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/movemsg"
 	"github.com/dtauraso/wirefold/src/Node/nodegeom"
 	"github.com/dtauraso/wirefold/src/Polar/polarindex"
-	B "github.com/dtauraso/wirefold/src/Buffer"
 )
 
 func (m *NodeGeometry) ID() string { return m.id }
@@ -91,6 +91,6 @@ func (m *NodeGeometry) CommitIndex() {
 	m.persistIndex(m.geom.DragIndex)
 }
 
-func (m *NodeGeometry) WriteStreamFrame(events []B.RowEvent) {
+func (m *NodeGeometry) WriteStreamFrame(events []T.RowEvent) {
 	m.writeStreamFrame(events)
 }

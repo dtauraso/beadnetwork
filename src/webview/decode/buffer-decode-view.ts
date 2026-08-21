@@ -1,6 +1,5 @@
 import { BUF_LAYOUT_FINGERPRINT_HASH } from "../../Buffer/buffer-layout";
 import { BUF_VIEW_FRAME_HEADER_SIZE } from "../../Buffer/frame-tags";
-import { decodeTrailingEvents, type DecodedEvents } from "./buffer-decode-shared";
 
 const reportedLayoutSkews = new Set<number>();
 
@@ -31,8 +30,6 @@ function reportLayoutSkew(frameLayout: number): void {
 
 export interface DecodedViewFrame {
   tick: number;
-
-  events: DecodedEvents;
 }
 
 let lastViewBuf: ArrayBuffer | null = null;
@@ -58,7 +55,5 @@ function decodeViewFrameUncached(buf: ArrayBuffer): DecodedViewFrame | null {
     return null;
   }
 
-  const events = decodeTrailingEvents(buf, BUF_VIEW_FRAME_HEADER_SIZE);
-
-  return { tick, events };
+  return { tick };
 }

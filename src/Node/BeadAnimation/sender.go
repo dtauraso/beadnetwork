@@ -1,9 +1,9 @@
 package beadanimation
 
 import (
+	T "github.com/dtauraso/wirefold/src/Trace"
 	"context"
 
-	B "github.com/dtauraso/wirefold/src/Buffer"
 	"github.com/dtauraso/wirefold/src/spatial"
 )
 
@@ -30,7 +30,7 @@ type Sender struct {
 
 	Rule SendRule
 
-	stream func() B.EventSink
+	stream func() T.EventSink
 
 	portRow, targetRow, targetPortRow int32
 }

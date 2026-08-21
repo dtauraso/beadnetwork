@@ -1,6 +1,7 @@
 package dispatch
 
 import (
+	T "github.com/dtauraso/wirefold/src/Trace"
 	"context"
 
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/Panel"
@@ -14,7 +15,6 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/nodecrud"
 	"github.com/dtauraso/wirefold/src/Scene/sceneswitch"
 	"github.com/dtauraso/wirefold/src/Overlay"
-	B "github.com/dtauraso/wirefold/src/Buffer"
 )
 
 func panelTookPointerDown(
@@ -126,8 +126,8 @@ func toggleOverlayFlag(md *MoveDispatch, flag string) {
 		md.Inboxes.BroadcastChannelVectorsOn(md.UI.OV.RuleChannelsVisible)
 	}
 	if scope, ok := Overlay.OverlayFlagBreadcrumbScope[flag]; ok {
-		md.UI.EmitBreadcrumb(B.RowEvent{
-			Label: B.BreadcrumbPoleToggleGo, NodeRow: -1, PortRow: -1, TargetRow: -1,
+		md.UI.EmitBreadcrumb(T.RowEvent{
+			Label: T.BreadcrumbPoleToggleGo, NodeRow: -1, PortRow: -1, TargetRow: -1,
 			TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 			Value: int32(boolU8(Overlay.OverlayFlagValue[flag](&md.UI.OV))), Text: scope,
 		})

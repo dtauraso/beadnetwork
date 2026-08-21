@@ -1,9 +1,9 @@
 package beadanimation
 
 import (
+	T "github.com/dtauraso/wirefold/src/Trace"
 	"fmt"
 
-	B "github.com/dtauraso/wirefold/src/Buffer"
 )
 
 type beadReadout struct {
@@ -11,7 +11,7 @@ type beadReadout struct {
 
 	pending []pendingBeadEvent
 
-	breadcrumbCh chan B.RowEvent
+	breadcrumbCh chan T.RowEvent
 
 	droppedBreadcrumbs int
 }
@@ -23,8 +23,8 @@ func (r *beadReadout) flushDroppedBreadcrumbs() {
 		return
 	}
 	select {
-	case r.breadcrumbCh <- B.RowEvent{
-		Kind: B.KindBreadcrumb, Label: B.BreadcrumbBeadBreadcrumbsDropped, Debug: 1,
+	case r.breadcrumbCh <- T.RowEvent{
+		Kind: T.KindBreadcrumb, Label: T.BreadcrumbBeadBreadcrumbsDropped, Debug: 1,
 		NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 		Value: int32(r.droppedBreadcrumbs),
 	}:
@@ -33,11 +33,11 @@ func (r *beadReadout) flushDroppedBreadcrumbs() {
 	}
 }
 
-func (r *beadReadout) drainBreadcrumbEvents() []B.RowEvent {
+func (r *beadReadout) drainBreadcrumbEvents() []T.RowEvent {
 	if r.breadcrumbCh == nil {
 		return nil
 	}
-	var out []B.RowEvent
+	var out []T.RowEvent
 	for {
 		select {
 		case ev := <-r.breadcrumbCh:
@@ -48,7 +48,7 @@ func (r *beadReadout) drainBreadcrumbEvents() []B.RowEvent {
 	}
 }
 
-func (bl *BeadLine) DrainBreadcrumbEvents() []B.RowEvent {
+func (bl *BeadLine) DrainBreadcrumbEvents() []T.RowEvent {
 	return bl.readout.drainBreadcrumbEvents()
 }
 

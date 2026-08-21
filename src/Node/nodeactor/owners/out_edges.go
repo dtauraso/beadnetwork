@@ -1,6 +1,7 @@
 package owners
 
 import (
+	T "github.com/dtauraso/wirefold/src/Trace"
 	"encoding/binary"
 	"io"
 
@@ -11,11 +12,10 @@ import (
 	"github.com/dtauraso/wirefold/src/valuefile"
 	"github.com/dtauraso/wirefold/src/Node/nodegeom"
 	"github.com/dtauraso/wirefold/src/Polar/polarindex"
-	B "github.com/dtauraso/wirefold/src/Buffer"
 	"github.com/dtauraso/wirefold/src/spatial"
 )
 
-type EdgeFrameBuilder = func(tick uint32, edgeRow int32, sx, sy, sz, ex, ey, ez float32, srcNodeRow, dstNodeRow int32, deltaR float32, dragActive uint8, label string, events []B.RowEvent) []byte
+type EdgeFrameBuilder = func(tick uint32, edgeRow int32, sx, sy, sz, ex, ey, ez float32, srcNodeRow, dstNodeRow int32, deltaR float32, dragActive uint8, label string, events []T.RowEvent) []byte
 
 type outEdge struct {
 	label      string

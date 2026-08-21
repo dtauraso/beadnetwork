@@ -9,28 +9,41 @@ paths:
 
 Go-side runtime debugging goes through the **DEBUG BREADCRUMB channel** — the Go analogue
 of the webview's `postLog`. Call `tr.Breadcrumb(label, node, port, value string)` at a debug
-site: it is a structured `Kind==KindBreadcrumb` row on the EMITTING goroutine's own
-per-owner content-buffer stream (node/edge/interior/VIEW — no per-node stream emits
-onto the VIEW stream instead), decoded by the ext host exactly like every other
-buffer-carried trace event (`buffer-log.ts`'s `"breadcrumb"` case) — there is no
-separate JSON-on-stdout debug sink. Read it with `scripts/probe-merge.sh --debug`, which
-filters the buffer-decoded `.probe` logs (`go.log`/`go-node.log`/`go-edge.log`/
-`go-interior.log`) to `kind=="breadcrumb" && debug==true` — separate from genuine
-stderr errors (`go-errors.log`). Do NOT scatter `fmt.Fprintf(os.Stderr, ...)` for
-diagnosis; use a breadcrumb. Keep it SPARSE — it is a debug tool for control events, not
-a per-tick firehose (see the log-flood lesson). It is a cheap no-op when no stream is
-wired (headless tests).
+site: it is a structured `Kind==KindBreadcrumb` row (`src/Trace/row_event.go`) that the
+EMITTING goroutine writes ITSELF, as a fixed-width binary record appended to the file
+belonging to the item the event is about:
+
+    topology/view/nodes/<row>/trace.bin           the node
+    topology/view/nodes/<row>/interior-trace.bin  its interior
+    topology/view/nodes/<row>/beads-trace.bin     its beads
+    topology/view/edges/<row>/trace.bin           the edge
+    topology/view/trace.bin                       the VIEW owner
+
+One writer per file — the goroutine that owns that item — so the append needs no lock,
+the same rule the block files follow. **These events do NOT cross the Go→TS seam.** They
+used to ride an events section on every stream frame, which the ext host decoded and
+re-encoded as text; that whole path is gone, along with `buffer-log.ts` and the TS event
+decoders. A stream frame now carries only a tick and the layout fingerprint.
+
+Read them with `scripts/probe-merge.sh --debug`, which decodes every `trace.bin` at READ
+time via `src/Trace/readtrace` and filters to `kind=="breadcrumb" && debug==true` —
+separate from genuine stderr errors (`.probe/go-errors.log`, still plain text). To read one
+item on its own: `go run ./src/Trace/readtrace topology/view/nodes/3/trace.bin`.
+
+Do NOT scatter `fmt.Fprintf(os.Stderr, ...)` for diagnosis; use a breadcrumb. Keep it
+SPARSE — it is a debug tool for control events, not a per-tick firehose (see the log-flood
+lesson). It is a cheap no-op when no scene root is set (headless tests).
 
 ## What the trace setting gates
 
-The `wirefold.probe.trace` setting (default **off**) gates the non-breadcrumb bulk of
-these same four files plus `ts.log` — the per-tick firehose (recv/send/edge-bead/
-node-geometry/etc.) that once grew `go-edge.log` past a gigabyte. It does NOT gate
-breadcrumb rows: every write site decodes the full frame regardless and appends
-breadcrumb-only lines when the setting is off, so `scripts/probe-merge.sh --debug` and the
-always-on error logs (`go-errors.log`/`ts-errors.log`/`handler-error-last.log`) work
-out of the box on a fresh install with no setting change. Turn the setting on only when
-you need the full per-tick trace, not just breadcrumbs.
+The `wirefold.probe.trace` setting (default **off**) gates the non-breadcrumb bulk of the
+trace files plus `ts.log` — the per-tick firehose (recv/send/edge-bead/node-geometry/etc.)
+that once grew `go-edge.log` past a gigabyte. It does NOT gate breadcrumb rows: Go reads
+`WIREFOLD_PROBE_TRACE` once at startup into `trace.TraceEnabled()`, and `Log.Append` skips
+every non-breadcrumb event when it is off, so `scripts/probe-merge.sh --debug` and the
+always-on error logs (`go-errors.log`/`ts-errors.log`/`handler-error-last.log`) work out of
+the box on a fresh install with no setting change. Turn the setting on only when you need
+the full per-tick trace, not just breadcrumbs.
 
 ## Source-gated edge-bead trace
 

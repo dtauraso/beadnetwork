@@ -1,13 +1,13 @@
 package runtopology
 
 import (
+	T "github.com/dtauraso/wirefold/src/Trace"
 	"fmt"
 	"os"
 
 	NodeKind "github.com/dtauraso/wirefold/src/Node"
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 
-	B "github.com/dtauraso/wirefold/src/Buffer"
 
 	W "github.com/dtauraso/wirefold/src/Input/dispatch"
 	EdgeB "github.com/dtauraso/wirefold/src/Node/Edge"
@@ -53,7 +53,7 @@ func wireNodeStreams(streamFDs SW.StreamFDs, md *W.MoveDispatch, sceneRoot strin
 
 			md.Sw.SetNodeStreams(md.GS.NodeSeeds, md.MR.NodeGeoms(), sceneRoot, nodeBase, interiorBase,
 				beadBase, beadWired,
-				func(tick uint32, nodeRow int32, beads []EdgeB.EdgeBead, events []B.RowEvent) []byte {
+				func(tick uint32, nodeRow int32, beads []EdgeB.EdgeBead, events []T.RowEvent) []byte {
 					if int(nodeRow) < len(beadValues) {
 						if err := EdgeB.WriteEdgeBeadValues(beadValues[nodeRow], beads); err != nil {
 							fmt.Fprintf(os.Stderr, "bead values write (node row %d): %v\n", nodeRow, err)
@@ -124,8 +124,8 @@ func wireNodeStreams(streamFDs SW.StreamFDs, md *W.MoveDispatch, sceneRoot strin
 					}
 					return NodeKind.BuildNodeStreamFrame(frame)
 				},
-				func(tick uint32, events []B.RowEvent) []byte {
-					return NodeKind.BuildInteriorStreamFrame(tick, events)
+				func(tick uint32, nodeRow int32, events []T.RowEvent) []byte {
+					return NodeKind.BuildInteriorStreamFrame(tick, nodeRow, events)
 				},
 				NodeKind.NodeKindID)
 		}
