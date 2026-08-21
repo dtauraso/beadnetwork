@@ -10,7 +10,6 @@ import { serveDocsOpen } from "./docs-open";
 import { armHostReloadWatcher } from "./host-reload-watcher";
 import { armBundleWatcher } from "./bundle-watcher";
 import { armGoWatcher } from "./go-watcher";
-import { armSceneSwitchWatcher, sceneRoots } from "./scene-switch-watcher";
 import { PROBE_FILES } from "./probe-files";
 import { resolveRepoRoot } from "./repo-root";
 
@@ -90,7 +89,7 @@ function openTopologyEditor(context: vscode.ExtensionContext, folderUri?: vscode
       localResourceRoots: [
         vscode.Uri.file(path.join(context.extensionPath, "out")),
         vscode.Uri.file(path.join(context.extensionPath, "src")),
-        ...sceneRoots(topologyPath).map((dir) => vscode.Uri.file(dir)),
+        vscode.Uri.file(scenePath),
       ],
     },
   );
@@ -105,7 +104,6 @@ function openTopologyEditor(context: vscode.ExtensionContext, folderUri?: vscode
   );
 
   const bundleWatcher = armBundleWatcher(panel, context, scenePath);
-  const sceneWatcher = armSceneSwitchWatcher(panel, context, topologyPath, scenePath);
 
   const repoRoot = resolveRepoRoot(vscode.workspace.workspaceFolders?.[0]?.uri.fsPath);
   const goWatcher = armGoWatcher(repoRoot, runner, panel);
@@ -114,7 +112,6 @@ function openTopologyEditor(context: vscode.ExtensionContext, folderUri?: vscode
 
   panel.onDidDispose(() => {
     bundleWatcher?.dispose();
-    sceneWatcher.dispose();
     goWatcher?.dispose();
     runner.dispose();
   });
