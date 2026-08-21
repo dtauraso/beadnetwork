@@ -1,55 +1,39 @@
 package viewstate
 
 import (
-	"github.com/dtauraso/wirefold/src/Chrome/Pills/NodesDropdown"
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/Panel"
-	B "github.com/dtauraso/wirefold/src/Buffer"
+	"github.com/dtauraso/wirefold/src/Chrome/Pills/NodesDropdown"
+	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
 const refusedNotice = "edit refused — see the output channel"
 
-func (ui *UIState) writeNodesPillColumns(lay NodesDropdown.Layout) {
-	c := ui.singletonCols
-	if c == nil {
+func (ui *UIState) writeNodesPillValues(lay NodesDropdown.Layout) {
+	w := ui.nodesPillValues
+	if w == nil {
 		return
 	}
+	w.Begin()
 
-	c.SetF32(B.ColStreamNodesPillPillX, lay.Pill.X)
-	c.SetF32(B.ColStreamNodesPillPillY, lay.Pill.Y)
-	c.SetF32(B.ColStreamNodesPillPillW, lay.Pill.W)
-	c.SetF32(B.ColStreamNodesPillPillH, lay.Pill.H)
-	c.SetU8(B.ColStreamNodesPillOpen, boolU8(lay.Open))
-	c.SetF32(B.ColStreamNodesPillPopoverX, lay.Popover.X)
-	c.SetF32(B.ColStreamNodesPillPopoverY, lay.Popover.Y)
-	c.SetF32(B.ColStreamNodesPillPopoverW, lay.Popover.W)
-	c.SetF32(B.ColStreamNodesPillPopoverH, lay.Popover.H)
-	c.SetBytes(B.ColStreamNodesPillLabelText, []byte(NodesDropdown.Label))
+	w.Rect("pillX", "pillY", "pillW", "pillH", lay.Pill)
+	w.Bool("open", lay.Open)
+	w.Rect("popoverX", "popoverY", "popoverW", "popoverH", lay.Popover)
+	w.Text("labelText", NodesDropdown.Label)
 
-	rows := newRunCols()
 	for _, r := range lay.Rows {
-		rows.Rect(B.ColStreamNodesPillRowX, B.ColStreamNodesPillRowY, B.ColStreamNodesPillRowW, B.ColStreamNodesPillRowH, r.Head)
-		rows.U8(B.ColStreamNodesPillRowOpen, boolU8(r.Open))
-		rows.Str(B.ColStreamNodesPillRowKindText, B.ColStreamNodesPillRowKindLen, r.Kind)
-		rows.Str(B.ColStreamNodesPillRowFillText, B.ColStreamNodesPillRowFillLen, r.Fill)
-		rows.Str(B.ColStreamNodesPillRowStrokeText, B.ColStreamNodesPillRowStrokeLen, r.Stroke)
-		rows.Rect(B.ColStreamNodesPillSwatchX, B.ColStreamNodesPillSwatchY, B.ColStreamNodesPillSwatchW, B.ColStreamNodesPillSwatchH, r.Swatch)
+		w.Rect("rowX", "rowY", "rowW", "rowH", r.Head)
+		w.Bool("rowOpen", r.Open)
+		w.Str("rowKindText", "rowKindLen", r.Kind)
+		w.Str("rowFillText", "rowFillLen", r.Fill)
+		w.Str("rowStrokeText", "rowStrokeLen", r.Stroke)
+		w.Rect("swatchX", "swatchY", "swatchW", "swatchH", r.Swatch)
 		desc := ""
 		if r.Open {
 			desc = r.Desc
 		}
-		rows.Str(B.ColStreamNodesPillRowDescText, B.ColStreamNodesPillRowDescLen, desc)
-		rows.Rect(B.ColStreamNodesPillDescX, B.ColStreamNodesPillDescY, B.ColStreamNodesPillDescW, B.ColStreamNodesPillDescH, r.DescRect)
+		w.Str("rowDescText", "rowDescLen", desc)
+		w.Rect("descX", "descY", "descW", "descH", r.DescRect)
 	}
-	rows.writeTo(c,
-		B.ColStreamNodesPillRowX, B.ColStreamNodesPillRowY, B.ColStreamNodesPillRowW, B.ColStreamNodesPillRowH,
-		B.ColStreamNodesPillRowOpen,
-		B.ColStreamNodesPillRowKindText, B.ColStreamNodesPillRowKindLen,
-		B.ColStreamNodesPillRowFillText, B.ColStreamNodesPillRowFillLen,
-		B.ColStreamNodesPillRowStrokeText, B.ColStreamNodesPillRowStrokeLen,
-		B.ColStreamNodesPillSwatchX, B.ColStreamNodesPillSwatchY, B.ColStreamNodesPillSwatchW, B.ColStreamNodesPillSwatchH,
-		B.ColStreamNodesPillRowDescText, B.ColStreamNodesPillRowDescLen,
-		B.ColStreamNodesPillDescX, B.ColStreamNodesPillDescY, B.ColStreamNodesPillDescW, B.ColStreamNodesPillDescH,
-	)
 
 	noticeW := Panel.TextWidth(refusedNotice, Panel.PillFontPx) + 16
 	noticeH := Panel.LineHeight(Panel.PillFontPx) + 8
@@ -57,10 +41,14 @@ func (ui *UIState) writeNodesPillColumns(lay NodesDropdown.Layout) {
 	if lay.Open {
 		noticeY = lay.Popover.Y + lay.Popover.H + Panel.PillGap
 	}
-	c.SetU32(B.ColStreamNodesPillRefusedCount, ui.EditRefused)
-	c.SetF32(B.ColStreamNodesPillRefusedX, lay.Pill.X+lay.Pill.W-noticeW)
-	c.SetF32(B.ColStreamNodesPillRefusedY, noticeY)
-	c.SetF32(B.ColStreamNodesPillRefusedW, noticeW)
-	c.SetF32(B.ColStreamNodesPillRefusedH, noticeH)
-	c.SetBytes(B.ColStreamNodesPillRefusedText, []byte(refusedNotice))
+	w.U32("refusedCount", ui.EditRefused)
+	w.F32("refusedX", lay.Pill.X+lay.Pill.W-noticeW)
+	w.F32("refusedY", noticeY)
+	w.F32("refusedW", noticeW)
+	w.F32("refusedH", noticeH)
+	w.Text("refusedText", refusedNotice)
+
+	if err := w.Flush(); err != nil {
+		valuefile.LogPersistErr("nodes_pill_values", "", err)
+	}
 }

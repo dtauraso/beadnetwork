@@ -1,6 +1,6 @@
 package PolarRulesPanel
 
-import "strings"
+import "github.com/dtauraso/wirefold/src/valuefile"
 
 const ValueRelDir = "view/chrome/rules-panel"
 
@@ -28,24 +28,8 @@ var PanelValueNames = []string{
 	"menuNodeRow",
 }
 
-func ValueFileName(name string) string {
-	var b strings.Builder
-	for i, r := range name {
-		if r >= 'A' && r <= 'Z' {
-			if i > 0 {
-				b.WriteByte('-')
-			}
-			b.WriteRune(r - 'A' + 'a')
-			continue
-		}
-		b.WriteRune(r)
-	}
-	b.WriteString(".bin")
-	return b.String()
-}
-
 func ValueRelPath(name string) string {
-	return ValueRelDir + "/" + ValueFileName(name)
+	return ValueRelDir + "/" + valuefile.BlobFileName(name)
 }
 
 func ValuePath(sceneRoot, name string) string {

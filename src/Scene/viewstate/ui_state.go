@@ -14,6 +14,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/movemsg"
 	"github.com/dtauraso/wirefold/src/Polar/polarindex"
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/PolarRulesPanel"
+	"github.com/dtauraso/wirefold/src/Chrome/Pills/NodesDropdown"
 	"github.com/dtauraso/wirefold/src/Scene/selectionstate"
 	"github.com/dtauraso/wirefold/src/spatial"
 	"github.com/dtauraso/wirefold/src/Buffer/colstream"
@@ -32,7 +33,8 @@ type UIState struct {
 
 	singletonCols *colstream.ColumnSet
 
-	rulesValues *PolarRulesPanel.ValueWriter
+	rulesValues     *PolarRulesPanel.ValueWriter
+	nodesPillValues *NodesDropdown.ValueWriter
 
 	OwnerCounts struct{ Nodes, Edges int32 }
 

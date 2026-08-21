@@ -1,27 +1,10 @@
-import { columnF32, columnU8, columnU32, columnBytes } from "../../../Buffer/column-values";
 import { canvasFont, roundRect } from "../../../webview/canvas-box";
 import { drawPill, drawPopoverBox, ROW_PAD_X } from "../pill";
-import { readF32Run, readU32Run, readText, decodeAt } from "../../../Buffer/column-reads";
+import { decodeAt } from "../../../Buffer/column-reads";
 import * as T from "../../../webview/canvas-theme";
 import {
-  COL_STREAM_NODES_PILL_PILL_X, COL_STREAM_NODES_PILL_PILL_Y, COL_STREAM_NODES_PILL_PILL_W,
-  COL_STREAM_NODES_PILL_PILL_H, COL_STREAM_NODES_PILL_OPEN, COL_STREAM_NODES_PILL_POPOVER_X,
-  COL_STREAM_NODES_PILL_POPOVER_Y, COL_STREAM_NODES_PILL_POPOVER_W,
-  COL_STREAM_NODES_PILL_POPOVER_H, COL_STREAM_NODES_PILL_LABEL_TEXT,
-  COL_STREAM_NODES_PILL_ROW_X, COL_STREAM_NODES_PILL_ROW_Y, COL_STREAM_NODES_PILL_ROW_W,
-  COL_STREAM_NODES_PILL_ROW_H, COL_STREAM_NODES_PILL_ROW_OPEN,
-  COL_STREAM_NODES_PILL_ROW_KIND_TEXT, COL_STREAM_NODES_PILL_ROW_KIND_LEN,
-  COL_STREAM_NODES_PILL_ROW_FILL_TEXT, COL_STREAM_NODES_PILL_ROW_FILL_LEN,
-  COL_STREAM_NODES_PILL_ROW_STROKE_TEXT, COL_STREAM_NODES_PILL_ROW_STROKE_LEN,
-  COL_STREAM_NODES_PILL_SWATCH_X, COL_STREAM_NODES_PILL_SWATCH_Y,
-  COL_STREAM_NODES_PILL_SWATCH_W, COL_STREAM_NODES_PILL_SWATCH_H,
-  COL_STREAM_NODES_PILL_ROW_DESC_TEXT, COL_STREAM_NODES_PILL_ROW_DESC_LEN,
-  COL_STREAM_NODES_PILL_DESC_X, COL_STREAM_NODES_PILL_DESC_Y, COL_STREAM_NODES_PILL_DESC_W,
-  COL_STREAM_NODES_PILL_DESC_H, COL_STREAM_NODES_PILL_REFUSED_COUNT,
-  COL_STREAM_NODES_PILL_REFUSED_X, COL_STREAM_NODES_PILL_REFUSED_Y,
-  COL_STREAM_NODES_PILL_REFUSED_W, COL_STREAM_NODES_PILL_REFUSED_H,
-  COL_STREAM_NODES_PILL_REFUSED_TEXT,
-} from "./columns-gen";
+  pillBytes, pillF32, pillU8, pillU32, pillU32Run, pillF32Run, pillText,
+} from "./pill-leaves";
 
 const SWATCH_GAP = 7;
 const DESC_LINE_H = 1.35;
@@ -31,7 +14,7 @@ let noticeSeen = -1;
 let noticeUntil = 0;
 
 function noticeShowing(): boolean {
-  const count = columnU32(COL_STREAM_NODES_PILL_REFUSED_COUNT);
+  const count = pillU32("refusedCount");
   if (count !== noticeSeen) {
     if (noticeSeen >= 0) noticeUntil = performance.now() + NOTICE_MS;
     noticeSeen = count;
@@ -40,31 +23,31 @@ function noticeShowing(): boolean {
 }
 
 export function nodesPillKey(): string {
-  const rowOpen = columnBytes(COL_STREAM_NODES_PILL_ROW_OPEN);
+  const rowOpen = pillBytes("rowOpen");
   return [
-    columnF32(COL_STREAM_NODES_PILL_PILL_X), columnF32(COL_STREAM_NODES_PILL_PILL_Y),
-    columnU8(COL_STREAM_NODES_PILL_OPEN), columnF32(COL_STREAM_NODES_PILL_POPOVER_H),
+    pillF32("pillX"), pillF32("pillY"),
+    pillU8("open"), pillF32("popoverH"),
     rowOpen ? new Uint8Array(rowOpen.buffer, rowOpen.byteOffset, rowOpen.byteLength).join(".") : "",
     noticeShowing() ? `n${noticeUntil}` : "",
   ].join(",");
 }
 
 export function drawNodesPill(c: CanvasRenderingContext2D): void {
-  const labelText = readText(COL_STREAM_NODES_PILL_LABEL_TEXT);
-  const pw = columnF32(COL_STREAM_NODES_PILL_PILL_W);
-  const ph = columnF32(COL_STREAM_NODES_PILL_PILL_H);
+  const labelText = pillText("labelText");
+  const pw = pillF32("pillW");
+  const ph = pillF32("pillH");
   if (!labelText || pw <= 0 || ph <= 0) return;
-  const px = columnF32(COL_STREAM_NODES_PILL_PILL_X);
-  const py = columnF32(COL_STREAM_NODES_PILL_PILL_Y);
-  const open = columnU8(COL_STREAM_NODES_PILL_OPEN) !== 0;
+  const px = pillF32("pillX");
+  const py = pillF32("pillY");
+  const open = pillU8("open") !== 0;
 
   drawPill(c, px, py, pw, ph, decodeAt(labelText, 0, labelText.length), open);
 
   if (open) {
     drawPopoverBox(
       c,
-      columnF32(COL_STREAM_NODES_PILL_POPOVER_X), columnF32(COL_STREAM_NODES_PILL_POPOVER_Y),
-      columnF32(COL_STREAM_NODES_PILL_POPOVER_W), columnF32(COL_STREAM_NODES_PILL_POPOVER_H),
+      pillF32("popoverX"), pillF32("popoverY"),
+      pillF32("popoverW"), pillF32("popoverH"),
     );
     drawRows(c);
   }
@@ -73,12 +56,12 @@ export function drawNodesPill(c: CanvasRenderingContext2D): void {
 }
 
 function drawNotice(c: CanvasRenderingContext2D): void {
-  const text = readText(COL_STREAM_NODES_PILL_REFUSED_TEXT);
-  const w = columnF32(COL_STREAM_NODES_PILL_REFUSED_W);
-  const h = columnF32(COL_STREAM_NODES_PILL_REFUSED_H);
+  const text = pillText("refusedText");
+  const w = pillF32("refusedW");
+  const h = pillF32("refusedH");
   if (!text || w <= 0 || h <= 0) return;
-  const x = columnF32(COL_STREAM_NODES_PILL_REFUSED_X);
-  const y = columnF32(COL_STREAM_NODES_PILL_REFUSED_Y);
+  const x = pillF32("refusedX");
+  const y = pillF32("refusedY");
 
   roundRect(c, x + 0.5, y + 0.5, w - 1, h - 1, T.RADIUS_CHIP);
   c.fillStyle = T.CHIP;
@@ -111,25 +94,25 @@ function wrap(c: CanvasRenderingContext2D, text: string, w: number): string[] {
 }
 
 function drawRows(c: CanvasRenderingContext2D): void {
-  const x = readF32Run(COL_STREAM_NODES_PILL_ROW_X);
-  const y = readF32Run(COL_STREAM_NODES_PILL_ROW_Y);
-  const h = readF32Run(COL_STREAM_NODES_PILL_ROW_H);
-  const openRun = columnBytes(COL_STREAM_NODES_PILL_ROW_OPEN);
-  const kindText = readText(COL_STREAM_NODES_PILL_ROW_KIND_TEXT);
-  const kindLen = readU32Run(COL_STREAM_NODES_PILL_ROW_KIND_LEN);
-  const fillText = readText(COL_STREAM_NODES_PILL_ROW_FILL_TEXT);
-  const fillLen = readU32Run(COL_STREAM_NODES_PILL_ROW_FILL_LEN);
-  const strokeText = readText(COL_STREAM_NODES_PILL_ROW_STROKE_TEXT);
-  const strokeLen = readU32Run(COL_STREAM_NODES_PILL_ROW_STROKE_LEN);
-  const sx = readF32Run(COL_STREAM_NODES_PILL_SWATCH_X);
-  const sy = readF32Run(COL_STREAM_NODES_PILL_SWATCH_Y);
-  const sw = readF32Run(COL_STREAM_NODES_PILL_SWATCH_W);
-  const sh = readF32Run(COL_STREAM_NODES_PILL_SWATCH_H);
-  const descText = readText(COL_STREAM_NODES_PILL_ROW_DESC_TEXT);
-  const descLen = readU32Run(COL_STREAM_NODES_PILL_ROW_DESC_LEN);
-  const dx = readF32Run(COL_STREAM_NODES_PILL_DESC_X);
-  const dy = readF32Run(COL_STREAM_NODES_PILL_DESC_Y);
-  const dw = readF32Run(COL_STREAM_NODES_PILL_DESC_W);
+  const x = pillF32Run("rowX");
+  const y = pillF32Run("rowY");
+  const h = pillF32Run("rowH");
+  const openRun = pillBytes("rowOpen");
+  const kindText = pillText("rowKindText");
+  const kindLen = pillU32Run("rowKindLen");
+  const fillText = pillText("rowFillText");
+  const fillLen = pillU32Run("rowFillLen");
+  const strokeText = pillText("rowStrokeText");
+  const strokeLen = pillU32Run("rowStrokeLen");
+  const sx = pillF32Run("swatchX");
+  const sy = pillF32Run("swatchY");
+  const sw = pillF32Run("swatchW");
+  const sh = pillF32Run("swatchH");
+  const descText = pillText("rowDescText");
+  const descLen = pillU32Run("rowDescLen");
+  const dx = pillF32Run("descX");
+  const dy = pillF32Run("descY");
+  const dw = pillF32Run("descW");
   if (!x || !y || !h || !openRun || !kindText || !kindLen) return;
   if (!fillText || !fillLen || !strokeText || !strokeLen) return;
   if (!sx || !sy || !sw || !sh || !descText || !descLen || !dx || !dy || !dw) return;
