@@ -18,6 +18,9 @@ import { postLog } from "../../webview/log/post";
 import { encodeSceneViewport } from "../../Input/input-encode-scene-tilt";
 import { takeSpawnRestarted } from "../../webview/spawn-gen";
 
+const COLLAPSED_W = 300;
+const COLLAPSED_H = 150;
+
 const OVERLAY_SURFACE_W = 4096;
 const OVERLAY_SURFACE_H = 4096;
 
@@ -117,7 +120,11 @@ export function ChromeCanvas() {
     const bw = OVERLAY_SURFACE_W;
     const bh = OVERLAY_SURFACE_H;
 
-    if (vw !== lastSize.current.w || vh !== lastSize.current.h || takeSpawnRestarted()) {
+    const collapsed = vw <= COLLAPSED_W && vh <= COLLAPSED_H;
+    const restarted = takeSpawnRestarted();
+    if (collapsed) {
+      if (restarted) lastSize.current = { w: 0, h: 0 };
+    } else if (vw !== lastSize.current.w || vh !== lastSize.current.h || restarted) {
       lastSize.current = { w: vw, h: vh };
       postGoRecord(encodeSceneViewport(vw, vh));
       postLog("panel-overlay-size", {
