@@ -1,31 +1,16 @@
-import { columnBytes, columnF32, columnI32, columnU8 } from "../../../Buffer/column-values";
+import { columnI32 } from "../../../Buffer/column-values";
 import { nodeColumn } from "../../../Buffer/column-owners";
 import {
   COL_STREAM_NODE_TOP_TILT_VECTOR_IDX,
 } from "../../../Node/columns-gen";
 import { canvasFont, roundRect } from "../../../webview/canvas-box";
 import { drawPill, drawPopoverBox, drawHeadingText, ROW_PAD_X } from "../pill";
-import { readF32Run, readI32Run, readU32Run, readText, decodeAt } from "../../../Buffer/column-reads";
+import { decodeAt } from "../../../Buffer/column-reads";
 import * as T from "../../../webview/canvas-theme";
 import {
-  COL_STREAM_ANGLE_PILL_PILL_X, COL_STREAM_ANGLE_PILL_PILL_Y, COL_STREAM_ANGLE_PILL_PILL_W,
-  COL_STREAM_ANGLE_PILL_PILL_H, COL_STREAM_ANGLE_PILL_OPEN, COL_STREAM_ANGLE_PILL_POPOVER_X,
-  COL_STREAM_ANGLE_PILL_POPOVER_Y, COL_STREAM_ANGLE_PILL_POPOVER_W,
-  COL_STREAM_ANGLE_PILL_POPOVER_H, COL_STREAM_ANGLE_PILL_LABEL_TEXT,
-  COL_STREAM_ANGLE_PILL_STEP_X, COL_STREAM_ANGLE_PILL_STEP_Y, COL_STREAM_ANGLE_PILL_STEP_W,
-  COL_STREAM_ANGLE_PILL_STEP_H, COL_STREAM_ANGLE_PILL_STEP_NAME_TEXT,
-  COL_STREAM_ANGLE_PILL_STEP_NAME_LEN, COL_STREAM_ANGLE_PILL_STEP_SHOWN_TEXT,
-  COL_STREAM_ANGLE_PILL_STEP_SHOWN_LEN, COL_STREAM_ANGLE_PILL_STEP_VALUE_ROW,
-  COL_STREAM_ANGLE_PILL_STEP_DENOM, COL_STREAM_ANGLE_PILL_STEP_UP_X,
-  COL_STREAM_ANGLE_PILL_STEP_UP_Y, COL_STREAM_ANGLE_PILL_STEP_UP_W,
-  COL_STREAM_ANGLE_PILL_STEP_UP_H, COL_STREAM_ANGLE_PILL_STEP_DOWN_X,
-  COL_STREAM_ANGLE_PILL_STEP_DOWN_Y, COL_STREAM_ANGLE_PILL_STEP_DOWN_W,
-  COL_STREAM_ANGLE_PILL_STEP_DOWN_H, COL_STREAM_ANGLE_PILL_STEP_UP_ON,
-  COL_STREAM_ANGLE_PILL_STEP_DOWN_ON, COL_STREAM_ANGLE_PILL_GROUP_X,
-  COL_STREAM_ANGLE_PILL_GROUP_Y, COL_STREAM_ANGLE_PILL_GROUP_W,
-  COL_STREAM_ANGLE_PILL_GROUP_H, COL_STREAM_ANGLE_PILL_GROUP_OPEN,
-  COL_STREAM_ANGLE_PILL_GROUP_HEAD_TEXT, COL_STREAM_ANGLE_PILL_GROUP_HEAD_LEN,
-} from "./columns-gen";
+  anglePillBytes, anglePillF32, anglePillU8, anglePillF32Run, anglePillI32Run,
+  anglePillU32Run, anglePillText,
+} from "./pill-leaves";
 
 const ROW_GAP = 2;
 const ARROW_PAD = 2;
@@ -57,11 +42,11 @@ function drawArrow(
 }
 
 export function anglePillKey(): string {
-  const open = columnU8(COL_STREAM_ANGLE_PILL_OPEN);
-  const rows = readI32Run(COL_STREAM_ANGLE_PILL_STEP_VALUE_ROW);
-  const denom = readI32Run(COL_STREAM_ANGLE_PILL_STEP_DENOM);
-  const shownText = readText(COL_STREAM_ANGLE_PILL_STEP_SHOWN_TEXT);
-  const shownLen = readU32Run(COL_STREAM_ANGLE_PILL_STEP_SHOWN_LEN);
+  const open = anglePillU8("open");
+  const rows = anglePillI32Run("stepValueRow");
+  const denom = anglePillI32Run("stepDenom");
+  const shownText = anglePillText("stepShownText");
+  const shownLen = anglePillU32Run("stepShownLen");
   const values: string[] = [];
   if (rows && denom && shownText && shownLen) {
     let off = 0;
@@ -71,23 +56,23 @@ export function anglePillKey(): string {
       values.push(stepperValue(shown, rows[i]!, denom[i]!));
     }
   }
-  const groupOpen = columnBytes(COL_STREAM_ANGLE_PILL_GROUP_OPEN);
+  const groupOpen = anglePillBytes("groupOpen");
   return [
-    columnF32(COL_STREAM_ANGLE_PILL_PILL_X), columnF32(COL_STREAM_ANGLE_PILL_PILL_Y),
-    columnF32(COL_STREAM_ANGLE_PILL_POPOVER_H), open,
+    anglePillF32("pillX"), anglePillF32("pillY"),
+    anglePillF32("popoverH"), open,
     groupOpen ? new Uint8Array(groupOpen.buffer, groupOpen.byteOffset, groupOpen.byteLength).join(".") : "",
     values.join("."),
   ].join(",");
 }
 
 export function drawAnglePill(c: CanvasRenderingContext2D): void {
-  const px = columnF32(COL_STREAM_ANGLE_PILL_PILL_X);
-  const py = columnF32(COL_STREAM_ANGLE_PILL_PILL_Y);
-  const pw = columnF32(COL_STREAM_ANGLE_PILL_PILL_W);
-  const ph = columnF32(COL_STREAM_ANGLE_PILL_PILL_H);
-  const labelText = readText(COL_STREAM_ANGLE_PILL_LABEL_TEXT);
+  const px = anglePillF32("pillX");
+  const py = anglePillF32("pillY");
+  const pw = anglePillF32("pillW");
+  const ph = anglePillF32("pillH");
+  const labelText = anglePillText("labelText");
   if (pw <= 0 || ph <= 0 || !labelText) return;
-  const open = columnU8(COL_STREAM_ANGLE_PILL_OPEN) !== 0;
+  const open = anglePillU8("open") !== 0;
 
   drawPill(c, px, py, pw, ph, decodeAt(labelText, 0, labelText.length), open);
 
@@ -95,8 +80,8 @@ export function drawAnglePill(c: CanvasRenderingContext2D): void {
 
   drawPopoverBox(
     c,
-    columnF32(COL_STREAM_ANGLE_PILL_POPOVER_X), columnF32(COL_STREAM_ANGLE_PILL_POPOVER_Y),
-    columnF32(COL_STREAM_ANGLE_PILL_POPOVER_W), columnF32(COL_STREAM_ANGLE_PILL_POPOVER_H),
+    anglePillF32("popoverX"), anglePillF32("popoverY"),
+    anglePillF32("popoverW"), anglePillF32("popoverH"),
   );
 
   drawGroups(c);
@@ -104,12 +89,12 @@ export function drawAnglePill(c: CanvasRenderingContext2D): void {
 }
 
 function drawGroups(c: CanvasRenderingContext2D): void {
-  const x = readF32Run(COL_STREAM_ANGLE_PILL_GROUP_X);
-  const y = readF32Run(COL_STREAM_ANGLE_PILL_GROUP_Y);
-  const h = readF32Run(COL_STREAM_ANGLE_PILL_GROUP_H);
-  const openRun = columnBytes(COL_STREAM_ANGLE_PILL_GROUP_OPEN);
-  const headText = readText(COL_STREAM_ANGLE_PILL_GROUP_HEAD_TEXT);
-  const headLen = readU32Run(COL_STREAM_ANGLE_PILL_GROUP_HEAD_LEN);
+  const x = anglePillF32Run("groupX");
+  const y = anglePillF32Run("groupY");
+  const h = anglePillF32Run("groupH");
+  const openRun = anglePillBytes("groupOpen");
+  const headText = anglePillText("groupHeadText");
+  const headLen = anglePillU32Run("groupHeadLen");
   if (!x || !y || !h || !openRun || !headText || !headLen) return;
 
   let off = 0;
@@ -128,25 +113,25 @@ function drawGroups(c: CanvasRenderingContext2D): void {
 }
 
 function drawSteppers(c: CanvasRenderingContext2D): void {
-  const x = readF32Run(COL_STREAM_ANGLE_PILL_STEP_X);
-  const y = readF32Run(COL_STREAM_ANGLE_PILL_STEP_Y);
-  const h = readF32Run(COL_STREAM_ANGLE_PILL_STEP_H);
-  const nameText = readText(COL_STREAM_ANGLE_PILL_STEP_NAME_TEXT);
-  const nameLen = readU32Run(COL_STREAM_ANGLE_PILL_STEP_NAME_LEN);
-  const shownText = readText(COL_STREAM_ANGLE_PILL_STEP_SHOWN_TEXT);
-  const shownLen = readU32Run(COL_STREAM_ANGLE_PILL_STEP_SHOWN_LEN);
-  const valueRow = readI32Run(COL_STREAM_ANGLE_PILL_STEP_VALUE_ROW);
-  const denom = readI32Run(COL_STREAM_ANGLE_PILL_STEP_DENOM);
-  const ux = readF32Run(COL_STREAM_ANGLE_PILL_STEP_UP_X);
-  const uy = readF32Run(COL_STREAM_ANGLE_PILL_STEP_UP_Y);
-  const uw = readF32Run(COL_STREAM_ANGLE_PILL_STEP_UP_W);
-  const uh = readF32Run(COL_STREAM_ANGLE_PILL_STEP_UP_H);
-  const dx = readF32Run(COL_STREAM_ANGLE_PILL_STEP_DOWN_X);
-  const dy = readF32Run(COL_STREAM_ANGLE_PILL_STEP_DOWN_Y);
-  const dw = readF32Run(COL_STREAM_ANGLE_PILL_STEP_DOWN_W);
-  const dh = readF32Run(COL_STREAM_ANGLE_PILL_STEP_DOWN_H);
-  const upOn = columnBytes(COL_STREAM_ANGLE_PILL_STEP_UP_ON);
-  const downOn = columnBytes(COL_STREAM_ANGLE_PILL_STEP_DOWN_ON);
+  const x = anglePillF32Run("stepX");
+  const y = anglePillF32Run("stepY");
+  const h = anglePillF32Run("stepH");
+  const nameText = anglePillText("stepNameText");
+  const nameLen = anglePillU32Run("stepNameLen");
+  const shownText = anglePillText("stepShownText");
+  const shownLen = anglePillU32Run("stepShownLen");
+  const valueRow = anglePillI32Run("stepValueRow");
+  const denom = anglePillI32Run("stepDenom");
+  const ux = anglePillF32Run("stepUpX");
+  const uy = anglePillF32Run("stepUpY");
+  const uw = anglePillF32Run("stepUpW");
+  const uh = anglePillF32Run("stepUpH");
+  const dx = anglePillF32Run("stepDownX");
+  const dy = anglePillF32Run("stepDownY");
+  const dw = anglePillF32Run("stepDownW");
+  const dh = anglePillF32Run("stepDownH");
+  const upOn = anglePillBytes("stepUpOn");
+  const downOn = anglePillBytes("stepDownOn");
   if (!x || !y || !h || !nameText || !nameLen || !shownText || !shownLen) return;
   if (!valueRow || !denom || !ux || !uy || !uw || !uh || !dx || !dy || !dw || !dh) return;
   if (!upOn || !downOn) return;

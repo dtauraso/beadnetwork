@@ -5,7 +5,7 @@ import (
 	"math"
 
 	"github.com/dtauraso/wirefold/src/Chrome/Pills/AngleDropdown"
-	B "github.com/dtauraso/wirefold/src/Buffer"
+	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
 type runCols struct {
@@ -73,62 +73,43 @@ func (r *runCols) writeTo(set interface{ SetBytes(int, []byte) }, cols ...int) {
 	}
 }
 
-func (ui *UIState) writeAnglePillColumns(lay AngleDropdown.Layout) {
-	c := ui.singletonCols
-	if c == nil {
+func (ui *UIState) writeAnglePillValues(lay AngleDropdown.Layout) {
+	w := ui.anglePillValues
+	if w == nil {
 		return
 	}
+	w.Begin()
 
-	c.SetF32(B.ColStreamAnglePillPillX, lay.Pill.X)
-	c.SetF32(B.ColStreamAnglePillPillY, lay.Pill.Y)
-	c.SetF32(B.ColStreamAnglePillPillW, lay.Pill.W)
-	c.SetF32(B.ColStreamAnglePillPillH, lay.Pill.H)
-	c.SetU8(B.ColStreamAnglePillOpen, boolU8(lay.Open))
-	c.SetF32(B.ColStreamAnglePillPopoverX, lay.Popover.X)
-	c.SetF32(B.ColStreamAnglePillPopoverY, lay.Popover.Y)
-	c.SetF32(B.ColStreamAnglePillPopoverW, lay.Popover.W)
-	c.SetF32(B.ColStreamAnglePillPopoverH, lay.Popover.H)
-	c.SetBytes(B.ColStreamAnglePillLabelText, []byte(AngleDropdown.Label))
+	w.Rect("pillX", "pillY", "pillW", "pillH", lay.Pill)
+	w.Bool("open", lay.Open)
+	w.Rect("popoverX", "popoverY", "popoverW", "popoverH", lay.Popover)
+	w.Text("labelText", AngleDropdown.Label)
 
-	steps := newRunCols()
 	addStep := func(s AngleDropdown.Stepper) {
-		steps.Rect(B.ColStreamAnglePillStepX, B.ColStreamAnglePillStepY, B.ColStreamAnglePillStepW, B.ColStreamAnglePillStepH, s.Row)
-		steps.Str(B.ColStreamAnglePillStepNameText, B.ColStreamAnglePillStepNameLen, s.Name)
-		steps.Str(B.ColStreamAnglePillStepShownText, B.ColStreamAnglePillStepShownLen, s.Shown)
-		steps.I32(B.ColStreamAnglePillStepValueRow, s.ValueRow)
-		steps.I32(B.ColStreamAnglePillStepDenom, s.Denom)
-		steps.Rect(B.ColStreamAnglePillStepUpX, B.ColStreamAnglePillStepUpY, B.ColStreamAnglePillStepUpW, B.ColStreamAnglePillStepUpH, s.Up)
-		steps.Rect(B.ColStreamAnglePillStepDownX, B.ColStreamAnglePillStepDownY, B.ColStreamAnglePillStepDownW, B.ColStreamAnglePillStepDownH, s.Down)
-		steps.U8(B.ColStreamAnglePillStepUpOn, boolU8(s.UpEnabled))
-		steps.U8(B.ColStreamAnglePillStepDownOn, boolU8(s.DownEnabled))
+		w.Rect("stepX", "stepY", "stepW", "stepH", s.Row)
+		w.Str("stepNameText", "stepNameLen", s.Name)
+		w.Str("stepShownText", "stepShownLen", s.Shown)
+		w.I32("stepValueRow", s.ValueRow)
+		w.I32("stepDenom", s.Denom)
+		w.Rect("stepUpX", "stepUpY", "stepUpW", "stepUpH", s.Up)
+		w.Rect("stepDownX", "stepDownY", "stepDownW", "stepDownH", s.Down)
+		w.Bool("stepUpOn", s.UpEnabled)
+		w.Bool("stepDownOn", s.DownEnabled)
 	}
-
-	groups := newRunCols()
 
 	if lay.Open {
 		addStep(lay.Lattice)
 		for _, g := range lay.Groups {
-			groups.Rect(B.ColStreamAnglePillGroupX, B.ColStreamAnglePillGroupY, B.ColStreamAnglePillGroupW, B.ColStreamAnglePillGroupH, g.Head)
-			groups.U8(B.ColStreamAnglePillGroupOpen, boolU8(g.Open))
-			groups.Str(B.ColStreamAnglePillGroupHeadText, B.ColStreamAnglePillGroupHeadLen, g.Heading)
+			w.Rect("groupX", "groupY", "groupW", "groupH", g.Head)
+			w.Bool("groupOpen", g.Open)
+			w.Str("groupHeadText", "groupHeadLen", g.Heading)
 			if g.Open {
 				addStep(g.Phi)
 			}
 		}
 	}
 
-	steps.writeTo(c,
-		B.ColStreamAnglePillStepX, B.ColStreamAnglePillStepY, B.ColStreamAnglePillStepW, B.ColStreamAnglePillStepH,
-		B.ColStreamAnglePillStepNameText, B.ColStreamAnglePillStepNameLen,
-		B.ColStreamAnglePillStepShownText, B.ColStreamAnglePillStepShownLen,
-		B.ColStreamAnglePillStepValueRow, B.ColStreamAnglePillStepDenom,
-		B.ColStreamAnglePillStepUpX, B.ColStreamAnglePillStepUpY, B.ColStreamAnglePillStepUpW, B.ColStreamAnglePillStepUpH,
-		B.ColStreamAnglePillStepDownX, B.ColStreamAnglePillStepDownY, B.ColStreamAnglePillStepDownW, B.ColStreamAnglePillStepDownH,
-		B.ColStreamAnglePillStepUpOn, B.ColStreamAnglePillStepDownOn,
-	)
-	groups.writeTo(c,
-		B.ColStreamAnglePillGroupX, B.ColStreamAnglePillGroupY, B.ColStreamAnglePillGroupW, B.ColStreamAnglePillGroupH,
-		B.ColStreamAnglePillGroupOpen,
-		B.ColStreamAnglePillGroupHeadText, B.ColStreamAnglePillGroupHeadLen,
-	)
+	if err := w.Flush(); err != nil {
+		valuefile.LogPersistErr("angle_pill_values", "", err)
+	}
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Buffer/colstream"
 	"github.com/dtauraso/wirefold/src/Camera"
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/PolarRulesPanel"
+	"github.com/dtauraso/wirefold/src/Chrome/Pills/AngleDropdown"
 	"github.com/dtauraso/wirefold/src/Chrome/Pills/NodesDropdown"
 )
 
@@ -21,6 +22,7 @@ func (ui *UIState) SetSceneRoot(sceneRoot string) {
 	}
 	ui.rulesValues = PolarRulesPanel.NewValueWriter(sceneRoot)
 	ui.nodesPillValues = NodesDropdown.NewValueWriter(sceneRoot)
+	ui.anglePillValues = AngleDropdown.NewValueWriter(sceneRoot)
 }
 
 func (ui *UIState) writeSceneColumns() {

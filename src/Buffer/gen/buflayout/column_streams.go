@@ -11,7 +11,7 @@ var perNodeStreamBlocks = []string{"Node", "Interior", "EdgeBead", "TiltArrow", 
 
 var perEdgeStreamBlocks = []string{"Edge"}
 
-var singletonStreamBlocks = []string{"Camera", "Scene", "NodeRingPoint", "BeadRingPoint", "SpeedPanel", "TiltPanel", "AnglePill", "OverlaysPill", "FitChip", "TabStrip", "PointerTarget"}
+var singletonStreamBlocks = []string{"Camera", "Scene", "NodeRingPoint", "BeadRingPoint", "SpeedPanel", "TiltPanel", "OverlaysPill", "FitChip", "TabStrip", "PointerTarget"}
 
 func (s BufLayoutSchema) columnsOf(name string) int {
 	for _, b := range s.Blocks {
