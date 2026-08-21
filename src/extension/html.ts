@@ -24,6 +24,7 @@ export function buildWebviewHtml(
       .toString();
   }
 
+  const scriptExists = fs.existsSync(scriptPath);
   const scriptUri = webview
     .asWebviewUri(vscode.Uri.file(scriptPath))
     .with({ query: `v=${mtimeMs(scriptPath)}` });
@@ -57,6 +58,24 @@ export function buildWebviewHtml(
        since before this change. -->
   <div id="app"></div>
   <script nonce="${nonce}">
+    // A webview whose bundle never runs is INDISTINGUISHABLE from one that ran and
+    // drew nothing: the panel is blank either way, and every diagnostic we have is a
+    // postLog from inside the bundle, so it reports nothing at all. This says so on
+    // the panel itself. main.tsx sets the flag as its first act.
+    setTimeout(function () {
+      if (window.WIREFOLD_BOOTED) return;
+      var app = document.getElementById("app");
+      if (!app) return;
+      app.innerHTML =
+        '<pre style="margin:0;padding:16px;font:12px ui-monospace,monospace;color:#8b0000;white-space:pre-wrap">' +
+        'topology editor: the webview bundle did not run.\\n\\n' +
+        'script: ${scriptUri.toString()}\\n' +
+        'bundle on disk: ${scriptExists ? "present" : "MISSING"}\\n\\n' +
+        'If MISSING, out/webview.js was not built (or was mid-write when this page\\n' +
+        'loaded) - run "npm run build" and reload the window. If present, the bundle\\n' +
+        'threw while evaluating; the webview devtools console has the error.' +
+        '</pre>';
+    }, 3000);
     window.WIREFOLD_SCENE_BASE = "${sceneBase}";
     window.WIREFOLD_SRC_BASE = "${srcBase}";
     window.WIREFOLD_ANCHOR_BASE = "${anchorBase}";

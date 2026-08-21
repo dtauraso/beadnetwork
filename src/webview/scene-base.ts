@@ -24,9 +24,5 @@ async function readSelectedBase(): Promise<void> {
 export function startSceneBaseReads(): void {
   if (typeof window === "undefined") return;
 
-  // The scene base changes on exactly one occasion: the tab strip makes Go
-  // quit and respawn on another scene. Every snapshot carries the spawn gen,
-  // so that occasion announces itself - there is nothing to poll for. The
-  // injected base is already correct for the scene we opened on.
   onSpawnRestart(() => void readSelectedBase());
 }

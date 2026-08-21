@@ -1,5 +1,11 @@
 import { vscode } from "./vscode-api";
 import { postLog } from "./log/post";
+
+declare global {
+  interface Window { WIREFOLD_BOOTED?: boolean }
+}
+window.WIREFOLD_BOOTED = true;
+
 postLog("lifecycle", { phase: "bundle-eval" });
 
 import { createRoot } from "react-dom/client";
