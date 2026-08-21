@@ -8,11 +8,22 @@ PROBE_DIR="$REPO_ROOT/.probe"
 GO_FILE="$PROBE_DIR/go.log"
 
 OWNER_FILES=()
-for owner in node edge interior bead; do
-  for f in "$PROBE_DIR/$owner"/*.log; do
-    [[ -f "$f" ]] && OWNER_FILES+=("$f")
+TRACE_BINS=()
+while IFS= read -r f; do
+  [[ -n "$f" ]] && TRACE_BINS+=("$f")
+done < <(find "$REPO_ROOT"/topology*/view -name 'trace.bin' -o -name '*-trace.bin' 2>/dev/null | sort)
+
+if (( ${#TRACE_BINS[@]} > 0 )); then
+  DECODED_DIR="$(mktemp -d)"
+  trap 'rm -rf "$DECODED_DIR"' EXIT
+  for f in "${TRACE_BINS[@]}"; do
+    rel="${f#"$REPO_ROOT"/}"
+    out="$DECODED_DIR/$(echo "${rel%.bin}" | tr '/' '-').log"
+    if go run "$REPO_ROOT/src/Trace/readtrace" "$f" > "$out" 2>/dev/null && [[ -s "$out" ]]; then
+      OWNER_FILES+=("$out")
+    fi
   done
-done
+fi
 
 GO_ERR_FILE="$PROBE_DIR/go-errors.log"
 TS_FILE="$PROBE_DIR/ts.log"
