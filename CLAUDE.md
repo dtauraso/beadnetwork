@@ -3,20 +3,21 @@
 ## Model — read first
 
 Before changing anything in the **Go network** (`src/Node/`, `src/NodeKinds/`, `src/Node/BeadAnimation/bead_line.go`,
-`src/runtopology/load_topology.go`, `src/runtopology/loadspec/builders.go`) or the **content buffer**
-(`src/Buffer/`, the render tree under `src/webview/`),
-read [MODEL.md](MODEL.md). It pins the model. Do not propose multi-step
+`src/runtopology/load_topology.go`, `src/runtopology/loadspec/builders.go`) or the **Go → TS
+surface** (the block files and their `*_values.go`, `src/Buffer/`, `src/webview/`), read
+[MODEL.md](MODEL.md). It pins the model. Do not propose multi-step
 plans with options for network/bead work; name the single concrete next
 step and get the model agreed first. "Agreed first" gates the START of the
 work, not each step of it — once the model is settled, build the feature
 through to done; do not halt after every step to re-ask.
 
-Go owns the one clock and times its own bead delivery. It packs the whole scene (bead
+Go owns the one clock and times its own bead delivery. It writes the whole scene (bead
 positions, node/port geometry, edge curves, shading params, camera pose, selection,
-overlays) into a **binary content buffer** and streams it. The render tree under
-`src/webview/` (rooted at `src/webview/scene/buffer-scene.tsx`, which composes it) decodes
-and draws that buffer; it computes no positions, no geometry, and no traversal timing,
-and never tells Go when a bead arrived. There is no JSON-trace render path and no
+overlays) to **block files**, each written by the goroutine that owns it, the row in the PATH
+so there is one writer per file and no lock. The render tree under `src/webview/` (rooted at
+`src/webview/scene/buffer-scene.tsx`, which composes it) READS those files and draws them; it
+computes no positions, no geometry, no traversal timing, and never tells Go when a bead
+arrived. There is no JSON-trace render path and no
 `pump.ts`; the TS layer is **render + forward only** and holds no domain state (guard:
 `src/webview/check-no-webview-state.sh`).
 
@@ -48,12 +49,12 @@ delivery), node goroutine, node input, and clock
    it fails at runtime with `unknown type "X"` while everything else looks correct.
    Guard: `check-generated.sh`.
 
-Detail: `.claude/rules/node-kinds.md`. Buffer columns: `.claude/rules/buffer-schema.md`.
-Wire props: `.claude/rules/wire-props.md`.
+Detail: `.claude/rules/node-kinds.md`. Block files: `.claude/rules/buffer-schema.md`. Wire
+props: `.claude/rules/wire-props.md`.
 
-**Bridge surface:** **Go → TS** is binary content buffers (`buffer-snapshot`) and NOTHING
-ELSE — one dedicated inherited-stdio pipe per emitting goroutine (VIEW/edge/node/interior),
-no shared fd3/single-writer packer, `WIREFOLD_STREAM_FDS` mandatory.
+**Bridge surface:** **Go → TS** is the BLOCK FILES the owning goroutine writes plus the
+trace-event streams, and NOTHING ELSE — one dedicated inherited-stdio pipe per emitting
+goroutine (VIEW/edge/node/interior), no shared fd3/packer, `WIREFOLD_STREAM_FDS` mandatory.
 
 **TS → Go** is framed binary records on stdin: **addressed edits** (a single `edit` message
 whose sole op is `update`, setting an ATTRIBUTE on a typed entity — new capability is a new
@@ -76,8 +77,8 @@ about. Each generator lives with the thing it generates, in that concern's `gen/
 one directory out, since a directory is one Go package. `go generate ./...` runs all of them.
 
 - **`src/`** — the npm package's source root, and the editor: each concern directory holds
-  the Go that packs the thing and the TS that draws it, plus its `buffer_block.go`, its
-  generated `columns-gen.ts`, and the guards that protect it. `src` keeps that name because
+  the Go that writes the thing and the TS that draws it, plus its `*_values.go`, generated
+  `*-values-gen.ts`, and the guards that protect it. `src` keeps that name because
   npm, tsconfig and esbuild all assume it; directory naming for an npm package is medium,
   not substance. The package root is the REPO root — `package.json`, `tsconfig.json` and
   `node_modules/` live there, so there is one npm project and no path mappings.
@@ -123,18 +124,17 @@ one directory out, since a directory is one Go package. `go generate ./...` runs
   and `Receiver` on each end, the slot `lattice/`, and the animation goroutine that steps it.
   The split line is `inflightBead` — the files that share it are the bead animation.
 - **`src/Camera/`** — the camera, all of it: the basis/projection/angles math and `Viewpoint`,
-  the files it persists under `view/camera/`, its buffer block, and the TSX drawing through it.
-- **`src/Buffer/`** — the content buffer's wire format: `BufLayoutVersion`, `bufBlockOrder`
-  (that order IS the format), the generated Go/TS decoders, trace events, curve/shading params.
-  A block's COLUMNS live with the thing they describe (`.claude/rules/buffer-schema.md`).
+  the files it persists under `view/camera/`, its block file, and the TSX drawing through it.
+- **`src/Buffer/`** — all that still streams now the scene is files: the frame envelope
+  (`BufLayoutVersion`, fingerprint, tags) and its only payload, the TRACE EVENTS.
 - **`src/Chrome/`** — the UI that is NOT the diagram: the pills, panels, dropdowns, tab strip
   and fit chip, plus the `chrome-theme.ts` they share ("Chrome" is the industry word for the
   frame around the content, and this repo reached for it twice on its own). The test is a
   `draw-*.ts`: chrome is drawn onto `ChromeCanvas`'s canvas, while the diagram is drawn in
   the scene. Each piece holds ALL of itself: its layout/hit-testing Go,
-  `buffer_block.go`, generated `columns-gen.ts`, `draw-*.ts`. A chrome piece does not perform
+  `*_values.go`, generated `*-values-gen.ts`, `draw-*.ts`. A chrome piece does not perform
   topology edits — node create/delete is `Node/nodecrud`, not the dropdown offering it.
-  `src/Overlay/` and `src/RingPoint/` are NOT chrome — they are buffer blocks for the diagram.
+  `src/Overlay/` and `src/RingPoint/` are NOT chrome — they are block files for the diagram.
 - **`src/extension/`** — the VS Code extension: our code, which RUNS IN the extension host
   (the Node process VS Code spawns) and is not that host — naming it `Host` said we were the
   container rather than the guest. Everything that is neither Go nor the
