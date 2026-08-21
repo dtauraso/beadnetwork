@@ -13,7 +13,6 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/nodeactor/streamclaim"
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	B "github.com/dtauraso/wirefold/src/Buffer"
-	"github.com/dtauraso/wirefold/src/Buffer/colstream"
 )
 
 type StreamWiring struct {
@@ -87,13 +86,13 @@ func (sw *StreamWiring) SetEdgeStreams(
 func (sw *StreamWiring) SetNodeStreams(
 	nodeSeeds []geomseeds.NodeGeomSeed,
 	nodeMovers map[string]*nodeactor.NodeGeometry,
+	sceneRoot string,
 	nodeBase, interiorBase int,
 	beadBase int, beadWired bool,
 	buildBeadFrame beadanimation.BeadFrameBuilder,
 	nodeRowFor func(id string) (int32, bool),
 	buildFrame nodeframe.NodeFrameBuilder,
 	buildInteriorFrame func(tick uint32, events []B.RowEvent) []byte,
-	interiorCols func(row int32) *colstream.ColumnSet,
 	kindIDFor func(kind string) uint8,
 ) {
 	sw.interiorEmitters = map[string]*interior.Emitter{}
@@ -122,6 +121,6 @@ func (sw *StreamWiring) SetNodeStreams(
 
 		iFd := interiorBase + row
 		rawInteriorOut := os.NewFile(uintptr(iFd), fmt.Sprintf("interior-fd%d", iFd))
-		sw.interiorEmitters[seed.ID] = nm.WireInteriorStream(rawInteriorOut, int32(row), buildInteriorFrame, interiorCols(int32(row)))
+		sw.interiorEmitters[seed.ID] = nm.WireInteriorStream(rawInteriorOut, int32(row), buildInteriorFrame, sceneRoot)
 	}
 }

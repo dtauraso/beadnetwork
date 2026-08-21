@@ -2,11 +2,12 @@ package interior
 
 import (
 	"encoding/binary"
+	"fmt"
 	"io"
 	"math"
+	"os"
 
 	B "github.com/dtauraso/wirefold/src/Buffer"
-	"github.com/dtauraso/wirefold/src/Buffer/colstream"
 )
 
 type InteriorStream struct {
@@ -20,7 +21,7 @@ type InteriorStream struct {
 	lastValue              []int32
 	lastOx, lastOy, lastOz []float32
 
-	cols *colstream.ColumnSet
+	values *ValueWriter
 }
 
 func NewInteriorStream(out io.Writer, buildFrame func(tick uint32, events []B.RowEvent) []byte, nodeRow int32, slots int) *InteriorStream {
@@ -47,12 +48,16 @@ func (s *InteriorStream) write(present []uint8, value []int32, ox, oy, oz []floa
 	s.tick++
 	wx, wy, wz := worldOf(ox, oy, oz, center)
 
-	if s.cols != nil {
-		s.cols.SetBytes(B.ColStreamInteriorPresent, present)
-		s.cols.SetBytes(B.ColStreamInteriorValue, packI32(value))
-		s.cols.SetBytes(B.ColStreamInteriorX, packF32(wx))
-		s.cols.SetBytes(B.ColStreamInteriorY, packF32(wy))
-		s.cols.SetBytes(B.ColStreamInteriorZ, packF32(wz))
+	if s.values != nil {
+		s.values.Begin()
+		s.values.Bytes("present", present)
+		s.values.Bytes("value", packI32(value))
+		s.values.Bytes("x", packF32(wx))
+		s.values.Bytes("y", packF32(wy))
+		s.values.Bytes("z", packF32(wz))
+		if err := s.values.Flush(); err != nil {
+			fmt.Fprintf(os.Stderr, "interior values write (node row %d): %v\n", s.nodeRow, err)
+		}
 	}
 	writeInteriorStreamFrame(s.out, s.buildFrame, s.tick, events)
 }
@@ -73,7 +78,7 @@ func packF32(v []float32) []byte {
 	return b
 }
 
-func (s *InteriorStream) SetColumns(c *colstream.ColumnSet) { s.cols = c }
+func (s *InteriorStream) SetValueWriter(w *ValueWriter) { s.values = w }
 
 func worldOf(ox, oy, oz []float32, center vec3) ([]float32, []float32, []float32) {
 	wx := make([]float32, len(ox))

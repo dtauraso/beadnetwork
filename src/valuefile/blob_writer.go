@@ -35,6 +35,10 @@ func (w *BlobWriter) put(name string, b []byte) {
 	w.pending[name] = b
 }
 
+func (w *BlobWriter) Bytes(name string, b []byte) {
+	w.put(name, b)
+}
+
 func (w *BlobWriter) F32(name string, v float32) {
 	w.put(name, binary.LittleEndian.AppendUint32(w.pending[name], math.Float32bits(v)))
 }

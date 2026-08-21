@@ -3,25 +3,21 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { INTERIOR_SLOTS_PER_NODE } from "./buffer-decode-interior";
 import { interiorBeadStyleForValue } from "../../Ring/Bead/bead-style";
-import { columnBytes } from "../../Buffer/column-values";
-import { nodeColumn, ownerCounts } from "../../Buffer/column-owners";
-import {
-  COL_STREAM_INTERIOR_PRESENT, COL_STREAM_INTERIOR_VALUE, COL_STREAM_INTERIOR_X,
-  COL_STREAM_INTERIOR_Y, COL_STREAM_INTERIOR_Z,
-} from "./columns-gen";
+import { ownerCounts } from "../../Buffer/column-owners";
+import { interiorBytes } from "./interior-leaves";
 
 function presentAt(node: number, slot: number): number {
-  const b = columnBytes(nodeColumn(node, COL_STREAM_INTERIOR_PRESENT));
+  const b = interiorBytes(node, "present");
   return b && slot < b.byteLength ? b.getUint8(slot) : 0;
 }
 
 function valueAt(node: number, slot: number): number {
-  const b = columnBytes(nodeColumn(node, COL_STREAM_INTERIOR_VALUE));
+  const b = interiorBytes(node, "value");
   return b && slot * 4 + 4 <= b.byteLength ? b.getInt32(slot * 4, true) : 0;
 }
 
-function coordAt(node: number, slot: number, col: number): number {
-  const b = columnBytes(nodeColumn(node, col));
+function coordAt(node: number, slot: number, name: "x" | "y" | "z"): number {
+  const b = interiorBytes(node, name);
   return b && slot * 4 + 4 <= b.byteLength ? b.getFloat32(slot * 4, true) : 0;
 }
 
@@ -55,9 +51,9 @@ export function InteriorBeadInstances({ capacity }: { capacity: number }) {
         if (!style) continue; 
 
         posRef.current.set(
-          coordAt(i, s, COL_STREAM_INTERIOR_X),
-          coordAt(i, s, COL_STREAM_INTERIOR_Y),
-          coordAt(i, s, COL_STREAM_INTERIOR_Z),
+          coordAt(i, s, "x"),
+          coordAt(i, s, "y"),
+          coordAt(i, s, "z"),
         );
         matRef.current.compose(posRef.current, q, sclRef.current);
         body.setMatrixAt(slot, matRef.current);
