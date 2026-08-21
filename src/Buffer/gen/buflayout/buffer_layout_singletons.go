@@ -30,7 +30,7 @@ func writeBufferLayoutGoSingletons(outPath string, schema BufLayoutSchema, fp st
 		}
 		writeBufferLayoutGoBlockConst(w, blk)
 
-		if blk.name == "Overlay" || blk.name == "Panel" {
+		if blk.name == "Overlay" {
 			writeRowType(w, blk)
 			continue
 		}

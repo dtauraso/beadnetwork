@@ -9,7 +9,7 @@ import (
 )
 
 func isSingletonBlock(name string) bool {
-	return name == "Overlay" || name == "Camera" || name == "RuleBuilder" || name == "Scene" || name == "Panel"
+	return name == "Overlay" || name == "Camera" || name == "RuleBuilder" || name == "Scene"
 }
 
 var movedToColumns = map[string]bool{

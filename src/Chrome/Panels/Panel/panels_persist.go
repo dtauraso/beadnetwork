@@ -35,30 +35,34 @@ var PanelFlagWrite = map[string]func(*PanelState, bool){
 	"sceneLabels":  func(p *PanelState, v bool) { p.SceneLabelsOpen = v },
 }
 
-func PanelFlagFile(panelsDir, name string) string {
-	return filepath.Join(panelsDir, name+".json")
+func PanelFlagFile(sceneRoot, name string) string {
+	rel, ok := FlagPath[name]
+	if !ok {
+		panic("Panel.PanelFlagFile: flag " + name + " has no entry in the generated FlagPath, so Go and the renderer disagree about where it lives; run go generate ./...")
+	}
+	return filepath.Join(sceneRoot, rel)
 }
 
-func WriteScenePanels(panelsDir string, pn PanelState) error {
+func WriteScenePanels(sceneRoot string, pn PanelState) error {
 	names := make([]string, 0, len(PanelFlagRead))
 	for name := range PanelFlagRead {
 		names = append(names, name)
 	}
 	sort.Strings(names)
 	for _, name := range names {
-		if err := valuefile.WriteAtomic(PanelFlagFile(panelsDir, name), PanelFlagRead[name](&pn)); err != nil {
+		if err := valuefile.WriteAtomic(PanelFlagFile(sceneRoot, name), PanelFlagRead[name](&pn)); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func LoadScenePanels(panelsDir string) (PanelState, bool) {
+func LoadScenePanels(sceneRoot string) (PanelState, bool) {
 	pn := DefaultPanelState()
 	found := false
 	for name, set := range PanelFlagWrite {
 		var v bool
-		if valuefile.ReadIfExists(PanelFlagFile(panelsDir, name), &v) {
+		if valuefile.ReadIfExists(PanelFlagFile(sceneRoot, name), &v) {
 			set(&pn, v)
 			found = true
 		}

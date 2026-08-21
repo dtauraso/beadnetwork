@@ -2,7 +2,7 @@
 
 export const COLUMNS_PER_NODE_STREAM = 145;
 export const COLUMNS_PER_EDGE_STREAM = 11;
-export const COLUMNS_IN_SINGLETON_STREAMS = 268;
+export const COLUMNS_IN_SINGLETON_STREAMS = 257;
 
 export function columnStreamCount(nodes: number, edges: number): number {
   return nodes * COLUMNS_PER_NODE_STREAM + edges * COLUMNS_PER_EDGE_STREAM + COLUMNS_IN_SINGLETON_STREAMS;
@@ -16,17 +16,16 @@ export const COL_STREAM_BASE_CHANNEL_VECTOR = 113;
 export const COL_STREAM_BASE_EDGE = 0;
 export const COL_STREAM_BASE_CAMERA = 0;
 export const COL_STREAM_BASE_OVERLAY = 0;
-export const COL_STREAM_BASE_PANEL = 5;
-export const COL_STREAM_BASE_SCENE = 16;
-export const COL_STREAM_BASE_NODE_RING_POINT = 25;
-export const COL_STREAM_BASE_BEAD_RING_POINT = 28;
-export const COL_STREAM_BASE_SPEED_PANEL = 31;
-export const COL_STREAM_BASE_TILT_PANEL = 48;
-export const COL_STREAM_BASE_ANGLE_PILL = 77;
-export const COL_STREAM_BASE_NODES_PILL = 114;
-export const COL_STREAM_BASE_OVERLAYS_PILL = 151;
-export const COL_STREAM_BASE_FIT_CHIP = 181;
-export const COL_STREAM_BASE_TAB_STRIP = 186;
-export const COL_STREAM_BASE_RULES_PANEL = 197;
-export const COL_STREAM_BASE_POINTER_TARGET = 260;
+export const COL_STREAM_BASE_SCENE = 5;
+export const COL_STREAM_BASE_NODE_RING_POINT = 14;
+export const COL_STREAM_BASE_BEAD_RING_POINT = 17;
+export const COL_STREAM_BASE_SPEED_PANEL = 20;
+export const COL_STREAM_BASE_TILT_PANEL = 37;
+export const COL_STREAM_BASE_ANGLE_PILL = 66;
+export const COL_STREAM_BASE_NODES_PILL = 103;
+export const COL_STREAM_BASE_OVERLAYS_PILL = 140;
+export const COL_STREAM_BASE_FIT_CHIP = 170;
+export const COL_STREAM_BASE_TAB_STRIP = 175;
+export const COL_STREAM_BASE_RULES_PANEL = 186;
+export const COL_STREAM_BASE_POINTER_TARGET = 249;
 

@@ -1,7 +1,6 @@
 package scenepersist
 
 import (
-	"github.com/dtauraso/wirefold/src/Scene/scenepaths"
 	"github.com/dtauraso/wirefold/src/Scene/viewstate"
 	"github.com/dtauraso/wirefold/src/valuefile"
 
@@ -21,6 +20,6 @@ func InstallOverlays(ui *viewstate.UIState, topologyPath string) {
 }
 
 func InstallPanels(ui *viewstate.UIState, topologyPath string) {
-	pn, _ := Panel.LoadScenePanels(scenepaths.PanelsDirPath(topologyPath))
+	pn, _ := Panel.LoadScenePanels(topologyPath)
 	ui.PN.SetPanelState(pn)
 }

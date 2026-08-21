@@ -7,7 +7,7 @@ const ColumnsPerNodeStream = 145
 
 const ColumnsPerEdgeStream = 11
 
-const ColumnsInSingletonStreams = 268
+const ColumnsInSingletonStreams = 257
 
 // ColumnStreamCount is every column channel a scene of this size needs.
 func ColumnStreamCount(nodes, edges int) int {
@@ -22,19 +22,18 @@ const ColStreamBaseChannelVector = 113
 const ColStreamBaseEdge = 0
 const ColStreamBaseCamera = 0
 const ColStreamBaseOverlay = 0
-const ColStreamBasePanel = 5
-const ColStreamBaseScene = 16
-const ColStreamBaseNodeRingPoint = 25
-const ColStreamBaseBeadRingPoint = 28
-const ColStreamBaseSpeedPanel = 31
-const ColStreamBaseTiltPanel = 48
-const ColStreamBaseAnglePill = 77
-const ColStreamBaseNodesPill = 114
-const ColStreamBaseOverlaysPill = 151
-const ColStreamBaseFitChip = 181
-const ColStreamBaseTabStrip = 186
-const ColStreamBaseRulesPanel = 197
-const ColStreamBasePointerTarget = 260
+const ColStreamBaseScene = 5
+const ColStreamBaseNodeRingPoint = 14
+const ColStreamBaseBeadRingPoint = 17
+const ColStreamBaseSpeedPanel = 20
+const ColStreamBaseTiltPanel = 37
+const ColStreamBaseAnglePill = 66
+const ColStreamBaseNodesPill = 103
+const ColStreamBaseOverlaysPill = 140
+const ColStreamBaseFitChip = 170
+const ColStreamBaseTabStrip = 175
+const ColStreamBaseRulesPanel = 186
+const ColStreamBasePointerTarget = 249
 
 const ColStreamNodeNodeId = ColStreamBaseNode + 0
 const ColStreamNodeIndexR = ColStreamBaseNode + 1
@@ -203,17 +202,6 @@ const ColStreamOverlayEditRefused = ColStreamBaseOverlay + 1
 const ColStreamOverlaySceneEditable = ColStreamBaseOverlay + 2
 const ColStreamOverlaySceneKinds = ColStreamBaseOverlay + 3
 const ColStreamOverlaySpeed = ColStreamBaseOverlay + 4
-const ColStreamPanelOverlays = ColStreamBasePanel + 0
-const ColStreamPanelNode = ColStreamBasePanel + 1
-const ColStreamPanelNodeShape = ColStreamBasePanel + 2
-const ColStreamPanelNodeState = ColStreamBasePanel + 3
-const ColStreamPanelNodePoles = ColStreamBasePanel + 4
-const ColStreamPanelNodeRules = ColStreamBasePanel + 5
-const ColStreamPanelScene = ColStreamBasePanel + 6
-const ColStreamPanelSceneGuides = ColStreamBasePanel + 7
-const ColStreamPanelScenePoles = ColStreamBasePanel + 8
-const ColStreamPanelSceneVectors = ColStreamBasePanel + 9
-const ColStreamPanelSceneLabels = ColStreamBasePanel + 10
 const ColStreamSceneCX = ColStreamBaseScene + 0
 const ColStreamSceneCY = ColStreamBaseScene + 1
 const ColStreamSceneCZ = ColStreamBaseScene + 2

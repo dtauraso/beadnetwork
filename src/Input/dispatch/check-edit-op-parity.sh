@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: src/Input/dispatch/dispatch_edit.go,src/Input/messages.ts,src/Input/input-layout-gen.ts,src/Overlay/paths/ | edit ops/update-kinds/overlay flags must stay listed identically on both sides of the bridge
+# PLACEMENT: src/Input/dispatch/dispatch_edit.go,src/Input/messages.ts,src/Input/input-layout-gen.ts,src/Overlay/paths/,src/Chrome/Panels/Panel/paths/ | edit ops/update-kinds/overlay flags must stay listed identically on both sides of the bridge
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
@@ -122,6 +122,15 @@ N_PANEL_KEYS=$(printf '%s\n' "$PANEL_RENDER_KEYS" | grep -c .)
 if [[ "$N_PANEL_FLAGS" -ne "$N_PANEL_READS" || "$N_PANEL_FLAGS" -ne "$N_PANEL_KEYS" ]]; then
   echo "  panel flag/renderer cardinality mismatch: PANEL_FLAG_NAMES=$N_PANEL_FLAGS, PanelOpen keys=$N_PANEL_READS, PanelToggles keys=$N_PANEL_KEYS"
   echo "    (a flag was added/removed in messages.ts but not wired into panel_state.go's tables, or vice versa)"
+  HITS=$((HITS+1))
+fi
+
+PANEL_PATH_FILES=$(ls "$REPO_ROOT/src/Chrome/Panels/Panel/paths" 2>/dev/null | grep -aE '\.bin$' | sed 's/\.bin$//' | sort -u)
+assert_nonempty "$PANEL_PATH_FILES" "axis4 src/Chrome/Panels/Panel/paths/ flag path files"
+N_PANEL_PATHS=$(printf '%s\n' "$PANEL_PATH_FILES" | grep -c .)
+if [[ "$N_PANEL_FLAGS" -ne "$N_PANEL_PATHS" ]]; then
+  echo "  panel flag/renderer cardinality mismatch: PANEL_FLAG_NAMES=$N_PANEL_FLAGS, src/Chrome/Panels/Panel/paths/ files=$N_PANEL_PATHS"
+  echo "    (a flag was added/removed in messages.ts without regenerating src/Chrome/Panels/Panel/paths/, so the renderer cannot read it)"
   HITS=$((HITS+1))
 fi
 
