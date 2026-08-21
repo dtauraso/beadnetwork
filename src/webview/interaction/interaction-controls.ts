@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import * as THREE from "three";
 import { sendRawInput, buildPointerRaw, buildWheelRaw } from "./raw-input";
+import { postLog } from "../log/post";
 import type { PickRef } from "./pick-types";
 
 export function useInteractionControls(
@@ -9,6 +10,13 @@ export function useInteractionControls(
 ) {
   const onPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
     const ev = buildPointerRaw(e, "pointerdown", cameraRef, pickRequest);
+    postLog("ts-pointer-down", {
+      built: ev !== null,
+      cam: cameraRef.current !== null,
+      hit: ev?.hit.kind ?? "",
+      xy: `${Math.round(e.clientX)},${Math.round(e.clientY)}`,
+      button: e.button,
+    });
     if (ev) sendRawInput(ev);
     e.currentTarget.setPointerCapture(e.pointerId);
   }, [cameraRef, pickRequest]);
