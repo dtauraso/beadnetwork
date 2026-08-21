@@ -114,6 +114,13 @@ dist/
 /topology/view/overlays/
 /topology/view/panels/
 
+# One value, one file, for chrome Go draws rather than streams: the rules panel's
+# layout is written here every time it changes. It is DERIVED - Go recomputes the
+# whole panel from the rules each frame - so it is the same not-for-VCS kind as the
+# dirs above, not saved state.
+/topology/view/chrome/
+/topology-pair/view/chrome/
+
 # The current input the gesture goroutine reads. It is the live pointer, not
 # saved state — committing it would commit where a mouse was.
 /topology/view/input/
