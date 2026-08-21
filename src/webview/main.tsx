@@ -4,6 +4,7 @@ postLog("lifecycle", { phase: "bundle-eval" });
 
 import { createRoot } from "react-dom/client";
 import { startSceneBaseReads } from "./scene-base";
+import { noteSpawnGen } from "./spawn-gen";
 import { ThreeView } from "./scene/ThreeView";
 import { parseHostToWebview } from "../Input/messages";
 import { ErrorBoundary } from "./log/ErrorBoundary";
@@ -42,6 +43,7 @@ window.addEventListener("message", (e) => {
   if (!msg) return;
 
   if (msg.type === "buffer-snapshot") {
+    noteSpawnGen(msg.gen);
 
     if (msg.tag === BUF_BLOCK_TAG_VIEW) {
       setLatestViewFrame(msg.buffer, msg.gen);

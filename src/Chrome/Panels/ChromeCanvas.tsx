@@ -16,6 +16,7 @@ import { drawLabels, labelEpoch } from "../../Scene/Labels/label-canvas";
 import { postGoRecord } from "../../webview/vscode-api";
 import { postLog } from "../../webview/log/post";
 import { encodeSceneViewport } from "../../Input/input-encode-scene-tilt";
+import { takeSpawnRestarted } from "../../webview/spawn-gen";
 
 const OVERLAY_SURFACE_W = 4096;
 const OVERLAY_SURFACE_H = 4096;
@@ -116,7 +117,7 @@ export function ChromeCanvas() {
     const bw = OVERLAY_SURFACE_W;
     const bh = OVERLAY_SURFACE_H;
 
-    if (vw !== lastSize.current.w || vh !== lastSize.current.h) {
+    if (vw !== lastSize.current.w || vh !== lastSize.current.h || takeSpawnRestarted()) {
       lastSize.current = { w: vw, h: vh };
       postGoRecord(encodeSceneViewport(vw, vh));
       postLog("panel-overlay-size", {
