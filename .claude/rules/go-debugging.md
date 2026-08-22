@@ -52,7 +52,7 @@ The highest-volume of these — `KindEdgeBead`, emitted per in-flight bead per t
 `Categories/Node/BeadAnimation/bead_line_drive.go`'s `stepAll` — is gated at the SOURCE, not just at the TS
 write. `stepAll` reads a package-level `edgeBeadTraceEnabled` bool set ONCE at process
 startup from the `WIREFOLD_EDGE_BEAD_TRACE` env var (read once before any goroutine starts, the same shape `trace.TraceEnabled` uses); the
-ext host (`Categories/extension/runCommand.ts`) sets it from the SAME
+ext host (`Start/extension/runCommand.ts`) sets it from the SAME
 `isProbeTraceEnabled()` that gates the TS-side write, so there is one source of truth for
 the setting. With tracing off, Go never builds the event at all, so nothing reaches the item trace file. `KindBreadcrumb` and
 `KindArrive` are NOT gated by this flag and always emit; `LiveBeadRow`/the bead

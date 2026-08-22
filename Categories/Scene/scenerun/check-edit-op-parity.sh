@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: Categories/Scene/scenerun/dispatch_edit.go,Categories/extension/messages.ts,Categories/Overlay/flags.ts,Categories/Chrome/Panels/Panel/flags.ts,Categories/Node/wire-gen.ts,Categories/Overlay/paths/,Categories/Chrome/Panels/Panel/paths/ | edit ops/update-kinds/overlay flags must stay listed identically on both sides of the bridge
+# PLACEMENT: Categories/Scene/scenerun/dispatch_edit.go,Start/extension/messages.ts,Categories/Overlay/flags.ts,Categories/Chrome/Panels/Panel/flags.ts,Categories/Node/wire-gen.ts,Categories/Overlay/paths/,Categories/Chrome/Panels/Panel/paths/ | edit ops/update-kinds/overlay flags must stay listed identically on both sides of the bridge
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
@@ -11,7 +11,7 @@ go_fence_files() {
   grep -rl --include='*.go' -E "^[[:space:]]*//[[:space:]]*$1[[:space:]]*$" "$GO_PKG_DIR" \
     | grep -v '_test\.go$' || true
 }
-MESSAGES_TS="$REPO_ROOT/Categories/extension/messages.ts"
+MESSAGES_TS="$REPO_ROOT/Start/extension/messages.ts"
 
 EDIT_MSG_FILES=$(grep -rl "EDIT_MSG_START" --include="*.ts" "$REPO_ROOT" 2>/dev/null | sort)
 if [ -z "$EDIT_MSG_FILES" ]; then

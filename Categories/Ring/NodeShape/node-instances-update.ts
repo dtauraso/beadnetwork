@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { ownerCounts } from "../../Scene/owner-counts";
 import { nodeF32, nodeI32, nodeU8, NODE_RING_NAMES } from "../../Node/node-leaves";
 import { sceneSteps } from "../../Scene/scene-frame";
-import { NODE_SPHERE_RADIUS } from "../../extension/webview/scene/scene-tags";
+import { NODE_SPHERE_RADIUS } from "../../../Start/extension/webview/scene/scene-tags";
 import { readSelectedNodeRow } from "../../Overlay/overlay-flags-selection";
 
 const centerScratch: [number, number, number] = [0, 0, 0];

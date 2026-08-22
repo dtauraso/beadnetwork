@@ -4,7 +4,7 @@
 
 Before changing anything in the **Go network** (`Categories/Node/`, `Categories/NodeKinds/`, `Categories/Node/BeadAnimation/bead_line.go`,
 `Categories/Scene/scenebuild/load.go`, `Categories/Scene/loadspec/builders.go`) or the **Go → TS
-surface** (the block files and their `*_values.go`, `Categories/extension/webview/`), read
+surface** (the block files and their `*_values.go`, `Start/extension/webview/`), read
 [MODEL.md](MODEL.md). It pins the model. Do not propose multi-step
 plans with options for network/bead work; name the single concrete next
 step and get the model agreed first. "Agreed first" gates the START of the
@@ -14,12 +14,12 @@ through to done; do not halt after every step to re-ask.
 Go owns the one clock and times its own bead delivery. It writes the whole scene (bead
 positions, node/port geometry, edge curves, shading params, camera pose, selection,
 overlays) to **block files**, each written by the goroutine that owns it, the row in the PATH
-so there is one writer per file and no lock. The render tree under `Categories/extension/webview/` (rooted at
-`Categories/extension/webview/scene/scene-root.tsx`, which composes it) READS those files and draws them; it
+so there is one writer per file and no lock. The render tree under `Start/extension/webview/` (rooted at
+`Start/extension/webview/scene/scene-root.tsx`, which composes it) READS those files and draws them; it
 computes no positions, no geometry, no traversal timing, and never tells Go when a bead
 arrived. There is no JSON-trace render path and no
 `pump.ts`; the TS layer is **render + forward only** and holds no domain state (guard:
-`Categories/extension/webview/check-no-webview-state.sh`).
+`Start/extension/webview/check-no-webview-state.sh`).
 
 The model's real entities live in [MODEL.md](MODEL.md): bead (data carrying its own segment
 and step count), bead line (`BeadLine` — the line a bead travels, holding the beads on it,
@@ -29,7 +29,7 @@ delivery), node goroutine, node input, and clock
 `Categories/Node/Edge/edgegeom/chain_length.go`). The active node kinds are the structs under `Categories/NodeKinds/<Kind>/`.
 
 **Drift rule:** see MODEL.md's "Drift rule" section for the full statement (guards:
-`Categories/extension/webview/check-no-webview-state.sh`, `check-no-await-on-bridge.sh`).
+`Start/extension/webview/check-no-webview-state.sh`, `check-no-await-on-bridge.sh`).
 
 ## Primitive landing rule (narrowed)
 
@@ -134,13 +134,13 @@ one directory out, since a directory is one Go package. `go generate ./...` runs
   `*_values.go`, generated `*-values-gen.ts`, `draw-*.ts`. A chrome piece does not perform
   topology edits — node create/delete is `Categories/Node/nodecrud`, not the dropdown offering it.
   `Categories/Overlay/` and `Categories/RingPoint/` are NOT chrome — they are block files for the diagram.
-- **`Categories/extension/`** — the VS Code extension: our code, which RUNS IN the extension host
+- **`Start/extension/`** — the VS Code extension: our code, which RUNS IN the extension host
   (the Node process VS Code spawns) and is not that host — naming it `Host` said we were the
   container rather than the guest. Everything that is neither Go nor the
   webview: activation and spawn (`extension.ts`, `runCommand.ts`, `goBuild.ts`), the VS Code
   side (`html.ts`, `handle-message.ts`, the three dev-loop watchers), and `runner/`, the Go
   side — stdio sizing, per-owner stream demux, last-frame cache. `esbuild.mjs`'s entry point
-  is `Categories/Start/extension.ts`; the bundle is still `out/extension.js`, which `package.json`'s
+  is `Start/extension.ts`; the bundle is still `out/extension.js`, which `package.json`'s
   `main` names.
 - **`scripts/`** — what serves the repo rather than one concern: `stop-checks.sh`, the
   git-workflow scripts, `lib/`, `checks/` for guards that guard nothing in particular

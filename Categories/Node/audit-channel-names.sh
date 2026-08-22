@@ -3,7 +3,7 @@
 set -u
 cd "$(git rev-parse --show-toplevel)" || exit 1
 
-if [ ! -d Node ]; then
+if [ ! -d Categories/Node ]; then
   echo "channel-naming: MISCONFIGURED — scan dir not found: Categories/Node/ (run from repo root)" >&2
   exit 1
 fi

@@ -1,9 +1,9 @@
 ---
 paths:
   - "Categories/Node/Wiring/**/*.go"
-  - "Categories/extension/messages.ts"
-  - "Categories/extension/handle-message.ts"
-  - "Categories/extension/runCommand.ts"
+  - "Start/extension/messages.ts"
+  - "Start/extension/handle-message.ts"
+  - "Start/extension/runCommand.ts"
   - "Categories/Node/wire-gen.ts"
 ---
 
@@ -16,7 +16,7 @@ carries the TS → Go vocabulary.
 
 - **Addressed edits** — a single geometry-CRUD `edit` message whose sole op is `update`
   (see `Categories/Scene/scenerun/dispatch_edit.go` `applyEdit`, fenced by `EDIT_OPS_START`/
-  `EDIT_OPS_END`, and `Categories/extension/messages.ts` `EditMsg`): **`update` sets
+  `EDIT_OPS_END`, and `Start/extension/messages.ts` `EditMsg`): **`update` sets
   an ATTRIBUTE on a typed entity** (`kind` = node / edge / camera / overlays / panels /
   scene) — there is no per-feature op. New *addressed* capability is a new entity kind or
   attribute, NOT a new op. `panels` is its OWN entity kind, deliberately separate from

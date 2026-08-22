@@ -16,12 +16,12 @@ Two things in one repo:
 
 ## Running it
 
-Everything starts in [Categories/Start/](Categories/Start/) — the Go binary, the
+Everything starts in [Start/](Start/) — the Go binary, the
 extension host, and the webview all have their entry point there.
 
 ```bash
 go build ./...                 # compile every package
-go run ./Categories/Start      # run the network
+go run ./Start      # run the network
 ```
 
 ```bash
@@ -36,12 +36,16 @@ everything about that one thing — the Go that runs it and the TS that draws it
 side by side.
 
 ```
-Categories/
-  Start/        the entry points: main.go, extension.ts, main.tsx
-  Node/         nodes, their beads, edges, geometry
-  Scene/        the scene: its spec on disk, assembling it, running it
-  Chrome/       the UI that is not the diagram
-  extension/    the VS Code integration, including webview/
+Start/          where the program starts, and what hosts it
+  main.go         the Go binary            go run ./Start
+  extension.ts    the extension host       out/extension.js
+  main.tsx        the webview              out/webview.js
+  extension/      the VS Code integration, including webview/
+
+Categories/     the code, one directory per category
+  Node/           nodes, their beads, edges, geometry
+  Scene/          the scene: its spec on disk, assembling it, running it
+  Chrome/         the UI that is not the diagram
   Camera/  Clock/  Input/  NodeKinds/  Overlay/  Polar/  Ring/  RingPoint/
 
 scripts/        what serves the repo rather than one category
