@@ -1,8 +1,9 @@
 package loadspec
 
 import (
-	NodeBuf "github.com/dtauraso/wirefold/src/Node"
 	"strconv"
+
+	NodeBuf "github.com/dtauraso/wirefold/src/Node"
 )
 
 func KindForID(id uint8) (string, bool) {

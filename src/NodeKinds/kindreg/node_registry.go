@@ -3,12 +3,12 @@ package kindreg
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/src/runtopology/loadspec"
 	"github.com/dtauraso/wirefold/src/Node/movemsg"
 	"github.com/dtauraso/wirefold/src/Node/nodeactor"
 	"github.com/dtauraso/wirefold/src/Node/nodegeom"
-	"github.com/dtauraso/wirefold/src/NodeKinds/portwiring"
 	"github.com/dtauraso/wirefold/src/NodeKinds/nodeapi"
+	"github.com/dtauraso/wirefold/src/NodeKinds/portwiring"
+	"github.com/dtauraso/wirefold/src/runtopology/loadspec"
 )
 
 type BuildDeps struct {

@@ -1,16 +1,16 @@
 package beadanimation
 
 import (
-	T "github.com/dtauraso/wirefold/src/Trace"
 	"context"
 
+	T "github.com/dtauraso/wirefold/src/Trace"
 )
 
 type Receiver struct {
 	ch <-chan int
 
-	line  *BeadLine
-	ctx context.Context
+	line *BeadLine
+	ctx  context.Context
 
 	node string
 	port string

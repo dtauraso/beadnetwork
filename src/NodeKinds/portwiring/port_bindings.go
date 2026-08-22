@@ -1,13 +1,13 @@
 package portwiring
 
 import (
-	T "github.com/dtauraso/wirefold/src/Trace"
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/TiltPanel"
-	"github.com/dtauraso/wirefold/src/Clock"
+	clock "github.com/dtauraso/wirefold/src/Clock"
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
-	"github.com/dtauraso/wirefold/src/Node/Interior"
+	interior "github.com/dtauraso/wirefold/src/Node/Interior"
 	"github.com/dtauraso/wirefold/src/Scene/rowtables"
+	T "github.com/dtauraso/wirefold/src/Trace"
 )
 
 type PortDir int

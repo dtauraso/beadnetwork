@@ -1,10 +1,9 @@
 package kindapi
 
 import (
+	clock "github.com/dtauraso/wirefold/src/Clock"
+	interior "github.com/dtauraso/wirefold/src/Node/Interior"
 	T "github.com/dtauraso/wirefold/src/Trace"
-	"github.com/dtauraso/wirefold/src/Clock"
-	"github.com/dtauraso/wirefold/src/Node/Interior"
-
 )
 
 func (a BuildArgs) Fire() func() {

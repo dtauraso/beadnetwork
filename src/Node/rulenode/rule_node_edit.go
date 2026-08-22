@@ -2,10 +2,11 @@ package rulenode
 
 import (
 	"fmt"
+
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/PolarRulesPanel"
 
-	"github.com/dtauraso/wirefold/src/valuefile"
 	"github.com/dtauraso/wirefold/src/Node/nodeactor/nodefiles"
+	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
 func (r *RuleNode) applyEdit(e Edit) {

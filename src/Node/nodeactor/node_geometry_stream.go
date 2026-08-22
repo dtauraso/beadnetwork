@@ -1,9 +1,10 @@
 package nodeactor
 
 import (
-	T "github.com/dtauraso/wirefold/src/Trace"
 	"fmt"
 	"math"
+
+	T "github.com/dtauraso/wirefold/src/Trace"
 
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/TiltPanel"
 	"github.com/dtauraso/wirefold/src/Node/framegeom"

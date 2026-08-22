@@ -3,8 +3,8 @@ package edgefile
 import (
 	"path/filepath"
 
-	"github.com/dtauraso/wirefold/src/valuefile"
 	"github.com/dtauraso/wirefold/src/Polar/polarindex"
+	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
 func edgeDragDir(root, src, label string) string {

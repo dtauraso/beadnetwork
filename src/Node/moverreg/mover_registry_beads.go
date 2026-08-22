@@ -4,8 +4,8 @@ import (
 	"context"
 	"sync"
 
-	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/src/Input/inputcodec"
+	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 )
 
 func (mr *MoverRegistry) Bind(outSink map[string]*beadanimation.Sender, slotReg inputcodec.SlotRegistry, edgeRowFor func(src, dst string) (int32, bool)) {

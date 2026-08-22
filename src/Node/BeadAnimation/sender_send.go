@@ -1,9 +1,9 @@
 package beadanimation
 
 import (
-	T "github.com/dtauraso/wirefold/src/Trace"
 	"context"
 
+	T "github.com/dtauraso/wirefold/src/Trace"
 )
 
 func (o *Sender) placeDrivenNoWalker(v int, tick int64) SendOutcome {

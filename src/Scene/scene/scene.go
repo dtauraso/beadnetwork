@@ -1,8 +1,9 @@
 package scene
 
 import (
-	NodeBuf "github.com/dtauraso/wirefold/src/Node"
 	"path/filepath"
+
+	NodeBuf "github.com/dtauraso/wirefold/src/Node"
 )
 
 type Scene struct {

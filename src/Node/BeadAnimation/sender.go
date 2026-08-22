@@ -1,8 +1,9 @@
 package beadanimation
 
 import (
-	T "github.com/dtauraso/wirefold/src/Trace"
 	"context"
+
+	T "github.com/dtauraso/wirefold/src/Trace"
 
 	"github.com/dtauraso/wirefold/src/spatial"
 )
@@ -16,8 +17,8 @@ type outGeom struct {
 type Sender struct {
 	ch chan<- int
 
-	line  *BeadLine
-	ctx context.Context
+	line *BeadLine
+	ctx  context.Context
 
 	node string
 	port string

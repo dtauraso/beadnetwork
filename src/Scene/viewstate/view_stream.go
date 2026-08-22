@@ -2,7 +2,6 @@ package viewstate
 
 import (
 	T "github.com/dtauraso/wirefold/src/Trace"
-
 )
 
 type ViewOverlayFlags struct {
@@ -58,4 +57,3 @@ func (ui *UIState) EmitViewFrame(events []T.RowEvent) {
 
 	ui.ViewBuildFrame(ui.viewTick, events)
 }
-

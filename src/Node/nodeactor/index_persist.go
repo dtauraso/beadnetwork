@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/dtauraso/wirefold/src/Node/dragfile"
-	"github.com/dtauraso/wirefold/src/valuefile"
 	"github.com/dtauraso/wirefold/src/Polar/polarindex"
+	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
 func (nm *NodeGeometry) persistIndex(off polarindex.Offset) {

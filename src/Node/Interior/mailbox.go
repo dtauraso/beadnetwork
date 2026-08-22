@@ -1,9 +1,9 @@
 package interior
 
 import (
-	T "github.com/dtauraso/wirefold/src/Trace"
 	"fmt"
 
+	T "github.com/dtauraso/wirefold/src/Trace"
 )
 
 const MailboxDepth = 64

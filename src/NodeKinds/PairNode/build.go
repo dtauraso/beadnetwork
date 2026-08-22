@@ -7,8 +7,8 @@ import (
 	clock "github.com/dtauraso/wirefold/src/Clock"
 	"github.com/dtauraso/wirefold/src/NodeKinds/nodeapi"
 
-	Wiring "github.com/dtauraso/wirefold/src/NodeKinds/kindapi"
 	"github.com/dtauraso/wirefold/src/NodeKinds/PairNode/tiltring"
+	Wiring "github.com/dtauraso/wirefold/src/NodeKinds/kindapi"
 )
 
 func (n *Node) wirePlumbing(a Wiring.BuildArgs) {

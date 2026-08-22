@@ -1,16 +1,16 @@
 package dispatch
 
 import (
-	geomseeds "github.com/dtauraso/wirefold/src/runtopology/geomseeds"
 	"github.com/dtauraso/wirefold/src/Node/moverreg"
 	"github.com/dtauraso/wirefold/src/Node/nodeinbox"
 	"github.com/dtauraso/wirefold/src/Node/nodemove"
-	rowtables "github.com/dtauraso/wirefold/src/Scene/rowtables"
 	"github.com/dtauraso/wirefold/src/Node/rulechans"
+	rowtables "github.com/dtauraso/wirefold/src/Scene/rowtables"
 	sceneswitch "github.com/dtauraso/wirefold/src/Scene/sceneswitch"
-	"github.com/dtauraso/wirefold/src/runtopology/streamwire"
 	"github.com/dtauraso/wirefold/src/Scene/viewpersist"
 	"github.com/dtauraso/wirefold/src/Scene/viewstate"
+	geomseeds "github.com/dtauraso/wirefold/src/runtopology/geomseeds"
+	"github.com/dtauraso/wirefold/src/runtopology/streamwire"
 )
 
 type MoveDispatch struct {

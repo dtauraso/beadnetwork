@@ -6,11 +6,11 @@ import (
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/src/Node/Edge/edgefile"
 	"github.com/dtauraso/wirefold/src/Node/Edge/edgegeom"
-	"github.com/dtauraso/wirefold/src/Polar/polar"
-	"github.com/dtauraso/wirefold/src/valuefile"
 	"github.com/dtauraso/wirefold/src/Node/nodegeom"
+	"github.com/dtauraso/wirefold/src/Polar/polar"
 	"github.com/dtauraso/wirefold/src/Polar/polarindex"
 	"github.com/dtauraso/wirefold/src/spatial"
+	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
 type EdgeFrameBuilder = func(tick uint32, edgeRow int32, sx, sy, sz, ex, ey, ez float32, srcNodeRow, dstNodeRow int32, deltaR float32, dragActive uint8, label string, events []T.RowEvent)
@@ -23,7 +23,6 @@ type outEdge struct {
 	deltaR     float32
 
 	targetKind string
-
 
 	port *beadanimation.Sender
 	dest *beadanimation.BeadLine

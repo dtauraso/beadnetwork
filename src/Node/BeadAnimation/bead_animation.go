@@ -1,12 +1,13 @@
 package beadanimation
 
 import (
-	T "github.com/dtauraso/wirefold/src/Trace"
 	"context"
 	"time"
 
+	T "github.com/dtauraso/wirefold/src/Trace"
+
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
-	"github.com/dtauraso/wirefold/src/Clock"
+	clock "github.com/dtauraso/wirefold/src/Clock"
 	"github.com/dtauraso/wirefold/src/Node/BeadAnimation/lattice"
 	SF "github.com/dtauraso/wirefold/src/Node/Edge"
 	"github.com/dtauraso/wirefold/src/Node/framegeom"
@@ -22,7 +23,6 @@ type BeadAnimation struct {
 	outLines []*BeadLine
 
 	outEdgeRows []int32
-
 
 	nodeRow int32
 

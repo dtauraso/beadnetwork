@@ -3,8 +3,8 @@ package nodeactor
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/src/Node/nodeactor/owners"
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
+	"github.com/dtauraso/wirefold/src/Node/nodeactor/owners"
 )
 
 type NodeBeadAnimation struct {

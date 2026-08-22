@@ -2,9 +2,9 @@ package topoderive
 
 import (
 	"github.com/dtauraso/wirefold/src/Input/inputcodec"
-	"github.com/dtauraso/wirefold/src/runtopology/loadspec"
-	"github.com/dtauraso/wirefold/src/Node/nodegeom"
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
+	"github.com/dtauraso/wirefold/src/Node/nodegeom"
+	"github.com/dtauraso/wirefold/src/runtopology/loadspec"
 )
 
 func AllocateBeadLines(spec loadspec.TopoSpec, nodeGeoms map[string]nodegeom.NodeGeom) (

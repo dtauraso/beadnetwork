@@ -3,8 +3,8 @@ package edgegeom
 import (
 	"math"
 
-	"github.com/dtauraso/wirefold/src/Node/nodegeom"
 	lattice "github.com/dtauraso/wirefold/src/Node/BeadAnimation/lattice"
+	"github.com/dtauraso/wirefold/src/Node/nodegeom"
 )
 
 func EdgeStepCount(dist float64, srcKind, dstKind string) int {

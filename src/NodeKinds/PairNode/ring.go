@@ -3,8 +3,8 @@ package PairNode
 import (
 	"fmt"
 
-	"github.com/dtauraso/wirefold/src/NodeKinds/PairNode/tiltring"
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/TiltPanel"
+	"github.com/dtauraso/wirefold/src/NodeKinds/PairNode/tiltring"
 )
 
 var defaultRing = tiltring.NewRing(TiltPanel.FullTurnPhiIdx)

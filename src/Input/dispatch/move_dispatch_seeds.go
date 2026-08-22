@@ -4,10 +4,10 @@ import (
 	"sort"
 	"strconv"
 
-	geomseeds "github.com/dtauraso/wirefold/src/runtopology/geomseeds"
 	"github.com/dtauraso/wirefold/src/Input/inputcodec"
 	"github.com/dtauraso/wirefold/src/Node/nodegeom"
 	rowtables "github.com/dtauraso/wirefold/src/Scene/rowtables"
+	geomseeds "github.com/dtauraso/wirefold/src/runtopology/geomseeds"
 )
 
 func resolveSeedOrders(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[string]inputcodec.EdgeEndpoints, nodeOrder, edgeOrder []string) ([]string, []string) {

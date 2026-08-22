@@ -2,18 +2,18 @@ package viewstate
 
 import (
 	"github.com/dtauraso/wirefold/src/Camera"
+	"github.com/dtauraso/wirefold/src/Chrome/Panels"
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/PolarRulesPanel"
-	"github.com/dtauraso/wirefold/src/Chrome/Pills/AngleDropdown"
-	"github.com/dtauraso/wirefold/src/Chrome/Pills/NodesDropdown"
-	"github.com/dtauraso/wirefold/src/Chrome/Pills/FitButton"
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/TiltPanel"
+	"github.com/dtauraso/wirefold/src/Chrome/Pills"
+	"github.com/dtauraso/wirefold/src/Chrome/Pills/AngleDropdown"
+	"github.com/dtauraso/wirefold/src/Chrome/Pills/FitButton"
+	"github.com/dtauraso/wirefold/src/Chrome/Pills/NodesDropdown"
+	"github.com/dtauraso/wirefold/src/Chrome/Tabs"
 	"github.com/dtauraso/wirefold/src/RingPoint"
 	"github.com/dtauraso/wirefold/src/Scene"
-	"github.com/dtauraso/wirefold/src/Chrome/Panels"
-	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
 	"github.com/dtauraso/wirefold/src/valuefile"
-	"github.com/dtauraso/wirefold/src/Chrome/Pills"
-	"github.com/dtauraso/wirefold/src/Chrome/Tabs"
 )
 
 func (ui *UIState) SetSceneRoot(sceneRoot string) {
@@ -71,4 +71,3 @@ func (ui *UIState) writePointerTargetColumns() {
 		valuefile.LogPersistErr("pointer_target_values", "", err)
 	}
 }
-

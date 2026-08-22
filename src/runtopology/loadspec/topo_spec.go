@@ -2,8 +2,9 @@ package loadspec
 
 import (
 	"fmt"
-	"github.com/dtauraso/wirefold/src/Chrome/Panels/PolarRulesPanel"
 	"os"
+
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/PolarRulesPanel"
 
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/src/Node/nodegeom"

@@ -1,23 +1,23 @@
 package streamwire
 
 import (
-	T "github.com/dtauraso/wirefold/src/Trace"
 	"fmt"
 
-	"github.com/dtauraso/wirefold/src/Node/Interior"
+	T "github.com/dtauraso/wirefold/src/Trace"
+
+	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/src/Node/Edge/edgetable"
-	geomseeds "github.com/dtauraso/wirefold/src/runtopology/geomseeds"
+	interior "github.com/dtauraso/wirefold/src/Node/Interior"
 	"github.com/dtauraso/wirefold/src/Node/nodeactor"
 	"github.com/dtauraso/wirefold/src/Node/nodeactor/nodeframe"
 	"github.com/dtauraso/wirefold/src/Node/nodeactor/owners"
-	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
+	geomseeds "github.com/dtauraso/wirefold/src/runtopology/geomseeds"
 )
 
 type StreamWiring struct {
 	interiorEmitters map[string]*interior.Emitter
 
 	buildInteriorFrame func(tick uint32, nodeRow int32, events []T.RowEvent)
-
 }
 
 func (sw *StreamWiring) InteriorEmittersPtr() *map[string]*interior.Emitter {

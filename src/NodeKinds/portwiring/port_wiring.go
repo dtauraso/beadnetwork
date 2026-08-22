@@ -1,13 +1,13 @@
 package portwiring
 
 import (
-	T "github.com/dtauraso/wirefold/src/Trace"
 	"context"
 
-	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
-	"github.com/dtauraso/wirefold/src/Node/Interior"
-)
+	T "github.com/dtauraso/wirefold/src/Trace"
 
+	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
+	interior "github.com/dtauraso/wirefold/src/Node/Interior"
+)
 
 func NewInteriorEmitterGetter(name string, pb PortBindings) func() *interior.Emitter {
 	var built bool

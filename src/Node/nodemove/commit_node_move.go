@@ -2,8 +2,8 @@ package nodemove
 
 import (
 	"github.com/dtauraso/wirefold/src/Node/Edge/edgetable"
-	"github.com/dtauraso/wirefold/src/Polar/polar"
 	"github.com/dtauraso/wirefold/src/Node/nodeactor"
+	"github.com/dtauraso/wirefold/src/Polar/polar"
 	"github.com/dtauraso/wirefold/src/Polar/polarindex"
 	"github.com/dtauraso/wirefold/src/spatial"
 )

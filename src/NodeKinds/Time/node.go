@@ -9,9 +9,9 @@ import (
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/src/NodeKinds/nodeapi"
 
-	Wiring "github.com/dtauraso/wirefold/src/NodeKinds/kindapi"
 	"github.com/dtauraso/wirefold/src/Node/nodeactor"
 	"github.com/dtauraso/wirefold/src/NodeKinds/gatecommon"
+	Wiring "github.com/dtauraso/wirefold/src/NodeKinds/kindapi"
 )
 
 type Time struct {

@@ -1,9 +1,9 @@
 package nodeframe
 
 import (
-	T "github.com/dtauraso/wirefold/src/Trace"
 	"github.com/dtauraso/wirefold/src/Node/framegeom"
 	streamframe "github.com/dtauraso/wirefold/src/Scene/Vectors"
+	T "github.com/dtauraso/wirefold/src/Trace"
 )
 
 type NodeFrameInput struct {

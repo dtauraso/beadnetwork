@@ -2,8 +2,9 @@ package sceneswitch
 
 import (
 	"fmt"
-	"github.com/dtauraso/wirefold/src/Scene/scene"
 	"os"
+
+	"github.com/dtauraso/wirefold/src/Scene/scene"
 
 	"github.com/dtauraso/wirefold/src/Scene/scenepaths"
 	"github.com/dtauraso/wirefold/src/Scene/scenepersist"
