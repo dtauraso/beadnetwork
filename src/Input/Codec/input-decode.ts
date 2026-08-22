@@ -1,7 +1,7 @@
-import { SLIDER_NUM_SCALE } from "./input-encode";
+import { SLIDER_NUM_SCALE } from "../../Clock/encode";
 import { ByteReader } from "./byte-reader";
 import { IN_KIND_SAVE, IN_KIND_RAW_INPUT, IN_KIND_EDIT_UPDATE, IN_EVENT_KINDS, IN_HIT_KINDS, IN_UPDATE_KINDS } from "./input-layout-gen";
-import { IN_OVERLAY_ATTR_TOGGLE, IN_CLOCK_ATTR_SPEED, IN_PANEL_ATTR_TOGGLE } from "./input-attrs";
+import { attrIndex } from "./attr-index";
 import type { RawInputEvent } from "./messages";
 import type { OverlayFlag } from "../../Overlay/flags";
 import type { PanelFlag } from "../../Chrome/Panels/Panel/flags";
@@ -53,7 +53,7 @@ export function decodeInputRecord(record: ArrayBuffer): DecodedInput | undefined
       const entityKind = IN_UPDATE_KINDS[r.u8()];
       if (entityKind === "overlays") {
         const attr = r.u8();
-        if (attr === IN_OVERLAY_ATTR_TOGGLE) {
+        if (attr === attrIndex("toggle")) {
           const flag = OVERLAY_FLAG_ORDER[r.u8()];
           if (!flag) return undefined;
           return { kind: "edit-update", entity: "overlays", attr: "toggle", flag };
@@ -62,7 +62,7 @@ export function decodeInputRecord(record: ArrayBuffer): DecodedInput | undefined
       }
       if (entityKind === "panels") {
         const attr = r.u8();
-        if (attr === IN_PANEL_ATTR_TOGGLE) {
+        if (attr === attrIndex("toggle")) {
           const flag = PANEL_FLAG_ORDER[r.u8()];
           if (!flag) return undefined;
           return { kind: "edit-update", entity: "panels", attr: "toggle", flag };
@@ -71,7 +71,7 @@ export function decodeInputRecord(record: ArrayBuffer): DecodedInput | undefined
       }
       if (entityKind === "clock") {
         const attr = r.u8();
-        if (attr === IN_CLOCK_ATTR_SPEED) {
+        if (attr === attrIndex("speed")) {
 
           const value = r.u8() / SLIDER_NUM_SCALE;
           return { kind: "edit-update", entity: "clock", attr: "speed", value };

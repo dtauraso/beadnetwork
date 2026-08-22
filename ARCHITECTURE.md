@@ -26,8 +26,9 @@ Communication is `panel.webview.postMessage` ↔ `vscode.postMessage`, wired in
 
 `src/Input/Codec/messages.ts` is the shared discriminated-union source for both sides.
 `WebviewToHostMsg` includes `ready` and the binary bridge envelope (a fully
-encoded editor→Go record built via `src/Input/Codec/input-encode.ts` and written
-FRAMED to Go's stdin by `runCommand.ts`). There is no `HostToWebviewMsg` —
+encoded editor→Go record built by the concern that owns the edit — `src/Overlay/encode.ts`,
+`src/Scene/encode.ts`, `src/Node/encode.ts` and their siblings, each beside that concern's
+Go decoder — and written FRAMED to Go's stdin by `runCommand.ts`). There is no `HostToWebviewMsg` —
 the host has nothing to say to the webview, because everything Go tells the
 renderer is a file the renderer reads. Extension-side dispatch is
 `src/extension/handle-message.ts`. Per CLAUDE.md, Go → TS is the block

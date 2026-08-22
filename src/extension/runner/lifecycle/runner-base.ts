@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import * as cp from "child_process";
-import { frameRecord } from "../../../Input/Codec/input-encode-scene-tilt";
+import { frameRecord } from "../../../Input/Codec/frame-record";
 
 export abstract class RunnerLifecycle {
   protected proc: cp.ChildProcess | undefined;
