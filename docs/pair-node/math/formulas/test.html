@@ -42,18 +42,18 @@
             <tr>
               <td class="e">bottom = mod(top + tau/2, tau)</td>
               <td class="n">the other end of the tilt line, derived rather than stored</td>
-              <td class="s" data-src="src/NodeKinds/PairNode/tiltring/rules.go#Bottom">bottom</td>
+              <td class="s" data-src="NodeKinds/PairNode/tiltring/rules.go#Bottom">bottom</td>
             </tr>
             <tr>
               <td class="e">distance = abs(end − arrival), one per end</td>
               <td class="n">a plain subtraction from each end — nothing folded, nothing minimised</td>
-              <td class="s" data-src="src/NodeKinds/PairNode/tiltring/rules.go#DistanceTop">distanceTop</td>
+              <td class="s" data-src="NodeKinds/PairNode/tiltring/rules.go#DistanceTop">distanceTop</td>
             </tr>
             <tr>
               <td class="e">offset = +1 / −1 / 0</td>
               <td class="n">whichever end is inside a quarter turn names the direction; neither being
                 inside it is the halt</td>
-              <td class="s" data-src="src/NodeKinds/PairNode/tiltring/rules.go#Offset">offset</td>
+              <td class="s" data-src="NodeKinds/PairNode/tiltring/rules.go#Offset">offset</td>
             </tr>
 
             <tr class="h">
@@ -77,7 +77,7 @@
           <div class="cap">The direction and step rows are the one kind's own <code>stepFromVector</code>,
             run unmodified by both nodes of a pair. There is nothing to dispatch to: the node holds one
             machine, and which mode it is in supplies the one count the same rule compares against —
-            src/NodeKinds/PairNode/node.go.</div>
+            NodeKinds/PairNode/node.go.</div>
         </div>
 
       </div>

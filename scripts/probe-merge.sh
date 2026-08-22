@@ -20,10 +20,10 @@ if (( ${#TRACE_BINS[@]} > 0 )); then
     rel="${f#"$REPO_ROOT"/}"
     out="$DECODED_DIR/$(echo "${rel%.bin}" | tr '/' '-').log"
     case "$f" in
-      */interior-trace.bin) reader="src/Node/Interior/readtrace" ;;
-      */beads-trace.bin)    reader="src/Node/BeadAnimation/readtrace" ;;
-      */view/trace.bin)     reader="src/Scene/viewstate/readtrace" ;;
-      *)                    reader="src/Node/nodeactor/owners/readtrace" ;;
+      */interior-trace.bin) reader="Node/Interior/readtrace" ;;
+      */beads-trace.bin)    reader="Node/BeadAnimation/readtrace" ;;
+      */view/trace.bin)     reader="Scene/viewstate/readtrace" ;;
+      *)                    reader="Node/nodeactor/owners/readtrace" ;;
     esac
     if go run "$REPO_ROOT/$reader" "$f" > "$out" 2>/dev/null && [[ -s "$out" ]]; then
       OWNER_FILES+=("$out")

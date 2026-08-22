@@ -48,7 +48,7 @@
           <p>the tilt ring is the Cayley graph of ℤ₂₄ on the generator 1 — which is exactly what
             "24 states, two links out of each" says</p>
           <p>the mod 24 above is the DEFINITION the links implement, not an operation the code
-            performs: <span data-src="src/NodeKinds/PairNode/tiltring/lattice.go#NewRing">newRing</span> resolves next and
+            performs: <span data-src="NodeKinds/PairNode/tiltring/lattice.go#NewRing">newRing</span> resolves next and
             prev once, so a turn is a field read and no arithmetic runs at a turn at all</p>
           <p>δ(R, a) = R for a started machine is the whole of "it sticks"</p>
         </div>
@@ -73,7 +73,7 @@
           alt="Shift one of the two by 6, and only those four land on 0, 6, 12: a gap of 0 or 12 gives L(x, y + 6) = 6; a gap of 6 or 18 gives L(x, y + 6) = 0 or 12; every other gap gives an L(x, y + 6) that is none of 0, 6, 12.">
         <div class="keynote">
           <p>this is where the halt comes from. Neither end being inside a quarter turn
-            (<span data-src="src/NodeKinds/PairNode/tiltring/rules.go#Offset">offset</span> = 0) is exactly the
+            (<span data-src="NodeKinds/PairNode/tiltring/rules.go#Offset">offset</span> = 0) is exactly the
             quarter gaps above, and the shift by 6 is the quarter turn the partner adds when it
             sends its normal instead of its tilt</p>
           <p>the pair of them, 0 and 12, is why a distance is taken from EACH end rather than folded

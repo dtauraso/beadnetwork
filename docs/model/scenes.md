@@ -6,7 +6,7 @@
 
 A **scene** is a complete, independently loadable topology tree — its own `counts/`,
 its own `nodes/`, its own `view/`. There is more than one: they are SIBLING directories next
-to each other (`src/Scene/scene/scene.go`'s `Scenes`, e.g. `topology/` and
+to each other (`Scene/scene/scene.go`'s `Scenes`, e.g. `topology/` and
 `topology-pair/`), not one topology with variants inside it. Go owns the list, the labels,
 which one is selected, and the switch — this is the same shape as the overlay toggles, not
 a new mechanism.
@@ -50,7 +50,7 @@ choice — not a tuning knob:**
   which is why it is a per-scene choice rather than a global rule.
 
 **The drawn ring axis and the navigation pole are two different streamed values, on
-purpose.** `PoleTheta`/`PolePhi` (`src/Node/node_state.go`) is a node's own INWARD pole — its own
+purpose.** `PoleTheta`/`PolePhi` (`Node/node_state.go`) is a node's own INWARD pole — its own
 scene-polar direction reversed, pointing back at the scene centre — and is what navigation
 reads (`nav-nodes.ts`'s `NavNode.pole`). `RingAxisTheta`/`RingAxisPhi` is the axis the
 node's RING is actually drawn on, defaulting to the torus's own +Z normal (unrotated) and

@@ -15,7 +15,7 @@ toggleable field; or have the toggle disarm only φ/θ and keep the radius hold)
 fully unconstrained.
 
 **Why it looks like a bug and is not:** `polar.DragRule` has no radius field.
-`TrimToDragRule` (`src/Node/nodedrag/node_drag.go`) holds `out.R = have.R`
+`TrimToDragRule` (`Node/nodedrag/node_drag.go`) holds `out.R = have.R`
 unconditionally whenever a rule applies, so the radius hold is a side effect of having ANY
 rule — it is the only thing keeping a ruled node near the sphere. Dropping the rule drops it.
 

@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: src/**/*.go | writeJSONAtomic/entityReadModifyWrite calls must live in the owning file (node/edge/view mover), never elsewhere
+# PLACEMENT: **/*.go | writeJSONAtomic/entityReadModifyWrite calls must live in the owning file (node/edge/view mover), never elsewhere
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
-WIRING_DIR="$REPO_ROOT/src"
+WIRING_DIR="$REPO_ROOT"
 PLUMBING="value_file.go"
 PLUMBING_PATH="$WIRING_DIR/Scene/scenepersist/value_file.go"
 

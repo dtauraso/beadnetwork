@@ -7,7 +7,7 @@ export default tseslint.config(
     ignores: ['out/**', 'node_modules/**', 'test/**', '**/*.js', '**/*.mjs'],
   },
   {
-    files: ['src/**/*.{ts,tsx}'],
+    files: ['**/*.{ts,tsx}'],
     // Honor the pre-existing deliberate `eslint-disable` comments as-is: some no
 
     linterOptions: { reportUnusedDisableDirectives: 'off' },
