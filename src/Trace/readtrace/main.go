@@ -44,7 +44,7 @@ func emit(out *bufio.Writer, path string) error {
 		if !ok {
 			return fmt.Errorf("truncated record at byte %d of %d", off, len(buf))
 		}
-		fmt.Fprintln(out, trace.LineOf(e, tsMs))
+		fmt.Fprintln(out, LineOf(e, tsMs))
 		off += n
 	}
 	return nil
