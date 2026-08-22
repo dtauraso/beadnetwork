@@ -25,40 +25,30 @@ Go owns the clock.
   per-owner), at an interval for human-speed state and per frame for
   anything tracking the cursor, a drag, or a tick. Go writes only when the
   value changes: `BlobWriter.Flush` compares the whole payload first.
-- **What still streams is the trace events alone.** Each emitting goroutine
-  has its OWN dedicated inherited stdio pipe
-  (`src/runtopology/streamwire/stream_fds.go`, memory/feedback/architecture/bridge/feedback_no_single_writer_bridge.md)
-  — one VIEW stream, one per edge row, and three per node row (node, bead,
-  interior). Each frame is now `[tick][layout fingerprint][EVENTS]` and
-  nothing else: the geometry those streams used to carry is in the block
-  files above, so the frame is an envelope around the events its goroutine
-  emitted this tick. **There are exactly three per-node streams.** A driven
-  out is stepped by the node's own loop, so its events ride that node's
-  interior stream like everything else the node emits. Do not add a fourth
-  per-node or per-port stream to "keep writers apart" — keep the writers
-  singular instead. Two goroutines racing one fd interleave their frames'
-  header and payload writes into garbage, which is why the rule is one pipe
-  per EMITTING GOROUTINE (CLAUDE.md, "Bridge surface") and not one pipe per
-  thing you want to see separately. Frames on a dedicated fd are `[len:u32-LE][payload]`
-  with NO tag byte — the fd POSITION identifies the stream/row.
-  `WIREFOLD_STREAM_FDS` (the ext host's spawn env var,
-  `src/extension/runCommand.ts`) is **mandatory**: there is no
-  central accumulator and no fallback path left to fall back to.
-- **Go → TS is block files plus the event streams — no sidecar.** A node's
+- **Nothing streams. Go → TS is files, and only files.** There is no frame,
+  no per-goroutine pipe, no `WIREFOLD_STREAM_FDS`, no framing or demux in the
+  ext host, and no host→webview message of any kind. Go inherits three stdio
+  slots; stderr is the only one that carries anything, because an error has to
+  reach the human before any file is written.
+
+  The trace events were the last thing to ride a frame. Each goroutine now
+  appends them, as fixed-width binary records, to the file of the item the
+  event is about — `view/nodes/<row>/trace.bin` and its `interior-`/`beads-`
+  siblings, `view/edges/<row>/trace.bin`, `view/trace.bin`
+  (`.claude/rules/go-debugging.md`). One writer per file, as before; the
+  ownership rule that needed one pipe per emitting goroutine is now satisfied
+  by one file per emitting goroutine, and a file cannot interleave two
+  writers' half-written headers the way a shared fd could.
+- **Go → TS is block files — no sidecar.** A node's
   kind is a numeric `kindId` value (TS maps it to `NODE_DEFS` colors), its
   label is the `label` section of its own file, and its identity is the ROW,
   which is the directory its file sits in (Go resolves row → node for hits).
-  The ext host relays each dedicated-fd frame to the webview under a
-  synthetic tag (`BUF_BLOCK_TAG_VIEW`/`_EDGE_STREAM`/`_NODE_STREAM`/
-  `_INTERIOR_STREAM`, `src/Buffer/frame_tags.go`) purely for routing —
-  never a wire byte. Row-keyed reflect resources (`snapshot-buffer.ts`,
-  `overlay-flags.ts`) mirror Go — they author nothing. There is **no
-  JSON-trace render path and no `pump.ts`**; Go emits no trace-event JSON
-  on stdout at all — the `.probe` trace logs (`go.log`/`go-node.log`/
-  `go-edge.log`/`go-interior.log`) are the ext host's DECODE of each
-  per-owner stream's own trailing EVENTS section (`buffer-log.ts`), not a
-  stdout parse. Stdout carries only the DEBUG BREADCRUMB channel's sparse
-  `{"kind":"breadcrumb",...}` control-event lines.
+  The row is therefore an ADDRESS, not a claim riding beside the data, so it
+  cannot disagree with where the data arrived. Reflect resources
+  (`overlay-flags.ts`, `scene-leaves.ts`) mirror Go — they author nothing.
+  There is **no JSON-trace render path and no `pump.ts`**; Go emits no
+  trace-event JSON on stdout at all. `scripts/probe-merge.sh` decodes the
+  binary trace files at READ time through `src/Trace/readtrace`.
 - **`BufferScene`** (`src/webview/scene/buffer-scene.tsx`)
   is the composition root of the render tree — it assembles the per-concern
   components, each of which reads its own block files. It is a

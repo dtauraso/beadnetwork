@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { INTERIOR_SLOTS_PER_NODE } from "./buffer-decode-interior";
+import { INTERIOR_SLOTS_PER_NODE } from "./interior-values-gen";
 import { interiorBeadStyleForValue } from "../../Ring/Bead/bead-style";
 import { ownerCounts } from "../../Scene/owner-counts";
 import { interiorBytes } from "./interior-leaves";

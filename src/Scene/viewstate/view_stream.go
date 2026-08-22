@@ -2,8 +2,6 @@ package viewstate
 
 import (
 	T "github.com/dtauraso/wirefold/src/Trace"
-	"encoding/binary"
-	"io"
 
 )
 
@@ -28,11 +26,9 @@ type ViewSceneState struct {
 	SceneKinds    uint32
 }
 
-type ViewFrameBuilder func(tick uint32, events []T.RowEvent) []byte
+type ViewFrameBuilder func(tick uint32, events []T.RowEvent)
 
-func (ui *UIState) SetViewStream(out io.Writer, buildFrame ViewFrameBuilder) {
-
-	ui.viewOut = newViewClaimedStream(&ui.viewClaimed, out)
+func (ui *UIState) SetViewStream(buildFrame ViewFrameBuilder) {
 	ui.ViewBuildFrame = buildFrame
 }
 
@@ -60,14 +56,6 @@ func (ui *UIState) EmitViewFrame(events []T.RowEvent) {
 	ui.writeTabStripValues(pl.Tabs)
 	ui.writeRulesPanelValues(pl.Rules)
 
-	frame := ui.ViewBuildFrame(ui.viewTick, events)
-	if !ui.viewOut.Ok() {
-		return
-	}
-	var hdr [4]byte
-	binary.LittleEndian.PutUint32(hdr[:], uint32(len(frame)))
-
-	_, _ = ui.viewOut.Write(hdr[:])
-	_, _ = ui.viewOut.Write(frame)
+	ui.ViewBuildFrame(ui.viewTick, events)
 }
 

@@ -1,7 +1,7 @@
 import { logfmt } from "./probe/logfmt";
 import { IN_KIND_RAW_INPUT } from "../Input/input-layout-gen";
 import { writeInputFile } from "./runner/input-file";
-import { resolveScenePath } from "./runner/counts";
+import { resolveScenePath } from "./runner/scene-path";
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";

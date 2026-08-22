@@ -2,8 +2,6 @@ package owners
 
 import (
 	T "github.com/dtauraso/wirefold/src/Trace"
-	"encoding/binary"
-	"io"
 
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/src/Node/Edge/edgefile"
@@ -15,7 +13,7 @@ import (
 	"github.com/dtauraso/wirefold/src/spatial"
 )
 
-type EdgeFrameBuilder = func(tick uint32, edgeRow int32, sx, sy, sz, ex, ey, ez float32, srcNodeRow, dstNodeRow int32, deltaR float32, dragActive uint8, label string, events []T.RowEvent) []byte
+type EdgeFrameBuilder = func(tick uint32, edgeRow int32, sx, sy, sz, ex, ey, ez float32, srcNodeRow, dstNodeRow int32, deltaR float32, dragActive uint8, label string, events []T.RowEvent)
 
 type outEdge struct {
 	label      string
@@ -26,7 +24,6 @@ type outEdge struct {
 
 	targetKind string
 
-	out io.Writer
 
 	port *beadanimation.Sender
 	dest *beadanimation.BeadLine
@@ -94,7 +91,7 @@ func activeByte(inactive bool) uint8 {
 
 func (o *OutEdges) Any() bool { return len(o.edges) > 0 }
 
-func (o *OutEdges) AddOutEdge(label string, edgeRow int32, targetID, targetKind string, w io.Writer, nodeRow, dstNodeRow int32, buildFrame EdgeFrameBuilder) {
+func (o *OutEdges) AddOutEdge(label string, edgeRow int32, targetID, targetKind string, nodeRow, dstNodeRow int32, buildFrame EdgeFrameBuilder) {
 	o.nodeRow = nodeRow
 	o.buildFrame = buildFrame
 	e := o.edgeFor(label)
@@ -102,7 +99,7 @@ func (o *OutEdges) AddOutEdge(label string, edgeRow int32, targetID, targetKind 
 	e.targetID = targetID
 	e.targetKind = targetKind
 	e.dstNodeRow = dstNodeRow
-	e.out = w
+
 }
 
 func (o *OutEdges) DeriveGeometry(self nodegeom.NodeGeom, deltas *Deltas) {
@@ -163,18 +160,14 @@ func (o *OutEdges) WriteFrames(tick int64, self nodegeom.NodeGeom, deltas *Delta
 	}
 
 	for _, e := range o.edges {
-		if e.out == nil || !e.derived {
+		if !e.derived {
 			continue
 		}
 		start, end := e.start, e.end
 
-		frame := o.buildFrame(uint32(tick), e.edgeRow,
+		o.buildFrame(uint32(tick), e.edgeRow,
 			float32(start.X), float32(start.Y), float32(start.Z),
 			float32(end.X), float32(end.Y), float32(end.Z),
 			o.nodeRow, e.dstNodeRow, e.deltaR, activeByte(e.ruleInactive), e.label, nil)
-		var hdr [4]byte
-		binary.LittleEndian.PutUint32(hdr[:], uint32(len(frame)))
-		_, _ = e.out.Write(hdr[:])
-		_, _ = e.out.Write(frame)
 	}
 }

@@ -49,12 +49,11 @@ delivery), node goroutine, node input, and clock
    it fails at runtime with `unknown type "X"` while everything else looks correct.
    Guard: `check-generated.sh`.
 
-Detail: `.claude/rules/node-kinds.md`. Block files: `.claude/rules/buffer-schema.md`. Wire
-props: `.claude/rules/wire-props.md`.
+Detail: `.claude/rules/node-kinds.md`. Wire props: `.claude/rules/wire-props.md`.
 
-**Bridge surface:** **Go → TS** is the BLOCK FILES the owning goroutine writes plus the
-trace-event streams, and NOTHING ELSE — one dedicated inherited-stdio pipe per emitting
-goroutine (VIEW/edge/node/interior), no shared fd3/packer, `WIREFOLD_STREAM_FDS` mandatory.
+**Bridge surface:** **Go → TS** is the BLOCK FILES the owning goroutine writes and NOTHING ELSE —
+one writer per file, no frames, no pipes, no host→webview message at all (trace events were the
+last to stream). Never add a stream to "push" a change: the file IS the current value.
 
 **TS → Go** is framed binary records on stdin: **addressed edits** (a single `edit` message
 whose sole op is `update`, setting an ATTRIBUTE on a typed entity — new capability is a new
@@ -125,8 +124,9 @@ one directory out, since a directory is one Go package. `go generate ./...` runs
   The split line is `inflightBead` — the files that share it are the bead animation.
 - **`src/Camera/`** — the camera, all of it: the basis/projection/angles math and `Viewpoint`,
   the files it persists under `view/camera/`, its block file, and the TSX drawing through it.
-- **`src/Buffer/`** — all that still streams now the scene is files: the frame envelope
-  (`BufLayoutVersion`, fingerprint, tags) and its only payload, the TRACE EVENTS.
+- **`src/Trace/`** — the trace events: `RowEvent`, the kinds and breadcrumb labels, the binary
+  record, and the append that puts one in the file of the item it tracks; `readtrace/` decodes
+  them back to logfmt. There is no `src/Buffer`: it was the frame envelope, and frames are gone.
 - **`src/Chrome/`** — the UI that is NOT the diagram: the pills, panels, dropdowns, tab strip
   and fit chip, plus the `chrome-theme.ts` they share ("Chrome" is the industry word for the
   frame around the content, and this repo reached for it twice on its own). The test is a

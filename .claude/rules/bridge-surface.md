@@ -29,11 +29,9 @@ carries the TS → Go vocabulary.
   yet; it stays in the vocabulary because Go's decode and the `INPUT_LAYOUT_FINGERPRINT`
   both carry it. It carries **no entity id on purpose**: it acts on state **Go already
   owns** (the current selection / scene), so there is nothing for TS to address. There is no
-  `resend` command: the ext host caches the last frame per dedicated stream (view, plus one
-  per edge/node/interior row) and replays all of them to a remounted webview on `ready`
-  instead (`BuildAndRunRunner.getLastViewFrame`/`getLastEdgeFrames`/`getLastNodeFrames`/
-  `getLastInteriorFrames` in `src/extension/runCommand.ts`) — Go only ever emits
-  a frame when something changes, and that stays true.
+  `resend` command, and now nothing to resend: a remounted webview re-reads the files, which
+  are the current state by definition. The ext host used to cache the last frame per stream
+  and replay them all on `ready`; that cache is gone with the frames.
 
   (Several ops/commands were removed end-to-end with no live TS sender — `edit-create`/
   `edit-delete`, `play`/`pause`, `run`/`stop`, `fade-toggle` — and their kind bytes are left
@@ -49,23 +47,17 @@ label rides the buffer's Label section via off/len columns. The loader/mover enf
 `NodeId == row + 1` by construction (`ROW ID = NODE ID - 1`,
 `.claude/rules/persistence-ownership.md`), so the row is the identity.
 
-A `NodeId` COLUMN briefly existed to close a hole the row alone cannot: a bare row can never be
-CONTRADICTED by the frame that carried it, so a misrouted or permuted stream would render
-silently against the wrong node. **That column is gone, and the hole is open.** This paragraph
-used to claim `decodeNodeStreamFrame` compared the stated id against the arrival row and
-reported a mismatch loudly; it never did — that function reads `COL_STREAM_NODE_LABEL` and
-compares nothing, so Go packed the column every frame and nothing read it. Writing the check
-where the column was read is not possible either: `decodeNodeStreamFrame`'s only caller is
-`probe-append.ts` in the EXTENSION HOST, and `column-values.ts` fills its `latest` map only in
-the WEBVIEW, so a comparison there reads the zero fallback and can never fire. Closing this
-properly means checking the fd-to-row mapping where frames are demuxed
-(`src/extension/runner/stream-demux.ts`), not decoding an id out of a column. (A test asserts the
-removed id/label/kind SIDECAR MESSAGE is rejected; a column inside the Node block is the
-same shape as `KindId`, not a second channel, and does not reintroduce one.)
+A `NodeId` COLUMN briefly existed to close a hole the row alone could not: a bare row could
+never be CONTRADICTED by the frame that carried it, so a misrouted or permuted stream would
+render silently against the wrong node. **That hole is now closed by construction, and the
+column is not coming back.** There is no stream to misroute: node 3's state is the file at
+`view/nodes/3/node.bin`, and the renderer reads row 3 by asking for that path. The row is not
+a claim travelling beside the data that could disagree with where the data arrived — it IS
+the address. Demuxing a frame onto the wrong fd was the failure this worried about, and there
+are no fds.
 
-Full architecture (frame shape, stream inventory, synthetic frame tags) is canonical in
-MODEL.md's "Editor surface (TS)" section; see also `memory/feedback/architecture/bridge/feedback_no_single_writer_bridge.md`
-and `memory/feedback/architecture/bridge/feedback_per_goroutine_bridge.md`.
+Nothing crosses Go → TS but files. There is no frame, no stream inventory, no frame tag, and
+no host→webview message of any kind.
 
 ## Parity
 

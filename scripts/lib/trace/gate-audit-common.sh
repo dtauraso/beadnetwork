@@ -2,7 +2,7 @@
 
 find_ident_files() {
   local ident="$1"
-  grep -rl "$ident" --include="*.go" src/Node src/NodeKinds src/Ring/Bead src/Buffer src/Buffer 2>/dev/null | grep -v '_test\.go$' || true
+  grep -rl "$ident" --include="*.go" src/Node src/NodeKinds src/Ring/Bead 2>/dev/null | grep -v '_test\.go$' || true
 }
 
 find_guarding_hits() {

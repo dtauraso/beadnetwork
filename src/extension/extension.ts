@@ -4,7 +4,7 @@ import * as vscode from "vscode";
 import { BuildAndRunRunner } from "./runCommand";
 import type { HostToWebviewMsg } from "../Input/messages";
 import { buildWebviewHtml } from "./html";
-import { resolveScenePath } from "./runner/counts";
+import { resolveScenePath } from "./runner/scene-path";
 import { handleMessage } from "./handle-message";
 import { serveDocsOpen } from "./docs-open";
 import { armHostReloadWatcher } from "./host-reload-watcher";
@@ -100,10 +100,7 @@ function openTopologyEditor(context: vscode.ExtensionContext, folderUri?: vscode
   const post = (msg: HostToWebviewMsg): void => {
     void panel.webview.postMessage(msg);
   };
-  const runner = new BuildAndRunRunner(
-
-    (snapshot) => post(snapshot),
-  );
+  const runner = new BuildAndRunRunner();
 
   const bundleWatcher = armBundleWatcher(panel, context, scenePath);
 

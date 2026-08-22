@@ -45,7 +45,7 @@ type PortBindings struct {
 	RT rowtables.RowTables
 
 	InteriorEmitters   *map[string]*interior.Emitter
-	BuildInteriorFrame *func(tick uint32, nodeRow int32, events []T.RowEvent) []byte
+	BuildInteriorFrame *func(tick uint32, nodeRow int32, events []T.RowEvent)
 
 	VectorOut map[string]chan TiltPanel.TiltVectorMsg
 	VectorIn  map[string]chan TiltPanel.TiltVectorMsg

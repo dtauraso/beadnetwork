@@ -2,7 +2,6 @@ package nodeactor
 
 import (
 	"context"
-	"io"
 
 	"github.com/dtauraso/wirefold/src/Node/nodeactor/owners"
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
@@ -19,8 +18,8 @@ func (a *NodeBeadAnimation) AddBeadLine(pw *beadanimation.BeadLine, edgeRow int3
 	a.outs.AddBeadLine(pw, edgeRow)
 }
 
-func (a *NodeBeadAnimation) SetBeadStream(w io.Writer, nodeRow int32, buildBeadFrame beadanimation.BeadFrameBuilder) {
-	a.outs.SetBeadStream(w, nodeRow, buildBeadFrame)
+func (a *NodeBeadAnimation) SetBeadStream(nodeRow int32, buildBeadFrame beadanimation.BeadFrameBuilder) {
+	a.outs.SetBeadStream(nodeRow, buildBeadFrame)
 }
 
 func (a *NodeBeadAnimation) ClearBeadLines() {

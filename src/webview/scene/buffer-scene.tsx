@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import type * as THREE from "three";
 import { ownerCounts } from "../../Scene/owner-counts";
-import { INTERIOR_SLOTS_PER_NODE } from "../../Node/Interior/buffer-decode-interior";
+import { INTERIOR_SLOTS_PER_NODE } from "../../Node/Interior/interior-values-gen";
 
 import { ChainBeadInstances } from "../../Node/BeadAnimation/ChainBeadInstances";
 import { EdgeLines } from "../../Node/Edge/EdgeLines";

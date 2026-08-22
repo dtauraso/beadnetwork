@@ -3,8 +3,6 @@ package beadanimation
 import (
 	T "github.com/dtauraso/wirefold/src/Trace"
 	"context"
-	"encoding/binary"
-	"io"
 	"time"
 
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
@@ -25,19 +23,18 @@ type BeadAnimation struct {
 
 	outEdgeRows []int32
 
-	beadOut io.Writer
 
 	nodeRow int32
 
-	buildBeadFrame func(tick uint32, nodeRow int32, beads []SF.EdgeBead, events []T.RowEvent) []byte
+	buildBeadFrame BeadFrameBuilder
 }
 
-type BeadFrameBuilder = func(tick uint32, nodeRow int32, beads []SF.EdgeBead, events []T.RowEvent) []byte
+type BeadFrameBuilder = func(tick uint32, nodeRow int32, beads []SF.EdgeBead, events []T.RowEvent)
 
 func (o *BeadAnimation) HasBeadLines() bool { return len(o.outLines) > 0 }
 
-func (o *BeadAnimation) SetBeadStream(w io.Writer, nodeRow int32, buildBeadFrame func(tick uint32, nodeRow int32, beads []SF.EdgeBead, events []T.RowEvent) []byte) {
-	o.beadOut = w
+func (o *BeadAnimation) SetBeadStream(nodeRow int32, buildBeadFrame BeadFrameBuilder) {
+
 	o.nodeRow = nodeRow
 	o.buildBeadFrame = buildBeadFrame
 }
@@ -128,14 +125,10 @@ func (o *BeadAnimation) drainBeadEvents(bl *BeadLine) []T.RowEvent {
 }
 
 func (o *BeadAnimation) writeBeadFrame(tick int64, beads []SF.EdgeBead, events []T.RowEvent) {
-	if o.beadOut == nil || o.buildBeadFrame == nil {
+	if o.buildBeadFrame == nil {
 		return
 	}
-	frame := o.buildBeadFrame(uint32(tick), o.nodeRow, beads, events)
-	var hdr [4]byte
-	binary.LittleEndian.PutUint32(hdr[:], uint32(len(frame)))
-	_, _ = o.beadOut.Write(hdr[:])
-	_, _ = o.beadOut.Write(frame)
+	o.buildBeadFrame(uint32(tick), o.nodeRow, beads, events)
 }
 
 func (o *BeadAnimation) ClearBeadLines() {

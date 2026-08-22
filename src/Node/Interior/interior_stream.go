@@ -4,15 +4,13 @@ import (
 	T "github.com/dtauraso/wirefold/src/Trace"
 	"encoding/binary"
 	"fmt"
-	"io"
 	"math"
 	"os"
 
 )
 
 type InteriorStream struct {
-	out        io.Writer
-	buildFrame func(tick uint32, events []T.RowEvent) []byte
+	buildFrame func(tick uint32, events []T.RowEvent)
 	tick       uint32
 
 	nodeRow int32
@@ -24,18 +22,17 @@ type InteriorStream struct {
 	values *ValueWriter
 }
 
-func NewInteriorStream(out io.Writer, buildFrame func(tick uint32, events []T.RowEvent) []byte, nodeRow int32, slots int) *InteriorStream {
+func NewInteriorStream(buildFrame func(tick uint32, events []T.RowEvent), nodeRow int32, slots int) *InteriorStream {
 	absent := make([]uint8, slots)
 	zeroI := make([]int32, slots)
 	zeroF := make([]float32, slots)
 	return &InteriorStream{
-		out: out, buildFrame: buildFrame, nodeRow: nodeRow,
+		buildFrame: buildFrame, nodeRow: nodeRow,
 		lastPresent: absent, lastValue: zeroI,
 		lastOx: zeroF, lastOy: append([]float32{}, zeroF...), lastOz: append([]float32{}, zeroF...),
 	}
 }
 
-func (s *InteriorStream) OutWriter() io.Writer { return s.out }
 
 func (s *InteriorStream) NodeRowOf() int32 { return s.nodeRow }
 
@@ -59,7 +56,7 @@ func (s *InteriorStream) write(present []uint8, value []int32, ox, oy, oz []floa
 			fmt.Fprintf(os.Stderr, "interior values write (node row %d): %v\n", s.nodeRow, err)
 		}
 	}
-	writeInteriorStreamFrame(s.out, s.buildFrame, s.tick, events)
+	writeInteriorStreamFrame(s.buildFrame, s.tick, events)
 }
 
 func packI32(v []int32) []byte {
@@ -121,15 +118,9 @@ func boolU8(b bool) uint8 {
 	return 0
 }
 
-func writeInteriorStreamFrame(out io.Writer, buildFrame func(tick uint32, events []T.RowEvent) []byte, tick uint32, events []T.RowEvent) {
-	if out == nil || buildFrame == nil {
+func writeInteriorStreamFrame(buildFrame func(tick uint32, events []T.RowEvent), tick uint32, events []T.RowEvent) {
+	if buildFrame == nil {
 		return
 	}
-	frame := buildFrame(tick, events)
-
-	buf := make([]byte, 4+len(frame))
-	binary.LittleEndian.PutUint32(buf[:4], uint32(len(frame)))
-	copy(buf[4:], frame)
-
-	_, _ = out.Write(buf)
+	buildFrame(tick, events)
 }

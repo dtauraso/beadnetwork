@@ -57,4 +57,4 @@ type NodeFrameInput struct {
 	Events []T.RowEvent
 }
 
-type NodeFrameBuilder func(f NodeFrameInput) []byte
+type NodeFrameBuilder func(f NodeFrameInput)

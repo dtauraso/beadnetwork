@@ -48,7 +48,7 @@ func NewValueWriter(sceneRoot string, row int) *ValueWriter {
 	return &ValueWriter{BlobWriter: valuefile.NewBlobWriter(path, NodeValueNames)}
 }
 
-func WriteNodeValues(w *ValueWriter, f NodeStreamFrame) error {
+func WriteNodeValues(w *ValueWriter, f NodeState) error {
 	if w == nil {
 		return nil
 	}
