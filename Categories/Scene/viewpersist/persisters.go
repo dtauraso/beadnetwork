@@ -1,7 +1,7 @@
 package viewpersist
 
 import (
-	"github.com/dtauraso/wirefold/Categories/Camera"
+	"github.com/dtauraso/wirefold/Categories/Scene/Camera"
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/Panel"
 	"github.com/dtauraso/wirefold/Categories/Chrome/Pills/AngleDropdown"
 	"github.com/dtauraso/wirefold/Categories/Overlay"

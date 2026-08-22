@@ -1,7 +1,7 @@
 package Gesture
 
 import (
-	Camera "github.com/dtauraso/wirefold/Categories/Camera"
+	Camera "github.com/dtauraso/wirefold/Categories/Scene/Camera"
 	FitButton "github.com/dtauraso/wirefold/Categories/Chrome/Pills/FitButton"
 	Drag "github.com/dtauraso/wirefold/Categories/Input/Drag"
 	moverreg "github.com/dtauraso/wirefold/Categories/Node/moverreg"

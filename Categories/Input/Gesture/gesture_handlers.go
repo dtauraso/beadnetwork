@@ -7,7 +7,7 @@ import (
 
 	"github.com/dtauraso/wirefold/Categories/Chrome/Pills/FitButton"
 
-	"github.com/dtauraso/wirefold/Categories/Camera"
+	"github.com/dtauraso/wirefold/Categories/Scene/Camera"
 	"github.com/dtauraso/wirefold/Categories/Input/Drag"
 	"github.com/dtauraso/wirefold/Categories/Node/movemsg"
 	"github.com/dtauraso/wirefold/Categories/Node/nodemove"

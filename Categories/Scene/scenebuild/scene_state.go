@@ -1,7 +1,7 @@
 package scenebuild
 
 import (
-	"github.com/dtauraso/wirefold/Categories/Camera"
+	"github.com/dtauraso/wirefold/Categories/Scene/Camera"
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/SliderPanel"
 	"github.com/dtauraso/wirefold/Categories/Scene/scene"
 	"github.com/dtauraso/wirefold/Categories/Scene/scenepersist"

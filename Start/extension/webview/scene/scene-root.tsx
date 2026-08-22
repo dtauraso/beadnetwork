@@ -12,7 +12,7 @@ import { NodeInstances } from "../../../../Categories/Ring/NodeShape/NodeInstanc
 import { RuleChannelLines } from "../../../../Categories/Scene/Vectors/RuleChannelLines";
 import { ChromeCanvas } from "../../../../Categories/Chrome/Panels/ChromeCanvas";
 import { InteriorBeadInstances } from "../../../../Categories/Node/Interior/InteriorBeadInstances";
-import { SceneCamera } from "../../../../Categories/Camera/SceneCamera";
+import { SceneCamera } from "../../../../Categories/Scene/Camera/SceneCamera";
 import { LabelProjector } from "../../../../Categories/Scene/Labels/LabelProjector";
 
 export type { LabelPos } from "./scene-tags";

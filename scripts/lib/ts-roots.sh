@@ -2,7 +2,7 @@
 
 TS_ROOTS=(
   "Start"
-  "Categories/Camera"
+  "Categories/Scene/Camera"
   "Categories/Chrome"
   "Categories/Clock"
   "Categories/Input"

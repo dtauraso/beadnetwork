@@ -3,7 +3,7 @@ package framegeom
 import (
 	"math"
 
-	"github.com/dtauraso/wirefold/Categories/Camera"
+	"github.com/dtauraso/wirefold/Categories/Scene/Camera"
 	"github.com/dtauraso/wirefold/Categories/Polar/polar"
 )
 
