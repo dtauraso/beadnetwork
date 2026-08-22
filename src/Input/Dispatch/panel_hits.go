@@ -14,8 +14,10 @@ import (
 	"github.com/dtauraso/wirefold/src/Chrome/Pills/AngleDropdown"
 	"github.com/dtauraso/wirefold/src/Chrome/Pills/NodesDropdown"
 	"github.com/dtauraso/wirefold/src/Node/nodecrud"
+	"github.com/dtauraso/wirefold/src/Node/nodeinbox"
 	"github.com/dtauraso/wirefold/src/Overlay"
 	"github.com/dtauraso/wirefold/src/Scene/sceneswitch"
+	"github.com/dtauraso/wirefold/src/Scene/viewstate"
 )
 
 func panelTookPointerDown(
@@ -102,7 +104,7 @@ func applyOverlaysHit(md *MoveDispatch, h Pills.Hit) {
 			md.Persist.Panels().Schedule(md.UI.PN)
 		}
 	case Pills.HitPillBody, Pills.HitFlag:
-		toggleOverlayFlag(md, h.Flag)
+		toggleOverlayFlag(&md.UI, &md.Inboxes, h.Flag)
 		md.Persist.Overlays().Schedule(md.UI.OV)
 	case Pills.HitCount:
 		for _, flag := range h.Flags {
@@ -110,27 +112,27 @@ func applyOverlaysHit(md *MoveDispatch, h Pills.Hit) {
 			if !ok || read(&md.UI.OV) == h.Target {
 				continue
 			}
-			toggleOverlayFlag(md, flag)
+			toggleOverlayFlag(&md.UI, &md.Inboxes, flag)
 		}
 		md.Persist.Overlays().Schedule(md.UI.OV)
 	}
 	md.UI.EmitViewFrame(nil)
 }
 
-func toggleOverlayFlag(md *MoveDispatch, flag string) {
+func toggleOverlayFlag(ui *viewstate.UIState, inboxes *nodeinbox.NodeInboxes, flag string) {
 	fn, ok := Overlay.OverlayToggles[flag]
 	if !ok {
 		return
 	}
-	fn(&md.UI.OV)
+	fn(&ui.OV)
 	if flag == "ruleChannels" {
-		md.Inboxes.BroadcastChannelVectorsOn(md.UI.OV.RuleChannelsVisible)
+		inboxes.BroadcastChannelVectorsOn(ui.OV.RuleChannelsVisible)
 	}
 	if scope, ok := Overlay.OverlayFlagBreadcrumbScope[flag]; ok {
-		md.UI.EmitBreadcrumb(T.RowEvent{
+		ui.EmitBreadcrumb(T.RowEvent{
 			Label: T.BreadcrumbPoleToggleGo, NodeRow: -1, PortRow: -1, TargetRow: -1,
 			TargetPortRow: -1, EdgeRow: -1, Slot: -1,
-			Value: int32(boolU8(Overlay.OverlayFlagValue[flag](&md.UI.OV))), Text: scope,
+			Value: int32(boolU8(Overlay.OverlayFlagValue[flag](&ui.OV))), Text: scope,
 		})
 	}
 }

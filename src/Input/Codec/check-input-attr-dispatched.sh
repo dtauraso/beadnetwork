@@ -90,6 +90,11 @@ while read -r kind attr; do
 $(var_block "$tbl" || true)"
   done
 
+  for callee in $(printf '%s\n' "$BODY" | grep -oE '\bedit[A-Z][A-Za-z0-9_]*\(' | tr -d '(' | sort -u || true); do
+    BODY="$BODY
+$(func_body "$callee" || true)"
+  done
+
   if ! grep -qF "\"$attr\"" <<< "$BODY"; then
     echo "check-input-attr-dispatched: attr \"$attr\" on entity \"$kind\" is DECODED but never"
     echo "  DISPATCHED: $handler (and any *AttrHandlers table it routes through) never mentions"

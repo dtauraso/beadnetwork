@@ -104,17 +104,6 @@ func applyUpdateScene(ctx context.Context, msg Codec.StdinMsg, md *MoveDispatch,
 	}
 }
 
-func applyUpdateOverlays(ctx context.Context, msg Codec.StdinMsg, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
-	if md == nil {
-		return
-	}
-	if h, ok := overlayAttrHandlers[msg.Attr]; ok {
-		h(msg, md)
-	}
-
-	md.Persist.Overlays().Schedule(md.UI.OV)
-}
-
 var nodeAttrHandlers = map[string]func(ctx context.Context, msg Codec.StdinMsg, md *MoveDispatch){
 	"dragPhi": func(ctx context.Context, msg Codec.StdinMsg, md *MoveDispatch) {
 		sendRuleEdit(ctx, md, msg.Num, rulenode.Edit{Kind: rulenode.EditPhiToggle})
@@ -193,16 +182,4 @@ func applyUpdateNode(ctx context.Context, msg Codec.StdinMsg, md *MoveDispatch, 
 	if h, ok := nodeAttrHandlers[msg.Attr]; ok {
 		h(ctx, msg, md)
 	}
-}
-
-func applyUpdatePanels(ctx context.Context, msg Codec.StdinMsg, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
-	if md == nil {
-		return
-	}
-	if h, ok := panelAttrHandlers[msg.Attr]; ok {
-		h(msg, md)
-	}
-
-	md.Persist.Panels().Schedule(md.UI.PN)
-	md.UI.EmitViewFrame(nil)
 }

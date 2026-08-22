@@ -3,7 +3,6 @@ package Dispatch
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/src/Chrome/Panels/Panel"
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
 	"github.com/dtauraso/wirefold/src/Input/Codec"
 
@@ -76,19 +75,27 @@ func ApplyEdit(ctx context.Context, msg Codec.StdinMsg, md *MoveDispatch, speedS
 }
 
 // EDIT_UPDATE_KINDS_START
+// Every entity the wire can name has an entry, and the entry is where the composer is
+// UNPACKED. A handler below the line takes the fields it uses; the one-line adapter here is
+// what turns MoveDispatch into those fields, and is what gets deleted when the handler moves
+// to its own concern and registers itself.
 var updateKindHandlers = map[string]func(context.Context, Codec.StdinMsg, *MoveDispatch, SliderPanel.Sinks){
 	"clock":      applyUpdateClock,
-	"overlays":   applyUpdateOverlays,
 	"scene":      applyUpdateScene,
 	"tiltVector": applyUpdateTiltVector,
-	"panels":     applyUpdatePanels,
 	"node":       applyUpdateNode,
 	"edge":       applyUpdateEdge,
+
+	"overlays": applyUpdateOverlays,
+	"panels":   applyUpdatePanels,
 }
 
 // EDIT_UPDATE_KINDS_END
 
 func applyUpdate(ctx context.Context, msg Codec.StdinMsg, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
+	if md == nil {
+		return
+	}
 	if h, ok := updateKindHandlers[msg.Kind]; ok {
 		h(ctx, msg, md, speedSinks)
 	}
@@ -111,21 +118,6 @@ var clockAttrHandlers = map[string]func(msg Codec.StdinMsg, md *MoveDispatch, sp
 
 		md.UI.Speed = userSpeed
 		md.Persist.Speed().Schedule(userSpeed)
-		md.UI.EmitViewFrame(nil)
-	},
-}
-
-var panelAttrHandlers = map[string]func(msg Codec.StdinMsg, md *MoveDispatch){
-	"toggle": func(msg Codec.StdinMsg, md *MoveDispatch) {
-		if fn, ok := Panel.PanelToggles[msg.Flag]; ok {
-			fn(&md.UI.PN)
-		}
-	},
-}
-
-var overlayAttrHandlers = map[string]func(msg Codec.StdinMsg, md *MoveDispatch){
-	"toggle": func(msg Codec.StdinMsg, md *MoveDispatch) {
-		toggleOverlayFlag(md, msg.Flag)
 		md.UI.EmitViewFrame(nil)
 	},
 }
