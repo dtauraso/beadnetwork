@@ -2,8 +2,6 @@ package NodesDropdown
 
 import (
 	"path/filepath"
-
-	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
 const ValueRelFile = "view/chrome/nodes-pill.bin"
@@ -27,12 +25,12 @@ var PillValueNames = []string{
 func ValueRelPath() string { return ValueRelFile }
 
 type ValueWriter struct {
-	*valuefile.BlobWriter
+	*BlobWriter
 }
 
 func NewValueWriter(sceneRoot string) *ValueWriter {
 	path := filepath.Join(sceneRoot, filepath.FromSlash(ValueRelFile))
-	return &ValueWriter{BlobWriter: valuefile.NewBlobWriter(path, PillValueNames)}
+	return &ValueWriter{BlobWriter: NewBlobWriter(path, PillValueNames)}
 }
 
 func (w *ValueWriter) Rect(xName, yName, wName, hName string, r Rect) {

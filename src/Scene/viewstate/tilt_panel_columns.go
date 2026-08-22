@@ -2,7 +2,6 @@ package viewstate
 
 import (
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/TiltPanel"
-	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
 func (ui *UIState) writeTiltPanelValues(lay TiltPanel.Layout) {
@@ -27,6 +26,6 @@ func (ui *UIState) writeTiltPanelValues(lay TiltPanel.Layout) {
 	}
 
 	if err := w.Flush(); err != nil {
-		valuefile.LogPersistErr("tilt_panel_values", "", err)
+		LogPersistErr("tilt_panel_values", "", err)
 	}
 }

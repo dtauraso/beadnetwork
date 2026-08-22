@@ -2,8 +2,6 @@ package RingPoint
 
 import (
 	"path/filepath"
-
-	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
 const ValueRelFile = "view/ring-points.bin"
@@ -16,16 +14,14 @@ var PointValueNames = []string{
 func ValueRelPath() string { return ValueRelFile }
 
 type ValueWriter struct {
-	*valuefile.BlobWriter
+	*BlobWriter
 }
 
 func NewValueWriter(sceneRoot string) *ValueWriter {
 	path := filepath.Join(sceneRoot, filepath.FromSlash(ValueRelFile))
-	return &ValueWriter{BlobWriter: valuefile.NewBlobWriter(path, PointValueNames)}
+	return &ValueWriter{BlobWriter: NewBlobWriter(path, PointValueNames)}
 }
 
-// Surface takes the flat x,y,z triples the canonical ring is computed as and
-// writes them as three runs, the shape the mesh builder reads.
 func (w *ValueWriter) Surface(xName, yName, zName string, pts []float32) {
 	if len(pts)%3 != 0 {
 		return

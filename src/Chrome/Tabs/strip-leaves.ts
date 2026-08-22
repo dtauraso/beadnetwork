@@ -1,4 +1,4 @@
-import { makeLeafValues } from "../../valuefile/leaf-values";
+import { makeLeafValues } from "./leaf-values";
 import { TAB_STRIP_VALUE_NAMES, type TabStripValueName } from "./strip-values-gen";
 
 const values = makeLeafValues<TabStripValueName>(

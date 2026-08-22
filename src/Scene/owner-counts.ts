@@ -1,4 +1,4 @@
-import { makeLeafValues } from "../valuefile/leaf-values";
+import { makeLeafValues } from "./leaf-values";
 import {
   OWNER_COUNTS_VALUE_NAMES, type OwnerCountsValueName,
 } from "./owner-counts-values-gen";

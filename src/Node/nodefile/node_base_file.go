@@ -4,7 +4,6 @@ import (
 	"path/filepath"
 
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/PolarRulesPanel"
-	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
 const (
@@ -30,7 +29,7 @@ func ReadDragRule(dir string) *PolarRulesPanel.DragRule {
 	any := false
 	read := func(name string, dst **float64) {
 		var v float64
-		if valuefile.ReadIfExists(filepath.Join(dir, name), &v) {
+		if ReadIfExists(filepath.Join(dir, name), &v) {
 			*dst = &v
 			any = true
 		}
@@ -46,7 +45,7 @@ func ReadDragRule(dir string) *PolarRulesPanel.DragRule {
 
 func WriteDragRule(dir string, rule *PolarRulesPanel.DragRule) error {
 	for _, name := range []string{FileRuleR, FileRulePhi, FileRuleMaxTheta} {
-		if err := valuefile.RemoveIfPresent(filepath.Join(dir, name)); err != nil {
+		if err := RemoveIfPresent(filepath.Join(dir, name)); err != nil {
 			return err
 		}
 	}
@@ -57,7 +56,7 @@ func WriteDragRule(dir string, rule *PolarRulesPanel.DragRule) error {
 		if v == nil {
 			return nil
 		}
-		return valuefile.WriteAtomic(filepath.Join(dir, name), *v)
+		return WriteAtomic(filepath.Join(dir, name), *v)
 	}
 	if err := write(FileRuleR, rule.R); err != nil {
 		return err

@@ -7,7 +7,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 WIRING_DIR="$REPO_ROOT/src"
 PLUMBING="value_file.go"
-PLUMBING_PATH="$WIRING_DIR/valuefile/$PLUMBING"
+PLUMBING_PATH="$WIRING_DIR/Scene/scenepersist/value_file.go"
 
 if [[ ! -d "$WIRING_DIR" ]]; then
   echo "check-persist-write-ownership: MISCONFIGURED — $WIRING_DIR not found (moved/renamed?)." >&2
@@ -15,7 +15,7 @@ if [[ ! -d "$WIRING_DIR" ]]; then
 fi
 if [[ ! -f "$PLUMBING_PATH" ]]; then
   echo "check-persist-write-ownership: MISCONFIGURED — $PLUMBING_PATH not found." >&2
-  echo "  This guard exempts src/valuefile as the shared write primitive; if it is" >&2
+  echo "  This exempts a concern.s own value_file.go as the write primitive itself; if it is" >&2
   echo "  gone, the invariant it enforces no longer has a home. Update the guard deliberately." >&2
   exit 1
 fi
@@ -48,7 +48,7 @@ done < <(find "$WIRING_DIR" -name "*.go" -not -name "*_test.go")
 
 all_hits=""
 if [[ ${#eligible_files[@]} -gt 0 ]]; then
-  all_hits="$(grep -nE 'valuefile\.WriteAtomic\(|valuefile\.WriteAtomicIfChanged\(' "${eligible_files[@]}" 2>/dev/null || true)"
+  all_hits="$(grep -nE '(^|[^.[:alnum:]_])WriteAtomic\(|(^|[^.[:alnum:]_])WriteAtomicIfChanged\(' "${eligible_files[@]}" 2>/dev/null || true)"
 fi
 
 HITS=0

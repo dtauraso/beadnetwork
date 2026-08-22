@@ -3,8 +3,6 @@ package SceneVectors
 import (
 	"fmt"
 	"path/filepath"
-
-	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
 const ValueRelTemplate = "view/nodes/{row}/channel-vectors.bin"
@@ -30,10 +28,10 @@ func ValueRelPath(row int) string {
 }
 
 type ValueWriter struct {
-	*valuefile.BlobWriter
+	*BlobWriter
 }
 
 func NewValueWriter(sceneRoot string, row int) *ValueWriter {
 	path := filepath.Join(sceneRoot, filepath.FromSlash(ValueRelPath(row)))
-	return &ValueWriter{BlobWriter: valuefile.NewBlobWriter(path, VectorValueNames)}
+	return &ValueWriter{BlobWriter: NewBlobWriter(path, VectorValueNames)}
 }

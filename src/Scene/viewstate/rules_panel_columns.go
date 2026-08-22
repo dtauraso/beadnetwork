@@ -2,7 +2,6 @@ package viewstate
 
 import (
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/PolarRulesPanel"
-	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
 func (ui *UIState) writeRulesPanelValues(lay PolarRulesPanel.Layout) {
@@ -58,6 +57,6 @@ func (ui *UIState) writeRulesPanelValues(lay PolarRulesPanel.Layout) {
 	}
 
 	if err := w.Flush(); err != nil {
-		valuefile.LogPersistErr("rules_panel_values", "", err)
+		LogPersistErr("rules_panel_values", "", err)
 	}
 }

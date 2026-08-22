@@ -1,4 +1,4 @@
-import { makeRowLeafValues } from "../../valuefile/row-leaf-values";
+import { makeRowLeafValues } from "./row-leaf-values";
 import { EDGE_VALUE_NAMES, type EdgeValueName } from "./edge-values-gen";
 
 const values = makeRowLeafValues<EdgeValueName>(

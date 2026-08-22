@@ -2,8 +2,6 @@ package Panels
 
 import (
 	"path/filepath"
-
-	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
 const ValueRelPath = "view/pointer-target.bin"
@@ -13,12 +11,12 @@ var PointerTargetValueNames = []string{
 }
 
 type ValueWriter struct {
-	*valuefile.BlobWriter
+	*BlobWriter
 }
 
 func NewValueWriter(sceneRoot string) *ValueWriter {
 	path := filepath.Join(sceneRoot, filepath.FromSlash(ValueRelPath))
-	return &ValueWriter{BlobWriter: valuefile.NewBlobWriter(path, PointerTargetValueNames)}
+	return &ValueWriter{BlobWriter: NewBlobWriter(path, PointerTargetValueNames)}
 }
 
 func (w *ValueWriter) Write(x, y, wd, h float32, kind uint8, tipX, tipY float32, tip string) error {

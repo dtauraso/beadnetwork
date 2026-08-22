@@ -1,4 +1,4 @@
-import { makeLeafValues } from "../../../valuefile/leaf-values";
+import { makeLeafValues } from "./leaf-values";
 import { ANGLE_PILL_VALUE_NAMES, type AnglePillValueName } from "./pill-values-gen";
 
 const values = makeLeafValues<AnglePillValueName>(

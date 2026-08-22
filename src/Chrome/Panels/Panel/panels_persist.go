@@ -2,8 +2,6 @@ package Panel
 
 import (
 	"path/filepath"
-
-	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
 var PanelFlagRead = map[string]func(*PanelState) bool{
@@ -39,7 +37,7 @@ func BlockPath(sceneRoot string) string {
 }
 
 func WriteScenePanels(sceneRoot string, pn PanelState) error {
-	w := valuefile.NewBlobWriter(BlockPath(sceneRoot), FlagNames)
+	w := NewBlobWriter(BlockPath(sceneRoot), FlagNames)
 	w.Begin()
 	for _, name := range FlagNames {
 		w.Bool(name, PanelFlagRead[name](&pn))
@@ -49,7 +47,7 @@ func WriteScenePanels(sceneRoot string, pn PanelState) error {
 
 func LoadScenePanels(sceneRoot string) (PanelState, bool) {
 	pn := DefaultPanelState()
-	r, ok := valuefile.ReadBlob(BlockPath(sceneRoot), FlagNames)
+	r, ok := ReadBlob(BlockPath(sceneRoot), FlagNames)
 	if !ok {
 		return pn, false
 	}

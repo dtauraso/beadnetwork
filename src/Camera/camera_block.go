@@ -2,8 +2,6 @@ package Camera
 
 import (
 	"path/filepath"
-
-	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
 const BlockRelPath = "view/camera.bin"
@@ -20,7 +18,7 @@ func BlockPath(sceneRoot string) string {
 }
 
 func writeViewpointBlock(path string, v Viewpoint) error {
-	w := valuefile.NewBlobWriter(path, BlockValueNames)
+	w := NewBlobWriter(path, BlockValueNames)
 	w.Begin()
 	w.F64("pivotX", v.Pivot.X)
 	w.F64("pivotY", v.Pivot.Y)
@@ -35,7 +33,7 @@ func writeViewpointBlock(path string, v Viewpoint) error {
 
 func readViewpointBlock(path string) (Viewpoint, bool) {
 	var v Viewpoint
-	r, ok := valuefile.ReadBlob(path, BlockValueNames)
+	r, ok := ReadBlob(path, BlockValueNames)
 	if !ok {
 		return v, false
 	}

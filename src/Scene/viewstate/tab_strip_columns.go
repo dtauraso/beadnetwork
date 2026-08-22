@@ -2,7 +2,6 @@ package viewstate
 
 import (
 	"github.com/dtauraso/wirefold/src/Chrome/Tabs"
-	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
 func (ui *UIState) writeTabStripValues(lay Tabs.Layout) {
@@ -21,6 +20,6 @@ func (ui *UIState) writeTabStripValues(lay Tabs.Layout) {
 	}
 
 	if err := w.Flush(); err != nil {
-		valuefile.LogPersistErr("tab_strip_values", "", err)
+		LogPersistErr("tab_strip_values", "", err)
 	}
 }

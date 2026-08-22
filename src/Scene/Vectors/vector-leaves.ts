@@ -1,4 +1,4 @@
-import { makeRowLeafValues } from "../../valuefile/row-leaf-values";
+import { makeRowLeafValues } from "./row-leaf-values";
 import { VECTOR_VALUE_NAMES, type VectorValueName } from "./vector-values-gen";
 
 const values = makeRowLeafValues<VectorValueName>(

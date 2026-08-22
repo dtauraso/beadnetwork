@@ -3,18 +3,17 @@ package AngleDropdown
 import (
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/TiltPanel"
 	"github.com/dtauraso/wirefold/src/Scene/scenepaths"
-	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
 const DefaultLatticePoints int32 = TiltPanel.FullTurnPhiIdx
 
 func WriteSceneLattice(latticePath string, points int32) error {
-	return valuefile.WriteAtomic(latticePath, points)
+	return WriteAtomic(latticePath, points)
 }
 
 func LoadSceneLattice(latticePath string) (int32, bool) {
 	var points int32
-	if !valuefile.ReadIfExists(latticePath, &points) {
+	if !ReadIfExists(latticePath, &points) {
 		return DefaultLatticePoints, false
 	}
 	return points, true

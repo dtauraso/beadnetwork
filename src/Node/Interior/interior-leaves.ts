@@ -1,4 +1,4 @@
-import { makeRowLeafValues } from "../../valuefile/row-leaf-values";
+import { makeRowLeafValues } from "./row-leaf-values";
 import { INTERIOR_VALUE_NAMES, type InteriorValueName } from "./interior-values-gen";
 
 const values = makeRowLeafValues<InteriorValueName>(

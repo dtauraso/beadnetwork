@@ -1,4 +1,4 @@
-import { makeRowLeafValues } from "../../valuefile/row-leaf-values";
+import { makeRowLeafValues } from "./row-leaf-values";
 import { BEAD_VALUE_NAMES, type BeadValueName } from "./bead-values-gen";
 
 const values = makeRowLeafValues<BeadValueName>(

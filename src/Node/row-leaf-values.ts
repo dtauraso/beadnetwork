@@ -1,3 +1,4 @@
+
 export interface RowLeafValues<N extends string> {
   bytes: (row: number, name: N) => DataView | undefined;
 }

@@ -2,7 +2,6 @@ package viewstate
 
 import (
 	"github.com/dtauraso/wirefold/src/Chrome/Pills/AngleDropdown"
-	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
 func (ui *UIState) writeAnglePillValues(lay AngleDropdown.Layout) {
@@ -46,6 +45,6 @@ func (ui *UIState) writeAnglePillValues(lay AngleDropdown.Layout) {
 	}
 
 	if err := w.Flush(); err != nil {
-		valuefile.LogPersistErr("angle_pill_values", "", err)
+		LogPersistErr("angle_pill_values", "", err)
 	}
 }

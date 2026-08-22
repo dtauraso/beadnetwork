@@ -1,7 +1,5 @@
 package scenepersist
 
-import "github.com/dtauraso/wirefold/src/valuefile"
-
 type Persister[T any] struct {
 	Path  string
 	Write func(path string, v T) error
@@ -13,6 +11,6 @@ func (p *Persister[T]) Schedule(v T) {
 		return
 	}
 	if err := p.Write(p.Path, v); err != nil {
-		valuefile.LogPersistErr(p.Tag, p.Path, err)
+		LogPersistErr(p.Tag, p.Path, err)
 	}
 }

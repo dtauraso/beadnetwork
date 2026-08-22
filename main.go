@@ -23,8 +23,8 @@ import (
 	SceneB "github.com/dtauraso/wirefold/src/Scene"
 	"github.com/dtauraso/wirefold/src/Scene/scene"
 	"github.com/dtauraso/wirefold/src/Scene/scenepaths"
-	T "github.com/dtauraso/wirefold/src/Trace"
 	W "github.com/dtauraso/wirefold/src/Scene/scenerun"
+	T "github.com/dtauraso/wirefold/src/Trace"
 )
 
 func run(ctx context.Context, cancel context.CancelFunc, topologyPath string, clk clock.Clock) {

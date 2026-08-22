@@ -2,8 +2,6 @@ package TiltPanel
 
 import (
 	"path/filepath"
-
-	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
 const ValueRelFile = "view/chrome/tilt-panel.bin"
@@ -22,12 +20,12 @@ var PanelValueNames = []string{
 func ValueRelPath() string { return ValueRelFile }
 
 type ValueWriter struct {
-	*valuefile.BlobWriter
+	*BlobWriter
 }
 
 func NewValueWriter(sceneRoot string) *ValueWriter {
 	path := filepath.Join(sceneRoot, filepath.FromSlash(ValueRelFile))
-	return &ValueWriter{BlobWriter: valuefile.NewBlobWriter(path, PanelValueNames)}
+	return &ValueWriter{BlobWriter: NewBlobWriter(path, PanelValueNames)}
 }
 
 func (w *ValueWriter) Rect(xName, yName, wName, hName string, r Rect) {

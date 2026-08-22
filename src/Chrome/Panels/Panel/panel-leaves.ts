@@ -1,5 +1,5 @@
 import { PANEL_FLAG_ORDER, type PanelFlag } from "./flags";
-import { makeLeafValues } from "../../../valuefile/leaf-values";
+import { makeLeafValues } from "./leaf-values";
 
 export type PanelFlagVals = Record<PanelFlag, boolean>;
 

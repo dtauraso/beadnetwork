@@ -4,13 +4,12 @@ import (
 	"github.com/dtauraso/wirefold/src/Polar/polar"
 	"github.com/dtauraso/wirefold/src/Scene"
 	"github.com/dtauraso/wirefold/src/Scene/viewstate"
-	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
 func LoadSceneSphere(topologyPath string) (polar.SceneSphere, bool) {
 	var s polar.SceneSphere
 	read := func(name string, dst *float64) bool {
-		return valuefile.ReadIfExists(Scene.SceneValuePath(topologyPath, name), dst)
+		return ReadIfExists(Scene.SceneValuePath(topologyPath, name), dst)
 	}
 	if !read("cx", &s.Center.X) || !read("cy", &s.Center.Y) ||
 		!read("cz", &s.Center.Z) || !read("radius", &s.Radius) {
@@ -24,7 +23,7 @@ func WriteSceneSphere(sceneRoot string, s polar.SceneSphere) error {
 		"cx": s.Center.X, "cy": s.Center.Y, "cz": s.Center.Z,
 		"radius": s.Radius,
 	} {
-		if err := valuefile.WriteAtomicIfChanged(Scene.SceneValuePath(sceneRoot, name), value); err != nil {
+		if err := WriteAtomicIfChanged(Scene.SceneValuePath(sceneRoot, name), value); err != nil {
 			return err
 		}
 	}

@@ -10,7 +10,6 @@ import (
 	"github.com/dtauraso/wirefold/src/Polar/polar"
 	"github.com/dtauraso/wirefold/src/Polar/polarindex"
 	"github.com/dtauraso/wirefold/src/spatial"
-	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
 type EdgeFrameBuilder = func(tick uint32, edgeRow int32, sx, sy, sz, ex, ey, ez float32, srcNodeRow, dstNodeRow int32, deltaR float32, dragActive uint8, label string, events []T.RowEvent)
@@ -147,7 +146,7 @@ func (o *OutEdges) persistDelta(e *outEdge, off polarindex.Offset) {
 		return
 	}
 	if err := edgefile.WriteEdgeDrag(o.persistRoot, o.srcID, e.label, off); err != nil {
-		valuefile.LogPersistErr("out_edges", o.srcID+"->"+e.targetID, err)
+		LogPersistErr("out_edges", o.srcID+"->"+e.targetID, err)
 		return
 	}
 	e.persistedDragIdx, e.hasPersisted = off, true

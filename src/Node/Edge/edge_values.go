@@ -3,8 +3,6 @@ package edge
 import (
 	"fmt"
 	"path/filepath"
-
-	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
 const ValueRelTemplate = "view/edges/{row}/edge.bin"
@@ -19,12 +17,12 @@ func ValueRelPath(row int) string {
 }
 
 type ValueWriter struct {
-	*valuefile.BlobWriter
+	*BlobWriter
 }
 
 func NewValueWriter(sceneRoot string, row int) *ValueWriter {
 	path := filepath.Join(sceneRoot, filepath.FromSlash(ValueRelPath(row)))
-	return &ValueWriter{BlobWriter: valuefile.NewBlobWriter(path, EdgeValueNames)}
+	return &ValueWriter{BlobWriter: NewBlobWriter(path, EdgeValueNames)}
 }
 
 func (w *ValueWriter) Write(

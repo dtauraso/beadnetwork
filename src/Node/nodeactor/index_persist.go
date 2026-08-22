@@ -5,7 +5,6 @@ import (
 
 	"github.com/dtauraso/wirefold/src/Node/dragfile"
 	"github.com/dtauraso/wirefold/src/Polar/polarindex"
-	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
 func (nm *NodeGeometry) persistIndex(off polarindex.Offset) {
@@ -14,7 +13,7 @@ func (nm *NodeGeometry) persistIndex(off polarindex.Offset) {
 	}
 
 	if err := writeIndex(nm.persistRoot, nm.id, off, nm.tilt.TopTiltVectorPhiIdx()); err != nil {
-		valuefile.LogPersistErr("index_persist", nm.id, err)
+		LogPersistErr("index_persist", nm.id, err)
 	}
 }
 
@@ -23,12 +22,12 @@ func (nm *NodeGeometry) persistTiltVectorAngle() {
 		return
 	}
 	if err := writeIndex(nm.persistRoot, nm.id, nm.geom.DragIndex, nm.tilt.TopTiltVectorPhiIdx()); err != nil {
-		valuefile.LogPersistErr("index_persist", nm.id, err)
+		LogPersistErr("index_persist", nm.id, err)
 	}
 }
 
 func writeIndex(root, id string, off polarindex.Offset, topTiltVectorPhiIdx int32) error {
-	if !valuefile.SafeTreePathComponent(id) {
+	if !SafeTreePathComponent(id) {
 		return fmt.Errorf("unsafe node id %q", id)
 	}
 	return dragfile.Write(root, id, dragfile.JSON{

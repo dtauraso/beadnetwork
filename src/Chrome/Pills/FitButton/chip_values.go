@@ -4,7 +4,6 @@ import (
 	"path/filepath"
 
 	Pills "github.com/dtauraso/wirefold/src/Chrome/Pills"
-	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
 const ValueRelFile = "view/chrome/fit-chip.bin"
@@ -17,12 +16,12 @@ var ChipValueNames = []string{
 func ValueRelPath() string { return ValueRelFile }
 
 type ValueWriter struct {
-	*valuefile.BlobWriter
+	*BlobWriter
 }
 
 func NewValueWriter(sceneRoot string) *ValueWriter {
 	path := filepath.Join(sceneRoot, filepath.FromSlash(ValueRelFile))
-	return &ValueWriter{BlobWriter: valuefile.NewBlobWriter(path, ChipValueNames)}
+	return &ValueWriter{BlobWriter: NewBlobWriter(path, ChipValueNames)}
 }
 
 func (w *ValueWriter) Rect(xName, yName, wName, hName string, r Pills.Rect) {

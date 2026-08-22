@@ -9,8 +9,8 @@ import (
 	"github.com/dtauraso/wirefold/src/NodeKinds/kindreg"
 	"github.com/dtauraso/wirefold/src/NodeKinds/nodeapi"
 	"github.com/dtauraso/wirefold/src/NodeKinds/portwiring"
-	"github.com/dtauraso/wirefold/src/Scene/scenepersist"
 	"github.com/dtauraso/wirefold/src/Scene/loadspec"
+	"github.com/dtauraso/wirefold/src/Scene/scenepersist"
 	"github.com/dtauraso/wirefold/src/Scene/scenerun"
 )
 

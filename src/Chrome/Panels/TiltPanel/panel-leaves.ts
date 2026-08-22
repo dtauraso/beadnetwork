@@ -1,4 +1,4 @@
-import { makeLeafValues } from "../../../valuefile/leaf-values";
+import { makeLeafValues } from "./leaf-values";
 import { TILT_PANEL_VALUE_NAMES, type TiltPanelValueName } from "./panel-values-gen";
 
 const values = makeLeafValues<TiltPanelValueName>(
