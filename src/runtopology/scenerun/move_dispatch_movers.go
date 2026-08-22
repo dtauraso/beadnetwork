@@ -3,13 +3,13 @@ package scenerun
 import (
 	clock "github.com/dtauraso/wirefold/src/Clock"
 	edge "github.com/dtauraso/wirefold/src/Node/Edge"
+	"github.com/dtauraso/wirefold/src/Node/Edge/edgegeom"
 	"github.com/dtauraso/wirefold/src/Node/Edge/edgetable"
 	"github.com/dtauraso/wirefold/src/Node/nodeactor"
 	"github.com/dtauraso/wirefold/src/Node/nodeactor/owners"
 	"github.com/dtauraso/wirefold/src/Node/nodegeom"
 	"github.com/dtauraso/wirefold/src/Node/rulenode"
 	"github.com/dtauraso/wirefold/src/Polar/polarindex"
-	geomseeds "github.com/dtauraso/wirefold/src/runtopology/geomseeds"
 )
 
 func (md *MoveDispatch) buildNodeMovers(geoms map[string]nodegeom.NodeGeom, clk clock.Clock, constants polarindex.SceneConstants) {
@@ -67,7 +67,11 @@ func (md *MoveDispatch) wireRuleEditRows() {
 }
 
 func (md *MoveDispatch) wireMutualPairs(edgeEndpoints map[string]edge.EdgeEndpoints) {
-	for src, targets := range geomseeds.MutualPairs(edgeEndpoints) {
+	pairs := make([][2]string, 0, len(edgeEndpoints))
+	for _, ep := range edgeEndpoints {
+		pairs = append(pairs, [2]string{ep.Source, ep.Target})
+	}
+	for src, targets := range edgegeom.MutualPairs(pairs) {
 		if nm, ok := md.MR.NodeGeoms()[src]; ok {
 			for target := range targets {
 				nm.AddMutualTarget(target)

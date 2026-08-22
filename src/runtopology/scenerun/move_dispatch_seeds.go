@@ -5,9 +5,9 @@ import (
 	"strconv"
 
 	edge "github.com/dtauraso/wirefold/src/Node/Edge"
+	"github.com/dtauraso/wirefold/src/Node/Edge/edgegeom"
 	"github.com/dtauraso/wirefold/src/Node/nodegeom"
 	rowtables "github.com/dtauraso/wirefold/src/Scene/rowtables"
-	geomseeds "github.com/dtauraso/wirefold/src/runtopology/geomseeds"
 )
 
 func resolveSeedOrders(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[string]edge.EdgeEndpoints, nodeOrder, edgeOrder []string) ([]string, []string) {
@@ -29,7 +29,7 @@ func resolveSeedOrders(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[str
 }
 
 func (md *MoveDispatch) buildGeomSeeds(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[string]edge.EdgeEndpoints, nodeOrder, edgeOrder []string) error {
-	md.GS.NodeSeeds = make([]geomseeds.NodeGeomSeed, 0, len(nodeOrder))
+	md.GS.NodeSeeds = make([]nodegeom.Seed, 0, len(nodeOrder))
 	for i, id := range nodeOrder {
 		g, ok := geoms[id]
 		if !ok {
@@ -40,16 +40,16 @@ func (md *MoveDispatch) buildGeomSeeds(geoms map[string]nodegeom.NodeGeom, edgeE
 		if n, err := strconv.Atoi(id); err == nil {
 			row = n - 1
 		}
-		md.GS.NodeSeeds = append(md.GS.NodeSeeds, geomseeds.BuildNodeSeed(id, i, g, row))
+		md.GS.NodeSeeds = append(md.GS.NodeSeeds, nodegeom.NewSeed(id, g, row))
 	}
-	md.GS.EdgeSeeds = make([]geomseeds.EdgeGeomSeed, 0, len(edgeOrder))
+	md.GS.EdgeSeeds = make([]edgegeom.Seed, 0, len(edgeOrder))
 	for _, label := range edgeOrder {
 		ep, ok := edgeEndpoints[label]
 		if !ok {
 			continue
 		}
 
-		seed, err := geomseeds.BuildEdgeSeed(label, ep, geoms)
+		seed, err := edgegeom.NewSeed(label, ep.Source, ep.Target, geoms)
 		if err != nil {
 			return err
 		}

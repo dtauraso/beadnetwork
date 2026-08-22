@@ -1,4 +1,4 @@
-package streamwire
+package nodeactor
 
 import (
 	"fmt"
@@ -6,12 +6,12 @@ import (
 	T "github.com/dtauraso/wirefold/src/Trace"
 
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
+	"github.com/dtauraso/wirefold/src/Node/Edge/edgegeom"
 	"github.com/dtauraso/wirefold/src/Node/Edge/edgetable"
 	interior "github.com/dtauraso/wirefold/src/Node/Interior"
-	"github.com/dtauraso/wirefold/src/Node/nodeactor"
 	"github.com/dtauraso/wirefold/src/Node/nodeactor/nodeframe"
 	"github.com/dtauraso/wirefold/src/Node/nodeactor/owners"
-	geomseeds "github.com/dtauraso/wirefold/src/runtopology/geomseeds"
+	"github.com/dtauraso/wirefold/src/Node/nodegeom"
 )
 
 type StreamWiring struct {
@@ -28,7 +28,7 @@ func (sw *StreamWiring) BuildInteriorFramePtr() *func(tick uint32, nodeRow int32
 	return &sw.buildInteriorFrame
 }
 
-func kindOf(nodeGeoms map[string]*nodeactor.NodeGeometry, nodeID string) string {
+func kindOf(nodeGeoms map[string]*NodeGeometry, nodeID string) string {
 	if nm, ok := nodeGeoms[nodeID]; ok {
 		return nm.SelfKind()
 	}
@@ -36,9 +36,9 @@ func kindOf(nodeGeoms map[string]*nodeactor.NodeGeometry, nodeID string) string 
 }
 
 func (sw *StreamWiring) SetEdgeStreams(
-	edgeSeeds []geomseeds.EdgeGeomSeed,
+	edgeSeeds []edgegeom.Seed,
 	edgeTable map[string]*edgetable.Edge,
-	nodeGeoms map[string]*nodeactor.NodeGeometry,
+	nodeGeoms map[string]*NodeGeometry,
 	nodeRowFor func(id string) (int32, bool),
 	buildFrame owners.EdgeFrameBuilder,
 ) {
@@ -51,7 +51,7 @@ func (sw *StreamWiring) SetEdgeStreams(
 		srcNM, ok := nodeGeoms[seed.SrcNode]
 		if !ok {
 			panic(fmt.Sprintf(
-				"streamwire.SetEdgeStreams: edge %q leaves node %q, which has no node geometry — a node draws its OWN out-edges, so an edge with no source node has no writer",
+				"nodeactor.SetEdgeStreams: edge %q leaves node %q, which has no node geometry — a node draws its OWN out-edges, so an edge with no source node has no writer",
 				seed.Label, seed.SrcNode))
 		}
 		srcRow := int32(-1)
@@ -71,8 +71,8 @@ func (sw *StreamWiring) SetEdgeStreams(
 }
 
 func (sw *StreamWiring) SetNodeStreams(
-	nodeSeeds []geomseeds.NodeGeomSeed,
-	nodeMovers map[string]*nodeactor.NodeGeometry,
+	nodeSeeds []nodegeom.Seed,
+	nodeMovers map[string]*NodeGeometry,
 	sceneRoot string,
 	buildBeadFrame beadanimation.BeadFrameBuilder,
 	nodeRowFor func(id string) (int32, bool),

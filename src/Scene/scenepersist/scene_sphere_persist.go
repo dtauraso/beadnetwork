@@ -4,7 +4,6 @@ import (
 	"github.com/dtauraso/wirefold/src/Polar/polar"
 	"github.com/dtauraso/wirefold/src/Scene"
 	"github.com/dtauraso/wirefold/src/Scene/viewstate"
-	"github.com/dtauraso/wirefold/src/runtopology/geomseeds"
 	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
@@ -32,7 +31,7 @@ func WriteSceneSphere(sceneRoot string, s polar.SceneSphere) error {
 	return nil
 }
 
-func InstallSceneSphere(ui *viewstate.UIState, gs *geomseeds.GeomSeeds, topologyPath string) {
+func InstallSceneSphere(ui *viewstate.UIState, gs *Scene.GeomSeeds, topologyPath string) {
 	if s, ok := LoadSceneSphere(topologyPath); ok {
 		ui.SceneSphere = s
 	} else {
