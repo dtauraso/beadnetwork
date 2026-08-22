@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/dtauraso/wirefold/scripts/genpaths"
-	"github.com/dtauraso/wirefold/scripts/kindscan"
+	"github.com/dtauraso/wirefold/src/NodeKinds/gen/kindscan"
 	"github.com/dtauraso/wirefold/src/NodeKinds/gen/nodedefs"
 )
 

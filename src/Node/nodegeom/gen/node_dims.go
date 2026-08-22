@@ -8,7 +8,7 @@ import (
 	"os"
 	"sort"
 
-	"github.com/dtauraso/wirefold/scripts/kindscan"
+	"github.com/dtauraso/wirefold/src/NodeKinds/gen/kindscan"
 )
 
 func writeNodeDims(outPath string, kinds []kindscan.KindEntry) error {

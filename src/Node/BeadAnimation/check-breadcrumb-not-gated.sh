@@ -8,8 +8,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 cd "$REPO_ROOT"
 
-source "$REPO_ROOT/scripts/lib/trace/gate-audit-common.sh"
-source "$REPO_ROOT/scripts/lib/trace/gate-streams-active.sh"
+source "$SCRIPT_DIR/gate-audit-common.sh"
+source "$SCRIPT_DIR/gate-streams-active.sh"
 
 fail=0
 report=""
