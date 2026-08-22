@@ -18,12 +18,6 @@ func main() {
 	if err != nil {
 		genpaths.Fatalf("parse input layout fingerprint: %v", err)
 	}
-	outPath := filepath.Join(srcRoot, "Input", "Codec", "input-layout-gen.ts")
-	if err := inputlayout.WriteInputLayout(outPath, inputFP); err != nil {
-		genpaths.Fatalf("write %s: %v", outPath, err)
-	}
-	genpaths.Announce(outPath, 1+len(inputFP.KindNames)+4, "constants")
-
 	goKindsPath := filepath.Join(srcRoot, "Input", "Drag", "event_kinds_gen.go")
 	if err := inputlayout.WriteGoEventKinds(goKindsPath, inputFP); err != nil {
 		genpaths.Fatalf("write %s: %v", goKindsPath, err)
@@ -32,4 +26,5 @@ func main() {
 
 	copyRecordReaders(srcRoot)
 	copyWireVocabulary(srcRoot, inputFP)
+	copyTSWireVocabulary(srcRoot, inputFP)
 }

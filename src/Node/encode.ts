@@ -1,4 +1,4 @@
-import { editUpdate } from "../Input/Codec/attr-index";
+import { editUpdate } from "./wire-gen";
 
 function nodeRowEdit(attr: string, nodeRow: number): ArrayBuffer {
   const w = editUpdate("node", attr);

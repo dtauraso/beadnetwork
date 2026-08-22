@@ -1,4 +1,4 @@
-import { editUpdate } from "../Input/Codec/attr-index";
+import { editUpdate } from "./wire-gen";
 
 export function encodeSceneSelected(tabIndex: number): ArrayBuffer {
   const w = editUpdate("scene", "selected");

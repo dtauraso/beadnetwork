@@ -1,4 +1,4 @@
-import { editUpdate } from "../Input/Codec/attr-index";
+import { editUpdate } from "./wire-gen";
 
 export const SLIDER_NUM_SCALE = 4;
 

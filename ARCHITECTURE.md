@@ -24,7 +24,7 @@ Communication is `panel.webview.postMessage` ↔ `vscode.postMessage`, wired in
 
 ## Message protocol (single source of truth)
 
-`src/Input/Codec/messages.ts` is the shared discriminated-union source for both sides.
+`src/extension/messages.ts` is the shared discriminated-union source for both sides.
 `WebviewToHostMsg` includes `ready` and the binary bridge envelope (a fully
 encoded editor→Go record built by the concern that owns the edit — `src/Overlay/encode.ts`,
 `src/Scene/encode.ts`, `src/Node/encode.ts` and their siblings, each beside that concern's
@@ -39,7 +39,7 @@ for the full bridge-surface model, not duplicated here.
 **Do not restate the kind list here.** The authority is
 `INPUT_LAYOUT_FINGERPRINT` — one string encoding every kind byte, update kind,
 attr, and overlay flag, defined in `src/Input/gen/input_layout_declared.go`. The TS side
-(`src/Input/Codec/input-layout-gen.ts`) is GENERATED from that Go string by
+(`src/Node/wire-gen.ts`) is GENERATED from that Go string by
 the generators, so it cannot drift — there is no second hand-kept copy to compare.
 Read the fingerprint to learn the current surface; prose copied into this file cannot fail
 and so cannot be trusted. (Removed kind bytes are preserved as GAPS in `src/Input/gen/input_layout_declared.go` and

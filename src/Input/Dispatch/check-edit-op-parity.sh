@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: src/Input/Dispatch/dispatch_edit.go,src/Input/Codec/messages.ts,src/Overlay/flags.ts,src/Chrome/Panels/Panel/flags.ts,src/Input/Codec/input-layout-gen.ts,src/Overlay/paths/,src/Chrome/Panels/Panel/paths/ | edit ops/update-kinds/overlay flags must stay listed identically on both sides of the bridge
+# PLACEMENT: src/Input/Dispatch/dispatch_edit.go,src/extension/messages.ts,src/Overlay/flags.ts,src/Chrome/Panels/Panel/flags.ts,src/Node/wire-gen.ts,src/Overlay/paths/,src/Chrome/Panels/Panel/paths/ | edit ops/update-kinds/overlay flags must stay listed identically on both sides of the bridge
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
@@ -11,7 +11,7 @@ go_fence_files() {
   grep -rl --include='*.go' -E "^[[:space:]]*//[[:space:]]*$1[[:space:]]*$" "$GO_PKG_DIR" \
     | grep -v '_test\.go$' || true
 }
-MESSAGES_TS="$REPO_ROOT/src/Input/Codec/messages.ts"
+MESSAGES_TS="$REPO_ROOT/src/extension/messages.ts"
 
 EDIT_MSG_FILES=$(grep -rl "EDIT_MSG_START" --include="*.ts" "$REPO_ROOT/src" 2>/dev/null | sort)
 if [ -z "$EDIT_MSG_FILES" ]; then
@@ -22,7 +22,7 @@ fi
 OVERLAY_FLAGS_TS="$REPO_ROOT/src/Overlay/flags.ts"
 PANEL_FLAGS_TS="$REPO_ROOT/src/Chrome/Panels/Panel/flags.ts"
 
-HANDLE_MSG="$REPO_ROOT/src/Input/Codec/input-layout-gen.ts"
+HANDLE_MSG="$REPO_ROOT/src/Node/wire-gen.ts"
 
 PANEL_STATE_GO="$REPO_ROOT/src/Chrome/Panels/Panel/panel_state.go"
 

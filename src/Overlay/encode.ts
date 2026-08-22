@@ -1,5 +1,4 @@
-import { editUpdate } from "../Input/Codec/attr-index";
-import { enumIndex } from "../Input/Codec/byte-writer";
+import { editUpdate, enumIndex } from "./wire-gen";
 import { OVERLAY_FLAG_ORDER, type OverlayFlag } from "./flags";
 
 export function encodeOverlaysToggle(flag: OverlayFlag): ArrayBuffer {

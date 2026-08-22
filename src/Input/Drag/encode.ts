@@ -1,5 +1,4 @@
-import { ByteWriter, enumIndex } from "../Codec/byte-writer";
-import { IN_KIND_RAW_INPUT, IN_EVENT_KINDS, IN_HIT_KINDS } from "../Codec/input-layout-gen";
+import { ByteWriter, enumIndex, IN_KIND_RAW_INPUT, IN_EVENT_KINDS, IN_HIT_KINDS } from "./wire-gen";
 import type { RawInputEvent } from "./raw-input";
 
 export function encodeRawInput(ev: RawInputEvent): ArrayBuffer {

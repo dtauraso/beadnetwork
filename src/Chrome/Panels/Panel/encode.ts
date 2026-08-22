@@ -1,5 +1,4 @@
-import { editUpdate } from "../../../Input/Codec/attr-index";
-import { enumIndex } from "../../../Input/Codec/byte-writer";
+import { editUpdate, enumIndex } from "./wire-gen";
 import { PANEL_FLAG_ORDER, type PanelFlag } from "./flags";
 
 export function encodePanelsToggle(flag: PanelFlag): ArrayBuffer {
