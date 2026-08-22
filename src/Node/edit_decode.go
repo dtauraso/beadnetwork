@@ -1,11 +1,11 @@
 package Node
 
 import (
-	"github.com/dtauraso/wirefold/src/Input/Codec"
 	"github.com/dtauraso/wirefold/src/Input/Stdin"
 )
 
-func decodeUpdate(r *Codec.Reader, attr byte) (Stdin.StdinMsg, bool) {
+func decodeUpdate(payload []byte, attr byte) (Stdin.StdinMsg, bool) {
+	r := NewReader(payload, 0)
 	switch attr {
 	case attrDragPhi:
 		row, err := r.U8()

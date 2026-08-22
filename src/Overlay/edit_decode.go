@@ -7,7 +7,8 @@ import (
 
 func init() { Stdin.RegisterUpdateDecoder("overlays", decodeUpdate) }
 
-func decodeUpdate(r *Codec.Reader, attr byte) (Stdin.StdinMsg, bool) {
+func decodeUpdate(payload []byte, attr byte) (Stdin.StdinMsg, bool) {
+	r := NewReader(payload, 0)
 	if attr != attrToggle {
 		return Stdin.StdinMsg{}, false
 	}

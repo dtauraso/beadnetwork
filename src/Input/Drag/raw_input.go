@@ -38,5 +38,5 @@ func DecodeRawInput(rec []byte) (RawInputMsg, bool) {
 	if len(rec) == 0 || rec[0] != Codec.InKindRawInput {
 		return RawInputMsg{}, false
 	}
-	return decodeRawInputFrom(Codec.NewReader(rec, 1))
+	return decodeRawInputFrom(NewReader(rec, 1))
 }

@@ -1,13 +1,13 @@
 package clock
 
 import (
-	"github.com/dtauraso/wirefold/src/Input/Codec"
 	"github.com/dtauraso/wirefold/src/Input/Stdin"
 )
 
 func init() { Stdin.RegisterUpdateDecoder("clock", decodeUpdate) }
 
-func decodeUpdate(r *Codec.Reader, attr byte) (Stdin.StdinMsg, bool) {
+func decodeUpdate(payload []byte, attr byte) (Stdin.StdinMsg, bool) {
+	r := NewReader(payload, 0)
 	if attr != attrSpeed {
 		return Stdin.StdinMsg{}, false
 	}

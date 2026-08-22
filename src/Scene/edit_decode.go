@@ -1,7 +1,6 @@
 package Scene
 
 import (
-	"github.com/dtauraso/wirefold/src/Input/Codec"
 	"github.com/dtauraso/wirefold/src/Input/Stdin"
 )
 
@@ -10,7 +9,8 @@ func init() {
 	Stdin.RegisterUpdateDecoder("tiltVector", decodeUpdateTiltVector)
 }
 
-func decodeUpdateScene(r *Codec.Reader, attr byte) (Stdin.StdinMsg, bool) {
+func decodeUpdateScene(payload []byte, attr byte) (Stdin.StdinMsg, bool) {
+	r := NewReader(payload, 0)
 	switch attr {
 	case attrSelected:
 
@@ -66,7 +66,8 @@ func decodeUpdateScene(r *Codec.Reader, attr byte) (Stdin.StdinMsg, bool) {
 	return Stdin.StdinMsg{}, false
 }
 
-func decodeUpdateTiltVector(r *Codec.Reader, attr byte) (Stdin.StdinMsg, bool) {
+func decodeUpdateTiltVector(payload []byte, attr byte) (Stdin.StdinMsg, bool) {
+	r := NewReader(payload, 0)
 	switch attr {
 	case attrTiltVectorPhi:
 

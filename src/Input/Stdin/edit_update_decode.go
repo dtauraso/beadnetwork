@@ -2,21 +2,16 @@ package Stdin
 
 import "github.com/dtauraso/wirefold/src/Input/Codec"
 
-func decodeEditUpdate(r *Codec.Reader) (StdinMsg, bool) {
-	kindByte, err1 := r.U8()
-	if err1 != nil {
+func decodeEditUpdate(rec []byte) (StdinMsg, bool) {
+	if len(rec) < 3 {
 		return StdinMsg{}, false
 	}
-	entity := Codec.EnumAt(Codec.InUpdateKinds, kindByte)
-	attr, err2 := r.U8()
-	if err2 != nil {
-		return StdinMsg{}, false
-	}
+	entity := Codec.EnumAt(Codec.InUpdateKinds, rec[1])
 	decode, ok := updateDecoders[entity]
 	if !ok {
 		return StdinMsg{}, false
 	}
-	return decode(r, attr)
+	return decode(rec[3:], rec[2])
 }
 
 func DirWord(dirUp byte) string {

@@ -2,7 +2,7 @@ package Drag
 
 import "github.com/dtauraso/wirefold/src/Input/Codec"
 
-func decodeRawInputFrom(r *Codec.Reader) (RawInputMsg, bool) {
+func decodeRawInputFrom(r *Reader) (RawInputMsg, bool) {
 	var ev RawInputMsg
 	var e error
 	f := func() float64 {

@@ -6,7 +6,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Input/Codec"
 )
 
-type UpdateDecoder func(r *Codec.Reader, attr byte) (StdinMsg, bool)
+type UpdateDecoder func(payload []byte, attr byte) (StdinMsg, bool)
 
 var updateDecoders = map[string]UpdateDecoder{}
 
