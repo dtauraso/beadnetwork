@@ -153,7 +153,7 @@ and none is a source of truth.
   offset as two columns to be summed on decode.** That saves a write when a node moves, but
   it belongs to a chain a NODE lays toward a neighbour whose position it caches, and there is
   no such cache. Beads are placed by the EDGE they travel, on the segment that edge already holds, and the
-  buffer streams the world position itself: no offset, no origin, nothing to sum
+  bead file holds the world position itself: no offset, no origin, nothing to sum
   (`src/Node/BeadAnimation/ChainBeadInstances.tsx`). Beads after the first
   keep their existing chain-relative placement (index × `lattice.BeadStepR` along the same aim)
   — this model change is about the node's coordinate, the per-edge first-bead vector, and

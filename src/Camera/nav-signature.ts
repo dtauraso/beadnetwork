@@ -1,4 +1,4 @@
-import { type NavNode } from "./buffer-nav";
+import { type NavNode } from "./nav-nodes";
 
 export function navSignature(nav: NavNode[]): string {
   let s = "";

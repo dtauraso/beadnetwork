@@ -192,7 +192,7 @@ Guards: `src/valuefile/check-persist-write-ownership.sh` (who may write which pa
 The monolithic single-file form is gone. `readSpec` rejects a non-directory. Node ids ARE
 numbers — they are strings only because they are directory names — and **ROW ID = NODE ID -
 1**: `loadTree` parses each node directory name to an int (`strconv.Atoi`) and that int,
-minus one, IS the node's buffer row directly. There is no ordering step left — a row is
+minus one, IS the node's row directly — the directory its files live in. There is no ordering step left — a row is
 declared by the id, never derived by sorting or by position in a list, so there is nothing
 for a "10" vs "2" comparison to get wrong any more. A node directory name that fails to
 parse as a number, an id below 1 (ids are 1-based), or a duplicate parsed id is each a LOAD
@@ -204,7 +204,7 @@ The row space (`topoSpec.RowCount`) is sized by the **largest id found**, not by
 count: deleting `nodes/5/` leaves row 4 empty rather than shifting nodes 6.. down to fill
 it — that shift is precisely the silent renaming this model exists to remove (node 6's
 geometry used to arrive on node 5's row the moment node 5 was deleted). Every consumer of
-the node-row space (the buffer packer, the per-node fd/stream wiring, the row-identity
+the node-row space (the per-node value writers and the row-identity
 lookup tables) must tolerate an empty row.
 
 Per-node `edges/` file order is a PLAIN `sort.Strings` — those names are labels, not

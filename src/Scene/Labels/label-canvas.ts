@@ -1,4 +1,4 @@
-import type { BufferLabelPos } from "../../webview/scene/buffer-scene-shared";
+import type { LabelPos } from "../../webview/scene/scene-tags";
 import { canvasFont, roundRect } from "../../webview/canvas-box";
 import * as T from "../../webview/canvas-theme";
 
@@ -7,10 +7,10 @@ const PAD_Y = 3;
 const RADIUS = 4;
 const GAP_ABOVE_ANCHOR = 4;
 
-let positions: BufferLabelPos[] = [];
+let positions: LabelPos[] = [];
 let epoch = 0;
 
-export function setLabelPositions(next: BufferLabelPos[]): void {
+export function setLabelPositions(next: LabelPos[]): void {
   positions = next;
   epoch++;
 }

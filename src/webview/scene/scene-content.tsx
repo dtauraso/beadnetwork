@@ -6,19 +6,19 @@ import {
   SHADING_PARAM_SCENE_AMBIENT_INTENSITY,
   SHADING_PARAM_SCENE_DIR_INTENSITY,
 } from "../../Node/nodegeom/shading-params";
-import { BUFFER_NODE_TAG, BUFFER_EDGE_TAG, BUFFER_RING_TAG } from "./buffer-scene";
+import { SCENE_NODE_TAG, SCENE_EDGE_TAG, SCENE_RING_TAG } from "./scene-root";
 import { resolveNodeDrawSlot } from "../../Ring/NodeShape/node-depth-order";
 
-function pickBufferEdge(hits: THREE.Intersection[]): string | null {
+function pickEdge(hits: THREE.Intersection[]): string | null {
   for (const hit of hits) {
-    const row: unknown = (hit.object as THREE.Mesh).userData?.[BUFFER_EDGE_TAG];
+    const row: unknown = (hit.object as THREE.Mesh).userData?.[SCENE_EDGE_TAG];
     if (typeof row !== "number") continue;
     return String(row);
   }
   return null;
 }
 
-function pickBufferHandhold(hits: THREE.Intersection[]): string | null {
+function pickHandhold(hits: THREE.Intersection[]): string | null {
   for (const hit of hits) {
     const data = (hit.object as THREE.Mesh).userData;
     if (data?.handhold === true) return "1";
@@ -26,18 +26,18 @@ function pickBufferHandhold(hits: THREE.Intersection[]): string | null {
   return null;
 }
 
-function pickBufferRing(hits: THREE.Intersection[]): string | null {
+function pickRing(hits: THREE.Intersection[]): string | null {
   for (const hit of hits) {
-    if ((hit.object as THREE.Mesh).userData?.[BUFFER_RING_TAG] !== true) continue;
+    if ((hit.object as THREE.Mesh).userData?.[SCENE_RING_TAG] !== true) continue;
     if (hit.instanceId === undefined) continue;
     return String(resolveNodeDrawSlot(hit.instanceId));
   }
   return null;
 }
 
-function pickBufferNode(hits: THREE.Intersection[], excludeRow?: string): string | null {
+function pickNode(hits: THREE.Intersection[], excludeRow?: string): string | null {
   for (const hit of hits) {
-    if ((hit.object as THREE.Mesh).userData?.[BUFFER_NODE_TAG] !== true) continue;
+    if ((hit.object as THREE.Mesh).userData?.[SCENE_NODE_TAG] !== true) continue;
     if (hit.instanceId === undefined) continue;
     const row = String(resolveNodeDrawSlot(hit.instanceId));
     if (excludeRow && row === excludeRow) continue;
@@ -66,10 +66,10 @@ function RaycasterHelper({
           : allHits.filter((h) => (h.object as THREE.Mesh).isMesh);
       if (hits.length === 0) return null;
 
-      if (opts?.handholdOnly) return pickBufferHandhold(hits);
-      if (opts?.edgeOnly) return pickBufferEdge(hits);
-      if (opts?.ringOnly) return pickBufferRing(hits);
-      return pickBufferNode(hits, opts?.nodesOnly ? opts.excludeId : undefined);
+      if (opts?.handholdOnly) return pickHandhold(hits);
+      if (opts?.edgeOnly) return pickEdge(hits);
+      if (opts?.ringOnly) return pickRing(hits);
+      return pickNode(hits, opts?.nodesOnly ? opts.excludeId : undefined);
     };
 
   }, [camera, scene, onPickRequest]);

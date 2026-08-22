@@ -44,7 +44,7 @@ fail=0
 VALUES_GEN_FILES=()
 while IFS= read -r f; do [[ -n "$f" ]] && VALUES_GEN_FILES+=("$f"); done < <(git ls-files '*-values-gen.ts')
 if (( ${#VALUES_GEN_FILES[@]} < 5 )); then
-  echo "check-no-dead-buffer-column: MISCONFIGURED — found only ${#VALUES_GEN_FILES[@]} *-values-gen.ts" >&2
+  echo "check-no-dead-block-value: MISCONFIGURED — found only ${#VALUES_GEN_FILES[@]} *-values-gen.ts" >&2
   echo "  file(s); the generated value lists moved or are no longer generated, so this half of the" >&2
   echo "  guard checks almost nothing." >&2
   exit 1
@@ -76,7 +76,7 @@ while IFS= read -r line; do [[ -n "$line" ]] && names+=("$line"); done < <(
   grep -ohE '^  "[A-Za-z0-9_]+",$' "${VALUES_GEN_FILES[@]}" | tr -d ' ",' | sort -u
 )
 if (( ${#names[@]} < 50 )); then
-  echo "check-no-dead-buffer-column: MISCONFIGURED — parsed only ${#names[@]} value names from" >&2
+  echo "check-no-dead-block-value: MISCONFIGURED — parsed only ${#names[@]} value names from" >&2
   echo "  ${#VALUES_GEN_FILES[@]} *-values-gen.ts file(s); the generated form changed." >&2
   exit 1
 fi
@@ -131,7 +131,7 @@ for a in "${ALLOWED_DEAD[@]+"${ALLOWED_DEAD[@]}"}"; do
 done
 
 if [[ $fail -eq 0 && ${#ALLOWED_DEAD[@]} -gt 0 ]]; then
-  echo "check-no-dead-buffer-column: clean, but ${#ALLOWED_DEAD[@]} column(s) are packed every frame and read by nothing:"
+  echo "check-no-dead-block-value: clean, but ${#ALLOWED_DEAD[@]} column(s) are packed every frame and read by nothing:"
   printf '  %s\n' "${ALLOWED_DEAD[@]}"
   echo "  Allowlisted, NOT resolved: consume it, or delete the field from its buffer_block.go."
 fi

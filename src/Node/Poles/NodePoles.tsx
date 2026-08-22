@@ -1,5 +1,5 @@
 import React from "react";
-import { type NavNode } from "../../Camera/buffer-nav";
+import { type NavNode } from "../../Camera/nav-nodes";
 import { PolarFrame } from "../../Scene/Poles/PolarFrame";
 
 export function NodePoles({ nodes }: { nodes: NavNode[] }) {

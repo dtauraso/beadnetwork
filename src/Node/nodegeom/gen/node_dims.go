@@ -62,7 +62,7 @@ func writeNodeKindID(outPath string, kinds []kindscan.KindEntry) error {
 	fmt.Fprintln(w, `// KindIDUnknown is the sentinel KindId value when a node's kind is not in kindIDMap.`)
 	fmt.Fprintln(w, `const KindIDUnknown uint8 = 0xFF`)
 	fmt.Fprintln(w)
-	fmt.Fprintln(w, `// kindIDMap maps a node's Go kind name (PascalCase) to its stable buffer KindId,`)
+	fmt.Fprintln(w, `// kindIDMap maps a node's Go kind name (PascalCase) to its stable KindId,`)
 	fmt.Fprintln(w, `// assigned once per kind in src/NodeKinds/<Kind>/SPEC.md and never renumbered by sort`)
 	fmt.Fprintln(w, `// order. Id i here ↔ NODE_DEFS_ARRAY[i] on the TS side (gaps left by a removed`)
 	fmt.Fprintln(w, `// kind get an undefined placeholder there, not a shift).`)
@@ -75,7 +75,7 @@ func writeNodeKindID(outPath string, kinds []kindscan.KindEntry) error {
 	}
 	fmt.Fprintln(w, `}`)
 	fmt.Fprintln(w)
-	fmt.Fprintln(w, `// NodeKindID returns the buffer KindId for a node's Go kind string.`)
+	fmt.Fprintln(w, `// NodeKindID returns the KindId for a node's Go kind string.`)
 	fmt.Fprintln(w, `// Returns KindIDUnknown (0xFF) when the kind is not in the registry.`)
 	fmt.Fprintln(w, `func NodeKindID(kind string) uint8 {`)
 	fmt.Fprintln(w, `	if id, ok := kindIDMap[kind]; ok {`)

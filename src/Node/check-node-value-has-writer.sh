@@ -16,13 +16,13 @@ PATH = "src/Node/node_values.go"
 try:
     src = open(PATH, encoding="utf-8").read()
 except OSError:
-    print(f"check-buffer-column-has-writer: MISCONFIGURED — {PATH} not found (moved?); "
+    print(f"check-node-value-has-writer: MISCONFIGURED — {PATH} not found (moved?); "
           f"refusing vacuous pass", file=sys.stderr)
     sys.exit(1)
 
 m = re.search(r"func buildNodeValueNames\(\) \[\]string \{(.*?)\n\}", src, re.S)
 if not m:
-    print("check-buffer-column-has-writer: MISCONFIGURED — buildNodeValueNames not found in "
+    print("check-node-value-has-writer: MISCONFIGURED — buildNodeValueNames not found in "
           f"{PATH} (renamed?); refusing vacuous pass", file=sys.stderr)
     sys.exit(1)
 
@@ -32,14 +32,14 @@ for i in range(16):
     declared.add(f"ringM{i}")
 
 if len(declared) < 20:
-    print(f"check-buffer-column-has-writer: MISCONFIGURED — parsed only {len(declared)} declared "
+    print(f"check-node-value-has-writer: MISCONFIGURED — parsed only {len(declared)} declared "
           f"values; the declaration format changed and this guard would check almost nothing",
           file=sys.stderr)
     sys.exit(1)
 
 w = re.search(r"func WriteNodeValues\(.*?\n\}", src, re.S)
 if not w:
-    print("check-buffer-column-has-writer: MISCONFIGURED — WriteNodeValues not found in "
+    print("check-node-value-has-writer: MISCONFIGURED — WriteNodeValues not found in "
           f"{PATH} (renamed?); refusing vacuous pass", file=sys.stderr)
     sys.exit(1)
 
@@ -57,5 +57,5 @@ if missing:
         print(f"  WriteNodeValues, or drop it from NodeValueNames.")
     sys.exit(1)
 
-print(f"check-buffer-column-has-writer: clean (all {len(declared)} node values are written)")
+print(f"check-node-value-has-writer: clean (all {len(declared)} node values are written)")
 PY

@@ -39,7 +39,7 @@ often surfaces in two audits — merge it), grouped and ranked. Then split the f
   fix and whether a `check-*.sh` guard can lock it (fix-order is code-first: enforce in a
   guard before adding prose).
 - **Deliberate & structural** — the intrinsic cost of the architecture (e.g. the agnostic
-  buffer's schema lockstep), not a defect. Say so and do not "fix" it.
+  generated value lists moving in lockstep), not a defect. Say so and do not "fix" it.
 
 Verify before recommending: an audit surfaces *candidates*. Confirm each against current code
 (grep / read the site) before calling it real — several will not survive contact with the

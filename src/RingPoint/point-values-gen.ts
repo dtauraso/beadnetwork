@@ -2,7 +2,7 @@
 // do not edit.
 //
 // The canonical ring surfaces, computed once from constants and never changed.
-// They are the one thing in the buffer that was static, so they cost a slot in
+// They are the one thing here that is static, so they cost a slot in
 // every frame to say the same thing.
 
 export const RING_POINT_VALUE_NAMES = [

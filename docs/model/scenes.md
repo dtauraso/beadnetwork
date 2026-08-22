@@ -52,7 +52,7 @@ choice — not a tuning knob:**
 **The drawn ring axis and the navigation pole are two different streamed values, on
 purpose.** `PoleTheta`/`PolePhi` (`src/Node/node_state.go`) is a node's own INWARD pole — its own
 scene-polar direction reversed, pointing back at the scene centre — and is what navigation
-reads (`buffer-nav.ts`'s `NavNode.pole`). `RingAxisTheta`/`RingAxisPhi` is the axis the
+reads (`nav-nodes.ts`'s `NavNode.pole`). `RingAxisTheta`/`RingAxisPhi` is the axis the
 node's RING is actually drawn on, defaulting to the torus's own +Z normal (unrotated) and
 diverging from the inward pole only under coplanar rings (above). Keeping them as separate
 columns is what lets a scene ask for coplanar rings without touching what navigation reads,

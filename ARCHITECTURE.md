@@ -1,7 +1,7 @@
 # topology-vscode — architecture map
 
 One-screen orientation. Read this before grepping into the source tree. The
-full model (bead, wire, node goroutine, buffer, bridge) lives in
+full model (bead, bead line, node goroutine, clock, bridge) lives in
 [MODEL.md](MODEL.md) and [CLAUDE.md](CLAUDE.md) —
 this file is only the file-layout map for this package.
 
@@ -12,8 +12,8 @@ extension host (Node)                webview (browser)
 ─────────────────────                ─────────────────
   src/extension/extension.ts            ◄──►   src/webview/main.tsx
   src/extension/runCommand.ts                  src/webview/scene/ThreeView.tsx
-  src/extension/handle-message.ts    src/webview/scene/buffer-scene.tsx
-  src/extension/html.ts              src/webview/decode/buffer-decode-{node,interior}.ts
+  src/extension/handle-message.ts    src/webview/scene/scene-root.tsx
+  src/extension/html.ts                          src/Node/node-label.ts
   src/extension/goBuild.ts                     src/Scene/scene-leaves.ts
   src/* (shared)
 ```
@@ -27,10 +27,11 @@ Communication is `panel.webview.postMessage` ↔ `vscode.postMessage`, wired in
 `src/Input/messages.ts` is the shared discriminated-union source for both sides.
 `WebviewToHostMsg` includes `ready` and the binary bridge envelope (a fully
 encoded editor→Go record built via `src/Input/input-encode.ts` and written
-FRAMED to Go's stdin by `runCommand.ts`); `HostToWebviewMsg` carries the
-decoded content-buffer snapshot. Extension-side dispatch is
-`src/extension/handle-message.ts`. Per CLAUDE.md, Go → TS is the binary
-content buffer and nothing else; TS → Go is framed binary records
+FRAMED to Go's stdin by `runCommand.ts`). There is no `HostToWebviewMsg` —
+the host has nothing to say to the webview, because everything Go tells the
+renderer is a file the renderer reads. Extension-side dispatch is
+`src/extension/handle-message.ts`. Per CLAUDE.md, Go → TS is the block
+FILES and nothing else; TS → Go is framed binary records
 (addressed `edit` ops, or the bare `save` command) — see CLAUDE.md
 for the full bridge-surface model, not duplicated here.
 
@@ -50,22 +51,22 @@ never renumbered.)
 | `extension.ts` | `topology.openEditor` command → `createWebviewPanel`; message dispatch |
 | `src/extension/handle-message.ts` | Routes `WebviewToHostMsg` to the Go process / disk |
 | `src/extension/html.ts` | Webview HTML shell + CSP |
-| `runCommand.ts` | Spawns/streams the Go process; frames stdin records; decodes breadcrumbs |
+| `runCommand.ts` | Spawns the Go process and frames stdin records. Nothing streams back — Go inherits three stdio slots and only stderr carries anything |
 | `goBuild.ts` | Compiles the Go binary; invoked automatically on `ready`, not by a button |
-| `schema/` | Node-type registry (`node-defs.ts`), wire props (`wire-defs.ts`), trace kinds, shared types — plus `Buffer/` (generated buffer wire format + curve/shading params) and `schema/input/` (the TS<->Go input-record codec) — shared with the webview |
+| registries | There is no `schema/` and no `Buffer/`: each registry lives with its concern — `node-defs.ts` in `src/NodeKinds/`, `wire-defs.ts` in `runtopology/loadspec/`, the input codec in `src/Input/`, the trace events in `src/Trace/` |
 
 ## Webview side
 
 The webview is React Three Fiber (R3F) — a single 3D canvas. There are no
-per-kind render components; `buffer-scene.tsx` draws every node/edge/bead
-generically from the decoded content buffer, keyed off `NODE_DEFS`
+per-kind render components; `scene-root.tsx` draws every node/edge/bead
+generically from the block files each component reads, keyed off `NODE_DEFS`
 (`src/NodeKinds/node-defs.ts`).
 
 | File | Role |
 |---|---|
 | `src/webview/main.tsx` | Entry point and mount. Receives NO messages — the host→webview direction is empty; everything Go says arrives as files |
 | `src/Scene/scene-leaves.ts` | Polls the scene's binary leaves, including `spawn`, whose change means Go was replaced |
-| `src/webview/scene/buffer-scene.tsx` | Draws the whole scene generically from the decoded snapshot |
+| `src/webview/scene/scene-root.tsx` | Composition root of the render tree; each component it assembles reads its own block files |
 | `src/webview/scene/ThreeView.tsx` | R3F `<Canvas>` root. Holds NO gesture state — raw pointer/wheel events forward verbatim to Go's FSM (`src/Input/gesture` package) |
 | `src/webview/interaction/raw-input.ts` | Raw pointer/wheel + raycast hit → binary `raw-input` record to Go |
 | `src/webview/flags/overlay-flags.ts` | Read-only reflection of Go-owned overlay-toggle state (`useSyncExternalStore`; no store) |
