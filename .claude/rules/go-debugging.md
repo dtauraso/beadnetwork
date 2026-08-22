@@ -27,9 +27,9 @@ re-encoded as text; that whole path is gone, along with `buffer-log.ts` and the 
 decoders. A stream frame now carries only a tick and the layout fingerprint.
 
 Read them with `scripts/probe-merge.sh --debug`, which decodes every `trace.bin` at READ
-time via `src/Trace/readtrace` and filters to `kind=="breadcrumb" && debug==true` —
+time via the owner-specific `readtrace` (see scripts/probe-merge.sh) and filters to `kind=="breadcrumb" && debug==true` —
 separate from genuine stderr errors (`.probe/go-errors.log`, still plain text). To read one
-item on its own: `go run ./src/Trace/readtrace topology/view/nodes/3/trace.bin`.
+item on its own: `go run ./src/Node/nodeactor/owners/readtrace topology/view/nodes/3/trace.bin`.
 
 Do NOT scatter `fmt.Fprintf(os.Stderr, ...)` for diagnosis; use a breadcrumb. Keep it
 SPARSE — it is a debug tool for control events, not a per-tick firehose (see the log-flood
