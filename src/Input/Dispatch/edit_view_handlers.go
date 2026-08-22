@@ -4,6 +4,8 @@ import (
 	"context"
 	"strconv"
 
+	clock "github.com/dtauraso/wirefold/src/Clock"
+
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/Panel"
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
 	"github.com/dtauraso/wirefold/src/Input/Stdin"
@@ -16,64 +18,34 @@ import (
 )
 
 func applyUpdateOverlays(_ context.Context, msg Stdin.StdinMsg, md *MoveDispatch, _ SliderPanel.Sinks) {
-	editOverlays(msg, &md.UI, &md.Inboxes, md.Persist.Overlays())
+	Overlay.EditOverlays(msg, &md.UI.OV, &md.Inboxes, &md.UI, md.persistOverlays)
 }
 
-func editOverlays(
-	msg Stdin.StdinMsg,
-	ui *viewstate.UIState,
-	inboxes *nodeinbox.NodeInboxes,
-	persist *scenepersist.Persister[Overlay.OverlayState],
-) {
-	if msg.Attr != "toggle" {
-		return
-	}
-	toggleOverlayFlag(ui, inboxes, msg.Flag)
-	ui.EmitViewFrame(nil)
-
-	persist.Schedule(ui.OV)
+func (md *MoveDispatch) persistOverlays(ov Overlay.OverlayState) {
+	md.Persist.Overlays().Schedule(ov)
 }
 
 func applyUpdatePanels(_ context.Context, msg Stdin.StdinMsg, md *MoveDispatch, _ SliderPanel.Sinks) {
-	editPanels(msg, &md.UI, md.Persist.Panels())
+	Panel.EditPanels(msg, &md.UI.PN, md.persistPanels, md.redraw)
 }
 
-func editPanels(
-	msg Stdin.StdinMsg,
-	ui *viewstate.UIState,
-	persist *scenepersist.Persister[Panel.PanelState],
-) {
-	if msg.Attr != "toggle" {
-		return
-	}
-	if fn, ok := Panel.PanelToggles[msg.Flag]; ok {
-		fn(&ui.PN)
-	}
-
-	persist.Schedule(ui.PN)
-	ui.EmitViewFrame(nil)
+func (md *MoveDispatch) persistPanels(pn Panel.PanelState) {
+	md.Persist.Panels().Schedule(pn)
 }
 
 func applyUpdateClock(_ context.Context, msg Stdin.StdinMsg, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
-	editClock(msg, &md.UI, speedSinks, md.Persist.Speed())
+	clock.EditSpeed(msg, md.speedState(), speedSinks, md.persistSpeed, md.redraw)
 }
 
-func editClock(
-	msg Stdin.StdinMsg,
-	ui *viewstate.UIState,
-	speedSinks SliderPanel.Sinks,
-	persist *scenepersist.Persister[float64],
-) {
-	if msg.Attr != "speed" {
-		return
-	}
-	SliderPanel.Broadcast(speedSinks, int64(msg.Num), int64(ui.ClockDivisor))
-
-	userSpeed := float64(msg.Num) / SliderPanel.NumScale
-	ui.Speed = userSpeed
-	persist.Schedule(userSpeed)
-	ui.EmitViewFrame(nil)
+func (md *MoveDispatch) speedState() clock.SpeedState {
+	return clock.SpeedState{Speed: &md.UI.Speed, Divisor: md.UI.ClockDivisor}
 }
+
+func (md *MoveDispatch) persistSpeed(userSpeed float64) {
+	md.Persist.Speed().Schedule(userSpeed)
+}
+
+func (md *MoveDispatch) redraw() { md.UI.EmitViewFrame(nil) }
 
 func applyUpdateTiltVector(ctx context.Context, msg Stdin.StdinMsg, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
 	editTiltVector(ctx, msg, &md.UI, &md.MR, &md.Inboxes, speedSinks)

@@ -58,7 +58,7 @@ func (o *BeadAnimation) RunBeadAnimation(ctx context.Context) {
 	}
 	clk := clock.NewRealClock()
 	if o.sleepMs == 0 {
-		o.sleepMs = SliderPanel.SleepMs(SliderPanel.NumScale, 1)
+		o.sleepMs = SliderPanel.SleepMs(clock.SpeedNumScale, 1)
 	}
 	for {
 		if ctx.Err() != nil {

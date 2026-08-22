@@ -5,8 +5,6 @@ import (
 	lattice "github.com/dtauraso/wirefold/src/Node/BeadAnimation/lattice"
 )
 
-const NumScale = 4
-
 const Paused int64 = 0
 
 type Sinks struct {
@@ -22,14 +20,16 @@ func SleepMs(num, clockDivisor int64) int64 {
 
 		return Paused
 	}
-	return int64(lattice.PulsesPerSlot) * clock.MsPerTick * NumScale * clockDivisor / num
+	return int64(lattice.PulsesPerSlot) * clock.MsPerTick * clock.SpeedNumScale * clockDivisor / num
 }
+
+func (s Sinks) SendSpeed(num, clockDivisor int64) { Broadcast(s, num, clockDivisor) }
 
 func Broadcast(sinks Sinks, num, clockDivisor int64) {
 	if clockDivisor < 1 {
 		clockDivisor = 1
 	}
-	speed := float64(num) / float64(NumScale*clockDivisor)
+	speed := float64(num) / float64(clock.SpeedNumScale*clockDivisor)
 	for _, ch := range sinks.Clocks {
 		clock.SendSpeedNonBlocking(ch, speed)
 	}
