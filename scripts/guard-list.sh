@@ -7,7 +7,8 @@ REPO_ROOT="$(git rev-parse --show-toplevel)"
 cd "$REPO_ROOT"
 
 FOUND=$(find . \
-  -type d \( -name node_modules -o -name out -o -name .git -o -name view \) -prune -o \
+  -type d \( -name node_modules -o -name out -o -name .git -o -name view \
+             -o -name .probe -o -name .wirefold-cache \) -prune -o \
   -name 'check-*.sh' -type f -print \
   | sed 's|^\./||' | sort)
 
