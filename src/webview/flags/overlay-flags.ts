@@ -1,4 +1,4 @@
-import { OVERLAY_FLAG_ORDER, type OverlayFlag } from "../../Input/Codec/messages";
+import { OVERLAY_FLAG_ORDER, type OverlayFlag } from "../../Overlay/flags";
 import { overlayFlagVals, startOverlayReads, type OverlayFlagVals } from "../../Overlay/overlay-leaves";
 
 export type { OverlayFlagVals };

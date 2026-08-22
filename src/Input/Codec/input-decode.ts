@@ -2,8 +2,11 @@ import { SLIDER_NUM_SCALE } from "./input-encode";
 import { ByteReader } from "./byte-reader";
 import { IN_KIND_SAVE, IN_KIND_RAW_INPUT, IN_KIND_EDIT_UPDATE, IN_EVENT_KINDS, IN_HIT_KINDS, IN_UPDATE_KINDS } from "./input-layout-gen";
 import { IN_OVERLAY_ATTR_TOGGLE, IN_CLOCK_ATTR_SPEED, IN_PANEL_ATTR_TOGGLE } from "./input-attrs";
-import type { RawInputEvent, OverlayFlag, PanelFlag } from "./messages";
-import { OVERLAY_FLAG_ORDER, PANEL_FLAG_ORDER } from "./messages";
+import type { RawInputEvent } from "./messages";
+import type { OverlayFlag } from "../../Overlay/flags";
+import type { PanelFlag } from "../../Chrome/Panels/Panel/flags";
+import { OVERLAY_FLAG_ORDER } from "../../Overlay/flags";
+import { PANEL_FLAG_ORDER } from "../../Chrome/Panels/Panel/flags";
 
 export type DecodedInput =
   | { kind: "save" }

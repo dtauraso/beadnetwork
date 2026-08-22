@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: src/Input/Codec/messages.ts,src/Overlay/overlay_tables_gen.go | OVERLAY_FLAG_NAMES (TS) and OverlayToggles keys (Go) must be the exact same name set
+# PLACEMENT: src/Overlay/flags.ts,src/Overlay/overlay_tables_gen.go | OVERLAY_FLAG_NAMES (TS) and OverlayToggles keys (Go) must be the exact same name set
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
-TS="$REPO_ROOT/src/Input/Codec/messages.ts"
+TS="$REPO_ROOT/src/Overlay/flags.ts"
 GO="$REPO_ROOT/src/Overlay/overlay_tables_gen.go"
 
 if [ ! -f "$TS" ] || [ ! -f "$GO" ]; then
@@ -27,10 +27,10 @@ go_names=$(awk '/OVERLAY_TOGGLES_START/{on=1;next} /OVERLAY_TOGGLES_END/{on=0} o
   | grep -oE '"[^"]+"[[:space:]]*:' | grep -oE '"[^"]+"' | tr -d '"' | sort)
 
 if [ "$ts_names" != "$go_names" ]; then
-  echo "check-overlay-flag-name-parity: OVERLAY_FLAG_NAMES (messages.ts) and the"
-  echo "OverlayToggles keys (overlay_tables_gen.go) diverge. Diff (< messages.ts, > overlay_tables_gen.go):"
+  echo "check-overlay-flag-name-parity: OVERLAY_FLAG_NAMES (Overlay/flags.ts) and the"
+  echo "OverlayToggles keys (overlay_tables_gen.go) diverge. Diff (< Overlay/flags.ts, > overlay_tables_gen.go):"
   diff <(printf '%s\n' "$ts_names") <(printf '%s\n' "$go_names") || true
-  echo "If you changed the overlay vocabulary, edit OVERLAY_FLAG_NAMES in messages.ts and"
+  echo "If you changed the overlay vocabulary, edit OVERLAY_FLAG_NAMES in src/Overlay/flags.ts and"
   echo "regenerate (go run ./cmd/gen-node-defs) so overlay_tables_gen.go matches."
   exit 1
 fi

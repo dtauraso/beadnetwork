@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: src/Input/Codec/messages.ts,src/Input/Codec/input_fingerprint.go | the overlay/panel flag REGISTRY and the wire ordering in INPUT_LAYOUT_FINGERPRINT must list the same flags in the same order
+# PLACEMENT: src/Overlay/flags.ts,src/Chrome/Panels/Panel/flags.ts,src/Input/Codec/input_fingerprint.go | the overlay/panel flag REGISTRY and the wire ordering in INPUT_LAYOUT_FINGERPRINT must list the same flags in the same order
 
 set -euo pipefail
 
@@ -11,15 +11,19 @@ cd "$REPO_ROOT"
 python3 - <<'PY'
 import re, sys
 
-REGISTRY = "src/Input/Codec/messages.ts"
+REGISTRY = {
+    "OVERLAY_FLAGS": "src/Overlay/flags.ts",
+    "PANEL_FLAGS": "src/Chrome/Panels/Panel/flags.ts",
+}
 FINGERPRINT = "src/Input/Codec/input_fingerprint.go"
 
 def registry_list(fence):
-    src = open(REGISTRY, encoding="utf-8").read()
+    path = REGISTRY[fence]
+    src = open(path, encoding="utf-8").read()
     m = re.search(fence + r"_START\b(.*?)" + fence + r"_END\b", src, re.S)
     if not m:
         print(f"check-overlay-flag-wire-index: MISCONFIGURED — {fence}_START/_END fence not found in "
-              f"{REGISTRY}; refusing vacuous pass", file=sys.stderr)
+              f"{path}; refusing vacuous pass", file=sys.stderr)
         sys.exit(1)
     names = re.findall(r'"([A-Za-z0-9_]+)"', m.group(1))
     if not names:
@@ -53,7 +57,7 @@ for fence, marker, what in (
         continue
     fail = True
     print(f"{what.upper()} FLAG WIRE ORDERING DISAGREES WITH THE REGISTRY:")
-    print(f"  registry ({REGISTRY}, {fence} fence): {','.join(declared)}")
+    print(f"  registry ({REGISTRY[fence]}, {fence} fence): {','.join(declared)}")
     print(f"  wire ({FINGERPRINT}, {marker}):       {','.join(onwire)}")
     for name in declared:
         if name not in onwire:

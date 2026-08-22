@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: src/Input/Codec/messages.ts,src/Chrome/Panels/Panel/panel_state.go | PANEL_FLAG_NAMES (TS) and PanelToggles keys (Go) must be the exact same name set
+# PLACEMENT: src/Chrome/Panels/Panel/flags.ts,src/Chrome/Panels/Panel/panel_state.go | PANEL_FLAG_NAMES (TS) and PanelToggles keys (Go) must be the exact same name set
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
-TS="$REPO_ROOT/src/Input/Codec/messages.ts"
+TS="$REPO_ROOT/src/Chrome/Panels/Panel/flags.ts"
 GO="$REPO_ROOT/src/Chrome/Panels/Panel/panel_state.go"
 
 if [ ! -f "$TS" ] || [ ! -f "$GO" ]; then
@@ -27,10 +27,10 @@ go_names=$(awk '/PANEL_TOGGLES_START/{on=1;next} /PANEL_TOGGLES_END/{on=0} on' "
   | grep -oE '"[^"]+"[[:space:]]*:' | grep -oE '"[^"]+"' | tr -d '"' | sort)
 
 if [ "$ts_names" != "$go_names" ]; then
-  echo "check-panel-flag-name-parity: PANEL_FLAG_NAMES (messages.ts) and the"
-  echo "PanelToggles keys (panel_state.go) diverge. Diff (< messages.ts, > panel_state.go):"
+  echo "check-panel-flag-name-parity: PANEL_FLAG_NAMES (Panel/flags.ts) and the"
+  echo "PanelToggles keys (panel_state.go) diverge. Diff (< Panel/flags.ts, > panel_state.go):"
   diff <(printf '%s\n' "$ts_names") <(printf '%s\n' "$go_names") || true
-  echo "If you changed the panel vocabulary, edit PANEL_FLAG_NAMES in messages.ts and"
+  echo "If you changed the panel vocabulary, edit PANEL_FLAG_NAMES in src/Chrome/Panels/Panel/flags.ts and"
   echo "PanelToggles in panel_state.go so they match (panel state is hand-written, not generated)."
   exit 1
 fi

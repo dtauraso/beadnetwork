@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: src/Input/Dispatch/dispatch_edit.go,src/Input/Codec/messages.ts,src/Input/Codec/input-layout-gen.ts,src/Overlay/paths/,src/Chrome/Panels/Panel/paths/ | edit ops/update-kinds/overlay flags must stay listed identically on both sides of the bridge
+# PLACEMENT: src/Input/Dispatch/dispatch_edit.go,src/Input/Codec/messages.ts,src/Overlay/flags.ts,src/Chrome/Panels/Panel/flags.ts,src/Input/Codec/input-layout-gen.ts,src/Overlay/paths/,src/Chrome/Panels/Panel/paths/ | edit ops/update-kinds/overlay flags must stay listed identically on both sides of the bridge
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
@@ -12,13 +12,15 @@ go_fence_files() {
     | grep -v '_test\.go$' || true
 }
 MESSAGES_TS="$REPO_ROOT/src/Input/Codec/messages.ts"
+OVERLAY_FLAGS_TS="$REPO_ROOT/src/Overlay/flags.ts"
+PANEL_FLAGS_TS="$REPO_ROOT/src/Chrome/Panels/Panel/flags.ts"
 
 HANDLE_MSG="$REPO_ROOT/src/Input/Codec/input-layout-gen.ts"
 
 
 PANEL_STATE_GO="$REPO_ROOT/src/Chrome/Panels/Panel/panel_state.go"
 
-for f in "$MESSAGES_TS" "$HANDLE_MSG" "$PANEL_STATE_GO"; do
+for f in "$MESSAGES_TS" "$OVERLAY_FLAGS_TS" "$PANEL_FLAGS_TS" "$HANDLE_MSG" "$PANEL_STATE_GO"; do
   if [[ ! -f "$f" ]]; then
     echo "edit-op-parity: MISCONFIGURED — file not found: $f" >&2
     exit 1
@@ -93,8 +95,8 @@ report_diff "$(comm -13 <(echo "$GO_KINDS") <(echo "$TS_KINDS"))" "src/Input kin
 report_diff "$(comm -13 <(echo "$HM_KINDS") <(echo "$TS_KINDS"))" "handle-message.ts kinds" \
             "$(comm -23 <(echo "$HM_KINDS") <(echo "$TS_KINDS"))" "messages.ts kinds"
 
-TS_FLAGS=$(between OVERLAY_FLAGS_START OVERLAY_FLAGS_END "$MESSAGES_TS" | quoted) || true
-assert_nonempty "$TS_FLAGS" "axis3 messages.ts overlay flags"
+TS_FLAGS=$(between OVERLAY_FLAGS_START OVERLAY_FLAGS_END "$OVERLAY_FLAGS_TS" | quoted) || true
+assert_nonempty "$TS_FLAGS" "axis3 Overlay/flags.ts overlay flags"
 
 RENDER_READS=$(awk '/^var FlagNames = \[\]string\{/{p=1;next} p&&/^\}/{p=0} p' \
   "$REPO_ROOT/src/Overlay/flag_paths_gen.go" | grep -aoE '"[a-zA-Z]+"' | tr -d '"' | sort -u)
@@ -103,11 +105,11 @@ N_FLAGS=$(printf '%s\n' "$TS_FLAGS" | grep -c .)
 N_READS=$(printf '%s\n' "$RENDER_READS" | grep -c .)
 if [[ "$N_FLAGS" -ne "$N_READS" ]]; then
   echo "  overlay flag/renderer cardinality mismatch: OVERLAY_FLAG_NAMES=$N_FLAGS, Overlay FlagNames=$N_READS"
-  echo "    (a flag was added/removed in messages.ts without regenerating flag_paths_gen.go, so it has no slot in the block the renderer reads)"
+  echo "    (a flag was added/removed in src/Overlay/flags.ts without regenerating flag_paths_gen.go, so it has no slot in the block the renderer reads)"
   HITS=$((HITS+1))
 fi
 
-TS_PANEL_FLAGS=$(between PANEL_FLAGS_START PANEL_FLAGS_END "$MESSAGES_TS" | quoted) || true
+TS_PANEL_FLAGS=$(between PANEL_FLAGS_START PANEL_FLAGS_END "$PANEL_FLAGS_TS" | quoted) || true
 assert_nonempty "$TS_PANEL_FLAGS" "axis4 messages.ts panel flags"
 
 PANEL_RENDER_READS=$(awk '/PanelOpen = map\[string\]/{p=1;next} p&&/^}/{p=0} p' "$PANEL_STATE_GO" \
@@ -132,7 +134,7 @@ assert_nonempty "$PANEL_PATH_FILES" "axis4 Panel FlagNames block layout"
 N_PANEL_PATHS=$(printf '%s\n' "$PANEL_PATH_FILES" | grep -c .)
 if [[ "$N_PANEL_FLAGS" -ne "$N_PANEL_PATHS" ]]; then
   echo "  panel flag/renderer cardinality mismatch: PANEL_FLAG_NAMES=$N_PANEL_FLAGS, Panel FlagNames=$N_PANEL_PATHS"
-  echo "    (a flag was added/removed in messages.ts without regenerating flag_paths_gen.go, so it has no slot in the block the renderer reads)"
+  echo "    (a flag was added/removed in src/Overlay/flags.ts without regenerating flag_paths_gen.go, so it has no slot in the block the renderer reads)"
   HITS=$((HITS+1))
 fi
 

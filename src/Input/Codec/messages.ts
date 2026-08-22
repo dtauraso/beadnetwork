@@ -1,47 +1,7 @@
-// OVERLAY_FLAGS_START
-const OVERLAY_FLAG_NAMES = [
-  "tori",
-  "scenePoles",
-  "nodePoles",
-  "handholds",
-  "labelsGlobal",
-  "overlays",
+import type { OverlayFlag } from "../../Overlay/flags";
+import type { PanelFlag } from "../../Chrome/Panels/Panel/flags";
 
-  "nodeBody",
-  "nodeRing",
-  "ringPick",
-  "selectionRing",
-  "hoverRing",
-  "sceneVectors",
-  "ruleChannels",
-  "nodePoleSphere",
-  "allPoleSpheres",
-] as const;
-// OVERLAY_FLAGS_END
-
-export type OverlayFlag = (typeof OVERLAY_FLAG_NAMES)[number];
-
-export const OVERLAY_FLAG_ORDER = OVERLAY_FLAG_NAMES;
-
-// PANEL_FLAGS_START
-const PANEL_FLAG_NAMES = [
-  "overlays",
-  "node",
-  "nodeShape",
-  "nodeState",
-  "nodePoles",
-  "nodeRules",
-  "scene",
-  "sceneGuides",
-  "scenePoles",
-  "sceneVectors",
-  "sceneLabels",
-] as const;
-// PANEL_FLAGS_END
-
-export type PanelFlag = (typeof PANEL_FLAG_NAMES)[number];
-
-export const PANEL_FLAG_ORDER = PANEL_FLAG_NAMES;
+export type { OverlayFlag, PanelFlag };
 
 // EDIT_MSG_START
 
