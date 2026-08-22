@@ -2,7 +2,6 @@ package movemsg
 
 import (
 	"github.com/dtauraso/wirefold/src/Polar/polarindex"
-	"github.com/dtauraso/wirefold/src/spatial"
 )
 
 const (
@@ -49,15 +48,15 @@ type Msg struct {
 	IsInput  bool
 	AnchorId int
 
-	Center *spatial.Vec3
+	Center *Vec3
 
 	Delta *polarindex.Offset
 
 	Target *polarindex.Index
 
-	Centers map[string]spatial.Vec3
+	Centers map[string]Vec3
 
-	FromCenter spatial.Vec3
+	FromCenter Vec3
 
 	SenderID string
 

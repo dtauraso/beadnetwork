@@ -1,7 +1,5 @@
 package edgegeom
 
-import (
-	"github.com/dtauraso/wirefold/src/spatial"
-)
+import ()
 
-type segment = spatial.Segment
+type segment = Segment

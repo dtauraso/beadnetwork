@@ -2,7 +2,9 @@ package nodeactor
 
 import (
 	"github.com/dtauraso/wirefold/src/Node/framegeom"
+	"github.com/dtauraso/wirefold/src/Node/nodeactor/owners"
 	"github.com/dtauraso/wirefold/src/Node/nodegeom"
+	"github.com/dtauraso/wirefold/src/Node/rulenode"
 	streamframe "github.com/dtauraso/wirefold/src/Scene/Vectors"
 )
 
@@ -14,12 +16,12 @@ func (m *NodeGeometry) pollChannelVectors() {
 		m.channels.Forget()
 	}
 	center := nodegeom.NodeWorldPos(m.geom)
-	if !m.channels.NeedsBroadcast(center) {
+	if !m.channels.NeedsBroadcast(owners.Vec3(center)) {
 		return
 	}
 	if rn := m.RuleNode(); rn != nil {
 		select {
-		case rn.CenterIn() <- center:
+		case rn.CenterIn() <- rulenode.Vec3(center):
 		default:
 		}
 	}
@@ -33,10 +35,10 @@ func (m *NodeGeometry) channelVectors() []streamframe.ChannelVector {
 	peers := m.channels.PeerCenters()
 	out := make([]streamframe.ChannelVector, 0, 2*len(peers))
 	for _, peer := range peers {
-		if shaft, head, ok := framegeom.ChannelArrow(self, peer); ok {
+		if shaft, head, ok := framegeom.ChannelArrow(framegeom.Vec3(self), framegeom.Vec3(peer)); ok {
 			out = append(out, streamframe.ChannelVector{Shaft: shaft, Head: head})
 		}
-		if shaft, head, ok := framegeom.ChannelArrow(peer, self); ok {
+		if shaft, head, ok := framegeom.ChannelArrow(framegeom.Vec3(peer), framegeom.Vec3(self)); ok {
 			out = append(out, streamframe.ChannelVector{Shaft: shaft, Head: head})
 		}
 	}

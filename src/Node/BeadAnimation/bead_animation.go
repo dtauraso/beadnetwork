@@ -12,7 +12,6 @@ import (
 	SF "github.com/dtauraso/wirefold/src/Node/Edge"
 	"github.com/dtauraso/wirefold/src/Node/framegeom"
 	"github.com/dtauraso/wirefold/src/Node/nodegeom"
-	"github.com/dtauraso/wirefold/src/spatial"
 )
 
 type BeadAnimation struct {
@@ -92,12 +91,12 @@ func (o *BeadAnimation) stepBeads(ctx context.Context, tick int64) {
 			edgeRow = o.outEdgeRows[i]
 		}
 		for _, r := range bl.LiveBeadRows() {
-			pos := spatial.Vec3{X: r.X, Y: r.Y, Z: r.Z}
+			pos := Vec3{X: r.X, Y: r.Y, Z: r.Z}
 			beads = append(beads, SF.EdgeBead{
 				X: float32(r.X), Y: float32(r.Y), Z: float32(r.Z),
 				Value: int32(r.Val), EdgeRow: edgeRow,
 				RingMatrix: framegeom.RingInstanceMatrixColumnMajor(
-					pos, nodegeom.ShadingParamBeadRadius, axisPhi, axisTheta),
+					framegeom.Vec3(pos), nodegeom.ShadingParamBeadRadius, axisPhi, axisTheta),
 			})
 		}
 		events = append(events, o.drainBeadEvents(bl)...)

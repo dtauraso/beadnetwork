@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/dtauraso/wirefold/src/spatial"
-
 	"github.com/dtauraso/wirefold/src/Node/movemsg"
 	"github.com/dtauraso/wirefold/src/Polar/polarindex"
 )
@@ -17,7 +15,7 @@ type Messaging struct {
 
 	neighborIn map[string]*neighborSlot
 
-	centerOut chan spatial.Vec3
+	centerOut chan Vec3
 
 	sendMove func(id string, msg movemsg.Msg)
 
@@ -28,7 +26,7 @@ type Messaging struct {
 
 type Deposit func(msg movemsg.Msg)
 
-func NewMessaging(extIn chan movemsg.Msg, centerOut chan spatial.Vec3) Messaging {
+func NewMessaging(extIn chan movemsg.Msg, centerOut chan Vec3) Messaging {
 	return Messaging{
 		extIn:      extIn,
 		dragIn:     newNeighborSlot(),
@@ -55,7 +53,7 @@ func (n *Messaging) EnsureNeighborChannel(otherID string) {
 
 func (n *Messaging) SendMove() func(id string, msg movemsg.Msg) { return n.sendMove }
 
-func (n *Messaging) SeedCenter(center spatial.Vec3) {
+func (n *Messaging) SeedCenter(center Vec3) {
 	n.centerOut <- center
 }
 
@@ -109,12 +107,12 @@ func (n *Messaging) NeighborDeposit(fromID string) (Deposit, bool) {
 	return slot.deposit, true
 }
 
-func (n *Messaging) PollCenter() (spatial.Vec3, bool) {
+func (n *Messaging) PollCenter() (Vec3, bool) {
 	select {
 	case c := <-n.centerOut:
 		return c, true
 	default:
-		return spatial.Vec3{}, false
+		return Vec3{}, false
 	}
 }
 
@@ -156,7 +154,7 @@ func (n *Messaging) EnqueueSend(_, destID string, msg movemsg.Msg) {
 	deposit(msg)
 }
 
-func (n *Messaging) PublishCenter(center spatial.Vec3) {
+func (n *Messaging) PublishCenter(center Vec3) {
 	select {
 	case <-n.centerOut:
 	default:

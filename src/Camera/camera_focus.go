@@ -2,8 +2,6 @@ package Camera
 
 import (
 	"math"
-
-	"github.com/dtauraso/wirefold/src/spatial"
 )
 
 const GestureFocusMin = 10.0
@@ -11,7 +9,7 @@ const GestureZoomBase = 1.01
 
 const RotSmoothAlpha = 0.35
 
-func FocusAhead(v Viewpoint, centers map[string]spatial.Vec3) spatial.Vec3 {
+func FocusAhead(v Viewpoint, centers map[string]Vec3) Vec3 {
 	eye := EyeOf(v)
 	forward := AnglesToWorldOffset(1, v.Pos.Phi, v.Pos.Theta).Scale(-1)
 	bestCos := -2.0
@@ -39,7 +37,7 @@ func FocusAhead(v Viewpoint, centers map[string]spatial.Vec3) spatial.Vec3 {
 	return eye.Add(forward.Scale(math.Max(depth, GestureFocusMin)))
 }
 
-func RegionFocus(v Viewpoint, centers map[string]spatial.Vec3) spatial.Vec3 {
+func RegionFocus(v Viewpoint, centers map[string]Vec3) Vec3 {
 	eye := EyeOf(v)
 	forward := AnglesToWorldOffset(1, v.Pos.Phi, v.Pos.Theta).Scale(-1)
 

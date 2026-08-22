@@ -44,7 +44,7 @@ func CreateNode(scenes *sceneswitch.SceneSwitch, ui *viewstate.UIState, mr *move
 		return
 	}
 
-	src, okNear := mr.NearestNodeTo(drop)
+	src, okNear := mr.NearestNodeTo(moverreg.Vec3(drop))
 	target := loadspec.NewNodeID(scenes.TreeRoot)
 	var srcHandle, targetPort string
 	if okNear {
@@ -64,8 +64,8 @@ func CreateNode(scenes *sceneswitch.SceneSwitch, ui *viewstate.UIState, mr *move
 	}
 
 	c := ui.SceneSphere.Center
-	off := drop.Sub(c)
-	d := Camera.WorldDirToAngles(off)
+	off := drop.Sub(viewstate.Vec3(c))
+	d := Camera.WorldDirToAngles(Camera.Vec3(off))
 	sc, err := loadspec.LoadSceneConstants(scenes.TreeRoot)
 	if err != nil {
 		ui.RefuseStructuralEdit(fmt.Sprintf("could not load scene constants: %v", err))

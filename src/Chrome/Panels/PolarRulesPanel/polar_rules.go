@@ -4,7 +4,6 @@ import (
 	"math"
 
 	"github.com/dtauraso/wirefold/src/Polar/polar"
-	"github.com/dtauraso/wirefold/src/spatial"
 )
 
 type DragRule struct {
@@ -62,6 +61,6 @@ type Msg struct {
 	FromID string
 	Key    Key
 
-	Center    spatial.Vec3
+	Center    Vec3
 	HasCenter bool
 }

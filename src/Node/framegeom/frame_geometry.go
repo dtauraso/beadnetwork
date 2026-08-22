@@ -3,8 +3,6 @@ package framegeom
 import (
 	"math"
 
-	"github.com/dtauraso/wirefold/src/spatial"
-
 	"github.com/dtauraso/wirefold/src/Node/nodegeom"
 	"github.com/dtauraso/wirefold/src/Polar/polar"
 )
@@ -24,7 +22,7 @@ type FrameGeometryInputs struct {
 }
 
 type FrameGeometryOutputs struct {
-	Center spatial.Vec3
+	Center Vec3
 
 	PolePhi, PoleTheta float64
 
@@ -32,7 +30,7 @@ type FrameGeometryOutputs struct {
 
 	LatticePoints int32
 
-	LabelAnchor spatial.Vec3
+	LabelAnchor Vec3
 
 	TopTiltVectorLen float64
 
@@ -50,7 +48,7 @@ type FrameGeometryOutputs struct {
 
 func DeriveFrameGeometry(in FrameGeometryInputs) FrameGeometryOutputs {
 	out := FrameGeometryOutputs{
-		Center: nodegeom.NodeWorldPos(in.Geom),
+		Center: Vec3(nodegeom.NodeWorldPos(in.Geom)),
 	}
 
 	out.PolePhi, out.PoleTheta = polar.WorldAxisPole()
@@ -59,7 +57,7 @@ func DeriveFrameGeometry(in FrameGeometryInputs) FrameGeometryOutputs {
 	nodeR := nodegeom.NodeRadius(in.Geom.Kind)
 	out.RingMatrix = RingInstanceMatrixColumnMajor(out.Center, nodeR, ringAxisPhi, ringAxisTheta)
 
-	out.LabelAnchor = out.Center.Add(spatial.Vec3{Y: nodeR})
+	out.LabelAnchor = out.Center.Add(Vec3{Y: nodeR})
 
 	if in.UpAxis && in.Geom.HasPos {
 		out.TopTiltVectorLen = nodegeom.NodeRadius(in.Geom.Kind)

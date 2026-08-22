@@ -5,7 +5,6 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/nodeactor"
 	"github.com/dtauraso/wirefold/src/Polar/polar"
 	"github.com/dtauraso/wirefold/src/Polar/polarindex"
-	"github.com/dtauraso/wirefold/src/spatial"
 )
 
 func (mv *NodeMover) CommitNodeMoveLocal(nodeGeoms map[string]*nodeactor.NodeGeometry, edgeTable map[string]*edgetable.Edge, nm *nodeactor.NodeGeometry, committedIdx polarindex.Index) {
@@ -15,9 +14,9 @@ func (mv *NodeMover) CommitNodeMoveLocal(nodeGeoms map[string]*nodeactor.NodeGeo
 	nm.ShiftDeltasBy(deltaIdx)
 
 	nm.ApplyCenter(committedIdx)
-	committedPos := nm.SceneCenter().Add(polar.Polar2cart(polarindex.ToPolar(committedIdx, nm.Constants())))
+	committedPos := nm.SceneCenter().Add(nodeactor.Vec3(polar.Polar2cart(polarindex.ToPolar(committedIdx, nm.Constants()))))
 	BroadcastToPartners(edgeTable, nodeGeoms,
-		map[string]spatial.Vec3{nodeID: committedPos},
+		map[string]Vec3{nodeID: Vec3(committedPos)},
 		map[string]polarindex.Offset{nodeID: deltaIdx},
 		nm.SendMove())
 

@@ -5,7 +5,6 @@ import (
 
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/PolarRulesPanel"
 	T "github.com/dtauraso/wirefold/src/Trace"
-	"github.com/dtauraso/wirefold/src/spatial"
 
 	"github.com/dtauraso/wirefold/src/Node/movemsg"
 	"github.com/dtauraso/wirefold/src/Node/nodegeom"
@@ -31,7 +30,7 @@ func (m *NodeGeometry) Tick() int64 { return m.clocks.Tick() }
 
 func (m *NodeGeometry) Label() string { return m.geom.Label }
 
-func (m *NodeGeometry) WorldCenter() spatial.Vec3 { return nodegeom.NodeWorldPos(m.geom) }
+func (m *NodeGeometry) WorldCenter() Vec3 { return Vec3(nodegeom.NodeWorldPos(m.geom)) }
 
 func (m *NodeGeometry) NodeRow() int32 { return m.stream.NodeRow() }
 
@@ -65,7 +64,7 @@ func (m *NodeGeometry) ComposedIndex() polarindex.Index { return nodegeom.Compos
 
 func (m *NodeGeometry) Constants() polarindex.SceneConstants { return m.geom.SceneConstants }
 
-func (m *NodeGeometry) SceneCenter() spatial.Vec3 { return m.geom.SceneCenter }
+func (m *NodeGeometry) SceneCenter() Vec3 { return Vec3(m.geom.SceneCenter) }
 
 func (m *NodeGeometry) IsOutTarget(neighborID string) bool {
 	return slices.Contains(m.outTargets, neighborID)

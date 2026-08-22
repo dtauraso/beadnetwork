@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/dtauraso/wirefold/src/spatial"
-
 	"github.com/dtauraso/wirefold/src/Polar/polar"
 )
 
@@ -19,12 +17,12 @@ type Rot struct {
 	Angle float64
 }
 
-func dirToVec(d Dir) spatial.Vec3 {
-	return polar.Polar2cart(polar.Polar{R: 1, Phi: d.Phi, Theta: d.Theta})
+func dirToVec(d Dir) Vec3 {
+	return Vec3(polar.Polar2cart(polar.Polar{R: 1, Phi: d.Phi, Theta: d.Theta}))
 }
 
-func vecToDir(v spatial.Vec3) Dir {
-	p := polar.Cart2polar(v)
+func vecToDir(v Vec3) Dir {
+	p := polar.Cart2polar(polar.Vec3(v))
 	return Dir{Phi: p.Phi, Theta: p.Theta}
 }
 

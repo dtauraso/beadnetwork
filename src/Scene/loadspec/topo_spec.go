@@ -9,7 +9,6 @@ import (
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/src/Node/nodegeom"
 	"github.com/dtauraso/wirefold/src/Polar/polarindex"
-	"github.com/dtauraso/wirefold/src/spatial"
 )
 
 type Node struct {
@@ -41,9 +40,9 @@ func (n Node) label() string {
 	return n.ID
 }
 
-func (n Node) ToNodeGeom(sceneCenter spatial.Vec3, sc polarindex.SceneConstants) nodegeom.NodeGeom {
+func (n Node) ToNodeGeom(sceneCenter Vec3, sc polarindex.SceneConstants) nodegeom.NodeGeom {
 
-	g := nodegeom.NodeGeom{NodeIdentity: nodegeom.NodeIdentity{Kind: n.Type, Label: n.label(), SceneCenter: sceneCenter, SceneConstants: sc}}
+	g := nodegeom.NodeGeom{NodeIdentity: nodegeom.NodeIdentity{Kind: n.Type, Label: n.label(), SceneCenter: nodegeom.Vec3(sceneCenter), SceneConstants: sc}}
 	if n.hasPoint() {
 		g.BaseIndex = n.index()
 		g.HasPos = true

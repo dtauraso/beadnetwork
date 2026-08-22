@@ -3,8 +3,6 @@ package framegeom
 import (
 	"math"
 
-	"github.com/dtauraso/wirefold/src/spatial"
-
 	"github.com/dtauraso/wirefold/src/Camera"
 	"github.com/dtauraso/wirefold/src/Node/nodegeom"
 )
@@ -24,13 +22,13 @@ type TiltArrow struct {
 
 const ArrowRingDiskTheta = 0
 
-func axisBasisFrom(from, axis spatial.Vec3) (bx, by, bz spatial.Vec3) {
+func axisBasisFrom(from, axis Vec3) (bx, by, bz Vec3) {
 	f := from.Normalize()
 	t := axis.Normalize()
 	cosA := f.Dot(t)
-	x := spatial.Vec3{X: 1, Y: 0, Z: 0}
-	y := spatial.Vec3{X: 0, Y: 1, Z: 0}
-	z := spatial.Vec3{X: 0, Y: 0, Z: 1}
+	x := Vec3{X: 1, Y: 0, Z: 0}
+	y := Vec3{X: 0, Y: 1, Z: 0}
+	z := Vec3{X: 0, Y: 0, Z: 1}
 	if cosA > 1-1e-9 {
 		return x, y, z
 	}
@@ -40,20 +38,20 @@ func axisBasisFrom(from, axis spatial.Vec3) (bx, by, bz spatial.Vec3) {
 			perp = y
 		}
 		k := f.Cross(perp).Normalize()
-		flip := func(v spatial.Vec3) spatial.Vec3 {
+		flip := func(v Vec3) Vec3 {
 			return v.Scale(-1).Add(k.Scale(2 * k.Dot(v)))
 		}
 		return flip(x), flip(y), flip(z)
 	}
 	k := f.Cross(t).Normalize()
 	sinA := math.Sqrt(1 - cosA*cosA)
-	rot := func(v spatial.Vec3) spatial.Vec3 {
+	rot := func(v Vec3) Vec3 {
 		return v.Scale(cosA).Add(k.Cross(v).Scale(sinA)).Add(k.Scale(k.Dot(v) * (1 - cosA)))
 	}
 	return rot(x), rot(y), rot(z)
 }
 
-func composeColumnMajor(bx, by, bz, center spatial.Vec3, sx, sy, sz float64) [16]float32 {
+func composeColumnMajor(bx, by, bz, center Vec3, sx, sy, sz float64) [16]float32 {
 	bx = bx.Scale(sx)
 	by = by.Scale(sy)
 	bz = bz.Scale(sz)
@@ -71,32 +69,32 @@ const (
 	ChannelHeadLength = nodegeom.ShadingParamChannelHeadLength
 )
 
-func ChannelArrow(from, to spatial.Vec3) (shaft, head [16]float32, ok bool) {
+func ChannelArrow(from, to Vec3) (shaft, head [16]float32, ok bool) {
 	dir := to.Sub(from)
 	length := dir.Length()
 	if length < 1e-9 {
 		return shaft, head, false
 	}
 	axis := dir.Normalize()
-	bx, by, bz := axisBasisFrom(spatial.Vec3{X: 0, Y: 1, Z: 0}, axis)
+	bx, by, bz := axisBasisFrom(Vec3{X: 0, Y: 1, Z: 0}, axis)
 
 	shaft = composeColumnMajor(bx, by, bz, from.Add(axis.Scale(length/2)), 1, length, 1)
 	head = composeColumnMajor(bx, by, bz, to.Sub(axis.Scale(ChannelHeadLength)), 1, 1, 1)
 	return shaft, head, true
 }
 
-func ArrowMatrices(center spatial.Vec3, length, phi float64, received bool) TiltArrow {
+func ArrowMatrices(center Vec3, length, phi float64, received bool) TiltArrow {
 	axis := Camera.AnglesToWorldOffset(1, phi, ArrowRingDiskTheta).Normalize()
-	up := spatial.Vec3{X: 0, Y: 1, Z: 0}
-	bx, by, bz := axisBasisFrom(up, axis)
+	up := Vec3{X: 0, Y: 1, Z: 0}
+	bx, by, bz := axisBasisFrom(up, Vec3(axis))
 
 	shaftLen := length * (1 - arrowHeadLenFrac)
-	shaftCenter := center.Add(axis.Scale(shaftLen / 2))
+	shaftCenter := center.Add(Vec3(axis.Scale(shaftLen / 2)))
 	shaft := composeColumnMajor(bx, by, bz, shaftCenter,
 		length*arrowShaftRadiusFrac, shaftLen, length*arrowShaftRadiusFrac)
 
 	headLen := length * arrowHeadLenFrac
-	headCenter := center.Add(axis.Scale(length - headLen/2))
+	headCenter := center.Add(Vec3(axis.Scale(length - headLen/2)))
 	head := composeColumnMajor(bx, by, bz, headCenter,
 		length*arrowHeadRadiusFrac, headLen, length*arrowHeadRadiusFrac)
 

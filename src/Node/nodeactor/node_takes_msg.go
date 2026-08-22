@@ -42,7 +42,7 @@ func (m *NodeGeometry) takeNeighborMove(msg movemsg.Msg) {
 		m.deltas.ShiftOtherBy(msg.SenderID, *msg.Delta)
 	}
 	if msg.Center != nil {
-		idx := polarindex.MeasureIndex(polar.Cart2polarAtTheta(msg.Center.Sub(m.SceneCenter()), m.ScenePolar().Theta), m.Constants())
+		idx := polarindex.MeasureIndex(polar.Cart2polarAtTheta(polar.Vec3(msg.Center.Sub(movemsg.Vec3(m.SceneCenter()))), m.ScenePolar().Theta), m.Constants())
 		m.ApplyCenter(idx)
 		return
 	}
@@ -65,7 +65,7 @@ func (m *NodeGeometry) takeDragOfSelf(msg movemsg.Msg) {
 	movedIdx := polarindex.Compose(haveIdx, m.TrimOwnDrag(delta), m.Constants())
 
 	m.msg.CommitLocal(m.id, movedIdx)
-	newPos := m.SceneCenter().Add(polar.Polar2cart(polarindex.ToPolar(movedIdx, m.Constants())))
+	newPos := m.SceneCenter().Add(Vec3(polar.Polar2cart(polarindex.ToPolar(movedIdx, m.Constants()))))
 
 	m.writeStreamFrame([]T.RowEvent{{
 		Kind: T.KindBreadcrumb, Label: T.BreadcrumbDragCommit, Debug: 1,

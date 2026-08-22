@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/PolarRulesPanel"
-	"github.com/dtauraso/wirefold/src/spatial"
 )
 
 type RuleMesh struct {
@@ -17,9 +16,9 @@ type RuleMesh struct {
 
 	selfKey PolarRulesPanel.Key
 
-	peerCenter map[string]spatial.Vec3
+	peerCenter map[string]Vec3
 
-	selfCenter spatial.Vec3
+	selfCenter Vec3
 }
 
 func NewRuleMesh() RuleMesh {
@@ -27,14 +26,14 @@ func NewRuleMesh() RuleMesh {
 		backFromPeer: map[string]chan PolarRulesPanel.Msg{},
 		downToPeer:   map[string]chan PolarRulesPanel.Msg{},
 		peerKey:      map[string]PolarRulesPanel.Key{},
-		peerCenter:   map[string]spatial.Vec3{},
+		peerCenter:   map[string]Vec3{},
 	}
 }
 
-func (r *RuleMesh) SetSelfCenter(c spatial.Vec3) { r.selfCenter = c }
+func (r *RuleMesh) SetSelfCenter(c Vec3) { r.selfCenter = c }
 
 func (r *RuleMesh) BroadcastCenter(selfID string) {
-	msg := PolarRulesPanel.Msg{FromID: selfID, Key: r.selfKey, Center: r.selfCenter, HasCenter: true}
+	msg := PolarRulesPanel.Msg{FromID: selfID, Key: r.selfKey, Center: PolarRulesPanel.Vec3(r.selfCenter), HasCenter: true}
 	for _, down := range r.downToPeer {
 		select {
 		case <-down:
@@ -47,7 +46,7 @@ func (r *RuleMesh) BroadcastCenter(selfID string) {
 	}
 }
 
-func (r *RuleMesh) PeerCenters() map[string]spatial.Vec3 { return r.peerCenter }
+func (r *RuleMesh) PeerCenters() map[string]Vec3 { return r.peerCenter }
 
 func (r *RuleMesh) RuleBackChannel(peerID string) chan PolarRulesPanel.Msg {
 	ch, ok := r.backFromPeer[peerID]
@@ -85,8 +84,8 @@ func (r *RuleMesh) BackChannels() map[string]chan PolarRulesPanel.Msg {
 func (r *RuleMesh) ApplyPeerRule(msg PolarRulesPanel.Msg) bool {
 	changed := false
 	if msg.HasCenter {
-		if prev, seen := r.peerCenter[msg.FromID]; !seen || prev != msg.Center {
-			r.peerCenter[msg.FromID] = msg.Center
+		if prev, seen := r.peerCenter[msg.FromID]; !seen || prev != Vec3(msg.Center) {
+			r.peerCenter[msg.FromID] = Vec3(msg.Center)
 			changed = true
 		}
 	}
@@ -108,8 +107,8 @@ func (r *RuleMesh) DrainRules() bool {
 				changed = true
 			}
 			if msg.HasCenter {
-				if prev, seen := r.peerCenter[peerID]; !seen || prev != msg.Center {
-					r.peerCenter[peerID] = msg.Center
+				if prev, seen := r.peerCenter[peerID]; !seen || prev != Vec3(msg.Center) {
+					r.peerCenter[peerID] = Vec3(msg.Center)
 					changed = true
 				}
 			}

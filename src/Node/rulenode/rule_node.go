@@ -7,7 +7,6 @@ import (
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/PolarRulesPanel"
 
 	"github.com/dtauraso/wirefold/src/Node/nodeactor/owners"
-	"github.com/dtauraso/wirefold/src/spatial"
 )
 
 type EditKind uint8
@@ -43,7 +42,7 @@ type State struct {
 
 	KindActive bool
 
-	PeerCenters map[string]spatial.Vec3
+	PeerCenters map[string]Vec3
 }
 
 type RuleNode struct {
@@ -69,7 +68,7 @@ type RuleNode struct {
 	toggleSelfKind chan struct{}
 	kindIn         chan struct{}
 
-	geomToRuleCenterIn chan spatial.Vec3
+	geomToRuleCenterIn chan Vec3
 
 	out  chan State
 	wake chan struct{}
@@ -83,7 +82,7 @@ func New(id string) *RuleNode {
 		selfActive:         true,
 		edits:              make(chan Edit, 8),
 		ruleIn:             make(chan PolarRulesPanel.Msg, 8),
-		geomToRuleCenterIn: make(chan spatial.Vec3, 1),
+		geomToRuleCenterIn: make(chan Vec3, 1),
 		edgeActive:         map[string]bool{},
 		toggleSelfToPeer:   map[string]chan struct{}{},
 		toggleIn:           make(chan EdgeToggle, 8),
@@ -127,7 +126,7 @@ func (r *RuleNode) BroadcastSelf() {
 
 func (r *RuleNode) Edits() chan<- Edit { return r.edits }
 
-func (r *RuleNode) CenterIn() chan<- spatial.Vec3 { return r.geomToRuleCenterIn }
+func (r *RuleNode) CenterIn() chan<- Vec3 { return r.geomToRuleCenterIn }
 
 func (r *RuleNode) Out() <-chan State { return r.out }
 
@@ -162,7 +161,7 @@ func (r *RuleNode) Run(ctx context.Context) {
 			r.applyKindToggle()
 			r.publish()
 		case c := <-r.geomToRuleCenterIn:
-			r.mesh.SetSelfCenter(c)
+			r.mesh.SetSelfCenter(owners.Vec3(c))
 			r.mesh.BroadcastCenter(r.id)
 		}
 	}
@@ -191,9 +190,9 @@ func (r *RuleNode) forward(ctx context.Context, peerID string, back chan PolarRu
 
 func (r *RuleNode) publish() {
 	groupID, groupSize := r.mesh.RuleGroup(r.id)
-	peerCenters := make(map[string]spatial.Vec3, len(r.mesh.PeerCenters()))
+	peerCenters := make(map[string]Vec3, len(r.mesh.PeerCenters()))
 	for id, c := range r.mesh.PeerCenters() {
-		peerCenters[id] = c
+		peerCenters[id] = Vec3(c)
 	}
 	edgeActive := make(map[string]bool, len(r.edgeActive))
 	for target, active := range r.edgeActive {

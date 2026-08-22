@@ -5,6 +5,7 @@ import (
 	edge "github.com/dtauraso/wirefold/src/Node/Edge"
 	"github.com/dtauraso/wirefold/src/Node/Edge/edgegeom"
 	"github.com/dtauraso/wirefold/src/Node/Edge/edgetable"
+	"github.com/dtauraso/wirefold/src/Node/moverreg"
 	"github.com/dtauraso/wirefold/src/Node/nodeactor"
 	"github.com/dtauraso/wirefold/src/Node/nodeactor/owners"
 	"github.com/dtauraso/wirefold/src/Node/nodegeom"
@@ -32,7 +33,7 @@ func (md *MoveDispatch) buildNodeMovers(geoms map[string]nodegeom.NodeGeom, clk 
 		md.Inboxes.ClaimChannelVectorsIn(id, ng.ChannelVectorsIn())
 		md.MR.NodeGeoms()[id] = ng
 
-		md.MR.SeedCenter(id, nodegeom.NodeWorldPos(g))
+		md.MR.SeedCenter(id, moverreg.Vec3(nodegeom.NodeWorldPos(g)))
 	}
 }
 
