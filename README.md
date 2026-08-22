@@ -16,12 +16,12 @@ Two things in one repo:
 
 ## Running it
 
-Everything starts in [Categories/Start/](Categories/Start/) — the Go binary, the extension host, and the
-webview all have their entry point there.
+Everything starts in [Categories/Start/](Categories/Start/) — the Go binary, the
+extension host, and the webview all have their entry point there.
 
 ```bash
-go build ./...      # compile every package
-go run ./Start      # run the network
+go build ./...                 # compile every package
+go run ./Categories/Start      # run the network
 ```
 
 ```bash
@@ -31,17 +31,22 @@ npm run watch       # rebuild both on change
 
 ## Layout
 
-Each concern is a top-level directory holding everything about one thing — the Go
-that runs it and the TS that draws it, side by side:
+`Categories/` holds the code. Each directory under it is one category, holding
+everything about that one thing — the Go that runs it and the TS that draws it,
+side by side.
 
 ```
-Categories/Start/        the entry points: main.go, extension.ts, main.tsx
-Categories/Node/         nodes, their beads, edges, geometry
-Categories/Scene/        the scene: its spec on disk, assembling it, running it
-Categories/Chrome/       the UI that is not the diagram
-Categories/Camera/  Categories/Clock/  Categories/Input/  Categories/NodeKinds/  Categories/Overlay/  Categories/Polar/  Categories/Ring/  Categories/RingPoint/
-Categories/extension/    the VS Code integration, including webview/
-scripts/      what serves the repo rather than one concern
+Categories/
+  Start/        the entry points: main.go, extension.ts, main.tsx
+  Node/         nodes, their beads, edges, geometry
+  Scene/        the scene: its spec on disk, assembling it, running it
+  Chrome/       the UI that is not the diagram
+  extension/    the VS Code integration, including webview/
+  Camera/  Clock/  Input/  NodeKinds/  Overlay/  Polar/  Ring/  RingPoint/
+
+scripts/        what serves the repo rather than one category
+docs/  memory/  and the tool configs stay at the root, where each
+                toolchain looks for its own
 ```
 
 [EDITOR.md](EDITOR.md) has the vscode extension build/run instructions.
