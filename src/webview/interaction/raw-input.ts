@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { postGoRecord } from "../vscode-api";
 import { encodeRawInput } from "../../Input/Drag/encode";
-import type { RawInputEvent, RawHit, RawPointerKind } from "../../Input/Codec/messages";
+import type { RawInputEvent, RawHit, RawPointerKind } from "../../Input/Drag/raw-input";
 import type { PickRef } from "./pick-types";
 import { pixelToNDC } from "./geometry-helpers";
 

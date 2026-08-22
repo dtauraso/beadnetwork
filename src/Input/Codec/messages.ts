@@ -1,3 +1,4 @@
+import type { RawInputEvent } from "../Drag/raw-input";
 import type { OverlayEditMsg } from "../../Overlay/edits";
 import type { PanelEditMsg } from "../../Chrome/Panels/Panel/edits";
 import type { ClockEditMsg } from "../../Clock/edits";
@@ -17,39 +18,6 @@ type EditMsg =
   | NodeEditMsg
   | EdgeEditMsg;
 
-// RAW_INPUT_START
-
-export type RawPointerKind = "pointerdown" | "pointermove" | "pointerup" | "wheel" | "home" | "delete" | "key";
-
-export type RawHit = {
-  kind: "port" | "handhold" | "node" | "edge" | "torus" | "empty";
-  isInput: boolean;
-
-  nodeRow: number;
-  portRow: number;
-
-  edgeRow: number;
-};
-
-export type RawInputEvent = {
-  kind: RawPointerKind;
-  x: number; 
-  y: number; 
-  rectLeft: number;
-  rectTop: number;
-  rectWidth: number;
-  rectHeight: number;
-  button: number; 
-  ctrl: boolean;
-  shift: boolean;
-  alt: boolean;
-  meta: boolean;
-  deltaX: number; 
-  deltaY: number;
-  hit: RawHit;
-  key?: string;
-};
-// RAW_INPUT_END
 
 export type WebviewToHostMsg =
   | { type: "ready" }
