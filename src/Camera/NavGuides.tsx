@@ -5,7 +5,7 @@ import { overlayFlag, overlayFlagSignature } from "../webview/flags/overlay-flag
 import { ownerCounts } from "../Scene/owner-counts";
 import {
   type NavNode, decodeNavNodes, sceneSphereFromColumns,
-} from "./buffer-nav";
+} from "./nav-nodes";
 import { navSignature } from "./nav-signature";
 import { SceneGuides } from "../Scene/Guides/SceneGuides";
 import { PolarFrame } from "../Scene/Poles/PolarFrame";
@@ -25,8 +25,8 @@ export function NavGuides() {
   const showSceneVectors = g && overlayFlag("sceneVectors");
 
   const [navTick, setNavTick] = useState(0);
-  const bufNavRef = useRef<NavNode[]>([]);
-  const bufSigRef = useRef("");
+  const navRef = useRef<NavNode[]>([]);
+  const navSigRef = useRef("");
   const flagSigRef = useRef(overlayFlagSignature());
 
   const sceneSphereRef = useRef<{ center: THREE.Vector3; radius: number }>({ center: new THREE.Vector3(), radius: 100 });
@@ -38,17 +38,17 @@ export function NavGuides() {
     }
     if (!showTori && !showScenePoles && !showNodePoles && !showNodePoleSphere && !showHandholds && !showSceneVectors) return;
     if (ownerCounts().nodes <= 0) return;
-    bufNavRef.current = decodeNavNodes();
+    navRef.current = decodeNavNodes();
     sceneSphereRef.current = sceneSphereFromColumns();
-    const sig = navSignature(bufNavRef.current);
-    if (sig !== bufSigRef.current) {
-      bufSigRef.current = sig;
+    const sig = navSignature(navRef.current);
+    if (sig !== navSigRef.current) {
+      navSigRef.current = sig;
       setNavTick((t) => t + 1);
     }
   });
 
   const navNodes = useMemo<NavNode[]>(
-    () => bufNavRef.current,
+    () => navRef.current,
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [navTick],
   );

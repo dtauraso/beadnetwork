@@ -4,7 +4,7 @@ import * as THREE from "three";
 import { anglesToWorldOffset } from "./viewpoint-bridge";
 import { loadCameraBlockPath, readCameraPose, type CameraPose } from "./camera-leaves";
 
-export function BufferCamera({ cameraRef }: {
+export function SceneCamera({ cameraRef }: {
   cameraRef?: React.MutableRefObject<THREE.PerspectiveCamera | null>;
 }) {
   const { camera, gl } = useThree();

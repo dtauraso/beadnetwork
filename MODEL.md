@@ -123,11 +123,11 @@ per block and slices the sections (`src/webview/leaf-values.ts`,
 `row-leaf-values.ts`), at one of two cadences: an interval for what changes at
 human speed, a frame for what follows the cursor, a drag, or a tick.
 
-This REPLACED a streamed binary content buffer that carried the whole scene.
+This REPLACED a streamed binary content buffer that carried the whole scene; that buffer is now deleted outright, along with the frames it rode in.
 Nothing of the scene streams any more.
 
 See [docs/model/editor-surface.md](docs/model/editor-surface.md) for what the Go runtime
-owns and writes, `BufferScene`'s render tree, and the binary-both-ways bridge surface.
+owns and writes, `SceneRoot`'s render tree, and the binary-both-ways bridge surface.
 
 ## Scenes
 
@@ -214,7 +214,7 @@ for one to fix.
 
 ## Assertions
 
-A `panic` in `src/Node/`, `src/Buffer/`, or `src/Buffer/` is an **assertion**, not error handling. It
+A `panic` in `src/Node/` or `src/Trace/` is an **assertion**, not error handling. It
 fires only via a code bug — never via ordinary traffic, malformed input, or load. Input the
 network cannot trust is rejected at parse (`validateNoFanIn`, `ValidateSpec`); by the time a
 value reaches a goroutine's own state, a violated bound means the code is wrong.

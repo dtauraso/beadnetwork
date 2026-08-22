@@ -54,8 +54,8 @@ startup from the `WIREFOLD_EDGE_BEAD_TRACE` env var (read once before any gorout
 ext host (`src/extension/runCommand.ts`) sets it from the SAME
 `isProbeTraceEnabled()` that gates the TS-side write, so there is one source of truth for
 the setting. With tracing off, Go never builds the event at all, so nothing reaches the item trace file. `KindBreadcrumb` and
-`KindArrive` are NOT gated by this flag and always emit; `LiveBeadRow`/the Bead-block
-buffer path that actually renders beads reads neither flag and is unaffected.
+`KindArrive` are NOT gated by this flag and always emit; `LiveBeadRow`/the bead
+block file that actually renders beads reads neither flag and is unaffected.
 
 On editor hang/decouple/compound symptoms, read the `.probe` ERROR logs first
 (`memory/feedback/debugging/probe-logs/feedback_runner_errors_probe_first.md`). For intermittent UI bugs, add cheap

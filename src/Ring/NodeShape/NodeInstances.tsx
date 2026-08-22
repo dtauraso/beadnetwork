@@ -15,10 +15,10 @@ import {
   SHADING_PARAM_RING_ROUGHNESS,
 } from "../../Node/nodegeom/shading-params";
 import {
-  BUFFER_NODE_TAG, BUFFER_RING_TAG,
+  SCENE_NODE_TAG, SCENE_RING_TAG,
   RING_PICK_TUBE_RATIO, RING_PICK_COLOR, RING_PICK_OPACITY,
   RING_BAND_MAJOR, RING_BAND_TUBE, HOVER_COLOR, HOVER_RING_TUBE_RATIO,
-} from "../../webview/scene/buffer-scene-shared";
+} from "../../webview/scene/scene-tags";
 import { updateNodeInstances } from "./node-instances-update";
 import { getCanonicalRingSurfaceGeometry } from "../../Ring/NodeShape/ring-surface-geometry";
 import {
@@ -77,7 +77,7 @@ export function NodeInstances({ capacity }: { capacity: number }) {
 
   return (
     <>
-      <instancedMesh ref={bodyRef} args={[undefined, undefined, capacity]} userData={{ [BUFFER_NODE_TAG]: true }} frustumCulled={false}>
+      <instancedMesh ref={bodyRef} args={[undefined, undefined, capacity]} userData={{ [SCENE_NODE_TAG]: true }} frustumCulled={false}>
         <sphereGeometry args={[1, 16, 16]} />
         {}
         <meshPhysicalMaterial
@@ -95,13 +95,13 @@ export function NodeInstances({ capacity }: { capacity: number }) {
           depthWrite={false}
         />
       </instancedMesh>
-      <instancedMesh ref={ringRef} args={[undefined, undefined, capacity]} userData={{ [BUFFER_RING_TAG]: true }} frustumCulled={false}>
+      <instancedMesh ref={ringRef} args={[undefined, undefined, capacity]} userData={{ [SCENE_RING_TAG]: true }} frustumCulled={false}>
         {}
         <bufferGeometry />
         <meshStandardMaterial roughness={SHADING_PARAM_RING_ROUGHNESS} metalness={0} depthWrite={false} transparent={false} opacity={1} />
       </instancedMesh>
       {}
-      <instancedMesh ref={ringPickRef} args={[undefined, undefined, capacity]} userData={{ [BUFFER_RING_TAG]: true }} frustumCulled={false}>
+      <instancedMesh ref={ringPickRef} args={[undefined, undefined, capacity]} userData={{ [SCENE_RING_TAG]: true }} frustumCulled={false}>
         <torusGeometry args={[1, RING_PICK_TUBE_RATIO, 8, 32]} />
         <meshBasicMaterial transparent opacity={0} colorWrite={false} depthWrite={false} />
       </instancedMesh>

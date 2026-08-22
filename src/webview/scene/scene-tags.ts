@@ -1,12 +1,12 @@
 import { polarToCart } from "../polar-convert";
 
-export interface BufferLabelPos { row: number; label: string; px: number; py: number; }
+export interface LabelPos { row: number; label: string; px: number; py: number; }
 
-export const BUFFER_NODE_TAG = "bufferNode";
+export const SCENE_NODE_TAG = "sceneNode";
 
-export const BUFFER_RING_TAG = "bufferRing";
+export const SCENE_RING_TAG = "sceneRing";
 
-export const BUFFER_EDGE_TAG = "bufferEdgeRow";
+export const SCENE_EDGE_TAG = "sceneEdgeRow";
 
 export const NODE_SPHERE_RADIUS = 12;
 

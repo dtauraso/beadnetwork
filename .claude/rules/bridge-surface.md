@@ -22,7 +22,7 @@ carries the TS → Go vocabulary.
   attribute, NOT a new op. `panels` is its OWN entity kind, deliberately separate from
   `overlays`: it addresses the overlays popover's disclosure open/closed state, not overlay
   visibility, and is its own hand-written `viewstate.PanelState` (not generated, unlike
-  `OverlayState`), streamed in its own Panel buffer block and persisted to its own file
+  `OverlayState`), persisted to its own file
   under `view/` (`.claude/rules/persistence-ownership.md`).
 - **Bare commands** — `save` is the only bare command. It is defined end-to-end (kind byte,
   Go decode + persist) but currently has **no live TS sender** — no UI affordance posts it
@@ -42,8 +42,8 @@ carries the TS → Go vocabulary.
 
 ## No sidecar
 
-There is **no id/label/kind sidecar**: node identity is the buffer's ROW INDEX, and the human
-label rides the buffer's Label section via off/len columns. The loader/mover enforce
+There is **no id/label/kind sidecar**: node identity is the ROW, which is the directory its
+file sits in, and the human label is the `label` value in that same file. The loader/mover enforce
 `NodeId == row + 1` by construction (`ROW ID = NODE ID - 1`,
 `.claude/rules/persistence-ownership.md`), so the row is the identity.
 

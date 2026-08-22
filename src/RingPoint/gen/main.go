@@ -40,7 +40,7 @@ func writeNames(path string) error {
 	b.WriteString("// do not edit.\n")
 	b.WriteString("//\n")
 	b.WriteString("// The canonical ring surfaces, computed once from constants and never changed.\n")
-	b.WriteString("// They are the one thing in the buffer that was static, so they cost a slot in\n")
+	b.WriteString("// They are the one thing here that is static, so they cost a slot in\n")
 	b.WriteString("// every frame to say the same thing.\n\n")
 	b.WriteString("export const RING_POINT_VALUE_NAMES = [\n")
 	for _, name := range RingPoint.PointValueNames {

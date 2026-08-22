@@ -4,7 +4,7 @@
 
 Before changing anything in the **Go network** (`src/Node/`, `src/NodeKinds/`, `src/Node/BeadAnimation/bead_line.go`,
 `src/runtopology/load_topology.go`, `src/runtopology/loadspec/builders.go`) or the **Go → TS
-surface** (the block files and their `*_values.go`, `src/Buffer/`, `src/webview/`), read
+surface** (the block files and their `*_values.go`, `src/webview/`), read
 [MODEL.md](MODEL.md). It pins the model. Do not propose multi-step
 plans with options for network/bead work; name the single concrete next
 step and get the model agreed first. "Agreed first" gates the START of the
@@ -15,7 +15,7 @@ Go owns the one clock and times its own bead delivery. It writes the whole scene
 positions, node/port geometry, edge curves, shading params, camera pose, selection,
 overlays) to **block files**, each written by the goroutine that owns it, the row in the PATH
 so there is one writer per file and no lock. The render tree under `src/webview/` (rooted at
-`src/webview/scene/buffer-scene.tsx`, which composes it) READS those files and draws them; it
+`src/webview/scene/scene-root.tsx`, which composes it) READS those files and draws them; it
 computes no positions, no geometry, no traversal timing, and never tells Go when a bead
 arrived. There is no JSON-trace render path and no
 `pump.ts`; the TS layer is **render + forward only** and holds no domain state (guard:
@@ -38,9 +38,8 @@ delivery), node goroutine, node input, and clock
 2. No separate `registry.ts` — `node-defs.ts` is the single node-kind registry, and it lives
    in `src/NodeKinds/` with the kinds it describes. **There is no `src/schema/`**: a registry
    lives with its concern, so `messages.ts` and the input codec are `src/Input/`,
-   `scenes-gen.ts` is `src/Scene/`, `wire-defs.ts` is `runtopology/loadspec/`, and the buffer
-   wire format (plus the curve/shading params and trace kinds riding in every frame) is
-   `src/Buffer/`. Adding a node kind touches only `node-defs.ts`.
+   `scenes-gen.ts` is `src/Scene/`, `wire-defs.ts` is `runtopology/loadspec/`, and the trace
+   events are `src/Trace/`. Adding a node kind touches only `node-defs.ts`.
 3. The Go node package under `src/NodeKinds/<Kind>/`, with its logic always in `node.go` (never
    `<Kind>.go`) plus `SPEC.md`. Directory casing is mixed and both are live: PascalCase
    (`Time`, `TimeEnd`, `TimeStart`, `PulseLeft`, `PulseRight`) and lowercase (`holdflip`,
@@ -98,8 +97,7 @@ one directory out, since a directory is one Go package. `go generate ./...` runs
   It is the ONLY place a `time.Sleep`/`After`/`NewTicker` may park a goroutine
   (`check-no-wall-clock-wait.sh`, whose exempt list names two files here and nothing else).
 - **`src/Node/`** — the node itself: its actor and geometry, its movers and rules, the
-  per-owner streams it writes (`BeadAnimation/`, `Edge/`, `Interior/`), its poles, its buffer
-  block. A directory here is NOT a kind — the scanner and `check-dep-rules.sh` decide that by
+  per-owner FILES it writes (`BeadAnimation/`, `Edge/`, `Interior/`), its poles, its block file. A directory here is NOT a kind — the scanner and `check-dep-rules.sh` decide that by
   the `Register(...)` call, not by placement.
 - **`src/Input/`** — the TS→Go half of the bridge, end to end: `stdinreader` (framed records off
   stdin, knowing nothing of what they mean), `inputcodec` (decode), `gesture`/`gesturefsm` (raw

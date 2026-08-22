@@ -213,6 +213,11 @@ topology*/nodes/*/rule-active/
 # not scene state, and they grow without bound while the editor runs.
 topology*/view/trace.bin
 
+# The running process's own identity, rewritten every spawn so the renderer can tell it was
+# replaced by a rebuild. Runtime state, not scene state — tracked, it would dirty the tree
+# on every single run.
+topology*/view/spawn.bin
+
 # Where the running extension listens for "open this file as a tab", and that
 # session's token. Written on activation, removed on shutdown.
 docs/pair-node/port.js

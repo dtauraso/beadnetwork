@@ -6,7 +6,7 @@ import { rulesDraftOpen } from "../../Chrome/Panels/PolarRulesPanel/draw-rules-p
 import { useInteractionControls } from "../interaction/interaction-controls";
 import type { PickFn } from "../interaction/pick-types";
 import { Scene } from "./scene-content";
-import { BufferScene, BufferLabelProjector } from "./buffer-scene";
+import { SceneRoot, LabelProjector } from "./scene-root";
 import { ProceduralEnvProvider } from "./scene-env";
 import { NavGuides } from "../../Camera/NavGuides";
 import { PaneSizeSync } from "./pane-size-sync";
@@ -79,9 +79,9 @@ export function ThreeView() {
           <NavGuides />
           {}
           <ProceduralEnvProvider>
-            <BufferScene cameraRef={cameraRef} />
+            <SceneRoot cameraRef={cameraRef} />
           </ProceduralEnvProvider>
-          <BufferLabelProjector />
+          <LabelProjector />
         </Canvas>
       </div>
       {/* Nothing outside the canvas. The labels were the last thing mounted here and are

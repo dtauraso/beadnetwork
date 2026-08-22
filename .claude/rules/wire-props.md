@@ -17,9 +17,10 @@ still stream, read only by the `.probe` debug decoder, not by anything that draw
 rides the Edge block's EdgeLabelOff/EdgeLabelLen columns solely for that same `.probe` log,
 never for drawing.
 
-If a NEW wire prop needs to affect rendering, it must be packed into the Edge block
-(`src/Buffer/` + `buffer-layout.ts`) and read by whatever the render path is at the time in the
-same commit — a `wire:"prop,..."` tag alone does not reach the screen.
+If a NEW wire prop needs to affect rendering, it must be added to the edge's value list
+(`src/Node/Edge/edge_values.go` and its generated TS twin, which together name what
+`view/edges/<row>/edge.bin` holds) and read by the render path in the same commit — a
+`wire:"prop,..."` tag alone does not reach the screen.
 
 (An `EdgeKind`-typed `kind` prop was tried and removed: it had no Edge-block column and
 could not affect a single pixel; its only consumer was a test importing the schema barrel,

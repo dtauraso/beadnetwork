@@ -12,23 +12,23 @@ import { NodeInstances } from "../../Ring/NodeShape/NodeInstances";
 import { RuleChannelLines } from "../../Scene/Vectors/RuleChannelLines";
 import { ChromeCanvas } from "../../Chrome/Panels/ChromeCanvas";
 import { InteriorBeadInstances } from "../../Node/Interior/InteriorBeadInstances";
-import { BufferCamera } from "../../Camera/BufferCamera";
-import { BufferLabelProjector } from "../../Scene/Labels/BufferLabelProjector";
+import { SceneCamera } from "../../Camera/SceneCamera";
+import { LabelProjector } from "../../Scene/Labels/LabelProjector";
 
-export type { BufferLabelPos } from "./buffer-scene-shared";
+export type { LabelPos } from "./scene-tags";
 export {
-  BUFFER_NODE_TAG,
-  BUFFER_RING_TAG,
-  BUFFER_EDGE_TAG,
-} from "./buffer-scene-shared";
-export { BufferLabelProjector };
+  SCENE_NODE_TAG,
+  SCENE_RING_TAG,
+  SCENE_EDGE_TAG,
+} from "./scene-tags";
+export { LabelProjector };
 
 const INITIAL_NODE_CAP  = 32;
 
 const INITIAL_CHAINBEAD_CAP = 256;
 const INITIAL_EDGE_CAP = 32; 
 
-export function BufferScene({ cameraRef }: {
+export function SceneRoot({ cameraRef }: {
   cameraRef?: React.MutableRefObject<THREE.PerspectiveCamera | null>;
 } = {}) {
   const [nodeCap,  setNodeCap]  = useState(INITIAL_NODE_CAP);
@@ -55,7 +55,7 @@ export function BufferScene({ cameraRef }: {
 
   return (
     <>
-      <BufferCamera cameraRef={cameraRef} />
+      <SceneCamera cameraRef={cameraRef} />
       {}
       <EdgeLines capacity={edgeCap} />
       <ChainBeadInstances

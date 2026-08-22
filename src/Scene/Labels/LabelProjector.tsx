@@ -6,11 +6,11 @@ import { ownerCounts } from "../../Scene/owner-counts";
 import { nodeF32 } from "../../Node/node-leaves";
 import { overlayFlag } from "../../webview/flags/overlay-flags";
 import { setLabelPositions } from "./label-canvas";
-import type { BufferLabelPos } from "../../webview/scene/buffer-scene-shared";
+import type { LabelPos } from "../../webview/scene/scene-tags";
 
 const _bufTopScratch = new THREE.Vector3();
 
-export function BufferLabelProjector() {
+export function LabelProjector() {
   const { camera, gl } = useThree();
 
   useFrame(() => {
@@ -27,7 +27,7 @@ export function BufferLabelProjector() {
       height: Math.max(1, el.clientHeight),
     };
 
-    const positions: BufferLabelPos[] = [];
+    const positions: LabelPos[] = [];
     for (let i = 0; i < nodeCount; i++) {
       _bufTopScratch.set(
         nodeF32(i, "labelAnchorX"),

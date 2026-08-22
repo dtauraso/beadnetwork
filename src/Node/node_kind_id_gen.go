@@ -7,7 +7,7 @@ package Node
 // KindIDUnknown is the sentinel KindId value when a node's kind is not in kindIDMap.
 const KindIDUnknown uint8 = 0xFF
 
-// kindIDMap maps a node's Go kind name (PascalCase) to its stable buffer KindId,
+// kindIDMap maps a node's Go kind name (PascalCase) to its stable KindId,
 // assigned once per kind in src/NodeKinds/<Kind>/SPEC.md and never renumbered by sort
 // order. Id i here ↔ NODE_DEFS_ARRAY[i] on the TS side (gaps left by a removed
 // kind get an undefined placeholder there, not a shift).
@@ -27,7 +27,7 @@ var kindIDMap = map[string]uint8{
 	"NormalSum":   12,
 }
 
-// NodeKindID returns the buffer KindId for a node's Go kind string.
+// NodeKindID returns the KindId for a node's Go kind string.
 // Returns KindIDUnknown (0xFF) when the kind is not in the registry.
 func NodeKindID(kind string) uint8 {
 	if id, ok := kindIDMap[kind]; ok {
