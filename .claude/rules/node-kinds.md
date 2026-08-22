@@ -24,7 +24,7 @@ separate `registry.ts` exists. The schema dir is `src/`.
 **Step 3 — the Go package** under `src/NodeKinds/<Kind>/`.
 
 **Step 4 — run the generator.** `go generate ./...` runs every generator
-pipeline; it also refreshes `kinds_generated.go`. That file's blank imports are what make a
+pipeline; it also refreshes `src/NodeKinds/kinds_gen.go`. That file's blank imports are what make a
 package's `init()` — and therefore its `Wiring.RegisterBuilder` call — run at all.
 
 `RegisterBuilder(kind, ports, build)` (`src/NodeKinds/kindapi/build_args.go`) populates
@@ -39,7 +39,7 @@ table. The kind used to pass an explicit `[]portwiring.PortSpec` literal, which 
 declaration of the same inputs and outputs and free to drift from the table the editor draws
 from. `BuildRegistry()` survives but no longer BUILDS
 anything — it is the loader's "registry is ready" assertion, and panics on an empty
-registry, which is what a `kinds_generated.go` that lost its blank imports looks like.
+registry, which is what a kinds_gen.go that lost its blank imports looks like.
 
 **A kind's ports come from its SPEC.md `## Ports` table, and from nothing else.**
 `Name` and `Direction` are the columns that matter; `Direction` is `in`, `out`, or

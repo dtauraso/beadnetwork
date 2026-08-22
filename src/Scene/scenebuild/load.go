@@ -6,6 +6,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
 	clock "github.com/dtauraso/wirefold/src/Clock"
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
+	_ "github.com/dtauraso/wirefold/src/NodeKinds"
 	"github.com/dtauraso/wirefold/src/NodeKinds/kindreg"
 	"github.com/dtauraso/wirefold/src/NodeKinds/nodeapi"
 	"github.com/dtauraso/wirefold/src/NodeKinds/portwiring"
