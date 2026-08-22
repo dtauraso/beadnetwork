@@ -231,7 +231,7 @@ is the only context they get. It must:
 
 1. **Open with a site tag** — the detecting function, method, or subsystem, then a colon —
    so the message greps back to its source: `Animation.stepBeads: `, `interior.Mailbox.Send: `,
-   `BuildEdgeStreamFrame: `.
+   `Trace.Log.Append: `.
 2. **Name the invariant and the actual values**, not a category. `pending exceeded %d events
    on edge -> %s.%s`, not `limit exceeded`.
 3. **Name the mechanism that should have prevented it.** This is what turns a crash into a

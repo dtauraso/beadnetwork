@@ -3,7 +3,6 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { overlayFlag, overlayFlagSignature } from "../webview/flags/overlay-flags";
 import { ownerCounts } from "../Scene/owner-counts";
-import { viewFrameReady } from "../webview/scene/view-frame-ready";
 import {
   type NavNode, decodeNavNodes, sceneSphereFromColumns,
 } from "./buffer-nav";
@@ -38,7 +37,7 @@ export function NavGuides() {
       setNavTick((t) => t + 1);
     }
     if (!showTori && !showScenePoles && !showNodePoles && !showNodePoleSphere && !showHandholds && !showSceneVectors) return;
-    if (!viewFrameReady() || ownerCounts().nodes <= 0) return;
+    if (ownerCounts().nodes <= 0) return;
     bufNavRef.current = decodeNavNodes();
     sceneSphereRef.current = sceneSphereFromColumns();
     const sig = navSignature(bufNavRef.current);

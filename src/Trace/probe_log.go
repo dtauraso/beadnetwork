@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"sync/atomic"
 	"time"
 )
 
@@ -20,16 +19,11 @@ const (
 	OwnerBead     Owner = "bead"
 )
 
-var sceneRoot atomic.Value
+var sceneRoot string
 
-func SetSceneRoot(dir string) { sceneRoot.Store(dir) }
+func SetSceneRoot(dir string) { sceneRoot = dir }
 
-func sceneRootDir() string {
-	if v, ok := sceneRoot.Load().(string); ok {
-		return v
-	}
-	return ""
-}
+func sceneRootDir() string { return sceneRoot }
 
 func TraceRelPath(owner Owner, row int32) string {
 	switch owner {

@@ -1,16 +1,10 @@
 import * as vscode from "vscode";
 import * as path from "path";
-import { isProbeTraceEnabled } from "./probe-files";
 import { appendGoError } from "./runner/probe/go-errors";
 import { probePathsForFolder, prepareRunLayout, wireExitHandlers } from "./runner/lifecycle/run-lifecycle";
 import { buildBinary, reapOrphans, spawnProcess, attachStreamHandlers } from "./runner/lifecycle/process-lifecycle";
 import { RunnerLifecycle } from "./runner/lifecycle/runner-base";
 import { resolveRepoRoot } from "./repo-root";
-
-export { nodeIdForRow, rowForNodeId } from "./runner/stream-fds";
-export { readCounts } from "./runner/counts";
-
-export { splitJsonlLines, splitFrames, MAX_FRAME_BYTES } from "./runner/framing";
 
 export class BuildAndRunRunner extends RunnerLifecycle {
   run(topologyPath?: string) {
@@ -35,7 +29,6 @@ export class BuildAndRunRunner extends RunnerLifecycle {
     this.goErrorsFile = probePaths.goErrorsFile;
     this.cancelled = false;
     this.looping = true;
-    const probeTrace = isProbeTraceEnabled();
 
     const prepared = prepareRunLayout({
       channel: this.channel!,
@@ -43,26 +36,20 @@ export class BuildAndRunRunner extends RunnerLifecycle {
       killed,
       binPath,
       topArgs,
-      repoRoot,
-      topologyPath: this.topologyPath,
       spawnGenBefore: this.spawnGen,
-      probeTrace,
-      newDemux: (paths, trace, edgeCount, nodeCount, gen) => this.newDemux(paths, trace, edgeCount, nodeCount, gen),
     });
     if (!prepared) {
       this.looping = false;
       return;
     }
     this.spawnGen = prepared.spawnGen;
-    this.demux = prepared.demux;
-    const { layout } = prepared;
 
-    this.proc = spawnProcess(binPath, topArgs, repoRoot, layout, probeTrace);
+    this.proc = spawnProcess(binPath, topArgs, repoRoot);
     if (this.pendingStdin.length > 0) {
       for (const rec of this.pendingStdin) this.proc.stdin?.write(rec);
       this.pendingStdin = [];
     }
-    attachStreamHandlers(this.proc, prepared.demux, layout, this.channel!, this.goErrorsFile);
+    attachStreamHandlers(this.proc, this.channel!, this.goErrorsFile);
 
     wireExitHandlers(this.proc, () => { this.proc = undefined; }, {
       isCancelled: () => this.cancelled,

@@ -1,7 +1,7 @@
 ---
 paths:
   - "src/Node/**/*.go"
-  - "src/Buffer/**/*.go"
+  - "src/Trace/**/*.go"
   - "scripts/probe-merge.sh"
 ---
 
@@ -50,12 +50,10 @@ the full per-tick trace, not just breadcrumbs.
 The highest-volume of these — `KindEdgeBead`, emitted per in-flight bead per tick by
 `src/Node/BeadAnimation/bead_line_drive.go`'s `stepAll` — is gated at the SOURCE, not just at the TS
 write. `stepAll` reads a package-level `edgeBeadTraceEnabled` bool set ONCE at process
-startup from the `WIREFOLD_EDGE_BEAD_TRACE` env var (same "one env var, read once before
-any goroutine starts" shape as `WIREFOLD_STREAM_FDS` — see `src/runtopology/streamwire/stream_fds.go`); the
+startup from the `WIREFOLD_EDGE_BEAD_TRACE` env var (read once before any goroutine starts, the same shape `trace.TraceEnabled` uses); the
 ext host (`src/extension/runCommand.ts`) sets it from the SAME
 `isProbeTraceEnabled()` that gates the TS-side write, so there is one source of truth for
-the setting. With tracing off, Go never appends the event to the frame at all — TS
-previously decoded and discarded it every tick regardless. `KindBreadcrumb` and
+the setting. With tracing off, Go never builds the event at all, so nothing reaches the item trace file. `KindBreadcrumb` and
 `KindArrive` are NOT gated by this flag and always emit; `LiveBeadRow`/the Bead-block
 buffer path that actually renders beads reads neither flag and is unaffected.
 

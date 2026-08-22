@@ -3,7 +3,6 @@ package streamwire
 import (
 	T "github.com/dtauraso/wirefold/src/Trace"
 	"fmt"
-	"os"
 
 	"github.com/dtauraso/wirefold/src/Node/Interior"
 	"github.com/dtauraso/wirefold/src/Node/Edge/edgetable"
@@ -11,31 +10,22 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/nodeactor"
 	"github.com/dtauraso/wirefold/src/Node/nodeactor/nodeframe"
 	"github.com/dtauraso/wirefold/src/Node/nodeactor/owners"
-	"github.com/dtauraso/wirefold/src/Node/nodeactor/streamclaim"
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 )
 
 type StreamWiring struct {
 	interiorEmitters map[string]*interior.Emitter
 
-	buildInteriorFrame func(tick uint32, nodeRow int32, events []T.RowEvent) []byte
+	buildInteriorFrame func(tick uint32, nodeRow int32, events []T.RowEvent)
 
-	nodeClaims streamclaim.ClaimRegistry
 }
 
 func (sw *StreamWiring) InteriorEmittersPtr() *map[string]*interior.Emitter {
 	return &sw.interiorEmitters
 }
 
-func (sw *StreamWiring) BuildInteriorFramePtr() *func(tick uint32, nodeRow int32, events []T.RowEvent) []byte {
+func (sw *StreamWiring) BuildInteriorFramePtr() *func(tick uint32, nodeRow int32, events []T.RowEvent) {
 	return &sw.buildInteriorFrame
-}
-
-func (sw *StreamWiring) ensureNodeClaims() streamclaim.ClaimRegistry {
-	if sw.nodeClaims == nil {
-		sw.nodeClaims = streamclaim.NewClaimRegistry()
-	}
-	return sw.nodeClaims
 }
 
 func kindOf(nodeGeoms map[string]*nodeactor.NodeGeometry, nodeID string) string {
@@ -49,7 +39,6 @@ func (sw *StreamWiring) SetEdgeStreams(
 	edgeSeeds []geomseeds.EdgeGeomSeed,
 	edgeTable map[string]*edgetable.Edge,
 	nodeGeoms map[string]*nodeactor.NodeGeometry,
-	baseFd int,
 	nodeRowFor func(id string) (int32, bool),
 	buildFrame owners.EdgeFrameBuilder,
 ) {
@@ -58,8 +47,6 @@ func (sw *StreamWiring) SetEdgeStreams(
 		if !ok {
 			continue
 		}
-		fd := baseFd + row
-		rawOut := os.NewFile(uintptr(fd), fmt.Sprintf("edge-fd%d", fd))
 
 		srcNM, ok := nodeGeoms[seed.SrcNode]
 		if !ok {
@@ -75,7 +62,7 @@ func (sw *StreamWiring) SetEdgeStreams(
 		if r, ok := nodeRowFor(seed.DstNode); ok {
 			dstRow = r
 		}
-		srcNM.WireOutEdgeStream(seed.Label, int32(row), seed.DstNode, kindOf(nodeGeoms, seed.DstNode), rawOut, srcRow, dstRow, buildFrame)
+		srcNM.WireOutEdgeStream(seed.Label, int32(row), seed.DstNode, kindOf(nodeGeoms, seed.DstNode), srcRow, dstRow, buildFrame)
 
 		if dest := em.Dest(); dest != nil {
 			dest.SetStreamsActive(true)
@@ -87,12 +74,10 @@ func (sw *StreamWiring) SetNodeStreams(
 	nodeSeeds []geomseeds.NodeGeomSeed,
 	nodeMovers map[string]*nodeactor.NodeGeometry,
 	sceneRoot string,
-	nodeBase, interiorBase int,
-	beadBase int, beadWired bool,
 	buildBeadFrame beadanimation.BeadFrameBuilder,
 	nodeRowFor func(id string) (int32, bool),
 	buildFrame nodeframe.NodeFrameBuilder,
-	buildInteriorFrame func(tick uint32, nodeRow int32, events []T.RowEvent) []byte,
+	buildInteriorFrame func(tick uint32, nodeRow int32, events []T.RowEvent),
 	kindIDFor func(kind string) uint8,
 ) {
 	sw.interiorEmitters = map[string]*interior.Emitter{}
@@ -104,25 +89,17 @@ func (sw *StreamWiring) SetNodeStreams(
 			continue
 		}
 		row := seed.Row
-		nFd := nodeBase + row
-		rawNodeOut := os.NewFile(uintptr(nFd), fmt.Sprintf("node-fd%d", nFd))
-		streamOut := streamclaim.Claim(sw.ensureNodeClaims(), seed.ID, rawNodeOut)
 
 		var kindID uint8
 		if kindIDFor != nil {
 			kindID = kindIDFor(seed.Kind)
 		}
-		nm.WireStream(streamOut, int32(row), kindID, nodeRowFor, buildFrame)
+		nm.WireStream(int32(row), kindID, nodeRowFor, buildFrame)
 
-		if beadWired {
-			bFd := beadBase + row
-			nm.WireBeadStream(os.NewFile(uintptr(bFd), fmt.Sprintf("bead-fd%d", bFd)), int32(row), buildBeadFrame)
-		}
+		nm.WireBeadStream(int32(row), buildBeadFrame)
 
-		iFd := interiorBase + row
-		rawInteriorOut := os.NewFile(uintptr(iFd), fmt.Sprintf("interior-fd%d", iFd))
-		sw.interiorEmitters[seed.ID] = nm.WireInteriorStream(rawInteriorOut, int32(row), func(tick uint32, events []T.RowEvent) []byte {
-				return buildInteriorFrame(tick, int32(row), events)
-			}, sceneRoot)
+		sw.interiorEmitters[seed.ID] = nm.WireInteriorStream(int32(row), func(tick uint32, events []T.RowEvent) {
+			buildInteriorFrame(tick, int32(row), events)
+		}, sceneRoot)
 	}
 }

@@ -11,7 +11,7 @@ cd "$REPO_ROOT"
 report="$(python3 - <<'PY'
 import os, re
 
-roots = ["src/Node", "src/NodeKinds", "src/Ring/Bead", "src/Buffer", "src/Buffer"]
+roots = ["src/Node", "src/NodeKinds", "src/Ring/Bead", "src/Trace"]
 mutex_pat  = re.compile(r'sync\.(Mutex|RWMutex)\b')
 atomic_pat = re.compile(r'\batomic\.')
 

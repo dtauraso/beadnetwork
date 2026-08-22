@@ -3,14 +3,12 @@ package nodeactor
 import (
 	T "github.com/dtauraso/wirefold/src/Trace"
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/PolarRulesPanel"
-	"io"
 
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/src/Node/Interior"
 	"github.com/dtauraso/wirefold/src/Node/movemsg"
 	"github.com/dtauraso/wirefold/src/Node/nodeactor/nodeframe"
 	"github.com/dtauraso/wirefold/src/Node/nodeactor/owners"
-	"github.com/dtauraso/wirefold/src/Node/nodeactor/streamclaim"
 	"github.com/dtauraso/wirefold/src/Node/nodegeom"
 	"github.com/dtauraso/wirefold/src/Polar/polarindex"
 )
@@ -90,8 +88,8 @@ func (m *NodeGeometry) BindOutEdgeRun(label, targetID, targetKind string, port *
 	m.outEdges.SetSrcID(m.id)
 }
 
-func (m *NodeGeometry) WireOutEdgeStream(label string, edgeRow int32, targetID, targetKind string, w io.Writer, nodeRow, dstNodeRow int32, buildFrame owners.EdgeFrameBuilder) {
-	m.outEdges.AddOutEdge(label, edgeRow, targetID, targetKind, w, nodeRow, dstNodeRow, buildFrame)
+func (m *NodeGeometry) WireOutEdgeStream(label string, edgeRow int32, targetID, targetKind string, nodeRow, dstNodeRow int32, buildFrame owners.EdgeFrameBuilder) {
+	m.outEdges.AddOutEdge(label, edgeRow, targetID, targetKind, nodeRow, dstNodeRow, buildFrame)
 }
 
 func (m *NodeGeometry) deriveOutEdgeGeometry() {
@@ -110,8 +108,8 @@ func (m *NodeGeometry) writeOutEdgeFrames(tick int64) {
 	m.outEdges.WriteFrames(tick, m.geom, &m.deltas)
 }
 
-func (m *NodeGeometry) WireInteriorStream(w io.Writer, row int32, buildFrame func(tick uint32, events []T.RowEvent) []byte, sceneRoot string) *interior.Emitter {
-	stream := interior.NewInteriorStream(w, buildFrame, row, interior.SlotsPerNode)
+func (m *NodeGeometry) WireInteriorStream(row int32, buildFrame func(tick uint32, events []T.RowEvent), sceneRoot string) *interior.Emitter {
+	stream := interior.NewInteriorStream(buildFrame, row, interior.SlotsPerNode)
 	stream.SetValueWriter(interior.NewValueWriter(sceneRoot, int(row)))
 	mailbox := interior.NewMailbox(row)
 	m.interior.SetInteriorStream(stream, mailbox)
@@ -122,12 +120,12 @@ func (m *NodeGeometry) writeInteriorFrames() {
 	m.interior.WriteFrames(m.geom)
 }
 
-func (m *NodeGeometry) WireBeadStream(w io.Writer, row int32, buildBeadFrame beadanimation.BeadFrameBuilder) {
-	m.anim.SetBeadStream(w, row, buildBeadFrame)
+func (m *NodeGeometry) WireBeadStream(row int32, buildBeadFrame beadanimation.BeadFrameBuilder) {
+	m.anim.SetBeadStream(row, buildBeadFrame)
 }
 
-func (m *NodeGeometry) WireStream(streamOut streamclaim.StreamHandle, row int32, kindID uint8, nodeRowFor func(id string) (int32, bool), buildFrame nodeframe.NodeFrameBuilder) {
-	m.stream.SetStream(streamOut, row, kindID, buildFrame)
+func (m *NodeGeometry) WireStream(row int32, kindID uint8, nodeRowFor func(id string) (int32, bool), buildFrame nodeframe.NodeFrameBuilder) {
+	m.stream.SetStream(row, kindID, buildFrame)
 	m.topo.SetNodeRowFor(nodeRowFor)
 }
 

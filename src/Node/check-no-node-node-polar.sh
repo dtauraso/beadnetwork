@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: src/Node/**/*.go,src/Buffer/**/*.go,src/**/*.ts | no DOUBLE-LINK node-node polar record (LocalPolar et al. — the edge's own triple D is the model, not this); a bead streams its world position, never a node-local offset to be summed
+# PLACEMENT: src/Node/**/*.go,src/**/*.ts | no DOUBLE-LINK node-node polar record (LocalPolar et al. — the edge's own triple D is the model, not this); a bead streams its world position, never a node-local offset to be summed
 
 set -euo pipefail
 
@@ -14,7 +14,7 @@ SELF="$(basename "$0")"
 BANNED_SYMBOLS='\bLocalPolar\b|\bLayoutHolder\b|\bSetLocalPolar\(|\bLocalPolarsSnapshot\(|\bLoadLocalPolars\(|\brequantizeLocalPolars\(|\brequantizePoleTraced\(|\bneighborSetCRequantize\('
 
 hits=$(
-  find src/Node src/NodeKinds src/Ring/Bead src/Buffer -name '*.go' -print0 2>/dev/null \
+  find src/Node src/NodeKinds src/Ring/Bead -name '*.go' -print0 2>/dev/null \
     | xargs -0 awk '
         {
           line = $0

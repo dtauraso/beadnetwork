@@ -2,14 +2,12 @@ package Node
 
 import (
 	T "github.com/dtauraso/wirefold/src/Trace"
-	"encoding/binary"
 
 	TiltB "github.com/dtauraso/wirefold/src/Scene/TiltVectors"
 	VecB "github.com/dtauraso/wirefold/src/Scene/Vectors"
-	B "github.com/dtauraso/wirefold/src/Buffer"
 )
 
-type NodeStreamFrame struct {
+type NodeState struct {
 	Tick uint32
 
 	NodeRow int32
@@ -61,18 +59,3 @@ type NodeStreamFrame struct {
 	Events []T.RowEvent
 }
 
-func BuildNodeStreamFrame(f NodeStreamFrame) []byte {
-	T.NewLog(T.OwnerNode, f.NodeRow).Append(f.Events)
-
-	buf := make([]byte, B.BufNodeStreamFrameHeaderSize)
-	binary.LittleEndian.PutUint32(buf[0:], f.Tick)
-	return buf
-}
-
-func BuildInteriorStreamFrame(tick uint32, nodeRow int32, events []T.RowEvent) []byte {
-	T.NewLog(T.OwnerInterior, nodeRow).Append(events)
-
-	buf := make([]byte, B.BufInteriorStreamFrameHeaderSize)
-	binary.LittleEndian.PutUint32(buf[0:], tick)
-	return buf
-}

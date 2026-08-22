@@ -120,16 +120,8 @@ export type WebviewToHostMsg =
   | { type: "webview-log"; entry: string }
   | EditMsg;
 
-export type HostToWebviewMsg =
-
-  | { type: "buffer-snapshot"; buffer: ArrayBuffer; tag: number; row?: number; gen: number };
-
 export const WEBVIEW_TO_HOST_TYPES: ReadonlySet<WebviewToHostMsg["type"]> = new Set([
   "ready", "webview-log", "edit", "save", "raw-input", "go-record",
-]);
-
-const HOST_TO_WEBVIEW_TYPES: ReadonlySet<HostToWebviewMsg["type"]> = new Set([
-  "buffer-snapshot",
 ]);
 
 export function parseWebviewToHost(raw: unknown): WebviewToHostMsg | undefined {
@@ -147,23 +139,5 @@ export function parseWebviewToHost(raw: unknown): WebviewToHostMsg | undefined {
       return m.record instanceof ArrayBuffer ? (m as unknown as WebviewToHostMsg) : undefined;
     default:
       return m as unknown as WebviewToHostMsg;
-  }
-}
-
-export function parseHostToWebview(raw: unknown): HostToWebviewMsg | undefined {
-  if (!raw || typeof raw !== "object") return undefined;
-  const m = raw as Record<string, unknown>;
-  const t = m.type;
-  if (typeof t !== "string" || !HOST_TO_WEBVIEW_TYPES.has(t as HostToWebviewMsg["type"])) {
-    return undefined;
-  }
-  switch (t) {
-    case "buffer-snapshot":
-
-      return m.buffer instanceof ArrayBuffer && typeof m.tag === "number"
-        ? (m as unknown as HostToWebviewMsg)
-        : undefined;
-    default:
-      return undefined;
   }
 }

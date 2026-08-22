@@ -1,10 +1,6 @@
 import * as vscode from "vscode";
 import * as cp from "child_process";
-import type { HostToWebviewMsg } from "../../../Input/messages";
 import { frameRecord } from "../../../Input/input-encode-scene-tilt";
-import type { StreamDemux } from "../stream-demux";
-import { makeDemuxFactory } from "./run-lifecycle";
-import { appendGoError } from "../probe/go-errors";
 
 export abstract class RunnerLifecycle {
   protected proc: cp.ChildProcess | undefined;
@@ -13,24 +9,10 @@ export abstract class RunnerLifecycle {
   protected channel: vscode.OutputChannel | undefined;
   protected goErrorsFile: string | undefined;
 
-  protected readonly newDemux = makeDemuxFactory({
-    onSnapshot: (msg) => this.onSnapshot?.(msg),
-    appendLine: (line) => this.channel?.appendLine(line),
-    reportError: (msg) => {
-      this.channel?.appendLine(`\n[${msg}]`);
-      appendGoError(this.goErrorsFile, msg);
-    },
-  });
-
-  protected demux: StreamDemux = this.newDemux(undefined, false, 0, 0, 0);
   protected spawnGen = 0;
   protected topologyPath: string | undefined;
   protected restartPending = false;
   protected pendingStdin: Uint8Array[] = [];
-
-  constructor(
-    protected readonly onSnapshot?: (msg: HostToWebviewMsg & { type: "buffer-snapshot" }) => void,
-  ) {}
 
   currentGen(): number {
     return this.spawnGen;
@@ -61,26 +43,6 @@ export abstract class RunnerLifecycle {
     this.restartPending = true;
     this.cancel();
     return true;
-  }
-
-  getLastViewFrame(): ArrayBuffer | undefined {
-    return this.demux.getLastViewFrame();
-  }
-
-  getLastEdgeFrames(): Array<{ row: number; buffer: ArrayBuffer }> {
-    return this.demux.getLastEdgeFrames();
-  }
-
-  getLastNodeFrames(): Array<{ row: number; buffer: ArrayBuffer }> {
-    return this.demux.getLastNodeFrames();
-  }
-
-  getLastInteriorFrames(): Array<{ row: number; buffer: ArrayBuffer }> {
-    return this.demux.getLastInteriorFrames();
-  }
-
-  getLastBeadFrames(): Array<{ row: number; buffer: ArrayBuffer }> {
-    return this.demux.getLastBeadFrames();
   }
 
   writeStdin(record: ArrayBuffer | Uint8Array): void {

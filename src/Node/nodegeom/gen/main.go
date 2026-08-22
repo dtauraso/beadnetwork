@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/dtauraso/wirefold/scripts/genpaths"
+	"github.com/dtauraso/wirefold/src/Node/nodegeom/gen/params"
 )
 
 func main() {
@@ -30,4 +31,19 @@ func main() {
 		genpaths.Fatalf("write %s: %v", kindIDPath, err)
 	}
 	genpaths.Announce(kindIDPath, len(kinds), "kinds")
+
+	generateShadingParams(repoRoot)
+}
+
+func generateShadingParams(repoRoot string) {
+	goPath := filepath.Join(genpaths.NetworkDir(repoRoot), "nodegeom", "shading_params.go")
+	shadingParams, err := params.ParseShadingParams(repoRoot, goPath)
+	if err != nil {
+		genpaths.Fatalf("parse shading params: %v", err)
+	}
+	tsPath := filepath.Join(genpaths.NetworkDir(repoRoot), "nodegeom", "shading-params.ts")
+	if err := params.WriteShadingParams(tsPath, shadingParams); err != nil {
+		genpaths.Fatalf("write %s: %v", tsPath, err)
+	}
+	genpaths.Announce(tsPath, len(shadingParams), "constants")
 }

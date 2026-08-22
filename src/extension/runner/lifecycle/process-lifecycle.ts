@@ -3,9 +3,6 @@ import * as cp from "child_process";
 import { killOrphanedSims } from "../../goBuild";
 import { appendGoError } from "../probe/go-errors";
 import { ensureBinaryBuilt } from "./ensure-binary";
-import { attachStreamListeners } from "./attach-listeners";
-import type { StreamDemux } from "../stream-demux";
-import type { SpawnLayout } from "../spawn-layout";
 
 export function buildBinary(
   channel: vscode.OutputChannel,
@@ -32,30 +29,20 @@ export function spawnProcess(
   binPath: string,
   topArgs: string[],
   repoRoot: string,
-  layout: SpawnLayout,
-  probeTrace: boolean,
 ): cp.ChildProcess {
-  const { stdio, streamFDsEnv } = layout;
   return cp.spawn(binPath, [...topArgs], {
     cwd: repoRoot,
     detached: true,
-    stdio,
-    env: {
-      ...process.env,
-      WIREFOLD_BUF_OUT_FD: "3",
-      WIREFOLD_STREAM_FDS: streamFDsEnv,
-    },
+    stdio: ["pipe", "pipe", "pipe"],
+    env: { ...process.env },
   });
 }
 
 export function attachStreamHandlers(
   proc: cp.ChildProcess,
-  demux: StreamDemux,
-  layout: SpawnLayout,
   channel: vscode.OutputChannel,
   goErrorsFile: string | undefined,
 ): void {
-  attachStreamListeners(proc, demux, layout);
   proc.stderr?.on("data", (d: Buffer) => {
     const msg = d.toString();
     channel.append(msg);

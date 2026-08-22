@@ -13,8 +13,8 @@ extension host (Node)                webview (browser)
   src/extension/extension.ts            ◄──►   src/webview/main.tsx
   src/extension/runCommand.ts                  src/webview/scene/ThreeView.tsx
   src/extension/handle-message.ts    src/webview/scene/buffer-scene.tsx
-  src/extension/html.ts              src/webview/decode/buffer-decode-{view,edge,node,interior}.ts
-  src/extension/goBuild.ts                     src/webview/snapshot-buffer.ts
+  src/extension/html.ts              src/webview/decode/buffer-decode-{node,interior}.ts
+  src/extension/goBuild.ts                     src/Scene/scene-leaves.ts
   src/* (shared)
 ```
 
@@ -63,9 +63,8 @@ generically from the decoded content buffer, keyed off `NODE_DEFS`
 
 | File | Role |
 |---|---|
-| `src/webview/main.tsx` | Entry point, message handling |
-| `src/webview/snapshot-buffer.ts` | Raw buffer receive/framing on the webview side |
-| `src/webview/decode/buffer-decode-view.ts` / `-edge.ts` / `-node.ts` / `-interior.ts` | Decode each per-owner stream frame into a typed snapshot (shared trailing-EVENTS decode in `buffer-decode-shared.ts`) |
+| `src/webview/main.tsx` | Entry point and mount. Receives NO messages — the host→webview direction is empty; everything Go says arrives as files |
+| `src/Scene/scene-leaves.ts` | Polls the scene's binary leaves, including `spawn`, whose change means Go was replaced |
 | `src/webview/scene/buffer-scene.tsx` | Draws the whole scene generically from the decoded snapshot |
 | `src/webview/scene/ThreeView.tsx` | R3F `<Canvas>` root. Holds NO gesture state — raw pointer/wheel events forward verbatim to Go's FSM (`src/Input/gesture` package) |
 | `src/webview/interaction/raw-input.ts` | Raw pointer/wheel + raycast hit → binary `raw-input` record to Go |

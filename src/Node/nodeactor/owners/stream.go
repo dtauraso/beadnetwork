@@ -2,18 +2,15 @@ package owners
 
 import (
 	T "github.com/dtauraso/wirefold/src/Trace"
-	"encoding/binary"
 
 	"github.com/dtauraso/wirefold/src/Node/nodeactor/nodeframe"
-	"github.com/dtauraso/wirefold/src/Node/nodeactor/streamclaim"
 )
 
 type Stream struct {
-	streamOut streamclaim.StreamHandle
-	nodeRow   int32
-	kindID    uint8
+	nodeRow int32
+	kindID  uint8
 
-	buildFrame nodeframe.NodeFrameBuilder
+	writeValues nodeframe.NodeFrameBuilder
 
 	selfEvents chan []T.RowEvent
 }
@@ -44,25 +41,20 @@ func (s *Stream) NodeRow() int32 { return s.nodeRow }
 
 func (s *Stream) KindID() uint8 { return s.kindID }
 
-func (s *Stream) Ready() bool { return s.streamOut.Ok() && s.buildFrame != nil }
+func (s *Stream) Ready() bool { return s.writeValues != nil }
 
-func (s *Stream) SetStream(streamOut streamclaim.StreamHandle, row int32, kindID uint8, buildFrame nodeframe.NodeFrameBuilder) {
+func (s *Stream) SetStream(row int32, kindID uint8, writeValues nodeframe.NodeFrameBuilder) {
 	if s.selfEvents == nil {
 		s.selfEvents = make(chan []T.RowEvent, selfEventDepth)
 	}
-	s.streamOut = streamOut
 	s.nodeRow = row
 	s.kindID = kindID
-	s.buildFrame = buildFrame
+	s.writeValues = writeValues
 }
 
 func (s *Stream) WriteFrame(input nodeframe.NodeFrameInput) {
 	if !s.Ready() {
 		return
 	}
-	frame := s.buildFrame(input)
-	var hdr [4]byte
-	binary.LittleEndian.PutUint32(hdr[:], uint32(len(frame)))
-	_, _ = s.streamOut.Write(hdr[:])
-	_, _ = s.streamOut.Write(frame)
+	s.writeValues(input)
 }

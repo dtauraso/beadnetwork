@@ -14,6 +14,8 @@ var SceneValues = []SceneValue{
 	{Name: "constantR", Path: "constants/constant-r.bin", Kind: "f64"},
 	{Name: "maxIndexPhi", Path: "constants/max-index-phi.bin", Kind: "i64"},
 	{Name: "maxIndexTheta", Path: "constants/max-index-theta.bin", Kind: "i64"},
+
+	{Name: "spawn", Path: "view/spawn.bin", Kind: "i64"},
 }
 
 func SceneValuePath(sceneRoot, name string) string {

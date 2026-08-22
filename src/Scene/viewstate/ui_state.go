@@ -104,10 +104,8 @@ type UIState struct {
 	PlacingKind    uint8
 	PlacingPending bool
 
-	viewOut        viewClaimedStream
 	ViewBuildFrame ViewFrameBuilder
 	viewTick       uint32
-	viewClaimed    bool
 }
 
 func (ui *UIState) SetSelectionUI(sendMove func(id string, msg movemsg.Msg), node, edge string) {
