@@ -1,6 +1,6 @@
 scripts/checks/prose/check-doc-symbols.sh	docs/planning/*	plan docs are written per change and deleted when it lands, so this skip pattern matches nothing between changes
 scripts/lib/docs/collect-citing-files.sh	docs/planning/*	plan docs are written per change and deleted when it lands, so this skip pattern matches nothing between changes
 scripts/checks/hooks/check-stray-screenshots.sh	docs/planning/visual-editor/screenshots	the destination this hook names in its message; it need not exist until there are screenshots to put there
-extension/webview/check-no-dead-css-class.sh	extension/webview/*.css	there is no stylesheet today; the guard handles that case itself by proving nothing still carries class attributes
-Scene/loadspec/check-no-fan-in.sh	topology/edges	named only to say where the dir USED to be; the live one is topology/nodes/<source>/edges
+Categories/extension/webview/check-no-dead-css-class.sh	Categories/extension/webview/*.css	there is no stylesheet today; the guard handles that case itself by proving nothing still carries class attributes
+Categories/Scene/loadspec/check-no-fan-in.sh	topology/edges	named only to say where the dir USED to be; the live one is topology/nodes/<source>/edges
 scripts/checks/prose/check-comment-vocab.sh	topology/edges	listed as retired vocabulary; naming it is the point, it must not come back

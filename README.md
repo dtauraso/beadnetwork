@@ -12,11 +12,11 @@ Two things in one repo:
 
 1. **A concurrent dataflow runtime in Go.** Behavior emerges from how nodes are wired together, not from procedural code. Goroutines and channels replace conventional control flow.
 
-2. **A visual editor** (vscode webview, Three.js / React Three Fiber). The diagram is the spec for **topology/wiring** — interpreted data, no codegen step on that path: the editor writes a directory tree of `topology/nodes/<id>/base.json`, `inputs|outputs/*.json`, and `topology/nodes/<id>/edges/*.json` (an adjacency list — an edge lives under its source node, no top-level `edges/` dir), which the runtime loader reads directly at startup. (Node-kind behavior and the content-buffer schema are a *separate*, code-generated axis — `NodeKinds/*/SPEC.md` and the block-file layouts drive `gen-node-defs`, staleness-guarded by `check-generated.sh`.) The directory tree is the only supported form — the earlier monolithic `topology.json` form was deleted.
+2. **A visual editor** (vscode webview, Three.js / React Three Fiber). The diagram is the spec for **topology/wiring** — interpreted data, no codegen step on that path: the editor writes a directory tree of `topology/nodes/<id>/base.json`, `inputs|outputs/*.json`, and `topology/nodes/<id>/edges/*.json` (an adjacency list — an edge lives under its source node, no top-level `edges/` dir), which the runtime loader reads directly at startup. (Node-kind behavior and the content-buffer schema are a *separate*, code-generated axis — `Categories/NodeKinds/*/SPEC.md` and the block-file layouts drive `gen-node-defs`, staleness-guarded by `check-generated.sh`.) The directory tree is the only supported form — the earlier monolithic `topology.json` form was deleted.
 
 ## Running it
 
-Everything starts in [Start/](Start/) — the Go binary, the extension host, and the
+Everything starts in [Categories/Start/](Categories/Start/) — the Go binary, the extension host, and the
 webview all have their entry point there.
 
 ```bash
@@ -35,12 +35,12 @@ Each concern is a top-level directory holding everything about one thing — the
 that runs it and the TS that draws it, side by side:
 
 ```
-Start/        the entry points: main.go, extension.ts, main.tsx
-Node/         nodes, their beads, edges, geometry
-Scene/        the scene: its spec on disk, assembling it, running it
-Chrome/       the UI that is not the diagram
-Camera/  Clock/  Input/  NodeKinds/  Overlay/  Polar/  Ring/  RingPoint/
-extension/    the VS Code integration, including webview/
+Categories/Start/        the entry points: main.go, extension.ts, main.tsx
+Categories/Node/         nodes, their beads, edges, geometry
+Categories/Scene/        the scene: its spec on disk, assembling it, running it
+Categories/Chrome/       the UI that is not the diagram
+Categories/Camera/  Categories/Clock/  Categories/Input/  Categories/NodeKinds/  Categories/Overlay/  Categories/Polar/  Categories/Ring/  Categories/RingPoint/
+Categories/extension/    the VS Code integration, including webview/
 scripts/      what serves the repo rather than one concern
 ```
 

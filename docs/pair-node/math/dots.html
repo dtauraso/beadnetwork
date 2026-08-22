@@ -50,9 +50,9 @@
         <h2>What separation is</h2>
         <p>Separation is how far apart two states are on the ring, the SHORT way round — never more
           than a half turn. It is a picture, not a step the code takes: the rule measures a plain
-          <span data-src="NodeKinds/PairNode/tiltring/rules.go#DistanceTop">distance</span> from each end
+          <span data-src="Categories/NodeKinds/PairNode/tiltring/rules.go#DistanceTop">distance</span> from each end
           of the tilt line and turns toward whichever of the two is inside a quarter turn
-          (<span data-src="NodeKinds/PairNode/tiltring/rules.go#Offset">offset</span>).</p>
+          (<span data-src="Categories/NodeKinds/PairNode/tiltring/rules.go#Offset">offset</span>).</p>
       </div>
 
       <div class="card">
@@ -91,11 +91,11 @@
           <tr>
             <td class="e">parallel</td>
             <td class="n">neither end is inside a quarter turn, so the offset is 0</td>
-            <td class="s" data-src="NodeKinds/PairNode/tiltring/rules.go#Offset">offset</td>
+            <td class="s" data-src="Categories/NodeKinds/PairNode/tiltring/rules.go#Offset">offset</td>
           </tr>
         </table>
         <p>Separation says nothing about whether the node is running yet — that is <span
-            data-src="NodeKinds/PairNode/machine.go#adoptMachine">adoptMachine</span>'s job, done once at
+            data-src="Categories/NodeKinds/PairNode/machine.go#adoptMachine">adoptMachine</span>'s job, done once at
           the first arrival. A zero or half-turn separation is an ordinary one to parallel, on its
           way through.</p>
       </div>

@@ -23,7 +23,7 @@ always written. `--debug` and `--errors` are therefore unaffected by the setting
 `--go`/`--ts` read near-empty files until it's turned on.
 
 The highest-volume kind, `edge-bead` (`KindEdgeBead`), is gated at the Go SOURCE, not
-just the TS write: `Node/BeadAnimation/bead_line_drive.go`'s `stepAll` only appends it when a
+just the TS write: `Categories/Node/BeadAnimation/bead_line_drive.go`'s `stepAll` only appends it when a
 package-level `edgeBeadTraceEnabled` bool is true, read once at startup from
 `WIREFOLD_EDGE_BEAD_TRACE`, which the ext host sets from the same `isProbeTraceEnabled()`
 at spawn. With tracing off, Go stops emitting the per-tick-per-bead event entirely

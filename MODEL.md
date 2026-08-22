@@ -1,8 +1,8 @@
 # Model
 
-Read this before changing anything in the **Go network** (`Node/`,
-`Node/BeadAnimation/bead_animation.go`, `Scene/scenebuild/load.go`,
-`Scene/loadspec/builders.go`) or anything that schedules/orders work. If
+Read this before changing anything in the **Go network** (`Categories/Node/`,
+`Categories/Node/BeadAnimation/bead_animation.go`, `Categories/Scene/scenebuild/load.go`,
+`Categories/Scene/loadspec/builders.go`) or anything that schedules/orders work. If
 your reasoning slips into retired vocabulary, you are in the wrong
 frame. Stop, re-read this file, and re-derive from the model.
 
@@ -135,7 +135,7 @@ See [docs/model/scenes.md](docs/model/scenes.md) for what a scene is, how a tab 
 works, and the per-scene fork of node behaviour it documents (coplanar rings), plus the
 ring-axis vs. navigation-pole distinction. `scene.Scene`'s other per-scene fields
 (`UpAxis`, `ClockDivisor`, `Editable`, `Kinds`) are not written up
-anywhere — read `Scene/scene/scene.go`.
+anywhere — read `Categories/Scene/scene/scene.go`.
 
 ## Drift rule
 
@@ -185,7 +185,7 @@ matrix per torus that Go composes**. TS uploads both and draws. It generates no 
 composes no transform, and holds no tube ratio.
 
 The surface is the unit torus at `rho = 1`, tube `a` = the kind's tube ratio, on the
-`theta == 0` disk (`Node/framegeom/ring_surface.go`):
+`theta == 0` disk (`Categories/Node/framegeom/ring_surface.go`):
 
 ```
 w   = rho + a*cos(v)
@@ -214,7 +214,7 @@ for one to fix.
 
 ## Assertions
 
-A `panic` in `Node/` is an **assertion**, not error handling. It
+A `panic` in `Categories/Node/` is an **assertion**, not error handling. It
 fires only via a code bug — never via ordinary traffic, malformed input, or load. Input the
 network cannot trust is rejected at parse (`validateNoFanIn`, `ValidateSpec`); by the time a
 value reaches a goroutine's own state, a violated bound means the code is wrong.
@@ -242,7 +242,7 @@ is the only context they get. It must:
 **No `recover()` in the network.** Swallowing an assertion converts a loud, located failure
 into a silent wrong answer.
 
-Guard: `Node/check-panic-message.sh` (site tag + substance + no `recover()`). It enforces
+Guard: `Categories/Node/check-panic-message.sh` (site tag + substance + no `recover()`). It enforces
 the shape, not the content — (3) is the part only a human can write, and the part that pays.
 
 ## Allowed vocabulary

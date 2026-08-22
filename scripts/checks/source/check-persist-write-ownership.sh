@@ -5,7 +5,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
-WIRING_DIR="$REPO_ROOT"
+WIRING_DIR="$REPO_ROOT/Categories"
 PLUMBING="value_file.go"
 PLUMBING_PATH="$WIRING_DIR/Scene/scenepersist/value_file.go"
 
