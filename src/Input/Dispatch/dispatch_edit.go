@@ -37,12 +37,12 @@ func HandleRawInputMsg(ctx context.Context, ev Drag.RawInputMsg, slotReg beadani
 		return
 	}
 	if ev.Kind == "pointermove" {
-		if t := panelPointerTarget(md, ev.X, ev.Y); t != md.UI.Pointer {
+		if t := md.UI.PointerTargetAt(ev.X, ev.Y); t != md.UI.Pointer {
 			md.UI.Pointer = t
 			md.UI.EmitViewFrame(nil)
 		}
 	}
-	if ev.Kind == "wheel" && panelTookWheel(ev, md) {
+	if ev.Kind == "wheel" && md.UI.TakeWheel(ev.X, ev.Y, ev.DeltaY) {
 		return
 	}
 	if ev.Kind == "pointerdown" && panelTookPointerDown(ctx, ev, md, speedSinks) {

@@ -2,27 +2,20 @@ package Dispatch
 
 import (
 	"context"
-	edge "github.com/dtauraso/wirefold/src/Node/Edge"
-	"math"
 
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/Panel"
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/PolarRulesPanel"
+	NodeKind "github.com/dtauraso/wirefold/src/Node"
 	"github.com/dtauraso/wirefold/src/Node/rulenode"
 )
 
 func applyRulesHit(ctx context.Context, md *MoveDispatch, h PolarRulesPanel.Hit) {
 	switch h.Kind {
 	case PolarRulesPanel.HitToggle:
-		if fn, ok := Panel.PanelToggles["nodeRules"]; ok {
-			fn(&md.UI.PN)
-			md.Persist.Panels().Schedule(md.UI.PN)
-		}
+		Panel.ToggleFlag(&md.UI.PN, "nodeRules")
+		md.Persist.Panels().Schedule(md.UI.PN)
 	case PolarRulesPanel.HitShared:
-		if md.UI.RuleSharedRow == h.NodeRow {
-			md.UI.RuleSharedRow = -1
-		} else {
-			md.UI.RuleSharedRow = h.NodeRow
-		}
+		md.UI.ToggleSharedRow(h.NodeRow)
 	case PolarRulesPanel.HitMenuRow:
 		if h.NodeRow < 0 {
 			for _, n := range md.UI.RuleNodes {
@@ -32,101 +25,17 @@ func applyRulesHit(ctx context.Context, md *MoveDispatch, h PolarRulesPanel.Hit)
 		}
 		sendRuleEdit(ctx, md, int(h.NodeRow), rulenode.Edit{Kind: rulenode.EditActiveToggle})
 	case PolarRulesPanel.HitCheck:
-		applyRuleCheck(ctx, md, h)
+		NodeKind.ApplyRuleCheck(ctx, h, &md.Rules)
 	case PolarRulesPanel.HitValue:
-		applyRuleValue(ctx, md, h)
-	}
-	md.UI.EmitViewFrame(nil)
-}
-
-func applyRuleCheck(ctx context.Context, md *MoveDispatch, h PolarRulesPanel.Hit) {
-	switch h.Check {
-	case PolarRulesPanel.CheckNodeDrag:
-		sendRuleEdit(ctx, md, int(h.NodeRow), rulenode.Edit{Kind: rulenode.EditActiveToggle})
-	case PolarRulesPanel.CheckSelfDrag:
-		sendRuleEdit(ctx, md, int(h.NodeRow), rulenode.Edit{Kind: rulenode.EditSelfActiveToggle})
-	case PolarRulesPanel.CheckKindRule:
-		toggleKindRule(ctx, md, int(h.NodeRow))
-	case PolarRulesPanel.CheckEdgeDrag:
-		toggleEdgeDragActive(ctx, md, h.EdgeRow)
-	}
-}
-
-func applyRuleValue(ctx context.Context, md *MoveDispatch, h PolarRulesPanel.Hit) {
-	switch h.Value {
-	case PolarRulesPanel.ValSelfR:
-		sendRuleEdit(ctx, md, int(h.NodeRow), rulenode.Edit{Kind: rulenode.EditSelfRToggle})
-	case PolarRulesPanel.ValSelfPhi:
-		sendRuleEdit(ctx, md, int(h.NodeRow), rulenode.Edit{Kind: rulenode.EditSelfPhiToggle})
-	case PolarRulesPanel.ValDragR:
-		sendRuleEdit(ctx, md, int(h.NodeRow), rulenode.Edit{Kind: rulenode.EditRToggle})
-	case PolarRulesPanel.ValDragPhi:
-		sendRuleEdit(ctx, md, int(h.NodeRow), rulenode.Edit{Kind: rulenode.EditPhiToggle})
-	case PolarRulesPanel.ValSelfTheta, PolarRulesPanel.ValDragTheta:
-		md.UI.RuleEdit = PolarRulesPanel.Edit{
-			Active:  true,
-			NodeRow: h.NodeRow,
-			Self:    h.Value == PolarRulesPanel.ValSelfTheta,
-			Draft:   "1/2",
+		if !NodeKind.ApplyRuleValue(ctx, h, &md.Rules) {
+			md.UI.StartThetaDraft(h.NodeRow, h.Value == PolarRulesPanel.ValSelfTheta)
 		}
 	}
+	md.UI.EmitViewFrame(nil)
 }
 
 func applyRuleKey(ctx context.Context, md *MoveDispatch, key string) {
-	e := &md.UI.RuleEdit
-	if !e.Active {
-		return
+	if c := md.UI.RuleKey(key); c.Commit {
+		NodeKind.CommitMaxTheta(ctx, &md.Rules, c.NodeRow, c.Self, c.Turns)
 	}
-	switch key {
-	case "Escape":
-		*e = PolarRulesPanel.Edit{}
-	case "Enter":
-		if turns, ok := PolarRulesPanel.ParsePiDraft(e.Draft); ok {
-			commitMaxTheta(ctx, md, e.NodeRow, e.Self, turns)
-		}
-		*e = PolarRulesPanel.Edit{}
-	case "Backspace":
-		if len(e.Draft) > 0 {
-			e.Draft = e.Draft[:len(e.Draft)-1]
-		}
-	default:
-		if len(key) == 1 {
-			e.Draft += key
-		}
-	}
-	md.UI.EmitViewFrame(nil)
-}
-
-func toggleKindRule(ctx context.Context, md *MoveDispatch, row int) {
-	if row < 0 || row >= len(md.Rules.KindTogglesByNodeRow) {
-		return
-	}
-	sendToggle(ctx, md.Rules.KindTogglesByNodeRow[row])
-}
-
-func toggleEdgeDragActive(ctx context.Context, md *MoveDispatch, row int32) {
-	edge.ToggleDragActive(ctx, int(row), md.Rules.TogglesByEdgeRow)
-}
-
-func sendToggle(ctx context.Context, ch chan<- struct{}) {
-	if ch == nil {
-		return
-	}
-	select {
-	case ch <- struct{}{}:
-	case <-ctx.Done():
-	}
-}
-
-func commitMaxTheta(ctx context.Context, md *MoveDispatch, row int32, self bool, turns float64) {
-	var maxTheta *float64
-	if turns >= 0 {
-		radians := turns * math.Pi
-		maxTheta = &radians
-	}
-	kind := rulenode.EditMaxTheta
-	if self {
-		kind = rulenode.EditSelfMaxTheta
-	}
-	sendRuleEdit(ctx, md, int(row), rulenode.Edit{Kind: kind, MaxTheta: maxTheta})
 }
