@@ -1,7 +1,6 @@
 package Overlay
 
 import (
-	"github.com/dtauraso/wirefold/src/Input/Codec"
 	"github.com/dtauraso/wirefold/src/Input/Stdin"
 )
 
@@ -13,8 +12,8 @@ func decodeUpdate(payload []byte, attr byte) (Stdin.StdinMsg, bool) {
 		return Stdin.StdinMsg{}, false
 	}
 	flagID, err := r.U8()
-	if err != nil || int(flagID) >= len(Codec.InOverlayFlags) {
+	if err != nil || int(flagID) >= len(FlagNames) {
 		return Stdin.StdinMsg{}, false
 	}
-	return Stdin.StdinMsg{Type: "edit", Op: "update", Kind: "overlays", Attr: "toggle", Flag: Codec.InOverlayFlags[flagID]}, true
+	return Stdin.StdinMsg{Type: "edit", Op: "update", Kind: "overlays", Attr: "toggle", Flag: FlagNames[flagID]}, true
 }

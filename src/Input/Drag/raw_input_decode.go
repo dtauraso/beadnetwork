@@ -1,7 +1,5 @@
 package Drag
 
-import "github.com/dtauraso/wirefold/src/Input/Codec"
-
 func decodeRawInputFrom(r *Reader) (RawInputMsg, bool) {
 	var ev RawInputMsg
 	var e error
@@ -34,7 +32,7 @@ func decodeRawInputFrom(r *Reader) (RawInputMsg, bool) {
 		return v
 	}
 
-	ev.Kind = Codec.EnumAt(Codec.InEventKinds, u())
+	ev.Kind = enumAt(InEventKinds, u())
 	ev.X = f()
 	ev.Y = f()
 	ev.RectLeft = f()
@@ -48,7 +46,7 @@ func decodeRawInputFrom(r *Reader) (RawInputMsg, bool) {
 	ev.Meta = b()
 	ev.DeltaX = f()
 	ev.DeltaY = f()
-	ev.Hit.Kind = Codec.EnumAt(Codec.InHitKinds, u())
+	ev.Hit.Kind = enumAt(InHitKinds, u())
 	ev.Hit.IsInput = b()
 	ev.Hit.NodeRow = i()
 	ev.Hit.PortRow = i()

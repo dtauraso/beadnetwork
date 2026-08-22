@@ -1,12 +1,10 @@
 package Stdin
 
-import "github.com/dtauraso/wirefold/src/Input/Codec"
-
 func decodeEditUpdate(rec []byte) (StdinMsg, bool) {
 	if len(rec) < 3 {
 		return StdinMsg{}, false
 	}
-	entity := Codec.EnumAt(Codec.InUpdateKinds, rec[1])
+	entity := enumAt(InUpdateKinds, rec[1])
 	decode, ok := updateDecoders[entity]
 	if !ok {
 		return StdinMsg{}, false

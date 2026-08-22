@@ -1,4 +1,4 @@
-package Codec
+package main
 
 import "strings"
 

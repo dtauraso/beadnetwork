@@ -6,7 +6,7 @@
 // under view/input/, so a move cannot overwrite the press that preceded it, and
 // this list IS the read order: a press is applied before the motion it started.
 
-package Codec
+package Drag
 
 var EventKinds = []string{
 	"pointerdown",

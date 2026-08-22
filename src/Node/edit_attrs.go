@@ -1,17 +1,15 @@
 package Node
 
-import "github.com/dtauraso/wirefold/src/Input/Codec"
-
 var (
-	attrDragPhi      = Codec.AttrIndex("dragPhi")
-	attrDragMaxTheta = Codec.AttrIndex("dragMaxTheta")
-	attrDragActive   = Codec.AttrIndex("dragActive")
-	attrKindActive   = Codec.AttrIndex("kindActive")
+	attrDragPhi      = attrIndex("dragPhi")
+	attrDragMaxTheta = attrIndex("dragMaxTheta")
+	attrDragActive   = attrIndex("dragActive")
+	attrKindActive   = attrIndex("kindActive")
 
-	attrSelfDragPhi      = Codec.AttrIndex("selfDragPhi")
-	attrSelfDragMaxTheta = Codec.AttrIndex("selfDragMaxTheta")
-	attrSelfDragActive   = Codec.AttrIndex("selfDragActive")
+	attrSelfDragPhi      = attrIndex("selfDragPhi")
+	attrSelfDragMaxTheta = attrIndex("selfDragMaxTheta")
+	attrSelfDragActive   = attrIndex("selfDragActive")
 
-	attrDragR     = Codec.AttrIndex("dragR")
-	attrSelfDragR = Codec.AttrIndex("selfDragR")
+	attrDragR     = attrIndex("dragR")
+	attrSelfDragR = attrIndex("selfDragR")
 )
