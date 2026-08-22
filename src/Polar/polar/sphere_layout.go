@@ -1,18 +1,22 @@
 package polar
 
-import "math"
+import (
+	"math"
+
+	"github.com/dtauraso/wirefold/src/spatial"
+)
 
 type SceneSphere struct {
-	Center vec3
+	Center spatial.Vec3
 	Radius float64
 }
 
-func ContentSphereOf(centers map[string]vec3) (center vec3, radius float64) {
+func ContentSphereOf(centers map[string]spatial.Vec3) (center spatial.Vec3, radius float64) {
 	if len(centers) == 0 {
-		return vec3{}, 100
+		return spatial.Vec3{}, 100
 	}
-	min := vec3{X: math.Inf(1), Y: math.Inf(1), Z: math.Inf(1)}
-	max := vec3{X: math.Inf(-1), Y: math.Inf(-1), Z: math.Inf(-1)}
+	min := spatial.Vec3{X: math.Inf(1), Y: math.Inf(1), Z: math.Inf(1)}
+	max := spatial.Vec3{X: math.Inf(-1), Y: math.Inf(-1), Z: math.Inf(-1)}
 	for _, p := range centers {
 		if math.IsInf(p.X, 0) || math.IsNaN(p.X) {
 			continue
@@ -29,7 +33,7 @@ func ContentSphereOf(centers map[string]vec3) (center vec3, radius float64) {
 	return center, math.Max(r*1.1, 1)
 }
 
-func ContentFitSceneSphere(centers map[string]vec3) SceneSphere {
+func ContentFitSceneSphere(centers map[string]spatial.Vec3) SceneSphere {
 	c, r := ContentSphereOf(centers)
 	return SceneSphere{Center: c, Radius: r}
 }

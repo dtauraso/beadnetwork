@@ -6,6 +6,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/movemsg"
 	"github.com/dtauraso/wirefold/src/Scene/rowtables"
 	"github.com/dtauraso/wirefold/src/Scene/viewstate"
+	"github.com/dtauraso/wirefold/src/spatial"
 )
 
 func updateHover(d Deps, ev inputcodec.RawInputMsg) {
@@ -24,7 +25,7 @@ func updateHover(d Deps, ev inputcodec.RawInputMsg) {
 	}
 }
 
-func seedOrbitPivot(d Deps, pivot vec3) {
+func seedOrbitPivot(d Deps, pivot spatial.Vec3) {
 	vp := d.UI.VP.Viewpoint
 	eye := Camera.EyeOf(vp)
 	r := eye.Sub(pivot).Length()
@@ -56,7 +57,7 @@ func applyOrbitLocked(d Deps, ev inputcodec.RawInputMsg) {
 	d.UI.EmitViewFrame(nil)
 }
 
-func applyNodeDragTarget(ui *viewstate.UIState, rootMove func(id string, target vec3) bool, ev inputcodec.RawInputMsg) bool {
+func applyNodeDragTarget(ui *viewstate.UIState, rootMove func(id string, target spatial.Vec3) bool, ev inputcodec.RawInputMsg) bool {
 	g := &ui.Gest
 	hit, ok := ui.DragPlaneHit(ev)
 	if !ok {

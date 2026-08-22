@@ -1,12 +1,13 @@
 package interior
 
 import (
-	T "github.com/dtauraso/wirefold/src/Trace"
 	"encoding/binary"
 	"fmt"
 	"math"
 	"os"
 
+	T "github.com/dtauraso/wirefold/src/Trace"
+	"github.com/dtauraso/wirefold/src/spatial"
 )
 
 type InteriorStream struct {
@@ -33,10 +34,9 @@ func NewInteriorStream(buildFrame func(tick uint32, events []T.RowEvent), nodeRo
 	}
 }
 
-
 func (s *InteriorStream) NodeRowOf() int32 { return s.nodeRow }
 
-func (s *InteriorStream) write(present []uint8, value []int32, ox, oy, oz []float32, events []T.RowEvent, center vec3) {
+func (s *InteriorStream) write(present []uint8, value []int32, ox, oy, oz []float32, events []T.RowEvent, center spatial.Vec3) {
 	if s == nil {
 		return
 	}
@@ -77,7 +77,7 @@ func packF32(v []float32) []byte {
 
 func (s *InteriorStream) SetValueWriter(w *ValueWriter) { s.values = w }
 
-func worldOf(ox, oy, oz []float32, center vec3) ([]float32, []float32, []float32) {
+func worldOf(ox, oy, oz []float32, center spatial.Vec3) ([]float32, []float32, []float32) {
 	wx := make([]float32, len(ox))
 	wy := make([]float32, len(oy))
 	wz := make([]float32, len(oz))
@@ -93,18 +93,18 @@ func worldOf(ox, oy, oz []float32, center vec3) ([]float32, []float32, []float32
 	return wx, wy, wz
 }
 
-func (s *InteriorStream) WriteFull(present []uint8, value []int32, ox, oy, oz []float32, events []T.RowEvent, center vec3) {
+func (s *InteriorStream) WriteFull(present []uint8, value []int32, ox, oy, oz []float32, events []T.RowEvent, center spatial.Vec3) {
 	s.write(present, value, ox, oy, oz, events, center)
 }
 
-func (s *InteriorStream) WriteEvents(events []T.RowEvent, center vec3) {
+func (s *InteriorStream) WriteEvents(events []T.RowEvent, center spatial.Vec3) {
 	if s == nil {
 		return
 	}
 	s.write(s.lastPresent, s.lastValue, s.lastOx, s.lastOy, s.lastOz, events, center)
 }
 
-func (s *InteriorStream) RewriteAtCenter(center vec3) {
+func (s *InteriorStream) RewriteAtCenter(center spatial.Vec3) {
 	if s == nil {
 		return
 	}

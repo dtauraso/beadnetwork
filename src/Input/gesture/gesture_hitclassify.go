@@ -4,6 +4,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Input/gesturefsm"
 	"github.com/dtauraso/wirefold/src/Input/inputcodec"
 	"github.com/dtauraso/wirefold/src/Node/nodemove"
+	"github.com/dtauraso/wirefold/src/spatial"
 )
 
 var hitClassifiers = map[string]func(d Deps, g *gesturefsm.GestureState, ev inputcodec.RawInputMsg){
@@ -11,7 +12,7 @@ var hitClassifiers = map[string]func(d Deps, g *gesturefsm.GestureState, ev inpu
 
 		g.HandholdDown = true
 		nodeGeoms, centerOf := d.MR.NodeGeoms(), d.MR.CenterOfNode
-		g.BeginSphereRotation(d.UI.VP.Viewpoint, func() map[string]vec3 { return nodemove.HeldCenters(nodeGeoms, centerOf) }, ev)
+		g.BeginSphereRotation(d.UI.VP.Viewpoint, func() map[string]spatial.Vec3 { return nodemove.HeldCenters(nodeGeoms, centerOf) }, ev)
 	},
 	"node": func(d Deps, g *gesturefsm.GestureState, ev inputcodec.RawInputMsg) {
 		if node, ok := d.RT.NodeFromHit(ev.Hit); ok {
@@ -24,6 +25,6 @@ var hitClassifiers = map[string]func(d Deps, g *gesturefsm.GestureState, ev inpu
 	"empty": func(d Deps, g *gesturefsm.GestureState, ev inputcodec.RawInputMsg) {
 		g.EmptyDown = true
 		nodeGeoms, centerOf := d.MR.NodeGeoms(), d.MR.CenterOfNode
-		g.BeginSphereRotation(d.UI.VP.Viewpoint, func() map[string]vec3 { return nodemove.HeldCenters(nodeGeoms, centerOf) }, ev)
+		g.BeginSphereRotation(d.UI.VP.Viewpoint, func() map[string]spatial.Vec3 { return nodemove.HeldCenters(nodeGeoms, centerOf) }, ev)
 	},
 }

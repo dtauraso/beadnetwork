@@ -3,16 +3,18 @@ package nodegeom
 import (
 	"math"
 
+	"github.com/dtauraso/wirefold/src/spatial"
+
+	lattice "github.com/dtauraso/wirefold/src/Node/BeadAnimation/lattice"
 	"github.com/dtauraso/wirefold/src/Polar/polar"
 	"github.com/dtauraso/wirefold/src/Polar/polarindex"
-	lattice "github.com/dtauraso/wirefold/src/Node/BeadAnimation/lattice"
 )
 
 type NodeIdentity struct {
 	Kind  string
 	Label string
 
-	SceneCenter    vec3
+	SceneCenter    spatial.Vec3
 	SceneConstants polarindex.SceneConstants
 }
 
@@ -48,9 +50,9 @@ func NodeRadius(kind string) float64 {
 	return NodeTorusOuterR(kind) / (1 + ShadingParamNodeRingTubeRatio)
 }
 
-func NodeWorldPos(g NodeGeom) vec3 {
+func NodeWorldPos(g NodeGeom) spatial.Vec3 {
 	if !g.HasPos {
-		return vec3{}
+		return spatial.Vec3{}
 	}
 	return g.SceneCenter.Add(polar.Polar2cart(ScenePolarOf(g)))
 }
