@@ -1,5 +1,5 @@
-import { canvasFont, roundRect } from "../../../webview/canvas-box";
-import { decodeAt } from "../../../webview/leaf-text";
+import { canvasFont, roundRect } from "../../canvas-box";
+import { decodeAt } from "../../leaf-text";
 import { EDIT_BG, EDIT_EDGE, FONT_PX } from "./rules-values";
 import { rulesBytes, rulesF32, rulesText } from "./rules-leaves";
 

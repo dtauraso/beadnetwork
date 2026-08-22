@@ -1,4 +1,4 @@
-import { makeLeafValues } from "../../../webview/leaf-values";
+import { makeLeafValues } from "../../../valuefile/leaf-values";
 import { RULES_VALUE_NAMES, type RulesValueName } from "./rules-values-gen";
 
 const values = makeLeafValues<RulesValueName>(

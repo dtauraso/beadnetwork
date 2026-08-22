@@ -1,5 +1,5 @@
-import { canvasFont, roundRect } from "../../../webview/canvas-box";
-import { decodeAt } from "../../../webview/leaf-text";
+import { canvasFont, roundRect } from "../../canvas-box";
+import { decodeAt } from "../../leaf-text";
 import {
   nodeRuleGroup, nodeDragActive, drawCheckbox,
   INK, PILL_EDGE, PILL_INK, INACTIVE_ALPHA, HEAD_FONT_PX,

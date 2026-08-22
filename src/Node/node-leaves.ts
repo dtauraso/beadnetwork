@@ -1,4 +1,4 @@
-import { makeRowLeafValues } from "../webview/row-leaf-values";
+import { makeRowLeafValues } from "../valuefile/row-leaf-values";
 import { NODE_VALUE_NAMES, type NodeValueName } from "./node-values-gen";
 
 const values = makeRowLeafValues<NodeValueName>(

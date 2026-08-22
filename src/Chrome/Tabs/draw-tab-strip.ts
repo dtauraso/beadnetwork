@@ -1,6 +1,6 @@
-import { canvasFont, roundRect } from "../../webview/canvas-box";
-import { decodeAt } from "../../webview/leaf-text";
-import * as T from "../../webview/canvas-theme";
+import { canvasFont, roundRect } from "../canvas-box";
+import { decodeAt } from "../leaf-text";
+import * as T from "../chrome-theme";
 import { stripBytes, stripF32, stripF32Run, stripU32Run, stripText } from "./strip-leaves";
 
 export function tabStripKey(): string {

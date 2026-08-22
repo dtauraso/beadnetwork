@@ -4,7 +4,7 @@ import { nodeLabel } from "../../Node/node-label";
 import { ndcToPixel } from "../../webview/interaction/geometry-helpers";
 import { ownerCounts } from "../../Scene/owner-counts";
 import { nodeF32 } from "../../Node/node-leaves";
-import { overlayFlag } from "../../webview/flags/overlay-flags";
+import { overlayFlag } from "../../Overlay/overlay-flags";
 import { setLabelPositions } from "./label-canvas";
 import type { LabelPos } from "../../webview/scene/scene-tags";
 

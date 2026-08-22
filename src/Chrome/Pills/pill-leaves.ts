@@ -1,4 +1,4 @@
-import { makeLeafValues } from "../../webview/leaf-values";
+import { makeLeafValues } from "../../valuefile/leaf-values";
 import { OVERLAYS_PILL_VALUE_NAMES, type OverlaysPillValueName } from "./pill-values-gen";
 
 const values = makeLeafValues<OverlaysPillValueName>(

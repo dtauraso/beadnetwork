@@ -1,5 +1,5 @@
-import { canvasFont, roundRect } from "../../webview/canvas-box";
-import * as T from "../../webview/canvas-theme";
+import { canvasFont, roundRect } from "../canvas-box";
+import * as T from "../chrome-theme";
 
 export const CARET_W = 20;
 export const POPOVER_PAD = 6;

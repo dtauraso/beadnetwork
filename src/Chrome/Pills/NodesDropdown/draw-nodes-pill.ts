@@ -1,7 +1,7 @@
-import { canvasFont, roundRect } from "../../../webview/canvas-box";
+import { canvasFont, roundRect } from "../../canvas-box";
 import { drawPill, drawPopoverBox, ROW_PAD_X } from "../pill";
-import { decodeAt } from "../../../webview/leaf-text";
-import * as T from "../../../webview/canvas-theme";
+import { decodeAt } from "../../leaf-text";
+import * as T from "../../chrome-theme";
 import {
   pillBytes, pillF32, pillU8, pillU32, pillU32Run, pillF32Run, pillText,
 } from "./pill-leaves";

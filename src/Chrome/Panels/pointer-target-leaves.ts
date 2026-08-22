@@ -1,4 +1,4 @@
-import { makeLeafValues } from "../../webview/leaf-values";
+import { makeLeafValues } from "../../valuefile/leaf-values";
 import { POINTER_TARGET_VALUE_NAMES, type PointerTargetValueName } from "./pointer-target-values-gen";
 
 const values = makeLeafValues<PointerTargetValueName>(
