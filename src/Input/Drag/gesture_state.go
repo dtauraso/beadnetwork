@@ -1,4 +1,4 @@
-package Fsm
+package Drag
 
 import (
 	"github.com/dtauraso/wirefold/src/Camera"

@@ -1,4 +1,4 @@
-package Fsm
+package Drag
 
 import (
 	"math"

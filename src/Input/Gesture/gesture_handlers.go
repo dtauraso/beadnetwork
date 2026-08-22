@@ -11,7 +11,7 @@ import (
 
 	"github.com/dtauraso/wirefold/src/Camera"
 	"github.com/dtauraso/wirefold/src/Input/Codec"
-	"github.com/dtauraso/wirefold/src/Input/Fsm"
+	"github.com/dtauraso/wirefold/src/Input/Drag"
 	"github.com/dtauraso/wirefold/src/Node/movemsg"
 	"github.com/dtauraso/wirefold/src/Node/nodemove"
 )
@@ -37,7 +37,7 @@ func gestPointerDown(d Deps, ev Codec.RawInputMsg) {
 	g.PrevX, g.PrevY = ev.X, ev.Y
 	g.Button = ev.Button
 	g.Secondary = ev.Button == 2
-	g.Phase = Fsm.GestPending
+	g.Phase = Drag.GestPending
 	g.EmptyDown = false
 	g.DragNode = ""
 	g.HandholdDown = false
@@ -58,14 +58,14 @@ func gestPointerDown(d Deps, ev Codec.RawInputMsg) {
 
 func gestPointerMove(d Deps, ev Codec.RawInputMsg) {
 	g := &d.UI.Gest
-	if g.Phase == Fsm.GestIdle {
+	if g.Phase == Drag.GestIdle {
 		return
 	}
 	dx := ev.X - g.DownX
 	dy := ev.Y - g.DownY
 	dist := math.Hypot(dx, dy)
 
-	if g.Phase == Fsm.GestPending && dist > 0 && !g.Secondary {
+	if g.Phase == Drag.GestPending && dist > 0 && !g.Secondary {
 		for _, edge := range commitEdges {
 			if edge.guard(g) {
 				edge.action(d, g, ev)
@@ -83,16 +83,16 @@ func gestPointerMove(d Deps, ev Codec.RawInputMsg) {
 func gestPointerUp(d Deps, ev Codec.RawInputMsg) {
 	g := &d.UI.Gest
 	switch {
-	case g.Phase == Fsm.GestDragging:
+	case g.Phase == Drag.GestDragging:
 		nodeGeoms, mv, ctx := d.MR.NodeGeoms(), d.Mover, d.Ctx
 		applyNodeDragTarget(d.UI, func(id string, target spatial.Vec3) bool { return mv.RootMove(ctx, nodeGeoms, id, target) }, ev)
-	case g.Phase == Fsm.GestHandhold, g.Phase == Fsm.GestRotating:
+	case g.Phase == Drag.GestHandhold, g.Phase == Drag.GestRotating:
 
-	case g.Phase == Fsm.GestPending:
+	case g.Phase == Drag.GestPending:
 
 		applySelect(d, ev)
 	}
-	wasDragging := g.Phase == Fsm.GestDragging
+	wasDragging := g.Phase == Drag.GestDragging
 
 	draggedNode := g.DragNode
 	g.Reset(&d.UI.VP.Viewpoint)

@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/dtauraso/wirefold/src/Input/Codec"
-	"github.com/dtauraso/wirefold/src/Input/Fsm"
+	"github.com/dtauraso/wirefold/src/Input/Drag"
 	"github.com/dtauraso/wirefold/src/Node/moverreg"
 	"github.com/dtauraso/wirefold/src/Node/nodemove"
 	"github.com/dtauraso/wirefold/src/Scene/rowtables"
@@ -21,7 +21,7 @@ type Deps struct {
 
 func HandleRawInput(d Deps, ev Codec.RawInputMsg, slotReg Codec.SlotRegistry) {
 	g := &d.UI.Gest
-	g.Rect = Fsm.GestureRect{Left: ev.RectLeft, Top: ev.RectTop, Width: ev.RectWidth, Height: ev.RectHeight}
+	g.Rect = Drag.GestureRect{Left: ev.RectLeft, Top: ev.RectTop, Width: ev.RectWidth, Height: ev.RectHeight}
 	g.Fov = d.UI.FovDeg()
 	if h := rawInputHandlers[ev.Kind]; h != nil {
 		h(d, ev, slotReg)

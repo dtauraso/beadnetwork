@@ -19,7 +19,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Chrome/Pills/NodesDropdown"
 	"github.com/dtauraso/wirefold/src/Chrome/Tabs"
 	"github.com/dtauraso/wirefold/src/Input/Codec"
-	"github.com/dtauraso/wirefold/src/Input/Fsm"
+	"github.com/dtauraso/wirefold/src/Input/Drag"
 	"github.com/dtauraso/wirefold/src/Node/movemsg"
 	"github.com/dtauraso/wirefold/src/Polar/polar"
 	"github.com/dtauraso/wirefold/src/Polar/polarindex"
@@ -57,13 +57,13 @@ type UIState struct {
 
 	ClockDivisor float64
 
-	VP Fsm.ViewpointState
+	VP Camera.ViewpointState
 
 	OV Overlay.OverlayState
 
 	PN Panel.PanelState
 
-	Gest Fsm.GestureState
+	Gest Drag.GestureState
 
 	Sel selectionstate.SelectionState
 
