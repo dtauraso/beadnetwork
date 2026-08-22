@@ -17,7 +17,6 @@ import (
 	"github.com/dtauraso/wirefold/src/runtopology/loadspec"
 	"github.com/dtauraso/wirefold/src/runtopology/scenerun"
 	"github.com/dtauraso/wirefold/src/runtopology/topoderive"
-	"github.com/dtauraso/wirefold/src/spatial"
 )
 
 type buildCtx struct {
@@ -30,7 +29,6 @@ type buildCtx struct {
 	scenePath string
 
 	nodeGeoms map[string]nodegeom.NodeGeom
-	centers   map[string]spatial.Vec3
 
 	baseIndices map[string]polarindex.Index
 	dragIndices map[string]polarindex.Offset
@@ -56,9 +54,7 @@ type buildCtx struct {
 func buildFromSpec(ctx context.Context, spec loadspec.TopoSpec, clk clock.Clock, sphere polar.SceneSphere, hasScene bool, scenePath string) ([]nodeapi.Node, beadanimation.SlotRegistry, *scenerun.MoveDispatch, SliderPanel.Sinks, error) {
 	b := &buildCtx{ctx: ctx, spec: spec, clk: clk, sphere: sphere, hasScene: hasScene, scenePath: scenePath}
 
-	b.nodeGeoms, b.centers = topoderive.ComputeNodeGeometry(b.spec, b.sphere)
-	b.baseIndices = topoderive.ComputeBaseIndices(b.spec, b.sphere, b.centers, b.nodeGeoms)
-	b.dragIndices = topoderive.ComputeDragIndices(b.spec)
+	b.nodeGeoms, b.baseIndices, b.dragIndices = b.spec.SeedGeometry(b.sphere.Center)
 	b.wiring.DestRun, b.wiring.EdgeRun, b.edgeEndpoints = topoderive.AllocateBeadLines(b.spec, b.nodeGeoms)
 	b.vectorOutByNode, b.vectorInByNode = topoderive.AllocateVectorChannels(b.spec)
 	if err := b.buildMoveDispatch(); err != nil {
