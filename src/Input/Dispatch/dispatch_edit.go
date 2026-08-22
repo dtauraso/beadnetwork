@@ -100,24 +100,3 @@ func applyUpdate(ctx context.Context, msg Codec.StdinMsg, md *MoveDispatch, spee
 		h(ctx, msg, md, speedSinks)
 	}
 }
-
-var clockAttrHandlers = map[string]func(msg Codec.StdinMsg, md *MoveDispatch, speedSinks SliderPanel.Sinks){
-	"speed": func(msg Codec.StdinMsg, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
-
-		divisor := int64(1)
-		if md != nil {
-			divisor = int64(md.UI.ClockDivisor)
-		}
-
-		SliderPanel.Broadcast(speedSinks, int64(msg.Num), divisor)
-
-		userSpeed := float64(msg.Num) / SliderPanel.NumScale
-		if md == nil {
-			return
-		}
-
-		md.UI.Speed = userSpeed
-		md.Persist.Speed().Schedule(userSpeed)
-		md.UI.EmitViewFrame(nil)
-	},
-}

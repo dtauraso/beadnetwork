@@ -85,14 +85,14 @@ while read -r kind attr; do
     exit 1
   fi
 
-  for tbl in $(printf '%s\n' "$BODY" | grep -oE '[A-Za-z0-9_]+AttrHandlers' | sort -u || true); do
-    BODY="$BODY
-$(var_block "$tbl" || true)"
-  done
-
   for callee in $(printf '%s\n' "$BODY" | grep -oE '\bedit[A-Z][A-Za-z0-9_]*\(' | tr -d '(' | sort -u || true); do
     BODY="$BODY
 $(func_body "$callee" || true)"
+  done
+
+  for tbl in $(printf '%s\n' "$BODY" | grep -oE '[A-Za-z0-9_]+Attr[A-Za-z0-9_]*' | sort -u || true); do
+    BODY="$BODY
+$(var_block "$tbl" || true)"
   done
 
   if ! grep -qF "\"$attr\"" <<< "$BODY"; then
