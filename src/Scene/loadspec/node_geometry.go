@@ -4,10 +4,9 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/nodegeom"
 	"github.com/dtauraso/wirefold/src/Polar/polar"
 	"github.com/dtauraso/wirefold/src/Polar/polarindex"
-	"github.com/dtauraso/wirefold/src/spatial"
 )
 
-func (s TopoSpec) SeedGeometry(sceneCenter spatial.Vec3) (
+func (s TopoSpec) SeedGeometry(sceneCenter Vec3) (
 	map[string]nodegeom.NodeGeom, map[string]polarindex.Index, map[string]polarindex.Offset,
 ) {
 	geoms := make(map[string]nodegeom.NodeGeom, len(s.Nodes))
@@ -19,12 +18,12 @@ func (s TopoSpec) SeedGeometry(sceneCenter spatial.Vec3) (
 	return geoms, base, drag
 }
 
-func (n Node) SeedGeometry(sceneCenter spatial.Vec3, sc polarindex.SceneConstants) (nodegeom.NodeGeom, polarindex.Index, polarindex.Offset) {
+func (n Node) SeedGeometry(sceneCenter Vec3, sc polarindex.SceneConstants) (nodegeom.NodeGeom, polarindex.Index, polarindex.Offset) {
 	g := n.ToNodeGeom(sceneCenter, sc)
 
 	base := n.declaredIndex(sc)
 	if base == nil && g.HasPos {
-		p := polar.Cart2polar(nodegeom.NodeWorldPos(g).Sub(sceneCenter))
+		p := polar.Cart2polar(polar.Vec3(nodegeom.NodeWorldPos(g).Sub(nodegeom.Vec3(sceneCenter))))
 		m := polarindex.MeasureIndex(p, sc)
 		base = &m
 	}

@@ -9,7 +9,6 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/nodegeom"
 	"github.com/dtauraso/wirefold/src/Polar/polar"
 	"github.com/dtauraso/wirefold/src/Polar/polarindex"
-	"github.com/dtauraso/wirefold/src/spatial"
 )
 
 type EdgeFrameBuilder = func(tick uint32, edgeRow int32, sx, sy, sz, ex, ey, ez float32, srcNodeRow, dstNodeRow int32, deltaR float32, dragActive uint8, label string, events []T.RowEvent)
@@ -26,7 +25,7 @@ type outEdge struct {
 	port *beadanimation.Sender
 	dest *beadanimation.BeadLine
 
-	start, end spatial.Vec3
+	start, end Vec3
 	steps      int
 	derived    bool
 
@@ -114,23 +113,23 @@ func (o *OutEdges) DeriveGeometry(self nodegeom.NodeGeom, deltas *Deltas) {
 			continue
 		}
 		targetIndex := polarindex.Compose(selfIndex, d, o.constants)
-		targetCenter := polar.Polar2cart(polarindex.ToPolar(targetIndex, o.constants)).Add(self.SceneCenter)
+		targetCenter := polar.Polar2cart(polarindex.ToPolar(targetIndex, o.constants)).Add(polar.Vec3(self.SceneCenter))
 
 		start, end := selfCenter, targetCenter
-		dir := targetCenter.Sub(selfCenter)
+		dir := targetCenter.Sub(polar.Vec3(selfCenter))
 		if dir.Length() >= 1e-9 {
 			unit := dir.Normalize()
-			start = selfCenter.Add(unit.Scale(nodegeom.NodeTorusOuterR(self.Kind)))
+			start = selfCenter.Add(nodegeom.Vec3(unit.Scale(nodegeom.NodeTorusOuterR(self.Kind))))
 			end = targetCenter.Sub(unit.Scale(nodegeom.NodeTorusOuterR(e.targetKind)))
 		}
-		if dist, _, ok := edgegeom.EdgeCenterDistAndDir(selfCenter, targetCenter); ok {
+		if dist, _, ok := edgegeom.EdgeCenterDistAndDir(edgegeom.Vec3(selfCenter), edgegeom.Vec3(targetCenter)); ok {
 			e.steps = edgegeom.EdgeStepCount(dist, self.Kind, e.targetKind)
 		}
-		e.start, e.end, e.derived = start, end, true
+		e.start, e.end, e.derived = Vec3(start), Vec3(end), true
 		e.deltaR = float32(d.R) * float32(o.constants.ConstantR)
 
 		if e.port != nil {
-			e.port.PostGeom(e.steps, o.constants.ConstantR, start, end)
+			e.port.PostGeom(e.steps, o.constants.ConstantR, beadanimation.Vec3(start), beadanimation.Vec3(end))
 		}
 		if dragDelta, ok := deltas.DragDeltaTo(e.targetID); ok {
 			o.persistDelta(e, dragDelta)

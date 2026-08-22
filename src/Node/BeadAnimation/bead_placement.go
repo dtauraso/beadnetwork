@@ -1,13 +1,11 @@
 package beadanimation
 
-import "github.com/dtauraso/wirefold/src/spatial"
-
 type BeadPlacement struct {
 	Steps int
 
 	SlotR float64
 
-	Start, End spatial.Vec3
+	Start, End Vec3
 	Node, Port string
 }
 
@@ -25,7 +23,7 @@ type inflightBead struct {
 	val  int
 	slot int
 
-	seg     spatial.Segment
+	seg     Segment
 	steps   int
 	slotR   float64
 	node    string

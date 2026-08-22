@@ -4,7 +4,6 @@ import (
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/src/Node/Edge/edgetable"
 	"github.com/dtauraso/wirefold/src/Node/nodeactor"
-	"github.com/dtauraso/wirefold/src/spatial"
 )
 
 const InboxDepth = 8
@@ -16,7 +15,7 @@ type MoverRegistry struct {
 
 	edgeOut map[string]*beadanimation.Sender
 
-	centerMirror map[string]spatial.Vec3
+	centerMirror map[string]Vec3
 }
 
 func New() MoverRegistry {
@@ -24,7 +23,7 @@ func New() MoverRegistry {
 		nodeGeoms:    map[string]*nodeactor.NodeGeometry{},
 		edges:        map[string]*edgetable.Edge{},
 		edgeOut:      map[string]*beadanimation.Sender{},
-		centerMirror: map[string]spatial.Vec3{},
+		centerMirror: map[string]Vec3{},
 	}
 }
 
@@ -41,6 +40,6 @@ func (mr *MoverRegistry) Edges() map[string]*edgetable.Edge {
 	return mr.edges
 }
 
-func (mr *MoverRegistry) SeedCenter(id string, c spatial.Vec3) {
+func (mr *MoverRegistry) SeedCenter(id string, c Vec3) {
 	mr.centerMirror[id] = c
 }

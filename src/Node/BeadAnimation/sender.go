@@ -4,14 +4,12 @@ import (
 	"context"
 
 	T "github.com/dtauraso/wirefold/src/Trace"
-
-	"github.com/dtauraso/wirefold/src/spatial"
 )
 
 type outGeom struct {
 	Steps      int
 	SlotR      float64
-	Start, End spatial.Vec3
+	Start, End Vec3
 }
 
 type Sender struct {
@@ -44,7 +42,7 @@ func (o *Sender) Geom() outGeom {
 	return o.sendCur
 }
 
-func (o *Sender) PostGeom(steps int, slotR float64, start, end spatial.Vec3) {
+func (o *Sender) PostGeom(steps int, slotR float64, start, end Vec3) {
 	if o == nil || o.postedGeom == nil {
 		return
 	}

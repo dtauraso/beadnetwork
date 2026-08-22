@@ -4,7 +4,6 @@ import (
 	"math"
 
 	"github.com/dtauraso/wirefold/src/Polar/polar"
-	"github.com/dtauraso/wirefold/src/spatial"
 )
 
 type SceneConstants struct {
@@ -51,14 +50,14 @@ func Canonical(o Index, sc SceneConstants) Index {
 	return Index{Phi: phi, Theta: theta, R: o.R}
 }
 
-func MeasureScalars(centers map[string]spatial.Vec3, ids map[string]bool, sceneCenter spatial.Vec3, sc SceneConstants) map[string]Index {
+func MeasureScalars(centers map[string]Vec3, ids map[string]bool, sceneCenter Vec3, sc SceneConstants) map[string]Index {
 	result := make(map[string]Index, len(ids))
 	for id := range ids {
 		pos, ok := centers[id]
 		if !ok {
 			continue
 		}
-		p := polar.Cart2polar(pos.Sub(sceneCenter))
+		p := polar.Cart2polar(polar.Vec3(pos.Sub(sceneCenter)))
 		result[id] = Canonical(Index{
 			Phi:   int(math.Round(p.Phi / sc.ConstantPhi())),
 			Theta: int(math.Round(p.Theta / sc.ConstantTheta())),
@@ -92,10 +91,10 @@ func OffsetToPolar(o Offset, sc SceneConstants) polar.Polar {
 	return polar.Polar{R: float64(o.R) * sc.ConstantR, Phi: float64(o.Phi) * sc.ConstantPhi(), Theta: float64(o.Theta) * sc.ConstantTheta()}
 }
 
-func DeriveCenters(scalars map[string]Index, sceneCenter spatial.Vec3, sc SceneConstants) map[string]spatial.Vec3 {
-	derived := make(map[string]spatial.Vec3, len(scalars))
+func DeriveCenters(scalars map[string]Index, sceneCenter Vec3, sc SceneConstants) map[string]Vec3 {
+	derived := make(map[string]Vec3, len(scalars))
 	for id, o := range scalars {
-		derived[id] = sceneCenter.Add(polar.Polar2cart(ToPolar(o, sc)))
+		derived[id] = sceneCenter.Add(Vec3(polar.Polar2cart(ToPolar(o, sc))))
 	}
 	return derived
 }

@@ -5,12 +5,19 @@ import (
 
 	"github.com/dtauraso/wirefold/src/Camera"
 	"github.com/dtauraso/wirefold/src/Polar/polar"
-	"github.com/dtauraso/wirefold/src/spatial"
 )
 
-func (g *GestureState) BeginSphereRotation(vp Camera.Viewpoint, heldCenters func() map[string]spatial.Vec3, ev RawInputMsg) {
-	pivot := Camera.FocusAhead(vp, heldCenters())
-	g.RotPivot = pivot
+func (g *GestureState) BeginSphereRotation(vp Camera.Viewpoint, heldCenters func() map[string]Vec3, ev RawInputMsg) {
+	centers := heldCenters()
+	camCenters := make(map[string]Camera.Vec3, len(centers))
+	polarCenters := make(map[string]polar.Vec3, len(centers))
+	for id, c := range centers {
+		camCenters[id] = Camera.Vec3(c)
+		polarCenters[id] = polar.Vec3(c)
+	}
+
+	pivot := Camera.FocusAhead(vp, camCenters)
+	g.RotPivot = Vec3(pivot)
 
 	eye := Camera.EyeOf(vp)
 	basis := Camera.BasisFromViewpoint(vp.Pos, vp.Up)
@@ -18,7 +25,7 @@ func (g *GestureState) BeginSphereRotation(vp Camera.Viewpoint, heldCenters func
 	g.RotCx = ((ndcX+1)/2)*g.Rect.Width + g.Rect.Left
 	g.RotCy = ((-ndcY+1)/2)*g.Rect.Height + g.Rect.Top
 
-	_, csRadius := polar.ContentSphereOf(heldCenters())
+	_, csRadius := polar.ContentSphereOf(polarCenters)
 	pivotDist := eye.Sub(pivot).Length()
 	fovRad := g.Fov * math.Pi / 180
 	rpx := (g.Rect.Height / 2) / math.Tan(fovRad/2)

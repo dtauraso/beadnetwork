@@ -1,11 +1,9 @@
 package Camera
 
-import "github.com/dtauraso/wirefold/src/spatial"
-
 const ViewpointMinDist = 5.0
 
 type Viewpoint struct {
-	Pivot      spatial.Vec3
+	Pivot      Vec3
 	R          float64
 	Pos        Dir
 	Up         Dir
@@ -38,6 +36,6 @@ func (v *Viewpoint) Zoom(factor float64) {
 	v.R = nr
 }
 
-func (v *Viewpoint) Pan(delta spatial.Vec3) {
+func (v *Viewpoint) Pan(delta Vec3) {
 	v.Pivot = v.Pivot.Add(delta)
 }

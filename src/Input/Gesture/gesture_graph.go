@@ -4,8 +4,8 @@ import (
 	"github.com/dtauraso/wirefold/src/Camera"
 	"github.com/dtauraso/wirefold/src/Input/Drag"
 	"github.com/dtauraso/wirefold/src/Node/movemsg"
+	"github.com/dtauraso/wirefold/src/Node/nodemove"
 	"github.com/dtauraso/wirefold/src/Scene/viewstate"
-	"github.com/dtauraso/wirefold/src/spatial"
 )
 
 type gestureEdge struct {
@@ -38,7 +38,7 @@ var commitEdges = []gestureEdge{
 func commitDragStart(ui *viewstate.UIState, sendMoveFn func(id string, msg movemsg.Msg), g *Drag.GestureState, ev Drag.RawInputMsg) {
 
 	if hit, ok := ui.DragPlaneHit(ev); ok {
-		g.DragGrabOffset = g.DragStartCenter.Sub(hit)
+		g.DragGrabOffset = g.DragStartCenter.Sub(Drag.Vec3(hit))
 	}
 
 	ui.LastDraggedNode = g.DragNode
@@ -50,20 +50,20 @@ func commitHandholdStart(d Deps, g *Drag.GestureState, ev Drag.RawInputMsg) {
 
 	g.PrevX, g.PrevY = g.DownX, g.DownY
 	g.SmoothX, g.SmoothY = g.DownX, g.DownY
-	seedOrbitPivot(d, g.RotPivot)
+	seedOrbitPivot(d, Vec3(g.RotPivot))
 }
 
 func commitRotateStart(d Deps, g *Drag.GestureState, ev Drag.RawInputMsg) {
 	g.PrevX, g.PrevY = ev.X, ev.Y
 	g.SmoothX, g.SmoothY = ev.X, ev.Y
 
-	seedOrbitPivot(d, g.RotPivot)
+	seedOrbitPivot(d, Vec3(g.RotPivot))
 }
 
 var applyAction = map[Drag.GesturePhase]func(d Deps, g *Drag.GestureState, ev Drag.RawInputMsg){
 	Drag.GestDragging: func(d Deps, g *Drag.GestureState, ev Drag.RawInputMsg) {
 		nodeGeoms, mv, ctx := d.MR.NodeGeoms(), d.Mover, d.Ctx
-		if applyNodeDragTarget(d.UI, func(id string, target spatial.Vec3) bool { return mv.RootMove(ctx, nodeGeoms, id, target) }, ev) {
+		if applyNodeDragTarget(d.UI, func(id string, target Vec3) bool { return mv.RootMove(ctx, nodeGeoms, id, nodemove.Vec3(target)) }, ev) {
 			g.PrevX, g.PrevY = ev.X, ev.Y
 		}
 	},

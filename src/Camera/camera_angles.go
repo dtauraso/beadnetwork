@@ -2,14 +2,13 @@ package Camera
 
 import (
 	"github.com/dtauraso/wirefold/src/Polar/polar"
-	"github.com/dtauraso/wirefold/src/spatial"
 )
 
-func AnglesToWorldOffset(r, phi, theta float64) spatial.Vec3 {
-	return polar.Polar2cart(polar.Polar{R: r, Phi: phi, Theta: theta})
+func AnglesToWorldOffset(r, phi, theta float64) Vec3 {
+	return Vec3(polar.Polar2cart(polar.Polar{R: r, Phi: phi, Theta: theta}))
 }
 
-func WorldDirToAngles(v spatial.Vec3) Dir {
-	p := polar.Cart2polar(v)
+func WorldDirToAngles(v Vec3) Dir {
+	p := polar.Cart2polar(polar.Vec3(v))
 	return Dir{Phi: p.Phi, Theta: p.Theta}
 }

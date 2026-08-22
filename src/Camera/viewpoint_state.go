@@ -1,8 +1,6 @@
 package Camera
 
-import (
-	"github.com/dtauraso/wirefold/src/spatial"
-)
+import ()
 
 type ViewpointState struct {
 	Viewpoint
@@ -10,7 +8,7 @@ type ViewpointState struct {
 	Persist func(Viewpoint)
 }
 
-func (v *ViewpointState) SetViewpoint(pivot spatial.Vec3, r float64, pos, up Dir) {
+func (v *ViewpointState) SetViewpoint(pivot Vec3, r float64, pos, up Dir) {
 	v.Pivot = pivot
 	v.R = r
 	v.Pos = pos
@@ -40,7 +38,7 @@ func (v *ViewpointState) ZoomViewpoint(factor float64) {
 	v.EmitViewpoint()
 }
 
-func (v *ViewpointState) PanViewpoint(delta spatial.Vec3) {
+func (v *ViewpointState) PanViewpoint(delta Vec3) {
 	v.Pan(delta)
 	v.EmitViewpoint()
 }

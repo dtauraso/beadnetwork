@@ -1,19 +1,17 @@
 package owners
 
-import "github.com/dtauraso/wirefold/src/spatial"
-
 type ChannelVectors struct {
 	sceneToNodeOn chan bool
 
 	on bool
 
-	peerCenters map[string]spatial.Vec3
+	peerCenters map[string]Vec3
 
-	sentCenter    spatial.Vec3
+	sentCenter    Vec3
 	hasSentCenter bool
 }
 
-func (c *ChannelVectors) NeedsBroadcast(center spatial.Vec3) bool {
+func (c *ChannelVectors) NeedsBroadcast(center Vec3) bool {
 	if !c.on {
 		return false
 	}
@@ -48,6 +46,6 @@ func (c *ChannelVectors) TakeOn() (on, turnedOn bool) {
 
 func (c *ChannelVectors) On() bool { return c.on }
 
-func (c *ChannelVectors) SetPeerCenters(m map[string]spatial.Vec3) { c.peerCenters = m }
+func (c *ChannelVectors) SetPeerCenters(m map[string]Vec3) { c.peerCenters = m }
 
-func (c *ChannelVectors) PeerCenters() map[string]spatial.Vec3 { return c.peerCenters }
+func (c *ChannelVectors) PeerCenters() map[string]Vec3 { return c.peerCenters }

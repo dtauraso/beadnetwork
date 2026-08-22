@@ -35,7 +35,12 @@ func InstallSceneSphere(ui *viewstate.UIState, gs *Scene.GeomSeeds, topologyPath
 		ui.SceneSphere = s
 	} else {
 
-		ui.SceneSphere = polar.ContentFitSceneSphere(gs.LoadTimeCenters())
+		centers := gs.LoadTimeCenters()
+		polarCenters := make(map[string]polar.Vec3, len(centers))
+		for id, c := range centers {
+			polarCenters[id] = polar.Vec3(c)
+		}
+		ui.SceneSphere = polar.ContentFitSceneSphere(polarCenters)
 
 		if topologyPath != "" {
 			_ = WriteSceneSphere(topologyPath, ui.SceneSphere)

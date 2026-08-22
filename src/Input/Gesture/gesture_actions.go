@@ -6,7 +6,6 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/movemsg"
 	"github.com/dtauraso/wirefold/src/Scene/rowtables"
 	"github.com/dtauraso/wirefold/src/Scene/viewstate"
-	"github.com/dtauraso/wirefold/src/spatial"
 )
 
 func updateHover(d Deps, ev Drag.RawInputMsg) {
@@ -25,12 +24,12 @@ func updateHover(d Deps, ev Drag.RawInputMsg) {
 	}
 }
 
-func seedOrbitPivot(d Deps, pivot spatial.Vec3) {
+func seedOrbitPivot(d Deps, pivot Vec3) {
 	vp := d.UI.VP.Viewpoint
 	eye := Camera.EyeOf(vp)
-	r := eye.Sub(pivot).Length()
-	pos := Camera.WorldDirToAngles(eye.Sub(pivot))
-	d.UI.VP.SetViewpoint(pivot, r, pos, vp.Up)
+	r := eye.Sub(Camera.Vec3(pivot)).Length()
+	pos := Camera.WorldDirToAngles(eye.Sub(Camera.Vec3(pivot)))
+	d.UI.VP.SetViewpoint(Camera.Vec3(pivot), r, pos, vp.Up)
 }
 
 func applyOrbit(d Deps, ev Drag.RawInputMsg) {
@@ -57,13 +56,13 @@ func applyOrbitLocked(d Deps, ev Drag.RawInputMsg) {
 	d.UI.EmitViewFrame(nil)
 }
 
-func applyNodeDragTarget(ui *viewstate.UIState, rootMove func(id string, target spatial.Vec3) bool, ev Drag.RawInputMsg) bool {
+func applyNodeDragTarget(ui *viewstate.UIState, rootMove func(id string, target Vec3) bool, ev Drag.RawInputMsg) bool {
 	g := &ui.Gest
 	hit, ok := ui.DragPlaneHit(ev)
 	if !ok {
 		return false
 	}
-	rootMove(g.DragNode, hit.Add(g.DragGrabOffset))
+	rootMove(g.DragNode, Vec3(hit.Add(viewstate.Vec3(g.DragGrabOffset))))
 	return true
 }
 

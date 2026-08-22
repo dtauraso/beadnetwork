@@ -2,8 +2,6 @@ package polar
 
 import (
 	"math"
-
-	"github.com/dtauraso/wirefold/src/spatial"
 )
 
 type Polar struct {
@@ -39,9 +37,9 @@ func wrapTurn(a float64) float64 {
 	return a
 }
 
-func Polar2cart(p Polar) spatial.Vec3 {
+func Polar2cart(p Polar) Vec3 {
 	st := math.Sin(p.Phi)
-	return spatial.Vec3{
+	return Vec3{
 		X: p.R * st * math.Cos(p.Theta),
 		Y: p.R * math.Cos(p.Phi),
 		Z: p.R * st * math.Sin(p.Theta),
@@ -52,15 +50,15 @@ func WorldAxisPole() (phi, theta float64) {
 	return 0, 0
 }
 
-func phiOf(v spatial.Vec3) float64 {
+func phiOf(v Vec3) float64 {
 	return math.Atan2(math.Hypot(v.X, v.Z), v.Y)
 }
 
-func Cart2polar(v spatial.Vec3) Polar {
+func Cart2polar(v Vec3) Polar {
 	return Polar{R: v.Length(), Phi: phiOf(v), Theta: math.Atan2(v.Z, v.X)}
 }
 
-func Cart2polarAtTheta(v spatial.Vec3, theta float64) Polar {
+func Cart2polarAtTheta(v Vec3, theta float64) Polar {
 	axial := v.X*math.Cos(theta) + v.Z*math.Sin(theta)
 	return Polar{R: math.Hypot(axial, v.Y), Phi: math.Atan2(axial, v.Y), Theta: theta}
 }

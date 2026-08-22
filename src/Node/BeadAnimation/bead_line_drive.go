@@ -3,8 +3,6 @@ package beadanimation
 import (
 	"context"
 	"fmt"
-
-	"github.com/dtauraso/wirefold/src/spatial"
 )
 
 func (bl *BeadLine) DriveOneStep(ctx context.Context, tick int64) {
@@ -24,7 +22,7 @@ func (bl *BeadLine) drainPlacements() {
 			bl.inflight = append(bl.inflight, inflightBead{
 				val:     req.val,
 				slot:    0,
-				seg:     spatial.Segment{Start: req.bp.Start, End: req.bp.End},
+				seg:     Segment{Start: req.bp.Start, End: req.bp.End},
 				steps:   req.bp.Steps,
 				slotR:   req.bp.SlotR,
 				node:    req.bp.Node,

@@ -38,7 +38,7 @@ func Load(ctx context.Context, scenePath string, clk clock.Clock) (Scene, error)
 
 	sphere, hasScene := scenepersist.LoadSceneSphere(scenePath)
 
-	nodeGeoms, baseIndices, dragIndices := spec.SeedGeometry(sphere.Center)
+	nodeGeoms, baseIndices, dragIndices := spec.SeedGeometry(loadspec.Vec3(sphere.Center))
 	destRun, edgeRun, edgeEndpoints := spec.AllocateBeadLines(nodeGeoms)
 	vectorOut, vectorIn := spec.AllocateVectorChannels()
 

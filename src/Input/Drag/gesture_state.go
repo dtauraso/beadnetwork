@@ -2,7 +2,6 @@ package Drag
 
 import (
 	"github.com/dtauraso/wirefold/src/Camera"
-	"github.com/dtauraso/wirefold/src/spatial"
 )
 
 type GesturePhase int
@@ -29,13 +28,13 @@ type GestureState struct {
 	EmptyDown bool
 
 	DragNode        string
-	DragStartCenter spatial.Vec3
+	DragStartCenter Vec3
 
-	DragGrabOffset spatial.Vec3
+	DragGrabOffset Vec3
 
 	HandholdDown bool
 
-	RotPivot     spatial.Vec3
+	RotPivot     Vec3
 	RotCx, RotCy float64
 	RotPxPerRad  float64
 
@@ -62,7 +61,7 @@ func (g *GestureState) Reset(vp *Camera.Viewpoint) {
 	g.Phase = GestIdle
 	g.EmptyDown = false
 	g.DragNode = ""
-	g.DragGrabOffset = spatial.Vec3{}
+	g.DragGrabOffset = Vec3{}
 	g.HandholdDown = false
 	g.Secondary = false
 	vp.LockedAxis = nil

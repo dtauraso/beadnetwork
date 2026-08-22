@@ -5,7 +5,6 @@ import (
 
 	"github.com/dtauraso/wirefold/src/Node/framegeom"
 	"github.com/dtauraso/wirefold/src/Node/nodegeom"
-	"github.com/dtauraso/wirefold/src/spatial"
 )
 
 const (
@@ -13,8 +12,21 @@ const (
 	RingSurfaceNv = nodegeom.ShadingParamNodeRingSurfaceNv
 )
 
-func CanonicalRingSurfacePoints() []spatial.Vec3 {
-	return framegeom.CanonicalTorusSurfacePoints(nodegeom.ShadingParamNodeRingTubeRatio, RingSurfaceNu, RingSurfaceNv)
+func CanonicalRingSurfacePoints() []Vec3 {
+	pts := framegeom.CanonicalTorusSurfacePoints(nodegeom.ShadingParamNodeRingTubeRatio, RingSurfaceNu, RingSurfaceNv)
+	out := make([]Vec3, len(pts))
+	for i, p := range pts {
+		out[i] = Vec3(p)
+	}
+	return out
+}
+
+func toFrameGeomPoints(pts []Vec3) []framegeom.Vec3 {
+	out := make([]framegeom.Vec3, len(pts))
+	for i, p := range pts {
+		out[i] = framegeom.Vec3(p)
+	}
+	return out
 }
 
 var (
@@ -24,7 +36,7 @@ var (
 
 func CanonicalRingSurfacePointsFlat() []float32 {
 	ringSurfaceFlatOnce.Do(func() {
-		ringSurfaceFlat = framegeom.FlattenPoints(CanonicalRingSurfacePoints())
+		ringSurfaceFlat = framegeom.FlattenPoints(toFrameGeomPoints(CanonicalRingSurfacePoints()))
 	})
 	return ringSurfaceFlat
 }

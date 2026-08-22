@@ -5,7 +5,6 @@ import (
 	"math"
 
 	T "github.com/dtauraso/wirefold/src/Trace"
-	"github.com/dtauraso/wirefold/src/spatial"
 
 	"github.com/dtauraso/wirefold/src/Chrome/Pills/FitButton"
 
@@ -16,16 +15,16 @@ import (
 )
 
 func gestHome(d Deps, ev Drag.RawInputMsg) {
-	centers := nodemove.HeldCenters(d.MR.NodeGeoms(), d.MR.CenterOfNode)
+	centers := heldCenters(d)
 	radius := make(map[string]float64, len(centers))
 	for id := range centers {
 		radius[id] = d.MR.NodeBodyRadius(id)
 	}
-	pivot, r, pos, up, ok := FitButton.HomeFitPose(centers, radius, d.UI.FovDeg(), d.UI.Gest.Rect.Aspect())
+	pivot, r, pos, up, ok := FitButton.HomeFitPose(centersForFit(centers), radius, d.UI.FovDeg(), d.UI.Gest.Rect.Aspect())
 	if !ok {
 		return
 	}
-	d.UI.VP.SetViewpoint(pivot, r, pos, up)
+	d.UI.VP.SetViewpoint(Camera.Vec3(pivot), r, pos, up)
 	d.UI.VP.EmitViewpoint()
 	d.UI.EmitViewFrame(nil)
 }
@@ -84,7 +83,7 @@ func gestPointerUp(d Deps, ev Drag.RawInputMsg) {
 	switch {
 	case g.Phase == Drag.GestDragging:
 		nodeGeoms, mv, ctx := d.MR.NodeGeoms(), d.Mover, d.Ctx
-		applyNodeDragTarget(d.UI, func(id string, target spatial.Vec3) bool { return mv.RootMove(ctx, nodeGeoms, id, target) }, ev)
+		applyNodeDragTarget(d.UI, func(id string, target Vec3) bool { return mv.RootMove(ctx, nodeGeoms, id, nodemove.Vec3(target)) }, ev)
 	case g.Phase == Drag.GestHandhold, g.Phase == Drag.GestRotating:
 
 	case g.Phase == Drag.GestPending:
@@ -108,7 +107,7 @@ func gestPointerUp(d Deps, ev Drag.RawInputMsg) {
 func gestWheel(d Deps, ev Drag.RawInputMsg) {
 	vp := d.UI.VP.Viewpoint
 	eye := Camera.EyeOf(vp)
-	pivot := Camera.RegionFocus(vp, nodemove.HeldCenters(d.MR.NodeGeoms(), d.MR.CenterOfNode))
+	pivot := Camera.RegionFocus(vp, centersForCamera(heldCenters(d)))
 
 	if ev.Ctrl {
 
@@ -117,14 +116,14 @@ func gestWheel(d Deps, ev Drag.RawInputMsg) {
 		aspect := d.UI.Gest.Rect.Aspect()
 		target := pivot
 		best := math.Inf(1)
-		for _, c := range nodemove.HeldCenters(d.MR.NodeGeoms(), d.MR.CenterOfNode) {
-			nx, ny, inFront := Camera.ProjectNDC(c, eye, basis, d.UI.FovDeg(), aspect)
+		for _, c := range heldCenters(d) {
+			nx, ny, inFront := Camera.ProjectNDC(Camera.Vec3(c), eye, basis, d.UI.FovDeg(), aspect)
 			if !inFront {
 				continue
 			}
 			if dd := math.Hypot(nx-mouseNdcX, ny-mouseNdcY); dd < best {
 				best = dd
-				target = c
+				target = Camera.Vec3(c)
 			}
 		}
 		toTarget := target.Sub(eye)

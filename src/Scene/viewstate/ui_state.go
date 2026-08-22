@@ -25,7 +25,6 @@ import (
 	"github.com/dtauraso/wirefold/src/RingPoint"
 	"github.com/dtauraso/wirefold/src/Scene"
 	"github.com/dtauraso/wirefold/src/Scene/selectionstate"
-	"github.com/dtauraso/wirefold/src/spatial"
 )
 
 type UIState struct {
@@ -127,7 +126,7 @@ func (ui *UIState) SetSelectionUI(sendMove func(id string, msg movemsg.Msg), nod
 	}
 }
 
-func (ui *UIState) DropPointFromNDC(ndcX, ndcY float64) (spatial.Vec3, bool) {
+func (ui *UIState) DropPointFromNDC(ndcX, ndcY float64) (Vec3, bool) {
 	vp := ui.VP.Viewpoint
 	eye := Camera.EyeOf(vp)
 	basis := Camera.BasisFromViewpoint(vp.Pos, vp.Up)
@@ -135,14 +134,14 @@ func (ui *UIState) DropPointFromNDC(ndcX, ndcY float64) (spatial.Vec3, bool) {
 	forward := basis.Pole.Scale(-1)
 	denom := dir.Dot(forward)
 	if denom == 0 {
-		return spatial.Vec3{}, false
+		return Vec3{}, false
 	}
-	t := ui.SceneSphere.Center.Sub(eye).Dot(forward) / denom
+	t := ui.SceneSphere.Center.Sub(polar.Vec3(eye)).Dot(polar.Vec3(forward)) / denom
 	hit := eye.Add(dir.Scale(t))
 	if math.IsNaN(hit.X) || math.IsInf(hit.X, 0) {
-		return spatial.Vec3{}, false
+		return Vec3{}, false
 	}
-	return hit, true
+	return Vec3(hit), true
 }
 
 func (ui *UIState) SetHoverUI(sendMove func(id string, msg movemsg.Msg), node, port string, isInput bool) {
@@ -156,7 +155,7 @@ func (ui *UIState) SetHoverUI(sendMove func(id string, msg movemsg.Msg), node, p
 	}
 }
 
-func (ui *UIState) DragPlaneHit(ev Drag.RawInputMsg) (hit spatial.Vec3, ok bool) {
+func (ui *UIState) DragPlaneHit(ev Drag.RawInputMsg) (hit Vec3, ok bool) {
 	g := &ui.Gest
 	vp := ui.VP.Viewpoint
 	eye := Camera.EyeOf(vp)
@@ -166,12 +165,12 @@ func (ui *UIState) DragPlaneHit(ev Drag.RawInputMsg) (hit spatial.Vec3, ok bool)
 	forward := basis.Pole.Scale(-1)
 	denom := dir.Dot(forward)
 	if denom == 0 {
-		return spatial.Vec3{}, false
+		return Vec3{}, false
 	}
-	t := g.DragStartCenter.Sub(eye).Dot(forward) / denom
-	hit = eye.Add(dir.Scale(t))
+	t := g.DragStartCenter.Sub(Drag.Vec3(eye)).Dot(Drag.Vec3(forward)) / denom
+	hit = Vec3(eye.Add(dir.Scale(t)))
 	if math.IsNaN(hit.X) || math.IsInf(hit.X, 0) {
-		return spatial.Vec3{}, false
+		return Vec3{}, false
 	}
 	return hit, true
 }

@@ -2,11 +2,9 @@ package Camera
 
 import (
 	"math"
-
-	"github.com/dtauraso/wirefold/src/spatial"
 )
 
-func ProjectNDC(p, eye spatial.Vec3, b CamBasis, fovDeg, aspect float64) (ndcX, ndcY float64, inFront bool) {
+func ProjectNDC(p, eye Vec3, b CamBasis, fovDeg, aspect float64) (ndcX, ndcY float64, inFront bool) {
 	rel := p.Sub(eye)
 	cx := rel.Dot(b.RefX)
 	cy := rel.Dot(b.RefY)
@@ -20,7 +18,7 @@ func ProjectNDC(p, eye spatial.Vec3, b CamBasis, fovDeg, aspect float64) (ndcX, 
 	return ndcX, ndcY, true
 }
 
-func RayDirThroughNDC(nx, ny float64, b CamBasis, fovDeg, aspect float64) spatial.Vec3 {
+func RayDirThroughNDC(nx, ny float64, b CamBasis, fovDeg, aspect float64) Vec3 {
 	tanHalf := math.Tan((fovDeg * math.Pi / 180) / 2)
 	camDir := b.RefX.Scale(nx * tanHalf * aspect).
 		Add(b.RefY.Scale(ny * tanHalf)).

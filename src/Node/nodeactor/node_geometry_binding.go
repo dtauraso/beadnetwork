@@ -63,12 +63,12 @@ func (m *NodeGeometry) SetSceneFlags(coplanarEdges, upAxis bool) {
 
 func (m *NodeGeometry) SetBaseIndex(off polarindex.Index) {
 	m.geom.BaseIndex = off
-	m.msg.PublishCenter(nodegeom.NodeWorldPos(m.geom))
+	m.msg.PublishCenter(owners.Vec3(nodegeom.NodeWorldPos(m.geom)))
 }
 
 func (m *NodeGeometry) SetDragIndex(off polarindex.Offset) {
 	m.geom.DragIndex = off
-	m.msg.PublishCenter(nodegeom.NodeWorldPos(m.geom))
+	m.msg.PublishCenter(owners.Vec3(nodegeom.NodeWorldPos(m.geom)))
 }
 
 func (m *NodeGeometry) SetTopTiltVectorPhiIdx(idx int32) {

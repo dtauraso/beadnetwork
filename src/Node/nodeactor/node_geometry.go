@@ -8,7 +8,6 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/nodegeom"
 	"github.com/dtauraso/wirefold/src/Node/rulenode"
 	"github.com/dtauraso/wirefold/src/Polar/polarindex"
-	"github.com/dtauraso/wirefold/src/spatial"
 )
 
 const inboxDepth = 8
@@ -65,7 +64,7 @@ func NewNodeGeometry(id string, geom nodegeom.NodeGeom, clockSrc clock.Clock, co
 		id: id, geom: geom,
 		msg: owners.NewMessaging(
 			make(chan movemsg.Msg, inboxDepth),
-			make(chan spatial.Vec3, 1),
+			make(chan owners.Vec3, 1),
 		),
 		topo:      owners.NewTopology(),
 		deltas:    owners.NewDeltas(),
@@ -75,7 +74,7 @@ func NewNodeGeometry(id string, geom nodegeom.NodeGeom, clockSrc clock.Clock, co
 		kindPosts: owners.NewKindPosts(),
 	}
 
-	ng.msg.SeedCenter(nodegeom.NodeWorldPos(geom))
+	ng.msg.SeedCenter(owners.Vec3(nodegeom.NodeWorldPos(geom)))
 	ng.outEdges.SetConstants(constants)
 	ng.deltas.SetConstants(constants)
 
