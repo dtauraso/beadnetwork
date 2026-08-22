@@ -1,3 +1,4 @@
+import { noteSpawnGen } from "../webview/spawn-gen";
 import { SCENE_VALUES } from "./scene-values-gen";
 
 const vals = new Map<string, number>(SCENE_VALUES.map((v) => [v.name, 0]));
@@ -57,6 +58,7 @@ export function startSceneReads(): void {
             const dv = new DataView(b);
             vals.set(v.name, v.kind === "f64" ? dv.getFloat64(0, true) : Number(dv.getBigInt64(0, true)));
           }
+          noteSpawnGen(vals.get("spawn") ?? 0);
         }
       }
       await new Promise((r) => setTimeout(r, READ_INTERVAL_MS));

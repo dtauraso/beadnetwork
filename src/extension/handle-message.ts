@@ -14,7 +14,6 @@ import {
 import { appendWebviewLog } from "./webview-log";
 import { PROBE_DIR, PROBE_FILES } from "./probe-files";
 import { resolveRepoRoot } from "./repo-root";
-import { BUF_BLOCK_TAG_VIEW, BUF_BLOCK_TAG_EDGE_STREAM, BUF_BLOCK_TAG_NODE_STREAM, BUF_BLOCK_TAG_INTERIOR_STREAM, BUF_BLOCK_TAG_BEAD_STREAM } from "../Buffer/frame-tags";
 
 export type MessageCtx = {
   logUri: vscode.Uri | undefined;
@@ -67,28 +66,7 @@ async function dispatch(msg: WebviewToHostMsg, ctx: MessageCtx): Promise<void> {
     // LIVE_CASES_START
     case "ready": {
 
-      const wasRunning = runner.isRunning();
       runner.run();
-      if (wasRunning) {
-        const viewFrame = runner.getLastViewFrame();
-        if (viewFrame) {
-          ctx.post({ type: "buffer-snapshot", buffer: viewFrame, tag: BUF_BLOCK_TAG_VIEW, gen: runner.currentGen() });
-        }
-
-        for (const { row, buffer } of runner.getLastEdgeFrames()) {
-          ctx.post({ type: "buffer-snapshot", buffer, tag: BUF_BLOCK_TAG_EDGE_STREAM, row, gen: runner.currentGen() });
-        }
-
-        for (const { row, buffer } of runner.getLastNodeFrames()) {
-          ctx.post({ type: "buffer-snapshot", buffer, tag: BUF_BLOCK_TAG_NODE_STREAM, row, gen: runner.currentGen() });
-        }
-        for (const { row, buffer } of runner.getLastInteriorFrames()) {
-          ctx.post({ type: "buffer-snapshot", buffer, tag: BUF_BLOCK_TAG_INTERIOR_STREAM, row, gen: runner.currentGen() });
-        }
-        for (const { row, buffer } of runner.getLastBeadFrames()) {
-          ctx.post({ type: "buffer-snapshot", buffer, tag: BUF_BLOCK_TAG_BEAD_STREAM, row, gen: runner.currentGen() });
-        }
-      }
       return;
     }
     case "webview-log":

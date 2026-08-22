@@ -19,4 +19,5 @@ export const SCENE_VALUES: SceneValueDef[] = [
   { name: "constantR", kind: "f64" },
   { name: "maxIndexPhi", kind: "i64" },
   { name: "maxIndexTheta", kind: "i64" },
+  { name: "spawn", kind: "i64" },
 ];
