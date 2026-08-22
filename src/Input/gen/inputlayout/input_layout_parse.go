@@ -119,3 +119,19 @@ func parseInputLayoutFingerprint(goPath string) (*inputLayoutFingerprint, error)
 	}
 	return fp, nil
 }
+
+func (f *inputLayoutFingerprint) List(marker string) []string {
+	switch marker {
+	case "eventKinds=":
+		return f.eventKinds
+	case "hitKinds=":
+		return f.hitKinds
+	case "updateKinds=":
+		return f.updateKinds
+	case "updateAttrs=":
+		return f.updateAttrs
+	}
+	return nil
+}
+
+func (f *inputLayoutFingerprint) KindValue(name string) string { return f.kindValues[name] }

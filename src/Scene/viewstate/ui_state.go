@@ -18,7 +18,6 @@ import (
 	"github.com/dtauraso/wirefold/src/Chrome/Pills/FitButton"
 	"github.com/dtauraso/wirefold/src/Chrome/Pills/NodesDropdown"
 	"github.com/dtauraso/wirefold/src/Chrome/Tabs"
-	"github.com/dtauraso/wirefold/src/Input/Codec"
 	"github.com/dtauraso/wirefold/src/Input/Drag"
 	"github.com/dtauraso/wirefold/src/Node/movemsg"
 	"github.com/dtauraso/wirefold/src/Polar/polar"
@@ -157,7 +156,7 @@ func (ui *UIState) SetHoverUI(sendMove func(id string, msg movemsg.Msg), node, p
 	}
 }
 
-func (ui *UIState) DragPlaneHit(ev Codec.RawInputMsg) (hit spatial.Vec3, ok bool) {
+func (ui *UIState) DragPlaneHit(ev Drag.RawInputMsg) (hit spatial.Vec3, ok bool) {
 	g := &ui.Gest
 	vp := ui.VP.Viewpoint
 	eye := Camera.EyeOf(vp)

@@ -19,12 +19,10 @@ import (
 	"fmt"
 	"io"
 	"os"
-
-	"github.com/dtauraso/wirefold/src/Input/Codec"
 )
 
 type Handlers struct {
-	ApplyEdit func(msg Codec.StdinMsg)
+	ApplyEdit func(msg StdinMsg)
 
 	HandleSave func()
 }
@@ -84,7 +82,7 @@ func RunStdinReader(ctx context.Context, r io.Reader, h Handlers) {
 				return
 			}
 
-			msg, decoded := Codec.DecodeInputRecord(rec)
+			msg, decoded := DecodeInputRecord(rec)
 			if !decoded {
 				continue
 			}

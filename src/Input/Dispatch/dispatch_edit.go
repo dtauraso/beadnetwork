@@ -3,27 +3,27 @@ package Dispatch
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/src/Chrome/Panels/Panel"
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
-	"github.com/dtauraso/wirefold/src/Input/Codec"
+	"github.com/dtauraso/wirefold/src/Input/Drag"
+	"github.com/dtauraso/wirefold/src/Input/Stdin"
 
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/src/Node/nodecrud"
 )
 
-func HandleRawInputMsg(ctx context.Context, msg Codec.StdinMsg, slotReg beadanimation.SlotRegistry, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
-	if md == nil || msg.Event == nil {
+func HandleRawInputMsg(ctx context.Context, ev Drag.RawInputMsg, slotReg beadanimation.SlotRegistry, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
+	if md == nil {
 		return
 	}
-	if msg.Event.RectWidth > 0 && msg.Event.RectHeight > 0 {
-		md.UI.ViewW = msg.Event.RectWidth
-		md.UI.ViewH = msg.Event.RectHeight
+	if ev.RectWidth > 0 && ev.RectHeight > 0 {
+		md.UI.ViewW = ev.RectWidth
+		md.UI.ViewH = ev.RectHeight
 	}
-	if msg.Event.Kind == "key" {
-		applyRuleKey(ctx, md, msg.Event.Key)
+	if ev.Kind == "key" {
+		applyRuleKey(ctx, md, ev.Key)
 		return
 	}
-	if msg.Event.Kind == "delete" {
+	if ev.Kind == "delete" {
 		if md.UI.SceneEditable && md.UI.Sel.Selected != "" {
 			if row, ok := md.UI.NodeRowFor(md.UI.Sel.Selected); ok {
 				nodecrud.DeleteNode(&md.Scenes, &md.UI, &md.RT, int(row))
@@ -31,24 +31,24 @@ func HandleRawInputMsg(ctx context.Context, msg Codec.StdinMsg, slotReg beadanim
 		}
 		return
 	}
-	if msg.Event.Kind == "pointerup" && md.UI.PlacingPending {
+	if ev.Kind == "pointerup" && md.UI.PlacingPending {
 		md.UI.PlacingPending = false
-		placeNodeAt(md, msg.Event)
+		placeNodeAt(md, &ev)
 		return
 	}
-	if msg.Event.Kind == "pointermove" {
-		if t := panelPointerTarget(md, msg.Event.X, msg.Event.Y); t != md.UI.Pointer {
+	if ev.Kind == "pointermove" {
+		if t := panelPointerTarget(md, ev.X, ev.Y); t != md.UI.Pointer {
 			md.UI.Pointer = t
 			md.UI.EmitViewFrame(nil)
 		}
 	}
-	if msg.Event.Kind == "wheel" && panelTookWheel(*msg.Event, md) {
+	if ev.Kind == "wheel" && panelTookWheel(ev, md) {
 		return
 	}
-	if msg.Event.Kind == "pointerdown" && panelTookPointerDown(ctx, *msg.Event, md, speedSinks) {
+	if ev.Kind == "pointerdown" && panelTookPointerDown(ctx, ev, md, speedSinks) {
 		return
 	}
-	md.HandleRawInput(ctx, *msg.Event, slotReg)
+	md.HandleRawInput(ctx, ev, slotReg)
 }
 
 func HandleSaveMsg(md *MoveDispatch) {
@@ -63,69 +63,41 @@ func HandleSaveMsg(md *MoveDispatch) {
 }
 
 // EDIT_OPS_START
-var editOps = map[string]func(context.Context, Codec.StdinMsg, *MoveDispatch, SliderPanel.Sinks){
+var editOps = map[string]func(context.Context, Stdin.StdinMsg, *MoveDispatch, SliderPanel.Sinks){
 	"update": applyUpdate,
 }
 
 // EDIT_OPS_END
 
-func ApplyEdit(ctx context.Context, msg Codec.StdinMsg, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
+func ApplyEdit(ctx context.Context, msg Stdin.StdinMsg, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
 	if h, ok := editOps[msg.Op]; ok {
 		h(ctx, msg, md, speedSinks)
 	}
 }
 
 // EDIT_UPDATE_KINDS_START
-var updateKindHandlers = map[string]func(context.Context, Codec.StdinMsg, *MoveDispatch, SliderPanel.Sinks){
+// Every entity the wire can name has an entry, and the entry is where the composer is
+// UNPACKED. A handler below the line takes the fields it uses; the one-line adapter here is
+// what turns MoveDispatch into those fields, and is what gets deleted when the handler moves
+// to its own concern and registers itself.
+var updateKindHandlers = map[string]func(context.Context, Stdin.StdinMsg, *MoveDispatch, SliderPanel.Sinks){
 	"clock":      applyUpdateClock,
-	"overlays":   applyUpdateOverlays,
 	"scene":      applyUpdateScene,
 	"tiltVector": applyUpdateTiltVector,
-	"panels":     applyUpdatePanels,
 	"node":       applyUpdateNode,
 	"edge":       applyUpdateEdge,
+
+	"overlays": applyUpdateOverlays,
+	"panels":   applyUpdatePanels,
 }
 
 // EDIT_UPDATE_KINDS_END
 
-func applyUpdate(ctx context.Context, msg Codec.StdinMsg, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
+func applyUpdate(ctx context.Context, msg Stdin.StdinMsg, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
+	if md == nil {
+		return
+	}
 	if h, ok := updateKindHandlers[msg.Kind]; ok {
 		h(ctx, msg, md, speedSinks)
 	}
-}
-
-var clockAttrHandlers = map[string]func(msg Codec.StdinMsg, md *MoveDispatch, speedSinks SliderPanel.Sinks){
-	"speed": func(msg Codec.StdinMsg, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
-
-		divisor := int64(1)
-		if md != nil {
-			divisor = int64(md.UI.ClockDivisor)
-		}
-
-		SliderPanel.Broadcast(speedSinks, int64(msg.Num), divisor)
-
-		userSpeed := float64(msg.Num) / SliderPanel.NumScale
-		if md == nil {
-			return
-		}
-
-		md.UI.Speed = userSpeed
-		md.Persist.Speed().Schedule(userSpeed)
-		md.UI.EmitViewFrame(nil)
-	},
-}
-
-var panelAttrHandlers = map[string]func(msg Codec.StdinMsg, md *MoveDispatch){
-	"toggle": func(msg Codec.StdinMsg, md *MoveDispatch) {
-		if fn, ok := Panel.PanelToggles[msg.Flag]; ok {
-			fn(&md.UI.PN)
-		}
-	},
-}
-
-var overlayAttrHandlers = map[string]func(msg Codec.StdinMsg, md *MoveDispatch){
-	"toggle": func(msg Codec.StdinMsg, md *MoveDispatch) {
-		toggleOverlayFlag(md, msg.Flag)
-		md.UI.EmitViewFrame(nil)
-	},
 }

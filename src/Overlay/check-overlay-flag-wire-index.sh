@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: src/Overlay/flags.ts,src/Chrome/Panels/Panel/flags.ts,src/Input/Codec/input_fingerprint.go | the overlay/panel flag REGISTRY and the wire ordering in INPUT_LAYOUT_FINGERPRINT must list the same flags in the same order
+# PLACEMENT: src/Overlay/flags.ts,src/Chrome/Panels/Panel/flags.ts,src/Input/gen/input_layout_declared.go | the overlay/panel flag REGISTRY and the wire ordering in INPUT_LAYOUT_FINGERPRINT must list the same flags in the same order
 
 set -euo pipefail
 
@@ -15,7 +15,7 @@ REGISTRY = {
     "OVERLAY_FLAGS": "src/Overlay/flags.ts",
     "PANEL_FLAGS": "src/Chrome/Panels/Panel/flags.ts",
 }
-FINGERPRINT = "src/Input/Codec/input_fingerprint.go"
+FINGERPRINT = "src/Input/gen/input_layout_declared.go"
 
 def registry_list(fence):
     path = REGISTRY[fence]

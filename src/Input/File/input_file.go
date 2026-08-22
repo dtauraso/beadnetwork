@@ -3,8 +3,6 @@ package File
 import (
 	"os"
 	"path/filepath"
-
-	"github.com/dtauraso/wirefold/src/Input/Codec"
 )
 
 type slot struct {
@@ -17,8 +15,8 @@ type Reader struct {
 }
 
 func NewReader(inputDir string) *Reader {
-	slots := make([]slot, 0, len(Codec.EventKinds))
-	for _, kind := range Codec.EventKinds {
+	slots := make([]slot, 0, len(InEventKinds))
+	for _, kind := range InEventKinds {
 		path := filepath.Join(inputDir, kind+".bin")
 
 		raw, err := os.ReadFile(path)

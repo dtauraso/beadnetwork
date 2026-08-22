@@ -8,9 +8,10 @@ import (
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 
 	clock "github.com/dtauraso/wirefold/src/Clock"
-	"github.com/dtauraso/wirefold/src/Input/Codec"
 	"github.com/dtauraso/wirefold/src/Input/Dispatch"
+	"github.com/dtauraso/wirefold/src/Input/Drag"
 	"github.com/dtauraso/wirefold/src/Input/File"
+	"github.com/dtauraso/wirefold/src/Input/Stdin"
 )
 
 type gestureMsgKind int
@@ -22,7 +23,7 @@ const (
 
 type gestureInboxMsg struct {
 	kind gestureMsgKind
-	msg  Codec.StdinMsg
+	msg  Stdin.StdinMsg
 }
 
 const gestureInboxDepth = 64
@@ -38,9 +39,9 @@ func startGestureActor(ctx context.Context, slotReg beadanimation.SlotRegistry, 
 		wheel := &wheelTotals{}
 		for {
 			for _, raw := range reader.ReadAll() {
-				if msg, ok := Codec.DecodeInputRecord(raw); ok && msg.Type == "raw-input" {
-					wheel.difference(msg.Event)
-					Dispatch.HandleRawInputMsg(ctx, msg, slotReg, md, speedSinks)
+				if ev, ok := Drag.DecodeRawInput(raw); ok {
+					wheel.difference(&ev)
+					Dispatch.HandleRawInputMsg(ctx, ev, slotReg, md, speedSinks)
 				}
 			}
 
@@ -74,7 +75,7 @@ type wheelTotals struct {
 	seen bool
 }
 
-func (w *wheelTotals) difference(ev *Codec.RawInputMsg) {
+func (w *wheelTotals) difference(ev *Drag.RawInputMsg) {
 	if ev == nil || ev.Kind != "wheel" {
 		return
 	}

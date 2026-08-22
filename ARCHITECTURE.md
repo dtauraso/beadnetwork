@@ -24,10 +24,11 @@ Communication is `panel.webview.postMessage` ↔ `vscode.postMessage`, wired in
 
 ## Message protocol (single source of truth)
 
-`src/Input/Codec/messages.ts` is the shared discriminated-union source for both sides.
+`src/extension/messages.ts` is the shared discriminated-union source for both sides.
 `WebviewToHostMsg` includes `ready` and the binary bridge envelope (a fully
-encoded editor→Go record built via `src/Input/Codec/input-encode.ts` and written
-FRAMED to Go's stdin by `runCommand.ts`). There is no `HostToWebviewMsg` —
+encoded editor→Go record built by the concern that owns the edit — `src/Overlay/encode.ts`,
+`src/Scene/encode.ts`, `src/Node/encode.ts` and their siblings, each beside that concern's
+Go decoder — and written FRAMED to Go's stdin by `runCommand.ts`). There is no `HostToWebviewMsg` —
 the host has nothing to say to the webview, because everything Go tells the
 renderer is a file the renderer reads. Extension-side dispatch is
 `src/extension/handle-message.ts`. Per CLAUDE.md, Go → TS is the block
@@ -37,11 +38,11 @@ for the full bridge-surface model, not duplicated here.
 
 **Do not restate the kind list here.** The authority is
 `INPUT_LAYOUT_FINGERPRINT` — one string encoding every kind byte, update kind,
-attr, and overlay flag, defined in `src/Input/Codec/input_fingerprint.go`. The TS side
-(`src/Input/Codec/input-layout-gen.ts`) is GENERATED from that Go string by
+attr, and overlay flag, defined in `src/Input/gen/input_layout_declared.go`. The TS side
+(`src/Node/wire-gen.ts`) is GENERATED from that Go string by
 the generators, so it cannot drift — there is no second hand-kept copy to compare.
 Read the fingerprint to learn the current surface; prose copied into this file cannot fail
-and so cannot be trusted. (Removed kind bytes are preserved as GAPS in `input_fingerprint.go` and
+and so cannot be trusted. (Removed kind bytes are preserved as GAPS in `src/Input/gen/input_layout_declared.go` and
 never renumbered.)
 
 ## Extension side — what lives where

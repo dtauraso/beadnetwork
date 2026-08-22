@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: src/Input/Dispatch/dispatch_edit.go,src/Input/Codec/messages.ts,src/Overlay/flags.ts,src/Chrome/Panels/Panel/flags.ts,src/Input/Codec/input-layout-gen.ts,src/Overlay/paths/,src/Chrome/Panels/Panel/paths/ | edit ops/update-kinds/overlay flags must stay listed identically on both sides of the bridge
+# PLACEMENT: src/Input/Dispatch/dispatch_edit.go,src/extension/messages.ts,src/Overlay/flags.ts,src/Chrome/Panels/Panel/flags.ts,src/Node/wire-gen.ts,src/Overlay/paths/,src/Chrome/Panels/Panel/paths/ | edit ops/update-kinds/overlay flags must stay listed identically on both sides of the bridge
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
@@ -11,12 +11,18 @@ go_fence_files() {
   grep -rl --include='*.go' -E "^[[:space:]]*//[[:space:]]*$1[[:space:]]*$" "$GO_PKG_DIR" \
     | grep -v '_test\.go$' || true
 }
-MESSAGES_TS="$REPO_ROOT/src/Input/Codec/messages.ts"
+MESSAGES_TS="$REPO_ROOT/src/extension/messages.ts"
+
+EDIT_MSG_FILES=$(grep -rl "EDIT_MSG_START" --include="*.ts" "$REPO_ROOT/src" 2>/dev/null | sort)
+if [ -z "$EDIT_MSG_FILES" ]; then
+  echo "edit-op-parity: MISCONFIGURED -- no .ts file carries an EDIT_MSG_START fence; the edit"
+  echo "  vocabulary moved or the fence was renamed, and this guard would compare nothing." >&2
+  exit 1
+fi
 OVERLAY_FLAGS_TS="$REPO_ROOT/src/Overlay/flags.ts"
 PANEL_FLAGS_TS="$REPO_ROOT/src/Chrome/Panels/Panel/flags.ts"
 
-HANDLE_MSG="$REPO_ROOT/src/Input/Codec/input-layout-gen.ts"
-
+HANDLE_MSG="$REPO_ROOT/src/Node/wire-gen.ts"
 
 PANEL_STATE_GO="$REPO_ROOT/src/Chrome/Panels/Panel/panel_state.go"
 
@@ -77,14 +83,14 @@ report_diff() {
   fi
 }
 
-TS_OPS=$(between EDIT_MSG_START EDIT_MSG_END "$MESSAGES_TS" | grep -aoE 'op: "[^"]+"' | quoted) || true
+TS_OPS=$(between EDIT_MSG_START EDIT_MSG_END $EDIT_MSG_FILES | grep -aoE 'op: "[^"]+"' | quoted) || true
 GO_OPS=$(between EDIT_OPS_START EDIT_OPS_END $GO_OPS_FILES | toplevel_case | quoted) || true
 assert_nonempty "$TS_OPS" "axis1 messages.ts ops"
 assert_nonempty "$GO_OPS" "axis1 src/Input ops"
 report_diff "$(comm -13 <(echo "$GO_OPS") <(echo "$TS_OPS"))" "src/Input ops" \
             "$(comm -23 <(echo "$GO_OPS") <(echo "$TS_OPS"))" "messages.ts ops"
 
-TS_KINDS=$(between EDIT_MSG_START EDIT_MSG_END "$MESSAGES_TS" | grep -aoE 'kind: "[^"]+"' | quoted) || true
+TS_KINDS=$(between EDIT_MSG_START EDIT_MSG_END $EDIT_MSG_FILES | grep -aoE 'kind: "[^"]+"' | quoted) || true
 GO_KINDS=$(between EDIT_UPDATE_KINDS_START EDIT_UPDATE_KINDS_END $GO_KINDS_FILES | toplevel_case | quoted) || true
 HM_KINDS=$(between EDIT_UPDATE_KINDS_START EDIT_UPDATE_KINDS_END "$HANDLE_MSG" | quoted) || true
 assert_nonempty "$TS_KINDS" "axis2 messages.ts update kinds"

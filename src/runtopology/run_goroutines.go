@@ -11,7 +11,6 @@ import (
 
 	"github.com/dtauraso/wirefold/src/NodeKinds/nodeapi"
 
-	"github.com/dtauraso/wirefold/src/Input/Codec"
 	W "github.com/dtauraso/wirefold/src/Input/Dispatch"
 	"github.com/dtauraso/wirefold/src/Input/Stdin"
 )
@@ -22,7 +21,7 @@ func startStdinReader(ctx context.Context, cancel context.CancelFunc, slotReg be
 	stdinWG := new(sync.WaitGroup)
 	stdinWG.Add(1)
 	h := Stdin.Handlers{
-		ApplyEdit: func(msg Codec.StdinMsg) {
+		ApplyEdit: func(msg Stdin.StdinMsg) {
 			sendGestureMsgBlocking(ctx, inbox, gestureInboxMsg{kind: gestureMsgEdit, msg: msg})
 		},
 		HandleSave: func() {

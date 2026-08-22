@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: src/**/*_values.go,src/Input/Codec/input_fingerprint.go,src/NodeKinds/*/SPEC.md | changing a generator source means running `go generate ./...` in the SAME commit
+# PLACEMENT: src/**/*_values.go,src/Input/gen/input_layout_declared.go,src/NodeKinds/*/SPEC.md | changing a generator source means running `go generate ./...` in the SAME commit
 set -euo pipefail
 
 REPO_ROOT="$(git rev-parse --show-toplevel)" || {

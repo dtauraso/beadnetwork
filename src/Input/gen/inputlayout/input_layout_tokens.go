@@ -35,8 +35,3 @@ func unquoteGoString(lit string) (string, error) {
 	}
 	return body, nil
 }
-
-func kindConstName(kind string) string {
-	upper := strings.ToUpper(strings.ReplaceAll(kind, "-", "_"))
-	return "IN_KIND_" + upper
-}

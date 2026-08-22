@@ -5,10 +5,10 @@ import (
 	"fmt"
 
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
-	"github.com/dtauraso/wirefold/src/Input/Codec"
+	"github.com/dtauraso/wirefold/src/Input/Stdin"
 )
 
-func applyUpdateEdge(ctx context.Context, msg Codec.StdinMsg, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
+func applyUpdateEdge(ctx context.Context, msg Stdin.StdinMsg, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
 	if md == nil || msg.Attr != "dragActive" {
 		return
 	}

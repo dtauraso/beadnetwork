@@ -10,13 +10,12 @@ import (
 	"github.com/dtauraso/wirefold/src/Chrome/Pills/FitButton"
 
 	"github.com/dtauraso/wirefold/src/Camera"
-	"github.com/dtauraso/wirefold/src/Input/Codec"
 	"github.com/dtauraso/wirefold/src/Input/Drag"
 	"github.com/dtauraso/wirefold/src/Node/movemsg"
 	"github.com/dtauraso/wirefold/src/Node/nodemove"
 )
 
-func gestHome(d Deps, ev Codec.RawInputMsg) {
+func gestHome(d Deps, ev Drag.RawInputMsg) {
 	centers := nodemove.HeldCenters(d.MR.NodeGeoms(), d.MR.CenterOfNode)
 	radius := make(map[string]float64, len(centers))
 	for id := range centers {
@@ -31,7 +30,7 @@ func gestHome(d Deps, ev Codec.RawInputMsg) {
 	d.UI.EmitViewFrame(nil)
 }
 
-func gestPointerDown(d Deps, ev Codec.RawInputMsg) {
+func gestPointerDown(d Deps, ev Drag.RawInputMsg) {
 	g := &d.UI.Gest
 	g.DownX, g.DownY = ev.X, ev.Y
 	g.PrevX, g.PrevY = ev.X, ev.Y
@@ -56,7 +55,7 @@ func gestPointerDown(d Deps, ev Codec.RawInputMsg) {
 	})
 }
 
-func gestPointerMove(d Deps, ev Codec.RawInputMsg) {
+func gestPointerMove(d Deps, ev Drag.RawInputMsg) {
 	g := &d.UI.Gest
 	if g.Phase == Drag.GestIdle {
 		return
@@ -80,7 +79,7 @@ func gestPointerMove(d Deps, ev Codec.RawInputMsg) {
 	}
 }
 
-func gestPointerUp(d Deps, ev Codec.RawInputMsg) {
+func gestPointerUp(d Deps, ev Drag.RawInputMsg) {
 	g := &d.UI.Gest
 	switch {
 	case g.Phase == Drag.GestDragging:
@@ -106,7 +105,7 @@ func gestPointerUp(d Deps, ev Codec.RawInputMsg) {
 	}
 }
 
-func gestWheel(d Deps, ev Codec.RawInputMsg) {
+func gestWheel(d Deps, ev Drag.RawInputMsg) {
 	vp := d.UI.VP.Viewpoint
 	eye := Camera.EyeOf(vp)
 	pivot := Camera.RegionFocus(vp, nodemove.HeldCenters(d.MR.NodeGeoms(), d.MR.CenterOfNode))
