@@ -1,10 +1,9 @@
-package topoderive
+package loadspec
 
 import (
-	"github.com/dtauraso/wirefold/src/runtopology/loadspec"
 )
 
-func BuildEdgeMaps(spec loadspec.TopoSpec, nodeType map[string]string, kindBroadcastPorts map[string]map[string]bool) (inbound map[string]map[string]string, outbound map[string]map[string][]string, outboundHandle map[string]map[string][]string) {
+func (spec TopoSpec) BuildEdgeMaps(nodeType map[string]string, kindBroadcastPorts map[string]map[string]bool) (inbound map[string]map[string]string, outbound map[string]map[string][]string, outboundHandle map[string]map[string][]string) {
 	inbound = map[string]map[string]string{}
 	outbound = map[string]map[string][]string{}
 	outboundHandle = map[string]map[string][]string{}
@@ -20,7 +19,7 @@ func BuildEdgeMaps(spec loadspec.TopoSpec, nodeType map[string]string, kindBroad
 		}
 		inbound[e.Target][e.TargetHandle] = e.Target + "." + e.TargetHandle
 		srcKey := e.SourceHandle
-		if base, isMulti := loadspec.BroadcastBaseName(e.SourceHandle, nodeType[e.Source], kindBroadcastPorts); isMulti {
+		if base, isMulti := BroadcastBaseName(e.SourceHandle, nodeType[e.Source], kindBroadcastPorts); isMulti {
 			srcKey = base
 		}
 		outbound[e.Source][srcKey] = append(outbound[e.Source][srcKey], e.Label)

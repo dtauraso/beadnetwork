@@ -16,7 +16,6 @@ import (
 	"github.com/dtauraso/wirefold/src/Polar/polarindex"
 	"github.com/dtauraso/wirefold/src/runtopology/loadspec"
 	"github.com/dtauraso/wirefold/src/runtopology/scenerun"
-	"github.com/dtauraso/wirefold/src/runtopology/topoderive"
 )
 
 type buildCtx struct {
@@ -55,13 +54,13 @@ func buildFromSpec(ctx context.Context, spec loadspec.TopoSpec, clk clock.Clock,
 	b := &buildCtx{ctx: ctx, spec: spec, clk: clk, sphere: sphere, hasScene: hasScene, scenePath: scenePath}
 
 	b.nodeGeoms, b.baseIndices, b.dragIndices = b.spec.SeedGeometry(b.sphere.Center)
-	b.wiring.DestRun, b.wiring.EdgeRun, b.edgeEndpoints = topoderive.AllocateBeadLines(b.spec, b.nodeGeoms)
-	b.vectorOutByNode, b.vectorInByNode = topoderive.AllocateVectorChannels(b.spec)
+	b.wiring.DestRun, b.wiring.EdgeRun, b.edgeEndpoints = b.spec.AllocateBeadLines(b.nodeGeoms)
+	b.vectorOutByNode, b.vectorInByNode = b.spec.AllocateVectorChannels()
 	if err := b.buildMoveDispatch(); err != nil {
 		return nil, nil, nil, SliderPanel.Sinks{}, err
 	}
 	b.nodeType, b.kindBroadcastPorts = kindreg.BuildTypeMaps(b.spec)
-	b.wiring.Inbound, b.wiring.Outbound, b.wiring.OutboundHandle = topoderive.BuildEdgeMaps(b.spec, b.nodeType, b.kindBroadcastPorts)
+	b.wiring.Inbound, b.wiring.Outbound, b.wiring.OutboundHandle = b.spec.BuildEdgeMaps(b.nodeType, b.kindBroadcastPorts)
 	if err := b.buildNodes(); err != nil {
 		return nil, nil, nil, SliderPanel.Sinks{}, err
 	}

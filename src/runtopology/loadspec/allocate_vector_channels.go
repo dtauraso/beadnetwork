@@ -1,11 +1,10 @@
-package topoderive
+package loadspec
 
 import (
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/TiltPanel"
-	"github.com/dtauraso/wirefold/src/runtopology/loadspec"
 )
 
-func AllocateVectorChannels(spec loadspec.TopoSpec) (vectorOutByNode, vectorInByNode map[string]chan TiltPanel.TiltVectorMsg) {
+func (spec TopoSpec) AllocateVectorChannels() (vectorOutByNode, vectorInByNode map[string]chan TiltPanel.TiltVectorMsg) {
 	kindByID := make(map[string]string, len(spec.Nodes))
 	for _, n := range spec.Nodes {
 		kindByID[n.ID] = n.Type
