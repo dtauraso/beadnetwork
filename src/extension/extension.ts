@@ -2,7 +2,6 @@ import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
 import { BuildAndRunRunner } from "./runCommand";
-import type { HostToWebviewMsg } from "../Input/messages";
 import { buildWebviewHtml } from "./html";
 import { resolveScenePath } from "./runner/scene-path";
 import { handleMessage } from "./handle-message";
@@ -51,7 +50,6 @@ function wireMessageHandler(
   panel: vscode.WebviewPanel,
   folderUri: vscode.Uri | undefined,
   runner: BuildAndRunRunner,
-  post: (msg: HostToWebviewMsg) => void,
   scenePath: string,
   anchorPath: string,
 ): void {
@@ -63,7 +61,7 @@ function wireMessageHandler(
       return root ? vscode.Uri.file(root) : undefined;
     })();
     const logUri = workspaceFolder?.uri ?? folderUri ?? repoRootUri;
-    void handleMessage(raw, { logUri, runner, post, scenePath, anchorPath }).catch((err: unknown) => {
+    void handleMessage(raw, { logUri, runner, scenePath, anchorPath }).catch((err: unknown) => {
       console.error("topology: handleMessage failed", err);
     });
   });
@@ -97,9 +95,6 @@ function openTopologyEditor(context: vscode.ExtensionContext, folderUri?: vscode
   );
   panel.webview.html = buildWebviewHtml(panel.webview, context.extensionPath, scenePath, topologyPath);
 
-  const post = (msg: HostToWebviewMsg): void => {
-    void panel.webview.postMessage(msg);
-  };
   const runner = new BuildAndRunRunner();
 
   const bundleWatcher = armBundleWatcher(panel, context, scenePath);
@@ -115,7 +110,7 @@ function openTopologyEditor(context: vscode.ExtensionContext, folderUri?: vscode
     runner.dispose();
   });
 
-  wireMessageHandler(panel, folderUri, runner, post, scenePath, topologyPath);
+  wireMessageHandler(panel, folderUri, runner, scenePath, topologyPath);
 
   runner.run(topologyPath);
 }

@@ -8,7 +8,6 @@ import * as vscode from "vscode";
 import { BuildAndRunRunner } from "./runCommand";
 import {
   parseWebviewToHost,
-  type HostToWebviewMsg,
   type WebviewToHostMsg,
 } from "../Input/messages";
 import { appendWebviewLog } from "./webview-log";
@@ -18,7 +17,6 @@ import { resolveRepoRoot } from "./repo-root";
 export type MessageCtx = {
   logUri: vscode.Uri | undefined;
   runner: BuildAndRunRunner;
-  post: (msg: HostToWebviewMsg) => void;
   scenePath: string;
   anchorPath?: string;
 };
