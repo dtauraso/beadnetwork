@@ -1,4 +1,3 @@
-
 package edgefile
 
 import (

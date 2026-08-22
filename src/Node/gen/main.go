@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/dtauraso/wirefold/scripts/genpaths"
 	Node "github.com/dtauraso/wirefold/src/Node"
 )
 
@@ -51,19 +50,19 @@ func writeNames(path string) error {
 }
 
 func main() {
-	genpaths.Name = "Node/gen"
-	_, srcRoot := genpaths.Roots()
+	genName = "Node/gen"
+	_, srcRoot := roots()
 
 	dir := filepath.Join(srcRoot, "Node")
 	pathsDir := filepath.Join(dir, "paths")
 	if err := writePathFiles(pathsDir); err != nil {
-		genpaths.Fatalf("write node paths: %v", err)
+		fatalf("write node paths: %v", err)
 	}
-	genpaths.Announce(pathsDir, 1, "node block path template")
+	announce(pathsDir, 1, "node block path template")
 
 	namesPath := filepath.Join(dir, "node-values-gen.ts")
 	if err := writeNames(namesPath); err != nil {
-		genpaths.Fatalf("write %s: %v", namesPath, err)
+		fatalf("write %s: %v", namesPath, err)
 	}
-	genpaths.Announce(namesPath, len(Node.NodeValueNames), "node values")
+	announce(namesPath, len(Node.NodeValueNames), "node values")
 }

@@ -10,18 +10,16 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
-
-	"github.com/dtauraso/wirefold/scripts/genpaths"
 )
 
 func main() {
-	genpaths.Name = "Camera/gen"
-	_, srcRoot := genpaths.Roots()
+	genName = "Camera/gen"
+	_, srcRoot := roots()
 
 	goPath := filepath.Join(srcRoot, "Camera", "fov.go")
 	focal, err := parseFloatConst(goPath, "FocalPixels")
 	if err != nil {
-		genpaths.Fatalf("parse %s: %v", goPath, err)
+		fatalf("parse %s: %v", goPath, err)
 	}
 
 	outPath := filepath.Join(srcRoot, "Camera", "camera-consts.ts")
@@ -33,15 +31,15 @@ func main() {
 		"// here rather than crossing the seam — a value that cannot change is not state.\n\n" +
 		fmt.Sprintf("export const FOCAL_PIXELS = %s;\n", strconv.FormatFloat(focal, 'g', -1, 64))
 	if err := os.WriteFile(outPath, []byte(body), 0o644); err != nil {
-		genpaths.Fatalf("write %s: %v", outPath, err)
+		fatalf("write %s: %v", outPath, err)
 	}
-	genpaths.Announce(outPath, 1, "constants")
+	announce(outPath, 1, "constants")
 
 	cameraDir := filepath.Join(srcRoot, "Camera")
 	if err := writeCameraPaths(cameraDir); err != nil {
-		genpaths.Fatalf("write camera paths: %v", err)
+		fatalf("write camera paths: %v", err)
 	}
-	genpaths.Announce(filepath.Join(cameraDir, "paths"), 1, "camera block path")
+	announce(filepath.Join(cameraDir, "paths"), 1, "camera block path")
 }
 
 func parseFloatConst(path, name string) (float64, error) {

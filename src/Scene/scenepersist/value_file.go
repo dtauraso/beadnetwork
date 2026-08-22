@@ -1,4 +1,3 @@
-
 package scenepersist
 
 import (

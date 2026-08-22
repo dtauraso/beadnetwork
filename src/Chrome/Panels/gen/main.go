@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/dtauraso/wirefold/scripts/genpaths"
 	Panels "github.com/dtauraso/wirefold/src/Chrome/Panels"
 )
 
@@ -51,19 +50,19 @@ func writeNames(path string) error {
 }
 
 func main() {
-	genpaths.Name = "Panels/gen"
-	_, srcRoot := genpaths.Roots()
+	genName = "Panels/gen"
+	_, srcRoot := roots()
 
 	dir := filepath.Join(srcRoot, "Chrome", "Panels")
 	pathsDir := filepath.Join(dir, "paths")
 	if err := writePathFiles(pathsDir); err != nil {
-		genpaths.Fatalf("write pointer target paths: %v", err)
+		fatalf("write pointer target paths: %v", err)
 	}
-	genpaths.Announce(pathsDir, 1, "pointer target block path")
+	announce(pathsDir, 1, "pointer target block path")
 
 	namesPath := filepath.Join(dir, "pointer-target-values-gen.ts")
 	if err := writeNames(namesPath); err != nil {
-		genpaths.Fatalf("write %s: %v", namesPath, err)
+		fatalf("write %s: %v", namesPath, err)
 	}
-	genpaths.Announce(namesPath, len(Panels.PointerTargetValueNames), "pointer target values")
+	announce(namesPath, len(Panels.PointerTargetValueNames), "pointer target values")
 }

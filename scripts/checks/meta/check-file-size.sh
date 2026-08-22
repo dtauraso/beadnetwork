@@ -29,7 +29,7 @@ def generator_sources():
         dirs[:] = [d for d in dirs if d not in ("node_modules", "out", ".git", ".probe")]
         rel = os.path.relpath(root, ".")
         parts = rel.split(os.sep)
-        if "gen" not in parts and not rel.startswith("scripts/kindscan"):
+        if "gen" not in parts and not rel.startswith("src/NodeKinds/gen/kindscan"):
             continue
         for f in files:
             if f.endswith(".go"):

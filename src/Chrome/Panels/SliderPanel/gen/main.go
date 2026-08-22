@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/dtauraso/wirefold/scripts/genpaths"
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
 )
 
@@ -52,19 +51,19 @@ func writeNames(path string) error {
 }
 
 func main() {
-	genpaths.Name = "SliderPanel/gen"
-	_, srcRoot := genpaths.Roots()
+	genName = "SliderPanel/gen"
+	_, srcRoot := roots()
 
 	dir := filepath.Join(srcRoot, "Chrome", "Panels", "SliderPanel")
 	pathsDir := filepath.Join(dir, "paths")
 	if err := writePathFiles(pathsDir); err != nil {
-		genpaths.Fatalf("write slider panel paths: %v", err)
+		fatalf("write slider panel paths: %v", err)
 	}
-	genpaths.Announce(pathsDir, 1, "slider panel block path")
+	announce(pathsDir, 1, "slider panel block path")
 
 	namesPath := filepath.Join(dir, "panel-values-gen.ts")
 	if err := writeNames(namesPath); err != nil {
-		genpaths.Fatalf("write %s: %v", namesPath, err)
+		fatalf("write %s: %v", namesPath, err)
 	}
-	genpaths.Announce(namesPath, len(SliderPanel.PanelValueNames), "slider panel values")
+	announce(namesPath, len(SliderPanel.PanelValueNames), "slider panel values")
 }

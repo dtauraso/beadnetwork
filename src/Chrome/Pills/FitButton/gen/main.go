@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/dtauraso/wirefold/scripts/genpaths"
 	"github.com/dtauraso/wirefold/src/Chrome/Pills/FitButton"
 )
 
@@ -52,19 +51,19 @@ func writeNames(path string) error {
 }
 
 func main() {
-	genpaths.Name = "FitButton/gen"
-	_, srcRoot := genpaths.Roots()
+	genName = "FitButton/gen"
+	_, srcRoot := roots()
 
 	dir := filepath.Join(srcRoot, "Chrome", "Pills", "FitButton")
 	pathsDir := filepath.Join(dir, "paths")
 	if err := writePathFiles(pathsDir); err != nil {
-		genpaths.Fatalf("write fit chip paths: %v", err)
+		fatalf("write fit chip paths: %v", err)
 	}
-	genpaths.Announce(pathsDir, len(FitButton.ChipValueNames), "fit chip paths")
+	announce(pathsDir, len(FitButton.ChipValueNames), "fit chip paths")
 
 	namesPath := filepath.Join(dir, "chip-values-gen.ts")
 	if err := writeNames(namesPath); err != nil {
-		genpaths.Fatalf("write %s: %v", namesPath, err)
+		fatalf("write %s: %v", namesPath, err)
 	}
-	genpaths.Announce(namesPath, len(FitButton.ChipValueNames), "fit chip values")
+	announce(namesPath, len(FitButton.ChipValueNames), "fit chip values")
 }

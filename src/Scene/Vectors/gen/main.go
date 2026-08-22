@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/dtauraso/wirefold/scripts/genpaths"
 	SceneVectors "github.com/dtauraso/wirefold/src/Scene/Vectors"
 )
 
@@ -51,19 +50,19 @@ func writeNames(path string) error {
 }
 
 func main() {
-	genpaths.Name = "Scene/Vectors/gen"
-	_, srcRoot := genpaths.Roots()
+	genName = "Scene/Vectors/gen"
+	_, srcRoot := roots()
 
 	dir := filepath.Join(srcRoot, "Scene", "Vectors")
 	pathsDir := filepath.Join(dir, "paths")
 	if err := writePathFiles(pathsDir); err != nil {
-		genpaths.Fatalf("write channel vector paths: %v", err)
+		fatalf("write channel vector paths: %v", err)
 	}
-	genpaths.Announce(pathsDir, 1, "channel vector block path template")
+	announce(pathsDir, 1, "channel vector block path template")
 
 	namesPath := filepath.Join(dir, "vector-values-gen.ts")
 	if err := writeNames(namesPath); err != nil {
-		genpaths.Fatalf("write %s: %v", namesPath, err)
+		fatalf("write %s: %v", namesPath, err)
 	}
-	genpaths.Announce(namesPath, len(SceneVectors.VectorValueNames), "channel vector values")
+	announce(namesPath, len(SceneVectors.VectorValueNames), "channel vector values")
 }

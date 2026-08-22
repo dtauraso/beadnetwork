@@ -5,8 +5,8 @@
 package Stdin
 
 const (
-	InKindSave = 4
-	InKindRawInput = 10
+	InKindSave       = 4
+	InKindRawInput   = 10
 	InKindEditUpdate = 22
 )
 

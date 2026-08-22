@@ -4,7 +4,7 @@ paths:
   - "src/Node/**/SPEC.md"
   - "src/NodeKinds/node-defs.ts"
   - "**/gen/**/*.go"
-  - "scripts/kindscan/**"
+  - "src/NodeKinds/gen/kindscan/**"
 ---
 
 # Node kind registration — detail

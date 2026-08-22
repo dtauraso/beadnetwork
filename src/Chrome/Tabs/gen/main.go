@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/dtauraso/wirefold/scripts/genpaths"
 	"github.com/dtauraso/wirefold/src/Chrome/Tabs"
 )
 
@@ -52,19 +51,19 @@ func writeNames(path string) error {
 }
 
 func main() {
-	genpaths.Name = "Tabs/gen"
-	_, srcRoot := genpaths.Roots()
+	genName = "Tabs/gen"
+	_, srcRoot := roots()
 
 	dir := filepath.Join(srcRoot, "Chrome", "Tabs")
 	pathsDir := filepath.Join(dir, "paths")
 	if err := writePathFiles(pathsDir); err != nil {
-		genpaths.Fatalf("write tab strip paths: %v", err)
+		fatalf("write tab strip paths: %v", err)
 	}
-	genpaths.Announce(pathsDir, len(Tabs.StripValueNames), "tab strip paths")
+	announce(pathsDir, len(Tabs.StripValueNames), "tab strip paths")
 
 	namesPath := filepath.Join(dir, "strip-values-gen.ts")
 	if err := writeNames(namesPath); err != nil {
-		genpaths.Fatalf("write %s: %v", namesPath, err)
+		fatalf("write %s: %v", namesPath, err)
 	}
-	genpaths.Announce(namesPath, len(Tabs.StripValueNames), "tab strip values")
+	announce(namesPath, len(Tabs.StripValueNames), "tab strip values")
 }

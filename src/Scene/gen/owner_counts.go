@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/dtauraso/wirefold/scripts/genpaths"
 	Scene "github.com/dtauraso/wirefold/src/Scene"
 )
 
@@ -37,13 +36,13 @@ func generateOwnerCounts(srcRoot string) {
 	dir := filepath.Join(srcRoot, "Scene")
 	pathsDir := filepath.Join(dir, "owner-counts-paths")
 	if err := writeOwnerCountsPathFile(pathsDir); err != nil {
-		genpaths.Fatalf("write owner counts paths: %v", err)
+		fatalf("write owner counts paths: %v", err)
 	}
-	genpaths.Announce(pathsDir, 1, "owner counts block path")
+	announce(pathsDir, 1, "owner counts block path")
 
 	namesPath := filepath.Join(dir, "owner-counts-values-gen.ts")
 	if err := writeOwnerCountsNames(namesPath); err != nil {
-		genpaths.Fatalf("write %s: %v", namesPath, err)
+		fatalf("write %s: %v", namesPath, err)
 	}
-	genpaths.Announce(namesPath, len(Scene.CountsValueNames), "owner counts values")
+	announce(namesPath, len(Scene.CountsValueNames), "owner counts values")
 }

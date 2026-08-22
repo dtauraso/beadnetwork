@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/dtauraso/wirefold/scripts/genpaths"
 	"github.com/dtauraso/wirefold/src/Chrome/Pills/NodesDropdown"
 )
 
@@ -52,19 +51,19 @@ func writeNames(path string) error {
 }
 
 func main() {
-	genpaths.Name = "NodesDropdown/gen"
-	_, srcRoot := genpaths.Roots()
+	genName = "NodesDropdown/gen"
+	_, srcRoot := roots()
 
 	dir := filepath.Join(srcRoot, "Chrome", "Pills", "NodesDropdown")
 	pathsDir := filepath.Join(dir, "paths")
 	if err := writePathFiles(pathsDir); err != nil {
-		genpaths.Fatalf("write nodes pill paths: %v", err)
+		fatalf("write nodes pill paths: %v", err)
 	}
-	genpaths.Announce(pathsDir, len(NodesDropdown.PillValueNames), "nodes pill paths")
+	announce(pathsDir, len(NodesDropdown.PillValueNames), "nodes pill paths")
 
 	namesPath := filepath.Join(dir, "pill-values-gen.ts")
 	if err := writeNames(namesPath); err != nil {
-		genpaths.Fatalf("write %s: %v", namesPath, err)
+		fatalf("write %s: %v", namesPath, err)
 	}
-	genpaths.Announce(namesPath, len(NodesDropdown.PillValueNames), "nodes pill values")
+	announce(namesPath, len(NodesDropdown.PillValueNames), "nodes pill values")
 }

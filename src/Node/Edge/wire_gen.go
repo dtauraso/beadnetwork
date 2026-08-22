@@ -17,4 +17,3 @@ func attrIndex(attr string) byte {
 		"it could never be encoded. Declare it in src/Input/gen's input layout and regenerate, " +
 		"in the same commit as the decoder that reads it.")
 }
-

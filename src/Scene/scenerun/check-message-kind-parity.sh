@@ -11,8 +11,8 @@ MESSAGES_TS="$REPO_ROOT/src/extension/messages.ts"
 HANDLE_MESSAGE_TS="$REPO_ROOT/src/extension/handle-message.ts"
 WEBVIEW_SRC_DIR="$REPO_ROOT/src/extension/webview"
 
-source "$REPO_ROOT/scripts/lib/bridge/msg-kind-extract.sh"
-source "$REPO_ROOT/scripts/lib/bridge/msg-kind-checks.sh"
+source "$SCRIPT_DIR/msg-kind-extract.sh"
+source "$SCRIPT_DIR/msg-kind-checks.sh"
 
 if [[ ! -d "$GO_PKG_DIR" ]]; then
   echo "message-kind-parity: MISCONFIGURED — dir not found: $GO_PKG_DIR" >&2
