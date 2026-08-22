@@ -12,7 +12,7 @@ import (
 	"github.com/dtauraso/wirefold/src/spatial"
 )
 
-type specNode struct {
+type Node struct {
 	ID   string
 	Type string
 	Data *NodeData
@@ -34,14 +34,14 @@ type specNode struct {
 	TopTiltVectorPhiIdx *int32
 }
 
-func (n specNode) label() string {
+func (n Node) label() string {
 	if n.Data != nil && n.Data.Label != "" {
 		return n.Data.Label
 	}
 	return n.ID
 }
 
-func (n specNode) ToNodeGeom(sceneCenter spatial.Vec3, sc polarindex.SceneConstants) nodegeom.NodeGeom {
+func (n Node) ToNodeGeom(sceneCenter spatial.Vec3, sc polarindex.SceneConstants) nodegeom.NodeGeom {
 
 	g := nodegeom.NodeGeom{NodeIdentity: nodegeom.NodeIdentity{Kind: n.Type, Label: n.label(), SceneCenter: sceneCenter, SceneConstants: sc}}
 	if n.hasPoint() {
@@ -78,7 +78,7 @@ type NodeData struct {
 	SendRules map[string]string
 }
 
-type specEdge struct {
+type Edge struct {
 	Label        string `wire:"prop,required,tsType:string"`
 	Kind         string
 	Source       string
@@ -96,8 +96,8 @@ type specEdge struct {
 }
 
 type TopoSpec struct {
-	Nodes []specNode
-	Edges []specEdge
+	Nodes []Node
+	Edges []Edge
 
 	RowCount int
 
@@ -142,7 +142,7 @@ func validateNoFanIn(spec TopoSpec) error {
 	return nil
 }
 
-func NodeSendRule(n specNode, port string) beadanimation.SendRule {
+func NodeSendRule(n Node, port string) beadanimation.SendRule {
 	if n.Data == nil || n.Data.SendRules == nil {
 		return beadanimation.RuleConsumeGated
 	}

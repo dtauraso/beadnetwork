@@ -27,14 +27,14 @@ func ResolveEdgeDeltas(spec *TopoSpec) {
 }
 
 func PlaceFromDeltas(spec *TopoSpec) {
-	out := make(map[string][]*specEdge, len(spec.Nodes))
+	out := make(map[string][]*Edge, len(spec.Nodes))
 	for i := range spec.Edges {
 		e := &spec.Edges[i]
 		out[e.Source] = append(out[e.Source], e)
 	}
 
 	placed := make(map[string]bool, len(spec.Nodes))
-	byID := make(map[string]*specNode, len(spec.Nodes))
+	byID := make(map[string]*Node, len(spec.Nodes))
 	for i := range spec.Nodes {
 		byID[spec.Nodes[i].ID] = &spec.Nodes[i]
 	}
@@ -45,7 +45,7 @@ func PlaceFromDeltas(spec *TopoSpec) {
 			continue
 		}
 		placed[seed.ID] = true
-		for queue := []*specNode{seed}; len(queue) > 0; {
+		for queue := []*Node{seed}; len(queue) > 0; {
 			from := queue[0]
 			queue = queue[1:]
 			for _, e := range out[from.ID] {
@@ -61,40 +61,40 @@ func PlaceFromDeltas(spec *TopoSpec) {
 	}
 }
 
-func (n *specNode) hasPoint() bool {
+func (n *Node) hasPoint() bool {
 	return n.IndexPhi != nil && n.IndexTheta != nil && n.IndexR != nil
 }
 
-func (n *specNode) index() polarindex.Index {
+func (n *Node) index() polarindex.Index {
 	return polarindex.Index{Phi: *n.IndexPhi, Theta: *n.IndexTheta, R: *n.IndexR}
 }
 
-func (n *specNode) setIndex(idx polarindex.Index) {
+func (n *Node) setIndex(idx polarindex.Index) {
 	n.IndexPhi, n.IndexTheta, n.IndexR = &idx.Phi, &idx.Theta, &idx.R
 }
 
-func (e specEdge) BaseDeltaIndex() (polarindex.Offset, bool) {
+func (e Edge) BaseDeltaIndex() (polarindex.Offset, bool) {
 	if !e.hasDelta() {
 		return polarindex.Offset{}, false
 	}
 	return e.deltaIndex(), true
 }
 
-func (e specEdge) DragDeltaIndex() polarindex.Offset {
+func (e Edge) DragDeltaIndex() polarindex.Offset {
 	if e.DragDeltaIndexR == nil || e.DragDeltaIndexPhi == nil || e.DragDeltaIndexTheta == nil {
 		return polarindex.Offset{}
 	}
 	return polarindex.Offset{Phi: *e.DragDeltaIndexPhi, Theta: *e.DragDeltaIndexTheta, R: *e.DragDeltaIndexR}
 }
 
-func (e *specEdge) hasDelta() bool {
+func (e *Edge) hasDelta() bool {
 	return e.DeltaIndexR != nil && e.DeltaIndexPhi != nil && e.DeltaIndexTheta != nil
 }
 
-func (e *specEdge) deltaIndex() polarindex.Offset {
+func (e *Edge) deltaIndex() polarindex.Offset {
 	return polarindex.Offset{Phi: *e.DeltaIndexPhi, Theta: *e.DeltaIndexTheta, R: *e.DeltaIndexR}
 }
 
-func (e *specEdge) setDeltaIndex(off polarindex.Offset) {
+func (e *Edge) setDeltaIndex(off polarindex.Offset) {
 	e.DeltaIndexPhi, e.DeltaIndexTheta, e.DeltaIndexR = &off.Phi, &off.Theta, &off.R
 }

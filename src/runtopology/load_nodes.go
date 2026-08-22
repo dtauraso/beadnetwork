@@ -3,7 +3,6 @@ package runtopology
 import (
 	"fmt"
 
-	"github.com/dtauraso/wirefold/src/runtopology/scenerun"
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/src/Node/movemsg"
 	"github.com/dtauraso/wirefold/src/Node/moverreg"
@@ -11,7 +10,7 @@ import (
 	"github.com/dtauraso/wirefold/src/NodeKinds/kindreg"
 	"github.com/dtauraso/wirefold/src/NodeKinds/nodeapi"
 	"github.com/dtauraso/wirefold/src/NodeKinds/portwiring"
-	"github.com/dtauraso/wirefold/src/runtopology/loadspec"
+	"github.com/dtauraso/wirefold/src/runtopology/scenerun"
 )
 
 func (b *buildCtx) buildNodes() error {
@@ -53,38 +52,7 @@ func (b *buildCtx) buildNodes() error {
 		pb.VectorOut = b.vectorOutByNode
 		pb.VectorIn = b.vectorInByNode
 
-		for _, port := range bind.Ports {
-			switch port.Dir {
-			case portwiring.PortIn:
-				dk, ok := b.inbound[n.ID][port.Name]
-				if ok {
-					pb.SetSinglePaced(port.Name, b.destRun[dk])
-				}
-
-			case portwiring.PortOut:
-				labels := b.outbound[n.ID][port.Name]
-				if len(labels) > 0 {
-
-					rule := loadspec.NodeSendRule(n, port.Name)
-					lbl := labels[0]
-					pb.SetSinglePacedRule(port.Name, b.edgeRun[lbl], rule, lbl)
-				}
-
-			case portwiring.PortBroadcast:
-				labels := b.outbound[n.ID][port.Name]
-				handles := b.outboundHandle[n.ID][port.Name]
-				for i, lbl := range labels {
-					handle := port.Name
-					if i < len(handles) {
-						handle = handles[i]
-					}
-
-					rule := loadspec.NodeSendRule(n, handle)
-					pb.AppendBroadcastWithHandle(port.Name, handle, b.edgeRun[lbl], rule, lbl)
-				}
-
-			}
-		}
+		b.wiring.BindPorts(&pb, n, bind.Ports)
 
 		var tiltPhiIdx int32
 		if n.TopTiltVectorPhiIdx != nil {

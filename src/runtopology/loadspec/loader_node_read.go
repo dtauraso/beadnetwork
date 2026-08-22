@@ -31,16 +31,16 @@ func readOptInt32(path string) *int32 {
 	return &v
 }
 
-func loadNodeBase(root, nodesDir, nodeID string) (specNode, error) {
+func loadNodeBase(root, nodesDir, nodeID string) (Node, error) {
 	nodeDir := filepath.Join(nodesDir, nodeID)
 
 	baseDir := nodefile.BaseDir(nodeDir)
 	var nodeType string
 	if !readLeaf(filepath.Join(baseDir, nodefile.FileType), &nodeType) {
-		return specNode{}, fmt.Errorf("loadTree: node %q has no %s", nodeID, nodefile.FileType)
+		return Node{}, fmt.Errorf("loadTree: node %q has no %s", nodeID, nodefile.FileType)
 	}
 
-	sn := specNode{
+	sn := Node{
 		ID:                  nodeID,
 		Type:                nodeType,
 		IndexPhi:            readOptInt(filepath.Join(baseDir, nodefile.FileIndexPhi)),
@@ -54,14 +54,14 @@ func loadNodeBase(root, nodesDir, nodeID string) (specNode, error) {
 
 	nd, err := readNodeData(nodeDir)
 	if err != nil {
-		return specNode{}, fmt.Errorf("loadTree: node %q data: %w", nodeID, err)
+		return Node{}, fmt.Errorf("loadTree: node %q data: %w", nodeID, err)
 	}
 	sn.Data = nd
 
 	return sn, nil
 }
 
-func loadNodeEdges(root, nodesDir, nodeID string) ([]specEdge, error) {
+func loadNodeEdges(root, nodesDir, nodeID string) ([]Edge, error) {
 	nodeDir := filepath.Join(nodesDir, nodeID)
 	edgesDir := filepath.Join(nodeDir, "edges")
 	edgeFiles, err := readDirNames(edgesDir)
@@ -73,13 +73,13 @@ func loadNodeEdges(root, nodesDir, nodeID string) ([]specEdge, error) {
 	}
 	sort.Strings(edgeFiles)
 
-	var edges []specEdge
+	var edges []Edge
 	for _, label := range edgeFiles {
 		edgeDir := filepath.Join(edgesDir, label)
 		if st, err := os.Stat(edgeDir); err != nil || !st.IsDir() { // path-resolution-ok: an edge is a directory; skipping strays under edges/
 			continue
 		}
-		e := specEdge{Label: label, Source: nodeID}
+		e := Edge{Label: label, Source: nodeID}
 		readLeaf(filepath.Join(edgeDir, edgefile.FileKind), &e.Kind)
 		readLeaf(filepath.Join(edgeDir, edgefile.FileSourceHandle), &e.SourceHandle)
 		readLeaf(filepath.Join(edgeDir, edgefile.FileTarget), &e.Target)

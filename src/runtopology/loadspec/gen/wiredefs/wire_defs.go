@@ -28,7 +28,7 @@ func ParseWirePropsFromFile(filePath string) ([]wireProp, error) {
 		}
 		for _, spec := range genDecl.Specs {
 			typeSpec, ok := spec.(*ast.TypeSpec)
-			if !ok || typeSpec.Name.Name != "specEdge" {
+			if !ok || typeSpec.Name.Name != "Edge" {
 				continue
 			}
 			structType, ok := typeSpec.Type.(*ast.StructType)
@@ -57,12 +57,12 @@ func ParseWirePropsFromFile(filePath string) ([]wireProp, error) {
 				segments := strings.Split(wireVal, ",")
 				if len(segments) < 3 {
 					return nil, fmt.Errorf(
-						"specEdge.%s: malformed wire tag %q — want prop,<optional|required>,tsType:<T> (got %d segments, need at least 3)",
+						"loadspec.Edge.%s: malformed wire tag %q — want prop,<optional|required>,tsType:<T> (got %d segments, need at least 3)",
 						fieldName, wireVal, len(segments))
 				}
 				if segments[1] != "required" && segments[1] != "optional" {
 					return nil, fmt.Errorf(
-						"specEdge.%s: wire tag %q has second segment %q — want \"required\" or \"optional\"",
+						"loadspec.Edge.%s: wire tag %q has second segment %q — want \"required\" or \"optional\"",
 						fieldName, wireVal, segments[1])
 				}
 				required := segments[1] == "required"
@@ -74,7 +74,7 @@ func ParseWirePropsFromFile(filePath string) ([]wireProp, error) {
 				}
 				if tsType == "" {
 					return nil, fmt.Errorf(
-						"specEdge.%s: wire tag %q has no tsType:<T> segment", fieldName, wireVal)
+						"loadspec.Edge.%s: wire tag %q has no tsType:<T> segment", fieldName, wireVal)
 				}
 
 				propName := ""
@@ -84,6 +84,14 @@ func ParseWirePropsFromFile(filePath string) ([]wireProp, error) {
 				props = append(props, wireProp{propName: propName, tsType: tsType, required: required})
 			}
 		}
+	}
+	if len(props) == 0 {
+		return nil, fmt.Errorf(
+			"ParseWirePropsFromFile: %s declares no type named Edge carrying a wire:\"…\" tag, so this "+
+				"generator would write an EMPTY WIRE_PROPS and every wire prop would vanish from the TS "+
+				"side while the Go struct still carried it. The struct was renamed or its tags were "+
+				"dropped; repoint this generator rather than letting it emit nothing",
+			filePath)
 	}
 	return props, nil
 }

@@ -7,7 +7,6 @@ import (
 	clock "github.com/dtauraso/wirefold/src/Clock"
 
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/TiltPanel"
-	"github.com/dtauraso/wirefold/src/runtopology/scenerun"
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	edge "github.com/dtauraso/wirefold/src/Node/Edge"
 	"github.com/dtauraso/wirefold/src/Node/nodegeom"
@@ -16,6 +15,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Polar/polar"
 	"github.com/dtauraso/wirefold/src/Polar/polarindex"
 	"github.com/dtauraso/wirefold/src/runtopology/loadspec"
+	"github.com/dtauraso/wirefold/src/runtopology/scenerun"
 	"github.com/dtauraso/wirefold/src/runtopology/topoderive"
 	"github.com/dtauraso/wirefold/src/spatial"
 )
@@ -35,9 +35,9 @@ type buildCtx struct {
 	baseIndices map[string]polarindex.Index
 	dragIndices map[string]polarindex.Offset
 
-	destRun       map[string]*beadanimation.BeadLine
-	edgeRun       loadspec.BeadLineRegistry
 	edgeEndpoints map[string]edge.EdgeEndpoints
+
+	wiring kindreg.EdgeWiring
 
 	md *scenerun.MoveDispatch
 
@@ -45,10 +45,6 @@ type buildCtx struct {
 
 	nodeType           map[string]string
 	kindBroadcastPorts map[string]map[string]bool
-
-	inbound        map[string]map[string]string
-	outbound       map[string]map[string][]string
-	outboundHandle map[string]map[string][]string
 
 	outSink map[string]*beadanimation.Sender
 	nodes   []nodeapi.Node
@@ -63,18 +59,18 @@ func buildFromSpec(ctx context.Context, spec loadspec.TopoSpec, clk clock.Clock,
 	b.nodeGeoms, b.centers = topoderive.ComputeNodeGeometry(b.spec, b.sphere)
 	b.baseIndices = topoderive.ComputeBaseIndices(b.spec, b.sphere, b.centers, b.nodeGeoms)
 	b.dragIndices = topoderive.ComputeDragIndices(b.spec)
-	b.destRun, b.edgeRun, b.edgeEndpoints = topoderive.AllocateBeadLines(b.spec, b.nodeGeoms)
+	b.wiring.DestRun, b.wiring.EdgeRun, b.edgeEndpoints = topoderive.AllocateBeadLines(b.spec, b.nodeGeoms)
 	b.vectorOutByNode, b.vectorInByNode = topoderive.AllocateVectorChannels(b.spec)
 	if err := b.buildMoveDispatch(); err != nil {
 		return nil, nil, nil, SliderPanel.Sinks{}, err
 	}
 	b.nodeType, b.kindBroadcastPorts = kindreg.BuildTypeMaps(b.spec)
-	b.inbound, b.outbound, b.outboundHandle = topoderive.BuildEdgeMaps(b.spec, b.nodeType, b.kindBroadcastPorts)
+	b.wiring.Inbound, b.wiring.Outbound, b.wiring.OutboundHandle = topoderive.BuildEdgeMaps(b.spec, b.nodeType, b.kindBroadcastPorts)
 	if err := b.buildNodes(); err != nil {
 		return nil, nil, nil, SliderPanel.Sinks{}, err
 	}
 
-	bindDispatch(b.md, b.outSink, b.destRun)
+	bindDispatch(b.md, b.outSink, b.wiring.DestRun)
 
-	return b.nodes, beadanimation.SlotRegistry(b.destRun), b.md, b.speedSinks, nil
+	return b.nodes, beadanimation.SlotRegistry(b.wiring.DestRun), b.md, b.speedSinks, nil
 }

@@ -9,11 +9,10 @@ import (
 	"github.com/dtauraso/wirefold/src/Chrome/Pills/AngleDropdown"
 	"github.com/dtauraso/wirefold/src/Scene/scene"
 
-	"github.com/dtauraso/wirefold/src/runtopology/scenerun"
 	"github.com/dtauraso/wirefold/src/Node/movemsg"
-	"github.com/dtauraso/wirefold/src/Node/nodeactor/nodefiles"
 	"github.com/dtauraso/wirefold/src/Node/nodedrag"
 	"github.com/dtauraso/wirefold/src/Polar/polarindex"
+	"github.com/dtauraso/wirefold/src/runtopology/scenerun"
 )
 
 func (b *buildCtx) buildMoveDispatch() error {
@@ -59,24 +58,8 @@ func (b *buildCtx) buildMoveDispatch() error {
 	}
 
 	for _, n := range b.spec.Nodes {
-		nm, ok := md.MR.NodeGeoms()[n.ID]
-		if !ok {
-			continue
-		}
-		nm.SetSelfKind(n.Type)
-		active := nodefiles.LoadDragActive(b.scenePath, n.ID)
-		nm.SetDragRule(n.Drag)
-		nm.SetDragActive(active)
-		rn := nm.RuleNode()
-		rn.SetPersistRoot(b.scenePath)
-		rn.SeedRule(n.Drag, active)
-		rn.SeedKindActive(nodefiles.LoadKindRuleActive(b.scenePath, n.ID))
-		selfActive := nodefiles.LoadSelfRuleActive(b.scenePath, n.ID)
-		nm.SetSelfRule(n.SelfDrag)
-		nm.SetSelfRuleActive(selfActive)
-		rn.SeedSelfRule(n.SelfDrag, selfActive)
-		if n.TopTiltVectorPhiIdx != nil {
-			nm.SetTopTiltVectorPhiIdx(*n.TopTiltVectorPhiIdx)
+		if nm, ok := md.MR.NodeGeoms()[n.ID]; ok {
+			nm.SeedFromSpec(n, b.scenePath)
 		}
 	}
 
@@ -93,15 +76,19 @@ func (b *buildCtx) buildMoveDispatch() error {
 
 	buildRulePanelNodes(md, b.spec)
 
+	kindByID := make(map[string]string, len(b.spec.Nodes))
+	for _, n := range b.spec.Nodes {
+		kindByID[n.ID] = n.Type
+	}
+
 	targetByLabel := make(map[string]string, len(b.spec.Edges))
 	sourceByLabel := make(map[string]string, len(b.spec.Edges))
 	for _, e := range b.spec.Edges {
-		active := nodefiles.LoadEdgeRuleActive(b.scenePath, e.Source, e.Target)
 		if src, ok := md.MR.NodeGeoms()[e.Source]; ok {
-			src.RuleNode().SeedEdgeActive(e.Target, active)
+			src.SeedEdge(e, true, kindByID[e.Target], b.scenePath)
 		}
 		if dst, ok := md.MR.NodeGeoms()[e.Target]; ok {
-			dst.RuleNode().SeedEdgeActive(e.Source, active)
+			dst.SeedEdge(e, false, kindByID[e.Source], b.scenePath)
 		}
 		targetByLabel[e.Label] = e.Target
 		sourceByLabel[e.Label] = e.Source
@@ -119,46 +106,6 @@ func (b *buildCtx) buildMoveDispatch() error {
 
 	for _, nm := range md.MR.NodeGeoms() {
 		nm.RuleNode().BroadcastSelf()
-	}
-
-	kindByID := make(map[string]string, len(b.spec.Nodes))
-	for _, n := range b.spec.Nodes {
-		kindByID[n.ID] = n.Type
-	}
-	linkNeighborKind := func(fromID, toID string) {
-		nm, ok := md.MR.NodeGeoms()[fromID]
-		if !ok {
-			return
-		}
-		nm.AddNeighborKind(toID, kindByID[toID])
-	}
-	for _, e := range b.spec.Edges {
-		linkNeighborKind(e.Source, e.Target)
-		linkNeighborKind(e.Target, e.Source)
-	}
-
-	for _, e := range b.spec.Edges {
-		nm, ok := md.MR.NodeGeoms()[e.Source]
-		if !ok {
-			continue
-		}
-		nm.AddOutTarget(e.Target)
-	}
-
-	for _, e := range b.spec.Edges {
-		baseD, ok := e.BaseDeltaIndex()
-		if !ok {
-			continue
-		}
-		dragD := e.DragDeltaIndex()
-		if src, ok := md.MR.NodeGeoms()[e.Source]; ok {
-			src.SetBaseDeltaTo(e.Target, baseD)
-			src.SetDragDeltaTo(e.Target, dragD)
-		}
-		if dst, ok := md.MR.NodeGeoms()[e.Target]; ok {
-			dst.SetBaseDeltaTo(e.Source, polarindex.Neg(baseD))
-			dst.SetDragDeltaTo(e.Source, polarindex.Neg(dragD))
-		}
 	}
 
 	for _, nm := range md.MR.NodeGeoms() {
