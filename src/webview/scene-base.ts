@@ -1,11 +1,11 @@
-import { onSpawnRestart } from "./spawn-gen";
-
 declare global {
   interface Window {
     WIREFOLD_ANCHOR_BASE?: string;
     WIREFOLD_SCENE_BASES?: Record<string, string>;
   }
 }
+
+const READ_INTERVAL_MS = 100;
 
 let seq = 0;
 
@@ -24,5 +24,11 @@ async function readSelectedBase(): Promise<void> {
 export function startSceneBaseReads(): void {
   if (typeof window === "undefined") return;
 
-  onSpawnRestart(() => void readSelectedBase());
+  const pump = async () => {
+    for (;;) {
+      await readSelectedBase();
+      await new Promise((r) => setTimeout(r, READ_INTERVAL_MS));
+    }
+  };
+  void pump();
 }
