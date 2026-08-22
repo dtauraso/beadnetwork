@@ -1,11 +1,10 @@
-package runtopology
+package scenerun
 
 import (
-	W "github.com/dtauraso/wirefold/src/runtopology/scenerun"
 	T "github.com/dtauraso/wirefold/src/Trace"
 )
 
-func emitStartupBreadcrumbs(md *W.MoveDispatch, scenePath string, nodeCount int) {
+func EmitStartupBreadcrumbs(md *MoveDispatch, scenePath string, nodeCount int) {
 
 	md.UI.EmitBreadcrumb(T.RowEvent{
 		Label: T.BreadcrumbTopologyLoaded, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
@@ -13,7 +12,7 @@ func emitStartupBreadcrumbs(md *W.MoveDispatch, scenePath string, nodeCount int)
 	})
 }
 
-func checkRowSeedCount(md *W.MoveDispatch, nodeCount int) {
+func CheckRowSeedCount(md *MoveDispatch, nodeCount int) {
 	if len(md.GS.NodeSeedsFn()) != nodeCount {
 
 		md.UI.EmitBreadcrumb(T.RowEvent{

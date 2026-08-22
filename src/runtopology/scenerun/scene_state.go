@@ -1,15 +1,14 @@
-package runtopology
+package scenerun
 
 import (
 	"github.com/dtauraso/wirefold/src/Camera"
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
-	W "github.com/dtauraso/wirefold/src/runtopology/scenerun"
 	"github.com/dtauraso/wirefold/src/Scene/scene"
 	"github.com/dtauraso/wirefold/src/Scene/scenepersist"
 	"github.com/dtauraso/wirefold/src/Scene/viewpersist"
 )
 
-func loadSceneState(scenePath string, md *W.MoveDispatch, speedSinks SliderPanel.Sinks) {
+func LoadSceneState(scenePath string, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
 	Camera.SeedInitialViewpoint(scenePath, md.UI.VP.SetViewpoint, md.UI.VP.EmitViewpoint)
 
 	s := scene.For(scenePath)

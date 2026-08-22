@@ -31,6 +31,12 @@ func (ui *UIState) SetViewStream(buildFrame ViewFrameBuilder) {
 	ui.ViewBuildFrame = buildFrame
 }
 
+func (ui *UIState) WriteOwnTrace() {
+	ui.SetViewStream(func(tick uint32, events []T.RowEvent) {
+		T.NewLog(T.OwnerView, 0).Append(events)
+	})
+}
+
 func (ui *UIState) EmitBreadcrumb(ev T.RowEvent) {
 	ev.Kind = T.KindBreadcrumb
 	ev.Debug = 1

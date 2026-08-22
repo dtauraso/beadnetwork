@@ -1,4 +1,4 @@
-package runtopology
+package scenerun
 
 import (
 	"context"
@@ -8,7 +8,6 @@ import (
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 
 	clock "github.com/dtauraso/wirefold/src/Clock"
-	"github.com/dtauraso/wirefold/src/runtopology/scenerun"
 	"github.com/dtauraso/wirefold/src/Input/Drag"
 	"github.com/dtauraso/wirefold/src/Input/File"
 	"github.com/dtauraso/wirefold/src/Input/Stdin"
@@ -17,19 +16,19 @@ import (
 type gestureMsgKind int
 
 const (
-	gestureMsgEdit gestureMsgKind = iota
-	gestureMsgSave
+	GestureMsgEdit gestureMsgKind = iota
+	GestureMsgSave
 )
 
-type gestureInboxMsg struct {
-	kind gestureMsgKind
-	msg  Stdin.StdinMsg
+type GestureInboxMsg struct {
+	Kind gestureMsgKind
+	Msg  Stdin.StdinMsg
 }
 
 const gestureInboxDepth = 64
 
-func startGestureActor(ctx context.Context, slotReg beadanimation.SlotRegistry, md *scenerun.MoveDispatch, speedSinks SliderPanel.Sinks, clk clock.Clock, inputPath string) (chan gestureInboxMsg, *sync.WaitGroup) {
-	inbox := make(chan gestureInboxMsg, gestureInboxDepth)
+func StartGestureActor(ctx context.Context, slotReg beadanimation.SlotRegistry, md *MoveDispatch, speedSinks SliderPanel.Sinks, clk clock.Clock, inputPath string) (chan GestureInboxMsg, *sync.WaitGroup) {
+	inbox := make(chan GestureInboxMsg, gestureInboxDepth)
 	wg := new(sync.WaitGroup)
 	wg.Add(1)
 	go func() {
@@ -41,7 +40,7 @@ func startGestureActor(ctx context.Context, slotReg beadanimation.SlotRegistry, 
 			for _, raw := range reader.ReadAll() {
 				if ev, ok := Drag.DecodeRawInput(raw); ok {
 					wheel.difference(&ev)
-					scenerun.HandleRawInputMsg(ctx, ev, slotReg, md, speedSinks)
+					HandleRawInputMsg(ctx, ev, slotReg, md, speedSinks)
 				}
 			}
 
@@ -51,11 +50,11 @@ func startGestureActor(ctx context.Context, slotReg beadanimation.SlotRegistry, 
 				case <-ctx.Done():
 					return
 				case gm := <-inbox:
-					switch gm.kind {
-					case gestureMsgEdit:
-						scenerun.ApplyEdit(ctx, gm.msg, md, speedSinks)
-					case gestureMsgSave:
-						scenerun.HandleSaveMsg(md)
+					switch gm.Kind {
+					case GestureMsgEdit:
+						ApplyEdit(ctx, gm.Msg, md, speedSinks)
+					case GestureMsgSave:
+						HandleSaveMsg(md)
 					}
 				default:
 					break drain
@@ -89,7 +88,7 @@ func (w *wheelTotals) difference(ev *Drag.RawInputMsg) {
 	w.x, w.y = totalX, totalY
 }
 
-func sendGestureMsgBlocking(ctx context.Context, inbox chan gestureInboxMsg, gm gestureInboxMsg) {
+func SendGestureMsgBlocking(ctx context.Context, inbox chan GestureInboxMsg, gm GestureInboxMsg) {
 	select {
 	case inbox <- gm:
 	case <-ctx.Done():

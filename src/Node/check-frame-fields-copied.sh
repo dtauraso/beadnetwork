@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: src/Node/node_state.go,src/runtopology/node_stream.go | every NodeState field must be named by the adapter that fills it, or it writes a zero into the node file while everything compiles
+# PLACEMENT: src/Node/node_state.go,src/Node/stream_sink.go | every NodeState field must be named by the adapter that fills it, or it writes a zero into the node file while everything compiles
 
 set -euo pipefail
 
@@ -15,7 +15,7 @@ PAIRS = [
     ("src/Node/nodeactor/nodeframe/node_frame_input.go", "NodeFrameInput",
      "src/Node/nodeactor/node_geometry_stream.go"),
     ("src/Node/node_state.go", "NodeState",
-     "src/runtopology/node_stream.go"),
+     "src/Node/stream_sink.go"),
 ]
 
 EXEMPT = {
