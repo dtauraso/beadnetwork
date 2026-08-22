@@ -7,8 +7,6 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-
-	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
 const (
@@ -20,7 +18,7 @@ const (
 	FileRepeat  = "repeat.bin"
 )
 
-func trimLeafExt(name string) string { return strings.TrimSuffix(name, valuefile.Ext) }
+func trimLeafExt(name string) string { return strings.TrimSuffix(name, Ext) }
 
 func readIntDir(dir string) (map[string]int, error) {
 	names, err := readDirNames(dir)
@@ -29,7 +27,7 @@ func readIntDir(dir string) (map[string]int, error) {
 	}
 	out := map[string]int{}
 	for _, n := range names {
-		if !strings.HasSuffix(n, valuefile.Ext) {
+		if !strings.HasSuffix(n, Ext) {
 			continue
 		}
 		var v int
@@ -47,7 +45,7 @@ func readStringDir(dir string) map[string]string {
 	}
 	out := map[string]string{}
 	for _, n := range names {
-		if !strings.HasSuffix(n, valuefile.Ext) {
+		if !strings.HasSuffix(n, Ext) {
 			continue
 		}
 		var v string
@@ -69,7 +67,7 @@ func readIntArrayDir(dir string) ([]int, error) {
 	}
 	items := make([]item, 0, len(names))
 	for _, n := range names {
-		if !strings.HasSuffix(n, valuefile.Ext) {
+		if !strings.HasSuffix(n, Ext) {
 			continue
 		}
 		idx, err := strconv.Atoi(trimLeafExt(n))

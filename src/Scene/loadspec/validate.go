@@ -7,7 +7,6 @@ import (
 
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/src/NodeKinds/portwiring"
-	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
 func ValidateSpec(spec *TopoSpec, kindPorts map[string][]portwiring.PortSpec) error {
@@ -52,7 +51,7 @@ func ValidateSpec(spec *TopoSpec, kindPorts map[string][]portwiring.PortSpec) er
 	}
 
 	for _, n := range spec.Nodes {
-		if !valuefile.SafeTreePathComponent(n.ID) {
+		if !SafeTreePathComponent(n.ID) {
 			errs = append(errs, fmt.Sprintf("node id %q is not a safe path component", n.ID))
 		}
 	}

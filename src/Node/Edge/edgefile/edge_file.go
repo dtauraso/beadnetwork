@@ -5,8 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-
-	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
 func edgeDirPath(root, src, label string) string {
@@ -15,7 +13,7 @@ func edgeDirPath(root, src, label string) string {
 
 func readEdgeString(root, src, label, name string) string {
 	var v string
-	valuefile.ReadIfExists(filepath.Join(edgeDirPath(root, src, label), name), &v)
+	ReadIfExists(filepath.Join(edgeDirPath(root, src, label), name), &v)
 	return v
 }
 
@@ -75,7 +73,7 @@ func WriteEdgeFile(root, src, srcPort, target, targetPort string) error {
 		FileTargetHandle: targetPort,
 		FileKind:         "chain",
 	} {
-		if err := valuefile.WriteAtomic(filepath.Join(dir, name), value); err != nil {
+		if err := WriteAtomic(filepath.Join(dir, name), value); err != nil {
 			return err
 		}
 	}

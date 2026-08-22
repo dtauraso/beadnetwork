@@ -1,4 +1,4 @@
-import { makeRowLeafValues } from "../../valuefile/row-leaf-values";
+import { makeRowLeafValues } from "./row-leaf-values";
 import { TILT_VALUE_NAMES, type TiltValueName } from "./tilt-values-gen";
 
 const values = makeRowLeafValues<TiltValueName>(

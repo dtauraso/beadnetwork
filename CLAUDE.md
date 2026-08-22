@@ -105,8 +105,9 @@ one directory out, since a directory is one Go package. `go generate ./...` runs
 - **`src/spatial/`** — `Vec3`, `Segment`, eight operations, 37 lines, importing only `math`. It
   is the MEDIUM, deliberately unremarkable; the substance sits on top in **`src/Polar/`** —
   `polar` (coordinate/composition) and `polarindex` (index × constant) — never inside it.
-  **`src/valuefile/`** is the other medium — one primitive per file, fixed-width LE, atomic
-  rename — with the write-ownership guard beside it.
+  The value file — one primitive per file, fixed-width LE, atomic rename — is **not a
+  package**: each concern owns its `value_file.go` and `leaf-values.ts`, because the layout
+  need only agree between the Go writing that concern's block file and the TS reading it.
 - **`src/Scene/`** — starting the program: claim the stream fds, resolve the scene,
   load the graph, wire every per-owner stream, seed the static columns, then launch one
   goroutine per node and block. `main.go` calls it and nothing else does. It is NOT a

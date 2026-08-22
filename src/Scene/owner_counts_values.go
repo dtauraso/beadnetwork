@@ -2,8 +2,6 @@ package Scene
 
 import (
 	"path/filepath"
-
-	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
 const CountsValueRelPath = "view/owner-counts.bin"
@@ -11,12 +9,12 @@ const CountsValueRelPath = "view/owner-counts.bin"
 var CountsValueNames = []string{"nodes", "edges"}
 
 type CountsValueWriter struct {
-	*valuefile.BlobWriter
+	*BlobWriter
 }
 
 func NewCountsValueWriter(sceneRoot string) *CountsValueWriter {
 	path := filepath.Join(sceneRoot, filepath.FromSlash(CountsValueRelPath))
-	return &CountsValueWriter{BlobWriter: valuefile.NewBlobWriter(path, CountsValueNames)}
+	return &CountsValueWriter{BlobWriter: NewBlobWriter(path, CountsValueNames)}
 }
 
 func (w *CountsValueWriter) Write(nodes, edges int32) error {

@@ -2,8 +2,6 @@ package dragfile
 
 import (
 	"path/filepath"
-
-	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
 const (
@@ -33,7 +31,7 @@ func Write(root, id string, j JSON) error {
 		FileIndexR:     j.IndexR,
 		FileTiltIdx:    int(j.TopTiltVectorPhiIdx),
 	} {
-		if err := valuefile.WriteAtomicIfChanged(filepath.Join(dir, name), value); err != nil {
+		if err := WriteAtomicIfChanged(filepath.Join(dir, name), value); err != nil {
 			return err
 		}
 	}
@@ -45,7 +43,7 @@ func Read(root, id string) (JSON, bool) {
 	var j JSON
 	found := false
 	read := func(name string, dst *int) {
-		if valuefile.ReadIfExists(filepath.Join(dir, name), dst) {
+		if ReadIfExists(filepath.Join(dir, name), dst) {
 			found = true
 		}
 	}

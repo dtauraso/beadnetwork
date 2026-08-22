@@ -2,17 +2,15 @@ package PolarRulesPanel
 
 import (
 	"path/filepath"
-
-	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
 type ValueWriter struct {
-	*valuefile.BlobWriter
+	*BlobWriter
 }
 
 func NewValueWriter(sceneRoot string) *ValueWriter {
 	path := filepath.Join(sceneRoot, filepath.FromSlash(ValueRelFile))
-	return &ValueWriter{BlobWriter: valuefile.NewBlobWriter(path, PanelValueNames)}
+	return &ValueWriter{BlobWriter: NewBlobWriter(path, PanelValueNames)}
 }
 
 func (w *ValueWriter) Rect(xName, yName, wName, hName string, r Rect) {

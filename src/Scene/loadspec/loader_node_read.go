@@ -8,11 +8,10 @@ import (
 
 	"github.com/dtauraso/wirefold/src/Node/Edge/edgefile"
 	"github.com/dtauraso/wirefold/src/Node/nodefile"
-	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
 func readLeaf(path string, v any) bool {
-	return valuefile.ReadIfExists(path, v)
+	return ReadIfExists(path, v)
 }
 
 func readOptInt(path string) *int {

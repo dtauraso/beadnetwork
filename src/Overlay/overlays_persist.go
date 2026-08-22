@@ -2,8 +2,6 @@ package Overlay
 
 import (
 	"path/filepath"
-
-	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
 func BlockPath(sceneRoot string) string {
@@ -11,7 +9,7 @@ func BlockPath(sceneRoot string) string {
 }
 
 func WriteSceneOverlays(sceneRoot string, ov OverlayState) error {
-	w := valuefile.NewBlobWriter(BlockPath(sceneRoot), FlagNames)
+	w := NewBlobWriter(BlockPath(sceneRoot), FlagNames)
 	w.Begin()
 	for _, flag := range FlagNames {
 		w.Bool(flag, OverlayFlagRead[flag](&ov))
@@ -21,7 +19,7 @@ func WriteSceneOverlays(sceneRoot string, ov OverlayState) error {
 
 func LoadSceneOverlays(sceneRoot string) (OverlayState, bool) {
 	ov := DefaultOverlayState()
-	r, ok := valuefile.ReadBlob(BlockPath(sceneRoot), FlagNames)
+	r, ok := ReadBlob(BlockPath(sceneRoot), FlagNames)
 	if !ok {
 		return ov, false
 	}

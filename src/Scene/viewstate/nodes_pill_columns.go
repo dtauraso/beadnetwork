@@ -3,7 +3,6 @@ package viewstate
 import (
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/Panel"
 	"github.com/dtauraso/wirefold/src/Chrome/Pills/NodesDropdown"
-	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
 const refusedNotice = "edit refused — see the output channel"
@@ -51,6 +50,6 @@ func (ui *UIState) writeNodesPillValues(lay NodesDropdown.Layout) {
 	w.Text("refusedText", refusedNotice)
 
 	if err := w.Flush(); err != nil {
-		valuefile.LogPersistErr("nodes_pill_values", "", err)
+		LogPersistErr("nodes_pill_values", "", err)
 	}
 }

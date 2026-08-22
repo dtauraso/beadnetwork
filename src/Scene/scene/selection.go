@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 
 	"github.com/dtauraso/wirefold/src/Scene/scenepaths"
-	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
 func Container(anchorPath string) string {
@@ -19,7 +18,7 @@ func Container(anchorPath string) string {
 
 func SelectedIndex(anchorPath string) int {
 	var selected string
-	if !valuefile.ReadIfExists(scenepaths.SelectionFilePath(anchorPath), &selected) {
+	if !ReadIfExists(scenepaths.SelectionFilePath(anchorPath), &selected) {
 		return 0
 	}
 	for i, s := range All {

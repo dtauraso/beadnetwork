@@ -4,7 +4,6 @@ import (
 	"path/filepath"
 
 	"github.com/dtauraso/wirefold/src/Polar/polarindex"
-	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
 func edgeDragDir(root, src, label string) string {
@@ -15,7 +14,7 @@ func ReadEdgeDragIndex(root, src, label string) (polarindex.Offset, bool) {
 	dir := edgeDragDir(root, src, label)
 	var off polarindex.Offset
 	read := func(name string, dst *int) bool {
-		return valuefile.ReadIfExists(filepath.Join(dir, name), dst)
+		return ReadIfExists(filepath.Join(dir, name), dst)
 	}
 	if !read(FileDragIndexPhi, &off.Phi) || !read(FileDragIndexTheta, &off.Theta) ||
 		!read(FileDragIndexR, &off.R) {
@@ -31,7 +30,7 @@ func WriteEdgeDrag(root, src, label string, off polarindex.Offset) error {
 		FileDragIndexTheta: off.Theta,
 		FileDragIndexR:     off.R,
 	} {
-		if err := valuefile.WriteAtomicIfChanged(filepath.Join(dir, name), value); err != nil {
+		if err := WriteAtomicIfChanged(filepath.Join(dir, name), value); err != nil {
 			return err
 		}
 	}

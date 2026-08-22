@@ -2,7 +2,6 @@ package viewstate
 
 import (
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
-	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
 func (ui *UIState) writeSpeedPanelColumns(lay SliderPanel.Layout) {
@@ -32,6 +31,6 @@ func (ui *UIState) writeSpeedPanelColumns(lay SliderPanel.Layout) {
 	w.Rect("trackX", "trackY", "trackW", "trackH", lay.Track)
 
 	if err := w.Flush(); err != nil {
-		valuefile.LogPersistErr("slider_panel_values", "", err)
+		LogPersistErr("slider_panel_values", "", err)
 	}
 }

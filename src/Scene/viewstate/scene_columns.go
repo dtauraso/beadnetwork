@@ -13,7 +13,6 @@ import (
 	"github.com/dtauraso/wirefold/src/Chrome/Tabs"
 	"github.com/dtauraso/wirefold/src/RingPoint"
 	"github.com/dtauraso/wirefold/src/Scene"
-	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
 func (ui *UIState) SetSceneRoot(sceneRoot string) {
@@ -39,7 +38,7 @@ func (ui *UIState) writeSceneColumns() {
 		return
 	}
 	if err := w.Write(ui.OwnerCounts.Nodes, ui.OwnerCounts.Edges); err != nil {
-		valuefile.LogPersistErr("owner_counts_values", "", err)
+		LogPersistErr("owner_counts_values", "", err)
 	}
 }
 
@@ -52,7 +51,7 @@ func (ui *UIState) WriteRingSurfaces(nodePts, beadPts []float32) {
 	w.Surface("nodeX", "nodeY", "nodeZ", nodePts)
 	w.Surface("beadX", "beadY", "beadZ", beadPts)
 	if err := w.Flush(); err != nil {
-		valuefile.LogPersistErr("ring_point_values", "", err)
+		LogPersistErr("ring_point_values", "", err)
 	}
 }
 
@@ -68,6 +67,6 @@ func (ui *UIState) writePointerTargetColumns() {
 	t := ui.Pointer
 	tx, ty, _, _ := t.TipRect(float32(ui.ViewW))
 	if err := w.Write(t.Rect.X, t.Rect.Y, t.Rect.W, t.Rect.H, uint8(t.Kind), tx, ty, t.Tip); err != nil {
-		valuefile.LogPersistErr("pointer_target_values", "", err)
+		LogPersistErr("pointer_target_values", "", err)
 	}
 }

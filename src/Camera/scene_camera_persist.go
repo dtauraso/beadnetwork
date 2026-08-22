@@ -1,8 +1,6 @@
 package Camera
 
-import (
-	"github.com/dtauraso/wirefold/src/valuefile"
-)
+import ()
 
 type ViewpointPersister struct {
 	Path string
@@ -13,7 +11,7 @@ func (p *ViewpointPersister) Schedule(v Viewpoint) {
 		return
 	}
 	if err := writeViewpointBlock(p.Path, v); err != nil {
-		valuefile.LogPersistErr("scene_camera_persist", p.Path, err)
+		LogPersistErr("scene_camera_persist", p.Path, err)
 	}
 }
 

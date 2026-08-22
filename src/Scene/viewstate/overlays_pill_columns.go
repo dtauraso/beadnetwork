@@ -2,7 +2,6 @@ package viewstate
 
 import (
 	"github.com/dtauraso/wirefold/src/Chrome/Pills"
-	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
 func (ui *UIState) writeOverlaysPillValues(lay Pills.Layout) {
@@ -41,7 +40,7 @@ func (ui *UIState) writeOverlaysPillValues(lay Pills.Layout) {
 	}
 
 	if err := w.Flush(); err != nil {
-		valuefile.LogPersistErr("overlays_pill_values", "", err)
+		LogPersistErr("overlays_pill_values", "", err)
 	}
 }
 
@@ -54,7 +53,7 @@ func (ui *UIState) writeFitChipValues(r Pills.Rect) {
 	w.Rect("x", "y", "w", "h", r)
 	w.Text("labelText", FitLabel)
 	if err := w.Flush(); err != nil {
-		valuefile.LogPersistErr("fit_chip_values", "", err)
+		LogPersistErr("fit_chip_values", "", err)
 	}
 }
 

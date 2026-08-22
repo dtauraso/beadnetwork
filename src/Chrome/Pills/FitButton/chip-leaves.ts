@@ -1,4 +1,4 @@
-import { makeLeafValues } from "../../../valuefile/leaf-values";
+import { makeLeafValues } from "./leaf-values";
 import { FIT_CHIP_VALUE_NAMES, type FitChipValueName } from "./chip-values-gen";
 
 const values = makeLeafValues<FitChipValueName>(

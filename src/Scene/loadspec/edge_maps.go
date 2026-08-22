@@ -1,7 +1,6 @@
 package loadspec
 
-import (
-)
+import ()
 
 func (spec TopoSpec) BuildEdgeMaps(nodeType map[string]string, kindBroadcastPorts map[string]map[string]bool) (inbound map[string]map[string]string, outbound map[string]map[string][]string, outboundHandle map[string]map[string][]string) {
 	inbound = map[string]map[string]string{}

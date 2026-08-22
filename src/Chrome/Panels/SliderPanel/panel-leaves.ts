@@ -1,4 +1,4 @@
-import { makeLeafValues } from "../../../valuefile/leaf-values";
+import { makeLeafValues } from "./leaf-values";
 import { SLIDER_PANEL_VALUE_NAMES, type SliderPanelValueName } from "./panel-values-gen";
 
 const values = makeLeafValues<SliderPanelValueName>(
