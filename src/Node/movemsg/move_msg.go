@@ -5,8 +5,6 @@ import (
 	"github.com/dtauraso/wirefold/src/spatial"
 )
 
-type vec3 = spatial.Vec3
-
 const (
 	KindAnchor  = "anchor"
 	KindCenter  = "center"
@@ -51,15 +49,15 @@ type Msg struct {
 	IsInput  bool
 	AnchorId int
 
-	Center *vec3
+	Center *spatial.Vec3
 
 	Delta *polarindex.Offset
 
 	Target *polarindex.Index
 
-	Centers map[string]vec3
+	Centers map[string]spatial.Vec3
 
-	FromCenter vec3
+	FromCenter spatial.Vec3
 
 	SenderID string
 

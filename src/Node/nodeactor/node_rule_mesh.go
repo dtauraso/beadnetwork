@@ -2,6 +2,7 @@ package nodeactor
 
 import (
 	"context"
+
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/PolarRulesPanel"
 
 	"github.com/dtauraso/wirefold/src/Node/rulenode"

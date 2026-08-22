@@ -1,9 +1,11 @@
 package gesture
 
 import (
-	T "github.com/dtauraso/wirefold/src/Trace"
 	"fmt"
 	"math"
+
+	T "github.com/dtauraso/wirefold/src/Trace"
+	"github.com/dtauraso/wirefold/src/spatial"
 
 	"github.com/dtauraso/wirefold/src/Chrome/Pills/FitButton"
 
@@ -83,7 +85,7 @@ func gestPointerUp(d Deps, ev inputcodec.RawInputMsg) {
 	switch {
 	case g.Phase == gesturefsm.GestDragging:
 		nodeGeoms, mv, ctx := d.MR.NodeGeoms(), d.Mover, d.Ctx
-		applyNodeDragTarget(d.UI, func(id string, target vec3) bool { return mv.RootMove(ctx, nodeGeoms, id, target) }, ev)
+		applyNodeDragTarget(d.UI, func(id string, target spatial.Vec3) bool { return mv.RootMove(ctx, nodeGeoms, id, target) }, ev)
 	case g.Phase == gesturefsm.GestHandhold, g.Phase == gesturefsm.GestRotating:
 
 	case g.Phase == gesturefsm.GestPending:

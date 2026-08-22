@@ -1,6 +1,8 @@
 package edgegeom
 
-func NearestTo(centers map[string]vec3, p vec3) (string, bool) {
+import "github.com/dtauraso/wirefold/src/spatial"
+
+func NearestTo(centers map[string]spatial.Vec3, p spatial.Vec3) (string, bool) {
 	best, bestD2, found := "", 0.0, false
 	for id, c := range centers {
 		d := c.Sub(p)

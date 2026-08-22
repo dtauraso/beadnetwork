@@ -3,15 +3,15 @@ package nodecrud
 import (
 	"fmt"
 
-	"github.com/dtauraso/wirefold/src/Node/Edge/edgefile"
 	"github.com/dtauraso/wirefold/src/Camera"
-	"github.com/dtauraso/wirefold/src/Polar/polar"
-	"github.com/dtauraso/wirefold/src/runtopology/loadspec"
+	"github.com/dtauraso/wirefold/src/Node/Edge/edgefile"
 	"github.com/dtauraso/wirefold/src/Node/moverreg"
 	"github.com/dtauraso/wirefold/src/Node/nodeactor/nodefiles"
+	"github.com/dtauraso/wirefold/src/Polar/polar"
 	"github.com/dtauraso/wirefold/src/Scene/rowtables"
 	"github.com/dtauraso/wirefold/src/Scene/sceneswitch"
 	"github.com/dtauraso/wirefold/src/Scene/viewstate"
+	"github.com/dtauraso/wirefold/src/runtopology/loadspec"
 )
 
 func CreateNode(scenes *sceneswitch.SceneSwitch, ui *viewstate.UIState, mr *moverreg.MoverRegistry, kindID uint8, ndcX, ndcY float64) {

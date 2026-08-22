@@ -1,10 +1,10 @@
 package nodeactor
 
 import (
-	T "github.com/dtauraso/wirefold/src/Trace"
 	"context"
 
-	"github.com/dtauraso/wirefold/src/Clock"
+	clock "github.com/dtauraso/wirefold/src/Clock"
+	T "github.com/dtauraso/wirefold/src/Trace"
 )
 
 type PairNodeSelf struct {

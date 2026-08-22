@@ -2,8 +2,9 @@ package runtopology
 
 import (
 	"fmt"
-	T "github.com/dtauraso/wirefold/src/Trace"
 	"os"
+
+	T "github.com/dtauraso/wirefold/src/Trace"
 
 	NodeKind "github.com/dtauraso/wirefold/src/Node"
 

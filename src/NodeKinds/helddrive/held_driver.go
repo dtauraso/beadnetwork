@@ -1,9 +1,9 @@
 package helddrive
 
 import (
-	"github.com/dtauraso/wirefold/src/Node/Interior"
-	Wiring "github.com/dtauraso/wirefold/src/NodeKinds/kindapi"
 	lattice "github.com/dtauraso/wirefold/src/Node/BeadAnimation/lattice"
+	interior "github.com/dtauraso/wirefold/src/Node/Interior"
+	Wiring "github.com/dtauraso/wirefold/src/NodeKinds/kindapi"
 )
 
 const NoValue = interior.NoValue

@@ -2,9 +2,10 @@ package owners
 
 import (
 	"fmt"
-	"github.com/dtauraso/wirefold/src/spatial"
-	"github.com/dtauraso/wirefold/src/Chrome/Panels/PolarRulesPanel"
 	"strconv"
+
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/PolarRulesPanel"
+	"github.com/dtauraso/wirefold/src/spatial"
 )
 
 type RuleMesh struct {

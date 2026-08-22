@@ -3,8 +3,8 @@ package nodefile
 import (
 	"path/filepath"
 
-	"github.com/dtauraso/wirefold/src/valuefile"
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/PolarRulesPanel"
+	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
 const (

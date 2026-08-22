@@ -1,14 +1,15 @@
 package nodefiles
 
 import (
-	"github.com/dtauraso/wirefold/src/Chrome/Panels/PolarRulesPanel"
 	"os"
 	"path/filepath"
 
-	"github.com/dtauraso/wirefold/src/Polar/polar"
-	"github.com/dtauraso/wirefold/src/valuefile"
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/PolarRulesPanel"
+
 	"github.com/dtauraso/wirefold/src/Node/nodefile"
+	"github.com/dtauraso/wirefold/src/Polar/polar"
 	"github.com/dtauraso/wirefold/src/Polar/polarindex"
+	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
 func nodeDirPath(root, id string) string {

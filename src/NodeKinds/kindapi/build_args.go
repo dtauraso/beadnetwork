@@ -5,12 +5,12 @@ import (
 	"strings"
 
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
-	"github.com/dtauraso/wirefold/src/Node/Interior"
-	"github.com/dtauraso/wirefold/src/NodeKinds/kindreg"
-	"github.com/dtauraso/wirefold/src/runtopology/loadspec"
+	interior "github.com/dtauraso/wirefold/src/Node/Interior"
 	"github.com/dtauraso/wirefold/src/Node/nodegeom"
-	"github.com/dtauraso/wirefold/src/NodeKinds/portwiring"
+	"github.com/dtauraso/wirefold/src/NodeKinds/kindreg"
 	"github.com/dtauraso/wirefold/src/NodeKinds/nodeapi"
+	"github.com/dtauraso/wirefold/src/NodeKinds/portwiring"
+	"github.com/dtauraso/wirefold/src/runtopology/loadspec"
 )
 
 type BuildArgs struct {

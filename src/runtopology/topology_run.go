@@ -1,11 +1,12 @@
 package runtopology
 
 import (
-	SceneB "github.com/dtauraso/wirefold/src/Scene"
-	T "github.com/dtauraso/wirefold/src/Trace"
 	"context"
 	"fmt"
 	"os"
+
+	SceneB "github.com/dtauraso/wirefold/src/Scene"
+	T "github.com/dtauraso/wirefold/src/Trace"
 
 	"github.com/dtauraso/wirefold/src/Scene/scene"
 	"github.com/dtauraso/wirefold/src/Scene/scenepaths"
@@ -19,7 +20,6 @@ import (
 )
 
 func RunTopology(ctx context.Context, cancel context.CancelFunc, topologyPath string, clk clock.Clock) {
-
 
 	sceneTabNames := Tabs.TabNames()
 	sceneTabSelected := Tabs.SelectedIndex(topologyPath)

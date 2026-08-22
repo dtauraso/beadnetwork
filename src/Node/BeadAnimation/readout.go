@@ -1,9 +1,9 @@
 package beadanimation
 
 import (
-	T "github.com/dtauraso/wirefold/src/Trace"
 	"fmt"
 
+	T "github.com/dtauraso/wirefold/src/Trace"
 )
 
 type beadReadout struct {

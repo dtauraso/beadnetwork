@@ -1,8 +1,8 @@
 package topoderive
 
 import (
-	"github.com/dtauraso/wirefold/src/runtopology/loadspec"
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/TiltPanel"
+	"github.com/dtauraso/wirefold/src/runtopology/loadspec"
 )
 
 func AllocateVectorChannels(spec loadspec.TopoSpec) (vectorOutByNode, vectorInByNode map[string]chan TiltPanel.TiltVectorMsg) {

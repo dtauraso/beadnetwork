@@ -1,8 +1,8 @@
 package loadspec
 
 import (
-	"github.com/dtauraso/wirefold/src/Node/dragfile"
 	"github.com/dtauraso/wirefold/src/Node/Edge/edgefile"
+	"github.com/dtauraso/wirefold/src/Node/dragfile"
 )
 
 func ApplyDragOverlay(root string, spec *TopoSpec) {

@@ -3,8 +3,8 @@ package rulenode
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/src/valuefile"
 	"github.com/dtauraso/wirefold/src/Node/nodeactor/nodefiles"
+	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
 type EdgeToggle struct {

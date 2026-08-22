@@ -1,7 +1,7 @@
 package PairNode
 
 import (
-	"github.com/dtauraso/wirefold/src/Clock"
+	clock "github.com/dtauraso/wirefold/src/Clock"
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/TiltPanel"

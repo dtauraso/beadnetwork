@@ -1,7 +1,7 @@
 package PairNode
 
 import (
-	"github.com/dtauraso/wirefold/src/Clock"
+	clock "github.com/dtauraso/wirefold/src/Clock"
 	"github.com/dtauraso/wirefold/src/NodeKinds/nodeapi"
 )
 

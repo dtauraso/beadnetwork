@@ -2,14 +2,14 @@ package viewstate
 
 import (
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/Panel"
-	NodeBuf "github.com/dtauraso/wirefold/src/Node"
-	"github.com/dtauraso/wirefold/src/Chrome/Pills/AngleDropdown"
-	"github.com/dtauraso/wirefold/src/Chrome/Pills/NodesDropdown"
-	"github.com/dtauraso/wirefold/src/Chrome/Pills"
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/PolarRulesPanel"
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
-	"github.com/dtauraso/wirefold/src/Chrome/Tabs"
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/TiltPanel"
+	"github.com/dtauraso/wirefold/src/Chrome/Pills"
+	"github.com/dtauraso/wirefold/src/Chrome/Pills/AngleDropdown"
+	"github.com/dtauraso/wirefold/src/Chrome/Pills/NodesDropdown"
+	"github.com/dtauraso/wirefold/src/Chrome/Tabs"
+	NodeBuf "github.com/dtauraso/wirefold/src/Node"
 )
 
 type PanelLayout struct {

@@ -58,4 +58,3 @@ type NodeState struct {
 
 	Events []T.RowEvent
 }
-

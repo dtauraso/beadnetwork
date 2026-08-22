@@ -1,11 +1,10 @@
 package nodeactor
 
 import (
-	T "github.com/dtauraso/wirefold/src/Trace"
-	"github.com/dtauraso/wirefold/src/Polar/polar"
 	"github.com/dtauraso/wirefold/src/Node/movemsg"
+	"github.com/dtauraso/wirefold/src/Polar/polar"
 	"github.com/dtauraso/wirefold/src/Polar/polarindex"
-
+	T "github.com/dtauraso/wirefold/src/Trace"
 )
 
 func (m *NodeGeometry) take(msg movemsg.Msg) {

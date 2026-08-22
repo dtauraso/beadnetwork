@@ -1,9 +1,11 @@
 package Camera
 
+import "github.com/dtauraso/wirefold/src/spatial"
+
 type CamBasis struct {
-	RefX vec3
-	RefY vec3
-	Pole vec3
+	RefX spatial.Vec3
+	RefY spatial.Vec3
+	Pole spatial.Vec3
 }
 
 func BasisFromViewpoint(pos, up Dir) CamBasis {
@@ -14,6 +16,6 @@ func BasisFromViewpoint(pos, up Dir) CamBasis {
 	return CamBasis{RefX: refX, RefY: refY, Pole: pole}
 }
 
-func EyeOf(v Viewpoint) vec3 {
+func EyeOf(v Viewpoint) spatial.Vec3 {
 	return v.Pivot.Add(AnglesToWorldOffset(v.R, v.Pos.Phi, v.Pos.Theta))
 }

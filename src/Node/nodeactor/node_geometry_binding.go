@@ -1,11 +1,11 @@
 package nodeactor
 
 import (
-	T "github.com/dtauraso/wirefold/src/Trace"
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/PolarRulesPanel"
+	T "github.com/dtauraso/wirefold/src/Trace"
 
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
-	"github.com/dtauraso/wirefold/src/Node/Interior"
+	interior "github.com/dtauraso/wirefold/src/Node/Interior"
 	"github.com/dtauraso/wirefold/src/Node/movemsg"
 	"github.com/dtauraso/wirefold/src/Node/nodeactor/nodeframe"
 	"github.com/dtauraso/wirefold/src/Node/nodeactor/owners"

@@ -1,8 +1,8 @@
 package SliderPanel
 
 import (
+	clock "github.com/dtauraso/wirefold/src/Clock"
 	lattice "github.com/dtauraso/wirefold/src/Node/BeadAnimation/lattice"
-	"github.com/dtauraso/wirefold/src/Clock"
 )
 
 const NumScale = 4

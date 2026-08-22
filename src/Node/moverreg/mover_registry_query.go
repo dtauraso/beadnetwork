@@ -3,6 +3,8 @@ package moverreg
 import (
 	"context"
 
+	"github.com/dtauraso/wirefold/src/spatial"
+
 	"github.com/dtauraso/wirefold/src/Node/Edge/edgegeom"
 	"github.com/dtauraso/wirefold/src/Node/movemsg"
 	"github.com/dtauraso/wirefold/src/Node/nodeactor"
@@ -11,7 +13,7 @@ import (
 
 func (mr *MoverRegistry) drainCenterMirror() {
 	if mr.centerMirror == nil {
-		mr.centerMirror = map[string]vec3{}
+		mr.centerMirror = map[string]spatial.Vec3{}
 	}
 	for id, nm := range mr.nodeGeoms {
 		if c, ok := nm.PollCenter(); ok {
@@ -20,7 +22,7 @@ func (mr *MoverRegistry) drainCenterMirror() {
 	}
 }
 
-func (mr *MoverRegistry) CenterOfNode(id string) (vec3, bool) {
+func (mr *MoverRegistry) CenterOfNode(id string) (spatial.Vec3, bool) {
 	mr.drainCenterMirror()
 	c, ok := mr.centerMirror[id]
 	return c, ok
@@ -49,8 +51,8 @@ func (mr *MoverRegistry) NodeBodyRadius(id string) float64 {
 	return nodegeom.NodeRadius(mr.nodeKind(id))
 }
 
-func (mr *MoverRegistry) NearestNodeTo(p vec3) (string, bool) {
-	centers := make(map[string]vec3, len(mr.nodeGeoms))
+func (mr *MoverRegistry) NearestNodeTo(p spatial.Vec3) (string, bool) {
+	centers := make(map[string]spatial.Vec3, len(mr.nodeGeoms))
 	for id, ng := range mr.nodeGeoms {
 		centers[id] = ng.WorldCenter()
 	}

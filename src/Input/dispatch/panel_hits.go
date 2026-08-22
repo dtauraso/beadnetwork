@@ -1,8 +1,9 @@
 package dispatch
 
 import (
-	T "github.com/dtauraso/wirefold/src/Trace"
 	"context"
+
+	T "github.com/dtauraso/wirefold/src/Trace"
 
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/Panel"
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/PolarRulesPanel"
@@ -13,8 +14,8 @@ import (
 	"github.com/dtauraso/wirefold/src/Chrome/Pills/NodesDropdown"
 	"github.com/dtauraso/wirefold/src/Input/inputcodec"
 	"github.com/dtauraso/wirefold/src/Node/nodecrud"
-	"github.com/dtauraso/wirefold/src/Scene/sceneswitch"
 	"github.com/dtauraso/wirefold/src/Overlay"
+	"github.com/dtauraso/wirefold/src/Scene/sceneswitch"
 )
 
 func panelTookPointerDown(

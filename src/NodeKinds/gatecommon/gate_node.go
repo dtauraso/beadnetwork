@@ -1,10 +1,10 @@
 package gatecommon
 
 import (
-	"github.com/dtauraso/wirefold/src/Clock"
+	clock "github.com/dtauraso/wirefold/src/Clock"
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 
-	"github.com/dtauraso/wirefold/src/Node/Interior"
+	interior "github.com/dtauraso/wirefold/src/Node/Interior"
 	"github.com/dtauraso/wirefold/src/Node/nodeactor"
 )
 

@@ -1,11 +1,12 @@
 package dispatch
 
 import (
-	T "github.com/dtauraso/wirefold/src/Trace"
 	"context"
 	"fmt"
 	"math"
 	"strconv"
+
+	T "github.com/dtauraso/wirefold/src/Trace"
 
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
 

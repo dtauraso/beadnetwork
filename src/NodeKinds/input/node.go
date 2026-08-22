@@ -7,8 +7,8 @@ import (
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/src/NodeKinds/nodeapi"
 
-	Wiring "github.com/dtauraso/wirefold/src/NodeKinds/kindapi"
 	"github.com/dtauraso/wirefold/src/Node/nodeactor"
+	Wiring "github.com/dtauraso/wirefold/src/NodeKinds/kindapi"
 )
 
 type Node struct {

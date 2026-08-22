@@ -2,10 +2,10 @@ package scenepersist
 
 import (
 	"github.com/dtauraso/wirefold/src/Polar/polar"
-	"github.com/dtauraso/wirefold/src/runtopology/geomseeds"
-	"github.com/dtauraso/wirefold/src/valuefile"
 	"github.com/dtauraso/wirefold/src/Scene"
 	"github.com/dtauraso/wirefold/src/Scene/viewstate"
+	"github.com/dtauraso/wirefold/src/runtopology/geomseeds"
+	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
 func LoadSceneSphere(topologyPath string) (polar.SceneSphere, bool) {

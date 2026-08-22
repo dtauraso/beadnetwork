@@ -1,9 +1,9 @@
 package scenepersist
 
 import (
-	"github.com/dtauraso/wirefold/src/valuefile"
 	"github.com/dtauraso/wirefold/src/Scene/scene"
 	"github.com/dtauraso/wirefold/src/Scene/scenepaths"
+	"github.com/dtauraso/wirefold/src/valuefile"
 )
 
 func WriteSelectedScene(anchorPath string, idx int) error {

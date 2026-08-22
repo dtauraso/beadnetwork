@@ -1,8 +1,9 @@
 package nodedrag
 
 import (
-	"github.com/dtauraso/wirefold/src/Chrome/Panels/PolarRulesPanel"
 	"math"
+
+	"github.com/dtauraso/wirefold/src/Chrome/Panels/PolarRulesPanel"
 
 	"github.com/dtauraso/wirefold/src/Polar/polar"
 	"github.com/dtauraso/wirefold/src/Polar/polarindex"

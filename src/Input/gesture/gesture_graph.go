@@ -6,6 +6,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Input/inputcodec"
 	"github.com/dtauraso/wirefold/src/Node/movemsg"
 	"github.com/dtauraso/wirefold/src/Scene/viewstate"
+	"github.com/dtauraso/wirefold/src/spatial"
 )
 
 type gestureEdge struct {
@@ -63,7 +64,7 @@ func commitRotateStart(d Deps, g *gesturefsm.GestureState, ev inputcodec.RawInpu
 var applyAction = map[gesturefsm.GesturePhase]func(d Deps, g *gesturefsm.GestureState, ev inputcodec.RawInputMsg){
 	gesturefsm.GestDragging: func(d Deps, g *gesturefsm.GestureState, ev inputcodec.RawInputMsg) {
 		nodeGeoms, mv, ctx := d.MR.NodeGeoms(), d.Mover, d.Ctx
-		if applyNodeDragTarget(d.UI, func(id string, target vec3) bool { return mv.RootMove(ctx, nodeGeoms, id, target) }, ev) {
+		if applyNodeDragTarget(d.UI, func(id string, target spatial.Vec3) bool { return mv.RootMove(ctx, nodeGeoms, id, target) }, ev) {
 			g.PrevX, g.PrevY = ev.X, ev.Y
 		}
 	},

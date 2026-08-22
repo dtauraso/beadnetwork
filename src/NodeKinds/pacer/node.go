@@ -8,8 +8,8 @@ import (
 	"github.com/dtauraso/wirefold/src/NodeKinds/nodeapi"
 
 	interior "github.com/dtauraso/wirefold/src/Node/Interior"
-	Wiring "github.com/dtauraso/wirefold/src/NodeKinds/kindapi"
 	"github.com/dtauraso/wirefold/src/Node/nodeactor"
+	Wiring "github.com/dtauraso/wirefold/src/NodeKinds/kindapi"
 )
 
 const noValue = interior.NoValue

@@ -3,6 +3,8 @@ package nodeactor
 import (
 	"context"
 
+	"github.com/dtauraso/wirefold/src/spatial"
+
 	"github.com/dtauraso/wirefold/src/Node/movemsg"
 	"github.com/dtauraso/wirefold/src/Node/nodeactor/owners"
 )
@@ -11,7 +13,7 @@ func (m *NodeGeometry) NeighborDeposit(fromID string) (owners.Deposit, bool) {
 	return m.msg.NeighborDeposit(fromID)
 }
 
-func (m *NodeGeometry) PollCenter() (vec3, bool) {
+func (m *NodeGeometry) PollCenter() (spatial.Vec3, bool) {
 	return m.msg.PollCenter()
 }
 
