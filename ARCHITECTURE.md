@@ -79,7 +79,7 @@ store — the TS layer is render + forward only (guard:
 
 ## Spec vs viewer state
 
-- **The `topology/` tree** — read directly by the Go loader (`src/runtopology/load_topology.go`,
+- **The `topology/` tree** — read directly by the Go loader (`src/runtopology/scenebuild/load.go`,
   `loader_tree.go`) at startup; every field maps to live wiring. Edited through `edit`
   messages. The live form is a directory tree — `nodes/<id>/base.json`, `data.json`,
   `inputs/`, `outputs/`, and `edges/*.json` (adjacency layout: an edge lives under its

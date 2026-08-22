@@ -1,7 +1,7 @@
 # Model
 
 Read this before changing anything in the **Go network** (`src/Node/`,
-`src/Node/BeadAnimation/bead_animation.go`, `src/runtopology/load_topology.go`,
+`src/Node/BeadAnimation/bead_animation.go`, `src/runtopology/scenebuild/load.go`,
 `src/runtopology/loadspec/builders.go`) or anything that schedules/orders work. If
 your reasoning slips into retired vocabulary, you are in the wrong
 frame. Stop, re-read this file, and re-derive from the model.

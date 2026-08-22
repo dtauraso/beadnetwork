@@ -24,7 +24,6 @@ import (
 	"github.com/dtauraso/wirefold/src/Scene/scene"
 	"github.com/dtauraso/wirefold/src/Scene/scenepaths"
 	T "github.com/dtauraso/wirefold/src/Trace"
-	"github.com/dtauraso/wirefold/src/runtopology"
 	W "github.com/dtauraso/wirefold/src/runtopology/scenerun"
 )
 
@@ -34,11 +33,12 @@ func run(ctx context.Context, cancel context.CancelFunc, topologyPath string, cl
 	SceneB.WriteSpawnIdentity(scenePath)
 	Stdin.AssertUpdateDecodersComplete()
 
-	nodes, slotReg, md, speedSinks, err := runtopology.LoadTopology(ctx, scenePath, clk)
+	sc, err := scenebuild.Load(ctx, scenePath, clk)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "load topology: %v\n", err)
 		os.Exit(1)
 	}
+	md, speedSinks := sc.Dispatch, sc.SpeedSinks
 
 	md.Sw.SetEdgeStreams(md.GS.EdgeSeeds, md.MR.Edges(), md.MR.NodeGeoms(), md.RT.NodeRowFor,
 		EdgeB.NewEdgeSink(scenePath, len(md.RT.EdgeRowTable)))
@@ -54,8 +54,8 @@ func run(ctx context.Context, cancel context.CancelFunc, topologyPath string, cl
 	md.UI.SetSceneRoot(scenePath)
 	md.UI.WriteRingSurfaces(NodeShape.CanonicalRingSurfacePointsFlat(), bead.CanonicalRingSurfacePointsFlat())
 
-	scenebuild.EmitStartupBreadcrumbs(md, scenePath, len(nodes))
-	scenebuild.CheckRowSeedCount(md, len(nodes))
+	scenebuild.EmitStartupBreadcrumbs(md, scenePath, len(sc.Nodes))
+	scenebuild.CheckRowSeedCount(md, len(sc.Nodes))
 	scenebuild.LoadSceneState(scenePath, md, speedSinks)
 
 	md.Scenes.AnchorPath = topologyPath
@@ -63,8 +63,8 @@ func run(ctx context.Context, cancel context.CancelFunc, topologyPath string, cl
 	md.Scenes.Loaded = md.UI.SceneTabSelected
 
 	moverWG := md.Start(ctx)
-	stdinWG, gestureWG := W.StartStdinReader(ctx, cancel, slotReg, md, speedSinks, clk, scenepaths.InputDirPath(scenePath))
-	joinAll(launchNodes(ctx, nodes), moverWG, stdinWG, gestureWG)
+	stdinWG, gestureWG := W.StartStdinReader(ctx, cancel, sc.SlotReg, md, speedSinks, clk, scenepaths.InputDirPath(scenePath))
+	joinAll(launchNodes(ctx, sc.Nodes), moverWG, stdinWG, gestureWG)
 }
 
 func launchNodes(ctx context.Context, nodes []nodeapi.Node) *sync.WaitGroup {

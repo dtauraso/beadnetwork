@@ -3,7 +3,7 @@
 ## Model — read first
 
 Before changing anything in the **Go network** (`src/Node/`, `src/NodeKinds/`, `src/Node/BeadAnimation/bead_line.go`,
-`src/runtopology/load_topology.go`, `src/runtopology/loadspec/builders.go`) or the **Go → TS
+`src/runtopology/scenebuild/load.go`, `src/runtopology/loadspec/builders.go`) or the **Go → TS
 surface** (the block files and their `*_values.go`, `src/webview/`), read
 [MODEL.md](MODEL.md). It pins the model. Do not propose multi-step
 plans with options for network/bead work; name the single concrete next
