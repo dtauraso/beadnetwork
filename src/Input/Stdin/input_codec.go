@@ -1,16 +1,18 @@
-package Codec
+package Stdin
+
+import "github.com/dtauraso/wirefold/src/Input/Codec"
 
 func DecodeInputRecord(rec []byte) (StdinMsg, bool) {
 	if len(rec) == 0 {
 		return StdinMsg{}, false
 	}
-	r := NewReader(rec, 1)
+	r := Codec.NewReader(rec, 1)
 	switch rec[0] {
-	case InKindSave:
+	case Codec.InKindSave:
 		return StdinMsg{Type: "save"}, true
-	case InKindRawInput:
+	case Codec.InKindRawInput:
 		return StdinMsg{Type: "raw-input"}, true
-	case InKindEditUpdate:
+	case Codec.InKindEditUpdate:
 		return decodeEditUpdate(r)
 	}
 	return StdinMsg{}, false

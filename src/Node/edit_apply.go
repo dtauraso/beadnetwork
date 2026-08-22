@@ -1,23 +1,18 @@
-package Dispatch
+package Node
 
 import (
 	"context"
 	"fmt"
 	"math"
 
-	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
-	"github.com/dtauraso/wirefold/src/Input/Codec"
+	"github.com/dtauraso/wirefold/src/Input/Stdin"
 	"github.com/dtauraso/wirefold/src/Node/rulechans"
 	"github.com/dtauraso/wirefold/src/Node/rulenode"
 )
 
-func applyUpdateNode(ctx context.Context, msg Codec.StdinMsg, md *MoveDispatch, _ SliderPanel.Sinks) {
-	editNode(ctx, msg, &md.Rules)
-}
-
-func editNode(ctx context.Context, msg Codec.StdinMsg, rules *rulechans.RuleChannels) {
+func EditNode(ctx context.Context, msg Stdin.StdinMsg, rules *rulechans.RuleChannels) {
 	if msg.Attr == "kindActive" {
-		toggleKindRuleFor(ctx, rules, msg.Num)
+		ToggleKindRule(ctx, rules, msg.Num)
 		return
 	}
 
@@ -32,7 +27,7 @@ func editNode(ctx context.Context, msg Codec.StdinMsg, rules *rulechans.RuleChan
 			edit.MaxTheta = &radians
 		}
 	}
-	sendRuleEditTo(ctx, rules, msg.Num, edit)
+	SendRuleEdit(ctx, rules, msg.Num, edit)
 }
 
 var nodeAttrEditKinds = map[string]rulenode.EditKind{
@@ -46,7 +41,7 @@ var nodeAttrEditKinds = map[string]rulenode.EditKind{
 	"selfDragActive":   rulenode.EditSelfActiveToggle,
 }
 
-func sendRuleEditTo(ctx context.Context, rules *rulechans.RuleChannels, row int, edit rulenode.Edit) {
+func SendRuleEdit(ctx context.Context, rules *rulechans.RuleChannels, row int, edit rulenode.Edit) {
 	if row < 0 || row >= len(rules.EditsByNodeRow) {
 		panic(fmt.Sprintf(
 			"sendRuleEdit: node row %d is outside the %d rows the tree declares, so a rule edit names an entity "+
@@ -63,7 +58,7 @@ func sendRuleEditTo(ctx context.Context, rules *rulechans.RuleChannels, row int,
 	}
 }
 
-func toggleKindRuleFor(ctx context.Context, rules *rulechans.RuleChannels, row int) {
+func ToggleKindRule(ctx context.Context, rules *rulechans.RuleChannels, row int) {
 	if row < 0 || row >= len(rules.KindTogglesByNodeRow) {
 		panic(fmt.Sprintf(
 			"kindActive: node row %d is outside the %d rows the tree declares, so a kind-rule toggle names an "+

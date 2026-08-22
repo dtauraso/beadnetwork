@@ -1,4 +1,4 @@
-package Codec
+package Stdin
 
 type StdinMsg struct {
 	Type string

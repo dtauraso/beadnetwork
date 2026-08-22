@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: src/Input/Codec/edit_update_decode.go,src/*/edit_decode.go,src/Input/Dispatch/dispatch_edit.go | a new addressed-edit attribute must reach a handler, not just decode off the wire
+# PLACEMENT: src/Input/Stdin/edit_update_decode.go,src/*/edit_decode.go,src/Input/Dispatch/dispatch_edit.go | a new addressed-edit attribute must reach a handler, not just decode off the wire
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
@@ -41,6 +41,8 @@ if [ -z "$TABLE_BODY" ]; then
   exit 1
 fi
 
+ALL_GO_FILES=$(git ls-files 'src/**/*.go' 2>/dev/null | while IFS= read -r p; do [ -f "$p" ] && printf '%s ' "$p"; done)
+
 func_body() {
   awk -v fn="$1" '
     $0 ~ "^func " fn "\\(" { p=1 }
@@ -49,12 +51,28 @@ func_body() {
   ' $PKG_GO_FILES
 }
 
+func_body_anywhere() {
+  awk -v fn="$1" '
+    $0 ~ "^func (\\([A-Za-z0-9_ *]+\\) )?" fn "\\(" { p=1 }
+    p { print }
+    p && /^\}/ { exit }
+  ' $ALL_GO_FILES
+}
+
 var_block() {
   awk -v vn="$1" '
     $0 ~ "^var " vn " = " { p=1 }
     p { print }
     p && /^\}/ { exit }
   ' $PKG_GO_FILES
+}
+
+var_block_anywhere() {
+  awk -v vn="$1" '
+    $0 ~ "^var " vn " = " { p=1 }
+    p { print }
+    p && /^\}/ { exit }
+  ' $ALL_GO_FILES
 }
 
 PKG_GO_FILES=$(ls "$PKG_DIR"/*.go 2>/dev/null || true)
@@ -85,14 +103,14 @@ while read -r kind attr; do
     exit 1
   fi
 
-  for callee in $(printf '%s\n' "$BODY" | grep -oE '\bedit[A-Z][A-Za-z0-9_]*\(' | tr -d '(' | sort -u || true); do
+  for callee in $(printf '%s\n' "$BODY" | grep -oE '\b(edit|Edit)[A-Z][A-Za-z0-9_]*\(' | tr -d '(' | sort -u || true); do
     BODY="$BODY
-$(func_body "$callee" || true)"
+$(func_body_anywhere "$callee" || true)"
   done
 
   for tbl in $(printf '%s\n' "$BODY" | grep -oE '[A-Za-z0-9_]+Attr[A-Za-z0-9_]*' | sort -u || true); do
     BODY="$BODY
-$(var_block "$tbl" || true)"
+$(var_block_anywhere "$tbl" || true)"
   done
 
   if ! grep -qF "\"$attr\"" <<< "$BODY"; then

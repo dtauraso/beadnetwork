@@ -6,7 +6,7 @@ import (
 
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/Panel"
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
-	"github.com/dtauraso/wirefold/src/Input/Codec"
+	"github.com/dtauraso/wirefold/src/Input/Stdin"
 	"github.com/dtauraso/wirefold/src/Node/movemsg"
 	"github.com/dtauraso/wirefold/src/Node/moverreg"
 	"github.com/dtauraso/wirefold/src/Node/nodeinbox"
@@ -15,12 +15,12 @@ import (
 	"github.com/dtauraso/wirefold/src/Scene/viewstate"
 )
 
-func applyUpdateOverlays(_ context.Context, msg Codec.StdinMsg, md *MoveDispatch, _ SliderPanel.Sinks) {
+func applyUpdateOverlays(_ context.Context, msg Stdin.StdinMsg, md *MoveDispatch, _ SliderPanel.Sinks) {
 	editOverlays(msg, &md.UI, &md.Inboxes, md.Persist.Overlays())
 }
 
 func editOverlays(
-	msg Codec.StdinMsg,
+	msg Stdin.StdinMsg,
 	ui *viewstate.UIState,
 	inboxes *nodeinbox.NodeInboxes,
 	persist *scenepersist.Persister[Overlay.OverlayState],
@@ -34,12 +34,12 @@ func editOverlays(
 	persist.Schedule(ui.OV)
 }
 
-func applyUpdatePanels(_ context.Context, msg Codec.StdinMsg, md *MoveDispatch, _ SliderPanel.Sinks) {
+func applyUpdatePanels(_ context.Context, msg Stdin.StdinMsg, md *MoveDispatch, _ SliderPanel.Sinks) {
 	editPanels(msg, &md.UI, md.Persist.Panels())
 }
 
 func editPanels(
-	msg Codec.StdinMsg,
+	msg Stdin.StdinMsg,
 	ui *viewstate.UIState,
 	persist *scenepersist.Persister[Panel.PanelState],
 ) {
@@ -54,12 +54,12 @@ func editPanels(
 	ui.EmitViewFrame(nil)
 }
 
-func applyUpdateClock(_ context.Context, msg Codec.StdinMsg, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
+func applyUpdateClock(_ context.Context, msg Stdin.StdinMsg, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
 	editClock(msg, &md.UI, speedSinks, md.Persist.Speed())
 }
 
 func editClock(
-	msg Codec.StdinMsg,
+	msg Stdin.StdinMsg,
 	ui *viewstate.UIState,
 	speedSinks SliderPanel.Sinks,
 	persist *scenepersist.Persister[float64],
@@ -75,13 +75,13 @@ func editClock(
 	ui.EmitViewFrame(nil)
 }
 
-func applyUpdateTiltVector(ctx context.Context, msg Codec.StdinMsg, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
+func applyUpdateTiltVector(ctx context.Context, msg Stdin.StdinMsg, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
 	editTiltVector(ctx, msg, &md.UI, &md.MR, &md.Inboxes, speedSinks)
 }
 
 func editTiltVector(
 	ctx context.Context,
-	msg Codec.StdinMsg,
+	msg Stdin.StdinMsg,
 	ui *viewstate.UIState,
 	mr *moverreg.MoverRegistry,
 	inboxes *nodeinbox.NodeInboxes,

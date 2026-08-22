@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
-	"github.com/dtauraso/wirefold/src/Input/Codec"
 	"github.com/dtauraso/wirefold/src/Input/Drag"
+	"github.com/dtauraso/wirefold/src/Input/Stdin"
 
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/src/Node/nodecrud"
@@ -63,13 +63,13 @@ func HandleSaveMsg(md *MoveDispatch) {
 }
 
 // EDIT_OPS_START
-var editOps = map[string]func(context.Context, Codec.StdinMsg, *MoveDispatch, SliderPanel.Sinks){
+var editOps = map[string]func(context.Context, Stdin.StdinMsg, *MoveDispatch, SliderPanel.Sinks){
 	"update": applyUpdate,
 }
 
 // EDIT_OPS_END
 
-func ApplyEdit(ctx context.Context, msg Codec.StdinMsg, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
+func ApplyEdit(ctx context.Context, msg Stdin.StdinMsg, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
 	if h, ok := editOps[msg.Op]; ok {
 		h(ctx, msg, md, speedSinks)
 	}
@@ -80,7 +80,7 @@ func ApplyEdit(ctx context.Context, msg Codec.StdinMsg, md *MoveDispatch, speedS
 // UNPACKED. A handler below the line takes the fields it uses; the one-line adapter here is
 // what turns MoveDispatch into those fields, and is what gets deleted when the handler moves
 // to its own concern and registers itself.
-var updateKindHandlers = map[string]func(context.Context, Codec.StdinMsg, *MoveDispatch, SliderPanel.Sinks){
+var updateKindHandlers = map[string]func(context.Context, Stdin.StdinMsg, *MoveDispatch, SliderPanel.Sinks){
 	"clock":      applyUpdateClock,
 	"scene":      applyUpdateScene,
 	"tiltVector": applyUpdateTiltVector,
@@ -93,7 +93,7 @@ var updateKindHandlers = map[string]func(context.Context, Codec.StdinMsg, *MoveD
 
 // EDIT_UPDATE_KINDS_END
 
-func applyUpdate(ctx context.Context, msg Codec.StdinMsg, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
+func applyUpdate(ctx context.Context, msg Stdin.StdinMsg, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
 	if md == nil {
 		return
 	}

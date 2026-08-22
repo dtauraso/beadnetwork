@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/dtauraso/wirefold/src/Input/Codec"
+	NodeKind "github.com/dtauraso/wirefold/src/Node"
+
+	"github.com/dtauraso/wirefold/src/Input/Stdin"
 	T "github.com/dtauraso/wirefold/src/Trace"
 
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
@@ -32,7 +34,7 @@ func setLatticePoints(md *MoveDispatch, points int32) {
 	md.Inboxes.BroadcastLatticePoints(points)
 }
 
-func applyUpdateScene(ctx context.Context, msg Codec.StdinMsg, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
+func applyUpdateScene(ctx context.Context, msg Stdin.StdinMsg, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
 	if md == nil {
 		return
 	}
@@ -59,6 +61,10 @@ func applyUpdateScene(ctx context.Context, msg Codec.StdinMsg, md *MoveDispatch,
 	}
 }
 
+func applyUpdateNode(ctx context.Context, msg Stdin.StdinMsg, md *MoveDispatch, _ SliderPanel.Sinks) {
+	NodeKind.EditNode(ctx, msg, &md.Rules)
+}
+
 func sendRuleEdit(ctx context.Context, md *MoveDispatch, row int, edit rulenode.Edit) {
-	sendRuleEditTo(ctx, &md.Rules, row, edit)
+	NodeKind.SendRuleEdit(ctx, &md.Rules, row, edit)
 }

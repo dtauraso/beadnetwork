@@ -1,11 +1,13 @@
-package Codec
+package Stdin
 
-func decodeEditUpdate(r *Reader) (StdinMsg, bool) {
+import "github.com/dtauraso/wirefold/src/Input/Codec"
+
+func decodeEditUpdate(r *Codec.Reader) (StdinMsg, bool) {
 	kindByte, err1 := r.U8()
 	if err1 != nil {
 		return StdinMsg{}, false
 	}
-	entity := EnumAt(InUpdateKinds, kindByte)
+	entity := Codec.EnumAt(Codec.InUpdateKinds, kindByte)
 	attr, err2 := r.U8()
 	if err2 != nil {
 		return StdinMsg{}, false

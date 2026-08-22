@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/dtauraso/wirefold/src/Input/Codec"
+	"github.com/dtauraso/wirefold/src/Input/Stdin"
 	SceneB "github.com/dtauraso/wirefold/src/Scene"
 	T "github.com/dtauraso/wirefold/src/Trace"
 
@@ -27,7 +27,7 @@ func RunTopology(ctx context.Context, cancel context.CancelFunc, topologyPath st
 	scenePath := scene.ResolvePath(topologyPath)
 	T.SetSceneRoot(scenePath)
 	SceneB.WriteSpawnIdentity(scenePath)
-	Codec.AssertUpdateDecodersComplete()
+	Stdin.AssertUpdateDecodersComplete()
 	nodes, slotReg, md, speedSinks, err := LoadTopology(ctx, scenePath, clk)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "load topology: %v\n", err)
