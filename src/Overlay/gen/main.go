@@ -13,8 +13,8 @@ func main() {
 	genpaths.Name = "Overlay/gen"
 	_, srcRoot := genpaths.Roots()
 
-	messagesTSPath := filepath.Join(srcRoot, "Input", "messages.ts")
-	flags, err := overlaygen.ParseOverlayFlags(messagesTSPath)
+	flagsTSPath := filepath.Join(srcRoot, "Overlay", "flags.ts")
+	flags, err := overlaygen.ParseOverlayFlags(flagsTSPath)
 	if err != nil {
 		genpaths.Fatalf("parse overlay flags: %v", err)
 	}

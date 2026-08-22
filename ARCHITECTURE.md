@@ -24,9 +24,9 @@ Communication is `panel.webview.postMessage` ↔ `vscode.postMessage`, wired in
 
 ## Message protocol (single source of truth)
 
-`src/Input/messages.ts` is the shared discriminated-union source for both sides.
+`src/Input/Codec/messages.ts` is the shared discriminated-union source for both sides.
 `WebviewToHostMsg` includes `ready` and the binary bridge envelope (a fully
-encoded editor→Go record built via `src/Input/input-encode.ts` and written
+encoded editor→Go record built via `src/Input/Codec/input-encode.ts` and written
 FRAMED to Go's stdin by `runCommand.ts`). There is no `HostToWebviewMsg` —
 the host has nothing to say to the webview, because everything Go tells the
 renderer is a file the renderer reads. Extension-side dispatch is
@@ -37,8 +37,8 @@ for the full bridge-surface model, not duplicated here.
 
 **Do not restate the kind list here.** The authority is
 `INPUT_LAYOUT_FINGERPRINT` — one string encoding every kind byte, update kind,
-attr, and overlay flag, defined in `src/Input/inputcodec/input_fingerprint.go`. The TS side
-(`src/Input/input-layout-gen.ts`) is GENERATED from that Go string by
+attr, and overlay flag, defined in `src/Input/Codec/input_fingerprint.go`. The TS side
+(`src/Input/Codec/input-layout-gen.ts`) is GENERATED from that Go string by
 the generators, so it cannot drift — there is no second hand-kept copy to compare.
 Read the fingerprint to learn the current surface; prose copied into this file cannot fail
 and so cannot be trusted. (Removed kind bytes are preserved as GAPS in `input_fingerprint.go` and
@@ -67,7 +67,7 @@ generically from the block files each component reads, keyed off `NODE_DEFS`
 | `src/webview/main.tsx` | Entry point and mount. Receives NO messages — the host→webview direction is empty; everything Go says arrives as files |
 | `src/Scene/scene-leaves.ts` | Polls the scene's binary leaves, including `spawn`, whose change means Go was replaced |
 | `src/webview/scene/scene-root.tsx` | Composition root of the render tree; each component it assembles reads its own block files |
-| `src/webview/scene/ThreeView.tsx` | R3F `<Canvas>` root. Holds NO gesture state — raw pointer/wheel events forward verbatim to Go's FSM (`src/Input/gesture` package) |
+| `src/webview/scene/ThreeView.tsx` | R3F `<Canvas>` root. Holds NO gesture state — raw pointer/wheel events forward verbatim to Go's FSM (`src/Input/Gesture` package) |
 | `src/webview/interaction/raw-input.ts` | Raw pointer/wheel + raycast hit → binary `raw-input` record to Go |
 | `src/webview/flags/overlay-flags.ts` | Read-only reflection of Go-owned overlay-toggle state (`useSyncExternalStore`; no store) |
 | `webview/log/*` | Crash listeners, error boundary, log posting to the extension host |

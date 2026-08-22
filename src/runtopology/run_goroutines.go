@@ -7,21 +7,22 @@ import (
 
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
 	clock "github.com/dtauraso/wirefold/src/Clock"
+	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 
 	"github.com/dtauraso/wirefold/src/NodeKinds/nodeapi"
 
-	W "github.com/dtauraso/wirefold/src/Input/dispatch"
-	"github.com/dtauraso/wirefold/src/Input/inputcodec"
-	"github.com/dtauraso/wirefold/src/Input/stdinreader"
+	"github.com/dtauraso/wirefold/src/Input/Codec"
+	W "github.com/dtauraso/wirefold/src/Input/Dispatch"
+	"github.com/dtauraso/wirefold/src/Input/Stdin"
 )
 
-func startStdinReader(ctx context.Context, cancel context.CancelFunc, slotReg inputcodec.SlotRegistry, md *W.MoveDispatch, speedSinks SliderPanel.Sinks, clk clock.Clock, inputPath string) (*sync.WaitGroup, *sync.WaitGroup) {
+func startStdinReader(ctx context.Context, cancel context.CancelFunc, slotReg beadanimation.SlotRegistry, md *W.MoveDispatch, speedSinks SliderPanel.Sinks, clk clock.Clock, inputPath string) (*sync.WaitGroup, *sync.WaitGroup) {
 	inbox, gestureWG := startGestureActor(ctx, slotReg, md, speedSinks, clk, inputPath)
 
 	stdinWG := new(sync.WaitGroup)
 	stdinWG.Add(1)
-	h := stdinreader.Handlers{
-		ApplyEdit: func(msg inputcodec.StdinMsg) {
+	h := Stdin.Handlers{
+		ApplyEdit: func(msg Codec.StdinMsg) {
 			sendGestureMsgBlocking(ctx, inbox, gestureInboxMsg{kind: gestureMsgEdit, msg: msg})
 		},
 		HandleSave: func() {
@@ -30,7 +31,7 @@ func startStdinReader(ctx context.Context, cancel context.CancelFunc, slotReg in
 	}
 	go func() {
 		defer stdinWG.Done()
-		stdinreader.RunStdinReader(ctx, os.Stdin, h)
+		Stdin.RunStdinReader(ctx, os.Stdin, h)
 		cancel()
 	}()
 	return stdinWG, gestureWG

@@ -1,7 +1,7 @@
 package runtopology
 
 import (
-	W "github.com/dtauraso/wirefold/src/Input/dispatch"
+	W "github.com/dtauraso/wirefold/src/Input/Dispatch"
 	T "github.com/dtauraso/wirefold/src/Trace"
 )
 

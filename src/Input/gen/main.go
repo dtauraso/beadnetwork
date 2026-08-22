@@ -13,18 +13,18 @@ func main() {
 	genpaths.Name = "Input/gen"
 	_, srcRoot := genpaths.Roots()
 
-	codecGoDir := filepath.Join(srcRoot, "Input", "inputcodec")
+	codecGoDir := filepath.Join(srcRoot, "Input", "Codec")
 	inputFP, err := inputlayout.ParseInputLayoutFingerprintDir(codecGoDir)
 	if err != nil {
 		genpaths.Fatalf("parse input layout fingerprint: %v", err)
 	}
-	outPath := filepath.Join(srcRoot, "Input", "input-layout-gen.ts")
+	outPath := filepath.Join(srcRoot, "Input", "Codec", "input-layout-gen.ts")
 	if err := inputlayout.WriteInputLayout(outPath, inputFP); err != nil {
 		genpaths.Fatalf("write %s: %v", outPath, err)
 	}
 	genpaths.Announce(outPath, 1+len(inputFP.KindNames)+4, "constants")
 
-	goKindsPath := filepath.Join(srcRoot, "Input", "inputcodec", "event_kinds_gen.go")
+	goKindsPath := filepath.Join(srcRoot, "Input", "Codec", "event_kinds_gen.go")
 	if err := inputlayout.WriteGoEventKinds(goKindsPath, inputFP); err != nil {
 		genpaths.Fatalf("write %s: %v", goKindsPath, err)
 	}

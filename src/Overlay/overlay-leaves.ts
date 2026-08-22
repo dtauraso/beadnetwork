@@ -1,4 +1,4 @@
-import { OVERLAY_FLAG_ORDER, type OverlayFlag } from "../Input/messages";
+import { OVERLAY_FLAG_ORDER, type OverlayFlag } from "./flags";
 import { makeLeafValues } from "../webview/leaf-values";
 import { OVERLAY_FLAG_DEFAULTS } from "./flag-defaults-gen";
 

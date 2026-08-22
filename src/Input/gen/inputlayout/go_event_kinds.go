@@ -17,7 +17,7 @@ func WriteGoEventKinds(outPath string, fp *inputLayoutFingerprint) error {
 	fmt.Fprintln(&buf, `// under view/input/, so a move cannot overwrite the press that preceded it, and`)
 	fmt.Fprintln(&buf, `// this list IS the read order: a press is applied before the motion it started.`)
 	fmt.Fprintln(&buf)
-	fmt.Fprintln(&buf, `package inputcodec`)
+	fmt.Fprintln(&buf, `package Codec`)
 	fmt.Fprintln(&buf)
 	fmt.Fprintln(&buf, `var EventKinds = []string{`)
 	for _, name := range fp.eventKinds {

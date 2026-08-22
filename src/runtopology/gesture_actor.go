@@ -5,11 +5,12 @@ import (
 	"sync"
 
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
+	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 
 	clock "github.com/dtauraso/wirefold/src/Clock"
-	"github.com/dtauraso/wirefold/src/Input/dispatch"
-	"github.com/dtauraso/wirefold/src/Input/inputcodec"
-	"github.com/dtauraso/wirefold/src/Input/inputfile"
+	"github.com/dtauraso/wirefold/src/Input/Codec"
+	"github.com/dtauraso/wirefold/src/Input/Dispatch"
+	"github.com/dtauraso/wirefold/src/Input/File"
 )
 
 type gestureMsgKind int
@@ -21,25 +22,25 @@ const (
 
 type gestureInboxMsg struct {
 	kind gestureMsgKind
-	msg  inputcodec.StdinMsg
+	msg  Codec.StdinMsg
 }
 
 const gestureInboxDepth = 64
 
-func startGestureActor(ctx context.Context, slotReg inputcodec.SlotRegistry, md *dispatch.MoveDispatch, speedSinks SliderPanel.Sinks, clk clock.Clock, inputPath string) (chan gestureInboxMsg, *sync.WaitGroup) {
+func startGestureActor(ctx context.Context, slotReg beadanimation.SlotRegistry, md *Dispatch.MoveDispatch, speedSinks SliderPanel.Sinks, clk clock.Clock, inputPath string) (chan gestureInboxMsg, *sync.WaitGroup) {
 	inbox := make(chan gestureInboxMsg, gestureInboxDepth)
 	wg := new(sync.WaitGroup)
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		reader := inputfile.NewReader(inputPath)
+		reader := File.NewReader(inputPath)
 		mine := clk.Copy()
 		wheel := &wheelTotals{}
 		for {
 			for _, raw := range reader.ReadAll() {
-				if msg, ok := inputcodec.DecodeInputRecord(raw); ok && msg.Type == "raw-input" {
+				if msg, ok := Codec.DecodeInputRecord(raw); ok && msg.Type == "raw-input" {
 					wheel.difference(msg.Event)
-					dispatch.HandleRawInputMsg(ctx, msg, slotReg, md, speedSinks)
+					Dispatch.HandleRawInputMsg(ctx, msg, slotReg, md, speedSinks)
 				}
 			}
 
@@ -51,9 +52,9 @@ func startGestureActor(ctx context.Context, slotReg inputcodec.SlotRegistry, md 
 				case gm := <-inbox:
 					switch gm.kind {
 					case gestureMsgEdit:
-						dispatch.ApplyEdit(ctx, gm.msg, md, speedSinks)
+						Dispatch.ApplyEdit(ctx, gm.msg, md, speedSinks)
 					case gestureMsgSave:
-						dispatch.HandleSaveMsg(md)
+						Dispatch.HandleSaveMsg(md)
 					}
 				default:
 					break drain
@@ -73,7 +74,7 @@ type wheelTotals struct {
 	seen bool
 }
 
-func (w *wheelTotals) difference(ev *inputcodec.RawInputMsg) {
+func (w *wheelTotals) difference(ev *Codec.RawInputMsg) {
 	if ev == nil || ev.Kind != "wheel" {
 		return
 	}

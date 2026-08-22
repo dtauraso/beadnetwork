@@ -1,5 +1,5 @@
 import { logfmt } from "./probe/logfmt";
-import { IN_KIND_RAW_INPUT } from "../Input/input-layout-gen";
+import { IN_KIND_RAW_INPUT } from "../Input/Codec/input-layout-gen";
 import { writeInputFile } from "./runner/input-file";
 import { resolveScenePath } from "./runner/scene-path";
 import * as fs from "fs";
@@ -9,7 +9,7 @@ import { BuildAndRunRunner } from "./runCommand";
 import {
   parseWebviewToHost,
   type WebviewToHostMsg,
-} from "../Input/messages";
+} from "../Input/Codec/messages";
 import { appendWebviewLog } from "./webview-log";
 import { PROBE_DIR, PROBE_FILES } from "./probe-files";
 import { resolveRepoRoot } from "./repo-root";
