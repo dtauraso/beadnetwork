@@ -7,6 +7,7 @@ import (
 
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
 	clock "github.com/dtauraso/wirefold/src/Clock"
+	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 
 	"github.com/dtauraso/wirefold/src/NodeKinds/nodeapi"
 
@@ -15,7 +16,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Input/Stdin"
 )
 
-func startStdinReader(ctx context.Context, cancel context.CancelFunc, slotReg Codec.SlotRegistry, md *W.MoveDispatch, speedSinks SliderPanel.Sinks, clk clock.Clock, inputPath string) (*sync.WaitGroup, *sync.WaitGroup) {
+func startStdinReader(ctx context.Context, cancel context.CancelFunc, slotReg beadanimation.SlotRegistry, md *W.MoveDispatch, speedSinks SliderPanel.Sinks, clk clock.Clock, inputPath string) (*sync.WaitGroup, *sync.WaitGroup) {
 	inbox, gestureWG := startGestureActor(ctx, slotReg, md, speedSinks, clk, inputPath)
 
 	stdinWG := new(sync.WaitGroup)

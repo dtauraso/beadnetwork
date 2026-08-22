@@ -7,10 +7,11 @@ import (
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
 	"github.com/dtauraso/wirefold/src/Input/Codec"
 
+	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/src/Node/nodecrud"
 )
 
-func HandleRawInputMsg(ctx context.Context, msg Codec.StdinMsg, slotReg Codec.SlotRegistry, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
+func HandleRawInputMsg(ctx context.Context, msg Codec.StdinMsg, slotReg beadanimation.SlotRegistry, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
 	if md == nil || msg.Event == nil {
 		return
 	}

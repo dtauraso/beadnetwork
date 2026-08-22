@@ -2,7 +2,7 @@ package Dispatch
 
 import (
 	clock "github.com/dtauraso/wirefold/src/Clock"
-	"github.com/dtauraso/wirefold/src/Input/Codec"
+	edge "github.com/dtauraso/wirefold/src/Node/Edge"
 	"github.com/dtauraso/wirefold/src/Node/Edge/edgetable"
 	"github.com/dtauraso/wirefold/src/Node/nodeactor"
 	"github.com/dtauraso/wirefold/src/Node/nodeactor/owners"
@@ -66,7 +66,7 @@ func (md *MoveDispatch) wireRuleEditRows() {
 	}
 }
 
-func (md *MoveDispatch) wireMutualPairs(edgeEndpoints map[string]Codec.EdgeEndpoints) {
+func (md *MoveDispatch) wireMutualPairs(edgeEndpoints map[string]edge.EdgeEndpoints) {
 	for src, targets := range geomseeds.MutualPairs(edgeEndpoints) {
 		if nm, ok := md.MR.NodeGeoms()[src]; ok {
 			for target := range targets {
@@ -76,7 +76,7 @@ func (md *MoveDispatch) wireMutualPairs(edgeEndpoints map[string]Codec.EdgeEndpo
 	}
 }
 
-func (md *MoveDispatch) buildEdgeTable(edgeEndpoints map[string]Codec.EdgeEndpoints) {
+func (md *MoveDispatch) buildEdgeTable(edgeEndpoints map[string]edge.EdgeEndpoints) {
 	for edgeID, ep := range edgeEndpoints {
 		md.MR.Edges()[edgeID] = edgetable.New(edgeID, ep.Source, ep.Target, ep.SourceHandle, ep.TargetHandle)
 

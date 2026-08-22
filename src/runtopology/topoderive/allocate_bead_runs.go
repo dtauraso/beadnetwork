@@ -1,8 +1,8 @@
 package topoderive
 
 import (
-	"github.com/dtauraso/wirefold/src/Input/Codec"
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
+	edge "github.com/dtauraso/wirefold/src/Node/Edge"
 	"github.com/dtauraso/wirefold/src/Node/nodegeom"
 	"github.com/dtauraso/wirefold/src/runtopology/loadspec"
 )
@@ -10,11 +10,11 @@ import (
 func AllocateBeadLines(spec loadspec.TopoSpec, nodeGeoms map[string]nodegeom.NodeGeom) (
 	destRun map[string]*beadanimation.BeadLine,
 	edgeRun loadspec.BeadLineRegistry,
-	edgeEndpoints map[string]Codec.EdgeEndpoints,
+	edgeEndpoints map[string]edge.EdgeEndpoints,
 ) {
 	destRun = map[string]*beadanimation.BeadLine{}
 	edgeRun = loadspec.BeadLineRegistry{}
-	edgeEndpoints = map[string]Codec.EdgeEndpoints{}
+	edgeEndpoints = map[string]edge.EdgeEndpoints{}
 	for _, e := range spec.Edges {
 		destKey := e.Target + "." + e.TargetHandle
 
@@ -29,7 +29,7 @@ func AllocateBeadLines(spec loadspec.TopoSpec, nodeGeoms map[string]nodegeom.Nod
 		pw.TargetHandle = e.TargetHandle
 		destRun[destKey] = pw
 		edgeRun[e.Label] = pw
-		edgeEndpoints[e.Label] = Codec.EdgeEndpoints{
+		edgeEndpoints[e.Label] = edge.EdgeEndpoints{
 			Source: e.Source, Target: e.Target,
 			SourceHandle: e.SourceHandle, TargetHandle: e.TargetHandle,
 		}

@@ -4,13 +4,13 @@ import (
 	"sort"
 	"strconv"
 
-	"github.com/dtauraso/wirefold/src/Input/Codec"
+	edge "github.com/dtauraso/wirefold/src/Node/Edge"
 	"github.com/dtauraso/wirefold/src/Node/nodegeom"
 	rowtables "github.com/dtauraso/wirefold/src/Scene/rowtables"
 	geomseeds "github.com/dtauraso/wirefold/src/runtopology/geomseeds"
 )
 
-func resolveSeedOrders(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[string]Codec.EdgeEndpoints, nodeOrder, edgeOrder []string) ([]string, []string) {
+func resolveSeedOrders(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[string]edge.EdgeEndpoints, nodeOrder, edgeOrder []string) ([]string, []string) {
 	if nodeOrder == nil {
 		nodeOrder = make([]string, 0, len(geoms))
 		for id := range geoms {
@@ -28,7 +28,7 @@ func resolveSeedOrders(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[str
 	return nodeOrder, edgeOrder
 }
 
-func (md *MoveDispatch) buildGeomSeeds(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[string]Codec.EdgeEndpoints, nodeOrder, edgeOrder []string) error {
+func (md *MoveDispatch) buildGeomSeeds(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[string]edge.EdgeEndpoints, nodeOrder, edgeOrder []string) error {
 	md.GS.NodeSeeds = make([]geomseeds.NodeGeomSeed, 0, len(nodeOrder))
 	for i, id := range nodeOrder {
 		g, ok := geoms[id]

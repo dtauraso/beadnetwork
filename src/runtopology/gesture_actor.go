@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
+	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 
 	clock "github.com/dtauraso/wirefold/src/Clock"
 	"github.com/dtauraso/wirefold/src/Input/Codec"
@@ -26,7 +27,7 @@ type gestureInboxMsg struct {
 
 const gestureInboxDepth = 64
 
-func startGestureActor(ctx context.Context, slotReg Codec.SlotRegistry, md *Dispatch.MoveDispatch, speedSinks SliderPanel.Sinks, clk clock.Clock, inputPath string) (chan gestureInboxMsg, *sync.WaitGroup) {
+func startGestureActor(ctx context.Context, slotReg beadanimation.SlotRegistry, md *Dispatch.MoveDispatch, speedSinks SliderPanel.Sinks, clk clock.Clock, inputPath string) (chan gestureInboxMsg, *sync.WaitGroup) {
 	inbox := make(chan gestureInboxMsg, gestureInboxDepth)
 	wg := new(sync.WaitGroup)
 	wg.Add(1)

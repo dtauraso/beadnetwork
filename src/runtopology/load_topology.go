@@ -5,8 +5,8 @@ import (
 
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
 	clock "github.com/dtauraso/wirefold/src/Clock"
+	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 
-	"github.com/dtauraso/wirefold/src/Input/Codec"
 	"github.com/dtauraso/wirefold/src/Input/Dispatch"
 	"github.com/dtauraso/wirefold/src/NodeKinds/kindreg"
 	"github.com/dtauraso/wirefold/src/NodeKinds/nodeapi"
@@ -15,7 +15,7 @@ import (
 	"github.com/dtauraso/wirefold/src/runtopology/loadspec"
 )
 
-func LoadTopology(ctx context.Context, jsonPath string, clk clock.Clock) ([]nodeapi.Node, Codec.SlotRegistry, *Dispatch.MoveDispatch, SliderPanel.Sinks, error) {
+func LoadTopology(ctx context.Context, jsonPath string, clk clock.Clock) ([]nodeapi.Node, beadanimation.SlotRegistry, *Dispatch.MoveDispatch, SliderPanel.Sinks, error) {
 	kindreg.BuildRegistry()
 	spec, err := loadspec.ParseSpec(jsonPath)
 	if err != nil {

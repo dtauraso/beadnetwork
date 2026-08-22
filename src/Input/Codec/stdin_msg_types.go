@@ -1,16 +1,5 @@
 package Codec
 
-import (
-	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
-)
-
-type EdgeEndpoints struct {
-	Source       string
-	Target       string
-	SourceHandle string
-	TargetHandle string
-}
-
 type StdinMsg struct {
 	Type string
 	Op   string
@@ -56,5 +45,3 @@ type RawHit struct {
 	NodeRow int
 	IsInput bool
 }
-
-type SlotRegistry map[string]*beadanimation.BeadLine
