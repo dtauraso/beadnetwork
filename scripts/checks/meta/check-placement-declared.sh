@@ -65,7 +65,7 @@ if [ "${#missing[@]}" -gt 0 ]; then
   echo "Add one line near the top of each, so scripts/placement-brief.sh can surface the rule"
   echo "BEFORE a file is written the wrong way rather than after:"
   echo
-  echo "  # PLACEMENT: src/**/*.go | <what this guard demands of such a file>"
+  echo "  # PLACEMENT: **/*.go | <what this guard demands of such a file>"
   echo "  # PLACEMENT: none | <why this guard constrains no particular path>"
 fi
 

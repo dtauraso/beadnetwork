@@ -41,14 +41,14 @@
     <h3 class="secname">A distance from each end</h3>
 
     <div class="card wide">
-      <h2><span data-src="src/NodeKinds/PairNode/tiltring/rules.go#DistanceTop">distanceTop</span> /
-        <span data-src="src/NodeKinds/PairNode/tiltring/rules.go#DistanceBottom">distanceBottom</span></h2>
-      <div class="cap"><span data-src="src/NodeKinds/PairNode/tiltring/rules.go">src/NodeKinds/PairNode/tiltring/rules.go</span></div>
-      <p class="eq step" data-src="src/NodeKinds/PairNode/tiltring/rules.go#Bottom"><span class="lhs wide"><var>b</var></span>=
+      <h2><span data-src="NodeKinds/PairNode/tiltring/rules.go#DistanceTop">distanceTop</span> /
+        <span data-src="NodeKinds/PairNode/tiltring/rules.go#DistanceBottom">distanceBottom</span></h2>
+      <div class="cap"><span data-src="NodeKinds/PairNode/tiltring/rules.go">NodeKinds/PairNode/tiltring/rules.go</span></div>
+      <p class="eq step" data-src="NodeKinds/PairNode/tiltring/rules.go#Bottom"><span class="lhs wide"><var>b</var></span>=
         mod(<var>t</var> + <var>tau</var>/2, <var>tau</var>)</p>
-      <p class="eq step" data-src="src/NodeKinds/PairNode/tiltring/rules.go#DistanceTop"><span class="lhs wide">distance<sub>top</sub></span>=
+      <p class="eq step" data-src="NodeKinds/PairNode/tiltring/rules.go#DistanceTop"><span class="lhs wide">distance<sub>top</sub></span>=
         abs(<var>t</var> − <var>a</var>)</p>
-      <p class="eq step" data-src="src/NodeKinds/PairNode/tiltring/rules.go#DistanceBottom"><span class="lhs wide">distance<sub>bottom</sub></span>=
+      <p class="eq step" data-src="NodeKinds/PairNode/tiltring/rules.go#DistanceBottom"><span class="lhs wide">distance<sub>bottom</sub></span>=
         abs(<var>b</var> − <var>a</var>)</p>
       <p class="eq step dim"><span class="lhs">and</span><var>a</var> is the partner's normal,
         mod(<var>t</var> + <var>tau</var>/4, <var>tau</var>) at its end</p>
@@ -59,27 +59,27 @@
     <h3 class="secname">The offset those two distances name</h3>
 
     <div class="card wide">
-      <h2><span data-src="src/NodeKinds/PairNode/tiltring/rules.go#Offset">offset</span></h2>
-      <div class="cap"><span data-src="src/NodeKinds/PairNode/tiltring/rules.go">src/NodeKinds/PairNode/tiltring/rules.go</span></div>
-      <p class="eq step par" data-src="src/NodeKinds/PairNode/tiltring/rules.go#Offset"><span class="lhs">distance<sub>top</sub>
+      <h2><span data-src="NodeKinds/PairNode/tiltring/rules.go#Offset">offset</span></h2>
+      <div class="cap"><span data-src="NodeKinds/PairNode/tiltring/rules.go">NodeKinds/PairNode/tiltring/rules.go</span></div>
+      <p class="eq step par" data-src="NodeKinds/PairNode/tiltring/rules.go#Offset"><span class="lhs">distance<sub>top</sub>
           &lt; <var>tau</var>/4</span>+1</p>
-      <p class="eq step par" data-src="src/NodeKinds/PairNode/tiltring/rules.go#Offset"><span class="lhs">distance<sub>bottom</sub>
+      <p class="eq step par" data-src="NodeKinds/PairNode/tiltring/rules.go#Offset"><span class="lhs">distance<sub>bottom</sub>
           &lt; <var>tau</var>/4</span>−1</p>
-      <p class="eq step dim" data-src="src/NodeKinds/PairNode/tiltring/rules.go#Offset"><span class="lhs">otherwise</span>0
+      <p class="eq step dim" data-src="NodeKinds/PairNode/tiltring/rules.go#Offset"><span class="lhs">otherwise</span>0
         <span class="note">which IS the halt — no separate settled test</span></p>
-      <p class="eq step dim" data-src="src/NodeKinds/PairNode/tiltring/machine.go#OffsetOn"><span class="lhs">setting</span>0
+      <p class="eq step dim" data-src="NodeKinds/PairNode/tiltring/machine.go#OffsetOn"><span class="lhs">setting</span>0
         <span class="note">no rule to run yet, so it stands wherever it is</span></p>
-      <p class="eq step" data-src="src/NodeKinds/PairNode/tiltring/machine.go#MachineFor"><span class="lhs">machineFor</span>panics
+      <p class="eq step" data-src="NodeKinds/PairNode/tiltring/machine.go#MachineFor"><span class="lhs">machineFor</span>panics
         unless the mode has a row</p>
     </div>
 
     <div class="card wide">
-      <h2>starting it — <span data-src="src/NodeKinds/PairNode/machine.go#adoptMachine">adoptMachine</span></h2>
-      <div class="cap"><span data-src="src/NodeKinds/PairNode/machine.go">src/NodeKinds/PairNode/machine.go</span></div>
-      <p class="eq step par" data-src="src/NodeKinds/PairNode/machine.go#adoptMachine"><span class="lhs">first
+      <h2>starting it — <span data-src="NodeKinds/PairNode/machine.go#adoptMachine">adoptMachine</span></h2>
+      <div class="cap"><span data-src="NodeKinds/PairNode/machine.go">NodeKinds/PairNode/machine.go</span></div>
+      <p class="eq step par" data-src="NodeKinds/PairNode/machine.go#adoptMachine"><span class="lhs">first
           arrival</span>parallel</p>
       <p class="eq step dim">there is one machine to run, so nothing is read out of the gap to choose
-        it; <span data-src="src/NodeKinds/PairNode/machine.go#adoptMachine">adoptMachine</span> makes it stick
+        it; <span data-src="NodeKinds/PairNode/machine.go#adoptMachine">adoptMachine</span> makes it stick
         until a reset</p>
     </div>
   </section>
@@ -89,11 +89,11 @@
 
     <div class="card wide">
       <h2>a click, and a change of lattice</h2>
-      <div class="cap"><span data-src="src/NodeKinds/PairNode/edits.go">src/NodeKinds/PairNode/edits.go</span> ·
-        <span data-src="src/NodeKinds/PairNode/ring.go">src/NodeKinds/PairNode/ring.go</span></div>
-      <p class="eq step" data-src="src/NodeKinds/PairNode/edits.go#applyTiltEdit"><span class="lhs">applyTiltEdit</span>setTop(mod(<var>t</var>
+      <div class="cap"><span data-src="NodeKinds/PairNode/edits.go">NodeKinds/PairNode/edits.go</span> ·
+        <span data-src="NodeKinds/PairNode/ring.go">NodeKinds/PairNode/ring.go</span></div>
+      <p class="eq step" data-src="NodeKinds/PairNode/edits.go#applyTiltEdit"><span class="lhs">applyTiltEdit</span>setTop(mod(<var>t</var>
           ± 1, <var>tau</var>)) <span class="note">one slot, nothing sent</span></p>
-      <p class="eq step" data-src="src/NodeKinds/PairNode/ring.go#adoptLattice"><span class="lhs">adoptLattice</span>setTop(seedState(idx))
+      <p class="eq step" data-src="NodeKinds/PairNode/ring.go#adoptLattice"><span class="lhs">adoptLattice</span>setTop(seedState(idx))
         on the new ring</p>
       <p class="eq step dim">both go through setTop, and the bottom follows from it by the rule</p>
     </div>

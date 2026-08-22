@@ -1,10 +1,10 @@
 ---
 paths:
-  - "src/Node/Wiring/**/*.go"
-  - "src/extension/messages.ts"
-  - "src/extension/handle-message.ts"
-  - "src/extension/runCommand.ts"
-  - "src/Node/wire-gen.ts"
+  - "Node/Wiring/**/*.go"
+  - "extension/messages.ts"
+  - "extension/handle-message.ts"
+  - "extension/runCommand.ts"
+  - "Node/wire-gen.ts"
 ---
 
 # Bridge surface — TS → Go vocabulary detail
@@ -15,8 +15,8 @@ carries the TS → Go vocabulary.
 **TS → Go** is framed binary records on stdin. Two shapes, and the distinction is the model:
 
 - **Addressed edits** — a single geometry-CRUD `edit` message whose sole op is `update`
-  (see `src/Scene/scenerun/dispatch_edit.go` `applyEdit`, fenced by `EDIT_OPS_START`/
-  `EDIT_OPS_END`, and `src/extension/messages.ts` `EditMsg`): **`update` sets
+  (see `Scene/scenerun/dispatch_edit.go` `applyEdit`, fenced by `EDIT_OPS_START`/
+  `EDIT_OPS_END`, and `extension/messages.ts` `EditMsg`): **`update` sets
   an ATTRIBUTE on a typed entity** (`kind` = node / edge / camera / overlays / panels /
   scene) — there is no per-feature op. New *addressed* capability is a new entity kind or
   attribute, NOT a new op. `panels` is its OWN entity kind, deliberately separate from
@@ -61,8 +61,8 @@ no host→webview message of any kind.
 
 ## Parity
 
-Keep all of it in parity across `messages.ts`, the `src/Node/Wiring` stdin reader/dispatch
+Keep all of it in parity across `messages.ts`, the `Node/Wiring` stdin reader/dispatch
 (`stdin_reader.go`'s `MSG_TYPES` fence, `dispatch_edit.go`'s edit tables), and `handle-message.ts`
-(guards: `src/Scene/scenerun/check-edit-op-parity.sh`, `src/Scene/scenerun/check-message-kind-parity.sh`, and the
+(guards: `Scene/scenerun/check-edit-op-parity.sh`, `Scene/scenerun/check-message-kind-parity.sh`, and the
 `INPUT_LAYOUT_FINGERPRINT` in `input_codec.go` /
-`src/Node/wire-gen.ts`).
+`Node/wire-gen.ts`).

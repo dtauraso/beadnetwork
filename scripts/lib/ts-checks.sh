@@ -5,7 +5,7 @@
 
 webview_bundle_stale() {
   local webview_out="out/webview.js"
-  local src_dir="src"
+  local src_dir="."
 
   if [ ! -d "$src_dir" ]; then
     out+="ts-checks: MISCONFIGURED — webview source dir not found: $src_dir\n\n"

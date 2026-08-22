@@ -5,4 +5,4 @@ set -euo pipefail
 
 cd "$(git rev-parse --show-toplevel)"
 
-npx --no-install eslint src
+npx --no-install eslint .

@@ -91,12 +91,12 @@
           <p><i class="sw" style="background:#9a9aa6"></i>t + 12 — the bottom</p>
           <p>links, not sums — the triad turns as one, and nothing wraps</p>
           <p>ONLY t is updated, and only ever by this node's own loop
-            (<span data-src="src/NodeKinds/PairNode/node_parts.go#Top">Top</span>). The normal and the bottom are
-            links off it — <span data-src="src/NodeKinds/PairNode/tiltring/lattice.go#State">quarter</span> and
-            <span data-src="src/NodeKinds/PairNode/tiltring/lattice.go#State">opposite</span> — so they are not two
+            (<span data-src="NodeKinds/PairNode/node_parts.go#Top">Top</span>). The normal and the bottom are
+            links off it — <span data-src="NodeKinds/PairNode/tiltring/lattice.go#State">quarter</span> and
+            <span data-src="NodeKinds/PairNode/tiltring/lattice.go#State">opposite</span> — so they are not two
             more vectors to move, and cannot fall out of step with the tilt</p>
           <p>the normal is what LEAVES
-            (<span data-src="src/NodeKinds/PairNode/vectors.go#outgoingVector">outgoingVector</span>); the bottom
+            (<span data-src="NodeKinds/PairNode/vectors.go#outgoingVector">outgoingVector</span>); the bottom
             is drawn and never sent</p>
         </div>
         <img class="math" src="../../diagrams/mathblocks/read/read.svg" style="width:184px"
@@ -118,9 +118,9 @@
           <p><i class="sw" style="background:#e05fd8"></i>L — the slots between them the short way
             round, so never more than 12. It is the PICTURE's number</p>
           <p><b>the RULE does not read L.</b> It takes a plain
-            <span data-src="src/NodeKinds/PairNode/tiltring/rules.go#Abs">abs</span> distance from EACH end of
+            <span data-src="NodeKinds/PairNode/tiltring/rules.go#Abs">abs</span> distance from EACH end of
             the tilt line and asks which one is inside a quarter turn
-            (<span data-src="src/NodeKinds/PairNode/tiltring/rules.go#Offset">offset</span>) — the top gives
+            (<span data-src="NodeKinds/PairNode/tiltring/rules.go#Offset">offset</span>) — the top gives
             +1, the bottom −1, neither gives 0</p>
           <p>so the two panels at L = 0 and L = 12 are both turns: the arrival lying along the node's
             own line is inside a quarter of one end</p>

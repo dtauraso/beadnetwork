@@ -12,16 +12,39 @@ Two things in one repo:
 
 1. **A concurrent dataflow runtime in Go.** Behavior emerges from how nodes are wired together, not from procedural code. Goroutines and channels replace conventional control flow.
 
-2. **A visual editor** (vscode webview, Three.js / React Three Fiber). The diagram is the spec for **topology/wiring** — interpreted data, no codegen step on that path: the editor writes a directory tree of `topology/nodes/<id>/base.json`, `inputs|outputs/*.json`, and `topology/nodes/<id>/edges/*.json` (an adjacency list — an edge lives under its source node, no top-level `edges/` dir), which the runtime loader reads directly at startup. (Node-kind behavior and the content-buffer schema are a *separate*, code-generated axis — `src/NodeKinds/*/SPEC.md` and `src/Buffer/layout_version.go` drive `gen-node-defs`, staleness-guarded by `check-generated.sh`.) The directory tree is the only supported form — the earlier monolithic `topology.json` form was deleted.
+2. **A visual editor** (vscode webview, Three.js / React Three Fiber). The diagram is the spec for **topology/wiring** — interpreted data, no codegen step on that path: the editor writes a directory tree of `topology/nodes/<id>/base.json`, `inputs|outputs/*.json`, and `topology/nodes/<id>/edges/*.json` (an adjacency list — an edge lives under its source node, no top-level `edges/` dir), which the runtime loader reads directly at startup. (Node-kind behavior and the content-buffer schema are a *separate*, code-generated axis — `NodeKinds/*/SPEC.md` and the block-file layouts drive `gen-node-defs`, staleness-guarded by `check-generated.sh`.) The directory tree is the only supported form — the earlier monolithic `topology.json` form was deleted.
 
 ## Running it
 
+Everything starts in [Start/](Start/) — the Go binary, the extension host, and the
+webview all have their entry point there.
+
 ```bash
-go build ./...
-go run .
+go build ./...      # compile every package
+go run ./Start      # run the network
 ```
 
-The editor is this repo: its source is [src/](src/), and [EDITOR.md](EDITOR.md) has the vscode extension build/run instructions.
+```bash
+npm run build       # out/extension.js and out/webview.js
+npm run watch       # rebuild both on change
+```
+
+## Layout
+
+Each concern is a top-level directory holding everything about one thing — the Go
+that runs it and the TS that draws it, side by side:
+
+```
+Start/        the entry points: main.go, extension.ts, main.tsx
+Node/         nodes, their beads, edges, geometry
+Scene/        the scene: its spec on disk, assembling it, running it
+Chrome/       the UI that is not the diagram
+Camera/  Clock/  Input/  NodeKinds/  Overlay/  Polar/  Ring/  RingPoint/
+extension/    the VS Code integration, including webview/
+scripts/      what serves the repo rather than one concern
+```
+
+[EDITOR.md](EDITOR.md) has the vscode extension build/run instructions.
 
 ## License
 

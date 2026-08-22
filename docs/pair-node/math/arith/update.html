@@ -54,13 +54,13 @@
           stores only the top; the bottom is derived by the same rule wherever it is wanted, so the
           two cannot come apart</p>
         <p>the node runs exactly this:
-          <span data-src="src/NodeKinds/PairNode/tiltring/rules.go#Offset">offset</span> returns +1, −1 or 0,
-          and <span data-src="src/NodeKinds/PairNode/ring.go#setTop">setTop</span> writes
-          <span data-src="src/NodeKinds/PairNode/tiltring/rules.go#Mod">mod</span>(<var>t</var> + offset,
+          <span data-src="NodeKinds/PairNode/tiltring/rules.go#Offset">offset</span> returns +1, −1 or 0,
+          and <span data-src="NodeKinds/PairNode/ring.go#setTop">setTop</span> writes
+          <span data-src="NodeKinds/PairNode/tiltring/rules.go#Mod">mod</span>(<var>t</var> + offset,
           <var>tau</var>)</p>
         <p>which end is acute is the whole of the direction — the top gives +1 and the bottom −1,
           and neither being acute is the halt</p>
-        <p>the two distances are plain <span data-src="src/NodeKinds/PairNode/tiltring/rules.go#Abs">abs</span>
+        <p>the two distances are plain <span data-src="NodeKinds/PairNode/tiltring/rules.go#Abs">abs</span>
           subtractions, so no value here is negative and nothing is folded</p>
       </div>
     </div>

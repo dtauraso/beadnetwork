@@ -13,7 +13,7 @@ value, read-only.
 MODEL.md "Editor surface"). A TS store quietly makes TS an authority and is drift.
 
 **Current mechanism (post agnostic-content-buffer refactor):** there are NO webview stores
-anymore — the erase deleted them and `src/extension/webview/check-no-webview-state.sh` now GUARDS against
+anymore — the erase deleted them and `extension/webview/check-no-webview-state.sh` now GUARDS against
 reintroducing a Zustand `create(` / stateful domain hook (code beats memory, see
 [[feedback_code_self_defends]]). TS reflects Go-owned state by decoding the binary content
 buffer: `overlay-flags.ts` reads the buffer's Overlay block via React `useSyncExternalStore`

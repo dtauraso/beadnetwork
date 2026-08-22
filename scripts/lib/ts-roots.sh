@@ -1,5 +1,17 @@
 #!/usr/bin/env bash
 
 TS_ROOTS=(
-  "src"
+  "Start"
+  "Camera"
+  "Chrome"
+  "Clock"
+  "Input"
+  "Node"
+  "NodeKinds"
+  "Overlay"
+  "Polar"
+  "Ring"
+  "RingPoint"
+  "Scene"
+  "extension"
 )

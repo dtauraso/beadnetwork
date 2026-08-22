@@ -20,4 +20,4 @@ Ring topologies need to prime the feedback wire's destination port once at start
 
 **There is no `topologies/*.json`.** This entry used to say to edit one. A scene is a DIRECTORY TREE (`topology/`, `topology-pair/`) with one directory per node — see `.claude/rules/persistence-ownership.md` for the layout.
 
-**Do not conclude from grep that this entry is stale.** `edgeSeeds` IS still a live identifier in Go — `src/Scene/streamwire/stream_wiring.go` and `src/Scene/rowtables/row_tables.go` use it for EDGE GEOMETRY seeds (`geomseeds.EdgeGeomSeed`), an unrelated concept that happens to share the word. What was removed is the `data.edgeSeeds` SPEC FIELD, which no longer exists anywhere.
+**Do not conclude from grep that this entry is stale.** `edgeSeeds` IS still a live identifier in Go — `Scene/streamwire/stream_wiring.go` and `Scene/rowtables/row_tables.go` use it for EDGE GEOMETRY seeds (`geomseeds.EdgeGeomSeed`), an unrelated concept that happens to share the word. What was removed is the `data.edgeSeeds` SPEC FIELD, which no longer exists anywhere.

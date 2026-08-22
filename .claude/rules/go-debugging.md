@@ -1,8 +1,8 @@
 ---
 paths:
-  - "src/Node/**/*.go"
-  - "src/**/trace_event.go"
-  - "src/**/trace_log.go"
+  - "Node/**/*.go"
+  - "**/trace_event.go"
+  - "**/trace_log.go"
   - "scripts/probe-merge.sh"
 ---
 
@@ -10,7 +10,7 @@ paths:
 
 Go-side runtime debugging goes through the **DEBUG BREADCRUMB channel** — the Go analogue
 of the webview's `postLog`. Call `tr.Breadcrumb(label, node, port, value string)` at a debug
-site: it is a structured `Kind==KindBreadcrumb` row (`src/Node/nodeactor/owners/trace_event.go`) that the
+site: it is a structured `Kind==KindBreadcrumb` row (`Node/nodeactor/owners/trace_event.go`) that the
 EMITTING goroutine writes ITSELF, as a fixed-width binary record appended to the file
 belonging to the item the event is about:
 
@@ -29,7 +29,7 @@ decoders. A stream frame now carries only a tick and the layout fingerprint.
 Read them with `scripts/probe-merge.sh --debug`, which decodes every `trace.bin` at READ
 time via the owner-specific `readtrace` (see scripts/probe-merge.sh) and filters to `kind=="breadcrumb" && debug==true` —
 separate from genuine stderr errors (`.probe/go-errors.log`, still plain text). To read one
-item on its own: `go run ./src/Node/nodeactor/owners/readtrace topology/view/nodes/3/trace.bin`.
+item on its own: `go run ./Node/nodeactor/owners/readtrace topology/view/nodes/3/trace.bin`.
 
 Do NOT scatter `fmt.Fprintf(os.Stderr, ...)` for diagnosis; use a breadcrumb. Keep it
 SPARSE — it is a debug tool for control events, not a per-tick firehose (see the log-flood
@@ -49,10 +49,10 @@ the full per-tick trace, not just breadcrumbs.
 ## Source-gated edge-bead trace
 
 The highest-volume of these — `KindEdgeBead`, emitted per in-flight bead per tick by
-`src/Node/BeadAnimation/bead_line_drive.go`'s `stepAll` — is gated at the SOURCE, not just at the TS
+`Node/BeadAnimation/bead_line_drive.go`'s `stepAll` — is gated at the SOURCE, not just at the TS
 write. `stepAll` reads a package-level `edgeBeadTraceEnabled` bool set ONCE at process
 startup from the `WIREFOLD_EDGE_BEAD_TRACE` env var (read once before any goroutine starts, the same shape `trace.TraceEnabled` uses); the
-ext host (`src/extension/runCommand.ts`) sets it from the SAME
+ext host (`extension/runCommand.ts`) sets it from the SAME
 `isProbeTraceEnabled()` that gates the TS-side write, so there is one source of truth for
 the setting. With tracing off, Go never builds the event at all, so nothing reaches the item trace file. `KindBreadcrumb` and
 `KindArrive` are NOT gated by this flag and always emit; `LiveBeadRow`/the bead
