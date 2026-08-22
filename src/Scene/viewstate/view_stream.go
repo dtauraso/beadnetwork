@@ -1,9 +1,5 @@
 package viewstate
 
-import (
-	T "github.com/dtauraso/wirefold/src/Trace"
-)
-
 type ViewOverlayFlags struct {
 	SceneTori, ScenePoles, NodePoles, Handholds, LabelsGlobal, OverlaysVis uint8
 	NodeBody, NodeRing, RingPick, SelectionRing, HoverRing                 uint8
@@ -25,25 +21,25 @@ type ViewSceneState struct {
 	SceneKinds    uint32
 }
 
-type ViewFrameBuilder func(tick uint32, events []T.RowEvent)
+type ViewFrameBuilder func(tick uint32, events []RowEvent)
 
 func (ui *UIState) SetViewStream(buildFrame ViewFrameBuilder) {
 	ui.ViewBuildFrame = buildFrame
 }
 
 func (ui *UIState) WriteOwnTrace() {
-	ui.SetViewStream(func(tick uint32, events []T.RowEvent) {
-		T.NewLog(T.OwnerView, 0).Append(events)
+	ui.SetViewStream(func(tick uint32, events []RowEvent) {
+		appendTrace(viewTracePath(ui.SceneRoot()), events)
 	})
 }
 
-func (ui *UIState) EmitBreadcrumb(ev T.RowEvent) {
-	ev.Kind = T.KindBreadcrumb
+func (ui *UIState) EmitBreadcrumb(ev RowEvent) {
+	ev.Kind = KindBreadcrumb
 	ev.Debug = 1
-	ui.EmitViewFrame([]T.RowEvent{ev})
+	ui.EmitViewFrame([]RowEvent{ev})
 }
 
-func (ui *UIState) EmitViewFrame(events []T.RowEvent) {
+func (ui *UIState) EmitViewFrame(events []RowEvent) {
 	if ui.ViewBuildFrame == nil {
 		return
 	}

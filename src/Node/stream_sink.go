@@ -10,13 +10,11 @@ import (
 	BeadB "github.com/dtauraso/wirefold/src/Ring/Bead"
 	TiltB "github.com/dtauraso/wirefold/src/Scene/TiltVectors"
 	VecB "github.com/dtauraso/wirefold/src/Scene/Vectors"
-	T "github.com/dtauraso/wirefold/src/Trace"
 )
 
 type Sinks struct {
-	Beads    func(tick uint32, nodeRow int32, beads []edge.EdgeBead, events []T.RowEvent)
-	Node     nodeframe.NodeFrameBuilder
-	Interior func(tick uint32, nodeRow int32, events []T.RowEvent)
+	Beads func(tick uint32, nodeRow int32, beads []edge.EdgeBead)
+	Node  nodeframe.NodeFrameBuilder
 }
 
 func NewSinks(sceneRoot string, rows int) Sinks {
@@ -32,13 +30,12 @@ func NewSinks(sceneRoot string, rows int) Sinks {
 	}
 
 	return Sinks{
-		Beads: func(tick uint32, nodeRow int32, beads []edge.EdgeBead, events []T.RowEvent) {
+		Beads: func(tick uint32, nodeRow int32, beads []edge.EdgeBead) {
 			if int(nodeRow) < len(beadValues) {
 				if err := edge.WriteEdgeBeadValues(beadValues[nodeRow], beads); err != nil {
 					fmt.Fprintf(os.Stderr, "bead values write (node row %d): %v\n", nodeRow, err)
 				}
 			}
-			T.NewLog(T.OwnerBead, nodeRow).Append(events)
 		},
 
 		Node: func(f nodeframe.NodeFrameInput) {
@@ -54,11 +51,6 @@ func NewSinks(sceneRoot string, rows int) Sinks {
 					fmt.Fprintf(os.Stderr, "channel vector values write (node row %d): %v\n", f.NodeRow, err)
 				}
 			}
-			T.NewLog(T.OwnerNode, f.NodeRow).Append(f.Events)
-		},
-
-		Interior: func(tick uint32, nodeRow int32, events []T.RowEvent) {
-			T.NewLog(T.OwnerInterior, nodeRow).Append(events)
 		},
 	}
 }
@@ -108,7 +100,6 @@ func nodeStateFrom(f nodeframe.NodeFrameInput) NodeState {
 		RuleGroupID:      f.RuleGroupID,
 		RuleGroupSize:    f.RuleGroupSize,
 		Label:            f.Label,
-		Events:           f.Events,
 	}
 }
 

@@ -1,9 +1,5 @@
 package beadanimation
 
-import (
-	T "github.com/dtauraso/wirefold/src/Trace"
-)
-
 type SendOutcome uint8
 
 const (
@@ -21,8 +17,8 @@ func (bl *BeadLine) Send(v int, bp BeadPlacement, tick int64) SendOutcome {
 	default:
 		if bl.readout.breadcrumbCh != nil {
 			select {
-			case bl.readout.breadcrumbCh <- T.RowEvent{
-				Kind: T.KindBreadcrumb, Label: T.BreadcrumbBeadPlaceBufferFull, Debug: 1,
+			case bl.readout.breadcrumbCh <- RowEvent{
+				Kind: KindBreadcrumb, Label: BreadcrumbBeadPlaceBufferFull, Debug: 1,
 				NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 				Value: int32(v),
 			}:

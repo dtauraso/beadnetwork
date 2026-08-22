@@ -2,7 +2,6 @@ package nodeactor
 
 import (
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/PolarRulesPanel"
-	T "github.com/dtauraso/wirefold/src/Trace"
 
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	interior "github.com/dtauraso/wirefold/src/Node/Interior"
@@ -108,9 +107,10 @@ func (m *NodeGeometry) writeOutEdgeFrames(tick int64) {
 	m.outEdges.WriteFrames(tick, m.geom, &m.deltas)
 }
 
-func (m *NodeGeometry) WireInteriorStream(row int32, buildFrame func(tick uint32, events []T.RowEvent), sceneRoot string) *interior.Emitter {
+func (m *NodeGeometry) WireInteriorStream(row int32, buildFrame func(tick uint32), sceneRoot string) *interior.Emitter {
 	stream := interior.NewInteriorStream(buildFrame, row, interior.SlotsPerNode)
 	stream.SetValueWriter(interior.NewValueWriter(sceneRoot, int(row)))
+	stream.SetSceneRoot(sceneRoot)
 	mailbox := interior.NewMailbox(row)
 	m.interior.SetInteriorStream(stream, mailbox)
 	return interior.NewEmitter(mailbox, row)
@@ -120,13 +120,14 @@ func (m *NodeGeometry) writeInteriorFrames() {
 	m.interior.WriteFrames(m.geom)
 }
 
-func (m *NodeGeometry) WireBeadStream(row int32, buildBeadFrame beadanimation.BeadFrameBuilder) {
-	m.anim.SetBeadStream(row, buildBeadFrame)
+func (m *NodeGeometry) WireBeadStream(row int32, buildBeadFrame beadanimation.BeadFrameBuilder, sceneRoot string) {
+	m.anim.SetBeadStream(row, buildBeadFrame, sceneRoot)
 }
 
-func (m *NodeGeometry) WireStream(row int32, kindID uint8, nodeRowFor func(id string) (int32, bool), buildFrame nodeframe.NodeFrameBuilder) {
+func (m *NodeGeometry) WireStream(row int32, kindID uint8, nodeRowFor func(id string) (int32, bool), buildFrame nodeframe.NodeFrameBuilder, sceneRoot string) {
 	m.stream.SetStream(row, kindID, buildFrame)
 	m.topo.SetNodeRowFor(nodeRowFor)
+	m.trace.Wire(sceneRoot, row)
 }
 
 func (m *NodeGeometry) SetPersistRoot(root string) {

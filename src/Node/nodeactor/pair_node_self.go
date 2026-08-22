@@ -2,9 +2,9 @@ package nodeactor
 
 import (
 	"context"
+	"github.com/dtauraso/wirefold/src/Node/nodeactor/owners"
 
 	clock "github.com/dtauraso/wirefold/src/Clock"
-	T "github.com/dtauraso/wirefold/src/Trace"
 )
 
 type PairNodeSelf struct {
@@ -31,12 +31,8 @@ func (p *PairNodeSelf) Breadcrumb(label, value string) {
 		return
 	}
 
-	id, ok := T.BreadcrumbLabelID(label)
-	if !ok {
-		return
-	}
-	p.geom.postSelfEvents([]T.RowEvent{{
-		Kind: T.KindBreadcrumb, Label: id, Debug: 1,
+	p.geom.postSelfEvents([]owners.RowEvent{{
+		Kind: owners.KindBreadcrumb, Label: label, Debug: 1,
 		NodeRow: p.geom.NodeRow(), PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 		Text: value,
 	}})

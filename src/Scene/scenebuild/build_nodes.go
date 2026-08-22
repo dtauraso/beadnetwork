@@ -62,7 +62,6 @@ func buildNodes(
 		pb.SpeedSinks = speedSinks
 		pb.RT = md.RT
 		pb.InteriorEmitters = md.Sw.InteriorEmittersPtr()
-		pb.BuildInteriorFrame = md.Sw.BuildInteriorFramePtr()
 		pb.VectorOut = vectorOut
 		pb.VectorIn = vectorIn
 		wiring.BindPorts(&pb, n, bind.Ports)

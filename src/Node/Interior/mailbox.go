@@ -2,8 +2,6 @@ package interior
 
 import (
 	"fmt"
-
-	T "github.com/dtauraso/wirefold/src/Trace"
 )
 
 const MailboxDepth = 64
@@ -15,7 +13,7 @@ type Snapshot struct {
 	Value      []int32
 	Ox, Oy, Oz []float32
 
-	Events []T.RowEvent
+	Events []RowEvent
 }
 
 type Mailbox struct {

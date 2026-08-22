@@ -1,8 +1,6 @@
 package owners
 
 import (
-	T "github.com/dtauraso/wirefold/src/Trace"
-
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/src/Node/Edge/edgefile"
 	"github.com/dtauraso/wirefold/src/Node/Edge/edgegeom"
@@ -11,7 +9,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Polar/polarindex"
 )
 
-type EdgeFrameBuilder = func(tick uint32, edgeRow int32, sx, sy, sz, ex, ey, ez float32, srcNodeRow, dstNodeRow int32, deltaR float32, dragActive uint8, label string, events []T.RowEvent)
+type EdgeFrameBuilder = func(tick uint32, edgeRow int32, sx, sy, sz, ex, ey, ez float32, srcNodeRow, dstNodeRow int32, deltaR float32, dragActive uint8, label string)
 
 type outEdge struct {
 	label      string
@@ -165,6 +163,6 @@ func (o *OutEdges) WriteFrames(tick int64, self nodegeom.NodeGeom, deltas *Delta
 		o.buildFrame(uint32(tick), e.edgeRow,
 			float32(start.X), float32(start.Y), float32(start.Z),
 			float32(end.X), float32(end.Y), float32(end.Z),
-			o.nodeRow, e.dstNodeRow, e.deltaR, activeByte(e.ruleInactive), e.label, nil)
+			o.nodeRow, e.dstNodeRow, e.deltaR, activeByte(e.ruleInactive), e.label)
 	}
 }

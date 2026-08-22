@@ -18,8 +18,8 @@ func (a *NodeBeadAnimation) AddBeadLine(pw *beadanimation.BeadLine, edgeRow int3
 	a.outs.AddBeadLine(pw, edgeRow)
 }
 
-func (a *NodeBeadAnimation) SetBeadStream(nodeRow int32, buildBeadFrame beadanimation.BeadFrameBuilder) {
-	a.outs.SetBeadStream(nodeRow, buildBeadFrame)
+func (a *NodeBeadAnimation) SetBeadStream(nodeRow int32, buildBeadFrame beadanimation.BeadFrameBuilder, sceneRoot string) {
+	a.outs.SetBeadStream(nodeRow, buildBeadFrame, sceneRoot)
 }
 
 func (a *NodeBeadAnimation) ClearBeadLines() {

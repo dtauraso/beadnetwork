@@ -1,8 +1,6 @@
 package Node
 
 import (
-	T "github.com/dtauraso/wirefold/src/Trace"
-
 	TiltB "github.com/dtauraso/wirefold/src/Scene/TiltVectors"
 	VecB "github.com/dtauraso/wirefold/src/Scene/Vectors"
 )
@@ -55,6 +53,4 @@ type NodeState struct {
 	TiltArrows []TiltB.TiltArrow
 
 	ChannelVectors []VecB.ChannelVector
-
-	Events []T.RowEvent
 }

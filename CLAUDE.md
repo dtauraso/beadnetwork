@@ -123,9 +123,9 @@ one directory out, since a directory is one Go package. `go generate ./...` runs
   The split line is `inflightBead` — the files that share it are the bead animation.
 - **`src/Camera/`** — the camera, all of it: the basis/projection/angles math and `Viewpoint`,
   the files it persists under `view/camera/`, its block file, and the TSX drawing through it.
-- **`src/Trace/`** — the trace events: `RowEvent`, the kinds and breadcrumb labels, the binary
-  record, and the append that puts one in the file of the item it tracks; `readtrace/` decodes
-  them back to logfmt. There is no `src/Buffer`: it was the frame envelope, and frames are gone.
+- **Trace events are not a package.** Each owner declares its own `RowEvent` and labels and
+  appends to the file of the item it tracks — the emitter writes it ITSELF, so an event never
+  crosses a package, and a label is a NAME, not an index. `readtrace/` is the only reader.
 - **`src/Chrome/`** — the UI that is NOT the diagram: the pills, panels, dropdowns, tab strip
   and fit chip, plus the `chrome-theme.ts` they share ("Chrome" is the industry word for the
   frame around the content, and this repo reached for it twice on its own). The test is a

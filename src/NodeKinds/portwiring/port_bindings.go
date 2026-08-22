@@ -7,7 +7,6 @@ import (
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	interior "github.com/dtauraso/wirefold/src/Node/Interior"
 	"github.com/dtauraso/wirefold/src/Scene/rowtables"
-	T "github.com/dtauraso/wirefold/src/Trace"
 )
 
 type PortDir int
@@ -44,8 +43,7 @@ type PortBindings struct {
 
 	RT rowtables.RowTables
 
-	InteriorEmitters   *map[string]*interior.Emitter
-	BuildInteriorFrame *func(tick uint32, nodeRow int32, events []T.RowEvent)
+	InteriorEmitters *map[string]*interior.Emitter
 
 	VectorOut map[string]chan TiltPanel.TiltVectorMsg
 	VectorIn  map[string]chan TiltPanel.TiltVectorMsg

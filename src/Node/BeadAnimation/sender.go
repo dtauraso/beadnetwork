@@ -2,8 +2,6 @@ package beadanimation
 
 import (
 	"context"
-
-	T "github.com/dtauraso/wirefold/src/Trace"
 )
 
 type outGeom struct {
@@ -29,7 +27,7 @@ type Sender struct {
 
 	Rule SendRule
 
-	stream func() T.EventSink
+	stream func() EventSink
 
 	portRow, targetRow, targetPortRow int32
 }

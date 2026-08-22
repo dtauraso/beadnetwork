@@ -4,8 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-
-	trace "github.com/dtauraso/wirefold/src/Trace"
 )
 
 func main() {
@@ -40,7 +38,7 @@ func emit(out *bufio.Writer, path string) error {
 		return err
 	}
 	for off := 0; off < len(buf); {
-		e, tsMs, n, ok := trace.DecodeRecord(buf[off:])
+		e, tsMs, n, ok := DecodeRecord(buf[off:])
 		if !ok {
 			return fmt.Errorf("truncated record at byte %d of %d", off, len(buf))
 		}

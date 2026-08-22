@@ -19,6 +19,7 @@ func (ui *UIState) SetSceneRoot(sceneRoot string) {
 	if sceneRoot == "" {
 		return
 	}
+	ui.sceneRoot = sceneRoot
 	ui.rulesValues = PolarRulesPanel.NewValueWriter(sceneRoot)
 	ui.nodesPillValues = NodesDropdown.NewValueWriter(sceneRoot)
 	ui.anglePillValues = AngleDropdown.NewValueWriter(sceneRoot)

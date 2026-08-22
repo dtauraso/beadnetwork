@@ -1,7 +1,5 @@
 package beadanimation
 
-import ()
-
 func (b *inflightBead) pos() Vec3 {
 	dir := b.seg.End.Sub(b.seg.Start)
 	if dir.Length() < 1e-9 {
