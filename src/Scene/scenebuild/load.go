@@ -10,8 +10,8 @@ import (
 	"github.com/dtauraso/wirefold/src/NodeKinds/nodeapi"
 	"github.com/dtauraso/wirefold/src/NodeKinds/portwiring"
 	"github.com/dtauraso/wirefold/src/Scene/scenepersist"
-	"github.com/dtauraso/wirefold/src/runtopology/loadspec"
-	"github.com/dtauraso/wirefold/src/runtopology/scenerun"
+	"github.com/dtauraso/wirefold/src/Scene/loadspec"
+	"github.com/dtauraso/wirefold/src/Scene/scenerun"
 )
 
 type Scene struct {

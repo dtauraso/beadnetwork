@@ -3,7 +3,7 @@ package kindreg
 import (
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/src/NodeKinds/portwiring"
-	"github.com/dtauraso/wirefold/src/runtopology/loadspec"
+	"github.com/dtauraso/wirefold/src/Scene/loadspec"
 )
 
 type EdgeWiring struct {

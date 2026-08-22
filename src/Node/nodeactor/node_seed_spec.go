@@ -2,7 +2,7 @@ package nodeactor
 
 import (
 	"github.com/dtauraso/wirefold/src/Node/nodeactor/nodefiles"
-	"github.com/dtauraso/wirefold/src/runtopology/loadspec"
+	"github.com/dtauraso/wirefold/src/Scene/loadspec"
 )
 
 func (m *NodeGeometry) SeedFromSpec(n loadspec.Node, sceneRoot string) {

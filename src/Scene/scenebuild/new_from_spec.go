@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/dtauraso/wirefold/src/runtopology/scenerun"
+	"github.com/dtauraso/wirefold/src/Scene/scenerun"
 
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
 	"github.com/dtauraso/wirefold/src/Chrome/Pills/AngleDropdown"
 	clock "github.com/dtauraso/wirefold/src/Clock"
 	"github.com/dtauraso/wirefold/src/Scene/scene"
-	"github.com/dtauraso/wirefold/src/runtopology/loadspec"
+	"github.com/dtauraso/wirefold/src/Scene/loadspec"
 
 	edge "github.com/dtauraso/wirefold/src/Node/Edge"
 	"github.com/dtauraso/wirefold/src/Node/movemsg"

@@ -2,7 +2,7 @@ package kindreg
 
 import (
 	"github.com/dtauraso/wirefold/src/NodeKinds/portwiring"
-	"github.com/dtauraso/wirefold/src/runtopology/loadspec"
+	"github.com/dtauraso/wirefold/src/Scene/loadspec"
 )
 
 func BuildTypeMaps(spec loadspec.TopoSpec) (nodeType map[string]string, kindBroadcastPorts map[string]map[string]bool) {

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: src/runtopology/scenerun/move_dispatch_api.go,src/Node/nodeactor/node_geometry.go | a composer struct (MoveDispatch, nodeactor.NodeGeometry) stays THIN: new state belongs in a named sub-struct, not a new loose field
+# PLACEMENT: src/Scene/scenerun/move_dispatch_api.go,src/Node/nodeactor/node_geometry.go | a composer struct (MoveDispatch, nodeactor.NodeGeometry) stays THIN: new state belongs in a named sub-struct, not a new loose field
 
 set -euo pipefail
 

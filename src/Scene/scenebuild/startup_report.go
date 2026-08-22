@@ -2,7 +2,7 @@ package scenebuild
 
 import (
 	T "github.com/dtauraso/wirefold/src/Trace"
-	"github.com/dtauraso/wirefold/src/runtopology/scenerun"
+	"github.com/dtauraso/wirefold/src/Scene/scenerun"
 )
 
 func EmitStartupBreadcrumbs(md *scenerun.MoveDispatch, scenePath string, nodeCount int) {

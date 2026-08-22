@@ -16,7 +16,7 @@ one now-deleted test kept it alive. It was deleted, and the Go generator step th
 the generated member of the cluster was removed so it does not get silently recreated.
 
 There is no longer a TS-side schema parser to keep in parity with `types.ts` — Go
-(`src/runtopology/scenebuild/load.go`) is the only spec parser. If a future find reintroduces a TS-side
+(`src/Scene/scenebuild/load.go`) is the only spec parser. If a future find reintroduces a TS-side
 validator for `node.data` or graph structure, re-derive the parity rule fresh against
 whatever that code actually does rather than trusting this note's original text below (kept
 for history only):

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: src/runtopology/scenerun/dispatch_edit.go,src/extension/messages.ts,src/Overlay/flags.ts,src/Chrome/Panels/Panel/flags.ts,src/Node/wire-gen.ts,src/Overlay/paths/,src/Chrome/Panels/Panel/paths/ | edit ops/update-kinds/overlay flags must stay listed identically on both sides of the bridge
+# PLACEMENT: src/Scene/scenerun/dispatch_edit.go,src/extension/messages.ts,src/Overlay/flags.ts,src/Chrome/Panels/Panel/flags.ts,src/Node/wire-gen.ts,src/Overlay/paths/,src/Chrome/Panels/Panel/paths/ | edit ops/update-kinds/overlay flags must stay listed identically on both sides of the bridge
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel)"

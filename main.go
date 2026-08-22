@@ -10,7 +10,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/dtauraso/wirefold/src/runtopology/scenebuild"
+	"github.com/dtauraso/wirefold/src/Scene/scenebuild"
 
 	"github.com/dtauraso/wirefold/src/Chrome/Tabs"
 	clock "github.com/dtauraso/wirefold/src/Clock"
@@ -24,7 +24,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Scene/scene"
 	"github.com/dtauraso/wirefold/src/Scene/scenepaths"
 	T "github.com/dtauraso/wirefold/src/Trace"
-	W "github.com/dtauraso/wirefold/src/runtopology/scenerun"
+	W "github.com/dtauraso/wirefold/src/Scene/scenerun"
 )
 
 func run(ctx context.Context, cancel context.CancelFunc, topologyPath string, clk clock.Clock) {

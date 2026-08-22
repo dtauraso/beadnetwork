@@ -8,7 +8,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Node/nodegeom"
 	"github.com/dtauraso/wirefold/src/NodeKinds/nodeapi"
 	"github.com/dtauraso/wirefold/src/NodeKinds/portwiring"
-	"github.com/dtauraso/wirefold/src/runtopology/loadspec"
+	"github.com/dtauraso/wirefold/src/Scene/loadspec"
 )
 
 type BuildDeps struct {

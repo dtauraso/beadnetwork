@@ -3,7 +3,7 @@
 ## Model — read first
 
 Before changing anything in the **Go network** (`src/Node/`, `src/NodeKinds/`, `src/Node/BeadAnimation/bead_line.go`,
-`src/runtopology/scenebuild/load.go`, `src/runtopology/loadspec/builders.go`) or the **Go → TS
+`src/Scene/scenebuild/load.go`, `src/Scene/loadspec/builders.go`) or the **Go → TS
 surface** (the block files and their `*_values.go`, `src/webview/`), read
 [MODEL.md](MODEL.md). It pins the model. Do not propose multi-step
 plans with options for network/bead work; name the single concrete next
@@ -38,7 +38,7 @@ delivery), node goroutine, node input, and clock
 2. No separate `registry.ts` — `node-defs.ts` is the single node-kind registry, and it lives
    in `src/NodeKinds/` with the kinds it describes. **There is no `src/schema/`**: a registry
    lives with its concern, so `messages.ts` and the input codec are `src/Input/`,
-   `scenes-gen.ts` is `src/Scene/`, `wire-defs.ts` is `runtopology/loadspec/`, and the trace
+   `scenes-gen.ts` is `src/Scene/`, `wire-defs.ts` is `src/Scene/loadspec/`, and the trace
    events are `src/Trace/`. Adding a node kind touches only `node-defs.ts`.
 3. The Go node package under `src/NodeKinds/<Kind>/`, with its logic always in `node.go` (never
    `<Kind>.go`) plus `SPEC.md`. Directory casing is mixed and both are live: PascalCase
@@ -107,7 +107,7 @@ one directory out, since a directory is one Go package. `go generate ./...` runs
   `polar` (coordinate/composition) and `polarindex` (index × constant) — never inside it.
   **`src/valuefile/`** is the other medium — one primitive per file, fixed-width LE, atomic
   rename — with the write-ownership guard beside it.
-- **`src/runtopology/`** — starting the program: claim the stream fds, resolve the scene,
+- **`src/Scene/`** — starting the program: claim the stream fds, resolve the scene,
   load the graph, wire every per-owner stream, seed the static columns, then launch one
   goroutine per node and block. `main.go` calls it and nothing else does. It is NOT a
   coordinator — it constructs and starts, and the network runs itself from there.
