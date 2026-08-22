@@ -69,7 +69,7 @@ generically from the block files each component reads, keyed off `NODE_DEFS`
 | `src/Scene/scene-leaves.ts` | Polls the scene's binary leaves, including `spawn`, whose change means Go was replaced |
 | `src/webview/scene/scene-root.tsx` | Composition root of the render tree; each component it assembles reads its own block files |
 | `src/webview/scene/ThreeView.tsx` | R3F `<Canvas>` root. Holds NO gesture state — raw pointer/wheel events forward verbatim to Go's FSM (`src/Input/Gesture` package) |
-| `src/webview/interaction/raw-input.ts` | Raw pointer/wheel + raycast hit → binary `raw-input` record to Go |
+| `src/Input/Drag/raw-input-build.ts` | Raw pointer/wheel + raycast hit → binary `raw-input` record to Go |
 | `src/Overlay/overlay-flags.ts` | Read-only reflection of Go-owned overlay-toggle state (`useSyncExternalStore`; no store) |
 | `webview/log/*` | Crash listeners, error boundary, log posting to the extension host |
 
