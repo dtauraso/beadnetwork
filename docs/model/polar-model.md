@@ -168,7 +168,7 @@ and none is a source of truth.
   bug that made positions fly to infinity. A moved center rigidly translates its satellites
   (offset unchanged ⇒ locks stay satisfied ⇒ the wave terminates). This is STRUCTURAL, not a
   test: the reconstruction that caused the blow-up has no call site to write. Nav is held
-  polar-only by `src/webview/scene/check-polar-only-nav.sh`.
+  polar-only by `src/extension/webview/scene/check-polar-only-nav.sh`.
 - **Panel-authored locks must be structurally incapable of a position blow-up.** If one
   happens, the implementation is wrong (an offset was reconstructed from a moving reference),
   not the locks.

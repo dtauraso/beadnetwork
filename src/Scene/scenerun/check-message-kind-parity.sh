@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: src/Input/Stdin/stdin_reader.go,src/extension/messages.ts,src/extension/handle-message.ts,src/webview/** | a new message kind needs matching entries in Go's MSG_TYPES fence+doc, messages.ts, and a live sender
+# PLACEMENT: src/Input/Stdin/stdin_reader.go,src/extension/messages.ts,src/extension/handle-message.ts,src/extension/webview/** | a new message kind needs matching entries in Go's MSG_TYPES fence+doc, messages.ts, and a live sender
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
@@ -9,7 +9,7 @@ REPO_ROOT="$(git rev-parse --show-toplevel)"
 GO_PKG_DIR="$REPO_ROOT/src"
 MESSAGES_TS="$REPO_ROOT/src/extension/messages.ts"
 HANDLE_MESSAGE_TS="$REPO_ROOT/src/extension/handle-message.ts"
-WEBVIEW_SRC_DIR="$REPO_ROOT/src/webview"
+WEBVIEW_SRC_DIR="$REPO_ROOT/src/extension/webview"
 
 source "$REPO_ROOT/scripts/lib/bridge/msg-kind-extract.sh"
 source "$REPO_ROOT/scripts/lib/bridge/msg-kind-checks.sh"

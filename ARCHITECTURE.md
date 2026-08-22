@@ -10,9 +10,9 @@ this file is only the file-layout map for this package.
 ```
 extension host (Node)                webview (browser)
 ─────────────────────                ─────────────────
-  src/extension/extension.ts            ◄──►   src/webview/main.tsx
-  src/extension/runCommand.ts                  src/webview/scene/ThreeView.tsx
-  src/extension/handle-message.ts    src/webview/scene/scene-root.tsx
+  src/extension/extension.ts            ◄──►   src/extension/webview/main.tsx
+  src/extension/runCommand.ts                  src/extension/webview/scene/ThreeView.tsx
+  src/extension/handle-message.ts    src/extension/webview/scene/scene-root.tsx
   src/extension/html.ts                          src/Node/node-label.ts
   src/extension/goBuild.ts                     src/Scene/scene-leaves.ts
   src/* (shared)
@@ -65,17 +65,17 @@ generically from the block files each component reads, keyed off `NODE_DEFS`
 
 | File | Role |
 |---|---|
-| `src/webview/main.tsx` | Entry point and mount. Receives NO messages — the host→webview direction is empty; everything Go says arrives as files |
+| `src/extension/webview/main.tsx` | Entry point and mount. Receives NO messages — the host→webview direction is empty; everything Go says arrives as files |
 | `src/Scene/scene-leaves.ts` | Polls the scene's binary leaves, including `spawn`, whose change means Go was replaced |
-| `src/webview/scene/scene-root.tsx` | Composition root of the render tree; each component it assembles reads its own block files |
-| `src/webview/scene/ThreeView.tsx` | R3F `<Canvas>` root. Holds NO gesture state — raw pointer/wheel events forward verbatim to Go's FSM (`src/Input/Gesture` package) |
+| `src/extension/webview/scene/scene-root.tsx` | Composition root of the render tree; each component it assembles reads its own block files |
+| `src/extension/webview/scene/ThreeView.tsx` | R3F `<Canvas>` root. Holds NO gesture state — raw pointer/wheel events forward verbatim to Go's FSM (`src/Input/Gesture` package) |
 | `src/Input/Drag/raw-input-build.ts` | Raw pointer/wheel + raycast hit → binary `raw-input` record to Go |
 | `src/Overlay/overlay-flags.ts` | Read-only reflection of Go-owned overlay-toggle state (`useSyncExternalStore`; no store) |
 | `webview/log/*` | Crash listeners, error boundary, log posting to the extension host |
 
 There is no JSON-trace render path, no `pump.ts`, and no zustand/Redux-style
 store — the TS layer is render + forward only (guard:
-`src/webview/check-no-webview-state.sh`).
+`src/extension/webview/check-no-webview-state.sh`).
 
 ## Spec vs viewer state
 

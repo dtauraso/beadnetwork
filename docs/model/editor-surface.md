@@ -49,7 +49,7 @@ Go owns the clock.
   There is **no JSON-trace render path and no `pump.ts`**; Go emits no
   trace-event JSON on stdout at all. `scripts/probe-merge.sh` decodes the
   binary trace files at READ time through `src/Trace/readtrace`.
-- **`SceneRoot`** (`src/webview/scene/scene-root.tsx`)
+- **`SceneRoot`** (`src/extension/webview/scene/scene-root.tsx`)
   is the composition root of the render tree — it assembles the per-concern
   components, each of which reads its own block files. It is a
   small file; the drawing lives in its siblings under `three/scene/`. Grep the symbol,

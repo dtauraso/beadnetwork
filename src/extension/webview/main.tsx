@@ -9,7 +9,7 @@ window.WIREFOLD_BOOTED = true;
 postLog("lifecycle", { phase: "bundle-eval" });
 
 import { createRoot } from "react-dom/client";
-import { startSceneBaseReads } from "../Scene/scene-base";
+import { startSceneBaseReads } from "../../Scene/scene-base";
 import { ThreeView } from "./scene/ThreeView";
 import { ErrorBoundary } from "./log/ErrorBoundary";
 import { CrashListeners } from "./log/CrashListeners";

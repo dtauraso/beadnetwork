@@ -1,4 +1,4 @@
-import { logfmt, type LogFields } from "../../extension/probe/logfmt";
+import { logfmt, type LogFields } from "../../probe/logfmt";
 import { vscode } from "../vscode-api";
 
 export function postLog(label: string, data?: Record<string, unknown>): void {

@@ -4,7 +4,7 @@
 
 Before changing anything in the **Go network** (`src/Node/`, `src/NodeKinds/`, `src/Node/BeadAnimation/bead_line.go`,
 `src/Scene/scenebuild/load.go`, `src/Scene/loadspec/builders.go`) or the **Go → TS
-surface** (the block files and their `*_values.go`, `src/webview/`), read
+surface** (the block files and their `*_values.go`, `src/extension/webview/`), read
 [MODEL.md](MODEL.md). It pins the model. Do not propose multi-step
 plans with options for network/bead work; name the single concrete next
 step and get the model agreed first. "Agreed first" gates the START of the
@@ -14,12 +14,12 @@ through to done; do not halt after every step to re-ask.
 Go owns the one clock and times its own bead delivery. It writes the whole scene (bead
 positions, node/port geometry, edge curves, shading params, camera pose, selection,
 overlays) to **block files**, each written by the goroutine that owns it, the row in the PATH
-so there is one writer per file and no lock. The render tree under `src/webview/` (rooted at
-`src/webview/scene/scene-root.tsx`, which composes it) READS those files and draws them; it
+so there is one writer per file and no lock. The render tree under `src/extension/webview/` (rooted at
+`src/extension/webview/scene/scene-root.tsx`, which composes it) READS those files and draws them; it
 computes no positions, no geometry, no traversal timing, and never tells Go when a bead
 arrived. There is no JSON-trace render path and no
 `pump.ts`; the TS layer is **render + forward only** and holds no domain state (guard:
-`src/webview/check-no-webview-state.sh`).
+`src/extension/webview/check-no-webview-state.sh`).
 
 The model's real entities live in [MODEL.md](MODEL.md): bead (data carrying its own segment
 and step count), bead line (`BeadLine` — the line a bead travels, holding the beads on it,
@@ -29,7 +29,7 @@ delivery), node goroutine, node input, and clock
 `src/Node/Edge/edgegeom/chain_length.go`). The active node kinds are the structs under `src/NodeKinds/<Kind>/`.
 
 **Drift rule:** see MODEL.md's "Drift rule" section for the full statement (guards:
-`src/webview/check-no-webview-state.sh`, `src/check-no-await-on-bridge.sh`).
+`src/extension/webview/check-no-webview-state.sh`, `src/check-no-await-on-bridge.sh`).
 
 ## Primitive landing rule (narrowed)
 

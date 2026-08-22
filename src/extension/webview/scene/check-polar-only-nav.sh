@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: src/webview/scene/interaction-controls.ts | the nav handler does no Cartesian math; angle/sphere math lives in the polar helpers
+# PLACEMENT: src/extension/webview/scene/interaction-controls.ts | the nav handler does no Cartesian math; angle/sphere math lives in the polar helpers
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
-NAV_DIR="$REPO_ROOT/src/webview/scene"
+NAV_DIR="$REPO_ROOT/src/extension/webview/scene"
 
 shopt -s nullglob
 NAV_FILES=( "$NAV_DIR"/interaction-*.ts )

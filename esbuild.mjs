@@ -46,7 +46,7 @@ const extension = {
 
 const webview = {
   ...common,
-  entryPoints: ["src/webview/main.tsx"],
+  entryPoints: ["src/extension/webview/main.tsx"],
   outfile: "out/webview.js",
   platform: "browser",
   format: "iife",

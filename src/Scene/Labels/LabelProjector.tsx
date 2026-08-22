@@ -6,7 +6,7 @@ import { ownerCounts } from "../../Scene/owner-counts";
 import { nodeF32 } from "../../Node/node-leaves";
 import { overlayFlag } from "../../Overlay/overlay-flags";
 import { setLabelPositions } from "./label-canvas";
-import type { LabelPos } from "../../webview/scene/scene-tags";
+import type { LabelPos } from "../../extension/webview/scene/scene-tags";
 
 const _bufTopScratch = new THREE.Vector3();
 

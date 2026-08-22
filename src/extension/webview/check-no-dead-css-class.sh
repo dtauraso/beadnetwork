@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: src/webview/*.css | every CSS class needs a renderer; delete an unused one rather than allowlisting it
+# PLACEMENT: src/extension/webview/*.css | every CSS class needs a renderer; delete an unused one rather than allowlisting it
 
 set -euo pipefail
 
@@ -10,7 +10,7 @@ cd "$REPO_ROOT"
 
 source "$REPO_ROOT/scripts/lib/ts-roots.sh"
 SRC="src"
-CSS_DIR="$SRC/webview"
+CSS_DIR="$SRC/extension/webview"
 
 if [[ ! -d "$CSS_DIR" ]]; then
   echo "check-no-dead-css-class: MISCONFIGURED — $CSS_DIR not found (moved?); refusing vacuous pass" >&2

@@ -1,4 +1,4 @@
-import type { LabelPos } from "../../webview/scene/scene-tags";
+import type { LabelPos } from "../../extension/webview/scene/scene-tags";
 import { canvasFont, roundRect } from "../../Chrome/canvas-box";
 import * as T from "../../Chrome/chrome-theme";
 

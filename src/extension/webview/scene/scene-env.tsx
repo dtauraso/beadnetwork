@@ -16,7 +16,7 @@ import {
   SHADING_PARAM_ENV_RIM_COLOR,
   SHADING_PARAM_ENV_RIM_INTENSITY,
   SHADING_PARAM_ENV_PMREM_BLUR,
-} from "../../Node/nodegeom/shading-params";
+} from "../../../Node/nodegeom/shading-params";
 
 export const EnvTexContext = createContext<THREE.Texture | null>(null);
 
