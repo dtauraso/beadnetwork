@@ -13,7 +13,7 @@ func main() {
 	genpaths.Name = "Chrome/Panels/Panel/gen"
 	_, srcRoot := genpaths.Roots()
 
-	messagesTSPath := filepath.Join(srcRoot, "Input", "messages.ts")
+	messagesTSPath := filepath.Join(srcRoot, "Input", "Codec", "messages.ts")
 	flags, err := panelgen.ParsePanelFlags(messagesTSPath)
 	if err != nil {
 		genpaths.Fatalf("parse panel flags: %v", err)

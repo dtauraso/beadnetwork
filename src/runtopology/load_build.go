@@ -7,8 +7,8 @@ import (
 	clock "github.com/dtauraso/wirefold/src/Clock"
 
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/TiltPanel"
-	"github.com/dtauraso/wirefold/src/Input/dispatch"
-	"github.com/dtauraso/wirefold/src/Input/inputcodec"
+	"github.com/dtauraso/wirefold/src/Input/Codec"
+	"github.com/dtauraso/wirefold/src/Input/Dispatch"
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/src/Node/nodegeom"
 	"github.com/dtauraso/wirefold/src/NodeKinds/kindreg"
@@ -37,9 +37,9 @@ type buildCtx struct {
 
 	destRun       map[string]*beadanimation.BeadLine
 	edgeRun       loadspec.BeadLineRegistry
-	edgeEndpoints map[string]inputcodec.EdgeEndpoints
+	edgeEndpoints map[string]Codec.EdgeEndpoints
 
-	md *dispatch.MoveDispatch
+	md *Dispatch.MoveDispatch
 
 	speedSinks SliderPanel.Sinks
 
@@ -57,7 +57,7 @@ type buildCtx struct {
 	vectorInByNode  map[string]chan TiltPanel.TiltVectorMsg
 }
 
-func buildFromSpec(ctx context.Context, spec loadspec.TopoSpec, clk clock.Clock, sphere polar.SceneSphere, hasScene bool, scenePath string) ([]nodeapi.Node, inputcodec.SlotRegistry, *dispatch.MoveDispatch, SliderPanel.Sinks, error) {
+func buildFromSpec(ctx context.Context, spec loadspec.TopoSpec, clk clock.Clock, sphere polar.SceneSphere, hasScene bool, scenePath string) ([]nodeapi.Node, Codec.SlotRegistry, *Dispatch.MoveDispatch, SliderPanel.Sinks, error) {
 	b := &buildCtx{ctx: ctx, spec: spec, clk: clk, sphere: sphere, hasScene: hasScene, scenePath: scenePath}
 
 	b.nodeGeoms, b.centers = topoderive.ComputeNodeGeometry(b.spec, b.sphere)
@@ -76,5 +76,5 @@ func buildFromSpec(ctx context.Context, spec loadspec.TopoSpec, clk clock.Clock,
 
 	bindDispatch(b.md, b.outSink, b.destRun)
 
-	return b.nodes, inputcodec.SlotRegistry(b.destRun), b.md, b.speedSinks, nil
+	return b.nodes, Codec.SlotRegistry(b.destRun), b.md, b.speedSinks, nil
 }

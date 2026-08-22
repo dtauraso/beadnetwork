@@ -1,4 +1,4 @@
-import { PANEL_FLAG_ORDER, type PanelFlag } from "../../../Input/messages";
+import { PANEL_FLAG_ORDER, type PanelFlag } from "../../../Input/Codec/messages";
 import { makeLeafValues } from "../../../webview/leaf-values";
 
 export type PanelFlagVals = Record<PanelFlag, boolean>;

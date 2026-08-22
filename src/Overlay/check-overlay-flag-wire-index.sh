@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: src/Input/messages.ts,src/Input/inputcodec/input_fingerprint.go | the overlay/panel flag REGISTRY and the wire ordering in INPUT_LAYOUT_FINGERPRINT must list the same flags in the same order
+# PLACEMENT: src/Input/Codec/messages.ts,src/Input/Codec/input_fingerprint.go | the overlay/panel flag REGISTRY and the wire ordering in INPUT_LAYOUT_FINGERPRINT must list the same flags in the same order
 
 set -euo pipefail
 
@@ -11,8 +11,8 @@ cd "$REPO_ROOT"
 python3 - <<'PY'
 import re, sys
 
-REGISTRY = "src/Input/messages.ts"
-FINGERPRINT = "src/Input/inputcodec/input_fingerprint.go"
+REGISTRY = "src/Input/Codec/messages.ts"
+FINGERPRINT = "src/Input/Codec/input_fingerprint.go"
 
 def registry_list(fence):
     src = open(REGISTRY, encoding="utf-8").read()

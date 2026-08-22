@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: src/Input/messages.ts,src/Chrome/Panels/Panel/panel_state.go | PANEL_FLAG_NAMES (TS) and PanelToggles keys (Go) must be the exact same name set
+# PLACEMENT: src/Input/Codec/messages.ts,src/Chrome/Panels/Panel/panel_state.go | PANEL_FLAG_NAMES (TS) and PanelToggles keys (Go) must be the exact same name set
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
-TS="$REPO_ROOT/src/Input/messages.ts"
+TS="$REPO_ROOT/src/Input/Codec/messages.ts"
 GO="$REPO_ROOT/src/Chrome/Panels/Panel/panel_state.go"
 
 if [ ! -f "$TS" ] || [ ! -f "$GO" ]; then

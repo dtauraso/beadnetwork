@@ -6,12 +6,12 @@ metadata:
 ---
 
 `MoveDispatch.RootMove` (src/Node/Wiring/node_move.go) is called from
-`applyNodeDragTarget` in gesture.go on **every pointer-move event** during a drag
+`applyNodeDragTarget` in Gesture.go on **every pointer-move event** during a drag
 (~8ms apart), plus once on pointer-up. It is NOT called once per drag, despite
 reading like it is.
 
 The real once-per-drag edge is the `gestPending -> gestDragging` transition in
-gesture.go. That is where `tr.AbcDragReset()` fires and where drag-scoped state
+Gesture.go. That is where `tr.AbcDragReset()` fires and where drag-scoped state
 must be anchored or reset.
 
 **Why:** the name says "root move" — singular, the move — so anything with

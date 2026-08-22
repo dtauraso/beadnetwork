@@ -27,7 +27,7 @@ Still present in the code (not dead; underpins the polar port∈torus lock):
 **2026-07-05 (`task/eq-show-source-node`): `eqPortTorus` authoring is now
 own-node-only.** The torus slot is no longer a free second-node pick — it is
 PRESET to the port's own node (the sticky Center), enforced at the commit site
-(`gesture.go addPortTorusLock` always sets `TorusNode = PortNode`) and in the
+(`Gesture.go addPortTorusLock` always sets `TorusNode = PortNode`) and in the
 webview form (`TypedPortTorusForm` renders the torus cell from the port's own
 node label, never a typed input). A cross-node `port ∈ torus` lock can no
 longer be authored.

@@ -1,4 +1,4 @@
-import { PANEL_FLAG_ORDER, type PanelFlag } from "../../Input/messages";
+import { PANEL_FLAG_ORDER, type PanelFlag } from "../../Input/Codec/messages";
 import { panelFlagVals, startPanelReads, type PanelFlagVals } from "../../Chrome/Panels/Panel/panel-leaves";
 
 export type { PanelFlagVals };

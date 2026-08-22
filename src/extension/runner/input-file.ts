@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import * as path from "path";
-import { IN_EVENT_KINDS } from "../../Input/input-layout-gen";
+import { IN_EVENT_KINDS } from "../../Input/Codec/input-layout-gen";
 
 export const INPUT_DIR_REL = path.join("view", "input");
 

@@ -3,7 +3,7 @@ package geomseeds
 import (
 	"fmt"
 
-	"github.com/dtauraso/wirefold/src/Input/inputcodec"
+	"github.com/dtauraso/wirefold/src/Input/Codec"
 	"github.com/dtauraso/wirefold/src/Node/Edge/edgegeom"
 	"github.com/dtauraso/wirefold/src/Node/nodegeom"
 	"github.com/dtauraso/wirefold/src/spatial"
@@ -56,7 +56,7 @@ func BuildNodeSeed(id string, i int, g nodegeom.NodeGeom, row int) NodeGeomSeed 
 	}
 }
 
-func BuildEdgeSeed(label string, ep inputcodec.EdgeEndpoints, geoms map[string]nodegeom.NodeGeom) (EdgeGeomSeed, error) {
+func BuildEdgeSeed(label string, ep Codec.EdgeEndpoints, geoms map[string]nodegeom.NodeGeom) (EdgeGeomSeed, error) {
 	srcG, srcOK := geoms[ep.Source]
 	if !srcOK {
 		return EdgeGeomSeed{}, fmt.Errorf("newMoveDispatch: edge %q references missing source node %q (no geometry loaded for it)", label, ep.Source)
@@ -73,7 +73,7 @@ func BuildEdgeSeed(label string, ep inputcodec.EdgeEndpoints, geoms map[string]n
 	}, nil
 }
 
-func MutualPairs(edgeEndpoints map[string]inputcodec.EdgeEndpoints) map[string]map[string]bool {
+func MutualPairs(edgeEndpoints map[string]Codec.EdgeEndpoints) map[string]map[string]bool {
 	hasEdge := make(map[string]bool, len(edgeEndpoints))
 	for _, ep := range edgeEndpoints {
 		hasEdge[ep.Source+"\x00"+ep.Target] = true
