@@ -4,13 +4,13 @@ import "github.com/dtauraso/wirefold/src/Input/Codec"
 
 func decodeUpdate(r *Codec.Reader, attr byte) (Codec.StdinMsg, bool) {
 	switch attr {
-	case Codec.InNodeAttrDragPhi:
+	case attrDragPhi:
 		row, err := r.U8()
 		if err != nil {
 			return Codec.StdinMsg{}, false
 		}
 		return Codec.StdinMsg{Type: "edit", Op: "update", Kind: "node", Attr: "dragPhi", Num: int(row)}, true
-	case Codec.InNodeAttrDragMaxTheta:
+	case attrDragMaxTheta:
 		row, errR := r.U8()
 		if errR != nil {
 			return Codec.StdinMsg{}, false
@@ -20,25 +20,25 @@ func decodeUpdate(r *Codec.Reader, attr byte) (Codec.StdinMsg, bool) {
 			return Codec.StdinMsg{}, false
 		}
 		return Codec.StdinMsg{Type: "edit", Op: "update", Kind: "node", Attr: "dragMaxTheta", Num: int(row), X: float64(degrees)}, true
-	case Codec.InNodeAttrDragActive:
+	case attrDragActive:
 		row, err := r.U8()
 		if err != nil {
 			return Codec.StdinMsg{}, false
 		}
 		return Codec.StdinMsg{Type: "edit", Op: "update", Kind: "node", Attr: "dragActive", Num: int(row)}, true
-	case Codec.InNodeAttrKindActive:
+	case attrKindActive:
 		row, err := r.U8()
 		if err != nil {
 			return Codec.StdinMsg{}, false
 		}
 		return Codec.StdinMsg{Type: "edit", Op: "update", Kind: "node", Attr: "kindActive", Num: int(row)}, true
-	case Codec.InNodeAttrSelfDragPhi:
+	case attrSelfDragPhi:
 		row, err := r.U8()
 		if err != nil {
 			return Codec.StdinMsg{}, false
 		}
 		return Codec.StdinMsg{Type: "edit", Op: "update", Kind: "node", Attr: "selfDragPhi", Num: int(row)}, true
-	case Codec.InNodeAttrSelfDragMaxTheta:
+	case attrSelfDragMaxTheta:
 		row, errR := r.U8()
 		if errR != nil {
 			return Codec.StdinMsg{}, false
@@ -48,19 +48,19 @@ func decodeUpdate(r *Codec.Reader, attr byte) (Codec.StdinMsg, bool) {
 			return Codec.StdinMsg{}, false
 		}
 		return Codec.StdinMsg{Type: "edit", Op: "update", Kind: "node", Attr: "selfDragMaxTheta", Num: int(row), X: float64(degrees)}, true
-	case Codec.InNodeAttrSelfDragActive:
+	case attrSelfDragActive:
 		row, err := r.U8()
 		if err != nil {
 			return Codec.StdinMsg{}, false
 		}
 		return Codec.StdinMsg{Type: "edit", Op: "update", Kind: "node", Attr: "selfDragActive", Num: int(row)}, true
-	case Codec.InNodeAttrDragR:
+	case attrDragR:
 		row, err := r.U8()
 		if err != nil {
 			return Codec.StdinMsg{}, false
 		}
 		return Codec.StdinMsg{Type: "edit", Op: "update", Kind: "node", Attr: "dragR", Num: int(row)}, true
-	case Codec.InNodeAttrSelfDragR:
+	case attrSelfDragR:
 		row, err := r.U8()
 		if err != nil {
 			return Codec.StdinMsg{}, false

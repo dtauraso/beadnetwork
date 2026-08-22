@@ -5,7 +5,7 @@ import "github.com/dtauraso/wirefold/src/Input/Codec"
 func init() { Codec.RegisterUpdateDecoder("overlays", decodeUpdate) }
 
 func decodeUpdate(r *Codec.Reader, attr byte) (Codec.StdinMsg, bool) {
-	if attr != Codec.InOverlayAttrToggle {
+	if attr != attrToggle {
 		return Codec.StdinMsg{}, false
 	}
 	flagID, err := r.U8()

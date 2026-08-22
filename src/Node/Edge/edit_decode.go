@@ -4,7 +4,7 @@ import "github.com/dtauraso/wirefold/src/Input/Codec"
 
 func decodeUpdate(r *Codec.Reader, attr byte) (Codec.StdinMsg, bool) {
 	switch attr {
-	case Codec.InNodeAttrDragActive:
+	case attrDragActive:
 		row, err := r.U8()
 		if err != nil {
 			return Codec.StdinMsg{}, false

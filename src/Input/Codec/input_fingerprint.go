@@ -12,35 +12,6 @@ const (
 	InKindEditUpdate = 22
 )
 
-const (
-	InOverlayAttrToggle = 0
-	InClockAttrSpeed    = 1
-	InSceneAttrSelected = 3
-	InTiltVectorAttrPhi = 4
-
-	InTiltVectorAttrReset    = 6
-	InTiltVectorAttrStart    = 7
-	InSceneAttrLatticePoints = 8
-
-	InSceneAttrCreate = 9
-	InSceneAttrDelete = 10
-
-	InPanelAttrToggle = 11
-
-	InNodeAttrDragPhi      = 12
-	InNodeAttrDragMaxTheta = 13
-	InNodeAttrDragActive   = 14
-	InNodeAttrKindActive   = 15
-
-	InNodeAttrSelfDragPhi      = 16
-	InNodeAttrSelfDragMaxTheta = 17
-	InNodeAttrSelfDragActive   = 18
-
-	InNodeAttrDragR     = 19
-	InNodeAttrSelfDragR = 20
-
-	InSceneAttrViewport = 21
-)
 
 var (
 	InEventKinds   = parseFPList(InputLayoutFingerprint, "eventKinds=")

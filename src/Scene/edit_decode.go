@@ -9,21 +9,21 @@ func init() {
 
 func decodeUpdateScene(r *Codec.Reader, attr byte) (Codec.StdinMsg, bool) {
 	switch attr {
-	case Codec.InSceneAttrSelected:
+	case attrSelected:
 
 		tabIdx, err := r.U8()
 		if err != nil {
 			return Codec.StdinMsg{}, false
 		}
 		return Codec.StdinMsg{Type: "edit", Op: "update", Kind: "scene", Attr: "selected", Num: int(tabIdx)}, true
-	case Codec.InSceneAttrLatticePoints:
+	case attrLatticePoints:
 
 		points, err := r.U8()
 		if err != nil {
 			return Codec.StdinMsg{}, false
 		}
 		return Codec.StdinMsg{Type: "edit", Op: "update", Kind: "scene", Attr: "latticePoints", Num: int(points)}, true
-	case Codec.InSceneAttrCreate:
+	case attrCreate:
 
 		kindID, err := r.U8()
 		if err != nil {
@@ -41,14 +41,14 @@ func decodeUpdateScene(r *Codec.Reader, attr byte) (Codec.StdinMsg, bool) {
 			Type: "edit", Op: "update", Kind: "scene", Attr: "create",
 			Num: int(kindID), X: float64(ndcX), Y: float64(ndcY),
 		}, true
-	case Codec.InSceneAttrDelete:
+	case attrDelete:
 
 		row, err := r.U8()
 		if err != nil {
 			return Codec.StdinMsg{}, false
 		}
 		return Codec.StdinMsg{Type: "edit", Op: "update", Kind: "scene", Attr: "delete", Num: int(row)}, true
-	case Codec.InSceneAttrViewport:
+	case attrViewport:
 
 		w, errW := r.F32()
 		if errW != nil {
@@ -65,7 +65,7 @@ func decodeUpdateScene(r *Codec.Reader, attr byte) (Codec.StdinMsg, bool) {
 
 func decodeUpdateTiltVector(r *Codec.Reader, attr byte) (Codec.StdinMsg, bool) {
 	switch attr {
-	case Codec.InTiltVectorAttrPhi:
+	case attrTiltVectorPhi:
 
 		row, errR := r.U8()
 		if errR != nil {
@@ -77,14 +77,14 @@ func decodeUpdateTiltVector(r *Codec.Reader, attr byte) (Codec.StdinMsg, bool) {
 		}
 		dir := Codec.DirWord(dirUp)
 		return Codec.StdinMsg{Type: "edit", Op: "update", Kind: "tiltVector", Attr: "phi", Num: int(row), Flag: dir}, true
-	case Codec.InTiltVectorAttrReset:
+	case attrTiltVectorRst:
 
 		row, errR := r.U8()
 		if errR != nil {
 			return Codec.StdinMsg{}, false
 		}
 		return Codec.StdinMsg{Type: "edit", Op: "update", Kind: "tiltVector", Attr: "reset", Num: int(row)}, true
-	case Codec.InTiltVectorAttrStart:
+	case attrTiltVectorStrt:
 
 		row, errR := r.U8()
 		if errR != nil {

@@ -5,7 +5,7 @@ import "github.com/dtauraso/wirefold/src/Input/Codec"
 func init() { Codec.RegisterUpdateDecoder("panels", decodeUpdate) }
 
 func decodeUpdate(r *Codec.Reader, attr byte) (Codec.StdinMsg, bool) {
-	if attr != Codec.InPanelAttrToggle {
+	if attr != attrToggle {
 		return Codec.StdinMsg{}, false
 	}
 	flagID, err := r.U8()

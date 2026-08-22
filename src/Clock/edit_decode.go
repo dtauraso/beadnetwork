@@ -5,7 +5,7 @@ import "github.com/dtauraso/wirefold/src/Input/Codec"
 func init() { Codec.RegisterUpdateDecoder("clock", decodeUpdate) }
 
 func decodeUpdate(r *Codec.Reader, attr byte) (Codec.StdinMsg, bool) {
-	if attr != Codec.InClockAttrSpeed {
+	if attr != attrSpeed {
 		return Codec.StdinMsg{}, false
 	}
 	speed, err := r.U8()
