@@ -37,7 +37,7 @@ is told which bead is lit, not asked when a bead has arrived.
   once — its single source emitting repeatedly — each carrying its OWN placement geometry, so
   the source node moving mid-flight re-derives nothing and disturbs nothing. The loader rejects
   a fan-in topology at parse (`validateNoFanIn`); the guard
-  `Scene/loadspec/check-no-fan-in.sh` keeps it out of the committed diagram.
+  `Categories/Scene/loadspec/check-no-fan-in.sh` keeps it out of the committed diagram.
 
 ## Sending
 

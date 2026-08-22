@@ -1,7 +1,7 @@
 ---
 paths:
-  - Node/Wiring/**
-  - extension/runCommand.ts
+  - Categories/Node/Wiring/**
+  - Categories/extension/runCommand.ts
   - topology/**
 ---
 
@@ -36,12 +36,12 @@ non-integer name in an array directory is a load error, never a skipped element:
 silently shortens the array and shifts the rest.
 
 The `view/panels/` directory holds the overlays popover's disclosure open/closed
-state (`viewstate.PanelState`, `Chrome/Panels/Panel/panels_persist.go`) — its
+state (`viewstate.PanelState`, `Categories/Chrome/Panels/Panel/panels_persist.go`) — its
 own directory, deliberately separate from the `view/overlays/` visibility flags: a panel's
 open/closed state is not an overlay visibility flag, even though the two are persisted,
 streamed, and edited the same way.
 
-**`topology/` is one of several sibling SCENES**, not the only tree. `Scene/scene/scene.go`'s
+**`topology/` is one of several sibling SCENES**, not the only tree. `Categories/Scene/scene/scene.go`'s
 `Scenes` names each sibling directory (today: `topology/`, `topology-pair/`) resolved
 relative to the ANCHOR's parent — the `-topology` flag the extension host launches with is
 the fixed anchor, and which sibling directory actually loads is resolved from it
@@ -159,9 +159,9 @@ Consequences to keep in mind:
 - A node writes its own `position/local-polars` (path construction in
   `dragfile/drag_file.go`). There is no longer a separate `inputs/`/`outputs/` port-geometry
   file — port geometry was removed with the port model (edges attach on the bead lattice,
-  `Node/BeadAnimation/lattice/bead_lattice.go`); this bullet used to list it as a second thing the mover writes.
+  `Categories/Node/BeadAnimation/lattice/bead_lattice.go`); this bullet used to list it as a second thing the mover writes.
 - The **SOURCE NODE** owns `nodes/<source>/drag/edges/<label>.bin`, and writes it from
-  `Node/nodeactor/owners/out_edges.go`'s `persistDelta` — the same pass that derives that edge's geometry,
+  `Categories/Node/nodeactor/owners/out_edges.go`'s `persistDelta` — the same pass that derives that edge's geometry,
   since the node is what holds the vector being stored. The write is gated on the vector
   actually changing: derivation runs every tick, so an ungated write would rewrite the file
   every tick. (This bullet used to claim "an `edgeMover` owns" it and "no Go writer exists
@@ -185,7 +185,7 @@ the node writing the file is a goroutine writing what it already owns — not a 
 one fewer representation of the same quantity.
 
 Guards: `scripts/checks/source/check-persist-write-ownership.sh` (who may write which path pattern),
-`Scene/scenepaths/check-scene-path-resolution.sh` (who may construct a `nodes/` path).
+`Categories/Scene/scenepaths/check-scene-path-resolution.sh` (who may construct a `nodes/` path).
 
 ## A topology is a directory tree, always
 
@@ -237,7 +237,7 @@ both count files. Nothing else writes them.
 
 A missing or malformed count file must fail LOUDLY. Returning 0 allocates no dedicated
 streams and degrades the bridge invisibly — the behaviour the old `countEdges` had. The
-extension host reader (`extension/runCommand.ts`'s `readCounts`) and the Go
+extension host reader (`Categories/extension/runCommand.ts`'s `readCounts`) and the Go
 headless test harness (`headless_stream_helpers_test.go`) must fail the same way if the
 stored `nodes` value disagrees with the tree's own largest id — not just on a missing file.
 

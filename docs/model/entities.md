@@ -6,7 +6,7 @@
 
 - **Bead.** A value in transit from a source node to a destination node, holding the slot it
   stands on. Its position is `slot × SlotR` along the segment it was placed on, and reaching
-  the last slot IS arrival. A bead is data — `inflightBead`, `Node/BeadAnimation/bead_placement.go` — carried by
+  the last slot IS arrival. A bead is data — `inflightBead`, `Categories/Node/BeadAnimation/bead_placement.go` — carried by
   the goroutine that owns it, never a goroutine itself.
 
   A bead carries its OWN geometry: the segment and step count it was placed on, captured at
@@ -15,7 +15,7 @@
   Geometry travels WITH the bead rather than being stored once alongside the line.
 
 - **Bead behaviour is node behaviour.** The SOURCE NODE's animation goroutine
-  (`BeadAnimation.RunBeadAnimation`, `Node/BeadAnimation/bead_animation.go`) owns the whole
+  (`BeadAnimation.RunBeadAnimation`, `Categories/Node/BeadAnimation/bead_animation.go`) owns the whole
   of it: it accepts the value, holds it at a slot, advances that slot on its own pulse,
   computes the position, decides arrival when the slot reaches the step count, and hands the
   value on. One goroutine owns that state from placement to delivery, which is why none of it
@@ -23,7 +23,7 @@
   `RealClock.mu`. Do not add a lock here "for safety": if two goroutines ever need to touch
   this state, the ownership model broke, and a mutex hides that rather than fixing it.
 
-- **Bead line (`BeadLine`).** The line beads travel along, `Node/BeadAnimation/bead_line.go` —
+- **Bead line (`BeadLine`).** The line beads travel along, `Categories/Node/BeadAnimation/bead_line.go` —
   the segment and step count between two nodes, plus the beads currently on it. It holds
   state, not behaviour: the source node's animation goroutine steps it (`DriveOneStep`), and
   it has no goroutine, no clock and no send policy of its own. Its step count is
@@ -31,7 +31,7 @@
 
   A line's TRANSPORT state and the REPORTING it does for the renderer are separate types:
   `BeadLine` holds the beads, the channels on each end, and the arrival math; its readout
-  (`beadReadout`, `Node/BeadAnimation/readout.go`) holds the pending Position/Arrive buffer,
+  (`beadReadout`, `Categories/Node/BeadAnimation/readout.go`) holds the pending Position/Arrive buffer,
   the `Trace` handle and the debug-breadcrumb channel. Both belong to the same single
   animation goroutine — the split says which concern a field serves, it does not add an owner.
 
@@ -45,12 +45,12 @@
   state until its firing rule is satisfied, then fires.
 
   Held values live in node-local state. (That is a different concept from a trace event's `Slot`
-  field — `Node/nodeactor/owners/trace_event.go` — which is a live 2×2 interior VISUAL grid position,
+  field — `Categories/Node/nodeactor/owners/trace_event.go` — which is a live 2×2 interior VISUAL grid position,
   `slot = gridRow*2 + gridCol`, for where a held bead is drawn inside a node.)
 
 - **Node input.** A ROLE, not a place: declared by the node kind in its SPEC.md `## Ports`
   table — the one declaration, which the Go side reads generated — and bound to a channel at LOAD time (`a.In(...)`), never drawn and never hit-testable, and read
-  through a `Receiver` (`Node/BeadAnimation/receiver.go`). **One input is fed by exactly one
+  through a `Receiver` (`Categories/Node/BeadAnimation/receiver.go`). **One input is fed by exactly one
   edge**; a node that needs several sources declares several inputs (see §Node lifecycle).
   Inputs carry no geometry of their own — an edge attaches at its two nodes' SURFACES
   (`nodegeom.NodeTorusOuterR`).
@@ -68,7 +68,7 @@
   wall time and never pauses. **Everything that animates runs in these ticks:** beads
   travelling, all in-node animations, and all node/gate processing windows. Per-update tick
   counts come from formulas, not literals — a bead crossing an edge takes `steps` slots at
-  `lattice.PulsesPerSlot` pulses each (`Node/BeadAnimation/lattice/bead_lattice.go`); node
+  `lattice.PulsesPerSlot` pulses each (`Categories/Node/BeadAnimation/lattice/bead_lattice.go`); node
   processing windows are tick counts. There is no separate render cadence — the tick IS the
   animation clock.
 
@@ -86,6 +86,6 @@
 ## Position is arithmetic, and no position update waits on the human clock
 
 **INVARIANT: no position update may be gated on the human clock, and no animation step may
-run on the system clock.** `MsPerTick` (`Clock/`) names the human-speed clock; it exists so
+run on the system clock.** `MsPerTick` (`Categories/Clock/`) names the human-speed clock; it exists so
 a person can watch a bead cross, and geometry must never run on it — one propagation hop per
 tick would make even a straight traversal visibly slow.

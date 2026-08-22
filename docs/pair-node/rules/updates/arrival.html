@@ -71,7 +71,7 @@
         <h2>Starting — no measurement at all</h2>
         <div class="keynote">
           <p>there is one machine, so the first arrival starts it
-            (<span data-src="NodeKinds/PairNode/machine.go#adoptMachine">adoptMachine</span>) and nothing
+            (<span data-src="Categories/NodeKinds/PairNode/machine.go#adoptMachine">adoptMachine</span>) and nothing
             reads the gap between the two TILTS to choose</p>
           <p>it runs once, on the first arrival, and sticks until a reset</p>
         </div>
@@ -89,16 +89,16 @@
           <p>the way DOWN never appears: the two ways round the count-ring sum to 12, so asking which
             is shorter is asking whether the way up is at most 6</p>
           <p>an update writes the TOP only
-            (<span data-src="NodeKinds/PairNode/ring.go#setTop">setTop</span>); the bottom is
-            <span data-src="NodeKinds/PairNode/tiltring/rules.go#Bottom">bottom</span> of it wherever it is
+            (<span data-src="Categories/NodeKinds/PairNode/ring.go#setTop">setTop</span>); the bottom is
+            <span data-src="Categories/NodeKinds/PairNode/tiltring/rules.go#Bottom">bottom</span> of it wherever it is
             wanted, and the normal follows the same way</p>
           <p>f is a quantity of THIS PAGE, not of the node. The code takes two
-            <span data-src="NodeKinds/PairNode/tiltring/rules.go#Abs">abs</span> distances and compares each
+            <span data-src="Categories/NodeKinds/PairNode/tiltring/rules.go#Abs">abs</span> distances and compares each
             against a quarter turn
-            (<span data-src="NodeKinds/PairNode/tiltring/rules.go#Offset">offset</span>) — it never works out
+            (<span data-src="Categories/NodeKinds/PairNode/tiltring/rules.go#Offset">offset</span>) — it never works out
             how far off a rest it is</p>
           <p>the deciding never names a mode: the mode only says whether the node has started
-            (<span data-src="NodeKinds/PairNode/tiltring/machine.go#OffsetOn">offsetOn</span>)</p>
+            (<span data-src="Categories/NodeKinds/PairNode/tiltring/machine.go#OffsetOn">offsetOn</span>)</p>
           <p>f survives as a page-side measurement, because "each step lands nearer than it started"
             cannot be said without one</p>
         </div>

@@ -49,20 +49,20 @@ Go owns the clock.
   There is **no JSON-trace render path and no `pump.ts`**; Go emits no
   trace-event JSON on stdout at all. `scripts/probe-merge.sh` decodes the
   binary trace files at READ time through the owner-specific `readtrace` (see scripts/probe-merge.sh).
-- **`SceneRoot`** (`extension/webview/scene/scene-root.tsx`)
+- **`SceneRoot`** (`Categories/extension/webview/scene/scene-root.tsx`)
   is the composition root of the render tree — it assembles the per-concern
   components, each of which reads its own block files. It is a
   small file; the drawing lives in its siblings under `three/scene/`. Grep the symbol,
-  not this filename. The tree covers: node bodies (`Ring/NodeShape/NodeInstances.tsx` — sphere
+  not this filename. The tree covers: node bodies (`Categories/Ring/NodeShape/NodeInstances.tsx` — sphere
   mesh + ring, keyed off `node.data.fill`/`node.data.stroke` from `NODE_DEFS`; no port
   geometry — a port is a load-time channel-binding ROLE, never drawn),
   transit and interior
-  beads (`Node/BeadAnimation/ChainBeadInstances.tsx`, `Node/Interior/InteriorBeadInstances.tsx` — there is no
+  beads (`Categories/Node/BeadAnimation/ChainBeadInstances.tsx`, `Categories/Node/Interior/InteriorBeadInstances.tsx` — there is no
   per-edge drawn tube any more; the source node's own chain of placeholder beads is the
   edge's visual, `docs/model/entities.md`), the selection ring, its halo and the hover
   ring (placed with everything else drawn at a node's own frame, in
-  `Ring/NodeShape/node-instances-update.ts`; their shape lives in
-  `Ring/NodeShape/node-highlight-shape.ts`), and the camera (`Camera/SceneCamera.tsx` maps the camera
+  `Categories/Ring/NodeShape/node-instances-update.ts`; their shape lives in
+  `Categories/Ring/NodeShape/node-highlight-shape.ts`), and the camera (`Categories/Camera/SceneCamera.tsx` maps the camera
   block file onto the three.js camera). Nothing in this tree owns traversal
   timing, positions, or geometry.
 - **Bridge surface — binary BOTH ways.** **Go → TS:** the block files, plus

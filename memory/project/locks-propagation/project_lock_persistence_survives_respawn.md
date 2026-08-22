@@ -7,8 +7,8 @@ metadata:
 
 SUPERSEDED: this describes an older `RootMove`/`eqNodeNode` cascade model; the code
 has since moved to the decentralized `moveMsgKindEqualize`/`moveMsgKindTrigger` model
-in `Scene/scenerun/move_dispatch.go` (see [[project_lock_propagation_decentralized]]).
-`eqNodeNode`, `RootMove`, and `Node/Wiring/locks.go` no longer exist — kept here as
+in `Categories/Scene/scenerun/move_dispatch.go` (see [[project_lock_propagation_decentralized]]).
+`eqNodeNode`, `RootMove`, and `Categories/Node/Wiring/locks.go` no longer exist — kept here as
 historical record of the persistence bug and its original fix, not as a current map.
 
 Polar node-node locks (formerly `eqNodeNode`) were enforced ONLY

@@ -37,7 +37,7 @@ const common = {
 
 const extension = {
   ...common,
-  entryPoints: ["Start/extension.ts"],
+  entryPoints: ["Categories/Start/extension.ts"],
   outfile: "out/extension.js",
   platform: "node",
   format: "cjs",
@@ -46,7 +46,7 @@ const extension = {
 
 const webview = {
   ...common,
-  entryPoints: ["Start/main.tsx"],
+  entryPoints: ["Categories/Start/main.tsx"],
   outfile: "out/webview.js",
   platform: "browser",
   format: "iife",

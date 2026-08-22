@@ -2,9 +2,9 @@
 
 ## Model — read first
 
-Before changing anything in the **Go network** (`Node/`, `NodeKinds/`, `Node/BeadAnimation/bead_line.go`,
-`Scene/scenebuild/load.go`, `Scene/loadspec/builders.go`) or the **Go → TS
-surface** (the block files and their `*_values.go`, `extension/webview/`), read
+Before changing anything in the **Go network** (`Categories/Node/`, `Categories/NodeKinds/`, `Categories/Node/BeadAnimation/bead_line.go`,
+`Categories/Scene/scenebuild/load.go`, `Categories/Scene/loadspec/builders.go`) or the **Go → TS
+surface** (the block files and their `*_values.go`, `Categories/extension/webview/`), read
 [MODEL.md](MODEL.md). It pins the model. Do not propose multi-step
 plans with options for network/bead work; name the single concrete next
 step and get the model agreed first. "Agreed first" gates the START of the
@@ -14,33 +14,33 @@ through to done; do not halt after every step to re-ask.
 Go owns the one clock and times its own bead delivery. It writes the whole scene (bead
 positions, node/port geometry, edge curves, shading params, camera pose, selection,
 overlays) to **block files**, each written by the goroutine that owns it, the row in the PATH
-so there is one writer per file and no lock. The render tree under `extension/webview/` (rooted at
-`extension/webview/scene/scene-root.tsx`, which composes it) READS those files and draws them; it
+so there is one writer per file and no lock. The render tree under `Categories/extension/webview/` (rooted at
+`Categories/extension/webview/scene/scene-root.tsx`, which composes it) READS those files and draws them; it
 computes no positions, no geometry, no traversal timing, and never tells Go when a bead
 arrived. There is no JSON-trace render path and no
 `pump.ts`; the TS layer is **render + forward only** and holds no domain state (guard:
-`extension/webview/check-no-webview-state.sh`).
+`Categories/extension/webview/check-no-webview-state.sh`).
 
 The model's real entities live in [MODEL.md](MODEL.md): bead (data carrying its own segment
 and step count), bead line (`BeadLine` — the line a bead travels, holding the beads on it,
 stepped by its SOURCE NODE's animation goroutine, which owns a bead from placement to
 delivery), node goroutine, node input, and clock
 ([docs/model/entities.md](docs/model/entities.md); a line's step count is
-`Node/Edge/edgegeom/chain_length.go`). The active node kinds are the structs under `NodeKinds/<Kind>/`.
+`Categories/Node/Edge/edgegeom/chain_length.go`). The active node kinds are the structs under `Categories/NodeKinds/<Kind>/`.
 
 **Drift rule:** see MODEL.md's "Drift rule" section for the full statement (guards:
-`extension/webview/check-no-webview-state.sh`, `check-no-await-on-bridge.sh`).
+`Categories/extension/webview/check-no-webview-state.sh`, `check-no-await-on-bridge.sh`).
 
 ## Primitive landing rule (narrowed)
 
 **Node kinds:** adding a kind requires four things in the same commit:
-1. An entry in `NODE_DEFS` (`NodeKinds/node-defs.ts`, generated).
+1. An entry in `NODE_DEFS` (`Categories/NodeKinds/node-defs.ts`, generated).
 2. No separate `registry.ts` — `node-defs.ts` is the single node-kind registry, and it lives
-   in `NodeKinds/` with the kinds it describes. **There is no `src/schema/`**: a registry
-   lives with its concern, so `messages.ts` and the input codec are `Input/`,
-   `scenes-gen.ts` is `Scene/`, `wire-defs.ts` is `Scene/loadspec/`, and the trace
+   in `Categories/NodeKinds/` with the kinds it describes. **There is no `src/schema/`**: a registry
+   lives with its concern, so `messages.ts` and the input codec are `Categories/Input/`,
+   `scenes-gen.ts` is `Categories/Scene/`, `wire-defs.ts` is `Categories/Scene/loadspec/`, and the trace
    events are `Trace/`. Adding a node kind touches only `node-defs.ts`.
-3. The Go node package under `NodeKinds/<Kind>/`, with its logic always in `node.go` (never
+3. The Go node package under `Categories/NodeKinds/<Kind>/`, with its logic always in `node.go` (never
    `<Kind>.go`) plus `SPEC.md`. Directory casing is mixed and both are live: PascalCase
    (`Time`, `TimeEnd`, `TimeStart`, `PulseLeft`, `PulseRight`) and lowercase (`holdflip`,
    `input`, `pacer`, `pulse`, `selectleft`, `selectright`) — don't infer one from the other.
@@ -80,7 +80,7 @@ one directory out, since a directory is one Go package. `go generate ./...` runs
   npm, tsconfig and esbuild all assume it; directory naming for an npm package is medium,
   not substance. The package root is the REPO root — `package.json`, `tsconfig.json` and
   `node_modules/` live there, so there is one npm project and no path mappings.
-- **`NodeKinds/`** — the node kinds, plus what only they use: `nodeapi/` (the `Node`
+- **`Categories/NodeKinds/`** — the node kinds, plus what only they use: `nodeapi/` (the `Node`
   interface a kind implements — `Update(ctx)`, one method wide) and `gatecommon/`, the firing rule 8 of them share
   (window opens on the first input, fires on dwell, clears otherwise). The scanner reads a
   directory here as a kind only if it calls `Register(...)`. A kind's ports come from its
@@ -91,56 +91,56 @@ one directory out, since a directory is one Go package. `go generate ./...` runs
   kind passes no port list to `RegisterBuilder`, and `go generate` FAILS if a kind's code
   binds a name the table does not carry (an undeclared name silently binds a dead-end
   channel). The check after touching this directory is a `node-defs.ts` diff, not a build.
-- **`Clock/`** — the human-speed clock, one of MODEL.md's own entities alongside the
-  bead and the node, so it is a sibling of `Node/` rather than a part of it: `MsPerTick`, the
+- **`Categories/Clock/`** — the human-speed clock, one of MODEL.md's own entities alongside the
+  bead and the node, so it is a sibling of `Categories/Node/` rather than a part of it: `MsPerTick`, the
   `Clock` interface every goroutine holds its own `Copy()` of, and the sleep/speed delivery.
   It is the ONLY place a `time.Sleep`/`After`/`NewTicker` may park a goroutine
   (`check-no-wall-clock-wait.sh`, whose exempt list names two files here and nothing else).
-- **`Node/`** — the node itself: its actor and geometry, its movers and rules, the
+- **`Categories/Node/`** — the node itself: its actor and geometry, its movers and rules, the
   per-owner FILES it writes (`BeadAnimation/`, `Edge/`, `Interior/`), its poles, its block file. A directory here is NOT a kind — the scanner and `check-dep-rules.sh` decide that by
   the `Register(...)` call, not by placement.
-- **`Input/`** — the TS→Go half of the bridge, end to end: `stdinreader` (framed records off
+- **`Categories/Input/`** — the TS→Go half of the bridge, end to end: `stdinreader` (framed records off
   stdin, knowing nothing of what they mean), `inputcodec` (decode), `gesture`/`gesturefsm` (raw
   pointer/wheel → drags, orbits), `dispatch` (the `MoveDispatch` composer, and what an edit does).
 - **`src/spatial/`** — `Vec3`, `Segment`, eight operations, 37 lines, importing only `math`. It
-  is the MEDIUM, deliberately unremarkable; the substance sits on top in **`Polar/`** —
+  is the MEDIUM, deliberately unremarkable; the substance sits on top in **`Categories/Polar/`** —
   `polar` (coordinate/composition) and `polarindex` (index × constant) — never inside it.
   The value file — one primitive per file, fixed-width LE, atomic rename — is **not a
   package**: each concern owns its `value_file.go` and `leaf-values.ts`, because the layout
   need only agree between the Go writing that concern's block file and the TS reading it.
-- **`Scene/`** — starting the program: claim the stream fds, resolve the scene,
+- **`Categories/Scene/`** — starting the program: claim the stream fds, resolve the scene,
   load the graph, wire every per-owner stream, seed the static columns, then launch one
   goroutine per node and block. `main.go` calls it and nothing else does. It is NOT a
   coordinator — it constructs and starts, and the network runs itself from there.
-- **`Ring/`** — the ring, the shape a node and a bead are both drawn as: canonical torus
-  points computed in Go, meshed in TS. `Ring/NodeShape/` and `Ring/Bead/` are the two that
-  share it. "Ring" over "torus" because the codebase already votes that way — `ringM0`,
+- **`Categories/Ring/`** — the ring, the shape a node and a bead are both drawn as: canonical torus
+  points computed in Go, meshed in TS. `Categories/Ring/NodeShape/` and `Categories/Ring/Bead/` are the two that
+  share it. "Categories/Ring" over "torus" because the codebase already votes that way — `ringM0`,
   `ringPick` and `ringBand` against a handful of torus names in the low-level math.
-- **`Ring/Bead/`** — ONE bead: ring surface, style, its block file. SEVERAL beads — spacing, chaining, framing — is what a node does with beads, and belongs to the next bullet.
-- **`Node/BeadAnimation/`** — the whole bead process, which is what a node uses beads
+- **`Categories/Ring/Bead/`** — ONE bead: ring surface, style, its block file. SEVERAL beads — spacing, chaining, framing — is what a node does with beads, and belongs to the next bullet.
+- **`Categories/Node/BeadAnimation/`** — the whole bead process, which is what a node uses beads
   for: `BeadLine` (the line beads travel, state with no goroutine of its own), the `Sender`
   and `Receiver` on each end, the slot `lattice/`, and the animation goroutine that steps it.
   The split line is `inflightBead` — the files that share it are the bead animation.
-- **`Camera/`** — the camera, all of it: the basis/projection/angles math and `Viewpoint`,
+- **`Categories/Camera/`** — the camera, all of it: the basis/projection/angles math and `Viewpoint`,
   the files it persists under `view/camera/`, its block file, and the TSX drawing through it.
 - **Trace events are not a package.** Each owner declares its own `RowEvent` and labels and
   appends to the file of the item it tracks — the emitter writes it ITSELF, so an event never
   crosses a package, and a label is a NAME, not an index. `readtrace/` is the only reader.
-- **`Chrome/`** — the UI that is NOT the diagram: the pills, panels, dropdowns, tab strip
-  and fit chip, plus the `chrome-theme.ts` they share ("Chrome" is the industry word for the
+- **`Categories/Chrome/`** — the UI that is NOT the diagram: the pills, panels, dropdowns, tab strip
+  and fit chip, plus the `chrome-theme.ts` they share ("Categories/Chrome" is the industry word for the
   frame around the content, and this repo reached for it twice on its own). The test is a
   `draw-*.ts`: chrome is drawn onto `ChromeCanvas`'s canvas, while the diagram is drawn in
   the scene. Each piece holds ALL of itself: its layout/hit-testing Go,
   `*_values.go`, generated `*-values-gen.ts`, `draw-*.ts`. A chrome piece does not perform
-  topology edits — node create/delete is `Node/nodecrud`, not the dropdown offering it.
-  `Overlay/` and `RingPoint/` are NOT chrome — they are block files for the diagram.
-- **`extension/`** — the VS Code extension: our code, which RUNS IN the extension host
+  topology edits — node create/delete is `Categories/Node/nodecrud`, not the dropdown offering it.
+  `Categories/Overlay/` and `Categories/RingPoint/` are NOT chrome — they are block files for the diagram.
+- **`Categories/extension/`** — the VS Code extension: our code, which RUNS IN the extension host
   (the Node process VS Code spawns) and is not that host — naming it `Host` said we were the
   container rather than the guest. Everything that is neither Go nor the
   webview: activation and spawn (`extension.ts`, `runCommand.ts`, `goBuild.ts`), the VS Code
   side (`html.ts`, `handle-message.ts`, the three dev-loop watchers), and `runner/`, the Go
   side — stdio sizing, per-owner stream demux, last-frame cache. `esbuild.mjs`'s entry point
-  is `Start/extension.ts`; the bundle is still `out/extension.js`, which `package.json`'s
+  is `Categories/Start/extension.ts`; the bundle is still `out/extension.js`, which `package.json`'s
   `main` names.
 - **`scripts/`** — what serves the repo rather than one concern: `stop-checks.sh`, the
   git-workflow scripts, `lib/`, `checks/` for guards that guard nothing in particular
@@ -183,8 +183,8 @@ fire instead of fall silent. Nothing here is a guarantee; the only real check is
 noticing behavior.
 
 Prefer, in order: an assertion that fires in the running system with a site tag
-(`Node/check-panic-message.sh`); a guard whose failure state is loud and
-whose allowlist is empty (`Node/check-no-network-locks.sh`); a `.probe`
+(`Categories/Node/check-panic-message.sh`); a guard whose failure state is loud and
+whose allowlist is empty (`Categories/Node/check-no-network-locks.sh`); a `.probe`
 breadcrumb (`.claude/rules/go-debugging.md`). Never a test.
 
 ## Workflow

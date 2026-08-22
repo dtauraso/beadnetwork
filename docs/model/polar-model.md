@@ -47,7 +47,7 @@ and none is a source of truth.
 - **A node is a point and an edge is the triple that closes the triangle.** A node's own
   point is `(r,φ,θ)` about the scene-sphere centre, in the QUANTISED integer form
   (`polarindex.Index` — `IndexTheta`/`IndexPhi`/`IndexR` × the scene's own constants,
-  `Polar/polarindex/polar_index.go`), persisted (`nodes/<id>/base.json`'s
+  `Categories/Polar/polarindex/polar_index.go`), persisted (`nodes/<id>/base.json`'s
   `indexPhi`/`indexTheta`/`indexR` — the SOLE authored position; there is no continuous
   `scenePolar*` shadow any more, so the value IS index × constant, never a second stored
   copy). An edge carries `D`, the triple from its source to its target, persisted the same
@@ -90,7 +90,7 @@ and none is a source of truth.
   node 3 — the blow-up this page says cannot happen, reached through an arithmetic that
   quietly moved what it claimed to tidy.
 - **A node holds its own side of every edge it touches** (`owners.Deltas`,
-  `Node/nodeactor/owners/deltas.go`): the triple FROM ITSELF TO the node at the
+  `Categories/Node/nodeactor/owners/deltas.go`): the triple FROM ITSELF TO the node at the
   other end, stored from-self whichever way the edge points, so a move is uniform across
   in-edges and out-edges alike. The edge's own `D` is the out entry as-is and the negation
   of the in entry.
@@ -98,13 +98,13 @@ and none is a source of truth.
   The angle constraints (`φ = π/2`, `|θ| ≤ π/2`) are constraints ON `D`. They always were —
   they describe where a node sits about the one it hangs from, not its place in the world —
   so they are applied to the triple directly, with no holder frame to convert in and out of
-  (`Node/nodeactor/node_drag_trim.go`).
+  (`Categories/Node/nodeactor/node_drag_trim.go`).
 
   **The rule is carried by the node it binds, by id, and is applied BY that node.** Each node
   states its own `drag` in its own `base.json` (`polar.DragRule`); absent means free, and
   most nodes say nothing. No node reads another's rule: a neighbour that wants a node moved
   computes the `Δ` from ITS OWN numbers — its own point before and after, and its own side of
-  the edge before and after (`NodeKinds/input/drag.go`) — and TELLS it, and the node told
+  the edge before and after (`Categories/NodeKinds/input/drag.go`) — and TELLS it, and the node told
   trims that `Δ` against its own rules before committing it (`TrimOwnDrag`). A `Δ` an input
   node states to equalise its outgoing paths is therefore a request, not an imposition: a
   target whose own rule holds `D.r` keeps its distance and takes only the angles.
@@ -120,7 +120,7 @@ and none is a source of truth.
   and the half-turn snap on its own drag — and it is no longer a kind CHECK inside shared
   code. **A node owns the function that trims it, not only the numbers it trims to.** The
   kind states its own drag behaviour from its own package (`nodedrag.RegisterTrim` /
-  `RegisterRequest` in `NodeKinds/input/drag.go`), exactly as it states its ports; a kind that
+  `RegisterRequest` in `Categories/NodeKinds/input/drag.go`), exactly as it states its ports; a kind that
   registers nothing is trimmed by its own drag rule alone. `nodeactor` composes the delta,
   asks the node to trim it, and commits — it does not know what an `Input` is.
 
@@ -144,7 +144,7 @@ and none is a source of truth.
   chain's length both read the one stored path above. The placement is owned by that bead's
   own goroutine (the deleted `beadchain` actor's
   `Bead`) — ownership + message passing, one writer, no locks/atomics
-  (`Node/check-no-network-locks.sh`, empty allowlist) — resolved from the node's own live
+  (`Categories/Node/check-no-network-locks.sh`, empty allowlist) — resolved from the node's own live
   aim broadcast (`BroadcastChain`, see the Chain bead bullet above) rather than a second
   stored copy. It is NEVER stored as an independent absolute position — it is computed at
   ONE site by summation: the node's world center (already `sceneCenter +
@@ -154,7 +154,7 @@ and none is a source of truth.
   it belongs to a chain a NODE lays toward a neighbour whose position it caches, and there is
   no such cache. Beads are placed by the EDGE they travel, on the segment that edge already holds, and the
   bead file holds the world position itself: no offset, no origin, nothing to sum
-  (`Node/BeadAnimation/ChainBeadInstances.tsx`). Beads after the first
+  (`Categories/Node/BeadAnimation/ChainBeadInstances.tsx`). Beads after the first
   keep their existing chain-relative placement (index × `lattice.BeadStepR` along the same aim)
   — this model change is about the node's coordinate, the per-edge first-bead vector, and
   this one summation site, not the rest of the chain.
@@ -168,12 +168,12 @@ and none is a source of truth.
   bug that made positions fly to infinity. A moved center rigidly translates its satellites
   (offset unchanged ⇒ locks stay satisfied ⇒ the wave terminates). This is STRUCTURAL, not a
   test: the reconstruction that caused the blow-up has no call site to write. Nav is held
-  polar-only by `extension/webview/scene/check-polar-only-nav.sh`.
+  polar-only by `Categories/extension/webview/scene/check-polar-only-nav.sh`.
 - **Panel-authored locks must be structurally incapable of a position blow-up.** If one
   happens, the implementation is wrong (an offset was reconstructed from a moving reference),
   not the locks.
 
 A drag commits a polar INDEX: `CommitNodeMoveLocal`
-(`Node/nodemove/commit_node_move.go`) takes the committed index, shifts the node's
+(`Categories/Node/nodemove/commit_node_move.go`) takes the committed index, shifts the node's
 own deltas by the difference, applies its centre, and broadcasts the move to its partners.
 Beads are not consulted and do not move the node.
