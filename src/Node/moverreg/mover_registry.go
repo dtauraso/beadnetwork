@@ -32,6 +32,11 @@ func (mr *MoverRegistry) NodeGeoms() map[string]*nodeactor.NodeGeometry {
 	return mr.nodeGeoms
 }
 
+func (mr *MoverRegistry) HasNode(id string) bool {
+	_, ok := mr.nodeGeoms[id]
+	return ok
+}
+
 func (mr *MoverRegistry) Edges() map[string]*edgetable.Edge {
 	return mr.edges
 }

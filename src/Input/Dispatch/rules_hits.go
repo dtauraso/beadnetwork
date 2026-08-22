@@ -2,6 +2,7 @@ package Dispatch
 
 import (
 	"context"
+	edge "github.com/dtauraso/wirefold/src/Node/Edge"
 	"math"
 
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/Panel"
@@ -104,10 +105,7 @@ func toggleKindRule(ctx context.Context, md *MoveDispatch, row int) {
 }
 
 func toggleEdgeDragActive(ctx context.Context, md *MoveDispatch, row int32) {
-	if row < 0 || int(row) >= len(md.Rules.TogglesByEdgeRow) {
-		return
-	}
-	sendToggle(ctx, md.Rules.TogglesByEdgeRow[row])
+	edge.ToggleDragActive(ctx, int(row), md.Rules.TogglesByEdgeRow)
 }
 
 func sendToggle(ctx context.Context, ch chan<- struct{}) {

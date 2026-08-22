@@ -103,7 +103,7 @@ while read -r kind attr; do
     exit 1
   fi
 
-  for callee in $(printf '%s\n' "$BODY" | grep -oE '\b(edit|Edit)[A-Z][A-Za-z0-9_]*\(' | tr -d '(' | sort -u || true); do
+  for callee in $(printf '%s\n' "$BODY" | grep -oE '\b(edit|Edit)[A-Za-z0-9_]*\(' | tr -d '(' | sort -u || true); do
     BODY="$BODY
 $(func_body_anywhere "$callee" || true)"
   done
