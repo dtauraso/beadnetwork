@@ -1,4 +1,4 @@
-import { noteSpawnGen } from "../webview/spawn-gen";
+import { noteSpawnGen } from "./spawn-gen";
 import { SCENE_VALUES } from "./scene-values-gen";
 
 const vals = new Map<string, number>(SCENE_VALUES.map((v) => [v.name, 0]));

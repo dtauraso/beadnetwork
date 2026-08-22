@@ -119,7 +119,7 @@ goroutine writes its own file — `view/nodes/<row>/node.bin`, `.../beads.bin`,
 `u32 length + bytes` in a generated name order, written whole through
 tmp+rename. The row is in the PATH, never in the file, so the goroutine that
 owns a thing is the only writer of its bytes. The renderer fetches one file
-per block and slices the sections (`src/webview/leaf-values.ts`,
+per block and slices the sections (`src/valuefile/leaf-values.ts`,
 `row-leaf-values.ts`), at one of two cadences: an interval for what changes at
 human speed, a frame for what follows the cursor, a drag, or a tick.
 

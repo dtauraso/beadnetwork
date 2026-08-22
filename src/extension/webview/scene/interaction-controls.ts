@@ -1,7 +1,8 @@
 import { useCallback } from "react";
 import * as THREE from "three";
-import { sendRawInput, buildPointerRaw, buildWheelRaw } from "./raw-input";
-import type { PickRef } from "./pick-types";
+import { buildPointerRaw, buildWheelRaw } from "../../../Input/Drag/raw-input-build";
+import { sendRawInput } from "../vscode-api";
+import type { PickRef } from "../../../Input/Drag/pick-types";
 import { postLog } from "../log/post";
 
 export function useInteractionControls(

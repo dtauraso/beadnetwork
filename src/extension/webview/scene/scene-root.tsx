@@ -1,19 +1,19 @@
 import { useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import type * as THREE from "three";
-import { ownerCounts } from "../../Scene/owner-counts";
-import { INTERIOR_SLOTS_PER_NODE } from "../../Node/Interior/interior-values-gen";
+import { ownerCounts } from "../../../Scene/owner-counts";
+import { INTERIOR_SLOTS_PER_NODE } from "../../../Node/Interior/interior-values-gen";
 
-import { ChainBeadInstances } from "../../Node/BeadAnimation/ChainBeadInstances";
-import { EdgeLines } from "../../Node/Edge/EdgeLines";
-import { getEdgeStreamAccessor } from "../../Node/Edge/edge-stream-blocks";
-import { TiltVectors } from "../../Scene/TiltVectors/TiltVectors";
-import { NodeInstances } from "../../Ring/NodeShape/NodeInstances";
-import { RuleChannelLines } from "../../Scene/Vectors/RuleChannelLines";
-import { ChromeCanvas } from "../../Chrome/Panels/ChromeCanvas";
-import { InteriorBeadInstances } from "../../Node/Interior/InteriorBeadInstances";
-import { SceneCamera } from "../../Camera/SceneCamera";
-import { LabelProjector } from "../../Scene/Labels/LabelProjector";
+import { ChainBeadInstances } from "../../../Node/BeadAnimation/ChainBeadInstances";
+import { EdgeLines } from "../../../Node/Edge/EdgeLines";
+import { getEdgeStreamAccessor } from "../../../Node/Edge/edge-stream-blocks";
+import { TiltVectors } from "../../../Scene/TiltVectors/TiltVectors";
+import { NodeInstances } from "../../../Ring/NodeShape/NodeInstances";
+import { RuleChannelLines } from "../../../Scene/Vectors/RuleChannelLines";
+import { ChromeCanvas } from "../../../Chrome/Panels/ChromeCanvas";
+import { InteriorBeadInstances } from "../../../Node/Interior/InteriorBeadInstances";
+import { SceneCamera } from "../../../Camera/SceneCamera";
+import { LabelProjector } from "../../../Scene/Labels/LabelProjector";
 
 export type { LabelPos } from "./scene-tags";
 export {

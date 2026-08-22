@@ -1,4 +1,4 @@
-import { makeLeafValues } from "../../../webview/leaf-values";
+import { makeLeafValues } from "../../../valuefile/leaf-values";
 import { NODES_PILL_VALUE_NAMES, type NodesPillValueName } from "./pill-values-gen";
 
 const values = makeLeafValues<NodesPillValueName>(

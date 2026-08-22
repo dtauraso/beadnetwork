@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: src/webview/**/*.ts,src/webview/**/*.tsx | only buffer-decode-edge.ts/buffer-layout.ts may read EdgeLabelOff/Len; the renderer must not
+# PLACEMENT: src/extension/webview/**/*.ts,src/extension/webview/**/*.tsx | only buffer-decode-edge.ts/buffer-layout.ts may read EdgeLabelOff/Len; the renderer must not
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
-WEBVIEW_DIR="$REPO_ROOT/src/webview"
+WEBVIEW_DIR="$REPO_ROOT/src/extension/webview"
 
 if [ ! -d "$WEBVIEW_DIR" ]; then
   echo "check-edge-label-usage: MISCONFIGURED — $WEBVIEW_DIR not found; refusing a vacuous pass." >&2

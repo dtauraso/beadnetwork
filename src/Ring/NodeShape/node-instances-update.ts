@@ -2,8 +2,8 @@ import * as THREE from "three";
 import { ownerCounts } from "../../Scene/owner-counts";
 import { nodeF32, nodeI32, nodeU8, NODE_RING_NAMES } from "../../Node/node-leaves";
 import { sceneSteps } from "../../Scene/scene-frame";
-import { NODE_SPHERE_RADIUS } from "../../webview/scene/scene-tags";
-import { readSelectedNodeRow } from "../../webview/flags/overlay-flags-selection";
+import { NODE_SPHERE_RADIUS } from "../../extension/webview/scene/scene-tags";
+import { readSelectedNodeRow } from "../../Overlay/overlay-flags-selection";
 
 const centerScratch: [number, number, number] = [0, 0, 0];
 
@@ -36,7 +36,7 @@ const hoveredFlag = (row: number): boolean => nodeU8(row, "hovered") !== 0;
 import { nodeRowColors } from "../../Node/node-kind";
 import { computeNodeDepthOrder, setNodeDrawOrder } from "./node-depth-order";
 import { SELECTION_HALO_R_RATIO } from "./node-highlight-shape";
-import { overlayFlag } from "../../webview/flags/overlay-flags";
+import { overlayFlag } from "../../Overlay/overlay-flags";
 
 function copyRingMatrix(row: number, ring: THREE.InstancedMesh, slot: number): void {
   const out = ring.instanceMatrix.array;

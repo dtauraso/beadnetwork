@@ -2,7 +2,7 @@ import { getEdgeStreamAccessor } from "../../../Node/Edge/edge-stream-blocks";
 import { nodeF32, nodeI32, nodeU8 as nodeU8Value } from "../../../Node/node-leaves";
 import type { NodeValueName } from "../../../Node/node-values-gen";
 import { formatPi } from "./pi-fraction";
-import { canvasFont, roundRect } from "../../../webview/canvas-box";
+import { canvasFont, roundRect } from "../../canvas-box";
 
 export const ROW_NODE_HEAD = 1;
 export const ROW_HOLDER_HEAD = 2;

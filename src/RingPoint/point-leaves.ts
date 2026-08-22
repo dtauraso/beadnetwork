@@ -1,4 +1,4 @@
-import { makeLeafValues } from "../webview/leaf-values";
+import { makeLeafValues } from "../valuefile/leaf-values";
 import { RING_POINT_VALUE_NAMES, type RingPointValueName } from "./point-values-gen";
 
 const values = makeLeafValues<RingPointValueName>(

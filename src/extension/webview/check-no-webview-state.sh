@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: src/webview/**/*.ts,src/webview/**/*.tsx | no zustand and no useSyncExternalStore outside the named buffer-reflect resources
+# PLACEMENT: src/extension/webview/**/*.ts,src/extension/webview/**/*.tsx | no zustand and no useSyncExternalStore outside the named buffer-reflect resources
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 
-WEBVIEW_DIR="$REPO_ROOT/src/webview"
+WEBVIEW_DIR="$REPO_ROOT/src/extension/webview"
 
 if [[ ! -d "$WEBVIEW_DIR" ]]; then
   echo "no-webview-state: MISCONFIGURED — webview dir not found at $WEBVIEW_DIR" >&2

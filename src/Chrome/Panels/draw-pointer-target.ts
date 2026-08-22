@@ -1,6 +1,6 @@
-import { canvasFont, roundRect } from "../../webview/canvas-box";
-import { decodeAt } from "../../webview/leaf-text";
-import * as T from "../../webview/canvas-theme";
+import { canvasFont, roundRect } from "../canvas-box";
+import { decodeAt } from "../leaf-text";
+import * as T from "../chrome-theme";
 import { pointerF32, pointerU8, pointerText } from "./pointer-target-leaves";
 
 const KIND_NOTHING = 0;

@@ -1,7 +1,7 @@
 import { useRef, useContext } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { EnvTexContext } from "../../webview/scene/scene-env";
+import { EnvTexContext } from "../../extension/webview/scene/scene-env";
 import {
   SHADING_PARAM_NODE_TRANSMISSION,
   SHADING_PARAM_NODE_THICKNESS,
@@ -18,7 +18,7 @@ import {
   SCENE_NODE_TAG, SCENE_RING_TAG,
   RING_PICK_TUBE_RATIO, RING_PICK_COLOR, RING_PICK_OPACITY,
   RING_BAND_MAJOR, RING_BAND_TUBE, HOVER_COLOR, HOVER_RING_TUBE_RATIO,
-} from "../../webview/scene/scene-tags";
+} from "../../extension/webview/scene/scene-tags";
 import { updateNodeInstances } from "./node-instances-update";
 import { getCanonicalRingSurfaceGeometry } from "../../Ring/NodeShape/ring-surface-geometry";
 import {

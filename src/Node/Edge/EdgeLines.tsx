@@ -5,7 +5,7 @@ import { getEdgeStreamAccessor } from "./edge-stream-blocks";
 import { checkEdgeLandsOnNode } from "./check-edge-lands-on-node";
 import { EDGE_LINE_COLOR, INSTANCE_TINT_BASE } from "../../Ring/Bead/bead-style";
 
-import { DIRECTION_ZERO_EPS } from "../../webview/scene/scene-tags";
+import { DIRECTION_ZERO_EPS } from "../../extension/webview/scene/scene-tags";
 
 const EDGE_LINE_RADIUS = 1.5;
 const ARROW_HEAD_RADIUS = 3;

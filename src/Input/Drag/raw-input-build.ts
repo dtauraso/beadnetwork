@@ -1,15 +1,9 @@
 import * as THREE from "three";
-import { postGoRecord } from "../vscode-api";
-import { encodeRawInput } from "../../Input/Drag/encode";
-import type { RawInputEvent, RawHit, RawPointerKind } from "../../Input/Drag/raw-input";
+import type { RawInputEvent, RawHit, RawPointerKind } from "./raw-input";
 import type { PickRef } from "./pick-types";
-import { pixelToNDC } from "./geometry-helpers";
+import { pixelToNDC } from "./ndc";
 
 type CamRef = React.MutableRefObject<THREE.PerspectiveCamera | null>;
-
-export function sendRawInput(event: RawInputEvent): void {
-  postGoRecord(encodeRawInput(event));
-}
 
 const wheelTotal = { x: 0, y: 0 };
 

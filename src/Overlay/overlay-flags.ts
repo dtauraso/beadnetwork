@@ -1,5 +1,5 @@
-import { OVERLAY_FLAG_ORDER, type OverlayFlag } from "../../Overlay/flags";
-import { overlayFlagVals, startOverlayReads, type OverlayFlagVals } from "../../Overlay/overlay-leaves";
+import { OVERLAY_FLAG_ORDER, type OverlayFlag } from "./flags";
+import { overlayFlagVals, startOverlayReads, type OverlayFlagVals } from "./overlay-leaves";
 
 export type { OverlayFlagVals };
 

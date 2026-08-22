@@ -1,13 +1,13 @@
 import React, { useEffect, useRef } from "react";
 import { useThree } from "@react-three/fiber";
 import * as THREE from "three";
-import type { PickRef } from "../interaction/pick-types";
+import type { PickRef } from "../../../Input/Drag/pick-types";
 import {
   SHADING_PARAM_SCENE_AMBIENT_INTENSITY,
   SHADING_PARAM_SCENE_DIR_INTENSITY,
-} from "../../Node/nodegeom/shading-params";
+} from "../../../Node/nodegeom/shading-params";
 import { SCENE_NODE_TAG, SCENE_EDGE_TAG, SCENE_RING_TAG } from "./scene-root";
-import { resolveNodeDrawSlot } from "../../Ring/NodeShape/node-depth-order";
+import { resolveNodeDrawSlot } from "../../../Ring/NodeShape/node-depth-order";
 
 function pickEdge(hits: THREE.Intersection[]): string | null {
   for (const hit of hits) {

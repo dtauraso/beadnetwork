@@ -1,6 +1,6 @@
-import type { LabelPos } from "../../webview/scene/scene-tags";
-import { canvasFont, roundRect } from "../../webview/canvas-box";
-import * as T from "../../webview/canvas-theme";
+import type { LabelPos } from "../../extension/webview/scene/scene-tags";
+import { canvasFont, roundRect } from "../../Chrome/canvas-box";
+import * as T from "../../Chrome/chrome-theme";
 
 const PAD_X = 8;
 const PAD_Y = 3;

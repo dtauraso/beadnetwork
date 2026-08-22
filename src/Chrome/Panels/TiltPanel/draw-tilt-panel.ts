@@ -1,6 +1,6 @@
 import { nodeI32 } from "../../../Node/node-leaves";
-import { drawBox, canvasFont, roundRect } from "../../../webview/canvas-box";
-import { decodeAt } from "../../../webview/leaf-text";
+import { drawBox, canvasFont, roundRect } from "../../canvas-box";
+import { decodeAt } from "../../leaf-text";
 import {
   tiltF32, tiltF32Run, tiltI32Run, tiltU32Run, tiltText,
 } from "./panel-leaves";

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: src/webview/**/*.ts,src/webview/**/*.tsx | TS plots what Go streams: no bead positions, no edge curves, no traversal timing computed here
+# PLACEMENT: src/extension/webview/**/*.ts,src/extension/webview/**/*.tsx | TS plots what Go streams: no bead positions, no edge curves, no traversal timing computed here
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
