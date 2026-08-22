@@ -5,4 +5,3 @@
 package File
 
 var InEventKinds = []string{"pointerdown", "pointermove", "pointerup", "wheel", "home", "delete", "key"}
-

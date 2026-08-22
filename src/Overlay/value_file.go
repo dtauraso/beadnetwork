@@ -1,4 +1,3 @@
-
 package Overlay
 
 import (
@@ -46,11 +45,11 @@ func (r *BlobReader) Text(name string) (string, bool) {
 }
 
 type BlobWriter struct {
-	path	string
-	names	[]string
-	known	map[string]bool
-	pending	map[string][]byte
-	last	[]byte
+	path    string
+	names   []string
+	known   map[string]bool
+	pending map[string][]byte
+	last    []byte
 }
 
 func (w *BlobWriter) Begin() {

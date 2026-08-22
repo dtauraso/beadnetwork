@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/dtauraso/wirefold/scripts/genpaths"
 	SceneTiltVectors "github.com/dtauraso/wirefold/src/Scene/TiltVectors"
 )
 
@@ -51,19 +50,19 @@ func writeNames(path string) error {
 }
 
 func main() {
-	genpaths.Name = "Scene/TiltVectors/gen"
-	_, srcRoot := genpaths.Roots()
+	genName = "Scene/TiltVectors/gen"
+	_, srcRoot := roots()
 
 	dir := filepath.Join(srcRoot, "Scene", "TiltVectors")
 	pathsDir := filepath.Join(dir, "paths")
 	if err := writePathFiles(pathsDir); err != nil {
-		genpaths.Fatalf("write tilt arrow paths: %v", err)
+		fatalf("write tilt arrow paths: %v", err)
 	}
-	genpaths.Announce(pathsDir, 1, "tilt arrow block path template")
+	announce(pathsDir, 1, "tilt arrow block path template")
 
 	namesPath := filepath.Join(dir, "tilt-values-gen.ts")
 	if err := writeNames(namesPath); err != nil {
-		genpaths.Fatalf("write %s: %v", namesPath, err)
+		fatalf("write %s: %v", namesPath, err)
 	}
-	genpaths.Announce(namesPath, len(SceneTiltVectors.TiltValueNames), "tilt arrow values")
+	announce(namesPath, len(SceneTiltVectors.TiltValueNames), "tilt arrow values")
 }

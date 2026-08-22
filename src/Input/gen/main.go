@@ -5,24 +5,23 @@ package main
 import (
 	"path/filepath"
 
-	"github.com/dtauraso/wirefold/scripts/genpaths"
 	"github.com/dtauraso/wirefold/src/Input/gen/inputlayout"
 )
 
 func main() {
-	genpaths.Name = "Input/gen"
-	_, srcRoot := genpaths.Roots()
+	genName = "Input/gen"
+	_, srcRoot := roots()
 
 	declDir := filepath.Join(srcRoot, "Input", "gen")
 	inputFP, err := inputlayout.ParseInputLayoutFingerprintDir(declDir)
 	if err != nil {
-		genpaths.Fatalf("parse input layout fingerprint: %v", err)
+		fatalf("parse input layout fingerprint: %v", err)
 	}
 	goKindsPath := filepath.Join(srcRoot, "Input", "Drag", "event_kinds_gen.go")
 	if err := inputlayout.WriteGoEventKinds(goKindsPath, inputFP); err != nil {
-		genpaths.Fatalf("write %s: %v", goKindsPath, err)
+		fatalf("write %s: %v", goKindsPath, err)
 	}
-	genpaths.Announce(goKindsPath, 1, "event kinds")
+	announce(goKindsPath, 1, "event kinds")
 
 	copyRecordReaders(srcRoot)
 	copyWireVocabulary(srcRoot, inputFP)

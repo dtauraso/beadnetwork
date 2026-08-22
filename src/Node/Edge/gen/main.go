@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/dtauraso/wirefold/scripts/genpaths"
 	edge "github.com/dtauraso/wirefold/src/Node/Edge"
 )
 
@@ -51,19 +50,19 @@ func writeNames(path string) error {
 }
 
 func main() {
-	genpaths.Name = "Node/Edge/gen"
-	_, srcRoot := genpaths.Roots()
+	genName = "Node/Edge/gen"
+	_, srcRoot := roots()
 
 	dir := filepath.Join(srcRoot, "Node", "Edge")
 	pathsDir := filepath.Join(dir, "paths")
 	if err := writePathFiles(pathsDir); err != nil {
-		genpaths.Fatalf("write edge paths: %v", err)
+		fatalf("write edge paths: %v", err)
 	}
-	genpaths.Announce(pathsDir, 1, "edge block path template")
+	announce(pathsDir, 1, "edge block path template")
 
 	namesPath := filepath.Join(dir, "edge-values-gen.ts")
 	if err := writeNames(namesPath); err != nil {
-		genpaths.Fatalf("write %s: %v", namesPath, err)
+		fatalf("write %s: %v", namesPath, err)
 	}
-	genpaths.Announce(namesPath, len(edge.EdgeValueNames), "edge values")
+	announce(namesPath, len(edge.EdgeValueNames), "edge values")
 }

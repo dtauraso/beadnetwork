@@ -6,8 +6,6 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
-
-	"github.com/dtauraso/wirefold/scripts/genpaths"
 )
 
 var tsWireTargets = []struct {
@@ -94,9 +92,9 @@ func copyTSWireVocabulary(srcRoot string, fp wireSource) {
 
 		outPath := filepath.Join(srcRoot, filepath.FromSlash(t.dir), "wire-gen.ts")
 		if err := os.WriteFile(outPath, []byte(b.String()), 0o644); err != nil {
-			genpaths.Fatalf("write %s: %v", outPath, err)
+			fatalf("write %s: %v", outPath, err)
 		}
-		genpaths.Announce(outPath, len(lists)+len(kinds), "wire vocabulary for "+t.dir)
+		announce(outPath, len(lists)+len(kinds), "wire vocabulary for "+t.dir)
 	}
 
 	for dir, up := range map[string]string{
@@ -108,8 +106,8 @@ func copyTSWireVocabulary(srcRoot string, fp wireSource) {
 			"// Regenerate with: go generate ./...\n\n" +
 			strings.ReplaceAll(tsMessagesSource, `from "../`, `from "`+up)
 		if err := os.WriteFile(outPath, []byte(body), 0o644); err != nil {
-			genpaths.Fatalf("write %s: %v", outPath, err)
+			fatalf("write %s: %v", outPath, err)
 		}
-		genpaths.Announce(outPath, 1, "webview→host message union for "+dir)
+		announce(outPath, 1, "webview→host message union for "+dir)
 	}
 }

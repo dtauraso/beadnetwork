@@ -12,7 +12,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/dtauraso/wirefold/scripts/genpaths"
 	"github.com/dtauraso/wirefold/src/Scene"
 )
 
@@ -100,31 +99,31 @@ func writeScenes(path string, scenes []sceneEntry) error {
 }
 
 func main() {
-	genpaths.Name = "Scene/gen"
-	_, srcRoot := genpaths.Roots()
+	genName = "Scene/gen"
+	_, srcRoot := roots()
 
 	scenePath := filepath.Join(srcRoot, "Scene", "scene", "scene.go")
 	scenes, err := parseScenes(scenePath)
 	if err != nil {
-		genpaths.Fatalf("parse scenes: %v", err)
+		fatalf("parse scenes: %v", err)
 	}
 	outPath := filepath.Join(srcRoot, "Scene", "scenes-gen.ts")
 	if err := writeScenes(outPath, scenes); err != nil {
-		genpaths.Fatalf("write %s: %v", outPath, err)
+		fatalf("write %s: %v", outPath, err)
 	}
-	genpaths.Announce(outPath, len(scenes), "scenes")
+	announce(outPath, len(scenes), "scenes")
 
 	pathsDir := filepath.Join(srcRoot, "Scene", "paths")
 	if err := writeValuePathFiles(pathsDir); err != nil {
-		genpaths.Fatalf("write scene value paths: %v", err)
+		fatalf("write scene value paths: %v", err)
 	}
-	genpaths.Announce(pathsDir, len(Scene.SceneValues), "scene value paths")
+	announce(pathsDir, len(Scene.SceneValues), "scene value paths")
 
 	valuesPath := filepath.Join(srcRoot, "Scene", "scene-values-gen.ts")
 	if err := writeValueNames(valuesPath); err != nil {
-		genpaths.Fatalf("write %s: %v", valuesPath, err)
+		fatalf("write %s: %v", valuesPath, err)
 	}
-	genpaths.Announce(valuesPath, len(Scene.SceneValues), "scene values")
+	announce(valuesPath, len(Scene.SceneValues), "scene values")
 
 	generateOwnerCounts(srcRoot)
 }

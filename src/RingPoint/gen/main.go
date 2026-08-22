@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/dtauraso/wirefold/scripts/genpaths"
 	"github.com/dtauraso/wirefold/src/RingPoint"
 )
 
@@ -52,19 +51,19 @@ func writeNames(path string) error {
 }
 
 func main() {
-	genpaths.Name = "RingPoint/gen"
-	_, srcRoot := genpaths.Roots()
+	genName = "RingPoint/gen"
+	_, srcRoot := roots()
 
 	dir := filepath.Join(srcRoot, "RingPoint")
 	pathsDir := filepath.Join(dir, "paths")
 	if err := writePathFiles(pathsDir); err != nil {
-		genpaths.Fatalf("write ring point paths: %v", err)
+		fatalf("write ring point paths: %v", err)
 	}
-	genpaths.Announce(pathsDir, 1, "ring point block path")
+	announce(pathsDir, 1, "ring point block path")
 
 	namesPath := filepath.Join(dir, "point-values-gen.ts")
 	if err := writeNames(namesPath); err != nil {
-		genpaths.Fatalf("write %s: %v", namesPath, err)
+		fatalf("write %s: %v", namesPath, err)
 	}
-	genpaths.Announce(namesPath, len(RingPoint.PointValueNames), "ring point values")
+	announce(namesPath, len(RingPoint.PointValueNames), "ring point values")
 }

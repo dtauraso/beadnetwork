@@ -2,12 +2,11 @@ package main
 
 import (
 	"fmt"
+	"go/format"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
-
-	"github.com/dtauraso/wirefold/scripts/genpaths"
 )
 
 var wireTargets = []struct {
@@ -112,9 +111,13 @@ func copyWireVocabulary(srcRoot string, fp wireSource) {
 		}
 
 		outPath := filepath.Join(srcRoot, filepath.FromSlash(t.dir), "wire_gen.go")
-		if err := os.WriteFile(outPath, []byte(b.String()), 0o644); err != nil {
-			genpaths.Fatalf("write %s: %v", outPath, err)
+		src, ferr := format.Source([]byte(b.String()))
+		if ferr != nil {
+			fatalf("format %s: %v", outPath, ferr)
 		}
-		genpaths.Announce(outPath, len(lists)+len(t.kinds), fmt.Sprintf("wire vocabulary for %s", t.pkg))
+		if err := os.WriteFile(outPath, src, 0o644); err != nil {
+			fatalf("write %s: %v", outPath, err)
+		}
+		announce(outPath, len(lists)+len(t.kinds), fmt.Sprintf("wire vocabulary for %s", t.pkg))
 	}
 }

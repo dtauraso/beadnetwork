@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/dtauraso/wirefold/scripts/genpaths"
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/PolarRulesPanel"
 )
 
@@ -52,19 +51,19 @@ func writeNames(path string) error {
 }
 
 func main() {
-	genpaths.Name = "PolarRulesPanel/gen"
-	_, srcRoot := genpaths.Roots()
+	genName = "PolarRulesPanel/gen"
+	_, srcRoot := roots()
 
 	dir := filepath.Join(srcRoot, "Chrome", "Panels", "PolarRulesPanel")
 	pathsDir := filepath.Join(dir, "paths")
 	if err := writePathFiles(pathsDir); err != nil {
-		genpaths.Fatalf("write rules panel paths: %v", err)
+		fatalf("write rules panel paths: %v", err)
 	}
-	genpaths.Announce(pathsDir, len(PolarRulesPanel.PanelValueNames), "rules panel paths")
+	announce(pathsDir, len(PolarRulesPanel.PanelValueNames), "rules panel paths")
 
 	namesPath := filepath.Join(dir, "rules-values-gen.ts")
 	if err := writeNames(namesPath); err != nil {
-		genpaths.Fatalf("write %s: %v", namesPath, err)
+		fatalf("write %s: %v", namesPath, err)
 	}
-	genpaths.Announce(namesPath, len(PolarRulesPanel.PanelValueNames), "rules panel values")
+	announce(namesPath, len(PolarRulesPanel.PanelValueNames), "rules panel values")
 }

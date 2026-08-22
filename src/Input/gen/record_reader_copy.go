@@ -5,8 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-
-	"github.com/dtauraso/wirefold/scripts/genpaths"
 )
 
 var targets = []struct {
@@ -26,11 +24,11 @@ func copyRecordReaders(srcRoot string) {
 	srcPath := filepath.Join(srcRoot, "Input", "gen", "record_reader_template.go")
 	raw, err := os.ReadFile(srcPath)
 	if err != nil {
-		genpaths.Fatalf("read %s: %v", srcPath, err)
+		fatalf("read %s: %v", srcPath, err)
 	}
 	body := string(raw)
 	if !strings.HasPrefix(body, "package main\n") {
-		genpaths.Fatalf("%s does not start with 'package main'; the copier reads it verbatim "+
+		fatalf("%s does not start with 'package main'; the copier reads it verbatim "+
 			"and only rewrites that line, so an unexpected shape would emit something wrong", srcPath)
 	}
 	body = strings.TrimPrefix(body, "package main\n")
@@ -42,8 +40,8 @@ func copyRecordReaders(srcRoot string) {
 			"package " + t.pkg + "\n" + body
 		outPath := filepath.Join(srcRoot, filepath.FromSlash(t.dir), "record_reader_gen.go")
 		if err := os.WriteFile(outPath, []byte(out), 0o644); err != nil {
-			genpaths.Fatalf("write %s: %v", outPath, err)
+			fatalf("write %s: %v", outPath, err)
 		}
-		genpaths.Announce(outPath, 1, fmt.Sprintf("record reader for %s", t.pkg))
+		announce(outPath, 1, fmt.Sprintf("record reader for %s", t.pkg))
 	}
 }

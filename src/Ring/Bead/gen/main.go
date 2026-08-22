@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/dtauraso/wirefold/scripts/genpaths"
 	bead "github.com/dtauraso/wirefold/src/Ring/Bead"
 )
 
@@ -51,19 +50,19 @@ func writeNames(path string) error {
 }
 
 func main() {
-	genpaths.Name = "Ring/Bead/gen"
-	_, srcRoot := genpaths.Roots()
+	genName = "Ring/Bead/gen"
+	_, srcRoot := roots()
 
 	dir := filepath.Join(srcRoot, "Ring", "Bead")
 	pathsDir := filepath.Join(dir, "paths")
 	if err := writePathFiles(pathsDir); err != nil {
-		genpaths.Fatalf("write bead paths: %v", err)
+		fatalf("write bead paths: %v", err)
 	}
-	genpaths.Announce(pathsDir, 1, "bead block path template")
+	announce(pathsDir, 1, "bead block path template")
 
 	namesPath := filepath.Join(dir, "bead-values-gen.ts")
 	if err := writeNames(namesPath); err != nil {
-		genpaths.Fatalf("write %s: %v", namesPath, err)
+		fatalf("write %s: %v", namesPath, err)
 	}
-	genpaths.Announce(namesPath, len(bead.BeadValueNames), "bead values")
+	announce(namesPath, len(bead.BeadValueNames), "bead values")
 }
