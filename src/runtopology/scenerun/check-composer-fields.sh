@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: src/Input/Dispatch/move_dispatch_api.go,src/Node/nodeactor/node_geometry.go | a composer struct (MoveDispatch, nodeactor.NodeGeometry) stays THIN: new state belongs in a named sub-struct, not a new loose field
+# PLACEMENT: src/runtopology/scenerun/move_dispatch_api.go,src/Node/nodeactor/node_geometry.go | a composer struct (MoveDispatch, nodeactor.NodeGeometry) stays THIN: new state belongs in a named sub-struct, not a new loose field
 
 set -euo pipefail
 
@@ -21,9 +21,9 @@ for row in "${COMPOSERS[@]}"; do
   owners="${rest#*|}"
   name=$(printf '%s' "$decl" | awk '{print $2}')
 
-  FILE=$( (grep -rl "^${decl}\$" src/Input/ src/Node/ --include="*.go" || true) | grep -v _test | head -1 || true)
+  FILE=$( (grep -rl "^${decl}\$" src/ --include="*.go" || true) | grep -v _test | head -1 || true)
   if [[ -z "${FILE:-}" || ! -f "$FILE" ]]; then
-    echo "check-composer-fields: MISCONFIGURED — could not locate '${decl}' under src/Input/ or src/**/*.go; refusing vacuous pass" >&2
+    echo "check-composer-fields: MISCONFIGURED — could not locate '${decl}' under src/; refusing vacuous pass" >&2
     fail=1
     continue
   fi

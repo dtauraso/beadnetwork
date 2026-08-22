@@ -3,7 +3,7 @@ package runtopology
 import (
 	"fmt"
 
-	"github.com/dtauraso/wirefold/src/Input/Dispatch"
+	"github.com/dtauraso/wirefold/src/runtopology/scenerun"
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/src/Node/movemsg"
 	"github.com/dtauraso/wirefold/src/Node/moverreg"
@@ -101,6 +101,6 @@ func (b *buildCtx) buildNodes() error {
 	return nil
 }
 
-func bindDispatch(md *Dispatch.MoveDispatch, outSink map[string]*beadanimation.Sender, destRun map[string]*beadanimation.BeadLine) {
+func bindDispatch(md *scenerun.MoveDispatch, outSink map[string]*beadanimation.Sender, destRun map[string]*beadanimation.BeadLine) {
 	md.MR.Bind(outSink, beadanimation.SlotRegistry(destRun), md.RT.EdgeRowForPair)
 }

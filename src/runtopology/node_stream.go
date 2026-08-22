@@ -8,7 +8,7 @@ import (
 
 	NodeKind "github.com/dtauraso/wirefold/src/Node"
 
-	W "github.com/dtauraso/wirefold/src/Input/Dispatch"
+	W "github.com/dtauraso/wirefold/src/runtopology/scenerun"
 	EdgeB "github.com/dtauraso/wirefold/src/Node/Edge"
 	"github.com/dtauraso/wirefold/src/Node/framegeom"
 	"github.com/dtauraso/wirefold/src/Node/nodeactor/nodeframe"

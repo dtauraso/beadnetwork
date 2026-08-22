@@ -8,7 +8,7 @@ import (
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 
 	clock "github.com/dtauraso/wirefold/src/Clock"
-	"github.com/dtauraso/wirefold/src/Input/Dispatch"
+	"github.com/dtauraso/wirefold/src/runtopology/scenerun"
 	"github.com/dtauraso/wirefold/src/Input/Drag"
 	"github.com/dtauraso/wirefold/src/Input/File"
 	"github.com/dtauraso/wirefold/src/Input/Stdin"
@@ -28,7 +28,7 @@ type gestureInboxMsg struct {
 
 const gestureInboxDepth = 64
 
-func startGestureActor(ctx context.Context, slotReg beadanimation.SlotRegistry, md *Dispatch.MoveDispatch, speedSinks SliderPanel.Sinks, clk clock.Clock, inputPath string) (chan gestureInboxMsg, *sync.WaitGroup) {
+func startGestureActor(ctx context.Context, slotReg beadanimation.SlotRegistry, md *scenerun.MoveDispatch, speedSinks SliderPanel.Sinks, clk clock.Clock, inputPath string) (chan gestureInboxMsg, *sync.WaitGroup) {
 	inbox := make(chan gestureInboxMsg, gestureInboxDepth)
 	wg := new(sync.WaitGroup)
 	wg.Add(1)
@@ -41,7 +41,7 @@ func startGestureActor(ctx context.Context, slotReg beadanimation.SlotRegistry, 
 			for _, raw := range reader.ReadAll() {
 				if ev, ok := Drag.DecodeRawInput(raw); ok {
 					wheel.difference(&ev)
-					Dispatch.HandleRawInputMsg(ctx, ev, slotReg, md, speedSinks)
+					scenerun.HandleRawInputMsg(ctx, ev, slotReg, md, speedSinks)
 				}
 			}
 
@@ -53,9 +53,9 @@ func startGestureActor(ctx context.Context, slotReg beadanimation.SlotRegistry, 
 				case gm := <-inbox:
 					switch gm.kind {
 					case gestureMsgEdit:
-						Dispatch.ApplyEdit(ctx, gm.msg, md, speedSinks)
+						scenerun.ApplyEdit(ctx, gm.msg, md, speedSinks)
 					case gestureMsgSave:
-						Dispatch.HandleSaveMsg(md)
+						scenerun.HandleSaveMsg(md)
 					}
 				default:
 					break drain

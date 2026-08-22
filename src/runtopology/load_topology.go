@@ -7,7 +7,7 @@ import (
 	clock "github.com/dtauraso/wirefold/src/Clock"
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 
-	"github.com/dtauraso/wirefold/src/Input/Dispatch"
+	"github.com/dtauraso/wirefold/src/runtopology/scenerun"
 	"github.com/dtauraso/wirefold/src/NodeKinds/kindreg"
 	"github.com/dtauraso/wirefold/src/NodeKinds/nodeapi"
 	"github.com/dtauraso/wirefold/src/NodeKinds/portwiring"
@@ -15,7 +15,7 @@ import (
 	"github.com/dtauraso/wirefold/src/runtopology/loadspec"
 )
 
-func LoadTopology(ctx context.Context, jsonPath string, clk clock.Clock) ([]nodeapi.Node, beadanimation.SlotRegistry, *Dispatch.MoveDispatch, SliderPanel.Sinks, error) {
+func LoadTopology(ctx context.Context, jsonPath string, clk clock.Clock) ([]nodeapi.Node, beadanimation.SlotRegistry, *scenerun.MoveDispatch, SliderPanel.Sinks, error) {
 	kindreg.BuildRegistry()
 	spec, err := loadspec.ParseSpec(jsonPath)
 	if err != nil {

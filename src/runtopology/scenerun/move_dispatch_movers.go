@@ -1,4 +1,4 @@
-package Dispatch
+package scenerun
 
 import (
 	clock "github.com/dtauraso/wirefold/src/Clock"
