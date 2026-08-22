@@ -54,7 +54,7 @@ never renumbered.)
 | `src/extension/html.ts` | Webview HTML shell + CSP |
 | `runCommand.ts` | Spawns the Go process and frames stdin records. Nothing streams back — Go inherits three stdio slots and only stderr carries anything |
 | `goBuild.ts` | Compiles the Go binary; invoked automatically on `ready`, not by a button |
-| registries | There is no `schema/` and no `Buffer/`: each registry lives with its concern — `node-defs.ts` in `src/NodeKinds/`, `wire-defs.ts` in `runtopology/loadspec/`, the input codec in `src/Input/`, the trace events in `src/Trace/` |
+| registries | There is no `schema/` and no `Buffer/`: each registry lives with its concern — `node-defs.ts` in `src/NodeKinds/`, `wire-defs.ts` in `src/Scene/loadspec/`, the input codec in `src/Input/`, the trace events in `src/Trace/` |
 
 ## Webview side
 
@@ -79,7 +79,7 @@ store — the TS layer is render + forward only (guard:
 
 ## Spec vs viewer state
 
-- **The `topology/` tree** — read directly by the Go loader (`src/runtopology/load_topology.go`,
+- **The `topology/` tree** — read directly by the Go loader (`src/Scene/scenebuild/load.go`,
   `loader_tree.go`) at startup; every field maps to live wiring. Edited through `edit`
   messages. The live form is a directory tree — `nodes/<id>/base.json`, `data.json`,
   `inputs/`, `outputs/`, and `edges/*.json` (adjacency layout: an edge lives under its

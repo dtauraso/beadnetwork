@@ -1,6 +1,6 @@
 package kindapi
 
-import "github.com/dtauraso/wirefold/src/runtopology/loadspec"
+import "github.com/dtauraso/wirefold/src/Scene/loadspec"
 
 func (a BuildArgs) StateSeed(key string, def int) int {
 	if a.data == nil || a.data.State == nil {
