@@ -1,7 +1,7 @@
 package Drag
 
 import (
-	"github.com/dtauraso/wirefold/Categories/Camera"
+	"github.com/dtauraso/wirefold/Categories/Scene/Camera"
 )
 
 type GesturePhase int

@@ -121,7 +121,7 @@ one directory out, since a directory is one Go package. `go generate ./...` runs
   for: `BeadLine` (the line beads travel, state with no goroutine of its own), the `Sender`
   and `Receiver` on each end, the slot `lattice/`, and the animation goroutine that steps it.
   The split line is `inflightBead` — the files that share it are the bead animation.
-- **`Categories/Camera/`** — the camera, all of it: the basis/projection/angles math and `Viewpoint`,
+- **`Categories/Scene/Camera/`** — the camera, all of it: the basis/projection/angles math and `Viewpoint`,
   the files it persists under `view/camera/`, its block file, and the TSX drawing through it.
 - **Trace events are not a package.** Each owner declares its own `RowEvent` and labels and
   appends to the file of the item it tracks — the emitter writes it ITSELF, so an event never

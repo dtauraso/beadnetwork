@@ -1,10 +1,10 @@
 import * as THREE from "three";
-import { nodeLabel } from "../Node/node-label";
-import { polarToCart } from "../Polar/polar-convert";
-import { sceneSteps, sceneRadius } from "../Scene/scene-frame";
-import { ownerCounts } from "../Scene/owner-counts";
-import { nodeF32, nodeU8 } from "../Node/node-leaves";
-import { readSelectedNodeRow } from "../Overlay/overlay-flags-selection";
+import { nodeLabel } from "../../Node/node-label";
+import { polarToCart } from "../../Polar/polar-convert";
+import { sceneSteps, sceneRadius } from "../scene-frame";
+import { ownerCounts } from "../owner-counts";
+import { nodeF32, nodeU8 } from "../../Node/node-leaves";
+import { readSelectedNodeRow } from "../../Overlay/overlay-flags-selection";
 
 export interface NavNode {
 

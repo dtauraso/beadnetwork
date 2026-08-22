@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: Start/extension/webview/**,Categories/Camera/** | camera/nav code must not reconstruct angles from a Cartesian position (setFromVector3/makeSafe/THREE.Spherical banned outside polar.ts, PanPolarOverlay.tsx)
+# PLACEMENT: Start/extension/webview/**,Categories/Scene/Camera/** | camera/nav code must not reconstruct angles from a Cartesian position (setFromVector3/makeSafe/THREE.Spherical banned outside polar.ts, PanPolarOverlay.tsx)
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
-DIRS=("$REPO_ROOT/Start/extension/webview" "$REPO_ROOT/Categories/Camera")
+DIRS=("$REPO_ROOT/Start/extension/webview" "$REPO_ROOT/Categories/Scene/Camera")
 for d in "${DIRS[@]}"; do if [ ! -d "$d" ]; then
   echo "✗ no-camera-roundtrip: MISCONFIGURED — scan dir not found: $d" >&2
   exit 1

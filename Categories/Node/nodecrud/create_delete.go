@@ -3,7 +3,7 @@ package nodecrud
 import (
 	"fmt"
 
-	"github.com/dtauraso/wirefold/Categories/Camera"
+	"github.com/dtauraso/wirefold/Categories/Scene/Camera"
 	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgefile"
 	"github.com/dtauraso/wirefold/Categories/Node/moverreg"
 	"github.com/dtauraso/wirefold/Categories/Node/nodeactor/nodefiles"

@@ -62,7 +62,7 @@ Go owns the clock.
   edge's visual, `docs/model/entities.md`), the selection ring, its halo and the hover
   ring (placed with everything else drawn at a node's own frame, in
   `Categories/Ring/NodeShape/node-instances-update.ts`; their shape lives in
-  `Categories/Ring/NodeShape/node-highlight-shape.ts`), and the camera (`Categories/Camera/SceneCamera.tsx` maps the camera
+  `Categories/Ring/NodeShape/node-highlight-shape.ts`), and the camera (`Categories/Scene/Camera/SceneCamera.tsx` maps the camera
   block file onto the three.js camera). Nothing in this tree owns traversal
   timing, positions, or geometry.
 - **Bridge surface — binary BOTH ways.** **Go → TS:** the block files, plus

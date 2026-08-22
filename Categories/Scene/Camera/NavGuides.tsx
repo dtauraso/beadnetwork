@@ -1,17 +1,17 @@
 import React, { useMemo, useState, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { overlayFlag, overlayFlagSignature } from "../Overlay/overlay-flags";
-import { ownerCounts } from "../Scene/owner-counts";
+import { overlayFlag, overlayFlagSignature } from "../../Overlay/overlay-flags";
+import { ownerCounts } from "../owner-counts";
 import {
   type NavNode, decodeNavNodes, sceneSphereFromColumns,
 } from "./nav-nodes";
 import { navSignature } from "./nav-signature";
-import { SceneGuides } from "../Scene/Guides/SceneGuides";
-import { PolarFrame } from "../Scene/Poles/PolarFrame";
-import { SceneVectors } from "../Scene/Vectors/SceneVectors";
-import { NodePoles } from "../Node/Poles/NodePoles";
-import { NodePoleSphere } from "../Node/Poles/NodePoleSphere";
+import { SceneGuides } from "../Guides/SceneGuides";
+import { PolarFrame } from "../Poles/PolarFrame";
+import { SceneVectors } from "../Vectors/SceneVectors";
+import { NodePoles } from "../../Node/Poles/NodePoles";
+import { NodePoleSphere } from "../../Node/Poles/NodePoleSphere";
 
 export function NavGuides() {
 
