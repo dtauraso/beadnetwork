@@ -13,8 +13,8 @@ import {
   drawPointerHighlight, drawPointerTip, pointerTargetCursor, pointerTargetKey,
 } from "./draw-pointer-target";
 import { drawLabels, labelEpoch } from "../../Scene/Labels/label-canvas";
-import { postGoRecord } from "../../extension/webview/vscode-api";
-import { postLog } from "../../extension/webview/log/post";
+import { postGoRecord } from "../../../Start/extension/webview/vscode-api";
+import { postLog } from "../../../Start/extension/webview/log/post";
 import { encodeSceneViewport } from "../../Scene/encode";
 import { takeSpawnRestarted } from "../../Scene/spawn-gen";
 

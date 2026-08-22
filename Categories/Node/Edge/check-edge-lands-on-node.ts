@@ -2,7 +2,7 @@ import { ownerCounts } from "../../Scene/owner-counts";
 import { nodeF32 } from "../node-leaves";
 import { getEdgeStreamAccessor } from "./edge-stream-blocks";
 import { sceneSteps } from "../../Scene/scene-frame";
-import { postLog } from "../../extension/webview/log/post";
+import { postLog } from "../../../Start/extension/webview/log/post";
 
 const TOLERANCE = 0.25;
 

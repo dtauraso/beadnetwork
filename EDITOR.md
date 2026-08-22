@@ -55,7 +55,7 @@ slower because it compiles from scratch.
 `npm run watch` rebuilds the webview bundle on save. What you do after a rebuild
 depends on which side changed:
 
-- **webview code** (`Categories/extension/webview/`) — close and reopen the panel.
+- **webview code** (`Start/extension/webview/`) — close and reopen the panel.
 - **extension-host code** (everything else in `src/`) — `Cmd`+`Shift`+`P` →
   **Developer: Reload Window** in the Extension Development Host.
 

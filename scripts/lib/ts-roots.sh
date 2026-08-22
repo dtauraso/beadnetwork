@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 TS_ROOTS=(
-  "Categories/Start"
+  "Start"
   "Categories/Camera"
   "Categories/Chrome"
   "Categories/Clock"
@@ -13,5 +13,5 @@ TS_ROOTS=(
   "Categories/Ring"
   "Categories/RingPoint"
   "Categories/Scene"
-  "Categories/extension"
+  "Start/extension"
 )
