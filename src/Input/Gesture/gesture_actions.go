@@ -2,14 +2,14 @@ package Gesture
 
 import (
 	"github.com/dtauraso/wirefold/src/Camera"
-	"github.com/dtauraso/wirefold/src/Input/Codec"
+	"github.com/dtauraso/wirefold/src/Input/Drag"
 	"github.com/dtauraso/wirefold/src/Node/movemsg"
 	"github.com/dtauraso/wirefold/src/Scene/rowtables"
 	"github.com/dtauraso/wirefold/src/Scene/viewstate"
 	"github.com/dtauraso/wirefold/src/spatial"
 )
 
-func updateHover(d Deps, ev Codec.RawInputMsg) {
+func updateHover(d Deps, ev Drag.RawInputMsg) {
 	var node string
 	switch ev.Hit.Kind {
 	case "torus":
@@ -33,7 +33,7 @@ func seedOrbitPivot(d Deps, pivot spatial.Vec3) {
 	d.UI.VP.SetViewpoint(pivot, r, pos, vp.Up)
 }
 
-func applyOrbit(d Deps, ev Codec.RawInputMsg) {
+func applyOrbit(d Deps, ev Drag.RawInputMsg) {
 	g := &d.UI.Gest
 	vp := d.UI.VP.Viewpoint
 	basis := Camera.BasisFromViewpoint(vp.Pos, vp.Up)
@@ -45,7 +45,7 @@ func applyOrbit(d Deps, ev Codec.RawInputMsg) {
 	d.UI.EmitViewFrame(nil)
 }
 
-func applyOrbitLocked(d Deps, ev Codec.RawInputMsg) {
+func applyOrbitLocked(d Deps, ev Drag.RawInputMsg) {
 	g := &d.UI.Gest
 	vp := d.UI.VP.Viewpoint
 	basis := Camera.BasisFromViewpoint(vp.Pos, vp.Up)
@@ -57,7 +57,7 @@ func applyOrbitLocked(d Deps, ev Codec.RawInputMsg) {
 	d.UI.EmitViewFrame(nil)
 }
 
-func applyNodeDragTarget(ui *viewstate.UIState, rootMove func(id string, target spatial.Vec3) bool, ev Codec.RawInputMsg) bool {
+func applyNodeDragTarget(ui *viewstate.UIState, rootMove func(id string, target spatial.Vec3) bool, ev Drag.RawInputMsg) bool {
 	g := &ui.Gest
 	hit, ok := ui.DragPlaneHit(ev)
 	if !ok {
@@ -76,7 +76,7 @@ func setHover(ui *viewstate.UIState, sendMoveFn func(id string, msg movemsg.Msg)
 	return true
 }
 
-func applySelect(d Deps, ev Codec.RawInputMsg) {
+func applySelect(d Deps, ev Drag.RawInputMsg) {
 
 	if ev.Hit.Kind == "empty" {
 		setSelectionUI(d.UI, d.MR, d.Ctx, "", "")

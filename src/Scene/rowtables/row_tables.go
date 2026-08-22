@@ -1,6 +1,6 @@
 package rowtables
 
-import "github.com/dtauraso/wirefold/src/Input/Codec"
+import "github.com/dtauraso/wirefold/src/Input/Drag"
 
 type EdgeEndpoint struct {
 	SrcNode, DstNode string
@@ -75,14 +75,14 @@ func (rt *RowTables) EdgeRowForPair(a, b string) (int32, bool) {
 	return -1, false
 }
 
-func (rt *RowTables) NodeFromHit(h Codec.RawHit) (node string, ok bool) {
+func (rt *RowTables) NodeFromHit(h Drag.RawHit) (node string, ok bool) {
 	if h.NodeRow >= 0 {
 		return rt.LookupNodeRow(h.NodeRow)
 	}
 	return "", false
 }
 
-func (rt *RowTables) EdgeFromHit(h Codec.RawHit) (label string, ok bool) {
+func (rt *RowTables) EdgeFromHit(h Drag.RawHit) (label string, ok bool) {
 	if h.EdgeRow >= 0 {
 		return rt.LookupEdgeRow(h.EdgeRow)
 	}

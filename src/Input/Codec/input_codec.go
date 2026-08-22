@@ -9,11 +9,7 @@ func DecodeInputRecord(rec []byte) (StdinMsg, bool) {
 	case InKindSave:
 		return StdinMsg{Type: "save"}, true
 	case InKindRawInput:
-		ev, ok := decodeRawInput(r)
-		if !ok {
-			return StdinMsg{}, false
-		}
-		return StdinMsg{Type: "raw-input", Event: &ev}, true
+		return StdinMsg{Type: "raw-input"}, true
 	case InKindEditUpdate:
 		return decodeEditUpdate(r)
 	}

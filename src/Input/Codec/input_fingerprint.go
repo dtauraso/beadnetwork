@@ -12,7 +12,6 @@ const (
 	InKindEditUpdate = 22
 )
 
-
 var (
 	InEventKinds   = parseFPList(InputLayoutFingerprint, "eventKinds=")
 	InHitKinds     = parseFPList(InputLayoutFingerprint, "hitKinds=")

@@ -23,6 +23,3 @@ func DirWord(dirUp byte) string {
 	}
 	return "down"
 }
-
-
-

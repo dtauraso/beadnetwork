@@ -4,12 +4,11 @@ import (
 	"math"
 
 	"github.com/dtauraso/wirefold/src/Camera"
-	"github.com/dtauraso/wirefold/src/Input/Codec"
 	"github.com/dtauraso/wirefold/src/Polar/polar"
 	"github.com/dtauraso/wirefold/src/spatial"
 )
 
-func (g *GestureState) BeginSphereRotation(vp Camera.Viewpoint, heldCenters func() map[string]spatial.Vec3, ev Codec.RawInputMsg) {
+func (g *GestureState) BeginSphereRotation(vp Camera.Viewpoint, heldCenters func() map[string]spatial.Vec3, ev RawInputMsg) {
 	pivot := Camera.FocusAhead(vp, heldCenters())
 	g.RotPivot = pivot
 

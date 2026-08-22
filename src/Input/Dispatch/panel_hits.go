@@ -3,7 +3,7 @@ package Dispatch
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/src/Input/Codec"
+	"github.com/dtauraso/wirefold/src/Input/Drag"
 	T "github.com/dtauraso/wirefold/src/Trace"
 
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/Panel"
@@ -22,7 +22,7 @@ import (
 
 func panelTookPointerDown(
 	ctx context.Context,
-	ev Codec.RawInputMsg,
+	ev Drag.RawInputMsg,
 	md *MoveDispatch,
 	speedSinks SliderPanel.Sinks,
 ) bool {
@@ -87,7 +87,7 @@ func panelTookPointerDown(
 	return false
 }
 
-func placeNodeAt(md *MoveDispatch, ev *Codec.RawInputMsg) {
+func placeNodeAt(md *MoveDispatch, ev *Drag.RawInputMsg) {
 	if ev.RectWidth <= 0 || ev.RectHeight <= 0 {
 		return
 	}

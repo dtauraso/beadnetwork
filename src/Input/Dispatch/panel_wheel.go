@@ -2,10 +2,10 @@ package Dispatch
 
 import (
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/Panel"
-	"github.com/dtauraso/wirefold/src/Input/Codec"
+	"github.com/dtauraso/wirefold/src/Input/Drag"
 )
 
-func panelTookWheel(ev Codec.RawInputMsg, md *MoveDispatch) bool {
+func panelTookWheel(ev Drag.RawInputMsg, md *MoveDispatch) bool {
 	pl := md.UI.PanelLayout()
 
 	if pl.Overlays.Open && Panel.HitRect(pl.Overlays.Popover, ev.X, ev.Y) {
