@@ -25,6 +25,8 @@ type NodeGeometry struct {
 
 	stream owners.Stream
 
+	trace owners.Trace
+
 	ui owners.UI
 
 	tilt owners.Tilt

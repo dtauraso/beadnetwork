@@ -1,4 +1,4 @@
-package trace
+package main
 
 func LineOf(e RowEvent, nowMs int64) string {
 	return Logfmt(fieldsOf(e, nowMs))
@@ -37,7 +37,7 @@ func fieldsOf(e RowEvent, nowMs int64) []Field {
 	case KindBreadcrumb:
 		out := []Field{
 			{"ts_ms", nowMs}, {"src", "go"}, {"kind", e.Kind},
-			{"label", LabelOf(e.Label)}, {"debug", e.Debug == 1},
+			{"label", e.Label}, {"debug", e.Debug == 1},
 			{"node", NameOf(e.NodeRow)}, {"port", ""}, {"value", e.Value},
 			{"x", e.X}, {"y", e.Y}, {"z", e.Z},
 			{"nodeRow", e.NodeRow}, {"portRow", e.PortRow},

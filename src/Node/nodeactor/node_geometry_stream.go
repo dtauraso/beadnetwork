@@ -2,9 +2,8 @@ package nodeactor
 
 import (
 	"fmt"
+	"github.com/dtauraso/wirefold/src/Node/nodeactor/owners"
 	"math"
-
-	T "github.com/dtauraso/wirefold/src/Trace"
 
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/TiltPanel"
 	"github.com/dtauraso/wirefold/src/Node/framegeom"
@@ -32,18 +31,15 @@ func (m *NodeGeometry) emitGeometry() {
 	m.writeStreamFrame(nil)
 }
 
-func (m *NodeGeometry) postSelfEvents(events []T.RowEvent) {
-	m.stream.PostSelfEvents(events)
-}
+func (m *NodeGeometry) postSelfEvents(events []owners.RowEvent) { m.trace.Post(events) }
 
-func (m *NodeGeometry) drainSelfEvents() []T.RowEvent {
-	return m.stream.DrainSelfEvents()
-}
+func (m *NodeGeometry) drainSelfEvents() []owners.RowEvent { return m.trace.Drain() }
 
-func (m *NodeGeometry) writeStreamFrame(events []T.RowEvent) {
+func (m *NodeGeometry) writeStreamFrame(events []owners.RowEvent) {
 	if !m.stream.Ready() {
 		return
 	}
+	m.trace.Append(events)
 
 	row := m.stream.NodeRow()
 	for _, e := range events {
@@ -158,6 +154,5 @@ func (m *NodeGeometry) writeStreamFrame(events []T.RowEvent) {
 		DragThetaMax:     dragThetaMax,
 		DragActive:       dragActive,
 		Label:            label,
-		Events:           events,
 	})
 }

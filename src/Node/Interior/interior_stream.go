@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"math"
 	"os"
-
-	T "github.com/dtauraso/wirefold/src/Trace"
 )
 
 type InteriorStream struct {
-	buildFrame func(tick uint32, events []T.RowEvent)
+	buildFrame func(tick uint32)
+	tracePath  string
 	tick       uint32
 
 	nodeRow int32
@@ -22,7 +21,7 @@ type InteriorStream struct {
 	values *ValueWriter
 }
 
-func NewInteriorStream(buildFrame func(tick uint32, events []T.RowEvent), nodeRow int32, slots int) *InteriorStream {
+func NewInteriorStream(buildFrame func(tick uint32), nodeRow int32, slots int) *InteriorStream {
 	absent := make([]uint8, slots)
 	zeroI := make([]int32, slots)
 	zeroF := make([]float32, slots)
@@ -35,7 +34,7 @@ func NewInteriorStream(buildFrame func(tick uint32, events []T.RowEvent), nodeRo
 
 func (s *InteriorStream) NodeRowOf() int32 { return s.nodeRow }
 
-func (s *InteriorStream) write(present []uint8, value []int32, ox, oy, oz []float32, events []T.RowEvent, center Vec3) {
+func (s *InteriorStream) write(present []uint8, value []int32, ox, oy, oz []float32, events []RowEvent, center Vec3) {
 	if s == nil {
 		return
 	}
@@ -55,7 +54,10 @@ func (s *InteriorStream) write(present []uint8, value []int32, ox, oy, oz []floa
 			fmt.Fprintf(os.Stderr, "interior values write (node row %d): %v\n", s.nodeRow, err)
 		}
 	}
-	writeInteriorStreamFrame(s.buildFrame, s.tick, events)
+	appendTrace(s.tracePath, events)
+	if s.buildFrame != nil {
+		s.buildFrame(s.tick)
+	}
 }
 
 func packI32(v []int32) []byte {
@@ -76,6 +78,10 @@ func packF32(v []float32) []byte {
 
 func (s *InteriorStream) SetValueWriter(w *ValueWriter) { s.values = w }
 
+func (s *InteriorStream) SetSceneRoot(sceneRoot string) {
+	s.tracePath = tracePath(sceneRoot, s.nodeRow)
+}
+
 func worldOf(ox, oy, oz []float32, center Vec3) ([]float32, []float32, []float32) {
 	wx := make([]float32, len(ox))
 	wy := make([]float32, len(oy))
@@ -92,11 +98,11 @@ func worldOf(ox, oy, oz []float32, center Vec3) ([]float32, []float32, []float32
 	return wx, wy, wz
 }
 
-func (s *InteriorStream) WriteFull(present []uint8, value []int32, ox, oy, oz []float32, events []T.RowEvent, center Vec3) {
+func (s *InteriorStream) WriteFull(present []uint8, value []int32, ox, oy, oz []float32, events []RowEvent, center Vec3) {
 	s.write(present, value, ox, oy, oz, events, center)
 }
 
-func (s *InteriorStream) WriteEvents(events []T.RowEvent, center Vec3) {
+func (s *InteriorStream) WriteEvents(events []RowEvent, center Vec3) {
 	if s == nil {
 		return
 	}
@@ -115,11 +121,4 @@ func boolU8(b bool) uint8 {
 		return 1
 	}
 	return 0
-}
-
-func writeInteriorStreamFrame(buildFrame func(tick uint32, events []T.RowEvent), tick uint32, events []T.RowEvent) {
-	if buildFrame == nil {
-		return
-	}
-	buildFrame(tick, events)
 }

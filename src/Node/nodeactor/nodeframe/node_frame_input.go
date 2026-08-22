@@ -3,7 +3,6 @@ package nodeframe
 import (
 	"github.com/dtauraso/wirefold/src/Node/framegeom"
 	streamframe "github.com/dtauraso/wirefold/src/Scene/Vectors"
-	T "github.com/dtauraso/wirefold/src/Trace"
 )
 
 type NodeFrameInput struct {
@@ -53,8 +52,6 @@ type NodeFrameInput struct {
 	RuleGroupID, RuleGroupSize int32
 
 	Label string
-
-	Events []T.RowEvent
 }
 
 type NodeFrameBuilder func(f NodeFrameInput)

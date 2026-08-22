@@ -38,6 +38,7 @@ type UIState struct {
 
 	Constants polarindex.SceneConstants
 
+	sceneRoot       string
 	rulesValues     *PolarRulesPanel.ValueWriter
 	nodesPillValues *NodesDropdown.ValueWriter
 	anglePillValues *AngleDropdown.ValueWriter

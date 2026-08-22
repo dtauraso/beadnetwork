@@ -1,9 +1,5 @@
 package beadanimation
 
-import (
-	T "github.com/dtauraso/wirefold/src/Trace"
-)
-
 const beadChanBufferSize = 4096
 
 type deliveredBead struct {
@@ -39,6 +35,6 @@ func NewBeadLine() *BeadLine {
 
 		kindToAnimClearCh: make(chan struct{}, 1),
 
-		readout: beadReadout{breadcrumbCh: make(chan T.RowEvent, 4)},
+		readout: beadReadout{breadcrumbCh: make(chan RowEvent, 4)},
 	}
 }

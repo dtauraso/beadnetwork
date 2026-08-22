@@ -1,10 +1,10 @@
 package nodeactor
 
 import (
+	"github.com/dtauraso/wirefold/src/Node/nodeactor/owners"
 	"slices"
 
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/PolarRulesPanel"
-	T "github.com/dtauraso/wirefold/src/Trace"
 
 	"github.com/dtauraso/wirefold/src/Node/movemsg"
 	"github.com/dtauraso/wirefold/src/Node/nodegeom"
@@ -92,6 +92,6 @@ func (m *NodeGeometry) CommitIndex() {
 	m.persistIndex(m.geom.DragIndex)
 }
 
-func (m *NodeGeometry) WriteStreamFrame(events []T.RowEvent) {
+func (m *NodeGeometry) WriteStreamFrame(events []owners.RowEvent) {
 	m.writeStreamFrame(events)
 }

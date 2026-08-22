@@ -1,7 +1,5 @@
 package interior
 
-import T "github.com/dtauraso/wirefold/src/Trace"
-
 const SlotsPerNode = 4
 
 type Emitter struct {
@@ -20,14 +18,44 @@ func (e *Emitter) NodeRowOf() int32 {
 	return e.nodeRow
 }
 
-func (e *Emitter) WriteEvents(events []T.RowEvent) {
+func (e *Emitter) WriteEvents(events []RowEvent) {
 	if e == nil {
 		return
 	}
 	e.mailbox.Send(Snapshot{EventsOnly: true, Events: events})
 }
 
-func (e *Emitter) write(present []uint8, value []int32, ox, oy, oz []float32, events []T.RowEvent) {
+func (e *Emitter) Recv(portRow, value int32) {
+	e.WriteEvents([]RowEvent{{
+		Kind: KindRecv, NodeRow: e.NodeRowOf(), PortRow: portRow,
+		TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Value: value,
+	}})
+}
+
+func (e *Emitter) Send(portRow, targetRow, targetPortRow, value int32, steps float64) {
+	e.WriteEvents([]RowEvent{{
+		Kind: KindSend, NodeRow: e.NodeRowOf(), PortRow: portRow,
+		TargetRow: targetRow, TargetPortRow: targetPortRow, EdgeRow: -1,
+		Value: value, BeadSteps: steps,
+	}})
+}
+
+func (e *Emitter) Fire() {
+	e.WriteEvents([]RowEvent{{
+		Kind: KindFire, NodeRow: e.NodeRowOf(),
+		PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1,
+	}})
+}
+
+func (e *Emitter) Breadcrumb(label string, portRow int32) {
+	e.WriteEvents([]RowEvent{{
+		Kind: KindBreadcrumb, Label: label, Debug: 1,
+		NodeRow: e.NodeRowOf(), PortRow: portRow,
+		TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
+	}})
+}
+
+func (e *Emitter) write(present []uint8, value []int32, ox, oy, oz []float32, events []RowEvent) {
 	if e == nil {
 		return
 	}

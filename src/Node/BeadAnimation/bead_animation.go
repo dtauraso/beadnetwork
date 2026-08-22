@@ -4,8 +4,6 @@ import (
 	"context"
 	"time"
 
-	T "github.com/dtauraso/wirefold/src/Trace"
-
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
 	clock "github.com/dtauraso/wirefold/src/Clock"
 	"github.com/dtauraso/wirefold/src/Node/BeadAnimation/lattice"
@@ -26,14 +24,16 @@ type BeadAnimation struct {
 	nodeRow int32
 
 	buildBeadFrame BeadFrameBuilder
+
+	tracePath string
 }
 
-type BeadFrameBuilder = func(tick uint32, nodeRow int32, beads []SF.EdgeBead, events []T.RowEvent)
+type BeadFrameBuilder = func(tick uint32, nodeRow int32, beads []SF.EdgeBead)
 
 func (o *BeadAnimation) HasBeadLines() bool { return len(o.outLines) > 0 }
 
-func (o *BeadAnimation) SetBeadStream(nodeRow int32, buildBeadFrame BeadFrameBuilder) {
-
+func (o *BeadAnimation) SetBeadStream(nodeRow int32, buildBeadFrame BeadFrameBuilder, sceneRoot string) {
+	o.tracePath = tracePath(sceneRoot, nodeRow)
 	o.nodeRow = nodeRow
 	o.buildBeadFrame = buildBeadFrame
 }
@@ -81,7 +81,7 @@ func (o *BeadAnimation) RunBeadAnimation(ctx context.Context) {
 func (o *BeadAnimation) stepBeads(ctx context.Context, tick int64) {
 	axisPhi, axisTheta := framegeom.TorusDefaultAxisAngles()
 	beads := make([]SF.EdgeBead, 0, len(o.outLines))
-	var events []T.RowEvent
+	var events []RowEvent
 
 	for i, bl := range o.outLines {
 		bl.DriveOneStep(ctx, tick)
@@ -104,10 +104,10 @@ func (o *BeadAnimation) stepBeads(ctx context.Context, tick int64) {
 	o.writeBeadFrame(tick, beads, events)
 }
 
-func (o *BeadAnimation) drainBeadEvents(bl *BeadLine) []T.RowEvent {
-	var events []T.RowEvent
+func (o *BeadAnimation) drainBeadEvents(bl *BeadLine) []RowEvent {
+	var events []RowEvent
 	for _, pe := range bl.DrainPendingEvents() {
-		events = append(events, T.RowEvent{
+		events = append(events, RowEvent{
 			Kind: pe.Kind, NodeRow: o.nodeRow, PortRow: -1,
 			TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 			Value: int32(pe.Value), Bead: pe.Gen,
@@ -123,11 +123,12 @@ func (o *BeadAnimation) drainBeadEvents(bl *BeadLine) []T.RowEvent {
 	return events
 }
 
-func (o *BeadAnimation) writeBeadFrame(tick int64, beads []SF.EdgeBead, events []T.RowEvent) {
+func (o *BeadAnimation) writeBeadFrame(tick int64, beads []SF.EdgeBead, events []RowEvent) {
+	appendTrace(o.tracePath, events)
 	if o.buildBeadFrame == nil {
 		return
 	}
-	o.buildBeadFrame(uint32(tick), o.nodeRow, beads, events)
+	o.buildBeadFrame(uint32(tick), o.nodeRow, beads)
 }
 
 func (o *BeadAnimation) ClearBeadLines() {

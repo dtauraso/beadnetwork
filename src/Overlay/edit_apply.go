@@ -2,12 +2,11 @@ package Overlay
 
 import (
 	"github.com/dtauraso/wirefold/src/Input/Stdin"
-	T "github.com/dtauraso/wirefold/src/Trace"
 )
 
 type Emitter interface {
-	EmitBreadcrumb(ev T.RowEvent)
-	EmitViewFrame(events []T.RowEvent)
+	OverlayBreadcrumb(label, scope string, on bool)
+	Redraw()
 }
 
 type ChannelVectors interface {
@@ -19,7 +18,7 @@ func EditOverlays(msg Stdin.StdinMsg, ov *OverlayState, chans ChannelVectors, em
 		return
 	}
 	ToggleFlag(ov, chans, emit, msg.Flag)
-	emit.EmitViewFrame(nil)
+	emit.Redraw()
 	persist(*ov)
 }
 
@@ -33,15 +32,7 @@ func ToggleFlag(ov *OverlayState, chans ChannelVectors, emit Emitter, flag strin
 		chans.BroadcastChannelVectorsOn(ov.RuleChannelsVisible)
 	}
 	if scope, ok := OverlayFlagBreadcrumbScope[flag]; ok {
-		var v uint8
-		if OverlayFlagValue[flag](ov) {
-			v = 1
-		}
-		emit.EmitBreadcrumb(T.RowEvent{
-			Label: T.BreadcrumbPoleToggleGo, NodeRow: -1, PortRow: -1, TargetRow: -1,
-			TargetPortRow: -1, EdgeRow: -1, Slot: -1,
-			Value: int32(v), Text: scope,
-		})
+		emit.OverlayBreadcrumb(BreadcrumbPoleToggleGo, scope, OverlayFlagValue[flag](ov))
 	}
 }
 

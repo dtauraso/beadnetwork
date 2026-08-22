@@ -3,8 +3,6 @@ package nodeactor
 import (
 	"fmt"
 
-	T "github.com/dtauraso/wirefold/src/Trace"
-
 	beadanimation "github.com/dtauraso/wirefold/src/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/src/Node/Edge/edgegeom"
 	"github.com/dtauraso/wirefold/src/Node/Edge/edgetable"
@@ -16,16 +14,10 @@ import (
 
 type StreamWiring struct {
 	interiorEmitters map[string]*interior.Emitter
-
-	buildInteriorFrame func(tick uint32, nodeRow int32, events []T.RowEvent)
 }
 
 func (sw *StreamWiring) InteriorEmittersPtr() *map[string]*interior.Emitter {
 	return &sw.interiorEmitters
-}
-
-func (sw *StreamWiring) BuildInteriorFramePtr() *func(tick uint32, nodeRow int32, events []T.RowEvent) {
-	return &sw.buildInteriorFrame
 }
 
 func kindOf(nodeGeoms map[string]*NodeGeometry, nodeID string) string {
@@ -77,11 +69,9 @@ func (sw *StreamWiring) SetNodeStreams(
 	buildBeadFrame beadanimation.BeadFrameBuilder,
 	nodeRowFor func(id string) (int32, bool),
 	buildFrame nodeframe.NodeFrameBuilder,
-	buildInteriorFrame func(tick uint32, nodeRow int32, events []T.RowEvent),
 	kindIDFor func(kind string) uint8,
 ) {
 	sw.interiorEmitters = map[string]*interior.Emitter{}
-	sw.buildInteriorFrame = buildInteriorFrame
 
 	for _, seed := range nodeSeeds {
 		nm, ok := nodeMovers[seed.ID]
@@ -94,12 +84,10 @@ func (sw *StreamWiring) SetNodeStreams(
 		if kindIDFor != nil {
 			kindID = kindIDFor(seed.Kind)
 		}
-		nm.WireStream(int32(row), kindID, nodeRowFor, buildFrame)
+		nm.WireStream(int32(row), kindID, nodeRowFor, buildFrame, sceneRoot)
 
-		nm.WireBeadStream(int32(row), buildBeadFrame)
+		nm.WireBeadStream(int32(row), buildBeadFrame, sceneRoot)
 
-		sw.interiorEmitters[seed.ID] = nm.WireInteriorStream(int32(row), func(tick uint32, events []T.RowEvent) {
-			buildInteriorFrame(tick, int32(row), events)
-		}, sceneRoot)
+		sw.interiorEmitters[seed.ID] = nm.WireInteriorStream(int32(row), nil, sceneRoot)
 	}
 }

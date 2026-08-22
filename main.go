@@ -24,12 +24,10 @@ import (
 	"github.com/dtauraso/wirefold/src/Scene/scene"
 	"github.com/dtauraso/wirefold/src/Scene/scenepaths"
 	W "github.com/dtauraso/wirefold/src/Scene/scenerun"
-	T "github.com/dtauraso/wirefold/src/Trace"
 )
 
 func run(ctx context.Context, cancel context.CancelFunc, topologyPath string, clk clock.Clock) {
 	scenePath := scene.ResolvePath(topologyPath)
-	T.SetSceneRoot(scenePath)
 	SceneB.WriteSpawnIdentity(scenePath)
 	Stdin.AssertUpdateDecodersComplete()
 
@@ -44,7 +42,7 @@ func run(ctx context.Context, cancel context.CancelFunc, topologyPath string, cl
 		EdgeB.NewEdgeSink(scenePath, len(md.RT.EdgeRowTable)))
 	sinks := NodeKind.NewSinks(scenePath, len(md.RT.NodeRowTable))
 	md.Sw.SetNodeStreams(md.GS.NodeSeeds, md.MR.NodeGeoms(), scenePath,
-		sinks.Beads, md.RT.NodeRowFor, sinks.Node, sinks.Interior, NodeKind.NodeKindID)
+		sinks.Beads, md.RT.NodeRowFor, sinks.Node, NodeKind.NodeKindID)
 	md.UI.WriteOwnTrace()
 
 	md.UI.OwnerCounts.Nodes = int32(len(md.RT.NodeRowTable))

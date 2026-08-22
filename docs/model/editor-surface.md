@@ -48,7 +48,7 @@ Go owns the clock.
   (`overlay-flags.ts`, `scene-leaves.ts`) mirror Go — they author nothing.
   There is **no JSON-trace render path and no `pump.ts`**; Go emits no
   trace-event JSON on stdout at all. `scripts/probe-merge.sh` decodes the
-  binary trace files at READ time through `src/Trace/readtrace`.
+  binary trace files at READ time through the owner-specific `readtrace` (see scripts/probe-merge.sh).
 - **`SceneRoot`** (`src/extension/webview/scene/scene-root.tsx`)
   is the composition root of the render tree — it assembles the per-concern
   components, each of which reads its own block files. It is a
