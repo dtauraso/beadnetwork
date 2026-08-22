@@ -3,6 +3,8 @@ package runtopology
 import (
 	"context"
 
+	"github.com/dtauraso/wirefold/src/runtopology/scenebuild"
+
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/SliderPanel"
 	clock "github.com/dtauraso/wirefold/src/Clock"
 
@@ -56,9 +58,12 @@ func buildFromSpec(ctx context.Context, spec loadspec.TopoSpec, clk clock.Clock,
 	b.nodeGeoms, b.baseIndices, b.dragIndices = b.spec.SeedGeometry(b.sphere.Center)
 	b.wiring.DestRun, b.wiring.EdgeRun, b.edgeEndpoints = b.spec.AllocateBeadLines(b.nodeGeoms)
 	b.vectorOutByNode, b.vectorInByNode = b.spec.AllocateVectorChannels()
-	if err := b.buildMoveDispatch(); err != nil {
+	md, err := scenebuild.NewFromSpec(b.spec, b.sphere, b.hasScene, b.scenePath, b.clk, &b.speedSinks,
+		b.nodeGeoms, b.edgeEndpoints, b.baseIndices, b.dragIndices)
+	if err != nil {
 		return nil, nil, nil, SliderPanel.Sinks{}, err
 	}
+	b.md = md
 	b.nodeType, b.kindBroadcastPorts = kindreg.BuildTypeMaps(b.spec)
 	b.wiring.Inbound, b.wiring.Outbound, b.wiring.OutboundHandle = b.spec.BuildEdgeMaps(b.nodeType, b.kindBroadcastPorts)
 	if err := b.buildNodes(); err != nil {

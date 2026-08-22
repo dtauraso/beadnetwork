@@ -10,6 +10,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/dtauraso/wirefold/src/runtopology/scenebuild"
+
 	"github.com/dtauraso/wirefold/src/Chrome/Tabs"
 	clock "github.com/dtauraso/wirefold/src/Clock"
 	"github.com/dtauraso/wirefold/src/Input/Stdin"
@@ -52,9 +54,9 @@ func run(ctx context.Context, cancel context.CancelFunc, topologyPath string, cl
 	md.UI.SetSceneRoot(scenePath)
 	md.UI.WriteRingSurfaces(NodeShape.CanonicalRingSurfacePointsFlat(), bead.CanonicalRingSurfacePointsFlat())
 
-	W.EmitStartupBreadcrumbs(md, scenePath, len(nodes))
-	W.CheckRowSeedCount(md, len(nodes))
-	W.LoadSceneState(scenePath, md, speedSinks)
+	scenebuild.EmitStartupBreadcrumbs(md, scenePath, len(nodes))
+	scenebuild.CheckRowSeedCount(md, len(nodes))
+	scenebuild.LoadSceneState(scenePath, md, speedSinks)
 
 	md.Scenes.AnchorPath = topologyPath
 	md.Scenes.Quit = cancel

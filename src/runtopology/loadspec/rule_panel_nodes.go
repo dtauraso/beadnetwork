@@ -1,16 +1,14 @@
-package runtopology
+package loadspec
 
 import (
 	"sort"
 	"strconv"
 
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/PolarRulesPanel"
-	"github.com/dtauraso/wirefold/src/runtopology/scenerun"
 	"github.com/dtauraso/wirefold/src/Node/nodedrag"
-	"github.com/dtauraso/wirefold/src/runtopology/loadspec"
 )
 
-func buildRulePanelNodes(md *scenerun.MoveDispatch, spec loadspec.TopoSpec) {
+func (spec TopoSpec) RulePanelNodes() []PolarRulesPanel.Node {
 	rowOf := func(id string) (int32, bool) {
 		n, err := strconv.Atoi(id)
 		if err != nil || n < 1 {
@@ -56,6 +54,5 @@ func buildRulePanelNodes(md *scenerun.MoveDispatch, spec loadspec.TopoSpec) {
 	}
 	sort.Slice(nodes, func(i, j int) bool { return nodes[i].Row < nodes[j].Row })
 
-	md.UI.RuleNodes = nodes
-	md.UI.RuleSharedRow = -1
+	return nodes
 }

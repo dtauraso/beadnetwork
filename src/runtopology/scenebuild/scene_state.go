@@ -1,4 +1,4 @@
-package scenerun
+package scenebuild
 
 import (
 	"github.com/dtauraso/wirefold/src/Camera"
@@ -6,9 +6,10 @@ import (
 	"github.com/dtauraso/wirefold/src/Scene/scene"
 	"github.com/dtauraso/wirefold/src/Scene/scenepersist"
 	"github.com/dtauraso/wirefold/src/Scene/viewpersist"
+	"github.com/dtauraso/wirefold/src/runtopology/scenerun"
 )
 
-func LoadSceneState(scenePath string, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
+func LoadSceneState(scenePath string, md *scenerun.MoveDispatch, speedSinks SliderPanel.Sinks) {
 	Camera.SeedInitialViewpoint(scenePath, md.UI.VP.SetViewpoint, md.UI.VP.EmitViewpoint)
 
 	s := scene.For(scenePath)
