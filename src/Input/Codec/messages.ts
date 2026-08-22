@@ -1,40 +1,21 @@
+import type { OverlayEditMsg } from "../../Overlay/edits";
+import type { PanelEditMsg } from "../../Chrome/Panels/Panel/edits";
+import type { ClockEditMsg } from "../../Clock/edits";
+import type { SceneEditMsg } from "../../Scene/edits";
+import type { NodeEditMsg } from "../../Node/edits";
+import type { EdgeEditMsg } from "../../Node/Edge/edits";
 import type { OverlayFlag } from "../../Overlay/flags";
 import type { PanelFlag } from "../../Chrome/Panels/Panel/flags";
 
 export type { OverlayFlag, PanelFlag };
 
-// EDIT_MSG_START
-
 type EditMsg =
-
-  | { type: "edit"; op: "update"; kind: "overlays"; attr: "toggle"; flag: OverlayFlag }
-  | { type: "edit"; op: "update"; kind: "panels"; attr: "toggle"; flag: PanelFlag }
-  | { type: "edit"; op: "update"; kind: "clock"; attr: "speed"; value: number }
-
-  | { type: "edit"; op: "update"; kind: "tiltVector"; attr: "phi"; row: number; dir: "up" | "down" }
-
-  | { type: "edit"; op: "update"; kind: "tiltVector"; attr: "reset"; row: number }
-
-  | { type: "edit"; op: "update"; kind: "tiltVector"; attr: "start"; row: number }
-
-  | { type: "edit"; op: "update"; kind: "scene"; attr: "selected"; tab: number }
-
-  | { type: "edit"; op: "update"; kind: "scene"; attr: "latticePoints"; points: number }
-
-  | { type: "edit"; op: "update"; kind: "scene"; attr: "create"; kindId: number; ndcX: number; ndcY: number }
-  | { type: "edit"; op: "update"; kind: "scene"; attr: "delete"; row: number }
-
-  | { type: "edit"; op: "update"; kind: "node"; attr: "dragPhi"; row: number }
-  | { type: "edit"; op: "update"; kind: "node"; attr: "dragMaxTheta"; row: number; piMultiple: number }
-  | { type: "edit"; op: "update"; kind: "node"; attr: "dragActive"; row: number }
-  | { type: "edit"; op: "update"; kind: "node"; attr: "kindActive"; row: number }
-  | { type: "edit"; op: "update"; kind: "node"; attr: "selfDragPhi"; row: number }
-  | { type: "edit"; op: "update"; kind: "node"; attr: "selfDragMaxTheta"; row: number; piMultiple: number }
-  | { type: "edit"; op: "update"; kind: "node"; attr: "selfDragActive"; row: number }
-  | { type: "edit"; op: "update"; kind: "node"; attr: "dragR"; row: number }
-  | { type: "edit"; op: "update"; kind: "node"; attr: "selfDragR"; row: number }
-  | { type: "edit"; op: "update"; kind: "edge"; attr: "dragActive"; row: number };
-// EDIT_MSG_END
+  | OverlayEditMsg
+  | PanelEditMsg
+  | ClockEditMsg
+  | SceneEditMsg
+  | NodeEditMsg
+  | EdgeEditMsg;
 
 // RAW_INPUT_START
 
