@@ -14,7 +14,7 @@ func main() {
 	repoRoot, srcRoot := roots()
 	kinds := kindscan.Kinds(repoRoot)
 
-	importsPath := filepath.Join(repoRoot, "kinds_generated.go")
+	importsPath := filepath.Join(srcRoot, "NodeKinds", "kinds_gen.go")
 	if err := kindscan.WriteKindImports(importsPath, kindscan.KindsPkg(repoRoot), kinds); err != nil {
 		fatalf("write %s: %v", importsPath, err)
 	}
