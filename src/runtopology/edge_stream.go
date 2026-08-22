@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	W "github.com/dtauraso/wirefold/src/Input/Dispatch"
+	W "github.com/dtauraso/wirefold/src/runtopology/scenerun"
 	EdgeB "github.com/dtauraso/wirefold/src/Node/Edge"
 	T "github.com/dtauraso/wirefold/src/Trace"
 )

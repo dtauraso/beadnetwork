@@ -1,10 +1,11 @@
-package Dispatch
+package scenerun
 
 import (
 	"context"
 
+	clock "github.com/dtauraso/wirefold/src/Clock"
+
 	"github.com/dtauraso/wirefold/src/Input/Drag"
-	T "github.com/dtauraso/wirefold/src/Trace"
 
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/Panel"
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/PolarRulesPanel"
@@ -14,10 +15,8 @@ import (
 	"github.com/dtauraso/wirefold/src/Chrome/Pills/AngleDropdown"
 	"github.com/dtauraso/wirefold/src/Chrome/Pills/NodesDropdown"
 	"github.com/dtauraso/wirefold/src/Node/nodecrud"
-	"github.com/dtauraso/wirefold/src/Node/nodeinbox"
 	"github.com/dtauraso/wirefold/src/Overlay"
 	"github.com/dtauraso/wirefold/src/Scene/sceneswitch"
-	"github.com/dtauraso/wirefold/src/Scene/viewstate"
 )
 
 func panelTookPointerDown(
@@ -99,42 +98,16 @@ func placeNodeAt(md *MoveDispatch, ev *Drag.RawInputMsg) {
 func applyOverlaysHit(md *MoveDispatch, h Pills.Hit) {
 	switch h.Kind {
 	case Pills.HitPillCaret, Pills.HitHeading:
-		if fn, ok := Panel.PanelToggles[h.Panel]; ok {
-			fn(&md.UI.PN)
-			md.Persist.Panels().Schedule(md.UI.PN)
-		}
+		Panel.ToggleFlag(&md.UI.PN, h.Panel)
+		md.Persist.Panels().Schedule(md.UI.PN)
 	case Pills.HitPillBody, Pills.HitFlag:
-		toggleOverlayFlag(&md.UI, &md.Inboxes, h.Flag)
+		Overlay.ToggleFlag(&md.UI.OV, &md.Inboxes, &md.UI, h.Flag)
 		md.Persist.Overlays().Schedule(md.UI.OV)
 	case Pills.HitCount:
-		for _, flag := range h.Flags {
-			read, ok := Overlay.OverlayFlagRead[flag]
-			if !ok || read(&md.UI.OV) == h.Target {
-				continue
-			}
-			toggleOverlayFlag(&md.UI, &md.Inboxes, flag)
-		}
+		Overlay.SetCount(&md.UI.OV, &md.Inboxes, &md.UI, h.Flags, h.Target)
 		md.Persist.Overlays().Schedule(md.UI.OV)
 	}
 	md.UI.EmitViewFrame(nil)
-}
-
-func toggleOverlayFlag(ui *viewstate.UIState, inboxes *nodeinbox.NodeInboxes, flag string) {
-	fn, ok := Overlay.OverlayToggles[flag]
-	if !ok {
-		return
-	}
-	fn(&ui.OV)
-	if flag == "ruleChannels" {
-		inboxes.BroadcastChannelVectorsOn(ui.OV.RuleChannelsVisible)
-	}
-	if scope, ok := Overlay.OverlayFlagBreadcrumbScope[flag]; ok {
-		ui.EmitBreadcrumb(T.RowEvent{
-			Label: T.BreadcrumbPoleToggleGo, NodeRow: -1, PortRow: -1, TargetRow: -1,
-			TargetPortRow: -1, EdgeRow: -1, Slot: -1,
-			Value: int32(boolU8(Overlay.OverlayFlagValue[flag](&ui.OV))), Text: scope,
-		})
-	}
 }
 
 func applyAngleHit(ctx context.Context, md *MoveDispatch, speedSinks SliderPanel.Sinks, h AngleDropdown.Hit) {
@@ -159,9 +132,5 @@ func applyAngleHit(ctx context.Context, md *MoveDispatch, speedSinks SliderPanel
 }
 
 func setClockSpeed(md *MoveDispatch, speedSinks SliderPanel.Sinks, speed float64) {
-	divisor := int64(md.UI.ClockDivisor)
-	SliderPanel.Broadcast(speedSinks, int64(speed*SliderPanel.NumScale), divisor)
-	md.UI.Speed = speed
-	md.Persist.Speed().Schedule(speed)
-	md.UI.EmitViewFrame(nil)
+	clock.SetSpeedNum(int64(speed*clock.SpeedNumScale), md.speedState(), speedSinks, md.persistSpeed, md.redraw)
 }

@@ -15,7 +15,7 @@ carries the TS → Go vocabulary.
 **TS → Go** is framed binary records on stdin. Two shapes, and the distinction is the model:
 
 - **Addressed edits** — a single geometry-CRUD `edit` message whose sole op is `update`
-  (see `src/Input/Dispatch/dispatch_edit.go` `applyEdit`, fenced by `EDIT_OPS_START`/
+  (see `src/runtopology/scenerun/dispatch_edit.go` `applyEdit`, fenced by `EDIT_OPS_START`/
   `EDIT_OPS_END`, and `src/extension/messages.ts` `EditMsg`): **`update` sets
   an ATTRIBUTE on a typed entity** (`kind` = node / edge / camera / overlays / panels /
   scene) — there is no per-feature op. New *addressed* capability is a new entity kind or
@@ -63,6 +63,6 @@ no host→webview message of any kind.
 
 Keep all of it in parity across `messages.ts`, the `src/Node/Wiring` stdin reader/dispatch
 (`stdin_reader.go`'s `MSG_TYPES` fence, `dispatch_edit.go`'s edit tables), and `handle-message.ts`
-(guards: `src/Input/Dispatch/check-edit-op-parity.sh`, `src/Input/Dispatch/check-message-kind-parity.sh`, and the
+(guards: `src/runtopology/scenerun/check-edit-op-parity.sh`, `src/runtopology/scenerun/check-message-kind-parity.sh`, and the
 `INPUT_LAYOUT_FINGERPRINT` in `input_codec.go` /
 `src/Node/wire-gen.ts`).

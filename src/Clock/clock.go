@@ -7,6 +7,8 @@ import (
 
 const MsPerTick = 16
 
+const SpeedNumScale = 4
+
 const tickPeriod = MsPerTick * time.Millisecond
 
 const PausedCycleMultiple = maxPulsesPerCycle

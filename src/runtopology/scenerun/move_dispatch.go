@@ -1,4 +1,4 @@
-package Dispatch
+package scenerun
 
 import (
 	"github.com/dtauraso/wirefold/src/Node/moverreg"

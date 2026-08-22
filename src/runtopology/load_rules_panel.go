@@ -5,12 +5,12 @@ import (
 	"strconv"
 
 	"github.com/dtauraso/wirefold/src/Chrome/Panels/PolarRulesPanel"
-	"github.com/dtauraso/wirefold/src/Input/Dispatch"
+	"github.com/dtauraso/wirefold/src/runtopology/scenerun"
 	"github.com/dtauraso/wirefold/src/Node/nodedrag"
 	"github.com/dtauraso/wirefold/src/runtopology/loadspec"
 )
 
-func buildRulePanelNodes(md *Dispatch.MoveDispatch, spec loadspec.TopoSpec) {
+func buildRulePanelNodes(md *scenerun.MoveDispatch, spec loadspec.TopoSpec) {
 	rowOf := func(id string) (int32, bool) {
 		n, err := strconv.Atoi(id)
 		if err != nil || n < 1 {

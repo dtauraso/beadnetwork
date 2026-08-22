@@ -11,7 +11,7 @@ import (
 
 	"github.com/dtauraso/wirefold/src/NodeKinds/nodeapi"
 
-	W "github.com/dtauraso/wirefold/src/Input/Dispatch"
+	W "github.com/dtauraso/wirefold/src/runtopology/scenerun"
 	"github.com/dtauraso/wirefold/src/Input/Stdin"
 )
 

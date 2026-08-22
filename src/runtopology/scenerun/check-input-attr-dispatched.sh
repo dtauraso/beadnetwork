@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: src/Input/Stdin/edit_update_decode.go,src/*/edit_decode.go,src/Input/Dispatch/dispatch_edit.go | a new addressed-edit attribute must reach a handler, not just decode off the wire
+# PLACEMENT: src/Input/Stdin/edit_update_decode.go,src/*/edit_decode.go,src/runtopology/scenerun/dispatch_edit.go | a new addressed-edit attribute must reach a handler, not just decode off the wire
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
@@ -103,7 +103,7 @@ while read -r kind attr; do
     exit 1
   fi
 
-  for callee in $(printf '%s\n' "$BODY" | grep -oE '\b(edit|Edit)[A-Z][A-Za-z0-9_]*\(' | tr -d '(' | sort -u || true); do
+  for callee in $(printf '%s\n' "$BODY" | grep -oE '\b(edit|Edit)[A-Za-z0-9_]*\(' | tr -d '(' | sort -u || true); do
     BODY="$BODY
 $(func_body_anywhere "$callee" || true)"
   done

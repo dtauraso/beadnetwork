@@ -6,7 +6,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 
-GO_PKG_DIR="$REPO_ROOT/src/Input"
+GO_PKG_DIR="$REPO_ROOT/src"
 MESSAGES_TS="$REPO_ROOT/src/extension/messages.ts"
 HANDLE_MESSAGE_TS="$REPO_ROOT/src/extension/handle-message.ts"
 WEBVIEW_SRC_DIR="$REPO_ROOT/src/webview"

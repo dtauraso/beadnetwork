@@ -9,7 +9,7 @@ import (
 	"github.com/dtauraso/wirefold/src/Chrome/Pills/AngleDropdown"
 	"github.com/dtauraso/wirefold/src/Scene/scene"
 
-	"github.com/dtauraso/wirefold/src/Input/Dispatch"
+	"github.com/dtauraso/wirefold/src/runtopology/scenerun"
 	"github.com/dtauraso/wirefold/src/Node/movemsg"
 	"github.com/dtauraso/wirefold/src/Node/nodeactor/nodefiles"
 	"github.com/dtauraso/wirefold/src/Node/nodedrag"
@@ -26,7 +26,7 @@ func (b *buildCtx) buildMoveDispatch() error {
 	for i, e := range b.spec.Edges {
 		edgeOrder[i] = e.Label
 	}
-	md, err := Dispatch.NewMoveDispatch(b.nodeGeoms, b.edgeEndpoints, nodeOrder, edgeOrder, b.clk, &b.speedSinks, b.spec.RowCount, b.spec.Constants)
+	md, err := scenerun.NewMoveDispatch(b.nodeGeoms, b.edgeEndpoints, nodeOrder, edgeOrder, b.clk, &b.speedSinks, b.spec.RowCount, b.spec.Constants)
 	if err != nil {
 		return fmt.Errorf("buildMoveDispatch: %w", err)
 	}
