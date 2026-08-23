@@ -38,7 +38,7 @@ if [ -n "$hits" ]; then
   echo
   echo "  What is NOT banned, and is now the model, is the edge's own triple D: A + D = B,"
   echo "  component by component, stored ONCE in the edge file under its source and owned by"
-  echo "  that edge's edgeMover (owners.Deltas, loadspec/edge_delta.go). A target's copy of"
+  echo "  that edge's edgeMover (owners.Deltas, scenebuild/edge_delta.go). A target's copy of"
   echo "  it is what the source TOLD it, is never persisted, and never answers \"where is that"
   echo "  node\" — the loader asserts the triangle closes on load, per component."
   echo

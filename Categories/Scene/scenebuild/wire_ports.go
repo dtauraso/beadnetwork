@@ -2,7 +2,6 @@ package scenebuild
 
 import (
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
-	"github.com/dtauraso/wirefold/Categories/Scene/loadspec"
 )
 
 type EdgeWiring struct {
@@ -14,7 +13,7 @@ type EdgeWiring struct {
 	EdgeRun map[string]*beadanimation.BeadLine
 }
 
-func (w EdgeWiring) BindPorts(pb *PortBindings, n loadspec.Node, ports []PortSpec) {
+func (w EdgeWiring) BindPorts(pb *PortBindings, n Node, ports []PortSpec) {
 	for _, port := range ports {
 		switch port.Dir {
 		case PortIn:
@@ -26,7 +25,7 @@ func (w EdgeWiring) BindPorts(pb *PortBindings, n loadspec.Node, ports []PortSpe
 			labels := w.Outbound[n.ID][port.Name]
 			if len(labels) > 0 {
 				lbl := labels[0]
-				pb.SetSinglePacedRule(port.Name, w.EdgeRun[lbl], loadspec.NodeSendRule(n, port.Name), lbl)
+				pb.SetSinglePacedRule(port.Name, w.EdgeRun[lbl], NodeSendRule(n, port.Name), lbl)
 			}
 
 		case PortBroadcast:
@@ -37,7 +36,7 @@ func (w EdgeWiring) BindPorts(pb *PortBindings, n loadspec.Node, ports []PortSpe
 				if i < len(handles) {
 					handle = handles[i]
 				}
-				pb.AppendBroadcastWithHandle(port.Name, handle, w.EdgeRun[lbl], loadspec.NodeSendRule(n, handle), lbl)
+				pb.AppendBroadcastWithHandle(port.Name, handle, w.EdgeRun[lbl], NodeSendRule(n, handle), lbl)
 			}
 		}
 	}

@@ -1,13 +1,14 @@
-package loadspec
+package scenebuild
 
 import (
 	"sort"
 	"strconv"
 
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/PolarRulesPanel"
+	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/TiltPanel"
 )
 
-func (spec TopoSpec) RulePanelNodes(hasKindRule func(id string) bool) []PolarRulesPanel.Node {
+func RulePanelNodes(spec TopoSpec, hasKindRule func(id string) bool) []PolarRulesPanel.Node {
 	rowOf := func(id string) (int32, bool) {
 		n, err := strconv.Atoi(id)
 		if err != nil || n < 1 {
@@ -54,4 +55,26 @@ func (spec TopoSpec) RulePanelNodes(hasKindRule func(id string) bool) []PolarRul
 	sort.Slice(nodes, func(i, j int) bool { return nodes[i].Row < nodes[j].Row })
 
 	return nodes
+}
+
+func TiltPanelRows(spec TopoSpec) (rows []int32, labels []string) {
+	byRow := make([]string, spec.RowCount)
+	for _, n := range spec.Nodes {
+		id, err := strconv.Atoi(n.ID)
+		if err != nil || id-1 < 0 || id-1 >= spec.RowCount {
+			continue
+		}
+		if !TiltPanel.KindWantsVectorChannel(n.Type) {
+			continue
+		}
+		byRow[id-1] = n.ID
+	}
+	for row, label := range byRow {
+		if label == "" {
+			continue
+		}
+		rows = append(rows, int32(row))
+		labels = append(labels, label)
+	}
+	return rows, labels
 }

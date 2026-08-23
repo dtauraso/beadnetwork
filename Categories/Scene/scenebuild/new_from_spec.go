@@ -9,16 +9,15 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/SliderPanel"
 	"github.com/dtauraso/wirefold/Categories/Chrome/Pills/AngleDropdown"
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
-	"github.com/dtauraso/wirefold/Categories/Scene/loadspec"
 	"github.com/dtauraso/wirefold/Categories/Scene/scene"
 
-	"github.com/dtauraso/wirefold/Categories/Node"
+	NodeBuf "github.com/dtauraso/wirefold/Categories/Node"
 	edge "github.com/dtauraso/wirefold/Categories/Node/Edge"
 	"github.com/dtauraso/wirefold/Categories/Polar/polar"
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
 )
 
-func NewFromSpec(spec loadspec.TopoSpec, sphere polar.SceneSphere, hasScene bool, scenePath string, clk clock.Clock, speedSinks *SliderPanel.Sinks, nodeGeoms map[string]Node.NodeGeom, edgeEndpoints map[string]edge.EdgeEndpoints, baseIndices map[string]polarindex.Index, dragIndices map[string]polarindex.Offset) (*scenerun.MoveDispatch, error) {
+func NewFromSpec(spec TopoSpec, sphere polar.SceneSphere, hasScene bool, scenePath string, clk clock.Clock, speedSinks *SliderPanel.Sinks, nodeGeoms map[string]NodeBuf.NodeGeom, edgeEndpoints map[string]edge.EdgeEndpoints, baseIndices map[string]polarindex.Index, dragIndices map[string]polarindex.Offset) (*scenerun.MoveDispatch, error) {
 
 	nodeOrder := make([]string, len(spec.Nodes))
 	for i, n := range spec.Nodes {
@@ -62,13 +61,13 @@ func NewFromSpec(spec loadspec.TopoSpec, sphere polar.SceneSphere, hasScene bool
 
 	for _, n := range spec.Nodes {
 		if nm, ok := md.MR.NodeGeoms()[n.ID]; ok {
-			loadspec.SeedNode(nm, n, scenePath)
+			SeedNode(nm, n, scenePath)
 		}
 	}
 
-	md.UI.TiltRows, md.UI.TiltLabels = spec.TiltPanelRows()
+	md.UI.TiltRows, md.UI.TiltLabels = TiltPanelRows(spec)
 
-	md.UI.RuleNodes = spec.RulePanelNodes(func(id string) bool {
+	md.UI.RuleNodes = RulePanelNodes(spec, func(id string) bool {
 		ng, ok := md.MR.NodeGeoms()[id]
 		return ok && ng.HasKindRule()
 	})
@@ -83,10 +82,10 @@ func NewFromSpec(spec loadspec.TopoSpec, sphere polar.SceneSphere, hasScene bool
 	sourceByLabel := make(map[string]string, len(spec.Edges))
 	for _, e := range spec.Edges {
 		if src, ok := md.MR.NodeGeoms()[e.Source]; ok {
-			loadspec.SeedEdge(src, e, true, kindByID[e.Target], scenePath)
+			SeedEdge(src, e, true, kindByID[e.Target], scenePath)
 		}
 		if dst, ok := md.MR.NodeGeoms()[e.Target]; ok {
-			loadspec.SeedEdge(dst, e, false, kindByID[e.Source], scenePath)
+			SeedEdge(dst, e, false, kindByID[e.Source], scenePath)
 		}
 		targetByLabel[e.Label] = e.Target
 		sourceByLabel[e.Label] = e.Source
@@ -110,8 +109,8 @@ func NewFromSpec(spec loadspec.TopoSpec, sphere polar.SceneSphere, hasScene bool
 		for to, told := range nm.RequestedDrag(polarindex.Offset{}) {
 			if other, ok := md.MR.NodeGeoms()[to]; ok {
 				d := told
-				other.Msg().SendExternal(context.TODO(), Node.Msg{NodeID: to,
-					Body: Node.Drag{Delta: &d}})
+				other.Msg().SendExternal(context.TODO(), NodeBuf.Msg{NodeID: to,
+					Body: NodeBuf.Drag{Delta: &d}})
 			}
 		}
 	}

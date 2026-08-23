@@ -3,7 +3,7 @@ package NodeKinds
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/Categories/Scene/loadspec"
+	NodeBuf "github.com/dtauraso/wirefold/Categories/Node"
 )
 
 type Builder interface {
@@ -12,5 +12,5 @@ type Builder interface {
 		Dir  int
 	}
 
-	Build(ctx context.Context, name string, data *loadspec.NodeData, pb any, tiltPhiIdx int32, deps any) (any, error)
+	Build(ctx context.Context, name string, data *NodeBuf.NodeData, pb any, tiltPhiIdx int32, deps any) (any, error)
 }

@@ -7,20 +7,19 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/SliderPanel"
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/TiltPanel"
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
-	"github.com/dtauraso/wirefold/Categories/Node"
+	NodeBuf "github.com/dtauraso/wirefold/Categories/Node"
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/Categories/Node/TiltVectors"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds"
-	"github.com/dtauraso/wirefold/Categories/Scene/loadspec"
 	"github.com/dtauraso/wirefold/Categories/Scene/scenerun"
 )
 
 func buildNodes(
 	ctx context.Context,
-	spec loadspec.TopoSpec,
+	spec TopoSpec,
 	md *scenerun.MoveDispatch,
 	wiring EdgeWiring,
-	nodeGeoms map[string]Node.NodeGeom,
+	nodeGeoms map[string]NodeBuf.NodeGeom,
 	vectorOut, vectorIn map[string]chan TiltPanel.TiltVectorMsg,
 	clk clock.Clock,
 	speedSinks *SliderPanel.Sinks,
@@ -87,4 +86,22 @@ func buildNodes(
 		nodes = append(nodes, built)
 	}
 	return nodes, outSink, nil
+}
+
+func BuildTypeMaps(spec TopoSpec) (nodeType map[string]string, kindBroadcastPorts map[string]map[string]bool) {
+	nodeType = map[string]string{}
+	for _, n := range spec.Nodes {
+		nodeType[n.ID] = n.Type
+	}
+	kindBroadcastPorts = map[string]map[string]bool{}
+	for kind, ports := range KindPorts {
+		outMultis := map[string]bool{}
+		for _, p := range ports {
+			if p.Dir == PortBroadcast {
+				outMultis[p.Name] = true
+			}
+		}
+		kindBroadcastPorts[kind] = outMultis
+	}
+	return nodeType, kindBroadcastPorts
 }

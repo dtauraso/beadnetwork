@@ -5,12 +5,10 @@ import (
 
 	"strings"
 
-	"github.com/dtauraso/wirefold/Categories/Scene/loadspec"
-
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 )
 
-func ValidateSpec(spec *loadspec.TopoSpec, kindPorts map[string][]PortSpec) error {
+func ValidateSpec(spec *TopoSpec, kindPorts map[string][]PortSpec) error {
 	var errs []string
 
 	kindInPorts := map[string]map[string]bool{}
@@ -52,7 +50,7 @@ func ValidateSpec(spec *loadspec.TopoSpec, kindPorts map[string][]PortSpec) erro
 	}
 
 	for _, n := range spec.Nodes {
-		if !loadspec.SafeTreePathComponent(n.ID) {
+		if !SafeTreePathComponent(n.ID) {
 			errs = append(errs, fmt.Sprintf("node id %q is not a safe path component", n.ID))
 		}
 	}
@@ -69,7 +67,7 @@ func ValidateSpec(spec *loadspec.TopoSpec, kindPorts map[string][]PortSpec) erro
 			errs = append(errs, fmt.Sprintf("edge %q references unknown node id %q as its source", e.Label, e.Source))
 		} else {
 			srcHandle := e.SourceHandle
-			if base, isMulti := loadspec.BroadcastBaseName(srcHandle, srcKind, kindBroadcastPorts); isMulti {
+			if base, isMulti := BroadcastBaseName(srcHandle, srcKind, kindBroadcastPorts); isMulti {
 				srcHandle = base
 			}
 			if !kindOutPorts[srcKind][srcHandle] {

@@ -57,12 +57,12 @@ func ParseWirePropsFromFile(filePath string) ([]wireProp, error) {
 				segments := strings.Split(wireVal, ",")
 				if len(segments) < 3 {
 					return nil, fmt.Errorf(
-						"loadspec.Edge.%s: malformed wire tag %q — want prop,<optional|required>,tsType:<T> (got %d segments, need at least 3)",
+						"scenebuild.Edge.%s: malformed wire tag %q — want prop,<optional|required>,tsType:<T> (got %d segments, need at least 3)",
 						fieldName, wireVal, len(segments))
 				}
 				if segments[1] != "required" && segments[1] != "optional" {
 					return nil, fmt.Errorf(
-						"loadspec.Edge.%s: wire tag %q has second segment %q — want \"required\" or \"optional\"",
+						"scenebuild.Edge.%s: wire tag %q has second segment %q — want \"required\" or \"optional\"",
 						fieldName, wireVal, segments[1])
 				}
 				required := segments[1] == "required"
@@ -74,7 +74,7 @@ func ParseWirePropsFromFile(filePath string) ([]wireProp, error) {
 				}
 				if tsType == "" {
 					return nil, fmt.Errorf(
-						"loadspec.Edge.%s: wire tag %q has no tsType:<T> segment", fieldName, wireVal)
+						"scenebuild.Edge.%s: wire tag %q has no tsType:<T> segment", fieldName, wireVal)
 				}
 
 				propName := ""

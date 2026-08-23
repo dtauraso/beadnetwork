@@ -117,7 +117,7 @@ user's accumulated offset, in `drag/`) are different quantities. They are never 
 a stored value and never substituted for one another; they combine only at the point
 something is drawn, and persist always writes the DRAG, never the composed value.
 
-On load, `loadspec.ApplyDragOverlay` reads `base/`/`<label>/` into the BASE fields
+On load, `scenebuild.ApplyDragOverlay` reads `base/`/`<label>/` into the BASE fields
 and `drag/` and `drag/edges/<label>/` into separate DRAG fields on the same
 spec struct (`DragScenePolarR/Phi/Theta` on a node, `DragDeltaPolarR/Phi/Theta` on an
 edge) — it composes NOTHING; a node or edge with no `drag/` file simply carries a zero drag
@@ -158,7 +158,7 @@ Consequences to keep in mind:
 
 - A node writes its own `position/local-polars` and reads them back from one file,
   `Categories/Node/nodefile_drag_index.go` — Write and Read beside each other, so the four filenames
-  and the directory are spelled once; loadspec held a second reader. There is no longer a separate
+  and the directory are spelled once; the loader held a second reader. There is no longer a separate
   `inputs/`/`outputs/` port-geometry
   file — port geometry was removed with the port model (edges attach on the bead lattice,
   `Categories/Node/BeadAnimation/lattice/bead_lattice.go`); this bullet used to list it as a second thing the mover writes.

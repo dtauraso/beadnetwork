@@ -1,20 +1,20 @@
-package loadspec
+package scenebuild
 
 import (
 	"fmt"
-	NodeBuf "github.com/dtauraso/wirefold/Categories/Node"
 	"os"
+
+	NodeBuf "github.com/dtauraso/wirefold/Categories/Node"
 
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/PolarRulesPanel"
 
-	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
 )
 
 type Node struct {
 	ID   string
 	Type string
-	Data *NodeData
+	Data *NodeBuf.NodeData
 
 	IndexPhi   *int
 	IndexTheta *int
@@ -33,39 +33,11 @@ type Node struct {
 	TopTiltVectorPhiIdx *int32
 }
 
-func (n Node) label() string {
+func (n Node) Label() string {
 	if n.Data != nil && n.Data.Label != "" {
 		return n.Data.Label
 	}
 	return n.ID
-}
-
-func (n Node) ToNodeGeom(sceneCenter Vec3, sc polarindex.SceneConstants) NodeBuf.NodeGeom {
-
-	g := NodeBuf.NodeGeom{NodeIdentity: NodeBuf.NodeIdentity{Kind: n.Type, Label: n.label(), SceneCenter: NodeBuf.Vec3(sceneCenter), SceneConstants: sc}}
-	if n.hasPoint() {
-		g.BaseIndex = n.index()
-		g.HasPos = true
-	}
-	if n.DragIndexPhi != nil && n.DragIndexTheta != nil && n.DragIndexR != nil {
-		g.DragIndex = polarindex.Offset{Phi: *n.DragIndexPhi, Theta: *n.DragIndexTheta, R: *n.DragIndexR}
-	}
-	return g
-}
-
-func BroadcastBaseName(handle, kind string, kindBroadcastPorts map[string]map[string]bool) (string, bool) {
-	if len(handle) == 0 {
-		return handle, false
-	}
-	last := handle[len(handle)-1]
-	if last < '0' || last > '9' {
-		return handle, false
-	}
-	base := handle[:len(handle)-1]
-	if kindBroadcastPorts[kind][base] {
-		return base, true
-	}
-	return handle, false
 }
 
 type NodeData struct {
@@ -137,13 +109,4 @@ func validateNoFanIn(spec TopoSpec) error {
 		seen[key] = e.Label
 	}
 	return nil
-}
-
-func NodeSendRule(n Node, port string) beadanimation.SendRule {
-	if n.Data == nil || n.Data.SendRules == nil {
-		return beadanimation.RuleConsumeGated
-	}
-
-	rule, _ := beadanimation.ParseSendRule(n.Data.SendRules[port])
-	return rule
 }

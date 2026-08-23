@@ -1,4 +1,4 @@
-package loadspec
+package scenebuild
 
 import (
 	"fmt"
@@ -7,6 +7,8 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+
+	NodeBuf "github.com/dtauraso/wirefold/Categories/Node"
 )
 
 const (
@@ -87,13 +89,13 @@ func readIntArrayDir(dir string) ([]int, error) {
 	return out, nil
 }
 
-func readNodeData(nodeDir string) (*NodeData, error) {
+func readNodeData(nodeDir string) (*NodeBuf.NodeData, error) {
 	dataDir := filepath.Join(nodeDir, DirNodeData)
 	if info, err := os.Stat(dataDir); err != nil || !info.IsDir() { // path-resolution-ok: the node's own data dir, not a scene path
 		return nil, nil
 	}
 
-	var nd NodeData
+	var nd NodeBuf.NodeData
 	readLeaf(filepath.Join(dataDir, FileLabel), &nd.Label)
 	readLeaf(filepath.Join(dataDir, FileRepeat), &nd.Repeat)
 
