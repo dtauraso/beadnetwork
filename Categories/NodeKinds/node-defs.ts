@@ -23,7 +23,6 @@ export interface NodeDef {
 // Single source of truth — derived from bead.Register calls.
 export const RUNTIME_IMPLEMENTED_KINDS: ReadonlySet<string> = new Set([
   "Input",
-  "NormalSum",
   "Pacer",
   "PairNode",
   "Pulse",
@@ -38,7 +37,6 @@ export const RUNTIME_IMPLEMENTED_KINDS: ReadonlySet<string> = new Set([
 
 export const NODE_DEFS: Record<string, NodeDef> = {
   Input: { bg: "#e0e0e0", border: "#666", text: "#1a1a1a", minWidth: 90, shape: "rect", fill: "#e0e0e0", stroke: "#666", width: 80, height: 60, desc: "The source: emits its own authored list of values, last one first, optionally repeating.", inputs: [{ name: "FeedbackIn", kind: "chain" }], outputs: [{ name: "OutCadence", kind: "chain" }, { name: "ToExcitatory", kind: "chain" }] },
-  NormalSum: { bg: "#ede7f6", border: "#4527a0", text: "#311b92", minWidth: 70, shape: "rect", fill: "#ede7f6", stroke: "#4527a0", width: 70, height: 60, desc: "Takes a normal from each of two nodes and holds their total, drawn as its own vector.", inputs: [{ name: "NormalA", kind: "chain" }, { name: "NormalB", kind: "chain" }], outputs: [{ name: "Out", kind: "chain" }] },
   Pacer: { bg: "#e8f5e9", border: "#2e7d32", text: "#1b5e20", minWidth: 60, shape: "rect", fill: "#e8f5e9", stroke: "#2e7d32", width: 60, height: 60, desc: "Sends 1 back when the value it receives differs from the last one, and 0 when it repeats.", inputs: [{ name: "In", kind: "chain" }], outputs: [{ name: "FeedbackOut", kind: "chain" }] },
   PairNode: { bg: "#fff8e1", border: "#f9a825", text: "#4e342e", minWidth: 70, shape: "rect", fill: "#fff8e1", stroke: "#f9a825", width: 70, height: 60, desc: "One half of a pair: turns its own tilt vector toward rest by exchanging directions with its partner, one step per arrival.", inputs: [{ name: "In", kind: "chain" }], outputs: [{ name: "Out", kind: "chain" }] },
   Pulse: { bg: "#e1f5fe", border: "#2196f3", text: "#01579b", minWidth: 90, shape: "rect", fill: "#e1f5fe", stroke: "#2196f3", width: 90, height: 60, desc: "Holds the last value it received and drives it out continuously, from the moment it starts.", inputs: [{ name: "In", kind: "chain" }], outputs: [{ name: "Out", kind: "chain" }, { name: "OutFanout", kind: "chain" }] },
@@ -69,7 +67,6 @@ export const NODE_DEFS_ARRAY: readonly (NodeDef | undefined)[] = [
   { bg: "#e1f5fe", border: "#01579b", text: "#01579b", minWidth: 90, shape: "rect", fill: "#e1f5fe", stroke: "#01579b", width: 90, height: 60, desc: "Holds and drives a value like Pulse, feeding the RIGHT input of a select gate.", inputs: [{ name: "In", kind: "chain" }], outputs: [{ name: "Out", kind: "chain" }] },
   { bg: "#fff3e0", border: "#ffc400", text: "#bf360c", minWidth: 90, shape: "rect", fill: "#fff3e0", stroke: "#ffc400", width: 90, height: 60, desc: "The head of a time chain: holds what arrives and fans the value it was holding to every downstream node at once.", inputs: [{ name: "In", kind: "chain" }], outputs: [{ name: "ToNext", kind: "chain", isMulti: true }] },
   { bg: "#fff8e1", border: "#f9a825", text: "#4e342e", minWidth: 70, shape: "rect", fill: "#fff8e1", stroke: "#f9a825", width: 70, height: 60, desc: "One half of a pair: turns its own tilt vector toward rest by exchanging directions with its partner, one step per arrival.", inputs: [{ name: "In", kind: "chain" }], outputs: [{ name: "Out", kind: "chain" }] },
-  { bg: "#ede7f6", border: "#4527a0", text: "#311b92", minWidth: 70, shape: "rect", fill: "#ede7f6", stroke: "#4527a0", width: 70, height: 60, desc: "Takes a normal from each of two nodes and holds their total, drawn as its own vector.", inputs: [{ name: "NormalA", kind: "chain" }, { name: "NormalB", kind: "chain" }], outputs: [{ name: "Out", kind: "chain" }] },
 ];
 
 export const NODE_KIND_NAMES: readonly (string | undefined)[] = [
@@ -85,5 +82,4 @@ export const NODE_KIND_NAMES: readonly (string | undefined)[] = [
   "PulseRight",
   "TimeStart",
   "PairNode",
-  "NormalSum",
 ];

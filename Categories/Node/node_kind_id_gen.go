@@ -23,7 +23,6 @@ var kindIDMap = map[string]uint8{
 	"PulseRight":  9,
 	"TimeStart":   10,
 	"PairNode":    11,
-	"NormalSum":   12,
 }
 
 // NodeKindID returns the KindId for a node's Go kind string.
@@ -59,7 +58,6 @@ var kindAppearance = map[string]KindAppearance{
 	"PulseRight":  {Fill: "#e1f5fe", Stroke: "#01579b", Desc: "Holds and drives a value like Pulse, feeding the RIGHT input of a select gate."},
 	"TimeStart":   {Fill: "#fff3e0", Stroke: "#ffc400", Desc: "The head of a time chain: holds what arrives and fans the value it was holding to every downstream node at once."},
 	"PairNode":    {Fill: "#fff8e1", Stroke: "#f9a825", Desc: "One half of a pair: turns its own tilt vector toward rest by exchanging directions with its partner, one step per arrival."},
-	"NormalSum":   {Fill: "#ede7f6", Stroke: "#4527a0", Desc: "Takes a normal from each of two nodes and holds their total, drawn as its own vector."},
 }
 
 // AppearanceOf returns a kind's palette appearance, and false when the kind is unknown.

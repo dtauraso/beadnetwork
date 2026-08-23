@@ -6,7 +6,6 @@
 package NodeKinds
 
 import (
-	kindNormalSum "github.com/dtauraso/wirefold/Categories/NodeKinds/NormalSum"
 	kindPairNode "github.com/dtauraso/wirefold/Categories/NodeKinds/PairNode"
 	kindPulseLeft "github.com/dtauraso/wirefold/Categories/NodeKinds/PulseLeft"
 	kindPulseRight "github.com/dtauraso/wirefold/Categories/NodeKinds/PulseRight"
@@ -24,8 +23,6 @@ import (
 
 func BuilderFor(kind string) (portwiring.NodeBuilder, bool) {
 	switch kind {
-	case "NormalSum":
-		return kindNormalSum.Builder, true
 	case "PairNode":
 		return kindPairNode.Builder, true
 	case "PulseLeft":
