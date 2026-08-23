@@ -3,7 +3,7 @@ package nodemove
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/Categories/Node/nodeactor"
+	"github.com/dtauraso/wirefold/Categories/Node"
 	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
 	"github.com/dtauraso/wirefold/Categories/Node/owners"
 	"github.com/dtauraso/wirefold/Categories/Polar/polar"
@@ -12,7 +12,7 @@ import (
 
 type NodeMover struct{}
 
-func HeldCenters(nodeGeoms map[string]*nodeactor.NodeGeometry, centerOf func(id string) (Vec3, bool)) map[string]Vec3 {
+func HeldCenters(nodeGeoms map[string]*Node.NodeGeometry, centerOf func(id string) (Vec3, bool)) map[string]Vec3 {
 	out := make(map[string]Vec3, len(nodeGeoms))
 	for id := range nodeGeoms {
 		if c, ok := centerOf(id); ok {
@@ -22,7 +22,7 @@ func HeldCenters(nodeGeoms map[string]*nodeactor.NodeGeometry, centerOf func(id 
 	return out
 }
 
-func (mv *NodeMover) RootMove(ctx context.Context, nodeGeoms map[string]*nodeactor.NodeGeometry, nodeID string, target Vec3) bool {
+func (mv *NodeMover) RootMove(ctx context.Context, nodeGeoms map[string]*Node.NodeGeometry, nodeID string, target Vec3) bool {
 	nm, ok := nodeGeoms[nodeID]
 	if !ok {
 		return false

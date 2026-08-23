@@ -18,8 +18,9 @@ ALLOWED = {
     "Categories/Node/owners":
         "splitting re-exports the leaf fields the owners package exists to hide",
     "Categories/Node":
-        "12 guards pinned here by their own PLACEMENT: Categories/Node/** headers, plus the bead "
-        "lifecycle dissolved out of wire/; that half shrinks when the animation owns it",
+        "12 guards pinned here by their own PLACEMENT: Categories/Node/** headers; the node ACTOR, "
+        "whose methods Go pins to one package; and the edit codec, value file and record reader "
+        "every other category also keeps at its own root",
     "Categories/Node/BeadAnimation":
         "one Go package by the compiler: 9 unexported symbols cross its files, and Sender "
         "and Receiver reach BeadLine's unexported queue; plus its own TS and 3 guards",
@@ -123,7 +124,7 @@ while IFS= read -r line; do
     OVER)
       echo "DIRECTORY OVER CEILING: a directory holds more hand-edited files at its own top level"
       echo "than the ceiling. Cluster by concern, or add it to ALLOWED in this script with a"
-      echo "mechanism. NOTE: file count is a prompt to look, not a verdict — Categories/Node/nodeactor"
+      echo "mechanism. NOTE: file count is a prompt to look, not a verdict — Categories/Node"
       echo "went 16 -> 23 files while its god object shrank, then 23 -> 12 with no code change but"
       echo "a package boundary. Check the design, not the number:"
       fail=1; continue ;;

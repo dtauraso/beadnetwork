@@ -1,4 +1,4 @@
-package nodeactor
+package Node
 
 import (
 	"fmt"

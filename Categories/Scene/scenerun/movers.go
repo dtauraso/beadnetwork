@@ -5,10 +5,10 @@ import (
 	"sync"
 
 	"github.com/dtauraso/wirefold/Categories/Input/Gesture"
+	"github.com/dtauraso/wirefold/Categories/Node"
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgegeom"
 	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgetable"
-	"github.com/dtauraso/wirefold/Categories/Node/nodeactor"
 	"github.com/dtauraso/wirefold/Categories/Node/nodecrud"
 	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
 	"github.com/dtauraso/wirefold/Categories/Node/owners"
@@ -17,7 +17,7 @@ import (
 const InboxDepth = 8
 
 type Movers struct {
-	nodeGeoms map[string]*nodeactor.NodeGeometry
+	nodeGeoms map[string]*Node.NodeGeometry
 
 	edges map[string]*edgetable.Edge
 
@@ -28,14 +28,14 @@ type Movers struct {
 
 func NewMovers() Movers {
 	return Movers{
-		nodeGeoms:    map[string]*nodeactor.NodeGeometry{},
+		nodeGeoms:    map[string]*Node.NodeGeometry{},
 		edges:        map[string]*edgetable.Edge{},
 		edgeOut:      map[string]*beadanimation.Sender{},
 		centerMirror: map[string]Vec3{},
 	}
 }
 
-func (m *Movers) NodeGeoms() map[string]*nodeactor.NodeGeometry { return m.nodeGeoms }
+func (m *Movers) NodeGeoms() map[string]*Node.NodeGeometry { return m.nodeGeoms }
 
 func (m *Movers) HasNode(id string) bool {
 	_, ok := m.nodeGeoms[id]
@@ -88,7 +88,7 @@ func (m *Movers) SendMove(ctx context.Context, id string, msg owners.Msg) {
 	nm.Msg().SendExternal(ctx, msg)
 }
 
-func (m *Movers) EnqueueFor(nm *nodeactor.NodeGeometry) func(id string, msg owners.Msg) {
+func (m *Movers) EnqueueFor(nm *Node.NodeGeometry) func(id string, msg owners.Msg) {
 	return nm.Msg().EnqueueSend
 }
 

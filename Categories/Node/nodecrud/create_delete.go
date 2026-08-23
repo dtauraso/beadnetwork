@@ -3,8 +3,8 @@ package nodecrud
 import (
 	"fmt"
 
+	"github.com/dtauraso/wirefold/Categories/Node"
 	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgefile"
-	"github.com/dtauraso/wirefold/Categories/Node/nodeactor"
 	"github.com/dtauraso/wirefold/Categories/Node/nodefile"
 	"github.com/dtauraso/wirefold/Categories/Polar/polar"
 	"github.com/dtauraso/wirefold/Categories/Scene/Camera"
@@ -14,7 +14,7 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Scene/viewstate"
 )
 
-func CreateNode(scenes *sceneswitch.SceneSwitch, ui *viewstate.UIState, nodeGeoms map[string]*nodeactor.NodeGeometry, nearestTo func(Vec3) (string, bool), kindID uint8, ndcX, ndcY float64) {
+func CreateNode(scenes *sceneswitch.SceneSwitch, ui *viewstate.UIState, nodeGeoms map[string]*Node.NodeGeometry, nearestTo func(Vec3) (string, bool), kindID uint8, ndcX, ndcY float64) {
 	if scenes == nil || scenes.TreeRoot == "" || scenes.Quit == nil {
 		return
 	}

@@ -98,7 +98,7 @@ and none is a source of truth.
   The angle constraints (`φ = π/2`, `|θ| ≤ π/2`) are constraints ON `D`. They always were —
   they describe where a node sits about the one it hangs from, not its place in the world —
   so they are applied to the triple directly, with no holder frame to convert in and out of
-  (`Categories/Node/nodeactor/node_drag_trim.go`).
+  (`Categories/Node/node_drag_trim.go`).
 
   **The rule is carried by the node it binds, by id, and is applied BY that node.** Each node
   states its own `drag` in its own `base.json` (`polar.DragRule`); absent means free, and

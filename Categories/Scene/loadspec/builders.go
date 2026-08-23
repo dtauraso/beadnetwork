@@ -4,7 +4,6 @@ import (
 	"strconv"
 
 	NodeBuf "github.com/dtauraso/wirefold/Categories/Node"
-	"github.com/dtauraso/wirefold/Categories/Node/nodeactor"
 	"github.com/dtauraso/wirefold/Categories/Node/nodefile"
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
 )
@@ -22,7 +21,7 @@ func NewNodeID(root string) string {
 	return strconv.Itoa(LargestNodeID(root) + 1)
 }
 
-func SeedNode(m *nodeactor.NodeGeometry, n Node, sceneRoot string) {
+func SeedNode(m *NodeBuf.NodeGeometry, n Node, sceneRoot string) {
 	m.SetSelfKind(n.Type)
 
 	rn := m.RuleNode()
@@ -44,7 +43,7 @@ func SeedNode(m *nodeactor.NodeGeometry, n Node, sceneRoot string) {
 	}
 }
 
-func SeedEdge(m *nodeactor.NodeGeometry, e Edge, src bool, otherKind, sceneRoot string) {
+func SeedEdge(m *NodeBuf.NodeGeometry, e Edge, src bool, otherKind, sceneRoot string) {
 	other := e.Target
 	if !src {
 		other = e.Source

@@ -3,12 +3,12 @@ package scenerun
 import (
 	"fmt"
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
+	"github.com/dtauraso/wirefold/Categories/Node"
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 	edge "github.com/dtauraso/wirefold/Categories/Node/Edge"
 	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgegeom"
 	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgetable"
 	interior "github.com/dtauraso/wirefold/Categories/Node/Interior"
-	"github.com/dtauraso/wirefold/Categories/Node/nodeactor"
 	"github.com/dtauraso/wirefold/Categories/Node/nodeframe"
 	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
 	"github.com/dtauraso/wirefold/Categories/Node/owners"
@@ -18,7 +18,7 @@ import (
 
 func (md *MoveDispatch) buildNodeMovers(geoms map[string]nodegeom.NodeGeom, clk clock.Clock, constants polarindex.SceneConstants) {
 	for id, g := range geoms {
-		ng := nodeactor.NewNodeGeometry(id, g, clk, constants)
+		ng := Node.NewNodeGeometry(id, g, clk, constants)
 
 		selfID := id
 		resolveDest := func(destID string) (owners.Deposit, bool) {
@@ -115,7 +115,7 @@ func (sw *StreamWiring) InteriorEmittersPtr() *map[string]*interior.Emitter {
 	return &sw.interiorEmitters
 }
 
-func kindOf(nodeGeoms map[string]*nodeactor.NodeGeometry, nodeID string) string {
+func kindOf(nodeGeoms map[string]*Node.NodeGeometry, nodeID string) string {
 	if nm, ok := nodeGeoms[nodeID]; ok {
 		return nm.SelfKind()
 	}
@@ -125,7 +125,7 @@ func kindOf(nodeGeoms map[string]*nodeactor.NodeGeometry, nodeID string) string 
 func (sw *StreamWiring) SetEdgeStreams(
 	edgeSeeds []edgegeom.Seed,
 	edgeTable map[string]*edgetable.Edge,
-	nodeGeoms map[string]*nodeactor.NodeGeometry,
+	nodeGeoms map[string]*Node.NodeGeometry,
 	nodeRowFor func(id string) (int32, bool),
 	buildFrame owners.EdgeFrameBuilder,
 ) {
@@ -138,7 +138,7 @@ func (sw *StreamWiring) SetEdgeStreams(
 		srcNM, ok := nodeGeoms[seed.SrcNode]
 		if !ok {
 			panic(fmt.Sprintf(
-				"nodeactor.SetEdgeStreams: edge %q leaves node %q, which has no node geometry — a node draws its OWN out-edges, so an edge with no source node has no writer",
+				"Node.SetEdgeStreams: edge %q leaves node %q, which has no node geometry — a node draws its OWN out-edges, so an edge with no source node has no writer",
 				seed.Label, seed.SrcNode))
 		}
 		srcRow := int32(-1)
@@ -159,7 +159,7 @@ func (sw *StreamWiring) SetEdgeStreams(
 
 func (sw *StreamWiring) SetNodeStreams(
 	nodeSeeds []nodegeom.Seed,
-	nodeMovers map[string]*nodeactor.NodeGeometry,
+	nodeMovers map[string]*Node.NodeGeometry,
 	sceneRoot string,
 	buildBeadFrame beadanimation.BeadFrameBuilder,
 	nodeRowFor func(id string) (int32, bool),

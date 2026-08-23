@@ -4,18 +4,18 @@ import (
 	"context"
 
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
-	"github.com/dtauraso/wirefold/Categories/Node/nodeactor"
+	"github.com/dtauraso/wirefold/Categories/Node"
 	"github.com/dtauraso/wirefold/Categories/Node/nodedrag"
 	"github.com/dtauraso/wirefold/Categories/Node/owners"
 )
 
 type Self struct {
-	geom *nodeactor.NodeGeometry
+	geom *Node.NodeGeometry
 
 	speedCh <-chan float64
 }
 
-func NewSelf(geom *nodeactor.NodeGeometry, speedCh <-chan float64) *Self {
+func NewSelf(geom *Node.NodeGeometry, speedCh <-chan float64) *Self {
 	return &Self{geom: geom, speedCh: speedCh}
 }
 
