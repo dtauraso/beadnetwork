@@ -49,10 +49,10 @@ func panelTookPointerDown(
 		md.UI.EmitViewFrame(nil)
 		return true
 	case NodesDropdown.HitRow:
-		if md.UI.NodesRowOpen == nil {
-			md.UI.NodesRowOpen = map[uint8]bool{}
+		if md.UI.Nodes.RowOpen == nil {
+			md.UI.Nodes.RowOpen = map[uint8]bool{}
 		}
-		md.UI.NodesRowOpen[h.KindID] = !md.UI.NodesRowOpen[h.KindID]
+		md.UI.Nodes.RowOpen[h.KindID] = !md.UI.Nodes.RowOpen[h.KindID]
 		md.UI.PlacingKind, md.UI.PlacingPending = h.KindID, true
 		md.UI.EmitViewFrame(nil)
 		return true

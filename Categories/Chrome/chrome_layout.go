@@ -1,0 +1,80 @@
+package Chrome
+
+import (
+	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/Panel"
+	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/PolarRulesPanel"
+	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/SliderPanel"
+	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/TiltPanel"
+	"github.com/dtauraso/wirefold/Categories/Chrome/Pills"
+	"github.com/dtauraso/wirefold/Categories/Chrome/Pills/AngleDropdown"
+	"github.com/dtauraso/wirefold/Categories/Chrome/Pills/FitButton"
+	"github.com/dtauraso/wirefold/Categories/Chrome/Pills/NodesDropdown"
+	"github.com/dtauraso/wirefold/Categories/Chrome/Tabs"
+	"github.com/dtauraso/wirefold/Categories/Overlay"
+)
+
+// Where every piece of chrome sits. Each piece computes its own layout from its
+// own state; this is only the arrangement — what order they stack in and how
+// much room each gets. It takes each piece's state by name, so a caller cannot
+// hand the tilt panel the angle pill's rows.
+type Layout struct {
+	Speed    SliderPanel.Layout
+	Tilt     TiltPanel.Layout
+	Angle    AngleDropdown.Layout
+	Nodes    NodesDropdown.Layout
+	Overlays Pills.Layout
+
+	Fit Panel.Rect
+
+	Tabs Tabs.Layout
+
+	Rules PolarRulesPanel.Layout
+}
+
+// Of is what the chrome looks like for one frame.
+type Of struct {
+	ViewW, ViewH float64
+
+	SceneEditable bool
+	SceneKinds    uint32
+	LatticePoints int32
+
+	Overlays *Overlay.OverlayState
+	Panels   *Panel.PanelState
+
+	Tilt     TiltPanel.State
+	Angle    AngleDropdown.State
+	Nodes    NodesDropdown.State
+	Tabs     Tabs.State
+	Rules    PolarRulesPanel.State
+	PillsBar Pills.State
+}
+
+var PillLabels = []string{AngleDropdown.Label, NodesDropdown.Label, Pills.Label}
+
+func LayoutOf(in Of) Layout {
+	st := Panel.New(float32(in.ViewH))
+	pills := Panel.NewPillStack(float32(in.ViewW), float32(in.ViewH), PillLabels)
+
+	nodes := make([]AngleDropdown.Node, len(in.Tilt.Rows))
+	for i, row := range in.Tilt.Rows {
+		nodes[i] = AngleDropdown.Node{
+			Row:   row,
+			Label: in.Tilt.Labels[i],
+			Open:  in.Angle.GroupOpen[row],
+		}
+	}
+
+	fit := pills.AddChip(FitButton.FitLabel)
+
+	return Layout{
+		Fit:      fit,
+		Speed:    SliderPanel.Build(st),
+		Tilt:     TiltPanel.Build(st, in.Tilt.Rows, in.Tilt.Labels),
+		Rules:    PolarRulesPanel.Build(st, Panel.PanelOpen["nodeRules"](in.Panels), in.Rules),
+		Angle:    AngleDropdown.Build(pills, in.Angle.Open, in.LatticePoints, nodes),
+		Nodes:    NodesDropdown.Build(pills, in.Nodes.Open && in.SceneEditable, NodesDropdown.PaletteKinds(in.SceneKinds, in.SceneEditable, in.Nodes.RowOpen)),
+		Overlays: Pills.Build(pills, in.Overlays, in.Panels, in.PillsBar.Scroll),
+		Tabs:     Tabs.Build(float32(in.ViewW), in.Tabs.Names, in.Tabs.Selected),
+	}
+}
