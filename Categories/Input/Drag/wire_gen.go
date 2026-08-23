@@ -8,10 +8,6 @@ const (
 	InKindRawInput = 10
 )
 
-var InEventKinds = []string{"pointerdown", "pointermove", "pointerup", "wheel", "home", "delete", "key"}
-
-var InHitKinds = []string{"port", "handhold", "node", "edge", "torus", "empty"}
-
 func enumAt(list []string, i byte) string {
 	if int(i) >= len(list) {
 		return ""

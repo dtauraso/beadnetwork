@@ -2,7 +2,7 @@ package main
 
 import "strings"
 
-const InputLayoutFingerprint = "kinds=save:4,raw-input:10,edit-update:22 eventKinds=pointerdown,pointermove,pointerup,wheel,home,delete,key hitKinds=port,handhold,node,edge,torus,empty updateKinds=overlays,clock,scene,tiltVector,panels,node,edge overlayFlags=tori,scenePoles,nodePoles,handholds,labelsGlobal,overlays,nodeBody,nodeRing,ringPick,selectionRing,hoverRing,sceneVectors,ruleChannels,nodePoleSphere,allPoleSpheres panelFlags=overlays,node,nodeShape,nodeState,nodePoles,nodeRules,scene,sceneGuides,scenePoles,sceneVectors,sceneLabels"
+const InputLayoutFingerprint = "kinds=save:4,raw-input:10,edit-update:22 eventKinds=pointerdown,pointermove,pointerup,wheel,home,delete,key hitKinds=port,handhold,node,edge,torus,empty updateKinds=overlays,clock,scene,tiltVector,panels,node,edge"
 
 const (
 	InKindSave = 4
@@ -13,11 +13,9 @@ const (
 )
 
 var (
-	InEventKinds   = parseFPList(InputLayoutFingerprint, "eventKinds=")
-	InHitKinds     = parseFPList(InputLayoutFingerprint, "hitKinds=")
-	InUpdateKinds  = parseFPList(InputLayoutFingerprint, "updateKinds=")
-	InOverlayFlags = parseFPList(InputLayoutFingerprint, "overlayFlags=")
-	InPanelFlags   = parseFPList(InputLayoutFingerprint, "panelFlags=")
+	InEventKinds  = parseFPList(InputLayoutFingerprint, "eventKinds=")
+	InHitKinds    = parseFPList(InputLayoutFingerprint, "hitKinds=")
+	InUpdateKinds = parseFPList(InputLayoutFingerprint, "updateKinds=")
 )
 
 func init() {
@@ -28,8 +26,6 @@ func init() {
 		{"eventKinds=", InEventKinds},
 		{"hitKinds=", InHitKinds},
 		{"updateKinds=", InUpdateKinds},
-		{"overlayFlags=", InOverlayFlags},
-		{"panelFlags=", InPanelFlags},
 	} {
 		if len(e.list) == 0 {
 			panic("input_codec: INPUT_LAYOUT_FINGERPRINT is missing the " + e.marker + " token — the wire enum orderings derive from it")

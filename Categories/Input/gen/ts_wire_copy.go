@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/Panel"
+	"github.com/dtauraso/wirefold/Categories/Input/Drag"
 	"github.com/dtauraso/wirefold/Categories/Node"
 	edge "github.com/dtauraso/wirefold/Categories/Node/Edge"
 	"github.com/dtauraso/wirefold/Categories/Overlay"
@@ -20,6 +21,7 @@ var tsWireTargets = []struct {
 	lists  []string
 	kinds  []string
 	attrs  []string
+	named  []namedList
 	attr   bool
 	writer bool
 }{
@@ -29,15 +31,22 @@ var tsWireTargets = []struct {
 	{dir: "Categories/Overlay", attrs: Overlay.UpdateAttrs, attr: true, writer: true},
 	{dir: "Categories/Chrome/Panels/Panel", attrs: Panel.UpdateAttrs, attr: true, writer: true},
 	{dir: "Categories/Speed", attrs: Speed.UpdateAttrs, attr: true, writer: true},
-	{dir: "Categories/Input/Drag", writer: true,
-		lists: []string{"eventKinds=", "hitKinds="}, kinds: []string{"raw-input"}},
+	{dir: "Categories/Input/Drag", writer: true, kinds: []string{"raw-input"},
+		named: []namedList{
+			{"IN_EVENT_KINDS", Drag.EventKinds},
+			{"IN_HIT_KINDS", Drag.HitKinds},
+		}},
 	{dir: "Start/extension", kinds: []string{"raw-input"}},
-	{dir: "Start/extension/runner", lists: []string{"eventKinds="}},
+	{dir: "Start/extension/runner",
+		named: []namedList{{"IN_EVENT_KINDS", Drag.EventKinds}}},
+}
+
+type namedList struct {
+	name  string
+	items []string
 }
 
 var tsListName = map[string]string{
-	"eventKinds=":  "IN_EVENT_KINDS",
-	"hitKinds=":    "IN_HIT_KINDS",
 	"updateKinds=": "IN_UPDATE_KINDS",
 }
 
@@ -66,9 +75,13 @@ func copyTSWireVocabulary(repoRoot string, fp wireSource) {
 			fmt.Fprintln(&b)
 		}
 
+		named := append([]namedList{}, t.named...)
 		if t.attr {
-			fmt.Fprintf(&b, "export const IN_UPDATE_ATTRS = [")
-			for i, v := range t.attrs {
+			named = append(named, namedList{"IN_UPDATE_ATTRS", t.attrs})
+		}
+		for _, nl := range named {
+			fmt.Fprintf(&b, "export const %s = [", nl.name)
+			for i, v := range nl.items {
 				if i > 0 {
 					b.WriteString(", ")
 				}

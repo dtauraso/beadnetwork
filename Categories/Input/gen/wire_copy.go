@@ -17,18 +17,13 @@ var wireTargets = []struct {
 	enum  bool     // needs EnumAt
 }{
 	{dir: "Categories/Input/Drag", pkg: "Drag", enum: true,
-		lists: []string{"eventKinds=", "hitKinds="}, kinds: []string{"raw-input"}},
+		kinds: []string{"raw-input"}},
 	{dir: "Categories/Input/Stdin", pkg: "Stdin", enum: true,
 		lists: []string{"updateKinds="}, kinds: []string{"save", "raw-input", "edit-update"}},
-	{dir: "Categories/Scene/inputactor", pkg: "inputactor", lists: []string{"eventKinds="}},
 }
 
 var listVarName = map[string]string{
-	"eventKinds=":   "InEventKinds",
-	"hitKinds=":     "InHitKinds",
 	"updateKinds=":  "InUpdateKinds",
-	"overlayFlags=": "InOverlayFlags",
-	"panelFlags=":   "InPanelFlags",
 }
 
 var kindConstName = map[string]string{
