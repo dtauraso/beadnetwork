@@ -27,7 +27,7 @@ carries the TS → Go vocabulary.
 - **Bare commands** — `save` is the only bare command. It is defined end-to-end (kind byte,
   Go decode + persist) but currently has **no live TS sender** — no UI affordance posts it
   yet; it stays in the vocabulary because Go's decode and
-  `Categories/Scene/inputactor/stdin_reader.go` both carry it. It carries **no entity id on purpose**: it acts on state **Go already
+  `Categories/Scene/Drag/stdin_reader.go` both carry it. It carries **no entity id on purpose**: it acts on state **Go already
   owns** (the current selection / scene), so there is nothing for TS to address. There is no
   `resend` command, and now nothing to resend: a remounted webview re-reads the files, which
   are the current state by definition. The ext host used to cache the last frame per stream

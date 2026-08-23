@@ -1,14 +1,14 @@
-package inputactor
+package scenebuild
 
 import (
 	"context"
+	"github.com/dtauraso/wirefold/Categories/Scene/scenerun"
 	"sync"
 
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/SliderPanel"
 
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
 	"github.com/dtauraso/wirefold/Categories/Scene/Drag"
-	"github.com/dtauraso/wirefold/Categories/Scene/scenerun"
 )
 
 type gestureMsgKind int
@@ -35,7 +35,7 @@ func StartGestureActor(ctx context.Context, md *scenerun.MoveDispatch, speedSink
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		reader := NewReader(inputPath)
+		reader := Drag.NewInputDirReader(inputPath)
 		mine := clk.Copy()
 		wheel := &wheelTotals{}
 		for {

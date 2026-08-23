@@ -10,7 +10,7 @@
 //
 // MSG_TYPES_DOC_END
 
-package inputactor
+package Drag
 
 import (
 	"bufio"
