@@ -5,7 +5,7 @@ import type { PickRef } from "../../../../Categories/Scene/Drag/pick-types";
 import {
   SHADING_PARAM_SCENE_AMBIENT_INTENSITY,
   SHADING_PARAM_SCENE_DIR_INTENSITY,
-} from "../../../../Categories/Node/nodegeom/shading-params";
+} from "../../../../Categories/Scene/Environment/shading-params";
 import { SCENE_NODE_TAG, SCENE_EDGE_TAG, SCENE_RING_TAG } from "./scene-root";
 import { resolveNodeDrawSlot } from "../../../../Categories/Ring/NodeShape/node-depth-order";
 

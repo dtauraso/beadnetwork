@@ -42,7 +42,7 @@ func generateShadingParams(repoRoot string) {
 		fatalf("parse shading params: %v", err)
 	}
 	tsPath := filepath.Join(kindscan.NetworkDir(repoRoot), "nodegeom", "shading-params.ts")
-	if err := params.WriteShadingParams(tsPath, shadingParams); err != nil {
+	if err := params.WriteShadingParams(tsPath, shadingParams, genName, "Categories/Node/nodegeom/shading_params.go"); err != nil {
 		fatalf("write %s: %v", tsPath, err)
 	}
 	announce(tsPath, len(shadingParams), "constants")
