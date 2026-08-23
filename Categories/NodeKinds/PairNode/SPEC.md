@@ -36,7 +36,7 @@ partner, one step per arrival.
 
 See [BEHAVIOR.md](./docs/BEHAVIOR.md) for the firing rule, the vector channel, why a tilt does not
 move the node, pacing/clock speed, and the third (received-direction) vector — none of
-which `Categories/NodeKinds/gen/kindscan` parses.
+which `each kind's own `portsdef`` parses.
 
 ## Runtime status
 
