@@ -69,18 +69,6 @@ var editOps = map[string]func(context.Context, byte, byte, []byte, *MoveDispatch
 
 // EDIT_OPS_END
 
-const KindEditUpdate = 22
-
-var UpdateKinds = []string{
-	"overlays",
-	"clock",
-	"scene",
-	"tiltVector",
-	"panels",
-	"node",
-	"edge",
-}
-
 func ApplyEdit(ctx context.Context, op string, entity, attr byte, payload []byte, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
 	if h, ok := editOps[op]; ok {
 		h(ctx, entity, attr, payload, md, speedSinks)
@@ -107,14 +95,14 @@ var updateKindHandlers = map[string]func(context.Context, byte, []byte, *MoveDis
 
 func init() {
 	var missing []string
-	for _, entity := range UpdateKinds {
+	for _, entity := range Drag.UpdateKinds {
 		if _, ok := updateKindHandlers[entity]; !ok {
 			missing = append(missing, entity)
 		}
 	}
 	if len(missing) > 0 {
 		panic(fmt.Sprintf(
-			"scenerun: UpdateKinds names %v but updateKindHandlers has no entry for them. The wire can "+
+			"scenerun: Drag.UpdateKinds names %v but updateKindHandlers has no entry for them. The wire can "+
 				"carry an edit for each name here, so every one of those edits would decode cleanly and "+
 				"then be dropped — the click does nothing and nothing reports why.",
 			missing))
@@ -122,10 +110,10 @@ func init() {
 }
 
 func applyUpdate(ctx context.Context, entity, attr byte, payload []byte, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
-	if md == nil || int(entity) >= len(UpdateKinds) {
+	if md == nil || int(entity) >= len(Drag.UpdateKinds) {
 		return
 	}
-	if h, ok := updateKindHandlers[UpdateKinds[entity]]; ok {
+	if h, ok := updateKindHandlers[Drag.UpdateKinds[entity]]; ok {
 		h(ctx, attr, payload, md, speedSinks)
 	}
 }
