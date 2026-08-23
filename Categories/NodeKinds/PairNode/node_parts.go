@@ -7,7 +7,6 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/TiltPanel"
 	"github.com/dtauraso/wirefold/Categories/Node/TiltVectors"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/PairNode/tiltring"
-	Wiring "github.com/dtauraso/wirefold/Categories/NodeKinds/kindapi"
 )
 
 type nodePlumbing struct {
@@ -26,7 +25,7 @@ type nodePlumbing struct {
 
 	ClearOutBeads func()
 
-	Self *Wiring.Self
+	Self *Self
 }
 
 type tiltHeld struct {

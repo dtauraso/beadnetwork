@@ -13,18 +13,18 @@ import (
 )
 
 type BuildArgs struct {
-	ctx  context.Context
-	name string
-	data *loadspec.NodeData
-	pb   portwiring.PortBindings
+	Ctx  context.Context
+	Name string
+	Data *loadspec.NodeData
+	PB   portwiring.PortBindings
 
-	tiltPhiIdx int32
+	TiltPhiIdx int32
 
 	sourceOuts *[]*beadanimation.Sender
 
 	getEmitter func() *interior.Emitter
 
-	deps kindreg.BuildDeps
+	Deps kindreg.BuildDeps
 
 	kind  string
 	ports []portwiring.PortSpec
@@ -45,10 +45,6 @@ func (a BuildArgs) mustDeclare(portName string, dir portwiring.PortDir) {
 		a.kind + " asked for " + portName + ", table declares " + strings.Join(names, ", "))
 }
 
-func (a BuildArgs) Name() string { return a.name }
-
-func (a BuildArgs) Ctx() context.Context { return a.ctx }
-
 func BuilderFor(kind string, build func(BuildArgs) (nodeapi.Node, error)) kindreg.NodeBuilder {
 	ports, declared := portwiring.KindPorts[kind]
 	if !declared {
@@ -62,14 +58,14 @@ func BuilderFor(kind string, build func(BuildArgs) (nodeapi.Node, error)) kindre
 		Build: func(ctx context.Context, name string, data *loadspec.NodeData, pb portwiring.PortBindings, tiltPhiIdx int32, deps kindreg.BuildDeps) (nodeapi.Node, error) {
 			var sourceOuts []*beadanimation.Sender
 			return build(BuildArgs{
-				ctx: ctx, name: name, data: data, pb: pb,
+				Ctx: ctx, Name: name, Data: data, PB: pb,
 				kind:  kind,
 				ports: ports,
 
 				sourceOuts: &sourceOuts,
 				getEmitter: portwiring.NewInteriorEmitterGetter(name, pb),
-				tiltPhiIdx: tiltPhiIdx,
-				deps:       deps,
+				TiltPhiIdx: tiltPhiIdx,
+				Deps:       deps,
 			})
 		},
 	}

@@ -13,7 +13,7 @@ import (
 
 func (n *Node) wirePlumbing(a Wiring.BuildArgs) {
 
-	if id, err := strconv.Atoi(a.Name()); err == nil {
+	if id, err := strconv.Atoi(a.Name); err == nil {
 		n.plumb.PairID = int32(id)
 	}
 	n.plumb.Fire = a.Fire()
@@ -36,7 +36,7 @@ func (n *Node) wireLatticeSeed(a Wiring.BuildArgs) (latticeSeed int32, seed *til
 }
 
 func (n *Node) wireSelfDrive(a Wiring.BuildArgs, latticeSeed int32, seed *tiltring.State, seedUnknown bool) {
-	self := a.ClaimSelfDrive()
+	self := claimSelfDrive(a)
 	n.plumb.Self = self
 	n.lattice.SyncLatticePoints = func(points int32) {
 		self.SetLatticePoints(points)
@@ -45,7 +45,7 @@ func (n *Node) wireSelfDrive(a Wiring.BuildArgs, latticeSeed int32, seed *tiltri
 	if seedUnknown {
 
 		self.Breadcrumb("pair-seed-unknown", fmt.Sprintf(
-			"node=%s persisted=%d loaded=%d", a.Name(), a.TiltVectorAngleSeed(), seed.Idx))
+			"node=%s persisted=%d loaded=%d", a.Name, a.TiltVectorAngleSeed(), seed.Idx))
 	}
 	n.tilt.SyncTiltIndex = func(theta int32) {
 		self.SetTiltIndex(theta)

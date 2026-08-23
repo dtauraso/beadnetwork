@@ -1,20 +1,20 @@
-package kindapi
+package input
 
 import (
 	"context"
 
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
-	"github.com/dtauraso/wirefold/Categories/Node"
+	NodeCat "github.com/dtauraso/wirefold/Categories/Node"
 	NodeDrag "github.com/dtauraso/wirefold/Categories/Node/Drag"
 )
 
 type Self struct {
-	geom *Node.NodeGeometry
+	geom *NodeCat.NodeGeometry
 
 	speedCh <-chan float64
 }
 
-func NewSelf(geom *Node.NodeGeometry, speedCh <-chan float64) *Self {
+func NewSelf(geom *NodeCat.NodeGeometry, speedCh <-chan float64) *Self {
 	return &Self{geom: geom, speedCh: speedCh}
 }
 
@@ -32,8 +32,8 @@ func (p *Self) Breadcrumb(label, value string) {
 		return
 	}
 
-	p.geom.Trace().Post([]Node.RowEvent{{
-		Kind: Node.KindBreadcrumb, Label: label, Debug: 1,
+	p.geom.Trace().Post([]NodeCat.RowEvent{{
+		Kind: NodeCat.KindBreadcrumb, Label: label, Debug: 1,
 		NodeRow: p.geom.Stream().NodeRow(), PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 		Text: value,
 	}})

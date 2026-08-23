@@ -20,7 +20,7 @@ type TimeStart struct {
 	EmitHeldBead func(held int)
 	Held         int `wire:"data.state"`
 
-	Self *Wiring.Self
+	Self *Self
 
 	Clock clock.Clock
 
@@ -130,7 +130,7 @@ var Builder = Wiring.BuilderFor("TimeStart",
 		n.EmitHeldBead = a.EmitHeldBead()
 		n.Clock = a.Clock()
 		n.SpeedCh = a.SpeedCh()
-		n.Self = a.ClaimSelfDrive()
+		n.Self = claimSelfDrive(a)
 		n.In = a.In("In")
 		n.ToNext = a.Broadcast("ToNext")
 

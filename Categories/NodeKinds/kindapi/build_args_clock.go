@@ -2,13 +2,13 @@ package kindapi
 
 import clock "github.com/dtauraso/wirefold/Categories/Clock"
 
-func (a BuildArgs) Clock() clock.Clock { return a.pb.Clock }
+func (a BuildArgs) Clock() clock.Clock { return a.PB.Clock }
 
 func (a BuildArgs) SpeedCh() <-chan float64 {
-	if a.pb.SpeedSinks == nil {
+	if a.PB.SpeedSinks == nil {
 		return nil
 	}
 	speedCh := make(chan float64, 1)
-	a.pb.SpeedSinks.Clocks = append(a.pb.SpeedSinks.Clocks, speedCh)
+	a.PB.SpeedSinks.Clocks = append(a.PB.SpeedSinks.Clocks, speedCh)
 	return speedCh
 }

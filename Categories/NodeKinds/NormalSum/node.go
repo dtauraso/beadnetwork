@@ -16,7 +16,7 @@ type Node struct {
 	Fire  func()
 	Clock clock.Clock
 
-	Self *Wiring.Self
+	Self *Self
 
 	Points int32
 
@@ -117,7 +117,7 @@ var Builder = Wiring.BuilderFor("NormalSum",
 		n.Fire = a.Fire()
 		n.Clock = a.Clock()
 		n.SpeedCh = a.SpeedCh()
-		n.Self = a.ClaimSelfDrive()
+		n.Self = claimSelfDrive(a)
 		n.Points = a.LatticePointsSeed()
 		n.LatticeIn = a.LatticeIn()
 		n.NormalA = a.In("NormalA")
