@@ -1,4 +1,4 @@
-package scenerun
+package inputactor
 
 import (
 	"context"
@@ -10,9 +10,10 @@ import (
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 
 	"github.com/dtauraso/wirefold/Categories/Input/Stdin"
+	"github.com/dtauraso/wirefold/Categories/Scene/scenerun"
 )
 
-func StartStdinReader(ctx context.Context, cancel context.CancelFunc, slotReg beadanimation.SlotRegistry, md *MoveDispatch, speedSinks SliderPanel.Sinks, clk clock.Clock, inputPath string) (*sync.WaitGroup, *sync.WaitGroup) {
+func StartStdinReader(ctx context.Context, cancel context.CancelFunc, slotReg beadanimation.SlotRegistry, md *scenerun.MoveDispatch, speedSinks SliderPanel.Sinks, clk clock.Clock, inputPath string) (*sync.WaitGroup, *sync.WaitGroup) {
 	inbox, gestureWG := StartGestureActor(ctx, slotReg, md, speedSinks, clk, inputPath)
 
 	stdinWG := new(sync.WaitGroup)

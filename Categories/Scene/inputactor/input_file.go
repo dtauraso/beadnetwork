@@ -1,4 +1,4 @@
-package File
+package inputactor
 
 import (
 	"os"

@@ -1,4 +1,4 @@
-package scenerun
+package inputactor
 
 import (
 	"context"
@@ -9,8 +9,8 @@ import (
 
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
 	"github.com/dtauraso/wirefold/Categories/Input/Drag"
-	"github.com/dtauraso/wirefold/Categories/Input/File"
 	"github.com/dtauraso/wirefold/Categories/Input/Stdin"
+	"github.com/dtauraso/wirefold/Categories/Scene/scenerun"
 )
 
 type gestureMsgKind int
@@ -27,20 +27,20 @@ type GestureInboxMsg struct {
 
 const gestureInboxDepth = 64
 
-func StartGestureActor(ctx context.Context, slotReg beadanimation.SlotRegistry, md *MoveDispatch, speedSinks SliderPanel.Sinks, clk clock.Clock, inputPath string) (chan GestureInboxMsg, *sync.WaitGroup) {
+func StartGestureActor(ctx context.Context, slotReg beadanimation.SlotRegistry, md *scenerun.MoveDispatch, speedSinks SliderPanel.Sinks, clk clock.Clock, inputPath string) (chan GestureInboxMsg, *sync.WaitGroup) {
 	inbox := make(chan GestureInboxMsg, gestureInboxDepth)
 	wg := new(sync.WaitGroup)
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		reader := File.NewReader(inputPath)
+		reader := NewReader(inputPath)
 		mine := clk.Copy()
 		wheel := &wheelTotals{}
 		for {
 			for _, raw := range reader.ReadAll() {
 				if ev, ok := Drag.DecodeRawInput(raw); ok {
 					wheel.difference(&ev)
-					HandleRawInputMsg(ctx, ev, slotReg, md, speedSinks)
+					scenerun.HandleRawInputMsg(ctx, ev, slotReg, md, speedSinks)
 				}
 			}
 
@@ -52,9 +52,9 @@ func StartGestureActor(ctx context.Context, slotReg beadanimation.SlotRegistry, 
 				case gm := <-inbox:
 					switch gm.Kind {
 					case GestureMsgEdit:
-						ApplyEdit(ctx, gm.Msg, md, speedSinks)
+						scenerun.ApplyEdit(ctx, gm.Msg, md, speedSinks)
 					case GestureMsgSave:
-						HandleSaveMsg(md)
+						scenerun.HandleSaveMsg(md)
 					}
 				default:
 					break drain
