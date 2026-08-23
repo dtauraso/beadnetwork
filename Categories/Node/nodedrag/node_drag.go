@@ -7,14 +7,6 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
 )
 
-// What a drag rule reads. It is a snapshot of the dragging node, not the node:
-// the rules run on values, so nodedrag does not know what a node is and a node
-// does not export its state to be asked 13 questions.
-//
-// Inbound is the collapse of four of those questions — every neighbour whose
-// edge points AT this node with its edge rule live, and the delta from it. A
-// rule wants the constraints pulling on it; who they belong to is not its
-// business.
 type State struct {
 	Index     polarindex.Index
 	Constants polarindex.SceneConstants
