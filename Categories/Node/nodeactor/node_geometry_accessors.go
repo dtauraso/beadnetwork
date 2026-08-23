@@ -27,15 +27,7 @@ func (m *NodeGeometry) SelfRule() *PolarRulesPanel.DragRule { return m.topo.Self
 
 func (m *NodeGeometry) SelfRuleActive() bool { return m.topo.SelfRuleActive() }
 
-func (m *NodeGeometry) Tick() int64 { return m.clocks.Tick() }
-
-func (m *NodeGeometry) Label() string { return m.geom.Label }
-
 func (m *NodeGeometry) NodeRow() int32 { return m.stream.NodeRow() }
-
-func (m *NodeGeometry) EdgeIDs() []string { return m.topo.EdgeIDs() }
-
-func (m *NodeGeometry) NeighborKinds() map[string]string { return m.topo.NeighborKinds() }
 
 func (m *NodeGeometry) Deltas() *owners.Deltas { return &m.deltas }
 
@@ -77,8 +69,4 @@ func (m *NodeGeometry) SendMove() func(id string, msg owners.Msg) { return m.msg
 
 func (m *NodeGeometry) CommitIndex() {
 	m.persistIndex(m.geom.DragIndex)
-}
-
-func (m *NodeGeometry) WriteStreamFrame(events []owners.RowEvent) {
-	m.writeStreamFrame(events)
 }
