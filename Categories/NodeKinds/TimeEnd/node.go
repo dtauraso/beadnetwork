@@ -4,6 +4,7 @@ import (
 	"context"
 
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
+	Speed "github.com/dtauraso/wirefold/Categories/Clock/Speed"
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/nodeapi"
 
@@ -47,7 +48,7 @@ func (h *TimeEnd) Update(ctx context.Context) {
 		default:
 		}
 
-		clock.ApplySpeedNonBlocking(clk, h.SpeedCh)
+		Speed.ApplySpeedNonBlocking(clk, h.SpeedCh)
 		h.Self.Step(ctx, clk.Tick())
 		if err := clk.SleepCycle(ctx); err != nil {
 			return

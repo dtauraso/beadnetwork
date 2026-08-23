@@ -3,7 +3,7 @@ package gatecommon
 import (
 	"context"
 
-	clock "github.com/dtauraso/wirefold/Categories/Clock"
+	Speed "github.com/dtauraso/wirefold/Categories/Clock/Speed"
 )
 
 func runGateLoop(ctx context.Context, g *GateNode, captureLeftFn, captureRightFn func(*GateNode) bool, fireResult func(*GateNode) int) {
@@ -21,7 +21,7 @@ func runGateLoop(ctx context.Context, g *GateNode, captureLeftFn, captureRightFn
 	now := clk.Tick
 
 	sleep := func(ctx context.Context) error {
-		clock.ApplySpeedNonBlocking(clk, g.SpeedCh)
+		Speed.ApplySpeedNonBlocking(clk, g.SpeedCh)
 		g.Self.Step(ctx, clk.Tick())
 		return clk.SleepCycle(ctx)
 	}

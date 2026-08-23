@@ -2,7 +2,7 @@
 // Source: Categories/Input/gen/record_reader_template.go, copied verbatim.
 // Regenerate with: go generate ./...
 
-package clock
+package Speed
 
 import (
 	"encoding/binary"

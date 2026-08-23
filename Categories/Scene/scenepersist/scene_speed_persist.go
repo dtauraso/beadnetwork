@@ -1,7 +1,7 @@
 package scenepersist
 
 import (
-	clock "github.com/dtauraso/wirefold/Categories/Clock"
+	Speed "github.com/dtauraso/wirefold/Categories/Clock/Speed"
 	"math"
 
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/SliderPanel"
@@ -45,5 +45,5 @@ func LoadSceneSpeed(speedPath string) (float64, bool) {
 }
 
 func SliderNum(userSpeed float64) int64 {
-	return int64(math.Round(userSpeed * clock.SpeedNumScale))
+	return int64(math.Round(userSpeed * Speed.SpeedNumScale))
 }

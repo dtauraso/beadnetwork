@@ -5,7 +5,7 @@ import (
 
 	SceneTiltVectors "github.com/dtauraso/wirefold/Categories/Scene/TiltVectors"
 
-	clock "github.com/dtauraso/wirefold/Categories/Clock"
+	Speed "github.com/dtauraso/wirefold/Categories/Clock/Speed"
 
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/Panel"
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/SliderPanel"
@@ -31,11 +31,11 @@ func (md *MoveDispatch) persistPanels(pn Panel.PanelState) {
 }
 
 func applyUpdateClock(_ context.Context, msg Stdin.StdinMsg, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
-	clock.EditSpeed(msg, md.speedState(), speedSinks, md.persistSpeed, md.redraw)
+	Speed.EditSpeed(msg, md.speedState(), speedSinks, md.persistSpeed, md.redraw)
 }
 
-func (md *MoveDispatch) speedState() clock.SpeedState {
-	return clock.SpeedState{Speed: &md.UI.Speed, Divisor: md.UI.ClockDivisor}
+func (md *MoveDispatch) speedState() Speed.SpeedState {
+	return Speed.SpeedState{Speed: &md.UI.Speed, Divisor: md.UI.ClockDivisor}
 }
 
 func (md *MoveDispatch) persistSpeed(userSpeed float64) {

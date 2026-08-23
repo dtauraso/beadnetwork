@@ -3,7 +3,7 @@ package scenerun
 import (
 	"context"
 
-	clock "github.com/dtauraso/wirefold/Categories/Clock"
+	Speed "github.com/dtauraso/wirefold/Categories/Clock/Speed"
 
 	"github.com/dtauraso/wirefold/Categories/Input/Drag"
 
@@ -132,5 +132,5 @@ func applyAngleHit(ctx context.Context, md *MoveDispatch, speedSinks SliderPanel
 }
 
 func setClockSpeed(md *MoveDispatch, speedSinks SliderPanel.Sinks, speed float64) {
-	clock.SetSpeedNum(int64(speed*clock.SpeedNumScale), md.speedState(), speedSinks, md.persistSpeed, md.redraw)
+	Speed.SetSpeedNum(int64(speed*Speed.SpeedNumScale), md.speedState(), speedSinks, md.persistSpeed, md.redraw)
 }

@@ -1,22 +1,11 @@
-package clock
+package Speed
 
 import (
-	"time"
-
+	"github.com/dtauraso/wirefold/Categories/Clock"
 	"github.com/dtauraso/wirefold/Categories/Input/Stdin"
 )
 
 const SpeedNumScale = 4
-
-func (c *RealClock) SetSpeed(speed float64) {
-	if speed < 0 {
-		speed = 0
-	}
-	now := time.Now()
-	c.accScaled += time.Duration(float64(now.Sub(c.lastChange)) * c.speed)
-	c.lastChange = now
-	c.speed = speed
-}
 
 var attrSpeed = attrIndex("speed")
 
@@ -63,10 +52,10 @@ func SetSpeedNum(num int64, st SpeedState, sinks Broadcaster, persist func(float
 	redraw()
 }
 
-func ApplySpeedNonBlocking(clk Clock, speedCh <-chan float64) {
+func ApplySpeedNonBlocking(clk clock.Clock, speedCh <-chan float64) {
 	select {
 	case sp := <-speedCh:
-		if rc, ok := clk.(*RealClock); ok {
+		if rc, ok := clk.(*clock.RealClock); ok {
 			rc.SetSpeed(sp)
 		}
 	default:

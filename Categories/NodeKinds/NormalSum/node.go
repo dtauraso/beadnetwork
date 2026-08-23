@@ -4,6 +4,7 @@ import (
 	"context"
 
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
+	Speed "github.com/dtauraso/wirefold/Categories/Clock/Speed"
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/Categories/Node/nodeactor"
 	Wiring "github.com/dtauraso/wirefold/Categories/NodeKinds/kindapi"
@@ -41,7 +42,7 @@ func (n *Node) Update(ctx context.Context) {
 		if ctx.Err() != nil {
 			return
 		}
-		clock.ApplySpeedNonBlocking(c, n.SpeedCh)
+		Speed.ApplySpeedNonBlocking(c, n.SpeedCh)
 		select {
 		case pts := <-n.LatticeIn:
 			if pts > 0 {

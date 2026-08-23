@@ -6,6 +6,7 @@ import (
 
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/SliderPanel"
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
+	Speed "github.com/dtauraso/wirefold/Categories/Clock/Speed"
 	"github.com/dtauraso/wirefold/Categories/Node/BeadAnimation/lattice"
 	SF "github.com/dtauraso/wirefold/Categories/Node/Edge"
 	"github.com/dtauraso/wirefold/Categories/Node/framegeom"
@@ -57,7 +58,7 @@ func (o *BeadAnimation) RunBeadAnimation(ctx context.Context) {
 	}
 	clk := clock.NewRealClock()
 	if o.sleepMs == 0 {
-		o.sleepMs = SliderPanel.SleepMs(clock.SpeedNumScale, 1)
+		o.sleepMs = SliderPanel.SleepMs(Speed.SpeedNumScale, 1)
 	}
 	for {
 		if ctx.Err() != nil {

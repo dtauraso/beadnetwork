@@ -2,7 +2,7 @@
 // Source: the input layout declared in Categories/Input/gen.
 // Regenerate with: go generate ./...
 
-package clock
+package Speed
 
 var InUpdateAttrs = []string{"toggle", "speed", "selected", "phi", "reset", "start", "latticePoints", "create", "delete", "dragPhi", "dragMaxTheta", "dragActive", "kindActive", "selfDragPhi", "selfDragMaxTheta", "selfDragActive", "dragR", "selfDragR", "viewport"}
 
@@ -12,7 +12,7 @@ func attrIndex(attr string) byte {
 			return byte(i)
 		}
 	}
-	panic("clock.attrIndex: no wire byte exists for update attribute " + attr +
+	panic("Speed.attrIndex: no wire byte exists for update attribute " + attr +
 		"; the attr list this package was generated with does not carry it, so an edit naming " +
 		"it could never be encoded. Declare it in Categories/Input/gen's input layout and regenerate, " +
 		"in the same commit as the decoder that reads it.")

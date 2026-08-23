@@ -12,7 +12,7 @@ roots = ["Categories/Node", "Categories/NodeKinds", "Categories/Ring/Bead", "Cat
 wait_pat = re.compile(r'\btime\.(Sleep|After|NewTicker)\s*\(')
 
 EXEMPT_FILES = {
-    os.path.join("Categories/Clock", "pulse.go"),
+    os.path.join("Categories/Clock", "clock.go"),
 }
 
 ALLOWED = set()

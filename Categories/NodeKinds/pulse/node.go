@@ -4,6 +4,7 @@ import (
 	"context"
 
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
+	Speed "github.com/dtauraso/wirefold/Categories/Clock/Speed"
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/nodeapi"
 
@@ -75,7 +76,7 @@ func (g *Pulse) Update(ctx context.Context) {
 			return
 		}
 		consume()
-		clock.ApplySpeedNonBlocking(clk, g.SpeedCh)
+		Speed.ApplySpeedNonBlocking(clk, g.SpeedCh)
 		for _, d := range drivers {
 			d.Step(clk.Tick())
 		}

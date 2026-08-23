@@ -4,6 +4,7 @@ import (
 	"context"
 
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
+	Speed "github.com/dtauraso/wirefold/Categories/Clock/Speed"
 	lattice "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation/lattice"
 )
 
@@ -81,7 +82,7 @@ func EmitRefillSlide(ctx context.Context, nodeName string, clk clock.Clock, spee
 
 	emitFrame(0)
 	for {
-		clock.ApplySpeedNonBlocking(clk, speedCh)
+		Speed.ApplySpeedNonBlocking(clk, speedCh)
 		if err := clk.SleepCycle(ctx); err != nil {
 			return
 		}
