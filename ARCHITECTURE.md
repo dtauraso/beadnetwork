@@ -13,7 +13,7 @@ extension host (Node)                webview (browser)
   Start/extension.ts                ◄──►   Start/main.tsx
   Start/extension/runCommand.ts                  Start/extension/webview/scene/ThreeView.tsx
   Start/extension/handle-message.ts    Start/extension/webview/scene/scene-root.tsx
-  Start/extension/html.ts                          Categories/Node/node-label.ts
+  Start/extension/html.ts                          Categories/Node/Labels/node-label.ts
   Start/extension/goBuild.ts                     Categories/Scene/scene-leaves.ts
   src/* (shared)
 ```

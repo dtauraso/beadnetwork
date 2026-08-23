@@ -13,7 +13,7 @@ import { RuleChannelLines } from "../../../../Categories/Node/ChannelVectors/Rul
 import { ChromeCanvas } from "../../../../Categories/Chrome/Panels/ChromeCanvas";
 import { InteriorBeadInstances } from "../../../../Categories/Node/Interior/InteriorBeadInstances";
 import { SceneCamera } from "../../../../Categories/Scene/Camera/SceneCamera";
-import { LabelProjector } from "../../../../Categories/Scene/Labels/LabelProjector";
+import { LabelProjector } from "../../../../Categories/Node/Labels/LabelProjector";
 
 export type { LabelPos } from "./scene-tags";
 export {

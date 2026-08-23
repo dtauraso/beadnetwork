@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { nodeLabel } from "../../Node/node-label";
+import { nodeLabel } from "../../Node/Labels/node-label";
 import { polarToCart } from "../../Polar/polar-convert";
 import { sceneSteps, sceneRadius } from "../scene-frame";
 import { ownerCounts } from "../owner-counts";
