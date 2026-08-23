@@ -4,11 +4,9 @@ import (
 	"context"
 	"fmt"
 	"math"
-
-	"github.com/dtauraso/wirefold/Categories/Node/rulenode"
 )
 
-func EditNode(ctx context.Context, e Edit, rules *rulenode.RuleChannels) {
+func EditNode(ctx context.Context, e Edit, rules *RuleChannels) {
 	if e.Attr == "kindActive" {
 		ToggleKindRule(ctx, rules, e.Num)
 		return
@@ -18,7 +16,7 @@ func EditNode(ctx context.Context, e Edit, rules *rulenode.RuleChannels) {
 	if !ok {
 		return
 	}
-	edit := rulenode.Edit{Kind: kind}
+	edit := RuleEdit{Kind: kind}
 	if e.Attr == "dragMaxTheta" || e.Attr == "selfDragMaxTheta" {
 		if e.X >= 0 {
 			radians := e.X * math.Pi
@@ -28,18 +26,18 @@ func EditNode(ctx context.Context, e Edit, rules *rulenode.RuleChannels) {
 	SendRuleEdit(ctx, rules, e.Num, edit)
 }
 
-var nodeAttrEditKinds = map[string]rulenode.EditKind{
-	"dragPhi":          rulenode.EditPhiToggle,
-	"dragMaxTheta":     rulenode.EditMaxTheta,
-	"dragActive":       rulenode.EditActiveToggle,
-	"dragR":            rulenode.EditRToggle,
-	"selfDragR":        rulenode.EditSelfRToggle,
-	"selfDragPhi":      rulenode.EditSelfPhiToggle,
-	"selfDragMaxTheta": rulenode.EditSelfMaxTheta,
-	"selfDragActive":   rulenode.EditSelfActiveToggle,
+var nodeAttrEditKinds = map[string]EditKind{
+	"dragPhi":          EditPhiToggle,
+	"dragMaxTheta":     EditMaxTheta,
+	"dragActive":       EditActiveToggle,
+	"dragR":            EditRToggle,
+	"selfDragR":        EditSelfRToggle,
+	"selfDragPhi":      EditSelfPhiToggle,
+	"selfDragMaxTheta": EditSelfMaxTheta,
+	"selfDragActive":   EditSelfActiveToggle,
 }
 
-func SendRuleEdit(ctx context.Context, rules *rulenode.RuleChannels, row int, edit rulenode.Edit) {
+func SendRuleEdit(ctx context.Context, rules *RuleChannels, row int, edit RuleEdit) {
 	if row < 0 || row >= len(rules.EditsByNodeRow) {
 		panic(fmt.Sprintf(
 			"sendRuleEdit: node row %d is outside the %d rows the tree declares, so a rule edit names an entity "+
@@ -56,7 +54,7 @@ func SendRuleEdit(ctx context.Context, rules *rulenode.RuleChannels, row int, ed
 	}
 }
 
-func ToggleKindRule(ctx context.Context, rules *rulenode.RuleChannels, row int) {
+func ToggleKindRule(ctx context.Context, rules *RuleChannels, row int) {
 	if row < 0 || row >= len(rules.KindTogglesByNodeRow) {
 		panic(fmt.Sprintf(
 			"kindActive: node row %d is outside the %d rows the tree declares, so a kind-rule toggle names an "+

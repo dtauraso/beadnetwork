@@ -8,7 +8,6 @@ import (
 	NodeDrag "github.com/dtauraso/wirefold/Categories/Node/Drag"
 	interior "github.com/dtauraso/wirefold/Categories/Node/Interior"
 	"github.com/dtauraso/wirefold/Categories/Node/TiltVectors"
-	"github.com/dtauraso/wirefold/Categories/Node/rulenode"
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
 )
 
@@ -55,7 +54,7 @@ type NodeGeometry struct {
 
 	kindPosts KindPosts
 
-	rule rulenode.Link
+	rule Link
 }
 
 func NewNodeGeometry(id string, geom NodeGeom, clockSrc clock.Clock, constants polarindex.SceneConstants) *NodeGeometry {

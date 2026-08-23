@@ -2,7 +2,6 @@ package loadspec
 
 import (
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/PolarRulesPanel"
-	rulenode "github.com/dtauraso/wirefold/Categories/Node/rulenode"
 	"strconv"
 
 	NodeBuf "github.com/dtauraso/wirefold/Categories/Node"
@@ -26,7 +25,7 @@ func SeedNode(m *NodeBuf.NodeGeometry, n Node, sceneRoot string) {
 	m.SetSelfKind(n.Type)
 
 	rn := m.RuleNode()
-	rn.SetPersist(rulenode.Persist{
+	rn.SetPersist(NodeBuf.Persist{
 		Rule:       func(r *PolarRulesPanel.DragRule) error { return NodeBuf.WriteDragRule(sceneRoot, n.ID, r) },
 		SelfRule:   func(r *PolarRulesPanel.DragRule) error { return NodeBuf.WriteSelfDragRule(sceneRoot, n.ID, r) },
 		SelfActive: func(a bool) error { return NodeBuf.WriteSelfRuleActive(sceneRoot, n.ID, a) },

@@ -1,7 +1,7 @@
-package rulenode
+package Node
 
 type RuleChannels struct {
-	EditsByNodeRow []chan<- Edit
+	EditsByNodeRow []chan<- RuleEdit
 
 	KindTogglesByNodeRow []chan<- struct{}
 
@@ -9,6 +9,6 @@ type RuleChannels struct {
 }
 
 func (rc *RuleChannels) SizeByNodeRows(rows int) {
-	rc.EditsByNodeRow = make([]chan<- Edit, rows)
+	rc.EditsByNodeRow = make([]chan<- RuleEdit, rows)
 	rc.KindTogglesByNodeRow = make([]chan<- struct{}, rows)
 }

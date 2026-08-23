@@ -1,4 +1,4 @@
-package rulenode
+package Node
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/PolarRulesPanel"
 )
 
-func (r *RuleNode) applyEdit(e Edit) {
+func (r *RuleNode) applyEdit(e RuleEdit) {
 	switch e.Kind {
 	case EditActiveToggle:
 		r.active = !r.active
@@ -84,7 +84,7 @@ func (r *RuleNode) applyEdit(e Edit) {
 		r.persistSelfRule()
 	default:
 		panic(fmt.Sprintf(
-			"rulenode.applyEdit: node %q was sent edit kind %d, which no case handles, so a rule edit would be "+
+			"Node.applyRuleEdit: node %q was sent edit kind %d, which no case handles, so a rule edit would be "+
 				"silently dropped after crossing the bridge", r.id, e.Kind))
 	}
 	r.mesh.SetSelfRuleKey(PolarRulesPanel.KeyOf(r.rule))
@@ -96,7 +96,7 @@ func (r *RuleNode) persistRule() {
 		return
 	}
 	if err := r.persist.Rule(r.rule); err != nil {
-		LogPersistErr("rulenode", r.id, err)
+		LogPersistErr("rules", r.id, err)
 	}
 }
 
@@ -105,7 +105,7 @@ func (r *RuleNode) persistSelfRule() {
 		return
 	}
 	if err := r.persist.SelfRule(r.selfRule); err != nil {
-		LogPersistErr("rulenode", r.id, err)
+		LogPersistErr("rules", r.id, err)
 	}
 }
 
@@ -114,7 +114,7 @@ func (r *RuleNode) persistSelfActive() {
 		return
 	}
 	if err := r.persist.SelfActive(r.selfActive); err != nil {
-		LogPersistErr("rulenode", r.id, err)
+		LogPersistErr("rules", r.id, err)
 	}
 }
 
@@ -123,6 +123,6 @@ func (r *RuleNode) persistActive() {
 		return
 	}
 	if err := r.persist.DragActive(r.active); err != nil {
-		LogPersistErr("rulenode", r.id, err)
+		LogPersistErr("rules", r.id, err)
 	}
 }

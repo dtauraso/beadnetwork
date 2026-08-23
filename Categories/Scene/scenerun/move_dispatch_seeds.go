@@ -4,9 +4,9 @@ import (
 	"sort"
 	"strconv"
 
+	"github.com/dtauraso/wirefold/Categories/Node"
 	edge "github.com/dtauraso/wirefold/Categories/Node/Edge"
 	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgegeom"
-	"github.com/dtauraso/wirefold/Categories/Node"
 	rowtables "github.com/dtauraso/wirefold/Categories/Scene/rowtables"
 )
 

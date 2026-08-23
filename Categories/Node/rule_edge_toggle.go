@@ -1,4 +1,4 @@
-package rulenode
+package Node
 
 import (
 	"context"
@@ -36,7 +36,7 @@ func (r *RuleNode) applyKindToggle() {
 		return
 	}
 	if err := r.persist.KindActive(r.kindActive); err != nil {
-		LogPersistErr("rulenode", r.id, err)
+		LogPersistErr("rules", r.id, err)
 	}
 }
 
@@ -83,6 +83,6 @@ func (r *RuleNode) applyEdgeToggle(t EdgeToggle) {
 		return
 	}
 	if err := r.persist.EdgeActive(t.Target, next); err != nil {
-		LogPersistErr("rulenode", edgetable.ChannelName(r.id, t.Target), err)
+		LogPersistErr("rules", edgetable.ChannelName(r.id, t.Target), err)
 	}
 }

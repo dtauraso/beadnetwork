@@ -2,7 +2,6 @@ package Node
 
 import (
 	"github.com/dtauraso/wirefold/Categories/Node/ChannelVectors"
-	"github.com/dtauraso/wirefold/Categories/Node/rulenode"
 )
 
 func (m *NodeGeometry) pollChannelVectors() {
@@ -16,7 +15,7 @@ func (m *NodeGeometry) pollChannelVectors() {
 	}
 	if rn := m.RuleNode(); rn != nil {
 		select {
-		case rn.CenterIn() <- rulenode.Vec3(center):
+		case rn.CenterIn() <- Vec3(center):
 		default:
 		}
 	}

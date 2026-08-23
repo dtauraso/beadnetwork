@@ -1,4 +1,4 @@
-package rulenode
+package Node
 
 import (
 	"context"
@@ -22,7 +22,7 @@ const (
 	EditSelfRToggle
 )
 
-type Edit struct {
+type RuleEdit struct {
 	Kind     EditKind
 	MaxTheta *float64
 }
@@ -55,7 +55,7 @@ type RuleNode struct {
 	selfRule   *PolarRulesPanel.DragRule
 	selfActive bool
 
-	edits  chan Edit
+	edits  chan RuleEdit
 	ruleIn chan PolarRulesPanel.Msg
 
 	edgeActive       map[string]bool
@@ -78,7 +78,7 @@ func New(id string) *RuleNode {
 		mesh:               NewRuleMesh(),
 		active:             true,
 		selfActive:         true,
-		edits:              make(chan Edit, 8),
+		edits:              make(chan RuleEdit, 8),
 		ruleIn:             make(chan PolarRulesPanel.Msg, 8),
 		geomToRuleCenterIn: make(chan Vec3, 1),
 		edgeActive:         map[string]bool{},
@@ -120,7 +120,7 @@ func (r *RuleNode) BroadcastSelf() {
 	r.mesh.BroadcastRule(r.id)
 }
 
-func (r *RuleNode) Edits() chan<- Edit { return r.edits }
+func (r *RuleNode) Edits() chan<- RuleEdit { return r.edits }
 
 func (r *RuleNode) CenterIn() chan<- Vec3 { return r.geomToRuleCenterIn }
 
@@ -166,7 +166,7 @@ func (r *RuleNode) Run(ctx context.Context) {
 func (r *RuleNode) forward(ctx context.Context, peerID string, back chan PolarRulesPanel.Msg) {
 	if back == nil {
 		panic(fmt.Sprintf(
-			"rulenode.forward: node %q has a nil back-channel for peer %q, so that peer's rule could never "+
+			"Node.ruleForward: node %q has a nil back-channel for peer %q, so that peer's rule could never "+
 				"arrive and the two would never group — the mesh was linked with a channel that was never made",
 			r.id, peerID))
 	}

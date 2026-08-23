@@ -39,7 +39,7 @@ thing:
   it advances every bead the node owns by one slot per wake and writes its bead stream
 - the **geometry** goroutine — `RunGeometry`, paced by nothing, blocking on its own inbox
   so a drag is served at the rate of the hand dragging it
-- the **rule** goroutine — `rulenode.RuleNode.Run`, which fans out one forwarder per peer
+- the **rule** goroutine — `Node.RuleNode.Run`, which fans out one forwarder per peer
 
 A `BeadLine` is state one of them owns, not a fifth goroutine: it holds the segment, the step
 count and the beads on it, and the animation goroutine steps it.

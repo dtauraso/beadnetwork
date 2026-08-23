@@ -6,15 +6,14 @@ import (
 
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/PolarRulesPanel"
 	edge "github.com/dtauraso/wirefold/Categories/Node/Edge"
-	"github.com/dtauraso/wirefold/Categories/Node/rulenode"
 )
 
-func ApplyRuleCheck(ctx context.Context, h PolarRulesPanel.Hit, rules *rulenode.RuleChannels) {
+func ApplyRuleCheck(ctx context.Context, h PolarRulesPanel.Hit, rules *RuleChannels) {
 	switch h.Check {
 	case PolarRulesPanel.CheckNodeDrag:
-		SendRuleEdit(ctx, rules, int(h.NodeRow), rulenode.Edit{Kind: rulenode.EditActiveToggle})
+		SendRuleEdit(ctx, rules, int(h.NodeRow), RuleEdit{Kind: EditActiveToggle})
 	case PolarRulesPanel.CheckSelfDrag:
-		SendRuleEdit(ctx, rules, int(h.NodeRow), rulenode.Edit{Kind: rulenode.EditSelfActiveToggle})
+		SendRuleEdit(ctx, rules, int(h.NodeRow), RuleEdit{Kind: EditSelfActiveToggle})
 	case PolarRulesPanel.CheckKindRule:
 		ToggleKindRule(ctx, rules, int(h.NodeRow))
 	case PolarRulesPanel.CheckEdgeDrag:
@@ -22,31 +21,31 @@ func ApplyRuleCheck(ctx context.Context, h PolarRulesPanel.Hit, rules *rulenode.
 	}
 }
 
-var ruleValueEdits = map[PolarRulesPanel.ValueKind]rulenode.EditKind{
-	PolarRulesPanel.ValSelfR:   rulenode.EditSelfRToggle,
-	PolarRulesPanel.ValSelfPhi: rulenode.EditSelfPhiToggle,
-	PolarRulesPanel.ValDragR:   rulenode.EditRToggle,
-	PolarRulesPanel.ValDragPhi: rulenode.EditPhiToggle,
+var ruleValueEdits = map[PolarRulesPanel.ValueKind]EditKind{
+	PolarRulesPanel.ValSelfR:   EditSelfRToggle,
+	PolarRulesPanel.ValSelfPhi: EditSelfPhiToggle,
+	PolarRulesPanel.ValDragR:   EditRToggle,
+	PolarRulesPanel.ValDragPhi: EditPhiToggle,
 }
 
-func ApplyRuleValue(ctx context.Context, h PolarRulesPanel.Hit, rules *rulenode.RuleChannels) bool {
+func ApplyRuleValue(ctx context.Context, h PolarRulesPanel.Hit, rules *RuleChannels) bool {
 	kind, ok := ruleValueEdits[h.Value]
 	if !ok {
 		return false
 	}
-	SendRuleEdit(ctx, rules, int(h.NodeRow), rulenode.Edit{Kind: kind})
+	SendRuleEdit(ctx, rules, int(h.NodeRow), RuleEdit{Kind: kind})
 	return true
 }
 
-func CommitMaxTheta(ctx context.Context, rules *rulenode.RuleChannels, row int32, self bool, turns float64) {
+func CommitMaxTheta(ctx context.Context, rules *RuleChannels, row int32, self bool, turns float64) {
 	var maxTheta *float64
 	if turns >= 0 {
 		radians := turns * math.Pi
 		maxTheta = &radians
 	}
-	kind := rulenode.EditMaxTheta
+	kind := EditMaxTheta
 	if self {
-		kind = rulenode.EditSelfMaxTheta
+		kind = EditSelfMaxTheta
 	}
-	SendRuleEdit(ctx, rules, int(row), rulenode.Edit{Kind: kind, MaxTheta: maxTheta})
+	SendRuleEdit(ctx, rules, int(row), RuleEdit{Kind: kind, MaxTheta: maxTheta})
 }

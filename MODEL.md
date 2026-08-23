@@ -24,7 +24,7 @@ four jobs that have four different clocks:
   and writes its own bead stream. It is NOT the kind's loop: beads used to move
   only when the node's sim cycle came round, which tied how smoothly a bead drew
   to how fast the network was set to run.
-- The **rule goroutine** — `rulenode.RuleNode.Run` — blocks on its own inbox. It
+- The **rule goroutine** — `Node.RuleNode.Run` — blocks on its own inbox. It
   fans out further, one forwarder per peer in the all-pairs rule mesh, so the
   goroutine count per node grows with the size of the scene.
 - The **geometry goroutine** — `NodeGeometry.RunGeometry`, one per node id — is

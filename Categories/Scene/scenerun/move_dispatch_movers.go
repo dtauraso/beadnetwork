@@ -9,7 +9,6 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgegeom"
 	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgetable"
 	interior "github.com/dtauraso/wirefold/Categories/Node/Interior"
-	"github.com/dtauraso/wirefold/Categories/Node/rulenode"
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
 )
 
@@ -40,7 +39,7 @@ func (md *MoveDispatch) buildNodeMovers(geoms map[string]Node.NodeGeom, clk cloc
 func (md *MoveDispatch) wireRuleMesh() {
 	geoms := md.MR.NodeGeoms()
 	for id, nm := range geoms {
-		nm.AttachRuleNode(rulenode.New(id))
+		nm.AttachRuleNode(Node.New(id))
 	}
 	for id, nm := range geoms {
 		for peerID, peer := range geoms {

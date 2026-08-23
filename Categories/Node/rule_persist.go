@@ -1,4 +1,4 @@
-package rulenode
+package Node
 
 import "github.com/dtauraso/wirefold/Categories/Chrome/Panels/PolarRulesPanel"
 
