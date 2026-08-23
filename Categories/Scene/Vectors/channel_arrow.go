@@ -12,9 +12,6 @@ const (
 	ChannelHeadLength = nodegeom.ShadingParamChannelHeadLength
 )
 
-// A channel vector is drawn both ways between two centres, so a node that can
-// see its peers' centres has everything this needs. Nothing here knows what a
-// node is.
 func ChannelVectorsFor(self Vec3, peers map[string]Vec3) []ChannelVector {
 	out := make([]ChannelVector, 0, 2*len(peers))
 	for _, peer := range peers {
