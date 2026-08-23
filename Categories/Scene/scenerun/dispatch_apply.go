@@ -11,7 +11,6 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Scene"
 
 	"github.com/dtauraso/wirefold/Categories/Scene/Scenes"
-	"github.com/dtauraso/wirefold/Categories/Scene/scenepersist"
 	"github.com/dtauraso/wirefold/Categories/Scene/structuraledit"
 )
 
@@ -37,7 +36,7 @@ func applyUpdateScene(ctx context.Context, attr byte, payload []byte, md *MoveDi
 	}
 	switch e.Attr {
 	case "selected":
-		Scenes.SelectScene(&md.Scenes, int(e.Num), scenepersist.WriteSelectedScene)
+		Scenes.SelectScene(&md.Scenes, int(e.Num))
 	case "latticePoints":
 		setLatticePoints(md, int32(e.Num))
 	case "viewport":

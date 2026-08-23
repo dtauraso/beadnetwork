@@ -1,4 +1,4 @@
-package scenepersist
+package viewpersist
 
 type Persister[T any] struct {
 	Path  string

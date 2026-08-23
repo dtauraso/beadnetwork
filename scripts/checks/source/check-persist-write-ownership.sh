@@ -8,7 +8,7 @@ REPO_ROOT="$(git rev-parse --show-toplevel)"
 WIRING_DIR="$REPO_ROOT/Categories"
 PLUMBING_FILES=("value_file.go" "leaf_value_file.go")
 PLUMBING="value_file.go"
-PLUMBING_PATH="$WIRING_DIR/Scene/scenepersist/value_file.go"
+PLUMBING_PATH="$WIRING_DIR/Scene/Startup/value_file.go"
 
 if [[ ! -d "$WIRING_DIR" ]]; then
   echo "check-persist-write-ownership: MISCONFIGURED — $WIRING_DIR not found (moved/renamed?)." >&2
@@ -25,7 +25,7 @@ NODE_OWNERS=("node_mover.go" "nodefile_new_node_files.go" "nodefile_node_base_fi
 
 EDGE_OWNERS=("edge_file.go" "edge_delta_file.go" "edge_rule_active.go" "out_edges.go")
 
-VIEW_OWNERS=("scene_camera_persist.go" "overlays_persist.go" "panels_persist.go" "scene_sphere_persist.go" "scene_selection_persist.go" "scene_speed_persist.go" "lattice.go" "scene_spawn_persist.go")
+VIEW_OWNERS=("scene_camera_persist.go" "overlays_persist.go" "panels_persist.go" "scene_sphere_write.go" "selected_scene.go" "scene_speed.go" "lattice.go" "scene_spawn_persist.go")
 
 TREE_OWNERS=("counts.go")
 

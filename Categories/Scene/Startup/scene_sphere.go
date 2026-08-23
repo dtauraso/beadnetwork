@@ -1,15 +1,16 @@
-package scenepersist
+package Startup
 
 import (
 	"github.com/dtauraso/wirefold/Categories/Polar/polar"
-	"github.com/dtauraso/wirefold/Categories/Scene"
+	SceneBuf "github.com/dtauraso/wirefold/Categories/Scene"
+	"github.com/dtauraso/wirefold/Categories/Scene/viewpersist"
 	"github.com/dtauraso/wirefold/Categories/Scene/viewstate"
 )
 
 func LoadSceneSphere(topologyPath string) (polar.SceneSphere, bool) {
 	var s polar.SceneSphere
 	read := func(name string, dst *float64) bool {
-		return ReadIfExists(Scene.SceneValuePath(topologyPath, name), dst)
+		return ReadIfExists(SceneBuf.SceneValuePath(topologyPath, name), dst)
 	}
 	if !read("cx", &s.Center.X) || !read("cy", &s.Center.Y) ||
 		!read("cz", &s.Center.Z) || !read("radius", &s.Radius) {
@@ -18,19 +19,7 @@ func LoadSceneSphere(topologyPath string) (polar.SceneSphere, bool) {
 	return s, true
 }
 
-func WriteSceneSphere(sceneRoot string, s polar.SceneSphere) error {
-	for name, value := range map[string]float64{
-		"cx": s.Center.X, "cy": s.Center.Y, "cz": s.Center.Z,
-		"radius": s.Radius,
-	} {
-		if err := WriteAtomicIfChanged(Scene.SceneValuePath(sceneRoot, name), value); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func InstallSceneSphere(ui *viewstate.UIState, gs *Scene.GeomSeeds, topologyPath string) {
+func InstallSceneSphere(ui *viewstate.UIState, gs *SceneBuf.GeomSeeds, topologyPath string) {
 	if s, ok := LoadSceneSphere(topologyPath); ok {
 		ui.SceneSphere = s
 	} else {
@@ -43,7 +32,7 @@ func InstallSceneSphere(ui *viewstate.UIState, gs *Scene.GeomSeeds, topologyPath
 		ui.SceneSphere = polar.ContentFitSceneSphere(polarCenters)
 
 		if topologyPath != "" {
-			_ = WriteSceneSphere(topologyPath, ui.SceneSphere)
+			_ = viewpersist.WriteSceneSphere(topologyPath, ui.SceneSphere)
 		}
 	}
 

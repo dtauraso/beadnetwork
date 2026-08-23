@@ -15,7 +15,6 @@ import (
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
 	_ "github.com/dtauraso/wirefold/Categories/NodeKinds"
 	"github.com/dtauraso/wirefold/Categories/Scene/Camera"
-	"github.com/dtauraso/wirefold/Categories/Scene/scenepersist"
 	"github.com/dtauraso/wirefold/Categories/Scene/scenerun"
 	"github.com/dtauraso/wirefold/Categories/Scene/viewpersist"
 	"github.com/dtauraso/wirefold/Categories/Scene/viewstate"
@@ -36,7 +35,7 @@ func Load(ctx context.Context, scenePath string, clk clock.Clock) (Scene, error)
 		return Scene{}, err
 	}
 
-	sphere, hasScene := scenepersist.LoadSceneSphere(scenePath)
+	sphere, hasScene := LoadSceneSphere(scenePath)
 
 	nodeGeoms, baseIndices, dragIndices := Wiring.SeedGeometry(spec, Topology.Vec3(sphere.Center))
 	destRun, edgeRun, edgeEndpoints := Wiring.AllocateBeadLines(spec, nodeGeoms)
@@ -77,17 +76,17 @@ func LoadSceneState(scenePath string, md *scenerun.MoveDispatch, speedSinks Slid
 	md.UI.SceneEditable = s.Editable
 	md.UI.SceneKinds = SceneKindMask(s)
 
-	scenepersist.InstallOverlays(&md.UI, scenePath)
+	InstallOverlays(&md.UI, scenePath)
 
-	scenepersist.InstallPanels(&md.UI, scenePath)
+	InstallPanels(&md.UI, scenePath)
 
-	scenepersist.InstallSpeed(&md.UI, scenePath, speedSinks)
+	InstallSpeed(&md.UI, scenePath, speedSinks)
 
 	viewpersist.EnableViewpointPersist(&md.Persist, &md.UI, scenePath)
 
 	viewpersist.EnableEditPersist(&md.Persist, &md.Scenes, md.MR.NodeGeoms(), scenePath)
 
-	scenepersist.InstallSceneSphere(&md.UI, &md.GS, scenePath)
+	InstallSceneSphere(&md.UI, &md.GS, scenePath)
 }
 
 func EmitStartupBreadcrumbs(md *scenerun.MoveDispatch, scenePath string, nodeCount int) {

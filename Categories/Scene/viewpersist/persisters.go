@@ -7,21 +7,21 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Polar/polar"
 	"github.com/dtauraso/wirefold/Categories/Scene/Camera"
 	"github.com/dtauraso/wirefold/Categories/Scene/Scenes"
-	"github.com/dtauraso/wirefold/Categories/Scene/scenepersist"
+	"github.com/dtauraso/wirefold/Categories/Speed"
 )
 
 type Persisters struct {
 	vp *Camera.ViewpointPersister
 
-	overlays *scenepersist.Persister[Overlay.OverlayState]
+	overlays *Persister[Overlay.OverlayState]
 
-	panels *scenepersist.Persister[Panel.PanelState]
+	panels *Persister[Panel.PanelState]
 
-	sphere *scenepersist.Persister[polar.SceneSphere]
+	sphere *Persister[polar.SceneSphere]
 
-	speed *scenepersist.Persister[float64]
+	speed *Persister[float64]
 
-	lattice *scenepersist.Persister[int32]
+	lattice *Persister[int32]
 }
 
 func (p *Persisters) ArmViewpoint(topologyPath string) *Camera.ViewpointPersister {
@@ -31,31 +31,31 @@ func (p *Persisters) ArmViewpoint(topologyPath string) *Camera.ViewpointPersiste
 }
 
 func (p *Persisters) ArmEdit(topologyPath string) {
-	p.overlays = &scenepersist.Persister[Overlay.OverlayState]{
+	p.overlays = &Persister[Overlay.OverlayState]{
 		Path: topologyPath, Write: Overlay.WriteSceneOverlays, Tag: "scene_overlays_persist",
 	}
-	p.panels = &scenepersist.Persister[Panel.PanelState]{
+	p.panels = &Persister[Panel.PanelState]{
 		Path: topologyPath, Write: Panel.WriteScenePanels, Tag: "scene_panels_persist",
 	}
-	p.sphere = &scenepersist.Persister[polar.SceneSphere]{
-		Path: topologyPath, Write: scenepersist.WriteSceneSphere, Tag: "scene_sphere_persist",
+	p.sphere = &Persister[polar.SceneSphere]{
+		Path: topologyPath, Write: WriteSceneSphere, Tag: "scene_sphere_persist",
 	}
-	p.speed = &scenepersist.Persister[float64]{
-		Path: Scenes.SpeedFilePath(topologyPath), Write: scenepersist.WriteSceneSpeed, Tag: "scene_speed_persist",
+	p.speed = &Persister[float64]{
+		Path: Scenes.SpeedFilePath(topologyPath), Write: Speed.WriteSceneSpeed, Tag: "scene_speed_persist",
 	}
-	p.lattice = &scenepersist.Persister[int32]{
+	p.lattice = &Persister[int32]{
 		Path: Scenes.LatticeFilePath(topologyPath), Write: AngleDropdown.WriteSceneLattice, Tag: "scene_lattice_persist",
 	}
 }
 
-func (p *Persisters) Overlays() *scenepersist.Persister[Overlay.OverlayState] {
+func (p *Persisters) Overlays() *Persister[Overlay.OverlayState] {
 	return p.overlays
 }
 
-func (p *Persisters) Panels() *scenepersist.Persister[Panel.PanelState] { return p.panels }
+func (p *Persisters) Panels() *Persister[Panel.PanelState] { return p.panels }
 
-func (p *Persisters) Sphere() *scenepersist.Persister[polar.SceneSphere] { return p.sphere }
+func (p *Persisters) Sphere() *Persister[polar.SceneSphere] { return p.sphere }
 
-func (p *Persisters) Speed() *scenepersist.Persister[float64] { return p.speed }
+func (p *Persisters) Speed() *Persister[float64] { return p.speed }
 
-func (p *Persisters) Lattice() *scenepersist.Persister[int32] { return p.lattice }
+func (p *Persisters) Lattice() *Persister[int32] { return p.lattice }
