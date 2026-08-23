@@ -8,7 +8,6 @@ import (
 
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
-	"github.com/dtauraso/wirefold/Categories/NodeKinds/portwiring"
 	Speed "github.com/dtauraso/wirefold/Categories/Speed"
 )
 
@@ -119,7 +118,7 @@ func (in *TimeStart) Update(ctx context.Context) {
 }
 
 var Builder = BuilderFor("TimeStart",
-	func(a BuildArgs) (portwiring.Node, error) {
+	func(a BuildArgs) (any, error) {
 		n := &TimeStart{
 
 			Held: a.StateSeed("held", interior.NoValue),

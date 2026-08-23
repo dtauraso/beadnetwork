@@ -5,7 +5,6 @@ import (
 
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
-	"github.com/dtauraso/wirefold/Categories/NodeKinds/portwiring"
 	Speed "github.com/dtauraso/wirefold/Categories/Speed"
 )
 
@@ -97,7 +96,7 @@ func (n *Node) runStepLoop(ctx context.Context, clk clock.Clock, perTick func() 
 }
 
 var Builder = BuilderFor("Input",
-	func(a BuildArgs) (portwiring.Node, error) {
+	func(a BuildArgs) (any, error) {
 		n := &Node{
 
 			Clock: clock.NewRealClock(),

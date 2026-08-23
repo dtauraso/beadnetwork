@@ -79,18 +79,18 @@ one directory out, since a directory is one Go package. `go generate ./...` runs
   npm, tsconfig and esbuild all assume it; directory naming for an npm package is medium,
   not substance. The package root is the REPO root — `package.json`, `tsconfig.json` and
   `node_modules/` live there, so there is one npm project and no path mappings.
-- **`Categories/NodeKinds/`** — the node kinds and `portwiring/`, the whole contract between a kind
-  and the scene: its ports, the `Node` interface it implements (`Update(ctx)`), the `NodeBuilder` it
-  returns, the `BuildDeps` it gets. All else a kind needs is in the kind. The scanner reads a
-  directory here as a kind only if it declares `var Builder = BuilderFor(…)`; nothing
-  registers, and `go generate` writes one `case` per kind into `NodeKinds.BuilderFor`. A kind's ports come from its
-  SPEC.md `## Ports` table and NOWHERE else — direction `in`, `out`, or `broadcast` (an out
-  that fans to every downstream edge). Deriving them from Go field types instead is what let
-  a port-typed field on any struct in a shared package grow a phantom port on all 8 kinds.
-  Both `node-defs.ts` and Go's `portwiring.KindPorts` are generated from that table, so the
-  kind passes no port list to `BuilderFor`, and `go generate` FAILS if a kind's code
-  binds a name the table does not carry (an undeclared name silently binds a dead-end
-  channel). The check after touching this directory is a `node-defs.ts` diff, not a build.
+- **`Categories/NodeKinds/`** — the node kinds, plus only the registry naming them (`builder.go`'s
+  `Builder`, the generated `kinds_gen.go` switch). A kind is a LEAF: it declares its OWN port
+  `bindings`, `deps` and `kindBuilder` and imports no shared kind package — Go matches an interface
+  by SHAPE, so `scenebuild.BuildDeps` satisfies a kind's `deps` and its builder satisfies
+  `NodeKinds.Builder`, neither naming the other. A directory counts as a kind only if it declares
+  `var Builder = BuilderFor(…)`; `go generate` writes its `case` into `NodeKinds.BuilderFor` and
+  nothing registers at runtime. A kind's ports come from its SPEC.md `## Ports`
+  table and NOWHERE else — direction `in`, `out`, or `broadcast` (an out that fans to every
+  downstream edge); deriving them from Go field types instead grew phantom ports, and stays out
+  (`.claude/rules/node-kinds.md`). Both `node-defs.ts` and each kind's own generated `kindPorts`
+  come from that table, so the kind passes no port list, and `go generate` FAILS if a kind binds a
+  name the table lacks (which would silently bind a dead-end channel). The check after touching this directory is a `node-defs.ts` diff, not a build.
 - **`Categories/Clock/`** — the human-speed clock, one of MODEL.md's own entities alongside the
   bead and the node, so it is a sibling of `Categories/Node/` rather than a part of it: `MsPerTick`, the
   `Clock` interface every goroutine holds its own `Copy()` of, and the sleep/speed delivery.

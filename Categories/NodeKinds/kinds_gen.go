@@ -16,11 +16,9 @@ import (
 	kindpulse "github.com/dtauraso/wirefold/Categories/NodeKinds/pulse"
 	kindselectleft "github.com/dtauraso/wirefold/Categories/NodeKinds/selectleft"
 	kindselectright "github.com/dtauraso/wirefold/Categories/NodeKinds/selectright"
-
-	"github.com/dtauraso/wirefold/Categories/NodeKinds/portwiring"
 )
 
-func BuilderFor(kind string) (portwiring.NodeBuilder, bool) {
+func BuilderFor(kind string) (Builder, bool) {
 	switch kind {
 	case "PairNode":
 		return kindPairNode.Builder, true
@@ -43,5 +41,5 @@ func BuilderFor(kind string) (portwiring.NodeBuilder, bool) {
 	case "SelectRight":
 		return kindselectright.Builder, true
 	}
-	return portwiring.NodeBuilder{}, false
+	return nil, false
 }

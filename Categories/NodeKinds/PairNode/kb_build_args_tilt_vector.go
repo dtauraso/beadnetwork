@@ -10,10 +10,10 @@ func (a BuildArgs) TiltVectorAngleSeed() (theta int32) {
 }
 
 func (a BuildArgs) TiltEditIn() <-chan TiltVectors.TiltEditMsg {
-	if a.Deps.ClaimTiltEditIn == nil {
+	if a.Deps == nil {
 		return make(chan TiltVectors.TiltEditMsg)
 	}
-	ch, ok := a.Deps.ClaimTiltEditIn(a.Name).(chan TiltVectors.TiltEditMsg)
+	ch, ok := a.Deps.TiltEditChan(a.Name).(chan TiltVectors.TiltEditMsg)
 	if !ok {
 		panic("TiltEditIn: the scene handed this kind something that is not a tilt-edit channel")
 	}

@@ -6,9 +6,15 @@ import (
 
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 	interior "github.com/dtauraso/wirefold/Categories/Node/Interior"
-	"github.com/dtauraso/wirefold/Categories/NodeKinds/portwiring"
 	"github.com/dtauraso/wirefold/Categories/Scene/loadspec"
 )
+
+type deps interface {
+	LatticePointsSeed() int32
+	LatticeChan(name string) chan int32
+	TiltEditChan(name string) any
+	SelfDriveGeom(name string) any
+}
 
 type BuildArgs struct {
 	Ctx  context.Context
@@ -22,7 +28,7 @@ type BuildArgs struct {
 
 	getEmitter func() *interior.Emitter
 
-	Deps portwiring.BuildDeps
+	Deps deps
 
 	kind  string
 	ports []PortSpec
@@ -43,33 +49,51 @@ func (a BuildArgs) mustDeclare(portName string, dir PortDir) {
 		a.kind + " asked for " + portName + ", table declares " + strings.Join(names, ", "))
 }
 
-func BuilderFor(kind string, build func(BuildArgs) (portwiring.Node, error)) portwiring.NodeBuilder {
+type kindBuilder struct {
+	kind  string
+	build func(BuildArgs) (any, error)
+}
+
+func (b kindBuilder) Ports() []struct {
+	Name string
+	Dir  int
+} {
+	out := make([]struct {
+		Name string
+		Dir  int
+	}, len(kindPorts))
+	for i, p := range kindPorts {
+		out[i].Name, out[i].Dir = p.Name, int(p.Dir)
+	}
+	return out
+}
+
+func (b kindBuilder) Build(ctx context.Context, name string, data *loadspec.NodeData, pb any, tiltPhiIdx int32, bd any) (any, error) {
+	bound, ok := pb.(bindings)
+	if !ok {
+		panic("Build: the scene handed " + name + " something that is not this kind's port bindings")
+	}
+	dep, okd := bd.(deps)
+	if !okd {
+		panic("Build: the scene handed " + name + " something that is not this kind's build deps")
+	}
+	var sourceOuts []*beadanimation.Sender
+	return b.build(BuildArgs{
+		Ctx: ctx, Name: name, Data: data, PB: bound,
+		kind:  b.kind,
+		ports: kindPorts,
+
+		sourceOuts: &sourceOuts,
+		getEmitter: NewInteriorEmitterGetter(name, bound),
+		TiltPhiIdx: tiltPhiIdx,
+		Deps:       dep,
+	})
+}
+
+func BuilderFor(kind string, build func(BuildArgs) (any, error)) kindBuilder {
 	if len(kindPorts) == 0 {
 		panic("BuilderFor: kind " + kind + " has no ports — its SPEC.md ## Ports table is the " +
 			"only declaration, and this kind's generated table is stale. Run go generate ./...")
 	}
-	ports := make([]portwiring.PortSpec, len(kindPorts))
-	for i, p := range kindPorts {
-		ports[i] = portwiring.PortSpec{Name: p.Name, Dir: portwiring.PortDir(p.Dir)}
-	}
-	return portwiring.NodeBuilder{
-		Ports: ports,
-		Build: func(ctx context.Context, name string, data *loadspec.NodeData, pb any, tiltPhiIdx int32, deps portwiring.BuildDeps) (portwiring.Node, error) {
-			bound, ok := pb.(bindings)
-			if !ok {
-				panic("BuilderFor: the scene handed " + name + " something that is not this kind's port bindings")
-			}
-			var sourceOuts []*beadanimation.Sender
-			return build(BuildArgs{
-				Ctx: ctx, Name: name, Data: data, PB: bound,
-				kind:  kind,
-				ports: kindPorts,
-
-				sourceOuts: &sourceOuts,
-				getEmitter: NewInteriorEmitterGetter(name, bound),
-				TiltPhiIdx: tiltPhiIdx,
-				Deps:       deps,
-			})
-		},
-	}
+	return kindBuilder{kind: kind, build: build}
 }

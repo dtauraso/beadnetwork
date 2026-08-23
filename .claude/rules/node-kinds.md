@@ -30,13 +30,18 @@ kind in `NodeKinds.BuilderFor`. Nothing registers: a kind declares
 names it. A kind missing from that switch is a COMPILE error, where the blank-import-and-`init()`
 arrangement it replaced failed at runtime with `unknown type`, after everything else looked right.
 
-`BuilderFor(kind, build)` RETURNS a `portwiring.NodeBuilder` rather than storing one, and lives in
-the kind, in its own `kb_build_args.go`, along with the `BuildArgs` accessors that kind calls —
-each kind carries only the groups it uses. `Categories/NodeKinds/portwiring` holds the shapes
-(`NodeBuilder`, `BuildDeps`, `BuildTypeMaps`) and names no category's types, so a kind is a leaf.
-The kind does not pass its ports at all: `BuilderFor` reads the generated
-`portwiring.KindPorts`, which `Categories/NodeKinds/gen` writes from the SPEC.md `## Ports`
-table. The kind used to pass an explicit `[]portwiring.PortSpec` literal, which was a SECOND
+`BuilderFor(kind, build)` RETURNS a builder rather than storing one, and lives in the kind, in its
+own `kb_build_args.go`, along with the `BuildArgs` accessors that kind calls — each kind carries
+only the groups it uses. There is NO shared kind package: the kind declares its own `bindings`
+interface (what it reads from the scene's port bindings), its own `deps` interface (what it needs
+from whatever built it), and its own `kindBuilder`. Go matches an interface by SHAPE, so
+`scenebuild.BuildDeps` satisfies every kind's `deps`, and every kind's `kindBuilder` satisfies
+`NodeKinds.Builder`, with neither side importing the other — that is what keeps a kind a LEAF.
+`Ports()` returns `[]struct{Name string; Dir int}`, an anonymous type on purpose: two identical
+anonymous struct types are the SAME type in every package, so the shape crosses the seam with
+nothing to import. The kind does not pass its ports at all: `BuilderFor` reads the generated
+per-kind `kindPorts`, which `Categories/NodeKinds/gen` writes from the SPEC.md `## Ports`
+table. The kind used to pass an explicit `[]PortSpec` literal, which was a SECOND
 declaration of the same inputs and outputs and free to drift from the table the editor draws
 from.
 
