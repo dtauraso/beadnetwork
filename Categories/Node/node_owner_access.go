@@ -1,6 +1,7 @@
 package Node
 
 import (
+	"github.com/dtauraso/wirefold/Categories/Node/ChannelVectors"
 	"github.com/dtauraso/wirefold/Categories/Node/owners"
 	"slices"
 
@@ -39,7 +40,7 @@ func (m *NodeGeometry) OutEdges() *owners.OutEdges { return &m.outEdges }
 
 func (m *NodeGeometry) Tilt() *owners.Tilt { return &m.tilt }
 
-func (m *NodeGeometry) Channels() *owners.ChannelVectors { return &m.channels }
+func (m *NodeGeometry) Channels() *ChannelVectors.PeerCenters { return &m.channels }
 
 func (m *NodeGeometry) ScenePolar() polar.Polar { return nodegeom.ScenePolarOf(m.geom) }
 

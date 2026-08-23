@@ -9,7 +9,7 @@ import {
 import { navSignature } from "./nav-signature";
 import { SceneGuides } from "../Guides/SceneGuides";
 import { PolarFrame } from "../Poles/PolarFrame";
-import { SceneVectors } from "../Vectors/SceneVectors";
+import { SceneVectors } from "./SceneVectors";
 import { NodePoles } from "../../Node/Poles/NodePoles";
 import { NodePoleSphere } from "../../Node/Poles/NodePoleSphere";
 

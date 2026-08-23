@@ -9,7 +9,7 @@ import { EdgeLines } from "../../../../Categories/Node/Edge/EdgeLines";
 import { getEdgeStreamAccessor } from "../../../../Categories/Node/Edge/edge-stream-blocks";
 import { TiltVectors } from "../../../../Categories/Scene/TiltVectors/TiltVectors";
 import { NodeInstances } from "../../../../Categories/Ring/NodeShape/NodeInstances";
-import { RuleChannelLines } from "../../../../Categories/Scene/Vectors/RuleChannelLines";
+import { RuleChannelLines } from "../../../../Categories/Node/ChannelVectors/RuleChannelLines";
 import { ChromeCanvas } from "../../../../Categories/Chrome/Panels/ChromeCanvas";
 import { InteriorBeadInstances } from "../../../../Categories/Node/Interior/InteriorBeadInstances";
 import { SceneCamera } from "../../../../Categories/Scene/Camera/SceneCamera";

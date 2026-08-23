@@ -3,6 +3,7 @@ package Node
 import (
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/TiltPanel"
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
+	"github.com/dtauraso/wirefold/Categories/Node/ChannelVectors"
 	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
 	"github.com/dtauraso/wirefold/Categories/Node/owners"
 	"github.com/dtauraso/wirefold/Categories/Node/rulenode"
@@ -30,7 +31,7 @@ type NodeGeometry struct {
 
 	tilt owners.Tilt
 
-	channels owners.ChannelVectors
+	channels ChannelVectors.PeerCenters
 
 	readout owners.Readout
 

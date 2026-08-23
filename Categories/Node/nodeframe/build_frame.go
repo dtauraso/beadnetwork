@@ -4,7 +4,7 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/PolarRulesPanel"
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/TiltPanel"
 	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
-	streamframe "github.com/dtauraso/wirefold/Categories/Scene/Vectors"
+	"github.com/dtauraso/wirefold/Categories/Node/ChannelVectors"
 	"math"
 )
 
@@ -44,7 +44,7 @@ type FrameInputs struct {
 	RuleGroupID   int32
 	RuleGroupSize int32
 
-	ChannelVectors []streamframe.ChannelVector
+	ChannelVectors []ChannelVectors.ChannelVector
 }
 
 func BuildFrame(in FrameInputs) NodeFrameInput {

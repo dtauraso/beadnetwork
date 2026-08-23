@@ -2,7 +2,7 @@ import { makeRowLeafValues } from "./row-leaf-values";
 import { VECTOR_VALUE_NAMES, type VectorValueName } from "./vector-values-gen";
 
 const values = makeRowLeafValues<VectorValueName>(
-  "Categories/Scene/Vectors/paths",
+  "Categories/Node/ChannelVectors/paths",
   VECTOR_VALUE_NAMES,
 );
 

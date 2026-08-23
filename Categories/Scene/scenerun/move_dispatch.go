@@ -1,6 +1,7 @@
 package scenerun
 
 import (
+	"github.com/dtauraso/wirefold/Categories/Node/ChannelVectors"
 	"github.com/dtauraso/wirefold/Categories/Node/nodeinbox"
 	"github.com/dtauraso/wirefold/Categories/Node/nodemove"
 	"github.com/dtauraso/wirefold/Categories/Node/rulechans"
@@ -29,6 +30,8 @@ type MoveDispatch struct {
 	RT rowtables.RowTables
 
 	Inboxes nodeinbox.NodeInboxes
+
+	ChannelVectorsOn ChannelVectors.OnSwitch
 
 	Rules rulechans.RuleChannels
 }

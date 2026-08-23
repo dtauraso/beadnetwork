@@ -19,7 +19,7 @@ func applyUpdateOverlays(_ context.Context, attr byte, payload []byte, md *MoveD
 	if !ok {
 		return
 	}
-	Overlay.EditOverlays(e, &md.UI.OV, &md.Inboxes, &md.UI, md.persistOverlays)
+	Overlay.EditOverlays(e, &md.UI.OV, &md.ChannelVectorsOn, &md.UI, md.persistOverlays)
 }
 
 func (md *MoveDispatch) persistOverlays(ov Overlay.OverlayState) {

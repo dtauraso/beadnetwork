@@ -1,4 +1,4 @@
-package SceneVectors
+package ChannelVectors
 
 type ChannelVector struct {
 	Shaft [16]float32
