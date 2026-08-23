@@ -2,10 +2,10 @@ package scenerun
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/SliderPanel"
 	"github.com/dtauraso/wirefold/Categories/Input/Drag"
-	"github.com/dtauraso/wirefold/Categories/Input/Stdin"
 
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/Categories/Node/nodecrud"
@@ -63,15 +63,27 @@ func HandleSaveMsg(md *MoveDispatch) {
 }
 
 // EDIT_OPS_START
-var editOps = map[string]func(context.Context, Stdin.StdinMsg, *MoveDispatch, SliderPanel.Sinks){
+var editOps = map[string]func(context.Context, byte, byte, []byte, *MoveDispatch, SliderPanel.Sinks){
 	"update": applyUpdate,
 }
 
 // EDIT_OPS_END
 
-func ApplyEdit(ctx context.Context, msg Stdin.StdinMsg, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
-	if h, ok := editOps[msg.Op]; ok {
-		h(ctx, msg, md, speedSinks)
+const KindEditUpdate = 22
+
+var UpdateKinds = []string{
+	"overlays",
+	"clock",
+	"scene",
+	"tiltVector",
+	"panels",
+	"node",
+	"edge",
+}
+
+func ApplyEdit(ctx context.Context, op string, entity, attr byte, payload []byte, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
+	if h, ok := editOps[op]; ok {
+		h(ctx, entity, attr, payload, md, speedSinks)
 	}
 }
 
@@ -80,7 +92,7 @@ func ApplyEdit(ctx context.Context, msg Stdin.StdinMsg, md *MoveDispatch, speedS
 // UNPACKED. A handler below the line takes the fields it uses; the one-line adapter here is
 // what turns MoveDispatch into those fields, and is what gets deleted when the handler moves
 // to its own concern and registers itself.
-var updateKindHandlers = map[string]func(context.Context, Stdin.StdinMsg, *MoveDispatch, SliderPanel.Sinks){
+var updateKindHandlers = map[string]func(context.Context, byte, []byte, *MoveDispatch, SliderPanel.Sinks){
 	"clock":      applyUpdateClock,
 	"scene":      applyUpdateScene,
 	"tiltVector": applyUpdateTiltVector,
@@ -93,11 +105,27 @@ var updateKindHandlers = map[string]func(context.Context, Stdin.StdinMsg, *MoveD
 
 // EDIT_UPDATE_KINDS_END
 
-func applyUpdate(ctx context.Context, msg Stdin.StdinMsg, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
-	if md == nil {
+func init() {
+	var missing []string
+	for _, entity := range UpdateKinds {
+		if _, ok := updateKindHandlers[entity]; !ok {
+			missing = append(missing, entity)
+		}
+	}
+	if len(missing) > 0 {
+		panic(fmt.Sprintf(
+			"scenerun: UpdateKinds names %v but updateKindHandlers has no entry for them. The wire can "+
+				"carry an edit for each name here, so every one of those edits would decode cleanly and "+
+				"then be dropped — the click does nothing and nothing reports why.",
+			missing))
+	}
+}
+
+func applyUpdate(ctx context.Context, entity, attr byte, payload []byte, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
+	if md == nil || int(entity) >= len(UpdateKinds) {
 		return
 	}
-	if h, ok := updateKindHandlers[msg.Kind]; ok {
-		h(ctx, msg, md, speedSinks)
+	if h, ok := updateKindHandlers[UpdateKinds[entity]]; ok {
+		h(ctx, attr, payload, md, speedSinks)
 	}
 }

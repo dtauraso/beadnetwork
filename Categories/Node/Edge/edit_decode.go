@@ -1,20 +1,18 @@
 package edge
 
-import (
-	"github.com/dtauraso/wirefold/Categories/Input/Stdin"
-)
+type Edit struct {
+	Num int
+}
 
-func decodeUpdate(payload []byte, attr byte) (Stdin.StdinMsg, bool) {
+func DecodeUpdate(payload []byte, attr byte) (Edit, bool) {
 	r := NewReader(payload, 0)
 	switch attr {
 	case attrDragActive:
 		row, err := r.U8()
 		if err != nil {
-			return Stdin.StdinMsg{}, false
+			return Edit{}, false
 		}
-		return Stdin.StdinMsg{Type: "edit", Op: "update", Kind: "edge", Attr: "dragActive", Num: int(row)}, true
+		return Edit{Num: int(row)}, true
 	}
-	return Stdin.StdinMsg{}, false
+	return Edit{}, false
 }
-
-func init() { Stdin.RegisterUpdateDecoder("edge", decodeUpdate) }

@@ -10,7 +10,7 @@
 //
 // MSG_TYPES_DOC_END
 
-package Stdin
+package inputactor
 
 import (
 	"bufio"
@@ -22,9 +22,30 @@ import (
 )
 
 type Handlers struct {
-	ApplyEdit func(msg StdinMsg)
+	ApplyEdit func(op string, entity, attr byte, payload []byte)
 
 	HandleSave func()
+}
+
+const (
+	kindSave       = 4
+	kindRawInput   = 10
+	kindEditUpdate = 22
+)
+
+func recordKind(rec []byte) string {
+	if len(rec) == 0 {
+		return ""
+	}
+	switch rec[0] {
+	case kindSave:
+		return "save"
+	case kindRawInput:
+		return "raw-input"
+	case kindEditUpdate:
+		return "edit"
+	}
+	return ""
 }
 
 const maxFrameBytes = 1 << 20
@@ -82,15 +103,11 @@ func RunStdinReader(ctx context.Context, r io.Reader, h Handlers) {
 				return
 			}
 
-			msg, decoded := DecodeInputRecord(rec)
-			if !decoded {
-				continue
-			}
 			// MSG_TYPES_START
-			switch msg.Type {
+			switch recordKind(rec) {
 			case "edit":
-				if h.ApplyEdit != nil {
-					h.ApplyEdit(msg)
+				if h.ApplyEdit != nil && len(rec) >= 3 {
+					h.ApplyEdit("update", rec[1], rec[2], rec[3:])
 				}
 			case "raw-input":
 				// Raw input is the current input, and it arrives as a file the

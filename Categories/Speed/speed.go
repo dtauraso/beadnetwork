@@ -2,25 +2,26 @@ package Speed
 
 import (
 	"github.com/dtauraso/wirefold/Categories/Clock"
-	"github.com/dtauraso/wirefold/Categories/Input/Stdin"
 )
 
 const SpeedNumScale = 4
 
 var attrSpeed = attrIndex("speed")
 
-func init() { Stdin.RegisterUpdateDecoder("clock", decodeUpdate) }
+type Edit struct {
+	Num int
+}
 
-func decodeUpdate(payload []byte, attr byte) (Stdin.StdinMsg, bool) {
+func DecodeUpdate(payload []byte, attr byte) (Edit, bool) {
 	r := NewReader(payload, 0)
 	if attr != attrSpeed {
-		return Stdin.StdinMsg{}, false
+		return Edit{}, false
 	}
 	speed, err := r.U8()
 	if err != nil {
-		return Stdin.StdinMsg{}, false
+		return Edit{}, false
 	}
-	return Stdin.StdinMsg{Type: "edit", Op: "update", Kind: "clock", Attr: "speed", Num: int(speed)}, true
+	return Edit{Num: int(speed)}, true
 }
 
 type Broadcaster interface {
@@ -32,11 +33,8 @@ type SpeedState struct {
 	Divisor float64
 }
 
-func EditSpeed(msg Stdin.StdinMsg, st SpeedState, sinks Broadcaster, persist func(float64), redraw func()) {
-	if msg.Attr != "speed" {
-		return
-	}
-	SetSpeedNum(int64(msg.Num), st, sinks, persist, redraw)
+func EditSpeed(e Edit, st SpeedState, sinks Broadcaster, persist func(float64), redraw func()) {
+	SetSpeedNum(int64(e.Num), st, sinks, persist, redraw)
 }
 
 func SetSpeedNum(num int64, st SpeedState, sinks Broadcaster, persist func(float64), redraw func()) {

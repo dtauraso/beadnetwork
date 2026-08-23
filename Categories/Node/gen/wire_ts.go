@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/dtauraso/wirefold/Categories/Input/Stdin"
 	"github.com/dtauraso/wirefold/Categories/Node"
+	"github.com/dtauraso/wirefold/Categories/Scene/scenerun"
 )
 
 func writeWireTS(srcRoot string) {
@@ -16,11 +16,11 @@ func writeWireTS(srcRoot string) {
 	fmt.Fprintln(&b, "// Source: Node.UpdateAttrs and Stdin's record_kinds.go.")
 	fmt.Fprintln(&b, "// Regenerate with: go generate ./...")
 	fmt.Fprintln(&b)
-	fmt.Fprintf(&b, "export const IN_KIND_EDIT_UPDATE = %d;\n\n", Stdin.InKindEditUpdate)
+	fmt.Fprintf(&b, "export const IN_KIND_EDIT_UPDATE = %d;\n\n", scenerun.KindEditUpdate)
 	writeWireList(&b, "IN_UPDATE_ATTRS", Node.UpdateAttrs)
 	fmt.Fprintln(&b)
 	fmt.Fprintln(&b, "// EDIT_UPDATE_KINDS_START")
-	writeWireList(&b, "IN_UPDATE_KINDS", Stdin.InUpdateKinds)
+	writeWireList(&b, "IN_UPDATE_KINDS", scenerun.UpdateKinds)
 	fmt.Fprintln(&b, "// EDIT_UPDATE_KINDS_END")
 	fmt.Fprintln(&b)
 

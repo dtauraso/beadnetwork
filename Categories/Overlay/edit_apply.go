@@ -1,9 +1,5 @@
 package Overlay
 
-import (
-	"github.com/dtauraso/wirefold/Categories/Input/Stdin"
-)
-
 type Emitter interface {
 	OverlayBreadcrumb(label, scope string, on bool)
 	Redraw()
@@ -13,11 +9,8 @@ type ChannelVectors interface {
 	BroadcastChannelVectorsOn(on bool)
 }
 
-func EditOverlays(msg Stdin.StdinMsg, ov *OverlayState, chans ChannelVectors, emit Emitter, persist func(OverlayState)) {
-	if msg.Attr != "toggle" {
-		return
-	}
-	ToggleFlag(ov, chans, emit, msg.Flag)
+func EditOverlays(e Edit, ov *OverlayState, chans ChannelVectors, emit Emitter, persist func(OverlayState)) {
+	ToggleFlag(ov, chans, emit, e.Flag)
 	emit.Redraw()
 	persist(*ov)
 }

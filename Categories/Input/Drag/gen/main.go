@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/dtauraso/wirefold/Categories/Input/Drag"
-	"github.com/dtauraso/wirefold/Categories/Input/Stdin"
 )
 
 func main() {
@@ -21,7 +20,7 @@ func main() {
 	fmt.Fprintln(&b, "// Source: Drag's kinds.go and Stdin's record_kinds.go.")
 	fmt.Fprintln(&b, "// Regenerate with: go generate ./...")
 	fmt.Fprintln(&b)
-	fmt.Fprintf(&b, "export const IN_KIND_RAW_INPUT = %d;\n\n", Stdin.InKindRawInput)
+	fmt.Fprintf(&b, "export const IN_KIND_RAW_INPUT = %d;\n\n", Drag.KindRawInput)
 	writeWireList(&b, "IN_EVENT_KINDS", Drag.EventKinds)
 	fmt.Fprintln(&b)
 	writeWireList(&b, "IN_HIT_KINDS", Drag.HitKinds)

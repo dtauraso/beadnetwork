@@ -1,100 +1,110 @@
 package Scene
 
-import (
-	"github.com/dtauraso/wirefold/Categories/Input/Stdin"
-)
-
-func init() {
-	Stdin.RegisterUpdateDecoder("scene", decodeUpdateScene)
-	Stdin.RegisterUpdateDecoder("tiltVector", decodeUpdateTiltVector)
+type Edit struct {
+	Attr string
+	Num  int
+	X, Y float64
 }
 
-func decodeUpdateScene(payload []byte, attr byte) (Stdin.StdinMsg, bool) {
+type TiltEdit struct {
+	Attr string
+	Num  int
+	Flag string
+}
+
+func DecodeUpdateScene(payload []byte, attr byte) (Edit, bool) {
 	r := NewReader(payload, 0)
 	switch attr {
 	case attrSelected:
 
 		tabIdx, err := r.U8()
 		if err != nil {
-			return Stdin.StdinMsg{}, false
+			return Edit{}, false
 		}
-		return Stdin.StdinMsg{Type: "edit", Op: "update", Kind: "scene", Attr: "selected", Num: int(tabIdx)}, true
+		return Edit{Attr: "selected", Num: int(tabIdx)}, true
 	case attrLatticePoints:
 
 		points, err := r.U8()
 		if err != nil {
-			return Stdin.StdinMsg{}, false
+			return Edit{}, false
 		}
-		return Stdin.StdinMsg{Type: "edit", Op: "update", Kind: "scene", Attr: "latticePoints", Num: int(points)}, true
+		return Edit{Attr: "latticePoints", Num: int(points)}, true
 	case attrCreate:
 
 		kindID, err := r.U8()
 		if err != nil {
-			return Stdin.StdinMsg{}, false
+			return Edit{}, false
 		}
 		ndcX, err := r.F32()
 		if err != nil {
-			return Stdin.StdinMsg{}, false
+			return Edit{}, false
 		}
 		ndcY, err := r.F32()
 		if err != nil {
-			return Stdin.StdinMsg{}, false
+			return Edit{}, false
 		}
-		return Stdin.StdinMsg{
-			Type: "edit", Op: "update", Kind: "scene", Attr: "create",
-			Num: int(kindID), X: float64(ndcX), Y: float64(ndcY),
+		return Edit{
+			Attr: "create",
+			Num:  int(kindID), X: float64(ndcX), Y: float64(ndcY),
 		}, true
 	case attrDelete:
 
 		row, err := r.U8()
 		if err != nil {
-			return Stdin.StdinMsg{}, false
+			return Edit{}, false
 		}
-		return Stdin.StdinMsg{Type: "edit", Op: "update", Kind: "scene", Attr: "delete", Num: int(row)}, true
+		return Edit{Attr: "delete", Num: int(row)}, true
 	case attrViewport:
 
 		w, errW := r.F32()
 		if errW != nil {
-			return Stdin.StdinMsg{}, false
+			return Edit{}, false
 		}
 		h, errH := r.F32()
 		if errH != nil {
-			return Stdin.StdinMsg{}, false
+			return Edit{}, false
 		}
-		return Stdin.StdinMsg{Type: "edit", Op: "update", Kind: "scene", Attr: "viewport", X: float64(w), Y: float64(h)}, true
+		return Edit{Attr: "viewport", X: float64(w), Y: float64(h)}, true
 	}
-	return Stdin.StdinMsg{}, false
+	return Edit{}, false
 }
 
-func decodeUpdateTiltVector(payload []byte, attr byte) (Stdin.StdinMsg, bool) {
+func DecodeUpdateTiltVector(payload []byte, attr byte) (TiltEdit, bool) {
 	r := NewReader(payload, 0)
 	switch attr {
 	case attrTiltVectorPhi:
 
 		row, errR := r.U8()
 		if errR != nil {
-			return Stdin.StdinMsg{}, false
+			return TiltEdit{}, false
 		}
 		dirUp, errD := r.U8()
 		if errD != nil {
-			return Stdin.StdinMsg{}, false
+			return TiltEdit{}, false
 		}
-		dir := Stdin.DirWord(dirUp)
-		return Stdin.StdinMsg{Type: "edit", Op: "update", Kind: "tiltVector", Attr: "phi", Num: int(row), Flag: dir}, true
+		dir := dirWord(dirUp)
+		return TiltEdit{Attr: "phi", Num: int(row), Flag: dir}, true
 	case attrTiltVectorRst:
 
 		row, errR := r.U8()
 		if errR != nil {
-			return Stdin.StdinMsg{}, false
+			return TiltEdit{}, false
 		}
-		return Stdin.StdinMsg{Type: "edit", Op: "update", Kind: "tiltVector", Attr: "reset", Num: int(row)}, true
+		return TiltEdit{Attr: "reset", Num: int(row)}, true
 	case attrTiltVectorStrt:
 
 		row, errR := r.U8()
 		if errR != nil {
-			return Stdin.StdinMsg{}, false
+			return TiltEdit{}, false
 		}
-		return Stdin.StdinMsg{Type: "edit", Op: "update", Kind: "tiltVector", Attr: "start", Num: int(row)}, true
+		return TiltEdit{Attr: "start", Num: int(row)}, true
 	}
-	return Stdin.StdinMsg{}, false
+	return TiltEdit{}, false
+}
+
+func dirWord(dirUp byte) string {
+	if dirUp != 0 {
+		return "up"
+	}
+	return "down"
 }

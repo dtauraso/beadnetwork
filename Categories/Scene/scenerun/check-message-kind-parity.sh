@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: Categories/Input/Stdin/stdin_reader.go,Start/extension/messages.ts,Start/extension/handle-message.ts,Start/extension/webview/** | a new message kind needs matching entries in Go's MSG_TYPES fence+doc, messages.ts, and a live sender
+# PLACEMENT: Categories/Scene/inputactor/stdin_reader.go,Start/extension/messages.ts,Start/extension/handle-message.ts,Start/extension/webview/** | a new message kind needs matching entries in Go's MSG_TYPES fence+doc, messages.ts, and a live sender
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel)"

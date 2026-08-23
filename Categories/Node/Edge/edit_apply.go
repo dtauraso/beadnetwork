@@ -3,15 +3,10 @@ package edge
 import (
 	"context"
 	"fmt"
-
-	"github.com/dtauraso/wirefold/Categories/Input/Stdin"
 )
 
-func EditEdge(ctx context.Context, msg Stdin.StdinMsg, toggles []chan<- struct{}) {
-	if msg.Attr != "dragActive" {
-		return
-	}
-	ToggleDragActive(ctx, msg.Num, toggles)
+func EditEdge(ctx context.Context, e Edit, toggles []chan<- struct{}) {
+	ToggleDragActive(ctx, e.Num, toggles)
 }
 
 func ToggleDragActive(ctx context.Context, row int, toggles []chan<- struct{}) {
