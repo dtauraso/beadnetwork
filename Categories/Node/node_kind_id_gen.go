@@ -13,7 +13,6 @@ const KindIDUnknown uint8 = 0xFF
 // kind get an undefined placeholder there, not a shift).
 var kindIDMap = map[string]uint8{
 	"TimeEnd":     0,
-	"HoldFlip":    1,
 	"Time":        2,
 	"Input":       3,
 	"Pacer":       4,
@@ -50,7 +49,6 @@ type KindAppearance struct {
 
 var kindAppearance = map[string]KindAppearance{
 	"TimeEnd":     {Fill: "#fff3e0", Stroke: "#7f0000", Desc: "The end of a time chain: holds what arrives and sends nothing on."},
-	"HoldFlip":    {Fill: "#eceff1", Stroke: "#263238", Desc: "Inverts what it receives: a 0 goes out as 1, a 1 as 0."},
 	"Time":        {Fill: "#fff3e0", Stroke: "#e65100", Desc: "Holds what arrives and sends on what it was holding, so a value comes out one arrival late."},
 	"Input":       {Fill: "#e0e0e0", Stroke: "#666", Desc: "The source: emits its own authored list of values, last one first, optionally repeating."},
 	"Pacer":       {Fill: "#e8f5e9", Stroke: "#2e7d32", Desc: "Sends 1 back when the value it receives differs from the last one, and 0 when it repeats."},

@@ -42,8 +42,8 @@ delivery), node goroutine, node input, and clock
    events are `Trace/`. Adding a node kind touches only `node-defs.ts`.
 3. The Go node package under `Categories/NodeKinds/<Kind>/`, with its logic always in `node.go` (never
    `<Kind>.go`) plus `SPEC.md`. Directory casing is mixed and both are live: PascalCase
-   (`Time`, `TimeEnd`, `TimeStart`, `PulseLeft`, `PulseRight`) and lowercase (`holdflip`,
-   `input`, `pacer`, `pulse`, `selectleft`, `selectright`) — don't infer one from the other.
+   (`Time`, `TimeEnd`, `TimeStart`, `PulseLeft`, `PulseRight`) and lowercase (`input`,
+   `pacer`, `pulse`, `selectleft`, `selectright`) — don't infer one from the other.
 4. `go generate ./...`. **Skip this and the kind is in no switch**, so loading a scene
    that names it fails saying exactly that. Guard: `check-generated.sh`.
 

@@ -13,7 +13,6 @@ import (
 	kindTime "github.com/dtauraso/wirefold/Categories/NodeKinds/Time"
 	kindTimeEnd "github.com/dtauraso/wirefold/Categories/NodeKinds/TimeEnd"
 	kindTimeStart "github.com/dtauraso/wirefold/Categories/NodeKinds/TimeStart"
-	kindholdflip "github.com/dtauraso/wirefold/Categories/NodeKinds/holdflip"
 	kindinput "github.com/dtauraso/wirefold/Categories/NodeKinds/input"
 	kindpacer "github.com/dtauraso/wirefold/Categories/NodeKinds/pacer"
 	kindpulse "github.com/dtauraso/wirefold/Categories/NodeKinds/pulse"
@@ -39,8 +38,6 @@ func BuilderFor(kind string) (kindreg.NodeBuilder, bool) {
 		return kindTimeEnd.Builder, true
 	case "TimeStart":
 		return kindTimeStart.Builder, true
-	case "HoldFlip":
-		return kindholdflip.Builder, true
 	case "Input":
 		return kindinput.Builder, true
 	case "Pacer":
