@@ -1,4 +1,4 @@
-import { editUpdate, enumIndex } from "./wire-gen";
+import { editUpdate, enumIndex } from "./record-writer";
 import { OVERLAY_FLAG_ORDER, type OverlayFlag } from "./flags";
 
 export function encodeOverlaysToggle(flag: OverlayFlag): ArrayBuffer {

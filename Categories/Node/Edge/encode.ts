@@ -1,4 +1,4 @@
-import { editUpdate } from "./wire-gen";
+import { editUpdate } from "./record-writer";
 
 export function encodeEdgeDragActiveToggle(edgeRow: number): ArrayBuffer {
   const w = editUpdate("edge", "dragActive");

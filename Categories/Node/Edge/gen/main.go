@@ -65,4 +65,6 @@ func main() {
 		fatalf("write %s: %v", namesPath, err)
 	}
 	announce(namesPath, len(edge.EdgeValueNames), "edge values")
+
+	writeWireTS(srcRoot)
 }

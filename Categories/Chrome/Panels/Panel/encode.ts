@@ -1,4 +1,4 @@
-import { editUpdate, enumIndex } from "./wire-gen";
+import { editUpdate, enumIndex } from "./record-writer";
 import { PANEL_FLAG_ORDER, type PanelFlag } from "./flags";
 
 export function encodePanelsToggle(flag: PanelFlag): ArrayBuffer {

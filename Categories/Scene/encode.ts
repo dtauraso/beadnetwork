@@ -1,4 +1,4 @@
-import { editUpdate } from "./wire-gen";
+import { editUpdate } from "./record-writer";
 
 export function encodeSceneSelected(tabIndex: number): ArrayBuffer {
   const w = editUpdate("scene", "selected");

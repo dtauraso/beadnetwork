@@ -32,4 +32,6 @@ func main() {
 	}
 	announce(pathsDir, len(flags), "overlay paths")
 	announce(filepath.Join(dir, "flag_paths_gen.go"), len(flags), "overlay paths")
+
+	writeWireTS(srcRoot)
 }
