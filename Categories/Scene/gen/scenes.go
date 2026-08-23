@@ -126,4 +126,6 @@ func main() {
 	announce(valuesPath, len(Scene.SceneValues), "scene values")
 
 	generateOwnerCounts(srcRoot)
+
+	writeWireTS(srcRoot)
 }

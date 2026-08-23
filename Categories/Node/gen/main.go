@@ -65,4 +65,6 @@ func main() {
 		fatalf("write %s: %v", namesPath, err)
 	}
 	announce(namesPath, len(Node.NodeValueNames), "node values")
+
+	writeWireTS(srcRoot)
 }

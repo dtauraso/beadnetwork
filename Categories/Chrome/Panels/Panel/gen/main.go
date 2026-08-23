@@ -25,4 +25,6 @@ func main() {
 	}
 	announce(pathsDir, len(flags), "panel paths")
 	announce(filepath.Join(dir, "flag_paths_gen.go"), len(flags), "panel paths")
+
+	writeWireTS(srcRoot)
 }

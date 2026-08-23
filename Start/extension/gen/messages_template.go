@@ -49,4 +49,3 @@ export function parseWebviewToHost(raw: unknown): WebviewToHostMsg | undefined {
   }
 }
 `
-
