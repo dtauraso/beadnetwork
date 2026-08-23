@@ -10,9 +10,9 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/SliderPanel"
 	"github.com/dtauraso/wirefold/Categories/Scene"
 
-	"github.com/dtauraso/wirefold/Categories/Node/nodecrud"
 	"github.com/dtauraso/wirefold/Categories/Node/rulenode"
 	"github.com/dtauraso/wirefold/Categories/Scene/sceneswitch"
+	"github.com/dtauraso/wirefold/Categories/Scene/structuraledit"
 )
 
 func tiltVectorEdit(ctx context.Context, md *MoveDispatch, speedSinks SliderPanel.Sinks, row int32, attr string) {
@@ -44,10 +44,10 @@ func applyUpdateScene(ctx context.Context, attr byte, payload []byte, md *MoveDi
 		md.UI.SetViewport(e.X, e.Y)
 	case "create":
 
-		nodecrud.CreateNode(&md.Scenes, &md.UI, md.MR.NodeGeoms(), md.nearestNodeTo, uint8(e.Num), e.X, e.Y)
+		structuraledit.CreateNode(&md.Scenes, &md.UI, md.MR.NodeGeoms(), md.nearestNodeTo, uint8(e.Num), e.X, e.Y)
 	case "delete":
 
-		nodecrud.DeleteNode(&md.Scenes, &md.UI, &md.RT, e.Num)
+		structuraledit.DeleteNode(&md.Scenes, &md.UI, &md.RT, e.Num)
 	}
 }
 

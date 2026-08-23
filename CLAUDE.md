@@ -132,7 +132,7 @@ one directory out, since a directory is one Go package. `go generate ./...` runs
   `draw-*.ts`: chrome is drawn onto `ChromeCanvas`'s canvas, while the diagram is drawn in
   the scene. Each piece holds ALL of itself: its layout/hit-testing Go,
   `*_values.go`, generated `*-values-gen.ts`, `draw-*.ts`. A chrome piece does not perform
-  topology edits — node create/delete is `Categories/Node/nodecrud`, not the dropdown offering it.
+  topology edits — node create/delete is `Categories/Scene/structuraledit`, not the dropdown offering it.
   `Categories/Overlay/` and `Categories/RingPoint/` are NOT chrome — they are block files for the diagram.
 - **`Start/extension/`** — the VS Code extension: our code, which RUNS IN the extension host
   (the Node process VS Code spawns) and is not that host — naming it `Host` said we were the
