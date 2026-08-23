@@ -13,7 +13,7 @@ import re, sys
 
 PAIRS = [
     ("Categories/Node/nodeactor/nodeframe/node_frame_input.go", "NodeFrameInput",
-     "Categories/Node/nodeactor/node_geometry_stream.go"),
+     "Categories/Node/nodeactor/nodeframe/build_frame.go"),
     ("Categories/Node/node_state.go", "NodeState",
      "Categories/Node/stream_sink.go"),
 ]
