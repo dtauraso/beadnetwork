@@ -69,9 +69,6 @@ func (n *Messaging) DrainPending(ctx context.Context, handle func(movemsg.Msg)) 
 		return false, true
 	case msg := <-n.extIn:
 		handle(msg)
-		if msg.TestDone != nil {
-			close(msg.TestDone)
-		}
 		progressed = true
 	default:
 	}
@@ -82,9 +79,6 @@ func (n *Messaging) DrainPending(ctx context.Context, handle func(movemsg.Msg)) 
 	for _, slot := range n.neighborIn {
 		if msg, ok := slot.take(); ok {
 			handle(msg)
-			if msg.TestDone != nil {
-				close(msg.TestDone)
-			}
 			progressed = true
 		}
 	}

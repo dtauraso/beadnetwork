@@ -5,9 +5,7 @@ import (
 )
 
 const (
-	KindAnchor  = "anchor"
-	KindCenter  = "center"
-	KindCenters = "centers"
+	KindCenter = "center"
 
 	KindDrag = "drag"
 
@@ -24,12 +22,6 @@ const (
 	KindTiltVectorAngle = "tiltVectorAngle"
 
 	KindTiltVectorReset = "tiltVectorReset"
-
-	KindDragPhiToggle = "dragPhiToggle"
-
-	KindDragMaxTheta = "dragMaxTheta"
-
-	KindDragActiveToggle = "dragActiveToggle"
 )
 
 type TiltEditMsg struct {
@@ -44,9 +36,8 @@ type Msg struct {
 	Kind   string
 	NodeID string
 
-	Port     string
-	IsInput  bool
-	AnchorId int
+	Port    string
+	IsInput bool
 
 	Center *Vec3
 
@@ -54,15 +45,7 @@ type Msg struct {
 
 	Target *polarindex.Index
 
-	Centers map[string]Vec3
-
-	FromCenter Vec3
-
 	SenderID string
 
 	Bool bool
-
-	DragMaxTheta *float64
-
-	TestDone chan struct{}
 }
