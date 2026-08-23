@@ -18,7 +18,7 @@ func (mv *NodeMover) CommitNodeMoveLocal(nodeGeoms map[string]*nodeactor.NodeGeo
 	BroadcastToPartners(edgeTable, nodeGeoms,
 		map[string]Vec3{nodeID: Vec3(committedPos)},
 		map[string]polarindex.Offset{nodeID: deltaIdx},
-		nm.SendMove())
+		nm.Msg().SendMove())
 
 	nm.CommitIndex()
 }

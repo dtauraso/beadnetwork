@@ -4,8 +4,6 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Node/owners"
 	"slices"
 
-	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/PolarRulesPanel"
-
 	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
 	"github.com/dtauraso/wirefold/Categories/Polar/polar"
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
@@ -25,21 +23,13 @@ func (m *NodeGeometry) KindPosts() *owners.KindPosts { return &m.kindPosts }
 
 func (m *NodeGeometry) Trace() *owners.Trace { return &m.trace }
 
+func (m *NodeGeometry) Stream() *owners.Stream { return &m.stream }
+
 func (m *NodeGeometry) ID() string { return m.id }
 
 func (m *NodeGeometry) Kind() string { return m.geom.Kind }
 
 func (m *NodeGeometry) SelfKind() string { return m.selfKind }
-
-func (m *NodeGeometry) DragRule() *PolarRulesPanel.DragRule { return m.topo.DragRule() }
-
-func (m *NodeGeometry) DragRuleActive() bool { return m.topo.DragRuleActive() }
-
-func (m *NodeGeometry) SelfRule() *PolarRulesPanel.DragRule { return m.topo.SelfRule() }
-
-func (m *NodeGeometry) SelfRuleActive() bool { return m.topo.SelfRuleActive() }
-
-func (m *NodeGeometry) NodeRow() int32 { return m.stream.NodeRow() }
 
 func (m *NodeGeometry) Deltas() *owners.Deltas { return &m.deltas }
 
@@ -76,8 +66,6 @@ func (m *NodeGeometry) EdgeRuleActive(otherID string) bool {
 	}
 	return m.RuleNode().EdgeActive(otherID)
 }
-
-func (m *NodeGeometry) SendMove() func(id string, msg owners.Msg) { return m.msg.SendMove() }
 
 func (m *NodeGeometry) CommitIndex() {
 	m.persistIndex(m.geom.DragIndex)

@@ -22,7 +22,7 @@ func HeldCenters(nodeGeoms map[string]*nodeactor.NodeGeometry, centerOf func(id 
 }
 
 func pointerPolar(nm *nodeactor.NodeGeometry, v Vec3) polar.Polar {
-	if rule := nm.SelfRule(); rule != nil && nm.SelfRuleActive() && rule.MaxTheta != nil {
+	if rule := nm.Topo().SelfRule(); rule != nil && nm.Topo().SelfRuleActive() && rule.MaxTheta != nil {
 		return polar.Cart2polarAtTheta(polar.Vec3(v), nm.ScenePolar().Theta)
 	}
 	return polar.Cart2polar(polar.Vec3(v))
