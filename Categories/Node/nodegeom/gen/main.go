@@ -32,17 +32,14 @@ func main() {
 	}
 	announce(kindIDPath, len(kinds), "kinds")
 
-	generateShadingParams(repoRoot)
-}
-
-func generateShadingParams(repoRoot string) {
-	goPath := filepath.Join(kindscan.NetworkDir(repoRoot), "nodegeom", "shading_params.go")
+	dir := filepath.Join(kindscan.NetworkDir(repoRoot), "nodegeom")
+	goPath := filepath.Join(dir, "shading_params.go")
 	shadingParams, err := params.ParseShadingParams(repoRoot, goPath)
 	if err != nil {
 		fatalf("parse shading params: %v", err)
 	}
-	tsPath := filepath.Join(kindscan.NetworkDir(repoRoot), "nodegeom", "shading-params.ts")
-	if err := params.WriteShadingParams(tsPath, shadingParams); err != nil {
+	tsPath := filepath.Join(dir, "shading-params.ts")
+	if err := params.WriteShadingParams(tsPath, shadingParams, genName, "Categories/Node/nodegeom/shading_params.go"); err != nil {
 		fatalf("write %s: %v", tsPath, err)
 	}
 	announce(tsPath, len(shadingParams), "constants")

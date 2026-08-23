@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/dtauraso/wirefold/Categories/Node/nodegeom/gen/params"
 	bead "github.com/dtauraso/wirefold/Categories/Ring/Bead"
 )
 
@@ -51,7 +52,7 @@ func writeNames(path string) error {
 
 func main() {
 	genName = "Categories/Ring/Bead/gen"
-	_, srcRoot := roots()
+	repoRoot, srcRoot := roots()
 
 	dir := filepath.Join(srcRoot, "Ring", "Bead")
 	pathsDir := filepath.Join(dir, "paths")
@@ -65,4 +66,15 @@ func main() {
 		fatalf("write %s: %v", namesPath, err)
 	}
 	announce(namesPath, len(bead.BeadValueNames), "bead values")
+
+	shGo := filepath.Join(dir, "shading_params.go")
+	shParams, shErr := params.ParseShadingParams(repoRoot, shGo)
+	if shErr != nil {
+		fatalf("parse shading params: %v", shErr)
+	}
+	shTs := filepath.Join(dir, "shading-params.ts")
+	if err := params.WriteShadingParams(shTs, shParams, genName, "Categories/Ring/Bead/shading_params.go"); err != nil {
+		fatalf("write %s: %v", shTs, err)
+	}
+	announce(shTs, len(shParams), "bead constants")
 }

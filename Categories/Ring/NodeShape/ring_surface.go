@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	RingSurfaceNu = nodegeom.ShadingParamNodeRingSurfaceNu
-	RingSurfaceNv = nodegeom.ShadingParamNodeRingSurfaceNv
+	RingSurfaceNu = ShadingParamNodeRingSurfaceNu
+	RingSurfaceNv = ShadingParamNodeRingSurfaceNv
 )
 
 func CanonicalRingSurfacePoints() []Vec3 {
