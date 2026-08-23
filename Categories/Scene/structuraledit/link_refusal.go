@@ -2,8 +2,6 @@ package structuraledit
 
 import (
 	"fmt"
-
-	"github.com/dtauraso/wirefold/Categories/NodeKinds/portwiring"
 )
 
 type Link struct {
@@ -13,7 +11,7 @@ type Link struct {
 }
 
 func linkRefusalFor(src, srcKind string, srcFound bool, kind string) (Link, string, bool) {
-	targetPort, hasIn := firstPortOfDir(kind, portwiring.PortIn)
+	targetPort, hasIn := firstPortOfDir(kind, PortIn)
 	if !hasIn {
 		return Link{}, fmt.Sprintf("%s takes no input, so nothing can connect to it", kind), false
 	}
@@ -28,19 +26,19 @@ func linkRefusalFor(src, srcKind string, srcFound bool, kind string) (Link, stri
 }
 
 func firstOutputPort(kind string) (name string, broadcast, ok bool) {
-	if name, ok = firstPortOfDir(kind, portwiring.PortOut); ok {
+	if name, ok = firstPortOfDir(kind, PortOut); ok {
 		return name, false, true
 	}
-	if name, ok = firstPortOfDir(kind, portwiring.PortBroadcast); ok {
+	if name, ok = firstPortOfDir(kind, PortBroadcast); ok {
 		return name, true, true
 	}
 	return "", false, false
 }
 
-func firstPortOfDir(kind string, dir portwiring.PortDir) (string, bool) {
-	ports, ok := portwiring.KindPorts[kind]
+func firstPortOfDir(kind string, dir PortDir) (string, bool) {
+	ports, ok := KindPorts[kind]
 	if !ok {
 		return "", false
 	}
-	return portwiring.FirstPortOfDir(ports, dir)
+	return FirstPortOfDir(ports, dir)
 }

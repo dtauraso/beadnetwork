@@ -1,7 +1,6 @@
 package scenebuild
 
 import (
-	"github.com/dtauraso/wirefold/Categories/NodeKinds/portwiring"
 	"github.com/dtauraso/wirefold/Categories/Scene/loadspec"
 )
 
@@ -11,10 +10,10 @@ func BuildTypeMaps(spec loadspec.TopoSpec) (nodeType map[string]string, kindBroa
 		nodeType[n.ID] = n.Type
 	}
 	kindBroadcastPorts = map[string]map[string]bool{}
-	for kind, ports := range portwiring.KindPorts {
+	for kind, ports := range KindPorts {
 		outMultis := map[string]bool{}
 		for _, p := range ports {
-			if p.Dir == portwiring.PortBroadcast {
+			if p.Dir == PortBroadcast {
 				outMultis[p.Name] = true
 			}
 		}

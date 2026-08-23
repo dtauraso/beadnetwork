@@ -8,10 +8,9 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Scene/loadspec"
 
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
-	"github.com/dtauraso/wirefold/Categories/NodeKinds/portwiring"
 )
 
-func ValidateSpec(spec *loadspec.TopoSpec, kindPorts map[string][]portwiring.PortSpec) error {
+func ValidateSpec(spec *loadspec.TopoSpec, kindPorts map[string][]PortSpec) error {
 	var errs []string
 
 	kindInPorts := map[string]map[string]bool{}
@@ -23,11 +22,11 @@ func ValidateSpec(spec *loadspec.TopoSpec, kindPorts map[string][]portwiring.Por
 		outMultis := map[string]bool{}
 		for _, p := range ports {
 			switch p.Dir {
-			case portwiring.PortIn:
+			case PortIn:
 				ins[p.Name] = true
-			case portwiring.PortOut:
+			case PortOut:
 				outs[p.Name] = true
-			case portwiring.PortBroadcast:
+			case PortBroadcast:
 				outMultis[p.Name] = true
 				outs[p.Name] = true
 			}

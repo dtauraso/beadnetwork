@@ -33,11 +33,16 @@ func main() {
 	}
 	genpaths.Announce(dimsPath, len(kinds), "kinds")
 
-	portsPath := filepath.Join(srcRoot, "NodeKinds", "portwiring", "kind_ports_gen.go")
-	if err := writeKindPorts(portsPath, kinds); err != nil {
-		genpaths.Fatalf("write %s: %v", portsPath, err)
+	for _, dest := range []struct{ dir, pkg string }{
+		{filepath.Join(srcRoot, "Scene", "scenebuild"), "scenebuild"},
+		{filepath.Join(srcRoot, "Scene", "structuraledit"), "structuraledit"},
+	} {
+		portsPath := filepath.Join(dest.dir, "kind_ports_gen.go")
+		if err := writeKindPorts(portsPath, dest.pkg, kinds); err != nil {
+			genpaths.Fatalf("write %s: %v", portsPath, err)
+		}
+		genpaths.Announce(portsPath, len(kinds), "kinds")
 	}
-	genpaths.Announce(portsPath, len(kinds), "kinds")
 
 	kindsDir := filepath.Join(srcRoot, "NodeKinds")
 	if err := writeKindOwnPorts(kindsDir, kinds); err != nil {

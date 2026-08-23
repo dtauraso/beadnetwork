@@ -58,7 +58,7 @@ func buildNodes(
 				"in the switch that BuilderFor reads", n.Type)
 		}
 
-		pb := portwiring.NewPortBindings()
+		pb := NewPortBindings()
 		pb.OutSink = outSink
 		pb.Clock = clk
 		pb.SpeedSinks = speedSinks
@@ -66,7 +66,11 @@ func buildNodes(
 		pb.InteriorEmitters = md.Sw.InteriorEmittersPtr()
 		pb.VectorOut = vectorOut
 		pb.VectorIn = vectorIn
-		wiring.BindPorts(&pb, n, bind.Ports)
+		declared := make([]PortSpec, len(bind.Ports))
+		for i, p := range bind.Ports {
+			declared[i] = PortSpec{Name: p.Name, Dir: PortDir(p.Dir)}
+		}
+		wiring.BindPorts(&pb, n, declared)
 
 		var tiltPhiIdx int32
 		if n.TopTiltVectorPhiIdx != nil {

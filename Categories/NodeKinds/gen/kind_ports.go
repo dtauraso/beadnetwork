@@ -24,7 +24,7 @@ func portDirExpr(p kindscan.Port) (string, bool) {
 	return "", false
 }
 
-func writeKindPorts(outPath string, kinds []kindscan.KindEntry) error {
+func writeKindPorts(outPath, pkg string, kinds []kindscan.KindEntry) error {
 	var buf bytes.Buffer
 	w := bufio.NewWriter(&buf)
 
@@ -32,12 +32,34 @@ func writeKindPorts(outPath string, kinds []kindscan.KindEntry) error {
 	fmt.Fprintln(w, `// Source: Categories/NodeKinds/<Kind>/SPEC.md ## Ports table.`)
 	fmt.Fprintln(w, `// Regenerate with: go generate ./...`)
 	fmt.Fprintln(w)
-	fmt.Fprintln(w, `package portwiring`)
+	fmt.Fprintf(w, "package %s\n", pkg)
 	fmt.Fprintln(w)
 	fmt.Fprintln(w, `// KindPorts maps each runtime kind to the inputs and outputs its SPEC.md`)
 	fmt.Fprintln(w, `// declares, in the same order the table lists them. BuilderFor reads`)
 	fmt.Fprintln(w, `// this instead of taking a hand-written list, so a kind declares its ports`)
 	fmt.Fprintln(w, `// in one place and the runtime and the editor cannot disagree about them.`)
+	fmt.Fprintln(w, `type PortDir int`)
+	fmt.Fprintln(w)
+	fmt.Fprintln(w, `const (`)
+	fmt.Fprintln(w, "\tPortIn PortDir = iota")
+	fmt.Fprintln(w, "\tPortOut")
+	fmt.Fprintln(w, "\tPortBroadcast")
+	fmt.Fprintln(w, `)`)
+	fmt.Fprintln(w)
+	fmt.Fprintln(w, `type PortSpec struct {`)
+	fmt.Fprintln(w, "\tName string")
+	fmt.Fprintln(w, "\tDir  PortDir")
+	fmt.Fprintln(w, `}`)
+	fmt.Fprintln(w)
+	fmt.Fprintln(w, `func FirstPortOfDir(ports []PortSpec, dir PortDir) (string, bool) {`)
+	fmt.Fprintln(w, "\tfor _, p := range ports {")
+	fmt.Fprintln(w, "\t\tif p.Dir == dir {")
+	fmt.Fprintln(w, "\t\t\treturn p.Name, true")
+	fmt.Fprintln(w, "\t\t}")
+	fmt.Fprintln(w, "\t}")
+	fmt.Fprintln(w, "\treturn \"\", false")
+	fmt.Fprintln(w, `}`)
+	fmt.Fprintln(w)
 	fmt.Fprintln(w, `var KindPorts = map[string][]PortSpec{`)
 	for _, e := range kinds {
 		fmt.Fprintf(w, "\t%q: {\n", e.GoKind)

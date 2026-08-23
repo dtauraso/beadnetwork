@@ -1,4 +1,4 @@
-package portwiring
+package scenebuild
 
 import (
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/SliderPanel"
@@ -8,28 +8,6 @@ import (
 	interior "github.com/dtauraso/wirefold/Categories/Node/Interior"
 	"github.com/dtauraso/wirefold/Categories/Scene/rowtables"
 )
-
-type PortDir int
-
-const (
-	PortIn PortDir = iota
-	PortOut
-	PortBroadcast
-)
-
-type PortSpec struct {
-	Name string
-	Dir  PortDir
-}
-
-func FirstPortOfDir(ports []PortSpec, dir PortDir) (string, bool) {
-	for _, p := range ports {
-		if p.Dir == dir {
-			return p.Name, true
-		}
-	}
-	return "", false
-}
 
 type PortBindings struct {
 	singlePaced    map[string]singleBinding
@@ -126,16 +104,4 @@ func (pb PortBindings) VectorInOf(name string) <-chan TiltPanel.TiltVectorMsg {
 		return nil
 	}
 	return pb.VectorIn[name]
-}
-
-func (pb *PortBindings) deadEndIn(name string) <-chan int {
-	return make(chan int, 1)
-}
-
-func (pb *PortBindings) deadEndOut(name string) chan<- int {
-	return make(chan int, 1)
-}
-
-func (pb *PortBindings) deadEndOutSlice(name string) []chan<- int {
-	return nil
 }
