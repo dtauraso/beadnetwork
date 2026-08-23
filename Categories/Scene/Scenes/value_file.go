@@ -64,7 +64,6 @@ func readInt64(raw []byte) (int64, error) {
 	return int64(binary.LittleEndian.Uint64(raw)), nil
 }
 
-// The write half of this concern's value file, beside the read half.
 func WriteAtomic(path string, v any) error {
 	out, err := encodeLeaf(v)
 	if err != nil {

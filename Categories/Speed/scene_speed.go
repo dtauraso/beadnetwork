@@ -8,20 +8,12 @@ import (
 	"path/filepath"
 )
 
-// What a scene remembers about its speed, and the two conversions that go with
-// it. The speed is the speed's business, so the file it is kept in and the
-// slider number it shows as live here rather than with the machinery that
-// happens to write files.
-
 const DefaultPlaybackSpeed = 1.0
 
-// SliderNum is the integer the slider shows for a speed.
 func SliderNum(userSpeed float64) int64 {
 	return int64(math.Round(userSpeed * SpeedNumScale))
 }
 
-// EffectiveClockSpeed is the speed the clock actually runs at: what the user
-// asked for, divided by the scene's own divisor.
 func EffectiveClockSpeed(userSpeed, divisor float64) float64 {
 	if divisor <= 0 {
 		return userSpeed
