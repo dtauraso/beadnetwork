@@ -5,6 +5,7 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/SliderPanel"
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/TiltPanel"
 	"github.com/dtauraso/wirefold/Categories/Chrome/Pills/AngleDropdown"
+	"github.com/dtauraso/wirefold/Categories/Chrome/Pills/FitButton"
 	"github.com/dtauraso/wirefold/Categories/Chrome/Pills/NodesDropdown"
 	"github.com/dtauraso/wirefold/Categories/Chrome/Tabs"
 )
@@ -62,7 +63,7 @@ func (ui *UIState) EmitViewFrame(events []RowEvent) {
 	AngleDropdown.WriteValues(ui.anglePillValues, pl.Angle)
 	NodesDropdown.WriteValues(ui.nodesPillValues, pl.Nodes, ui.EditRefused)
 	ui.writeOverlaysPillValues(pl.Overlays)
-	ui.writeFitChipValues(pl.Fit)
+	FitButton.WriteValues(ui.fitChipValues, pl.Fit)
 	Tabs.WriteValues(ui.tabStripValues, pl.Tabs)
 	PolarRulesPanel.WriteValues(ui.rulesValues, pl.Rules)
 

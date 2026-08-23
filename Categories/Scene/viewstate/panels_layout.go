@@ -7,6 +7,7 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/TiltPanel"
 	"github.com/dtauraso/wirefold/Categories/Chrome/Pills"
 	"github.com/dtauraso/wirefold/Categories/Chrome/Pills/AngleDropdown"
+	"github.com/dtauraso/wirefold/Categories/Chrome/Pills/FitButton"
 	"github.com/dtauraso/wirefold/Categories/Chrome/Pills/NodesDropdown"
 	"github.com/dtauraso/wirefold/Categories/Chrome/Tabs"
 	NodeBuf "github.com/dtauraso/wirefold/Categories/Node"
@@ -26,8 +27,6 @@ type PanelLayout struct {
 	Rules PolarRulesPanel.Layout
 }
 
-const FitLabel = "⌂ fit"
-
 var PillLabels = []string{AngleDropdown.Label, NodesDropdown.Label, Pills.Label}
 
 func (ui *UIState) PanelLayout() PanelLayout {
@@ -43,7 +42,7 @@ func (ui *UIState) PanelLayout() PanelLayout {
 		}
 	}
 
-	fit := pills.AddChip(FitLabel)
+	fit := pills.AddChip(FitButton.FitLabel)
 
 	speed := SliderPanel.Build(st)
 	tilt := TiltPanel.Build(st, ui.TiltRows, ui.TiltLabels)
