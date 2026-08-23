@@ -24,7 +24,7 @@ separate `registry.ts` exists. The schema dir is `src/`.
 **Step 3 — the Go package** under `Categories/NodeKinds/<Kind>/`.
 
 **Step 4 — run the generator.** `go generate ./...` runs every generator
-pipeline; it also refreshes `Categories/NodeKinds/kinds_gen.go`, which holds one `case` per
+pipeline; it also refreshes `Categories/NodeKinds/kinds.go`, which holds one `case` per
 kind in `NodeKinds.BuilderFor`. Nothing registers: a kind declares
 `var Builder = BuilderFor("Kind", func(a BuildArgs) …)` and the generated switch
 names it. A kind missing from that switch is a COMPILE error, where the blank-import-and-`init()`

@@ -6,11 +6,9 @@ import (
 	"fmt"
 	"go/format"
 	"os"
-
-	"github.com/dtauraso/wirefold/Categories/NodeKinds/gen/kindscan"
 )
 
-func writeNodeDims(outPath string, kinds []kindscan.KindEntry) error {
+func writeNodeDims(outPath string, kinds []KindEntry) error {
 	var buf bytes.Buffer
 	w := bufio.NewWriter(&buf)
 

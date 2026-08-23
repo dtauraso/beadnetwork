@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: Categories/NodeKinds/SPEC-FORMAT.md,Categories/NodeKinds/gen/kindscan/spec_md.go | the `## View` field table must name exactly the view.* fields parseSpecMD reads
+# PLACEMENT: Categories/NodeKinds/SPEC-FORMAT.md,Categories/NodeKinds/pulse/gen/main.go | the `## View` field table must name exactly the view.* fields each kind's own parseView reads
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 cd "$REPO_ROOT"
 
-GEN_DIR="Categories/NodeKinds/gen/kindscan"
+GEN_DIR="Categories/NodeKinds"
 DOC="Categories/NodeKinds/SPEC-FORMAT.md"
 
 if [[ ! -d "$GEN_DIR" ]]; then

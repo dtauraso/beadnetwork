@@ -10,14 +10,13 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/dtauraso/wirefold/Categories/NodeKinds/gen/kindscan"
 	"github.com/dtauraso/wirefold/scripts/genpaths"
 )
 
 func main() {
 	genpaths.SetName("Categories/Scene/structuraledit/gen")
 	repoRoot, srcRoot := genpaths.Roots()
-	kinds := kindscan.Kinds(repoRoot)
+	kinds := Kinds(repoRoot)
 
 	outPath := filepath.Join(srcRoot, "Scene", "structuraledit", "kind_ports_gen.go")
 	if err := writeKindPorts(outPath, kinds); err != nil {
@@ -26,7 +25,7 @@ func main() {
 	genpaths.Announce(outPath, len(kinds), "kinds")
 }
 
-func portDirExpr(p kindscan.Port) (string, bool) {
+func portDirExpr(p Port) (string, bool) {
 	switch {
 	case p.Direction == "in":
 		return "PortIn", true
@@ -38,7 +37,7 @@ func portDirExpr(p kindscan.Port) (string, bool) {
 	return "", false
 }
 
-func writeKindPorts(outPath string, kinds []kindscan.KindEntry) error {
+func writeKindPorts(outPath string, kinds []KindEntry) error {
 	var buf bytes.Buffer
 	w := bufio.NewWriter(&buf)
 
