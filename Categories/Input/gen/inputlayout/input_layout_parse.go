@@ -15,8 +15,6 @@ type inputLayoutFingerprint struct {
 	raw         string
 	KindNames   []string
 	kindValues  map[string]string
-	eventKinds  []string
-	hitKinds    []string
 	updateKinds []string
 }
 
@@ -99,15 +97,11 @@ func parseInputLayoutFingerprint(goPath string) (*inputLayoutFingerprint, error)
 		fp.kindValues[nv[0]] = nv[1]
 	}
 
-	fp.eventKinds = fpList(raw, "eventKinds=")
-	fp.hitKinds = fpList(raw, "hitKinds=")
 	fp.updateKinds = fpList(raw, "updateKinds=")
 	for _, e := range []struct {
 		marker string
 		list   []string
 	}{
-		{"eventKinds=", fp.eventKinds},
-		{"hitKinds=", fp.hitKinds},
 		{"updateKinds=", fp.updateKinds},
 	} {
 		if len(e.list) == 0 {
@@ -119,10 +113,6 @@ func parseInputLayoutFingerprint(goPath string) (*inputLayoutFingerprint, error)
 
 func (f *inputLayoutFingerprint) List(marker string) []string {
 	switch marker {
-	case "eventKinds=":
-		return f.eventKinds
-	case "hitKinds=":
-		return f.hitKinds
 	case "updateKinds=":
 		return f.updateKinds
 	}
