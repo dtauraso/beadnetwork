@@ -4,7 +4,7 @@
 
 export const IN_KIND_EDIT_UPDATE = 22;
 
-export const IN_UPDATE_ATTRS = ["toggle", "speed", "selected", "phi", "reset", "start", "latticePoints", "create", "delete", "dragPhi", "dragMaxTheta", "dragActive", "kindActive", "selfDragPhi", "selfDragMaxTheta", "selfDragActive", "dragR", "selfDragR", "viewport"] as const;
+export const IN_UPDATE_ATTRS = ["selected", "phi", "reset", "start", "latticePoints", "create", "delete", "viewport"] as const;
 
 // EDIT_UPDATE_KINDS_START
 export const IN_UPDATE_KINDS = ["overlays", "clock", "scene", "tiltVector", "panels", "node", "edge"] as const;

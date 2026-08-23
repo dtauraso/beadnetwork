@@ -6,21 +6,29 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+
+	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/Panel"
+	"github.com/dtauraso/wirefold/Categories/Node"
+	edge "github.com/dtauraso/wirefold/Categories/Node/Edge"
+	"github.com/dtauraso/wirefold/Categories/Overlay"
+	"github.com/dtauraso/wirefold/Categories/Scene"
+	Speed "github.com/dtauraso/wirefold/Categories/Speed"
 )
 
 var tsWireTargets = []struct {
 	dir    string
 	lists  []string
 	kinds  []string
+	attrs  []string
 	attr   bool
 	writer bool
 }{
-	{dir: "Categories/Node", attr: true, writer: true},
-	{dir: "Categories/Node/Edge", attr: true, writer: true},
-	{dir: "Categories/Scene", attr: true, writer: true},
-	{dir: "Categories/Overlay", attr: true, writer: true},
-	{dir: "Categories/Chrome/Panels/Panel", attr: true, writer: true},
-	{dir: "Categories/Speed", attr: true, writer: true},
+	{dir: "Categories/Node", attrs: Node.UpdateAttrs, attr: true, writer: true},
+	{dir: "Categories/Node/Edge", attrs: edge.UpdateAttrs, attr: true, writer: true},
+	{dir: "Categories/Scene", attrs: Scene.UpdateAttrs, attr: true, writer: true},
+	{dir: "Categories/Overlay", attrs: Overlay.UpdateAttrs, attr: true, writer: true},
+	{dir: "Categories/Chrome/Panels/Panel", attrs: Panel.UpdateAttrs, attr: true, writer: true},
+	{dir: "Categories/Speed", attrs: Speed.UpdateAttrs, attr: true, writer: true},
 	{dir: "Categories/Input/Drag", writer: true,
 		lists: []string{"eventKinds=", "hitKinds="}, kinds: []string{"raw-input"}},
 	{dir: "Start/extension", kinds: []string{"raw-input"}},
@@ -31,7 +39,6 @@ var tsListName = map[string]string{
 	"eventKinds=":  "IN_EVENT_KINDS",
 	"hitKinds=":    "IN_HIT_KINDS",
 	"updateKinds=": "IN_UPDATE_KINDS",
-	"updateAttrs=": "IN_UPDATE_ATTRS",
 }
 
 var tsKindConstName = map[string]string{
@@ -59,9 +66,21 @@ func copyTSWireVocabulary(repoRoot string, fp wireSource) {
 			fmt.Fprintln(&b)
 		}
 
+		if t.attr {
+			fmt.Fprintf(&b, "export const IN_UPDATE_ATTRS = [")
+			for i, v := range t.attrs {
+				if i > 0 {
+					b.WriteString(", ")
+				}
+				fmt.Fprintf(&b, "%q", v)
+			}
+			fmt.Fprintln(&b, "] as const;")
+			fmt.Fprintln(&b)
+		}
+
 		lists := append([]string{}, t.lists...)
 		if t.attr {
-			lists = append(lists, "updateKinds=", "updateAttrs=")
+			lists = append(lists, "updateKinds=")
 		}
 		sort.Strings(lists)
 		for _, m := range lists {

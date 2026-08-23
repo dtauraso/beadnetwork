@@ -14,15 +14,8 @@ var wireTargets = []struct {
 	pkg   string
 	lists []string // fingerprint markers this concern reads
 	kinds []string // record kind constants it names
-	attr  bool     // needs AttrIndex
 	enum  bool     // needs EnumAt
 }{
-	{dir: "Categories/Node", pkg: "Node", attr: true},
-	{dir: "Categories/Node/Edge", pkg: "edge", attr: true},
-	{dir: "Categories/Scene", pkg: "Scene", attr: true},
-	{dir: "Categories/Overlay", pkg: "Overlay", attr: true},
-	{dir: "Categories/Chrome/Panels/Panel", pkg: "Panel", attr: true},
-	{dir: "Categories/Speed", pkg: "Speed", attr: true},
 	{dir: "Categories/Input/Drag", pkg: "Drag", enum: true,
 		lists: []string{"eventKinds=", "hitKinds="}, kinds: []string{"raw-input"}},
 	{dir: "Categories/Input/Stdin", pkg: "Stdin", enum: true,
@@ -34,7 +27,6 @@ var listVarName = map[string]string{
 	"eventKinds=":   "InEventKinds",
 	"hitKinds=":     "InHitKinds",
 	"updateKinds=":  "InUpdateKinds",
-	"updateAttrs=":  "InUpdateAttrs",
 	"overlayFlags=": "InOverlayFlags",
 	"panelFlags=":   "InPanelFlags",
 }
@@ -69,9 +61,6 @@ func copyWireVocabulary(repoRoot string, fp wireSource) {
 		}
 
 		lists := append([]string{}, t.lists...)
-		if t.attr {
-			lists = append(lists, "updateAttrs=")
-		}
 		sort.Strings(lists)
 		for _, m := range lists {
 			fmt.Fprintf(&b, "var %s = []string{", listVarName[m])
@@ -83,22 +72,6 @@ func copyWireVocabulary(repoRoot string, fp wireSource) {
 			}
 			fmt.Fprintln(&b, "}")
 			fmt.Fprintln(&b)
-		}
-
-		if t.attr {
-			fmt.Fprintf(&b, `func attrIndex(attr string) byte {
-	for i, a := range InUpdateAttrs {
-		if a == attr {
-			return byte(i)
-		}
-	}
-	panic("%s.attrIndex: no wire byte exists for update attribute " + attr +
-		"; the attr list this package was generated with does not carry it, so an edit naming " +
-		"it could never be encoded. Declare it in Categories/Input/gen's input layout and regenerate, " +
-		"in the same commit as the decoder that reads it.")
-}
-
-`, t.pkg)
 		}
 
 		if t.enum {

@@ -18,7 +18,6 @@ type inputLayoutFingerprint struct {
 	eventKinds  []string
 	hitKinds    []string
 	updateKinds []string
-	updateAttrs []string
 }
 
 var errFingerprintNotFound = fmt.Errorf("InputLayoutFingerprint const not found")
@@ -103,7 +102,6 @@ func parseInputLayoutFingerprint(goPath string) (*inputLayoutFingerprint, error)
 	fp.eventKinds = fpList(raw, "eventKinds=")
 	fp.hitKinds = fpList(raw, "hitKinds=")
 	fp.updateKinds = fpList(raw, "updateKinds=")
-	fp.updateAttrs = fpList(raw, "updateAttrs=")
 	for _, e := range []struct {
 		marker string
 		list   []string
@@ -111,7 +109,6 @@ func parseInputLayoutFingerprint(goPath string) (*inputLayoutFingerprint, error)
 		{"eventKinds=", fp.eventKinds},
 		{"hitKinds=", fp.hitKinds},
 		{"updateKinds=", fp.updateKinds},
-		{"updateAttrs=", fp.updateAttrs},
 	} {
 		if len(e.list) == 0 {
 			return nil, fmt.Errorf("InputLayoutFingerprint is missing the %s token", e.marker)
@@ -128,8 +125,6 @@ func (f *inputLayoutFingerprint) List(marker string) []string {
 		return f.hitKinds
 	case "updateKinds=":
 		return f.updateKinds
-	case "updateAttrs=":
-		return f.updateAttrs
 	}
 	return nil
 }
