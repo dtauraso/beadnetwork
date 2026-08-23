@@ -5,14 +5,13 @@ package main
 import (
 	"path/filepath"
 
-	"github.com/dtauraso/wirefold/Categories/NodeKinds/gen/kindscan"
 	"github.com/dtauraso/wirefold/scripts/genpaths"
 )
 
 func main() {
 	genpaths.SetName("Categories/Node/gen/kinds")
 	repoRoot, srcRoot := genpaths.Roots()
-	kinds := kindscan.Kinds(repoRoot)
+	kinds := Kinds(repoRoot)
 
 	dir := filepath.Join(srcRoot, "Node")
 

@@ -13,8 +13,6 @@ import os, re, subprocess, collections
 CEILING = 20
 
 ALLOWED = {
-    "Categories/NodeKinds/gen/kindscan":
-        "one parse-a-kind pipeline; 7 unexported symbols cross file boundaries",
     "Categories/Node":
         "12 guards pinned here by their own PLACEMENT: Categories/Node/** headers; the node ACTOR, "
         "whose methods Go pins to one package; and the edit codec, value file and record reader "
@@ -23,7 +21,7 @@ ALLOWED = {
         "one Go package by the compiler: 9 unexported symbols cross its files, and Sender "
         "and Receiver reach BeadLine's unexported queue; plus its own TS and 3 guards",
     "Categories/NodeKinds/PairNode":
-        "kindscan joins pkgDir with the literal SPEC.md; tiltring took the exported-call seam",
+        "its own gen reads its SPEC.md; tiltring took the exported-call seam",
     ".":
         "go.mod, LICENSE and the main package live at the module root",
 }
@@ -42,7 +40,7 @@ def generator_sources():
     for root, dirs, files in os.walk("."):
         dirs[:] = [d for d in dirs if d not in ("node_modules", "out", ".git", ".probe")]
         rel = os.path.relpath(root, ".")
-        if "gen" not in rel.split(os.sep) and not rel.startswith("Categories/NodeKinds/gen/kindscan"):
+        if "gen" not in rel.split(os.sep):
             continue
         for f in files:
             if f.endswith(".go"):

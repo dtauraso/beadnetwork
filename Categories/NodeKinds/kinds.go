@@ -1,0 +1,40 @@
+package NodeKinds
+
+import (
+	kindPairNode "github.com/dtauraso/wirefold/Categories/NodeKinds/PairNode"
+	kindPulseLeft "github.com/dtauraso/wirefold/Categories/NodeKinds/PulseLeft"
+	kindPulseRight "github.com/dtauraso/wirefold/Categories/NodeKinds/PulseRight"
+	kindTime "github.com/dtauraso/wirefold/Categories/NodeKinds/Time"
+	kindTimeEnd "github.com/dtauraso/wirefold/Categories/NodeKinds/TimeEnd"
+	kindTimeStart "github.com/dtauraso/wirefold/Categories/NodeKinds/TimeStart"
+	kindinput "github.com/dtauraso/wirefold/Categories/NodeKinds/input"
+	kindpulse "github.com/dtauraso/wirefold/Categories/NodeKinds/pulse"
+	kindselectleft "github.com/dtauraso/wirefold/Categories/NodeKinds/selectleft"
+	kindselectright "github.com/dtauraso/wirefold/Categories/NodeKinds/selectright"
+)
+
+func BuilderFor(kind string) (Builder, bool) {
+	switch kind {
+	case "PairNode":
+		return kindPairNode.Builder, true
+	case "PulseLeft":
+		return kindPulseLeft.Builder, true
+	case "PulseRight":
+		return kindPulseRight.Builder, true
+	case "Time":
+		return kindTime.Builder, true
+	case "TimeEnd":
+		return kindTimeEnd.Builder, true
+	case "TimeStart":
+		return kindTimeStart.Builder, true
+	case "Input":
+		return kindinput.Builder, true
+	case "Pulse":
+		return kindpulse.Builder, true
+	case "SelectLeft":
+		return kindselectleft.Builder, true
+	case "SelectRight":
+		return kindselectright.Builder, true
+	}
+	return nil, false
+}

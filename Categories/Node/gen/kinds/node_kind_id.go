@@ -7,11 +7,9 @@ import (
 	"go/format"
 	"os"
 	"sort"
-
-	"github.com/dtauraso/wirefold/Categories/NodeKinds/gen/kindscan"
 )
 
-func writeNodeKindID(outPath string, kinds []kindscan.KindEntry) error {
+func writeNodeKindID(outPath string, kinds []KindEntry) error {
 	var buf bytes.Buffer
 	w := bufio.NewWriter(&buf)
 
@@ -30,7 +28,7 @@ func writeNodeKindID(outPath string, kinds []kindscan.KindEntry) error {
 	fmt.Fprintln(w, `// kind get an undefined placeholder there, not a shift).`)
 	fmt.Fprintln(w, `var kindIDMap = map[string]uint8{`)
 
-	byID := append([]kindscan.KindEntry(nil), kinds...)
+	byID := append([]KindEntry(nil), kinds...)
 	sort.Slice(byID, func(i, j int) bool { return byID[i].KindID < byID[j].KindID })
 	for _, e := range byID {
 		fmt.Fprintf(w, "\t%q: %d,\n", e.GoKind, e.KindID)
