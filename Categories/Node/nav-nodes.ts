@@ -1,10 +1,10 @@
 import * as THREE from "three";
-import { nodeLabel } from "../../Node/Labels/node-label";
-import { polarToCart } from "../../Polar/polar-convert";
-import { sceneSteps, sceneRadius } from "../scene-frame";
-import { ownerCounts } from "../owner-counts";
-import { nodeF32, nodeU8 } from "../../Node/node-leaves";
-import { readSelectedNodeRow } from "../../Overlay/overlay-flags-selection";
+import { nodeLabel } from "./Labels/node-label";
+import { polarToCart } from "../Polar/polar-convert";
+import { sceneSteps, sceneRadius } from "../Scene/scene-frame";
+import { ownerCounts } from "../Scene/owner-counts";
+import { nodeF32, nodeU8 } from "./node-leaves";
+import { readSelectedNodeRow } from "../Overlay/overlay-flags-selection";
 
 export interface NavNode {
 
@@ -59,4 +59,12 @@ export function sceneSphereFromColumns(): { center: THREE.Vector3; radius: numbe
   if (radius <= 0) return { center: new THREE.Vector3(), radius: 100 };
   const s = sceneSteps();
   return { center: new THREE.Vector3(s.centerX, s.centerY, s.centerZ), radius };
+}
+
+export function navSignature(nav: NavNode[]): string {
+  let s = "";
+  for (const n of nav) {
+    s += `${n.row}:${Math.round(n.center.x)},${Math.round(n.center.y)},${Math.round(n.center.z)},${Math.round(n.radius)},${n.selected ? 1 : 0},${n.latchedSel ? 1 : 0};`;
+  }
+  return s;
 }
