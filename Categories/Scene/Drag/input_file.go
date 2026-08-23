@@ -1,36 +1,34 @@
-package inputactor
+package Drag
 
 import (
 	"os"
 	"path/filepath"
-
-	"github.com/dtauraso/wirefold/Categories/Scene/Drag"
 )
 
-type slot struct {
+type inputSlot struct {
 	path string
 	last []byte
 }
 
-type Reader struct {
-	slots []slot
+type InputDirReader struct {
+	slots []inputSlot
 }
 
-func NewReader(inputDir string) *Reader {
-	slots := make([]slot, 0, len(Drag.EventKinds))
-	for _, kind := range Drag.EventKinds {
+func NewInputDirReader(inputDir string) *InputDirReader {
+	slots := make([]inputSlot, 0, len(EventKinds))
+	for _, kind := range EventKinds {
 		path := filepath.Join(inputDir, kind+".bin")
 
 		raw, err := os.ReadFile(path)
 		if err != nil {
 			raw = nil
 		}
-		slots = append(slots, slot{path: path, last: raw})
+		slots = append(slots, inputSlot{path: path, last: raw})
 	}
-	return &Reader{slots: slots}
+	return &InputDirReader{slots: slots}
 }
 
-func (r *Reader) ReadAll() [][]byte {
+func (r *InputDirReader) ReadAll() [][]byte {
 	var out [][]byte
 	for i := range r.slots {
 		s := &r.slots[i]

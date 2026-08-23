@@ -3,8 +3,8 @@ package Drag
 import (
 	"math"
 
-	"github.com/dtauraso/wirefold/Categories/Scene/Camera"
 	"github.com/dtauraso/wirefold/Categories/Polar/polar"
+	"github.com/dtauraso/wirefold/Categories/Scene/Camera"
 )
 
 func (g *GestureState) BeginSphereRotation(vp Camera.Viewpoint, heldCenters func() map[string]Vec3, ev RawInputMsg) {
