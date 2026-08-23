@@ -1,4 +1,4 @@
-package sceneswitch
+package Scenes
 
 type SceneSwitch struct {
 	AnchorPath string

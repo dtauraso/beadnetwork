@@ -10,7 +10,8 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/SliderPanel"
 	"github.com/dtauraso/wirefold/Categories/Scene"
 
-	"github.com/dtauraso/wirefold/Categories/Scene/sceneswitch"
+	"github.com/dtauraso/wirefold/Categories/Scene/Scenes"
+	"github.com/dtauraso/wirefold/Categories/Scene/scenepersist"
 	"github.com/dtauraso/wirefold/Categories/Scene/structuraledit"
 )
 
@@ -36,7 +37,7 @@ func applyUpdateScene(ctx context.Context, attr byte, payload []byte, md *MoveDi
 	}
 	switch e.Attr {
 	case "selected":
-		sceneswitch.SelectScene(&md.Scenes, int(e.Num))
+		Scenes.SelectScene(&md.Scenes, int(e.Num), scenepersist.WriteSelectedScene)
 	case "latticePoints":
 		setLatticePoints(md, int32(e.Num))
 	case "viewport":

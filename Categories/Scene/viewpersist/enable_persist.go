@@ -2,7 +2,7 @@ package viewpersist
 
 import (
 	"github.com/dtauraso/wirefold/Categories/Node"
-	"github.com/dtauraso/wirefold/Categories/Scene/sceneswitch"
+	"github.com/dtauraso/wirefold/Categories/Scene/Scenes"
 	"github.com/dtauraso/wirefold/Categories/Scene/viewstate"
 )
 
@@ -11,7 +11,7 @@ func EnableViewpointPersist(persist *Persisters, ui *viewstate.UIState, topology
 	ui.VP.Persist = p.Schedule
 }
 
-func EnableEditPersist(persist *Persisters, scenes *sceneswitch.SceneSwitch, nodeGeoms map[string]*Node.NodeGeometry, topologyPath string) {
+func EnableEditPersist(persist *Persisters, scenes *Scenes.SceneSwitch, nodeGeoms map[string]*Node.NodeGeometry, topologyPath string) {
 	root := topologyPath
 
 	scenes.TreeRoot = root

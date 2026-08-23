@@ -1,13 +1,13 @@
 package scenepersist
 
 import (
-	Speed "github.com/dtauraso/wirefold/Categories/Speed"
 	"math"
 
-	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/SliderPanel"
-	"github.com/dtauraso/wirefold/Categories/Scene/scene"
+	Speed "github.com/dtauraso/wirefold/Categories/Speed"
 
-	"github.com/dtauraso/wirefold/Categories/Scene/scenepaths"
+	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/SliderPanel"
+	"github.com/dtauraso/wirefold/Categories/Scene/Scenes"
+
 	"github.com/dtauraso/wirefold/Categories/Scene/viewstate"
 )
 
@@ -18,8 +18,8 @@ func SliderSpeed(ui *viewstate.UIState) float64 {
 }
 
 func InstallSpeed(ui *viewstate.UIState, topologyPath string, speedSinks SliderPanel.Sinks) {
-	speed, _ := LoadSceneSpeed(scenepaths.SpeedFilePath(topologyPath))
-	ui.ClockDivisor = scene.For(topologyPath).ClockDivisor
+	speed, _ := LoadSceneSpeed(Scenes.SpeedFilePath(topologyPath))
+	ui.ClockDivisor = Scenes.For(topologyPath).ClockDivisor
 	ui.Speed = speed
 	SliderPanel.Broadcast(speedSinks, SliderNum(speed), int64(ui.ClockDivisor))
 	ui.EmitViewFrame(nil)

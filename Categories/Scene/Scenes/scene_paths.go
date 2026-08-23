@@ -1,4 +1,4 @@
-package scenepaths
+package Scenes
 
 import "path/filepath"
 

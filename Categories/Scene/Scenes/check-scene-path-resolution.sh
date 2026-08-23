@@ -6,7 +6,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 WIRING_DIR="$REPO_ROOT"
-RESOLVER="$REPO_ROOT/Categories/Scene/scenepaths/scene_paths.go"
+RESOLVER="$REPO_ROOT/Categories/Scene/Scenes/scene_paths.go"
 
 if [[ ! -d "$WIRING_DIR" ]]; then
   echo "check-scene-path-resolution: MISCONFIGURED — $WIRING_DIR not found (moved/renamed?)." >&2
@@ -43,7 +43,7 @@ done < <(find "$WIRING_DIR" -name "*.go" -not -path "*/node_modules/*")
 
 all_hits=""
 if [[ ${#eligible_files[@]} -gt 0 ]]; then
-  all_hits="$(grep -nE 'IsDir\(\)|scenepaths\.InputFilePath\(|scenepaths\.SelectionFilePath\(|scenepaths\.SpeedFilePath\(|scenepaths\.LatticeFilePath\(|filepath\.Join\(' \
+  all_hits="$(grep -nE 'IsDir\(\)|Scenes\.InputDirPath\(|Scenes\.SelectionFilePath\(|Scenes\.SpeedFilePath\(|Scenes\.LatticeFilePath\(|filepath\.Join\(' \
     "${eligible_files[@]}" 2>/dev/null || true)"
 fi
 
@@ -66,12 +66,12 @@ while IFS= read -r hit; do
   [[ -z "$hit" ]] && continue
   content="${hit#*:*:}"
   case "$content" in
-    *scenepaths.InputFilePath\(*|*scenepaths.SelectionFilePath\(*|*scenepaths.SpeedFilePath\(*|*scenepaths.LatticeFilePath\(*) CALL_SITES=$((CALL_SITES + 1)) ;;
+    *Scenes.InputDirPath\(*|*Scenes.SelectionFilePath\(*|*Scenes.SpeedFilePath\(*|*Scenes.LatticeFilePath\(*) CALL_SITES=$((CALL_SITES + 1)) ;;
   esac
 done <<< "$all_hits"
 
 if [[ "$CALL_SITES" -eq 0 ]]; then
-  echo "check-scene-path-resolution: MISCONFIGURED — zero call sites of scenepaths.InputFilePath()/scenepaths.SelectionFilePath()/scenepaths.SpeedFilePath()/scenepaths.LatticeFilePath() found outside scenepaths/scene_paths.go." >&2
+  echo "check-scene-path-resolution: MISCONFIGURED — zero call sites of Scenes.InputDirPath()/Scenes.SelectionFilePath()/Scenes.SpeedFilePath()/Scenes.LatticeFilePath() found outside Scenes/scene_paths.go." >&2
   echo "  The resolvers exist but nothing calls them; the IsDir-only scan above would pass vacuously." >&2
   exit 1
 fi

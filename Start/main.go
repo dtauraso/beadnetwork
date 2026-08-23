@@ -19,12 +19,11 @@ import (
 	bead "github.com/dtauraso/wirefold/Categories/Ring/Bead"
 	NodeShape "github.com/dtauraso/wirefold/Categories/Ring/NodeShape"
 	SceneB "github.com/dtauraso/wirefold/Categories/Scene"
-	"github.com/dtauraso/wirefold/Categories/Scene/scene"
-	"github.com/dtauraso/wirefold/Categories/Scene/scenepaths"
+	"github.com/dtauraso/wirefold/Categories/Scene/Scenes"
 )
 
 func run(ctx context.Context, cancel context.CancelFunc, topologyPath string, clk clock.Clock) {
-	scenePath := scene.ResolvePath(topologyPath)
+	scenePath := Scenes.ResolvePath(topologyPath)
 	SceneB.WriteSpawnIdentity(scenePath)
 
 	sc, err := scenebuild.Load(ctx, scenePath, clk)
@@ -57,7 +56,7 @@ func run(ctx context.Context, cancel context.CancelFunc, topologyPath string, cl
 	md.Scenes.Loaded = md.UI.SceneTabSelected
 
 	moverWG := md.Start(ctx)
-	stdinWG, gestureWG := scenebuild.StartStdinReader(ctx, cancel, md, speedSinks, clk, scenepaths.InputDirPath(scenePath))
+	stdinWG, gestureWG := scenebuild.StartStdinReader(ctx, cancel, md, speedSinks, clk, Scenes.InputDirPath(scenePath))
 	joinAll(launchNodes(ctx, sc.Nodes), moverWG, stdinWG, gestureWG)
 }
 

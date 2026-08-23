@@ -1,12 +1,12 @@
 package viewpersist
 
 import (
-	"github.com/dtauraso/wirefold/Categories/Scene/Camera"
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/Panel"
 	"github.com/dtauraso/wirefold/Categories/Chrome/Pills/AngleDropdown"
 	"github.com/dtauraso/wirefold/Categories/Overlay"
 	"github.com/dtauraso/wirefold/Categories/Polar/polar"
-	"github.com/dtauraso/wirefold/Categories/Scene/scenepaths"
+	"github.com/dtauraso/wirefold/Categories/Scene/Camera"
+	"github.com/dtauraso/wirefold/Categories/Scene/Scenes"
 	"github.com/dtauraso/wirefold/Categories/Scene/scenepersist"
 )
 
@@ -41,10 +41,10 @@ func (p *Persisters) ArmEdit(topologyPath string) {
 		Path: topologyPath, Write: scenepersist.WriteSceneSphere, Tag: "scene_sphere_persist",
 	}
 	p.speed = &scenepersist.Persister[float64]{
-		Path: scenepaths.SpeedFilePath(topologyPath), Write: scenepersist.WriteSceneSpeed, Tag: "scene_speed_persist",
+		Path: Scenes.SpeedFilePath(topologyPath), Write: scenepersist.WriteSceneSpeed, Tag: "scene_speed_persist",
 	}
 	p.lattice = &scenepersist.Persister[int32]{
-		Path: scenepaths.LatticeFilePath(topologyPath), Write: AngleDropdown.WriteSceneLattice, Tag: "scene_lattice_persist",
+		Path: Scenes.LatticeFilePath(topologyPath), Write: AngleDropdown.WriteSceneLattice, Tag: "scene_lattice_persist",
 	}
 }
 

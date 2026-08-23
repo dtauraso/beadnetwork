@@ -1,17 +1,15 @@
 package Tabs
 
-import (
-	"github.com/dtauraso/wirefold/Categories/Scene/scene"
-)
+import "github.com/dtauraso/wirefold/Categories/Scene/Scenes"
 
 func TabNames() []string {
-	names := make([]string, len(scene.All))
-	for i, s := range scene.All {
+	names := make([]string, len(Scenes.All))
+	for i, s := range Scenes.All {
 		names[i] = s.Name
 	}
 	return names
 }
 
 func SelectedIndex(anchorPath string) int {
-	return scene.SelectedIndex(anchorPath)
+	return Scenes.SelectedIndex(anchorPath)
 }

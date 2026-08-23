@@ -41,7 +41,7 @@ own directory, deliberately separate from the `view/overlays/` visibility flags:
 open/closed state is not an overlay visibility flag, even though the two are persisted,
 streamed, and edited the same way.
 
-**`topology/` is one of several sibling SCENES**, not the only tree. `Categories/Scene/scene/scene.go`'s
+**`topology/` is one of several sibling SCENES**, not the only tree. `Categories/Scene/Scenes/scenes.go`'s
 `Scenes` names each sibling directory (today: `topology/`, `topology-pair/`) resolved
 relative to the ANCHOR's parent — the `-topology` flag the extension host launches with is
 the fixed anchor, and which sibling directory actually loads is resolved from it
@@ -187,7 +187,7 @@ the node writing the file is a goroutine writing what it already owns — not a 
 one fewer representation of the same quantity.
 
 Guards: `scripts/checks/source/check-persist-write-ownership.sh` (who may write which path pattern),
-`Categories/Scene/scenepaths/check-scene-path-resolution.sh` (who may construct a `nodes/` path).
+`Categories/Scene/Scenes/check-scene-path-resolution.sh` (who may construct a `nodes/` path).
 
 ## A topology is a directory tree, always
 

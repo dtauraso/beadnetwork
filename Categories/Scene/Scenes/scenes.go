@@ -1,9 +1,7 @@
-package scene
+package Scenes
 
 import (
 	"path/filepath"
-
-	NodeBuf "github.com/dtauraso/wirefold/Categories/Node"
 )
 
 type Scene struct {
@@ -51,17 +49,4 @@ func For(path string) Scene {
 		return s
 	}
 	return Unlisted
-}
-
-func (s Scene) KindMask() uint32 {
-	if len(s.Kinds) == 0 {
-		return ^uint32(0)
-	}
-	var mask uint32
-	for _, k := range s.Kinds {
-		if id := NodeBuf.NodeKindID(k); id != NodeBuf.KindIDUnknown {
-			mask |= 1 << uint(id)
-		}
-	}
-	return mask
 }
