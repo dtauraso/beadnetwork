@@ -90,7 +90,7 @@ and none is a source of truth.
   node 3 — the blow-up this page says cannot happen, reached through an arithmetic that
   quietly moved what it claimed to tidy.
 - **A node holds its own side of every edge it touches** (`owners.Deltas`,
-  `Categories/Node/nodeactor/owners/deltas.go`): the triple FROM ITSELF TO the node at the
+  `Categories/Node/owners/deltas.go`): the triple FROM ITSELF TO the node at the
   other end, stored from-self whichever way the edge points, so a move is uniform across
   in-edges and out-edges alike. The edge's own `D` is the out entry as-is and the negation
   of the in entry.

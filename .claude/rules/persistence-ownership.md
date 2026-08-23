@@ -163,7 +163,7 @@ Consequences to keep in mind:
   file — port geometry was removed with the port model (edges attach on the bead lattice,
   `Categories/Node/BeadAnimation/lattice/bead_lattice.go`); this bullet used to list it as a second thing the mover writes.
 - The **SOURCE NODE** owns `nodes/<source>/drag/edges/<label>.bin`, and writes it from
-  `Categories/Node/nodeactor/owners/out_edges.go`'s `persistDelta` — the same pass that derives that edge's geometry,
+  `Categories/Node/owners/out_edges.go`'s `persistDelta` — the same pass that derives that edge's geometry,
   since the node is what holds the vector being stored. The write is gated on the vector
   actually changing: derivation runs every tick, so an ungated write would rewrite the file
   every tick. (This bullet used to claim "an `edgeMover` owns" it and "no Go writer exists

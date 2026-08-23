@@ -45,7 +45,7 @@
   state until its firing rule is satisfied, then fires.
 
   Held values live in node-local state. (That is a different concept from a trace event's `Slot`
-  field — `Categories/Node/nodeactor/owners/trace_event.go` — which is a live 2×2 interior VISUAL grid position,
+  field — `Categories/Node/owners/trace_event.go` — which is a live 2×2 interior VISUAL grid position,
   `slot = gridRow*2 + gridCol`, for where a held bead is drawn inside a node.)
 
 - **Node input.** A ROLE, not a place: declared by the node kind in its SPEC.md `## Ports`

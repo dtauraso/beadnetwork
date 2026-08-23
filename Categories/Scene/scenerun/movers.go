@@ -9,9 +9,9 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgegeom"
 	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgetable"
 	"github.com/dtauraso/wirefold/Categories/Node/nodeactor"
-	"github.com/dtauraso/wirefold/Categories/Node/nodeactor/owners"
 	"github.com/dtauraso/wirefold/Categories/Node/nodecrud"
 	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
+	"github.com/dtauraso/wirefold/Categories/Node/owners"
 )
 
 const InboxDepth = 8

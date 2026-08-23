@@ -3,8 +3,8 @@ package nodemove
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/Categories/Node/nodeactor/owners"
 	"github.com/dtauraso/wirefold/Categories/Node/nodeactor"
+	"github.com/dtauraso/wirefold/Categories/Node/owners"
 	"github.com/dtauraso/wirefold/Categories/Polar/polar"
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
 )

@@ -3,8 +3,8 @@ package nodeactor
 import (
 	"fmt"
 
-	"github.com/dtauraso/wirefold/Categories/Node/nodeactor/nodeframe"
-	"github.com/dtauraso/wirefold/Categories/Node/nodeactor/owners"
+	"github.com/dtauraso/wirefold/Categories/Node/nodeframe"
+	"github.com/dtauraso/wirefold/Categories/Node/owners"
 )
 
 func (m *NodeGeometry) emitGeometry() {

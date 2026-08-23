@@ -15,7 +15,7 @@ CEILING = 20
 ALLOWED = {
     "Categories/NodeKinds/gen/kindscan":
         "one parse-a-kind pipeline; 7 unexported symbols cross file boundaries",
-    "Categories/Node/nodeactor/owners":
+    "Categories/Node/owners":
         "splitting re-exports the leaf fields the owners package exists to hide",
     "Categories/Node":
         "12 guards pinned here by their own PLACEMENT: Categories/Node/** headers, plus the bead "
