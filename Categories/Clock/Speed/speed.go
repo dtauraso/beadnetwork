@@ -62,30 +62,9 @@ func ApplySpeedNonBlocking(clk clock.Clock, speedCh <-chan float64) {
 	}
 }
 
-func RecvSpeedNonBlocking(speedCh <-chan float64) (float64, bool) {
-	select {
-	case sp := <-speedCh:
-		return sp, true
-	default:
-		return 0, false
-	}
-}
-
 func SendSpeedNonBlocking(ch chan float64, speed float64) {
-	sendLatest(ch, speed)
-}
-
-func SendSleepMsNonBlocking(ch chan int64, ms int64) {
-	SendLatestNonBlocking(ch, ms)
-}
-
-func SendLatestNonBlocking(ch chan int64, v int64) {
-	sendLatest(ch, v)
-}
-
-func sendLatest[T any](ch chan T, v T) {
 	select {
-	case ch <- v:
+	case ch <- speed:
 		return
 	default:
 	}
@@ -94,7 +73,7 @@ func sendLatest[T any](ch chan T, v T) {
 	default:
 	}
 	select {
-	case ch <- v:
+	case ch <- speed:
 	default:
 	}
 }

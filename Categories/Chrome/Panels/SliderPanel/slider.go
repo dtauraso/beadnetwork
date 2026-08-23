@@ -37,6 +37,22 @@ func Broadcast(sinks Sinks, num, clockDivisor int64) {
 
 	ms := SleepMs(num, clockDivisor)
 	for _, ch := range sinks.Anim {
-		Speed.SendSleepMsNonBlocking(ch, ms)
+		sendSleepMs(ch, ms)
+	}
+}
+
+func sendSleepMs(ch chan int64, ms int64) {
+	select {
+	case ch <- ms:
+		return
+	default:
+	}
+	select {
+	case <-ch:
+	default:
+	}
+	select {
+	case ch <- ms:
+	default:
 	}
 }
