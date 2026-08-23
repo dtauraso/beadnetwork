@@ -4,7 +4,6 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/dtauraso/wirefold/Categories/Input/Stdin"
 	"github.com/dtauraso/wirefold/Categories/Node/movemsg"
 )
 
@@ -17,12 +16,12 @@ type TiltInbox interface {
 	SendTiltEdit(ctx context.Context, id string, m movemsg.TiltEditMsg) bool
 }
 
-func Edit(ctx context.Context, msg Stdin.StdinMsg, movers Movers, inbox TiltInbox, resume func()) {
-	switch msg.Attr {
+func Edit(ctx context.Context, attr string, row int, dirUp bool, movers Movers, inbox TiltInbox, resume func()) {
+	switch attr {
 	case "reset", "start":
-		Apply(ctx, int32(msg.Num), msg.Attr, movers, inbox, resume)
+		Apply(ctx, int32(row), attr, movers, inbox, resume)
 	case "phi":
-		AdjustPhi(ctx, int32(msg.Num), msg.Flag == "up", movers, inbox)
+		AdjustPhi(ctx, int32(row), dirUp, movers, inbox)
 	}
 }
 

@@ -14,22 +14,20 @@ import (
 
 	"github.com/dtauraso/wirefold/Categories/Chrome/Tabs"
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
-	"github.com/dtauraso/wirefold/Categories/Input/Stdin"
 	NodeKind "github.com/dtauraso/wirefold/Categories/Node"
 	EdgeB "github.com/dtauraso/wirefold/Categories/Node/Edge"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/nodeapi"
 	bead "github.com/dtauraso/wirefold/Categories/Ring/Bead"
 	NodeShape "github.com/dtauraso/wirefold/Categories/Ring/NodeShape"
 	SceneB "github.com/dtauraso/wirefold/Categories/Scene"
+	"github.com/dtauraso/wirefold/Categories/Scene/inputactor"
 	"github.com/dtauraso/wirefold/Categories/Scene/scene"
 	"github.com/dtauraso/wirefold/Categories/Scene/scenepaths"
-	"github.com/dtauraso/wirefold/Categories/Scene/inputactor"
 )
 
 func run(ctx context.Context, cancel context.CancelFunc, topologyPath string, clk clock.Clock) {
 	scenePath := scene.ResolvePath(topologyPath)
 	SceneB.WriteSpawnIdentity(scenePath)
-	Stdin.AssertUpdateDecodersComplete()
 
 	sc, err := scenebuild.Load(ctx, scenePath, clk)
 	if err != nil {

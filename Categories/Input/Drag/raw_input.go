@@ -1,7 +1,5 @@
 package Drag
 
-import "github.com/dtauraso/wirefold/Categories/Input/Stdin"
-
 type RawInputMsg struct {
 	Kind       string
 	X          float64
@@ -35,7 +33,7 @@ type RawHit struct {
 }
 
 func DecodeRawInput(rec []byte) (RawInputMsg, bool) {
-	if len(rec) == 0 || rec[0] != Stdin.InKindRawInput {
+	if len(rec) == 0 || rec[0] != KindRawInput {
 		return RawInputMsg{}, false
 	}
 	return decodeRawInputFrom(NewReader(rec, 1))

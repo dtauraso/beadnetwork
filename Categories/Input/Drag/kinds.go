@@ -1,5 +1,7 @@
 package Drag
 
+const KindRawInput = 10
+
 var EventKinds = []string{
 	"pointerdown",
 	"pointermove",

@@ -5,29 +5,28 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/dtauraso/wirefold/Categories/Input/Stdin"
 	"github.com/dtauraso/wirefold/Categories/Node/rulechans"
 	"github.com/dtauraso/wirefold/Categories/Node/rulenode"
 )
 
-func EditNode(ctx context.Context, msg Stdin.StdinMsg, rules *rulechans.RuleChannels) {
-	if msg.Attr == "kindActive" {
-		ToggleKindRule(ctx, rules, msg.Num)
+func EditNode(ctx context.Context, e Edit, rules *rulechans.RuleChannels) {
+	if e.Attr == "kindActive" {
+		ToggleKindRule(ctx, rules, e.Num)
 		return
 	}
 
-	kind, ok := nodeAttrEditKinds[msg.Attr]
+	kind, ok := nodeAttrEditKinds[e.Attr]
 	if !ok {
 		return
 	}
 	edit := rulenode.Edit{Kind: kind}
-	if msg.Attr == "dragMaxTheta" || msg.Attr == "selfDragMaxTheta" {
-		if msg.X >= 0 {
-			radians := msg.X * math.Pi
+	if e.Attr == "dragMaxTheta" || e.Attr == "selfDragMaxTheta" {
+		if e.X >= 0 {
+			radians := e.X * math.Pi
 			edit.MaxTheta = &radians
 		}
 	}
-	SendRuleEdit(ctx, rules, msg.Num, edit)
+	SendRuleEdit(ctx, rules, e.Num, edit)
 }
 
 var nodeAttrEditKinds = map[string]rulenode.EditKind{

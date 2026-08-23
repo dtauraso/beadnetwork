@@ -9,7 +9,6 @@ import (
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 
-	"github.com/dtauraso/wirefold/Categories/Input/Stdin"
 	"github.com/dtauraso/wirefold/Categories/Scene/scenerun"
 )
 
@@ -19,8 +18,11 @@ func StartStdinReader(ctx context.Context, cancel context.CancelFunc, slotReg be
 	stdinWG := new(sync.WaitGroup)
 	stdinWG.Add(1)
 	h := Handlers{
-		ApplyEdit: func(msg Stdin.StdinMsg) {
-			SendGestureMsgBlocking(ctx, inbox, GestureInboxMsg{Kind: GestureMsgEdit, Msg: msg})
+		ApplyEdit: func(op string, entity, attr byte, payload []byte) {
+			SendGestureMsgBlocking(ctx, inbox, GestureInboxMsg{
+				Kind: GestureMsgEdit,
+				Op:   op, Entity: entity, Attr: attr, Payload: payload,
+			})
 		},
 		HandleSave: func() {
 			SendGestureMsgBlocking(ctx, inbox, GestureInboxMsg{Kind: GestureMsgSave})

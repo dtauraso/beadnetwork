@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/dtauraso/wirefold/Categories/Input/Stdin"
+	"github.com/dtauraso/wirefold/Categories/Input/Drag"
 )
 
 func main() {
@@ -20,7 +20,7 @@ func main() {
 	fmt.Fprintln(&b, "// Source: Stdin's record_kinds.go.")
 	fmt.Fprintln(&b, "// Regenerate with: go generate ./...")
 	fmt.Fprintln(&b)
-	fmt.Fprintf(&b, "export const IN_KIND_RAW_INPUT = %d;\n\n", Stdin.InKindRawInput)
+	fmt.Fprintf(&b, "export const IN_KIND_RAW_INPUT = %d;\n\n", Drag.KindRawInput)
 
 	wirePath := filepath.Join(repoRoot, "Start", "extension", "wire-gen.ts")
 	if err := os.WriteFile(wirePath, []byte(b.String()), 0o644); err != nil {

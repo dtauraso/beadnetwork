@@ -9,7 +9,6 @@ import (
 
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
 	"github.com/dtauraso/wirefold/Categories/Input/Drag"
-	"github.com/dtauraso/wirefold/Categories/Input/Stdin"
 	"github.com/dtauraso/wirefold/Categories/Scene/scenerun"
 )
 
@@ -22,7 +21,11 @@ const (
 
 type GestureInboxMsg struct {
 	Kind gestureMsgKind
-	Msg  Stdin.StdinMsg
+
+	Op      string
+	Entity  byte
+	Attr    byte
+	Payload []byte
 }
 
 const gestureInboxDepth = 64
@@ -52,7 +55,7 @@ func StartGestureActor(ctx context.Context, slotReg beadanimation.SlotRegistry, 
 				case gm := <-inbox:
 					switch gm.Kind {
 					case GestureMsgEdit:
-						scenerun.ApplyEdit(ctx, gm.Msg, md, speedSinks)
+						scenerun.ApplyEdit(ctx, gm.Op, gm.Entity, gm.Attr, gm.Payload, md, speedSinks)
 					case GestureMsgSave:
 						scenerun.HandleSaveMsg(md)
 					}

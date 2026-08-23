@@ -1,14 +1,7 @@
 package Panel
 
-import (
-	"github.com/dtauraso/wirefold/Categories/Input/Stdin"
-)
-
-func EditPanels(msg Stdin.StdinMsg, pn *PanelState, persist func(PanelState), redraw func()) {
-	if msg.Attr != "toggle" {
-		return
-	}
-	ToggleFlag(pn, msg.Flag)
+func EditPanels(e Edit, pn *PanelState, persist func(PanelState), redraw func()) {
+	ToggleFlag(pn, e.Flag)
 	persist(*pn)
 	redraw()
 }

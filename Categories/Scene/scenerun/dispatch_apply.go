@@ -5,10 +5,10 @@ import (
 
 	NodeKind "github.com/dtauraso/wirefold/Categories/Node"
 
-	"github.com/dtauraso/wirefold/Categories/Input/Stdin"
 	edge "github.com/dtauraso/wirefold/Categories/Node/Edge"
 
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/SliderPanel"
+	"github.com/dtauraso/wirefold/Categories/Scene"
 
 	"github.com/dtauraso/wirefold/Categories/Node/nodecrud"
 	"github.com/dtauraso/wirefold/Categories/Node/rulenode"
@@ -27,35 +27,47 @@ func setLatticePoints(md *MoveDispatch, points int32) {
 	md.UI.SetLatticePoints(points, md.Persist.Lattice().Schedule, md.Inboxes.BroadcastLatticePoints)
 }
 
-func applyUpdateScene(ctx context.Context, msg Stdin.StdinMsg, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
+func applyUpdateScene(ctx context.Context, attr byte, payload []byte, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
 	if md == nil {
 		return
 	}
-	switch msg.Attr {
+	e, ok := Scene.DecodeUpdateScene(payload, attr)
+	if !ok {
+		return
+	}
+	switch e.Attr {
 	case "selected":
-		sceneswitch.SelectScene(&md.Scenes, int(msg.Num))
+		sceneswitch.SelectScene(&md.Scenes, int(e.Num))
 	case "latticePoints":
-		setLatticePoints(md, int32(msg.Num))
+		setLatticePoints(md, int32(e.Num))
 	case "viewport":
-		md.UI.SetViewport(msg.X, msg.Y)
+		md.UI.SetViewport(e.X, e.Y)
 	case "create":
 
-		nodecrud.CreateNode(&md.Scenes, &md.UI, &md.MR, uint8(msg.Num), msg.X, msg.Y)
+		nodecrud.CreateNode(&md.Scenes, &md.UI, &md.MR, uint8(e.Num), e.X, e.Y)
 	case "delete":
 
-		nodecrud.DeleteNode(&md.Scenes, &md.UI, &md.RT, msg.Num)
+		nodecrud.DeleteNode(&md.Scenes, &md.UI, &md.RT, e.Num)
 	}
 }
 
-func applyUpdateNode(ctx context.Context, msg Stdin.StdinMsg, md *MoveDispatch, _ SliderPanel.Sinks) {
-	NodeKind.EditNode(ctx, msg, &md.Rules)
+func applyUpdateNode(ctx context.Context, attr byte, payload []byte, md *MoveDispatch, _ SliderPanel.Sinks) {
+	e, ok := NodeKind.DecodeUpdate(payload, attr)
+	if !ok {
+		return
+	}
+	NodeKind.EditNode(ctx, e, &md.Rules)
 }
 
-func applyUpdateEdge(ctx context.Context, msg Stdin.StdinMsg, md *MoveDispatch, _ SliderPanel.Sinks) {
+func applyUpdateEdge(ctx context.Context, attr byte, payload []byte, md *MoveDispatch, _ SliderPanel.Sinks) {
 	if md == nil {
 		return
 	}
-	edge.EditEdge(ctx, msg, md.Rules.TogglesByEdgeRow)
+	e, ok := edge.DecodeUpdate(payload, attr)
+	if !ok {
+		return
+	}
+	edge.EditEdge(ctx, e, md.Rules.TogglesByEdgeRow)
 }
 
 func sendRuleEdit(ctx context.Context, md *MoveDispatch, row int, edit rulenode.Edit) {

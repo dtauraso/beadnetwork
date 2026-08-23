@@ -1,19 +1,17 @@
 package Panel
 
-import (
-	"github.com/dtauraso/wirefold/Categories/Input/Stdin"
-)
+type Edit struct {
+	Flag string
+}
 
-func init() { Stdin.RegisterUpdateDecoder("panels", decodeUpdate) }
-
-func decodeUpdate(payload []byte, attr byte) (Stdin.StdinMsg, bool) {
+func DecodeUpdate(payload []byte, attr byte) (Edit, bool) {
 	r := NewReader(payload, 0)
 	if attr != attrToggle {
-		return Stdin.StdinMsg{}, false
+		return Edit{}, false
 	}
 	flagID, err := r.U8()
 	if err != nil || int(flagID) >= len(FlagNames) {
-		return Stdin.StdinMsg{}, false
+		return Edit{}, false
 	}
-	return Stdin.StdinMsg{Type: "edit", Op: "update", Kind: "panels", Attr: "toggle", Flag: FlagNames[flagID]}, true
+	return Edit{Flag: FlagNames[flagID]}, true
 }

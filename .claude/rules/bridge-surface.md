@@ -27,7 +27,7 @@ carries the TS → Go vocabulary.
 - **Bare commands** — `save` is the only bare command. It is defined end-to-end (kind byte,
   Go decode + persist) but currently has **no live TS sender** — no UI affordance posts it
   yet; it stays in the vocabulary because Go's decode and
-  `Categories/Input/Stdin/record_kinds.go` both carry it. It carries **no entity id on purpose**: it acts on state **Go already
+  `Categories/Scene/inputactor/stdin_reader.go` both carry it. It carries **no entity id on purpose**: it acts on state **Go already
   owns** (the current selection / scene), so there is nothing for TS to address. There is no
   `resend` command, and now nothing to resend: a remounted webview re-reads the files, which
   are the current state by definition. The ext host used to cache the last frame per stream
@@ -67,5 +67,5 @@ Keep all of it in parity across `messages.ts`, the `Categories/Node/Wiring` stdi
 
 There is no single wire-layout string any more. Each vocabulary is declared in Go by the
 concern that uses it — every `update_attrs.go`, `Categories/Input/Drag/kinds.go`,
-`Categories/Input/Stdin/record_kinds.go` — and each `wire-gen.ts` is generated from those
+`Categories/Scene/scenerun/dispatch_edit.go` — and each `wire-gen.ts` is generated from those
 declarations, so the TS copy cannot drift from the Go one.

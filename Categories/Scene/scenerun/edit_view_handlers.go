@@ -9,29 +9,41 @@ import (
 
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/Panel"
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/SliderPanel"
-	"github.com/dtauraso/wirefold/Categories/Input/Stdin"
 	"github.com/dtauraso/wirefold/Categories/Overlay"
+	"github.com/dtauraso/wirefold/Categories/Scene"
 	"github.com/dtauraso/wirefold/Categories/Scene/scenepersist"
 )
 
-func applyUpdateOverlays(_ context.Context, msg Stdin.StdinMsg, md *MoveDispatch, _ SliderPanel.Sinks) {
-	Overlay.EditOverlays(msg, &md.UI.OV, &md.Inboxes, &md.UI, md.persistOverlays)
+func applyUpdateOverlays(_ context.Context, attr byte, payload []byte, md *MoveDispatch, _ SliderPanel.Sinks) {
+	e, ok := Overlay.DecodeUpdate(payload, attr)
+	if !ok {
+		return
+	}
+	Overlay.EditOverlays(e, &md.UI.OV, &md.Inboxes, &md.UI, md.persistOverlays)
 }
 
 func (md *MoveDispatch) persistOverlays(ov Overlay.OverlayState) {
 	md.Persist.Overlays().Schedule(ov)
 }
 
-func applyUpdatePanels(_ context.Context, msg Stdin.StdinMsg, md *MoveDispatch, _ SliderPanel.Sinks) {
-	Panel.EditPanels(msg, &md.UI.PN, md.persistPanels, md.redraw)
+func applyUpdatePanels(_ context.Context, attr byte, payload []byte, md *MoveDispatch, _ SliderPanel.Sinks) {
+	e, ok := Panel.DecodeUpdate(payload, attr)
+	if !ok {
+		return
+	}
+	Panel.EditPanels(e, &md.UI.PN, md.persistPanels, md.redraw)
 }
 
 func (md *MoveDispatch) persistPanels(pn Panel.PanelState) {
 	md.Persist.Panels().Schedule(pn)
 }
 
-func applyUpdateClock(_ context.Context, msg Stdin.StdinMsg, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
-	Speed.EditSpeed(msg, md.speedState(), speedSinks, md.persistSpeed, md.redraw)
+func applyUpdateClock(_ context.Context, attr byte, payload []byte, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
+	e, ok := Speed.DecodeUpdate(payload, attr)
+	if !ok {
+		return
+	}
+	Speed.EditSpeed(e, md.speedState(), speedSinks, md.persistSpeed, md.redraw)
 }
 
 func (md *MoveDispatch) speedState() Speed.SpeedState {
@@ -44,8 +56,12 @@ func (md *MoveDispatch) persistSpeed(userSpeed float64) {
 
 func (md *MoveDispatch) redraw() { md.UI.EmitViewFrame(nil) }
 
-func applyUpdateTiltVector(ctx context.Context, msg Stdin.StdinMsg, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
-	SceneTiltVectors.Edit(ctx, msg, &md.MR, &md.Inboxes, md.resumeSpeed(speedSinks))
+func applyUpdateTiltVector(ctx context.Context, attr byte, payload []byte, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
+	e, ok := Scene.DecodeUpdateTiltVector(payload, attr)
+	if !ok {
+		return
+	}
+	SceneTiltVectors.Edit(ctx, e.Attr, e.Num, e.Flag == "up", &md.MR, &md.Inboxes, md.resumeSpeed(speedSinks))
 }
 
 func (md *MoveDispatch) resumeSpeed(speedSinks SliderPanel.Sinks) func() {
