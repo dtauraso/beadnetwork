@@ -1,6 +1,7 @@
 package nodeactor
 
 import (
+	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
 	"github.com/dtauraso/wirefold/Categories/Node/owners"
 	"github.com/dtauraso/wirefold/Categories/Polar/polar"
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
@@ -67,7 +68,7 @@ func (m *NodeGeometry) takeDragOfSelf(msg owners.Drag) {
 	movedIdx := polarindex.Compose(haveIdx, m.TrimOwnDrag(delta), m.Constants())
 
 	m.msg.CommitLocal(m.id, movedIdx)
-	newPos := m.SceneCenter().Add(Vec3(polar.Polar2cart(polarindex.ToPolar(movedIdx, m.Constants()))))
+	newPos := nodegeom.WorldPosAt(m.geom.SceneCenter, movedIdx, m.Constants())
 
 	m.writeStreamFrame([]owners.RowEvent{{
 		Kind: owners.KindBreadcrumb, Label: BreadcrumbDragCommit, Debug: 1,

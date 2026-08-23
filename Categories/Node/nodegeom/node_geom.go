@@ -55,6 +55,10 @@ func NodeWorldPos(g NodeGeom) Vec3 {
 	return g.SceneCenter.Add(Vec3(polar.Polar2cart(ScenePolarOf(g))))
 }
 
+func WorldPosAt(sceneCenter Vec3, idx polarindex.Index, sc polarindex.SceneConstants) Vec3 {
+	return sceneCenter.Add(Vec3(polar.Polar2cart(polarindex.ToPolar(idx, sc))))
+}
+
 func SetNodeWorld(g *NodeGeom, composed polarindex.Index) {
 	g.DragIndex = polarindex.Delta(composed, g.BaseIndex)
 	g.HasPos = true

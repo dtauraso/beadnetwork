@@ -57,7 +57,7 @@ func (m *NodeGeometry) ComposedIndex() polarindex.Index { return nodegeom.Compos
 
 func (m *NodeGeometry) Constants() polarindex.SceneConstants { return m.geom.SceneConstants }
 
-func (m *NodeGeometry) SceneCenter() Vec3 { return Vec3(m.geom.SceneCenter) }
+func (m *NodeGeometry) SceneCenter() nodegeom.Vec3 { return m.geom.SceneCenter }
 
 func (m *NodeGeometry) IsOutTarget(neighborID string) bool {
 	return slices.Contains(m.outTargets, neighborID)
