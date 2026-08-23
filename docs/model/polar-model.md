@@ -121,7 +121,7 @@ and none is a source of truth.
   code. **A node owns the function that trims it, not only the numbers it trims to.** The
   kind states its own drag behaviour from its own package (`nodedrag.RegisterTrim` /
   `RegisterRequest` in `Categories/NodeKinds/input/drag.go`), exactly as it states its ports; a kind that
-  registers nothing is trimmed by its own drag rule alone. `nodeactor` composes the delta,
+  registers nothing is trimmed by its own drag rule alone. `Categories/Node` composes the delta,
   asks the node to trim it, and commits — it does not know what an `Input` is.
 
   `D.r` is a genuine DISTANCE — the length of the vector to the neighbour — so it is always

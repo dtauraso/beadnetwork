@@ -6,7 +6,7 @@ REACTIVE, not periodic — the "straightening loop". Each cycle of this node's O
 Update loop non-blockingly drains two sources and, on either, decides and acts itself —
 no round trip to any other goroutine to decide.
 
-This node owns its own geometry directly (`Self *nodeactor.PairNodeSelf`, claimed at build
+This node owns its own geometry directly (`Self *kindapi.Self`, claimed at build
 time via `BuildArgs.ClaimSelfDrive`, driven every cycle by `n.Self.Step`
 (`Categories/NodeKinds/kindapi/self.go`)) — there is **no separate `NodeMover` goroutine** for
 either node of a pair (`Categories/Scene/scenerun/movers.go` never constructs one for an id

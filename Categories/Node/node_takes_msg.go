@@ -33,7 +33,7 @@ func (m *NodeGeometry) take(msg owners.Msg) {
 	case owners.TiltVectorReset:
 		m.handleTiltVectorReset()
 	default:
-		panic("nodeactor.take: node " + m.id + " was handed a move body it has no case for. " +
+		panic("Node.take: node " + m.id + " was handed a move body it has no case for. " +
 			"Every owners.Body must be handled here; an unhandled one used to fall through to a " +
 			"silent redraw, so the message did nothing and nothing said so.")
 	}
@@ -61,7 +61,7 @@ func (m *NodeGeometry) takeDragOfSelf(msg owners.Drag) {
 	case msg.Delta != nil:
 		delta = *msg.Delta
 	default:
-		panic("nodeactor.takeDragOfSelf: drag of " + m.id + " carries neither a target nor a delta — a pointer drag names WHERE (Target) and the node measures its own delta from its own index; a peer's request names HOW FAR (Delta). One of the two must be set")
+		panic("Node.takeDragOfSelf: drag of " + m.id + " carries neither a target nor a delta — a pointer drag names WHERE (Target) and the node measures its own delta from its own index; a peer's request names HOW FAR (Delta). One of the two must be set")
 	}
 
 	movedIdx := polarindex.Compose(haveIdx, m.TrimOwnDrag(delta), m.Constants())
