@@ -1,4 +1,4 @@
-package main
+package Drag
 
 import (
 	"encoding/binary"

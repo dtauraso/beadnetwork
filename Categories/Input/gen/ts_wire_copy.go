@@ -22,15 +22,15 @@ var tsWireTargets = []struct {
 	attrs  []string
 	named  []namedList
 	attr   bool
-	writer bool
+
 }{
-	{dir: "Categories/Node", attrs: Node.UpdateAttrs, attr: true, writer: true},
-	{dir: "Categories/Node/Edge", attrs: edge.UpdateAttrs, attr: true, writer: true},
-	{dir: "Categories/Scene", attrs: Scene.UpdateAttrs, attr: true, writer: true},
-	{dir: "Categories/Overlay", attrs: Overlay.UpdateAttrs, attr: true, writer: true},
-	{dir: "Categories/Chrome/Panels/Panel", attrs: Panel.UpdateAttrs, attr: true, writer: true},
-	{dir: "Categories/Speed", attrs: Speed.UpdateAttrs, attr: true, writer: true},
-	{dir: "Categories/Input/Drag", writer: true, kinds: []string{"raw-input"},
+	{dir: "Categories/Node", attrs: Node.UpdateAttrs, attr: true},
+	{dir: "Categories/Node/Edge", attrs: edge.UpdateAttrs, attr: true},
+	{dir: "Categories/Scene", attrs: Scene.UpdateAttrs, attr: true},
+	{dir: "Categories/Overlay", attrs: Overlay.UpdateAttrs, attr: true},
+	{dir: "Categories/Chrome/Panels/Panel", attrs: Panel.UpdateAttrs, attr: true},
+	{dir: "Categories/Speed", attrs: Speed.UpdateAttrs, attr: true},
+	{dir: "Categories/Input/Drag", kinds: []string{"raw-input"},
 		named: []namedList{
 			{"IN_EVENT_KINDS", Drag.EventKinds},
 			{"IN_HIT_KINDS", Drag.HitKinds},
@@ -105,14 +105,6 @@ func copyTSWireVocabulary(repoRoot string) {
 			fmt.Fprintln(&b, "] as const;")
 			fmt.Fprintln(&b, "// EDIT_UPDATE_KINDS_END")
 			fmt.Fprintln(&b)
-		}
-
-		if t.writer {
-			b.WriteString(tsByteWriterSource)
-			b.WriteString("\n")
-		}
-		if t.attr {
-			b.WriteString(tsAttrIndexSource)
 		}
 
 		outPath := filepath.Join(repoRoot, filepath.FromSlash(t.dir), "wire-gen.ts")

@@ -1,4 +1,4 @@
-import { editUpdate } from "./wire-gen";
+import { editUpdate } from "./record-writer";
 
 function nodeRowEdit(attr: string, nodeRow: number): ArrayBuffer {
   const w = editUpdate("node", attr);
