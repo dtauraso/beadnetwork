@@ -17,7 +17,7 @@ bug — 3 & 7 share θ exactly (θ-lock holds, `pair_theta` d=0.0000) and differ
 
 **No pole singularity in the layout.** The (θ,φ) chart is singular at its pole, but the
 layout never measures against a fixed world +y. `requantizePoleTraced`
-(`Categories/Node/nodemove/root_move.go`) recomputes a **local measurement pole**,
+(`Categories/Node/node_root_move.go`) recomputes a **local measurement pole**,
 `localPole(dirVecs)`, from the whole neighbor set on each move and persists it (`SetPole`).
 Because that pole tracks the neighbors' actual directions — it moves a little as they move
 — no node sits at the pole, so φ never blows up. Not a special-case guard; the moving pole

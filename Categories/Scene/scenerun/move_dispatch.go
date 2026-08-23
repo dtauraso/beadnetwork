@@ -1,9 +1,9 @@
 package scenerun
 
 import (
+	"github.com/dtauraso/wirefold/Categories/Node"
 	"github.com/dtauraso/wirefold/Categories/Node/ChannelVectors"
 	"github.com/dtauraso/wirefold/Categories/Node/TiltVectors"
-	"github.com/dtauraso/wirefold/Categories/Node/nodemove"
 	"github.com/dtauraso/wirefold/Categories/Node/rulechans"
 	SceneB "github.com/dtauraso/wirefold/Categories/Scene"
 	rowtables "github.com/dtauraso/wirefold/Categories/Scene/rowtables"
@@ -23,7 +23,7 @@ type MoveDispatch struct {
 
 	UI viewstate.UIState
 
-	Mover nodemove.NodeMover
+	Mover Node.NodeMover
 
 	Scenes sceneswitch.SceneSwitch
 

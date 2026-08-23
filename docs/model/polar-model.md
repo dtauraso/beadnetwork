@@ -174,6 +174,6 @@ and none is a source of truth.
   not the locks.
 
 A drag commits a polar INDEX: `CommitNodeMoveLocal`
-(`Categories/Node/nodemove/commit_node_move.go`) takes the committed index, shifts the node's
+(`Categories/Node/node_commit_node_move.go`) takes the committed index, shifts the node's
 own deltas by the difference, applies its centre, and broadcasts the move to its partners.
 Beads are not consulted and do not move the node.
