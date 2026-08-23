@@ -11,7 +11,6 @@ type KindDim struct{ Width, Height float64 }
 // KindDims maps each runtime kind to its render dimensions.
 var KindDims = map[string]KindDim{
 	"Input":       {Width: 80, Height: 60},
-	"NormalSum":   {Width: 70, Height: 60},
 	"Pacer":       {Width: 60, Height: 60},
 	"PairNode":    {Width: 70, Height: 60},
 	"Pulse":       {Width: 90, Height: 60},

@@ -32,7 +32,7 @@ var All = []Scene{
 			"Pacer",
 		}},
 
-	{Name: "pair", Dir: "topology-pair", CoplanarEdges: true, UpAxis: true, ClockDivisor: 64, Editable: true, Kinds: []string{"PairNode", "NormalSum"}},
+	{Name: "pair", Dir: "topology-pair", CoplanarEdges: true, UpAxis: true, ClockDivisor: 64, Editable: true, Kinds: []string{"PairNode"}},
 }
 
 var Unlisted = Scene{ClockDivisor: 1}

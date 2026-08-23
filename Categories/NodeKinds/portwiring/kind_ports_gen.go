@@ -14,11 +14,6 @@ var KindPorts = map[string][]PortSpec{
 		{Name: "ToExcitatory", Dir: PortOut},
 		{Name: "FeedbackIn", Dir: PortIn},
 	},
-	"NormalSum": {
-		{Name: "NormalA", Dir: PortIn},
-		{Name: "NormalB", Dir: PortIn},
-		{Name: "Out", Dir: PortOut},
-	},
 	"Pacer": {
 		{Name: "In", Dir: PortIn},
 		{Name: "FeedbackOut", Dir: PortOut},
