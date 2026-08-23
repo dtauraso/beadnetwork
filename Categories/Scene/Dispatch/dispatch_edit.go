@@ -4,10 +4,14 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/SliderPanel"
-	"github.com/dtauraso/wirefold/Categories/Scene/Drag"
+	NodeKind "github.com/dtauraso/wirefold/Categories/Node"
 
-	"github.com/dtauraso/wirefold/Categories/Scene/structuraledit"
+	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/Panel"
+	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/SliderPanel"
+	edge "github.com/dtauraso/wirefold/Categories/Node/Edge"
+	"github.com/dtauraso/wirefold/Categories/Overlay"
+	"github.com/dtauraso/wirefold/Categories/Scene/Drag"
+	Speed "github.com/dtauraso/wirefold/Categories/Speed"
 )
 
 func HandleRawInputMsg(ctx context.Context, ev Drag.RawInputMsg, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
@@ -26,7 +30,7 @@ func HandleRawInputMsg(ctx context.Context, ev Drag.RawInputMsg, md *MoveDispatc
 		if sel, any := md.UI.SelectedNode(); md.UI.SceneEditable && any {
 			if row, ok := md.UI.NodeRowFor(sel); ok {
 				nodeID, _ := md.RT.LookupNodeRow(int(row))
-				structuraledit.DeleteNode(&md.Scenes, &md.UI, nodeID, int(row))
+				DeleteNode(&md.Scenes, &md.UI, nodeID, int(row))
 			}
 		}
 		return
@@ -100,3 +104,32 @@ func applyUpdate(ctx context.Context, entity, attr byte, payload []byte, md *Mov
 		h(ctx, attr, payload)
 	}
 }
+
+// EDIT_UPDATE_KINDS_START
+func (md *MoveDispatch) updateOwners(speedSinks SliderPanel.Sinks) map[string]func(context.Context, byte, []byte) {
+	return map[string]func(context.Context, byte, []byte){
+		"node": func(ctx context.Context, attr byte, payload []byte) {
+			NodeKind.ApplyUpdate(ctx, attr, payload, &md.Rules)
+		},
+		"edge": func(ctx context.Context, attr byte, payload []byte) {
+			edge.ApplyUpdate(ctx, attr, payload, md.Rules.TogglesByEdgeRow)
+		},
+		"overlays": func(_ context.Context, attr byte, payload []byte) {
+			Overlay.ApplyUpdate(attr, payload, &md.UI.OV, &md.ChannelVectorsOn, &md.UI, md.persistOverlays)
+		},
+		"panels": func(_ context.Context, attr byte, payload []byte) {
+			Panel.ApplyUpdate(attr, payload, &md.UI.PN, md.persistPanels, md.redraw)
+		},
+		"clock": func(_ context.Context, attr byte, payload []byte) {
+			Speed.ApplyUpdate(attr, payload, md.speedState(), speedSinks, md.persistSpeed, md.redraw)
+		},
+		"tiltVector": func(ctx context.Context, attr byte, payload []byte) {
+			applyUpdateTiltVector(ctx, attr, payload, md, speedSinks)
+		},
+		"scene": func(ctx context.Context, attr byte, payload []byte) {
+			applyUpdateScene(ctx, attr, payload, md, speedSinks)
+		},
+	}
+}
+
+// EDIT_UPDATE_KINDS_END

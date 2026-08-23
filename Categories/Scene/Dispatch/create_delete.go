@@ -1,4 +1,4 @@
-package structuraledit
+package Dispatch
 
 import (
 	"fmt"
@@ -23,7 +23,7 @@ func CreateNode(scenes *Scenes.SceneSwitch, ui *viewstate.UIState, nodeGeoms map
 		ui.EmitViewFrame(nil)
 		return
 	}
-	kind, ok := KindForID(kindID)
+	kind, ok := kindForID(kindID)
 	if !ok {
 		ui.RefuseStructuralEdit(fmt.Sprintf("unknown kind id %d", kindID))
 		ui.EmitViewFrame(nil)
@@ -44,7 +44,7 @@ func CreateNode(scenes *Scenes.SceneSwitch, ui *viewstate.UIState, nodeGeoms map
 	}
 
 	src, okNear := nearestTo(drop)
-	target := NewNodeID(scenes.TreeRoot)
+	target := newNodeID(scenes.TreeRoot)
 	var srcHandle, targetPort string
 	if okNear {
 		srcGeom, srcFound := nodeGeoms[src]
@@ -81,7 +81,7 @@ func CreateNode(scenes *Scenes.SceneSwitch, ui *viewstate.UIState, nodeGeoms map
 		ui.EmitViewFrame(nil)
 		return
 	}
-	edges := CountEdgeFiles(scenes.TreeRoot)
+	edges := countEdgeFiles(scenes.TreeRoot)
 	if okNear {
 		if err := edgefile.WriteEdgeFile(scenes.TreeRoot, src, srcHandle, target, targetPort); err != nil {
 			ui.RefuseStructuralEdit(fmt.Sprintf("could not write edge %s->%s: %v", src, target, err))
@@ -91,7 +91,7 @@ func CreateNode(scenes *Scenes.SceneSwitch, ui *viewstate.UIState, nodeGeoms map
 		edges++
 	}
 
-	if err := writeCounts(scenes.TreeRoot, LargestNodeID(scenes.TreeRoot), edges); err != nil {
+	if err := writeCounts(scenes.TreeRoot, largestNodeID(scenes.TreeRoot), edges); err != nil {
 		ui.RefuseStructuralEdit(fmt.Sprintf("could not update counts.json: %v", err))
 		ui.EmitViewFrame(nil)
 		return
@@ -120,13 +120,13 @@ func DeleteNode(scenes *Scenes.SceneSwitch, ui *viewstate.UIState, id string, ro
 		ui.EmitViewFrame(nil)
 		return
 	}
-	if err := edgefile.RemoveEdgesTo(root, id, NodeIDStringsInTree(root)); err != nil {
+	if err := edgefile.RemoveEdgesTo(root, id, nodeIDStringsInTree(root)); err != nil {
 		ui.RefuseStructuralEdit(fmt.Sprintf("could not remove edges into %s: %v", id, err))
 		ui.EmitViewFrame(nil)
 		return
 	}
 
-	if err := writeCounts(root, LargestNodeID(root), CountEdgeFiles(root)); err != nil {
+	if err := writeCounts(root, largestNodeID(root), countEdgeFiles(root)); err != nil {
 		ui.RefuseStructuralEdit(fmt.Sprintf("could not update counts.json: %v", err))
 		ui.EmitViewFrame(nil)
 		return
