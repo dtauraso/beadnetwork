@@ -1,11 +1,11 @@
-package viewstate
+package PolarRulesPanel
 
 import (
-	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/PolarRulesPanel"
+	"fmt"
+	"os"
 )
 
-func (ui *UIState) writeRulesPanelValues(lay PolarRulesPanel.Layout) {
-	w := ui.rulesValues
+func WriteValues(w *ValueWriter, lay Layout) {
 	if w == nil {
 		return
 	}
@@ -20,9 +20,9 @@ func (ui *UIState) writeRulesPanelValues(lay PolarRulesPanel.Layout) {
 	w.F32("toggleX", lay.Toggle.X)
 	w.F32("toggleY", lay.Toggle.Y)
 	w.F32("toggleH", lay.Toggle.H)
-	toggle := PolarRulesPanel.LabelClosed
+	toggle := LabelClosed
 	if lay.Open {
-		toggle = PolarRulesPanel.LabelOpen
+		toggle = LabelOpen
 	}
 	w.Text("toggleText", toggle)
 
@@ -57,6 +57,6 @@ func (ui *UIState) writeRulesPanelValues(lay PolarRulesPanel.Layout) {
 	}
 
 	if err := w.Flush(); err != nil {
-		LogPersistErr("rules_panel_values", "", err)
+		fmt.Fprintf(os.Stderr, "rules_panel_values: %v\n", err)
 	}
 }
