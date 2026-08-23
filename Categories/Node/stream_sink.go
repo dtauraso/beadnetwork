@@ -4,9 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	VecB "github.com/dtauraso/wirefold/Categories/Node/ChannelVectors"
 	edge "github.com/dtauraso/wirefold/Categories/Node/Edge"
-	TiltB "github.com/dtauraso/wirefold/Categories/Node/TiltVectors"
 	BeadB "github.com/dtauraso/wirefold/Categories/Ring/Bead"
 )
 
@@ -18,13 +16,9 @@ type Sinks struct {
 func NewSinks(sceneRoot string, rows int) Sinks {
 	beadValues := make([]*BeadB.ValueWriter, rows)
 	nodeValues := make([]*ValueWriter, rows)
-	tiltValues := make([]*TiltB.ValueWriter, rows)
-	vecValues := make([]*VecB.ValueWriter, rows)
 	for row := range beadValues {
 		beadValues[row] = BeadB.NewValueWriter(sceneRoot, row)
 		nodeValues[row] = NewValueWriter(sceneRoot, row)
-		tiltValues[row] = TiltB.NewValueWriter(sceneRoot, row)
-		vecValues[row] = VecB.NewValueWriter(sceneRoot, row)
 	}
 
 	return Sinks{
@@ -39,14 +33,8 @@ func NewSinks(sceneRoot string, rows int) Sinks {
 		Node: func(f NodeFrameInput) {
 			frame := nodeStateFrom(f)
 			if int(f.NodeRow) < len(nodeValues) {
-				if err := WriteNodeValues(nodeValues[f.NodeRow], frame); err != nil {
-					fmt.Fprintf(os.Stderr, "node values write (node row %d): %v\n", f.NodeRow, err)
-				}
-				if err := TiltB.WriteTiltArrowValues(tiltValues[f.NodeRow], frame.TiltArrows); err != nil {
-					fmt.Fprintf(os.Stderr, "tilt arrow values write (node row %d): %v\n", f.NodeRow, err)
-				}
-				if err := VecB.WriteChannelVectorValues(vecValues[f.NodeRow], frame.ChannelVectors); err != nil {
-					fmt.Fprintf(os.Stderr, "channel vector values write (node row %d): %v\n", f.NodeRow, err)
+				if err := WriteNodeBlock(nodeValues[f.NodeRow], frame); err != nil {
+					fmt.Fprintf(os.Stderr, "node block write (node row %d): %v\n", f.NodeRow, err)
 				}
 			}
 		},

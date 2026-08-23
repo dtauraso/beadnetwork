@@ -3,8 +3,8 @@ package main
 //go:generate go run .
 
 import (
-	"github.com/dtauraso/wirefold/scripts/genpaths"
 	"fmt"
+	"github.com/dtauraso/wirefold/scripts/genpaths"
 	"github.com/dtauraso/wirefold/scripts/genpaths/params"
 	"os"
 	"path/filepath"
@@ -12,28 +12,6 @@ import (
 
 	ChannelVectors "github.com/dtauraso/wirefold/Categories/Node/ChannelVectors"
 )
-
-func writePathFiles(pathsDir string) error {
-	if err := os.MkdirAll(pathsDir, 0o755); err != nil {
-		return err
-	}
-	if err := os.WriteFile(filepath.Join(pathsDir, "block.bin"), []byte(ChannelVectors.ValueRelTemplate), 0o644); err != nil {
-		return err
-	}
-	entries, err := os.ReadDir(pathsDir)
-	if err != nil {
-		return err
-	}
-	for _, e := range entries {
-		if e.IsDir() || e.Name() == "block.bin" { // path-resolution-ok: the generator's own output directory
-			continue
-		}
-		if err := os.Remove(filepath.Join(pathsDir, e.Name())); err != nil {
-			return err
-		}
-	}
-	return nil
-}
 
 func writeNames(path string) error {
 	var b strings.Builder
@@ -56,12 +34,6 @@ func main() {
 	repoRoot, srcRoot := genpaths.Roots()
 
 	dir := filepath.Join(srcRoot, "Node", "ChannelVectors")
-	pathsDir := filepath.Join(dir, "paths")
-	if err := writePathFiles(pathsDir); err != nil {
-		genpaths.Fatalf("write channel vector paths: %v", err)
-	}
-	genpaths.Announce(pathsDir, 1, "channel vector block path template")
-
 	namesPath := filepath.Join(dir, "vector-values-gen.ts")
 	if err := writeNames(namesPath); err != nil {
 		genpaths.Fatalf("write %s: %v", namesPath, err)
