@@ -12,10 +12,6 @@ type Msg struct {
 
 type Body interface{ moveBody() }
 
-// A body that may ride a coalescing slot. Two of them merge by the rule the
-// pair of accessors names: a WHERE collapses to the newest, a HOW FAR sums.
-// A body that cannot answer both questions cannot be coalesced, and the slot
-// will not take it.
 type Movement interface {
 	Body
 
