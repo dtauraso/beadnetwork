@@ -11,7 +11,8 @@ func main() {
 		fmt.Fprintln(os.Stderr, "usage: readtrace <trace.bin> [more.bin ...]")
 		fmt.Fprintln(os.Stderr)
 		fmt.Fprintln(os.Stderr, "Decodes the binary trace records Go appends beside each item")
-		fmt.Fprintln(os.Stderr, "the node's own trace.bin into logfmt lines on stdout.")
+		fmt.Fprintln(os.Stderr, "— a node's trace.bin, its interior-trace.bin or beads-trace.bin, an")
+		fmt.Fprintln(os.Stderr, "edge's trace.bin, or the view's — into logfmt lines on stdout.")
 		os.Exit(2)
 	}
 
