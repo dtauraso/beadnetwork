@@ -21,15 +21,9 @@ func (a BuildArgs) TiltEditIn() <-chan TiltVectors.TiltEditMsg {
 }
 
 func (a BuildArgs) VectorOut() chan<- TiltPanel.TiltVectorMsg {
-	if a.PB.VectorOut == nil {
-		return nil
-	}
-	return a.PB.VectorOut[a.Name]
+	return a.PB.VectorOutOf(a.Name)
 }
 
 func (a BuildArgs) VectorIn() <-chan TiltPanel.TiltVectorMsg {
-	if a.PB.VectorIn == nil {
-		return nil
-	}
-	return a.PB.VectorIn[a.Name]
+	return a.PB.VectorInOf(a.Name)
 }

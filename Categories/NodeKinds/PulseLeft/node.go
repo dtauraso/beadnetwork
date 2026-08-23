@@ -31,7 +31,7 @@ func driveOutput(out DrivenOut) *HeldDriver {
 }
 
 func (g *PulseLeft) Update(ctx context.Context) {
-	portwiring.TryEmit(g.EmitGeometry)
+	tryEmit(g.EmitGeometry)
 	g.Self.EmitGeometryOnce()
 
 	var cur int64 = interior.NoValue

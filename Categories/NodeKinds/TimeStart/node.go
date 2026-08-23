@@ -79,7 +79,7 @@ func (in *TimeStart) consumeInput(clk clock.Clock, value int, held int) (newHeld
 }
 
 func (in *TimeStart) Update(ctx context.Context) {
-	portwiring.TryEmit(in.EmitGeometry)
+	tryEmit(in.EmitGeometry)
 	in.Self.EmitGeometryOnce()
 
 	held := interior.NoValue
