@@ -2,21 +2,20 @@ package selectright
 
 import (
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
-	"github.com/dtauraso/wirefold/Categories/NodeKinds/portwiring"
 )
 
 func (a BuildArgs) In(portName string) *beadanimation.Receiver {
-	a.mustDeclare(portName, portwiring.PortIn)
+	a.mustDeclare(portName, PortIn)
 	return NewInPort(portName, a.Ctx, a.Name, a.PB, InteriorEventSinkGetter(a.getEmitter))
 }
 
 func (a BuildArgs) Out(portName string) *beadanimation.Sender {
-	a.mustDeclare(portName, portwiring.PortOut)
+	a.mustDeclare(portName, PortOut)
 	return NewOutPort(portName, a.Ctx, a.Name, a.PB, a.sourceOuts, InteriorEventSinkGetter(a.getEmitter))
 }
 
 func (a BuildArgs) Broadcast(portName string) beadanimation.Broadcast {
-	a.mustDeclare(portName, portwiring.PortBroadcast)
+	a.mustDeclare(portName, PortBroadcast)
 	return NewBroadcastPort(portName, a.Ctx, a.Name, a.PB, a.sourceOuts, InteriorEventSinkGetter(a.getEmitter))
 }
 

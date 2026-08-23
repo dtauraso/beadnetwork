@@ -43,6 +43,19 @@ func InteriorEventSinkGetter(g func() *interior.Emitter) func() beadanimation.Ev
 	}
 }
 
+type PortDir int
+
+const (
+	PortIn PortDir = iota
+	PortOut
+	PortBroadcast
+)
+
+type PortSpec struct {
+	Name string
+	Dir  PortDir
+}
+
 const NoPortRow = int32(-1)
 
 func NewInPort(portName string, ctx context.Context, name string, pb bindings, getSink func() beadanimation.EventSink) *beadanimation.Receiver {

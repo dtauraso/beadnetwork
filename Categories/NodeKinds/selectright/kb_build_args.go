@@ -25,10 +25,10 @@ type BuildArgs struct {
 	Deps portwiring.BuildDeps
 
 	kind  string
-	ports []portwiring.PortSpec
+	ports []PortSpec
 }
 
-func (a BuildArgs) mustDeclare(portName string, dir portwiring.PortDir) {
+func (a BuildArgs) mustDeclare(portName string, dir PortDir) {
 	for _, p := range a.ports {
 		if p.Name == portName && p.Dir == dir {
 			return
@@ -44,12 +44,13 @@ func (a BuildArgs) mustDeclare(portName string, dir portwiring.PortDir) {
 }
 
 func BuilderFor(kind string, build func(BuildArgs) (portwiring.Node, error)) portwiring.NodeBuilder {
-	ports, declared := portwiring.KindPorts[kind]
-	if !declared {
-
-		panic("BuilderFor: kind " + kind + " has no ports in portwiring.KindPorts — " +
-			"its SPEC.md ## Ports table is the only declaration, and the generated table is stale. " +
-			"Run go generate ./...")
+	if len(kindPorts) == 0 {
+		panic("BuilderFor: kind " + kind + " has no ports — its SPEC.md ## Ports table is the " +
+			"only declaration, and this kind's generated table is stale. Run go generate ./...")
+	}
+	ports := make([]portwiring.PortSpec, len(kindPorts))
+	for i, p := range kindPorts {
+		ports[i] = portwiring.PortSpec{Name: p.Name, Dir: portwiring.PortDir(p.Dir)}
 	}
 	return portwiring.NodeBuilder{
 		Ports: ports,
@@ -58,7 +59,7 @@ func BuilderFor(kind string, build func(BuildArgs) (portwiring.Node, error)) por
 			return build(BuildArgs{
 				Ctx: ctx, Name: name, Data: data, PB: pb,
 				kind:  kind,
-				ports: ports,
+				ports: kindPorts,
 
 				sourceOuts: &sourceOuts,
 				getEmitter: NewInteriorEmitterGetter(name, pb),

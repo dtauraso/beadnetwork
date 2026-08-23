@@ -39,6 +39,12 @@ func main() {
 	}
 	genpaths.Announce(portsPath, len(kinds), "kinds")
 
+	kindsDir := filepath.Join(srcRoot, "NodeKinds")
+	if err := writeKindOwnPorts(kindsDir, kinds); err != nil {
+		genpaths.Fatalf("write per-kind ports: %v", err)
+	}
+	genpaths.Announce(kindsDir, len(kinds), "per-kind port tables")
+
 	kindIDPath := filepath.Join(srcRoot, "Node", "node_kind_id_gen.go")
 	if err := writeNodeKindID(kindIDPath, kinds); err != nil {
 		genpaths.Fatalf("write %s: %v", kindIDPath, err)
