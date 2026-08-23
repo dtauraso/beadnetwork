@@ -69,9 +69,7 @@ Vocabulary detail, parity guards, and the no-sidecar rule: `.claude/rules/bridge
 There is **no `tools/`**. It was removed because it had stopped meaning anything: it held
 the whole editor (107 Go files in production packages), the generators, and every guard.
 
-There is **no `cmd/`** either: it grouped code by what it compiled to rather than what it was
-about. Each generator lives with the thing it generates, in that concern's `gen/` package —
-one directory out, since a directory is one Go package. `go generate ./...` runs all of them. A generator must NOT import the package it writes a `.go` file into (delete the output and the generator stops compiling) — why `Categories/Node/gen/kinds` is nested, not merged into `gen`.
+There is **no `cmd/`** either, and **no `gen/`**: both grouped code by technique. Each generator lives with the thing it generates and is NAMED for what it produces — `values` (a block file's value names and paths), `wire` (message/attr definitions), `shading`, `flags`, `kindports`, `portsdef`, `kindtables` — one directory out, since a directory is one Go package. `go generate ./...` runs all of them, and the guards find them by the `//go:generate go run .` directive, never by directory name. A generator must NOT import the package it writes a `.go` file into (delete the output and the generator stops compiling) — why `Categories/Node/kindtables` is a sibling of `Categories/Node/values`, not inside it.
 
 - **`src/`** — the npm package's source root, and the editor: each concern directory holds
   the Go that writes the thing and the TS that draws it, plus its `*_values.go`, generated

@@ -131,7 +131,7 @@ The `## View` section is required for any kind that has a TSX render. It drives 
 | height | 60 |
 ```
 
-- `kind` — required (non-empty), but **write-only/vestigial today**: `Categories/NodeKinds/gen/kindscan`
+- `kind` — required (non-empty), but **write-only/vestigial today**: `each kind's own `portsdef``
   parses it and fails loudly if it's empty, but it is never used as the `NODE_DEFS` key. The
   actual `node-defs.ts` key is the **PascalCase Go kind name** from its `BuilderFor(...)` call
   (`goKind`), matching `CLAUDE.md`. Keep `kind` populated (any non-empty string; convention is
@@ -145,7 +145,7 @@ The `## View` section is required for any kind that has a TSX render. It drives 
   110×60 if omitted.
 
 A missing `## View` section (or one missing the `Field`/`Value` table columns) is a **hard
-error**: the kind scanner (`Categories/NodeKinds/gen/kindscan`) fails the whole build, it is
+error**: the kind scanner (`each kind's own `portsdef``) fails the whole build, it is
 not skipped or treated as not-yet-migrated. Every `Categories/NodeKinds/<Kind>/` directory with a
 its `BuilderFor(...)` call call MUST have a valid `## View` section.
 
