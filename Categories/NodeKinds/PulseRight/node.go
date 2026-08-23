@@ -9,7 +9,6 @@ import (
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/nodeapi"
 	Speed "github.com/dtauraso/wirefold/Categories/Speed"
 
-	"github.com/dtauraso/wirefold/Categories/NodeKinds/helddrive"
 	Wiring "github.com/dtauraso/wirefold/Categories/NodeKinds/kindapi"
 )
 
@@ -29,8 +28,8 @@ type PulseRight struct {
 	Out Wiring.DrivenOut
 }
 
-func driveOutput(out Wiring.DrivenOut) *helddrive.HeldDriver {
-	return helddrive.New(out, func(h int64) int { return int(h) })
+func driveOutput(out Wiring.DrivenOut) *HeldDriver {
+	return newHeldDriver(out, func(h int64) int { return int(h) })
 }
 
 func (g *PulseRight) Update(ctx context.Context) {

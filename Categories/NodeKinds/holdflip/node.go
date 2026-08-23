@@ -9,7 +9,6 @@ import (
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/nodeapi"
 	Speed "github.com/dtauraso/wirefold/Categories/Speed"
 
-	"github.com/dtauraso/wirefold/Categories/NodeKinds/helddrive"
 	Wiring "github.com/dtauraso/wirefold/Categories/NodeKinds/kindapi"
 )
 
@@ -36,7 +35,7 @@ func (g *Node) Update(ctx context.Context) {
 		g.EmitHeldBead(interior.NoValue)
 	}
 
-	driver := helddrive.New(g.Out, func(h int64) int {
+	driver := newHeldDriver(g.Out, func(h int64) int {
 		if h == interior.NoValue {
 			return interior.NoValue
 		}
