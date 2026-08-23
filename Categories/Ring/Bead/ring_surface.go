@@ -3,17 +3,16 @@ package bead
 import (
 	"sync"
 
-	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
 	Ring "github.com/dtauraso/wirefold/Categories/Ring"
 )
 
 const (
-	RingSurfaceNu = nodegeom.ShadingParamBeadRingSurfaceNu
-	RingSurfaceNv = nodegeom.ShadingParamBeadRingSurfaceNv
+	RingSurfaceNu = ShadingParamBeadRingSurfaceNu
+	RingSurfaceNv = ShadingParamBeadRingSurfaceNv
 )
 
 func CanonicalRingSurfacePoints() []Vec3 {
-	pts := Ring.CanonicalTorusSurfacePoints(nodegeom.ShadingParamBeadRingTubeRatio, RingSurfaceNu, RingSurfaceNv)
+	pts := Ring.CanonicalTorusSurfacePoints(ShadingParamBeadRingTubeRatio, RingSurfaceNu, RingSurfaceNv)
 	out := make([]Vec3, len(pts))
 	for i, p := range pts {
 		out[i] = Vec3(p)

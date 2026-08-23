@@ -63,8 +63,31 @@ for prop in "${PROPS[@]}"; do
     --include='*.ts' --include='*.tsx' "${SCAN_DIR[@]}" 2>/dev/null || true)
 done
 
-if ! grep -arq --include='*.ts' --include='*.tsx' '/nodegeom/shading-params"' "${SCAN_DIR[@]}"; then
-  echo 'ts-shading-from-go: three/ does not import from `Categories/Node/nodegeom/shading-params.ts` — shading params must come from Go'
+SHADING_SOURCES=(
+  "Categories/Node/Edge/shading_params.go"
+  "Categories/Node/Interior/shading_params.go"
+  "Categories/Node/ChannelVectors/shading_params.go"
+  "Categories/Node/Poles/shading_params.go"
+  "Categories/Node/nodegeom/shading_params.go"
+  "Categories/Ring/Bead/shading_params.go"
+  "Categories/Ring/NodeShape/shading_params.go"
+  "Categories/Scene/Environment/shading_params.go"
+)
+for src in "${SHADING_SOURCES[@]}"; do
+  if [[ ! -f "$REPO_ROOT/$src" ]]; then
+    echo "ts-shading-from-go: MISCONFIGURED — $src not found; a shading source moved and this guard" >&2
+    echo "  would stop checking that category's params. Point it at where they live now." >&2
+    exit 1
+  fi
+  ts="$REPO_ROOT/${src%/shading_params.go}/shading-params.ts"
+  if [[ ! -f "$ts" ]]; then
+    echo "ts-shading-from-go: $src has no generated shading-params.ts beside it — run go generate ./..."
+    HITS=$((HITS + 1))
+  fi
+done
+
+if ! grep -arq --include='*.ts' --include='*.tsx' 'shading-params"' "${SCAN_DIR[@]}"; then
+  echo 'ts-shading-from-go: nothing imports a shading-params.ts — shading params must come from Go'
   HITS=$((HITS + 1))
 fi
 if ! grep -arq --include='*.ts' --include='*.tsx' 'SHADING_PARAM_NODE_TRANSMISSION' "${SCAN_DIR[@]}"; then
@@ -78,5 +101,5 @@ if [[ $HITS -eq 0 ]]; then
 fi
 
 echo ""
-echo "ts-shading-from-go: $HITS hit(s) — shading parameter VALUES must live in Go (Categories/Node/nodegeom/shading_params.go), not TS"
+echo "ts-shading-from-go: $HITS hit(s) — shading parameter VALUES must live in Go, in the shading_params.go of the category they describe, not TS"
 exit 1

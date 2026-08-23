@@ -4,6 +4,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/dtauraso/wirefold/Categories/Node/nodegeom/gen/params"
 	"os"
 	"path/filepath"
 	"strings"
@@ -51,7 +52,7 @@ func writeNames(path string) error {
 
 func main() {
 	genName = "Categories/Node/ChannelVectors/gen"
-	_, srcRoot := roots()
+	repoRoot, srcRoot := roots()
 
 	dir := filepath.Join(srcRoot, "Node", "ChannelVectors")
 	pathsDir := filepath.Join(dir, "paths")
@@ -65,4 +66,15 @@ func main() {
 		fatalf("write %s: %v", namesPath, err)
 	}
 	announce(namesPath, len(ChannelVectors.VectorValueNames), "channel vector values")
+
+	shGo := filepath.Join(dir, "shading_params.go")
+	shParams, shErr := params.ParseShadingParams(repoRoot, shGo)
+	if shErr != nil {
+		fatalf("parse shading params: %v", shErr)
+	}
+	shTs := filepath.Join(dir, "shading-params.ts")
+	if err := params.WriteShadingParams(shTs, shParams, genName, "Categories/Node/ChannelVectors/shading_params.go"); err != nil {
+		fatalf("write %s: %v", shTs, err)
+	}
+	announce(shTs, len(shParams), "channel constants")
 }

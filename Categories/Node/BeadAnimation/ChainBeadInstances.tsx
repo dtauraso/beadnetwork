@@ -5,7 +5,7 @@ import { ownerCounts } from "../../Scene/owner-counts";
 import { beadBytes, BEAD_RING_NAMES } from "../../Ring/Bead/bead-leaves";
 import { beadStyleForValue } from "../../Ring/Bead/bead-style";
 import { getCanonicalBeadRingSurfaceGeometry } from "../../Ring/Bead/bead-ring-surface-geometry";
-import { SHADING_PARAM_BEAD_RADIUS } from "../../Node/nodegeom/shading-params";
+import { SHADING_PARAM_BEAD_RADIUS } from "../../Ring/Bead/shading-params";
 
 const RING_COLOR = beadStyleForValue(1)!.ring;
 

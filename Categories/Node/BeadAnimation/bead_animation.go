@@ -8,8 +8,8 @@ import (
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
 	"github.com/dtauraso/wirefold/Categories/Node/BeadAnimation/lattice"
 	SF "github.com/dtauraso/wirefold/Categories/Node/Edge"
-	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
 	Ring "github.com/dtauraso/wirefold/Categories/Ring"
+	bead "github.com/dtauraso/wirefold/Categories/Ring/Bead"
 	Speed "github.com/dtauraso/wirefold/Categories/Speed"
 )
 
@@ -97,7 +97,7 @@ func (o *BeadAnimation) stepBeads(ctx context.Context, tick int64) {
 				X: float32(r.X), Y: float32(r.Y), Z: float32(r.Z),
 				Value: int32(r.Val), EdgeRow: edgeRow,
 				RingMatrix: Ring.RingInstanceMatrixColumnMajor(
-					Ring.Vec3(pos), nodegeom.ShadingParamBeadRadius, axisPhi, axisTheta),
+					Ring.Vec3(pos), bead.ShadingParamBeadRadius, axisPhi, axisTheta),
 			})
 		}
 		events = append(events, o.drainBeadEvents(bl)...)

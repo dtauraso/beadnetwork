@@ -2,14 +2,12 @@ package ChannelVectors
 
 import (
 	"math"
-
-	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
 )
 
 const (
-	ChannelLineRadius = nodegeom.ShadingParamChannelLineRadius
-	ChannelHeadRadius = nodegeom.ShadingParamChannelHeadRadius
-	ChannelHeadLength = nodegeom.ShadingParamChannelHeadLength
+	ChannelLineRadius = ShadingParamChannelLineRadius
+	ChannelHeadRadius = ShadingParamChannelHeadRadius
+	ChannelHeadLength = ShadingParamChannelHeadLength
 )
 
 func ChannelVectorsFor(self Vec3, peers map[string]Vec3) []ChannelVector {

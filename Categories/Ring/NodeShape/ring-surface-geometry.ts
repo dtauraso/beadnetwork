@@ -3,7 +3,7 @@ import { ringPointBytes } from "../../RingPoint/point-leaves";
 import {
   SHADING_PARAM_NODE_RING_SURFACE_NU,
   SHADING_PARAM_NODE_RING_SURFACE_NV,
-} from "../../Node/nodegeom/shading-params";
+} from "./shading-params";
 
 let cachedGeometry: THREE.BufferGeometry | null = null;
 
