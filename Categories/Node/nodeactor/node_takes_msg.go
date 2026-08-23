@@ -1,56 +1,55 @@
 package nodeactor
 
 import (
-	"github.com/dtauraso/wirefold/Categories/Node/movemsg"
 	"github.com/dtauraso/wirefold/Categories/Node/nodeactor/owners"
 	"github.com/dtauraso/wirefold/Categories/Polar/polar"
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
 )
 
-func (m *NodeGeometry) take(msg movemsg.Msg) {
+func (m *NodeGeometry) take(msg owners.Msg) {
 	if msg.NodeID != m.id {
 		return
 	}
 	switch b := msg.Body.(type) {
-	case movemsg.NeighborMoved:
+	case owners.NeighborMoved:
 		m.takeNeighborMove(b)
-	case movemsg.Drag:
+	case owners.Drag:
 		m.takeDragOfSelf(b)
-	case movemsg.DragStart:
+	case owners.DragStart:
 		m.beads.PostBeadDrag(true)
-	case movemsg.DragEnd:
+	case owners.DragEnd:
 
 		m.beads.PostBeadDrag(false)
-	case movemsg.Select:
+	case owners.Select:
 		m.ui.SetSelected(b.On)
-	case movemsg.Hover:
+	case owners.Hover:
 		m.ui.SetHover(b.On, b.Port, b.IsInput)
-	case movemsg.Latched:
+	case owners.Latched:
 		m.ui.SetLatched(b.On)
-	case movemsg.TiltVectorAngle:
+	case owners.TiltVectorAngle:
 		m.handleTiltVectorAngle(b)
-	case movemsg.TiltVectorReset:
+	case owners.TiltVectorReset:
 		m.handleTiltVectorReset()
 	default:
 		panic("nodeactor.take: node " + m.id + " was handed a move body it has no case for. " +
-			"Every movemsg.Body must be handled here; an unhandled one used to fall through to a " +
+			"Every owners.Body must be handled here; an unhandled one used to fall through to a " +
 			"silent redraw, so the message did nothing and nothing said so.")
 	}
 }
 
-func (m *NodeGeometry) takeNeighborMove(msg movemsg.NeighborMoved) {
+func (m *NodeGeometry) takeNeighborMove(msg owners.NeighborMoved) {
 	if msg.Delta != nil && msg.SenderID != "" {
 		m.deltas.ShiftOtherBy(msg.SenderID, *msg.Delta)
 	}
 	if msg.Center != nil {
-		idx := polarindex.MeasureIndex(polar.Cart2polarAtTheta(polar.Vec3(msg.Center.Sub(movemsg.Vec3(m.SceneCenter()))), m.ScenePolar().Theta), m.Constants())
+		idx := polarindex.MeasureIndex(polar.Cart2polarAtTheta(polar.Vec3(msg.Center.Sub(owners.Vec3(m.SceneCenter()))), m.ScenePolar().Theta), m.Constants())
 		m.ApplyCenter(idx)
 		return
 	}
 	m.emitGeometry()
 }
 
-func (m *NodeGeometry) takeDragOfSelf(msg movemsg.Drag) {
+func (m *NodeGeometry) takeDragOfSelf(msg owners.Drag) {
 	haveIdx := m.ComposedIndex()
 
 	var delta polarindex.Offset
@@ -75,7 +74,7 @@ func (m *NodeGeometry) takeDragOfSelf(msg movemsg.Drag) {
 	}})
 }
 
-func (m *NodeGeometry) handleTiltVectorAngle(msg movemsg.TiltVectorAngle) {
+func (m *NodeGeometry) handleTiltVectorAngle(msg owners.TiltVectorAngle) {
 	delta := int32(-1)
 	if msg.Up {
 		delta = 1

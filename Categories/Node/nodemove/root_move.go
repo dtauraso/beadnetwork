@@ -3,7 +3,7 @@ package nodemove
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/Categories/Node/movemsg"
+	"github.com/dtauraso/wirefold/Categories/Node/nodeactor/owners"
 	"github.com/dtauraso/wirefold/Categories/Node/nodeactor"
 	"github.com/dtauraso/wirefold/Categories/Polar/polar"
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
@@ -37,6 +37,6 @@ func (mv *NodeMover) RootMove(ctx context.Context, nodeGeoms map[string]*nodeact
 	sc := nm.Constants()
 	targetIdx := polarindex.MeasureIndex(pointerPolar(nm, target.Sub(Vec3(nm.SceneCenter()))), sc)
 
-	nm.SendExternal(ctx, movemsg.Msg{NodeID: nodeID, Body: movemsg.Drag{Target: &targetIdx}})
+	nm.SendExternal(ctx, owners.Msg{NodeID: nodeID, Body: owners.Drag{Target: &targetIdx}})
 	return true
 }

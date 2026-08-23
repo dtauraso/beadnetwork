@@ -1,4 +1,4 @@
-package movemsg
+package owners
 
 import (
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
@@ -29,9 +29,9 @@ type NeighborMoved struct {
 	SenderID string
 }
 
-func (NeighborMoved) moveBody()                       {}
-func (NeighborMoved) Where() *polarindex.Index        { return nil }
-func (n NeighborMoved) HowFar() *polarindex.Offset    { return n.Delta }
+func (NeighborMoved) moveBody()                    {}
+func (NeighborMoved) Where() *polarindex.Index     { return nil }
+func (n NeighborMoved) HowFar() *polarindex.Offset { return n.Delta }
 func (n NeighborMoved) WithHowFar(d polarindex.Offset) Movement {
 	n.Delta = &d
 	return n
@@ -43,9 +43,9 @@ type Drag struct {
 	Delta *polarindex.Offset
 }
 
-func (Drag) moveBody()                        {}
-func (d Drag) Where() *polarindex.Index       { return d.Target }
-func (d Drag) HowFar() *polarindex.Offset     { return d.Delta }
+func (Drag) moveBody()                    {}
+func (d Drag) Where() *polarindex.Index   { return d.Target }
+func (d Drag) HowFar() *polarindex.Offset { return d.Delta }
 func (d Drag) WithHowFar(o polarindex.Offset) Movement {
 	d.Delta = &o
 	return d

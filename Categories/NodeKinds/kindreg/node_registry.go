@@ -3,7 +3,7 @@ package kindreg
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/Categories/Node/movemsg"
+	"github.com/dtauraso/wirefold/Categories/Node/nodeinbox"
 	"github.com/dtauraso/wirefold/Categories/Node/nodeactor"
 	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/nodeapi"
@@ -16,7 +16,7 @@ type BuildDeps struct {
 
 	ClaimLatticeIn func(name string) chan int32
 
-	ClaimTiltEditIn func(name string) chan movemsg.TiltEditMsg
+	ClaimTiltEditIn func(name string) chan nodeinbox.TiltEditMsg
 
 	ClaimSelfDriveGeom func(name string) *nodeactor.NodeGeometry
 }

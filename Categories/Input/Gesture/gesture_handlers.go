@@ -9,7 +9,7 @@ import (
 
 	"github.com/dtauraso/wirefold/Categories/Scene/Camera"
 	"github.com/dtauraso/wirefold/Categories/Input/Drag"
-	"github.com/dtauraso/wirefold/Categories/Node/movemsg"
+	"github.com/dtauraso/wirefold/Categories/Node/nodeactor/owners"
 	"github.com/dtauraso/wirefold/Categories/Node/nodemove"
 )
 
@@ -98,7 +98,7 @@ func gestPointerUp(d Deps, ev Drag.RawInputMsg) {
 		d.UI.EmitViewFrame(nil)
 
 		if draggedNode != "" {
-			d.MR.SendMove(d.Ctx, draggedNode, movemsg.Msg{NodeID: draggedNode, Body: movemsg.DragEnd{}})
+			d.MR.SendMove(d.Ctx, draggedNode, owners.Msg{NodeID: draggedNode, Body: owners.DragEnd{}})
 		}
 	}
 }

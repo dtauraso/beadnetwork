@@ -3,7 +3,6 @@ package nodeactor
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/Categories/Node/movemsg"
 	"github.com/dtauraso/wirefold/Categories/Node/nodeactor/owners"
 )
 
@@ -16,14 +15,14 @@ func (m *NodeGeometry) PollCenter() (Vec3, bool) {
 	return Vec3(c), ok
 }
 
-func (m *NodeGeometry) SendExternal(ctx context.Context, msg movemsg.Msg) {
+func (m *NodeGeometry) SendExternal(ctx context.Context, msg owners.Msg) {
 	m.msg.SendExternal(ctx, msg)
 }
 
-func (m *NodeGeometry) TryRecvExternal() (movemsg.Msg, bool) {
+func (m *NodeGeometry) TryRecvExternal() (owners.Msg, bool) {
 	return m.msg.TryRecvExternal()
 }
 
-func (m *NodeGeometry) EnqueueSend(destID string, msg movemsg.Msg) {
+func (m *NodeGeometry) EnqueueSend(destID string, msg owners.Msg) {
 	m.msg.EnqueueSend(m.id, destID, msg)
 }

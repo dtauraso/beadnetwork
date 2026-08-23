@@ -4,12 +4,18 @@ import (
 	"context"
 
 	"github.com/dtauraso/wirefold/Categories/Chrome/Pills/AngleDropdown"
-
-	"github.com/dtauraso/wirefold/Categories/Node/movemsg"
 )
 
+type TiltEditMsg struct {
+	Up bool
+
+	Start bool
+
+	Reset bool
+}
+
 type NodeInboxes struct {
-	tiltEdit map[string]chan movemsg.TiltEditMsg
+	tiltEdit map[string]chan TiltEditMsg
 
 	lattice map[string]chan int32
 
@@ -43,9 +49,9 @@ func (ib *NodeInboxes) ClaimLatticeIn(id string, ch chan int32) {
 	ib.lattice[id] = ch
 }
 
-func (ib *NodeInboxes) ClaimTiltEditIn(id string, ch chan movemsg.TiltEditMsg) {
+func (ib *NodeInboxes) ClaimTiltEditIn(id string, ch chan TiltEditMsg) {
 	if ib.tiltEdit == nil {
-		ib.tiltEdit = map[string]chan movemsg.TiltEditMsg{}
+		ib.tiltEdit = map[string]chan TiltEditMsg{}
 	}
 	ib.tiltEdit[id] = ch
 }
@@ -56,7 +62,7 @@ func (ib *NodeInboxes) BroadcastLatticePoints(points int32) {
 	}
 }
 
-func (ib *NodeInboxes) SendTiltEdit(ctx context.Context, id string, msg movemsg.TiltEditMsg) bool {
+func (ib *NodeInboxes) SendTiltEdit(ctx context.Context, id string, msg TiltEditMsg) bool {
 	ch, ok := ib.tiltEdit[id]
 	if !ok {
 		return false

@@ -3,7 +3,7 @@ package PairNode
 import (
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/TiltPanel"
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
-	"github.com/dtauraso/wirefold/Categories/Node/movemsg"
+	"github.com/dtauraso/wirefold/Categories/Node/nodeinbox"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/PairNode/tiltring"
 )
 
@@ -22,7 +22,7 @@ func (n *Node) drainTiltEdit(clk clock.Clock) {
 	}
 }
 
-func (n *Node) applyTiltEdit(edit movemsg.TiltEditMsg) (placeBead bool) {
+func (n *Node) applyTiltEdit(edit nodeinbox.TiltEditMsg) (placeBead bool) {
 	if edit.Reset {
 		n.clear()
 
