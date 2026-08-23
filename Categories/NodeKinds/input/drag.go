@@ -3,16 +3,16 @@ package input
 import (
 	"math"
 
-	"github.com/dtauraso/wirefold/Categories/Node/nodedrag"
+	NodeDrag "github.com/dtauraso/wirefold/Categories/Node/Drag"
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
 )
 
-func trimOwnDrag(delta polarindex.Offset, st nodedrag.State) polarindex.Offset {
+func trimOwnDrag(delta polarindex.Offset, st NodeDrag.State) polarindex.Offset {
 	if !st.KindOn {
-		return nodedrag.TrimToDragRule(delta, st)
+		return NodeDrag.TrimToDragRule(delta, st)
 	}
 	delta = snapDeltaTheta(delta, st.Constants)
-	delta = nodedrag.TrimToDragRule(delta, st)
+	delta = NodeDrag.TrimToDragRule(delta, st)
 	return holdEqualOutLengths(delta, st)
 }
 
@@ -29,7 +29,7 @@ func snapDeltaTheta(delta polarindex.Offset, sc polarindex.SceneConstants) polar
 	return delta
 }
 
-func holdEqualOutLengths(delta polarindex.Offset, st nodedrag.State) polarindex.Offset {
+func holdEqualOutLengths(delta polarindex.Offset, st NodeDrag.State) polarindex.Offset {
 	longest, shortest, count := 0, 0, 0
 	for _, to := range st.OutTargets {
 		d, ok := st.OutDelta[to]
@@ -51,7 +51,7 @@ func holdEqualOutLengths(delta polarindex.Offset, st nodedrag.State) polarindex.
 	return delta
 }
 
-func equalOutLengths(delta polarindex.Offset, st nodedrag.State) map[string]polarindex.Offset {
+func equalOutLengths(delta polarindex.Offset, st NodeDrag.State) map[string]polarindex.Offset {
 	sc := st.Constants
 	paths := map[string]polarindex.Offset{}
 	shared := 0

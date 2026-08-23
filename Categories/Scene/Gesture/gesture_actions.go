@@ -1,11 +1,10 @@
 package Gesture
 
 import (
-	"github.com/dtauraso/wirefold/Categories/Input/Drag"
 	"github.com/dtauraso/wirefold/Categories/Node"
+	NodeGesture "github.com/dtauraso/wirefold/Categories/Node/Gesture"
 	"github.com/dtauraso/wirefold/Categories/Scene/Camera"
-	"github.com/dtauraso/wirefold/Categories/Scene/rowtables"
-	"github.com/dtauraso/wirefold/Categories/Scene/viewstate"
+	"github.com/dtauraso/wirefold/Categories/Scene/Drag"
 )
 
 func updateHover(d Deps, ev Drag.RawInputMsg) {
@@ -19,7 +18,7 @@ func updateHover(d Deps, ev Drag.RawInputMsg) {
 	}
 	mr, ctx := d.MR, d.Ctx
 	sendMoveFn := func(id string, msg Node.Msg) { mr.SendMove(ctx, id, msg) }
-	if setHover(d.UI, sendMoveFn, d.RT, node, "", false) {
+	if NodeGesture.SetHover(d.UI, sendMoveFn, d.RT, node, "", false) {
 		d.UI.EmitViewFrame(nil)
 	}
 }
@@ -54,25 +53,6 @@ func applyOrbitLocked(d Deps, ev Drag.RawInputMsg) {
 	currDir := Camera.ToWorldDir(basis, curr)
 	d.UI.OrbitLockedViewpoint(Camera.WorldDirToAngles(currDir), Camera.WorldDirToAngles(prevDir))
 	d.UI.EmitViewFrame(nil)
-}
-
-func applyNodeDragTarget(ui *viewstate.UIState, rootMove func(id string, target Vec3) bool, ev Drag.RawInputMsg) bool {
-	g := &ui.Gest
-	hit, ok := ui.DragPlaneHit(ev)
-	if !ok {
-		return false
-	}
-	rootMove(g.DragNode, Vec3(hit.Add(viewstate.Vec3(g.DragGrabOffset))))
-	return true
-}
-
-func setHover(ui *viewstate.UIState, sendMoveFn func(id string, msg Node.Msg), RT *rowtables.RowTables, node, port string, isInput bool) (changed bool) {
-	if node == ui.Sel.HoverNode && port == ui.Sel.HoverPort && isInput == ui.Sel.HoverInput {
-		return false
-	}
-
-	ui.SetHoverUI(sendMoveFn, node, port, isInput)
-	return true
 }
 
 func applySelect(d Deps, ev Drag.RawInputMsg) {

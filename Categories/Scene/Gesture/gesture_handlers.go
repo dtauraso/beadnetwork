@@ -2,15 +2,16 @@ package Gesture
 
 import (
 	"fmt"
+	NodeGesture "github.com/dtauraso/wirefold/Categories/Node/Gesture"
 	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
 	"github.com/dtauraso/wirefold/Categories/Scene/viewstate"
 	"math"
 
 	"github.com/dtauraso/wirefold/Categories/Chrome/Pills/FitButton"
 
-	"github.com/dtauraso/wirefold/Categories/Input/Drag"
 	"github.com/dtauraso/wirefold/Categories/Node"
 	"github.com/dtauraso/wirefold/Categories/Scene/Camera"
+	"github.com/dtauraso/wirefold/Categories/Scene/Drag"
 )
 
 func gestHome(d Deps, ev Drag.RawInputMsg) {
@@ -36,7 +37,7 @@ func gestPointerDown(d Deps, ev Drag.RawInputMsg) {
 	g.Secondary = ev.Button == 2
 	g.Phase = Drag.GestPending
 	g.EmptyDown = false
-	g.DragNode = ""
+	g.NodeDrag.Clear()
 	g.HandholdDown = false
 
 	if h, ok := hitClassifiers[ev.Hit.Kind]; ok {
@@ -48,7 +49,7 @@ func gestPointerDown(d Deps, ev Drag.RawInputMsg) {
 		TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 		Value: int32(ev.Button),
 		Text: fmt.Sprintf("hit=%q empty=%t handhold=%t node=%q xy=%.0f,%.0f rect=%.0f,%.0f,%.0fx%.0f pxPerRad=%.2f",
-			ev.Hit.Kind, g.EmptyDown, g.HandholdDown, g.DragNode,
+			ev.Hit.Kind, g.EmptyDown, g.HandholdDown, g.NodeDrag.Node,
 			ev.X, ev.Y, g.Rect.Left, g.Rect.Top, g.Rect.Width, g.Rect.Height, g.RotPxPerRad),
 	})
 }
@@ -82,7 +83,7 @@ func gestPointerUp(d Deps, ev Drag.RawInputMsg) {
 	switch {
 	case g.Phase == Drag.GestDragging:
 		nodeGeoms, mv, ctx := d.MR.NodeGeoms(), d.Mover, d.Ctx
-		applyNodeDragTarget(d.UI, func(id string, target Vec3) bool { return mv.RootMove(ctx, nodeGeoms, id, nodegeom.Vec3(target)) }, ev)
+		NodeGesture.ApplyDragTarget(d.UI, func(id string, target nodegeom.Vec3) bool { return mv.RootMove(ctx, nodeGeoms, id, target) }, ev)
 	case g.Phase == Drag.GestHandhold, g.Phase == Drag.GestRotating:
 
 	case g.Phase == Drag.GestPending:
@@ -91,7 +92,7 @@ func gestPointerUp(d Deps, ev Drag.RawInputMsg) {
 	}
 	wasDragging := g.Phase == Drag.GestDragging
 
-	draggedNode := g.DragNode
+	draggedNode := g.NodeDrag.Node
 	g.Reset(&d.UI.VP.Viewpoint)
 	if wasDragging {
 

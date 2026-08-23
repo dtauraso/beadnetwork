@@ -1,4 +1,4 @@
-package nodedrag
+package Drag
 
 import (
 	"math"

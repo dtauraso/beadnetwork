@@ -1,11 +1,11 @@
 import { useEffect, useRef } from "react";
 import { Canvas } from "@react-three/fiber";
 import * as THREE from "three";
-import { buildDeleteRaw, buildKeyRaw } from "../../../../Categories/Input/Drag/raw-input-build";
+import { buildDeleteRaw, buildKeyRaw } from "../../../../Categories/Scene/Drag/raw-input-build";
 import { sendRawInput } from "../vscode-api";
 import { rulesDraftOpen } from "../../../../Categories/Chrome/Panels/PolarRulesPanel/draw-rules-panel";
 import { useInteractionControls } from "./interaction-controls";
-import type { PickFn } from "../../../../Categories/Input/Drag/pick-types";
+import type { PickFn } from "../../../../Categories/Scene/Drag/pick-types";
 import { Scene } from "./scene-content";
 import { SceneRoot, LabelProjector } from "./scene-root";
 import { ProceduralEnvProvider } from "./scene-env";

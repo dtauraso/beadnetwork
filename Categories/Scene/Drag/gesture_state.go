@@ -1,6 +1,7 @@
 package Drag
 
 import (
+	NodeDrag "github.com/dtauraso/wirefold/Categories/Node/Drag"
 	"github.com/dtauraso/wirefold/Categories/Scene/Camera"
 )
 
@@ -27,10 +28,7 @@ type GestureState struct {
 
 	EmptyDown bool
 
-	DragNode        string
-	DragStartCenter Vec3
-
-	DragGrabOffset Vec3
+	NodeDrag NodeDrag.Gesture
 
 	HandholdDown bool
 
@@ -60,8 +58,7 @@ func (g *GestureState) PixelToNDC(x, y float64) (nx, ny float64) {
 func (g *GestureState) Reset(vp *Camera.Viewpoint) {
 	g.Phase = GestIdle
 	g.EmptyDown = false
-	g.DragNode = ""
-	g.DragGrabOffset = Vec3{}
+	g.NodeDrag.Clear()
 	g.HandholdDown = false
 	g.Secondary = false
 	vp.LockedAxis = nil

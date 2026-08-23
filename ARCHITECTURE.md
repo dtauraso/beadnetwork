@@ -40,7 +40,7 @@ for the full bridge-surface model, not duplicated here.
 whose records use it, and the TS half is GENERATED from that Go declaration, so
 neither can drift and there is no second hand-kept copy to compare:
 
-- the record kind byte — with the record it names: `Categories/Input/Drag/kinds.go` for
+- the record kind byte — with the record it names: `Categories/Scene/Drag/kinds.go` for
   raw-input, `Categories/Scene/scenerun/dispatch_edit.go` for edit-update, and
   `Categories/Scene/inputactor/stdin_reader.go` for save. Removed kind bytes are
   preserved as GAPS and never renumbered.
@@ -49,7 +49,7 @@ neither can drift and there is no second hand-kept copy to compare:
 - update attributes — each concern's own `update_attrs.go` (`Node`, `Node/Edge`,
   `Scene`, `Overlay`, `Chrome/Panels/Panel`, `Speed`). An attr byte is read only
   inside the decoder its kind selected, so each concern numbers its own from zero.
-- event and hit kinds — `Categories/Input/Drag/kinds.go`.
+- event and hit kinds — `Categories/Scene/Drag/kinds.go`.
 - overlay and panel flags — `Categories/Overlay/flags.ts` and
   `Categories/Chrome/Panels/Panel/flags.ts`, which both sides derive from.
 
@@ -65,7 +65,7 @@ fail and so cannot be trusted.
 | `Start/extension/html.ts` | Webview HTML shell + CSP |
 | `runCommand.ts` | Spawns the Go process and frames stdin records. Nothing streams back — Go inherits three stdio slots and only stderr carries anything |
 | `goBuild.ts` | Compiles the Go binary; invoked automatically on `ready`, not by a button |
-| registries | There is no `schema/` and no `Buffer/`: each registry lives with its concern — `node-defs.ts` in `Categories/NodeKinds/`, `wire-defs.ts` in `Categories/Scene/loadspec/`, the input codec in `Categories/Input/`, the trace events with each owner |
+| registries | There is no `schema/` and no `Buffer/`: each registry lives with its concern — `node-defs.ts` in `Categories/NodeKinds/`, `wire-defs.ts` in `Categories/Scene/loadspec/`, the input codec in `Categories/Scene/Drag/`, the trace events with each owner |
 
 ## Webview side
 
@@ -79,8 +79,8 @@ generically from the block files each component reads, keyed off `NODE_DEFS`
 | `Start/main.tsx` | Entry point and mount. Receives NO messages — the host→webview direction is empty; everything Go says arrives as files |
 | `Categories/Scene/scene-leaves.ts` | Polls the scene's binary leaves, including `spawn`, whose change means Go was replaced |
 | `Start/extension/webview/scene/scene-root.tsx` | Composition root of the render tree; each component it assembles reads its own block files |
-| `Start/extension/webview/scene/ThreeView.tsx` | R3F `<Canvas>` root. Holds NO gesture state — raw pointer/wheel events forward verbatim to Go's FSM (`Categories/Input/Gesture` package) |
-| `Categories/Input/Drag/raw-input-build.ts` | Raw pointer/wheel + raycast hit → binary `raw-input` record to Go |
+| `Start/extension/webview/scene/ThreeView.tsx` | R3F `<Canvas>` root. Holds NO gesture state — raw pointer/wheel events forward verbatim to Go's FSM (`Categories/Scene/Gesture` package) |
+| `Categories/Scene/Drag/raw-input-build.ts` | Raw pointer/wheel + raycast hit → binary `raw-input` record to Go |
 | `Categories/Overlay/overlay-flags.ts` | Read-only reflection of Go-owned overlay-toggle state (`useSyncExternalStore`; no store) |
 | `webview/log/*` | Crash listeners, error boundary, log posting to the extension host |
 

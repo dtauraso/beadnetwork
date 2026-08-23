@@ -1,26 +1,26 @@
 package Node
 
 import (
-	"github.com/dtauraso/wirefold/Categories/Node/nodedrag"
+	NodeDrag "github.com/dtauraso/wirefold/Categories/Node/Drag"
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
 )
 
-func (m *NodeGeometry) SetKindRule(trim nodedrag.Trim, request nodedrag.Request) {
+func (m *NodeGeometry) SetKindRule(trim NodeDrag.Trim, request NodeDrag.Request) {
 	m.kindRule.SetKindRule(trim, request)
 }
 
 func (m *NodeGeometry) HasKindRule() bool { return m.kindRule.HasKindRule() }
 
 func (m *NodeGeometry) TrimOwnDrag(delta polarindex.Offset) polarindex.Offset {
-	return nodedrag.Apply(m.kindRule.Trim(), delta, m.dragState())
+	return NodeDrag.Apply(m.kindRule.Trim(), delta, m.dragState())
 }
 
 func (m *NodeGeometry) RequestedDrag(delta polarindex.Offset) map[string]polarindex.Offset {
-	return nodedrag.Requested(m.kindRule.Request(), delta, m.dragState())
+	return NodeDrag.Requested(m.kindRule.Request(), delta, m.dragState())
 }
 
-func (m *NodeGeometry) dragState() nodedrag.State {
-	st := nodedrag.State{
+func (m *NodeGeometry) dragState() NodeDrag.State {
+	st := NodeDrag.State{
 		Index:      m.ComposedIndex(),
 		Constants:  m.geom.SceneConstants,
 		Drag:       m.topo.DragRule(),

@@ -5,9 +5,9 @@ import (
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/Categories/Node/ChannelVectors"
+	NodeDrag "github.com/dtauraso/wirefold/Categories/Node/Drag"
 	interior "github.com/dtauraso/wirefold/Categories/Node/Interior"
 	"github.com/dtauraso/wirefold/Categories/Node/TiltVectors"
-	"github.com/dtauraso/wirefold/Categories/Node/nodedrag"
 	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
 	"github.com/dtauraso/wirefold/Categories/Node/rulenode"
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
@@ -17,7 +17,7 @@ type NodeGeometry struct {
 	id   string
 	geom nodegeom.NodeGeom
 
-	kindRule nodedrag.KindRule
+	kindRule NodeDrag.KindRule
 
 	persistRoot string
 	selfKind    string

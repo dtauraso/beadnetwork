@@ -5,7 +5,7 @@ import (
 
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
 	"github.com/dtauraso/wirefold/Categories/Node"
-	"github.com/dtauraso/wirefold/Categories/Node/nodedrag"
+	NodeDrag "github.com/dtauraso/wirefold/Categories/Node/Drag"
 )
 
 type Self struct {
@@ -57,7 +57,7 @@ func (p *Self) Step(ctx context.Context, tick int64) {
 	g.Beads().ApplyBeadDrag()
 }
 
-func (p *Self) SetKindRule(trim nodedrag.Trim, request nodedrag.Request) {
+func (p *Self) SetKindRule(trim NodeDrag.Trim, request NodeDrag.Request) {
 	if p == nil || p.geom == nil {
 		return
 	}

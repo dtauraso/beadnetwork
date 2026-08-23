@@ -1,6 +1,6 @@
 package main
 
-const tsMessagesSource = `import type { RawInputEvent } from "../Input/Drag/raw-input";
+const tsMessagesSource = `import type { RawInputEvent } from "../Scene/Drag/raw-input";
 import type { OverlayEditMsg } from "../Overlay/edits";
 import type { PanelEditMsg } from "../Chrome/Panels/Panel/edits";
 import type { ClockEditMsg } from "../Speed/edits";

@@ -1,11 +1,11 @@
 package Gesture
 
 import (
-	"github.com/dtauraso/wirefold/Categories/Input/Drag"
 	"github.com/dtauraso/wirefold/Categories/Node"
+	NodeGesture "github.com/dtauraso/wirefold/Categories/Node/Gesture"
 	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
 	"github.com/dtauraso/wirefold/Categories/Scene/Camera"
-	"github.com/dtauraso/wirefold/Categories/Scene/viewstate"
+	"github.com/dtauraso/wirefold/Categories/Scene/Drag"
 )
 
 type gestureEdge struct {
@@ -16,10 +16,10 @@ type gestureEdge struct {
 
 var commitEdges = []gestureEdge{
 	{
-		guard: func(g *Drag.GestureState) bool { return g.DragNode != "" },
+		guard: func(g *Drag.GestureState) bool { return g.NodeDrag.Holding() },
 		action: func(d Deps, g *Drag.GestureState, ev Drag.RawInputMsg) {
 			mr, ctx := d.MR, d.Ctx
-			commitDragStart(d.UI, func(id string, msg Node.Msg) { mr.SendMove(ctx, id, msg) }, g, ev)
+			NodeGesture.CommitDragStart(d.UI, func(id string, msg Node.Msg) { mr.SendMove(ctx, id, msg) }, g, ev)
 		},
 		to: Drag.GestDragging,
 	},
@@ -33,17 +33,6 @@ var commitEdges = []gestureEdge{
 		action: commitRotateStart,
 		to:     Drag.GestRotating,
 	},
-}
-
-func commitDragStart(ui *viewstate.UIState, sendMoveFn func(id string, msg Node.Msg), g *Drag.GestureState, ev Drag.RawInputMsg) {
-
-	if hit, ok := ui.DragPlaneHit(ev); ok {
-		g.DragGrabOffset = g.DragStartCenter.Sub(Drag.Vec3(hit))
-	}
-
-	ui.LastDraggedNode = g.DragNode
-
-	sendMoveFn(g.DragNode, Node.Msg{NodeID: g.DragNode, Body: Node.DragStart{}})
 }
 
 func commitHandholdStart(d Deps, g *Drag.GestureState, ev Drag.RawInputMsg) {
@@ -63,7 +52,7 @@ func commitRotateStart(d Deps, g *Drag.GestureState, ev Drag.RawInputMsg) {
 var applyAction = map[Drag.GesturePhase]func(d Deps, g *Drag.GestureState, ev Drag.RawInputMsg){
 	Drag.GestDragging: func(d Deps, g *Drag.GestureState, ev Drag.RawInputMsg) {
 		nodeGeoms, mv, ctx := d.MR.NodeGeoms(), d.Mover, d.Ctx
-		if applyNodeDragTarget(d.UI, func(id string, target Vec3) bool { return mv.RootMove(ctx, nodeGeoms, id, nodegeom.Vec3(target)) }, ev) {
+		if NodeGesture.ApplyDragTarget(d.UI, func(id string, target nodegeom.Vec3) bool { return mv.RootMove(ctx, nodeGeoms, id, target) }, ev) {
 			g.PrevX, g.PrevY = ev.X, ev.Y
 		}
 	},

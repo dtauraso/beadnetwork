@@ -1,6 +1,6 @@
 import type { WebviewToHostMsg } from "./messages";
-import { encodeRawInput } from "../../../Categories/Input/Drag/encode";
-import type { RawInputEvent } from "../../../Categories/Input/Drag/raw-input";
+import { encodeRawInput } from "../../../Categories/Scene/Drag/encode";
+import type { RawInputEvent } from "../../../Categories/Scene/Drag/raw-input";
 
 declare function acquireVsCodeApi(): {
   postMessage(msg: WebviewToHostMsg): void;

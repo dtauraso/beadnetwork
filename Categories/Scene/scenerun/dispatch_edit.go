@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/SliderPanel"
-	"github.com/dtauraso/wirefold/Categories/Input/Drag"
+	"github.com/dtauraso/wirefold/Categories/Scene/Drag"
 
 	"github.com/dtauraso/wirefold/Categories/Scene/structuraledit"
 )

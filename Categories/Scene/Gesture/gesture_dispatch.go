@@ -3,8 +3,8 @@ package Gesture
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/Categories/Input/Drag"
 	"github.com/dtauraso/wirefold/Categories/Node"
+	"github.com/dtauraso/wirefold/Categories/Scene/Drag"
 	"github.com/dtauraso/wirefold/Categories/Scene/rowtables"
 	"github.com/dtauraso/wirefold/Categories/Scene/viewstate"
 )

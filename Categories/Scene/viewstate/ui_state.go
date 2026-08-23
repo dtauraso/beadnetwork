@@ -2,6 +2,7 @@ package viewstate
 
 import (
 	"fmt"
+	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
 	"math"
 	"os"
 
@@ -17,7 +18,7 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Chrome/Pills/FitButton"
 	"github.com/dtauraso/wirefold/Categories/Chrome/Pills/NodesDropdown"
 	"github.com/dtauraso/wirefold/Categories/Chrome/Tabs"
-	"github.com/dtauraso/wirefold/Categories/Input/Drag"
+	"github.com/dtauraso/wirefold/Categories/Scene/Drag"
 	"github.com/dtauraso/wirefold/Categories/Node"
 	"github.com/dtauraso/wirefold/Categories/Polar/polar"
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
@@ -168,7 +169,7 @@ func (ui *UIState) DragPlaneHit(ev Drag.RawInputMsg) (hit Vec3, ok bool) {
 	if denom == 0 {
 		return Vec3{}, false
 	}
-	t := g.DragStartCenter.Sub(Drag.Vec3(eye)).Dot(Drag.Vec3(forward)) / denom
+	t := g.NodeDrag.StartCenter.Sub(nodegeom.Vec3(eye)).Dot(nodegeom.Vec3(forward)) / denom
 	hit = Vec3(eye.Add(dir.Scale(t)))
 	if math.IsNaN(hit.X) || math.IsInf(hit.X, 0) {
 		return Vec3{}, false
