@@ -71,7 +71,7 @@ the whole editor (107 Go files in production packages), the generators, and ever
 
 There is **no `cmd/`** either: it grouped code by what it compiled to rather than what it was
 about. Each generator lives with the thing it generates, in that concern's `gen/` package —
-one directory out, since a directory is one Go package. `go generate ./...` runs all of them.
+one directory out, since a directory is one Go package. `go generate ./...` runs all of them. A generator must NOT import the package it writes a `.go` file into (delete the output and the generator stops compiling) — why `Categories/Node/gen/kinds` is nested, not merged into `gen`.
 
 - **`src/`** — the npm package's source root, and the editor: each concern directory holds
   the Go that writes the thing and the TS that draws it, plus its `*_values.go`, generated
