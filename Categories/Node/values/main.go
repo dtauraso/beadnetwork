@@ -4,11 +4,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/dtauraso/wirefold/scripts/genpaths"
-	"github.com/dtauraso/wirefold/scripts/genpaths/params"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/dtauraso/wirefold/scripts/genpaths"
 
 	Node "github.com/dtauraso/wirefold/Categories/Node"
 )
@@ -54,7 +54,7 @@ func writeNames(path string) error {
 
 func main() {
 	genpaths.SetName("Categories/Node/values")
-	repoRoot, srcRoot := genpaths.Roots()
+	_, srcRoot := genpaths.Roots()
 
 	dir := filepath.Join(srcRoot, "Node")
 	pathsDir := filepath.Join(dir, "paths")
@@ -69,16 +69,4 @@ func main() {
 	}
 	genpaths.Announce(namesPath, len(Node.NodeBlockValueNames), "node block values")
 
-	shGo := filepath.Join(dir, "shading_params.go")
-	shParams, shErr := params.ParseShadingParams(repoRoot, shGo)
-	if shErr != nil {
-		genpaths.Fatalf("parse shading params: %v", shErr)
-	}
-	shTs := filepath.Join(dir, "shading-params.ts")
-	if err := params.WriteShadingParams(shTs, shParams, genpaths.Name(), "Categories/Node/shading_params.go"); err != nil {
-		genpaths.Fatalf("write %s: %v", shTs, err)
-	}
-	genpaths.Announce(shTs, len(shParams), "constants")
-
-	writeWireTS(srcRoot)
 }

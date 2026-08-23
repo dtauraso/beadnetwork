@@ -3,13 +3,13 @@ package main
 //go:generate go run .
 
 import (
-	"github.com/dtauraso/wirefold/scripts/genpaths"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/dtauraso/wirefold/scripts/genpaths/params"
+	"github.com/dtauraso/wirefold/scripts/genpaths"
+
 	bead "github.com/dtauraso/wirefold/Categories/Ring/Bead"
 )
 
@@ -53,7 +53,7 @@ func writeNames(path string) error {
 
 func main() {
 	genpaths.SetName("Categories/Ring/Bead/values")
-	repoRoot, srcRoot := genpaths.Roots()
+	_, srcRoot := genpaths.Roots()
 
 	dir := filepath.Join(srcRoot, "Ring", "Bead")
 	pathsDir := filepath.Join(dir, "paths")
@@ -68,14 +68,4 @@ func main() {
 	}
 	genpaths.Announce(namesPath, len(bead.BeadValueNames), "bead values")
 
-	shGo := filepath.Join(dir, "shading_params.go")
-	shParams, shErr := params.ParseShadingParams(repoRoot, shGo)
-	if shErr != nil {
-		genpaths.Fatalf("parse shading params: %v", shErr)
-	}
-	shTs := filepath.Join(dir, "shading-params.ts")
-	if err := params.WriteShadingParams(shTs, shParams, genpaths.Name(), "Categories/Ring/Bead/shading_params.go"); err != nil {
-		genpaths.Fatalf("write %s: %v", shTs, err)
-	}
-	genpaths.Announce(shTs, len(shParams), "bead constants")
 }
