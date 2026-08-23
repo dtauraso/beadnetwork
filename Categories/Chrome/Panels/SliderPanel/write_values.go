@@ -5,8 +5,6 @@ import (
 	"os"
 )
 
-// WriteValues writes the slider panel's own block. The speed is passed in: the
-// panel needs the one number it shows, not the view state that holds it.
 func WriteValues(w *ValueWriter, lay Layout, speed float64) {
 	if w == nil {
 		return

@@ -9,8 +9,6 @@ import (
 
 const refusedNotice = "edit refused — see the output channel"
 
-// WriteValues writes the nodes pill's own block. The refusal count is passed
-// in: the pill shows it, it does not own the view state that counts it.
 func WriteValues(w *ValueWriter, lay Layout, refusedCount uint32) {
 	if w == nil {
 		return

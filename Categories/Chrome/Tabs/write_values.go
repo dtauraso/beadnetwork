@@ -5,8 +5,6 @@ import (
 	"os"
 )
 
-// WriteValues writes the tab strip's own block. It takes the strip's writer and
-// the strip's layout — not the view state, which would let it write anything.
 func WriteValues(w *ValueWriter, lay Layout) {
 	if w == nil {
 		return

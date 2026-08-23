@@ -5,8 +5,6 @@ import (
 	"os"
 )
 
-// WriteValues writes this piece's own block, from its own writer and its own
-// layout — not from the view state, which would let it write anything.
 func WriteValues(w *ValueWriter, lay Layout) {
 	if w == nil {
 		return
