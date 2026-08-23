@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgegeom"
-	"github.com/dtauraso/wirefold/Categories/Node/movemsg"
+	"github.com/dtauraso/wirefold/Categories/Node/nodeactor/owners"
 	"github.com/dtauraso/wirefold/Categories/Node/nodeactor"
 	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
 )
@@ -26,7 +26,7 @@ func (mr *MoverRegistry) CenterOfNode(id string) (Vec3, bool) {
 	return c, ok
 }
 
-func (mr *MoverRegistry) SendMove(ctx context.Context, id string, msg movemsg.Msg) {
+func (mr *MoverRegistry) SendMove(ctx context.Context, id string, msg owners.Msg) {
 	nm, ok := mr.nodeGeoms[id]
 	if !ok {
 		return
@@ -34,7 +34,7 @@ func (mr *MoverRegistry) SendMove(ctx context.Context, id string, msg movemsg.Ms
 	nm.SendExternal(ctx, msg)
 }
 
-func (mr *MoverRegistry) EnqueueFor(nm *nodeactor.NodeGeometry) func(id string, msg movemsg.Msg) {
+func (mr *MoverRegistry) EnqueueFor(nm *nodeactor.NodeGeometry) func(id string, msg owners.Msg) {
 	return nm.EnqueueSend
 }
 

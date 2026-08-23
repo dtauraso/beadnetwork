@@ -3,7 +3,6 @@ package nodeactor
 import (
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/TiltPanel"
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
-	"github.com/dtauraso/wirefold/Categories/Node/movemsg"
 	"github.com/dtauraso/wirefold/Categories/Node/nodeactor/owners"
 	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
 	"github.com/dtauraso/wirefold/Categories/Node/rulenode"
@@ -65,7 +64,7 @@ func NewNodeGeometry(id string, geom nodegeom.NodeGeom, clockSrc clock.Clock, co
 	ng := &NodeGeometry{
 		id: id, geom: geom,
 		msg: owners.NewMessaging(
-			make(chan movemsg.Msg, inboxDepth),
+			make(chan owners.Msg, inboxDepth),
 			make(chan owners.Vec3, 1),
 		),
 		topo:      owners.NewTopology(),

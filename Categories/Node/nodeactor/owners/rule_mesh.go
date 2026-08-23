@@ -137,7 +137,7 @@ func nodeIDNumber(id string) int32 {
 	n, err := strconv.Atoi(id)
 	if err != nil {
 		panic(fmt.Sprintf(
-			"owners.RuleMesh: node id %q is not a number, so the rule group has no lowest member to agree on — "+
+			"RuleMesh: node id %q is not a number, so the rule group has no lowest member to agree on — "+
 				"ids are numbers that happen to be directory names (loadTree parses every one with strconv.Atoi "+
 				"and fails the load otherwise), so a non-numeric id here means something built a node outside the loader",
 			id))

@@ -11,7 +11,7 @@ func (nb *Beads) PostBeadDrag(start bool) {
 	select {
 	case nb.dragToAnim <- start:
 	default:
-		panic("owners.Beads: bead-drag inbox full — a drag start/end is one event per human drag, " +
+		panic("Beads: bead-drag inbox full — a drag start/end is one event per human drag, " +
 			"so a full queue means this node's animation goroutine has stopped running, " +
 			"not that drags arrived too fast")
 	}

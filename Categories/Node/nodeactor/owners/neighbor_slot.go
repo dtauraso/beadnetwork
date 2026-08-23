@@ -1,46 +1,49 @@
 package owners
 
 import (
-	"github.com/dtauraso/wirefold/Categories/Node/movemsg"
+	"fmt"
+
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
 )
 
 type neighborSlot struct {
-	ch chan movemsg.Msg
+	ch chan Msg
 }
 
 func newNeighborSlot() *neighborSlot {
-	return &neighborSlot{ch: make(chan movemsg.Msg, 1)}
+	return &neighborSlot{ch: make(chan Msg, 1)}
 }
 
-func (s *neighborSlot) deposit(msg movemsg.Msg) {
-	if msg.Kind != movemsg.KindCenter && msg.Kind != movemsg.KindDrag {
-		panic("owners.neighborSlot: a coalescing slot carries only KindCenter from a neighbour or " +
-			"KindDrag from the gesture FSM; got kind " + msg.Kind +
-			". A new message kind must say how two of them merge before it can ride a slot.")
+func (s *neighborSlot) deposit(msg Msg) {
+	mv, ok := msg.Body.(Movement)
+	if !ok {
+		panic(fmt.Sprintf("neighborSlot: a coalescing slot carries only a Movement — "+
+			"a neighbour's NeighborMoved or the gesture FSM's Drag; got %T. A new body must say how "+
+			"two of them merge, by implementing Movement, before it can ride a slot.", msg.Body))
 	}
-	if msg.Target == nil && msg.Delta == nil {
-		panic("owners.neighborSlot: a coalescing slot was handed a message carrying neither a Target " +
-			"nor a Delta, so two of them have no defined merge — a WHERE collapses by keeping the " +
-			"newest, a HOW FAR by summing, and this is neither; kind " + msg.Kind)
+	if mv.Where() == nil && mv.HowFar() == nil {
+		panic(fmt.Sprintf("neighborSlot: a coalescing slot was handed a %T naming neither a "+
+			"WHERE nor a HOW FAR, so two of them have no defined merge — a WHERE collapses by keeping "+
+			"the newest, a HOW FAR by summing, and this is neither.", msg.Body))
 	}
 
 	select {
 	case unread := <-s.ch:
-		if msg.Target == nil && unread.Delta != nil && msg.Delta != nil {
-			summed := polarindex.Sum(*unread.Delta, *msg.Delta)
-			msg.Delta = &summed
+		if prev, ok := unread.Body.(Movement); ok {
+			if mv.Where() == nil && prev.HowFar() != nil && mv.HowFar() != nil {
+				msg.Body = mv.WithHowFar(polarindex.Sum(*prev.HowFar(), *mv.HowFar()))
+			}
 		}
 	default:
 	}
 	s.ch <- msg
 }
 
-func (s *neighborSlot) take() (movemsg.Msg, bool) {
+func (s *neighborSlot) take() (Msg, bool) {
 	select {
 	case msg := <-s.ch:
 		return msg, true
 	default:
-		return movemsg.Msg{}, false
+		return Msg{}, false
 	}
 }

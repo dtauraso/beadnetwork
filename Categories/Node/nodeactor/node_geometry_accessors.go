@@ -6,7 +6,6 @@ import (
 
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/PolarRulesPanel"
 
-	"github.com/dtauraso/wirefold/Categories/Node/movemsg"
 	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
 	"github.com/dtauraso/wirefold/Categories/Polar/polar"
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
@@ -84,7 +83,7 @@ func (m *NodeGeometry) EdgeRuleActive(otherID string) bool {
 	return m.RuleNode().EdgeActive(otherID)
 }
 
-func (m *NodeGeometry) SendMove() func(id string, msg movemsg.Msg) { return m.msg.SendMove() }
+func (m *NodeGeometry) SendMove() func(id string, msg owners.Msg) { return m.msg.SendMove() }
 
 func (m *NodeGeometry) NeighborIDs() []string { return m.msg.NeighborIDs() }
 

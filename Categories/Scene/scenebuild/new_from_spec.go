@@ -13,7 +13,7 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Scene/scene"
 
 	edge "github.com/dtauraso/wirefold/Categories/Node/Edge"
-	"github.com/dtauraso/wirefold/Categories/Node/movemsg"
+	"github.com/dtauraso/wirefold/Categories/Node/nodeactor/owners"
 	"github.com/dtauraso/wirefold/Categories/Node/nodedrag"
 	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
 	"github.com/dtauraso/wirefold/Categories/Polar/polar"
@@ -109,8 +109,8 @@ func NewFromSpec(spec loadspec.TopoSpec, sphere polar.SceneSphere, hasScene bool
 		for to, told := range nodedrag.Requested(nm.SelfKind(), polarindex.Offset{}, nm) {
 			if other, ok := md.MR.NodeGeoms()[to]; ok {
 				d := told
-				other.SendExternal(context.TODO(), movemsg.Msg{Kind: movemsg.KindDrag, NodeID: to,
-					SenderID: nm.ID(), Delta: &d})
+				other.SendExternal(context.TODO(), owners.Msg{NodeID: to,
+					Body: owners.Drag{Delta: &d}})
 			}
 		}
 	}

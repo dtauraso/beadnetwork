@@ -4,12 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/dtauraso/wirefold/Categories/Node/movemsg"
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
 )
 
 type Messaging struct {
-	extIn chan movemsg.Msg
+	extIn chan Msg
 
 	dragIn *neighborSlot
 
@@ -17,16 +16,16 @@ type Messaging struct {
 
 	centerOut chan Vec3
 
-	sendMove func(id string, msg movemsg.Msg)
+	sendMove func(id string, msg Msg)
 
 	resolveDest func(id string) (Deposit, bool)
 
 	commitLocal func(id string, idx polarindex.Index)
 }
 
-type Deposit func(msg movemsg.Msg)
+type Deposit func(msg Msg)
 
-func NewMessaging(extIn chan movemsg.Msg, centerOut chan Vec3) Messaging {
+func NewMessaging(extIn chan Msg, centerOut chan Vec3) Messaging {
 	return Messaging{
 		extIn:      extIn,
 		dragIn:     newNeighborSlot(),
@@ -37,7 +36,7 @@ func NewMessaging(extIn chan movemsg.Msg, centerOut chan Vec3) Messaging {
 
 func (n *Messaging) WireMessaging(
 	resolveDest func(id string) (Deposit, bool),
-	sendMove func(id string, msg movemsg.Msg),
+	sendMove func(id string, msg Msg),
 	commitLocal func(id string, idx polarindex.Index),
 ) {
 	n.resolveDest = resolveDest
@@ -51,7 +50,7 @@ func (n *Messaging) EnsureNeighborChannel(otherID string) {
 	}
 }
 
-func (n *Messaging) SendMove() func(id string, msg movemsg.Msg) { return n.sendMove }
+func (n *Messaging) SendMove() func(id string, msg Msg) { return n.sendMove }
 
 func (n *Messaging) SeedCenter(center Vec3) {
 	n.centerOut <- center
@@ -63,15 +62,12 @@ func (n *Messaging) CommitLocal(id string, idx polarindex.Index) {
 	}
 }
 
-func (n *Messaging) DrainPending(ctx context.Context, handle func(movemsg.Msg)) (progressed, cancelled bool) {
+func (n *Messaging) DrainPending(ctx context.Context, handle func(Msg)) (progressed, cancelled bool) {
 	select {
 	case <-ctx.Done():
 		return false, true
 	case msg := <-n.extIn:
 		handle(msg)
-		if msg.TestDone != nil {
-			close(msg.TestDone)
-		}
 		progressed = true
 	default:
 	}
@@ -82,9 +78,6 @@ func (n *Messaging) DrainPending(ctx context.Context, handle func(movemsg.Msg)) 
 	for _, slot := range n.neighborIn {
 		if msg, ok := slot.take(); ok {
 			handle(msg)
-			if msg.TestDone != nil {
-				close(msg.TestDone)
-			}
 			progressed = true
 		}
 	}
@@ -116,8 +109,8 @@ func (n *Messaging) PollCenter() (Vec3, bool) {
 	}
 }
 
-func (n *Messaging) SendExternal(_ context.Context, msg movemsg.Msg) {
-	if msg.Kind == movemsg.KindDrag {
+func (n *Messaging) SendExternal(_ context.Context, msg Msg) {
+	if _, isDrag := msg.Body.(Drag); isDrag {
 		n.dragIn.deposit(msg)
 		return
 	}
@@ -125,25 +118,25 @@ func (n *Messaging) SendExternal(_ context.Context, msg movemsg.Msg) {
 	case n.extIn <- msg:
 	default:
 		panic(fmt.Sprintf(
-			"NodeGeometry(%s): discrete-event inbox full at %d unread (kind %q); these are "+
+			"NodeGeometry(%s): discrete-event inbox full at %d unread (body %T); these are "+
 				"human decision-rate events (select/hover/dragStart/dragEnd/tilt) and cannot "+
 				"outrun a geometry loop that runs every real tick — so either this node's "+
 				"geometry goroutine has stopped running, or a continuous per-pointer-move "+
 				"quantity is being sent here instead of onto a coalescing slot",
-			msg.NodeID, inboxDepth, msg.Kind))
+			msg.NodeID, inboxDepth, msg.Body))
 	}
 }
 
-func (n *Messaging) TryRecvExternal() (movemsg.Msg, bool) {
+func (n *Messaging) TryRecvExternal() (Msg, bool) {
 	select {
 	case msg := <-n.extIn:
 		return msg, true
 	default:
-		return movemsg.Msg{}, false
+		return Msg{}, false
 	}
 }
 
-func (n *Messaging) EnqueueSend(_, destID string, msg movemsg.Msg) {
+func (n *Messaging) EnqueueSend(_, destID string, msg Msg) {
 	if n.resolveDest == nil {
 		return
 	}

@@ -19,7 +19,7 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Chrome/Pills/NodesDropdown"
 	"github.com/dtauraso/wirefold/Categories/Chrome/Tabs"
 	"github.com/dtauraso/wirefold/Categories/Input/Drag"
-	"github.com/dtauraso/wirefold/Categories/Node/movemsg"
+	"github.com/dtauraso/wirefold/Categories/Node/nodeactor/owners"
 	"github.com/dtauraso/wirefold/Categories/Polar/polar"
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
 	"github.com/dtauraso/wirefold/Categories/RingPoint"
@@ -107,23 +107,23 @@ type UIState struct {
 	viewTick       uint32
 }
 
-func (ui *UIState) SetSelectionUI(sendMove func(id string, msg movemsg.Msg), node, edge string) {
+func (ui *UIState) SetSelectionUI(sendMove func(id string, msg owners.Msg), node, edge string) {
 	prevNode := ui.Sel.Selected
 	ui.Sel.Selected = node
 	ui.Sel.SelectedEdge = edge
 	if prevNode != "" && prevNode != node {
-		sendMove(prevNode, movemsg.Msg{Kind: movemsg.KindSelect, NodeID: prevNode, Bool: false})
+		sendMove(prevNode, owners.Msg{NodeID: prevNode, Body: owners.Select{On: false}})
 	}
 	if node != "" && node != prevNode {
-		sendMove(node, movemsg.Msg{Kind: movemsg.KindSelect, NodeID: node, Bool: true})
+		sendMove(node, owners.Msg{NodeID: node, Body: owners.Select{On: true}})
 	}
 	if node != "" && node != ui.LatchedNode {
 		prevLatched := ui.LatchedNode
 		ui.LatchedNode = node
 		if prevLatched != "" {
-			sendMove(prevLatched, movemsg.Msg{Kind: movemsg.KindLatched, NodeID: prevLatched, Bool: false})
+			sendMove(prevLatched, owners.Msg{NodeID: prevLatched, Body: owners.Latched{On: false}})
 		}
-		sendMove(node, movemsg.Msg{Kind: movemsg.KindLatched, NodeID: node, Bool: true})
+		sendMove(node, owners.Msg{NodeID: node, Body: owners.Latched{On: true}})
 	}
 }
 
@@ -145,14 +145,14 @@ func (ui *UIState) DropPointFromNDC(ndcX, ndcY float64) (Vec3, bool) {
 	return Vec3(hit), true
 }
 
-func (ui *UIState) SetHoverUI(sendMove func(id string, msg movemsg.Msg), node, port string, isInput bool) {
+func (ui *UIState) SetHoverUI(sendMove func(id string, msg owners.Msg), node, port string, isInput bool) {
 	prevNode := ui.Sel.HoverNode
 	ui.Sel.HoverNode, ui.Sel.HoverPort, ui.Sel.HoverInput = node, port, isInput
 	if prevNode != "" && prevNode != node {
-		sendMove(prevNode, movemsg.Msg{Kind: movemsg.KindHover, NodeID: prevNode, Bool: false})
+		sendMove(prevNode, owners.Msg{NodeID: prevNode, Body: owners.Hover{On: false}})
 	}
 	if node != "" {
-		sendMove(node, movemsg.Msg{Kind: movemsg.KindHover, NodeID: node, Bool: true, Port: port, IsInput: isInput})
+		sendMove(node, owners.Msg{NodeID: node, Body: owners.Hover{On: true, Port: port, IsInput: isInput}})
 	}
 }
 

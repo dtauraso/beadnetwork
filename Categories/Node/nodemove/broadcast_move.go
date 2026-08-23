@@ -2,12 +2,12 @@ package nodemove
 
 import (
 	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgetable"
-	"github.com/dtauraso/wirefold/Categories/Node/movemsg"
+	"github.com/dtauraso/wirefold/Categories/Node/nodeactor/owners"
 	"github.com/dtauraso/wirefold/Categories/Node/nodeactor"
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
 )
 
-func BroadcastToPartners(edges map[string]*edgetable.Edge, nodeGeoms map[string]*nodeactor.NodeGeometry, newCenters map[string]Vec3, moveDeltas map[string]polarindex.Offset, enqueue func(id string, msg movemsg.Msg)) {
+func BroadcastToPartners(edges map[string]*edgetable.Edge, nodeGeoms map[string]*nodeactor.NodeGeometry, newCenters map[string]Vec3, moveDeltas map[string]polarindex.Offset, enqueue func(id string, msg owners.Msg)) {
 
 	partners := map[string]string{}
 	for _, e := range edges {
@@ -27,10 +27,10 @@ func BroadcastToPartners(edges map[string]*edgetable.Edge, nodeGeoms map[string]
 			continue
 		}
 
-		msg := movemsg.Msg{Kind: movemsg.KindCenter, NodeID: partnerID, Center: nil, SenderID: movedID}
+		moved := owners.NeighborMoved{SenderID: movedID}
 		if d, ok := moveDeltas[movedID]; ok {
-			msg.Delta = &d
+			moved.Delta = &d
 		}
-		enqueue(partnerID, msg)
+		enqueue(partnerID, owners.Msg{NodeID: partnerID, Body: moved})
 	}
 }

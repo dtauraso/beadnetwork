@@ -2,16 +2,16 @@ package kindapi
 
 import (
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/TiltPanel"
-	"github.com/dtauraso/wirefold/Categories/Node/movemsg"
+	"github.com/dtauraso/wirefold/Categories/Node/nodeinbox"
 )
 
 func (a BuildArgs) TiltVectorAngleSeed() (theta int32) {
 	return a.tiltPhiIdx
 }
 
-func (a BuildArgs) TiltEditIn() <-chan movemsg.TiltEditMsg {
+func (a BuildArgs) TiltEditIn() <-chan nodeinbox.TiltEditMsg {
 	if a.deps.ClaimTiltEditIn == nil {
-		return make(chan movemsg.TiltEditMsg)
+		return make(chan nodeinbox.TiltEditMsg)
 	}
 	return a.deps.ClaimTiltEditIn(a.name)
 }

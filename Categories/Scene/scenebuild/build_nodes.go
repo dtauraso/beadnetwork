@@ -8,7 +8,7 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/TiltPanel"
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
-	"github.com/dtauraso/wirefold/Categories/Node/movemsg"
+	"github.com/dtauraso/wirefold/Categories/Node/nodeinbox"
 	"github.com/dtauraso/wirefold/Categories/Node/moverreg"
 	"github.com/dtauraso/wirefold/Categories/Node/nodeactor"
 	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
@@ -36,8 +36,8 @@ func buildNodes(
 			md.Inboxes.ClaimLatticeIn(name, sceneToNodeLatticeIn)
 			return sceneToNodeLatticeIn
 		},
-		ClaimTiltEditIn: func(name string) chan movemsg.TiltEditMsg {
-			panelToNodeTiltEditIn := make(chan movemsg.TiltEditMsg, moverreg.InboxDepth)
+		ClaimTiltEditIn: func(name string) chan nodeinbox.TiltEditMsg {
+			panelToNodeTiltEditIn := make(chan nodeinbox.TiltEditMsg, moverreg.InboxDepth)
 			md.Inboxes.ClaimTiltEditIn(name, panelToNodeTiltEditIn)
 			return panelToNodeTiltEditIn
 		},

@@ -5,7 +5,6 @@ import (
 
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 	interior "github.com/dtauraso/wirefold/Categories/Node/Interior"
-	"github.com/dtauraso/wirefold/Categories/Node/movemsg"
 	"github.com/dtauraso/wirefold/Categories/Node/nodeactor/nodeframe"
 	"github.com/dtauraso/wirefold/Categories/Node/nodeactor/owners"
 	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
@@ -14,7 +13,7 @@ import (
 
 func (m *NodeGeometry) WireMessaging(
 	resolveDest func(id string) (owners.Deposit, bool),
-	sendMove func(id string, msg movemsg.Msg),
+	sendMove func(id string, msg owners.Msg),
 	commitLocal func(id string, idx polarindex.Index),
 ) {
 	m.msg.WireMessaging(resolveDest, sendMove, commitLocal)
