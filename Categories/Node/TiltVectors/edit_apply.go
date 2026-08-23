@@ -1,10 +1,9 @@
-package SceneTiltVectors
+package TiltVectors
 
 import (
 	"context"
 	"strconv"
 
-	"github.com/dtauraso/wirefold/Categories/Node/nodeinbox"
 	"github.com/dtauraso/wirefold/Categories/Node/owners"
 )
 
@@ -14,7 +13,7 @@ type Movers interface {
 }
 
 type TiltInbox interface {
-	SendTiltEdit(ctx context.Context, id string, m nodeinbox.TiltEditMsg) bool
+	SendTiltEdit(ctx context.Context, id string, m TiltEditMsg) bool
 }
 
 func Edit(ctx context.Context, attr string, row int, dirUp bool, movers Movers, inbox TiltInbox, resume func()) {
@@ -33,10 +32,10 @@ func Apply(ctx context.Context, row int32, attr string, movers Movers, inbox Til
 	}
 	resume()
 	if attr == "start" {
-		inbox.SendTiltEdit(ctx, id, nodeinbox.TiltEditMsg{Start: true})
+		inbox.SendTiltEdit(ctx, id, TiltEditMsg{Start: true})
 		return
 	}
-	if inbox.SendTiltEdit(ctx, id, nodeinbox.TiltEditMsg{Reset: true}) {
+	if inbox.SendTiltEdit(ctx, id, TiltEditMsg{Reset: true}) {
 		return
 	}
 	movers.SendMove(ctx, id, owners.Msg{NodeID: id, Body: owners.TiltVectorReset{}})
@@ -47,7 +46,7 @@ func AdjustPhi(ctx context.Context, row int32, up bool, movers Movers, inbox Til
 	if !movers.HasNode(id) {
 		return
 	}
-	if inbox.SendTiltEdit(ctx, id, nodeinbox.TiltEditMsg{Up: up}) {
+	if inbox.SendTiltEdit(ctx, id, TiltEditMsg{Up: up}) {
 		return
 	}
 	movers.SendMove(ctx, id, owners.Msg{NodeID: id, Body: owners.TiltVectorAngle{Up: up}})

@@ -7,7 +7,7 @@ import { INTERIOR_SLOTS_PER_NODE } from "../../../../Categories/Node/Interior/in
 import { ChainBeadInstances } from "../../../../Categories/Node/BeadAnimation/ChainBeadInstances";
 import { EdgeLines } from "../../../../Categories/Node/Edge/EdgeLines";
 import { getEdgeStreamAccessor } from "../../../../Categories/Node/Edge/edge-stream-blocks";
-import { TiltVectors } from "../../../../Categories/Scene/TiltVectors/TiltVectors";
+import { TiltVectors } from "../../../../Categories/Node/TiltVectors/TiltVectors";
 import { NodeInstances } from "../../../../Categories/Ring/NodeShape/NodeInstances";
 import { RuleChannelLines } from "../../../../Categories/Node/ChannelVectors/RuleChannelLines";
 import { ChromeCanvas } from "../../../../Categories/Chrome/Panels/ChromeCanvas";

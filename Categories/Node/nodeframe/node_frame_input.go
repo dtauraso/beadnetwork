@@ -2,6 +2,7 @@ package nodeframe
 
 import (
 	"github.com/dtauraso/wirefold/Categories/Node/ChannelVectors"
+	"github.com/dtauraso/wirefold/Categories/Node/TiltVectors"
 )
 
 type TiltArrow struct {
@@ -36,7 +37,7 @@ type NodeFrameInput struct {
 
 	TopTiltVectorIdx int32
 
-	TiltArrows []TiltArrow
+	TiltArrows []TiltVectors.TiltArrow
 
 	ChannelVectors []ChannelVectors.ChannelVector
 

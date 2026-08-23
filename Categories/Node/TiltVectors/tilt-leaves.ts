@@ -2,7 +2,7 @@ import { makeRowLeafValues } from "./row-leaf-values";
 import { TILT_VALUE_NAMES, type TiltValueName } from "./tilt-values-gen";
 
 const values = makeRowLeafValues<TiltValueName>(
-  "Categories/Scene/TiltVectors/paths",
+  "Categories/Node/TiltVectors/paths",
   TILT_VALUE_NAMES,
 );
 

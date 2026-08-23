@@ -2,6 +2,7 @@ package Node
 
 import (
 	"github.com/dtauraso/wirefold/Categories/Node/ChannelVectors"
+	"github.com/dtauraso/wirefold/Categories/Node/TiltVectors"
 	"github.com/dtauraso/wirefold/Categories/Node/owners"
 	"slices"
 
@@ -24,7 +25,7 @@ func (m *NodeGeometry) KindPosts() *owners.KindPosts { return &m.kindPosts }
 
 func (m *NodeGeometry) Trace() *owners.Trace { return &m.trace }
 
-func (m *NodeGeometry) Stream() *owners.Stream { return &m.stream }
+func (m *NodeGeometry) Stream() *Stream { return &m.stream }
 
 func (m *NodeGeometry) ID() string { return m.id }
 
@@ -38,7 +39,7 @@ func (m *NodeGeometry) Anim() *owners.NodeBeadAnimation { return m.anim }
 
 func (m *NodeGeometry) OutEdges() *owners.OutEdges { return &m.outEdges }
 
-func (m *NodeGeometry) Tilt() *owners.Tilt { return &m.tilt }
+func (m *NodeGeometry) Tilt() *TiltVectors.Tilt { return &m.tilt }
 
 func (m *NodeGeometry) Channels() *ChannelVectors.PeerCenters { return &m.channels }
 

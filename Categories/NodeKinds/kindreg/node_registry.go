@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/dtauraso/wirefold/Categories/Node"
+	"github.com/dtauraso/wirefold/Categories/Node/TiltVectors"
 	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
-	"github.com/dtauraso/wirefold/Categories/Node/nodeinbox"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/nodeapi"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/portwiring"
 	"github.com/dtauraso/wirefold/Categories/Scene/loadspec"
@@ -16,7 +16,7 @@ type BuildDeps struct {
 
 	ClaimLatticeIn func(name string) chan int32
 
-	ClaimTiltEditIn func(name string) chan nodeinbox.TiltEditMsg
+	ClaimTiltEditIn func(name string) chan TiltVectors.TiltEditMsg
 
 	ClaimSelfDriveGeom func(name string) *Node.NodeGeometry
 }

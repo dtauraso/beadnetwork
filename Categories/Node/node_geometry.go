@@ -4,6 +4,7 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/TiltPanel"
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
 	"github.com/dtauraso/wirefold/Categories/Node/ChannelVectors"
+	"github.com/dtauraso/wirefold/Categories/Node/TiltVectors"
 	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
 	"github.com/dtauraso/wirefold/Categories/Node/owners"
 	"github.com/dtauraso/wirefold/Categories/Node/rulenode"
@@ -23,13 +24,13 @@ type NodeGeometry struct {
 
 	clocks owners.Clocks
 
-	stream owners.Stream
+	stream Stream
 
 	trace owners.Trace
 
 	ui owners.UI
 
-	tilt owners.Tilt
+	tilt TiltVectors.Tilt
 
 	channels ChannelVectors.PeerCenters
 
@@ -68,7 +69,7 @@ func NewNodeGeometry(id string, geom nodegeom.NodeGeom, clockSrc clock.Clock, co
 		topo:      owners.NewTopology(),
 		deltas:    owners.NewDeltas(),
 		clocks:    owners.NewClocks(clockSrc, clock.NewRealClock()),
-		tilt:      owners.NewTilt(TiltPanel.FullTurnPhiIdx),
+		tilt:      TiltVectors.NewTilt(TiltPanel.FullTurnPhiIdx),
 		anim:      anim,
 		kindPosts: owners.NewKindPosts(),
 	}

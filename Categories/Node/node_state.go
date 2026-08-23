@@ -2,7 +2,7 @@ package Node
 
 import (
 	VecB "github.com/dtauraso/wirefold/Categories/Node/ChannelVectors"
-	TiltB "github.com/dtauraso/wirefold/Categories/Scene/TiltVectors"
+	TiltB "github.com/dtauraso/wirefold/Categories/Node/TiltVectors"
 )
 
 type NodeState struct {

@@ -2,7 +2,7 @@ package scenerun
 
 import (
 	"github.com/dtauraso/wirefold/Categories/Node/ChannelVectors"
-	"github.com/dtauraso/wirefold/Categories/Node/nodeinbox"
+	"github.com/dtauraso/wirefold/Categories/Node/TiltVectors"
 	"github.com/dtauraso/wirefold/Categories/Node/nodemove"
 	"github.com/dtauraso/wirefold/Categories/Node/rulechans"
 	SceneB "github.com/dtauraso/wirefold/Categories/Scene"
@@ -29,7 +29,7 @@ type MoveDispatch struct {
 
 	RT rowtables.RowTables
 
-	Inboxes nodeinbox.NodeInboxes
+	Inboxes TiltVectors.TiltEditInboxes
 
 	ChannelVectorsOn ChannelVectors.OnSwitch
 

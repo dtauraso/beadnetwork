@@ -6,9 +6,9 @@ import (
 
 	VecB "github.com/dtauraso/wirefold/Categories/Node/ChannelVectors"
 	edge "github.com/dtauraso/wirefold/Categories/Node/Edge"
+	TiltB "github.com/dtauraso/wirefold/Categories/Node/TiltVectors"
 	"github.com/dtauraso/wirefold/Categories/Node/nodeframe"
 	BeadB "github.com/dtauraso/wirefold/Categories/Ring/Bead"
-	TiltB "github.com/dtauraso/wirefold/Categories/Scene/TiltVectors"
 )
 
 type Sinks struct {
@@ -76,7 +76,7 @@ func nodeStateFrom(f nodeframe.NodeFrameInput) NodeState {
 		RingMatrix:       f.RingMatrix,
 		TopTiltVectorLen: f.TopTiltVectorLen,
 		TopTiltVectorIdx: f.TopTiltVectorIdx,
-		TiltArrows:       toStreamTiltArrows(f.TiltArrows),
+		TiltArrows:       f.TiltArrows,
 		ChannelVectors:   f.ChannelVectors,
 		Selected:         f.Selected,
 		KindID:           f.KindID,
@@ -100,19 +100,4 @@ func nodeStateFrom(f nodeframe.NodeFrameInput) NodeState {
 		RuleGroupSize:    f.RuleGroupSize,
 		Label:            f.Label,
 	}
-}
-
-func toStreamTiltArrows(in []nodeframe.TiltArrow) []TiltB.TiltArrow {
-	if len(in) == 0 {
-		return nil
-	}
-	out := make([]TiltB.TiltArrow, 0, len(in))
-	for _, a := range in {
-		var r uint8
-		if a.Received {
-			r = 1
-		}
-		out = append(out, TiltB.TiltArrow{Received: r, Shaft: a.Shaft, Head: a.Head})
-	}
-	return out
 }

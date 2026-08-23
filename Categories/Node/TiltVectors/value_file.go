@@ -1,4 +1,4 @@
-package SceneTiltVectors
+package TiltVectors
 
 import (
 	"bytes"

@@ -1,4 +1,4 @@
-package SceneTiltVectors
+package TiltVectors
 
 type TiltArrow struct {
 	Received uint8
