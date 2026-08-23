@@ -11,4 +11,4 @@ David refers to some node kinds by a nickname. Mapping to the Go/`NODE_DEFS` kin
 - **"and nodes"** = `SelectRight` / `SelectLeft` (the AND gates; both renamed from their old verbose "Window And Inhibit ... Gate" kind strings — node 8 on task/rename-gates-to-select, node 9 on its predecessor task/rightgate-usage).
 
 Use these terms when he does. Other kinds seen in the sample topology: `Input`, `Pulse`,
-`Pacer`, `Hold` — no nickname given yet.
+`Hold` — no nickname given yet.

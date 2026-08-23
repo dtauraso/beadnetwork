@@ -29,7 +29,6 @@ var All = []Scene{
 			"Input", "Time", "TimeStart", "TimeEnd",
 			"Pulse", "PulseLeft", "PulseRight",
 			"SelectLeft", "SelectRight",
-			"Pacer",
 		}},
 
 	{Name: "pair", Dir: "topology-pair", CoplanarEdges: true, UpAxis: true, ClockDivisor: 64, Editable: true, Kinds: []string{"PairNode"}},

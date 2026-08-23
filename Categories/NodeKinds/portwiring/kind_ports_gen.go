@@ -14,10 +14,6 @@ var KindPorts = map[string][]PortSpec{
 		{Name: "ToExcitatory", Dir: PortOut},
 		{Name: "FeedbackIn", Dir: PortIn},
 	},
-	"Pacer": {
-		{Name: "In", Dir: PortIn},
-		{Name: "FeedbackOut", Dir: PortOut},
-	},
 	"PairNode": {
 		{Name: "In", Dir: PortIn},
 		{Name: "Out", Dir: PortOut},
