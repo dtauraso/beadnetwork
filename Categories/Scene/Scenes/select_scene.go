@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-func SelectScene(scenes *SceneSwitch, idx int, writeSelected func(anchorPath string, idx int) error) {
+func SelectScene(scenes *SceneSwitch, idx int) {
 	if scenes.AnchorPath == "" || scenes.Quit == nil {
 		return
 	}
@@ -15,7 +15,7 @@ func SelectScene(scenes *SceneSwitch, idx int, writeSelected func(anchorPath str
 	if idx == scenes.Loaded {
 		return
 	}
-	if err := writeSelected(scenes.AnchorPath, idx); err != nil {
+	if err := WriteSelectedScene(scenes.AnchorPath, idx); err != nil {
 
 		fmt.Fprintf(os.Stderr, "scene tab: could not persist selection to %s: %v — staying on the current scene\n",
 			SelectionFilePath(scenes.AnchorPath), err)

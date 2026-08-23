@@ -11,7 +11,6 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/SliderPanel"
 	"github.com/dtauraso/wirefold/Categories/Overlay"
 	"github.com/dtauraso/wirefold/Categories/Scene"
-	"github.com/dtauraso/wirefold/Categories/Scene/scenepersist"
 )
 
 func applyUpdateOverlays(_ context.Context, attr byte, payload []byte, md *MoveDispatch, _ SliderPanel.Sinks) {
@@ -66,7 +65,7 @@ func applyUpdateTiltVector(ctx context.Context, attr byte, payload []byte, md *M
 
 func (md *MoveDispatch) resumeSpeed(speedSinks SliderPanel.Sinks) func() {
 	return func() {
-		speedSinks.SendSpeed(scenepersist.SliderNum(md.UI.Speed), int64(md.UI.ClockDivisor))
+		speedSinks.SendSpeed(Speed.SliderNum(md.UI.Speed), int64(md.UI.ClockDivisor))
 	}
 }
 

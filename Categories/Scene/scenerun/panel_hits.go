@@ -6,7 +6,6 @@ import (
 	Speed "github.com/dtauraso/wirefold/Categories/Speed"
 
 	"github.com/dtauraso/wirefold/Categories/Scene/Drag"
-	"github.com/dtauraso/wirefold/Categories/Scene/scenepersist"
 
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/Panel"
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/PolarRulesPanel"
@@ -41,7 +40,7 @@ func panelTookPointerDown(
 	}
 
 	if i := pl.Tabs.Hit(ev.X, ev.Y); i >= 0 {
-		Scenes.SelectScene(&md.Scenes, i, scenepersist.WriteSelectedScene)
+		Scenes.SelectScene(&md.Scenes, i)
 		return true
 	}
 

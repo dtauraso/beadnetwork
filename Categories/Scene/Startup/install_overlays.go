@@ -1,4 +1,4 @@
-package scenepersist
+package Startup
 
 import (
 	"github.com/dtauraso/wirefold/Categories/Scene/viewstate"

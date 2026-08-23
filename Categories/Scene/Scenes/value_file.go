@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"path/filepath"
 )
 
 func LogPersistErr(label, path string, err error) {
@@ -61,4 +62,43 @@ func readInt64(raw []byte) (int64, error) {
 		return 0, fmt.Errorf("valuefile: integer leaf is %d bytes, want 8", len(raw))
 	}
 	return int64(binary.LittleEndian.Uint64(raw)), nil
+}
+
+// The write half of this concern's value file, beside the read half.
+func WriteAtomic(path string, v any) error {
+	out, err := encodeLeaf(v)
+	if err != nil {
+		return err
+	}
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		return err
+	}
+	tmp := path + ".tmp"
+	if err := os.WriteFile(tmp, out, 0o644); err != nil {
+		return err
+	}
+	return os.Rename(tmp, path)
+}
+
+func encodeLeaf(v any) ([]byte, error) {
+	b := make([]byte, 8)
+	switch t := v.(type) {
+	case bool:
+		if t {
+			return []byte{1}, nil
+		}
+		return []byte{0}, nil
+	case int:
+		binary.LittleEndian.PutUint64(b, uint64(int64(t)))
+		return b, nil
+	case int64:
+		binary.LittleEndian.PutUint64(b, uint64(t))
+		return b, nil
+	case float64:
+		binary.LittleEndian.PutUint64(b, math.Float64bits(t))
+		return b, nil
+	case string:
+		return []byte(t), nil
+	}
+	return nil, fmt.Errorf("valuefile: %T is not a leaf primitive", v)
 }
