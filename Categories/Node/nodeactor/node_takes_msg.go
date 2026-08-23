@@ -6,6 +6,8 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
 )
 
+const BreadcrumbDragCommit = "drag-commit"
+
 func (m *NodeGeometry) take(msg owners.Msg) {
 	if msg.NodeID != m.id {
 		return

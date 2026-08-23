@@ -1,17 +1,20 @@
-package nodeactor
+package owners
 
 import (
 	"context"
 
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
-	"github.com/dtauraso/wirefold/Categories/Node/nodeactor/owners"
 )
 
 type NodeBeadAnimation struct {
 	id string
 
 	outs   beadanimation.BeadAnimation
-	clocks owners.Clocks
+	clocks Clocks
+}
+
+func NewNodeBeadAnimation(id string, clocks Clocks) *NodeBeadAnimation {
+	return &NodeBeadAnimation{id: id, clocks: clocks}
 }
 
 func (a *NodeBeadAnimation) AddBeadLine(pw *beadanimation.BeadLine, edgeRow int32) {

@@ -31,7 +31,7 @@ func (m *NodeGeometry) NodeRow() int32 { return m.stream.NodeRow() }
 
 func (m *NodeGeometry) Deltas() *owners.Deltas { return &m.deltas }
 
-func (m *NodeGeometry) Anim() *NodeBeadAnimation { return m.anim }
+func (m *NodeGeometry) Anim() *owners.NodeBeadAnimation { return m.anim }
 
 func (m *NodeGeometry) OutEdges() *owners.OutEdges { return &m.outEdges }
 
