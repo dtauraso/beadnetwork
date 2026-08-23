@@ -21,7 +21,7 @@ carries the TS → Go vocabulary.
   scene) — there is no per-feature op. New *addressed* capability is a new entity kind or
   attribute, NOT a new op. `panels` is its OWN entity kind, deliberately separate from
   `overlays`: it addresses the overlays popover's disclosure open/closed state, not overlay
-  visibility, and is its own hand-written `viewstate.PanelState` (not generated, unlike
+  visibility, and is its own hand-written `Panel.PanelState` (not generated, unlike
   `OverlayState`), persisted to its own file
   under `view/` (`.claude/rules/persistence-ownership.md`).
 - **Bare commands** — `save` is the only bare command. It is defined end-to-end (kind byte,

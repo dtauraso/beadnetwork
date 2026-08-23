@@ -8,7 +8,7 @@ import (
 	SceneBuf "github.com/dtauraso/wirefold/Categories/Scene"
 	"github.com/dtauraso/wirefold/Categories/Scene/Camera"
 	"github.com/dtauraso/wirefold/Categories/Scene/Scenes"
-	"github.com/dtauraso/wirefold/Categories/Scene/viewstate"
+	"github.com/dtauraso/wirefold/Categories/Scene/View"
 	"github.com/dtauraso/wirefold/Categories/Speed"
 )
 
@@ -16,7 +16,7 @@ func armViewpoint(topologyPath string) *Camera.ViewpointPersister {
 	return &Camera.ViewpointPersister{Path: Camera.BlockPath(topologyPath)}
 }
 
-func armEdit(ui *viewstate.UIState, topologyPath string) {
+func armEdit(ui *View.UIState, topologyPath string) {
 	overlays := &Persister[Overlay.OverlayState]{
 		Path: topologyPath, Write: Overlay.WriteSceneOverlays, Tag: "scene_overlays_persist",
 	}

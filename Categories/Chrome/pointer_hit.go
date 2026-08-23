@@ -1,4 +1,4 @@
-package viewstate
+package Chrome
 
 import (
 	Panels "github.com/dtauraso/wirefold/Categories/Chrome/Panels"
@@ -9,8 +9,9 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Chrome/Pills/NodesDropdown"
 )
 
-func (ui *UIState) PointerTargetAt(x, y float64) Panels.PointerTarget {
-	pl := ui.PanelLayout()
+// TargetAt is what the pointer is over, asked of the chrome's own layout. It
+// reads no view state: a layout in, a target out.
+func TargetAt(pl Layout, x, y float64) Panels.PointerTarget {
 
 	if h := pl.Rules.Hit(x, y); h.Kind != PolarRulesPanel.HitNone {
 		return Panels.PointerTarget{Rect: h.Rect, Kind: Panels.PointerInteractive}
@@ -42,19 +43,20 @@ func (ui *UIState) PointerTargetAt(x, y float64) Panels.PointerTarget {
 	return Panels.PointerTarget{}
 }
 
-func (ui *UIState) TakeWheel(x, y, deltaY float64) bool {
-	pl := ui.PanelLayout()
+// TakeWheel scrolls whichever piece is under the pointer, given that piece's
+// own scroll to move and the redraw to ask for.
+func TakeWheel(pl Layout, overlaysScroll, rulesScroll *float32, x, y, deltaY float64, redraw func()) bool {
 
 	if pl.Overlays.Open && Panel.HitRect(pl.Overlays.Popover, x, y) {
-		return ui.scrollBy(&ui.OverlaysPill.Scroll, pl.Overlays.MaxScroll, deltaY)
+		return scrollBy(overlaysScroll, pl.Overlays.MaxScroll, deltaY, redraw)
 	}
 	if pl.Rules.Open && Panel.HitRect(pl.Rules.RowsClip, x, y) {
-		return ui.scrollBy(&ui.Rules.Scroll, pl.Rules.MaxScroll, deltaY)
+		return scrollBy(rulesScroll, pl.Rules.MaxScroll, deltaY, redraw)
 	}
 	return false
 }
 
-func (ui *UIState) scrollBy(scroll *float32, max float32, delta float64) bool {
+func scrollBy(scroll *float32, max float32, delta float64, redraw func()) bool {
 	if max <= 0 {
 		return true
 	}
@@ -63,7 +65,7 @@ func (ui *UIState) scrollBy(scroll *float32, max float32, delta float64) bool {
 		return true
 	}
 	*scroll = next
-	ui.EmitViewFrame(nil)
+	redraw()
 	return true
 }
 

@@ -36,7 +36,7 @@ non-integer name in an array directory is a load error, never a skipped element:
 silently shortens the array and shifts the rest.
 
 The `view/panels/` directory holds the overlays popover's disclosure open/closed
-state (`viewstate.PanelState`, `Categories/Chrome/Panels/Panel/panels_persist.go`) — its
+state (`Panel.PanelState`, `Categories/Chrome/Panels/Panel/panels_persist.go`) — its
 own directory, deliberately separate from the `view/overlays/` visibility flags: a panel's
 open/closed state is not an overlay visibility flag, even though the two are persisted,
 streamed, and edited the same way.

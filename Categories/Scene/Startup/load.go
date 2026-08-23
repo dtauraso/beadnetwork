@@ -16,7 +16,7 @@ import (
 	_ "github.com/dtauraso/wirefold/Categories/NodeKinds"
 	"github.com/dtauraso/wirefold/Categories/Scene/Camera"
 	"github.com/dtauraso/wirefold/Categories/Scene/Dispatch"
-	"github.com/dtauraso/wirefold/Categories/Scene/viewstate"
+	"github.com/dtauraso/wirefold/Categories/Scene/View"
 )
 
 type Scene struct {
@@ -90,7 +90,7 @@ func LoadSceneState(scenePath string, md *Dispatch.MoveDispatch, speedSinks Slid
 
 func EmitStartupBreadcrumbs(md *Dispatch.MoveDispatch, scenePath string, nodeCount int) {
 
-	md.UI.EmitBreadcrumb(viewstate.RowEvent{
+	md.UI.EmitBreadcrumb(View.RowEvent{
 		Label: Wiring.BreadcrumbTopologyLoaded, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 		Value: int32(nodeCount), Text: scenePath,
 	})
@@ -99,7 +99,7 @@ func EmitStartupBreadcrumbs(md *Dispatch.MoveDispatch, scenePath string, nodeCou
 func CheckRowSeedCount(md *Dispatch.MoveDispatch, nodeCount int) {
 	if len(md.GS.NodeSeedsFn()) != nodeCount {
 
-		md.UI.EmitBreadcrumb(viewstate.RowEvent{
+		md.UI.EmitBreadcrumb(View.RowEvent{
 			Label: Wiring.BreadcrumbRowSeedCountMismatch, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 			Value: int32(len(md.GS.NodeSeedsFn())), X: float64(nodeCount),
 		})

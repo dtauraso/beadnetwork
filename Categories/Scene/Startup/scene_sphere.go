@@ -3,7 +3,7 @@ package Startup
 import (
 	"github.com/dtauraso/wirefold/Categories/Polar/polar"
 	SceneBuf "github.com/dtauraso/wirefold/Categories/Scene"
-	"github.com/dtauraso/wirefold/Categories/Scene/viewstate"
+	"github.com/dtauraso/wirefold/Categories/Scene/View"
 )
 
 func LoadSceneSphere(topologyPath string) (polar.SceneSphere, bool) {
@@ -18,7 +18,7 @@ func LoadSceneSphere(topologyPath string) (polar.SceneSphere, bool) {
 	return s, true
 }
 
-func InstallSceneSphere(ui *viewstate.UIState, gs *SceneBuf.GeomSeeds, topologyPath string) {
+func InstallSceneSphere(ui *View.UIState, gs *SceneBuf.GeomSeeds, topologyPath string) {
 	if s, ok := LoadSceneSphere(topologyPath); ok {
 		ui.SceneSphere = s
 	} else {

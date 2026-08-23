@@ -1,4 +1,4 @@
-package viewstate
+package View
 
 import (
 	Chrome "github.com/dtauraso/wirefold/Categories/Chrome"

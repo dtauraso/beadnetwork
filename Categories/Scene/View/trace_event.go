@@ -1,4 +1,4 @@
-package viewstate
+package View
 
 import (
 	"encoding/binary"

@@ -1,4 +1,4 @@
-package viewstate
+package View
 
 import (
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels"

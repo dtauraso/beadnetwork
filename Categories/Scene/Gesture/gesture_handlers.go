@@ -2,10 +2,11 @@ package Gesture
 
 import (
 	"fmt"
+	"math"
+
 	"github.com/dtauraso/wirefold/Categories/Node"
 	NodeGesture "github.com/dtauraso/wirefold/Categories/Node/Gesture"
-	"github.com/dtauraso/wirefold/Categories/Scene/viewstate"
-	"math"
+	"github.com/dtauraso/wirefold/Categories/Scene/View"
 
 	"github.com/dtauraso/wirefold/Categories/Chrome/Pills/FitButton"
 
@@ -43,7 +44,7 @@ func gestPointerDown(d Deps, ev Drag.RawInputMsg) {
 		h(d, g, ev)
 	}
 
-	d.UI.EmitBreadcrumb(viewstate.RowEvent{
+	d.UI.EmitBreadcrumb(View.RowEvent{
 		Label: BreadcrumbPointerDown, NodeRow: -1, PortRow: -1, TargetRow: -1,
 		TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 		Value: int32(ev.Button),
