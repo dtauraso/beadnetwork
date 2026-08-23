@@ -64,5 +64,5 @@ no host→webview message of any kind.
 Keep all of it in parity across `messages.ts`, the `Categories/Node/Wiring` stdin reader/dispatch
 (`stdin_reader.go`'s `MSG_TYPES` fence, `dispatch_edit.go`'s edit tables), and `handle-message.ts`
 (guards: `Categories/Scene/scenerun/check-edit-op-parity.sh`, `Categories/Scene/scenerun/check-message-kind-parity.sh`, and the
-`INPUT_LAYOUT_FINGERPRINT` in `input_codec.go` /
+`INPUT_LAYOUT_FINGERPRINT` in `Categories/Input/gen/input_layout_declared.go` /
 `Categories/Node/wire-gen.ts`).
