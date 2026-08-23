@@ -1,4 +1,4 @@
-package gatecommon
+package selectleft
 
 func clearWindow(g *GateNode, w *gateWindow) {
 	g.FromLeft.Breadcrumb("window_clear", "")

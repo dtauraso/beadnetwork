@@ -2,6 +2,7 @@ package time
 
 import (
 	"context"
+	interior "github.com/dtauraso/wirefold/Categories/Node/Interior"
 
 	lattice "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation/lattice"
 
@@ -10,7 +11,6 @@ import (
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/nodeapi"
 	Speed "github.com/dtauraso/wirefold/Categories/Speed"
 
-	"github.com/dtauraso/wirefold/Categories/NodeKinds/gatecommon"
 	Wiring "github.com/dtauraso/wirefold/Categories/NodeKinds/kindapi"
 )
 
@@ -31,7 +31,7 @@ type Time struct {
 }
 
 func placeHeld(outs beadanimation.Broadcast, held int, items []beadanimation.DriveItem, tick int64) []beadanimation.DriveItem {
-	if held == gatecommon.NoValue {
+	if held == interior.NoValue {
 		return items
 	}
 	return outs.PlaceDrivenAllAt(held, items, tick)
@@ -84,7 +84,7 @@ func (in *Time) Update(ctx context.Context) {
 	nodeapi.TryEmit(in.EmitGeometry)
 	in.Self.EmitGeometryOnce()
 
-	held := gatecommon.NoValue
+	held := interior.NoValue
 
 	if in.EmitHeldBead != nil {
 		in.EmitHeldBead(held)
@@ -124,7 +124,7 @@ var Builder = Wiring.BuilderFor("Time",
 	func(a Wiring.BuildArgs) (nodeapi.Node, error) {
 		n := &Time{
 
-			Held: a.StateSeed("held", gatecommon.NoValue),
+			Held: a.StateSeed("held", interior.NoValue),
 		}
 		n.Fire = a.Fire()
 		n.EmitHeldBead = a.EmitHeldBead()

@@ -1,4 +1,4 @@
-package gatecommon
+package selectleft
 
 import (
 	clock "github.com/dtauraso/wirefold/Categories/Clock"

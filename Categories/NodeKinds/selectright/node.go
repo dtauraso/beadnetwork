@@ -5,16 +5,15 @@ import (
 
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/nodeapi"
 
-	"github.com/dtauraso/wirefold/Categories/NodeKinds/gatecommon"
 	Wiring "github.com/dtauraso/wirefold/Categories/NodeKinds/kindapi"
 )
 
 type SelectRight struct {
-	gatecommon.GateNode
+	GateNode
 }
 
 func (g *SelectRight) Update(ctx context.Context) {
-	gatecommon.RunGateAccept(ctx, &g.GateNode, 0, 1)
+	RunGateAccept(ctx, &g.GateNode, 0, 1)
 }
 
 var Builder = Wiring.BuilderFor("SelectRight",
