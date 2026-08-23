@@ -34,9 +34,10 @@ func (mr *MoverRegistry) NodeBodyRadius(id string) float64 {
 }
 
 func (mr *MoverRegistry) NearestNodeTo(p Vec3) (string, bool) {
-	centers := make(map[string]edgegeom.Vec3, len(mr.nodeGeoms))
-	for id, ng := range mr.nodeGeoms {
-		centers[id] = edgegeom.Vec3(ng.WorldCenter())
+	mr.drainCenterMirror()
+	centers := make(map[string]edgegeom.Vec3, len(mr.centerMirror))
+	for id, c := range mr.centerMirror {
+		centers[id] = edgegeom.Vec3(c)
 	}
 	return edgegeom.NearestTo(centers, edgegeom.Vec3(p))
 }

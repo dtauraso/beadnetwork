@@ -29,8 +29,6 @@ func (m *NodeGeometry) Tick() int64 { return m.clocks.Tick() }
 
 func (m *NodeGeometry) Label() string { return m.geom.Label }
 
-func (m *NodeGeometry) WorldCenter() Vec3 { return Vec3(nodegeom.NodeWorldPos(m.geom)) }
-
 func (m *NodeGeometry) NodeRow() int32 { return m.stream.NodeRow() }
 
 func (m *NodeGeometry) EdgeIDs() []string { return m.topo.EdgeIDs() }
