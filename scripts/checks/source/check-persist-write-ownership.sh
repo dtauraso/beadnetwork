@@ -6,6 +6,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 WIRING_DIR="$REPO_ROOT/Categories"
+PLUMBING_FILES=("value_file.go" "leaf_value_file.go")
 PLUMBING="value_file.go"
 PLUMBING_PATH="$WIRING_DIR/Scene/scenepersist/value_file.go"
 
@@ -20,7 +21,7 @@ if [[ ! -f "$PLUMBING_PATH" ]]; then
   exit 1
 fi
 
-NODE_OWNERS=("node_mover.go" "new_node_files.go" "node_base_file.go" "quant_offset_persist.go" "scene_anchor_persist.go" "drag_index.go")
+NODE_OWNERS=("node_mover.go" "nodefile_new_node_files.go" "nodefile_node_base_file.go" "quant_offset_persist.go" "scene_anchor_persist.go" "nodefile_drag_index.go")
 
 EDGE_OWNERS=("edge_file.go" "edge_delta_file.go" "edge_rule_active.go" "out_edges.go")
 
@@ -42,7 +43,10 @@ fi
 
 eligible_files=()
 while IFS= read -r file; do
-  [[ "${file##*/}" == "$PLUMBING" ]] && continue
+  base="${file##*/}"
+  skip=0
+  for p in "${PLUMBING_FILES[@]}"; do [[ "$base" == "$p" ]] && skip=1; done
+  [[ $skip -eq 1 ]] && continue
   eligible_files+=("$file")
 done < <(find "$WIRING_DIR" -name "*.go" -not -name "*_test.go")
 

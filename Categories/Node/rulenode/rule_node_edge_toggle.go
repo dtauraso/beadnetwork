@@ -3,8 +3,6 @@ package rulenode
 import (
 	"context"
 	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgetable"
-
-	"github.com/dtauraso/wirefold/Categories/Node/nodefile"
 )
 
 type EdgeToggle struct {
@@ -34,10 +32,10 @@ func (r *RuleNode) forwardKindToggle(ctx context.Context) {
 
 func (r *RuleNode) applyKindToggle() {
 	r.kindActive = !r.kindActive
-	if r.persistRoot == "" {
+	if r.persist.KindActive == nil {
 		return
 	}
-	if err := nodefile.WriteKindRuleActive(r.persistRoot, r.id, r.kindActive); err != nil {
+	if err := r.persist.KindActive(r.kindActive); err != nil {
 		LogPersistErr("rulenode", r.id, err)
 	}
 }
@@ -81,10 +79,10 @@ func (r *RuleNode) forwardToggle(ctx context.Context, target string, toggle chan
 func (r *RuleNode) applyEdgeToggle(t EdgeToggle) {
 	next := !r.EdgeActive(t.Target)
 	r.edgeActive[t.Target] = next
-	if r.persistRoot == "" {
+	if r.persist.EdgeActive == nil {
 		return
 	}
-	if err := nodefile.WriteEdgeRuleActive(r.persistRoot, r.id, t.Target, next); err != nil {
+	if err := r.persist.EdgeActive(t.Target, next); err != nil {
 		LogPersistErr("rulenode", edgetable.ChannelName(r.id, t.Target), err)
 	}
 }

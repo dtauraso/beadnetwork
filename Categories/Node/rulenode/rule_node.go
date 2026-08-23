@@ -44,8 +44,8 @@ type State struct {
 }
 
 type RuleNode struct {
-	id          string
-	persistRoot string
+	id      string
+	persist Persist
 
 	mesh RuleMesh
 
@@ -91,8 +91,6 @@ func New(id string) *RuleNode {
 		wake:               make(chan struct{}, 1),
 	}
 }
-
-func (r *RuleNode) SetPersistRoot(root string) { r.persistRoot = root }
 
 func (r *RuleNode) SeedRule(rule *PolarRulesPanel.DragRule, active bool) {
 	r.rule = rule
