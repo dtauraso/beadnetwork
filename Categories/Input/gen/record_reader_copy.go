@@ -16,7 +16,7 @@ var targets = []struct {
 	{"Categories/Scene", "Scene"},
 	{"Categories/Overlay", "Overlay"},
 	{"Categories/Chrome/Panels/Panel", "Panel"},
-	{"Categories/Clock/Speed", "Speed"},
+	{"Categories/Speed", "Speed"},
 	{"Categories/Input/Drag", "Drag"},
 }
 

@@ -6,7 +6,7 @@ import (
 
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/SliderPanel"
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
-	Speed "github.com/dtauraso/wirefold/Categories/Clock/Speed"
+	Speed "github.com/dtauraso/wirefold/Categories/Speed"
 	"github.com/dtauraso/wirefold/Categories/Node/BeadAnimation/lattice"
 	SF "github.com/dtauraso/wirefold/Categories/Node/Edge"
 	"github.com/dtauraso/wirefold/Categories/Node/framegeom"

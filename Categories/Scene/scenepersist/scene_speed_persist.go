@@ -1,7 +1,7 @@
 package scenepersist
 
 import (
-	Speed "github.com/dtauraso/wirefold/Categories/Clock/Speed"
+	Speed "github.com/dtauraso/wirefold/Categories/Speed"
 	"math"
 
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/SliderPanel"

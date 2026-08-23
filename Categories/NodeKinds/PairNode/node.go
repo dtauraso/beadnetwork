@@ -3,7 +3,7 @@ package PairNode
 import (
 	"context"
 
-	Speed "github.com/dtauraso/wirefold/Categories/Clock/Speed"
+	Speed "github.com/dtauraso/wirefold/Categories/Speed"
 )
 
 type Node struct {

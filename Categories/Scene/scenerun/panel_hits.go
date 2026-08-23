@@ -3,7 +3,7 @@ package scenerun
 import (
 	"context"
 
-	Speed "github.com/dtauraso/wirefold/Categories/Clock/Speed"
+	Speed "github.com/dtauraso/wirefold/Categories/Speed"
 
 	"github.com/dtauraso/wirefold/Categories/Input/Drag"
 

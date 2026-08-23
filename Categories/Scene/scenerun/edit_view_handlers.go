@@ -5,7 +5,7 @@ import (
 
 	SceneTiltVectors "github.com/dtauraso/wirefold/Categories/Scene/TiltVectors"
 
-	Speed "github.com/dtauraso/wirefold/Categories/Clock/Speed"
+	Speed "github.com/dtauraso/wirefold/Categories/Speed"
 
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/Panel"
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/SliderPanel"

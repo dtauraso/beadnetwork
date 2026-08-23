@@ -80,7 +80,7 @@ export function enumIndex(list: readonly string[], s: string): number {
 const tsMessagesSource = `import type { RawInputEvent } from "../Input/Drag/raw-input";
 import type { OverlayEditMsg } from "../Overlay/edits";
 import type { PanelEditMsg } from "../Chrome/Panels/Panel/edits";
-import type { ClockEditMsg } from "../Clock/Speed/edits";
+import type { ClockEditMsg } from "../Speed/edits";
 import type { SceneEditMsg } from "../Scene/edits";
 import type { NodeEditMsg } from "../Node/edits";
 import type { EdgeEditMsg } from "../Node/Edge/edits";

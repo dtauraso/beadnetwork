@@ -20,7 +20,7 @@ var tsWireTargets = []struct {
 	{dir: "Categories/Scene", attr: true, writer: true},
 	{dir: "Categories/Overlay", attr: true, writer: true},
 	{dir: "Categories/Chrome/Panels/Panel", attr: true, writer: true},
-	{dir: "Categories/Clock/Speed", attr: true, writer: true},
+	{dir: "Categories/Speed", attr: true, writer: true},
 	{dir: "Categories/Input/Drag", writer: true,
 		lists: []string{"eventKinds=", "hitKinds="}, kinds: []string{"raw-input"}},
 	{dir: "Start/extension", kinds: []string{"raw-input"}},

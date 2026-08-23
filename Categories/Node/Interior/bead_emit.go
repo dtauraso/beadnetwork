@@ -4,7 +4,7 @@ import (
 	"context"
 
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
-	Speed "github.com/dtauraso/wirefold/Categories/Clock/Speed"
+	Speed "github.com/dtauraso/wirefold/Categories/Speed"
 	lattice "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation/lattice"
 )
 
