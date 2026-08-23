@@ -12,7 +12,7 @@ func applyRulesHit(ctx context.Context, md *MoveDispatch, h PolarRulesPanel.Hit)
 	switch h.Kind {
 	case PolarRulesPanel.HitToggle:
 		Panel.ToggleFlag(&md.UI.PN, "nodeRules")
-		md.Persist.Panels().Schedule(md.UI.PN)
+		md.UI.PersistPanels(md.UI.PN)
 	case PolarRulesPanel.HitShared:
 		md.UI.ToggleSharedRow(h.NodeRow)
 	case PolarRulesPanel.HitMenuRow:

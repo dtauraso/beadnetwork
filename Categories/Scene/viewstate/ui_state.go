@@ -67,6 +67,12 @@ type UIState struct {
 
 	Sel selectionState
 
+	PersistOverlays func(Overlay.OverlayState)
+	PersistPanels   func(Panel.PanelState)
+	PersistSphere   func(polar.SceneSphere)
+	PersistSpeed    func(float64)
+	PersistLattice  func(int32)
+
 	LatchedNode string
 
 	LastDraggedNode string

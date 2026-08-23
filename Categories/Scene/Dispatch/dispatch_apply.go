@@ -25,7 +25,7 @@ func adjustTiltPhi(ctx context.Context, md *MoveDispatch, row int32, up bool) {
 }
 
 func setLatticePoints(md *MoveDispatch, points int32) {
-	md.UI.SetLatticePoints(points, md.Persist.Lattice().Schedule, md.Inboxes.BroadcastLatticePoints)
+	md.UI.SetLatticePoints(points, md.UI.PersistLattice, md.Inboxes.BroadcastLatticePoints)
 }
 
 func applyUpdateScene(ctx context.Context, attr byte, payload []byte, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
@@ -58,11 +58,11 @@ func sendRuleEdit(ctx context.Context, md *MoveDispatch, row int, edit NodeKind.
 }
 
 func (md *MoveDispatch) persistOverlays(ov Overlay.OverlayState) {
-	md.Persist.Overlays().Schedule(ov)
+	md.UI.PersistOverlays(ov)
 }
 
 func (md *MoveDispatch) persistPanels(pn Panel.PanelState) {
-	md.Persist.Panels().Schedule(pn)
+	md.UI.PersistPanels(pn)
 }
 
 func (md *MoveDispatch) speedState() Speed.SpeedState {
@@ -70,7 +70,7 @@ func (md *MoveDispatch) speedState() Speed.SpeedState {
 }
 
 func (md *MoveDispatch) persistSpeed(userSpeed float64) {
-	md.Persist.Speed().Schedule(userSpeed)
+	md.UI.PersistSpeed(userSpeed)
 }
 
 func (md *MoveDispatch) redraw() { md.UI.EmitViewFrame(nil) }

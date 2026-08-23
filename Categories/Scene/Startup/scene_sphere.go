@@ -3,7 +3,6 @@ package Startup
 import (
 	"github.com/dtauraso/wirefold/Categories/Polar/polar"
 	SceneBuf "github.com/dtauraso/wirefold/Categories/Scene"
-	"github.com/dtauraso/wirefold/Categories/Scene/viewpersist"
 	"github.com/dtauraso/wirefold/Categories/Scene/viewstate"
 )
 
@@ -32,7 +31,7 @@ func InstallSceneSphere(ui *viewstate.UIState, gs *SceneBuf.GeomSeeds, topologyP
 		ui.SceneSphere = polar.ContentFitSceneSphere(polarCenters)
 
 		if topologyPath != "" {
-			_ = viewpersist.WriteSceneSphere(topologyPath, ui.SceneSphere)
+			_ = SceneBuf.WriteSceneSphere(topologyPath, ui.SceneSphere)
 		}
 	}
 

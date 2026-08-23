@@ -1,4 +1,4 @@
-package viewpersist
+package Startup
 
 type Persister[T any] struct {
 	Path  string
