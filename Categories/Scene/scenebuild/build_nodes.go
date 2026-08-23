@@ -74,7 +74,7 @@ func buildNodes(
 		if n.TopTiltVectorPhiIdx != nil {
 			tiltPhiIdx = *n.TopTiltVectorPhiIdx
 		}
-		nd, err := bind.Build(ctx, n.ID, n.Data, pb, nodeGeoms[n.ID], tiltPhiIdx, deps)
+		nd, err := bind.Build(ctx, n.ID, n.Data, pb, tiltPhiIdx, deps)
 		if err != nil {
 			return nil, nil, fmt.Errorf("scenebuild: build node %q: %w", n.ID, err)
 		}
