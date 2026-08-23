@@ -1,6 +1,7 @@
 package nodeframe
 
 import (
+	"github.com/dtauraso/wirefold/Categories/Node/TiltVectors"
 	Ring "github.com/dtauraso/wirefold/Categories/Ring"
 	"math"
 
@@ -44,7 +45,7 @@ type FrameGeometryOutputs struct {
 	ReceivedVectorLen float64
 	ReceivedVectorPhi float64
 
-	TiltArrows []TiltArrow
+	TiltArrows []TiltVectors.TiltArrow
 }
 
 func DeriveFrameGeometry(in FrameGeometryInputs) FrameGeometryOutputs {
@@ -83,14 +84,14 @@ func DeriveFrameGeometry(in FrameGeometryInputs) FrameGeometryOutputs {
 
 	if out.TopTiltVectorLen > 0 {
 		out.TiltArrows = append(out.TiltArrows,
-			ArrowMatrices(out.Center, out.TopTiltVectorLen, out.TopTiltVectorPhi, false),
-			ArrowMatrices(out.Center, out.TopTiltVectorLen, out.BottomTiltVectorPhi, false),
-			ArrowMatrices(out.Center, out.TopTiltVectorLen, out.CoplanarNormalPhi, false),
+			TiltVectors.ArrowMatrices(TiltVectors.Vec3(out.Center), out.TopTiltVectorLen, out.TopTiltVectorPhi, false),
+			TiltVectors.ArrowMatrices(TiltVectors.Vec3(out.Center), out.TopTiltVectorLen, out.BottomTiltVectorPhi, false),
+			TiltVectors.ArrowMatrices(TiltVectors.Vec3(out.Center), out.TopTiltVectorLen, out.CoplanarNormalPhi, false),
 		)
 	}
 	if out.ReceivedVectorLen > 0 {
 		out.TiltArrows = append(out.TiltArrows,
-			ArrowMatrices(out.Center, out.ReceivedVectorLen, out.ReceivedVectorPhi, true),
+			TiltVectors.ArrowMatrices(TiltVectors.Vec3(out.Center), out.ReceivedVectorLen, out.ReceivedVectorPhi, true),
 		)
 	}
 

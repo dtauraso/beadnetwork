@@ -74,4 +74,3 @@ func DecodeUpdate(payload []byte, attr byte) (Edit, bool) {
 	}
 	return Edit{}, false
 }
-

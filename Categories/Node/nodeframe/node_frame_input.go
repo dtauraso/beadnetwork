@@ -1,7 +1,8 @@
 package nodeframe
 
 import (
-	streamframe "github.com/dtauraso/wirefold/Categories/Scene/Vectors"
+	"github.com/dtauraso/wirefold/Categories/Node/ChannelVectors"
+	"github.com/dtauraso/wirefold/Categories/Node/TiltVectors"
 )
 
 type TiltArrow struct {
@@ -36,9 +37,9 @@ type NodeFrameInput struct {
 
 	TopTiltVectorIdx int32
 
-	TiltArrows []TiltArrow
+	TiltArrows []TiltVectors.TiltArrow
 
-	ChannelVectors []streamframe.ChannelVector
+	ChannelVectors []ChannelVectors.ChannelVector
 
 	Selected, KindID, Hovered, LatchedSel uint8
 

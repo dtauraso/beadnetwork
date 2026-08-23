@@ -2,9 +2,8 @@ package Node
 
 import (
 	"context"
+	"github.com/dtauraso/wirefold/Categories/Node/ChannelVectors"
 	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgetable"
-
-	"github.com/dtauraso/wirefold/Categories/Node/owners"
 
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/PolarRulesPanel"
 
@@ -39,9 +38,9 @@ func (m *NodeGeometry) drainRuleMesh() {
 		m.topo.SetSelfRule(state.SelfRule)
 		m.topo.SetSelfRuleActive(state.SelfActive)
 		m.rule.SetGroup(state.GroupID, state.GroupSize)
-		peerCenters := make(map[string]owners.Vec3, len(state.PeerCenters))
+		peerCenters := make(map[string]ChannelVectors.Vec3, len(state.PeerCenters))
 		for id, c := range state.PeerCenters {
-			peerCenters[id] = owners.Vec3(c)
+			peerCenters[id] = ChannelVectors.Vec3(c)
 		}
 		m.channels.SetPeerCenters(peerCenters)
 		for target, active := range state.EdgeActive {

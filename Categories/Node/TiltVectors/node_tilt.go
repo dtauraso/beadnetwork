@@ -1,4 +1,4 @@
-package owners
+package TiltVectors
 
 import (
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/TiltPanel"

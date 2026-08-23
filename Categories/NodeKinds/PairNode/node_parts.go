@@ -5,7 +5,7 @@ import (
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/TiltPanel"
-	"github.com/dtauraso/wirefold/Categories/Node/nodeinbox"
+	"github.com/dtauraso/wirefold/Categories/Node/TiltVectors"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/PairNode/tiltring"
 	Wiring "github.com/dtauraso/wirefold/Categories/NodeKinds/kindapi"
 )
@@ -34,7 +34,7 @@ type tiltHeld struct {
 
 	Machine tiltring.Machine
 
-	TiltEditIn <-chan nodeinbox.TiltEditMsg
+	TiltEditIn <-chan TiltVectors.TiltEditMsg
 
 	SyncTiltIndex func(theta int32)
 }

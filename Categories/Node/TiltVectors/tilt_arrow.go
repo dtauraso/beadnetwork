@@ -1,4 +1,4 @@
-package nodeframe
+package TiltVectors
 
 import (
 	"math"
@@ -70,5 +70,9 @@ func ArrowMatrices(center Vec3, length, phi float64, received bool) TiltArrow {
 	head := composeColumnMajor(bx, by, bz, headCenter,
 		length*arrowHeadRadiusFrac, headLen, length*arrowHeadRadiusFrac)
 
-	return TiltArrow{Received: received, Shaft: shaft, Head: head}
+	received8 := uint8(0)
+	if received {
+		received8 = 1
+	}
+	return TiltArrow{Received: received8, Shaft: shaft, Head: head}
 }

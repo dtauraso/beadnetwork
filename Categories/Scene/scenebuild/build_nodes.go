@@ -9,8 +9,8 @@ import (
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
 	"github.com/dtauraso/wirefold/Categories/Node"
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
+	"github.com/dtauraso/wirefold/Categories/Node/TiltVectors"
 	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
-	"github.com/dtauraso/wirefold/Categories/Node/nodeinbox"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/kindreg"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/nodeapi"
@@ -36,8 +36,8 @@ func buildNodes(
 			md.Inboxes.ClaimLatticeIn(name, sceneToNodeLatticeIn)
 			return sceneToNodeLatticeIn
 		},
-		ClaimTiltEditIn: func(name string) chan nodeinbox.TiltEditMsg {
-			panelToNodeTiltEditIn := make(chan nodeinbox.TiltEditMsg, scenerun.InboxDepth)
+		ClaimTiltEditIn: func(name string) chan TiltVectors.TiltEditMsg {
+			panelToNodeTiltEditIn := make(chan TiltVectors.TiltEditMsg, scenerun.InboxDepth)
 			md.Inboxes.ClaimTiltEditIn(name, panelToNodeTiltEditIn)
 			return panelToNodeTiltEditIn
 		},

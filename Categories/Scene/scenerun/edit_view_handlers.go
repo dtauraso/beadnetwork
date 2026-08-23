@@ -3,7 +3,7 @@ package scenerun
 import (
 	"context"
 
-	SceneTiltVectors "github.com/dtauraso/wirefold/Categories/Scene/TiltVectors"
+	"github.com/dtauraso/wirefold/Categories/Node/TiltVectors"
 
 	Speed "github.com/dtauraso/wirefold/Categories/Speed"
 
@@ -19,7 +19,7 @@ func applyUpdateOverlays(_ context.Context, attr byte, payload []byte, md *MoveD
 	if !ok {
 		return
 	}
-	Overlay.EditOverlays(e, &md.UI.OV, &md.Inboxes, &md.UI, md.persistOverlays)
+	Overlay.EditOverlays(e, &md.UI.OV, &md.ChannelVectorsOn, &md.UI, md.persistOverlays)
 }
 
 func (md *MoveDispatch) persistOverlays(ov Overlay.OverlayState) {
@@ -61,7 +61,7 @@ func applyUpdateTiltVector(ctx context.Context, attr byte, payload []byte, md *M
 	if !ok {
 		return
 	}
-	SceneTiltVectors.Edit(ctx, e.Attr, e.Num, e.Flag == "up", &md.MR, &md.Inboxes, md.resumeSpeed(speedSinks))
+	TiltVectors.Edit(ctx, e.Attr, e.Num, e.Flag == "up", &md.MR, &md.Inboxes, md.resumeSpeed(speedSinks))
 }
 
 func (md *MoveDispatch) resumeSpeed(speedSinks SliderPanel.Sinks) func() {
@@ -71,9 +71,9 @@ func (md *MoveDispatch) resumeSpeed(speedSinks SliderPanel.Sinks) func() {
 }
 
 func tiltVectorEditFor(ctx context.Context, md *MoveDispatch, speedSinks SliderPanel.Sinks, row int32, attr string) {
-	SceneTiltVectors.Apply(ctx, row, attr, &md.MR, &md.Inboxes, md.resumeSpeed(speedSinks))
+	TiltVectors.Apply(ctx, row, attr, &md.MR, &md.Inboxes, md.resumeSpeed(speedSinks))
 }
 
 func adjustTiltPhiFor(ctx context.Context, md *MoveDispatch, row int32, up bool) {
-	SceneTiltVectors.AdjustPhi(ctx, row, up, &md.MR, &md.Inboxes)
+	TiltVectors.AdjustPhi(ctx, row, up, &md.MR, &md.Inboxes)
 }

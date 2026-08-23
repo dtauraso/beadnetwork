@@ -1,4 +1,4 @@
-package SceneTiltVectors
+package ChannelVectors
 
 import (
 	"bytes"

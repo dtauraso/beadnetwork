@@ -5,7 +5,6 @@ import (
 
 	"github.com/dtauraso/wirefold/Categories/Input/Drag"
 	"github.com/dtauraso/wirefold/Categories/Node"
-	"github.com/dtauraso/wirefold/Categories/Node/nodemove"
 	"github.com/dtauraso/wirefold/Categories/Node/owners"
 	"github.com/dtauraso/wirefold/Categories/Scene/rowtables"
 	"github.com/dtauraso/wirefold/Categories/Scene/viewstate"
@@ -21,7 +20,7 @@ type Movers struct {
 type Deps struct {
 	MR    Movers
 	UI    *viewstate.UIState
-	Mover *nodemove.NodeMover
+	Mover *Node.NodeMover
 	RT    *rowtables.RowTables
 	Ctx   context.Context
 }
