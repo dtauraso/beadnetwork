@@ -156,7 +156,7 @@ Consequences to keep in mind:
 
 ## The owner writes, and owns the path
 
-- A node writes its own `position/local-polars` (`Categories/Node/nodeactor/nodefiles/drag_index.go`);
+- A node writes its own `position/local-polars` (`Categories/Node/nodefile/drag_index.go`);
   `Categories/Scene/loadspec/drag_index.go` reads those four files back, the two agreeing on the
   layout the way a block file's writer and reader do. There is no longer a separate
   `inputs/`/`outputs/` port-geometry

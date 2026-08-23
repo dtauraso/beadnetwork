@@ -43,9 +43,9 @@ func ReadDragRule(dir string) *PolarRulesPanel.DragRule {
 	return &rule
 }
 
-func WriteDragRule(dir string, rule *PolarRulesPanel.DragRule) error {
+func writeRuleDir(dir string, rule *PolarRulesPanel.DragRule) error {
 	for _, name := range []string{FileRuleR, FileRulePhi, FileRuleMaxTheta} {
-		if err := RemoveIfPresent(filepath.Join(dir, name)); err != nil {
+		if err := removeIfPresent(filepath.Join(dir, name)); err != nil {
 			return err
 		}
 	}

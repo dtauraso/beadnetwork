@@ -3,11 +3,11 @@ package nodecrud
 import (
 	"fmt"
 
-	"github.com/dtauraso/wirefold/Categories/Scene/Camera"
 	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgefile"
 	"github.com/dtauraso/wirefold/Categories/Node/nodeactor"
-	"github.com/dtauraso/wirefold/Categories/Node/nodeactor/nodefiles"
+	"github.com/dtauraso/wirefold/Categories/Node/nodefile"
 	"github.com/dtauraso/wirefold/Categories/Polar/polar"
+	"github.com/dtauraso/wirefold/Categories/Scene/Camera"
 	"github.com/dtauraso/wirefold/Categories/Scene/loadspec"
 	"github.com/dtauraso/wirefold/Categories/Scene/rowtables"
 	"github.com/dtauraso/wirefold/Categories/Scene/sceneswitch"
@@ -77,7 +77,7 @@ func CreateNode(scenes *sceneswitch.SceneSwitch, ui *viewstate.UIState, nodeGeom
 		ui.EmitViewFrame(nil)
 		return
 	}
-	if err := nodefiles.WriteNewNodeFiles(scenes.TreeRoot, target, kind, polar.Polar{R: off.Length(), Phi: d.Phi, Theta: d.Theta}, sc); err != nil {
+	if err := nodefile.WriteNewNodeFiles(scenes.TreeRoot, target, kind, polar.Polar{R: off.Length(), Phi: d.Phi, Theta: d.Theta}, sc); err != nil {
 		ui.RefuseStructuralEdit(fmt.Sprintf("could not write node %s: %v", target, err))
 		ui.EmitViewFrame(nil)
 		return
@@ -117,7 +117,7 @@ func DeleteNode(scenes *sceneswitch.SceneSwitch, ui *viewstate.UIState, rt *rowt
 		return
 	}
 	root := scenes.TreeRoot
-	if err := nodefiles.RemoveNodeDir(root, id); err != nil {
+	if err := nodefile.RemoveNodeDir(root, id); err != nil {
 		ui.RefuseStructuralEdit(fmt.Sprintf("could not remove node %s: %v", id, err))
 		ui.EmitViewFrame(nil)
 		return

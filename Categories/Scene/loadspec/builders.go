@@ -5,7 +5,7 @@ import (
 
 	NodeBuf "github.com/dtauraso/wirefold/Categories/Node"
 	"github.com/dtauraso/wirefold/Categories/Node/nodeactor"
-	"github.com/dtauraso/wirefold/Categories/Node/nodeactor/nodefiles"
+	"github.com/dtauraso/wirefold/Categories/Node/nodefile"
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
 )
 
@@ -28,13 +28,13 @@ func SeedNode(m *nodeactor.NodeGeometry, n Node, sceneRoot string) {
 	rn := m.RuleNode()
 	rn.SetPersistRoot(sceneRoot)
 
-	active := nodefiles.LoadDragActive(sceneRoot, n.ID)
+	active := nodefile.LoadDragActive(sceneRoot, n.ID)
 	m.Topo().SetDragRule(n.Drag)
 	m.Topo().SetDragActive(active)
 	rn.SeedRule(n.Drag, active)
-	rn.SeedKindActive(nodefiles.LoadKindRuleActive(sceneRoot, n.ID))
+	rn.SeedKindActive(nodefile.LoadKindRuleActive(sceneRoot, n.ID))
 
-	selfActive := nodefiles.LoadSelfRuleActive(sceneRoot, n.ID)
+	selfActive := nodefile.LoadSelfRuleActive(sceneRoot, n.ID)
 	m.Topo().SetSelfRule(n.SelfDrag)
 	m.Topo().SetSelfRuleActive(selfActive)
 	rn.SeedSelfRule(n.SelfDrag, selfActive)
@@ -50,7 +50,7 @@ func SeedEdge(m *nodeactor.NodeGeometry, e Edge, src bool, otherKind, sceneRoot 
 		other = e.Source
 	}
 
-	m.RuleNode().SeedEdgeActive(other, nodefiles.LoadEdgeRuleActive(sceneRoot, e.Source, e.Target))
+	m.RuleNode().SeedEdgeActive(other, nodefile.LoadEdgeRuleActive(sceneRoot, e.Source, e.Target))
 	m.Topo().AddNeighborKind(other, otherKind)
 	if src {
 		m.AddOutTarget(e.Target)

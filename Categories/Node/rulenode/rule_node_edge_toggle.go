@@ -3,7 +3,7 @@ package rulenode
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/Categories/Node/nodeactor/nodefiles"
+	"github.com/dtauraso/wirefold/Categories/Node/nodefile"
 )
 
 type EdgeToggle struct {
@@ -36,7 +36,7 @@ func (r *RuleNode) applyKindToggle() {
 	if r.persistRoot == "" {
 		return
 	}
-	if err := nodefiles.WriteKindRuleActive(r.persistRoot, r.id, r.kindActive); err != nil {
+	if err := nodefile.WriteKindRuleActive(r.persistRoot, r.id, r.kindActive); err != nil {
 		LogPersistErr("rulenode", r.id, err)
 	}
 }
@@ -83,7 +83,7 @@ func (r *RuleNode) applyEdgeToggle(t EdgeToggle) {
 	if r.persistRoot == "" {
 		return
 	}
-	if err := nodefiles.WriteEdgeRuleActive(r.persistRoot, r.id, t.Target, next); err != nil {
+	if err := nodefile.WriteEdgeRuleActive(r.persistRoot, r.id, t.Target, next); err != nil {
 		LogPersistErr("rulenode", r.id+"To"+t.Target, err)
 	}
 }
