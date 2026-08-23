@@ -1,8 +1,10 @@
-package loadspec
+package scenebuild
 
 import (
 	"fmt"
 	"os"
+
+	NodeBuf "github.com/dtauraso/wirefold/Categories/Node"
 
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/PolarRulesPanel"
 
@@ -12,7 +14,7 @@ import (
 type Node struct {
 	ID   string
 	Type string
-	Data *NodeData
+	Data *NodeBuf.NodeData
 
 	IndexPhi   *int
 	IndexTheta *int

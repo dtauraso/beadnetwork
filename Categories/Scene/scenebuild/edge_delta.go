@@ -1,6 +1,12 @@
-package loadspec
+package scenebuild
 
 import (
+	"fmt"
+	"os"
+
+	NodeBuf "github.com/dtauraso/wirefold/Categories/Node"
+
+	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgefile"
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
 )
 
@@ -97,4 +103,60 @@ func (e *Edge) deltaIndex() polarindex.Offset {
 
 func (e *Edge) setDeltaIndex(off polarindex.Offset) {
 	e.DeltaIndexPhi, e.DeltaIndexTheta, e.DeltaIndexR = &off.Phi, &off.Theta, &off.R
+}
+
+func ApplyDragOverlay(root string, spec *TopoSpec) {
+	for i := range spec.Nodes {
+		n := &spec.Nodes[i]
+		if !n.HasPoint() {
+			continue
+		}
+		if phi, theta, r, _, ok := NodeBuf.ReadDragIndex(root, n.ID); ok {
+			n.DragIndexPhi, n.DragIndexTheta, n.DragIndexR = &phi, &theta, &r
+		}
+	}
+
+	for i := range spec.Edges {
+		e := &spec.Edges[i]
+		if !e.hasDelta() {
+			continue
+		}
+		if dragIdx, ok := edgefile.ReadEdgeDragIndex(root, e.Source, e.Label); ok {
+			e.DragDeltaIndexPhi, e.DragDeltaIndexTheta, e.DragDeltaIndexR = &dragIdx.Phi, &dragIdx.Theta, &dragIdx.R
+		}
+	}
+}
+
+func reportEdgeClosure(spec *TopoSpec) {
+	if err := checkEdgeClosure(spec); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+	}
+}
+
+func checkEdgeClosure(spec *TopoSpec) error {
+	idx := make(map[string]polarindex.Index, len(spec.Nodes))
+	for i := range spec.Nodes {
+		if n := &spec.Nodes[i]; n.HasPoint() {
+			idx[n.ID] = polarindex.Canonical(n.Index(), spec.Constants)
+		}
+	}
+
+	for i := range spec.Edges {
+		e := &spec.Edges[i]
+		if !e.hasDelta() {
+			continue
+		}
+		src, okS := idx[e.Source]
+		dst, okT := idx[e.Target]
+		if !okS || !okT {
+			continue
+		}
+		got := polarindex.Compose(src, e.deltaIndex(), spec.Constants)
+		if got != dst {
+			return fmt.Errorf(
+				"loadTree: edge %q does not close: node %s index %+v composed with delta %+v gives %+v, but node %s is at %+v — an edge delta must be the exact index difference of its endpoints (target minus source), so the edge is drawn to where the node actually is",
+				e.Label, e.Source, src, e.deltaIndex(), got, e.Target, dst)
+		}
+	}
+	return nil
 }

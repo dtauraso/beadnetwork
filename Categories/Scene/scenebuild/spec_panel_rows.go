@@ -6,10 +6,9 @@ import (
 
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/PolarRulesPanel"
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/TiltPanel"
-	"github.com/dtauraso/wirefold/Categories/Scene/loadspec"
 )
 
-func RulePanelNodes(spec loadspec.TopoSpec, hasKindRule func(id string) bool) []PolarRulesPanel.Node {
+func RulePanelNodes(spec TopoSpec, hasKindRule func(id string) bool) []PolarRulesPanel.Node {
 	rowOf := func(id string) (int32, bool) {
 		n, err := strconv.Atoi(id)
 		if err != nil || n < 1 {
@@ -58,7 +57,7 @@ func RulePanelNodes(spec loadspec.TopoSpec, hasKindRule func(id string) bool) []
 	return nodes
 }
 
-func TiltPanelRows(spec loadspec.TopoSpec) (rows []int32, labels []string) {
+func TiltPanelRows(spec TopoSpec) (rows []int32, labels []string) {
 	byRow := make([]string, spec.RowCount)
 	for _, n := range spec.Nodes {
 		id, err := strconv.Atoi(n.ID)

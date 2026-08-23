@@ -1,4 +1,4 @@
-package loadspec
+package Scene
 
 import (
 	"fmt"
@@ -7,7 +7,6 @@ import (
 
 	lattice "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation/lattice"
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
-	"github.com/dtauraso/wirefold/Categories/Scene"
 )
 
 const (
@@ -27,13 +26,13 @@ func loadSceneConstants(root string) (polarindex.SceneConstants, error) {
 	dir := ConstantsDir(root)
 	var c polarindex.SceneConstants
 	missing := []string{}
-	if !ReadIfExists(Scene.SceneValuePath(root, "constantR"), &c.ConstantR) {
+	if !ReadIfExists(SceneValuePath(root, "constantR"), &c.ConstantR) {
 		missing = append(missing, FileConstantR)
 	}
-	if !ReadIfExists(Scene.SceneValuePath(root, "maxIndexPhi"), &c.MaxIndexPhi) {
+	if !ReadIfExists(SceneValuePath(root, "maxIndexPhi"), &c.MaxIndexPhi) {
 		missing = append(missing, FileMaxIndexPhi)
 	}
-	if !ReadIfExists(Scene.SceneValuePath(root, "maxIndexTheta"), &c.MaxIndexTheta) {
+	if !ReadIfExists(SceneValuePath(root, "maxIndexTheta"), &c.MaxIndexTheta) {
 		missing = append(missing, FileMaxIndexTheta)
 	}
 	if len(missing) > 0 {

@@ -1,4 +1,4 @@
-package loadspec
+package scenebuild
 
 import "math"
 

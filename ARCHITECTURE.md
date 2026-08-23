@@ -65,7 +65,7 @@ fail and so cannot be trusted.
 | `Start/extension/html.ts` | Webview HTML shell + CSP |
 | `runCommand.ts` | Spawns the Go process and frames stdin records. Nothing streams back — Go inherits three stdio slots and only stderr carries anything |
 | `goBuild.ts` | Compiles the Go binary; invoked automatically on `ready`, not by a button |
-| registries | There is no `schema/` and no `Buffer/`: each registry lives with its concern — `node-defs.ts` in `Categories/NodeKinds/`, `wire-defs.ts` in `Categories/Scene/loadspec/`, the input codec in `Categories/Scene/Drag/`, the trace events with each owner |
+| registries | There is no `schema/` and no `Buffer/`: each registry lives with its concern — `node-defs.ts` in `Categories/NodeKinds/`, `wire-defs.ts` in `Categories/Scene/scenebuild/`, the input codec in `Categories/Scene/Drag/`, the trace events with each owner |
 
 ## Webview side
 

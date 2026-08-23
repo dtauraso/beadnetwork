@@ -83,3 +83,8 @@ func putI32(b []byte, v int32) { binary.LittleEndian.PutUint32(b, uint32(v)) }
 func putF64(b []byte, v float64) {
 	binary.LittleEndian.PutUint64(b, math.Float64bits(v))
 }
+
+const (
+	BreadcrumbTopologyLoaded       = "topology-loaded"
+	BreadcrumbRowSeedCountMismatch = "row-seed-count-mismatch"
+)

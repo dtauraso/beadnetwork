@@ -38,7 +38,7 @@ delivery), node goroutine, node input, and clock
 2. No separate `registry.ts` — `node-defs.ts` is the single node-kind registry, and it lives
    in `Categories/NodeKinds/` with the kinds it describes. **There is no `src/schema/`**: a registry
    lives with its concern, so `messages.ts` and the input codec are `Categories/Scene/Drag/`,
-   `scenes-gen.ts` is `Categories/Scene/`, `wire-defs.ts` is `Categories/Scene/loadspec/`, and the trace
+   `scenes-gen.ts` is `Categories/Scene/`, `wire-defs.ts` is `Categories/Scene/scenebuild/`, and the trace
    events are `Trace/`. Adding a node kind touches only `node-defs.ts`.
 3. The Go node package under `Categories/NodeKinds/<Kind>/`, with its logic always in `node.go` (never
    `<Kind>.go`) plus `SPEC.md`. Directory casing is mixed and both are live: PascalCase

@@ -4,9 +4,9 @@ import (
 	"context"
 	"strings"
 
+	NodeBuf "github.com/dtauraso/wirefold/Categories/Node"
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 	interior "github.com/dtauraso/wirefold/Categories/Node/Interior"
-	"github.com/dtauraso/wirefold/Categories/Scene/loadspec"
 )
 
 type deps interface {
@@ -19,7 +19,7 @@ type deps interface {
 type BuildArgs struct {
 	Ctx  context.Context
 	Name string
-	Data *loadspec.NodeData
+	Data *NodeBuf.NodeData
 	PB   bindings
 
 	TiltPhiIdx int32
@@ -68,7 +68,7 @@ func (b kindBuilder) Ports() []struct {
 	return out
 }
 
-func (b kindBuilder) Build(ctx context.Context, name string, data *loadspec.NodeData, pb any, tiltPhiIdx int32, bd any) (any, error) {
+func (b kindBuilder) Build(ctx context.Context, name string, data *NodeBuf.NodeData, pb any, tiltPhiIdx int32, bd any) (any, error) {
 	bound, ok := pb.(bindings)
 	if !ok {
 		panic("Build: the scene handed " + name + " something that is not this kind's port bindings")

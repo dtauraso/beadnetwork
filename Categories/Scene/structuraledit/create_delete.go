@@ -2,12 +2,12 @@ package structuraledit
 
 import (
 	"fmt"
+	"github.com/dtauraso/wirefold/Categories/Scene"
 
 	"github.com/dtauraso/wirefold/Categories/Node"
 	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgefile"
 	"github.com/dtauraso/wirefold/Categories/Polar/polar"
 	"github.com/dtauraso/wirefold/Categories/Scene/Camera"
-	"github.com/dtauraso/wirefold/Categories/Scene/loadspec"
 	"github.com/dtauraso/wirefold/Categories/Scene/rowtables"
 	"github.com/dtauraso/wirefold/Categories/Scene/sceneswitch"
 	"github.com/dtauraso/wirefold/Categories/Scene/viewstate"
@@ -70,7 +70,7 @@ func CreateNode(scenes *sceneswitch.SceneSwitch, ui *viewstate.UIState, nodeGeom
 	c := ui.SceneSphere.Center
 	off := drop.Sub(viewstate.Vec3(c))
 	d := Camera.WorldDirToAngles(Camera.Vec3(off))
-	sc, err := loadspec.LoadSceneConstants(scenes.TreeRoot)
+	sc, err := Scene.LoadSceneConstants(scenes.TreeRoot)
 	if err != nil {
 		ui.RefuseStructuralEdit(fmt.Sprintf("could not load scene constants: %v", err))
 		ui.EmitViewFrame(nil)
