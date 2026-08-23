@@ -1,4 +1,4 @@
-package nodecrud
+package structuraledit
 
 import (
 	"fmt"
@@ -14,7 +14,7 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Scene/viewstate"
 )
 
-func CreateNode(scenes *sceneswitch.SceneSwitch, ui *viewstate.UIState, nodeGeoms map[string]*Node.NodeGeometry, nearestTo func(Vec3) (string, bool), kindID uint8, ndcX, ndcY float64) {
+func CreateNode(scenes *sceneswitch.SceneSwitch, ui *viewstate.UIState, nodeGeoms map[string]*Node.NodeGeometry, nearestTo func(viewstate.Vec3) (string, bool), kindID uint8, ndcX, ndcY float64) {
 	if scenes == nil || scenes.TreeRoot == "" || scenes.Quit == nil {
 		return
 	}
@@ -44,7 +44,7 @@ func CreateNode(scenes *sceneswitch.SceneSwitch, ui *viewstate.UIState, nodeGeom
 		return
 	}
 
-	src, okNear := nearestTo(Vec3(drop))
+	src, okNear := nearestTo(drop)
 	target := loadspec.NewNodeID(scenes.TreeRoot)
 	var srcHandle, targetPort string
 	if okNear {

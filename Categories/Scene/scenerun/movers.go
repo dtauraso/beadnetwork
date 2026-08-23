@@ -2,6 +2,7 @@ package scenerun
 
 import (
 	"context"
+	"github.com/dtauraso/wirefold/Categories/Scene/viewstate"
 	"sync"
 
 	"github.com/dtauraso/wirefold/Categories/Input/Gesture"
@@ -9,7 +10,6 @@ import (
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgegeom"
 	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgetable"
-	"github.com/dtauraso/wirefold/Categories/Node/nodecrud"
 	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
 )
 
@@ -91,7 +91,7 @@ func (m *Movers) EnqueueFor(nm *Node.NodeGeometry) func(id string, msg Node.Msg)
 	return nm.Msg().EnqueueSend
 }
 
-func (md *MoveDispatch) nearestNodeTo(p nodecrud.Vec3) (string, bool) {
+func (md *MoveDispatch) nearestNodeTo(p viewstate.Vec3) (string, bool) {
 	return md.MR.NearestNodeTo(Vec3(p))
 }
 

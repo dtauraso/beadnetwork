@@ -7,7 +7,7 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/SliderPanel"
 	"github.com/dtauraso/wirefold/Categories/Input/Drag"
 
-	"github.com/dtauraso/wirefold/Categories/Node/nodecrud"
+	"github.com/dtauraso/wirefold/Categories/Scene/structuraledit"
 )
 
 func HandleRawInputMsg(ctx context.Context, ev Drag.RawInputMsg, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
@@ -25,7 +25,7 @@ func HandleRawInputMsg(ctx context.Context, ev Drag.RawInputMsg, md *MoveDispatc
 	if ev.Kind == "delete" {
 		if md.UI.SceneEditable && md.UI.Sel.Selected != "" {
 			if row, ok := md.UI.NodeRowFor(md.UI.Sel.Selected); ok {
-				nodecrud.DeleteNode(&md.Scenes, &md.UI, &md.RT, int(row))
+				structuraledit.DeleteNode(&md.Scenes, &md.UI, &md.RT, int(row))
 			}
 		}
 		return

@@ -1,4 +1,4 @@
-package nodecrud
+package structuraledit
 
 import (
 	"fmt"
