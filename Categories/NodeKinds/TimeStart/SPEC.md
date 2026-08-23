@@ -43,7 +43,7 @@ On each value received from In:
 2. Broadcast the current Held value concurrently on all ToNext outputs.
 3. Update Held to value.
 
-Time is a pure forwarder: it holds the last value and re-emits it on the next fire (feedback now lives on the Pacer kind, not here).
+Time is a pure forwarder: it holds the last value and re-emits it on the next fire. It does not compare what it receives to what it held; the kind that did that, Pacer, was removed.
 
 The node parks if any ToNext output wire is still occupied (bead in flight or unconsumed), to prevent drops when output transit time exceeds the input rate.
 
