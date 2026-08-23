@@ -3,7 +3,6 @@ package nodeactor
 import (
 	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
 	"github.com/dtauraso/wirefold/Categories/Node/owners"
-	"github.com/dtauraso/wirefold/Categories/Polar/polar"
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
 )
 
@@ -45,7 +44,7 @@ func (m *NodeGeometry) takeNeighborMove(msg owners.NeighborMoved) {
 		m.deltas.ShiftOtherBy(msg.SenderID, *msg.Delta)
 	}
 	if msg.Center != nil {
-		idx := polarindex.MeasureIndex(polar.Cart2polarAtTheta(polar.Vec3(msg.Center.Sub(owners.Vec3(m.SceneCenter()))), m.ScenePolar().Theta), m.Constants())
+		idx := nodegeom.IndexAtTheta(m.geom.SceneCenter, nodegeom.Vec3(*msg.Center), m.ScenePolar().Theta, m.Constants())
 		m.ApplyCenter(idx)
 		return
 	}

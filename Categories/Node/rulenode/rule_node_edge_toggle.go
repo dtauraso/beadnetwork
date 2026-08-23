@@ -2,6 +2,7 @@ package rulenode
 
 import (
 	"context"
+	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgetable"
 
 	"github.com/dtauraso/wirefold/Categories/Node/nodefile"
 )
@@ -84,6 +85,6 @@ func (r *RuleNode) applyEdgeToggle(t EdgeToggle) {
 		return
 	}
 	if err := nodefile.WriteEdgeRuleActive(r.persistRoot, r.id, t.Target, next); err != nil {
-		LogPersistErr("rulenode", r.id+"To"+t.Target, err)
+		LogPersistErr("rulenode", edgetable.ChannelName(r.id, t.Target), err)
 	}
 }

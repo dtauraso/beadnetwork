@@ -32,7 +32,7 @@ func (g *NodeGeometry) RunGeometry(ctx context.Context) {
 		g.pollChannelVectors()
 		g.drainRuleMesh()
 
-		g.deriveOutEdgeGeometry()
+		g.DeriveOutEdgeGeometry()
 
 		g.writeStreamFrame(g.drainSelfEvents())
 		g.writeOutEdgeFrames(clk.Tick())

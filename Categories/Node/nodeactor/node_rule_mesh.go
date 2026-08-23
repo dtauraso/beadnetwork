@@ -2,6 +2,7 @@ package nodeactor
 
 import (
 	"context"
+	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgetable"
 
 	"github.com/dtauraso/wirefold/Categories/Node/owners"
 
@@ -44,7 +45,7 @@ func (m *NodeGeometry) drainRuleMesh() {
 		}
 		m.channels.SetPeerCenters(peerCenters)
 		for target, active := range state.EdgeActive {
-			m.outEdges.SetEdgeRuleActive(m.id+"To"+target, active)
+			m.outEdges.SetEdgeRuleActive(edgetable.ChannelName(m.id, target), active)
 		}
 		changed = true
 	}

@@ -25,12 +25,5 @@ func (m *NodeGeometry) pollChannelVectors() {
 }
 
 func (m *NodeGeometry) channelVectors() []streamframe.ChannelVector {
-	if !m.channels.On() {
-		return nil
-	}
-	peers := make(map[string]streamframe.Vec3, len(m.channels.PeerCenters()))
-	for id, c := range m.channels.PeerCenters() {
-		peers[id] = streamframe.Vec3(c)
-	}
-	return streamframe.ChannelVectorsFor(streamframe.Vec3(nodegeom.NodeWorldPos(m.geom)), peers)
+	return m.channels.VectorsFrom(owners.Vec3(nodegeom.NodeWorldPos(m.geom)))
 }

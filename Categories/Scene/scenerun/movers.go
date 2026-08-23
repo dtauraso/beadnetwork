@@ -110,7 +110,7 @@ func (md *MoveDispatch) gestureMovers() Gesture.Movers {
 
 func (m *Movers) Start(ctx context.Context) *sync.WaitGroup {
 	for _, nm := range m.nodeGeoms {
-		nm.DeriveOutEdgeGeometryOnce()
+		nm.DeriveOutEdgeGeometry()
 	}
 
 	wg := new(sync.WaitGroup)

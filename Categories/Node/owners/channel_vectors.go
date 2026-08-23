@@ -1,5 +1,18 @@
 package owners
 
+import streamframe "github.com/dtauraso/wirefold/Categories/Scene/Vectors"
+
+func (c *ChannelVectors) VectorsFrom(self Vec3) []streamframe.ChannelVector {
+	if !c.on {
+		return nil
+	}
+	peers := make(map[string]streamframe.Vec3, len(c.peerCenters))
+	for id, p := range c.peerCenters {
+		peers[id] = streamframe.Vec3(p)
+	}
+	return streamframe.ChannelVectorsFor(streamframe.Vec3(self), peers)
+}
+
 type ChannelVectors struct {
 	sceneToNodeOn chan bool
 

@@ -15,11 +15,15 @@ func (m *NodeGeometry) SetSelfKind(kind string) {
 
 func (m *NodeGeometry) SetBaseIndex(off polarindex.Index) {
 	m.geom.BaseIndex = off
-	m.msg.PublishCenter(owners.Vec3(nodegeom.NodeWorldPos(m.geom)))
+	m.publishCenter()
 }
 
 func (m *NodeGeometry) SetDragIndex(off polarindex.Offset) {
 	m.geom.DragIndex = off
+	m.publishCenter()
+}
+
+func (m *NodeGeometry) publishCenter() {
 	m.msg.PublishCenter(owners.Vec3(nodegeom.NodeWorldPos(m.geom)))
 }
 
@@ -32,12 +36,8 @@ func (m *NodeGeometry) BindOutEdgeRun(label, targetID, targetKind string, port *
 	m.outEdges.SetSrcID(m.id)
 }
 
-func (m *NodeGeometry) deriveOutEdgeGeometry() {
+func (m *NodeGeometry) DeriveOutEdgeGeometry() {
 	m.outEdges.DeriveGeometry(m.geom, &m.deltas)
-}
-
-func (m *NodeGeometry) DeriveOutEdgeGeometryOnce() {
-	m.deriveOutEdgeGeometry()
 }
 
 func (m *NodeGeometry) writeOutEdgeFrames(tick int64) {

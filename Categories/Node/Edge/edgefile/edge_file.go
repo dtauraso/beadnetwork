@@ -2,6 +2,7 @@ package edgefile
 
 import (
 	"fmt"
+	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgetable"
 	"os"
 	"path/filepath"
 	"strings"
@@ -66,7 +67,7 @@ func handleIsOn(handle, srcPort string) bool {
 }
 
 func WriteEdgeFile(root, src, srcPort, target, targetPort string) error {
-	dir := edgeDirPath(root, src, src+"To"+target)
+	dir := edgeDirPath(root, src, edgetable.ChannelName(src, target))
 	for name, value := range map[string]string{
 		FileSourceHandle: srcPort,
 		FileTarget:       target,

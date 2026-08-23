@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/dtauraso/wirefold/Categories/Node/nodeactor"
+	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
 	"github.com/dtauraso/wirefold/Categories/Node/owners"
 	"github.com/dtauraso/wirefold/Categories/Polar/polar"
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
@@ -21,13 +22,6 @@ func HeldCenters(nodeGeoms map[string]*nodeactor.NodeGeometry, centerOf func(id 
 	return out
 }
 
-func pointerPolar(nm *nodeactor.NodeGeometry, v Vec3) polar.Polar {
-	if rule := nm.Topo().SelfRule(); rule != nil && nm.Topo().SelfRuleActive() && rule.MaxTheta != nil {
-		return polar.Cart2polarAtTheta(polar.Vec3(v), nm.ScenePolar().Theta)
-	}
-	return polar.Cart2polar(polar.Vec3(v))
-}
-
 func (mv *NodeMover) RootMove(ctx context.Context, nodeGeoms map[string]*nodeactor.NodeGeometry, nodeID string, target Vec3) bool {
 	nm, ok := nodeGeoms[nodeID]
 	if !ok {
@@ -35,7 +29,12 @@ func (mv *NodeMover) RootMove(ctx context.Context, nodeGeoms map[string]*nodeact
 	}
 
 	sc := nm.Constants()
-	targetIdx := polarindex.MeasureIndex(pointerPolar(nm, target.Sub(Vec3(nm.SceneCenter()))), sc)
+	var targetIdx polarindex.Index
+	if rule := nm.Topo().SelfRule(); rule != nil && nm.Topo().SelfRuleActive() && rule.MaxTheta != nil {
+		targetIdx = nodegeom.IndexAtTheta(nm.SceneCenter(), nodegeom.Vec3(target), nm.ScenePolar().Theta, sc)
+	} else {
+		targetIdx = polarindex.MeasureIndex(polar.Cart2polar(polar.Vec3(target.Sub(Vec3(nm.SceneCenter())))), sc)
+	}
 
 	nm.Msg().SendExternal(ctx, owners.Msg{NodeID: nodeID, Body: owners.Drag{Target: &targetIdx}})
 	return true
