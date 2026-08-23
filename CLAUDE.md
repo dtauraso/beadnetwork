@@ -3,7 +3,7 @@
 ## Model — read first
 
 Before changing anything in the **Go network** (`Categories/Node/`, `Categories/NodeKinds/`, `Categories/Node/BeadAnimation/bead_line.go`,
-`Categories/Scene/scenebuild/load.go`, `Categories/Scene/scenebuild/spec_seed.go`) or the **Go → TS
+`Categories/Scene/Startup/load.go`, `Categories/Scene/Wiring/spec_seed.go`) or the **Go → TS
 surface** (the block files and their `*_values.go`, `Start/extension/webview/`), read
 [MODEL.md](MODEL.md). It pins the model. Do not propose multi-step
 plans with options for network/bead work; name the single concrete next
@@ -38,7 +38,7 @@ delivery), node goroutine, node input, and clock
 2. No separate `registry.ts` — `node-defs.ts` is the single node-kind registry, and it lives
    in `Categories/NodeKinds/` with the kinds it describes. **There is no `src/schema/`**: a registry
    lives with its concern, so `messages.ts` and the input codec are `Categories/Scene/Drag/`,
-   `scenes-gen.ts` is `Categories/Scene/`, `wire-defs.ts` is `Categories/Scene/scenebuild/`, and the trace
+   `scenes-gen.ts` is `Categories/Scene/`, `wire-defs.ts` is `Categories/Scene/Topology/`, and the trace
    events are `Trace/`. Adding a node kind touches only `node-defs.ts`.
 3. The Go node package under `Categories/NodeKinds/<Kind>/`, with its logic always in `node.go` (never
    `<Kind>.go`) plus `SPEC.md`. Directory casing is mixed and both are live: PascalCase
@@ -80,7 +80,7 @@ There is **no `cmd/`** either, and **no `gen/`**: both grouped code by technique
 - **`Categories/NodeKinds/`** — the node kinds, plus only the registry naming them (`builder.go`'s
   `Builder`, the generated `kinds_gen.go` switch). A kind is a LEAF: it declares its OWN port
   `bindings`, `deps` and `kindBuilder` and imports no shared kind package — Go matches an interface
-  by SHAPE, so `scenebuild.BuildDeps` satisfies a kind's `deps` and its builder satisfies
+  by SHAPE, so `Wiring.BuildDeps` satisfies a kind's `deps` and its builder satisfies
   `NodeKinds.Builder`, neither naming the other. A directory counts as a kind only if it declares
   `var Builder = BuilderFor(…)`; `go generate` writes its `case` into `NodeKinds.BuilderFor` and
   nothing registers at runtime. A kind's ports come from its SPEC.md `## Ports`

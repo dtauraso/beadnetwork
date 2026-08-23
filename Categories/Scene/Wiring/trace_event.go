@@ -1,4 +1,4 @@
-package scenebuild
+package Wiring
 
 import (
 	"encoding/binary"

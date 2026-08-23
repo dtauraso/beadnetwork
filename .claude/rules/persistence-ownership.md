@@ -117,7 +117,7 @@ user's accumulated offset, in `drag/`) are different quantities. They are never 
 a stored value and never substituted for one another; they combine only at the point
 something is drawn, and persist always writes the DRAG, never the composed value.
 
-On load, `scenebuild.ApplyDragOverlay` reads `base/`/`<label>/` into the BASE fields
+On load, `Topology.ApplyDragOverlay` reads `base/`/`<label>/` into the BASE fields
 and `drag/` and `drag/edges/<label>/` into separate DRAG fields on the same
 spec struct (`DragScenePolarR/Phi/Theta` on a node, `DragDeltaPolarR/Phi/Theta` on an
 edge) — it composes NOTHING; a node or edge with no `drag/` file simply carries a zero drag

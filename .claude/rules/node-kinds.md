@@ -34,7 +34,7 @@ own `kb_build_args.go`, along with the `BuildArgs` accessors that kind calls —
 only the groups it uses. There is NO shared kind package: the kind declares its own `bindings`
 interface (what it reads from the scene's port bindings), its own `deps` interface (what it needs
 from whatever built it), and its own `kindBuilder`. Go matches an interface by SHAPE, so
-`scenebuild.BuildDeps` satisfies every kind's `deps`, and every kind's `kindBuilder` satisfies
+`Wiring.BuildDeps` satisfies every kind's `deps`, and every kind's `kindBuilder` satisfies
 `NodeKinds.Builder`, with neither side importing the other — that is what keeps a kind a LEAF.
 `Ports()` returns `[]struct{Name string; Dir int}`, an anonymous type on purpose: two identical
 anonymous struct types are the SAME type in every package, so the shape crosses the seam with
@@ -61,7 +61,7 @@ a `node-defs.ts` diff.
 
 **What a kind's code may BIND is checked against that table.** `checkPortRequests` — in the
 three generators that read every kind (`Categories/Node/kindtables`,
-`Categories/Scene/scenebuild/kindports`, `Categories/Scene/structuraledit/kindports`) — reads every `a.In("X")`/`a.Out("X")`/`a.Broadcast("X")`/`a.DriveOut("X")`
+`Categories/Scene/Wiring/kindports`, `Categories/Scene/structuraledit/kindports`) — reads every `a.In("X")`/`a.Out("X")`/`a.Broadcast("X")`/`a.DriveOut("X")`
 literal in the kind's package and fails `go generate` when the name is not a row, or is a row
 with the other direction; each kind's `mustDeclare` panics on the same condition at build time.
 Without it an undeclared name binds a DEAD-END channel (`PortBindings.deadEndIn`) and the kind

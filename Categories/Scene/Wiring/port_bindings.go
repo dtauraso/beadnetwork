@@ -1,4 +1,4 @@
-package scenebuild
+package Wiring
 
 import (
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/SliderPanel"

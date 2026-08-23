@@ -1,8 +1,10 @@
-package scenebuild
+package Wiring
 
 import (
 	"context"
 	"fmt"
+
+	"github.com/dtauraso/wirefold/Categories/Scene/Topology"
 
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/SliderPanel"
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/TiltPanel"
@@ -14,9 +16,9 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Scene/scenerun"
 )
 
-func buildNodes(
+func BuildNodes(
 	ctx context.Context,
-	spec TopoSpec,
+	spec Topology.TopoSpec,
 	md *scenerun.MoveDispatch,
 	wiring EdgeWiring,
 	nodeGeoms map[string]NodeBuf.NodeGeom,
@@ -77,18 +79,18 @@ func buildNodes(
 		}
 		nd, err := bind.Build(ctx, n.ID, n.Data, pb, tiltPhiIdx, deps)
 		if err != nil {
-			return nil, nil, fmt.Errorf("scenebuild: build node %q: %w", n.ID, err)
+			return nil, nil, fmt.Errorf("wiring: build node %q: %w", n.ID, err)
 		}
 		built, ok := nd.(BuiltNode)
 		if !ok {
-			return nil, nil, fmt.Errorf("scenebuild: kind %q built something with no Update method for node %q", n.Type, n.ID)
+			return nil, nil, fmt.Errorf("wiring: kind %q built something with no Update method for node %q", n.Type, n.ID)
 		}
 		nodes = append(nodes, built)
 	}
 	return nodes, outSink, nil
 }
 
-func BuildTypeMaps(spec TopoSpec) (nodeType map[string]string, kindBroadcastPorts map[string]map[string]bool) {
+func BuildTypeMaps(spec Topology.TopoSpec) (nodeType map[string]string, kindBroadcastPorts map[string]map[string]bool) {
 	nodeType = map[string]string{}
 	for _, n := range spec.Nodes {
 		nodeType[n.ID] = n.Type
