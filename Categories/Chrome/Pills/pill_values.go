@@ -38,3 +38,7 @@ func (w *ValueWriter) Rect(xName, yName, wName, hName string, r Rect) {
 	w.F32(wName, r.W)
 	w.F32(hName, r.H)
 }
+
+type State struct {
+	Scroll float32
+}

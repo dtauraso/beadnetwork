@@ -198,3 +198,8 @@ func (l Layout) Hit(x, y float64) Hit {
 	}
 	return Hit{}
 }
+
+type State struct {
+	Open      bool
+	GroupOpen map[int32]bool
+}

@@ -14,10 +14,10 @@ func applyRulesHit(ctx context.Context, md *MoveDispatch, h PolarRulesPanel.Hit)
 		Panel.ToggleFlag(&md.UI.PN, "nodeRules")
 		md.UI.PersistPanels(md.UI.PN)
 	case PolarRulesPanel.HitShared:
-		md.UI.ToggleSharedRow(h.NodeRow)
+		PolarRulesPanel.ToggleSharedRow(&md.UI.Rules.SharedRow, h.NodeRow)
 	case PolarRulesPanel.HitMenuRow:
 		if h.NodeRow < 0 {
-			for _, n := range md.UI.RuleNodes {
+			for _, n := range md.UI.Rules.Nodes {
 				sendRuleEdit(ctx, md, int(n.Row), NodeKind.RuleEdit{Kind: NodeKind.EditActiveToggle})
 			}
 			break
@@ -27,14 +27,14 @@ func applyRulesHit(ctx context.Context, md *MoveDispatch, h PolarRulesPanel.Hit)
 		NodeKind.ApplyRuleCheck(ctx, h, &md.Rules)
 	case PolarRulesPanel.HitValue:
 		if !NodeKind.ApplyRuleValue(ctx, h, &md.Rules) {
-			md.UI.StartThetaDraft(h.NodeRow, h.Value == PolarRulesPanel.ValSelfTheta)
+			PolarRulesPanel.StartThetaDraft(&md.UI.Rules.Edit, h.NodeRow, h.Value == PolarRulesPanel.ValSelfTheta)
 		}
 	}
 	md.UI.EmitViewFrame(nil)
 }
 
 func applyRuleKey(ctx context.Context, md *MoveDispatch, key string) {
-	if c := md.UI.RuleKey(key); c.Commit {
+	if c := PolarRulesPanel.RuleKey(&md.UI.Rules.Edit, key, md.redraw); c.Commit {
 		NodeKind.CommitMaxTheta(ctx, &md.Rules, c.NodeRow, c.Self, c.Turns)
 	}
 }

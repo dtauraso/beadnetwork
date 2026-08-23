@@ -134,3 +134,8 @@ func (l Layout) Hit(x, y float64) Button {
 	}
 	return ButtonNone
 }
+
+type State struct {
+	Rows   []int32
+	Labels []string
+}

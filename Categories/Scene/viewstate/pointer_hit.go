@@ -45,10 +45,10 @@ func (ui *UIState) TakeWheel(x, y, deltaY float64) bool {
 	pl := ui.PanelLayout()
 
 	if pl.Overlays.Open && Panel.HitRect(pl.Overlays.Popover, x, y) {
-		return ui.scrollBy(&ui.OverlaysScroll, pl.Overlays.MaxScroll, deltaY)
+		return ui.scrollBy(&ui.OverlaysPill.Scroll, pl.Overlays.MaxScroll, deltaY)
 	}
 	if pl.Rules.Open && Panel.HitRect(pl.Rules.RowsClip, x, y) {
-		return ui.scrollBy(&ui.RulesScroll, pl.Rules.MaxScroll, deltaY)
+		return ui.scrollBy(&ui.Rules.Scroll, pl.Rules.MaxScroll, deltaY)
 	}
 	return false
 }

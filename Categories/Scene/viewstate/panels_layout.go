@@ -7,6 +7,7 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/TiltPanel"
 	"github.com/dtauraso/wirefold/Categories/Chrome/Pills"
 	"github.com/dtauraso/wirefold/Categories/Chrome/Pills/AngleDropdown"
+	"github.com/dtauraso/wirefold/Categories/Chrome/Pills/FitButton"
 	"github.com/dtauraso/wirefold/Categories/Chrome/Pills/NodesDropdown"
 	"github.com/dtauraso/wirefold/Categories/Chrome/Tabs"
 	NodeBuf "github.com/dtauraso/wirefold/Categories/Node"
@@ -26,39 +27,34 @@ type PanelLayout struct {
 	Rules PolarRulesPanel.Layout
 }
 
-const FitLabel = "⌂ fit"
-
 var PillLabels = []string{AngleDropdown.Label, NodesDropdown.Label, Pills.Label}
 
 func (ui *UIState) PanelLayout() PanelLayout {
 	st := Panel.New(float32(ui.ViewH))
 	pills := Panel.NewPillStack(float32(ui.ViewW), float32(ui.ViewH), PillLabels)
 
-	nodes := make([]AngleDropdown.Node, len(ui.TiltRows))
-	for i, row := range ui.TiltRows {
+	nodes := make([]AngleDropdown.Node, len(ui.Tilt.Rows))
+	for i, row := range ui.Tilt.Rows {
 		nodes[i] = AngleDropdown.Node{
 			Row:   row,
-			Label: ui.TiltLabels[i],
-			Open:  ui.AngleGroupOpen[row],
+			Label: ui.Tilt.Labels[i],
+			Open:  ui.Angle.GroupOpen[row],
 		}
 	}
 
-	fit := pills.AddChip(FitLabel)
+	fit := pills.AddChip(FitButton.FitLabel)
 
 	speed := SliderPanel.Build(st)
-	tilt := TiltPanel.Build(st, ui.TiltRows, ui.TiltLabels)
-	rules := PolarRulesPanel.Build(
-		st, Panel.PanelOpen["nodeRules"](&ui.PN),
-		ui.RuleNodes, ui.RuleEdit, ui.RuleSharedRow, ui.RulesScroll,
-	)
+	tilt := TiltPanel.Build(st, ui.Tilt.Rows, ui.Tilt.Labels)
+	rules := PolarRulesPanel.Build(st, Panel.PanelOpen["nodeRules"](&ui.PN), ui.Rules)
 
-	angle := AngleDropdown.Build(pills, ui.AngleOpen, ui.LatticePoints, nodes)
-	nodesPill := NodesDropdown.Build(pills, ui.NodesOpen && ui.SceneEditable, ui.paletteKinds())
-	overlays := Pills.Build(pills, &ui.OV, &ui.PN, ui.OverlaysScroll)
+	angle := AngleDropdown.Build(pills, ui.Angle.Open, ui.LatticePoints, nodes)
+	nodesPill := NodesDropdown.Build(pills, ui.Nodes.Open && ui.SceneEditable, ui.paletteKinds())
+	overlays := Pills.Build(pills, &ui.OV, &ui.PN, ui.OverlaysPill.Scroll)
 
 	return PanelLayout{
 		Fit:      fit,
-		Tabs:     Tabs.Build(float32(ui.ViewW), ui.SceneTabNames, ui.SceneTabSelected),
+		Tabs:     Tabs.Build(float32(ui.ViewW), ui.TabStrip.Names, ui.TabStrip.Selected),
 		Rules:    rules,
 		Speed:    speed,
 		Tilt:     tilt,

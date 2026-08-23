@@ -68,13 +68,13 @@ func NewFromSpec(spec Topology.TopoSpec, sphere polar.SceneSphere, hasScene bool
 		}
 	}
 
-	md.UI.TiltRows, md.UI.TiltLabels = TiltPanelRows(spec)
+	md.UI.Tilt.Rows, md.UI.Tilt.Labels = TiltPanelRows(spec)
 
-	md.UI.RuleNodes = RulePanelNodes(spec, func(id string) bool {
+	md.UI.Rules.Nodes = RulePanelNodes(spec, func(id string) bool {
 		ng, ok := md.MR.NodeGeoms()[id]
 		return ok && ng.HasKindRule()
 	})
-	md.UI.RuleSharedRow = -1
+	md.UI.Rules.SharedRow = -1
 
 	kindByID := make(map[string]string, len(spec.Nodes))
 	for _, n := range spec.Nodes {

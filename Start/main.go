@@ -43,8 +43,8 @@ func run(ctx context.Context, cancel context.CancelFunc, topologyPath string, cl
 
 	md.UI.OwnerCounts.Nodes = int32(len(md.RT.NodeRowTable))
 	md.UI.OwnerCounts.Edges = int32(len(md.RT.EdgeRowTable))
-	md.UI.SceneTabNames = Tabs.TabNames()
-	md.UI.SceneTabSelected = Tabs.SelectedIndex(topologyPath)
+	md.UI.TabStrip.Names = Tabs.TabNames()
+	md.UI.TabStrip.Selected = Tabs.SelectedIndex(topologyPath)
 	md.UI.SetSceneRoot(scenePath)
 	md.UI.WriteRingSurfaces(NodeShape.CanonicalRingSurfacePointsFlat(), bead.CanonicalRingSurfacePointsFlat())
 
@@ -54,7 +54,7 @@ func run(ctx context.Context, cancel context.CancelFunc, topologyPath string, cl
 
 	md.Scenes.AnchorPath = topologyPath
 	md.Scenes.Quit = cancel
-	md.Scenes.Loaded = md.UI.SceneTabSelected
+	md.Scenes.Loaded = md.UI.TabStrip.Selected
 
 	moverWG := md.Start(ctx)
 	stdinWG, gestureWG := Startup.StartStdinReader(ctx, cancel, md, speedSinks, clk, Scenes.InputDirPath(scenePath))

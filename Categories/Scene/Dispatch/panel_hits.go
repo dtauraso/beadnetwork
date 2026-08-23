@@ -45,7 +45,7 @@ func panelTookPointerDown(
 
 	switch h := pl.Nodes.Hit(ev.X, ev.Y); h.Kind {
 	case NodesDropdown.HitPill:
-		md.UI.NodesOpen = !md.UI.NodesOpen
+		md.UI.Nodes.Open = !md.UI.Nodes.Open
 		md.UI.EmitViewFrame(nil)
 		return true
 	case NodesDropdown.HitRow:
@@ -112,12 +112,12 @@ func applyOverlaysHit(md *MoveDispatch, h Pills.Hit) {
 func applyAngleHit(ctx context.Context, md *MoveDispatch, speedSinks SliderPanel.Sinks, h AngleDropdown.Hit) {
 	switch h.Kind {
 	case AngleDropdown.HitPill:
-		md.UI.AngleOpen = !md.UI.AngleOpen
+		md.UI.Angle.Open = !md.UI.Angle.Open
 	case AngleDropdown.HitGroup:
-		if md.UI.AngleGroupOpen == nil {
-			md.UI.AngleGroupOpen = map[int32]bool{}
+		if md.UI.Angle.GroupOpen == nil {
+			md.UI.Angle.GroupOpen = map[int32]bool{}
 		}
-		md.UI.AngleGroupOpen[h.NodeRow] = !md.UI.AngleGroupOpen[h.NodeRow]
+		md.UI.Angle.GroupOpen[h.NodeRow] = !md.UI.Angle.GroupOpen[h.NodeRow]
 	case AngleDropdown.HitLatticeUp:
 		setLatticePoints(md, md.UI.LatticePoints+AngleDropdown.LatticePointsStep)
 	case AngleDropdown.HitLatticeDown:

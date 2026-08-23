@@ -13,3 +13,8 @@ func TabNames() []string {
 func SelectedIndex(anchorPath string) int {
 	return Scenes.SelectedIndex(anchorPath)
 }
+
+type State struct {
+	Names    []string
+	Selected int
+}

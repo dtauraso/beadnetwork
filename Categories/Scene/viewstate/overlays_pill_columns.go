@@ -44,19 +44,6 @@ func (ui *UIState) writeOverlaysPillValues(lay Pills.Layout) {
 	}
 }
 
-func (ui *UIState) writeFitChipValues(r Pills.Rect) {
-	w := ui.fitChipValues
-	if w == nil {
-		return
-	}
-	w.Begin()
-	w.Rect("x", "y", "w", "h", r)
-	w.Text("labelText", FitLabel)
-	if err := w.Flush(); err != nil {
-		LogPersistErr("fit_chip_values", "", err)
-	}
-}
-
 func disclosureGlyph(open bool) string {
 	if open {
 		return "▼"
