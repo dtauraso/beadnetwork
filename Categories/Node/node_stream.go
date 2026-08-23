@@ -2,8 +2,6 @@ package Node
 
 import (
 	"fmt"
-
-	"github.com/dtauraso/wirefold/Categories/Node/owners"
 )
 
 func (m *NodeGeometry) emitGeometry() {
@@ -11,9 +9,9 @@ func (m *NodeGeometry) emitGeometry() {
 	m.writeStreamFrame(nil)
 }
 
-func (m *NodeGeometry) drainSelfEvents() []owners.RowEvent { return m.trace.Drain() }
+func (m *NodeGeometry) drainSelfEvents() []RowEvent { return m.trace.Drain() }
 
-func (m *NodeGeometry) writeStreamFrame(events []owners.RowEvent) {
+func (m *NodeGeometry) writeStreamFrame(events []RowEvent) {
 	if !m.stream.Ready() {
 		return
 	}

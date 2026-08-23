@@ -1,4 +1,4 @@
-package owners
+package rulenode
 
 import (
 	"fmt"

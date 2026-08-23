@@ -29,11 +29,11 @@ neighbors change because X moved.
 `moveMsgKindNeighborSetC`, `neighborSetCRequantize`, `requantizePoleTraced` do not exist;
 do not grep for them):** a neighbour's move arrives as `movemsg.KindCenter`, and the
 gesture FSM's drag as `movemsg.KindDrag`, over the per-node COALESCING slot
-`Categories/Node/owners/neighbor_slot.go` (`neighborSlot.deposit`, buffer of 1). That
+`Categories/Node/node_neighbor_slot.go` (`neighborSlot.deposit`, buffer of 1). That
 slot panics on any other kind, and on a message carrying neither a `Target` nor a `Delta` —
 because a WHERE collapses by keeping the newest and a HOW FAR collapses by summing, so a new
 kind must state its merge rule before it can ride the slot. Routing is still node-to-node
-(`Categories/Node/owners/messaging.go`), no worklist. The
+(`Categories/Node/node_messaging.go`), no worklist. The
 `BreadcrumbNeighborSetCRecv` const and its `"neighbor-setc-recv"` label are GONE — they
 outlived their emitter as leftover vocabulary in the label registry, and were removed with
 the other eight emitterless labels.

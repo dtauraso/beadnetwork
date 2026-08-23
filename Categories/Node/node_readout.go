@@ -1,4 +1,4 @@
-package owners
+package Node
 
 type Readout struct {
 	roundsToParallel int32

@@ -1,4 +1,4 @@
-package owners
+package Node
 
 import (
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"

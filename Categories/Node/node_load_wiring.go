@@ -4,7 +4,6 @@ import (
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 	interior "github.com/dtauraso/wirefold/Categories/Node/Interior"
 	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
-	"github.com/dtauraso/wirefold/Categories/Node/owners"
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
 )
 
@@ -23,7 +22,7 @@ func (m *NodeGeometry) SetDragIndex(off polarindex.Offset) {
 }
 
 func (m *NodeGeometry) publishCenter() {
-	m.msg.PublishCenter(owners.Vec3(nodegeom.NodeWorldPos(m.geom)))
+	m.msg.PublishCenter(Vec3(nodegeom.NodeWorldPos(m.geom)))
 }
 
 func (m *NodeGeometry) AddOutTarget(target string) {

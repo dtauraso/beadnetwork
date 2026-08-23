@@ -1,4 +1,4 @@
-package owners
+package Node
 
 type Flags struct {
 	coplanarEdges bool

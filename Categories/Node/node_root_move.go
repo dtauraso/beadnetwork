@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
-	"github.com/dtauraso/wirefold/Categories/Node/owners"
 	"github.com/dtauraso/wirefold/Categories/Polar/polar"
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
 )
@@ -35,6 +34,6 @@ func (mv *NodeMover) RootMove(ctx context.Context, nodeGeoms map[string]*NodeGeo
 		targetIdx = polarindex.MeasureIndex(polar.Cart2polar(polar.Vec3(target.Sub(nm.SceneCenter()))), sc)
 	}
 
-	nm.Msg().SendExternal(ctx, owners.Msg{NodeID: nodeID, Body: owners.Drag{Target: &targetIdx}})
+	nm.Msg().SendExternal(ctx, Msg{NodeID: nodeID, Body: Drag{Target: &targetIdx}})
 	return true
 }

@@ -1,9 +1,9 @@
 package Node
 
 import (
+	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/Categories/Node/ChannelVectors"
 	"github.com/dtauraso/wirefold/Categories/Node/TiltVectors"
-	"github.com/dtauraso/wirefold/Categories/Node/owners"
 	"slices"
 
 	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
@@ -11,19 +11,19 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
 )
 
-func (m *NodeGeometry) Topo() *owners.Topology { return &m.topo }
+func (m *NodeGeometry) Topo() *Topology { return &m.topo }
 
-func (m *NodeGeometry) Msg() *owners.Messaging { return &m.msg }
+func (m *NodeGeometry) Msg() *Messaging { return &m.msg }
 
-func (m *NodeGeometry) Flags() *owners.Flags { return &m.flags }
+func (m *NodeGeometry) Flags() *Flags { return &m.flags }
 
-func (m *NodeGeometry) Clocks() *owners.Clocks { return &m.clocks }
+func (m *NodeGeometry) Clocks() *Clocks { return &m.clocks }
 
-func (m *NodeGeometry) Beads() *owners.Beads { return &m.beads }
+func (m *NodeGeometry) Beads() *beadanimation.Beads { return &m.beads }
 
-func (m *NodeGeometry) KindPosts() *owners.KindPosts { return &m.kindPosts }
+func (m *NodeGeometry) KindPosts() *KindPosts { return &m.kindPosts }
 
-func (m *NodeGeometry) Trace() *owners.Trace { return &m.trace }
+func (m *NodeGeometry) Trace() *Trace { return &m.trace }
 
 func (m *NodeGeometry) Stream() *Stream { return &m.stream }
 
@@ -33,11 +33,11 @@ func (m *NodeGeometry) Kind() string { return m.geom.Kind }
 
 func (m *NodeGeometry) SelfKind() string { return m.selfKind }
 
-func (m *NodeGeometry) Deltas() *owners.Deltas { return &m.deltas }
+func (m *NodeGeometry) Deltas() *Deltas { return &m.deltas }
 
-func (m *NodeGeometry) Anim() *owners.NodeBeadAnimation { return m.anim }
+func (m *NodeGeometry) Anim() *NodeBeadAnimation { return m.anim }
 
-func (m *NodeGeometry) OutEdges() *owners.OutEdges { return &m.outEdges }
+func (m *NodeGeometry) OutEdges() *OutEdges { return &m.outEdges }
 
 func (m *NodeGeometry) Tilt() *TiltVectors.Tilt { return &m.tilt }
 

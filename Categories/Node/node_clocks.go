@@ -1,9 +1,9 @@
-package owners
+package Node
 
 import (
 	"context"
-
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
+
 	Speed "github.com/dtauraso/wirefold/Categories/Speed"
 )
 

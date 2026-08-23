@@ -1,4 +1,4 @@
-package owners
+package Node
 
 import "github.com/dtauraso/wirefold/Categories/Polar/polarindex"
 

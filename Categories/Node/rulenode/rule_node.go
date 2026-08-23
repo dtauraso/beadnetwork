@@ -5,8 +5,6 @@ import (
 	"fmt"
 
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/PolarRulesPanel"
-
-	"github.com/dtauraso/wirefold/Categories/Node/owners"
 )
 
 type EditKind uint8
@@ -49,7 +47,7 @@ type RuleNode struct {
 	id          string
 	persistRoot string
 
-	mesh owners.RuleMesh
+	mesh RuleMesh
 
 	rule   *PolarRulesPanel.DragRule
 	active bool
@@ -77,7 +75,7 @@ type RuleNode struct {
 func New(id string) *RuleNode {
 	return &RuleNode{
 		id:                 id,
-		mesh:               owners.NewRuleMesh(),
+		mesh:               NewRuleMesh(),
 		active:             true,
 		selfActive:         true,
 		edits:              make(chan Edit, 8),
@@ -161,7 +159,7 @@ func (r *RuleNode) Run(ctx context.Context) {
 			r.applyKindToggle()
 			r.publish()
 		case c := <-r.geomToRuleCenterIn:
-			r.mesh.SetSelfCenter(owners.Vec3(c))
+			r.mesh.SetSelfCenter(Vec3(c))
 			r.mesh.BroadcastCenter(r.id)
 		}
 	}

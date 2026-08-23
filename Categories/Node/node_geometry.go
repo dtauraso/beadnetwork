@@ -3,10 +3,12 @@ package Node
 import (
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/TiltPanel"
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
+	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/Categories/Node/ChannelVectors"
+	interior "github.com/dtauraso/wirefold/Categories/Node/Interior"
 	"github.com/dtauraso/wirefold/Categories/Node/TiltVectors"
+	"github.com/dtauraso/wirefold/Categories/Node/nodedrag"
 	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
-	"github.com/dtauraso/wirefold/Categories/Node/owners"
 	"github.com/dtauraso/wirefold/Categories/Node/rulenode"
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
 )
@@ -15,66 +17,66 @@ type NodeGeometry struct {
 	id   string
 	geom nodegeom.NodeGeom
 
-	kindRule owners.KindRule
+	kindRule nodedrag.KindRule
 
 	persistRoot string
 	selfKind    string
 
-	msg owners.Messaging
+	msg Messaging
 
-	clocks owners.Clocks
+	clocks Clocks
 
 	stream Stream
 
-	trace owners.Trace
+	trace Trace
 
-	ui owners.UI
+	ui UI
 
 	tilt TiltVectors.Tilt
 
 	channels ChannelVectors.PeerCenters
 
-	readout owners.Readout
+	readout Readout
 
 	outTargets []string
 
-	anim *owners.NodeBeadAnimation
+	anim *NodeBeadAnimation
 
-	topo owners.Topology
+	topo Topology
 
-	deltas owners.Deltas
+	deltas Deltas
 
-	flags owners.Flags
+	flags Flags
 
-	beads owners.Beads
+	beads beadanimation.Beads
 
-	outEdges owners.OutEdges
+	outEdges OutEdges
 
-	interior owners.Interior
+	interior interior.Interior
 
-	kindPosts owners.KindPosts
+	kindPosts KindPosts
 
 	rule rulenode.Link
 }
 
 func NewNodeGeometry(id string, geom nodegeom.NodeGeom, clockSrc clock.Clock, constants polarindex.SceneConstants) *NodeGeometry {
-	anim := owners.NewNodeBeadAnimation(id, owners.NewClocks(clockSrc, clock.NewRealClock()))
+	anim := NewNodeBeadAnimation(id, NewClocks(clockSrc, clock.NewRealClock()))
 
 	ng := &NodeGeometry{
 		id: id, geom: geom,
-		msg: owners.NewMessaging(
-			make(chan owners.Msg, owners.InboxDepth),
-			make(chan owners.Vec3, 1),
+		msg: NewMessaging(
+			make(chan Msg, InboxDepth),
+			make(chan Vec3, 1),
 		),
-		topo:      owners.NewTopology(),
-		deltas:    owners.NewDeltas(),
-		clocks:    owners.NewClocks(clockSrc, clock.NewRealClock()),
+		topo:      NewTopology(),
+		deltas:    NewDeltas(),
+		clocks:    NewClocks(clockSrc, clock.NewRealClock()),
 		tilt:      TiltVectors.NewTilt(TiltPanel.FullTurnPhiIdx),
 		anim:      anim,
-		kindPosts: owners.NewKindPosts(),
+		kindPosts: NewKindPosts(),
 	}
 
-	ng.msg.SeedCenter(owners.Vec3(nodegeom.NodeWorldPos(geom)))
+	ng.msg.SeedCenter(Vec3(nodegeom.NodeWorldPos(geom)))
 	ng.outEdges.SetConstants(constants)
 	ng.deltas.SetConstants(constants)
 

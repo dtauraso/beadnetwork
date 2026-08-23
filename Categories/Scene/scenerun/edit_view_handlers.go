@@ -2,8 +2,7 @@ package scenerun
 
 import (
 	"context"
-
-	"github.com/dtauraso/wirefold/Categories/Node/TiltVectors"
+	"github.com/dtauraso/wirefold/Categories/Node"
 
 	Speed "github.com/dtauraso/wirefold/Categories/Speed"
 
@@ -61,7 +60,7 @@ func applyUpdateTiltVector(ctx context.Context, attr byte, payload []byte, md *M
 	if !ok {
 		return
 	}
-	TiltVectors.Edit(ctx, e.Attr, e.Num, e.Flag == "up", &md.MR, &md.Inboxes, md.resumeSpeed(speedSinks))
+	Node.TiltEdit(ctx, e.Attr, e.Num, e.Flag == "up", &md.MR, &md.Inboxes, md.resumeSpeed(speedSinks))
 }
 
 func (md *MoveDispatch) resumeSpeed(speedSinks SliderPanel.Sinks) func() {
@@ -71,9 +70,9 @@ func (md *MoveDispatch) resumeSpeed(speedSinks SliderPanel.Sinks) func() {
 }
 
 func tiltVectorEditFor(ctx context.Context, md *MoveDispatch, speedSinks SliderPanel.Sinks, row int32, attr string) {
-	TiltVectors.Apply(ctx, row, attr, &md.MR, &md.Inboxes, md.resumeSpeed(speedSinks))
+	Node.ApplyTiltEdit(ctx, row, attr, &md.MR, &md.Inboxes, md.resumeSpeed(speedSinks))
 }
 
 func adjustTiltPhiFor(ctx context.Context, md *MoveDispatch, row int32, up bool) {
-	TiltVectors.AdjustPhi(ctx, row, up, &md.MR, &md.Inboxes)
+	Node.AdjustTiltPhi(ctx, row, up, &md.MR, &md.Inboxes)
 }
