@@ -9,14 +9,14 @@ var hitClassifiers = map[string]func(d Deps, g *Drag.GestureState, ev Drag.RawIn
 	"handhold": func(d Deps, g *Drag.GestureState, ev Drag.RawInputMsg) {
 
 		g.HandholdDown = true
-		nodeGeoms, centerOf := d.MR.NodeGeoms(), d.MR.CenterOfNode
+		nodeGeoms, centerOf := d.MR.NodeGeoms(), d.MR.CenterOf
 		g.BeginSphereRotation(d.UI.VP.Viewpoint, func() map[string]Drag.Vec3 {
 			return centersForDrag(nodemove.HeldCenters(nodeGeoms, centerOfForMove(centerOf)))
 		}, ev)
 	},
 	"node": func(d Deps, g *Drag.GestureState, ev Drag.RawInputMsg) {
 		if node, ok := d.RT.NodeFromHit(ev.Hit); ok {
-			if c, ok := d.MR.CenterOfNode(node); ok {
+			if c, ok := d.MR.CenterOf(node); ok {
 				g.DragNode = node
 				g.DragStartCenter = Drag.Vec3(c)
 			}
@@ -24,7 +24,7 @@ var hitClassifiers = map[string]func(d Deps, g *Drag.GestureState, ev Drag.RawIn
 	},
 	"empty": func(d Deps, g *Drag.GestureState, ev Drag.RawInputMsg) {
 		g.EmptyDown = true
-		nodeGeoms, centerOf := d.MR.NodeGeoms(), d.MR.CenterOfNode
+		nodeGeoms, centerOf := d.MR.NodeGeoms(), d.MR.CenterOf
 		g.BeginSphereRotation(d.UI.VP.Viewpoint, func() map[string]Drag.Vec3 {
 			return centersForDrag(nodemove.HeldCenters(nodeGeoms, centerOfForMove(centerOf)))
 		}, ev)

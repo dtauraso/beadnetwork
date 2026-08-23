@@ -9,7 +9,6 @@ import (
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/Categories/Node/nodeinbox"
-	"github.com/dtauraso/wirefold/Categories/Node/moverreg"
 	"github.com/dtauraso/wirefold/Categories/Node/nodeactor"
 	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds"
@@ -33,12 +32,12 @@ func buildNodes(
 	deps := kindreg.BuildDeps{
 		LatticePoints: md.UI.LatticePoints,
 		ClaimLatticeIn: func(name string) chan int32 {
-			sceneToNodeLatticeIn := make(chan int32, moverreg.InboxDepth)
+			sceneToNodeLatticeIn := make(chan int32, scenerun.InboxDepth)
 			md.Inboxes.ClaimLatticeIn(name, sceneToNodeLatticeIn)
 			return sceneToNodeLatticeIn
 		},
 		ClaimTiltEditIn: func(name string) chan nodeinbox.TiltEditMsg {
-			panelToNodeTiltEditIn := make(chan nodeinbox.TiltEditMsg, moverreg.InboxDepth)
+			panelToNodeTiltEditIn := make(chan nodeinbox.TiltEditMsg, scenerun.InboxDepth)
 			md.Inboxes.ClaimTiltEditIn(name, panelToNodeTiltEditIn)
 			return panelToNodeTiltEditIn
 		},

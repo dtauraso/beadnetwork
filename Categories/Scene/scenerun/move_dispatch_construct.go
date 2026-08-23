@@ -4,7 +4,6 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/SliderPanel"
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
 	edge "github.com/dtauraso/wirefold/Categories/Node/Edge"
-	"github.com/dtauraso/wirefold/Categories/Node/moverreg"
 	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
 )
@@ -13,7 +12,7 @@ func NewMoveDispatch(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[strin
 	nodeOrder, edgeOrder = resolveSeedOrders(geoms, edgeEndpoints, nodeOrder, edgeOrder)
 
 	md := &MoveDispatch{}
-	md.MR = moverreg.New()
+	md.MR = NewMovers()
 	initMoveDispatchUIDefaults(md)
 
 	if err := md.buildGeomSeeds(geoms, edgeEndpoints, nodeOrder, edgeOrder); err != nil {

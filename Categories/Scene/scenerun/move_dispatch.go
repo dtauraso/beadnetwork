@@ -1,7 +1,6 @@
 package scenerun
 
 import (
-	"github.com/dtauraso/wirefold/Categories/Node/moverreg"
 	"github.com/dtauraso/wirefold/Categories/Node/nodeactor"
 	"github.com/dtauraso/wirefold/Categories/Node/nodeinbox"
 	"github.com/dtauraso/wirefold/Categories/Node/nodemove"
@@ -14,7 +13,7 @@ import (
 )
 
 type MoveDispatch struct {
-	MR moverreg.MoverRegistry
+	MR Movers
 
 	GS SceneB.GeomSeeds
 

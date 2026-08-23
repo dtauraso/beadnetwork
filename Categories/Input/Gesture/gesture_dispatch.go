@@ -4,14 +4,25 @@ import (
 	"context"
 
 	"github.com/dtauraso/wirefold/Categories/Input/Drag"
-	"github.com/dtauraso/wirefold/Categories/Node/moverreg"
+	"github.com/dtauraso/wirefold/Categories/Node/nodeactor"
+	"github.com/dtauraso/wirefold/Categories/Node/nodeactor/owners"
 	"github.com/dtauraso/wirefold/Categories/Node/nodemove"
 	"github.com/dtauraso/wirefold/Categories/Scene/rowtables"
 	"github.com/dtauraso/wirefold/Categories/Scene/viewstate"
 )
 
+// The four things a gesture needs from the movers, passed in rather than
+// reached for: a gesture picks a node, asks where it is and how big it is, and
+// sends it a move.
+type Movers struct {
+	NodeGeoms  func() map[string]*nodeactor.NodeGeometry
+	CenterOf   func(id string) (Vec3, bool)
+	BodyRadius func(id string) float64
+	SendMove   func(ctx context.Context, id string, msg owners.Msg)
+}
+
 type Deps struct {
-	MR    *moverreg.MoverRegistry
+	MR    Movers
 	UI    *viewstate.UIState
 	Mover *nodemove.NodeMover
 	RT    *rowtables.RowTables

@@ -92,7 +92,7 @@ func placeNodeAt(md *MoveDispatch, ev *Drag.RawInputMsg) {
 	}
 	ndcX := ((ev.X-ev.RectLeft)/ev.RectWidth)*2 - 1
 	ndcY := -((ev.Y-ev.RectTop)/ev.RectHeight)*2 + 1
-	nodecrud.CreateNode(&md.Scenes, &md.UI, &md.MR, md.UI.PlacingKind, ndcX, ndcY)
+	nodecrud.CreateNode(&md.Scenes, &md.UI, md.MR.NodeGeoms(), md.nearestNodeTo, md.UI.PlacingKind, ndcX, ndcY)
 }
 
 func applyOverlaysHit(md *MoveDispatch, h Pills.Hit) {

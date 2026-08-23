@@ -8,5 +8,5 @@ import (
 )
 
 func (md *MoveDispatch) HandleRawInput(ctx context.Context, ev Drag.RawInputMsg) {
-	Gesture.HandleRawInput(Gesture.Deps{MR: &md.MR, UI: &md.UI, Mover: &md.Mover, RT: &md.RT, Ctx: ctx}, ev)
+	Gesture.HandleRawInput(Gesture.Deps{MR: md.gestureMovers(), UI: &md.UI, Mover: &md.Mover, RT: &md.RT, Ctx: ctx}, ev)
 }
