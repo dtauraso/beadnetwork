@@ -1,7 +1,6 @@
 package scenerun
 
 import (
-	"github.com/dtauraso/wirefold/Categories/Node/nodeactor"
 	"github.com/dtauraso/wirefold/Categories/Node/nodeinbox"
 	"github.com/dtauraso/wirefold/Categories/Node/nodemove"
 	"github.com/dtauraso/wirefold/Categories/Node/rulechans"
@@ -19,7 +18,7 @@ type MoveDispatch struct {
 
 	Persist viewpersist.Persisters
 
-	Sw nodeactor.StreamWiring
+	Sw StreamWiring
 
 	UI viewstate.UIState
 

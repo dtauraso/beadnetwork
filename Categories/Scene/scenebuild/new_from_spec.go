@@ -63,7 +63,7 @@ func NewFromSpec(spec loadspec.TopoSpec, sphere polar.SceneSphere, hasScene bool
 
 	for _, n := range spec.Nodes {
 		if nm, ok := md.MR.NodeGeoms()[n.ID]; ok {
-			nm.SeedFromSpec(n, scenePath)
+			loadspec.SeedNode(nm, n, scenePath)
 		}
 	}
 
@@ -84,10 +84,10 @@ func NewFromSpec(spec loadspec.TopoSpec, sphere polar.SceneSphere, hasScene bool
 	sourceByLabel := make(map[string]string, len(spec.Edges))
 	for _, e := range spec.Edges {
 		if src, ok := md.MR.NodeGeoms()[e.Source]; ok {
-			src.SeedEdge(e, true, kindByID[e.Target], scenePath)
+			loadspec.SeedEdge(src, e, true, kindByID[e.Target], scenePath)
 		}
 		if dst, ok := md.MR.NodeGeoms()[e.Target]; ok {
-			dst.SeedEdge(e, false, kindByID[e.Source], scenePath)
+			loadspec.SeedEdge(dst, e, false, kindByID[e.Source], scenePath)
 		}
 		targetByLabel[e.Label] = e.Target
 		sourceByLabel[e.Label] = e.Source
