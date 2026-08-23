@@ -1,27 +1,14 @@
-package loadspec
+package scenebuild
 
 import (
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/PolarRulesPanel"
-	"strconv"
 
 	NodeBuf "github.com/dtauraso/wirefold/Categories/Node"
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
+	"github.com/dtauraso/wirefold/Categories/Scene/loadspec"
 )
 
-func KindForID(id uint8) (string, bool) {
-	for _, k := range NodeBuf.KnownKinds() {
-		if NodeBuf.NodeKindID(k) == id {
-			return k, true
-		}
-	}
-	return "", false
-}
-
-func NewNodeID(root string) string {
-	return strconv.Itoa(LargestNodeID(root) + 1)
-}
-
-func SeedNode(m *NodeBuf.NodeGeometry, n Node, sceneRoot string) {
+func SeedNode(m *NodeBuf.NodeGeometry, n loadspec.Node, sceneRoot string) {
 	m.SetSelfKind(n.Type)
 
 	rn := m.RuleNode()
@@ -52,7 +39,7 @@ func SeedNode(m *NodeBuf.NodeGeometry, n Node, sceneRoot string) {
 	}
 }
 
-func SeedEdge(m *NodeBuf.NodeGeometry, e Edge, src bool, otherKind, sceneRoot string) {
+func SeedEdge(m *NodeBuf.NodeGeometry, e loadspec.Edge, src bool, otherKind, sceneRoot string) {
 	other := e.Target
 	if !src {
 		other = e.Source

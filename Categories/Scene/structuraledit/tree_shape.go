@@ -1,9 +1,12 @@
-package loadspec
+package structuraledit
 
 import (
+	"os"
 	"path/filepath"
 	"sort"
 	"strconv"
+
+	NodeBuf "github.com/dtauraso/wirefold/Categories/Node"
 )
 
 func NodeIDsInTree(root string) []int {
@@ -50,4 +53,29 @@ func CountEdgeFiles(root string) int {
 		total += len(names)
 	}
 	return total
+}
+
+func NewNodeID(root string) string {
+	return strconv.Itoa(LargestNodeID(root) + 1)
+}
+
+func KindForID(id uint8) (string, bool) {
+	for _, k := range NodeBuf.KnownKinds() {
+		if NodeBuf.NodeKindID(k) == id {
+			return k, true
+		}
+	}
+	return "", false
+}
+
+func readDirNames(dir string) ([]string, error) {
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return nil, err
+	}
+	names := make([]string, 0, len(entries))
+	for _, e := range entries {
+		names = append(names, e.Name())
+	}
+	return names, nil
 }

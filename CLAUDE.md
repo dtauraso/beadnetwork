@@ -3,7 +3,7 @@
 ## Model — read first
 
 Before changing anything in the **Go network** (`Categories/Node/`, `Categories/NodeKinds/`, `Categories/Node/BeadAnimation/bead_line.go`,
-`Categories/Scene/scenebuild/load.go`, `Categories/Scene/loadspec/builders.go`) or the **Go → TS
+`Categories/Scene/scenebuild/load.go`, `Categories/Scene/scenebuild/spec_seed.go`) or the **Go → TS
 surface** (the block files and their `*_values.go`, `Start/extension/webview/`), read
 [MODEL.md](MODEL.md). It pins the model. Do not propose multi-step
 plans with options for network/bead work; name the single concrete next

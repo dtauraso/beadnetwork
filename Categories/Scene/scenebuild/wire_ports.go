@@ -26,7 +26,7 @@ func (w EdgeWiring) BindPorts(pb *PortBindings, n loadspec.Node, ports []PortSpe
 			labels := w.Outbound[n.ID][port.Name]
 			if len(labels) > 0 {
 				lbl := labels[0]
-				pb.SetSinglePacedRule(port.Name, w.EdgeRun[lbl], loadspec.NodeSendRule(n, port.Name), lbl)
+				pb.SetSinglePacedRule(port.Name, w.EdgeRun[lbl], NodeSendRule(n, port.Name), lbl)
 			}
 
 		case PortBroadcast:
@@ -37,7 +37,7 @@ func (w EdgeWiring) BindPorts(pb *PortBindings, n loadspec.Node, ports []PortSpe
 				if i < len(handles) {
 					handle = handles[i]
 				}
-				pb.AppendBroadcastWithHandle(port.Name, handle, w.EdgeRun[lbl], loadspec.NodeSendRule(n, handle), lbl)
+				pb.AppendBroadcastWithHandle(port.Name, handle, w.EdgeRun[lbl], NodeSendRule(n, handle), lbl)
 			}
 		}
 	}

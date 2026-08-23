@@ -28,9 +28,9 @@ func Load(ctx context.Context, scenePath string, clk clock.Clock) (Scene, error)
 
 	sphere, hasScene := scenepersist.LoadSceneSphere(scenePath)
 
-	nodeGeoms, baseIndices, dragIndices := spec.SeedGeometry(loadspec.Vec3(sphere.Center))
-	destRun, edgeRun, edgeEndpoints := spec.AllocateBeadLines(nodeGeoms)
-	vectorOut, vectorIn := spec.AllocateVectorChannels()
+	nodeGeoms, baseIndices, dragIndices := SeedGeometry(spec, loadspec.Vec3(sphere.Center))
+	destRun, edgeRun, edgeEndpoints := AllocateBeadLines(spec, nodeGeoms)
+	vectorOut, vectorIn := AllocateVectorChannels(spec)
 
 	var speedSinks SliderPanel.Sinks
 	md, err := NewFromSpec(spec, sphere, hasScene, scenePath, clk, &speedSinks,
@@ -40,7 +40,7 @@ func Load(ctx context.Context, scenePath string, clk clock.Clock) (Scene, error)
 	}
 
 	nodeType, kindBroadcastPorts := BuildTypeMaps(spec)
-	inbound, outbound, outboundHandle := spec.BuildEdgeMaps(nodeType, kindBroadcastPorts)
+	inbound, outbound, outboundHandle := BuildEdgeMaps(spec, nodeType, kindBroadcastPorts)
 	wiring := EdgeWiring{
 		Inbound: inbound, Outbound: outbound, OutboundHandle: outboundHandle,
 		DestRun: destRun, EdgeRun: edgeRun,

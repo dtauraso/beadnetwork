@@ -16,8 +16,8 @@ func reportEdgeClosure(spec *TopoSpec) {
 func checkEdgeClosure(spec *TopoSpec) error {
 	idx := make(map[string]polarindex.Index, len(spec.Nodes))
 	for i := range spec.Nodes {
-		if n := &spec.Nodes[i]; n.hasPoint() {
-			idx[n.ID] = polarindex.Canonical(n.index(), spec.Constants)
+		if n := &spec.Nodes[i]; n.HasPoint() {
+			idx[n.ID] = polarindex.Canonical(n.Index(), spec.Constants)
 		}
 	}
 

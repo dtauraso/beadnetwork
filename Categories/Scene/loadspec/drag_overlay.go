@@ -8,7 +8,7 @@ import (
 func ApplyDragOverlay(root string, spec *TopoSpec) {
 	for i := range spec.Nodes {
 		n := &spec.Nodes[i]
-		if !n.hasPoint() {
+		if !n.HasPoint() {
 			continue
 		}
 		if phi, theta, r, _, ok := NodeBuf.ReadDragIndex(root, n.ID); ok {

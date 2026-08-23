@@ -69,7 +69,7 @@ func ValidateSpec(spec *loadspec.TopoSpec, kindPorts map[string][]PortSpec) erro
 			errs = append(errs, fmt.Sprintf("edge %q references unknown node id %q as its source", e.Label, e.Source))
 		} else {
 			srcHandle := e.SourceHandle
-			if base, isMulti := loadspec.BroadcastBaseName(srcHandle, srcKind, kindBroadcastPorts); isMulti {
+			if base, isMulti := BroadcastBaseName(srcHandle, srcKind, kindBroadcastPorts); isMulti {
 				srcHandle = base
 			}
 			if !kindOutPorts[srcKind][srcHandle] {

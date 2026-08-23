@@ -62,13 +62,13 @@ func NewFromSpec(spec loadspec.TopoSpec, sphere polar.SceneSphere, hasScene bool
 
 	for _, n := range spec.Nodes {
 		if nm, ok := md.MR.NodeGeoms()[n.ID]; ok {
-			loadspec.SeedNode(nm, n, scenePath)
+			SeedNode(nm, n, scenePath)
 		}
 	}
 
-	md.UI.TiltRows, md.UI.TiltLabels = spec.TiltPanelRows()
+	md.UI.TiltRows, md.UI.TiltLabels = TiltPanelRows(spec)
 
-	md.UI.RuleNodes = spec.RulePanelNodes(func(id string) bool {
+	md.UI.RuleNodes = RulePanelNodes(spec, func(id string) bool {
 		ng, ok := md.MR.NodeGeoms()[id]
 		return ok && ng.HasKindRule()
 	})
@@ -83,10 +83,10 @@ func NewFromSpec(spec loadspec.TopoSpec, sphere polar.SceneSphere, hasScene bool
 	sourceByLabel := make(map[string]string, len(spec.Edges))
 	for _, e := range spec.Edges {
 		if src, ok := md.MR.NodeGeoms()[e.Source]; ok {
-			loadspec.SeedEdge(src, e, true, kindByID[e.Target], scenePath)
+			SeedEdge(src, e, true, kindByID[e.Target], scenePath)
 		}
 		if dst, ok := md.MR.NodeGeoms()[e.Target]; ok {
-			loadspec.SeedEdge(dst, e, false, kindByID[e.Source], scenePath)
+			SeedEdge(dst, e, false, kindByID[e.Source], scenePath)
 		}
 		targetByLabel[e.Label] = e.Target
 		sourceByLabel[e.Label] = e.Source
