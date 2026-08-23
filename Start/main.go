@@ -23,7 +23,7 @@ import (
 	SceneB "github.com/dtauraso/wirefold/Categories/Scene"
 	"github.com/dtauraso/wirefold/Categories/Scene/scene"
 	"github.com/dtauraso/wirefold/Categories/Scene/scenepaths"
-	W "github.com/dtauraso/wirefold/Categories/Scene/scenerun"
+	"github.com/dtauraso/wirefold/Categories/Scene/inputactor"
 )
 
 func run(ctx context.Context, cancel context.CancelFunc, topologyPath string, clk clock.Clock) {
@@ -61,7 +61,7 @@ func run(ctx context.Context, cancel context.CancelFunc, topologyPath string, cl
 	md.Scenes.Loaded = md.UI.SceneTabSelected
 
 	moverWG := md.Start(ctx)
-	stdinWG, gestureWG := W.StartStdinReader(ctx, cancel, sc.SlotReg, md, speedSinks, clk, scenepaths.InputDirPath(scenePath))
+	stdinWG, gestureWG := inputactor.StartStdinReader(ctx, cancel, sc.SlotReg, md, speedSinks, clk, scenepaths.InputDirPath(scenePath))
 	joinAll(launchNodes(ctx, sc.Nodes), moverWG, stdinWG, gestureWG)
 }
 

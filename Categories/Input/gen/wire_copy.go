@@ -27,7 +27,7 @@ var wireTargets = []struct {
 		lists: []string{"eventKinds=", "hitKinds="}, kinds: []string{"raw-input"}},
 	{dir: "Categories/Input/Stdin", pkg: "Stdin", enum: true,
 		lists: []string{"updateKinds="}, kinds: []string{"save", "raw-input", "edit-update"}},
-	{dir: "Categories/Scene/scenerun", pkg: "scenerun", lists: []string{"eventKinds="}},
+	{dir: "Categories/Scene/inputactor", pkg: "inputactor", lists: []string{"eventKinds="}},
 }
 
 var listVarName = map[string]string{

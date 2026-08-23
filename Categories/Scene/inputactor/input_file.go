@@ -1,4 +1,4 @@
-package scenerun
+package inputactor
 
 import (
 	"os"

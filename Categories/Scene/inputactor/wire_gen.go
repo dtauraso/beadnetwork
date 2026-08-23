@@ -2,6 +2,6 @@
 // Source: the input layout declared in Categories/Input/gen.
 // Regenerate with: go generate ./...
 
-package scenerun
+package inputactor
 
 var InEventKinds = []string{"pointerdown", "pointermove", "pointerup", "wheel", "home", "delete", "key"}
