@@ -1,5 +1,5 @@
 import React from "react";
-import { type NavNode } from "../../Scene/NavGuides/nav-nodes";
+import { type NavNode } from "../nav-nodes";
 import { PolarFrame } from "../../Scene/Poles/PolarFrame";
 
 export function NodePoles({ nodes }: { nodes: NavNode[] }) {

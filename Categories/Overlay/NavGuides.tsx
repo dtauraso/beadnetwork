@@ -1,17 +1,18 @@
 import React, { useMemo, useState, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { overlayFlag, overlayFlagSignature } from "../../Overlay/overlay-flags";
-import { ownerCounts } from "../owner-counts";
+import { overlayFlag, overlayFlagSignature } from "./overlay-flags";
+import { ownerCounts } from "../Scene/owner-counts";
 import {
   type NavNode, decodeNavNodes, sceneSphereFromColumns,
-} from "./nav-nodes";
-import { navSignature } from "./nav-signature";
-import { SceneGuides } from "./SceneGuides";
-import { PolarFrame } from "../Poles/PolarFrame";
-import { SceneVectors } from "./SceneVectors";
-import { NodePoles } from "../../Node/Poles/NodePoles";
-import { NodePoleSphere } from "../../Node/Poles/NodePoleSphere";
+} from "../Node/nav-nodes";
+import { navSignature } from "../Node/nav-nodes";
+import { Tori } from "../Scene/Tori/Tori";
+import { Handholds } from "../Scene/Handholds/Handholds";
+import { PolarFrame } from "../Scene/Poles/PolarFrame";
+import { SceneVectors } from "../Scene/SceneVectors/SceneVectors";
+import { NodePoles } from "../Node/Poles/NodePoles";
+import { NodePoleSphere } from "../Node/Poles/NodePoleSphere";
 
 export function NavGuides() {
 
@@ -63,13 +64,8 @@ export function NavGuides() {
 
   return (
     <>
-      <SceneGuides
-        center={cs.center}
-        radius={radiusKey}
-        tube={tubeKey / 10}
-        showTori={showTori}
-        showHandholds={showHandholds}
-      />
+      {showTori && <Tori center={cs.center} radius={radiusKey} tube={tubeKey / 10} />}
+      {showHandholds && <Handholds center={cs.center} radius={radiusKey} />}
       {showSceneVectors && <SceneVectors center={cs.center} nodes={navNodes} tube={tube * 0.35} />}
       {showScenePoles && <PolarFrame center={cs.center} scale={radiusKey} />}
       {showNodePoles && <NodePoles nodes={navNodes} />}

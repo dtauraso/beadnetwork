@@ -9,7 +9,7 @@ import type { PickFn } from "../../../../Categories/Scene/Drag/pick-types";
 import { Scene } from "./scene-content";
 import { SceneRoot, LabelProjector } from "./scene-root";
 import { ProceduralEnvProvider } from "./scene-env";
-import { NavGuides } from "../../../../Categories/Scene/NavGuides/NavGuides";
+import { NavGuides } from "../../../../Categories/Overlay/NavGuides";
 import { PaneSizeSync } from "./pane-size-sync";
 
 function consumedByDraft(key: string): boolean {
