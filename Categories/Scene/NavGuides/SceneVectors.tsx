@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import * as THREE from "three";
-import { type NavNode } from "../Camera/nav-nodes";
+import { type NavNode } from "./nav-nodes";
 
 const UP = new THREE.Vector3(0, 1, 0);
 
