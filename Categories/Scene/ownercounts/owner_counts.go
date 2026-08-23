@@ -1,11 +1,12 @@
 package main
 
 import (
-	"github.com/dtauraso/wirefold/scripts/genpaths"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/dtauraso/wirefold/scripts/genpaths"
 
 	Scene "github.com/dtauraso/wirefold/Categories/Scene"
 )

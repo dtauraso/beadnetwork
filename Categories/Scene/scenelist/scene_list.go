@@ -3,7 +3,6 @@ package main
 //go:generate go run .
 
 import (
-	"github.com/dtauraso/wirefold/scripts/genpaths"
 	"fmt"
 	"go/ast"
 	"go/parser"
@@ -13,7 +12,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/dtauraso/wirefold/Categories/Scene"
+	"github.com/dtauraso/wirefold/scripts/genpaths"
 )
 
 type sceneEntry struct {
@@ -100,7 +99,7 @@ func writeScenes(path string, scenes []sceneEntry) error {
 }
 
 func main() {
-	genpaths.SetName("Categories/Scene/values")
+	genpaths.SetName("Categories/Scene/scenelist")
 	_, srcRoot := genpaths.Roots()
 
 	scenePath := filepath.Join(srcRoot, "Scene", "Scenes", "scenes.go")
@@ -114,19 +113,4 @@ func main() {
 	}
 	genpaths.Announce(outPath, len(scenes), "scenes")
 
-	pathsDir := filepath.Join(srcRoot, "Scene", "paths")
-	if err := writeValuePathFiles(pathsDir); err != nil {
-		genpaths.Fatalf("write scene value paths: %v", err)
-	}
-	genpaths.Announce(pathsDir, len(Scene.SceneValues), "scene value paths")
-
-	valuesPath := filepath.Join(srcRoot, "Scene", "scene-values-gen.ts")
-	if err := writeValueNames(valuesPath); err != nil {
-		genpaths.Fatalf("write %s: %v", valuesPath, err)
-	}
-	genpaths.Announce(valuesPath, len(Scene.SceneValues), "scene values")
-
-	generateOwnerCounts(srcRoot)
-
-	writeWireTS(srcRoot)
 }
