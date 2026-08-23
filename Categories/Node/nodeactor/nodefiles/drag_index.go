@@ -1,7 +1,9 @@
 package nodefiles
 
 import (
+	"fmt"
 	"path/filepath"
+	"strings"
 )
 
 const (
@@ -16,6 +18,9 @@ func dragDir(root, id string) string {
 }
 
 func WriteDragIndex(root, id string, phi, theta, r int, topTiltVectorPhiIdx int32) error {
+	if id == "" || id == "." || id == ".." || strings.ContainsAny(id, `/\`) {
+		return fmt.Errorf("unsafe node id %q", id)
+	}
 	dir := dragDir(root, id)
 	for name, value := range map[string]int{
 		fileIndexPhi:   phi,
