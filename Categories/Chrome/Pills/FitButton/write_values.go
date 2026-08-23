@@ -7,8 +7,6 @@ import (
 	Pills "github.com/dtauraso/wirefold/Categories/Chrome/Pills"
 )
 
-// WriteValues writes the fit chip's own block, from its own writer and its own
-// rect.
 func WriteValues(w *ValueWriter, r Pills.Rect) {
 	if w == nil {
 		return
@@ -21,5 +19,4 @@ func WriteValues(w *ValueWriter, r Pills.Rect) {
 	}
 }
 
-// The chip's own label: what it says is the chip's business.
 const FitLabel = "⌂ fit"

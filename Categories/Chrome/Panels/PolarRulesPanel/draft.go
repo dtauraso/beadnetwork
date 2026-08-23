@@ -1,9 +1,5 @@
 package PolarRulesPanel
 
-// The half-typed theta a row is being given, and the row whose shared rules are
-// open. Both are this panel's own: it takes the draft it edits and the redraw to
-// ask for, not the view state that happens to hold them.
-
 type ThetaCommit struct {
 	Commit  bool
 	NodeRow int32
