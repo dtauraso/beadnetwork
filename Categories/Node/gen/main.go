@@ -4,6 +4,8 @@ package main
 
 import (
 	"fmt"
+	"github.com/dtauraso/wirefold/scripts/genpaths"
+	"github.com/dtauraso/wirefold/scripts/genpaths/params"
 	"os"
 	"path/filepath"
 	"strings"
@@ -50,21 +52,32 @@ func writeNames(path string) error {
 }
 
 func main() {
-	genName = "Categories/Node/gen"
-	_, srcRoot := roots()
+	genpaths.SetName("Categories/Node/gen")
+	repoRoot, srcRoot := genpaths.Roots()
 
 	dir := filepath.Join(srcRoot, "Node")
 	pathsDir := filepath.Join(dir, "paths")
 	if err := writePathFiles(pathsDir); err != nil {
-		fatalf("write node paths: %v", err)
+		genpaths.Fatalf("write node paths: %v", err)
 	}
-	announce(pathsDir, 1, "node block path template")
+	genpaths.Announce(pathsDir, 1, "node block path template")
 
 	namesPath := filepath.Join(dir, "node-values-gen.ts")
 	if err := writeNames(namesPath); err != nil {
-		fatalf("write %s: %v", namesPath, err)
+		genpaths.Fatalf("write %s: %v", namesPath, err)
 	}
-	announce(namesPath, len(Node.NodeValueNames), "node values")
+	genpaths.Announce(namesPath, len(Node.NodeValueNames), "node values")
+
+	shGo := filepath.Join(dir, "shading_params.go")
+	shParams, shErr := params.ParseShadingParams(repoRoot, shGo)
+	if shErr != nil {
+		genpaths.Fatalf("parse shading params: %v", shErr)
+	}
+	shTs := filepath.Join(dir, "shading-params.ts")
+	if err := params.WriteShadingParams(shTs, shParams, genpaths.Name(), "Categories/Node/shading_params.go"); err != nil {
+		genpaths.Fatalf("write %s: %v", shTs, err)
+	}
+	genpaths.Announce(shTs, len(shParams), "constants")
 
 	writeWireTS(srcRoot)
 }

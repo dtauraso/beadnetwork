@@ -3,6 +3,7 @@ package main
 //go:generate go run .
 
 import (
+	"github.com/dtauraso/wirefold/scripts/genpaths"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -51,19 +52,19 @@ func writeNames(path string) error {
 }
 
 func main() {
-	genName = "AngleDropdown/gen"
-	_, srcRoot := roots()
+	genpaths.SetName("AngleDropdown/gen")
+	_, srcRoot := genpaths.Roots()
 
 	dir := filepath.Join(srcRoot, "Chrome", "Pills", "AngleDropdown")
 	pathsDir := filepath.Join(dir, "paths")
 	if err := writePathFiles(pathsDir); err != nil {
-		fatalf("write angle pill paths: %v", err)
+		genpaths.Fatalf("write angle pill paths: %v", err)
 	}
-	announce(pathsDir, len(AngleDropdown.PillValueNames), "angle pill paths")
+	genpaths.Announce(pathsDir, len(AngleDropdown.PillValueNames), "angle pill paths")
 
 	namesPath := filepath.Join(dir, "pill-values-gen.ts")
 	if err := writeNames(namesPath); err != nil {
-		fatalf("write %s: %v", namesPath, err)
+		genpaths.Fatalf("write %s: %v", namesPath, err)
 	}
-	announce(namesPath, len(AngleDropdown.PillValueNames), "angle pill values")
+	genpaths.Announce(namesPath, len(AngleDropdown.PillValueNames), "angle pill values")
 }

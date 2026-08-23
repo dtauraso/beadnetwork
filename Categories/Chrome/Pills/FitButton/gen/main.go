@@ -3,6 +3,7 @@ package main
 //go:generate go run .
 
 import (
+	"github.com/dtauraso/wirefold/scripts/genpaths"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -51,19 +52,19 @@ func writeNames(path string) error {
 }
 
 func main() {
-	genName = "FitButton/gen"
-	_, srcRoot := roots()
+	genpaths.SetName("FitButton/gen")
+	_, srcRoot := genpaths.Roots()
 
 	dir := filepath.Join(srcRoot, "Chrome", "Pills", "FitButton")
 	pathsDir := filepath.Join(dir, "paths")
 	if err := writePathFiles(pathsDir); err != nil {
-		fatalf("write fit chip paths: %v", err)
+		genpaths.Fatalf("write fit chip paths: %v", err)
 	}
-	announce(pathsDir, len(FitButton.ChipValueNames), "fit chip paths")
+	genpaths.Announce(pathsDir, len(FitButton.ChipValueNames), "fit chip paths")
 
 	namesPath := filepath.Join(dir, "chip-values-gen.ts")
 	if err := writeNames(namesPath); err != nil {
-		fatalf("write %s: %v", namesPath, err)
+		genpaths.Fatalf("write %s: %v", namesPath, err)
 	}
-	announce(namesPath, len(FitButton.ChipValueNames), "fit chip values")
+	genpaths.Announce(namesPath, len(FitButton.ChipValueNames), "fit chip values")
 }

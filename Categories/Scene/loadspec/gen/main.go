@@ -3,24 +3,25 @@ package main
 //go:generate go run .
 
 import (
+	"github.com/dtauraso/wirefold/scripts/genpaths"
 	"path/filepath"
 
 	"github.com/dtauraso/wirefold/Categories/Scene/loadspec/gen/wiredefs"
 )
 
 func main() {
-	genName = "loadspec/gen"
-	_, srcRoot := roots()
+	genpaths.SetName("loadspec/gen")
+	_, srcRoot := genpaths.Roots()
 
 	specPath := filepath.Join(srcRoot, "Scene", "loadspec", "topo_spec.go")
 	wireProps, err := wiredefs.ParseWirePropsFromFile(specPath)
 	if err != nil {
-		fatalf("parse wire props from topo_spec.go: %v", err)
+		genpaths.Fatalf("parse wire props from topo_spec.go: %v", err)
 	}
 
 	outPath := filepath.Join(srcRoot, "Scene", "loadspec", "wire-defs.ts")
 	if err := wiredefs.WriteWireDefs(outPath, wireProps); err != nil {
-		fatalf("write %s: %v", outPath, err)
+		genpaths.Fatalf("write %s: %v", outPath, err)
 	}
-	announce(outPath, len(wireProps), "entries")
+	genpaths.Announce(outPath, len(wireProps), "entries")
 }

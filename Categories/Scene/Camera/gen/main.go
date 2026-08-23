@@ -3,6 +3,7 @@ package main
 //go:generate go run .
 
 import (
+	"github.com/dtauraso/wirefold/scripts/genpaths"
 	"fmt"
 	"go/ast"
 	"go/parser"
@@ -13,13 +14,13 @@ import (
 )
 
 func main() {
-	genName = "Categories/Scene/Camera/gen"
-	_, srcRoot := roots()
+	genpaths.SetName("Categories/Scene/Camera/gen")
+	_, srcRoot := genpaths.Roots()
 
 	goPath := filepath.Join(srcRoot, "Scene", "Camera", "fov.go")
 	focal, err := parseFloatConst(goPath, "FocalPixels")
 	if err != nil {
-		fatalf("parse %s: %v", goPath, err)
+		genpaths.Fatalf("parse %s: %v", goPath, err)
 	}
 
 	outPath := filepath.Join(srcRoot, "Scene", "Camera", "camera-consts.ts")
@@ -31,15 +32,15 @@ func main() {
 		"// here rather than crossing the seam — a value that cannot change is not state.\n\n" +
 		fmt.Sprintf("export const FOCAL_PIXELS = %s;\n", strconv.FormatFloat(focal, 'g', -1, 64))
 	if err := os.WriteFile(outPath, []byte(body), 0o644); err != nil {
-		fatalf("write %s: %v", outPath, err)
+		genpaths.Fatalf("write %s: %v", outPath, err)
 	}
-	announce(outPath, 1, "constants")
+	genpaths.Announce(outPath, 1, "constants")
 
 	cameraDir := filepath.Join(srcRoot, "Scene", "Camera")
 	if err := writeCameraPaths(cameraDir); err != nil {
-		fatalf("write camera paths: %v", err)
+		genpaths.Fatalf("write camera paths: %v", err)
 	}
-	announce(filepath.Join(cameraDir, "paths"), 1, "camera block path")
+	genpaths.Announce(filepath.Join(cameraDir, "paths"), 1, "camera block path")
 }
 
 func parseFloatConst(path, name string) (float64, error) {

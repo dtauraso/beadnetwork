@@ -3,6 +3,7 @@ package main
 //go:generate go run .
 
 import (
+	"github.com/dtauraso/wirefold/scripts/genpaths"
 	"path/filepath"
 
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/gen/kindscan"
@@ -10,19 +11,37 @@ import (
 )
 
 func main() {
-	genName = "Categories/NodeKinds/gen"
-	repoRoot, srcRoot := roots()
+	genpaths.SetName("Categories/NodeKinds/gen")
+	repoRoot, srcRoot := genpaths.Roots()
 	kinds := kindscan.Kinds(repoRoot)
 
 	importsPath := filepath.Join(srcRoot, "NodeKinds", "kinds_gen.go")
 	if err := kindscan.WriteKindImports(importsPath, kindscan.KindsPkg(repoRoot), kinds); err != nil {
-		fatalf("write %s: %v", importsPath, err)
+		genpaths.Fatalf("write %s: %v", importsPath, err)
 	}
-	announce(importsPath, len(kinds), "kinds")
+	genpaths.Announce(importsPath, len(kinds), "kinds")
 
 	defsPath := filepath.Join(srcRoot, "NodeKinds", "node-defs.ts")
 	if err := nodedefs.WriteNodeDefs(defsPath, kinds); err != nil {
-		fatalf("write %s: %v", defsPath, err)
+		genpaths.Fatalf("write %s: %v", defsPath, err)
 	}
-	announce(defsPath, len(kinds), "entries")
+	genpaths.Announce(defsPath, len(kinds), "entries")
+
+	dimsPath := filepath.Join(srcRoot, "Node", "geom_node_dims_gen.go")
+	if err := writeNodeDims(dimsPath, kinds); err != nil {
+		genpaths.Fatalf("write %s: %v", dimsPath, err)
+	}
+	genpaths.Announce(dimsPath, len(kinds), "kinds")
+
+	portsPath := filepath.Join(srcRoot, "NodeKinds", "portwiring", "kind_ports_gen.go")
+	if err := writeKindPorts(portsPath, kinds); err != nil {
+		genpaths.Fatalf("write %s: %v", portsPath, err)
+	}
+	genpaths.Announce(portsPath, len(kinds), "kinds")
+
+	kindIDPath := filepath.Join(srcRoot, "Node", "node_kind_id_gen.go")
+	if err := writeNodeKindID(kindIDPath, kinds); err != nil {
+		genpaths.Fatalf("write %s: %v", kindIDPath, err)
+	}
+	genpaths.Announce(kindIDPath, len(kinds), "kinds")
 }

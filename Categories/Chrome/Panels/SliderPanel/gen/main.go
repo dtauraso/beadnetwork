@@ -3,6 +3,7 @@ package main
 //go:generate go run .
 
 import (
+	"github.com/dtauraso/wirefold/scripts/genpaths"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -51,19 +52,19 @@ func writeNames(path string) error {
 }
 
 func main() {
-	genName = "SliderPanel/gen"
-	_, srcRoot := roots()
+	genpaths.SetName("SliderPanel/gen")
+	_, srcRoot := genpaths.Roots()
 
 	dir := filepath.Join(srcRoot, "Chrome", "Panels", "SliderPanel")
 	pathsDir := filepath.Join(dir, "paths")
 	if err := writePathFiles(pathsDir); err != nil {
-		fatalf("write slider panel paths: %v", err)
+		genpaths.Fatalf("write slider panel paths: %v", err)
 	}
-	announce(pathsDir, 1, "slider panel block path")
+	genpaths.Announce(pathsDir, 1, "slider panel block path")
 
 	namesPath := filepath.Join(dir, "panel-values-gen.ts")
 	if err := writeNames(namesPath); err != nil {
-		fatalf("write %s: %v", namesPath, err)
+		genpaths.Fatalf("write %s: %v", namesPath, err)
 	}
-	announce(namesPath, len(SliderPanel.PanelValueNames), "slider panel values")
+	genpaths.Announce(namesPath, len(SliderPanel.PanelValueNames), "slider panel values")
 }
