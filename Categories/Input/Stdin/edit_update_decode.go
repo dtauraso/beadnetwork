@@ -11,10 +11,3 @@ func decodeEditUpdate(rec []byte) (StdinMsg, bool) {
 	}
 	return decode(rec[3:], rec[2])
 }
-
-func DirWord(dirUp byte) string {
-	if dirUp != 0 {
-		return "up"
-	}
-	return "down"
-}

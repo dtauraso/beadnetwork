@@ -18,7 +18,7 @@ func StartStdinReader(ctx context.Context, cancel context.CancelFunc, slotReg be
 
 	stdinWG := new(sync.WaitGroup)
 	stdinWG.Add(1)
-	h := Stdin.Handlers{
+	h := Handlers{
 		ApplyEdit: func(msg Stdin.StdinMsg) {
 			SendGestureMsgBlocking(ctx, inbox, GestureInboxMsg{Kind: GestureMsgEdit, Msg: msg})
 		},
@@ -28,7 +28,7 @@ func StartStdinReader(ctx context.Context, cancel context.CancelFunc, slotReg be
 	}
 	go func() {
 		defer stdinWG.Done()
-		Stdin.RunStdinReader(ctx, os.Stdin, h)
+		RunStdinReader(ctx, os.Stdin, h)
 		cancel()
 	}()
 	return stdinWG, gestureWG

@@ -10,19 +10,20 @@
 //
 // MSG_TYPES_DOC_END
 
-package Stdin
+package inputactor
 
 import (
 	"bufio"
 	"context"
 	"encoding/binary"
 	"fmt"
+	"github.com/dtauraso/wirefold/Categories/Input/Stdin"
 	"io"
 	"os"
 )
 
 type Handlers struct {
-	ApplyEdit func(msg StdinMsg)
+	ApplyEdit func(msg Stdin.StdinMsg)
 
 	HandleSave func()
 }
@@ -82,7 +83,7 @@ func RunStdinReader(ctx context.Context, r io.Reader, h Handlers) {
 				return
 			}
 
-			msg, decoded := DecodeInputRecord(rec)
+			msg, decoded := Stdin.DecodeInputRecord(rec)
 			if !decoded {
 				continue
 			}

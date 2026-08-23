@@ -79,7 +79,7 @@ func decodeUpdateTiltVector(payload []byte, attr byte) (Stdin.StdinMsg, bool) {
 		if errD != nil {
 			return Stdin.StdinMsg{}, false
 		}
-		dir := Stdin.DirWord(dirUp)
+		dir := dirWord(dirUp)
 		return Stdin.StdinMsg{Type: "edit", Op: "update", Kind: "tiltVector", Attr: "phi", Num: int(row), Flag: dir}, true
 	case attrTiltVectorRst:
 
@@ -97,4 +97,11 @@ func decodeUpdateTiltVector(payload []byte, attr byte) (Stdin.StdinMsg, bool) {
 		return Stdin.StdinMsg{Type: "edit", Op: "update", Kind: "tiltVector", Attr: "start", Num: int(row)}, true
 	}
 	return Stdin.StdinMsg{}, false
+}
+
+func dirWord(dirUp byte) string {
+	if dirUp != 0 {
+		return "up"
+	}
+	return "down"
 }
