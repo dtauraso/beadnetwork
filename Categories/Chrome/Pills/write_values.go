@@ -5,8 +5,6 @@ import (
 	"os"
 )
 
-// WriteValues writes the overlays pill's own block, from its own writer and
-// its own layout.
 func WriteValues(w *ValueWriter, lay Layout) {
 	if w == nil {
 		return

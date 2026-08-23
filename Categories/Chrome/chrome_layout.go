@@ -13,10 +13,6 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Overlay"
 )
 
-// Where every piece of chrome sits. Each piece computes its own layout from its
-// own state; this is only the arrangement — what order they stack in and how
-// much room each gets. It takes each piece's state by name, so a caller cannot
-// hand the tilt panel the angle pill's rows.
 type Layout struct {
 	Speed    SliderPanel.Layout
 	Tilt     TiltPanel.Layout
@@ -31,7 +27,6 @@ type Layout struct {
 	Rules PolarRulesPanel.Layout
 }
 
-// Of is what the chrome looks like for one frame.
 type Of struct {
 	ViewW, ViewH float64
 

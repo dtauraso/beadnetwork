@@ -151,9 +151,6 @@ type State struct {
 	RowOpen map[uint8]bool
 }
 
-// PaletteKinds is the list this pill offers: every kind the scene allows, with
-// the rows the user has opened. It is the pill's own question, so it takes the
-// scene's allowed-kind mask and its own open rows rather than the view state.
 func PaletteKinds(sceneKinds uint32, editable bool, rowOpen map[uint8]bool) []Kind {
 	if !editable {
 		return nil

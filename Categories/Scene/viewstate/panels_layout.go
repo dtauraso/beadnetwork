@@ -4,9 +4,6 @@ import (
 	Chrome "github.com/dtauraso/wirefold/Categories/Chrome"
 )
 
-// PanelLayout asks the chrome where its pieces sit, handing each piece's own
-// state. The arrangement itself is Chrome's; the view only holds the state and
-// the viewport.
 func (ui *UIState) PanelLayout() Chrome.Layout {
 	return Chrome.LayoutOf(Chrome.Of{
 		ViewW: ui.ViewW, ViewH: ui.ViewH,
