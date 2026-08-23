@@ -2,7 +2,6 @@ package PairNode
 
 import (
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
-	"github.com/dtauraso/wirefold/Categories/NodeKinds/portwiring"
 )
 
 func (n *Node) clock() clock.Clock {
@@ -13,7 +12,7 @@ func (n *Node) clock() clock.Clock {
 }
 
 func (n *Node) openingEmit() {
-	portwiring.TryEmit(n.plumb.EmitGeometry)
+	tryEmit(n.plumb.EmitGeometry)
 
 	n.plumb.Self.EmitGeometryOnce()
 	n.syncTiltIndex()

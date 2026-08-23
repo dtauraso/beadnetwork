@@ -28,7 +28,7 @@ type TimeEnd struct {
 }
 
 func (h *TimeEnd) Update(ctx context.Context) {
-	portwiring.TryEmit(h.EmitGeometry)
+	tryEmit(h.EmitGeometry)
 	h.Self.EmitGeometryOnce()
 
 	held := noValue

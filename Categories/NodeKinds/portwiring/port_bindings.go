@@ -83,6 +83,51 @@ func (pb *PortBindings) AppendBroadcastWithHandle(name, handle string, pw *beada
 	})
 }
 
+func (pb PortBindings) SinglePacedOf(name string) (*beadanimation.BeadLine, beadanimation.SendRule, string) {
+	b := pb.singlePaced[name]
+	return b.pw, b.rule, b.label
+}
+
+func (pb PortBindings) BroadcastCountOf(name string) int { return len(pb.broadcastPaced[name]) }
+
+func (pb PortBindings) BroadcastAt(name string, i int) (*beadanimation.BeadLine, string, beadanimation.SendRule, string) {
+	b := pb.broadcastPaced[name][i]
+	return b.pw, b.handle, b.rule, b.label
+}
+
+func (pb PortBindings) NodeRowFor(id string) (int32, bool) { return pb.RT.NodeRowFor(id) }
+
+func (pb PortBindings) SetOutSink(key string, o *beadanimation.Sender) {
+	if pb.OutSink != nil {
+		pb.OutSink[key] = o
+	}
+}
+
+func (pb PortBindings) InteriorEmitterOf(name string) *interior.Emitter {
+	if pb.InteriorEmitters == nil || *pb.InteriorEmitters == nil {
+		return nil
+	}
+	return (*pb.InteriorEmitters)[name]
+}
+
+func (pb PortBindings) ClockOf() clock.Clock { return pb.Clock }
+
+func (pb PortBindings) SpeedSinksOf() *SliderPanel.Sinks { return pb.SpeedSinks }
+
+func (pb PortBindings) VectorOutOf(name string) chan<- TiltPanel.TiltVectorMsg {
+	if pb.VectorOut == nil {
+		return nil
+	}
+	return pb.VectorOut[name]
+}
+
+func (pb PortBindings) VectorInOf(name string) <-chan TiltPanel.TiltVectorMsg {
+	if pb.VectorIn == nil {
+		return nil
+	}
+	return pb.VectorIn[name]
+}
+
 func (pb *PortBindings) deadEndIn(name string) <-chan int {
 	return make(chan int, 1)
 }

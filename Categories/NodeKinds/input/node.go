@@ -49,7 +49,7 @@ func (n *Node) broadcastPlace(v int, tick int64) bool {
 }
 
 func (n *Node) Update(ctx context.Context) {
-	portwiring.TryEmit(n.EmitGeometry)
+	tryEmit(n.EmitGeometry)
 	n.Self.EmitGeometryOnce()
 
 	if len(n.Init) == 0 {

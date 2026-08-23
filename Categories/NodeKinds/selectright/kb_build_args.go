@@ -14,7 +14,7 @@ type BuildArgs struct {
 	Ctx  context.Context
 	Name string
 	Data *loadspec.NodeData
-	PB   portwiring.PortBindings
+	PB   bindings
 
 	TiltPhiIdx int32
 
@@ -61,7 +61,7 @@ func BuilderFor(kind string, build func(BuildArgs) (portwiring.Node, error)) por
 				ports: ports,
 
 				sourceOuts: &sourceOuts,
-				getEmitter: portwiring.NewInteriorEmitterGetter(name, pb),
+				getEmitter: NewInteriorEmitterGetter(name, pb),
 				TiltPhiIdx: tiltPhiIdx,
 				Deps:       deps,
 			})
