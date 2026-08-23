@@ -156,8 +156,10 @@ Consequences to keep in mind:
 
 ## The owner writes, and owns the path
 
-- A node writes its own `position/local-polars` (path construction in
-  `dragfile/drag_file.go`). There is no longer a separate `inputs/`/`outputs/` port-geometry
+- A node writes its own `position/local-polars` (`Categories/Node/nodeactor/nodefiles/drag_index.go`);
+  `Categories/Scene/loadspec/drag_index.go` reads those four files back, the two agreeing on the
+  layout the way a block file's writer and reader do. There is no longer a separate
+  `inputs/`/`outputs/` port-geometry
   file — port geometry was removed with the port model (edges attach on the bead lattice,
   `Categories/Node/BeadAnimation/lattice/bead_lattice.go`); this bullet used to list it as a second thing the mover writes.
 - The **SOURCE NODE** owns `nodes/<source>/drag/edges/<label>.bin`, and writes it from
