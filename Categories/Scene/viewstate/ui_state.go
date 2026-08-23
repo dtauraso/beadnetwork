@@ -2,9 +2,10 @@ package viewstate
 
 import (
 	"fmt"
-	NodeDrag "github.com/dtauraso/wirefold/Categories/Node/Drag"
 	"math"
 	"os"
+
+	NodeDrag "github.com/dtauraso/wirefold/Categories/Node/Drag"
 
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels"
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/Panel"
@@ -25,7 +26,6 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Scene"
 	"github.com/dtauraso/wirefold/Categories/Scene/Camera"
 	"github.com/dtauraso/wirefold/Categories/Scene/Drag"
-	"github.com/dtauraso/wirefold/Categories/Scene/selectionstate"
 )
 
 type UIState struct {
@@ -65,7 +65,7 @@ type UIState struct {
 
 	Gest Drag.GestureState
 
-	Sel selectionstate.SelectionState
+	Sel selectionState
 
 	LatchedNode string
 
@@ -109,9 +109,9 @@ type UIState struct {
 }
 
 func (ui *UIState) SetSelectionUI(sendMove func(id string, msg Node.Msg), node, edge string) {
-	prevNode := ui.Sel.Selected
-	ui.Sel.Selected = node
-	ui.Sel.SelectedEdge = edge
+	prevNode := ui.Sel.selected
+	ui.Sel.selected = node
+	ui.Sel.selectedEdge = edge
 	if prevNode != "" && prevNode != node {
 		sendMove(prevNode, Node.Msg{NodeID: prevNode, Body: Node.Select{On: false}})
 	}
@@ -147,8 +147,8 @@ func (ui *UIState) DropPointFromNDC(ndcX, ndcY float64) (Vec3, bool) {
 }
 
 func (ui *UIState) SetHoverUI(sendMove func(id string, msg Node.Msg), node, port string, isInput bool) {
-	prevNode := ui.Sel.HoverNode
-	ui.Sel.HoverNode, ui.Sel.HoverPort, ui.Sel.HoverInput = node, port, isInput
+	prevNode := ui.Sel.hoverNode
+	ui.Sel.hoverNode, ui.Sel.hoverPort, ui.Sel.hoverInput = node, port, isInput
 	if prevNode != "" && prevNode != node {
 		sendMove(prevNode, Node.Msg{NodeID: prevNode, Body: Node.Hover{On: false}})
 	}
@@ -192,3 +192,31 @@ func (ui *UIState) RefuseStructuralEdit(why string) {
 
 	ui.EditRefused++
 }
+
+// What is selected and what is hovered. Its fields are unexported and its only
+// writes are in this file: a caller outside asks a question — HoverIs,
+// SelectedNode — rather than reaching a field, so nothing else can set what the
+// view believes is selected.
+type selectionState struct {
+	selected     string
+	selectedEdge string
+
+	hoverNode  string
+	hoverPort  string
+	hoverInput bool
+}
+
+// HoverIs answers whether the hover is already exactly this, which is the only
+// thing a gesture needs to know before setting it.
+func (ui *UIState) HoverIs(node, port string, isInput bool) bool {
+	return node == ui.Sel.hoverNode && port == ui.Sel.hoverPort && isInput == ui.Sel.hoverInput
+}
+
+// SelectedNode is the node the view believes is selected, and whether there is
+// one at all.
+func (ui *UIState) SelectedNode() (string, bool) {
+	return ui.Sel.selected, ui.Sel.selected != ""
+}
+
+// SelectedEdge is the edge the view believes is selected.
+func (ui *UIState) SelectedEdge() string { return ui.Sel.selectedEdge }

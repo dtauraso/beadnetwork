@@ -33,7 +33,7 @@ func ApplyDragTarget(ui *viewstate.UIState, rootMove func(id string, target Node
 }
 
 func SetHover(ui *viewstate.UIState, sendMoveFn func(id string, msg Node.Msg), node, port string, isInput bool) (changed bool) {
-	if node == ui.Sel.HoverNode && port == ui.Sel.HoverPort && isInput == ui.Sel.HoverInput {
+	if ui.HoverIs(node, port, isInput) {
 		return false
 	}
 
