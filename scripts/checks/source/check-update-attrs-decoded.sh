@@ -3,12 +3,6 @@ set -euo pipefail
 
 # PLACEMENT: **/update_attrs.go | every attr a concern declares must be bound to a wire byte and compared by that concern's decoder, or an edit naming it decodes to nothing
 
-# Replaces check-input-attr-dispatched.sh, which compared a decoder in one package
-# against a dispatch table in another. Both halves now live in the concern that owns
-# the attr, so the drift it caught is a drift WITHIN one package: a name in
-# UpdateAttrs that no decoder ever compares. Such an edit crosses the wire intact,
-# decodes to nothing, and the affordance looks dead with nothing reporting why.
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 cd "$REPO_ROOT"
