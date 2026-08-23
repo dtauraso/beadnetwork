@@ -98,7 +98,7 @@ func gestPointerUp(d Deps, ev Drag.RawInputMsg) {
 		d.UI.EmitViewFrame(nil)
 
 		if draggedNode != "" {
-			d.MR.SendMove(d.Ctx, draggedNode, movemsg.Msg{Kind: movemsg.KindDragEnd, NodeID: draggedNode})
+			d.MR.SendMove(d.Ctx, draggedNode, movemsg.Msg{NodeID: draggedNode, Body: movemsg.DragEnd{}})
 		}
 	}
 }

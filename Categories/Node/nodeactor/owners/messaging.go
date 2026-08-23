@@ -111,7 +111,7 @@ func (n *Messaging) PollCenter() (Vec3, bool) {
 }
 
 func (n *Messaging) SendExternal(_ context.Context, msg movemsg.Msg) {
-	if msg.Kind == movemsg.KindDrag {
+	if _, isDrag := msg.Body.(movemsg.Drag); isDrag {
 		n.dragIn.deposit(msg)
 		return
 	}
@@ -119,12 +119,12 @@ func (n *Messaging) SendExternal(_ context.Context, msg movemsg.Msg) {
 	case n.extIn <- msg:
 	default:
 		panic(fmt.Sprintf(
-			"NodeGeometry(%s): discrete-event inbox full at %d unread (kind %q); these are "+
+			"NodeGeometry(%s): discrete-event inbox full at %d unread (body %T); these are "+
 				"human decision-rate events (select/hover/dragStart/dragEnd/tilt) and cannot "+
 				"outrun a geometry loop that runs every real tick — so either this node's "+
 				"geometry goroutine has stopped running, or a continuous per-pointer-move "+
 				"quantity is being sent here instead of onto a coalescing slot",
-			msg.NodeID, inboxDepth, msg.Kind))
+			msg.NodeID, inboxDepth, msg.Body))
 	}
 }
 

@@ -109,8 +109,8 @@ func NewFromSpec(spec loadspec.TopoSpec, sphere polar.SceneSphere, hasScene bool
 		for to, told := range nodedrag.Requested(nm.SelfKind(), polarindex.Offset{}, nm) {
 			if other, ok := md.MR.NodeGeoms()[to]; ok {
 				d := told
-				other.SendExternal(context.TODO(), movemsg.Msg{Kind: movemsg.KindDrag, NodeID: to,
-					SenderID: nm.ID(), Delta: &d})
+				other.SendExternal(context.TODO(), movemsg.Msg{NodeID: to,
+					Body: movemsg.Drag{Delta: &d}})
 			}
 		}
 	}

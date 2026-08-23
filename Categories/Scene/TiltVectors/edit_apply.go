@@ -38,7 +38,7 @@ func Apply(ctx context.Context, row int32, attr string, movers Movers, inbox Til
 	if inbox.SendTiltEdit(ctx, id, movemsg.TiltEditMsg{Reset: true}) {
 		return
 	}
-	movers.SendMove(ctx, id, movemsg.Msg{Kind: movemsg.KindTiltVectorReset, NodeID: id})
+	movers.SendMove(ctx, id, movemsg.Msg{NodeID: id, Body: movemsg.TiltVectorReset{}})
 }
 
 func AdjustPhi(ctx context.Context, row int32, up bool, movers Movers, inbox TiltInbox) {
@@ -49,5 +49,5 @@ func AdjustPhi(ctx context.Context, row int32, up bool, movers Movers, inbox Til
 	if inbox.SendTiltEdit(ctx, id, movemsg.TiltEditMsg{Up: up}) {
 		return
 	}
-	movers.SendMove(ctx, id, movemsg.Msg{Kind: movemsg.KindTiltVectorAngle, NodeID: id, Bool: up})
+	movers.SendMove(ctx, id, movemsg.Msg{NodeID: id, Body: movemsg.TiltVectorAngle{Up: up}})
 }

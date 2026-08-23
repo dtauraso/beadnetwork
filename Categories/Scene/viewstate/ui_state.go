@@ -112,18 +112,18 @@ func (ui *UIState) SetSelectionUI(sendMove func(id string, msg movemsg.Msg), nod
 	ui.Sel.Selected = node
 	ui.Sel.SelectedEdge = edge
 	if prevNode != "" && prevNode != node {
-		sendMove(prevNode, movemsg.Msg{Kind: movemsg.KindSelect, NodeID: prevNode, Bool: false})
+		sendMove(prevNode, movemsg.Msg{NodeID: prevNode, Body: movemsg.Select{On: false}})
 	}
 	if node != "" && node != prevNode {
-		sendMove(node, movemsg.Msg{Kind: movemsg.KindSelect, NodeID: node, Bool: true})
+		sendMove(node, movemsg.Msg{NodeID: node, Body: movemsg.Select{On: true}})
 	}
 	if node != "" && node != ui.LatchedNode {
 		prevLatched := ui.LatchedNode
 		ui.LatchedNode = node
 		if prevLatched != "" {
-			sendMove(prevLatched, movemsg.Msg{Kind: movemsg.KindLatched, NodeID: prevLatched, Bool: false})
+			sendMove(prevLatched, movemsg.Msg{NodeID: prevLatched, Body: movemsg.Latched{On: false}})
 		}
-		sendMove(node, movemsg.Msg{Kind: movemsg.KindLatched, NodeID: node, Bool: true})
+		sendMove(node, movemsg.Msg{NodeID: node, Body: movemsg.Latched{On: true}})
 	}
 }
 
@@ -149,10 +149,10 @@ func (ui *UIState) SetHoverUI(sendMove func(id string, msg movemsg.Msg), node, p
 	prevNode := ui.Sel.HoverNode
 	ui.Sel.HoverNode, ui.Sel.HoverPort, ui.Sel.HoverInput = node, port, isInput
 	if prevNode != "" && prevNode != node {
-		sendMove(prevNode, movemsg.Msg{Kind: movemsg.KindHover, NodeID: prevNode, Bool: false})
+		sendMove(prevNode, movemsg.Msg{NodeID: prevNode, Body: movemsg.Hover{On: false}})
 	}
 	if node != "" {
-		sendMove(node, movemsg.Msg{Kind: movemsg.KindHover, NodeID: node, Bool: true, Port: port, IsInput: isInput})
+		sendMove(node, movemsg.Msg{NodeID: node, Body: movemsg.Hover{On: true, Port: port, IsInput: isInput}})
 	}
 }
 

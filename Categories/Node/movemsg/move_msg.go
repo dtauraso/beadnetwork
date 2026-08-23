@@ -4,25 +4,89 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
 )
 
-const (
-	KindCenter = "center"
+type Msg struct {
+	NodeID string
 
-	KindDrag = "drag"
+	Body Body
+}
 
-	KindDragStart = "dragStart"
+type Body interface{ moveBody() }
 
-	KindDragEnd = "dragEnd"
+// A body that may ride a coalescing slot. Two of them merge by the rule the
+// pair of accessors names: a WHERE collapses to the newest, a HOW FAR sums.
+// A body that cannot answer both questions cannot be coalesced, and the slot
+// will not take it.
+type Movement interface {
+	Body
 
-	KindSelect = "select"
+	Where() *polarindex.Index
+	HowFar() *polarindex.Offset
 
-	KindHover = "hover"
+	WithHowFar(polarindex.Offset) Movement
+}
 
-	KindLatched = "latched"
+type NeighborMoved struct {
+	Center *Vec3
 
-	KindTiltVectorAngle = "tiltVectorAngle"
+	Delta *polarindex.Offset
 
-	KindTiltVectorReset = "tiltVectorReset"
-)
+	SenderID string
+}
+
+func (NeighborMoved) moveBody()                       {}
+func (NeighborMoved) Where() *polarindex.Index        { return nil }
+func (n NeighborMoved) HowFar() *polarindex.Offset    { return n.Delta }
+func (n NeighborMoved) WithHowFar(d polarindex.Offset) Movement {
+	n.Delta = &d
+	return n
+}
+
+type Drag struct {
+	Target *polarindex.Index
+
+	Delta *polarindex.Offset
+}
+
+func (Drag) moveBody()                        {}
+func (d Drag) Where() *polarindex.Index       { return d.Target }
+func (d Drag) HowFar() *polarindex.Offset     { return d.Delta }
+func (d Drag) WithHowFar(o polarindex.Offset) Movement {
+	d.Delta = &o
+	return d
+}
+
+type DragStart struct{}
+
+func (DragStart) moveBody() {}
+
+type DragEnd struct{}
+
+func (DragEnd) moveBody() {}
+
+type Select struct{ On bool }
+
+func (Select) moveBody() {}
+
+type Hover struct {
+	On bool
+
+	Port    string
+	IsInput bool
+}
+
+func (Hover) moveBody() {}
+
+type Latched struct{ On bool }
+
+func (Latched) moveBody() {}
+
+type TiltVectorAngle struct{ Up bool }
+
+func (TiltVectorAngle) moveBody() {}
+
+type TiltVectorReset struct{}
+
+func (TiltVectorReset) moveBody() {}
 
 type TiltEditMsg struct {
 	Up bool
@@ -30,22 +94,4 @@ type TiltEditMsg struct {
 	Start bool
 
 	Reset bool
-}
-
-type Msg struct {
-	Kind   string
-	NodeID string
-
-	Port    string
-	IsInput bool
-
-	Center *Vec3
-
-	Delta *polarindex.Offset
-
-	Target *polarindex.Index
-
-	SenderID string
-
-	Bool bool
 }

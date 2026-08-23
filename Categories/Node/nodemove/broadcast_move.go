@@ -27,10 +27,10 @@ func BroadcastToPartners(edges map[string]*edgetable.Edge, nodeGeoms map[string]
 			continue
 		}
 
-		msg := movemsg.Msg{Kind: movemsg.KindCenter, NodeID: partnerID, Center: nil, SenderID: movedID}
+		moved := movemsg.NeighborMoved{SenderID: movedID}
 		if d, ok := moveDeltas[movedID]; ok {
-			msg.Delta = &d
+			moved.Delta = &d
 		}
-		enqueue(partnerID, msg)
+		enqueue(partnerID, movemsg.Msg{NodeID: partnerID, Body: moved})
 	}
 }

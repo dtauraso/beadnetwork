@@ -43,7 +43,7 @@ func commitDragStart(ui *viewstate.UIState, sendMoveFn func(id string, msg movem
 
 	ui.LastDraggedNode = g.DragNode
 
-	sendMoveFn(g.DragNode, movemsg.Msg{Kind: movemsg.KindDragStart, NodeID: g.DragNode})
+	sendMoveFn(g.DragNode, movemsg.Msg{NodeID: g.DragNode, Body: movemsg.DragStart{}})
 }
 
 func commitHandholdStart(d Deps, g *Drag.GestureState, ev Drag.RawInputMsg) {
