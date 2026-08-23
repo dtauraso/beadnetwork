@@ -1,4 +1,4 @@
-package scenerun
+package Dispatch
 
 import "github.com/dtauraso/wirefold/Categories/Scene/Drag"
 

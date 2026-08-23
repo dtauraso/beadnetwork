@@ -1,11 +1,9 @@
-package scenerun
+package Dispatch
 
 import (
 	"context"
 
 	NodeKind "github.com/dtauraso/wirefold/Categories/Node"
-
-	edge "github.com/dtauraso/wirefold/Categories/Node/Edge"
 
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/SliderPanel"
 	"github.com/dtauraso/wirefold/Categories/Scene"
@@ -49,25 +47,6 @@ func applyUpdateScene(ctx context.Context, attr byte, payload []byte, md *MoveDi
 		nodeID, _ := md.RT.LookupNodeRow(e.Num)
 		structuraledit.DeleteNode(&md.Scenes, &md.UI, nodeID, e.Num)
 	}
-}
-
-func applyUpdateNode(ctx context.Context, attr byte, payload []byte, md *MoveDispatch, _ SliderPanel.Sinks) {
-	e, ok := NodeKind.DecodeUpdate(payload, attr)
-	if !ok {
-		return
-	}
-	NodeKind.EditNode(ctx, e, &md.Rules)
-}
-
-func applyUpdateEdge(ctx context.Context, attr byte, payload []byte, md *MoveDispatch, _ SliderPanel.Sinks) {
-	if md == nil {
-		return
-	}
-	e, ok := edge.DecodeUpdate(payload, attr)
-	if !ok {
-		return
-	}
-	edge.EditEdge(ctx, e, md.Rules.TogglesByEdgeRow)
 }
 
 func sendRuleEdit(ctx context.Context, md *MoveDispatch, row int, edit NodeKind.RuleEdit) {

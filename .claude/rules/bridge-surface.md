@@ -15,7 +15,7 @@ carries the TS → Go vocabulary.
 **TS → Go** is framed binary records on stdin. Two shapes, and the distinction is the model:
 
 - **Addressed edits** — a single geometry-CRUD `edit` message whose sole op is `update`
-  (see `Categories/Scene/scenerun/dispatch_edit.go` `applyEdit`, fenced by `EDIT_OPS_START`/
+  (see `Categories/Scene/Dispatch/dispatch_edit.go` `applyEdit`, fenced by `EDIT_OPS_START`/
   `EDIT_OPS_END`, and `Start/extension/messages.ts` `EditMsg`): **`update` sets
   an ATTRIBUTE on a typed entity** (`kind` = node / edge / camera / overlays / panels /
   scene) — there is no per-feature op. New *addressed* capability is a new entity kind or
@@ -63,9 +63,9 @@ no host→webview message of any kind.
 
 Keep all of it in parity across `messages.ts`, the `Categories/Node/Wiring` stdin reader/dispatch
 (`stdin_reader.go`'s `MSG_TYPES` fence, `dispatch_edit.go`'s edit tables), and `handle-message.ts`
-(guards: `Categories/Scene/scenerun/check-edit-op-parity.sh`, `Categories/Scene/scenerun/check-message-kind-parity.sh`).
+(guards: `Categories/Scene/Dispatch/check-edit-op-parity.sh`, `Categories/Scene/Dispatch/check-message-kind-parity.sh`).
 
 There is no single wire-layout string any more. Each vocabulary is declared in Go by the
 concern that uses it — every `update_attrs.go`, `Categories/Scene/Drag/kinds.go`,
-`Categories/Scene/scenerun/dispatch_edit.go` — and each `wire-gen.ts` is generated from those
+`Categories/Scene/Dispatch/dispatch_edit.go` — and each `wire-gen.ts` is generated from those
 declarations, so the TS copy cannot drift from the Go one.

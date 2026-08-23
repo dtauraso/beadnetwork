@@ -38,3 +38,11 @@ func SetCount(ov *OverlayState, chans ChannelVectors, emit Emitter, flags []stri
 		ToggleFlag(ov, chans, emit, flag)
 	}
 }
+
+func ApplyUpdate(attr byte, payload []byte, ov *OverlayState, chans ChannelVectors, emit Emitter, persist func(OverlayState)) {
+	e, ok := DecodeUpdate(payload, attr)
+	if !ok {
+		return
+	}
+	EditOverlays(e, ov, chans, emit, persist)
+}

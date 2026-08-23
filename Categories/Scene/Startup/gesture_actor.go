@@ -5,7 +5,7 @@ import (
 	"os"
 	"sync"
 
-	"github.com/dtauraso/wirefold/Categories/Scene/scenerun"
+	"github.com/dtauraso/wirefold/Categories/Scene/Dispatch"
 
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/SliderPanel"
 
@@ -31,7 +31,7 @@ type GestureInboxMsg struct {
 
 const gestureInboxDepth = 64
 
-func StartGestureActor(ctx context.Context, md *scenerun.MoveDispatch, speedSinks SliderPanel.Sinks, clk clock.Clock, inputPath string) (chan GestureInboxMsg, *sync.WaitGroup) {
+func StartGestureActor(ctx context.Context, md *Dispatch.MoveDispatch, speedSinks SliderPanel.Sinks, clk clock.Clock, inputPath string) (chan GestureInboxMsg, *sync.WaitGroup) {
 	inbox := make(chan GestureInboxMsg, gestureInboxDepth)
 	wg := new(sync.WaitGroup)
 	wg.Add(1)
@@ -44,7 +44,7 @@ func StartGestureActor(ctx context.Context, md *scenerun.MoveDispatch, speedSink
 			for _, raw := range reader.ReadAll() {
 				if ev, ok := Drag.DecodeRawInput(raw); ok {
 					wheel.difference(&ev)
-					scenerun.HandleRawInputMsg(ctx, ev, md, speedSinks)
+					Dispatch.HandleRawInputMsg(ctx, ev, md, speedSinks)
 				}
 			}
 
@@ -56,9 +56,9 @@ func StartGestureActor(ctx context.Context, md *scenerun.MoveDispatch, speedSink
 				case gm := <-inbox:
 					switch gm.Kind {
 					case GestureMsgEdit:
-						scenerun.ApplyEdit(ctx, gm.Op, gm.Entity, gm.Attr, gm.Payload, md, speedSinks)
+						Dispatch.ApplyEdit(ctx, gm.Op, gm.Entity, gm.Attr, gm.Payload, md, speedSinks)
 					case GestureMsgSave:
-						scenerun.HandleSaveMsg(md)
+						Dispatch.HandleSaveMsg(md)
 					}
 				default:
 					break drain
@@ -99,7 +99,7 @@ func SendGestureMsgBlocking(ctx context.Context, inbox chan GestureInboxMsg, gm 
 	}
 }
 
-func StartStdinReader(ctx context.Context, cancel context.CancelFunc, md *scenerun.MoveDispatch, speedSinks SliderPanel.Sinks, clk clock.Clock, inputPath string) (*sync.WaitGroup, *sync.WaitGroup) {
+func StartStdinReader(ctx context.Context, cancel context.CancelFunc, md *Dispatch.MoveDispatch, speedSinks SliderPanel.Sinks, clk clock.Clock, inputPath string) (*sync.WaitGroup, *sync.WaitGroup) {
 	inbox, gestureWG := StartGestureActor(ctx, md, speedSinks, clk, inputPath)
 
 	stdinWG := new(sync.WaitGroup)

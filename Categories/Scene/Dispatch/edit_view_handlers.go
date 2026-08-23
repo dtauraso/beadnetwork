@@ -1,4 +1,4 @@
-package scenerun
+package Dispatch
 
 import (
 	"context"
@@ -13,36 +13,12 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Scene"
 )
 
-func applyUpdateOverlays(_ context.Context, attr byte, payload []byte, md *MoveDispatch, _ SliderPanel.Sinks) {
-	e, ok := Overlay.DecodeUpdate(payload, attr)
-	if !ok {
-		return
-	}
-	Overlay.EditOverlays(e, &md.UI.OV, &md.ChannelVectorsOn, &md.UI, md.persistOverlays)
-}
-
 func (md *MoveDispatch) persistOverlays(ov Overlay.OverlayState) {
 	md.Persist.Overlays().Schedule(ov)
 }
 
-func applyUpdatePanels(_ context.Context, attr byte, payload []byte, md *MoveDispatch, _ SliderPanel.Sinks) {
-	e, ok := Panel.DecodeUpdate(payload, attr)
-	if !ok {
-		return
-	}
-	Panel.EditPanels(e, &md.UI.PN, md.persistPanels, md.redraw)
-}
-
 func (md *MoveDispatch) persistPanels(pn Panel.PanelState) {
 	md.Persist.Panels().Schedule(pn)
-}
-
-func applyUpdateClock(_ context.Context, attr byte, payload []byte, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
-	e, ok := Speed.DecodeUpdate(payload, attr)
-	if !ok {
-		return
-	}
-	Speed.EditSpeed(e, md.speedState(), speedSinks, md.persistSpeed, md.redraw)
 }
 
 func (md *MoveDispatch) speedState() Speed.SpeedState {

@@ -70,3 +70,11 @@ func ToggleKindRule(ctx context.Context, rules *RuleChannels, row int) {
 	case <-ctx.Done():
 	}
 }
+
+func ApplyUpdate(ctx context.Context, attr byte, payload []byte, rules *RuleChannels) {
+	e, ok := DecodeUpdate(payload, attr)
+	if !ok {
+		return
+	}
+	EditNode(ctx, e, rules)
+}

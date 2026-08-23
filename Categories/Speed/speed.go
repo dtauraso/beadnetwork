@@ -1,7 +1,7 @@
 package Speed
 
 import (
-	"github.com/dtauraso/wirefold/Categories/Clock"
+	clock "github.com/dtauraso/wirefold/Categories/Clock"
 )
 
 const SpeedNumScale = 4
@@ -74,4 +74,12 @@ func SendSpeedNonBlocking(ch chan float64, speed float64) {
 	case ch <- speed:
 	default:
 	}
+}
+
+func ApplyUpdate(attr byte, payload []byte, st SpeedState, sinks Broadcaster, persist func(float64), redraw func()) {
+	e, ok := DecodeUpdate(payload, attr)
+	if !ok {
+		return
+	}
+	EditSpeed(e, st, sinks, persist, redraw)
 }
