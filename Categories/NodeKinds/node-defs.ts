@@ -22,7 +22,6 @@ export interface NodeDef {
 // PascalCase Go kind names that have a Go runtime.
 // Single source of truth — derived from bead.Register calls.
 export const RUNTIME_IMPLEMENTED_KINDS: ReadonlySet<string> = new Set([
-  "HoldFlip",
   "Input",
   "NormalSum",
   "Pacer",
@@ -38,7 +37,6 @@ export const RUNTIME_IMPLEMENTED_KINDS: ReadonlySet<string> = new Set([
 ]);
 
 export const NODE_DEFS: Record<string, NodeDef> = {
-  HoldFlip: { bg: "#eceff1", border: "#263238", text: "#263238", minWidth: 36, shape: "rect", fill: "#eceff1", stroke: "#263238", width: 36, height: 36, desc: "Inverts what it receives: a 0 goes out as 1, a 1 as 0.", inputs: [{ name: "In", kind: "chain" }], outputs: [{ name: "Out", kind: "chain" }] },
   Input: { bg: "#e0e0e0", border: "#666", text: "#1a1a1a", minWidth: 90, shape: "rect", fill: "#e0e0e0", stroke: "#666", width: 80, height: 60, desc: "The source: emits its own authored list of values, last one first, optionally repeating.", inputs: [{ name: "FeedbackIn", kind: "chain" }], outputs: [{ name: "OutCadence", kind: "chain" }, { name: "ToExcitatory", kind: "chain" }] },
   NormalSum: { bg: "#ede7f6", border: "#4527a0", text: "#311b92", minWidth: 70, shape: "rect", fill: "#ede7f6", stroke: "#4527a0", width: 70, height: 60, desc: "Takes a normal from each of two nodes and holds their total, drawn as its own vector.", inputs: [{ name: "NormalA", kind: "chain" }, { name: "NormalB", kind: "chain" }], outputs: [{ name: "Out", kind: "chain" }] },
   Pacer: { bg: "#e8f5e9", border: "#2e7d32", text: "#1b5e20", minWidth: 60, shape: "rect", fill: "#e8f5e9", stroke: "#2e7d32", width: 60, height: 60, desc: "Sends 1 back when the value it receives differs from the last one, and 0 when it repeats.", inputs: [{ name: "In", kind: "chain" }], outputs: [{ name: "FeedbackOut", kind: "chain" }] },
@@ -58,9 +56,9 @@ export const NODE_DEFS: Record<string, NodeDef> = {
  * in Categories/Node/node_kind_id_gen.go. */
 export const UNKNOWN_KIND_ID = 0xff;
 
-export const NODE_DEFS_ARRAY: readonly NodeDef[] = [
+export const NODE_DEFS_ARRAY: readonly (NodeDef | undefined)[] = [
   { bg: "#fff3e0", border: "#7f0000", text: "#bf360c", minWidth: 60, shape: "rect", fill: "#fff3e0", stroke: "#7f0000", width: 60, height: 60, desc: "The end of a time chain: holds what arrives and sends nothing on.", inputs: [{ name: "In", kind: "chain" }] },
-  { bg: "#eceff1", border: "#263238", text: "#263238", minWidth: 36, shape: "rect", fill: "#eceff1", stroke: "#263238", width: 36, height: 36, desc: "Inverts what it receives: a 0 goes out as 1, a 1 as 0.", inputs: [{ name: "In", kind: "chain" }], outputs: [{ name: "Out", kind: "chain" }] },
+  undefined, // gap left by a removed kind (KindId 1)
   { bg: "#fff3e0", border: "#e65100", text: "#bf360c", minWidth: 90, shape: "rect", fill: "#fff3e0", stroke: "#e65100", width: 90, height: 60, desc: "Holds what arrives and sends on what it was holding, so a value comes out one arrival late.", inputs: [{ name: "In", kind: "chain" }], outputs: [{ name: "ToNext", kind: "chain", isMulti: true }] },
   { bg: "#e0e0e0", border: "#666", text: "#1a1a1a", minWidth: 90, shape: "rect", fill: "#e0e0e0", stroke: "#666", width: 80, height: 60, desc: "The source: emits its own authored list of values, last one first, optionally repeating.", inputs: [{ name: "FeedbackIn", kind: "chain" }], outputs: [{ name: "OutCadence", kind: "chain" }, { name: "ToExcitatory", kind: "chain" }] },
   { bg: "#e8f5e9", border: "#2e7d32", text: "#1b5e20", minWidth: 60, shape: "rect", fill: "#e8f5e9", stroke: "#2e7d32", width: 60, height: 60, desc: "Sends 1 back when the value it receives differs from the last one, and 0 when it repeats.", inputs: [{ name: "In", kind: "chain" }], outputs: [{ name: "FeedbackOut", kind: "chain" }] },
@@ -74,9 +72,9 @@ export const NODE_DEFS_ARRAY: readonly NodeDef[] = [
   { bg: "#ede7f6", border: "#4527a0", text: "#311b92", minWidth: 70, shape: "rect", fill: "#ede7f6", stroke: "#4527a0", width: 70, height: 60, desc: "Takes a normal from each of two nodes and holds their total, drawn as its own vector.", inputs: [{ name: "NormalA", kind: "chain" }, { name: "NormalB", kind: "chain" }], outputs: [{ name: "Out", kind: "chain" }] },
 ];
 
-export const NODE_KIND_NAMES: readonly string[] = [
+export const NODE_KIND_NAMES: readonly (string | undefined)[] = [
   "TimeEnd",
-  "HoldFlip",
+  undefined, // gap left by a removed kind (KindId 1)
   "Time",
   "Input",
   "Pacer",

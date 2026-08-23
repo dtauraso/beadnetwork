@@ -9,10 +9,6 @@ package portwiring
 // this instead of taking a hand-written list, so a kind declares its ports
 // in one place and the runtime and the editor cannot disagree about them.
 var KindPorts = map[string][]PortSpec{
-	"HoldFlip": {
-		{Name: "In", Dir: PortIn},
-		{Name: "Out", Dir: PortOut},
-	},
 	"Input": {
 		{Name: "OutCadence", Dir: PortOut},
 		{Name: "ToExcitatory", Dir: PortOut},
