@@ -150,7 +150,8 @@ func shiftRow(r *Row, dy float32) {
 	r.SharedRect.Y += dy
 }
 
-func Build(st *Panel.Stack, open bool, nodes []Node, edit Edit, sharedMenuRow int32, scroll float32) Layout {
+func Build(st *Panel.Stack, open bool, s State) Layout {
+	nodes, edit, sharedMenuRow, scroll := s.Nodes, s.Edit, s.SharedRow, s.Scroll
 	toggleH := Panel.LineHeight(HeadFontPx) + 4
 	top := st.Next()
 	lay := Layout{
@@ -202,4 +203,16 @@ func Build(st *Panel.Stack, open bool, nodes []Node, edit Edit, sharedMenuRow in
 		buildSharedMenu(&lay, nodes, sharedMenuRow)
 	}
 	return lay
+}
+
+// State is what this panel remembers between frames: the rows it lists, the
+// half-typed theta, which row's shared rules are open, how far it is scrolled.
+// The view holds one of these the way it already holds the overlay flags and the
+// panel state — as the owning package's own type, so nothing else can name a
+// field of it by accident.
+type State struct {
+	Nodes     []Node
+	Edit      Edit
+	SharedRow int32
+	Scroll    float32
 }

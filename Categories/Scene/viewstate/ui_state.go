@@ -83,29 +83,22 @@ type UIState struct {
 
 	NodeRowFor func(id string) (int32, bool)
 
-	TiltRows   []int32
-	TiltLabels []string
+	Tilt TiltPanel.State
 
 	ViewW, ViewH float64
 
 	Pointer PointerTarget
 
-	OverlaysScroll float32
+	OverlaysPill Pills.State
 
-	RulesScroll float32
+	Angle AngleDropdown.State
 
-	AngleOpen      bool
-	AngleGroupOpen map[int32]bool
-
-	NodesOpen    bool
+	Nodes        NodesDropdown.State
 	NodesRowOpen map[uint8]bool
 
-	SceneTabNames    []string
-	SceneTabSelected int
+	TabStrip Tabs.State
 
-	RuleNodes     []PolarRulesPanel.Node
-	RuleEdit      PolarRulesPanel.Edit
-	RuleSharedRow int32
+	Rules PolarRulesPanel.State
 
 	PlacingKind    uint8
 	PlacingPending bool
