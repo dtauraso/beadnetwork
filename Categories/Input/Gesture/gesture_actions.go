@@ -62,7 +62,7 @@ func applyNodeDragTarget(ui *viewstate.UIState, rootMove func(id string, target 
 	if !ok {
 		return false
 	}
-	rootMove(g.DragNode, Vec3(hit.Add(viewstate.Vec3(g.DragGrabOffset))))
+	rootMove(g.NodeDrag.Node, Vec3(g.NodeDrag.TargetFor(Node.Vec3(hit))))
 	return true
 }
 

@@ -168,7 +168,7 @@ func (ui *UIState) DragPlaneHit(ev Drag.RawInputMsg) (hit Vec3, ok bool) {
 	if denom == 0 {
 		return Vec3{}, false
 	}
-	t := g.DragStartCenter.Sub(Drag.Vec3(eye)).Dot(Drag.Vec3(forward)) / denom
+	t := g.NodeDrag.StartCenter.Sub(Node.Vec3(eye)).Dot(Node.Vec3(forward)) / denom
 	hit = Vec3(eye.Add(dir.Scale(t)))
 	if math.IsNaN(hit.X) || math.IsInf(hit.X, 0) {
 		return Vec3{}, false

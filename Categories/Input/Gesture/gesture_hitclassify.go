@@ -17,8 +17,8 @@ var hitClassifiers = map[string]func(d Deps, g *Drag.GestureState, ev Drag.RawIn
 	"node": func(d Deps, g *Drag.GestureState, ev Drag.RawInputMsg) {
 		if node, ok := d.RT.NodeFromHit(ev.Hit); ok {
 			if c, ok := d.MR.CenterOf(node); ok {
-				g.DragNode = node
-				g.DragStartCenter = Drag.Vec3(c)
+				g.NodeDrag.Node = node
+				g.NodeDrag.StartCenter = Node.Vec3(c)
 			}
 		}
 	},

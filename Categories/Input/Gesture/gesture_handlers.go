@@ -36,7 +36,7 @@ func gestPointerDown(d Deps, ev Drag.RawInputMsg) {
 	g.Secondary = ev.Button == 2
 	g.Phase = Drag.GestPending
 	g.EmptyDown = false
-	g.DragNode = ""
+	g.NodeDrag.Clear()
 	g.HandholdDown = false
 
 	if h, ok := hitClassifiers[ev.Hit.Kind]; ok {
@@ -48,7 +48,7 @@ func gestPointerDown(d Deps, ev Drag.RawInputMsg) {
 		TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 		Value: int32(ev.Button),
 		Text: fmt.Sprintf("hit=%q empty=%t handhold=%t node=%q xy=%.0f,%.0f rect=%.0f,%.0f,%.0fx%.0f pxPerRad=%.2f",
-			ev.Hit.Kind, g.EmptyDown, g.HandholdDown, g.DragNode,
+			ev.Hit.Kind, g.EmptyDown, g.HandholdDown, g.NodeDrag.Node,
 			ev.X, ev.Y, g.Rect.Left, g.Rect.Top, g.Rect.Width, g.Rect.Height, g.RotPxPerRad),
 	})
 }
@@ -91,7 +91,7 @@ func gestPointerUp(d Deps, ev Drag.RawInputMsg) {
 	}
 	wasDragging := g.Phase == Drag.GestDragging
 
-	draggedNode := g.DragNode
+	draggedNode := g.NodeDrag.Node
 	g.Reset(&d.UI.VP.Viewpoint)
 	if wasDragging {
 

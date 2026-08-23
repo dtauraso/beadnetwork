@@ -16,7 +16,7 @@ type gestureEdge struct {
 
 var commitEdges = []gestureEdge{
 	{
-		guard: func(g *Drag.GestureState) bool { return g.DragNode != "" },
+		guard: func(g *Drag.GestureState) bool { return g.NodeDrag.Holding() },
 		action: func(d Deps, g *Drag.GestureState, ev Drag.RawInputMsg) {
 			mr, ctx := d.MR, d.Ctx
 			commitDragStart(d.UI, func(id string, msg Node.Msg) { mr.SendMove(ctx, id, msg) }, g, ev)
@@ -38,12 +38,12 @@ var commitEdges = []gestureEdge{
 func commitDragStart(ui *viewstate.UIState, sendMoveFn func(id string, msg Node.Msg), g *Drag.GestureState, ev Drag.RawInputMsg) {
 
 	if hit, ok := ui.DragPlaneHit(ev); ok {
-		g.DragGrabOffset = g.DragStartCenter.Sub(Drag.Vec3(hit))
+		g.NodeDrag.GrabAt(Node.Vec3(hit))
 	}
 
-	ui.LastDraggedNode = g.DragNode
+	ui.LastDraggedNode = g.NodeDrag.Node
 
-	sendMoveFn(g.DragNode, Node.Msg{NodeID: g.DragNode, Body: Node.DragStart{}})
+	sendMoveFn(g.NodeDrag.Node, Node.Msg{NodeID: g.NodeDrag.Node, Body: Node.DragStart{}})
 }
 
 func commitHandholdStart(d Deps, g *Drag.GestureState, ev Drag.RawInputMsg) {
