@@ -5,7 +5,7 @@ TS_ROOTS=(
   "Categories/Scene/Camera"
   "Categories/Chrome"
   "Categories/Clock"
-  "Categories/Input"
+  "Categories/Scene"
   "Categories/Node"
   "Categories/NodeKinds"
   "Categories/Overlay"

@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/dtauraso/wirefold/Categories/Scene/Drag"
-	"github.com/dtauraso/wirefold/Categories/Input/Gesture"
+	"github.com/dtauraso/wirefold/Categories/Scene/Gesture"
 )
 
 func (md *MoveDispatch) HandleRawInput(ctx context.Context, ev Drag.RawInputMsg) {

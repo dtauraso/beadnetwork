@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: **/*.ts,**/*.ts | TS→Go sends (postGoRecord/sendRawInput/writeStdin/postMessage) must be fire-and-forget, no await/.then
+# PLACEMENT: Start/extension/webview/vscode-api.ts,Start/extension/handle-message.ts | TS→Go sends (postGoRecord/sendRawInput/writeStdin/postMessage) must be fire-and-forget, no await/.then
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel)"

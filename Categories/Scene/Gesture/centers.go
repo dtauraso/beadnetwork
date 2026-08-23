@@ -2,10 +2,10 @@ package Gesture
 
 import (
 	FitButton "github.com/dtauraso/wirefold/Categories/Chrome/Pills/FitButton"
-	Drag "github.com/dtauraso/wirefold/Categories/Scene/Drag"
 	Node "github.com/dtauraso/wirefold/Categories/Node"
 	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
 	Camera "github.com/dtauraso/wirefold/Categories/Scene/Camera"
+	Drag "github.com/dtauraso/wirefold/Categories/Scene/Drag"
 )
 
 func centerOfForMove(f func(id string) (Vec3, bool)) func(id string) (nodegeom.Vec3, bool) {

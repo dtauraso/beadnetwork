@@ -5,7 +5,7 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Scene/viewstate"
 	"sync"
 
-	"github.com/dtauraso/wirefold/Categories/Input/Gesture"
+	"github.com/dtauraso/wirefold/Categories/Scene/Gesture"
 	"github.com/dtauraso/wirefold/Categories/Node"
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgegeom"

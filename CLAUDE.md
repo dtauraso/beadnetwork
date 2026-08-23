@@ -37,7 +37,7 @@ delivery), node goroutine, node input, and clock
 1. An entry in `NODE_DEFS` (`Categories/NodeKinds/node-defs.ts`, generated).
 2. No separate `registry.ts` — `node-defs.ts` is the single node-kind registry, and it lives
    in `Categories/NodeKinds/` with the kinds it describes. **There is no `src/schema/`**: a registry
-   lives with its concern, so `messages.ts` and the input codec are `Categories/Input/`,
+   lives with its concern, so `messages.ts` and the input codec are `Categories/Scene/Drag/`,
    `scenes-gen.ts` is `Categories/Scene/`, `wire-defs.ts` is `Categories/Scene/loadspec/`, and the trace
    events are `Trace/`. Adding a node kind touches only `node-defs.ts`.
 3. The Go node package under `Categories/NodeKinds/<Kind>/`, with its logic always in `node.go` (never
@@ -99,9 +99,9 @@ one directory out, since a directory is one Go package. `go generate ./...` runs
 - **`Categories/Node/`** — the node itself: its actor and geometry, its movers and rules, the
   per-owner FILES it writes (`BeadAnimation/`, `Edge/`, `Interior/`), its poles, its block file. A directory here is NOT a kind — the scanner and `check-dep-rules.sh` decide that by
   the `Register(...)` call, not by placement.
-- **`Categories/Input/`** — the TS→Go half of the bridge, end to end: `stdinreader` (framed records off
-  stdin, knowing nothing of what they mean), `inputcodec` (decode), `gesture`/`gesturefsm` (raw
-  pointer/wheel → drags, orbits), `dispatch` (the `MoveDispatch` composer, and what an edit does).
+- **The TS→Go half of the bridge has no category of its own** — each part sits with what it is about:
+  `Scene/Drag/` the raw pointer/wheel record, wire format, hit kinds, NDC and rect; `Scene/Gesture/` the
+  FSM making orbits and handholds, `Node/Gesture/` the half that grabs, drags and hovers a node.
 - **`src/spatial/`** — `Vec3`, `Segment`, eight operations, 37 lines, importing only `math`. It
   is the MEDIUM, deliberately unremarkable; the substance sits on top in **`Categories/Polar/`** —
   `polar` (coordinate/composition) and `polarindex` (index × constant) — never inside it.
