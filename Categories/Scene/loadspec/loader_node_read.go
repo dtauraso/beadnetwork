@@ -2,12 +2,12 @@ package loadspec
 
 import (
 	"fmt"
+	NodeBuf "github.com/dtauraso/wirefold/Categories/Node"
 	"os"
 	"path/filepath"
 	"sort"
 
 	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgefile"
-	"github.com/dtauraso/wirefold/Categories/Node/nodefile"
 )
 
 func readLeaf(path string, v any) bool {
@@ -33,23 +33,23 @@ func readOptInt32(path string) *int32 {
 func loadNodeBase(root, nodesDir, nodeID string) (Node, error) {
 	nodeDir := filepath.Join(nodesDir, nodeID)
 
-	baseDir := nodefile.BaseDir(nodeDir)
+	baseDir := NodeBuf.BaseDir(nodeDir)
 	var nodeType string
-	if !readLeaf(filepath.Join(baseDir, nodefile.FileType), &nodeType) {
-		return Node{}, fmt.Errorf("loadTree: node %q has no %s", nodeID, nodefile.FileType)
+	if !readLeaf(filepath.Join(baseDir, NodeBuf.FileType), &nodeType) {
+		return Node{}, fmt.Errorf("loadTree: node %q has no %s", nodeID, NodeBuf.FileType)
 	}
 
 	sn := Node{
 		ID:                  nodeID,
 		Type:                nodeType,
-		IndexPhi:            readOptInt(filepath.Join(baseDir, nodefile.FileIndexPhi)),
-		IndexTheta:          readOptInt(filepath.Join(baseDir, nodefile.FileIndexTheta)),
-		IndexR:              readOptInt(filepath.Join(baseDir, nodefile.FileIndexR)),
-		Drag:                nodefile.ReadDragRule(filepath.Join(baseDir, nodefile.DirDragRule)),
-		SelfDrag:            nodefile.ReadDragRule(filepath.Join(baseDir, nodefile.DirSelfRule)),
-		TopTiltVectorPhiIdx: readOptInt32(filepath.Join(baseDir, nodefile.FileTiltIdx)),
+		IndexPhi:            readOptInt(filepath.Join(baseDir, NodeBuf.FileIndexPhi)),
+		IndexTheta:          readOptInt(filepath.Join(baseDir, NodeBuf.FileIndexTheta)),
+		IndexR:              readOptInt(filepath.Join(baseDir, NodeBuf.FileIndexR)),
+		Drag:                NodeBuf.ReadDragRule(filepath.Join(baseDir, NodeBuf.DirDragRule)),
+		SelfDrag:            NodeBuf.ReadDragRule(filepath.Join(baseDir, NodeBuf.DirSelfRule)),
+		TopTiltVectorPhiIdx: readOptInt32(filepath.Join(baseDir, NodeBuf.FileTiltIdx)),
 	}
-	readLeaf(filepath.Join(baseDir, nodefile.FileGate), &sn.Gate)
+	readLeaf(filepath.Join(baseDir, NodeBuf.FileGate), &sn.Gate)
 
 	nd, err := readNodeData(nodeDir)
 	if err != nil {

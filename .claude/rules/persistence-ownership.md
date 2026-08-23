@@ -156,9 +156,9 @@ Consequences to keep in mind:
 
 ## The owner writes, and owns the path
 
-- A node writes its own `position/local-polars` (`Categories/Node/nodefile/drag_index.go`);
-  `Categories/Scene/loadspec/drag_index.go` reads those four files back, the two agreeing on the
-  layout the way a block file's writer and reader do. There is no longer a separate
+- A node writes its own `position/local-polars` and reads them back from one file,
+  `Categories/Node/nodefile_drag_index.go` — Write and Read beside each other, so the four filenames
+  and the directory are spelled once; loadspec held a second reader. There is no longer a separate
   `inputs/`/`outputs/` port-geometry
   file — port geometry was removed with the port model (edges attach on the bead lattice,
   `Categories/Node/BeadAnimation/lattice/bead_lattice.go`); this bullet used to list it as a second thing the mover writes.

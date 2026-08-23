@@ -1,6 +1,7 @@
 package loadspec
 
 import (
+	NodeBuf "github.com/dtauraso/wirefold/Categories/Node"
 	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgefile"
 )
 
@@ -10,8 +11,8 @@ func ApplyDragOverlay(root string, spec *TopoSpec) {
 		if !n.hasPoint() {
 			continue
 		}
-		if drag, ok := readDragIndex(root, n.ID); ok {
-			n.DragIndexPhi, n.DragIndexTheta, n.DragIndexR = &drag.Phi, &drag.Theta, &drag.R
+		if phi, theta, r, _, ok := NodeBuf.ReadDragIndex(root, n.ID); ok {
+			n.DragIndexPhi, n.DragIndexTheta, n.DragIndexR = &phi, &theta, &r
 		}
 	}
 

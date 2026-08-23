@@ -1,4 +1,4 @@
-package nodefile
+package Node
 
 import (
 	"path/filepath"
