@@ -199,7 +199,6 @@ func (l Layout) Hit(x, y float64) Hit {
 	return Hit{}
 }
 
-// State is what the pill remembers: whether it is open, and which groups are.
 type State struct {
 	Open      bool
 	GroupOpen map[int32]bool

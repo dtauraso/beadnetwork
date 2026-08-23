@@ -135,7 +135,6 @@ func (l Layout) Hit(x, y float64) Button {
 	return ButtonNone
 }
 
-// State is what the panel remembers: the rows it lists and their labels.
 type State struct {
 	Rows   []int32
 	Labels []string

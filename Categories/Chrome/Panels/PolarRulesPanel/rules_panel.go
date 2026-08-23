@@ -205,11 +205,6 @@ func Build(st *Panel.Stack, open bool, s State) Layout {
 	return lay
 }
 
-// State is what this panel remembers between frames: the rows it lists, the
-// half-typed theta, which row's shared rules are open, how far it is scrolled.
-// The view holds one of these the way it already holds the overlay flags and the
-// panel state — as the owning package's own type, so nothing else can name a
-// field of it by accident.
 type State struct {
 	Nodes     []Node
 	Edit      Edit

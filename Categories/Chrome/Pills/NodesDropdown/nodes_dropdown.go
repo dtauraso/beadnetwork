@@ -145,7 +145,6 @@ func (l Layout) Hit(x, y float64) Hit {
 	return Hit{}
 }
 
-// State is what the pill remembers: whether it is open.
 type State struct {
 	Open bool
 }

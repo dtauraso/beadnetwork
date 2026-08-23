@@ -14,7 +14,6 @@ func SelectedIndex(anchorPath string) int {
 	return Scenes.SelectedIndex(anchorPath)
 }
 
-// State is what the strip remembers: the scenes it offers and which is open.
 type State struct {
 	Names    []string
 	Selected int

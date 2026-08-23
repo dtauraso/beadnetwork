@@ -39,7 +39,6 @@ func (w *ValueWriter) Rect(xName, yName, wName, hName string, r Rect) {
 	w.F32(hName, r.H)
 }
 
-// State is what the overlays pill remembers: how far it is scrolled.
 type State struct {
 	Scroll float32
 }
