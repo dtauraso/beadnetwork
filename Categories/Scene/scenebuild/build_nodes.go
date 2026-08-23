@@ -7,10 +7,10 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/SliderPanel"
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/TiltPanel"
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
+	"github.com/dtauraso/wirefold/Categories/Node"
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
-	"github.com/dtauraso/wirefold/Categories/Node/nodeinbox"
-	"github.com/dtauraso/wirefold/Categories/Node/nodeactor"
 	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
+	"github.com/dtauraso/wirefold/Categories/Node/nodeinbox"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/kindreg"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/nodeapi"
@@ -41,12 +41,12 @@ func buildNodes(
 			md.Inboxes.ClaimTiltEditIn(name, panelToNodeTiltEditIn)
 			return panelToNodeTiltEditIn
 		},
-		ClaimSelfDriveGeom: func(name string) *nodeactor.NodeGeometry {
+		ClaimSelfDriveGeom: func(name string) *Node.NodeGeometry {
 			ng, ok := md.MR.NodeGeoms()[name]
 			if !ok {
 				return nil
 			}
-			ng.CopyClockSrc()
+			ng.Clocks().CopyClockSrc()
 			return ng
 		},
 	}

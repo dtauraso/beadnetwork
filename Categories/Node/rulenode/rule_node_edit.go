@@ -5,7 +5,7 @@ import (
 
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/PolarRulesPanel"
 
-	"github.com/dtauraso/wirefold/Categories/Node/nodeactor/nodefiles"
+	"github.com/dtauraso/wirefold/Categories/Node/nodefile"
 )
 
 func (r *RuleNode) applyEdit(e Edit) {
@@ -97,7 +97,7 @@ func (r *RuleNode) persistRule() {
 	if r.persistRoot == "" {
 		return
 	}
-	if err := nodefiles.WriteDragRule(r.persistRoot, r.id, r.rule); err != nil {
+	if err := nodefile.WriteDragRule(r.persistRoot, r.id, r.rule); err != nil {
 		LogPersistErr("rulenode", r.id, err)
 	}
 }
@@ -106,7 +106,7 @@ func (r *RuleNode) persistSelfRule() {
 	if r.persistRoot == "" {
 		return
 	}
-	if err := nodefiles.WriteSelfDragRule(r.persistRoot, r.id, r.selfRule); err != nil {
+	if err := nodefile.WriteSelfDragRule(r.persistRoot, r.id, r.selfRule); err != nil {
 		LogPersistErr("rulenode", r.id, err)
 	}
 }
@@ -115,7 +115,7 @@ func (r *RuleNode) persistSelfActive() {
 	if r.persistRoot == "" {
 		return
 	}
-	if err := nodefiles.WriteSelfRuleActive(r.persistRoot, r.id, r.selfActive); err != nil {
+	if err := nodefile.WriteSelfRuleActive(r.persistRoot, r.id, r.selfActive); err != nil {
 		LogPersistErr("rulenode", r.id, err)
 	}
 }
@@ -124,7 +124,7 @@ func (r *RuleNode) persistActive() {
 	if r.persistRoot == "" {
 		return
 	}
-	if err := nodefiles.WriteDragActive(r.persistRoot, r.id, r.active); err != nil {
+	if err := nodefile.WriteDragActive(r.persistRoot, r.id, r.active); err != nil {
 		LogPersistErr("rulenode", r.id, err)
 	}
 }

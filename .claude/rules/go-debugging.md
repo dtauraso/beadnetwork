@@ -10,7 +10,7 @@ paths:
 
 Go-side runtime debugging goes through the **DEBUG BREADCRUMB channel** — the Go analogue
 of the webview's `postLog`. Call `tr.Breadcrumb(label, node, port, value string)` at a debug
-site: it is a structured `Kind==KindBreadcrumb` row (`Categories/Node/nodeactor/owners/trace_event.go`) that the
+site: it is a structured `Kind==KindBreadcrumb` row (`Categories/Node/owners/trace_event.go`) that the
 EMITTING goroutine writes ITSELF, as a fixed-width binary record appended to the file
 belonging to the item the event is about:
 
@@ -29,7 +29,7 @@ decoders. A stream frame now carries only a tick.
 Read them with `scripts/probe-merge.sh --debug`, which decodes every `trace.bin` at READ
 time via the owner-specific `readtrace` (see scripts/probe-merge.sh) and filters to `kind=="breadcrumb" && debug==true` —
 separate from genuine stderr errors (`.probe/go-errors.log`, still plain text). To read one
-item on its own: `go run ./Node/nodeactor/owners/readtrace topology/view/nodes/3/trace.bin`.
+item on its own: `go run ./Categories/Node/owners/readtrace topology/view/nodes/3/trace.bin`.
 
 Do NOT scatter `fmt.Fprintf(os.Stderr, ...)` for diagnosis; use a breadcrumb. Keep it
 SPARSE — it is a debug tool for control events, not a per-tick firehose (see the log-flood

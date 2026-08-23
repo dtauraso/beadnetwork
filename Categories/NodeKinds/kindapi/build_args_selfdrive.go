@@ -1,8 +1,6 @@
 package kindapi
 
-import "github.com/dtauraso/wirefold/Categories/Node/nodeactor"
-
-func (a BuildArgs) ClaimSelfDrive() *nodeactor.PairNodeSelf {
+func (a BuildArgs) ClaimSelfDrive() *Self {
 	if a.deps.ClaimSelfDriveGeom == nil {
 		return nil
 	}
@@ -18,8 +16,8 @@ func (a BuildArgs) ClaimSelfDrive() *nodeactor.PairNodeSelf {
 
 		sliderToAnimSleepCh := make(chan int64, 1)
 		a.pb.SpeedSinks.Anim = append(a.pb.SpeedSinks.Anim, sliderToAnimSleepCh)
-		ng.SetAnimSleepCh(sliderToAnimSleepCh)
+		ng.Anim().SetSleepCh(sliderToAnimSleepCh)
 	}
 
-	return nodeactor.NewPairNodeSelf(ng, speedCh)
+	return NewSelf(ng, speedCh)
 }

@@ -1,56 +1,29 @@
-package nodeactor
+package SceneVectors
 
 import (
 	"math"
 
-	"github.com/dtauraso/wirefold/Categories/Node/nodeactor/owners"
 	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
-	"github.com/dtauraso/wirefold/Categories/Node/rulenode"
-	streamframe "github.com/dtauraso/wirefold/Categories/Scene/Vectors"
 )
-
-func (m *NodeGeometry) ChannelVectorsIn() chan bool { return m.channels.In() }
-
-func (m *NodeGeometry) pollChannelVectors() {
-	_, turnedOn := m.channels.TakeOn()
-	if turnedOn {
-		m.channels.Forget()
-	}
-	center := nodegeom.NodeWorldPos(m.geom)
-	if !m.channels.NeedsBroadcast(owners.Vec3(center)) {
-		return
-	}
-	if rn := m.RuleNode(); rn != nil {
-		select {
-		case rn.CenterIn() <- rulenode.Vec3(center):
-		default:
-		}
-	}
-}
-
-func (m *NodeGeometry) channelVectors() []streamframe.ChannelVector {
-	if !m.channels.On() {
-		return nil
-	}
-	self := nodegeom.NodeWorldPos(m.geom)
-	peers := m.channels.PeerCenters()
-	out := make([]streamframe.ChannelVector, 0, 2*len(peers))
-	for _, peer := range peers {
-		if shaft, head, ok := ChannelArrow(Vec3(self), Vec3(peer)); ok {
-			out = append(out, streamframe.ChannelVector{Shaft: shaft, Head: head})
-		}
-		if shaft, head, ok := ChannelArrow(Vec3(peer), Vec3(self)); ok {
-			out = append(out, streamframe.ChannelVector{Shaft: shaft, Head: head})
-		}
-	}
-	return out
-}
 
 const (
 	ChannelLineRadius = nodegeom.ShadingParamChannelLineRadius
 	ChannelHeadRadius = nodegeom.ShadingParamChannelHeadRadius
 	ChannelHeadLength = nodegeom.ShadingParamChannelHeadLength
 )
+
+func ChannelVectorsFor(self Vec3, peers map[string]Vec3) []ChannelVector {
+	out := make([]ChannelVector, 0, 2*len(peers))
+	for _, peer := range peers {
+		if shaft, head, ok := ChannelArrow(self, peer); ok {
+			out = append(out, ChannelVector{Shaft: shaft, Head: head})
+		}
+		if shaft, head, ok := ChannelArrow(peer, self); ok {
+			out = append(out, ChannelVector{Shaft: shaft, Head: head})
+		}
+	}
+	return out
+}
 
 func ChannelArrow(from, to Vec3) (shaft, head [16]float32, ok bool) {
 	dir := to.Sub(from)

@@ -6,7 +6,7 @@ import (
 
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/PolarRulesPanel"
 
-	"github.com/dtauraso/wirefold/Categories/Node/nodeactor/owners"
+	"github.com/dtauraso/wirefold/Categories/Node/owners"
 )
 
 type EditKind uint8

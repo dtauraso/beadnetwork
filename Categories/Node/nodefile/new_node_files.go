@@ -1,4 +1,4 @@
-package nodefiles
+package nodefile
 
 import (
 	"os"
@@ -6,7 +6,6 @@ import (
 
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/PolarRulesPanel"
 
-	"github.com/dtauraso/wirefold/Categories/Node/nodefile"
 	"github.com/dtauraso/wirefold/Categories/Polar/polar"
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
 )
@@ -16,7 +15,7 @@ func nodeDirPath(root, id string) string {
 }
 
 func nodeBaseDir(root, id string) string {
-	return nodefile.BaseDir(nodeDirPath(root, id))
+	return BaseDir(nodeDirPath(root, id))
 }
 
 func WriteNewNodeFiles(root, id, kind string, p polar.Polar, sc polarindex.SceneConstants) error {
@@ -26,13 +25,13 @@ func WriteNewNodeFiles(root, id, kind string, p polar.Polar, sc polarindex.Scene
 	}
 	idx := polarindex.MeasureIndex(p, sc)
 	base := nodeBaseDir(root, id)
-	if err := WriteAtomic(filepath.Join(base, nodefile.FileType), kind); err != nil {
+	if err := WriteAtomic(filepath.Join(base, FileType), kind); err != nil {
 		return err
 	}
 	for name, value := range map[string]int{
-		nodefile.FileIndexPhi:   idx.Phi,
-		nodefile.FileIndexTheta: idx.Theta,
-		nodefile.FileIndexR:     idx.R,
+		FileIndexPhi:   idx.Phi,
+		FileIndexTheta: idx.Theta,
+		FileIndexR:     idx.R,
 	} {
 		if err := WriteAtomic(filepath.Join(base, name), value); err != nil {
 			return err
@@ -42,7 +41,7 @@ func WriteNewNodeFiles(root, id, kind string, p polar.Polar, sc polarindex.Scene
 }
 
 func WriteDragRule(root, id string, rule *PolarRulesPanel.DragRule) error {
-	return nodefile.WriteDragRule(filepath.Join(nodeBaseDir(root, id), nodefile.DirDragRule), rule)
+	return writeRuleDir(filepath.Join(nodeBaseDir(root, id), DirDragRule), rule)
 }
 
 const (
@@ -85,7 +84,7 @@ func LoadEdgeRuleActive(root, id, target string) bool {
 }
 
 func WriteSelfDragRule(root, id string, rule *PolarRulesPanel.DragRule) error {
-	return nodefile.WriteDragRule(filepath.Join(nodeBaseDir(root, id), nodefile.DirSelfRule), rule)
+	return writeRuleDir(filepath.Join(nodeBaseDir(root, id), DirSelfRule), rule)
 }
 
 func WriteSelfRuleActive(root, id string, active bool) error {

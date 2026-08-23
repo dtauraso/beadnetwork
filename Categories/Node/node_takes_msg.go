@@ -1,10 +1,12 @@
-package nodeactor
+package Node
 
 import (
-	"github.com/dtauraso/wirefold/Categories/Node/nodeactor/owners"
-	"github.com/dtauraso/wirefold/Categories/Polar/polar"
+	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
+	"github.com/dtauraso/wirefold/Categories/Node/owners"
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
 )
+
+const BreadcrumbDragCommit = "drag-commit"
 
 func (m *NodeGeometry) take(msg owners.Msg) {
 	if msg.NodeID != m.id {
@@ -31,7 +33,7 @@ func (m *NodeGeometry) take(msg owners.Msg) {
 	case owners.TiltVectorReset:
 		m.handleTiltVectorReset()
 	default:
-		panic("nodeactor.take: node " + m.id + " was handed a move body it has no case for. " +
+		panic("Node.take: node " + m.id + " was handed a move body it has no case for. " +
 			"Every owners.Body must be handled here; an unhandled one used to fall through to a " +
 			"silent redraw, so the message did nothing and nothing said so.")
 	}
@@ -42,7 +44,7 @@ func (m *NodeGeometry) takeNeighborMove(msg owners.NeighborMoved) {
 		m.deltas.ShiftOtherBy(msg.SenderID, *msg.Delta)
 	}
 	if msg.Center != nil {
-		idx := polarindex.MeasureIndex(polar.Cart2polarAtTheta(polar.Vec3(msg.Center.Sub(owners.Vec3(m.SceneCenter()))), m.ScenePolar().Theta), m.Constants())
+		idx := nodegeom.IndexAtTheta(m.geom.SceneCenter, nodegeom.Vec3(*msg.Center), m.ScenePolar().Theta, m.Constants())
 		m.ApplyCenter(idx)
 		return
 	}
@@ -59,13 +61,13 @@ func (m *NodeGeometry) takeDragOfSelf(msg owners.Drag) {
 	case msg.Delta != nil:
 		delta = *msg.Delta
 	default:
-		panic("nodeactor.takeDragOfSelf: drag of " + m.id + " carries neither a target nor a delta — a pointer drag names WHERE (Target) and the node measures its own delta from its own index; a peer's request names HOW FAR (Delta). One of the two must be set")
+		panic("Node.takeDragOfSelf: drag of " + m.id + " carries neither a target nor a delta — a pointer drag names WHERE (Target) and the node measures its own delta from its own index; a peer's request names HOW FAR (Delta). One of the two must be set")
 	}
 
 	movedIdx := polarindex.Compose(haveIdx, m.TrimOwnDrag(delta), m.Constants())
 
 	m.msg.CommitLocal(m.id, movedIdx)
-	newPos := m.SceneCenter().Add(Vec3(polar.Polar2cart(polarindex.ToPolar(movedIdx, m.Constants()))))
+	newPos := nodegeom.WorldPosAt(m.geom.SceneCenter, movedIdx, m.Constants())
 
 	m.writeStreamFrame([]owners.RowEvent{{
 		Kind: owners.KindBreadcrumb, Label: BreadcrumbDragCommit, Debug: 1,

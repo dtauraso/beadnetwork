@@ -4,8 +4,8 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/dtauraso/wirefold/Categories/Node/nodeactor/owners"
 	"github.com/dtauraso/wirefold/Categories/Node/nodeinbox"
+	"github.com/dtauraso/wirefold/Categories/Node/owners"
 )
 
 type Movers interface {

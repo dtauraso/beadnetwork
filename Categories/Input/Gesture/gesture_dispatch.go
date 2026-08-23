@@ -4,15 +4,15 @@ import (
 	"context"
 
 	"github.com/dtauraso/wirefold/Categories/Input/Drag"
-	"github.com/dtauraso/wirefold/Categories/Node/nodeactor"
-	"github.com/dtauraso/wirefold/Categories/Node/nodeactor/owners"
+	"github.com/dtauraso/wirefold/Categories/Node"
 	"github.com/dtauraso/wirefold/Categories/Node/nodemove"
+	"github.com/dtauraso/wirefold/Categories/Node/owners"
 	"github.com/dtauraso/wirefold/Categories/Scene/rowtables"
 	"github.com/dtauraso/wirefold/Categories/Scene/viewstate"
 )
 
 type Movers struct {
-	NodeGeoms  func() map[string]*nodeactor.NodeGeometry
+	NodeGeoms  func() map[string]*Node.NodeGeometry
 	CenterOf   func(id string) (Vec3, bool)
 	BodyRadius func(id string) float64
 	SendMove   func(ctx context.Context, id string, msg owners.Msg)

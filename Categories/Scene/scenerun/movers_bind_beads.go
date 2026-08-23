@@ -35,7 +35,7 @@ func (m *Movers) Bind(outSink map[string]*beadanimation.Sender, slotReg map[stri
 					edgeRow = r
 				}
 			}
-			srcNM.AddBeadLine(pw, edgeRow)
+			srcNM.Anim().AddBeadLine(pw, edgeRow)
 		}
 	}
 }

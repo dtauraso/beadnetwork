@@ -1,7 +1,7 @@
 package owners
 
 import (
-	"github.com/dtauraso/wirefold/Categories/Node/nodeactor/nodeframe"
+	"github.com/dtauraso/wirefold/Categories/Node/nodeframe"
 )
 
 type Stream struct {

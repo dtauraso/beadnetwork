@@ -1,15 +1,13 @@
-package nodeactor
+package Node
 
 import (
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/TiltPanel"
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
-	"github.com/dtauraso/wirefold/Categories/Node/nodeactor/owners"
 	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
+	"github.com/dtauraso/wirefold/Categories/Node/owners"
 	"github.com/dtauraso/wirefold/Categories/Node/rulenode"
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
 )
-
-const inboxDepth = 8
 
 type NodeGeometry struct {
 	id   string
@@ -38,7 +36,7 @@ type NodeGeometry struct {
 
 	outTargets []string
 
-	anim *NodeBeadAnimation
+	anim *owners.NodeBeadAnimation
 
 	topo owners.Topology
 
@@ -58,15 +56,12 @@ type NodeGeometry struct {
 }
 
 func NewNodeGeometry(id string, geom nodegeom.NodeGeom, clockSrc clock.Clock, constants polarindex.SceneConstants) *NodeGeometry {
-	anim := &NodeBeadAnimation{
-		id:     id,
-		clocks: owners.NewClocks(clockSrc, clock.NewRealClock()),
-	}
+	anim := owners.NewNodeBeadAnimation(id, owners.NewClocks(clockSrc, clock.NewRealClock()))
 
 	ng := &NodeGeometry{
 		id: id, geom: geom,
 		msg: owners.NewMessaging(
-			make(chan owners.Msg, inboxDepth),
+			make(chan owners.Msg, owners.InboxDepth),
 			make(chan owners.Vec3, 1),
 		),
 		topo:      owners.NewTopology(),
@@ -82,8 +77,4 @@ func NewNodeGeometry(id string, geom nodegeom.NodeGeom, clockSrc clock.Clock, co
 	ng.deltas.SetConstants(constants)
 
 	return ng
-}
-
-func (m *NodeGeometry) BeadAnimation() *NodeBeadAnimation {
-	return m.anim
 }

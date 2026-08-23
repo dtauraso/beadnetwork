@@ -13,8 +13,8 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Scene/scene"
 
 	edge "github.com/dtauraso/wirefold/Categories/Node/Edge"
-	"github.com/dtauraso/wirefold/Categories/Node/nodeactor/owners"
 	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
+	"github.com/dtauraso/wirefold/Categories/Node/owners"
 	"github.com/dtauraso/wirefold/Categories/Polar/polar"
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
 )
@@ -47,7 +47,7 @@ func NewFromSpec(spec loadspec.TopoSpec, sphere polar.SceneSphere, hasScene bool
 	upAxis := s.UpAxis
 	if coplanarEdges || upAxis {
 		for _, nm := range md.MR.NodeGeoms() {
-			nm.SetSceneFlags(coplanarEdges, upAxis)
+			nm.Flags().SetSceneFlags(coplanarEdges, upAxis)
 		}
 	}
 	for id, off := range baseIndices {
@@ -63,7 +63,7 @@ func NewFromSpec(spec loadspec.TopoSpec, sphere polar.SceneSphere, hasScene bool
 
 	for _, n := range spec.Nodes {
 		if nm, ok := md.MR.NodeGeoms()[n.ID]; ok {
-			nm.SeedFromSpec(n, scenePath)
+			loadspec.SeedNode(nm, n, scenePath)
 		}
 	}
 
@@ -84,10 +84,10 @@ func NewFromSpec(spec loadspec.TopoSpec, sphere polar.SceneSphere, hasScene bool
 	sourceByLabel := make(map[string]string, len(spec.Edges))
 	for _, e := range spec.Edges {
 		if src, ok := md.MR.NodeGeoms()[e.Source]; ok {
-			src.SeedEdge(e, true, kindByID[e.Target], scenePath)
+			loadspec.SeedEdge(src, e, true, kindByID[e.Target], scenePath)
 		}
 		if dst, ok := md.MR.NodeGeoms()[e.Target]; ok {
-			dst.SeedEdge(e, false, kindByID[e.Source], scenePath)
+			loadspec.SeedEdge(dst, e, false, kindByID[e.Source], scenePath)
 		}
 		targetByLabel[e.Label] = e.Target
 		sourceByLabel[e.Label] = e.Source
@@ -111,7 +111,7 @@ func NewFromSpec(spec loadspec.TopoSpec, sphere polar.SceneSphere, hasScene bool
 		for to, told := range nm.RequestedDrag(polarindex.Offset{}) {
 			if other, ok := md.MR.NodeGeoms()[to]; ok {
 				d := told
-				other.SendExternal(context.TODO(), owners.Msg{NodeID: to,
+				other.Msg().SendExternal(context.TODO(), owners.Msg{NodeID: to,
 					Body: owners.Drag{Delta: &d}})
 			}
 		}

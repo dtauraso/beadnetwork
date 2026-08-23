@@ -24,7 +24,7 @@ func ReadIfExists(path string, dst any) bool {
 	return true
 }
 
-func RemoveIfPresent(path string) error {
+func removeIfPresent(path string) error {
 	if err := os.Remove(path); err != nil && !os.IsNotExist(err) {
 		return err
 	}
@@ -35,6 +35,17 @@ func WriteAtomic(path string, v any) error {
 	out, err := encode(v)
 	if err != nil {
 		return err
+	}
+	return writeBytesAtomic(path, out)
+}
+
+func WriteAtomicIfChanged(path string, v any) error {
+	out, err := encode(v)
+	if err != nil {
+		return err
+	}
+	if prev, err := os.ReadFile(path); err == nil && string(prev) == string(out) {
+		return nil
 	}
 	return writeBytesAtomic(path, out)
 }

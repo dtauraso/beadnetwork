@@ -90,7 +90,7 @@ and none is a source of truth.
   node 3 — the blow-up this page says cannot happen, reached through an arithmetic that
   quietly moved what it claimed to tidy.
 - **A node holds its own side of every edge it touches** (`owners.Deltas`,
-  `Categories/Node/nodeactor/owners/deltas.go`): the triple FROM ITSELF TO the node at the
+  `Categories/Node/owners/deltas.go`): the triple FROM ITSELF TO the node at the
   other end, stored from-self whichever way the edge points, so a move is uniform across
   in-edges and out-edges alike. The edge's own `D` is the out entry as-is and the negation
   of the in entry.
@@ -98,7 +98,7 @@ and none is a source of truth.
   The angle constraints (`φ = π/2`, `|θ| ≤ π/2`) are constraints ON `D`. They always were —
   they describe where a node sits about the one it hangs from, not its place in the world —
   so they are applied to the triple directly, with no holder frame to convert in and out of
-  (`Categories/Node/nodeactor/node_drag_trim.go`).
+  (`Categories/Node/node_drag_trim.go`).
 
   **The rule is carried by the node it binds, by id, and is applied BY that node.** Each node
   states its own `drag` in its own `base.json` (`polar.DragRule`); absent means free, and
@@ -121,7 +121,7 @@ and none is a source of truth.
   code. **A node owns the function that trims it, not only the numbers it trims to.** The
   kind states its own drag behaviour from its own package (`nodedrag.RegisterTrim` /
   `RegisterRequest` in `Categories/NodeKinds/input/drag.go`), exactly as it states its ports; a kind that
-  registers nothing is trimmed by its own drag rule alone. `nodeactor` composes the delta,
+  registers nothing is trimmed by its own drag rule alone. `Categories/Node` composes the delta,
   asks the node to trim it, and commits — it does not know what an `Input` is.
 
   `D.r` is a genuine DISTANCE — the length of the vector to the neighbour — so it is always

@@ -4,50 +4,49 @@ import (
 	"math"
 
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/PolarRulesPanel"
-
-	"github.com/dtauraso/wirefold/Categories/Polar/polar"
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
 )
 
-type Node interface {
-	ScenePolar() polar.Polar
-	ComposedIndex() polarindex.Index
-	Constants() polarindex.SceneConstants
-	DragRule() *PolarRulesPanel.DragRule
-	DragRuleActive() bool
-	SelfRule() *PolarRulesPanel.DragRule
-	SelfRuleActive() bool
-	EdgeRuleActive(otherID string) bool
-	KindRuleActive() bool
-	NeighborKinds() map[string]string
-	IsOutTarget(neighborID string) bool
-	DeltaFrom(otherID string) (polarindex.Offset, bool)
-	OutTargets() []string
-	DeltaTo(otherID string) (polarindex.Offset, bool)
+type State struct {
+	Index     polarindex.Index
+	Constants polarindex.SceneConstants
+
+	Drag   *PolarRulesPanel.DragRule
+	DragOn bool
+
+	Self   *PolarRulesPanel.DragRule
+	SelfOn bool
+
+	KindOn bool
+
+	OutTargets []string
+	OutDelta   map[string]polarindex.Offset
+
+	Inbound map[string]polarindex.Offset
 }
 
-type Trim func(delta polarindex.Offset, of Node) polarindex.Offset
+type Trim func(delta polarindex.Offset, st State) polarindex.Offset
 
-type Request func(delta polarindex.Offset, of Node) map[string]polarindex.Offset
+type Request func(delta polarindex.Offset, st State) map[string]polarindex.Offset
 
-func Apply(trim Trim, delta polarindex.Offset, of Node) polarindex.Offset {
-	if of.DragRuleActive() {
+func Apply(trim Trim, delta polarindex.Offset, st State) polarindex.Offset {
+	if st.DragOn {
 		if trim != nil {
-			delta = trim(delta, of)
+			delta = trim(delta, st)
 		} else {
-			delta = TrimToDragRule(delta, of)
+			delta = TrimToDragRule(delta, st)
 		}
 	}
-	return TrimToSelfRule(delta, of)
+	return TrimToSelfRule(delta, st)
 }
 
-func TrimToSelfRule(delta polarindex.Offset, of Node) polarindex.Offset {
-	rule := of.SelfRule()
-	if rule == nil || !of.SelfRuleActive() {
+func TrimToSelfRule(delta polarindex.Offset, st State) polarindex.Offset {
+	rule := st.Self
+	if rule == nil || !st.SelfOn {
 		return delta
 	}
-	sc := of.Constants()
-	haveIdx := of.ComposedIndex()
+	sc := st.Constants
+	haveIdx := st.Index
 	wantIdx := polarindex.Compose(haveIdx, delta, sc)
 
 	if rule.R != nil {
@@ -79,30 +78,20 @@ func farSide(thetaGap, turn int) bool {
 	return gap > turn/4
 }
 
-func Requested(request Request, delta polarindex.Offset, of Node) map[string]polarindex.Offset {
-	if !of.DragRuleActive() || request == nil {
+func Requested(request Request, delta polarindex.Offset, st State) map[string]polarindex.Offset {
+	if !st.DragOn || request == nil {
 		return nil
 	}
-	return request(delta, of)
+	return request(delta, st)
 }
 
-func TrimToDragRule(delta polarindex.Offset, of Node) polarindex.Offset {
-	rule := of.DragRule()
-	if rule == nil || !of.DragRuleActive() {
+func TrimToDragRule(delta polarindex.Offset, st State) polarindex.Offset {
+	rule := st.Drag
+	if rule == nil || !st.DragOn {
 		return delta
 	}
-	sc := of.Constants()
-	for neighborID := range of.NeighborKinds() {
-		if of.IsOutTarget(neighborID) {
-			continue
-		}
-		if !of.EdgeRuleActive(neighborID) {
-			continue
-		}
-		haveOff, ok := of.DeltaFrom(neighborID)
-		if !ok {
-			continue
-		}
+	sc := st.Constants
+	for _, haveOff := range st.Inbound {
 		have := polarindex.OffsetToPolar(haveOff, sc)
 		wantOff := polarindex.Sum(haveOff, delta)
 		want := polarindex.OffsetToPolar(wantOff, sc)

@@ -156,14 +156,14 @@ Consequences to keep in mind:
 
 ## The owner writes, and owns the path
 
-- A node writes its own `position/local-polars` (`Categories/Node/nodeactor/nodefiles/drag_index.go`);
+- A node writes its own `position/local-polars` (`Categories/Node/nodefile/drag_index.go`);
   `Categories/Scene/loadspec/drag_index.go` reads those four files back, the two agreeing on the
   layout the way a block file's writer and reader do. There is no longer a separate
   `inputs/`/`outputs/` port-geometry
   file — port geometry was removed with the port model (edges attach on the bead lattice,
   `Categories/Node/BeadAnimation/lattice/bead_lattice.go`); this bullet used to list it as a second thing the mover writes.
 - The **SOURCE NODE** owns `nodes/<source>/drag/edges/<label>.bin`, and writes it from
-  `Categories/Node/nodeactor/owners/out_edges.go`'s `persistDelta` — the same pass that derives that edge's geometry,
+  `Categories/Node/owners/out_edges.go`'s `persistDelta` — the same pass that derives that edge's geometry,
   since the node is what holds the vector being stored. The write is gated on the vector
   actually changing: derivation runs every tick, so an ungated write would rewrite the file
   every tick. (This bullet used to claim "an `edgeMover` owns" it and "no Go writer exists

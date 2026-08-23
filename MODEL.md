@@ -15,7 +15,7 @@ four jobs that have four different clocks:
 - The **kind goroutine** — the KIND's own `Update` — is paced by the sim
   clock. It owns the kind's logic and its interior slots. It writes its own
   interior stream. It runs `Self.Step(ctx, tick)` once per pass of its own loop,
-  where `Self` is the `PairNodeSelf` it claimed at build time
+  where `Self` is the `kindapi.Self` it claimed at build time
   (`BuildArgs.ClaimSelfDrive`); a kind that holds a value onto an out steps a
   `gatecommon.HeldDriver` in that same pass rather than handing the value to a
   goroutine over a channel.
@@ -27,7 +27,7 @@ four jobs that have four different clocks:
 - The **rule goroutine** — `rulenode.RuleNode.Run` — blocks on its own inbox. It
   fans out further, one forwarder per peer in the all-pairs rule mesh, so the
   goroutine count per node grows with the size of the scene.
-- The **geometry goroutine** — `PairNodeSelf.RunGeometry`, one per node id — is
+- The **geometry goroutine** — `NodeGeometry.RunGeometry`, one per node id — is
   paced by nothing. It BLOCKS on its own inbox and runs when a message arrives,
   so a drag is served at the rate of the hand that is dragging. It owns the
   node's own polar position, its stored vectors to its neighbours

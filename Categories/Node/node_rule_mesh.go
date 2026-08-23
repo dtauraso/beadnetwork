@@ -1,9 +1,10 @@
-package nodeactor
+package Node
 
 import (
 	"context"
+	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgetable"
 
-	"github.com/dtauraso/wirefold/Categories/Node/nodeactor/owners"
+	"github.com/dtauraso/wirefold/Categories/Node/owners"
 
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/PolarRulesPanel"
 
@@ -44,7 +45,7 @@ func (m *NodeGeometry) drainRuleMesh() {
 		}
 		m.channels.SetPeerCenters(peerCenters)
 		for target, active := range state.EdgeActive {
-			m.outEdges.SetEdgeRuleActive(m.id+"To"+target, active)
+			m.outEdges.SetEdgeRuleActive(edgetable.ChannelName(m.id, target), active)
 		}
 		changed = true
 	}

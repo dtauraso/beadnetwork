@@ -5,7 +5,7 @@ import (
 	"os"
 
 	edge "github.com/dtauraso/wirefold/Categories/Node/Edge"
-	"github.com/dtauraso/wirefold/Categories/Node/nodeactor/nodeframe"
+	"github.com/dtauraso/wirefold/Categories/Node/nodeframe"
 	BeadB "github.com/dtauraso/wirefold/Categories/Ring/Bead"
 	TiltB "github.com/dtauraso/wirefold/Categories/Scene/TiltVectors"
 	VecB "github.com/dtauraso/wirefold/Categories/Scene/Vectors"

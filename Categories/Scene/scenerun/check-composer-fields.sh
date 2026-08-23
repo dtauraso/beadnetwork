@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: Categories/Scene/scenerun/move_dispatch_api.go,Categories/Node/nodeactor/node_geometry.go | a composer struct (MoveDispatch, nodeactor.NodeGeometry) stays THIN: new state belongs in a named sub-struct, not a new loose field
+# PLACEMENT: Categories/Scene/scenerun/move_dispatch_api.go,Categories/Node/node_geometry.go | a composer struct (MoveDispatch, Node.NodeGeometry) stays THIN: new state belongs in a named sub-struct, not a new loose field
 
 set -euo pipefail
 
@@ -10,7 +10,7 @@ cd "$REPO_ROOT"
 
 COMPOSERS=(
   "type MoveDispatch struct {|12|the responsible owner type (rowtables.RowTables/geomseeds.GeomSeeds/streamWiring/uiState/moverRegistry/nodeMover)"
-  "type NodeGeometry struct {|23|the responsible owner type (owners.Messaging/Clocks/Stream/UI/Tilt/Readout/Outs/Topology/Flags/Beads/Deltas/ChannelVectors/KindRule, Categories/Node/nodeactor/owners/)"
+  "type NodeGeometry struct {|23|the responsible owner type (owners.Messaging/Clocks/Stream/UI/Tilt/Readout/Outs/Topology/Flags/Beads/Deltas/ChannelVectors/KindRule, Categories/Node/owners/)"
 )
 
 fail=0
