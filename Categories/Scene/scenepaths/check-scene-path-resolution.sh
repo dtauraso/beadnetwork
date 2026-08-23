@@ -93,7 +93,7 @@ if [[ "$JOIN_HITS" -ne 0 ]]; then
   exit 1
 fi
 
-NODE_PATH_OWNERS=("new_node_files.go" "edge_file.go" "edge_delta_file.go" "loader_tree.go" "tree_shape.go" "drag_file.go")
+NODE_PATH_OWNERS=("new_node_files.go" "edge_file.go" "edge_delta_file.go" "loader_tree.go" "tree_shape.go" "drag_index.go")
 is_node_path_owner() {
   local f="$1"
   [[ "$f" == */gen/* ]] && return 0
@@ -115,9 +115,9 @@ done <<< "$all_hits"
 
 if [[ "$NODE_JOIN_HITS" -ne 0 ]]; then
   echo ""
-  echo "check-scene-path-resolution: $NODE_JOIN_HITS hand-rolled nodes/ filepath.Join(...) hit(s) outside node_mover.go/edge_mover.go/edge_file.go/loader_tree.go/tree_shape.go/drag_file.go — a node/port path belongs to its owning mover; call node_mover.go's or dragfile's resolvers instead of reconstructing the path."
+  echo "check-scene-path-resolution: $NODE_JOIN_HITS hand-rolled nodes/ filepath.Join(...) hit(s) outside node_mover.go/edge_mover.go/edge_file.go/loader_tree.go/tree_shape.go/drag_index.go — a node/port path belongs to its owning mover; call node_mover.go's or drag_index.go's resolvers instead of reconstructing the path."
   exit 1
 fi
 
-echo "check-scene-path-resolution: clean ($GO_FILE_COUNT files scanned; $CALL_SITES resolver call site(s); all IsDir/Join path-resolution lives in scene_paths.go; node-path construction lives in node_mover.go/edge_mover.go/edge_file.go/dragfile)"
+echo "check-scene-path-resolution: clean ($GO_FILE_COUNT files scanned; $CALL_SITES resolver call site(s); all IsDir/Join path-resolution lives in scene_paths.go; node-path construction lives in node_mover.go/edge_mover.go/edge_file.go/drag_index.go)"
 exit 0

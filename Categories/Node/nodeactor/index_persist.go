@@ -3,7 +3,7 @@ package nodeactor
 import (
 	"fmt"
 
-	"github.com/dtauraso/wirefold/Categories/Node/dragfile"
+	"github.com/dtauraso/wirefold/Categories/Node/nodeactor/nodefiles"
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
 )
 
@@ -30,8 +30,5 @@ func writeIndex(root, id string, off polarindex.Offset, topTiltVectorPhiIdx int3
 	if !SafeTreePathComponent(id) {
 		return fmt.Errorf("unsafe node id %q", id)
 	}
-	return dragfile.Write(root, id, dragfile.JSON{
-		IndexPhi: off.Phi, IndexTheta: off.Theta, IndexR: off.R,
-		TopTiltVectorPhiIdx: topTiltVectorPhiIdx,
-	})
+	return nodefiles.WriteDragIndex(root, id, off.Phi, off.Theta, off.R, topTiltVectorPhiIdx)
 }

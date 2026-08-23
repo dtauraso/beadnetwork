@@ -32,6 +32,17 @@ func WriteAtomic(path string, v any) error {
 	return writeBytesAtomic(path, out)
 }
 
+func WriteAtomicIfChanged(path string, v any) error {
+	out, err := encode(v)
+	if err != nil {
+		return err
+	}
+	if prev, err := os.ReadFile(path); err == nil && string(prev) == string(out) {
+		return nil
+	}
+	return writeBytesAtomic(path, out)
+}
+
 const atomicWriteTmpSuffix = ".tmp"
 
 func decode(raw []byte, dst any) error {
