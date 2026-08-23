@@ -17,7 +17,7 @@ four jobs that have four different clocks:
   interior stream. It runs `Self.Step(ctx, tick)` once per pass of its own loop,
   where `Self` is the `kindapi.Self` it claimed at build time
   (`BuildArgs.ClaimSelfDrive`); a kind that holds a value onto an out steps a
-  `gatecommon.HeldDriver` in that same pass rather than handing the value to a
+  `helddrive.HeldDriver` in that same pass rather than handing the value to a
   goroutine over a channel.
 - The **animation goroutine** — `owners.Outs.RunBeadAnimation`, one per node id with
   outputs — is paced by the pulse, not the sim clock. It owns the node's beads

@@ -2,13 +2,13 @@ package pulse
 
 import (
 	"context"
+	interior "github.com/dtauraso/wirefold/Categories/Node/Interior"
 
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/nodeapi"
 	Speed "github.com/dtauraso/wirefold/Categories/Speed"
 
-	"github.com/dtauraso/wirefold/Categories/NodeKinds/gatecommon"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/helddrive"
 	Wiring "github.com/dtauraso/wirefold/Categories/NodeKinds/kindapi"
 )
@@ -39,9 +39,9 @@ func (g *Pulse) Update(ctx context.Context) {
 	nodeapi.TryEmit(g.EmitGeometry)
 	g.Self.EmitGeometryOnce()
 
-	var cur int64 = gatecommon.NoValue
+	var cur int64 = interior.NoValue
 	if g.EmitHeldBead != nil {
-		g.EmitHeldBead(gatecommon.NoValue)
+		g.EmitHeldBead(interior.NoValue)
 	}
 
 	drivers := []*helddrive.HeldDriver{driveOutput(g.Out)}

@@ -2,13 +2,13 @@ package holdflip
 
 import (
 	"context"
+	interior "github.com/dtauraso/wirefold/Categories/Node/Interior"
 
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/nodeapi"
 	Speed "github.com/dtauraso/wirefold/Categories/Speed"
 
-	"github.com/dtauraso/wirefold/Categories/NodeKinds/gatecommon"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/helddrive"
 	Wiring "github.com/dtauraso/wirefold/Categories/NodeKinds/kindapi"
 )
@@ -33,17 +33,17 @@ func (g *Node) Update(ctx context.Context) {
 	g.Self.EmitGeometryOnce()
 
 	if g.EmitHeldBead != nil {
-		g.EmitHeldBead(gatecommon.NoValue)
+		g.EmitHeldBead(interior.NoValue)
 	}
 
 	driver := helddrive.New(g.Out, func(h int64) int {
-		if h == gatecommon.NoValue {
-			return gatecommon.NoValue
+		if h == interior.NoValue {
+			return interior.NoValue
 		}
 		return 1 - int(h)
 	})
 
-	var lastDisplayed int64 = gatecommon.NoValue
+	var lastDisplayed int64 = interior.NoValue
 	consume := func() {
 		v, ok := g.In.PollRecv()
 		if !ok {
@@ -55,7 +55,7 @@ func (g *Node) Update(ctx context.Context) {
 			if !ok {
 				break
 			}
-			if next != gatecommon.NoValue {
+			if next != interior.NoValue {
 				v = next
 			}
 		}

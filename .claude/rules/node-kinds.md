@@ -48,10 +48,10 @@ port the table did not already carry.
 
 The generator used to read Go STRUCTS for port names instead: `parsePortsFromAST` walked
 every struct in the kind's package — and in any shared package it embedded, such as
-`gatecommon` — taking any field typed `inport.In`/`outport.Out`/`outport.Broadcast` as a
+its shared package — taking any field typed `inport.In`/`outport.Out`/`outport.Broadcast` as a
 port named after the FIELD. A helper struct that merely HELD one of those types grew a
 phantom port on every kind that package served; that is why `helddrive.HeldDriver` sits in
-`Wiring/` rather than `gatecommon/`, where it once gave `SelectLeft`/`SelectRight` a bogus
+`Wiring/` rather than the gate package, where it once gave `SelectLeft`/`SelectRight` a bogus
 `out`. Reading the table instead removes the whole class: a struct field cannot declare a
 port any more. The check after touching a kind is still a `node-defs.ts` diff.
 

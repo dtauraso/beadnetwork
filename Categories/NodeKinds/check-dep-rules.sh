@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: Categories/NodeKinds/*/node.go,Categories/NodeKinds/*/*.go | a node-kind package may import only the shared spine (Wiring/gatecommon/bead/nodeapi/clock), never a sibling kind
+# PLACEMENT: Categories/NodeKinds/*/node.go,Categories/NodeKinds/*/*.go | a node-kind package may import only the shared spine (Wiring/bead/nodeapi/clock), never a sibling kind — the gate is not spine, it lives in the two kinds that gate
 
 set -euo pipefail
 
@@ -18,7 +18,7 @@ fi
 
 MODULE="github.com/dtauraso/wirefold"
 
-is_spine() { [ "$1" = "Wiring" ] || [ "$1" = "gatecommon" ] || [ "$1" = "bead" ] || [ "$1" = "spatial" ] || [ "$1" = "rowevent" ] || [ "$1" = "nodeapi" ] || [ "$1" = "clock" ] || [ "$1" = "kindapi" ] || [ "$1" = "kindreg" ] || [ "$1" = "portwiring" ] || [ "$1" = "helddrive" ]; }
+is_spine() { [ "$1" = "Wiring" ] || [ "$1" = "bead" ] || [ "$1" = "spatial" ] || [ "$1" = "rowevent" ] || [ "$1" = "nodeapi" ] || [ "$1" = "clock" ] || [ "$1" = "kindapi" ] || [ "$1" = "kindreg" ] || [ "$1" = "portwiring" ] || [ "$1" = "helddrive" ]; }
 
 is_kind() { grep -rqE 'Register(Builder)?\(' "$1" --include="*.go" 2>/dev/null; }
 
@@ -37,7 +37,7 @@ for dir in "$NODES_DIR"/*/; do
     [ -z "$dep" ] && continue
     [ "$dep" = "$kind" ] && continue
     is_spine "$dep" && continue
-    echo "ILLEGAL DEP: Categories/NodeKinds/$kind imports sibling Categories/NodeKinds/$dep — kinds must couple only through the shared spine (Wiring/gatecommon)"
+    echo "ILLEGAL DEP: Categories/NodeKinds/$kind imports sibling Categories/NodeKinds/$dep — kinds must couple only through the shared spine (Wiring)"
     fail=1
   done <<< "$imported"
 done

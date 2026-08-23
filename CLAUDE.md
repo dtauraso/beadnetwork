@@ -80,7 +80,7 @@ one directory out, since a directory is one Go package. `go generate ./...` runs
   not substance. The package root is the REPO root — `package.json`, `tsconfig.json` and
   `node_modules/` live there, so there is one npm project and no path mappings.
 - **`Categories/NodeKinds/`** — the node kinds, plus what only they use: `nodeapi/` (the `Node`
-  interface a kind implements — `Update(ctx)`, one method wide) and `gatecommon/`, the firing rule 8 of them share
+  interface a kind implements — `Update(ctx)`, one method wide) . The gate — window opens on the first input, fires on dwell, clears otherwise — is in `selectleft/` and `selectright/`, the only two kinds that gate
   (window opens on the first input, fires on dwell, clears otherwise). The scanner reads a
   directory here as a kind only if it declares `var Builder = Wiring.BuilderFor(…)`; nothing
   registers, and `go generate` writes one `case` per kind into `NodeKinds.BuilderFor`. A kind's ports come from its
