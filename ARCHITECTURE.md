@@ -36,14 +36,22 @@ FILES and nothing else; TS → Go is framed binary records
 (addressed `edit` ops, or the bare `save` command) — see CLAUDE.md
 for the full bridge-surface model, not duplicated here.
 
-**Do not restate the kind list here.** The authority is
-`INPUT_LAYOUT_FINGERPRINT` — one string encoding every kind byte, update kind,
-attr, and overlay flag, defined in `Categories/Input/gen/input_layout_declared.go`. The TS side
-(`Categories/Node/wire-gen.ts`) is GENERATED from that Go string by
-the generators, so it cannot drift — there is no second hand-kept copy to compare.
-Read the fingerprint to learn the current surface; prose copied into this file cannot fail
-and so cannot be trusted. (Removed kind bytes are preserved as GAPS in `Categories/Input/gen/input_layout_declared.go` and
-never renumbered.)
+**Do not restate the kind list here.** Each vocabulary is declared by the concern
+whose records use it, and the TS half is GENERATED from that Go declaration, so
+neither can drift and there is no second hand-kept copy to compare:
+
+- record kind bytes and the update-kind list — `Categories/Input/Stdin/record_kinds.go`,
+  the reader that dispatches on them. Removed kind bytes are preserved as GAPS and
+  never renumbered.
+- update attributes — each concern's own `update_attrs.go` (`Node`, `Node/Edge`,
+  `Scene`, `Overlay`, `Chrome/Panels/Panel`, `Speed`). An attr byte is read only
+  inside the decoder its kind selected, so each concern numbers its own from zero.
+- event and hit kinds — `Categories/Input/Drag/kinds.go`.
+- overlay and panel flags — `Categories/Overlay/flags.ts` and
+  `Categories/Chrome/Panels/Panel/flags.ts`, which both sides derive from.
+
+Read the declaration to learn the current surface; prose copied into this file cannot
+fail and so cannot be trusted.
 
 ## Extension side — what lives where
 

@@ -28,7 +28,7 @@ func AssertUpdateDecodersComplete() {
 	if len(missing) > 0 {
 		panic(fmt.Sprintf(
 			"Stdin.AssertUpdateDecodersComplete: no decoder registered for %v. The wire can carry "+
-				"an update for each of these (InUpdateKinds, from INPUT_LAYOUT_FINGERPRINT), so every "+
+				"an update for each of these (InUpdateKinds, in record_kinds.go), so every "+
 				"edit naming one would decode to nothing and the affordance would look dead. The owning "+
 				"package registers in init(); if that package is imported by nothing, its init() never runs.",
 			missing))

@@ -24,7 +24,7 @@ One writer per file — the goroutine that owns that item — so the append need
 the same rule the block files follow. **These events do NOT cross the Go→TS seam.** They
 used to ride an events section on every stream frame, which the ext host decoded and
 re-encoded as text; that whole path is gone, along with `buffer-log.ts` and the TS event
-decoders. A stream frame now carries only a tick and the layout fingerprint.
+decoders. A stream frame now carries only a tick.
 
 Read them with `scripts/probe-merge.sh --debug`, which decodes every `trace.bin` at READ
 time via the owner-specific `readtrace` (see scripts/probe-merge.sh) and filters to `kind=="breadcrumb" && debug==true` —

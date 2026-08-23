@@ -3,6 +3,8 @@ package inputactor
 import (
 	"os"
 	"path/filepath"
+
+	"github.com/dtauraso/wirefold/Categories/Input/Drag"
 )
 
 type slot struct {
@@ -15,8 +17,8 @@ type Reader struct {
 }
 
 func NewReader(inputDir string) *Reader {
-	slots := make([]slot, 0, len(InEventKinds))
-	for _, kind := range InEventKinds {
+	slots := make([]slot, 0, len(Drag.EventKinds))
+	for _, kind := range Drag.EventKinds {
 		path := filepath.Join(inputDir, kind+".bin")
 
 		raw, err := os.ReadFile(path)
