@@ -10,10 +10,10 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Polar/polar"
 	"github.com/dtauraso/wirefold/Categories/Scene/Camera"
 	"github.com/dtauraso/wirefold/Categories/Scene/Scenes"
-	"github.com/dtauraso/wirefold/Categories/Scene/viewstate"
+	"github.com/dtauraso/wirefold/Categories/Scene/View"
 )
 
-func CreateNode(scenes *Scenes.SceneSwitch, ui *viewstate.UIState, nodeGeoms map[string]*Node.NodeGeometry, nearestTo func(viewstate.Vec3) (string, bool), kindID uint8, ndcX, ndcY float64) {
+func CreateNode(scenes *Scenes.SceneSwitch, ui *View.UIState, nodeGeoms map[string]*Node.NodeGeometry, nearestTo func(View.Vec3) (string, bool), kindID uint8, ndcX, ndcY float64) {
 	if scenes == nil || scenes.TreeRoot == "" || scenes.Quit == nil {
 		return
 	}
@@ -68,7 +68,7 @@ func CreateNode(scenes *Scenes.SceneSwitch, ui *viewstate.UIState, nodeGeoms map
 	}
 
 	c := ui.SceneSphere.Center
-	off := drop.Sub(viewstate.Vec3(c))
+	off := drop.Sub(View.Vec3(c))
 	d := Camera.WorldDirToAngles(Camera.Vec3(off))
 	sc, err := Scene.LoadSceneConstants(scenes.TreeRoot)
 	if err != nil {
@@ -99,7 +99,7 @@ func CreateNode(scenes *Scenes.SceneSwitch, ui *viewstate.UIState, nodeGeoms map
 	scenes.Quit()
 }
 
-func DeleteNode(scenes *Scenes.SceneSwitch, ui *viewstate.UIState, id string, row int) {
+func DeleteNode(scenes *Scenes.SceneSwitch, ui *View.UIState, id string, row int) {
 	if scenes == nil || scenes.TreeRoot == "" || scenes.Quit == nil {
 		return
 	}

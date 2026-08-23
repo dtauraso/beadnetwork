@@ -147,4 +147,25 @@ func (l Layout) Hit(x, y float64) Hit {
 
 type State struct {
 	Open bool
+
+	RowOpen map[uint8]bool
+}
+
+func PaletteKinds(sceneKinds uint32, editable bool, rowOpen map[uint8]bool) []Kind {
+	if !editable {
+		return nil
+	}
+	names := NodeBuf.KindNameByID()
+	out := make([]Kind, 0, len(names))
+	for id, name := range names {
+		if name == "" || sceneKinds&(1<<uint(id)) == 0 {
+			continue
+		}
+		out = append(out, Kind{
+			KindID: uint8(id),
+			Name:   name,
+			Open:   rowOpen[uint8(id)],
+		})
+	}
+	return out
 }

@@ -1,9 +1,10 @@
-package viewstate
+package View
 
 import (
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/PolarRulesPanel"
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/SliderPanel"
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/TiltPanel"
+	"github.com/dtauraso/wirefold/Categories/Chrome/Pills"
 	"github.com/dtauraso/wirefold/Categories/Chrome/Pills/AngleDropdown"
 	"github.com/dtauraso/wirefold/Categories/Chrome/Pills/FitButton"
 	"github.com/dtauraso/wirefold/Categories/Chrome/Pills/NodesDropdown"
@@ -62,7 +63,7 @@ func (ui *UIState) EmitViewFrame(events []RowEvent) {
 	TiltPanel.WriteValues(ui.tiltPanelValues, pl.Tilt)
 	AngleDropdown.WriteValues(ui.anglePillValues, pl.Angle)
 	NodesDropdown.WriteValues(ui.nodesPillValues, pl.Nodes, ui.EditRefused)
-	ui.writeOverlaysPillValues(pl.Overlays)
+	Pills.WriteValues(ui.overlaysPillValues, pl.Overlays)
 	FitButton.WriteValues(ui.fitChipValues, pl.Fit)
 	Tabs.WriteValues(ui.tabStripValues, pl.Tabs)
 	PolarRulesPanel.WriteValues(ui.rulesValues, pl.Rules)

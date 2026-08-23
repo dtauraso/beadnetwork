@@ -4,7 +4,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/dtauraso/wirefold/Categories/Scene/viewstate"
+	"github.com/dtauraso/wirefold/Categories/Scene/View"
 
 	"github.com/dtauraso/wirefold/Categories/Node"
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
@@ -91,7 +91,7 @@ func (m *Movers) EnqueueFor(nm *Node.NodeGeometry) func(id string, msg Node.Msg)
 	return nm.Msg().EnqueueSend
 }
 
-func (md *MoveDispatch) nearestNodeTo(p viewstate.Vec3) (string, bool) {
+func (md *MoveDispatch) nearestNodeTo(p View.Vec3) (string, bool) {
 	return md.MR.NearestNodeTo(Vec3(p))
 }
 

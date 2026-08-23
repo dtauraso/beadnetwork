@@ -1,6 +1,7 @@
-package viewstate
+package Chrome
 
 import (
+	Panels "github.com/dtauraso/wirefold/Categories/Chrome/Panels"
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/Panel"
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/PolarRulesPanel"
 	"github.com/dtauraso/wirefold/Categories/Chrome/Pills"
@@ -8,52 +9,50 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Chrome/Pills/NodesDropdown"
 )
 
-func (ui *UIState) PointerTargetAt(x, y float64) PointerTarget {
-	pl := ui.PanelLayout()
+func TargetAt(pl Layout, x, y float64) Panels.PointerTarget {
 
 	if h := pl.Rules.Hit(x, y); h.Kind != PolarRulesPanel.HitNone {
-		return PointerTarget{Rect: h.Rect, Kind: PointerInteractive}
+		return Panels.PointerTarget{Rect: h.Rect, Kind: Panels.PointerInteractive}
 	}
 	if Panel.HitRect(pl.Fit, x, y) {
-		return PointerTarget{
-			Rect: pl.Fit, Kind: PointerInteractive, Tip: "Frame the whole diagram",
+		return Panels.PointerTarget{
+			Rect: pl.Fit, Kind: Panels.PointerInteractive, Tip: "Frame the whole diagram",
 		}
 	}
 	if i := pl.Tabs.Hit(x, y); i >= 0 && i < len(pl.Tabs.Tabs) {
-		return PointerTarget{Rect: pl.Tabs.Tabs[i].Rect, Kind: PointerInteractive}
+		return Panels.PointerTarget{Rect: pl.Tabs.Tabs[i].Rect, Kind: Panels.PointerInteractive}
 	}
 	if h := pl.Nodes.Hit(x, y); h.Kind != NodesDropdown.HitNone {
-		return PointerTarget{Rect: h.Rect, Kind: PointerInteractive}
+		return Panels.PointerTarget{Rect: h.Rect, Kind: Panels.PointerInteractive}
 	}
 	if i := pl.Speed.Hit(x, y); i >= 0 && i < len(pl.Speed.Ticks) {
-		return PointerTarget{Rect: pl.Speed.Ticks[i], Kind: PointerInteractive}
+		return Panels.PointerTarget{Rect: pl.Speed.Ticks[i], Kind: Panels.PointerInteractive}
 	}
 	if h := pl.Overlays.Hit(x, y); h.Kind != Pills.HitNone || h.Disabled {
-		kind := PointerInteractive
+		kind := Panels.PointerInteractive
 		if h.Disabled {
-			kind = PointerRefusing
+			kind = Panels.PointerRefusing
 		}
-		return PointerTarget{Rect: h.Rect, Kind: kind, Tip: h.Tip}
+		return Panels.PointerTarget{Rect: h.Rect, Kind: kind, Tip: h.Tip}
 	}
 	if h := pl.Angle.Hit(x, y); h.Kind != AngleDropdown.HitNone {
-		return PointerTarget{Rect: h.Rect, Kind: PointerInteractive}
+		return Panels.PointerTarget{Rect: h.Rect, Kind: Panels.PointerInteractive}
 	}
-	return PointerTarget{}
+	return Panels.PointerTarget{}
 }
 
-func (ui *UIState) TakeWheel(x, y, deltaY float64) bool {
-	pl := ui.PanelLayout()
+func TakeWheel(pl Layout, overlaysScroll, rulesScroll *float32, x, y, deltaY float64, redraw func()) bool {
 
 	if pl.Overlays.Open && Panel.HitRect(pl.Overlays.Popover, x, y) {
-		return ui.scrollBy(&ui.OverlaysPill.Scroll, pl.Overlays.MaxScroll, deltaY)
+		return scrollBy(overlaysScroll, pl.Overlays.MaxScroll, deltaY, redraw)
 	}
 	if pl.Rules.Open && Panel.HitRect(pl.Rules.RowsClip, x, y) {
-		return ui.scrollBy(&ui.Rules.Scroll, pl.Rules.MaxScroll, deltaY)
+		return scrollBy(rulesScroll, pl.Rules.MaxScroll, deltaY, redraw)
 	}
 	return false
 }
 
-func (ui *UIState) scrollBy(scroll *float32, max float32, delta float64) bool {
+func scrollBy(scroll *float32, max float32, delta float64, redraw func()) bool {
 	if max <= 0 {
 		return true
 	}
@@ -62,7 +61,7 @@ func (ui *UIState) scrollBy(scroll *float32, max float32, delta float64) bool {
 		return true
 	}
 	*scroll = next
-	ui.EmitViewFrame(nil)
+	redraw()
 	return true
 }
 

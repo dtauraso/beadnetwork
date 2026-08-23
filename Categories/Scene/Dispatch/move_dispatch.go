@@ -16,7 +16,7 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
 	SceneB "github.com/dtauraso/wirefold/Categories/Scene"
 	"github.com/dtauraso/wirefold/Categories/Scene/Scenes"
-	"github.com/dtauraso/wirefold/Categories/Scene/viewstate"
+	"github.com/dtauraso/wirefold/Categories/Scene/View"
 )
 
 type MoveDispatch struct {
@@ -26,7 +26,7 @@ type MoveDispatch struct {
 
 	Sw StreamWiring
 
-	UI viewstate.UIState
+	UI View.UIState
 
 	Mover Node.NodeMover
 

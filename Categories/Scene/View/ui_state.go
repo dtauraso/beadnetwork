@@ -1,4 +1,4 @@
-package viewstate
+package View
 
 import (
 	"fmt"
@@ -87,14 +87,13 @@ type UIState struct {
 
 	ViewW, ViewH float64
 
-	Pointer PointerTarget
+	Pointer Panels.PointerTarget
 
 	OverlaysPill Pills.State
 
 	Angle AngleDropdown.State
 
 	Nodes        NodesDropdown.State
-	NodesRowOpen map[uint8]bool
 
 	TabStrip Tabs.State
 

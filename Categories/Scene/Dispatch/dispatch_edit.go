@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	Chrome "github.com/dtauraso/wirefold/Categories/Chrome"
+
 	NodeKind "github.com/dtauraso/wirefold/Categories/Node"
 
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/Panel"
@@ -41,12 +43,12 @@ func HandleRawInputMsg(ctx context.Context, ev Drag.RawInputMsg, md *MoveDispatc
 		return
 	}
 	if ev.Kind == "pointermove" {
-		if t := md.UI.PointerTargetAt(ev.X, ev.Y); t != md.UI.Pointer {
+		if t := Chrome.TargetAt(md.UI.PanelLayout(), ev.X, ev.Y); t != md.UI.Pointer {
 			md.UI.Pointer = t
 			md.UI.EmitViewFrame(nil)
 		}
 	}
-	if ev.Kind == "wheel" && md.UI.TakeWheel(ev.X, ev.Y, ev.DeltaY) {
+	if ev.Kind == "wheel" && Chrome.TakeWheel(md.UI.PanelLayout(), &md.UI.OverlaysPill.Scroll, &md.UI.Rules.Scroll, ev.X, ev.Y, ev.DeltaY, md.redraw) {
 		return
 	}
 	if ev.Kind == "pointerdown" && panelTookPointerDown(ctx, ev, md, speedSinks) {

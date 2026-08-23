@@ -1,11 +1,11 @@
-package viewstate
+package Pills
 
 import (
-	"github.com/dtauraso/wirefold/Categories/Chrome/Pills"
+	"fmt"
+	"os"
 )
 
-func (ui *UIState) writeOverlaysPillValues(lay Pills.Layout) {
-	w := ui.overlaysPillValues
+func WriteValues(w *ValueWriter, lay Layout) {
 	if w == nil {
 		return
 	}
@@ -16,7 +16,7 @@ func (ui *UIState) writeOverlaysPillValues(lay Pills.Layout) {
 	w.Bool("open", lay.Open)
 	w.Bool("active", lay.Active)
 	w.Rect("popoverX", "popoverY", "popoverW", "popoverH", lay.Popover)
-	w.Text("labelText", Pills.Label)
+	w.Text("labelText", Label)
 
 	for _, r := range lay.Rows {
 		w.U8("rowKind", uint8(r.Kind))
@@ -25,7 +25,7 @@ func (ui *UIState) writeOverlaysPillValues(lay Pills.Layout) {
 
 		text := r.Label
 		icon := r.Icon
-		if r.Kind == Pills.RowHeading {
+		if r.Kind == RowHeading {
 			text = r.Heading
 			icon = disclosureGlyph(r.Open)
 		}
@@ -40,7 +40,7 @@ func (ui *UIState) writeOverlaysPillValues(lay Pills.Layout) {
 	}
 
 	if err := w.Flush(); err != nil {
-		LogPersistErr("overlays_pill_values", "", err)
+		fmt.Fprintf(os.Stderr, "overlays_pill_values: %v\n", err)
 	}
 }
 

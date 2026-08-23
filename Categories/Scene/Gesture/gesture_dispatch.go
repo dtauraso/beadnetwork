@@ -5,7 +5,7 @@ import (
 
 	"github.com/dtauraso/wirefold/Categories/Node"
 	"github.com/dtauraso/wirefold/Categories/Scene/Drag"
-	"github.com/dtauraso/wirefold/Categories/Scene/viewstate"
+	"github.com/dtauraso/wirefold/Categories/Scene/View"
 )
 
 type Movers struct {
@@ -17,7 +17,7 @@ type Movers struct {
 
 type Deps struct {
 	MR    Movers
-	UI    *viewstate.UIState
+	UI    *View.UIState
 	Mover *Node.NodeMover
 	RT    Rows
 	Ctx   context.Context
