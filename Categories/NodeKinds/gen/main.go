@@ -27,32 +27,9 @@ func main() {
 	}
 	genpaths.Announce(defsPath, len(kinds), "entries")
 
-	dimsPath := filepath.Join(srcRoot, "Node", "geom_node_dims_gen.go")
-	if err := writeNodeDims(dimsPath, kinds); err != nil {
-		genpaths.Fatalf("write %s: %v", dimsPath, err)
-	}
-	genpaths.Announce(dimsPath, len(kinds), "kinds")
-
-	for _, dest := range []struct{ dir, pkg string }{
-		{filepath.Join(srcRoot, "Scene", "scenebuild"), "scenebuild"},
-		{filepath.Join(srcRoot, "Scene", "structuraledit"), "structuraledit"},
-	} {
-		portsPath := filepath.Join(dest.dir, "kind_ports_gen.go")
-		if err := writeKindPorts(portsPath, dest.pkg, kinds); err != nil {
-			genpaths.Fatalf("write %s: %v", portsPath, err)
-		}
-		genpaths.Announce(portsPath, len(kinds), "kinds")
-	}
-
 	kindsDir := filepath.Join(srcRoot, "NodeKinds")
 	if err := writeKindOwnPorts(kindsDir, kinds); err != nil {
 		genpaths.Fatalf("write per-kind ports: %v", err)
 	}
 	genpaths.Announce(kindsDir, len(kinds), "per-kind port tables")
-
-	kindIDPath := filepath.Join(srcRoot, "Node", "node_kind_id_gen.go")
-	if err := writeNodeKindID(kindIDPath, kinds); err != nil {
-		genpaths.Fatalf("write %s: %v", kindIDPath, err)
-	}
-	genpaths.Announce(kindIDPath, len(kinds), "kinds")
 }
