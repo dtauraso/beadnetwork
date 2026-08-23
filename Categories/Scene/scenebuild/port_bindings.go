@@ -6,7 +6,6 @@ import (
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 	interior "github.com/dtauraso/wirefold/Categories/Node/Interior"
-	"github.com/dtauraso/wirefold/Categories/Scene/rowtables"
 )
 
 type PortBindings struct {
@@ -19,7 +18,7 @@ type PortBindings struct {
 
 	SpeedSinks *SliderPanel.Sinks
 
-	RT rowtables.RowTables
+	NodeRowOf func(id string) (int32, bool)
 
 	InteriorEmitters *map[string]*interior.Emitter
 
@@ -73,7 +72,7 @@ func (pb PortBindings) BroadcastAt(name string, i int) (*beadanimation.BeadLine,
 	return b.pw, b.handle, b.rule, b.label
 }
 
-func (pb PortBindings) NodeRowFor(id string) (int32, bool) { return pb.RT.NodeRowFor(id) }
+func (pb PortBindings) NodeRowFor(id string) (int32, bool) { return pb.NodeRowOf(id) }
 
 func (pb PortBindings) SetOutSink(key string, o *beadanimation.Sender) {
 	if pb.OutSink != nil {

@@ -8,7 +8,6 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgefile"
 	"github.com/dtauraso/wirefold/Categories/Polar/polar"
 	"github.com/dtauraso/wirefold/Categories/Scene/Camera"
-	"github.com/dtauraso/wirefold/Categories/Scene/rowtables"
 	"github.com/dtauraso/wirefold/Categories/Scene/sceneswitch"
 	"github.com/dtauraso/wirefold/Categories/Scene/viewstate"
 )
@@ -99,7 +98,7 @@ func CreateNode(scenes *sceneswitch.SceneSwitch, ui *viewstate.UIState, nodeGeom
 	scenes.Quit()
 }
 
-func DeleteNode(scenes *sceneswitch.SceneSwitch, ui *viewstate.UIState, rt *rowtables.RowTables, row int) {
+func DeleteNode(scenes *sceneswitch.SceneSwitch, ui *viewstate.UIState, id string, row int) {
 	if scenes == nil || scenes.TreeRoot == "" || scenes.Quit == nil {
 		return
 	}
@@ -109,8 +108,7 @@ func DeleteNode(scenes *sceneswitch.SceneSwitch, ui *viewstate.UIState, rt *rowt
 		ui.EmitViewFrame(nil)
 		return
 	}
-	id, ok := rt.LookupNodeRow(row)
-	if !ok {
+	if id == "" {
 		ui.RefuseStructuralEdit(fmt.Sprintf("no node on row %d", row))
 		ui.EmitViewFrame(nil)
 		return

@@ -1,4 +1,4 @@
-package rowtables
+package scenerun
 
 import "github.com/dtauraso/wirefold/Categories/Scene/Drag"
 

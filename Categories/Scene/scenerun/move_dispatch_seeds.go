@@ -7,7 +7,6 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Node"
 	edge "github.com/dtauraso/wirefold/Categories/Node/Edge"
 	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgegeom"
-	rowtables "github.com/dtauraso/wirefold/Categories/Scene/rowtables"
 )
 
 func edgeEnds(geoms map[string]Node.NodeGeom) map[string]edgegeom.NodeEnd {
@@ -70,13 +69,13 @@ func (md *MoveDispatch) buildGeomSeeds(geoms map[string]Node.NodeGeom, edgeEndpo
 }
 
 func (md *MoveDispatch) buildRowTables(rowCount int) {
-	rtNodeSeeds := make([]rowtables.NodeSeed, len(md.GS.NodeSeeds))
+	rtNodeSeeds := make([]NodeSeed, len(md.GS.NodeSeeds))
 	for i, sd := range md.GS.NodeSeeds {
-		rtNodeSeeds[i] = rowtables.NodeSeed{ID: sd.ID, Row: sd.Row}
+		rtNodeSeeds[i] = NodeSeed{ID: sd.ID, Row: sd.Row}
 	}
-	rtEdgeSeeds := make([]rowtables.EdgeSeed, len(md.GS.EdgeSeeds))
+	rtEdgeSeeds := make([]EdgeSeed, len(md.GS.EdgeSeeds))
 	for i, sd := range md.GS.EdgeSeeds {
-		rtEdgeSeeds[i] = rowtables.EdgeSeed{Label: sd.Label, SrcNode: sd.SrcNode, DstNode: sd.DstNode}
+		rtEdgeSeeds[i] = EdgeSeed{Label: sd.Label, SrcNode: sd.SrcNode, DstNode: sd.DstNode}
 	}
 	md.RT.Build(rtNodeSeeds, rtEdgeSeeds, rowCount)
 }
