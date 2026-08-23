@@ -125,7 +125,7 @@ one directory out, since a directory is one Go package. `go generate ./...` runs
   the files it persists under `view/camera/`, its block file, and the TSX drawing through it.
 - **Trace events are not a package.** Each owner declares its own `RowEvent` and labels and
   appends to the file of the item it tracks — the emitter writes it ITSELF, so an event never
-  crosses a package, and a label is a NAME, not an index. `readtrace/` is the only reader.
+  crosses a package, and a label is a NAME, not an index. `scripts/readtrace` is the only reader — one program for every owner's trace.bin.
 - **`Categories/Chrome/`** — the UI that is NOT the diagram: the pills, panels, dropdowns, tab strip
   and fit chip, plus the `chrome-theme.ts` they share ("Categories/Chrome" is the industry word for the
   frame around the content, and this repo reached for it twice on its own). The test is a
