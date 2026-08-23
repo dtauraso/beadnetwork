@@ -38,7 +38,7 @@ var commitEdges = []gestureEdge{
 func commitDragStart(ui *viewstate.UIState, sendMoveFn func(id string, msg Node.Msg), g *Drag.GestureState, ev Drag.RawInputMsg) {
 
 	if hit, ok := ui.DragPlaneHit(ev); ok {
-		g.NodeDrag.GrabAt(Node.Vec3(hit))
+		g.NodeDrag.GrabAt(nodegeom.Vec3(hit))
 	}
 
 	ui.LastDraggedNode = g.NodeDrag.Node

@@ -3,6 +3,7 @@ package Gesture
 import (
 	"github.com/dtauraso/wirefold/Categories/Input/Drag"
 	"github.com/dtauraso/wirefold/Categories/Node"
+	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
 	"github.com/dtauraso/wirefold/Categories/Scene/Camera"
 	"github.com/dtauraso/wirefold/Categories/Scene/rowtables"
 	"github.com/dtauraso/wirefold/Categories/Scene/viewstate"
@@ -62,7 +63,7 @@ func applyNodeDragTarget(ui *viewstate.UIState, rootMove func(id string, target 
 	if !ok {
 		return false
 	}
-	rootMove(g.NodeDrag.Node, Vec3(g.NodeDrag.TargetFor(Node.Vec3(hit))))
+	rootMove(g.NodeDrag.Node, Vec3(g.NodeDrag.TargetFor(nodegeom.Vec3(hit))))
 	return true
 }
 

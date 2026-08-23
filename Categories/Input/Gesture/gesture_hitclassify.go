@@ -3,6 +3,7 @@ package Gesture
 import (
 	"github.com/dtauraso/wirefold/Categories/Input/Drag"
 	"github.com/dtauraso/wirefold/Categories/Node"
+	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
 )
 
 var hitClassifiers = map[string]func(d Deps, g *Drag.GestureState, ev Drag.RawInputMsg){
@@ -18,7 +19,7 @@ var hitClassifiers = map[string]func(d Deps, g *Drag.GestureState, ev Drag.RawIn
 		if node, ok := d.RT.NodeFromHit(ev.Hit); ok {
 			if c, ok := d.MR.CenterOf(node); ok {
 				g.NodeDrag.Node = node
-				g.NodeDrag.StartCenter = Node.Vec3(c)
+				g.NodeDrag.StartCenter = nodegeom.Vec3(c)
 			}
 		}
 	},

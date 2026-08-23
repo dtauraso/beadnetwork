@@ -1,7 +1,7 @@
 package Drag
 
 import (
-	"github.com/dtauraso/wirefold/Categories/Node"
+	NodeDrag "github.com/dtauraso/wirefold/Categories/Node/Drag"
 	"github.com/dtauraso/wirefold/Categories/Scene/Camera"
 )
 
@@ -28,7 +28,7 @@ type GestureState struct {
 
 	EmptyDown bool
 
-	NodeDrag Node.DragGesture
+	NodeDrag NodeDrag.Gesture
 
 	HandholdDown bool
 
