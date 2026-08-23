@@ -128,11 +128,6 @@ func RunStdinReader(ctx context.Context, r io.Reader, h Handlers) {
 	}
 }
 
-// UpdateKinds is every entity an edit can name, in the order the wire numbers
-// them: the entity byte is an index into this list. It sits with the record
-// format that carries it, beside the kind byte itself — the reader that decodes
-// an edit and the generator that tells TS how to encode one now read the same
-// declaration, so they cannot disagree about what 22 means or what entity 3 is.
 var UpdateKinds = []string{
 	"overlays",
 	"clock",
