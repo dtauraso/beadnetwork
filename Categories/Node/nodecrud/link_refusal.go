@@ -1,4 +1,4 @@
-package moverreg
+package nodecrud
 
 import (
 	"fmt"
@@ -11,15 +11,6 @@ type Link struct {
 	SrcPort    string
 	TargetPort string
 	Broadcast  bool
-}
-
-func (mr *MoverRegistry) LinkRefusal(src, kind string) (Link, string, bool) {
-	srcGeom, found := mr.nodeGeoms[src]
-	srcKind := ""
-	if found {
-		srcKind = srcGeom.Kind()
-	}
-	return linkRefusalFor(src, srcKind, found, kind)
 }
 
 func linkRefusalFor(src, srcKind string, srcFound bool, kind string) (Link, string, bool) {

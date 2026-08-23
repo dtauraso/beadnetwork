@@ -48,7 +48,12 @@ func CreateNode(scenes *sceneswitch.SceneSwitch, ui *viewstate.UIState, mr *move
 	target := loadspec.NewNodeID(scenes.TreeRoot)
 	var srcHandle, targetPort string
 	if okNear {
-		link, why, canLink := mr.LinkRefusal(src, kind)
+		srcGeom, srcFound := mr.NodeGeoms()[src]
+		srcKind := ""
+		if srcFound {
+			srcKind = srcGeom.Kind()
+		}
+		link, why, canLink := linkRefusalFor(src, srcKind, srcFound, kind)
 		if !canLink {
 			ui.RefuseStructuralEdit(why)
 			ui.EmitViewFrame(nil)
