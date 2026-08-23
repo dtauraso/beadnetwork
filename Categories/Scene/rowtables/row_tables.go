@@ -1,6 +1,6 @@
 package rowtables
 
-import "github.com/dtauraso/wirefold/Categories/Input/Drag"
+import "github.com/dtauraso/wirefold/Categories/Scene/Drag"
 
 type EdgeEndpoint struct {
 	SrcNode, DstNode string

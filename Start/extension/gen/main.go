@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/dtauraso/wirefold/Categories/Input/Drag"
+	"github.com/dtauraso/wirefold/Categories/Scene/Drag"
 )
 
 func main() {

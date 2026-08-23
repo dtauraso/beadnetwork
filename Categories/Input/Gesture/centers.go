@@ -2,7 +2,7 @@ package Gesture
 
 import (
 	FitButton "github.com/dtauraso/wirefold/Categories/Chrome/Pills/FitButton"
-	Drag "github.com/dtauraso/wirefold/Categories/Input/Drag"
+	Drag "github.com/dtauraso/wirefold/Categories/Scene/Drag"
 	Node "github.com/dtauraso/wirefold/Categories/Node"
 	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
 	Camera "github.com/dtauraso/wirefold/Categories/Scene/Camera"

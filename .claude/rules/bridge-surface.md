@@ -66,6 +66,6 @@ Keep all of it in parity across `messages.ts`, the `Categories/Node/Wiring` stdi
 (guards: `Categories/Scene/scenerun/check-edit-op-parity.sh`, `Categories/Scene/scenerun/check-message-kind-parity.sh`).
 
 There is no single wire-layout string any more. Each vocabulary is declared in Go by the
-concern that uses it — every `update_attrs.go`, `Categories/Input/Drag/kinds.go`,
+concern that uses it — every `update_attrs.go`, `Categories/Scene/Drag/kinds.go`,
 `Categories/Scene/scenerun/dispatch_edit.go` — and each `wire-gen.ts` is generated from those
 declarations, so the TS copy cannot drift from the Go one.

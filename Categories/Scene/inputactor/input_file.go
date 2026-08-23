@@ -4,7 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/dtauraso/wirefold/Categories/Input/Drag"
+	"github.com/dtauraso/wirefold/Categories/Scene/Drag"
 )
 
 type slot struct {

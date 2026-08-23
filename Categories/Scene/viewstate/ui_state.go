@@ -18,7 +18,7 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Chrome/Pills/FitButton"
 	"github.com/dtauraso/wirefold/Categories/Chrome/Pills/NodesDropdown"
 	"github.com/dtauraso/wirefold/Categories/Chrome/Tabs"
-	"github.com/dtauraso/wirefold/Categories/Input/Drag"
+	"github.com/dtauraso/wirefold/Categories/Scene/Drag"
 	"github.com/dtauraso/wirefold/Categories/Node"
 	"github.com/dtauraso/wirefold/Categories/Polar/polar"
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"

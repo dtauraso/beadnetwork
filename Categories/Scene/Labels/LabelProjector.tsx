@@ -1,7 +1,7 @@
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { nodeLabel } from "../../Node/node-label";
-import { ndcToPixel } from "../../Input/Drag/ndc";
+import { ndcToPixel } from "../Drag/ndc";
 import { ownerCounts } from "../../Scene/owner-counts";
 import { nodeF32 } from "../../Node/node-leaves";
 import { overlayFlag } from "../../Overlay/overlay-flags";
