@@ -3,8 +3,6 @@ package kindreg
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/Categories/Node"
-	"github.com/dtauraso/wirefold/Categories/Node/TiltVectors"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/nodeapi"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/portwiring"
 	"github.com/dtauraso/wirefold/Categories/Scene/loadspec"
@@ -15,9 +13,9 @@ type BuildDeps struct {
 
 	ClaimLatticeIn func(name string) chan int32
 
-	ClaimTiltEditIn func(name string) chan TiltVectors.TiltEditMsg
+	ClaimTiltEditIn func(name string) any
 
-	ClaimSelfDriveGeom func(name string) *Node.NodeGeometry
+	ClaimSelfDriveGeom func(name string) any
 }
 
 type NodeBuilder struct {

@@ -35,12 +35,12 @@ func buildNodes(
 			md.Inboxes.ClaimLatticeIn(name, sceneToNodeLatticeIn)
 			return sceneToNodeLatticeIn
 		},
-		ClaimTiltEditIn: func(name string) chan TiltVectors.TiltEditMsg {
+		ClaimTiltEditIn: func(name string) any {
 			panelToNodeTiltEditIn := make(chan TiltVectors.TiltEditMsg, scenerun.InboxDepth)
 			md.Inboxes.ClaimTiltEditIn(name, panelToNodeTiltEditIn)
 			return panelToNodeTiltEditIn
 		},
-		ClaimSelfDriveGeom: func(name string) *Node.NodeGeometry {
+		ClaimSelfDriveGeom: func(name string) any {
 			ng, ok := md.MR.NodeGeoms()[name]
 			if !ok {
 				return nil

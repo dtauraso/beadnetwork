@@ -1,12 +1,15 @@
 package pulse
 
-import Wiring "github.com/dtauraso/wirefold/Categories/NodeKinds/kindapi"
+import (
+	NodeCat "github.com/dtauraso/wirefold/Categories/Node"
+	Wiring "github.com/dtauraso/wirefold/Categories/NodeKinds/kindapi"
+)
 
 func claimSelfDrive(a Wiring.BuildArgs) *Self {
 	if a.Deps.ClaimSelfDriveGeom == nil {
 		return nil
 	}
-	ng := a.Deps.ClaimSelfDriveGeom(a.Name)
+	ng, _ := a.Deps.ClaimSelfDriveGeom(a.Name).(*NodeCat.NodeGeometry)
 	if ng == nil {
 		return nil
 	}

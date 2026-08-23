@@ -13,7 +13,11 @@ func (a BuildArgs) TiltEditIn() <-chan TiltVectors.TiltEditMsg {
 	if a.Deps.ClaimTiltEditIn == nil {
 		return make(chan TiltVectors.TiltEditMsg)
 	}
-	return a.Deps.ClaimTiltEditIn(a.Name)
+	ch, ok := a.Deps.ClaimTiltEditIn(a.Name).(chan TiltVectors.TiltEditMsg)
+	if !ok {
+		panic("TiltEditIn: the scene handed this kind something that is not a tilt-edit channel")
+	}
+	return ch
 }
 
 func (a BuildArgs) VectorOut() chan<- TiltPanel.TiltVectorMsg {
