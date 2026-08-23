@@ -2,13 +2,8 @@ package clock
 
 import (
 	"context"
-	"math"
 	"time"
 )
-
-func (c *RealClock) SleepCycle(ctx context.Context) error {
-	return c.sleepPulses(ctx, c.pulsesPerCycle())
-}
 
 func (c *RealClock) SleepPulse(ctx context.Context) error {
 	return c.sleepPulses(ctx, 1)
@@ -19,6 +14,22 @@ func (c *RealClock) SleepPulses(ctx context.Context, n int) error {
 		n = 1
 	}
 	return c.sleepPulses(ctx, n)
+}
+
+func (c *RealClock) sleepPulses(ctx context.Context, n int) error {
+	if c.ticker == nil {
+		c.ticker = time.NewTicker(tickPeriod)
+	}
+	for range n {
+		select {
+		case <-c.ticker.C:
+		case <-c.wake:
+			return nil
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+	}
+	return nil
 }
 
 func (c *RealClock) SleepFor(ctx context.Context, d time.Duration) error {
@@ -56,37 +67,4 @@ func SleepForOrChange(ctx context.Context, d time.Duration, ch <-chan int64) (v 
 	case <-ctx.Done():
 		return 0, false, ctx.Err()
 	}
-}
-
-func (c *RealClock) sleepPulses(ctx context.Context, n int) error {
-	if c.ticker == nil {
-		c.ticker = time.NewTicker(tickPeriod)
-	}
-	for range n {
-		select {
-		case <-c.ticker.C:
-		case <-c.wake:
-
-			return nil
-		case <-ctx.Done():
-			return ctx.Err()
-		}
-	}
-	return nil
-}
-
-const maxPulsesPerCycle = 64
-
-func (c *RealClock) pulsesPerCycle() int {
-	if c.speed <= 0 {
-		return maxPulsesPerCycle
-	}
-	n := int(math.Ceil(1 / c.speed))
-	if n < 1 {
-		return 1
-	}
-	if n > maxPulsesPerCycle {
-		return maxPulsesPerCycle
-	}
-	return n
 }

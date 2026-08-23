@@ -13,7 +13,7 @@ wait_pat = re.compile(r'\btime\.(Sleep|After|NewTicker)\s*\(')
 
 EXEMPT_FILES = {
     os.path.join("Categories/Clock", "clock.go"),
-    os.path.join("Categories/Clock", "sleep_cycle.go"),
+    os.path.join("Categories/Clock", "pulse.go"),
 }
 
 ALLOWED = set()

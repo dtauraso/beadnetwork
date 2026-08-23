@@ -1,19 +1,6 @@
 package clock
 
-import (
-	"context"
-	"time"
-)
-
-const MsPerTick = 16
-
-const SpeedNumScale = 4
-
-const tickPeriod = MsPerTick * time.Millisecond
-
-const PausedCycleMultiple = maxPulsesPerCycle
-
-const TickPeriod = tickPeriod
+import "context"
 
 type Clock interface {
 	Tick() int64
