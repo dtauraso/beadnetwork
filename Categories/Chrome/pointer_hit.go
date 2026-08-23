@@ -9,8 +9,6 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Chrome/Pills/NodesDropdown"
 )
 
-// TargetAt is what the pointer is over, asked of the chrome's own layout. It
-// reads no view state: a layout in, a target out.
 func TargetAt(pl Layout, x, y float64) Panels.PointerTarget {
 
 	if h := pl.Rules.Hit(x, y); h.Kind != PolarRulesPanel.HitNone {
@@ -43,8 +41,6 @@ func TargetAt(pl Layout, x, y float64) Panels.PointerTarget {
 	return Panels.PointerTarget{}
 }
 
-// TakeWheel scrolls whichever piece is under the pointer, given that piece's
-// own scroll to move and the redraw to ask for.
 func TakeWheel(pl Layout, overlaysScroll, rulesScroll *float32, x, y, deltaY float64, redraw func()) bool {
 
 	if pl.Overlays.Open && Panel.HitRect(pl.Overlays.Popover, x, y) {
