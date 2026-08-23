@@ -8,7 +8,7 @@ no round trip to any other goroutine to decide.
 
 This node owns its own geometry directly (`Self *kindapi.Self`, claimed at build
 time via `BuildArgs.ClaimSelfDrive`, driven every cycle by `n.Self.Step`
-(`Categories/NodeKinds/kindapi/self.go`)) — there is **no separate `NodeMover` goroutine** for
+(`Categories/NodeKinds/PairNode/self.go`)) — there is **no separate `NodeMover` goroutine** for
 either node of a pair (`Categories/Scene/scenerun/movers.go` never constructs one for an id
 claimed via `ClaimSelfDrive`). `SyncTiltIndex`/`SyncReceivedVector`/`ClearOutBeads` below
 are therefore plain method calls on this same object (`PairNodeSelf.SetTiltIndex`/

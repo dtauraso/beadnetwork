@@ -1,15 +1,11 @@
 package kindapi
 
-import "github.com/dtauraso/wirefold/Categories/Scene/loadspec"
-
 func (a BuildArgs) StateSeed(key string, def int) int {
-	if a.data == nil || a.data.State == nil {
+	if a.Data == nil || a.Data.State == nil {
 		return def
 	}
-	if v, ok := a.data.State[key]; ok {
+	if v, ok := a.Data.State[key]; ok {
 		return v
 	}
 	return def
 }
-
-func (a BuildArgs) Data() *loadspec.NodeData { return a.data }

@@ -18,7 +18,7 @@ type Pulse struct {
 
 	EmitHeldBead func(held int)
 
-	Self *Wiring.Self
+	Self *Self
 
 	Clock clock.Clock
 
@@ -93,7 +93,7 @@ var Builder = Wiring.BuilderFor("Pulse",
 		n.Clock = a.Clock()
 		n.SpeedCh = a.SpeedCh()
 		n.In = a.In("In")
-		n.Self = a.ClaimSelfDrive()
+		n.Self = claimSelfDrive(a)
 
 		n.Out = a.DriveOut("Out")
 		n.OutFanout = a.DriveOut("OutFanout")

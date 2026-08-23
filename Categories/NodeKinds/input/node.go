@@ -15,7 +15,7 @@ type Node struct {
 	Fire         func()
 	EmitGeometry func()
 
-	Self *Wiring.Self
+	Self *Self
 
 	EmitNodeBeads func(working, backup []int)
 
@@ -112,10 +112,10 @@ var Builder = Wiring.BuilderFor("Input",
 			n.Clock = clk
 		}
 		n.SpeedCh = a.SpeedCh()
-		n.Self = a.ClaimSelfDrive()
+		n.Self = claimSelfDrive(a)
 		n.Self.SetKindRule(trimOwnDrag, equalOutLengths)
 
-		if data := a.Data(); data != nil {
+		if data := a.Data; data != nil {
 			if data.Init != nil {
 				n.Init = append([]int(nil), data.Init...)
 			}
