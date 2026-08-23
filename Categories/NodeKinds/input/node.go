@@ -5,7 +5,7 @@ import (
 
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
-	"github.com/dtauraso/wirefold/Categories/NodeKinds/nodeapi"
+	"github.com/dtauraso/wirefold/Categories/NodeKinds/portwiring"
 	Speed "github.com/dtauraso/wirefold/Categories/Speed"
 )
 
@@ -49,7 +49,7 @@ func (n *Node) broadcastPlace(v int, tick int64) bool {
 }
 
 func (n *Node) Update(ctx context.Context) {
-	nodeapi.TryEmit(n.EmitGeometry)
+	portwiring.TryEmit(n.EmitGeometry)
 	n.Self.EmitGeometryOnce()
 
 	if len(n.Init) == 0 {
@@ -97,7 +97,7 @@ func (n *Node) runStepLoop(ctx context.Context, clk clock.Clock, perTick func() 
 }
 
 var Builder = BuilderFor("Input",
-	func(a BuildArgs) (nodeapi.Node, error) {
+	func(a BuildArgs) (portwiring.Node, error) {
 		n := &Node{
 
 			Clock: clock.NewRealClock(),

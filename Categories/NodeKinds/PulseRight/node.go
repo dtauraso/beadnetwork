@@ -6,7 +6,7 @@ import (
 
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
-	"github.com/dtauraso/wirefold/Categories/NodeKinds/nodeapi"
+	"github.com/dtauraso/wirefold/Categories/NodeKinds/portwiring"
 	Speed "github.com/dtauraso/wirefold/Categories/Speed"
 )
 
@@ -31,7 +31,7 @@ func driveOutput(out DrivenOut) *HeldDriver {
 }
 
 func (g *PulseRight) Update(ctx context.Context) {
-	nodeapi.TryEmit(g.EmitGeometry)
+	portwiring.TryEmit(g.EmitGeometry)
 	g.Self.EmitGeometryOnce()
 
 	var cur int64 = interior.NoValue
@@ -74,7 +74,7 @@ func (g *PulseRight) Update(ctx context.Context) {
 }
 
 var Builder = BuilderFor("PulseRight",
-	func(a BuildArgs) (nodeapi.Node, error) {
+	func(a BuildArgs) (portwiring.Node, error) {
 		n := &PulseRight{}
 		n.Fire = a.Fire()
 		n.EmitHeldBead = a.EmitHeldBead()

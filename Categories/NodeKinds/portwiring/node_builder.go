@@ -1,9 +1,8 @@
-package nodeapi
+package portwiring
 
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/Categories/NodeKinds/portwiring"
 	"github.com/dtauraso/wirefold/Categories/Scene/loadspec"
 )
 
@@ -18,6 +17,6 @@ type BuildDeps struct {
 }
 
 type NodeBuilder struct {
-	Ports []portwiring.PortSpec
-	Build func(ctx context.Context, name string, data *loadspec.NodeData, pb portwiring.PortBindings, tiltPhiIdx int32, deps BuildDeps) (Node, error)
+	Ports []PortSpec
+	Build func(ctx context.Context, name string, data *loadspec.NodeData, pb PortBindings, tiltPhiIdx int32, deps BuildDeps) (Node, error)
 }

@@ -6,7 +6,6 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/SliderPanel"
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
 	_ "github.com/dtauraso/wirefold/Categories/NodeKinds"
-	"github.com/dtauraso/wirefold/Categories/NodeKinds/nodeapi"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/portwiring"
 	"github.com/dtauraso/wirefold/Categories/Scene/loadspec"
 	"github.com/dtauraso/wirefold/Categories/Scene/scenepersist"
@@ -14,7 +13,7 @@ import (
 )
 
 type Scene struct {
-	Nodes      []nodeapi.Node
+	Nodes      []portwiring.Node
 	Dispatch   *scenerun.MoveDispatch
 	SpeedSinks SliderPanel.Sinks
 }
@@ -24,7 +23,7 @@ func Load(ctx context.Context, scenePath string, clk clock.Clock) (Scene, error)
 	if err != nil {
 		return Scene{}, err
 	}
-	if err := loadspec.ValidateSpec(&spec, portwiring.KindPorts); err != nil {
+	if err := ValidateSpec(&spec, portwiring.KindPorts); err != nil {
 		return Scene{}, err
 	}
 

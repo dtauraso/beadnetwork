@@ -8,7 +8,7 @@ import (
 
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
-	"github.com/dtauraso/wirefold/Categories/NodeKinds/nodeapi"
+	"github.com/dtauraso/wirefold/Categories/NodeKinds/portwiring"
 	Speed "github.com/dtauraso/wirefold/Categories/Speed"
 )
 
@@ -79,7 +79,7 @@ func (in *TimeStart) consumeInput(clk clock.Clock, value int, held int) (newHeld
 }
 
 func (in *TimeStart) Update(ctx context.Context) {
-	nodeapi.TryEmit(in.EmitGeometry)
+	portwiring.TryEmit(in.EmitGeometry)
 	in.Self.EmitGeometryOnce()
 
 	held := interior.NoValue
@@ -119,7 +119,7 @@ func (in *TimeStart) Update(ctx context.Context) {
 }
 
 var Builder = BuilderFor("TimeStart",
-	func(a BuildArgs) (nodeapi.Node, error) {
+	func(a BuildArgs) (portwiring.Node, error) {
 		n := &TimeStart{
 
 			Held: a.StateSeed("held", interior.NoValue),

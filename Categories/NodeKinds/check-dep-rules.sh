@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# PLACEMENT: Categories/NodeKinds/*/node.go,Categories/NodeKinds/*/*.go | a node-kind package may import only bead/nodeapi/clock/portwiring, never a sibling kind — the gate, the held driver and the build args all live in the kinds that use them
+# PLACEMENT: Categories/NodeKinds/*/node.go,Categories/NodeKinds/*/*.go | a node-kind package may import only bead/clock/portwiring, never a sibling kind — the gate, the held driver and the build args all live in the kinds that use them
 
 set -euo pipefail
 
@@ -18,7 +18,7 @@ fi
 
 MODULE="github.com/dtauraso/wirefold"
 
-is_spine() { [ "$1" = "bead" ] || [ "$1" = "spatial" ] || [ "$1" = "rowevent" ] || [ "$1" = "nodeapi" ] || [ "$1" = "clock" ] || [ "$1" = "portwiring" ]; }
+is_spine() { [ "$1" = "bead" ] || [ "$1" = "spatial" ] || [ "$1" = "rowevent" ] || [ "$1" = "clock" ] || [ "$1" = "portwiring" ]; }
 
 is_kind() { grep -rq 'BuilderFor("' "$1" --include="*.go" 2>/dev/null; }
 
