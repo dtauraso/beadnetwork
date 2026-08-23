@@ -80,7 +80,3 @@ func NewNodeGeometry(id string, geom nodegeom.NodeGeom, clockSrc clock.Clock, co
 
 	return ng
 }
-
-func (m *NodeGeometry) BeadAnimation() *owners.NodeBeadAnimation {
-	return m.anim
-}
