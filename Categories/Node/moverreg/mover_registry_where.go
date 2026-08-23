@@ -1,11 +1,7 @@
 package moverreg
 
 import (
-	"context"
-
 	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgegeom"
-	"github.com/dtauraso/wirefold/Categories/Node/nodeactor/owners"
-	"github.com/dtauraso/wirefold/Categories/Node/nodeactor"
 	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
 )
 
@@ -24,18 +20,6 @@ func (mr *MoverRegistry) CenterOfNode(id string) (Vec3, bool) {
 	mr.drainCenterMirror()
 	c, ok := mr.centerMirror[id]
 	return c, ok
-}
-
-func (mr *MoverRegistry) SendMove(ctx context.Context, id string, msg owners.Msg) {
-	nm, ok := mr.nodeGeoms[id]
-	if !ok {
-		return
-	}
-	nm.SendExternal(ctx, msg)
-}
-
-func (mr *MoverRegistry) EnqueueFor(nm *nodeactor.NodeGeometry) func(id string, msg owners.Msg) {
-	return nm.EnqueueSend
 }
 
 func (mr *MoverRegistry) nodeKind(nodeID string) string {
