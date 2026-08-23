@@ -22,5 +22,5 @@ type BuildDeps struct {
 
 type NodeBuilder struct {
 	Ports []portwiring.PortSpec
-	Build func(ctx context.Context, name string, data *loadspec.NodeData, pb portwiring.PortBindings, geom Node.NodeGeom, tiltPhiIdx int32, deps BuildDeps) (nodeapi.Node, error)
+	Build func(ctx context.Context, name string, data *loadspec.NodeData, pb portwiring.PortBindings, tiltPhiIdx int32, deps BuildDeps) (nodeapi.Node, error)
 }
