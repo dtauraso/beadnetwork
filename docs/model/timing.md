@@ -26,7 +26,7 @@
   does not interpolate, does not own positions, and is never asked when a bead arrived.
 - Durations are counted in slots at `lattice.PulsesPerSlot`, the one number every duration
   shares: the animation goroutine sleeps it per slot, and Time, TimeStart, input's cadence
-  and helddrive's hold each multiply their own step count by it. A window and the
+  and the held driver's hold each multiply their own step count by it. A window and the
   traversal it waits for move together by construction.
 
 ## Driver

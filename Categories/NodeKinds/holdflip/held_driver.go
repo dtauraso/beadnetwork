@@ -1,12 +1,10 @@
-package helddrive
+package holdflip
 
 import (
 	lattice "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation/lattice"
 	interior "github.com/dtauraso/wirefold/Categories/Node/Interior"
 	Wiring "github.com/dtauraso/wirefold/Categories/NodeKinds/kindapi"
 )
-
-const NoValue = interior.NoValue
 
 type HeldDriver struct {
 	out       Wiring.DrivenOut
@@ -19,8 +17,8 @@ type HeldDriver struct {
 	lastPlaceTick int64
 }
 
-func New(out Wiring.DrivenOut, transform func(int64) int) *HeldDriver {
-	return &HeldDriver{out: out, transform: transform, cur: NoValue}
+func newHeldDriver(out Wiring.DrivenOut, transform func(int64) int) *HeldDriver {
+	return &HeldDriver{out: out, transform: transform, cur: interior.NoValue}
 }
 
 func (d *HeldDriver) Set(held int64) { d.cur = held }
