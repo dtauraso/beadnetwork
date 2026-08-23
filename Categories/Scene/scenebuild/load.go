@@ -3,11 +3,14 @@ package scenebuild
 import (
 	"context"
 
+	NodeBuf "github.com/dtauraso/wirefold/Categories/Node"
+
+	"github.com/dtauraso/wirefold/Categories/Scene/Scenes"
+
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/SliderPanel"
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
 	_ "github.com/dtauraso/wirefold/Categories/NodeKinds"
 	"github.com/dtauraso/wirefold/Categories/Scene/Camera"
-	"github.com/dtauraso/wirefold/Categories/Scene/scene"
 	"github.com/dtauraso/wirefold/Categories/Scene/scenepersist"
 	"github.com/dtauraso/wirefold/Categories/Scene/scenerun"
 	"github.com/dtauraso/wirefold/Categories/Scene/viewpersist"
@@ -66,9 +69,9 @@ func Load(ctx context.Context, scenePath string, clk clock.Clock) (Scene, error)
 func LoadSceneState(scenePath string, md *scenerun.MoveDispatch, speedSinks SliderPanel.Sinks) {
 	Camera.SeedInitialViewpoint(scenePath, md.UI.VP.SetViewpoint, md.UI.VP.EmitViewpoint)
 
-	s := scene.For(scenePath)
+	s := Scenes.For(scenePath)
 	md.UI.SceneEditable = s.Editable
-	md.UI.SceneKinds = s.KindMask()
+	md.UI.SceneKinds = SceneKindMask(s)
 
 	scenepersist.InstallOverlays(&md.UI, scenePath)
 
@@ -99,4 +102,17 @@ func CheckRowSeedCount(md *scenerun.MoveDispatch, nodeCount int) {
 			Value: int32(len(md.GS.NodeSeedsFn())), X: float64(nodeCount),
 		})
 	}
+}
+
+func SceneKindMask(s Scenes.Scene) uint32 {
+	if len(s.Kinds) == 0 {
+		return ^uint32(0)
+	}
+	var mask uint32
+	for _, k := range s.Kinds {
+		if id := NodeBuf.NodeKindID(k); id != NodeBuf.KindIDUnknown {
+			mask |= 1 << uint(id)
+		}
+	}
+	return mask
 }

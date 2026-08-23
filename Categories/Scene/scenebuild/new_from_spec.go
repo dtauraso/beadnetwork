@@ -4,12 +4,13 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/dtauraso/wirefold/Categories/Scene/Scenes"
+
 	"github.com/dtauraso/wirefold/Categories/Scene/scenerun"
 
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/SliderPanel"
 	"github.com/dtauraso/wirefold/Categories/Chrome/Pills/AngleDropdown"
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
-	"github.com/dtauraso/wirefold/Categories/Scene/scene"
 
 	NodeBuf "github.com/dtauraso/wirefold/Categories/Node"
 	edge "github.com/dtauraso/wirefold/Categories/Node/Edge"
@@ -39,7 +40,7 @@ func NewFromSpec(spec TopoSpec, sphere polar.SceneSphere, hasScene bool, scenePa
 	}
 	md.UI.Constants = spec.Constants
 
-	s := scene.For(scenePath)
+	s := Scenes.For(scenePath)
 
 	coplanarEdges := s.CoplanarEdges
 	upAxis := s.UpAxis

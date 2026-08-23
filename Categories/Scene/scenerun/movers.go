@@ -2,8 +2,9 @@ package scenerun
 
 import (
 	"context"
-	"github.com/dtauraso/wirefold/Categories/Scene/viewstate"
 	"sync"
+
+	"github.com/dtauraso/wirefold/Categories/Scene/viewstate"
 
 	"github.com/dtauraso/wirefold/Categories/Node"
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"

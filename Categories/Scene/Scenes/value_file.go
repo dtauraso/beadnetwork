@@ -1,4 +1,4 @@
-package scene
+package Scenes
 
 import (
 	"encoding/binary"

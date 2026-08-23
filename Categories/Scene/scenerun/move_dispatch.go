@@ -15,7 +15,7 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Overlay"
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
 	SceneB "github.com/dtauraso/wirefold/Categories/Scene"
-	sceneswitch "github.com/dtauraso/wirefold/Categories/Scene/sceneswitch"
+	"github.com/dtauraso/wirefold/Categories/Scene/Scenes"
 	"github.com/dtauraso/wirefold/Categories/Scene/viewpersist"
 	"github.com/dtauraso/wirefold/Categories/Scene/viewstate"
 )
@@ -33,7 +33,7 @@ type MoveDispatch struct {
 
 	Mover Node.NodeMover
 
-	Scenes sceneswitch.SceneSwitch
+	Scenes Scenes.SceneSwitch
 
 	RT RowTables
 

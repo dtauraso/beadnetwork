@@ -1,11 +1,9 @@
-package scene
+package Scenes
 
 import (
 	"fmt"
 	"os"
 	"path/filepath"
-
-	"github.com/dtauraso/wirefold/Categories/Scene/scenepaths"
 )
 
 func Container(anchorPath string) string {
@@ -18,7 +16,7 @@ func Container(anchorPath string) string {
 
 func SelectedIndex(anchorPath string) int {
 	var selected string
-	if !ReadIfExists(scenepaths.SelectionFilePath(anchorPath), &selected) {
+	if !ReadIfExists(SelectionFilePath(anchorPath), &selected) {
 		return 0
 	}
 	for i, s := range All {
@@ -36,7 +34,7 @@ func ResolvePath(anchorPath string) string {
 	if info, err := os.Stat(resolved); err != nil || !info.IsDir() { // path-resolution-ok: asserting the resolver's own output exists, not resolving a second way
 		panic(fmt.Sprintf(
 			"ResolveScenePath: scene %q selected at anchor %s resolves to %s, which is not a directory — "+
-				"every scene in scene.All must exist beside the anchor, since the tab strip offers all of them",
+				"every scene in All must exist beside the anchor, since the tab strip offers all of them",
 			selected.Name, anchorPath, resolved))
 	}
 	return resolved
