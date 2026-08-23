@@ -7,11 +7,6 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
 )
 
-func init() {
-	nodedrag.RegisterTrim("Input", trimOwnDrag)
-	nodedrag.RegisterRequest("Input", equalOutLengths)
-}
-
 func trimOwnDrag(delta polarindex.Offset, of nodedrag.Node) polarindex.Offset {
 	if !of.KindRuleActive() {
 		return nodedrag.TrimToDragRule(delta, of)

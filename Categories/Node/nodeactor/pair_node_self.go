@@ -5,6 +5,7 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Node/nodeactor/owners"
 
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
+	"github.com/dtauraso/wirefold/Categories/Node/nodedrag"
 )
 
 type PairNodeSelf struct {
@@ -93,6 +94,13 @@ func (g *NodeGeometry) RunGeometry(ctx context.Context) {
 			return
 		}
 	}
+}
+
+func (p *PairNodeSelf) SetKindRule(trim nodedrag.Trim, request nodedrag.Request) {
+	if p == nil || p.geom == nil {
+		return
+	}
+	p.geom.SetKindRule(trim, request)
 }
 
 func (p *PairNodeSelf) SetTiltIndex(theta int32) {

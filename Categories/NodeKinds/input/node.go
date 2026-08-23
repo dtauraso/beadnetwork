@@ -114,6 +114,7 @@ var Builder = Wiring.BuilderFor("Input",
 		}
 		n.SpeedCh = a.SpeedCh()
 		n.Self = a.ClaimSelfDrive()
+		n.Self.SetKindRule(trimOwnDrag, equalOutLengths)
 
 		if data := a.Data(); data != nil {
 			if data.Init != nil {
