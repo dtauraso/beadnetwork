@@ -44,9 +44,8 @@ delivery), node goroutine, node input, and clock
    `<Kind>.go`) plus `SPEC.md`. Directory casing is mixed and both are live: PascalCase
    (`Time`, `TimeEnd`, `TimeStart`, `PulseLeft`, `PulseRight`) and lowercase (`holdflip`,
    `input`, `pacer`, `pulse`, `selectleft`, `selectright`) — don't infer one from the other.
-4. `go generate ./...`. **Skip this and the kind does not exist in the binary** —
-   it fails at runtime with `unknown type "X"` while everything else looks correct.
-   Guard: `check-generated.sh`.
+4. `go generate ./...`. **Skip this and the kind is in no switch**, so loading a scene
+   that names it fails saying exactly that. Guard: `check-generated.sh`.
 
 Detail: `.claude/rules/node-kinds.md`. Wire props: `.claude/rules/wire-props.md`.
 
@@ -83,12 +82,13 @@ one directory out, since a directory is one Go package. `go generate ./...` runs
 - **`Categories/NodeKinds/`** — the node kinds, plus what only they use: `nodeapi/` (the `Node`
   interface a kind implements — `Update(ctx)`, one method wide) and `gatecommon/`, the firing rule 8 of them share
   (window opens on the first input, fires on dwell, clears otherwise). The scanner reads a
-  directory here as a kind only if it calls `Register(...)`. A kind's ports come from its
+  directory here as a kind only if it declares `var Builder = Wiring.BuilderFor(…)`; nothing
+  registers, and `go generate` writes one `case` per kind into `NodeKinds.BuilderFor`. A kind's ports come from its
   SPEC.md `## Ports` table and NOWHERE else — direction `in`, `out`, or `broadcast` (an out
   that fans to every downstream edge). Deriving them from Go field types instead is what let
   a port-typed field on any struct in a shared package grow a phantom port on all 8 kinds.
   Both `node-defs.ts` and Go's `portwiring.KindPorts` are generated from that table, so the
-  kind passes no port list to `RegisterBuilder`, and `go generate` FAILS if a kind's code
+  kind passes no port list to `BuilderFor`, and `go generate` FAILS if a kind's code
   binds a name the table does not carry (an undeclared name silently binds a dead-end
   channel). The check after touching this directory is a `node-defs.ts` diff, not a build.
 - **`Categories/Clock/`** — the human-speed clock, one of MODEL.md's own entities alongside the

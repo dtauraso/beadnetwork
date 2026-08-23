@@ -12,6 +12,7 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Node/moverreg"
 	"github.com/dtauraso/wirefold/Categories/Node/nodeactor"
 	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
+	"github.com/dtauraso/wirefold/Categories/NodeKinds"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/kindreg"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/nodeapi"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/portwiring"
@@ -54,7 +55,12 @@ func buildNodes(
 	outSink := map[string]*beadanimation.Sender{}
 	nodes := make([]nodeapi.Node, 0, len(spec.Nodes))
 	for _, n := range spec.Nodes {
-		bind := kindreg.Registry[n.Type]
+		bind, known := NodeKinds.BuilderFor(n.Type)
+		if !known {
+			return nil, nil, fmt.Errorf("scene names node type %q, which no kind builds — its directory "+
+				"under Categories/NodeKinds must declare a Builder, and `go generate ./...` puts it "+
+				"in the switch that BuilderFor reads", n.Type)
+		}
 
 		pb := portwiring.NewPortBindings()
 		pb.OutSink = outSink

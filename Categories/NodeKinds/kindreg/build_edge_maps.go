@@ -11,9 +11,9 @@ func BuildTypeMaps(spec loadspec.TopoSpec) (nodeType map[string]string, kindBroa
 		nodeType[n.ID] = n.Type
 	}
 	kindBroadcastPorts = map[string]map[string]bool{}
-	for kind, bind := range Registry {
+	for kind, ports := range portwiring.KindPorts {
 		outMultis := map[string]bool{}
-		for _, p := range bind.Ports {
+		for _, p := range ports {
 			if p.Dir == portwiring.PortBroadcast {
 				outMultis[p.Name] = true
 			}

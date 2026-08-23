@@ -61,18 +61,15 @@ func (n *Node) wireVectorChannels(a Wiring.BuildArgs) {
 	n.vec.VectorIn = a.VectorIn()
 }
 
-func init() {
+var Builder = Wiring.BuilderFor("PairNode",
+	func(a Wiring.BuildArgs) (nodeapi.Node, error) {
+		n := &Node{
+			plumb: nodePlumbing{Clock: clock.NewRealClock()},
+		}
+		n.wirePlumbing(a)
+		latticeSeed, seed, seedUnknown := n.wireLatticeSeed(a)
+		n.wireSelfDrive(a, latticeSeed, seed, seedUnknown)
+		n.wireVectorChannels(a)
 
-	Wiring.RegisterBuilder("PairNode",
-		func(a Wiring.BuildArgs) (nodeapi.Node, error) {
-			n := &Node{
-				plumb: nodePlumbing{Clock: clock.NewRealClock()},
-			}
-			n.wirePlumbing(a)
-			latticeSeed, seed, seedUnknown := n.wireLatticeSeed(a)
-			n.wireSelfDrive(a, latticeSeed, seed, seedUnknown)
-			n.wireVectorChannels(a)
-
-			return n, nil
-		})
-}
+		return n, nil
+	})

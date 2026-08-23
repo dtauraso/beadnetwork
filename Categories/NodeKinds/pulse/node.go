@@ -4,9 +4,9 @@ import (
 	"context"
 
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
-	Speed "github.com/dtauraso/wirefold/Categories/Speed"
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/nodeapi"
+	Speed "github.com/dtauraso/wirefold/Categories/Speed"
 
 	"github.com/dtauraso/wirefold/Categories/Node/nodeactor"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/gatecommon"
@@ -87,21 +87,18 @@ func (g *Pulse) Update(ctx context.Context) {
 	}
 }
 
-func init() {
+var Builder = Wiring.BuilderFor("Pulse",
+	func(a Wiring.BuildArgs) (nodeapi.Node, error) {
+		n := &Pulse{}
+		n.Fire = a.Fire()
+		n.EmitHeldBead = a.EmitHeldBead()
+		n.Clock = a.Clock()
+		n.SpeedCh = a.SpeedCh()
+		n.In = a.In("In")
+		n.Self = a.ClaimSelfDrive()
 
-	Wiring.RegisterBuilder("Pulse",
-		func(a Wiring.BuildArgs) (nodeapi.Node, error) {
-			n := &Pulse{}
-			n.Fire = a.Fire()
-			n.EmitHeldBead = a.EmitHeldBead()
-			n.Clock = a.Clock()
-			n.SpeedCh = a.SpeedCh()
-			n.In = a.In("In")
-			n.Self = a.ClaimSelfDrive()
+		n.Out = a.DriveOut("Out")
+		n.OutFanout = a.DriveOut("OutFanout")
 
-			n.Out = a.DriveOut("Out")
-			n.OutFanout = a.DriveOut("OutFanout")
-
-			return n, nil
-		})
-}
+		return n, nil
+	})

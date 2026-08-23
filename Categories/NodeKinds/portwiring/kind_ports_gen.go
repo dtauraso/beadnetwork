@@ -5,7 +5,7 @@
 package portwiring
 
 // KindPorts maps each runtime kind to the inputs and outputs its SPEC.md
-// declares, in the same order the table lists them. RegisterBuilder reads
+// declares, in the same order the table lists them. BuilderFor reads
 // this instead of taking a hand-written list, so a kind declares its ports
 // in one place and the runtime and the editor cannot disagree about them.
 var KindPorts = map[string][]PortSpec{

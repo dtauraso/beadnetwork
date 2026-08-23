@@ -6,9 +6,9 @@ import (
 	lattice "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation/lattice"
 
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
-	Speed "github.com/dtauraso/wirefold/Categories/Speed"
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/nodeapi"
+	Speed "github.com/dtauraso/wirefold/Categories/Speed"
 
 	"github.com/dtauraso/wirefold/Categories/Node/nodeactor"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/gatecommon"
@@ -121,22 +121,19 @@ func (in *TimeStart) Update(ctx context.Context) {
 	}
 }
 
-func init() {
+var Builder = Wiring.BuilderFor("TimeStart",
+	func(a Wiring.BuildArgs) (nodeapi.Node, error) {
+		n := &TimeStart{
 
-	Wiring.RegisterBuilder("TimeStart",
-		func(a Wiring.BuildArgs) (nodeapi.Node, error) {
-			n := &TimeStart{
+			Held: a.StateSeed("held", gatecommon.NoValue),
+		}
+		n.Fire = a.Fire()
+		n.EmitHeldBead = a.EmitHeldBead()
+		n.Clock = a.Clock()
+		n.SpeedCh = a.SpeedCh()
+		n.Self = a.ClaimSelfDrive()
+		n.In = a.In("In")
+		n.ToNext = a.Broadcast("ToNext")
 
-				Held: a.StateSeed("held", gatecommon.NoValue),
-			}
-			n.Fire = a.Fire()
-			n.EmitHeldBead = a.EmitHeldBead()
-			n.Clock = a.Clock()
-			n.SpeedCh = a.SpeedCh()
-			n.Self = a.ClaimSelfDrive()
-			n.In = a.In("In")
-			n.ToNext = a.Broadcast("ToNext")
-
-			return n, nil
-		})
-}
+		return n, nil
+	})

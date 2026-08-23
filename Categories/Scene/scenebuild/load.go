@@ -21,17 +21,11 @@ type Scene struct {
 }
 
 func Load(ctx context.Context, scenePath string, clk clock.Clock) (Scene, error) {
-	kindreg.BuildRegistry()
-
 	spec, err := loadspec.ParseSpec(scenePath)
 	if err != nil {
 		return Scene{}, err
 	}
-	kindPorts := make(map[string][]portwiring.PortSpec, len(kindreg.Registry))
-	for kind, bind := range kindreg.Registry {
-		kindPorts[kind] = bind.Ports
-	}
-	if err := loadspec.ValidateSpec(&spec, kindPorts); err != nil {
+	if err := loadspec.ValidateSpec(&spec, portwiring.KindPorts); err != nil {
 		return Scene{}, err
 	}
 
