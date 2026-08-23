@@ -30,7 +30,7 @@ type Handlers struct {
 const (
 	kindSave       = 4
 	kindRawInput   = 10
-	kindEditUpdate = 22
+	KindEditUpdate = 22
 )
 
 func recordKind(rec []byte) string {
@@ -42,7 +42,7 @@ func recordKind(rec []byte) string {
 		return "save"
 	case kindRawInput:
 		return "raw-input"
-	case kindEditUpdate:
+	case KindEditUpdate:
 		return "edit"
 	}
 	return ""
@@ -126,4 +126,14 @@ func RunStdinReader(ctx context.Context, r io.Reader, h Handlers) {
 			// MSG_TYPES_END
 		}
 	}
+}
+
+var UpdateKinds = []string{
+	"overlays",
+	"clock",
+	"scene",
+	"tiltVector",
+	"panels",
+	"node",
+	"edge",
 }

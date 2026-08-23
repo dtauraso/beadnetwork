@@ -2,13 +2,14 @@ package main
 
 import (
 	"fmt"
-	"github.com/dtauraso/wirefold/scripts/genpaths"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/dtauraso/wirefold/scripts/genpaths"
+
 	"github.com/dtauraso/wirefold/Categories/Overlay"
-	"github.com/dtauraso/wirefold/Categories/Scene/scenerun"
+	"github.com/dtauraso/wirefold/Categories/Scene/Drag"
 )
 
 func writeWireTS(srcRoot string) {
@@ -17,11 +18,11 @@ func writeWireTS(srcRoot string) {
 	fmt.Fprintln(&b, "// Source: Overlay.UpdateAttrs and Stdin's record_kinds.go.")
 	fmt.Fprintln(&b, "// Regenerate with: go generate ./...")
 	fmt.Fprintln(&b)
-	fmt.Fprintf(&b, "export const IN_KIND_EDIT_UPDATE = %d;\n\n", scenerun.KindEditUpdate)
+	fmt.Fprintf(&b, "export const IN_KIND_EDIT_UPDATE = %d;\n\n", Drag.KindEditUpdate)
 	writeWireList(&b, "IN_UPDATE_ATTRS", Overlay.UpdateAttrs)
 	fmt.Fprintln(&b)
 	fmt.Fprintln(&b, "// EDIT_UPDATE_KINDS_START")
-	writeWireList(&b, "IN_UPDATE_KINDS", scenerun.UpdateKinds)
+	writeWireList(&b, "IN_UPDATE_KINDS", Drag.UpdateKinds)
 	fmt.Fprintln(&b, "// EDIT_UPDATE_KINDS_END")
 	fmt.Fprintln(&b)
 
