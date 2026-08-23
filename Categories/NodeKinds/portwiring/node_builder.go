@@ -6,6 +6,28 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Scene/loadspec"
 )
 
+type PortDir int
+
+const (
+	PortIn PortDir = iota
+	PortOut
+	PortBroadcast
+)
+
+type PortSpec struct {
+	Name string
+	Dir  PortDir
+}
+
+func FirstPortOfDir(ports []PortSpec, dir PortDir) (string, bool) {
+	for _, p := range ports {
+		if p.Dir == dir {
+			return p.Name, true
+		}
+	}
+	return "", false
+}
+
 type BuildDeps struct {
 	LatticePoints int32
 
@@ -18,5 +40,6 @@ type BuildDeps struct {
 
 type NodeBuilder struct {
 	Ports []PortSpec
-	Build func(ctx context.Context, name string, data *loadspec.NodeData, pb PortBindings, tiltPhiIdx int32, deps BuildDeps) (Node, error)
+
+	Build func(ctx context.Context, name string, data *loadspec.NodeData, pb any, tiltPhiIdx int32, deps BuildDeps) (Node, error)
 }

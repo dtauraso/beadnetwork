@@ -15,7 +15,7 @@ type EdgeWiring struct {
 	EdgeRun map[string]*beadanimation.BeadLine
 }
 
-func (w EdgeWiring) BindPorts(pb *portwiring.PortBindings, n loadspec.Node, ports []portwiring.PortSpec) {
+func (w EdgeWiring) BindPorts(pb *PortBindings, n loadspec.Node, ports []portwiring.PortSpec) {
 	for _, port := range ports {
 		switch port.Dir {
 		case portwiring.PortIn:

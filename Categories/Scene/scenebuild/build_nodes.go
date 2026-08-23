@@ -58,7 +58,7 @@ func buildNodes(
 				"in the switch that BuilderFor reads", n.Type)
 		}
 
-		pb := portwiring.NewPortBindings()
+		pb := NewPortBindings()
 		pb.OutSink = outSink
 		pb.Clock = clk
 		pb.SpeedSinks = speedSinks

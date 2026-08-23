@@ -1,4 +1,4 @@
-package portwiring
+package scenebuild
 
 import (
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/SliderPanel"
@@ -128,14 +128,3 @@ func (pb PortBindings) VectorInOf(name string) <-chan TiltPanel.TiltVectorMsg {
 	return pb.VectorIn[name]
 }
 
-func (pb *PortBindings) deadEndIn(name string) <-chan int {
-	return make(chan int, 1)
-}
-
-func (pb *PortBindings) deadEndOut(name string) chan<- int {
-	return make(chan int, 1)
-}
-
-func (pb *PortBindings) deadEndOutSlice(name string) []chan<- int {
-	return nil
-}
