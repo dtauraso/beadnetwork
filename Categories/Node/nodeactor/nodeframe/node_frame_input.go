@@ -1,9 +1,15 @@
 package nodeframe
 
 import (
-	"github.com/dtauraso/wirefold/Categories/Node/framegeom"
 	streamframe "github.com/dtauraso/wirefold/Categories/Scene/Vectors"
 )
+
+type TiltArrow struct {
+	Received bool
+
+	Shaft [16]float32
+	Head  [16]float32
+}
 
 type NodeFrameInput struct {
 	Tick uint32
@@ -30,7 +36,7 @@ type NodeFrameInput struct {
 
 	TopTiltVectorIdx int32
 
-	TiltArrows []framegeom.TiltArrow
+	TiltArrows []TiltArrow
 
 	ChannelVectors []streamframe.ChannelVector
 

@@ -3,8 +3,8 @@ package NodeShape
 import (
 	"sync"
 
-	"github.com/dtauraso/wirefold/Categories/Node/framegeom"
 	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
+	Ring "github.com/dtauraso/wirefold/Categories/Ring"
 )
 
 const (
@@ -13,7 +13,7 @@ const (
 )
 
 func CanonicalRingSurfacePoints() []Vec3 {
-	pts := framegeom.CanonicalTorusSurfacePoints(nodegeom.ShadingParamNodeRingTubeRatio, RingSurfaceNu, RingSurfaceNv)
+	pts := Ring.CanonicalTorusSurfacePoints(nodegeom.ShadingParamNodeRingTubeRatio, RingSurfaceNu, RingSurfaceNv)
 	out := make([]Vec3, len(pts))
 	for i, p := range pts {
 		out[i] = Vec3(p)
@@ -21,10 +21,10 @@ func CanonicalRingSurfacePoints() []Vec3 {
 	return out
 }
 
-func toFrameGeomPoints(pts []Vec3) []framegeom.Vec3 {
-	out := make([]framegeom.Vec3, len(pts))
+func toFrameGeomPoints(pts []Vec3) []Ring.Vec3 {
+	out := make([]Ring.Vec3, len(pts))
 	for i, p := range pts {
-		out[i] = framegeom.Vec3(p)
+		out[i] = Ring.Vec3(p)
 	}
 	return out
 }
@@ -36,7 +36,7 @@ var (
 
 func CanonicalRingSurfacePointsFlat() []float32 {
 	ringSurfaceFlatOnce.Do(func() {
-		ringSurfaceFlat = framegeom.FlattenPoints(toFrameGeomPoints(CanonicalRingSurfacePoints()))
+		ringSurfaceFlat = Ring.FlattenPoints(toFrameGeomPoints(CanonicalRingSurfacePoints()))
 	})
 	return ringSurfaceFlat
 }
