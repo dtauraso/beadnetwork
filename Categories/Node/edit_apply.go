@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/dtauraso/wirefold/Categories/Node/rulechans"
 	"github.com/dtauraso/wirefold/Categories/Node/rulenode"
 )
 
-func EditNode(ctx context.Context, e Edit, rules *rulechans.RuleChannels) {
+func EditNode(ctx context.Context, e Edit, rules *rulenode.RuleChannels) {
 	if e.Attr == "kindActive" {
 		ToggleKindRule(ctx, rules, e.Num)
 		return
@@ -40,7 +39,7 @@ var nodeAttrEditKinds = map[string]rulenode.EditKind{
 	"selfDragActive":   rulenode.EditSelfActiveToggle,
 }
 
-func SendRuleEdit(ctx context.Context, rules *rulechans.RuleChannels, row int, edit rulenode.Edit) {
+func SendRuleEdit(ctx context.Context, rules *rulenode.RuleChannels, row int, edit rulenode.Edit) {
 	if row < 0 || row >= len(rules.EditsByNodeRow) {
 		panic(fmt.Sprintf(
 			"sendRuleEdit: node row %d is outside the %d rows the tree declares, so a rule edit names an entity "+
@@ -57,7 +56,7 @@ func SendRuleEdit(ctx context.Context, rules *rulechans.RuleChannels, row int, e
 	}
 }
 
-func ToggleKindRule(ctx context.Context, rules *rulechans.RuleChannels, row int) {
+func ToggleKindRule(ctx context.Context, rules *rulenode.RuleChannels, row int) {
 	if row < 0 || row >= len(rules.KindTogglesByNodeRow) {
 		panic(fmt.Sprintf(
 			"kindActive: node row %d is outside the %d rows the tree declares, so a kind-rule toggle names an "+

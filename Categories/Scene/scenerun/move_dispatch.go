@@ -4,7 +4,7 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Node"
 	"github.com/dtauraso/wirefold/Categories/Node/ChannelVectors"
 	"github.com/dtauraso/wirefold/Categories/Node/TiltVectors"
-	"github.com/dtauraso/wirefold/Categories/Node/rulechans"
+	"github.com/dtauraso/wirefold/Categories/Node/rulenode"
 	SceneB "github.com/dtauraso/wirefold/Categories/Scene"
 	rowtables "github.com/dtauraso/wirefold/Categories/Scene/rowtables"
 	sceneswitch "github.com/dtauraso/wirefold/Categories/Scene/sceneswitch"
@@ -33,5 +33,5 @@ type MoveDispatch struct {
 
 	ChannelVectorsOn ChannelVectors.OnSwitch
 
-	Rules rulechans.RuleChannels
+	Rules rulenode.RuleChannels
 }

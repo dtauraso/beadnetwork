@@ -1,9 +1,7 @@
-package rulechans
-
-import "github.com/dtauraso/wirefold/Categories/Node/rulenode"
+package rulenode
 
 type RuleChannels struct {
-	EditsByNodeRow []chan<- rulenode.Edit
+	EditsByNodeRow []chan<- Edit
 
 	KindTogglesByNodeRow []chan<- struct{}
 
@@ -11,6 +9,6 @@ type RuleChannels struct {
 }
 
 func (rc *RuleChannels) SizeByNodeRows(rows int) {
-	rc.EditsByNodeRow = make([]chan<- rulenode.Edit, rows)
+	rc.EditsByNodeRow = make([]chan<- Edit, rows)
 	rc.KindTogglesByNodeRow = make([]chan<- struct{}, rows)
 }
