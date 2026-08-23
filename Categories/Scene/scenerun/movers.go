@@ -11,7 +11,6 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgetable"
 	"github.com/dtauraso/wirefold/Categories/Node/nodecrud"
 	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
-	"github.com/dtauraso/wirefold/Categories/Node/owners"
 )
 
 const InboxDepth = 8
@@ -80,7 +79,7 @@ func (m *Movers) NodeBodyRadius(id string) float64 {
 	return nodegeom.NodeRadius(m.nodeKind(id))
 }
 
-func (m *Movers) SendMove(ctx context.Context, id string, msg owners.Msg) {
+func (m *Movers) SendMove(ctx context.Context, id string, msg Node.Msg) {
 	nm, ok := m.nodeGeoms[id]
 	if !ok {
 		return
@@ -88,7 +87,7 @@ func (m *Movers) SendMove(ctx context.Context, id string, msg owners.Msg) {
 	nm.Msg().SendExternal(ctx, msg)
 }
 
-func (m *Movers) EnqueueFor(nm *Node.NodeGeometry) func(id string, msg owners.Msg) {
+func (m *Movers) EnqueueFor(nm *Node.NodeGeometry) func(id string, msg Node.Msg) {
 	return nm.Msg().EnqueueSend
 }
 

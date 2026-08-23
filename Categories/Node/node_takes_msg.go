@@ -2,44 +2,43 @@ package Node
 
 import (
 	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
-	"github.com/dtauraso/wirefold/Categories/Node/owners"
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
 )
 
 const BreadcrumbDragCommit = "drag-commit"
 
-func (m *NodeGeometry) take(msg owners.Msg) {
+func (m *NodeGeometry) take(msg Msg) {
 	if msg.NodeID != m.id {
 		return
 	}
 	switch b := msg.Body.(type) {
-	case owners.NeighborMoved:
+	case NeighborMoved:
 		m.takeNeighborMove(b)
-	case owners.Drag:
+	case Drag:
 		m.takeDragOfSelf(b)
-	case owners.DragStart:
+	case DragStart:
 		m.beads.PostBeadDrag(true)
-	case owners.DragEnd:
+	case DragEnd:
 
 		m.beads.PostBeadDrag(false)
-	case owners.Select:
+	case Select:
 		m.ui.SetSelected(b.On)
-	case owners.Hover:
+	case Hover:
 		m.ui.SetHover(b.On, b.Port, b.IsInput)
-	case owners.Latched:
+	case Latched:
 		m.ui.SetLatched(b.On)
-	case owners.TiltVectorAngle:
+	case TiltVectorAngle:
 		m.handleTiltVectorAngle(b)
-	case owners.TiltVectorReset:
+	case TiltVectorReset:
 		m.handleTiltVectorReset()
 	default:
 		panic("Node.take: node " + m.id + " was handed a move body it has no case for. " +
-			"Every owners.Body must be handled here; an unhandled one used to fall through to a " +
+			"Every Body must be handled here; an unhandled one used to fall through to a " +
 			"silent redraw, so the message did nothing and nothing said so.")
 	}
 }
 
-func (m *NodeGeometry) takeNeighborMove(msg owners.NeighborMoved) {
+func (m *NodeGeometry) takeNeighborMove(msg NeighborMoved) {
 	if msg.Delta != nil && msg.SenderID != "" {
 		m.deltas.ShiftOtherBy(msg.SenderID, *msg.Delta)
 	}
@@ -51,7 +50,7 @@ func (m *NodeGeometry) takeNeighborMove(msg owners.NeighborMoved) {
 	m.emitGeometry()
 }
 
-func (m *NodeGeometry) takeDragOfSelf(msg owners.Drag) {
+func (m *NodeGeometry) takeDragOfSelf(msg Drag) {
 	haveIdx := m.ComposedIndex()
 
 	var delta polarindex.Offset
@@ -69,14 +68,14 @@ func (m *NodeGeometry) takeDragOfSelf(msg owners.Drag) {
 	m.msg.CommitLocal(m.id, movedIdx)
 	newPos := nodegeom.WorldPosAt(m.geom.SceneCenter, movedIdx, m.Constants())
 
-	m.writeStreamFrame([]owners.RowEvent{{
-		Kind: owners.KindBreadcrumb, Label: BreadcrumbDragCommit, Debug: 1,
+	m.writeStreamFrame([]RowEvent{{
+		Kind: KindBreadcrumb, Label: BreadcrumbDragCommit, Debug: 1,
 		NodeRow: m.stream.NodeRow(), PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 		X: newPos.X, Y: newPos.Y, Z: newPos.Z,
 	}})
 }
 
-func (m *NodeGeometry) handleTiltVectorAngle(msg owners.TiltVectorAngle) {
+func (m *NodeGeometry) handleTiltVectorAngle(msg TiltVectorAngle) {
 	delta := int32(-1)
 	if msg.Up {
 		delta = 1

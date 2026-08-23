@@ -1,4 +1,6 @@
-package owners
+package beadanimation
+
+const dragInboxDepth = 8
 
 type Beads struct {
 	dragToAnim chan bool
@@ -6,7 +8,7 @@ type Beads struct {
 
 func (nb *Beads) PostBeadDrag(start bool) {
 	if nb.dragToAnim == nil {
-		nb.dragToAnim = make(chan bool, InboxDepth)
+		nb.dragToAnim = make(chan bool, dragInboxDepth)
 	}
 	select {
 	case nb.dragToAnim <- start:

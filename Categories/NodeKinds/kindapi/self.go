@@ -6,7 +6,6 @@ import (
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
 	"github.com/dtauraso/wirefold/Categories/Node"
 	"github.com/dtauraso/wirefold/Categories/Node/nodedrag"
-	"github.com/dtauraso/wirefold/Categories/Node/owners"
 )
 
 type Self struct {
@@ -33,8 +32,8 @@ func (p *Self) Breadcrumb(label, value string) {
 		return
 	}
 
-	p.geom.Trace().Post([]owners.RowEvent{{
-		Kind: owners.KindBreadcrumb, Label: label, Debug: 1,
+	p.geom.Trace().Post([]Node.RowEvent{{
+		Kind: Node.KindBreadcrumb, Label: label, Debug: 1,
 		NodeRow: p.geom.Stream().NodeRow(), PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 		Text: value,
 	}})

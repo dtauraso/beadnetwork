@@ -19,6 +19,6 @@ func attrIndex(attr string) byte {
 		}
 	}
 	panic("Node.attrIndex: no wire byte exists for update attribute " + attr +
-		"; Node.UpdateAttrs does not carry it, so an edit naming it could never be " +
+		"; UpdateAttrs does not carry it, so an edit naming it could never be " +
 		"encoded. Add it there and regenerate, in the same commit as the decoder that reads it.")
 }

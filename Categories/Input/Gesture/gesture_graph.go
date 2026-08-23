@@ -2,8 +2,8 @@ package Gesture
 
 import (
 	"github.com/dtauraso/wirefold/Categories/Input/Drag"
+	"github.com/dtauraso/wirefold/Categories/Node"
 	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
-	"github.com/dtauraso/wirefold/Categories/Node/owners"
 	"github.com/dtauraso/wirefold/Categories/Scene/Camera"
 	"github.com/dtauraso/wirefold/Categories/Scene/viewstate"
 )
@@ -19,7 +19,7 @@ var commitEdges = []gestureEdge{
 		guard: func(g *Drag.GestureState) bool { return g.DragNode != "" },
 		action: func(d Deps, g *Drag.GestureState, ev Drag.RawInputMsg) {
 			mr, ctx := d.MR, d.Ctx
-			commitDragStart(d.UI, func(id string, msg owners.Msg) { mr.SendMove(ctx, id, msg) }, g, ev)
+			commitDragStart(d.UI, func(id string, msg Node.Msg) { mr.SendMove(ctx, id, msg) }, g, ev)
 		},
 		to: Drag.GestDragging,
 	},
@@ -35,7 +35,7 @@ var commitEdges = []gestureEdge{
 	},
 }
 
-func commitDragStart(ui *viewstate.UIState, sendMoveFn func(id string, msg owners.Msg), g *Drag.GestureState, ev Drag.RawInputMsg) {
+func commitDragStart(ui *viewstate.UIState, sendMoveFn func(id string, msg Node.Msg), g *Drag.GestureState, ev Drag.RawInputMsg) {
 
 	if hit, ok := ui.DragPlaneHit(ev); ok {
 		g.DragGrabOffset = g.DragStartCenter.Sub(Drag.Vec3(hit))
@@ -43,7 +43,7 @@ func commitDragStart(ui *viewstate.UIState, sendMoveFn func(id string, msg owner
 
 	ui.LastDraggedNode = g.DragNode
 
-	sendMoveFn(g.DragNode, owners.Msg{NodeID: g.DragNode, Body: owners.DragStart{}})
+	sendMoveFn(g.DragNode, Node.Msg{NodeID: g.DragNode, Body: Node.DragStart{}})
 }
 
 func commitHandholdStart(d Deps, g *Drag.GestureState, ev Drag.RawInputMsg) {

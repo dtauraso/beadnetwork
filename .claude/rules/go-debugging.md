@@ -10,7 +10,7 @@ paths:
 
 Go-side runtime debugging goes through the **DEBUG BREADCRUMB channel** — the Go analogue
 of the webview's `postLog`. Call `tr.Breadcrumb(label, node, port, value string)` at a debug
-site: it is a structured `Kind==KindBreadcrumb` row (`Categories/Node/owners/trace_event.go`) that the
+site: it is a structured `Kind==KindBreadcrumb` row (`Categories/Node/trace_event.go`) that the
 EMITTING goroutine writes ITSELF, as a fixed-width binary record appended to the file
 belonging to the item the event is about:
 

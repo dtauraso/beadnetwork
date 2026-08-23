@@ -3,11 +3,10 @@ package Node
 import (
 	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgetable"
 	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
-	"github.com/dtauraso/wirefold/Categories/Node/owners"
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
 )
 
-func BroadcastToPartners(edges map[string]*edgetable.Edge, nodeGeoms map[string]*NodeGeometry, newCenters map[string]nodegeom.Vec3, moveDeltas map[string]polarindex.Offset, enqueue func(id string, msg owners.Msg)) {
+func BroadcastToPartners(edges map[string]*edgetable.Edge, nodeGeoms map[string]*NodeGeometry, newCenters map[string]nodegeom.Vec3, moveDeltas map[string]polarindex.Offset, enqueue func(id string, msg Msg)) {
 
 	partners := map[string]string{}
 	for _, e := range edges {
@@ -27,10 +26,10 @@ func BroadcastToPartners(edges map[string]*edgetable.Edge, nodeGeoms map[string]
 			continue
 		}
 
-		moved := owners.NeighborMoved{SenderID: movedID}
+		moved := NeighborMoved{SenderID: movedID}
 		if d, ok := moveDeltas[movedID]; ok {
 			moved.Delta = &d
 		}
-		enqueue(partnerID, owners.Msg{NodeID: partnerID, Body: moved})
+		enqueue(partnerID, Msg{NodeID: partnerID, Body: moved})
 	}
 }

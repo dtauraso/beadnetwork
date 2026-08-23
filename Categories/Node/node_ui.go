@@ -1,4 +1,4 @@
-package owners
+package Node
 
 type UI struct {
 	selected, hovered, latchedSel uint8

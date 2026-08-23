@@ -23,7 +23,7 @@ if (( ${#TRACE_BINS[@]} > 0 )); then
       */interior-trace.bin) reader="Categories/Node/Interior/readtrace" ;;
       */beads-trace.bin)    reader="Categories/Node/BeadAnimation/readtrace" ;;
       */view/trace.bin)     reader="Categories/Scene/viewstate/readtrace" ;;
-      *)                    reader="Categories/Node/owners/readtrace" ;;
+      *)                    reader="Categories/Node/readtrace" ;;
     esac
     if go run "$REPO_ROOT/$reader" "$f" > "$out" 2>/dev/null && [[ -s "$out" ]]; then
       OWNER_FILES+=("$out")

@@ -12,9 +12,9 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Scene/loadspec"
 	"github.com/dtauraso/wirefold/Categories/Scene/scene"
 
+	"github.com/dtauraso/wirefold/Categories/Node"
 	edge "github.com/dtauraso/wirefold/Categories/Node/Edge"
 	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
-	"github.com/dtauraso/wirefold/Categories/Node/owners"
 	"github.com/dtauraso/wirefold/Categories/Polar/polar"
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
 )
@@ -111,8 +111,8 @@ func NewFromSpec(spec loadspec.TopoSpec, sphere polar.SceneSphere, hasScene bool
 		for to, told := range nm.RequestedDrag(polarindex.Offset{}) {
 			if other, ok := md.MR.NodeGeoms()[to]; ok {
 				d := told
-				other.Msg().SendExternal(context.TODO(), owners.Msg{NodeID: to,
-					Body: owners.Drag{Delta: &d}})
+				other.Msg().SendExternal(context.TODO(), Node.Msg{NodeID: to,
+					Body: Node.Drag{Delta: &d}})
 			}
 		}
 	}

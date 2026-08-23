@@ -10,7 +10,6 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgetable"
 	interior "github.com/dtauraso/wirefold/Categories/Node/Interior"
 	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
-	"github.com/dtauraso/wirefold/Categories/Node/owners"
 	"github.com/dtauraso/wirefold/Categories/Node/rulenode"
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
 )
@@ -20,7 +19,7 @@ func (md *MoveDispatch) buildNodeMovers(geoms map[string]nodegeom.NodeGeom, clk 
 		ng := Node.NewNodeGeometry(id, g, clk, constants)
 
 		selfID := id
-		resolveDest := func(destID string) (owners.Deposit, bool) {
+		resolveDest := func(destID string) (Node.Deposit, bool) {
 
 			if other, ok := md.MR.NodeGeoms()[destID]; ok {
 				return other.Msg().NeighborDeposit(selfID)
@@ -126,7 +125,7 @@ func (sw *StreamWiring) SetEdgeStreams(
 	edgeTable map[string]*edgetable.Edge,
 	nodeGeoms map[string]*Node.NodeGeometry,
 	nodeRowFor func(id string) (int32, bool),
-	buildFrame owners.EdgeFrameBuilder,
+	buildFrame Node.EdgeFrameBuilder,
 ) {
 	for row, seed := range edgeSeeds {
 		em, ok := edgeTable[seed.Label]
