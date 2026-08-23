@@ -9,24 +9,8 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
 )
 
-func (m *NodeGeometry) WireMessaging(
-	resolveDest func(id string) (owners.Deposit, bool),
-	sendMove func(id string, msg owners.Msg),
-	commitLocal func(id string, idx polarindex.Index),
-) {
-	m.msg.WireMessaging(resolveDest, sendMove, commitLocal)
-}
-
-func (m *NodeGeometry) EnsureNeighborChannel(otherID string) {
-	m.msg.EnsureNeighborChannel(otherID)
-}
-
 func (m *NodeGeometry) SetSelfKind(kind string) {
 	m.selfKind = kind
-}
-
-func (m *NodeGeometry) SetSceneFlags(coplanarEdges, upAxis bool) {
-	m.flags.SetSceneFlags(coplanarEdges, upAxis)
 }
 
 func (m *NodeGeometry) SetBaseIndex(off polarindex.Index) {
@@ -61,12 +45,9 @@ func (m *NodeGeometry) writeOutEdgeFrames(tick int64) {
 }
 
 func (m *NodeGeometry) WireInteriorStream(row int32, buildFrame func(tick uint32), sceneRoot string) *interior.Emitter {
-	stream := interior.NewInteriorStream(buildFrame, row, interior.SlotsPerNode)
-	stream.SetValueWriter(interior.NewValueWriter(sceneRoot, int(row)))
-	stream.SetSceneRoot(sceneRoot)
-	mailbox := interior.NewMailbox(row)
+	stream, mailbox, emitter := interior.Wire(row, buildFrame, sceneRoot)
 	m.interior.SetInteriorStream(stream, mailbox)
-	return interior.NewEmitter(mailbox, row)
+	return emitter
 }
 
 func (m *NodeGeometry) writeInteriorFrames() {
@@ -83,8 +64,4 @@ func (m *NodeGeometry) SetPersistRoot(root string) {
 	m.persistRoot = root
 	m.outEdges.SetPersistRoot(root)
 	m.outEdges.SetSrcID(m.id)
-}
-
-func (m *NodeGeometry) CopyClockSrc() {
-	m.clocks.CopyClockSrc()
 }

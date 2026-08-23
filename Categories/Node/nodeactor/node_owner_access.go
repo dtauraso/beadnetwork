@@ -15,6 +15,8 @@ func (m *NodeGeometry) Topo() *owners.Topology { return &m.topo }
 
 func (m *NodeGeometry) Msg() *owners.Messaging { return &m.msg }
 
+func (m *NodeGeometry) Flags() *owners.Flags { return &m.flags }
+
 func (m *NodeGeometry) Clocks() *owners.Clocks { return &m.clocks }
 
 func (m *NodeGeometry) Beads() *owners.Beads { return &m.beads }

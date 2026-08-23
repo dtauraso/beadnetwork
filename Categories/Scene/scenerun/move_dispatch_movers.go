@@ -32,7 +32,7 @@ func (md *MoveDispatch) buildNodeMovers(geoms map[string]nodegeom.NodeGeom, clk 
 		commitLocal := func(_ string, idx polarindex.Index) {
 			md.Mover.CommitNodeMoveLocal(md.MR.NodeGeoms(), md.MR.Edges(), ownGeom, idx)
 		}
-		ng.WireMessaging(resolveDest, md.MR.EnqueueFor(ng), commitLocal)
+		ng.Msg().WireMessaging(resolveDest, md.MR.EnqueueFor(ng), commitLocal)
 		md.Inboxes.ClaimChannelVectorsIn(id, ng.Channels().In())
 		md.MR.NodeGeoms()[id] = ng
 
@@ -90,8 +90,8 @@ func (md *MoveDispatch) buildEdgeTable(edgeEndpoints map[string]edge.EdgeEndpoin
 
 		if srcNM, ok := md.MR.NodeGeoms()[ep.Source]; ok {
 			if dstNM, ok := md.MR.NodeGeoms()[ep.Target]; ok {
-				dstNM.EnsureNeighborChannel(ep.Source)
-				srcNM.EnsureNeighborChannel(ep.Target)
+				dstNM.Msg().EnsureNeighborChannel(ep.Source)
+				srcNM.Msg().EnsureNeighborChannel(ep.Target)
 			}
 		}
 	}

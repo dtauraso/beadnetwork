@@ -47,7 +47,7 @@ func NewFromSpec(spec loadspec.TopoSpec, sphere polar.SceneSphere, hasScene bool
 	upAxis := s.UpAxis
 	if coplanarEdges || upAxis {
 		for _, nm := range md.MR.NodeGeoms() {
-			nm.SetSceneFlags(coplanarEdges, upAxis)
+			nm.Flags().SetSceneFlags(coplanarEdges, upAxis)
 		}
 	}
 	for id, off := range baseIndices {
