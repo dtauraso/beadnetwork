@@ -9,7 +9,6 @@ import (
 
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
 	"github.com/dtauraso/wirefold/Categories/Input/Drag"
-	"github.com/dtauraso/wirefold/Categories/Input/File"
 	"github.com/dtauraso/wirefold/Categories/Input/Stdin"
 )
 
@@ -33,7 +32,7 @@ func StartGestureActor(ctx context.Context, slotReg beadanimation.SlotRegistry, 
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		reader := File.NewReader(inputPath)
+		reader := NewReader(inputPath)
 		mine := clk.Copy()
 		wheel := &wheelTotals{}
 		for {
