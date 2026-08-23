@@ -3,6 +3,7 @@ package main
 //go:generate go run .
 
 import (
+	"github.com/dtauraso/wirefold/scripts/genpaths"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -51,19 +52,19 @@ func writeNames(path string) error {
 }
 
 func main() {
-	genName = "PolarRulesPanel/gen"
-	_, srcRoot := roots()
+	genpaths.SetName("PolarRulesPanel/gen")
+	_, srcRoot := genpaths.Roots()
 
 	dir := filepath.Join(srcRoot, "Chrome", "Panels", "PolarRulesPanel")
 	pathsDir := filepath.Join(dir, "paths")
 	if err := writePathFiles(pathsDir); err != nil {
-		fatalf("write rules panel paths: %v", err)
+		genpaths.Fatalf("write rules panel paths: %v", err)
 	}
-	announce(pathsDir, len(PolarRulesPanel.PanelValueNames), "rules panel paths")
+	genpaths.Announce(pathsDir, len(PolarRulesPanel.PanelValueNames), "rules panel paths")
 
 	namesPath := filepath.Join(dir, "rules-values-gen.ts")
 	if err := writeNames(namesPath); err != nil {
-		fatalf("write %s: %v", namesPath, err)
+		genpaths.Fatalf("write %s: %v", namesPath, err)
 	}
-	announce(namesPath, len(PolarRulesPanel.PanelValueNames), "rules panel values")
+	genpaths.Announce(namesPath, len(PolarRulesPanel.PanelValueNames), "rules panel values")
 }

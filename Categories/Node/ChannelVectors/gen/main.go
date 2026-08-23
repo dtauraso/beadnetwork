@@ -3,8 +3,9 @@ package main
 //go:generate go run .
 
 import (
+	"github.com/dtauraso/wirefold/scripts/genpaths"
 	"fmt"
-	"github.com/dtauraso/wirefold/Categories/Node/geomgen/params"
+	"github.com/dtauraso/wirefold/scripts/genpaths/params"
 	"os"
 	"path/filepath"
 	"strings"
@@ -51,30 +52,30 @@ func writeNames(path string) error {
 }
 
 func main() {
-	genName = "Categories/Node/ChannelVectors/gen"
-	repoRoot, srcRoot := roots()
+	genpaths.SetName("Categories/Node/ChannelVectors/gen")
+	repoRoot, srcRoot := genpaths.Roots()
 
 	dir := filepath.Join(srcRoot, "Node", "ChannelVectors")
 	pathsDir := filepath.Join(dir, "paths")
 	if err := writePathFiles(pathsDir); err != nil {
-		fatalf("write channel vector paths: %v", err)
+		genpaths.Fatalf("write channel vector paths: %v", err)
 	}
-	announce(pathsDir, 1, "channel vector block path template")
+	genpaths.Announce(pathsDir, 1, "channel vector block path template")
 
 	namesPath := filepath.Join(dir, "vector-values-gen.ts")
 	if err := writeNames(namesPath); err != nil {
-		fatalf("write %s: %v", namesPath, err)
+		genpaths.Fatalf("write %s: %v", namesPath, err)
 	}
-	announce(namesPath, len(ChannelVectors.VectorValueNames), "channel vector values")
+	genpaths.Announce(namesPath, len(ChannelVectors.VectorValueNames), "channel vector values")
 
 	shGo := filepath.Join(dir, "shading_params.go")
 	shParams, shErr := params.ParseShadingParams(repoRoot, shGo)
 	if shErr != nil {
-		fatalf("parse shading params: %v", shErr)
+		genpaths.Fatalf("parse shading params: %v", shErr)
 	}
 	shTs := filepath.Join(dir, "shading-params.ts")
-	if err := params.WriteShadingParams(shTs, shParams, genName, "Categories/Node/ChannelVectors/shading_params.go"); err != nil {
-		fatalf("write %s: %v", shTs, err)
+	if err := params.WriteShadingParams(shTs, shParams, genpaths.Name(), "Categories/Node/ChannelVectors/shading_params.go"); err != nil {
+		genpaths.Fatalf("write %s: %v", shTs, err)
 	}
-	announce(shTs, len(shParams), "channel constants")
+	genpaths.Announce(shTs, len(shParams), "channel constants")
 }

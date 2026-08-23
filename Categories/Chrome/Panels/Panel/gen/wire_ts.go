@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/dtauraso/wirefold/scripts/genpaths"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -26,9 +27,9 @@ func writeWireTS(srcRoot string) {
 
 	outPath := filepath.Join(srcRoot, "Chrome", "Panels", "Panel", "wire-gen.ts")
 	if err := os.WriteFile(outPath, []byte(b.String()), 0o644); err != nil {
-		fatalf("write %s: %v", outPath, err)
+		genpaths.Fatalf("write %s: %v", outPath, err)
 	}
-	announce(outPath, len(Panel.UpdateAttrs), "update attrs")
+	genpaths.Announce(outPath, len(Panel.UpdateAttrs), "update attrs")
 }
 
 func writeWireList(b *strings.Builder, name string, items []string) {

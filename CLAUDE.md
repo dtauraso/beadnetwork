@@ -144,8 +144,8 @@ one directory out, since a directory is one Go package. `go generate ./...` runs
   `main` names.
 - **`scripts/`** — what serves the repo rather than one concern: `stop-checks.sh`, the
   git-workflow scripts, `lib/`, `checks/` for guards that guard nothing in particular
-  (clustered by concern: prose, hooks, lang, meta, source), and `genpaths/`, which every
-  generator uses to find the roots.
+  (clustered by concern: prose, hooks, lang, meta, source), `readtrace/`, the one decoder for every
+  owner's trace.bin, and `genpaths/` — roots, Fatalf, Announce and `params/`, imported not copied.
 - **A guard lives beside what it guards**, named by its own `PLACEMENT:` header — there is
   no table mapping guard to folder that could disagree with the header. `scripts/guard-list.sh`
   finds them by searching the repo, and refuses to report fewer than 40.

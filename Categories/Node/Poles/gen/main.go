@@ -3,24 +3,25 @@ package main
 //go:generate go run .
 
 import (
+	"github.com/dtauraso/wirefold/scripts/genpaths"
 	"path/filepath"
 
-	"github.com/dtauraso/wirefold/Categories/Node/geomgen/params"
+	"github.com/dtauraso/wirefold/scripts/genpaths/params"
 )
 
 func main() {
-	genName = "Categories/Node/Poles/gen"
-	repoRoot, srcRoot := roots()
+	genpaths.SetName("Categories/Node/Poles/gen")
+	repoRoot, srcRoot := genpaths.Roots()
 
 	dir := filepath.Join(srcRoot, "Node", "Poles")
 	goPath := filepath.Join(dir, "shading_params.go")
 	shadingParams, err := params.ParseShadingParams(repoRoot, goPath)
 	if err != nil {
-		fatalf("parse shading params: %v", err)
+		genpaths.Fatalf("parse shading params: %v", err)
 	}
 	tsPath := filepath.Join(dir, "shading-params.ts")
-	if err := params.WriteShadingParams(tsPath, shadingParams, genName, "Categories/Node/Poles/shading_params.go"); err != nil {
-		fatalf("write %s: %v", tsPath, err)
+	if err := params.WriteShadingParams(tsPath, shadingParams, genpaths.Name(), "Categories/Node/Poles/shading_params.go"); err != nil {
+		genpaths.Fatalf("write %s: %v", tsPath, err)
 	}
-	announce(tsPath, len(shadingParams), "pole ring constants")
+	genpaths.Announce(tsPath, len(shadingParams), "pole ring constants")
 }

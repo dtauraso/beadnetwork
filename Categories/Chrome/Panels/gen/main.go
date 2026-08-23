@@ -3,6 +3,7 @@ package main
 //go:generate go run .
 
 import (
+	"github.com/dtauraso/wirefold/scripts/genpaths"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -50,19 +51,19 @@ func writeNames(path string) error {
 }
 
 func main() {
-	genName = "Panels/gen"
-	_, srcRoot := roots()
+	genpaths.SetName("Panels/gen")
+	_, srcRoot := genpaths.Roots()
 
 	dir := filepath.Join(srcRoot, "Chrome", "Panels")
 	pathsDir := filepath.Join(dir, "paths")
 	if err := writePathFiles(pathsDir); err != nil {
-		fatalf("write pointer target paths: %v", err)
+		genpaths.Fatalf("write pointer target paths: %v", err)
 	}
-	announce(pathsDir, 1, "pointer target block path")
+	genpaths.Announce(pathsDir, 1, "pointer target block path")
 
 	namesPath := filepath.Join(dir, "pointer-target-values-gen.ts")
 	if err := writeNames(namesPath); err != nil {
-		fatalf("write %s: %v", namesPath, err)
+		genpaths.Fatalf("write %s: %v", namesPath, err)
 	}
-	announce(namesPath, len(Panels.PointerTargetValueNames), "pointer target values")
+	genpaths.Announce(namesPath, len(Panels.PointerTargetValueNames), "pointer target values")
 }

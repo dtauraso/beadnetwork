@@ -3,8 +3,9 @@ package main
 //go:generate go run .
 
 import (
+	"github.com/dtauraso/wirefold/scripts/genpaths"
 	"fmt"
-	"github.com/dtauraso/wirefold/Categories/Node/geomgen/params"
+	"github.com/dtauraso/wirefold/scripts/genpaths/params"
 	"os"
 	"path/filepath"
 	"strings"
@@ -51,32 +52,32 @@ func writeNames(path string) error {
 }
 
 func main() {
-	genName = "Categories/Node/Edge/gen"
-	repoRoot, srcRoot := roots()
+	genpaths.SetName("Categories/Node/Edge/gen")
+	repoRoot, srcRoot := genpaths.Roots()
 
 	dir := filepath.Join(srcRoot, "Node", "Edge")
 	pathsDir := filepath.Join(dir, "paths")
 	if err := writePathFiles(pathsDir); err != nil {
-		fatalf("write edge paths: %v", err)
+		genpaths.Fatalf("write edge paths: %v", err)
 	}
-	announce(pathsDir, 1, "edge block path template")
+	genpaths.Announce(pathsDir, 1, "edge block path template")
 
 	namesPath := filepath.Join(dir, "edge-values-gen.ts")
 	if err := writeNames(namesPath); err != nil {
-		fatalf("write %s: %v", namesPath, err)
+		genpaths.Fatalf("write %s: %v", namesPath, err)
 	}
-	announce(namesPath, len(edge.EdgeValueNames), "edge values")
+	genpaths.Announce(namesPath, len(edge.EdgeValueNames), "edge values")
 
 	shGo := filepath.Join(dir, "shading_params.go")
 	shParams, shErr := params.ParseShadingParams(repoRoot, shGo)
 	if shErr != nil {
-		fatalf("parse shading params: %v", shErr)
+		genpaths.Fatalf("parse shading params: %v", shErr)
 	}
 	shTs := filepath.Join(dir, "shading-params.ts")
-	if err := params.WriteShadingParams(shTs, shParams, genName, "Categories/Node/Edge/shading_params.go"); err != nil {
-		fatalf("write %s: %v", shTs, err)
+	if err := params.WriteShadingParams(shTs, shParams, genpaths.Name(), "Categories/Node/Edge/shading_params.go"); err != nil {
+		genpaths.Fatalf("write %s: %v", shTs, err)
 	}
-	announce(shTs, len(shParams), "edge constants")
+	genpaths.Announce(shTs, len(shParams), "edge constants")
 
 	writeWireTS(srcRoot)
 }

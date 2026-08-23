@@ -3,6 +3,7 @@ package main
 //go:generate go run .
 
 import (
+	"github.com/dtauraso/wirefold/scripts/genpaths"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -51,19 +52,19 @@ func writeNames(path string) error {
 }
 
 func main() {
-	genName = "Tabs/gen"
-	_, srcRoot := roots()
+	genpaths.SetName("Tabs/gen")
+	_, srcRoot := genpaths.Roots()
 
 	dir := filepath.Join(srcRoot, "Chrome", "Tabs")
 	pathsDir := filepath.Join(dir, "paths")
 	if err := writePathFiles(pathsDir); err != nil {
-		fatalf("write tab strip paths: %v", err)
+		genpaths.Fatalf("write tab strip paths: %v", err)
 	}
-	announce(pathsDir, len(Tabs.StripValueNames), "tab strip paths")
+	genpaths.Announce(pathsDir, len(Tabs.StripValueNames), "tab strip paths")
 
 	namesPath := filepath.Join(dir, "strip-values-gen.ts")
 	if err := writeNames(namesPath); err != nil {
-		fatalf("write %s: %v", namesPath, err)
+		genpaths.Fatalf("write %s: %v", namesPath, err)
 	}
-	announce(namesPath, len(Tabs.StripValueNames), "tab strip values")
+	genpaths.Announce(namesPath, len(Tabs.StripValueNames), "tab strip values")
 }
