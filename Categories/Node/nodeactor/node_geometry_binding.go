@@ -1,8 +1,6 @@
 package nodeactor
 
 import (
-	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/PolarRulesPanel"
-
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 	interior "github.com/dtauraso/wirefold/Categories/Node/Interior"
 	"github.com/dtauraso/wirefold/Categories/Node/nodeactor/nodeframe"
@@ -23,36 +21,8 @@ func (m *NodeGeometry) EnsureNeighborChannel(otherID string) {
 	m.msg.EnsureNeighborChannel(otherID)
 }
 
-func (m *NodeGeometry) AddMutualTarget(target string) {
-	m.topo.AddMutualTarget(target)
-}
-
-func (m *NodeGeometry) AddEdgeID(edgeID string) {
-	m.topo.AddEdgeID(edgeID)
-}
-
-func (m *NodeGeometry) AddNeighborKind(toID, kind string) {
-	m.topo.AddNeighborKind(toID, kind)
-}
-
 func (m *NodeGeometry) SetSelfKind(kind string) {
 	m.selfKind = kind
-}
-
-func (m *NodeGeometry) SetDragRule(rule *PolarRulesPanel.DragRule) {
-	m.topo.SetDragRule(rule)
-}
-
-func (m *NodeGeometry) SetDragActive(active bool) {
-	m.topo.SetDragActive(active)
-}
-
-func (m *NodeGeometry) SetSelfRule(rule *PolarRulesPanel.DragRule) {
-	m.topo.SetSelfRule(rule)
-}
-
-func (m *NodeGeometry) SetSelfRuleActive(active bool) {
-	m.topo.SetSelfRuleActive(active)
 }
 
 func (m *NodeGeometry) SetSceneFlags(coplanarEdges, upAxis bool) {

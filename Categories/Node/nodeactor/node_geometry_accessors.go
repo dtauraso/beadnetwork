@@ -11,6 +11,8 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
 )
 
+func (m *NodeGeometry) Topo() *owners.Topology { return &m.topo }
+
 func (m *NodeGeometry) ID() string { return m.id }
 
 func (m *NodeGeometry) Kind() string { return m.geom.Kind }
@@ -80,8 +82,6 @@ func (m *NodeGeometry) EdgeRuleActive(otherID string) bool {
 }
 
 func (m *NodeGeometry) SendMove() func(id string, msg owners.Msg) { return m.msg.SendMove() }
-
-func (m *NodeGeometry) NeighborIDs() []string { return m.msg.NeighborIDs() }
 
 func (m *NodeGeometry) CommitIndex() {
 	m.persistIndex(m.geom.DragIndex)

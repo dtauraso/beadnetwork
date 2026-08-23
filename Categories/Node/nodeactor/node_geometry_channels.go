@@ -19,10 +19,6 @@ func (m *NodeGeometry) SendExternal(ctx context.Context, msg owners.Msg) {
 	m.msg.SendExternal(ctx, msg)
 }
 
-func (m *NodeGeometry) TryRecvExternal() (owners.Msg, bool) {
-	return m.msg.TryRecvExternal()
-}
-
 func (m *NodeGeometry) EnqueueSend(destID string, msg owners.Msg) {
 	m.msg.EnqueueSend(m.id, destID, msg)
 }

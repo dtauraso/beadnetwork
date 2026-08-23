@@ -78,7 +78,7 @@ func (md *MoveDispatch) wireMutualPairs(edgeEndpoints map[string]edge.EdgeEndpoi
 	for src, targets := range edgegeom.MutualPairs(pairs) {
 		if nm, ok := md.MR.NodeGeoms()[src]; ok {
 			for target := range targets {
-				nm.AddMutualTarget(target)
+				nm.Topo().AddMutualTarget(target)
 			}
 		}
 	}
@@ -101,7 +101,7 @@ func (md *MoveDispatch) wireNodeEdgeIDs() {
 	for id, nm := range md.MR.NodeGeoms() {
 		for edgeID, e := range md.MR.Edges() {
 			if e.SrcID() == id || e.DstID() == id {
-				nm.AddEdgeID(edgeID)
+				nm.Topo().AddEdgeID(edgeID)
 			}
 		}
 	}

@@ -29,14 +29,14 @@ func SeedNode(m *nodeactor.NodeGeometry, n Node, sceneRoot string) {
 	rn.SetPersistRoot(sceneRoot)
 
 	active := nodefiles.LoadDragActive(sceneRoot, n.ID)
-	m.SetDragRule(n.Drag)
-	m.SetDragActive(active)
+	m.Topo().SetDragRule(n.Drag)
+	m.Topo().SetDragActive(active)
 	rn.SeedRule(n.Drag, active)
 	rn.SeedKindActive(nodefiles.LoadKindRuleActive(sceneRoot, n.ID))
 
 	selfActive := nodefiles.LoadSelfRuleActive(sceneRoot, n.ID)
-	m.SetSelfRule(n.SelfDrag)
-	m.SetSelfRuleActive(selfActive)
+	m.Topo().SetSelfRule(n.SelfDrag)
+	m.Topo().SetSelfRuleActive(selfActive)
 	rn.SeedSelfRule(n.SelfDrag, selfActive)
 
 	if n.TopTiltVectorPhiIdx != nil {
@@ -51,7 +51,7 @@ func SeedEdge(m *nodeactor.NodeGeometry, e Edge, src bool, otherKind, sceneRoot 
 	}
 
 	m.RuleNode().SeedEdgeActive(other, nodefiles.LoadEdgeRuleActive(sceneRoot, e.Source, e.Target))
-	m.AddNeighborKind(other, otherKind)
+	m.Topo().AddNeighborKind(other, otherKind)
 	if src {
 		m.AddOutTarget(e.Target)
 	}
