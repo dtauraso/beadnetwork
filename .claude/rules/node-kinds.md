@@ -24,22 +24,22 @@ separate `registry.ts` exists. The schema dir is `src/`.
 **Step 3 — the Go package** under `Categories/NodeKinds/<Kind>/`.
 
 **Step 4 — run the generator.** `go generate ./...` runs every generator
-pipeline; it also refreshes `Categories/NodeKinds/kinds_gen.go`. That file's blank imports are what make a
-package's `init()` — and therefore its `Wiring.RegisterBuilder` call — run at all.
+pipeline; it also refreshes `Categories/NodeKinds/kinds_gen.go`, which holds one `case` per
+kind in `NodeKinds.BuilderFor`. Nothing registers: a kind declares
+`var Builder = Wiring.BuilderFor("Kind", func(a Wiring.BuildArgs) …)` and the generated switch
+names it. A kind missing from that switch is a COMPILE error, where the blank-import-and-`init()`
+arrangement it replaced failed at runtime with `unknown type`, after everything else looked right.
 
-`RegisterBuilder(kind, ports, build)` (`Categories/NodeKinds/kindapi/build_args.go`) populates
-`kindreg.Registry` directly, so the registry is complete before `main` runs (`Wiring` here
-aliases `Categories/NodeKinds/kindapi` — the kind-API package node kinds import, decoupled from the
-dispatch core; `Categories/NodeKinds/kindreg` holds the registry itself — `Registry`, `NodeBuilder`,
-`BuildDeps`, `BuildRegistry`, `BuildTypeMaps` — which `kindapi` calls into but node kinds
-never import directly). The kind
-does not pass its ports at all: `RegisterBuilder(kind, build)` reads the generated
+`BuilderFor(kind, build)` (`Categories/NodeKinds/kindapi/build_args.go`) RETURNS a
+`kindreg.NodeBuilder` rather than storing one (`Wiring` here aliases
+`Categories/NodeKinds/kindapi` — the kind-API package node kinds import, decoupled from the
+dispatch core; `Categories/NodeKinds/kindreg` holds the shapes — `NodeBuilder`, `BuildDeps`,
+`BuildTypeMaps` — which `kindapi` calls into but node kinds never import directly). The kind
+does not pass its ports at all: `BuilderFor` reads the generated
 `portwiring.KindPorts`, which `Categories/Node/nodegeom/gen` writes from the SPEC.md `## Ports`
 table. The kind used to pass an explicit `[]portwiring.PortSpec` literal, which was a SECOND
 declaration of the same inputs and outputs and free to drift from the table the editor draws
-from. `BuildRegistry()` survives but no longer BUILDS
-anything — it is the loader's "registry is ready" assertion, and panics on an empty
-registry, which is what a kinds_gen.go that lost its blank imports looks like.
+from.
 
 **A kind's ports come from its SPEC.md `## Ports` table, and from nothing else.**
 `Name` and `Direction` are the columns that matter; `Direction` is `in`, `out`, or
@@ -68,8 +68,8 @@ Note the direction of the read: this checks the names the code REQUESTS against 
 does not derive ports from Go types — that is the phantom-port hazard above, and it stays
 removed.
 
-**Skip step 4 and the kind does not exist in the binary**: it fails at runtime with
-`unknown type "X"` while its SPEC.md, Go package, and `NODE_DEFS` entry all look correct.
+**Skip step 4 and the kind is in no switch**: its SPEC.md, Go package and `NODE_DEFS` entry
+all look correct, and loading a scene that names the type fails saying that nothing builds it.
 Guard: `check-generated.sh`.
 
 The per-kind role is documented in the Go package and SPEC.md, not duplicated in CLAUDE.md.

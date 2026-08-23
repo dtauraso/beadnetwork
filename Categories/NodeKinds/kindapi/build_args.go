@@ -51,19 +51,15 @@ func (a BuildArgs) Name() string { return a.name }
 
 func (a BuildArgs) Ctx() context.Context { return a.ctx }
 
-func RegisterBuilder(kind string, build func(BuildArgs) (nodeapi.Node, error)) {
-	if _, exists := kindreg.Registry[kind]; exists {
-		panic("kindapi.RegisterBuilder: kind already registered: " + kind)
-	}
-
+func BuilderFor(kind string, build func(BuildArgs) (nodeapi.Node, error)) kindreg.NodeBuilder {
 	ports, declared := portwiring.KindPorts[kind]
 	if !declared {
 
-		panic("kindapi.RegisterBuilder: kind " + kind + " has no ports in portwiring.KindPorts — " +
+		panic("kindapi.BuilderFor: kind " + kind + " has no ports in portwiring.KindPorts — " +
 			"its SPEC.md ## Ports table is the only declaration, and the generated table is stale. " +
 			"Run go generate ./...")
 	}
-	kindreg.Registry[kind] = kindreg.NodeBuilder{
+	return kindreg.NodeBuilder{
 		Ports: ports,
 		Build: func(ctx context.Context, name string, data *loadspec.NodeData, pb portwiring.PortBindings, geom nodegeom.NodeGeom, tiltPhiIdx int32, deps kindreg.BuildDeps) (nodeapi.Node, error) {
 			var sourceOuts []*beadanimation.Sender

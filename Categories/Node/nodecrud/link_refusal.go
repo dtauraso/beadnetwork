@@ -3,7 +3,6 @@ package nodecrud
 import (
 	"fmt"
 
-	"github.com/dtauraso/wirefold/Categories/NodeKinds/kindreg"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/portwiring"
 )
 
@@ -39,9 +38,9 @@ func firstOutputPort(kind string) (name string, broadcast, ok bool) {
 }
 
 func firstPortOfDir(kind string, dir portwiring.PortDir) (string, bool) {
-	b, ok := kindreg.Registry[kind]
+	ports, ok := portwiring.KindPorts[kind]
 	if !ok {
 		return "", false
 	}
-	return portwiring.FirstPortOfDir(b.Ports, dir)
+	return portwiring.FirstPortOfDir(ports, dir)
 }

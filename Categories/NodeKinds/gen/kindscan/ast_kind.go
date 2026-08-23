@@ -16,7 +16,7 @@ func parseGoKindName(pkgDir string) (string, error) {
 		return "", err
 	}
 
-	markers := []string{`Wiring.RegisterBuilder("`}
+	markers := []string{`Wiring.BuilderFor("`}
 	for _, entry := range entries {
 		name := entry.Name()
 		if entry.IsDir() || !strings.HasSuffix(name, ".go") || strings.HasSuffix(name, "_test.go") { // path-resolution-ok: a package directory listing, not a scene path
@@ -42,5 +42,5 @@ func parseGoKindName(pkgDir string) (string, error) {
 			return name2, nil
 		}
 	}
-	return "", fmt.Errorf("RegisterBuilder call not found in %s", pkgDir)
+	return "", fmt.Errorf("BuilderFor call not found in %s", pkgDir)
 }

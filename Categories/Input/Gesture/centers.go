@@ -4,11 +4,10 @@ import (
 	Camera "github.com/dtauraso/wirefold/Categories/Scene/Camera"
 	FitButton "github.com/dtauraso/wirefold/Categories/Chrome/Pills/FitButton"
 	Drag "github.com/dtauraso/wirefold/Categories/Input/Drag"
-	moverreg "github.com/dtauraso/wirefold/Categories/Node/moverreg"
 	nodemove "github.com/dtauraso/wirefold/Categories/Node/nodemove"
 )
 
-func centerOfForMove(f func(id string) (moverreg.Vec3, bool)) func(id string) (nodemove.Vec3, bool) {
+func centerOfForMove(f func(id string) (Vec3, bool)) func(id string) (nodemove.Vec3, bool) {
 	return func(id string) (nodemove.Vec3, bool) {
 		c, ok := f(id)
 		return nodemove.Vec3(c), ok
@@ -16,7 +15,7 @@ func centerOfForMove(f func(id string) (moverreg.Vec3, bool)) func(id string) (n
 }
 
 func heldCenters(d Deps) map[string]nodemove.Vec3 {
-	return nodemove.HeldCenters(d.MR.NodeGeoms(), centerOfForMove(d.MR.CenterOfNode))
+	return nodemove.HeldCenters(d.MR.NodeGeoms(), centerOfForMove(d.MR.CenterOf))
 }
 
 func centersForFit(in map[string]nodemove.Vec3) map[string]FitButton.Vec3 {

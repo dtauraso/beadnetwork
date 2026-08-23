@@ -14,7 +14,6 @@ import (
 
 	edge "github.com/dtauraso/wirefold/Categories/Node/Edge"
 	"github.com/dtauraso/wirefold/Categories/Node/nodeactor/owners"
-	"github.com/dtauraso/wirefold/Categories/Node/nodedrag"
 	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
 	"github.com/dtauraso/wirefold/Categories/Polar/polar"
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
@@ -70,7 +69,10 @@ func NewFromSpec(spec loadspec.TopoSpec, sphere polar.SceneSphere, hasScene bool
 
 	md.UI.TiltRows, md.UI.TiltLabels = spec.TiltPanelRows()
 
-	md.UI.RuleNodes = spec.RulePanelNodes()
+	md.UI.RuleNodes = spec.RulePanelNodes(func(id string) bool {
+		ng, ok := md.MR.NodeGeoms()[id]
+		return ok && ng.HasKindRule()
+	})
 	md.UI.RuleSharedRow = -1
 
 	kindByID := make(map[string]string, len(spec.Nodes))
@@ -106,7 +108,7 @@ func NewFromSpec(spec loadspec.TopoSpec, sphere polar.SceneSphere, hasScene bool
 	}
 
 	for _, nm := range md.MR.NodeGeoms() {
-		for to, told := range nodedrag.Requested(nm.SelfKind(), polarindex.Offset{}, nm) {
+		for to, told := range nm.RequestedDrag(polarindex.Offset{}) {
 			if other, ok := md.MR.NodeGeoms()[to]; ok {
 				d := told
 				other.SendExternal(context.TODO(), owners.Msg{NodeID: to,

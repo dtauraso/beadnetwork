@@ -24,7 +24,7 @@ func LoadSceneState(scenePath string, md *scenerun.MoveDispatch, speedSinks Slid
 
 	viewpersist.EnableViewpointPersist(&md.Persist, &md.UI, scenePath)
 
-	viewpersist.EnableEditPersist(&md.Persist, &md.Scenes, &md.MR, scenePath)
+	viewpersist.EnableEditPersist(&md.Persist, &md.Scenes, md.MR.NodeGeoms(), scenePath)
 
 	scenepersist.InstallSceneSphere(&md.UI, &md.GS, scenePath)
 }

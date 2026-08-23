@@ -5,7 +5,7 @@ import (
 
 	"github.com/dtauraso/wirefold/Categories/Scene/Camera"
 	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgefile"
-	"github.com/dtauraso/wirefold/Categories/Node/moverreg"
+	"github.com/dtauraso/wirefold/Categories/Node/nodeactor"
 	"github.com/dtauraso/wirefold/Categories/Node/nodeactor/nodefiles"
 	"github.com/dtauraso/wirefold/Categories/Polar/polar"
 	"github.com/dtauraso/wirefold/Categories/Scene/loadspec"
@@ -14,7 +14,7 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Scene/viewstate"
 )
 
-func CreateNode(scenes *sceneswitch.SceneSwitch, ui *viewstate.UIState, mr *moverreg.MoverRegistry, kindID uint8, ndcX, ndcY float64) {
+func CreateNode(scenes *sceneswitch.SceneSwitch, ui *viewstate.UIState, nodeGeoms map[string]*nodeactor.NodeGeometry, nearestTo func(Vec3) (string, bool), kindID uint8, ndcX, ndcY float64) {
 	if scenes == nil || scenes.TreeRoot == "" || scenes.Quit == nil {
 		return
 	}
@@ -44,11 +44,11 @@ func CreateNode(scenes *sceneswitch.SceneSwitch, ui *viewstate.UIState, mr *move
 		return
 	}
 
-	src, okNear := mr.NearestNodeTo(moverreg.Vec3(drop))
+	src, okNear := nearestTo(Vec3(drop))
 	target := loadspec.NewNodeID(scenes.TreeRoot)
 	var srcHandle, targetPort string
 	if okNear {
-		srcGeom, srcFound := mr.NodeGeoms()[src]
+		srcGeom, srcFound := nodeGeoms[src]
 		srcKind := ""
 		if srcFound {
 			srcKind = srcGeom.Kind()

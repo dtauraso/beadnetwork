@@ -4,11 +4,11 @@ import (
 	"context"
 
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
-	Speed "github.com/dtauraso/wirefold/Categories/Speed"
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/Categories/Node/nodeactor"
 	Wiring "github.com/dtauraso/wirefold/Categories/NodeKinds/kindapi"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/nodeapi"
+	Speed "github.com/dtauraso/wirefold/Categories/Speed"
 )
 
 const noNormal = -1
@@ -112,19 +112,17 @@ func wrapIndex(i, points int32) int32 {
 	return i
 }
 
-func init() {
-	Wiring.RegisterBuilder("NormalSum",
-		func(a Wiring.BuildArgs) (nodeapi.Node, error) {
-			n := &Node{}
-			n.Fire = a.Fire()
-			n.Clock = a.Clock()
-			n.SpeedCh = a.SpeedCh()
-			n.Self = a.ClaimSelfDrive()
-			n.Points = a.LatticePointsSeed()
-			n.LatticeIn = a.LatticeIn()
-			n.NormalA = a.In("NormalA")
-			n.NormalB = a.In("NormalB")
-			n.Out = a.Out("Out")
-			return n, nil
-		})
-}
+var Builder = Wiring.BuilderFor("NormalSum",
+	func(a Wiring.BuildArgs) (nodeapi.Node, error) {
+		n := &Node{}
+		n.Fire = a.Fire()
+		n.Clock = a.Clock()
+		n.SpeedCh = a.SpeedCh()
+		n.Self = a.ClaimSelfDrive()
+		n.Points = a.LatticePointsSeed()
+		n.LatticeIn = a.LatticeIn()
+		n.NormalA = a.In("NormalA")
+		n.NormalB = a.In("NormalB")
+		n.Out = a.Out("Out")
+		return n, nil
+	})

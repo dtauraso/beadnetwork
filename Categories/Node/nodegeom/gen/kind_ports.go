@@ -33,7 +33,7 @@ func writeKindPorts(outPath string, kinds []kindscan.KindEntry) error {
 	fmt.Fprintln(w, `package portwiring`)
 	fmt.Fprintln(w)
 	fmt.Fprintln(w, `// KindPorts maps each runtime kind to the inputs and outputs its SPEC.md`)
-	fmt.Fprintln(w, `// declares, in the same order the table lists them. RegisterBuilder reads`)
+	fmt.Fprintln(w, `// declares, in the same order the table lists them. BuilderFor reads`)
 	fmt.Fprintln(w, `// this instead of taking a hand-written list, so a kind declares its ports`)
 	fmt.Fprintln(w, `// in one place and the runtime and the editor cannot disagree about them.`)
 	fmt.Fprintln(w, `var KindPorts = map[string][]PortSpec{`)

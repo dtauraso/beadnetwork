@@ -5,10 +5,9 @@ import (
 	"strconv"
 
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/PolarRulesPanel"
-	"github.com/dtauraso/wirefold/Categories/Node/nodedrag"
 )
 
-func (spec TopoSpec) RulePanelNodes() []PolarRulesPanel.Node {
+func (spec TopoSpec) RulePanelNodes(hasKindRule func(id string) bool) []PolarRulesPanel.Node {
 	rowOf := func(id string) (int32, bool) {
 		n, err := strconv.Atoi(id)
 		if err != nil || n < 1 {
@@ -36,7 +35,7 @@ func (spec TopoSpec) RulePanelNodes() []PolarRulesPanel.Node {
 		if !ok {
 			continue
 		}
-		rn := PolarRulesPanel.Node{Row: row, Label: n.ID, Kind: n.Type, HasKindRule: nodedrag.HasKindRule(n.Type)}
+		rn := PolarRulesPanel.Node{Row: row, Label: n.ID, Kind: n.Type, HasKindRule: hasKindRule(n.ID)}
 		for _, e := range spec.Edges {
 			if e.Source != n.ID {
 				continue

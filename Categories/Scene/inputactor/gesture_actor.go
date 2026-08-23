@@ -5,7 +5,6 @@ import (
 	"sync"
 
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/SliderPanel"
-	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
 	"github.com/dtauraso/wirefold/Categories/Input/Drag"
@@ -30,7 +29,7 @@ type GestureInboxMsg struct {
 
 const gestureInboxDepth = 64
 
-func StartGestureActor(ctx context.Context, slotReg beadanimation.SlotRegistry, md *scenerun.MoveDispatch, speedSinks SliderPanel.Sinks, clk clock.Clock, inputPath string) (chan GestureInboxMsg, *sync.WaitGroup) {
+func StartGestureActor(ctx context.Context, md *scenerun.MoveDispatch, speedSinks SliderPanel.Sinks, clk clock.Clock, inputPath string) (chan GestureInboxMsg, *sync.WaitGroup) {
 	inbox := make(chan GestureInboxMsg, gestureInboxDepth)
 	wg := new(sync.WaitGroup)
 	wg.Add(1)
@@ -43,7 +42,7 @@ func StartGestureActor(ctx context.Context, slotReg beadanimation.SlotRegistry, 
 			for _, raw := range reader.ReadAll() {
 				if ev, ok := Drag.DecodeRawInput(raw); ok {
 					wheel.difference(&ev)
-					scenerun.HandleRawInputMsg(ctx, ev, slotReg, md, speedSinks)
+					scenerun.HandleRawInputMsg(ctx, ev, md, speedSinks)
 				}
 			}
 

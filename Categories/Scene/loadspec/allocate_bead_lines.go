@@ -8,11 +8,11 @@ import (
 
 func (spec TopoSpec) AllocateBeadLines(nodeGeoms map[string]nodegeom.NodeGeom) (
 	destRun map[string]*beadanimation.BeadLine,
-	edgeRun BeadLineRegistry,
+	edgeRun map[string]*beadanimation.BeadLine,
 	edgeEndpoints map[string]edge.EdgeEndpoints,
 ) {
 	destRun = map[string]*beadanimation.BeadLine{}
-	edgeRun = BeadLineRegistry{}
+	edgeRun = map[string]*beadanimation.BeadLine{}
 	edgeEndpoints = map[string]edge.EdgeEndpoints{}
 	for _, e := range spec.Edges {
 		destKey := e.Target + "." + e.TargetHandle

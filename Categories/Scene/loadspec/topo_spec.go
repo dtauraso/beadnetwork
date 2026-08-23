@@ -103,8 +103,6 @@ type TopoSpec struct {
 	Constants polarindex.SceneConstants
 }
 
-type BeadLineRegistry map[string]*beadanimation.BeadLine
-
 func ParseSpec(path string) (TopoSpec, error) {
 	spec, err := readSpec(path)
 	if err != nil {

@@ -7,11 +7,10 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/SliderPanel"
 	"github.com/dtauraso/wirefold/Categories/Input/Drag"
 
-	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/Categories/Node/nodecrud"
 )
 
-func HandleRawInputMsg(ctx context.Context, ev Drag.RawInputMsg, slotReg beadanimation.SlotRegistry, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
+func HandleRawInputMsg(ctx context.Context, ev Drag.RawInputMsg, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
 	if md == nil {
 		return
 	}
@@ -48,7 +47,7 @@ func HandleRawInputMsg(ctx context.Context, ev Drag.RawInputMsg, slotReg beadani
 	if ev.Kind == "pointerdown" && panelTookPointerDown(ctx, ev, md, speedSinks) {
 		return
 	}
-	md.HandleRawInput(ctx, ev, slotReg)
+	md.HandleRawInput(ctx, ev)
 }
 
 func HandleSaveMsg(md *MoveDispatch) {

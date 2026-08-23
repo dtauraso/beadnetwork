@@ -15,6 +15,8 @@ type NodeGeometry struct {
 	id   string
 	geom nodegeom.NodeGeom
 
+	kindRule owners.KindRule
+
 	persistRoot string
 	selfKind    string
 

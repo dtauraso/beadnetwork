@@ -17,7 +17,7 @@ func gestHome(d Deps, ev Drag.RawInputMsg) {
 	centers := heldCenters(d)
 	radius := make(map[string]float64, len(centers))
 	for id := range centers {
-		radius[id] = d.MR.NodeBodyRadius(id)
+		radius[id] = d.MR.BodyRadius(id)
 	}
 	pivot, r, pos, up, ok := FitButton.HomeFitPose(centersForFit(centers), radius, d.UI.FovDeg(), d.UI.Gest.Rect.Aspect())
 	if !ok {

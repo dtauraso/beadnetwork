@@ -9,9 +9,9 @@ import (
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/Categories/Node/nodeinbox"
-	"github.com/dtauraso/wirefold/Categories/Node/moverreg"
 	"github.com/dtauraso/wirefold/Categories/Node/nodeactor"
 	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
+	"github.com/dtauraso/wirefold/Categories/NodeKinds"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/kindreg"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/nodeapi"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/portwiring"
@@ -32,12 +32,12 @@ func buildNodes(
 	deps := kindreg.BuildDeps{
 		LatticePoints: md.UI.LatticePoints,
 		ClaimLatticeIn: func(name string) chan int32 {
-			sceneToNodeLatticeIn := make(chan int32, moverreg.InboxDepth)
+			sceneToNodeLatticeIn := make(chan int32, scenerun.InboxDepth)
 			md.Inboxes.ClaimLatticeIn(name, sceneToNodeLatticeIn)
 			return sceneToNodeLatticeIn
 		},
 		ClaimTiltEditIn: func(name string) chan nodeinbox.TiltEditMsg {
-			panelToNodeTiltEditIn := make(chan nodeinbox.TiltEditMsg, moverreg.InboxDepth)
+			panelToNodeTiltEditIn := make(chan nodeinbox.TiltEditMsg, scenerun.InboxDepth)
 			md.Inboxes.ClaimTiltEditIn(name, panelToNodeTiltEditIn)
 			return panelToNodeTiltEditIn
 		},
@@ -54,7 +54,12 @@ func buildNodes(
 	outSink := map[string]*beadanimation.Sender{}
 	nodes := make([]nodeapi.Node, 0, len(spec.Nodes))
 	for _, n := range spec.Nodes {
-		bind := kindreg.Registry[n.Type]
+		bind, known := NodeKinds.BuilderFor(n.Type)
+		if !known {
+			return nil, nil, fmt.Errorf("scene names node type %q, which no kind builds — its directory "+
+				"under Categories/NodeKinds must declare a Builder, and `go generate ./...` puts it "+
+				"in the switch that BuilderFor reads", n.Type)
+		}
 
 		pb := portwiring.NewPortBindings()
 		pb.OutSink = outSink

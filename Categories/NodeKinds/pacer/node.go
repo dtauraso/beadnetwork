@@ -4,9 +4,9 @@ import (
 	"context"
 
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
-	Speed "github.com/dtauraso/wirefold/Categories/Speed"
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/nodeapi"
+	Speed "github.com/dtauraso/wirefold/Categories/Speed"
 
 	interior "github.com/dtauraso/wirefold/Categories/Node/Interior"
 	"github.com/dtauraso/wirefold/Categories/Node/nodeactor"
@@ -78,22 +78,19 @@ func (p *Node) Update(ctx context.Context) {
 	}
 }
 
-func init() {
+var Builder = Wiring.BuilderFor("Pacer",
+	func(a Wiring.BuildArgs) (nodeapi.Node, error) {
+		n := &Node{
 
-	Wiring.RegisterBuilder("Pacer",
-		func(a Wiring.BuildArgs) (nodeapi.Node, error) {
-			n := &Node{
+			Held: a.StateSeed("held", noValue),
+		}
+		n.Fire = a.Fire()
+		n.EmitHeldBead = a.EmitHeldBead()
+		n.Clock = a.Clock()
+		n.SpeedCh = a.SpeedCh()
+		n.Self = a.ClaimSelfDrive()
+		n.In = a.In("In")
+		n.FeedbackOut = a.Out("FeedbackOut")
 
-				Held: a.StateSeed("held", noValue),
-			}
-			n.Fire = a.Fire()
-			n.EmitHeldBead = a.EmitHeldBead()
-			n.Clock = a.Clock()
-			n.SpeedCh = a.SpeedCh()
-			n.Self = a.ClaimSelfDrive()
-			n.In = a.In("In")
-			n.FeedbackOut = a.Out("FeedbackOut")
-
-			return n, nil
-		})
-}
+		return n, nil
+	})

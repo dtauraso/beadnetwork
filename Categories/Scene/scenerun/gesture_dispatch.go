@@ -5,9 +5,8 @@ import (
 
 	"github.com/dtauraso/wirefold/Categories/Input/Drag"
 	"github.com/dtauraso/wirefold/Categories/Input/Gesture"
-	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 )
 
-func (md *MoveDispatch) HandleRawInput(ctx context.Context, ev Drag.RawInputMsg, slotReg beadanimation.SlotRegistry) {
-	Gesture.HandleRawInput(Gesture.Deps{MR: &md.MR, UI: &md.UI, Mover: &md.Mover, RT: &md.RT, Ctx: ctx}, ev, slotReg)
+func (md *MoveDispatch) HandleRawInput(ctx context.Context, ev Drag.RawInputMsg) {
+	Gesture.HandleRawInput(Gesture.Deps{MR: md.gestureMovers(), UI: &md.UI, Mover: &md.Mover, RT: &md.RT, Ctx: ctx}, ev)
 }

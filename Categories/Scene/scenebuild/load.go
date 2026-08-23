@@ -5,7 +5,6 @@ import (
 
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/SliderPanel"
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
-	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 	_ "github.com/dtauraso/wirefold/Categories/NodeKinds"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/kindreg"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/nodeapi"
@@ -17,23 +16,16 @@ import (
 
 type Scene struct {
 	Nodes      []nodeapi.Node
-	SlotReg    beadanimation.SlotRegistry
 	Dispatch   *scenerun.MoveDispatch
 	SpeedSinks SliderPanel.Sinks
 }
 
 func Load(ctx context.Context, scenePath string, clk clock.Clock) (Scene, error) {
-	kindreg.BuildRegistry()
-
 	spec, err := loadspec.ParseSpec(scenePath)
 	if err != nil {
 		return Scene{}, err
 	}
-	kindPorts := make(map[string][]portwiring.PortSpec, len(kindreg.Registry))
-	for kind, bind := range kindreg.Registry {
-		kindPorts[kind] = bind.Ports
-	}
-	if err := loadspec.ValidateSpec(&spec, kindPorts); err != nil {
+	if err := loadspec.ValidateSpec(&spec, portwiring.KindPorts); err != nil {
 		return Scene{}, err
 	}
 
@@ -62,11 +54,10 @@ func Load(ctx context.Context, scenePath string, clk clock.Clock) (Scene, error)
 		return Scene{}, err
 	}
 
-	md.MR.Bind(outSink, beadanimation.SlotRegistry(destRun), md.RT.EdgeRowForPair)
+	md.MR.Bind(outSink, destRun, md.RT.EdgeRowForPair)
 
 	return Scene{
 		Nodes:      nodes,
-		SlotReg:    beadanimation.SlotRegistry(destRun),
 		Dispatch:   md,
 		SpeedSinks: speedSinks,
 	}, nil

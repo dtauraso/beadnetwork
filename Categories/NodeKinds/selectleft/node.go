@@ -17,20 +17,17 @@ func (g *SelectLeft) Update(ctx context.Context) {
 	gatecommon.RunGateAccept(ctx, &g.GateNode, 1, 0)
 }
 
-func init() {
+var Builder = Wiring.BuilderFor("SelectLeft",
+	func(a Wiring.BuildArgs) (nodeapi.Node, error) {
+		n := &SelectLeft{}
+		n.Fire = a.Fire()
+		n.EmitInputBeads = a.EmitInputBeads()
+		n.Self = a.ClaimSelfDrive()
+		n.Clock = a.Clock()
+		n.SpeedCh = a.SpeedCh()
+		n.FromLeft = a.In("FromLeft")
+		n.FromRight = a.In("FromRight")
+		n.ToPassed = a.Out("ToPassed")
 
-	Wiring.RegisterBuilder("SelectLeft",
-		func(a Wiring.BuildArgs) (nodeapi.Node, error) {
-			n := &SelectLeft{}
-			n.Fire = a.Fire()
-			n.EmitInputBeads = a.EmitInputBeads()
-			n.Self = a.ClaimSelfDrive()
-			n.Clock = a.Clock()
-			n.SpeedCh = a.SpeedCh()
-			n.FromLeft = a.In("FromLeft")
-			n.FromRight = a.In("FromRight")
-			n.ToPassed = a.Out("ToPassed")
-
-			return n, nil
-		})
-}
+		return n, nil
+	})

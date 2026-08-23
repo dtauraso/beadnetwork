@@ -30,36 +30,10 @@ type Trim func(delta polarindex.Offset, of Node) polarindex.Offset
 
 type Request func(delta polarindex.Offset, of Node) map[string]polarindex.Offset
 
-var trims = map[string]Trim{}
-
-var requests = map[string]Request{}
-
-func RegisterTrim(kind string, t Trim) {
-	if _, exists := trims[kind]; exists {
-		panic("nodedrag.RegisterTrim: kind already has a trim: " + kind)
-	}
-	trims[kind] = t
-}
-
-func RegisterRequest(kind string, r Request) {
-	if _, exists := requests[kind]; exists {
-		panic("nodedrag.RegisterRequest: kind already has a request: " + kind)
-	}
-	requests[kind] = r
-}
-
-func HasKindRule(kind string) bool {
-	if _, ok := trims[kind]; ok {
-		return true
-	}
-	_, ok := requests[kind]
-	return ok
-}
-
-func Apply(kind string, delta polarindex.Offset, of Node) polarindex.Offset {
+func Apply(trim Trim, delta polarindex.Offset, of Node) polarindex.Offset {
 	if of.DragRuleActive() {
-		if t, ok := trims[kind]; ok {
-			delta = t(delta, of)
+		if trim != nil {
+			delta = trim(delta, of)
 		} else {
 			delta = TrimToDragRule(delta, of)
 		}
@@ -105,15 +79,11 @@ func farSide(thetaGap, turn int) bool {
 	return gap > turn/4
 }
 
-func Requested(kind string, delta polarindex.Offset, of Node) map[string]polarindex.Offset {
-	if !of.DragRuleActive() {
+func Requested(request Request, delta polarindex.Offset, of Node) map[string]polarindex.Offset {
+	if !of.DragRuleActive() || request == nil {
 		return nil
 	}
-	r, ok := requests[kind]
-	if !ok {
-		return nil
-	}
-	return r(delta, of)
+	return request(delta, of)
 }
 
 func TrimToDragRule(delta polarindex.Offset, of Node) polarindex.Offset {

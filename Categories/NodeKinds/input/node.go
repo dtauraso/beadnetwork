@@ -4,9 +4,9 @@ import (
 	"context"
 
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
-	Speed "github.com/dtauraso/wirefold/Categories/Speed"
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/nodeapi"
+	Speed "github.com/dtauraso/wirefold/Categories/Speed"
 
 	"github.com/dtauraso/wirefold/Categories/Node/nodeactor"
 	Wiring "github.com/dtauraso/wirefold/Categories/NodeKinds/kindapi"
@@ -99,35 +99,33 @@ func (n *Node) runStepLoop(ctx context.Context, clk clock.Clock, perTick func() 
 	}
 }
 
-func init() {
+var Builder = Wiring.BuilderFor("Input",
+	func(a Wiring.BuildArgs) (nodeapi.Node, error) {
+		n := &Node{
 
-	Wiring.RegisterBuilder("Input",
-		func(a Wiring.BuildArgs) (nodeapi.Node, error) {
-			n := &Node{
+			Clock: clock.NewRealClock(),
+		}
+		n.Fire = a.Fire()
+		n.EmitNodeBeads = a.EmitNodeBeads()
+		n.EmitRefillSlide = a.EmitRefillSlide()
 
-				Clock: clock.NewRealClock(),
+		if clk := a.Clock(); clk != nil {
+			n.Clock = clk
+		}
+		n.SpeedCh = a.SpeedCh()
+		n.Self = a.ClaimSelfDrive()
+		n.Self.SetKindRule(trimOwnDrag, equalOutLengths)
+
+		if data := a.Data(); data != nil {
+			if data.Init != nil {
+				n.Init = append([]int(nil), data.Init...)
 			}
-			n.Fire = a.Fire()
-			n.EmitNodeBeads = a.EmitNodeBeads()
-			n.EmitRefillSlide = a.EmitRefillSlide()
+			n.Repeat = data.Repeat
+		}
 
-			if clk := a.Clock(); clk != nil {
-				n.Clock = clk
-			}
-			n.SpeedCh = a.SpeedCh()
-			n.Self = a.ClaimSelfDrive()
+		n.OutCadence = a.Out("OutCadence")
+		n.ToExcitatory = a.Out("ToExcitatory")
+		n.FeedbackIn = a.In("FeedbackIn")
 
-			if data := a.Data(); data != nil {
-				if data.Init != nil {
-					n.Init = append([]int(nil), data.Init...)
-				}
-				n.Repeat = data.Repeat
-			}
-
-			n.OutCadence = a.Out("OutCadence")
-			n.ToExcitatory = a.Out("ToExcitatory")
-			n.FeedbackIn = a.In("FeedbackIn")
-
-			return n, nil
-		})
-}
+		return n, nil
+	})

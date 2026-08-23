@@ -7,19 +7,11 @@ import (
 
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/TiltPanel"
 	"github.com/dtauraso/wirefold/Categories/Node/nodeactor/nodeframe"
-	"github.com/dtauraso/wirefold/Categories/Node/nodedrag"
 	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
 )
 
 func boolU8(b bool) uint8 {
 	if b {
-		return 1
-	}
-	return 0
-}
-
-func hasKindRuleU8(kind string) uint8 {
-	if nodedrag.HasKindRule(kind) {
 		return 1
 	}
 	return 0
@@ -140,7 +132,7 @@ func (m *NodeGeometry) writeStreamFrame(events []owners.RowEvent) {
 		LatticePoints:    uint8(points),
 		RoundsToParallel: roundsToParallel,
 		MsgsToParallel:   msgsToParallel,
-		HasKindRule:      hasKindRuleU8(m.SelfKind()),
+		HasKindRule:      boolU8(m.HasKindRule()),
 		KindRuleActive:   boolU8(m.KindRuleActive()),
 		SelfRLocked:      selfRLocked,
 		SelfPhiLocked:    selfPhiLocked,

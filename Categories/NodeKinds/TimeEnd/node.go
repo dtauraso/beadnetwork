@@ -4,9 +4,9 @@ import (
 	"context"
 
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
-	Speed "github.com/dtauraso/wirefold/Categories/Speed"
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/nodeapi"
+	Speed "github.com/dtauraso/wirefold/Categories/Speed"
 
 	interior "github.com/dtauraso/wirefold/Categories/Node/Interior"
 	"github.com/dtauraso/wirefold/Categories/Node/nodeactor"
@@ -67,21 +67,18 @@ func (h *TimeEnd) Update(ctx context.Context) {
 	}
 }
 
-func init() {
+var Builder = Wiring.BuilderFor("TimeEnd",
+	func(a Wiring.BuildArgs) (nodeapi.Node, error) {
+		n := &TimeEnd{
 
-	Wiring.RegisterBuilder("TimeEnd",
-		func(a Wiring.BuildArgs) (nodeapi.Node, error) {
-			n := &TimeEnd{
+			Held: a.StateSeed("held", noValue),
+		}
+		n.Fire = a.Fire()
+		n.EmitHeldBead = a.EmitHeldBead()
+		n.Clock = a.Clock()
+		n.SpeedCh = a.SpeedCh()
+		n.Self = a.ClaimSelfDrive()
+		n.In = a.In("In")
 
-				Held: a.StateSeed("held", noValue),
-			}
-			n.Fire = a.Fire()
-			n.EmitHeldBead = a.EmitHeldBead()
-			n.Clock = a.Clock()
-			n.SpeedCh = a.SpeedCh()
-			n.Self = a.ClaimSelfDrive()
-			n.In = a.In("In")
-
-			return n, nil
-		})
-}
+		return n, nil
+	})

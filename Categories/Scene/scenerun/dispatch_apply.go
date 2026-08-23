@@ -44,7 +44,7 @@ func applyUpdateScene(ctx context.Context, attr byte, payload []byte, md *MoveDi
 		md.UI.SetViewport(e.X, e.Y)
 	case "create":
 
-		nodecrud.CreateNode(&md.Scenes, &md.UI, &md.MR, uint8(e.Num), e.X, e.Y)
+		nodecrud.CreateNode(&md.Scenes, &md.UI, md.MR.NodeGeoms(), md.nearestNodeTo, uint8(e.Num), e.X, e.Y)
 	case "delete":
 
 		nodecrud.DeleteNode(&md.Scenes, &md.UI, &md.RT, e.Num)
