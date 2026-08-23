@@ -2,15 +2,15 @@ package Scene
 
 import (
 	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgegeom"
-	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
+	"github.com/dtauraso/wirefold/Categories/Node"
 )
 
 type GeomSeeds struct {
-	NodeSeeds []nodegeom.Seed
+	NodeSeeds []Node.Seed
 	EdgeSeeds []edgegeom.Seed
 }
 
-func (gs *GeomSeeds) NodeSeedsFn() []nodegeom.Seed { return gs.NodeSeeds }
+func (gs *GeomSeeds) NodeSeedsFn() []Node.Seed { return gs.NodeSeeds }
 
 func (gs *GeomSeeds) EdgeSeedsFn() []edgegeom.Seed { return gs.EdgeSeeds }
 

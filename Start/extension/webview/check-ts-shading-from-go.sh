@@ -68,7 +68,7 @@ SHADING_SOURCES=(
   "Categories/Node/Interior/shading_params.go"
   "Categories/Node/ChannelVectors/shading_params.go"
   "Categories/Node/Poles/shading_params.go"
-  "Categories/Node/nodegeom/shading_params.go"
+  "Categories/Node/shading_params.go"
   "Categories/Ring/Bead/shading_params.go"
   "Categories/Ring/NodeShape/shading_params.go"
   "Categories/Scene/Environment/shading_params.go"

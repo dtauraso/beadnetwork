@@ -9,12 +9,11 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgegeom"
 	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgetable"
 	interior "github.com/dtauraso/wirefold/Categories/Node/Interior"
-	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
 	"github.com/dtauraso/wirefold/Categories/Node/rulenode"
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
 )
 
-func (md *MoveDispatch) buildNodeMovers(geoms map[string]nodegeom.NodeGeom, clk clock.Clock, constants polarindex.SceneConstants) {
+func (md *MoveDispatch) buildNodeMovers(geoms map[string]Node.NodeGeom, clk clock.Clock, constants polarindex.SceneConstants) {
 	for id, g := range geoms {
 		ng := Node.NewNodeGeometry(id, g, clk, constants)
 
@@ -34,7 +33,7 @@ func (md *MoveDispatch) buildNodeMovers(geoms map[string]nodegeom.NodeGeom, clk 
 		md.ChannelVectorsOn.ClaimChannelVectorsIn(id, ng.Channels().In())
 		md.MR.NodeGeoms()[id] = ng
 
-		md.MR.SeedCenter(id, Vec3(nodegeom.NodeWorldPos(g)))
+		md.MR.SeedCenter(id, Vec3(Node.NodeWorldPos(g)))
 	}
 }
 
@@ -156,7 +155,7 @@ func (sw *StreamWiring) SetEdgeStreams(
 }
 
 func (sw *StreamWiring) SetNodeStreams(
-	nodeSeeds []nodegeom.Seed,
+	nodeSeeds []Node.Seed,
 	nodeMovers map[string]*Node.NodeGeometry,
 	sceneRoot string,
 	buildBeadFrame beadanimation.BeadFrameBuilder,

@@ -6,7 +6,7 @@ import (
 
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 	interior "github.com/dtauraso/wirefold/Categories/Node/Interior"
-	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
+	"github.com/dtauraso/wirefold/Categories/Node"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/kindreg"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/nodeapi"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/portwiring"
@@ -18,7 +18,7 @@ type BuildArgs struct {
 	name string
 	data *loadspec.NodeData
 	pb   portwiring.PortBindings
-	geom nodegeom.NodeGeom
+	geom Node.NodeGeom
 
 	tiltPhiIdx int32
 
@@ -61,7 +61,7 @@ func BuilderFor(kind string, build func(BuildArgs) (nodeapi.Node, error)) kindre
 	}
 	return kindreg.NodeBuilder{
 		Ports: ports,
-		Build: func(ctx context.Context, name string, data *loadspec.NodeData, pb portwiring.PortBindings, geom nodegeom.NodeGeom, tiltPhiIdx int32, deps kindreg.BuildDeps) (nodeapi.Node, error) {
+		Build: func(ctx context.Context, name string, data *loadspec.NodeData, pb portwiring.PortBindings, geom Node.NodeGeom, tiltPhiIdx int32, deps kindreg.BuildDeps) (nodeapi.Node, error) {
 			var sourceOuts []*beadanimation.Sender
 			return build(BuildArgs{
 				ctx: ctx, name: name, data: data, pb: pb,

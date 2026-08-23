@@ -1,4 +1,4 @@
-package nodegeom
+package Node
 
 type Seed struct {
 	ID, Label, Kind    string

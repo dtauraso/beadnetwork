@@ -6,15 +6,15 @@ import (
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/gen/kindscan"
 	"path/filepath"
 
-	"github.com/dtauraso/wirefold/Categories/Node/nodegeom/gen/params"
+	"github.com/dtauraso/wirefold/Categories/Node/geomgen/params"
 )
 
 func main() {
-	genName = "nodegeom/gen"
+	genName = "Categories/Node/geomgen"
 	repoRoot, srcRoot := roots()
 	kinds := kindscan.Kinds(repoRoot)
 
-	dimsPath := filepath.Join(kindscan.NetworkDir(repoRoot), "nodegeom", "node_dims_gen.go")
+	dimsPath := filepath.Join(srcRoot, "Node", "geom_node_dims_gen.go")
 	if err := writeNodeDims(dimsPath, kinds); err != nil {
 		fatalf("write %s: %v", dimsPath, err)
 	}
@@ -32,14 +32,14 @@ func main() {
 	}
 	announce(kindIDPath, len(kinds), "kinds")
 
-	dir := filepath.Join(kindscan.NetworkDir(repoRoot), "nodegeom")
+	dir := filepath.Join(srcRoot, "Node")
 	goPath := filepath.Join(dir, "shading_params.go")
 	shadingParams, err := params.ParseShadingParams(repoRoot, goPath)
 	if err != nil {
 		fatalf("parse shading params: %v", err)
 	}
 	tsPath := filepath.Join(dir, "shading-params.ts")
-	if err := params.WriteShadingParams(tsPath, shadingParams, genName, "Categories/Node/nodegeom/shading_params.go"); err != nil {
+	if err := params.WriteShadingParams(tsPath, shadingParams, genName, "Categories/Node/shading_params.go"); err != nil {
 		fatalf("write %s: %v", tsPath, err)
 	}
 	announce(tsPath, len(shadingParams), "constants")

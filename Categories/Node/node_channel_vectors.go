@@ -2,7 +2,6 @@ package Node
 
 import (
 	"github.com/dtauraso/wirefold/Categories/Node/ChannelVectors"
-	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
 	"github.com/dtauraso/wirefold/Categories/Node/rulenode"
 )
 
@@ -11,7 +10,7 @@ func (m *NodeGeometry) pollChannelVectors() {
 	if turnedOn {
 		m.channels.Forget()
 	}
-	center := nodegeom.NodeWorldPos(m.geom)
+	center := NodeWorldPos(m.geom)
 	if !m.channels.NeedsBroadcast(ChannelVectors.Vec3(center)) {
 		return
 	}
@@ -24,5 +23,5 @@ func (m *NodeGeometry) pollChannelVectors() {
 }
 
 func (m *NodeGeometry) channelVectors() []ChannelVectors.ChannelVector {
-	return m.channels.VectorsFrom(ChannelVectors.Vec3(nodegeom.NodeWorldPos(m.geom)))
+	return m.channels.VectorsFrom(ChannelVectors.Vec3(NodeWorldPos(m.geom)))
 }

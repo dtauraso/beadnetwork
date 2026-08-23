@@ -2,12 +2,12 @@ package loadspec
 
 import (
 	"fmt"
+	NodeBuf "github.com/dtauraso/wirefold/Categories/Node"
 	"os"
 
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/PolarRulesPanel"
 
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
-	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
 )
 
@@ -40,9 +40,9 @@ func (n Node) label() string {
 	return n.ID
 }
 
-func (n Node) ToNodeGeom(sceneCenter Vec3, sc polarindex.SceneConstants) nodegeom.NodeGeom {
+func (n Node) ToNodeGeom(sceneCenter Vec3, sc polarindex.SceneConstants) NodeBuf.NodeGeom {
 
-	g := nodegeom.NodeGeom{NodeIdentity: nodegeom.NodeIdentity{Kind: n.Type, Label: n.label(), SceneCenter: nodegeom.Vec3(sceneCenter), SceneConstants: sc}}
+	g := NodeBuf.NodeGeom{NodeIdentity: NodeBuf.NodeIdentity{Kind: n.Type, Label: n.label(), SceneCenter: NodeBuf.Vec3(sceneCenter), SceneConstants: sc}}
 	if n.hasPoint() {
 		g.BaseIndex = n.index()
 		g.HasPos = true

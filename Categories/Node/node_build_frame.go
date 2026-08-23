@@ -4,12 +4,11 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/PolarRulesPanel"
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/TiltPanel"
 	"github.com/dtauraso/wirefold/Categories/Node/ChannelVectors"
-	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
 	"math"
 )
 
 type FrameInputs struct {
-	Geom nodegeom.NodeGeom
+	Geom NodeGeom
 
 	Row    int32
 	KindID uint8
@@ -61,7 +60,7 @@ func BuildFrame(in FrameInputs) NodeFrameInput {
 		DefaultLatticePoints: TiltPanel.FullTurnPhiIdx,
 	})
 
-	composedIdx := nodegeom.ComposedIndexOf(in.Geom)
+	composedIdx := ComposedIndexOf(in.Geom)
 
 	label := in.Geom.Label
 	if label == "" {
@@ -79,7 +78,7 @@ func BuildFrame(in FrameInputs) NodeFrameInput {
 		IndexPhi:         int32(composedIdx.Phi),
 		IndexTheta:       int32(composedIdx.Theta),
 		HasPos:           boolU8(in.Geom.HasPos),
-		Radius:           float32(nodegeom.NodeRadius(in.Geom.Kind)),
+		Radius:           float32(NodeRadius(in.Geom.Kind)),
 		NavTubeR:         float32(navTubeR(in.Geom.Kind)),
 		PoleAnchorX:      float32(fg.Center.X),
 		PoleAnchorY:      float32(fg.Center.Y),
@@ -87,7 +86,7 @@ func BuildFrame(in FrameInputs) NodeFrameInput {
 		LabelAnchorX:     float32(fg.LabelAnchor.X),
 		LabelAnchorY:     float32(fg.LabelAnchor.Y),
 		LabelAnchorZ:     float32(fg.LabelAnchor.Z),
-		PoleRingR:        float32(nodegeom.PoleRingR()),
+		PoleRingR:        float32(PoleRingR()),
 		PolePhi:          float32(fg.PolePhi),
 		PoleTheta:        float32(fg.PoleTheta),
 		RingMatrix:       fg.RingMatrix,
@@ -136,7 +135,7 @@ func lockedAxes(rule *PolarRulesPanel.DragRule) (rLocked, phiLocked uint8, theta
 }
 
 func navTubeR(kind string) float64 {
-	return math.Max(0.5, nodegeom.NodeRadius(kind)*0.08)
+	return math.Max(0.5, NodeRadius(kind)*0.08)
 }
 
 func boolU8(b bool) uint8 {

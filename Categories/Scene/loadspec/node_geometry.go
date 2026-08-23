@@ -1,15 +1,15 @@
 package loadspec
 
 import (
-	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
+	NodeBuf "github.com/dtauraso/wirefold/Categories/Node"
 	"github.com/dtauraso/wirefold/Categories/Polar/polar"
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
 )
 
 func (s TopoSpec) SeedGeometry(sceneCenter Vec3) (
-	map[string]nodegeom.NodeGeom, map[string]polarindex.Index, map[string]polarindex.Offset,
+	map[string]NodeBuf.NodeGeom, map[string]polarindex.Index, map[string]polarindex.Offset,
 ) {
-	geoms := make(map[string]nodegeom.NodeGeom, len(s.Nodes))
+	geoms := make(map[string]NodeBuf.NodeGeom, len(s.Nodes))
 	base := make(map[string]polarindex.Index, len(s.Nodes))
 	drag := make(map[string]polarindex.Offset, len(s.Nodes))
 	for _, n := range s.Nodes {
@@ -18,12 +18,12 @@ func (s TopoSpec) SeedGeometry(sceneCenter Vec3) (
 	return geoms, base, drag
 }
 
-func (n Node) SeedGeometry(sceneCenter Vec3, sc polarindex.SceneConstants) (nodegeom.NodeGeom, polarindex.Index, polarindex.Offset) {
+func (n Node) SeedGeometry(sceneCenter Vec3, sc polarindex.SceneConstants) (NodeBuf.NodeGeom, polarindex.Index, polarindex.Offset) {
 	g := n.ToNodeGeom(sceneCenter, sc)
 
 	base := n.declaredIndex(sc)
 	if base == nil && g.HasPos {
-		p := polar.Cart2polar(polar.Vec3(nodegeom.NodeWorldPos(g).Sub(nodegeom.Vec3(sceneCenter))))
+		p := polar.Cart2polar(polar.Vec3(NodeBuf.NodeWorldPos(g).Sub(NodeBuf.Vec3(sceneCenter))))
 		m := polarindex.MeasureIndex(p, sc)
 		base = &m
 	}
@@ -31,7 +31,7 @@ func (n Node) SeedGeometry(sceneCenter Vec3, sc polarindex.SceneConstants) (node
 		base = &polarindex.Index{}
 	}
 
-	nodegeom.SetNodeWorld(&g, *base)
+	NodeBuf.SetNodeWorld(&g, *base)
 	return g, *base, n.dragIndex()
 }
 

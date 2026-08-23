@@ -26,7 +26,7 @@ The active toggle gave 2 and 3 access to existing behaviour, it did not create i
 **Do not "fix" this by:** clamping the drag target, bounding r in the gesture FSM, or
 re-adding the radius hold for inactive rules. The drag math is sound — `RootMove`'s
 `target.Sub(nm.SceneCenter())` is correct because `SceneCenter` is the scene ORIGIN, not the
-node's own center (`nodegeom.NodeGeom`: world = SceneCenter + Polar2cart(ScenePolar)). That
+node's own center (`Node.NodeGeom`: world = SceneCenter + Polar2cart(ScenePolar)). That
 frame was checked and cleared during this investigation; don't re-suspect it.
 
 Related: [[project-topology-delta-position-disagreement-stays]],

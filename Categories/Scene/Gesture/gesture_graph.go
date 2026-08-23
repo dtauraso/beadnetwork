@@ -3,7 +3,6 @@ package Gesture
 import (
 	"github.com/dtauraso/wirefold/Categories/Node"
 	NodeGesture "github.com/dtauraso/wirefold/Categories/Node/Gesture"
-	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
 	"github.com/dtauraso/wirefold/Categories/Scene/Camera"
 	"github.com/dtauraso/wirefold/Categories/Scene/Drag"
 )
@@ -52,7 +51,7 @@ func commitRotateStart(d Deps, g *Drag.GestureState, ev Drag.RawInputMsg) {
 var applyAction = map[Drag.GesturePhase]func(d Deps, g *Drag.GestureState, ev Drag.RawInputMsg){
 	Drag.GestDragging: func(d Deps, g *Drag.GestureState, ev Drag.RawInputMsg) {
 		nodeGeoms, mv, ctx := d.MR.NodeGeoms(), d.Mover, d.Ctx
-		if NodeGesture.ApplyDragTarget(d.UI, func(id string, target nodegeom.Vec3) bool { return mv.RootMove(ctx, nodeGeoms, id, target) }, ev) {
+		if NodeGesture.ApplyDragTarget(d.UI, func(id string, target Node.Vec3) bool { return mv.RootMove(ctx, nodeGeoms, id, target) }, ev) {
 			g.PrevX, g.PrevY = ev.X, ev.Y
 		}
 	},

@@ -10,7 +10,6 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Node"
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/Categories/Node/TiltVectors"
-	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/kindreg"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/nodeapi"
@@ -24,7 +23,7 @@ func buildNodes(
 	spec loadspec.TopoSpec,
 	md *scenerun.MoveDispatch,
 	wiring kindreg.EdgeWiring,
-	nodeGeoms map[string]nodegeom.NodeGeom,
+	nodeGeoms map[string]Node.NodeGeom,
 	vectorOut, vectorIn map[string]chan TiltPanel.TiltVectorMsg,
 	clk clock.Clock,
 	speedSinks *SliderPanel.Sinks,

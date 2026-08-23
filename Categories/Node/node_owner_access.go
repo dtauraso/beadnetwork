@@ -6,7 +6,6 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Node/TiltVectors"
 	"slices"
 
-	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
 	"github.com/dtauraso/wirefold/Categories/Polar/polar"
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
 )
@@ -43,13 +42,13 @@ func (m *NodeGeometry) Tilt() *TiltVectors.Tilt { return &m.tilt }
 
 func (m *NodeGeometry) Channels() *ChannelVectors.PeerCenters { return &m.channels }
 
-func (m *NodeGeometry) ScenePolar() polar.Polar { return nodegeom.ScenePolarOf(m.geom) }
+func (m *NodeGeometry) ScenePolar() polar.Polar { return ScenePolarOf(m.geom) }
 
-func (m *NodeGeometry) ComposedIndex() polarindex.Index { return nodegeom.ComposedIndexOf(m.geom) }
+func (m *NodeGeometry) ComposedIndex() polarindex.Index { return ComposedIndexOf(m.geom) }
 
 func (m *NodeGeometry) Constants() polarindex.SceneConstants { return m.geom.SceneConstants }
 
-func (m *NodeGeometry) SceneCenter() nodegeom.Vec3 { return m.geom.SceneCenter }
+func (m *NodeGeometry) SceneCenter() Vec3 { return m.geom.SceneCenter }
 
 func (m *NodeGeometry) IsOutTarget(neighborID string) bool {
 	return slices.Contains(m.outTargets, neighborID)

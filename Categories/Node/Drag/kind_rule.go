@@ -1,7 +1,6 @@
 package Drag
 
-import (
-)
+import ()
 
 type KindRule struct {
 	trim Trim

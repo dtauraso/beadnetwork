@@ -36,7 +36,7 @@ arrangement it replaced failed at runtime with `unknown type`, after everything 
 dispatch core; `Categories/NodeKinds/kindreg` holds the shapes — `NodeBuilder`, `BuildDeps`,
 `BuildTypeMaps` — which `kindapi` calls into but node kinds never import directly). The kind
 does not pass its ports at all: `BuilderFor` reads the generated
-`portwiring.KindPorts`, which `Categories/Node/nodegeom/gen` writes from the SPEC.md `## Ports`
+`portwiring.KindPorts`, which `Categories/Node/geomgen` writes from the SPEC.md `## Ports`
 table. The kind used to pass an explicit `[]portwiring.PortSpec` literal, which was a SECOND
 declaration of the same inputs and outputs and free to drift from the table the editor draws
 from.

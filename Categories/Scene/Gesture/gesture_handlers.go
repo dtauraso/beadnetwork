@@ -2,14 +2,13 @@ package Gesture
 
 import (
 	"fmt"
+	"github.com/dtauraso/wirefold/Categories/Node"
 	NodeGesture "github.com/dtauraso/wirefold/Categories/Node/Gesture"
-	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
 	"github.com/dtauraso/wirefold/Categories/Scene/viewstate"
 	"math"
 
 	"github.com/dtauraso/wirefold/Categories/Chrome/Pills/FitButton"
 
-	"github.com/dtauraso/wirefold/Categories/Node"
 	"github.com/dtauraso/wirefold/Categories/Scene/Camera"
 	"github.com/dtauraso/wirefold/Categories/Scene/Drag"
 )
@@ -83,7 +82,7 @@ func gestPointerUp(d Deps, ev Drag.RawInputMsg) {
 	switch {
 	case g.Phase == Drag.GestDragging:
 		nodeGeoms, mv, ctx := d.MR.NodeGeoms(), d.Mover, d.Ctx
-		NodeGesture.ApplyDragTarget(d.UI, func(id string, target nodegeom.Vec3) bool { return mv.RootMove(ctx, nodeGeoms, id, target) }, ev)
+		NodeGesture.ApplyDragTarget(d.UI, func(id string, target Node.Vec3) bool { return mv.RootMove(ctx, nodeGeoms, id, target) }, ev)
 	case g.Phase == Drag.GestHandhold, g.Phase == Drag.GestRotating:
 
 	case g.Phase == Drag.GestPending:

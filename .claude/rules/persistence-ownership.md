@@ -99,7 +99,7 @@ stored value.** The quantized index rides this split, in `owners.Quant`: `base` 
 once from `base/`'s `indexPhi`/`indexTheta`/`indexR`) and `drag` (B, set by
 `CommitQuantOffset` as `polarindex.Delta(measured, base)`, never reconstructed by
 subtracting later). `Quant.Composed()` returns `polarindex.Compose(base, drag)`, computed at
-each call site and held nowhere else; `nodegeom.ScenePolarOf`/`polar.Compose` derive the
+each call site and held nowhere else; `Node.ScenePolarOf`/`polar.Compose` derive the
 continuous on-screen position from that composed index the same way, at each call site that
 needs it, held in no field that outlives that call. `persistQuantOffset` writes `drag`
 straight to `drag/`'s `index-phi`/`index-theta`/`index-r` leaves.
