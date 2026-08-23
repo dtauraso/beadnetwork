@@ -1,8 +1,10 @@
-package scenebuild
+package Wiring
 
 import (
 	"context"
 	"fmt"
+
+	"github.com/dtauraso/wirefold/Categories/Scene/Topology"
 
 	"github.com/dtauraso/wirefold/Categories/Scene/Scenes"
 
@@ -18,7 +20,7 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
 )
 
-func NewFromSpec(spec TopoSpec, sphere polar.SceneSphere, hasScene bool, scenePath string, clk clock.Clock, speedSinks *SliderPanel.Sinks, nodeGeoms map[string]NodeBuf.NodeGeom, edgeEndpoints map[string]edge.EdgeEndpoints, baseIndices map[string]polarindex.Index, dragIndices map[string]polarindex.Offset) (*scenerun.MoveDispatch, error) {
+func NewFromSpec(spec Topology.TopoSpec, sphere polar.SceneSphere, hasScene bool, scenePath string, clk clock.Clock, speedSinks *SliderPanel.Sinks, nodeGeoms map[string]NodeBuf.NodeGeom, edgeEndpoints map[string]edge.EdgeEndpoints, baseIndices map[string]polarindex.Index, dragIndices map[string]polarindex.Offset) (*scenerun.MoveDispatch, error) {
 
 	nodeOrder := make([]string, len(spec.Nodes))
 	for i, n := range spec.Nodes {

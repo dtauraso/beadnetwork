@@ -10,7 +10,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/dtauraso/wirefold/Categories/Scene/scenebuild"
+	"github.com/dtauraso/wirefold/Categories/Scene/Startup"
+	"github.com/dtauraso/wirefold/Categories/Scene/Wiring"
 
 	"github.com/dtauraso/wirefold/Categories/Chrome/Tabs"
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
@@ -26,7 +27,7 @@ func run(ctx context.Context, cancel context.CancelFunc, topologyPath string, cl
 	scenePath := Scenes.ResolvePath(topologyPath)
 	SceneB.WriteSpawnIdentity(scenePath)
 
-	sc, err := scenebuild.Load(ctx, scenePath, clk)
+	sc, err := Startup.Load(ctx, scenePath, clk)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "load topology: %v\n", err)
 		os.Exit(1)
@@ -47,20 +48,20 @@ func run(ctx context.Context, cancel context.CancelFunc, topologyPath string, cl
 	md.UI.SetSceneRoot(scenePath)
 	md.UI.WriteRingSurfaces(NodeShape.CanonicalRingSurfacePointsFlat(), bead.CanonicalRingSurfacePointsFlat())
 
-	scenebuild.EmitStartupBreadcrumbs(md, scenePath, len(sc.Nodes))
-	scenebuild.CheckRowSeedCount(md, len(sc.Nodes))
-	scenebuild.LoadSceneState(scenePath, md, speedSinks)
+	Startup.EmitStartupBreadcrumbs(md, scenePath, len(sc.Nodes))
+	Startup.CheckRowSeedCount(md, len(sc.Nodes))
+	Startup.LoadSceneState(scenePath, md, speedSinks)
 
 	md.Scenes.AnchorPath = topologyPath
 	md.Scenes.Quit = cancel
 	md.Scenes.Loaded = md.UI.SceneTabSelected
 
 	moverWG := md.Start(ctx)
-	stdinWG, gestureWG := scenebuild.StartStdinReader(ctx, cancel, md, speedSinks, clk, Scenes.InputDirPath(scenePath))
+	stdinWG, gestureWG := Startup.StartStdinReader(ctx, cancel, md, speedSinks, clk, Scenes.InputDirPath(scenePath))
 	joinAll(launchNodes(ctx, sc.Nodes), moverWG, stdinWG, gestureWG)
 }
 
-func launchNodes(ctx context.Context, nodes []scenebuild.BuiltNode) *sync.WaitGroup {
+func launchNodes(ctx context.Context, nodes []Wiring.BuiltNode) *sync.WaitGroup {
 	wg := new(sync.WaitGroup)
 	wg.Add(len(nodes))
 	for _, node := range nodes {

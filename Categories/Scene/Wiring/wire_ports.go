@@ -1,7 +1,8 @@
-package scenebuild
+package Wiring
 
 import (
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
+	"github.com/dtauraso/wirefold/Categories/Scene/Topology"
 )
 
 type EdgeWiring struct {
@@ -13,7 +14,7 @@ type EdgeWiring struct {
 	EdgeRun map[string]*beadanimation.BeadLine
 }
 
-func (w EdgeWiring) BindPorts(pb *PortBindings, n Node, ports []PortSpec) {
+func (w EdgeWiring) BindPorts(pb *PortBindings, n Topology.Node, ports []PortSpec) {
 	for _, port := range ports {
 		switch port.Dir {
 		case PortIn:

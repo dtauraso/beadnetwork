@@ -1,14 +1,16 @@
-package scenebuild
+package Wiring
 
 import (
 	"fmt"
+
+	"github.com/dtauraso/wirefold/Categories/Scene/Topology"
 
 	"strings"
 
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 )
 
-func ValidateSpec(spec *TopoSpec, kindPorts map[string][]PortSpec) error {
+func ValidateSpec(spec *Topology.TopoSpec, kindPorts map[string][]PortSpec) error {
 	var errs []string
 
 	kindInPorts := map[string]map[string]bool{}
@@ -50,7 +52,7 @@ func ValidateSpec(spec *TopoSpec, kindPorts map[string][]PortSpec) error {
 	}
 
 	for _, n := range spec.Nodes {
-		if !SafeTreePathComponent(n.ID) {
+		if !Topology.SafeTreePathComponent(n.ID) {
 			errs = append(errs, fmt.Sprintf("node id %q is not a safe path component", n.ID))
 		}
 	}

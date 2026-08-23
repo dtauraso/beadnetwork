@@ -1,7 +1,11 @@
-package scenebuild
+package Startup
 
 import (
 	"context"
+
+	"github.com/dtauraso/wirefold/Categories/Scene/Wiring"
+
+	"github.com/dtauraso/wirefold/Categories/Scene/Topology"
 
 	NodeBuf "github.com/dtauraso/wirefold/Categories/Node"
 
@@ -18,41 +22,41 @@ import (
 )
 
 type Scene struct {
-	Nodes      []BuiltNode
+	Nodes      []Wiring.BuiltNode
 	Dispatch   *scenerun.MoveDispatch
 	SpeedSinks SliderPanel.Sinks
 }
 
 func Load(ctx context.Context, scenePath string, clk clock.Clock) (Scene, error) {
-	spec, err := ParseSpec(scenePath)
+	spec, err := Topology.ParseSpec(scenePath)
 	if err != nil {
 		return Scene{}, err
 	}
-	if err := ValidateSpec(&spec, KindPorts); err != nil {
+	if err := Wiring.ValidateSpec(&spec, Wiring.KindPorts); err != nil {
 		return Scene{}, err
 	}
 
 	sphere, hasScene := scenepersist.LoadSceneSphere(scenePath)
 
-	nodeGeoms, baseIndices, dragIndices := SeedGeometry(spec, Vec3(sphere.Center))
-	destRun, edgeRun, edgeEndpoints := AllocateBeadLines(spec, nodeGeoms)
-	vectorOut, vectorIn := AllocateVectorChannels(spec)
+	nodeGeoms, baseIndices, dragIndices := Wiring.SeedGeometry(spec, Topology.Vec3(sphere.Center))
+	destRun, edgeRun, edgeEndpoints := Wiring.AllocateBeadLines(spec, nodeGeoms)
+	vectorOut, vectorIn := Wiring.AllocateVectorChannels(spec)
 
 	var speedSinks SliderPanel.Sinks
-	md, err := NewFromSpec(spec, sphere, hasScene, scenePath, clk, &speedSinks,
+	md, err := Wiring.NewFromSpec(spec, sphere, hasScene, scenePath, clk, &speedSinks,
 		nodeGeoms, edgeEndpoints, baseIndices, dragIndices)
 	if err != nil {
 		return Scene{}, err
 	}
 
-	nodeType, kindBroadcastPorts := BuildTypeMaps(spec)
-	inbound, outbound, outboundHandle := BuildEdgeMaps(spec, nodeType, kindBroadcastPorts)
-	wiring := EdgeWiring{
+	nodeType, kindBroadcastPorts := Wiring.BuildTypeMaps(spec)
+	inbound, outbound, outboundHandle := Wiring.BuildEdgeMaps(spec, nodeType, kindBroadcastPorts)
+	wiring := Wiring.EdgeWiring{
 		Inbound: inbound, Outbound: outbound, OutboundHandle: outboundHandle,
 		DestRun: destRun, EdgeRun: edgeRun,
 	}
 
-	nodes, outSink, err := buildNodes(ctx, spec, md, wiring, nodeGeoms, vectorOut, vectorIn, clk, &speedSinks)
+	nodes, outSink, err := Wiring.BuildNodes(ctx, spec, md, wiring, nodeGeoms, vectorOut, vectorIn, clk, &speedSinks)
 	if err != nil {
 		return Scene{}, err
 	}
@@ -89,7 +93,7 @@ func LoadSceneState(scenePath string, md *scenerun.MoveDispatch, speedSinks Slid
 func EmitStartupBreadcrumbs(md *scenerun.MoveDispatch, scenePath string, nodeCount int) {
 
 	md.UI.EmitBreadcrumb(viewstate.RowEvent{
-		Label: BreadcrumbTopologyLoaded, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
+		Label: Wiring.BreadcrumbTopologyLoaded, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 		Value: int32(nodeCount), Text: scenePath,
 	})
 }
@@ -98,7 +102,7 @@ func CheckRowSeedCount(md *scenerun.MoveDispatch, nodeCount int) {
 	if len(md.GS.NodeSeedsFn()) != nodeCount {
 
 		md.UI.EmitBreadcrumb(viewstate.RowEvent{
-			Label: BreadcrumbRowSeedCountMismatch, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
+			Label: Wiring.BreadcrumbRowSeedCountMismatch, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 			Value: int32(len(md.GS.NodeSeedsFn())), X: float64(nodeCount),
 		})
 	}
