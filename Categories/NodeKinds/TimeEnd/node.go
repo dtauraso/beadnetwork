@@ -9,7 +9,6 @@ import (
 	Speed "github.com/dtauraso/wirefold/Categories/Speed"
 
 	interior "github.com/dtauraso/wirefold/Categories/Node/Interior"
-	Wiring "github.com/dtauraso/wirefold/Categories/NodeKinds/kindapi"
 )
 
 const noValue = interior.NoValue
@@ -66,8 +65,8 @@ func (h *TimeEnd) Update(ctx context.Context) {
 	}
 }
 
-var Builder = Wiring.BuilderFor("TimeEnd",
-	func(a Wiring.BuildArgs) (nodeapi.Node, error) {
+var Builder = BuilderFor("TimeEnd",
+	func(a BuildArgs) (nodeapi.Node, error) {
 		n := &TimeEnd{
 
 			Held: a.StateSeed("held", noValue),

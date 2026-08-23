@@ -4,8 +4,6 @@ import (
 	"context"
 
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/nodeapi"
-
-	Wiring "github.com/dtauraso/wirefold/Categories/NodeKinds/kindapi"
 )
 
 type SelectRight struct {
@@ -16,8 +14,8 @@ func (g *SelectRight) Update(ctx context.Context) {
 	RunGateAccept(ctx, &g.GateNode, 0, 1)
 }
 
-var Builder = Wiring.BuilderFor("SelectRight",
-	func(a Wiring.BuildArgs) (nodeapi.Node, error) {
+var Builder = BuilderFor("SelectRight",
+	func(a BuildArgs) (nodeapi.Node, error) {
 		n := &SelectRight{}
 		n.Fire = a.Fire()
 		n.EmitInputBeads = a.EmitInputBeads()

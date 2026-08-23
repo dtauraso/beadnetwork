@@ -1,4 +1,4 @@
-package kindapi
+package time
 
 import (
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"

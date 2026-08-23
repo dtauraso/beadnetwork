@@ -16,7 +16,7 @@ func parseGoKindName(pkgDir string) (string, error) {
 		return "", err
 	}
 
-	markers := []string{`Wiring.BuilderFor("`}
+	markers := []string{`BuilderFor("`}
 	for _, entry := range entries {
 		name := entry.Name()
 		if entry.IsDir() || !strings.HasSuffix(name, ".go") || strings.HasSuffix(name, "_test.go") { // path-resolution-ok: a package directory listing, not a scene path

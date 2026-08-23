@@ -5,7 +5,6 @@ import (
 
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
-	Wiring "github.com/dtauraso/wirefold/Categories/NodeKinds/kindapi"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/nodeapi"
 	Speed "github.com/dtauraso/wirefold/Categories/Speed"
 )
@@ -111,8 +110,8 @@ func wrapIndex(i, points int32) int32 {
 	return i
 }
 
-var Builder = Wiring.BuilderFor("NormalSum",
-	func(a Wiring.BuildArgs) (nodeapi.Node, error) {
+var Builder = BuilderFor("NormalSum",
+	func(a BuildArgs) (nodeapi.Node, error) {
 		n := &Node{}
 		n.Fire = a.Fire()
 		n.Clock = a.Clock()

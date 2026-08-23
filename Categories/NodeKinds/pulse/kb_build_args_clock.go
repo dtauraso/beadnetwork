@@ -1,4 +1,4 @@
-package kindapi
+package pulse
 
 import clock "github.com/dtauraso/wirefold/Categories/Clock"
 
