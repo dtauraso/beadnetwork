@@ -7,13 +7,12 @@ import (
 	VecB "github.com/dtauraso/wirefold/Categories/Node/ChannelVectors"
 	edge "github.com/dtauraso/wirefold/Categories/Node/Edge"
 	TiltB "github.com/dtauraso/wirefold/Categories/Node/TiltVectors"
-	"github.com/dtauraso/wirefold/Categories/Node/nodeframe"
 	BeadB "github.com/dtauraso/wirefold/Categories/Ring/Bead"
 )
 
 type Sinks struct {
 	Beads func(tick uint32, nodeRow int32, beads []edge.EdgeBead)
-	Node  nodeframe.NodeFrameBuilder
+	Node  NodeFrameBuilder
 }
 
 func NewSinks(sceneRoot string, rows int) Sinks {
@@ -37,7 +36,7 @@ func NewSinks(sceneRoot string, rows int) Sinks {
 			}
 		},
 
-		Node: func(f nodeframe.NodeFrameInput) {
+		Node: func(f NodeFrameInput) {
 			frame := nodeStateFrom(f)
 			if int(f.NodeRow) < len(nodeValues) {
 				if err := WriteNodeValues(nodeValues[f.NodeRow], frame); err != nil {
@@ -54,7 +53,7 @@ func NewSinks(sceneRoot string, rows int) Sinks {
 	}
 }
 
-func nodeStateFrom(f nodeframe.NodeFrameInput) NodeState {
+func nodeStateFrom(f NodeFrameInput) NodeState {
 	return NodeState{
 		Tick:             f.Tick,
 		NodeRow:          f.NodeRow,

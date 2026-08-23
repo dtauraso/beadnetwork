@@ -1,4 +1,4 @@
-package nodeframe
+package Node
 
 import (
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/PolarRulesPanel"
