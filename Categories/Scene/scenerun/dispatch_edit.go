@@ -25,7 +25,8 @@ func HandleRawInputMsg(ctx context.Context, ev Drag.RawInputMsg, md *MoveDispatc
 	if ev.Kind == "delete" {
 		if md.UI.SceneEditable && md.UI.Sel.Selected != "" {
 			if row, ok := md.UI.NodeRowFor(md.UI.Sel.Selected); ok {
-				structuraledit.DeleteNode(&md.Scenes, &md.UI, &md.RT, int(row))
+				nodeID, _ := md.RT.LookupNodeRow(int(row))
+				structuraledit.DeleteNode(&md.Scenes, &md.UI, nodeID, int(row))
 			}
 		}
 		return

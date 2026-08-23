@@ -46,7 +46,8 @@ func applyUpdateScene(ctx context.Context, attr byte, payload []byte, md *MoveDi
 		structuraledit.CreateNode(&md.Scenes, &md.UI, md.MR.NodeGeoms(), md.nearestNodeTo, uint8(e.Num), e.X, e.Y)
 	case "delete":
 
-		structuraledit.DeleteNode(&md.Scenes, &md.UI, &md.RT, e.Num)
+		nodeID, _ := md.RT.LookupNodeRow(e.Num)
+		structuraledit.DeleteNode(&md.Scenes, &md.UI, nodeID, e.Num)
 	}
 }
 

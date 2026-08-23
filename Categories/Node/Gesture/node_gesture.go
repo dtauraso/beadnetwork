@@ -4,7 +4,6 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Node"
 	NodeDrag "github.com/dtauraso/wirefold/Categories/Node/Drag"
 	"github.com/dtauraso/wirefold/Categories/Scene/Drag"
-	"github.com/dtauraso/wirefold/Categories/Scene/rowtables"
 	"github.com/dtauraso/wirefold/Categories/Scene/viewstate"
 )
 
@@ -33,7 +32,7 @@ func ApplyDragTarget(ui *viewstate.UIState, rootMove func(id string, target Node
 	return true
 }
 
-func SetHover(ui *viewstate.UIState, sendMoveFn func(id string, msg Node.Msg), RT *rowtables.RowTables, node, port string, isInput bool) (changed bool) {
+func SetHover(ui *viewstate.UIState, sendMoveFn func(id string, msg Node.Msg), node, port string, isInput bool) (changed bool) {
 	if node == ui.Sel.HoverNode && port == ui.Sel.HoverPort && isInput == ui.Sel.HoverInput {
 		return false
 	}

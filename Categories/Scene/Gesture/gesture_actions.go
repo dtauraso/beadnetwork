@@ -18,7 +18,7 @@ func updateHover(d Deps, ev Drag.RawInputMsg) {
 	}
 	mr, ctx := d.MR, d.Ctx
 	sendMoveFn := func(id string, msg Node.Msg) { mr.SendMove(ctx, id, msg) }
-	if NodeGesture.SetHover(d.UI, sendMoveFn, d.RT, node, "", false) {
+	if NodeGesture.SetHover(d.UI, sendMoveFn, node, "", false) {
 		d.UI.EmitViewFrame(nil)
 	}
 }

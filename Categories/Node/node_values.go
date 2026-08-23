@@ -44,14 +44,13 @@ type ValueWriter struct {
 
 func NewValueWriter(sceneRoot string, row int) *ValueWriter {
 	path := filepath.Join(sceneRoot, filepath.FromSlash(ValueRelPath(row)))
-	return &ValueWriter{BlobWriter: NewBlobWriter(path, NodeValueNames)}
+	return &ValueWriter{BlobWriter: NewBlobWriter(path, NodeBlockValueNames)}
 }
 
-func WriteNodeValues(w *ValueWriter, f NodeState) error {
+func WriteNodeValues(w *ValueWriter, f NodeState) {
 	if w == nil {
-		return nil
+		return
 	}
-	w.Begin()
 	w.I32("indexR", f.IndexR)
 	w.I32("indexPhi", f.IndexPhi)
 	w.I32("indexTheta", f.IndexTheta)
@@ -99,6 +98,4 @@ func WriteNodeValues(w *ValueWriter, f NodeState) error {
 
 	w.I32("ruleGroupId", f.RuleGroupID)
 	w.I32("ruleGroupSize", f.RuleGroupSize)
-
-	return w.Flush()
 }

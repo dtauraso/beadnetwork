@@ -5,7 +5,6 @@ import (
 
 	"github.com/dtauraso/wirefold/Categories/Node"
 	"github.com/dtauraso/wirefold/Categories/Scene/Drag"
-	"github.com/dtauraso/wirefold/Categories/Scene/rowtables"
 	"github.com/dtauraso/wirefold/Categories/Scene/viewstate"
 )
 
@@ -20,7 +19,7 @@ type Deps struct {
 	MR    Movers
 	UI    *viewstate.UIState
 	Mover *Node.NodeMover
-	RT    *rowtables.RowTables
+	RT    Rows
 	Ctx   context.Context
 }
 
@@ -50,4 +49,9 @@ var rawInputHandlers = map[string]func(d Deps, ev Drag.RawInputMsg){
 	"home": func(d Deps, ev Drag.RawInputMsg) {
 		gestHome(d, ev)
 	},
+}
+
+type Rows interface {
+	NodeFromHit(h Drag.RawHit) (node string, ok bool)
+	EdgeFromHit(h Drag.RawHit) (label string, ok bool)
 }

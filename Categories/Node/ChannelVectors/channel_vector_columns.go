@@ -5,11 +5,14 @@ type ChannelVector struct {
 	Head  [16]float32
 }
 
-func WriteChannelVectorValues(w *ValueWriter, vectors []ChannelVector) error {
+type block interface {
+	F32(name string, v float32)
+}
+
+func WriteChannelVectorValues(w block, vectors []ChannelVector) {
 	if w == nil {
-		return nil
+		return
 	}
-	w.Begin()
 	for m := 0; m < 16; m++ {
 		shaft := ShaftName(m)
 		head := HeadName(m)
@@ -18,5 +21,4 @@ func WriteChannelVectorValues(w *ValueWriter, vectors []ChannelVector) error {
 			w.F32(head, v.Head[m])
 		}
 	}
-	return w.Flush()
 }

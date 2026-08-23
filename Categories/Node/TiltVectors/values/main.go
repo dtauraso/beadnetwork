@@ -3,36 +3,14 @@ package main
 //go:generate go run .
 
 import (
-	"github.com/dtauraso/wirefold/scripts/genpaths"
 	"fmt"
+	"github.com/dtauraso/wirefold/scripts/genpaths"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/dtauraso/wirefold/Categories/Node/TiltVectors"
 )
-
-func writePathFiles(pathsDir string) error {
-	if err := os.MkdirAll(pathsDir, 0o755); err != nil {
-		return err
-	}
-	if err := os.WriteFile(filepath.Join(pathsDir, "block.bin"), []byte(TiltVectors.ValueRelTemplate), 0o644); err != nil {
-		return err
-	}
-	entries, err := os.ReadDir(pathsDir)
-	if err != nil {
-		return err
-	}
-	for _, e := range entries {
-		if e.IsDir() || e.Name() == "block.bin" { // path-resolution-ok: the generator's own output directory
-			continue
-		}
-		if err := os.Remove(filepath.Join(pathsDir, e.Name())); err != nil {
-			return err
-		}
-	}
-	return nil
-}
 
 func writeNames(path string) error {
 	var b strings.Builder
@@ -55,12 +33,6 @@ func main() {
 	_, srcRoot := genpaths.Roots()
 
 	dir := filepath.Join(srcRoot, "Node", "TiltVectors")
-	pathsDir := filepath.Join(dir, "paths")
-	if err := writePathFiles(pathsDir); err != nil {
-		genpaths.Fatalf("write tilt arrow paths: %v", err)
-	}
-	genpaths.Announce(pathsDir, 1, "tilt arrow block path template")
-
 	namesPath := filepath.Join(dir, "tilt-values-gen.ts")
 	if err := writeNames(namesPath); err != nil {
 		genpaths.Fatalf("write %s: %v", namesPath, err)

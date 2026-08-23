@@ -6,11 +6,15 @@ type TiltArrow struct {
 	Head     [16]float32
 }
 
-func WriteTiltArrowValues(w *ValueWriter, arrows []TiltArrow) error {
+type block interface {
+	U8(name string, v uint8)
+	F32(name string, v float32)
+}
+
+func WriteTiltArrowValues(w block, arrows []TiltArrow) {
 	if w == nil {
-		return nil
+		return
 	}
-	w.Begin()
 	for _, a := range arrows {
 		w.U8("received", a.Received)
 	}
@@ -22,5 +26,4 @@ func WriteTiltArrowValues(w *ValueWriter, arrows []TiltArrow) error {
 			w.F32(head, a.Head[m])
 		}
 	}
-	return w.Flush()
 }

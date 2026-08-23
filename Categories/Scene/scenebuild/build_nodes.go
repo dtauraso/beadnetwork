@@ -60,7 +60,7 @@ func buildNodes(
 		pb.OutSink = outSink
 		pb.Clock = clk
 		pb.SpeedSinks = speedSinks
-		pb.RT = md.RT
+		pb.NodeRowOf = md.RT.NodeRowFor
 		pb.InteriorEmitters = md.Sw.InteriorEmittersPtr()
 		pb.VectorOut = vectorOut
 		pb.VectorIn = vectorIn

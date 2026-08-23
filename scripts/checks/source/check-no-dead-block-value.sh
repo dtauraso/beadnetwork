@@ -52,8 +52,10 @@ fi
 
 readonly DERIVED_FAMILIES=(
   '^ringM[0-9]+$:RING_NAMES'
-  '^shaftM[0-9]+$:SHAFT_NAMES'
-  '^headM[0-9]+$:HEAD_NAMES'
+  '^tiltShaftM[0-9]+$:TILT_SHAFT_NAMES'
+  '^tiltHeadM[0-9]+$:TILT_HEAD_NAMES'
+  '^channelShaftM[0-9]+$:VECTOR_SHAFT_NAMES'
+  '^channelHeadM[0-9]+$:VECTOR_HEAD_NAMES'
 )
 
 VALUE_CORPUS="$(mktemp)"
