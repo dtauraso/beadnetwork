@@ -98,13 +98,13 @@ func applyOverlaysHit(md *MoveDispatch, h Pills.Hit) {
 	switch h.Kind {
 	case Pills.HitPillCaret, Pills.HitHeading:
 		Panel.ToggleFlag(&md.UI.PN, h.Panel)
-		md.Persist.Panels().Schedule(md.UI.PN)
+		md.UI.PersistPanels(md.UI.PN)
 	case Pills.HitPillBody, Pills.HitFlag:
 		Overlay.ToggleFlag(&md.UI.OV, &md.ChannelVectorsOn, &md.UI, h.Flag)
-		md.Persist.Overlays().Schedule(md.UI.OV)
+		md.UI.PersistOverlays(md.UI.OV)
 	case Pills.HitCount:
 		Overlay.SetCount(&md.UI.OV, &md.ChannelVectorsOn, &md.UI, h.Flags, h.Target)
-		md.Persist.Overlays().Schedule(md.UI.OV)
+		md.UI.PersistOverlays(md.UI.OV)
 	}
 	md.UI.EmitViewFrame(nil)
 }

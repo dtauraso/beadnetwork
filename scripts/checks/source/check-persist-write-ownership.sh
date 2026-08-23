@@ -25,7 +25,7 @@ NODE_OWNERS=("node_mover.go" "nodefile_new_node_files.go" "nodefile_node_base_fi
 
 EDGE_OWNERS=("edge_file.go" "edge_delta_file.go" "edge_rule_active.go" "out_edges.go")
 
-VIEW_OWNERS=("scene_camera_persist.go" "overlays_persist.go" "panels_persist.go" "scene_sphere_write.go" "selected_scene.go" "scene_speed.go" "lattice.go" "scene_spawn_persist.go")
+VIEW_OWNERS=("scene_camera_persist.go" "overlays_persist.go" "panels_persist.go" "selected_scene.go" "scene_speed.go" "lattice.go" "scene_writes.go")
 
 TREE_OWNERS=("counts.go")
 

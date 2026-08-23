@@ -16,7 +16,6 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
 	SceneB "github.com/dtauraso/wirefold/Categories/Scene"
 	"github.com/dtauraso/wirefold/Categories/Scene/Scenes"
-	"github.com/dtauraso/wirefold/Categories/Scene/viewpersist"
 	"github.com/dtauraso/wirefold/Categories/Scene/viewstate"
 )
 
@@ -24,8 +23,6 @@ type MoveDispatch struct {
 	MR Movers
 
 	GS SceneB.GeomSeeds
-
-	Persist viewpersist.Persisters
 
 	Sw StreamWiring
 

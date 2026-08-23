@@ -16,7 +16,6 @@ import (
 	_ "github.com/dtauraso/wirefold/Categories/NodeKinds"
 	"github.com/dtauraso/wirefold/Categories/Scene/Camera"
 	"github.com/dtauraso/wirefold/Categories/Scene/Dispatch"
-	"github.com/dtauraso/wirefold/Categories/Scene/viewpersist"
 	"github.com/dtauraso/wirefold/Categories/Scene/viewstate"
 )
 
@@ -82,9 +81,9 @@ func LoadSceneState(scenePath string, md *Dispatch.MoveDispatch, speedSinks Slid
 
 	InstallSpeed(&md.UI, scenePath, speedSinks)
 
-	viewpersist.EnableViewpointPersist(&md.Persist, &md.UI, scenePath)
+	EnableViewpointPersist(&md.UI, scenePath)
 
-	viewpersist.EnableEditPersist(&md.Persist, &md.Scenes, md.MR.NodeGeoms(), scenePath)
+	EnableEditPersist(&md.UI, &md.Scenes, md.MR.NodeGeoms(), scenePath)
 
 	InstallSceneSphere(&md.UI, &md.GS, scenePath)
 }

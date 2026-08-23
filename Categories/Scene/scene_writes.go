@@ -1,19 +1,25 @@
-package viewpersist
+package Scene
 
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/dtauraso/wirefold/Categories/Polar/polar"
-	Scene "github.com/dtauraso/wirefold/Categories/Scene"
 )
+
+func WriteSpawnIdentity(sceneRoot string) {
+	if err := WriteAtomicIfChanged(SceneValuePath(sceneRoot, "spawn"), time.Now().UnixMilli()); err != nil {
+		fmt.Fprintf(os.Stderr, "write spawn identity: %v\n", err)
+	}
+}
 
 func WriteSceneSphere(sceneRoot string, s polar.SceneSphere) error {
 	for name, value := range map[string]float64{
 		"cx": s.Center.X, "cy": s.Center.Y, "cz": s.Center.Z,
 		"radius": s.Radius,
 	} {
-		if err := Scene.WriteAtomicIfChanged(Scene.SceneValuePath(sceneRoot, name), value); err != nil {
+		if err := WriteAtomicIfChanged(SceneValuePath(sceneRoot, name), value); err != nil {
 			return err
 		}
 	}

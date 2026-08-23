@@ -59,11 +59,11 @@ func HandleSaveMsg(md *MoveDispatch) {
 	if md == nil {
 		return
 	}
-	md.Persist.Overlays().Schedule(md.UI.OV)
+	md.UI.PersistOverlays(md.UI.OV)
 
-	md.Persist.Panels().Schedule(md.UI.PN)
+	md.UI.PersistPanels(md.UI.PN)
 
-	md.Persist.Sphere().Schedule(md.UI.SceneSphere)
+	md.UI.PersistSphere(md.UI.SceneSphere)
 }
 
 // EDIT_OPS_START
