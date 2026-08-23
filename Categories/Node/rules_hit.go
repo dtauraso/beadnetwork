@@ -6,11 +6,10 @@ import (
 
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/PolarRulesPanel"
 	edge "github.com/dtauraso/wirefold/Categories/Node/Edge"
-	"github.com/dtauraso/wirefold/Categories/Node/rulechans"
 	"github.com/dtauraso/wirefold/Categories/Node/rulenode"
 )
 
-func ApplyRuleCheck(ctx context.Context, h PolarRulesPanel.Hit, rules *rulechans.RuleChannels) {
+func ApplyRuleCheck(ctx context.Context, h PolarRulesPanel.Hit, rules *rulenode.RuleChannels) {
 	switch h.Check {
 	case PolarRulesPanel.CheckNodeDrag:
 		SendRuleEdit(ctx, rules, int(h.NodeRow), rulenode.Edit{Kind: rulenode.EditActiveToggle})
@@ -30,7 +29,7 @@ var ruleValueEdits = map[PolarRulesPanel.ValueKind]rulenode.EditKind{
 	PolarRulesPanel.ValDragPhi: rulenode.EditPhiToggle,
 }
 
-func ApplyRuleValue(ctx context.Context, h PolarRulesPanel.Hit, rules *rulechans.RuleChannels) bool {
+func ApplyRuleValue(ctx context.Context, h PolarRulesPanel.Hit, rules *rulenode.RuleChannels) bool {
 	kind, ok := ruleValueEdits[h.Value]
 	if !ok {
 		return false
@@ -39,7 +38,7 @@ func ApplyRuleValue(ctx context.Context, h PolarRulesPanel.Hit, rules *rulechans
 	return true
 }
 
-func CommitMaxTheta(ctx context.Context, rules *rulechans.RuleChannels, row int32, self bool, turns float64) {
+func CommitMaxTheta(ctx context.Context, rules *rulenode.RuleChannels, row int32, self bool, turns float64) {
 	var maxTheta *float64
 	if turns >= 0 {
 		radians := turns * math.Pi
