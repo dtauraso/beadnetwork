@@ -185,7 +185,7 @@ matrix per torus that Go composes**. TS uploads both and draws. It generates no 
 composes no transform, and holds no tube ratio.
 
 The surface is the unit torus at `rho = 1`, tube `a` = the kind's tube ratio, on the
-`theta == 0` disk (`Categories/Node/framegeom/ring_surface.go`):
+`theta == 0` disk (`Categories/Ring/ring_surface.go`):
 
 ```
 w   = rho + a*cos(v)

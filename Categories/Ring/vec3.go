@@ -1,4 +1,4 @@
-package framegeom
+package Ring
 
 import "math"
 

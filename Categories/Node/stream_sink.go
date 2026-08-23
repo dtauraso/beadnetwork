@@ -5,7 +5,6 @@ import (
 	"os"
 
 	edge "github.com/dtauraso/wirefold/Categories/Node/Edge"
-	"github.com/dtauraso/wirefold/Categories/Node/framegeom"
 	"github.com/dtauraso/wirefold/Categories/Node/nodeactor/nodeframe"
 	BeadB "github.com/dtauraso/wirefold/Categories/Ring/Bead"
 	TiltB "github.com/dtauraso/wirefold/Categories/Scene/TiltVectors"
@@ -103,7 +102,7 @@ func nodeStateFrom(f nodeframe.NodeFrameInput) NodeState {
 	}
 }
 
-func toStreamTiltArrows(in []framegeom.TiltArrow) []TiltB.TiltArrow {
+func toStreamTiltArrows(in []nodeframe.TiltArrow) []TiltB.TiltArrow {
 	if len(in) == 0 {
 		return nil
 	}

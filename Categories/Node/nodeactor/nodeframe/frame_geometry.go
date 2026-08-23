@@ -1,6 +1,7 @@
-package framegeom
+package nodeframe
 
 import (
+	Ring "github.com/dtauraso/wirefold/Categories/Ring"
 	"math"
 
 	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
@@ -53,9 +54,9 @@ func DeriveFrameGeometry(in FrameGeometryInputs) FrameGeometryOutputs {
 
 	out.PolePhi, out.PoleTheta = polar.WorldAxisPole()
 
-	ringAxisPhi, ringAxisTheta := TorusDefaultAxisAngles()
+	ringAxisPhi, ringAxisTheta := Ring.TorusDefaultAxisAngles()
 	nodeR := nodegeom.NodeRadius(in.Geom.Kind)
-	out.RingMatrix = RingInstanceMatrixColumnMajor(out.Center, nodeR, ringAxisPhi, ringAxisTheta)
+	out.RingMatrix = Ring.RingInstanceMatrixColumnMajor(Ring.Vec3(out.Center), nodeR, ringAxisPhi, ringAxisTheta)
 
 	out.LabelAnchor = out.Center.Add(Vec3{Y: nodeR})
 

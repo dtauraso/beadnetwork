@@ -6,7 +6,6 @@ import (
 	"math"
 
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/TiltPanel"
-	"github.com/dtauraso/wirefold/Categories/Node/framegeom"
 	"github.com/dtauraso/wirefold/Categories/Node/nodeactor/nodeframe"
 	"github.com/dtauraso/wirefold/Categories/Node/nodedrag"
 	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
@@ -52,7 +51,7 @@ func (m *NodeGeometry) writeStreamFrame(events []owners.RowEvent) {
 
 	coplanarEdges, upAxis := m.flags.Flags()
 	topIdx, bottomIdx, normalIdx, receivedIdx, receivedSet, latticePoints := m.tilt.FrameGeometryFields()
-	fg := framegeom.DeriveFrameGeometry(framegeom.FrameGeometryInputs{
+	fg := nodeframe.DeriveFrameGeometry(nodeframe.FrameGeometryInputs{
 		Geom:                 m.geom,
 		UpAxis:               upAxis,
 		CoplanarEdges:        coplanarEdges,
