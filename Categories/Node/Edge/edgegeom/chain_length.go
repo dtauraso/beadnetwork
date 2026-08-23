@@ -4,12 +4,11 @@ import (
 	"math"
 
 	lattice "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation/lattice"
-	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
 )
 
-func EdgeStepCount(dist float64, srcKind, dstKind string) int {
+func EdgeStepCount(dist float64, srcSteps, dstSteps int) int {
 	k := int(math.Round(dist / lattice.SlotR))
-	n := k - nodegeom.NodeTorusSteps(srcKind) - nodegeom.NodeTorusSteps(dstKind)
+	n := k - srcSteps - dstSteps
 	if n < 1 {
 		return 1
 	}

@@ -4,7 +4,6 @@ import (
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgefile"
 	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgegeom"
-	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
 	"github.com/dtauraso/wirefold/Categories/Polar/polar"
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
 )
@@ -97,12 +96,12 @@ func (o *OutEdges) AddOutEdge(label string, edgeRow int32, targetID, targetKind 
 
 }
 
-func (o *OutEdges) DeriveGeometry(self nodegeom.NodeGeom, deltas *Deltas) {
+func (o *OutEdges) DeriveGeometry(self NodeGeom, deltas *Deltas) {
 	if !self.HasPos {
 		return
 	}
-	selfCenter := nodegeom.NodeWorldPos(self)
-	selfIndex := nodegeom.ComposedIndexOf(self)
+	selfCenter := NodeWorldPos(self)
+	selfIndex := ComposedIndexOf(self)
 
 	for i := range o.edges {
 		e := &o.edges[i]
@@ -111,17 +110,17 @@ func (o *OutEdges) DeriveGeometry(self nodegeom.NodeGeom, deltas *Deltas) {
 			continue
 		}
 		targetIndex := polarindex.Compose(selfIndex, d, o.constants)
-		targetCenter := polar.Vec3(nodegeom.WorldPosAt(self.SceneCenter, targetIndex, o.constants))
+		targetCenter := polar.Vec3(WorldPosAt(self.SceneCenter, targetIndex, o.constants))
 
 		start, end := selfCenter, targetCenter
 		dir := targetCenter.Sub(polar.Vec3(selfCenter))
 		if dir.Length() >= 1e-9 {
 			unit := dir.Normalize()
-			start = selfCenter.Add(nodegeom.Vec3(unit.Scale(nodegeom.NodeTorusOuterR(self.Kind))))
-			end = targetCenter.Sub(unit.Scale(nodegeom.NodeTorusOuterR(e.targetKind)))
+			start = selfCenter.Add(Vec3(unit.Scale(NodeTorusOuterR(self.Kind))))
+			end = targetCenter.Sub(unit.Scale(NodeTorusOuterR(e.targetKind)))
 		}
 		if dist, _, ok := edgegeom.EdgeCenterDistAndDir(edgegeom.Vec3(selfCenter), edgegeom.Vec3(targetCenter)); ok {
-			e.steps = edgegeom.EdgeStepCount(dist, self.Kind, e.targetKind)
+			e.steps = edgegeom.EdgeStepCount(dist, NodeTorusSteps(self.Kind), NodeTorusSteps(e.targetKind))
 		}
 		e.start, e.end, e.derived = Vec3(start), Vec3(end), true
 		e.deltaR = float32(d.R) * float32(o.constants.ConstantR)
@@ -149,7 +148,7 @@ func (o *OutEdges) persistDelta(e *outEdge, off polarindex.Offset) {
 	e.persistedDragIdx, e.hasPersisted = off, true
 }
 
-func (o *OutEdges) WriteFrames(tick int64, self nodegeom.NodeGeom, deltas *Deltas) {
+func (o *OutEdges) WriteFrames(tick int64, self NodeGeom, deltas *Deltas) {
 	if o.buildFrame == nil || !self.HasPos {
 		return
 	}

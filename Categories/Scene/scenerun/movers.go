@@ -10,7 +10,6 @@ import (
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgegeom"
 	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgetable"
-	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
 )
 
 const InboxDepth = 8
@@ -76,7 +75,7 @@ func (m *Movers) nodeKind(id string) string {
 }
 
 func (m *Movers) NodeBodyRadius(id string) float64 {
-	return nodegeom.NodeRadius(m.nodeKind(id))
+	return Node.NodeRadius(m.nodeKind(id))
 }
 
 func (m *Movers) SendMove(ctx context.Context, id string, msg Node.Msg) {

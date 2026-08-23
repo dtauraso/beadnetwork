@@ -1,14 +1,13 @@
 package Node
 
 import (
-	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
 )
 
 func (m *NodeGeometry) ApplyCenter(idx polarindex.Index) {
-	nodegeom.SetNodeWorld(&m.geom, idx)
+	SetNodeWorld(&m.geom, idx)
 
-	m.msg.PublishCenter(Vec3(nodegeom.NodeWorldPos(m.geom)))
+	m.msg.PublishCenter(Vec3(NodeWorldPos(m.geom)))
 
 	m.emitGeometry()
 }

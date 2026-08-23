@@ -8,14 +8,13 @@ import (
 	NodeDrag "github.com/dtauraso/wirefold/Categories/Node/Drag"
 	interior "github.com/dtauraso/wirefold/Categories/Node/Interior"
 	"github.com/dtauraso/wirefold/Categories/Node/TiltVectors"
-	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
 	"github.com/dtauraso/wirefold/Categories/Node/rulenode"
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
 )
 
 type NodeGeometry struct {
 	id   string
-	geom nodegeom.NodeGeom
+	geom NodeGeom
 
 	kindRule NodeDrag.KindRule
 
@@ -59,7 +58,7 @@ type NodeGeometry struct {
 	rule rulenode.Link
 }
 
-func NewNodeGeometry(id string, geom nodegeom.NodeGeom, clockSrc clock.Clock, constants polarindex.SceneConstants) *NodeGeometry {
+func NewNodeGeometry(id string, geom NodeGeom, clockSrc clock.Clock, constants polarindex.SceneConstants) *NodeGeometry {
 	anim := NewNodeBeadAnimation(id, NewClocks(clockSrc, clock.NewRealClock()))
 
 	ng := &NodeGeometry{
@@ -76,7 +75,7 @@ func NewNodeGeometry(id string, geom nodegeom.NodeGeom, clockSrc clock.Clock, co
 		kindPosts: NewKindPosts(),
 	}
 
-	ng.msg.SeedCenter(Vec3(nodegeom.NodeWorldPos(geom)))
+	ng.msg.SeedCenter(Vec3(NodeWorldPos(geom)))
 	ng.outEdges.SetConstants(constants)
 	ng.deltas.SetConstants(constants)
 

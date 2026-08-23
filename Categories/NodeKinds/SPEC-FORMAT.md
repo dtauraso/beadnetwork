@@ -141,7 +141,7 @@ The `## View` section is required for any kind that has a TSX render. It drives 
 - `minWidth` — optional integer pixel width.
 - `shape`, `fill`, `stroke`, `width`, `height` — optional `NodeTypeDef`-compatible
   fields consumed by schema/adapter code; `width`/`height` also drive the generated Go
-  `Categories/Node/nodegeom/node_dims_gen.go` (used for port-to-port arc length), falling back to
+  `Categories/Node/geom_node_dims_gen.go` (used for port-to-port arc length), falling back to
   110×60 if omitted.
 
 A missing `## View` section (or one missing the `Field`/`Value` table columns) is a **hard

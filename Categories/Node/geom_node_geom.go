@@ -1,4 +1,4 @@
-package nodegeom
+package Node
 
 import (
 	"math"

@@ -5,12 +5,11 @@ import (
 	Ring "github.com/dtauraso/wirefold/Categories/Ring"
 	"math"
 
-	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
 	"github.com/dtauraso/wirefold/Categories/Polar/polar"
 )
 
 type FrameGeometryInputs struct {
-	Geom          nodegeom.NodeGeom
+	Geom          NodeGeom
 	UpAxis        bool
 	CoplanarEdges bool
 
@@ -24,7 +23,7 @@ type FrameGeometryInputs struct {
 }
 
 type FrameGeometryOutputs struct {
-	Center nodegeom.Vec3
+	Center Vec3
 
 	PolePhi, PoleTheta float64
 
@@ -32,7 +31,7 @@ type FrameGeometryOutputs struct {
 
 	LatticePoints int32
 
-	LabelAnchor nodegeom.Vec3
+	LabelAnchor Vec3
 
 	TopTiltVectorLen float64
 
@@ -50,19 +49,19 @@ type FrameGeometryOutputs struct {
 
 func DeriveFrameGeometry(in FrameGeometryInputs) FrameGeometryOutputs {
 	out := FrameGeometryOutputs{
-		Center: nodegeom.Vec3(nodegeom.NodeWorldPos(in.Geom)),
+		Center: Vec3(NodeWorldPos(in.Geom)),
 	}
 
 	out.PolePhi, out.PoleTheta = polar.WorldAxisPole()
 
 	ringAxisPhi, ringAxisTheta := Ring.TorusDefaultAxisAngles()
-	nodeR := nodegeom.NodeRadius(in.Geom.Kind)
+	nodeR := NodeRadius(in.Geom.Kind)
 	out.RingMatrix = Ring.RingInstanceMatrixColumnMajor(Ring.Vec3(out.Center), nodeR, ringAxisPhi, ringAxisTheta)
 
-	out.LabelAnchor = out.Center.Add(nodegeom.Vec3{Y: nodeR})
+	out.LabelAnchor = out.Center.Add(Vec3{Y: nodeR})
 
 	if in.UpAxis && in.Geom.HasPos {
-		out.TopTiltVectorLen = nodegeom.NodeRadius(in.Geom.Kind)
+		out.TopTiltVectorLen = NodeRadius(in.Geom.Kind)
 	}
 
 	points := in.LatticePoints
@@ -78,7 +77,7 @@ func DeriveFrameGeometry(in FrameGeometryInputs) FrameGeometryOutputs {
 	out.CoplanarNormalPhi = float64(in.NormalPhiIdx) * latticePhiStep
 
 	if in.ReceivedVectorSet {
-		out.ReceivedVectorLen = nodegeom.NodeRadius(in.Geom.Kind)
+		out.ReceivedVectorLen = NodeRadius(in.Geom.Kind)
 		out.ReceivedVectorPhi = float64(in.ReceivedVectorPhiIdx) * latticePhiStep
 	}
 

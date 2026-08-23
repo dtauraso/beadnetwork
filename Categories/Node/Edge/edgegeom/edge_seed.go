@@ -2,8 +2,6 @@ package edgegeom
 
 import (
 	"fmt"
-
-	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
 )
 
 type Seed struct {
@@ -11,16 +9,21 @@ type Seed struct {
 	SX, SY, SZ, EX, EY, EZ  float64
 }
 
-func NewSeed(label, srcID, dstID string, geoms map[string]nodegeom.NodeGeom) (Seed, error) {
-	srcG, ok := geoms[srcID]
+type NodeEnd struct {
+	Center Vec3
+	OuterR float64
+}
+
+func NewSeed(label, srcID, dstID string, ends map[string]NodeEnd) (Seed, error) {
+	src, ok := ends[srcID]
 	if !ok {
 		return Seed{}, fmt.Errorf("edgegeom.NewSeed: edge %q references missing source node %q (no geometry loaded for it)", label, srcID)
 	}
-	dstG, ok := geoms[dstID]
+	dst, ok := ends[dstID]
 	if !ok {
 		return Seed{}, fmt.Errorf("edgegeom.NewSeed: edge %q references missing target node %q (no geometry loaded for it)", label, dstID)
 	}
-	seg := EdgeSegment(srcG, dstG)
+	seg := EdgeSegment(src.Center, dst.Center, src.OuterR, dst.OuterR)
 	return Seed{
 		Label: label, SrcNode: srcID, DstNode: dstID,
 		SX: seg.Start.X, SY: seg.Start.Y, SZ: seg.Start.Z,

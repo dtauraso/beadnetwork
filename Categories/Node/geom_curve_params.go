@@ -1,4 +1,4 @@
-package nodegeom
+package Node
 
 const CurveParamNodeRadiusDivisor = 4
 

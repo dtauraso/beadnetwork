@@ -53,7 +53,7 @@
   through a `Receiver` (`Categories/Node/BeadAnimation/receiver.go`). **One input is fed by exactly one
   edge**; a node that needs several sources declares several inputs (see §Node lifecycle).
   Inputs carry no geometry of their own — an edge attaches at its two nodes' SURFACES
-  (`nodegeom.NodeTorusOuterR`).
+  (`Node.NodeTorusOuterR`).
 
   The channel between two nodes is the goroutine boundary, and nothing more. It is the real
   connection and is never drawn; what is drawn is the beads.

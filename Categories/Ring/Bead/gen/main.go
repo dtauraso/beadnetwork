@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/dtauraso/wirefold/Categories/Node/nodegeom/gen/params"
+	"github.com/dtauraso/wirefold/Categories/Node/geomgen/params"
 	bead "github.com/dtauraso/wirefold/Categories/Ring/Bead"
 )
 

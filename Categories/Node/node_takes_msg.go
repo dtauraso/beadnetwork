@@ -1,7 +1,6 @@
 package Node
 
 import (
-	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
 )
 
@@ -43,7 +42,7 @@ func (m *NodeGeometry) takeNeighborMove(msg NeighborMoved) {
 		m.deltas.ShiftOtherBy(msg.SenderID, *msg.Delta)
 	}
 	if msg.Center != nil {
-		idx := nodegeom.IndexAtTheta(m.geom.SceneCenter, nodegeom.Vec3(*msg.Center), m.ScenePolar().Theta, m.Constants())
+		idx := IndexAtTheta(m.geom.SceneCenter, Vec3(*msg.Center), m.ScenePolar().Theta, m.Constants())
 		m.ApplyCenter(idx)
 		return
 	}
@@ -66,7 +65,7 @@ func (m *NodeGeometry) takeDragOfSelf(msg Drag) {
 	movedIdx := polarindex.Compose(haveIdx, m.TrimOwnDrag(delta), m.Constants())
 
 	m.msg.CommitLocal(m.id, movedIdx)
-	newPos := nodegeom.WorldPosAt(m.geom.SceneCenter, movedIdx, m.Constants())
+	newPos := WorldPosAt(m.geom.SceneCenter, movedIdx, m.Constants())
 
 	m.writeStreamFrame([]RowEvent{{
 		Kind: KindBreadcrumb, Label: BreadcrumbDragCommit, Debug: 1,

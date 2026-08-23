@@ -6,11 +6,22 @@ import (
 
 	edge "github.com/dtauraso/wirefold/Categories/Node/Edge"
 	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgegeom"
-	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
+	"github.com/dtauraso/wirefold/Categories/Node"
 	rowtables "github.com/dtauraso/wirefold/Categories/Scene/rowtables"
 )
 
-func resolveSeedOrders(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[string]edge.EdgeEndpoints, nodeOrder, edgeOrder []string) ([]string, []string) {
+func edgeEnds(geoms map[string]Node.NodeGeom) map[string]edgegeom.NodeEnd {
+	out := make(map[string]edgegeom.NodeEnd, len(geoms))
+	for id, g := range geoms {
+		out[id] = edgegeom.NodeEnd{
+			Center: edgegeom.Vec3(Node.NodeWorldPos(g)),
+			OuterR: Node.NodeTorusOuterR(g.Kind),
+		}
+	}
+	return out
+}
+
+func resolveSeedOrders(geoms map[string]Node.NodeGeom, edgeEndpoints map[string]edge.EdgeEndpoints, nodeOrder, edgeOrder []string) ([]string, []string) {
 	if nodeOrder == nil {
 		nodeOrder = make([]string, 0, len(geoms))
 		for id := range geoms {
@@ -28,8 +39,8 @@ func resolveSeedOrders(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[str
 	return nodeOrder, edgeOrder
 }
 
-func (md *MoveDispatch) buildGeomSeeds(geoms map[string]nodegeom.NodeGeom, edgeEndpoints map[string]edge.EdgeEndpoints, nodeOrder, edgeOrder []string) error {
-	md.GS.NodeSeeds = make([]nodegeom.Seed, 0, len(nodeOrder))
+func (md *MoveDispatch) buildGeomSeeds(geoms map[string]Node.NodeGeom, edgeEndpoints map[string]edge.EdgeEndpoints, nodeOrder, edgeOrder []string) error {
+	md.GS.NodeSeeds = make([]Node.Seed, 0, len(nodeOrder))
 	for i, id := range nodeOrder {
 		g, ok := geoms[id]
 		if !ok {
@@ -40,7 +51,7 @@ func (md *MoveDispatch) buildGeomSeeds(geoms map[string]nodegeom.NodeGeom, edgeE
 		if n, err := strconv.Atoi(id); err == nil {
 			row = n - 1
 		}
-		md.GS.NodeSeeds = append(md.GS.NodeSeeds, nodegeom.NewSeed(id, g, row))
+		md.GS.NodeSeeds = append(md.GS.NodeSeeds, Node.NewSeed(id, g, row))
 	}
 	md.GS.EdgeSeeds = make([]edgegeom.Seed, 0, len(edgeOrder))
 	for _, label := range edgeOrder {
@@ -49,7 +60,7 @@ func (md *MoveDispatch) buildGeomSeeds(geoms map[string]nodegeom.NodeGeom, edgeE
 			continue
 		}
 
-		seed, err := edgegeom.NewSeed(label, ep.Source, ep.Target, geoms)
+		seed, err := edgegeom.NewSeed(label, ep.Source, ep.Target, edgeEnds(geoms))
 		if err != nil {
 			return err
 		}

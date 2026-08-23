@@ -1,8 +1,6 @@
 package interior
 
-import (
-	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
-)
+import ()
 
 type Interior struct {
 	stream  *InteriorStream
@@ -17,11 +15,10 @@ func (o *Interior) SetInteriorStream(stream *InteriorStream, mailbox *Mailbox) {
 	o.mailbox = mailbox
 }
 
-func (o *Interior) WriteFrames(self nodegeom.NodeGeom) {
+func (o *Interior) WriteFrames(center Vec3) {
 	if o.stream == nil || o.mailbox == nil {
 		return
 	}
-	center := nodegeom.NodeWorldPos(self)
 	wrote := false
 	for {
 		snap, ok := o.mailbox.TryRecv()
@@ -29,15 +26,15 @@ func (o *Interior) WriteFrames(self nodegeom.NodeGeom) {
 			break
 		}
 		if snap.EventsOnly {
-			o.stream.WriteEvents(snap.Events, Vec3(center))
+			o.stream.WriteEvents(snap.Events, center)
 		} else {
-			o.stream.WriteFull(snap.Present, snap.Value, snap.Ox, snap.Oy, snap.Oz, snap.Events, Vec3(center))
+			o.stream.WriteFull(snap.Present, snap.Value, snap.Ox, snap.Oy, snap.Oz, snap.Events, center)
 		}
 		wrote = true
 	}
 
-	if !wrote && o.hasLastCenter && nodegeom.Vec3(center) != nodegeom.Vec3(o.lastCenter) {
-		o.stream.RewriteAtCenter(Vec3(center))
+	if !wrote && o.hasLastCenter && center != o.lastCenter {
+		o.stream.RewriteAtCenter(center)
 	}
-	o.lastCenter, o.hasLastCenter = Vec3(center), true
+	o.lastCenter, o.hasLastCenter = center, true
 }

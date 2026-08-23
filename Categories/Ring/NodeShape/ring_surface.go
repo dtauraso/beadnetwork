@@ -3,7 +3,7 @@ package NodeShape
 import (
 	"sync"
 
-	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
+	"github.com/dtauraso/wirefold/Categories/Node"
 	Ring "github.com/dtauraso/wirefold/Categories/Ring"
 )
 
@@ -13,7 +13,7 @@ const (
 )
 
 func CanonicalRingSurfacePoints() []Vec3 {
-	pts := Ring.CanonicalTorusSurfacePoints(nodegeom.ShadingParamNodeRingTubeRatio, RingSurfaceNu, RingSurfaceNv)
+	pts := Ring.CanonicalTorusSurfacePoints(Node.ShadingParamNodeRingTubeRatio, RingSurfaceNu, RingSurfaceNv)
 	out := make([]Vec3, len(pts))
 	for i, p := range pts {
 		out[i] = Vec3(p)

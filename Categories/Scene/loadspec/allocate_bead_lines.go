@@ -1,12 +1,12 @@
 package loadspec
 
 import (
+	NodeBuf "github.com/dtauraso/wirefold/Categories/Node"
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 	edge "github.com/dtauraso/wirefold/Categories/Node/Edge"
-	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
 )
 
-func (spec TopoSpec) AllocateBeadLines(nodeGeoms map[string]nodegeom.NodeGeom) (
+func (spec TopoSpec) AllocateBeadLines(nodeGeoms map[string]NodeBuf.NodeGeom) (
 	destRun map[string]*beadanimation.BeadLine,
 	edgeRun map[string]*beadanimation.BeadLine,
 	edgeEndpoints map[string]edge.EdgeEndpoints,

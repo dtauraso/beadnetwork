@@ -4,7 +4,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/dtauraso/wirefold/Categories/Node/nodegeom/gen/params"
+	"github.com/dtauraso/wirefold/Categories/Node/geomgen/params"
 	"os"
 	"path/filepath"
 	"strings"

@@ -13,7 +13,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/dtauraso/wirefold/Categories/Node/nodegeom/gen/constexpr"
+	"github.com/dtauraso/wirefold/Categories/Node/geomgen/constexpr"
 )
 
 type shadingParam struct {
