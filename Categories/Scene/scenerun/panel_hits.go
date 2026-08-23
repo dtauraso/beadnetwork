@@ -35,7 +35,7 @@ func panelTookPointerDown(
 	if Panel.HitRect(pl.Fit, ev.X, ev.Y) {
 		home := ev
 		home.Kind = "home"
-		md.HandleRawInput(ctx, home, nil)
+		md.HandleRawInput(ctx, home)
 		return true
 	}
 

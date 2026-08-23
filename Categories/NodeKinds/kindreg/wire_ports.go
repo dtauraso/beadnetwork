@@ -12,7 +12,7 @@ type EdgeWiring struct {
 	OutboundHandle map[string]map[string][]string
 
 	DestRun map[string]*beadanimation.BeadLine
-	EdgeRun loadspec.BeadLineRegistry
+	EdgeRun map[string]*beadanimation.BeadLine
 }
 
 func (w EdgeWiring) BindPorts(pb *portwiring.PortBindings, n loadspec.Node, ports []portwiring.PortSpec) {

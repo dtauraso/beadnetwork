@@ -59,7 +59,7 @@ func run(ctx context.Context, cancel context.CancelFunc, topologyPath string, cl
 	md.Scenes.Loaded = md.UI.SceneTabSelected
 
 	moverWG := md.Start(ctx)
-	stdinWG, gestureWG := inputactor.StartStdinReader(ctx, cancel, sc.SlotReg, md, speedSinks, clk, scenepaths.InputDirPath(scenePath))
+	stdinWG, gestureWG := inputactor.StartStdinReader(ctx, cancel, md, speedSinks, clk, scenepaths.InputDirPath(scenePath))
 	joinAll(launchNodes(ctx, sc.Nodes), moverWG, stdinWG, gestureWG)
 }
 
