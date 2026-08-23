@@ -111,7 +111,7 @@ func NewFromSpec(spec loadspec.TopoSpec, sphere polar.SceneSphere, hasScene bool
 		for to, told := range nm.RequestedDrag(polarindex.Offset{}) {
 			if other, ok := md.MR.NodeGeoms()[to]; ok {
 				d := told
-				other.SendExternal(context.TODO(), owners.Msg{NodeID: to,
+				other.Msg().SendExternal(context.TODO(), owners.Msg{NodeID: to,
 					Body: owners.Drag{Delta: &d}})
 			}
 		}

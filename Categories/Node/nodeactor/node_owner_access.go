@@ -13,6 +13,8 @@ import (
 
 func (m *NodeGeometry) Topo() *owners.Topology { return &m.topo }
 
+func (m *NodeGeometry) Msg() *owners.Messaging { return &m.msg }
+
 func (m *NodeGeometry) ID() string { return m.id }
 
 func (m *NodeGeometry) Kind() string { return m.geom.Kind }

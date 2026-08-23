@@ -37,6 +37,6 @@ func (mv *NodeMover) RootMove(ctx context.Context, nodeGeoms map[string]*nodeact
 	sc := nm.Constants()
 	targetIdx := polarindex.MeasureIndex(pointerPolar(nm, target.Sub(Vec3(nm.SceneCenter()))), sc)
 
-	nm.SendExternal(ctx, owners.Msg{NodeID: nodeID, Body: owners.Drag{Target: &targetIdx}})
+	nm.Msg().SendExternal(ctx, owners.Msg{NodeID: nodeID, Body: owners.Drag{Target: &targetIdx}})
 	return true
 }

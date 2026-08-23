@@ -48,7 +48,7 @@ func (m *Movers) SeedCenter(id string, c Vec3) { m.centerMirror[id] = c }
 
 func (m *Movers) drainCenterMirror() {
 	for id, nm := range m.nodeGeoms {
-		if c, ok := nm.PollCenter(); ok {
+		if c, ok := nm.Msg().PollCenter(); ok {
 			m.centerMirror[id] = Vec3(c)
 		}
 	}
@@ -85,11 +85,11 @@ func (m *Movers) SendMove(ctx context.Context, id string, msg owners.Msg) {
 	if !ok {
 		return
 	}
-	nm.SendExternal(ctx, msg)
+	nm.Msg().SendExternal(ctx, msg)
 }
 
 func (m *Movers) EnqueueFor(nm *nodeactor.NodeGeometry) func(id string, msg owners.Msg) {
-	return nm.EnqueueSend
+	return nm.Msg().EnqueueSend
 }
 
 func (md *MoveDispatch) nearestNodeTo(p nodecrud.Vec3) (string, bool) {

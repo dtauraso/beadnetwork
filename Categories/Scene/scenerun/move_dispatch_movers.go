@@ -24,7 +24,7 @@ func (md *MoveDispatch) buildNodeMovers(geoms map[string]nodegeom.NodeGeom, clk 
 		resolveDest := func(destID string) (owners.Deposit, bool) {
 
 			if other, ok := md.MR.NodeGeoms()[destID]; ok {
-				return other.NeighborDeposit(selfID)
+				return other.Msg().NeighborDeposit(selfID)
 			}
 			return nil, false
 		}

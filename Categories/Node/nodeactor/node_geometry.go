@@ -9,8 +9,6 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
 )
 
-const inboxDepth = 8
-
 type NodeGeometry struct {
 	id   string
 	geom nodegeom.NodeGeom
@@ -63,7 +61,7 @@ func NewNodeGeometry(id string, geom nodegeom.NodeGeom, clockSrc clock.Clock, co
 	ng := &NodeGeometry{
 		id: id, geom: geom,
 		msg: owners.NewMessaging(
-			make(chan owners.Msg, inboxDepth),
+			make(chan owners.Msg, owners.InboxDepth),
 			make(chan owners.Vec3, 1),
 		),
 		topo:      owners.NewTopology(),

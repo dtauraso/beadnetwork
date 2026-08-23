@@ -1,3 +1,3 @@
 package owners
 
-const inboxDepth = 8
+const InboxDepth = 8

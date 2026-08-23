@@ -123,7 +123,7 @@ func (n *Messaging) SendExternal(_ context.Context, msg Msg) {
 				"outrun a geometry loop that runs every real tick — so either this node's "+
 				"geometry goroutine has stopped running, or a continuous per-pointer-move "+
 				"quantity is being sent here instead of onto a coalescing slot",
-			msg.NodeID, inboxDepth, msg.Body))
+			msg.NodeID, InboxDepth, msg.Body))
 	}
 }
 
@@ -136,7 +136,7 @@ func (n *Messaging) TryRecvExternal() (Msg, bool) {
 	}
 }
 
-func (n *Messaging) EnqueueSend(_, destID string, msg Msg) {
+func (n *Messaging) EnqueueSend(destID string, msg Msg) {
 	if n.resolveDest == nil {
 		return
 	}

@@ -6,7 +6,7 @@ type Beads struct {
 
 func (nb *Beads) PostBeadDrag(start bool) {
 	if nb.dragToAnim == nil {
-		nb.dragToAnim = make(chan bool, inboxDepth)
+		nb.dragToAnim = make(chan bool, InboxDepth)
 	}
 	select {
 	case nb.dragToAnim <- start:
