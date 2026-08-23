@@ -1,11 +1,13 @@
-package viewstate
+package Tabs
 
 import (
-	"github.com/dtauraso/wirefold/Categories/Chrome/Tabs"
+	"fmt"
+	"os"
 )
 
-func (ui *UIState) writeTabStripValues(lay Tabs.Layout) {
-	w := ui.tabStripValues
+// WriteValues writes the tab strip's own block. It takes the strip's writer and
+// the strip's layout — not the view state, which would let it write anything.
+func WriteValues(w *ValueWriter, lay Layout) {
 	if w == nil {
 		return
 	}
@@ -20,6 +22,6 @@ func (ui *UIState) writeTabStripValues(lay Tabs.Layout) {
 	}
 
 	if err := w.Flush(); err != nil {
-		LogPersistErr("tab_strip_values", "", err)
+		fmt.Fprintf(os.Stderr, "tab_strip_values: %v\n", err)
 	}
 }

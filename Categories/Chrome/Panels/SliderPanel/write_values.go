@@ -1,15 +1,17 @@
-package viewstate
+package SliderPanel
 
 import (
-	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/SliderPanel"
+	"fmt"
+	"os"
 )
 
-func (ui *UIState) writeSpeedPanelColumns(lay SliderPanel.Layout) {
-	w := ui.sliderPanelValues
+// WriteValues writes the slider panel's own block. The speed is passed in: the
+// panel needs the one number it shows, not the view state that holds it.
+func WriteValues(w *ValueWriter, lay Layout, speed float64) {
 	if w == nil {
 		return
 	}
-	selected := SliderPanel.SelectedIndex(ui.Speed)
+	selected := SelectedIndex(speed)
 
 	w.Begin()
 	w.Rect("boxX", "boxY", "boxW", "boxH", lay.Box)
@@ -23,7 +25,7 @@ func (ui *UIState) writeSpeedPanelColumns(lay SliderPanel.Layout) {
 		}
 		w.U8("selected", on)
 
-		s := SliderPanel.Settings[i]
+		s := Settings[i]
 		w.Str("numText", "numLen", s.Num)
 		w.Str("denText", "denLen", s.Den)
 	}
@@ -31,6 +33,6 @@ func (ui *UIState) writeSpeedPanelColumns(lay SliderPanel.Layout) {
 	w.Rect("trackX", "trackY", "trackW", "trackH", lay.Track)
 
 	if err := w.Flush(); err != nil {
-		LogPersistErr("slider_panel_values", "", err)
+		fmt.Fprintf(os.Stderr, "slider_panel_values: %v\n", err)
 	}
 }

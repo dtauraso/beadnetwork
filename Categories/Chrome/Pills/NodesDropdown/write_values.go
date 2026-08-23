@@ -1,14 +1,17 @@
-package viewstate
+package NodesDropdown
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/Panel"
-	"github.com/dtauraso/wirefold/Categories/Chrome/Pills/NodesDropdown"
 )
 
 const refusedNotice = "edit refused — see the output channel"
 
-func (ui *UIState) writeNodesPillValues(lay NodesDropdown.Layout) {
-	w := ui.nodesPillValues
+// WriteValues writes the nodes pill's own block. The refusal count is passed
+// in: the pill shows it, it does not own the view state that counts it.
+func WriteValues(w *ValueWriter, lay Layout, refusedCount uint32) {
 	if w == nil {
 		return
 	}
@@ -17,7 +20,7 @@ func (ui *UIState) writeNodesPillValues(lay NodesDropdown.Layout) {
 	w.Rect("pillX", "pillY", "pillW", "pillH", lay.Pill)
 	w.Bool("open", lay.Open)
 	w.Rect("popoverX", "popoverY", "popoverW", "popoverH", lay.Popover)
-	w.Text("labelText", NodesDropdown.Label)
+	w.Text("labelText", Label)
 
 	for _, r := range lay.Rows {
 		w.Rect("rowX", "rowY", "rowW", "rowH", r.Head)
@@ -42,7 +45,7 @@ func (ui *UIState) writeNodesPillValues(lay NodesDropdown.Layout) {
 	if lay.Open {
 		noticeY = lay.Popover.Y + lay.Popover.H + Panel.PillGap
 	}
-	w.U32("refusedCount", ui.EditRefused)
+	w.U32("refusedCount", refusedCount)
 	w.F32("refusedX", lay.Pill.X+lay.Pill.W-noticeW)
 	w.F32("refusedY", noticeY)
 	w.F32("refusedW", noticeW)
@@ -50,6 +53,6 @@ func (ui *UIState) writeNodesPillValues(lay NodesDropdown.Layout) {
 	w.Text("refusedText", refusedNotice)
 
 	if err := w.Flush(); err != nil {
-		LogPersistErr("nodes_pill_values", "", err)
+		fmt.Fprintf(os.Stderr, "nodes_pill_values: %v\n", err)
 	}
 }

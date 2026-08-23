@@ -1,11 +1,13 @@
-package viewstate
+package TiltPanel
 
 import (
-	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/TiltPanel"
+	"fmt"
+	"os"
 )
 
-func (ui *UIState) writeTiltPanelValues(lay TiltPanel.Layout) {
-	w := ui.tiltPanelValues
+// WriteValues writes this piece's own block, from its own writer and its own
+// layout — not from the view state, which would let it write anything.
+func WriteValues(w *ValueWriter, lay Layout) {
 	if w == nil {
 		return
 	}
@@ -14,8 +16,8 @@ func (ui *UIState) writeTiltPanelValues(lay TiltPanel.Layout) {
 	w.Rect("boxX", "boxY", "boxW", "boxH", lay.Box)
 	w.Rect("startX", "startY", "startW", "startH", lay.Start)
 	w.Rect("resetX", "resetY", "resetW", "resetH", lay.Reset)
-	w.Text("startText", TiltPanel.StartLabel)
-	w.Text("resetText", TiltPanel.ResetLabel)
+	w.Text("startText", StartLabel)
+	w.Text("resetText", ResetLabel)
 
 	for _, col := range lay.Columns {
 		w.I32("colNodeRow", col.NodeRow)
@@ -26,6 +28,6 @@ func (ui *UIState) writeTiltPanelValues(lay TiltPanel.Layout) {
 	}
 
 	if err := w.Flush(); err != nil {
-		LogPersistErr("tilt_panel_values", "", err)
+		fmt.Fprintf(os.Stderr, "tilt_panel_values: %v\n", err)
 	}
 }

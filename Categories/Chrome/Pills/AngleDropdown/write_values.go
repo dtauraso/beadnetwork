@@ -1,11 +1,13 @@
-package viewstate
+package AngleDropdown
 
 import (
-	"github.com/dtauraso/wirefold/Categories/Chrome/Pills/AngleDropdown"
+	"fmt"
+	"os"
 )
 
-func (ui *UIState) writeAnglePillValues(lay AngleDropdown.Layout) {
-	w := ui.anglePillValues
+// WriteValues writes this piece's own block, from its own writer and its own
+// layout — not from the view state, which would let it write anything.
+func WriteValues(w *ValueWriter, lay Layout) {
 	if w == nil {
 		return
 	}
@@ -14,9 +16,9 @@ func (ui *UIState) writeAnglePillValues(lay AngleDropdown.Layout) {
 	w.Rect("pillX", "pillY", "pillW", "pillH", lay.Pill)
 	w.Bool("open", lay.Open)
 	w.Rect("popoverX", "popoverY", "popoverW", "popoverH", lay.Popover)
-	w.Text("labelText", AngleDropdown.Label)
+	w.Text("labelText", Label)
 
-	addStep := func(s AngleDropdown.Stepper) {
+	addStep := func(s Stepper) {
 		w.F32("stepX", s.Row.X)
 		w.F32("stepY", s.Row.Y)
 		w.F32("stepH", s.Row.H)
@@ -45,6 +47,6 @@ func (ui *UIState) writeAnglePillValues(lay AngleDropdown.Layout) {
 	}
 
 	if err := w.Flush(); err != nil {
-		LogPersistErr("angle_pill_values", "", err)
+		fmt.Fprintf(os.Stderr, "angle_pill_values: %v\n", err)
 	}
 }
