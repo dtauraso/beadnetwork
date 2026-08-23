@@ -35,8 +35,6 @@ func (m *NodeGeometry) EdgeIDs() []string { return m.topo.EdgeIDs() }
 
 func (m *NodeGeometry) NeighborKinds() map[string]string { return m.topo.NeighborKinds() }
 
-func (m *NodeGeometry) OutTargets() []string { return m.outTargets }
-
 func (m *NodeGeometry) SetBaseDeltaTo(otherID string, off polarindex.Offset) {
 	m.deltas.SetBaseDeltaTo(otherID, off)
 }

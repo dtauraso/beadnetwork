@@ -7,13 +7,13 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
 )
 
-func trimOwnDrag(delta polarindex.Offset, of nodedrag.Node) polarindex.Offset {
-	if !of.KindRuleActive() {
-		return nodedrag.TrimToDragRule(delta, of)
+func trimOwnDrag(delta polarindex.Offset, st nodedrag.State) polarindex.Offset {
+	if !st.KindOn {
+		return nodedrag.TrimToDragRule(delta, st)
 	}
-	delta = snapDeltaTheta(delta, of.Constants())
-	delta = nodedrag.TrimToDragRule(delta, of)
-	return holdEqualOutLengths(delta, of)
+	delta = snapDeltaTheta(delta, st.Constants)
+	delta = nodedrag.TrimToDragRule(delta, st)
+	return holdEqualOutLengths(delta, st)
 }
 
 func snapDeltaTheta(delta polarindex.Offset, sc polarindex.SceneConstants) polarindex.Offset {
@@ -29,10 +29,10 @@ func snapDeltaTheta(delta polarindex.Offset, sc polarindex.SceneConstants) polar
 	return delta
 }
 
-func holdEqualOutLengths(delta polarindex.Offset, of nodedrag.Node) polarindex.Offset {
+func holdEqualOutLengths(delta polarindex.Offset, st nodedrag.State) polarindex.Offset {
 	longest, shortest, count := 0, 0, 0
-	for _, to := range of.OutTargets() {
-		d, ok := of.DeltaTo(to)
+	for _, to := range st.OutTargets {
+		d, ok := st.OutDelta[to]
 		if !ok {
 			continue
 		}
@@ -51,12 +51,12 @@ func holdEqualOutLengths(delta polarindex.Offset, of nodedrag.Node) polarindex.O
 	return delta
 }
 
-func equalOutLengths(delta polarindex.Offset, of nodedrag.Node) map[string]polarindex.Offset {
-	sc := of.Constants()
+func equalOutLengths(delta polarindex.Offset, st nodedrag.State) map[string]polarindex.Offset {
+	sc := st.Constants
 	paths := map[string]polarindex.Offset{}
 	shared := 0
-	for _, to := range of.OutTargets() {
-		p, ok := of.DeltaTo(to)
+	for _, to := range st.OutTargets {
+		p, ok := st.OutDelta[to]
 		if !ok {
 			continue
 		}
@@ -68,7 +68,7 @@ func equalOutLengths(delta polarindex.Offset, of nodedrag.Node) map[string]polar
 	if len(paths) == 0 {
 		return nil
 	}
-	selfWas := of.ComposedIndex()
+	selfWas := st.Index
 	selfNow := polarindex.Compose(selfWas, delta, sc)
 	out := make(map[string]polarindex.Offset, len(paths))
 	for to, p := range paths {
