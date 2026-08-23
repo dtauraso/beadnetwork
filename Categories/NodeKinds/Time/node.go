@@ -10,8 +10,6 @@ import (
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/nodeapi"
 	Speed "github.com/dtauraso/wirefold/Categories/Speed"
-
-	Wiring "github.com/dtauraso/wirefold/Categories/NodeKinds/kindapi"
 )
 
 type Time struct {
@@ -120,8 +118,8 @@ func (in *Time) Update(ctx context.Context) {
 	}
 }
 
-var Builder = Wiring.BuilderFor("Time",
-	func(a Wiring.BuildArgs) (nodeapi.Node, error) {
+var Builder = BuilderFor("Time",
+	func(a BuildArgs) (nodeapi.Node, error) {
 		n := &Time{
 
 			Held: a.StateSeed("held", interior.NoValue),

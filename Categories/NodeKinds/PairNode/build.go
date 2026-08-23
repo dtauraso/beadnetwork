@@ -8,10 +8,9 @@ import (
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/nodeapi"
 
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/PairNode/tiltring"
-	Wiring "github.com/dtauraso/wirefold/Categories/NodeKinds/kindapi"
 )
 
-func (n *Node) wirePlumbing(a Wiring.BuildArgs) {
+func (n *Node) wirePlumbing(a BuildArgs) {
 
 	if id, err := strconv.Atoi(a.Name); err == nil {
 		n.plumb.PairID = int32(id)
@@ -25,7 +24,7 @@ func (n *Node) wirePlumbing(a Wiring.BuildArgs) {
 	n.plumb.Out = a.Out("Out")
 }
 
-func (n *Node) wireLatticeSeed(a Wiring.BuildArgs) (latticeSeed int32, seed *tiltring.State, seedUnknown bool) {
+func (n *Node) wireLatticeSeed(a BuildArgs) (latticeSeed int32, seed *tiltring.State, seedUnknown bool) {
 	latticeSeed = a.LatticePointsSeed()
 	n.lattice.Ring = tiltring.NewRing(latticeSeed)
 	seed, seedUnknown = n.lattice.Ring.SeedState(a.TiltVectorAngleSeed())
@@ -35,7 +34,7 @@ func (n *Node) wireLatticeSeed(a Wiring.BuildArgs) (latticeSeed int32, seed *til
 	return latticeSeed, seed, seedUnknown
 }
 
-func (n *Node) wireSelfDrive(a Wiring.BuildArgs, latticeSeed int32, seed *tiltring.State, seedUnknown bool) {
+func (n *Node) wireSelfDrive(a BuildArgs, latticeSeed int32, seed *tiltring.State, seedUnknown bool) {
 	self := claimSelfDrive(a)
 	n.plumb.Self = self
 	n.lattice.SyncLatticePoints = func(points int32) {
@@ -56,13 +55,13 @@ func (n *Node) wireSelfDrive(a Wiring.BuildArgs, latticeSeed int32, seed *tiltri
 	n.plumb.ClearOutBeads = func() { self.ClearOutBeads() }
 }
 
-func (n *Node) wireVectorChannels(a Wiring.BuildArgs) {
+func (n *Node) wireVectorChannels(a BuildArgs) {
 	n.vec.VectorOut = a.VectorOut()
 	n.vec.VectorIn = a.VectorIn()
 }
 
-var Builder = Wiring.BuilderFor("PairNode",
-	func(a Wiring.BuildArgs) (nodeapi.Node, error) {
+var Builder = BuilderFor("PairNode",
+	func(a BuildArgs) (nodeapi.Node, error) {
 		n := &Node{
 			plumb: nodePlumbing{Clock: clock.NewRealClock()},
 		}

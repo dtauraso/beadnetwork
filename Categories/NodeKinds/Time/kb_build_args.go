@@ -1,4 +1,4 @@
-package kindapi
+package time
 
 import (
 	"context"
@@ -41,7 +41,7 @@ func (a BuildArgs) mustDeclare(portName string, dir portwiring.PortDir) {
 		names = append(names, p.Name)
 	}
 
-	panic("kindapi.mustDeclare: this kind binds a port its SPEC.md ## Ports table does not declare with that direction, which would silently bind a dead-end channel: kind " +
+	panic("mustDeclare: this kind binds a port its SPEC.md ## Ports table does not declare with that direction, which would silently bind a dead-end channel: kind " +
 		a.kind + " asked for " + portName + ", table declares " + strings.Join(names, ", "))
 }
 
@@ -49,7 +49,7 @@ func BuilderFor(kind string, build func(BuildArgs) (nodeapi.Node, error)) kindre
 	ports, declared := portwiring.KindPorts[kind]
 	if !declared {
 
-		panic("kindapi.BuilderFor: kind " + kind + " has no ports in portwiring.KindPorts — " +
+		panic("BuilderFor: kind " + kind + " has no ports in portwiring.KindPorts — " +
 			"its SPEC.md ## Ports table is the only declaration, and the generated table is stale. " +
 			"Run go generate ./...")
 	}

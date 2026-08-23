@@ -1,4 +1,4 @@
-package kindapi
+package pacer
 
 func (a BuildArgs) StateSeed(key string, def int) int {
 	if a.Data == nil || a.Data.State == nil {

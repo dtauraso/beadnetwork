@@ -7,8 +7,6 @@ import (
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/nodeapi"
 	Speed "github.com/dtauraso/wirefold/Categories/Speed"
-
-	Wiring "github.com/dtauraso/wirefold/Categories/NodeKinds/kindapi"
 )
 
 type Node struct {
@@ -98,8 +96,8 @@ func (n *Node) runStepLoop(ctx context.Context, clk clock.Clock, perTick func() 
 	}
 }
 
-var Builder = Wiring.BuilderFor("Input",
-	func(a Wiring.BuildArgs) (nodeapi.Node, error) {
+var Builder = BuilderFor("Input",
+	func(a BuildArgs) (nodeapi.Node, error) {
 		n := &Node{
 
 			Clock: clock.NewRealClock(),

@@ -8,8 +8,6 @@ import (
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/nodeapi"
 	Speed "github.com/dtauraso/wirefold/Categories/Speed"
-
-	Wiring "github.com/dtauraso/wirefold/Categories/NodeKinds/kindapi"
 )
 
 type Pulse struct {
@@ -25,12 +23,12 @@ type Pulse struct {
 	SpeedCh <-chan float64
 
 	In  *beadanimation.Receiver
-	Out Wiring.DrivenOut
+	Out DrivenOut
 
-	OutFanout Wiring.DrivenOut
+	OutFanout DrivenOut
 }
 
-func driveOutput(out Wiring.DrivenOut) *HeldDriver {
+func driveOutput(out DrivenOut) *HeldDriver {
 	return newHeldDriver(out, func(h int64) int { return int(h) })
 }
 
@@ -85,8 +83,8 @@ func (g *Pulse) Update(ctx context.Context) {
 	}
 }
 
-var Builder = Wiring.BuilderFor("Pulse",
-	func(a Wiring.BuildArgs) (nodeapi.Node, error) {
+var Builder = BuilderFor("Pulse",
+	func(a BuildArgs) (nodeapi.Node, error) {
 		n := &Pulse{}
 		n.Fire = a.Fire()
 		n.EmitHeldBead = a.EmitHeldBead()

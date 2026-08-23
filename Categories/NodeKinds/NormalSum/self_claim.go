@@ -2,10 +2,9 @@ package NormalSum
 
 import (
 	NodeCat "github.com/dtauraso/wirefold/Categories/Node"
-	Wiring "github.com/dtauraso/wirefold/Categories/NodeKinds/kindapi"
 )
 
-func claimSelfDrive(a Wiring.BuildArgs) *Self {
+func claimSelfDrive(a BuildArgs) *Self {
 	if a.Deps.ClaimSelfDriveGeom == nil {
 		return nil
 	}

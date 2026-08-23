@@ -15,7 +15,7 @@ if [ ${#node_files[@]} -eq 0 ]; then
   exit 0
 fi
 
-dups=$(grep -hoE '(wire|Wiring)\.Register\("[^"]+"' "${node_files[@]}" \
+dups=$(grep -hoE 'BuilderFor\("[^"]+"' "${node_files[@]}" \
   | sed -E 's/.*Register\("([^"]+)"/\1/' \
   | sort | uniq -d || true)
 

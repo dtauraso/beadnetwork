@@ -26,17 +26,16 @@ separate `registry.ts` exists. The schema dir is `src/`.
 **Step 4 — run the generator.** `go generate ./...` runs every generator
 pipeline; it also refreshes `Categories/NodeKinds/kinds_gen.go`, which holds one `case` per
 kind in `NodeKinds.BuilderFor`. Nothing registers: a kind declares
-`var Builder = Wiring.BuilderFor("Kind", func(a Wiring.BuildArgs) …)` and the generated switch
+`var Builder = BuilderFor("Kind", func(a BuildArgs) …)` and the generated switch
 names it. A kind missing from that switch is a COMPILE error, where the blank-import-and-`init()`
 arrangement it replaced failed at runtime with `unknown type`, after everything else looked right.
 
-`BuilderFor(kind, build)` (`Categories/NodeKinds/kindapi/build_args.go`) RETURNS a
-`kindreg.NodeBuilder` rather than storing one (`Wiring` here aliases
-`Categories/NodeKinds/kindapi` — the kind-API package node kinds import, decoupled from the
-dispatch core; `Categories/NodeKinds/kindreg` holds the shapes — `NodeBuilder`, `BuildDeps`,
-`BuildTypeMaps` — which `kindapi` calls into but node kinds never import directly). The kind
-does not pass its ports at all: `BuilderFor` reads the generated
-`portwiring.KindPorts`, which `Categories/Node/geomgen` writes from the SPEC.md `## Ports`
+`BuilderFor(kind, build)` RETURNS a `kindreg.NodeBuilder` rather than storing one, and lives in
+the kind, in its own `kb_build_args.go`, along with the `BuildArgs` accessors that kind calls —
+each kind carries only the groups it uses. `Categories/NodeKinds/kindreg` holds the shapes
+(`NodeBuilder`, `BuildDeps`, `BuildTypeMaps`) and names no category's types, so a kind is a leaf.
+The kind does not pass its ports at all: `BuilderFor` reads the generated
+`portwiring.KindPorts`, which `Categories/NodeKinds/gen` writes from the SPEC.md `## Ports`
 table. The kind used to pass an explicit `[]portwiring.PortSpec` literal, which was a SECOND
 declaration of the same inputs and outputs and free to drift from the table the editor draws
 from.
@@ -59,7 +58,7 @@ a `node-defs.ts` diff.
 **What a kind's code may BIND is checked against that table.** `kindscan`'s
 `checkPortRequests` reads every `a.In("X")`/`a.Out("X")`/`a.Broadcast("X")`/`a.DriveOut("X")`
 literal in the kind's package and fails `go generate` when the name is not a row, or is a row
-with the other direction; `kindapi.mustDeclare` panics on the same condition at build time.
+with the other direction; each kind's `mustDeclare` panics on the same condition at build time.
 Without it an undeclared name binds a DEAD-END channel (`PortBindings.deadEndIn`) and the kind
 runs silently — reading nothing, emitting nothing, indistinguishable from a port with no edge
 attached. That silence is what let a SPEC.md rename reach `node-defs.ts` while the Go code

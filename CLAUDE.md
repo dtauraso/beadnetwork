@@ -82,7 +82,7 @@ one directory out, since a directory is one Go package. `go generate ./...` runs
 - **`Categories/NodeKinds/`** — the node kinds, plus what only they use: `nodeapi/` (the `Node`
   interface a kind implements — `Update(ctx)`, one method wide) . The gate — window opens on the first input, fires on dwell, clears otherwise — is in `selectleft/` and `selectright/`, the only two kinds that gate
   (window opens on the first input, fires on dwell, clears otherwise). The scanner reads a
-  directory here as a kind only if it declares `var Builder = Wiring.BuilderFor(…)`; nothing
+  directory here as a kind only if it declares `var Builder = BuilderFor(…)`; nothing
   registers, and `go generate` writes one `case` per kind into `NodeKinds.BuilderFor`. A kind's ports come from its
   SPEC.md `## Ports` table and NOWHERE else — direction `in`, `out`, or `broadcast` (an out
   that fans to every downstream edge). Deriving them from Go field types instead is what let

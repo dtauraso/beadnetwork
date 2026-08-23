@@ -1,4 +1,4 @@
-package kindapi
+package PairNode
 
 import (
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/TiltPanel"

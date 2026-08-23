@@ -15,7 +15,7 @@ four jobs that have four different clocks:
 - The **kind goroutine** — the KIND's own `Update` — is paced by the sim
   clock. It owns the kind's logic and its interior slots. It writes its own
   interior stream. It runs `Self.Step(ctx, tick)` once per pass of its own loop,
-  where `Self` is the `kindapi.Self` it claimed at build time
+  where `Self` is the one it claimed at build time
   (its own `claimSelfDrive`); a kind that holds a value onto an out steps a
   its own `HeldDriver` in that same pass rather than handing the value to a
   goroutine over a channel.

@@ -91,7 +91,7 @@ func hasRegister(dir string) bool {
 			continue
 		}
 
-		if bytes.Contains(data, []byte("Wiring.BuilderFor(")) {
+		if bytes.Contains(data, []byte("BuilderFor(")) {
 			return true
 		}
 	}

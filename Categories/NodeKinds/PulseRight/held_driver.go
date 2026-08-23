@@ -3,11 +3,10 @@ package pulseright
 import (
 	lattice "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation/lattice"
 	interior "github.com/dtauraso/wirefold/Categories/Node/Interior"
-	Wiring "github.com/dtauraso/wirefold/Categories/NodeKinds/kindapi"
 )
 
 type HeldDriver struct {
-	out       Wiring.DrivenOut
+	out       DrivenOut
 	transform func(int64) int
 
 	cur     int64
@@ -17,7 +16,7 @@ type HeldDriver struct {
 	lastPlaceTick int64
 }
 
-func newHeldDriver(out Wiring.DrivenOut, transform func(int64) int) *HeldDriver {
+func newHeldDriver(out DrivenOut, transform func(int64) int) *HeldDriver {
 	return &HeldDriver{out: out, transform: transform, cur: interior.NoValue}
 }
 
@@ -58,7 +57,7 @@ func (d *HeldDriver) Step(tick int64) {
 	}
 }
 
-func heldPeriod(out Wiring.DrivenOut) (k int64, known bool) {
+func heldPeriod(out DrivenOut) (k int64, known bool) {
 	steps := out.Steps()
 	if steps <= 0 {
 		return 0, false
