@@ -40,9 +40,9 @@ for the full bridge-surface model, not duplicated here.
 whose records use it, and the TS half is GENERATED from that Go declaration, so
 neither can drift and there is no second hand-kept copy to compare:
 
-- record kind bytes and the update-kind list — `INPUT_LAYOUT_FINGERPRINT` in
-  `Categories/Input/gen/input_layout_declared.go`. Removed kind bytes are preserved as
-  GAPS and never renumbered.
+- record kind bytes and the update-kind list — `Categories/Input/Stdin/record_kinds.go`,
+  the reader that dispatches on them. Removed kind bytes are preserved as GAPS and
+  never renumbered.
 - update attributes — each concern's own `update_attrs.go` (`Node`, `Node/Edge`,
   `Scene`, `Overlay`, `Chrome/Panels/Panel`, `Speed`). An attr byte is read only
   inside the decoder its kind selected, so each concern numbers its own from zero.

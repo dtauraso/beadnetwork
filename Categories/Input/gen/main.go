@@ -2,22 +2,10 @@ package main
 
 //go:generate go run .
 
-import (
-	"path/filepath"
-
-	"github.com/dtauraso/wirefold/Categories/Input/gen/inputlayout"
-)
-
 func main() {
 	genName = "Categories/Input/gen"
-	repoRoot, srcRoot := roots()
+	repoRoot, _ := roots()
 
-	declDir := filepath.Join(srcRoot, "Input", "gen")
-	inputFP, err := inputlayout.ParseInputLayoutFingerprintDir(declDir)
-	if err != nil {
-		fatalf("parse input layout fingerprint: %v", err)
-	}
 	copyRecordReaders(repoRoot)
-	copyWireVocabulary(repoRoot, inputFP)
-	copyTSWireVocabulary(repoRoot, inputFP)
+	copyTSWireVocabulary(repoRoot)
 }
