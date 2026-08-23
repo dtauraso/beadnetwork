@@ -76,10 +76,6 @@ func ApplyEdit(ctx context.Context, op string, entity, attr byte, payload []byte
 }
 
 func init() {
-	// Checked against the OWNER TABLE itself, not against a parallel list of
-	// names: a list could agree with the wire and still name an entity no owner
-	// handles. Building it on a zero composer is safe — the closures are never
-	// called here, only counted.
 	named := (&MoveDispatch{}).updateOwners(SliderPanel.Sinks{})
 	var missing []string
 	for _, entity := range Drag.UpdateKinds {
