@@ -8,7 +8,7 @@ import (
 
 	"github.com/dtauraso/wirefold/Categories/Scene/Scenes"
 
-	"github.com/dtauraso/wirefold/Categories/Scene/scenerun"
+	"github.com/dtauraso/wirefold/Categories/Scene/Dispatch"
 
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/SliderPanel"
 	"github.com/dtauraso/wirefold/Categories/Chrome/Pills/AngleDropdown"
@@ -20,7 +20,7 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
 )
 
-func NewFromSpec(spec Topology.TopoSpec, sphere polar.SceneSphere, hasScene bool, scenePath string, clk clock.Clock, speedSinks *SliderPanel.Sinks, nodeGeoms map[string]NodeBuf.NodeGeom, edgeEndpoints map[string]edge.EdgeEndpoints, baseIndices map[string]polarindex.Index, dragIndices map[string]polarindex.Offset) (*scenerun.MoveDispatch, error) {
+func NewFromSpec(spec Topology.TopoSpec, sphere polar.SceneSphere, hasScene bool, scenePath string, clk clock.Clock, speedSinks *SliderPanel.Sinks, nodeGeoms map[string]NodeBuf.NodeGeom, edgeEndpoints map[string]edge.EdgeEndpoints, baseIndices map[string]polarindex.Index, dragIndices map[string]polarindex.Offset) (*Dispatch.MoveDispatch, error) {
 
 	nodeOrder := make([]string, len(spec.Nodes))
 	for i, n := range spec.Nodes {
@@ -30,9 +30,9 @@ func NewFromSpec(spec Topology.TopoSpec, sphere polar.SceneSphere, hasScene bool
 	for i, e := range spec.Edges {
 		edgeOrder[i] = e.Label
 	}
-	md, err := scenerun.NewMoveDispatch(nodeGeoms, edgeEndpoints, nodeOrder, edgeOrder, clk, speedSinks, spec.RowCount, spec.Constants)
+	md, err := Dispatch.NewMoveDispatch(nodeGeoms, edgeEndpoints, nodeOrder, edgeOrder, clk, speedSinks, spec.RowCount, spec.Constants)
 	if err != nil {
-		return nil, fmt.Errorf("scenerun.NewFromSpec: %w", err)
+		return nil, fmt.Errorf("Dispatch.NewFromSpec: %w", err)
 	}
 
 	md.UI.LatticePoints = AngleDropdown.LatticePointsFor(scenePath)

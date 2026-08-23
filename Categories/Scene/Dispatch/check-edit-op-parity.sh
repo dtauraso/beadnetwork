@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: Categories/Scene/scenerun/dispatch_edit.go,Start/extension/messages.ts,Categories/Overlay/flags.ts,Categories/Chrome/Panels/Panel/flags.ts,Categories/Node/wire-gen.ts,Categories/Overlay/paths/,Categories/Chrome/Panels/Panel/paths/ | edit ops/update-kinds/overlay flags must stay listed identically on both sides of the bridge
+# PLACEMENT: Categories/Scene/Dispatch/dispatch_edit.go,Start/extension/messages.ts,Categories/Overlay/flags.ts,Categories/Chrome/Panels/Panel/flags.ts,Categories/Node/wire-gen.ts,Categories/Overlay/paths/,Categories/Chrome/Panels/Panel/paths/ | edit ops/update-kinds/overlay flags must stay listed identically on both sides of the bridge
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
@@ -61,7 +61,7 @@ between() {
 
 quoted() { grep -aoE '"[^"]+"' | tr -d '"' | sort -u; }
 
-toplevel_case() { awk '/^\tcase "/ || /^\t"[^"]+":/'; }
+toplevel_case() { awk '/^\t+case "/ || /^\t+"[^"]+":/'; }
 
 assert_nonempty() {
   if [[ -z "$(printf '%s' "$1" | tr -d '[:space:]')" ]]; then

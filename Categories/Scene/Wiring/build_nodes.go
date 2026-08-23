@@ -13,13 +13,13 @@ import (
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/Categories/Node/TiltVectors"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds"
-	"github.com/dtauraso/wirefold/Categories/Scene/scenerun"
+	"github.com/dtauraso/wirefold/Categories/Scene/Dispatch"
 )
 
 func BuildNodes(
 	ctx context.Context,
 	spec Topology.TopoSpec,
-	md *scenerun.MoveDispatch,
+	md *Dispatch.MoveDispatch,
 	wiring EdgeWiring,
 	nodeGeoms map[string]NodeBuf.NodeGeom,
 	vectorOut, vectorIn map[string]chan TiltPanel.TiltVectorMsg,
@@ -29,12 +29,12 @@ func BuildNodes(
 	deps := BuildDeps{
 		LatticePoints: md.UI.LatticePoints,
 		ClaimLatticeIn: func(name string) chan int32 {
-			sceneToNodeLatticeIn := make(chan int32, scenerun.InboxDepth)
+			sceneToNodeLatticeIn := make(chan int32, Dispatch.InboxDepth)
 			md.Inboxes.ClaimLatticeIn(name, sceneToNodeLatticeIn)
 			return sceneToNodeLatticeIn
 		},
 		ClaimTiltEditIn: func(name string) any {
-			panelToNodeTiltEditIn := make(chan TiltVectors.TiltEditMsg, scenerun.InboxDepth)
+			panelToNodeTiltEditIn := make(chan TiltVectors.TiltEditMsg, Dispatch.InboxDepth)
 			md.Inboxes.ClaimTiltEditIn(name, panelToNodeTiltEditIn)
 			return panelToNodeTiltEditIn
 		},

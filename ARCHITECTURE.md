@@ -41,10 +41,10 @@ whose records use it, and the TS half is GENERATED from that Go declaration, so
 neither can drift and there is no second hand-kept copy to compare:
 
 - the record kind byte — with the record it names: `Categories/Scene/Drag/kinds.go` for
-  raw-input, `Categories/Scene/scenerun/dispatch_edit.go` for edit-update, and
+  raw-input, `Categories/Scene/Dispatch/dispatch_edit.go` for edit-update, and
   `Categories/Scene/Drag/stdin_reader.go` for save. Removed kind bytes are
   preserved as GAPS and never renumbered.
-- the update-kind ordering — `Categories/Scene/scenerun/dispatch_edit.go`, beside the
+- the update-kind ordering — `Categories/Scene/Dispatch/dispatch_edit.go`, beside the
   table that dispatches on it.
 - update attributes — each concern's own `update_attrs.go` (`Node`, `Node/Edge`,
   `Scene`, `Overlay`, `Chrome/Panels/Panel`, `Speed`). An attr byte is read only

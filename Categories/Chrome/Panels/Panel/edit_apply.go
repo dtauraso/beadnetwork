@@ -11,3 +11,11 @@ func ToggleFlag(pn *PanelState, flag string) {
 		fn(pn)
 	}
 }
+
+func ApplyUpdate(attr byte, payload []byte, pn *PanelState, persist func(PanelState), redraw func()) {
+	e, ok := DecodeUpdate(payload, attr)
+	if !ok {
+		return
+	}
+	EditPanels(e, pn, persist, redraw)
+}

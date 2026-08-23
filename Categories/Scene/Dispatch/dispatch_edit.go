@@ -1,4 +1,4 @@
-package scenerun
+package Dispatch
 
 import (
 	"context"
@@ -75,34 +75,21 @@ func ApplyEdit(ctx context.Context, op string, entity, attr byte, payload []byte
 	}
 }
 
-// EDIT_UPDATE_KINDS_START
-// Every entity the wire can name has an entry, and the entry is where the composer is
-// UNPACKED. A handler below the line takes the fields it uses; the one-line adapter here is
-// what turns MoveDispatch into those fields, and is what gets deleted when the handler moves
-// to its own concern and registers itself.
-var updateKindHandlers = map[string]func(context.Context, byte, []byte, *MoveDispatch, SliderPanel.Sinks){
-	"clock":      applyUpdateClock,
-	"scene":      applyUpdateScene,
-	"tiltVector": applyUpdateTiltVector,
-	"node":       applyUpdateNode,
-	"edge":       applyUpdateEdge,
-
-	"overlays": applyUpdateOverlays,
-	"panels":   applyUpdatePanels,
-}
-
-// EDIT_UPDATE_KINDS_END
-
 func init() {
+	// Checked against the OWNER TABLE itself, not against a parallel list of
+	// names: a list could agree with the wire and still name an entity no owner
+	// handles. Building it on a zero composer is safe — the closures are never
+	// called here, only counted.
+	named := (&MoveDispatch{}).updateOwners(SliderPanel.Sinks{})
 	var missing []string
 	for _, entity := range Drag.UpdateKinds {
-		if _, ok := updateKindHandlers[entity]; !ok {
+		if _, ok := named[entity]; !ok {
 			missing = append(missing, entity)
 		}
 	}
 	if len(missing) > 0 {
 		panic(fmt.Sprintf(
-			"scenerun: Drag.UpdateKinds names %v but updateKindHandlers has no entry for them. The wire can "+
+			"dispatch: Drag.UpdateKinds names %v but no owner is named for them. The wire can "+
 				"carry an edit for each name here, so every one of those edits would decode cleanly and "+
 				"then be dropped — the click does nothing and nothing reports why.",
 			missing))
@@ -113,7 +100,7 @@ func applyUpdate(ctx context.Context, entity, attr byte, payload []byte, md *Mov
 	if md == nil || int(entity) >= len(Drag.UpdateKinds) {
 		return
 	}
-	if h, ok := updateKindHandlers[Drag.UpdateKinds[entity]]; ok {
-		h(ctx, attr, payload, md, speedSinks)
+	if h, ok := md.updateOwners(speedSinks)[Drag.UpdateKinds[entity]]; ok {
+		h(ctx, attr, payload)
 	}
 }

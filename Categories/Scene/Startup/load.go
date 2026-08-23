@@ -15,14 +15,14 @@ import (
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
 	_ "github.com/dtauraso/wirefold/Categories/NodeKinds"
 	"github.com/dtauraso/wirefold/Categories/Scene/Camera"
-	"github.com/dtauraso/wirefold/Categories/Scene/scenerun"
+	"github.com/dtauraso/wirefold/Categories/Scene/Dispatch"
 	"github.com/dtauraso/wirefold/Categories/Scene/viewpersist"
 	"github.com/dtauraso/wirefold/Categories/Scene/viewstate"
 )
 
 type Scene struct {
 	Nodes      []Wiring.BuiltNode
-	Dispatch   *scenerun.MoveDispatch
+	Dispatch   *Dispatch.MoveDispatch
 	SpeedSinks SliderPanel.Sinks
 }
 
@@ -69,7 +69,7 @@ func Load(ctx context.Context, scenePath string, clk clock.Clock) (Scene, error)
 	}, nil
 }
 
-func LoadSceneState(scenePath string, md *scenerun.MoveDispatch, speedSinks SliderPanel.Sinks) {
+func LoadSceneState(scenePath string, md *Dispatch.MoveDispatch, speedSinks SliderPanel.Sinks) {
 	Camera.SeedInitialViewpoint(scenePath, md.UI.VP.SetViewpoint, md.UI.VP.EmitViewpoint)
 
 	s := Scenes.For(scenePath)
@@ -89,7 +89,7 @@ func LoadSceneState(scenePath string, md *scenerun.MoveDispatch, speedSinks Slid
 	InstallSceneSphere(&md.UI, &md.GS, scenePath)
 }
 
-func EmitStartupBreadcrumbs(md *scenerun.MoveDispatch, scenePath string, nodeCount int) {
+func EmitStartupBreadcrumbs(md *Dispatch.MoveDispatch, scenePath string, nodeCount int) {
 
 	md.UI.EmitBreadcrumb(viewstate.RowEvent{
 		Label: Wiring.BreadcrumbTopologyLoaded, NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
@@ -97,7 +97,7 @@ func EmitStartupBreadcrumbs(md *scenerun.MoveDispatch, scenePath string, nodeCou
 	})
 }
 
-func CheckRowSeedCount(md *scenerun.MoveDispatch, nodeCount int) {
+func CheckRowSeedCount(md *Dispatch.MoveDispatch, nodeCount int) {
 	if len(md.GS.NodeSeedsFn()) != nodeCount {
 
 		md.UI.EmitBreadcrumb(viewstate.RowEvent{

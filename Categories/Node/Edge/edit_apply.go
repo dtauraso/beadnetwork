@@ -25,3 +25,11 @@ func ToggleDragActive(ctx context.Context, row int, toggles []chan<- struct{}) {
 	case <-ctx.Done():
 	}
 }
+
+func ApplyUpdate(ctx context.Context, attr byte, payload []byte, toggles []chan<- struct{}) {
+	e, ok := DecodeUpdate(payload, attr)
+	if !ok {
+		return
+	}
+	EditEdge(ctx, e, toggles)
+}
