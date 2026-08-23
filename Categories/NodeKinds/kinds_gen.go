@@ -19,10 +19,10 @@ import (
 	kindselectleft "github.com/dtauraso/wirefold/Categories/NodeKinds/selectleft"
 	kindselectright "github.com/dtauraso/wirefold/Categories/NodeKinds/selectright"
 
-	"github.com/dtauraso/wirefold/Categories/NodeKinds/kindreg"
+	"github.com/dtauraso/wirefold/Categories/NodeKinds/nodeapi"
 )
 
-func BuilderFor(kind string) (kindreg.NodeBuilder, bool) {
+func BuilderFor(kind string) (nodeapi.NodeBuilder, bool) {
 	switch kind {
 	case "NormalSum":
 		return kindNormalSum.Builder, true
@@ -49,5 +49,5 @@ func BuilderFor(kind string) (kindreg.NodeBuilder, bool) {
 	case "SelectRight":
 		return kindselectright.Builder, true
 	}
-	return kindreg.NodeBuilder{}, false
+	return nodeapi.NodeBuilder{}, false
 }

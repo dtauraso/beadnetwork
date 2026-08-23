@@ -21,15 +21,15 @@ func WriteKindImports(outPath, networkPkg string, kinds []KindEntry) error {
 	for _, k := range sorted {
 		fmt.Fprintf(&buf, "\t%s %q\n", pkgAlias(k.Dir), networkPkg+"/"+k.Dir)
 	}
-	fmt.Fprintf(&buf, "\n\t%q\n", networkPkg+"/kindreg")
+	fmt.Fprintf(&buf, "\n\t%q\n", networkPkg+"/nodeapi")
 	buf.WriteString(")\n\n")
 
-	buf.WriteString("func BuilderFor(kind string) (kindreg.NodeBuilder, bool) {\n")
+	buf.WriteString("func BuilderFor(kind string) (nodeapi.NodeBuilder, bool) {\n")
 	buf.WriteString("\tswitch kind {\n")
 	for _, k := range sorted {
 		fmt.Fprintf(&buf, "\tcase %q:\n\t\treturn %s.Builder, true\n", k.GoKind, pkgAlias(k.Dir))
 	}
-	buf.WriteString("\t}\n\treturn kindreg.NodeBuilder{}, false\n}\n")
+	buf.WriteString("\t}\n\treturn nodeapi.NodeBuilder{}, false\n}\n")
 
 	formatted, err := format.Source(buf.Bytes())
 	if err != nil {
