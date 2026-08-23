@@ -39,16 +39,8 @@ func (m *NodeGeometry) SetDragIndex(off polarindex.Offset) {
 	m.msg.PublishCenter(owners.Vec3(nodegeom.NodeWorldPos(m.geom)))
 }
 
-func (m *NodeGeometry) SetTopTiltVectorPhiIdx(idx int32) {
-	m.tilt.SetTopTiltVectorPhiIdx(idx)
-}
-
 func (m *NodeGeometry) AddOutTarget(target string) {
 	m.outTargets = append(m.outTargets, target)
-}
-
-func (m *NodeGeometry) AddBeadLine(pw *beadanimation.BeadLine, edgeRow int32) {
-	m.anim.AddBeadLine(pw, edgeRow)
 }
 
 func (m *NodeGeometry) BindOutEdgeRun(label, targetID, targetKind string, port *beadanimation.Sender, dest *beadanimation.BeadLine) {
@@ -56,16 +48,8 @@ func (m *NodeGeometry) BindOutEdgeRun(label, targetID, targetKind string, port *
 	m.outEdges.SetSrcID(m.id)
 }
 
-func (m *NodeGeometry) WireOutEdgeStream(label string, edgeRow int32, targetID, targetKind string, nodeRow, dstNodeRow int32, buildFrame owners.EdgeFrameBuilder) {
-	m.outEdges.AddOutEdge(label, edgeRow, targetID, targetKind, nodeRow, dstNodeRow, buildFrame)
-}
-
 func (m *NodeGeometry) deriveOutEdgeGeometry() {
 	m.outEdges.DeriveGeometry(m.geom, &m.deltas)
-}
-
-func (m *NodeGeometry) SetAnimSleepCh(ch <-chan int64) {
-	m.anim.SetSleepCh(ch)
 }
 
 func (m *NodeGeometry) DeriveOutEdgeGeometryOnce() {
@@ -87,10 +71,6 @@ func (m *NodeGeometry) WireInteriorStream(row int32, buildFrame func(tick uint32
 
 func (m *NodeGeometry) writeInteriorFrames() {
 	m.interior.WriteFrames(m.geom)
-}
-
-func (m *NodeGeometry) WireBeadStream(row int32, buildBeadFrame beadanimation.BeadFrameBuilder, sceneRoot string) {
-	m.anim.SetBeadStream(row, buildBeadFrame, sceneRoot)
 }
 
 func (m *NodeGeometry) WireStream(row int32, kindID uint8, nodeRowFor func(id string) (int32, bool), buildFrame nodeframe.NodeFrameBuilder, sceneRoot string) {

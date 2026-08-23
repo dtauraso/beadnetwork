@@ -11,7 +11,7 @@ func (mv *NodeMover) CommitNodeMoveLocal(nodeGeoms map[string]*nodeactor.NodeGeo
 	nodeID := nm.ID()
 
 	deltaIdx := polarindex.Delta(committedIdx, nm.ComposedIndex())
-	nm.ShiftDeltasBy(deltaIdx)
+	nm.Deltas().ShiftSelfBy(deltaIdx)
 
 	nm.ApplyCenter(committedIdx)
 	committedPos := nm.SceneCenter().Add(nodeactor.Vec3(polar.Polar2cart(polarindex.ToPolar(committedIdx, nm.Constants()))))

@@ -18,7 +18,7 @@ func (a BuildArgs) ClaimSelfDrive() *nodeactor.PairNodeSelf {
 
 		sliderToAnimSleepCh := make(chan int64, 1)
 		a.pb.SpeedSinks.Anim = append(a.pb.SpeedSinks.Anim, sliderToAnimSleepCh)
-		ng.SetAnimSleepCh(sliderToAnimSleepCh)
+		ng.Anim().SetSleepCh(sliderToAnimSleepCh)
 	}
 
 	return nodeactor.NewPairNodeSelf(ng, speedCh)

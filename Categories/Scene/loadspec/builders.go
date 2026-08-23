@@ -40,7 +40,7 @@ func SeedNode(m *nodeactor.NodeGeometry, n Node, sceneRoot string) {
 	rn.SeedSelfRule(n.SelfDrag, selfActive)
 
 	if n.TopTiltVectorPhiIdx != nil {
-		m.SetTopTiltVectorPhiIdx(*n.TopTiltVectorPhiIdx)
+		m.Tilt().SetTopTiltVectorPhiIdx(*n.TopTiltVectorPhiIdx)
 	}
 }
 
@@ -64,6 +64,6 @@ func SeedEdge(m *nodeactor.NodeGeometry, e Edge, src bool, otherKind, sceneRoot 
 	if !src {
 		baseD, dragD = polarindex.Neg(baseD), polarindex.Neg(dragD)
 	}
-	m.SetBaseDeltaTo(other, baseD)
-	m.SetDragDeltaTo(other, dragD)
+	m.Deltas().SetBaseDeltaTo(other, baseD)
+	m.Deltas().SetDragDeltaTo(other, dragD)
 }

@@ -37,23 +37,15 @@ func (m *NodeGeometry) EdgeIDs() []string { return m.topo.EdgeIDs() }
 
 func (m *NodeGeometry) NeighborKinds() map[string]string { return m.topo.NeighborKinds() }
 
-func (m *NodeGeometry) SetBaseDeltaTo(otherID string, off polarindex.Offset) {
-	m.deltas.SetBaseDeltaTo(otherID, off)
-}
+func (m *NodeGeometry) Deltas() *owners.Deltas { return &m.deltas }
 
-func (m *NodeGeometry) SetDragDeltaTo(otherID string, off polarindex.Offset) {
-	m.deltas.SetDragDeltaTo(otherID, off)
-}
+func (m *NodeGeometry) Anim() *NodeBeadAnimation { return m.anim }
 
-func (m *NodeGeometry) DeltaTo(otherID string) (polarindex.Offset, bool) {
-	return m.deltas.DeltaTo(otherID)
-}
+func (m *NodeGeometry) OutEdges() *owners.OutEdges { return &m.outEdges }
 
-func (m *NodeGeometry) DeltaFrom(otherID string) (polarindex.Offset, bool) {
-	return m.deltas.DeltaFrom(otherID)
-}
+func (m *NodeGeometry) Tilt() *owners.Tilt { return &m.tilt }
 
-func (m *NodeGeometry) ShiftDeltasBy(delta polarindex.Offset) { m.deltas.ShiftSelfBy(delta) }
+func (m *NodeGeometry) Channels() *owners.ChannelVectors { return &m.channels }
 
 func (m *NodeGeometry) ScenePolar() polar.Polar { return nodegeom.ScenePolarOf(m.geom) }
 

@@ -33,7 +33,7 @@ func (md *MoveDispatch) buildNodeMovers(geoms map[string]nodegeom.NodeGeom, clk 
 			md.Mover.CommitNodeMoveLocal(md.MR.NodeGeoms(), md.MR.Edges(), ownGeom, idx)
 		}
 		ng.WireMessaging(resolveDest, md.MR.EnqueueFor(ng), commitLocal)
-		md.Inboxes.ClaimChannelVectorsIn(id, ng.ChannelVectorsIn())
+		md.Inboxes.ClaimChannelVectorsIn(id, ng.Channels().In())
 		md.MR.NodeGeoms()[id] = ng
 
 		md.MR.SeedCenter(id, Vec3(nodegeom.NodeWorldPos(g)))
@@ -149,7 +149,7 @@ func (sw *StreamWiring) SetEdgeStreams(
 		if r, ok := nodeRowFor(seed.DstNode); ok {
 			dstRow = r
 		}
-		srcNM.WireOutEdgeStream(seed.Label, int32(row), seed.DstNode, kindOf(nodeGeoms, seed.DstNode), srcRow, dstRow, buildFrame)
+		srcNM.OutEdges().AddOutEdge(seed.Label, int32(row), seed.DstNode, kindOf(nodeGeoms, seed.DstNode), srcRow, dstRow, buildFrame)
 
 		if dest := em.Dest(); dest != nil {
 			dest.SetStreamsActive(true)
@@ -181,7 +181,7 @@ func (sw *StreamWiring) SetNodeStreams(
 		}
 		nm.WireStream(int32(row), kindID, nodeRowFor, buildFrame, sceneRoot)
 
-		nm.WireBeadStream(int32(row), buildBeadFrame, sceneRoot)
+		nm.Anim().SetBeadStream(int32(row), buildBeadFrame, sceneRoot)
 
 		sw.interiorEmitters[seed.ID] = nm.WireInteriorStream(int32(row), nil, sceneRoot)
 	}

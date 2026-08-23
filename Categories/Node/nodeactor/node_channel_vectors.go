@@ -9,8 +9,6 @@ import (
 	streamframe "github.com/dtauraso/wirefold/Categories/Scene/Vectors"
 )
 
-func (m *NodeGeometry) ChannelVectorsIn() chan bool { return m.channels.In() }
-
 func (m *NodeGeometry) pollChannelVectors() {
 	_, turnedOn := m.channels.TakeOn()
 	if turnedOn {
