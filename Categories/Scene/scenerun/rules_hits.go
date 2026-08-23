@@ -6,7 +6,6 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/Panel"
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/PolarRulesPanel"
 	NodeKind "github.com/dtauraso/wirefold/Categories/Node"
-	"github.com/dtauraso/wirefold/Categories/Node/rulenode"
 )
 
 func applyRulesHit(ctx context.Context, md *MoveDispatch, h PolarRulesPanel.Hit) {
@@ -19,11 +18,11 @@ func applyRulesHit(ctx context.Context, md *MoveDispatch, h PolarRulesPanel.Hit)
 	case PolarRulesPanel.HitMenuRow:
 		if h.NodeRow < 0 {
 			for _, n := range md.UI.RuleNodes {
-				sendRuleEdit(ctx, md, int(n.Row), rulenode.Edit{Kind: rulenode.EditActiveToggle})
+				sendRuleEdit(ctx, md, int(n.Row), NodeKind.RuleEdit{Kind: NodeKind.EditActiveToggle})
 			}
 			break
 		}
-		sendRuleEdit(ctx, md, int(h.NodeRow), rulenode.Edit{Kind: rulenode.EditActiveToggle})
+		sendRuleEdit(ctx, md, int(h.NodeRow), NodeKind.RuleEdit{Kind: NodeKind.EditActiveToggle})
 	case PolarRulesPanel.HitCheck:
 		NodeKind.ApplyRuleCheck(ctx, h, &md.Rules)
 	case PolarRulesPanel.HitValue:

@@ -10,7 +10,6 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/SliderPanel"
 	"github.com/dtauraso/wirefold/Categories/Scene"
 
-	"github.com/dtauraso/wirefold/Categories/Node/rulenode"
 	"github.com/dtauraso/wirefold/Categories/Scene/sceneswitch"
 	"github.com/dtauraso/wirefold/Categories/Scene/structuraledit"
 )
@@ -70,6 +69,6 @@ func applyUpdateEdge(ctx context.Context, attr byte, payload []byte, md *MoveDis
 	edge.EditEdge(ctx, e, md.Rules.TogglesByEdgeRow)
 }
 
-func sendRuleEdit(ctx context.Context, md *MoveDispatch, row int, edit rulenode.Edit) {
+func sendRuleEdit(ctx context.Context, md *MoveDispatch, row int, edit NodeKind.RuleEdit) {
 	NodeKind.SendRuleEdit(ctx, &md.Rules, row, edit)
 }

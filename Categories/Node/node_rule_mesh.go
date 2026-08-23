@@ -6,15 +6,13 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgetable"
 
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/PolarRulesPanel"
-
-	"github.com/dtauraso/wirefold/Categories/Node/rulenode"
 )
 
-func (m *NodeGeometry) AttachRuleNode(rn *rulenode.RuleNode) {
+func (m *NodeGeometry) AttachRuleNode(rn *RuleNode) {
 	m.rule.Attach(rn)
 }
 
-func (m *NodeGeometry) RuleNode() *rulenode.RuleNode { return m.rule.Node() }
+func (m *NodeGeometry) RuleNode() *RuleNode { return m.rule.Node() }
 
 func (m *NodeGeometry) RuleBackChannel(peerID string) chan PolarRulesPanel.Msg {
 	return m.rule.Node().RuleBackChannel(peerID)

@@ -5,11 +5,11 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Scene/viewstate"
 	"sync"
 
-	"github.com/dtauraso/wirefold/Categories/Scene/Gesture"
 	"github.com/dtauraso/wirefold/Categories/Node"
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgegeom"
 	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgetable"
+	"github.com/dtauraso/wirefold/Categories/Scene/Gesture"
 )
 
 const InboxDepth = 8
