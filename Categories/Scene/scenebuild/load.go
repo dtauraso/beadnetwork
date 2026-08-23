@@ -6,7 +6,6 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/SliderPanel"
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
 	_ "github.com/dtauraso/wirefold/Categories/NodeKinds"
-	"github.com/dtauraso/wirefold/Categories/NodeKinds/kindreg"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/nodeapi"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/portwiring"
 	"github.com/dtauraso/wirefold/Categories/Scene/loadspec"
@@ -42,9 +41,9 @@ func Load(ctx context.Context, scenePath string, clk clock.Clock) (Scene, error)
 		return Scene{}, err
 	}
 
-	nodeType, kindBroadcastPorts := kindreg.BuildTypeMaps(spec)
+	nodeType, kindBroadcastPorts := BuildTypeMaps(spec)
 	inbound, outbound, outboundHandle := spec.BuildEdgeMaps(nodeType, kindBroadcastPorts)
-	wiring := kindreg.EdgeWiring{
+	wiring := EdgeWiring{
 		Inbound: inbound, Outbound: outbound, OutboundHandle: outboundHandle,
 		DestRun: destRun, EdgeRun: edgeRun,
 	}

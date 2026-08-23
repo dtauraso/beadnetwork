@@ -11,7 +11,6 @@ import (
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/Categories/Node/TiltVectors"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds"
-	"github.com/dtauraso/wirefold/Categories/NodeKinds/kindreg"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/nodeapi"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/portwiring"
 	"github.com/dtauraso/wirefold/Categories/Scene/loadspec"
@@ -22,13 +21,13 @@ func buildNodes(
 	ctx context.Context,
 	spec loadspec.TopoSpec,
 	md *scenerun.MoveDispatch,
-	wiring kindreg.EdgeWiring,
+	wiring EdgeWiring,
 	nodeGeoms map[string]Node.NodeGeom,
 	vectorOut, vectorIn map[string]chan TiltPanel.TiltVectorMsg,
 	clk clock.Clock,
 	speedSinks *SliderPanel.Sinks,
 ) ([]nodeapi.Node, map[string]*beadanimation.Sender, error) {
-	deps := kindreg.BuildDeps{
+	deps := nodeapi.BuildDeps{
 		LatticePoints: md.UI.LatticePoints,
 		ClaimLatticeIn: func(name string) chan int32 {
 			sceneToNodeLatticeIn := make(chan int32, scenerun.InboxDepth)

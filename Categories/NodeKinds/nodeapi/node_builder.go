@@ -1,9 +1,8 @@
-package kindreg
+package nodeapi
 
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/Categories/NodeKinds/nodeapi"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/portwiring"
 	"github.com/dtauraso/wirefold/Categories/Scene/loadspec"
 )
@@ -20,5 +19,5 @@ type BuildDeps struct {
 
 type NodeBuilder struct {
 	Ports []portwiring.PortSpec
-	Build func(ctx context.Context, name string, data *loadspec.NodeData, pb portwiring.PortBindings, tiltPhiIdx int32, deps BuildDeps) (nodeapi.Node, error)
+	Build func(ctx context.Context, name string, data *loadspec.NodeData, pb portwiring.PortBindings, tiltPhiIdx int32, deps BuildDeps) (Node, error)
 }

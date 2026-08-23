@@ -1,4 +1,4 @@
-package kindreg
+package scenebuild
 
 import (
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/portwiring"
