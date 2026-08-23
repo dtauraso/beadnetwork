@@ -23,7 +23,7 @@ func Load(ctx context.Context, scenePath string, clk clock.Clock) (Scene, error)
 	if err != nil {
 		return Scene{}, err
 	}
-	if err := ValidateSpec(&spec, portwiring.KindPorts); err != nil {
+	if err := ValidateSpec(&spec, KindPorts); err != nil {
 		return Scene{}, err
 	}
 

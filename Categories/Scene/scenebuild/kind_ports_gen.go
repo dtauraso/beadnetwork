@@ -2,12 +2,34 @@
 // Source: Categories/NodeKinds/<Kind>/SPEC.md ## Ports table.
 // Regenerate with: go generate ./...
 
-package portwiring
+package scenebuild
 
 // KindPorts maps each runtime kind to the inputs and outputs its SPEC.md
 // declares, in the same order the table lists them. BuilderFor reads
 // this instead of taking a hand-written list, so a kind declares its ports
 // in one place and the runtime and the editor cannot disagree about them.
+type PortDir int
+
+const (
+	PortIn PortDir = iota
+	PortOut
+	PortBroadcast
+)
+
+type PortSpec struct {
+	Name string
+	Dir  PortDir
+}
+
+func FirstPortOfDir(ports []PortSpec, dir PortDir) (string, bool) {
+	for _, p := range ports {
+		if p.Dir == dir {
+			return p.Name, true
+		}
+	}
+	return "", false
+}
+
 var KindPorts = map[string][]PortSpec{
 	"Input": {
 		{Name: "OutCadence", Dir: PortOut},
