@@ -19,15 +19,6 @@ type PortSpec struct {
 	Dir  PortDir
 }
 
-func FirstPortOfDir(ports []PortSpec, dir PortDir) (string, bool) {
-	for _, p := range ports {
-		if p.Dir == dir {
-			return p.Name, true
-		}
-	}
-	return "", false
-}
-
 type BuildDeps struct {
 	LatticePoints int32
 
