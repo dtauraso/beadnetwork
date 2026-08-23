@@ -12,8 +12,8 @@ python3 - <<'PY'
 import re, sys
 
 PAIRS = [
-    ("Categories/Node/nodeframe/node_frame_input.go", "NodeFrameInput",
-     "Categories/Node/nodeframe/build_frame.go"),
+    ("Categories/Node/node_frame_input.go", "NodeFrameInput",
+     "Categories/Node/node_build_frame.go"),
     ("Categories/Node/node_state.go", "NodeState",
      "Categories/Node/stream_sink.go"),
 ]

@@ -3,7 +3,6 @@ package Node
 import (
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 	interior "github.com/dtauraso/wirefold/Categories/Node/Interior"
-	"github.com/dtauraso/wirefold/Categories/Node/nodeframe"
 	"github.com/dtauraso/wirefold/Categories/Node/nodegeom"
 	"github.com/dtauraso/wirefold/Categories/Node/owners"
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
@@ -54,7 +53,7 @@ func (m *NodeGeometry) writeInteriorFrames() {
 	m.interior.WriteFrames(m.geom)
 }
 
-func (m *NodeGeometry) WireStream(row int32, kindID uint8, nodeRowFor func(id string) (int32, bool), buildFrame nodeframe.NodeFrameBuilder, sceneRoot string) {
+func (m *NodeGeometry) WireStream(row int32, kindID uint8, nodeRowFor func(id string) (int32, bool), buildFrame NodeFrameBuilder, sceneRoot string) {
 	m.stream.SetStream(row, kindID, buildFrame)
 	m.topo.SetNodeRowFor(nodeRowFor)
 	m.trace.Wire(sceneRoot, row)

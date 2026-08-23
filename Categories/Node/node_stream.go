@@ -3,7 +3,6 @@ package Node
 import (
 	"fmt"
 
-	"github.com/dtauraso/wirefold/Categories/Node/nodeframe"
 	"github.com/dtauraso/wirefold/Categories/Node/owners"
 )
 
@@ -29,17 +28,17 @@ func (m *NodeGeometry) writeStreamFrame(events []owners.RowEvent) {
 		}
 	}
 
-	m.stream.WriteFrame(nodeframe.BuildFrame(m.frameInputs(row)))
+	m.stream.WriteFrame(BuildFrame(m.frameInputs(row)))
 }
 
-func (m *NodeGeometry) frameInputs(row int32) nodeframe.FrameInputs {
+func (m *NodeGeometry) frameInputs(row int32) FrameInputs {
 	coplanarEdges, upAxis := m.flags.Flags()
 	topIdx, bottomIdx, normalIdx, receivedIdx, receivedSet, latticePoints := m.tilt.FrameGeometryFields()
 	selected, hovered, latchedSel := m.ui.Flags()
 	roundsToParallel, msgsToParallel := m.readout.RoundsToParallel()
 	ruleGroupID, ruleGroupSize := m.RuleGroup()
 
-	return nodeframe.FrameInputs{
+	return FrameInputs{
 		Geom: m.geom,
 
 		Row:    row,
