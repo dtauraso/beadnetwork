@@ -61,7 +61,7 @@ a `node-defs.ts` diff.
 
 **What a kind's code may BIND is checked against that table.** `checkPortRequests` — in the
 three generators that read every kind (`Categories/Node/kindtables`,
-`Categories/Scene/Wiring/kindports`, `Categories/Scene/structuraledit/kindports`) — reads every `a.In("X")`/`a.Out("X")`/`a.Broadcast("X")`/`a.DriveOut("X")`
+`Categories/Scene/Wiring/kindports`, `Categories/Scene/Dispatch/kindports`) — reads every `a.In("X")`/`a.Out("X")`/`a.Broadcast("X")`/`a.DriveOut("X")`
 literal in the kind's package and fails `go generate` when the name is not a row, or is a row
 with the other direction; each kind's `mustDeclare` panics on the same condition at build time.
 Without it an undeclared name binds a DEAD-END channel (`PortBindings.deadEndIn`) and the kind
