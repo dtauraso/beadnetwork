@@ -1,4 +1,4 @@
-import { nodeBytes } from "./node-leaves";
+import { nodeBytes } from "../node-leaves";
 
 const STR_DECODER = new TextDecoder();
 

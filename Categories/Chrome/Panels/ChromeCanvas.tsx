@@ -12,7 +12,7 @@ import { drawRulesPanel, rulesPanelKey } from "./PolarRulesPanel/draw-rules-pane
 import {
   drawPointerHighlight, drawPointerTip, pointerTargetCursor, pointerTargetKey,
 } from "./draw-pointer-target";
-import { drawLabels, labelEpoch } from "../../Scene/Labels/label-canvas";
+import { drawLabels, labelEpoch } from "../../Node/Labels/label-canvas";
 import { postGoRecord } from "../../../Start/extension/webview/vscode-api";
 import { postLog } from "../../../Start/extension/webview/log/post";
 import { encodeSceneViewport } from "../../Scene/encode";
