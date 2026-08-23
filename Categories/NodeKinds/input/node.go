@@ -4,6 +4,7 @@ import (
 	"context"
 
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
+	Speed "github.com/dtauraso/wirefold/Categories/Speed"
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/nodeapi"
 
@@ -90,7 +91,7 @@ func (n *Node) runStepLoop(ctx context.Context, clk clock.Clock, perTick func() 
 
 			perTick = nil
 		}
-		clock.ApplySpeedNonBlocking(clk, n.SpeedCh)
+		Speed.ApplySpeedNonBlocking(clk, n.SpeedCh)
 		n.Self.Step(ctx, clk.Tick())
 		if err := clk.SleepPulse(ctx); err != nil {
 			return

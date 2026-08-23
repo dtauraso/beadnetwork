@@ -3,7 +3,7 @@ package PairNode
 import (
 	"context"
 
-	clock "github.com/dtauraso/wirefold/Categories/Clock"
+	Speed "github.com/dtauraso/wirefold/Categories/Speed"
 )
 
 type Node struct {
@@ -37,7 +37,7 @@ func (n *Node) Update(ctx context.Context) {
 
 		n.plumb.Self.Step(ctx, clk.Tick())
 
-		clock.ApplySpeedNonBlocking(clk, n.plumb.SpeedCh)
+		Speed.ApplySpeedNonBlocking(clk, n.plumb.SpeedCh)
 		if err := clk.SleepCycle(ctx); err != nil {
 			return
 		}

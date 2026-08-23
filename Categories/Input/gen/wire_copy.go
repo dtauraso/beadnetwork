@@ -22,7 +22,7 @@ var wireTargets = []struct {
 	{dir: "Categories/Scene", pkg: "Scene", attr: true},
 	{dir: "Categories/Overlay", pkg: "Overlay", attr: true},
 	{dir: "Categories/Chrome/Panels/Panel", pkg: "Panel", attr: true},
-	{dir: "Categories/Clock", pkg: "clock", attr: true},
+	{dir: "Categories/Speed", pkg: "Speed", attr: true},
 	{dir: "Categories/Input/Drag", pkg: "Drag", enum: true,
 		lists: []string{"eventKinds=", "hitKinds="}, kinds: []string{"raw-input"}},
 	{dir: "Categories/Input/Stdin", pkg: "Stdin", enum: true,

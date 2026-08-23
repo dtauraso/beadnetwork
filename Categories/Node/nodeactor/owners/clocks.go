@@ -4,6 +4,7 @@ import (
 	"context"
 
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
+	Speed "github.com/dtauraso/wirefold/Categories/Speed"
 )
 
 type Clocks struct {
@@ -25,7 +26,7 @@ func (c *Clocks) CopyClockSrc() {
 }
 
 func (c *Clocks) ApplySpeed(speedCh <-chan float64) {
-	clock.ApplySpeedNonBlocking(c.clk, speedCh)
+	Speed.ApplySpeedNonBlocking(c.clk, speedCh)
 }
 
 func (c *Clocks) SleepCycle(ctx context.Context) error {
