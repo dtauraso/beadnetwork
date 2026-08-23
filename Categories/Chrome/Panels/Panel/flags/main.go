@@ -3,8 +3,9 @@ package main
 //go:generate go run .
 
 import (
-	"github.com/dtauraso/wirefold/scripts/genpaths"
 	"path/filepath"
+
+	"github.com/dtauraso/wirefold/scripts/genpaths"
 )
 
 func main() {
@@ -25,5 +26,4 @@ func main() {
 	genpaths.Announce(pathsDir, len(flags), "panel paths")
 	genpaths.Announce(filepath.Join(dir, "flag_paths_gen.go"), len(flags), "panel paths")
 
-	writeWireTS(srcRoot)
 }
