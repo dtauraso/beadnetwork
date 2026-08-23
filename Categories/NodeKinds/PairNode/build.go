@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
-	"github.com/dtauraso/wirefold/Categories/NodeKinds/nodeapi"
+	"github.com/dtauraso/wirefold/Categories/NodeKinds/portwiring"
 
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/PairNode/tiltring"
 )
@@ -61,7 +61,7 @@ func (n *Node) wireVectorChannels(a BuildArgs) {
 }
 
 var Builder = BuilderFor("PairNode",
-	func(a BuildArgs) (nodeapi.Node, error) {
+	func(a BuildArgs) (portwiring.Node, error) {
 		n := &Node{
 			plumb: nodePlumbing{Clock: clock.NewRealClock()},
 		}

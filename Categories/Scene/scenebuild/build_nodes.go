@@ -11,7 +11,6 @@ import (
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/Categories/Node/TiltVectors"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds"
-	"github.com/dtauraso/wirefold/Categories/NodeKinds/nodeapi"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/portwiring"
 	"github.com/dtauraso/wirefold/Categories/Scene/loadspec"
 	"github.com/dtauraso/wirefold/Categories/Scene/scenerun"
@@ -26,8 +25,8 @@ func buildNodes(
 	vectorOut, vectorIn map[string]chan TiltPanel.TiltVectorMsg,
 	clk clock.Clock,
 	speedSinks *SliderPanel.Sinks,
-) ([]nodeapi.Node, map[string]*beadanimation.Sender, error) {
-	deps := nodeapi.BuildDeps{
+) ([]portwiring.Node, map[string]*beadanimation.Sender, error) {
+	deps := portwiring.BuildDeps{
 		LatticePoints: md.UI.LatticePoints,
 		ClaimLatticeIn: func(name string) chan int32 {
 			sceneToNodeLatticeIn := make(chan int32, scenerun.InboxDepth)
@@ -50,7 +49,7 @@ func buildNodes(
 	}
 
 	outSink := map[string]*beadanimation.Sender{}
-	nodes := make([]nodeapi.Node, 0, len(spec.Nodes))
+	nodes := make([]portwiring.Node, 0, len(spec.Nodes))
 	for _, n := range spec.Nodes {
 		bind, known := NodeKinds.BuilderFor(n.Type)
 		if !known {

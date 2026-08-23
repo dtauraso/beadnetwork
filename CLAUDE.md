@@ -79,9 +79,9 @@ one directory out, since a directory is one Go package. `go generate ./...` runs
   npm, tsconfig and esbuild all assume it; directory naming for an npm package is medium,
   not substance. The package root is the REPO root — `package.json`, `tsconfig.json` and
   `node_modules/` live there, so there is one npm project and no path mappings.
-- **`Categories/NodeKinds/`** — the node kinds, plus what only they use: `nodeapi/` (the `Node`
-  interface a kind implements — `Update(ctx)`, one method wide) . The gate — window opens on the first input, fires on dwell, clears otherwise — is in `selectleft/` and `selectright/`, the only two kinds that gate
-  (window opens on the first input, fires on dwell, clears otherwise). The scanner reads a
+- **`Categories/NodeKinds/`** — the node kinds and `portwiring/`, the whole contract between a kind
+  and the scene: its ports, the `Node` interface it implements (`Update(ctx)`), the `NodeBuilder` it
+  returns, the `BuildDeps` it gets. All else a kind needs is in the kind. The scanner reads a
   directory here as a kind only if it declares `var Builder = BuilderFor(…)`; nothing
   registers, and `go generate` writes one `case` per kind into `NodeKinds.BuilderFor`. A kind's ports come from its
   SPEC.md `## Ports` table and NOWHERE else — direction `in`, `out`, or `broadcast` (an out

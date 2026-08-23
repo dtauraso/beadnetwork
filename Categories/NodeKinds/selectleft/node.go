@@ -3,7 +3,7 @@ package selectleft
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/Categories/NodeKinds/nodeapi"
+	"github.com/dtauraso/wirefold/Categories/NodeKinds/portwiring"
 )
 
 type SelectLeft struct {
@@ -15,7 +15,7 @@ func (g *SelectLeft) Update(ctx context.Context) {
 }
 
 var Builder = BuilderFor("SelectLeft",
-	func(a BuildArgs) (nodeapi.Node, error) {
+	func(a BuildArgs) (portwiring.Node, error) {
 		n := &SelectLeft{}
 		n.Fire = a.Fire()
 		n.EmitInputBeads = a.EmitInputBeads()

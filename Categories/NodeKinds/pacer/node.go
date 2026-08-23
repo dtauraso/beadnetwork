@@ -5,7 +5,7 @@ import (
 
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
-	"github.com/dtauraso/wirefold/Categories/NodeKinds/nodeapi"
+	"github.com/dtauraso/wirefold/Categories/NodeKinds/portwiring"
 	Speed "github.com/dtauraso/wirefold/Categories/Speed"
 
 	interior "github.com/dtauraso/wirefold/Categories/Node/Interior"
@@ -30,7 +30,7 @@ type Node struct {
 }
 
 func (p *Node) Update(ctx context.Context) {
-	nodeapi.TryEmit(p.EmitGeometry)
+	portwiring.TryEmit(p.EmitGeometry)
 	p.Self.EmitGeometryOnce()
 
 	held := noValue
@@ -77,7 +77,7 @@ func (p *Node) Update(ctx context.Context) {
 }
 
 var Builder = BuilderFor("Pacer",
-	func(a BuildArgs) (nodeapi.Node, error) {
+	func(a BuildArgs) (portwiring.Node, error) {
 		n := &Node{
 
 			Held: a.StateSeed("held", noValue),

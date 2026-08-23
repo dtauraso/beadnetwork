@@ -5,7 +5,7 @@ import (
 
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
-	"github.com/dtauraso/wirefold/Categories/NodeKinds/nodeapi"
+	"github.com/dtauraso/wirefold/Categories/NodeKinds/portwiring"
 	Speed "github.com/dtauraso/wirefold/Categories/Speed"
 
 	interior "github.com/dtauraso/wirefold/Categories/Node/Interior"
@@ -28,7 +28,7 @@ type TimeEnd struct {
 }
 
 func (h *TimeEnd) Update(ctx context.Context) {
-	nodeapi.TryEmit(h.EmitGeometry)
+	portwiring.TryEmit(h.EmitGeometry)
 	h.Self.EmitGeometryOnce()
 
 	held := noValue
@@ -66,7 +66,7 @@ func (h *TimeEnd) Update(ctx context.Context) {
 }
 
 var Builder = BuilderFor("TimeEnd",
-	func(a BuildArgs) (nodeapi.Node, error) {
+	func(a BuildArgs) (portwiring.Node, error) {
 		n := &TimeEnd{
 
 			Held: a.StateSeed("held", noValue),

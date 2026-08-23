@@ -30,9 +30,9 @@ kind in `NodeKinds.BuilderFor`. Nothing registers: a kind declares
 names it. A kind missing from that switch is a COMPILE error, where the blank-import-and-`init()`
 arrangement it replaced failed at runtime with `unknown type`, after everything else looked right.
 
-`BuilderFor(kind, build)` RETURNS a `nodeapi.NodeBuilder` rather than storing one, and lives in
+`BuilderFor(kind, build)` RETURNS a `portwiring.NodeBuilder` rather than storing one, and lives in
 the kind, in its own `kb_build_args.go`, along with the `BuildArgs` accessors that kind calls —
-each kind carries only the groups it uses. `Categories/NodeKinds/nodeapi` holds the shapes
+each kind carries only the groups it uses. `Categories/NodeKinds/portwiring` holds the shapes
 (`NodeBuilder`, `BuildDeps`, `BuildTypeMaps`) and names no category's types, so a kind is a leaf.
 The kind does not pass its ports at all: `BuilderFor` reads the generated
 `portwiring.KindPorts`, which `Categories/NodeKinds/gen` writes from the SPEC.md `## Ports`

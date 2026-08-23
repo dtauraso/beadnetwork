@@ -6,7 +6,6 @@ import (
 
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 	interior "github.com/dtauraso/wirefold/Categories/Node/Interior"
-	"github.com/dtauraso/wirefold/Categories/NodeKinds/nodeapi"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/portwiring"
 	"github.com/dtauraso/wirefold/Categories/Scene/loadspec"
 )
@@ -23,7 +22,7 @@ type BuildArgs struct {
 
 	getEmitter func() *interior.Emitter
 
-	Deps nodeapi.BuildDeps
+	Deps portwiring.BuildDeps
 
 	kind  string
 	ports []portwiring.PortSpec
@@ -44,7 +43,7 @@ func (a BuildArgs) mustDeclare(portName string, dir portwiring.PortDir) {
 		a.kind + " asked for " + portName + ", table declares " + strings.Join(names, ", "))
 }
 
-func BuilderFor(kind string, build func(BuildArgs) (nodeapi.Node, error)) nodeapi.NodeBuilder {
+func BuilderFor(kind string, build func(BuildArgs) (portwiring.Node, error)) portwiring.NodeBuilder {
 	ports, declared := portwiring.KindPorts[kind]
 	if !declared {
 
@@ -52,9 +51,9 @@ func BuilderFor(kind string, build func(BuildArgs) (nodeapi.Node, error)) nodeap
 			"its SPEC.md ## Ports table is the only declaration, and the generated table is stale. " +
 			"Run go generate ./...")
 	}
-	return nodeapi.NodeBuilder{
+	return portwiring.NodeBuilder{
 		Ports: ports,
-		Build: func(ctx context.Context, name string, data *loadspec.NodeData, pb portwiring.PortBindings, tiltPhiIdx int32, deps nodeapi.BuildDeps) (nodeapi.Node, error) {
+		Build: func(ctx context.Context, name string, data *loadspec.NodeData, pb portwiring.PortBindings, tiltPhiIdx int32, deps portwiring.BuildDeps) (portwiring.Node, error) {
 			var sourceOuts []*beadanimation.Sender
 			return build(BuildArgs{
 				Ctx: ctx, Name: name, Data: data, PB: pb,

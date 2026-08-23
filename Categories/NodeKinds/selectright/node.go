@@ -3,7 +3,7 @@ package selectright
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/Categories/NodeKinds/nodeapi"
+	"github.com/dtauraso/wirefold/Categories/NodeKinds/portwiring"
 )
 
 type SelectRight struct {
@@ -15,7 +15,7 @@ func (g *SelectRight) Update(ctx context.Context) {
 }
 
 var Builder = BuilderFor("SelectRight",
-	func(a BuildArgs) (nodeapi.Node, error) {
+	func(a BuildArgs) (portwiring.Node, error) {
 		n := &SelectRight{}
 		n.Fire = a.Fire()
 		n.EmitInputBeads = a.EmitInputBeads()
