@@ -5,7 +5,6 @@ import (
 
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
-	"github.com/dtauraso/wirefold/Categories/Node/nodeactor"
 	Wiring "github.com/dtauraso/wirefold/Categories/NodeKinds/kindapi"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/nodeapi"
 	Speed "github.com/dtauraso/wirefold/Categories/Speed"
@@ -17,7 +16,7 @@ type Node struct {
 	Fire  func()
 	Clock clock.Clock
 
-	Self *nodeactor.PairNodeSelf
+	Self *Wiring.Self
 
 	Points int32
 

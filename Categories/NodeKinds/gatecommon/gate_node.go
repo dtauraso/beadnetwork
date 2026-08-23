@@ -5,7 +5,7 @@ import (
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 
 	interior "github.com/dtauraso/wirefold/Categories/Node/Interior"
-	"github.com/dtauraso/wirefold/Categories/Node/nodeactor"
+	Wiring "github.com/dtauraso/wirefold/Categories/NodeKinds/kindapi"
 )
 
 const WindowMs = 3000
@@ -21,7 +21,7 @@ type GateNode struct {
 	EmitGeometry   func()
 	EmitInputBeads func(left, right int)
 
-	Self *nodeactor.PairNodeSelf
+	Self *Wiring.Self
 
 	Clock clock.Clock
 

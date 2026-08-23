@@ -5,9 +5,9 @@ import (
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/TiltPanel"
-	"github.com/dtauraso/wirefold/Categories/Node/nodeactor"
 	"github.com/dtauraso/wirefold/Categories/Node/nodeinbox"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/PairNode/tiltring"
+	Wiring "github.com/dtauraso/wirefold/Categories/NodeKinds/kindapi"
 )
 
 type nodePlumbing struct {
@@ -26,7 +26,7 @@ type nodePlumbing struct {
 
 	ClearOutBeads func()
 
-	Self *nodeactor.PairNodeSelf
+	Self *Wiring.Self
 }
 
 type tiltHeld struct {

@@ -10,7 +10,6 @@ import (
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/nodeapi"
 	Speed "github.com/dtauraso/wirefold/Categories/Speed"
 
-	"github.com/dtauraso/wirefold/Categories/Node/nodeactor"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/gatecommon"
 	Wiring "github.com/dtauraso/wirefold/Categories/NodeKinds/kindapi"
 )
@@ -21,7 +20,7 @@ type Time struct {
 	EmitHeldBead func(held int)
 	Held         int `wire:"data.state"`
 
-	Self *nodeactor.PairNodeSelf
+	Self *Wiring.Self
 
 	Clock clock.Clock
 

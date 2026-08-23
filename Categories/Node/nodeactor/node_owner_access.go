@@ -15,6 +15,14 @@ func (m *NodeGeometry) Topo() *owners.Topology { return &m.topo }
 
 func (m *NodeGeometry) Msg() *owners.Messaging { return &m.msg }
 
+func (m *NodeGeometry) Clocks() *owners.Clocks { return &m.clocks }
+
+func (m *NodeGeometry) Beads() *owners.Beads { return &m.beads }
+
+func (m *NodeGeometry) KindPosts() *owners.KindPosts { return &m.kindPosts }
+
+func (m *NodeGeometry) Trace() *owners.Trace { return &m.trace }
+
 func (m *NodeGeometry) ID() string { return m.id }
 
 func (m *NodeGeometry) Kind() string { return m.geom.Kind }

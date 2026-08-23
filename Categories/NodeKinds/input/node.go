@@ -8,7 +8,6 @@ import (
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/nodeapi"
 	Speed "github.com/dtauraso/wirefold/Categories/Speed"
 
-	"github.com/dtauraso/wirefold/Categories/Node/nodeactor"
 	Wiring "github.com/dtauraso/wirefold/Categories/NodeKinds/kindapi"
 )
 
@@ -16,7 +15,7 @@ type Node struct {
 	Fire         func()
 	EmitGeometry func()
 
-	Self *nodeactor.PairNodeSelf
+	Self *Wiring.Self
 
 	EmitNodeBeads func(working, backup []int)
 

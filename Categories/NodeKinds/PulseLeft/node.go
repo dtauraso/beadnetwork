@@ -8,7 +8,6 @@ import (
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/nodeapi"
 	Speed "github.com/dtauraso/wirefold/Categories/Speed"
 
-	"github.com/dtauraso/wirefold/Categories/Node/nodeactor"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/gatecommon"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds/helddrive"
 	Wiring "github.com/dtauraso/wirefold/Categories/NodeKinds/kindapi"
@@ -20,7 +19,7 @@ type PulseLeft struct {
 
 	EmitHeldBead func(held int)
 
-	Self *nodeactor.PairNodeSelf
+	Self *Wiring.Self
 
 	Clock clock.Clock
 
