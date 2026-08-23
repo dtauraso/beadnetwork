@@ -6,7 +6,6 @@ import (
 
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
-	"github.com/dtauraso/wirefold/Categories/NodeKinds/portwiring"
 	Speed "github.com/dtauraso/wirefold/Categories/Speed"
 )
 
@@ -74,7 +73,7 @@ func (g *PulseRight) Update(ctx context.Context) {
 }
 
 var Builder = BuilderFor("PulseRight",
-	func(a BuildArgs) (portwiring.Node, error) {
+	func(a BuildArgs) (any, error) {
 		n := &PulseRight{}
 		n.Fire = a.Fire()
 		n.EmitHeldBead = a.EmitHeldBead()

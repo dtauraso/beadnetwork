@@ -3,15 +3,15 @@ package PairNode
 import "github.com/dtauraso/wirefold/Categories/Chrome/Pills/AngleDropdown"
 
 func (a BuildArgs) LatticePointsSeed() int32 {
-	if a.Deps.ClaimLatticeIn == nil {
+	if a.Deps == nil {
 		return AngleDropdown.DefaultLatticePoints
 	}
-	return a.Deps.LatticePoints
+	return a.Deps.LatticePointsSeed()
 }
 
 func (a BuildArgs) LatticeIn() <-chan int32 {
-	if a.Deps.ClaimLatticeIn == nil {
+	if a.Deps == nil {
 		return make(chan int32)
 	}
-	return a.Deps.ClaimLatticeIn(a.Name)
+	return a.Deps.LatticeChan(a.Name)
 }

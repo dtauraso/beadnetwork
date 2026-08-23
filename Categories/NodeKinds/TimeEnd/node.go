@@ -5,7 +5,6 @@ import (
 
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
-	"github.com/dtauraso/wirefold/Categories/NodeKinds/portwiring"
 	Speed "github.com/dtauraso/wirefold/Categories/Speed"
 
 	interior "github.com/dtauraso/wirefold/Categories/Node/Interior"
@@ -66,7 +65,7 @@ func (h *TimeEnd) Update(ctx context.Context) {
 }
 
 var Builder = BuilderFor("TimeEnd",
-	func(a BuildArgs) (portwiring.Node, error) {
+	func(a BuildArgs) (any, error) {
 		n := &TimeEnd{
 
 			Held: a.StateSeed("held", noValue),

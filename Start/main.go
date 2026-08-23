@@ -16,7 +16,6 @@ import (
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
 	NodeKind "github.com/dtauraso/wirefold/Categories/Node"
 	EdgeB "github.com/dtauraso/wirefold/Categories/Node/Edge"
-	"github.com/dtauraso/wirefold/Categories/NodeKinds/portwiring"
 	bead "github.com/dtauraso/wirefold/Categories/Ring/Bead"
 	NodeShape "github.com/dtauraso/wirefold/Categories/Ring/NodeShape"
 	SceneB "github.com/dtauraso/wirefold/Categories/Scene"
@@ -63,7 +62,7 @@ func run(ctx context.Context, cancel context.CancelFunc, topologyPath string, cl
 	joinAll(launchNodes(ctx, sc.Nodes), moverWG, stdinWG, gestureWG)
 }
 
-func launchNodes(ctx context.Context, nodes []portwiring.Node) *sync.WaitGroup {
+func launchNodes(ctx context.Context, nodes []scenebuild.BuiltNode) *sync.WaitGroup {
 	wg := new(sync.WaitGroup)
 	wg.Add(len(nodes))
 	for _, node := range nodes {

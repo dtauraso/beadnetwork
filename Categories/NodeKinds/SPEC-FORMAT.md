@@ -12,7 +12,7 @@ This document defines what goes in a SPEC and what each section means.
 ## Ports
 
 **Required, and the ONLY declaration of a kind's ports** — both `node-defs.ts` (what the
-editor draws) and `portwiring.KindPorts` (what the runtime binds channels to) are generated
+editor draws) and the kind's own generated `kindPorts` (what the runtime binds channels to) come
 from this table, so a port that is not a row here exists to neither. The kind's Go code does
 not declare ports; `go generate` fails if it binds a name this table does not carry.
 

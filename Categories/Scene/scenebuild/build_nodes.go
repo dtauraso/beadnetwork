@@ -11,7 +11,6 @@ import (
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 	"github.com/dtauraso/wirefold/Categories/Node/TiltVectors"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds"
-	"github.com/dtauraso/wirefold/Categories/NodeKinds/portwiring"
 	"github.com/dtauraso/wirefold/Categories/Scene/loadspec"
 	"github.com/dtauraso/wirefold/Categories/Scene/scenerun"
 )
@@ -25,8 +24,8 @@ func buildNodes(
 	vectorOut, vectorIn map[string]chan TiltPanel.TiltVectorMsg,
 	clk clock.Clock,
 	speedSinks *SliderPanel.Sinks,
-) ([]portwiring.Node, map[string]*beadanimation.Sender, error) {
-	deps := portwiring.BuildDeps{
+) ([]BuiltNode, map[string]*beadanimation.Sender, error) {
+	deps := BuildDeps{
 		LatticePoints: md.UI.LatticePoints,
 		ClaimLatticeIn: func(name string) chan int32 {
 			sceneToNodeLatticeIn := make(chan int32, scenerun.InboxDepth)
@@ -49,7 +48,7 @@ func buildNodes(
 	}
 
 	outSink := map[string]*beadanimation.Sender{}
-	nodes := make([]portwiring.Node, 0, len(spec.Nodes))
+	nodes := make([]BuiltNode, 0, len(spec.Nodes))
 	for _, n := range spec.Nodes {
 		bind, known := NodeKinds.BuilderFor(n.Type)
 		if !known {
@@ -66,8 +65,9 @@ func buildNodes(
 		pb.InteriorEmitters = md.Sw.InteriorEmittersPtr()
 		pb.VectorOut = vectorOut
 		pb.VectorIn = vectorIn
-		declared := make([]PortSpec, len(bind.Ports))
-		for i, p := range bind.Ports {
+		bp := bind.Ports()
+		declared := make([]PortSpec, len(bp))
+		for i, p := range bp {
 			declared[i] = PortSpec{Name: p.Name, Dir: PortDir(p.Dir)}
 		}
 		wiring.BindPorts(&pb, n, declared)
@@ -80,7 +80,11 @@ func buildNodes(
 		if err != nil {
 			return nil, nil, fmt.Errorf("scenebuild: build node %q: %w", n.ID, err)
 		}
-		nodes = append(nodes, nd)
+		built, ok := nd.(BuiltNode)
+		if !ok {
+			return nil, nil, fmt.Errorf("scenebuild: kind %q built something with no Update method for node %q", n.Type, n.ID)
+		}
+		nodes = append(nodes, built)
 	}
 	return nodes, outSink, nil
 }

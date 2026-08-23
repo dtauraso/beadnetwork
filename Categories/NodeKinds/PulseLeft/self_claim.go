@@ -5,10 +5,10 @@ import (
 )
 
 func claimSelfDrive(a BuildArgs) *Self {
-	if a.Deps.ClaimSelfDriveGeom == nil {
+	if a.Deps == nil {
 		return nil
 	}
-	ng, _ := a.Deps.ClaimSelfDriveGeom(a.Name).(*NodeCat.NodeGeometry)
+	ng, _ := a.Deps.SelfDriveGeom(a.Name).(*NodeCat.NodeGeometry)
 	if ng == nil {
 		return nil
 	}

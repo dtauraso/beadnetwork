@@ -6,14 +6,13 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/SliderPanel"
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
 	_ "github.com/dtauraso/wirefold/Categories/NodeKinds"
-	"github.com/dtauraso/wirefold/Categories/NodeKinds/portwiring"
 	"github.com/dtauraso/wirefold/Categories/Scene/loadspec"
 	"github.com/dtauraso/wirefold/Categories/Scene/scenepersist"
 	"github.com/dtauraso/wirefold/Categories/Scene/scenerun"
 )
 
 type Scene struct {
-	Nodes      []portwiring.Node
+	Nodes      []BuiltNode
 	Dispatch   *scenerun.MoveDispatch
 	SpeedSinks SliderPanel.Sinks
 }
