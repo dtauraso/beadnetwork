@@ -11,9 +11,6 @@ import (
 	"github.com/dtauraso/wirefold/Categories/Scene/viewstate"
 )
 
-// The four things a gesture needs from the movers, passed in rather than
-// reached for: a gesture picks a node, asks where it is and how big it is, and
-// sends it a move.
 type Movers struct {
 	NodeGeoms  func() map[string]*nodeactor.NodeGeometry
 	CenterOf   func(id string) (Vec3, bool)
