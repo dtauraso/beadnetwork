@@ -1,4 +1,4 @@
-package Overlay
+package Flags
 
 type Emitter interface {
 	OverlayBreadcrumb(label, scope string, on bool)

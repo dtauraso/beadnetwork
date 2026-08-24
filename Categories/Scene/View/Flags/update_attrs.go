@@ -1,4 +1,4 @@
-package Overlay
+package Flags
 
 var UpdateAttrs = []string{"toggle"}
 

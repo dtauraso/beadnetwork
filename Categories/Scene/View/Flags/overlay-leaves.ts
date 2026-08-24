@@ -4,7 +4,7 @@ import { OVERLAY_FLAG_DEFAULTS } from "./flag-defaults-gen";
 
 export type OverlayFlagVals = Record<OverlayFlag, boolean>;
 
-const values = makeLeafValues<OverlayFlag>("Categories/Overlay/paths", OVERLAY_FLAG_ORDER);
+const values = makeLeafValues<OverlayFlag>("Categories/Scene/View/Flags/paths", OVERLAY_FLAG_ORDER);
 
 const vals = Object.fromEntries(
   OVERLAY_FLAG_ORDER.map((f) => [f, OVERLAY_FLAG_DEFAULTS[f] ?? false]),

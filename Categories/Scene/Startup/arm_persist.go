@@ -3,7 +3,7 @@ package Startup
 import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Panel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/AngleDropdown"
-	"github.com/dtauraso/beadnetwork/Categories/Overlay"
+	Flags "github.com/dtauraso/beadnetwork/Categories/Scene/View/Flags"
 	"github.com/dtauraso/beadnetwork/Categories/Polar/polar"
 	SceneBuf "github.com/dtauraso/beadnetwork/Categories/Scene"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Camera"
@@ -17,8 +17,8 @@ func armViewpoint(topologyPath string) *Camera.ViewpointPersister {
 }
 
 func armEdit(ui *View.UIState, topologyPath string) {
-	overlays := &Persister[Overlay.OverlayState]{
-		Path: topologyPath, Write: Overlay.WriteSceneOverlays, Tag: "scene_overlays_persist",
+	overlays := &Persister[Flags.OverlayState]{
+		Path: topologyPath, Write: Flags.WriteSceneOverlays, Tag: "scene_overlays_persist",
 	}
 	panels := &Persister[Panel.PanelState]{
 		Path: topologyPath, Write: Panel.WriteScenePanels, Tag: "scene_panels_persist",

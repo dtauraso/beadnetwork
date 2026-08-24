@@ -1,5 +1,5 @@
-import { ownerCounts } from "../Scene/owner-counts";
-import { nodeU8 } from "../Node/node-leaves";
+import { ownerCounts } from "../../owner-counts";
+import { nodeU8 } from "../../../Node/node-leaves";
 
 export function readSelectedNodeRow(): number {
   const { nodes } = ownerCounts();

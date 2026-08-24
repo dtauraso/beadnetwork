@@ -12,7 +12,7 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Node/ChannelVectors"
 	edge "github.com/dtauraso/beadnetwork/Categories/Node/Edge"
 	"github.com/dtauraso/beadnetwork/Categories/Node/TiltVectors"
-	"github.com/dtauraso/beadnetwork/Categories/Overlay"
+	Flags "github.com/dtauraso/beadnetwork/Categories/Scene/View/Flags"
 	"github.com/dtauraso/beadnetwork/Categories/Polar/polarindex"
 	SceneB "github.com/dtauraso/beadnetwork/Categories/Scene"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Scenes"
@@ -46,7 +46,7 @@ func (md *MoveDispatch) Start(ctx context.Context) *sync.WaitGroup {
 }
 
 func initMoveDispatchUIDefaults(md *MoveDispatch) {
-	md.UI.OV = Overlay.DefaultOverlayState()
+	md.UI.OV = Flags.DefaultOverlayState()
 	md.UI.PN = Panel.DefaultPanelState()
 	md.UI.Speed = 1
 	md.UI.ClockDivisor = 1

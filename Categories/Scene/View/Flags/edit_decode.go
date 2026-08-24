@@ -1,4 +1,4 @@
-package Overlay
+package Flags
 
 type Edit struct {
 	Flag string

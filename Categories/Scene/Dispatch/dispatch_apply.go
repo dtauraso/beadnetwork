@@ -4,7 +4,7 @@ import (
 	"context"
 
 	NodeKind "github.com/dtauraso/beadnetwork/Categories/Node"
-	"github.com/dtauraso/beadnetwork/Categories/Overlay"
+	Flags "github.com/dtauraso/beadnetwork/Categories/Scene/View/Flags"
 	Speed "github.com/dtauraso/beadnetwork/Categories/Speed"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Panel"
@@ -57,7 +57,7 @@ func sendRuleEdit(ctx context.Context, md *MoveDispatch, row int, edit NodeKind.
 	NodeKind.SendRuleEdit(ctx, &md.Rules, row, edit)
 }
 
-func (md *MoveDispatch) persistOverlays(ov Overlay.OverlayState) {
+func (md *MoveDispatch) persistOverlays(ov Flags.OverlayState) {
 	md.UI.PersistOverlays(ov)
 }
 

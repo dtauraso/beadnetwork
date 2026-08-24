@@ -10,7 +10,7 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/FitButton"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/NodesDropdown"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Tabs"
-	"github.com/dtauraso/beadnetwork/Categories/Overlay"
+	Flags "github.com/dtauraso/beadnetwork/Categories/Scene/View/Flags"
 )
 
 type Layout struct {
@@ -34,7 +34,7 @@ type Of struct {
 	SceneKinds    uint32
 	LatticePoints int32
 
-	Overlays *Overlay.OverlayState
+	Overlays *Flags.OverlayState
 	Panels   *Panel.PanelState
 
 	Tilt     TiltPanel.State

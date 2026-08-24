@@ -14,7 +14,7 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/AngleDropdown"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/NodesDropdown"
-	"github.com/dtauraso/beadnetwork/Categories/Overlay"
+	Flags "github.com/dtauraso/beadnetwork/Categories/Scene/View/Flags"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Scenes"
 )
 
@@ -100,10 +100,10 @@ func applyOverlaysHit(md *MoveDispatch, h Pills.Hit) {
 		Panel.ToggleFlag(&md.UI.PN, h.Panel)
 		md.UI.PersistPanels(md.UI.PN)
 	case Pills.HitPillBody, Pills.HitFlag:
-		Overlay.ToggleFlag(&md.UI.OV, &md.ChannelVectorsOn, &md.UI, h.Flag)
+		Flags.ToggleFlag(&md.UI.OV, &md.ChannelVectorsOn, &md.UI, h.Flag)
 		md.UI.PersistOverlays(md.UI.OV)
 	case Pills.HitCount:
-		Overlay.SetCount(&md.UI.OV, &md.ChannelVectorsOn, &md.UI, h.Flags, h.Target)
+		Flags.SetCount(&md.UI.OV, &md.ChannelVectorsOn, &md.UI, h.Flags, h.Target)
 		md.UI.PersistOverlays(md.UI.OV)
 	}
 	md.UI.EmitViewFrame(nil)

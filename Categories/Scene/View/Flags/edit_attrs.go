@@ -1,3 +1,3 @@
-package Overlay
+package Flags
 
 var attrToggle = attrIndex("toggle")

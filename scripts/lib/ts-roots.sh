@@ -8,7 +8,7 @@ TS_ROOTS=(
   "Categories/Scene"
   "Categories/Node"
   "Categories/NodeKinds"
-  "Categories/Overlay"
+  "Categories/Scene/View/Flags"
   "Categories/Polar"
   "Categories/Ring"
   "Categories/RingPoint"

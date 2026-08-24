@@ -1,8 +1,11 @@
 import React from "react";
 import { type NavNode } from "../nav-nodes";
 import { PolarFrame } from "../../Scene/Poles/PolarFrame";
+import { overlayFlag } from "../../Scene/View/Flags/overlay-flags";
 
 export function NodePoles({ nodes }: { nodes: NavNode[] }) {
+  if (!overlayFlag("nodePoles")) return null;
+
   return (
     <>
       {nodes.map((node) => (

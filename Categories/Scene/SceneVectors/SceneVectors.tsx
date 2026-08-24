@@ -1,12 +1,15 @@
 import React, { useMemo } from "react";
 import * as THREE from "three";
 import { type NavNode } from "../../Node/nav-nodes";
+import { overlayFlag } from "../View/Flags/overlay-flags";
 
 const UP = new THREE.Vector3(0, 1, 0);
 
 export function SceneVectors({ center, nodes, tube }: {
   center: THREE.Vector3; nodes: NavNode[]; tube: number;
 }) {
+  if (!overlayFlag("sceneVectors")) return null;
+
   return (
     <>
       {nodes.map((n) => (

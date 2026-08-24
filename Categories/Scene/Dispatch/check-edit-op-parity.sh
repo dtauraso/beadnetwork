@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: Categories/Scene/Dispatch/dispatch_edit.go,Start/extension/messages.ts,Categories/Overlay/flags.ts,Categories/Chrome/Panels/Panel/flags.ts,Categories/Scene/Drag/input-defs.ts,Categories/Overlay/paths/,Categories/Chrome/Panels/Panel/paths/ | edit ops/update-kinds/overlay flags must stay listed identically on both sides of the bridge
+# PLACEMENT: Categories/Scene/Dispatch/dispatch_edit.go,Start/extension/messages.ts,Categories/Scene/View/Flags/flags.ts,Categories/Chrome/Panels/Panel/flags.ts,Categories/Scene/Drag/input-defs.ts,Categories/Scene/View/Flags/paths/,Categories/Chrome/Panels/Panel/paths/ | edit ops/update-kinds/overlay flags must stay listed identically on both sides of the bridge
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
@@ -19,7 +19,7 @@ if [ -z "$EDIT_MSG_FILES" ]; then
   echo "  vocabulary moved or the fence was renamed, and this guard would compare nothing." >&2
   exit 1
 fi
-OVERLAY_FLAGS_TS="$REPO_ROOT/Categories/Overlay/flags.ts"
+OVERLAY_FLAGS_TS="$REPO_ROOT/Categories/Scene/View/Flags/flags.ts"
 PANEL_FLAGS_TS="$REPO_ROOT/Categories/Chrome/Panels/Panel/flags.ts"
 
 ENCODER_KINDS_TS="$REPO_ROOT/Categories/Scene/Drag/input-defs.ts"
@@ -102,16 +102,16 @@ report_diff "$(comm -13 <(echo "$ENCODER_KINDS") <(echo "$TS_KINDS"))" "Drag/inp
             "$(comm -23 <(echo "$ENCODER_KINDS") <(echo "$TS_KINDS"))" "messages.ts kinds"
 
 TS_FLAGS=$(between OVERLAY_FLAGS_START OVERLAY_FLAGS_END "$OVERLAY_FLAGS_TS" | quoted) || true
-assert_nonempty "$TS_FLAGS" "axis3 Categories/Overlay/flags.ts overlay flags"
+assert_nonempty "$TS_FLAGS" "axis3 Categories/Scene/View/Flags/flags.ts overlay flags"
 
 RENDER_READS=$(awk '/^var FlagNames = \[\]string\{/{p=1;next} p&&/^\}/{p=0} p' \
-  "$REPO_ROOT/Categories/Overlay/flag_paths_gen.go" | grep -aoE '"[a-zA-Z]+"' | tr -d '"' | sort -u)
+  "$REPO_ROOT/Categories/Scene/View/Flags/flag_paths_gen.go" | grep -aoE '"[a-zA-Z]+"' | tr -d '"' | sort -u)
 assert_nonempty "$RENDER_READS" "axis3 Overlay FlagNames block layout"
 N_FLAGS=$(printf '%s\n' "$TS_FLAGS" | grep -c .)
 N_READS=$(printf '%s\n' "$RENDER_READS" | grep -c .)
 if [[ "$N_FLAGS" -ne "$N_READS" ]]; then
   echo "  overlay flag/renderer cardinality mismatch: OVERLAY_FLAG_NAMES=$N_FLAGS, Overlay FlagNames=$N_READS"
-  echo "    (a flag was added/removed in Categories/Overlay/flags.ts without regenerating flag_paths_gen.go, so it has no slot in the block the renderer reads)"
+  echo "    (a flag was added/removed in Categories/Scene/View/Flags/flags.ts without regenerating flag_paths_gen.go, so it has no slot in the block the renderer reads)"
   HITS=$((HITS+1))
 fi
 
@@ -140,7 +140,7 @@ assert_nonempty "$PANEL_PATH_FILES" "axis4 Panel FlagNames block layout"
 N_PANEL_PATHS=$(printf '%s\n' "$PANEL_PATH_FILES" | grep -c .)
 if [[ "$N_PANEL_FLAGS" -ne "$N_PANEL_PATHS" ]]; then
   echo "  panel flag/renderer cardinality mismatch: PANEL_FLAG_NAMES=$N_PANEL_FLAGS, Panel FlagNames=$N_PANEL_PATHS"
-  echo "    (a flag was added/removed in Categories/Overlay/flags.ts without regenerating flag_paths_gen.go, so it has no slot in the block the renderer reads)"
+  echo "    (a flag was added/removed in Categories/Scene/View/Flags/flags.ts without regenerating flag_paths_gen.go, so it has no slot in the block the renderer reads)"
   HITS=$((HITS+1))
 fi
 

@@ -1,4 +1,4 @@
-package Overlay
+package Flags
 
 import (
 	"path/filepath"
