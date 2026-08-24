@@ -24,7 +24,7 @@ async function readUrl(url: string, cache: RequestCache): Promise<ArrayBuffer | 
 
 async function loadPaths(src: string): Promise<Map<string, string> | undefined> {
   const bufs = await Promise.all(
-    SCENE_VALUES.map((v) => readGenerated(`${src}/Scene/paths/${v.name}.bin`)),
+    SCENE_VALUES.map((v) => readGenerated(`${src}/Categories/Scene/paths/${v.name}.bin`)),
   );
   const out = new Map<string, string>();
   for (const [i, v] of SCENE_VALUES.entries()) {

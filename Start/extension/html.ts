@@ -12,7 +12,7 @@ export function buildWebviewHtml(
 ): string {
   const scriptPath = path.join(extensionPath, "out", "webview.js");
   const sceneBase = webview.asWebviewUri(vscode.Uri.file(scenePath)).toString();
-  const srcBase = webview.asWebviewUri(vscode.Uri.file(path.join(extensionPath, "src"))).toString();
+  const srcBase = webview.asWebviewUri(vscode.Uri.file(extensionPath)).toString();
 
   const anchor = anchorPath ?? scenePath;
   const anchorBase = webview.asWebviewUri(vscode.Uri.file(anchor)).toString();
