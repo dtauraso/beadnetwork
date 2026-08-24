@@ -58,7 +58,7 @@ type NodeGeometry struct {
 }
 
 func NewNodeGeometry(id string, geom NodeGeom, clockSrc clock.Clock, constants polarindex.SceneConstants) *NodeGeometry {
-	anim := NewNodeBeadAnimation(id, NewClocks(clockSrc, clock.NewRealClock()))
+	anim := NewNodeBeadAnimation(id)
 
 	ng := &NodeGeometry{
 		id: id, geom: geom,
@@ -68,7 +68,7 @@ func NewNodeGeometry(id string, geom NodeGeom, clockSrc clock.Clock, constants p
 		),
 		topo:      NewTopology(),
 		deltas:    NewDeltas(),
-		clocks:    NewClocks(clockSrc, clock.NewRealClock()),
+		clocks:    NewClocks(clockSrc),
 		tilt:      TiltVectors.NewTilt(TiltPanel.FullTurnPhiIdx),
 		anim:      anim,
 		kindPosts: NewKindPosts(),

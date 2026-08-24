@@ -8,7 +8,6 @@ import (
 
 	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
 	beadanimation "github.com/dtauraso/beadnetwork/Categories/Node/BeadAnimation"
-	Speed "github.com/dtauraso/beadnetwork/Categories/Speed"
 )
 
 type TimeStart struct {
@@ -79,7 +78,6 @@ func (in *TimeStart) consumeInput(clk clock.Clock, value int, held int) (newHeld
 
 func (in *TimeStart) Update(ctx context.Context) {
 	tryEmit(in.EmitGeometry)
-	in.Self.EmitGeometryOnce()
 
 	held := interior.NoValue
 
@@ -88,6 +86,7 @@ func (in *TimeStart) Update(ctx context.Context) {
 	}
 
 	clk := in.Clock.Copy()
+	clk.SpeedFrom(in.SpeedCh)
 	in.Self.StartRule(ctx, clk)
 
 	windowActive := false
@@ -99,7 +98,6 @@ func (in *TimeStart) Update(ctx context.Context) {
 		default:
 		}
 
-		Speed.ApplySpeedNonBlocking(clk, in.SpeedCh)
 		in.Self.Step(ctx, clk.Tick())
 		if err := clk.SleepCycle(ctx); err != nil {
 			return

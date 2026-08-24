@@ -1,8 +1,4 @@
-package Speed
-
-import (
-	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
-)
+package SliderPanel
 
 const SpeedNumScale = 4
 
@@ -50,17 +46,7 @@ func SetSpeedNum(num int64, st SpeedState, sinks Broadcaster, persist func(float
 	redraw()
 }
 
-func ApplySpeedNonBlocking(clk clock.Clock, speedCh <-chan float64) {
-	select {
-	case sp := <-speedCh:
-		if rc, ok := clk.(*clock.RealClock); ok {
-			rc.SetSpeed(sp)
-		}
-	default:
-	}
-}
-
-func SendSpeedNonBlocking(ch chan float64, speed float64) {
+func sendSpeedNonBlocking(ch chan float64, speed float64) {
 	select {
 	case ch <- speed:
 		return

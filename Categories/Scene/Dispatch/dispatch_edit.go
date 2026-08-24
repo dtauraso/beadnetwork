@@ -13,7 +13,6 @@ import (
 	edge "github.com/dtauraso/beadnetwork/Categories/Node/Edge"
 	Flags "github.com/dtauraso/beadnetwork/Categories/Scene/View/Flags"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Drag"
-	Speed "github.com/dtauraso/beadnetwork/Categories/Speed"
 )
 
 func HandleRawInputMsg(ctx context.Context, ev Drag.RawInputMsg, md *MoveDispatch, speedSinks SliderPanel.Sinks) {
@@ -123,7 +122,7 @@ func (md *MoveDispatch) updateOwners(speedSinks SliderPanel.Sinks) map[string]fu
 			Panel.ApplyUpdate(attr, payload, &md.UI.PN, md.persistPanels, md.redraw)
 		},
 		"clock": func(_ context.Context, attr byte, payload []byte) {
-			Speed.ApplyUpdate(attr, payload, md.speedState(), speedSinks, md.persistSpeed, md.redraw)
+			SliderPanel.ApplyUpdate(attr, payload, md.speedState(), speedSinks, md.persistSpeed, md.redraw)
 		},
 		"tiltVector": func(ctx context.Context, attr byte, payload []byte) {
 			applyUpdateTiltVector(ctx, attr, payload, md, speedSinks)

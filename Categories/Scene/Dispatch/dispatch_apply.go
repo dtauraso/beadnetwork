@@ -5,7 +5,6 @@ import (
 
 	NodeKind "github.com/dtauraso/beadnetwork/Categories/Node"
 	Flags "github.com/dtauraso/beadnetwork/Categories/Scene/View/Flags"
-	Speed "github.com/dtauraso/beadnetwork/Categories/Speed"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Panel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/SliderPanel"
@@ -65,8 +64,8 @@ func (md *MoveDispatch) persistPanels(pn Panel.PanelState) {
 	md.UI.PersistPanels(pn)
 }
 
-func (md *MoveDispatch) speedState() Speed.SpeedState {
-	return Speed.SpeedState{Speed: &md.UI.Speed, Divisor: md.UI.ClockDivisor}
+func (md *MoveDispatch) speedState() SliderPanel.SpeedState {
+	return SliderPanel.SpeedState{Speed: &md.UI.Speed, Divisor: md.UI.ClockDivisor}
 }
 
 func (md *MoveDispatch) persistSpeed(userSpeed float64) {
@@ -85,7 +84,7 @@ func applyUpdateTiltVector(ctx context.Context, attr byte, payload []byte, md *M
 
 func (md *MoveDispatch) resumeSpeed(speedSinks SliderPanel.Sinks) func() {
 	return func() {
-		speedSinks.SendSpeed(Speed.SliderNum(md.UI.Speed), int64(md.UI.ClockDivisor))
+		speedSinks.SendSpeed(SliderPanel.SliderNum(md.UI.Speed), int64(md.UI.ClockDivisor))
 	}
 }
 

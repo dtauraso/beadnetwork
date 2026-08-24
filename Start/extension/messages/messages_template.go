@@ -3,7 +3,7 @@ package main
 const tsMessagesSource = `import type { RawInputEvent } from "../Scene/Drag/raw-input";
 import type { OverlayEditMsg } from "../Scene/View/Flags/edits";
 import type { PanelEditMsg } from "../Chrome/Panels/Panel/edits";
-import type { ClockEditMsg } from "../Speed/edits";
+import type { ClockEditMsg } from "../Chrome/Panels/SliderPanel/edits";
 import type { SceneEditMsg } from "../Scene/edits";
 import type { NodeEditMsg } from "../Node/edits";
 import type { EdgeEditMsg } from "../Node/Edge/edits";

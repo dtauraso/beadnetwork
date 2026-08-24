@@ -1,5 +1,5 @@
 import { IN_UPDATE_ATTRS } from "./update-attrs";
-import { IN_KIND_EDIT_UPDATE, IN_UPDATE_KINDS } from "../Scene/Drag/input-defs";
+import { IN_KIND_EDIT_UPDATE, IN_UPDATE_KINDS } from "../../../Scene/Drag/input-defs";
 
 export class ByteWriter {
   private buf = new Uint8Array(64);

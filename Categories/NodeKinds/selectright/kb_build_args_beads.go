@@ -32,9 +32,9 @@ func (a BuildArgs) EmitInputBeads() func(left, right int) {
 	return func(left, right int) { interior.EmitInputBeads(name, left, right, getEmitter()) }
 }
 
-func (a BuildArgs) EmitRefillSlide() func(clk clock.Clock, speedCh <-chan float64, beads []int) {
+func (a BuildArgs) EmitRefillSlide() func(clk clock.Clock, beads []int) {
 	ctx, name := a.Ctx, a.Name
-	return func(clk clock.Clock, speedCh <-chan float64, beads []int) {
-		interior.EmitRefillSlide(ctx, name, clk, speedCh, beads)
+	return func(clk clock.Clock, beads []int) {
+		interior.EmitRefillSlide(ctx, name, clk, beads)
 	}
 }

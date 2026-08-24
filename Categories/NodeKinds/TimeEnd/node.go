@@ -5,7 +5,6 @@ import (
 
 	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
 	beadanimation "github.com/dtauraso/beadnetwork/Categories/Node/BeadAnimation"
-	Speed "github.com/dtauraso/beadnetwork/Categories/Speed"
 
 	interior "github.com/dtauraso/beadnetwork/Categories/Node/Interior"
 )
@@ -28,7 +27,6 @@ type TimeEnd struct {
 
 func (h *TimeEnd) Update(ctx context.Context) {
 	tryEmit(h.EmitGeometry)
-	h.Self.EmitGeometryOnce()
 
 	held := noValue
 	if h.EmitHeldBead != nil {
@@ -36,6 +34,7 @@ func (h *TimeEnd) Update(ctx context.Context) {
 	}
 
 	clk := h.Clock.Copy()
+	clk.SpeedFrom(h.SpeedCh)
 	h.Self.StartRule(ctx, clk)
 
 	for {
@@ -45,7 +44,6 @@ func (h *TimeEnd) Update(ctx context.Context) {
 		default:
 		}
 
-		Speed.ApplySpeedNonBlocking(clk, h.SpeedCh)
 		h.Self.Step(ctx, clk.Tick())
 		if err := clk.SleepCycle(ctx); err != nil {
 			return

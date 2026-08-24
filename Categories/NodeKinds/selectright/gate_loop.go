@@ -3,25 +3,23 @@ package selectright
 import (
 	"context"
 
-	Speed "github.com/dtauraso/beadnetwork/Categories/Speed"
 )
 
 func runGateLoop(ctx context.Context, g *GateNode, captureLeftFn, captureRightFn func(*GateNode) bool, fireResult func(*GateNode) int) {
 	if g.EmitGeometry != nil {
 		g.EmitGeometry()
 	}
-	g.Self.EmitGeometryOnce()
 
 	if g.Clock == nil {
 		panic("runGateLoop: gate node has no clock — a self-driven node steps its own geometry from its own clock, so there is no wall-clock fallback to fall back to")
 	}
 
 	clk := g.Clock.Copy()
+	clk.SpeedFrom(g.SpeedCh)
 	g.Self.StartRule(ctx, clk)
 	now := clk.Tick
 
 	sleep := func(ctx context.Context) error {
-		Speed.ApplySpeedNonBlocking(clk, g.SpeedCh)
 		g.Self.Step(ctx, clk.Tick())
 		return clk.SleepCycle(ctx)
 	}

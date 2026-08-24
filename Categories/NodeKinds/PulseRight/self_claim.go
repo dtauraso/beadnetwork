@@ -13,15 +13,11 @@ func claimSelfDrive(a BuildArgs) *Self {
 		return nil
 	}
 
-	var speedCh chan float64
 	if a.PB.SpeedSinksOf() != nil {
-		speedCh = make(chan float64, 1)
-		a.PB.SpeedSinksOf().Clocks = append(a.PB.SpeedSinksOf().Clocks, speedCh)
-
 		sliderToAnimSleepCh := make(chan int64, 1)
 		a.PB.SpeedSinksOf().Anim = append(a.PB.SpeedSinksOf().Anim, sliderToAnimSleepCh)
 		ng.Anim().SetSleepCh(sliderToAnimSleepCh)
 	}
 
-	return NewSelf(ng, speedCh)
+	return NewSelf(ng)
 }

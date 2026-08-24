@@ -3,8 +3,6 @@ package Node
 import (
 	"context"
 	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
-
-	Speed "github.com/dtauraso/beadnetwork/Categories/Speed"
 )
 
 type Clocks struct {
@@ -13,20 +11,21 @@ type Clocks struct {
 	clk clock.Clock
 }
 
-func NewClocks(clockSrc clock.Clock, clk clock.Clock) Clocks {
-	return Clocks{clockSrc: clockSrc, clk: clk}
+func NewClocks(clockSrc clock.Clock) Clocks {
+	return Clocks{clockSrc: clockSrc}
 }
 
-func (c *Clocks) Tick() int64 { return c.clk.Tick() }
-
-func (c *Clocks) CopyClockSrc() {
-	if c.clockSrc != nil {
-		c.clk = c.clockSrc.Copy()
+func (c *Clocks) Tick() int64 {
+	if c.clk == nil {
+		return 0
 	}
+	return c.clk.Tick()
 }
 
-func (c *Clocks) ApplySpeed(speedCh <-chan float64) {
-	Speed.ApplySpeedNonBlocking(c.clk, speedCh)
+func (c *Clocks) Use(clk clock.Clock) {
+	if clk != nil {
+		c.clk = clk
+	}
 }
 
 func (c *Clocks) SleepCycle(ctx context.Context) error {

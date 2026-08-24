@@ -6,7 +6,6 @@ import (
 
 	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
 	beadanimation "github.com/dtauraso/beadnetwork/Categories/Node/BeadAnimation"
-	Speed "github.com/dtauraso/beadnetwork/Categories/Speed"
 )
 
 type PulseLeft struct {
@@ -31,7 +30,6 @@ func driveOutput(out DrivenOut) *HeldDriver {
 
 func (g *PulseLeft) Update(ctx context.Context) {
 	tryEmit(g.EmitGeometry)
-	g.Self.EmitGeometryOnce()
 
 	var cur int64 = interior.NoValue
 	if g.EmitHeldBead != nil {
@@ -56,6 +54,7 @@ func (g *PulseLeft) Update(ctx context.Context) {
 	}
 
 	clk := g.Clock.Copy()
+	clk.SpeedFrom(g.SpeedCh)
 	g.Self.StartRule(ctx, clk)
 
 	for {
@@ -63,7 +62,6 @@ func (g *PulseLeft) Update(ctx context.Context) {
 			return
 		}
 		consume()
-		Speed.ApplySpeedNonBlocking(clk, g.SpeedCh)
 		driver.Step(clk.Tick())
 		g.Self.Step(ctx, clk.Tick())
 		if err := clk.SleepCycle(ctx); err != nil {
