@@ -1,4 +1,4 @@
-# topology-vscode — architecture map
+# beadnetwork — architecture map
 
 One-screen orientation. Read this before grepping into the source tree. The
 full model (bead, bead line, node goroutine, clock, bridge) lives in
