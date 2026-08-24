@@ -4,7 +4,8 @@ paths:
   - "Start/extension/messages.ts"
   - "Start/extension/handle-message.ts"
   - "Start/extension/runCommand.ts"
-  - "Categories/Node/wire-gen.ts"
+  - "Categories/Scene/Drag/input-defs.ts"
+  - "Categories/Node/update-attrs.ts"
 ---
 
 # Bridge surface — TS → Go vocabulary detail
@@ -66,6 +67,16 @@ Keep all of it in parity across `messages.ts`, the `Categories/Node/Wiring` stdi
 (guards: `Categories/Scene/Dispatch/check-edit-op-parity.sh`, `Categories/Scene/Dispatch/check-message-kind-parity.sh`).
 
 There is no single wire-layout string any more. Each vocabulary is declared in Go by the
-concern that uses it — every `update_attrs.go`, `Categories/Scene/Drag/kinds.go`,
-`Categories/Scene/Dispatch/dispatch_edit.go` — and each `wire-gen.ts` is generated from those
-declarations, so the TS copy cannot drift from the Go one.
+concern that uses it, and generated into TS beside it, so the TS copy cannot drift from
+the Go one. Two kinds of vocabulary, two kinds of generated file:
+
+- **What an edit can address** is Drag's, because Drag declares it: the record kinds in
+  `kinds.go` and `stdin_reader.go`. `Categories/Scene/Drag/inputdefs` writes it once to
+  `Categories/Scene/Drag/input-defs.ts` — `IN_KIND_RAW_INPUT`, `IN_KIND_EDIT_UPDATE`,
+  `IN_EVENT_KINDS`, `IN_HIT_KINDS`, `IN_UPDATE_KINDS` — and every sender imports it from
+  there. It is one number and one entity list for the whole bridge; a per-concern copy of
+  either could disagree with the reader that decodes it.
+- **Which attributes that concern will accept** is the concern's own, declared in its
+  `update_attrs.go`. Its `updateattrs` generator writes only that list, to its own
+  `update-attrs.ts`. These are deliberately per-concern: Node's attrs need agree with
+  nothing but Node.
