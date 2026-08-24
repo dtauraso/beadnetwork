@@ -100,9 +100,13 @@ There is **no `cmd/`** either, and **no `gen/`**: both grouped code by technique
 - **The TS→Go half of the bridge has no category of its own** — each part sits with what it is about:
   `Scene/Drag/` the raw pointer/wheel record, wire format, hit kinds, NDC and rect; `Scene/Gesture/` the
   FSM making orbits and handholds, `Node/Gesture/` the half that grabs, drags and hovers a node.
-- **`src/spatial/`** — `Vec3`, `Segment`, eight operations, 37 lines, importing only `math`. It
+- **`Categories/Vector/`** — `Vec3`, `Segment`, seven operations, importing only `math`. It
   is the MEDIUM, deliberately unremarkable; the substance sits on top in **`Categories/Polar/`** —
   `polar` (coordinate/composition) and `polarindex` (index × constant) — never inside it.
+  Every other package aliases it (`type Vec3 = Vector.Vec3`) rather than redefining it: an
+  alias is the SAME type, so vectors pass between packages without a cast. This is the
+  medium's one rule — it was defined 21 times before, and 67 casts existed only to carry a
+  vector across a package line.
   The value file — one primitive per file, fixed-width LE, atomic rename — is **not a
   package**: each concern owns its `value_file.go` and `leaf-values.ts`, because the layout
   need only agree between the Go writing that concern's block file and the TS reading it.
