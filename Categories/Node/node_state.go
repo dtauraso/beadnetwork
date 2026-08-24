@@ -24,6 +24,7 @@ type NodeState struct {
 	PolePhi, PoleTheta float32
 
 	RingMatrix [16]float32
+	BodyMatrix [16]float32
 
 	TopTiltVectorLen float32
 

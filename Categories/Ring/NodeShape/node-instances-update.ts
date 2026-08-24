@@ -1,30 +1,15 @@
 import * as THREE from "three";
 import { ownerCounts } from "../../Scene/owner-counts";
-import { nodeF32, nodeI32, nodeU8, NODE_RING_NAMES } from "../../Node/node-leaves";
-import { sceneSteps } from "../../Scene/scene-frame";
+import {
+  nodeF32, nodeU8, NODE_RING_NAMES, NODE_BODY_NAMES,
+} from "../../Node/node-leaves";
+import { type NodeValueName } from "../../Node/node-values-gen";
 import { NODE_SPHERE_RADIUS } from "../../../Start/extension/webview/scene/scene-tags";
 import { readSelectedNodeRow } from "../../Scene/View/Flags/overlay-flags-selection";
 
-const centerScratch: [number, number, number] = [0, 0, 0];
-
-function centerInto(row: number, out: [number, number, number]): void {
-  if (!nodeU8(row, "hasPos")) {
-    out[0] = 0; out[1] = 0; out[2] = 0;
-    return;
-  }
-  const s = sceneSteps();
-  const r = nodeI32(row, "indexR") * s.constantR;
-  const phi = nodeI32(row, "indexPhi") * s.constantPhi;
-  const theta = nodeI32(row, "indexTheta") * s.constantTheta;
-  const st = Math.sin(phi);
-  out[0] = s.centerX + r * st * Math.cos(theta);
-  out[1] = s.centerY + r * Math.cos(phi);
-  out[2] = s.centerZ + r * st * Math.sin(theta);
-}
-
-function nodeCenterX(row: number): number { centerInto(row, centerScratch); return centerScratch[0]; }
-function nodeCenterY(row: number): number { centerInto(row, centerScratch); return centerScratch[1]; }
-function nodeCenterZ(row: number): number { centerInto(row, centerScratch); return centerScratch[2]; }
+function nodeCenterX(row: number): number { return nodeF32(row, "bodyM12"); }
+function nodeCenterY(row: number): number { return nodeF32(row, "bodyM13"); }
+function nodeCenterZ(row: number): number { return nodeF32(row, "bodyM14"); }
 
 function nodeRadius(row: number): number {
   return nodeF32(row, "radius") || NODE_SPHERE_RADIUS;
@@ -39,9 +24,18 @@ import { SELECTION_HALO_R_RATIO } from "./node-highlight-shape";
 import { overlayFlag } from "../../Scene/View/Flags/overlay-flags";
 
 function copyRingMatrix(row: number, ring: THREE.InstancedMesh, slot: number): void {
-  const out = ring.instanceMatrix.array;
+  copyMatrix(row, NODE_RING_NAMES, ring, slot);
+}
+
+function copyMatrix(
+  row: number,
+  names: readonly NodeValueName[],
+  mesh: THREE.InstancedMesh,
+  slot: number,
+): void {
+  const out = mesh.instanceMatrix.array;
   const base = slot * 16;
-  for (let i = 0; i < 16; i++) out[base + i] = nodeF32(row, NODE_RING_NAMES[i]!);
+  for (let i = 0; i < 16; i++) out[base + i] = nodeF32(row, names[i]!);
 }
 
 export interface NodeInstanceRefs {
@@ -86,17 +80,8 @@ export function updateNodeInstances(refs: NodeInstanceRefs, capacity: number, ca
   setNodeDrawOrder(order);
   for (let slot = 0; slot < n; slot++) {
     const row = order[slot]!;
-    const r = nodeRadius(row);
-    pos.set(
-      nodeCenterX(row),
-      nodeCenterY(row),
-      nodeCenterZ(row),
-    );
 
-    scl.setScalar(r);
-    mat.compose(pos, quat, scl);
-    body.setMatrixAt(slot, mat);
-
+    copyMatrix(row, NODE_BODY_NAMES, body, slot);
     copyRingMatrix(row, ring, slot);
     copyRingMatrix(row, ringPick, slot);
     copyRingMatrix(row, ringBand, slot);

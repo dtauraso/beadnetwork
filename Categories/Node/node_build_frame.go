@@ -90,6 +90,7 @@ func BuildFrame(in FrameInputs) NodeFrameInput {
 		PolePhi:          float32(fg.PolePhi),
 		PoleTheta:        float32(fg.PoleTheta),
 		RingMatrix:       fg.RingMatrix,
+		BodyMatrix:       fg.BodyMatrix,
 		TopTiltVectorLen: float32(fg.TopTiltVectorLen),
 		TopTiltVectorIdx: fg.TopTiltVectorIdx,
 		TiltArrows:       fg.TiltArrows,

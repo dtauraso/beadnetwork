@@ -61,6 +61,7 @@ func nodeStateFrom(f NodeFrameInput) NodeState {
 		PolePhi:          f.PolePhi,
 		PoleTheta:        f.PoleTheta,
 		RingMatrix:       f.RingMatrix,
+		BodyMatrix:       f.BodyMatrix,
 		TopTiltVectorLen: f.TopTiltVectorLen,
 		TopTiltVectorIdx: f.TopTiltVectorIdx,
 		TiltArrows:       f.TiltArrows,
