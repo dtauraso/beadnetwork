@@ -5,7 +5,7 @@ type: feedback
 ---
 
 A subagent once hung for 13 minutes on a verification step that ran the
-sim binary in the foreground (`./wirefold … -duration 1s`). The sim — and
+sim binary in the foreground (`./beadnetwork … -duration 1s`). The sim — and
 anything parked on paced-wire delivery — does not
 reliably exit on its own, and macOS has no `timeout`, so the `Bash` call
 blocked until the harness limit.
