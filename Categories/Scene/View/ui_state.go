@@ -10,7 +10,7 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Panel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/SliderPanel"
-	"github.com/dtauraso/beadnetwork/Categories/Overlay"
+	Flags "github.com/dtauraso/beadnetwork/Categories/Scene/View/Flags"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/PolarRulesPanel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/TiltPanel"
@@ -49,7 +49,7 @@ type UIState struct {
 
 	VP Camera.ViewpointState
 
-	OV Overlay.OverlayState
+	OV Flags.OverlayState
 
 	PN Panel.PanelState
 
@@ -57,7 +57,7 @@ type UIState struct {
 
 	Sel selectionState
 
-	PersistOverlays func(Overlay.OverlayState)
+	PersistOverlays func(Flags.OverlayState)
 	PersistPanels   func(Panel.PanelState)
 	PersistSphere   func(polar.SceneSphere)
 	PersistSpeed    func(float64)

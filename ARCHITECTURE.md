@@ -26,7 +26,7 @@ Communication is `panel.webview.postMessage` ↔ `vscode.postMessage`, wired in
 
 `Start/extension/messages.ts` is the shared discriminated-union source for both sides.
 `WebviewToHostMsg` includes `ready` and the binary bridge envelope (a fully
-encoded editor→Go record built by the concern that owns the edit — `Categories/Overlay/encode.ts`,
+encoded editor→Go record built by the concern that owns the edit — `Categories/Scene/View/Flags/encode.ts`,
 `Categories/Scene/encode.ts`, `Categories/Node/encode.ts` and their siblings, each beside that concern's
 Go decoder — and written FRAMED to Go's stdin by `runCommand.ts`). There is no `HostToWebviewMsg` —
 the host has nothing to say to the webview, because everything Go tells the
@@ -50,7 +50,7 @@ neither can drift and there is no second hand-kept copy to compare:
   `Scene`, `Overlay`, `Chrome/Panels/Panel`, `Speed`). An attr byte is read only
   inside the decoder its kind selected, so each concern numbers its own from zero.
 - event and hit kinds — `Categories/Scene/Drag/kinds.go`.
-- overlay and panel flags — `Categories/Overlay/flags.ts` and
+- overlay and panel flags — `Categories/Scene/View/Flags/flags.ts` and
   `Categories/Chrome/Panels/Panel/flags.ts`, which both sides derive from.
 
 Read the declaration to learn the current surface; prose copied into this file cannot
@@ -81,7 +81,7 @@ generically from the block files each component reads, keyed off `NODE_DEFS`
 | `Start/extension/webview/scene/scene-root.tsx` | Composition root of the render tree; each component it assembles reads its own block files |
 | `Start/extension/webview/scene/ThreeView.tsx` | R3F `<Canvas>` root. Holds NO gesture state — raw pointer/wheel events forward verbatim to Go's FSM (`Categories/Scene/Gesture` package) |
 | `Categories/Scene/Drag/raw-input-build.ts` | Raw pointer/wheel + raycast hit → binary `raw-input` record to Go |
-| `Categories/Overlay/overlay-flags.ts` | Read-only reflection of Go-owned overlay-toggle state (`useSyncExternalStore`; no store) |
+| `Categories/Scene/View/Flags/overlay-flags.ts` | Read-only reflection of Go-owned overlay-toggle state (`useSyncExternalStore`; no store) |
 | `webview/log/*` | Crash listeners, error boundary, log posting to the extension host |
 
 There is no JSON-trace render path, no `pump.ts`, and no zustand/Redux-style

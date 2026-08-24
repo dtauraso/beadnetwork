@@ -1,7 +1,7 @@
 import React, { useMemo, useEffect } from "react";
 import * as THREE from "three";
 import { SHADING_PARAM_TORUS_COLOR, SHADING_PARAM_TORUS_OPACITY } from "./shading-params";
-import { overlayFlag } from "../../Overlay/overlay-flags";
+import { overlayFlag } from "../View/Flags/overlay-flags";
 
 export function Tori({ center, radius, tube }: {
   center: THREE.Vector3;

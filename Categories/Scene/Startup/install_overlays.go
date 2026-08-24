@@ -4,14 +4,14 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Scene/View"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Panel"
-	"github.com/dtauraso/beadnetwork/Categories/Overlay"
+	Flags "github.com/dtauraso/beadnetwork/Categories/Scene/View/Flags"
 )
 
 func InstallOverlays(ui *View.UIState, topologyPath string) {
-	ov, _ := Overlay.LoadSceneOverlays(topologyPath)
+	ov, _ := Flags.LoadSceneOverlays(topologyPath)
 	ui.OV.SetGuideVisibility(ov)
 
-	if err := Overlay.WriteSceneOverlays(topologyPath, ui.OV); err != nil {
+	if err := Flags.WriteSceneOverlays(topologyPath, ui.OV); err != nil {
 		LogPersistErr("install_overlays", topologyPath, err)
 	}
 

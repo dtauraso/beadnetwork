@@ -5,7 +5,7 @@ import {
   SHADING_PARAM_HANDHOLD_EMISSIVE_INTENSITY, SHADING_PARAM_HANDHOLD_OPACITY,
   SHADING_PARAM_HANDHOLD_RADIUS_RATIO, SHADING_PARAM_HANDHOLD_MIN_RADIUS,
 } from "./shading-params";
-import { overlayFlag } from "../../Overlay/overlay-flags";
+import { overlayFlag } from "../View/Flags/overlay-flags";
 
 const ANGLES = [0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2];
 

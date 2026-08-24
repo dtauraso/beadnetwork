@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: Categories/Overlay/flags.ts,Categories/Overlay/overlay_tables_gen.go | OVERLAY_FLAG_NAMES (TS) and OverlayToggles keys (Go) must be the exact same name set
+# PLACEMENT: Categories/Scene/View/Flags/flags.ts,Categories/Scene/View/Flags/overlay_tables_gen.go | OVERLAY_FLAG_NAMES (TS) and OverlayToggles keys (Go) must be the exact same name set
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
-TS="$REPO_ROOT/Categories/Overlay/flags.ts"
-GO="$REPO_ROOT/Categories/Overlay/overlay_tables_gen.go"
+TS="$REPO_ROOT/Categories/Scene/View/Flags/flags.ts"
+GO="$REPO_ROOT/Categories/Scene/View/Flags/overlay_tables_gen.go"
 
 if [ ! -f "$TS" ] || [ ! -f "$GO" ]; then
   echo "check-overlay-flag-name-parity: MISCONFIGURED — one or both of these are missing:" >&2
@@ -27,10 +27,10 @@ go_names=$(awk '/OVERLAY_TOGGLES_START/{on=1;next} /OVERLAY_TOGGLES_END/{on=0} o
   | grep -oE '"[^"]+"[[:space:]]*:' | grep -oE '"[^"]+"' | tr -d '"' | sort)
 
 if [ "$ts_names" != "$go_names" ]; then
-  echo "check-overlay-flag-name-parity: OVERLAY_FLAG_NAMES (Categories/Overlay/flags.ts) and the"
-  echo "OverlayToggles keys (overlay_tables_gen.go) diverge. Diff (< Categories/Overlay/flags.ts, > overlay_tables_gen.go):"
+  echo "check-overlay-flag-name-parity: OVERLAY_FLAG_NAMES (Categories/Scene/View/Flags/flags.ts) and the"
+  echo "OverlayToggles keys (overlay_tables_gen.go) diverge. Diff (< Categories/Scene/View/Flags/flags.ts, > overlay_tables_gen.go):"
   diff <(printf '%s\n' "$ts_names") <(printf '%s\n' "$go_names") || true
-  echo "If you changed the overlay vocabulary, edit OVERLAY_FLAG_NAMES in Categories/Overlay/flags.ts and"
+  echo "If you changed the overlay vocabulary, edit OVERLAY_FLAG_NAMES in Categories/Scene/View/Flags/flags.ts and"
   echo "regenerate (go run ./cmd/gen-node-defs) so overlay_tables_gen.go matches."
   exit 1
 fi

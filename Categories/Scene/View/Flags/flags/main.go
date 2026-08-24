@@ -9,15 +9,15 @@ import (
 )
 
 func main() {
-	genpaths.SetName("Categories/Overlay/flags")
+	genpaths.SetName("Categories/Scene/View/Flags/flags")
 	_, srcRoot := genpaths.Roots()
 
-	flagsTSPath := filepath.Join(srcRoot, "Overlay", "flags.ts")
+	flagsTSPath := filepath.Join(srcRoot, "Scene", "View", "Flags", "flags.ts")
 	flags, err := ParseOverlayFlags(flagsTSPath)
 	if err != nil {
 		genpaths.Fatalf("parse overlay flags: %v", err)
 	}
-	dir := filepath.Join(srcRoot, "Overlay")
+	dir := filepath.Join(srcRoot, "Scene", "View", "Flags")
 	statePath := filepath.Join(dir, "overlay_state.go")
 	tablesPath := filepath.Join(dir, "overlay_tables_gen.go")
 	if err := WriteOverlayGen(statePath, tablesPath, flags); err != nil {

@@ -11,7 +11,7 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Panel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/SliderPanel"
 	edge "github.com/dtauraso/beadnetwork/Categories/Node/Edge"
-	"github.com/dtauraso/beadnetwork/Categories/Overlay"
+	Flags "github.com/dtauraso/beadnetwork/Categories/Scene/View/Flags"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Drag"
 	Speed "github.com/dtauraso/beadnetwork/Categories/Speed"
 )
@@ -117,7 +117,7 @@ func (md *MoveDispatch) updateOwners(speedSinks SliderPanel.Sinks) map[string]fu
 			edge.ApplyUpdate(ctx, attr, payload, md.Rules.TogglesByEdgeRow)
 		},
 		"overlays": func(_ context.Context, attr byte, payload []byte) {
-			Overlay.ApplyUpdate(attr, payload, &md.UI.OV, &md.ChannelVectorsOn, &md.UI, md.persistOverlays)
+			Flags.ApplyUpdate(attr, payload, &md.UI.OV, &md.ChannelVectorsOn, &md.UI, md.persistOverlays)
 		},
 		"panels": func(_ context.Context, attr byte, payload []byte) {
 			Panel.ApplyUpdate(attr, payload, &md.UI.PN, md.persistPanels, md.redraw)

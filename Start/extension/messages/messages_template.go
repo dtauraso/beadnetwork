@@ -1,13 +1,13 @@
 package main
 
 const tsMessagesSource = `import type { RawInputEvent } from "../Scene/Drag/raw-input";
-import type { OverlayEditMsg } from "../Overlay/edits";
+import type { OverlayEditMsg } from "../Scene/View/Flags/edits";
 import type { PanelEditMsg } from "../Chrome/Panels/Panel/edits";
 import type { ClockEditMsg } from "../Speed/edits";
 import type { SceneEditMsg } from "../Scene/edits";
 import type { NodeEditMsg } from "../Node/edits";
 import type { EdgeEditMsg } from "../Node/Edge/edits";
-import type { OverlayFlag } from "../Overlay/flags";
+import type { OverlayFlag } from "../Scene/View/Flags/flags";
 import type { PanelFlag } from "../Chrome/Panels/Panel/flags";
 
 export type { OverlayFlag, PanelFlag };

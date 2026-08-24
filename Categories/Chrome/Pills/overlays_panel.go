@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Panel"
-	"github.com/dtauraso/beadnetwork/Categories/Overlay"
+	Flags "github.com/dtauraso/beadnetwork/Categories/Scene/View/Flags"
 )
 
 type Rect = Panel.Rect
@@ -58,10 +58,10 @@ type Layout struct {
 	Rows []Row
 }
 
-func countOn(g Group, ov *Overlay.OverlayState) (on, all int) {
+func countOn(g Group, ov *Flags.OverlayState) (on, all int) {
 	flags := allFlags(g)
 	for _, f := range flags {
-		if read, ok := Overlay.OverlayFlagRead[f]; ok && read(ov) {
+		if read, ok := Flags.OverlayFlagRead[f]; ok && read(ov) {
 			on++
 		}
 	}
@@ -70,12 +70,12 @@ func countOn(g Group, ov *Overlay.OverlayState) (on, all int) {
 
 func Build(
 	st *Panel.PillStack,
-	ov *Overlay.OverlayState,
+	ov *Flags.OverlayState,
 	pn *Panel.PanelState,
 	scroll float32,
 ) Layout {
 	pill := st.AddPill()
-	active := Overlay.OverlayFlagRead[GuidelinesFlag](ov)
+	active := Flags.OverlayFlagRead[GuidelinesFlag](ov)
 	open := Panel.PanelOpen["overlays"](pn)
 
 	lay := Layout{Pill: pill, Open: open, Active: active}
@@ -102,7 +102,7 @@ func Build(
 		for _, it := range g.Items {
 			icon := it.Icon
 			isOn := false
-			if read, ok := Overlay.OverlayFlagRead[it.Flag]; ok {
+			if read, ok := Flags.OverlayFlagRead[it.Flag]; ok {
 				isOn = read(ov)
 			}
 			if it.Flag == "labelsGlobal" {

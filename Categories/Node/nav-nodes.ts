@@ -4,7 +4,7 @@ import { polarToCart } from "../Polar/polar-convert";
 import { sceneSteps, sceneRadius } from "../Scene/scene-frame";
 import { ownerCounts } from "../Scene/owner-counts";
 import { nodeF32, nodeU8 } from "./node-leaves";
-import { readSelectedNodeRow } from "../Overlay/overlay-flags-selection";
+import { readSelectedNodeRow } from "../Scene/View/Flags/overlay-flags-selection";
 
 export interface NavNode {
 
