@@ -9,7 +9,7 @@ import type { PickFn } from "../../../../Categories/Scene/Drag/pick-types";
 import { Scene } from "./scene-content";
 import { SceneRoot, LabelProjector } from "./scene-root";
 import { ProceduralEnvProvider } from "./scene-env";
-import { NavGuides } from "../../../../Categories/Overlay/NavGuides";
+import { SceneGuides } from "../../../../Categories/Scene/Guides/SceneGuides";
 import { PaneSizeSync } from "./pane-size-sync";
 
 function consumedByDraft(key: string): boolean {
@@ -77,7 +77,7 @@ export function ThreeView() {
             onPickRequest={pickRequest}
           />
           {}
-          <NavGuides />
+          <SceneGuides />
           {}
           <ProceduralEnvProvider>
             <SceneRoot cameraRef={cameraRef} />

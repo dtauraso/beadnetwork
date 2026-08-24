@@ -5,6 +5,7 @@ import {
   SHADING_PARAM_HANDHOLD_EMISSIVE_INTENSITY, SHADING_PARAM_HANDHOLD_OPACITY,
   SHADING_PARAM_HANDHOLD_RADIUS_RATIO, SHADING_PARAM_HANDHOLD_MIN_RADIUS,
 } from "./shading-params";
+import { overlayFlag } from "../../Overlay/overlay-flags";
 
 const ANGLES = [0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2];
 
@@ -12,6 +13,7 @@ export function Handholds({ center, radius }: {
   center: THREE.Vector3;
   radius: number;
 }) {
+  const visible = overlayFlag("handholds");
   const rotB = useMemo(() => new THREE.Euler(Math.PI / 2, 0, 0), []);
   const hhRadius = Math.max(radius * SHADING_PARAM_HANDHOLD_RADIUS_RATIO, SHADING_PARAM_HANDHOLD_MIN_RADIUS);
 
@@ -25,6 +27,8 @@ export function Handholds({ center, radius }: {
       ))}
     </group>
   );
+
+  if (!visible) return null;
 
   return (
     <group position={[center.x, center.y, center.z]}>
