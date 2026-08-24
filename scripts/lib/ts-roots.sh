@@ -11,7 +11,8 @@ TS_ROOTS=(
   "Categories/Scene/View/Flags"
   "Categories/Polar"
   "Categories/Ring"
-  "Categories/RingPoint"
+  "Categories/Ring/NodeShape"
+  "Categories/Ring/Bead"
   "Categories/Scene"
   "Start/extension"
 )

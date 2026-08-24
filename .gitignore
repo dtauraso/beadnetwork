@@ -151,12 +151,14 @@ dist/
 /topology-pair/view/edges/
 /topology/view/owner-counts.bin
 /topology/view/pointer-target.bin
-/topology/view/ring-points.bin
+/topology/view/node-ring-points.bin
+/topology/view/bead-ring-points.bin
 /topology/view/slider-panel.bin
 /topology/view/speed.bin
 /topology-pair/view/owner-counts.bin
 /topology-pair/view/pointer-target.bin
-/topology-pair/view/ring-points.bin
+/topology-pair/view/node-ring-points.bin
+/topology-pair/view/bead-ring-points.bin
 /topology-pair/view/slider-panel.bin
 /topology-pair/view/speed.bin
 

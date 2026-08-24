@@ -1,4 +1,4 @@
-package RingPoint
+package NodeShape
 
 import (
 	"bytes"
