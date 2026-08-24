@@ -3,7 +3,7 @@ package Node
 import (
 	"fmt"
 
-	"github.com/dtauraso/beadnetwork/Categories/Polar/polarindex"
+	"github.com/dtauraso/beadnetwork/Categories/Vector/polarindex"
 )
 
 type neighborSlot struct {

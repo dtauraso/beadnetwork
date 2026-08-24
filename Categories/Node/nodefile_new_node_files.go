@@ -6,8 +6,8 @@ import (
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/PolarRulesPanel"
 
-	"github.com/dtauraso/beadnetwork/Categories/Polar/polar"
-	"github.com/dtauraso/beadnetwork/Categories/Polar/polarindex"
+	"github.com/dtauraso/beadnetwork/Categories/Vector/polar"
+	"github.com/dtauraso/beadnetwork/Categories/Vector/polarindex"
 )
 
 func nodeDirPath(root, id string) string {

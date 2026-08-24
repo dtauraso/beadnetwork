@@ -16,8 +16,8 @@ import (
 
 	NodeBuf "github.com/dtauraso/beadnetwork/Categories/Node"
 	edge "github.com/dtauraso/beadnetwork/Categories/Node/Edge"
-	"github.com/dtauraso/beadnetwork/Categories/Polar/polar"
-	"github.com/dtauraso/beadnetwork/Categories/Polar/polarindex"
+	"github.com/dtauraso/beadnetwork/Categories/Vector/polar"
+	"github.com/dtauraso/beadnetwork/Categories/Vector/polarindex"
 )
 
 func NewFromSpec(spec Topology.TopoSpec, sphere polar.SceneSphere, hasScene bool, scenePath string, clk clock.Clock, speedSinks *SliderPanel.Sinks, nodeGeoms map[string]NodeBuf.NodeGeom, edgeEndpoints map[string]edge.EdgeEndpoints, baseIndices map[string]polarindex.Index, dragIndices map[string]polarindex.Offset) (*Dispatch.MoveDispatch, error) {

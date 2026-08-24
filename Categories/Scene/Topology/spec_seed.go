@@ -4,8 +4,8 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/PolarRulesPanel"
 
 	NodeBuf "github.com/dtauraso/beadnetwork/Categories/Node"
-	"github.com/dtauraso/beadnetwork/Categories/Polar/polar"
-	"github.com/dtauraso/beadnetwork/Categories/Polar/polarindex"
+	"github.com/dtauraso/beadnetwork/Categories/Vector/polar"
+	"github.com/dtauraso/beadnetwork/Categories/Vector/polarindex"
 )
 
 func SeedNode(m *NodeBuf.NodeGeometry, n Node, sceneRoot string) {

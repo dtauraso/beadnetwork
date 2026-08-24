@@ -47,7 +47,7 @@ and none is a source of truth.
 - **A node is a point and an edge is the triple that closes the triangle.** A node's own
   point is `(r,φ,θ)` about the scene-sphere centre, in the QUANTISED integer form
   (`polarindex.Index` — `IndexTheta`/`IndexPhi`/`IndexR` × the scene's own constants,
-  `Categories/Polar/polarindex/polar_index.go`), persisted (`nodes/<id>/base.json`'s
+  `Categories/Vector/polarindex/polar_index.go`), persisted (`nodes/<id>/base.json`'s
   `indexPhi`/`indexTheta`/`indexR` — the SOLE authored position; there is no continuous
   `scenePolar*` shadow any more, so the value IS index × constant, never a second stored
   copy). An edge carries `D`, the triple from its source to its target, persisted the same

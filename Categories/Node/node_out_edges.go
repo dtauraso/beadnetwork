@@ -4,8 +4,8 @@ import (
 	beadanimation "github.com/dtauraso/beadnetwork/Categories/Node/BeadAnimation"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Edge/edgefile"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Edge/edgegeom"
-	"github.com/dtauraso/beadnetwork/Categories/Polar/polar"
-	"github.com/dtauraso/beadnetwork/Categories/Polar/polarindex"
+	"github.com/dtauraso/beadnetwork/Categories/Vector/polar"
+	"github.com/dtauraso/beadnetwork/Categories/Vector/polarindex"
 )
 
 type EdgeFrameBuilder = func(tick uint32, edgeRow int32, sx, sy, sz, ex, ey, ez float32, srcNodeRow, dstNodeRow int32, deltaR float32, dragActive uint8, label string)

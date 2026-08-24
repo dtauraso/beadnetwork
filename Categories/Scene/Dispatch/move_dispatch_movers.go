@@ -10,7 +10,7 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Node/Edge/edgegeom"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Edge/edgetable"
 	interior "github.com/dtauraso/beadnetwork/Categories/Node/Interior"
-	"github.com/dtauraso/beadnetwork/Categories/Polar/polarindex"
+	"github.com/dtauraso/beadnetwork/Categories/Vector/polarindex"
 )
 
 func (md *MoveDispatch) buildNodeMovers(geoms map[string]Node.NodeGeom, clk clock.Clock, constants polarindex.SceneConstants) {

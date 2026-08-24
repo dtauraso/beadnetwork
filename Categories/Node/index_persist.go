@@ -1,7 +1,7 @@
 package Node
 
 import (
-	"github.com/dtauraso/beadnetwork/Categories/Polar/polarindex"
+	"github.com/dtauraso/beadnetwork/Categories/Vector/polarindex"
 )
 
 func (nm *NodeGeometry) persistIndex(off polarindex.Offset) {

@@ -2,7 +2,7 @@ package Node
 
 import (
 	NodeDrag "github.com/dtauraso/beadnetwork/Categories/Node/Drag"
-	"github.com/dtauraso/beadnetwork/Categories/Polar/polarindex"
+	"github.com/dtauraso/beadnetwork/Categories/Vector/polarindex"
 )
 
 func (m *NodeGeometry) SetKindRule(trim NodeDrag.Trim, request NodeDrag.Request) {

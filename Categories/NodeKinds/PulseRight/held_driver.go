@@ -1,7 +1,7 @@
 package pulseright
 
 import (
-	lattice "github.com/dtauraso/beadnetwork/Categories/Node/BeadAnimation/lattice"
+	lattice "github.com/dtauraso/beadnetwork/Categories/Vector/lattice"
 	interior "github.com/dtauraso/beadnetwork/Categories/Node/Interior"
 )
 

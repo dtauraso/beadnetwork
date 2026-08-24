@@ -3,7 +3,7 @@ package edgegeom
 import (
 	"math"
 
-	lattice "github.com/dtauraso/beadnetwork/Categories/Node/BeadAnimation/lattice"
+	lattice "github.com/dtauraso/beadnetwork/Categories/Vector/lattice"
 )
 
 func EdgeStepCount(dist float64, srcSteps, dstSteps int) int {

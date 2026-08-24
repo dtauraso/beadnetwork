@@ -100,8 +100,8 @@ There is **no `cmd/`** either, and **no `gen/`**: both grouped code by technique
   `Scene/Drag/` the raw pointer/wheel record, wire format, hit kinds, NDC and rect; `Scene/Gesture/` the
   FSM making orbits and handholds, `Node/Gesture/` the half that grabs, drags and hovers a node.
 - **`Categories/Vector/`** — `Vec3`, `Segment`, seven operations, importing only `math`. It
-  is the MEDIUM, deliberately unremarkable; the substance sits on top in **`Categories/Polar/`** —
-  `polar` (coordinate/composition) and `polarindex` (index × constant) — never inside it.
+  is the MEDIUM at its root, deliberately unremarkable; the substance sits in its SUBPACKAGES —
+  `polar` (coordinate/composition), `polarindex` (index × constant), `lattice` (bead spacing).
   Every other package ALIASES it (`type Vec3 = Vector.Vec3`), never redefines it: an alias is
   the same type, so a vector crosses a package line without a cast. It was defined 21 times
   before, and 67 casts existed only to carry one across.

@@ -68,7 +68,7 @@
   wall time and never pauses. **Everything that animates runs in these ticks:** beads
   travelling, all in-node animations, and all node/gate processing windows. Per-update tick
   counts come from formulas, not literals — a bead crossing an edge takes `steps` slots at
-  `lattice.PulsesPerSlot` pulses each (`Categories/Node/BeadAnimation/lattice/bead_lattice.go`); node
+  `lattice.PulsesPerSlot` pulses each (`Categories/Vector/lattice/bead_lattice.go`); node
   processing windows are tick counts. There is no separate render cadence — the tick IS the
   animation clock.
 
