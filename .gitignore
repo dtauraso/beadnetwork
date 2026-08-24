@@ -89,6 +89,10 @@ dist/
 
 # Prebuilt Go binary cache (built once by the editor runner; not for VCS)
 /.beadnetwork-cache/
+# The pre-rename name, kept ignored on purpose: renaming the rule alone
+# un-ignored the directory that still existed on disk, and the next `git add -A`
+# committed a 4.6MB binary out of it.
+/.wirefold-cache/
 
 # Scene sidecar — gitignored so camera/label state does not generate commit noise.
 # Diagram state (positions, fades) stays in topology.json.
