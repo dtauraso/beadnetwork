@@ -3,6 +3,7 @@ import * as cp from "child_process";
 import { killOrphanedSims } from "../../goBuild";
 import { appendGoError } from "../probe/go-errors";
 import { ensureBinaryBuilt } from "./ensure-binary";
+import { isProbeTraceEnabled } from "../../probe-files";
 
 export function buildBinary(
   channel: vscode.OutputChannel,
@@ -34,7 +35,10 @@ export function spawnProcess(
     cwd: repoRoot,
     detached: true,
     stdio: ["pipe", "pipe", "pipe"],
-    env: { ...process.env },
+    env: {
+      ...process.env,
+      BEADNETWORK_PROBE_TRACE: isProbeTraceEnabled() ? "1" : "0",
+    },
   });
 }
 
