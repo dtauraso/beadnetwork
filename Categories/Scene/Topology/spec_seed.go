@@ -1,15 +1,14 @@
-package Wiring
+package Topology
 
 import (
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/PolarRulesPanel"
-	"github.com/dtauraso/wirefold/Categories/Scene/Topology"
 
 	NodeBuf "github.com/dtauraso/wirefold/Categories/Node"
 	"github.com/dtauraso/wirefold/Categories/Polar/polar"
 	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
 )
 
-func SeedNode(m *NodeBuf.NodeGeometry, n Topology.Node, sceneRoot string) {
+func SeedNode(m *NodeBuf.NodeGeometry, n Node, sceneRoot string) {
 	m.SetSelfKind(n.Type)
 
 	rn := m.RuleNode()
@@ -40,7 +39,7 @@ func SeedNode(m *NodeBuf.NodeGeometry, n Topology.Node, sceneRoot string) {
 	}
 }
 
-func SeedEdge(m *NodeBuf.NodeGeometry, e Topology.Edge, src bool, otherKind, sceneRoot string) {
+func SeedEdge(m *NodeBuf.NodeGeometry, e Edge, src bool, otherKind, sceneRoot string) {
 	other := e.Target
 	if !src {
 		other = e.Source
@@ -64,7 +63,7 @@ func SeedEdge(m *NodeBuf.NodeGeometry, e Topology.Edge, src bool, otherKind, sce
 	m.Deltas().SetDragDeltaTo(other, dragD)
 }
 
-func SeedGeometry(s Topology.TopoSpec, sceneCenter Topology.Vec3) (
+func SeedGeometry(s TopoSpec, sceneCenter Vec3) (
 	map[string]NodeBuf.NodeGeom, map[string]polarindex.Index, map[string]polarindex.Offset,
 ) {
 	geoms := make(map[string]NodeBuf.NodeGeom, len(s.Nodes))
@@ -76,7 +75,7 @@ func SeedGeometry(s Topology.TopoSpec, sceneCenter Topology.Vec3) (
 	return geoms, base, drag
 }
 
-func SeedNodeGeometry(n Topology.Node, sceneCenter Topology.Vec3, sc polarindex.SceneConstants) (NodeBuf.NodeGeom, polarindex.Index, polarindex.Offset) {
+func SeedNodeGeometry(n Node, sceneCenter Vec3, sc polarindex.SceneConstants) (NodeBuf.NodeGeom, polarindex.Index, polarindex.Offset) {
 	g := toNodeGeom(n, sceneCenter, sc)
 
 	base := declaredIndex(n, sc)
@@ -93,7 +92,7 @@ func SeedNodeGeometry(n Topology.Node, sceneCenter Topology.Vec3, sc polarindex.
 	return g, *base, dragIndex(n)
 }
 
-func toNodeGeom(n Topology.Node, sceneCenter Topology.Vec3, sc polarindex.SceneConstants) NodeBuf.NodeGeom {
+func toNodeGeom(n Node, sceneCenter Vec3, sc polarindex.SceneConstants) NodeBuf.NodeGeom {
 	g := NodeBuf.NodeGeom{NodeIdentity: NodeBuf.NodeIdentity{Kind: n.Type, Label: n.Label(), SceneCenter: NodeBuf.Vec3(sceneCenter), SceneConstants: sc}}
 	if n.HasPoint() {
 		g.BaseIndex = n.Index()
@@ -105,7 +104,7 @@ func toNodeGeom(n Topology.Node, sceneCenter Topology.Vec3, sc polarindex.SceneC
 	return g
 }
 
-func declaredIndex(n Topology.Node, sc polarindex.SceneConstants) *polarindex.Index {
+func declaredIndex(n Node, sc polarindex.SceneConstants) *polarindex.Index {
 	if n.IndexPhi == nil || n.IndexTheta == nil || n.IndexR == nil {
 		return nil
 	}
@@ -117,7 +116,7 @@ func declaredIndex(n Topology.Node, sc polarindex.SceneConstants) *polarindex.In
 	return &i
 }
 
-func dragIndex(n Topology.Node) polarindex.Offset {
+func dragIndex(n Node) polarindex.Offset {
 	var o polarindex.Offset
 	if n.DragIndexPhi != nil {
 		o.Phi = *n.DragIndexPhi

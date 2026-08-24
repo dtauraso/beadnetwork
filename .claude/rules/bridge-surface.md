@@ -1,6 +1,6 @@
 ---
 paths:
-  - "Categories/Node/Wiring/**/*.go"
+  - "Categories/Scene/Drag/**/*.go"
   - "Start/extension/messages.ts"
   - "Start/extension/handle-message.ts"
   - "Start/extension/runCommand.ts"
@@ -62,7 +62,7 @@ no host→webview message of any kind.
 
 ## Parity
 
-Keep all of it in parity across `messages.ts`, the `Categories/Node/Wiring` stdin reader/dispatch
+Keep all of it in parity across `messages.ts`, the `Categories/Scene/Drag` stdin reader and `Categories/Scene/Dispatch`
 (`stdin_reader.go`'s `MSG_TYPES` fence, `dispatch_edit.go`'s edit tables), and `handle-message.ts`
 (guards: `Categories/Scene/Dispatch/check-edit-op-parity.sh`, `Categories/Scene/Dispatch/check-message-kind-parity.sh`).
 

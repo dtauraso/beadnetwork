@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/dtauraso/wirefold/Categories/Scene/Startup"
-	"github.com/dtauraso/wirefold/Categories/Scene/Wiring"
 
 	"github.com/dtauraso/wirefold/Categories/Chrome/Tabs"
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
@@ -61,7 +60,7 @@ func run(ctx context.Context, cancel context.CancelFunc, topologyPath string, cl
 	joinAll(launchNodes(ctx, sc.Nodes), moverWG, stdinWG, gestureWG)
 }
 
-func launchNodes(ctx context.Context, nodes []Wiring.BuiltNode) *sync.WaitGroup {
+func launchNodes(ctx context.Context, nodes []Startup.BuiltNode) *sync.WaitGroup {
 	wg := new(sync.WaitGroup)
 	wg.Add(len(nodes))
 	for _, node := range nodes {
