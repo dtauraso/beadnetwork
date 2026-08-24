@@ -1,4 +1,4 @@
-package bead
+package polar
 
 import "github.com/dtauraso/beadnetwork/Categories/Vector"
 

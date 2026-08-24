@@ -3,7 +3,7 @@ package edgefile
 import (
 	"path/filepath"
 
-	"github.com/dtauraso/beadnetwork/Categories/Polar/polarindex"
+	"github.com/dtauraso/beadnetwork/Categories/Vector/polarindex"
 )
 
 func edgeDragDir(root, src, label string) string {

@@ -4,7 +4,7 @@ import (
 	"context"
 	interior "github.com/dtauraso/beadnetwork/Categories/Node/Interior"
 
-	lattice "github.com/dtauraso/beadnetwork/Categories/Node/BeadAnimation/lattice"
+	lattice "github.com/dtauraso/beadnetwork/Categories/Vector/lattice"
 
 	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
 	beadanimation "github.com/dtauraso/beadnetwork/Categories/Node/BeadAnimation"

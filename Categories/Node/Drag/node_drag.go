@@ -4,7 +4,7 @@ import (
 	"math"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/PolarRulesPanel"
-	"github.com/dtauraso/beadnetwork/Categories/Polar/polarindex"
+	"github.com/dtauraso/beadnetwork/Categories/Vector/polarindex"
 )
 
 type State struct {

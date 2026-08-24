@@ -4,7 +4,7 @@ import (
 	"math"
 
 	NodeDrag "github.com/dtauraso/beadnetwork/Categories/Node/Drag"
-	"github.com/dtauraso/beadnetwork/Categories/Polar/polarindex"
+	"github.com/dtauraso/beadnetwork/Categories/Vector/polarindex"
 )
 
 func trimOwnDrag(delta polarindex.Offset, st NodeDrag.State) polarindex.Offset {

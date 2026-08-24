@@ -71,12 +71,11 @@ the whole editor (107 Go files in production packages), the generators, and ever
 
 There is **no `cmd/`** either, and **no `gen/`**: both grouped code by technique. Each generator lives with the thing it generates and is NAMED for what it produces — `layout` (a block file's value names, in order, and the path each lives at), `wire` (message/attr definitions), `shading`, `flags`, `kindports`, `portsdef`, `kindtables` — one directory out, since a directory is one Go package. `go generate ./...` runs all of them, and the guards find them by the `//go:generate go run .` directive, never by directory name. A generator must NOT import the package it writes a `.go` file into (delete the output and the generator stops compiling) — why `Categories/Node/kindtables` is a sibling of `Categories/Node/layout`, not inside it.
 
-- **`src/`** — the npm package's source root, and the editor: each concern directory holds
-  the Go that writes the thing and the TS that draws it, plus its `*_values.go`, generated
-  `*-values-gen.ts`, and the guards that protect it. `src` keeps that name because
-  npm, tsconfig and esbuild all assume it; directory naming for an npm package is medium,
-  not substance. The package root is the REPO root — `package.json`, `tsconfig.json` and
-  `node_modules/` live there, so there is one npm project and no path mappings.
+- **`Categories/`** — the editor: each concern directory holds the Go that writes the thing
+  and the TS that draws it, plus its `*_values.go`, generated `*-values-gen.ts`, and the
+  guards that protect it. The npm package root is the REPO root — `package.json`,
+  `tsconfig.json` and `node_modules/` live there, so there is one npm project and no path
+  mappings. (There is no `src/`; it is `Categories/`.)
 - **`Categories/NodeKinds/`** — the node kinds, plus only the registry naming them (`builder.go`'s
   `Builder`, the generated `kinds_gen.go` switch). A kind is a LEAF: it declares its OWN port
   `bindings`, `deps` and `kindBuilder` and imports no shared kind package — Go matches an interface
@@ -100,9 +99,12 @@ There is **no `cmd/`** either, and **no `gen/`**: both grouped code by technique
 - **The TS→Go half of the bridge has no category of its own** — each part sits with what it is about:
   `Scene/Drag/` the raw pointer/wheel record, wire format, hit kinds, NDC and rect; `Scene/Gesture/` the
   FSM making orbits and handholds, `Node/Gesture/` the half that grabs, drags and hovers a node.
-- **`src/spatial/`** — `Vec3`, `Segment`, eight operations, 37 lines, importing only `math`. It
-  is the MEDIUM, deliberately unremarkable; the substance sits on top in **`Categories/Polar/`** —
-  `polar` (coordinate/composition) and `polarindex` (index × constant) — never inside it.
+- **`Categories/Vector/`** — `Vec3`, `Segment`, seven operations, importing only `math`. It
+  is the MEDIUM at its root, deliberately unremarkable; the substance sits in its SUBPACKAGES —
+  `polar` (coordinate/composition), `polarindex` (index × constant), `lattice` (bead spacing).
+  Every other package ALIASES it (`type Vec3 = Vector.Vec3`), never redefines it: an alias is
+  the same type, so a vector crosses a package line without a cast. It was defined 21 times
+  before, and 67 casts existed only to carry one across.
   The value file — one primitive per file, fixed-width LE, atomic rename — is **not a
   package**: each concern owns its `value_file.go` and `leaf-values.ts`, because the layout
   need only agree between the Go writing that concern's block file and the TS reading it.

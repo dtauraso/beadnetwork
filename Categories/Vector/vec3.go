@@ -1,8 +1,10 @@
-package polar
+package Vector
 
 import "math"
 
 type Vec3 struct{ X, Y, Z float64 }
+
+type Segment struct{ Start, End Vec3 }
 
 func (a Vec3) Sub(b Vec3) Vec3 { return Vec3{a.X - b.X, a.Y - b.Y, a.Z - b.Z} }
 func (a Vec3) Add(b Vec3) Vec3 { return Vec3{a.X + b.X, a.Y + b.Y, a.Z + b.Z} }

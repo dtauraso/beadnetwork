@@ -4,7 +4,7 @@ import (
 	"math"
 
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Camera"
-	"github.com/dtauraso/beadnetwork/Categories/Polar/polar"
+	"github.com/dtauraso/beadnetwork/Categories/Vector/polar"
 )
 
 func CanonicalTorusSurfacePoints(a float64, nu, nv int) []Vec3 {

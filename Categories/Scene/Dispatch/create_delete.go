@@ -7,7 +7,7 @@ import (
 
 	"github.com/dtauraso/beadnetwork/Categories/Node"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Edge/edgefile"
-	"github.com/dtauraso/beadnetwork/Categories/Polar/polar"
+	"github.com/dtauraso/beadnetwork/Categories/Vector/polar"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Camera"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Scenes"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/View"

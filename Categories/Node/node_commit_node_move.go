@@ -2,7 +2,7 @@ package Node
 
 import (
 	"github.com/dtauraso/beadnetwork/Categories/Node/Edge/edgetable"
-	"github.com/dtauraso/beadnetwork/Categories/Polar/polarindex"
+	"github.com/dtauraso/beadnetwork/Categories/Vector/polarindex"
 )
 
 func (mv *NodeMover) CommitNodeMoveLocal(nodeGeoms map[string]*NodeGeometry, edgeTable map[string]*edgetable.Edge, nm *NodeGeometry, committedIdx polarindex.Index) {
