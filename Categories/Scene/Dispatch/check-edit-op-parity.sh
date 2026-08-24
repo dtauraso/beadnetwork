@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# PLACEMENT: Categories/Scene/Dispatch/dispatch_edit.go,Start/extension/messages.ts,Categories/Overlay/flags.ts,Categories/Chrome/Panels/Panel/flags.ts,Categories/Node/wire-gen.ts,Categories/Overlay/paths/,Categories/Chrome/Panels/Panel/paths/ | edit ops/update-kinds/overlay flags must stay listed identically on both sides of the bridge
+# PLACEMENT: Categories/Scene/Dispatch/dispatch_edit.go,Start/extension/messages.ts,Categories/Overlay/flags.ts,Categories/Chrome/Panels/Panel/flags.ts,Categories/Scene/Drag/input-defs.ts,Categories/Overlay/paths/,Categories/Chrome/Panels/Panel/paths/ | edit ops/update-kinds/overlay flags must stay listed identically on both sides of the bridge
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(git rev-parse --show-toplevel)"
@@ -22,11 +22,11 @@ fi
 OVERLAY_FLAGS_TS="$REPO_ROOT/Categories/Overlay/flags.ts"
 PANEL_FLAGS_TS="$REPO_ROOT/Categories/Chrome/Panels/Panel/flags.ts"
 
-HANDLE_MSG="$REPO_ROOT/Categories/Node/wire-gen.ts"
+ENCODER_KINDS_TS="$REPO_ROOT/Categories/Scene/Drag/input-defs.ts"
 
 PANEL_STATE_GO="$REPO_ROOT/Categories/Chrome/Panels/Panel/panel_state.go"
 
-for f in "$MESSAGES_TS" "$OVERLAY_FLAGS_TS" "$PANEL_FLAGS_TS" "$HANDLE_MSG" "$PANEL_STATE_GO"; do
+for f in "$MESSAGES_TS" "$OVERLAY_FLAGS_TS" "$PANEL_FLAGS_TS" "$ENCODER_KINDS_TS" "$PANEL_STATE_GO"; do
   if [[ ! -f "$f" ]]; then
     echo "edit-op-parity: MISCONFIGURED — file not found: $f" >&2
     exit 1
@@ -92,14 +92,14 @@ report_diff "$(comm -13 <(echo "$GO_OPS") <(echo "$TS_OPS"))" "Go ops" \
 
 TS_KINDS=$(between EDIT_MSG_START EDIT_MSG_END $EDIT_MSG_FILES | grep -aoE 'kind: "[^"]+"' | quoted) || true
 GO_KINDS=$(between EDIT_UPDATE_KINDS_START EDIT_UPDATE_KINDS_END $GO_KINDS_FILES | toplevel_case | quoted) || true
-HM_KINDS=$(between EDIT_UPDATE_KINDS_START EDIT_UPDATE_KINDS_END "$HANDLE_MSG" | quoted) || true
+ENCODER_KINDS=$(between EDIT_UPDATE_KINDS_START EDIT_UPDATE_KINDS_END "$ENCODER_KINDS_TS" | quoted) || true
 assert_nonempty "$TS_KINDS" "axis2 messages.ts update kinds"
 assert_nonempty "$GO_KINDS" "axis2 Go update kinds"
-assert_nonempty "$HM_KINDS" "axis2 handle-message.ts update kinds"
+assert_nonempty "$ENCODER_KINDS" "axis2 Drag/input-defs.ts update kinds"
 report_diff "$(comm -13 <(echo "$GO_KINDS") <(echo "$TS_KINDS"))" "Go kinds" \
             "$(comm -23 <(echo "$GO_KINDS") <(echo "$TS_KINDS"))" "messages.ts kinds"
-report_diff "$(comm -13 <(echo "$HM_KINDS") <(echo "$TS_KINDS"))" "handle-message.ts kinds" \
-            "$(comm -23 <(echo "$HM_KINDS") <(echo "$TS_KINDS"))" "messages.ts kinds"
+report_diff "$(comm -13 <(echo "$ENCODER_KINDS") <(echo "$TS_KINDS"))" "Drag/input-defs.ts kinds" \
+            "$(comm -23 <(echo "$ENCODER_KINDS") <(echo "$TS_KINDS"))" "messages.ts kinds"
 
 TS_FLAGS=$(between OVERLAY_FLAGS_START OVERLAY_FLAGS_END "$OVERLAY_FLAGS_TS" | quoted) || true
 assert_nonempty "$TS_FLAGS" "axis3 Categories/Overlay/flags.ts overlay flags"

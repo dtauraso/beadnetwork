@@ -1,5 +1,5 @@
 import { logfmt } from "./probe/logfmt";
-import { IN_KIND_RAW_INPUT } from "./wire-gen";
+import { IN_KIND_RAW_INPUT } from "../../Categories/Scene/Drag/input-defs";
 import { writeInputFile } from "./runner/input-file";
 import { resolveScenePath } from "./runner/scene-path";
 import * as fs from "fs";
