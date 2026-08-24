@@ -18,8 +18,6 @@ type State struct {
 	Names    []string
 	Selected int
 
-	// The strip's own writer, armed when the scene opens. It is unexported:
-	// nothing outside can write this block.
 	w *ValueWriter
 }
 

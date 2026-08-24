@@ -24,8 +24,6 @@ func (w *CountsValueWriter) Write(nodes, edges int32) error {
 	return w.Flush()
 }
 
-// CountsState carries the owner-counts writer, armed when the scene opens. The
-// counts are the scene's own block, so the scene owns the writer for it.
 type CountsState struct {
 	w *CountsValueWriter
 }

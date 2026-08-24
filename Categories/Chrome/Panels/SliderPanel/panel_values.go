@@ -31,8 +31,6 @@ func (w *ValueWriter) Rect(xName, yName, wName, hName string, r Rect) {
 	w.F32(hName, r.H)
 }
 
-// State is this piece's own: it carries the writer for its block, armed when
-// the scene opens, so nothing outside can write it.
 type State struct {
 	w *ValueWriter
 }

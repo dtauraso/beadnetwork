@@ -9,8 +9,6 @@ func (ui *UIState) SetSceneRoot(sceneRoot string) {
 		return
 	}
 	ui.sceneRoot = sceneRoot
-	// Each piece arms its own writer: the view says where the scene is, and every
-	// piece opens its own block. Nothing here holds another piece's writer.
 	ui.Rules.Arm(sceneRoot)
 	ui.Nodes.Arm(sceneRoot)
 	ui.Angle.Arm(sceneRoot)

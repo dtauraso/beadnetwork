@@ -33,13 +33,10 @@ func (w *ValueWriter) Surface(xName, yName, zName string, pts []float32) {
 	}
 }
 
-// State is this piece's own: it carries the writer for its block, armed when
-// the scene opens, so nothing outside can write it.
 type State struct {
 	w *ValueWriter
 }
 
 func (s *State) Arm(sceneRoot string) { s.w = NewValueWriter(sceneRoot) }
 
-// W is this piece's writer, for the view's own column writing.
 func (s *State) W() *ValueWriter { return s.w }

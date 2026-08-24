@@ -81,7 +81,6 @@ type UIState struct {
 
 	OverlaysPill Pills.State
 
-	// The pieces that have no other memory still own their block's writer.
 	Slider     SliderPanel.State
 	Fit        FitButton.State
 	RingPoints RingPoint.State
