@@ -13,7 +13,7 @@ Editor/runtime diagnostics are written to five files under `.probe/` — `go.jso
 
 **Reading across files.** `scripts/probe-merge.sh` (no-arg = all by `ts_ms`; `--errors`, `--step N`, `--go`, `--ts`, `--debug`). Retired filenames: `phase4-pump.jsonl`→`go.jsonl`, `webview-log.jsonl`→split.
 
-**Gating (`wirefold.probe.trace`, default off).** The bulk, per-tick trace rows in
+**Gating (`beadnetwork.probe.trace`, default off).** The bulk, per-tick trace rows in
 `go.jsonl`/`go-node.jsonl`/`go-edge.jsonl`/`go-interior.jsonl`/`ts.jsonl` only get
 appended when this VS Code setting is on (they once grew `go-edge.jsonl` past a
 gigabyte). Breadcrumb rows (`kind=="breadcrumb"`) are the exception — always appended to
@@ -22,11 +22,13 @@ work out of the box. The `-errors.jsonl` files and `handler-error-last.json` are
 always written. `--debug` and `--errors` are therefore unaffected by the setting;
 `--go`/`--ts` read near-empty files until it's turned on.
 
-The highest-volume kind, `edge-bead` (`KindEdgeBead`), is gated at the Go SOURCE, not
-just the TS write: `Categories/Node/BeadAnimation/bead_line_drive.go`'s `stepAll` only appends it when a
-package-level `edgeBeadTraceEnabled` bool is true, read once at startup from
-`WIREFOLD_EDGE_BEAD_TRACE`, which the ext host sets from the same `isProbeTraceEnabled()`
-at spawn. With tracing off, Go stops emitting the per-tick-per-bead event entirely
-instead of TS decoding and discarding it every tick.
+The `edge-bead` source gate is GONE. `KindEdgeBead`, the package-level
+`edgeBeadTraceEnabled` bool, and the `WIREFOLD_EDGE_BEAD_TRACE` env var the ext host set
+from `isProbeTraceEnabled()` at spawn were all deleted in `033ef6f99`, along with the 19
+other event kinds that duplicated a column — the kind had nothing left to gate. Five kinds
+remain: recv, fire, send, arrive, breadcrumb. That commit removed the only line that set
+any trace env var on the Go child, so `beadnetwork.probe.trace` no longer reaches Go at
+all: it gates `ts.log`, while Go's own `traceEnabled` reads `BEADNETWORK_PROBE_TRACE` from
+the environment it was spawned in and nothing sets it.
 
 **Freshness caveat (the trap).** These files are written by the LIVE editor run and can be minutes stale — check the last `ts_ms` against now before concluding anything. Several diagnoses were derailed by reading a stale log that did not contain the live failure.

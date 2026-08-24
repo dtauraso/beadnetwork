@@ -71,8 +71,17 @@ To install into your normal VS Code instead of running the dev host. The
 through `npx`:
 
 ```sh
-npx --yes @vscode/vsce package   # → topology-vscode-0.0.1.vsix
-code --install-extension topology-vscode-0.0.1.vsix
+npx --yes @vscode/vsce package   # → beadnetwork-0.0.1.vsix
+code --install-extension beadnetwork-0.0.1.vsix
+```
+
+The extension id changed with the repo rename (`topology-vscode` → `beadnetwork`),
+and VS Code treats a new id as a different extension. If you have the old one
+installed, uninstall it once — otherwise both are present and both register
+`Topology: Open Editor`:
+
+```sh
+code --uninstall-extension dtauraso.topology-vscode
 ```
 
 The installed extension still needs Go on your PATH and the repo open as the

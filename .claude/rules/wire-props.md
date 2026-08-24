@@ -1,6 +1,6 @@
 ---
 paths:
-  - "Categories/Scene/load_topology.go"
+  - "Categories/Scene/Topology/topo_spec.go"
   - "Categories/Scene/Topology/wire-defs.ts"
 ---
 

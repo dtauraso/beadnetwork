@@ -6,7 +6,7 @@ type: feedback
 
 **Rule:** volume is a property of one PRODUCER, but a gate applies to the CHANNEL. Before turning a channel off, list every producer on it.
 
-**The near-miss (2026-07-28):** `.probe/go-edge.jsonl` reached 1.1 GB, so the trace logs were gated behind `wirefold.probe.trace` (default off). The first version of that gate silently broke the documented Go debugging channel: breadcrumbs are not a separate file — since the binary-buffer move they ride the per-owner streams as `kind=="breadcrumb"`, and `probe-merge.sh --debug` greps them out of the exact four files the setting turned off.
+**The near-miss (2026-07-28):** `.probe/go-edge.jsonl` reached 1.1 GB, so the trace logs were gated behind `beadnetwork.probe.trace` (default off). The first version of that gate silently broke the documented Go debugging channel: breadcrumbs are not a separate file — since the binary-buffer move they ride the per-owner streams as `kind=="breadcrumb"`, and `probe-merge.sh --debug` greps them out of the exact four files the setting turned off.
 
 The failure mode is what makes it worth remembering: a breadcrumb would fire and produce nothing, with **no error**. The natural conclusion is "my breadcrumb is broken", not "the gate ate it". Fixed by making breadcrumb rows unconditional and gating only the non-breadcrumb bulk.
 

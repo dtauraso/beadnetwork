@@ -23,7 +23,7 @@
     "search.exclude": {
         "**/.probe": true,
         "**/.beadnetwork-cache": true,
-        "**/tools/topology-vscode/out": true
+        "**/out": true
     },
 
     "window.zoomLevel": 1.25,

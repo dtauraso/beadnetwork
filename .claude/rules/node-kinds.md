@@ -1,7 +1,7 @@
 ---
 paths:
   - "Categories/Node/**/*.go"
-  - "Categories/Node/**/SPEC.md"
+  - "Categories/NodeKinds/**/SPEC.md"
   - "Categories/NodeKinds/node-defs.ts"
   - "**/portsdef/**/*.go"
 ---

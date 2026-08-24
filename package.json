@@ -1,6 +1,6 @@
 {
-  "name": "topology-vscode",
-  "displayName": "Topology Editor",
+  "name": "beadnetwork",
+  "displayName": "Beadnetwork",
   "description": "Drag-and-drop editor for topology.json (beadnetwork)",
   "version": "0.0.1",
   "publisher": "dtauraso",

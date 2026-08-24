@@ -1,13 +1,13 @@
 ---
 name: Write memory directly to repo, not local mirror
-description: For the wirefold project, save memory files only to repo `memory/`; skip the local Claude memory dir entirely
+description: For the beadnetwork project, save memory files only to repo `memory/`; skip the local Claude memory dir entirely
 type: feedback
 ---
 
 For this project, write memory files directly to the repo's
 `memory/` directory and update `MEMORY.md`. Do not write
 the same memory into the local Claude memory dir at
-`~/.claude/projects/-Users-David-Documents-github-wirefold/memory/`
+`~/.claude/projects/-Users-David-Documents-github-beadnetwork/memory/`
 and then mirror it. One source of truth, no drift.
 
 **Why:** the mirror step doubles work and lets the two indexes
