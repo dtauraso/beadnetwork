@@ -13,14 +13,16 @@ var NodeValueNames = buildNodeValueNames()
 
 func buildNodeValueNames() []string {
 	names := []string{
-		"indexR", "indexPhi", "indexTheta",
-		"hasPos", "radius", "navTubeR",
+		"radius", "navTubeR",
 		"poleAnchorX", "poleAnchorY", "poleAnchorZ",
 		"labelAnchorX", "labelAnchorY", "labelAnchorZ",
 		"polePhi", "poleTheta", "poleRingR",
 	}
 	for m := range 16 {
 		names = append(names, fmt.Sprintf("ringM%d", m))
+	}
+	for m := range 16 {
+		names = append(names, fmt.Sprintf("bodyM%d", m))
 	}
 	return append(names,
 		"topTiltVectorText",
@@ -33,6 +35,8 @@ func buildNodeValueNames() []string {
 }
 
 func RingName(m int) string { return fmt.Sprintf("ringM%d", m) }
+
+func BodyName(m int) string { return fmt.Sprintf("bodyM%d", m) }
 
 func ValueRelPath(row int) string {
 	return fmt.Sprintf("view/nodes/%d/node.bin", row)
@@ -51,10 +55,6 @@ func WriteNodeValues(w *ValueWriter, f NodeState) {
 	if w == nil {
 		return
 	}
-	w.I32("indexR", f.IndexR)
-	w.I32("indexPhi", f.IndexPhi)
-	w.I32("indexTheta", f.IndexTheta)
-	w.U8("hasPos", f.HasPos)
 	w.F32("radius", f.Radius)
 
 	w.F32("navTubeR", f.NavTubeR)
@@ -72,6 +72,9 @@ func WriteNodeValues(w *ValueWriter, f NodeState) {
 
 	for m := range 16 {
 		w.F32(RingName(m), f.RingMatrix[m])
+	}
+	for m := range 16 {
+		w.F32(BodyName(m), f.BodyMatrix[m])
 	}
 
 	w.Text("topTiltVectorText", polarindex.AngleText(f.TopTiltVectorIdx, int32(f.LatticePoints)))

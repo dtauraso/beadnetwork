@@ -28,6 +28,7 @@ type FrameGeometryOutputs struct {
 	PolePhi, PoleTheta float64
 
 	RingMatrix [16]float32
+	BodyMatrix [16]float32
 
 	LatticePoints int32
 
@@ -57,6 +58,7 @@ func DeriveFrameGeometry(in FrameGeometryInputs) FrameGeometryOutputs {
 	ringAxisPhi, ringAxisTheta := Ring.TorusDefaultAxisAngles()
 	nodeR := NodeRadius(in.Geom.Kind)
 	out.RingMatrix = Ring.RingInstanceMatrixColumnMajor(Ring.Vec3(out.Center), nodeR, ringAxisPhi, ringAxisTheta)
+	out.BodyMatrix = bodyInstanceMatrixColumnMajor(out.Center, nodeR)
 
 	out.LabelAnchor = out.Center.Add(Vec3{Y: nodeR})
 
@@ -95,4 +97,14 @@ func DeriveFrameGeometry(in FrameGeometryInputs) FrameGeometryOutputs {
 	}
 
 	return out
+}
+
+func bodyInstanceMatrixColumnMajor(center Vec3, radius float64) [16]float32 {
+	r := float32(radius)
+	return [16]float32{
+		r, 0, 0, 0,
+		0, r, 0, 0,
+		0, 0, r, 0,
+		float32(center.X), float32(center.Y), float32(center.Z), 1,
+	}
 }

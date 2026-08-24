@@ -27,4 +27,9 @@ export function nodeU8(row: number, name: NodeValueName, fallback = 0): number {
   return v && v.byteLength >= 1 ? v.getUint8(0) : fallback;
 }
 
-export const NODE_RING_NAMES = NODE_VALUE_NAMES.slice(15, 31) as readonly NodeValueName[];
+function matrixNames(prefix: string): readonly NodeValueName[] {
+  return Array.from({ length: 16 }, (_, m) => `${prefix}M${m}` as NodeValueName);
+}
+
+export const NODE_RING_NAMES = matrixNames("ring");
+export const NODE_BODY_NAMES = matrixNames("body");

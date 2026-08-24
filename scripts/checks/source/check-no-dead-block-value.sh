@@ -52,6 +52,7 @@ fi
 
 readonly DERIVED_FAMILIES=(
   '^ringM[0-9]+$:RING_NAMES'
+  '^bodyM[0-9]+$:BODY_NAMES'
   '^tiltShaftM[0-9]+$:TILT_SHAFT_NAMES'
   '^tiltHeadM[0-9]+$:TILT_HEAD_NAMES'
   '^channelShaftM[0-9]+$:VECTOR_SHAFT_NAMES'
