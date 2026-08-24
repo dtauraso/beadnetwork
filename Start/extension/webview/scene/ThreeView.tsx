@@ -11,7 +11,7 @@ import { SceneRoot, LabelProjector } from "./scene-root";
 import { ProceduralEnvProvider } from "./scene-env";
 import { SceneGuides } from "../../../../Categories/Scene/Guides/SceneGuides";
 import { PaneSizeSync } from "./pane-size-sync";
-import { logSizeChain, logSceneContent, logProbeFetch } from "./size-chain-log";
+import { logSceneContent, logProbeFetch } from "./size-chain-log";
 
 function consumedByDraft(key: string): boolean {
   return key.length === 1 || key === "Enter" || key === "Escape" || key === "Backspace";
@@ -52,19 +52,12 @@ export function ThreeView() {
   }, [onWheelNative]);
 
   useEffect(() => {
-    logSizeChain("mount", containerRef.current);
-    void logProbeFetch("mount");
-    const at = [100, 500, 2000, 5000].map((ms) =>
+    const at = [5000, 8000].map((ms) =>
       window.setTimeout(() => {
-        logSizeChain(`t+${ms}ms`, containerRef.current);
         logSceneContent(`t+${ms}ms`);
+        void logProbeFetch(`t+${ms}ms`);
       }, ms));
-    const onResize = () => logSizeChain("resize", containerRef.current);
-    window.addEventListener("resize", onResize);
-    return () => {
-      at.forEach(window.clearTimeout);
-      window.removeEventListener("resize", onResize);
-    };
+    return () => at.forEach(window.clearTimeout);
   }, []);
 
   return (
