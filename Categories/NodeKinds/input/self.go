@@ -25,6 +25,7 @@ func (p *Self) StartRule(ctx context.Context, clk clock.Clock) {
 	p.geom.StartRuleNode(ctx)
 	p.geom.Anim().StartBeadAnimation(ctx)
 	clk.WakeOn(p.geom.RuleWake())
+	p.geom.Clocks().SpeedFrom(p.speedCh)
 }
 
 func (p *Self) Breadcrumb(label, value string) {
@@ -52,7 +53,6 @@ func (p *Self) Step(ctx context.Context, tick int64) {
 		return
 	}
 	g := p.geom
-	g.Clocks().ApplySpeed(p.speedCh)
 
 	g.Beads().ApplyBeadDrag()
 }

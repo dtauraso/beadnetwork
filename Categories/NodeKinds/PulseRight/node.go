@@ -6,7 +6,6 @@ import (
 
 	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
 	beadanimation "github.com/dtauraso/beadnetwork/Categories/Node/BeadAnimation"
-	Speed "github.com/dtauraso/beadnetwork/Categories/Speed"
 )
 
 type PulseRight struct {
@@ -56,6 +55,7 @@ func (g *PulseRight) Update(ctx context.Context) {
 	}
 
 	clk := g.Clock.Copy()
+	clk.SpeedFrom(g.SpeedCh)
 	g.Self.StartRule(ctx, clk)
 
 	for {
@@ -63,7 +63,6 @@ func (g *PulseRight) Update(ctx context.Context) {
 			return
 		}
 		consume()
-		Speed.ApplySpeedNonBlocking(clk, g.SpeedCh)
 		driver.Step(clk.Tick())
 		g.Self.Step(ctx, clk.Tick())
 		if err := clk.SleepCycle(ctx); err != nil {

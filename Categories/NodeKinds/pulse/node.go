@@ -6,7 +6,6 @@ import (
 
 	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
 	beadanimation "github.com/dtauraso/beadnetwork/Categories/Node/BeadAnimation"
-	Speed "github.com/dtauraso/beadnetwork/Categories/Speed"
 )
 
 type Pulse struct {
@@ -64,6 +63,7 @@ func (g *Pulse) Update(ctx context.Context) {
 	}
 
 	clk := g.Clock.Copy()
+	clk.SpeedFrom(g.SpeedCh)
 	g.Self.StartRule(ctx, clk)
 
 	for {
@@ -71,7 +71,6 @@ func (g *Pulse) Update(ctx context.Context) {
 			return
 		}
 		consume()
-		Speed.ApplySpeedNonBlocking(clk, g.SpeedCh)
 		for _, d := range drivers {
 			d.Step(clk.Tick())
 		}

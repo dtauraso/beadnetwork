@@ -3,7 +3,6 @@ package PairNode
 import (
 	"context"
 
-	Speed "github.com/dtauraso/beadnetwork/Categories/Speed"
 )
 
 type Node struct {
@@ -22,6 +21,7 @@ func (n *Node) Update(ctx context.Context) {
 	n.openingEmit()
 
 	clk := n.clock().Copy()
+	clk.SpeedFrom(n.plumb.SpeedCh)
 	n.plumb.Self.StartRule(ctx, clk)
 
 	for {
@@ -37,7 +37,6 @@ func (n *Node) Update(ctx context.Context) {
 
 		n.plumb.Self.Step(ctx, clk.Tick())
 
-		Speed.ApplySpeedNonBlocking(clk, n.plumb.SpeedCh)
 		if err := clk.SleepCycle(ctx); err != nil {
 			return
 		}

@@ -4,7 +4,6 @@ import (
 	"context"
 
 	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
-	Speed "github.com/dtauraso/beadnetwork/Categories/Speed"
 	lattice "github.com/dtauraso/beadnetwork/Categories/Node/BeadAnimation/lattice"
 )
 
@@ -66,7 +65,7 @@ func EmitInputBeads(nodeName string, left, right int, emitter *Emitter) {
 	)
 }
 
-func EmitRefillSlide(ctx context.Context, nodeName string, clk clock.Clock, speedCh <-chan float64, beads []int) {
+func EmitRefillSlide(ctx context.Context, nodeName string, clk clock.Clock, beads []int) {
 	if clk == nil || len(beads) == 0 {
 		return
 	}
@@ -82,7 +81,6 @@ func EmitRefillSlide(ctx context.Context, nodeName string, clk clock.Clock, spee
 
 	emitFrame(0)
 	for {
-		Speed.ApplySpeedNonBlocking(clk, speedCh)
 		if err := clk.SleepCycle(ctx); err != nil {
 			return
 		}

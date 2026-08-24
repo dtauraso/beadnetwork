@@ -15,6 +15,8 @@ type Clock interface {
 
 	WakeOn(wake <-chan struct{})
 
+	SpeedFrom(speed <-chan float64)
+
 	Copy() Clock
 }
 
@@ -28,6 +30,8 @@ type RealClock struct {
 	ticker *time.Ticker
 
 	wake <-chan struct{}
+
+	speedCh <-chan float64
 }
 
 func NewRealClock() *RealClock {
@@ -38,10 +42,23 @@ func (c *RealClock) WakeOn(wake <-chan struct{}) {
 	c.wake = wake
 }
 
+func (c *RealClock) SpeedFrom(speed <-chan float64) {
+	c.speedCh = speed
+}
+
+func (c *RealClock) applyPendingSpeed() {
+	select {
+	case sp := <-c.speedCh:
+		c.SetSpeed(sp)
+	default:
+	}
+}
+
 func (c *RealClock) Copy() Clock {
 	cp := *c
 	cp.ticker = nil
 	cp.wake = nil
+	cp.speedCh = nil
 	return &cp
 }
 
@@ -78,6 +95,7 @@ func (c *RealClock) SleepPulses(ctx context.Context, n int) error {
 }
 
 func (c *RealClock) sleepPulses(ctx context.Context, n int) error {
+	c.applyPendingSpeed()
 	if c.ticker == nil {
 		c.ticker = time.NewTicker(tickPeriod)
 	}

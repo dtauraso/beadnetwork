@@ -53,7 +53,7 @@ func (n *Node) feedbackRingReact(s int, working, backup *[]int, init []int, emit
 	if len(*working) == 0 {
 
 		if n.EmitRefillSlide != nil {
-			n.EmitRefillSlide(clk, n.SpeedCh, *backup)
+			n.EmitRefillSlide(clk, *backup)
 		}
 		*working = *backup
 		*backup = append([]int(nil), init...)

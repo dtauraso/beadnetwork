@@ -3,14 +3,14 @@ package Node
 import (
 	"context"
 	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
-
-	Speed "github.com/dtauraso/beadnetwork/Categories/Speed"
 )
 
 type Clocks struct {
 	clockSrc clock.Clock
 
 	clk clock.Clock
+
+	speedCh <-chan float64
 }
 
 func NewClocks(clockSrc clock.Clock, clk clock.Clock) Clocks {
@@ -22,11 +22,15 @@ func (c *Clocks) Tick() int64 { return c.clk.Tick() }
 func (c *Clocks) CopyClockSrc() {
 	if c.clockSrc != nil {
 		c.clk = c.clockSrc.Copy()
+		c.clk.SpeedFrom(c.speedCh)
 	}
 }
 
-func (c *Clocks) ApplySpeed(speedCh <-chan float64) {
-	Speed.ApplySpeedNonBlocking(c.clk, speedCh)
+func (c *Clocks) SpeedFrom(speedCh <-chan float64) {
+	c.speedCh = speedCh
+	if c.clk != nil {
+		c.clk.SpeedFrom(speedCh)
+	}
 }
 
 func (c *Clocks) SleepCycle(ctx context.Context) error {

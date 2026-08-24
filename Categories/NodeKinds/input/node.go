@@ -5,7 +5,6 @@ import (
 
 	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
 	beadanimation "github.com/dtauraso/beadnetwork/Categories/Node/BeadAnimation"
-	Speed "github.com/dtauraso/beadnetwork/Categories/Speed"
 )
 
 type Node struct {
@@ -16,7 +15,7 @@ type Node struct {
 
 	EmitNodeBeads func(working, backup []int)
 
-	EmitRefillSlide func(clk clock.Clock, speedCh <-chan float64, beads []int)
+	EmitRefillSlide func(clk clock.Clock, beads []int)
 
 	Clock clock.Clock
 
@@ -68,6 +67,7 @@ func (n *Node) Update(ctx context.Context) {
 	emitBeads()
 
 	clk := n.clock().Copy()
+	clk.SpeedFrom(n.SpeedCh)
 
 	if n.FeedbackIn.HasRun() {
 		n.updateFeedbackRing(ctx, &working, &backup, init, emitBeads, clk)
@@ -78,6 +78,7 @@ func (n *Node) Update(ctx context.Context) {
 }
 
 func (n *Node) runStepLoop(ctx context.Context, clk clock.Clock, perTick func() bool) {
+	clk.SpeedFrom(n.SpeedCh)
 	n.Self.StartRule(ctx, clk)
 	for {
 		if ctx.Err() != nil {
@@ -87,7 +88,6 @@ func (n *Node) runStepLoop(ctx context.Context, clk clock.Clock, perTick func() 
 
 			perTick = nil
 		}
-		Speed.ApplySpeedNonBlocking(clk, n.SpeedCh)
 		n.Self.Step(ctx, clk.Tick())
 		if err := clk.SleepPulse(ctx); err != nil {
 			return

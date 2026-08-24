@@ -3,7 +3,6 @@ package selectright
 import (
 	"context"
 
-	Speed "github.com/dtauraso/beadnetwork/Categories/Speed"
 )
 
 func runGateLoop(ctx context.Context, g *GateNode, captureLeftFn, captureRightFn func(*GateNode) bool, fireResult func(*GateNode) int) {
@@ -17,11 +16,11 @@ func runGateLoop(ctx context.Context, g *GateNode, captureLeftFn, captureRightFn
 	}
 
 	clk := g.Clock.Copy()
+	clk.SpeedFrom(g.SpeedCh)
 	g.Self.StartRule(ctx, clk)
 	now := clk.Tick
 
 	sleep := func(ctx context.Context) error {
-		Speed.ApplySpeedNonBlocking(clk, g.SpeedCh)
 		g.Self.Step(ctx, clk.Tick())
 		return clk.SleepCycle(ctx)
 	}
