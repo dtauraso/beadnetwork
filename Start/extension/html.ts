@@ -12,7 +12,7 @@ export function buildWebviewHtml(
 ): string {
   const scriptPath = path.join(extensionPath, "out", "webview.js");
   const sceneBase = webview.asWebviewUri(vscode.Uri.file(scenePath)).toString();
-  const srcBase = webview.asWebviewUri(vscode.Uri.file(extensionPath)).toString();
+  const srcBase = webview.asWebviewUri(vscode.Uri.file(realPath(extensionPath))).toString();
 
   const anchor = anchorPath ?? scenePath;
   const anchorBase = webview.asWebviewUri(vscode.Uri.file(anchor)).toString();
@@ -80,6 +80,14 @@ export function buildWebviewHtml(
   <script nonce="${nonce}" src="${scriptUri.toString()}"></script>
 </body>
 </html>`;
+}
+
+function realPath(p: string): string {
+  try {
+    return fs.realpathSync(p);
+  } catch {
+    return p;
+  }
 }
 
 function randomNonce(): string {
