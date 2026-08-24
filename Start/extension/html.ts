@@ -82,7 +82,7 @@ export function buildWebviewHtml(
 </html>`;
 }
 
-function realPath(p: string): string {
+export function realPath(p: string): string {
   try {
     return fs.realpathSync(p);
   } catch {

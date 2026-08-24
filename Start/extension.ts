@@ -2,7 +2,7 @@ import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
 import { BuildAndRunRunner } from "../Start/extension/runCommand";
-import { buildWebviewHtml } from "../Start/extension/html";
+import { buildWebviewHtml, realPath } from "../Start/extension/html";
 import { resolveScenePath } from "../Start/extension/runner/scene-path";
 import { handleMessage } from "../Start/extension/handle-message";
 import { serveDocsOpen } from "../Start/extension/docs-open";
@@ -88,7 +88,7 @@ function openTopologyEditor(context: vscode.ExtensionContext, folderUri?: vscode
       retainContextWhenHidden: true,
       localResourceRoots: [
         vscode.Uri.file(path.join(context.extensionPath, "out")),
-        vscode.Uri.file(path.join(context.extensionPath, "src")),
+        vscode.Uri.file(path.join(realPath(context.extensionPath), "Categories")),
         ...sceneRoots(topologyPath).map((dir) => vscode.Uri.file(dir)),
       ],
     },
