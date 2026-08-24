@@ -29,7 +29,7 @@ export async function loadCameraBlockPath(): Promise<string | undefined> {
   const b = bases();
   if (!b) return undefined;
   try {
-    const res = await fetch(`${b.src}/Camera/paths/block.bin`, { cache: "default" });
+    const res = await fetch(`${b.src}/Categories/Scene/Camera/paths/block.bin`, { cache: "default" });
     if (!res.ok) return undefined;
     return await res.text();
   } catch {
