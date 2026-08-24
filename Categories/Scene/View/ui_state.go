@@ -39,19 +39,9 @@ type UIState struct {
 
 	Constants polarindex.SceneConstants
 
-	sceneRoot       string
-	rulesValues     *PolarRulesPanel.ValueWriter
-	nodesPillValues *NodesDropdown.ValueWriter
-	anglePillValues *AngleDropdown.ValueWriter
-	tabStripValues  *Tabs.ValueWriter
-	tiltPanelValues *TiltPanel.ValueWriter
+	sceneRoot string
 
-	overlaysPillValues  *Pills.ValueWriter
-	ringPointValues     *RingPoint.ValueWriter
-	pointerTargetValues *Panels.ValueWriter
-	sliderPanelValues   *SliderPanel.ValueWriter
-	ownerCountsValues   *Scene.CountsValueWriter
-	fitChipValues       *FitButton.ValueWriter
+	Counts Scene.CountsState
 
 	OwnerCounts struct{ Nodes, Edges int32 }
 
@@ -91,9 +81,15 @@ type UIState struct {
 
 	OverlaysPill Pills.State
 
+	// The pieces that have no other memory still own their block's writer.
+	Slider     SliderPanel.State
+	Fit        FitButton.State
+	RingPoints RingPoint.State
+	PointerBlk Panels.State
+
 	Angle AngleDropdown.State
 
-	Nodes        NodesDropdown.State
+	Nodes NodesDropdown.State
 
 	TabStrip Tabs.State
 

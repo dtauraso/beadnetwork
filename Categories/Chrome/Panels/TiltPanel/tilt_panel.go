@@ -136,6 +136,10 @@ func (l Layout) Hit(x, y float64) Button {
 }
 
 type State struct {
+	w *ValueWriter // this piece's own writer, armed when the scene opens
+
 	Rows   []int32
 	Labels []string
 }
+
+func (s *State) Arm(sceneRoot string) { s.w = NewValueWriter(sceneRoot) }

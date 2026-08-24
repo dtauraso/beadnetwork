@@ -1,17 +1,6 @@
 package View
 
 import (
-	"github.com/dtauraso/wirefold/Categories/Chrome/Panels"
-	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/PolarRulesPanel"
-	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/SliderPanel"
-	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/TiltPanel"
-	"github.com/dtauraso/wirefold/Categories/Chrome/Pills"
-	"github.com/dtauraso/wirefold/Categories/Chrome/Pills/AngleDropdown"
-	"github.com/dtauraso/wirefold/Categories/Chrome/Pills/FitButton"
-	"github.com/dtauraso/wirefold/Categories/Chrome/Pills/NodesDropdown"
-	"github.com/dtauraso/wirefold/Categories/Chrome/Tabs"
-	"github.com/dtauraso/wirefold/Categories/RingPoint"
-	"github.com/dtauraso/wirefold/Categories/Scene"
 	"github.com/dtauraso/wirefold/Categories/Scene/Camera"
 )
 
@@ -20,31 +9,29 @@ func (ui *UIState) SetSceneRoot(sceneRoot string) {
 		return
 	}
 	ui.sceneRoot = sceneRoot
-	ui.rulesValues = PolarRulesPanel.NewValueWriter(sceneRoot)
-	ui.nodesPillValues = NodesDropdown.NewValueWriter(sceneRoot)
-	ui.anglePillValues = AngleDropdown.NewValueWriter(sceneRoot)
-	ui.tabStripValues = Tabs.NewValueWriter(sceneRoot)
-	ui.fitChipValues = FitButton.NewValueWriter(sceneRoot)
-	ui.tiltPanelValues = TiltPanel.NewValueWriter(sceneRoot)
-	ui.overlaysPillValues = Pills.NewValueWriter(sceneRoot)
-	ui.ringPointValues = RingPoint.NewValueWriter(sceneRoot)
-	ui.pointerTargetValues = Panels.NewValueWriter(sceneRoot)
-	ui.sliderPanelValues = SliderPanel.NewValueWriter(sceneRoot)
-	ui.ownerCountsValues = Scene.NewCountsValueWriter(sceneRoot)
+	// Each piece arms its own writer: the view says where the scene is, and every
+	// piece opens its own block. Nothing here holds another piece's writer.
+	ui.Rules.Arm(sceneRoot)
+	ui.Nodes.Arm(sceneRoot)
+	ui.Angle.Arm(sceneRoot)
+	ui.TabStrip.Arm(sceneRoot)
+	ui.Fit.Arm(sceneRoot)
+	ui.Tilt.Arm(sceneRoot)
+	ui.OverlaysPill.Arm(sceneRoot)
+	ui.RingPoints.Arm(sceneRoot)
+	ui.PointerBlk.Arm(sceneRoot)
+	ui.Slider.Arm(sceneRoot)
+	ui.Counts.Arm(sceneRoot)
 }
 
 func (ui *UIState) writeSceneColumns() {
-	w := ui.ownerCountsValues
-	if w == nil {
-		return
-	}
-	if err := w.Write(ui.OwnerCounts.Nodes, ui.OwnerCounts.Edges); err != nil {
+	if err := ui.Counts.Write(ui.OwnerCounts.Nodes, ui.OwnerCounts.Edges); err != nil {
 		LogPersistErr("owner_counts_values", "", err)
 	}
 }
 
 func (ui *UIState) WriteRingSurfaces(nodePts, beadPts []float32) {
-	w := ui.ringPointValues
+	w := ui.RingPoints.W()
 	if w == nil {
 		return
 	}
@@ -61,7 +48,7 @@ func (ui *UIState) FovDeg() float64 {
 }
 
 func (ui *UIState) writePointerTargetColumns() {
-	w := ui.pointerTargetValues
+	w := ui.PointerBlk.W()
 	if w == nil {
 		return
 	}

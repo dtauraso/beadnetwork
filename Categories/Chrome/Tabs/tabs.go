@@ -17,4 +17,10 @@ func SelectedIndex(anchorPath string) int {
 type State struct {
 	Names    []string
 	Selected int
+
+	// The strip's own writer, armed when the scene opens. It is unexported:
+	// nothing outside can write this block.
+	w *ValueWriter
 }
+
+func (s *State) Arm(sceneRoot string) { s.w = NewValueWriter(sceneRoot) }

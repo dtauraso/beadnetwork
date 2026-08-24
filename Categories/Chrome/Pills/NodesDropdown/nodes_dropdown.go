@@ -146,6 +146,8 @@ func (l Layout) Hit(x, y float64) Hit {
 }
 
 type State struct {
+	w *ValueWriter // this piece's own writer, armed when the scene opens
+
 	Open bool
 
 	RowOpen map[uint8]bool
@@ -169,3 +171,5 @@ func PaletteKinds(sceneKinds uint32, editable bool, rowOpen map[uint8]bool) []Ki
 	}
 	return out
 }
+
+func (s *State) Arm(sceneRoot string) { s.w = NewValueWriter(sceneRoot) }

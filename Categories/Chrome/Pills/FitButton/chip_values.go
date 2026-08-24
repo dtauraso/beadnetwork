@@ -30,3 +30,11 @@ func (w *ValueWriter) Rect(xName, yName, wName, hName string, r Pills.Rect) {
 	w.F32(wName, r.W)
 	w.F32(hName, r.H)
 }
+
+// State is this piece's own: it carries the writer for its block, armed when
+// the scene opens, so nothing outside can write it.
+type State struct {
+	w *ValueWriter
+}
+
+func (s *State) Arm(sceneRoot string) { s.w = NewValueWriter(sceneRoot) }

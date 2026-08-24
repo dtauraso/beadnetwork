@@ -23,3 +23,18 @@ func (w *CountsValueWriter) Write(nodes, edges int32) error {
 	w.I32("edges", edges)
 	return w.Flush()
 }
+
+// CountsState carries the owner-counts writer, armed when the scene opens. The
+// counts are the scene's own block, so the scene owns the writer for it.
+type CountsState struct {
+	w *CountsValueWriter
+}
+
+func (s *CountsState) Arm(sceneRoot string) { s.w = NewCountsValueWriter(sceneRoot) }
+
+func (s *CountsState) Write(nodes, edges int32) error {
+	if s.w == nil {
+		return nil
+	}
+	return s.w.Write(nodes, edges)
+}

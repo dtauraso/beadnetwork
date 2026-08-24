@@ -40,5 +40,9 @@ func (w *ValueWriter) Rect(xName, yName, wName, hName string, r Rect) {
 }
 
 type State struct {
+	w *ValueWriter // this piece's own writer, armed when the scene opens
+
 	Scroll float32
 }
+
+func (s *State) Arm(sceneRoot string) { s.w = NewValueWriter(sceneRoot) }

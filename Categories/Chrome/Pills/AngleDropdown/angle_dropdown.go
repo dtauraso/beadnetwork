@@ -200,6 +200,10 @@ func (l Layout) Hit(x, y float64) Hit {
 }
 
 type State struct {
+	w *ValueWriter // this piece's own writer, armed when the scene opens
+
 	Open      bool
 	GroupOpen map[int32]bool
 }
+
+func (s *State) Arm(sceneRoot string) { s.w = NewValueWriter(sceneRoot) }
