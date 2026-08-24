@@ -3,14 +3,14 @@ package Dispatch
 import (
 	"fmt"
 
-	clock "github.com/dtauraso/wirefold/Categories/Clock"
-	"github.com/dtauraso/wirefold/Categories/Node"
-	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
-	edge "github.com/dtauraso/wirefold/Categories/Node/Edge"
-	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgegeom"
-	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgetable"
-	interior "github.com/dtauraso/wirefold/Categories/Node/Interior"
-	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
+	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
+	"github.com/dtauraso/beadnetwork/Categories/Node"
+	beadanimation "github.com/dtauraso/beadnetwork/Categories/Node/BeadAnimation"
+	edge "github.com/dtauraso/beadnetwork/Categories/Node/Edge"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Edge/edgegeom"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Edge/edgetable"
+	interior "github.com/dtauraso/beadnetwork/Categories/Node/Interior"
+	"github.com/dtauraso/beadnetwork/Categories/Polar/polarindex"
 )
 
 func (md *MoveDispatch) buildNodeMovers(geoms map[string]Node.NodeGeom, clk clock.Clock, constants polarindex.SceneConstants) {

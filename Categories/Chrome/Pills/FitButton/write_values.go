@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	Pills "github.com/dtauraso/wirefold/Categories/Chrome/Pills"
+	Pills "github.com/dtauraso/beadnetwork/Categories/Chrome/Pills"
 )
 
 func (s *State) Write(r Pills.Rect) {

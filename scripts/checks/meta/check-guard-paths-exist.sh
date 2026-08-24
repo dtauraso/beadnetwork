@@ -14,7 +14,7 @@ import re
 import sys
 
 SCAN_DIRS = ["."]
-SKIP_DIRS = {"node_modules", "out", ".git", ".probe", ".wirefold-cache", "target"}
+SKIP_DIRS = {"node_modules", "out", ".git", ".probe", ".beadnetwork-cache", "target"}
 
 TOPS = tuple(sorted(p.name + "/" for p in pathlib.Path(".").iterdir()
                     if p.is_dir() and not p.name.startswith(".") or p.name == ".githooks"))

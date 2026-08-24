@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/dtauraso/wirefold/Categories/Polar/polar"
+	"github.com/dtauraso/beadnetwork/Categories/Polar/polar"
 )
 
 func WriteSpawnIdentity(sceneRoot string) {

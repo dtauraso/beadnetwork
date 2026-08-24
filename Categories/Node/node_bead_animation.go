@@ -3,7 +3,7 @@ package Node
 import (
 	"context"
 
-	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
+	beadanimation "github.com/dtauraso/beadnetwork/Categories/Node/BeadAnimation"
 )
 
 type NodeBeadAnimation struct {

@@ -3,7 +3,7 @@ import os, re, subprocess, sys
 def run(*a):
     return subprocess.run(a, capture_output=True, text=True).stdout
 
-base = os.environ.get("WIREFOLD_COMMENT_BASE") or ""
+base = os.environ.get("BEADNETWORK_COMMENT_BASE") or ""
 if not base:
     for cand in ("origin/main", "main"):
         if run("git", "rev-parse", "--verify", "-q", cand).strip():

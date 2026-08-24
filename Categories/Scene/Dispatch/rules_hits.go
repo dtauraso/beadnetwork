@@ -3,9 +3,9 @@ package Dispatch
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/Panel"
-	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/PolarRulesPanel"
-	NodeKind "github.com/dtauraso/wirefold/Categories/Node"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Panel"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/PolarRulesPanel"
+	NodeKind "github.com/dtauraso/beadnetwork/Categories/Node"
 )
 
 func applyRulesHit(ctx context.Context, md *MoveDispatch, h PolarRulesPanel.Hit) {

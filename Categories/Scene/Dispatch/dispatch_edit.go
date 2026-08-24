@@ -4,16 +4,16 @@ import (
 	"context"
 	"fmt"
 
-	Chrome "github.com/dtauraso/wirefold/Categories/Chrome"
+	Chrome "github.com/dtauraso/beadnetwork/Categories/Chrome"
 
-	NodeKind "github.com/dtauraso/wirefold/Categories/Node"
+	NodeKind "github.com/dtauraso/beadnetwork/Categories/Node"
 
-	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/Panel"
-	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/SliderPanel"
-	edge "github.com/dtauraso/wirefold/Categories/Node/Edge"
-	"github.com/dtauraso/wirefold/Categories/Overlay"
-	"github.com/dtauraso/wirefold/Categories/Scene/Drag"
-	Speed "github.com/dtauraso/wirefold/Categories/Speed"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Panel"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/SliderPanel"
+	edge "github.com/dtauraso/beadnetwork/Categories/Node/Edge"
+	"github.com/dtauraso/beadnetwork/Categories/Overlay"
+	"github.com/dtauraso/beadnetwork/Categories/Scene/Drag"
+	Speed "github.com/dtauraso/beadnetwork/Categories/Speed"
 )
 
 func HandleRawInputMsg(ctx context.Context, ev Drag.RawInputMsg, md *MoveDispatch, speedSinks SliderPanel.Sinks) {

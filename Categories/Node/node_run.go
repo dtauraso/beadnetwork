@@ -3,7 +3,7 @@ package Node
 import (
 	"context"
 
-	clock "github.com/dtauraso/wirefold/Categories/Clock"
+	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
 )
 
 func (g *NodeGeometry) RunGeometry(ctx context.Context) {

@@ -4,20 +4,20 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/dtauraso/wirefold/Categories/Scene/Topology"
+	"github.com/dtauraso/beadnetwork/Categories/Scene/Topology"
 
-	"github.com/dtauraso/wirefold/Categories/Scene/Scenes"
+	"github.com/dtauraso/beadnetwork/Categories/Scene/Scenes"
 
-	"github.com/dtauraso/wirefold/Categories/Scene/Dispatch"
+	"github.com/dtauraso/beadnetwork/Categories/Scene/Dispatch"
 
-	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/SliderPanel"
-	"github.com/dtauraso/wirefold/Categories/Chrome/Pills/AngleDropdown"
-	clock "github.com/dtauraso/wirefold/Categories/Clock"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/SliderPanel"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/AngleDropdown"
+	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
 
-	NodeBuf "github.com/dtauraso/wirefold/Categories/Node"
-	edge "github.com/dtauraso/wirefold/Categories/Node/Edge"
-	"github.com/dtauraso/wirefold/Categories/Polar/polar"
-	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
+	NodeBuf "github.com/dtauraso/beadnetwork/Categories/Node"
+	edge "github.com/dtauraso/beadnetwork/Categories/Node/Edge"
+	"github.com/dtauraso/beadnetwork/Categories/Polar/polar"
+	"github.com/dtauraso/beadnetwork/Categories/Polar/polarindex"
 )
 
 func NewFromSpec(spec Topology.TopoSpec, sphere polar.SceneSphere, hasScene bool, scenePath string, clk clock.Clock, speedSinks *SliderPanel.Sinks, nodeGeoms map[string]NodeBuf.NodeGeom, edgeEndpoints map[string]edge.EdgeEndpoints, baseIndices map[string]polarindex.Index, dragIndices map[string]polarindex.Offset) (*Dispatch.MoveDispatch, error) {

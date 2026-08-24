@@ -10,16 +10,16 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/dtauraso/wirefold/Categories/Scene/Startup"
+	"github.com/dtauraso/beadnetwork/Categories/Scene/Startup"
 
-	"github.com/dtauraso/wirefold/Categories/Chrome/Tabs"
-	clock "github.com/dtauraso/wirefold/Categories/Clock"
-	NodeKind "github.com/dtauraso/wirefold/Categories/Node"
-	EdgeB "github.com/dtauraso/wirefold/Categories/Node/Edge"
-	bead "github.com/dtauraso/wirefold/Categories/Ring/Bead"
-	NodeShape "github.com/dtauraso/wirefold/Categories/Ring/NodeShape"
-	SceneB "github.com/dtauraso/wirefold/Categories/Scene"
-	"github.com/dtauraso/wirefold/Categories/Scene/Scenes"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Tabs"
+	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
+	NodeKind "github.com/dtauraso/beadnetwork/Categories/Node"
+	EdgeB "github.com/dtauraso/beadnetwork/Categories/Node/Edge"
+	bead "github.com/dtauraso/beadnetwork/Categories/Ring/Bead"
+	NodeShape "github.com/dtauraso/beadnetwork/Categories/Ring/NodeShape"
+	SceneB "github.com/dtauraso/beadnetwork/Categories/Scene"
+	"github.com/dtauraso/beadnetwork/Categories/Scene/Scenes"
 )
 
 func run(ctx context.Context, cancel context.CancelFunc, topologyPath string, clk clock.Clock) {

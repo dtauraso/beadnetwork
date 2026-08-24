@@ -12,7 +12,7 @@ export function armGoWatcher(
   panel: vscode.WebviewPanel,
 ): vscode.FileSystemWatcher | undefined {
   if (!repoRoot) return undefined;
-  const binPath = path.join(repoRoot, ".wirefold-cache", "wirefold");
+  const binPath = path.join(repoRoot, ".beadnetwork-cache", "beadnetwork");
   const goErrorsFile = path.join(repoRoot, ".probe", "go-errors.log");
   const goChannel = vscode.window.createOutputChannel("topology go-build");
   const goWatcher = vscode.workspace.createFileSystemWatcher(
@@ -23,7 +23,7 @@ export function armGoWatcher(
     debouncer.schedule(() => {
       const res = buildBinary(repoRoot, binPath);
       if (shouldRestartAfterBuild(res)) {
-        goChannel.appendLine("[go] rebuilt wirefold");
+        goChannel.appendLine("[go] rebuilt beadnetwork");
 
         if (runner.restart()) {
           goChannel.appendLine("[go] hot-restarting sim");

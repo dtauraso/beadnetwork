@@ -1,7 +1,7 @@
 package View
 
 import (
-	"github.com/dtauraso/wirefold/Categories/Scene/Camera"
+	"github.com/dtauraso/beadnetwork/Categories/Scene/Camera"
 )
 
 func (ui *UIState) SetSceneRoot(sceneRoot string) {

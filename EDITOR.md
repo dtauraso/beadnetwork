@@ -17,7 +17,7 @@ If you already have Go, Node, VS Code and a clone of the repo, skip to
 
 # Build
 
-From the repo root (`~/Documents/wirefold`):
+From the repo root (`~/Documents/beadnetwork`):
 
 ```sh
 npm install

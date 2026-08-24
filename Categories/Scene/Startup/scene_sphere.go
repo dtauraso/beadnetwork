@@ -1,9 +1,9 @@
 package Startup
 
 import (
-	"github.com/dtauraso/wirefold/Categories/Polar/polar"
-	SceneBuf "github.com/dtauraso/wirefold/Categories/Scene"
-	"github.com/dtauraso/wirefold/Categories/Scene/View"
+	"github.com/dtauraso/beadnetwork/Categories/Polar/polar"
+	SceneBuf "github.com/dtauraso/beadnetwork/Categories/Scene"
+	"github.com/dtauraso/beadnetwork/Categories/Scene/View"
 )
 
 func LoadSceneSphere(topologyPath string) (polar.SceneSphere, bool) {

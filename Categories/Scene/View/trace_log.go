@@ -28,7 +28,7 @@ func (ui *UIState) OverlayBreadcrumb(label, scope string, on bool) {
 	})
 }
 
-var traceEnabled = os.Getenv("WIREFOLD_PROBE_TRACE") == "1"
+var traceEnabled = os.Getenv("BEADNETWORK_PROBE_TRACE") == "1"
 
 func appendTrace(path string, events []RowEvent) {
 	if len(events) == 0 {

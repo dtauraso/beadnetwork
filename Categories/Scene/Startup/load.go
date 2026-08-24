@@ -3,20 +3,20 @@ package Startup
 import (
 	"context"
 
-	Ports "github.com/dtauraso/wirefold/Categories/Node/Ports"
+	Ports "github.com/dtauraso/beadnetwork/Categories/Node/Ports"
 
-	"github.com/dtauraso/wirefold/Categories/Scene/Topology"
+	"github.com/dtauraso/beadnetwork/Categories/Scene/Topology"
 
-	NodeBuf "github.com/dtauraso/wirefold/Categories/Node"
+	NodeBuf "github.com/dtauraso/beadnetwork/Categories/Node"
 
-	"github.com/dtauraso/wirefold/Categories/Scene/Scenes"
+	"github.com/dtauraso/beadnetwork/Categories/Scene/Scenes"
 
-	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/SliderPanel"
-	clock "github.com/dtauraso/wirefold/Categories/Clock"
-	_ "github.com/dtauraso/wirefold/Categories/NodeKinds"
-	"github.com/dtauraso/wirefold/Categories/Scene/Camera"
-	"github.com/dtauraso/wirefold/Categories/Scene/Dispatch"
-	"github.com/dtauraso/wirefold/Categories/Scene/View"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/SliderPanel"
+	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
+	_ "github.com/dtauraso/beadnetwork/Categories/NodeKinds"
+	"github.com/dtauraso/beadnetwork/Categories/Scene/Camera"
+	"github.com/dtauraso/beadnetwork/Categories/Scene/Dispatch"
+	"github.com/dtauraso/beadnetwork/Categories/Scene/View"
 )
 
 type Scene struct {

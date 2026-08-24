@@ -3,14 +3,14 @@ package Dispatch
 import (
 	"fmt"
 
-	"github.com/dtauraso/wirefold/Categories/Scene"
+	"github.com/dtauraso/beadnetwork/Categories/Scene"
 
-	"github.com/dtauraso/wirefold/Categories/Node"
-	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgefile"
-	"github.com/dtauraso/wirefold/Categories/Polar/polar"
-	"github.com/dtauraso/wirefold/Categories/Scene/Camera"
-	"github.com/dtauraso/wirefold/Categories/Scene/Scenes"
-	"github.com/dtauraso/wirefold/Categories/Scene/View"
+	"github.com/dtauraso/beadnetwork/Categories/Node"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Edge/edgefile"
+	"github.com/dtauraso/beadnetwork/Categories/Polar/polar"
+	"github.com/dtauraso/beadnetwork/Categories/Scene/Camera"
+	"github.com/dtauraso/beadnetwork/Categories/Scene/Scenes"
+	"github.com/dtauraso/beadnetwork/Categories/Scene/View"
 )
 
 func CreateNode(scenes *Scenes.SceneSwitch, ui *View.UIState, nodeGeoms map[string]*Node.NodeGeometry, nearestTo func(View.Vec3) (string, bool), kindID uint8, ndcX, ndcY float64) {

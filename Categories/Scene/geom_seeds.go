@@ -1,8 +1,8 @@
 package Scene
 
 import (
-	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgegeom"
-	"github.com/dtauraso/wirefold/Categories/Node"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Edge/edgegeom"
+	"github.com/dtauraso/beadnetwork/Categories/Node"
 )
 
 type GeomSeeds struct {

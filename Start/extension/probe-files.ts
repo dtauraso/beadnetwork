@@ -24,7 +24,7 @@ export const PROBE_TRACE_FILES = [
   PROBE_FILES.ts,
 ] as const;
 
-export const PROBE_TRACE_SETTING_SECTION = "wirefold";
+export const PROBE_TRACE_SETTING_SECTION = "beadnetwork";
 export const PROBE_TRACE_SETTING_KEY = "probe.trace";
 
 export function isProbeTraceEnabled(): boolean {

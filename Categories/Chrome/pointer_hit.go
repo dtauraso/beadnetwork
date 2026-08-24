@@ -1,12 +1,12 @@
 package Chrome
 
 import (
-	Panels "github.com/dtauraso/wirefold/Categories/Chrome/Panels"
-	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/Panel"
-	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/PolarRulesPanel"
-	"github.com/dtauraso/wirefold/Categories/Chrome/Pills"
-	"github.com/dtauraso/wirefold/Categories/Chrome/Pills/AngleDropdown"
-	"github.com/dtauraso/wirefold/Categories/Chrome/Pills/NodesDropdown"
+	Panels "github.com/dtauraso/beadnetwork/Categories/Chrome/Panels"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Panel"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/PolarRulesPanel"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/AngleDropdown"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/NodesDropdown"
 )
 
 func TargetAt(pl Layout, x, y float64) Panels.PointerTarget {

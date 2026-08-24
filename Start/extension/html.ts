@@ -59,7 +59,7 @@ export function buildWebviewHtml(
   <div id="app"></div>
   <script nonce="${nonce}">
     setTimeout(function () {
-      if (window.WIREFOLD_BOOTED) return;
+      if (window.BEADNETWORK_BOOTED) return;
       var app = document.getElementById("app");
       if (!app) return;
       app.innerHTML =
@@ -72,10 +72,10 @@ export function buildWebviewHtml(
         'threw while evaluating; the webview devtools console has the error.' +
         '</pre>';
     }, 3000);
-    window.WIREFOLD_SCENE_BASE = "${sceneBase}";
-    window.WIREFOLD_SRC_BASE = "${srcBase}";
-    window.WIREFOLD_ANCHOR_BASE = "${anchorBase}";
-    window.WIREFOLD_SCENE_BASES = ${JSON.stringify(sceneBases)};
+    window.BEADNETWORK_SCENE_BASE = "${sceneBase}";
+    window.BEADNETWORK_SRC_BASE = "${srcBase}";
+    window.BEADNETWORK_ANCHOR_BASE = "${anchorBase}";
+    window.BEADNETWORK_SCENE_BASES = ${JSON.stringify(sceneBases)};
   </script>
   <script nonce="${nonce}" src="${scriptUri.toString()}"></script>
 </body>

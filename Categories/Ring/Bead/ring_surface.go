@@ -3,7 +3,7 @@ package bead
 import (
 	"sync"
 
-	Ring "github.com/dtauraso/wirefold/Categories/Ring"
+	Ring "github.com/dtauraso/beadnetwork/Categories/Ring"
 )
 
 const (

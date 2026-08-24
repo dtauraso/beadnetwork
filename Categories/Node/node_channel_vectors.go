@@ -1,7 +1,7 @@
 package Node
 
 import (
-	"github.com/dtauraso/wirefold/Categories/Node/ChannelVectors"
+	"github.com/dtauraso/beadnetwork/Categories/Node/ChannelVectors"
 )
 
 func (m *NodeGeometry) pollChannelVectors() {

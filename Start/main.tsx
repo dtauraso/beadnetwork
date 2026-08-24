@@ -2,9 +2,9 @@ import { vscode } from "../Start/extension/webview/vscode-api";
 import { postLog } from "../Start/extension/webview/log/post";
 
 declare global {
-  interface Window { WIREFOLD_BOOTED?: boolean }
+  interface Window { BEADNETWORK_BOOTED?: boolean }
 }
-window.WIREFOLD_BOOTED = true;
+window.BEADNETWORK_BOOTED = true;
 
 postLog("lifecycle", { phase: "bundle-eval" });
 

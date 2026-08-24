@@ -3,7 +3,7 @@ package selectleft
 import (
 	"context"
 
-	Speed "github.com/dtauraso/wirefold/Categories/Speed"
+	Speed "github.com/dtauraso/beadnetwork/Categories/Speed"
 )
 
 func runGateLoop(ctx context.Context, g *GateNode, captureLeftFn, captureRightFn func(*GateNode) bool, fireResult func(*GateNode) int) {

@@ -3,10 +3,10 @@ package main
 //go:generate go run .
 
 import (
-	"github.com/dtauraso/wirefold/scripts/genpaths"
+	"github.com/dtauraso/beadnetwork/scripts/genpaths"
 	"path/filepath"
 
-	"github.com/dtauraso/wirefold/scripts/genpaths/params"
+	"github.com/dtauraso/beadnetwork/scripts/genpaths/params"
 )
 
 func main() {

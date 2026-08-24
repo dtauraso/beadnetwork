@@ -3,7 +3,7 @@ package Node
 import (
 	"path/filepath"
 
-	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/PolarRulesPanel"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/PolarRulesPanel"
 )
 
 const (

@@ -1,8 +1,8 @@
 package Node
 
 import (
-	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgetable"
-	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Edge/edgetable"
+	"github.com/dtauraso/beadnetwork/Categories/Polar/polarindex"
 )
 
 func (mv *NodeMover) CommitNodeMoveLocal(nodeGeoms map[string]*NodeGeometry, edgeTable map[string]*edgetable.Edge, nm *NodeGeometry, committedIdx polarindex.Index) {

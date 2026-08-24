@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strconv"
 
-	clock "github.com/dtauraso/wirefold/Categories/Clock"
+	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
 
-	"github.com/dtauraso/wirefold/Categories/NodeKinds/PairNode/tiltring"
+	"github.com/dtauraso/beadnetwork/Categories/NodeKinds/PairNode/tiltring"
 )
 
 func (n *Node) wirePlumbing(a BuildArgs) {

@@ -55,8 +55,8 @@ export function makeLeafValues<N extends string>(
     started = true;
     const pump = async () => {
       for (;;) {
-        const scene = window.WIREFOLD_SCENE_BASE;
-        const src = window.WIREFOLD_SRC_BASE;
+        const scene = window.BEADNETWORK_SCENE_BASE;
+        const src = window.BEADNETWORK_SRC_BASE;
         if (scene && src) {
           if (blockPath === undefined) {
             const p = await readUrl(`${src}/${pathsDir}/block.bin`, "default");

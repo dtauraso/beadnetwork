@@ -3,7 +3,7 @@ import * as fs from "fs";
 import * as path from "path";
 
 const GO_WALK_EXCLUDE = new Set([
-  "node_modules", ".git", "out", ".probe", ".wirefold-cache", "handoff-archive",
+  "node_modules", ".git", "out", ".probe", ".beadnetwork-cache", "handoff-archive",
 ]);
 
 export function maxGoMtime(dir: string): number {
@@ -61,7 +61,7 @@ export function killOrphanedSims(binPath: string, exceptPid?: number): { killed:
 
     if (pid === self || (exceptPid !== undefined && pid === exceptPid)) continue;
 
-    if (!command.includes("wirefold")) continue;
+    if (!command.includes("beadnetwork")) continue;
     if (!command.includes(binPath) && !command.includes("-topology")) continue;
     try {
       process.kill(pid, "SIGKILL");

@@ -1,4 +1,4 @@
-# wirefold
+# beadnetwork
 
 ## The vision
 

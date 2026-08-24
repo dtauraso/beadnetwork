@@ -3,8 +3,8 @@ package input
 import (
 	"math"
 
-	NodeDrag "github.com/dtauraso/wirefold/Categories/Node/Drag"
-	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
+	NodeDrag "github.com/dtauraso/beadnetwork/Categories/Node/Drag"
+	"github.com/dtauraso/beadnetwork/Categories/Polar/polarindex"
 )
 
 func trimOwnDrag(delta polarindex.Offset, st NodeDrag.State) polarindex.Offset {

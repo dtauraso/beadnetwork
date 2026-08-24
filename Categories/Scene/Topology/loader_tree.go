@@ -7,10 +7,10 @@ import (
 	"sort"
 	"strconv"
 
-	NodeBuf "github.com/dtauraso/wirefold/Categories/Node"
+	NodeBuf "github.com/dtauraso/beadnetwork/Categories/Node"
 
-	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgefile"
-	SceneBuf "github.com/dtauraso/wirefold/Categories/Scene"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Edge/edgefile"
+	SceneBuf "github.com/dtauraso/beadnetwork/Categories/Scene"
 )
 
 func LoadTree(root string) (TopoSpec, error) {

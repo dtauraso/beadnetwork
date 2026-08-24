@@ -12,7 +12,7 @@ export function postLog(label: string, data?: Record<string, unknown>): void {
     label,
     ...(data as LogFields),
   });
-  console.log(`[wirefold] ${label}`, data ?? {});
+  console.log(`[beadnetwork] ${label}`, data ?? {});
   if (typeof window === "undefined") return;
   try {
     (vscode as unknown as { postMessage(msg: unknown): void }).postMessage({ type: "webview-log", entry });

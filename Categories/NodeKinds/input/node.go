@@ -3,9 +3,9 @@ package input
 import (
 	"context"
 
-	clock "github.com/dtauraso/wirefold/Categories/Clock"
-	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
-	Speed "github.com/dtauraso/wirefold/Categories/Speed"
+	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
+	beadanimation "github.com/dtauraso/beadnetwork/Categories/Node/BeadAnimation"
+	Speed "github.com/dtauraso/beadnetwork/Categories/Speed"
 )
 
 type Node struct {

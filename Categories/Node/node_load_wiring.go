@@ -1,9 +1,9 @@
 package Node
 
 import (
-	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
-	interior "github.com/dtauraso/wirefold/Categories/Node/Interior"
-	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
+	beadanimation "github.com/dtauraso/beadnetwork/Categories/Node/BeadAnimation"
+	interior "github.com/dtauraso/beadnetwork/Categories/Node/Interior"
+	"github.com/dtauraso/beadnetwork/Categories/Polar/polarindex"
 )
 
 func (m *NodeGeometry) SetSelfKind(kind string) {

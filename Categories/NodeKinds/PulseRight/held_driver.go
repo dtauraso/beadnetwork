@@ -1,8 +1,8 @@
 package pulseright
 
 import (
-	lattice "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation/lattice"
-	interior "github.com/dtauraso/wirefold/Categories/Node/Interior"
+	lattice "github.com/dtauraso/beadnetwork/Categories/Node/BeadAnimation/lattice"
+	interior "github.com/dtauraso/beadnetwork/Categories/Node/Interior"
 )
 
 type HeldDriver struct {

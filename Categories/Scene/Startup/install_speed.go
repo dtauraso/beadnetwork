@@ -1,12 +1,12 @@
 package Startup
 
 import (
-	Speed "github.com/dtauraso/wirefold/Categories/Speed"
+	Speed "github.com/dtauraso/beadnetwork/Categories/Speed"
 
-	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/SliderPanel"
-	"github.com/dtauraso/wirefold/Categories/Scene/Scenes"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/SliderPanel"
+	"github.com/dtauraso/beadnetwork/Categories/Scene/Scenes"
 
-	"github.com/dtauraso/wirefold/Categories/Scene/View"
+	"github.com/dtauraso/beadnetwork/Categories/Scene/View"
 )
 
 func InstallSpeed(ui *View.UIState, topologyPath string, speedSinks SliderPanel.Sinks) {

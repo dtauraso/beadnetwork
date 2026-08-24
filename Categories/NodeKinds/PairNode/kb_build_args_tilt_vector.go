@@ -1,8 +1,8 @@
 package PairNode
 
 import (
-	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/TiltPanel"
-	"github.com/dtauraso/wirefold/Categories/Node/TiltVectors"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/TiltPanel"
+	"github.com/dtauraso/beadnetwork/Categories/Node/TiltVectors"
 )
 
 func (a BuildArgs) TiltVectorAngleSeed() (theta int32) {

@@ -2,9 +2,9 @@ package Node
 
 import (
 	"context"
-	clock "github.com/dtauraso/wirefold/Categories/Clock"
+	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
 
-	Speed "github.com/dtauraso/wirefold/Categories/Speed"
+	Speed "github.com/dtauraso/beadnetwork/Categories/Speed"
 )
 
 type Clocks struct {

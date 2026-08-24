@@ -1,7 +1,7 @@
 package bead
 
 import (
-	lattice "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation/lattice"
+	lattice "github.com/dtauraso/beadnetwork/Categories/Node/BeadAnimation/lattice"
 )
 
 const ShadingParamBeadRadius = lattice.BeadRadius

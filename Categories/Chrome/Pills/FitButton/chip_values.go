@@ -3,7 +3,7 @@ package FitButton
 import (
 	"path/filepath"
 
-	Pills "github.com/dtauraso/wirefold/Categories/Chrome/Pills"
+	Pills "github.com/dtauraso/beadnetwork/Categories/Chrome/Pills"
 )
 
 const ValueRelFile = "view/chrome/fit-chip.bin"

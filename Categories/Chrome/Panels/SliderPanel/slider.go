@@ -1,9 +1,9 @@
 package SliderPanel
 
 import (
-	clock "github.com/dtauraso/wirefold/Categories/Clock"
-	Speed "github.com/dtauraso/wirefold/Categories/Speed"
-	lattice "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation/lattice"
+	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
+	Speed "github.com/dtauraso/beadnetwork/Categories/Speed"
+	lattice "github.com/dtauraso/beadnetwork/Categories/Node/BeadAnimation/lattice"
 )
 
 const Paused int64 = 0

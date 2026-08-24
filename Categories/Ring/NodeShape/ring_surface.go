@@ -3,8 +3,8 @@ package NodeShape
 import (
 	"sync"
 
-	"github.com/dtauraso/wirefold/Categories/Node"
-	Ring "github.com/dtauraso/wirefold/Categories/Ring"
+	"github.com/dtauraso/beadnetwork/Categories/Node"
+	Ring "github.com/dtauraso/beadnetwork/Categories/Ring"
 )
 
 const (

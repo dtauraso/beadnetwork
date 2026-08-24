@@ -1,14 +1,14 @@
 package Node
 
 import (
-	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/TiltPanel"
-	clock "github.com/dtauraso/wirefold/Categories/Clock"
-	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
-	"github.com/dtauraso/wirefold/Categories/Node/ChannelVectors"
-	NodeDrag "github.com/dtauraso/wirefold/Categories/Node/Drag"
-	interior "github.com/dtauraso/wirefold/Categories/Node/Interior"
-	"github.com/dtauraso/wirefold/Categories/Node/TiltVectors"
-	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/TiltPanel"
+	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
+	beadanimation "github.com/dtauraso/beadnetwork/Categories/Node/BeadAnimation"
+	"github.com/dtauraso/beadnetwork/Categories/Node/ChannelVectors"
+	NodeDrag "github.com/dtauraso/beadnetwork/Categories/Node/Drag"
+	interior "github.com/dtauraso/beadnetwork/Categories/Node/Interior"
+	"github.com/dtauraso/beadnetwork/Categories/Node/TiltVectors"
+	"github.com/dtauraso/beadnetwork/Categories/Polar/polarindex"
 )
 
 type NodeGeometry struct {

@@ -3,8 +3,8 @@ package Pills
 import (
 	"fmt"
 
-	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/Panel"
-	"github.com/dtauraso/wirefold/Categories/Overlay"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Panel"
+	"github.com/dtauraso/beadnetwork/Categories/Overlay"
 )
 
 type Rect = Panel.Rect

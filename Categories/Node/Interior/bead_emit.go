@@ -3,9 +3,9 @@ package interior
 import (
 	"context"
 
-	clock "github.com/dtauraso/wirefold/Categories/Clock"
-	Speed "github.com/dtauraso/wirefold/Categories/Speed"
-	lattice "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation/lattice"
+	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
+	Speed "github.com/dtauraso/beadnetwork/Categories/Speed"
+	lattice "github.com/dtauraso/beadnetwork/Categories/Node/BeadAnimation/lattice"
 )
 
 func EmitNodeBeads(nodeName string, working, backup []int, emitter *Emitter) {

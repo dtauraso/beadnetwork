@@ -4,17 +4,17 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/dtauraso/wirefold/Categories/Scene/Topology"
+	"github.com/dtauraso/beadnetwork/Categories/Scene/Topology"
 
-	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/SliderPanel"
-	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/TiltPanel"
-	clock "github.com/dtauraso/wirefold/Categories/Clock"
-	NodeBuf "github.com/dtauraso/wirefold/Categories/Node"
-	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
-	Ports "github.com/dtauraso/wirefold/Categories/Node/Ports"
-	"github.com/dtauraso/wirefold/Categories/Node/TiltVectors"
-	"github.com/dtauraso/wirefold/Categories/NodeKinds"
-	"github.com/dtauraso/wirefold/Categories/Scene/Dispatch"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/SliderPanel"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/TiltPanel"
+	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
+	NodeBuf "github.com/dtauraso/beadnetwork/Categories/Node"
+	beadanimation "github.com/dtauraso/beadnetwork/Categories/Node/BeadAnimation"
+	Ports "github.com/dtauraso/beadnetwork/Categories/Node/Ports"
+	"github.com/dtauraso/beadnetwork/Categories/Node/TiltVectors"
+	"github.com/dtauraso/beadnetwork/Categories/NodeKinds"
+	"github.com/dtauraso/beadnetwork/Categories/Scene/Dispatch"
 )
 
 func BuildNodes(

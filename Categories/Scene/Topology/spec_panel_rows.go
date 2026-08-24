@@ -4,8 +4,8 @@ import (
 	"sort"
 	"strconv"
 
-	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/PolarRulesPanel"
-	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/TiltPanel"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/PolarRulesPanel"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/TiltPanel"
 )
 
 func RulePanelNodes(spec TopoSpec, hasKindRule func(id string) bool) []PolarRulesPanel.Node {

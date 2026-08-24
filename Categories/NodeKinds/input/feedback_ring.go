@@ -3,7 +3,7 @@ package input
 import (
 	"context"
 
-	clock "github.com/dtauraso/wirefold/Categories/Clock"
+	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
 )
 
 func (n *Node) updateFeedbackRing(ctx context.Context, working, backup *[]int, init []int, emitBeads func(), clk clock.Clock) {

@@ -2,13 +2,13 @@ package time
 
 import (
 	"context"
-	interior "github.com/dtauraso/wirefold/Categories/Node/Interior"
+	interior "github.com/dtauraso/beadnetwork/Categories/Node/Interior"
 
-	lattice "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation/lattice"
+	lattice "github.com/dtauraso/beadnetwork/Categories/Node/BeadAnimation/lattice"
 
-	clock "github.com/dtauraso/wirefold/Categories/Clock"
-	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
-	Speed "github.com/dtauraso/wirefold/Categories/Speed"
+	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
+	beadanimation "github.com/dtauraso/beadnetwork/Categories/Node/BeadAnimation"
+	Speed "github.com/dtauraso/beadnetwork/Categories/Speed"
 )
 
 type Time struct {

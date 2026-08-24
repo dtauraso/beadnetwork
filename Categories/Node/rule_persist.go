@@ -1,6 +1,6 @@
 package Node
 
-import "github.com/dtauraso/wirefold/Categories/Chrome/Panels/PolarRulesPanel"
+import "github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/PolarRulesPanel"
 
 type Persist struct {
 	Rule func(rule *PolarRulesPanel.DragRule) error

@@ -1,6 +1,6 @@
 package Ports
 
-import "github.com/dtauraso/wirefold/Categories/Scene/Topology"
+import "github.com/dtauraso/beadnetwork/Categories/Scene/Topology"
 
 func KindPortSets() Topology.KindPorts {
 	sets := Topology.KindPorts{

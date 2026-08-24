@@ -1,7 +1,7 @@
 package Node
 
 import (
-	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
+	"github.com/dtauraso/beadnetwork/Categories/Polar/polarindex"
 )
 
 const BreadcrumbDragCommit = "drag-commit"

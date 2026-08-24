@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"os"
 
-	NodeBuf "github.com/dtauraso/wirefold/Categories/Node"
+	NodeBuf "github.com/dtauraso/beadnetwork/Categories/Node"
 
-	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgefile"
-	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Edge/edgefile"
+	"github.com/dtauraso/beadnetwork/Categories/Polar/polarindex"
 )
 
 func ResolveEdgeDeltas(spec *TopoSpec) {

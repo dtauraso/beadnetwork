@@ -47,7 +47,7 @@ func srcRootOf(repoRoot string) string {
 		}
 		if d.IsDir() { // path-resolution-ok: walking for the npm package root, not a scene path
 			switch d.Name() {
-			case "node_modules", "out", ".git", ".probe", ".wirefold-cache":
+			case "node_modules", "out", ".git", ".probe", ".beadnetwork-cache":
 				return filepath.SkipDir
 			}
 			return nil

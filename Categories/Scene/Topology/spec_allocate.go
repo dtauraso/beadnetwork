@@ -1,10 +1,10 @@
 package Topology
 
 import (
-	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/TiltPanel"
-	NodeBuf "github.com/dtauraso/wirefold/Categories/Node"
-	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
-	edge "github.com/dtauraso/wirefold/Categories/Node/Edge"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/TiltPanel"
+	NodeBuf "github.com/dtauraso/beadnetwork/Categories/Node"
+	beadanimation "github.com/dtauraso/beadnetwork/Categories/Node/BeadAnimation"
+	edge "github.com/dtauraso/beadnetwork/Categories/Node/Edge"
 )
 
 func NodeTypes(spec TopoSpec) map[string]string {

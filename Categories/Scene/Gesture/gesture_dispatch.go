@@ -3,9 +3,9 @@ package Gesture
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/Categories/Node"
-	"github.com/dtauraso/wirefold/Categories/Scene/Drag"
-	"github.com/dtauraso/wirefold/Categories/Scene/View"
+	"github.com/dtauraso/beadnetwork/Categories/Node"
+	"github.com/dtauraso/beadnetwork/Categories/Scene/Drag"
+	"github.com/dtauraso/beadnetwork/Categories/Scene/View"
 )
 
 type Movers struct {

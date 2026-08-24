@@ -1,7 +1,7 @@
 package View
 
 import (
-	Chrome "github.com/dtauraso/wirefold/Categories/Chrome"
+	Chrome "github.com/dtauraso/beadnetwork/Categories/Chrome"
 )
 
 func (ui *UIState) PanelLayout() Chrome.Layout {

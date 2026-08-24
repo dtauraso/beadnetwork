@@ -1,7 +1,7 @@
 package pulse
 
 import (
-	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
+	beadanimation "github.com/dtauraso/beadnetwork/Categories/Node/BeadAnimation"
 )
 
 type DrivenOut struct {

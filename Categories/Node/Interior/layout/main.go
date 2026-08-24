@@ -8,9 +8,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/dtauraso/wirefold/scripts/genpaths"
+	"github.com/dtauraso/beadnetwork/scripts/genpaths"
 
-	interior "github.com/dtauraso/wirefold/Categories/Node/Interior"
+	interior "github.com/dtauraso/beadnetwork/Categories/Node/Interior"
 )
 
 func writePathFiles(pathsDir string) error {

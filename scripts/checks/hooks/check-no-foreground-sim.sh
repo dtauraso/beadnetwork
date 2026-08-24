@@ -15,7 +15,7 @@ emit() {
 if [ -z "$cmd" ]; then emit allow "no command string"; exit 0; fi
 
 CMD_HEAD='(^|[;&|(])[[:space:]]*'
-SIM_RE="${CMD_HEAD}(\./)?wirefold([[:space:]]|\$)|${CMD_HEAD}go[[:space:]]+run[[:space:]]+(\./?|github\.com/dtauraso/wirefold)([[:space:]]|\$)"
+SIM_RE="${CMD_HEAD}(\./)?beadnetwork([[:space:]]|\$)|${CMD_HEAD}go[[:space:]]+run[[:space:]]+(\./?|github\.com/dtauraso/beadnetwork)([[:space:]]|\$)"
 if ! grep -Eq "$SIM_RE" <<< "$cmd"; then
   emit allow "not a sim run"; exit 0
 fi

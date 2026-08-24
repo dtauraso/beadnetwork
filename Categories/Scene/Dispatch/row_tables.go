@@ -1,6 +1,6 @@
 package Dispatch
 
-import "github.com/dtauraso/wirefold/Categories/Scene/Drag"
+import "github.com/dtauraso/beadnetwork/Categories/Scene/Drag"
 
 type EdgeEndpoint struct {
 	SrcNode, DstNode string

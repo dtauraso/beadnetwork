@@ -1,6 +1,6 @@
 package PairNode
 
-import "github.com/dtauraso/wirefold/Categories/Chrome/Pills/AngleDropdown"
+import "github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/AngleDropdown"
 
 func (a BuildArgs) LatticePointsSeed() int32 {
 	if a.Deps == nil {

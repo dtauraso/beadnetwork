@@ -3,8 +3,8 @@ package Gesture
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/Categories/Node"
-	"github.com/dtauraso/wirefold/Categories/Scene/View"
+	"github.com/dtauraso/beadnetwork/Categories/Node"
+	"github.com/dtauraso/beadnetwork/Categories/Scene/View"
 )
 
 func setSelectionUI(ui *View.UIState, mr Movers, ctx context.Context, node, edge string) {

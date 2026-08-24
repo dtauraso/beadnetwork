@@ -16,7 +16,7 @@ export class BuildAndRunRunner extends RunnerLifecycle {
     this.ensureOutputChannel();
     const repoRoot = resolveRepoRoot(folder.uri.fsPath);
     if (!repoRoot) return;
-    const binPath = path.join(repoRoot, ".wirefold-cache", "wirefold");
+    const binPath = path.join(repoRoot, ".beadnetwork-cache", "beadnetwork");
     const topArgs = this.topologyPath ? ["-topology", this.topologyPath] : [];
 
     const probePaths = probePathsForFolder(folder);

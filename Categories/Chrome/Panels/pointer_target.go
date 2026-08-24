@@ -1,6 +1,6 @@
 package Panels
 
-import "github.com/dtauraso/wirefold/Categories/Chrome/Panels/Panel"
+import "github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Panel"
 
 type PointerKind uint8
 

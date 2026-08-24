@@ -4,8 +4,8 @@ import (
 	"context"
 	"math"
 
-	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/PolarRulesPanel"
-	edge "github.com/dtauraso/wirefold/Categories/Node/Edge"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/PolarRulesPanel"
+	edge "github.com/dtauraso/beadnetwork/Categories/Node/Edge"
 )
 
 func ApplyRuleCheck(ctx context.Context, h PolarRulesPanel.Hit, rules *RuleChannels) {

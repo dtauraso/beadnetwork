@@ -1,6 +1,6 @@
 package TiltPanel
 
-import "github.com/dtauraso/wirefold/Categories/Chrome/Panels/Panel"
+import "github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Panel"
 
 const (
 	StartLabel = "start tilt"

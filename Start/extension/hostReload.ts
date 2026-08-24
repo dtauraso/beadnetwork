@@ -1,7 +1,7 @@
 import * as crypto from "crypto";
 import * as vscode from "vscode";
 
-export const HOST_RELOAD_SETTING_SECTION = "wirefold";
+export const HOST_RELOAD_SETTING_SECTION = "beadnetwork";
 export const HOST_RELOAD_SETTING_KEY = "reloadOnHostBuild";
 
 export function isHostReloadEnabled(): boolean {

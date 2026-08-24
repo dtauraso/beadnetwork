@@ -1,7 +1,7 @@
 package Dispatch
 
 import (
-	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
+	beadanimation "github.com/dtauraso/beadnetwork/Categories/Node/BeadAnimation"
 )
 
 func (m *Movers) Bind(outSink map[string]*beadanimation.Sender, slotReg map[string]*beadanimation.BeadLine, edgeRowFor func(src, dst string) (int32, bool)) {
