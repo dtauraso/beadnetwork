@@ -46,7 +46,7 @@ Categories/     the code, one directory per category
   Node/           nodes, their beads, edges, geometry
   Scene/          the scene: its spec on disk, assembling it, running it
   Chrome/         the UI that is not the diagram
-  Camera/  Clock/  Input/  NodeKinds/  Overlay/  Polar/  Ring/  RingPoint/
+  Clock/  NodeKinds/  Polar/  Ring/  Speed/
 
 scripts/        what serves the repo rather than one category
 docs/  memory/  and the tool configs stay at the root, where each

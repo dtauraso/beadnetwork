@@ -16,7 +16,8 @@ func (ui *UIState) SetSceneRoot(sceneRoot string) {
 	ui.Fit.Arm(sceneRoot)
 	ui.Tilt.Arm(sceneRoot)
 	ui.OverlaysPill.Arm(sceneRoot)
-	ui.RingPoints.Arm(sceneRoot)
+	ui.NodeRingPoints.Arm(sceneRoot)
+	ui.BeadRingPoints.Arm(sceneRoot)
 	ui.PointerBlk.Arm(sceneRoot)
 	ui.Slider.Arm(sceneRoot)
 	ui.Counts.Arm(sceneRoot)
@@ -29,15 +30,19 @@ func (ui *UIState) writeSceneColumns() {
 }
 
 func (ui *UIState) WriteRingSurfaces(nodePts, beadPts []float32) {
-	w := ui.RingPoints.W()
-	if w == nil {
-		return
+	if w := ui.NodeRingPoints.W(); w != nil {
+		w.Begin()
+		w.Surface(nodePts)
+		if err := w.Flush(); err != nil {
+			LogPersistErr("node_ring_point_values", "", err)
+		}
 	}
-	w.Begin()
-	w.Surface("nodeX", "nodeY", "nodeZ", nodePts)
-	w.Surface("beadX", "beadY", "beadZ", beadPts)
-	if err := w.Flush(); err != nil {
-		LogPersistErr("ring_point_values", "", err)
+	if w := ui.BeadRingPoints.W(); w != nil {
+		w.Begin()
+		w.Surface(beadPts)
+		if err := w.Flush(); err != nil {
+			LogPersistErr("bead_ring_point_values", "", err)
+		}
 	}
 }
 

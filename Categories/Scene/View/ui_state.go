@@ -22,7 +22,8 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Node"
 	"github.com/dtauraso/beadnetwork/Categories/Polar/polar"
 	"github.com/dtauraso/beadnetwork/Categories/Polar/polarindex"
-	"github.com/dtauraso/beadnetwork/Categories/RingPoint"
+	bead "github.com/dtauraso/beadnetwork/Categories/Ring/Bead"
+	NodeShape "github.com/dtauraso/beadnetwork/Categories/Ring/NodeShape"
 	"github.com/dtauraso/beadnetwork/Categories/Scene"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Camera"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Drag"
@@ -83,7 +84,8 @@ type UIState struct {
 
 	Slider     SliderPanel.State
 	Fit        FitButton.State
-	RingPoints RingPoint.State
+	NodeRingPoints NodeShape.RingPointState
+	BeadRingPoints bead.RingPointState
 	PointerBlk Panels.State
 
 	Angle AngleDropdown.State

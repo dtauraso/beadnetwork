@@ -131,7 +131,7 @@ There is **no `cmd/`** either, and **no `gen/`**: both grouped code by technique
   the scene. Each piece holds ALL of itself: its layout/hit-testing Go,
   `*_values.go`, generated `*-values-gen.ts`, `draw-*.ts`. A chrome piece does not perform
   topology edits — node create/delete is `Categories/Scene/Dispatch`, not the dropdown offering it.
-  `Categories/Scene/View/Flags/` and `Categories/RingPoint/` are NOT chrome — they are block files for the diagram.
+  `Categories/Scene/View/Flags/` and each ring's own surface-point block are NOT chrome — they are block files for the diagram.
 - **`Start/extension/`** — the VS Code extension: our code, which RUNS IN the extension host
   (the Node process VS Code spawns) and is not that host — naming it `Host` said we were the
   container rather than the guest. Everything that is neither Go nor the
