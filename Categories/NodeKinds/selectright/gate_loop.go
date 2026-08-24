@@ -9,7 +9,6 @@ func runGateLoop(ctx context.Context, g *GateNode, captureLeftFn, captureRightFn
 	if g.EmitGeometry != nil {
 		g.EmitGeometry()
 	}
-	g.Self.EmitGeometryOnce()
 
 	if g.Clock == nil {
 		panic("runGateLoop: gate node has no clock — a self-driven node steps its own geometry from its own clock, so there is no wall-clock fallback to fall back to")

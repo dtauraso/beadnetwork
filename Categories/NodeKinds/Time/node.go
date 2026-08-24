@@ -78,7 +78,6 @@ func (in *Time) consumeInput(clk clock.Clock, value int, held int) (newHeld int,
 
 func (in *Time) Update(ctx context.Context) {
 	tryEmit(in.EmitGeometry)
-	in.Self.EmitGeometryOnce()
 
 	held := interior.NoValue
 

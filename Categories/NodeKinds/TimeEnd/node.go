@@ -27,7 +27,6 @@ type TimeEnd struct {
 
 func (h *TimeEnd) Update(ctx context.Context) {
 	tryEmit(h.EmitGeometry)
-	h.Self.EmitGeometryOnce()
 
 	held := noValue
 	if h.EmitHeldBead != nil {

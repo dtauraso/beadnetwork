@@ -14,7 +14,6 @@ func (n *Node) clock() clock.Clock {
 func (n *Node) openingEmit() {
 	tryEmit(n.plumb.EmitGeometry)
 
-	n.plumb.Self.EmitGeometryOnce()
 	n.syncTiltIndex()
 }
 

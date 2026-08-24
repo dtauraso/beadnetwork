@@ -9,12 +9,11 @@ import (
 type NodeBeadAnimation struct {
 	id string
 
-	outs   beadanimation.BeadAnimation
-	clocks Clocks
+	outs beadanimation.BeadAnimation
 }
 
-func NewNodeBeadAnimation(id string, clocks Clocks) *NodeBeadAnimation {
-	return &NodeBeadAnimation{id: id, clocks: clocks}
+func NewNodeBeadAnimation(id string) *NodeBeadAnimation {
+	return &NodeBeadAnimation{id: id}
 }
 
 func (a *NodeBeadAnimation) AddBeadLine(pw *beadanimation.BeadLine, edgeRow int32) {

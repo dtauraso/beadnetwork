@@ -11,11 +11,10 @@ import (
 type Self struct {
 	geom *NodeCat.NodeGeometry
 
-	speedCh <-chan float64
 }
 
-func NewSelf(geom *NodeCat.NodeGeometry, speedCh <-chan float64) *Self {
-	return &Self{geom: geom, speedCh: speedCh}
+func NewSelf(geom *NodeCat.NodeGeometry) *Self {
+	return &Self{geom: geom}
 }
 
 func (p *Self) StartRule(ctx context.Context, clk clock.Clock) {
@@ -25,7 +24,7 @@ func (p *Self) StartRule(ctx context.Context, clk clock.Clock) {
 	p.geom.StartRuleNode(ctx)
 	p.geom.Anim().StartBeadAnimation(ctx)
 	clk.WakeOn(p.geom.RuleWake())
-	p.geom.Clocks().SpeedFrom(p.speedCh)
+	p.geom.Clocks().Use(clk)
 }
 
 func (p *Self) Breadcrumb(label, value string) {
@@ -40,13 +39,6 @@ func (p *Self) Breadcrumb(label, value string) {
 	}})
 }
 
-func (p *Self) EmitGeometryOnce() {
-	if p == nil || p.geom == nil {
-		return
-	}
-
-	p.geom.Clocks().CopyClockSrc()
-}
 
 func (p *Self) Step(ctx context.Context, tick int64) {
 	if p == nil || p.geom == nil {

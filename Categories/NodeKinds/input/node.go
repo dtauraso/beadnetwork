@@ -48,7 +48,6 @@ func (n *Node) broadcastPlace(v int, tick int64) bool {
 
 func (n *Node) Update(ctx context.Context) {
 	tryEmit(n.EmitGeometry)
-	n.Self.EmitGeometryOnce()
 
 	if len(n.Init) == 0 {
 		n.runStepLoop(ctx, n.clock().Copy(), nil)

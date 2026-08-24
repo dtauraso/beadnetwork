@@ -44,7 +44,6 @@ func BuildNodes(
 			if !ok {
 				return nil
 			}
-			ng.Clocks().CopyClockSrc()
 			return ng
 		},
 	}

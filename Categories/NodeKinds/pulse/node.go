@@ -32,7 +32,6 @@ func driveOutput(out DrivenOut) *HeldDriver {
 
 func (g *Pulse) Update(ctx context.Context) {
 	tryEmit(g.EmitGeometry)
-	g.Self.EmitGeometryOnce()
 
 	var cur int64 = interior.NoValue
 	if g.EmitHeldBead != nil {
