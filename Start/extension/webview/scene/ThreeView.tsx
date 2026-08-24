@@ -11,6 +11,7 @@ import { SceneRoot, LabelProjector } from "./scene-root";
 import { ProceduralEnvProvider } from "./scene-env";
 import { SceneGuides } from "../../../../Categories/Scene/Guides/SceneGuides";
 import { PaneSizeSync } from "./pane-size-sync";
+import { logSizeChain } from "./size-chain-log";
 
 function consumedByDraft(key: string): boolean {
   return key.length === 1 || key === "Enter" || key === "Escape" || key === "Backspace";
@@ -49,6 +50,18 @@ export function ThreeView() {
     el.addEventListener("wheel", onWheelNative, { passive: false });
     return () => el.removeEventListener("wheel", onWheelNative);
   }, [onWheelNative]);
+
+  useEffect(() => {
+    logSizeChain("mount", containerRef.current);
+    const at = [100, 500, 2000, 5000].map((ms) =>
+      window.setTimeout(() => logSizeChain(`t+${ms}ms`, containerRef.current), ms));
+    const onResize = () => logSizeChain("resize", containerRef.current);
+    window.addEventListener("resize", onResize);
+    return () => {
+      at.forEach(window.clearTimeout);
+      window.removeEventListener("resize", onResize);
+    };
+  }, []);
 
   return (
     <div ref={containerRef} style={{ position: "absolute", inset: 0 }}>
