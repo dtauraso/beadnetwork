@@ -23,3 +23,16 @@ func (w *CountsValueWriter) Write(nodes, edges int32) error {
 	w.I32("edges", edges)
 	return w.Flush()
 }
+
+type CountsState struct {
+	w *CountsValueWriter
+}
+
+func (s *CountsState) Arm(sceneRoot string) { s.w = NewCountsValueWriter(sceneRoot) }
+
+func (s *CountsState) Write(nodes, edges int32) error {
+	if s.w == nil {
+		return nil
+	}
+	return s.w.Write(nodes, edges)
+}

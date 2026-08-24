@@ -31,3 +31,11 @@ func (w *ValueWriter) Write(x, y, wd, h float32, kind uint8, tipX, tipY float32,
 	w.Text("tipText", tip)
 	return w.Flush()
 }
+
+type State struct {
+	w *ValueWriter
+}
+
+func (s *State) Arm(sceneRoot string) { s.w = NewValueWriter(sceneRoot) }
+
+func (s *State) W() *ValueWriter { return s.w }

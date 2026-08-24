@@ -17,4 +17,8 @@ func SelectedIndex(anchorPath string) int {
 type State struct {
 	Names    []string
 	Selected int
+
+	w *ValueWriter
 }
+
+func (s *State) Arm(sceneRoot string) { s.w = NewValueWriter(sceneRoot) }

@@ -32,3 +32,11 @@ func (w *ValueWriter) Surface(xName, yName, zName string, pts []float32) {
 		w.F32(zName, pts[i*3+2])
 	}
 }
+
+type State struct {
+	w *ValueWriter
+}
+
+func (s *State) Arm(sceneRoot string) { s.w = NewValueWriter(sceneRoot) }
+
+func (s *State) W() *ValueWriter { return s.w }

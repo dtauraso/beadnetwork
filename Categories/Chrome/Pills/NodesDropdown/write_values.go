@@ -9,7 +9,8 @@ import (
 
 const refusedNotice = "edit refused — see the output channel"
 
-func WriteValues(w *ValueWriter, lay Layout, refusedCount uint32) {
+func (s *State) Write(lay Layout, refusedCount uint32) {
+	w := s.w
 	if w == nil {
 		return
 	}

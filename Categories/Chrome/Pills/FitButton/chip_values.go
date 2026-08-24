@@ -30,3 +30,9 @@ func (w *ValueWriter) Rect(xName, yName, wName, hName string, r Pills.Rect) {
 	w.F32(wName, r.W)
 	w.F32(hName, r.H)
 }
+
+type State struct {
+	w *ValueWriter
+}
+
+func (s *State) Arm(sceneRoot string) { s.w = NewValueWriter(sceneRoot) }

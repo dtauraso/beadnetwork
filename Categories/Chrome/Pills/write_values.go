@@ -5,7 +5,8 @@ import (
 	"os"
 )
 
-func WriteValues(w *ValueWriter, lay Layout) {
+func (s *State) Write(lay Layout) {
+	w := s.w
 	if w == nil {
 		return
 	}

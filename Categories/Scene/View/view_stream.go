@@ -1,16 +1,5 @@
 package View
 
-import (
-	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/PolarRulesPanel"
-	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/SliderPanel"
-	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/TiltPanel"
-	"github.com/dtauraso/wirefold/Categories/Chrome/Pills"
-	"github.com/dtauraso/wirefold/Categories/Chrome/Pills/AngleDropdown"
-	"github.com/dtauraso/wirefold/Categories/Chrome/Pills/FitButton"
-	"github.com/dtauraso/wirefold/Categories/Chrome/Pills/NodesDropdown"
-	"github.com/dtauraso/wirefold/Categories/Chrome/Tabs"
-)
-
 type ViewOverlayFlags struct {
 	SceneTori, ScenePoles, NodePoles, Handholds, LabelsGlobal, OverlaysVis uint8
 	NodeBody, NodeRing, RingPick, SelectionRing, HoverRing                 uint8
@@ -59,14 +48,14 @@ func (ui *UIState) EmitViewFrame(events []RowEvent) {
 	ui.writeSceneColumns()
 	ui.writePointerTargetColumns()
 	pl := ui.PanelLayout()
-	SliderPanel.WriteValues(ui.sliderPanelValues, pl.Speed, ui.Speed)
-	TiltPanel.WriteValues(ui.tiltPanelValues, pl.Tilt)
-	AngleDropdown.WriteValues(ui.anglePillValues, pl.Angle)
-	NodesDropdown.WriteValues(ui.nodesPillValues, pl.Nodes, ui.EditRefused)
-	Pills.WriteValues(ui.overlaysPillValues, pl.Overlays)
-	FitButton.WriteValues(ui.fitChipValues, pl.Fit)
-	Tabs.WriteValues(ui.tabStripValues, pl.Tabs)
-	PolarRulesPanel.WriteValues(ui.rulesValues, pl.Rules)
+	ui.Slider.Write(pl.Speed, ui.Speed)
+	ui.Tilt.Write(pl.Tilt)
+	ui.Angle.Write(pl.Angle)
+	ui.Nodes.Write(pl.Nodes, ui.EditRefused)
+	ui.OverlaysPill.Write(pl.Overlays)
+	ui.Fit.Write(pl.Fit)
+	ui.TabStrip.Write(pl.Tabs)
+	ui.Rules.Write(pl.Rules)
 
 	ui.ViewBuildFrame(ui.viewTick, events)
 }

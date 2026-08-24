@@ -7,7 +7,8 @@ import (
 	Pills "github.com/dtauraso/wirefold/Categories/Chrome/Pills"
 )
 
-func WriteValues(w *ValueWriter, r Pills.Rect) {
+func (s *State) Write(r Pills.Rect) {
+	w := s.w
 	if w == nil {
 		return
 	}

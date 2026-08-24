@@ -206,8 +206,12 @@ func Build(st *Panel.Stack, open bool, s State) Layout {
 }
 
 type State struct {
+	w *ValueWriter // this piece's own writer, armed when the scene opens
+
 	Nodes     []Node
 	Edit      Edit
 	SharedRow int32
 	Scroll    float32
 }
+
+func (s *State) Arm(sceneRoot string) { s.w = NewValueWriter(sceneRoot) }
