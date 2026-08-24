@@ -3,13 +3,13 @@ package main
 //go:generate go run .
 
 import (
-	"github.com/dtauraso/wirefold/scripts/genpaths"
+	"github.com/dtauraso/beadnetwork/scripts/genpaths"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
-	Panels "github.com/dtauraso/wirefold/Categories/Chrome/Panels"
+	Panels "github.com/dtauraso/beadnetwork/Categories/Chrome/Panels"
 )
 
 func writePathFiles(pathsDir string) error {

@@ -1,11 +1,11 @@
 package Topology
 
 import (
-	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/PolarRulesPanel"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/PolarRulesPanel"
 
-	NodeBuf "github.com/dtauraso/wirefold/Categories/Node"
-	"github.com/dtauraso/wirefold/Categories/Polar/polar"
-	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
+	NodeBuf "github.com/dtauraso/beadnetwork/Categories/Node"
+	"github.com/dtauraso/beadnetwork/Categories/Polar/polar"
+	"github.com/dtauraso/beadnetwork/Categories/Polar/polarindex"
 )
 
 func SeedNode(m *NodeBuf.NodeGeometry, n Node, sceneRoot string) {

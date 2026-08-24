@@ -1,9 +1,9 @@
 package Startup
 
 import (
-	"github.com/dtauraso/wirefold/Categories/Node"
-	"github.com/dtauraso/wirefold/Categories/Scene/Scenes"
-	"github.com/dtauraso/wirefold/Categories/Scene/View"
+	"github.com/dtauraso/beadnetwork/Categories/Node"
+	"github.com/dtauraso/beadnetwork/Categories/Scene/Scenes"
+	"github.com/dtauraso/beadnetwork/Categories/Scene/View"
 )
 
 func EnableViewpointPersist(ui *View.UIState, topologyPath string) {

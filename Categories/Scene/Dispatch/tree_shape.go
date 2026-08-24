@@ -7,7 +7,7 @@ import (
 	"sort"
 	"strconv"
 
-	NodeBuf "github.com/dtauraso/wirefold/Categories/Node"
+	NodeBuf "github.com/dtauraso/beadnetwork/Categories/Node"
 )
 
 func nodeIDsInTree(root string) []int {

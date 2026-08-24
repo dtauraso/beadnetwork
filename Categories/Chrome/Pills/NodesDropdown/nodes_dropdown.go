@@ -1,8 +1,8 @@
 package NodesDropdown
 
 import (
-	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/Panel"
-	NodeBuf "github.com/dtauraso/wirefold/Categories/Node"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Panel"
+	NodeBuf "github.com/dtauraso/beadnetwork/Categories/Node"
 )
 
 const Label = "Nodes"

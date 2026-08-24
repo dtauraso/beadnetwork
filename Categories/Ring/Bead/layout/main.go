@@ -8,9 +8,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/dtauraso/wirefold/scripts/genpaths"
+	"github.com/dtauraso/beadnetwork/scripts/genpaths"
 
-	bead "github.com/dtauraso/wirefold/Categories/Ring/Bead"
+	bead "github.com/dtauraso/beadnetwork/Categories/Ring/Bead"
 )
 
 func writePathFiles(pathsDir string) error {

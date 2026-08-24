@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	NodeBuf "github.com/dtauraso/wirefold/Categories/Node"
+	NodeBuf "github.com/dtauraso/beadnetwork/Categories/Node"
 )
 
 const (

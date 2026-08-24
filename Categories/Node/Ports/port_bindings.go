@@ -1,11 +1,11 @@
 package Ports
 
 import (
-	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/SliderPanel"
-	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/TiltPanel"
-	clock "github.com/dtauraso/wirefold/Categories/Clock"
-	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
-	interior "github.com/dtauraso/wirefold/Categories/Node/Interior"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/SliderPanel"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/TiltPanel"
+	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
+	beadanimation "github.com/dtauraso/beadnetwork/Categories/Node/BeadAnimation"
+	interior "github.com/dtauraso/beadnetwork/Categories/Node/Interior"
 )
 
 type PortBindings struct {

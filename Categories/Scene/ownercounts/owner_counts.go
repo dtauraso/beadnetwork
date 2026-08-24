@@ -6,9 +6,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/dtauraso/wirefold/scripts/genpaths"
+	"github.com/dtauraso/beadnetwork/scripts/genpaths"
 
-	Scene "github.com/dtauraso/wirefold/Categories/Scene"
+	Scene "github.com/dtauraso/beadnetwork/Categories/Scene"
 )
 
 func writeOwnerCountsPathFile(pathsDir string) error {

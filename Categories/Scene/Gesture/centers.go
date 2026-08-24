@@ -1,10 +1,10 @@
 package Gesture
 
 import (
-	FitButton "github.com/dtauraso/wirefold/Categories/Chrome/Pills/FitButton"
-	Node "github.com/dtauraso/wirefold/Categories/Node"
-	Camera "github.com/dtauraso/wirefold/Categories/Scene/Camera"
-	Drag "github.com/dtauraso/wirefold/Categories/Scene/Drag"
+	FitButton "github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/FitButton"
+	Node "github.com/dtauraso/beadnetwork/Categories/Node"
+	Camera "github.com/dtauraso/beadnetwork/Categories/Scene/Camera"
+	Drag "github.com/dtauraso/beadnetwork/Categories/Scene/Drag"
 )
 
 func centerOfForMove(f func(id string) (Vec3, bool)) func(id string) (Node.Vec3, bool) {

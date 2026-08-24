@@ -1,7 +1,7 @@
 package selectleft
 
 import (
-	NodeCat "github.com/dtauraso/wirefold/Categories/Node"
+	NodeCat "github.com/dtauraso/beadnetwork/Categories/Node"
 )
 
 func claimSelfDrive(a BuildArgs) *Self {

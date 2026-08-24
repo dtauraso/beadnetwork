@@ -5,7 +5,7 @@ package main
 import (
 	"path/filepath"
 
-	"github.com/dtauraso/wirefold/scripts/genpaths"
+	"github.com/dtauraso/beadnetwork/scripts/genpaths"
 )
 
 func main() {

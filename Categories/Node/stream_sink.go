@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	edge "github.com/dtauraso/wirefold/Categories/Node/Edge"
-	BeadB "github.com/dtauraso/wirefold/Categories/Ring/Bead"
+	edge "github.com/dtauraso/beadnetwork/Categories/Node/Edge"
+	BeadB "github.com/dtauraso/beadnetwork/Categories/Ring/Bead"
 )
 
 type Sinks struct {

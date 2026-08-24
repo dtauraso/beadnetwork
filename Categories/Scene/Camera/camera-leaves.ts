@@ -13,14 +13,14 @@ export type CameraPose = Record<CameraValueName, number> & { focalPx: number };
 
 declare global {
   interface Window {
-    WIREFOLD_SCENE_BASE?: string;
-    WIREFOLD_SRC_BASE?: string;
+    BEADNETWORK_SCENE_BASE?: string;
+    BEADNETWORK_SRC_BASE?: string;
   }
 }
 
 function bases(): { scene: string; src: string } | undefined {
-  const scene = typeof window === "undefined" ? undefined : window.WIREFOLD_SCENE_BASE;
-  const src = typeof window === "undefined" ? undefined : window.WIREFOLD_SRC_BASE;
+  const scene = typeof window === "undefined" ? undefined : window.BEADNETWORK_SCENE_BASE;
+  const src = typeof window === "undefined" ? undefined : window.BEADNETWORK_SRC_BASE;
   if (!scene || !src) return undefined;
   return { scene, src };
 }

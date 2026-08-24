@@ -3,7 +3,7 @@ package TiltVectors
 import (
 	"math"
 
-	"github.com/dtauraso/wirefold/Categories/Scene/Camera"
+	"github.com/dtauraso/beadnetwork/Categories/Scene/Camera"
 )
 
 const (

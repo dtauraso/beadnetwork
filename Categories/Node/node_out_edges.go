@@ -1,11 +1,11 @@
 package Node
 
 import (
-	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
-	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgefile"
-	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgegeom"
-	"github.com/dtauraso/wirefold/Categories/Polar/polar"
-	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
+	beadanimation "github.com/dtauraso/beadnetwork/Categories/Node/BeadAnimation"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Edge/edgefile"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Edge/edgegeom"
+	"github.com/dtauraso/beadnetwork/Categories/Polar/polar"
+	"github.com/dtauraso/beadnetwork/Categories/Polar/polarindex"
 )
 
 type EdgeFrameBuilder = func(tick uint32, edgeRow int32, sx, sy, sz, ex, ey, ez float32, srcNodeRow, dstNodeRow int32, deltaR float32, dragActive uint8, label string)

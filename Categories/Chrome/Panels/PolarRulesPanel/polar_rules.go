@@ -3,7 +3,7 @@ package PolarRulesPanel
 import (
 	"math"
 
-	"github.com/dtauraso/wirefold/Categories/Polar/polar"
+	"github.com/dtauraso/beadnetwork/Categories/Polar/polar"
 )
 
 type DragRule struct {

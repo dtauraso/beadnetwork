@@ -5,12 +5,12 @@
     // at a moment nobody chose, sometimes mid-write, which showed up as a 10-second stall
     // and a "command not found". Reload when you decide to; a stale bundle is no longer
     // silent, since a frame carrying a foreign buffer layout is refused and reported.
-    "wirefold.reloadOnHostBuild": false,
+    "beadnetwork.reloadOnHostBuild": false,
 
     // Without this the extension drops every webview log that is not an ERROR label, so
     // .probe/ts.jsonl is never written at all and a breadcrumb added to find a bug reads
     // as "the code never ran". On while the overlay scale is being chased.
-    "wirefold.probe.trace": true,
+    "beadnetwork.probe.trace": true,
 
     // .probe/ holds the runtime JSONL logs the editor appends to continuously. They are
     // gitignored, but the FILE WATCHER does not honor .gitignore — without these excludes
@@ -18,11 +18,11 @@
     // run, which is what made "Developer: Reload Window" progressively slower.
     "files.watcherExclude": {
         "**/.probe/**": true,
-        "**/.wirefold-cache/**": true
+        "**/.beadnetwork-cache/**": true
     },
     "search.exclude": {
         "**/.probe": true,
-        "**/.wirefold-cache": true,
+        "**/.beadnetwork-cache": true,
         "**/tools/topology-vscode/out": true
     },
 

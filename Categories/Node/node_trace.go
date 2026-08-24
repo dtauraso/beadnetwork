@@ -47,7 +47,7 @@ func (t *Trace) Drain() []RowEvent {
 	}
 }
 
-var traceEnabled = os.Getenv("WIREFOLD_PROBE_TRACE") == "1"
+var traceEnabled = os.Getenv("BEADNETWORK_PROBE_TRACE") == "1"
 
 func (t *Trace) Append(events []RowEvent) {
 	if t.path == "" || len(events) == 0 {

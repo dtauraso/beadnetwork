@@ -37,10 +37,10 @@ lesson). It is a cheap no-op when no scene root is set (headless tests).
 
 ## What the trace setting gates
 
-The `wirefold.probe.trace` setting (default **off**) gates the non-breadcrumb bulk of the
+The `beadnetwork.probe.trace` setting (default **off**) gates the non-breadcrumb bulk of the
 trace files plus `ts.log` — the per-tick firehose (recv/send/edge-bead/node-geometry/etc.)
 that once grew `go-edge.log` past a gigabyte. It does NOT gate breadcrumb rows: Go reads
-`WIREFOLD_PROBE_TRACE` once at startup into `trace.TraceEnabled()`, and `Log.Append` skips
+`BEADNETWORK_PROBE_TRACE` once at startup into `trace.TraceEnabled()`, and `Log.Append` skips
 every non-breadcrumb event when it is off, so `scripts/probe-merge.sh --debug` and the
 always-on error logs (`go-errors.log`/`ts-errors.log`/`handler-error-last.log`) work out of
 the box on a fresh install with no setting change. Turn the setting on only when you need
@@ -51,7 +51,7 @@ the full per-tick trace, not just breadcrumbs.
 The highest-volume of these — `KindEdgeBead`, emitted per in-flight bead per tick by
 `Categories/Node/BeadAnimation/bead_line_drive.go`'s `stepAll` — is gated at the SOURCE, not just at the TS
 write. `stepAll` reads a package-level `edgeBeadTraceEnabled` bool set ONCE at process
-startup from the `WIREFOLD_EDGE_BEAD_TRACE` env var (read once before any goroutine starts, the same shape `trace.TraceEnabled` uses); the
+startup from the `BEADNETWORK_EDGE_BEAD_TRACE` env var (read once before any goroutine starts, the same shape `trace.TraceEnabled` uses); the
 ext host (`Start/extension/runCommand.ts`) sets it from the SAME
 `isProbeTraceEnabled()` that gates the TS-side write, so there is one source of truth for
 the setting. With tracing off, Go never builds the event at all, so nothing reaches the item trace file. `KindBreadcrumb` and

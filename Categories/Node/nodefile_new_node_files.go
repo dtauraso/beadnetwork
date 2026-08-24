@@ -4,10 +4,10 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/PolarRulesPanel"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/PolarRulesPanel"
 
-	"github.com/dtauraso/wirefold/Categories/Polar/polar"
-	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
+	"github.com/dtauraso/beadnetwork/Categories/Polar/polar"
+	"github.com/dtauraso/beadnetwork/Categories/Polar/polarindex"
 )
 
 func nodeDirPath(root, id string) string {

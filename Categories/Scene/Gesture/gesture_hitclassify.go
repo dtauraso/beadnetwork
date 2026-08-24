@@ -1,10 +1,10 @@
 package Gesture
 
 import (
-	"github.com/dtauraso/wirefold/Categories/Node"
-	NodeDrag "github.com/dtauraso/wirefold/Categories/Node/Drag"
-	NodeGesture "github.com/dtauraso/wirefold/Categories/Node/Gesture"
-	"github.com/dtauraso/wirefold/Categories/Scene/Drag"
+	"github.com/dtauraso/beadnetwork/Categories/Node"
+	NodeDrag "github.com/dtauraso/beadnetwork/Categories/Node/Drag"
+	NodeGesture "github.com/dtauraso/beadnetwork/Categories/Node/Gesture"
+	"github.com/dtauraso/beadnetwork/Categories/Scene/Drag"
 )
 
 var hitClassifiers = map[string]func(d Deps, g *Drag.GestureState, ev Drag.RawInputMsg){

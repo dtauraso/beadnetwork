@@ -3,8 +3,8 @@ package Drag
 import (
 	"math"
 
-	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/PolarRulesPanel"
-	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/PolarRulesPanel"
+	"github.com/dtauraso/beadnetwork/Categories/Polar/polarindex"
 )
 
 type State struct {

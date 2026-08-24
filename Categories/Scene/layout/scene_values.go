@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/dtauraso/wirefold/Categories/Scene"
+	"github.com/dtauraso/beadnetwork/Categories/Scene"
 )
 
 func writeValuePathFiles(pathsDir string) error {

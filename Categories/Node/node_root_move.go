@@ -3,8 +3,8 @@ package Node
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/Categories/Polar/polar"
-	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
+	"github.com/dtauraso/beadnetwork/Categories/Polar/polar"
+	"github.com/dtauraso/beadnetwork/Categories/Polar/polarindex"
 )
 
 type NodeMover struct{}

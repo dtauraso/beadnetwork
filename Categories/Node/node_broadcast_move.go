@@ -1,8 +1,8 @@
 package Node
 
 import (
-	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgetable"
-	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Edge/edgetable"
+	"github.com/dtauraso/beadnetwork/Categories/Polar/polarindex"
 )
 
 func BroadcastToPartners(edges map[string]*edgetable.Edge, nodeGeoms map[string]*NodeGeometry, newCenters map[string]Vec3, moveDeltas map[string]polarindex.Offset, enqueue func(id string, msg Msg)) {

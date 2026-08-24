@@ -1,11 +1,11 @@
 package Node
 
 import (
-	"github.com/dtauraso/wirefold/Categories/Node/TiltVectors"
-	Ring "github.com/dtauraso/wirefold/Categories/Ring"
+	"github.com/dtauraso/beadnetwork/Categories/Node/TiltVectors"
+	Ring "github.com/dtauraso/beadnetwork/Categories/Ring"
 	"math"
 
-	"github.com/dtauraso/wirefold/Categories/Polar/polar"
+	"github.com/dtauraso/beadnetwork/Categories/Polar/polar"
 )
 
 type FrameGeometryInputs struct {

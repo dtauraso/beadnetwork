@@ -1,6 +1,6 @@
 package selectleft
 
-import beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
+import beadanimation "github.com/dtauraso/beadnetwork/Categories/Node/BeadAnimation"
 
 func drainLatestReal(in *beadanimation.Receiver) (int, bool) {
 	v, got := NoValue, false

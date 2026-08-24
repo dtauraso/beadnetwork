@@ -1,8 +1,8 @@
 package Node
 
 import (
-	VecB "github.com/dtauraso/wirefold/Categories/Node/ChannelVectors"
-	TiltB "github.com/dtauraso/wirefold/Categories/Node/TiltVectors"
+	VecB "github.com/dtauraso/beadnetwork/Categories/Node/ChannelVectors"
+	TiltB "github.com/dtauraso/beadnetwork/Categories/Node/TiltVectors"
 )
 
 func WriteNodeBlock(w *ValueWriter, f NodeState) error {

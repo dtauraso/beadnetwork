@@ -1,15 +1,15 @@
 package Startup
 
 import (
-	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/Panel"
-	"github.com/dtauraso/wirefold/Categories/Chrome/Pills/AngleDropdown"
-	"github.com/dtauraso/wirefold/Categories/Overlay"
-	"github.com/dtauraso/wirefold/Categories/Polar/polar"
-	SceneBuf "github.com/dtauraso/wirefold/Categories/Scene"
-	"github.com/dtauraso/wirefold/Categories/Scene/Camera"
-	"github.com/dtauraso/wirefold/Categories/Scene/Scenes"
-	"github.com/dtauraso/wirefold/Categories/Scene/View"
-	"github.com/dtauraso/wirefold/Categories/Speed"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Panel"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/AngleDropdown"
+	"github.com/dtauraso/beadnetwork/Categories/Overlay"
+	"github.com/dtauraso/beadnetwork/Categories/Polar/polar"
+	SceneBuf "github.com/dtauraso/beadnetwork/Categories/Scene"
+	"github.com/dtauraso/beadnetwork/Categories/Scene/Camera"
+	"github.com/dtauraso/beadnetwork/Categories/Scene/Scenes"
+	"github.com/dtauraso/beadnetwork/Categories/Scene/View"
+	"github.com/dtauraso/beadnetwork/Categories/Speed"
 )
 
 func armViewpoint(topologyPath string) *Camera.ViewpointPersister {

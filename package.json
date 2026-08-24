@@ -1,7 +1,7 @@
 {
   "name": "topology-vscode",
   "displayName": "Topology Editor",
-  "description": "Drag-and-drop editor for topology.json (wirefold)",
+  "description": "Drag-and-drop editor for topology.json (beadnetwork)",
   "version": "0.0.1",
   "publisher": "dtauraso",
   "private": true,
@@ -32,12 +32,12 @@
     "configuration": {
       "title": "Topology Editor",
       "properties": {
-        "wirefold.probe.trace": {
+        "beadnetwork.probe.trace": {
           "type": "boolean",
           "default": false,
           "description": "Write the high-volume per-owner .probe/ trace logs (go.jsonl, go-node.jsonl, go-edge.jsonl, go-interior.jsonl, ts.jsonl). Off by default because these can grow to gigabytes in a long session. Error logs (go-errors.jsonl, ts-errors.jsonl, handler-error-last.json) are always written regardless of this setting."
         },
-        "wirefold.reloadOnHostBuild": {
+        "beadnetwork.reloadOnHostBuild": {
           "type": "boolean",
           "default": false,
           "description": "Automatically run 'Developer: Reload Window' when the built extension-host bundle (out/extension.js) changes. OFF by default: it reloads the window at a moment you did not choose — including mid-write during a rebuild, which presents as a 10-second stall and a missing 'Topology: Open Editor' command. It was on to stop a rebuilt host running stale code silently, but staleness is no longer silent: a frame whose buffer layout differs from the bundle's is refused and reported (see BufLayoutFingerprintHash). Turn it on if you want the editor to reload itself on every rebuild."

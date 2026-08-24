@@ -1,7 +1,7 @@
 package Camera
 
 import (
-	"github.com/dtauraso/wirefold/Categories/Polar/polar"
+	"github.com/dtauraso/beadnetwork/Categories/Polar/polar"
 )
 
 func AnglesToWorldOffset(r, phi, theta float64) Vec3 {

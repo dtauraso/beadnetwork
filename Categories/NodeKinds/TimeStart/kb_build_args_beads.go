@@ -1,8 +1,8 @@
 package timestart
 
 import (
-	clock "github.com/dtauraso/wirefold/Categories/Clock"
-	interior "github.com/dtauraso/wirefold/Categories/Node/Interior"
+	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
+	interior "github.com/dtauraso/beadnetwork/Categories/Node/Interior"
 )
 
 func (a BuildArgs) Fire() func() {

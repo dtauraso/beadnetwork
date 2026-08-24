@@ -1,6 +1,6 @@
 (function () {
 
-  let ask = window.WIREFOLD_DOCS_OPEN;      
+  let ask = window.BEADNETWORK_DOCS_OPEN;      
   if (!ask) return;
 
   function reread() {

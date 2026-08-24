@@ -103,7 +103,7 @@ export function serveDocsOpen(context: vscode.ExtensionContext): void {
       portFile,
       "// Written by the topology extension while it runs — gitignored.\n" +
       "// Where the docs pages ask for a file to be opened as an editor tab.\n" +
-      `window.WIREFOLD_DOCS_OPEN = { port: ${addr.port}, token: "${token}" };\n`,
+      `window.BEADNETWORK_DOCS_OPEN = { port: ${addr.port}, token: "${token}" };\n`,
     );
     log.appendLine(`listening on localhost:${addr.port}, wrote ${portFile}`);
   });

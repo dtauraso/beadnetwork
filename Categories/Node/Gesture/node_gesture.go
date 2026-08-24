@@ -1,10 +1,10 @@
 package Gesture
 
 import (
-	"github.com/dtauraso/wirefold/Categories/Node"
-	NodeDrag "github.com/dtauraso/wirefold/Categories/Node/Drag"
-	"github.com/dtauraso/wirefold/Categories/Scene/Drag"
-	"github.com/dtauraso/wirefold/Categories/Scene/View"
+	"github.com/dtauraso/beadnetwork/Categories/Node"
+	NodeDrag "github.com/dtauraso/beadnetwork/Categories/Node/Drag"
+	"github.com/dtauraso/beadnetwork/Categories/Scene/Drag"
+	"github.com/dtauraso/beadnetwork/Categories/Scene/View"
 )
 
 func Grab(g *NodeDrag.Gesture, node string, center NodeDrag.Vec3) {

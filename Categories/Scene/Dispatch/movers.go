@@ -4,13 +4,13 @@ import (
 	"context"
 	"sync"
 
-	"github.com/dtauraso/wirefold/Categories/Scene/View"
+	"github.com/dtauraso/beadnetwork/Categories/Scene/View"
 
-	"github.com/dtauraso/wirefold/Categories/Node"
-	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
-	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgegeom"
-	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgetable"
-	"github.com/dtauraso/wirefold/Categories/Scene/Gesture"
+	"github.com/dtauraso/beadnetwork/Categories/Node"
+	beadanimation "github.com/dtauraso/beadnetwork/Categories/Node/BeadAnimation"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Edge/edgegeom"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Edge/edgetable"
+	"github.com/dtauraso/beadnetwork/Categories/Scene/Gesture"
 )
 
 const InboxDepth = 8

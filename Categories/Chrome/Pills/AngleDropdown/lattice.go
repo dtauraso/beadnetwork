@@ -1,8 +1,8 @@
 package AngleDropdown
 
 import (
-	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/TiltPanel"
-	"github.com/dtauraso/wirefold/Categories/Scene/Scenes"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/TiltPanel"
+	"github.com/dtauraso/beadnetwork/Categories/Scene/Scenes"
 )
 
 const DefaultLatticePoints int32 = TiltPanel.FullTurnPhiIdx

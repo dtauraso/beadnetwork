@@ -1,16 +1,16 @@
 package NodeKinds
 
 import (
-	kindPairNode "github.com/dtauraso/wirefold/Categories/NodeKinds/PairNode"
-	kindPulseLeft "github.com/dtauraso/wirefold/Categories/NodeKinds/PulseLeft"
-	kindPulseRight "github.com/dtauraso/wirefold/Categories/NodeKinds/PulseRight"
-	kindTime "github.com/dtauraso/wirefold/Categories/NodeKinds/Time"
-	kindTimeEnd "github.com/dtauraso/wirefold/Categories/NodeKinds/TimeEnd"
-	kindTimeStart "github.com/dtauraso/wirefold/Categories/NodeKinds/TimeStart"
-	kindinput "github.com/dtauraso/wirefold/Categories/NodeKinds/input"
-	kindpulse "github.com/dtauraso/wirefold/Categories/NodeKinds/pulse"
-	kindselectleft "github.com/dtauraso/wirefold/Categories/NodeKinds/selectleft"
-	kindselectright "github.com/dtauraso/wirefold/Categories/NodeKinds/selectright"
+	kindPairNode "github.com/dtauraso/beadnetwork/Categories/NodeKinds/PairNode"
+	kindPulseLeft "github.com/dtauraso/beadnetwork/Categories/NodeKinds/PulseLeft"
+	kindPulseRight "github.com/dtauraso/beadnetwork/Categories/NodeKinds/PulseRight"
+	kindTime "github.com/dtauraso/beadnetwork/Categories/NodeKinds/Time"
+	kindTimeEnd "github.com/dtauraso/beadnetwork/Categories/NodeKinds/TimeEnd"
+	kindTimeStart "github.com/dtauraso/beadnetwork/Categories/NodeKinds/TimeStart"
+	kindinput "github.com/dtauraso/beadnetwork/Categories/NodeKinds/input"
+	kindpulse "github.com/dtauraso/beadnetwork/Categories/NodeKinds/pulse"
+	kindselectleft "github.com/dtauraso/beadnetwork/Categories/NodeKinds/selectleft"
+	kindselectright "github.com/dtauraso/beadnetwork/Categories/NodeKinds/selectright"
 )
 
 func BuilderFor(kind string) (Builder, bool) {

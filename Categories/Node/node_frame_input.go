@@ -1,8 +1,8 @@
 package Node
 
 import (
-	"github.com/dtauraso/wirefold/Categories/Node/ChannelVectors"
-	"github.com/dtauraso/wirefold/Categories/Node/TiltVectors"
+	"github.com/dtauraso/beadnetwork/Categories/Node/ChannelVectors"
+	"github.com/dtauraso/beadnetwork/Categories/Node/TiltVectors"
 )
 
 type TiltArrow struct {

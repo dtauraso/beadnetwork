@@ -5,8 +5,8 @@ package main
 import (
 	"path/filepath"
 
-	Scene "github.com/dtauraso/wirefold/Categories/Scene"
-	"github.com/dtauraso/wirefold/scripts/genpaths"
+	Scene "github.com/dtauraso/beadnetwork/Categories/Scene"
+	"github.com/dtauraso/beadnetwork/scripts/genpaths"
 )
 
 func main() {

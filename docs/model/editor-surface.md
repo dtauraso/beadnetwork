@@ -26,7 +26,7 @@ Go owns the clock.
   anything tracking the cursor, a drag, or a tick. Go writes only when the
   value changes: `BlobWriter.Flush` compares the whole payload first.
 - **Nothing streams. Go → TS is files, and only files.** There is no frame,
-  no per-goroutine pipe, no `WIREFOLD_STREAM_FDS`, no framing or demux in the
+  no per-goroutine pipe, no `BEADNETWORK_STREAM_FDS`, no framing or demux in the
   ext host, and no host→webview message of any kind. Go inherits three stdio
   slots; stderr is the only one that carries anything, because an error has to
   reach the human before any file is written.

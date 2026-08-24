@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
+	"github.com/dtauraso/beadnetwork/Categories/Polar/polarindex"
 )
 
 type Messaging struct {

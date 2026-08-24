@@ -63,12 +63,12 @@ Terminal.
 
 ```sh
 cd ~/Documents
-git clone https://github.com/dtauraso/wirefold.git
-cd wirefold
+git clone https://github.com/dtauraso/beadnetwork.git
+cd beadnetwork
 ```
 
 You are now inside the project folder. Later terminal sessions start back at your
-home folder, so run `cd ~/Documents/wirefold` again to return here.
+home folder, so run `cd ~/Documents/beadnetwork` again to return here.
 
 ## 5. Check everything landed
 

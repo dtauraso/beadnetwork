@@ -1,6 +1,6 @@
 package Tabs
 
-import "github.com/dtauraso/wirefold/Categories/Scene/Scenes"
+import "github.com/dtauraso/beadnetwork/Categories/Scene/Scenes"
 
 func TabNames() []string {
 	names := make([]string, len(Scenes.All))

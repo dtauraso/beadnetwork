@@ -88,7 +88,7 @@ dist/
 /.probe/
 
 # Prebuilt Go binary cache (built once by the editor runner; not for VCS)
-/.wirefold-cache/
+/.beadnetwork-cache/
 
 # Scene sidecar — gitignored so camera/label state does not generate commit noise.
 # Diagram state (positions, fades) stays in topology.json.

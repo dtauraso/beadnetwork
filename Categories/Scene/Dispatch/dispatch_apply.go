@@ -3,17 +3,17 @@ package Dispatch
 import (
 	"context"
 
-	NodeKind "github.com/dtauraso/wirefold/Categories/Node"
-	"github.com/dtauraso/wirefold/Categories/Overlay"
-	Speed "github.com/dtauraso/wirefold/Categories/Speed"
+	NodeKind "github.com/dtauraso/beadnetwork/Categories/Node"
+	"github.com/dtauraso/beadnetwork/Categories/Overlay"
+	Speed "github.com/dtauraso/beadnetwork/Categories/Speed"
 
-	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/Panel"
-	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/SliderPanel"
-	"github.com/dtauraso/wirefold/Categories/Scene"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Panel"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/SliderPanel"
+	"github.com/dtauraso/beadnetwork/Categories/Scene"
 
-	"github.com/dtauraso/wirefold/Categories/Scene/Drag"
-	"github.com/dtauraso/wirefold/Categories/Scene/Gesture"
-	"github.com/dtauraso/wirefold/Categories/Scene/Scenes"
+	"github.com/dtauraso/beadnetwork/Categories/Scene/Drag"
+	"github.com/dtauraso/beadnetwork/Categories/Scene/Gesture"
+	"github.com/dtauraso/beadnetwork/Categories/Scene/Scenes"
 )
 
 func tiltVectorEdit(ctx context.Context, md *MoveDispatch, speedSinks SliderPanel.Sinks, row int32, attr string) {

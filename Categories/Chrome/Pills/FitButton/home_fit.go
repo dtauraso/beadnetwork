@@ -3,7 +3,7 @@ package FitButton
 import (
 	"math"
 
-	"github.com/dtauraso/wirefold/Categories/Scene/Camera"
+	"github.com/dtauraso/beadnetwork/Categories/Scene/Camera"
 )
 
 func FitDistance(fovDeg, aspect, width, height float64) float64 {

@@ -16,7 +16,7 @@ if [ ! -d "$NODES_DIR" ]; then
   exit 1
 fi
 
-MODULE="github.com/dtauraso/wirefold"
+MODULE="github.com/dtauraso/beadnetwork"
 
 is_spine() { [ "$1" = "bead" ] || [ "$1" = "spatial" ] || [ "$1" = "rowevent" ] || [ "$1" = "clock" ]; }
 

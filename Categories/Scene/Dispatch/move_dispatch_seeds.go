@@ -4,9 +4,9 @@ import (
 	"sort"
 	"strconv"
 
-	"github.com/dtauraso/wirefold/Categories/Node"
-	edge "github.com/dtauraso/wirefold/Categories/Node/Edge"
-	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgegeom"
+	"github.com/dtauraso/beadnetwork/Categories/Node"
+	edge "github.com/dtauraso/beadnetwork/Categories/Node/Edge"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Edge/edgegeom"
 )
 
 func edgeEnds(geoms map[string]Node.NodeGeom) map[string]edgegeom.NodeEnd {

@@ -1,10 +1,10 @@
 package selectleft
 
 import (
-	clock "github.com/dtauraso/wirefold/Categories/Clock"
-	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
+	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
+	beadanimation "github.com/dtauraso/beadnetwork/Categories/Node/BeadAnimation"
 
-	interior "github.com/dtauraso/wirefold/Categories/Node/Interior"
+	interior "github.com/dtauraso/beadnetwork/Categories/Node/Interior"
 )
 
 const WindowMs = 3000

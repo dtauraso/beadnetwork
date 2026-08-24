@@ -3,9 +3,9 @@ package PairNode
 import (
 	"context"
 
-	clock "github.com/dtauraso/wirefold/Categories/Clock"
-	NodeCat "github.com/dtauraso/wirefold/Categories/Node"
-	NodeDrag "github.com/dtauraso/wirefold/Categories/Node/Drag"
+	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
+	NodeCat "github.com/dtauraso/beadnetwork/Categories/Node"
+	NodeDrag "github.com/dtauraso/beadnetwork/Categories/Node/Drag"
 )
 
 type Self struct {

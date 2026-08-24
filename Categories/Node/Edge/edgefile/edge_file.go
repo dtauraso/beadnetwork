@@ -2,7 +2,7 @@ package edgefile
 
 import (
 	"fmt"
-	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgetable"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Edge/edgetable"
 	"os"
 	"path/filepath"
 	"strings"

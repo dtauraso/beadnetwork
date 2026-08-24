@@ -3,7 +3,7 @@ package NodeKinds
 import (
 	"context"
 
-	NodeBuf "github.com/dtauraso/wirefold/Categories/Node"
+	NodeBuf "github.com/dtauraso/beadnetwork/Categories/Node"
 )
 
 type Builder interface {

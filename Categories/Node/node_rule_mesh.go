@@ -2,10 +2,10 @@ package Node
 
 import (
 	"context"
-	"github.com/dtauraso/wirefold/Categories/Node/ChannelVectors"
-	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgetable"
+	"github.com/dtauraso/beadnetwork/Categories/Node/ChannelVectors"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Edge/edgetable"
 
-	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/PolarRulesPanel"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/PolarRulesPanel"
 )
 
 func (m *NodeGeometry) AttachRuleNode(rn *RuleNode) {

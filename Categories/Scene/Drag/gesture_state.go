@@ -1,8 +1,8 @@
 package Drag
 
 import (
-	NodeDrag "github.com/dtauraso/wirefold/Categories/Node/Drag"
-	"github.com/dtauraso/wirefold/Categories/Scene/Camera"
+	NodeDrag "github.com/dtauraso/beadnetwork/Categories/Node/Drag"
+	"github.com/dtauraso/beadnetwork/Categories/Scene/Camera"
 )
 
 type GesturePhase int

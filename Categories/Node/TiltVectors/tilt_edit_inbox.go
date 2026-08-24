@@ -3,7 +3,7 @@ package TiltVectors
 import (
 	"context"
 
-	"github.com/dtauraso/wirefold/Categories/Chrome/Pills/AngleDropdown"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/AngleDropdown"
 )
 
 type TiltEditMsg struct {

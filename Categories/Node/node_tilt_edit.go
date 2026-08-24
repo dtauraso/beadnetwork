@@ -2,7 +2,7 @@ package Node
 
 import (
 	"context"
-	"github.com/dtauraso/wirefold/Categories/Node/TiltVectors"
+	"github.com/dtauraso/beadnetwork/Categories/Node/TiltVectors"
 	"strconv"
 )
 

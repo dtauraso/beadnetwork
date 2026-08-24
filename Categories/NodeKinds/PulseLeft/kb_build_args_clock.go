@@ -1,6 +1,6 @@
 package pulseleft
 
-import clock "github.com/dtauraso/wirefold/Categories/Clock"
+import clock "github.com/dtauraso/beadnetwork/Categories/Clock"
 
 func (a BuildArgs) Clock() clock.Clock { return a.PB.ClockOf() }
 

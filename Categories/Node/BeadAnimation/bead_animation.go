@@ -4,13 +4,13 @@ import (
 	"context"
 	"time"
 
-	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/SliderPanel"
-	clock "github.com/dtauraso/wirefold/Categories/Clock"
-	"github.com/dtauraso/wirefold/Categories/Node/BeadAnimation/lattice"
-	SF "github.com/dtauraso/wirefold/Categories/Node/Edge"
-	Ring "github.com/dtauraso/wirefold/Categories/Ring"
-	bead "github.com/dtauraso/wirefold/Categories/Ring/Bead"
-	Speed "github.com/dtauraso/wirefold/Categories/Speed"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/SliderPanel"
+	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
+	"github.com/dtauraso/beadnetwork/Categories/Node/BeadAnimation/lattice"
+	SF "github.com/dtauraso/beadnetwork/Categories/Node/Edge"
+	Ring "github.com/dtauraso/beadnetwork/Categories/Ring"
+	bead "github.com/dtauraso/beadnetwork/Categories/Ring/Bead"
+	Speed "github.com/dtauraso/beadnetwork/Categories/Speed"
 )
 
 type BeadAnimation struct {

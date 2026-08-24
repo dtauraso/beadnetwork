@@ -1,7 +1,7 @@
 package Speed
 
 import (
-	clock "github.com/dtauraso/wirefold/Categories/Clock"
+	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
 )
 
 const SpeedNumScale = 4

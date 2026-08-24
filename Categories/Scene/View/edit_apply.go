@@ -3,7 +3,7 @@ package View
 import (
 	"fmt"
 
-	"github.com/dtauraso/wirefold/Categories/Chrome/Pills/AngleDropdown"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/AngleDropdown"
 )
 
 func (ui *UIState) SetViewport(w, h float64) {

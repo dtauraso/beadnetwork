@@ -8,7 +8,7 @@ cd "$REPO_ROOT"
 
 FOUND=$(find . \
   -type d \( -name node_modules -o -name out -o -name .git -o -name view \
-             -o -name .probe -o -name .wirefold-cache \) -prune -o \
+             -o -name .probe -o -name .beadnetwork-cache \) -prune -o \
   -name 'check-*.sh' -type f -print \
   | sed 's|^\./||' | sort)
 

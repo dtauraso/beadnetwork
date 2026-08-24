@@ -4,12 +4,12 @@ package main
 
 import (
 	"fmt"
-	"github.com/dtauraso/wirefold/scripts/genpaths"
+	"github.com/dtauraso/beadnetwork/scripts/genpaths"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/dtauraso/wirefold/Categories/Node/TiltVectors"
+	"github.com/dtauraso/beadnetwork/Categories/Node/TiltVectors"
 )
 
 func writeNames(path string) error {

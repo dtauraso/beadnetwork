@@ -13,7 +13,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/dtauraso/wirefold/scripts/genpaths/constexpr"
+	"github.com/dtauraso/beadnetwork/scripts/genpaths/constexpr"
 )
 
 type shadingParam struct {

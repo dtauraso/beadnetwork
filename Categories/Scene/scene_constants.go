@@ -5,8 +5,8 @@ import (
 	"math"
 	"path/filepath"
 
-	lattice "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation/lattice"
-	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
+	lattice "github.com/dtauraso/beadnetwork/Categories/Node/BeadAnimation/lattice"
+	"github.com/dtauraso/beadnetwork/Categories/Polar/polarindex"
 )
 
 const (

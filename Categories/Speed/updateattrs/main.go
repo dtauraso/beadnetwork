@@ -8,9 +8,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/dtauraso/wirefold/scripts/genpaths"
+	"github.com/dtauraso/beadnetwork/scripts/genpaths"
 
-	Speed "github.com/dtauraso/wirefold/Categories/Speed"
+	Speed "github.com/dtauraso/beadnetwork/Categories/Speed"
 )
 
 func main() {

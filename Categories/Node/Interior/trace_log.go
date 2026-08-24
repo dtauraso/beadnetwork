@@ -15,7 +15,7 @@ func tracePath(sceneRoot string, row int32) string {
 	return filepath.Join(sceneRoot, filepath.FromSlash(TraceRelPath(int(row))))
 }
 
-var traceEnabled = os.Getenv("WIREFOLD_PROBE_TRACE") == "1"
+var traceEnabled = os.Getenv("BEADNETWORK_PROBE_TRACE") == "1"
 
 func appendTrace(path string, events []RowEvent) {
 	if path == "" || len(events) == 0 {

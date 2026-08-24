@@ -5,12 +5,12 @@ import (
 	"os"
 	"sync"
 
-	"github.com/dtauraso/wirefold/Categories/Scene/Dispatch"
+	"github.com/dtauraso/beadnetwork/Categories/Scene/Dispatch"
 
-	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/SliderPanel"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/SliderPanel"
 
-	clock "github.com/dtauraso/wirefold/Categories/Clock"
-	"github.com/dtauraso/wirefold/Categories/Scene/Drag"
+	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
+	"github.com/dtauraso/beadnetwork/Categories/Scene/Drag"
 )
 
 type gestureMsgKind int

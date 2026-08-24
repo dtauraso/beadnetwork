@@ -3,9 +3,9 @@ package Node
 import (
 	"math"
 
-	lattice "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation/lattice"
-	"github.com/dtauraso/wirefold/Categories/Polar/polar"
-	"github.com/dtauraso/wirefold/Categories/Polar/polarindex"
+	lattice "github.com/dtauraso/beadnetwork/Categories/Node/BeadAnimation/lattice"
+	"github.com/dtauraso/beadnetwork/Categories/Polar/polar"
+	"github.com/dtauraso/beadnetwork/Categories/Polar/polarindex"
 )
 
 type NodeIdentity struct {

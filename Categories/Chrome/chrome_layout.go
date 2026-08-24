@@ -1,16 +1,16 @@
 package Chrome
 
 import (
-	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/Panel"
-	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/PolarRulesPanel"
-	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/SliderPanel"
-	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/TiltPanel"
-	"github.com/dtauraso/wirefold/Categories/Chrome/Pills"
-	"github.com/dtauraso/wirefold/Categories/Chrome/Pills/AngleDropdown"
-	"github.com/dtauraso/wirefold/Categories/Chrome/Pills/FitButton"
-	"github.com/dtauraso/wirefold/Categories/Chrome/Pills/NodesDropdown"
-	"github.com/dtauraso/wirefold/Categories/Chrome/Tabs"
-	"github.com/dtauraso/wirefold/Categories/Overlay"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Panel"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/PolarRulesPanel"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/SliderPanel"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/TiltPanel"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/AngleDropdown"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/FitButton"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/NodesDropdown"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Tabs"
+	"github.com/dtauraso/beadnetwork/Categories/Overlay"
 )
 
 type Layout struct {

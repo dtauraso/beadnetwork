@@ -4,9 +4,9 @@ import (
 	"context"
 	"strings"
 
-	NodeBuf "github.com/dtauraso/wirefold/Categories/Node"
-	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
-	interior "github.com/dtauraso/wirefold/Categories/Node/Interior"
+	NodeBuf "github.com/dtauraso/beadnetwork/Categories/Node"
+	beadanimation "github.com/dtauraso/beadnetwork/Categories/Node/BeadAnimation"
+	interior "github.com/dtauraso/beadnetwork/Categories/Node/Interior"
 )
 
 type deps interface {

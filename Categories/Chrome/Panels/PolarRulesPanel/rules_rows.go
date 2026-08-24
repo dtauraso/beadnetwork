@@ -3,7 +3,7 @@ package PolarRulesPanel
 import (
 	"fmt"
 
-	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/Panel"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Panel"
 )
 
 type builder struct {

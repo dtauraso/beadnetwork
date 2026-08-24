@@ -2,7 +2,7 @@ package Node
 
 import (
 	"context"
-	"github.com/dtauraso/wirefold/Categories/Node/Edge/edgetable"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Edge/edgetable"
 )
 
 type EdgeToggle struct {

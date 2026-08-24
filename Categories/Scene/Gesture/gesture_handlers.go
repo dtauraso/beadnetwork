@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/dtauraso/wirefold/Categories/Node"
-	NodeGesture "github.com/dtauraso/wirefold/Categories/Node/Gesture"
-	"github.com/dtauraso/wirefold/Categories/Scene/View"
+	"github.com/dtauraso/beadnetwork/Categories/Node"
+	NodeGesture "github.com/dtauraso/beadnetwork/Categories/Node/Gesture"
+	"github.com/dtauraso/beadnetwork/Categories/Scene/View"
 
-	"github.com/dtauraso/wirefold/Categories/Chrome/Pills/FitButton"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/FitButton"
 
-	"github.com/dtauraso/wirefold/Categories/Scene/Camera"
-	"github.com/dtauraso/wirefold/Categories/Scene/Drag"
+	"github.com/dtauraso/beadnetwork/Categories/Scene/Camera"
+	"github.com/dtauraso/beadnetwork/Categories/Scene/Drag"
 )
 
 func gestHome(d Deps, ev Drag.RawInputMsg) {

@@ -1,6 +1,6 @@
 package lattice
 
-import clock "github.com/dtauraso/wirefold/Categories/Clock"
+import clock "github.com/dtauraso/beadnetwork/Categories/Clock"
 
 const PulseSpeedWuPerMs = 0.04
 

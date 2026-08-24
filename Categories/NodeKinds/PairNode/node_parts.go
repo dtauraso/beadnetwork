@@ -1,12 +1,12 @@
 package PairNode
 
 import (
-	clock "github.com/dtauraso/wirefold/Categories/Clock"
-	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
+	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
+	beadanimation "github.com/dtauraso/beadnetwork/Categories/Node/BeadAnimation"
 
-	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/TiltPanel"
-	"github.com/dtauraso/wirefold/Categories/Node/TiltVectors"
-	"github.com/dtauraso/wirefold/Categories/NodeKinds/PairNode/tiltring"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/TiltPanel"
+	"github.com/dtauraso/beadnetwork/Categories/Node/TiltVectors"
+	"github.com/dtauraso/beadnetwork/Categories/NodeKinds/PairNode/tiltring"
 )
 
 type nodePlumbing struct {
