@@ -3,7 +3,6 @@ package Dispatch
 import (
 	"context"
 
-	Speed "github.com/dtauraso/beadnetwork/Categories/Speed"
 
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Drag"
 
@@ -131,5 +130,5 @@ func applyAngleHit(ctx context.Context, md *MoveDispatch, speedSinks SliderPanel
 }
 
 func setClockSpeed(md *MoveDispatch, speedSinks SliderPanel.Sinks, speed float64) {
-	Speed.SetSpeedNum(int64(speed*Speed.SpeedNumScale), md.speedState(), speedSinks, md.persistSpeed, md.redraw)
+	SliderPanel.SetSpeedNum(int64(speed*SliderPanel.SpeedNumScale), md.speedState(), speedSinks, md.persistSpeed, md.redraw)
 }

@@ -1,4 +1,4 @@
-package Speed
+package SliderPanel
 
 var UpdateAttrs = []string{"speed"}
 

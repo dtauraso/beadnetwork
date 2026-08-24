@@ -10,7 +10,6 @@ import (
 	SF "github.com/dtauraso/beadnetwork/Categories/Node/Edge"
 	Ring "github.com/dtauraso/beadnetwork/Categories/Ring"
 	bead "github.com/dtauraso/beadnetwork/Categories/Ring/Bead"
-	Speed "github.com/dtauraso/beadnetwork/Categories/Speed"
 )
 
 type BeadAnimation struct {
@@ -58,7 +57,7 @@ func (o *BeadAnimation) RunBeadAnimation(ctx context.Context) {
 	}
 	clk := clock.NewRealClock()
 	if o.sleepMs == 0 {
-		o.sleepMs = SliderPanel.SleepMs(Speed.SpeedNumScale, 1)
+		o.sleepMs = SliderPanel.SleepMs(SliderPanel.SpeedNumScale, 1)
 	}
 	for {
 		if ctx.Err() != nil {

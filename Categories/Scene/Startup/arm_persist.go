@@ -9,7 +9,7 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Camera"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Scenes"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/View"
-	"github.com/dtauraso/beadnetwork/Categories/Speed"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/SliderPanel"
 )
 
 func armViewpoint(topologyPath string) *Camera.ViewpointPersister {
@@ -27,7 +27,7 @@ func armEdit(ui *View.UIState, topologyPath string) {
 		Path: topologyPath, Write: SceneBuf.WriteSceneSphere, Tag: "scene_sphere_persist",
 	}
 	speed := &Persister[float64]{
-		Path: Scenes.SpeedFilePath(topologyPath), Write: Speed.WriteSceneSpeed, Tag: "scene_speed_persist",
+		Path: Scenes.SpeedFilePath(topologyPath), Write: SliderPanel.WriteSceneSpeed, Tag: "scene_speed_persist",
 	}
 	lattice := &Persister[int32]{
 		Path: Scenes.LatticeFilePath(topologyPath), Write: AngleDropdown.WriteSceneLattice, Tag: "scene_lattice_persist",
