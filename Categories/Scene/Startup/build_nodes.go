@@ -1,4 +1,4 @@
-package Wiring
+package Startup
 
 import (
 	"context"
@@ -11,6 +11,7 @@ import (
 	clock "github.com/dtauraso/wirefold/Categories/Clock"
 	NodeBuf "github.com/dtauraso/wirefold/Categories/Node"
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
+	Ports "github.com/dtauraso/wirefold/Categories/Node/Ports"
 	"github.com/dtauraso/wirefold/Categories/Node/TiltVectors"
 	"github.com/dtauraso/wirefold/Categories/NodeKinds"
 	"github.com/dtauraso/wirefold/Categories/Scene/Dispatch"
@@ -20,7 +21,7 @@ func BuildNodes(
 	ctx context.Context,
 	spec Topology.TopoSpec,
 	md *Dispatch.MoveDispatch,
-	wiring EdgeWiring,
+	lines Ports.EdgeLines,
 	nodeGeoms map[string]NodeBuf.NodeGeom,
 	vectorOut, vectorIn map[string]chan TiltPanel.TiltVectorMsg,
 	clk clock.Clock,
@@ -58,7 +59,7 @@ func BuildNodes(
 				"in the switch that BuilderFor reads", n.Type)
 		}
 
-		pb := NewPortBindings()
+		pb := Ports.NewPortBindings()
 		pb.OutSink = outSink
 		pb.Clock = clk
 		pb.SpeedSinks = speedSinks
@@ -67,11 +68,11 @@ func BuildNodes(
 		pb.VectorOut = vectorOut
 		pb.VectorIn = vectorIn
 		bp := bind.Ports()
-		declared := make([]PortSpec, len(bp))
+		declared := make([]Ports.PortSpec, len(bp))
 		for i, p := range bp {
-			declared[i] = PortSpec{Name: p.Name, Dir: PortDir(p.Dir)}
+			declared[i] = Ports.PortSpec{Name: p.Name, Dir: Ports.PortDir(p.Dir)}
 		}
-		wiring.BindPorts(&pb, n, declared)
+		lines.BindPorts(&pb, n.ID, func(port string) beadanimation.SendRule { return Topology.NodeSendRule(n, port) }, declared)
 
 		var tiltPhiIdx int32
 		if n.TopTiltVectorPhiIdx != nil {
@@ -88,22 +89,4 @@ func BuildNodes(
 		nodes = append(nodes, built)
 	}
 	return nodes, outSink, nil
-}
-
-func BuildTypeMaps(spec Topology.TopoSpec) (nodeType map[string]string, kindBroadcastPorts map[string]map[string]bool) {
-	nodeType = map[string]string{}
-	for _, n := range spec.Nodes {
-		nodeType[n.ID] = n.Type
-	}
-	kindBroadcastPorts = map[string]map[string]bool{}
-	for kind, ports := range KindPorts {
-		outMultis := map[string]bool{}
-		for _, p := range ports {
-			if p.Dir == PortBroadcast {
-				outMultis[p.Name] = true
-			}
-		}
-		kindBroadcastPorts[kind] = outMultis
-	}
-	return nodeType, kindBroadcastPorts
 }

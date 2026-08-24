@@ -1,40 +1,26 @@
-package Wiring
+package Topology
 
 import (
 	"fmt"
-
-	"github.com/dtauraso/wirefold/Categories/Scene/Topology"
 
 	"strings"
 
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 )
 
-func ValidateSpec(spec *Topology.TopoSpec, kindPorts map[string][]PortSpec) error {
-	var errs []string
+type KindPorts struct {
+	In        map[string]map[string]bool
+	Out       map[string]map[string]bool
+	Broadcast map[string]map[string]bool
+}
 
-	kindInPorts := map[string]map[string]bool{}
-	kindOutPorts := map[string]map[string]bool{}
-	kindBroadcastPorts := map[string]map[string]bool{}
-	for kind, ports := range kindPorts {
-		ins := map[string]bool{}
-		outs := map[string]bool{}
-		outMultis := map[string]bool{}
-		for _, p := range ports {
-			switch p.Dir {
-			case PortIn:
-				ins[p.Name] = true
-			case PortOut:
-				outs[p.Name] = true
-			case PortBroadcast:
-				outMultis[p.Name] = true
-				outs[p.Name] = true
-			}
-		}
-		kindInPorts[kind] = ins
-		kindOutPorts[kind] = outs
-		kindBroadcastPorts[kind] = outMultis
-	}
+func (k KindPorts) Knows(kind string) bool {
+	_, ok := k.In[kind]
+	return ok
+}
+
+func ValidateSpec(spec *TopoSpec, kindPorts KindPorts) error {
+	var errs []string
 
 	nodeType := map[string]string{}
 	seenID := map[string]bool{}
@@ -46,13 +32,13 @@ func ValidateSpec(spec *Topology.TopoSpec, kindPorts map[string][]PortSpec) erro
 		}
 		seenID[n.ID] = true
 		nodeType[n.ID] = n.Type
-		if _, ok := kindPorts[n.Type]; !ok {
+		if !kindPorts.Knows(n.Type) {
 			errs = append(errs, fmt.Sprintf("node %q: unknown type %q", n.ID, n.Type))
 		}
 	}
 
 	for _, n := range spec.Nodes {
-		if !Topology.SafeTreePathComponent(n.ID) {
+		if !SafeTreePathComponent(n.ID) {
 			errs = append(errs, fmt.Sprintf("node id %q is not a safe path component", n.ID))
 		}
 	}
@@ -69,17 +55,17 @@ func ValidateSpec(spec *Topology.TopoSpec, kindPorts map[string][]PortSpec) erro
 			errs = append(errs, fmt.Sprintf("edge %q references unknown node id %q as its source", e.Label, e.Source))
 		} else {
 			srcHandle := e.SourceHandle
-			if base, isMulti := BroadcastBaseName(srcHandle, srcKind, kindBroadcastPorts); isMulti {
+			if base, isMulti := BroadcastBaseName(srcHandle, srcKind, kindPorts.Broadcast); isMulti {
 				srcHandle = base
 			}
-			if !kindOutPorts[srcKind][srcHandle] {
+			if !kindPorts.Out[srcKind][srcHandle] {
 				errs = append(errs, fmt.Sprintf("edge %q: sourceHandle %q is not an output port on kind %q", e.Label, e.SourceHandle, srcKind))
 			}
 		}
 		tgtKind, tgtKnown := nodeType[e.Target]
 		if !tgtKnown {
 			errs = append(errs, fmt.Sprintf("edge %q references unknown node id %q as its target", e.Label, e.Target))
-		} else if !kindInPorts[tgtKind][e.TargetHandle] {
+		} else if !kindPorts.In[tgtKind][e.TargetHandle] {
 			errs = append(errs, fmt.Sprintf("edge %q: targetHandle %q is not an input port on kind %q", e.Label, e.TargetHandle, tgtKind))
 		}
 	}
@@ -99,4 +85,19 @@ func ValidateSpec(spec *Topology.TopoSpec, kindPorts map[string][]PortSpec) erro
 		return nil
 	}
 	return fmt.Errorf("LoadTopology: spec validation failed:\n  %s", strings.Join(errs, "\n  "))
+}
+
+func BroadcastBaseName(handle, kind string, kindBroadcastPorts map[string]map[string]bool) (string, bool) {
+	if len(handle) == 0 {
+		return handle, false
+	}
+	last := handle[len(handle)-1]
+	if last < '0' || last > '9' {
+		return handle, false
+	}
+	base := handle[:len(handle)-1]
+	if kindBroadcastPorts[kind][base] {
+		return base, true
+	}
+	return handle, false
 }

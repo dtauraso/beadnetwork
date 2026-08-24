@@ -2,7 +2,7 @@
 
 Read this before changing anything in the **Go network** (`Categories/Node/`,
 `Categories/Node/BeadAnimation/bead_animation.go`, `Categories/Scene/Startup/load.go`,
-`Categories/Scene/Wiring/spec_seed.go`) or anything that schedules/orders work. If
+`Categories/Scene/Topology/spec_seed.go`) or anything that schedules/orders work. If
 your reasoning slips into retired vocabulary, you are in the wrong
 frame. Stop, re-read this file, and re-derive from the model.
 

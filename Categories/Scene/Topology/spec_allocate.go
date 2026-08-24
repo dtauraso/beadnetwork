@@ -1,14 +1,21 @@
-package Wiring
+package Topology
 
 import (
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/TiltPanel"
 	NodeBuf "github.com/dtauraso/wirefold/Categories/Node"
 	beadanimation "github.com/dtauraso/wirefold/Categories/Node/BeadAnimation"
 	edge "github.com/dtauraso/wirefold/Categories/Node/Edge"
-	"github.com/dtauraso/wirefold/Categories/Scene/Topology"
 )
 
-func AllocateBeadLines(spec Topology.TopoSpec, nodeGeoms map[string]NodeBuf.NodeGeom) (
+func NodeTypes(spec TopoSpec) map[string]string {
+	nodeType := map[string]string{}
+	for _, n := range spec.Nodes {
+		nodeType[n.ID] = n.Type
+	}
+	return nodeType
+}
+
+func AllocateBeadLines(spec TopoSpec, nodeGeoms map[string]NodeBuf.NodeGeom) (
 	destRun map[string]*beadanimation.BeadLine,
 	edgeRun map[string]*beadanimation.BeadLine,
 	edgeEndpoints map[string]edge.EdgeEndpoints,
@@ -38,7 +45,7 @@ func AllocateBeadLines(spec Topology.TopoSpec, nodeGeoms map[string]NodeBuf.Node
 	return destRun, edgeRun, edgeEndpoints
 }
 
-func AllocateVectorChannels(spec Topology.TopoSpec) (vectorOutByNode, vectorInByNode map[string]chan TiltPanel.TiltVectorMsg) {
+func AllocateVectorChannels(spec TopoSpec) (vectorOutByNode, vectorInByNode map[string]chan TiltPanel.TiltVectorMsg) {
 	kindByID := make(map[string]string, len(spec.Nodes))
 	for _, n := range spec.Nodes {
 		kindByID[n.ID] = n.Type
@@ -56,7 +63,7 @@ func AllocateVectorChannels(spec Topology.TopoSpec) (vectorOutByNode, vectorInBy
 	return vectorOutByNode, vectorInByNode
 }
 
-func BuildEdgeMaps(spec Topology.TopoSpec, nodeType map[string]string, kindBroadcastPorts map[string]map[string]bool) (inbound map[string]map[string]string, outbound map[string]map[string][]string, outboundHandle map[string]map[string][]string) {
+func BuildEdgeMaps(spec TopoSpec, nodeType map[string]string, kindBroadcastPorts map[string]map[string]bool) (inbound map[string]map[string]string, outbound map[string]map[string][]string, outboundHandle map[string]map[string][]string) {
 	inbound = map[string]map[string]string{}
 	outbound = map[string]map[string][]string{}
 	outboundHandle = map[string]map[string][]string{}
@@ -81,22 +88,7 @@ func BuildEdgeMaps(spec Topology.TopoSpec, nodeType map[string]string, kindBroad
 	return inbound, outbound, outboundHandle
 }
 
-func BroadcastBaseName(handle, kind string, kindBroadcastPorts map[string]map[string]bool) (string, bool) {
-	if len(handle) == 0 {
-		return handle, false
-	}
-	last := handle[len(handle)-1]
-	if last < '0' || last > '9' {
-		return handle, false
-	}
-	base := handle[:len(handle)-1]
-	if kindBroadcastPorts[kind][base] {
-		return base, true
-	}
-	return handle, false
-}
-
-func NodeSendRule(n Topology.Node, port string) beadanimation.SendRule {
+func NodeSendRule(n Node, port string) beadanimation.SendRule {
 	if n.Data == nil || n.Data.SendRules == nil {
 		return beadanimation.RuleConsumeGated
 	}

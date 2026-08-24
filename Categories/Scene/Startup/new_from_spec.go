@@ -1,4 +1,4 @@
-package Wiring
+package Startup
 
 import (
 	"context"
@@ -64,13 +64,13 @@ func NewFromSpec(spec Topology.TopoSpec, sphere polar.SceneSphere, hasScene bool
 
 	for _, n := range spec.Nodes {
 		if nm, ok := md.MR.NodeGeoms()[n.ID]; ok {
-			SeedNode(nm, n, scenePath)
+			Topology.SeedNode(nm, n, scenePath)
 		}
 	}
 
-	md.UI.Tilt.Rows, md.UI.Tilt.Labels = TiltPanelRows(spec)
+	md.UI.Tilt.Rows, md.UI.Tilt.Labels = Topology.TiltPanelRows(spec)
 
-	md.UI.Rules.Nodes = RulePanelNodes(spec, func(id string) bool {
+	md.UI.Rules.Nodes = Topology.RulePanelNodes(spec, func(id string) bool {
 		ng, ok := md.MR.NodeGeoms()[id]
 		return ok && ng.HasKindRule()
 	})
@@ -85,10 +85,10 @@ func NewFromSpec(spec Topology.TopoSpec, sphere polar.SceneSphere, hasScene bool
 	sourceByLabel := make(map[string]string, len(spec.Edges))
 	for _, e := range spec.Edges {
 		if src, ok := md.MR.NodeGeoms()[e.Source]; ok {
-			SeedEdge(src, e, true, kindByID[e.Target], scenePath)
+			Topology.SeedEdge(src, e, true, kindByID[e.Target], scenePath)
 		}
 		if dst, ok := md.MR.NodeGeoms()[e.Target]; ok {
-			SeedEdge(dst, e, false, kindByID[e.Source], scenePath)
+			Topology.SeedEdge(dst, e, false, kindByID[e.Source], scenePath)
 		}
 		targetByLabel[e.Label] = e.Target
 		sourceByLabel[e.Label] = e.Source

@@ -1,4 +1,4 @@
-package Wiring
+package Ports
 
 import (
 	"github.com/dtauraso/wirefold/Categories/Chrome/Panels/SliderPanel"

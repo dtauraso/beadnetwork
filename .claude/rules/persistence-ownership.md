@@ -1,6 +1,6 @@
 ---
 paths:
-  - Categories/Node/Wiring/**
+  - Categories/Scene/Topology/**
   - Start/extension/runCommand.ts
   - topology/**
 ---
