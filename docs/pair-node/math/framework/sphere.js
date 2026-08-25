@@ -148,15 +148,13 @@ function sphereOrigins(spec, r, view) {
 
 function dirFromPointer(view, c, r, sx, sy) {
   const pan = view.pan || { x: 0, y: 0 };
-  let X = sx - (c + pan.x);
-  let up = (c + pan.y) - sy;
+  const X = sx - (c + pan.x);
+  const up = (c + pan.y) - sy;
 
-  const reach = Math.hypot(X, up);
-  if (reach > r) {
-    X *= r / reach;
-    up *= r / reach;
-  }
-  const depth = Math.sqrt(Math.max(0, r * r - X * X - up * up));
+  const away = (X * X + up * up) / (r * r);
+  const depth = away <= 0.5
+    ? r * Math.sqrt(1 - away)
+    : r * 0.5 / Math.sqrt(away);
 
   const ct = Math.cos(view.tilt), st = Math.sin(view.tilt);
   const py = up * ct + depth * st;
