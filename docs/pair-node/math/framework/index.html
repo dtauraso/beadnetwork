@@ -65,7 +65,8 @@
       \text{top}_{\text{next},a} &=& (\text{top}_a + \text{offset}_a) \bmod \tau_a \\[3pt]
       \text{bottom}_{\text{next},a} &=& (\text{bottom}_a + \text{offset}_a) \bmod \tau_a \\[3pt]
       \text{sent}_a &=& (\text{top}_a + \tau_a/4) \bmod \tau_a \\[3pt]
-      \text{normal}_a &=& (\text{arrival}_a + \tau_a/4) \bmod \tau_a
+      \text{normal}_a &=& (\text{arrival}_a \pm \tau_a/4) \bmod \tau_a \\
+      & & \quad\text{the sign that puts it within } \tau_a/4 \text{ of } \text{top}_a
       \end{array}
       \]
       <div class="keynote">
