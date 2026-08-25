@@ -2,7 +2,7 @@ package Node
 
 import (
 	"github.com/dtauraso/beadnetwork/Categories/Node/Edge/edgetable"
-	"github.com/dtauraso/beadnetwork/Categories/Vector/polarindex"
+	"github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
 )
 
 func BroadcastToPartners(edges map[string]*edgetable.Edge, nodeGeoms map[string]*NodeGeometry, newCenters map[string]Vec3, moveDeltas map[string]polarindex.Offset, enqueue func(id string, msg Msg)) {

@@ -3,9 +3,9 @@ package Node
 import (
 	"math"
 
-	lattice "github.com/dtauraso/beadnetwork/Categories/Vector/lattice"
-	"github.com/dtauraso/beadnetwork/Categories/Vector/polar"
-	"github.com/dtauraso/beadnetwork/Categories/Vector/polarindex"
+	lattice "github.com/dtauraso/beadnetwork/Categories/Vectors/lattice"
+	"github.com/dtauraso/beadnetwork/Categories/Vectors/polar"
+	"github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
 )
 
 type NodeIdentity struct {

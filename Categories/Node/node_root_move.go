@@ -3,8 +3,8 @@ package Node
 import (
 	"context"
 
-	"github.com/dtauraso/beadnetwork/Categories/Vector/polar"
-	"github.com/dtauraso/beadnetwork/Categories/Vector/polarindex"
+	"github.com/dtauraso/beadnetwork/Categories/Vectors/polar"
+	"github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
 )
 
 type NodeMover struct{}

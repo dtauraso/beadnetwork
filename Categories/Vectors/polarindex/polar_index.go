@@ -3,7 +3,7 @@ package polarindex
 import (
 	"math"
 
-	"github.com/dtauraso/beadnetwork/Categories/Vector/polar"
+	"github.com/dtauraso/beadnetwork/Categories/Vectors/polar"
 )
 
 type SceneConstants struct {

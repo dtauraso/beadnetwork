@@ -7,7 +7,7 @@ import (
 	NodeBuf "github.com/dtauraso/beadnetwork/Categories/Node"
 
 	"github.com/dtauraso/beadnetwork/Categories/Node/Edge/edgefile"
-	"github.com/dtauraso/beadnetwork/Categories/Vector/polarindex"
+	"github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
 )
 
 func ResolveEdgeDeltas(spec *TopoSpec) {

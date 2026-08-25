@@ -1,7 +1,7 @@
 package Camera
 
 import (
-	"github.com/dtauraso/beadnetwork/Categories/Vector/polar"
+	"github.com/dtauraso/beadnetwork/Categories/Vectors/polar"
 )
 
 func AnglesToWorldOffset(r, phi, theta float64) Vec3 {

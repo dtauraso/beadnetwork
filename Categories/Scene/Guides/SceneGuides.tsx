@@ -10,7 +10,7 @@ import { navSignature } from "../../Node/nav-nodes";
 import { Tori } from "../Tori/Tori";
 import { Handholds } from "../Handholds/Handholds";
 import { ScenePoles } from "../Poles/ScenePoles";
-import { SceneVectors } from "../../Vector/Drawn/SceneVectors";
+import { SceneVectors } from "../../Vectors/Drawn/SceneVectors";
 import { NodePoles } from "../../Node/Poles/NodePoles";
 import { NodePoleSphere } from "../../Node/Poles/NodePoleSphere";
 

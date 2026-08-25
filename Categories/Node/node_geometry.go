@@ -8,7 +8,7 @@ import (
 	NodeDrag "github.com/dtauraso/beadnetwork/Categories/Node/Drag"
 	interior "github.com/dtauraso/beadnetwork/Categories/Node/Interior"
 	"github.com/dtauraso/beadnetwork/Categories/Node/TiltVectors"
-	"github.com/dtauraso/beadnetwork/Categories/Vector/polarindex"
+	"github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
 )
 
 type NodeGeometry struct {

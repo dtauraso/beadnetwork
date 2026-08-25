@@ -6,7 +6,7 @@ import (
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/SliderPanel"
 	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
-	"github.com/dtauraso/beadnetwork/Categories/Vector/lattice"
+	"github.com/dtauraso/beadnetwork/Categories/Vectors/lattice"
 	SF "github.com/dtauraso/beadnetwork/Categories/Node/Edge"
 	Ring "github.com/dtauraso/beadnetwork/Categories/Ring"
 	bead "github.com/dtauraso/beadnetwork/Categories/Ring/Bead"

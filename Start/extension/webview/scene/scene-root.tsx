@@ -5,7 +5,7 @@ import { ownerCounts } from "../../../../Categories/Scene/owner-counts";
 import { INTERIOR_SLOTS_PER_NODE } from "../../../../Categories/Node/Interior/interior-values-gen";
 
 import { ChainBeadInstances } from "../../../../Categories/Node/BeadAnimation/ChainBeadInstances";
-import { EdgeVectors } from "../../../../Categories/Vector/Drawn/EdgeVectors";
+import { EdgeVectors } from "../../../../Categories/Vectors/Drawn/EdgeVectors";
 import { getEdgeStreamAccessor } from "../../../../Categories/Node/Edge/edge-stream-blocks";
 import { TiltVectors } from "../../../../Categories/Node/TiltVectors/TiltVectors";
 import { NodeInstances } from "../../../../Categories/Ring/NodeShape/NodeInstances";

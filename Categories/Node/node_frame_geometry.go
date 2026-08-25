@@ -5,7 +5,7 @@ import (
 	Ring "github.com/dtauraso/beadnetwork/Categories/Ring"
 	"math"
 
-	"github.com/dtauraso/beadnetwork/Categories/Vector/polar"
+	"github.com/dtauraso/beadnetwork/Categories/Vectors/polar"
 )
 
 type FrameGeometryInputs struct {

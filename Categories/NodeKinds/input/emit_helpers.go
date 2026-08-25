@@ -1,6 +1,6 @@
 package input
 
-import lattice "github.com/dtauraso/beadnetwork/Categories/Vector/lattice"
+import lattice "github.com/dtauraso/beadnetwork/Categories/Vectors/lattice"
 
 func popEnd(working, backup *[]int, init []int) int {
 	v := (*working)[len(*working)-1]
