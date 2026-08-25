@@ -126,6 +126,14 @@ human speed, a frame for what follows the cursor, a drag, or a tick.
 This REPLACED a streamed binary content buffer that carried the whole scene; that buffer is now deleted outright, along with the frames it rode in.
 Nothing of the scene streams any more.
 
+**TS casts every ray; Go converts the point to polar.** TS is the only side
+holding the meshes, so it is the only side that can pick. It casts, and sends
+the world point it landed on with the hit. Go takes that point and measures it
+against the scene sphere — `Cart2polar` then `MeasureIndex` — and works in
+polar from there. So a Cartesian point crosses the bridge, once, in that one
+field: it is the seam between TS's cast and Go's polar, and neither side keeps
+it. Go builds no ray of its own from the pixel.
+
 See [docs/model/editor-surface.md](docs/model/editor-surface.md) for what the Go runtime
 owns and writes, `SceneRoot`'s render tree, and the binary-both-ways bridge surface.
 

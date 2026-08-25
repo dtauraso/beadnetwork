@@ -73,7 +73,8 @@ Go owns the clock.
   stdin records carry no block-tag byte — that discriminator exists only on
   the Go → TS direction, where the ext host adds a synthetic tag purely for
   cell routing) — `raw-input` (raw pointer/wheel + the stateless raycast
-  hit as numeric rows; Go's gesture FSM decides what each gesture MEANS), the
+  hit as numeric rows, and the world point that raycast landed on; Go's gesture
+  FSM decides what each gesture MEANS), the
   geometry-CRUD `edit` (`op` = update — the sole remaining op; a `create` /
   `delete` op pair was removed end-to-end, no live TS sender ever emitted them.
   `update` sets a numeric attribute on a typed entity, e.g. overlays toggle/set
