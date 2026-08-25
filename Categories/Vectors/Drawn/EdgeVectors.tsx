@@ -4,6 +4,7 @@ import * as THREE from "three";
 import { getEdgeStreamAccessor } from "../../Node/Edge/edge-stream-blocks";
 import { checkEdgeLandsOnNode } from "../../Node/Edge/check-edge-lands-on-node";
 import { EDGE_LINE_COLOR, INSTANCE_TINT_BASE } from "../../Ring/Bead/bead-style";
+import { overlayFlag } from "../../Scene/View/Flags/overlay-flags";
 
 import { DIRECTION_ZERO_EPS } from "../../../Start/extension/webview/scene/scene-tags";
 
@@ -28,6 +29,8 @@ export function EdgeVectors({ capacity }: { capacity: number }) {
     const line = lineRef.current;
     const head = headRef.current;
     if (!line || !head) return;
+
+    if (!overlayFlag("edgeVectors")) { line.count = 0; head.count = 0; return; }
 
     checkEdgeLandsOnNode();
 

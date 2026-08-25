@@ -23,6 +23,7 @@ var FlagNames = []string{
 	"selectionRing",
 	"hoverRing",
 	"sceneVectors",
+	"edgeVectors",
 	"ruleChannels",
 	"nodePoleSphere",
 	"allPoleSpheres",
