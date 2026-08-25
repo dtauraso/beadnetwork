@@ -6,6 +6,7 @@ const SPHERE_DRAG_RATE = 0.008;
 const SPHERE_TILT_LIMIT = Math.PI / 2 - 0.05;
 const SPHERE_SUBS = ['₁', '₂'];
 const SPHERE_LABEL_OFFSETS = [1.15, 1.55];
+const SPHERE_RADIUS_FRACTION = 0.33;
 
 function unitPoint(aTurn, bTurn) {
   const a = aTurn * 2 * Math.PI;
@@ -18,11 +19,15 @@ function unitPoint(aTurn, bTurn) {
 }
 
 function viewProject(view, c, p) {
+  const o = view.pivot || { x: 0, y: 0, z: 0 };
+  const px = p.x - o.x, py = p.y - o.y, pz = p.z - o.z;
+
   const cy = Math.cos(view.yaw), sy = Math.sin(view.yaw);
-  const x = p.x * cy + p.z * sy;
-  const z = p.z * cy - p.x * sy;
+  const x = px * cy + pz * sy;
+  const z = pz * cy - px * sy;
   const ct = Math.cos(view.tilt), st = Math.sin(view.tilt);
-  return [c + x, c - (p.y * ct - z * st), p.y * st + z * ct];
+  const pan = view.pan || { x: 0, y: 0 };
+  return [c + pan.x + x, c + pan.y - (py * ct - z * st), py * st + z * ct];
 }
 
 function ballPointAt(ball, aTurn, bTurn, reach) {
@@ -131,8 +136,9 @@ function sphereOrigins(spec, r) {
 function sphereDraw(g, spec, view, S) {
   while (g.firstChild) g.removeChild(g.firstChild);
 
-  const c = S / 2, r = S * 0.22 * view.zoom;
+  const c = S / 2, r = S * SPHERE_RADIUS_FRACTION * view.zoom;
   const origins = sphereOrigins(spec, r);
+  view.pivot = origins[view.pivotIndex] || origins[0];
   origins.forEach((origin, k) => {
     const ball = { view, c, r, origin, sub: SPHERE_SUBS[k], labelOff: SPHERE_LABEL_OFFSETS[k] };
     sphereShell(g, ball, spec);
