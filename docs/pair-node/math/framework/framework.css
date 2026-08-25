@@ -55,7 +55,13 @@ mjx-container[display="true"] {
   margin: 0 auto .2rem;
 }
 
-svg.spin { cursor: grab; touch-action: none; overflow: visible; }
+svg.spin {
+  cursor: grab;
+  touch-action: none;
+  overflow: visible;
+  -webkit-user-select: none;
+  user-select: none;
+}
 svg.spin.grabbing { cursor: grabbing; }
 svg.spin:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 

@@ -105,11 +105,13 @@ function sphereControls(host, root, g, spec, view, S) {
   let dragging = false, lastX = 0, lastY = 0;
 
   root.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
     dragging = true;
     lastX = e.clientX;
     lastY = e.clientY;
     root.setPointerCapture(e.pointerId);
     root.classList.add('grabbing');
+    if (root.focus) root.focus({ preventScroll: true });
   });
 
   root.addEventListener('pointermove', (e) => {
@@ -138,7 +140,10 @@ function sphereControls(host, root, g, spec, view, S) {
     redraw();
   }, { passive: false });
 
-  root.addEventListener('dblclick', () => {
+  root.addEventListener('selectstart', (e) => e.preventDefault());
+
+  root.addEventListener('dblclick', (e) => {
+    e.preventDefault();
     view.yaw = SPHERE_YAW0;
     view.tilt = SPHERE_TILT0;
     view.zoom = 1;
