@@ -120,8 +120,7 @@ function sphereMarks(g, ball, spec) {
 }
 
 function sphereOrigins(spec, r) {
-  const seat = spec.seat || { which: 'theta', index: 0 };
-  const [a, b] = sphereAt(spec.points, seat.index, seat.which);
+  const [a, b] = sphereAt(spec.points, spec.theta.axis, 'theta');
   const u = unitPoint(a, b);
   return [
     { x: 0, y: 0, z: 0 },
