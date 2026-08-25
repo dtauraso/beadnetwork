@@ -5,7 +5,7 @@ const SPHERE_ZOOM_MAX = 2.4;
 const SPHERE_DRAG_RATE = 0.008;
 const SPHERE_TILT_LIMIT = Math.PI / 2 - 0.05;
 const SPHERE_SUBS = ['₁', '₂'];
-const SPHERE_LABEL_OFFSETS = [1.15, 1.55];
+const SPHERE_LABEL_OFFSET = 1.17;
 const SPHERE_RADIUS_FRACTION = 0.33;
 
 function unitPoint(aTurn, bTurn) {
@@ -79,7 +79,7 @@ function sphereShell(g, ball, spec) {
 
 function sphereLabel(g, ball, spec, i, which, text, cls) {
   const [, , z] = ballPointAt(ball, ...sphereAt(spec.points, i, which));
-  const [lx, ly] = ballPointAt(ball, ...sphereAt(spec.points, i, which), ball.r * ball.labelOff);
+  const [lx, ly] = ballPointAt(ball, ...sphereAt(spec.points, i, which), ball.r * SPHERE_LABEL_OFFSET);
   const t = tag('text', { x: lx, y: ly + 4, class: `${cls}${backish(z)}` });
   t.textContent = text;
   g.appendChild(t);
@@ -142,7 +142,7 @@ function sphereDraw(g, spec, view, S) {
   const origins = sphereOrigins(spec, r);
   view.pivot = origins[view.pivotIndex] || origins[0];
   origins.forEach((origin, k) => {
-    const ball = { view, c, r, origin, sub: SPHERE_SUBS[k], labelOff: SPHERE_LABEL_OFFSETS[k] };
+    const ball = { view, c, r, origin, sub: SPHERE_SUBS[k] };
     sphereShell(g, ball, spec);
     sphereMarks(g, ball, spec);
   });
