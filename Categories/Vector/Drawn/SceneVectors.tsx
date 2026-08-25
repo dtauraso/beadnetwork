@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import * as THREE from "three";
 import { type NavNode } from "../../Node/nav-nodes";
-import { overlayFlag } from "../View/Flags/overlay-flags";
+import { overlayFlag } from "../../Scene/View/Flags/overlay-flags";
 
 const UP = new THREE.Vector3(0, 1, 0);
 

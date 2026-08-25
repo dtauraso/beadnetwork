@@ -5,7 +5,7 @@ import { ownerCounts } from "../../../../Categories/Scene/owner-counts";
 import { INTERIOR_SLOTS_PER_NODE } from "../../../../Categories/Node/Interior/interior-values-gen";
 
 import { ChainBeadInstances } from "../../../../Categories/Node/BeadAnimation/ChainBeadInstances";
-import { EdgeLines } from "../../../../Categories/Node/Edge/EdgeLines";
+import { EdgeVectors } from "../../../../Categories/Vector/Drawn/EdgeVectors";
 import { getEdgeStreamAccessor } from "../../../../Categories/Node/Edge/edge-stream-blocks";
 import { TiltVectors } from "../../../../Categories/Node/TiltVectors/TiltVectors";
 import { NodeInstances } from "../../../../Categories/Ring/NodeShape/NodeInstances";
@@ -57,7 +57,7 @@ export function SceneRoot({ cameraRef }: {
     <>
       <SceneCamera cameraRef={cameraRef} />
       {}
-      <EdgeLines capacity={edgeCap} />
+      <EdgeVectors capacity={edgeCap} />
       <ChainBeadInstances
         capacity={chainBeadCap}
         onCount={(n) => { if (n > chainBeadCap) setChainBeadCap(Math.ceil(n * 1.5)); }}
