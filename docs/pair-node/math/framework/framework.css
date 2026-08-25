@@ -65,6 +65,14 @@ svg.spin {
 svg.spin.grabbing { cursor: grabbing; }
 svg.spin:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 
+/* The normal is a quarter turn off what arrived — on the side of the ring the top
+   is on, so it gets its own colour: it is derived from the arrival, not another
+   thing that came in on the wire. */
+.ring-normal { stroke: #3f8f7a; stroke-width: 2; }
+.ring-normal-dot { fill: #3f8f7a; }
+.ring-label.normal { fill: #3f8f7a; opacity: 1; }
+.ring-normal-dot.back { opacity: .4; }
+
 .ring-dot.back { opacity: .12; }
 .ring-end.back { opacity: .35; }
 .ring-arrival-dot.back { opacity: .4; }

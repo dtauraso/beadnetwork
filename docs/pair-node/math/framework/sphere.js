@@ -82,6 +82,23 @@ function sphereArrival(g, view, spec, which, c, r) {
   sphereLabel(g, view, spec, c, r, arrival, which, `arrival ${sphereGlyph(which)}`, 'ring-label arrival');
 }
 
+function normalIndex(spec, which) {
+  const n = spec.points, q = n / 4, top = spec[which].axis;
+  const ahead = ((spec[which].arrival + q) % n + n) % n;
+  const behind = ((spec[which].arrival - q) % n + n) % n;
+  return fold(ahead - top, n) <= fold(behind - top, n) ? ahead : behind;
+}
+
+function sphereNormal(g, view, spec, which, c, r) {
+  const arrival = spec[which].arrival;
+  if (arrival === undefined) return;
+  const i = normalIndex(spec, which);
+  const [nx, ny, nz] = sphereProject(view, c, r, ...sphereAt(spec.points, i, which));
+  g.appendChild(tag('line', { x1: c, y1: c, x2: nx, y2: ny, class: 'ring-normal' }));
+  g.appendChild(tag('circle', { cx: nx, cy: ny, r: 5.5, class: `ring-normal-dot${backish(nz)}` }));
+  sphereLabel(g, view, spec, c, r, i, which, `normal ${sphereGlyph(which)}`, 'ring-label normal');
+}
+
 function sphereDraw(g, spec, view, S) {
   while (g.firstChild) g.removeChild(g.firstChild);
 
@@ -96,6 +113,7 @@ function sphereDraw(g, spec, view, S) {
     if (!spec[which] || spec[which].axis === undefined) continue;
     sphereEnds(g, view, spec, which, c, r);
     sphereArrival(g, view, spec, which, c, r);
+    sphereNormal(g, view, spec, which, c, r);
   }
 }
 
