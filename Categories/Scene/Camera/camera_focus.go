@@ -7,17 +7,23 @@ import (
 const GestureFocusMin = 10.0
 const GestureZoomBase = 1.01
 
-const RotationRefEyeDistance = 3.0
+const RotationUnitEyeRadii = 4.0
+
+const RotationMaxScale = 60.0
 
 func RotationScale(v Viewpoint, sphereCentre Vec3, sphereRadius float64) float64 {
 	if sphereRadius <= 0 {
 		return 1
 	}
-	reach := EyeOf(v).Sub(sphereCentre).Length() - sphereRadius
-	if reach <= 0 {
-		return 1
+	eyeDist := EyeOf(v).Sub(sphereCentre).Length()
+	if eyeDist < GestureFocusMin {
+		eyeDist = GestureFocusMin
 	}
-	return sphereRadius * (RotationRefEyeDistance - 1) / reach
+	scale := RotationUnitEyeRadii * sphereRadius / eyeDist
+	if scale > RotationMaxScale {
+		scale = RotationMaxScale
+	}
+	return scale
 }
 
 func FocusAhead(v Viewpoint, centers map[string]Vec3) Vec3 {
