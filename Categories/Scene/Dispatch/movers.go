@@ -119,6 +119,13 @@ func (m *Movers) Start(ctx context.Context) *sync.WaitGroup {
 			defer wg.Done()
 			nm.RunGeometry(ctx)
 		}()
+		if nm.HasTopVector() {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				nm.RunTopVector(ctx)
+			}()
+		}
 	}
 	return wg
 }
