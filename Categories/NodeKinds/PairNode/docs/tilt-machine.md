@@ -17,18 +17,23 @@ functions over numbers — no state machine dispatch, no ring links, no receiver
     bottom           Mod(top + tau/2, tau)
     distanceTop      Abs(top - arrival)
     distanceBottom   Abs(bottom - arrival)
-    offset           +1  if distanceTop    < tau/4
-                     -1  if distanceBottom < tau/4
+    offset            0  if distanceTop = 0 or distanceBottom = 0
+                     -1  if distanceTop    < tau/4
+                     +1  if distanceBottom < tau/4
                       0  otherwise
     topNext          Mod(top + offset, tau)
     bottomNext       Mod(bottom + offset, tau)
     sent             Mod(top + tau/4, tau)
 
 A node draws two ends a half turn apart, so an arrival has two distances — one from each
-end. WHICHEVER END IS ACUTE names the direction to turn: the top gives +1, the bottom
-gives -1, and when neither is inside a quarter turn the node is where it belongs and does
+end. WHICHEVER END IS ACUTE names the direction to turn: the top gives -1, the bottom
+gives +1, and when neither is inside a quarter turn the node is where it belongs and does
 not move. That zero IS the halt; there is no separate settled test and no stopping count
 to compare against.
+
+AN EXACT HIT IS ALSO ZERO, and it is tested FIRST: a distance of 0 is inside a quarter
+turn, so without that case an arrival landing squarely on an end would step away from it
+and the pair would never come to rest on the one line it just reached.
 
 `Mod` is the non-negative remainder, not Go's `%`, and it is the ONLY modulus in the rule —
 every `mod` on the framework page is this one function. `Abs` stands where the page writes
