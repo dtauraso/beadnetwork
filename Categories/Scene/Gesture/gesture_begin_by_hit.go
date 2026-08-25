@@ -7,12 +7,12 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Drag"
 )
 
-var hitClassifiers = map[string]func(d Deps, g *Drag.GestureState, ev Drag.RawInputMsg){
+var beginByHitKind = map[string]func(d Deps, g *Drag.GestureState, ev Drag.RawInputMsg){
 	"handhold": func(d Deps, g *Drag.GestureState, ev Drag.RawInputMsg) {
 
 		g.HandholdDown = true
 		nodeGeoms, centerOf := d.MR.NodeGeoms(), d.MR.CenterOf
-		g.BeginSphereRotation(d.UI.VP.Viewpoint, func() map[string]Drag.Vec3 {
+		g.BeginSphereRotation(d.UI.VP.Viewpoint, d.UI.SceneSphere, func() map[string]Drag.Vec3 {
 			return centersForDrag(Node.HeldCenters(nodeGeoms, centerOfForMove(centerOf)))
 		}, ev)
 	},
@@ -26,7 +26,7 @@ var hitClassifiers = map[string]func(d Deps, g *Drag.GestureState, ev Drag.RawIn
 	"empty": func(d Deps, g *Drag.GestureState, ev Drag.RawInputMsg) {
 		g.EmptyDown = true
 		nodeGeoms, centerOf := d.MR.NodeGeoms(), d.MR.CenterOf
-		g.BeginSphereRotation(d.UI.VP.Viewpoint, func() map[string]Drag.Vec3 {
+		g.BeginSphereRotation(d.UI.VP.Viewpoint, d.UI.SceneSphere, func() map[string]Drag.Vec3 {
 			return centersForDrag(Node.HeldCenters(nodeGeoms, centerOfForMove(centerOf)))
 		}, ev)
 	},

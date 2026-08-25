@@ -43,8 +43,7 @@ func applyUpdateScene(ctx context.Context, attr byte, payload []byte, md *MoveDi
 	case "viewport":
 		md.UI.SetViewport(e.X, e.Y)
 	case "create":
-
-		CreateNode(&md.Scenes, &md.UI, md.MR.NodeGeoms(), md.nearestNodeTo, uint8(e.Num), e.X, e.Y)
+		md.UI.RefuseStructuralEdit("create by NDC is not a live path")
 	case "delete":
 
 		nodeID, _ := md.RT.LookupNodeRow(e.Num)

@@ -7,7 +7,6 @@ type Viewpoint struct {
 	R          float64
 	Pos        Dir
 	Up         Dir
-	LockedAxis *Dir
 }
 
 func (v *Viewpoint) Rotate(rt Rot) {
@@ -15,17 +14,16 @@ func (v *Viewpoint) Rotate(rt Rot) {
 	v.Up = RotateDir(v.Up, rt.Axis, rt.Angle)
 }
 
-func (v *Viewpoint) Orbit(from, to Dir) {
-	v.Rotate(ArcBetween(from, to))
+func (v *Viewpoint) Orbit(base Viewpoint, from, to Dir, scale float64) {
+	rt := ArcBetween(from, to)
+	rt.Angle *= scale
+	*v = base
+	v.Rotate(rt)
 }
 
-func (v *Viewpoint) OrbitLocked(from, to Dir) {
-	if v.LockedAxis == nil {
-		ax := ArcBetween(from, to).Axis
-		v.LockedAxis = &ax
-	}
-	angle := AngleAboutAxis(from, to, *v.LockedAxis)
-	v.Rotate(Rot{Axis: *v.LockedAxis, Angle: angle})
+func (v *Viewpoint) OrbitLocked(base Viewpoint, from, to Dir) {
+	*v = base
+	v.Rotate(Rot{Axis: base.Pos, Angle: AngleAboutAxis(from, to, base.Pos)})
 }
 
 func (v *Viewpoint) Zoom(factor float64) {

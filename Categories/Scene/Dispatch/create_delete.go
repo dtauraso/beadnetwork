@@ -13,7 +13,7 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Scene/View"
 )
 
-func CreateNode(scenes *Scenes.SceneSwitch, ui *View.UIState, nodeGeoms map[string]*Node.NodeGeometry, nearestTo func(View.Vec3) (string, bool), kindID uint8, ndcX, ndcY float64) {
+func CreateNode(scenes *Scenes.SceneSwitch, ui *View.UIState, nodeGeoms map[string]*Node.NodeGeometry, nearestTo func(View.Vec3) (string, bool), kindID uint8, drop View.Vec3) {
 	if scenes == nil || scenes.TreeRoot == "" || scenes.Quit == nil {
 		return
 	}
@@ -36,8 +36,7 @@ func CreateNode(scenes *Scenes.SceneSwitch, ui *View.UIState, nodeGeoms map[stri
 		return
 	}
 
-	drop, okDrop := ui.DropPointFromNDC(ndcX, ndcY)
-	if !okDrop {
+	if drop == (View.Vec3{}) {
 		ui.RefuseStructuralEdit("could not resolve where the drop landed")
 		ui.EmitViewFrame(nil)
 		return

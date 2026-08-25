@@ -13,7 +13,6 @@ func (v *ViewpointState) SetViewpoint(pivot Vec3, r float64, pos, up Dir) {
 	v.R = r
 	v.Pos = pos
 	v.Up = up
-	v.LockedAxis = nil
 }
 
 func (v *ViewpointState) EmitViewpoint() {
@@ -23,13 +22,13 @@ func (v *ViewpointState) EmitViewpoint() {
 	}
 }
 
-func (v *ViewpointState) OrbitViewpoint(from, to Dir) {
-	v.Orbit(from, to)
+func (v *ViewpointState) OrbitViewpoint(base Viewpoint, from, to Dir, scale float64) {
+	v.Orbit(base, from, to, scale)
 	v.EmitViewpoint()
 }
 
-func (v *ViewpointState) OrbitLockedViewpoint(from, to Dir) {
-	v.OrbitLocked(from, to)
+func (v *ViewpointState) OrbitLockedViewpoint(base Viewpoint, from, to Dir) {
+	v.OrbitLocked(base, from, to)
 	v.EmitViewpoint()
 }
 

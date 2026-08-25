@@ -1,7 +1,6 @@
 package Camera
 
 import (
-	"fmt"
 	"math"
 
 	"github.com/dtauraso/beadnetwork/Categories/Vector/polar"
@@ -50,16 +49,20 @@ func ArcBetween(from, to Dir) Rot {
 	cross := fv.Cross(tv)
 	dot := fv.Dot(tv)
 
-	if cross.Length() < 1e-12 && dot < 0 {
-		panic(fmt.Sprintf(
-			"camera.ArcBetween: asked for the rotation from (phi=%.6f,theta=%.6f) to its exact "+
-				"opposite (phi=%.6f,theta=%.6f) — every perpendicular axis performs that 180-degree "+
-				"turn and none is more correct, so there is no rotation to name. These two are "+
-				"consecutive samples of ONE pointer during a drag (gesture handlers -> "+
-				"Viewpoint.Orbit), which cannot reach the antipode between two events; whatever "+
-				"produced this pair is not sampling a drag.",
-			from.Phi, from.Theta, to.Phi, to.Theta))
+	if cross.Length() < 1e-12 {
+		if dot >= 0 {
+			return Rot{Axis: from, Angle: 0}
+		}
+		return Rot{Axis: vecToDir(anyPerpendicularTo(fv)), Angle: math.Pi}
 	}
 
 	return Rot{Axis: vecToDir(cross), Angle: math.Atan2(cross.Length(), dot)}
+}
+
+func anyPerpendicularTo(v Vec3) Vec3 {
+	away := Vec3{X: 1}
+	if math.Abs(v.X) > 0.9 {
+		away = Vec3{Y: 1}
+	}
+	return v.Cross(away).Normalize()
 }

@@ -40,7 +40,7 @@ func gestPointerDown(d Deps, ev Drag.RawInputMsg) {
 	g.NodeDrag.Clear()
 	g.HandholdDown = false
 
-	if h, ok := hitClassifiers[ev.Hit.Kind]; ok {
+	if h, ok := beginByHitKind[ev.Hit.Kind]; ok {
 		h(d, g, ev)
 	}
 
@@ -48,9 +48,9 @@ func gestPointerDown(d Deps, ev Drag.RawInputMsg) {
 		Label: BreadcrumbPointerDown, NodeRow: -1, PortRow: -1, TargetRow: -1,
 		TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 		Value: int32(ev.Button),
-		Text: fmt.Sprintf("hit=%q empty=%t handhold=%t node=%q xy=%.0f,%.0f rect=%.0f,%.0f,%.0fx%.0f pxPerRad=%.2f",
+		Text: fmt.Sprintf("hit=%q empty=%t handhold=%t node=%q xy=%.0f,%.0f rect=%.0f,%.0f,%.0fx%.0f ball=%.1f,%.1f,%.1f",
 			ev.Hit.Kind, g.EmptyDown, g.HandholdDown, g.NodeDrag.Node,
-			ev.X, ev.Y, g.Rect.Left, g.Rect.Top, g.Rect.Width, g.Rect.Height, g.RotPxPerRad),
+			ev.X, ev.Y, g.Rect.Left, g.Rect.Top, g.Rect.Width, g.Rect.Height, ev.Ball.X, ev.Ball.Y, ev.Ball.Z),
 	})
 }
 
@@ -110,19 +110,9 @@ func gestWheel(d Deps, ev Drag.RawInputMsg) {
 	pivot := Camera.RegionFocus(vp, centersForCamera(heldCenters(d)))
 
 	if ev.Ctrl {
-
-		mouseNdcX, mouseNdcY := d.UI.Gest.PixelToNDC(ev.X, ev.Y)
-		basis := Camera.BasisFromViewpoint(vp.Pos, vp.Up)
-		aspect := d.UI.Gest.Rect.Aspect()
 		target := pivot
-		best := math.Inf(1)
-		for _, c := range heldCenters(d) {
-			nx, ny, inFront := Camera.ProjectNDC(Camera.Vec3(c), eye, basis, d.UI.FovDeg(), aspect)
-			if !inFront {
-				continue
-			}
-			if dd := math.Hypot(nx-mouseNdcX, ny-mouseNdcY); dd < best {
-				best = dd
+		if node, ok := d.RT.NodeFromHit(ev.Hit); ok {
+			if c, ok := d.MR.CenterOf(node); ok {
 				target = Camera.Vec3(c)
 			}
 		}

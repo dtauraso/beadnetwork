@@ -5,6 +5,7 @@ import (
 
 
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Drag"
+	"github.com/dtauraso/beadnetwork/Categories/Scene/View"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Panel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/PolarRulesPanel"
@@ -88,9 +89,8 @@ func placeNodeAt(md *MoveDispatch, ev *Drag.RawInputMsg) {
 	if ev.RectWidth <= 0 || ev.RectHeight <= 0 {
 		return
 	}
-	ndcX := ((ev.X-ev.RectLeft)/ev.RectWidth)*2 - 1
-	ndcY := -((ev.Y-ev.RectTop)/ev.RectHeight)*2 + 1
-	CreateNode(&md.Scenes, &md.UI, md.MR.NodeGeoms(), md.nearestNodeTo, md.UI.PlacingKind, ndcX, ndcY)
+	CreateNode(&md.Scenes, &md.UI, md.MR.NodeGeoms(), md.nearestNodeTo, md.UI.PlacingKind,
+		View.Vec3(ev.Hit.Point))
 }
 
 func applyOverlaysHit(md *MoveDispatch, h Pills.Hit) {

@@ -56,6 +56,9 @@ func decodeRawInputFrom(r *Reader) (RawInputMsg, bool) {
 	} else if e == nil {
 		e = err
 	}
+	ev.Hit.Point = Vec3{X: f(), Y: f(), Z: f()}
+	ev.Ball = Vec3{X: f(), Y: f(), Z: f()}
+	ev.BallPrev = Vec3{X: f(), Y: f(), Z: f()}
 	if e != nil || ev.Kind == "" || ev.Hit.Kind == "" {
 		return ev, false
 	}

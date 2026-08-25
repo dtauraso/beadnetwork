@@ -13,9 +13,7 @@ func Grab(g *NodeDrag.Gesture, node string, center NodeDrag.Vec3) {
 }
 
 func CommitDragStart(ui *View.UIState, sendMoveFn func(id string, msg Node.Msg), g *Drag.GestureState, ev Drag.RawInputMsg) {
-	if hit, ok := ui.DragPlaneHit(ev); ok {
-		g.NodeDrag.GrabAt(NodeDrag.Vec3(hit))
-	}
+	g.NodeDrag.GrabAt(NodeDrag.Vec3(ev.Hit.Point))
 
 	ui.LastDraggedNode = g.NodeDrag.Node
 
@@ -24,11 +22,7 @@ func CommitDragStart(ui *View.UIState, sendMoveFn func(id string, msg Node.Msg),
 
 func ApplyDragTarget(ui *View.UIState, rootMove func(id string, target Node.Vec3) bool, ev Drag.RawInputMsg) bool {
 	g := &ui.Gest
-	hit, ok := ui.DragPlaneHit(ev)
-	if !ok {
-		return false
-	}
-	rootMove(g.NodeDrag.Node, Node.Vec3(g.NodeDrag.TargetFor(NodeDrag.Vec3(hit))))
+	rootMove(g.NodeDrag.Node, Node.Vec3(g.NodeDrag.TargetFor(NodeDrag.Vec3(ev.Hit.Point))))
 	return true
 }
 
