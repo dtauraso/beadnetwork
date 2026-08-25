@@ -49,13 +49,6 @@ var Tree = []Group{
 					{Flag: "nodePoleSphere", Icon: "◍", Label: "pole sphere"},
 				},
 			},
-			{
-				Heading: "VECTORS",
-				Panel:   "nodeVectors",
-				Items: []Item{
-					{Flag: "edgeVectors", Icon: "➜", Label: "edge vectors"},
-				},
-			},
 		},
 	},
 	{
@@ -83,6 +76,7 @@ var Tree = []Group{
 				Panel:   "sceneVectors",
 				Items: []Item{
 					{Flag: "sceneVectors", Icon: "↗", Label: "scene vectors"},
+					{Flag: "edgeVectors", Icon: "➜", Label: "edge vectors"},
 					{Flag: "ruleChannels", Icon: "⇄", Label: "rule channels"},
 				},
 			},

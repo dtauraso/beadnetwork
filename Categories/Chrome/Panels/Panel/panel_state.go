@@ -9,8 +9,6 @@ type PanelState struct {
 	NodePolesOpen bool
 	NodeRulesOpen bool
 
-	NodeVectorsOpen bool
-
 	SceneOpen        bool
 	SceneGuidesOpen  bool
 	ScenePolesOpen   bool
@@ -38,8 +36,6 @@ func (p *PanelState) TogglePanelNodePoles() { p.setFlag(&p.NodePolesOpen) }
 
 func (p *PanelState) TogglePanelNodeRules() { p.setFlag(&p.NodeRulesOpen) }
 
-func (p *PanelState) TogglePanelNodeVectors() { p.setFlag(&p.NodeVectorsOpen) }
-
 func (p *PanelState) TogglePanelScene() { p.setFlag(&p.SceneOpen) }
 
 func (p *PanelState) TogglePanelSceneGuides() { p.setFlag(&p.SceneGuidesOpen) }
@@ -58,7 +54,6 @@ var PanelToggles = map[string]func(*PanelState){
 	"nodeState":    (*PanelState).TogglePanelNodeState,
 	"nodePoles":    (*PanelState).TogglePanelNodePoles,
 	"nodeRules":    (*PanelState).TogglePanelNodeRules,
-	"nodeVectors":  (*PanelState).TogglePanelNodeVectors,
 	"scene":        (*PanelState).TogglePanelScene,
 	"sceneGuides":  (*PanelState).TogglePanelSceneGuides,
 	"scenePoles":   (*PanelState).TogglePanelScenePoles,
@@ -75,7 +70,6 @@ var PanelOpen = map[string]func(*PanelState) bool{
 	"nodeState":    func(p *PanelState) bool { return p.NodeStateOpen },
 	"nodePoles":    func(p *PanelState) bool { return p.NodePolesOpen },
 	"nodeRules":    func(p *PanelState) bool { return p.NodeRulesOpen },
-	"nodeVectors":  func(p *PanelState) bool { return p.NodeVectorsOpen },
 	"scene":        func(p *PanelState) bool { return p.SceneOpen },
 	"sceneGuides":  func(p *PanelState) bool { return p.SceneGuidesOpen },
 	"scenePoles":   func(p *PanelState) bool { return p.ScenePolesOpen },
