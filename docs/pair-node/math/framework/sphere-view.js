@@ -3,8 +3,6 @@ function unitsPerPixel(root, S) {
   return box && box.width ? S / box.width : 1;
 }
 
-const SPHERE_SEAT_RATE = 0.0016;
-
 function pointerUnits(root, e, S) {
   const box = root.getBoundingClientRect ? root.getBoundingClientRect() : null;
   if (!box || !box.width) return { x: 0, y: 0 };
@@ -71,8 +69,9 @@ function sphereControls(root, g, spec, view, S) {
       view.pan.x += dx * perPx;
       view.pan.y += dy * perPx;
     } else if (seating >= 0) {
-      const seat = view.seat || defaultSeat(spec);
-      view.seat = { a: seat.a + dx * SPHERE_SEAT_RATE, b: seat.b - dy * SPHERE_SEAT_RATE };
+      const { c, r } = sphereLayout(spec, view, S);
+      const p = pointerUnits(root, e, S);
+      view.seat = seatFromPointer(view, c, r, p.x, p.y);
     } else {
       view.yaw += dx * SPHERE_DRAG_RATE;
       view.tilt = clampTilt(view.tilt + dy * SPHERE_DRAG_RATE);

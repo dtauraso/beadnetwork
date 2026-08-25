@@ -146,6 +146,31 @@ function sphereOrigins(spec, r, view) {
   return view.anchorIndex === 1 ? [away, home] : [home, away];
 }
 
+function seatFromPointer(view, c, r, sx, sy) {
+  const pan = view.pan || { x: 0, y: 0 };
+  let X = sx - (c + pan.x);
+  let up = (c + pan.y) - sy;
+
+  const reach = Math.hypot(X, up);
+  if (reach > r) {
+    X *= r / reach;
+    up *= r / reach;
+  }
+  const depth = Math.sqrt(Math.max(0, r * r - X * X - up * up));
+
+  const ct = Math.cos(view.tilt), st = Math.sin(view.tilt);
+  const py = up * ct + depth * st;
+  const z1 = depth * ct - up * st;
+
+  const cy = Math.cos(view.yaw), sy2 = Math.sin(view.yaw);
+  const px = X * cy - z1 * sy2;
+  const pz = z1 * cy + X * sy2;
+
+  const len = Math.hypot(px, py, pz) || 1;
+  const b = Math.asin(Math.max(-1, Math.min(1, py / len)));
+  return { a: Math.atan2(px / len, pz / len) / (2 * Math.PI), b: b / (2 * Math.PI) };
+}
+
 function sphereLayout(spec, view, S) {
   const c = S / 2, r = S * SPHERE_RADIUS_FRACTION * view.zoom;
   const origins = sphereOrigins(spec, r, view);
