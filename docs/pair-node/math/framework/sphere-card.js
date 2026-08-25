@@ -1,6 +1,7 @@
 const SPHERE_CARD_SPEC = {
   points: 12,
   size: 300,
+  seat: { which: 'phi', index: 5 },
   phi: { axis: 3, arrival: 5 },
   theta: { axis: 0, arrival: 1 },
 };
