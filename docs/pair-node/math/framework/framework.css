@@ -48,6 +48,22 @@ mjx-container[display="true"] {
 
 .ring-pair { stroke: currentColor; opacity: .28; stroke-width: 1; }
 
+/* The sphere carries the same marks on two rings at once, so what faces away is
+   dimmed rather than hidden — the far end of a line has to stay readable. */
+.keysphere {
+  max-width: 100%;
+  margin: 0 auto .2rem;
+}
+
+svg.spin { cursor: grab; touch-action: none; overflow: visible; }
+svg.spin.grabbing { cursor: grabbing; }
+svg.spin:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+.ring-dot.back { opacity: .12; }
+.ring-end.back { opacity: .35; }
+.ring-arrival-dot.back { opacity: .4; }
+.ring-label.back { opacity: .3; }
+
 .ring-num {
   fill: currentColor;
   font-size: 9px;
