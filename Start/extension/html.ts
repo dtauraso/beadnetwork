@@ -58,26 +58,33 @@ export function buildWebviewHtml(
        since before this change. -->
   <div id="app"></div>
   <script nonce="${nonce}">
-    setTimeout(function () {
-      if (window.BEADNETWORK_BOOTED) return;
-      var app = document.getElementById("app");
-      if (!app) return;
-      app.innerHTML =
-        '<pre style="margin:0;padding:16px;font:12px ui-monospace,monospace;color:#8b0000;white-space:pre-wrap">' +
-        'topology editor: the webview bundle did not run.\\n\\n' +
-        'script: ${scriptUri.toString()}\\n' +
-        'bundle on disk: ${scriptExists ? "present" : "MISSING"}\\n\\n' +
-        'If MISSING, out/webview.js was not built (or was mid-write when this page\\n' +
-        'loaded) - run "npm run build" and reload the window. If present, the bundle\\n' +
-        'threw while evaluating; the webview devtools console has the error.' +
-        '</pre>';
-    }, 3000);
     window.BEADNETWORK_SCENE_BASE = "${sceneBase}";
     window.BEADNETWORK_SRC_BASE = "${srcBase}";
     window.BEADNETWORK_ANCHOR_BASE = "${anchorBase}";
     window.BEADNETWORK_SCENE_BASES = ${JSON.stringify(sceneBases)};
   </script>
   <script nonce="${nonce}" src="${scriptUri.toString()}"></script>
+  <!-- Classic scripts run in order, so by the time this one starts the bundle above has
+       either finished evaluating or thrown. Checking here rather than on a timer is what
+       makes this honest: the old 3s deadline raced the bundle's own evaluation, and a
+       machine busy with a verify run lost that race and cried wolf on a bundle that was
+       about to boot. There is no duration to tune, because there is no waiting. -->
+  <script nonce="${nonce}">
+    if (!window.BEADNETWORK_BOOTED) {
+      var app = document.getElementById("app");
+      if (app) {
+        app.innerHTML =
+          '<pre style="margin:0;padding:16px;font:12px ui-monospace,monospace;color:#8b0000;white-space:pre-wrap">' +
+          'topology editor: the webview bundle did not run.\\n\\n' +
+          'script: ${scriptUri.toString()}\\n' +
+          'bundle on disk: ${scriptExists ? "present" : "MISSING"}\\n\\n' +
+          'If MISSING, out/webview.js was not built - run "npm run build" and reload\\n' +
+          'the window. If present, the bundle threw while evaluating; the webview\\n' +
+          'devtools console has the error.' +
+          '</pre>';
+      }
+    }
+  </script>
 </body>
 </html>`;
 }
