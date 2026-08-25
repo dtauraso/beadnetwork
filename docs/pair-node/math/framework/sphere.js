@@ -63,6 +63,8 @@ function sphereCircle(g, ball, vary) {
 }
 
 function sphereShell(g, ball, spec) {
+  const [cx, cy] = viewProject(ball.view, ball.c, ball.origin);
+  g.appendChild(tag('circle', { cx, cy, r: ball.r, class: 'ring-line' }));
   sphereCircle(g, ball, (t) => [t, 0]);
   sphereCircle(g, ball, (t) => [0, t]);
   for (const which of ['theta', 'phi']) {

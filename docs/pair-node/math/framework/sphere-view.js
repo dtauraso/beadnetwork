@@ -1,3 +1,8 @@
+function unitsPerPixel(root, S) {
+  const box = root.getBoundingClientRect ? root.getBoundingClientRect() : null;
+  return box && box.width ? S / box.width : 1;
+}
+
 function sphereControls(root, g, spec, view, S) {
   const redraw = () => sphereDraw(g, spec, view, S);
   const clampTilt = (t) => Math.max(-SPHERE_TILT_LIMIT, Math.min(SPHERE_TILT_LIMIT, t));
@@ -23,8 +28,7 @@ function sphereControls(root, g, spec, view, S) {
     if (!dragging) return;
     const dx = e.clientX - lastX, dy = e.clientY - lastY;
     if (panning) {
-      const box = root.getBoundingClientRect ? root.getBoundingClientRect() : null;
-      const perPx = box && box.width ? S / box.width : 1;
+      const perPx = unitsPerPixel(root, S);
       view.pan.x += dx * perPx;
       view.pan.y += dy * perPx;
     } else {
@@ -49,8 +53,15 @@ function sphereControls(root, g, spec, view, S) {
 
   root.addEventListener('wheel', (e) => {
     e.preventDefault();
-    view.zoom *= Math.exp(-e.deltaY * 0.0015);
-    view.zoom = Math.max(SPHERE_ZOOM_MIN, Math.min(SPHERE_ZOOM_MAX, view.zoom));
+    if (e.ctrlKey || e.metaKey) {
+      view.zoom *= Math.exp(-e.deltaY * 0.0015);
+      view.zoom = Math.max(SPHERE_ZOOM_MIN, Math.min(SPHERE_ZOOM_MAX, view.zoom));
+    } else {
+      const step = e.deltaMode === 1 ? 16 : 1;
+      const perPx = unitsPerPixel(root, S);
+      view.pan.x -= e.deltaX * step * perPx;
+      view.pan.y -= e.deltaY * step * perPx;
+    }
     redraw();
   }, { passive: false });
 
@@ -94,7 +105,7 @@ function sphere(spec) {
   root.setAttribute('class', 'spin');
   root.setAttribute('tabindex', '0');
   root.setAttribute('aria-label',
-    'two spheres, the second seated on the first’s top theta — drag to rotate, shift-drag to pan, scroll to zoom, 1 or 2 to rotate about that sphere, double-click to reset');
+    'two spheres, the second seated on the first’s top theta — drag to rotate, scroll or shift-drag to pan, pinch to zoom, 1 or 2 to rotate about that sphere, double-click to reset');
 
   const g = tag('g', {});
   root.appendChild(g);
