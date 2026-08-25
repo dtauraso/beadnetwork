@@ -146,7 +146,7 @@ function sphereOrigins(spec, r, view) {
   return view.anchorIndex === 1 ? [away, home] : [home, away];
 }
 
-function seatFromPointer(view, c, r, sx, sy) {
+function dirFromPointer(view, c, r, sx, sy) {
   const pan = view.pan || { x: 0, y: 0 };
   let X = sx - (c + pan.x);
   let up = (c + pan.y) - sy;
@@ -167,8 +167,38 @@ function seatFromPointer(view, c, r, sx, sy) {
   const pz = z1 * cy + X * sy2;
 
   const len = Math.hypot(px, py, pz) || 1;
-  const b = Math.asin(Math.max(-1, Math.min(1, py / len)));
-  return { a: Math.atan2(px / len, pz / len) / (2 * Math.PI), b: b / (2 * Math.PI) };
+  return { x: px / len, y: py / len, z: pz / len };
+}
+
+function seatFromDir(d) {
+  const b = Math.asin(Math.max(-1, Math.min(1, d.y)));
+  return { a: Math.atan2(d.x, d.z) / (2 * Math.PI), b: b / (2 * Math.PI) };
+}
+
+function seatDir(seat) {
+  return unitPoint(seat.a, seat.b);
+}
+
+function turnedBy(from, to, v) {
+  const kx = from.y * to.z - from.z * to.y;
+  const ky = from.z * to.x - from.x * to.z;
+  const kz = from.x * to.y - from.y * to.x;
+  const s = Math.hypot(kx, ky, kz);
+  const c = from.x * to.x + from.y * to.y + from.z * to.z;
+  if (s < 1e-12) return c >= 0 ? v : { x: -v.x, y: -v.y, z: -v.z };
+
+  const ux = kx / s, uy = ky / s, uz = kz / s;
+  const ang = Math.atan2(s, c), cs = Math.cos(ang), sn = Math.sin(ang);
+  const dotv = ux * v.x + uy * v.y + uz * v.z;
+  return {
+    x: v.x * cs + (uy * v.z - uz * v.y) * sn + ux * dotv * (1 - cs),
+    y: v.y * cs + (uz * v.x - ux * v.z) * sn + uy * dotv * (1 - cs),
+    z: v.z * cs + (ux * v.y - uy * v.x) * sn + uz * dotv * (1 - cs),
+  };
+}
+
+function seatDraggedTo(grab, view, c, r, sx, sy) {
+  return seatFromDir(turnedBy(grab.from, dirFromPointer(view, c, r, sx, sy), grab.seat));
 }
 
 function sphereLayout(spec, view, S) {

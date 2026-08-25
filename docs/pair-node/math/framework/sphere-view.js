@@ -25,12 +25,13 @@ function sphereControls(root, g, spec, view, S) {
   const clampTilt = (t) => Math.max(-SPHERE_TILT_LIMIT, Math.min(SPHERE_TILT_LIMIT, t));
 
   let dragging = false, panning = false, seating = -1, lastX = 0, lastY = 0;
+  let grab = null;
 
   const isPan = (e) => e.shiftKey || e.button === 1 || e.button === 2;
 
   root.addEventListener('contextmenu', (e) => e.preventDefault());
 
-  const grabSphere = (k) => {
+  const grabSphere = (k, e) => {
     const was = sphereLayout(spec, view, S).screen;
     if (view.anchorIndex === k) {
       view.seat = antipodeSeat(view.seat || defaultSeat(spec));
@@ -41,6 +42,13 @@ function sphereControls(root, g, spec, view, S) {
     const now = sphereLayout(spec, view, S).screen;
     view.pan.x += was[view.anchorIndex][0] - now[view.anchorIndex][0];
     view.pan.y += was[view.anchorIndex][1] - now[view.anchorIndex][1];
+
+    const { c, r } = sphereLayout(spec, view, S);
+    const p = pointerUnits(root, e, S);
+    grab = {
+      from: dirFromPointer(view, c, r, p.x, p.y),
+      seat: seatDir(view.seat || defaultSeat(spec)),
+    };
     seating = k;
   };
 
@@ -51,7 +59,7 @@ function sphereControls(root, g, spec, view, S) {
     if (!panning) {
       const hit = sphereUnderPointer(root, e, spec, view, S);
       if (hit.overlap) return;
-      if (hit.sphere >= 0) grabSphere(hit.sphere);
+      if (hit.sphere >= 0) grabSphere(hit.sphere, e);
     }
     dragging = true;
     lastX = e.clientX;
@@ -71,7 +79,7 @@ function sphereControls(root, g, spec, view, S) {
     } else if (seating >= 0) {
       const { c, r } = sphereLayout(spec, view, S);
       const p = pointerUnits(root, e, S);
-      view.seat = seatFromPointer(view, c, r, p.x, p.y);
+      if (grab) view.seat = seatDraggedTo(grab, view, c, r, p.x, p.y);
     } else {
       view.yaw += dx * SPHERE_DRAG_RATE;
       view.tilt = clampTilt(view.tilt + dy * SPHERE_DRAG_RATE);
