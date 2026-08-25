@@ -20,7 +20,6 @@ export const OVERLAY_FLAG_DEFAULTS: Record<string, boolean> = {
   "hoverRing": true,
   "sceneVectors": true,
   "edgeVectors": true,
-  "topVectors": true,
   "ruleChannels": true,
   "nodePoleSphere": true,
   "allPoleSpheres": false,

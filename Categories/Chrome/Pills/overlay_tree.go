@@ -77,7 +77,6 @@ var Tree = []Group{
 				Items: []Item{
 					{Flag: "sceneVectors", Icon: "↗", Label: "scene vectors"},
 					{Flag: "edgeVectors", Icon: "➜", Label: "edge vectors"},
-					{Flag: "topVectors", Icon: "⇡", Label: "top vectors"},
 					{Flag: "ruleChannels", Icon: "⇄", Label: "rule channels"},
 				},
 			},

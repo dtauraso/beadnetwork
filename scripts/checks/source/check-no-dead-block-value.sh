@@ -57,8 +57,6 @@ readonly DERIVED_FAMILIES=(
   '^tiltHeadM[0-9]+$:TILT_HEAD_NAMES'
   '^channelShaftM[0-9]+$:VECTOR_SHAFT_NAMES'
   '^channelHeadM[0-9]+$:VECTOR_HEAD_NAMES'
-  '^topShaftM[0-9]+$:TOP_VECTOR_SHAFT_NAMES'
-  '^topHeadM[0-9]+$:TOP_VECTOR_HEAD_NAMES'
 )
 
 VALUE_CORPUS="$(mktemp)"
