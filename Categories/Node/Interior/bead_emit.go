@@ -4,7 +4,7 @@ import (
 	"context"
 
 	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
-	lattice "github.com/dtauraso/beadnetwork/Categories/Vector/lattice"
+	lattice "github.com/dtauraso/beadnetwork/Categories/Vectors/lattice"
 )
 
 func EmitNodeBeads(nodeName string, working, backup []int, emitter *Emitter) {

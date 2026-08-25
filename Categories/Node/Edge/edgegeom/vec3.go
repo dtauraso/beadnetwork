@@ -1,7 +1,7 @@
 package edgegeom
 
-import "github.com/dtauraso/beadnetwork/Categories/Vector"
+import "github.com/dtauraso/beadnetwork/Categories/Vectors"
 
-type Vec3 = Vector.Vec3
+type Vec3 = Vectors.Vec3
 
-type Segment = Vector.Segment
+type Segment = Vectors.Segment

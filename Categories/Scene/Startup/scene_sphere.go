@@ -1,7 +1,7 @@
 package Startup
 
 import (
-	"github.com/dtauraso/beadnetwork/Categories/Vector/polar"
+	"github.com/dtauraso/beadnetwork/Categories/Vectors/polar"
 	SceneBuf "github.com/dtauraso/beadnetwork/Categories/Scene"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/View"
 )

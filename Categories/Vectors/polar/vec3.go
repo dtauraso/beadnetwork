@@ -1,4 +1,4 @@
-package ChannelVectors
+package polar
 
 import "github.com/dtauraso/beadnetwork/Categories/Vectors"
 

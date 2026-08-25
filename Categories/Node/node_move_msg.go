@@ -1,7 +1,7 @@
 package Node
 
 import (
-	"github.com/dtauraso/beadnetwork/Categories/Vector/polarindex"
+	"github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
 )
 
 type Msg struct {

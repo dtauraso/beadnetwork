@@ -3,7 +3,7 @@ package Node
 import (
 	beadanimation "github.com/dtauraso/beadnetwork/Categories/Node/BeadAnimation"
 	interior "github.com/dtauraso/beadnetwork/Categories/Node/Interior"
-	"github.com/dtauraso/beadnetwork/Categories/Vector/polarindex"
+	"github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
 )
 
 func (m *NodeGeometry) SetSelfKind(kind string) {

@@ -56,5 +56,5 @@ agent trusted the header after those symbols were deleted and told another agent
 code INTO a file that no longer existed — real wasted time. Grep `node_move.go` fresh for
 any symbol before acting; treat symbol names here as historical, the MECHANISM as durable.
 Initial layout does NOT depend on any cascade — it is a pure forward computation
-(`quantoffset.DeriveCenters`, `Categories/Vector/polarindex/polar_index.go`) from each node's stored triple; that is why the
+(`quantoffset.DeriveCenters`, `Categories/Vectors/polarindex/polar_index.go`) from each node's stored triple; that is why the
 cascade could be deleted without leaving nodes unplaced on load.

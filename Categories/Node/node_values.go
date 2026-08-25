@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/dtauraso/beadnetwork/Categories/Vector/polarindex"
+	"github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
 )
 
 const ValueRelTemplate = "view/nodes/{row}/node.bin"

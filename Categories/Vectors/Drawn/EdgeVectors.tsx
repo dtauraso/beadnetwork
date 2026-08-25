@@ -1,8 +1,8 @@
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { getEdgeStreamAccessor } from "./edge-stream-blocks";
-import { checkEdgeLandsOnNode } from "./check-edge-lands-on-node";
+import { getEdgeStreamAccessor } from "../../Node/Edge/edge-stream-blocks";
+import { checkEdgeLandsOnNode } from "../../Node/Edge/check-edge-lands-on-node";
 import { EDGE_LINE_COLOR, INSTANCE_TINT_BASE } from "../../Ring/Bead/bead-style";
 
 import { DIRECTION_ZERO_EPS } from "../../../Start/extension/webview/scene/scene-tags";
@@ -13,9 +13,8 @@ const ARROW_HEAD_LENGTH = ARROW_HEAD_RADIUS * 2;
 
 const AXIS_DEFAULT = new THREE.Vector3(0, 1, 0);
 
-const TORUS_DEFAULT_NORMAL = new THREE.Vector3(0, 0, 1);
 
-export function EdgeLines({ capacity }: { capacity: number }) {
+export function EdgeVectors({ capacity }: { capacity: number }) {
   const lineRef = useRef<THREE.InstancedMesh>(null);
   const headRef = useRef<THREE.InstancedMesh>(null);
   const mat = useRef(new THREE.Matrix4());

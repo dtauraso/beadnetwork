@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/dtauraso/beadnetwork/Categories/Vector/polar"
+	"github.com/dtauraso/beadnetwork/Categories/Vectors/polar"
 )
 
 func WriteSpawnIdentity(sceneRoot string) {

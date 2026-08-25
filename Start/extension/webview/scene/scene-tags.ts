@@ -1,4 +1,4 @@
-import { polarToCart } from "../../../../Categories/Vector/polar-convert";
+import { polarToCart } from "../../../../Categories/Vectors/polar-convert";
 
 export interface LabelPos { row: number; label: string; px: number; py: number; }
 

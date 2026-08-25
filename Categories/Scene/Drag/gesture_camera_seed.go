@@ -2,7 +2,7 @@ package Drag
 
 import (
 
-	"github.com/dtauraso/beadnetwork/Categories/Vector/polar"
+	"github.com/dtauraso/beadnetwork/Categories/Vectors/polar"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Camera"
 )
 

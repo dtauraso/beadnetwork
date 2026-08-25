@@ -9,7 +9,7 @@ TS_ROOTS=(
   "Categories/Node"
   "Categories/NodeKinds"
   "Categories/Scene/View/Flags"
-  "Categories/Vector"
+  "Categories/Vectors"
   "Categories/Ring"
   "Categories/Ring/NodeShape"
   "Categories/Ring/Bead"

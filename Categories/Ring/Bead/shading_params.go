@@ -1,7 +1,7 @@
 package bead
 
 import (
-	lattice "github.com/dtauraso/beadnetwork/Categories/Vector/lattice"
+	lattice "github.com/dtauraso/beadnetwork/Categories/Vectors/lattice"
 )
 
 const ShadingParamBeadRadius = lattice.BeadRadius

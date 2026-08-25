@@ -1,6 +1,6 @@
 package Node
 
-import "github.com/dtauraso/beadnetwork/Categories/Vector/polarindex"
+import "github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
 
 type Deltas struct {
 	baseTo    map[string]polarindex.Offset

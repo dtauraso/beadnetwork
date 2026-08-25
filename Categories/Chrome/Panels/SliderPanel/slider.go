@@ -2,7 +2,7 @@ package SliderPanel
 
 import (
 	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
-	lattice "github.com/dtauraso/beadnetwork/Categories/Vector/lattice"
+	lattice "github.com/dtauraso/beadnetwork/Categories/Vectors/lattice"
 )
 
 const Paused int64 = 0
