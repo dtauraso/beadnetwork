@@ -14,7 +14,6 @@ const OVERLAY_FLAG_NAMES = [
   "hoverRing",
   "sceneVectors",
   "edgeVectors",
-  "topVectors",
   "ruleChannels",
   "nodePoleSphere",
   "allPoleSpheres",

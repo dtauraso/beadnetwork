@@ -24,7 +24,6 @@ var FlagNames = []string{
 	"hoverRing",
 	"sceneVectors",
 	"edgeVectors",
-	"topVectors",
 	"ruleChannels",
 	"nodePoleSphere",
 	"allPoleSpheres",

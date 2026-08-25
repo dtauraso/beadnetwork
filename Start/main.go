@@ -47,8 +47,6 @@ func run(ctx context.Context, cancel context.CancelFunc, topologyPath string, cl
 	md.UI.SetSceneRoot(scenePath)
 	md.UI.WriteRingSurfaces(NodeShape.CanonicalRingSurfacePointsFlat(), bead.CanonicalRingSurfacePointsFlat())
 
-	Startup.ArmTopVectors(md, scenePath)
-
 	Startup.EmitStartupBreadcrumbs(md, scenePath, len(sc.Nodes))
 	Startup.CheckRowSeedCount(md, len(sc.Nodes))
 	Startup.LoadSceneState(scenePath, md, speedSinks)
