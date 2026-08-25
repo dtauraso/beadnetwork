@@ -25,5 +25,14 @@ export function encodeRawInput(ev: RawInputEvent): ArrayBuffer {
   w.i32(ev.hit.portRow);
   w.i32(ev.hit.edgeRow);
   w.str(ev.key ?? "");
+  w.f64(ev.hit.pointX);
+  w.f64(ev.hit.pointY);
+  w.f64(ev.hit.pointZ);
+  w.f64(ev.ballX);
+  w.f64(ev.ballY);
+  w.f64(ev.ballZ);
+  w.f64(ev.ballPrevX);
+  w.f64(ev.ballPrevY);
+  w.f64(ev.ballPrevZ);
   return w.toArrayBuffer();
 }

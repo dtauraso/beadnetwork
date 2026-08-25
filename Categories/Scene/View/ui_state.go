@@ -2,10 +2,7 @@ package View
 
 import (
 	"fmt"
-	"math"
 	"os"
-
-	NodeDrag "github.com/dtauraso/beadnetwork/Categories/Node/Drag"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Panel"
@@ -123,24 +120,6 @@ func (ui *UIState) SetSelectionUI(sendMove func(id string, msg Node.Msg), node, 
 	}
 }
 
-func (ui *UIState) DropPointFromNDC(ndcX, ndcY float64) (Vec3, bool) {
-	vp := ui.VP.Viewpoint
-	eye := Camera.EyeOf(vp)
-	basis := Camera.BasisFromViewpoint(vp.Pos, vp.Up)
-	dir := Camera.RayDirThroughNDC(ndcX, ndcY, basis, ui.Gest.Fov, ui.Gest.Rect.Aspect())
-	forward := basis.Pole.Scale(-1)
-	denom := dir.Dot(forward)
-	if denom == 0 {
-		return Vec3{}, false
-	}
-	t := ui.SceneSphere.Center.Sub(polar.Vec3(eye)).Dot(polar.Vec3(forward)) / denom
-	hit := eye.Add(dir.Scale(t))
-	if math.IsNaN(hit.X) || math.IsInf(hit.X, 0) {
-		return Vec3{}, false
-	}
-	return Vec3(hit), true
-}
-
 func (ui *UIState) SetHoverUI(sendMove func(id string, msg Node.Msg), node, port string, isInput bool) {
 	prevNode := ui.Sel.hoverNode
 	ui.Sel.hoverNode, ui.Sel.hoverPort, ui.Sel.hoverInput = node, port, isInput
@@ -152,31 +131,15 @@ func (ui *UIState) SetHoverUI(sendMove func(id string, msg Node.Msg), node, port
 	}
 }
 
-func (ui *UIState) DragPlaneHit(ev Drag.RawInputMsg) (hit Vec3, ok bool) {
-	g := &ui.Gest
-	vp := ui.VP.Viewpoint
-	eye := Camera.EyeOf(vp)
-	basis := Camera.BasisFromViewpoint(vp.Pos, vp.Up)
-	nx, ny := g.PixelToNDC(ev.X, ev.Y)
-	dir := Camera.RayDirThroughNDC(nx, ny, basis, ui.FovDeg(), g.Rect.Aspect())
-	forward := basis.Pole.Scale(-1)
-	denom := dir.Dot(forward)
-	if denom == 0 {
-		return Vec3{}, false
-	}
-	t := g.NodeDrag.StartCenter.Sub(NodeDrag.Vec3(eye)).Dot(NodeDrag.Vec3(forward)) / denom
-	hit = Vec3(eye.Add(dir.Scale(t)))
-	if math.IsNaN(hit.X) || math.IsInf(hit.X, 0) {
-		return Vec3{}, false
-	}
-	return hit, true
+func (ui *UIState) rotationScale() float64 {
+	return Camera.RotationScale(ui.Gest.PressVP, Camera.Vec3(ui.SceneSphere.Center), ui.SceneSphere.Radius)
 }
 
 func (ui *UIState) OrbitViewpoint(from, to Camera.Dir) {
-	ui.VP.OrbitViewpoint(from, to)
+	ui.VP.OrbitViewpoint(ui.Gest.PressVP, from, to, ui.rotationScale())
 }
 func (ui *UIState) OrbitLockedViewpoint(from, to Camera.Dir) {
-	ui.VP.OrbitLockedViewpoint(from, to)
+	ui.VP.OrbitLockedViewpoint(ui.Gest.PressVP, from, to)
 }
 func (ui *UIState) ZoomViewpoint(factor float64) {
 	ui.VP.ZoomViewpoint(factor)

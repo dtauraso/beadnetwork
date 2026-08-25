@@ -18,10 +18,16 @@ type RawInputMsg struct {
 
 	Hit RawHit
 
+	Ball Vec3
+
+	BallPrev Vec3
+
 	Key string
 }
 
 type RawHit struct {
+	Point Vec3
+
 	Kind string
 
 	PortRow int

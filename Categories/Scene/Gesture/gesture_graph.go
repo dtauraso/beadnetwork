@@ -3,7 +3,6 @@ package Gesture
 import (
 	"github.com/dtauraso/beadnetwork/Categories/Node"
 	NodeGesture "github.com/dtauraso/beadnetwork/Categories/Node/Gesture"
-	"github.com/dtauraso/beadnetwork/Categories/Scene/Camera"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Drag"
 )
 
@@ -37,15 +36,15 @@ var commitEdges = []gestureEdge{
 func commitHandholdStart(d Deps, g *Drag.GestureState, ev Drag.RawInputMsg) {
 
 	g.PrevX, g.PrevY = g.DownX, g.DownY
-	g.SmoothX, g.SmoothY = g.DownX, g.DownY
 	seedOrbitPivot(d, Vec3(g.RotPivot))
+	g.PressVP = d.UI.VP.Viewpoint
 }
 
 func commitRotateStart(d Deps, g *Drag.GestureState, ev Drag.RawInputMsg) {
 	g.PrevX, g.PrevY = ev.X, ev.Y
-	g.SmoothX, g.SmoothY = ev.X, ev.Y
 
 	seedOrbitPivot(d, Vec3(g.RotPivot))
+	g.PressVP = d.UI.VP.Viewpoint
 }
 
 var applyAction = map[Drag.GesturePhase]func(d Deps, g *Drag.GestureState, ev Drag.RawInputMsg){
@@ -56,19 +55,9 @@ var applyAction = map[Drag.GesturePhase]func(d Deps, g *Drag.GestureState, ev Dr
 		}
 	},
 	Drag.GestRotating: func(d Deps, g *Drag.GestureState, ev Drag.RawInputMsg) {
-		g.SmoothX += Camera.RotSmoothAlpha * (ev.X - g.SmoothX)
-		g.SmoothY += Camera.RotSmoothAlpha * (ev.Y - g.SmoothY)
-		smoothEv := ev
-		smoothEv.X, smoothEv.Y = g.SmoothX, g.SmoothY
-		applyOrbit(d, smoothEv)
-		g.PrevX, g.PrevY = g.SmoothX, g.SmoothY
+		applyOrbit(d, ev)
 	},
 	Drag.GestHandhold: func(d Deps, g *Drag.GestureState, ev Drag.RawInputMsg) {
-		g.SmoothX += Camera.RotSmoothAlpha * (ev.X - g.SmoothX)
-		g.SmoothY += Camera.RotSmoothAlpha * (ev.Y - g.SmoothY)
-		smoothEv := ev
-		smoothEv.X, smoothEv.Y = g.SmoothX, g.SmoothY
-		applyOrbitLocked(d, smoothEv)
-		g.PrevX, g.PrevY = g.SmoothX, g.SmoothY
+		applyOrbitLocked(d, ev)
 	},
 }

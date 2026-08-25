@@ -22,8 +22,6 @@ type GestureState struct {
 	PrevX, PrevY float64
 	Button       int
 
-	SmoothX, SmoothY float64
-
 	Secondary bool
 
 	EmptyDown bool
@@ -32,9 +30,9 @@ type GestureState struct {
 
 	HandholdDown bool
 
-	RotPivot     Vec3
-	RotCx, RotCy float64
-	RotPxPerRad  float64
+	RotPivot Vec3
+
+	PressVP Camera.Viewpoint
 
 	Fov  float64
 	Rect GestureRect
@@ -49,17 +47,10 @@ func (r GestureRect) Aspect() float64 {
 	return r.Width / r.Height
 }
 
-func (g *GestureState) PixelToNDC(x, y float64) (nx, ny float64) {
-	nx = ((x-g.Rect.Left)/g.Rect.Width)*2 - 1
-	ny = -((y-g.Rect.Top)/g.Rect.Height)*2 + 1
-	return nx, ny
-}
-
 func (g *GestureState) Reset(vp *Camera.Viewpoint) {
 	g.Phase = GestIdle
 	g.EmptyDown = false
 	g.NodeDrag.Clear()
 	g.HandholdDown = false
 	g.Secondary = false
-	vp.LockedAxis = nil
 }

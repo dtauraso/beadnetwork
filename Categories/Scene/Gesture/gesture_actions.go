@@ -31,28 +31,28 @@ func seedOrbitPivot(d Deps, pivot Vec3) {
 	d.UI.VP.SetViewpoint(Camera.Vec3(pivot), r, pos, vp.Up)
 }
 
+func ballArc(d Deps, ev Drag.RawInputMsg) (from, to Camera.Dir, ok bool) {
+	centre := Camera.Vec3(d.UI.SceneSphere.Center)
+	prev := Camera.Vec3(ev.BallPrev).Sub(centre)
+	curr := Camera.Vec3(ev.Ball).Sub(centre)
+	if prev == (Camera.Vec3{}) || curr == (Camera.Vec3{}) {
+		return from, to, false
+	}
+	return Camera.WorldDirToAngles(curr), Camera.WorldDirToAngles(prev), true
+}
+
 func applyOrbit(d Deps, ev Drag.RawInputMsg) {
-	g := &d.UI.Gest
-	vp := d.UI.VP.Viewpoint
-	basis := Camera.BasisFromViewpoint(vp.Pos, vp.Up)
-	prev := Camera.ScreenToPolar(g.PrevX-g.RotCx, g.PrevY-g.RotCy, g.RotPxPerRad)
-	curr := Camera.ScreenToPolar(ev.X-g.RotCx, ev.Y-g.RotCy, g.RotPxPerRad)
-	prevDir := Camera.ToWorldDir(basis, prev)
-	currDir := Camera.ToWorldDir(basis, curr)
-	d.UI.OrbitViewpoint(Camera.WorldDirToAngles(currDir), Camera.WorldDirToAngles(prevDir))
-	d.UI.EmitViewFrame(nil)
+	if from, to, ok := ballArc(d, ev); ok {
+		d.UI.OrbitViewpoint(from, to)
+		d.UI.EmitViewFrame(nil)
+	}
 }
 
 func applyOrbitLocked(d Deps, ev Drag.RawInputMsg) {
-	g := &d.UI.Gest
-	vp := d.UI.VP.Viewpoint
-	basis := Camera.BasisFromViewpoint(vp.Pos, vp.Up)
-	prev := Camera.ScreenToPolar(g.PrevX-g.RotCx, g.PrevY-g.RotCy, g.RotPxPerRad)
-	curr := Camera.ScreenToPolar(ev.X-g.RotCx, ev.Y-g.RotCy, g.RotPxPerRad)
-	prevDir := Camera.ToWorldDir(basis, prev)
-	currDir := Camera.ToWorldDir(basis, curr)
-	d.UI.OrbitLockedViewpoint(Camera.WorldDirToAngles(currDir), Camera.WorldDirToAngles(prevDir))
-	d.UI.EmitViewFrame(nil)
+	if from, to, ok := ballArc(d, ev); ok {
+		d.UI.OrbitLockedViewpoint(from, to)
+		d.UI.EmitViewFrame(nil)
+	}
 }
 
 func applySelect(d Deps, ev Drag.RawInputMsg) {

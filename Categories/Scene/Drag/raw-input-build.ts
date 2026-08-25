@@ -2,10 +2,25 @@ import * as THREE from "three";
 import type { RawInputEvent, RawHit, RawPointerKind } from "./raw-input";
 import type { PickRef } from "./pick-types";
 import { pixelToNDC } from "./ndc";
+import { planePoint } from "./plane-point";
+import { ballPoint } from "./ball-point";
 
 type CamRef = React.MutableRefObject<THREE.PerspectiveCamera | null>;
 
 const wheelTotal = { x: 0, y: 0 };
+
+let pressOnRim = false;
+
+let pressNdc: { x: number; y: number } | null = null;
+
+let pressCam: THREE.PerspectiveCamera | null = null;
+
+function freezeCam(cam: THREE.PerspectiveCamera): THREE.PerspectiveCamera {
+  const c = cam.clone();
+  c.matrixWorld.copy(cam.matrixWorld);
+  c.projectionMatrixInverse.copy(cam.projectionMatrixInverse);
+  return c;
+}
 
 function classifyHit(pickRequest: PickRef, ndcX: number, ndcY: number): { kind: RawHit["kind"]; isInput: boolean; nodeRow: number; portRow: number; edgeRow: number } {
 
@@ -34,7 +49,19 @@ export function buildPointerRaw(
   const rect = e.currentTarget.getBoundingClientRect();
   const { ndcX, ndcY } = pixelToNDC(e.clientX, e.clientY, rect);
   const c = classifyHit(pickRequest, ndcX, ndcY);
-  const hit: RawHit = { kind: c.kind, isInput: c.isInput, nodeRow: c.nodeRow, portRow: c.portRow, edgeRow: c.edgeRow };
+  const p = planePoint(cam, ndcX, ndcY, c.nodeRow);
+  if (kind === "pointerdown") {
+    pressOnRim = ballPoint(cam, ndcX, ndcY, false).onRim;
+    pressNdc = { x: ndcX, y: ndcY };
+    pressCam = freezeCam(cam);
+  }
+  const ballCam = pressCam ?? cam;
+  const ball = ballPoint(ballCam, ndcX, ndcY, pressOnRim);
+  const prev = ballPoint(ballCam, pressNdc?.x ?? ndcX, pressNdc?.y ?? ndcY, pressOnRim);
+  const hit: RawHit = {
+    kind: c.kind, isInput: c.isInput, nodeRow: c.nodeRow, portRow: c.portRow, edgeRow: c.edgeRow,
+    pointX: p.x, pointY: p.y, pointZ: p.z,
+  };
   return {
     kind,
     x: e.clientX, y: e.clientY,
@@ -43,11 +70,17 @@ export function buildPointerRaw(
     ctrl: e.ctrlKey, shift: e.shiftKey, alt: e.altKey, meta: e.metaKey,
     deltaX: 0, deltaY: 0,
     hit,
+    ballX: ball.x, ballY: ball.y, ballZ: ball.z,
+    ballPrevX: prev.x, ballPrevY: prev.y, ballPrevZ: prev.z,
   };
 }
 
 export function buildHomeRaw(aspect: number): RawInputEvent {
-  const hit: RawHit = { kind: "empty", isInput: false, nodeRow: -1, portRow: -1, edgeRow: -1 };
+  const ball = { x: 0, y: 0, z: 0 };
+  const hit: RawHit = {
+    kind: "empty", isInput: false, nodeRow: -1, portRow: -1, edgeRow: -1,
+    pointX: 0, pointY: 0, pointZ: 0,
+  };
   return {
     kind: "home",
     x: 0, y: 0,
@@ -56,11 +89,17 @@ export function buildHomeRaw(aspect: number): RawInputEvent {
     ctrl: false, shift: false, alt: false, meta: false,
     deltaX: 0, deltaY: 0,
     hit,
+    ballX: ball.x, ballY: ball.y, ballZ: ball.z,
+    ballPrevX: ball.x, ballPrevY: ball.y, ballPrevZ: ball.z,
   };
 }
 
 export function buildDeleteRaw(): RawInputEvent {
-  const hit: RawHit = { kind: "empty", isInput: false, nodeRow: -1, portRow: -1, edgeRow: -1 };
+  const ball = { x: 0, y: 0, z: 0 };
+  const hit: RawHit = {
+    kind: "empty", isInput: false, nodeRow: -1, portRow: -1, edgeRow: -1,
+    pointX: 0, pointY: 0, pointZ: 0,
+  };
   return {
     kind: "delete",
     x: 0, y: 0,
@@ -69,11 +108,17 @@ export function buildDeleteRaw(): RawInputEvent {
     ctrl: false, shift: false, alt: false, meta: false,
     deltaX: 0, deltaY: 0,
     hit,
+    ballX: ball.x, ballY: ball.y, ballZ: ball.z,
+    ballPrevX: ball.x, ballPrevY: ball.y, ballPrevZ: ball.z,
   };
 }
 
 export function buildKeyRaw(key: string): RawInputEvent {
-  const hit: RawHit = { kind: "empty", isInput: false, nodeRow: -1, portRow: -1, edgeRow: -1 };
+  const ball = { x: 0, y: 0, z: 0 };
+  const hit: RawHit = {
+    kind: "empty", isInput: false, nodeRow: -1, portRow: -1, edgeRow: -1,
+    pointX: 0, pointY: 0, pointZ: 0,
+  };
   return {
     kind: "key",
     x: 0, y: 0,
@@ -83,6 +128,8 @@ export function buildKeyRaw(key: string): RawInputEvent {
     deltaX: 0, deltaY: 0,
     hit,
     key,
+    ballX: ball.x, ballY: ball.y, ballZ: ball.z,
+    ballPrevX: ball.x, ballPrevY: ball.y, ballPrevZ: ball.z,
   };
 }
 
@@ -96,7 +143,12 @@ export function buildWheelRaw(
   const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
   const { ndcX, ndcY } = pixelToNDC(e.clientX, e.clientY, rect);
   const c = classifyHit(pickRequest, ndcX, ndcY);
-  const hit: RawHit = { kind: c.kind, isInput: c.isInput, nodeRow: c.nodeRow, portRow: c.portRow, edgeRow: c.edgeRow };
+  const p = planePoint(cam, ndcX, ndcY, c.nodeRow);
+  const ball = ballPoint(cam, ndcX, ndcY);
+  const hit: RawHit = {
+    kind: c.kind, isInput: c.isInput, nodeRow: c.nodeRow, portRow: c.portRow, edgeRow: c.edgeRow,
+    pointX: p.x, pointY: p.y, pointZ: p.z,
+  };
   wheelTotal.x += e.deltaX;
   wheelTotal.y += e.deltaY;
   return {
@@ -107,5 +159,7 @@ export function buildWheelRaw(
     ctrl: e.ctrlKey, shift: e.shiftKey, alt: e.altKey, meta: e.metaKey,
     deltaX: wheelTotal.x, deltaY: wheelTotal.y,
     hit,
+    ballX: ball.x, ballY: ball.y, ballZ: ball.z,
+    ballPrevX: ball.x, ballPrevY: ball.y, ballPrevZ: ball.z,
   };
 }

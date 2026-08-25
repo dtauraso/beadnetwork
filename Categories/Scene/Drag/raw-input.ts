@@ -15,6 +15,10 @@ export type RawHit = {
   portRow: number;
 
   edgeRow: number;
+
+  pointX: number;
+  pointY: number;
+  pointZ: number;
 };
 
 export type RawInputEvent = {
@@ -34,4 +38,12 @@ export type RawInputEvent = {
   deltaY: number;
   hit: RawHit;
   key?: string;
+
+  ballX: number;
+  ballY: number;
+  ballZ: number;
+
+  ballPrevX: number;
+  ballPrevY: number;
+  ballPrevZ: number;
 };
