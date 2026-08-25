@@ -7,6 +7,7 @@ const SPHERE_TILT_LIMIT = Math.PI / 2 - 0.05;
 const SPHERE_SUBS = ['₁', '₂'];
 const SPHERE_LABEL_OFFSET = 1.17;
 const SPHERE_RADIUS_FRACTION = 0.495;
+const SPHERE_GRIP_REACH = 1.4;
 
 function unitPoint(aTurn, bTurn) {
   const a = aTurn * 2 * Math.PI;
@@ -151,10 +152,11 @@ function dirFromPointer(view, c, r, sx, sy) {
   const X = sx - (c + pan.x);
   const up = (c + pan.y) - sy;
 
-  const away = (X * X + up * up) / (r * r);
+  const grip = r * SPHERE_GRIP_REACH;
+  const away = (X * X + up * up) / (grip * grip);
   const depth = away <= 0.5
-    ? r * Math.sqrt(1 - away)
-    : r * 0.5 / Math.sqrt(away);
+    ? grip * Math.sqrt(1 - away)
+    : grip * 0.5 / Math.sqrt(away);
 
   const ct = Math.cos(view.tilt), st = Math.sin(view.tilt);
   const py = up * ct + depth * st;
