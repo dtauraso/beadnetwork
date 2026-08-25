@@ -8,6 +8,7 @@ import (
 	NodeDrag "github.com/dtauraso/beadnetwork/Categories/Node/Drag"
 	interior "github.com/dtauraso/beadnetwork/Categories/Node/Interior"
 	"github.com/dtauraso/beadnetwork/Categories/Node/TiltVectors"
+	"github.com/dtauraso/beadnetwork/Categories/Node/TopVector"
 	"github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
 )
 
@@ -53,6 +54,8 @@ type NodeGeometry struct {
 	interior interior.Interior
 
 	kindPosts KindPosts
+
+	topVector TopVector.Holder
 
 	rule Link
 }

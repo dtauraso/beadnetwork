@@ -8,6 +8,7 @@ import { ChainBeadInstances } from "../../../../Categories/Node/BeadAnimation/Ch
 import { EdgeVectors } from "../../../../Categories/Vectors/Drawn/EdgeVectors";
 import { getEdgeStreamAccessor } from "../../../../Categories/Node/Edge/edge-stream-blocks";
 import { TiltVectors } from "../../../../Categories/Node/TiltVectors/TiltVectors";
+import { TopVectors } from "../../../../Categories/Node/TopVector/TopVectors";
 import { NodeInstances } from "../../../../Categories/Ring/NodeShape/NodeInstances";
 import { RuleChannelLines } from "../../../../Categories/Node/ChannelVectors/RuleChannelLines";
 import { ChromeCanvas } from "../../../../Categories/Chrome/Panels/ChromeCanvas";
@@ -66,6 +67,7 @@ export function SceneRoot({ cameraRef }: {
       {}
       {}
       <TiltVectors capacity={nodeCap * 3} receivedCapacity={nodeCap} />
+      <TopVectors capacity={nodeCap} />
       <InteriorBeadInstances capacity={nodeCap * INTERIOR_SLOTS_PER_NODE} />
       <RuleChannelLines capacity={2 * nodeCap * (nodeCap - 1)} />
       <ChromeCanvas />
