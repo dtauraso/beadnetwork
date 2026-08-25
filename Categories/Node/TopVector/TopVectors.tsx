@@ -2,6 +2,7 @@ import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { ownerCounts } from "../../Scene/owner-counts";
+import { overlayFlag } from "../../Scene/View/Flags/overlay-flags";
 import {
   topVectorBytes, TOP_VECTOR_SHAFT_NAMES, TOP_VECTOR_HEAD_NAMES,
 } from "./top-vector-leaves";
@@ -28,6 +29,8 @@ export function TopVectors({ capacity }: { capacity: number }) {
     const shaft = shaftRef.current;
     const head = headRef.current;
     if (!shaft || !head) return;
+
+    if (!overlayFlag("topVectors")) { shaft.count = 0; head.count = 0; return; }
 
     let drawn = 0;
     const { nodes } = ownerCounts();
