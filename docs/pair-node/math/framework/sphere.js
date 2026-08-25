@@ -44,7 +44,7 @@ function sphereAt(points, i, which) {
   const t = i / points;
   if (which === 'theta') return [t, 0];
   if (which === 'phi') return [0, t];
-  return [t, t];
+  return [0.25, t];
 }
 
 function sphereGlyph(which, sub) {
@@ -69,8 +69,8 @@ function sphereShell(g, ball, spec) {
   g.appendChild(tag('circle', { cx, cy, r: ball.r, class: 'ring-line' }));
   sphereCircle(g, ball, (t) => [t, 0]);
   sphereCircle(g, ball, (t) => [0, t]);
-  sphereCircle(g, ball, (t) => [t, t]);
-  for (const which of ['theta', 'phi', 'both']) {
+  sphereCircle(g, ball, (t) => [0.25, t]);
+  for (const which of ['theta', 'phi', 'cross']) {
     for (let i = 0; i < spec.points; i++) {
       const [x, y, z] = ballPointAt(ball, ...sphereAt(spec.points, i, which));
       g.appendChild(tag('circle', { cx: x, cy: y, r: 3, class: `ring-dot${backish(z)}` }));
