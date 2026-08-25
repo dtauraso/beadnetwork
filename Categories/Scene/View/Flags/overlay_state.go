@@ -20,6 +20,7 @@ type OverlayState struct {
 	SelectionRingVisible  bool
 	HoverRingVisible      bool
 	SceneVectorsVisible   bool
+	EdgeVectorsVisible    bool
 	RuleChannelsVisible   bool
 	NodePoleSphereVisible bool
 	AllPoleSpheresVisible bool
@@ -90,6 +91,11 @@ func (o *OverlayState) ToggleHoverRing() {
 // ToggleSceneVectors flips SceneVectorsVisible.
 func (o *OverlayState) ToggleSceneVectors() {
 	o.setFlag(&o.SceneVectorsVisible)
+}
+
+// ToggleEdgeVectors flips EdgeVectorsVisible.
+func (o *OverlayState) ToggleEdgeVectors() {
+	o.setFlag(&o.EdgeVectorsVisible)
 }
 
 // ToggleRuleChannels flips RuleChannelsVisible.
