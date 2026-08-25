@@ -32,7 +32,7 @@ a &\in& \{\varphi, \theta\} \\[3pt]
 \]`;
 
 const SPHERE_CARD_NOTES = [
-  ['note', 'Drag to turn. Scroll or shift-drag to pan, pinch (or ctrl-scroll) to zoom. Press 1 or 2 to turn about that sphere’s centre; double-click puts it all back. What faces away is dimmed, not hidden.'],
+  ['note', 'Drag either sphere to walk it around the other’s surface — the one you grab moves, the one you don’t stays put, and a grab that lands on the overlap does nothing. Drag off both to turn the pair. Scroll or shift-drag to pan, pinch (or ctrl-scroll) to zoom, 1 or 2 to turn about that sphere, double-click to put it all back. What faces away is dimmed, not hidden.'],
   ['', 'Every arrow leaves \\(\\text{center}\\), the one thing both rings share. The rule never mentions it: the arithmetic is on indices, and \\(\\text{center}\\) only says where they get drawn.'],
   ['', 'The same rule, once per angle. Each angle carries its own whole turn \\(\\tau_a\\), measures its own two distances, and produces its own offset — nothing crosses between \\(\\varphi\\) and \\(\\theta\\), so neither angle can hold the other back. A pair is settled when every \\(\\text{offset}_a\\) is \\(0\\), which is the one-angle halt read on each angle in turn.'],
   ['', '\\(\\text{normal}_a\\) has two candidates a half turn apart; the one named here is the one on \\(\\text{top}_a\\)’s side of the ring.'],

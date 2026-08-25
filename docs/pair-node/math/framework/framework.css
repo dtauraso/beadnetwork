@@ -64,6 +64,7 @@ svg.spin {
 }
 svg.spin.grabbing { cursor: grabbing; }
 svg.spin.panning { cursor: move; }
+svg.spin.seating { cursor: crosshair; }
 svg.spin:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 
 /* The normal is a quarter turn off what arrived — on the side of the ring the top

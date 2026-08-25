@@ -42,7 +42,9 @@ function ballPointAt(ball, aTurn, bTurn, reach) {
 
 function sphereAt(points, i, which) {
   const t = i / points;
-  return which === 'theta' ? [t, 0] : [0, t];
+  if (which === 'theta') return [t, 0];
+  if (which === 'phi') return [0, t];
+  return [0.25, t];
 }
 
 function sphereGlyph(which, sub) {
@@ -67,7 +69,8 @@ function sphereShell(g, ball, spec) {
   g.appendChild(tag('circle', { cx, cy, r: ball.r, class: 'ring-line' }));
   sphereCircle(g, ball, (t) => [t, 0]);
   sphereCircle(g, ball, (t) => [0, t]);
-  for (const which of ['theta', 'phi']) {
+  sphereCircle(g, ball, (t) => [0.25, t]);
+  for (const which of ['theta', 'phi', 'cross']) {
     for (let i = 0; i < spec.points; i++) {
       const [x, y, z] = ballPointAt(ball, ...sphereAt(spec.points, i, which));
       g.appendChild(tag('circle', { cx: x, cy: y, r: 3, class: `ring-dot${backish(z)}` }));
@@ -126,21 +129,36 @@ function sphereMarks(g, ball, spec) {
   }
 }
 
-function sphereOrigins(spec, r) {
+function defaultSeat(spec) {
   const [a, b] = sphereAt(spec.points, spec.theta.axis, 'theta');
-  const u = unitPoint(a, b);
-  return [
-    { x: 0, y: 0, z: 0 },
-    { x: r * u.x, y: r * u.y, z: r * u.z },
-  ];
+  return { a, b };
+}
+
+function antipodeSeat(seat) {
+  return { a: seat.a + 0.5, b: -seat.b };
+}
+
+function sphereOrigins(spec, r, view) {
+  const seat = view.seat || defaultSeat(spec);
+  const u = unitPoint(seat.a, seat.b);
+  const away = { x: r * u.x, y: r * u.y, z: r * u.z };
+  const home = { x: 0, y: 0, z: 0 };
+  return view.anchorIndex === 1 ? [away, home] : [home, away];
+}
+
+function sphereLayout(spec, view, S) {
+  const c = S / 2, r = S * SPHERE_RADIUS_FRACTION * view.zoom;
+  const origins = sphereOrigins(spec, r, view);
+  const pivot = origins[view.pivotIndex] || origins[0];
+  const screen = origins.map((o) => viewProject({ ...view, pivot }, c, o));
+  return { c, r, origins, pivot, screen };
 }
 
 function sphereDraw(g, spec, view, S) {
   while (g.firstChild) g.removeChild(g.firstChild);
 
-  const c = S / 2, r = S * SPHERE_RADIUS_FRACTION * view.zoom;
-  const origins = sphereOrigins(spec, r);
-  view.pivot = origins[view.pivotIndex] || origins[0];
+  const { c, r, origins, pivot } = sphereLayout(spec, view, S);
+  view.pivot = pivot;
   origins.forEach((origin, k) => {
     const ball = { view, c, r, origin, sub: SPHERE_SUBS[k] };
     sphereShell(g, ball, spec);
