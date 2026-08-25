@@ -9,7 +9,9 @@ const GestureZoomBase = 1.01
 
 const RotationUnitEyeRadii = 4.0
 
-const RotationMaxScale = 60.0
+const RotationInsideBoost = 4.0
+
+const RotationMaxScale = 240.0
 
 func RotationScale(v Viewpoint, sphereCentre Vec3, sphereRadius float64) float64 {
 	if sphereRadius <= 0 {
@@ -20,6 +22,9 @@ func RotationScale(v Viewpoint, sphereCentre Vec3, sphereRadius float64) float64
 		eyeDist = GestureFocusMin
 	}
 	scale := RotationUnitEyeRadii * sphereRadius / eyeDist
+	if eyeDist < sphereRadius {
+		scale *= RotationInsideBoost
+	}
 	if scale > RotationMaxScale {
 		scale = RotationMaxScale
 	}
