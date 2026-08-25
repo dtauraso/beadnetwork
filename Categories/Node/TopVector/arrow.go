@@ -5,9 +5,9 @@ import (
 )
 
 const (
-	ShaftRadiusFrac = 0.045
-	HeadLenFrac     = 0.18
-	HeadRadiusFrac  = 0.11
+	ShaftRadius = 1.5
+	HeadRadius  = 3
+	HeadLen     = HeadRadius * 2
 )
 
 func ArrowMatrices(from, to Vec3) (shaft, head [16]float32, ok bool) {
@@ -19,13 +19,12 @@ func ArrowMatrices(from, to Vec3) (shaft, head [16]float32, ok bool) {
 	axis := dir.Normalize()
 	bx, by, bz := axisBasisFrom(Vec3{X: 0, Y: 1, Z: 0}, axis)
 
-	headLen := length * HeadLenFrac
-	shaftLen := length - headLen
+	shaftLen := max(length-HeadLen, 0)
 
 	shaft = composeColumnMajor(bx, by, bz, from.Add(axis.Scale(shaftLen/2)),
-		length*ShaftRadiusFrac, shaftLen, length*ShaftRadiusFrac)
-	head = composeColumnMajor(bx, by, bz, to.Sub(axis.Scale(headLen/2)),
-		length*HeadRadiusFrac, headLen, length*HeadRadiusFrac)
+		ShaftRadius, shaftLen, ShaftRadius)
+	head = composeColumnMajor(bx, by, bz, to.Sub(axis.Scale(HeadLen/2)),
+		HeadRadius, HeadLen, HeadRadius)
 	return shaft, head, true
 }
 
