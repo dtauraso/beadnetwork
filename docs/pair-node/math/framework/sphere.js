@@ -5,6 +5,7 @@ const SPHERE_ZOOM_MAX = 2.4;
 const SPHERE_DRAG_RATE = 0.008;
 const SPHERE_TILT_LIMIT = Math.PI / 2 - 0.05;
 const SPHERE_SUBS = ['₁', '₂'];
+const SPHERE_RINGS = ['theta', 'phi', 'cross'];
 const SPHERE_LABEL_OFFSET = 1.17;
 const SPHERE_RADIUS_FRACTION = 0.33;
 const SPHERE_GRIP_REACH = 1.4;
@@ -65,20 +66,24 @@ function sphereCircle(g, ball, vary) {
   g.appendChild(tag('path', { d: pts.join(' '), class: 'ring-line' }));
 }
 
+function ringShown(view, which) {
+  const rings = view.rings;
+  return !rings || rings[which] !== false;
+}
+
 function sphereShell(g, ball, spec) {
   const [cx, cy] = viewProject(ball.view, ball.c, ball.origin);
   g.appendChild(tag('circle', { cx, cy, r: ball.r, class: 'ring-line' }));
-  sphereCircle(g, ball, (t) => [t, 0]);
-  sphereCircle(g, ball, (t) => [0, t]);
-  sphereCircle(g, ball, (t) => [0.25, t]);
-  for (const which of ['theta', 'phi', 'cross']) {
+
+  for (const which of SPHERE_RINGS) {
+    if (!ringShown(ball.view, which)) continue;
+    sphereCircle(g, ball, (t) => sphereAt(1, t, which));
     for (let i = 0; i < spec.points; i++) {
       const [x, y, z] = ballPointAt(ball, ...sphereAt(spec.points, i, which));
       g.appendChild(tag('circle', { cx: x, cy: y, r: 3, class: `ring-dot${backish(z)}` }));
     }
   }
-  const [ox, oy] = viewProject(ball.view, ball.c, ball.origin);
-  g.appendChild(tag('circle', { cx: ox, cy: oy, r: 3, class: 'ring-mark' }));
+  g.appendChild(tag('circle', { cx, cy, r: 3, class: 'ring-mark' }));
 }
 
 function sphereLabel(g, ball, spec, i, which, text, cls) {

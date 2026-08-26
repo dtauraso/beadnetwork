@@ -39,10 +39,54 @@ const SPHERE_CARD_NOTES = [
   ['', 'The code in <code>tiltring/rules.go</code> runs this on ONE angle today. This card is the shape it takes when the same arithmetic is carried on the polar lattice’s two angles.'],
 ];
 
+const SPHERE_RING_LABELS = { theta: 'θ ring', phi: 'φ ring', cross: 'φ×θ ring' };
+
+function ringToggle(svgEl, which, label, onChange) {
+  const wrap = document.createElement('label');
+  wrap.className = 'ringtoggle';
+  const box = document.createElement('input');
+  box.type = 'checkbox';
+  box.checked = true;
+  const text = document.createElement('span');
+  text.textContent = label;
+  wrap.appendChild(box);
+  wrap.appendChild(text);
+  box.addEventListener('change', () => onChange(box.checked));
+  return { wrap, box };
+}
+
+function sphereCardToggles(svgEl) {
+  const row = document.createElement('div');
+  row.className = 'ringtoggles';
+  const boxes = {};
+
+  for (const which of SPHERE_RINGS) {
+    const t = ringToggle(svgEl, which, SPHERE_RING_LABELS[which], (on) => {
+      svgEl.view.rings[which] = on;
+      all.box.checked = SPHERE_RINGS.some((w) => svgEl.view.rings[w]);
+      svgEl.redraw();
+    });
+    boxes[which] = t.box;
+    row.appendChild(t.wrap);
+  }
+
+  const all = ringToggle(svgEl, 'all', 'all rings', (on) => {
+    for (const which of SPHERE_RINGS) {
+      svgEl.view.rings[which] = on;
+      boxes[which].checked = on;
+    }
+    svgEl.redraw();
+  });
+  row.appendChild(all.wrap);
+  return row;
+}
+
 function sphereCardFigure(spec) {
   const fig = document.createElement('div');
   fig.className = 'keysphere';
-  fig.appendChild(sphere(spec));
+  const svgEl = sphere(spec);
+  fig.appendChild(svgEl);
+  fig.appendChild(sphereCardToggles(svgEl));
   return fig;
 }
 
