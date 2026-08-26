@@ -220,4 +220,5 @@ function sphereDraw(g, spec, view, S) {
     sphereMarks(g, ball, spec);
   });
   sphereSpan(g, view, c, origins);
+  sphereReach(g, view, c, origins, view.anchorIndex || 0);
 }
