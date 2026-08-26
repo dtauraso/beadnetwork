@@ -12,12 +12,13 @@ const SPHERE_CARD_FORMULAS = String.raw`\[
 \text{center} &=& (c_{\varphi},\, c_{\theta},\, c_{r}) \\[3pt]
 \tau_{\varphi} &=& \text{the whole turn on } \varphi \\[3pt]
 \tau_{\theta} &=& \text{the whole turn on } \theta \\[3pt]
+\tau_{r} &=& \text{the whole run on } r \\[3pt]
 \begin{bmatrix} \text{top}_{\varphi} \\ \text{top}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0,\, \tau_{\varphi} - 1 \\ 0,\, \tau_{\theta} - 1 \end{bmatrix} \\
 & & \quad\text{the one end the node holds} \\
 & & \quad\text{an index on each ring} \\[3pt]
-\begin{bmatrix} \text{arrival}_{\varphi} \\ \text{arrival}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 0,\, \tau_{\varphi} - 1 \\ 0,\, \tau_{\theta} - 1 \end{bmatrix} \\
+\begin{bmatrix} \text{arrival}_{\varphi} \\ \text{arrival}_{\theta} \\ \text{arrival}_{r} \end{bmatrix}
+  &=& \begin{bmatrix} 0,\, \tau_{\varphi} - 1 \\ 0,\, \tau_{\theta} - 1 \\ 0,\, \tau_{r} - 1 \end{bmatrix} \\
 & & \quad\text{the direction that just came in} \\
 & & \quad\text{an index on each ring, like top} \\[3pt]
 \begin{bmatrix} \text{bottom}_{\varphi} \\ \text{bottom}_{\theta} \end{bmatrix}
@@ -46,27 +47,7 @@ const SPHERE_CARD_FORMULAS = String.raw`\[
 \begin{bmatrix} \text{center}_{\text{next}_{\varphi}} \\ \text{center}_{\text{next}_{\theta}} \\ \text{center}_{\text{next}_{r}} \end{bmatrix}
   &=& \begin{bmatrix} (c_{\varphi} + \text{offset}_{\varphi}) \bmod \tau_{\varphi} \\
                       (c_{\theta} + \text{offset}_{\theta}) \bmod \tau_{\theta} \\
-                      c_{r} + \text{offset}_{r} \end{bmatrix} \\[3pt]
-\begin{bmatrix} \text{top}_{\text{next}_{\varphi}} \\ \text{top}_{\text{next}_{\theta}} \end{bmatrix}
-  &=& \begin{bmatrix} (\text{top}_{\varphi} + \text{offset}_{\varphi}) \bmod \tau_{\varphi} \\
-                      (\text{top}_{\theta} + \text{offset}_{\theta}) \bmod \tau_{\theta} \end{bmatrix} \\[3pt]
-\begin{bmatrix} \text{bottom}_{\text{next}_{\varphi}} \\ \text{bottom}_{\text{next}_{\theta}} \end{bmatrix}
-  &=& \begin{bmatrix} (\text{bottom}_{\varphi} + \text{offset}_{\varphi}) \bmod \tau_{\varphi} \\
-                      (\text{bottom}_{\theta} + \text{offset}_{\theta}) \bmod \tau_{\theta} \end{bmatrix} \\[3pt]
-\begin{bmatrix} \text{sent}_{\varphi} \\ \text{sent}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} (\text{top}_{\varphi} + \tau_{\varphi}/4) \bmod \tau_{\varphi} \\
-                      (\text{top}_{\theta} + \tau_{\theta}/4) \bmod \tau_{\theta} \end{bmatrix} \\[3pt]
-\begin{bmatrix} \text{normal}_{\varphi} \\ \text{normal}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} (\text{arrival}_{\varphi} \pm \tau_{\varphi}/4) \bmod \tau_{\varphi} \\
-                      (\text{arrival}_{\theta} \pm \tau_{\theta}/4) \bmod \tau_{\theta} \end{bmatrix} \\
-& & \begin{bmatrix} \text{the sign that puts it within } \tau_{\varphi}/4 \text{ of } \text{top}_{\varphi} \\
-                    \text{the sign that puts it within } \tau_{\theta}/4 \text{ of } \text{top}_{\theta} \end{bmatrix} \\[3pt]
-\begin{bmatrix} \text{point}_{\varphi}(i) \\ \text{point}_{\theta}(i) \end{bmatrix}
-  &=& \begin{bmatrix} \text{the point at index } i \text{ on ring } \varphi \\
-                      \text{the point at index } i \text{ on ring } \theta \end{bmatrix} \\[3pt]
-\begin{bmatrix} \text{drawn}_{\varphi}(i) \\ \text{drawn}_{\theta}(i) \end{bmatrix}
-  &=& \begin{bmatrix} \text{center} + \text{point}_{\varphi}(i) \\
-                      \text{center} + \text{point}_{\theta}(i) \end{bmatrix}
+                      c_{r} + \text{offset}_{r} \end{bmatrix}
 \end{array}
 \]`;
 
