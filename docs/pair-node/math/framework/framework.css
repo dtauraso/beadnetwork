@@ -80,6 +80,11 @@ svg.spin:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; 
 .ring-span { stroke: #3d6fb5; stroke-width: 2.5; }
 .ring-span-head { fill: #3d6fb5; }
 
+/* The same r again, carried on from the sphere that received it. Dotted, because
+   it is the step repeated rather than a second thing that was measured. */
+.ring-reach { stroke: #3d6fb5; stroke-width: 2; stroke-dasharray: 5 4; opacity: .65; }
+.ring-reach-head { fill: #3d6fb5; opacity: .65; }
+
 .ring-dot.back { opacity: .12; }
 .ring-end.back { opacity: .35; }
 .ring-arrival-dot.back { opacity: .4; }
