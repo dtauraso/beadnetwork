@@ -61,8 +61,10 @@ export function EdgeVectors({ capacity }: { capacity: number }) {
       dir.current.divideScalar(len);
       quat.current.setFromUnitVectors(AXIS_DEFAULT, dir.current);
 
-      const shaft = Math.max(len - ARROW_HEAD_LENGTH - ARROW_HEAD_GAP, 0);
-      pos.current.set(sx, sy, sz).addScaledVector(dir.current, shaft / 2);
+      const tail = ARROW_HEAD_LENGTH + ARROW_HEAD_GAP;
+      const shaft = Math.max(len - ARROW_HEAD_LENGTH - ARROW_HEAD_GAP - tail, 0);
+
+      pos.current.set(sx, sy, sz).addScaledVector(dir.current, tail + shaft / 2);
       scl.current.set(1, shaft, 1);
       mat.current.compose(pos.current, quat.current, scl.current);
       line.setMatrixAt(drawn, mat.current);
