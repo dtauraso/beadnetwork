@@ -3,6 +3,10 @@ package TiltPanel
 type TiltVectorMsg struct {
 	PhiIdx int32
 
+	ThetaIdx int32
+
+	RIdx int32
+
 	Points int32
 
 	Reset bool
@@ -26,7 +30,8 @@ func (m TiltMachine) String() string {
 }
 
 var vectorCapableKinds = map[string]bool{
-	"NodePhi": true,
+	"NodePhi":      true,
+	"NodePhiTheta": true,
 }
 
 func KindWantsVectorChannel(kind string) bool {

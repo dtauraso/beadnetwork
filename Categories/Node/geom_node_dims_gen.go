@@ -10,14 +10,15 @@ type KindDim struct{ Width, Height float64 }
 
 // KindDims maps each runtime kind to its render dimensions.
 var KindDims = map[string]KindDim{
-	"Input":       {Width: 80, Height: 60},
-	"NodePhi":     {Width: 70, Height: 60},
-	"Pulse":       {Width: 90, Height: 60},
-	"PulseLeft":   {Width: 90, Height: 60},
-	"PulseRight":  {Width: 90, Height: 60},
-	"SelectLeft":  {Width: 80, Height: 60},
-	"SelectRight": {Width: 80, Height: 60},
-	"Time":        {Width: 90, Height: 60},
-	"TimeEnd":     {Width: 60, Height: 60},
-	"TimeStart":   {Width: 90, Height: 60},
+	"Input":        {Width: 80, Height: 60},
+	"NodePhi":      {Width: 70, Height: 60},
+	"NodePhiTheta": {Width: 70, Height: 60},
+	"Pulse":        {Width: 90, Height: 60},
+	"PulseLeft":    {Width: 90, Height: 60},
+	"PulseRight":   {Width: 90, Height: 60},
+	"SelectLeft":   {Width: 80, Height: 60},
+	"SelectRight":  {Width: 80, Height: 60},
+	"Time":         {Width: 90, Height: 60},
+	"TimeEnd":      {Width: 60, Height: 60},
+	"TimeStart":    {Width: 90, Height: 60},
 }

@@ -31,7 +31,7 @@ var All = []Scene{
 
 	{Name: "pair φ", Dir: "topology-pair", CoplanarEdges: true, UpAxis: true, ClockDivisor: 64, Editable: true, Kinds: []string{"NodePhi"}},
 
-	{Name: "pair φ, θ", Dir: "topology-pair-phi-theta", CoplanarEdges: true, UpAxis: true, ClockDivisor: 64, Editable: true, Kinds: []string{"NodePhi"}},
+	{Name: "pair φ, θ", Dir: "topology-pair-phi-theta", CoplanarEdges: true, UpAxis: true, ClockDivisor: 64, Editable: true, Kinds: []string{"NodePhiTheta"}},
 }
 
 var Unlisted = Scene{ClockDivisor: 1}
