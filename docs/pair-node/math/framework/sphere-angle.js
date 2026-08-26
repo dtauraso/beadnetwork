@@ -85,9 +85,10 @@ function quarterTurnToward(from, to) {
   return Math.hypot(p.x, p.y, p.z) < 1e-9 ? null : normalize3(p);
 }
 
-function dirRay(g, ball, dir, label) {
+function dirRay(g, ball, dir, label, from) {
   const seat = seatFromDir(dir);
-  const [ox, oy] = viewProject(ball.view, ball.c, ball.origin);
+  const base = from || ball.origin;
+  const [ox, oy] = viewProject(ball.view, ball.c, base);
   const [x, y, z] = ballPointAt(ball, seat.a, seat.b);
   g.appendChild(tag('line', { x1: ox, y1: oy, x2: x, y2: y, class: 'ring-normal' }));
   g.appendChild(tag('circle', { cx: x, cy: y, r: 5.5, class: `ring-normal-dot${backish(z)}` }));
@@ -113,7 +114,13 @@ function sphereAngles(g, ball, spec, incoming) {
 
     if (normalsShown(ball.view)) {
       const normal = quarterTurnToward(incoming, top);
-      if (normal) dirRay(g, ball, normal, `normal ${glyph}`);
+      const tilt = tiltedEnd(spec, which, incoming);
+      const seat = tilt && {
+        x: ball.origin.x + ball.r * tilt.x,
+        y: ball.origin.y + ball.r * tilt.y,
+        z: ball.origin.z + ball.r * tilt.z,
+      };
+      if (normal) dirRay(g, ball, normal, `normal ${glyph}`, seat);
     }
   }
 }
