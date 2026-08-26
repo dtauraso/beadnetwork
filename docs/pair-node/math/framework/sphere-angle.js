@@ -41,6 +41,11 @@ function angleArc(g, ball, from, to, reach, glyph) {
   g.appendChild(t);
 }
 
+function acuteEnd(from, top) {
+  const dot = from.x * top.x + from.y * top.y + from.z * top.z;
+  return dot >= 0 ? top : { x: -top.x, y: -top.y, z: -top.z };
+}
+
 function quarterTurnToward(from, to) {
   const dot = from.x * to.x + from.y * to.y + from.z * to.z;
   const p = {
@@ -70,7 +75,7 @@ function sphereAngles(g, ball, spec, incoming) {
     const [a, b] = sphereAt(spec.points, spec[which].axis, which);
     const top = unitPoint(a, b);
     const glyph = sphereGlyph(which, ball.sub);
-    angleArc(g, ball, incoming, top, ANGLE_ARC_REACH, glyph);
+    angleArc(g, ball, incoming, acuteEnd(incoming, top), ANGLE_ARC_REACH, glyph);
 
     const normal = quarterTurnToward(incoming, top);
     if (normal) dirRay(g, ball, normal, `normal ${glyph}`);
