@@ -37,7 +37,7 @@ function angleArc(g, ball, from, to, reach, glyph) {
 
   const [lx, ly, lz] = at(0.5);
   const t = tag('text', { x: lx, y: ly - 5, class: `ring-angle-label${backish(lz)}` });
-  t.textContent = `${Math.round(ang * 180 / Math.PI)}° ${glyph}`;
+  t.textContent = `${(ang / Math.PI).toFixed(2)}π ${glyph}`;
   g.appendChild(t);
 }
 
