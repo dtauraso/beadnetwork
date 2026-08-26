@@ -7,9 +7,19 @@ const SPHERE_CARD_SPEC = {
 
 const SPHERE_CARD_FORMULAS = String.raw`\[
 \begin{array}{@{}l@{\;}c@{\;}l@{}}
+\text{center} &=& \text{where the sphere sits} \\
+& & \text{the point every arrow leaves} \\[3pt]
 \text{center} &=& (c_{\varphi},\, c_{\theta},\, c_{r}) \\[3pt]
 \tau_{\varphi} &=& \text{the whole turn on } \varphi \\[3pt]
 \tau_{\theta} &=& \text{the whole turn on } \theta \\[3pt]
+\begin{bmatrix} \text{top}_{\varphi} \\ \text{top}_{\theta} \end{bmatrix}
+  &=& \begin{bmatrix} 0,\, \tau_{\varphi} - 1 \\ 0,\, \tau_{\theta} - 1 \end{bmatrix} \\
+& & \quad\text{the one end the node holds} \\
+& & \quad\text{an index on each ring} \\[3pt]
+\begin{bmatrix} \text{arrival}_{\varphi} \\ \text{arrival}_{\theta} \end{bmatrix}
+  &=& \begin{bmatrix} 0,\, \tau_{\varphi} - 1 \\ 0,\, \tau_{\theta} - 1 \end{bmatrix} \\
+& & \quad\text{the direction that just came in} \\
+& & \quad\text{an index on each ring, like top} \\[3pt]
 \begin{bmatrix} \text{bottom}_{\varphi} \\ \text{bottom}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} (\text{top}_{\varphi} + \tau_{\varphi}/2) \bmod \tau_{\varphi} \\
                       (\text{top}_{\theta} + \tau_{\theta}/2) \bmod \tau_{\theta} \end{bmatrix} \\[3pt]
@@ -33,6 +43,10 @@ const SPHERE_CARD_FORMULAS = String.raw`\[
                                     \text{distance}_{\text{bottom}_{\theta}} < \tau_{\theta}/4 \end{bmatrix} \\
 & & \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\
 & & \quad\text{otherwise} \\[3pt]
+\begin{bmatrix} \text{center}_{\text{next}_{\varphi}} \\ \text{center}_{\text{next}_{\theta}} \\ \text{center}_{\text{next}_{r}} \end{bmatrix}
+  &=& \begin{bmatrix} (c_{\varphi} + \text{offset}_{\varphi}) \bmod \tau_{\varphi} \\
+                      (c_{\theta} + \text{offset}_{\theta}) \bmod \tau_{\theta} \\
+                      c_{r} \end{bmatrix} \\[3pt]
 \begin{bmatrix} \text{top}_{\text{next}_{\varphi}} \\ \text{top}_{\text{next}_{\theta}} \end{bmatrix}
   &=& \begin{bmatrix} (\text{top}_{\varphi} + \text{offset}_{\varphi}) \bmod \tau_{\varphi} \\
                       (\text{top}_{\theta} + \text{offset}_{\theta}) \bmod \tau_{\theta} \end{bmatrix} \\[3pt]
