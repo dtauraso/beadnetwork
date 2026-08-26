@@ -47,12 +47,6 @@ const SPHERE_CARD_FORMULAS = String.raw`\[
   &=& \begin{bmatrix} (c_{\varphi} + \text{offset}_{\varphi}) \bmod \tau_{\varphi} \\
                       (c_{\theta} + \text{offset}_{\theta}) \bmod \tau_{\theta} \\
                       c_{r} + \text{offset}_{r} \end{bmatrix} \\[3pt]
-\begin{bmatrix} \text{top}_{\text{next}_{\varphi}} \\ \text{top}_{\text{next}_{\theta}} \end{bmatrix}
-  &=& \begin{bmatrix} (\text{top}_{\varphi} + \text{offset}_{\varphi}) \bmod \tau_{\varphi} \\
-                      (\text{top}_{\theta} + \text{offset}_{\theta}) \bmod \tau_{\theta} \end{bmatrix} \\[3pt]
-\begin{bmatrix} \text{bottom}_{\text{next}_{\varphi}} \\ \text{bottom}_{\text{next}_{\theta}} \end{bmatrix}
-  &=& \begin{bmatrix} (\text{bottom}_{\varphi} + \text{offset}_{\varphi}) \bmod \tau_{\varphi} \\
-                      (\text{bottom}_{\theta} + \text{offset}_{\theta}) \bmod \tau_{\theta} \end{bmatrix} \\[3pt]
 \begin{bmatrix} \text{sent}_{\varphi} \\ \text{sent}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} (\text{top}_{\varphi} + \tau_{\varphi}/4) \bmod \tau_{\varphi} \\
                       (\text{top}_{\theta} + \tau_{\theta}/4) \bmod \tau_{\theta} \end{bmatrix} \\[3pt]
