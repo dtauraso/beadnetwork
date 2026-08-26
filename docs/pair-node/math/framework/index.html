@@ -53,28 +53,29 @@
         {"i":0,"end":"top"},{"i":1},{"i":3},{"i":6,"end":"bottom"}]}'></div>
       \[
       \begin{array}{@{}l@{\;}c@{\;}l@{}}
-      \tau &=& 12 \\[3pt]
-      \text{top} &=& 0 \\[3pt]
-      \text{arrival} &=& \tau/4 \\[3pt]
-      \text{bottom} &=& (\text{top} + \tau/2) \bmod \tau \\[3pt]
-      \text{distance}_{\text{top}} &=& |\, \text{top} - \text{arrival} \,| \\[3pt]
-      \text{distance}_{\text{bottom}} &=& |\, \text{bottom} - \text{arrival} \,| \\[3pt]
-      \text{offset} &=& 0 \\
-      & & \quad\text{if } \text{distance}_{\text{top}} = 0 \text{ or } \text{distance}_{\text{bottom}} = 0 \\
+      \tau_{\varphi} &=& 12 \\[3pt]
+      \text{top}_{\varphi} &=& 0 \\[3pt]
+      \text{arrival}_{\varphi} &=& \tau_{\varphi}/4 \\[3pt]
+      \text{bottom}_{\varphi} &=& (\text{top}_{\varphi} + \tau_{\varphi}/2) \bmod \tau_{\varphi} \\[3pt]
+      \text{distance}_{\text{top}_{\varphi}} &=& |\, \text{top}_{\varphi} - \text{arrival}_{\varphi} \,| \\[3pt]
+      \text{distance}_{\text{bottom}_{\varphi}} &=& |\, \text{bottom}_{\varphi} - \text{arrival}_{\varphi} \,| \\[3pt]
+      \text{offset}_{\varphi} &=& 0 \\
+      & & \quad\text{if } \text{distance}_{\text{top}_{\varphi}} = 0 \text{ or } \text{distance}_{\text{bottom}_{\varphi}} = 0 \\
       & & -1 \\
-      & & \quad\text{if } \text{distance}_{\text{top}} < \tau/4 \\
+      & & \quad\text{if } \text{distance}_{\text{top}_{\varphi}} < \tau_{\varphi}/4 \\
       & & +1 \\
-      & & \quad\text{if } \text{distance}_{\text{bottom}} < \tau/4 \\
+      & & \quad\text{if } \text{distance}_{\text{bottom}_{\varphi}} < \tau_{\varphi}/4 \\
       & & 0 \\
       & & \quad\text{otherwise} \\[3pt]
-      \text{top}_{\text{next}} &=& (\text{top} + \text{offset}) \bmod \tau \\[3pt]
-      \text{bottom}_{\text{next}} &=& (\text{bottom} + \text{offset}) \bmod \tau \\[3pt]
-      \text{sent} &=& (\text{top} + \tau/4) \bmod \tau
+      \text{top}_{\text{next}_{\varphi}} &=& (\text{top}_{\varphi} + \text{offset}_{\varphi}) \bmod \tau_{\varphi} \\[3pt]
+      \text{bottom}_{\text{next}_{\varphi}} &=& (\text{bottom}_{\varphi} + \text{offset}_{\varphi}) \bmod \tau_{\varphi} \\[3pt]
+      \text{sent}_{\varphi} &=& (\text{top}_{\varphi} + \tau_{\varphi}/4) \bmod \tau_{\varphi}
       \end{array}
       \]
       <div class="keynote">
-        <p>\(\tau\) is the whole turn, so \(\tau/2\) is the far end of the line and \(\tau/4\) is a
-          right angle; at \(\tau = 12\) those are \(6\) and \(3\)</p>
+        <p>\(\tau_{\varphi}\) is the whole turn on \(\varphi\), so \(\tau_{\varphi}/2\) is the far end of
+          the line and \(\tau_{\varphi}/4\) is a right angle; at \(\tau_{\varphi} = 12\) those are \(6\)
+          and \(3\)</p>
       </div>
     </div>
 

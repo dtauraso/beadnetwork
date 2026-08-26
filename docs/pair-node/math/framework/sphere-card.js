@@ -11,18 +11,18 @@ const SPHERE_CARD_FORMULAS = String.raw`\[
 a &\in& \{\varphi, \theta\} \\[3pt]
 \tau_a &=& \text{the whole turn on } a \\[3pt]
 \text{bottom}_a &=& (\text{top}_a + \tau_a/2) \bmod \tau_a \\[3pt]
-\text{distance}_{\text{top},a} &=& |\, \text{top}_a - \text{arrival}_a \,| \\[3pt]
-\text{distance}_{\text{bottom},a} &=& |\, \text{bottom}_a - \text{arrival}_a \,| \\[3pt]
+\text{distance}_{\text{top}_a} &=& |\, \text{top}_a - \text{arrival}_a \,| \\[3pt]
+\text{distance}_{\text{bottom}_a} &=& |\, \text{bottom}_a - \text{arrival}_a \,| \\[3pt]
 \text{offset}_a &=& 0 \\
-& & \quad\text{if } \text{distance}_{\text{top},a} = 0 \text{ or } \text{distance}_{\text{bottom},a} = 0 \\
+& & \quad\text{if } \text{distance}_{\text{top}_a} = 0 \text{ or } \text{distance}_{\text{bottom}_a} = 0 \\
 & & -1 \\
-& & \quad\text{if } \text{distance}_{\text{top},a} < \tau_a/4 \\
+& & \quad\text{if } \text{distance}_{\text{top}_a} < \tau_a/4 \\
 & & +1 \\
-& & \quad\text{if } \text{distance}_{\text{bottom},a} < \tau_a/4 \\
+& & \quad\text{if } \text{distance}_{\text{bottom}_a} < \tau_a/4 \\
 & & 0 \\
 & & \quad\text{otherwise} \\[3pt]
-\text{top}_{\text{next},a} &=& (\text{top}_a + \text{offset}_a) \bmod \tau_a \\[3pt]
-\text{bottom}_{\text{next},a} &=& (\text{bottom}_a + \text{offset}_a) \bmod \tau_a \\[3pt]
+\text{top}_{\text{next}_a} &=& (\text{top}_a + \text{offset}_a) \bmod \tau_a \\[3pt]
+\text{bottom}_{\text{next}_a} &=& (\text{bottom}_a + \text{offset}_a) \bmod \tau_a \\[3pt]
 \text{sent}_a &=& (\text{top}_a + \tau_a/4) \bmod \tau_a \\[3pt]
 \text{normal}_a &=& (\text{arrival}_a \pm \tau_a/4) \bmod \tau_a \\
 & & \quad\text{the sign that puts it within } \tau_a/4 \text{ of } \text{top}_a \\[3pt]
