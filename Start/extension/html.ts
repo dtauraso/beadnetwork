@@ -19,9 +19,12 @@ export function buildWebviewHtml(
   const container = path.dirname(anchor);
   const sceneBases: Record<string, string> = {};
   for (const scene of SCENES) {
-    sceneBases[scene.name] = webview
+    const base = webview
       .asWebviewUri(vscode.Uri.file(path.join(container, scene.dir)))
       .toString();
+
+    sceneBases[scene.dir] = base;
+    sceneBases[scene.name] = base;
   }
 
   const scriptExists = fs.existsSync(scriptPath);
