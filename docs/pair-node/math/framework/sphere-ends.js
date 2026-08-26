@@ -6,10 +6,6 @@ function ringTop(incoming, which) {
   return Math.hypot(t.x, t.y, t.z) < 1e-9 ? null : normalize3(t);
 }
 
-/* Every direction perpendicular to the centre line is tangent to the other sphere,
-   because the centres sit r apart and so each centre lies ON the other's surface.
-   That leaves a whole circle of tangent directions, and the tilt says which one:
-   0 is the direction in the ring's own plane, and turning it keeps it tangent. */
 function tiltedTop(incoming, which, tilt) {
   const base = ringTop(incoming, which);
   if (!base || !tilt) return base;
@@ -43,7 +39,7 @@ function endAt(ball, dir, sense, reach) {
 
 function sphereEnds(g, ball, spec, which, incoming) {
   if (!endsShown(ball.view, which)) return;
-  const top = tiltedTop(incoming, which, endTilt(ball.view, which));
+  const top = ringTop(incoming, which);
   if (!top) return;
 
   const [x1, y1] = endAt(ball, top, 1);

@@ -118,6 +118,20 @@ svg.spin:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; 
 .ring-label.normal { fill: #3f8f7a; opacity: 1; }
 .ring-normal-dot.back { opacity: .4; }
 
+/* The tilt pair is a second top/bottom line on the same centre, turned around the
+   centre line by the slider. It stays tangent at every angle, so it gets its own
+   colour rather than reading as the top/bottom line having moved. */
+.ring-tilt { stroke: #a4508f; stroke-width: 2; stroke-dasharray: 6 4; }
+.ring-tilt-dot { fill: #a4508f; }
+
+.ring-tilt-label {
+  fill: #a4508f;
+  font: 600 10px ui-sans-serif, system-ui, sans-serif;
+  text-anchor: middle;
+}
+
+.ring-tilt.back, .ring-tilt-dot.back, .ring-tilt-label.back { opacity: .35; }
+
 /* Centre to centre, one arrow each way. They lie on the same line, so what you
    see is a single span with a head at both ends. */
 .ring-span { stroke: #3d6fb5; stroke-width: 2.5; }

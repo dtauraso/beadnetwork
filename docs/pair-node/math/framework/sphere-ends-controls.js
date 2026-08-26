@@ -1,5 +1,6 @@
 const SPHERE_END_ANGLES = ['theta', 'phi'];
 const SPHERE_END_LABELS = { theta: 'θ top/bottom', phi: 'φ top/bottom' };
+const SPHERE_TILT_LABELS = { theta: 'θ tilt pair', phi: 'φ tilt pair' };
 const SPHERE_TILT_STEPS = 48;
 
 function endTiltSlider(svgEl, which, onChange) {
@@ -28,6 +29,7 @@ function sphereEndControls(svgEl) {
   row.className = 'ringtoggles';
 
   svgEl.view.ends = { theta: true, phi: true };
+  svgEl.view.tilts = { theta: true, phi: true };
   svgEl.view.endTilt = { theta: 0, phi: 0 };
 
   for (const which of SPHERE_END_ANGLES) {
@@ -36,6 +38,12 @@ function sphereEndControls(svgEl) {
       svgEl.redraw();
     });
     row.appendChild(t.wrap);
+
+    const v = ringToggle(svgEl, which, SPHERE_TILT_LABELS[which], (on) => {
+      svgEl.view.tilts[which] = on;
+      svgEl.redraw();
+    });
+    row.appendChild(v.wrap);
 
     const s = endTiltSlider(svgEl, which, (turn) => {
       svgEl.view.endTilt[which] = turn;

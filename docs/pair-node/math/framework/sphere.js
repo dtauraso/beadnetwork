@@ -98,6 +98,7 @@ function sphereMarks(g, ball, spec, incoming) {
   for (const which of ['theta', 'phi']) {
     if (!spec[which] || spec[which].axis === undefined) continue;
     sphereEnds(g, ball, spec, which, incoming);
+    sphereTilt(g, ball, spec, which, incoming);
   }
 }
 
