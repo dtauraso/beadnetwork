@@ -19,17 +19,21 @@ const SPHERE_CARD_FORMULAS = String.raw`\[
 \begin{bmatrix} \text{distance}_{\text{bottom}_{\varphi}} \\ \text{distance}_{\text{bottom}_{\theta}} \end{bmatrix}
   &=& \begin{bmatrix} |\, \text{bottom}_{\varphi} - \text{arrival}_{\varphi} \,| \\
                       |\, \text{bottom}_{\theta} - \text{arrival}_{\theta} \,| \end{bmatrix} \\[3pt]
-\begin{bmatrix} \text{offset}_{\varphi} \\ \text{offset}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \text{offset}(\varphi) \\ \text{offset}(\theta) \end{bmatrix},
-      \quad\text{where for either angle } a \\[3pt]
-\text{offset}(a) &=& 0 \\
-& & \quad\text{if } \text{distance}_{\text{top}_{a}} = 0 \text{ or } \text{distance}_{\text{bottom}_{a}} = 0 \\
-& & -1 \\
-& & \quad\text{if } \text{distance}_{\text{top}_{a}} < \tau_{a}/4 \\
-& & +1 \\
-& & \quad\text{if } \text{distance}_{\text{bottom}_{a}} < \tau_{a}/4 \\
-& & 0 \\
-& & \quad\text{otherwise} \\[3pt]
+\begin{bmatrix} \text{offset}_{\varphi} \\[14pt] \text{offset}_{\theta} \end{bmatrix}
+  &=& \begin{bmatrix}
+        \begin{cases}
+          0 & \text{if } \text{distance}_{\text{top}_{\varphi}} = 0 \text{ or } \text{distance}_{\text{bottom}_{\varphi}} = 0 \\
+          -1 & \text{if } \text{distance}_{\text{top}_{\varphi}} < \tau_{\varphi}/4 \\
+          +1 & \text{if } \text{distance}_{\text{bottom}_{\varphi}} < \tau_{\varphi}/4 \\
+          0 & \text{otherwise}
+        \end{cases} \\[14pt]
+        \begin{cases}
+          0 & \text{if } \text{distance}_{\text{top}_{\theta}} = 0 \text{ or } \text{distance}_{\text{bottom}_{\theta}} = 0 \\
+          -1 & \text{if } \text{distance}_{\text{top}_{\theta}} < \tau_{\theta}/4 \\
+          +1 & \text{if } \text{distance}_{\text{bottom}_{\theta}} < \tau_{\theta}/4 \\
+          0 & \text{otherwise}
+        \end{cases}
+      \end{bmatrix} \\[3pt]
 \begin{bmatrix} \text{top}_{\text{next}_{\varphi}} \\ \text{top}_{\text{next}_{\theta}} \end{bmatrix}
   &=& \begin{bmatrix} (\text{top}_{\varphi} + \text{offset}_{\varphi}) \bmod \tau_{\varphi} \\
                       (\text{top}_{\theta} + \text{offset}_{\theta}) \bmod \tau_{\theta} \end{bmatrix} \\[3pt]
@@ -42,7 +46,8 @@ const SPHERE_CARD_FORMULAS = String.raw`\[
 \begin{bmatrix} \text{normal}_{\varphi} \\ \text{normal}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} (\text{arrival}_{\varphi} \pm \tau_{\varphi}/4) \bmod \tau_{\varphi} \\
                       (\text{arrival}_{\theta} \pm \tau_{\theta}/4) \bmod \tau_{\theta} \end{bmatrix} \\
-& & \quad\text{each sign the one that puts it within } \tau_{a}/4 \text{ of } \text{top}_{a} \\[3pt]
+& & \begin{bmatrix} \text{the sign that puts it within } \tau_{\varphi}/4 \text{ of } \text{top}_{\varphi} \\
+                    \text{the sign that puts it within } \tau_{\theta}/4 \text{ of } \text{top}_{\theta} \end{bmatrix} \\[3pt]
 \begin{bmatrix} \text{point}_{\varphi}(i) \\ \text{point}_{\theta}(i) \end{bmatrix}
   &=& \begin{bmatrix} \text{the point at index } i \text{ on ring } \varphi \\
                       \text{the point at index } i \text{ on ring } \theta \end{bmatrix} \\[3pt]
