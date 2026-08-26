@@ -2,7 +2,7 @@ package TiltVectors
 
 import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/TiltPanel"
-	"github.com/dtauraso/beadnetwork/Categories/NodeKinds/PairNode/tiltring"
+	"github.com/dtauraso/beadnetwork/Categories/NodeKinds/NodePhi/tiltring"
 )
 
 type Tilt struct {

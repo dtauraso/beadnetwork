@@ -1,6 +1,6 @@
 
 import type { NodeDef } from "./node-def";
-import * as PairNode from "./PairNode/node-def-gen";
+import * as NodePhi from "./NodePhi/node-def-gen";
 import * as PulseLeft from "./PulseLeft/node-def-gen";
 import * as PulseRight from "./PulseRight/node-def-gen";
 import * as Time from "./Time/node-def-gen";
@@ -21,7 +21,7 @@ interface KindFragment {
 
 const KIND_FRAGMENTS: readonly KindFragment[] = [
   Input,
-  PairNode,
+  NodePhi,
   Pulse,
   PulseLeft,
   PulseRight,
