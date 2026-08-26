@@ -33,8 +33,8 @@ arrival, and sends the stepped center on as the partner's next arrival.
 
 | Name | Direction | EdgeKind | Notes |
 |------|-----------|----------|-------|
-| In | in | chain | the one edge from the partner; its beads pace the exchange and carry nothing the rule reads |
-| Out | out | chain | the one edge to the partner; this node's own goroutine places a bead here each time it steps |
+| In | in | chain | the one edge from the partner. NO BEAD travels it: what crosses is the sent vector on this pair's channel, and the edge is only the line that vector is drawn along |
+| Out | out | chain | the one edge to the partner, drawn from this node's center to theirs. Nothing is placed on it — this kind never makes a bead |
 
 ## Runtime status
 

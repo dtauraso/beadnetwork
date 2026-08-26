@@ -43,7 +43,7 @@ func (n *NodePhiTheta) send() {
 	TiltPanel.SendVectorLatestNonBlocking(n.VectorOut, msgOf(n.Center))
 }
 
-func (n *NodePhiTheta) step(arrival Turn, tick int64) {
+func (n *NodePhiTheta) step(arrival Turn) {
 	next := CenterNext(n.Center, n.Top, arrival, n.Turn)
 	if next != n.Center {
 		n.Center = next
@@ -51,10 +51,6 @@ func (n *NodePhiTheta) step(arrival Turn, tick int64) {
 	}
 
 	n.send()
-
-	if n.Out != nil {
-		n.Out.PlaceDrivenAt(1, tick)
-	}
 }
 
 func (n *NodePhiTheta) Update(ctx context.Context) {
@@ -75,8 +71,7 @@ func (n *NodePhiTheta) Update(ctx context.Context) {
 			if n.Fire != nil {
 				n.Fire()
 			}
-			n.In.PollRecv()
-			n.step(vectorOf(arrival), clk.Tick())
+			n.step(vectorOf(arrival))
 		}
 
 		n.Self.Step(ctx, clk.Tick())
