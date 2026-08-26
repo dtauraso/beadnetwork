@@ -1,4 +1,4 @@
-const ANGLE_ARC_REACH = { theta: 0.46, phi: 0.64 };
+const ANGLE_ARC_REACH = 0.55;
 const ANGLE_ARC_STEPS = 28;
 
 function normalize3(v) {
@@ -70,7 +70,7 @@ function sphereAngles(g, ball, spec, incoming) {
     const [a, b] = sphereAt(spec.points, spec[which].axis, which);
     const top = unitPoint(a, b);
     const glyph = sphereGlyph(which, ball.sub);
-    angleArc(g, ball, incoming, top, ANGLE_ARC_REACH[which], glyph);
+    angleArc(g, ball, incoming, top, ANGLE_ARC_REACH, glyph);
 
     const normal = quarterTurnToward(incoming, top);
     if (normal) dirRay(g, ball, normal, `normal ${glyph}`);
