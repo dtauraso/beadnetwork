@@ -32,16 +32,16 @@ const SPHERE_CARD_FORMULAS = String.raw`\[
                       |\, \text{bottom}_{\theta} - \text{arrival}_{\theta} \,| \end{bmatrix} \\[3pt]
 \begin{bmatrix} \text{offset}_{\varphi} \\ \text{offset}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\
-& & \quad\text{if } \begin{bmatrix}
+& & \quad\text{if } \begin{array}{@{}l@{}}
       \begin{array}{@{}l@{}} \text{distance}_{\text{top}_{\varphi}} = 0 \\ \text{and } \text{distance}_{\text{bottom}_{\varphi}} = 0 \end{array} \\[8pt]
       \begin{array}{@{}l@{}} \text{distance}_{\text{top}_{\theta}} = 0 \\ \text{and } \text{distance}_{\text{bottom}_{\theta}} = 0 \end{array}
-    \end{bmatrix} \\
+    \end{array} \\
 & & \begin{bmatrix} -1 \\ -1 \end{bmatrix} \\
-& & \quad\text{if } \begin{bmatrix} \text{distance}_{\text{top}_{\varphi}} < \tau_{\varphi}/4 \\
-                                    \text{distance}_{\text{top}_{\theta}} < \tau_{\theta}/4 \end{bmatrix} \\
+& & \quad\text{if } \begin{array}{@{}l@{}} \text{distance}_{\text{top}_{\varphi}} < \tau_{\varphi}/4 \\
+                                    \text{distance}_{\text{top}_{\theta}} < \tau_{\theta}/4 \end{array} \\
 & & \begin{bmatrix} 1 \\ 1 \end{bmatrix} \\
-& & \quad\text{if } \begin{bmatrix} \text{distance}_{\text{bottom}_{\varphi}} < \tau_{\varphi}/4 \\
-                                    \text{distance}_{\text{bottom}_{\theta}} < \tau_{\theta}/4 \end{bmatrix} \\
+& & \quad\text{if } \begin{array}{@{}l@{}} \text{distance}_{\text{bottom}_{\varphi}} < \tau_{\varphi}/4 \\
+                                    \text{distance}_{\text{bottom}_{\theta}} < \tau_{\theta}/4 \end{array} \\
 & & \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\
 & & \quad\text{otherwise} \\[3pt]
 \begin{bmatrix} \text{center}_{\text{next}_{\varphi}} \\ \text{center}_{\text{next}_{\theta}} \\ \text{center}_{\text{next}_{r}} \end{bmatrix}
