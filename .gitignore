@@ -121,51 +121,41 @@ dist/
 # The same state, now one block file per concern instead of a directory of
 # one-value files. The dirs above stay listed so an older scene tree is still
 # ignored while its leftovers sit there.
-/topology/view/overlays.bin
-/topology/view/panels.bin
-/topology/view/camera.bin
-/topology-pair/view/overlays.bin
-/topology-pair/view/panels.bin
-/topology-pair/view/camera.bin
+# Globbed over scene trees, not enumerated per scene: every one of these is written
+# by the running sim in EVERY scene, so a new scene tree that had to be added to a
+# list would arrive un-ignored, and the first `git add -A` would commit its output.
+# camera/ and sphere/ below stay per-scene, because the pair tree tracks its seeds.
+topology*/view/overlays.bin
+topology*/view/panels.bin
+topology*/view/camera.bin
 
 # One value, one file, for chrome Go draws rather than streams: each piece writes
 # its layout here every time it changes. It is DERIVED - Go recomputes the whole
 # piece from the model each frame - so it is the same not-for-VCS kind as the dirs
 # above, not saved state.
-/topology/view/chrome/
-/topology-pair/view/chrome/
+topology*/view/chrome/
 
 # The current input the gesture goroutine reads. It is the live pointer, not
 # saved state — committing it would commit where a mouse was.
-/topology/view/input/
-/topology-pair/view/input/
+topology*/view/input/
 
 # The per-tick scene, now that the content buffer's blocks cross as files: one
 # block file per owner under nodes/<row>/ and edges/<row>/, plus the singletons
 # beside them. Go rewrites every one of these from the model on the tick that
 # changes it, so they are DERIVED — the same not-for-VCS kind as chrome/ above,
 # and committing them would commit a moment mid-animation.
-/topology/view/nodes/
-/topology/view/edges/
-/topology-pair/view/nodes/
-/topology-pair/view/edges/
-/topology/view/owner-counts.bin
-/topology/view/pointer-target.bin
-/topology/view/node-ring-points.bin
-/topology/view/bead-ring-points.bin
+topology*/view/nodes/
+topology*/view/edges/
+topology*/view/owner-counts.bin
+topology*/view/pointer-target.bin
+topology*/view/node-ring-points.bin
+topology*/view/bead-ring-points.bin
 # The pre-split name, kept ignored on purpose: renaming the rule alone un-ignored
 # the file that still existed on disk, and `git add -A` committed it — the same
 # accident that put a 4.6MB binary in history during the beadnetwork rename.
-/topology/view/ring-points.bin
-/topology/view/slider-panel.bin
-/topology/view/speed.bin
-/topology-pair/view/owner-counts.bin
-/topology-pair/view/pointer-target.bin
-/topology-pair/view/node-ring-points.bin
-/topology-pair/view/bead-ring-points.bin
-/topology-pair/view/ring-points.bin
-/topology-pair/view/slider-panel.bin
-/topology-pair/view/speed.bin
+topology*/view/ring-points.bin
+topology*/view/slider-panel.bin
+topology*/view/speed.bin
 
 # Hook block log (local audit trail, not for VCS)
 .claude/hooks/go-blocks.log

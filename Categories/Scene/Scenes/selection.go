@@ -20,6 +20,12 @@ func SelectedIndex(anchorPath string) int {
 		return 0
 	}
 	for i, s := range All {
+		if s.Dir == selected {
+			return i
+		}
+	}
+
+	for i, s := range All {
 		if s.Name == selected {
 			return i
 		}
