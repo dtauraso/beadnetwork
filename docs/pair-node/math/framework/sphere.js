@@ -6,7 +6,8 @@ const SPHERE_DRAG_RATE = 0.008;
 const SPHERE_TILT_LIMIT = Math.PI / 2 - 0.05;
 const SPHERE_SUBS = ['₁', '₂'];
 const SPHERE_LABEL_OFFSET = 1.17;
-const SPHERE_RADIUS_FRACTION = 0.33;
+const SPHERE_RADIUS_FRACTION = 0.495;
+const SPHERE_GRIP_REACH = 1.4;
 
 function unitPoint(aTurn, bTurn) {
   const a = aTurn * 2 * Math.PI;
@@ -144,6 +145,60 @@ function sphereOrigins(spec, r, view) {
   const away = { x: r * u.x, y: r * u.y, z: r * u.z };
   const home = { x: 0, y: 0, z: 0 };
   return view.anchorIndex === 1 ? [away, home] : [home, away];
+}
+
+function dirFromPointer(view, c, r, sx, sy) {
+  const pan = view.pan || { x: 0, y: 0 };
+  const X = sx - (c + pan.x);
+  const up = (c + pan.y) - sy;
+
+  const grip = r * SPHERE_GRIP_REACH;
+  const away = (X * X + up * up) / (grip * grip);
+  const depth = away <= 0.5
+    ? grip * Math.sqrt(1 - away)
+    : grip * 0.5 / Math.sqrt(away);
+
+  const ct = Math.cos(view.tilt), st = Math.sin(view.tilt);
+  const py = up * ct + depth * st;
+  const z1 = depth * ct - up * st;
+
+  const cy = Math.cos(view.yaw), sy2 = Math.sin(view.yaw);
+  const px = X * cy - z1 * sy2;
+  const pz = z1 * cy + X * sy2;
+
+  const len = Math.hypot(px, py, pz) || 1;
+  return { x: px / len, y: py / len, z: pz / len };
+}
+
+function seatFromDir(d) {
+  const b = Math.asin(Math.max(-1, Math.min(1, d.y)));
+  return { a: Math.atan2(d.x, d.z) / (2 * Math.PI), b: b / (2 * Math.PI) };
+}
+
+function seatDir(seat) {
+  return unitPoint(seat.a, seat.b);
+}
+
+function turnedBy(from, to, v) {
+  const kx = from.y * to.z - from.z * to.y;
+  const ky = from.z * to.x - from.x * to.z;
+  const kz = from.x * to.y - from.y * to.x;
+  const s = Math.hypot(kx, ky, kz);
+  const c = from.x * to.x + from.y * to.y + from.z * to.z;
+  if (s < 1e-12) return c >= 0 ? v : { x: -v.x, y: -v.y, z: -v.z };
+
+  const ux = kx / s, uy = ky / s, uz = kz / s;
+  const ang = Math.atan2(s, c), cs = Math.cos(ang), sn = Math.sin(ang);
+  const dotv = ux * v.x + uy * v.y + uz * v.z;
+  return {
+    x: v.x * cs + (uy * v.z - uz * v.y) * sn + ux * dotv * (1 - cs),
+    y: v.y * cs + (uz * v.x - ux * v.z) * sn + uy * dotv * (1 - cs),
+    z: v.z * cs + (ux * v.y - uy * v.x) * sn + uz * dotv * (1 - cs),
+  };
+}
+
+function seatDraggedTo(grab, view, c, r, sx, sy) {
+  return seatFromDir(turnedBy(grab.from, dirFromPointer(view, c, r, sx, sy), grab.seat));
 }
 
 function sphereLayout(spec, view, S) {
