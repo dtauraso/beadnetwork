@@ -75,14 +75,9 @@ function quadrant(from, top, which) {
   return { end, sign: fromTop ? side : -side };
 }
 
-function quarterTurnToward(from, to) {
-  const dot = from.x * to.x + from.y * to.y + from.z * to.z;
-  const p = {
-    x: to.x - from.x * dot,
-    y: to.y - from.y * dot,
-    z: to.z - from.z * dot,
-  };
-  return Math.hypot(p.x, p.y, p.z) < 1e-9 ? null : normalize3(p);
+function normalTo(tilt, incoming) {
+  const n = cross3(incoming, tilt);
+  return Math.hypot(n.x, n.y, n.z) < 1e-9 ? null : normalize3(n);
 }
 
 function dirRay(g, ball, dir, label) {
@@ -112,7 +107,8 @@ function sphereAngles(g, ball, spec, incoming) {
     angleArc(g, ball, incoming, quad.end, ANGLE_ARC_REACH, glyph, quad.sign);
 
     if (normalsShown(ball.view)) {
-      const normal = quarterTurnToward(incoming, top);
+      const tilt = tiltedEnd(spec, which, incoming);
+      const normal = tilt && normalTo(tilt, incoming);
       if (normal) dirRay(g, ball, normal, `normal ${glyph}`);
     }
   }
