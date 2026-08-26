@@ -17,7 +17,7 @@ function slerp(u, v, ang, t) {
   });
 }
 
-function angleArc(g, ball, from, to, reach, glyph) {
+function angleArc(g, ball, from, to, reach, glyph, sign) {
   const dot = Math.max(-1, Math.min(1, from.x * to.x + from.y * to.y + from.z * to.z));
   const ang = Math.acos(dot);
 
@@ -37,13 +37,14 @@ function angleArc(g, ball, from, to, reach, glyph) {
 
   const [lx, ly, lz] = at(0.5);
   const t = tag('text', { x: lx, y: ly - 5, class: `ring-angle-label${backish(lz)}` });
-  t.textContent = `${(ang / Math.PI).toFixed(2)}π ${glyph}`;
+  t.textContent = `${sign < 0 ? '−' : ''}${(ang / Math.PI).toFixed(2)}π ${glyph}`;
   g.appendChild(t);
 }
 
 function acuteEnd(from, top) {
   const dot = from.x * top.x + from.y * top.y + from.z * top.z;
-  return dot >= 0 ? top : { x: -top.x, y: -top.y, z: -top.z };
+  if (dot >= 0) return { end: top, sign: 1 };
+  return { end: { x: -top.x, y: -top.y, z: -top.z }, sign: -1 };
 }
 
 function quarterTurnToward(from, to) {
@@ -75,7 +76,8 @@ function sphereAngles(g, ball, spec, incoming) {
     const [a, b] = sphereAt(spec.points, spec[which].axis, which);
     const top = unitPoint(a, b);
     const glyph = sphereGlyph(which, ball.sub);
-    angleArc(g, ball, incoming, acuteEnd(incoming, top), ANGLE_ARC_REACH, glyph);
+    const acute = acuteEnd(incoming, top);
+    angleArc(g, ball, incoming, acute.end, ANGLE_ARC_REACH, glyph, acute.sign);
 
     const normal = quarterTurnToward(incoming, top);
     if (normal) dirRay(g, ball, normal, `normal ${glyph}`);
