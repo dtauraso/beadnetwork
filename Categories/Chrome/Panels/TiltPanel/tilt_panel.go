@@ -67,6 +67,11 @@ func colWidth(label string) float32 {
 }
 
 func Build(st *Panel.Stack, rows []int32, labels []string) Layout {
+	if len(rows) == 0 {
+
+		return Layout{}
+	}
+
 	startW, btnH := buttonSize(StartLabel)
 	resetW, _ := buttonSize(ResetLabel)
 

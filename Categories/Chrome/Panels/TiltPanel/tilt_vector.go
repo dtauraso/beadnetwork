@@ -38,6 +38,14 @@ func KindWantsVectorChannel(kind string) bool {
 	return vectorCapableKinds[kind]
 }
 
+var tiltPanelKinds = map[string]bool{
+	"NodePhi": true,
+}
+
+func KindDrivenByTiltPanel(kind string) bool {
+	return tiltPanelKinds[kind]
+}
+
 func SendVectorLatestNonBlocking(ch chan<- TiltVectorMsg, v TiltVectorMsg) {
 	if ch == nil {
 		return
