@@ -219,4 +219,5 @@ function sphereDraw(g, spec, view, S) {
     sphereShell(g, ball, spec);
     sphereMarks(g, ball, spec);
   });
+  sphereSpan(g, view, c, origins);
 }
