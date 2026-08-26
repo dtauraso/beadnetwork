@@ -31,26 +31,22 @@ const SPHERE_CARD_FORMULAS = String.raw`\[
   &=& \begin{bmatrix} |\, \text{bottom}_{\varphi} - \text{arrival}_{\varphi} \,| \\
                       |\, \text{bottom}_{\theta} - \text{arrival}_{\theta} \,| \end{bmatrix} \\[3pt]
 \begin{bmatrix} \text{offset}_{\varphi} \\ \text{offset}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \;
-    \begin{array}{@{}l@{}}
-      \text{if } \text{distance}_{\text{top}_{\varphi}} = 0 \text{ and } \text{distance}_{\text{bottom}_{\varphi}} = 0 \\
-      \text{if } \text{distance}_{\text{top}_{\theta}} = 0 \text{ and } \text{distance}_{\text{bottom}_{\theta}} = 0
-    \end{array} \\
-& & \begin{bmatrix} -1 \\ -1 \end{bmatrix} \;
-    \begin{array}{@{}l@{}}
-      \text{if } \text{distance}_{\text{top}_{\varphi}} < \tau_{\varphi}/4 \\
-      \text{if } \text{distance}_{\text{top}_{\theta}} < \tau_{\theta}/4
-    \end{array} \\
-& & \begin{bmatrix} 1 \\ 1 \end{bmatrix} \;
-    \begin{array}{@{}l@{}}
-      \text{if } \text{distance}_{\text{bottom}_{\varphi}} < \tau_{\varphi}/4 \\
-      \text{if } \text{distance}_{\text{bottom}_{\theta}} < \tau_{\theta}/4
-    \end{array} \\
-& & \begin{bmatrix} 0 \\ 0 \end{bmatrix} \;
-    \begin{array}{@{}l@{}}
-      \text{otherwise} \\
-      \text{otherwise}
-    \end{array} \\[3pt]
+  &=& \begin{bmatrix}
+      0 & \text{if } \text{distance}_{\text{top}_{\varphi}} = 0 \text{ and } \text{distance}_{\text{bottom}_{\varphi}} = 0 \\
+      0 & \text{if } \text{distance}_{\text{top}_{\theta}} = 0 \text{ and } \text{distance}_{\text{bottom}_{\theta}} = 0
+    \end{bmatrix} \\
+& & \begin{bmatrix}
+      -1 & \text{if } \text{distance}_{\text{top}_{\varphi}} < \tau_{\varphi}/4 \\
+      -1 & \text{if } \text{distance}_{\text{top}_{\theta}} < \tau_{\theta}/4
+    \end{bmatrix} \\
+& & \begin{bmatrix}
+      1 & \text{if } \text{distance}_{\text{bottom}_{\varphi}} < \tau_{\varphi}/4 \\
+      1 & \text{if } \text{distance}_{\text{bottom}_{\theta}} < \tau_{\theta}/4
+    \end{bmatrix} \\
+& & \begin{bmatrix}
+      0 & \text{otherwise} \\
+      0 & \text{otherwise}
+    \end{bmatrix} \\[3pt]
 \begin{bmatrix} \text{center}_{\text{next}_{\varphi}} \\ \text{center}_{\text{next}_{\theta}} \\ \text{center}_{\text{next}_{r}} \end{bmatrix}
   &=& \begin{bmatrix} (c_{\varphi} + \text{offset}_{\varphi}) \bmod \tau_{\varphi} \\
                       (c_{\theta} + \text{offset}_{\theta}) \bmod \tau_{\theta} \\
