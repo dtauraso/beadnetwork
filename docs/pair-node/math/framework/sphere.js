@@ -103,28 +103,10 @@ function sphereEnds(g, ball, spec, which) {
   }
 }
 
-function normalIndex(spec, which) {
-  const n = spec.points, q = n / 4, top = spec[which].axis;
-  const ahead = ((spec[which].arrival + q) % n + n) % n;
-  const behind = ((spec[which].arrival - q) % n + n) % n;
-  return fold(ahead - top, n) <= fold(behind - top, n) ? ahead : behind;
-}
-
-function sphereRay(g, ball, spec, which, i, lineCls, dotCls, label, labelCls) {
-  const [ox, oy] = viewProject(ball.view, ball.c, ball.origin);
-  const [x, y, z] = ballPointAt(ball, ...sphereAt(spec.points, i, which));
-  g.appendChild(tag('line', { x1: ox, y1: oy, x2: x, y2: y, class: lineCls }));
-  g.appendChild(tag('circle', { cx: x, cy: y, r: 5.5, class: `${dotCls}${backish(z)}` }));
-  sphereLabel(g, ball, spec, i, which, `${label} ${sphereGlyph(which, ball.sub)}`, labelCls);
-}
-
 function sphereMarks(g, ball, spec) {
   for (const which of ['theta', 'phi']) {
     if (!spec[which] || spec[which].axis === undefined) continue;
     sphereEnds(g, ball, spec, which);
-    if (spec[which].arrival === undefined) continue;
-    sphereRay(g, ball, spec, which, normalIndex(spec, which),
-      'ring-normal', 'ring-normal-dot', 'normal', 'ring-label normal');
   }
 }
 
