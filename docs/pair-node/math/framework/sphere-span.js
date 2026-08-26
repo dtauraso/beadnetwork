@@ -27,15 +27,15 @@ function sphereSpan(g, view, c, origins) {
   spanArrow(g, ends[1], ends[0], 'ring-span', 'ring-span-head');
 }
 
-function sphereReach(g, view, c, origins, anchorIndex) {
-  const from = origins[anchorIndex];
-  const seated = origins[1 - anchorIndex];
-  const step = {
-    x: seated.x - from.x,
-    y: seated.y - from.y,
-    z: seated.z - from.z,
-  };
-  const tip = { x: seated.x + step.x, y: seated.y + step.y, z: seated.z + step.z };
-  spanArrow(g, viewProject(view, c, seated), viewProject(view, c, tip),
-    'ring-reach', 'ring-reach-head');
+function sphereReach(g, view, c, origins) {
+  origins.forEach((seated, k) => {
+    const from = origins[1 - k];
+    const tip = {
+      x: 2 * seated.x - from.x,
+      y: 2 * seated.y - from.y,
+      z: 2 * seated.z - from.z,
+    };
+    spanArrow(g, viewProject(view, c, seated), viewProject(view, c, tip),
+      'ring-reach', 'ring-reach-head');
+  });
 }
