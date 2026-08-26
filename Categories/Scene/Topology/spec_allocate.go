@@ -24,6 +24,12 @@ func AllocateBeadLines(spec TopoSpec, nodeGeoms map[string]NodeBuf.NodeGeom) (
 	edgeRun = map[string]*beadanimation.BeadLine{}
 	edgeEndpoints = map[string]edge.EdgeEndpoints{}
 	for _, e := range spec.Edges {
+		if e.SourceHandle == "" && e.TargetHandle == "" {
+
+			edgeEndpoints[e.Label] = edge.EdgeEndpoints{Source: e.Source, Target: e.Target}
+			continue
+		}
+
 		destKey := e.Target + "." + e.TargetHandle
 
 		if _, exists := destRun[destKey]; exists {

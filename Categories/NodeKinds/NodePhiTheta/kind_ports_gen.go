@@ -7,7 +7,4 @@ package NodePhiTheta
 // kindPorts is what this kind's SPEC.md declares, in the order the table
 // lists it. BuilderFor reads this rather than a shared map, so the ports a
 // kind may bind are declared in the kind and nowhere else.
-var kindPorts = []PortSpec{
-	{Name: "In", Dir: PortIn},
-	{Name: "Out", Dir: PortOut},
-}
+var kindPorts = []PortSpec{}

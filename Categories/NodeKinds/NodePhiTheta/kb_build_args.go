@@ -50,9 +50,5 @@ func (b kindBuilder) Build(ctx context.Context, name string, _ *NodeBuf.NodeData
 }
 
 func BuilderFor(kind string, build func(BuildArgs) (any, error)) kindBuilder {
-	if len(kindPorts) == 0 {
-		panic("BuilderFor: kind " + kind + " has no ports — its SPEC.md ## Ports table is the " +
-			"only declaration, and this kind's generated table is stale. Run go generate ./...")
-	}
 	return kindBuilder{kind: kind, build: build}
 }

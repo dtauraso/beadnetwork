@@ -31,10 +31,13 @@ arrival, and sends the stepped center on as the partner's next arrival.
 
 ## Ports
 
+None. A port is where a bead line attaches, and nothing is ever placed on this pair's edges:
+what crosses is the sent vector, on the channel the pair's edge allocates. The edge still
+exists — it is the radius vector drawn from one center to the other — but it binds no port,
+so the table is deliberately empty and `BindPorts` has nothing to walk.
+
 | Name | Direction | EdgeKind | Notes |
 |------|-----------|----------|-------|
-| In | in | chain | the one edge from the partner. NO BEAD travels it: what crosses is the sent vector on this pair's channel, and the edge is only the line that vector is drawn along |
-| Out | out | chain | the one edge to the partner, drawn from this node's center to theirs. Nothing is placed on it — this kind never makes a bead |
 
 ## Runtime status
 
