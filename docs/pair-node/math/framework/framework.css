@@ -43,6 +43,18 @@ mjx-container[display="true"] {
 .ring-dot { fill: currentColor; opacity: .35; }
 .ring-axis { stroke: currentColor; stroke-width: 2.5; }
 .ring-end { fill: currentColor; }
+/* The angle swept from the r that arrived to each top end — the rule's own
+   distance, drawn where it happens instead of stated as an index. */
+.ring-angle { fill: none; stroke: #c8792f; stroke-width: 2; }
+
+.ring-angle-label {
+  fill: #c8792f;
+  font: 600 11px ui-sans-serif, system-ui, sans-serif;
+  text-anchor: middle;
+}
+
+.ring-angle-label.back { opacity: .35; }
+
 .ring-arrival { stroke: #c8792f; stroke-width: 2; stroke-dasharray: 4 3; }
 .ring-arrival-dot { fill: #c8792f; }
 

@@ -123,8 +123,6 @@ function sphereMarks(g, ball, spec) {
     if (!spec[which] || spec[which].axis === undefined) continue;
     sphereEnds(g, ball, spec, which);
     if (spec[which].arrival === undefined) continue;
-    sphereRay(g, ball, spec, which, spec[which].arrival,
-      'ring-arrival', 'ring-arrival-dot', 'arrival', 'ring-label arrival');
     sphereRay(g, ball, spec, which, normalIndex(spec, which),
       'ring-normal', 'ring-normal-dot', 'normal', 'ring-label normal');
   }
@@ -216,8 +214,12 @@ function sphereDraw(g, spec, view, S) {
   view.pivot = pivot;
   origins.forEach((origin, k) => {
     const ball = { view, c, r, origin, sub: SPHERE_SUBS[k] };
+    const other = origins[1 - k];
     sphereShell(g, ball, spec);
     sphereMarks(g, ball, spec);
+    sphereAngles(g, ball, spec, normalize3({
+      x: origin.x - other.x, y: origin.y - other.y, z: origin.z - other.z,
+    }));
   });
   sphereSpan(g, view, c, origins);
   sphereReach(g, view, c, origins);
