@@ -7,8 +7,8 @@ const SPHERE_CARD_SPEC = {
 
 const SPHERE_CARD_FORMULAS = String.raw`\[
 \begin{array}{@{}l@{\;}c@{\;}l@{}}
-\text{center} &=& (c_{\varphi},\, c_{\theta},\, c_{r}) \\
-& & \quad\text{where the sphere sits — the point every arrow leaves} \\[3pt]
+\text{center} &=& \text{where the sphere sits — the point every arrow leaves} \\[3pt]
+\text{center} &=& (c_{\varphi},\, c_{\theta},\, c_{r}) \\[3pt]
 \tau_{\varphi} &=& \text{the whole turn on } \varphi \\[3pt]
 \tau_{\theta} &=& \text{the whole turn on } \theta \\[3pt]
 \begin{bmatrix} \text{top}_{\varphi} \\ \text{top}_{\theta} \end{bmatrix}
