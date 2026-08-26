@@ -13,11 +13,13 @@ function pointerUnits(root, e, S) {
 function sphereUnderPointer(root, e, spec, view, S) {
   const { r, screen } = sphereLayout(spec, view, S);
   const p = pointerUnits(root, e, S);
-  const inside = screen
-    .map((s, k) => (Math.hypot(p.x - s[0], p.y - s[1]) <= r ? k : -1))
-    .filter((k) => k >= 0);
+  const reach = screen.map((s) => Math.hypot(p.x - s[0], p.y - s[1]));
+  const inside = reach.map((d, k) => (d <= r ? k : -1)).filter((k) => k >= 0);
   if (inside.length === 1) return { sphere: inside[0], overlap: false };
-  return { sphere: -1, overlap: inside.length > 1 };
+  if (inside.length > 1) {
+    return { sphere: reach[0] <= reach[1] ? 0 : 1, overlap: false };
+  }
+  return { sphere: -1, overlap: false };
 }
 
 function sphereControls(root, g, spec, view, S) {
