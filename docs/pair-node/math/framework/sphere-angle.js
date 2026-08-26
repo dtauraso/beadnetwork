@@ -75,20 +75,9 @@ function quadrant(from, top, which) {
   return { end, sign: fromTop ? side : -side };
 }
 
-function quarterTurnToward(from, to) {
-  const dot = from.x * to.x + from.y * to.y + from.z * to.z;
-  const p = {
-    x: to.x - from.x * dot,
-    y: to.y - from.y * dot,
-    z: to.z - from.z * dot,
-  };
-  return Math.hypot(p.x, p.y, p.z) < 1e-9 ? null : normalize3(p);
-}
-
-function dirRay(g, ball, dir, label, from) {
+function dirRay(g, ball, dir, label) {
   const seat = seatFromDir(dir);
-  const base = from || ball.origin;
-  const [ox, oy] = viewProject(ball.view, ball.c, base);
+  const [ox, oy] = viewProject(ball.view, ball.c, ball.origin);
   const [x, y, z] = ballPointAt(ball, seat.a, seat.b);
   g.appendChild(tag('line', { x1: ox, y1: oy, x2: x, y2: y, class: 'ring-normal' }));
   g.appendChild(tag('circle', { cx: x, cy: y, r: 5.5, class: `ring-normal-dot${backish(z)}` }));
@@ -113,14 +102,8 @@ function sphereAngles(g, ball, spec, incoming) {
     angleArc(g, ball, incoming, quad.end, ANGLE_ARC_REACH, glyph, quad.sign);
 
     if (normalsShown(ball.view)) {
-      const normal = quarterTurnToward(incoming, top);
-      const tilt = tiltedEnd(spec, which, incoming);
-      const seat = tilt && {
-        x: ball.origin.x + ball.r * tilt.x,
-        y: ball.origin.y + ball.r * tilt.y,
-        z: ball.origin.z + ball.r * tilt.z,
-      };
-      if (normal) dirRay(g, ball, normal, `normal ${glyph}`, seat);
+      const normal = tiltedEnd(spec, which, incoming);
+      if (normal) dirRay(g, ball, normal, `normal ${glyph}`);
     }
   }
 }
