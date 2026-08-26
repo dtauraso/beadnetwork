@@ -8,6 +8,7 @@ const SPHERE_CARD_SPEC = {
 const SPHERE_CARD_FORMULAS = String.raw`\[
 \begin{array}{@{}l@{\;}c@{\;}l@{}}
 \text{center} &=& \text{the middle of the sphere} \\[3pt]
+\text{center} &=& (c_{\varphi},\, c_{\theta},\, c_{r}) \\[3pt]
 \tau_{\varphi} &=& \text{the whole turn on } \varphi \\[3pt]
 \text{bottom}_{\varphi} &=& (\text{top}_{\varphi} + \tau_{\varphi}/2) \bmod \tau_{\varphi} \\[3pt]
 \text{distance}_{\text{top}_{\varphi}} &=& |\, \text{top}_{\varphi} - \text{arrival}_{\varphi} \,| \\[3pt]
