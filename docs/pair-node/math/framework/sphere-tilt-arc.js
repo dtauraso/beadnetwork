@@ -1,4 +1,4 @@
-const TILT_ARC_REACH = 0.78;
+const TILT_ARC_REACH = ANGLE_ARC_REACH;
 
 function acuteToward(from, dir) {
   const dot = from.x * dir.x + from.y * dir.y + from.z * dir.z;
