@@ -123,7 +123,7 @@ svg.spin:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; 
 
 /* How far the tilt vector has swung off its own end. Drawn only where the two are
    within a right angle, so each end carries one arc rather than an obtuse twin. */
-.ring-tilt-arc { fill: none; stroke: #a4508f; stroke-width: 1.8; stroke-dasharray: 3 3; }
+.ring-tilt-arc { fill: none; stroke: #a4508f; stroke-width: 1.8; }
 
 .ring-tilt-arc-label {
   fill: #a4508f;
