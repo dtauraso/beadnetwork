@@ -75,6 +75,11 @@ svg.spin:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; 
 .ring-label.normal { fill: #3f8f7a; opacity: 1; }
 .ring-normal-dot.back { opacity: .4; }
 
+/* Centre to centre, one arrow each way. They lie on the same line, so what you
+   see is a single span with a head at both ends. */
+.ring-span { stroke: #3d6fb5; stroke-width: 2.5; }
+.ring-span-head { fill: #3d6fb5; }
+
 .ring-dot.back { opacity: .12; }
 .ring-end.back { opacity: .35; }
 .ring-arrival-dot.back { opacity: .4; }

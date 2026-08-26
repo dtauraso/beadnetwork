@@ -6,7 +6,7 @@ const SPHERE_DRAG_RATE = 0.008;
 const SPHERE_TILT_LIMIT = Math.PI / 2 - 0.05;
 const SPHERE_SUBS = ['₁', '₂'];
 const SPHERE_LABEL_OFFSET = 1.17;
-const SPHERE_RADIUS_FRACTION = 0.495;
+const SPHERE_RADIUS_FRACTION = 0.33;
 const SPHERE_GRIP_REACH = 1.4;
 
 function unitPoint(aTurn, bTurn) {
@@ -219,4 +219,5 @@ function sphereDraw(g, spec, view, S) {
     sphereShell(g, ball, spec);
     sphereMarks(g, ball, spec);
   });
+  sphereSpan(g, view, c, origins);
 }
