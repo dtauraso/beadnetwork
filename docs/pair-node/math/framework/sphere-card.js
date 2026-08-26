@@ -10,9 +10,9 @@ const SPHERE_CARD_FORMULAS = String.raw`\[
 \text{center} &=& (c_{\varphi},\, c_{\theta},\, c_{r}) \\[3pt]
 \tau_{\varphi} &=& \text{the whole turn on } \varphi \\[3pt]
 \tau_{\theta} &=& \text{the whole turn on } \theta \\[3pt]
-\begin{pmatrix} \text{bottom}_{\varphi} \\ \text{bottom}_{\theta} \end{pmatrix}
-  &=& \begin{pmatrix} (\text{top}_{\varphi} + \tau_{\varphi}/2) \bmod \tau_{\varphi} \\
-                      (\text{top}_{\theta} + \tau_{\theta}/2) \bmod \tau_{\theta} \end{pmatrix} \\[3pt]
+\begin{bmatrix} \text{bottom}_{\varphi} \\ \text{bottom}_{\theta} \end{bmatrix}
+  &=& \begin{bmatrix} (\text{top}_{\varphi} + \tau_{\varphi}/2) \bmod \tau_{\varphi} \\
+                      (\text{top}_{\theta} + \tau_{\theta}/2) \bmod \tau_{\theta} \end{bmatrix} \\[3pt]
 \text{distance}_{\text{top}_{\varphi}} &=& |\, \text{top}_{\varphi} - \text{arrival}_{\varphi} \,| \\[3pt]
 \text{distance}_{\text{bottom}_{\varphi}} &=& |\, \text{bottom}_{\varphi} - \text{arrival}_{\varphi} \,| \\[3pt]
 \text{offset}_{\varphi} &=& 0 \\
