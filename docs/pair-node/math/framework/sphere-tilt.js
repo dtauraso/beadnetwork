@@ -13,11 +13,6 @@ function tiltShown(view, which) {
   return !tilts || tilts[which] !== false;
 }
 
-/* The tilt vector starts on the top/bottom line and then turns to stay tangent to
-   the other sphere: it is the top direction with its share of the centre line taken
-   out, which is the nearest tangent direction to where it already was. Tangent here
-   means tangent AT this centre, and the centres sit r apart, so every direction
-   perpendicular to the centre line touches the other surface. */
 function tiltedEnd(spec, which, incoming) {
   const top = ringEnd(spec, which, 1);
   const along = top.x * incoming.x + top.y * incoming.y + top.z * incoming.z;
