@@ -1,11 +1,3 @@
-function ringTop(incoming, which) {
-  const n = RING_NORMAL[which];
-  if (!n) return null;
-  const seen = inRingPlane(incoming, which);
-  const t = cross3(n, seen);
-  return Math.hypot(t.x, t.y, t.z) < 1e-9 ? null : normalize3(t);
-}
-
 function endsShown(view, which) {
   const ends = view.ends;
   return !ends || ends[which] !== false;
@@ -20,11 +12,17 @@ function endAt(ball, dir, sense, reach) {
   });
 }
 
-function sphereEnds(g, ball, spec, which, incoming) {
-  if (!endsShown(ball.view, which)) return;
-  const top = ringTop(incoming, which);
-  if (!top) return;
+function ringEnd(spec, which, sense) {
+  const m = spec.points / 2;
+  const i = sense > 0 ? spec[which].axis : spec[which].axis + m;
+  const [a, b] = sphereAt(spec.points, i, which);
+  return unitPoint(a, b);
+}
 
+function sphereEnds(g, ball, spec, which) {
+  if (!endsShown(ball.view, which)) return;
+
+  const top = ringEnd(spec, which, 1);
   const [x1, y1] = endAt(ball, top, 1);
   const [x2, y2] = endAt(ball, top, -1);
   g.appendChild(tag('line', { x1, y1, x2, y2, class: 'ring-axis' }));

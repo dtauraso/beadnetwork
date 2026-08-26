@@ -86,17 +86,6 @@ mjx-container[display="true"] {
 
 .ringtoggle input { cursor: pointer; }
 
-/* Tilt turns the top/bottom line around the centre line. Every angle it reaches is
-   still tangent to the other sphere, so the slider spans a whole turn. */
-.endtilt {
-  display: inline-flex;
-  align-items: center;
-  gap: .35rem;
-  font: 500 12px ui-sans-serif, system-ui, sans-serif;
-  user-select: none;
-}
-
-.endtilt input { width: 92px; cursor: pointer; }
 
 svg.spin {
   cursor: grab;
