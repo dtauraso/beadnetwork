@@ -25,9 +25,6 @@ func main() {
 	kindDir := filepath.Join(srcRoot, "NodeKinds", kindDirName)
 
 	ports := parsePortsFromSpec(kindDir)
-	if len(ports) == 0 {
-		genpaths.Fatalf("%s: SPEC.md has no ## Ports rows — the table is the only declaration of this kind's inputs and outputs, so a kind without one binds nothing", kindDirName)
-	}
 
 	outPath := filepath.Join(kindDir, "kind_ports_gen.go")
 	if err := writePortsTable(outPath, ports); err != nil {

@@ -55,8 +55,8 @@ func CollectKinds(nodesDir string) []KindEntry {
 
 		checkPortRequests(e.Name(), pkgDir, ports)
 
-		if len(ports) == 0 {
-			fatalf("kind %q registers a Go runtime but its SPEC.md has no ## Ports rows: the table is the only declaration of a kind's inputs and outputs, so a kind without one binds nothing", e.Name())
+		if len(ports) == 0 && !declaresNoPorts(pkgDir) {
+			fatalf("kind %q registers a Go runtime but its SPEC.md has no ## Ports rows and does not open ## Ports with \"None.\": the table is the only declaration of a kind's inputs and outputs, so a kind without one binds nothing", e.Name())
 		}
 
 		for i, p := range ports {

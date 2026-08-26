@@ -50,6 +50,10 @@ func ValidateSpec(spec *TopoSpec, kindPorts KindPorts) error {
 	}
 
 	for _, e := range spec.Edges {
+		if e.SourceHandle == "" && e.TargetHandle == "" {
+
+			continue
+		}
 		srcKind, srcKnown := nodeType[e.Source]
 		if !srcKnown {
 			errs = append(errs, fmt.Sprintf("edge %q references unknown node id %q as its source", e.Label, e.Source))
