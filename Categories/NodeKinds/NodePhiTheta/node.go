@@ -58,8 +58,10 @@ func (n *NodePhiTheta) Update(ctx context.Context) {
 			return
 		}
 
-		if arrival, ok := TiltPanel.PollRecvVector(n.VectorIn); ok {
-			n.step(vectorOf(arrival))
+		if clk.Speed() > 0 {
+			if arrival, ok := TiltPanel.PollRecvVector(n.VectorIn); ok {
+				n.step(vectorOf(arrival))
+			}
 		}
 
 		if err := clk.SleepCycle(ctx); err != nil {
