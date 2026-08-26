@@ -26,7 +26,7 @@ func (m TiltMachine) String() string {
 }
 
 var vectorCapableKinds = map[string]bool{
-	"PairNode": true,
+	"NodePhi": true,
 }
 
 func KindWantsVectorChannel(kind string) bool {

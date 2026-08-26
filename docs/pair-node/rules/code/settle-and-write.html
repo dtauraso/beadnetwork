@@ -26,15 +26,15 @@
     <h3 class="secname">One question, and its answer is a direction</h3>
 
     <div class="card wide">
-      <h2><span data-src="Categories/NodeKinds/PairNode/tiltring/rules.go#Offset">offset</span></h2>
-      <div class="cap"><span data-src="Categories/NodeKinds/PairNode/tiltring/rules.go">Categories/NodeKinds/PairNode/tiltring/rules.go</span></div>
-      <p class="eq step par" data-src="Categories/NodeKinds/PairNode/tiltring/rules.go#Offset"><span class="lhs">distance<sub>top</sub>
+      <h2><span data-src="Categories/NodeKinds/NodePhi/tiltring/rules.go#Offset">offset</span></h2>
+      <div class="cap"><span data-src="Categories/NodeKinds/NodePhi/tiltring/rules.go">Categories/NodeKinds/NodePhi/tiltring/rules.go</span></div>
+      <p class="eq step par" data-src="Categories/NodeKinds/NodePhi/tiltring/rules.go#Offset"><span class="lhs">distance<sub>top</sub>
           &lt; <var>tau</var>/4</span>+1</p>
-      <p class="eq step par" data-src="Categories/NodeKinds/PairNode/tiltring/rules.go#Offset"><span class="lhs">distance<sub>bottom</sub>
+      <p class="eq step par" data-src="Categories/NodeKinds/NodePhi/tiltring/rules.go#Offset"><span class="lhs">distance<sub>bottom</sub>
           &lt; <var>tau</var>/4</span>−1</p>
-      <p class="eq step dim" data-src="Categories/NodeKinds/PairNode/tiltring/rules.go#Offset"><span class="lhs">otherwise</span>0</p>
+      <p class="eq step dim" data-src="Categories/NodeKinds/NodePhi/tiltring/rules.go#Offset"><span class="lhs">otherwise</span>0</p>
       <p class="eq step dim">there is no settled test beside this: a 0 offset IS the halt, and
-        <span data-src="Categories/NodeKinds/PairNode/tiltring/machine.go#OffsetOn">offsetOn</span> returns 0 for a
+        <span data-src="Categories/NodeKinds/NodePhi/tiltring/machine.go#OffsetOn">offsetOn</span> returns 0 for a
         node that has not started</p>
     </div>
   </section>
@@ -43,13 +43,13 @@
     <h3 class="secname">One end is written; the other is the rule</h3>
 
     <div class="card wide">
-      <h2><span data-src="Categories/NodeKinds/PairNode/ring.go#setTop">setTop</span></h2>
-      <div class="cap"><span data-src="Categories/NodeKinds/PairNode/ring.go">Categories/NodeKinds/PairNode/ring.go</span> ·
-        <span data-src="Categories/NodeKinds/PairNode/node_parts.go">Categories/NodeKinds/PairNode/node_parts.go</span></div>
+      <h2><span data-src="Categories/NodeKinds/NodePhi/ring.go#setTop">setTop</span></h2>
+      <div class="cap"><span data-src="Categories/NodeKinds/NodePhi/ring.go">Categories/NodeKinds/NodePhi/ring.go</span> ·
+        <span data-src="Categories/NodeKinds/NodePhi/node_parts.go">Categories/NodeKinds/NodePhi/node_parts.go</span></div>
       <p class="eq step"><span class="lhs">Top</span>the only end stored</p>
-      <p class="eq step" data-src="Categories/NodeKinds/PairNode/ring.go#setTop"><span class="lhs">setTop(<var>x</var>)</span>Top
+      <p class="eq step" data-src="Categories/NodeKinds/NodePhi/ring.go#setTop"><span class="lhs">setTop(<var>x</var>)</span>Top
         = <var>x</var></p>
-      <p class="eq step" data-src="Categories/NodeKinds/PairNode/tiltring/rules.go#Bottom"><span class="lhs">bottom</span>mod(Top
+      <p class="eq step" data-src="Categories/NodeKinds/NodePhi/tiltring/rules.go#Bottom"><span class="lhs">bottom</span>mod(Top
         + <var>tau</var>/2, <var>tau</var>), wherever it is wanted</p>
       <p class="eq step dim">nothing has to keep two fields agreeing, because there is one field</p>
     </div>
@@ -62,7 +62,7 @@
       <h2>what that page states and this one does not</h2>
       <div class="cap">no file — that is the point</div>
       <p class="eq head">the tilt it stops on — <var>t</var> + <var>s</var>·<var>f</var></p>
-      <p class="eq step dim">computed NOWHERE in <code>Categories/NodeKinds/PairNode</code>. One arrival turns one
+      <p class="eq step dim">computed NOWHERE in <code>Categories/NodeKinds/NodePhi</code>. One arrival turns one
         slot; <var>f</var> is made inside it and discarded, no walk is planned, and the next
         arrival re-derives everything. The closed form is a property of the rule, not a
         quantity a node holds</p>

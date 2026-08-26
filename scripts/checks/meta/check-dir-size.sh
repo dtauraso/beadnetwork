@@ -20,7 +20,7 @@ ALLOWED = {
     "Categories/Node/BeadAnimation":
         "one Go package by the compiler: 9 unexported symbols cross its files, and Sender "
         "and Receiver reach BeadLine's unexported queue; plus its own TS and 3 guards",
-    "Categories/NodeKinds/PairNode":
+    "Categories/NodeKinds/NodePhi":
         "its own gen reads its SPEC.md; tiltring took the exported-call seam",
     ".":
         "go.mod, LICENSE and the main package live at the module root",
