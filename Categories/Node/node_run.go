@@ -63,5 +63,9 @@ func (g *NodeGeometry) applyKindPosts() {
 	if p.Lattice != nil {
 		g.tilt.SetLatticePoints(*p.Lattice)
 	}
+	if p.Center != nil {
+
+		g.msg.CommitLocal(g.id, *p.Center)
+	}
 	g.emitGeometry()
 }

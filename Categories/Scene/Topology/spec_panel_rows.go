@@ -64,7 +64,7 @@ func TiltPanelRows(spec TopoSpec) (rows []int32, labels []string) {
 		if err != nil || id-1 < 0 || id-1 >= spec.RowCount {
 			continue
 		}
-		if !TiltPanel.KindWantsVectorChannel(n.Type) {
+		if !TiltPanel.KindDrivenByTiltPanel(n.Type) {
 			continue
 		}
 		byRow[id-1] = n.ID

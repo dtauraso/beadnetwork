@@ -2,6 +2,7 @@ import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { getEdgeStreamAccessor } from "../../Node/Edge/edge-stream-blocks";
+import { nodeF32 } from "../../Node/node-leaves";
 import { checkEdgeLandsOnNode } from "../../Node/Edge/check-edge-lands-on-node";
 import { EDGE_LINE_COLOR, INSTANCE_TINT_BASE } from "../../Ring/Bead/bead-style";
 import { overlayFlag } from "../../Scene/View/Flags/overlay-flags";
@@ -9,6 +10,7 @@ import { overlayFlag } from "../../Scene/View/Flags/overlay-flags";
 import { DIRECTION_ZERO_EPS } from "../../../Start/extension/webview/scene/scene-tags";
 
 const EDGE_LINE_RADIUS = 1.5;
+const EDGE_LINE_TIP_RADIUS = 0.2;
 const ARROW_HEAD_RADIUS = 3;
 const ARROW_HEAD_LENGTH = ARROW_HEAD_RADIUS * 2;
 
@@ -40,7 +42,17 @@ export function EdgeVectors({ capacity }: { capacity: number }) {
     const n = Math.min(edges.edgeCount, capacity);
     let drawn = 0;
     for (let row = 0; row < n; row++) {
-      const [sx, sy, sz, ex, ey, ez] = edges.segment(row);
+      const [bx, by, bz, cx, cy, cz] = edges.segment(row);
+
+      const src = edges.srcNodeRow(row);
+      const dst = edges.dstNodeRow(row);
+      const sx = src >= 0 ? nodeF32(src, "poleAnchorX") : bx;
+      const sy = src >= 0 ? nodeF32(src, "poleAnchorY") : by;
+      const sz = src >= 0 ? nodeF32(src, "poleAnchorZ") : bz;
+      const ex = dst >= 0 ? nodeF32(dst, "poleAnchorX") : cx;
+      const ey = dst >= 0 ? nodeF32(dst, "poleAnchorY") : cy;
+      const ez = dst >= 0 ? nodeF32(dst, "poleAnchorZ") : cz;
+
       dir.current.set(ex - sx, ey - sy, ez - sz);
       const len = dir.current.length();
 
@@ -48,8 +60,10 @@ export function EdgeVectors({ capacity }: { capacity: number }) {
       dir.current.divideScalar(len);
       quat.current.setFromUnitVectors(AXIS_DEFAULT, dir.current);
 
-      const shaft = Math.max(len - ARROW_HEAD_LENGTH, 0);
-      pos.current.set(sx, sy, sz).addScaledVector(dir.current, shaft / 2);
+      const tail = ARROW_HEAD_LENGTH;
+      const shaft = Math.max(len - ARROW_HEAD_LENGTH - tail, 0);
+
+      pos.current.set(sx, sy, sz).addScaledVector(dir.current, tail + shaft / 2);
       scl.current.set(1, shaft, 1);
       mat.current.compose(pos.current, quat.current, scl.current);
       line.setMatrixAt(drawn, mat.current);
@@ -81,7 +95,7 @@ export function EdgeVectors({ capacity }: { capacity: number }) {
     <>
       {}
       <instancedMesh ref={lineRef} args={[undefined, undefined, capacity]} frustumCulled={false} raycast={() => null}>
-        <cylinderGeometry args={[EDGE_LINE_RADIUS, EDGE_LINE_RADIUS, 1, 8]} />
+        <cylinderGeometry args={[EDGE_LINE_TIP_RADIUS, EDGE_LINE_RADIUS, 1, 8]} />
         {}
         {}
         <meshBasicMaterial color={INSTANCE_TINT_BASE} toneMapped={false} transparent={false} opacity={1} />

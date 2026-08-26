@@ -1,5 +1,7 @@
 package Node
 
+import "github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
+
 type TiltIndexPost struct {
 	Theta int32
 }
@@ -18,6 +20,7 @@ type KindPost struct {
 	Received *ReceivedVectorPost
 	Rounds   *RoundsPost
 	Lattice  *int32
+	Center   *polarindex.Index
 }
 
 type KindPosts struct {
@@ -60,6 +63,10 @@ func (k *KindPosts) PostRoundsToParallel(rounds, msgs int32) {
 
 func (k *KindPosts) PostLatticePoints(points int32) {
 	k.post(func(p *KindPost) { p.Lattice = &points })
+}
+
+func (k *KindPosts) PostCenter(center polarindex.Index) {
+	k.post(func(p *KindPost) { p.Center = &center })
 }
 
 func (k *KindPosts) Take() (KindPost, bool) {
