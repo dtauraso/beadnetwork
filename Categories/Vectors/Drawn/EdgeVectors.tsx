@@ -13,6 +13,7 @@ const EDGE_LINE_RADIUS = 1.5;
 const EDGE_LINE_TIP_RADIUS = 0.2;
 const ARROW_HEAD_RADIUS = 3;
 const ARROW_HEAD_LENGTH = ARROW_HEAD_RADIUS * 2;
+const ARROW_HEAD_GAP = 1;
 
 const AXIS_DEFAULT = new THREE.Vector3(0, 1, 0);
 
@@ -60,7 +61,7 @@ export function EdgeVectors({ capacity }: { capacity: number }) {
       dir.current.divideScalar(len);
       quat.current.setFromUnitVectors(AXIS_DEFAULT, dir.current);
 
-      const shaft = Math.max(len - ARROW_HEAD_LENGTH, 0);
+      const shaft = Math.max(len - ARROW_HEAD_LENGTH - ARROW_HEAD_GAP, 0);
       pos.current.set(sx, sy, sz).addScaledVector(dir.current, shaft / 2);
       scl.current.set(1, shaft, 1);
       mat.current.compose(pos.current, quat.current, scl.current);
