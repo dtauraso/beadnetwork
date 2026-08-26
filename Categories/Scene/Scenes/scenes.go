@@ -17,21 +17,23 @@ type Scene struct {
 
 	Editable bool
 
+	NodesDraggable bool
+
 	Kinds []string
 }
 
 var All = []Scene{
 
-	{Name: "ring", Dir: "topology", CoplanarEdges: false, UpAxis: false, ClockDivisor: 1, Editable: true,
+	{Name: "ring", Dir: "topology", CoplanarEdges: false, UpAxis: false, ClockDivisor: 1, Editable: true, NodesDraggable: true,
 		Kinds: []string{
 			"Input", "Time", "TimeStart", "TimeEnd",
 			"Pulse", "PulseLeft", "PulseRight",
 			"SelectLeft", "SelectRight",
 		}},
 
-	{Name: "pair φ", Dir: "topology-pair", CoplanarEdges: true, UpAxis: true, ClockDivisor: 64, Editable: true, Kinds: []string{"NodePhi"}},
+	{Name: "pair φ", Dir: "topology-pair", CoplanarEdges: true, UpAxis: true, ClockDivisor: 64, Editable: true, NodesDraggable: true, Kinds: []string{"NodePhi"}},
 
-	{Name: "pair φ, θ", Dir: "topology-pair-phi-theta", CoplanarEdges: true, UpAxis: false, ClockDivisor: 64, Editable: true, Kinds: []string{"NodePhiTheta"}},
+	{Name: "pair φ, θ", Dir: "topology-pair-phi-theta", CoplanarEdges: true, UpAxis: false, ClockDivisor: 64, Editable: true, NodesDraggable: false, Kinds: []string{"NodePhiTheta"}},
 }
 
 var Unlisted = Scene{ClockDivisor: 1}
