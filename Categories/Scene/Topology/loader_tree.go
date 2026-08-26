@@ -87,6 +87,9 @@ func readDirNames(dir string) ([]string, error) {
 	}
 	names := make([]string, 0, len(entries))
 	for _, e := range entries {
+		if !e.IsDir() {
+			continue
+		}
 		names = append(names, e.Name())
 	}
 	return names, nil
