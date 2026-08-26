@@ -19,21 +19,18 @@ const SPHERE_CARD_FORMULAS = String.raw`\[
 \begin{bmatrix} \text{distance}_{\text{bottom}_{\varphi}} \\ \text{distance}_{\text{bottom}_{\theta}} \end{bmatrix}
   &=& \begin{bmatrix} |\, \text{bottom}_{\varphi} - \text{arrival}_{\varphi} \,| \\
                       |\, \text{bottom}_{\theta} - \text{arrival}_{\theta} \,| \end{bmatrix} \\[3pt]
-\begin{bmatrix} \text{offset}_{\varphi} \\[14pt] \text{offset}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix}
-        \begin{cases}
-          0 & \text{if } \text{distance}_{\text{top}_{\varphi}} = 0 \text{ or } \text{distance}_{\text{bottom}_{\varphi}} = 0 \\
-          -1 & \text{if } \text{distance}_{\text{top}_{\varphi}} < \tau_{\varphi}/4 \\
-          +1 & \text{if } \text{distance}_{\text{bottom}_{\varphi}} < \tau_{\varphi}/4 \\
-          0 & \text{otherwise}
-        \end{cases} \\[14pt]
-        \begin{cases}
-          0 & \text{if } \text{distance}_{\text{top}_{\theta}} = 0 \text{ or } \text{distance}_{\text{bottom}_{\theta}} = 0 \\
-          -1 & \text{if } \text{distance}_{\text{top}_{\theta}} < \tau_{\theta}/4 \\
-          +1 & \text{if } \text{distance}_{\text{bottom}_{\theta}} < \tau_{\theta}/4 \\
-          0 & \text{otherwise}
-        \end{cases}
-      \end{bmatrix} \\[3pt]
+\begin{bmatrix} \text{offset}_{\varphi} \\ \text{offset}_{\theta} \end{bmatrix}
+  &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\
+& & \quad\text{if } \begin{bmatrix} \text{distance}_{\text{top}_{\varphi}} = 0 \text{ or } \text{distance}_{\text{bottom}_{\varphi}} = 0 \\
+                                    \text{distance}_{\text{top}_{\theta}} = 0 \text{ or } \text{distance}_{\text{bottom}_{\theta}} = 0 \end{bmatrix} \\
+& & \begin{bmatrix} -1 \\ -1 \end{bmatrix} \\
+& & \quad\text{if } \begin{bmatrix} \text{distance}_{\text{top}_{\varphi}} < \tau_{\varphi}/4 \\
+                                    \text{distance}_{\text{top}_{\theta}} < \tau_{\theta}/4 \end{bmatrix} \\
+& & \begin{bmatrix} +1 \\ +1 \end{bmatrix} \\
+& & \quad\text{if } \begin{bmatrix} \text{distance}_{\text{bottom}_{\varphi}} < \tau_{\varphi}/4 \\
+                                    \text{distance}_{\text{bottom}_{\theta}} < \tau_{\theta}/4 \end{bmatrix} \\
+& & \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\
+& & \quad\text{otherwise} \\[3pt]
 \begin{bmatrix} \text{top}_{\text{next}_{\varphi}} \\ \text{top}_{\text{next}_{\theta}} \end{bmatrix}
   &=& \begin{bmatrix} (\text{top}_{\varphi} + \text{offset}_{\varphi}) \bmod \tau_{\varphi} \\
                       (\text{top}_{\theta} + \text{offset}_{\theta}) \bmod \tau_{\theta} \end{bmatrix} \\[3pt]
