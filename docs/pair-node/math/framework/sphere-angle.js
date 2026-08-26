@@ -101,8 +101,8 @@ function dirRay(g, ball, dir, label) {
 function sphereAngles(g, ball, spec, incoming) {
   for (const which of ['theta', 'phi']) {
     if (!spec[which] || spec[which].axis === undefined) continue;
-    const [a, b] = sphereAt(spec.points, spec[which].axis, which);
-    const top = unitPoint(a, b);
+    const top = ringTop(incoming, which);
+    if (!top) continue;
     const glyph = sphereGlyph(which, ball.sub);
     const quad = quadrant(incoming, top, which);
     angleArc(g, ball, incoming, quad.end, ANGLE_ARC_REACH, glyph, quad.sign);

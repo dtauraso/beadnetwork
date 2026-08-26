@@ -94,24 +94,10 @@ function sphereLabel(g, ball, spec, i, which, text, cls) {
   g.appendChild(t);
 }
 
-function sphereEnds(g, ball, spec, which) {
-  const m = spec.points / 2;
-  const axis = spec[which].axis;
-  const [x1, y1] = ballPointAt(ball, ...sphereAt(spec.points, axis, which));
-  const [x2, y2] = ballPointAt(ball, ...sphereAt(spec.points, axis + m, which));
-  g.appendChild(tag('line', { x1, y1, x2, y2, class: 'ring-axis' }));
-
-  for (const [i, label] of [[axis, 'top'], [axis + m, 'bottom']]) {
-    const [x, y, z] = ballPointAt(ball, ...sphereAt(spec.points, i, which));
-    g.appendChild(tag('circle', { cx: x, cy: y, r: 5.5, class: `ring-end${backish(z)}` }));
-    sphereLabel(g, ball, spec, i, which, `${label} ${sphereGlyph(which, ball.sub)}`, 'ring-label');
-  }
-}
-
-function sphereMarks(g, ball, spec) {
+function sphereMarks(g, ball, spec, incoming) {
   for (const which of ['theta', 'phi']) {
     if (!spec[which] || spec[which].axis === undefined) continue;
-    sphereEnds(g, ball, spec, which);
+    sphereEnds(g, ball, spec, which, incoming);
   }
 }
 
@@ -202,11 +188,12 @@ function sphereDraw(g, spec, view, S) {
   origins.forEach((origin, k) => {
     const ball = { view, c, r, origin, sub: SPHERE_SUBS[k] };
     const other = origins[1 - k];
-    sphereShell(g, ball, spec);
-    sphereMarks(g, ball, spec);
-    sphereAngles(g, ball, spec, normalize3({
+    const incoming = normalize3({
       x: origin.x - other.x, y: origin.y - other.y, z: origin.z - other.z,
-    }));
+    });
+    sphereShell(g, ball, spec);
+    sphereMarks(g, ball, spec, incoming);
+    sphereAngles(g, ball, spec, incoming);
   });
   sphereSpan(g, view, c, origins);
   sphereReach(g, view, c, origins);
