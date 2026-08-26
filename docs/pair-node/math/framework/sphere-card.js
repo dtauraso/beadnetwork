@@ -39,7 +39,7 @@ const SPHERE_CARD_FORMULAS = String.raw`\[
 & & \begin{bmatrix} -1 \\ -1 \end{bmatrix} \\
 & & \quad\text{if } \begin{bmatrix} \text{distance}_{\text{top}_{\varphi}} < \tau_{\varphi}/4 \\
                                     \text{distance}_{\text{top}_{\theta}} < \tau_{\theta}/4 \end{bmatrix} \\
-& & \begin{bmatrix} +1 \\ +1 \end{bmatrix} \\
+& & \begin{bmatrix} 1 \\ 1 \end{bmatrix} \\
 & & \quad\text{if } \begin{bmatrix} \text{distance}_{\text{bottom}_{\varphi}} < \tau_{\varphi}/4 \\
                                     \text{distance}_{\text{bottom}_{\theta}} < \tau_{\theta}/4 \end{bmatrix} \\
 & & \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\
