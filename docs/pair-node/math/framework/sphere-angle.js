@@ -69,8 +69,10 @@ function quadrant(from, top, which) {
   const side = cross3(RING_NORMAL[which] || top, top);
   const across = seen.x * side.x + seen.y * side.y + seen.z * side.z;
 
-  const end = along >= 0 ? top : { x: -top.x, y: -top.y, z: -top.z };
-  return { end, sign: across >= 0 ? 1 : -1 };
+  const fromTop = along >= 0;
+  const end = fromTop ? top : { x: -top.x, y: -top.y, z: -top.z };
+  const side = across >= 0 ? 1 : -1;
+  return { end, sign: fromTop ? side : -side };
 }
 
 function quarterTurnToward(from, to) {
