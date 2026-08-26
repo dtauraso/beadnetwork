@@ -127,6 +127,7 @@ function sphereControls(root, g, spec, view, S) {
     view.pivotIndex = 0;
     view.seat = defaultSeat(spec);
     view.anchorIndex = 0;
+    view.rings = { theta: true, phi: true, cross: true };
     redraw();
   });
 
@@ -153,6 +154,7 @@ function sphere(spec) {
     yaw: SPHERE_YAW0, tilt: SPHERE_TILT0, zoom: 1,
     pan: { x: 0, y: 0 }, pivotIndex: 0,
     seat: defaultSeat(spec), anchorIndex: 0,
+    rings: { theta: true, phi: true, cross: true },
   };
 
   const root = svg(S, S);
@@ -165,6 +167,9 @@ function sphere(spec) {
   root.appendChild(g);
   sphereDraw(g, spec, view, S);
   sphereControls(root, g, spec, view, S);
+
+  root.view = view;
+  root.redraw = () => sphereDraw(g, spec, view, S);
   return root;
 }
 
