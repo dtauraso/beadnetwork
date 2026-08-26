@@ -32,11 +32,15 @@ function sphereEndControls(svgEl) {
   svgEl.view.tilts = { theta: true, phi: true };
   svgEl.view.endTilt = { theta: 0, phi: 0 };
 
+  const boxes = {};
+
   for (const which of SPHERE_END_ANGLES) {
     const t = ringToggle(svgEl, which, SPHERE_END_LABELS[which], (on) => {
       svgEl.view.ends[which] = on;
+      all.box.checked = SPHERE_END_ANGLES.some((w) => svgEl.view.ends[w]);
       svgEl.redraw();
     });
+    boxes[which] = t.box;
     row.appendChild(t.wrap);
 
     const v = ringToggle(svgEl, which, SPHERE_TILT_LABELS[which], (on) => {
@@ -51,6 +55,15 @@ function sphereEndControls(svgEl) {
     });
     row.appendChild(s.wrap);
   }
+
+  const all = ringToggle(svgEl, 'all', 'all top/bottom', (on) => {
+    for (const which of SPHERE_END_ANGLES) {
+      svgEl.view.ends[which] = on;
+      boxes[which].checked = on;
+    }
+    svgEl.redraw();
+  });
+  row.appendChild(all.wrap);
 
   return row;
 }
