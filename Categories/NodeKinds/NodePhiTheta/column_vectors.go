@@ -4,11 +4,15 @@ import "github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
 
 type Turn = polarindex.Index
 
-func mod(x, tau int) int {
-	if tau <= 0 {
+type Ring struct {
+	Whole int
+}
+
+func mod(x, whole int) int {
+	if whole <= 0 {
 		return x
 	}
-	return (x%tau + tau) % tau
+	return (x%whole + whole) % whole
 }
 
 func abs(x int) int {
@@ -18,58 +22,53 @@ func abs(x int) int {
 	return x
 }
 
-func Bottom(top, tau Turn) Turn {
-	return Turn{
-		Phi:   mod(top.Phi+tau.Phi/2, tau.Phi),
-		Theta: mod(top.Theta+tau.Theta/2, tau.Theta),
-		R:     top.R,
-	}
-}
+func (r Ring) Bottom(top int) int { return mod(top+r.Whole/2, r.Whole) }
 
-func Distance(end, arrival Turn) Turn {
-	return Turn{
-		Phi:   abs(end.Phi - arrival.Phi),
-		Theta: abs(end.Theta - arrival.Theta),
-		R:     abs(end.R - arrival.R),
-	}
-}
+func (r Ring) DistanceTop(top, arrival int) int { return abs(top - arrival) }
 
-func offsetOn(distanceTop, distanceBottom, tau int) int {
+func (r Ring) DistanceBottom(top, arrival int) int { return abs(r.Bottom(top) - arrival) }
+
+func (r Ring) Offset(top, arrival int) int {
+	distanceTop := r.DistanceTop(top, arrival)
+	distanceBottom := r.DistanceBottom(top, arrival)
 	switch {
 	case distanceTop == 0 && distanceBottom == 0:
 		return 0
-	case distanceTop < tau/4:
+	case distanceTop < r.Whole/4:
 		return -1
-	case distanceBottom < tau/4:
+	case distanceBottom < r.Whole/4:
 		return +1
 	default:
 		return 0
 	}
 }
 
-func Offset(top, arrival, tau Turn) Turn {
-	distanceTop := Distance(top, arrival)
-	distanceBottom := Distance(Bottom(top, tau), arrival)
-	return Turn{
-		Phi:   offsetOn(distanceTop.Phi, distanceBottom.Phi, tau.Phi),
-		Theta: offsetOn(distanceTop.Theta, distanceBottom.Theta, tau.Theta),
-		R:     0,
+func (r Ring) Next(center, top, arrival int) int {
+	return mod(center+r.Offset(top, arrival), r.Whole)
+}
+
+func (r Ring) AtRest(top, arrival int) bool { return r.Offset(top, arrival) == 0 }
+
+type Rings struct {
+	Phi   Ring
+	Theta Ring
+}
+
+func RingsFor(maxIndexPhi, maxIndexTheta int) Rings {
+	return Rings{
+		Phi:   Ring{Whole: maxIndexPhi / 2},
+		Theta: Ring{Whole: maxIndexTheta},
 	}
 }
 
-func Add(center, offset, tau Turn) Turn {
+func (rs Rings) CenterNext(center, top, arrival Turn) Turn {
 	return Turn{
-		Phi:   mod(center.Phi+offset.Phi, tau.Phi),
-		Theta: mod(center.Theta+offset.Theta, tau.Theta),
+		Phi:   rs.Phi.Next(center.Phi, top.Phi, arrival.Phi),
+		Theta: rs.Theta.Next(center.Theta, top.Theta, arrival.Theta),
 		R:     center.R,
 	}
 }
 
-func CenterNext(center, top, arrival, tau Turn) Turn {
-	return Add(center, Offset(top, arrival, tau), tau)
-}
-
-func AtRest(top, arrival, tau Turn) bool {
-	o := Offset(top, arrival, tau)
-	return o.Phi == 0 && o.Theta == 0
+func (rs Rings) AtRest(top, arrival Turn) bool {
+	return rs.Phi.AtRest(top.Phi, arrival.Phi) && rs.Theta.AtRest(top.Theta, arrival.Theta)
 }
