@@ -30,7 +30,7 @@ const SPHERE_CARD_FORMULAS = String.raw`\[
 \begin{bmatrix} \text{distance}_{\text{bottom}_{\varphi}} \\ \text{distance}_{\text{bottom}_{\theta}} \end{bmatrix}
   &=& \begin{bmatrix} |\, \text{bottom}_{\varphi} - \text{arrival}_{\varphi} \,| \\
                       |\, \text{bottom}_{\theta} - \text{arrival}_{\theta} \,| \end{bmatrix} \\[3pt]
-\begin{bmatrix} \text{offset}_{\varphi} \\ 0 \end{bmatrix}
+\begin{bmatrix} \text{offset}_{\varphi} \\ \text{offset}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix}
       0 & \begin{array}{@{}l@{}} \text{if } \text{distance}_{\text{top}_{\varphi}} = 0 \\ \text{and } \text{distance}_{\text{bottom}_{\varphi}} = 0 \end{array} \\[8pt]
       0 &
@@ -47,8 +47,7 @@ const SPHERE_CARD_FORMULAS = String.raw`\[
       0 & \text{otherwise} \\
       0 &
     \end{bmatrix} \\[3pt]
-\begin{bmatrix} 0 \\ \text{offset}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix}
+& & \begin{bmatrix}
       0 & \\[8pt]
       0 & \begin{array}{@{}l@{}} \text{if } \text{distance}_{\text{top}_{\theta}} = 0 \\ \text{and } \text{distance}_{\text{bottom}_{\theta}} = 0 \end{array}
     \end{bmatrix} \\
@@ -64,18 +63,14 @@ const SPHERE_CARD_FORMULAS = String.raw`\[
       0 & \\
       0 & \text{otherwise}
     \end{bmatrix} \\[3pt]
-\begin{bmatrix} \text{center}_{\text{next}_{\varphi}} \\ 0 \\ 0 \end{bmatrix}
+\begin{bmatrix} \text{center}_{\text{next}_{\varphi}} \\ \text{center}_{\text{next}_{\theta}} \\ \text{center}_{\text{next}_{r}} \end{bmatrix}
   &=& \begin{bmatrix} (c_{\varphi} + \text{offset}_{\varphi}) \bmod \tau_{\varphi} \\
-                      0 \\
-                      0 \end{bmatrix} \\[3pt]
-\begin{bmatrix} 0 \\ \text{center}_{\text{next}_{\theta}} \\ 0 \end{bmatrix}
-  &=& \begin{bmatrix} 0 \\
                       (c_{\theta} + \text{offset}_{\theta}) \bmod \tau_{\theta} \\
-                      0 \end{bmatrix} \\[3pt]
-\begin{bmatrix} \text{sent}_{\varphi} \\ 0 \\ 0 \end{bmatrix}
-  &=& \begin{bmatrix} \text{center}_{\text{next}_{\varphi}} \\ 0 \\ 0 \end{bmatrix} \\[3pt]
-\begin{bmatrix} 0 \\ \text{sent}_{\theta} \\ 0 \end{bmatrix}
-  &=& \begin{bmatrix} 0 \\ \text{center}_{\text{next}_{\theta}} \\ 0 \end{bmatrix}
+                      c_{r} \end{bmatrix} \\[3pt]
+\begin{bmatrix} \text{sent}_{\varphi} \\ \text{sent}_{\theta} \\ \text{sent}_{r} \end{bmatrix}
+  &=& \begin{bmatrix} \text{center}_{\text{next}_{\varphi}} \\
+                      \text{center}_{\text{next}_{\theta}} \\
+                      \text{center}_{\text{next}_{r}} \end{bmatrix}
 \end{array}
 \]`;
 
