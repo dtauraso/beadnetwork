@@ -1,6 +1,6 @@
 const SPHERE_END_ANGLES = ['theta', 'phi'];
 const SPHERE_END_LABELS = { theta: 'θ top/bottom', phi: 'φ top/bottom' };
-const SPHERE_TILT_LABELS = { theta: 'θ tilt pair', phi: 'φ tilt pair' };
+const SPHERE_TILT_LABELS = { theta: 'θ Δ pair', phi: 'φ Δ pair' };
 
 function sphereEndControls(svgEl) {
   const row = document.createElement('div');

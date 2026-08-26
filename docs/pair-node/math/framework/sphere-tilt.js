@@ -34,7 +34,7 @@ function sphereTilt(g, ball, spec, which, incoming) {
   g.appendChild(tag('line', { x1, y1, x2, y2, class: 'ring-tilt' }));
 
   const glyph = sphereGlyph(which, ball.sub);
-  for (const [label, sense] of [['tilt top', 1], ['tilt bottom', -1]]) {
+  for (const [label, sense] of [['Δ', 1], ['−Δ', -1]]) {
     const [x, y, z] = endAt(ball, dir, sense);
     g.appendChild(tag('circle', { cx: x, cy: y, r: 4.5, class: `ring-tilt-dot${backish(z)}` }));
 
