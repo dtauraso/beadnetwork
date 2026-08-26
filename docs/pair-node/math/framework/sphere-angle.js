@@ -54,11 +54,23 @@ function inRingPlane(from, which) {
   return Math.hypot(p.x, p.y, p.z) < 1e-9 ? from : normalize3(p);
 }
 
-function acuteEnd(from, top, which) {
+function cross3(u, v) {
+  return {
+    x: u.y * v.z - u.z * v.y,
+    y: u.z * v.x - u.x * v.z,
+    z: u.x * v.y - u.y * v.x,
+  };
+}
+
+function quadrant(from, top, which) {
   const seen = inRingPlane(from, which);
-  const dot = seen.x * top.x + seen.y * top.y + seen.z * top.z;
-  if (dot >= 0) return { end: top, sign: 1 };
-  return { end: { x: -top.x, y: -top.y, z: -top.z }, sign: -1 };
+  const along = seen.x * top.x + seen.y * top.y + seen.z * top.z;
+
+  const side = cross3(RING_NORMAL[which] || top, top);
+  const across = seen.x * side.x + seen.y * side.y + seen.z * side.z;
+
+  const end = along >= 0 ? top : { x: -top.x, y: -top.y, z: -top.z };
+  return { end, sign: across >= 0 ? 1 : -1 };
 }
 
 function quarterTurnToward(from, to) {
@@ -90,8 +102,8 @@ function sphereAngles(g, ball, spec, incoming) {
     const [a, b] = sphereAt(spec.points, spec[which].axis, which);
     const top = unitPoint(a, b);
     const glyph = sphereGlyph(which, ball.sub);
-    const acute = acuteEnd(incoming, top, which);
-    angleArc(g, ball, incoming, acute.end, ANGLE_ARC_REACH, glyph, acute.sign);
+    const quad = quadrant(incoming, top, which);
+    angleArc(g, ball, incoming, quad.end, ANGLE_ARC_REACH, glyph, quad.sign);
 
     const normal = quarterTurnToward(incoming, top);
     if (normal) dirRay(g, ball, normal, `normal ${glyph}`);
