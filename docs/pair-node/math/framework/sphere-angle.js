@@ -66,8 +66,8 @@ function quadrant(from, top, which) {
   const seen = inRingPlane(from, which);
   const along = seen.x * top.x + seen.y * top.y + seen.z * top.z;
 
-  const side = cross3(RING_NORMAL[which] || top, top);
-  const across = seen.x * side.x + seen.y * side.y + seen.z * side.z;
+  const perp = cross3(RING_NORMAL[which] || top, top);
+  const across = seen.x * perp.x + seen.y * perp.y + seen.z * perp.z;
 
   const fromTop = along >= 0;
   const end = fromTop ? top : { x: -top.x, y: -top.y, z: -top.z };
