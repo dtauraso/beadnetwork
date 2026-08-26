@@ -7,35 +7,61 @@ const SPHERE_CARD_SPEC = {
 
 const SPHERE_CARD_FORMULAS = String.raw`\[
 \begin{array}{@{}l@{\;}c@{\;}l@{}}
-\text{center} &=& \text{the middle of the sphere} \\[3pt]
+\text{center} &=& (c_{\varphi},\, c_{\theta},\, c_{r}) \\[3pt]
 \tau_{\varphi} &=& \text{the whole turn on } \varphi \\[3pt]
-\text{bottom}_{\varphi} &=& (\text{top}_{\varphi} + \tau_{\varphi}/2) \bmod \tau_{\varphi} \\[3pt]
-\text{distance}_{\text{top}_{\varphi}} &=& |\, \text{top}_{\varphi} - \text{arrival}_{\varphi} \,| \\[3pt]
-\text{distance}_{\text{bottom}_{\varphi}} &=& |\, \text{bottom}_{\varphi} - \text{arrival}_{\varphi} \,| \\[3pt]
-\text{offset}_{\varphi} &=& 0 \\
-& & \quad\text{if } \text{distance}_{\text{top}_{\varphi}} = 0 \text{ or } \text{distance}_{\text{bottom}_{\varphi}} = 0 \\
-& & -1 \\
-& & \quad\text{if } \text{distance}_{\text{top}_{\varphi}} < \tau_{\varphi}/4 \\
-& & +1 \\
-& & \quad\text{if } \text{distance}_{\text{bottom}_{\varphi}} < \tau_{\varphi}/4 \\
-& & 0 \\
+\tau_{\theta} &=& \text{the whole turn on } \theta \\[3pt]
+\begin{bmatrix} \text{bottom}_{\varphi} \\ \text{bottom}_{\theta} \end{bmatrix}
+  &=& \begin{bmatrix} (\text{top}_{\varphi} + \tau_{\varphi}/2) \bmod \tau_{\varphi} \\
+                      (\text{top}_{\theta} + \tau_{\theta}/2) \bmod \tau_{\theta} \end{bmatrix} \\[3pt]
+\begin{bmatrix} \text{distance}_{\text{top}_{\varphi}} \\ \text{distance}_{\text{top}_{\theta}} \end{bmatrix}
+  &=& \begin{bmatrix} |\, \text{top}_{\varphi} - \text{arrival}_{\varphi} \,| \\
+                      |\, \text{top}_{\theta} - \text{arrival}_{\theta} \,| \end{bmatrix} \\[3pt]
+\begin{bmatrix} \text{distance}_{\text{bottom}_{\varphi}} \\ \text{distance}_{\text{bottom}_{\theta}} \end{bmatrix}
+  &=& \begin{bmatrix} |\, \text{bottom}_{\varphi} - \text{arrival}_{\varphi} \,| \\
+                      |\, \text{bottom}_{\theta} - \text{arrival}_{\theta} \,| \end{bmatrix} \\[3pt]
+\begin{bmatrix} \text{offset}_{\varphi} \\ \text{offset}_{\theta} \end{bmatrix}
+  &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\
+& & \quad\text{if } \begin{bmatrix}
+      \begin{array}{@{}l@{}} \text{distance}_{\text{top}_{\varphi}} = 0 \\ \text{or } \text{distance}_{\text{bottom}_{\varphi}} = 0 \end{array} \\[8pt]
+      \begin{array}{@{}l@{}} \text{distance}_{\text{top}_{\theta}} = 0 \\ \text{or } \text{distance}_{\text{bottom}_{\theta}} = 0 \end{array}
+    \end{bmatrix} \\
+& & \begin{bmatrix} -1 \\ -1 \end{bmatrix} \\
+& & \quad\text{if } \begin{bmatrix} \text{distance}_{\text{top}_{\varphi}} < \tau_{\varphi}/4 \\
+                                    \text{distance}_{\text{top}_{\theta}} < \tau_{\theta}/4 \end{bmatrix} \\
+& & \begin{bmatrix} +1 \\ +1 \end{bmatrix} \\
+& & \quad\text{if } \begin{bmatrix} \text{distance}_{\text{bottom}_{\varphi}} < \tau_{\varphi}/4 \\
+                                    \text{distance}_{\text{bottom}_{\theta}} < \tau_{\theta}/4 \end{bmatrix} \\
+& & \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\
 & & \quad\text{otherwise} \\[3pt]
-\text{top}_{\text{next}_{\varphi}} &=& (\text{top}_{\varphi} + \text{offset}_{\varphi}) \bmod \tau_{\varphi} \\[3pt]
-\text{bottom}_{\text{next}_{\varphi}} &=& (\text{bottom}_{\varphi} + \text{offset}_{\varphi}) \bmod \tau_{\varphi} \\[3pt]
-\text{sent}_{\varphi} &=& (\text{top}_{\varphi} + \tau_{\varphi}/4) \bmod \tau_{\varphi} \\[3pt]
-\text{normal}_{\varphi} &=& (\text{arrival}_{\varphi} \pm \tau_{\varphi}/4) \bmod \tau_{\varphi} \\
-& & \quad\text{the sign that puts it within } \tau_{\varphi}/4 \text{ of } \text{top}_{\varphi} \\[3pt]
-\text{point}_{\varphi}(i) &=& \text{the point at index } i \text{ on ring } \varphi \\[3pt]
-\text{drawn}_{\varphi}(i) &=& \text{center} + \text{point}_{\varphi}(i)
+\begin{bmatrix} \text{top}_{\text{next}_{\varphi}} \\ \text{top}_{\text{next}_{\theta}} \end{bmatrix}
+  &=& \begin{bmatrix} (\text{top}_{\varphi} + \text{offset}_{\varphi}) \bmod \tau_{\varphi} \\
+                      (\text{top}_{\theta} + \text{offset}_{\theta}) \bmod \tau_{\theta} \end{bmatrix} \\[3pt]
+\begin{bmatrix} \text{bottom}_{\text{next}_{\varphi}} \\ \text{bottom}_{\text{next}_{\theta}} \end{bmatrix}
+  &=& \begin{bmatrix} (\text{bottom}_{\varphi} + \text{offset}_{\varphi}) \bmod \tau_{\varphi} \\
+                      (\text{bottom}_{\theta} + \text{offset}_{\theta}) \bmod \tau_{\theta} \end{bmatrix} \\[3pt]
+\begin{bmatrix} \text{sent}_{\varphi} \\ \text{sent}_{\theta} \end{bmatrix}
+  &=& \begin{bmatrix} (\text{top}_{\varphi} + \tau_{\varphi}/4) \bmod \tau_{\varphi} \\
+                      (\text{top}_{\theta} + \tau_{\theta}/4) \bmod \tau_{\theta} \end{bmatrix} \\[3pt]
+\begin{bmatrix} \text{normal}_{\varphi} \\ \text{normal}_{\theta} \end{bmatrix}
+  &=& \begin{bmatrix} (\text{arrival}_{\varphi} \pm \tau_{\varphi}/4) \bmod \tau_{\varphi} \\
+                      (\text{arrival}_{\theta} \pm \tau_{\theta}/4) \bmod \tau_{\theta} \end{bmatrix} \\
+& & \begin{bmatrix} \text{the sign that puts it within } \tau_{\varphi}/4 \text{ of } \text{top}_{\varphi} \\
+                    \text{the sign that puts it within } \tau_{\theta}/4 \text{ of } \text{top}_{\theta} \end{bmatrix} \\[3pt]
+\begin{bmatrix} \text{point}_{\varphi}(i) \\ \text{point}_{\theta}(i) \end{bmatrix}
+  &=& \begin{bmatrix} \text{the point at index } i \text{ on ring } \varphi \\
+                      \text{the point at index } i \text{ on ring } \theta \end{bmatrix} \\[3pt]
+\begin{bmatrix} \text{drawn}_{\varphi}(i) \\ \text{drawn}_{\theta}(i) \end{bmatrix}
+  &=& \begin{bmatrix} \text{center} + \text{point}_{\varphi}(i) \\
+                      \text{center} + \text{point}_{\theta}(i) \end{bmatrix}
 \end{array}
 \]`;
 
 const SPHERE_CARD_INTRO = [
-  ['', 'Both angles are in play, \\(\\varphi\\) and \\(\\theta\\). The lines below are written on \\(\\varphi\\); \\(\\theta\\) is the same lines with \\(\\theta\\) in every subscript.'],
+  ['', 'Both angles are in play, \\(\\varphi\\) and \\(\\theta\\). Each line below is a column, \\(\\varphi\\) over \\(\\theta\\) — the same rule on each row, and nothing crossing between the rows.'],
 ];
 
 const SPHERE_CARD_NOTES = [
-  ['note', 'Drag either sphere to walk it around the other’s surface — the one you grab moves, the one you don’t stays put, and a grab where they overlap takes the sphere whose centre is nearer. Drag off both to turn the pair. Scroll or shift-drag to pan, pinch (or ctrl-scroll) to zoom, 1 or 2 to turn about that sphere, double-click to put it all back. What faces away is dimmed, not hidden.'],
+  ['note', 'Drag either sphere to walk it around the other’s surface — the one you grab moves, the one you don’t stays put, and a grab where they overlap takes the sphere whose center is nearer. Drag off both to turn the pair. Scroll or shift-drag to pan, pinch (or ctrl-scroll) to zoom, 1 or 2 to turn about that sphere, double-click to put it all back. What faces away is dimmed, not hidden.'],
   ['', 'Every arrow leaves \\(\\text{center}\\), the one thing both rings share. The rule never mentions it: the arithmetic is on indices, and \\(\\text{center}\\) only says where they get drawn.'],
   ['', 'The same rule, once per angle. Each angle carries its own whole turn — \\(\\tau_{\\varphi}\\) and \\(\\tau_{\\theta}\\) — measures its own two distances, and produces its own offset — nothing crosses between \\(\\varphi\\) and \\(\\theta\\), so neither angle can hold the other back. A pair is settled when \\(\\text{offset}_{\\varphi}\\) and \\(\\text{offset}_{\\theta}\\) are both \\(0\\), which is the one-angle halt read on each angle in turn.'],
   ['', '\\(\\text{normal}_{\\varphi}\\) has two candidates a half turn apart; the one named here is the one on \\(\\text{top}_{\\varphi}\\)’s side of the ring.'],
