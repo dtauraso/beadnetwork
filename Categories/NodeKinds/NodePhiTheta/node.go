@@ -5,21 +5,14 @@ import (
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/TiltPanel"
 	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
-	beadanimation "github.com/dtauraso/beadnetwork/Categories/Node/BeadAnimation"
 )
 
 type NodePhiTheta struct {
-	Fire         func()
-	EmitGeometry func()
-
 	Self *Self
 
 	Clock clock.Clock
 
 	SpeedCh <-chan float64
-
-	In  *beadanimation.Receiver
-	Out *beadanimation.Sender
 
 	VectorOut chan<- TiltPanel.TiltVectorMsg
 	VectorIn  <-chan TiltPanel.TiltVectorMsg
@@ -54,8 +47,6 @@ func (n *NodePhiTheta) step(arrival Turn) {
 }
 
 func (n *NodePhiTheta) Update(ctx context.Context) {
-	tryEmit(n.EmitGeometry)
-
 	clk := n.Clock.Copy()
 	clk.SpeedFrom(n.SpeedCh)
 	n.Self.StartRule(ctx, clk)
@@ -68,13 +59,9 @@ func (n *NodePhiTheta) Update(ctx context.Context) {
 		}
 
 		if arrival, ok := TiltPanel.PollRecvVector(n.VectorIn); ok {
-			if n.Fire != nil {
-				n.Fire()
-			}
 			n.step(vectorOf(arrival))
 		}
 
-		n.Self.Step(ctx, clk.Tick())
 		if err := clk.SleepCycle(ctx); err != nil {
 			return
 		}
@@ -84,11 +71,8 @@ func (n *NodePhiTheta) Update(ctx context.Context) {
 var Builder = BuilderFor("NodePhiTheta",
 	func(a BuildArgs) (any, error) {
 		n := &NodePhiTheta{}
-		n.Fire = a.Fire()
 		n.Clock = a.Clock()
 		n.SpeedCh = a.SpeedCh()
-		n.In = a.In("In")
-		n.Out = a.Out("Out")
 		n.Self = claimSelfDrive(a)
 
 		n.VectorOut = a.VectorOut()
