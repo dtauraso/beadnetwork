@@ -90,6 +90,7 @@ function sphereCardFigure(spec) {
   const svgEl = sphere(spec);
   fig.appendChild(svgEl);
   fig.appendChild(sphereCardToggles(svgEl));
+  fig.appendChild(sphereEndControls(svgEl));
   return fig;
 }
 
