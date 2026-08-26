@@ -121,6 +121,18 @@ svg.spin:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; 
 
 .ring-tilt.back, .ring-tilt-dot.back, .ring-tilt-label.back { opacity: .35; }
 
+/* How far the tilt vector has swung off its own end. Drawn only where the two are
+   within a right angle, so each end carries one arc rather than an obtuse twin. */
+.ring-tilt-arc { fill: none; stroke: #a4508f; stroke-width: 1.8; stroke-dasharray: 3 3; }
+
+.ring-tilt-arc-label {
+  fill: #a4508f;
+  font: 600 10px ui-sans-serif, system-ui, sans-serif;
+  text-anchor: middle;
+}
+
+.ring-tilt-arc.back, .ring-tilt-arc-label.back { opacity: .35; }
+
 /* Centre to centre, one arrow each way. They lie on the same line, so what you
    see is a single span with a head at both ends. */
 .ring-span { stroke: #3d6fb5; stroke-width: 2.5; }
