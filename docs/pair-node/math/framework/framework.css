@@ -110,7 +110,7 @@ svg.spin:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; 
 /* The tilt pair is a second top/bottom line on the same centre, turned around the
    centre line by the slider. It stays tangent at every angle, so it gets its own
    colour rather than reading as the top/bottom line having moved. */
-.ring-tilt { stroke: #a4508f; stroke-width: 2; stroke-dasharray: 6 4; }
+.ring-tilt { stroke: #a4508f; stroke-width: 2; }
 .ring-tilt-dot { fill: #a4508f; }
 
 .ring-tilt-label {
