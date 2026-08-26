@@ -29,7 +29,9 @@ var All = []Scene{
 			"SelectLeft", "SelectRight",
 		}},
 
-	{Name: "pair", Dir: "topology-pair", CoplanarEdges: true, UpAxis: true, ClockDivisor: 64, Editable: true, Kinds: []string{"PairNode"}},
+	{Name: "pair φ", Dir: "topology-pair", CoplanarEdges: true, UpAxis: true, ClockDivisor: 64, Editable: true, Kinds: []string{"PairNode"}},
+
+	{Name: "pair φ, θ", Dir: "topology-pair-phi-theta", CoplanarEdges: true, UpAxis: true, ClockDivisor: 64, Editable: true, Kinds: []string{"PairNode"}},
 }
 
 var Unlisted = Scene{ClockDivisor: 1}

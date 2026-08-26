@@ -10,7 +10,8 @@ export function resolveScenePath(anchorPath: string): string {
     selected = "";
   }
 
-  const scene = SCENES.find((s) => s.name === selected) ?? SCENES[0];
+  const scene =
+    SCENES.find((s) => s.dir === selected) ?? SCENES.find((s) => s.name === selected) ?? SCENES[0];
   if (!scene) return anchorPath;
 
   const container = path.dirname(anchorPath);

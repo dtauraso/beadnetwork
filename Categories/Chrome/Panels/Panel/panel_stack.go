@@ -1,5 +1,7 @@
 package Panel
 
+import "unicode/utf8"
+
 const (
 	OriginX = 8
 	OriginY = 8
@@ -40,7 +42,9 @@ func (s *Stack) Add(contentW, contentH float32) (box Rect, contentX, contentY fl
 
 func Advance(fontPx float32) float32 { return fontPx * 0.55 }
 
-func TextWidth(s string, fontPx float32) float32 { return Advance(fontPx) * float32(len(s)) }
+func TextWidth(s string, fontPx float32) float32 {
+	return Advance(fontPx) * float32(utf8.RuneCountInString(s))
+}
 
 func LineHeight(fontPx float32) float32 { return fontPx * 1.2 }
 

@@ -13,5 +13,6 @@ export interface SceneEntry {
 
 export const SCENES: SceneEntry[] = [
   { name: "ring", dir: "topology" },
-  { name: "pair", dir: "topology-pair" },
+  { name: "pair φ", dir: "topology-pair" },
+  { name: "pair φ, θ", dir: "topology-pair-phi-theta" },
 ];

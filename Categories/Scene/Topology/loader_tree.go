@@ -18,6 +18,9 @@ func LoadTree(root string) (TopoSpec, error) {
 
 	nodesDir := filepath.Join(root, "nodes")
 	nodeDirs, err := readDirNames(nodesDir)
+	if os.IsNotExist(err) {
+		nodeDirs, err = nil, nil
+	}
 	if err != nil {
 		return spec, fmt.Errorf("loadTree: list nodes dir %s: %w", nodesDir, err)
 	}
