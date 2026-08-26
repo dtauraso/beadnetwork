@@ -8,6 +8,7 @@ import { drawNodesPill, nodesPillKey } from "../Pills/NodesDropdown/draw-nodes-p
 import { drawOverlaysPill, overlaysPillKey } from "../Pills/draw-overlays-pill";
 import { drawFitChip, fitChipKey } from "../Pills/FitButton/draw-fit-chip";
 import { drawTabStrip, tabStripKey } from "../Tabs/draw-tab-strip";
+import { drawBoot, bootKey } from "../Boot/draw-boot";
 import { drawRulesPanel, rulesPanelKey } from "./PolarRulesPanel/draw-rules-panel";
 import {
   drawPointerHighlight, drawPointerTip, pointerTargetCursor, pointerTargetKey,
@@ -132,7 +133,7 @@ export function ChromeCanvas() {
       });
     }
 
-    const key = `${vw}@${bw}x${bh}|${speedPanelKey()}|${tiltPanelKey()}|${anglePillKey()}|${nodesPillKey()}|${overlaysPillKey()}|${fitChipKey()}|${tabStripKey()}|${rulesPanelKey()}|${pointerTargetKey()}|${labelEpoch()}`;
+    const key = `${vw}@${bw}x${bh}|${speedPanelKey()}|${tiltPanelKey()}|${anglePillKey()}|${nodesPillKey()}|${overlaysPillKey()}|${fitChipKey()}|${tabStripKey()}|${rulesPanelKey()}|${pointerTargetKey()}|${labelEpoch()}|${bootKey()}`;
     if (key !== lastKey.current) {
       lastKey.current = key;
       if (canvas.width !== bw || canvas.height !== bh) {
@@ -155,6 +156,7 @@ export function ChromeCanvas() {
         drawTabStrip(c);
         drawRulesPanel(c);
         drawPointerTip(c);
+        drawBoot(c);
       }
       el.style.cursor = pointerTargetCursor();
       tex.needsUpdate = true;
