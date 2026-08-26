@@ -14,7 +14,8 @@ const SPHERE_CARD_FORMULAS = String.raw`\[
 \tau_{\theta} &=& \text{the whole turn on } \theta \\[3pt]
 \begin{bmatrix} \text{top}_{\varphi} \\ \text{top}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0 \ldots \tau_{\varphi} - 1 \\ 0 \ldots \tau_{\theta} - 1 \end{bmatrix} \\
-& & \quad\text{the one end the node holds, an index on each ring} \\[3pt]
+& & \quad\text{the one end the node holds} \\
+& & \quad\text{an index on each ring} \\[3pt]
 \begin{bmatrix} \text{bottom}_{\varphi} \\ \text{bottom}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} (\text{top}_{\varphi} + \tau_{\varphi}/2) \bmod \tau_{\varphi} \\
                       (\text{top}_{\theta} + \tau_{\theta}/2) \bmod \tau_{\theta} \end{bmatrix} \\[3pt]
