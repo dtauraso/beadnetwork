@@ -58,14 +58,11 @@ func Offset(top, arrival, tau Turn) Turn {
 }
 
 func Add(center, offset, tau Turn) Turn {
-	sum := Turn{
-		Phi:   center.Phi + offset.Phi,
-		Theta: center.Theta + offset.Theta,
+	return Turn{
+		Phi:   mod(center.Phi+offset.Phi, tau.Phi),
+		Theta: mod(center.Theta+offset.Theta, tau.Theta),
 		R:     center.R,
 	}
-	return polarindex.Canonical(sum, polarindex.SceneConstants{
-		MaxIndexPhi: tau.Phi, MaxIndexTheta: tau.Theta,
-	})
 }
 
 func CenterNext(center, top, arrival, tau Turn) Turn {
