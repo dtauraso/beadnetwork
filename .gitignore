@@ -157,6 +157,11 @@ topology*/view/ring-points.bin
 topology*/view/slider-panel.bin
 topology*/view/speed.bin
 
+# Which tab is open. It is written every time you click the tab strip and read once
+# on spawn, so it is the same live view state as camera/ above — committing it made
+# every branch carry whichever scene the last session happened to leave open.
+topology*/view/scene/
+
 # Hook block log (local audit trail, not for VCS)
 .claude/hooks/go-blocks.log
 
