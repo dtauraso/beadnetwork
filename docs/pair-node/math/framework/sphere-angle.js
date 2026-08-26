@@ -41,8 +41,22 @@ function angleArc(g, ball, from, to, reach, glyph, sign) {
   g.appendChild(t);
 }
 
-function acuteEnd(from, top) {
-  const dot = from.x * top.x + from.y * top.y + from.z * top.z;
+const RING_NORMAL = {
+  theta: { x: 0, y: 1, z: 0 },
+  phi: { x: 1, y: 0, z: 0 },
+};
+
+function inRingPlane(from, which) {
+  const n = RING_NORMAL[which];
+  if (!n) return from;
+  const dot = from.x * n.x + from.y * n.y + from.z * n.z;
+  const p = { x: from.x - n.x * dot, y: from.y - n.y * dot, z: from.z - n.z * dot };
+  return Math.hypot(p.x, p.y, p.z) < 1e-9 ? from : normalize3(p);
+}
+
+function acuteEnd(from, top, which) {
+  const seen = inRingPlane(from, which);
+  const dot = seen.x * top.x + seen.y * top.y + seen.z * top.z;
   if (dot >= 0) return { end: top, sign: 1 };
   return { end: { x: -top.x, y: -top.y, z: -top.z }, sign: -1 };
 }
@@ -76,7 +90,7 @@ function sphereAngles(g, ball, spec, incoming) {
     const [a, b] = sphereAt(spec.points, spec[which].axis, which);
     const top = unitPoint(a, b);
     const glyph = sphereGlyph(which, ball.sub);
-    const acute = acuteEnd(incoming, top);
+    const acute = acuteEnd(incoming, top, which);
     angleArc(g, ball, incoming, acute.end, ANGLE_ARC_REACH, glyph, acute.sign);
 
     const normal = quarterTurnToward(incoming, top);
