@@ -33,8 +33,8 @@ const SPHERE_CARD_FORMULAS = String.raw`\[
 \begin{bmatrix} \text{offset}_{\varphi} \\ \text{offset}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\
 & & \quad\text{if } \begin{bmatrix}
-      \begin{array}{@{}l@{}} \text{distance}_{\text{top}_{\varphi}} = 0 \\ \text{or } \text{distance}_{\text{bottom}_{\varphi}} = 0 \end{array} \\[8pt]
-      \begin{array}{@{}l@{}} \text{distance}_{\text{top}_{\theta}} = 0 \\ \text{or } \text{distance}_{\text{bottom}_{\theta}} = 0 \end{array}
+      \begin{array}{@{}l@{}} \text{distance}_{\text{top}_{\varphi}} = 0 \\ \text{and } \text{distance}_{\text{bottom}_{\varphi}} = 0 \end{array} \\[8pt]
+      \begin{array}{@{}l@{}} \text{distance}_{\text{top}_{\theta}} = 0 \\ \text{and } \text{distance}_{\text{bottom}_{\theta}} = 0 \end{array}
     \end{bmatrix} \\
 & & \begin{bmatrix} -1 \\ -1 \end{bmatrix} \\
 & & \quad\text{if } \begin{bmatrix} \text{distance}_{\text{top}_{\varphi}} < \tau_{\varphi}/4 \\
@@ -62,7 +62,6 @@ const SPHERE_CARD_INTRO = [
 const SPHERE_CARD_NOTES = [
   ['note', 'Drag either sphere to walk it around the other’s surface — the one you grab moves, the one you don’t stays put, and a grab where they overlap takes the sphere whose center is nearer. Drag off both to turn the pair. Scroll or shift-drag to pan, pinch (or ctrl-scroll) to zoom, 1 or 2 to turn about that sphere, double-click to put it all back. What faces away is dimmed, not hidden.'],
   ['', 'Every arrow leaves \\(\\text{center}\\), the one thing both rings share. The rule never mentions it: the arithmetic is on indices, and \\(\\text{center}\\) only says where they get drawn.'],
-  ['', 'The same rule, once per angle. Each angle carries its own whole turn — \\(\\tau_{\\varphi}\\) and \\(\\tau_{\\theta}\\) — measures its own two distances, and produces its own offset — nothing crosses between \\(\\varphi\\) and \\(\\theta\\), so neither angle can hold the other back. A pair is settled when \\(\\text{offset}_{\\varphi}\\) and \\(\\text{offset}_{\\theta}\\) are both \\(0\\), which is the one-angle halt read on each angle in turn.'],
   ['', '\\(\\text{normal}_{\\varphi}\\) has two candidates a half turn apart; the one named here is the one on \\(\\text{top}_{\\varphi}\\)’s side of the ring.'],
   ['', 'The code in <code>tiltring/rules.go</code> runs this on ONE angle today. This card is the shape it takes when the same arithmetic is carried on the polar lattice’s two angles.'],
 ];
