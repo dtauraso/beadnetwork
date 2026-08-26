@@ -1,5 +1,22 @@
 const SPHERE_TILT_LABEL = 1.3;
 
+function tiltedTop(incoming, which, tilt) {
+  const base = ringTop(incoming, which);
+  if (!base || !tilt) return base;
+
+  const side = normalize3(cross3(incoming, base));
+  const c = Math.cos(tilt), s = Math.sin(tilt);
+  return normalize3({
+    x: base.x * c + side.x * s,
+    y: base.y * c + side.y * s,
+    z: base.z * c + side.z * s,
+  });
+}
+
+function endTilt(view, which) {
+  return (view.endTilt && view.endTilt[which]) || 0;
+}
+
 function tiltShown(view, which) {
   const tilts = view.tilts;
   return !tilts || tilts[which] !== false;
