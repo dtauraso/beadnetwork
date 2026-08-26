@@ -33,8 +33,8 @@ const SPHERE_CARD_FORMULAS = String.raw`\[
 \begin{bmatrix} \text{offset}_{\varphi} \\ \text{offset}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\
 & & \quad\text{if } \begin{bmatrix}
-      \begin{array}{@{}l@{}} \text{distance}_{\text{top}_{\varphi}} = 0 \\ \text{or } \text{distance}_{\text{bottom}_{\varphi}} = 0 \end{array} \\[8pt]
-      \begin{array}{@{}l@{}} \text{distance}_{\text{top}_{\theta}} = 0 \\ \text{or } \text{distance}_{\text{bottom}_{\theta}} = 0 \end{array}
+      \begin{array}{@{}l@{}} \text{distance}_{\text{top}_{\varphi}} = 0 \\ \text{and } \text{distance}_{\text{bottom}_{\varphi}} = 0 \end{array} \\[8pt]
+      \begin{array}{@{}l@{}} \text{distance}_{\text{top}_{\theta}} = 0 \\ \text{and } \text{distance}_{\text{bottom}_{\theta}} = 0 \end{array}
     \end{bmatrix} \\
 & & \begin{bmatrix} -1 \\ -1 \end{bmatrix} \\
 & & \quad\text{if } \begin{bmatrix} \text{distance}_{\text{top}_{\varphi}} < \tau_{\varphi}/4 \\
