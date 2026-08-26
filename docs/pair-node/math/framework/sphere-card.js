@@ -47,14 +47,6 @@ const SPHERE_CARD_FORMULAS = String.raw`\[
   &=& \begin{bmatrix} (c_{\varphi} + \text{offset}_{\varphi}) \bmod \tau_{\varphi} \\
                       (c_{\theta} + \text{offset}_{\theta}) \bmod \tau_{\theta} \\
                       c_{r} + \text{offset}_{r} \end{bmatrix} \\[3pt]
-\begin{bmatrix} \text{sent}_{\varphi} \\ \text{sent}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} (\text{top}_{\varphi} + \tau_{\varphi}/4) \bmod \tau_{\varphi} \\
-                      (\text{top}_{\theta} + \tau_{\theta}/4) \bmod \tau_{\theta} \end{bmatrix} \\[3pt]
-\begin{bmatrix} \text{normal}_{\varphi} \\ \text{normal}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} (\text{arrival}_{\varphi} \pm \tau_{\varphi}/4) \bmod \tau_{\varphi} \\
-                      (\text{arrival}_{\theta} \pm \tau_{\theta}/4) \bmod \tau_{\theta} \end{bmatrix} \\
-& & \begin{bmatrix} \text{the sign that puts it within } \tau_{\varphi}/4 \text{ of } \text{top}_{\varphi} \\
-                    \text{the sign that puts it within } \tau_{\theta}/4 \text{ of } \text{top}_{\theta} \end{bmatrix} \\[3pt]
 \begin{bmatrix} \text{point}_{\varphi}(i) \\ \text{point}_{\theta}(i) \end{bmatrix}
   &=& \begin{bmatrix} \text{the point at index } i \text{ on ring } \varphi \\
                       \text{the point at index } i \text{ on ring } \theta \end{bmatrix} \\[3pt]
