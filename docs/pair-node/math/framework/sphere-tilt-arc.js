@@ -1,5 +1,3 @@
-const TILT_ARC_REACH = ANGLE_ARC_REACH;
-
 function acuteToward(from, dir) {
   const dot = from.x * dir.x + from.y * dir.y + from.z * dir.z;
   return dot >= 0 ? dir : { x: -dir.x, y: -dir.y, z: -dir.z };
@@ -13,7 +11,7 @@ function tiltArc(g, ball, from, to, glyph) {
 
   const at = (t) => {
     const seat = seatFromDir(slerp(from, to, ang, t));
-    return ballPointAt(ball, seat.a, seat.b, ball.r * TILT_ARC_REACH);
+    return ballPointAt(ball, seat.a, seat.b, ball.r * ANGLE_ARC_REACH);
   };
 
   const pts = [];
