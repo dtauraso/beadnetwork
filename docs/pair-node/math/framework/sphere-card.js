@@ -46,7 +46,7 @@ const SPHERE_CARD_FORMULAS = String.raw`\[
 \begin{bmatrix} \text{center}_{\text{next}_{\varphi}} \\ \text{center}_{\text{next}_{\theta}} \\ \text{center}_{\text{next}_{r}} \end{bmatrix}
   &=& \begin{bmatrix} (c_{\varphi} + \text{offset}_{\varphi}) \bmod \tau_{\varphi} \\
                       (c_{\theta} + \text{offset}_{\theta}) \bmod \tau_{\theta} \\
-                      c_{r} \end{bmatrix} \\[3pt]
+                      c_{r} + \text{offset}_{r} \end{bmatrix} \\[3pt]
 \begin{bmatrix} \text{top}_{\text{next}_{\varphi}} \\ \text{top}_{\text{next}_{\theta}} \end{bmatrix}
   &=& \begin{bmatrix} (\text{top}_{\varphi} + \text{offset}_{\varphi}) \bmod \tau_{\varphi} \\
                       (\text{top}_{\theta} + \text{offset}_{\theta}) \bmod \tau_{\theta} \end{bmatrix} \\[3pt]
