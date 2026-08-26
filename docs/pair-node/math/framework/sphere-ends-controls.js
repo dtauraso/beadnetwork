@@ -27,6 +27,13 @@ function sphereEndControls(svgEl) {
     row.appendChild(v.wrap);
   }
 
+  svgEl.view.normals = true;
+  const normals = ringToggle(svgEl, 'normals', 'normals', (on) => {
+    svgEl.view.normals = on;
+    svgEl.redraw();
+  });
+  row.appendChild(normals.wrap);
+
   const all = ringToggle(svgEl, 'all', 'all top/bottom', (on) => {
     for (const which of SPHERE_END_ANGLES) {
       svgEl.view.ends[which] = on;

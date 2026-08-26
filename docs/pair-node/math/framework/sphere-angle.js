@@ -98,6 +98,10 @@ function dirRay(g, ball, dir, label) {
   g.appendChild(t);
 }
 
+function normalsShown(view) {
+  return view.normals !== false;
+}
+
 function sphereAngles(g, ball, spec, incoming) {
   for (const which of ['theta', 'phi']) {
     if (!spec[which] || spec[which].axis === undefined) continue;
@@ -107,7 +111,9 @@ function sphereAngles(g, ball, spec, incoming) {
     const quad = quadrant(incoming, top, which);
     angleArc(g, ball, incoming, quad.end, ANGLE_ARC_REACH, glyph, quad.sign);
 
-    const normal = quarterTurnToward(incoming, top);
-    if (normal) dirRay(g, ball, normal, `normal ${glyph}`);
+    if (normalsShown(ball.view)) {
+      const normal = quarterTurnToward(incoming, top);
+      if (normal) dirRay(g, ball, normal, `normal ${glyph}`);
+    }
   }
 }
