@@ -75,6 +75,11 @@ function quadrant(from, top, which) {
   return { end, sign: fromTop ? side : -side };
 }
 
+function normalTo(tilt, incoming) {
+  const n = cross3(incoming, tilt);
+  return Math.hypot(n.x, n.y, n.z) < 1e-9 ? null : normalize3(n);
+}
+
 function dirRay(g, ball, dir, label) {
   const seat = seatFromDir(dir);
   const [ox, oy] = viewProject(ball.view, ball.c, ball.origin);
@@ -102,7 +107,8 @@ function sphereAngles(g, ball, spec, incoming) {
     angleArc(g, ball, incoming, quad.end, ANGLE_ARC_REACH, glyph, quad.sign);
 
     if (normalsShown(ball.view)) {
-      const normal = tiltedEnd(spec, which, incoming);
+      const tilt = tiltedEnd(spec, which, incoming);
+      const normal = tilt && normalTo(tilt, incoming);
       if (normal) dirRay(g, ball, normal, `normal ${glyph}`);
     }
   }
