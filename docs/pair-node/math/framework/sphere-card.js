@@ -17,13 +17,13 @@ const SPHERE_CARD_FORMULAS = String.raw`\[
   &=& \begin{bmatrix} 0,\, \tau_{\varphi} - 1 \\ 0,\, \tau_{\theta} - 1 \end{bmatrix} \\
 & & \quad\text{the one end the node holds} \\
 & & \quad\text{an index on each ring} \\[3pt]
+\begin{bmatrix} \text{bottom}_{\varphi} \\ \text{bottom}_{\theta} \end{bmatrix}
+  &=& \begin{bmatrix} (\text{top}_{\varphi} + \tau_{\varphi}/2) \bmod \tau_{\varphi} \\
+                      (\text{top}_{\theta} + \tau_{\theta}/2) \bmod \tau_{\theta} \end{bmatrix} \\[3pt]
 \begin{bmatrix} \text{arrival}_{\varphi} \\ \text{arrival}_{\theta} \\ \text{arrival}_{r} \end{bmatrix}
   &=& \begin{bmatrix} 0,\, \tau_{\varphi} - 1 \\ 0,\, \tau_{\theta} - 1 \\ 0,\, \tau_{r} - 1 \end{bmatrix} \\
 & & \quad\text{the direction that just came in} \\
 & & \quad\text{an index on each ring, like top} \\[3pt]
-\begin{bmatrix} \text{bottom}_{\varphi} \\ \text{bottom}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} (\text{top}_{\varphi} + \tau_{\varphi}/2) \bmod \tau_{\varphi} \\
-                      (\text{top}_{\theta} + \tau_{\theta}/2) \bmod \tau_{\theta} \end{bmatrix} \\[3pt]
 \begin{bmatrix} \text{distance}_{\text{top}_{\varphi}} \\ \text{distance}_{\text{top}_{\theta}} \end{bmatrix}
   &=& \begin{bmatrix} |\, \text{top}_{\varphi} - \text{arrival}_{\varphi} \,| \\
                       |\, \text{top}_{\theta} - \text{arrival}_{\theta} \,| \end{bmatrix} \\[3pt]
