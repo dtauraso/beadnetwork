@@ -66,7 +66,7 @@ const SPHERE_CARD_FORMULAS = String.raw`\[
 & & \quad\text{so it does not need the other to be there at the} \\
 & & \quad\text{same moment, and having stopped it stays} \\
 & & \begin{bmatrix}
-      0 & \begin{array}{@{}l@{}} \text{if } \text{distance}_{\text{top}_{\varphi}} = 0 \\ \text{and } \text{distance}_{\text{bottom}_{\varphi}} = 0 \end{array} \\[8pt]
+      0 & \begin{array}{@{}l@{}} \text{if } \text{distance}_{\text{top}_{\varphi}} = 0 \\ \text{or } \text{distance}_{\text{bottom}_{\varphi}} = 0 \end{array} \\[8pt]
       0 &
     \end{bmatrix} \\
 & & \begin{bmatrix}
@@ -91,7 +91,7 @@ const SPHERE_CARD_FORMULAS = String.raw`\[
     \end{bmatrix} \\
 & & \begin{bmatrix}
       0 & \\[8pt]
-      0 & \begin{array}{@{}l@{}} \text{if } \text{distance}_{\text{top}_{\theta}} = 0 \\ \text{and } \text{distance}_{\text{bottom}_{\theta}} = 0 \end{array}
+      0 & \begin{array}{@{}l@{}} \text{if } \text{distance}_{\text{top}_{\theta}} = 0 \\ \text{or } \text{distance}_{\text{bottom}_{\theta}} = 0 \end{array}
     \end{bmatrix} \\
 & & \begin{bmatrix}
       0 & \\
