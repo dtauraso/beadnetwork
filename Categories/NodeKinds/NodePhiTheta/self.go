@@ -35,9 +35,9 @@ func (p *Self) Breadcrumb(label, value string) {
 	}})
 }
 
-func (p *Self) SetCenter(center polarindex.Index) {
+func (p *Self) SetVectorFrom(partnerID string, vec polarindex.Offset) {
 	if p == nil || p.geom == nil {
 		return
 	}
-	p.geom.KindPosts().PostCenter(center)
+	p.geom.KindPosts().PostVectorFrom(partnerID, vec)
 }

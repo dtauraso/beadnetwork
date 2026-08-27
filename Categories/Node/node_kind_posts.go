@@ -15,12 +15,18 @@ type RoundsPost struct {
 	Rounds, Msgs int32
 }
 
+type PartnerVectorPost struct {
+	PartnerID string
+	Vec       polarindex.Offset
+}
+
 type KindPost struct {
-	Tilt     *TiltIndexPost
-	Received *ReceivedVectorPost
-	Rounds   *RoundsPost
-	Lattice  *int32
-	Center   *polarindex.Index
+	Tilt        *TiltIndexPost
+	Received    *ReceivedVectorPost
+	Rounds      *RoundsPost
+	Lattice     *int32
+	Center      *polarindex.Index
+	FromPartner *PartnerVectorPost
 }
 
 type KindPosts struct {
@@ -67,6 +73,10 @@ func (k *KindPosts) PostLatticePoints(points int32) {
 
 func (k *KindPosts) PostCenter(center polarindex.Index) {
 	k.post(func(p *KindPost) { p.Center = &center })
+}
+
+func (k *KindPosts) PostVectorFrom(partnerID string, vec polarindex.Offset) {
+	k.post(func(p *KindPost) { p.FromPartner = &PartnerVectorPost{PartnerID: partnerID, Vec: vec} })
 }
 
 func (k *KindPosts) Take() (KindPost, bool) {

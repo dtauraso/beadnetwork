@@ -34,6 +34,24 @@ func (m *NodeGeometry) SelfKind() string { return m.selfKind }
 
 func (m *NodeGeometry) Deltas() *Deltas { return &m.deltas }
 
+func (m *NodeGeometry) PartnerIndex(partnerID string) (polarindex.Index, bool) {
+	off, ok := m.deltas.DeltaTo(partnerID)
+	if !ok {
+		return polarindex.Index{}, false
+	}
+	return polarindex.Compose(m.ComposedIndex(), off, m.Constants()), true
+}
+
+func (m *NodeGeometry) VectorFromPartner(partnerID string) (polarindex.Offset, bool) {
+	off, ok := m.deltas.DeltaTo(partnerID)
+	if !ok {
+		return polarindex.Offset{}, false
+	}
+	return polarindex.Offset{Phi: -off.Phi, Theta: -off.Theta, R: -off.R}, true
+}
+
+func (m *NodeGeometry) OutTargets() []string { return m.outTargets }
+
 func (m *NodeGeometry) Anim() *NodeBeadAnimation { return m.anim }
 
 func (m *NodeGeometry) OutEdges() *OutEdges { return &m.outEdges }

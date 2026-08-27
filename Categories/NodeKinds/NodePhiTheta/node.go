@@ -6,6 +6,7 @@ import (
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/TiltPanel"
 	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
+	"github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
 )
 
 type NodePhiTheta struct {
@@ -18,8 +19,10 @@ type NodePhiTheta struct {
 	VectorOut chan<- TiltPanel.TiltVectorMsg
 	VectorIn  <-chan TiltPanel.TiltVectorMsg
 
-	Center Turn
-	Top    Turn
+	Center    Turn
+	PartnerID string
+
+	Top Turn
 
 	Arrival Turn
 	Got     bool
@@ -55,7 +58,9 @@ func (n *NodePhiTheta) step(arrival Turn) {
 	}
 
 	if moved {
-		n.Self.SetCenter(n.Center)
+		n.Self.SetVectorFrom(n.PartnerID, polarindex.Offset{
+			Phi: n.Center.Phi, Theta: n.Center.Theta, R: n.Center.R,
+		})
 	}
 }
 
@@ -97,7 +102,7 @@ var Builder = BuilderFor("NodePhiTheta",
 		n.VectorOut = a.VectorOut()
 		n.VectorIn = a.VectorIn()
 
-		n.Center, n.Rings = a.CenterSeed()
+		n.PartnerID, n.Center, n.Rings = a.CenterSeed()
 		n.Top = a.TopSeed(n.Center)
 
 		n.Self.Breadcrumb("built", fmt.Sprintf("name=%s seed phi=%d theta=%d r=%d  rings phi=%d theta=%d  in=%v out=%v",
