@@ -4,6 +4,8 @@ let box: HTMLElement | null = null;
 
 function paint(): void {
   try {
+    const marker = document.getElementById("html-marker");
+    if (marker) marker.remove();
     if (!box) {
       box = document.createElement("div");
       box.id = "boot-trace";

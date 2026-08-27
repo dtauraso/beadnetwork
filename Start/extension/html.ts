@@ -59,6 +59,12 @@ export function buildWebviewHtml(
   <!-- Every panel is drawn in the canvas now, by Go's own stacks, so the canvas is all that
        is mounted. The two drag-log slots went with the rest: nothing had rendered into them
        since before this change. -->
+  <!-- A marker that needs NO script. A blank panel cannot tell you whether the html
+       failed to load or the scripts in it failed to run; those have opposite causes
+       and every diagnosis so far has had to guess between them. If this text is on
+       screen the html arrived and the problem is script execution. The boot trace
+       replaces it the moment any script runs. -->
+  <div id="html-marker" style="position:fixed;left:0;bottom:0;z-index:2147483646;padding:6px;font:11px ui-monospace,monospace;color:#888;background:#111">html loaded, no script has run yet</div>
   <div id="app"></div>
   <script nonce="${nonce}">
     window.BEADNETWORK_SCENE_BASE = "${sceneBase}";
