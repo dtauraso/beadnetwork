@@ -56,19 +56,7 @@ type Rings struct {
 
 func RingsFor(maxIndexPhi, maxIndexTheta int) Rings {
 	return Rings{
-		Phi:   Ring{Whole: maxIndexPhi / 2},
+		Phi:   Ring{Whole: maxIndexPhi},
 		Theta: Ring{Whole: maxIndexTheta},
 	}
-}
-
-func (rs Rings) CenterNext(center, top, arrival Turn) Turn {
-	return Turn{
-		Phi:   rs.Phi.Next(center.Phi, top.Phi, arrival.Phi),
-		Theta: rs.Theta.Next(center.Theta, top.Theta, arrival.Theta),
-		R:     center.R,
-	}
-}
-
-func (rs Rings) AtRest(top, arrival Turn) bool {
-	return rs.Phi.AtRest(top.Phi, arrival.Phi) && rs.Theta.AtRest(top.Theta, arrival.Theta)
 }

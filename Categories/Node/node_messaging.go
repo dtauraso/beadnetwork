@@ -21,6 +21,8 @@ type Messaging struct {
 	resolveDest func(id string) (Deposit, bool)
 
 	commitLocal func(id string, idx polarindex.Index)
+
+	applyDerived func(id string, idx polarindex.Index)
 }
 
 type Deposit func(msg Msg)
@@ -38,10 +40,18 @@ func (n *Messaging) WireMessaging(
 	resolveDest func(id string) (Deposit, bool),
 	sendMove func(id string, msg Msg),
 	commitLocal func(id string, idx polarindex.Index),
+	applyDerived func(id string, idx polarindex.Index),
 ) {
 	n.resolveDest = resolveDest
 	n.sendMove = sendMove
 	n.commitLocal = commitLocal
+	n.applyDerived = applyDerived
+}
+
+func (n *Messaging) ApplyDerived(id string, idx polarindex.Index) {
+	if n.applyDerived != nil {
+		n.applyDerived(id, idx)
+	}
 }
 
 func (n *Messaging) EnsureNeighborChannel(otherID string) {

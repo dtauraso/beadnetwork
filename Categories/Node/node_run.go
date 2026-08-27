@@ -4,6 +4,7 @@ import (
 	"context"
 
 	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
+	"github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
 )
 
 func (g *NodeGeometry) RunGeometry(ctx context.Context) {
@@ -65,7 +66,13 @@ func (g *NodeGeometry) applyKindPosts() {
 	}
 	if p.Center != nil {
 
-		g.msg.CommitLocal(g.id, *p.Center)
+		g.msg.ApplyDerived(g.id, *p.Center)
+	}
+	if p.FromPartner != nil {
+
+		if partner, ok := g.PartnerIndex(p.FromPartner.PartnerID); ok {
+			g.msg.ApplyDerived(g.id, polarindex.Compose(partner, p.FromPartner.Vec, g.Constants()))
+		}
 	}
 	g.emitGeometry()
 }

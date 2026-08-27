@@ -1,17 +1,23 @@
 # NodePhiTheta
 
-The pair φ, θ tab's node. Two of them face each other across one channel each way and walk
-around each other on the polar lattice, carrying the sphere card's arithmetic on BOTH angles
-at once — the same rule per row, φ over θ, with nothing crossing between the rows.
+The pair φ, θ tab's node. Two of them face each other across one channel each way, carrying
+the sphere card's arithmetic on BOTH angles — each angle on its OWN ring, with its own whole
+turn, its own ends and its own condition. Nothing crosses between them.
 
-Everything it holds is a POLAR COLUMN VECTOR: center, top, bottom, arrival, offset and sent are
-all `(φ, θ, r)`. A step is vector addition — `center + offset` — and what it sends is the
-center it just stepped to. The partner receives that vector as its own arrival.
+`top` is the node's POLE — the +Y arrow of the frame drawn around it, which is what
+`polar.WorldAxisPole` names — so `top` is index 0 on each ring and `bottom` is the −Y tip a
+half turn round. The four multiples of the quarter turn are that frame's tips.
+
+A step adds the angle's offset to that angle of the center and wraps at that angle's whole
+turn — `(c + offset) mod τ`, as the card writes it. `r` is carried through untouched: the
+rule never reads or changes it.
+
+What it sends is the center it just stepped to. The partner receives that as its own arrival.
 
 ## Description
 
-One half of a φ, θ pair: adds the offset its arrival calls for to its own center, one step per
-arrival, and sends the stepped center on as the partner's next arrival.
+One half of a φ, θ pair: adds each angle's offset to that angle of its center, wrapping at
+that angle's whole turn, and sends the stepped center on as the partner's next arrival.
 
 ## View
 

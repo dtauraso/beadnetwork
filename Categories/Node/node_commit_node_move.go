@@ -6,6 +6,15 @@ import (
 )
 
 func (mv *NodeMover) CommitNodeMoveLocal(nodeGeoms map[string]*NodeGeometry, edgeTable map[string]*edgetable.Edge, nm *NodeGeometry, committedIdx polarindex.Index) {
+	mv.applyNodeMoveLocal(nodeGeoms, edgeTable, nm, committedIdx)
+	nm.CommitIndex()
+}
+
+func (mv *NodeMover) ApplyDerivedNodeMove(nodeGeoms map[string]*NodeGeometry, edgeTable map[string]*edgetable.Edge, nm *NodeGeometry, committedIdx polarindex.Index) {
+	mv.applyNodeMoveLocal(nodeGeoms, edgeTable, nm, committedIdx)
+}
+
+func (mv *NodeMover) applyNodeMoveLocal(nodeGeoms map[string]*NodeGeometry, edgeTable map[string]*edgetable.Edge, nm *NodeGeometry, committedIdx polarindex.Index) {
 	nodeID := nm.ID()
 
 	deltaIdx := polarindex.Delta(committedIdx, nm.ComposedIndex())
@@ -17,6 +26,4 @@ func (mv *NodeMover) CommitNodeMoveLocal(nodeGeoms map[string]*NodeGeometry, edg
 		map[string]Vec3{nodeID: Vec3(committedPos)},
 		map[string]polarindex.Offset{nodeID: deltaIdx},
 		nm.Msg().SendMove())
-
-	nm.CommitIndex()
 }
