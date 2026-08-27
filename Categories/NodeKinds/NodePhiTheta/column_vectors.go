@@ -46,7 +46,7 @@ func (r Ring) Offset(center, top, arrival int) int {
 	switch {
 	case distanceOwn == r.Whole/4:
 		return 0
-	case distanceTop == 0 || distanceBottom == 0:
+	case distanceTop == 0 && distanceBottom == 0:
 		return 0
 	case distanceTop < r.Whole/4:
 		return -1
