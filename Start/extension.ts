@@ -103,7 +103,7 @@ function openTopologyEditor(context: vscode.ExtensionContext, folderUri?: vscode
 
   const runner = new BuildAndRunRunner();
 
-  const bundleWatcher = armBundleWatcher(panel, context, scenePath);
+  const bundleWatcher = armBundleWatcher(panel, context, scenePath, topologyPath);
 
   const repoRoot = resolveRepoRoot(vscode.workspace.workspaceFolders?.[0]?.uri.fsPath);
   const goWatcher = armGoWatcher(repoRoot, runner, panel);
