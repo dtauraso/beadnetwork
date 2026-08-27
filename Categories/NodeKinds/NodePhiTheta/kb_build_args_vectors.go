@@ -13,14 +13,14 @@ func (a BuildArgs) VectorIn() <-chan TiltPanel.TiltVectorMsg {
 	return a.PB.VectorInOf(a.Name)
 }
 
-func (a BuildArgs) CenterSeed() (center, whole Turn) {
+func (a BuildArgs) CenterSeed() (center Turn, rings Rings) {
 	if a.Deps == nil {
-		return Turn{}, Turn{}
+		return Turn{}, Rings{}
 	}
 	ng, _ := a.Deps.SelfDriveGeom(a.Name).(*NodeCat.NodeGeometry)
 	if ng == nil {
-		return Turn{}, Turn{}
+		return Turn{}, Rings{}
 	}
 	c := ng.Constants()
-	return ng.ComposedIndex(), Turn{Phi: c.MaxIndexPhi, Theta: c.MaxIndexTheta, R: 0}
+	return ng.ComposedIndex(), RingsFor(c.MaxIndexPhi, c.MaxIndexTheta)
 }

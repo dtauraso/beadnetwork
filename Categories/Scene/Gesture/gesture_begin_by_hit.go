@@ -17,6 +17,10 @@ var beginByHitKind = map[string]func(d Deps, g *Drag.GestureState, ev Drag.RawIn
 		}, ev)
 	},
 	"node": func(d Deps, g *Drag.GestureState, ev Drag.RawInputMsg) {
+		if !d.UI.SceneNodesDraggable {
+
+			return
+		}
 		if node, ok := d.RT.NodeFromHit(ev.Hit); ok {
 			if c, ok := d.MR.CenterOf(node); ok {
 				NodeGesture.Grab(&g.NodeDrag, node, NodeDrag.Vec3(c))

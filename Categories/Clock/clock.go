@@ -17,6 +17,8 @@ type Clock interface {
 
 	SpeedFrom(speed <-chan float64)
 
+	Speed() float64
+
 	Copy() Clock
 }
 
@@ -45,6 +47,8 @@ func (c *RealClock) WakeOn(wake <-chan struct{}) {
 func (c *RealClock) SpeedFrom(speed <-chan float64) {
 	c.speedCh = speed
 }
+
+func (c *RealClock) Speed() float64 { return c.speed }
 
 func (c *RealClock) applyPendingSpeed() {
 	select {

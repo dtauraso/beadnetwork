@@ -33,18 +33,34 @@ const SPHERE_CARD_FORMULAS = String.raw`\[
 \begin{bmatrix} \text{offset}_{\varphi} \\ \text{offset}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix}
       0 & \begin{array}{@{}l@{}} \text{if } \text{distance}_{\text{top}_{\varphi}} = 0 \\ \text{and } \text{distance}_{\text{bottom}_{\varphi}} = 0 \end{array} \\[8pt]
-      0 & \begin{array}{@{}l@{}} \text{if } \text{distance}_{\text{top}_{\theta}} = 0 \\ \text{and } \text{distance}_{\text{bottom}_{\theta}} = 0 \end{array}
+      0 &
     \end{bmatrix} \\
 & & \begin{bmatrix}
       -1 & \text{if } \text{distance}_{\text{top}_{\varphi}} < \tau_{\varphi}/4 \\
-      -1 & \text{if } \text{distance}_{\text{top}_{\theta}} < \tau_{\theta}/4
+      0 &
     \end{bmatrix} \\
 & & \begin{bmatrix}
       1 & \text{if } \text{distance}_{\text{bottom}_{\varphi}} < \tau_{\varphi}/4 \\
-      1 & \text{if } \text{distance}_{\text{bottom}_{\theta}} < \tau_{\theta}/4
+      0 &
     \end{bmatrix} \\
 & & \begin{bmatrix}
       0 & \text{otherwise} \\
+      0 &
+    \end{bmatrix} \\[3pt]
+& & \begin{bmatrix}
+      0 & \\[8pt]
+      0 & \begin{array}{@{}l@{}} \text{if } \text{distance}_{\text{top}_{\theta}} = 0 \\ \text{and } \text{distance}_{\text{bottom}_{\theta}} = 0 \end{array}
+    \end{bmatrix} \\
+& & \begin{bmatrix}
+      0 & \\
+      -1 & \text{if } \text{distance}_{\text{top}_{\theta}} < \tau_{\theta}/4
+    \end{bmatrix} \\
+& & \begin{bmatrix}
+      0 & \\
+      1 & \text{if } \text{distance}_{\text{bottom}_{\theta}} < \tau_{\theta}/4
+    \end{bmatrix} \\
+& & \begin{bmatrix}
+      0 & \\
       0 & \text{otherwise}
     \end{bmatrix} \\[3pt]
 \begin{bmatrix} \text{center}_{\text{next}_{\varphi}} \\ \text{center}_{\text{next}_{\theta}} \\ \text{center}_{\text{next}_{r}} \end{bmatrix}

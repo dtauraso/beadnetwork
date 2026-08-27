@@ -31,6 +31,8 @@ type UIState struct {
 
 	SceneEditable bool
 
+	SceneNodesDraggable bool
+
 	SceneKinds uint32
 
 	SceneSphere polar.SceneSphere

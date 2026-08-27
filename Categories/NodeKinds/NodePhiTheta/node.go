@@ -19,7 +19,8 @@ type NodePhiTheta struct {
 
 	Center Turn
 	Top    Turn
-	Turn   Turn
+
+	Rings Rings
 }
 
 func msgOf(v Turn) TiltPanel.TiltVectorMsg {
@@ -37,7 +38,7 @@ func (n *NodePhiTheta) send() {
 }
 
 func (n *NodePhiTheta) step(arrival Turn) {
-	next := CenterNext(n.Center, n.Top, arrival, n.Turn)
+	next := n.Rings.CenterNext(n.Center, n.Top, arrival)
 	if next != n.Center {
 		n.Center = next
 		n.Self.SetCenter(n.Center)
@@ -58,8 +59,10 @@ func (n *NodePhiTheta) Update(ctx context.Context) {
 			return
 		}
 
-		if arrival, ok := TiltPanel.PollRecvVector(n.VectorIn); ok {
-			n.step(vectorOf(arrival))
+		if clk.Speed() > 0 {
+			if arrival, ok := TiltPanel.PollRecvVector(n.VectorIn); ok {
+				n.step(vectorOf(arrival))
+			}
 		}
 
 		if err := clk.SleepCycle(ctx); err != nil {
@@ -78,7 +81,7 @@ var Builder = BuilderFor("NodePhiTheta",
 		n.VectorOut = a.VectorOut()
 		n.VectorIn = a.VectorIn()
 
-		n.Center, n.Turn = a.CenterSeed()
+		n.Center, n.Rings = a.CenterSeed()
 		n.Top = n.Center
 
 		return n, nil
