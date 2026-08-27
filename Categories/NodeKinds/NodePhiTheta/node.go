@@ -38,9 +38,19 @@ func (n *NodePhiTheta) send() {
 }
 
 func (n *NodePhiTheta) step(arrival Turn) {
-	next := n.Rings.CenterNext(n.Center, n.Top, arrival)
-	if next != n.Center {
-		n.Center = next
+	moved := false
+
+	if phi := n.Rings.Phi.Next(n.Center.Phi, n.Top.Phi, arrival.Phi); phi != n.Center.Phi {
+		n.Center.Phi = phi
+		moved = true
+	}
+
+	if theta := n.Rings.Theta.Next(n.Center.Theta, n.Top.Theta, arrival.Theta); theta != n.Center.Theta {
+		n.Center.Theta = theta
+		moved = true
+	}
+
+	if moved {
 		n.Self.SetCenter(n.Center)
 	}
 
