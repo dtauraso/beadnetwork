@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { bootPhase } from "../log/boot-trace";
 import { Canvas } from "@react-three/fiber";
 import * as THREE from "three";
 import { buildDeleteRaw, buildKeyRaw } from "../../../../Categories/Scene/Drag/raw-input-build";
@@ -17,6 +18,7 @@ function consumedByDraft(key: string): boolean {
 }
 
 export function ThreeView() {
+  bootPhase("ThreeView body");
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const pickRequest = useRef<PickFn | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);

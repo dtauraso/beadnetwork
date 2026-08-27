@@ -1,3 +1,4 @@
+import { bootPhase, bootFail } from "../Start/extension/webview/log/boot-trace";
 import { vscode } from "../Start/extension/webview/vscode-api";
 import { postLog } from "../Start/extension/webview/log/post";
 
@@ -6,6 +7,8 @@ declare global {
 }
 window.BEADNETWORK_BOOTED = true;
 
+bootPhase("bundle-eval");
+bootPhase("bases", `scene=${window.BEADNETWORK_SCENE_BASE ? "set" : "MISSING"} src=${window.BEADNETWORK_SRC_BASE ? "set" : "MISSING"}`);
 postLog("lifecycle", { phase: "bundle-eval" });
 
 import { createRoot } from "react-dom/client";
@@ -19,7 +22,12 @@ function Root() {
   return <ThreeView />;
 }
 
-startSceneBaseReads();
+try {
+  startSceneBaseReads();
+  bootPhase("scene-base reads started");
+} catch (err) {
+  bootFail("startSceneBaseReads", err);
+}
 
 window.addEventListener("pointerdown", (e) => {
   const app = document.getElementById("app");
@@ -36,14 +44,21 @@ window.addEventListener("pointerdown", (e) => {
 }, true);
 
 postLog("lifecycle", { phase: "before-render" });
-const app = document.getElementById("app")!;
-createRoot(app).render(
-  <ErrorBoundary>
-    <CrashListeners />
-    <Root />
-  </ErrorBoundary>,
-);
-
+bootPhase("before-render");
+const app = document.getElementById("app");
+bootPhase("#app", app ? `${app.clientWidth}x${app.clientHeight}` : "MISSING");
+try {
+  createRoot(app!).render(
+    <ErrorBoundary>
+      <CrashListeners />
+      <Root />
+    </ErrorBoundary>,
+  );
+  bootPhase("render called");
+} catch (err) {
+  bootFail("createRoot/render", err);
+}
 
 vscode.postMessage({ type: "ready" });
+bootPhase("ready sent");
 postLog("lifecycle", { phase: "ready-sent" });
