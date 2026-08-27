@@ -14,6 +14,9 @@ import { resolveRepoRoot } from "../Start/extension/repo-root";
 import { sceneRoots } from "../Start/extension/scene-roots";
 
 export function activate(context: vscode.ExtensionContext) {
+  const probeRoot = resolveRepoRoot(vscode.workspace.workspaceFolders?.[0]?.uri.fsPath);
+  if (probeRoot) resetProbeLogs(probeRoot);
+
   context.subscriptions.push(
     vscode.commands.registerCommand("topology.openEditor", (uri?: vscode.Uri) => {
       openTopologyEditor(context, uri);
@@ -69,9 +72,6 @@ function wireMessageHandler(
 
 function openTopologyEditor(context: vscode.ExtensionContext, folderUri?: vscode.Uri): void {
   const topologyPath = resolveTopologyPath(folderUri);
-
-  const probeRoot = resolveRepoRoot(vscode.workspace.workspaceFolders?.[0]?.uri.fsPath);
-  if (probeRoot) resetProbeLogs(probeRoot);
 
   if (topologyPath === undefined) {
     void vscode.window.showErrorMessage("Topology Editor: no topology directory found in this workspace.");
