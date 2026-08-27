@@ -13,8 +13,6 @@ import { startSceneBaseReads } from "../Categories/Scene/scene-base";
 import { ThreeView } from "../Start/extension/webview/scene/ThreeView";
 import { ErrorBoundary } from "../Start/extension/webview/log/ErrorBoundary";
 import { CrashListeners } from "../Start/extension/webview/log/CrashListeners";
-import { armBlankReport } from "../Start/extension/webview/log/BlankReport";
-import { ownerCounts } from "../Categories/Scene/owner-counts";
 
 
 function Root() {
@@ -49,8 +47,3 @@ createRoot(app).render(
 
 vscode.postMessage({ type: "ready" });
 postLog("lifecycle", { phase: "ready-sent" });
-
-armBlankReport(() => {
-  const { nodes, edges } = ownerCounts();
-  return nodes > 0 || edges > 0;
-});
