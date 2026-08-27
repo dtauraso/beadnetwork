@@ -39,13 +39,21 @@ func (r Ring) DistanceBottom(top, arrival int) int { return r.short(r.Bottom(top
 func (r Ring) DistanceOwn(center, top int) int { return r.short(center - top) }
 
 func (r Ring) Offset(center, top, arrival int) int {
-	if r.DistanceOwn(center, top) == r.Whole/4 {
-		return 0
-	}
+	distanceOwn := r.DistanceOwn(center, top)
+	distanceTop := r.DistanceTop(top, arrival)
+	distanceBottom := r.DistanceBottom(top, arrival)
 
-	if r.DistanceBottom(top, arrival) < r.Whole/4 {
+	switch {
+	case distanceOwn == r.Whole/4:
+		return 0
+	case distanceTop == 0 && distanceBottom == 0:
+		return 0
+	case distanceTop < r.Whole/4:
+		return -1
+	case distanceBottom < r.Whole/4:
 		return +1
 	}
+
 	return -1
 }
 
