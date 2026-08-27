@@ -27,6 +27,9 @@ type NodePhiTheta struct {
 	Arrival Turn
 	Got     bool
 
+	loggedPhi, loggedTheta int
+	logged                 bool
+
 	Rings Rings
 }
 
@@ -54,14 +57,27 @@ func (r Ring) logLine(angle string, center, top, arrival, next int) string {
 func (n *NodePhiTheta) step(arrival Turn) {
 	moved := false
 
+	offPhi := n.Rings.Phi.Offset(n.Top.Phi, arrival.Phi)
+	offTheta := n.Rings.Theta.Offset(n.Top.Theta, arrival.Theta)
+
+	if !n.logged || offPhi != n.loggedPhi {
+		n.Self.Breadcrumb("phi", n.Rings.Phi.logLine("phi", n.Center.Phi, n.Top.Phi, arrival.Phi,
+			n.Rings.Phi.Next(n.Center.Phi, n.Top.Phi, arrival.Phi)))
+		n.loggedPhi = offPhi
+	}
+	if !n.logged || offTheta != n.loggedTheta {
+		n.Self.Breadcrumb("theta", n.Rings.Theta.logLine("theta", n.Center.Theta, n.Top.Theta, arrival.Theta,
+			n.Rings.Theta.Next(n.Center.Theta, n.Top.Theta, arrival.Theta)))
+		n.loggedTheta = offTheta
+	}
+	n.logged = true
+
 	if phi := n.Rings.Phi.Next(n.Center.Phi, n.Top.Phi, arrival.Phi); phi != n.Center.Phi {
-		n.Self.Breadcrumb("phi", n.Rings.Phi.logLine("phi", n.Center.Phi, n.Top.Phi, arrival.Phi, phi))
 		n.Center.Phi = phi
 		moved = true
 	}
 
 	if theta := n.Rings.Theta.Next(n.Center.Theta, n.Top.Theta, arrival.Theta); theta != n.Center.Theta {
-		n.Self.Breadcrumb("theta", n.Rings.Theta.logLine("theta", n.Center.Theta, n.Top.Theta, arrival.Theta, theta))
 		n.Center.Theta = theta
 		moved = true
 	}
