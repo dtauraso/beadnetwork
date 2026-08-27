@@ -57,7 +57,7 @@ var kindAppearance = map[string]KindAppearance{
 	"PulseRight":   {Fill: "#e1f5fe", Stroke: "#01579b", Desc: "Holds and drives a value like Pulse, feeding the RIGHT input of a select gate."},
 	"TimeStart":    {Fill: "#fff3e0", Stroke: "#ffc400", Desc: "The head of a time chain: holds what arrives and fans the value it was holding to every downstream node at once."},
 	"NodePhi":      {Fill: "#fff8e1", Stroke: "#f9a825", Desc: "One half of a pair: turns its own tilt vector toward rest by exchanging directions with its partner, one step per arrival."},
-	"NodePhiTheta": {Fill: "#e8f5e9", Stroke: "#2e7d32", Desc: "One half of a φ, θ pair: on each arrival, moves each angle of its center to that angle's nearest quarter-turn tip when the rule calls for a move, and sends the stepped center on as the partner's next arrival."},
+	"NodePhiTheta": {Fill: "#e8f5e9", Stroke: "#2e7d32", Desc: "One half of a φ, θ pair: adds each angle's offset to that angle of its center, wrapping at the quarter turn, and sends the stepped center on as the partner's next arrival."},
 }
 
 // AppearanceOf returns a kind's palette appearance, and false when the kind is unknown.

@@ -43,19 +43,8 @@ func (r Ring) Offset(top, arrival int) int {
 	}
 }
 
-func (r Ring) Quadrant(center int) int {
-	q := r.Whole / 4
-	if q <= 0 {
-		return center
-	}
-	return mod(((mod(center, r.Whole)+q/2)/q)*q, r.Whole)
-}
-
 func (r Ring) Next(center, top, arrival int) int {
-	if r.Offset(top, arrival) == 0 {
-		return center
-	}
-	return r.Quadrant(center)
+	return mod(center+r.Offset(top, arrival), r.Whole/4)
 }
 
 func (r Ring) AtRest(top, arrival int) bool { return r.Offset(top, arrival) == 0 }
