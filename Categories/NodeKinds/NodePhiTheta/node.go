@@ -35,22 +35,10 @@ func vectorOf(m TiltPanel.TiltVectorMsg) Turn {
 }
 
 func (n *NodePhiTheta) send() {
-	n.Self.Breadcrumb("send", fmt.Sprintf("out=%v phi=%d theta=%d",
-		n.VectorOut != nil, n.Center.Phi, n.Center.Theta))
 	TiltPanel.SendVectorLatestNonBlocking(n.VectorOut, msgOf(n.Center))
 }
 
-func (r Ring) log(angle string, center, top, arrival int) string {
-	return fmt.Sprintf("%s c=%d top=%d bot=%d arr=%d dTop=%d dBot=%d q=%d off=%+d",
-		angle, center, top, r.Bottom(top), arrival,
-		r.DistanceTop(top, arrival), r.DistanceBottom(top, arrival),
-		r.Whole/4, r.Offset(top, arrival))
-}
-
 func (n *NodePhiTheta) step(arrival Turn) {
-	n.Self.Breadcrumb("phi", n.Rings.Phi.log("phi", n.Center.Phi, n.Top.Phi, arrival.Phi))
-	n.Self.Breadcrumb("theta", n.Rings.Theta.log("theta", n.Center.Theta, n.Top.Theta, arrival.Theta))
-
 	moved := false
 
 	if phi := n.Rings.Phi.Next(n.Center.Phi, n.Top.Phi, arrival.Phi); phi != n.Center.Phi {
@@ -84,8 +72,6 @@ func (n *NodePhiTheta) Update(ctx context.Context) {
 
 		if clk.Speed() > 0 {
 			if arrival, ok := TiltPanel.PollRecvVector(n.VectorIn); ok {
-				n.Self.Breadcrumb("recv", fmt.Sprintf("phi=%d theta=%d r=%d",
-					arrival.PhiIdx, arrival.ThetaIdx, arrival.RIdx))
 				n.step(vectorOf(arrival))
 			}
 		}

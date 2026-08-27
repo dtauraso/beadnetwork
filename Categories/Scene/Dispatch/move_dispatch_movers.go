@@ -29,7 +29,10 @@ func (md *MoveDispatch) buildNodeMovers(geoms map[string]Node.NodeGeom, clk cloc
 		commitLocal := func(_ string, idx polarindex.Index) {
 			md.Mover.CommitNodeMoveLocal(md.MR.NodeGeoms(), md.MR.Edges(), ownGeom, idx)
 		}
-		ng.Msg().WireMessaging(resolveDest, md.MR.EnqueueFor(ng), commitLocal)
+		applyDerived := func(_ string, idx polarindex.Index) {
+			md.Mover.ApplyDerivedNodeMove(md.MR.NodeGeoms(), md.MR.Edges(), ownGeom, idx)
+		}
+		ng.Msg().WireMessaging(resolveDest, md.MR.EnqueueFor(ng), commitLocal, applyDerived)
 		md.ChannelVectorsOn.ClaimChannelVectorsIn(id, ng.Channels().In())
 		md.MR.NodeGeoms()[id] = ng
 

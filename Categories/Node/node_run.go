@@ -65,7 +65,7 @@ func (g *NodeGeometry) applyKindPosts() {
 	}
 	if p.Center != nil {
 
-		g.msg.CommitLocal(g.id, *p.Center)
+		g.msg.ApplyDerived(g.id, *p.Center)
 	}
 	g.emitGeometry()
 }
