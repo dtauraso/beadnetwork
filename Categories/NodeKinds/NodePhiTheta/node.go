@@ -44,15 +44,24 @@ func (n *NodePhiTheta) send() {
 	TiltPanel.SendVectorLatestNonBlocking(n.VectorOut, msgOf(n.Center))
 }
 
+func (r Ring) logLine(angle string, center, top, arrival, next int) string {
+	return fmt.Sprintf("%s c=%d->%d top=%d bot=%d arr=%d dTop=%d dBot=%d q=%d off=%+d",
+		angle, center, next, top, r.Bottom(top), arrival,
+		r.DistanceTop(top, arrival), r.DistanceBottom(top, arrival),
+		r.Whole/4, r.Offset(top, arrival))
+}
+
 func (n *NodePhiTheta) step(arrival Turn) {
 	moved := false
 
 	if phi := n.Rings.Phi.Next(n.Center.Phi, n.Top.Phi, arrival.Phi); phi != n.Center.Phi {
+		n.Self.Breadcrumb("phi", n.Rings.Phi.logLine("phi", n.Center.Phi, n.Top.Phi, arrival.Phi, phi))
 		n.Center.Phi = phi
 		moved = true
 	}
 
 	if theta := n.Rings.Theta.Next(n.Center.Theta, n.Top.Theta, arrival.Theta); theta != n.Center.Theta {
+		n.Self.Breadcrumb("theta", n.Rings.Theta.logLine("theta", n.Center.Theta, n.Top.Theta, arrival.Theta, theta))
 		n.Center.Theta = theta
 		moved = true
 	}
