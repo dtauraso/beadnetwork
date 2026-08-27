@@ -11,6 +11,7 @@ func (mv *NodeMover) CommitNodeMoveLocal(nodeGeoms map[string]*NodeGeometry, edg
 }
 
 func (mv *NodeMover) ApplyDerivedNodeMove(nodeGeoms map[string]*NodeGeometry, edgeTable map[string]*edgetable.Edge, nm *NodeGeometry, committedIdx polarindex.Index) {
+	nm.OutEdges().SuppressDeltaPersist()
 	mv.applyNodeMoveLocal(nodeGeoms, edgeTable, nm, committedIdx)
 }
 
