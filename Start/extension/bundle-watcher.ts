@@ -1,8 +1,9 @@
+import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
 import { buildWebviewHtml } from "./html";
 
-export function armBundleWatcher(panel: vscode.WebviewPanel, context: vscode.ExtensionContext, scenePath: string): vscode.FileSystemWatcher {
+export function armBundleWatcher(panel: vscode.WebviewPanel, context: vscode.ExtensionContext, scenePath: string, anchorPath: string): vscode.FileSystemWatcher {
   const bundleWatcher = vscode.workspace.createFileSystemWatcher(
     new vscode.RelativePattern(
       vscode.Uri.file(path.join(context.extensionPath, "out")),
@@ -16,7 +17,15 @@ export function armBundleWatcher(panel: vscode.WebviewPanel, context: vscode.Ext
     if (pending) clearTimeout(pending);
     pending = setTimeout(() => {
       console.log("[topology] hot-reload: re-rendering webview.html");
-      panel.webview.html = buildWebviewHtml(panel.webview, context.extensionPath, scenePath);
+      const html = buildWebviewHtml(panel.webview, context.extensionPath, scenePath, anchorPath);
+      panel.webview.html = html;
+      try {
+        const dir = path.join(path.dirname(anchorPath), ".probe");
+        fs.mkdirSync(dir, { recursive: true });
+        fs.writeFileSync(path.join(dir, "webview.html"), html, "utf8");
+      } catch (err) {
+        console.log("[topology] could not record webview.html:", err);
+      }
     }, 150);
   };
   bundleWatcher.onDidChange(reload("change"));

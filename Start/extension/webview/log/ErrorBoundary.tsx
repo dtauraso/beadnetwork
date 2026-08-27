@@ -1,5 +1,6 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
 import { postLog } from "./post";
+import { bootFail } from "./boot-trace";
 
 interface Props {
   children: ReactNode;
@@ -17,6 +18,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo): void {
+    bootFail("render", error);
     postLog("render-error", {
       message: error.message,
       stack: error.stack ?? "",
