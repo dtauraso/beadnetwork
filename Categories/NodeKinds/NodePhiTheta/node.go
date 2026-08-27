@@ -24,9 +24,6 @@ type NodePhiTheta struct {
 
 	Top Turn
 
-	Arrival Turn
-	Got     bool
-
 	loggedPhi, loggedTheta int
 	logged                 bool
 
@@ -104,12 +101,9 @@ func (n *NodePhiTheta) Update(ctx context.Context) {
 
 		if clk.Speed() > 0 {
 			if arrival, ok := TiltPanel.PollRecvVector(n.VectorIn); ok {
-				n.Arrival, n.Got = vectorOf(arrival), true
+				n.step(vectorOf(arrival))
+				n.send()
 			}
-			if n.Got {
-				n.step(n.Arrival)
-			}
-			n.send()
 		}
 
 		if err := clk.SleepCycle(ctx); err != nil {
