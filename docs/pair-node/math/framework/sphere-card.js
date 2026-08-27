@@ -77,10 +77,10 @@ const SPHERE_CARD_FORMULAS = String.raw`\[
       1 & \text{if } \text{distance}_{\text{bottom}_{\varphi}} < \tau_{\varphi}/4 \\
       0 &
     \end{bmatrix} \\
-& & \begin{bmatrix}
-      0 & \text{otherwise} \\
-      0 &
-    \end{bmatrix} \\[3pt]
+& & \quad\text{no OTHERWISE: the distances sum to } \tau/2, \text{ so} \\
+& & \quad\text{"neither is acute" is only the quarter-turn} \\
+& & \quad\text{boundary — the PARTNER's angle having arrived,} \\
+& & \quad\text{which is not this angle's business} \\[3pt]
 & & \begin{bmatrix}
       0 & \\
       0 & \text{if } \text{distance}_{\text{own}_{\theta}} = \tau_{\theta}/4
@@ -96,10 +96,6 @@ const SPHERE_CARD_FORMULAS = String.raw`\[
 & & \begin{bmatrix}
       0 & \\
       1 & \text{if } \text{distance}_{\text{bottom}_{\theta}} < \tau_{\theta}/4
-    \end{bmatrix} \\
-& & \begin{bmatrix}
-      0 & \\
-      0 & \text{otherwise}
     \end{bmatrix} \\[3pt]
 \begin{bmatrix} \text{center}_{\text{next}_{\varphi}} \\ \text{center}_{\text{next}_{\theta}} \\ \text{center}_{\text{next}_{r}} \end{bmatrix}
   &=& \begin{bmatrix} (c_{\varphi} + \text{offset}_{\varphi}) \bmod (\tau_{\varphi}/4 + 1) \\

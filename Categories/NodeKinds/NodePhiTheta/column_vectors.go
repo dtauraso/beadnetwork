@@ -43,18 +43,10 @@ func (r Ring) Offset(center, top, arrival int) int {
 		return 0
 	}
 
-	distanceTop := r.DistanceTop(top, arrival)
-	distanceBottom := r.DistanceBottom(top, arrival)
-	switch {
-	case distanceTop == 0 && distanceBottom == 0:
-		return 0
-	case distanceTop < r.Whole/4:
-		return -1
-	case distanceBottom < r.Whole/4:
+	if r.DistanceBottom(top, arrival) < r.Whole/4 {
 		return +1
-	default:
-		return 0
 	}
+	return -1
 }
 
 func (r Ring) Next(center, top, arrival int) int {

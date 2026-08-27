@@ -17,9 +17,12 @@ to τ/2, so one of them is always acute whatever the other node's center is. The
 take the plain difference instead because its normal is generated from its top vector; that
 assumption does not survive the decoupling here.
 
-The ARRIVAL says which way to turn; the angle's OWN center says when to stop. An angle rests
-once its own center is a quarter turn from its axis, so it does not have to be at rest in the
-same cycle as anything else — phi and theta reach that point cycles apart, and with the halt
+The ARRIVAL says which way to turn; the angle's OWN center says when to stop, and that is the
+ONLY halt. There is no "otherwise" case: measured the short way the two distances sum to τ/2,
+so "neither is acute" happens only at the exact quarter-turn boundary, which is the PARTNER's
+angle arriving — halting on it coupled the two angles and froze each of them part-way to its
+own quarter turn. An angle rests once its own center is a quarter turn from its axis, so it
+does not have to be at rest in the same cycle as anything else — phi and theta reach that point cycles apart, and with the halt
 read off the arrival alone neither could hold the state long enough for the other to join it.
 A stopped center does not drift, so the rest survives the partner moving on.
 
