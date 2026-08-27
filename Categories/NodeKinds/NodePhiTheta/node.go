@@ -107,7 +107,7 @@ var Builder = BuilderFor("NodePhiTheta",
 		n.VectorIn = a.VectorIn()
 
 		n.Center, n.Rings = a.CenterSeed()
-		n.Top = n.Center
+		n.Top = a.TopSeed(n.Center)
 
 		n.Self.Breadcrumb("built", fmt.Sprintf("name=%s seed phi=%d theta=%d r=%d  rings phi=%d theta=%d  in=%v out=%v",
 			a.Name, n.Center.Phi, n.Center.Theta, n.Center.R,
