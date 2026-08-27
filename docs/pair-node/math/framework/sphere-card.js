@@ -98,11 +98,12 @@ const SPHERE_CARD_FORMULAS = String.raw`\[
       1 & \text{if } \text{distance}_{\text{bottom}_{\theta}} < \tau_{\theta}/4
     \end{bmatrix} \\[3pt]
 \begin{bmatrix} \text{center}_{\text{next}_{\varphi}} \\ \text{center}_{\text{next}_{\theta}} \\ \text{center}_{\text{next}_{r}} \end{bmatrix}
-  &=& \begin{bmatrix} (c_{\varphi} + \text{offset}_{\varphi}) \bmod (\tau_{\varphi}/4 + 1) \\
-                      (c_{\theta} + \text{offset}_{\theta}) \bmod (\tau_{\theta}/4 + 1) \\
+  &=& \begin{bmatrix} c_{\varphi} + \text{offset}_{\varphi} \\
+                      c_{\theta} + \text{offset}_{\theta} \\
                       c_{r} \end{bmatrix} \\
-& & \quad 0 \text{ to } \tau/4 \text{ INCLUSIVE — without the } +1 \\
-& & \quad\text{the quarter turn itself is out of reach} \\[3pt]
+& & \quad\text{no } \bmod: \text{ the center moves by one or not at all,} \\
+& & \quad\text{and the LOCK is what stops it — an angle whose} \\
+& & \quad\text{offset is } 0 \text{ never moves its center again} \\[3pt]
 \begin{bmatrix} \text{sent}_{\varphi} \\ \text{sent}_{\theta} \\ \text{sent}_{r} \end{bmatrix}
   &=& \begin{bmatrix} \text{center}_{\text{next}_{\varphi}} \\
                       \text{center}_{\text{next}_{\theta}} \\

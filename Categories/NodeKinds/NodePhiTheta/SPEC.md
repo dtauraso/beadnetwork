@@ -26,18 +26,20 @@ does not have to be at rest in the same cycle as anything else — phi and theta
 read off the arrival alone neither could hold the state long enough for the other to join it.
 A stopped center does not drift, so the rest survives the partner moving on.
 
-A step adds the angle's offset to that angle of the center and wraps at that angle's QUARTER
-turn, inclusive — `(c + offset) mod (τ/4 + 1)`, as the card writes it. The `+1` is what puts
-the quarter turn itself in range: without it the value stops at τ/4 − 1 and the one state the
-rule can rest in is unreachable. `r` is carried through untouched: the rule never reads or
-changes it.
+A step adds the angle's offset to that angle of the center — `c + offset`, as the card writes
+it, with NO mod. The center moves by one or not at all, and the LOCK is what stops it: an
+angle whose own distance from its axis is the quarter turn has offset 0 and never moves its
+center again. Wrapping the value was what produced a jump — a countdown reaching 0 rolled
+over to τ/4 and the node was placed a quarter turn away in one step, so the lock arrived as a
+teleport rather than as an approach. `r` is carried through untouched: the rule never reads
+or changes it.
 
 What it sends is the center it just stepped to. The partner receives that as its own arrival.
 
 ## Description
 
-One half of a φ, θ pair: adds each angle's offset to that angle of its center, wrapping at
-that angle's quarter turn inclusive, and sends the stepped center on as the partner's next
+One half of a φ, θ pair: adds each angle's offset to that angle of its center, moving by one
+until that angle locks on its own quarter turn, and sends the stepped center on as the partner's next
 arrival.
 
 ## View

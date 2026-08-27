@@ -50,7 +50,7 @@ func (r Ring) Offset(center, top, arrival int) int {
 }
 
 func (r Ring) Next(center, top, arrival int) int {
-	return mod(center+r.Offset(center, top, arrival), r.Whole/4+1)
+	return center + r.Offset(center, top, arrival)
 }
 
 func (r Ring) AtRest(center, top, arrival int) bool { return r.Offset(center, top, arrival) == 0 }
