@@ -16,7 +16,7 @@ type NodePhiTheta struct {
 
 	SpeedCh <-chan float64
 
-	VectorOut chan<- TiltPanel.TiltVectorMsg
+	VectorOut chan TiltPanel.TiltVectorMsg
 	VectorIn  <-chan TiltPanel.TiltVectorMsg
 
 	Center Turn

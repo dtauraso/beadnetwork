@@ -7,7 +7,7 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
 )
 
-func (a BuildArgs) VectorOut() chan<- TiltPanel.TiltVectorMsg {
+func (a BuildArgs) VectorOut() chan TiltPanel.TiltVectorMsg {
 	return a.PB.VectorOutOf(a.Name)
 }
 

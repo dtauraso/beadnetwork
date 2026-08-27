@@ -47,7 +47,7 @@ type latticeState struct {
 }
 
 type vectorExchange struct {
-	VectorOut chan<- TiltPanel.TiltVectorMsg
+	VectorOut chan TiltPanel.TiltVectorMsg
 	VectorIn  <-chan TiltPanel.TiltVectorMsg
 
 	ReceivedPhiIdx int32
