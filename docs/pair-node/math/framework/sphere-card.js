@@ -25,18 +25,26 @@ const SPHERE_CARD_FORMULAS = String.raw`\[
 & & \quad\text{the direction that just came in} \\
 & & \quad\text{an index on each ring, like top} \\[3pt]
 \begin{bmatrix} \text{distance}_{\text{top}_{\varphi}} \\ \text{distance}_{\text{top}_{\theta}} \end{bmatrix}
-  &=& \begin{bmatrix} \min\!\left(|\, \text{top}_{\varphi} - \text{arrival}_{\varphi} \,|,\;
-                                 \tau_{\varphi} - |\, \text{top}_{\varphi} - \text{arrival}_{\varphi} \,|\right) \\
-                      \min\!\left(|\, \text{top}_{\theta} - \text{arrival}_{\theta} \,|,\;
-                                 \tau_{\theta} - |\, \text{top}_{\theta} - \text{arrival}_{\theta} \,|\right) \end{bmatrix} \\
+  &=& \begin{bmatrix} \min \begin{array}{@{}l@{}}
+                             (\ |\, \text{top}_{\varphi} - \text{arrival}_{\varphi} \,|, \\
+                             \ \ \tau_{\varphi} - |\, \text{top}_{\varphi} - \text{arrival}_{\varphi} \,|\ )
+                           \end{array} \\[10pt]
+                      \min \begin{array}{@{}l@{}}
+                             (\ |\, \text{top}_{\theta} - \text{arrival}_{\theta} \,|, \\
+                             \ \ \tau_{\theta} - |\, \text{top}_{\theta} - \text{arrival}_{\theta} \,|\ )
+                           \end{array} \end{bmatrix} \\
 & & \quad\text{the way round the ring that is SHORTER} \\
 & & \quad\text{the radius vector is decoupled from the axis,} \\
 & & \quad\text{so the acute side has to be chosen, not assumed} \\[3pt]
 \begin{bmatrix} \text{distance}_{\text{bottom}_{\varphi}} \\ \text{distance}_{\text{bottom}_{\theta}} \end{bmatrix}
-  &=& \begin{bmatrix} \min\!\left(|\, \text{bottom}_{\varphi} - \text{arrival}_{\varphi} \,|,\;
-                                 \tau_{\varphi} - |\, \text{bottom}_{\varphi} - \text{arrival}_{\varphi} \,|\right) \\
-                      \min\!\left(|\, \text{bottom}_{\theta} - \text{arrival}_{\theta} \,|,\;
-                                 \tau_{\theta} - |\, \text{bottom}_{\theta} - \text{arrival}_{\theta} \,|\right) \end{bmatrix} \\
+  &=& \begin{bmatrix} \min \begin{array}{@{}l@{}}
+                             (\ |\, \text{bottom}_{\varphi} - \text{arrival}_{\varphi} \,|, \\
+                             \ \ \tau_{\varphi} - |\, \text{bottom}_{\varphi} - \text{arrival}_{\varphi} \,|\ )
+                           \end{array} \\[10pt]
+                      \min \begin{array}{@{}l@{}}
+                             (\ |\, \text{bottom}_{\theta} - \text{arrival}_{\theta} \,|, \\
+                             \ \ \tau_{\theta} - |\, \text{bottom}_{\theta} - \text{arrival}_{\theta} \,|\ )
+                           \end{array} \end{bmatrix} \\
 & & \quad\text{top and bottom are a half turn apart, so these} \\
 & & \quad\text{two sum to } \tau/2 \text{ — one is always acute} \\[3pt]
 \begin{bmatrix} \text{offset}_{\varphi} \\ \text{offset}_{\theta} \end{bmatrix}
