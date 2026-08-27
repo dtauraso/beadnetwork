@@ -70,20 +70,18 @@ func (n *NodePhiTheta) step(arrival Turn) {
 	}
 	n.logged = true
 
-	if phi := n.Rings.Phi.Next(n.Center.Phi, n.Top.Phi, arrival.Phi); phi != n.Center.Phi {
-		n.Center.Phi = phi
+	if offPhi != 0 {
+		n.Center.Phi += offPhi
 		moved = true
 	}
 
-	if theta := n.Rings.Theta.Next(n.Center.Theta, n.Top.Theta, arrival.Theta); theta != n.Center.Theta {
-		n.Center.Theta = theta
+	if offTheta != 0 {
+		n.Center.Theta += offTheta
 		moved = true
 	}
 
 	if moved {
-		n.Self.SetVectorFrom(n.PartnerID, polarindex.Offset{
-			Phi: n.Center.Phi, Theta: n.Center.Theta, R: n.Center.R,
-		})
+		n.Self.StepBy(polarindex.Offset{Phi: offPhi, Theta: offTheta})
 	}
 }
 
