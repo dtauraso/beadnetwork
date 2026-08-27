@@ -58,8 +58,10 @@ func (r Ring) Offset(center, top, arrival int) int {
 }
 
 func (r Ring) Next(center, top, arrival int) int {
-	return center + r.Offset(center, top, arrival)
+	return mod(center+r.Offset(center, top, arrival), r.Whole)
 }
+
+func (r Ring) Wrap(center int) int { return mod(center, r.Whole) }
 
 func (r Ring) AtRest(center, top, arrival int) bool { return r.Offset(center, top, arrival) == 0 }
 
@@ -73,4 +75,8 @@ func RingsFor(maxIndexPhi, maxIndexTheta int) Rings {
 		Phi:   Ring{Whole: maxIndexPhi},
 		Theta: Ring{Whole: maxIndexTheta},
 	}
+}
+
+func (rs Rings) Wrap(t Turn) Turn {
+	return Turn{Phi: rs.Phi.Wrap(t.Phi), Theta: rs.Theta.Wrap(t.Theta), R: t.R}
 }

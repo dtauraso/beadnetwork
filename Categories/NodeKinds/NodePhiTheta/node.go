@@ -70,12 +70,12 @@ func (n *NodePhiTheta) step(arrival Turn) {
 	n.logged = true
 
 	if offPhi != 0 {
-		n.Center.Phi += offPhi
+		n.Center.Phi = n.Rings.Phi.Next(n.Center.Phi, n.Top.Phi, arrival.Phi)
 		moved = true
 	}
 
 	if offTheta != 0 {
-		n.Center.Theta += offTheta
+		n.Center.Theta = n.Rings.Theta.Next(n.Center.Theta, n.Top.Theta, arrival.Theta)
 		moved = true
 	}
 
