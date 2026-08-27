@@ -18,15 +18,18 @@ take the plain difference instead because its normal is generated from its top v
 assumption does not survive the decoupling here.
 
 A step adds the angle's offset to that angle of the center and wraps at that angle's QUARTER
-turn — `(c + offset) mod τ/4`, as the card writes it. `r` is carried through untouched: the
-rule never reads or changes it.
+turn, inclusive — `(c + offset) mod (τ/4 + 1)`, as the card writes it. The `+1` is what puts
+the quarter turn itself in range: without it the value stops at τ/4 − 1 and the one state the
+rule can rest in is unreachable. `r` is carried through untouched: the rule never reads or
+changes it.
 
 What it sends is the center it just stepped to. The partner receives that as its own arrival.
 
 ## Description
 
 One half of a φ, θ pair: adds each angle's offset to that angle of its center, wrapping at
-that angle's quarter turn, and sends the stepped center on as the partner's next arrival.
+that angle's quarter turn inclusive, and sends the stepped center on as the partner's next
+arrival.
 
 ## View
 
