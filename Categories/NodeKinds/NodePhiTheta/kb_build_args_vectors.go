@@ -25,13 +25,7 @@ func (a BuildArgs) CenterSeed() (center Turn, rings Rings) {
 	}
 	c := ng.Constants()
 	rings = RingsFor(c.MaxIndexPhi, c.MaxIndexTheta)
-
-	for _, id := range ng.OutTargets() {
-		if vec, ok := ng.VectorFromPartner(id); ok {
-			return rings.Wrap(Turn(vec)), rings
-		}
-	}
-	return Turn{}, rings
+	return rings.Wrap(Turn(ng.ComposedIndex())), rings
 }
 
 func (a BuildArgs) TopSeed(center Turn) Turn {
