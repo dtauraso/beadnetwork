@@ -47,8 +47,25 @@ const SPHERE_CARD_FORMULAS = String.raw`\[
                            \end{array} \end{bmatrix} \\
 & & \quad\text{top and bottom are a half turn apart, so these} \\
 & & \quad\text{two sum to } \tau/2 \text{ — one is always acute} \\[3pt]
+\begin{bmatrix} \text{distance}_{\text{own}_{\varphi}} \\ \text{distance}_{\text{own}_{\theta}} \end{bmatrix}
+  &=& \begin{bmatrix} \min \begin{array}{@{}l@{}}
+                             (\ |\, c_{\varphi} - \text{top}_{\varphi} \,|, \\
+                             \ \ \tau_{\varphi} - |\, c_{\varphi} - \text{top}_{\varphi} \,|\ )
+                           \end{array} \\[10pt]
+                      \min \begin{array}{@{}l@{}}
+                             (\ |\, c_{\theta} - \text{top}_{\theta} \,|, \\
+                             \ \ \tau_{\theta} - |\, c_{\theta} - \text{top}_{\theta} \,|\ )
+                           \end{array} \end{bmatrix} \\
+& & \quad\text{how far this angle's OWN center is from its axis} \\[3pt]
 \begin{bmatrix} \text{offset}_{\varphi} \\ \text{offset}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix}
+      0 & \text{if } \text{distance}_{\text{own}_{\varphi}} = \tau_{\varphi}/4 \\
+      0 &
+    \end{bmatrix} \\
+& & \quad\text{arrived: an angle stops on ITS OWN quarter turn,} \\
+& & \quad\text{so it does not need the other to be there at the} \\
+& & \quad\text{same moment, and having stopped it stays} \\
+& & \begin{bmatrix}
       0 & \begin{array}{@{}l@{}} \text{if } \text{distance}_{\text{top}_{\varphi}} = 0 \\ \text{and } \text{distance}_{\text{bottom}_{\varphi}} = 0 \end{array} \\[8pt]
       0 &
     \end{bmatrix} \\
@@ -64,6 +81,10 @@ const SPHERE_CARD_FORMULAS = String.raw`\[
       0 & \text{otherwise} \\
       0 &
     \end{bmatrix} \\[3pt]
+& & \begin{bmatrix}
+      0 & \\
+      0 & \text{if } \text{distance}_{\text{own}_{\theta}} = \tau_{\theta}/4
+    \end{bmatrix} \\
 & & \begin{bmatrix}
       0 & \\[8pt]
       0 & \begin{array}{@{}l@{}} \text{if } \text{distance}_{\text{top}_{\theta}} = 0 \\ \text{and } \text{distance}_{\text{bottom}_{\theta}} = 0 \end{array}

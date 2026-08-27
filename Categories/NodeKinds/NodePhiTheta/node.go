@@ -48,17 +48,18 @@ func (n *NodePhiTheta) send() {
 }
 
 func (r Ring) logLine(angle string, center, top, arrival, next int) string {
-	return fmt.Sprintf("%s c=%d->%d top=%d bot=%d arr=%d dTop=%d dBot=%d q=%d off=%+d",
+	return fmt.Sprintf("%s c=%d->%d top=%d bot=%d arr=%d own=%d dTop=%d dBot=%d q=%d off=%+d",
 		angle, center, next, top, r.Bottom(top), arrival,
+		r.DistanceOwn(center, top),
 		r.DistanceTop(top, arrival), r.DistanceBottom(top, arrival),
-		r.Whole/4, r.Offset(top, arrival))
+		r.Whole/4, r.Offset(center, top, arrival))
 }
 
 func (n *NodePhiTheta) step(arrival Turn) {
 	moved := false
 
-	offPhi := n.Rings.Phi.Offset(n.Top.Phi, arrival.Phi)
-	offTheta := n.Rings.Theta.Offset(n.Top.Theta, arrival.Theta)
+	offPhi := n.Rings.Phi.Offset(n.Center.Phi, n.Top.Phi, arrival.Phi)
+	offTheta := n.Rings.Theta.Offset(n.Center.Theta, n.Top.Theta, arrival.Theta)
 
 	if !n.logged || offPhi != n.loggedPhi {
 		n.Self.Breadcrumb("phi", n.Rings.Phi.logLine("phi", n.Center.Phi, n.Top.Phi, arrival.Phi,

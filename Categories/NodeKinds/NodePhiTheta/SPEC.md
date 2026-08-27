@@ -17,6 +17,12 @@ to τ/2, so one of them is always acute whatever the other node's center is. The
 take the plain difference instead because its normal is generated from its top vector; that
 assumption does not survive the decoupling here.
 
+The ARRIVAL says which way to turn; the angle's OWN center says when to stop. An angle rests
+once its own center is a quarter turn from its axis, so it does not have to be at rest in the
+same cycle as anything else — phi and theta reach that point cycles apart, and with the halt
+read off the arrival alone neither could hold the state long enough for the other to join it.
+A stopped center does not drift, so the rest survives the partner moving on.
+
 A step adds the angle's offset to that angle of the center and wraps at that angle's QUARTER
 turn, inclusive — `(c + offset) mod (τ/4 + 1)`, as the card writes it. The `+1` is what puts
 the quarter turn itself in range: without it the value stops at τ/4 − 1 and the one state the
