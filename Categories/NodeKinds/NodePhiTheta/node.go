@@ -21,6 +21,9 @@ type NodePhiTheta struct {
 	Center Turn
 	Top    Turn
 
+	Arrival Turn
+	Got     bool
+
 	Rings Rings
 }
 
@@ -54,8 +57,6 @@ func (n *NodePhiTheta) step(arrival Turn) {
 	if moved {
 		n.Self.SetCenter(n.Center)
 	}
-
-	n.send()
 }
 
 func (n *NodePhiTheta) Update(ctx context.Context) {
@@ -72,8 +73,12 @@ func (n *NodePhiTheta) Update(ctx context.Context) {
 
 		if clk.Speed() > 0 {
 			if arrival, ok := TiltPanel.PollRecvVector(n.VectorIn); ok {
-				n.step(vectorOf(arrival))
+				n.Arrival, n.Got = vectorOf(arrival), true
 			}
+			if n.Got {
+				n.step(n.Arrival)
+			}
+			n.send()
 		}
 
 		if err := clk.SleepCycle(ctx); err != nil {
