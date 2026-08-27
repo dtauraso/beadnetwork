@@ -17,6 +17,7 @@ function paint(): void {
     }
     box.textContent = phases.join("\n");
   } catch {
+    box = null;
   }
 }
 
