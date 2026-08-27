@@ -63,10 +63,19 @@ const SPHERE_CARD_FORMULAS = String.raw`\[
       0 & \\
       0 & \text{otherwise}
     \end{bmatrix} \\[3pt]
+\text{quadrant}_{\varphi}(x) &=& \left\lfloor \frac{x + \tau_{\varphi}/8}{\tau_{\varphi}/4} \right\rfloor \cdot \frac{\tau_{\varphi}}{4} \bmod \tau_{\varphi} \\
+& & \quad\text{the nearest multiple of the quarter turn} \\
+& & \quad\text{a tip of the frame the node holds} \\[3pt]
+\text{quadrant}_{\theta}(x) &=& \left\lfloor \frac{x + \tau_{\theta}/8}{\tau_{\theta}/4} \right\rfloor \cdot \frac{\tau_{\theta}}{4} \bmod \tau_{\theta} \\[3pt]
 \begin{bmatrix} \text{center}_{\text{next}_{\varphi}} \\ \text{center}_{\text{next}_{\theta}} \\ \text{center}_{\text{next}_{r}} \end{bmatrix}
-  &=& \begin{bmatrix} (c_{\varphi} + \text{offset}_{\varphi}) \bmod \tau_{\varphi} \\
-                      (c_{\theta} + \text{offset}_{\theta}) \bmod \tau_{\theta} \\
-                      c_{r} \end{bmatrix} \\[3pt]
+  &=& \begin{bmatrix} \text{quadrant}_{\varphi}(c_{\varphi}) & \text{if } \text{offset}_{\varphi} \neq 0 \\
+                      \text{quadrant}_{\theta}(c_{\theta}) & \text{if } \text{offset}_{\theta} \neq 0 \\
+                      c_{r} & \end{bmatrix} \\
+& & \begin{bmatrix} c_{\varphi} & \text{otherwise} \\
+                    c_{\theta} & \text{otherwise} \\
+                    c_{r} & \end{bmatrix} \\
+& & \quad\text{a step does not walk the ring} \\
+& & \quad\text{it moves to the nearest tip} \\[3pt]
 \begin{bmatrix} \text{sent}_{\varphi} \\ \text{sent}_{\theta} \\ \text{sent}_{r} \end{bmatrix}
   &=& \begin{bmatrix} \text{center}_{\text{next}_{\varphi}} \\
                       \text{center}_{\text{next}_{\theta}} \\
