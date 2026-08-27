@@ -1,4 +1,5 @@
 import { FOCAL_PIXELS } from "./camera-consts";
+import { makeLeafValues } from "./leaf-values";
 
 const VALUE_NAMES = [
   "pivotX", "pivotY", "pivotZ",
@@ -18,47 +19,17 @@ declare global {
   }
 }
 
-function bases(): { scene: string; src: string } | undefined {
-  const scene = typeof window === "undefined" ? undefined : window.BEADNETWORK_SCENE_BASE;
-  const src = typeof window === "undefined" ? undefined : window.BEADNETWORK_SRC_BASE;
-  if (!scene || !src) return undefined;
-  return { scene, src };
-}
+const values = makeLeafValues<CameraValueName>(
+  "Categories/Scene/Camera/paths",
+  VALUE_NAMES,
+);
 
-export async function loadCameraBlockPath(): Promise<string | undefined> {
-  const b = bases();
-  if (!b) return undefined;
-  try {
-    const res = await fetch(`${b.src}/Categories/Scene/Camera/paths/block.bin`, { cache: "default" });
-    if (!res.ok) return undefined;
-    return await res.text();
-  } catch {
-    return undefined;
-  }
-}
-
-export async function readCameraPose(blockPath: string): Promise<CameraPose | undefined> {
-  const b = bases();
-  if (!b) return undefined;
-  let buf: ArrayBuffer;
-  try {
-    const res = await fetch(`${b.scene}/${blockPath}`, { cache: "no-store" });
-    if (!res.ok) return undefined;
-    buf = await res.arrayBuffer();
-  } catch {
-    return undefined;
-  }
-
-  const dv = new DataView(buf);
+export function readCameraPose(): CameraPose | undefined {
   const pose = { focalPx: FOCAL_PIXELS } as CameraPose;
-  let off = 0;
   for (const name of VALUE_NAMES) {
-    if (off + 4 > buf.byteLength) return undefined;
-    const len = dv.getUint32(off, true);
-    off += 4;
-    if (len < 8 || off + len > buf.byteLength) return undefined;
-    pose[name] = dv.getFloat64(off, true);
-    off += len;
+    const v = values.bytes(name);
+    if (!v || v.byteLength < 8) return undefined;
+    pose[name] = v.getFloat64(0, true);
   }
   return pose;
 }

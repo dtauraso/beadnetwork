@@ -91,7 +91,7 @@ func (pb PortBindings) ClockOf() clock.Clock { return pb.Clock }
 
 func (pb PortBindings) SpeedSinksOf() *SliderPanel.Sinks { return pb.SpeedSinks }
 
-func (pb PortBindings) VectorOutOf(name string) chan<- TiltPanel.TiltVectorMsg {
+func (pb PortBindings) VectorOutOf(name string) chan TiltPanel.TiltVectorMsg {
 	if pb.VectorOut == nil {
 		return nil
 	}

@@ -5,8 +5,9 @@ import (
 	"bytes"
 	"fmt"
 	"go/format"
-	"os"
 	"sort"
+
+	"github.com/dtauraso/beadnetwork/scripts/genpaths"
 )
 
 func writeNodeKindID(outPath string, kinds []KindEntry) error {
@@ -96,5 +97,5 @@ func writeNodeKindID(outPath string, kinds []KindEntry) error {
 	if err != nil {
 		return fmt.Errorf("format node_kind_id_gen.go: %w", err)
 	}
-	return os.WriteFile(outPath, formatted, 0644)
+	return genpaths.WriteIfChanged(outPath, formatted, 0644)
 }

@@ -17,7 +17,7 @@ func writeBlockPath(pathsDir, rel string) error {
 	if err := os.MkdirAll(pathsDir, 0o755); err != nil {
 		return err
 	}
-	if err := os.WriteFile(filepath.Join(pathsDir, "block.bin"), []byte(rel), 0o644); err != nil {
+	if err := genpaths.WriteIfChanged(filepath.Join(pathsDir, "block.bin"), []byte(rel), 0o644); err != nil {
 		return err
 	}
 	entries, err := os.ReadDir(pathsDir)
@@ -48,7 +48,7 @@ func writeRingPointNames(path string) error {
 	}
 	b.WriteString("] as const;\n\n")
 	b.WriteString("export type RingPointValueName = (typeof RING_POINT_VALUE_NAMES)[number];\n")
-	return os.WriteFile(path, []byte(b.String()), 0o644)
+	return genpaths.WriteIfChanged(path, []byte(b.String()), 0o644)
 }
 
 func main() {

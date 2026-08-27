@@ -25,13 +25,47 @@ const SPHERE_CARD_FORMULAS = String.raw`\[
 & & \quad\text{the direction that just came in} \\
 & & \quad\text{an index on each ring, like top} \\[3pt]
 \begin{bmatrix} \text{distance}_{\text{top}_{\varphi}} \\ \text{distance}_{\text{top}_{\theta}} \end{bmatrix}
-  &=& \begin{bmatrix} |\, \text{top}_{\varphi} - \text{arrival}_{\varphi} \,| \\
-                      |\, \text{top}_{\theta} - \text{arrival}_{\theta} \,| \end{bmatrix} \\[3pt]
+  &=& \begin{bmatrix} \min \begin{array}{@{}l@{}}
+                             (\ |\, \text{top}_{\varphi} - \text{arrival}_{\varphi} \,|, \\
+                             \ \ \tau_{\varphi} - |\, \text{top}_{\varphi} - \text{arrival}_{\varphi} \,|\ )
+                           \end{array} \\[10pt]
+                      \min \begin{array}{@{}l@{}}
+                             (\ |\, \text{top}_{\theta} - \text{arrival}_{\theta} \,|, \\
+                             \ \ \tau_{\theta} - |\, \text{top}_{\theta} - \text{arrival}_{\theta} \,|\ )
+                           \end{array} \end{bmatrix} \\
+& & \quad\text{the way round the ring that is SHORTER} \\
+& & \quad\text{the radius vector is decoupled from the axis,} \\
+& & \quad\text{so the acute side has to be chosen, not assumed} \\[3pt]
 \begin{bmatrix} \text{distance}_{\text{bottom}_{\varphi}} \\ \text{distance}_{\text{bottom}_{\theta}} \end{bmatrix}
-  &=& \begin{bmatrix} |\, \text{bottom}_{\varphi} - \text{arrival}_{\varphi} \,| \\
-                      |\, \text{bottom}_{\theta} - \text{arrival}_{\theta} \,| \end{bmatrix} \\[3pt]
+  &=& \begin{bmatrix} \min \begin{array}{@{}l@{}}
+                             (\ |\, \text{bottom}_{\varphi} - \text{arrival}_{\varphi} \,|, \\
+                             \ \ \tau_{\varphi} - |\, \text{bottom}_{\varphi} - \text{arrival}_{\varphi} \,|\ )
+                           \end{array} \\[10pt]
+                      \min \begin{array}{@{}l@{}}
+                             (\ |\, \text{bottom}_{\theta} - \text{arrival}_{\theta} \,|, \\
+                             \ \ \tau_{\theta} - |\, \text{bottom}_{\theta} - \text{arrival}_{\theta} \,|\ )
+                           \end{array} \end{bmatrix} \\
+& & \quad\text{top and bottom are a half turn apart, so these} \\
+& & \quad\text{two sum to } \tau/2 \text{ — one is always acute} \\[3pt]
+\begin{bmatrix} \text{distance}_{\text{own}_{\varphi}} \\ \text{distance}_{\text{own}_{\theta}} \end{bmatrix}
+  &=& \begin{bmatrix} \min \begin{array}{@{}l@{}}
+                             (\ |\, c_{\varphi} - \text{top}_{\varphi} \,|, \\
+                             \ \ \tau_{\varphi} - |\, c_{\varphi} - \text{top}_{\varphi} \,|\ )
+                           \end{array} \\[10pt]
+                      \min \begin{array}{@{}l@{}}
+                             (\ |\, c_{\theta} - \text{top}_{\theta} \,|, \\
+                             \ \ \tau_{\theta} - |\, c_{\theta} - \text{top}_{\theta} \,|\ )
+                           \end{array} \end{bmatrix} \\
+& & \quad\text{how far this angle's OWN center is from its axis} \\[3pt]
 \begin{bmatrix} \text{offset}_{\varphi} \\ \text{offset}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix}
+      0 & \text{if } \text{distance}_{\text{own}_{\varphi}} = \tau_{\varphi}/4 \\
+      0 &
+    \end{bmatrix} \\
+& & \quad\text{arrived: an angle stops on ITS OWN quarter turn,} \\
+& & \quad\text{so it does not need the other to be there at the} \\
+& & \quad\text{same moment, and having stopped it stays} \\
+& & \begin{bmatrix}
       0 & \begin{array}{@{}l@{}} \text{if } \text{distance}_{\text{top}_{\varphi}} = 0 \\ \text{and } \text{distance}_{\text{bottom}_{\varphi}} = 0 \end{array} \\[8pt]
       0 &
     \end{bmatrix} \\
@@ -44,9 +78,17 @@ const SPHERE_CARD_FORMULAS = String.raw`\[
       0 &
     \end{bmatrix} \\
 & & \begin{bmatrix}
-      0 & \text{otherwise} \\
+      -1 & \begin{array}{@{}l@{}} \text{if } \text{distance}_{\text{top}_{\varphi}} = \tau_{\varphi}/4 \\ \text{and } \text{distance}_{\text{bottom}_{\varphi}} = \tau_{\varphi}/4 \end{array} \\[8pt]
       0 &
-    \end{bmatrix} \\[3pt]
+    \end{bmatrix} \\
+& & \quad\text{the boundary, and the only state left: the} \\
+& & \quad\text{distances sum to } \tau/2, \text{ so both equal } \tau/4 \text{ is} \\
+& & \quad\text{the PARTNER's angle having arrived — this one} \\
+& & \quad\text{keeps turning, since only its OWN arrival rests it} \\[3pt]
+& & \begin{bmatrix}
+      0 & \\
+      0 & \text{if } \text{distance}_{\text{own}_{\theta}} = \tau_{\theta}/4
+    \end{bmatrix} \\
 & & \begin{bmatrix}
       0 & \\[8pt]
       0 & \begin{array}{@{}l@{}} \text{if } \text{distance}_{\text{top}_{\theta}} = 0 \\ \text{and } \text{distance}_{\text{bottom}_{\theta}} = 0 \end{array}
@@ -60,13 +102,16 @@ const SPHERE_CARD_FORMULAS = String.raw`\[
       1 & \text{if } \text{distance}_{\text{bottom}_{\theta}} < \tau_{\theta}/4
     \end{bmatrix} \\
 & & \begin{bmatrix}
-      0 & \\
-      0 & \text{otherwise}
+      0 & \\[8pt]
+      -1 & \begin{array}{@{}l@{}} \text{if } \text{distance}_{\text{top}_{\theta}} = \tau_{\theta}/4 \\ \text{and } \text{distance}_{\text{bottom}_{\theta}} = \tau_{\theta}/4 \end{array}
     \end{bmatrix} \\[3pt]
 \begin{bmatrix} \text{center}_{\text{next}_{\varphi}} \\ \text{center}_{\text{next}_{\theta}} \\ \text{center}_{\text{next}_{r}} \end{bmatrix}
-  &=& \begin{bmatrix} (c_{\varphi} + \text{offset}_{\varphi}) \bmod \tau_{\varphi} \\
-                      (c_{\theta} + \text{offset}_{\theta}) \bmod \tau_{\theta} \\
-                      c_{r} \end{bmatrix} \\[3pt]
+  &=& \begin{bmatrix} c_{\varphi} + \text{offset}_{\varphi} \\
+                      c_{\theta} + \text{offset}_{\theta} \\
+                      c_{r} \end{bmatrix} \\
+& & \quad\text{no } \bmod: \text{ the center moves by one or not at all,} \\
+& & \quad\text{and the LOCK is what stops it — an angle whose} \\
+& & \quad\text{offset is } 0 \text{ never moves its center again} \\[3pt]
 \begin{bmatrix} \text{sent}_{\varphi} \\ \text{sent}_{\theta} \\ \text{sent}_{r} \end{bmatrix}
   &=& \begin{bmatrix} \text{center}_{\text{next}_{\varphi}} \\
                       \text{center}_{\text{next}_{\theta}} \\

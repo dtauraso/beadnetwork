@@ -2,6 +2,7 @@ package Node
 
 import (
 	"context"
+	"fmt"
 
 	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
 	"github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
@@ -68,10 +69,42 @@ func (g *NodeGeometry) applyKindPosts() {
 
 		g.msg.ApplyDerived(g.id, *p.Center)
 	}
+	if p.Step != nil {
+
+		was := g.ComposedIndex()
+		placed := polarindex.Compose(was, *p.Step, g.Constants())
+
+		g.trace.Post([]RowEvent{{
+			Kind: KindBreadcrumb, Label: "placed", Debug: 1,
+			NodeRow: g.stream.NodeRow(),
+			PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
+			Text: fmt.Sprintf("step(phi %d theta %d r %d) was(phi %d theta %d r %d) now(phi %d theta %d r %d)",
+				p.Step.Phi, p.Step.Theta, p.Step.R,
+				was.Phi, was.Theta, was.R,
+				placed.Phi, placed.Theta, placed.R),
+		}})
+
+		g.msg.ApplyDerived(g.id, placed)
+	}
 	if p.FromPartner != nil {
 
 		if partner, ok := g.PartnerIndex(p.FromPartner.PartnerID); ok {
-			g.msg.ApplyDerived(g.id, polarindex.Compose(partner, p.FromPartner.Vec, g.Constants()))
+			was := g.ComposedIndex()
+			placed := polarindex.Compose(partner, p.FromPartner.Vec, g.Constants())
+
+			g.trace.Post([]RowEvent{{
+				Kind: KindBreadcrumb, Label: "placed", Debug: 1,
+				NodeRow: g.stream.NodeRow(),
+				PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
+				Text: fmt.Sprintf("partner=%s at(phi %d theta %d r %d) vec(phi %d theta %d r %d) was(phi %d theta %d r %d) now(phi %d theta %d r %d)",
+					p.FromPartner.PartnerID,
+					partner.Phi, partner.Theta, partner.R,
+					p.FromPartner.Vec.Phi, p.FromPartner.Vec.Theta, p.FromPartner.Vec.R,
+					was.Phi, was.Theta, was.R,
+					placed.Phi, placed.Theta, placed.R),
+			}})
+
+			g.msg.ApplyDerived(g.id, placed)
 		}
 	}
 	g.emitGeometry()

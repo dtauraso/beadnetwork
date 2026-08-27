@@ -14,6 +14,9 @@ import { resolveRepoRoot } from "../Start/extension/repo-root";
 import { sceneRoots } from "../Start/extension/scene-roots";
 
 export function activate(context: vscode.ExtensionContext) {
+  const probeRoot = resolveRepoRoot(vscode.workspace.workspaceFolders?.[0]?.uri.fsPath);
+  if (probeRoot) resetProbeLogs(probeRoot);
+
   context.subscriptions.push(
     vscode.commands.registerCommand("topology.openEditor", (uri?: vscode.Uri) => {
       openTopologyEditor(context, uri);
@@ -70,9 +73,6 @@ function wireMessageHandler(
 function openTopologyEditor(context: vscode.ExtensionContext, folderUri?: vscode.Uri): void {
   const topologyPath = resolveTopologyPath(folderUri);
 
-  const probeRoot = resolveRepoRoot(vscode.workspace.workspaceFolders?.[0]?.uri.fsPath);
-  if (probeRoot) resetProbeLogs(probeRoot);
-
   if (topologyPath === undefined) {
     void vscode.window.showErrorMessage("Topology Editor: no topology directory found in this workspace.");
     return;
@@ -94,6 +94,12 @@ function openTopologyEditor(context: vscode.ExtensionContext, folderUri?: vscode
     },
   );
   panel.webview.html = buildWebviewHtml(panel.webview, context.extensionPath, scenePath, topologyPath);
+
+  try {
+    const dir = path.join(path.dirname(topologyPath), ".probe");
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, "webview.html"), panel.webview.html, "utf8");
+  } catch { /* eslint-disable-line no-empty */ }
 
   const runner = new BuildAndRunRunner();
 

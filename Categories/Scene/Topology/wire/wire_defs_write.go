@@ -4,9 +4,10 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"os"
 	"sort"
 	"strings"
+
+	"github.com/dtauraso/beadnetwork/scripts/genpaths"
 )
 
 func WriteWireDefs(outPath string, props []wireProp) error {
@@ -61,5 +62,5 @@ func WriteWireDefs(outPath string, props []wireProp) error {
 	fmt.Fprintln(w, `};`)
 
 	w.Flush()
-	return os.WriteFile(outPath, buf.Bytes(), 0644)
+	return genpaths.WriteIfChanged(outPath, buf.Bytes(), 0644)
 }

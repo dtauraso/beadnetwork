@@ -7,7 +7,6 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
-	"os"
 	"path/filepath"
 	"strconv"
 
@@ -32,7 +31,7 @@ func main() {
 		"// Go owns the focal length. It is a compile-time constant, so it is generated\n" +
 		"// here rather than crossing the seam — a value that cannot change is not state.\n\n" +
 		fmt.Sprintf("export const FOCAL_PIXELS = %s;\n", strconv.FormatFloat(focal, 'g', -1, 64))
-	if err := os.WriteFile(outPath, []byte(body), 0o644); err != nil {
+	if err := genpaths.WriteIfChanged(outPath, []byte(body), 0o644); err != nil {
 		genpaths.Fatalf("write %s: %v", outPath, err)
 	}
 	genpaths.Announce(outPath, 1, "constants")

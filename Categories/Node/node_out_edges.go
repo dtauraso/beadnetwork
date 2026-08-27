@@ -42,11 +42,15 @@ type OutEdges struct {
 	srcID       string
 	persistRoot string
 	constants   polarindex.SceneConstants
+
+	persistSuppressed bool
 }
 
 func (o *OutEdges) SetSrcID(id string) { o.srcID = id }
 
 func (o *OutEdges) SetPersistRoot(root string) { o.persistRoot = root }
+
+func (o *OutEdges) SuppressDeltaPersist() { o.persistSuppressed = true }
 
 func (o *OutEdges) SetConstants(sc polarindex.SceneConstants) { o.constants = sc }
 
@@ -135,7 +139,7 @@ func (o *OutEdges) DeriveGeometry(self NodeGeom, deltas *Deltas) {
 }
 
 func (o *OutEdges) persistDelta(e *outEdge, off polarindex.Offset) {
-	if o.persistRoot == "" || o.srcID == "" {
+	if o.persistSuppressed || o.persistRoot == "" || o.srcID == "" {
 		return
 	}
 	if e.hasPersisted && e.persistedDragIdx == off {

@@ -27,6 +27,7 @@ type KindPost struct {
 	Lattice     *int32
 	Center      *polarindex.Index
 	FromPartner *PartnerVectorPost
+	Step        *polarindex.Offset
 }
 
 type KindPosts struct {
@@ -77,6 +78,10 @@ func (k *KindPosts) PostCenter(center polarindex.Index) {
 
 func (k *KindPosts) PostVectorFrom(partnerID string, vec polarindex.Offset) {
 	k.post(func(p *KindPost) { p.FromPartner = &PartnerVectorPost{PartnerID: partnerID, Vec: vec} })
+}
+
+func (k *KindPosts) PostStep(step polarindex.Offset) {
+	k.post(func(p *KindPost) { p.Step = &step })
 }
 
 func (k *KindPosts) Take() (KindPost, bool) {

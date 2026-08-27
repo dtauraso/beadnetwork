@@ -8,10 +8,11 @@ import (
 	"go/constant"
 	"go/parser"
 	"go/token"
-	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/dtauraso/beadnetwork/scripts/genpaths"
 
 	"github.com/dtauraso/beadnetwork/scripts/genpaths/constexpr"
 )
@@ -107,5 +108,5 @@ func WriteShadingParams(outPath string, params []shadingParam, genName, srcRel s
 	}
 
 	w.Flush()
-	return os.WriteFile(outPath, buf.Bytes(), 0644)
+	return genpaths.WriteIfChanged(outPath, buf.Bytes(), 0644)
 }

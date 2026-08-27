@@ -3,11 +3,12 @@ package main
 //go:generate go run .
 
 import (
-	"github.com/dtauraso/beadnetwork/scripts/genpaths"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/dtauraso/beadnetwork/scripts/genpaths"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/TiltPanel"
 )
@@ -16,7 +17,7 @@ func writePathFiles(pathsDir string) error {
 	if err := os.MkdirAll(pathsDir, 0o755); err != nil {
 		return err
 	}
-	if err := os.WriteFile(filepath.Join(pathsDir, "block.bin"), []byte(TiltPanel.ValueRelPath()), 0o644); err != nil {
+	if err := genpaths.WriteIfChanged(filepath.Join(pathsDir, "block.bin"), []byte(TiltPanel.ValueRelPath()), 0o644); err != nil {
 		return err
 	}
 	entries, err := os.ReadDir(pathsDir)
@@ -48,7 +49,7 @@ func writeNames(path string) error {
 	}
 	b.WriteString("] as const;\n\n")
 	b.WriteString("export type TiltPanelValueName = (typeof TILT_PANEL_VALUE_NAMES)[number];\n")
-	return os.WriteFile(path, []byte(b.String()), 0o644)
+	return genpaths.WriteIfChanged(path, []byte(b.String()), 0o644)
 }
 
 func main() {

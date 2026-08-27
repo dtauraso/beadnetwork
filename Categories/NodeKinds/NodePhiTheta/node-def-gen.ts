@@ -9,4 +9,4 @@ import type { NodeDef } from "../node-def";
 // is authored in SPEC.md and never renumbered, so a removed kind leaves a gap.
 export const KIND_NAME = "NodePhiTheta";
 export const KIND_ID = 12;
-export const DEF: NodeDef = { bg: "#e8f5e9", border: "#2e7d32", text: "#1b3c1e", minWidth: 70, shape: "rect", fill: "#e8f5e9", stroke: "#2e7d32", width: 70, height: 60, desc: "One half of a φ, θ pair: adds each angle's offset to that angle of its center, wrapping at that angle's whole turn, and sends the stepped center on as the partner's next arrival." };
+export const DEF: NodeDef = { bg: "#e8f5e9", border: "#2e7d32", text: "#1b3c1e", minWidth: 70, shape: "rect", fill: "#e8f5e9", stroke: "#2e7d32", width: 70, height: 60, desc: "One half of a φ, θ pair: adds each angle's offset to that angle of its center, moving by one until that angle locks on its own quarter turn, and sends the stepped center on as the partner's next arrival." };

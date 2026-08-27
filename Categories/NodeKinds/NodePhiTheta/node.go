@@ -16,16 +16,15 @@ type NodePhiTheta struct {
 
 	SpeedCh <-chan float64
 
-	VectorOut chan<- TiltPanel.TiltVectorMsg
+	VectorOut chan TiltPanel.TiltVectorMsg
 	VectorIn  <-chan TiltPanel.TiltVectorMsg
 
-	Center    Turn
-	PartnerID string
+	Center Turn
 
 	Top Turn
 
-	Arrival Turn
-	Got     bool
+	loggedPhi, loggedTheta int
+	logged                 bool
 
 	Rings Rings
 }
@@ -44,23 +43,44 @@ func (n *NodePhiTheta) send() {
 	TiltPanel.SendVectorLatestNonBlocking(n.VectorOut, msgOf(n.Center))
 }
 
+func (r Ring) logLine(angle string, center, top, arrival, next int) string {
+	return fmt.Sprintf("%s c=%d->%d top=%d bot=%d arr=%d own=%d dTop=%d dBot=%d q=%d off=%+d",
+		angle, center, next, top, r.Bottom(top), arrival,
+		r.DistanceOwn(center, top),
+		r.DistanceTop(top, arrival), r.DistanceBottom(top, arrival),
+		r.Whole/4, r.Offset(center, top, arrival))
+}
+
 func (n *NodePhiTheta) step(arrival Turn) {
 	moved := false
 
-	if phi := n.Rings.Phi.Next(n.Center.Phi, n.Top.Phi, arrival.Phi); phi != n.Center.Phi {
-		n.Center.Phi = phi
+	offPhi := n.Rings.Phi.Offset(n.Center.Phi, n.Top.Phi, arrival.Phi)
+	offTheta := n.Rings.Theta.Offset(n.Center.Theta, n.Top.Theta, arrival.Theta)
+
+	if !n.logged || offPhi != n.loggedPhi {
+		n.Self.Breadcrumb("phi", n.Rings.Phi.logLine("phi", n.Center.Phi, n.Top.Phi, arrival.Phi,
+			n.Rings.Phi.Next(n.Center.Phi, n.Top.Phi, arrival.Phi)))
+		n.loggedPhi = offPhi
+	}
+	if !n.logged || offTheta != n.loggedTheta {
+		n.Self.Breadcrumb("theta", n.Rings.Theta.logLine("theta", n.Center.Theta, n.Top.Theta, arrival.Theta,
+			n.Rings.Theta.Next(n.Center.Theta, n.Top.Theta, arrival.Theta)))
+		n.loggedTheta = offTheta
+	}
+	n.logged = true
+
+	if offPhi != 0 {
+		n.Center.Phi = n.Rings.Phi.Next(n.Center.Phi, n.Top.Phi, arrival.Phi)
 		moved = true
 	}
 
-	if theta := n.Rings.Theta.Next(n.Center.Theta, n.Top.Theta, arrival.Theta); theta != n.Center.Theta {
-		n.Center.Theta = theta
+	if offTheta != 0 {
+		n.Center.Theta = n.Rings.Theta.Next(n.Center.Theta, n.Top.Theta, arrival.Theta)
 		moved = true
 	}
 
 	if moved {
-		n.Self.SetVectorFrom(n.PartnerID, polarindex.Offset{
-			Phi: n.Center.Phi, Theta: n.Center.Theta, R: n.Center.R,
-		})
+		n.Self.StepBy(polarindex.Offset{Phi: offPhi, Theta: offTheta})
 	}
 }
 
@@ -78,12 +98,9 @@ func (n *NodePhiTheta) Update(ctx context.Context) {
 
 		if clk.Speed() > 0 {
 			if arrival, ok := TiltPanel.PollRecvVector(n.VectorIn); ok {
-				n.Arrival, n.Got = vectorOf(arrival), true
+				n.step(vectorOf(arrival))
+				n.send()
 			}
-			if n.Got {
-				n.step(n.Arrival)
-			}
-			n.send()
 		}
 
 		if err := clk.SleepCycle(ctx); err != nil {
@@ -102,7 +119,7 @@ var Builder = BuilderFor("NodePhiTheta",
 		n.VectorOut = a.VectorOut()
 		n.VectorIn = a.VectorIn()
 
-		n.PartnerID, n.Center, n.Rings = a.CenterSeed()
+		n.Center, n.Rings = a.CenterSeed()
 		n.Top = a.TopSeed(n.Center)
 
 		n.Self.Breadcrumb("built", fmt.Sprintf("name=%s seed phi=%d theta=%d r=%d  rings phi=%d theta=%d  in=%v out=%v",

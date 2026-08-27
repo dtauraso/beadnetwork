@@ -35,9 +35,9 @@ func (p *Self) Breadcrumb(label, value string) {
 	}})
 }
 
-func (p *Self) SetVectorFrom(partnerID string, vec polarindex.Offset) {
+func (p *Self) StepBy(step polarindex.Offset) {
 	if p == nil || p.geom == nil {
 		return
 	}
-	p.geom.KindPosts().PostVectorFrom(partnerID, vec)
+	p.geom.KindPosts().PostStep(step)
 }

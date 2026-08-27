@@ -15,7 +15,7 @@ func writeOwnerCountsPathFile(pathsDir string) error {
 	if err := os.MkdirAll(pathsDir, 0o755); err != nil {
 		return err
 	}
-	return os.WriteFile(filepath.Join(pathsDir, "block.bin"), []byte(Scene.CountsValueRelPath), 0o644)
+	return genpaths.WriteIfChanged(filepath.Join(pathsDir, "block.bin"), []byte(Scene.CountsValueRelPath), 0o644)
 }
 
 func writeOwnerCountsNames(path string) error {
@@ -31,7 +31,7 @@ func writeOwnerCountsNames(path string) error {
 	}
 	b.WriteString("] as const;\n\n")
 	b.WriteString("export type OwnerCountsValueName = (typeof OWNER_COUNTS_VALUE_NAMES)[number];\n")
-	return os.WriteFile(path, []byte(b.String()), 0o644)
+	return genpaths.WriteIfChanged(path, []byte(b.String()), 0o644)
 }
 
 func generateOwnerCounts(srcRoot string) {

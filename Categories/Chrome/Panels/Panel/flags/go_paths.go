@@ -4,8 +4,9 @@ import (
 	"bytes"
 	"fmt"
 	"go/format"
-	"os"
 	"path/filepath"
+
+	"github.com/dtauraso/beadnetwork/scripts/genpaths"
 )
 
 func writeGoPaths(panelDir string, flags []string) error {
@@ -32,5 +33,5 @@ func writeGoPaths(panelDir string, flags []string) error {
 	if err != nil {
 		return fmt.Errorf("format panel paths: %w", err)
 	}
-	return os.WriteFile(filepath.Join(panelDir, "flag_paths_gen.go"), formatted, 0o644)
+	return genpaths.WriteIfChanged(filepath.Join(panelDir, "flag_paths_gen.go"), formatted, 0o644)
 }

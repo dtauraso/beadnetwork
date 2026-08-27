@@ -6,18 +6,41 @@ turn, its own ends and its own condition. Nothing crosses between them.
 
 `top` is the node's POLE — the +Y arrow of the frame drawn around it, which is what
 `polar.WorldAxisPole` names — so `top` is index 0 on each ring and `bottom` is the −Y tip a
-half turn round. The four multiples of the quarter turn are that frame's tips.
+half turn round. The four multiples of the quarter turn are that frame's tips. It is an AXIS
+REFERENCE and never moves.
 
-A step adds the angle's offset to that angle of the center and wraps at that angle's whole
-turn — `(c + offset) mod τ`, as the card writes it. `r` is carried through untouched: the
-rule never reads or changes it.
+The radius vector is DECOUPLED from that axis, which is what lets a tilt be identified at all
+— coupled, it would already sit on a defined point and always read as locked. Decoupled, an
+arrival can be obtuse from one view and acute from the other, so both distances are measured
+the SHORT way round the ring. Since top and bottom are a half turn apart those two always sum
+to τ/2, so one of them is always acute whatever the other node's center is. The phi kind can
+take the plain difference instead because its normal is generated from its top vector; that
+assumption does not survive the decoupling here.
+
+The ARRIVAL says which way to turn; the angle's OWN center says when to stop, and that is the
+ONLY halt. There is no "otherwise" case: measured the short way the two distances sum to τ/2,
+so "neither is acute" happens only at the exact quarter-turn boundary, which is the PARTNER's
+angle arriving — halting on it coupled the two angles and froze each of them part-way to its
+own quarter turn. An angle rests once its own center is a quarter turn from its axis, so it
+does not have to be at rest in the same cycle as anything else — phi and theta reach that point cycles apart, and with the halt
+read off the arrival alone neither could hold the state long enough for the other to join it.
+A stopped center does not drift, so the rest survives the partner moving on.
+
+A step adds the angle's offset to that angle of the center — `c + offset`, as the card writes
+it, with NO mod. The center moves by one or not at all, and the LOCK is what stops it: an
+angle whose own distance from its axis is the quarter turn has offset 0 and never moves its
+center again. Wrapping the value was what produced a jump — a countdown reaching 0 rolled
+over to τ/4 and the node was placed a quarter turn away in one step, so the lock arrived as a
+teleport rather than as an approach. `r` is carried through untouched: the rule never reads
+or changes it.
 
 What it sends is the center it just stepped to. The partner receives that as its own arrival.
 
 ## Description
 
-One half of a φ, θ pair: adds each angle's offset to that angle of its center, wrapping at
-that angle's whole turn, and sends the stepped center on as the partner's next arrival.
+One half of a φ, θ pair: adds each angle's offset to that angle of its center, moving by one
+until that angle locks on its own quarter turn, and sends the stepped center on as the partner's next
+arrival.
 
 ## View
 

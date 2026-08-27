@@ -1,5 +1,10 @@
 window.MathJax = {
-  tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] },
+  tex: {
+    inlineMath: [['\\(', '\\)']],
+    displayMath: [['\\[', '\\]']],
+
+    maxBuffer: 60 * 1024
+  },
   chtml: {
     displayAlign: 'left',
     displayIndent: '0',

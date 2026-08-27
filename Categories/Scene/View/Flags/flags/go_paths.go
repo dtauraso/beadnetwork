@@ -4,8 +4,9 @@ import (
 	"bytes"
 	"fmt"
 	"go/format"
-	"os"
 	"path/filepath"
+
+	"github.com/dtauraso/beadnetwork/scripts/genpaths"
 )
 
 func writeGoPaths(overlayDir string, flags []overlayFlag) error {
@@ -32,7 +33,7 @@ func writeGoPaths(overlayDir string, flags []overlayFlag) error {
 	if err != nil {
 		return fmt.Errorf("format overlay paths: %w", err)
 	}
-	if err := os.WriteFile(filepath.Join(overlayDir, "flag_paths_gen.go"), formatted, 0o644); err != nil {
+	if err := genpaths.WriteIfChanged(filepath.Join(overlayDir, "flag_paths_gen.go"), formatted, 0o644); err != nil {
 		return err
 	}
 	return writeDefaultsTS(overlayDir, flags)
@@ -53,5 +54,5 @@ func writeDefaultsTS(overlayDir string, flags []overlayFlag) error {
 		fmt.Fprintf(&b, "  %q: %t,\n", f.flag, f.defaultOn)
 	}
 	fmt.Fprintln(&b, `};`)
-	return os.WriteFile(filepath.Join(overlayDir, "flag-defaults-gen.ts"), b.Bytes(), 0o644)
+	return genpaths.WriteIfChanged(filepath.Join(overlayDir, "flag-defaults-gen.ts"), b.Bytes(), 0o644)
 }

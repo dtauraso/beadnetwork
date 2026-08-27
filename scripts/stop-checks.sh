@@ -27,7 +27,11 @@ source "$LIB_DIR/guards.sh"
 resolve_repo_root_or_block
 cd_to_root_or_die
 
-changed="$(collect_changed_files)"
+if [ "$MODE" = "cli" ]; then
+  changed="$(collect_changed_files)"
+else
+  changed="$(collect_changed_since_last_check)"
+fi
 go_changed=$(echo "$changed" | grep -E '\.go$' || true)
 ts_changed=$(echo "$changed" | grep -E '\.' | grep -E '\.(ts|tsx)$' || true)
 css_changed=$(echo "$changed" | grep -E '\.' | grep -E '\.css$' || true)
@@ -37,7 +41,10 @@ out=""
 
 run_go_checks
 run_ts_checks
-run_guards
+
+if [ "$MODE" = "cli" ] || [ -n "$(printf '%s' "$changed" | tr -d '[:space:]')" ]; then
+  run_guards
+fi
 
 if [ $fail -ne 0 ]; then
   if [ "$MODE" = "cli" ]; then
@@ -53,6 +60,8 @@ print(json.dumps({'decision': 'block', 'reason': reason}))
 " <<< "$(printf '%b' "$out")"
   exit 0
 fi
+
+mark_stop_check_done
 
 if [ "$MODE" = "cli" ]; then
   echo "stop-checks: clean" >&2

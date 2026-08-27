@@ -7,7 +7,6 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
-	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -95,7 +94,7 @@ func writeScenes(path string, scenes []sceneEntry) error {
 		fmt.Fprintf(&b, "  { name: %q, dir: %q },\n", s.Name, s.Dir)
 	}
 	b.WriteString("];\n")
-	return os.WriteFile(path, []byte(b.String()), 0o644)
+	return genpaths.WriteIfChanged(path, []byte(b.String()), 0o644)
 }
 
 func main() {
