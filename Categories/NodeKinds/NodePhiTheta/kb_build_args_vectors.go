@@ -15,23 +15,16 @@ func (a BuildArgs) VectorIn() <-chan TiltPanel.TiltVectorMsg {
 	return a.PB.VectorInOf(a.Name)
 }
 
-func (a BuildArgs) CenterSeed() (partnerID string, center Turn, rings Rings) {
+func (a BuildArgs) CenterSeed() (center Turn, rings Rings) {
 	if a.Deps == nil {
-		return "", Turn{}, Rings{}
+		return Turn{}, Rings{}
 	}
 	ng, _ := a.Deps.SelfDriveGeom(a.Name).(*NodeCat.NodeGeometry)
 	if ng == nil {
-		return "", Turn{}, Rings{}
+		return Turn{}, Rings{}
 	}
 	c := ng.Constants()
-	rings = RingsFor(c.MaxIndexPhi, c.MaxIndexTheta)
-
-	for _, id := range ng.OutTargets() {
-		if vec, ok := ng.VectorFromPartner(id); ok {
-			return id, Turn(vec), rings
-		}
-	}
-	return "", Turn{}, rings
+	return Turn(ng.ComposedIndex()), RingsFor(c.MaxIndexPhi, c.MaxIndexTheta)
 }
 
 func (a BuildArgs) TopSeed(center Turn) Turn {

@@ -19,8 +19,7 @@ type NodePhiTheta struct {
 	VectorOut chan<- TiltPanel.TiltVectorMsg
 	VectorIn  <-chan TiltPanel.TiltVectorMsg
 
-	Center    Turn
-	PartnerID string
+	Center Turn
 
 	Top Turn
 
@@ -120,7 +119,7 @@ var Builder = BuilderFor("NodePhiTheta",
 		n.VectorOut = a.VectorOut()
 		n.VectorIn = a.VectorIn()
 
-		n.PartnerID, n.Center, n.Rings = a.CenterSeed()
+		n.Center, n.Rings = a.CenterSeed()
 		n.Top = a.TopSeed(n.Center)
 
 		n.Self.Breadcrumb("built", fmt.Sprintf("name=%s seed phi=%d theta=%d r=%d  rings phi=%d theta=%d  in=%v out=%v",
