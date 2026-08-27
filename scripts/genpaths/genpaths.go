@@ -1,6 +1,7 @@
 package genpaths
 
 import (
+	"bytes"
 	"fmt"
 	"io/fs"
 	"os"
@@ -9,6 +10,13 @@ import (
 )
 
 var genName = "gen"
+
+func WriteIfChanged(path string, data []byte, perm os.FileMode) error {
+	if old, err := os.ReadFile(path); err == nil && bytes.Equal(old, data) {
+		return nil
+	}
+	return os.WriteFile(path, data, perm)
+}
 
 func SetName(name string) { genName = name }
 

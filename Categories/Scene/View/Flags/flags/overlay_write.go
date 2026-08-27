@@ -5,7 +5,8 @@ import (
 	"bytes"
 	"fmt"
 	"go/format"
-	"os"
+
+	"github.com/dtauraso/beadnetwork/scripts/genpaths"
 )
 
 func WriteOverlayGen(statePath, tablesPath string, flags []overlayFlag) error {
@@ -39,7 +40,7 @@ func writeOverlayStateGen(outPath string, flags []overlayFlag) error {
 	if err != nil {
 		return fmt.Errorf("format overlay_state.go: %w", err)
 	}
-	return os.WriteFile(outPath, formatted, 0644)
+	return genpaths.WriteIfChanged(outPath, formatted, 0644)
 }
 
 func writeOverlayTablesGen(outPath string, flags []overlayFlag) error {
@@ -56,7 +57,7 @@ func writeOverlayTablesGen(outPath string, flags []overlayFlag) error {
 	if err != nil {
 		return fmt.Errorf("format overlay_tables_gen.go: %w", err)
 	}
-	return os.WriteFile(outPath, formatted, 0644)
+	return genpaths.WriteIfChanged(outPath, formatted, 0644)
 }
 
 func writeOverlayStateStruct(w *bufio.Writer, flags []overlayFlag) {

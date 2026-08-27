@@ -4,7 +4,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
 
@@ -33,7 +32,7 @@ func main() {
 	fmt.Fprintln(&b, "] as const;")
 
 	outPath := filepath.Join(srcRoot, "Scene", "update-attrs.ts")
-	if err := os.WriteFile(outPath, []byte(b.String()), 0o644); err != nil {
+	if err := genpaths.WriteIfChanged(outPath, []byte(b.String()), 0o644); err != nil {
 		genpaths.Fatalf("write %s: %v", outPath, err)
 	}
 	genpaths.Announce(outPath, len(Scene.UpdateAttrs), "update attrs")

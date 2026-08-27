@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"fmt"
 	"go/format"
-	"os"
 	"path/filepath"
 	"strings"
 
@@ -70,7 +69,7 @@ func writeNodeDef(outPath, goKind string, v ViewDef, ports []Port) error {
 	fmt.Fprintf(&b, "export const KIND_NAME = %q;\n", goKind)
 	fmt.Fprintf(&b, "export const KIND_ID = %s;\n", v.KindID)
 	fmt.Fprintf(&b, "export const DEF: NodeDef = %s;\n", buildDef(v, ports))
-	return os.WriteFile(outPath, []byte(b.String()), 0o644)
+	return genpaths.WriteIfChanged(outPath, []byte(b.String()), 0o644)
 }
 
 func buildDef(v ViewDef, ports []Port) string {
@@ -162,5 +161,5 @@ func writePortsTable(outPath string, ports []Port) error {
 	if err != nil {
 		return fmt.Errorf("format: %v", err)
 	}
-	return os.WriteFile(outPath, formatted, 0o644)
+	return genpaths.WriteIfChanged(outPath, formatted, 0o644)
 }

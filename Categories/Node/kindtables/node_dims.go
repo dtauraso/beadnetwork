@@ -5,7 +5,8 @@ import (
 	"bytes"
 	"fmt"
 	"go/format"
-	"os"
+
+	"github.com/dtauraso/beadnetwork/scripts/genpaths"
 )
 
 func writeNodeDims(outPath string, kinds []KindEntry) error {
@@ -43,5 +44,5 @@ func writeNodeDims(outPath string, kinds []KindEntry) error {
 	if err != nil {
 		return fmt.Errorf("format node_dims_gen.go: %w", err)
 	}
-	return os.WriteFile(outPath, formatted, 0644)
+	return genpaths.WriteIfChanged(outPath, formatted, 0644)
 }

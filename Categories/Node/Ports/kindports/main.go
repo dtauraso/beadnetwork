@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"fmt"
 	"go/format"
-	"os"
 	"path/filepath"
 
 	"github.com/dtauraso/beadnetwork/scripts/genpaths"
@@ -93,5 +92,5 @@ func writeKindPorts(outPath string, kinds []KindEntry) error {
 	if err != nil {
 		return fmt.Errorf("format: %v", err)
 	}
-	return os.WriteFile(outPath, formatted, 0o644)
+	return genpaths.WriteIfChanged(outPath, formatted, 0o644)
 }

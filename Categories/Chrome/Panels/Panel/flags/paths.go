@@ -3,6 +3,8 @@ package main
 import (
 	"os"
 	"path/filepath"
+
+	"github.com/dtauraso/beadnetwork/scripts/genpaths"
 )
 
 const RelFile = "view/panels.bin"
@@ -12,7 +14,7 @@ func WritePathFiles(pathsDir string, flags []string) error {
 		return err
 	}
 	keep := map[string]bool{"block.bin": true}
-	if err := os.WriteFile(filepath.Join(pathsDir, "block.bin"), []byte(RelFile), 0o644); err != nil {
+	if err := genpaths.WriteIfChanged(filepath.Join(pathsDir, "block.bin"), []byte(RelFile), 0o644); err != nil {
 		return err
 	}
 

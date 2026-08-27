@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/dtauraso/beadnetwork/scripts/genpaths"
+
 	"github.com/dtauraso/beadnetwork/Categories/Scene"
 )
 
@@ -17,7 +19,7 @@ func writeValuePathFiles(pathsDir string) error {
 	for _, v := range Scene.SceneValues {
 		name := v.Name + ".bin"
 		keep[name] = true
-		if err := os.WriteFile(filepath.Join(pathsDir, name), []byte(v.Path), 0o644); err != nil {
+		if err := genpaths.WriteIfChanged(filepath.Join(pathsDir, name), []byte(v.Path), 0o644); err != nil {
 			return err
 		}
 	}
@@ -51,5 +53,5 @@ func writeValueNames(path string) error {
 		fmt.Fprintf(&b, "  { name: %q, kind: %q },\n", v.Name, v.Kind)
 	}
 	b.WriteString("];\n")
-	return os.WriteFile(path, []byte(b.String()), 0o644)
+	return genpaths.WriteIfChanged(path, []byte(b.String()), 0o644)
 }

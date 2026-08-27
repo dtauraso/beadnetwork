@@ -4,10 +4,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/dtauraso/beadnetwork/scripts/genpaths"
-	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/dtauraso/beadnetwork/scripts/genpaths"
 
 	"github.com/dtauraso/beadnetwork/Categories/Node/TiltVectors"
 )
@@ -25,7 +25,7 @@ func writeNames(path string) error {
 	}
 	b.WriteString("] as const;\n\n")
 	b.WriteString("export type TiltValueName = (typeof TILT_VALUE_NAMES)[number];\n")
-	return os.WriteFile(path, []byte(b.String()), 0o644)
+	return genpaths.WriteIfChanged(path, []byte(b.String()), 0o644)
 }
 
 func main() {

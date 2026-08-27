@@ -4,7 +4,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
 
@@ -35,7 +34,7 @@ func main() {
 	fmt.Fprintln(&b)
 
 	outPath := filepath.Join(srcRoot, "Scene", "Drag", "input-defs.ts")
-	if err := os.WriteFile(outPath, []byte(b.String()), 0o644); err != nil {
+	if err := genpaths.WriteIfChanged(outPath, []byte(b.String()), 0o644); err != nil {
 		genpaths.Fatalf("write %s: %v", outPath, err)
 	}
 	genpaths.Announce(outPath, len(Drag.EventKinds)+len(Drag.HitKinds)+len(Drag.UpdateKinds), "input, hit and update kinds")

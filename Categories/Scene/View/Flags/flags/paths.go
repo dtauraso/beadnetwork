@@ -3,6 +3,8 @@ package main
 import (
 	"os"
 	"path/filepath"
+
+	"github.com/dtauraso/beadnetwork/scripts/genpaths"
 )
 
 const RelFile = "view/overlays.bin"
@@ -11,7 +13,7 @@ func WritePathFiles(pathsDir string, flags []overlayFlag) error {
 	if err := os.MkdirAll(pathsDir, 0o755); err != nil {
 		return err
 	}
-	if err := os.WriteFile(filepath.Join(pathsDir, "block.bin"), []byte(RelFile), 0o644); err != nil {
+	if err := genpaths.WriteIfChanged(filepath.Join(pathsDir, "block.bin"), []byte(RelFile), 0o644); err != nil {
 		return err
 	}
 

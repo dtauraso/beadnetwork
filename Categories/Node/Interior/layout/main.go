@@ -17,7 +17,7 @@ func writePathFiles(pathsDir string) error {
 	if err := os.MkdirAll(pathsDir, 0o755); err != nil {
 		return err
 	}
-	if err := os.WriteFile(filepath.Join(pathsDir, "block.bin"), []byte(interior.ValueRelTemplate), 0o644); err != nil {
+	if err := genpaths.WriteIfChanged(filepath.Join(pathsDir, "block.bin"), []byte(interior.ValueRelTemplate), 0o644); err != nil {
 		return err
 	}
 	entries, err := os.ReadDir(pathsDir)
@@ -51,7 +51,7 @@ func writeNames(path string) error {
 	b.WriteString("// How many interior slots a node has. Declared once, as SlotsPerNode in\n")
 	b.WriteString("// emitter.go, because it is the interior's own number and nothing else's.\n")
 	fmt.Fprintf(&b, "export const INTERIOR_SLOTS_PER_NODE = %d;\n", interior.SlotsPerNode)
-	return os.WriteFile(path, []byte(b.String()), 0o644)
+	return genpaths.WriteIfChanged(path, []byte(b.String()), 0o644)
 }
 
 func main() {

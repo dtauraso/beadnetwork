@@ -4,7 +4,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
 
@@ -26,7 +25,7 @@ func writeNames(path string) error {
 	}
 	b.WriteString("] as const;\n\n")
 	b.WriteString("export type VectorValueName = (typeof VECTOR_VALUE_NAMES)[number];\n")
-	return os.WriteFile(path, []byte(b.String()), 0o644)
+	return genpaths.WriteIfChanged(path, []byte(b.String()), 0o644)
 }
 
 func main() {
