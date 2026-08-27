@@ -2,6 +2,7 @@ package NodePhiTheta
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/TiltPanel"
 	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
@@ -37,7 +38,17 @@ func (n *NodePhiTheta) send() {
 	TiltPanel.SendVectorLatestNonBlocking(n.VectorOut, msgOf(n.Center))
 }
 
+func (r Ring) log(angle string, center, top, arrival int) string {
+	return fmt.Sprintf("%s c=%d top=%d bot=%d arr=%d dTop=%d dBot=%d q=%d off=%+d",
+		angle, center, top, r.Bottom(top), arrival,
+		r.DistanceTop(top, arrival), r.DistanceBottom(top, arrival),
+		r.Whole/4, r.Offset(top, arrival))
+}
+
 func (n *NodePhiTheta) step(arrival Turn) {
+	n.Self.Breadcrumb("phi", n.Rings.Phi.log("phi", n.Center.Phi, n.Top.Phi, arrival.Phi))
+	n.Self.Breadcrumb("theta", n.Rings.Theta.log("theta", n.Center.Theta, n.Top.Theta, arrival.Theta))
+
 	moved := false
 
 	if phi := n.Rings.Phi.Next(n.Center.Phi, n.Top.Phi, arrival.Phi); phi != n.Center.Phi {

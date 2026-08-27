@@ -23,6 +23,18 @@ func (p *Self) StartRule(ctx context.Context, clk clock.Clock) {
 	p.geom.Clocks().Use(clk)
 }
 
+func (p *Self) Breadcrumb(label, value string) {
+	if p == nil || p.geom == nil {
+		return
+	}
+	p.geom.Trace().Post([]NodeCat.RowEvent{{
+		Kind: NodeCat.KindBreadcrumb, Label: label, Debug: 1,
+		NodeRow: p.geom.Stream().NodeRow(),
+		PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
+		Text: value,
+	}})
+}
+
 func (p *Self) SetCenter(center polarindex.Index) {
 	if p == nil || p.geom == nil {
 		return
