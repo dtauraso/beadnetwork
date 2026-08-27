@@ -1,52 +1,20 @@
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { anglesToWorldOffset } from "./viewpoint-bridge";
-import { postLog } from "../../../Start/extension/webview/log/post";
-import { loadCameraBlockPath, readCameraPose, type CameraPose } from "./camera-leaves";
+import { readCameraPose } from "./camera-leaves";
 
 export function SceneCamera({ cameraRef }: {
   cameraRef?: React.MutableRefObject<THREE.PerspectiveCamera | null>;
 }) {
   const { camera, gl } = useThree();
   const pivotRef = useRef(new THREE.Vector3());
-  const poseRef = useRef<CameraPose | null>(null);
-
-  useEffect(() => {
-    let live = true;
-    let blockPath: string | undefined;
-    let reads = 0, sumMs = 0, maxMs = 0, windowStart = performance.now();
-    const pump = async () => {
-      while (live) {
-        blockPath ??= await loadCameraBlockPath();
-        if (blockPath !== undefined) {
-          const t0 = performance.now();
-          const pose = await readCameraPose(blockPath);
-          const ms = performance.now() - t0;
-          reads++; sumMs += ms; if (ms > maxMs) maxMs = ms;
-          if (pose) poseRef.current = pose;
-        }
-        const now = performance.now();
-        if (now - windowStart >= 1000) {
-          postLog("camera-pose-reads", {
-            reads,
-            meanMs: reads ? (sumMs / reads).toFixed(1) : "0",
-            maxMs: maxMs.toFixed(1),
-          });
-          reads = 0; sumMs = 0; maxMs = 0; windowStart = now;
-        }
-        await new Promise((r) => requestAnimationFrame(() => r(undefined)));
-      }
-    };
-    void pump();
-    return () => { live = false; };
-  }, []);
 
   useFrame(() => {
     const cam = camera as THREE.PerspectiveCamera;
     if (cameraRef) cameraRef.current = cam;
 
-    const pose = poseRef.current;
+    const pose = readCameraPose();
     if (!pose || !(pose.r > 0)) return;
 
     const pivot = pivotRef.current;
