@@ -24,9 +24,17 @@ func abs(x int) int {
 
 func (r Ring) Bottom(top int) int { return mod(top+r.Whole/2, r.Whole) }
 
-func (r Ring) DistanceTop(top, arrival int) int { return abs(top - arrival) }
+func (r Ring) short(delta int) int {
+	d := abs(delta) % r.Whole
+	if d > r.Whole-d {
+		return r.Whole - d
+	}
+	return d
+}
 
-func (r Ring) DistanceBottom(top, arrival int) int { return abs(r.Bottom(top) - arrival) }
+func (r Ring) DistanceTop(top, arrival int) int { return r.short(top - arrival) }
+
+func (r Ring) DistanceBottom(top, arrival int) int { return r.short(r.Bottom(top) - arrival) }
 
 func (r Ring) Offset(top, arrival int) int {
 	distanceTop := r.DistanceTop(top, arrival)

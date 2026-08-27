@@ -6,7 +6,16 @@ turn, its own ends and its own condition. Nothing crosses between them.
 
 `top` is the node's POLE — the +Y arrow of the frame drawn around it, which is what
 `polar.WorldAxisPole` names — so `top` is index 0 on each ring and `bottom` is the −Y tip a
-half turn round. The four multiples of the quarter turn are that frame's tips.
+half turn round. The four multiples of the quarter turn are that frame's tips. It is an AXIS
+REFERENCE and never moves.
+
+The radius vector is DECOUPLED from that axis, which is what lets a tilt be identified at all
+— coupled, it would already sit on a defined point and always read as locked. Decoupled, an
+arrival can be obtuse from one view and acute from the other, so both distances are measured
+the SHORT way round the ring. Since top and bottom are a half turn apart those two always sum
+to τ/2, so one of them is always acute whatever the other node's center is. The phi kind can
+take the plain difference instead because its normal is generated from its top vector; that
+assumption does not survive the decoupling here.
 
 A step adds the angle's offset to that angle of the center and wraps at that angle's QUARTER
 turn — `(c + offset) mod τ/4`, as the card writes it. `r` is carried through untouched: the
