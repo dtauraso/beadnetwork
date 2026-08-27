@@ -8,8 +8,8 @@ turn, its own ends and its own condition. Nothing crosses between them.
 `polar.WorldAxisPole` names — so `top` is index 0 on each ring and `bottom` is the −Y tip a
 half turn round. The four multiples of the quarter turn are that frame's tips.
 
-A step adds the angle's offset to that angle of the center and wraps at that angle's whole
-turn — `(c + offset) mod τ`, as the card writes it. `r` is carried through untouched: the
+A step adds the angle's offset to that angle of the center and wraps at that angle's QUARTER
+turn — `(c + offset) mod τ/4`, as the card writes it. `r` is carried through untouched: the
 rule never reads or changes it.
 
 What it sends is the center it just stepped to. The partner receives that as its own arrival.
@@ -17,7 +17,7 @@ What it sends is the center it just stepped to. The partner receives that as its
 ## Description
 
 One half of a φ, θ pair: adds each angle's offset to that angle of its center, wrapping at
-that angle's whole turn, and sends the stepped center on as the partner's next arrival.
+that angle's quarter turn, and sends the stepped center on as the partner's next arrival.
 
 ## View
 
