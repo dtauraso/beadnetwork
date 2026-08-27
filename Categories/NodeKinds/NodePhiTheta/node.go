@@ -35,6 +35,8 @@ func vectorOf(m TiltPanel.TiltVectorMsg) Turn {
 }
 
 func (n *NodePhiTheta) send() {
+	n.Self.Breadcrumb("send", fmt.Sprintf("out=%v phi=%d theta=%d",
+		n.VectorOut != nil, n.Center.Phi, n.Center.Theta))
 	TiltPanel.SendVectorLatestNonBlocking(n.VectorOut, msgOf(n.Center))
 }
 
@@ -82,6 +84,8 @@ func (n *NodePhiTheta) Update(ctx context.Context) {
 
 		if clk.Speed() > 0 {
 			if arrival, ok := TiltPanel.PollRecvVector(n.VectorIn); ok {
+				n.Self.Breadcrumb("recv", fmt.Sprintf("phi=%d theta=%d r=%d",
+					arrival.PhiIdx, arrival.ThetaIdx, arrival.RIdx))
 				n.step(vectorOf(arrival))
 			}
 		}
@@ -104,6 +108,10 @@ var Builder = BuilderFor("NodePhiTheta",
 
 		n.Center, n.Rings = a.CenterSeed()
 		n.Top = n.Center
+
+		n.Self.Breadcrumb("built", fmt.Sprintf("name=%s seed phi=%d theta=%d r=%d  rings phi=%d theta=%d  in=%v out=%v",
+			a.Name, n.Center.Phi, n.Center.Theta, n.Center.R,
+			n.Rings.Phi.Whole, n.Rings.Theta.Whole, n.VectorIn != nil, n.VectorOut != nil))
 
 		return n, nil
 	})
