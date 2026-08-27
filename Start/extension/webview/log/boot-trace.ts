@@ -1,6 +1,7 @@
 
 const phases: string[] = [];
 let box: HTMLElement | null = null;
+let failed = false;
 
 function paint(): void {
   try {
@@ -26,9 +27,17 @@ function paint(): void {
 export function bootPhase(name: string, detail?: string): void {
   phases.push(detail === undefined ? name : `${name}  ${detail}`);
   paint();
+  if (name === "ThreeView body" && !failed) {
+    setTimeout(() => {
+      if (failed) return;
+      box?.remove();
+      box = null;
+    }, 2000);
+  }
 }
 
 export function bootFail(what: string, err: unknown): void {
+  failed = true;
   const e = err as { message?: string; stack?: string } | undefined;
   phases.push(`!! ${what}: ${e?.message ?? String(err)}`);
   if (e?.stack) phases.push(e.stack.split("\n").slice(0, 6).join("\n"));
