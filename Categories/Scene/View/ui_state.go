@@ -142,8 +142,7 @@ func (ui *UIState) OrbitViewpoint(from, to Camera.Dir) {
 	ui.VP.OrbitViewpoint(ui.Gest.PressVP, from, to, ui.rotationScale())
 }
 func (ui *UIState) OrbitLockedViewpoint(from, to Camera.Dir) {
-	eyeFromCentre := Camera.EyeOf(ui.Gest.PressVP).Sub(Camera.Vec3(ui.SceneSphere.Center))
-	ui.VP.OrbitLockedViewpoint(ui.Gest.PressVP, from, to, Camera.WorldDirToAngles(eyeFromCentre))
+	ui.VP.OrbitLockedViewpoint(ui.Gest.PressVP, from, to, Camera.Vec3(ui.SceneSphere.Center))
 }
 func (ui *UIState) ZoomViewpoint(factor float64) {
 	ui.VP.ZoomViewpoint(factor)

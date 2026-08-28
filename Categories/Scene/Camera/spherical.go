@@ -25,6 +25,14 @@ func vecToDir(v Vec3) Dir {
 	return Dir{Phi: p.Phi, Theta: p.Theta}
 }
 
+func rotateVecAbout(v, k Vec3, angle float64) Vec3 {
+	cos, sin := math.Cos(angle), math.Sin(angle)
+
+	return v.Scale(cos).
+		Add(k.Cross(v).Scale(sin)).
+		Add(k.Scale(k.Dot(v) * (1 - cos)))
+}
+
 func AngleAboutAxis(from, to, axis Dir) float64 {
 	av := dirToVec(axis)
 	fv, tv := dirToVec(from), dirToVec(to)
