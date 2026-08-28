@@ -46,22 +46,16 @@ func KindDrivenByTiltPanel(kind string) bool {
 	return tiltPanelKinds[kind]
 }
 
-func SendVectorLatestNonBlocking(ch chan TiltVectorMsg, v TiltVectorMsg) {
+func SendVectorLatestNonBlocking(ch chan<- TiltVectorMsg, v TiltVectorMsg) {
 	if ch == nil {
 		return
 	}
-	for {
-		select {
-		case ch <- v:
-			return
-		default:
-		}
-		select {
-		case <-ch:
-		default:
-			return
-		}
+	select {
+	case ch <- v:
+		return
+	default:
 	}
+
 }
 
 func PollRecvVector(ch <-chan TiltVectorMsg) (TiltVectorMsg, bool) {

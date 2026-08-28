@@ -7,128 +7,76 @@ const SPHERE_CARD_SPEC = {
 
 const SPHERE_CARD_FORMULAS = String.raw`\[
 \begin{array}{@{}l@{\;}c@{\;}l@{}}
-\text{center} &=& \text{where the sphere sits} \\
-& & \text{the point every arrow leaves} \\[3pt]
+\textbf{shared} & & \textbf{— the two nodes together} \\[3pt]
+\begin{bmatrix} \text{seed}_{\varphi} \\ \text{seed}_{\theta} \end{bmatrix}
+  &=& \begin{bmatrix} 0,\, \tau_{\varphi} - 1 \\ 0,\, \tau_{\theta} - 1 \end{bmatrix} \\
+& & \quad\text{one seed per angle} \\[6pt]
+\begin{bmatrix} A_{c_{\varphi}},\ B_{c_{\varphi}} \\ A_{c_{\theta}},\ B_{c_{\theta}} \end{bmatrix}
+  &=& \begin{bmatrix} \text{seed}_{\varphi},\ (\text{seed}_{\varphi} + \tau_{\varphi}/2) \bmod \tau_{\varphi} \\
+                      \text{seed}_{\theta},\ (\text{seed}_{\theta} + \tau_{\theta}/2) \bmod \tau_{\theta} \end{bmatrix} \\
+& & \quad\text{each angle is one side of a complementary pair,} \\
+& & \quad\text{one side per node} \\[10pt]
+\textbf{one node} & & \\[3pt]
 \text{center} &=& (c_{\varphi},\, c_{\theta},\, c_{r}) \\[3pt]
 \tau_{\varphi} &=& \text{the whole turn on } \varphi \\[3pt]
 \tau_{\theta} &=& \text{the whole turn on } \theta \\[3pt]
 \tau_{r} &=& \text{the whole run on } r \\[3pt]
 \begin{bmatrix} \text{top}_{\varphi} \\ \text{top}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 0,\, \tau_{\varphi} - 1 \\ 0,\, \tau_{\theta} - 1 \end{bmatrix} \\
-& & \quad\text{the one end the node holds} \\
-& & \quad\text{an index on each ring} \\[3pt]
+  &=& \begin{bmatrix} 0,\, \tau_{\varphi} - 1 \\ 0,\, \tau_{\theta} - 1 \end{bmatrix} \\[3pt]
 \begin{bmatrix} \text{bottom}_{\varphi} \\ \text{bottom}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} (\text{top}_{\varphi} + \tau_{\varphi}/2) \bmod \tau_{\varphi} \\
                       (\text{top}_{\theta} + \tau_{\theta}/2) \bmod \tau_{\theta} \end{bmatrix} \\[3pt]
 \begin{bmatrix} \text{arrival}_{\varphi} \\ \text{arrival}_{\theta} \\ \text{arrival}_{r} \end{bmatrix}
   &=& \begin{bmatrix} 0,\, \tau_{\varphi} - 1 \\ 0,\, \tau_{\theta} - 1 \\ 0,\, \tau_{r} - 1 \end{bmatrix} \\
-& & \quad\text{the direction that just came in} \\
-& & \quad\text{an index on each ring, like top} \\[3pt]
 \begin{bmatrix} \text{distance}_{\text{top}_{\varphi}} \\ \text{distance}_{\text{top}_{\theta}} \end{bmatrix}
-  &=& \begin{bmatrix} \min \begin{array}{@{}l@{}}
-                             (\ |\, \text{top}_{\varphi} - \text{arrival}_{\varphi} \,|, \\
-                             \ \ \tau_{\varphi} - |\, \text{top}_{\varphi} - \text{arrival}_{\varphi} \,|\ )
-                           \end{array} \\[10pt]
-                      \min \begin{array}{@{}l@{}}
-                             (\ |\, \text{top}_{\theta} - \text{arrival}_{\theta} \,|, \\
-                             \ \ \tau_{\theta} - |\, \text{top}_{\theta} - \text{arrival}_{\theta} \,|\ )
-                           \end{array} \end{bmatrix} \\
-& & \quad\text{the way round the ring that is SHORTER} \\
-& & \quad\text{the radius vector is decoupled from the axis,} \\
-& & \quad\text{so the acute side has to be chosen, not assumed} \\[3pt]
+  &=& \begin{bmatrix} |\, \text{top}_{\varphi} - \text{arrival}_{\varphi} \,| \bmod \tau_{\varphi}/4 \\[10pt]
+                      |\, \text{top}_{\theta} - \text{arrival}_{\theta} \,| \bmod \tau_{\theta}/4 \end{bmatrix} \\[3pt]
 \begin{bmatrix} \text{distance}_{\text{bottom}_{\varphi}} \\ \text{distance}_{\text{bottom}_{\theta}} \end{bmatrix}
-  &=& \begin{bmatrix} \min \begin{array}{@{}l@{}}
-                             (\ |\, \text{bottom}_{\varphi} - \text{arrival}_{\varphi} \,|, \\
-                             \ \ \tau_{\varphi} - |\, \text{bottom}_{\varphi} - \text{arrival}_{\varphi} \,|\ )
-                           \end{array} \\[10pt]
-                      \min \begin{array}{@{}l@{}}
-                             (\ |\, \text{bottom}_{\theta} - \text{arrival}_{\theta} \,|, \\
-                             \ \ \tau_{\theta} - |\, \text{bottom}_{\theta} - \text{arrival}_{\theta} \,|\ )
-                           \end{array} \end{bmatrix} \\
-& & \quad\text{top and bottom are a half turn apart, so these} \\
-& & \quad\text{two sum to } \tau/2 \text{ — one is always acute} \\[3pt]
-\begin{bmatrix} \text{distance}_{\text{own}_{\varphi}} \\ \text{distance}_{\text{own}_{\theta}} \end{bmatrix}
-  &=& \begin{bmatrix} \min \begin{array}{@{}l@{}}
-                             (\ |\, c_{\varphi} - \text{top}_{\varphi} \,|, \\
-                             \ \ \tau_{\varphi} - |\, c_{\varphi} - \text{top}_{\varphi} \,|\ )
-                           \end{array} \\[10pt]
-                      \min \begin{array}{@{}l@{}}
-                             (\ |\, c_{\theta} - \text{top}_{\theta} \,|, \\
-                             \ \ \tau_{\theta} - |\, c_{\theta} - \text{top}_{\theta} \,|\ )
-                           \end{array} \end{bmatrix} \\
-& & \quad\text{how far this angle's OWN center is from its axis} \\[3pt]
+  &=& \begin{bmatrix} |\, \text{bottom}_{\varphi} - \text{arrival}_{\varphi} \,| \bmod \tau_{\varphi}/4 \\[10pt]
+                      |\, \text{bottom}_{\theta} - \text{arrival}_{\theta} \,| \bmod \tau_{\theta}/4 \end{bmatrix} \\[3pt]
 \begin{bmatrix} \text{offset}_{\varphi} \\ \text{offset}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix}
-      0 & \text{if } \text{distance}_{\text{own}_{\varphi}} = \tau_{\varphi}/4 \\
-      0 &
-    \end{bmatrix} \\
-& & \quad\text{arrived: an angle stops on ITS OWN quarter turn,} \\
-& & \quad\text{so it does not need the other to be there at the} \\
-& & \quad\text{same moment, and having stopped it stays} \\
-& & \begin{bmatrix}
       0 & \begin{array}{@{}l@{}} \text{if } \text{distance}_{\text{top}_{\varphi}} = 0 \\ \text{and } \text{distance}_{\text{bottom}_{\varphi}} = 0 \end{array} \\[8pt]
       0 &
-    \end{bmatrix} \\
+    \end{bmatrix} \ (1_{\varphi}) \\
 & & \begin{bmatrix}
       -1 & \text{if } \text{distance}_{\text{top}_{\varphi}} < \tau_{\varphi}/4 \\
       0 &
-    \end{bmatrix} \\
+    \end{bmatrix} \ (2_{\varphi}) \\
 & & \begin{bmatrix}
-      1 & \text{if } \text{distance}_{\text{bottom}_{\varphi}} < \tau_{\varphi}/4 \\
+      -1 & \text{if } \text{distance}_{\text{bottom}_{\varphi}} < \tau_{\varphi}/4 \\
       0 &
-    \end{bmatrix} \\
+    \end{bmatrix} \ (3_{\varphi}) \\
 & & \begin{bmatrix}
-      -1 & \begin{array}{@{}l@{}} \text{if } \text{distance}_{\text{top}_{\varphi}} = \tau_{\varphi}/4 \\ \text{and } \text{distance}_{\text{bottom}_{\varphi}} = \tau_{\varphi}/4 \end{array} \\[8pt]
+      0 & \text{otherwise} \\
       0 &
-    \end{bmatrix} \\
-& & \quad\text{the boundary, and the only state left: the} \\
-& & \quad\text{distances sum to } \tau/2, \text{ so both equal } \tau/4 \text{ is} \\
-& & \quad\text{the PARTNER's angle having arrived — this one} \\
-& & \quad\text{keeps turning, since only its OWN arrival rests it} \\[3pt]
-& & \begin{bmatrix}
-      0 & \\
-      0 & \text{if } \text{distance}_{\text{own}_{\theta}} = \tau_{\theta}/4
-    \end{bmatrix} \\
+    \end{bmatrix} \ (0_{\varphi}) \\
 & & \begin{bmatrix}
       0 & \\[8pt]
       0 & \begin{array}{@{}l@{}} \text{if } \text{distance}_{\text{top}_{\theta}} = 0 \\ \text{and } \text{distance}_{\text{bottom}_{\theta}} = 0 \end{array}
-    \end{bmatrix} \\
+    \end{bmatrix} \ (1_{\theta}) \\
 & & \begin{bmatrix}
       0 & \\
       -1 & \text{if } \text{distance}_{\text{top}_{\theta}} < \tau_{\theta}/4
-    \end{bmatrix} \\
+    \end{bmatrix} \ (2_{\theta}) \\
 & & \begin{bmatrix}
       0 & \\
-      1 & \text{if } \text{distance}_{\text{bottom}_{\theta}} < \tau_{\theta}/4
-    \end{bmatrix} \\
+      -1 & \text{if } \text{distance}_{\text{bottom}_{\theta}} < \tau_{\theta}/4
+    \end{bmatrix} \ (3_{\theta}) \\
 & & \begin{bmatrix}
-      0 & \\[8pt]
-      -1 & \begin{array}{@{}l@{}} \text{if } \text{distance}_{\text{top}_{\theta}} = \tau_{\theta}/4 \\ \text{and } \text{distance}_{\text{bottom}_{\theta}} = \tau_{\theta}/4 \end{array}
-    \end{bmatrix} \\[3pt]
+      0 & \\
+      0 & \text{otherwise}
+    \end{bmatrix} \ (0_{\theta}) \\[3pt]
 \begin{bmatrix} \text{center}_{\text{next}_{\varphi}} \\ \text{center}_{\text{next}_{\theta}} \\ \text{center}_{\text{next}_{r}} \end{bmatrix}
   &=& \begin{bmatrix} c_{\varphi} + \text{offset}_{\varphi} \\
                       c_{\theta} + \text{offset}_{\theta} \\
                       c_{r} \end{bmatrix} \\
-& & \quad\text{no } \bmod: \text{ the center moves by one or not at all,} \\
-& & \quad\text{and the LOCK is what stops it — an angle whose} \\
-& & \quad\text{offset is } 0 \text{ never moves its center again} \\[3pt]
 \begin{bmatrix} \text{sent}_{\varphi} \\ \text{sent}_{\theta} \\ \text{sent}_{r} \end{bmatrix}
   &=& \begin{bmatrix} \text{center}_{\text{next}_{\varphi}} \\
                       \text{center}_{\text{next}_{\theta}} \\
                       \text{center}_{\text{next}_{r}} \end{bmatrix}
 \end{array}
 \]`;
-
-const SPHERE_CARD_INTRO = [
-  ['', 'Both angles are in play, \\(\\varphi\\) and \\(\\theta\\). Each line below is a column, \\(\\varphi\\) over \\(\\theta\\) — the same rule on each row, and nothing crossing between the rows.'],
-];
-
-const SPHERE_CARD_NOTES = [
-  ['note', 'Drag either sphere to walk it around the other’s surface — the one you grab moves, the one you don’t stays put, and a grab where they overlap takes the sphere whose center is nearer. Drag off both to turn the pair. Scroll or shift-drag to pan, pinch (or ctrl-scroll) to zoom, 1 or 2 to turn about that sphere, double-click to put it all back. What faces away is dimmed, not hidden.'],
-  ['', 'Every arrow leaves \\(\\text{center}\\), the one thing both rings share. The rule never mentions it: the arithmetic is on indices, and \\(\\text{center}\\) only says where they get drawn.'],
-  ['', '\\(\\text{normal}_{\\varphi}\\) has two candidates a half turn apart; the one named here is the one on \\(\\text{top}_{\\varphi}\\)’s side of the ring.'],
-  ['', 'The code in <code>tiltring/rules.go</code> runs this on ONE angle today. This card is the shape it takes when the same arithmetic is carried on the polar lattice’s two angles.'],
-];
 
 const SPHERE_RING_LABELS = { theta: 'θ ring', phi: 'φ ring', cross: 'φ×θ ring' };
 
@@ -188,21 +136,7 @@ function sphereCardMath(tex) {
   return box;
 }
 
-function sphereCardNotes(notes) {
-  const box = document.createElement('div');
-  box.className = 'keynote';
-  for (const [cls, html] of notes) {
-    const p = document.createElement('p');
-    if (cls) p.className = cls;
-    p.innerHTML = html;
-    box.appendChild(p);
-  }
-  return box;
-}
-
 for (const host of document.querySelectorAll('[data-sphere-card]')) {
   host.appendChild(sphereCardFigure(SPHERE_CARD_SPEC));
-  host.appendChild(sphereCardNotes(SPHERE_CARD_INTRO));
   host.appendChild(sphereCardMath(SPHERE_CARD_FORMULAS));
-  host.appendChild(sphereCardNotes(SPHERE_CARD_NOTES));
 }
