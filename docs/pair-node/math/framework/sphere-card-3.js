@@ -11,12 +11,18 @@ const SPHERE_CARD_3_FORMULAS = String.raw`\[
 \begin{bmatrix} \text{seed}_{\varphi} \\ \text{seed}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0,\, \tau_{\varphi} - 1 \\ 0,\, \tau_{\theta} - 1 \end{bmatrix} \\
 & & \quad\text{one seed per angle} \\[6pt]
-\begin{bmatrix} A_{c_{\varphi}},\ B_{c_{\varphi}},\ C_{c_{\varphi}} \\
-                A_{c_{\theta}},\ B_{c_{\theta}},\ C_{c_{\theta}} \end{bmatrix}
-  &=& \text{seed}_{\varphi},\ (\text{seed}_{\varphi} + \tau_{\varphi}/3) \bmod \tau_{\varphi}, \\
-& & (\text{seed}_{\varphi} + 2\tau_{\varphi}/3) \bmod \tau_{\varphi} \\[3pt]
-& & \text{seed}_{\theta},\ (\text{seed}_{\theta} + \tau_{\theta}/3) \bmod \tau_{\theta}, \\
-& & (\text{seed}_{\theta} + 2\tau_{\theta}/3) \bmod \tau_{\theta} \\
+\begin{bmatrix}
+  \begin{bmatrix} A_{c_{\varphi}} \\ A_{c_{\theta}} \end{bmatrix} &
+  \begin{bmatrix} B_{c_{\varphi}} \\ B_{c_{\theta}} \end{bmatrix} &
+  \begin{bmatrix} C_{c_{\varphi}} \\ C_{c_{\theta}} \end{bmatrix}
+\end{bmatrix}
+  &=& \begin{bmatrix}
+        \begin{bmatrix} \text{seed}_{\varphi} \\ \text{seed}_{\theta} \end{bmatrix} &
+        \begin{bmatrix} (\text{seed}_{\varphi} + \tau_{\varphi}/3) \bmod \tau_{\varphi} \\[3pt]
+                        (\text{seed}_{\theta} + \tau_{\theta}/3) \bmod \tau_{\theta} \end{bmatrix} &
+        \begin{bmatrix} (\text{seed}_{\varphi} + 2\tau_{\varphi}/3) \bmod \tau_{\varphi} \\[3pt]
+                        (\text{seed}_{\theta} + 2\tau_{\theta}/3) \bmod \tau_{\theta} \end{bmatrix}
+      \end{bmatrix} \\
 & & \quad\text{a third of a turn apart, one side per node} \\[10pt]
 \textbf{one node} & & \\[3pt]
 \text{center} &=& (c_{\varphi},\, c_{\theta},\, c_{r}) \\[3pt]
