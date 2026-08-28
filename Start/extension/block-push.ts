@@ -1,6 +1,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
+import { resolveScenePath } from "./runner/scene-path";
 
 type Want = {
   pathsDir: string;
@@ -20,10 +21,12 @@ type WantMsg = {
 export function armBlockPush(
   panel: vscode.WebviewPanel,
   srcRoot: string,
-  sceneRoot: string,
+  anchorPath: string,
 ): vscode.Disposable {
   const wants = new Map<string, Want>();
   const watchers = new Map<string, fs.FSWatcher>();
+
+  let sceneRoot = resolveScenePath(anchorPath);
 
   const push = (want: Want, rel: string, row?: number): void => {
     let bytes: Buffer;
@@ -85,6 +88,24 @@ export function armBlockPush(
     }
   };
 
+  const rearm = (): void => {
+    const next = resolveScenePath(anchorPath);
+    if (next === sceneRoot) return;
+    sceneRoot = next;
+
+    for (const w of watchers.values()) w.close();
+    watchers.clear();
+    for (const want of wants.values()) {
+      want.sent.clear();
+      arm(want);
+    }
+  };
+
+  let selectionWatcher: fs.FSWatcher | undefined;
+  try {
+    selectionWatcher = fs.watch(path.join(anchorPath, "view", "scene"), () => { rearm(); });
+  } catch { /* eslint-disable-line no-empty */ }
+
   const sub = panel.webview.onDidReceiveMessage((raw: unknown) => {
     const msg = raw as WantMsg | undefined;
     if (msg?.type !== "want-block" || typeof msg.pathsDir !== "string") return;
@@ -106,6 +127,7 @@ export function armBlockPush(
   });
 
   return new vscode.Disposable(() => {
+    selectionWatcher?.close();
     for (const w of watchers.values()) w.close();
     watchers.clear();
     sub.dispose();
