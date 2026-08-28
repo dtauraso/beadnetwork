@@ -5,13 +5,13 @@ import { appendGoError } from "../probe/go-errors";
 import { ensureBinaryBuilt } from "./ensure-binary";
 import { isProbeTraceEnabled } from "../../probe-files";
 
-export function buildBinary(
+export async function buildBinary(
   channel: vscode.OutputChannel,
   repoRoot: string,
   binPath: string,
   goErrorsFile: string | undefined,
-): boolean {
-  const built = ensureBinaryBuilt(repoRoot, binPath);
+): Promise<boolean> {
+  const built = await ensureBinaryBuilt(repoRoot, binPath);
   if (!built.ok) {
     channel.appendLine(`\n[build error: ${built.error}]`);
     channel.show(true);
