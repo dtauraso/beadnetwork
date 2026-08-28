@@ -74,6 +74,9 @@ export function buildWebviewHtml(
         want: function (pathsDir, cadenceMs) {
           window.__vscodeApi.postMessage({ type: "want-block", pathsDir: pathsDir, cadenceMs: cadenceMs });
         },
+        wantFile: function (pathsDir, pathFile, cadenceMs) {
+          window.__vscodeApi.postMessage({ type: "want-block", pathsDir: pathsDir, pathFile: pathFile, cadenceMs: cadenceMs });
+        },
         wantRows: function (pathsDir, rows, cadenceMs) {
           window.__vscodeApi.postMessage({ type: "want-block", pathsDir: pathsDir, rows: rows, cadenceMs: cadenceMs });
         },

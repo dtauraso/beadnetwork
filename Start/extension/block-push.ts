@@ -5,6 +5,7 @@ import { resolveScenePath } from "./runner/scene-path";
 
 type Want = {
   pathsDir: string;
+  pathFile: string;
   rows?: number[];
   rel?: string;
   once: boolean;
@@ -15,9 +16,16 @@ type Want = {
 type WantMsg = {
   type?: string;
   pathsDir?: string;
+  pathFile?: string;
   rows?: number[];
   cadenceMs?: number;
 };
+
+const DEFAULT_PATH_FILE = "block.bin";
+
+function keyOf(pathsDir: string, pathFile: string): string {
+  return `${pathsDir}|${pathFile}`;
+}
 
 export function armBlockPush(
   panel: vscode.WebviewPanel,
@@ -45,6 +53,7 @@ export function armBlockPush(
     void panel.webview.postMessage({
       type: "block",
       pathsDir: want.pathsDir,
+      pathFile: want.pathFile,
       rel,
       row,
       b64: bytes.toString("base64"),
@@ -68,7 +77,7 @@ export function armBlockPush(
   const relsOf = (want: Want): { rel: string; row?: number }[] => {
     if (want.rel === undefined) {
       try {
-        want.rel = fs.readFileSync(path.join(srcRoot, want.pathsDir, "block.bin"), "utf8").trim();
+        want.rel = fs.readFileSync(path.join(srcRoot, want.pathsDir, want.pathFile), "utf8").trim();
       } catch {
         return [];
       }
@@ -116,7 +125,10 @@ export function armBlockPush(
     const msg = raw as WantMsg | undefined;
     if (msg?.type !== "want-block" || typeof msg.pathsDir !== "string") return;
 
-    const existing = wants.get(msg.pathsDir);
+    const pathFile = typeof msg.pathFile === "string" ? msg.pathFile : DEFAULT_PATH_FILE;
+    const key = keyOf(msg.pathsDir, pathFile);
+
+    const existing = wants.get(key);
     if (existing) {
       if (msg.rows) existing.rows = msg.rows;
       arm(existing);
@@ -124,12 +136,13 @@ export function armBlockPush(
     }
     const want: Want = {
       pathsDir: msg.pathsDir,
+      pathFile,
       rows: msg.rows,
       once: msg.cadenceMs === 0,
       sent: new Set(),
       stamps: new Map(),
     };
-    wants.set(msg.pathsDir, want);
+    wants.set(key, want);
     arm(want);
   });
 
