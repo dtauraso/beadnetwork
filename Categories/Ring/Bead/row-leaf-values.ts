@@ -4,6 +4,8 @@ export interface RowLeafValues<N extends string> {
 }
 
 
+const ROW_READ_INTERVAL_MS = 100;
+
 async function readUrl(url: string, cache: RequestCache): Promise<ArrayBuffer | undefined> {
   try {
     const res = await fetch(url, { cache });
@@ -42,7 +44,7 @@ export function makeRowLeafValues<N extends string>(
     started = true;
     const pump = async () => {
       for (;;) {
-        await new Promise((r) => requestAnimationFrame(() => r(undefined)));
+        await new Promise((r) => setTimeout(r, ROW_READ_INTERVAL_MS));
         const scene = window.BEADNETWORK_SCENE_BASE;
         const src = window.BEADNETWORK_SRC_BASE;
         if (!scene || !src) continue;

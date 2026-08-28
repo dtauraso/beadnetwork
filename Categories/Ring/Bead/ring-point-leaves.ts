@@ -4,6 +4,7 @@ import { RING_POINT_VALUE_NAMES, type RingPointValueName } from "./ring-point-va
 const values = makeLeafValues<RingPointValueName>(
   "Categories/Ring/Bead/ring-point-paths",
   RING_POINT_VALUE_NAMES,
+  "once",
 );
 
 export const beadRingPointBytes = values.bytes;

@@ -14,7 +14,6 @@ export interface LeafValues<N extends string> {
   text: (name: N) => Uint8Array | null;
 }
 
-
 async function readUrl(url: string, cache: RequestCache): Promise<ArrayBuffer | undefined> {
   try {
     const res = await fetch(url, { cache });
@@ -30,7 +29,7 @@ export function makeLeafValues<N extends string>(
   pathsDir: string,
   names: readonly N[],
 
-  cadence: "interval" | "frame" = "interval",
+  cadence: "interval" | "frame" | "once" = "interval",
 ): LeafValues<N> {
   const latest = new Map<string, DataView>();
   let started = false;
@@ -63,7 +62,10 @@ export function makeLeafValues<N extends string>(
           }
           if (blockPath !== undefined) {
             const buf = await readUrl(`${scene}/${blockPath}`, "no-store");
-            if (buf) split(buf);
+            if (buf) {
+              split(buf);
+              if (cadence === "once") return;
+            }
           }
         }
         await (cadence === "frame"

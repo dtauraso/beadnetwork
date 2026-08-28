@@ -4,7 +4,6 @@ import { SLIDER_PANEL_VALUE_NAMES, type SliderPanelValueName } from "./panel-val
 const values = makeLeafValues<SliderPanelValueName>(
   "Categories/Chrome/Panels/SliderPanel/paths",
   SLIDER_PANEL_VALUE_NAMES,
-  "frame",
 );
 
 export const sliderBytes = values.bytes;
