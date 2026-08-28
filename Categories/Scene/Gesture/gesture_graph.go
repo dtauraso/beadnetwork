@@ -36,7 +36,6 @@ var commitEdges = []gestureEdge{
 func commitHandholdStart(d Deps, g *Drag.GestureState, ev Drag.RawInputMsg) {
 
 	g.PrevX, g.PrevY = g.DownX, g.DownY
-	seedOrbitPivot(d, Vec3(g.RotPivot))
 	g.PressVP = d.UI.VP.Viewpoint
 }
 

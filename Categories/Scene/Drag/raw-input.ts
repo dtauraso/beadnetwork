@@ -11,6 +11,8 @@ export type RawHit = {
   kind: "port" | "handhold" | "node" | "edge" | "torus" | "empty";
   isInput: boolean;
 
+  onRim: boolean;
+
   nodeRow: number;
   portRow: number;
 

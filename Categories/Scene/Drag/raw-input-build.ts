@@ -59,7 +59,8 @@ export function buildPointerRaw(
   const ball = ballPoint(ballCam, ndcX, ndcY, pressOnRim);
   const prev = ballPoint(ballCam, pressNdc?.x ?? ndcX, pressNdc?.y ?? ndcY, pressOnRim);
   const hit: RawHit = {
-    kind: c.kind, isInput: c.isInput, nodeRow: c.nodeRow, portRow: c.portRow, edgeRow: c.edgeRow,
+    kind: c.kind, isInput: c.isInput, onRim: pressOnRim,
+    nodeRow: c.nodeRow, portRow: c.portRow, edgeRow: c.edgeRow,
     pointX: p.x, pointY: p.y, pointZ: p.z,
   };
   return {
@@ -78,7 +79,7 @@ export function buildPointerRaw(
 export function buildHomeRaw(aspect: number): RawInputEvent {
   const ball = { x: 0, y: 0, z: 0 };
   const hit: RawHit = {
-    kind: "empty", isInput: false, nodeRow: -1, portRow: -1, edgeRow: -1,
+    kind: "empty", isInput: false, onRim: false, nodeRow: -1, portRow: -1, edgeRow: -1,
     pointX: 0, pointY: 0, pointZ: 0,
   };
   return {
@@ -97,7 +98,7 @@ export function buildHomeRaw(aspect: number): RawInputEvent {
 export function buildDeleteRaw(): RawInputEvent {
   const ball = { x: 0, y: 0, z: 0 };
   const hit: RawHit = {
-    kind: "empty", isInput: false, nodeRow: -1, portRow: -1, edgeRow: -1,
+    kind: "empty", isInput: false, onRim: false, nodeRow: -1, portRow: -1, edgeRow: -1,
     pointX: 0, pointY: 0, pointZ: 0,
   };
   return {
@@ -116,7 +117,7 @@ export function buildDeleteRaw(): RawInputEvent {
 export function buildKeyRaw(key: string): RawInputEvent {
   const ball = { x: 0, y: 0, z: 0 };
   const hit: RawHit = {
-    kind: "empty", isInput: false, nodeRow: -1, portRow: -1, edgeRow: -1,
+    kind: "empty", isInput: false, onRim: false, nodeRow: -1, portRow: -1, edgeRow: -1,
     pointX: 0, pointY: 0, pointZ: 0,
   };
   return {
@@ -146,7 +147,8 @@ export function buildWheelRaw(
   const p = planePoint(cam, ndcX, ndcY, c.nodeRow);
   const ball = ballPoint(cam, ndcX, ndcY);
   const hit: RawHit = {
-    kind: c.kind, isInput: c.isInput, nodeRow: c.nodeRow, portRow: c.portRow, edgeRow: c.edgeRow,
+    kind: c.kind, isInput: c.isInput, onRim: false,
+    nodeRow: c.nodeRow, portRow: c.portRow, edgeRow: c.edgeRow,
     pointX: p.x, pointY: p.y, pointZ: p.z,
   };
   wheelTotal.x += e.deltaX;

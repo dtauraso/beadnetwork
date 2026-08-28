@@ -21,9 +21,26 @@ func (v *Viewpoint) Orbit(base Viewpoint, from, to Dir, scale float64) {
 	v.Rotate(rt)
 }
 
-func (v *Viewpoint) OrbitLocked(base Viewpoint, from, to Dir) {
+func (v *Viewpoint) OrbitLocked(base Viewpoint, from, to Dir, centre Vec3) {
 	*v = base
-	v.Rotate(Rot{Axis: base.Pos, Angle: AngleAboutAxis(from, to, base.Pos)})
+
+	eye := EyeOf(base)
+	spoke := eye.Sub(centre)
+	if spoke.Length() < 1e-9 {
+		v.Rotate(Rot{Axis: base.Pos, Angle: AngleAboutAxis(from, to, base.Pos)})
+		return
+	}
+	axis := vecToDir(spoke)
+	angle := AngleAboutAxis(from, to, axis)
+
+	k := dirToVec(axis)
+	pivot := centre.Add(rotateVecAbout(base.Pivot.Sub(centre), k, angle))
+	spokeToPivot := eye.Sub(pivot)
+
+	v.Pivot = pivot
+	v.R = spokeToPivot.Length()
+	v.Pos = WorldDirToAngles(spokeToPivot)
+	v.Up = RotateDir(base.Up, axis, angle)
 }
 
 func (v *Viewpoint) Zoom(factor float64) {

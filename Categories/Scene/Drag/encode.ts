@@ -21,6 +21,7 @@ export function encodeRawInput(ev: RawInputEvent): ArrayBuffer {
   w.f64(ev.deltaY);
   w.u8(enumIndex(IN_HIT_KINDS, ev.hit.kind));
   w.bool(ev.hit.isInput);
+  w.bool(ev.hit.onRim);
   w.i32(ev.hit.nodeRow);
   w.i32(ev.hit.portRow);
   w.i32(ev.hit.edgeRow);

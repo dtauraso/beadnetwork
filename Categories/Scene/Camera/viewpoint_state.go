@@ -27,8 +27,8 @@ func (v *ViewpointState) OrbitViewpoint(base Viewpoint, from, to Dir, scale floa
 	v.EmitViewpoint()
 }
 
-func (v *ViewpointState) OrbitLockedViewpoint(base Viewpoint, from, to Dir) {
-	v.OrbitLocked(base, from, to)
+func (v *ViewpointState) OrbitLockedViewpoint(base Viewpoint, from, to Dir, centre Vec3) {
+	v.OrbitLocked(base, from, to, centre)
 	v.EmitViewpoint()
 }
 
