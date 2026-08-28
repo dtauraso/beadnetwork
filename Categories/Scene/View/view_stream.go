@@ -49,6 +49,12 @@ func (ui *UIState) EmitViewFrame(events []RowEvent) {
 
 	ui.writeSceneColumns()
 	ui.writePointerTargetColumns()
+
+	if ui.ViewW <= 0 || ui.ViewH <= 0 {
+		ui.ViewBuildFrame(ui.viewTick, events)
+		return
+	}
+
 	pl := ui.PanelLayout()
 	ui.Slider.Write(pl.Speed, ui.Speed)
 	ui.Tilt.Write(pl.Tilt)
