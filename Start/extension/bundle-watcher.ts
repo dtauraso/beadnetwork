@@ -2,6 +2,7 @@ import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
 import { buildWebviewHtml } from "./html";
+import { webviewOptions } from "./webview-options";
 
 export function armBundleWatcher(panel: vscode.WebviewPanel, context: vscode.ExtensionContext, scenePath: string, anchorPath: string): vscode.FileSystemWatcher {
   const bundleWatcher = vscode.workspace.createFileSystemWatcher(
@@ -16,7 +17,12 @@ export function armBundleWatcher(panel: vscode.WebviewPanel, context: vscode.Ext
     console.log("[topology] bundleWatcher fired:", kind);
     if (pending) clearTimeout(pending);
     pending = setTimeout(() => {
+      if (!vscode.workspace.getConfiguration("beadnetwork").get<boolean>("reloadOnBundleBuild", false)) {
+        console.log("[topology] bundle changed; not re-rendering (beadnetwork.reloadOnBundleBuild is off)");
+        return;
+      }
       console.log("[topology] hot-reload: re-rendering webview.html");
+      panel.webview.options = webviewOptions(context.extensionPath, anchorPath);
       const html = buildWebviewHtml(panel.webview, context.extensionPath, scenePath, anchorPath);
       panel.webview.html = html;
       try {

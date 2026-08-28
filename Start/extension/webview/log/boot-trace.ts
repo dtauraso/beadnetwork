@@ -26,13 +26,10 @@ function paint(): void {
 
 export function bootPhase(name: string, detail?: string): void {
   phases.push(detail === undefined ? name : `${name}  ${detail}`);
-  paint();
-  if (name === "ThreeView body" && !failed) {
-    setTimeout(() => {
-      if (failed) return;
-      box?.remove();
-      box = null;
-    }, 2000);
+  try {
+    document.getElementById("html-marker")?.remove();
+  } catch {
+    phases.push("(marker not removable)");
   }
 }
 

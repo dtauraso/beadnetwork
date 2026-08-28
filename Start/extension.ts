@@ -8,6 +8,7 @@ import { handleMessage } from "../Start/extension/handle-message";
 import { serveDocsOpen } from "../Start/extension/docs-open";
 import { armHostReloadWatcher } from "../Start/extension/host-reload-watcher";
 import { armBundleWatcher } from "../Start/extension/bundle-watcher";
+import { webviewOptions } from "../Start/extension/webview-options";
 import { armGoWatcher } from "../Start/extension/go-watcher";
 import { PROBE_FILES } from "../Start/extension/probe-files";
 import { resolveRepoRoot } from "../Start/extension/repo-root";
@@ -84,15 +85,11 @@ function openTopologyEditor(context: vscode.ExtensionContext, folderUri?: vscode
     "Topology Editor",
     vscode.ViewColumn.One,
     {
-      enableScripts: true,
+      ...webviewOptions(context.extensionPath, topologyPath),
       retainContextWhenHidden: true,
-      localResourceRoots: [
-        vscode.Uri.file(path.join(context.extensionPath, "out")),
-        vscode.Uri.file(path.join(realPath(context.extensionPath), "Categories")),
-        ...sceneRoots(topologyPath).map((dir) => vscode.Uri.file(dir)),
-      ],
     },
   );
+  panel.webview.options = webviewOptions(context.extensionPath, topologyPath);
   panel.webview.html = buildWebviewHtml(panel.webview, context.extensionPath, scenePath, topologyPath);
 
   try {
