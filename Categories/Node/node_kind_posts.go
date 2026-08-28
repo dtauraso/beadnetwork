@@ -27,15 +27,31 @@ type KindPost struct {
 	Lattice     *int32
 	Center      *polarindex.Index
 	FromPartner *PartnerVectorPost
-	Step        *polarindex.Offset
 }
 
 type KindPosts struct {
-	ch chan KindPost
+	ch    chan KindPost
+	steps chan polarindex.Offset
+	done  chan struct{}
 }
 
 func NewKindPosts() KindPosts {
-	return KindPosts{ch: make(chan KindPost, 1)}
+	return KindPosts{
+		ch:    make(chan KindPost, 1),
+		steps: make(chan polarindex.Offset),
+		done:  make(chan struct{}),
+	}
+}
+
+func (k *KindPosts) Close() {
+	if k.done == nil {
+		return
+	}
+	select {
+	case <-k.done:
+	default:
+		close(k.done)
+	}
 }
 
 func (k *KindPosts) post(mut func(*KindPost)) {
@@ -81,7 +97,25 @@ func (k *KindPosts) PostVectorFrom(partnerID string, vec polarindex.Offset) {
 }
 
 func (k *KindPosts) PostStep(step polarindex.Offset) {
-	k.post(func(p *KindPost) { p.Step = &step })
+	if k.steps == nil {
+		return
+	}
+	select {
+	case k.steps <- step:
+	case <-k.done:
+	}
+}
+
+func (k *KindPosts) TakeStep() (polarindex.Offset, bool) {
+	if k.steps == nil {
+		return polarindex.Offset{}, false
+	}
+	select {
+	case s := <-k.steps:
+		return s, true
+	default:
+		return polarindex.Offset{}, false
+	}
 }
 
 func (k *KindPosts) Take() (KindPost, bool) {
