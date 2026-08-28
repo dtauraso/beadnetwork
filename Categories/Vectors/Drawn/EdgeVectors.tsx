@@ -10,7 +10,6 @@ import { overlayFlag } from "../../Scene/View/Flags/overlay-flags";
 import { DIRECTION_ZERO_EPS } from "../../../Start/extension/webview/scene/scene-tags";
 
 const EDGE_LINE_RADIUS = 1.5;
-const EDGE_LINE_TIP_RADIUS = 0.2;
 const ARROW_HEAD_RADIUS = 3;
 const ARROW_HEAD_LENGTH = ARROW_HEAD_RADIUS * 2;
 
@@ -61,14 +60,15 @@ export function EdgeVectors({ capacity }: { capacity: number }) {
       quat.current.setFromUnitVectors(AXIS_DEFAULT, dir.current);
 
       const tail = ARROW_HEAD_LENGTH;
-      const shaft = Math.max(len - ARROW_HEAD_LENGTH - tail, 0);
+      const headBase = len - ARROW_HEAD_LENGTH;
+      const shaft = Math.max(headBase - tail, 0);
 
       pos.current.set(sx, sy, sz).addScaledVector(dir.current, tail + shaft / 2);
       scl.current.set(1, shaft, 1);
       mat.current.compose(pos.current, quat.current, scl.current);
       line.setMatrixAt(drawn, mat.current);
 
-      pos.current.set(ex, ey, ez).addScaledVector(dir.current, -ARROW_HEAD_LENGTH / 2);
+      pos.current.set(sx, sy, sz).addScaledVector(dir.current, headBase + ARROW_HEAD_LENGTH / 2);
       scl.current.set(1, 1, 1);
       mat.current.compose(pos.current, quat.current, scl.current);
       head.setMatrixAt(drawn, mat.current);
@@ -95,7 +95,7 @@ export function EdgeVectors({ capacity }: { capacity: number }) {
     <>
       {}
       <instancedMesh ref={lineRef} args={[undefined, undefined, capacity]} frustumCulled={false} raycast={() => null}>
-        <cylinderGeometry args={[EDGE_LINE_TIP_RADIUS, EDGE_LINE_RADIUS, 1, 8]} />
+        <cylinderGeometry args={[EDGE_LINE_RADIUS, EDGE_LINE_RADIUS, 1, 8]} />
         {}
         {}
         <meshBasicMaterial color={INSTANCE_TINT_BASE} toneMapped={false} transparent={false} opacity={1} />
