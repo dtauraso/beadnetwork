@@ -28,9 +28,9 @@ const SPHERE_CARD_3_FORMULAS = String.raw`\[
   &=& \begin{bmatrix} (\text{top}_{\varphi} + \tau_{\varphi}/2) \bmod \tau_{\varphi} \\
                       (\text{top}_{\theta} + \tau_{\theta}/2) \bmod \tau_{\theta} \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{arrival}^{1}_{\varphi} \\ \text{arrival}^{1}_{\theta} \end{bmatrix}
-  &=& \text{from } B \text{ if this node is } A \text{, } C \text{ if } B \text{, } A \text{ if } C \\[6pt]
+  &=& \text{from partner } 1 \text{, per round} \\[6pt]
 \begin{bmatrix} \text{arrival}^{2}_{\varphi} \\ \text{arrival}^{2}_{\theta} \end{bmatrix}
-  &=& \text{from } C \text{ if this node is } A \text{, } A \text{ if } B \text{, } B \text{ if } C \\[6pt]
+  &=& \text{from partner } 2 \text{, per round} \\[6pt]
 \begin{bmatrix} \text{distance}^{k}_{\text{top}_{\varphi}} \\ \text{distance}^{k}_{\text{top}_{\theta}} \end{bmatrix}
   &=& \begin{bmatrix} |\, \text{top}_{\varphi} - \text{arrival}^{k}_{\varphi} \,| \bmod \tau_{\varphi}/4 \\[6pt]
                       |\, \text{top}_{\theta} - \text{arrival}^{k}_{\theta} \,| \bmod \tau_{\theta}/4 \end{bmatrix} \\[6pt]
