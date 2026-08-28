@@ -3,7 +3,8 @@ export interface RowLeafValues<N extends string> {
   bytes: (row: number, name: N) => DataView | undefined;
 }
 
-let seq = 0;
+
+const ROW_READ_INTERVAL_MS = 100;
 
 async function readUrl(url: string, cache: RequestCache): Promise<ArrayBuffer | undefined> {
   try {
@@ -43,7 +44,7 @@ export function makeRowLeafValues<N extends string>(
     started = true;
     const pump = async () => {
       for (;;) {
-        await new Promise((r) => requestAnimationFrame(() => r(undefined)));
+        await new Promise((r) => setTimeout(r, ROW_READ_INTERVAL_MS));
         const scene = window.BEADNETWORK_SCENE_BASE;
         const src = window.BEADNETWORK_SRC_BASE;
         if (!scene || !src) continue;
@@ -53,10 +54,9 @@ export function makeRowLeafValues<N extends string>(
           template = new TextDecoder().decode(p);
         }
         const rows = [...observed];
-        const tag = ++seq;
         await Promise.all(rows.map(async (row) => {
           const rel = template!.replace("{row}", String(row));
-          const buf = await readUrl(`${scene}/${rel}?r=${tag}`, "no-store");
+          const buf = await readUrl(`${scene}/${rel}`, "no-store");
           if (buf) split(row, buf);
         }));
       }

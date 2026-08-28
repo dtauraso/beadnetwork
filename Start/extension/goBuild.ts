@@ -71,20 +71,29 @@ export function killOrphanedSims(binPath: string, exceptPid?: number): { killed:
   return { killed };
 }
 
-export function buildBinary(repoRoot: string, binPath: string): BuildResult {
-  if (building) return { ok: true, busy: true };
+export function buildBinary(repoRoot: string, binPath: string): Promise<BuildResult> {
+  if (building) return Promise.resolve({ ok: true, busy: true });
   building = true;
+
   try {
-    try {
-      fs.mkdirSync(path.dirname(binPath), { recursive: true });
-    } catch (e) {
-      return { ok: false, error: (e as Error).message };
-    }
-    const res = cp.spawnSync("go", ["build", "-o", binPath, "./Start"], { cwd: repoRoot, encoding: "utf8" });
-    if (res.error) return { ok: false, error: res.error.message };
-    if (res.status !== 0) return { ok: false, error: res.stderr || `go build exited ${res.status}` };
-    return { ok: true };
-  } finally {
+    fs.mkdirSync(path.dirname(binPath), { recursive: true });
+  } catch (e) {
     building = false;
+    return Promise.resolve({ ok: false, error: (e as Error).message });
   }
+
+  return new Promise<BuildResult>((resolve) => {
+    const proc = cp.spawn("go", ["build", "-o", binPath, "./Start"], { cwd: repoRoot });
+    let stderr = "";
+    proc.stderr?.on("data", (chunk: Buffer) => { stderr += chunk.toString(); });
+    proc.on("error", (err) => {
+      building = false;
+      resolve({ ok: false, error: err.message });
+    });
+    proc.on("close", (code) => {
+      building = false;
+      if (code === 0) resolve({ ok: true });
+      else resolve({ ok: false, error: stderr || `go build exited ${String(code)}` });
+    });
+  });
 }

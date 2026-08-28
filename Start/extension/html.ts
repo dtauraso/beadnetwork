@@ -89,13 +89,40 @@ export function buildWebviewHtml(
         'script: ${scriptUri}\\n' +
         'readyState: ' + document.readyState + '\\n' +
         'faults so far: ' + (window.BEADNETWORK_FAULTS.length || 'none') + '\\n\\n' +
-        'The request was issued and neither loaded nor errored. That is the webview\\n' +
-        'resource loader, not the bundle: the file is present on disk and the inline\\n' +
-        'scripts around it ran.';
+        'The request was issued and neither loaded nor errored.\\n\\n' +
+        'probing the resource path directly...';
       document.body.appendChild(box);
+
+      var probe = function (label, url) {
+        var started = Date.now();
+        var stop = new AbortController();
+        setTimeout(function () { stop.abort(); }, 4000);
+        return fetch(url, { signal: stop.signal })
+          .then(function (r) { return label + ': HTTP ' + r.status + ' in ' + (Date.now() - started) + 'ms'; })
+          .catch(function (e) { return label + ': ' + (e && e.name === 'AbortError' ? 'STILL PENDING after 4s' : String(e)); });
+      };
+
+      Promise.all([
+        probe('bundle', '${scriptUri}'),
+        probe('scene file', window.BEADNETWORK_SCENE_BASE + '/view/speed.bin'),
+        probe('anchor file', window.BEADNETWORK_ANCHOR_BASE + '/view/scene/selected.bin'),
+      ]).then(function (lines) {
+        box.textContent =
+          'topology editor: the first bundle request did not settle. retrying.\\n\\n' +
+          'script: ${scriptUri}\\n' +
+          'readyState: ' + document.readyState + '\\n\\n' +
+          lines.join('\\n');
+
+        try {
+          acquireVsCodeApi().postMessage({ type: "resources-dead" });
+          box.textContent += '\\n\\ntold the host. Reopening does not help — this needs a quit.';
+        } catch (e) {
+          box.textContent += '\\n\\ncould not reach the host: ' + String(e);
+        }
+      });
     }, 5000);
   </script>
-  <script nonce="${nonce}" src="${scriptUri}"></script>
+  <script nonce="${nonce}">${inlineBundle(scriptPath)}</script>
   <!-- Classic scripts run in order, so by the time this one starts the bundle above has
        either finished evaluating or thrown. Checking here rather than on a timer is what
        makes this honest: the old 3s deadline raced the bundle's own evaluation, and a
@@ -122,6 +149,14 @@ export function buildWebviewHtml(
   </script>
 </body>
 </html>`;
+}
+
+function inlineBundle(scriptPath: string): string {
+  try {
+    return fs.readFileSync(scriptPath, "utf8").replace(/<\/script>/gi, "<\\/script>");
+  } catch (e) {
+    return `document.title = "topology: bundle unreadable"; throw new Error(${JSON.stringify(String(e))});`;
+  }
 }
 
 export function realPath(p: string): string {

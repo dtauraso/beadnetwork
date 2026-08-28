@@ -89,13 +89,13 @@ function openTopologyEditor(context: vscode.ExtensionContext, folderUri?: vscode
       retainContextWhenHidden: true,
     },
   );
-  panel.webview.options = webviewOptions(context.extensionPath, topologyPath);
-  panel.webview.html = buildWebviewHtml(panel.webview, context.extensionPath, scenePath, topologyPath);
+  const html = buildWebviewHtml(panel.webview, context.extensionPath, scenePath, topologyPath);
+  setTimeout(() => { panel.webview.html = html; }, 0);
 
   try {
     const dir = path.join(path.dirname(topologyPath), ".probe");
     fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(path.join(dir, "webview.html"), panel.webview.html, "utf8");
+    fs.writeFileSync(path.join(dir, "webview.html"), html, "utf8");
   } catch { /* eslint-disable-line no-empty */ }
 
   const runner = new BuildAndRunRunner();
@@ -111,6 +111,13 @@ function openTopologyEditor(context: vscode.ExtensionContext, folderUri?: vscode
     bundleWatcher?.dispose();
     goWatcher?.dispose();
     runner.dispose();
+  });
+
+  panel.webview.onDidReceiveMessage((raw: unknown) => {
+    if ((raw as { type?: string } | undefined)?.type !== "resources-dead") return;
+    void vscode.window.showErrorMessage(
+      "Topology Editor: the webview's resources are not being served. Quit VS Code and reopen.",
+    );
   });
 
   wireMessageHandler(panel, folderUri, runner, scenePath, topologyPath);

@@ -14,7 +14,6 @@ export interface LeafValues<N extends string> {
   text: (name: N) => Uint8Array | null;
 }
 
-let seq = 0;
 
 async function readUrl(url: string, cache: RequestCache): Promise<ArrayBuffer | undefined> {
   try {
@@ -63,7 +62,7 @@ export function makeLeafValues<N extends string>(
             if (p) blockPath = new TextDecoder().decode(p);
           }
           if (blockPath !== undefined) {
-            const buf = await readUrl(`${scene}/${blockPath}?r=${++seq}`, "no-store");
+            const buf = await readUrl(`${scene}/${blockPath}`, "no-store");
             if (buf) split(buf);
           }
         }

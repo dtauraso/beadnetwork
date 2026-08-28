@@ -21,7 +21,7 @@ export function armGoWatcher(
   const debouncer = new TrailingDebouncer(250);
   const rebuild = () => {
     debouncer.schedule(() => {
-      const res = buildBinary(repoRoot, binPath);
+      void buildBinary(repoRoot, binPath).then((res) => {
       if (shouldRestartAfterBuild(res)) {
         goChannel.appendLine("[go] rebuilt beadnetwork");
 
@@ -39,7 +39,7 @@ export function armGoWatcher(
           );
         } catch { /* eslint-disable-line no-empty */ }
       }
-
+      });
     });
   };
   goWatcher.onDidChange(rebuild);

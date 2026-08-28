@@ -20,10 +20,22 @@ export class BuildAndRunRunner extends RunnerLifecycle {
     const topArgs = this.topologyPath ? ["-topology", this.topologyPath] : [];
 
     const probePaths = probePathsForFolder(folder);
-    if (!buildBinary(this.channel!, repoRoot, binPath, probePaths.goErrorsFile)) {
-      this.looping = false;
-      return;
-    }
+    void buildBinary(this.channel!, repoRoot, binPath, probePaths.goErrorsFile).then((ok) => {
+      if (!ok) {
+        this.looping = false;
+        return;
+      }
+      this.startProcess(repoRoot, binPath, topArgs, probePaths);
+    });
+  }
+
+  private startProcess(
+    repoRoot: string,
+    binPath: string,
+    topArgs: string[],
+    probePaths: ReturnType<typeof probePathsForFolder>,
+  ) {
+    if (this.proc) return;
     const killed = reapOrphans(binPath, undefined);
 
     this.goErrorsFile = probePaths.goErrorsFile;

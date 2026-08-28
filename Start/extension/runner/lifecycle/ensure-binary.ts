@@ -3,10 +3,10 @@ import { buildBinary, maxGoMtime } from "../../goBuild";
 
 const BUILD_BINARY_MAX_ATTEMPTS = 50;
 
-export function ensureBinaryBuilt(
+export async function ensureBinaryBuilt(
   repoRoot: string,
   binPath: string,
-): { ok: true } | { ok: false; error: string } {
+): Promise<{ ok: true } | { ok: false; error: string }> {
   let binMtime = -1;
   try {
     binMtime = fs.statSync(binPath).mtimeMs;
@@ -15,7 +15,7 @@ export function ensureBinaryBuilt(
   if (!needsRebuild) return { ok: true };
 
   for (let attempt = 0; attempt < BUILD_BINARY_MAX_ATTEMPTS; attempt++) {
-    const res = buildBinary(repoRoot, binPath);
+    const res = await buildBinary(repoRoot, binPath);
     if (!res.ok) return res;
     if (!res.busy) {
 
@@ -24,6 +24,8 @@ export function ensureBinaryBuilt(
     }
 
     if (fs.existsSync(binPath)) return { ok: true };
+
+    await new Promise((done) => setTimeout(done, 50));
   }
   return {
     ok: false,
