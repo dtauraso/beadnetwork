@@ -76,8 +76,7 @@ const SPHERE_CARD_3_FORMULAS = String.raw`\[
 \begin{bmatrix} \text{sent}_{\varphi} \\ \text{sent}_{\theta} \\ \text{sent}_{r} \end{bmatrix}
   &=& \begin{bmatrix} \text{center}_{\text{next}_{\varphi}} \\
                       \text{center}_{\text{next}_{\theta}} \\
-                      \text{center}_{\text{next}_{r}} \end{bmatrix} \\
-& & \quad\text{the same value to both partners}
+                      \text{center}_{\text{next}_{r}} \end{bmatrix}
 \end{array}
 \]`;
 
