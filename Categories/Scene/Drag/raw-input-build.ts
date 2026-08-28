@@ -51,7 +51,7 @@ export function buildPointerRaw(
   const c = classifyHit(pickRequest, ndcX, ndcY);
   const p = planePoint(cam, ndcX, ndcY, c.nodeRow);
   if (kind === "pointerdown") {
-    pressOnRim = ballPoint(cam, ndcX, ndcY, false).onRim;
+    pressOnRim = c.kind === "handhold" || ballPoint(cam, ndcX, ndcY, false).onRim;
     pressNdc = { x: ndcX, y: ndcY };
     pressCam = freezeCam(cam);
   }
