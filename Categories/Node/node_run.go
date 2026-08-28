@@ -13,6 +13,7 @@ func (g *NodeGeometry) RunGeometry(ctx context.Context) {
 		return
 	}
 	clk := clock.NewRealClock()
+	defer g.kindPosts.Close()
 
 	for {
 		if ctx.Err() != nil {
@@ -30,6 +31,7 @@ func (g *NodeGeometry) RunGeometry(ctx context.Context) {
 		}
 
 		g.applyKindPosts()
+		g.applyKindSteps()
 
 		g.pollChannelVectors()
 		g.drainRuleMesh()
@@ -44,6 +46,30 @@ func (g *NodeGeometry) RunGeometry(ctx context.Context) {
 		if err := clk.SleepPulse(ctx); err != nil {
 			return
 		}
+	}
+}
+
+func (g *NodeGeometry) applyKindSteps() {
+	for {
+		step, ok := g.kindPosts.TakeStep()
+		if !ok {
+			return
+		}
+
+		was := g.ComposedIndex()
+		placed := polarindex.Compose(was, step, g.Constants())
+
+		g.trace.Post([]RowEvent{{
+			Kind: KindBreadcrumb, Label: "placed", Debug: 1,
+			NodeRow: g.stream.NodeRow(),
+			PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
+			Text: fmt.Sprintf("step(phi %d theta %d r %d) was(phi %d theta %d r %d) now(phi %d theta %d r %d)",
+				step.Phi, step.Theta, step.R,
+				was.Phi, was.Theta, was.R,
+				placed.Phi, placed.Theta, placed.R),
+		}})
+
+		g.msg.ApplyDerived(g.id, placed)
 	}
 }
 
@@ -68,23 +94,6 @@ func (g *NodeGeometry) applyKindPosts() {
 	if p.Center != nil {
 
 		g.msg.ApplyDerived(g.id, *p.Center)
-	}
-	if p.Step != nil {
-
-		was := g.ComposedIndex()
-		placed := polarindex.Compose(was, *p.Step, g.Constants())
-
-		g.trace.Post([]RowEvent{{
-			Kind: KindBreadcrumb, Label: "placed", Debug: 1,
-			NodeRow: g.stream.NodeRow(),
-			PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
-			Text: fmt.Sprintf("step(phi %d theta %d r %d) was(phi %d theta %d r %d) now(phi %d theta %d r %d)",
-				p.Step.Phi, p.Step.Theta, p.Step.R,
-				was.Phi, was.Theta, was.R,
-				placed.Phi, placed.Theta, placed.R),
-		}})
-
-		g.msg.ApplyDerived(g.id, placed)
 	}
 	if p.FromPartner != nil {
 
