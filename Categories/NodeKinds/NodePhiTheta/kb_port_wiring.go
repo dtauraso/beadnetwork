@@ -9,7 +9,7 @@ import (
 type bindings interface {
 	ClockOf() clock.Clock
 	SpeedSinksOf() *SliderPanel.Sinks
-	VectorOutOf(name string) chan TiltPanel.TiltVectorMsg
+	VectorOutOf(name string) chan<- TiltPanel.TiltVectorMsg
 	VectorInOf(name string) <-chan TiltPanel.TiltVectorMsg
 }
 
