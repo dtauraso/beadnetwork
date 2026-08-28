@@ -3,6 +3,7 @@ package NodeKinds
 import (
 	kindNodePhi "github.com/dtauraso/beadnetwork/Categories/NodeKinds/NodePhi"
 	kindNodePhiTheta "github.com/dtauraso/beadnetwork/Categories/NodeKinds/NodePhiTheta"
+	kindNodePhiTheta3 "github.com/dtauraso/beadnetwork/Categories/NodeKinds/NodePhiTheta3"
 	kindPulseLeft "github.com/dtauraso/beadnetwork/Categories/NodeKinds/PulseLeft"
 	kindPulseRight "github.com/dtauraso/beadnetwork/Categories/NodeKinds/PulseRight"
 	kindTime "github.com/dtauraso/beadnetwork/Categories/NodeKinds/Time"
@@ -20,6 +21,8 @@ func BuilderFor(kind string) (Builder, bool) {
 		return kindNodePhi.Builder, true
 	case "NodePhiTheta":
 		return kindNodePhiTheta.Builder, true
+	case "NodePhiTheta3":
+		return kindNodePhiTheta3.Builder, true
 	case "PulseLeft":
 		return kindPulseLeft.Builder, true
 	case "PulseRight":

@@ -12,17 +12,18 @@ const KindIDUnknown uint8 = 0xFF
 // order. Id i here ↔ NODE_DEFS_ARRAY[i] on the TS side (gaps left by a removed
 // kind get an undefined placeholder there, not a shift).
 var kindIDMap = map[string]uint8{
-	"TimeEnd":      0,
-	"Time":         2,
-	"Input":        3,
-	"Pulse":        5,
-	"SelectRight":  6,
-	"SelectLeft":   7,
-	"PulseLeft":    8,
-	"PulseRight":   9,
-	"TimeStart":    10,
-	"NodePhi":      11,
-	"NodePhiTheta": 12,
+	"TimeEnd":       0,
+	"Time":          2,
+	"Input":         3,
+	"Pulse":         5,
+	"SelectRight":   6,
+	"SelectLeft":    7,
+	"PulseLeft":     8,
+	"PulseRight":    9,
+	"TimeStart":     10,
+	"NodePhi":       11,
+	"NodePhiTheta":  12,
+	"NodePhiTheta3": 13,
 }
 
 // NodeKindID returns the KindId for a node's Go kind string.
@@ -47,17 +48,18 @@ type KindAppearance struct {
 }
 
 var kindAppearance = map[string]KindAppearance{
-	"TimeEnd":      {Fill: "#fff3e0", Stroke: "#7f0000", Desc: "The end of a time chain: holds what arrives and sends nothing on."},
-	"Time":         {Fill: "#fff3e0", Stroke: "#e65100", Desc: "Holds what arrives and sends on what it was holding, so a value comes out one arrival late."},
-	"Input":        {Fill: "#e0e0e0", Stroke: "#666", Desc: "The source: emits its own authored list of values, last one first, optionally repeating."},
-	"Pulse":        {Fill: "#e1f5fe", Stroke: "#2196f3", Desc: "Holds the last value it received and drives it out continuously, from the moment it starts."},
-	"SelectRight":  {Fill: "#fce4ec", Stroke: "#f06292", Desc: "Passes a value on only when both inputs arrive within one window, favouring the RIGHT one."},
-	"SelectLeft":   {Fill: "#fce4ec", Stroke: "#880e4f", Desc: "Passes a value on only when both inputs arrive within one window, favouring the LEFT one."},
-	"PulseLeft":    {Fill: "#e1f5fe", Stroke: "#90caf9", Desc: "Holds and drives a value like Pulse, feeding the LEFT input of a select gate."},
-	"PulseRight":   {Fill: "#e1f5fe", Stroke: "#01579b", Desc: "Holds and drives a value like Pulse, feeding the RIGHT input of a select gate."},
-	"TimeStart":    {Fill: "#fff3e0", Stroke: "#ffc400", Desc: "The head of a time chain: holds what arrives and fans the value it was holding to every downstream node at once."},
-	"NodePhi":      {Fill: "#fff8e1", Stroke: "#f9a825", Desc: "One half of a pair: turns its own tilt vector toward rest by exchanging directions with its partner, one step per arrival."},
-	"NodePhiTheta": {Fill: "#e8f5e9", Stroke: "#2e7d32", Desc: "One half of a φ, θ pair: adds each angle's offset to that angle of its center, moving by one until that angle locks on its own quarter turn, and sends the stepped center on as the partner's next arrival."},
+	"TimeEnd":       {Fill: "#fff3e0", Stroke: "#7f0000", Desc: "The end of a time chain: holds what arrives and sends nothing on."},
+	"Time":          {Fill: "#fff3e0", Stroke: "#e65100", Desc: "Holds what arrives and sends on what it was holding, so a value comes out one arrival late."},
+	"Input":         {Fill: "#e0e0e0", Stroke: "#666", Desc: "The source: emits its own authored list of values, last one first, optionally repeating."},
+	"Pulse":         {Fill: "#e1f5fe", Stroke: "#2196f3", Desc: "Holds the last value it received and drives it out continuously, from the moment it starts."},
+	"SelectRight":   {Fill: "#fce4ec", Stroke: "#f06292", Desc: "Passes a value on only when both inputs arrive within one window, favouring the RIGHT one."},
+	"SelectLeft":    {Fill: "#fce4ec", Stroke: "#880e4f", Desc: "Passes a value on only when both inputs arrive within one window, favouring the LEFT one."},
+	"PulseLeft":     {Fill: "#e1f5fe", Stroke: "#90caf9", Desc: "Holds and drives a value like Pulse, feeding the LEFT input of a select gate."},
+	"PulseRight":    {Fill: "#e1f5fe", Stroke: "#01579b", Desc: "Holds and drives a value like Pulse, feeding the RIGHT input of a select gate."},
+	"TimeStart":     {Fill: "#fff3e0", Stroke: "#ffc400", Desc: "The head of a time chain: holds what arrives and fans the value it was holding to every downstream node at once."},
+	"NodePhi":       {Fill: "#fff8e1", Stroke: "#f9a825", Desc: "One half of a pair: turns its own tilt vector toward rest by exchanging directions with its partner, one step per arrival."},
+	"NodePhiTheta":  {Fill: "#e8f5e9", Stroke: "#2e7d32", Desc: "One half of a φ, θ pair: adds each angle's offset to that angle of its center, moving by one until that angle locks on its own quarter turn, and sends the stepped center on as the partner's next arrival."},
+	"NodePhiTheta3": {Fill: "#e3f2fd", Stroke: "#1565c0", Desc: "One of three φ, θ nodes: receives an arrival from each of its two partners, and sends its own position on to both as their next arrivals."},
 }
 
 // AppearanceOf returns a kind's palette appearance, and false when the kind is unknown.

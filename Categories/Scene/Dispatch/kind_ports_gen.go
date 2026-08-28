@@ -40,7 +40,8 @@ var KindPorts = map[string][]PortSpec{
 		{Name: "In", Dir: PortIn},
 		{Name: "Out", Dir: PortOut},
 	},
-	"NodePhiTheta": {},
+	"NodePhiTheta":  {},
+	"NodePhiTheta3": {},
 	"Pulse": {
 		{Name: "In", Dir: PortIn},
 		{Name: "Out", Dir: PortOut},
