@@ -17,9 +17,11 @@ const SPHERE_CARD_3_FORMULAS = String.raw`\[
 \begin{bmatrix} A_{c_{\varphi}} \\ A_{c_{\theta}} \end{bmatrix}
   &=& \begin{bmatrix} \text{seed}^{A}_{\varphi} \\ \text{seed}^{A}_{\theta} \end{bmatrix} \\[6pt]
 \begin{bmatrix} B_{c_{\varphi}} \\ B_{c_{\theta}} \end{bmatrix}
-  &=& \begin{bmatrix} \text{seed}^{B}_{\varphi} \\ \text{seed}^{B}_{\theta} \end{bmatrix} \\[6pt]
+  &=& \begin{bmatrix} (\text{seed}^{B}_{\varphi} + \tau_{\varphi}/3) \bmod \tau_{\varphi} \\[3pt]
+                      (\text{seed}^{B}_{\theta} + \tau_{\theta}/3) \bmod \tau_{\theta} \end{bmatrix} \\[6pt]
 \begin{bmatrix} C_{c_{\varphi}} \\ C_{c_{\theta}} \end{bmatrix}
-  &=& \begin{bmatrix} \text{seed}^{C}_{\varphi} \\ \text{seed}^{C}_{\theta} \end{bmatrix} \\[10pt]
+  &=& \begin{bmatrix} (\text{seed}^{C}_{\varphi} + 2\tau_{\varphi}/3) \bmod \tau_{\varphi} \\[3pt]
+                      (\text{seed}^{C}_{\theta} + 2\tau_{\theta}/3) \bmod \tau_{\theta} \end{bmatrix} \\[10pt]
 \textbf{one node} & & \\[3pt]
 \text{center} &=& (c_{\varphi},\, c_{\theta},\, c_{r}) \\[3pt]
 \tau_{\varphi} &=& \text{the whole turn on } \varphi \\[3pt]
