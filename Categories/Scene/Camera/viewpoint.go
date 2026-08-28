@@ -21,9 +21,9 @@ func (v *Viewpoint) Orbit(base Viewpoint, from, to Dir, scale float64) {
 	v.Rotate(rt)
 }
 
-func (v *Viewpoint) OrbitLocked(base Viewpoint, from, to Dir) {
+func (v *Viewpoint) OrbitLocked(base Viewpoint, from, to, measureAxis Dir) {
 	*v = base
-	v.Rotate(Rot{Axis: base.Pos, Angle: AngleAboutAxis(from, to, base.Pos)})
+	v.Rotate(Rot{Axis: base.Pos, Angle: AngleAboutAxis(from, to, measureAxis)})
 }
 
 func (v *Viewpoint) Zoom(factor float64) {
