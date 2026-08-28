@@ -113,6 +113,13 @@ function openTopologyEditor(context: vscode.ExtensionContext, folderUri?: vscode
     runner.dispose();
   });
 
+  panel.webview.onDidReceiveMessage((raw: unknown) => {
+    if ((raw as { type?: string } | undefined)?.type !== "resources-dead") return;
+    void vscode.window.showErrorMessage(
+      "Topology Editor: the webview's resources are not being served. Quit VS Code and reopen.",
+    );
+  });
+
   wireMessageHandler(panel, folderUri, runner, scenePath, topologyPath);
 
   runner.run(topologyPath);

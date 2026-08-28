@@ -113,27 +113,16 @@ export function buildWebviewHtml(
           'readyState: ' + document.readyState + '\\n\\n' +
           lines.join('\\n');
 
-        var attempt = 0;
-        var again = function () {
-          if (window.BEADNETWORK_BOOTED) return;
-          if (++attempt > 5) {
-            box.textContent += '\\n\\ngave up after ' + (attempt - 1) + ' retries.';
-            return;
-          }
-          var s = document.createElement('script');
-          s.src = '${scriptUri}&retry=' + attempt;
-          s.onload = function () {
-            if (window.BEADNETWORK_BOOTED) box.remove();
-          };
-          document.body.appendChild(s);
-          box.textContent += '\\nretry ' + attempt + ' issued';
-          setTimeout(again, 3000);
-        };
-        again();
+        try {
+          acquireVsCodeApi().postMessage({ type: "resources-dead" });
+          box.textContent += '\\n\\ntold the host. Reopening does not help — this needs a quit.';
+        } catch (e) {
+          box.textContent += '\\n\\ncould not reach the host: ' + String(e);
+        }
       });
     }, 5000);
   </script>
-  <script nonce="${nonce}" src="${scriptUri}"></script>
+  <script nonce="${nonce}">${inlineBundle(scriptPath)}</script>
   <!-- Classic scripts run in order, so by the time this one starts the bundle above has
        either finished evaluating or thrown. Checking here rather than on a timer is what
        makes this honest: the old 3s deadline raced the bundle's own evaluation, and a
@@ -160,6 +149,14 @@ export function buildWebviewHtml(
   </script>
 </body>
 </html>`;
+}
+
+function inlineBundle(scriptPath: string): string {
+  try {
+    return fs.readFileSync(scriptPath, "utf8").replace(/<\/script>/gi, "<\\/script>");
+  } catch (e) {
+    return `document.title = "topology: bundle unreadable"; throw new Error(${JSON.stringify(String(e))});`;
+  }
 }
 
 export function realPath(p: string): string {
