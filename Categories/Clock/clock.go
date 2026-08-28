@@ -74,6 +74,23 @@ const tickPeriod = MsPerTick * time.Millisecond
 
 const TickPeriod = tickPeriod
 
+var tickEpoch = time.Now()
+
+func alignToGrid(ctx context.Context) error {
+	d := tickPeriod - time.Since(tickEpoch)%tickPeriod
+	if d <= 0 || d >= tickPeriod {
+		return nil
+	}
+	t := time.NewTimer(d)
+	defer t.Stop()
+	select {
+	case <-t.C:
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+}
+
 func (c *RealClock) scaledElapsed() time.Duration {
 	live := time.Duration(float64(time.Since(c.lastChange)) * c.speed)
 	total := c.accScaled + live
@@ -101,6 +118,9 @@ func (c *RealClock) SleepPulses(ctx context.Context, n int) error {
 func (c *RealClock) sleepPulses(ctx context.Context, n int) error {
 	c.applyPendingSpeed()
 	if c.ticker == nil {
+		if err := alignToGrid(ctx); err != nil {
+			return err
+		}
 		c.ticker = time.NewTicker(tickPeriod)
 	}
 	for range n {
