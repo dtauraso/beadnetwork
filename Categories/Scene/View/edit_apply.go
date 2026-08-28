@@ -7,13 +7,17 @@ import (
 )
 
 func (ui *UIState) SetViewport(w, h float64) {
+	changed := w != ui.ViewW || h != ui.ViewH
 	ui.ViewW = w
 	ui.ViewH = h
+	if !changed {
+		return
+	}
 	ui.EmitBreadcrumb(RowEvent{
 		Label: BreadcrumbViewport, NodeRow: -1, PortRow: -1, TargetRow: -1,
 		TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 		Value: int32(ui.FovDeg()),
-		Text:  fmt.Sprintf("%.0fx%.0f", w, h),
+		Text:  fmt.Sprintf("%.4fx%.4f", w, h),
 	})
 }
 
