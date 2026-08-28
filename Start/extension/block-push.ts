@@ -9,6 +9,7 @@ type Want = {
   rel?: string;
   once: boolean;
   sent: Set<string>;
+  stamps: Map<string, Buffer>;
 };
 
 type WantMsg = {
@@ -35,7 +36,18 @@ export function armBlockPush(
     } catch {
       return;
     }
+    const last = want.stamps.get(rel);
+    if (last !== undefined && last.equals(bytes)) return;
+
+    want.stamps.set(rel, bytes);
     want.sent.add(rel);
+
+    try {
+      fs.appendFileSync(
+        path.join(path.dirname(anchorPath), ".probe", "blocks.log"),
+        `${new Date().toISOString().slice(11, 23)} ${want.pathsDir} ${rel} ${String(bytes.length)}B\n`,
+      );
+    } catch { /* eslint-disable-line no-empty */ }
 
     void panel.webview.postMessage({
       type: "block",
@@ -97,6 +109,7 @@ export function armBlockPush(
     watchers.clear();
     for (const want of wants.values()) {
       want.sent.clear();
+      want.stamps.clear();
       arm(want);
     }
   };
@@ -121,6 +134,7 @@ export function armBlockPush(
       rows: msg.rows,
       once: msg.cadenceMs === 0,
       sent: new Set(),
+      stamps: new Map(),
     };
     wants.set(msg.pathsDir, want);
     arm(want);
