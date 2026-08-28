@@ -57,8 +57,14 @@ a claim travelling beside the data that could disagree with where the data arriv
 the address. Demuxing a frame onto the wrong fd was the failure this worried about, and there
 are no fds.
 
-Nothing crosses Go → TS but files. There is no frame, no stream inventory, no frame tag, and
-no host→webview message of any kind.
+Nothing crosses Go → TS but files. There is no frame, no stream inventory and no frame tag.
+
+The host DOES post a block's bytes to the webview (`Start/extension/block-push.ts`), because
+VS Code's resource loader stops serving this panel and the page cannot fetch them itself. That
+message is a delivery of a file Go already wrote, not a channel Go can put anything else on:
+it carries the block's path, its bytes, and the row when the path has one. A reader drops
+bytes for a path it did not ask for, so a mis-addressed delivery fails instead of drawing the
+wrong row — the one thing a fetch gave for free.
 
 ## Parity
 

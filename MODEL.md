@@ -118,10 +118,12 @@ goroutine writes its own file — `view/nodes/<row>/node.bin`, `.../beads.bin`,
 `view/edges/<row>/edge.bin`, and the singletons beside them — as sections of
 `u32 length + bytes` in a generated name order, written whole through
 tmp+rename. The row is in the PATH, never in the file, so the goroutine that
-owns a thing is the only writer of its bytes. The renderer fetches one file
+owns a thing is the only writer of its bytes. The renderer receives one file
 per block and slices the sections (a concern-owned `leaf-values.ts`,
-`row-leaf-values.ts`), at one of two cadences: an interval for what changes at
-human speed, a frame for what follows the cursor, a drag, or a tick.
+`row-leaf-values.ts`), at one of three cadences: an interval for what changes at
+human speed, a frame for what follows the cursor, and once for what Go writes at
+startup and never again. It used to FETCH them; VS Code's loader stops serving this
+panel, so the host reads and posts the bytes. Same files, last hop only.
 
 This REPLACED a streamed binary content buffer that carried the whole scene; that buffer is now deleted outright, along with the frames it rode in.
 Nothing of the scene streams any more.

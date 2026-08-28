@@ -49,9 +49,8 @@ delivery), node goroutine, node input, and clock
 
 Detail: `.claude/rules/node-kinds.md`. Wire props: `.claude/rules/wire-props.md`.
 
-**Bridge surface:** **Go → TS** is the BLOCK FILES the owning goroutine writes and NOTHING ELSE —
-one writer per file, no frames, no pipes, no host→webview message at all (trace events were the
-last to stream). Never add a stream to "push" a change: the file IS the current value.
+**Bridge surface:** **Go → TS** is the BLOCK FILES the owning goroutine writes and NOTHING ELSE — one writer per file, no frames, no pipes. Never add a stream to "push" a change: the file IS the current value.
+**The HOST delivers those bytes to the page**, each WITH ITS PATH, because VS Code's loader will not serve this panel (`block-push.ts`; a reader drops bytes for a path it did not ask for).
 
 **TS → Go** is framed binary records on stdin: **addressed edits** (a single `edit` message
 whose sole op is `update`, setting an ATTRIBUTE on a typed entity — new capability is a new
