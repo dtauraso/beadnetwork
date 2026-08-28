@@ -19,10 +19,6 @@ func HandleRawInputMsg(ctx context.Context, ev Drag.RawInputMsg, md *MoveDispatc
 	if md == nil {
 		return
 	}
-	if ev.RectWidth > 0 && ev.RectHeight > 0 {
-		md.UI.ViewW = ev.RectWidth
-		md.UI.ViewH = ev.RectHeight
-	}
 	if ev.Kind == "key" {
 		applyRuleKey(ctx, md, ev.Key)
 		return

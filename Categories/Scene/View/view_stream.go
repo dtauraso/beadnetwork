@@ -62,12 +62,13 @@ func (ui *UIState) EmitViewFrame(events []RowEvent) {
 	ui.Nodes.Write(pl.Nodes, ui.EditRefused)
 	ui.OverlaysPill.Write(pl.Overlays)
 	ui.Fit.Write(pl.Fit)
-	if len(pl.Tabs.Tabs) == 0 {
+	if rect := pl.Tabs.Strip; rect != ui.lastStrip {
+		ui.lastStrip = rect
 		appendTrace(viewTracePath(ui.SceneRoot()), []RowEvent{{
-			Kind: KindBreadcrumb, Label: "empty-chrome", Debug: 1,
+			Kind: KindBreadcrumb, Label: "strip-rect", Debug: 1,
 			NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
-			Text: fmt.Sprintf("tabs=0 viewW=%.0f viewH=%.0f names=%d tick=%d",
-				ui.ViewW, ui.ViewH, len(ui.TabStrip.Names), ui.viewTick),
+			Text: fmt.Sprintf("x=%.4f w=%.4f tabs=%d selected=%d viewW=%.4f tick=%d",
+				rect.X, rect.W, len(pl.Tabs.Tabs), ui.TabStrip.Selected, ui.ViewW, ui.viewTick),
 		}})
 	}
 	ui.TabStrip.Write(pl.Tabs)
