@@ -36,6 +36,8 @@ type RawHit struct {
 
 	NodeRow int
 	IsInput bool
+
+	OnRim bool
 }
 
 func DecodeRawInput(rec []byte) (RawInputMsg, bool) {

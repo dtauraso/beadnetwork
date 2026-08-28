@@ -28,7 +28,12 @@ var beginByHitKind = map[string]func(d Deps, g *Drag.GestureState, ev Drag.RawIn
 		}
 	},
 	"empty": func(d Deps, g *Drag.GestureState, ev Drag.RawInputMsg) {
-		g.EmptyDown = true
+
+		if ev.Hit.OnRim {
+			g.HandholdDown = true
+		} else {
+			g.EmptyDown = true
+		}
 		nodeGeoms, centerOf := d.MR.NodeGeoms(), d.MR.CenterOf
 		g.BeginSphereRotation(d.UI.VP.Viewpoint, d.UI.SceneSphere, func() map[string]Drag.Vec3 {
 			return centersForDrag(Node.HeldCenters(nodeGeoms, centerOfForMove(centerOf)))
