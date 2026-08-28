@@ -89,10 +89,48 @@ export function buildWebviewHtml(
         'script: ${scriptUri}\\n' +
         'readyState: ' + document.readyState + '\\n' +
         'faults so far: ' + (window.BEADNETWORK_FAULTS.length || 'none') + '\\n\\n' +
-        'The request was issued and neither loaded nor errored. That is the webview\\n' +
-        'resource loader, not the bundle: the file is present on disk and the inline\\n' +
-        'scripts around it ran.';
+        'The request was issued and neither loaded nor errored.\\n\\n' +
+        'probing the resource path directly...';
       document.body.appendChild(box);
+
+      var probe = function (label, url) {
+        var started = Date.now();
+        var stop = new AbortController();
+        setTimeout(function () { stop.abort(); }, 4000);
+        return fetch(url, { signal: stop.signal })
+          .then(function (r) { return label + ': HTTP ' + r.status + ' in ' + (Date.now() - started) + 'ms'; })
+          .catch(function (e) { return label + ': ' + (e && e.name === 'AbortError' ? 'STILL PENDING after 4s' : String(e)); });
+      };
+
+      Promise.all([
+        probe('bundle', '${scriptUri}'),
+        probe('scene file', window.BEADNETWORK_SCENE_BASE + '/view/speed.bin'),
+        probe('anchor file', window.BEADNETWORK_ANCHOR_BASE + '/view/scene/selected.bin'),
+      ]).then(function (lines) {
+        box.textContent =
+          'topology editor: the first bundle request did not settle. retrying.\\n\\n' +
+          'script: ${scriptUri}\\n' +
+          'readyState: ' + document.readyState + '\\n\\n' +
+          lines.join('\\n');
+
+        var attempt = 0;
+        var again = function () {
+          if (window.BEADNETWORK_BOOTED) return;
+          if (++attempt > 5) {
+            box.textContent += '\\n\\ngave up after ' + (attempt - 1) + ' retries.';
+            return;
+          }
+          var s = document.createElement('script');
+          s.src = '${scriptUri}&retry=' + attempt;
+          s.onload = function () {
+            if (window.BEADNETWORK_BOOTED) box.remove();
+          };
+          document.body.appendChild(s);
+          box.textContent += '\\nretry ' + attempt + ' issued';
+          setTimeout(again, 3000);
+        };
+        again();
+      });
     }, 5000);
   </script>
   <script nonce="${nonce}" src="${scriptUri}"></script>
