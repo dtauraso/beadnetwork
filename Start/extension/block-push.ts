@@ -1,17 +1,15 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
-
-const TICK_MS = 16;
+import { resolveScenePath } from "./runner/scene-path";
 
 type Want = {
   pathsDir: string;
-  cadenceMs: number;
   rows?: number[];
   rel?: string;
-  dueAt: number;
-  seen: Map<string, string>;
-  done: boolean;
+  once: boolean;
+  sent: Set<string>;
+  stamps: Map<string, Buffer>;
 };
 
 type WantMsg = {
@@ -24,38 +22,25 @@ type WantMsg = {
 export function armBlockPush(
   panel: vscode.WebviewPanel,
   srcRoot: string,
-  sceneRoot: string,
+  anchorPath: string,
 ): vscode.Disposable {
   const wants = new Map<string, Want>();
+  const watchers = new Map<string, fs.FSWatcher>();
 
-  const relOf = (want: Want): string | undefined => {
-    if (want.rel !== undefined) return want.rel;
-    try {
-      want.rel = fs.readFileSync(path.join(srcRoot, want.pathsDir, "block.bin"), "utf8").trim();
-      return want.rel;
-    } catch {
-      return undefined;
-    }
-  };
+  let sceneRoot = resolveScenePath(anchorPath);
 
   const push = (want: Want, rel: string, row?: number): void => {
-    const file = path.join(sceneRoot, rel);
-    let stamp: string;
-    try {
-      const st = fs.statSync(file);
-      stamp = `${String(st.mtimeMs)}:${String(st.size)}`;
-    } catch {
-      return;
-    }
-    if (want.seen.get(rel) === stamp) return;
-
     let bytes: Buffer;
     try {
-      bytes = fs.readFileSync(file);
+      bytes = fs.readFileSync(path.join(sceneRoot, rel));
     } catch {
       return;
     }
-    want.seen.set(rel, stamp);
+    const last = want.stamps.get(rel);
+    if (last !== undefined && last.equals(bytes)) return;
+
+    want.stamps.set(rel, bytes);
+    want.sent.add(rel);
 
     void panel.webview.postMessage({
       type: "block",
@@ -66,24 +51,66 @@ export function armBlockPush(
     });
   };
 
-  const timer = setInterval(() => {
-    const now = Date.now();
-    for (const want of wants.values()) {
-      if (want.done || now < want.dueAt) continue;
-      want.dueAt = now + Math.max(want.cadenceMs, TICK_MS);
+  const watchDirOf = (rel: string, onChanged: (rel: string) => void): void => {
+    const dir = path.dirname(path.join(sceneRoot, rel));
+    if (watchers.has(dir)) return;
+    try {
+      watchers.set(
+        dir,
+        fs.watch(dir, (_event, name) => {
+          if (typeof name !== "string") return;
+          onChanged(path.join(path.dirname(rel), name));
+        }),
+      );
+    } catch { /* eslint-disable-line no-empty */ }
+  };
 
-      const rel = relOf(want);
-      if (rel === undefined) continue;
-
-      if (want.rows === undefined) {
-        push(want, rel);
-      } else {
-        for (const row of want.rows) push(want, rel.replace("{row}", String(row)), row);
+  const relsOf = (want: Want): { rel: string; row?: number }[] => {
+    if (want.rel === undefined) {
+      try {
+        want.rel = fs.readFileSync(path.join(srcRoot, want.pathsDir, "block.bin"), "utf8").trim();
+      } catch {
+        return [];
       }
-
-      if (want.cadenceMs === 0 && want.seen.size > 0) want.done = true;
     }
-  }, TICK_MS);
+    if (want.rows === undefined) return [{ rel: want.rel }];
+    return want.rows.map((row) => ({ rel: want.rel!.replace("{row}", String(row)), row }));
+  };
+
+  const changed = (changedRel: string): void => {
+    for (const want of wants.values()) {
+      if (want.once && want.sent.size > 0) continue;
+      for (const { rel, row } of relsOf(want)) {
+        if (rel === changedRel) push(want, rel, row);
+      }
+    }
+  };
+
+  const arm = (want: Want): void => {
+    for (const { rel, row } of relsOf(want)) {
+      push(want, rel, row);
+      if (!want.once) watchDirOf(rel, changed);
+    }
+  };
+
+  const rearm = (): void => {
+    const next = resolveScenePath(anchorPath);
+    if (next === sceneRoot) return;
+    sceneRoot = next;
+
+    for (const w of watchers.values()) w.close();
+    watchers.clear();
+    for (const want of wants.values()) {
+      want.sent.clear();
+      want.stamps.clear();
+      arm(want);
+    }
+  };
+
+  let selectionWatcher: fs.FSWatcher | undefined;
+  try {
+    selectionWatcher = fs.watch(path.join(anchorPath, "view", "scene"), () => { rearm(); });
+  } catch { /* eslint-disable-line no-empty */ }
 
   const sub = panel.webview.onDidReceiveMessage((raw: unknown) => {
     const msg = raw as WantMsg | undefined;
@@ -92,22 +119,24 @@ export function armBlockPush(
     const existing = wants.get(msg.pathsDir);
     if (existing) {
       if (msg.rows) existing.rows = msg.rows;
-      existing.done = false;
-      existing.dueAt = 0;
+      arm(existing);
       return;
     }
-    wants.set(msg.pathsDir, {
+    const want: Want = {
       pathsDir: msg.pathsDir,
-      cadenceMs: typeof msg.cadenceMs === "number" ? msg.cadenceMs : 100,
       rows: msg.rows,
-      dueAt: 0,
-      seen: new Map(),
-      done: false,
-    });
+      once: msg.cadenceMs === 0,
+      sent: new Set(),
+      stamps: new Map(),
+    };
+    wants.set(msg.pathsDir, want);
+    arm(want);
   });
 
   return new vscode.Disposable(() => {
-    clearInterval(timer);
+    selectionWatcher?.close();
+    for (const w of watchers.values()) w.close();
+    watchers.clear();
     sub.dispose();
   });
 }

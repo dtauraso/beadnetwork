@@ -1,5 +1,7 @@
 package View
 
+import "fmt"
+
 type ViewOverlayFlags struct {
 	SceneTori, ScenePoles, NodePoles, Handholds, LabelsGlobal, OverlaysVis uint8
 	NodeBody, NodeRing, RingPick, SelectionRing, HoverRing                 uint8
@@ -47,6 +49,12 @@ func (ui *UIState) EmitViewFrame(events []RowEvent) {
 
 	ui.writeSceneColumns()
 	ui.writePointerTargetColumns()
+
+	if ui.ViewW <= 0 || ui.ViewH <= 0 {
+		ui.ViewBuildFrame(ui.viewTick, events)
+		return
+	}
+
 	pl := ui.PanelLayout()
 	ui.Slider.Write(pl.Speed, ui.Speed)
 	ui.Tilt.Write(pl.Tilt)
@@ -54,6 +62,15 @@ func (ui *UIState) EmitViewFrame(events []RowEvent) {
 	ui.Nodes.Write(pl.Nodes, ui.EditRefused)
 	ui.OverlaysPill.Write(pl.Overlays)
 	ui.Fit.Write(pl.Fit)
+	if rect := pl.Tabs.Strip; rect != ui.lastStrip {
+		ui.lastStrip = rect
+		appendTrace(viewTracePath(ui.SceneRoot()), []RowEvent{{
+			Kind: KindBreadcrumb, Label: "strip-rect", Debug: 1,
+			NodeRow: -1, PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
+			Text: fmt.Sprintf("x=%.4f w=%.4f tabs=%d selected=%d viewW=%.4f tick=%d",
+				rect.X, rect.W, len(pl.Tabs.Tabs), ui.TabStrip.Selected, ui.ViewW, ui.viewTick),
+		}})
+	}
 	ui.TabStrip.Write(pl.Tabs)
 	ui.Rules.Write(pl.Rules)
 

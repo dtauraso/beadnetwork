@@ -22,7 +22,13 @@ export async function buildBinary(
 }
 
 export function reapOrphans(binPath: string, activePid: number | undefined): number {
-  const { killed } = killOrphanedSims(binPath, activePid);
+  const { killed, stillAlive } = killOrphanedSims(binPath, activePid);
+  if (stillAlive !== undefined && stillAlive > 0) {
+    appendGoError(
+      undefined,
+      `sim handover: ${String(stillAlive)} process(es) did not die within a second; two writers may share the block files`,
+    );
+  }
   return killed;
 }
 

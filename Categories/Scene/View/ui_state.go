@@ -100,6 +100,7 @@ type UIState struct {
 
 	ViewBuildFrame ViewFrameBuilder
 	viewTick       uint32
+	lastStrip      Tabs.Rect
 }
 
 func (ui *UIState) SetSelectionUI(sendMove func(id string, msg Node.Msg), node, edge string) {

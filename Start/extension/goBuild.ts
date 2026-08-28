@@ -36,7 +36,11 @@ export type BuildResult =
 
 let building = false;
 
-export function killOrphanedSims(binPath: string, exceptPid?: number): { killed: number } {
+export function killOrphanedSims(
+  binPath: string,
+  exceptPid?: number,
+): { killed: number; stillAlive?: number } {
+  const doomed: number[] = [];
   if (process.platform !== "darwin" && process.platform !== "linux") {
     return { killed: 0 };
   }
@@ -66,9 +70,28 @@ export function killOrphanedSims(binPath: string, exceptPid?: number): { killed:
     try {
       process.kill(pid, "SIGKILL");
       killed++;
+      doomed.push(pid);
     } catch { /* eslint-disable-line no-empty */ }
   }
-  return { killed };
+
+  const deadline = Date.now() + 1000;
+  while (doomed.length > 0 && Date.now() < deadline) {
+    for (let i = doomed.length - 1; i >= 0; i--) {
+      try {
+        process.kill(doomed[i]!, 0);
+      } catch {
+        doomed.splice(i, 1);
+      }
+    }
+    if (doomed.length > 0) sleepBriefly();
+  }
+
+  return { killed, stillAlive: doomed.length };
+}
+
+function sleepBriefly(): void {
+  const until = Date.now() + 10;
+  while (Date.now() < until) { /* eslint-disable-line no-empty */ }
 }
 
 export function buildBinary(repoRoot: string, binPath: string): Promise<BuildResult> {

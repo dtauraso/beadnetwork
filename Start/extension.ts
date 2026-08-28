@@ -101,7 +101,7 @@ function openTopologyEditor(context: vscode.ExtensionContext, folderUri?: vscode
 
   const runner = new BuildAndRunRunner();
 
-  const blockPush = armBlockPush(panel, realPath(context.extensionPath), scenePath);
+  const blockPush = armBlockPush(panel, realPath(context.extensionPath), topologyPath);
 
   const bundleWatcher = armBundleWatcher(panel, context, scenePath, topologyPath);
 
