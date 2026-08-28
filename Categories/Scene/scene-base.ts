@@ -7,14 +7,13 @@ declare global {
 
 const READ_INTERVAL_MS = 100;
 
-let seq = 0;
 
 async function readSelectedBase(): Promise<void> {
   const anchor = window.BEADNETWORK_ANCHOR_BASE;
   const bases = window.BEADNETWORK_SCENE_BASES;
   if (!anchor || !bases) return;
   try {
-    const res = await fetch(`${anchor}/view/scene/selected.bin?r=${++seq}`, { cache: "no-store" });
+    const res = await fetch(`${anchor}/view/scene/selected.bin`, { cache: "no-store" });
     if (!res.ok) return;
     const next = bases[(await res.text()).trim()];
     if (next && window.BEADNETWORK_SCENE_BASE !== next) window.BEADNETWORK_SCENE_BASE = next;

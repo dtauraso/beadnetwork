@@ -4,9 +4,8 @@ import { SCENE_VALUES } from "./scene-values-gen";
 const vals = new Map<string, number>(SCENE_VALUES.map((v) => [v.name, 0]));
 export function sceneValue(name: string): number { return vals.get(name) ?? 0; }
 
-let seq = 0;
 async function readBytes(url: string): Promise<ArrayBuffer | undefined> {
-  return readUrl(`${url}?r=${++seq}`, "no-store");
+  return readUrl(url, "no-store");
 }
 
 async function readGenerated(url: string): Promise<ArrayBuffer | undefined> {

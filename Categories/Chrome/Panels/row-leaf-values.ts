@@ -3,7 +3,6 @@ export interface RowLeafValues<N extends string> {
   bytes: (row: number, name: N) => DataView | undefined;
 }
 
-let seq = 0;
 
 async function readUrl(url: string, cache: RequestCache): Promise<ArrayBuffer | undefined> {
   try {
@@ -53,10 +52,9 @@ export function makeRowLeafValues<N extends string>(
           template = new TextDecoder().decode(p);
         }
         const rows = [...observed];
-        const tag = ++seq;
         await Promise.all(rows.map(async (row) => {
           const rel = template!.replace("{row}", String(row));
-          const buf = await readUrl(`${scene}/${rel}?r=${tag}`, "no-store");
+          const buf = await readUrl(`${scene}/${rel}`, "no-store");
           if (buf) split(row, buf);
         }));
       }
