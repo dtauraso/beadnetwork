@@ -8,6 +8,7 @@ import { handleMessage } from "../Start/extension/handle-message";
 import { serveDocsOpen } from "../Start/extension/docs-open";
 import { armHostReloadWatcher } from "../Start/extension/host-reload-watcher";
 import { armBundleWatcher } from "../Start/extension/bundle-watcher";
+import { armBlockPush } from "../Start/extension/block-push";
 import { webviewOptions } from "../Start/extension/webview-options";
 import { armGoWatcher } from "../Start/extension/go-watcher";
 import { PROBE_FILES } from "../Start/extension/probe-files";
@@ -100,6 +101,8 @@ function openTopologyEditor(context: vscode.ExtensionContext, folderUri?: vscode
 
   const runner = new BuildAndRunRunner();
 
+  const blockPush = armBlockPush(panel, realPath(context.extensionPath), scenePath);
+
   const bundleWatcher = armBundleWatcher(panel, context, scenePath, topologyPath);
 
   const repoRoot = resolveRepoRoot(vscode.workspace.workspaceFolders?.[0]?.uri.fsPath);
@@ -108,6 +111,7 @@ function openTopologyEditor(context: vscode.ExtensionContext, folderUri?: vscode
   context.subscriptions.push(runner);
 
   panel.onDidDispose(() => {
+    blockPush.dispose();
     bundleWatcher?.dispose();
     goWatcher?.dispose();
     runner.dispose();

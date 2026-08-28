@@ -59,6 +59,32 @@ export function buildWebviewHtml(
     window.BEADNETWORK_SRC_BASE = "${srcBase}";
     window.BEADNETWORK_ANCHOR_BASE = "${anchorBase}";
     window.BEADNETWORK_SCENE_BASES = ${JSON.stringify(sceneBases)};
+
+    window.__vscodeApi = window.__vscodeApi || acquireVsCodeApi();
+
+    window.BEADNETWORK_BLOCKS = (function () {
+      var handlers = [];
+      window.addEventListener("message", function (e) {
+        var m = e.data;
+        if (!m || m.type !== "block") return;
+        for (var i = 0; i < handlers.length; i++) handlers[i](m);
+      });
+      return {
+        on: function (fn) { handlers.push(fn); },
+        want: function (pathsDir, cadenceMs) {
+          window.__vscodeApi.postMessage({ type: "want-block", pathsDir: pathsDir, cadenceMs: cadenceMs });
+        },
+        wantRows: function (pathsDir, rows, cadenceMs) {
+          window.__vscodeApi.postMessage({ type: "want-block", pathsDir: pathsDir, rows: rows, cadenceMs: cadenceMs });
+        },
+        bytes: function (b64) {
+          var bin = atob(b64);
+          var out = new Uint8Array(bin.length);
+          for (var i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+          return out.buffer;
+        },
+      };
+    })();
   </script>
   <!-- The failure we are chasing shows nothing on screen and nothing in the window's own
        console, because both live in the webview's separate devtools. So the page reports

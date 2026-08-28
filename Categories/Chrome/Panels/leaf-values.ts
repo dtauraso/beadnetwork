@@ -1,4 +1,3 @@
-
 export interface LeafValues<N extends string> {
   bytes: (name: N) => DataView | undefined;
   f32: (name: N, fallback?: number) => number;
@@ -14,27 +13,41 @@ export interface LeafValues<N extends string> {
   text: (name: N) => Uint8Array | null;
 }
 
+export interface BlockMsg {
+  pathsDir: string;
+  rel: string;
+  row?: number;
+  b64: string;
+}
 
-async function readUrl(url: string, cache: RequestCache): Promise<ArrayBuffer | undefined> {
-  try {
-    const res = await fetch(url, { cache });
-    return res.ok ? await res.arrayBuffer() : undefined;
-  } catch {
-    return undefined;
+declare global {
+  interface Window {
+    BEADNETWORK_BLOCKS?: {
+      on: (fn: (m: BlockMsg) => void) => void;
+      want: (pathsDir: string, cadenceMs: number) => void;
+      wantRows: (pathsDir: string, rows: number[], cadenceMs: number) => void;
+      bytes: (b64: string) => ArrayBuffer;
+    };
   }
 }
 
 const READ_INTERVAL_MS = 100;
+const FRAME_MS = 16;
+
+function cadenceMsOf(cadence: "interval" | "frame" | "once"): number {
+  if (cadence === "frame") return FRAME_MS;
+  if (cadence === "once") return 0;
+  return READ_INTERVAL_MS;
+}
 
 export function makeLeafValues<N extends string>(
   pathsDir: string,
   names: readonly N[],
 
-  cadence: "interval" | "frame" = "interval",
+  cadence: "interval" | "frame" | "once" = "interval",
 ): LeafValues<N> {
   const latest = new Map<string, DataView>();
   let started = false;
-  let blockPath: string | undefined;
 
   const split = (buf: ArrayBuffer): void => {
     const dv = new DataView(buf);
@@ -51,27 +64,15 @@ export function makeLeafValues<N extends string>(
 
   const start = (): void => {
     if (started || typeof window === "undefined") return;
+    const blocks = window.BEADNETWORK_BLOCKS;
+    if (!blocks) return;
     started = true;
-    const pump = async () => {
-      for (;;) {
-        const scene = window.BEADNETWORK_SCENE_BASE;
-        const src = window.BEADNETWORK_SRC_BASE;
-        if (scene && src) {
-          if (blockPath === undefined) {
-            const p = await readUrl(`${src}/${pathsDir}/block.bin`, "default");
-            if (p) blockPath = new TextDecoder().decode(p);
-          }
-          if (blockPath !== undefined) {
-            const buf = await readUrl(`${scene}/${blockPath}`, "no-store");
-            if (buf) split(buf);
-          }
-        }
-        await (cadence === "frame"
-          ? new Promise((r) => requestAnimationFrame(() => r(undefined)))
-          : new Promise((r) => setTimeout(r, READ_INTERVAL_MS)));
-      }
-    };
-    void pump();
+
+    blocks.on((m) => {
+      if (m.pathsDir !== pathsDir) return;
+      split(blocks.bytes(m.b64));
+    });
+    blocks.want(pathsDir, cadenceMsOf(cadence));
   };
 
   const view = (name: N): DataView | undefined => {
