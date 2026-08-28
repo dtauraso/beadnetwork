@@ -50,7 +50,7 @@ const SPHERE_CARD_FORMULAS = String.raw`\[
 & & \begin{bmatrix}
       0 & \text{otherwise} \\
       0 &
-    \end{bmatrix} \ (0_{\varphi}) \\
+    \end{bmatrix} \ (4_{\varphi}) \\
 & & \begin{bmatrix}
       0 & \\[8pt]
       0 & \begin{array}{@{}l@{}} \text{if } \text{distance}_{\text{top}_{\theta}} = 0 \\ \text{and } \text{distance}_{\text{bottom}_{\theta}} = 0 \end{array}
@@ -66,7 +66,7 @@ const SPHERE_CARD_FORMULAS = String.raw`\[
 & & \begin{bmatrix}
       0 & \\
       0 & \text{otherwise}
-    \end{bmatrix} \ (0_{\theta}) \\[3pt]
+    \end{bmatrix} \ (4_{\theta}) \\[3pt]
 \begin{bmatrix} \text{center}_{\text{next}_{\varphi}} \\ \text{center}_{\text{next}_{\theta}} \\ \text{center}_{\text{next}_{r}} \end{bmatrix}
   &=& \begin{bmatrix} c_{\varphi} + \text{offset}_{\varphi} \\
                       c_{\theta} + \text{offset}_{\theta} \\

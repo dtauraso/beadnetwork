@@ -13,10 +13,10 @@ const SPHERE_CARD_3_FORMULAS = String.raw`\[
 & & \quad\text{one seed per angle} \\[6pt]
 \begin{bmatrix} A_{c_{\varphi}},\ B_{c_{\varphi}},\ C_{c_{\varphi}} \\
                 A_{c_{\theta}},\ B_{c_{\theta}},\ C_{c_{\theta}} \end{bmatrix}
-  &=& \begin{bmatrix} \text{seed}_{\varphi},\ (\text{seed}_{\varphi} + \tau_{\varphi}/3) \bmod \tau_{\varphi},\
-                      (\text{seed}_{\varphi} + 2\tau_{\varphi}/3) \bmod \tau_{\varphi} \\
-                      \text{seed}_{\theta},\ (\text{seed}_{\theta} + \tau_{\theta}/3) \bmod \tau_{\theta},\
-                      (\text{seed}_{\theta} + 2\tau_{\theta}/3) \bmod \tau_{\theta} \end{bmatrix} \\
+  &=& \text{seed}_{\varphi},\ (\text{seed}_{\varphi} + \tau_{\varphi}/3) \bmod \tau_{\varphi}, \\
+& & (\text{seed}_{\varphi} + 2\tau_{\varphi}/3) \bmod \tau_{\varphi} \\[3pt]
+& & \text{seed}_{\theta},\ (\text{seed}_{\theta} + \tau_{\theta}/3) \bmod \tau_{\theta}, \\
+& & (\text{seed}_{\theta} + 2\tau_{\theta}/3) \bmod \tau_{\theta} \\
 & & \quad\text{a third of a turn apart, one side per node} \\[10pt]
 \textbf{one node} & & \\[3pt]
 \text{center} &=& (c_{\varphi},\, c_{\theta},\, c_{r}) \\[3pt]
@@ -27,7 +27,7 @@ const SPHERE_CARD_3_FORMULAS = String.raw`\[
 \begin{bmatrix} \text{bottom}_{\varphi} \\ \text{bottom}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} (\text{top}_{\varphi} + \tau_{\varphi}/2) \bmod \tau_{\varphi} \\
                       (\text{top}_{\theta} + \tau_{\theta}/2) \bmod \tau_{\theta} \end{bmatrix} \\[6pt]
-\begin{bmatrix} \text{arrival}^{1}_{\varphi} \\ \text{arrival}^{1}_{\theta} \end{bmatrix},
+\begin{bmatrix} \text{arrival}^{1}_{\varphi} \\ \text{arrival}^{1}_{\theta} \end{bmatrix}, & & \\[3pt]
 \begin{bmatrix} \text{arrival}^{2}_{\varphi} \\ \text{arrival}^{2}_{\theta} \end{bmatrix}
   &=& \text{one from each partner, per round} \\[6pt]
 \begin{bmatrix} \text{distance}^{k}_{\text{top}_{\varphi}} \\ \text{distance}^{k}_{\text{top}_{\theta}} \end{bmatrix}
@@ -37,10 +37,38 @@ const SPHERE_CARD_3_FORMULAS = String.raw`\[
   &=& \begin{bmatrix} |\, \text{bottom}_{\varphi} - \text{arrival}^{k}_{\varphi} \,| \bmod \tau_{\varphi}/4 \\[6pt]
                       |\, \text{bottom}_{\theta} - \text{arrival}^{k}_{\theta} \,| \bmod \tau_{\theta}/4 \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{offset}_{\varphi} \\ \text{offset}_{\theta} \end{bmatrix}
-  &=& \text{the rule for TWO arrivals, per angle} \\
-& & \quad\text{which hemisphere each arrival is in} \\
-& & \quad\text{which of the two distances is longer} \\
-& & \quad\text{and what the pair of them does together} \\[6pt]
+  &=& \begin{bmatrix}
+      0 & \begin{array}{@{}l@{}} \text{if } \text{distance}^{k}_{\text{top}_{\varphi}} = 0 \\ \text{and } \text{distance}^{k}_{\text{bottom}_{\varphi}} = 0 \end{array} \\[8pt]
+      0 &
+    \end{bmatrix} \ (1_{\varphi}) \\
+& & \begin{bmatrix}
+      -1 & \text{if } \text{distance}^{k}_{\text{top}_{\varphi}} < \tau_{\varphi}/4 \\
+      0 &
+    \end{bmatrix} \ (2_{\varphi}) \\
+& & \begin{bmatrix}
+      -1 & \text{if } \text{distance}^{k}_{\text{bottom}_{\varphi}} < \tau_{\varphi}/4 \\
+      0 &
+    \end{bmatrix} \ (3_{\varphi}) \\
+& & \begin{bmatrix}
+      0 & \text{otherwise} \\
+      0 &
+    \end{bmatrix} \ (4_{\varphi}) \\
+& & \begin{bmatrix}
+      0 & \\[8pt]
+      0 & \begin{array}{@{}l@{}} \text{if } \text{distance}^{k}_{\text{top}_{\theta}} = 0 \\ \text{and } \text{distance}^{k}_{\text{bottom}_{\theta}} = 0 \end{array}
+    \end{bmatrix} \ (1_{\theta}) \\
+& & \begin{bmatrix}
+      0 & \\
+      -1 & \text{if } \text{distance}^{k}_{\text{top}_{\theta}} < \tau_{\theta}/4
+    \end{bmatrix} \ (2_{\theta}) \\
+& & \begin{bmatrix}
+      0 & \\
+      -1 & \text{if } \text{distance}^{k}_{\text{bottom}_{\theta}} < \tau_{\theta}/4
+    \end{bmatrix} \ (3_{\theta}) \\
+& & \begin{bmatrix}
+      0 & \\
+      0 & \text{otherwise}
+    \end{bmatrix} \ (4_{\theta}) \\[6pt]
 \begin{bmatrix} \text{center}_{\text{next}_{\varphi}} \\ \text{center}_{\text{next}_{\theta}} \\ \text{center}_{\text{next}_{r}} \end{bmatrix}
   &=& \begin{bmatrix} c_{\varphi} + \text{offset}_{\varphi} \\
                       c_{\theta} + \text{offset}_{\theta} \\
