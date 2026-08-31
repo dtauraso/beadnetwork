@@ -9,11 +9,11 @@ const SPHERE_CARD_3_FORMULAS = String.raw`\[
 \begin{array}{@{}l@{\;}c@{\;}l@{}}
 \textbf{shared} & & \textbf{— the three nodes together} \\[3pt]
 \begin{bmatrix} \text{seed}^{A}_{\varphi} \\ \text{seed}^{A}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 3\varphi,\, 9\varphi \\ 3\theta,\, 9\theta \end{bmatrix} \\[6pt]
+  &=& \begin{bmatrix} 1\varphi,\, 3\varphi \\ 1\theta,\, 3\theta \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{seed}^{B}_{\varphi} \\ \text{seed}^{B}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 27\varphi,\, 33\varphi \\ 27\theta,\, 33\theta \end{bmatrix} \\[6pt]
+  &=& \begin{bmatrix} 9\varphi,\, 11\varphi \\ 9\theta,\, 11\theta \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{seed}^{C}_{\varphi} \\ \text{seed}^{C}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 15\varphi,\, 21\varphi \\ 15\theta,\, 21\theta \end{bmatrix} \\[6pt]
+  &=& \begin{bmatrix} 5\varphi,\, 7\varphi \\ 5\theta,\, 7\theta \end{bmatrix} \\[6pt]
 \begin{bmatrix} A_{c_{\varphi}} \\ A_{c_{\theta}} \end{bmatrix}
   &=& \begin{bmatrix} \text{seed}^{A}_{\varphi} \\ \text{seed}^{A}_{\theta} \end{bmatrix} \\[6pt]
 \begin{bmatrix} B_{c_{\varphi}} \\ B_{c_{\theta}} \end{bmatrix}
