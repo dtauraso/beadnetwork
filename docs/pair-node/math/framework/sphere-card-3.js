@@ -6,7 +6,7 @@ const SPHERE_CARD_3_SPEC = {
 };
 
 const SPHERE_CARD_3_FORMULAS = String.raw`\[
-\begin{array}{@{}l@{\;}c@{\;}l@{}}
+\begin{array}{@{}l@{}c@{}l@{}}
 \textbf{shared} & & \textbf{— the three nodes together} \\[3pt]
 \text{center} &=& (\text{center}_{\varphi},\, \text{center}_{\theta},\, \text{center}_{r}) \\[6pt]
 \begin{bmatrix} \text{center}^{1}_{\varphi} \\ \text{center}^{1}_{\theta} \end{bmatrix}
