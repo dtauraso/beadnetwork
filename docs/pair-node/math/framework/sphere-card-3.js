@@ -8,22 +8,18 @@ const SPHERE_CARD_3_SPEC = {
 const SPHERE_CARD_3_FORMULAS = String.raw`\[
 \begin{array}{@{}l@{\;}c@{\;}l@{}}
 \textbf{shared} & & \textbf{— the three nodes together} \\[3pt]
-\tau_{\varphi} &=& \text{the length of } 1 \text{ turn on } \varphi \\[3pt]
-\tau_{\theta} &=& \text{the length of } 1 \text{ turn on } \theta \\[6pt]
 \begin{bmatrix} \text{seed}^{A}_{\varphi} \\ \text{seed}^{A}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 2\tau_{\varphi},\, 8\tau_{\varphi} \\ 2\tau_{\theta},\, 8\tau_{\theta} \end{bmatrix} \\[6pt]
+  &=& \begin{bmatrix} 1\varphi,\, 3\varphi \\ 1\theta,\, 3\theta \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{seed}^{B}_{\varphi} \\ \text{seed}^{B}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 24\tau_{\varphi},\, 30\tau_{\varphi} \\ 24\tau_{\theta},\, 30\tau_{\theta} \end{bmatrix} \\[6pt]
+  &=& \begin{bmatrix} 9\varphi,\, 11\varphi \\ 9\theta,\, 11\theta \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{seed}^{C}_{\varphi} \\ \text{seed}^{C}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 13\tau_{\varphi},\, 19\tau_{\varphi} \\ 13\tau_{\theta},\, 19\tau_{\theta} \end{bmatrix} \\[6pt]
+  &=& \begin{bmatrix} 5\varphi,\, 7\varphi \\ 5\theta,\, 7\theta \end{bmatrix} \\[6pt]
 \begin{bmatrix} A_{c_{\varphi}} \\ A_{c_{\theta}} \end{bmatrix}
   &=& \begin{bmatrix} \text{seed}^{A}_{\varphi} \\ \text{seed}^{A}_{\theta} \end{bmatrix} \\[6pt]
 \begin{bmatrix} B_{c_{\varphi}} \\ B_{c_{\theta}} \end{bmatrix}
-  &=& \begin{bmatrix} (\text{seed}^{B}_{\varphi} + \tau_{\varphi}/3) \bmod \tau_{\varphi} \\[3pt]
-                      (\text{seed}^{B}_{\theta} + \tau_{\theta}/3) \bmod \tau_{\theta} \end{bmatrix} \\[6pt]
+  &=& \begin{bmatrix} \text{seed}^{B}_{\varphi} \\ \text{seed}^{B}_{\theta} \end{bmatrix} \\[6pt]
 \begin{bmatrix} C_{c_{\varphi}} \\ C_{c_{\theta}} \end{bmatrix}
-  &=& \begin{bmatrix} (\text{seed}^{C}_{\varphi} + 2\tau_{\varphi}/3) \bmod \tau_{\varphi} \\[3pt]
-                      (\text{seed}^{C}_{\theta} + 2\tau_{\theta}/3) \bmod \tau_{\theta} \end{bmatrix} \\[10pt]
+  &=& \begin{bmatrix} \text{seed}^{C}_{\varphi} \\ \text{seed}^{C}_{\theta} \end{bmatrix} \\[10pt]
 \textbf{one node} & & \\[3pt]
 \text{center} &=& (c_{\varphi},\, c_{\theta},\, c_{r}) \\[3pt]
 \begin{bmatrix} \text{top}_{\varphi} \\ \text{top}_{\theta} \end{bmatrix}
