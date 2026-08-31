@@ -75,7 +75,7 @@ p_{1} &=& \text{the bottom pole} \\[10pt]
 \begin{bmatrix} \text{p_acute}^{1}_{\varphi} \\ \text{p_acute}^{1}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} |\, \text{acute}^{1}_{p_1\,\varphi} - \text{acute}^{2}_{p_1\,\varphi} \,| \\[6pt]
                       |\, \text{acute}^{1}_{p_1\,\theta} - \text{acute}^{2}_{p_1\,\theta} \,| \end{bmatrix} \\[10pt]
-\begin{bmatrix} \text{p_offset}_{\varphi} \\ \text{p_offset}_{\theta} \end{bmatrix}
+\begin{bmatrix} \text{p_acute}_{\varphi} \\ \text{p_acute}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} \text{p_acute}^{0}_{\varphi} + \text{p_acute}^{1}_{\varphi} \\[6pt]
                       \text{p_acute}^{0}_{\theta} + \text{p_acute}^{1}_{\theta} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{offset}_{\varphi} \\ \text{offset}_{\theta} \end{bmatrix}
