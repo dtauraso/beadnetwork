@@ -20,15 +20,17 @@ const SPHERE_CARD_3_FORMULAS = String.raw`\[
   &=& \begin{bmatrix} \text{seed}^{B}_{\varphi} \\ \text{seed}^{B}_{\theta} \end{bmatrix} \\[6pt]
 \begin{bmatrix} C_{c_{\varphi}} \\ C_{c_{\theta}} \end{bmatrix}
   &=& \begin{bmatrix} \text{seed}^{C}_{\varphi} \\ \text{seed}^{C}_{\theta} \end{bmatrix} \\[10pt]
-\textbf{for } A,\, B,\, C & & \textbf{— top and bottom} \\[3pt]
+\textbf{A} & & \\[3pt]
 \begin{bmatrix} A_{\text{top}_{\varphi}} \\ A_{\text{top}_{\theta}} \end{bmatrix}
   &=& \begin{bmatrix} 1 \\ 1 \end{bmatrix} \\[6pt]
 \begin{bmatrix} A_{\text{bottom}_{\varphi}} \\ A_{\text{bottom}_{\theta}} \end{bmatrix}
-  &=& \begin{bmatrix} 3 \\ 3 \end{bmatrix} \\[6pt]
+  &=& \begin{bmatrix} 3 \\ 3 \end{bmatrix} \\[10pt]
+\textbf{B} & & \\[3pt]
 \begin{bmatrix} B_{\text{top}_{\varphi}} \\ B_{\text{top}_{\theta}} \end{bmatrix}
   &=& \begin{bmatrix} 9 \\ 9 \end{bmatrix} \\[6pt]
 \begin{bmatrix} B_{\text{bottom}_{\varphi}} \\ B_{\text{bottom}_{\theta}} \end{bmatrix}
-  &=& \begin{bmatrix} 11 \\ 11 \end{bmatrix} \\[6pt]
+  &=& \begin{bmatrix} 11 \\ 11 \end{bmatrix} \\[10pt]
+\textbf{C} & & \\[3pt]
 \begin{bmatrix} C_{\text{top}_{\varphi}} \\ C_{\text{top}_{\theta}} \end{bmatrix}
   &=& \begin{bmatrix} 5 \\ 5 \end{bmatrix} \\[6pt]
 \begin{bmatrix} C_{\text{bottom}_{\varphi}} \\ C_{\text{bottom}_{\theta}} \end{bmatrix}
