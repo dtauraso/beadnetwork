@@ -20,7 +20,7 @@ const SPHERE_CARD_3_FORMULAS = String.raw`\[
   &=& \begin{bmatrix} \text{seed}^{B}_{\varphi} \\ \text{seed}^{B}_{\theta} \end{bmatrix} \\[6pt]
 \begin{bmatrix} C_{c_{\varphi}} \\ C_{c_{\theta}} \end{bmatrix}
   &=& \begin{bmatrix} \text{seed}^{C}_{\varphi} \\ \text{seed}^{C}_{\theta} \end{bmatrix} \\[10pt]
-\textbf{each node} & & \\[3pt]
+\textbf{poles} & & \textbf{— top and bottom, one node at a time} \\[3pt]
 \begin{bmatrix} A_{\text{top}_{\varphi}} \\ A_{\text{top}_{\theta}} \end{bmatrix}
   &=& \begin{bmatrix} 1 \\ 1 \end{bmatrix} \\[6pt]
 \begin{bmatrix} A_{\text{bottom}_{\varphi}} \\ A_{\text{bottom}_{\theta}} \end{bmatrix}
