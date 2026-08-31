@@ -13,7 +13,7 @@ const SPHERE_CARD_3_FORMULAS = String.raw`\[
 \begin{bmatrix} \text{seed}^{A}_{\varphi} \\ \text{seed}^{A}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} \tau_{\varphi},\, 4\tau_{\varphi} \\ \tau_{\theta},\, 4\tau_{\theta} \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{seed}^{B}_{\varphi} \\ \text{seed}^{B}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 12\tau_{\varphi},\, \tau_{\varphi}/3 - 1 \\ 12\tau_{\theta},\, \tau_{\theta}/3 - 1 \end{bmatrix} \\[6pt]
+  &=& \begin{bmatrix} 12\tau_{\varphi},\, 15\tau_{\varphi} \\ 12\tau_{\theta},\, 15\tau_{\theta} \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{seed}^{C}_{\varphi} \\ \text{seed}^{C}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0,\, \tau_{\varphi}/3 - 1 \\ 0,\, \tau_{\theta}/3 - 1 \end{bmatrix} \\[6pt]
 \begin{bmatrix} A_{c_{\varphi}} \\ A_{c_{\theta}} \end{bmatrix}
