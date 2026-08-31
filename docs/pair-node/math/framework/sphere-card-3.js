@@ -22,17 +22,17 @@ const SPHERE_CARD_3_FORMULAS = String.raw`\[
   &=& \begin{bmatrix} \text{seed}^{C}_{\varphi} \\ \text{seed}^{C}_{\theta} \end{bmatrix} \\[10pt]
 \textbf{each node} & & \\[3pt]
 \begin{bmatrix} A_{\text{top}_{\varphi}} \\ A_{\text{top}_{\theta}} \end{bmatrix}
-  &=& \begin{bmatrix} 1 \\ 1 \end{bmatrix} \qquad
-      \begin{bmatrix} A_{\text{bottom}_{\varphi}} \\ A_{\text{bottom}_{\theta}} \end{bmatrix}
-      = \begin{bmatrix} 3 \\ 3 \end{bmatrix} \\[6pt]
+  &=& \begin{bmatrix} 1 \\ 1 \end{bmatrix} \\[6pt]
+\begin{bmatrix} A_{\text{bottom}_{\varphi}} \\ A_{\text{bottom}_{\theta}} \end{bmatrix}
+  &=& \begin{bmatrix} 3 \\ 3 \end{bmatrix} \\[6pt]
 \begin{bmatrix} B_{\text{top}_{\varphi}} \\ B_{\text{top}_{\theta}} \end{bmatrix}
-  &=& \begin{bmatrix} 9 \\ 9 \end{bmatrix} \qquad
-      \begin{bmatrix} B_{\text{bottom}_{\varphi}} \\ B_{\text{bottom}_{\theta}} \end{bmatrix}
-      = \begin{bmatrix} 11 \\ 11 \end{bmatrix} \\[6pt]
+  &=& \begin{bmatrix} 9 \\ 9 \end{bmatrix} \\[6pt]
+\begin{bmatrix} B_{\text{bottom}_{\varphi}} \\ B_{\text{bottom}_{\theta}} \end{bmatrix}
+  &=& \begin{bmatrix} 11 \\ 11 \end{bmatrix} \\[6pt]
 \begin{bmatrix} C_{\text{top}_{\varphi}} \\ C_{\text{top}_{\theta}} \end{bmatrix}
-  &=& \begin{bmatrix} 5 \\ 5 \end{bmatrix} \qquad
-      \begin{bmatrix} C_{\text{bottom}_{\varphi}} \\ C_{\text{bottom}_{\theta}} \end{bmatrix}
-      = \begin{bmatrix} 7 \\ 7 \end{bmatrix} \\[10pt]
+  &=& \begin{bmatrix} 5 \\ 5 \end{bmatrix} \\[6pt]
+\begin{bmatrix} C_{\text{bottom}_{\varphi}} \\ C_{\text{bottom}_{\theta}} \end{bmatrix}
+  &=& \begin{bmatrix} 7 \\ 7 \end{bmatrix} \\[10pt]
 \textbf{one node} & & \\[3pt]
 \text{center} &=& (c_{\varphi},\, c_{\theta},\, c_{r}) \\[6pt]
 \begin{bmatrix} \text{arrival}^{1}_{\varphi} \\ \text{arrival}^{1}_{\theta} \end{bmatrix}
