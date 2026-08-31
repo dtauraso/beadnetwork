@@ -11,11 +11,11 @@ const SPHERE_CARD_3_FORMULAS = String.raw`\[
 \tau_{\varphi} &=& \text{the angle index on } \varphi \\[3pt]
 \tau_{\theta} &=& \text{the angle index on } \theta \\[6pt]
 \begin{bmatrix} \text{seed}^{A}_{\varphi} \\ \text{seed}^{A}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 3\tau_{\varphi},\, 9\tau_{\varphi} \\ 3\tau_{\theta},\, 9\tau_{\theta} \end{bmatrix} \\[6pt]
+  &=& \begin{bmatrix} 3\varphi,\, 9\varphi \\ 3\theta,\, 9\theta \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{seed}^{B}_{\varphi} \\ \text{seed}^{B}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 24\tau_{\varphi},\, 30\tau_{\varphi} \\ 24\tau_{\theta},\, 30\tau_{\theta} \end{bmatrix} \\[6pt]
+  &=& \begin{bmatrix} 24\varphi,\, 30\varphi \\ 24\theta,\, 30\theta \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{seed}^{C}_{\varphi} \\ \text{seed}^{C}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 13\tau_{\varphi},\, 19\tau_{\varphi} \\ 13\tau_{\theta},\, 19\tau_{\theta} \end{bmatrix} \\[6pt]
+  &=& \begin{bmatrix} 13\varphi,\, 19\varphi \\ 13\theta,\, 19\theta \end{bmatrix} \\[6pt]
 \begin{bmatrix} A_{c_{\varphi}} \\ A_{c_{\theta}} \end{bmatrix}
   &=& \begin{bmatrix} \text{seed}^{A}_{\varphi} \\ \text{seed}^{A}_{\theta} \end{bmatrix} \\[6pt]
 \begin{bmatrix} B_{c_{\varphi}} \\ B_{c_{\theta}} \end{bmatrix}
