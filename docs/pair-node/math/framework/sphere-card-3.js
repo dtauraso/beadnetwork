@@ -10,10 +10,9 @@ const SPHERE_CARD_3_FORMULAS = String.raw`\[
 \textbf{shared} & & \textbf{— the three nodes together} \\[3pt]
 \tau_{\varphi} &=& 1 \text{ step on } \varphi \\[3pt]
 \tau_{\theta} &=& 1 \text{ step on } \theta \\[3pt]
-2ak\tau_{\varphi} &=& 1 \text{ angle step on } \varphi \\[3pt]
-2ak\tau_{\theta} &=& 1 \text{ angle step on } \theta \\[3pt]
-a &=& \text{the base, the same on both axes} \\[3pt]
-k &=& \text{the index} \\[6pt]
+2k\tau_{\varphi} &=& 1 \text{ angle step on } \varphi \\[3pt]
+2k\tau_{\theta} &=& 1 \text{ angle step on } \theta \\[3pt]
+k &=& \text{the index, the same on both axes} \\[6pt]
 \begin{bmatrix} \text{seed}^{A}_{\varphi} \\ \text{seed}^{A}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} 2\tau_{\varphi},\, 8\tau_{\varphi} \\ 2\tau_{\theta},\, 8\tau_{\theta} \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{seed}^{B}_{\varphi} \\ \text{seed}^{B}_{\theta} \end{bmatrix}
