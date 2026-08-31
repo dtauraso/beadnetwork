@@ -11,7 +11,7 @@ const SPHERE_CARD_3_FORMULAS = String.raw`\[
 \tau_{\varphi} &=& \text{the length of } 1 \text{ turn on } \varphi \\[3pt]
 \tau_{\theta} &=& \text{the length of } 1 \text{ turn on } \theta \\[6pt]
 \begin{bmatrix} \text{seed}^{A}_{\varphi} \\ \text{seed}^{A}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \tau_{\varphi},\, 8\tau_{\varphi} \\ \tau_{\theta},\, 8\tau_{\theta} \end{bmatrix} \\[6pt]
+  &=& \begin{bmatrix} 2\tau_{\varphi},\, 8\tau_{\varphi} \\ 2\tau_{\theta},\, 8\tau_{\theta} \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{seed}^{B}_{\varphi} \\ \text{seed}^{B}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} 12\tau_{\varphi},\, 15\tau_{\varphi} \\ 12\tau_{\theta},\, 15\tau_{\theta} \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{seed}^{C}_{\varphi} \\ \text{seed}^{C}_{\theta} \end{bmatrix}
