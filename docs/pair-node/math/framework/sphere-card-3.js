@@ -15,6 +15,8 @@ const SPHERE_CARD_3_FORMULAS = String.raw`\[
   &=& \begin{bmatrix} 10 \\ 10 \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{center}^{3}_{\varphi} \\ \text{center}^{3}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} 6 \\ 6 \end{bmatrix} \\[10pt]
+p_{0} &=& \text{the high pole} \\[3pt]
+p_{1} &=& \text{the low pole} \\[10pt]
 \textbf{1} & & \\[3pt]
 \begin{bmatrix} p^{1}_{0\,\varphi} \\ p^{1}_{0\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 1 \\ 1 \end{bmatrix} \\[6pt]
