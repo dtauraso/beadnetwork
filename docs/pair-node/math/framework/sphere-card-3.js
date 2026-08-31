@@ -52,6 +52,21 @@ const SPHERE_CARD_3_FORMULAS = String.raw`\[
                       0 & \text{otherwise} \\[6pt]
                       \text{distance}^{1}_{\text{top}_{\theta}} & \text{if } \text{distance}^{1}_{\text{top}_{\theta}} < \tau_{\theta}/4 \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
+\begin{bmatrix} \text{acute}^{1}_{\text{bottom}_{\varphi}} \\ \text{acute}^{1}_{\text{bottom}_{\theta}} \end{bmatrix}
+  &=& \begin{bmatrix} \text{distance}^{1}_{\text{bottom}_{\varphi}} & \text{if } \text{distance}^{1}_{\text{bottom}_{\varphi}} < \tau_{\varphi}/4 \\[3pt]
+                      0 & \text{otherwise} \\[6pt]
+                      \text{distance}^{1}_{\text{bottom}_{\theta}} & \text{if } \text{distance}^{1}_{\text{bottom}_{\theta}} < \tau_{\theta}/4 \\[3pt]
+                      0 & \text{otherwise} \end{bmatrix} \\[10pt]
+\begin{bmatrix} \text{acute}^{2}_{\text{top}_{\varphi}} \\ \text{acute}^{2}_{\text{top}_{\theta}} \end{bmatrix}
+  &=& \begin{bmatrix} \text{distance}^{2}_{\text{top}_{\varphi}} & \text{if } \text{distance}^{2}_{\text{top}_{\varphi}} < \tau_{\varphi}/4 \\[3pt]
+                      0 & \text{otherwise} \\[6pt]
+                      \text{distance}^{2}_{\text{top}_{\theta}} & \text{if } \text{distance}^{2}_{\text{top}_{\theta}} < \tau_{\theta}/4 \\[3pt]
+                      0 & \text{otherwise} \end{bmatrix} \\[10pt]
+\begin{bmatrix} \text{acute}^{2}_{\text{bottom}_{\varphi}} \\ \text{acute}^{2}_{\text{bottom}_{\theta}} \end{bmatrix}
+  &=& \begin{bmatrix} \text{distance}^{2}_{\text{bottom}_{\varphi}} & \text{if } \text{distance}^{2}_{\text{bottom}_{\varphi}} < \tau_{\varphi}/4 \\[3pt]
+                      0 & \text{otherwise} \\[6pt]
+                      \text{distance}^{2}_{\text{bottom}_{\theta}} & \text{if } \text{distance}^{2}_{\text{bottom}_{\theta}} < \tau_{\theta}/4 \\[3pt]
+                      0 & \text{otherwise} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{offset}_{\varphi} \\ \text{offset}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix}
       0 & \begin{array}{@{}l@{}} \text{if } \text{distance}^{k}_{\text{top}_{\varphi}} = 0 \\ \text{and } \text{distance}^{k}_{\text{bottom}_{\varphi}} = 0 \end{array} \\[8pt]
