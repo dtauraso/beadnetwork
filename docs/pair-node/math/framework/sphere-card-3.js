@@ -11,9 +11,7 @@ const SPHERE_CARD_3_FORMULAS = String.raw`\[
 a &=& \text{the step scalar, the same on both axes} \\[3pt]
 a &=& 2 \\[3pt]
 \tau_{\varphi} &=& \text{the angle index on } \varphi \\[3pt]
-\tau_{\theta} &=& \text{the angle index on } \theta \\[3pt]
-\tau_{\varphi} &=& 1 \text{ for the first angle} \\[3pt]
-\tau_{\theta} &=& 1 \text{ for the first angle} \\[6pt]
+\tau_{\theta} &=& \text{the angle index on } \theta \\[6pt]
 \begin{bmatrix} \text{seed}^{A}_{\varphi} \\ \text{seed}^{A}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} 2\tau_{\varphi},\, 8\tau_{\varphi} \\ 2\tau_{\theta},\, 8\tau_{\theta} \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{seed}^{B}_{\varphi} \\ \text{seed}^{B}_{\theta} \end{bmatrix}
