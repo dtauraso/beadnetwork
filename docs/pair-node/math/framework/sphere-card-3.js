@@ -8,32 +8,32 @@ const SPHERE_CARD_3_SPEC = {
 const SPHERE_CARD_3_FORMULAS = String.raw`\[
 \begin{array}{@{}l@{\;}c@{\;}l@{}}
 \textbf{shared} & & \textbf{— the three nodes together} \\[3pt]
-\begin{bmatrix} \text{seed}^{A}_{\varphi} \\ \text{seed}^{A}_{\theta} \end{bmatrix}
+\begin{bmatrix} \text{seed}^{1}_{\varphi} \\ \text{seed}^{1}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} 2 \\ 2 \end{bmatrix} \\[6pt]
-\begin{bmatrix} \text{seed}^{B}_{\varphi} \\ \text{seed}^{B}_{\theta} \end{bmatrix}
+\begin{bmatrix} \text{seed}^{2}_{\varphi} \\ \text{seed}^{2}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} 10 \\ 10 \end{bmatrix} \\[6pt]
-\begin{bmatrix} \text{seed}^{C}_{\varphi} \\ \text{seed}^{C}_{\theta} \end{bmatrix}
+\begin{bmatrix} \text{seed}^{3}_{\varphi} \\ \text{seed}^{3}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} 6 \\ 6 \end{bmatrix} \\[6pt]
-\begin{bmatrix} A_{c_{\varphi}} \\ A_{c_{\theta}} \end{bmatrix}
-  &=& \begin{bmatrix} \text{seed}^{A}_{\varphi} \\ \text{seed}^{A}_{\theta} \end{bmatrix} \\[6pt]
-\begin{bmatrix} B_{c_{\varphi}} \\ B_{c_{\theta}} \end{bmatrix}
-  &=& \begin{bmatrix} \text{seed}^{B}_{\varphi} \\ \text{seed}^{B}_{\theta} \end{bmatrix} \\[6pt]
-\begin{bmatrix} C_{c_{\varphi}} \\ C_{c_{\theta}} \end{bmatrix}
-  &=& \begin{bmatrix} \text{seed}^{C}_{\varphi} \\ \text{seed}^{C}_{\theta} \end{bmatrix} \\[10pt]
-\textbf{A} & & \\[3pt]
-\begin{bmatrix} A_{\text{top}_{\varphi}} \\ A_{\text{top}_{\theta}} \end{bmatrix}
+\begin{bmatrix} c^{1}_{\varphi} \\ c^{1}_{\theta} \end{bmatrix}
+  &=& \begin{bmatrix} \text{seed}^{1}_{\varphi} \\ \text{seed}^{1}_{\theta} \end{bmatrix} \\[6pt]
+\begin{bmatrix} c^{2}_{\varphi} \\ c^{2}_{\theta} \end{bmatrix}
+  &=& \begin{bmatrix} \text{seed}^{2}_{\varphi} \\ \text{seed}^{2}_{\theta} \end{bmatrix} \\[6pt]
+\begin{bmatrix} c^{3}_{\varphi} \\ c^{3}_{\theta} \end{bmatrix}
+  &=& \begin{bmatrix} \text{seed}^{3}_{\varphi} \\ \text{seed}^{3}_{\theta} \end{bmatrix} \\[10pt]
+\textbf{1} & & \\[3pt]
+\begin{bmatrix} \text{top}^{1}_{\varphi} \\ \text{top}^{1}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} 1 \\ 1 \end{bmatrix} \\[6pt]
-\begin{bmatrix} A_{\text{bottom}_{\varphi}} \\ A_{\text{bottom}_{\theta}} \end{bmatrix}
+\begin{bmatrix} \text{bottom}^{1}_{\varphi} \\ \text{bottom}^{1}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} 3 \\ 3 \end{bmatrix} \\[10pt]
-\textbf{B} & & \\[3pt]
-\begin{bmatrix} B_{\text{top}_{\varphi}} \\ B_{\text{top}_{\theta}} \end{bmatrix}
+\textbf{2} & & \\[3pt]
+\begin{bmatrix} \text{top}^{2}_{\varphi} \\ \text{top}^{2}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} 9 \\ 9 \end{bmatrix} \\[6pt]
-\begin{bmatrix} B_{\text{bottom}_{\varphi}} \\ B_{\text{bottom}_{\theta}} \end{bmatrix}
+\begin{bmatrix} \text{bottom}^{2}_{\varphi} \\ \text{bottom}^{2}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} 11 \\ 11 \end{bmatrix} \\[10pt]
-\textbf{C} & & \\[3pt]
-\begin{bmatrix} C_{\text{top}_{\varphi}} \\ C_{\text{top}_{\theta}} \end{bmatrix}
+\textbf{3} & & \\[3pt]
+\begin{bmatrix} \text{top}^{3}_{\varphi} \\ \text{top}^{3}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} 5 \\ 5 \end{bmatrix} \\[6pt]
-\begin{bmatrix} C_{\text{bottom}_{\varphi}} \\ C_{\text{bottom}_{\theta}} \end{bmatrix}
+\begin{bmatrix} \text{bottom}^{3}_{\varphi} \\ \text{bottom}^{3}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} 7 \\ 7 \end{bmatrix} \\[10pt]
 \textbf{one node} & & \\[3pt]
 \text{center} &=& (c_{\varphi},\, c_{\theta},\, c_{r}) \\[6pt]
