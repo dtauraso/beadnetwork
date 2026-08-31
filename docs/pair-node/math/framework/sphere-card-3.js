@@ -14,11 +14,11 @@ const SPHERE_CARD_3_FORMULAS = String.raw`\[
 2a\tau_{\theta} &=& 1 \text{ angle step on } \theta \\[3pt]
 a &=& \text{the step scalar, the same on both axes} \\[6pt]
 \begin{bmatrix} \text{seed}^{A}_{\varphi} \\ \text{seed}^{A}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 2\tau_{\varphi},\, 8\tau_{\varphi} \\ 2\tau_{\theta},\, 8\tau_{\theta} \end{bmatrix} \\[6pt]
+  &=& \begin{bmatrix} 2\varphi,\, 8\varphi \\ 2\theta,\, 8\theta \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{seed}^{B}_{\varphi} \\ \text{seed}^{B}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 24\tau_{\varphi},\, 30\tau_{\varphi} \\ 24\tau_{\theta},\, 30\tau_{\theta} \end{bmatrix} \\[6pt]
+  &=& \begin{bmatrix} 24\varphi,\, 30\varphi \\ 24\theta,\, 30\theta \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{seed}^{C}_{\varphi} \\ \text{seed}^{C}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 13\tau_{\varphi},\, 19\tau_{\varphi} \\ 13\tau_{\theta},\, 19\tau_{\theta} \end{bmatrix} \\[6pt]
+  &=& \begin{bmatrix} 13\varphi,\, 19\varphi \\ 13\theta,\, 19\theta \end{bmatrix} \\[6pt]
 \begin{bmatrix} A_{c_{\varphi}} \\ A_{c_{\theta}} \end{bmatrix}
   &=& \begin{bmatrix} \text{seed}^{A}_{\varphi} \\ \text{seed}^{A}_{\theta} \end{bmatrix} \\[6pt]
 \begin{bmatrix} B_{c_{\varphi}} \\ B_{c_{\theta}} \end{bmatrix}
