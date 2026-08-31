@@ -69,15 +69,15 @@ p_{1} &=& \text{the bottom pole} \\[10pt]
                       0 & \text{otherwise} \\[6pt]
                       \text{distance}^{2}_{p_1\,\theta} & \text{if } \text{distance}^{2}_{p_1\,\theta} < \tau_{\theta}/4 \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
-\begin{bmatrix} \text{p\_acute}^{0}_{\varphi} \\ \text{p\_acute}^{0}_{\theta} \end{bmatrix}
+\begin{bmatrix} \text{p_acute}^{0}_{\varphi} \\ \text{p_acute}^{0}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} |\, \text{acute}^{1}_{p_0\,\varphi} - \text{acute}^{2}_{p_0\,\varphi} \,| \\[6pt]
                       |\, \text{acute}^{1}_{p_0\,\theta} - \text{acute}^{2}_{p_0\,\theta} \,| \end{bmatrix} \\[6pt]
-\begin{bmatrix} \text{p\_acute}^{1}_{\varphi} \\ \text{p\_acute}^{1}_{\theta} \end{bmatrix}
+\begin{bmatrix} \text{p_acute}^{1}_{\varphi} \\ \text{p_acute}^{1}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} |\, \text{acute}^{1}_{p_1\,\varphi} - \text{acute}^{2}_{p_1\,\varphi} \,| \\[6pt]
                       |\, \text{acute}^{1}_{p_1\,\theta} - \text{acute}^{2}_{p_1\,\theta} \,| \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{offset}_{\varphi} \\ \text{offset}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \text{p\_acute}^{0}_{\varphi} + \text{p\_acute}^{1}_{\varphi} \\[6pt]
-                      \text{p\_acute}^{0}_{\theta} + \text{p\_acute}^{1}_{\theta} \end{bmatrix} \\[10pt]
+  &=& \begin{bmatrix} \text{p_acute}^{0}_{\varphi} + \text{p_acute}^{1}_{\varphi} \\[6pt]
+                      \text{p_acute}^{0}_{\theta} + \text{p_acute}^{1}_{\theta} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{offset}_{\varphi} \\ \text{offset}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix}
       0 & \begin{array}{@{}l@{}} \text{if } \text{distance}^{k}_{p_0\,\varphi} = 0 \\ \text{and } \text{distance}^{k}_{p_1\,\varphi} = 0 \end{array} \\[8pt]
