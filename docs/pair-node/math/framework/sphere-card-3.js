@@ -11,7 +11,7 @@ const SPHERE_CARD_3_FORMULAS = String.raw`\[
 a &=& \text{the step scalar, the same on both axes} \\[3pt]
 a &=& 2 \\[3pt]
 k &=& \text{the right angle step} \\[3pt]
-ak &=& \text{the angle number} \\[6pt]
+k &=& 4 \\[6pt]
 \begin{bmatrix} \text{seed}^{A}_{\varphi} \\ \text{seed}^{A}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} 2\varphi,\, 8\varphi \\ 2\theta,\, 8\theta \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{seed}^{B}_{\varphi} \\ \text{seed}^{B}_{\theta} \end{bmatrix}
