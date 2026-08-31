@@ -8,9 +8,6 @@ const SPHERE_CARD_3_SPEC = {
 const SPHERE_CARD_3_FORMULAS = String.raw`\[
 \begin{array}{@{}l@{\;}c@{\;}l@{}}
 \textbf{shared} & & \textbf{— the three nodes together} \\[3pt]
-2a\tau_{\varphi} &=& 1 \text{ angle step on } \varphi \\[3pt]
-2a\tau_{\theta} &=& 1 \text{ angle step on } \theta \\[3pt]
-a &=& \text{the step scalar, the same on both axes} \\[6pt]
 \begin{bmatrix} \text{seed}^{A}_{\varphi} \\ \text{seed}^{A}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} 2\varphi,\, 8\varphi \\ 2\theta,\, 8\theta \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{seed}^{B}_{\varphi} \\ \text{seed}^{B}_{\theta} \end{bmatrix}
