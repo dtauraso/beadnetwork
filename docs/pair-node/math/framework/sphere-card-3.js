@@ -35,12 +35,18 @@ const SPHERE_CARD_3_FORMULAS = String.raw`\[
   &=& \text{from partner } 1 \\[6pt]
 \begin{bmatrix} \text{arrival}^{2}_{\varphi} \\ \text{arrival}^{2}_{\theta} \end{bmatrix}
   &=& \text{from partner } 2 \\[6pt]
-\begin{bmatrix} \text{distance}^{k}_{\text{top}_{\varphi}} \\ \text{distance}^{k}_{\text{top}_{\theta}} \end{bmatrix}
-  &=& \begin{bmatrix} |\, \text{top}_{\varphi} - \text{arrival}^{k}_{\varphi} \,| \bmod \tau_{\varphi}/4 \\[6pt]
-                      |\, \text{top}_{\theta} - \text{arrival}^{k}_{\theta} \,| \bmod \tau_{\theta}/4 \end{bmatrix} \\[6pt]
-\begin{bmatrix} \text{distance}^{k}_{\text{bottom}_{\varphi}} \\ \text{distance}^{k}_{\text{bottom}_{\theta}} \end{bmatrix}
-  &=& \begin{bmatrix} |\, \text{bottom}_{\varphi} - \text{arrival}^{k}_{\varphi} \,| \bmod \tau_{\varphi}/4 \\[6pt]
-                      |\, \text{bottom}_{\theta} - \text{arrival}^{k}_{\theta} \,| \bmod \tau_{\theta}/4 \end{bmatrix} \\[10pt]
+\begin{bmatrix} \text{distance}^{1}_{\text{top}_{\varphi}} \\ \text{distance}^{1}_{\text{top}_{\theta}} \end{bmatrix}
+  &=& \begin{bmatrix} |\, \text{top}^{k}_{\varphi} - \text{arrival}^{1}_{\varphi} \,| \\[6pt]
+                      |\, \text{top}^{k}_{\theta} - \text{arrival}^{1}_{\theta} \,| \end{bmatrix} \\[6pt]
+\begin{bmatrix} \text{distance}^{1}_{\text{bottom}_{\varphi}} \\ \text{distance}^{1}_{\text{bottom}_{\theta}} \end{bmatrix}
+  &=& \begin{bmatrix} |\, \text{bottom}^{k}_{\varphi} - \text{arrival}^{1}_{\varphi} \,| \\[6pt]
+                      |\, \text{bottom}^{k}_{\theta} - \text{arrival}^{1}_{\theta} \,| \end{bmatrix} \\[6pt]
+\begin{bmatrix} \text{distance}^{2}_{\text{top}_{\varphi}} \\ \text{distance}^{2}_{\text{top}_{\theta}} \end{bmatrix}
+  &=& \begin{bmatrix} |\, \text{top}^{k}_{\varphi} - \text{arrival}^{2}_{\varphi} \,| \\[6pt]
+                      |\, \text{top}^{k}_{\theta} - \text{arrival}^{2}_{\theta} \,| \end{bmatrix} \\[6pt]
+\begin{bmatrix} \text{distance}^{2}_{\text{bottom}_{\varphi}} \\ \text{distance}^{2}_{\text{bottom}_{\theta}} \end{bmatrix}
+  &=& \begin{bmatrix} |\, \text{bottom}^{k}_{\varphi} - \text{arrival}^{2}_{\varphi} \,| \\[6pt]
+                      |\, \text{bottom}^{k}_{\theta} - \text{arrival}^{2}_{\theta} \,| \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{offset}_{\varphi} \\ \text{offset}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix}
       0 & \begin{array}{@{}l@{}} \text{if } \text{distance}^{k}_{\text{top}_{\varphi}} = 0 \\ \text{and } \text{distance}^{k}_{\text{bottom}_{\varphi}} = 0 \end{array} \\[8pt]
