@@ -10,8 +10,6 @@ const SPHERE_CARD_3_FORMULAS = String.raw`\[
 \textbf{shared} & & \textbf{— the three nodes together} \\[3pt]
 a &=& \text{the step scalar, the same on both axes} \\[3pt]
 a &=& 2 \\[3pt]
-k &=& \text{the right angle step} \\[3pt]
-k &=& 4 \\[3pt]
 \tau &=& \text{the angle index} \\[3pt]
 a\tau_{\varphi} &=& \text{the angle number on } \varphi \\[3pt]
 a\tau_{\theta} &=& \text{the angle number on } \theta \\[6pt]
