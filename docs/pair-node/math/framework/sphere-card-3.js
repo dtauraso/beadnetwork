@@ -9,24 +9,34 @@ const SPHERE_CARD_3_FORMULAS = String.raw`\[
 \begin{array}{@{}l@{\;}c@{\;}l@{}}
 \textbf{shared} & & \textbf{— the three nodes together} \\[3pt]
 \begin{bmatrix} \text{seed}^{A}_{\varphi} \\ \text{seed}^{A}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 1,\, 3 \\ 1,\, 3 \end{bmatrix} \\[6pt]
+  &=& \begin{bmatrix} 2 \\ 2 \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{seed}^{B}_{\varphi} \\ \text{seed}^{B}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 9,\, 11 \\ 9,\, 11 \end{bmatrix} \\[6pt]
+  &=& \begin{bmatrix} 10 \\ 10 \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{seed}^{C}_{\varphi} \\ \text{seed}^{C}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 5,\, 7 \\ 5,\, 7 \end{bmatrix} \\[6pt]
+  &=& \begin{bmatrix} 6 \\ 6 \end{bmatrix} \\[6pt]
 \begin{bmatrix} A_{c_{\varphi}} \\ A_{c_{\theta}} \end{bmatrix}
   &=& \begin{bmatrix} \text{seed}^{A}_{\varphi} \\ \text{seed}^{A}_{\theta} \end{bmatrix} \\[6pt]
 \begin{bmatrix} B_{c_{\varphi}} \\ B_{c_{\theta}} \end{bmatrix}
   &=& \begin{bmatrix} \text{seed}^{B}_{\varphi} \\ \text{seed}^{B}_{\theta} \end{bmatrix} \\[6pt]
 \begin{bmatrix} C_{c_{\varphi}} \\ C_{c_{\theta}} \end{bmatrix}
   &=& \begin{bmatrix} \text{seed}^{C}_{\varphi} \\ \text{seed}^{C}_{\theta} \end{bmatrix} \\[10pt]
+\textbf{A} & & \\[3pt]
+\begin{bmatrix} A_{\text{top}_{\varphi}} \\ A_{\text{top}_{\theta}} \end{bmatrix}
+  &=& \begin{bmatrix} 1 \\ 1 \end{bmatrix} \\[6pt]
+\begin{bmatrix} A_{\text{bottom}_{\varphi}} \\ A_{\text{bottom}_{\theta}} \end{bmatrix}
+  &=& \begin{bmatrix} 3 \\ 3 \end{bmatrix} \\[10pt]
+\textbf{B} & & \\[3pt]
+\begin{bmatrix} B_{\text{top}_{\varphi}} \\ B_{\text{top}_{\theta}} \end{bmatrix}
+  &=& \begin{bmatrix} 9 \\ 9 \end{bmatrix} \\[6pt]
+\begin{bmatrix} B_{\text{bottom}_{\varphi}} \\ B_{\text{bottom}_{\theta}} \end{bmatrix}
+  &=& \begin{bmatrix} 11 \\ 11 \end{bmatrix} \\[10pt]
+\textbf{C} & & \\[3pt]
+\begin{bmatrix} C_{\text{top}_{\varphi}} \\ C_{\text{top}_{\theta}} \end{bmatrix}
+  &=& \begin{bmatrix} 5 \\ 5 \end{bmatrix} \\[6pt]
+\begin{bmatrix} C_{\text{bottom}_{\varphi}} \\ C_{\text{bottom}_{\theta}} \end{bmatrix}
+  &=& \begin{bmatrix} 7 \\ 7 \end{bmatrix} \\[10pt]
 \textbf{one node} & & \\[3pt]
-\text{center} &=& (c_{\varphi},\, c_{\theta},\, c_{r}) \\[3pt]
-\begin{bmatrix} \text{top}_{\varphi} \\ \text{top}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[3pt]
-\begin{bmatrix} \text{bottom}_{\varphi} \\ \text{bottom}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} (\text{top}_{\varphi} + \tau_{\varphi}/2) \bmod \tau_{\varphi} \\
-                      (\text{top}_{\theta} + \tau_{\theta}/2) \bmod \tau_{\theta} \end{bmatrix} \\[6pt]
+\text{center} &=& (c_{\varphi},\, c_{\theta},\, c_{r}) \\[6pt]
 \begin{bmatrix} \text{arrival}^{1}_{\varphi} \\ \text{arrival}^{1}_{\theta} \end{bmatrix}
   &=& \text{from partner } 1 \\[6pt]
 \begin{bmatrix} \text{arrival}^{2}_{\varphi} \\ \text{arrival}^{2}_{\theta} \end{bmatrix}
