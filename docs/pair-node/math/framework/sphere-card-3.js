@@ -38,17 +38,17 @@ p_{1} &=& \text{the bottom pole} \\[10pt]
 \begin{bmatrix} \text{arrival}^{2}_{\varphi} \\ \text{arrival}^{2}_{\theta} \end{bmatrix}
   &=& \text{from partner } 2 \\[6pt]
 \begin{bmatrix} \text{distance}^{1}_{p_0\,\varphi} \\ \text{distance}^{1}_{p_0\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} |\, p^{k}_{0\,\varphi} - \text{arrival}^{1}_{\varphi} \,| \\[6pt]
-                      |\, p^{k}_{0\,\theta} - \text{arrival}^{1}_{\theta} \,| \end{bmatrix} \\[6pt]
+  &=& \begin{bmatrix} p^{k}_{0\,\varphi} - \text{arrival}^{1}_{\varphi} \\[6pt]
+                      p^{k}_{0\,\theta} - \text{arrival}^{1}_{\theta} \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{distance}^{2}_{p_0\,\varphi} \\ \text{distance}^{2}_{p_0\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} |\, p^{k}_{0\,\varphi} - \text{arrival}^{2}_{\varphi} \,| \\[6pt]
-                      |\, p^{k}_{0\,\theta} - \text{arrival}^{2}_{\theta} \,| \end{bmatrix} \\[6pt]
+  &=& \begin{bmatrix} p^{k}_{0\,\varphi} - \text{arrival}^{2}_{\varphi} \\[6pt]
+                      p^{k}_{0\,\theta} - \text{arrival}^{2}_{\theta} \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{distance}^{1}_{p_1\,\varphi} \\ \text{distance}^{1}_{p_1\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} |\, p^{k}_{1\,\varphi} - \text{arrival}^{1}_{\varphi} \,| \\[6pt]
-                      |\, p^{k}_{1\,\theta} - \text{arrival}^{1}_{\theta} \,| \end{bmatrix} \\[6pt]
+  &=& \begin{bmatrix} p^{k}_{1\,\varphi} - \text{arrival}^{1}_{\varphi} \\[6pt]
+                      p^{k}_{1\,\theta} - \text{arrival}^{1}_{\theta} \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{distance}^{2}_{p_1\,\varphi} \\ \text{distance}^{2}_{p_1\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} |\, p^{k}_{1\,\varphi} - \text{arrival}^{2}_{\varphi} \,| \\[6pt]
-                      |\, p^{k}_{1\,\theta} - \text{arrival}^{2}_{\theta} \,| \end{bmatrix} \\[10pt]
+  &=& \begin{bmatrix} p^{k}_{1\,\varphi} - \text{arrival}^{2}_{\varphi} \\[6pt]
+                      p^{k}_{1\,\theta} - \text{arrival}^{2}_{\theta} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{acute}^{1}_{p_0\,\varphi} \\ \text{acute}^{1}_{p_0\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} \text{distance}^{1}_{p_0\,\varphi} & \text{if } \text{distance}^{1}_{p_0\,\varphi} < \tau_{\varphi}/4 \\[3pt]
                       0 & \text{otherwise} \\[6pt]
