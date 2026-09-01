@@ -37,57 +37,57 @@ p_{1} &=& \text{the bottom pole} \\[10pt]
   &=& \text{from partner } 1 \\[6pt]
 \begin{bmatrix} \text{arrival}^{2}_{\varphi} \\ \text{arrival}^{2}_{\theta} \end{bmatrix}
   &=& \text{from partner } 2 \\[6pt]
-\begin{bmatrix} \text{distance}^{1}_{p_0\,\varphi} \\ \text{distance}^{1}_{p_0\,\theta} \end{bmatrix}
+\begin{bmatrix} \Delta^{1}_{p_0\,\varphi} \\ \Delta^{1}_{p_0\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} p^{k}_{0\,\varphi} - \text{arrival}^{1}_{\varphi} \\[6pt]
                       p^{k}_{0\,\theta} - \text{arrival}^{1}_{\theta} \end{bmatrix} \\[6pt]
-\begin{bmatrix} \text{distance}^{2}_{p_0\,\varphi} \\ \text{distance}^{2}_{p_0\,\theta} \end{bmatrix}
+\begin{bmatrix} \Delta^{2}_{p_0\,\varphi} \\ \Delta^{2}_{p_0\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} p^{k}_{0\,\varphi} - \text{arrival}^{2}_{\varphi} \\[6pt]
                       p^{k}_{0\,\theta} - \text{arrival}^{2}_{\theta} \end{bmatrix} \\[6pt]
-\begin{bmatrix} \text{distance}^{1}_{p_1\,\varphi} \\ \text{distance}^{1}_{p_1\,\theta} \end{bmatrix}
+\begin{bmatrix} \Delta^{1}_{p_1\,\varphi} \\ \Delta^{1}_{p_1\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} p^{k}_{1\,\varphi} - \text{arrival}^{1}_{\varphi} \\[6pt]
                       p^{k}_{1\,\theta} - \text{arrival}^{1}_{\theta} \end{bmatrix} \\[6pt]
-\begin{bmatrix} \text{distance}^{2}_{p_1\,\varphi} \\ \text{distance}^{2}_{p_1\,\theta} \end{bmatrix}
+\begin{bmatrix} \Delta^{2}_{p_1\,\varphi} \\ \Delta^{2}_{p_1\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} p^{k}_{1\,\varphi} - \text{arrival}^{2}_{\varphi} \\[6pt]
                       p^{k}_{1\,\theta} - \text{arrival}^{2}_{\theta} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{acute}^{1}_{p_0\,\varphi} \\ \text{acute}^{1}_{p_0\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \text{distance}^{1}_{p_0\,\varphi} & \text{if } \text{distance}^{1}_{p_0\,\varphi} < \tau_{\varphi}/4 \\[3pt]
+  &=& \begin{bmatrix} \Delta^{1}_{p_0\,\varphi} & \text{if } \Delta^{1}_{p_0\,\varphi} < \tau_{\varphi}/4 \\[3pt]
                       0 & \text{otherwise} \\[6pt]
-                      \text{distance}^{1}_{p_0\,\theta} & \text{if } \text{distance}^{1}_{p_0\,\theta} < \tau_{\theta}/4 \\[3pt]
+                      \Delta^{1}_{p_0\,\theta} & \text{if } \Delta^{1}_{p_0\,\theta} < \tau_{\theta}/4 \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{acute}^{2}_{p_0\,\varphi} \\ \text{acute}^{2}_{p_0\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \text{distance}^{2}_{p_0\,\varphi} & \text{if } \text{distance}^{2}_{p_0\,\varphi} < \tau_{\varphi}/4 \\[3pt]
+  &=& \begin{bmatrix} \Delta^{2}_{p_0\,\varphi} & \text{if } \Delta^{2}_{p_0\,\varphi} < \tau_{\varphi}/4 \\[3pt]
                       0 & \text{otherwise} \\[6pt]
-                      \text{distance}^{2}_{p_0\,\theta} & \text{if } \text{distance}^{2}_{p_0\,\theta} < \tau_{\theta}/4 \\[3pt]
+                      \Delta^{2}_{p_0\,\theta} & \text{if } \Delta^{2}_{p_0\,\theta} < \tau_{\theta}/4 \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{acute}^{1}_{p_1\,\varphi} \\ \text{acute}^{1}_{p_1\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \text{distance}^{1}_{p_1\,\varphi} & \text{if } \text{distance}^{1}_{p_1\,\varphi} < \tau_{\varphi}/4 \\[3pt]
+  &=& \begin{bmatrix} \Delta^{1}_{p_1\,\varphi} & \text{if } \Delta^{1}_{p_1\,\varphi} < \tau_{\varphi}/4 \\[3pt]
                       0 & \text{otherwise} \\[6pt]
-                      \text{distance}^{1}_{p_1\,\theta} & \text{if } \text{distance}^{1}_{p_1\,\theta} < \tau_{\theta}/4 \\[3pt]
+                      \Delta^{1}_{p_1\,\theta} & \text{if } \Delta^{1}_{p_1\,\theta} < \tau_{\theta}/4 \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{acute}^{2}_{p_1\,\varphi} \\ \text{acute}^{2}_{p_1\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \text{distance}^{2}_{p_1\,\varphi} & \text{if } \text{distance}^{2}_{p_1\,\varphi} < \tau_{\varphi}/4 \\[3pt]
+  &=& \begin{bmatrix} \Delta^{2}_{p_1\,\varphi} & \text{if } \Delta^{2}_{p_1\,\varphi} < \tau_{\varphi}/4 \\[3pt]
                       0 & \text{otherwise} \\[6pt]
-                      \text{distance}^{2}_{p_1\,\theta} & \text{if } \text{distance}^{2}_{p_1\,\theta} < \tau_{\theta}/4 \\[3pt]
+                      \Delta^{2}_{p_1\,\theta} & \text{if } \Delta^{2}_{p_1\,\theta} < \tau_{\theta}/4 \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{acute_minus}^{1}_{p_0\,\varphi} \\ \text{acute_minus}^{1}_{p_0\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \text{distance}^{1}_{p_0\,\varphi} & \text{if } \text{distance}^{1}_{p_0\,\varphi} > -\tau_{\varphi}/4 \\[3pt]
+  &=& \begin{bmatrix} \Delta^{1}_{p_0\,\varphi} & \text{if } \Delta^{1}_{p_0\,\varphi} > -\tau_{\varphi}/4 \\[3pt]
                       0 & \text{otherwise} \\[6pt]
-                      \text{distance}^{1}_{p_0\,\theta} & \text{if } \text{distance}^{1}_{p_0\,\theta} > -\tau_{\theta}/4 \\[3pt]
+                      \Delta^{1}_{p_0\,\theta} & \text{if } \Delta^{1}_{p_0\,\theta} > -\tau_{\theta}/4 \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{acute_minus}^{2}_{p_0\,\varphi} \\ \text{acute_minus}^{2}_{p_0\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \text{distance}^{2}_{p_0\,\varphi} & \text{if } \text{distance}^{2}_{p_0\,\varphi} > -\tau_{\varphi}/4 \\[3pt]
+  &=& \begin{bmatrix} \Delta^{2}_{p_0\,\varphi} & \text{if } \Delta^{2}_{p_0\,\varphi} > -\tau_{\varphi}/4 \\[3pt]
                       0 & \text{otherwise} \\[6pt]
-                      \text{distance}^{2}_{p_0\,\theta} & \text{if } \text{distance}^{2}_{p_0\,\theta} > -\tau_{\theta}/4 \\[3pt]
+                      \Delta^{2}_{p_0\,\theta} & \text{if } \Delta^{2}_{p_0\,\theta} > -\tau_{\theta}/4 \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{acute_minus}^{1}_{p_1\,\varphi} \\ \text{acute_minus}^{1}_{p_1\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \text{distance}^{1}_{p_1\,\varphi} & \text{if } \text{distance}^{1}_{p_1\,\varphi} > -\tau_{\varphi}/4 \\[3pt]
+  &=& \begin{bmatrix} \Delta^{1}_{p_1\,\varphi} & \text{if } \Delta^{1}_{p_1\,\varphi} > -\tau_{\varphi}/4 \\[3pt]
                       0 & \text{otherwise} \\[6pt]
-                      \text{distance}^{1}_{p_1\,\theta} & \text{if } \text{distance}^{1}_{p_1\,\theta} > -\tau_{\theta}/4 \\[3pt]
+                      \Delta^{1}_{p_1\,\theta} & \text{if } \Delta^{1}_{p_1\,\theta} > -\tau_{\theta}/4 \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{acute_minus}^{2}_{p_1\,\varphi} \\ \text{acute_minus}^{2}_{p_1\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \text{distance}^{2}_{p_1\,\varphi} & \text{if } \text{distance}^{2}_{p_1\,\varphi} > -\tau_{\varphi}/4 \\[3pt]
+  &=& \begin{bmatrix} \Delta^{2}_{p_1\,\varphi} & \text{if } \Delta^{2}_{p_1\,\varphi} > -\tau_{\varphi}/4 \\[3pt]
                       0 & \text{otherwise} \\[6pt]
-                      \text{distance}^{2}_{p_1\,\theta} & \text{if } \text{distance}^{2}_{p_1\,\theta} > -\tau_{\theta}/4 \\[3pt]
+                      \Delta^{2}_{p_1\,\theta} & \text{if } \Delta^{2}_{p_1\,\theta} > -\tau_{\theta}/4 \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{p_acute}^{0}_{\varphi} \\ \text{p_acute}^{0}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} |\, \text{acute}^{1}_{p_0\,\varphi} - \text{acute}^{2}_{p_0\,\varphi} \,| \\[6pt]
@@ -100,15 +100,15 @@ p_{1} &=& \text{the bottom pole} \\[10pt]
                       |\, \text{p_acute}^{0}_{\theta} - \text{p_acute}^{1}_{\theta} \,| \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{offset}_{\varphi} \\ \text{offset}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix}
-      0 & \begin{array}{@{}l@{}} \text{if } \text{distance}^{k}_{p_0\,\varphi} = 0 \\ \text{and } \text{distance}^{k}_{p_1\,\varphi} = 0 \end{array} \\[8pt]
+      0 & \begin{array}{@{}l@{}} \text{if } \Delta^{k}_{p_0\,\varphi} = 0 \\ \text{and } \Delta^{k}_{p_1\,\varphi} = 0 \end{array} \\[8pt]
       0 &
     \end{bmatrix} \ (1_{\varphi}) \\
 & & \begin{bmatrix}
-      -1 & \text{if } \text{distance}^{k}_{p_0\,\varphi} < \tau_{\varphi}/4 \\
+      -1 & \text{if } \Delta^{k}_{p_0\,\varphi} < \tau_{\varphi}/4 \\
       0 &
     \end{bmatrix} \ (2_{\varphi}) \\
 & & \begin{bmatrix}
-      -1 & \text{if } \text{distance}^{k}_{p_1\,\varphi} < \tau_{\varphi}/4 \\
+      -1 & \text{if } \Delta^{k}_{p_1\,\varphi} < \tau_{\varphi}/4 \\
       0 &
     \end{bmatrix} \ (3_{\varphi}) \\
 & & \begin{bmatrix}
@@ -117,15 +117,15 @@ p_{1} &=& \text{the bottom pole} \\[10pt]
     \end{bmatrix} \ (4_{\varphi}) \\
 & & \begin{bmatrix}
       0 & \\[8pt]
-      0 & \begin{array}{@{}l@{}} \text{if } \text{distance}^{k}_{p_0\,\theta} = 0 \\ \text{and } \text{distance}^{k}_{p_1\,\theta} = 0 \end{array}
+      0 & \begin{array}{@{}l@{}} \text{if } \Delta^{k}_{p_0\,\theta} = 0 \\ \text{and } \Delta^{k}_{p_1\,\theta} = 0 \end{array}
     \end{bmatrix} \ (1_{\theta}) \\
 & & \begin{bmatrix}
       0 & \\
-      -1 & \text{if } \text{distance}^{k}_{p_0\,\theta} < \tau_{\theta}/4
+      -1 & \text{if } \Delta^{k}_{p_0\,\theta} < \tau_{\theta}/4
     \end{bmatrix} \ (2_{\theta}) \\
 & & \begin{bmatrix}
       0 & \\
-      -1 & \text{if } \text{distance}^{k}_{p_1\,\theta} < \tau_{\theta}/4
+      -1 & \text{if } \Delta^{k}_{p_1\,\theta} < \tau_{\theta}/4
     \end{bmatrix} \ (3_{\theta}) \\
 & & \begin{bmatrix}
       0 & \\
