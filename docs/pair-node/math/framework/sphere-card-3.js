@@ -69,6 +69,26 @@ p_{1} &=& \text{the bottom pole} \\[10pt]
                       0 & \text{otherwise} \\[6pt]
                       \text{distance}^{2}_{p_1\,\theta} & \text{if } \text{distance}^{2}_{p_1\,\theta} < \tau_{\theta}/4 \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
+\begin{bmatrix} \text{acute\_minus}^{1}_{p_0\,\varphi} \\ \text{acute\_minus}^{1}_{p_0\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} \text{distance}^{1}_{p_0\,\varphi} & \text{if } \text{distance}^{1}_{p_0\,\varphi} > -\tau_{\varphi}/4 \\[3pt]
+                      0 & \text{otherwise} \\[6pt]
+                      \text{distance}^{1}_{p_0\,\theta} & \text{if } \text{distance}^{1}_{p_0\,\theta} > -\tau_{\theta}/4 \\[3pt]
+                      0 & \text{otherwise} \end{bmatrix} \\[10pt]
+\begin{bmatrix} \text{acute\_minus}^{2}_{p_0\,\varphi} \\ \text{acute\_minus}^{2}_{p_0\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} \text{distance}^{2}_{p_0\,\varphi} & \text{if } \text{distance}^{2}_{p_0\,\varphi} > -\tau_{\varphi}/4 \\[3pt]
+                      0 & \text{otherwise} \\[6pt]
+                      \text{distance}^{2}_{p_0\,\theta} & \text{if } \text{distance}^{2}_{p_0\,\theta} > -\tau_{\theta}/4 \\[3pt]
+                      0 & \text{otherwise} \end{bmatrix} \\[10pt]
+\begin{bmatrix} \text{acute\_minus}^{1}_{p_1\,\varphi} \\ \text{acute\_minus}^{1}_{p_1\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} \text{distance}^{1}_{p_1\,\varphi} & \text{if } \text{distance}^{1}_{p_1\,\varphi} > -\tau_{\varphi}/4 \\[3pt]
+                      0 & \text{otherwise} \\[6pt]
+                      \text{distance}^{1}_{p_1\,\theta} & \text{if } \text{distance}^{1}_{p_1\,\theta} > -\tau_{\theta}/4 \\[3pt]
+                      0 & \text{otherwise} \end{bmatrix} \\[10pt]
+\begin{bmatrix} \text{acute\_minus}^{2}_{p_1\,\varphi} \\ \text{acute\_minus}^{2}_{p_1\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} \text{distance}^{2}_{p_1\,\varphi} & \text{if } \text{distance}^{2}_{p_1\,\varphi} > -\tau_{\varphi}/4 \\[3pt]
+                      0 & \text{otherwise} \\[6pt]
+                      \text{distance}^{2}_{p_1\,\theta} & \text{if } \text{distance}^{2}_{p_1\,\theta} > -\tau_{\theta}/4 \\[3pt]
+                      0 & \text{otherwise} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{p_acute}^{0}_{\varphi} \\ \text{p_acute}^{0}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} |\, \text{acute}^{1}_{p_0\,\varphi} - \text{acute}^{2}_{p_0\,\varphi} \,| \\[6pt]
                       |\, \text{acute}^{1}_{p_0\,\theta} - \text{acute}^{2}_{p_0\,\theta} \,| \end{bmatrix} \\[6pt]
