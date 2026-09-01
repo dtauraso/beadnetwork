@@ -54,35 +54,35 @@ p_{1} &=& \text{the bottom pole} \\[10pt]
                       0 & \text{otherwise} \\[6pt]
                       \Delta^{1}_{p_0\,\theta} & \text{if } 0 \le \Delta^{1}_{p_0\,\theta} < \tau_{\theta}/4 \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
-\begin{bmatrix} \text{acute}^{2}_{p_0\,\varphi} \\ \text{acute}^{2}_{p_0\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \Delta^{2}_{p_0\,\varphi} & \text{if } 0 \le \Delta^{2}_{p_0\,\varphi} < \tau_{\varphi}/4 \\[3pt]
-                      0 & \text{otherwise} \\[6pt]
-                      \Delta^{2}_{p_0\,\theta} & \text{if } 0 \le \Delta^{2}_{p_0\,\theta} < \tau_{\theta}/4 \\[3pt]
-                      0 & \text{otherwise} \end{bmatrix} \\[10pt]
-\begin{bmatrix} \text{acute}^{1}_{p_1\,\varphi} \\ \text{acute}^{1}_{p_1\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \Delta^{1}_{p_1\,\varphi} & \text{if } 0 \le \Delta^{1}_{p_1\,\varphi} < \tau_{\varphi}/4 \\[3pt]
-                      0 & \text{otherwise} \\[6pt]
-                      \Delta^{1}_{p_1\,\theta} & \text{if } 0 \le \Delta^{1}_{p_1\,\theta} < \tau_{\theta}/4 \\[3pt]
-                      0 & \text{otherwise} \end{bmatrix} \\[10pt]
-\begin{bmatrix} \text{acute}^{2}_{p_1\,\varphi} \\ \text{acute}^{2}_{p_1\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \Delta^{2}_{p_1\,\varphi} & \text{if } 0 \le \Delta^{2}_{p_1\,\varphi} < \tau_{\varphi}/4 \\[3pt]
-                      0 & \text{otherwise} \\[6pt]
-                      \Delta^{2}_{p_1\,\theta} & \text{if } 0 \le \Delta^{2}_{p_1\,\theta} < \tau_{\theta}/4 \\[3pt]
-                      0 & \text{otherwise} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{acute_minus}^{1}_{p_0\,\varphi} \\ \text{acute_minus}^{1}_{p_0\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} \Delta^{1}_{p_0\,\varphi} & \text{if } -\tau_{\varphi}/4 < \Delta^{1}_{p_0\,\varphi} \le 0 \\[3pt]
                       0 & \text{otherwise} \\[6pt]
                       \Delta^{1}_{p_0\,\theta} & \text{if } -\tau_{\theta}/4 < \Delta^{1}_{p_0\,\theta} \le 0 \\[3pt]
+                      0 & \text{otherwise} \end{bmatrix} \\[10pt]
+\begin{bmatrix} \text{acute}^{2}_{p_0\,\varphi} \\ \text{acute}^{2}_{p_0\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} \Delta^{2}_{p_0\,\varphi} & \text{if } 0 \le \Delta^{2}_{p_0\,\varphi} < \tau_{\varphi}/4 \\[3pt]
+                      0 & \text{otherwise} \\[6pt]
+                      \Delta^{2}_{p_0\,\theta} & \text{if } 0 \le \Delta^{2}_{p_0\,\theta} < \tau_{\theta}/4 \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{acute_minus}^{2}_{p_0\,\varphi} \\ \text{acute_minus}^{2}_{p_0\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} \Delta^{2}_{p_0\,\varphi} & \text{if } -\tau_{\varphi}/4 < \Delta^{2}_{p_0\,\varphi} \le 0 \\[3pt]
                       0 & \text{otherwise} \\[6pt]
                       \Delta^{2}_{p_0\,\theta} & \text{if } -\tau_{\theta}/4 < \Delta^{2}_{p_0\,\theta} \le 0 \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
+\begin{bmatrix} \text{acute}^{1}_{p_1\,\varphi} \\ \text{acute}^{1}_{p_1\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} \Delta^{1}_{p_1\,\varphi} & \text{if } 0 \le \Delta^{1}_{p_1\,\varphi} < \tau_{\varphi}/4 \\[3pt]
+                      0 & \text{otherwise} \\[6pt]
+                      \Delta^{1}_{p_1\,\theta} & \text{if } 0 \le \Delta^{1}_{p_1\,\theta} < \tau_{\theta}/4 \\[3pt]
+                      0 & \text{otherwise} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{acute_minus}^{1}_{p_1\,\varphi} \\ \text{acute_minus}^{1}_{p_1\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} \Delta^{1}_{p_1\,\varphi} & \text{if } -\tau_{\varphi}/4 < \Delta^{1}_{p_1\,\varphi} \le 0 \\[3pt]
                       0 & \text{otherwise} \\[6pt]
                       \Delta^{1}_{p_1\,\theta} & \text{if } -\tau_{\theta}/4 < \Delta^{1}_{p_1\,\theta} \le 0 \\[3pt]
+                      0 & \text{otherwise} \end{bmatrix} \\[10pt]
+\begin{bmatrix} \text{acute}^{2}_{p_1\,\varphi} \\ \text{acute}^{2}_{p_1\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} \Delta^{2}_{p_1\,\varphi} & \text{if } 0 \le \Delta^{2}_{p_1\,\varphi} < \tau_{\varphi}/4 \\[3pt]
+                      0 & \text{otherwise} \\[6pt]
+                      \Delta^{2}_{p_1\,\theta} & \text{if } 0 \le \Delta^{2}_{p_1\,\theta} < \tau_{\theta}/4 \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{acute_minus}^{2}_{p_1\,\varphi} \\ \text{acute_minus}^{2}_{p_1\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} \Delta^{2}_{p_1\,\varphi} & \text{if } -\tau_{\varphi}/4 < \Delta^{2}_{p_1\,\varphi} \le 0 \\[3pt]
