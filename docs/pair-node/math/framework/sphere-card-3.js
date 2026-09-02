@@ -9,8 +9,10 @@ const SPHERE_CARD_3_FORMULAS = String.raw`\[
 \begin{array}{@{}l@{\;}c@{\;}l@{}}
 \textbf{shared} & & \textbf{— the three nodes together} \\[3pt]
 \text{each node has two centers} & & \\[3pt]
-\text{center}_{c_0} &=& (\text{center}_{c_0\,\varphi},\, \text{center}_{c_0\,\theta},\, \text{center}_{c_0\,r}) \\[3pt]
-\text{center}_{c_1} &=& (\text{center}_{c_1\,\varphi},\, \text{center}_{c_1\,\theta},\, \text{center}_{c_1\,r}) \\[10pt]
+\text{center}_{c_0}
+  &=& \begin{bmatrix} \text{center}_{c_0\,\varphi} \\ \text{center}_{c_0\,\theta} \\ \text{center}_{c_0\,r} \end{bmatrix} \\[6pt]
+\text{center}_{c_1}
+  &=& \begin{bmatrix} \text{center}_{c_1\,\varphi} \\ \text{center}_{c_1\,\theta} \\ \text{center}_{c_1\,r} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{center}^{1}_{0\,\varphi} \\ \text{center}^{1}_{0\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 2 \\ 2 \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{center}^{1}_{1\,\varphi} \\ \text{center}^{1}_{1\,\theta} \end{bmatrix}
