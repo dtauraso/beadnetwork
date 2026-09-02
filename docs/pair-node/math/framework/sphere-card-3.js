@@ -8,23 +8,13 @@ const SPHERE_CARD_3_SPEC = {
 const SPHERE_CARD_3_FORMULAS = String.raw`\[
 \begin{array}{@{}l@{\;}c@{\;}l@{}}
 \textbf{shared} & & \textbf{— the three nodes together} \\[3pt]
-\text{each node has two centers} & & \\[3pt]
-\text{center}_{0}
-  &=& \begin{bmatrix} \text{center}_{0\,\varphi} \\ \text{center}_{0\,\theta} \\ \text{center}_{0\,r} \end{bmatrix} \\[6pt]
-\text{center}_{1}
-  &=& \begin{bmatrix} \text{center}_{1\,\varphi} \\ \text{center}_{1\,\theta} \\ \text{center}_{1\,r} \end{bmatrix} \\[10pt]
-\begin{bmatrix} \text{center}^{1}_{0\,\varphi} \\ \text{center}^{1}_{0\,\theta} \end{bmatrix}
+\text{center} &=& (\text{center}_{\varphi},\, \text{center}_{\theta},\, \text{center}_{r}) \\[6pt]
+\begin{bmatrix} \text{center}^{1}_{\varphi} \\ \text{center}^{1}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} 2 \\ 2 \end{bmatrix} \\[6pt]
-\begin{bmatrix} \text{center}^{1}_{1\,\varphi} \\ \text{center}^{1}_{1\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 8 \\ 8 \end{bmatrix} \\[6pt]
-\begin{bmatrix} \text{center}^{2}_{0\,\varphi} \\ \text{center}^{2}_{0\,\theta} \end{bmatrix}
+\begin{bmatrix} \text{center}^{2}_{\varphi} \\ \text{center}^{2}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} 10 \\ 10 \end{bmatrix} \\[6pt]
-\begin{bmatrix} \text{center}^{2}_{1\,\varphi} \\ \text{center}^{2}_{1\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 4 \\ 4 \end{bmatrix} \\[6pt]
-\begin{bmatrix} \text{center}^{3}_{0\,\varphi} \\ \text{center}^{3}_{0\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 6 \\ 6 \end{bmatrix} \\[6pt]
-\begin{bmatrix} \text{center}^{3}_{1\,\varphi} \\ \text{center}^{3}_{1\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[10pt]
+\begin{bmatrix} \text{center}^{3}_{\varphi} \\ \text{center}^{3}_{\theta} \end{bmatrix}
+  &=& \begin{bmatrix} 6 \\ 6 \end{bmatrix} \\[10pt]
 p_{0} &=& \text{the top pole} \\[3pt]
 p_{1} &=& \text{the bottom pole} \\[10pt]
 \textbf{1} & & \\[3pt]
@@ -141,22 +131,14 @@ p_{1} &=& \text{the bottom pole} \\[10pt]
       0 & \\
       0 & \text{otherwise}
     \end{bmatrix} \ (4_{\theta}) \\[6pt]
-\begin{bmatrix} \text{center}_{0\,\text{next}_{\varphi}} \\ \text{center}_{0\,\text{next}_{\theta}} \\ \text{center}_{0\,\text{next}_{r}} \end{bmatrix}
-  &=& \begin{bmatrix} \text{center}_{0\,\varphi} + \text{offset}_{\varphi} \\
-                      \text{center}_{0\,\theta} + \text{offset}_{\theta} \\
-                      \text{center}_{0\,r} \end{bmatrix} \\[6pt]
-\begin{bmatrix} \text{center}_{1\,\text{next}_{\varphi}} \\ \text{center}_{1\,\text{next}_{\theta}} \\ \text{center}_{1\,\text{next}_{r}} \end{bmatrix}
-  &=& \begin{bmatrix} \text{center}_{1\,\varphi} + \text{offset}_{\varphi} \\
-                      \text{center}_{1\,\theta} + \text{offset}_{\theta} \\
-                      \text{center}_{1\,r} \end{bmatrix} \\[6pt]
-\begin{bmatrix} \text{sent}_{0\,\varphi} \\ \text{sent}_{0\,\theta} \\ \text{sent}_{0\,r} \end{bmatrix}
-  &=& \begin{bmatrix} \text{center}_{0\,\text{next}_{\varphi}} \\
-                      \text{center}_{0\,\text{next}_{\theta}} \\
-                      \text{center}_{0\,\text{next}_{r}} \end{bmatrix} \\[6pt]
-\begin{bmatrix} \text{sent}_{1\,\varphi} \\ \text{sent}_{1\,\theta} \\ \text{sent}_{1\,r} \end{bmatrix}
-  &=& \begin{bmatrix} \text{center}_{1\,\text{next}_{\varphi}} \\
-                      \text{center}_{1\,\text{next}_{\theta}} \\
-                      \text{center}_{1\,\text{next}_{r}} \end{bmatrix}
+\begin{bmatrix} \text{center}_{\text{next}_{\varphi}} \\ \text{center}_{\text{next}_{\theta}} \\ \text{center}_{\text{next}_{r}} \end{bmatrix}
+  &=& \begin{bmatrix} \text{center}_{\varphi} + \text{offset}_{\varphi} \\
+                      \text{center}_{\theta} + \text{offset}_{\theta} \\
+                      \text{center}_{r} \end{bmatrix} \\
+\begin{bmatrix} \text{sent}_{\varphi} \\ \text{sent}_{\theta} \\ \text{sent}_{r} \end{bmatrix}
+  &=& \begin{bmatrix} \text{center}_{\text{next}_{\varphi}} \\
+                      \text{center}_{\text{next}_{\theta}} \\
+                      \text{center}_{\text{next}_{r}} \end{bmatrix}
 \end{array}
 \]`;
 
