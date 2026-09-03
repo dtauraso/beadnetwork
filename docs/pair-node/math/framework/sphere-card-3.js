@@ -75,11 +75,11 @@ p_{1} &=& \text{the bottom pole} \\[10pt]
       0 &
     \end{bmatrix} \ (1_{\varphi}) \\
 & & \begin{bmatrix}
-      -1 & \text{if } \Delta_{p_0\,\varphi} < p^{k}_{0\,\varphi} + 2 \\
+      -1 & \text{if } \Delta_{p_0\,\varphi} < \tau_{\varphi}/4 \\
       0 &
     \end{bmatrix} \ (2_{\varphi}) \\
 & & \begin{bmatrix}
-      -1 & \text{if } \Delta_{p_1\,\varphi} < p^{k}_{0\,\varphi} + 2 \\
+      -1 & \text{if } \Delta_{p_1\,\varphi} < \tau_{\varphi}/4 \\
       0 &
     \end{bmatrix} \ (3_{\varphi}) \\
 & & \begin{bmatrix}
@@ -92,11 +92,11 @@ p_{1} &=& \text{the bottom pole} \\[10pt]
     \end{bmatrix} \ (1_{\theta}) \\
 & & \begin{bmatrix}
       0 & \\
-      -1 & \text{if } \Delta_{p_0\,\theta} < p^{k}_{0\,\theta} + 2
+      -1 & \text{if } \Delta_{p_0\,\theta} < \tau_{\theta}/4
     \end{bmatrix} \ (2_{\theta}) \\
 & & \begin{bmatrix}
       0 & \\
-      -1 & \text{if } \Delta_{p_1\,\theta} < p^{k}_{0\,\theta} + 2
+      -1 & \text{if } \Delta_{p_1\,\theta} < \tau_{\theta}/4
     \end{bmatrix} \ (3_{\theta}) \\
 & & \begin{bmatrix}
       0 & \\
