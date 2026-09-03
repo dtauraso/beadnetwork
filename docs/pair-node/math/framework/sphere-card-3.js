@@ -70,42 +70,9 @@ p_{1} &=& \text{the bottom pole} \\[3pt]
                       0 & \text{otherwise} \\[6pt]
                       -1 & \text{if } \Delta_{p_1\,\theta} < \tau_{\theta} \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
-\begin{bmatrix} \text{center_delta}_{\varphi} \\ \text{center_delta}_{\theta} \end{bmatrix}
+\begin{bmatrix} \text{offset}_{\varphi} \\ \text{offset}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} \begin{array}{@{}l@{}} \text{zero}_{p_0\,\varphi} + \text{zero}_{p_1\,\varphi} \\ {} + \text{acute}_{p_0\,\varphi} + \text{acute}_{p_1\,\varphi} \end{array} \\[10pt]
                       \begin{array}{@{}l@{}} \text{zero}_{p_0\,\theta} + \text{zero}_{p_1\,\theta} \\ {} + \text{acute}_{p_0\,\theta} + \text{acute}_{p_1\,\theta} \end{array} \end{bmatrix} \\[10pt]
-\begin{bmatrix} \text{offset}_{\varphi} \\ \text{offset}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix}
-      0 & \begin{array}{@{}l@{}} \text{if } \Delta_{p_0\,\varphi} = 0 \\ \text{and } \Delta_{p_1\,\varphi} = 0 \end{array} \\[8pt]
-      0 &
-    \end{bmatrix} \ (1_{\varphi}) \\
-& & \begin{bmatrix}
-      -1 & \text{if } \Delta_{p_0\,\varphi} < \tau_{\varphi}/4 \\
-      0 &
-    \end{bmatrix} \ (2_{\varphi}) \\
-& & \begin{bmatrix}
-      -1 & \text{if } \Delta_{p_1\,\varphi} < \tau_{\varphi}/4 \\
-      0 &
-    \end{bmatrix} \ (3_{\varphi}) \\
-& & \begin{bmatrix}
-      0 & \text{otherwise} \\
-      0 &
-    \end{bmatrix} \ (4_{\varphi}) \\
-& & \begin{bmatrix}
-      0 & \\[8pt]
-      0 & \begin{array}{@{}l@{}} \text{if } \Delta_{p_0\,\theta} = 0 \\ \text{and } \Delta_{p_1\,\theta} = 0 \end{array}
-    \end{bmatrix} \ (1_{\theta}) \\
-& & \begin{bmatrix}
-      0 & \\
-      -1 & \text{if } \Delta_{p_0\,\theta} < \tau_{\theta}/4
-    \end{bmatrix} \ (2_{\theta}) \\
-& & \begin{bmatrix}
-      0 & \\
-      -1 & \text{if } \Delta_{p_1\,\theta} < \tau_{\theta}/4
-    \end{bmatrix} \ (3_{\theta}) \\
-& & \begin{bmatrix}
-      0 & \\
-      0 & \text{otherwise}
-    \end{bmatrix} \ (4_{\theta}) \\[6pt]
 \begin{bmatrix} \text{center}_{\text{next}_{\varphi}} \\ \text{center}_{\text{next}_{\theta}} \\ \text{center}_{\text{next}_{r}} \end{bmatrix}
   &=& \begin{bmatrix} \text{center}_{\varphi} + \text{offset}_{\varphi} \\
                       \text{center}_{\theta} + \text{offset}_{\theta} \\
