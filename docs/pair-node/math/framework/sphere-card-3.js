@@ -16,7 +16,8 @@ const SPHERE_CARD_3_FORMULAS = String.raw`\[
 \begin{bmatrix} \text{center}^{3}_{\varphi} \\ \text{center}^{3}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} 6 \\ 6 \end{bmatrix} \\[10pt]
 p_{0} &=& \text{the top pole} \\[3pt]
-p_{1} &=& \text{the bottom pole} \\[10pt]
+p_{1} &=& \text{the bottom pole} \\[3pt]
+\tau &=& \text{the quarter turn} \\[10pt]
 \textbf{1} & & \\[3pt]
 \begin{bmatrix} p^{1}_{0\,\varphi} \\ p^{1}_{0\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 1 \\ 1 \end{bmatrix} \\[6pt]
@@ -57,14 +58,14 @@ p_{1} &=& \text{the bottom pole} \\[10pt]
                       0 & \text{if } \Delta_{p_1\,\theta} = 0 \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{acute}_{p_0\,\varphi} \\ \text{acute}_{p_0\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} -1 & \text{if } \Delta_{p_0\,\varphi} < p^{k}_{0\,\varphi} + 2 \\[3pt]
+  &=& \begin{bmatrix} -1 & \text{if } \Delta_{p_0\,\varphi} < p^{k}_{0\,\varphi} + \tau_{\varphi} \\[3pt]
                       0 & \text{otherwise} \\[6pt]
-                      -1 & \text{if } \Delta_{p_0\,\theta} < p^{k}_{0\,\theta} + 2 \\[3pt]
+                      -1 & \text{if } \Delta_{p_0\,\theta} < p^{k}_{0\,\theta} + \tau_{\theta} \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{acute}_{p_1\,\varphi} \\ \text{acute}_{p_1\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} -1 & \text{if } \Delta_{p_1\,\varphi} < p^{k}_{0\,\varphi} + 2 \\[3pt]
+  &=& \begin{bmatrix} -1 & \text{if } \Delta_{p_1\,\varphi} < p^{k}_{0\,\varphi} + \tau_{\varphi} \\[3pt]
                       0 & \text{otherwise} \\[6pt]
-                      -1 & \text{if } \Delta_{p_1\,\theta} < p^{k}_{0\,\theta} + 2 \\[3pt]
+                      -1 & \text{if } \Delta_{p_1\,\theta} < p^{k}_{0\,\theta} + \tau_{\theta} \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{center_delta}_{\varphi} \\ \text{center_delta}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} \begin{array}{@{}l@{}} \text{zero}_{p_0\,\varphi} + \text{zero}_{p_1\,\varphi} \\ {} + \text{acute}_{p_0\,\varphi} + \text{acute}_{p_1\,\varphi} \end{array} \\[10pt]
