@@ -18,7 +18,7 @@ const SPHERE_CARD_3_FORMULAS = String.raw`\[
 p_{0} &=& \text{the top pole} \\[3pt]
 p_{1} &=& \text{the bottom pole} \\[3pt]
 \tau &=& 3 \\[3pt]
-     & & \text{1 quarter turn} \\[10pt]
+\tau &=& \text{1 quarter turn} \\[10pt]
 \textbf{1} & & \\[3pt]
 \begin{bmatrix} p^{1}_{0\,\varphi} \\ p^{1}_{0\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 1 \\ 1 \end{bmatrix} \\[6pt]
