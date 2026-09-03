@@ -67,8 +67,8 @@ p_{1} &=& \text{the bottom pole} \\[10pt]
                       -1 & \text{if } \Delta_{p_1\,\theta} < \tau_{\theta}/4 \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{center_delta}_{\varphi} \\ \text{center_delta}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \text{zero}_{p_0\,\varphi} + \text{zero}_{p_1\,\varphi} + \text{acute}_{p_0\,\varphi} + \text{acute}_{p_1\,\varphi} \\[6pt]
-                      \text{zero}_{p_0\,\theta} + \text{zero}_{p_1\,\theta} + \text{acute}_{p_0\,\theta} + \text{acute}_{p_1\,\theta} \end{bmatrix} \\[10pt]
+  &=& \begin{bmatrix} \begin{array}{@{}l@{}} \text{zero}_{p_0\,\varphi} + \text{zero}_{p_1\,\varphi} \\ {} + \text{acute}_{p_0\,\varphi} + \text{acute}_{p_1\,\varphi} \end{array} \\[10pt]
+                      \begin{array}{@{}l@{}} \text{zero}_{p_0\,\theta} + \text{zero}_{p_1\,\theta} \\ {} + \text{acute}_{p_0\,\theta} + \text{acute}_{p_1\,\theta} \end{array} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{offset}_{\varphi} \\ \text{offset}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix}
       0 & \begin{array}{@{}l@{}} \text{if } \Delta_{p_0\,\varphi} = 0 \\ \text{and } \Delta_{p_1\,\varphi} = 0 \end{array} \\[8pt]
