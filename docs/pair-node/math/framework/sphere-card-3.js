@@ -57,14 +57,14 @@ p_{1} &=& \text{the bottom pole} \\[10pt]
                       0 & \text{if } \Delta_{p_1\,\theta} = 0 \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{acute}_{p_0\,\varphi} \\ \text{acute}_{p_0\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} -1 & \text{if } \Delta_{p_0\,\varphi} < \tau_{\varphi}/4 \\[3pt]
+  &=& \begin{bmatrix} -1 & \text{if } \Delta_{p_0\,\varphi} < p^{k}_{0\,\varphi} + 2 \\[3pt]
                       0 & \text{otherwise} \\[6pt]
-                      -1 & \text{if } \Delta_{p_0\,\theta} < \tau_{\theta}/4 \\[3pt]
+                      -1 & \text{if } \Delta_{p_0\,\theta} < p^{k}_{0\,\theta} + 2 \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{acute}_{p_1\,\varphi} \\ \text{acute}_{p_1\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} -1 & \text{if } \Delta_{p_1\,\varphi} < \tau_{\varphi}/4 \\[3pt]
+  &=& \begin{bmatrix} -1 & \text{if } \Delta_{p_1\,\varphi} < p^{k}_{0\,\varphi} + 2 \\[3pt]
                       0 & \text{otherwise} \\[6pt]
-                      -1 & \text{if } \Delta_{p_1\,\theta} < \tau_{\theta}/4 \\[3pt]
+                      -1 & \text{if } \Delta_{p_1\,\theta} < p^{k}_{0\,\theta} + 2 \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{center_delta}_{\varphi} \\ \text{center_delta}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} \begin{array}{@{}l@{}} \text{zero}_{p_0\,\varphi} + \text{zero}_{p_1\,\varphi} \\ {} + \text{acute}_{p_0\,\varphi} + \text{acute}_{p_1\,\varphi} \end{array} \\[10pt]
@@ -75,11 +75,11 @@ p_{1} &=& \text{the bottom pole} \\[10pt]
       0 &
     \end{bmatrix} \ (1_{\varphi}) \\
 & & \begin{bmatrix}
-      -1 & \text{if } \Delta_{p_0\,\varphi} < \tau_{\varphi}/4 \\
+      -1 & \text{if } \Delta_{p_0\,\varphi} < p^{k}_{0\,\varphi} + 2 \\
       0 &
     \end{bmatrix} \ (2_{\varphi}) \\
 & & \begin{bmatrix}
-      -1 & \text{if } \Delta_{p_1\,\varphi} < \tau_{\varphi}/4 \\
+      -1 & \text{if } \Delta_{p_1\,\varphi} < p^{k}_{0\,\varphi} + 2 \\
       0 &
     \end{bmatrix} \ (3_{\varphi}) \\
 & & \begin{bmatrix}
@@ -92,11 +92,11 @@ p_{1} &=& \text{the bottom pole} \\[10pt]
     \end{bmatrix} \ (1_{\theta}) \\
 & & \begin{bmatrix}
       0 & \\
-      -1 & \text{if } \Delta_{p_0\,\theta} < \tau_{\theta}/4
+      -1 & \text{if } \Delta_{p_0\,\theta} < p^{k}_{0\,\theta} + 2
     \end{bmatrix} \ (2_{\theta}) \\
 & & \begin{bmatrix}
       0 & \\
-      -1 & \text{if } \Delta_{p_1\,\theta} < \tau_{\theta}/4
+      -1 & \text{if } \Delta_{p_1\,\theta} < p^{k}_{0\,\theta} + 2
     \end{bmatrix} \ (3_{\theta}) \\
 & & \begin{bmatrix}
       0 & \\
