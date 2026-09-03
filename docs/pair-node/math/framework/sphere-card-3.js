@@ -60,9 +60,9 @@ p_{1} &=& \text{the bottom pole} \\[10pt]
                       \Delta^{2}_{p_0\,\theta} & \text{if } 0 \le \Delta^{2}_{p_0\,\theta} < \tau_{\theta}/4 \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{acute_merge}_{\varphi} \\ \text{acute_merge}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} -1 & \text{if } |\, \Delta^{1}_{p_0\,\varphi} - \Delta^{2}_{p_0\,\varphi} \,| = 0 \\[3pt]
-                      0 & \text{otherwise} \\[6pt]
-                      -1 & \text{if } |\, \Delta^{1}_{p_0\,\theta} - \Delta^{2}_{p_0\,\theta} \,| = 0 \\[3pt]
+  &=& \begin{bmatrix} 0 & \begin{array}{@{}l@{}} \text{if } \Delta^{1}_{p_0\,\varphi} = 0 \\ \text{and } \Delta^{2}_{p_0\,\varphi} = 0 \end{array} \\[8pt]
+                      0 & \text{otherwise} \\[10pt]
+                      0 & \begin{array}{@{}l@{}} \text{if } \Delta^{1}_{p_0\,\theta} = 0 \\ \text{and } \Delta^{2}_{p_0\,\theta} = 0 \end{array} \\[8pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{acute}^{1}_{p_1\,\varphi} \\ \text{acute}^{1}_{p_1\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} \Delta^{1}_{p_1\,\varphi} & \text{if } 0 \le \Delta^{1}_{p_1\,\varphi} < \tau_{\varphi}/4 \\[3pt]
