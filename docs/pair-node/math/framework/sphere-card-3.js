@@ -47,14 +47,14 @@ p_{1} &=& \text{the bottom pole} \\[10pt]
   &=& \begin{bmatrix} |\, p^{k}_{1\,\varphi} - \text{arrival}_{\varphi} \,| \\[6pt]
                       |\, p^{k}_{1\,\theta} - \text{arrival}_{\theta} \,| \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{zero}_{p_0\,\varphi} \\ \text{zero}_{p_0\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} -1 & \text{if } \Delta_{p_0\,\varphi} = 0 \\[3pt]
+  &=& \begin{bmatrix} 0 & \text{if } \Delta_{p_0\,\varphi} = 0 \\[3pt]
                       0 & \text{otherwise} \\[6pt]
-                      -1 & \text{if } \Delta_{p_0\,\theta} = 0 \\[3pt]
+                      0 & \text{if } \Delta_{p_0\,\theta} = 0 \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{zero}_{p_1\,\varphi} \\ \text{zero}_{p_1\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} -1 & \text{if } \Delta_{p_1\,\varphi} = 0 \\[3pt]
+  &=& \begin{bmatrix} 0 & \text{if } \Delta_{p_1\,\varphi} = 0 \\[3pt]
                       0 & \text{otherwise} \\[6pt]
-                      -1 & \text{if } \Delta_{p_1\,\theta} = 0 \\[3pt]
+                      0 & \text{if } \Delta_{p_1\,\theta} = 0 \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{acute}_{p_0\,\varphi} \\ \text{acute}_{p_0\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} -1 & \text{if } \Delta_{p_0\,\varphi} < \tau_{\varphi}/4 \\[3pt]
