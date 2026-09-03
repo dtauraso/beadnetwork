@@ -37,7 +37,7 @@ p_{1} &=& \text{the bottom pole} \\[10pt]
   &=& \text{from partner } 1 \\[6pt]
 \begin{bmatrix} \text{arrival}^{2}_{\varphi} \\ \text{arrival}^{2}_{\theta} \end{bmatrix}
   &=& \text{from partner } 2 \\[6pt]
-\begin{bmatrix} \text{arrival_sum}_{\varphi} \\ \text{arrival_sum}_{\theta} \end{bmatrix}
+\begin{bmatrix} \text{arrival}_{\varphi} \\ \text{arrival}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} \text{arrival}^{1}_{\varphi} + \text{arrival}^{2}_{\varphi} \\[6pt]
                       \text{arrival}^{1}_{\theta} + \text{arrival}^{2}_{\theta} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \Delta^{1}_{p_0\,\varphi} \\ \Delta^{1}_{p_0\,\theta} \end{bmatrix}
