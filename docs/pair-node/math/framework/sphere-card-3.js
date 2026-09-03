@@ -66,26 +66,6 @@ p_{1} &=& \text{the bottom pole} \\[10pt]
                       0 & \text{otherwise} \\[6pt]
                       \Delta_{p_1\,\theta} & \text{if } \Delta_{p_1\,\theta} < \tau_{\theta}/4 \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
-\begin{bmatrix} \text{acute_minus}^{1}_{p_0\,\varphi} \\ \text{acute_minus}^{1}_{p_0\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \Delta_{p_0\,\varphi} & \text{if } -\tau_{\varphi}/4 < \Delta_{p_0\,\varphi} \le 0 \\[3pt]
-                      0 & \text{otherwise} \\[6pt]
-                      \Delta_{p_0\,\theta} & \text{if } -\tau_{\theta}/4 < \Delta_{p_0\,\theta} \le 0 \\[3pt]
-                      0 & \text{otherwise} \end{bmatrix} \\[10pt]
-\begin{bmatrix} \text{acute_minus}^{2}_{p_0\,\varphi} \\ \text{acute_minus}^{2}_{p_0\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \Delta_{p_0\,\varphi} & \text{if } -\tau_{\varphi}/4 < \Delta_{p_0\,\varphi} \le 0 \\[3pt]
-                      0 & \text{otherwise} \\[6pt]
-                      \Delta_{p_0\,\theta} & \text{if } -\tau_{\theta}/4 < \Delta_{p_0\,\theta} \le 0 \\[3pt]
-                      0 & \text{otherwise} \end{bmatrix} \\[10pt]
-\begin{bmatrix} \text{acute_minus}^{1}_{p_1\,\varphi} \\ \text{acute_minus}^{1}_{p_1\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \Delta_{p_1\,\varphi} & \text{if } -\tau_{\varphi}/4 < \Delta_{p_1\,\varphi} \le 0 \\[3pt]
-                      0 & \text{otherwise} \\[6pt]
-                      \Delta_{p_1\,\theta} & \text{if } -\tau_{\theta}/4 < \Delta_{p_1\,\theta} \le 0 \\[3pt]
-                      0 & \text{otherwise} \end{bmatrix} \\[10pt]
-\begin{bmatrix} \text{acute_minus}^{2}_{p_1\,\varphi} \\ \text{acute_minus}^{2}_{p_1\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \Delta_{p_1\,\varphi} & \text{if } -\tau_{\varphi}/4 < \Delta_{p_1\,\varphi} \le 0 \\[3pt]
-                      0 & \text{otherwise} \\[6pt]
-                      \Delta_{p_1\,\theta} & \text{if } -\tau_{\theta}/4 < \Delta_{p_1\,\theta} \le 0 \\[3pt]
-                      0 & \text{otherwise} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{p_acute}^{0}_{\varphi} \\ \text{p_acute}^{0}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} |\, \text{acute}^{1}_{p_0\,\varphi} - \text{acute}^{2}_{p_0\,\varphi} \,| \\[6pt]
                       |\, \text{acute}^{1}_{p_0\,\theta} - \text{acute}^{2}_{p_0\,\theta} \,| \end{bmatrix} \\[6pt]
