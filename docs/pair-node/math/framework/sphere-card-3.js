@@ -77,7 +77,11 @@ p_{1} &=& \text{the bottom pole} \\[3pt]
   &=& \begin{bmatrix} \text{center}_{\varphi} + \text{offset}_{\varphi} \\
                       \text{center}_{\theta} + \text{offset}_{\theta} \\
                       \text{center}_{r} \end{bmatrix} \\
-\begin{bmatrix} \text{sent}_{\varphi} \\ \text{sent}_{\theta} \\ \text{sent}_{r} \end{bmatrix}
+\begin{bmatrix} \text{sent}^{1}_{\varphi} \\ \text{sent}^{1}_{\theta} \\ \text{sent}^{1}_{r} \end{bmatrix}
+  &=& \begin{bmatrix} \text{center}_{\text{next}_{\varphi}} \\
+                      \text{center}_{\text{next}_{\theta}} \\
+                      \text{center}_{\text{next}_{r}} \end{bmatrix} \\[10pt]
+\begin{bmatrix} \text{sent}^{2}_{\varphi} \\ \text{sent}^{2}_{\theta} \\ \text{sent}^{2}_{r} \end{bmatrix}
   &=& \begin{bmatrix} \text{center}_{\text{next}_{\varphi}} \\
                       \text{center}_{\text{next}_{\theta}} \\
                       \text{center}_{\text{next}_{r}} \end{bmatrix}
