@@ -44,6 +44,9 @@ p_{1} &=& \text{the bottom pole} \\[3pt]
 \begin{bmatrix} \text{arrival}_{\varphi} \\ \text{arrival}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} \text{arrival}^{1}_{\varphi} + \text{arrival}^{2}_{\varphi} \\[6pt]
                       \text{arrival}^{1}_{\theta} + \text{arrival}^{2}_{\theta} \end{bmatrix} \\[10pt]
+\begin{bmatrix} \text{lean}_{\varphi} \\ \text{lean}_{\theta} \end{bmatrix}
+  &=& \begin{bmatrix} \text{arrival}^{1}_{\varphi} - \text{arrival}^{2}_{\varphi} \\[6pt]
+                      \text{arrival}^{1}_{\theta} - \text{arrival}^{2}_{\theta} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \Delta_{p_0\,\varphi} \\ \Delta_{p_0\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} |\, p_{0\,\varphi} - \text{arrival}_{\varphi} \,| \\[6pt]
                       |\, p_{0\,\theta} - \text{arrival}_{\theta} \,| \end{bmatrix} \\[6pt]
