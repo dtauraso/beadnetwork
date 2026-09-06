@@ -9,18 +9,18 @@ const SPHERE_CARD_3_FORMULAS = String.raw`\[
 \begin{array}{@{}l@{\;}c@{\;}l@{}}
 \textbf{shared} & & \textbf{— the three nodes together} \\[3pt]
 \text{center} &=& (\text{center}_{\varphi},\, \text{center}_{\theta},\, \text{center}_{r}) \\[6pt]
+p_{0} &=& \text{the top pole} \\[3pt]
+p_{1} &=& \text{the bottom pole} \\[3pt]
+12 &=& \text{1 full turn } \varphi \\[3pt]
+12 &=& \text{1 full turn } \theta \\[3pt]
+3 &=& \text{1 quarter turn } \varphi \\[3pt]
+3 &=& \text{1 quarter turn } \theta \\[6pt]
 \begin{bmatrix} \text{center}^{1}_{\varphi} \\ \text{center}^{1}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} 2 \\ 2 \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{center}^{2}_{\varphi} \\ \text{center}^{2}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} 10 \\ 10 \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{center}^{3}_{\varphi} \\ \text{center}^{3}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} 6 \\ 6 \end{bmatrix} \\[10pt]
-p_{0} &=& \text{the top pole} \\[3pt]
-p_{1} &=& \text{the bottom pole} \\[3pt]
-12 &=& \text{1 full turn } \varphi \\[3pt]
-12 &=& \text{1 full turn } \theta \\[3pt]
-3 &=& \text{1 quarter turn } \varphi \\[3pt]
-3 &=& \text{1 quarter turn } \theta \\[10pt]
 \textbf{1} & & \\[3pt]
 \begin{bmatrix} p^{1}_{0\,\varphi} \\ p^{1}_{0\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 1 \\ 1 \end{bmatrix} \\[6pt]
