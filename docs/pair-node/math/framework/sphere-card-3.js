@@ -22,9 +22,9 @@ p_{1} &=& \text{the bottom pole} \\[3pt]
 \begin{bmatrix} \text{arrival start}_{1\,0\,\varphi} \\ \text{arrival start}_{1\,0\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 2 \\ 2 \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{arrival start}_{1\,1\,\varphi} \\ \text{arrival start}_{1\,1\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 4 \\ 4 \end{bmatrix} \\[6pt]
+  &=& \begin{bmatrix} 3 \\ 3 \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{arrival start}_{2\,4\,\varphi} \\ \text{arrival start}_{2\,4\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 4 \\ 4 \end{bmatrix} \\[6pt]
+  &=& \begin{bmatrix} 3 \\ 3 \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{arrival start}_{3\,3\,\varphi} \\ \text{arrival start}_{3\,3\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 2 \\ 2 \end{bmatrix} \\[10pt]
 \textbf{one node} & & \\[3pt]
