@@ -24,9 +24,9 @@ p_{1} &=& \text{the bottom pole} \\[3pt]
 \begin{bmatrix} \text{arrival start}_{1\,1\,\varphi} \\ \text{arrival start}_{1\,1\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 4 \\ 4 \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{arrival start}_{2\,0\,\varphi} \\ \text{arrival start}_{2\,0\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 10 \\ 10 \end{bmatrix} \\[6pt]
+  &=& \begin{bmatrix} 4 \\ 4 \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{arrival start}_{3\,0\,\varphi} \\ \text{arrival start}_{3\,0\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 8 \\ 8 \end{bmatrix} \\[10pt]
+  &=& \begin{bmatrix} 2 \\ 2 \end{bmatrix} \\[10pt]
 \textbf{one node} & & \\[3pt]
 \begin{bmatrix} \text{arrival}_{1\,\varphi} \\ \text{arrival}_{1\,\theta} \end{bmatrix}
   &=& \text{from partner } 1 \\[6pt]
