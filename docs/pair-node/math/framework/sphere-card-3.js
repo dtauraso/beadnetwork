@@ -19,23 +19,23 @@ p_{1} &=& \text{the bottom pole} \\[3pt]
   &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
 \begin{bmatrix} p_{1\,\varphi} \\ p_{1\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 6 \\ 6 \end{bmatrix} \\[6pt]
-\begin{bmatrix} \text{arrival start}^{1}_{\varphi} \\ \text{arrival start}^{1}_{\theta} \end{bmatrix}
+\begin{bmatrix} \text{arrival start}_{1\,\varphi} \\ \text{arrival start}_{1\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 2 \\ 2 \end{bmatrix} \\[6pt]
-\begin{bmatrix} \text{arrival start}^{2}_{\varphi} \\ \text{arrival start}^{2}_{\theta} \end{bmatrix}
+\begin{bmatrix} \text{arrival start}_{2\,\varphi} \\ \text{arrival start}_{2\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 10 \\ 10 \end{bmatrix} \\[6pt]
-\begin{bmatrix} \text{arrival start}^{3}_{\varphi} \\ \text{arrival start}^{3}_{\theta} \end{bmatrix}
+\begin{bmatrix} \text{arrival start}_{3\,\varphi} \\ \text{arrival start}_{3\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 6 \\ 6 \end{bmatrix} \\[10pt]
 \textbf{one node} & & \\[3pt]
-\begin{bmatrix} \text{arrival}^{1}_{\varphi} \\ \text{arrival}^{1}_{\theta} \end{bmatrix}
+\begin{bmatrix} \text{arrival}_{1\,\varphi} \\ \text{arrival}_{1\,\theta} \end{bmatrix}
   &=& \text{from partner } 1 \\[6pt]
-\begin{bmatrix} \text{arrival}^{2}_{\varphi} \\ \text{arrival}^{2}_{\theta} \end{bmatrix}
+\begin{bmatrix} \text{arrival}_{2\,\varphi} \\ \text{arrival}_{2\,\theta} \end{bmatrix}
   &=& \text{from partner } 2 \\[6pt]
 \begin{bmatrix} \text{arrival}_{\varphi} \\ \text{arrival}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \text{arrival}^{1}_{\varphi} + \text{arrival}^{2}_{\varphi} \\[6pt]
-                      \text{arrival}^{1}_{\theta} + \text{arrival}^{2}_{\theta} \end{bmatrix} \\[10pt]
+  &=& \begin{bmatrix} \text{arrival}_{1\,\varphi} + \text{arrival}_{2\,\varphi} \\[6pt]
+                      \text{arrival}_{1\,\theta} + \text{arrival}_{2\,\theta} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{lean}_{\varphi} \\ \text{lean}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \text{arrival}^{1}_{\varphi} - \text{arrival}^{2}_{\varphi} \\[6pt]
-                      \text{arrival}^{1}_{\theta} - \text{arrival}^{2}_{\theta} \end{bmatrix} \\[10pt]
+  &=& \begin{bmatrix} \text{arrival}_{1\,\varphi} - \text{arrival}_{2\,\varphi} \\[6pt]
+                      \text{arrival}_{1\,\theta} - \text{arrival}_{2\,\theta} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \Delta_{p_0\,\varphi} \\ \Delta_{p_0\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} |\, p_{0\,\varphi} - \text{arrival}_{\varphi} \,| \\[6pt]
                       |\, p_{0\,\theta} - \text{arrival}_{\theta} \,| \end{bmatrix} \\[6pt]
