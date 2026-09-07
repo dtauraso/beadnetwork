@@ -11,12 +11,18 @@ const SPHERE_CARD_3_FORMULAS = String.raw`\[
 \text{center} &=& (\text{center}_{\varphi},\, \text{center}_{\theta}) \\[6pt]
 p_{0} &=& \text{the top pole} \\[3pt]
 p_{1} &=& \text{the bottom pole} \\[3pt]
-p^{1}_{0} &=& \text{the top pole of } 1 \\[3pt]
-p^{1}_{1} &=& \text{the bottom pole of } 1 \\[3pt]
-p^{2}_{0} &=& \text{the top pole of } 2 \\[3pt]
-p^{2}_{1} &=& \text{the bottom pole of } 2 \\[3pt]
-p^{3}_{0} &=& \text{the top pole of } 3 \\[3pt]
-p^{3}_{1} &=& \text{the bottom pole of } 3 \\[3pt]
+p^{1}_{0,0} &=& \text{the top pole of } 1 \\[3pt]
+p^{1}_{0,1} &=& \text{a copy of it} \\[3pt]
+p^{1}_{1,0} &=& \text{the bottom pole of } 1 \\[3pt]
+p^{1}_{1,1} &=& \text{a copy of it} \\[3pt]
+p^{2}_{0,0} &=& \text{the top pole of } 2 \\[3pt]
+p^{2}_{0,1} &=& \text{a copy of it} \\[3pt]
+p^{2}_{1,0} &=& \text{the bottom pole of } 2 \\[3pt]
+p^{2}_{1,1} &=& \text{a copy of it} \\[3pt]
+p^{3}_{0,0} &=& \text{the top pole of } 3 \\[3pt]
+p^{3}_{0,1} &=& \text{a copy of it} \\[3pt]
+p^{3}_{1,0} &=& \text{the bottom pole of } 3 \\[3pt]
+p^{3}_{1,1} &=& \text{a copy of it} \\[3pt]
 12 &=& \text{1 full turn } \varphi \\[3pt]
 12 &=& \text{1 full turn } \theta \\[3pt]
 3 &=& \text{1 quarter turn } \varphi \\[3pt]
@@ -28,19 +34,31 @@ p^{3}_{1} &=& \text{the bottom pole of } 3 \\[3pt]
 \begin{bmatrix} \text{center}^{3}_{\varphi} \\ \text{center}^{3}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} 6 \\ 6 \end{bmatrix} \\[10pt]
 \textbf{1} & & \\[3pt]
-\begin{bmatrix} p^{1}_{0\,\varphi} \\ p^{1}_{0\,\theta} \end{bmatrix}
+\begin{bmatrix} p^{1}_{0,0\,\varphi} \\ p^{1}_{0,0\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 1 \\ 1 \end{bmatrix} \\[6pt]
-\begin{bmatrix} p^{1}_{1\,\varphi} \\ p^{1}_{1\,\theta} \end{bmatrix}
+\begin{bmatrix} p^{1}_{0,1\,\varphi} \\ p^{1}_{0,1\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} 1 \\ 1 \end{bmatrix} \\[6pt]
+\begin{bmatrix} p^{1}_{1,0\,\varphi} \\ p^{1}_{1,0\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} 3 \\ 3 \end{bmatrix} \\[6pt]
+\begin{bmatrix} p^{1}_{1,1\,\varphi} \\ p^{1}_{1,1\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 3 \\ 3 \end{bmatrix} \\[10pt]
 \textbf{2} & & \\[3pt]
-\begin{bmatrix} p^{2}_{0\,\varphi} \\ p^{2}_{0\,\theta} \end{bmatrix}
+\begin{bmatrix} p^{2}_{0,0\,\varphi} \\ p^{2}_{0,0\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 9 \\ 9 \end{bmatrix} \\[6pt]
-\begin{bmatrix} p^{2}_{1\,\varphi} \\ p^{2}_{1\,\theta} \end{bmatrix}
+\begin{bmatrix} p^{2}_{0,1\,\varphi} \\ p^{2}_{0,1\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} 9 \\ 9 \end{bmatrix} \\[6pt]
+\begin{bmatrix} p^{2}_{1,0\,\varphi} \\ p^{2}_{1,0\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} 11 \\ 11 \end{bmatrix} \\[6pt]
+\begin{bmatrix} p^{2}_{1,1\,\varphi} \\ p^{2}_{1,1\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 11 \\ 11 \end{bmatrix} \\[10pt]
 \textbf{3} & & \\[3pt]
-\begin{bmatrix} p^{3}_{0\,\varphi} \\ p^{3}_{0\,\theta} \end{bmatrix}
+\begin{bmatrix} p^{3}_{0,0\,\varphi} \\ p^{3}_{0,0\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 5 \\ 5 \end{bmatrix} \\[6pt]
-\begin{bmatrix} p^{3}_{1\,\varphi} \\ p^{3}_{1\,\theta} \end{bmatrix}
+\begin{bmatrix} p^{3}_{0,1\,\varphi} \\ p^{3}_{0,1\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} 5 \\ 5 \end{bmatrix} \\[6pt]
+\begin{bmatrix} p^{3}_{1,0\,\varphi} \\ p^{3}_{1,0\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} 7 \\ 7 \end{bmatrix} \\[6pt]
+\begin{bmatrix} p^{3}_{1,1\,\varphi} \\ p^{3}_{1,1\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 7 \\ 7 \end{bmatrix} \\[10pt]
 \textbf{one node} & & \\[3pt]
 \begin{bmatrix} \text{arrival}^{1}_{\varphi} \\ \text{arrival}^{1}_{\theta} \end{bmatrix}
