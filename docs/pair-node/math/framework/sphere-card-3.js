@@ -36,30 +36,18 @@ p^{3}_{1,1} &=& \text{a copy of it} \\[3pt]
 \textbf{1} & & \\[3pt]
 \begin{bmatrix} p^{1}_{0,0\,\varphi} \\ p^{1}_{0,0\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 1 \\ 1 \end{bmatrix} \\[6pt]
-\begin{bmatrix} p^{1}_{0,1\,\varphi} \\ p^{1}_{0,1\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 11 \\ 11 \end{bmatrix} \\[6pt]
 \begin{bmatrix} p^{1}_{1,0\,\varphi} \\ p^{1}_{1,0\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 3 \\ 3 \end{bmatrix} \\[6pt]
-\begin{bmatrix} p^{1}_{1,1\,\varphi} \\ p^{1}_{1,1\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 9 \\ 9 \end{bmatrix} \\[10pt]
+  &=& \begin{bmatrix} 3 \\ 3 \end{bmatrix} \\[10pt]
 \textbf{2} & & \\[3pt]
 \begin{bmatrix} p^{2}_{0,0\,\varphi} \\ p^{2}_{0,0\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 9 \\ 9 \end{bmatrix} \\[6pt]
-\begin{bmatrix} p^{2}_{0,1\,\varphi} \\ p^{2}_{0,1\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 3 \\ 3 \end{bmatrix} \\[6pt]
 \begin{bmatrix} p^{2}_{1,0\,\varphi} \\ p^{2}_{1,0\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 11 \\ 11 \end{bmatrix} \\[6pt]
-\begin{bmatrix} p^{2}_{1,1\,\varphi} \\ p^{2}_{1,1\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 1 \\ 1 \end{bmatrix} \\[10pt]
+  &=& \begin{bmatrix} 11 \\ 11 \end{bmatrix} \\[10pt]
 \textbf{3} & & \\[3pt]
 \begin{bmatrix} p^{3}_{0,0\,\varphi} \\ p^{3}_{0,0\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 5 \\ 5 \end{bmatrix} \\[6pt]
-\begin{bmatrix} p^{3}_{0,1\,\varphi} \\ p^{3}_{0,1\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 7 \\ 7 \end{bmatrix} \\[6pt]
 \begin{bmatrix} p^{3}_{1,0\,\varphi} \\ p^{3}_{1,0\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 7 \\ 7 \end{bmatrix} \\[6pt]
-\begin{bmatrix} p^{3}_{1,1\,\varphi} \\ p^{3}_{1,1\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 5 \\ 5 \end{bmatrix} \\[10pt]
+  &=& \begin{bmatrix} 7 \\ 7 \end{bmatrix} \\[10pt]
 \textbf{one node} & & \\[3pt]
 \begin{bmatrix} \text{arrival}^{1}_{\varphi} \\ \text{arrival}^{1}_{\theta} \end{bmatrix}
   &=& \text{from partner } 1 \\[6pt]
