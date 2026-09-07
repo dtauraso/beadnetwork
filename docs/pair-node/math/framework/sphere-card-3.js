@@ -8,7 +8,7 @@ const SPHERE_CARD_3_SPEC = {
 const SPHERE_CARD_3_FORMULAS = String.raw`\[
 \begin{array}{@{}l@{\;}c@{\;}l@{}}
 \textbf{shared} & & \textbf{— the three nodes together} \\[3pt]
-\text{arrival start} &=& (\text{arrival start}_{\varphi},\, \text{arrival start}_{\theta}) \\[6pt]
+\text{center} &=& (\text{center}_{\varphi},\, \text{center}_{\theta}) \\[6pt]
 p_{0} &=& \text{the top pole} \\[3pt]
 p_{1} &=& \text{the bottom pole} \\[3pt]
 12 &=& \text{1 full turn } \varphi \\[3pt]
