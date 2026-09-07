@@ -8,7 +8,7 @@ const SPHERE_CARD_3_SPEC = {
 const SPHERE_CARD_3_FORMULAS = String.raw`\[
 \begin{array}{@{}l@{\;}c@{\;}l@{}}
 \textbf{shared} & & \textbf{— the three nodes together} \\[3pt]
-\text{center} &=& (\text{center}_{\varphi},\, \text{center}_{\theta}) \\[6pt]
+\text{arrival start} &=& (\text{arrival start}_{\varphi},\, \text{arrival start}_{\theta}) \\[6pt]
 p_{0} &=& \text{the top pole} \\[3pt]
 p_{1} &=& \text{the bottom pole} \\[3pt]
 12 &=& \text{1 full turn } \varphi \\[3pt]
@@ -19,11 +19,11 @@ p_{1} &=& \text{the bottom pole} \\[3pt]
   &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
 \begin{bmatrix} p_{1\,\varphi} \\ p_{1\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 6 \\ 6 \end{bmatrix} \\[6pt]
-\begin{bmatrix} \text{center}^{1}_{\varphi} \\ \text{center}^{1}_{\theta} \end{bmatrix}
+\begin{bmatrix} \text{arrival start}^{1}_{\varphi} \\ \text{arrival start}^{1}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} 2 \\ 2 \end{bmatrix} \\[6pt]
-\begin{bmatrix} \text{center}^{2}_{\varphi} \\ \text{center}^{2}_{\theta} \end{bmatrix}
+\begin{bmatrix} \text{arrival start}^{2}_{\varphi} \\ \text{arrival start}^{2}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} 10 \\ 10 \end{bmatrix} \\[6pt]
-\begin{bmatrix} \text{center}^{3}_{\varphi} \\ \text{center}^{3}_{\theta} \end{bmatrix}
+\begin{bmatrix} \text{arrival start}^{3}_{\varphi} \\ \text{arrival start}^{3}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} 6 \\ 6 \end{bmatrix} \\[10pt]
 \textbf{one node} & & \\[3pt]
 \begin{bmatrix} \text{arrival}^{1}_{\varphi} \\ \text{arrival}^{1}_{\theta} \end{bmatrix}
@@ -65,15 +65,15 @@ p_{1} &=& \text{the bottom pole} \\[3pt]
 \begin{bmatrix} \text{offset}_{\varphi} \\ \text{offset}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} \begin{array}{@{}l@{}} \text{zero}_{p_0\,\varphi} + \text{zero}_{p_1\,\varphi} \\ {} + \text{acute}_{p_0\,\varphi} + \text{acute}_{p_1\,\varphi} \end{array} \\[10pt]
                       \begin{array}{@{}l@{}} \text{zero}_{p_0\,\theta} + \text{zero}_{p_1\,\theta} \\ {} + \text{acute}_{p_0\,\theta} + \text{acute}_{p_1\,\theta} \end{array} \end{bmatrix} \\[10pt]
-\begin{bmatrix} \text{center}_{\text{next}_{\varphi}} \\ \text{center}_{\text{next}_{\theta}} \end{bmatrix}
-  &=& \begin{bmatrix} \text{center}_{\varphi} + \text{offset}_{\varphi} \\
-                      \text{center}_{\theta} + \text{offset}_{\theta} \end{bmatrix} \\
+\begin{bmatrix} \text{arrival start}_{\text{next}_{\varphi}} \\ \text{arrival start}_{\text{next}_{\theta}} \end{bmatrix}
+  &=& \begin{bmatrix} \text{arrival start}_{\varphi} + \text{offset}_{\varphi} \\
+                      \text{arrival start}_{\theta} + \text{offset}_{\theta} \end{bmatrix} \\
 \begin{bmatrix} \text{sent}^{1}_{\varphi} \\ \text{sent}^{1}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \text{center}_{\text{next}_{\varphi}} \\
-                      \text{center}_{\text{next}_{\theta}} \end{bmatrix} \\[10pt]
+  &=& \begin{bmatrix} \text{arrival start}_{\text{next}_{\varphi}} \\
+                      \text{arrival start}_{\text{next}_{\theta}} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{sent}^{2}_{\varphi} \\ \text{sent}^{2}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \text{center}_{\text{next}_{\varphi}} \\
-                      \text{center}_{\text{next}_{\theta}} \end{bmatrix}
+  &=& \begin{bmatrix} \text{arrival start}_{\text{next}_{\varphi}} \\
+                      \text{arrival start}_{\text{next}_{\theta}} \end{bmatrix}
 \end{array}
 \]`;
 
