@@ -12,11 +12,23 @@ const SPHERE_CARD_3_FORMULAS = String.raw`\[
 p_{0} &=& \text{the top pole} \\[3pt]
 p_{1} &=& \text{the bottom pole} \\[3pt]
 p^{1}_{0} &=& \text{the top pole of } 1 \\[3pt]
+\begin{bmatrix} p^{1}_{0\,\varphi} \\ p^{1}_{0\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} 1 \\ 1 \end{bmatrix} \\[6pt]
 p^{1}_{1} &=& \text{the bottom pole of } 1 \\[3pt]
+\begin{bmatrix} p^{1}_{1\,\varphi} \\ p^{1}_{1\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} 3 \\ 3 \end{bmatrix} \\[6pt]
 p^{2}_{0} &=& \text{the top pole of } 2 \\[3pt]
+\begin{bmatrix} p^{2}_{0\,\varphi} \\ p^{2}_{0\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} 9 \\ 9 \end{bmatrix} \\[6pt]
 p^{2}_{1} &=& \text{the bottom pole of } 2 \\[3pt]
+\begin{bmatrix} p^{2}_{1\,\varphi} \\ p^{2}_{1\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} 11 \\ 11 \end{bmatrix} \\[6pt]
 p^{3}_{0} &=& \text{the top pole of } 3 \\[3pt]
+\begin{bmatrix} p^{3}_{0\,\varphi} \\ p^{3}_{0\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} 5 \\ 5 \end{bmatrix} \\[6pt]
 p^{3}_{1} &=& \text{the bottom pole of } 3 \\[3pt]
+\begin{bmatrix} p^{3}_{1\,\varphi} \\ p^{3}_{1\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} 7 \\ 7 \end{bmatrix} \\[6pt]
 12 &=& \text{1 full turn } \varphi \\[3pt]
 12 &=& \text{1 full turn } \theta \\[3pt]
 3 &=& \text{1 quarter turn } \varphi \\[3pt]
