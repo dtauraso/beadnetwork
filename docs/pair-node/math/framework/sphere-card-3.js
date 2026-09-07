@@ -21,6 +21,8 @@ p_{1} &=& \text{the bottom pole} \\[3pt]
   &=& \begin{bmatrix} 6 \\ 6 \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{arrival start}_{1\,0\,\varphi} \\ \text{arrival start}_{1\,0\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 2 \\ 2 \end{bmatrix} \\[6pt]
+\begin{bmatrix} \text{arrival start}_{1\,1\,\varphi} \\ \text{arrival start}_{1\,1\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} 4 \\ 4 \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{arrival start}_{2\,0\,\varphi} \\ \text{arrival start}_{2\,0\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 10 \\ 10 \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{arrival start}_{3\,0\,\varphi} \\ \text{arrival start}_{3\,0\,\theta} \end{bmatrix}
