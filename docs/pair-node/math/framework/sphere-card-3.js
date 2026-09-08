@@ -19,6 +19,10 @@ q &=& \text{the quadrant number} \\[3pt]
   &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
 \begin{bmatrix} p_{1\,\varphi} \\ p_{1\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 3 \\ 3 \end{bmatrix} \\[6pt]
+\begin{bmatrix} p_{2\,\varphi} \\ p_{2\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} 6 \\ 6 \end{bmatrix} \\[6pt]
+\begin{bmatrix} p_{3\,\varphi} \\ p_{3\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} 9 \\ 9 \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{arrival start}_{1\,1\,\varphi} \\ \text{arrival start}_{1\,1\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 2 \\ 2 \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{arrival start}_{1\,2\,\varphi} \\ \text{arrival start}_{1\,2\,\theta} \end{bmatrix}
