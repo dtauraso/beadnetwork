@@ -10,7 +10,7 @@ const SPHERE_CARD_3_FORMULAS = String.raw`\[
 \textbf{shared} & & \textbf{— the three nodes together} \\[3pt]
 p_{0} &=& \text{the top pole} \\[3pt]
 p_{1} &=& \text{the bottom pole} \\[3pt]
-q &=& \text{the quadrant} \\[3pt]
+q &=& \text{the quadrant number} \\[3pt]
 12 &=& \text{1 full turn } \varphi \\[3pt]
 12 &=& \text{1 full turn } \theta \\[3pt]
 3 &=& \text{1 quarter turn } \varphi \\[3pt]
