@@ -8,20 +8,20 @@ const SPHERE_CARD_3_SPEC = {
 const SPHERE_CARD_3_FORMULAS = String.raw`\[
 \begin{array}{@{}l@{\;}c@{\;}l@{}}
 \textbf{shared} & & \textbf{— the three nodes together} \\[3pt]
-p_{0} &=& \text{the top pole} \\[3pt]
-p_{1} &=& \text{the bottom pole} \\[3pt]
+p_{1} &=& \text{the top pole} \\[3pt]
+p_{2} &=& \text{the bottom pole} \\[3pt]
 q &=& \text{the quadrant number} \\[3pt]
 12 &=& \text{1 full turn } \varphi \\[3pt]
 12 &=& \text{1 full turn } \theta \\[3pt]
 3 &=& \text{1 quarter turn } \varphi \\[3pt]
 3 &=& \text{1 quarter turn } \theta \\[6pt]
-\begin{bmatrix} p_{0\,\varphi} \\ p_{0\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
 \begin{bmatrix} p_{1\,\varphi} \\ p_{1\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 3 \\ 3 \end{bmatrix} \\[6pt]
+  &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
 \begin{bmatrix} p_{2\,\varphi} \\ p_{2\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 6 \\ 6 \end{bmatrix} \\[6pt]
+  &=& \begin{bmatrix} 3 \\ 3 \end{bmatrix} \\[6pt]
 \begin{bmatrix} p_{3\,\varphi} \\ p_{3\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} 6 \\ 6 \end{bmatrix} \\[6pt]
+\begin{bmatrix} p_{4\,\varphi} \\ p_{4\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 9 \\ 9 \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{arrival start}_{1\,1\,\varphi} \\ \text{arrival start}_{1\,1\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 2 \\ 2 \end{bmatrix} \\[6pt]
@@ -42,35 +42,35 @@ q &=& \text{the quadrant number} \\[3pt]
 \begin{bmatrix} \text{lean}_{\varphi} \\ \text{lean}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} \text{arrival}_{1\,q_{1}\,\varphi} - \text{arrival}_{2\,q_{2}\,\varphi} \\[6pt]
                       \text{arrival}_{1\,q_{1}\,\theta} - \text{arrival}_{2\,q_{2}\,\theta} \end{bmatrix} \\[10pt]
-\begin{bmatrix} \Delta_{p_0\,\varphi} \\ \Delta_{p_0\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} |\, p_{0\,\varphi} - \text{arrival}_{\varphi} \,| \\[6pt]
-                      |\, p_{0\,\theta} - \text{arrival}_{\theta} \,| \end{bmatrix} \\[6pt]
 \begin{bmatrix} \Delta_{p_1\,\varphi} \\ \Delta_{p_1\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} |\, p_{1\,\varphi} - \text{arrival}_{\varphi} \,| \\[6pt]
-                      |\, p_{1\,\theta} - \text{arrival}_{\theta} \,| \end{bmatrix} \\[10pt]
-\begin{bmatrix} \text{zero}_{p_0\,\varphi} \\ \text{zero}_{p_0\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 0 & \text{if } \Delta_{p_0\,\varphi} = 0 \\[3pt]
-                      0 & \text{otherwise} \\[6pt]
-                      0 & \text{if } \Delta_{p_0\,\theta} = 0 \\[3pt]
-                      0 & \text{otherwise} \end{bmatrix} \\[10pt]
+                      |\, p_{1\,\theta} - \text{arrival}_{\theta} \,| \end{bmatrix} \\[6pt]
+\begin{bmatrix} \Delta_{p_2\,\varphi} \\ \Delta_{p_2\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} |\, p_{2\,\varphi} - \text{arrival}_{\varphi} \,| \\[6pt]
+                      |\, p_{2\,\theta} - \text{arrival}_{\theta} \,| \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{zero}_{p_1\,\varphi} \\ \text{zero}_{p_1\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0 & \text{if } \Delta_{p_1\,\varphi} = 0 \\[3pt]
                       0 & \text{otherwise} \\[6pt]
                       0 & \text{if } \Delta_{p_1\,\theta} = 0 \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
-\begin{bmatrix} \text{acute}_{p_0\,\varphi} \\ \text{acute}_{p_0\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} -1 & \text{if } \Delta_{p_0\,\varphi} < 3 \\[3pt]
+\begin{bmatrix} \text{zero}_{p_2\,\varphi} \\ \text{zero}_{p_2\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} 0 & \text{if } \Delta_{p_2\,\varphi} = 0 \\[3pt]
                       0 & \text{otherwise} \\[6pt]
-                      -1 & \text{if } \Delta_{p_0\,\theta} < 3 \\[3pt]
+                      0 & \text{if } \Delta_{p_2\,\theta} = 0 \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{acute}_{p_1\,\varphi} \\ \text{acute}_{p_1\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} -1 & \text{if } \Delta_{p_1\,\varphi} < 3 \\[3pt]
                       0 & \text{otherwise} \\[6pt]
                       -1 & \text{if } \Delta_{p_1\,\theta} < 3 \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
+\begin{bmatrix} \text{acute}_{p_2\,\varphi} \\ \text{acute}_{p_2\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} -1 & \text{if } \Delta_{p_2\,\varphi} < 3 \\[3pt]
+                      0 & \text{otherwise} \\[6pt]
+                      -1 & \text{if } \Delta_{p_2\,\theta} < 3 \\[3pt]
+                      0 & \text{otherwise} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{offset}_{\varphi} \\ \text{offset}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \begin{array}{@{}l@{}} \text{zero}_{p_0\,\varphi} + \text{zero}_{p_1\,\varphi} \\ {} + \text{acute}_{p_0\,\varphi} + \text{acute}_{p_1\,\varphi} \end{array} \\[10pt]
-                      \begin{array}{@{}l@{}} \text{zero}_{p_0\,\theta} + \text{zero}_{p_1\,\theta} \\ {} + \text{acute}_{p_0\,\theta} + \text{acute}_{p_1\,\theta} \end{array} \end{bmatrix} \\[10pt]
+  &=& \begin{bmatrix} \begin{array}{@{}l@{}} \text{zero}_{p_1\,\varphi} + \text{zero}_{p_2\,\varphi} \\ {} + \text{acute}_{p_1\,\varphi} + \text{acute}_{p_2\,\varphi} \end{array} \\[10pt]
+                      \begin{array}{@{}l@{}} \text{zero}_{p_1\,\theta} + \text{zero}_{p_2\,\theta} \\ {} + \text{acute}_{p_1\,\theta} + \text{acute}_{p_2\,\theta} \end{array} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{arrival}_{\text{next}_{\varphi}} \\ \text{arrival}_{\text{next}_{\theta}} \end{bmatrix}
   &=& \begin{bmatrix} \text{arrival}_{\varphi} + \text{offset}_{\varphi} \\
                       \text{arrival}_{\theta} + \text{offset}_{\theta} \end{bmatrix} \\
