@@ -8,8 +8,8 @@ const SPHERE_CARD_3_SPEC = {
 const SPHERE_CARD_3_FORMULAS = String.raw`\[
 \begin{array}{@{}l@{\;}c@{\;}l@{}}
 \textbf{shared} & & \textbf{— the three nodes together} \\[3pt]
-p_{1} &=& \text{the top pole} \\[3pt]
-p_{2} &=& \text{the bottom pole} \\[3pt]
+p_{1} &=& \text{the top quadrant} \\[3pt]
+p_{2} &=& \text{the bottom quadrant} \\[3pt]
 q &=& \text{the quadrant number} \\[3pt]
 12 &=& \text{1 full turn } \varphi \\[3pt]
 12 &=& \text{1 full turn } \theta \\[3pt]
