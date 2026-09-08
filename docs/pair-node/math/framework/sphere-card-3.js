@@ -28,16 +28,16 @@ q &=& \text{the quadrant number} \\[3pt]
 \begin{bmatrix} \text{arrival start}_{3\,3\,\varphi} \\ \text{arrival start}_{3\,3\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 2 \\ 2 \end{bmatrix} \\[10pt]
 \textbf{one node} & & \\[3pt]
-\begin{bmatrix} \text{arrival}_{1\,q\,\varphi} \\ \text{arrival}_{1\,q\,\theta} \end{bmatrix}
+\begin{bmatrix} \text{arrival}_{1\,q_{1}\,\varphi} \\ \text{arrival}_{1\,q_{1}\,\theta} \end{bmatrix}
   &=& \text{from partner } 1 \\[6pt]
-\begin{bmatrix} \text{arrival}_{2\,q\,\varphi} \\ \text{arrival}_{2\,q\,\theta} \end{bmatrix}
+\begin{bmatrix} \text{arrival}_{2\,q_{2}\,\varphi} \\ \text{arrival}_{2\,q_{2}\,\theta} \end{bmatrix}
   &=& \text{from partner } 2 \\[6pt]
 \begin{bmatrix} \text{arrival}_{\varphi} \\ \text{arrival}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \text{arrival}_{1\,q\,\varphi} + \text{arrival}_{2\,q\,\varphi} \\[6pt]
-                      \text{arrival}_{1\,q\,\theta} + \text{arrival}_{2\,q\,\theta} \end{bmatrix} \\[10pt]
+  &=& \begin{bmatrix} \text{arrival}_{1\,q_{1}\,\varphi} + \text{arrival}_{2\,q_{2}\,\varphi} \\[6pt]
+                      \text{arrival}_{1\,q_{1}\,\theta} + \text{arrival}_{2\,q_{2}\,\theta} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{lean}_{\varphi} \\ \text{lean}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \text{arrival}_{1\,q\,\varphi} - \text{arrival}_{2\,q\,\varphi} \\[6pt]
-                      \text{arrival}_{1\,q\,\theta} - \text{arrival}_{2\,q\,\theta} \end{bmatrix} \\[10pt]
+  &=& \begin{bmatrix} \text{arrival}_{1\,q_{1}\,\varphi} - \text{arrival}_{2\,q_{2}\,\varphi} \\[6pt]
+                      \text{arrival}_{1\,q_{1}\,\theta} - \text{arrival}_{2\,q_{2}\,\theta} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \Delta_{p_0\,\varphi} \\ \Delta_{p_0\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} |\, p_{0\,\varphi} - \text{arrival}_{\varphi} \,| \\[6pt]
                       |\, p_{0\,\theta} - \text{arrival}_{\theta} \,| \end{bmatrix} \\[6pt]
