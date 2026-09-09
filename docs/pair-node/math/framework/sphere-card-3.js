@@ -11,7 +11,8 @@ const SPHERE_CARD_3_FORMULAS = String.raw`\[
 q_{1} &=& \text{the top quadrant} \\[3pt]
 q_{2} &=& \text{the bottom quadrant} \\[3pt]
 q &=& \text{the quadrant number} \\[3pt]
-a &=& \text{the arrival's quadrant number} \\[3pt]
+a &=& \text{the first arrival's quadrant number} \\[3pt]
+b &=& \text{the second arrival's quadrant number} \\[3pt]
 12 &=& \text{1 full turn } \varphi \\[3pt]
 12 &=& \text{1 full turn } \theta \\[3pt]
 3 &=& \text{1 quarter turn } \varphi \\[3pt]
@@ -35,14 +36,14 @@ a &=& \text{the arrival's quadrant number} \\[3pt]
 \textbf{one node} & & \\[3pt]
 \begin{bmatrix} \text{arrival}_{1\,q_{a}\,\varphi} \\ \text{arrival}_{1\,q_{a}\,\theta} \end{bmatrix}
   &=& \text{from partner } 1 \\[6pt]
-\begin{bmatrix} \text{arrival}_{2\,q_{a}\,\varphi} \\ \text{arrival}_{2\,q_{a}\,\theta} \end{bmatrix}
+\begin{bmatrix} \text{arrival}_{2\,q_{b}\,\varphi} \\ \text{arrival}_{2\,q_{b}\,\theta} \end{bmatrix}
   &=& \text{from partner } 2 \\[6pt]
 \begin{bmatrix} \text{arrival}_{\varphi} \\ \text{arrival}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \text{arrival}_{1\,q_{a}\,\varphi} + \text{arrival}_{2\,q_{a}\,\varphi} \\[6pt]
-                      \text{arrival}_{1\,q_{a}\,\theta} + \text{arrival}_{2\,q_{a}\,\theta} \end{bmatrix} \\[10pt]
+  &=& \begin{bmatrix} \text{arrival}_{1\,q_{a}\,\varphi} + \text{arrival}_{2\,q_{b}\,\varphi} \\[6pt]
+                      \text{arrival}_{1\,q_{a}\,\theta} + \text{arrival}_{2\,q_{b}\,\theta} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{lean}_{\varphi} \\ \text{lean}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \text{arrival}_{1\,q_{a}\,\varphi} - \text{arrival}_{2\,q_{a}\,\varphi} \\[6pt]
-                      \text{arrival}_{1\,q_{a}\,\theta} - \text{arrival}_{2\,q_{a}\,\theta} \end{bmatrix} \\[10pt]
+  &=& \begin{bmatrix} \text{arrival}_{1\,q_{a}\,\varphi} - \text{arrival}_{2\,q_{b}\,\varphi} \\[6pt]
+                      \text{arrival}_{1\,q_{a}\,\theta} - \text{arrival}_{2\,q_{b}\,\theta} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \Delta_{q_1\,\varphi} \\ \Delta_{q_1\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} |\, q_{1\,\varphi} - \text{arrival}_{\varphi} \,| \\[6pt]
                       |\, q_{1\,\theta} - \text{arrival}_{\theta} \,| \end{bmatrix} \\[6pt]
