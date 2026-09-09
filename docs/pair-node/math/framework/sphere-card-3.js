@@ -29,10 +29,10 @@ b &=& \text{the second arrival's quadrant number} \\[3pt]
   &=& \begin{bmatrix} 2 \\ 2 \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{arrival start}_{1\,2\,\varphi} \\ \text{arrival start}_{1\,2\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
-\begin{bmatrix} \text{arrival start}_{2\,1\,\varphi} \\ \text{arrival start}_{2\,1\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 2 \\ 2 \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{arrival start}_{2\,4\,\varphi} \\ \text{arrival start}_{2\,4\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 3 \\ 3 \end{bmatrix} \\[6pt]
+\begin{bmatrix} \text{arrival start}_{2\,1\,\varphi} \\ \text{arrival start}_{2\,1\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} 2 \\ 2 \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{arrival start}_{3\,3\,\varphi} \\ \text{arrival start}_{3\,3\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 2 \\ 2 \end{bmatrix} \\[10pt]
 \textbf{one node} & & \\[3pt]
