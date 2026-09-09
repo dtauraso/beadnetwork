@@ -36,7 +36,7 @@ b &=& \text{the second arrival's quadrant number} \\[3pt]
 \begin{bmatrix} \text{arrival start}_{3\,3\,\varphi} \\ \text{arrival start}_{3\,3\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 2 \\ 2 \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{arrival start}_{3\,3\,\varphi} \\ \text{arrival start}_{3\,3\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 2 \\ 2 \end{bmatrix} \\[10pt]
+  &=& \begin{bmatrix} 1 \\ 1 \end{bmatrix} \\[10pt]
 \textbf{one node} & & \\[3pt]
 \begin{bmatrix} \text{arrival}_{1\,q_{a}\,\varphi} \\ \text{arrival}_{1\,q_{a}\,\theta} \end{bmatrix}
   &=& \text{from partner } 1 \\[6pt]
