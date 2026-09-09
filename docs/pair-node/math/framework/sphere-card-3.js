@@ -11,6 +11,7 @@ const SPHERE_CARD_3_FORMULAS = String.raw`\[
 q_{1} &=& \text{the top quadrant} \\[3pt]
 q_{2} &=& \text{the bottom quadrant} \\[3pt]
 q &=& \text{the quadrant number} \\[3pt]
+a &=& \text{the quadrant number from the arrival} \\[3pt]
 12 &=& \text{1 full turn } \varphi \\[3pt]
 12 &=& \text{1 full turn } \theta \\[3pt]
 3 &=& \text{1 quarter turn } \varphi \\[3pt]
