@@ -17,14 +17,14 @@ b &=& \text{the second arrival's quadrant number} \\[3pt]
 12 &=& \text{1 full turn } \theta \\[3pt]
 3 &=& \text{1 quarter turn } \varphi \\[3pt]
 3 &=& \text{1 quarter turn } \theta \\[6pt]
-\begin{bmatrix} q_{1\,1\,\varphi} \\ q_{1\,1\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
-\begin{bmatrix} q_{2\,1\,\varphi} \\ q_{2\,1\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
-\begin{bmatrix} q_{3\,1\,\varphi} \\ q_{3\,1\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
-\begin{bmatrix} q_{4\,1\,\varphi} \\ q_{4\,1\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
+\begin{bmatrix} q_{1\,1\,\varphi} & q_{1\,2\,\varphi} \\ q_{1\,1\,\theta} & q_{1\,2\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix} \\[6pt]
+\begin{bmatrix} q_{2\,1\,\varphi} & q_{2\,2\,\varphi} \\ q_{2\,1\,\theta} & q_{2\,2\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix} \\[6pt]
+\begin{bmatrix} q_{3\,1\,\varphi} & q_{3\,2\,\varphi} \\ q_{3\,1\,\theta} & q_{3\,2\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix} \\[6pt]
+\begin{bmatrix} q_{4\,1\,\varphi} & q_{4\,2\,\varphi} \\ q_{4\,1\,\theta} & q_{4\,2\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{arrival start}_{1\,1\,\varphi} \\ \text{arrival start}_{1\,1\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 2 \\ 2 \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{arrival start}_{1\,2\,\varphi} \\ \text{arrival start}_{1\,2\,\theta} \end{bmatrix}
