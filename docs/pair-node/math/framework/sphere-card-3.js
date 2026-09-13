@@ -25,10 +25,10 @@ b &=& \text{the second arrival's quadrant number} \\[3pt]
   &=& \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix} \\[6pt]
 \begin{bmatrix} n_{1}q_{4}r_{1\,\varphi} & n_{1}q_{4}r_{2\,\varphi} \\ n_{1}q_{4}r_{1\,\theta} & n_{1}q_{4}r_{2\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix} \\[6pt]
-\begin{bmatrix} n_{1}\text{start}_{1}q_{1\,\varphi} \\ n_{1}\text{start}_{1}q_{1\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 2 \\ 2 \end{bmatrix} \\[6pt]
-\begin{bmatrix} n_{1}\text{start}_{2}q_{2\,\varphi} \\ n_{1}\text{start}_{2}q_{2\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 3 \\ 3 \end{bmatrix} \\[10pt]
+\begin{bmatrix} n_{1}\text{start}_{1}q_{1\,\varphi} \\ n_{1}\text{start}_{1}q_{1\,\theta} \\ n_{1}\text{start}_{1}q_{1\,q} \end{bmatrix}
+  &=& \begin{bmatrix} 2 \\ 2 \\ 1 \end{bmatrix} \\[6pt]
+\begin{bmatrix} n_{1}\text{start}_{2}q_{2\,\varphi} \\ n_{1}\text{start}_{2}q_{2\,\theta} \\ n_{1}\text{start}_{2}q_{2\,q} \end{bmatrix}
+  &=& \begin{bmatrix} 3 \\ 3 \\ 2 \end{bmatrix} \\[10pt]
 \textbf{node 2} & & \\[3pt]
 \begin{bmatrix} n_{2}q_{1}r_{1\,\varphi} & n_{2}q_{1}r_{2\,\varphi} \\ n_{2}q_{1}r_{1\,\theta} & n_{2}q_{1}r_{2\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix} \\[6pt]
@@ -38,10 +38,10 @@ b &=& \text{the second arrival's quadrant number} \\[3pt]
   &=& \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix} \\[6pt]
 \begin{bmatrix} n_{2}q_{4}r_{1\,\varphi} & n_{2}q_{4}r_{2\,\varphi} \\ n_{2}q_{4}r_{1\,\theta} & n_{2}q_{4}r_{2\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix} \\[6pt]
-\begin{bmatrix} n_{2}\text{start}_{1}q_{4\,\varphi} \\ n_{2}\text{start}_{1}q_{4\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 3 \\ 3 \end{bmatrix} \\[6pt]
-\begin{bmatrix} n_{2}\text{start}_{2}q_{1\,\varphi} \\ n_{2}\text{start}_{2}q_{1\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 1 \\ 1 \end{bmatrix} \\[10pt]
+\begin{bmatrix} n_{2}\text{start}_{1}q_{4\,\varphi} \\ n_{2}\text{start}_{1}q_{4\,\theta} \\ n_{2}\text{start}_{1}q_{4\,q} \end{bmatrix}
+  &=& \begin{bmatrix} 3 \\ 3 \\ 4 \end{bmatrix} \\[6pt]
+\begin{bmatrix} n_{2}\text{start}_{2}q_{1\,\varphi} \\ n_{2}\text{start}_{2}q_{1\,\theta} \\ n_{2}\text{start}_{2}q_{1\,q} \end{bmatrix}
+  &=& \begin{bmatrix} 1 \\ 1 \\ 1 \end{bmatrix} \\[10pt]
 \textbf{node 3} & & \\[3pt]
 \begin{bmatrix} n_{3}q_{1}r_{1\,\varphi} & n_{3}q_{1}r_{2\,\varphi} \\ n_{3}q_{1}r_{1\,\theta} & n_{3}q_{1}r_{2\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix} \\[6pt]
@@ -51,10 +51,10 @@ b &=& \text{the second arrival's quadrant number} \\[3pt]
   &=& \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix} \\[6pt]
 \begin{bmatrix} n_{3}q_{4}r_{1\,\varphi} & n_{3}q_{4}r_{2\,\varphi} \\ n_{3}q_{4}r_{1\,\theta} & n_{3}q_{4}r_{2\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix} \\[6pt]
-\begin{bmatrix} n_{3}\text{start}_{1}q_{3\,\varphi} \\ n_{3}\text{start}_{1}q_{3\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 2 \\ 2 \end{bmatrix} \\[6pt]
-\begin{bmatrix} n_{3}\text{start}_{2}q_{3\,\varphi} \\ n_{3}\text{start}_{2}q_{3\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 1 \\ 1 \end{bmatrix} \\[10pt]
+\begin{bmatrix} n_{3}\text{start}_{1}q_{3\,\varphi} \\ n_{3}\text{start}_{1}q_{3\,\theta} \\ n_{3}\text{start}_{1}q_{3\,q} \end{bmatrix}
+  &=& \begin{bmatrix} 2 \\ 2 \\ 3 \end{bmatrix} \\[6pt]
+\begin{bmatrix} n_{3}\text{start}_{2}q_{3\,\varphi} \\ n_{3}\text{start}_{2}q_{3\,\theta} \\ n_{3}\text{start}_{2}q_{3\,q} \end{bmatrix}
+  &=& \begin{bmatrix} 1 \\ 1 \\ 3 \end{bmatrix} \\[10pt]
 \textbf{one node} & & \\[3pt]
 \begin{bmatrix} \text{arrival}_{1\,q_{a}\,\varphi} \\ \text{arrival}_{1\,q_{a}\,\theta} \end{bmatrix}
   &=& \text{from partner } 1 \\[6pt]
