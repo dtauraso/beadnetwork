@@ -8,8 +8,7 @@ const SPHERE_CARD_3_SPEC = {
 const SPHERE_CARD_3_FORMULAS = String.raw`\[
 \begin{array}{@{}l@{\;}c@{\;}l@{}}
 \textbf{shared} & & \textbf{— the three nodes together} \\[3pt]
-q_{1\,1} &=& \text{the top quadrant} \\[3pt]
-q_{2\,1} &=& \text{the bottom quadrant} \\[3pt]
+q_{j} &=& \text{quadrant } j \text{, clockwise, } j = 1 \ldots 4 \\[3pt]
 q &=& \text{the quadrant number} \\[3pt]
 a &=& \text{the first arrival's quadrant number} \\[3pt]
 b &=& \text{the second arrival's quadrant number} \\[3pt]
@@ -18,43 +17,43 @@ b &=& \text{the second arrival's quadrant number} \\[3pt]
 3 &=& \text{1 quarter turn } \varphi \\[3pt]
 3 &=& \text{1 quarter turn } \theta \\[10pt]
 \textbf{node 1} & & \\[3pt]
-\begin{bmatrix} n_{1}q_{1\,1\,\varphi} & n_{1}q_{1\,2\,\varphi} \\ n_{1}q_{1\,1\,\theta} & n_{1}q_{1\,2\,\theta} \end{bmatrix}
+\begin{bmatrix} n_{1}q_{1}\text{bound}_{1}^{\varphi} & n_{1}q_{1}\text{bound}_{2}^{\varphi} \\ n_{1}q_{1}\text{bound}_{1}^{\theta} & n_{1}q_{1}\text{bound}_{2}^{\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix} \\[6pt]
-\begin{bmatrix} n_{1}q_{2\,1\,\varphi} & n_{1}q_{2\,2\,\varphi} \\ n_{1}q_{2\,1\,\theta} & n_{1}q_{2\,2\,\theta} \end{bmatrix}
+\begin{bmatrix} n_{1}q_{2}\text{bound}_{1}^{\varphi} & n_{1}q_{2}\text{bound}_{2}^{\varphi} \\ n_{1}q_{2}\text{bound}_{1}^{\theta} & n_{1}q_{2}\text{bound}_{2}^{\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix} \\[6pt]
-\begin{bmatrix} n_{1}q_{3\,1\,\varphi} & n_{1}q_{3\,2\,\varphi} \\ n_{1}q_{3\,1\,\theta} & n_{1}q_{3\,2\,\theta} \end{bmatrix}
+\begin{bmatrix} n_{1}q_{3}\text{bound}_{1}^{\varphi} & n_{1}q_{3}\text{bound}_{2}^{\varphi} \\ n_{1}q_{3}\text{bound}_{1}^{\theta} & n_{1}q_{3}\text{bound}_{2}^{\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix} \\[6pt]
-\begin{bmatrix} n_{1}q_{4\,1\,\varphi} & n_{1}q_{4\,2\,\varphi} \\ n_{1}q_{4\,1\,\theta} & n_{1}q_{4\,2\,\theta} \end{bmatrix}
+\begin{bmatrix} n_{1}q_{4}\text{bound}_{1}^{\varphi} & n_{1}q_{4}\text{bound}_{2}^{\varphi} \\ n_{1}q_{4}\text{bound}_{1}^{\theta} & n_{1}q_{4}\text{bound}_{2}^{\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix} \\[6pt]
-\begin{bmatrix} \text{arrival start}_{1\,1\,\varphi} \\ \text{arrival start}_{1\,1\,\theta} \end{bmatrix}
+\begin{bmatrix} n_{1}\text{start}_{1}q_{1}^{\varphi} \\ n_{1}\text{start}_{1}q_{1}^{\theta} \end{bmatrix}
   &=& \begin{bmatrix} 2 \\ 2 \end{bmatrix} \\[6pt]
-\begin{bmatrix} \text{arrival start}_{1\,2\,\varphi} \\ \text{arrival start}_{1\,2\,\theta} \end{bmatrix}
+\begin{bmatrix} n_{1}\text{start}_{2}q_{2}^{\varphi} \\ n_{1}\text{start}_{2}q_{2}^{\theta} \end{bmatrix}
   &=& \begin{bmatrix} 3 \\ 3 \end{bmatrix} \\[10pt]
 \textbf{node 2} & & \\[3pt]
-\begin{bmatrix} n_{2}q_{1\,1\,\varphi} & n_{2}q_{1\,2\,\varphi} \\ n_{2}q_{1\,1\,\theta} & n_{2}q_{1\,2\,\theta} \end{bmatrix}
+\begin{bmatrix} n_{2}q_{1}\text{bound}_{1}^{\varphi} & n_{2}q_{1}\text{bound}_{2}^{\varphi} \\ n_{2}q_{1}\text{bound}_{1}^{\theta} & n_{2}q_{1}\text{bound}_{2}^{\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix} \\[6pt]
-\begin{bmatrix} n_{2}q_{2\,1\,\varphi} & n_{2}q_{2\,2\,\varphi} \\ n_{2}q_{2\,1\,\theta} & n_{2}q_{2\,2\,\theta} \end{bmatrix}
+\begin{bmatrix} n_{2}q_{2}\text{bound}_{1}^{\varphi} & n_{2}q_{2}\text{bound}_{2}^{\varphi} \\ n_{2}q_{2}\text{bound}_{1}^{\theta} & n_{2}q_{2}\text{bound}_{2}^{\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix} \\[6pt]
-\begin{bmatrix} n_{2}q_{3\,1\,\varphi} & n_{2}q_{3\,2\,\varphi} \\ n_{2}q_{3\,1\,\theta} & n_{2}q_{3\,2\,\theta} \end{bmatrix}
+\begin{bmatrix} n_{2}q_{3}\text{bound}_{1}^{\varphi} & n_{2}q_{3}\text{bound}_{2}^{\varphi} \\ n_{2}q_{3}\text{bound}_{1}^{\theta} & n_{2}q_{3}\text{bound}_{2}^{\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix} \\[6pt]
-\begin{bmatrix} n_{2}q_{4\,1\,\varphi} & n_{2}q_{4\,2\,\varphi} \\ n_{2}q_{4\,1\,\theta} & n_{2}q_{4\,2\,\theta} \end{bmatrix}
+\begin{bmatrix} n_{2}q_{4}\text{bound}_{1}^{\varphi} & n_{2}q_{4}\text{bound}_{2}^{\varphi} \\ n_{2}q_{4}\text{bound}_{1}^{\theta} & n_{2}q_{4}\text{bound}_{2}^{\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix} \\[6pt]
-\begin{bmatrix} \text{arrival start}_{2\,4\,\varphi} \\ \text{arrival start}_{2\,4\,\theta} \end{bmatrix}
+\begin{bmatrix} n_{2}\text{start}_{1}q_{4}^{\varphi} \\ n_{2}\text{start}_{1}q_{4}^{\theta} \end{bmatrix}
   &=& \begin{bmatrix} 3 \\ 3 \end{bmatrix} \\[6pt]
-\begin{bmatrix} \text{arrival start}_{2\,1\,\varphi} \\ \text{arrival start}_{2\,1\,\theta} \end{bmatrix}
+\begin{bmatrix} n_{2}\text{start}_{2}q_{1}^{\varphi} \\ n_{2}\text{start}_{2}q_{1}^{\theta} \end{bmatrix}
   &=& \begin{bmatrix} 1 \\ 1 \end{bmatrix} \\[10pt]
 \textbf{node 3} & & \\[3pt]
-\begin{bmatrix} n_{3}q_{1\,1\,\varphi} & n_{3}q_{1\,2\,\varphi} \\ n_{3}q_{1\,1\,\theta} & n_{3}q_{1\,2\,\theta} \end{bmatrix}
+\begin{bmatrix} n_{3}q_{1}\text{bound}_{1}^{\varphi} & n_{3}q_{1}\text{bound}_{2}^{\varphi} \\ n_{3}q_{1}\text{bound}_{1}^{\theta} & n_{3}q_{1}\text{bound}_{2}^{\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix} \\[6pt]
-\begin{bmatrix} n_{3}q_{2\,1\,\varphi} & n_{3}q_{2\,2\,\varphi} \\ n_{3}q_{2\,1\,\theta} & n_{3}q_{2\,2\,\theta} \end{bmatrix}
+\begin{bmatrix} n_{3}q_{2}\text{bound}_{1}^{\varphi} & n_{3}q_{2}\text{bound}_{2}^{\varphi} \\ n_{3}q_{2}\text{bound}_{1}^{\theta} & n_{3}q_{2}\text{bound}_{2}^{\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix} \\[6pt]
-\begin{bmatrix} n_{3}q_{3\,1\,\varphi} & n_{3}q_{3\,2\,\varphi} \\ n_{3}q_{3\,1\,\theta} & n_{3}q_{3\,2\,\theta} \end{bmatrix}
+\begin{bmatrix} n_{3}q_{3}\text{bound}_{1}^{\varphi} & n_{3}q_{3}\text{bound}_{2}^{\varphi} \\ n_{3}q_{3}\text{bound}_{1}^{\theta} & n_{3}q_{3}\text{bound}_{2}^{\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix} \\[6pt]
-\begin{bmatrix} n_{3}q_{4\,1\,\varphi} & n_{3}q_{4\,2\,\varphi} \\ n_{3}q_{4\,1\,\theta} & n_{3}q_{4\,2\,\theta} \end{bmatrix}
+\begin{bmatrix} n_{3}q_{4}\text{bound}_{1}^{\varphi} & n_{3}q_{4}\text{bound}_{2}^{\varphi} \\ n_{3}q_{4}\text{bound}_{1}^{\theta} & n_{3}q_{4}\text{bound}_{2}^{\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix} \\[6pt]
-\begin{bmatrix} \text{arrival start}_{3\,3\,\varphi} \\ \text{arrival start}_{3\,3\,\theta} \end{bmatrix}
+\begin{bmatrix} n_{3}\text{start}_{1}q_{3}^{\varphi} \\ n_{3}\text{start}_{1}q_{3}^{\theta} \end{bmatrix}
   &=& \begin{bmatrix} 2 \\ 2 \end{bmatrix} \\[6pt]
-\begin{bmatrix} \text{arrival start}_{3\,3\,\varphi} \\ \text{arrival start}_{3\,3\,\theta} \end{bmatrix}
+\begin{bmatrix} n_{3}\text{start}_{2}q_{3}^{\varphi} \\ n_{3}\text{start}_{2}q_{3}^{\theta} \end{bmatrix}
   &=& \begin{bmatrix} 1 \\ 1 \end{bmatrix} \\[10pt]
 \textbf{one node} & & \\[3pt]
 \begin{bmatrix} \text{arrival}_{1\,q_{a}\,\varphi} \\ \text{arrival}_{1\,q_{a}\,\theta} \end{bmatrix}
