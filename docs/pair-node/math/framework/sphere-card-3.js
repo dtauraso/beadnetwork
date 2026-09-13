@@ -16,7 +16,8 @@ b &=& \text{the second arrival's quadrant number} \\[3pt]
 12 &=& \text{1 full turn } \varphi \\[3pt]
 12 &=& \text{1 full turn } \theta \\[3pt]
 3 &=& \text{1 quarter turn } \varphi \\[3pt]
-3 &=& \text{1 quarter turn } \theta \\[6pt]
+3 &=& \text{1 quarter turn } \theta \\[10pt]
+\textbf{node 1} & & \\[3pt]
 \begin{bmatrix} n_{1}q_{1\,1\,\varphi} & n_{1}q_{1\,2\,\varphi} \\ n_{1}q_{1\,1\,\theta} & n_{1}q_{1\,2\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix} \\[6pt]
 \begin{bmatrix} n_{1}q_{2\,1\,\varphi} & n_{1}q_{2\,2\,\varphi} \\ n_{1}q_{2\,1\,\theta} & n_{1}q_{2\,2\,\theta} \end{bmatrix}
@@ -24,7 +25,12 @@ b &=& \text{the second arrival's quadrant number} \\[3pt]
 \begin{bmatrix} n_{1}q_{3\,1\,\varphi} & n_{1}q_{3\,2\,\varphi} \\ n_{1}q_{3\,1\,\theta} & n_{1}q_{3\,2\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix} \\[6pt]
 \begin{bmatrix} n_{1}q_{4\,1\,\varphi} & n_{1}q_{4\,2\,\varphi} \\ n_{1}q_{4\,1\,\theta} & n_{1}q_{4\,2\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix} \\[10pt]
+  &=& \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix} \\[6pt]
+\begin{bmatrix} \text{arrival start}_{1\,1\,\varphi} \\ \text{arrival start}_{1\,1\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} 2 \\ 2 \end{bmatrix} \\[6pt]
+\begin{bmatrix} \text{arrival start}_{1\,2\,\varphi} \\ \text{arrival start}_{1\,2\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} 3 \\ 3 \end{bmatrix} \\[10pt]
+\textbf{node 2} & & \\[3pt]
 \begin{bmatrix} n_{2}q_{1\,1\,\varphi} & n_{2}q_{1\,2\,\varphi} \\ n_{2}q_{1\,1\,\theta} & n_{2}q_{1\,2\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix} \\[6pt]
 \begin{bmatrix} n_{2}q_{2\,1\,\varphi} & n_{2}q_{2\,2\,\varphi} \\ n_{2}q_{2\,1\,\theta} & n_{2}q_{2\,2\,\theta} \end{bmatrix}
@@ -32,7 +38,12 @@ b &=& \text{the second arrival's quadrant number} \\[3pt]
 \begin{bmatrix} n_{2}q_{3\,1\,\varphi} & n_{2}q_{3\,2\,\varphi} \\ n_{2}q_{3\,1\,\theta} & n_{2}q_{3\,2\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix} \\[6pt]
 \begin{bmatrix} n_{2}q_{4\,1\,\varphi} & n_{2}q_{4\,2\,\varphi} \\ n_{2}q_{4\,1\,\theta} & n_{2}q_{4\,2\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix} \\[10pt]
+  &=& \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix} \\[6pt]
+\begin{bmatrix} \text{arrival start}_{2\,4\,\varphi} \\ \text{arrival start}_{2\,4\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} 3 \\ 3 \end{bmatrix} \\[6pt]
+\begin{bmatrix} \text{arrival start}_{2\,1\,\varphi} \\ \text{arrival start}_{2\,1\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} 1 \\ 1 \end{bmatrix} \\[10pt]
+\textbf{node 3} & & \\[3pt]
 \begin{bmatrix} n_{3}q_{1\,1\,\varphi} & n_{3}q_{1\,2\,\varphi} \\ n_{3}q_{1\,1\,\theta} & n_{3}q_{1\,2\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix} \\[6pt]
 \begin{bmatrix} n_{3}q_{2\,1\,\varphi} & n_{3}q_{2\,2\,\varphi} \\ n_{3}q_{2\,1\,\theta} & n_{3}q_{2\,2\,\theta} \end{bmatrix}
@@ -41,14 +52,6 @@ b &=& \text{the second arrival's quadrant number} \\[3pt]
   &=& \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix} \\[6pt]
 \begin{bmatrix} n_{3}q_{4\,1\,\varphi} & n_{3}q_{4\,2\,\varphi} \\ n_{3}q_{4\,1\,\theta} & n_{3}q_{4\,2\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix} \\[6pt]
-\begin{bmatrix} \text{arrival start}_{1\,1\,\varphi} \\ \text{arrival start}_{1\,1\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 2 \\ 2 \end{bmatrix} \\[6pt]
-\begin{bmatrix} \text{arrival start}_{1\,2\,\varphi} \\ \text{arrival start}_{1\,2\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 3 \\ 3 \end{bmatrix} \\[6pt]
-\begin{bmatrix} \text{arrival start}_{2\,4\,\varphi} \\ \text{arrival start}_{2\,4\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 3 \\ 3 \end{bmatrix} \\[6pt]
-\begin{bmatrix} \text{arrival start}_{2\,1\,\varphi} \\ \text{arrival start}_{2\,1\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 1 \\ 1 \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{arrival start}_{3\,3\,\varphi} \\ \text{arrival start}_{3\,3\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 2 \\ 2 \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{arrival start}_{3\,3\,\varphi} \\ \text{arrival start}_{3\,3\,\theta} \end{bmatrix}
