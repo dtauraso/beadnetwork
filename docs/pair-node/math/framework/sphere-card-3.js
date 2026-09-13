@@ -17,29 +17,29 @@ b &=& \text{the second arrival's quadrant number} \\[3pt]
 12 &=& \text{1 full turn } \theta \\[3pt]
 3 &=& \text{1 quarter turn } \varphi \\[3pt]
 3 &=& \text{1 quarter turn } \theta \\[6pt]
-\begin{bmatrix} 1q_{1\,1\,\varphi} & 1q_{1\,2\,\varphi} \\ 1q_{1\,1\,\theta} & 1q_{1\,2\,\theta} \end{bmatrix}
+\begin{bmatrix} n_{1}q_{1\,1\,\varphi} & n_{1}q_{1\,2\,\varphi} \\ n_{1}q_{1\,1\,\theta} & n_{1}q_{1\,2\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix} \\[6pt]
-\begin{bmatrix} 1q_{2\,1\,\varphi} & 1q_{2\,2\,\varphi} \\ 1q_{2\,1\,\theta} & 1q_{2\,2\,\theta} \end{bmatrix}
+\begin{bmatrix} n_{1}q_{2\,1\,\varphi} & n_{1}q_{2\,2\,\varphi} \\ n_{1}q_{2\,1\,\theta} & n_{1}q_{2\,2\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix} \\[6pt]
-\begin{bmatrix} 1q_{3\,1\,\varphi} & 1q_{3\,2\,\varphi} \\ 1q_{3\,1\,\theta} & 1q_{3\,2\,\theta} \end{bmatrix}
+\begin{bmatrix} n_{1}q_{3\,1\,\varphi} & n_{1}q_{3\,2\,\varphi} \\ n_{1}q_{3\,1\,\theta} & n_{1}q_{3\,2\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix} \\[6pt]
-\begin{bmatrix} 1q_{4\,1\,\varphi} & 1q_{4\,2\,\varphi} \\ 1q_{4\,1\,\theta} & 1q_{4\,2\,\theta} \end{bmatrix}
+\begin{bmatrix} n_{1}q_{4\,1\,\varphi} & n_{1}q_{4\,2\,\varphi} \\ n_{1}q_{4\,1\,\theta} & n_{1}q_{4\,2\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix} \\[10pt]
-\begin{bmatrix} 2q_{1\,1\,\varphi} & 2q_{1\,2\,\varphi} \\ 2q_{1\,1\,\theta} & 2q_{1\,2\,\theta} \end{bmatrix}
+\begin{bmatrix} n_{2}q_{1\,1\,\varphi} & n_{2}q_{1\,2\,\varphi} \\ n_{2}q_{1\,1\,\theta} & n_{2}q_{1\,2\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix} \\[6pt]
-\begin{bmatrix} 2q_{2\,1\,\varphi} & 2q_{2\,2\,\varphi} \\ 2q_{2\,1\,\theta} & 2q_{2\,2\,\theta} \end{bmatrix}
+\begin{bmatrix} n_{2}q_{2\,1\,\varphi} & n_{2}q_{2\,2\,\varphi} \\ n_{2}q_{2\,1\,\theta} & n_{2}q_{2\,2\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix} \\[6pt]
-\begin{bmatrix} 2q_{3\,1\,\varphi} & 2q_{3\,2\,\varphi} \\ 2q_{3\,1\,\theta} & 2q_{3\,2\,\theta} \end{bmatrix}
+\begin{bmatrix} n_{2}q_{3\,1\,\varphi} & n_{2}q_{3\,2\,\varphi} \\ n_{2}q_{3\,1\,\theta} & n_{2}q_{3\,2\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix} \\[6pt]
-\begin{bmatrix} 2q_{4\,1\,\varphi} & 2q_{4\,2\,\varphi} \\ 2q_{4\,1\,\theta} & 2q_{4\,2\,\theta} \end{bmatrix}
+\begin{bmatrix} n_{2}q_{4\,1\,\varphi} & n_{2}q_{4\,2\,\varphi} \\ n_{2}q_{4\,1\,\theta} & n_{2}q_{4\,2\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix} \\[10pt]
-\begin{bmatrix} 3q_{1\,1\,\varphi} & 3q_{1\,2\,\varphi} \\ 3q_{1\,1\,\theta} & 3q_{1\,2\,\theta} \end{bmatrix}
+\begin{bmatrix} n_{3}q_{1\,1\,\varphi} & n_{3}q_{1\,2\,\varphi} \\ n_{3}q_{1\,1\,\theta} & n_{3}q_{1\,2\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix} \\[6pt]
-\begin{bmatrix} 3q_{2\,1\,\varphi} & 3q_{2\,2\,\varphi} \\ 3q_{2\,1\,\theta} & 3q_{2\,2\,\theta} \end{bmatrix}
+\begin{bmatrix} n_{3}q_{2\,1\,\varphi} & n_{3}q_{2\,2\,\varphi} \\ n_{3}q_{2\,1\,\theta} & n_{3}q_{2\,2\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix} \\[6pt]
-\begin{bmatrix} 3q_{3\,1\,\varphi} & 3q_{3\,2\,\varphi} \\ 3q_{3\,1\,\theta} & 3q_{3\,2\,\theta} \end{bmatrix}
+\begin{bmatrix} n_{3}q_{3\,1\,\varphi} & n_{3}q_{3\,2\,\varphi} \\ n_{3}q_{3\,1\,\theta} & n_{3}q_{3\,2\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix} \\[6pt]
-\begin{bmatrix} 3q_{4\,1\,\varphi} & 3q_{4\,2\,\varphi} \\ 3q_{4\,1\,\theta} & 3q_{4\,2\,\theta} \end{bmatrix}
+\begin{bmatrix} n_{3}q_{4\,1\,\varphi} & n_{3}q_{4\,2\,\varphi} \\ n_{3}q_{4\,1\,\theta} & n_{3}q_{4\,2\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0 & 0 \\ 0 & 0 \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{arrival start}_{1\,1\,\varphi} \\ \text{arrival start}_{1\,1\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 2 \\ 2 \end{bmatrix} \\[6pt]
