@@ -97,29 +97,6 @@ b &=& \text{arrival 2's quadrant} \\[3pt]
                       0 & \text{otherwise} \\[6pt]
                       -1 & \text{if } 0 + \Delta_{3\,\theta} < p_{3}r_{3\,\theta} < 3 \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
-\begin{bmatrix} \text{zero}_{q_{1\,1}\,\varphi} \\ \text{zero}_{q_{1\,1}\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 0 & \text{if } \Delta_{q_{1\,1}\,\varphi} = 0 \\[3pt]
-                      0 & \text{otherwise} \\[6pt]
-                      0 & \text{if } \Delta_{q_{1\,1}\,\theta} = 0 \\[3pt]
-                      0 & \text{otherwise} \end{bmatrix} \\[10pt]
-\begin{bmatrix} \text{zero}_{q_{2\,1}\,\varphi} \\ \text{zero}_{q_{2\,1}\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 0 & \text{if } \Delta_{q_{2\,1}\,\varphi} = 0 \\[3pt]
-                      0 & \text{otherwise} \\[6pt]
-                      0 & \text{if } \Delta_{q_{2\,1}\,\theta} = 0 \\[3pt]
-                      0 & \text{otherwise} \end{bmatrix} \\[10pt]
-\begin{bmatrix} \text{acute}_{q_{1\,1}\,\varphi} \\ \text{acute}_{q_{1\,1}\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} -1 & \text{if } \Delta_{q_{1\,1}\,\varphi} < 3 \\[3pt]
-                      0 & \text{otherwise} \\[6pt]
-                      -1 & \text{if } \Delta_{q_{1\,1}\,\theta} < 3 \\[3pt]
-                      0 & \text{otherwise} \end{bmatrix} \\[10pt]
-\begin{bmatrix} \text{acute}_{q_{2\,1}\,\varphi} \\ \text{acute}_{q_{2\,1}\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} -1 & \text{if } \Delta_{q_{2\,1}\,\varphi} < 3 \\[3pt]
-                      0 & \text{otherwise} \\[6pt]
-                      -1 & \text{if } \Delta_{q_{2\,1}\,\theta} < 3 \\[3pt]
-                      0 & \text{otherwise} \end{bmatrix} \\[10pt]
-\begin{bmatrix} \Delta_{0\,\varphi} \\ \Delta_{0\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \begin{array}{@{}l@{}} \text{zero}_{q_{1\,1}\,\varphi} + \text{zero}_{q_{2\,1}\,\varphi} \\ {} + \text{acute}_{q_{1\,1}\,\varphi} + \text{acute}_{q_{2\,1}\,\varphi} \end{array} \\[10pt]
-                      \begin{array}{@{}l@{}} \text{zero}_{q_{1\,1}\,\theta} + \text{zero}_{q_{2\,1}\,\theta} \\ {} + \text{acute}_{q_{1\,1}\,\theta} + \text{acute}_{q_{2\,1}\,\theta} \end{array} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{arrival}_{\text{next}_{\varphi}} \\ \text{arrival}_{\text{next}_{\theta}} \end{bmatrix}
   &=& \begin{bmatrix} \text{arrival}_{\varphi} + \Delta_{0\,\varphi} \\
                       \text{arrival}_{\theta} + \Delta_{0\,\theta} \end{bmatrix} \\
