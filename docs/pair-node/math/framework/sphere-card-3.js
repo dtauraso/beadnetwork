@@ -61,7 +61,7 @@ b &=& \text{the second arrival's quadrant number} \\[3pt]
 \begin{bmatrix} \text{arrival}_{\varphi} \\ \text{arrival}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} \text{arrival}_{1\,q_{a}\,\varphi} \\[6pt]
                       \text{arrival}_{1\,q_{a}\,\theta} \end{bmatrix} \\[10pt]
-\text{offset}_{\varphi},\, \text{offset}_{\theta} &\in& \mathbb{Z}^{+} \\[6pt]
+\text{offset}_{\varphi},\, \text{offset}_{\theta} &\in& \{0, 1, 2, 3\} \\[6pt]
 \begin{bmatrix} p_{0}r_{0\,\varphi} \\ p_{0}r_{0\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} \text{arrival}_{\varphi} - (0 + \text{offset}_{\varphi}) \\[6pt]
                       \text{arrival}_{\theta} - (0 + \text{offset}_{\theta}) \end{bmatrix} \\[6pt]
