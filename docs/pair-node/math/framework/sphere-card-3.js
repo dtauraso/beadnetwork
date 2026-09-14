@@ -61,10 +61,10 @@ b &=& \text{the second arrival's quadrant number} \\[3pt]
 \begin{bmatrix} \text{arrival}_{\varphi} \\ \text{arrival}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} \text{arrival}_{1\,q_{a}\,\varphi} \\[6pt]
                       \text{arrival}_{1\,q_{a}\,\theta} \end{bmatrix} \\[10pt]
-\text{offset}_{\varphi},\, \text{offset}_{\theta} &\in& \{0, 1, 2, 3\} \\[6pt]
+\text{offset}_{0\,\varphi},\, \text{offset}_{0\,\theta} &\in& \{0, 1, 2, 3\} \\[6pt]
 \begin{bmatrix} p_{0}r_{0\,\varphi} \\ p_{0}r_{0\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \text{arrival}_{\varphi} - (0 + \text{offset}_{\varphi}) \\[6pt]
-                      \text{arrival}_{\theta} - (0 + \text{offset}_{\theta}) \end{bmatrix} \\[6pt]
+  &=& \begin{bmatrix} \text{arrival}_{\varphi} - (0 + \text{offset}_{0\,\varphi}) \\[6pt]
+                      \text{arrival}_{\theta} - (0 + \text{offset}_{0\,\theta}) \end{bmatrix} \\[6pt]
 \begin{bmatrix} x_{\varphi} \\ x_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} p_{0}r_{0\,\varphi} & \text{if } 0 < p_{0}r_{0\,\varphi} < 3 \\[3pt]
                       0 & \text{otherwise} \\[6pt]
@@ -96,12 +96,12 @@ b &=& \text{the second arrival's quadrant number} \\[3pt]
                       0 & \text{otherwise} \\[6pt]
                       -1 & \text{if } \Delta_{q_{2\,1}\,\theta} < 3 \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
-\begin{bmatrix} \text{offset}_{\varphi} \\ \text{offset}_{\theta} \end{bmatrix}
+\begin{bmatrix} \text{offset}_{0\,\varphi} \\ \text{offset}_{0\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} \begin{array}{@{}l@{}} \text{zero}_{q_{1\,1}\,\varphi} + \text{zero}_{q_{2\,1}\,\varphi} \\ {} + \text{acute}_{q_{1\,1}\,\varphi} + \text{acute}_{q_{2\,1}\,\varphi} \end{array} \\[10pt]
                       \begin{array}{@{}l@{}} \text{zero}_{q_{1\,1}\,\theta} + \text{zero}_{q_{2\,1}\,\theta} \\ {} + \text{acute}_{q_{1\,1}\,\theta} + \text{acute}_{q_{2\,1}\,\theta} \end{array} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{arrival}_{\text{next}_{\varphi}} \\ \text{arrival}_{\text{next}_{\theta}} \end{bmatrix}
-  &=& \begin{bmatrix} \text{arrival}_{\varphi} + \text{offset}_{\varphi} \\
-                      \text{arrival}_{\theta} + \text{offset}_{\theta} \end{bmatrix} \\
+  &=& \begin{bmatrix} \text{arrival}_{\varphi} + \text{offset}_{0\,\varphi} \\
+                      \text{arrival}_{\theta} + \text{offset}_{0\,\theta} \end{bmatrix} \\
 \begin{bmatrix} \text{sent}^{1}_{\varphi} \\ \text{sent}^{1}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} \text{arrival}_{\text{next}_{\varphi}} \\
                       \text{arrival}_{\text{next}_{\theta}} \end{bmatrix} \\[10pt]
