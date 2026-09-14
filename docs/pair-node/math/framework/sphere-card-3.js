@@ -70,6 +70,33 @@ b &=& \text{the second arrival's quadrant number} \\[3pt]
                       0 & \text{otherwise} \\[6pt]
                       -1 & \text{if } 0 < p_{0}r_{0\,\theta} < 3 \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
+\text{offset}_{1\,\varphi},\, \text{offset}_{1\,\theta} &\in& \{0, 1, 2, 3\} \\[6pt]
+\begin{bmatrix} p_{1}r_{1\,\varphi} \\ p_{1}r_{1\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} \text{arrival}_{\varphi} - (3 + \text{offset}_{1\,\varphi}) \\[6pt]
+                      \text{arrival}_{\theta} - (3 + \text{offset}_{1\,\theta}) \end{bmatrix} \\[6pt]
+\begin{bmatrix} x_{1\,\varphi} \\ x_{1\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} -1 & \text{if } 0 < p_{1}r_{1\,\varphi} < 3 \\[3pt]
+                      0 & \text{otherwise} \\[6pt]
+                      -1 & \text{if } 0 < p_{1}r_{1\,\theta} < 3 \\[3pt]
+                      0 & \text{otherwise} \end{bmatrix} \\[10pt]
+\text{offset}_{2\,\varphi},\, \text{offset}_{2\,\theta} &\in& \{0, 1, 2, 3\} \\[6pt]
+\begin{bmatrix} p_{2}r_{2\,\varphi} \\ p_{2}r_{2\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} \text{arrival}_{\varphi} - (6 + \text{offset}_{2\,\varphi}) \\[6pt]
+                      \text{arrival}_{\theta} - (6 + \text{offset}_{2\,\theta}) \end{bmatrix} \\[6pt]
+\begin{bmatrix} x_{2\,\varphi} \\ x_{2\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} -1 & \text{if } 0 < p_{2}r_{2\,\varphi} < 3 \\[3pt]
+                      0 & \text{otherwise} \\[6pt]
+                      -1 & \text{if } 0 < p_{2}r_{2\,\theta} < 3 \\[3pt]
+                      0 & \text{otherwise} \end{bmatrix} \\[10pt]
+\text{offset}_{3\,\varphi},\, \text{offset}_{3\,\theta} &\in& \{0, 1, 2, 3\} \\[6pt]
+\begin{bmatrix} p_{3}r_{3\,\varphi} \\ p_{3}r_{3\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} \text{arrival}_{\varphi} - (9 + \text{offset}_{3\,\varphi}) \\[6pt]
+                      \text{arrival}_{\theta} - (9 + \text{offset}_{3\,\theta}) \end{bmatrix} \\[6pt]
+\begin{bmatrix} x_{3\,\varphi} \\ x_{3\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} -1 & \text{if } 0 < p_{3}r_{3\,\varphi} < 3 \\[3pt]
+                      0 & \text{otherwise} \\[6pt]
+                      -1 & \text{if } 0 < p_{3}r_{3\,\theta} < 3 \\[3pt]
+                      0 & \text{otherwise} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \Delta_{q_{1\,1}\,\varphi} \\ \Delta_{q_{1\,1}\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} |\, q_{1\,1\,\varphi} - \text{arrival}_{\varphi} \,| \\[6pt]
                       |\, q_{1\,1\,\theta} - \text{arrival}_{\theta} \,| \end{bmatrix} \\[6pt]
