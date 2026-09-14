@@ -61,6 +61,8 @@ b &=& \text{the second arrival's quadrant number} \\[3pt]
 \begin{bmatrix} \text{arrival}_{\varphi} \\ \text{arrival}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} \text{arrival}_{1\,q_{a}\,\varphi} \\[6pt]
                       \text{arrival}_{1\,q_{a}\,\theta} \end{bmatrix} \\[10pt]
+p_{0}r_{0} &=& \text{arrival} - (0 + \text{offset}) \\[6pt]
+x &=& \begin{cases} p_{0}r_{0} \bmod 3 & \text{if } 0 < p_{0}r_{0} < 3 \\ 0 & \text{otherwise} \end{cases} \\[10pt]
 \begin{bmatrix} \Delta_{q_{1\,1}\,\varphi} \\ \Delta_{q_{1\,1}\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} |\, q_{1\,1\,\varphi} - \text{arrival}_{\varphi} \,| \\[6pt]
                       |\, q_{1\,1\,\theta} - \text{arrival}_{\theta} \,| \end{bmatrix} \\[6pt]
