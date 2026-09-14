@@ -65,7 +65,7 @@ b &=& \text{the second arrival's quadrant number} \\[3pt]
 \begin{bmatrix} p_{0}r_{0\,\varphi} \\ p_{0}r_{0\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} \text{arrival}_{\varphi} - (0 + \text{offset}_{0\,\varphi}) \\[6pt]
                       \text{arrival}_{\theta} - (0 + \text{offset}_{0\,\theta}) \end{bmatrix} \\[6pt]
-\begin{bmatrix} x_{\varphi} \\ x_{\theta} \end{bmatrix}
+\begin{bmatrix} x_{0\,\varphi} \\ x_{0\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} -1 & \text{if } 0 < p_{0}r_{0\,\varphi} < 3 \\[3pt]
                       0 & \text{otherwise} \\[6pt]
                       -1 & \text{if } 0 < p_{0}r_{0\,\theta} < 3 \\[3pt]
