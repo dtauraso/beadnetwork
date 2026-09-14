@@ -97,12 +97,6 @@ b &=& \text{arrival 2's quadrant} \\[3pt]
                       0 & \text{otherwise} \\[6pt]
                       -1 & \text{if } 0 + \Delta_{3\,\theta} < p_{3}r_{3\,\theta} < 3 \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
-\begin{bmatrix} \Delta_{q_{1\,1}\,\varphi} \\ \Delta_{q_{1\,1}\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} |\, q_{1\,1\,\varphi} - \text{arrival}_{\varphi} \,| \\[6pt]
-                      |\, q_{1\,1\,\theta} - \text{arrival}_{\theta} \,| \end{bmatrix} \\[6pt]
-\begin{bmatrix} \Delta_{q_{2\,1}\,\varphi} \\ \Delta_{q_{2\,1}\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} |\, q_{2\,1\,\varphi} - \text{arrival}_{\varphi} \,| \\[6pt]
-                      |\, q_{2\,1\,\theta} - \text{arrival}_{\theta} \,| \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{zero}_{q_{1\,1}\,\varphi} \\ \text{zero}_{q_{1\,1}\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0 & \text{if } \Delta_{q_{1\,1}\,\varphi} = 0 \\[3pt]
                       0 & \text{otherwise} \\[6pt]
