@@ -61,41 +61,41 @@ b &=& \text{arrival 2's quadrant} \\[3pt]
 \begin{bmatrix} \text{arrival}_{\varphi} \\ \text{arrival}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} \text{arrival}_{1\,q_{a}\,\varphi} \\[6pt]
                       \text{arrival}_{1\,q_{a}\,\theta} \end{bmatrix} \\[10pt]
-\text{delta}_{0\,\varphi},\, \text{delta}_{0\,\theta} &\in& \{0, 1, 2, 3\} \\[6pt]
+\Delta_{0\,\varphi},\, \Delta_{0\,\theta} &\in& \{0, 1, 2, 3\} \\[6pt]
 \begin{bmatrix} p_{0}r_{0\,\varphi} \\ p_{0}r_{0\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \text{arrival}_{\varphi} - (0 + \text{delta}_{0\,\varphi}) \\[6pt]
-                      \text{arrival}_{\theta} - (0 + \text{delta}_{0\,\theta}) \end{bmatrix} \\[6pt]
+  &=& \begin{bmatrix} \text{arrival}_{\varphi} - (0 + \Delta_{0\,\varphi}) \\[6pt]
+                      \text{arrival}_{\theta} - (0 + \Delta_{0\,\theta}) \end{bmatrix} \\[6pt]
 \begin{bmatrix} x_{0\,\varphi} \\ x_{0\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} -1 & \text{if } 0 + \text{delta}_{0\,\varphi} < p_{0}r_{0\,\varphi} < 3 \\[3pt]
+  &=& \begin{bmatrix} -1 & \text{if } 0 + \Delta_{0\,\varphi} < p_{0}r_{0\,\varphi} < 3 \\[3pt]
                       0 & \text{otherwise} \\[6pt]
-                      -1 & \text{if } 0 + \text{delta}_{0\,\theta} < p_{0}r_{0\,\theta} < 3 \\[3pt]
+                      -1 & \text{if } 0 + \Delta_{0\,\theta} < p_{0}r_{0\,\theta} < 3 \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
-\text{delta}_{1\,\varphi},\, \text{delta}_{1\,\theta} &\in& \{0, 1, 2, 3\} \\[6pt]
+\Delta_{1\,\varphi},\, \Delta_{1\,\theta} &\in& \{0, 1, 2, 3\} \\[6pt]
 \begin{bmatrix} p_{1}r_{1\,\varphi} \\ p_{1}r_{1\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \text{arrival}_{\varphi} - (3 + \text{delta}_{1\,\varphi}) \\[6pt]
-                      \text{arrival}_{\theta} - (3 + \text{delta}_{1\,\theta}) \end{bmatrix} \\[6pt]
+  &=& \begin{bmatrix} \text{arrival}_{\varphi} - (3 + \Delta_{1\,\varphi}) \\[6pt]
+                      \text{arrival}_{\theta} - (3 + \Delta_{1\,\theta}) \end{bmatrix} \\[6pt]
 \begin{bmatrix} x_{1\,\varphi} \\ x_{1\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} -1 & \text{if } 0 + \text{delta}_{1\,\varphi} < p_{1}r_{1\,\varphi} < 3 \\[3pt]
+  &=& \begin{bmatrix} -1 & \text{if } 0 + \Delta_{1\,\varphi} < p_{1}r_{1\,\varphi} < 3 \\[3pt]
                       0 & \text{otherwise} \\[6pt]
-                      -1 & \text{if } 0 + \text{delta}_{1\,\theta} < p_{1}r_{1\,\theta} < 3 \\[3pt]
+                      -1 & \text{if } 0 + \Delta_{1\,\theta} < p_{1}r_{1\,\theta} < 3 \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
-\text{delta}_{2\,\varphi},\, \text{delta}_{2\,\theta} &\in& \{0, 1, 2, 3\} \\[6pt]
+\Delta_{2\,\varphi},\, \Delta_{2\,\theta} &\in& \{0, 1, 2, 3\} \\[6pt]
 \begin{bmatrix} p_{2}r_{2\,\varphi} \\ p_{2}r_{2\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \text{arrival}_{\varphi} - (6 + \text{delta}_{2\,\varphi}) \\[6pt]
-                      \text{arrival}_{\theta} - (6 + \text{delta}_{2\,\theta}) \end{bmatrix} \\[6pt]
+  &=& \begin{bmatrix} \text{arrival}_{\varphi} - (6 + \Delta_{2\,\varphi}) \\[6pt]
+                      \text{arrival}_{\theta} - (6 + \Delta_{2\,\theta}) \end{bmatrix} \\[6pt]
 \begin{bmatrix} x_{2\,\varphi} \\ x_{2\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} -1 & \text{if } 0 + \text{delta}_{2\,\varphi} < p_{2}r_{2\,\varphi} < 3 \\[3pt]
+  &=& \begin{bmatrix} -1 & \text{if } 0 + \Delta_{2\,\varphi} < p_{2}r_{2\,\varphi} < 3 \\[3pt]
                       0 & \text{otherwise} \\[6pt]
-                      -1 & \text{if } 0 + \text{delta}_{2\,\theta} < p_{2}r_{2\,\theta} < 3 \\[3pt]
+                      -1 & \text{if } 0 + \Delta_{2\,\theta} < p_{2}r_{2\,\theta} < 3 \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
-\text{delta}_{3\,\varphi},\, \text{delta}_{3\,\theta} &\in& \{0, 1, 2, 3\} \\[6pt]
+\Delta_{3\,\varphi},\, \Delta_{3\,\theta} &\in& \{0, 1, 2, 3\} \\[6pt]
 \begin{bmatrix} p_{3}r_{3\,\varphi} \\ p_{3}r_{3\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \text{arrival}_{\varphi} - (9 + \text{delta}_{3\,\varphi}) \\[6pt]
-                      \text{arrival}_{\theta} - (9 + \text{delta}_{3\,\theta}) \end{bmatrix} \\[6pt]
+  &=& \begin{bmatrix} \text{arrival}_{\varphi} - (9 + \Delta_{3\,\varphi}) \\[6pt]
+                      \text{arrival}_{\theta} - (9 + \Delta_{3\,\theta}) \end{bmatrix} \\[6pt]
 \begin{bmatrix} x_{3\,\varphi} \\ x_{3\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} -1 & \text{if } 0 + \text{delta}_{3\,\varphi} < p_{3}r_{3\,\varphi} < 3 \\[3pt]
+  &=& \begin{bmatrix} -1 & \text{if } 0 + \Delta_{3\,\varphi} < p_{3}r_{3\,\varphi} < 3 \\[3pt]
                       0 & \text{otherwise} \\[6pt]
-                      -1 & \text{if } 0 + \text{delta}_{3\,\theta} < p_{3}r_{3\,\theta} < 3 \\[3pt]
+                      -1 & \text{if } 0 + \Delta_{3\,\theta} < p_{3}r_{3\,\theta} < 3 \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \Delta_{q_{1\,1}\,\varphi} \\ \Delta_{q_{1\,1}\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} |\, q_{1\,1\,\varphi} - \text{arrival}_{\varphi} \,| \\[6pt]
@@ -123,12 +123,12 @@ b &=& \text{arrival 2's quadrant} \\[3pt]
                       0 & \text{otherwise} \\[6pt]
                       -1 & \text{if } \Delta_{q_{2\,1}\,\theta} < 3 \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
-\begin{bmatrix} \text{delta}_{0\,\varphi} \\ \text{delta}_{0\,\theta} \end{bmatrix}
+\begin{bmatrix} \Delta_{0\,\varphi} \\ \Delta_{0\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} \begin{array}{@{}l@{}} \text{zero}_{q_{1\,1}\,\varphi} + \text{zero}_{q_{2\,1}\,\varphi} \\ {} + \text{acute}_{q_{1\,1}\,\varphi} + \text{acute}_{q_{2\,1}\,\varphi} \end{array} \\[10pt]
                       \begin{array}{@{}l@{}} \text{zero}_{q_{1\,1}\,\theta} + \text{zero}_{q_{2\,1}\,\theta} \\ {} + \text{acute}_{q_{1\,1}\,\theta} + \text{acute}_{q_{2\,1}\,\theta} \end{array} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{arrival}_{\text{next}_{\varphi}} \\ \text{arrival}_{\text{next}_{\theta}} \end{bmatrix}
-  &=& \begin{bmatrix} \text{arrival}_{\varphi} + \text{delta}_{0\,\varphi} \\
-                      \text{arrival}_{\theta} + \text{delta}_{0\,\theta} \end{bmatrix} \\
+  &=& \begin{bmatrix} \text{arrival}_{\varphi} + \Delta_{0\,\varphi} \\
+                      \text{arrival}_{\theta} + \Delta_{0\,\theta} \end{bmatrix} \\
 \begin{bmatrix} \text{sent}^{1}_{\varphi} \\ \text{sent}^{1}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} \text{arrival}_{\text{next}_{\varphi}} \\
                       \text{arrival}_{\text{next}_{\theta}} \end{bmatrix} \\[10pt]
