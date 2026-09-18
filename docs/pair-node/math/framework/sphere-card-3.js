@@ -86,9 +86,9 @@ b &=& \text{arrival 2's quadrant} \\[3pt]
   &=& \begin{bmatrix} \text{arrival}_{\varphi} - (6 + \Delta_{2\,\varphi}) \\[6pt]
                       \text{arrival}_{\theta} - (6 + \Delta_{2\,\theta}) \end{bmatrix} \\[6pt]
 \begin{bmatrix} x_{2\,\varphi} \\ x_{2\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} -1 & \text{if } 0 + \Delta_{2\,\varphi} < p_{2}r_{2\,\varphi} < 3 \\[3pt]
+  &=& \begin{bmatrix} -1 & \text{if } 6 + \Delta_{2\,\varphi} < p_{2}r_{2\,\varphi} < 3 \\[3pt]
                       0 & \text{otherwise} \\[6pt]
-                      -1 & \text{if } 0 + \Delta_{2\,\theta} < p_{2}r_{2\,\theta} < 3 \\[3pt]
+                      -1 & \text{if } 6 + \Delta_{2\,\theta} < p_{2}r_{2\,\theta} < 3 \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
 \Delta_{3\,\varphi},\, \Delta_{3\,\theta} &\in& \{9, 10, 11, 12\} \\[6pt]
 \begin{bmatrix} p_{3}r_{3\,\varphi} \\ p_{3}r_{3\,\theta} \end{bmatrix}
