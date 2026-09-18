@@ -95,9 +95,9 @@ b &=& \text{arrival 2's quadrant} \\[3pt]
   &=& \begin{bmatrix} (12 - \Delta_{3\,\varphi}) - \text{arrival}_{\varphi} \\[6pt]
                       (12 - \Delta_{3\,\theta}) - \text{arrival}_{\theta} \end{bmatrix} \\[6pt]
 \begin{bmatrix} x_{3\,\varphi} \\ x_{3\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} -1 & \text{if } 12 - \Delta_{3\,\varphi} < p_{3}r_{3\,\varphi} < 3 \\[3pt]
+  &=& \begin{bmatrix} 1 & \text{if } 12 - \Delta_{3\,\varphi} < p_{3}r_{3\,\varphi} < 3 \\[3pt]
                       0 & \text{otherwise} \\[6pt]
-                      -1 & \text{if } 12 - \Delta_{3\,\theta} < p_{3}r_{3\,\theta} < 3 \\[3pt]
+                      1 & \text{if } 12 - \Delta_{3\,\theta} < p_{3}r_{3\,\theta} < 3 \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{arrival}_{\text{next}_{\varphi}} \\ \text{arrival}_{\text{next}_{\theta}} \end{bmatrix}
   &=& \begin{bmatrix} \text{arrival}_{\varphi} + \Delta_{0\,\varphi} \\
