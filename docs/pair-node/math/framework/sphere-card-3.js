@@ -56,14 +56,17 @@ b &=& \text{arrival 2's quadrant} \\[3pt]
 \begin{bmatrix} n_{3}\text{start}_{2}q_{3\,\varphi} \\ n_{3}\text{start}_{2}q_{3\,\theta} \\ n_{3}\text{start}_{2}q_{3\,q} \end{bmatrix}
   &=& \begin{bmatrix} 1 \\ 1 \\ 3 \end{bmatrix} \\[10pt]
 \textbf{update test} & & \\[3pt]
-\Delta_{0\,\varphi},\, \Delta_{0\,\theta} &\in& \{0, 1, 2, 3\} \\[6pt]
+\text{offset}_{0\,\varphi},\, \text{offset}_{0\,\theta} &\in& \{0, 1, 2, 3\} \\[6pt]
+\begin{bmatrix} \text{pole}_{0\,\varphi} \\ \text{pole}_{0\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} 0 + \text{offset}_{0\,\varphi} \\[6pt]
+                      0 + \text{offset}_{0\,\theta} \end{bmatrix} \\[6pt]
 \begin{bmatrix} p_{0}r_{0\,\varphi} \\ p_{0}r_{0\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \text{arrival}_{\varphi} - (0 + \Delta_{0\,\varphi}) \\[6pt]
-                      \text{arrival}_{\theta} - (0 + \Delta_{0\,\theta}) \end{bmatrix} \\[6pt]
+  &=& \begin{bmatrix} \text{arrival}_{\varphi} - \text{pole}_{0\,\varphi} \\[6pt]
+                      \text{arrival}_{\theta} - \text{pole}_{0\,\theta} \end{bmatrix} \\[6pt]
 \begin{bmatrix} x_{0\,\varphi} \\ x_{0\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} -1 & \text{if } 0 + \Delta_{0\,\varphi} < p_{0}r_{0\,\varphi} < 3 \\[3pt]
+  &=& \begin{bmatrix} -1 & \text{if } \text{pole}_{0\,\varphi} < p_{0}r_{0\,\varphi} < 3 \\[3pt]
                       0 & \text{otherwise} \\[6pt]
-                      -1 & \text{if } 0 + \Delta_{0\,\theta} < p_{0}r_{0\,\theta} < 3 \\[3pt]
+                      -1 & \text{if } \text{pole}_{0\,\theta} < p_{0}r_{0\,\theta} < 3 \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
 \textbf{one node} & & \\[3pt]
 \begin{bmatrix} \text{arrival}_{1\,q_{a}\,\varphi} \\ \text{arrival}_{1\,q_{a}\,\theta} \end{bmatrix}
