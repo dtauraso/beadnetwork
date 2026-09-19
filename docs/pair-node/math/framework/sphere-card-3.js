@@ -61,12 +61,12 @@ b &=& \text{arrival 2's quadrant} \\[3pt]
   &=& \begin{bmatrix} 0 + \text{offset}_{0\,\varphi} \\[6pt]
                       0 + \text{offset}_{0\,\theta} \end{bmatrix} \\[6pt]
 \begin{bmatrix} p_{0}r_{0\,\varphi} \\ p_{0}r_{0\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \text{arrival}_{\varphi} - (0 + \text{offset}_{0\,\varphi}) \\[6pt]
-                      \text{arrival}_{\theta} - (0 + \text{offset}_{0\,\theta}) \end{bmatrix} \\[6pt]
+  &=& \begin{bmatrix} \text{arrival}_{\varphi} - \text{pole}_{0\,\varphi} \\[6pt]
+                      \text{arrival}_{\theta} - \text{pole}_{0\,\theta} \end{bmatrix} \\[6pt]
 \begin{bmatrix} x_{0\,\varphi} \\ x_{0\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} -1 & \text{if } 0 + \text{offset}_{0\,\varphi} < p_{0}r_{0\,\varphi} < 3 \\[3pt]
+  &=& \begin{bmatrix} -1 & \text{if } \text{pole}_{0\,\varphi} < p_{0}r_{0\,\varphi} < 3 \\[3pt]
                       0 & \text{otherwise} \\[6pt]
-                      -1 & \text{if } 0 + \text{offset}_{0\,\theta} < p_{0}r_{0\,\theta} < 3 \\[3pt]
+                      -1 & \text{if } \text{pole}_{0\,\theta} < p_{0}r_{0\,\theta} < 3 \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
 \textbf{one node} & & \\[3pt]
 \begin{bmatrix} \text{arrival}_{1\,q_{a}\,\varphi} \\ \text{arrival}_{1\,q_{a}\,\theta} \end{bmatrix}
