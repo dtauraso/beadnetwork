@@ -63,7 +63,7 @@ b &=& \text{arrival 2's quadrant} \\[3pt]
 \begin{bmatrix} \Delta_{0\,\varphi} \\ \Delta_{0\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} \text{arrival}_{\varphi} - \text{pole}_{0\,\varphi} \\[6pt]
                       \text{arrival}_{\theta} - \text{pole}_{0\,\theta} \end{bmatrix} \\[6pt]
-\begin{bmatrix} x_{0\,\varphi} \\ x_{0\,\theta} \end{bmatrix}
+\begin{bmatrix} \text{direction}_{0\,\varphi} \\ \text{direction}_{0\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} -1 & \text{if } \text{pole}_{0\,\varphi} < \Delta_{0\,\varphi} < 3 \\[3pt]
                       0 & \text{otherwise} \\[6pt]
                       -1 & \text{if } \text{pole}_{0\,\theta} < \Delta_{0\,\theta} < 3 \\[3pt]
