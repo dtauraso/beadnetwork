@@ -57,6 +57,9 @@ b &=& \text{arrival 2's quadrant} \\[3pt]
   &=& \begin{bmatrix} 1 \\ 1 \\ 3 \end{bmatrix} \\[10pt]
 \textbf{update test} & & \\[3pt]
 \Delta_{0\,\varphi},\, \Delta_{0\,\theta} &\in& \{0, 1, 2, 3\} \\[6pt]
+\begin{bmatrix} \text{pole}_{0\,\varphi} \\ \text{pole}_{0\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} 0 + \Delta_{0\,\varphi} \\[6pt]
+                      0 + \Delta_{0\,\theta} \end{bmatrix} \\[6pt]
 \begin{bmatrix} p_{0}r_{0\,\varphi} \\ p_{0}r_{0\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} \text{arrival}_{\varphi} - (0 + \Delta_{0\,\varphi}) \\[6pt]
                       \text{arrival}_{\theta} - (0 + \Delta_{0\,\theta}) \end{bmatrix} \\[6pt]
