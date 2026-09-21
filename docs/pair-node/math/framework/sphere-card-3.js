@@ -56,7 +56,10 @@ b &=& \text{arrival 2's quadrant} \\[3pt]
 \begin{bmatrix} n_{3}\text{start}_{2}q_{3\,\varphi} \\ n_{3}\text{start}_{2}q_{3\,\theta} \\ n_{3}\text{start}_{2}q_{3\,q} \end{bmatrix}
   &=& \begin{bmatrix} 1 \\ 1 \\ 3 \end{bmatrix} \\[10pt]
 \text{offset}_{\varphi},\, \text{offset}_{\theta} &\in& \{0, 1, 2, 3\} \\[6pt]
-\rlap{\textbf{dir_down}\left(\begin{bmatrix} \text{arrival}_{\varphi} \\ \text{arrival}_{\theta} \end{bmatrix},p_{n}, \begin{bmatrix} \text{offset}_{\varphi} \\ \text{offset}_{\theta} \end{bmatrix}, qt_{n}\right)} & & \\[3pt]
+\rlap{\textbf{dir_down}\left(\begin{array}{@{}l@{}}
+        \begin{bmatrix} \text{arrival}_{\varphi} \\ \text{arrival}_{\theta} \end{bmatrix},\; p_{n}, \\[3pt]
+        \begin{bmatrix} \text{offset}_{\varphi} \\ \text{offset}_{\theta} \end{bmatrix},\; qt_{n}
+      \end{array}\right)} & & \\[3pt]
 \begin{bmatrix} \text{pole}_{\varphi} \\ \text{pole}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} p_{n} + \text{offset}_{\varphi} \\[6pt]
                       p_{n} + \text{offset}_{\theta} \end{bmatrix} \\[6pt]
@@ -68,7 +71,10 @@ b &=& \text{arrival 2's quadrant} \\[3pt]
                       0 & \text{otherwise} \\[6pt]
                       -1 & \text{if } \text{pole}_{\theta} < \Delta_{\theta} < qt_{n} \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
-\rlap{\textbf{dir_up}\left(\begin{bmatrix} \text{arrival}_{\varphi} \\ \text{arrival}_{\theta} \end{bmatrix},p_{n}, \begin{bmatrix} \text{offset}_{\varphi} \\ \text{offset}_{\theta} \end{bmatrix}, qt_{n}\right)} & & \\[3pt]
+\rlap{\textbf{dir_up}\left(\begin{array}{@{}l@{}}
+        \begin{bmatrix} \text{arrival}_{\varphi} \\ \text{arrival}_{\theta} \end{bmatrix},\; p_{n}, \\[3pt]
+        \begin{bmatrix} \text{offset}_{\varphi} \\ \text{offset}_{\theta} \end{bmatrix},\; qt_{n}
+      \end{array}\right)} & & \\[3pt]
 \begin{bmatrix} \text{pole}_{\varphi} \\ \text{pole}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} p_{n} - \text{offset}_{\varphi} \\[6pt]
                       p_{n} - \text{offset}_{\theta} \end{bmatrix} \\[6pt]
