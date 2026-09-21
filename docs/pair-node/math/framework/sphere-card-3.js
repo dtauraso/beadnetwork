@@ -81,29 +81,29 @@ b &=& \text{arrival 2's quadrant} \\[3pt]
                       1 & \text{if } \text{pole}_{\theta} < \Delta_{\theta} < qt_{n} \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
 \textbf{one node} & & \\[3pt]
-\begin{bmatrix} \text{arrival}_{1\,q_{a}\,\varphi} \\ \text{arrival}_{1\,q_{a}\,\theta} \end{bmatrix}
+\begin{bmatrix} \text{arrival}_{1\,\varphi} \\ \text{arrival}_{1\,\theta} \end{bmatrix}
   &=& \text{from partner } 1 \\[6pt]
-\begin{bmatrix} \text{arrival}_{2\,q_{b}\,\varphi} \\ \text{arrival}_{2\,q_{b}\,\theta} \end{bmatrix}
+\begin{bmatrix} \text{arrival}_{2\,\varphi} \\ \text{arrival}_{2\,\theta} \end{bmatrix}
   &=& \text{from partner } 2 \\[6pt]
 \begin{bmatrix} \text{arrival}_{\varphi} \\ \text{arrival}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \text{arrival}_{1\,q_{a}\,\varphi} \\[6pt]
-                      \text{arrival}_{1\,q_{a}\,\theta} \end{bmatrix} \\[10pt]
+  &=& \begin{bmatrix} \text{arrival}_{1\,\varphi} \\[6pt]
+                      \text{arrival}_{1\,\theta} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{arrival}_{1}\text{direction}_{0\,\varphi} \\ \text{arrival}_{1}\text{direction}_{0\,\theta} \end{bmatrix}
-  &=& \textbf{dir_down}\left(\begin{bmatrix} \text{arrival}_{1\,q_{a}\,\varphi} \\ \text{arrival}_{1\,q_{a}\,\theta} \end{bmatrix},\; 0,\; 3\right) \\[6pt]
+  &=& \textbf{dir_down}\left(\begin{bmatrix} \text{arrival}_{1\,\varphi} \\ \text{arrival}_{1\,\theta} \end{bmatrix},\; 0,\; 3\right) \\[6pt]
 \begin{bmatrix} \text{arrival}_{1}\text{direction}_{1\,\varphi} \\ \text{arrival}_{1}\text{direction}_{1\,\theta} \end{bmatrix}
-  &=& \textbf{dir_up}\left(\begin{bmatrix} \text{arrival}_{1\,q_{a}\,\varphi} \\ \text{arrival}_{1\,q_{a}\,\theta} \end{bmatrix},\; 6,\; 3\right) \\[6pt]
+  &=& \textbf{dir_up}\left(\begin{bmatrix} \text{arrival}_{1\,\varphi} \\ \text{arrival}_{1\,\theta} \end{bmatrix},\; 6,\; 3\right) \\[6pt]
 \begin{bmatrix} \text{arrival}_{1}\text{direction}_{2\,\varphi} \\ \text{arrival}_{1}\text{direction}_{2\,\theta} \end{bmatrix}
-  &=& \textbf{dir_down}\left(\begin{bmatrix} \text{arrival}_{1\,q_{a}\,\varphi} \\ \text{arrival}_{1\,q_{a}\,\theta} \end{bmatrix},\; 6,\; 9\right) \\[6pt]
+  &=& \textbf{dir_down}\left(\begin{bmatrix} \text{arrival}_{1\,\varphi} \\ \text{arrival}_{1\,\theta} \end{bmatrix},\; 6,\; 9\right) \\[6pt]
 \begin{bmatrix} \text{arrival}_{1}\text{direction}_{3\,\varphi} \\ \text{arrival}_{1}\text{direction}_{3\,\theta} \end{bmatrix}
-  &=& \textbf{dir_up}\left(\begin{bmatrix} \text{arrival}_{1\,q_{a}\,\varphi} \\ \text{arrival}_{1\,q_{a}\,\theta} \end{bmatrix},\; 12,\; 9\right) \\[10pt]
+  &=& \textbf{dir_up}\left(\begin{bmatrix} \text{arrival}_{1\,\varphi} \\ \text{arrival}_{1\,\theta} \end{bmatrix},\; 12,\; 9\right) \\[10pt]
 \begin{bmatrix} \text{arrival}_{2}\text{direction}_{0\,\varphi} \\ \text{arrival}_{2}\text{direction}_{0\,\theta} \end{bmatrix}
-  &=& \textbf{dir_down}\left(\begin{bmatrix} \text{arrival}_{2\,q_{b}\,\varphi} \\ \text{arrival}_{2\,q_{b}\,\theta} \end{bmatrix},\; 0,\; 3\right) \\[6pt]
+  &=& \textbf{dir_down}\left(\begin{bmatrix} \text{arrival}_{2\,\varphi} \\ \text{arrival}_{2\,\theta} \end{bmatrix},\; 0,\; 3\right) \\[6pt]
 \begin{bmatrix} \text{arrival}_{2}\text{direction}_{1\,\varphi} \\ \text{arrival}_{2}\text{direction}_{1\,\theta} \end{bmatrix}
-  &=& \textbf{dir_up}\left(\begin{bmatrix} \text{arrival}_{2\,q_{b}\,\varphi} \\ \text{arrival}_{2\,q_{b}\,\theta} \end{bmatrix},\; 6,\; 3\right) \\[6pt]
+  &=& \textbf{dir_up}\left(\begin{bmatrix} \text{arrival}_{2\,\varphi} \\ \text{arrival}_{2\,\theta} \end{bmatrix},\; 6,\; 3\right) \\[6pt]
 \begin{bmatrix} \text{arrival}_{2}\text{direction}_{2\,\varphi} \\ \text{arrival}_{2}\text{direction}_{2\,\theta} \end{bmatrix}
-  &=& \textbf{dir_down}\left(\begin{bmatrix} \text{arrival}_{2\,q_{b}\,\varphi} \\ \text{arrival}_{2\,q_{b}\,\theta} \end{bmatrix},\; 6,\; 9\right) \\[6pt]
+  &=& \textbf{dir_down}\left(\begin{bmatrix} \text{arrival}_{2\,\varphi} \\ \text{arrival}_{2\,\theta} \end{bmatrix},\; 6,\; 9\right) \\[6pt]
 \begin{bmatrix} \text{arrival}_{2}\text{direction}_{3\,\varphi} \\ \text{arrival}_{2}\text{direction}_{3\,\theta} \end{bmatrix}
-  &=& \textbf{dir_up}\left(\begin{bmatrix} \text{arrival}_{2\,q_{b}\,\varphi} \\ \text{arrival}_{2\,q_{b}\,\theta} \end{bmatrix},\; 12,\; 9\right) \\[10pt]
+  &=& \textbf{dir_up}\left(\begin{bmatrix} \text{arrival}_{2\,\varphi} \\ \text{arrival}_{2\,\theta} \end{bmatrix},\; 12,\; 9\right) \\[10pt]
 \begin{bmatrix} \text{arrival}_{\text{next}_{\varphi}} \\ \text{arrival}_{\text{next}_{\theta}} \end{bmatrix}
   &=& \begin{bmatrix} \text{arrival}_{\varphi} + \text{offset}_{\varphi} \\
                       \text{arrival}_{\theta} + \text{offset}_{\theta} \end{bmatrix} \\
