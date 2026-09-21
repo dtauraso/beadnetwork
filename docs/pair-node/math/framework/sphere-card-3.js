@@ -19,11 +19,11 @@ b &=& \text{arrival 2's quadrant} \\[3pt]
 \textbf{node 1} & & \\[3pt]
 \begin{bmatrix} n_{1}p_{0\,\varphi} \\ n_{1}p_{0\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
-\begin{bmatrix} n_{1}p_{1\,\varphi} \\ n_{1}p_{1\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
-\begin{bmatrix} n_{1}p_{2\,\varphi} \\ n_{1}p_{2\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
 \begin{bmatrix} n_{1}p_{3\,\varphi} \\ n_{1}p_{3\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
+\begin{bmatrix} n_{1}p_{6\,\varphi} \\ n_{1}p_{6\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
+\begin{bmatrix} n_{1}p_{9\,\varphi} \\ n_{1}p_{9\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
 \begin{bmatrix} n_{1}\text{start}_{1}q_{1\,\varphi} \\ n_{1}\text{start}_{1}q_{1\,\theta} \\ n_{1}\text{start}_{1}q_{1\,q} \end{bmatrix}
   &=& \begin{bmatrix} 2 \\ 2 \\ 1 \end{bmatrix} \\[6pt]
