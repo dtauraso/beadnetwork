@@ -88,45 +88,18 @@ b &=& \text{arrival 2's quadrant} \\[3pt]
 \begin{bmatrix} \text{arrival}_{\varphi} \\ \text{arrival}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} \text{arrival}_{1\,q_{a}\,\varphi} \\[6pt]
                       \text{arrival}_{1\,q_{a}\,\theta} \end{bmatrix} \\[10pt]
-\Delta_{0\,\varphi},\, \Delta_{0\,\theta} &\in& \{0, 1, 2, 3\} \\[6pt]
-\begin{bmatrix} p_{0}r_{0\,\varphi} \\ p_{0}r_{0\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \text{arrival}_{\varphi} - (0 + \Delta_{0\,\varphi}) \\[6pt]
-                      \text{arrival}_{\theta} - (0 + \Delta_{0\,\theta}) \end{bmatrix} \\[6pt]
+\text{offset}_{k\,\varphi},\, \text{offset}_{k\,\theta} &\in& \{0, 1, 2, 3\}, \; k = 0 \ldots 3 \\[6pt]
 \begin{bmatrix} x_{0\,\varphi} \\ x_{0\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} -1 & \text{if } 0 + \Delta_{0\,\varphi} < p_{0}r_{0\,\varphi} < 3 \\[3pt]
-                      0 & \text{otherwise} \\[6pt]
-                      -1 & \text{if } 0 + \Delta_{0\,\theta} < p_{0}r_{0\,\theta} < 3 \\[3pt]
-                      0 & \text{otherwise} \end{bmatrix} \\[10pt]
-\Delta_{1\,\varphi},\, \Delta_{1\,\theta} &\in& \{0, 1, 2, 3\} \\[6pt]
-\begin{bmatrix} p_{1}r_{1\,\varphi} \\ p_{1}r_{1\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} (6 - \Delta_{1\,\varphi}) - \text{arrival}_{\varphi} \\[6pt]
-                      (6 - \Delta_{1\,\theta}) - \text{arrival}_{\theta} \end{bmatrix} \\[6pt]
+  &=& \textbf{dir_down}(0, \text{offset}_{0}, 3) \\[6pt]
 \begin{bmatrix} x_{1\,\varphi} \\ x_{1\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 1 & \text{if } 6 - \Delta_{1\,\varphi} < p_{1}r_{1\,\varphi} < 3 \\[3pt]
-                      0 & \text{otherwise} \\[6pt]
-                      1 & \text{if } 6 - \Delta_{1\,\theta} < p_{1}r_{1\,\theta} < 3 \\[3pt]
-                      0 & \text{otherwise} \end{bmatrix} \\[10pt]
-\Delta_{2\,\varphi},\, \Delta_{2\,\theta} &\in& \{0, 1, 2, 3\} \\[6pt]
-\begin{bmatrix} p_{2}r_{2\,\varphi} \\ p_{2}r_{2\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \text{arrival}_{\varphi} - (6 + \Delta_{2\,\varphi}) \\[6pt]
-                      \text{arrival}_{\theta} - (6 + \Delta_{2\,\theta}) \end{bmatrix} \\[6pt]
+  &=& \textbf{dir_up}(6, \text{offset}_{1}, 3) \\[6pt]
 \begin{bmatrix} x_{2\,\varphi} \\ x_{2\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} -1 & \text{if } 6 + \Delta_{2\,\varphi} < p_{2}r_{2\,\varphi} < 9 \\[3pt]
-                      0 & \text{otherwise} \\[6pt]
-                      -1 & \text{if } 6 + \Delta_{2\,\theta} < p_{2}r_{2\,\theta} < 9 \\[3pt]
-                      0 & \text{otherwise} \end{bmatrix} \\[10pt]
-\Delta_{3\,\varphi},\, \Delta_{3\,\theta} &\in& \{0, 1, 2, 3\} \\[6pt]
-\begin{bmatrix} p_{3}r_{3\,\varphi} \\ p_{3}r_{3\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} (12 - \Delta_{3\,\varphi}) - \text{arrival}_{\varphi} \\[6pt]
-                      (12 - \Delta_{3\,\theta}) - \text{arrival}_{\theta} \end{bmatrix} \\[6pt]
+  &=& \textbf{dir_down}(6, \text{offset}_{2}, 9) \\[6pt]
 \begin{bmatrix} x_{3\,\varphi} \\ x_{3\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 1 & \text{if } 12 - \Delta_{3\,\varphi} < p_{3}r_{3\,\varphi} < 9 \\[3pt]
-                      0 & \text{otherwise} \\[6pt]
-                      1 & \text{if } 12 - \Delta_{3\,\theta} < p_{3}r_{3\,\theta} < 9 \\[3pt]
-                      0 & \text{otherwise} \end{bmatrix} \\[10pt]
+  &=& \textbf{dir_up}(12, \text{offset}_{3}, 9) \\[10pt]
 \begin{bmatrix} \text{arrival}_{\text{next}_{\varphi}} \\ \text{arrival}_{\text{next}_{\theta}} \end{bmatrix}
-  &=& \begin{bmatrix} \text{arrival}_{\varphi} + \Delta_{0\,\varphi} \\
-                      \text{arrival}_{\theta} + \Delta_{0\,\theta} \end{bmatrix} \\
+  &=& \begin{bmatrix} \text{arrival}_{\varphi} + \text{offset}_{0\,\varphi} \\
+                      \text{arrival}_{\theta} + \text{offset}_{0\,\theta} \end{bmatrix} \\
 \begin{bmatrix} \text{sent}^{1}_{\varphi} \\ \text{sent}^{1}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} \text{arrival}_{\text{next}_{\varphi}} \\
                       \text{arrival}_{\text{next}_{\theta}} \end{bmatrix} \\[10pt]
