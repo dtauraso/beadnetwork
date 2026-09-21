@@ -102,8 +102,16 @@ b &=& \text{arrival 2's quadrant} \\[3pt]
 \begin{bmatrix} \text{arrival}_{2}\text{direction}_{3\,\varphi} \\ \text{arrival}_{2}\text{direction}_{3\,\theta} \end{bmatrix}
   &=& \textbf{dir_up}\left(\begin{bmatrix} \text{arrival}_{2\,\varphi} \\ \text{arrival}_{2\,\theta} \end{bmatrix},\; 12,\; 9\right) \\[10pt]
 \begin{bmatrix} \text{arrival}_{\text{next}_{\varphi}} \\ \text{arrival}_{\text{next}_{\theta}} \end{bmatrix}
-  &=& \begin{bmatrix} \text{arrival}_{1\,\varphi} + \text{offset}_{\varphi} \\
-                      \text{arrival}_{1\,\theta} + \text{offset}_{\theta} \end{bmatrix} \\
+  &=& \begin{array}[t]{@{}r@{\;}l@{}}
+        & \begin{bmatrix} \text{arrival}_{1}\text{direction}_{0\,\varphi} \\ \text{arrival}_{1}\text{direction}_{0\,\theta} \end{bmatrix} \\[3pt]
+        + & \begin{bmatrix} \text{arrival}_{1}\text{direction}_{1\,\varphi} \\ \text{arrival}_{1}\text{direction}_{1\,\theta} \end{bmatrix} \\[3pt]
+        + & \begin{bmatrix} \text{arrival}_{1}\text{direction}_{2\,\varphi} \\ \text{arrival}_{1}\text{direction}_{2\,\theta} \end{bmatrix} \\[3pt]
+        + & \begin{bmatrix} \text{arrival}_{1}\text{direction}_{3\,\varphi} \\ \text{arrival}_{1}\text{direction}_{3\,\theta} \end{bmatrix} \\[3pt]
+        + & \begin{bmatrix} \text{arrival}_{2}\text{direction}_{0\,\varphi} \\ \text{arrival}_{2}\text{direction}_{0\,\theta} \end{bmatrix} \\[3pt]
+        + & \begin{bmatrix} \text{arrival}_{2}\text{direction}_{1\,\varphi} \\ \text{arrival}_{2}\text{direction}_{1\,\theta} \end{bmatrix} \\[3pt]
+        + & \begin{bmatrix} \text{arrival}_{2}\text{direction}_{2\,\varphi} \\ \text{arrival}_{2}\text{direction}_{2\,\theta} \end{bmatrix} \\[3pt]
+        + & \begin{bmatrix} \text{arrival}_{2}\text{direction}_{3\,\varphi} \\ \text{arrival}_{2}\text{direction}_{3\,\theta} \end{bmatrix}
+      \end{array} \\[10pt]
 \begin{bmatrix} \text{sent}^{1}_{\varphi} \\ \text{sent}^{1}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} \text{arrival}_{\text{next}_{\varphi}} \\
                       \text{arrival}_{\text{next}_{\theta}} \end{bmatrix} \\[10pt]
