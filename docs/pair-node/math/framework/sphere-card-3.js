@@ -56,10 +56,10 @@ b &=& \text{arrival 2's quadrant} \\[3pt]
 \begin{bmatrix} n_{3}\text{start}_{2}q_{3\,\varphi} \\ n_{3}\text{start}_{2}q_{3\,\theta} \\ n_{3}\text{start}_{2}q_{3\,q} \end{bmatrix}
   &=& \begin{bmatrix} 1 \\ 1 \\ 3 \end{bmatrix} \\[10pt]
 \text{offset}_{\varphi},\, \text{offset}_{\theta} &\in& \{0, 1, 2, 3\} \\[6pt]
-\rlap{\textbf{direction}(\text{pole_number}, \text{offset}, \text{qt})} & & \\[3pt]
+\rlap{\textbf{direction}(p_{n}, \text{offset}, \text{qt})} & & \\[3pt]
 \begin{bmatrix} \text{pole}_{\varphi} \\ \text{pole}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \text{pole_number} + \text{offset}_{\varphi} \\[6pt]
-                      \text{pole_number} + \text{offset}_{\theta} \end{bmatrix} \\[6pt]
+  &=& \begin{bmatrix} p_{n} + \text{offset}_{\varphi} \\[6pt]
+                      p_{n} + \text{offset}_{\theta} \end{bmatrix} \\[6pt]
 \begin{bmatrix} \Delta_{\varphi} \\ \Delta_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} \text{arrival}_{\varphi} - \text{pole}_{\varphi} \\[6pt]
                       \text{arrival}_{\theta} - \text{pole}_{\theta} \end{bmatrix} \\[6pt]
