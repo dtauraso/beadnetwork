@@ -20,11 +20,11 @@ b &=& \text{arrival 2's quadrant} \\[3pt]
 \begin{bmatrix} n_{1}p_{\varphi} \\ n_{1}p_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
 \begin{bmatrix} n_{1}p_{\varphi} \\ n_{1}p_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 3 \\ 3 \end{bmatrix} \\[6pt]
+  &=& \begin{bmatrix} 6 \\ 6 \end{bmatrix} \\[6pt]
 \begin{bmatrix} n_{1}p_{\varphi} \\ n_{1}p_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} 6 \\ 6 \end{bmatrix} \\[6pt]
 \begin{bmatrix} n_{1}p_{\varphi} \\ n_{1}p_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 9 \\ 9 \end{bmatrix} \\[6pt]
+  &=& \begin{bmatrix} 12 \\ 12 \end{bmatrix} \\[6pt]
 \begin{bmatrix} n_{1}\text{start}_{1}q_{1\,\varphi} \\ n_{1}\text{start}_{1}q_{1\,\theta} \\ n_{1}\text{start}_{1}q_{1\,q} \end{bmatrix}
   &=& \begin{bmatrix} 2 \\ 2 \\ 1 \end{bmatrix} \\[6pt]
 \begin{bmatrix} n_{1}\text{start}_{2}q_{2\,\varphi} \\ n_{1}\text{start}_{2}q_{2\,\theta} \\ n_{1}\text{start}_{2}q_{2\,q} \end{bmatrix}
