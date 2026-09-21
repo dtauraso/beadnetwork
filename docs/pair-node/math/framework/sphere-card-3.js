@@ -58,8 +58,8 @@ b &=& \text{arrival 2's quadrant} \\[3pt]
 \text{offset}_{\varphi},\, \text{offset}_{\theta} &\in& \{0, 1, 2, 3\} \\[6pt]
 \rlap{\textbf{direction}(\text{pole_number}, \text{offset})} & & \\[3pt]
 \begin{bmatrix} \text{pole}_{\varphi} \\ \text{pole}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 0 + \text{offset}_{\varphi} \\[6pt]
-                      0 + \text{offset}_{\theta} \end{bmatrix} \\[6pt]
+  &=& \begin{bmatrix} \text{pole_number} + \text{offset}_{\varphi} \\[6pt]
+                      \text{pole_number} + \text{offset}_{\theta} \end{bmatrix} \\[6pt]
 \begin{bmatrix} \Delta_{\varphi} \\ \Delta_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} \text{arrival}_{\varphi} - \text{pole}_{\varphi} \\[6pt]
                       \text{arrival}_{\theta} - \text{pole}_{\theta} \end{bmatrix} \\[6pt]
