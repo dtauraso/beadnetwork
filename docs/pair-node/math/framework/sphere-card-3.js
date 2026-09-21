@@ -89,13 +89,13 @@ b &=& \text{arrival 2's quadrant} \\[3pt]
   &=& \begin{bmatrix} \text{arrival}_{1\,q_{a}\,\varphi} \\[6pt]
                       \text{arrival}_{1\,q_{a}\,\theta} \end{bmatrix} \\[10pt]
 \text{offset}_{k\,\varphi},\, \text{offset}_{k\,\theta} &\in& \{0, 1, 2, 3\}, \; k = 0 \ldots 3 \\[6pt]
-\begin{bmatrix} x_{0\,\varphi} \\ x_{0\,\theta} \end{bmatrix}
+\begin{bmatrix} \text{direction}_{0\,\varphi} \\ \text{direction}_{0\,\theta} \end{bmatrix}
   &=& \textbf{dir_down}(0, \text{offset}_{0}, 3) \\[6pt]
-\begin{bmatrix} x_{1\,\varphi} \\ x_{1\,\theta} \end{bmatrix}
+\begin{bmatrix} \text{direction}_{1\,\varphi} \\ \text{direction}_{1\,\theta} \end{bmatrix}
   &=& \textbf{dir_up}(6, \text{offset}_{1}, 3) \\[6pt]
-\begin{bmatrix} x_{2\,\varphi} \\ x_{2\,\theta} \end{bmatrix}
+\begin{bmatrix} \text{direction}_{2\,\varphi} \\ \text{direction}_{2\,\theta} \end{bmatrix}
   &=& \textbf{dir_down}(6, \text{offset}_{2}, 9) \\[6pt]
-\begin{bmatrix} x_{3\,\varphi} \\ x_{3\,\theta} \end{bmatrix}
+\begin{bmatrix} \text{direction}_{3\,\varphi} \\ \text{direction}_{3\,\theta} \end{bmatrix}
   &=& \textbf{dir_up}(12, \text{offset}_{3}, 9) \\[10pt]
 \begin{bmatrix} \text{arrival}_{\text{next}_{\varphi}} \\ \text{arrival}_{\text{next}_{\theta}} \end{bmatrix}
   &=& \begin{bmatrix} \text{arrival}_{\varphi} + \text{offset}_{0\,\varphi} \\
