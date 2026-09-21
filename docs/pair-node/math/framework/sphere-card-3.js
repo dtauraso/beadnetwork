@@ -60,13 +60,13 @@ b &=& \text{arrival 2's quadrant} \\[3pt]
 \begin{bmatrix} \text{pole}_{0\,\varphi} \\ \text{pole}_{0\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0 + \text{offset}_{0\,\varphi} \\[6pt]
                       0 + \text{offset}_{0\,\theta} \end{bmatrix} \\[6pt]
-\begin{bmatrix} \Delta \\ \Delta \end{bmatrix}
+\begin{bmatrix} \Delta_{\varphi} \\ \Delta_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} \text{arrival}_{\varphi} - \text{pole}_{0\,\varphi} \\[6pt]
                       \text{arrival}_{\theta} - \text{pole}_{0\,\theta} \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{direction}_{0\,\varphi} \\ \text{direction}_{0\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} -1 & \text{if } \text{pole}_{0\,\varphi} < \Delta < 3 \\[3pt]
+  &=& \begin{bmatrix} -1 & \text{if } \text{pole}_{0\,\varphi} < \Delta_{\varphi} < 3 \\[3pt]
                       0 & \text{otherwise} \\[6pt]
-                      -1 & \text{if } \text{pole}_{0\,\theta} < \Delta < 3 \\[3pt]
+                      -1 & \text{if } \text{pole}_{0\,\theta} < \Delta_{\theta} < 3 \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
 \textbf{one node} & & \\[3pt]
 \begin{bmatrix} \text{arrival}_{1\,q_{a}\,\varphi} \\ \text{arrival}_{1\,q_{a}\,\theta} \end{bmatrix}
