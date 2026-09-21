@@ -56,10 +56,10 @@ b &=& \text{arrival 2's quadrant} \\[3pt]
 \begin{bmatrix} n_{3}\text{start}_{2}q_{3\,\varphi} \\ n_{3}\text{start}_{2}q_{3\,\theta} \\ n_{3}\text{start}_{2}q_{3\,q} \end{bmatrix}
   &=& \begin{bmatrix} 1 \\ 1 \\ 3 \end{bmatrix} \\[10pt]
 \textbf{update test} & & \\[3pt]
-\text{offset}_{0\,\varphi},\, \text{offset}_{0\,\theta} &\in& \{0, 1, 2, 3\} \\[6pt]
+\text{offset}_{\varphi},\, \text{offset}_{\theta} &\in& \{0, 1, 2, 3\} \\[6pt]
 \begin{bmatrix} \text{pole}_{\varphi} \\ \text{pole}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 0 + \text{offset}_{0\,\varphi} \\[6pt]
-                      0 + \text{offset}_{0\,\theta} \end{bmatrix} \\[6pt]
+  &=& \begin{bmatrix} 0 + \text{offset}_{\varphi} \\[6pt]
+                      0 + \text{offset}_{\theta} \end{bmatrix} \\[6pt]
 \begin{bmatrix} \Delta_{\varphi} \\ \Delta_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} \text{arrival}_{\varphi} - \text{pole}_{\varphi} \\[6pt]
                       \text{arrival}_{\theta} - \text{pole}_{\theta} \end{bmatrix} \\[6pt]
