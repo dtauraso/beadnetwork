@@ -58,7 +58,7 @@ b &=& \text{arrival 2's quadrant} \\[3pt]
 \text{offset}_{\varphi},\, \text{offset}_{\theta} &\in& \{0, 1, 2, 3\} \\[6pt]
 \rlap{\textbf{dir_down}\left(\begin{array}{@{}l@{}}
         \begin{bmatrix} \text{arrival}_{\varphi} \\ \text{arrival}_{\theta} \end{bmatrix},\; p_{n}, \\[3pt]
-        \begin{bmatrix} \text{offset}_{\varphi} \\ \text{offset}_{\theta} \end{bmatrix},\; qt_{n}
+        qt_{n}
       \end{array}\right)} & & \\[3pt]
 \begin{bmatrix} \text{pole}_{\varphi} \\ \text{pole}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} p_{n} + \text{offset}_{\varphi} \\[6pt]
@@ -73,7 +73,7 @@ b &=& \text{arrival 2's quadrant} \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
 \rlap{\textbf{dir_up}\left(\begin{array}{@{}l@{}}
         \begin{bmatrix} \text{arrival}_{\varphi} \\ \text{arrival}_{\theta} \end{bmatrix},\; p_{n}, \\[3pt]
-        \begin{bmatrix} \text{offset}_{\varphi} \\ \text{offset}_{\theta} \end{bmatrix},\; qt_{n}
+        qt_{n}
       \end{array}\right)} & & \\[3pt]
 \begin{bmatrix} \text{pole}_{\varphi} \\ \text{pole}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} p_{n} - \text{offset}_{\varphi} \\[6pt]
@@ -97,22 +97,22 @@ b &=& \text{arrival 2's quadrant} \\[3pt]
 \begin{bmatrix} \text{direction}_{0\,\varphi} \\ \text{direction}_{0\,\theta} \end{bmatrix}
   &=& \textbf{dir_down}\left(\begin{array}{@{}l@{}}
         \begin{bmatrix} \text{arrival}_{\varphi} \\ \text{arrival}_{\theta} \end{bmatrix},\; 0, \\[3pt]
-        \begin{bmatrix} \text{offset}_{\varphi} \\ \text{offset}_{\theta} \end{bmatrix},\; 3
+        3
       \end{array}\right) \\[6pt]
 \begin{bmatrix} \text{direction}_{1\,\varphi} \\ \text{direction}_{1\,\theta} \end{bmatrix}
   &=& \textbf{dir_up}\left(\begin{array}{@{}l@{}}
         \begin{bmatrix} \text{arrival}_{\varphi} \\ \text{arrival}_{\theta} \end{bmatrix},\; 6, \\[3pt]
-        \begin{bmatrix} \text{offset}_{\varphi} \\ \text{offset}_{\theta} \end{bmatrix},\; 3
+        3
       \end{array}\right) \\[6pt]
 \begin{bmatrix} \text{direction}_{2\,\varphi} \\ \text{direction}_{2\,\theta} \end{bmatrix}
   &=& \textbf{dir_down}\left(\begin{array}{@{}l@{}}
         \begin{bmatrix} \text{arrival}_{\varphi} \\ \text{arrival}_{\theta} \end{bmatrix},\; 6, \\[3pt]
-        \begin{bmatrix} \text{offset}_{\varphi} \\ \text{offset}_{\theta} \end{bmatrix},\; 9
+        9
       \end{array}\right) \\[6pt]
 \begin{bmatrix} \text{direction}_{3\,\varphi} \\ \text{direction}_{3\,\theta} \end{bmatrix}
   &=& \textbf{dir_up}\left(\begin{array}{@{}l@{}}
         \begin{bmatrix} \text{arrival}_{\varphi} \\ \text{arrival}_{\theta} \end{bmatrix},\; 12, \\[3pt]
-        \begin{bmatrix} \text{offset}_{\varphi} \\ \text{offset}_{\theta} \end{bmatrix},\; 9
+        9
       \end{array}\right) \\[10pt]
 \begin{bmatrix} \text{arrival}_{\text{next}_{\varphi}} \\ \text{arrival}_{\text{next}_{\theta}} \end{bmatrix}
   &=& \begin{bmatrix} \text{arrival}_{\varphi} + \text{offset}_{\varphi} \\
