@@ -76,36 +76,38 @@
         is a fraction of a turn.</p>
       <div class="tablewrap">
         <table class="n">
-          <tr><th>t</th><th>k = 6t²</th><th class="l">(x, y, z)</th><th>angle at a</th><th>angle at the stack</th><th>sum</th></tr>
-          <tr><td>1</td><td>6</td><td class="l">(2, 1, 4)</td><td>2</td><td>1</td><td>3</td></tr>
-          <tr><td>2</td><td>24</td><td class="l">(4, 1, 8)</td><td>2</td><td>1</td><td>3</td></tr>
-          <tr><td>3</td><td>54</td><td class="l">(6, 1, 12)</td><td>2</td><td>1</td><td>3</td></tr>
-          <tr><td>4</td><td>96</td><td class="l">(8, 1, 16)</td><td>2</td><td>1</td><td>3</td></tr>
-          <tr><td>5</td><td>150</td><td class="l">(10, 1, 20)</td><td>2</td><td>1</td><td>3</td></tr>
-          <tr><td>6</td><td>216</td><td class="l">(12, 1, 24)</td><td>2</td><td>1</td><td>3</td></tr>
-          <tr><td>7</td><td>294</td><td class="l">(14, 1, 28)</td><td>2</td><td>1</td><td>3</td></tr>
-          <tr><td>8</td><td>384</td><td class="l">(16, 1, 32)</td><td>2</td><td>1</td><td>3</td></tr>
-          <tr><td>9</td><td>486</td><td class="l">(18, 1, 36)</td><td>2</td><td>1</td><td>3</td></tr>
-          <tr><td>10</td><td>600</td><td class="l">(20, 1, 40)</td><td>2</td><td>1</td><td>3</td></tr>
-          <tr><td>11</td><td>726</td><td class="l">(22, 1, 44)</td><td>2</td><td>1</td><td>3</td></tr>
-          <tr><td>12</td><td>864</td><td class="l">(24, 1, 48)</td><td>2</td><td>1</td><td>3</td></tr>
-          <tr><td>13</td><td>1014</td><td class="l">(26, 1, 52)</td><td>2</td><td>1</td><td>3</td></tr>
-          <tr><td>14</td><td>1176</td><td class="l">(28, 1, 56)</td><td>2</td><td>1</td><td>3</td></tr>
-          <tr><td>15</td><td>1350</td><td class="l">(30, 1, 60)</td><td>2</td><td>1</td><td>3</td></tr>
-          <tr><td>16</td><td>1536</td><td class="l">(32, 1, 64)</td><td>2</td><td>1</td><td>3</td></tr>
-          <tr><td>17</td><td>1734</td><td class="l">(34, 1, 68)</td><td>2</td><td>1</td><td>3</td></tr>
-          <tr><td>18</td><td>1944</td><td class="l">(36, 1, 72)</td><td>2</td><td>1</td><td>3</td></tr>
-          <tr><td>19</td><td>2166</td><td class="l">(38, 1, 76)</td><td>2</td><td>1</td><td>3</td></tr>
-          <tr><td>20</td><td>2400</td><td class="l">(40, 1, 80)</td><td>2</td><td>1</td><td>3</td></tr>
-          <tr><td>21</td><td>2646</td><td class="l">(42, 1, 84)</td><td>2</td><td>1</td><td>3</td></tr>
-          <tr><td>22</td><td>2904</td><td class="l">(44, 1, 88)</td><td>2</td><td>1</td><td>3</td></tr>
-          <tr><td>23</td><td>3174</td><td class="l">(46, 1, 92)</td><td>2</td><td>1</td><td>3</td></tr>
-          <tr><td>24</td><td>3456</td><td class="l">(48, 1, 96)</td><td>2</td><td>1</td><td>3</td></tr>
+          <tr><th>t</th><th>k = 6t²</th><th class="l">(x, y, z)</th><th class="l">x/z, reduced</th><th class="l">ring 12</th><th class="l">ring 24</th><th class="l">ring 48</th><th class="l">ring 96</th></tr>
+          <tr><td>1</td><td>6</td><td class="l">(2, 1, 4)</td><td class="l">2/4 = 1/2</td><td class="l">2, 1</td><td class="l">4, 2</td><td class="l">8, 4</td><td class="l">16, 8</td></tr>
+          <tr><td>2</td><td>24</td><td class="l">(4, 1, 8)</td><td class="l">4/8 = 1/2</td><td class="l">2, 1</td><td class="l">4, 2</td><td class="l">8, 4</td><td class="l">16, 8</td></tr>
+          <tr><td>3</td><td>54</td><td class="l">(6, 1, 12)</td><td class="l">6/12 = 1/2</td><td class="l">2, 1</td><td class="l">4, 2</td><td class="l">8, 4</td><td class="l">16, 8</td></tr>
+          <tr><td>4</td><td>96</td><td class="l">(8, 1, 16)</td><td class="l">8/16 = 1/2</td><td class="l">2, 1</td><td class="l">4, 2</td><td class="l">8, 4</td><td class="l">16, 8</td></tr>
+          <tr><td>5</td><td>150</td><td class="l">(10, 1, 20)</td><td class="l">10/20 = 1/2</td><td class="l">2, 1</td><td class="l">4, 2</td><td class="l">8, 4</td><td class="l">16, 8</td></tr>
+          <tr><td>6</td><td>216</td><td class="l">(12, 1, 24)</td><td class="l">12/24 = 1/2</td><td class="l">2, 1</td><td class="l">4, 2</td><td class="l">8, 4</td><td class="l">16, 8</td></tr>
+          <tr><td>7</td><td>294</td><td class="l">(14, 1, 28)</td><td class="l">14/28 = 1/2</td><td class="l">2, 1</td><td class="l">4, 2</td><td class="l">8, 4</td><td class="l">16, 8</td></tr>
+          <tr><td>8</td><td>384</td><td class="l">(16, 1, 32)</td><td class="l">16/32 = 1/2</td><td class="l">2, 1</td><td class="l">4, 2</td><td class="l">8, 4</td><td class="l">16, 8</td></tr>
+          <tr><td>9</td><td>486</td><td class="l">(18, 1, 36)</td><td class="l">18/36 = 1/2</td><td class="l">2, 1</td><td class="l">4, 2</td><td class="l">8, 4</td><td class="l">16, 8</td></tr>
+          <tr><td>10</td><td>600</td><td class="l">(20, 1, 40)</td><td class="l">20/40 = 1/2</td><td class="l">2, 1</td><td class="l">4, 2</td><td class="l">8, 4</td><td class="l">16, 8</td></tr>
+          <tr><td>11</td><td>726</td><td class="l">(22, 1, 44)</td><td class="l">22/44 = 1/2</td><td class="l">2, 1</td><td class="l">4, 2</td><td class="l">8, 4</td><td class="l">16, 8</td></tr>
+          <tr><td>12</td><td>864</td><td class="l">(24, 1, 48)</td><td class="l">24/48 = 1/2</td><td class="l">2, 1</td><td class="l">4, 2</td><td class="l">8, 4</td><td class="l">16, 8</td></tr>
+          <tr><td>13</td><td>1014</td><td class="l">(26, 1, 52)</td><td class="l">26/52 = 1/2</td><td class="l">2, 1</td><td class="l">4, 2</td><td class="l">8, 4</td><td class="l">16, 8</td></tr>
+          <tr><td>14</td><td>1176</td><td class="l">(28, 1, 56)</td><td class="l">28/56 = 1/2</td><td class="l">2, 1</td><td class="l">4, 2</td><td class="l">8, 4</td><td class="l">16, 8</td></tr>
+          <tr><td>15</td><td>1350</td><td class="l">(30, 1, 60)</td><td class="l">30/60 = 1/2</td><td class="l">2, 1</td><td class="l">4, 2</td><td class="l">8, 4</td><td class="l">16, 8</td></tr>
+          <tr><td>16</td><td>1536</td><td class="l">(32, 1, 64)</td><td class="l">32/64 = 1/2</td><td class="l">2, 1</td><td class="l">4, 2</td><td class="l">8, 4</td><td class="l">16, 8</td></tr>
+          <tr><td>17</td><td>1734</td><td class="l">(34, 1, 68)</td><td class="l">34/68 = 1/2</td><td class="l">2, 1</td><td class="l">4, 2</td><td class="l">8, 4</td><td class="l">16, 8</td></tr>
+          <tr><td>18</td><td>1944</td><td class="l">(36, 1, 72)</td><td class="l">36/72 = 1/2</td><td class="l">2, 1</td><td class="l">4, 2</td><td class="l">8, 4</td><td class="l">16, 8</td></tr>
+          <tr><td>19</td><td>2166</td><td class="l">(38, 1, 76)</td><td class="l">38/76 = 1/2</td><td class="l">2, 1</td><td class="l">4, 2</td><td class="l">8, 4</td><td class="l">16, 8</td></tr>
+          <tr><td>20</td><td>2400</td><td class="l">(40, 1, 80)</td><td class="l">40/80 = 1/2</td><td class="l">2, 1</td><td class="l">4, 2</td><td class="l">8, 4</td><td class="l">16, 8</td></tr>
+          <tr><td>21</td><td>2646</td><td class="l">(42, 1, 84)</td><td class="l">42/84 = 1/2</td><td class="l">2, 1</td><td class="l">4, 2</td><td class="l">8, 4</td><td class="l">16, 8</td></tr>
+          <tr><td>22</td><td>2904</td><td class="l">(44, 1, 88)</td><td class="l">44/88 = 1/2</td><td class="l">2, 1</td><td class="l">4, 2</td><td class="l">8, 4</td><td class="l">16, 8</td></tr>
+          <tr><td>23</td><td>3174</td><td class="l">(46, 1, 92)</td><td class="l">46/92 = 1/2</td><td class="l">2, 1</td><td class="l">4, 2</td><td class="l">8, 4</td><td class="l">16, 8</td></tr>
+          <tr><td>24</td><td>3456</td><td class="l">(48, 1, 96)</td><td class="l">48/96 = 1/2</td><td class="l">2, 1</td><td class="l">4, 2</td><td class="l">8, 4</td><td class="l">16, 8</td></tr>
         </table>
       </div>
       <div class="keynote">
-        <p>\(2\) and \(1\) are a sixth and a twelfth of a turn; the two acute angles of a right triangle sum to
-          a quarter turn, \(3\)</p>
+        <p>each ring cell is the angle at \(a\), then the angle at the stack: a sixth and a twelfth of a turn,
+          so on a ring of \(R\) ticks they are \(R/6\) and \(R/12\), and they sum to a quarter turn, \(R/4\)</p>
+        <p>12 is the smallest ring that holds both; a bigger ring gives the same angles more ticks, and brings
+          in no new triangle</p>
         <p>searched in integers only — double the angle, square the denominator, reduce, and see whether the
           fraction comes back: every triangle with \(k \le 1000\), \(y \le 300\) (1,860,584 of them, \(z\) up to
           45,000,001) lands only at \(t = 1 \ldots 12\); every triangle with \(k \le 3500\), \(y \le 60\)
