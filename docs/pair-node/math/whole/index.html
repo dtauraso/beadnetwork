@@ -70,33 +70,40 @@
     <h3 class="secname">A direction is a pair</h3>
 
     <div class="card wide">
-      <p class="lead">Fix \(k\). A direction is any pair of whole numbers \((x, y)\), not both \(0\). Two pairs
-        combine by one rule, written \(\circ\); nothing in it divides or takes a root. \(\cdot\) on this page is
-        only ever ordinary multiplication of whole numbers.</p>
-      \[ (x_1, y_1) \circ (x_2, y_2) = (x_1 x_2 - 2k\,y_1 y_2,\;\; x_1 y_2 + x_2 y_1) \]
+      <p class="lead">Fix \(k\). A direction is any pair of whole numbers \((x, y)\), not both \(0\). Putting one
+        direction after another — turning by the first, then by the second — is one rule, called
+        <b>combine</b>. It only multiplies, adds and subtracts; it never divides or takes a root.</p>
+      \[ \text{combine}\big((x_1, y_1),\, (x_2, y_2)\big) = (x_1 x_2 - 2k\,y_1 y_2,\;\; x_1 y_2 + x_2 y_1) \]
+      <p>In words, the new pair is:</p>
+      <ul class="defs">
+        <li><b>first number</b> — the two first numbers multiplied, minus \(2k\) times the two second numbers
+          multiplied</li>
+        <li><b>second number</b> — each first number times the other pair's second number, added together</li>
+      </ul>
+      <p>\(\cdot\) on this page is only ever ordinary multiplication of whole numbers.</p>
       <ul class="defs">
         <li><b>size</b> — every pair has one: \(x^2 + 2k\,y^2\). The rows of the table above are the pairs whose
           size is a square, \(z^2\); other pairs are directions too. Combining multiplies sizes: the size of
-          \(p \circ q\) is the size of \(p\) times the size of \(q\)</li>
+          combine\((p, q)\) is the size of \(p\) times the size of \(q\)</li>
         <li><b>multiple</b> — \(m\) times a pair is \((m x, m y)\), for a whole number \(m &gt; 0\)</li>
         <li><b>same direction</b> — \((x_1, y_1)\) and \((x_2, y_2)\) with \(x_1 y_2 = x_2 y_1\) and signs
           matching; a pair and any multiple of it have the same direction</li>
         <li><b>full turn</b> — any pair \((x, 0)\) with \(x &gt; 0\)</li>
         <li><b>half turn</b> — any pair \((x, 0)\) with \(x &lt; 0\)</li>
-        <li><b>quarter turn</b> — \((0, 1)\), since \((0, 1) \circ (0, 1) = (-2k, 0)\), a half turn</li>
-        <li><b>turned back</b> — \((x, -y)\) undoes \((x, y)\), since \((x, y) \circ (x, -y) = (x^2 + 2k\,y^2, 0)\),
-          a full turn</li>
-        <li><b>steps</b> — a pair is 1 step; \(j\) steps is the pair combined with itself, one more \(\circ\) for
-          each step after the first — like taking the same turn \(j\) times</li>
+        <li><b>quarter turn</b> — \((0, 1)\), since combine\(\big((0, 1), (0, 1)\big) = (-2k, 0)\), a half turn</li>
+        <li><b>turned back</b> — \((x, -y)\) undoes \((x, y)\), since
+          combine\(\big((x, y), (x, -y)\big) = (x^2 + 2k\,y^2, 0)\), a full turn</li>
+        <li><b>steps</b> — a pair is 1 step; each further step combines the result so far with the same pair
+          once more — like taking the same turn \(j\) times</li>
         <li><b>ring of \(R\)</b> — a pair \(e\) whose first full turn comes at \(R\) steps; \(e\) is 1 tick, and a
           direction is \(j\) ticks when it has the same direction as \(j\) steps of \(e\)</li>
       </ul>
       <p>For \(k = 1\) and the pair \((1, 2)\), size \(1 + 2 \cdot 4 = 9\):</p>
       <ul class="defs">
         <li>1 step: \((1, 2)\), size \(9\)</li>
-        <li>2 steps: \((1, 2) \circ (1, 2) = (1 \cdot 1 - 2 \cdot 2 \cdot 2,\; 1 \cdot 2 + 1 \cdot 2) = (-7, 4)\),
+        <li>2 steps: combine\(\big((1, 2), (1, 2)\big) = (1 \cdot 1 - 2 \cdot 2 \cdot 2,\; 1 \cdot 2 + 1 \cdot 2) = (-7, 4)\),
           size \(49 + 32 = 81\)</li>
-        <li>3 steps: \((-7, 4) \circ (1, 2) = (-7 \cdot 1 - 2 \cdot 4 \cdot 2,\; -7 \cdot 2 + 4 \cdot 1) = (-23, -10)\),
+        <li>3 steps: combine\(\big((-7, 4), (1, 2)\big) = (-7 \cdot 1 - 2 \cdot 4 \cdot 2,\; -7 \cdot 2 + 4 \cdot 1) = (-23, -10)\),
           size \(529 + 200 = 729\)</li>
       </ul>
       <p>The size multiplies by the same amount every step, so the numbers only get larger. The one question
@@ -164,7 +171,7 @@
         <p>2 steps of \(e\) is \((24t^2, 12t)\), which is \(12t\) times \((2t, 1)\): the same direction, 2 ticks</p>
         <p>3 steps of \(e\) is \((0, 96t^2)\), which is \(96t^2\) times \((0, 1)\): the quarter turn, 3 ticks, as on
           the card</p>
-        <p>what the row's pair leaves of a quarter turn is \((0, 1) \circ (2t, -1) = (12t^2, 2t)\), which is \(2t\)
+        <p>what the row's pair leaves of a quarter turn is combine\(\big((0, 1), (2t, -1)\big) = (12t^2, 2t)\), which is \(2t\)
           times \(e\): 1 tick, and \(1 + 2 = 3\)</p>
         <p>every entry is a whole number from multiplying and subtracting; the ring's size is a count of steps,
           and only the numbers get larger</p>
