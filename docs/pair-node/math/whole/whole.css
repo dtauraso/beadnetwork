@@ -28,6 +28,14 @@ table.n th.l {
   text-align: left;
 }
 
+/* A full-digit number wraps inside its cell instead of widening the table past the card. */
+table.n td.long {
+  white-space: normal;
+  word-break: break-all;
+  max-width: 22ch;
+  font-family: var(--mono);
+}
+
 .warn {
   margin: 0 0 1rem;
   padding: .7rem 1rem;
