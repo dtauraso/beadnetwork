@@ -28,6 +28,12 @@ table.n th.l {
   text-align: left;
 }
 
+ul.defs {
+  margin: .3rem 0 .6rem 1.2rem;
+  padding: 0;
+  line-height: 1.6;
+}
+
 .warn {
   margin: 0 0 1rem;
   padding: .7rem 1rem;
