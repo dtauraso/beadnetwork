@@ -11,7 +11,7 @@
 <header>
   <h1>Whole-number directions</h1>
   <div class="sub">a² + 2k·b² = c² in integers only — a direction is a pair of whole numbers, a turn is a count
-    of multiplications, and only the numbers get larger</div>
+    of steps, and only the numbers get larger</div>
 </header>
 
 <nav>
@@ -70,29 +70,37 @@
     <h3 class="secname">A direction is a pair</h3>
 
     <div class="card wide">
-      <p class="lead">For one \(k\), a direction is a pair of whole numbers \((x, y)\). Two directions combine by
-        one rule, and nothing in it divides or takes a root:</p>
-      \[ (x_1, y_1) \cdot (x_2, y_2) = (x_1 x_2 - 2k\,y_1 y_2,\;\; x_1 y_2 + x_2 y_1) \]
+      <p class="lead">Fix \(k\). A direction is any pair of whole numbers \((x, y)\), not both \(0\). Two pairs
+        combine by one rule, written \(\circ\); nothing in it divides or takes a root. \(\cdot\) on this page is
+        only ever ordinary multiplication of whole numbers.</p>
+      \[ (x_1, y_1) \circ (x_2, y_2) = (x_1 x_2 - 2k\,y_1 y_2,\;\; x_1 y_2 + x_2 y_1) \]
       <ul class="defs">
-        <li><b>same direction</b> — \((x_1, y_1)\) and \((x_2, y_2)\) with \(x_1 y_2 = x_2 y_1\), signs
-          matching: one is a whole-number multiple of the other's direction</li>
-        <li><b>half turn</b> — a pair \((x, 0)\) with \(x &lt; 0\)</li>
-        <li><b>full turn</b> — a pair \((x, 0)\) with \(x &gt; 0\)</li>
-        <li><b>quarter turn</b> — \((0, 1)\), since \((0, 1) \cdot (0, 1) = (-2k, 0)\), a half turn</li>
-        <li><b>turned back</b> — \((x, -y)\) undoes \((x, y)\), since \((x, y) \cdot (x, -y) = (x^2 + 2k\,y^2, 0)\),
+        <li><b>size</b> — every pair has one: \(x^2 + 2k\,y^2\). The rows of the table above are the pairs whose
+          size is a square, \(z^2\); other pairs are directions too. Combining multiplies sizes: the size of
+          \(p \circ q\) is the size of \(p\) times the size of \(q\)</li>
+        <li><b>multiple</b> — \(m\) times a pair is \((m x, m y)\), for a whole number \(m &gt; 0\)</li>
+        <li><b>same direction</b> — \((x_1, y_1)\) and \((x_2, y_2)\) with \(x_1 y_2 = x_2 y_1\) and signs
+          matching; a pair and any multiple of it have the same direction</li>
+        <li><b>full turn</b> — any pair \((x, 0)\) with \(x &gt; 0\)</li>
+        <li><b>half turn</b> — any pair \((x, 0)\) with \(x &lt; 0\)</li>
+        <li><b>quarter turn</b> — \((0, 1)\), since \((0, 1) \circ (0, 1) = (-2k, 0)\), a half turn</li>
+        <li><b>turned back</b> — \((x, -y)\) undoes \((x, y)\), since \((x, y) \circ (x, -y) = (x^2 + 2k\,y^2, 0)\),
           a full turn</li>
-        <li><b>ring of \(R\)</b> — a pair \(e\) that takes \(R\) steps to make the first full turn; \(e\) is one
-          tick, and a direction is \(n\) ticks when it has the same direction as \(n\) steps of \(e\)</li>
+        <li><b>steps</b> — a pair is 1 step; \(j\) steps is the pair combined with itself, one more \(\circ\) for
+          each step after the first — like taking the same turn \(j\) times</li>
+        <li><b>ring of \(R\)</b> — a pair \(e\) whose first full turn comes at \(R\) steps; \(e\) is 1 tick, and a
+          direction is \(j\) ticks when it has the same direction as \(j\) steps of \(e\)</li>
       </ul>
-      <p><b>Steps.</b> A pair is one step. Taking it again combines the result with the pair once more, by the
-        rule above — like taking the same turn again. For \(k = 1\) and the pair \((1, 2)\):</p>
+      <p>For \(k = 1\) and the pair \((1, 2)\), size \(1 + 2 \cdot 4 = 9\):</p>
       <ul class="defs">
-        <li>1 step: \((1, 2)\)</li>
-        <li>2 steps: \((1, 2) \cdot (1, 2) = (1 \cdot 1 - 2 \cdot 2 \cdot 2,\; 1 \cdot 2 + 1 \cdot 2) = (-7, 4)\)</li>
-        <li>3 steps: \((-7, 4) \cdot (1, 2) = (-7 \cdot 1 - 2 \cdot 4 \cdot 2,\; -7 \cdot 2 + 1 \cdot 4) = (-23, -10)\)</li>
+        <li>1 step: \((1, 2)\), size \(9\)</li>
+        <li>2 steps: \((1, 2) \circ (1, 2) = (1 \cdot 1 - 2 \cdot 2 \cdot 2,\; 1 \cdot 2 + 1 \cdot 2) = (-7, 4)\),
+          size \(49 + 32 = 81\)</li>
+        <li>3 steps: \((-7, 4) \circ (1, 2) = (-7 \cdot 1 - 2 \cdot 4 \cdot 2,\; -7 \cdot 2 + 4 \cdot 1) = (-23, -10)\),
+          size \(529 + 200 = 729\)</li>
       </ul>
-      <p>The numbers grow with every step. The only question is whether the second number ever becomes \(0\) —
-        that is a half or full turn.</p>
+      <p>The size multiplies by the same amount every step, so the numbers only get larger. The one question
+        is whether the second number ever becomes \(0\): a half or full turn.</p>
       <div class="tablewrap">
         <table class="n">
           <tr><th>k</th><th class="l">(x, y, z)</th><th class="l">1 step</th><th class="l">2 steps</th><th class="l">3 steps</th><th class="l">4 steps</th><th class="l">5 steps</th><th class="l">6 steps</th><th class="l">second number is 0 after</th></tr>
@@ -117,47 +125,47 @@
       </div>
     </div>
 
-    <h3 class="secname">The pairs that close, on a 12 ring</h3>
+    <h3 class="secname">The pairs that reach a turn, on a 12 ring</h3>
 
     <div class="card wide">
-      <p class="lead">For \(k = 6t^2\) the pair \(e = (6t, 1)\) is one tick: 12 steps of it make the first full
-        turn, so it sets a 12 ring. The row's own pair \((2t, 1)\) has the same direction as 2 steps of \(e\): two
-        ticks.</p>
+      <p class="lead">For \(k = 6t^2\), take \(e = (6t, 1)\), size \(48t^2\) — not a square, so not a row of the
+        first table, but a direction all the same. Its first full turn comes at 12 steps, so it is 1 tick of a
+        12 ring. The row's pair \((2t, 1)\) has the same direction as 2 steps of \(e\): 2 ticks.</p>
       <div class="tablewrap">
         <table class="n">
-          <tr><th>t</th><th>2k</th><th class="l">the row's pair</th><th class="l">e: 1 step, 1 tick</th><th class="l">2 steps: 2 ticks</th><th class="l">3 steps: quarter turn</th><th class="l">6 steps: half turn</th><th class="l">12 steps: full turn</th></tr>
-          <tr><td>1</td><td>12</td><td class="l">(2, 1)</td><td class="l">(6, 1)</td><td class="l">(24, 12)</td><td class="l">(0, 96)</td><td class="l">(-110592, 0)</td><td class="l">(12230590464, 0)</td></tr>
-          <tr><td>2</td><td>48</td><td class="l">(4, 1)</td><td class="l">(12, 1)</td><td class="l">(96, 24)</td><td class="l">(0, 384)</td><td class="l">(-7077888, 0)</td><td class="l">(50096498540544, 0)</td></tr>
-          <tr><td>3</td><td>108</td><td class="l">(6, 1)</td><td class="l">(18, 1)</td><td class="l">(216, 36)</td><td class="l">(0, 864)</td><td class="l">(-80621568, 0)</td><td class="l">(6499837226778624, 0)</td></tr>
-          <tr><td>4</td><td>192</td><td class="l">(8, 1)</td><td class="l">(24, 1)</td><td class="l">(384, 48)</td><td class="l">(0, 1536)</td><td class="l">(-452984832, 0)</td><td class="l">(205195258022068224, 0)</td></tr>
-          <tr><td>5</td><td>300</td><td class="l">(10, 1)</td><td class="l">(30, 1)</td><td class="l">(600, 60)</td><td class="l">(0, 2400)</td><td class="l">(-1728000000, 0)</td><td class="l">(2985984000000000000, 0)</td></tr>
-          <tr><td>6</td><td>432</td><td class="l">(12, 1)</td><td class="l">(36, 1)</td><td class="l">(864, 72)</td><td class="l">(0, 3456)</td><td class="l">(-5159780352, 0)</td><td class="l">(26623333280885243904, 0)</td></tr>
-          <tr><td>7</td><td>588</td><td class="l">(14, 1)</td><td class="l">(42, 1)</td><td class="l">(1176, 84)</td><td class="l">(0, 4704)</td><td class="l">(-13011038208, 0)</td><td class="l">(169287115250035851264, 0)</td></tr>
-          <tr><td>8</td><td>768</td><td class="l">(16, 1)</td><td class="l">(48, 1)</td><td class="l">(1536, 96)</td><td class="l">(0, 6144)</td><td class="l">(-28991029248, 0)</td><td class="l">(840479776858391445504, 0)</td></tr>
-          <tr><td>9</td><td>972</td><td class="l">(18, 1)</td><td class="l">(54, 1)</td><td class="l">(1944, 108)</td><td class="l">(0, 7776)</td><td class="l">(-58773123072, 0)</td><td class="l">(3454279995636458717184, 0)</td></tr>
-          <tr><td>10</td><td>1200</td><td class="l">(20, 1)</td><td class="l">(60, 1)</td><td class="l">(2400, 120)</td><td class="l">(0, 9600)</td><td class="l">(-110592000000, 0)</td><td class="l">(12230590464000000000000, 0)</td></tr>
-          <tr><td>11</td><td>1452</td><td class="l">(22, 1)</td><td class="l">(66, 1)</td><td class="l">(2904, 132)</td><td class="l">(0, 11616)</td><td class="l">(-195920474112, 0)</td><td class="l">(38384832176270862188544, 0)</td></tr>
-          <tr><td>12</td><td>1728</td><td class="l">(24, 1)</td><td class="l">(72, 1)</td><td class="l">(3456, 144)</td><td class="l">(0, 13824)</td><td class="l">(-330225942528, 0)</td><td class="l">(109049173118505959030784, 0)</td></tr>
-          <tr><td>13</td><td>2028</td><td class="l">(26, 1)</td><td class="l">(78, 1)</td><td class="l">(4056, 156)</td><td class="l">(0, 16224)</td><td class="l">(-533806460928, 0)</td><td class="l">(284949337728476390621184, 0)</td></tr>
-          <tr><td>14</td><td>2352</td><td class="l">(28, 1)</td><td class="l">(84, 1)</td><td class="l">(4704, 168)</td><td class="l">(0, 18816)</td><td class="l">(-832706445312, 0)</td><td class="l">(693400024064146846777344, 0)</td></tr>
-          <tr><td>15</td><td>2700</td><td class="l">(30, 1)</td><td class="l">(90, 1)</td><td class="l">(5400, 180)</td><td class="l">(0, 21600)</td><td class="l">(-1259712000000, 0)</td><td class="l">(1586874322944000000000000, 0)</td></tr>
-          <tr><td>16</td><td>3072</td><td class="l">(32, 1)</td><td class="l">(96, 1)</td><td class="l">(6144, 192)</td><td class="l">(0, 24576)</td><td class="l">(-1855425871872, 0)</td><td class="l">(3442605166011971360784384, 0)</td></tr>
-          <tr><td>17</td><td>3468</td><td class="l">(34, 1)</td><td class="l">(102, 1)</td><td class="l">(6936, 204)</td><td class="l">(0, 27744)</td><td class="l">(-2669422030848, 0)</td><td class="l">(7125813978776660663599104, 0)</td></tr>
-          <tr><td>18</td><td>3888</td><td class="l">(36, 1)</td><td class="l">(108, 1)</td><td class="l">(7776, 216)</td><td class="l">(0, 31104)</td><td class="l">(-3761479876608, 0)</td><td class="l">(14148730862126934905585664, 0)</td></tr>
-          <tr><td>19</td><td>4332</td><td class="l">(38, 1)</td><td class="l">(114, 1)</td><td class="l">(8664, 228)</td><td class="l">(0, 34656)</td><td class="l">(-5202898071552, 0)</td><td class="l">(27070148342959520511688704, 0)</td></tr>
-          <tr><td>20</td><td>4800</td><td class="l">(40, 1)</td><td class="l">(120, 1)</td><td class="l">(9600, 240)</td><td class="l">(0, 38400)</td><td class="l">(-7077888000000, 0)</td><td class="l">(50096498540544000000000000, 0)</td></tr>
-          <tr><td>21</td><td>5292</td><td class="l">(42, 1)</td><td class="l">(126, 1)</td><td class="l">(10584, 252)</td><td class="l">(0, 42336)</td><td class="l">(-9485046853632, 0)</td><td class="l">(89966113815594302831591424, 0)</td></tr>
-          <tr><td>22</td><td>5808</td><td class="l">(44, 1)</td><td class="l">(132, 1)</td><td class="l">(11616, 264)</td><td class="l">(0, 46464)</td><td class="l">(-12538910343168, 0)</td><td class="l">(157224272594005451524276224, 0)</td></tr>
-          <tr><td>23</td><td>6348</td><td class="l">(46, 1)</td><td class="l">(138, 1)</td><td class="l">(12696, 276)</td><td class="l">(0, 50784)</td><td class="l">(-16371585036288, 0)</td><td class="l">(268028796600409154276818944, 0)</td></tr>
-          <tr><td>24</td><td>6912</td><td class="l">(48, 1)</td><td class="l">(144, 1)</td><td class="l">(13824, 288)</td><td class="l">(0, 55296)</td><td class="l">(-21134460321792, 0)</td><td class="l">(446665413093400408190091264, 0)</td></tr>
+          <tr><th>t</th><th>k</th><th class="l">(x, y, z)</th><th class="l">1 step of e: 1 tick</th><th class="l">2 steps: 2 ticks</th><th class="l">3 steps: quarter turn</th><th class="l">6 steps: half turn</th><th class="l">12 steps: full turn</th></tr>
+          <tr><td>1</td><td>6</td><td class="l">(2, 1, 4)</td><td class="l">(6, 1)</td><td class="l">(24, 12)</td><td class="l">(0, 96)</td><td class="l">(-110592, 0)</td><td class="l">(12230590464, 0)</td></tr>
+          <tr><td>2</td><td>24</td><td class="l">(4, 1, 8)</td><td class="l">(12, 1)</td><td class="l">(96, 24)</td><td class="l">(0, 384)</td><td class="l">(-7077888, 0)</td><td class="l">(50096498540544, 0)</td></tr>
+          <tr><td>3</td><td>54</td><td class="l">(6, 1, 12)</td><td class="l">(18, 1)</td><td class="l">(216, 36)</td><td class="l">(0, 864)</td><td class="l">(-80621568, 0)</td><td class="l">(6499837226778624, 0)</td></tr>
+          <tr><td>4</td><td>96</td><td class="l">(8, 1, 16)</td><td class="l">(24, 1)</td><td class="l">(384, 48)</td><td class="l">(0, 1536)</td><td class="l">(-452984832, 0)</td><td class="l">(205195258022068224, 0)</td></tr>
+          <tr><td>5</td><td>150</td><td class="l">(10, 1, 20)</td><td class="l">(30, 1)</td><td class="l">(600, 60)</td><td class="l">(0, 2400)</td><td class="l">(-1728000000, 0)</td><td class="l">(2985984000000000000, 0)</td></tr>
+          <tr><td>6</td><td>216</td><td class="l">(12, 1, 24)</td><td class="l">(36, 1)</td><td class="l">(864, 72)</td><td class="l">(0, 3456)</td><td class="l">(-5159780352, 0)</td><td class="l">(26623333280885243904, 0)</td></tr>
+          <tr><td>7</td><td>294</td><td class="l">(14, 1, 28)</td><td class="l">(42, 1)</td><td class="l">(1176, 84)</td><td class="l">(0, 4704)</td><td class="l">(-13011038208, 0)</td><td class="l">(169287115250035851264, 0)</td></tr>
+          <tr><td>8</td><td>384</td><td class="l">(16, 1, 32)</td><td class="l">(48, 1)</td><td class="l">(1536, 96)</td><td class="l">(0, 6144)</td><td class="l">(-28991029248, 0)</td><td class="l">(840479776858391445504, 0)</td></tr>
+          <tr><td>9</td><td>486</td><td class="l">(18, 1, 36)</td><td class="l">(54, 1)</td><td class="l">(1944, 108)</td><td class="l">(0, 7776)</td><td class="l">(-58773123072, 0)</td><td class="l">(3454279995636458717184, 0)</td></tr>
+          <tr><td>10</td><td>600</td><td class="l">(20, 1, 40)</td><td class="l">(60, 1)</td><td class="l">(2400, 120)</td><td class="l">(0, 9600)</td><td class="l">(-110592000000, 0)</td><td class="l">(12230590464000000000000, 0)</td></tr>
+          <tr><td>11</td><td>726</td><td class="l">(22, 1, 44)</td><td class="l">(66, 1)</td><td class="l">(2904, 132)</td><td class="l">(0, 11616)</td><td class="l">(-195920474112, 0)</td><td class="l">(38384832176270862188544, 0)</td></tr>
+          <tr><td>12</td><td>864</td><td class="l">(24, 1, 48)</td><td class="l">(72, 1)</td><td class="l">(3456, 144)</td><td class="l">(0, 13824)</td><td class="l">(-330225942528, 0)</td><td class="l">(109049173118505959030784, 0)</td></tr>
+          <tr><td>13</td><td>1014</td><td class="l">(26, 1, 52)</td><td class="l">(78, 1)</td><td class="l">(4056, 156)</td><td class="l">(0, 16224)</td><td class="l">(-533806460928, 0)</td><td class="l">(284949337728476390621184, 0)</td></tr>
+          <tr><td>14</td><td>1176</td><td class="l">(28, 1, 56)</td><td class="l">(84, 1)</td><td class="l">(4704, 168)</td><td class="l">(0, 18816)</td><td class="l">(-832706445312, 0)</td><td class="l">(693400024064146846777344, 0)</td></tr>
+          <tr><td>15</td><td>1350</td><td class="l">(30, 1, 60)</td><td class="l">(90, 1)</td><td class="l">(5400, 180)</td><td class="l">(0, 21600)</td><td class="l">(-1259712000000, 0)</td><td class="l">(1586874322944000000000000, 0)</td></tr>
+          <tr><td>16</td><td>1536</td><td class="l">(32, 1, 64)</td><td class="l">(96, 1)</td><td class="l">(6144, 192)</td><td class="l">(0, 24576)</td><td class="l">(-1855425871872, 0)</td><td class="l">(3442605166011971360784384, 0)</td></tr>
+          <tr><td>17</td><td>1734</td><td class="l">(34, 1, 68)</td><td class="l">(102, 1)</td><td class="l">(6936, 204)</td><td class="l">(0, 27744)</td><td class="l">(-2669422030848, 0)</td><td class="l">(7125813978776660663599104, 0)</td></tr>
+          <tr><td>18</td><td>1944</td><td class="l">(36, 1, 72)</td><td class="l">(108, 1)</td><td class="l">(7776, 216)</td><td class="l">(0, 31104)</td><td class="l">(-3761479876608, 0)</td><td class="l">(14148730862126934905585664, 0)</td></tr>
+          <tr><td>19</td><td>2166</td><td class="l">(38, 1, 76)</td><td class="l">(114, 1)</td><td class="l">(8664, 228)</td><td class="l">(0, 34656)</td><td class="l">(-5202898071552, 0)</td><td class="l">(27070148342959520511688704, 0)</td></tr>
+          <tr><td>20</td><td>2400</td><td class="l">(40, 1, 80)</td><td class="l">(120, 1)</td><td class="l">(9600, 240)</td><td class="l">(0, 38400)</td><td class="l">(-7077888000000, 0)</td><td class="l">(50096498540544000000000000, 0)</td></tr>
+          <tr><td>21</td><td>2646</td><td class="l">(42, 1, 84)</td><td class="l">(126, 1)</td><td class="l">(10584, 252)</td><td class="l">(0, 42336)</td><td class="l">(-9485046853632, 0)</td><td class="l">(89966113815594302831591424, 0)</td></tr>
+          <tr><td>22</td><td>2904</td><td class="l">(44, 1, 88)</td><td class="l">(132, 1)</td><td class="l">(11616, 264)</td><td class="l">(0, 46464)</td><td class="l">(-12538910343168, 0)</td><td class="l">(157224272594005451524276224, 0)</td></tr>
+          <tr><td>23</td><td>3174</td><td class="l">(46, 1, 92)</td><td class="l">(138, 1)</td><td class="l">(12696, 276)</td><td class="l">(0, 50784)</td><td class="l">(-16371585036288, 0)</td><td class="l">(268028796600409154276818944, 0)</td></tr>
+          <tr><td>24</td><td>3456</td><td class="l">(48, 1, 96)</td><td class="l">(144, 1)</td><td class="l">(13824, 288)</td><td class="l">(0, 55296)</td><td class="l">(-21134460321792, 0)</td><td class="l">(446665413093400408190091264, 0)</td></tr>
         </table>
       </div>
       <div class="keynote">
-        <p>2 steps of \(e\) is \((24t^2, 12t)\), the same direction as \((2t, 1)\): \(24t^2 \cdot 1 = 12t \cdot 2t\)</p>
-        <p>3 steps of \(e\) is \((0, 96t^2)\), the same direction as \((0, 1)\), the quarter turn — 3 ticks, as on
+        <p>2 steps of \(e\) is \((24t^2, 12t)\), which is \(12t\) times \((2t, 1)\): the same direction, 2 ticks</p>
+        <p>3 steps of \(e\) is \((0, 96t^2)\), which is \(96t^2\) times \((0, 1)\): the quarter turn, 3 ticks, as on
           the card</p>
-        <p>what the row's pair leaves of a quarter turn is \((0, 1) \cdot (2t, -1) = (12t^2, 2t)\), which is \(2t\)
-          times \(e\): one tick, and \(1 + 2 = 3\)</p>
+        <p>what the row's pair leaves of a quarter turn is \((0, 1) \circ (2t, -1) = (12t^2, 2t)\), which is \(2t\)
+          times \(e\): 1 tick, and \(1 + 2 = 3\)</p>
         <p>every entry is a whole number from multiplying and subtracting; the ring's size is a count of steps,
           and only the numbers get larger</p>
       </div>
