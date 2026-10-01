@@ -101,7 +101,7 @@ b &=& \text{arrival 2's quadrant} \\[3pt]
   &=& \textbf{dir_down}\left(\begin{bmatrix} \text{arrival}_{2\,\varphi} \\ \text{arrival}_{2\,\theta} \end{bmatrix},\; 6,\; 9\right) \\[6pt]
 \begin{bmatrix} \text{arrival}_{2}\text{direction}_{3\,\varphi} \\ \text{arrival}_{2}\text{direction}_{3\,\theta} \end{bmatrix}
   &=& \textbf{dir_up}\left(\begin{bmatrix} \text{arrival}_{2\,\varphi} \\ \text{arrival}_{2\,\theta} \end{bmatrix},\; 12,\; 9\right) \\[10pt]
-\begin{bmatrix} \text{arrival}_{1}\text{next}_{\varphi} \\ \text{arrival}_{1}\text{next}_{\theta} \end{bmatrix}
+\begin{bmatrix} \text{arrival}_{1\,\varphi} \\ \text{arrival}_{1\,\theta} \end{bmatrix}
   &=& \begin{bmatrix}
       \begin{array}{@{}r@{\;}l@{}}
         & \text{arrival}_{1}\text{direction}_{0\,\varphi} \\
@@ -116,7 +116,7 @@ b &=& \text{arrival 2's quadrant} \\[3pt]
         + & \text{arrival}_{1}\text{direction}_{3\,\theta}
       \end{array}
       \end{bmatrix} \\[10pt]
-\begin{bmatrix} \text{arrival}_{2}\text{next}_{\varphi} \\ \text{arrival}_{2}\text{next}_{\theta} \end{bmatrix}
+\begin{bmatrix} \text{arrival}_{2\,\varphi} \\ \text{arrival}_{2\,\theta} \end{bmatrix}
   &=& \begin{bmatrix}
       \begin{array}{@{}r@{\;}l@{}}
         & \text{arrival}_{2}\text{direction}_{0\,\varphi} \\
@@ -132,11 +132,11 @@ b &=& \text{arrival 2's quadrant} \\[3pt]
       \end{array}
       \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{sent}^{1}_{\varphi} \\ \text{sent}^{1}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \text{arrival}_{1}\text{next}_{\varphi} \\
-                      \text{arrival}_{1}\text{next}_{\theta} \end{bmatrix} \\[10pt]
+  &=& \begin{bmatrix} \text{arrival}_{1\,\varphi} \\
+                      \text{arrival}_{1\,\theta} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{sent}^{2}_{\varphi} \\ \text{sent}^{2}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \text{arrival}_{2}\text{next}_{\varphi} \\
-                      \text{arrival}_{2}\text{next}_{\theta} \end{bmatrix}
+  &=& \begin{bmatrix} \text{arrival}_{2\,\varphi} \\
+                      \text{arrival}_{2\,\theta} \end{bmatrix}
 \end{array}
 \]`;
 
