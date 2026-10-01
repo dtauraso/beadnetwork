@@ -104,13 +104,15 @@ b &=& \text{arrival 2's quadrant} \\[3pt]
 \begin{bmatrix} \text{arrival}_{1}\text{next}_{\varphi} \\ \text{arrival}_{1}\text{next}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix}
       \begin{array}{@{}r@{\;}l@{}}
-        & \text{arrival}_{1}\text{direction}_{0\,\varphi} \\
+        & \text{arrival}_{1\,\varphi} \\
+        + & \text{arrival}_{1}\text{direction}_{0\,\varphi} \\
         + & \text{arrival}_{1}\text{direction}_{1\,\varphi} \\
         + & \text{arrival}_{1}\text{direction}_{2\,\varphi} \\
         + & \text{arrival}_{1}\text{direction}_{3\,\varphi}
       \end{array} \\[10pt]
       \begin{array}{@{}r@{\;}l@{}}
-        & \text{arrival}_{1}\text{direction}_{0\,\theta} \\
+        & \text{arrival}_{1\,\theta} \\
+        + & \text{arrival}_{1}\text{direction}_{0\,\theta} \\
         + & \text{arrival}_{1}\text{direction}_{1\,\theta} \\
         + & \text{arrival}_{1}\text{direction}_{2\,\theta} \\
         + & \text{arrival}_{1}\text{direction}_{3\,\theta}
@@ -119,13 +121,15 @@ b &=& \text{arrival 2's quadrant} \\[3pt]
 \begin{bmatrix} \text{arrival}_{2}\text{next}_{\varphi} \\ \text{arrival}_{2}\text{next}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix}
       \begin{array}{@{}r@{\;}l@{}}
-        & \text{arrival}_{2}\text{direction}_{0\,\varphi} \\
+        & \text{arrival}_{2\,\varphi} \\
+        + & \text{arrival}_{2}\text{direction}_{0\,\varphi} \\
         + & \text{arrival}_{2}\text{direction}_{1\,\varphi} \\
         + & \text{arrival}_{2}\text{direction}_{2\,\varphi} \\
         + & \text{arrival}_{2}\text{direction}_{3\,\varphi}
       \end{array} \\[10pt]
       \begin{array}{@{}r@{\;}l@{}}
-        & \text{arrival}_{2}\text{direction}_{0\,\theta} \\
+        & \text{arrival}_{2\,\theta} \\
+        + & \text{arrival}_{2}\text{direction}_{0\,\theta} \\
         + & \text{arrival}_{2}\text{direction}_{1\,\theta} \\
         + & \text{arrival}_{2}\text{direction}_{2\,\theta} \\
         + & \text{arrival}_{2}\text{direction}_{3\,\theta}
