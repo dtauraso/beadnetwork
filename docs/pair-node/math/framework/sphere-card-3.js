@@ -82,9 +82,11 @@ b &=& \text{arrival 2's quadrant} \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
 \textbf{one node} & & \\[3pt]
 k_{1},\, k_{2} &\in& \{0, 1\} \\[6pt]
-\begin{bmatrix} \text{local_arrival}_{1\,\varphi} \\ \text{local_arrival}_{1\,\theta} \\ \text{global_arrival}_{1\,\varphi} \\ \text{global_arrival}_{1\,\theta} \end{bmatrix}
+\begin{bmatrix} \text{local_arrival}_{1\,\varphi} \\ \text{local_arrival}_{1\,\theta} \end{bmatrix},\;
+\begin{bmatrix} \text{global_arrival}_{1\,\varphi} \\ \text{global_arrival}_{1\,\theta} \end{bmatrix}
   &=& \text{from partner } 1 \\[6pt]
-\begin{bmatrix} \text{local_arrival}_{2\,\varphi} \\ \text{local_arrival}_{2\,\theta} \\ \text{global_arrival}_{2\,\varphi} \\ \text{global_arrival}_{2\,\theta} \end{bmatrix}
+\begin{bmatrix} \text{local_arrival}_{2\,\varphi} \\ \text{local_arrival}_{2\,\theta} \end{bmatrix},\;
+\begin{bmatrix} \text{global_arrival}_{2\,\varphi} \\ \text{global_arrival}_{2\,\theta} \end{bmatrix}
   &=& \text{from partner } 2 \\[10pt]
 \begin{bmatrix} \text{local_arrival}_{1}\text{direction}_{0\,\varphi} \\ \text{local_arrival}_{1}\text{direction}_{0\,\theta} \end{bmatrix}
   &=& \textbf{dir_down}\left(\begin{bmatrix} \text{local_arrival}_{1\,\varphi} \\ \text{local_arrival}_{1\,\theta} \end{bmatrix},\; 0,\; 3\right) \\[6pt]
