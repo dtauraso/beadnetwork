@@ -81,6 +81,7 @@ b &=& \text{arrival 2's quadrant} \\[3pt]
                       1 & \text{if } \text{pole}_{\theta} < \Delta_{\theta} < qt_{n} \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
 \textbf{one node} & & \\[3pt]
+k &\in& \{0, 1\} \\[6pt]
 \begin{bmatrix} \text{arrival}_{1\,\varphi} \\ \text{arrival}_{1\,\theta} \end{bmatrix}
   &=& \text{from partner } 1 \\[6pt]
 \begin{bmatrix} \text{arrival}_{2\,\varphi} \\ \text{arrival}_{2\,\theta} \end{bmatrix}
@@ -132,11 +133,11 @@ b &=& \text{arrival 2's quadrant} \\[3pt]
       \end{array}
       \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{arrival}_{1\,\varphi} \\ \text{arrival}_{1\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \text{arrival}_{1\,\varphi} + \text{arrival}_{2\,\varphi} \\[6pt]
-                      \text{arrival}_{1\,\theta} + \text{arrival}_{2\,\theta} \end{bmatrix} \\[10pt]
+  &=& \begin{bmatrix} k\,\text{arrival}_{1\,\varphi} + k\,\text{arrival}_{2\,\varphi} \\[6pt]
+                      k\,\text{arrival}_{1\,\theta} + k\,\text{arrival}_{2\,\theta} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{arrival}_{2\,\varphi} \\ \text{arrival}_{2\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \text{arrival}_{1\,\varphi} + \text{arrival}_{2\,\varphi} \\[6pt]
-                      \text{arrival}_{1\,\theta} + \text{arrival}_{2\,\theta} \end{bmatrix} \\[10pt]
+  &=& \begin{bmatrix} k\,\text{arrival}_{1\,\varphi} + k\,\text{arrival}_{2\,\varphi} \\[6pt]
+                      k\,\text{arrival}_{1\,\theta} + k\,\text{arrival}_{2\,\theta} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{sent}^{1}_{\varphi} \\ \text{sent}^{1}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} \text{arrival}_{1\,\varphi} \\
                       \text{arrival}_{1\,\theta} \end{bmatrix} \\[10pt]
