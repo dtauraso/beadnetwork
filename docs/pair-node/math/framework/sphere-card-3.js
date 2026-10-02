@@ -56,25 +56,25 @@ b &=& \text{arrival 2's quadrant} \\[3pt]
 \begin{bmatrix} n_{3}\text{start}_{2}q_{3\,\varphi} \\ n_{3}\text{start}_{2}q_{3\,\theta} \\ n_{3}\text{start}_{2}q_{3\,q} \end{bmatrix}
   &=& \begin{bmatrix} 1 \\ 1 \\ 3 \end{bmatrix} \\[10pt]
 \text{offset}_{\varphi},\, \text{offset}_{\theta} &\in& \{0, 1, 2, 3\} \\[6pt]
-\rlap{\textbf{dir_down}\left(\begin{bmatrix} \text{arrival}_{\varphi} \\ \text{arrival}_{\theta} \end{bmatrix},\; p_{n},\; qt_{n}\right)} & & \\[3pt]
+\rlap{\textbf{dir_down}\left(\begin{bmatrix} \text{local_arrival}_{\varphi} \\ \text{local_arrival}_{\theta} \end{bmatrix},\; p_{n},\; qt_{n}\right)} & & \\[3pt]
 \begin{bmatrix} \text{pole}_{\varphi} \\ \text{pole}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} p_{n} + \text{offset}_{\varphi} \\[6pt]
                       p_{n} + \text{offset}_{\theta} \end{bmatrix} \\[6pt]
 \begin{bmatrix} \Delta_{\varphi} \\ \Delta_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \text{arrival}_{\varphi} - \text{pole}_{\varphi} \\[6pt]
-                      \text{arrival}_{\theta} - \text{pole}_{\theta} \end{bmatrix} \\[6pt]
+  &=& \begin{bmatrix} \text{local_arrival}_{\varphi} - \text{pole}_{\varphi} \\[6pt]
+                      \text{local_arrival}_{\theta} - \text{pole}_{\theta} \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{direction}_{\varphi} \\ \text{direction}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} -1 & \text{if } \text{pole}_{\varphi} < \Delta_{\varphi} < qt_{n} \\[3pt]
                       0 & \text{otherwise} \\[6pt]
                       -1 & \text{if } \text{pole}_{\theta} < \Delta_{\theta} < qt_{n} \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
-\rlap{\textbf{dir_up}\left(\begin{bmatrix} \text{arrival}_{\varphi} \\ \text{arrival}_{\theta} \end{bmatrix},\; p_{n},\; qt_{n}\right)} & & \\[3pt]
+\rlap{\textbf{dir_up}\left(\begin{bmatrix} \text{local_arrival}_{\varphi} \\ \text{local_arrival}_{\theta} \end{bmatrix},\; p_{n},\; qt_{n}\right)} & & \\[3pt]
 \begin{bmatrix} \text{pole}_{\varphi} \\ \text{pole}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} p_{n} - \text{offset}_{\varphi} \\[6pt]
                       p_{n} - \text{offset}_{\theta} \end{bmatrix} \\[6pt]
 \begin{bmatrix} \Delta_{\varphi} \\ \Delta_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \text{pole}_{\varphi} - \text{arrival}_{\varphi} \\[6pt]
-                      \text{pole}_{\theta} - \text{arrival}_{\theta} \end{bmatrix} \\[6pt]
+  &=& \begin{bmatrix} \text{pole}_{\varphi} - \text{local_arrival}_{\varphi} \\[6pt]
+                      \text{pole}_{\theta} - \text{local_arrival}_{\theta} \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{direction}_{\varphi} \\ \text{direction}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} 1 & \text{if } \text{pole}_{\varphi} < \Delta_{\varphi} < qt_{n} \\[3pt]
                       0 & \text{otherwise} \\[6pt]
@@ -82,68 +82,78 @@ b &=& \text{arrival 2's quadrant} \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
 \textbf{one node} & & \\[3pt]
 k_{1},\, k_{2} &\in& \{0, 1\} \\[6pt]
-\begin{bmatrix} \text{arrival}_{1\,\varphi} \\ \text{arrival}_{1\,\theta} \end{bmatrix}
+\begin{bmatrix} \text{local_arrival}_{1\,\varphi} \\ \text{local_arrival}_{1\,\theta} \\ \text{global_arrival}_{1\,\varphi} \\ \text{global_arrival}_{1\,\theta} \end{bmatrix}
   &=& \text{from partner } 1 \\[6pt]
-\begin{bmatrix} \text{arrival}_{2\,\varphi} \\ \text{arrival}_{2\,\theta} \end{bmatrix}
+\begin{bmatrix} \text{local_arrival}_{2\,\varphi} \\ \text{local_arrival}_{2\,\theta} \\ \text{global_arrival}_{2\,\varphi} \\ \text{global_arrival}_{2\,\theta} \end{bmatrix}
   &=& \text{from partner } 2 \\[10pt]
-\begin{bmatrix} \text{arrival}_{1}\text{direction}_{0\,\varphi} \\ \text{arrival}_{1}\text{direction}_{0\,\theta} \end{bmatrix}
-  &=& \textbf{dir_down}\left(\begin{bmatrix} \text{arrival}_{1\,\varphi} \\ \text{arrival}_{1\,\theta} \end{bmatrix},\; 0,\; 3\right) \\[6pt]
-\begin{bmatrix} \text{arrival}_{1}\text{direction}_{1\,\varphi} \\ \text{arrival}_{1}\text{direction}_{1\,\theta} \end{bmatrix}
-  &=& \textbf{dir_up}\left(\begin{bmatrix} \text{arrival}_{1\,\varphi} \\ \text{arrival}_{1\,\theta} \end{bmatrix},\; 6,\; 3\right) \\[6pt]
-\begin{bmatrix} \text{arrival}_{1}\text{direction}_{2\,\varphi} \\ \text{arrival}_{1}\text{direction}_{2\,\theta} \end{bmatrix}
-  &=& \textbf{dir_down}\left(\begin{bmatrix} \text{arrival}_{1\,\varphi} \\ \text{arrival}_{1\,\theta} \end{bmatrix},\; 6,\; 9\right) \\[6pt]
-\begin{bmatrix} \text{arrival}_{1}\text{direction}_{3\,\varphi} \\ \text{arrival}_{1}\text{direction}_{3\,\theta} \end{bmatrix}
-  &=& \textbf{dir_up}\left(\begin{bmatrix} \text{arrival}_{1\,\varphi} \\ \text{arrival}_{1\,\theta} \end{bmatrix},\; 12,\; 9\right) \\[10pt]
-\begin{bmatrix} \text{arrival}_{2}\text{direction}_{0\,\varphi} \\ \text{arrival}_{2}\text{direction}_{0\,\theta} \end{bmatrix}
-  &=& \textbf{dir_down}\left(\begin{bmatrix} \text{arrival}_{2\,\varphi} \\ \text{arrival}_{2\,\theta} \end{bmatrix},\; 0,\; 3\right) \\[6pt]
-\begin{bmatrix} \text{arrival}_{2}\text{direction}_{1\,\varphi} \\ \text{arrival}_{2}\text{direction}_{1\,\theta} \end{bmatrix}
-  &=& \textbf{dir_up}\left(\begin{bmatrix} \text{arrival}_{2\,\varphi} \\ \text{arrival}_{2\,\theta} \end{bmatrix},\; 6,\; 3\right) \\[6pt]
-\begin{bmatrix} \text{arrival}_{2}\text{direction}_{2\,\varphi} \\ \text{arrival}_{2}\text{direction}_{2\,\theta} \end{bmatrix}
-  &=& \textbf{dir_down}\left(\begin{bmatrix} \text{arrival}_{2\,\varphi} \\ \text{arrival}_{2\,\theta} \end{bmatrix},\; 6,\; 9\right) \\[6pt]
-\begin{bmatrix} \text{arrival}_{2}\text{direction}_{3\,\varphi} \\ \text{arrival}_{2}\text{direction}_{3\,\theta} \end{bmatrix}
-  &=& \textbf{dir_up}\left(\begin{bmatrix} \text{arrival}_{2\,\varphi} \\ \text{arrival}_{2\,\theta} \end{bmatrix},\; 12,\; 9\right) \\[10pt]
-\begin{bmatrix} \text{arrival}_{1\,\varphi} \\ \text{arrival}_{1\,\theta} \end{bmatrix}
+\begin{bmatrix} \text{local_arrival}_{1}\text{direction}_{0\,\varphi} \\ \text{local_arrival}_{1}\text{direction}_{0\,\theta} \end{bmatrix}
+  &=& \textbf{dir_down}\left(\begin{bmatrix} \text{local_arrival}_{1\,\varphi} \\ \text{local_arrival}_{1\,\theta} \end{bmatrix},\; 0,\; 3\right) \\[6pt]
+\begin{bmatrix} \text{local_arrival}_{1}\text{direction}_{1\,\varphi} \\ \text{local_arrival}_{1}\text{direction}_{1\,\theta} \end{bmatrix}
+  &=& \textbf{dir_up}\left(\begin{bmatrix} \text{local_arrival}_{1\,\varphi} \\ \text{local_arrival}_{1\,\theta} \end{bmatrix},\; 6,\; 3\right) \\[6pt]
+\begin{bmatrix} \text{local_arrival}_{1}\text{direction}_{2\,\varphi} \\ \text{local_arrival}_{1}\text{direction}_{2\,\theta} \end{bmatrix}
+  &=& \textbf{dir_down}\left(\begin{bmatrix} \text{local_arrival}_{1\,\varphi} \\ \text{local_arrival}_{1\,\theta} \end{bmatrix},\; 6,\; 9\right) \\[6pt]
+\begin{bmatrix} \text{local_arrival}_{1}\text{direction}_{3\,\varphi} \\ \text{local_arrival}_{1}\text{direction}_{3\,\theta} \end{bmatrix}
+  &=& \textbf{dir_up}\left(\begin{bmatrix} \text{local_arrival}_{1\,\varphi} \\ \text{local_arrival}_{1\,\theta} \end{bmatrix},\; 12,\; 9\right) \\[10pt]
+\begin{bmatrix} \text{local_arrival}_{2}\text{direction}_{0\,\varphi} \\ \text{local_arrival}_{2}\text{direction}_{0\,\theta} \end{bmatrix}
+  &=& \textbf{dir_down}\left(\begin{bmatrix} \text{local_arrival}_{2\,\varphi} \\ \text{local_arrival}_{2\,\theta} \end{bmatrix},\; 0,\; 3\right) \\[6pt]
+\begin{bmatrix} \text{local_arrival}_{2}\text{direction}_{1\,\varphi} \\ \text{local_arrival}_{2}\text{direction}_{1\,\theta} \end{bmatrix}
+  &=& \textbf{dir_up}\left(\begin{bmatrix} \text{local_arrival}_{2\,\varphi} \\ \text{local_arrival}_{2\,\theta} \end{bmatrix},\; 6,\; 3\right) \\[6pt]
+\begin{bmatrix} \text{local_arrival}_{2}\text{direction}_{2\,\varphi} \\ \text{local_arrival}_{2}\text{direction}_{2\,\theta} \end{bmatrix}
+  &=& \textbf{dir_down}\left(\begin{bmatrix} \text{local_arrival}_{2\,\varphi} \\ \text{local_arrival}_{2\,\theta} \end{bmatrix},\; 6,\; 9\right) \\[6pt]
+\begin{bmatrix} \text{local_arrival}_{2}\text{direction}_{3\,\varphi} \\ \text{local_arrival}_{2}\text{direction}_{3\,\theta} \end{bmatrix}
+  &=& \textbf{dir_up}\left(\begin{bmatrix} \text{local_arrival}_{2\,\varphi} \\ \text{local_arrival}_{2\,\theta} \end{bmatrix},\; 12,\; 9\right) \\[10pt]
+\begin{bmatrix} \text{local_arrival}_{1\,\varphi} \\ \text{local_arrival}_{1\,\theta} \end{bmatrix}
   &=& \begin{bmatrix}
       \begin{array}{@{}r@{\;}l@{}}
-        & \text{arrival}_{1}\text{direction}_{0\,\varphi} \\
-        + & \text{arrival}_{1}\text{direction}_{1\,\varphi} \\
-        + & \text{arrival}_{1}\text{direction}_{2\,\varphi} \\
-        + & \text{arrival}_{1}\text{direction}_{3\,\varphi}
+        & \text{local_arrival}_{1}\text{direction}_{0\,\varphi} \\
+        + & \text{local_arrival}_{1}\text{direction}_{1\,\varphi} \\
+        + & \text{local_arrival}_{1}\text{direction}_{2\,\varphi} \\
+        + & \text{local_arrival}_{1}\text{direction}_{3\,\varphi}
       \end{array} \\[10pt]
       \begin{array}{@{}r@{\;}l@{}}
-        & \text{arrival}_{1}\text{direction}_{0\,\theta} \\
-        + & \text{arrival}_{1}\text{direction}_{1\,\theta} \\
-        + & \text{arrival}_{1}\text{direction}_{2\,\theta} \\
-        + & \text{arrival}_{1}\text{direction}_{3\,\theta}
+        & \text{local_arrival}_{1}\text{direction}_{0\,\theta} \\
+        + & \text{local_arrival}_{1}\text{direction}_{1\,\theta} \\
+        + & \text{local_arrival}_{1}\text{direction}_{2\,\theta} \\
+        + & \text{local_arrival}_{1}\text{direction}_{3\,\theta}
       \end{array}
       \end{bmatrix} \\[10pt]
-\begin{bmatrix} \text{arrival}_{2\,\varphi} \\ \text{arrival}_{2\,\theta} \end{bmatrix}
+\begin{bmatrix} \text{local_arrival}_{2\,\varphi} \\ \text{local_arrival}_{2\,\theta} \end{bmatrix}
   &=& \begin{bmatrix}
       \begin{array}{@{}r@{\;}l@{}}
-        & \text{arrival}_{2}\text{direction}_{0\,\varphi} \\
-        + & \text{arrival}_{2}\text{direction}_{1\,\varphi} \\
-        + & \text{arrival}_{2}\text{direction}_{2\,\varphi} \\
-        + & \text{arrival}_{2}\text{direction}_{3\,\varphi}
+        & \text{local_arrival}_{2}\text{direction}_{0\,\varphi} \\
+        + & \text{local_arrival}_{2}\text{direction}_{1\,\varphi} \\
+        + & \text{local_arrival}_{2}\text{direction}_{2\,\varphi} \\
+        + & \text{local_arrival}_{2}\text{direction}_{3\,\varphi}
       \end{array} \\[10pt]
       \begin{array}{@{}r@{\;}l@{}}
-        & \text{arrival}_{2}\text{direction}_{0\,\theta} \\
-        + & \text{arrival}_{2}\text{direction}_{1\,\theta} \\
-        + & \text{arrival}_{2}\text{direction}_{2\,\theta} \\
-        + & \text{arrival}_{2}\text{direction}_{3\,\theta}
+        & \text{local_arrival}_{2}\text{direction}_{0\,\theta} \\
+        + & \text{local_arrival}_{2}\text{direction}_{1\,\theta} \\
+        + & \text{local_arrival}_{2}\text{direction}_{2\,\theta} \\
+        + & \text{local_arrival}_{2}\text{direction}_{3\,\theta}
       \end{array}
       \end{bmatrix} \\[10pt]
-\begin{bmatrix} \text{arrival}_{1\,\varphi} \\ \text{arrival}_{1\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \text{arrival}_{1\,\varphi} + k_{2}\,\text{arrival}_{2\,\varphi} \\[6pt]
-                      \text{arrival}_{1\,\theta} + k_{2}\,\text{arrival}_{2\,\theta} \end{bmatrix} \\[10pt]
-\begin{bmatrix} \text{arrival}_{2\,\varphi} \\ \text{arrival}_{2\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} k_{1}\,\text{arrival}_{1\,\varphi} + \text{arrival}_{2\,\varphi} \\[6pt]
-                      k_{1}\,\text{arrival}_{1\,\theta} + \text{arrival}_{2\,\theta} \end{bmatrix} \\[10pt]
-\begin{bmatrix} \text{sent}^{1}_{\varphi} \\ \text{sent}^{1}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \text{arrival}_{1\,\varphi} \\
-                      \text{arrival}_{1\,\theta} \end{bmatrix} \\[10pt]
-\begin{bmatrix} \text{sent}^{2}_{\varphi} \\ \text{sent}^{2}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \text{arrival}_{2\,\varphi} \\
-                      \text{arrival}_{2\,\theta} \end{bmatrix}
+\begin{bmatrix} \text{local_arrival}_{1\,\varphi} \\ \text{local_arrival}_{1\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} \text{local_arrival}_{1\,\varphi} + k_{2}\,\text{local_arrival}_{2\,\varphi} \\[6pt]
+                      \text{local_arrival}_{1\,\theta} + k_{2}\,\text{local_arrival}_{2\,\theta} \end{bmatrix} \\[10pt]
+\begin{bmatrix} \text{local_arrival}_{2\,\varphi} \\ \text{local_arrival}_{2\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} k_{1}\,\text{local_arrival}_{1\,\varphi} + \text{local_arrival}_{2\,\varphi} \\[6pt]
+                      k_{1}\,\text{local_arrival}_{1\,\theta} + \text{local_arrival}_{2\,\theta} \end{bmatrix} \\[10pt]
+\begin{bmatrix} \text{global_arrival}_{1\,\varphi} \\ \text{global_arrival}_{1\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} \text{local_arrival}_{1\,\varphi} + \text{global_arrival}_{1\,\varphi} \\[6pt]
+                      \text{local_arrival}_{1\,\theta} + \text{global_arrival}_{1\,\theta} \end{bmatrix} \\[10pt]
+\begin{bmatrix} \text{global_arrival}_{2\,\varphi} \\ \text{global_arrival}_{2\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} \text{local_arrival}_{2\,\varphi} + \text{global_arrival}_{2\,\varphi} \\[6pt]
+                      \text{local_arrival}_{2\,\theta} + \text{global_arrival}_{2\,\theta} \end{bmatrix} \\[10pt]
+\begin{bmatrix} \text{sent}^{1}_{\varphi} \\ \text{sent}^{1}_{\theta} \\ \text{sent}^{1}_{\text{global}\,\varphi} \\ \text{sent}^{1}_{\text{global}\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} \text{local_arrival}_{1\,\varphi} \\
+                      \text{local_arrival}_{1\,\theta} \\
+                      \text{global_arrival}_{1\,\varphi} \\
+                      \text{global_arrival}_{1\,\theta} \end{bmatrix} \\[10pt]
+\begin{bmatrix} \text{sent}^{2}_{\varphi} \\ \text{sent}^{2}_{\theta} \\ \text{sent}^{2}_{\text{global}\,\varphi} \\ \text{sent}^{2}_{\text{global}\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} \text{local_arrival}_{2\,\varphi} \\
+                      \text{local_arrival}_{2\,\theta} \\
+                      \text{global_arrival}_{2\,\varphi} \\
+                      \text{global_arrival}_{2\,\theta} \end{bmatrix}
 \end{array}
 \]`;
 
