@@ -140,22 +140,19 @@ k_{1},\, k_{2} &\in& \{0, 1\} \\[6pt]
 \begin{bmatrix} \text{local_arrival}_{2\,\varphi} \\ \text{local_arrival}_{2\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} k_{1}\,\text{local_arrival}_{1\,\varphi} + \text{local_arrival}_{2\,\varphi} \\[6pt]
                       k_{1}\,\text{local_arrival}_{1\,\theta} + \text{local_arrival}_{2\,\theta} \end{bmatrix} \\[10pt]
-\begin{bmatrix} \text{global_arrival}_{1\,\varphi} \\ \text{global_arrival}_{1\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \text{local_arrival}_{1\,\varphi} + \text{global_arrival}_{1\,\varphi} \\[6pt]
-                      \text{local_arrival}_{1\,\theta} + \text{global_arrival}_{1\,\theta} \end{bmatrix} \\[10pt]
-\begin{bmatrix} \text{global_arrival}_{2\,\varphi} \\ \text{global_arrival}_{2\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \text{local_arrival}_{2\,\varphi} + \text{global_arrival}_{2\,\varphi} \\[6pt]
-                      \text{local_arrival}_{2\,\theta} + \text{global_arrival}_{2\,\theta} \end{bmatrix} \\[10pt]
+\begin{bmatrix} \text{global_arrival}_{\varphi} \\ \text{global_arrival}_{\theta} \end{bmatrix}
+  &=& \begin{bmatrix} \text{local_arrival}_{1\,\varphi} + \text{local_arrival}_{2\,\varphi} + \text{global_arrival}_{\varphi} \\[6pt]
+                      \text{local_arrival}_{1\,\theta} + \text{local_arrival}_{2\,\theta} + \text{global_arrival}_{\theta} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{sent}^{1}_{\varphi} \\ \text{sent}^{1}_{\theta} \\ \text{sent}^{1}_{\text{global}\,\varphi} \\ \text{sent}^{1}_{\text{global}\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} \text{local_arrival}_{1\,\varphi} \\
                       \text{local_arrival}_{1\,\theta} \\
-                      \text{global_arrival}_{1\,\varphi} \\
-                      \text{global_arrival}_{1\,\theta} \end{bmatrix} \\[10pt]
+                      \text{global_arrival}_{\varphi} \\
+                      \text{global_arrival}_{\theta} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{sent}^{2}_{\varphi} \\ \text{sent}^{2}_{\theta} \\ \text{sent}^{2}_{\text{global}\,\varphi} \\ \text{sent}^{2}_{\text{global}\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} \text{local_arrival}_{2\,\varphi} \\
                       \text{local_arrival}_{2\,\theta} \\
-                      \text{global_arrival}_{2\,\varphi} \\
-                      \text{global_arrival}_{2\,\theta} \end{bmatrix}
+                      \text{global_arrival}_{\varphi} \\
+                      \text{global_arrival}_{\theta} \end{bmatrix}
 \end{array}
 \]`;
 
