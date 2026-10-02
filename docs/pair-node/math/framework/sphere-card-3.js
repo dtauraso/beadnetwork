@@ -80,6 +80,13 @@ b &=& \text{arrival 2's quadrant} \\[3pt]
                       0 & \text{otherwise} \\[6pt]
                       1 & \text{if } \text{pole}_{\theta} < \Delta_{\theta} < qt_{n} \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
+\rlap{\textbf{test}\left(k_{1},\; k_{2},\; \begin{bmatrix} \text{local_arrival}_{1\,\varphi} \\ \text{local_arrival}_{1\,\theta} \end{bmatrix},\; \begin{bmatrix} \text{local_arrival}_{2\,\varphi} \\ \text{local_arrival}_{2\,\theta} \end{bmatrix}\right)} & & \\[3pt]
+x &=& \begin{cases} 1 & \text{if } k_{1} = 1 \\ 2 & \text{if } k_{2} = 1 \end{cases} \\[6pt]
+\begin{bmatrix} \text{local_arrival}_{\varphi} \\ \text{local_arrival}_{\theta} \end{bmatrix}
+  &=& \begin{bmatrix} k_{x}\,\text{local_arrival}_{x\,\varphi} & \text{if } k_{1} \oplus k_{2} \\[3pt]
+                      0 & \text{otherwise} \\[6pt]
+                      k_{x}\,\text{local_arrival}_{x\,\theta} & \text{if } k_{1} \oplus k_{2} \\[3pt]
+                      0 & \text{otherwise} \end{bmatrix} \\[10pt]
 \textbf{one node} & & \\[3pt]
 k_{1},\, k_{2} &\in& \{0, 1\} \\[6pt]
 \begin{bmatrix} \text{local_arrival}_{1\,\varphi} \\ \text{local_arrival}_{1\,\theta} \end{bmatrix}
@@ -134,6 +141,8 @@ k_{1},\, k_{2} &\in& \{0, 1\} \\[6pt]
         + & \text{local_arrival}_{2}\text{direction}_{3\,\theta}
       \end{array}
       \end{bmatrix} \\[10pt]
+\begin{bmatrix} \text{local_arrival}_{\varphi} \\ \text{local_arrival}_{\theta} \end{bmatrix}
+  &=& \textbf{test}\left(k_{1},\; k_{2},\; \begin{bmatrix} \text{local_arrival}_{1\,\varphi} \\ \text{local_arrival}_{1\,\theta} \end{bmatrix},\; \begin{bmatrix} \text{local_arrival}_{2\,\varphi} \\ \text{local_arrival}_{2\,\theta} \end{bmatrix}\right) \\[10pt]
 \begin{bmatrix} \text{global_arrival}_{\varphi} \\ \text{global_arrival}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} \text{local_arrival}_{1\,\varphi} + \text{global_arrival}_{\varphi} \\[6pt]
                       \text{local_arrival}_{1\,\theta} + \text{global_arrival}_{\theta} \end{bmatrix} \\[10pt]
