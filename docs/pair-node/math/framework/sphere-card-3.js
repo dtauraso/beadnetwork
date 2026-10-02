@@ -131,6 +131,12 @@ b &=& \text{arrival 2's quadrant} \\[3pt]
         + & \text{arrival}_{2}\text{direction}_{3\,\theta}
       \end{array}
       \end{bmatrix} \\[10pt]
+\begin{bmatrix} \text{arrival}_{1\,\varphi} \\ \text{arrival}_{1\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} \text{arrival}_{1\,\varphi} + \text{arrival}_{2\,\varphi} \\[6pt]
+                      \text{arrival}_{1\,\theta} + \text{arrival}_{2\,\theta} \end{bmatrix} \\[10pt]
+\begin{bmatrix} \text{arrival}_{2\,\varphi} \\ \text{arrival}_{2\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} \text{arrival}_{1\,\varphi} + \text{arrival}_{2\,\varphi} \\[6pt]
+                      \text{arrival}_{1\,\theta} + \text{arrival}_{2\,\theta} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{sent}^{1}_{\varphi} \\ \text{sent}^{1}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} \text{arrival}_{1\,\varphi} \\
                       \text{arrival}_{1\,\theta} \end{bmatrix} \\[10pt]
