@@ -80,14 +80,32 @@ b &=& \text{arrival 2's quadrant} \\[3pt]
                       0 & \text{otherwise} \\[6pt]
                       1 & \text{if } \text{pole}_{\theta} < \Delta_{\theta} < qt_{n} \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
+\rlap{\textbf{pick_one}\left(k_{1},\; k_{2},\; \begin{bmatrix} \text{arrival}_{1\,\varphi} \\ \text{arrival}_{1\,\theta} \end{bmatrix},\; \begin{bmatrix} \text{arrival}_{2\,\varphi} \\ \text{arrival}_{2\,\theta} \end{bmatrix}\right)} & & \\[3pt]
+\begin{bmatrix} \text{arrival}_{\varphi} \\ \text{arrival}_{\theta} \end{bmatrix}
+  &=& \begin{bmatrix} k_{1,2}\,\text{arrival}_{1,2\,\varphi} & \text{if } k_{1} \oplus k_{2} \\[3pt]
+                      0 & \text{otherwise} \\[6pt]
+                      k_{1,2}\,\text{arrival}_{1,2\,\theta} & \text{if } k_{1} \oplus k_{2} \\[3pt]
+                      0 & \text{otherwise} \end{bmatrix} \\[10pt]
 \textbf{one node} & & \\[3pt]
 k_{1},\, k_{2} &\in& \{0, 1\} \\[6pt]
 \begin{bmatrix} \text{local_arrival}_{1\,\varphi} \\ \text{local_arrival}_{1\,\theta} \end{bmatrix}
   &=& \text{from partner } 1 \\[6pt]
+\begin{bmatrix} \text{global_arrival}_{1\,\varphi} \\ \text{global_arrival}_{1\,\theta} \end{bmatrix}
+  &=& \text{from partner } 1 \\[6pt]
 \begin{bmatrix} \text{local_arrival}_{2\,\varphi} \\ \text{local_arrival}_{2\,\theta} \end{bmatrix}
   &=& \text{from partner } 2 \\[6pt]
+\begin{bmatrix} \text{global_arrival}_{2\,\varphi} \\ \text{global_arrival}_{2\,\theta} \end{bmatrix}
+  &=& \text{from partner } 2 \\[6pt]
 \begin{bmatrix} \text{global_arrival}_{\varphi} \\ \text{global_arrival}_{\theta} \end{bmatrix}
-  &=& \text{from the node} \\[10pt]
+  &=& \text{from the node} \\[6pt]
+\begin{bmatrix} \text{local_arrival}_{1\,\varphi} \\ \text{local_arrival}_{1\,\theta} \end{bmatrix}
+  &=& \textbf{pick_one}\left(k_{1},\; k_{2},\; \begin{bmatrix} \text{local_arrival}_{1\,\varphi} \\ \text{local_arrival}_{1\,\theta} \end{bmatrix},\; \begin{bmatrix} \text{local_arrival}_{2\,\varphi} \\ \text{local_arrival}_{2\,\theta} \end{bmatrix}\right) \\[6pt]
+\begin{bmatrix} \text{local_arrival}_{2\,\varphi} \\ \text{local_arrival}_{2\,\theta} \end{bmatrix}
+  &=& \textbf{pick_one}\left(k_{1},\; k_{2},\; \begin{bmatrix} \text{local_arrival}_{1\,\varphi} \\ \text{local_arrival}_{1\,\theta} \end{bmatrix},\; \begin{bmatrix} \text{local_arrival}_{2\,\varphi} \\ \text{local_arrival}_{2\,\theta} \end{bmatrix}\right) \\[6pt]
+\begin{bmatrix} \text{global_arrival}_{1\,\varphi} \\ \text{global_arrival}_{1\,\theta} \end{bmatrix}
+  &=& \textbf{pick_one}\left(k_{1},\; k_{2},\; \begin{bmatrix} \text{global_arrival}_{1\,\varphi} \\ \text{global_arrival}_{1\,\theta} \end{bmatrix},\; \begin{bmatrix} \text{global_arrival}_{2\,\varphi} \\ \text{global_arrival}_{2\,\theta} \end{bmatrix}\right) \\[6pt]
+\begin{bmatrix} \text{global_arrival}_{2\,\varphi} \\ \text{global_arrival}_{2\,\theta} \end{bmatrix}
+  &=& \textbf{pick_one}\left(k_{1},\; k_{2},\; \begin{bmatrix} \text{global_arrival}_{1\,\varphi} \\ \text{global_arrival}_{1\,\theta} \end{bmatrix},\; \begin{bmatrix} \text{global_arrival}_{2\,\varphi} \\ \text{global_arrival}_{2\,\theta} \end{bmatrix}\right) \\[10pt]
 \begin{bmatrix} \text{local_arrival}_{1}\text{direction}_{0\,\varphi} \\ \text{local_arrival}_{1}\text{direction}_{0\,\theta} \end{bmatrix}
   &=& \textbf{dir_down}\left(\begin{bmatrix} \text{local_arrival}_{1\,\varphi} \\ \text{local_arrival}_{1\,\theta} \end{bmatrix},\; 0,\; 3\right) \\[6pt]
 \begin{bmatrix} \text{local_arrival}_{1}\text{direction}_{1\,\varphi} \\ \text{local_arrival}_{1}\text{direction}_{1\,\theta} \end{bmatrix}
@@ -135,8 +153,8 @@ k_{1},\, k_{2} &\in& \{0, 1\} \\[6pt]
       \end{array}
       \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{global_arrival}_{\varphi} \\ \text{global_arrival}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \text{local_arrival}_{1\,\varphi} + \text{global_arrival}_{\varphi} \\[6pt]
-                      \text{local_arrival}_{1\,\theta} + \text{global_arrival}_{\theta} \end{bmatrix} \\[10pt]
+  &=& \begin{bmatrix} \text{global_arrival}_{1\,\varphi} + \text{global_arrival}_{2\,\varphi} + \text{local_arrival}_{1\,\varphi} + \text{local_arrival}_{2\,\varphi} \\[6pt]
+                      \text{global_arrival}_{1\,\theta} + \text{global_arrival}_{2\,\theta} + \text{local_arrival}_{1\,\theta} + \text{local_arrival}_{2\,\theta} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{sent}^{1}_{\varphi} \\ \text{sent}^{1}_{\theta} \\ \text{sent}^{1}_{\text{global}\,\varphi} \\ \text{sent}^{1}_{\text{global}\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} \text{local_arrival}_{1\,\varphi} \\
                       \text{local_arrival}_{1\,\theta} \\
