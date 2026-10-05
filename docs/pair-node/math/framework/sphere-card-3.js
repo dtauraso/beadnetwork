@@ -87,15 +87,17 @@ b &=& \text{arrival 2's quadrant} \\[3pt]
                       k_{1}\,\text{arrival}_{1\,\theta} + k_{2}\,\text{arrival}_{2\,\theta} & \text{if } k_{1} \oplus k_{2} \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
 \textbf{one node} & & \\[3pt]
+\leftarrow &:& \text{the node receives the vector from a partner} \\[3pt]
+\rightarrow &:& \text{the node sends the vector to a partner} \\[6pt]
 k_{1},\, k_{2} &\in& \{0, 1\} \\[6pt]
 \begin{bmatrix} \text{local_arrival}_{1\,\varphi} \\ \text{local_arrival}_{1\,\theta} \end{bmatrix}
-  &=& \text{from partner } 1 \\[6pt]
+  &\leftarrow& \text{from partner } 1 \\[6pt]
 \begin{bmatrix} \text{global_arrival}_{1\,\varphi} \\ \text{global_arrival}_{1\,\theta} \end{bmatrix}
-  &=& \text{from partner } 1 \\[6pt]
+  &\leftarrow& \text{from partner } 1 \\[6pt]
 \begin{bmatrix} \text{local_arrival}_{2\,\varphi} \\ \text{local_arrival}_{2\,\theta} \end{bmatrix}
-  &=& \text{from partner } 2 \\[6pt]
+  &\leftarrow& \text{from partner } 2 \\[6pt]
 \begin{bmatrix} \text{global_arrival}_{2\,\varphi} \\ \text{global_arrival}_{2\,\theta} \end{bmatrix}
-  &=& \text{from partner } 2 \\[6pt]
+  &\leftarrow& \text{from partner } 2 \\[6pt]
 \begin{bmatrix} \text{global_arrival}_{\varphi} \\ \text{global_arrival}_{\theta} \end{bmatrix}
   &=& \text{from the node} \\[6pt]
 \begin{bmatrix} \text{local_arrival}_{1\,\varphi} \\ \text{local_arrival}_{1\,\theta} \end{bmatrix}
@@ -155,16 +157,14 @@ k_{1},\, k_{2} &\in& \{0, 1\} \\[6pt]
 \begin{bmatrix} \text{global_arrival}_{\varphi} \\ \text{global_arrival}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} \text{global_arrival}_{1\,\varphi} + \text{global_arrival}_{2\,\varphi} + \text{local_arrival}_{1\,\varphi} + \text{local_arrival}_{2\,\varphi} \\[6pt]
                       \text{global_arrival}_{1\,\theta} + \text{global_arrival}_{2\,\theta} + \text{local_arrival}_{1\,\theta} + \text{local_arrival}_{2\,\theta} \end{bmatrix} \\[10pt]
-\begin{bmatrix} \text{sent}^{1}_{\varphi} \\ \text{sent}^{1}_{\theta} \\ \text{sent}^{1}_{\text{global}\,\varphi} \\ \text{sent}^{1}_{\text{global}\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \text{local_arrival}_{1\,\varphi} \\
-                      \text{local_arrival}_{1\,\theta} \\
-                      \text{global_arrival}_{\varphi} \\
-                      \text{global_arrival}_{\theta} \end{bmatrix} \\[10pt]
-\begin{bmatrix} \text{sent}^{2}_{\varphi} \\ \text{sent}^{2}_{\theta} \\ \text{sent}^{2}_{\text{global}\,\varphi} \\ \text{sent}^{2}_{\text{global}\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \text{local_arrival}_{2\,\varphi} \\
-                      \text{local_arrival}_{2\,\theta} \\
-                      \text{global_arrival}_{\varphi} \\
-                      \text{global_arrival}_{\theta} \end{bmatrix}
+\begin{bmatrix} \text{local_arrival}_{1\,\varphi} \\ \text{local_arrival}_{1\,\theta} \end{bmatrix}
+  &\rightarrow& \text{to partner } 1 \\[6pt]
+\begin{bmatrix} \text{global_arrival}_{1\,\varphi} \\ \text{global_arrival}_{1\,\theta} \end{bmatrix}
+  &\rightarrow& \text{to partner } 1 \\[6pt]
+\begin{bmatrix} \text{local_arrival}_{2\,\varphi} \\ \text{local_arrival}_{2\,\theta} \end{bmatrix}
+  &\rightarrow& \text{to partner } 2 \\[6pt]
+\begin{bmatrix} \text{global_arrival}_{2\,\varphi} \\ \text{global_arrival}_{2\,\theta} \end{bmatrix}
+  &\rightarrow& \text{to partner } 2
 \end{array}
 \]`;
 
