@@ -87,6 +87,8 @@ b &=& \text{arrival 2's quadrant} \\[3pt]
                       k_{1}\,\text{arrival}_{1\,\theta} + k_{2}\,\text{arrival}_{2\,\theta} & \text{if } k_{1} \oplus k_{2} \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
 \textbf{one node} & & \\[3pt]
+\leftarrow &:& \text{the node receives the vector from a partner} \\[3pt]
+\rightarrow &:& \text{the node sends the vector to a partner} \\[6pt]
 k_{1},\, k_{2} &\in& \{0, 1\} \\[6pt]
 \begin{bmatrix} \text{local_arrival}_{1\,\varphi} \\ \text{local_arrival}_{1\,\theta} \end{bmatrix}
   &\leftarrow& \text{from partner } 1 \\[6pt]
