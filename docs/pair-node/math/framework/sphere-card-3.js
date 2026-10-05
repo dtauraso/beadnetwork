@@ -89,13 +89,13 @@ b &=& \text{arrival 2's quadrant} \\[3pt]
 \textbf{one node} & & \\[3pt]
 k_{1},\, k_{2} &\in& \{0, 1\} \\[6pt]
 \begin{bmatrix} \text{local_arrival}_{1\,\varphi} \\ \text{local_arrival}_{1\,\theta} \end{bmatrix}
-  &=& \text{from partner } 1 \\[6pt]
+  &\leftarrow& \text{from partner } 1 \\[6pt]
 \begin{bmatrix} \text{global_arrival}_{1\,\varphi} \\ \text{global_arrival}_{1\,\theta} \end{bmatrix}
-  &=& \text{from partner } 1 \\[6pt]
+  &\leftarrow& \text{from partner } 1 \\[6pt]
 \begin{bmatrix} \text{local_arrival}_{2\,\varphi} \\ \text{local_arrival}_{2\,\theta} \end{bmatrix}
-  &=& \text{from partner } 2 \\[6pt]
+  &\leftarrow& \text{from partner } 2 \\[6pt]
 \begin{bmatrix} \text{global_arrival}_{2\,\varphi} \\ \text{global_arrival}_{2\,\theta} \end{bmatrix}
-  &=& \text{from partner } 2 \\[6pt]
+  &\leftarrow& \text{from partner } 2 \\[6pt]
 \begin{bmatrix} \text{global_arrival}_{\varphi} \\ \text{global_arrival}_{\theta} \end{bmatrix}
   &=& \text{from the node} \\[6pt]
 \begin{bmatrix} \text{local_arrival}_{1\,\varphi} \\ \text{local_arrival}_{1\,\theta} \end{bmatrix}
