@@ -23,6 +23,7 @@ source "$LIB_DIR/changed-files.sh"
 source "$LIB_DIR/go-checks.sh"
 source "$LIB_DIR/ts-checks.sh"
 source "$LIB_DIR/guards.sh"
+source "$LIB_DIR/branch-name.sh"
 
 resolve_repo_root_or_block
 cd_to_root_or_die
@@ -62,6 +63,7 @@ print(json.dumps({'decision': 'block', 'reason': reason}))
 fi
 
 mark_stop_check_done
+nudge_branch_name
 
 if [ "$MODE" = "cli" ]; then
   echo "stop-checks: clean" >&2
