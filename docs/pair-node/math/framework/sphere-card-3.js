@@ -12,16 +12,20 @@ P &=& \{0,\, 6,\, 12\} \\[3pt]
 qt &=& \text{the quarter turn mark between two pole numbers} \\[3pt]
 qt &\in& \{3,\, 9\} \\[3pt]
 L_{j} &=& 1 \text{ if a link reaches node } j \text{, } 0 \text{ if not} \\[3pt]
-\text{pole_offset}_{\varphi},\, \text{pole_offset}_{\theta} &\in& \{0, 1, 2, 3\} \\[3pt]
+\text{pole_offset}_{j\,\varphi},\, \text{pole_offset}_{j\,\theta} &\in& \{0, 1, 2, 3\} \\[3pt]
 p &\in& P \\[3pt]
 k_{1},\, k_{2} &\in& \{0, 1\} \\[3pt]
 \leftarrow &:& \text{the node receives the vector on a link} \\[3pt]
 \rightarrow &:& \text{the node sends the vector on a link} \\[10pt]
 \textbf{node 1} & & \\[3pt]
-\begin{bmatrix} \text{pole_offset}_{1\,\varphi} \\ \text{pole_offset}_{1\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 2 \\ 2 \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{pole_offset}_{2\,\varphi} \\ \text{pole_offset}_{2\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} 2 \\ 2 \end{bmatrix} \\[6pt]
+\begin{bmatrix} \text{pole_offset}_{3\,\varphi} \\ \text{pole_offset}_{3\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 3 \\ 3 \end{bmatrix} \\[6pt]
+\begin{bmatrix} \text{start}_{2\,\varphi} \\ \text{start}_{2\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
+\begin{bmatrix} \text{start}_{3\,\varphi} \\ \text{start}_{3\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
 \begin{bmatrix} k_{1} \\ k_{2} \end{bmatrix}
   &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
 \begin{bmatrix} L_{1} \\ L_{2} \\ L_{3} \end{bmatrix}
@@ -29,8 +33,12 @@ k_{1},\, k_{2} &\in& \{0, 1\} \\[3pt]
 \textbf{node 2} & & \\[3pt]
 \begin{bmatrix} \text{pole_offset}_{1\,\varphi} \\ \text{pole_offset}_{1\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 3 \\ 3 \end{bmatrix} \\[6pt]
-\begin{bmatrix} \text{pole_offset}_{2\,\varphi} \\ \text{pole_offset}_{2\,\theta} \end{bmatrix}
+\begin{bmatrix} \text{pole_offset}_{3\,\varphi} \\ \text{pole_offset}_{3\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 1 \\ 1 \end{bmatrix} \\[6pt]
+\begin{bmatrix} \text{start}_{1\,\varphi} \\ \text{start}_{1\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
+\begin{bmatrix} \text{start}_{3\,\varphi} \\ \text{start}_{3\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
 \begin{bmatrix} k_{1} \\ k_{2} \end{bmatrix}
   &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
 \begin{bmatrix} L_{1} \\ L_{2} \\ L_{3} \end{bmatrix}
@@ -40,6 +48,10 @@ k_{1},\, k_{2} &\in& \{0, 1\} \\[3pt]
   &=& \begin{bmatrix} 2 \\ 2 \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{pole_offset}_{2\,\varphi} \\ \text{pole_offset}_{2\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 1 \\ 1 \end{bmatrix} \\[6pt]
+\begin{bmatrix} \text{start}_{1\,\varphi} \\ \text{start}_{1\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
+\begin{bmatrix} \text{start}_{2\,\varphi} \\ \text{start}_{2\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
 \begin{bmatrix} k_{1} \\ k_{2} \end{bmatrix}
   &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
 \begin{bmatrix} L_{1} \\ L_{2} \\ L_{3} \end{bmatrix}
