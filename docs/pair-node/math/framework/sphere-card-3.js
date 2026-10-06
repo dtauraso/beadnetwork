@@ -22,7 +22,7 @@ P &=& \text{the pole numbers} \\[3pt]
 P &=& \{0,\, 6,\, 12\} \\[3pt]
 qt &=& \text{the quarter turn mark between two pole numbers} \\[3pt]
 qt &\in& \{3,\, 9\} \\[3pt]
-L_{j} &=& \text{the partner slot node } j \text{ fills for this node, } 0 = \text{no link} \\[10pt]
+L_{j} &=& \text{which partner node } j \text{ is: } 1 \text{ or } 2 \text{, or } 0 \text{ if not a partner} \\[10pt]
 \textbf{node 1} & & \\[3pt]
 \begin{bmatrix} \text{offset}_{0\,\varphi} \\ \text{offset}_{0\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
