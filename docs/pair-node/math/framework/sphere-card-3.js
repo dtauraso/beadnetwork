@@ -8,9 +8,6 @@ const SPHERE_CARD_3_SPEC = {
 const SPHERE_CARD_3_FORMULAS = String.raw`\[
 \begin{array}{@{}l@{\;}c@{\;}l@{}}
 \textbf{shared} & & \textbf{— the three nodes together} \\[3pt]
-q &=& \text{the quadrant number} \\[3pt]
-a &=& \text{arrival 1's quadrant} \\[3pt]
-b &=& \text{arrival 2's quadrant} \\[3pt]
 s &=& \text{the tick mark scale} \\[3pt]
 s &=& 1 \\[3pt]
 12s &=& \text{1 full turn } \varphi \\[3pt]
