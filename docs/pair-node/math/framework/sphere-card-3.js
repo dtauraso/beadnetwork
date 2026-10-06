@@ -60,25 +60,19 @@ k_{j} &\in& \{0, 1\} \\[3pt]
 \begin{bmatrix} \text{pole}_{\varphi} \\ \text{pole}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} p + \text{pole_offset}_{\varphi} \\[6pt]
                       p + \text{pole_offset}_{\theta} \end{bmatrix} \\[6pt]
-\begin{bmatrix} \Delta_{\varphi} \\ \Delta_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \text{local_arrival}_{\varphi} - \text{pole}_{\varphi} \\[6pt]
-                      \text{local_arrival}_{\theta} - \text{pole}_{\theta} \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{direction}_{\varphi} \\ \text{direction}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} -1 & \text{if } \Delta_{\varphi} \in (qt,\, \text{pole}_{\varphi}) \\[3pt]
+  &=& \begin{bmatrix} -1 & \text{if } \text{local_arrival}_{\varphi} \in (qt,\, \text{pole}_{\varphi}) \\[3pt]
                       0 & \text{otherwise} \\[6pt]
-                      -1 & \text{if } \Delta_{\theta} \in (qt,\, \text{pole}_{\theta}) \\[3pt]
+                      -1 & \text{if } \text{local_arrival}_{\theta} \in (qt,\, \text{pole}_{\theta}) \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
 \rlap{\textbf{dir_up}\left(\begin{bmatrix} \text{local_arrival}_{\varphi} \\ \text{local_arrival}_{\theta} \end{bmatrix},\; qt,\; p\right)} & & \\[3pt]
 \begin{bmatrix} \text{pole}_{\varphi} \\ \text{pole}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} p - \text{pole_offset}_{\varphi} \\[6pt]
                       p - \text{pole_offset}_{\theta} \end{bmatrix} \\[6pt]
-\begin{bmatrix} \Delta_{\varphi} \\ \Delta_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \text{pole}_{\varphi} - \text{local_arrival}_{\varphi} \\[6pt]
-                      \text{pole}_{\theta} - \text{local_arrival}_{\theta} \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{direction}_{\varphi} \\ \text{direction}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 1 & \text{if } \Delta_{\varphi} \in (qt,\, \text{pole}_{\varphi}) \\[3pt]
+  &=& \begin{bmatrix} 1 & \text{if } \text{local_arrival}_{\varphi} \in (qt,\, \text{pole}_{\varphi}) \\[3pt]
                       0 & \text{otherwise} \\[6pt]
-                      1 & \text{if } \Delta_{\theta} \in (qt,\, \text{pole}_{\theta}) \\[3pt]
+                      1 & \text{if } \text{local_arrival}_{\theta} \in (qt,\, \text{pole}_{\theta}) \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
 \rlap{\textbf{pick_one}\left(k_{1},\; k_{2},\; \begin{bmatrix} \text{arrival}_{1\,\varphi} \\ \text{arrival}_{1\,\theta} \end{bmatrix},\; \begin{bmatrix} \text{arrival}_{2\,\varphi} \\ \text{arrival}_{2\,\theta} \end{bmatrix}\right)} & & \\[3pt]
 \begin{bmatrix} \text{arrival}_{\varphi} \\ \text{arrival}_{\theta} \end{bmatrix}
