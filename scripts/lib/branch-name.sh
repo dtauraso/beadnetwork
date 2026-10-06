@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-# Sourced by scripts/stop-checks.sh.
-
 BRANCH_NAME_STAMP=".beadnetwork-cache/branch-name-shown"
 
 nudge_branch_name() {
