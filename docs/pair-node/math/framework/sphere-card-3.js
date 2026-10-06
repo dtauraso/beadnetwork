@@ -26,14 +26,6 @@ L_{j} &=& 1 \text{ if a link reaches node } j \text{, } 0 \text{ if not} \\[10pt
 \textbf{node 1} & & \\[3pt]
 \begin{bmatrix} \text{offset}_{1\,\varphi} \\ \text{offset}_{1\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 2 \\ 2 \end{bmatrix} \\[6pt]
-\begin{bmatrix} \text{offset}_{2\,\varphi} \\ \text{offset}_{2\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 6 \\ 6 \end{bmatrix} \\[6pt]
-\begin{bmatrix} \text{offset}_{3\,\varphi} \\ \text{offset}_{3\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 6 \\ 6 \end{bmatrix} \\[6pt]
-\begin{bmatrix} \text{offset}_{4\,\varphi} \\ \text{offset}_{4\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 12 \\ 12 \end{bmatrix} \\[6pt]
-\begin{bmatrix} n_{1}\text{start}_{1}q_{1\,\varphi} \\ n_{1}\text{start}_{1}q_{1\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 2 \\ 2 \end{bmatrix} \\[6pt]
 \begin{bmatrix} n_{1}\text{start}_{2}q_{2\,\varphi} \\ n_{1}\text{start}_{2}q_{2\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 3 \\ 3 \end{bmatrix} \\[6pt]
 \begin{bmatrix} k_{1} \\ k_{2} \end{bmatrix}
@@ -42,14 +34,6 @@ L_{j} &=& 1 \text{ if a link reaches node } j \text{, } 0 \text{ if not} \\[10pt
   &=& \begin{bmatrix} 0 \\ 1 \\ 1 \end{bmatrix} \\[10pt]
 \textbf{node 2} & & \\[3pt]
 \begin{bmatrix} \text{offset}_{1\,\varphi} \\ \text{offset}_{1\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
-\begin{bmatrix} \text{offset}_{2\,\varphi} \\ \text{offset}_{2\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
-\begin{bmatrix} \text{offset}_{3\,\varphi} \\ \text{offset}_{3\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
-\begin{bmatrix} \text{offset}_{4\,\varphi} \\ \text{offset}_{4\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
-\begin{bmatrix} n_{2}\text{start}_{1}q_{4\,\varphi} \\ n_{2}\text{start}_{1}q_{4\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 3 \\ 3 \end{bmatrix} \\[6pt]
 \begin{bmatrix} n_{2}\text{start}_{2}q_{1\,\varphi} \\ n_{2}\text{start}_{2}q_{1\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 1 \\ 1 \end{bmatrix} \\[6pt]
@@ -59,14 +43,6 @@ L_{j} &=& 1 \text{ if a link reaches node } j \text{, } 0 \text{ if not} \\[10pt
   &=& \begin{bmatrix} 1 \\ 0 \\ 1 \end{bmatrix} \\[10pt]
 \textbf{node 3} & & \\[3pt]
 \begin{bmatrix} \text{offset}_{1\,\varphi} \\ \text{offset}_{1\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
-\begin{bmatrix} \text{offset}_{2\,\varphi} \\ \text{offset}_{2\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
-\begin{bmatrix} \text{offset}_{3\,\varphi} \\ \text{offset}_{3\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
-\begin{bmatrix} \text{offset}_{4\,\varphi} \\ \text{offset}_{4\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
-\begin{bmatrix} n_{3}\text{start}_{1}q_{3\,\varphi} \\ n_{3}\text{start}_{1}q_{3\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 2 \\ 2 \end{bmatrix} \\[6pt]
 \begin{bmatrix} n_{3}\text{start}_{2}q_{3\,\varphi} \\ n_{3}\text{start}_{2}q_{3\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 1 \\ 1 \end{bmatrix} \\[6pt]
