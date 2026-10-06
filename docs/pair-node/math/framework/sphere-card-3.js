@@ -19,7 +19,7 @@ s &=& 1 \\[3pt]
 3s &=& \text{1 quarter turn } \varphi \\[3pt]
 3s &=& \text{1 quarter turn } \theta \\[3pt]
 p &=& \text{the pole numbers} \\[3pt]
-p &=& [0,\, 6,\, 6,\, 12] \\[10pt]
+p &=& \{0,\, 6,\, 12\} \\[10pt]
 \textbf{node 1} & & \\[3pt]
 \begin{bmatrix} \text{offset}_{0\,\varphi} \\ \text{offset}_{0\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
