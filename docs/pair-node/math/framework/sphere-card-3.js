@@ -111,9 +111,9 @@ p &\in& P \\[6pt]
 \rightarrow &:& \text{the node sends the vector on a link} \\[6pt]
 k_{1},\, k_{2} &\in& \{0, 1\} \\[6pt]
 \begin{bmatrix} \text{local_arrival}_{1\,\varphi} \\ \text{local_arrival}_{1\,\theta} \end{bmatrix}
-  &\leftarrow& \text{in on link } 1 \\[6pt]
+  &\leftarrow& \text{link } 1 \\[6pt]
 \begin{bmatrix} \text{local_arrival}_{2\,\varphi} \\ \text{local_arrival}_{2\,\theta} \end{bmatrix}
-  &\leftarrow& \text{in on link } 2 \\[6pt]
+  &\leftarrow& \text{link } 2 \\[6pt]
 \begin{bmatrix} \text{local_arrival}_{1\,\varphi} \\ \text{local_arrival}_{1\,\theta} \end{bmatrix}
   &=& \textbf{pick_one}\left(k_{1},\; k_{2},\; \begin{bmatrix} \text{local_arrival}_{1\,\varphi} \\ \text{local_arrival}_{1\,\theta} \end{bmatrix},\; \begin{bmatrix} \text{local_arrival}_{2\,\varphi} \\ \text{local_arrival}_{2\,\theta} \end{bmatrix}\right) \\[6pt]
 \begin{bmatrix} \text{local_arrival}_{2\,\varphi} \\ \text{local_arrival}_{2\,\theta} \end{bmatrix}
@@ -165,9 +165,9 @@ k_{1},\, k_{2} &\in& \{0, 1\} \\[6pt]
       \end{array}
       \end{bmatrix} \\[10pt]
 \begin{bmatrix} k_{1}\,\text{local_arrival}_{1\,\varphi} \\ k_{1}\,\text{local_arrival}_{1\,\theta} \end{bmatrix}
-  &\rightarrow& \text{out on link } 1 \\[6pt]
+  &\rightarrow& \text{link } 1 \\[6pt]
 \begin{bmatrix} k_{2}\,\text{local_arrival}_{2\,\varphi} \\ k_{2}\,\text{local_arrival}_{2\,\theta} \end{bmatrix}
-  &\rightarrow& \text{out on link } 2
+  &\rightarrow& \text{link } 2
 \end{array}
 \]`;
 
