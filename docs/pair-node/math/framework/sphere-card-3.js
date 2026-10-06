@@ -60,9 +60,6 @@ k_{j} &\in& \{0, 1\} \\[3pt]
 \begin{bmatrix} \text{pole}_{\varphi} \\ \text{pole}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} p + \text{pole_offset}_{\varphi} \\[6pt]
                       p + \text{pole_offset}_{\theta} \end{bmatrix} \\[6pt]
-\begin{bmatrix} \Delta_{\varphi} \\ \Delta_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \text{local_arrival}_{\varphi} - \text{pole}_{\varphi} \\[6pt]
-                      \text{local_arrival}_{\theta} - \text{pole}_{\theta} \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{direction}_{\varphi} \\ \text{direction}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} -1 & \text{if } \text{local_arrival}_{\varphi} \in (qt,\, \text{pole}_{\varphi}) \\[3pt]
                       0 & \text{otherwise} \\[6pt]
@@ -72,9 +69,6 @@ k_{j} &\in& \{0, 1\} \\[3pt]
 \begin{bmatrix} \text{pole}_{\varphi} \\ \text{pole}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} p - \text{pole_offset}_{\varphi} \\[6pt]
                       p - \text{pole_offset}_{\theta} \end{bmatrix} \\[6pt]
-\begin{bmatrix} \Delta_{\varphi} \\ \Delta_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} \text{pole}_{\varphi} - \text{local_arrival}_{\varphi} \\[6pt]
-                      \text{pole}_{\theta} - \text{local_arrival}_{\theta} \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{direction}_{\varphi} \\ \text{direction}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} 1 & \text{if } \text{local_arrival}_{\varphi} \in (qt,\, \text{pole}_{\varphi}) \\[3pt]
                       0 & \text{otherwise} \\[6pt]
