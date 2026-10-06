@@ -22,7 +22,9 @@ k_{1},\, k_{2} &\in& \{0, 1\} \\[3pt]
   &=& \begin{bmatrix} 2 \\ 2 \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{pole_offset}_{2\,\varphi} \\ \text{pole_offset}_{2\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 3 \\ 3 \end{bmatrix} \\[6pt]
-\begin{bmatrix} \text{start}_{\varphi} \\ \text{start}_{\theta} \end{bmatrix}
+\begin{bmatrix} \text{start}_{1\,\varphi} \\ \text{start}_{1\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
+\begin{bmatrix} \text{start}_{2\,\varphi} \\ \text{start}_{2\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
 \begin{bmatrix} k_{1} \\ k_{2} \end{bmatrix}
   &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
@@ -33,7 +35,9 @@ k_{1},\, k_{2} &\in& \{0, 1\} \\[3pt]
   &=& \begin{bmatrix} 3 \\ 3 \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{pole_offset}_{2\,\varphi} \\ \text{pole_offset}_{2\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 1 \\ 1 \end{bmatrix} \\[6pt]
-\begin{bmatrix} \text{start}_{\varphi} \\ \text{start}_{\theta} \end{bmatrix}
+\begin{bmatrix} \text{start}_{1\,\varphi} \\ \text{start}_{1\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
+\begin{bmatrix} \text{start}_{2\,\varphi} \\ \text{start}_{2\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
 \begin{bmatrix} k_{1} \\ k_{2} \end{bmatrix}
   &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
@@ -44,7 +48,9 @@ k_{1},\, k_{2} &\in& \{0, 1\} \\[3pt]
   &=& \begin{bmatrix} 2 \\ 2 \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{pole_offset}_{2\,\varphi} \\ \text{pole_offset}_{2\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 1 \\ 1 \end{bmatrix} \\[6pt]
-\begin{bmatrix} \text{start}_{\varphi} \\ \text{start}_{\theta} \end{bmatrix}
+\begin{bmatrix} \text{start}_{1\,\varphi} \\ \text{start}_{1\,\theta} \end{bmatrix}
+  &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
+\begin{bmatrix} \text{start}_{2\,\varphi} \\ \text{start}_{2\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
 \begin{bmatrix} k_{1} \\ k_{2} \end{bmatrix}
   &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
