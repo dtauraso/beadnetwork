@@ -61,9 +61,9 @@ k_{j} &\in& \{0, 1\} \\[3pt]
   &=& \begin{bmatrix} p + \text{pole_offset}_{\varphi} \\[6pt]
                       p + \text{pole_offset}_{\theta} \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{direction}_{\varphi} \\ \text{direction}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} -1 & \text{if } \text{local_arrival}_{\varphi} \in (qt,\, \text{pole}_{\varphi}) \\[3pt]
+  &=& \begin{bmatrix} -1 & \text{if } \text{local_arrival}_{\varphi} \in (\text{pole}_{\varphi},\, qt) \\[3pt]
                       0 & \text{otherwise} \\[6pt]
-                      -1 & \text{if } \text{local_arrival}_{\theta} \in (qt,\, \text{pole}_{\theta}) \\[3pt]
+                      -1 & \text{if } \text{local_arrival}_{\theta} \in (\text{pole}_{\theta},\, qt) \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
 \rlap{\textbf{dir_up}\left(\begin{bmatrix} \text{local_arrival}_{\varphi} \\ \text{local_arrival}_{\theta} \end{bmatrix},\; qt,\; p\right)} & & \\[3pt]
 \begin{bmatrix} \text{pole}_{\varphi} \\ \text{pole}_{\theta} \end{bmatrix}
