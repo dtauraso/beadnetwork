@@ -28,6 +28,11 @@ source "$LIB_DIR/branch-name.sh"
 resolve_repo_root_or_block
 cd_to_root_or_die
 
+if [ "$MODE" = "cli" ] && tree_already_verified; then
+  echo "stop-checks: clean (tree $(git rev-parse --short HEAD^{tree}) already verified)" >&2
+  exit 0
+fi
+
 if [ "$MODE" = "cli" ]; then
   changed="$(collect_changed_files)"
 else
@@ -66,6 +71,7 @@ mark_stop_check_done
 nudge_branch_name
 
 if [ "$MODE" = "cli" ]; then
+  mark_tree_verified
   echo "stop-checks: clean" >&2
 fi
 exit 0

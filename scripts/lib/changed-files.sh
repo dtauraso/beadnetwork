@@ -38,6 +38,27 @@ collect_changed_since_last_check() {
   printf '%s\n%s\n' "$worktree_changed" "$committed_changed"
 }
 
+VERIFIED_TREE_STAMP=".beadnetwork-cache/last-verified-tree"
+
+verified_tree_now() {
+  [ -z "$(git status --porcelain 2>/dev/null)" ] || return 0
+  git rev-parse HEAD^{tree} 2>/dev/null
+}
+
+tree_already_verified() {
+  local tree
+  tree=$(verified_tree_now)
+  [ -n "$tree" ] && [ -f "$VERIFIED_TREE_STAMP" ] && [ "$(cat "$VERIFIED_TREE_STAMP" 2>/dev/null)" = "$tree" ]
+}
+
+mark_tree_verified() {
+  local tree
+  tree=$(verified_tree_now)
+  [ -n "$tree" ] || return 0
+  mkdir -p "$(dirname "$VERIFIED_TREE_STAMP")" 2>/dev/null || return 0
+  printf '%s\n' "$tree" > "$VERIFIED_TREE_STAMP"
+}
+
 mark_stop_check_done() {
   mkdir -p "$(dirname "$STOP_CHECK_STAMP")" 2>/dev/null || return 0
   git rev-parse HEAD > "$STOP_CHECK_STAMP" 2>/dev/null || true
