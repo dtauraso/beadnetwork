@@ -1,10 +1,3 @@
-const SPHERE_CARD_3_SPEC = {
-  points: 12,
-  size: 300,
-  phi: { axis: 3, arrival: 5 },
-  theta: { axis: 0, arrival: 1 },
-};
-
 const SPHERE_CARD_3_FORMULAS = String.raw`\[
 \begin{array}{@{}l@{\;}c@{\;}l@{}}
 \textbf{shared} & & \textbf{— the three nodes together} \\[3pt]
@@ -143,16 +136,6 @@ k_{1},\, k_{2} &\in& \{0, 1\} \\[3pt]
 \end{array}
 \]`;
 
-function sphereCard3Figure(spec) {
-  const fig = document.createElement('div');
-  fig.className = 'keysphere';
-  const svgEl = sphere(spec);
-  fig.appendChild(svgEl);
-  fig.appendChild(sphereCardToggles(svgEl));
-  fig.appendChild(sphereEndControls(svgEl));
-  return fig;
-}
-
 function sphereCard3Math(tex) {
   const box = document.createElement('div');
   box.textContent = tex;
@@ -160,6 +143,5 @@ function sphereCard3Math(tex) {
 }
 
 for (const host of document.querySelectorAll('[data-sphere-card-3]')) {
-  host.appendChild(sphereCard3Figure(SPHERE_CARD_3_SPEC));
   host.appendChild(sphereCard3Math(SPHERE_CARD_3_FORMULAS));
 }
