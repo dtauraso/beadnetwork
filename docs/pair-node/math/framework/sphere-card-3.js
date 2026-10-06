@@ -8,50 +8,50 @@ s &=& 1 \\[3pt]
 3s &=& \text{1 quarter turn } \varphi \\[3pt]
 3s &=& \text{1 quarter turn } \theta \\[3pt]
 P &=& \text{the pole numbers} \\[3pt]
-P &=& \{0,\, 6,\, 12\} \\[3pt]
+P &=& \{0s,\, 6s,\, 12s\} \\[3pt]
 qt &=& \text{the quarter turn mark between two pole numbers} \\[3pt]
-qt &\in& \{3,\, 9\} \\[3pt]
+qt &\in& \{3s,\, 9s\} \\[3pt]
 L_{j} &=& 1 \text{ if a link reaches node } j \text{, } 0 \text{ if not} \\[3pt]
-\text{pole_offset}_{j\,\varphi},\, \text{pole_offset}_{j\,\theta} &\in& \{0, 1, 2, 3\} \\[3pt]
+\text{pole_offset}_{j\,\varphi},\, \text{pole_offset}_{j\,\theta} &\in& \{0s, 1s, 2s, 3s\} \\[3pt]
 p &\in& P \\[3pt]
 k_{j} &\in& \{0, 1\} \\[3pt]
 \leftarrow &:& \text{the node receives the vector on a link} \\[3pt]
 \rightarrow &:& \text{the node sends the vector on a link} \\[10pt]
 \textbf{node 1} & & \\[3pt]
 \begin{bmatrix} \text{start}_{2\,\varphi} \\ \text{start}_{2\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
+  &=& \begin{bmatrix} 0s \\ 0s \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{start}_{3\,\varphi} \\ \text{start}_{3\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
+  &=& \begin{bmatrix} 0s \\ 0s \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{pole_offset}_{2\,\varphi} \\ \text{pole_offset}_{2\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 2 \\ 2 \end{bmatrix} \\[6pt]
+  &=& \begin{bmatrix} 2s \\ 2s \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{pole_offset}_{3\,\varphi} \\ \text{pole_offset}_{3\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 3 \\ 3 \end{bmatrix} \\[6pt]
+  &=& \begin{bmatrix} 3s \\ 3s \end{bmatrix} \\[6pt]
 \begin{bmatrix} k_{2} \\ k_{3} \end{bmatrix}
   &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
 \begin{bmatrix} L_{1} \\ L_{2} \\ L_{3} \end{bmatrix}
   &=& \begin{bmatrix} 0 \\ 1 \\ 1 \end{bmatrix} \\[10pt]
 \textbf{node 2} & & \\[3pt]
 \begin{bmatrix} \text{start}_{1\,\varphi} \\ \text{start}_{1\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
+  &=& \begin{bmatrix} 0s \\ 0s \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{start}_{3\,\varphi} \\ \text{start}_{3\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
+  &=& \begin{bmatrix} 0s \\ 0s \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{pole_offset}_{1\,\varphi} \\ \text{pole_offset}_{1\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 3 \\ 3 \end{bmatrix} \\[6pt]
+  &=& \begin{bmatrix} 3s \\ 3s \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{pole_offset}_{3\,\varphi} \\ \text{pole_offset}_{3\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 1 \\ 1 \end{bmatrix} \\[6pt]
+  &=& \begin{bmatrix} 1s \\ 1s \end{bmatrix} \\[6pt]
 \begin{bmatrix} k_{1} \\ k_{3} \end{bmatrix}
   &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
 \begin{bmatrix} L_{1} \\ L_{2} \\ L_{3} \end{bmatrix}
   &=& \begin{bmatrix} 1 \\ 0 \\ 1 \end{bmatrix} \\[10pt]
 \textbf{node 3} & & \\[3pt]
 \begin{bmatrix} \text{start}_{1\,\varphi} \\ \text{start}_{1\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
+  &=& \begin{bmatrix} 0s \\ 0s \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{start}_{2\,\varphi} \\ \text{start}_{2\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
+  &=& \begin{bmatrix} 0s \\ 0s \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{pole_offset}_{1\,\varphi} \\ \text{pole_offset}_{1\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 2 \\ 2 \end{bmatrix} \\[6pt]
+  &=& \begin{bmatrix} 2s \\ 2s \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{pole_offset}_{2\,\varphi} \\ \text{pole_offset}_{2\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 1 \\ 1 \end{bmatrix} \\[6pt]
+  &=& \begin{bmatrix} 1s \\ 1s \end{bmatrix} \\[6pt]
 \begin{bmatrix} k_{1} \\ k_{2} \end{bmatrix}
   &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
 \begin{bmatrix} L_{1} \\ L_{2} \\ L_{3} \end{bmatrix}
