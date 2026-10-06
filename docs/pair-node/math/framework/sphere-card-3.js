@@ -60,6 +60,7 @@ P &=& \{0,\, 6,\, 12\} \\[10pt]
 \begin{bmatrix} n_{3}\text{start}_{2}q_{3\,\varphi} \\ n_{3}\text{start}_{2}q_{3\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 1 \\ 1 \end{bmatrix} \\[10pt]
 \text{offset}_{\varphi},\, \text{offset}_{\theta} &\in& \{0, 1, 2, 3\} \\[6pt]
+p_{n} &\in& P \\[6pt]
 \rlap{\textbf{dir_down}\left(\begin{bmatrix} \text{local_arrival}_{\varphi} \\ \text{local_arrival}_{\theta} \end{bmatrix},\; qt_{n},\; p_{n}\right)} & & \\[3pt]
 \begin{bmatrix} \text{pole}_{\varphi} \\ \text{pole}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} p_{n} + \text{offset}_{\varphi} \\[6pt]
