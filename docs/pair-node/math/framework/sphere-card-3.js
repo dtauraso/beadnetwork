@@ -22,8 +22,7 @@ P &=& \text{the pole numbers} \\[3pt]
 P &=& \{0,\, 6,\, 12\} \\[3pt]
 qt &=& \text{the quarter turn mark between two pole numbers} \\[3pt]
 qt &\in& \{3,\, 9\} \\[3pt]
-L_{ij} &=& \text{the partner slot node } j \text{ fills for node } i \text{, } 0 = \text{no link} \\[3pt]
-L &=& \begin{bmatrix} 0 & 1 & 2 \\ 2 & 0 & 1 \\ 1 & 2 & 0 \end{bmatrix} \\[10pt]
+L_{j} &=& \text{the partner slot node } j \text{ fills for this node, } 0 = \text{no link} \\[10pt]
 \textbf{node 1} & & \\[3pt]
 \begin{bmatrix} \text{offset}_{0\,\varphi} \\ \text{offset}_{0\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
@@ -38,7 +37,9 @@ L &=& \begin{bmatrix} 0 & 1 & 2 \\ 2 & 0 & 1 \\ 1 & 2 & 0 \end{bmatrix} \\[10pt]
 \begin{bmatrix} n_{1}\text{start}_{2}q_{2\,\varphi} \\ n_{1}\text{start}_{2}q_{2\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 3 \\ 3 \end{bmatrix} \\[6pt]
 \begin{bmatrix} k_{1} \\ k_{2} \end{bmatrix}
-  &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[10pt]
+  &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
+\begin{bmatrix} L_{1} \\ L_{2} \\ L_{3} \end{bmatrix}
+  &=& \begin{bmatrix} 0 \\ 1 \\ 2 \end{bmatrix} \\[10pt]
 \textbf{node 2} & & \\[3pt]
 \begin{bmatrix} \text{offset}_{0\,\varphi} \\ \text{offset}_{0\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
@@ -53,7 +54,9 @@ L &=& \begin{bmatrix} 0 & 1 & 2 \\ 2 & 0 & 1 \\ 1 & 2 & 0 \end{bmatrix} \\[10pt]
 \begin{bmatrix} n_{2}\text{start}_{2}q_{1\,\varphi} \\ n_{2}\text{start}_{2}q_{1\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 1 \\ 1 \end{bmatrix} \\[6pt]
 \begin{bmatrix} k_{1} \\ k_{2} \end{bmatrix}
-  &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[10pt]
+  &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
+\begin{bmatrix} L_{1} \\ L_{2} \\ L_{3} \end{bmatrix}
+  &=& \begin{bmatrix} 2 \\ 0 \\ 1 \end{bmatrix} \\[10pt]
 \textbf{node 3} & & \\[3pt]
 \begin{bmatrix} \text{offset}_{0\,\varphi} \\ \text{offset}_{0\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
@@ -68,7 +71,9 @@ L &=& \begin{bmatrix} 0 & 1 & 2 \\ 2 & 0 & 1 \\ 1 & 2 & 0 \end{bmatrix} \\[10pt]
 \begin{bmatrix} n_{3}\text{start}_{2}q_{3\,\varphi} \\ n_{3}\text{start}_{2}q_{3\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 1 \\ 1 \end{bmatrix} \\[6pt]
 \begin{bmatrix} k_{1} \\ k_{2} \end{bmatrix}
-  &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[10pt]
+  &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
+\begin{bmatrix} L_{1} \\ L_{2} \\ L_{3} \end{bmatrix}
+  &=& \begin{bmatrix} 1 \\ 2 \\ 0 \end{bmatrix} \\[10pt]
 \text{offset}_{\varphi},\, \text{offset}_{\theta} &\in& \{0, 1, 2, 3\} \\[6pt]
 p &\in& P \\[6pt]
 \rlap{\textbf{dir_down}\left(\begin{bmatrix} \text{local_arrival}_{\varphi} \\ \text{local_arrival}_{\theta} \end{bmatrix},\; qt,\; p\right)} & & \\[3pt]
