@@ -22,7 +22,7 @@ P &=& \text{the pole numbers} \\[3pt]
 P &=& \{0,\, 6,\, 12\} \\[3pt]
 qt &=& \text{the quarter turn mark between two pole numbers} \\[3pt]
 qt &\in& \{3,\, 9\} \\[3pt]
-L_{j} &=& \text{which partner node } j \text{ is: } 1 \text{ or } 2 \text{, or } 0 \text{ if not a partner} \\[10pt]
+L_{j} &=& \text{which link reaches node } j \text{: link } 1 \text{ or } 2 \text{, or } 0 \text{ if none} \\[10pt]
 \textbf{node 1} & & \\[3pt]
 \begin{bmatrix} \text{offset}_{0\,\varphi} \\ \text{offset}_{0\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
@@ -107,13 +107,13 @@ p &\in& P \\[6pt]
                       k_{1}\,\text{arrival}_{1\,\theta} + k_{2}\,\text{arrival}_{2\,\theta} & \text{if } k_{1} \oplus k_{2} \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
 \textbf{one node} & & \\[3pt]
-\leftarrow &:& \text{the node receives the vector from a partner} \\[3pt]
-\rightarrow &:& \text{the node sends the vector to a partner} \\[6pt]
+\leftarrow &:& \text{the node receives the vector on a link} \\[3pt]
+\rightarrow &:& \text{the node sends the vector on a link} \\[6pt]
 k_{1},\, k_{2} &\in& \{0, 1\} \\[6pt]
 \begin{bmatrix} \text{local_arrival}_{1\,\varphi} \\ \text{local_arrival}_{1\,\theta} \end{bmatrix}
-  &\leftarrow& \text{from partner } 1 \\[6pt]
+  &\leftarrow& \text{in on link } 1 \\[6pt]
 \begin{bmatrix} \text{local_arrival}_{2\,\varphi} \\ \text{local_arrival}_{2\,\theta} \end{bmatrix}
-  &\leftarrow& \text{from partner } 2 \\[6pt]
+  &\leftarrow& \text{in on link } 2 \\[6pt]
 \begin{bmatrix} \text{local_arrival}_{1\,\varphi} \\ \text{local_arrival}_{1\,\theta} \end{bmatrix}
   &=& \textbf{pick_one}\left(k_{1},\; k_{2},\; \begin{bmatrix} \text{local_arrival}_{1\,\varphi} \\ \text{local_arrival}_{1\,\theta} \end{bmatrix},\; \begin{bmatrix} \text{local_arrival}_{2\,\varphi} \\ \text{local_arrival}_{2\,\theta} \end{bmatrix}\right) \\[6pt]
 \begin{bmatrix} \text{local_arrival}_{2\,\varphi} \\ \text{local_arrival}_{2\,\theta} \end{bmatrix}
@@ -165,9 +165,9 @@ k_{1},\, k_{2} &\in& \{0, 1\} \\[6pt]
       \end{array}
       \end{bmatrix} \\[10pt]
 \begin{bmatrix} k_{1}\,\text{local_arrival}_{1\,\varphi} \\ k_{1}\,\text{local_arrival}_{1\,\theta} \end{bmatrix}
-  &\rightarrow& \text{to partner } 1 \\[6pt]
+  &\rightarrow& \text{out on link } 1 \\[6pt]
 \begin{bmatrix} k_{2}\,\text{local_arrival}_{2\,\varphi} \\ k_{2}\,\text{local_arrival}_{2\,\theta} \end{bmatrix}
-  &\rightarrow& \text{to partner } 2
+  &\rightarrow& \text{out on link } 2
 \end{array}
 \]`;
 
