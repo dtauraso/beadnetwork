@@ -5,6 +5,7 @@ import * as THREE from "three";
 import { buildDeleteRaw, buildKeyRaw } from "../../../../Categories/Scene/Drag/raw-input-build";
 import { sendRawInput } from "../vscode-api";
 import { rulesDraftOpen } from "../../../../Categories/Chrome/Panels/PolarRulesPanel/draw-rules-panel";
+import { cardDraftOpen } from "../../../../Categories/Chrome/Panels/CardPanel/draw-card-panel";
 import { useInteractionControls } from "./interaction-controls";
 import type { PickFn } from "../../../../Categories/Scene/Drag/pick-types";
 import { Scene } from "./scene-content";
@@ -28,7 +29,7 @@ export function ThreeView() {
       const t = e.target as HTMLElement | null;
       if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
       if (e.ctrlKey || e.metaKey || e.altKey) return;
-      if (rulesDraftOpen() && consumedByDraft(e.key)) {
+      if ((rulesDraftOpen() || cardDraftOpen()) && consumedByDraft(e.key)) {
         e.preventDefault();
         sendRawInput(buildKeyRaw(e.key));
         return;

@@ -156,6 +156,7 @@ topology*/view/bead-ring-points.bin
 topology*/view/ring-points.bin
 topology*/view/slider-panel.bin
 topology*/view/speed.bin
+topology*/view/card-s.bin
 
 # Which tab is open. It is written every time you click the tab strip and read once
 # on spawn, so it is the same live view state as camera/ above — committing it made

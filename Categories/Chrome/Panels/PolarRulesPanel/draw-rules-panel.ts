@@ -15,7 +15,7 @@ import {
 
 export function rulesPanelKey(): string {
   const nodeRows = rulesI32Run("rowNodeRow");
-  const values = rulesU32Run("rowValue");
+  const values = rulesBytes("rowValue");
   const edgeRows = rulesI32Run("rowEdgeRow");
   const checks = rulesBytes("rowCheck");
   const parts: string[] = [
@@ -27,7 +27,7 @@ export function rulesPanelKey(): string {
   ];
   if (nodeRows && values && edgeRows && checks) {
     for (let i = 0; i < nodeRows.length; i++) {
-      const v = values[i]!;
+      const v = values.getUint8(i);
       if (v !== VAL_NONE) parts.push(valueText(v, nodeRows[i]!, edgeRows[i]!).text);
       const ck = checks.getUint8(i);
       if (ck !== CHECK_NONE) parts.push(checkValue(ck, nodeRows[i]!, edgeRows[i]!) ? "1" : "0");
@@ -98,7 +98,7 @@ function drawRows(c: CanvasRenderingContext2D): void {
   const cky = rulesF32Run("rowCheckY");
   const ckw = rulesF32Run("rowCheckW");
   const ckh = rulesF32Run("rowCheckH");
-  const values = rulesU32Run("rowValue");
+  const values = rulesBytes("rowValue");
   const vx = rulesF32Run("rowValueX");
   const vy = rulesF32Run("rowValueY");
   const shx = rulesF32Run("rowSharedX");
@@ -168,7 +168,7 @@ function drawRows(c: CanvasRenderingContext2D): void {
     }
 
     if (kind === ROW_LINE) {
-      const value = values[i]!;
+      const value = values.getUint8(i);
       const shown = value === VAL_NONE ? { text, free: free.getUint8(i) !== 0 } : valueText(value, nodeRow, edgeRow);
       c.fillStyle = shown.free ? FREE_GLYPH : GLYPH_INK;
       c.font = canvasFont(FONT_PX);

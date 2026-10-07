@@ -10,6 +10,7 @@ import (
 
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Dispatch"
 
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/CardPanel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/SliderPanel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/AngleDropdown"
 	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
@@ -69,6 +70,8 @@ func NewFromSpec(spec Topology.TopoSpec, sphere polar.SceneSphere, hasScene bool
 	}
 
 	md.UI.Tilt.Rows, md.UI.Tilt.Labels = Topology.TiltPanelRows(spec)
+	md.UI.Card.Nodes, md.UI.Card.Cards = Topology.CardPanelNodes(spec)
+	md.UI.Card.S = CardPanel.LoadCardS(Scenes.CardSFilePath(scenePath))
 
 	md.UI.Rules.Nodes = Topology.RulePanelNodes(spec, func(id string) bool {
 		ng, ok := md.MR.NodeGeoms()[id]

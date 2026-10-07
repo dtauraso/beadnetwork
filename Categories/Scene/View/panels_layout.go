@@ -13,6 +13,7 @@ func (ui *UIState) PanelLayout() Chrome.Layout {
 		Overlays:      &ui.OV,
 		Panels:        &ui.PN,
 		Tilt:          ui.Tilt,
+		Card:          ui.Card,
 		Angle:         ui.Angle,
 		Nodes:         ui.Nodes,
 		Tabs:          ui.TabStrip,

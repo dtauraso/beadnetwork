@@ -1,6 +1,7 @@
 package Chrome
 
 import (
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/CardPanel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Panel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/PolarRulesPanel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/SliderPanel"
@@ -16,6 +17,7 @@ import (
 type Layout struct {
 	Speed    SliderPanel.Layout
 	Tilt     TiltPanel.Layout
+	Card     CardPanel.Layout
 	Angle    AngleDropdown.Layout
 	Nodes    NodesDropdown.Layout
 	Overlays Pills.Layout
@@ -38,6 +40,7 @@ type Of struct {
 	Panels   *Panel.PanelState
 
 	Tilt     TiltPanel.State
+	Card     CardPanel.State
 	Angle    AngleDropdown.State
 	Nodes    NodesDropdown.State
 	Tabs     Tabs.State
@@ -45,7 +48,7 @@ type Of struct {
 	PillsBar Pills.State
 }
 
-var PillLabels = []string{AngleDropdown.Label, NodesDropdown.Label, Pills.Label}
+var PillLabels = []string{AngleDropdown.Label, NodesDropdown.Label, CardPanel.PillLabel, Pills.Label}
 
 func LayoutOf(in Of) Layout {
 	st := Panel.New(float32(in.ViewH))
@@ -62,14 +65,16 @@ func LayoutOf(in Of) Layout {
 
 	fit := pills.AddChip(FitButton.FitLabel)
 
-	return Layout{
-		Fit:      fit,
-		Speed:    SliderPanel.Build(st),
-		Tilt:     TiltPanel.Build(st, in.Tilt.Rows, in.Tilt.Labels),
-		Rules:    PolarRulesPanel.Build(st, Panel.PanelOpen["nodeRules"](in.Panels), in.Rules),
-		Angle:    AngleDropdown.Build(pills, in.Angle.Open, in.LatticePoints, nodes),
-		Nodes:    NodesDropdown.Build(pills, in.Nodes.Open && in.SceneEditable, NodesDropdown.PaletteKinds(in.SceneKinds, in.SceneEditable, in.Nodes.RowOpen)),
-		Overlays: Pills.Build(pills, in.Overlays, in.Panels, in.PillsBar.Scroll),
-		Tabs:     Tabs.Build(float32(in.ViewW), in.Tabs.Names, in.Tabs.Selected),
+	lay := Layout{
+		Fit:   fit,
+		Speed: SliderPanel.Build(st),
+		Tilt:  TiltPanel.Build(st, in.Tilt.Rows, in.Tilt.Labels),
+		Rules: PolarRulesPanel.Build(st, Panel.PanelOpen["nodeRules"](in.Panels), in.Rules),
 	}
+	lay.Angle = AngleDropdown.Build(pills, in.Angle.Open, in.LatticePoints, nodes)
+	lay.Nodes = NodesDropdown.Build(pills, in.Nodes.Open && in.SceneEditable, NodesDropdown.PaletteKinds(in.SceneKinds, in.SceneEditable, in.Nodes.RowOpen))
+	lay.Card = CardPanel.Build(pills, in.Card)
+	lay.Overlays = Pills.Build(pills, in.Overlays, in.Panels, in.PillsBar.Scroll)
+	lay.Tabs = Tabs.Build(float32(in.ViewW), in.Tabs.Names, in.Tabs.Selected)
+	return lay
 }

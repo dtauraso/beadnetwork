@@ -20,6 +20,10 @@ func HandleRawInputMsg(ctx context.Context, ev Drag.RawInputMsg, md *MoveDispatc
 		return
 	}
 	if ev.Kind == "key" {
+		if md.UI.Card.Edit.Active {
+			applyCardKey(ctx, md, ev.Key)
+			return
+		}
 		applyRuleKey(ctx, md, ev.Key)
 		return
 	}
@@ -43,7 +47,7 @@ func HandleRawInputMsg(ctx context.Context, ev Drag.RawInputMsg, md *MoveDispatc
 			md.UI.EmitViewFrame(nil)
 		}
 	}
-	if ev.Kind == "wheel" && Chrome.TakeWheel(md.UI.PanelLayout(), &md.UI.OverlaysPill.Scroll, &md.UI.Rules.Scroll, ev.X, ev.Y, ev.DeltaY, md.redraw) {
+	if ev.Kind == "wheel" && Chrome.TakeWheel(md.UI.PanelLayout(), &md.UI.OverlaysPill.Scroll, &md.UI.Rules.Scroll, &md.UI.Card.Scroll, ev.X, ev.Y, ev.DeltaY, md.redraw) {
 		return
 	}
 	if ev.Kind == "pointerdown" && panelTookPointerDown(ctx, ev, md, speedSinks) {

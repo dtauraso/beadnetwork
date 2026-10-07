@@ -59,7 +59,7 @@ var kindAppearance = map[string]KindAppearance{
 	"TimeStart":     {Fill: "#fff3e0", Stroke: "#ffc400", Desc: "The head of a time chain: holds what arrives and fans the value it was holding to every downstream node at once."},
 	"NodePhi":       {Fill: "#fff8e1", Stroke: "#f9a825", Desc: "One half of a pair: turns its own tilt vector toward rest by exchanging directions with its partner, one step per arrival."},
 	"NodePhiTheta":  {Fill: "#e8f5e9", Stroke: "#2e7d32", Desc: "One half of a φ, θ pair: adds each angle's offset to that angle of its center, moving by one until that angle locks on its own quarter turn, and sends the stepped center on as the partner's next arrival."},
-	"NodePhiTheta3": {Fill: "#e3f2fd", Stroke: "#1565c0", Desc: "One of three φ, θ nodes: receives an arrival from each of its two partners, and sends its own position on to both as their next arrivals."},
+	"NodePhiTheta3": {Fill: "#e3f2fd", Stroke: "#1565c0", Desc: "One of three φ, θ nodes running the three-node card: receives a local arrival on each of its two links, picks one with k, steps it with dir_down/dir_up, and sends it on."},
 }
 
 // AppearanceOf returns a kind's palette appearance, and false when the kind is unknown.
