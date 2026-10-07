@@ -153,7 +153,7 @@ func (n *NodePhiTheta3) round(in [nodeCount]Vec) {
 
 	chosen := pickOne(n.Card.K[a-1], n.Card.K[b-1], in[a-1], in[b-1])
 	for _, j := range n.Partners {
-		n.arrival[j-1] = step(chosen, n.Card.PoleOffset[j-1], n.M)
+		n.arrival[j-1] = step(chosen, n.Card.PoleOffset[j-1], n.M, n.S)
 	}
 	n.started = true
 

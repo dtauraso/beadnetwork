@@ -56,9 +56,10 @@ func dirUp(a Vec, qt, p int, offset Vec, m int) Vec {
 	return Vec{Phi: up(a.Phi, qt, p-offset.Phi, m), Theta: up(a.Theta, qt, p-offset.Theta, m)}
 }
 
-func step(a, offset Vec, m int) Vec {
-	sum := add(add(dirDown(a, poleLow, qtLow, offset, m), dirUp(a, qtLow, poleMid, offset, m)),
-		add(dirDown(a, poleMid, qtHigh, offset, m), dirUp(a, qtHigh, poleHigh, offset, m)))
+func step(a, offset Vec, m, s int) Vec {
+	offset = scale(s, offset)
+	sum := add(add(dirDown(a, poleLow*s, qtLow*s, offset, m), dirUp(a, qtLow*s, poleMid*s, offset, m)),
+		add(dirDown(a, poleMid*s, qtHigh*s, offset, m), dirUp(a, qtHigh*s, poleHigh*s, offset, m)))
 	sum.R = a.R
 	return sum
 }

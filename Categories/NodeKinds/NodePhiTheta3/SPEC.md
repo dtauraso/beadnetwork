@@ -16,7 +16,7 @@ The pair φ, θ 3 tab's node, running the three-node phi theta card
 | qt | the quarter turn mark between two pole numbers, qt ∈ {3s, 9s} |
 | m | the jump constant, m ∈ ℤ⁺, m = 1 by default (set from the m panel) |
 | L_j | 1 if a link reaches node j, 0 if not |
-| pole_offset_jφ, pole_offset_jθ | ∈ {0, 1s, 2s, 3s} |
+| pole_offset_jφ, pole_offset_jθ | ∈ {0, 1s, 2s, 3s}; the panel takes the multiple of s (0, 1, 2 or 3) |
 | p | ∈ P |
 | k_j | ∈ {0, 1} |
 | ← | the node receives the vector on a link |
@@ -84,8 +84,7 @@ two, j's own k picks, as pick_one does: j takes the tip from the partner its sin
 and stays put if its k names neither or both.
 
 A placement moves j's centre only. j's own `start` vectors keep their own angles in the same axes
-every node uses; any turn of them comes from j's own polar settings changing, not from the
-vector that placed it.
+every node uses.
 
 A card-placed position is not saved: it is the tip of the sender's `start_j`, so it is placed
 again from the card when the scene loads. Only the card's values and pointer drags are saved.
