@@ -44,7 +44,7 @@ type Layout struct {
 	Step  Rect
 }
 
-func Build(centreX, top float32, withStep bool) Layout {
+func Build(st *Panel.Stack, withStep bool) Layout {
 	contentW := float32(TrackW)
 	contentH := float32(TrackH + TrackTickGap + TickH)
 	var stepW float32
@@ -52,9 +52,7 @@ func Build(centreX, top float32, withStep bool) Layout {
 		stepW = Panel.TextWidth(StepLabel, StepFontPx) + 2*StepPadX
 		contentW += StepGap + stepW
 	}
-	box := Rect{W: contentW + 2*Panel.PadX, H: contentH + 2*Panel.PadY, Y: top}
-	box.X = centreX - box.W/2
-	x, y := box.X+Panel.PadX, box.Y+Panel.PadY
+	box, x, y := st.Add(contentW, contentH)
 
 	lay := Layout{
 		Box:   box,

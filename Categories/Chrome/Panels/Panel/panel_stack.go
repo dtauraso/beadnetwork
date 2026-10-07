@@ -21,7 +21,9 @@ type Stack struct {
 	viewH float32
 }
 
-func New(viewH float32) *Stack { return &Stack{y: OriginY, viewH: viewH} }
+func New(viewH float32) *Stack { return NewAt(OriginY, viewH) }
+
+func NewAt(top, viewH float32) *Stack { return &Stack{y: top, viewH: viewH} }
 
 func (s *Stack) RoomBelow(y float32) float32 { return RoomBelow(s.viewH, y, Gap) }
 
