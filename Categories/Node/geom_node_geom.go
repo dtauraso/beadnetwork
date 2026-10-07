@@ -22,6 +22,9 @@ type NodeGeom struct {
 	BaseIndex polarindex.Index
 	DragIndex polarindex.Offset
 	HasPos    bool
+
+	Placed    Vec3
+	HasPlaced bool
 }
 
 func ComposedIndexOf(g NodeGeom) polarindex.Index {
@@ -51,6 +54,9 @@ func NodeRadius(kind string) float64 {
 func NodeWorldPos(g NodeGeom) Vec3 {
 	if !g.HasPos {
 		return Vec3{}
+	}
+	if g.HasPlaced {
+		return g.Placed
 	}
 	return g.SceneCenter.Add(Vec3(polar.Polar2cart(ScenePolarOf(g))))
 }

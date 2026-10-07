@@ -1,6 +1,9 @@
 package Node
 
-import "github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
+import (
+	"github.com/dtauraso/beadnetwork/Categories/Vectors/polar"
+	"github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
+)
 
 type TiltIndexPost struct {
 	Theta int32
@@ -26,7 +29,7 @@ type KindPost struct {
 	Rounds      *RoundsPost
 	Lattice     *int32
 	Ticks       *int32
-	Starts      *[]polarindex.Offset
+	Starts      *[]polar.Polar
 	Leads       *[]Lead
 	Center      *polarindex.Index
 	FromPartner *PartnerVectorPost
@@ -91,7 +94,7 @@ func (k *KindPosts) PostLatticePoints(points int32) {
 	k.post(func(p *KindPost) { p.Lattice = &points })
 }
 
-func (k *KindPosts) PostStartVectors(v []polarindex.Offset) {
+func (k *KindPosts) PostStartVectors(v []polar.Polar) {
 	k.post(func(p *KindPost) { p.Starts = &v })
 }
 

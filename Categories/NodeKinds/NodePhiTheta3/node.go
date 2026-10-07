@@ -45,7 +45,7 @@ type NodePhiTheta3 struct {
 	S    int
 	M    int
 
-	stepsPerR float64
+	nodeR float64
 
 	arrival [nodeCount]Vec
 	started bool
@@ -197,7 +197,7 @@ var Builder = BuilderFor("NodePhiTheta3",
 		n.Card = CardPanel.CardFromState(me, a.State())
 		n.S = a.S()
 		n.M = a.M()
-		n.stepsPerR = NodeCat.NodeRadius(n.geom.Kind()) / n.geom.Constants().ConstantR
+		n.nodeR = NodeCat.NodeRadius(n.geom.Kind())
 
 		n.breadcrumb("built", fmt.Sprintf("node=%d partners=%v s=%d card=%+v", me, n.Partners, n.S, n.Card))
 

@@ -66,19 +66,22 @@ any one still outstanding, so a cycle of three cannot deadlock.
 ## Local to global
 
 The card stops at its local numbers; placing them is conversion. Each node's `start_j` is a
-vector from its centre, `[φ·T/12s, θ·T/12s, r·ρ]`: φ and θ count spokes (one spoke is 1/(12s)
-of a turn, T is the whole turn in index steps, and T/12s is a whole number), r is in node radii
-(ρ is the node radius in radial index steps) and is rounded to a whole step. It is drawn as an arrow with that
-conversion, so r = 1 reaches the ring.
+vector from its centre: φ and θ count spokes, each `T/12s` index steps (one spoke is 1/(12s) of
+a turn, T is the whole turn in index steps, and T/12s is a whole number), and r is a length in
+node radii, `r · node radius`, not rounded. It is drawn as an arrow from the node's centre to its
+exact tip, so r = 1 reaches the ring.
 
-Chaining: when node n's `k_j = 1`, node j starts at the tip of n's `start_j` — n's centre plus
-that vector, measured back against the scene centre into j's index. n's geometry goroutine sends
-that tip to j's geometry goroutine on the placement channel for the pair n → j — one buffered
-channel per ordered pair, made by this kind beside the card's link channels, so every placement
-is delivered and none passes through the dispatcher or a pointer-drag slot. j places itself there
-and tells its edge neighbours how far it moved. n sends when n starts, whenever n's start, k or s
-changes, and whenever n itself moves — so a move passes down a chain of k links, node by node.
-When `k_j` goes back to 0, n sends j a release and j stays where it was put.
+Chaining: when node n's `k_j = 1`, node j starts at the exact tip of n's `start_j` — n's centre
+plus that vector. n's geometry goroutine sends that tip to j's geometry goroutine on the
+placement channel for the pair n → j — one buffered channel per ordered pair, made by this kind
+beside the card's link channels, so every placement is delivered and none passes through the
+dispatcher or a pointer-drag slot. j's centre is the exact tip, and j's own arrows start there, so
+a chain's shape is its local vectors alone. The tip measured against the scene centre and rounded
+to the scene's index is kept beside it for what counts in index steps — the vectors to edge
+neighbours and the move they are told — and is never read back into the chain. n sends when n
+starts, whenever n's start, k or s changes, and whenever n itself moves — so a move passes down a
+chain of k links, node by node. When `k_j` goes back to 0, n sends j a release; once no partner
+places j, j's centre is its index again. A pointer drag of j also makes its index its centre.
 
 j keeps the latest tip from each partner sending to it. With one sender, j goes to that tip. With
 two, j's own k picks, as pick_one does: j takes the tip from the partner its single `k = 1` names,
