@@ -51,8 +51,9 @@ every node back at round 0, so the next round sends `start_j` again.
 
 ## One node
 
-1. `local_arrival_j ← link j` for each partner j. The first round sends `start_j` on link j;
-   every later round sends `[k_j · local_arrival_j]`. A link with `L_j = 0` arrives as 0.
+1. `local_arrival_j ← link j` for each partner j. The first round sends `[k_j · start_j]` on
+   link j; every later round sends `[k_j · local_arrival_j]`, so a link with `k_j = 0` always
+   carries 0. A link with `L_j = 0` arrives as 0.
 2. `local_arrival₁ = local_arrival₂ = pick_one(k₁, k₂, local_arrival₁, local_arrival₂)`.
 3. For each link, with that link's `pole_offset_j`:
    `local_arrival_j = dir_down(·, 0, 3s) + dir_up(·, 3s, 6s) + dir_down(·, 6s, 9s) + dir_up(·, 9s, 12s)`.
@@ -68,8 +69,9 @@ any one still outstanding, so a cycle of three cannot deadlock.
 The card stops at its local numbers; placing them is conversion. Each node's `start_j` is a
 vector from its centre: φ and θ count spokes, each `T/12s` index steps (one spoke is 1/(12s) of
 a turn, T is the whole turn in index steps, and T/12s is a whole number), and r is a length in
-node radii, `r · node radius`, not rounded. It is drawn as an arrow from the node's centre to its
-exact tip, so r = 1 reaches the ring.
+node radii, `r · node radius`, not rounded. `k_j · start_j` is drawn as an arrow from the node's
+centre to its exact tip, so r = 1 reaches the ring; a `start_j` with `k_j = 0` is the zero vector
+and draws nothing, while its value stays on the panel.
 
 Chaining: when node n's `k_j = 1`, node j starts at the exact tip of n's `start_j` — n's centre
 plus that vector. n's geometry goroutine sends that tip to j's geometry goroutine on the
