@@ -4,16 +4,18 @@ import (
 	"fmt"
 	"slices"
 
+	"github.com/dtauraso/beadnetwork/Categories/Vectors/polar"
 	"github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
 )
 
 type Lead struct {
 	TargetID string
-	Vec      polarindex.Offset
+	Vec      polar.Polar
 }
 
 type Placement struct {
 	From    string
+	At      Vec3
 	Target  polarindex.Index
 	Path    []string
 	Release bool
@@ -21,9 +23,10 @@ type Placement struct {
 
 type Leads struct {
 	leads    []Lead
-	from     polarindex.Index
+	from     Vec3
 	sent     bool
 	path     []string
+	placing  *Vec3
 	incoming map[string]Placement
 	out      map[string]chan<- Placement
 	in       []<-chan Placement
@@ -46,29 +49,46 @@ func (g *NodeGeometry) applyLeads(leads []Lead) {
 	}
 	l.leads = leads
 	g.resolvePlacement()
-	g.sendLeads(g.ComposedIndex())
+	g.sendLeads()
 }
 
-func (g *NodeGeometry) leadsOnMove(at polarindex.Index) {
-	l := &g.msg.leads
-	if l.sent && at == l.from {
+func (g *NodeGeometry) setPlaced() {
+	if p := g.msg.leads.placing; p != nil {
+		g.geom.Placed, g.geom.HasPlaced = *p, true
 		return
 	}
-	g.sendLeads(at)
+	g.geom.HasPlaced = false
 }
 
-func (g *NodeGeometry) sendLeads(at polarindex.Index) {
+func (g *NodeGeometry) unplace() {
+	g.geom.HasPlaced = false
+	g.msg.PublishCenter(Vec3(NodeWorldPos(g.geom)))
+	g.emitGeometry()
+	g.leadsOnMove()
+}
+
+func (g *NodeGeometry) leadsOnMove() {
 	l := &g.msg.leads
-	l.from, l.sent = at, true
-	path := append(slices.Clone(l.path), g.id)
+	if l.sent && NodeWorldPos(g.geom) == l.from {
+		return
+	}
+	g.sendLeads()
+}
+
+func (g *NodeGeometry) sendLeads() {
+	l := &g.msg.leads
 	center := NodeWorldPos(g.geom)
+	l.from, l.sent = center, true
+	path := append(slices.Clone(l.path), g.id)
 	for _, ld := range l.leads {
 		if slices.Contains(path, ld.TargetID) {
 			continue
 		}
+		tip := TipPoint(center, ld.Vec)
 		g.sendPlacement(Placement{
 			From:   g.id,
-			Target: TipIndex(center, g.SceneCenter(), ld.Vec, g.Constants()),
+			At:     tip,
+			Target: TipIndex(tip, g.SceneCenter(), g.Constants()),
 			Path:   path,
 		}, ld.TargetID)
 	}
@@ -131,15 +151,18 @@ func (g *NodeGeometry) pickPlacement() (Placement, bool) {
 }
 
 func (g *NodeGeometry) resolvePlacement() {
+	l := &g.msg.leads
 	p, ok := g.pickPlacement()
 	if !ok {
+		if len(l.incoming) == 0 && g.geom.HasPlaced {
+			g.unplace()
+		}
 		return
 	}
-	l := &g.msg.leads
-	if p.Target == g.ComposedIndex() {
+	if g.geom.HasPlaced && g.geom.Placed == p.At {
 		return
 	}
-	l.path = p.Path
+	l.path, l.placing = p.Path, &p.At
 	g.msg.ApplyDerived(g.id, p.Target)
-	l.path = nil
+	l.path, l.placing = nil, nil
 }

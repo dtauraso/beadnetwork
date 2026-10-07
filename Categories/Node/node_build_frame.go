@@ -4,7 +4,7 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/PolarRulesPanel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/TiltPanel"
 	"github.com/dtauraso/beadnetwork/Categories/Node/ChannelVectors"
-	"github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
+	"github.com/dtauraso/beadnetwork/Categories/Vectors/polar"
 	"math"
 )
 
@@ -48,7 +48,7 @@ type FrameInputs struct {
 
 	TickCount int32
 
-	StartVectors []polarindex.Offset
+	StartVectors []polar.Polar
 }
 
 func BuildFrame(in FrameInputs) NodeFrameInput {
