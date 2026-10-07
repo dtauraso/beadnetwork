@@ -82,7 +82,7 @@ never a second stored continuous copy.** `drag/`
 `drag/` and `drag/edges/<label>/` are GITIGNORED and are the only files a drag
 writes; both hold exactly that one triple (the offset from `base/`'s own
 `indexPhi`/`indexTheta`/`indexR`, e.g. a base `indexR` of 25 plus a 4-step drag stores `iR:
-4`, not 29). There is no `dragPolarR`/`dragPolarPhi`/`dragPolarTheta` field anywhere in
+4`, not 29), plus its turn (`turn-phi`/`-theta`, rescaled at load by `applySceneTurn`). There is no `dragPolarR`/`dragPolarPhi`/`dragPolarTheta` field anywhere in
 either file — `polarindex.ToPolar(idx, sc)` is the ONLY place the multiply happens, and it
 runs at load and at the moment a drag is measured, never stored as its own field. A
 sub-step drag rounds to the nearest index (`polarindex.MeasureScalar`) and a drag that
