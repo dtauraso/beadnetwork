@@ -67,31 +67,31 @@ func ArrowMatrices(center Vec3, length, phi float64, received bool) TiltArrow {
 	if received {
 		kind = ArrowReceived
 	}
-	return arrowAlong(center, axis, length, kind)
+	return arrowAlong(center, axis, length, length, kind)
 }
 
-func ArrowBetween(from, to Vec3, kind uint8) (TiltArrow, bool) {
+func ArrowBetween(from, to Vec3, size float64, kind uint8) (TiltArrow, bool) {
 	d := to.Sub(from)
 	length := d.Length()
 	if length < 1e-9 {
 		return TiltArrow{}, false
 	}
-	return arrowAlong(from, d.Normalize(), length, kind), true
+	return arrowAlong(from, d.Normalize(), length, size, kind), true
 }
 
-func arrowAlong(center, axis Vec3, length float64, kind uint8) TiltArrow {
+func arrowAlong(center, axis Vec3, length, size float64, kind uint8) TiltArrow {
 	up := Vec3{X: 0, Y: 1, Z: 0}
 	bx, by, bz := axisBasisFrom(up, axis)
 
-	shaftLen := length * (1 - arrowHeadLenFrac)
+	headLen := min(size*arrowHeadLenFrac, length)
+	shaftLen := length - headLen
 	shaftCenter := center.Add(axis.Scale(shaftLen / 2))
 	shaft := composeColumnMajor(bx, by, bz, shaftCenter,
-		length*arrowShaftRadiusFrac, shaftLen, length*arrowShaftRadiusFrac)
+		size*arrowShaftRadiusFrac, shaftLen, size*arrowShaftRadiusFrac)
 
-	headLen := length * arrowHeadLenFrac
 	headCenter := center.Add(axis.Scale(length - headLen/2))
 	head := composeColumnMajor(bx, by, bz, headCenter,
-		length*arrowHeadRadiusFrac, headLen, length*arrowHeadRadiusFrac)
+		size*arrowHeadRadiusFrac, headLen, size*arrowHeadRadiusFrac)
 
 	return TiltArrow{Received: kind, Shaft: shaft, Head: head}
 }
