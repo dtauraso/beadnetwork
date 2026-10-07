@@ -64,10 +64,16 @@ func LayoutOf(in Of) Layout {
 	}
 
 	fit := pills.AddChip(FitButton.FitLabel)
+	tabs := Tabs.Build(float32(in.ViewW), in.Tabs.Names, in.Tabs.Selected)
+	speedTop := float32(Tabs.Top)
+	if tabs.Strip.H > 0 {
+		speedTop = tabs.Strip.Y + tabs.Strip.H + Panel.Gap
+	}
 
 	lay := Layout{
 		Fit:   fit,
-		Speed: SliderPanel.Build(st),
+		Tabs:  tabs,
+		Speed: SliderPanel.Build(float32(in.ViewW)/2, speedTop, len(in.Card.Nodes) > 0),
 		Tilt:  TiltPanel.Build(st, in.Tilt.Rows, in.Tilt.Labels),
 		Rules: PolarRulesPanel.Build(st, Panel.PanelOpen["nodeRules"](in.Panels), in.Rules),
 	}
@@ -75,6 +81,5 @@ func LayoutOf(in Of) Layout {
 	lay.Nodes = NodesDropdown.Build(pills, in.Nodes.Open && in.SceneEditable, NodesDropdown.PaletteKinds(in.SceneKinds, in.SceneEditable, in.Nodes.RowOpen))
 	lay.Card = CardPanel.Build(pills, in.Card)
 	lay.Overlays = Pills.Build(pills, in.Overlays, in.Panels, in.PillsBar.Scroll)
-	lay.Tabs = Tabs.Build(float32(in.ViewW), in.Tabs.Names, in.Tabs.Selected)
 	return lay
 }

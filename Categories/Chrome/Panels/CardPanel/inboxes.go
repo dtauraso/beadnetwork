@@ -4,11 +4,12 @@ import "context"
 
 type Inbox struct {
 	Edits chan EditMsg
+	Steps chan struct{}
 	Wake  chan struct{}
 }
 
 func NewInbox(depth int) Inbox {
-	return Inbox{Edits: make(chan EditMsg, depth), Wake: make(chan struct{}, 1)}
+	return Inbox{Edits: make(chan EditMsg, depth), Steps: make(chan struct{}, depth), Wake: make(chan struct{}, 1)}
 }
 
 type Inboxes struct {
@@ -32,15 +33,29 @@ func (ib *Inboxes) Send(ctx context.Context, id string, msg EditMsg) bool {
 	case <-ctx.Done():
 		return true
 	}
-	select {
-	case in.Wake <- struct{}{}:
-	default:
-	}
+	wake(in)
 	return true
 }
 
 func (ib *Inboxes) Broadcast(ctx context.Context, msg EditMsg) {
 	for id := range ib.in {
 		ib.Send(ctx, id, msg)
+	}
+}
+
+func (ib *Inboxes) Step() {
+	for _, in := range ib.in {
+		select {
+		case in.Steps <- struct{}{}:
+		default:
+		}
+		wake(in)
+	}
+}
+
+func wake(in Inbox) {
+	select {
+	case in.Wake <- struct{}{}:
+	default:
 	}
 }

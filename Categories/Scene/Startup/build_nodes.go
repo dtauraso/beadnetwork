@@ -46,6 +46,7 @@ func BuildNodes(
 			return panelToNodeCardInbox
 		},
 		CardS: md.UI.Card.S,
+		CardM: md.UI.Card.M,
 		ClaimSelfDriveGeom: func(name string) any {
 			ng, ok := md.MR.NodeGeoms()[name]
 			if !ok {

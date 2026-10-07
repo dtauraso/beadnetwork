@@ -14,6 +14,8 @@ type BuildDeps struct {
 	ClaimCardEditIn func(name string) any
 
 	CardS int
+
+	CardM int
 }
 
 func (d BuildDeps) LatticePointsSeed() int32 { return d.LatticePoints }
@@ -40,6 +42,8 @@ func (d BuildDeps) CardEditChan(name string) any {
 }
 
 func (d BuildDeps) CardSSeed() int { return d.CardS }
+
+func (d BuildDeps) CardMSeed() int { return d.CardM }
 
 func (d BuildDeps) SelfDriveGeom(name string) any {
 	if d.ClaimSelfDriveGeom == nil {

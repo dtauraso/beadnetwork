@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 )
 
-func WriteCardS(path string, s int32) error {
-	b := binary.LittleEndian.AppendUint32(nil, uint32(s))
+func WriteCardScalar(path string, v int32) error {
+	b := binary.LittleEndian.AppendUint32(nil, uint32(v))
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 		return err
 	}
@@ -19,18 +19,18 @@ func WriteCardS(path string, s int32) error {
 	return os.Rename(tmp, path)
 }
 
-func LoadCardS(path string) int {
+func LoadCardScalar(path string, def int) int {
 	raw, err := os.ReadFile(path)
 	if err != nil {
-		return DefaultS
+		return def
 	}
 	if len(raw) != 4 {
-		fmt.Fprintf(os.Stderr, "card s: %s is %d bytes, want 4\n", path, len(raw))
-		return DefaultS
+		fmt.Fprintf(os.Stderr, "card scalar: %s is %d bytes, want 4\n", path, len(raw))
+		return def
 	}
-	s := int(int32(binary.LittleEndian.Uint32(raw)))
-	if s < 1 {
-		return DefaultS
+	v := int(int32(binary.LittleEndian.Uint32(raw)))
+	if v < 1 {
+		return def
 	}
-	return s
+	return v
 }

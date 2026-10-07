@@ -14,7 +14,7 @@ The pair φ, θ 3 tab's node, running the three-node phi theta card
 | 3s | 1 quarter turn φ, 1 quarter turn θ |
 | P | the pole numbers, {0, 6s, 12s} |
 | qt | the quarter turn mark between two pole numbers, qt ∈ {3s, 9s} |
-| m | the jump constant, m ∈ ℤ⁺, m = 1 by default |
+| m | the jump constant, m ∈ ℤ⁺, m = 1 by default (set from the m panel) |
 | L_j | 1 if a link reaches node j, 0 if not |
 | pole_offset_jφ, pole_offset_jθ | ∈ {0, 1s, 2s, 3s} |
 | p | ∈ P |
@@ -29,7 +29,10 @@ Node n holds, for each of its two partners j: `start_j = [φ, θ, r]`,
 in the tab, and each value is its own file: the default under the tracked
 `nodes/<n>/data/state/` (`start-<j>-phi`, `pole-offset-<j>-theta`, `k-<j>`, `l-<j>`, …), and a
 typed edit under the gitignored `nodes/<n>/drag/state/`, which replaces the default at load.
-`s` is scene-wide and lives in the gitignored `view/card-s.bin`.
+`s` and `m` are scene-wide and live in the gitignored `view/card-s.bin` and `view/card-m.bin`.
+
+Rounds run while the speed slider is above 0. The step button beside it runs one round on
+every node, so a paused card can be walked a round at a time.
 
 ## dir_down(local_arrival, p, qt)
 
@@ -69,8 +72,9 @@ conversion, so r = 1 reaches the ring.
 
 Chaining: when node n's `k_j = 1`, node j starts at the tip of n's `start_j` — n's centre plus
 that vector, measured back against the scene centre into j's index. n's geometry goroutine sends
-j a `Drag{Target}` and j moves itself. It is applied when n starts and whenever n's start, k or
-s changes, not every round. When `k_j` goes back to 0, j stays where it was put.
+j a `Drag{Target}` and j moves itself. n sends it when n starts, whenever n's start, k or s
+changes, and whenever n itself moves — so a move passes down a chain of k links, each node
+sending to the next over the move channels. When `k_j` goes back to 0, j stays where it was put.
 
 ## Description
 

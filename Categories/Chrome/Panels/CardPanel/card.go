@@ -9,6 +9,8 @@ const NodeCount = 3
 
 const DefaultS = 30
 
+const DefaultM = 1
+
 type Vector int
 
 const (
@@ -17,7 +19,10 @@ const (
 	VecK
 	VecL
 	VecS
+	VecM
 )
+
+func (v Vector) SceneWide() bool { return v == VecS || v == VecM }
 
 type Comp int
 
@@ -81,7 +86,7 @@ func (c Card) Get(f Field) int {
 	case VecL:
 		return c.L[i]
 	}
-	panic(fmt.Sprintf("CardPanel.Card.Get: vector %d is not a node vector — s is scene-wide and is held beside the cards, not in one", f.Vector))
+	panic(fmt.Sprintf("CardPanel.Card.Get: vector %d is not a node vector — s and m are scene-wide and are held beside the cards, not in one", f.Vector))
 }
 
 func (c *Card) Set(f Field, x int) {
@@ -96,7 +101,7 @@ func (c *Card) Set(f Field, x int) {
 	case VecL:
 		c.L[i] = x
 	default:
-		panic(fmt.Sprintf("CardPanel.Card.Set: vector %d is not a node vector — s is scene-wide and is held beside the cards, not in one", f.Vector))
+		panic(fmt.Sprintf("CardPanel.Card.Set: vector %d is not a node vector — s and m are scene-wide and are held beside the cards, not in one", f.Vector))
 	}
 }
 
@@ -114,7 +119,7 @@ func (f Field) StateKey() string {
 	case VecL:
 		return "l-" + j
 	}
-	panic(fmt.Sprintf("CardPanel.Field.StateKey: vector %d has no per-node state file — s is persisted by the view owner", f.Vector))
+	panic(fmt.Sprintf("CardPanel.Field.StateKey: vector %d has no per-node state file — s and m are persisted by the view owner", f.Vector))
 }
 
 func Partners(node int) [NodeCount - 1]int {
@@ -161,7 +166,7 @@ func Valid(f Field, x int) bool {
 	switch f.Vector {
 	case VecK, VecL:
 		return x == 0 || x == 1
-	case VecS:
+	case VecS, VecM:
 		return x >= 1
 	}
 	return true

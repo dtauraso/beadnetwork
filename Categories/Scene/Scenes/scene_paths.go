@@ -10,6 +10,10 @@ func CardSFilePath(topologyPath string) string {
 	return ViewFilePath(topologyPath, "card-s.bin")
 }
 
+func CardMFilePath(topologyPath string) string {
+	return ViewFilePath(topologyPath, "card-m.bin")
+}
+
 func InputDirPath(topologyPath string) string {
 	return ViewFilePath(topologyPath, "input")
 }

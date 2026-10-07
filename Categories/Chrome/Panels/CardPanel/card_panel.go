@@ -59,6 +59,7 @@ type State struct {
 	Nodes  []int
 	Cards  map[int]Card
 	S      int
+	M      int
 	Edit   Edit
 	Open   bool
 	Scroll float32
@@ -67,8 +68,11 @@ type State struct {
 func (s *State) Arm(sceneRoot string) { s.w = NewValueWriter(sceneRoot) }
 
 func (s State) Value(f Field) int {
-	if f.Vector == VecS {
+	switch f.Vector {
+	case VecS:
 		return s.S
+	case VecM:
+		return s.M
 	}
 	return s.Cards[f.Node].Get(f)
 }
@@ -87,6 +91,8 @@ func keyOf(f Field) string {
 		return "L" + sub(f.J)
 	case VecS:
 		return "s"
+	case VecM:
+		return "m"
 	}
 	return compKeys[f.Comp]
 }
@@ -169,7 +175,7 @@ func Build(pills *Panel.PillStack, s State) Layout {
 		return lay
 	}
 
-	groups := []group{{title: "s", fields: []Field{{Vector: VecS, Comp: CompOne}}}}
+	groups := []group{{title: "s · m", fields: []Field{{Vector: VecS, Comp: CompOne}, {Vector: VecM, Comp: CompOne}}}}
 	for _, node := range s.Nodes {
 		groups = append(groups, groupsOf(node)...)
 	}

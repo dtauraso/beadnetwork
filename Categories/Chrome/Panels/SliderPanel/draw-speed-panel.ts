@@ -1,4 +1,4 @@
-import { drawBox, canvasFont } from "../../canvas-box";
+import { drawBox, canvasFont, roundRect } from "../../canvas-box";
 import { decodeAt } from "../../leaf-text";
 import {
   sliderBytes, sliderF32, sliderF32Run, sliderU32Run, sliderText,
@@ -12,6 +12,9 @@ const TRACK_FILL = "#c8c8c8";
 const THUMB_FILL = "#fff";
 const THUMB_EDGE = "#999";
 const THUMB_R = 6;
+const STEP_FILL = "#f2f2f2";
+const STEP_EDGE = "#bbb";
+const STEP_RADIUS = 4;
 
 function selectedIndex(): number {
   const sel = sliderBytes("selected");
@@ -25,8 +28,31 @@ export function speedPanelKey(): string {
   return [
     sliderF32("boxX"), sliderF32("boxY"),
     sliderF32("boxW"), sliderF32("boxH"),
+    sliderF32("stepX"), sliderF32("stepW"),
     x ? x.length : 0, selectedIndex(),
   ].join(",");
+}
+
+function drawStepButton(c: CanvasRenderingContext2D): void {
+  const w = sliderF32("stepW");
+  const h = sliderF32("stepH");
+  const label = sliderText("stepText");
+  if (w <= 0 || h <= 0 || !label) return;
+  const x = sliderF32("stepX");
+  const y = sliderF32("stepY");
+
+  roundRect(c, x + 0.5, y + 0.5, w - 1, h - 1, STEP_RADIUS);
+  c.fillStyle = STEP_FILL;
+  c.fill();
+  c.strokeStyle = STEP_EDGE;
+  c.lineWidth = 1;
+  c.stroke();
+
+  c.fillStyle = INK;
+  c.font = canvasFont(TICK_FONT_PX);
+  c.textAlign = "center";
+  c.textBaseline = "middle";
+  c.fillText(decodeAt(label, 0, label.length), x + w / 2, y + h / 2);
 }
 
 export function drawSpeedPanel(c: CanvasRenderingContext2D): void {
@@ -56,6 +82,8 @@ export function drawSpeedPanel(c: CanvasRenderingContext2D): void {
 
   c.fillStyle = TRACK_FILL;
   c.fillRect(trackX, trackY, trackW, trackH);
+
+  drawStepButton(c);
 
   let numOff = 0;
   let denOff = 0;
