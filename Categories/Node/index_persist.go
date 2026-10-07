@@ -16,7 +16,8 @@ func (nm *NodeGeometry) writeIndex(off polarindex.Offset) {
 	if nm.persistRoot == "" {
 		return
 	}
-	err := WriteDragIndex(nm.persistRoot, nm.id, off.Phi, off.Theta, off.R, nm.tilt.TopTiltVectorPhiIdx())
+	sc := nm.Constants()
+	err := WriteDragIndex(nm.persistRoot, nm.id, off.Phi, off.Theta, off.R, nm.tilt.TopTiltVectorPhiIdx(), sc.MaxIndexPhi, sc.MaxIndexTheta)
 	if err != nil {
 		LogPersistErr("index_persist", nm.id, err)
 	}

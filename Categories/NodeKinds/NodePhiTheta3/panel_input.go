@@ -6,12 +6,6 @@ import (
 )
 
 func (n *NodePhiTheta3) applyEdit(e CardPanel.EditMsg) {
-	if e.Field.Vector == CardPanel.VecS {
-		n.S = e.Value
-		n.postTicks()
-		n.postStarts()
-		return
-	}
 	if e.Field.Vector == CardPanel.VecM {
 		n.M = e.Value
 		return
