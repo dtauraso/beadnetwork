@@ -2,18 +2,13 @@ package CardPanel
 
 import "strconv"
 
-type Commit struct {
-	Field Field
-	Value int
-}
-
 func StartDraft(e *Edit, f Field) {
 	*e = Edit{Active: true, Field: f}
 }
 
-func Key(e *Edit, key string) (Commit, bool) {
+func Key(e *Edit, key string) (EditMsg, bool) {
 	if !e.Active {
-		return Commit{}, false
+		return EditMsg{}, false
 	}
 	switch key {
 	case "Escape":
@@ -23,9 +18,9 @@ func Key(e *Edit, key string) (Commit, bool) {
 		*e = Edit{}
 		v, err := strconv.Atoi(draft)
 		if err != nil || !Valid(f, v) {
-			return Commit{}, false
+			return EditMsg{}, false
 		}
-		return Commit{Field: f, Value: v}, true
+		return EditMsg{Field: f, Value: v}, true
 	case "Backspace":
 		if len(e.Draft) > 0 {
 			e.Draft = e.Draft[:len(e.Draft)-1]
@@ -39,5 +34,5 @@ func Key(e *Edit, key string) (Commit, bool) {
 			e.Draft += key
 		}
 	}
-	return Commit{}, false
+	return EditMsg{}, false
 }
