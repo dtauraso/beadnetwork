@@ -219,6 +219,7 @@ var Builder = BuilderFor("NodePhiTheta3",
 
 		n.Me = me
 		n.Partners = CardPanel.Partners(me)
+		n.wirePlacement()
 		n.Card = CardPanel.CardFromState(me, a.State())
 		n.S = a.S()
 		n.M = a.M()

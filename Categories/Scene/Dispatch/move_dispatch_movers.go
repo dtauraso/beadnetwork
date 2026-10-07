@@ -33,12 +33,6 @@ func (md *MoveDispatch) buildNodeMovers(geoms map[string]Node.NodeGeom, clk cloc
 			md.Mover.ApplyDerivedNodeMove(md.MR.NodeGeoms(), md.MR.Edges(), ownGeom, idx)
 		}
 		ng.Msg().WireMessaging(resolveDest, md.MR.EnqueueFor(ng), commitLocal, applyDerived)
-		ng.Msg().WireLeads(func(destID string) (Node.Deposit, bool) {
-			if other, ok := md.MR.NodeGeoms()[destID]; ok {
-				return other.Msg().DragDeposit(), true
-			}
-			return nil, false
-		})
 		md.ChannelVectorsOn.ClaimChannelVectorsIn(id, ng.Channels().In())
 		md.MR.NodeGeoms()[id] = ng
 

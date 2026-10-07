@@ -41,8 +41,6 @@ type Drag struct {
 	Target *polarindex.Index
 
 	Delta *polarindex.Offset
-
-	Path []string
 }
 
 func (Drag) moveBody()                    {}
