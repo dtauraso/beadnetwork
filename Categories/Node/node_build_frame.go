@@ -49,6 +49,7 @@ type FrameInputs struct {
 	TickCount int32
 
 	StartVectors []polarindex.Offset
+	StartFrame   Frame
 }
 
 func BuildFrame(in FrameInputs) NodeFrameInput {
@@ -98,7 +99,7 @@ func BuildFrame(in FrameInputs) NodeFrameInput {
 		BodyMatrix:       fg.BodyMatrix,
 		TopTiltVectorLen: float32(fg.TopTiltVectorLen),
 		TopTiltVectorIdx: fg.TopTiltVectorIdx,
-		TiltArrows:       append(fg.TiltArrows, startArrows(in.Geom, fg.Center, in.StartVectors)...),
+		TiltArrows:       append(fg.TiltArrows, startArrows(in.Geom, fg.Center, in.StartFrame, in.StartVectors)...),
 		ChannelVectors:   in.ChannelVectors,
 		TickMarks:        TickMarks(fg.Center, in.Geom.Kind, in.TickCount),
 		Selected:         in.Selected,
