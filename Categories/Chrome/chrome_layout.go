@@ -69,7 +69,7 @@ func LayoutOf(in Of) Layout {
 		Fit:      fit,
 		Speed:    SliderPanel.Build(st),
 		Tilt:     TiltPanel.Build(st, in.Tilt.Rows, in.Tilt.Labels),
-		Card:     CardPanel.Build(st, float32(in.ViewW), in.Card),
+		Card:     CardPanel.Build(float32(in.ViewW), float32(in.ViewH), in.Card),
 		Rules:    PolarRulesPanel.Build(st, Panel.PanelOpen["nodeRules"](in.Panels), in.Rules),
 		Angle:    AngleDropdown.Build(pills, in.Angle.Open, in.LatticePoints, nodes),
 		Nodes:    NodesDropdown.Build(pills, in.Nodes.Open && in.SceneEditable, NodesDropdown.PaletteKinds(in.SceneKinds, in.SceneEditable, in.Nodes.RowOpen)),

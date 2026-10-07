@@ -140,7 +140,7 @@ func groupH() float32 {
 
 func (lay *Layout) place(g group, box Rect, x, y float32) {
 	headH := Panel.LineHeight(TitleFontPx)
-	lay.Panels = append(lay.Panels, PanelBox{Box: box, Title: g.title, Head: Rect{X: x, Y: y, W: box.W - 2*Panel.PadX, H: headH}})
+	lay.Panels = append(lay.Panels, PanelBox{Box: box, Title: g.title, Head: Rect{X: x, Y: y, W: groupW(g), H: headH}})
 	fy := y + headH + TitleGap
 	fh := Panel.LineHeight(ValFontPx) + 2*CellPadY
 	fx := x
@@ -152,43 +152,35 @@ func (lay *Layout) place(g group, box Rect, x, y float32) {
 	}
 }
 
-func Build(st *Panel.Stack, viewW float32, s State) Layout {
+func Build(viewW, viewH float32, s State) Layout {
 	if len(s.Nodes) == 0 {
 		return Layout{}
 	}
 	var lay Layout
 
+	panel := Rect{X: viewW / 2, Y: TopY, W: viewW/2 - Panel.OriginX, H: viewH - TopY - Panel.OriginY}
+	lay.Panels = append(lay.Panels, PanelBox{Box: panel})
+	x0, y0 := panel.X+Panel.PadX, panel.Y+Panel.PadY
+	innerW := panel.W - 2*Panel.PadX
+
 	sGroup := group{title: "s", fields: []Field{{Vector: VecS, Comp: CompOne}}}
-	box, x, y := st.Add(groupW(sGroup), groupH())
-	lay.place(sGroup, box, x, y)
+	lay.place(sGroup, Rect{}, x0, y0)
 
-	cols := make([][]group, len(s.Nodes))
-	widths := make([]float32, len(s.Nodes))
-	var total float32
+	colW := (innerW - float32(len(s.Nodes)-1)*ColGap) / float32(len(s.Nodes))
+	top := y0 + groupH() + Panel.Gap
 	for i, node := range s.Nodes {
-		cols[i] = groupsOf(node)
-		for _, g := range cols[i] {
-			if w := groupW(g); w > widths[i] {
-				widths[i] = w
-			}
+		cx := x0 + float32(i)*(colW+ColGap)
+		cy := top
+		for _, g := range groupsOf(node) {
+			lay.place(g, Rect{}, cx, cy)
+			cy += groupH() + Panel.Gap
 		}
-		total += widths[i] + 2*Panel.PadX
-		if i > 0 {
-			total += ColGap
-		}
-	}
-
-	cx := viewW - Panel.OriginX - total
-	for i := range s.Nodes {
-		cy := float32(TopY)
-		for _, g := range cols[i] {
-			box := Rect{X: cx, Y: cy, W: widths[i] + 2*Panel.PadX, H: groupH() + 2*Panel.PadY}
-			lay.place(g, box, cx+Panel.PadX, cy+Panel.PadY)
-			cy += box.H + Panel.Gap
-		}
-		cx += widths[i] + 2*Panel.PadX + ColGap
 	}
 	return lay
+}
+
+func (l Layout) Covers(x, y float64) bool {
+	return len(l.Panels) > 0 && Panel.HitRect(l.Panels[0].Box, x, y)
 }
 
 func (l Layout) Hit(x, y float64) (Field, bool) {

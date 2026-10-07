@@ -30,6 +30,9 @@ func panelTookPointerDown(
 		applyCardHit(md, f)
 		return true
 	}
+	if pl.Card.Covers(ev.X, ev.Y) {
+		return true
+	}
 
 	if h := pl.Rules.Hit(ev.X, ev.Y); h.Kind != PolarRulesPanel.HitNone {
 		applyRulesHit(ctx, md, h)
