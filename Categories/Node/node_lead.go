@@ -81,7 +81,7 @@ func (g *NodeGeometry) sendLeads() {
 	l.from, l.sent = center, true
 	path := append(slices.Clone(l.path), g.id)
 	for _, ld := range l.leads {
-		if slices.Contains(path, ld.TargetID) {
+		if slices.Contains(path, ld.TargetID) && ld.TargetID != path[0] {
 			continue
 		}
 		tip := TipPoint(center, ld.Vec)
