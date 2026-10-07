@@ -5,8 +5,8 @@
 //
 //  2. "save" — Go persists its OWN authoritative scene state. Bare command, no payload.
 //
-//  3. "raw-input" — a raw pointer/wheel event plus a stateless raycast hit, handed to
-//     the gesture FSM.
+//  3. "raw-input" — a key or delete press, a one-shot command queued in order. A pointer
+//     or wheel event is the current input and crosses as a file, never here.
 //
 // MSG_TYPES_DOC_END
 
@@ -25,6 +25,8 @@ type Handlers struct {
 	ApplyEdit func(op string, entity, attr byte, payload []byte)
 
 	HandleSave func()
+
+	HandleCommand func(ev RawInputMsg)
 }
 
 const (
@@ -110,14 +112,17 @@ func RunStdinReader(ctx context.Context, r io.Reader, h Handlers) {
 					h.ApplyEdit("update", rec[1], rec[2], rec[3:])
 				}
 			case "raw-input":
-				// Raw input is the current input, and it arrives as a file the
-				// gesture goroutine reads when it wakes. A record here means
-				// something is still sending it down the pipe, where it would
-				// queue and replay after the fingers stop.
+				ev, ok := DecodeRawInput(rec)
+				if ok && IsCommandKind(ev.Kind) {
+					if h.HandleCommand != nil {
+						h.HandleCommand(ev)
+					}
+					break
+				}
 				fmt.Fprintf(os.Stderr,
-					"stdin_reader: a raw-input record arrived on stdin, but raw input crosses as %s; "+
-						"the sender was not updated and this event is dropped rather than queued\n",
-					"view/input/current.bin")
+					"stdin_reader: a %q raw-input record arrived on stdin, but only %v cross here; "+
+						"pointer input is the current input and crosses as view/input/<kind>.bin, so the sender was not updated and this event is dropped rather than queued\n",
+					ev.Kind, CommandKinds)
 			case "save":
 				if h.HandleSave != nil {
 					h.HandleSave()

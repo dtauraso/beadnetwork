@@ -1,5 +1,5 @@
 import { logfmt } from "./probe/logfmt";
-import { IN_KIND_RAW_INPUT } from "../../Categories/Scene/Drag/input-defs";
+import { IN_COMMAND_KINDS, IN_EVENT_KINDS, IN_KIND_RAW_INPUT } from "../../Categories/Scene/Drag/input-defs";
 import { writeInputFile } from "./runner/input-file";
 import { resolveScenePath } from "./runner/scene-path";
 import * as fs from "fs";
@@ -72,14 +72,14 @@ async function dispatch(msg: WebviewToHostMsg, ctx: MessageCtx): Promise<void> {
       return;
     case "go-record": {
       if (!runner.isRunning()) return;
-      // Raw input is the CURRENT input, so it goes to the file the gesture
+      // Pointer input is the CURRENT input, so it goes to the file the gesture
       // goroutine reads when it wakes. Sending it down the pipe queued it, and
-      // a queue of input replays history after the fingers stop. Edits and save
-      // are one-shot commands, not state, and stay on stdin.
-      const first = new Uint8Array(msg.record instanceof Uint8Array ? msg.record : new Uint8Array(msg.record))[0];
-      if (first === IN_KIND_RAW_INPUT) {
-        // No fallback to the pipe: Go no longer reads raw input from it, so a
-        // silent fallback would drop every gesture while looking like it works.
+      // a queue of input replays history after the fingers stop. Edits, save,
+      // and a key or delete press are one-shot commands, not state, and go on
+      // stdin: a file holds only the latest, so a repeated key was dropped.
+      const bytes = new Uint8Array(msg.record instanceof Uint8Array ? msg.record : new Uint8Array(msg.record));
+      const eventKind: string | undefined = IN_EVENT_KINDS[bytes[1] ?? -1];
+      if (bytes[0] === IN_KIND_RAW_INPUT && !(IN_COMMAND_KINDS as readonly string[]).includes(eventKind ?? "")) {
         writeInputFile(
           ctx.anchorPath === undefined ? ctx.scenePath : resolveScenePath(ctx.anchorPath),
           msg.record,
