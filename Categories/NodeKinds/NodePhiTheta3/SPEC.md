@@ -62,20 +62,36 @@ The exchange is six unbuffered channels, one per ordered pair. A round is four r
 (send to both partners, receive from both), and the round's select stays willing to perform
 any one still outstanding, so a cycle of three cannot deadlock.
 
-## What the panels do on screen
+## Local to global
 
-- `s`: each node draws 12s tick lines from its centre to its ring. φ and θ in `start_j` count
-  those spokes (one spoke is 1/(12s) of a turn).
-- `start_j`: drawn as a light-violet arrow from node n's centre; r is in node radii, so r = 1
-  reaches the ring.
-- `k_j = 1`: node j is placed at the tip of n's `start_j`, and follows it when that tip moves,
-  including when n is itself placed by another node. Setting it back to 0 leaves j where it is.
-- When both partners have `k = 1` toward node j, j follows the one its own single `k = 1` names,
-  and stays put if its k names neither or both.
-- k links that loop (1 → 2 and 2 → 1) move each node once per change and stop.
-- `m`, `pole_offset_j`, `L`: used in the card's rounds only; they do not move nodes.
-- Every panel value is saved. A position a node was placed at by `k` is not saved; it is placed
-  again from the card when the scene loads.
+The card stops at its local numbers; placing them is conversion. Each node's `start_j` is a
+vector from its centre, `[φ·T/12s, θ·T/12s, r·ρ]`: φ and θ count spokes (one spoke is 1/(12s)
+of a turn, T is the whole turn in index steps), r is in node radii (ρ is the node radius in
+radial index steps), and each is rounded to a whole step. It is drawn as an arrow with that
+conversion, so r = 1 reaches the ring.
+
+Chaining: when node n's `k_j = 1`, node j starts at the tip of n's `start_j` — n's centre plus
+that vector, measured back against the scene centre into j's index. n's geometry goroutine sends
+that tip to j's geometry goroutine on the placement channel for the pair n → j — one buffered
+channel per ordered pair, made by this kind beside the card's link channels, so every placement
+is delivered and none passes through the dispatcher or a pointer-drag slot. j places itself there
+and tells its edge neighbours how far it moved. n sends when n starts, whenever n's start, k or s
+changes, and whenever n itself moves — so a move passes down a chain of k links, node by node.
+When `k_j` goes back to 0, n sends j a release and j stays where it was put.
+
+j keeps the latest tip from each partner sending to it. With one sender, j goes to that tip. With
+two, j's own k picks, as pick_one does: j takes the tip from the partner its single `k = 1` names,
+and stays put if its k names neither or both.
+
+A placement moves j's centre only. j's own `start` vectors keep their own angles in the same axes
+every node uses.
+
+A card-placed position is not saved: it is the tip of the sender's `start_j`, so it is placed
+again from the card when the scene loads. Only the card's values and pointer drags are saved.
+
+The card checks k only within a node (k₁ ⊕ k₂), so the k links can loop across nodes (1 leads 2,
+2 leads 1). Each move carries the nodes it has passed through, and a node never sends it on to
+one already on that path, so a loop moves each node once and stops instead of running away.
 
 ## Description
 
