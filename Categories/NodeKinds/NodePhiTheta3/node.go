@@ -9,7 +9,6 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/TiltPanel"
 	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
 	NodeCat "github.com/dtauraso/beadnetwork/Categories/Node"
-	"github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
 )
 
 const nodeCount = CardPanel.NodeCount
@@ -150,39 +149,6 @@ func (n *NodePhiTheta3) round(in [nodeCount]Vec) {
 	}
 
 	n.place()
-}
-
-func (n *NodePhiTheta3) parent() (int, bool) {
-	a, b := n.Partners[0], n.Partners[1]
-	switch {
-	case n.Card.K[a-1] == 1 && n.Card.K[b-1] == 0:
-		return a, true
-	case n.Card.K[b-1] == 1 && n.Card.K[a-1] == 0:
-		return b, true
-	}
-	return 0, false
-}
-
-func (n *NodePhiTheta3) place() {
-	j, ok := n.parent()
-	if !ok {
-		return
-	}
-	v := n.arrival[j-1]
-	n.geom.KindPosts().PostVectorFrom(strconv.Itoa(j), polarindex.Offset{Phi: v.Phi * n.S, Theta: v.Theta * n.S, R: v.R})
-}
-
-func (n *NodePhiTheta3) postTicks() {
-	n.geom.KindPosts().PostTicks(int32(poleHigh * n.S))
-}
-
-func (n *NodePhiTheta3) postStarts() {
-	starts := make([]polarindex.Offset, 0, len(n.Partners))
-	for _, j := range n.Partners {
-		v := n.Card.Start[j-1]
-		starts = append(starts, polarindex.Offset{Phi: v.Phi * n.S, Theta: v.Theta * n.S, R: v.R})
-	}
-	n.geom.KindPosts().PostStartVectors(starts)
 }
 
 func (n *NodePhiTheta3) Update(ctx context.Context) {
