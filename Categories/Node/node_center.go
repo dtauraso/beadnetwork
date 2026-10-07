@@ -10,4 +10,6 @@ func (m *NodeGeometry) ApplyCenter(idx polarindex.Index) {
 	m.msg.PublishCenter(Vec3(NodeWorldPos(m.geom)))
 
 	m.emitGeometry()
+
+	m.leadsOnMove(idx)
 }
