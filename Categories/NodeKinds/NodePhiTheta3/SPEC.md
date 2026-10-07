@@ -83,10 +83,9 @@ j keeps the latest tip from each partner sending to it. With one sender, j goes 
 two, j's own k picks, as pick_one does: j takes the tip from the partner its single `k = 1` names,
 and stays put if its k names neither or both.
 
-A placement carries a frame: the sender's frame turned by the direction of the `start_j` that
-made it (φ from the frame's +y, θ around it). j measures its own `start` vectors, and draws them,
-in that frame, so turning a vector swings everything placed after it. `start = [0, 0, r]` on j
-continues straight along the vector that placed it. A node nothing has placed uses world axes.
+A placement moves j's centre only. j's own `start` vectors keep their own angles in the same axes
+every node uses; any turn of them comes from j's own polar settings changing, not from the
+vector that placed it.
 
 A card-placed position is not saved: it is the tip of the sender's `start_j`, so it is placed
 again from the card when the scene loads. Only the card's values and pointer drags are saved.

@@ -15,24 +15,19 @@ type Lead struct {
 type Placement struct {
 	From    string
 	Target  polarindex.Index
-	Frame   Frame
 	Path    []string
 	Release bool
 }
 
 type Leads struct {
-	leads     []Lead
-	from      polarindex.Index
-	fromFrame Frame
-	sent      bool
-	path      []string
-	frame     Frame
-	incoming  map[string]Placement
-	out       map[string]chan<- Placement
-	in        []<-chan Placement
+	leads    []Lead
+	from     polarindex.Index
+	sent     bool
+	path     []string
+	incoming map[string]Placement
+	out      map[string]chan<- Placement
+	in       []<-chan Placement
 }
-
-func (l *Leads) Frame() Frame { return l.frame.orIdentity() }
 
 func (g *NodeGeometry) WirePlacement(out map[string]chan<- Placement, in []<-chan Placement) {
 	g.msg.leads.out, g.msg.leads.in = out, in
@@ -56,7 +51,7 @@ func (g *NodeGeometry) applyLeads(leads []Lead) {
 
 func (g *NodeGeometry) leadsOnMove(at polarindex.Index) {
 	l := &g.msg.leads
-	if l.sent && at == l.from && l.frame == l.fromFrame {
+	if l.sent && at == l.from {
 		return
 	}
 	g.sendLeads(at)
@@ -64,7 +59,7 @@ func (g *NodeGeometry) leadsOnMove(at polarindex.Index) {
 
 func (g *NodeGeometry) sendLeads(at polarindex.Index) {
 	l := &g.msg.leads
-	l.from, l.fromFrame, l.sent = at, l.frame, true
+	l.from, l.sent = at, true
 	path := append(slices.Clone(l.path), g.id)
 	center := NodeWorldPos(g.geom)
 	for _, ld := range l.leads {
@@ -73,8 +68,7 @@ func (g *NodeGeometry) sendLeads(at polarindex.Index) {
 		}
 		g.sendPlacement(Placement{
 			From:   g.id,
-			Target: TipIndex(center, g.SceneCenter(), l.frame, ld.Vec, g.Constants()),
-			Frame:  StartFrameOf(l.frame, ld.Vec, g.Constants()),
+			Target: TipIndex(center, g.SceneCenter(), ld.Vec, g.Constants()),
 			Path:   path,
 		}, ld.TargetID)
 	}
@@ -142,10 +136,10 @@ func (g *NodeGeometry) resolvePlacement() {
 		return
 	}
 	l := &g.msg.leads
-	if p.Target == g.ComposedIndex() && p.Frame == l.frame {
+	if p.Target == g.ComposedIndex() {
 		return
 	}
-	l.frame, l.path = p.Frame, p.Path
+	l.path = p.Path
 	g.msg.ApplyDerived(g.id, p.Target)
 	l.path = nil
 }
