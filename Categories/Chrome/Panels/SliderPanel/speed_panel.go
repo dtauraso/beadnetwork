@@ -33,6 +33,8 @@ const (
 	StepFontPx = 11
 	StepPadX   = 8
 	StepGap    = 10
+
+	ResetLabel = "reset"
 )
 
 type Rect = Panel.Rect
@@ -42,15 +44,17 @@ type Layout struct {
 	Track Rect
 	Ticks []Rect
 	Step  Rect
+	Reset Rect
 }
 
 func Build(st *Panel.Stack, withStep bool) Layout {
 	contentW := float32(TrackW)
 	contentH := float32(TrackH + TrackTickGap + TickH)
-	var stepW float32
+	var stepW, resetW float32
 	if withStep {
 		stepW = Panel.TextWidth(StepLabel, StepFontPx) + 2*StepPadX
-		contentW += StepGap + stepW
+		resetW = Panel.TextWidth(ResetLabel, StepFontPx) + 2*StepPadX
+		contentW += StepGap + stepW + StepGap + resetW
 	}
 	box, x, y := st.Add(contentW, contentH)
 
@@ -61,6 +65,7 @@ func Build(st *Panel.Stack, withStep bool) Layout {
 	}
 	if withStep {
 		lay.Step = Rect{X: x + TrackW + StepGap, Y: y, W: stepW, H: contentH}
+		lay.Reset = Rect{X: lay.Step.X + stepW + StepGap, Y: y, W: resetW, H: contentH}
 	}
 
 	span := float64(TrackW - 2*ThumbInset)
@@ -95,6 +100,10 @@ func SelectedIndex(speed float64) int {
 
 func (l Layout) HitStep(x, y float64) bool {
 	return l.Step.W > 0 && Panel.HitRect(l.Step, x, y)
+}
+
+func (l Layout) HitReset(x, y float64) bool {
+	return l.Reset.W > 0 && Panel.HitRect(l.Reset, x, y)
 }
 
 func (l Layout) Hit(x, y float64) int {

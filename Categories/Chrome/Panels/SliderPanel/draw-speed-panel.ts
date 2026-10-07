@@ -29,17 +29,24 @@ export function speedPanelKey(): string {
     sliderF32("boxX"), sliderF32("boxY"),
     sliderF32("boxW"), sliderF32("boxH"),
     sliderF32("stepX"), sliderF32("stepW"),
+    sliderF32("resetX"), sliderF32("resetW"),
     x ? x.length : 0, selectedIndex(),
   ].join(",");
 }
 
-function drawStepButton(c: CanvasRenderingContext2D): void {
-  const w = sliderF32("stepW");
-  const h = sliderF32("stepH");
-  const label = sliderText("stepText");
+const STEP_BUTTON = { x: "stepX", y: "stepY", w: "stepW", h: "stepH", text: "stepText" } as const;
+const RESET_BUTTON = { x: "resetX", y: "resetY", w: "resetW", h: "resetH", text: "resetText" } as const;
+
+function drawButton(
+  c: CanvasRenderingContext2D,
+  b: typeof STEP_BUTTON | typeof RESET_BUTTON,
+): void {
+  const w = sliderF32(b.w);
+  const h = sliderF32(b.h);
+  const label = sliderText(b.text);
   if (w <= 0 || h <= 0 || !label) return;
-  const x = sliderF32("stepX");
-  const y = sliderF32("stepY");
+  const x = sliderF32(b.x);
+  const y = sliderF32(b.y);
 
   roundRect(c, x + 0.5, y + 0.5, w - 1, h - 1, STEP_RADIUS);
   c.fillStyle = STEP_FILL;
@@ -83,7 +90,8 @@ export function drawSpeedPanel(c: CanvasRenderingContext2D): void {
   c.fillStyle = TRACK_FILL;
   c.fillRect(trackX, trackY, trackW, trackH);
 
-  drawStepButton(c);
+  drawButton(c, STEP_BUTTON);
+  drawButton(c, RESET_BUTTON);
 
   let numOff = 0;
   let denOff = 0;

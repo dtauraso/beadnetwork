@@ -3,13 +3,14 @@ package CardPanel
 import "context"
 
 type Inbox struct {
-	Edits chan EditMsg
-	Steps chan struct{}
-	Wake  chan struct{}
+	Edits  chan EditMsg
+	Steps  chan struct{}
+	Resets chan struct{}
+	Wake   chan struct{}
 }
 
 func NewInbox(depth int) Inbox {
-	return Inbox{Edits: make(chan EditMsg, depth), Steps: make(chan struct{}, depth), Wake: make(chan struct{}, 1)}
+	return Inbox{Edits: make(chan EditMsg, depth), Steps: make(chan struct{}, depth), Resets: make(chan struct{}, 1), Wake: make(chan struct{}, 1)}
 }
 
 type Inboxes struct {
@@ -47,6 +48,16 @@ func (ib *Inboxes) Step() {
 	for _, in := range ib.in {
 		select {
 		case in.Steps <- struct{}{}:
+		default:
+		}
+		wake(in)
+	}
+}
+
+func (ib *Inboxes) Reset() {
+	for _, in := range ib.in {
+		select {
+		case in.Resets <- struct{}{}:
 		default:
 		}
 		wake(in)

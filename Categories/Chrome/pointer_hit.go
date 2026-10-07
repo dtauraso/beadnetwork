@@ -28,6 +28,9 @@ func TargetAt(pl Layout, x, y float64) Panels.PointerTarget {
 	if pl.Speed.HitStep(x, y) {
 		return Panels.PointerTarget{Rect: pl.Speed.Step, Kind: Panels.PointerInteractive, Tip: "Run one round"}
 	}
+	if pl.Speed.HitReset(x, y) {
+		return Panels.PointerTarget{Rect: pl.Speed.Reset, Kind: Panels.PointerInteractive, Tip: "Back to round 0"}
+	}
 	if i := pl.Speed.Hit(x, y); i >= 0 && i < len(pl.Speed.Ticks) {
 		return Panels.PointerTarget{Rect: pl.Speed.Ticks[i], Kind: Panels.PointerInteractive}
 	}
