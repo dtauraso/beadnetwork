@@ -72,9 +72,15 @@ conversion, so r = 1 reaches the ring.
 
 Chaining: when node n's `k_j = 1`, node j starts at the tip of n's `start_j` — n's centre plus
 that vector, measured back against the scene centre into j's index. n's geometry goroutine sends
-j a `Drag{Target}` and j moves itself. n sends it when n starts, whenever n's start, k or s
-changes, and whenever n itself moves — so a move passes down a chain of k links, each node
-sending to the next over the move channels. When `k_j` goes back to 0, j stays where it was put.
+that tip to j's geometry goroutine on the placement channel for the pair n → j — one buffered
+channel per ordered pair, made by this kind beside the card's link channels, so every placement
+is delivered and none passes through the dispatcher or a pointer-drag slot. j places itself there
+and tells its edge neighbours how far it moved. n sends when n starts, whenever n's start, k or s
+changes, and whenever n itself moves — so a move passes down a chain of k links, node by node.
+When `k_j` goes back to 0, j stays where it was put.
+
+A card-placed position is not saved: it is the tip of the sender's `start_j`, so it is placed
+again from the card when the scene loads. Only the card's values and pointer drags are saved.
 
 The card checks k only within a node (k₁ ⊕ k₂), so the k links can loop across nodes (1 leads 2,
 2 leads 1). Each move carries the nodes it has passed through, and a node never sends it on to

@@ -30,6 +30,7 @@ func (g *NodeGeometry) RunGeometry(ctx context.Context) {
 			}
 		}
 
+		g.drainPlacements()
 		g.applyKindPosts()
 		g.applyKindSteps()
 
