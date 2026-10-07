@@ -35,7 +35,7 @@ type FieldBox struct {
 	Rect  Rect
 }
 
-const PillLabel = "Card"
+const PillLabel = "Node vectors"
 
 type Layout struct {
 	Pill      Rect
