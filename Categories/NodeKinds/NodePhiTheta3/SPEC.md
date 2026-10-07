@@ -17,6 +17,8 @@ The pair φ, θ 3 tab's node, running the three-node phi theta card
 | m | the jump constant, m ∈ ℤ⁺, m = 1 by default (set from the m panel) |
 | L_j | 1 if a link reaches node j, 0 if not |
 | pole_offset_jφ, pole_offset_jθ | ∈ {0, 1s, 2s, 3s}; the panel takes the multiple of s (0, 1, 2 or 3) |
+| start_jφ, start_jθ | a multiple of s; the panel takes the multiple, so 12 on the panel is a full turn whatever s is. r is not an angle and is not scaled |
+| t_jφ, t_jθ | ∈ {0, …, s − 1}, the ticks past start_j; the angle is start_j + t_j ticks. The panel shows `start +t` with ▲▼ arrows that step one tick, carrying into start at s. Changing s sets every t to 0. Each is its own state file, `start-<j>-phi-tick`, `start-<j>-theta-tick` |
 | p | ∈ P |
 | k_j | ∈ {0, 1} |
 | ← | the node receives the vector on a link |

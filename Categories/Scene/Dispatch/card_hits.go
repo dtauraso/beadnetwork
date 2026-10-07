@@ -21,6 +21,18 @@ func applyCardHit(md *MoveDispatch, f CardPanel.Field) {
 	md.UI.EmitViewFrame(nil)
 }
 
+func applyCardStep(ctx context.Context, md *MoveDispatch, f CardPanel.Field, delta int) {
+	card := md.UI.Card.Cards[f.Node]
+	tick := CardPanel.TickOf(f)
+	start, t := CardPanel.Step(card.Get(f), card.Get(tick), md.UI.Card.S, delta)
+	for _, msg := range []CardPanel.EditMsg{{Field: tick, Value: t}, {Field: f, Value: start}} {
+		card.Set(msg.Field, msg.Value)
+		md.CardInboxes.Send(ctx, strconv.Itoa(f.Node), msg)
+	}
+	md.UI.Card.Cards[f.Node] = card
+	md.UI.EmitViewFrame(nil)
+}
+
 func applyCardKey(ctx context.Context, md *MoveDispatch, key string) {
 	msg, ok := CardPanel.Key(&md.UI.Card.Edit, key)
 	sc := md.UI.Constants
@@ -36,6 +48,12 @@ func applyCardKey(ctx context.Context, md *MoveDispatch, key string) {
 				value, persist = &md.UI.Card.M, md.UI.PersistCardM
 			}
 			*value = msg.Value
+			if msg.Field.Vector == CardPanel.VecS {
+				for id, card := range md.UI.Card.Cards {
+					card.Tick = [CardPanel.NodeCount]CardPanel.Vec{}
+					md.UI.Card.Cards[id] = card
+				}
+			}
 			if persist != nil {
 				persist(int32(msg.Value))
 			}

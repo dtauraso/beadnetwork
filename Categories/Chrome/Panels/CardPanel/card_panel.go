@@ -33,6 +33,8 @@ type FieldBox struct {
 	Field Field
 	Key   string
 	Rect  Rect
+	Up    Rect
+	Down  Rect
 }
 
 const PillLabel = "Node vectors"
@@ -129,8 +131,12 @@ func groupsOf(node int) []group {
 	return out
 }
 
-func fieldW(key string) float32 {
-	return Panel.TextWidth(key, KeyFontPx) + CellGapX + Panel.TextWidth(valueField, ValFontPx) + 2*CellPadX
+func fieldW(f Field) float32 {
+	value := valueField
+	if HasTick(f) {
+		value = tickValueField
+	}
+	return Panel.TextWidth(keyOf(f), KeyFontPx) + CellGapX + Panel.TextWidth(value, ValFontPx) + 2*CellPadX
 }
 
 func groupW(g group) float32 {
@@ -139,7 +145,7 @@ func groupW(g group) float32 {
 		if i > 0 {
 			w += FieldGap
 		}
-		w += fieldW(keyOf(f))
+		w += fieldW(f) + stepW(f)
 	}
 	if t := Panel.TextWidth(g.title, TitleFontPx); t > w {
 		return t
@@ -158,10 +164,10 @@ func (lay *Layout) place(g group, box Rect, x, y float32) {
 	fh := Panel.LineHeight(ValFontPx) + 2*CellPadY
 	fx := x
 	for _, f := range g.fields {
-		key := keyOf(f)
-		w := fieldW(key)
-		lay.Fields = append(lay.Fields, FieldBox{Field: f, Key: key, Rect: Rect{X: fx, Y: fy, W: w, H: fh}})
-		fx += w + FieldGap
+		cell := Rect{X: fx, Y: fy, W: fieldW(f), H: fh}
+		up, down := stepArrows(f, cell)
+		lay.Fields = append(lay.Fields, FieldBox{Field: f, Key: keyOf(f), Rect: cell, Up: up, Down: down})
+		fx += cell.W + stepW(f) + FieldGap
 	}
 }
 

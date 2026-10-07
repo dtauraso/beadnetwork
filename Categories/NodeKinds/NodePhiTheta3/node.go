@@ -65,7 +65,7 @@ func (n *NodePhiTheta3) breadcrumb(label, value string) {
 
 func (n *NodePhiTheta3) sendValue(j int) Vec {
 	if !n.started {
-		return scale(n.Card.K[j-1], n.Card.Start[j-1])
+		return n.start(j)
 	}
 	return scale(n.Card.K[j-1], n.arrival[j-1])
 }
@@ -197,6 +197,7 @@ var Builder = BuilderFor("NodePhiTheta3",
 		n.Card = CardPanel.CardFromState(me, a.State())
 		n.S = a.S()
 		n.M = a.M()
+		n.Card.ClampTicks(n.S)
 		n.nodeR = NodeCat.NodeRadius(n.geom.Kind())
 
 		n.breadcrumb("built", fmt.Sprintf("node=%d partners=%v s=%d card=%+v", me, n.Partners, n.S, n.Card))

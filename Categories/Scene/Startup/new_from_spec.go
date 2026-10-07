@@ -78,6 +78,10 @@ func NewFromSpec(spec Topology.TopoSpec, sphere polar.SceneSphere, hasScene bool
 			Scenes.CardSFilePath(scenePath), md.UI.Card.S, sc.MaxIndexPhi, sc.MaxIndexTheta, CardPanel.DefaultS)
 		md.UI.Card.S = CardPanel.DefaultS
 	}
+	for id, card := range md.UI.Card.Cards {
+		card.ClampTicks(md.UI.Card.S)
+		md.UI.Card.Cards[id] = card
+	}
 	md.UI.Card.M = CardPanel.LoadCardScalar(Scenes.CardMFilePath(scenePath), CardPanel.DefaultM)
 
 	md.UI.Rules.Nodes = Topology.RulePanelNodes(spec, func(id string) bool {

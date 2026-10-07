@@ -27,6 +27,7 @@ const (
 	VecL
 	VecS
 	VecM
+	VecTick
 )
 
 func (v Vector) SceneWide() bool { return v == VecS || v == VecM }
@@ -76,6 +77,7 @@ func (v *Vec) set(c Comp, x int) {
 
 type Card struct {
 	Start      [NodeCount]Vec
+	Tick       [NodeCount]Vec
 	PoleOffset [NodeCount]Vec
 	K          [NodeCount]int
 	L          [NodeCount]int
@@ -86,6 +88,8 @@ func (c Card) Get(f Field) int {
 	switch f.Vector {
 	case VecStart:
 		return c.Start[i].get(f.Comp)
+	case VecTick:
+		return c.Tick[i].get(f.Comp)
 	case VecPoleOffset:
 		return c.PoleOffset[i].get(f.Comp)
 	case VecK:
@@ -101,6 +105,8 @@ func (c *Card) Set(f Field, x int) {
 	switch f.Vector {
 	case VecStart:
 		c.Start[i].set(f.Comp, x)
+	case VecTick:
+		c.Tick[i].set(f.Comp, x)
 	case VecPoleOffset:
 		c.PoleOffset[i].set(f.Comp, x)
 	case VecK:
@@ -119,6 +125,8 @@ func (f Field) StateKey() string {
 	switch f.Vector {
 	case VecStart:
 		return "start-" + j + "-" + compNames[f.Comp]
+	case VecTick:
+		return "start-" + j + "-" + compNames[f.Comp] + "-tick"
 	case VecPoleOffset:
 		return "pole-offset-" + j + "-" + compNames[f.Comp]
 	case VecK:
@@ -163,7 +171,7 @@ func NodeFields(node int) []Field {
 
 func CardFromState(node int, state map[string]int) Card {
 	var c Card
-	for _, f := range NodeFields(node) {
+	for _, f := range StateFields(node) {
 		c.Set(f, state[f.StateKey()])
 	}
 	return c

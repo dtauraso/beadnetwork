@@ -16,6 +16,11 @@ func (n *NodePhiTheta3) startVec(v Vec) polar.Polar {
 	return p
 }
 
+func (n *NodePhiTheta3) start(j int) Vec {
+	v, t := n.Card.Start[j-1], n.Card.Tick[j-1]
+	return scale(n.Card.K[j-1], Vec{Phi: v.Phi*n.S + t.Phi, Theta: v.Theta*n.S + t.Theta, R: v.R})
+}
+
 func (n *NodePhiTheta3) spokes(ticks, wholeTurn int) int {
 	perTurn := poleHigh * n.S
 	if wholeTurn%perTurn != 0 {
@@ -34,7 +39,7 @@ func (n *NodePhiTheta3) postStarts() {
 	starts := make([]polar.Polar, 0, len(n.Partners))
 	var leads []NodeCat.Lead
 	for _, j := range n.Partners {
-		vec := n.startVec(scale(n.Card.K[j-1], n.Card.Start[j-1]))
+		vec := n.startVec(n.start(j))
 		starts = append(starts, vec)
 		if n.Card.K[j-1] == 1 {
 			leads = append(leads, NodeCat.Lead{TargetID: strconv.Itoa(j), Vec: vec})

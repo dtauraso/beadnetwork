@@ -28,9 +28,18 @@ export const CARD_PANEL_VALUE_NAMES = [
   "fieldH",
   "keyText",
   "keyLen",
-  "fieldValue",
+  "valueText",
+  "valueLen",
   "fieldEditing",
   "draftText",
+  "upX",
+  "upY",
+  "upW",
+  "upH",
+  "downX",
+  "downY",
+  "downW",
+  "downH",
 ] as const;
 
 export type CardPanelValueName = (typeof CARD_PANEL_VALUE_NAMES)[number];
