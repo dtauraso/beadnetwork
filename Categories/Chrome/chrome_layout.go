@@ -73,7 +73,7 @@ func LayoutOf(in Of) Layout {
 	}
 	lay.Angle = AngleDropdown.Build(pills, in.Angle.Open, in.LatticePoints, nodes)
 	lay.Nodes = NodesDropdown.Build(pills, in.Nodes.Open && in.SceneEditable, NodesDropdown.PaletteKinds(in.SceneKinds, in.SceneEditable, in.Nodes.RowOpen))
-	lay.Card = CardPanel.Build(pills, float32(in.ViewW), float32(in.ViewH), in.Card)
+	lay.Card = CardPanel.Build(pills, in.Card)
 	lay.Overlays = Pills.Build(pills, in.Overlays, in.Panels, in.PillsBar.Scroll)
 	lay.Tabs = Tabs.Build(float32(in.ViewW), in.Tabs.Names, in.Tabs.Selected)
 	return lay

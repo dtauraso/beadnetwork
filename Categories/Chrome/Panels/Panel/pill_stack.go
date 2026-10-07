@@ -105,6 +105,21 @@ func (s *PillStack) AddScrollingPopover(contentH, scroll float32) (box Rect, con
 	return box, box.X + PopoverPad, box.Y + PopoverPad - scroll, maxScroll
 }
 
+func (s *PillStack) AddWideScrollingPopover(contentW, contentH, scroll float32) (box Rect, contentX, contentY, maxScroll float32) {
+	s.y += PopoverGap
+
+	full := contentH + 2*PopoverPad
+	visible, scroll, maxScroll := ClipToRoom(full, RoomBelow(s.viewH, s.y, PopoverPad), scroll)
+
+	w := contentW + 2*PopoverPad
+	if w < s.width {
+		w = s.width
+	}
+	box = Rect{X: s.viewW - PillRight - w, Y: s.y, W: w, H: visible}
+	s.y += box.H
+	return box, box.X + PopoverPad, box.Y + PopoverPad - scroll, maxScroll
+}
+
 func (s *PillStack) EndGroup() { s.y += PillGap }
 
 func RowH() float32 { return LineHeight(PillFontPx) + 2*RowPadY }

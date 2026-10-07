@@ -34,6 +34,8 @@ export function cardPanelKey(): string {
   return [
     cardF32("pillX"), cardF32("pillY"), cardF32("pillW"), cardU8("open"),
     boxX ? Array.from(boxX).join(".") : "",
+    Array.from(cardF32Run("boxH") ?? []).join("."),
+    Array.from(cardF32Run("headY") ?? []).join("."),
     values ? Array.from(values).join(".") : "",
     editFlags.join(""),
     draft ? decodeAt(draft, 0, draft.length) : "",
@@ -80,10 +82,28 @@ export function drawCardPanel(c: CanvasRenderingContext2D): void {
   const titleText = cardText("titleText");
   const titleLen = cardU32Run("titleLen");
   if (!boxX || !boxY || !boxW || !boxH || !headX || !headY || !headH || !titleText || !titleLen) return;
+  if (boxX.length === 0) return;
 
+  drawBox(c, boxX[0]!, boxY[0]!, boxW[0]!, boxH[0]!);
+  c.save();
+  c.beginPath();
+  c.rect(boxX[0]!, boxY[0]!, boxW[0]!, boxH[0]!);
+  c.clip();
+  try {
+    drawContents(c, boxX.length, headX, headY, headH, titleText, titleLen);
+  } finally {
+    c.restore();
+  }
+}
+
+function drawContents(
+  c: CanvasRenderingContext2D,
+  panels: number,
+  headX: Float32Array, headY: Float32Array, headH: Float32Array,
+  titleText: Uint8Array, titleLen: Uint32Array,
+): void {
   let titleOff = 0;
-  for (let i = 0; i < boxX.length; i++) {
-    drawBox(c, boxX[i]!, boxY[i]!, boxW[i]!, boxH[i]!);
+  for (let i = 0; i < panels; i++) {
     const title = decodeAt(titleText, titleOff, titleLen[i]!);
     titleOff += titleLen[i]!;
     c.fillStyle = TITLE_INK;

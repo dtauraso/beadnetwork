@@ -41,8 +41,10 @@ func TargetAt(pl Layout, x, y float64) Panels.PointerTarget {
 	return Panels.PointerTarget{}
 }
 
-func TakeWheel(pl Layout, overlaysScroll, rulesScroll *float32, x, y, deltaY float64, redraw func()) bool {
-
+func TakeWheel(pl Layout, overlaysScroll, rulesScroll, cardScroll *float32, x, y, deltaY float64, redraw func()) bool {
+	if pl.Card.Covers(x, y) {
+		return scrollBy(cardScroll, pl.Card.MaxScroll, deltaY, redraw)
+	}
 	if pl.Overlays.Open && Panel.HitRect(pl.Overlays.Popover, x, y) {
 		return scrollBy(overlaysScroll, pl.Overlays.MaxScroll, deltaY, redraw)
 	}
