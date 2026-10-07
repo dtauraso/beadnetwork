@@ -13,8 +13,6 @@ const (
 	FileIndexTheta = "index-theta.bin"
 	FileIndexR     = "index-r.bin"
 	FileTiltIdx    = "top-tilt-vector-phi-idx.bin"
-	FileTurnPhi    = "turn-phi.bin"
-	FileTurnTheta  = "turn-theta.bin"
 
 	DirDragRule = "drag-rule"
 	DirSelfRule = "self-rule"

@@ -9,8 +9,6 @@ const NodeCount = 3
 
 const DefaultS = 30
 
-const TurnTicks = 12
-
 const DefaultM = 1
 
 type Vector int

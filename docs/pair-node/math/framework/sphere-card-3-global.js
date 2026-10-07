@@ -2,10 +2,9 @@ const SPHERE_CARD_3_GLOBAL_FORMULAS = String.raw`\[
 \begin{array}{@{}l@{\;}c@{\;}l@{}}
 \rlap{\textbf{scene — one sphere every node sits on}} & & \\[3pt]
 O &=& \text{the scene centre, } [O_{x},\, O_{y},\, O_{z}] \\[3pt]
-T_{\text{saved}} &=& \text{the turn the saved positions are written in} \\[3pt]
-T_{\varphi} &=& \operatorname{lcm}(T_{\text{saved}\,\varphi},\, 12s) \text{ index steps in 1 full turn } \varphi \\[3pt]
-T_{\theta} &=& \operatorname{lcm}(T_{\text{saved}\,\theta},\, 12s) \text{ index steps in 1 full turn } \theta \\[3pt]
-I_{\text{loaded}} &=& I_{\text{saved}} \cdot T / T_{\text{saved}} \\[3pt]
+T_{\varphi} &=& \text{index steps in 1 full turn } \varphi \\[3pt]
+T_{\theta} &=& \text{index steps in 1 full turn } \theta \\[3pt]
+s &:& 12s \text{ divides } T_{\varphi} \text{ and } T_{\theta} \text{, so a tick is a whole number of steps} \\[3pt]
 c_{\varphi} &=& 2\pi / T_{\varphi} \\[3pt]
 c_{\theta} &=& 2\pi / T_{\theta} \\[3pt]
 c_{r} &=& \text{the length of 1 radial index step} \\[3pt]
