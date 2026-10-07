@@ -14,8 +14,10 @@ var PanelValueNames = []string{
 	"titleText", "titleLen",
 	"fieldX", "fieldY", "fieldW", "fieldH",
 	"keyText", "keyLen",
-	"fieldValue", "fieldEditing",
+	"valueText", "valueLen", "fieldEditing",
 	"draftText",
+	"upX", "upY", "upW", "upH",
+	"downX", "downY", "downW", "downH",
 }
 
 func ValueRelPath() string { return ValueRelFile }

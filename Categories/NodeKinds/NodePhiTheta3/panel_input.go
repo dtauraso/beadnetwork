@@ -8,6 +8,7 @@ import (
 func (n *NodePhiTheta3) applyEdit(e CardPanel.EditMsg) {
 	if e.Field.Vector == CardPanel.VecS {
 		n.S = e.Value
+		n.clearTicks()
 		n.postTicks()
 		n.postStarts()
 		return
@@ -17,11 +18,22 @@ func (n *NodePhiTheta3) applyEdit(e CardPanel.EditMsg) {
 		return
 	}
 	n.Card.Set(e.Field, e.Value)
-	if e.Field.Vector == CardPanel.VecStart || e.Field.Vector == CardPanel.VecK {
+	if v := e.Field.Vector; v == CardPanel.VecStart || v == CardPanel.VecTick || v == CardPanel.VecK {
 		n.postStarts()
 	}
-	if err := NodeCat.WriteCardState(n.geom.PersistRoot(), n.geom.ID(), e.Field.StateKey(), e.Value); err != nil {
+	n.persist(e.Field, e.Value)
+}
+
+func (n *NodePhiTheta3) persist(f CardPanel.Field, value int) {
+	if err := NodeCat.WriteCardState(n.geom.PersistRoot(), n.geom.ID(), f.StateKey(), value); err != nil {
 		n.breadcrumb("card-persist", err.Error())
+	}
+}
+
+func (n *NodePhiTheta3) clearTicks() {
+	n.Card.Tick = [nodeCount]Vec{}
+	for _, f := range CardPanel.TickFields(n.Me) {
+		n.persist(f, 0)
 	}
 }
 

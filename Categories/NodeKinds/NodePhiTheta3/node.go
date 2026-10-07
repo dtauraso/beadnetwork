@@ -197,6 +197,7 @@ var Builder = BuilderFor("NodePhiTheta3",
 		n.Card = CardPanel.CardFromState(me, a.State())
 		n.S = a.S()
 		n.M = a.M()
+		n.Card.ClampTicks(n.S)
 		n.nodeR = NodeCat.NodeRadius(n.geom.Kind())
 
 		n.breadcrumb("built", fmt.Sprintf("node=%d partners=%v s=%d card=%+v", me, n.Partners, n.S, n.Card))

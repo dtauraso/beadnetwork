@@ -30,6 +30,10 @@ func panelTookPointerDown(
 		toggleCardPanel(md)
 		return true
 	}
+	if f, delta, ok := pl.Card.HitStep(ev.X, ev.Y); ok {
+		applyCardStep(ctx, md, f, delta)
+		return true
+	}
 	if f, ok := pl.Card.Hit(ev.X, ev.Y); ok {
 		applyCardHit(md, f)
 		return true

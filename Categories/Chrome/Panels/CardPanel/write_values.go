@@ -30,12 +30,16 @@ func (s *State) Write(lay Layout) {
 	for _, fb := range lay.Fields {
 		w.Rect("fieldX", "fieldY", "fieldW", "fieldH", fb.Rect)
 		w.Str("keyText", "keyLen", fb.Key)
-		w.I32("fieldValue", int32(s.Value(fb.Field)))
+		w.Str("valueText", "valueLen", s.Shown(fb.Field))
 		editing := uint8(0)
 		if s.Edit.Active && s.Edit.Field == fb.Field {
 			editing = 1
 		}
 		w.U8("fieldEditing", editing)
+		if fb.Up.W > 0 {
+			w.Rect("upX", "upY", "upW", "upH", fb.Up)
+			w.Rect("downX", "downY", "downW", "downH", fb.Down)
+		}
 	}
 	w.Text("draftText", s.Edit.Draft)
 

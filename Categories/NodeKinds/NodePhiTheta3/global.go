@@ -17,8 +17,8 @@ func (n *NodePhiTheta3) startVec(v Vec) polar.Polar {
 }
 
 func (n *NodePhiTheta3) start(j int) Vec {
-	v := n.Card.Start[j-1]
-	return scale(n.Card.K[j-1], Vec{Phi: v.Phi * n.S, Theta: v.Theta * n.S, R: v.R})
+	v, t := n.Card.Start[j-1], n.Card.Tick[j-1]
+	return scale(n.Card.K[j-1], Vec{Phi: v.Phi*n.S + t.Phi, Theta: v.Theta*n.S + t.Theta, R: v.R})
 }
 
 func (n *NodePhiTheta3) spokes(ticks, wholeTurn int) int {

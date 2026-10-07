@@ -1,7 +1,7 @@
 import { drawBox, canvasFont, roundRect } from "../../canvas-box";
 import { decodeAt } from "../../leaf-text";
 import { drawPill } from "../../Pills/pill";
-import { cardBytes, cardF32, cardF32Run, cardI32Run, cardU8, cardU32Run, cardText } from "./panel-leaves";
+import { cardBytes, cardF32, cardF32Run, cardU8, cardU32Run, cardText } from "./panel-leaves";
 
 const TITLE_FONT_PX = 12;
 const TITLE_INK = "#222";
@@ -26,7 +26,7 @@ export function cardDraftOpen(): boolean {
 
 export function cardPanelKey(): string {
   const boxX = cardF32Run("boxX");
-  const values = cardI32Run("fieldValue");
+  const values = cardText("valueText");
   const editing = cardBytes("fieldEditing");
   const draft = cardText("draftText");
   const editFlags: number[] = [];
@@ -36,7 +36,8 @@ export function cardPanelKey(): string {
     boxX ? Array.from(boxX).join(".") : "",
     Array.from(cardF32Run("boxH") ?? []).join("."),
     Array.from(cardF32Run("headY") ?? []).join("."),
-    values ? Array.from(values).join(".") : "",
+    Array.from(cardF32Run("upY") ?? []).join("."),
+    values ? decodeAt(values, 0, values.length) : "",
     editFlags.join(""),
     draft ? decodeAt(draft, 0, draft.length) : "",
   ].join(",");
@@ -119,18 +120,58 @@ function drawContents(
   const fieldH = cardF32Run("fieldH");
   const keyText = cardText("keyText");
   const keyLen = cardU32Run("keyLen");
-  const values = cardI32Run("fieldValue");
+  const valueText = cardText("valueText");
+  const valueLen = cardU32Run("valueLen");
   const editing = cardBytes("fieldEditing");
   const draftBytes = cardText("draftText");
-  if (!fieldX || !fieldY || !fieldW || !fieldH || !keyText || !keyLen || !values || !editing) return;
+  if (!fieldX || !fieldY || !fieldW || !fieldH || !keyText || !keyLen || !valueText || !valueLen || !editing) return;
   const draft = draftBytes ? decodeAt(draftBytes, 0, draftBytes.length) : "";
 
   let keyOff = 0;
+  let valueOff = 0;
   for (let i = 0; i < fieldX.length; i++) {
     const key = decodeAt(keyText, keyOff, keyLen[i]!);
     keyOff += keyLen[i]!;
+    const value = decodeAt(valueText, valueOff, valueLen[i]!);
+    valueOff += valueLen[i]!;
     const isEditing = i < editing.byteLength && editing.getUint8(i) !== 0;
-    const shown = isEditing ? `${draft}_` : String(values[i]!);
+    const shown = isEditing ? `${draft}_` : value;
     drawField(c, fieldX[i]!, fieldY[i]!, fieldW[i]!, fieldH[i]!, key, shown, isEditing);
+  }
+  drawArrows(c, ARROW_UP);
+  drawArrows(c, ARROW_DOWN);
+}
+
+type ArrowRuns = { x: "upX" | "downX"; y: "upY" | "downY"; w: "upW" | "downW"; h: "upH" | "downH"; up: boolean };
+
+const ARROW_UP: ArrowRuns = { x: "upX", y: "upY", w: "upW", h: "upH", up: true };
+const ARROW_DOWN: ArrowRuns = { x: "downX", y: "downY", w: "downW", h: "downH", up: false };
+
+function drawArrows(c: CanvasRenderingContext2D, runs: ArrowRuns): void {
+  const xs = cardF32Run(runs.x);
+  const ys = cardF32Run(runs.y);
+  const ws = cardF32Run(runs.w);
+  const hs = cardF32Run(runs.h);
+  if (!xs || !ys || !ws || !hs) return;
+  for (let i = 0; i < xs.length; i++) {
+    const x = xs[i]!, y = ys[i]!, w = ws[i]!, h = hs[i]!;
+    if (w <= 0 || h <= 0) continue;
+    roundRect(c, x, y + 0.5, w, h - 1, 2);
+    c.fillStyle = CELL_FILL;
+    c.fill();
+    const cx = x + w / 2, cy = y + h / 2, half = Math.min(w, h) * 0.28;
+    c.beginPath();
+    if (runs.up) {
+      c.moveTo(cx - half, cy + half * 0.6);
+      c.lineTo(cx + half, cy + half * 0.6);
+      c.lineTo(cx, cy - half * 0.6);
+    } else {
+      c.moveTo(cx - half, cy - half * 0.6);
+      c.lineTo(cx + half, cy - half * 0.6);
+      c.lineTo(cx, cy + half * 0.6);
+    }
+    c.closePath();
+    c.fillStyle = VAL_INK;
+    c.fill();
   }
 }
