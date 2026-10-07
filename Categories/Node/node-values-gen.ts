@@ -133,6 +133,12 @@ export const NODE_VALUE_NAMES = [
   "channelHeadM13",
   "channelHeadM14",
   "channelHeadM15",
+  "tickX0",
+  "tickY0",
+  "tickZ0",
+  "tickX1",
+  "tickY1",
+  "tickZ1",
 ] as const;
 
 export type NodeValueName = (typeof NODE_VALUE_NAMES)[number];

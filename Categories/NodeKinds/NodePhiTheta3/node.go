@@ -58,6 +58,7 @@ func (n *NodePhiTheta3) breadcrumb(label, value string) {
 func (n *NodePhiTheta3) applyEdit(e CardPanel.EditMsg) {
 	if e.Field.Vector == CardPanel.VecS {
 		n.S = e.Value
+		n.postTicks()
 		return
 	}
 	n.Card.Set(e.Field, e.Value)
@@ -167,10 +168,15 @@ func (n *NodePhiTheta3) place() {
 	n.geom.KindPosts().PostVectorFrom(strconv.Itoa(j), polarindex.Offset{Phi: v.Phi * n.S, Theta: v.Theta * n.S, R: v.R})
 }
 
+func (n *NodePhiTheta3) postTicks() {
+	n.geom.KindPosts().PostTicks(int32(poleHigh * n.S))
+}
+
 func (n *NodePhiTheta3) Update(ctx context.Context) {
 	clk := n.Clock.Copy()
 	clk.SpeedFrom(n.SpeedCh)
 	n.geom.Clocks().Use(clk)
+	n.postTicks()
 
 	for {
 		if ctx.Err() != nil {

@@ -53,5 +53,7 @@ type NodeState struct {
 
 	TiltArrows []TiltB.TiltArrow
 
+	TickMarks []TickMark
+
 	ChannelVectors []VecB.ChannelVector
 }

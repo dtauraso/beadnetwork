@@ -25,6 +25,7 @@ type KindPost struct {
 	Received    *ReceivedVectorPost
 	Rounds      *RoundsPost
 	Lattice     *int32
+	Ticks       *int32
 	Center      *polarindex.Index
 	FromPartner *PartnerVectorPost
 }
@@ -86,6 +87,10 @@ func (k *KindPosts) PostRoundsToParallel(rounds, msgs int32) {
 
 func (k *KindPosts) PostLatticePoints(points int32) {
 	k.post(func(p *KindPost) { p.Lattice = &points })
+}
+
+func (k *KindPosts) PostTicks(count int32) {
+	k.post(func(p *KindPost) { p.Ticks = &count })
 }
 
 func (k *KindPosts) PostCenter(center polarindex.Index) {

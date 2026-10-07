@@ -44,6 +44,8 @@ type FrameInputs struct {
 	RuleGroupSize int32
 
 	ChannelVectors []ChannelVectors.ChannelVector
+
+	TickCount int32
 }
 
 func BuildFrame(in FrameInputs) NodeFrameInput {
@@ -95,6 +97,7 @@ func BuildFrame(in FrameInputs) NodeFrameInput {
 		TopTiltVectorIdx: fg.TopTiltVectorIdx,
 		TiltArrows:       fg.TiltArrows,
 		ChannelVectors:   in.ChannelVectors,
+		TickMarks:        TickMarks(fg.Center, in.Geom.Kind, in.TickCount),
 		Selected:         in.Selected,
 		KindID:           in.KindID,
 		Hovered:          in.Hovered,
