@@ -91,6 +91,9 @@ func (g *NodeGeometry) applyKindPosts() {
 	if p.Lattice != nil {
 		g.tilt.SetLatticePoints(*p.Lattice)
 	}
+	if p.Ticks != nil {
+		g.tickCount = *p.Ticks
+	}
 	if p.Center != nil {
 
 		g.msg.ApplyDerived(g.id, *p.Center)

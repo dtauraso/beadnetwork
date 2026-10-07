@@ -42,6 +42,8 @@ type NodeFrameInput struct {
 
 	ChannelVectors []ChannelVectors.ChannelVector
 
+	TickMarks []TickMark
+
 	Selected, KindID, Hovered, LatchedSel uint8
 
 	LatticePoints uint8

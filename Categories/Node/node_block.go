@@ -13,15 +13,17 @@ func WriteNodeBlock(w *ValueWriter, f NodeState) error {
 	WriteNodeValues(w, f)
 	TiltB.WriteTiltArrowValues(w, f.TiltArrows)
 	VecB.WriteChannelVectorValues(w, f.ChannelVectors)
+	WriteTickValues(w, f.TickMarks)
 	return w.Flush()
 }
 
 var NodeBlockValueNames = blockValueNames()
 
 func blockValueNames() []string {
-	names := make([]string, 0, len(NodeValueNames)+len(TiltB.TiltValueNames)+len(VecB.VectorValueNames))
+	names := make([]string, 0, len(NodeValueNames)+len(TiltB.TiltValueNames)+len(VecB.VectorValueNames)+len(TickValueNames))
 	names = append(names, NodeValueNames...)
 	names = append(names, TiltB.TiltValueNames...)
 	names = append(names, VecB.VectorValueNames...)
+	names = append(names, TickValueNames...)
 	return names
 }

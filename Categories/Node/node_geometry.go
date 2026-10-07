@@ -32,6 +32,8 @@ type NodeGeometry struct {
 
 	tilt TiltVectors.Tilt
 
+	tickCount int32
+
 	channels ChannelVectors.PeerCenters
 
 	readout Readout

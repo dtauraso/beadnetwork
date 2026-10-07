@@ -73,5 +73,7 @@ func (m *NodeGeometry) frameInputs(row int32) FrameInputs {
 		RuleGroupSize: ruleGroupSize,
 
 		ChannelVectors: m.channelVectors(),
+
+		TickCount: m.tickCount,
 	}
 }
