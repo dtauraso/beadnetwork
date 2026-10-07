@@ -15,15 +15,15 @@ m &=& \text{the jump constant} \\[3pt]
 m &\in& \mathbb{Z}^{+} \\[3pt]
 m &=& 1 \text{ by default} \\[3pt]
 L_{j} &=& 1 \text{ if a link reaches node } j \text{, } 0 \text{ if not} \\[3pt]
-\text{prev}_{j} &=& 1 \text{ if node } j \text{ is the previous node, } 0 \text{ if not} \\[3pt]
+\text{prev} &=& \text{the previous node vector} \\[3pt]
 \text{pole_offset}_{j\,\varphi},\, \text{pole_offset}_{j\,\theta} &\in& \{0, 1s, 2s, 3s\} \\[3pt]
 p &\in& P \\[3pt]
 k_{j} &\in& \{0, 1\} \\[3pt]
 \leftarrow &:& \text{the node receives the vector on a link} \\[3pt]
 \rightarrow &:& \text{the node sends the vector on a link} \\[10pt]
 \textbf{node 1} & & \\[3pt]
-\begin{bmatrix} \text{prev}_{1} \\ \text{prev}_{2} \\ \text{prev}_{3} \end{bmatrix}
-  &=& \begin{bmatrix} 0 \\ 0 \\ 1 \end{bmatrix} \\[6pt]
+\begin{bmatrix} \text{prev}_{\varphi} \\ \text{prev}_{\theta} \\ \text{prev}_{r} \end{bmatrix}
+  &=& \begin{bmatrix} 0 \\ 0 \\ 0 \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{start}_{2\,\varphi} \\ \text{start}_{2\,\theta} \\ \text{start}_{2\,r} \end{bmatrix}
   &=& \begin{bmatrix} 0 \\ 0 \\ 0 \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{start}_{3\,\varphi} \\ \text{start}_{3\,\theta} \\ \text{start}_{3\,r} \end{bmatrix}
@@ -37,8 +37,8 @@ k_{j} &\in& \{0, 1\} \\[3pt]
 \begin{bmatrix} L_{1} \\ L_{2} \\ L_{3} \end{bmatrix}
   &=& \begin{bmatrix} 0 \\ 1 \\ 1 \end{bmatrix} \\[10pt]
 \textbf{node 2} & & \\[3pt]
-\begin{bmatrix} \text{prev}_{1} \\ \text{prev}_{2} \\ \text{prev}_{3} \end{bmatrix}
-  &=& \begin{bmatrix} 1 \\ 0 \\ 0 \end{bmatrix} \\[6pt]
+\begin{bmatrix} \text{prev}_{\varphi} \\ \text{prev}_{\theta} \\ \text{prev}_{r} \end{bmatrix}
+  &=& \begin{bmatrix} 0 \\ 0 \\ 0 \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{start}_{1\,\varphi} \\ \text{start}_{1\,\theta} \\ \text{start}_{1\,r} \end{bmatrix}
   &=& \begin{bmatrix} 0 \\ 0 \\ 0 \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{start}_{3\,\varphi} \\ \text{start}_{3\,\theta} \\ \text{start}_{3\,r} \end{bmatrix}
@@ -52,8 +52,8 @@ k_{j} &\in& \{0, 1\} \\[3pt]
 \begin{bmatrix} L_{1} \\ L_{2} \\ L_{3} \end{bmatrix}
   &=& \begin{bmatrix} 1 \\ 0 \\ 1 \end{bmatrix} \\[10pt]
 \textbf{node 3} & & \\[3pt]
-\begin{bmatrix} \text{prev}_{1} \\ \text{prev}_{2} \\ \text{prev}_{3} \end{bmatrix}
-  &=& \begin{bmatrix} 0 \\ 1 \\ 0 \end{bmatrix} \\[6pt]
+\begin{bmatrix} \text{prev}_{\varphi} \\ \text{prev}_{\theta} \\ \text{prev}_{r} \end{bmatrix}
+  &=& \begin{bmatrix} 0 \\ 0 \\ 0 \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{start}_{1\,\varphi} \\ \text{start}_{1\,\theta} \\ \text{start}_{1\,r} \end{bmatrix}
   &=& \begin{bmatrix} 0 \\ 0 \\ 0 \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{start}_{2\,\varphi} \\ \text{start}_{2\,\theta} \\ \text{start}_{2\,r} \end{bmatrix}
@@ -98,7 +98,11 @@ k_{j} &\in& \{0, 1\} \\[3pt]
 \begin{bmatrix} \text{local_arrival}_{1\,\varphi} \\ \text{local_arrival}_{1\,\theta} \end{bmatrix}
   &=& \textbf{pick_one}\left(k_{1},\; k_{2},\; \begin{bmatrix} \text{local_arrival}_{1\,\varphi} \\ \text{local_arrival}_{1\,\theta} \end{bmatrix},\; \begin{bmatrix} \text{local_arrival}_{2\,\varphi} \\ \text{local_arrival}_{2\,\theta} \end{bmatrix}\right) \\[6pt]
 \begin{bmatrix} \text{local_arrival}_{2\,\varphi} \\ \text{local_arrival}_{2\,\theta} \end{bmatrix}
-  &=& \textbf{pick_one}\left(k_{1},\; k_{2},\; \begin{bmatrix} \text{local_arrival}_{1\,\varphi} \\ \text{local_arrival}_{1\,\theta} \end{bmatrix},\; \begin{bmatrix} \text{local_arrival}_{2\,\varphi} \\ \text{local_arrival}_{2\,\theta} \end{bmatrix}\right) \\[10pt]
+  &=& \textbf{pick_one}\left(k_{1},\; k_{2},\; \begin{bmatrix} \text{local_arrival}_{1\,\varphi} \\ \text{local_arrival}_{1\,\theta} \end{bmatrix},\; \begin{bmatrix} \text{local_arrival}_{2\,\varphi} \\ \text{local_arrival}_{2\,\theta} \end{bmatrix}\right) \\[6pt]
+\begin{bmatrix} \text{prev}_{\varphi} \\ \text{prev}_{\theta} \\ \text{prev}_{r} \end{bmatrix}
+  &=& \begin{bmatrix} \text{local_arrival}_{1\,\varphi} + \text{local_arrival}_{2\,\varphi} \\[6pt]
+                      \text{local_arrival}_{1\,\theta} + \text{local_arrival}_{2\,\theta} \\[6pt]
+                      \text{prev}_{r} \end{bmatrix} \\[10pt]
 \begin{bmatrix} \text{local_arrival}_{1}\text{direction}_{0\,\varphi} \\ \text{local_arrival}_{1}\text{direction}_{0\,\theta} \end{bmatrix}
   &=& \textbf{dir_down}\left(\begin{bmatrix} \text{local_arrival}_{1\,\varphi} \\ \text{local_arrival}_{1\,\theta} \end{bmatrix},\; 0,\; 3s\right) \\[6pt]
 \begin{bmatrix} \text{local_arrival}_{1}\text{direction}_{1\,\varphi} \\ \text{local_arrival}_{1}\text{direction}_{1\,\theta} \end{bmatrix}
