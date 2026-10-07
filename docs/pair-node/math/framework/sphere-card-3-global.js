@@ -24,7 +24,8 @@ c_{r} &=& \text{the length of 1 radial index step} \\[3pt]
 \begin{bmatrix} V_{j\,R} \\ V_{j\,\Phi} \\ V_{j\,\Theta} \end{bmatrix}
   &=& \begin{bmatrix} \text{start}_{j\,r} \cdot \rho \\[3pt]
                       \text{start}_{j\,\varphi} \cdot (T_{\varphi} / 12s) \cdot c_{\varphi} \\[3pt]
-                      \text{start}_{j\,\theta} \cdot (T_{\theta} / 12s) \cdot c_{\theta} \end{bmatrix} \\[10pt]
+                      \text{start}_{j\,\theta} \cdot (T_{\theta} / 12s) \cdot c_{\theta} \end{bmatrix}
+      \quad \text{start}_{j\,\varphi},\, \text{start}_{j\,\theta} \text{ in ticks, a multiple of } s \\[10pt]
 \rlap{\textbf{2. the node's centre}} & & \\[3pt]
 C_{n} &=& \text{the exact tip that placed it} \quad \text{if a partner places } n \\[3pt]
 C_{n} &=& O + \textbf{polar_to_cart}\left(\begin{bmatrix} I_{n\,r}\, c_{r} \\ I_{n\,\varphi}\, c_{\varphi} \\ I_{n\,\theta}\, c_{\theta} \end{bmatrix}\right) \quad \text{otherwise} \\[10pt]

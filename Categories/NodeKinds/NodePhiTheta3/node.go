@@ -65,7 +65,7 @@ func (n *NodePhiTheta3) breadcrumb(label, value string) {
 
 func (n *NodePhiTheta3) sendValue(j int) Vec {
 	if !n.started {
-		return scale(n.Card.K[j-1], n.Card.Start[j-1])
+		return n.start(j)
 	}
 	return scale(n.Card.K[j-1], n.arrival[j-1])
 }
