@@ -98,7 +98,7 @@ func BuildFrame(in FrameInputs) NodeFrameInput {
 		BodyMatrix:       fg.BodyMatrix,
 		TopTiltVectorLen: float32(fg.TopTiltVectorLen),
 		TopTiltVectorIdx: fg.TopTiltVectorIdx,
-		TiltArrows:       append(fg.TiltArrows, startArrows(fg.Center, NodeRadius(in.Geom.Kind), in.Geom.SceneConstants, in.StartVectors)...),
+		TiltArrows:       append(fg.TiltArrows, startArrows(in.Geom, fg.Center, in.StartVectors)...),
 		ChannelVectors:   in.ChannelVectors,
 		TickMarks:        TickMarks(fg.Center, in.Geom.Kind, in.TickCount),
 		Selected:         in.Selected,

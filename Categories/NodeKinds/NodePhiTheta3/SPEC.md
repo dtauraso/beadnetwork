@@ -26,9 +26,10 @@ The pair φ, θ 3 tab's node, running the three-node phi theta card
 
 Node n holds, for each of its two partners j: `start_j = [φ, θ, r]`,
 `pole_offset_j = [φ, θ]` and `k_j`; and `L = [L₁, L₂, L₃]`. Each one is an editable panel
-in the tab, and each value is its own file under `nodes/<n>/data/state/`
-(`start-<j>-phi`, `pole-offset-<j>-theta`, `k-<j>`, `l-<j>`, …). `s` is scene-wide and lives
-in `view/card-s.bin`.
+in the tab, and each value is its own file: the default under the tracked
+`nodes/<n>/data/state/` (`start-<j>-phi`, `pole-offset-<j>-theta`, `k-<j>`, `l-<j>`, …), and a
+typed edit under the gitignored `nodes/<n>/drag/state/`, which replaces the default at load.
+`s` is scene-wide and lives in the gitignored `view/card-s.bin`.
 
 ## dir_down(local_arrival, p, qt)
 
@@ -60,14 +61,16 @@ any one still outstanding, so a cycle of three cannot deadlock.
 
 ## Local to global
 
-The card stops at its local numbers; placing them is conversion. The node's parent is the
-partner whose `k_j = 1` when exactly one is; a node with none is a root and stays where it
-is. After each round the node places itself at its parent composed with its updated local
-vector, `PostVectorFrom(parent, [φ·T/12s, θ·T/12s, r·ρ])`, which the geometry goroutine resolves as
-`polarindex.Compose(parent's index, vector)`. φ and θ count spokes: one spoke is 1/(12s) of a turn, T is the whole turn in index steps, and
-the result is rounded to a whole step. r is in node radii: ρ is the node radius in radial
-index steps, and r·ρ is rounded to a whole step. Each node's `start_j` is drawn as an arrow from its
-centre with the same conversion, so r = 1 reaches the ring.
+The card stops at its local numbers; placing them is conversion. Each node's `start_j` is a
+vector from its centre, `[φ·T/12s, θ·T/12s, r·ρ]`: φ and θ count spokes (one spoke is 1/(12s)
+of a turn, T is the whole turn in index steps), r is in node radii (ρ is the node radius in
+radial index steps), and each is rounded to a whole step. It is drawn as an arrow with that
+conversion, so r = 1 reaches the ring.
+
+Chaining: when node n's `k_j = 1`, node j starts at the tip of n's `start_j` — n's centre plus
+that vector, measured back against the scene centre into j's index. n's geometry goroutine sends
+j a `Drag{Target}` and j moves itself. It is applied when n starts and whenever n's start, k or
+s changes, not every round. When `k_j` goes back to 0, j stays where it was put.
 
 ## Description
 

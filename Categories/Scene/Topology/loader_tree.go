@@ -141,6 +141,17 @@ func loadNodeBase(root, nodesDir, nodeID string) (Node, error) {
 		return Node{}, fmt.Errorf("loadTree: node %q data: %w", nodeID, err)
 	}
 	sn.Data = nd
+	if edited := NodeBuf.ReadCardState(root, nodeID); len(edited) > 0 {
+		if sn.Data == nil {
+			sn.Data = &NodeBuf.NodeData{}
+		}
+		if sn.Data.State == nil {
+			sn.Data.State = map[string]int{}
+		}
+		for k, v := range edited {
+			sn.Data.State[k] = v
+		}
+	}
 
 	return sn, nil
 }

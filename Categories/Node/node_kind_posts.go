@@ -27,6 +27,7 @@ type KindPost struct {
 	Lattice     *int32
 	Ticks       *int32
 	Starts      *[]polarindex.Offset
+	Leads       *[]Lead
 	Center      *polarindex.Index
 	FromPartner *PartnerVectorPost
 }
