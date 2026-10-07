@@ -9,6 +9,7 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/SliderPanel"
 	Flags "github.com/dtauraso/beadnetwork/Categories/Scene/View/Flags"
 
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/CardPanel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/PolarRulesPanel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/TiltPanel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills"
@@ -17,13 +18,13 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/NodesDropdown"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Tabs"
 	"github.com/dtauraso/beadnetwork/Categories/Node"
-	"github.com/dtauraso/beadnetwork/Categories/Vectors/polar"
-	"github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
 	bead "github.com/dtauraso/beadnetwork/Categories/Ring/Bead"
 	NodeShape "github.com/dtauraso/beadnetwork/Categories/Ring/NodeShape"
 	"github.com/dtauraso/beadnetwork/Categories/Scene"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Camera"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Drag"
+	"github.com/dtauraso/beadnetwork/Categories/Vectors/polar"
+	"github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
 )
 
 type UIState struct {
@@ -62,6 +63,7 @@ type UIState struct {
 	PersistSphere   func(polar.SceneSphere)
 	PersistSpeed    func(float64)
 	PersistLattice  func(int32)
+	PersistCardS    func(int32)
 
 	LatchedNode string
 
@@ -75,17 +77,19 @@ type UIState struct {
 
 	Tilt TiltPanel.State
 
+	Card CardPanel.State
+
 	ViewW, ViewH float64
 
 	Pointer Panels.PointerTarget
 
 	OverlaysPill Pills.State
 
-	Slider     SliderPanel.State
-	Fit        FitButton.State
+	Slider         SliderPanel.State
+	Fit            FitButton.State
 	NodeRingPoints NodeShape.RingPointState
 	BeadRingPoints bead.RingPointState
-	PointerBlk Panels.State
+	PointerBlk     Panels.State
 
 	Angle AngleDropdown.State
 

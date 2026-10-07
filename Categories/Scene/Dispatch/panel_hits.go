@@ -26,6 +26,11 @@ func panelTookPointerDown(
 ) bool {
 	pl := md.UI.PanelLayout()
 
+	if f, ok := pl.Card.Hit(ev.X, ev.Y); ok {
+		applyCardHit(md, f)
+		return true
+	}
+
 	if h := pl.Rules.Hit(ev.X, ev.Y); h.Kind != PolarRulesPanel.HitNone {
 		applyRulesHit(ctx, md, h)
 		return true

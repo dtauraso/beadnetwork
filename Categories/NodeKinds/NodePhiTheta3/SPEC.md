@@ -1,31 +1,75 @@
 # NodePhiTheta3
 
-The pair φ, θ 3 tab's node. THREE of them, each facing the other two, so a node receives TWO
-arrivals per round instead of one. That is the whole difference from `NodePhiTheta`, and it
-is not a small one: the rule there reads a single arrival and answers with one offset, and
-with two arrivals a node must decide what the pair of them means together — which hemisphere
-each sits in, which distance is longer, and what that combination should do. Those cases are
-being worked out on the card; this kind carries the wiring and the round, not the answer.
+The pair φ, θ 3 tab's node, running the three-node phi theta card
+(`docs/pair-node/math/framework/sphere-card-3.js`). The card is the source; this file and
+`node.go` follow it. The card is local and polar-only: every number below is in ticks of
+`s`, and nothing on it names a global centre.
 
-The frame is unchanged and stays unchanged: `top` is index 0 on each ring, the node's +Y pole
-from `polar.WorldAxisPole`, `bottom` a half turn round, and both are an AXIS REFERENCE that
-never moves. Each angle still lives on its own ring with its own whole turn. Nothing crosses
-between φ and θ.
+## Shared — the three nodes together
 
-The exchange is unchanged in kind and different in shape. Three nodes with two partners each
-are SIX ordered pairs, so six unbuffered channels, and a round is four operations rather than
-two: send to both partners, receive from both. Every one of them is a rendezvous, and the
-round's select must stay willing to perform ANY operation still outstanding — a node that
-commits to finishing its sends before its receives can deadlock a cycle of three, where two
-could not.
+| Name | Value |
+|------|-------|
+| s | the tick mark scale; on the card s = 1, in Go s = the index steps per tick (default 30, set from the s panel) |
+| 12s | 1 full turn φ, 1 full turn θ |
+| 3s | 1 quarter turn φ, 1 quarter turn θ |
+| P | the pole numbers, {0, 6s, 12s} |
+| qt | the quarter turn mark between two pole numbers, qt ∈ {3s, 9s} |
+| m | the jump constant, m ∈ ℤ⁺, m = 1 by default |
+| L_j | 1 if a link reaches node j, 0 if not |
+| pole_offset_jφ, pole_offset_jθ | ∈ {0, 1s, 2s, 3s} |
+| p | ∈ P |
+| k_j | ∈ {0, 1} |
+| ← | the node receives the vector on a link |
+| → | the node sends the vector on a link |
 
-What it sends is its own position, the same value to both partners. Each partner receives it
-as one of that partner's two arrivals.
+## Each node's vectors
+
+Node n holds, for each of its two partners j: `start_j = [φ, θ, r]`,
+`pole_offset_j = [φ, θ]` and `k_j`; and `L = [L₁, L₂, L₃]`. Each one is an editable panel
+in the tab, and each value is its own file under `nodes/<n>/data/state/`
+(`start-<j>-phi`, `pole-offset-<j>-theta`, `k-<j>`, `l-<j>`, …). `s` is scene-wide and lives
+in `view/card-s.bin`.
+
+## dir_down(local_arrival, p, qt)
+
+    pole       = p + pole_offset
+    direction  = −m  if local_arrival ∈ (pole, qt), else 0      (φ and θ each)
+
+## dir_up(local_arrival, qt, p)
+
+    pole       = p − pole_offset
+    direction  =  m  if local_arrival ∈ (qt, pole), else 0      (φ and θ each)
+
+## pick_one(k₁, k₂, arrival₁, arrival₂)
+
+    arrival = k₁·arrival₁ + k₂·arrival₂   if k₁ ⊕ k₂, else 0
+
+## One node
+
+1. `local_arrival_j ← link j` for each partner j. The first round sends `start_j` on link j;
+   every later round sends `[k_j · local_arrival_j]`. A link with `L_j = 0` arrives as 0.
+2. `local_arrival₁ = local_arrival₂ = pick_one(k₁, k₂, local_arrival₁, local_arrival₂)`.
+3. For each link, with that link's `pole_offset_j`:
+   `local_arrival_j = dir_down(·, 0, 3s) + dir_up(·, 3s, 6s) + dir_down(·, 6s, 9s) + dir_up(·, 9s, 12s)`.
+   r passes through unchanged.
+4. `[k_j · local_arrival_j] → link j`.
+
+The exchange is six unbuffered channels, one per ordered pair. A round is four rendezvous
+(send to both partners, receive from both), and the round's select stays willing to perform
+any one still outstanding, so a cycle of three cannot deadlock.
+
+## Local to global
+
+The card stops at its local numbers; placing them is conversion. The node's parent is the
+partner whose `k_j = 1` when exactly one is; a node with none is a root and stays where it
+is. After each round the node places itself at its parent composed with its updated local
+vector, `PostVectorFrom(parent, [φ·s, θ·s, r])`, which the geometry goroutine resolves as
+`polarindex.Compose(parent's index, vector)`.
 
 ## Description
 
-One of three φ, θ nodes: receives an arrival from each of its two partners, and sends its own
-position on to both as their next arrivals.
+One of three φ, θ nodes running the three-node card: receives a local arrival on each of its
+two links, picks one with k, steps it with dir_down/dir_up, and sends it on.
 
 ## View
 
@@ -45,10 +89,8 @@ position on to both as their next arrivals.
 
 ## Ports
 
-None, for the same reason as `NodePhiTheta`: a port is where a bead line attaches, and
-nothing is placed on these edges. What crosses is the sent vector, on the channel the edge
-allocates. The edges exist — they are the radius vectors drawn between the three centers —
-but they bind no port, so the table is deliberately empty.
+None. A port is where a bead line attaches, and nothing is placed on these edges: what
+crosses is the card's vector, on the channel the edge allocates.
 
 | Name | Direction | EdgeKind | Notes |
 |------|-----------|----------|-------|

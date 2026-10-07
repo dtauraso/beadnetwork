@@ -20,6 +20,10 @@ func HandleRawInputMsg(ctx context.Context, ev Drag.RawInputMsg, md *MoveDispatc
 		return
 	}
 	if ev.Kind == "key" {
+		if md.UI.Card.Edit.Active {
+			applyCardKey(ctx, md, ev.Key)
+			return
+		}
 		applyRuleKey(ctx, md, ev.Key)
 		return
 	}

@@ -3,6 +3,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { drawSpeedPanel, speedPanelKey } from "./SliderPanel/draw-speed-panel";
 import { drawTiltPanel, tiltPanelKey } from "./TiltPanel/draw-tilt-panel";
+import { drawCardPanel, cardPanelKey } from "./CardPanel/draw-card-panel";
 import { drawAnglePill, anglePillKey } from "../Pills/AngleDropdown/draw-angle-pill";
 import { drawNodesPill, nodesPillKey } from "../Pills/NodesDropdown/draw-nodes-pill";
 import { drawOverlaysPill, overlaysPillKey } from "../Pills/draw-overlays-pill";
@@ -133,7 +134,7 @@ export function ChromeCanvas() {
       });
     }
 
-    const key = `${vw}@${bw}x${bh}|${speedPanelKey()}|${tiltPanelKey()}|${anglePillKey()}|${nodesPillKey()}|${overlaysPillKey()}|${fitChipKey()}|${tabStripKey()}|${rulesPanelKey()}|${pointerTargetKey()}|${labelEpoch()}|${bootKey()}`;
+    const key = `${vw}@${bw}x${bh}|${speedPanelKey()}|${tiltPanelKey()}|${cardPanelKey()}|${anglePillKey()}|${nodesPillKey()}|${overlaysPillKey()}|${fitChipKey()}|${tabStripKey()}|${rulesPanelKey()}|${pointerTargetKey()}|${labelEpoch()}|${bootKey()}`;
     if (key !== lastKey.current) {
       lastKey.current = key;
       if (canvas.width !== bw || canvas.height !== bh) {
@@ -149,6 +150,7 @@ export function ChromeCanvas() {
         drawPointerHighlight(c);
         drawSpeedPanel(c);
         drawTiltPanel(c);
+        drawCardPanel(c);
         drawAnglePill(c);
         drawNodesPill(c);
         drawOverlaysPill(c);

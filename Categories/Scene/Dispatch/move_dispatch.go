@@ -2,6 +2,7 @@ package Dispatch
 
 import (
 	"context"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/CardPanel"
 	"sync"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Panel"
@@ -12,11 +13,11 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Node/ChannelVectors"
 	edge "github.com/dtauraso/beadnetwork/Categories/Node/Edge"
 	"github.com/dtauraso/beadnetwork/Categories/Node/TiltVectors"
-	Flags "github.com/dtauraso/beadnetwork/Categories/Scene/View/Flags"
-	"github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
 	SceneB "github.com/dtauraso/beadnetwork/Categories/Scene"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Scenes"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/View"
+	Flags "github.com/dtauraso/beadnetwork/Categories/Scene/View/Flags"
+	"github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
 )
 
 type MoveDispatch struct {
@@ -35,6 +36,8 @@ type MoveDispatch struct {
 	RT RowTables
 
 	Inboxes TiltVectors.TiltEditInboxes
+
+	CardInboxes CardPanel.Inboxes
 
 	ChannelVectorsOn ChannelVectors.OnSwitch
 

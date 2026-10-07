@@ -1,15 +1,16 @@
 package Startup
 
 import (
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/CardPanel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Panel"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/SliderPanel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/AngleDropdown"
-	Flags "github.com/dtauraso/beadnetwork/Categories/Scene/View/Flags"
-	"github.com/dtauraso/beadnetwork/Categories/Vectors/polar"
 	SceneBuf "github.com/dtauraso/beadnetwork/Categories/Scene"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Camera"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Scenes"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/View"
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/SliderPanel"
+	Flags "github.com/dtauraso/beadnetwork/Categories/Scene/View/Flags"
+	"github.com/dtauraso/beadnetwork/Categories/Vectors/polar"
 )
 
 func armViewpoint(topologyPath string) *Camera.ViewpointPersister {
@@ -37,5 +38,10 @@ func armEdit(ui *View.UIState, topologyPath string) {
 	ui.PersistPanels = panels.Schedule
 	ui.PersistSphere = sphere.Schedule
 	ui.PersistSpeed = speed.Schedule
+	cardS := &Persister[int32]{
+		Path: Scenes.CardSFilePath(topologyPath), Write: CardPanel.WriteCardS, Tag: "card_s_persist",
+	}
+
 	ui.PersistLattice = lattice.Schedule
+	ui.PersistCardS = cardS.Schedule
 }

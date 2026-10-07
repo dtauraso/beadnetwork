@@ -3,19 +3,18 @@ package NodePhiTheta3
 import (
 	"context"
 	"fmt"
+	"strconv"
 
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/CardPanel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/TiltPanel"
 	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
 	NodeCat "github.com/dtauraso/beadnetwork/Categories/Node"
 	"github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
 )
 
-const nodeCount = 3
+const nodeCount = CardPanel.NodeCount
 
-var (
-	link  [nodeCount][nodeCount]chan TiltPanel.TiltVectorMsg
-	built int
-)
+var link [nodeCount][nodeCount]chan TiltPanel.TiltVectorMsg
 
 func init() {
 	for from := 0; from < nodeCount; from++ {
@@ -27,89 +26,84 @@ func init() {
 	}
 }
 
+type Vec = CardPanel.Vec
+
+const (
+	poleLow  = 0
+	poleMid  = 6
+	poleHigh = 12
+	qtLow    = 3
+	qtHigh   = 9
+	jump     = 1
+)
+
 type NodePhiTheta3 struct {
 	geom *NodeCat.NodeGeometry
 
 	Clock   clock.Clock
 	SpeedCh <-chan float64
+	EditIn  <-chan CardPanel.EditMsg
 
 	Me       int
-	Partners [2]int
+	Partners [nodeCount - 1]int
 
-	Top   Turn
-	Rings Rings
+	Card CardPanel.Card
+	S    int
 
-	loggedPhi, loggedTheta int
-	logged                 bool
+	arrival [nodeCount]Vec
+	started bool
+
+	logged     [nodeCount]Vec
+	loggedOnce bool
 }
 
-type Turn = polarindex.Index
-
-func vectorOf(m TiltPanel.TiltVectorMsg) Turn {
-	return Turn{Phi: int(m.PhiIdx), Theta: int(m.ThetaIdx), R: int(m.RIdx)}
+func msgOf(v Vec) TiltPanel.TiltVectorMsg {
+	return TiltPanel.TiltVectorMsg{PhiIdx: int32(v.Phi), ThetaIdx: int32(v.Theta), RIdx: int32(v.R)}
 }
 
-type Ring struct {
-	Whole int
+func vecOf(m TiltPanel.TiltVectorMsg) Vec {
+	return Vec{Phi: int(m.PhiIdx), Theta: int(m.ThetaIdx), R: int(m.RIdx)}
 }
 
-type Rings struct {
-	Phi   Ring
-	Theta Ring
-}
+func scale(k int, v Vec) Vec { return Vec{Phi: k * v.Phi, Theta: k * v.Theta, R: k * v.R} }
 
-func RingsFor(maxIndexPhi, maxIndexTheta int) Rings {
-	return Rings{Phi: Ring{Whole: maxIndexPhi}, Theta: Ring{Whole: maxIndexTheta}}
-}
+func add(a, b Vec) Vec { return Vec{Phi: a.Phi + b.Phi, Theta: a.Theta + b.Theta, R: a.R + b.R} }
 
-func mod(x, whole int) int {
-	if whole <= 0 {
-		return x
+func pickOne(k1, k2 int, a1, a2 Vec) Vec {
+	if k1^k2 != 1 {
+		return Vec{}
 	}
-	return (x%whole + whole) % whole
+	return add(scale(k1, a1), scale(k2, a2))
 }
 
-func abs(x int) int {
-	if x < 0 {
-		return -x
+func down(arrival, pole, qt int) int {
+	if pole < arrival && arrival < qt {
+		return -jump
 	}
-	return x
+	return 0
 }
 
-func (r Ring) Bottom(top int) int { return mod(top+r.Whole/2, r.Whole) }
-
-func (r Ring) DistanceTop(top, arrival int) int { return mod(abs(top-arrival), r.Whole/4) }
-
-func (r Ring) DistanceBottom(top, arrival int) int {
-	return mod(abs(r.Bottom(top)-arrival), r.Whole/4)
-}
-
-func (r Ring) OffsetCase(top, arrival int) (offset, rule int) {
-	distanceTop := r.DistanceTop(top, arrival)
-	distanceBottom := r.DistanceBottom(top, arrival)
-
-	switch {
-	case distanceTop == 0 && distanceBottom == 0:
-		return 0, 1
-	case distanceTop < r.Whole/4:
-		return -1, 2
-	case distanceBottom < r.Whole/4:
-		return -1, 3
+func up(arrival, qt, pole int) int {
+	if qt < arrival && arrival < pole {
+		return jump
 	}
-
-	return 0, 0
+	return 0
 }
 
-func (r Ring) Offset(top, arrival int) int {
-	offset, _ := r.OffsetCase(top, arrival)
-	return offset
+func dirDown(a Vec, p, qt int, offset Vec) Vec {
+	return Vec{Phi: down(a.Phi, p+offset.Phi, qt), Theta: down(a.Theta, p+offset.Theta, qt)}
 }
 
-func (r Ring) Next(center, top, arrival int) int {
-	return mod(center+r.Offset(top, arrival), r.Whole)
+func dirUp(a Vec, qt, p int, offset Vec) Vec {
+	return Vec{Phi: up(a.Phi, qt, p-offset.Phi), Theta: up(a.Theta, qt, p-offset.Theta)}
 }
 
-func (r Ring) AtRest(top, arrival int) bool { return r.Offset(top, arrival) == 0 }
+func step(a, offset Vec) Vec {
+	sum := add(add(dirDown(a, poleLow, qtLow, offset), dirUp(a, qtLow, poleMid, offset)),
+		add(dirDown(a, poleMid, qtHigh, offset), dirUp(a, qtHigh, poleHigh, offset)))
+	sum.R = a.R
+	return sum
+}
 
 func (n *NodePhiTheta3) breadcrumb(label, value string) {
 	n.geom.Trace().Post([]NodeCat.RowEvent{{
@@ -120,12 +114,116 @@ func (n *NodePhiTheta3) breadcrumb(label, value string) {
 	}})
 }
 
-func (r Ring) logLine(angle string, center, top, arrival, next int) string {
-	offset, rule := r.OffsetCase(top, arrival)
-	return fmt.Sprintf("%s c=%d->%d top=%d bot=%d arr=%d dTop=%d dBot=%d q=%d off=%+d case=%d",
-		angle, center, next, top, r.Bottom(top), arrival,
-		r.DistanceTop(top, arrival), r.DistanceBottom(top, arrival),
-		r.Whole/4, offset, rule)
+func (n *NodePhiTheta3) applyEdit(e CardPanel.EditMsg) {
+	if e.Field.Vector == CardPanel.VecS {
+		n.S = e.Value
+		return
+	}
+	n.Card.Set(e.Field, e.Value)
+	if err := NodeCat.WriteCardState(n.geom.PersistRoot(), n.geom.ID(), e.Field.StateKey(), e.Value); err != nil {
+		n.breadcrumb("card-persist", err.Error())
+	}
+}
+
+func (n *NodePhiTheta3) drainEdits() {
+	for {
+		select {
+		case e := <-n.EditIn:
+			n.applyEdit(e)
+		default:
+			return
+		}
+	}
+}
+
+func (n *NodePhiTheta3) sendValue(j int) Vec {
+	if !n.started {
+		return n.Card.Start[j-1]
+	}
+	return scale(n.Card.K[j-1], n.arrival[j-1])
+}
+
+func (n *NodePhiTheta3) exchange(ctx context.Context) (in [nodeCount]Vec, ok bool) {
+	a, b := n.Partners[0], n.Partners[1]
+	me := n.Me - 1
+	outA, outB := msgOf(n.sendValue(a)), msgOf(n.sendValue(b))
+
+	sent, got := [2]bool{}, [2]bool{}
+	for !(sent[0] && sent[1] && got[0] && got[1]) {
+		var toA, toB chan<- TiltPanel.TiltVectorMsg
+		if !sent[0] {
+			toA = link[me][a-1]
+		}
+		if !sent[1] {
+			toB = link[me][b-1]
+		}
+		var fromA, fromB <-chan TiltPanel.TiltVectorMsg
+		if !got[0] {
+			fromA = link[a-1][me]
+		}
+		if !got[1] {
+			fromB = link[b-1][me]
+		}
+
+		select {
+		case toA <- outA:
+			sent[0] = true
+		case toB <- outB:
+			sent[1] = true
+		case v := <-fromA:
+			in[a-1], got[0] = vecOf(v), true
+		case v := <-fromB:
+			in[b-1], got[1] = vecOf(v), true
+		case e := <-n.EditIn:
+			n.applyEdit(e)
+		case <-ctx.Done():
+			return in, false
+		}
+	}
+	return in, true
+}
+
+func (n *NodePhiTheta3) round(in [nodeCount]Vec) {
+	a, b := n.Partners[0], n.Partners[1]
+	for _, j := range n.Partners {
+		if n.Card.L[j-1] == 0 {
+			in[j-1] = Vec{}
+		}
+	}
+
+	chosen := pickOne(n.Card.K[a-1], n.Card.K[b-1], in[a-1], in[b-1])
+	for _, j := range n.Partners {
+		n.arrival[j-1] = step(chosen, n.Card.PoleOffset[j-1])
+	}
+	n.started = true
+
+	if !n.loggedOnce || n.arrival != n.logged {
+		n.breadcrumb("card", fmt.Sprintf("in %d=%v %d=%v chosen=%v arrival %d=%v %d=%v",
+			a, in[a-1], b, in[b-1], chosen, a, n.arrival[a-1], b, n.arrival[b-1]))
+		n.logged, n.loggedOnce = n.arrival, true
+	}
+
+	n.place()
+}
+
+func (n *NodePhiTheta3) parent() (int, bool) {
+	a, b := n.Partners[0], n.Partners[1]
+	switch {
+	case n.Card.K[a-1] == 1 && n.Card.K[b-1] == 0:
+		return a, true
+	case n.Card.K[b-1] == 1 && n.Card.K[a-1] == 0:
+		return b, true
+	}
+	return 0, false
+}
+
+func (n *NodePhiTheta3) place() {
+	j, ok := n.parent()
+	if !ok {
+		return
+	}
+	v := n.arrival[j-1]
+	n.geom.KindPosts().PostVectorFrom(strconv.Itoa(j), polarindex.Offset{Phi: v.Phi * n.S, Theta: v.Theta * n.S, R: v.R})
 }
 
 func (n *NodePhiTheta3) Update(ctx context.Context) {
@@ -137,67 +235,14 @@ func (n *NodePhiTheta3) Update(ctx context.Context) {
 		if ctx.Err() != nil {
 			return
 		}
+		n.drainEdits()
 
 		if clk.Speed() > 0 {
-			here := Turn(n.geom.ComposedIndex())
-			mine := TiltPanel.TiltVectorMsg{
-				PhiIdx: int32(here.Phi), ThetaIdx: int32(here.Theta), RIdx: int32(here.R),
+			in, ok := n.exchange(ctx)
+			if !ok {
+				return
 			}
-
-			var arrivals [2]Turn
-			sent, got := [2]bool{}, [2]bool{}
-			for !(sent[0] && sent[1] && got[0] && got[1]) {
-				a, b := n.Partners[0], n.Partners[1]
-
-				var outA, outB chan<- TiltPanel.TiltVectorMsg
-				if !sent[0] {
-					outA = link[n.Me][a]
-				}
-				if !sent[1] {
-					outB = link[n.Me][b]
-				}
-				var inA, inB <-chan TiltPanel.TiltVectorMsg
-				if !got[0] {
-					inA = link[a][n.Me]
-				}
-				if !got[1] {
-					inB = link[b][n.Me]
-				}
-
-				select {
-				case outA <- mine:
-					sent[0] = true
-				case outB <- mine:
-					sent[1] = true
-				case v := <-inA:
-					arrivals[0], got[0] = vectorOf(v), true
-				case v := <-inB:
-					arrivals[1], got[1] = vectorOf(v), true
-				case <-ctx.Done():
-					return
-				}
-			}
-
-			arrival := arrivals[0]
-
-			offPhi := n.Rings.Phi.Offset(n.Top.Phi, arrival.Phi)
-			offTheta := n.Rings.Theta.Offset(n.Top.Theta, arrival.Theta)
-
-			if !n.logged || offPhi != n.loggedPhi {
-				n.breadcrumb("phi", n.Rings.Phi.logLine("phi", here.Phi, n.Top.Phi, arrival.Phi,
-					n.Rings.Phi.Next(here.Phi, n.Top.Phi, arrival.Phi)))
-				n.loggedPhi = offPhi
-			}
-			if !n.logged || offTheta != n.loggedTheta {
-				n.breadcrumb("theta", n.Rings.Theta.logLine("theta", here.Theta, n.Top.Theta, arrival.Theta,
-					n.Rings.Theta.Next(here.Theta, n.Top.Theta, arrival.Theta)))
-				n.loggedTheta = offTheta
-			}
-			n.logged = true
-
-			if offPhi != 0 || offTheta != 0 {
-				n.geom.KindPosts().PostStep(polarindex.Offset{Phi: offPhi, Theta: offTheta})
-			}
+			n.round(in)
 		}
 
 		if err := clk.SleepCycle(ctx); err != nil {
@@ -216,22 +261,23 @@ func (a BuildArgs) Geom() *NodeCat.NodeGeometry {
 
 var Builder = BuilderFor("NodePhiTheta3",
 	func(a BuildArgs) (any, error) {
+		me, err := strconv.Atoi(a.Name)
+		if err != nil || me < 1 || me > nodeCount {
+			return nil, fmt.Errorf("NodePhiTheta3: node %q is not one of nodes 1..%d — the card names its nodes by number, so the tab's node ids must be 1, 2 and 3", a.Name, nodeCount)
+		}
+
 		n := &NodePhiTheta3{}
 		n.Clock = a.Clock()
 		n.SpeedCh = a.SpeedCh()
+		n.EditIn = a.EditIn()
 		n.geom = a.Geom()
 
-		n.Me = built % nodeCount
-		n.Partners = [2]int{(n.Me + 1) % nodeCount, (n.Me + 2) % nodeCount}
-		built++
+		n.Me = me
+		n.Partners = CardPanel.Partners(me)
+		n.Card = CardPanel.CardFromState(me, a.State())
+		n.S = a.S()
 
-		here := Turn(n.geom.ComposedIndex())
-		c := n.geom.Constants()
-		n.Rings = RingsFor(c.MaxIndexPhi, c.MaxIndexTheta)
-		n.Top = Turn{Phi: 0, Theta: 0, R: here.R}
-
-		n.breadcrumb("built", fmt.Sprintf("name=%s at phi=%d theta=%d r=%d  rings phi=%d theta=%d",
-			a.Name, here.Phi, here.Theta, here.R, n.Rings.Phi.Whole, n.Rings.Theta.Whole))
+		n.breadcrumb("built", fmt.Sprintf("node=%d partners=%v s=%d card=%+v", me, n.Partners, n.S, n.Card))
 
 		return n, nil
 	})

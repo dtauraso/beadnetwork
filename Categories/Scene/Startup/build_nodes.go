@@ -6,6 +6,7 @@ import (
 
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Topology"
 
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/CardPanel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/SliderPanel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/TiltPanel"
 	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
@@ -39,6 +40,12 @@ func BuildNodes(
 			md.Inboxes.ClaimTiltEditIn(name, panelToNodeTiltEditIn)
 			return panelToNodeTiltEditIn
 		},
+		ClaimCardEditIn: func(name string) any {
+			panelToNodeCardEditIn := make(chan CardPanel.EditMsg, Dispatch.InboxDepth)
+			md.CardInboxes.Claim(name, panelToNodeCardEditIn)
+			return panelToNodeCardEditIn
+		},
+		CardS: md.UI.Card.S,
 		ClaimSelfDriveGeom: func(name string) any {
 			ng, ok := md.MR.NodeGeoms()[name]
 			if !ok {

@@ -6,6 +6,10 @@ func ViewFilePath(topologyPath, name string) string {
 	return filepath.Join(topologyPath, "view", name)
 }
 
+func CardSFilePath(topologyPath string) string {
+	return ViewFilePath(topologyPath, "card-s.bin")
+}
+
 func InputDirPath(topologyPath string) string {
 	return ViewFilePath(topologyPath, "input")
 }
