@@ -112,6 +112,8 @@ func ApplyDragOverlay(root string, spec *TopoSpec) {
 			continue
 		}
 		if phi, theta, r, _, ok := NodeBuf.ReadDragIndex(root, n.ID); ok {
+			f := spec.dragScale(NodeBuf.ReadDragTurn(root, n.ID))
+			phi, theta = phi*f.phi, theta*f.theta
 			n.DragIndexPhi, n.DragIndexTheta, n.DragIndexR = &phi, &theta, &r
 		}
 	}
@@ -122,6 +124,8 @@ func ApplyDragOverlay(root string, spec *TopoSpec) {
 			continue
 		}
 		if dragIdx, ok := edgefile.ReadEdgeDragIndex(root, e.Source, e.Label); ok {
+			f := spec.dragScale(edgefile.ReadEdgeDragTurn(root, e.Source, e.Label))
+			dragIdx.Phi, dragIdx.Theta = dragIdx.Phi*f.phi, dragIdx.Theta*f.theta
 			e.DragDeltaIndexPhi, e.DragDeltaIndexTheta, e.DragDeltaIndexR = &dragIdx.Phi, &dragIdx.Theta, &dragIdx.R
 		}
 	}

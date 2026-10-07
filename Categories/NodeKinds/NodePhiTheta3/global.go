@@ -1,6 +1,7 @@
 package NodePhiTheta3
 
 import (
+	"fmt"
 	"math"
 	"strconv"
 
@@ -15,7 +16,13 @@ func (n *NodePhiTheta3) offsetOf(v Vec) polarindex.Offset {
 }
 
 func (n *NodePhiTheta3) spokes(ticks, wholeTurn int) int {
-	return int(math.Round(float64(ticks*wholeTurn) / float64(poleHigh*n.S)))
+	perTurn := poleHigh * n.S
+	if wholeTurn%perTurn != 0 {
+		panic(fmt.Sprintf("NodePhiTheta3.spokes: node %d's full turn is %d index steps, which is not a whole number of steps per tick at 12s = %d — "+
+			"the loader (Topology.applySceneTurn) makes the turn lcm(saved turn, 12s), and an s edit respawns the scene so the turn is remade",
+			n.Me, wholeTurn, perTurn))
+	}
+	return ticks * (wholeTurn / perTurn)
 }
 
 func (n *NodePhiTheta3) postTicks() {

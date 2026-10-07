@@ -51,6 +51,8 @@ func LoadTree(root string) (TopoSpec, error) {
 		spec.Edges = append(spec.Edges, edges...)
 	}
 
+	applySceneTurn(root, &spec)
+
 	ResolveEdgeDeltas(&spec)
 	PlaceFromDeltas(&spec)
 

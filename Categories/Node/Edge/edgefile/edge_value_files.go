@@ -13,4 +13,6 @@ const (
 	FileDragIndexR     = "index-r.bin"
 	FileDragIndexPhi   = "index-phi.bin"
 	FileDragIndexTheta = "index-theta.bin"
+	FileDragTurnPhi    = "turn-phi.bin"
+	FileDragTurnTheta  = "turn-theta.bin"
 )
