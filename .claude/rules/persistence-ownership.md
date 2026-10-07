@@ -22,6 +22,7 @@ topology/
 ├── nodes/<id>/
 │   ├── base/                               one value per file: type/gate/index + drag-rule/ and self-rule/ — TRACKED
 │   ├── drag/                               index-phi/-theta/-r — the node's position DELTA — GITIGNORED
+│   ├── drag/state/<k>                      a value typed in a panel, REPLACING data/state/<k> at load — GITIGNORED
 │   ├── data/                               init/<n>, repeat, state/<k>, send-rules/<port> — TRACKED
 │   ├── edges/<label>/                     OUTGOING only, one value per file: wiring + delta — TRACKED
 │   └── drag/edges/<label>/                that edge's accumulated geometry DELTA — GITIGNORED
@@ -130,6 +131,13 @@ Do NOT try to keep geometry in one tracked file and hide the drag write with
 marked file differs from the index — so the first branch switch after a drag forces the drag
 output into a commit to unblock the checkout, the exact outcome the split exists to avoid. A
 gitignored subdirectory has nothing in the index for `checkout` to compare against.
+
+A node's `data/state/` is the same split for values typed into a panel (the Node vectors
+popover's start/pole_offset/k/L). The tracked `data/state/<k>` is the default; the node writes
+an edit to the gitignored `drag/state/<k>` (`Categories/Node/nodefile_card_state.go`, Write and
+Read beside each other), and the loader reads it over the default. It REPLACES rather than
+composes, because k = 1 plus k = 1 is not a value — but like a drag, it never dirties the tree,
+so typing in the panel cannot block a branch switch or ride into a commit.
 
 Edge WIRING (`target`/`sourceHandle`/`targetHandle`/`kind`/`label`) is authored data and
 keeps writing to the tracked `<label>/` (`edgefile.WriteEdgeFile`) whenever it

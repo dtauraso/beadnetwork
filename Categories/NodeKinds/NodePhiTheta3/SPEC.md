@@ -26,9 +26,10 @@ The pair φ, θ 3 tab's node, running the three-node phi theta card
 
 Node n holds, for each of its two partners j: `start_j = [φ, θ, r]`,
 `pole_offset_j = [φ, θ]` and `k_j`; and `L = [L₁, L₂, L₃]`. Each one is an editable panel
-in the tab, and each value is its own file under `nodes/<n>/data/state/`
-(`start-<j>-phi`, `pole-offset-<j>-theta`, `k-<j>`, `l-<j>`, …). `s` is scene-wide and lives
-in `view/card-s.bin`.
+in the tab, and each value is its own file: the default under the tracked
+`nodes/<n>/data/state/` (`start-<j>-phi`, `pole-offset-<j>-theta`, `k-<j>`, `l-<j>`, …), and a
+typed edit under the gitignored `nodes/<n>/drag/state/`, which replaces the default at load.
+`s` is scene-wide and lives in the gitignored `view/card-s.bin`.
 
 ## dir_down(local_arrival, p, qt)
 
