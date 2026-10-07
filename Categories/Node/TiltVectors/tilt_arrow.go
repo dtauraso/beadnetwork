@@ -55,24 +55,43 @@ func composeColumnMajor(bx, by, bz, center Vec3, sx, sy, sz float64) [16]float32
 	}
 }
 
+const (
+	ArrowTilt     uint8 = 0
+	ArrowReceived uint8 = 1
+	ArrowStart    uint8 = 2
+)
+
 func ArrowMatrices(center Vec3, length, phi float64, received bool) TiltArrow {
-	axis := Camera.AnglesToWorldOffset(1, phi, ArrowRingDiskTheta).Normalize()
-	up := Vec3{X: 0, Y: 1, Z: 0}
-	bx, by, bz := axisBasisFrom(up, Vec3(axis))
-
-	shaftLen := length * (1 - arrowHeadLenFrac)
-	shaftCenter := center.Add(Vec3(axis.Scale(shaftLen / 2)))
-	shaft := composeColumnMajor(bx, by, bz, shaftCenter,
-		length*arrowShaftRadiusFrac, shaftLen, length*arrowShaftRadiusFrac)
-
-	headLen := length * arrowHeadLenFrac
-	headCenter := center.Add(Vec3(axis.Scale(length - headLen/2)))
-	head := composeColumnMajor(bx, by, bz, headCenter,
-		length*arrowHeadRadiusFrac, headLen, length*arrowHeadRadiusFrac)
-
-	received8 := uint8(0)
+	axis := Vec3(Camera.AnglesToWorldOffset(1, phi, ArrowRingDiskTheta).Normalize())
+	kind := ArrowTilt
 	if received {
-		received8 = 1
+		kind = ArrowReceived
 	}
-	return TiltArrow{Received: received8, Shaft: shaft, Head: head}
+	return arrowAlong(center, axis, length, length, kind)
+}
+
+func ArrowBetween(from, to Vec3, size float64, kind uint8) (TiltArrow, bool) {
+	d := to.Sub(from)
+	length := d.Length()
+	if length < 1e-9 {
+		return TiltArrow{}, false
+	}
+	return arrowAlong(from, d.Normalize(), length, size, kind), true
+}
+
+func arrowAlong(center, axis Vec3, length, size float64, kind uint8) TiltArrow {
+	up := Vec3{X: 0, Y: 1, Z: 0}
+	bx, by, bz := axisBasisFrom(up, axis)
+
+	headLen := min(size*arrowHeadLenFrac, length)
+	shaftLen := length - headLen
+	shaftCenter := center.Add(axis.Scale(shaftLen / 2))
+	shaft := composeColumnMajor(bx, by, bz, shaftCenter,
+		size*arrowShaftRadiusFrac, shaftLen, size*arrowShaftRadiusFrac)
+
+	headCenter := center.Add(axis.Scale(length - headLen/2))
+	head := composeColumnMajor(bx, by, bz, headCenter,
+		size*arrowHeadRadiusFrac, headLen, size*arrowHeadRadiusFrac)
+
+	return TiltArrow{Received: kind, Shaft: shaft, Head: head}
 }

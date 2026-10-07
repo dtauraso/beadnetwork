@@ -9,7 +9,6 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/TiltPanel"
 	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
 	NodeCat "github.com/dtauraso/beadnetwork/Categories/Node"
-	"github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
 )
 
 const nodeCount = CardPanel.NodeCount
@@ -39,6 +38,8 @@ type NodePhiTheta3 struct {
 	Card CardPanel.Card
 	S    int
 
+	stepsPerR float64
+
 	arrival [nodeCount]Vec
 	started bool
 
@@ -59,9 +60,13 @@ func (n *NodePhiTheta3) applyEdit(e CardPanel.EditMsg) {
 	if e.Field.Vector == CardPanel.VecS {
 		n.S = e.Value
 		n.postTicks()
+		n.postStarts()
 		return
 	}
 	n.Card.Set(e.Field, e.Value)
+	if e.Field.Vector == CardPanel.VecStart {
+		n.postStarts()
+	}
 	if err := NodeCat.WriteCardState(n.geom.PersistRoot(), n.geom.ID(), e.Field.StateKey(), e.Value); err != nil {
 		n.breadcrumb("card-persist", err.Error())
 	}
@@ -148,35 +153,12 @@ func (n *NodePhiTheta3) round(in [nodeCount]Vec) {
 	n.place()
 }
 
-func (n *NodePhiTheta3) parent() (int, bool) {
-	a, b := n.Partners[0], n.Partners[1]
-	switch {
-	case n.Card.K[a-1] == 1 && n.Card.K[b-1] == 0:
-		return a, true
-	case n.Card.K[b-1] == 1 && n.Card.K[a-1] == 0:
-		return b, true
-	}
-	return 0, false
-}
-
-func (n *NodePhiTheta3) place() {
-	j, ok := n.parent()
-	if !ok {
-		return
-	}
-	v := n.arrival[j-1]
-	n.geom.KindPosts().PostVectorFrom(strconv.Itoa(j), polarindex.Offset{Phi: v.Phi * n.S, Theta: v.Theta * n.S, R: v.R})
-}
-
-func (n *NodePhiTheta3) postTicks() {
-	n.geom.KindPosts().PostTicks(int32(poleHigh * n.S))
-}
-
 func (n *NodePhiTheta3) Update(ctx context.Context) {
 	clk := n.Clock.Copy()
 	clk.SpeedFrom(n.SpeedCh)
 	n.geom.Clocks().Use(clk)
 	n.postTicks()
+	n.postStarts()
 
 	for {
 		if ctx.Err() != nil {
@@ -223,6 +205,7 @@ var Builder = BuilderFor("NodePhiTheta3",
 		n.Partners = CardPanel.Partners(me)
 		n.Card = CardPanel.CardFromState(me, a.State())
 		n.S = a.S()
+		n.stepsPerR = NodeCat.NodeRadius(n.geom.Kind()) / n.geom.Constants().ConstantR
 
 		n.breadcrumb("built", fmt.Sprintf("node=%d partners=%v s=%d card=%+v", me, n.Partners, n.S, n.Card))
 

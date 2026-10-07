@@ -66,7 +66,7 @@ export function SceneRoot({ cameraRef }: {
       <NodeInstances capacity={nodeCap} />
       {}
       {}
-      <TiltVectors capacity={nodeCap * 3} receivedCapacity={nodeCap} />
+      <TiltVectors capacity={nodeCap * 3} receivedCapacity={nodeCap} startCapacity={nodeCap * 2} />
       <TickMarks />
       <InteriorBeadInstances capacity={nodeCap * INTERIOR_SLOTS_PER_NODE} />
       <RuleChannelLines capacity={2 * nodeCap * (nodeCap - 1)} />

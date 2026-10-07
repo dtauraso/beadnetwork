@@ -74,6 +74,7 @@ func (m *NodeGeometry) frameInputs(row int32) FrameInputs {
 
 		ChannelVectors: m.channelVectors(),
 
-		TickCount: m.tilt.TickCount(),
+		TickCount:    m.tilt.TickCount(),
+		StartVectors: m.tilt.StartVectors(),
 	}
 }
