@@ -92,7 +92,7 @@ func (g *NodeGeometry) applyKindPosts() {
 		g.tilt.SetLatticePoints(*p.Lattice)
 	}
 	if p.Ticks != nil {
-		g.tickCount = *p.Ticks
+		g.tilt.SetTickCount(*p.Ticks)
 	}
 	if p.Center != nil {
 

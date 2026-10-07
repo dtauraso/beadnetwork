@@ -11,7 +11,13 @@ type Tilt struct {
 	receivedVectorSet    bool
 
 	latticePoints int32
+
+	tickCount int32
 }
+
+func (t *Tilt) SetTickCount(count int32) { t.tickCount = count }
+
+func (t *Tilt) TickCount() int32 { return t.tickCount }
 
 func NewTilt(latticePoints int32) Tilt {
 	return Tilt{latticePoints: latticePoints}
