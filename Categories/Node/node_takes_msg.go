@@ -64,7 +64,9 @@ func (m *NodeGeometry) takeDragOfSelf(msg Drag) {
 
 	movedIdx := polarindex.Compose(haveIdx, m.TrimOwnDrag(delta), m.Constants())
 
+	m.msg.leads.path = msg.Path
 	m.msg.CommitLocal(m.id, movedIdx)
+	m.msg.leads.path = nil
 	newPos := WorldPosAt(m.geom.SceneCenter, movedIdx, m.Constants())
 
 	m.writeStreamFrame([]RowEvent{{
