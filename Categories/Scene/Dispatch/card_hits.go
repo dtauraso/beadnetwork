@@ -2,6 +2,7 @@ package Dispatch
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/CardPanel"
@@ -22,19 +23,21 @@ func applyCardHit(md *MoveDispatch, f CardPanel.Field) {
 
 func applyCardKey(ctx context.Context, md *MoveDispatch, key string) {
 	msg, ok := CardPanel.Key(&md.UI.Card.Edit, key)
+	sc := md.UI.Constants
+	if ok && msg.Field.Vector == CardPanel.VecS && !CardPanel.SFits(msg.Value, sc.MaxIndexPhi, sc.MaxIndexTheta) {
+		md.UI.RefuseStructuralEdit(fmt.Sprintf("s = %d: 12s = %d does not divide the scene turn (%d φ, %d θ index steps), so a tick would not be a whole number of steps",
+			msg.Value, CardPanel.TurnTicks*msg.Value, sc.MaxIndexPhi, sc.MaxIndexTheta))
+		ok = false
+	}
 	if ok {
-		if msg.Field.Vector == CardPanel.VecS {
-			md.UI.Card.S = msg.Value
-			if md.UI.PersistCardS != nil {
-				md.UI.PersistCardS(int32(msg.Value))
+		if msg.Field.Vector.SceneWide() {
+			value, persist := &md.UI.Card.S, md.UI.PersistCardS
+			if msg.Field.Vector == CardPanel.VecM {
+				value, persist = &md.UI.Card.M, md.UI.PersistCardM
 			}
-			if md.Scenes.Quit != nil {
-				md.Scenes.Quit()
-			}
-		} else if msg.Field.Vector == CardPanel.VecM {
-			md.UI.Card.M = msg.Value
-			if md.UI.PersistCardM != nil {
-				md.UI.PersistCardM(int32(msg.Value))
+			*value = msg.Value
+			if persist != nil {
+				persist(int32(msg.Value))
 			}
 			md.CardInboxes.Broadcast(ctx, msg)
 		} else {

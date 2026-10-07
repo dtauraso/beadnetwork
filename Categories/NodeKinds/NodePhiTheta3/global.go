@@ -18,8 +18,8 @@ func (n *NodePhiTheta3) offsetOf(v Vec) polarindex.Offset {
 func (n *NodePhiTheta3) spokes(ticks, wholeTurn int) int {
 	perTurn := poleHigh * n.S
 	if wholeTurn%perTurn != 0 {
-		panic(fmt.Sprintf("NodePhiTheta3.spokes: node %d's full turn is %d index steps, which is not a whole number of steps per tick at 12s = %d — "+
-			"the loader (Topology.applySceneTurn) makes the turn lcm(saved turn, 12s), and an s edit respawns the scene so the turn is remade",
+		panic(fmt.Sprintf("NodePhiTheta3.spokes: node %d's scene turn is %d index steps, which is not a whole number of steps per tick at 12s = %d — "+
+			"CardPanel.SFits gates s where it is loaded (Startup.NewFromSpec) and where the panel sets it (Dispatch.applyCardKey)",
 			n.Me, wholeTurn, perTurn))
 	}
 	return ticks * (wholeTurn / perTurn)

@@ -31,15 +31,7 @@ func ReadDragIndex(root, id string) (phi, theta, r int, topTiltVectorPhiIdx int3
 	return phi, theta, r, topTiltVectorPhiIdx, true
 }
 
-func ReadDragTurn(root, id string) (phi, theta int, ok bool) {
-	dir := dragDir(root, id)
-	if !ReadIfExists(filepath.Join(dir, FileTurnPhi), &phi) || !ReadIfExists(filepath.Join(dir, FileTurnTheta), &theta) {
-		return 0, 0, false
-	}
-	return phi, theta, phi > 0 && theta > 0
-}
-
-func WriteDragIndex(root, id string, phi, theta, r int, topTiltVectorPhiIdx int32, turnPhi, turnTheta int) error {
+func WriteDragIndex(root, id string, phi, theta, r int, topTiltVectorPhiIdx int32) error {
 	if id == "" || id == "." || id == ".." || strings.ContainsAny(id, `/\`) {
 		return fmt.Errorf("unsafe node id %q", id)
 	}
@@ -49,8 +41,6 @@ func WriteDragIndex(root, id string, phi, theta, r int, topTiltVectorPhiIdx int3
 		FileIndexTheta: theta,
 		FileIndexR:     r,
 		FileTiltIdx:    int(topTiltVectorPhiIdx),
-		FileTurnPhi:    turnPhi,
-		FileTurnTheta:  turnTheta,
 	} {
 		if err := WriteAtomicIfChanged(filepath.Join(dir, name), value); err != nil {
 			return err

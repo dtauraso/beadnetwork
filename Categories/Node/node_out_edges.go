@@ -145,7 +145,7 @@ func (o *OutEdges) persistDelta(e *outEdge, off polarindex.Offset) {
 	if e.hasPersisted && e.persistedDragIdx == off {
 		return
 	}
-	if err := edgefile.WriteEdgeDrag(o.persistRoot, o.srcID, e.label, off, o.constants); err != nil {
+	if err := edgefile.WriteEdgeDrag(o.persistRoot, o.srcID, e.label, off); err != nil {
 		LogPersistErr("out_edges", o.srcID+"->"+e.targetID, err)
 		return
 	}

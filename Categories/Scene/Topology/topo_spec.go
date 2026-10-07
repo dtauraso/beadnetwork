@@ -73,8 +73,6 @@ type TopoSpec struct {
 	RowCount int
 
 	Constants polarindex.SceneConstants
-
-	savedTurn turn
 }
 
 func ParseSpec(path string) (TopoSpec, error) {
