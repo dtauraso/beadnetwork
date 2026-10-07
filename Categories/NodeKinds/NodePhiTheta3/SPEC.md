@@ -32,7 +32,8 @@ typed edit under the gitignored `nodes/<n>/drag/state/`, which replaces the defa
 `s` and `m` are scene-wide and live in the gitignored `view/card-s.bin` and `view/card-m.bin`.
 
 Rounds run while the speed slider is above 0. The step button beside it runs one round on
-every node, so a paused card can be walked a round at a time.
+every node, so a paused card can be walked a round at a time. The reset button beside it puts
+every node back at round 0, so the next round sends `start_j` again.
 
 ## dir_down(local_arrival, p, qt)
 

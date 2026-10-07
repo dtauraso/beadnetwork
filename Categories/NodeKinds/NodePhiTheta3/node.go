@@ -32,9 +32,11 @@ type NodePhiTheta3 struct {
 	SpeedCh <-chan float64
 	EditIn  <-chan CardPanel.EditMsg
 	StepIn  <-chan struct{}
+	ResetIn <-chan struct{}
 	Wake    <-chan struct{}
 
 	steps int
+	reset bool
 
 	Me       int
 	Partners [nodeCount - 1]int
@@ -59,39 +61,6 @@ func (n *NodePhiTheta3) breadcrumb(label, value string) {
 		PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
 		Text: value,
 	}})
-}
-
-func (n *NodePhiTheta3) applyEdit(e CardPanel.EditMsg) {
-	if e.Field.Vector == CardPanel.VecS {
-		n.S = e.Value
-		n.postTicks()
-		n.postStarts()
-		return
-	}
-	if e.Field.Vector == CardPanel.VecM {
-		n.M = e.Value
-		return
-	}
-	n.Card.Set(e.Field, e.Value)
-	if e.Field.Vector == CardPanel.VecStart || e.Field.Vector == CardPanel.VecK {
-		n.postStarts()
-	}
-	if err := NodeCat.WriteCardState(n.geom.PersistRoot(), n.geom.ID(), e.Field.StateKey(), e.Value); err != nil {
-		n.breadcrumb("card-persist", err.Error())
-	}
-}
-
-func (n *NodePhiTheta3) drainEdits() {
-	for {
-		select {
-		case e := <-n.EditIn:
-			n.applyEdit(e)
-		case <-n.StepIn:
-			n.steps++
-		default:
-			return
-		}
-	}
 }
 
 func (n *NodePhiTheta3) sendValue(j int) Vec {
@@ -136,6 +105,8 @@ func (n *NodePhiTheta3) exchange(ctx context.Context) (in [nodeCount]Vec, ok boo
 			n.applyEdit(e)
 		case <-n.StepIn:
 			n.steps++
+		case <-n.ResetIn:
+			n.reset = true
 		case <-ctx.Done():
 			return in, false
 		}
@@ -177,6 +148,9 @@ func (n *NodePhiTheta3) Update(ctx context.Context) {
 			return
 		}
 		n.drainEdits()
+		if n.reset {
+			n.applyReset()
+		}
 
 		if clk.Speed() > 0 || n.steps > 0 {
 			if n.steps > 0 {
@@ -214,7 +188,7 @@ var Builder = BuilderFor("NodePhiTheta3",
 		n.Clock = a.Clock()
 		n.SpeedCh = a.SpeedCh()
 		inbox := a.EditInbox()
-		n.EditIn, n.StepIn, n.Wake = inbox.Edits, inbox.Steps, inbox.Wake
+		n.EditIn, n.StepIn, n.ResetIn, n.Wake = inbox.Edits, inbox.Steps, inbox.Resets, inbox.Wake
 		n.geom = a.Geom()
 
 		n.Me = me
