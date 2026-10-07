@@ -21,10 +21,10 @@ k_{j} &\in& \{0, 1\} \\[3pt]
 \leftarrow &:& \text{the node receives the vector on a link} \\[3pt]
 \rightarrow &:& \text{the node sends the vector on a link} \\[10pt]
 \textbf{node 1} & & \\[3pt]
-\begin{bmatrix} \text{start}_{2\,\varphi} \\ \text{start}_{2\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
-\begin{bmatrix} \text{start}_{3\,\varphi} \\ \text{start}_{3\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
+\begin{bmatrix} \text{start}_{2\,\varphi} \\ \text{start}_{2\,\theta} \\ \text{start}_{2\,r} \end{bmatrix}
+  &=& \begin{bmatrix} 0 \\ 0 \\ 0 \end{bmatrix} \\[6pt]
+\begin{bmatrix} \text{start}_{3\,\varphi} \\ \text{start}_{3\,\theta} \\ \text{start}_{3\,r} \end{bmatrix}
+  &=& \begin{bmatrix} 0 \\ 0 \\ 0 \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{pole_offset}_{2\,\varphi} \\ \text{pole_offset}_{2\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 2s \\ 2s \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{pole_offset}_{3\,\varphi} \\ \text{pole_offset}_{3\,\theta} \end{bmatrix}
@@ -34,10 +34,10 @@ k_{j} &\in& \{0, 1\} \\[3pt]
 \begin{bmatrix} L_{1} \\ L_{2} \\ L_{3} \end{bmatrix}
   &=& \begin{bmatrix} 0 \\ 1 \\ 1 \end{bmatrix} \\[10pt]
 \textbf{node 2} & & \\[3pt]
-\begin{bmatrix} \text{start}_{1\,\varphi} \\ \text{start}_{1\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
-\begin{bmatrix} \text{start}_{3\,\varphi} \\ \text{start}_{3\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
+\begin{bmatrix} \text{start}_{1\,\varphi} \\ \text{start}_{1\,\theta} \\ \text{start}_{1\,r} \end{bmatrix}
+  &=& \begin{bmatrix} 0 \\ 0 \\ 0 \end{bmatrix} \\[6pt]
+\begin{bmatrix} \text{start}_{3\,\varphi} \\ \text{start}_{3\,\theta} \\ \text{start}_{3\,r} \end{bmatrix}
+  &=& \begin{bmatrix} 0 \\ 0 \\ 0 \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{pole_offset}_{1\,\varphi} \\ \text{pole_offset}_{1\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 3s \\ 3s \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{pole_offset}_{3\,\varphi} \\ \text{pole_offset}_{3\,\theta} \end{bmatrix}
@@ -47,10 +47,10 @@ k_{j} &\in& \{0, 1\} \\[3pt]
 \begin{bmatrix} L_{1} \\ L_{2} \\ L_{3} \end{bmatrix}
   &=& \begin{bmatrix} 1 \\ 0 \\ 1 \end{bmatrix} \\[10pt]
 \textbf{node 3} & & \\[3pt]
-\begin{bmatrix} \text{start}_{1\,\varphi} \\ \text{start}_{1\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
-\begin{bmatrix} \text{start}_{2\,\varphi} \\ \text{start}_{2\,\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
+\begin{bmatrix} \text{start}_{1\,\varphi} \\ \text{start}_{1\,\theta} \\ \text{start}_{1\,r} \end{bmatrix}
+  &=& \begin{bmatrix} 0 \\ 0 \\ 0 \end{bmatrix} \\[6pt]
+\begin{bmatrix} \text{start}_{2\,\varphi} \\ \text{start}_{2\,\theta} \\ \text{start}_{2\,r} \end{bmatrix}
+  &=& \begin{bmatrix} 0 \\ 0 \\ 0 \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{pole_offset}_{1\,\varphi} \\ \text{pole_offset}_{1\,\theta} \end{bmatrix}
   &=& \begin{bmatrix} 2s \\ 2s \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{pole_offset}_{2\,\varphi} \\ \text{pole_offset}_{2\,\theta} \end{bmatrix}
