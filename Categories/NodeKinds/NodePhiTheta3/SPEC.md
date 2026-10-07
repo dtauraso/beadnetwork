@@ -63,8 +63,9 @@ any one still outstanding, so a cycle of three cannot deadlock.
 The card stops at its local numbers; placing them is conversion. The node's parent is the
 partner whose `k_j = 1` when exactly one is; a node with none is a root and stays where it
 is. After each round the node places itself at its parent composed with its updated local
-vector, `PostVectorFrom(parent, [φ·s, θ·s, r·ρ])`, which the geometry goroutine resolves as
-`polarindex.Compose(parent's index, vector)`. r is in node radii: ρ is the node radius in radial
+vector, `PostVectorFrom(parent, [φ·T/12s, θ·T/12s, r·ρ])`, which the geometry goroutine resolves as
+`polarindex.Compose(parent's index, vector)`. φ and θ count spokes: one spoke is 1/(12s) of a turn, T is the whole turn in index steps, and
+the result is rounded to a whole step. r is in node radii: ρ is the node radius in radial
 index steps, and r·ρ is rounded to a whole step. Each node's `start_j` is drawn as an arrow from its
 centre with the same conversion, so r = 1 reaches the ring.
 

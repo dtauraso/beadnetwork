@@ -8,8 +8,13 @@ import (
 )
 
 func (n *NodePhiTheta3) offsetOf(v Vec) polarindex.Offset {
+	c := n.geom.Constants()
 	r := int(math.Round(float64(v.R) * n.stepsPerR))
-	return polarindex.Offset{Phi: v.Phi * n.S, Theta: v.Theta * n.S, R: r}
+	return polarindex.Offset{Phi: n.spokes(v.Phi, c.MaxIndexPhi), Theta: n.spokes(v.Theta, c.MaxIndexTheta), R: r}
+}
+
+func (n *NodePhiTheta3) spokes(ticks, wholeTurn int) int {
+	return int(math.Round(float64(ticks*wholeTurn) / float64(poleHigh*n.S)))
 }
 
 func (n *NodePhiTheta3) parent() (int, bool) {
