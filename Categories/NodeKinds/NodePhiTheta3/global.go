@@ -33,7 +33,5 @@ func (n *NodePhiTheta3) postStarts() {
 		}
 	}
 	n.geom.KindPosts().PostStartVectors(starts)
-	if len(leads) > 0 {
-		n.geom.KindPosts().PostLeads(leads)
-	}
+	n.geom.KindPosts().PostLeads(leads)
 }
