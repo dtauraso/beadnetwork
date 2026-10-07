@@ -26,6 +26,8 @@ func main() {
 	fmt.Fprintf(&b, "export const IN_KIND_EDIT_UPDATE = %d;\n\n", Drag.KindEditUpdate)
 	writeList(&b, "IN_EVENT_KINDS", Drag.EventKinds)
 	fmt.Fprintln(&b)
+	writeList(&b, "IN_COMMAND_KINDS", Drag.CommandKinds)
+	fmt.Fprintln(&b)
 	writeList(&b, "IN_HIT_KINDS", Drag.HitKinds)
 	fmt.Fprintln(&b)
 	fmt.Fprintln(&b, "// EDIT_UPDATE_KINDS_START")

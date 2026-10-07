@@ -18,6 +18,7 @@ type gestureMsgKind int
 const (
 	GestureMsgEdit gestureMsgKind = iota
 	GestureMsgSave
+	GestureMsgCommand
 )
 
 type GestureInboxMsg struct {
@@ -27,6 +28,8 @@ type GestureInboxMsg struct {
 	Entity  byte
 	Attr    byte
 	Payload []byte
+
+	Command Drag.RawInputMsg
 }
 
 const gestureInboxDepth = 64
@@ -59,6 +62,8 @@ func StartGestureActor(ctx context.Context, md *Dispatch.MoveDispatch, speedSink
 						Dispatch.ApplyEdit(ctx, gm.Op, gm.Entity, gm.Attr, gm.Payload, md, speedSinks)
 					case GestureMsgSave:
 						Dispatch.HandleSaveMsg(md)
+					case GestureMsgCommand:
+						Dispatch.HandleRawInputMsg(ctx, gm.Command, md, speedSinks)
 					}
 				default:
 					break drain
@@ -113,6 +118,9 @@ func StartStdinReader(ctx context.Context, cancel context.CancelFunc, md *Dispat
 		},
 		HandleSave: func() {
 			SendGestureMsgBlocking(ctx, inbox, GestureInboxMsg{Kind: GestureMsgSave})
+		},
+		HandleCommand: func(ev Drag.RawInputMsg) {
+			SendGestureMsgBlocking(ctx, inbox, GestureInboxMsg{Kind: GestureMsgCommand, Command: ev})
 		},
 	}
 	go func() {

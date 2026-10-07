@@ -8,6 +8,8 @@ export const IN_KIND_EDIT_UPDATE = 22;
 
 export const IN_EVENT_KINDS = ["pointerdown", "pointermove", "pointerup", "wheel", "home", "delete", "key"] as const;
 
+export const IN_COMMAND_KINDS = ["delete", "key"] as const;
+
 export const IN_HIT_KINDS = ["port", "handhold", "node", "edge", "torus", "empty"] as const;
 
 // EDIT_UPDATE_KINDS_START

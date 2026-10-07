@@ -1,5 +1,7 @@
 package Drag
 
+import "slices"
+
 const KindRawInput = 10
 
 var EventKinds = []string{
@@ -11,6 +13,13 @@ var EventKinds = []string{
 	"delete",
 	"key",
 }
+
+var CommandKinds = []string{
+	"delete",
+	"key",
+}
+
+func IsCommandKind(kind string) bool { return slices.Contains(CommandKinds, kind) }
 
 var HitKinds = []string{
 	"port",
