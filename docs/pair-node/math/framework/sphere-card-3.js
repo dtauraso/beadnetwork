@@ -15,12 +15,15 @@ m &=& \text{the jump constant} \\[3pt]
 m &\in& \mathbb{Z}^{+} \\[3pt]
 m &=& 1 \text{ by default} \\[3pt]
 L_{j} &=& 1 \text{ if a link reaches node } j \text{, } 0 \text{ if not} \\[3pt]
+\text{prev}_{j} &=& 1 \text{ if node } j \text{ is the previous node, } 0 \text{ if not} \\[3pt]
 \text{pole_offset}_{j\,\varphi},\, \text{pole_offset}_{j\,\theta} &\in& \{0, 1s, 2s, 3s\} \\[3pt]
 p &\in& P \\[3pt]
 k_{j} &\in& \{0, 1\} \\[3pt]
 \leftarrow &:& \text{the node receives the vector on a link} \\[3pt]
 \rightarrow &:& \text{the node sends the vector on a link} \\[10pt]
 \textbf{node 1} & & \\[3pt]
+\begin{bmatrix} \text{prev}_{1} \\ \text{prev}_{2} \\ \text{prev}_{3} \end{bmatrix}
+  &=& \begin{bmatrix} 0 \\ 0 \\ 1 \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{start}_{2\,\varphi} \\ \text{start}_{2\,\theta} \\ \text{start}_{2\,r} \end{bmatrix}
   &=& \begin{bmatrix} 0 \\ 0 \\ 0 \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{start}_{3\,\varphi} \\ \text{start}_{3\,\theta} \\ \text{start}_{3\,r} \end{bmatrix}
@@ -34,6 +37,8 @@ k_{j} &\in& \{0, 1\} \\[3pt]
 \begin{bmatrix} L_{1} \\ L_{2} \\ L_{3} \end{bmatrix}
   &=& \begin{bmatrix} 0 \\ 1 \\ 1 \end{bmatrix} \\[10pt]
 \textbf{node 2} & & \\[3pt]
+\begin{bmatrix} \text{prev}_{1} \\ \text{prev}_{2} \\ \text{prev}_{3} \end{bmatrix}
+  &=& \begin{bmatrix} 1 \\ 0 \\ 0 \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{start}_{1\,\varphi} \\ \text{start}_{1\,\theta} \\ \text{start}_{1\,r} \end{bmatrix}
   &=& \begin{bmatrix} 0 \\ 0 \\ 0 \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{start}_{3\,\varphi} \\ \text{start}_{3\,\theta} \\ \text{start}_{3\,r} \end{bmatrix}
@@ -47,6 +52,8 @@ k_{j} &\in& \{0, 1\} \\[3pt]
 \begin{bmatrix} L_{1} \\ L_{2} \\ L_{3} \end{bmatrix}
   &=& \begin{bmatrix} 1 \\ 0 \\ 1 \end{bmatrix} \\[10pt]
 \textbf{node 3} & & \\[3pt]
+\begin{bmatrix} \text{prev}_{1} \\ \text{prev}_{2} \\ \text{prev}_{3} \end{bmatrix}
+  &=& \begin{bmatrix} 0 \\ 1 \\ 0 \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{start}_{1\,\varphi} \\ \text{start}_{1\,\theta} \\ \text{start}_{1\,r} \end{bmatrix}
   &=& \begin{bmatrix} 0 \\ 0 \\ 0 \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{start}_{2\,\varphi} \\ \text{start}_{2\,\theta} \\ \text{start}_{2\,r} \end{bmatrix}
