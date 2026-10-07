@@ -6,6 +6,12 @@
 // writes from this same list, so neither side spells a path.
 
 export const CARD_PANEL_VALUE_NAMES = [
+  "pillX",
+  "pillY",
+  "pillW",
+  "pillH",
+  "pillText",
+  "open",
   "boxX",
   "boxY",
   "boxW",

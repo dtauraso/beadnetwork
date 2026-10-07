@@ -7,6 +7,14 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/CardPanel"
 )
 
+func toggleCardPanel(md *MoveDispatch) {
+	md.UI.Card.Open = !md.UI.Card.Open
+	if !md.UI.Card.Open {
+		md.UI.Card.Edit = CardPanel.Edit{}
+	}
+	md.UI.EmitViewFrame(nil)
+}
+
 func applyCardHit(md *MoveDispatch, f CardPanel.Field) {
 	CardPanel.StartDraft(&md.UI.Card.Edit, f)
 	md.UI.EmitViewFrame(nil)

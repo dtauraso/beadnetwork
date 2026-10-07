@@ -12,6 +12,16 @@ func (s *State) Write(lay Layout) {
 	}
 	w.Begin()
 
+	if lay.Pill.W > 0 {
+		w.Rect("pillX", "pillY", "pillW", "pillH", lay.Pill)
+		w.Text("pillText", PillLabel)
+		open := uint8(0)
+		if lay.Open {
+			open = 1
+		}
+		w.U8("open", open)
+	}
+
 	for _, p := range lay.Panels {
 		w.Rect("boxX", "boxY", "boxW", "boxH", p.Box)
 		w.Rect("headX", "headY", "headW", "headH", p.Head)

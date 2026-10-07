@@ -7,6 +7,8 @@ const values = makeLeafValues<CardPanelValueName>(
 );
 
 export const cardBytes = values.bytes;
+export const cardF32 = values.f32;
+export const cardU8 = values.u8;
 export const cardF32Run = values.f32Run;
 export const cardI32Run = values.i32Run;
 export const cardU32Run = values.u32Run;

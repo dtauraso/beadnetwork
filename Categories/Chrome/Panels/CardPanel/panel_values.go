@@ -7,6 +7,8 @@ import (
 const ValueRelFile = "view/chrome/card-panel.bin"
 
 var PanelValueNames = []string{
+	"pillX", "pillY", "pillW", "pillH",
+	"pillText", "open",
 	"boxX", "boxY", "boxW", "boxH",
 	"headX", "headY", "headW", "headH",
 	"titleText", "titleLen",

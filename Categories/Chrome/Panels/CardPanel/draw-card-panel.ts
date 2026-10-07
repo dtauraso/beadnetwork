@@ -1,6 +1,7 @@
 import { drawBox, canvasFont, roundRect } from "../../canvas-box";
 import { decodeAt } from "../../leaf-text";
-import { cardBytes, cardF32Run, cardI32Run, cardU32Run, cardText } from "./panel-leaves";
+import { drawPill } from "../../Pills/pill";
+import { cardBytes, cardF32, cardF32Run, cardI32Run, cardU8, cardU32Run, cardText } from "./panel-leaves";
 
 const TITLE_FONT_PX = 12;
 const TITLE_INK = "#222";
@@ -31,6 +32,7 @@ export function cardPanelKey(): string {
   const editFlags: number[] = [];
   if (editing) for (let i = 0; i < editing.byteLength; i++) editFlags.push(editing.getUint8(i));
   return [
+    cardF32("pillX"), cardF32("pillY"), cardF32("pillW"), cardU8("open"),
     boxX ? Array.from(boxX).join(".") : "",
     values ? Array.from(values).join(".") : "",
     editFlags.join(""),
@@ -61,6 +63,13 @@ function drawField(
 }
 
 export function drawCardPanel(c: CanvasRenderingContext2D): void {
+  const pillText = cardText("pillText");
+  const pw = cardF32("pillW");
+  const ph = cardF32("pillH");
+  if (pillText && pw > 0 && ph > 0) {
+    drawPill(c, cardF32("pillX"), cardF32("pillY"), pw, ph, decodeAt(pillText, 0, pillText.length), cardU8("open") !== 0);
+  }
+
   const boxX = cardF32Run("boxX");
   const boxY = cardF32Run("boxY");
   const boxW = cardF32Run("boxW");

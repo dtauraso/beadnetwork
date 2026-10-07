@@ -26,6 +26,10 @@ func panelTookPointerDown(
 ) bool {
 	pl := md.UI.PanelLayout()
 
+	if pl.Card.HitPill(ev.X, ev.Y) {
+		toggleCardPanel(md)
+		return true
+	}
 	if f, ok := pl.Card.Hit(ev.X, ev.Y); ok {
 		applyCardHit(md, f)
 		return true

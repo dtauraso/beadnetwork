@@ -37,7 +37,12 @@ type FieldBox struct {
 	Rect  Rect
 }
 
+const PillLabel = "Card"
+
 type Layout struct {
+	Pill Rect
+	Open bool
+
 	Panels []PanelBox
 	Fields []FieldBox
 }
@@ -55,6 +60,7 @@ type State struct {
 	Cards map[int]Card
 	S     int
 	Edit  Edit
+	Open  bool
 }
 
 func (s *State) Arm(sceneRoot string) { s.w = NewValueWriter(sceneRoot) }
@@ -152,13 +158,16 @@ func (lay *Layout) place(g group, box Rect, x, y float32) {
 	}
 }
 
-func Build(viewW, viewH float32, s State) Layout {
+func Build(pills *Panel.PillStack, viewW, viewH float32, s State) Layout {
 	if len(s.Nodes) == 0 {
 		return Layout{}
 	}
-	var lay Layout
+	lay := Layout{Pill: pills.AddPill(), Open: s.Open}
+	if !s.Open {
+		return lay
+	}
 
-	panel := Rect{X: viewW / 2, Y: TopY, W: viewW/2 - Panel.OriginX, H: viewH - TopY - Panel.OriginY}
+	panel := Rect{X: viewW / 2, Y: TopY, W: pills.X() - Panel.PillGap - viewW/2, H: viewH - TopY - Panel.OriginY}
 	lay.Panels = append(lay.Panels, PanelBox{Box: panel})
 	x0, y0 := panel.X+Panel.PadX, panel.Y+Panel.PadY
 	innerW := panel.W - 2*Panel.PadX
@@ -177,6 +186,10 @@ func Build(viewW, viewH float32, s State) Layout {
 		}
 	}
 	return lay
+}
+
+func (l Layout) HitPill(x, y float64) bool {
+	return l.Pill.W > 0 && Panel.HitRect(l.Pill, x, y)
 }
 
 func (l Layout) Covers(x, y float64) bool {
