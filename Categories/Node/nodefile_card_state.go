@@ -30,7 +30,7 @@ func ReadCardState(root, id string) map[string]int {
 	out := map[string]int{}
 	for _, e := range entries {
 		name := e.Name()
-		if e.IsDir() || !strings.HasSuffix(name, ".bin") {
+		if !strings.HasSuffix(name, ".bin") {
 			continue
 		}
 		var v int
