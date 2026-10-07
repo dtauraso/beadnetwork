@@ -77,7 +77,15 @@ channel per ordered pair, made by this kind beside the card's link channels, so 
 is delivered and none passes through the dispatcher or a pointer-drag slot. j places itself there
 and tells its edge neighbours how far it moved. n sends when n starts, whenever n's start, k or s
 changes, and whenever n itself moves — so a move passes down a chain of k links, node by node.
-When `k_j` goes back to 0, j stays where it was put.
+When `k_j` goes back to 0, n sends j a release and j stays where it was put.
+
+j keeps the latest tip from each partner sending to it. With one sender, j goes to that tip. With
+two, j's own k picks, as pick_one does: j takes the tip from the partner its single `k = 1` names,
+and stays put if its k names neither or both.
+
+A placement moves j's centre only. j's own `start` vectors keep their own angles in the same axes
+every node uses; any turn of them comes from j's own polar settings changing, not from the
+vector that placed it.
 
 A card-placed position is not saved: it is the tip of the sender's `start_j`, so it is placed
 again from the card when the scene loads. Only the card's values and pointer drags are saved.
