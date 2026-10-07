@@ -1,13 +1,15 @@
 package NodePhiTheta3
 
 import (
+	"math"
 	"strconv"
 
 	"github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
 )
 
 func (n *NodePhiTheta3) offsetOf(v Vec) polarindex.Offset {
-	return polarindex.Offset{Phi: v.Phi * n.S, Theta: v.Theta * n.S, R: v.R}
+	r := int(math.Round(float64(v.R) * n.stepsPerR))
+	return polarindex.Offset{Phi: v.Phi * n.S, Theta: v.Theta * n.S, R: r}
 }
 
 func (n *NodePhiTheta3) parent() (int, bool) {
