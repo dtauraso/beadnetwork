@@ -22,15 +22,15 @@ type BuildArgs struct {
 	Deps deps
 }
 
-func (a BuildArgs) EditIn() <-chan CardPanel.EditMsg {
+func (a BuildArgs) EditInbox() CardPanel.Inbox {
 	if a.Deps == nil {
-		return nil
+		return CardPanel.Inbox{}
 	}
-	ch, ok := a.Deps.CardEditChan(a.Name).(chan CardPanel.EditMsg)
+	in, ok := a.Deps.CardEditChan(a.Name).(CardPanel.Inbox)
 	if !ok {
-		panic("NodePhiTheta3.EditIn: the scene handed node " + a.Name + " something that is not a card-edit channel — Startup.BuildDeps.ClaimCardEditIn should have made one")
+		panic("NodePhiTheta3.EditInbox: the scene handed node " + a.Name + " something that is not a card-edit inbox — Startup.BuildDeps.ClaimCardEditIn should have made one")
 	}
-	return ch
+	return in
 }
 
 func (a BuildArgs) State() map[string]int {

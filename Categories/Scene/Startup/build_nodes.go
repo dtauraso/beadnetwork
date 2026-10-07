@@ -41,9 +41,9 @@ func BuildNodes(
 			return panelToNodeTiltEditIn
 		},
 		ClaimCardEditIn: func(name string) any {
-			panelToNodeCardEditIn := make(chan CardPanel.EditMsg, Dispatch.InboxDepth)
-			md.CardInboxes.Claim(name, panelToNodeCardEditIn)
-			return panelToNodeCardEditIn
+			panelToNodeCardInbox := CardPanel.NewInbox(Dispatch.InboxDepth)
+			md.CardInboxes.Claim(name, panelToNodeCardInbox)
+			return panelToNodeCardInbox
 		},
 		CardS: md.UI.Card.S,
 		ClaimSelfDriveGeom: func(name string) any {

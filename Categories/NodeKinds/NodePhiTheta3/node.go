@@ -31,6 +31,7 @@ type NodePhiTheta3 struct {
 	Clock   clock.Clock
 	SpeedCh <-chan float64
 	EditIn  <-chan CardPanel.EditMsg
+	Wake    <-chan struct{}
 
 	Me       int
 	Partners [nodeCount - 1]int
@@ -154,6 +155,7 @@ func (n *NodePhiTheta3) round(in [nodeCount]Vec) {
 func (n *NodePhiTheta3) Update(ctx context.Context) {
 	clk := n.Clock.Copy()
 	clk.SpeedFrom(n.SpeedCh)
+	clk.WakeOn(n.Wake)
 	n.geom.Clocks().Use(clk)
 	n.postTicks()
 	n.postStarts()
@@ -196,7 +198,8 @@ var Builder = BuilderFor("NodePhiTheta3",
 		n := &NodePhiTheta3{}
 		n.Clock = a.Clock()
 		n.SpeedCh = a.SpeedCh()
-		n.EditIn = a.EditIn()
+		inbox := a.EditInbox()
+		n.EditIn, n.Wake = inbox.Edits, inbox.Wake
 		n.geom = a.Geom()
 
 		n.Me = me
