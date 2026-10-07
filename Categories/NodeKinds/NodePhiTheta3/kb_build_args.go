@@ -11,6 +11,7 @@ type deps interface {
 	SelfDriveGeom(name string) any
 	CardEditChan(name string) any
 	CardSSeed() int
+	CardMSeed() int
 }
 
 type BuildArgs struct {
@@ -45,6 +46,13 @@ func (a BuildArgs) S() int {
 		return CardPanel.DefaultS
 	}
 	return a.Deps.CardSSeed()
+}
+
+func (a BuildArgs) M() int {
+	if a.Deps == nil || a.Deps.CardMSeed() < 1 {
+		return CardPanel.DefaultM
+	}
+	return a.Deps.CardMSeed()
 }
 
 type kindBuilder struct {

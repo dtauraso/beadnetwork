@@ -39,9 +39,13 @@ func armEdit(ui *View.UIState, topologyPath string) {
 	ui.PersistSphere = sphere.Schedule
 	ui.PersistSpeed = speed.Schedule
 	cardS := &Persister[int32]{
-		Path: Scenes.CardSFilePath(topologyPath), Write: CardPanel.WriteCardS, Tag: "card_s_persist",
+		Path: Scenes.CardSFilePath(topologyPath), Write: CardPanel.WriteCardScalar, Tag: "card_s_persist",
+	}
+	cardM := &Persister[int32]{
+		Path: Scenes.CardMFilePath(topologyPath), Write: CardPanel.WriteCardScalar, Tag: "card_m_persist",
 	}
 
 	ui.PersistLattice = lattice.Schedule
 	ui.PersistCardS = cardS.Schedule
+	ui.PersistCardM = cardM.Schedule
 }

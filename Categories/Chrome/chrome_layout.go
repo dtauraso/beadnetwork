@@ -51,7 +51,6 @@ type Of struct {
 var PillLabels = []string{AngleDropdown.Label, NodesDropdown.Label, CardPanel.PillLabel, Pills.Label}
 
 func LayoutOf(in Of) Layout {
-	st := Panel.New(float32(in.ViewH))
 	pills := Panel.NewPillStack(float32(in.ViewW), float32(in.ViewH), PillLabels)
 
 	nodes := make([]AngleDropdown.Node, len(in.Tilt.Rows))
@@ -64,10 +63,17 @@ func LayoutOf(in Of) Layout {
 	}
 
 	fit := pills.AddChip(FitButton.FitLabel)
+	tabs := Tabs.Build(float32(in.ViewW), in.Tabs.Names, in.Tabs.Selected)
+	top := float32(Panel.OriginY)
+	if tabs.Strip.H > 0 {
+		top = tabs.Strip.Y + tabs.Strip.H + Panel.Gap
+	}
+	st := Panel.NewAt(top, float32(in.ViewH))
 
 	lay := Layout{
 		Fit:   fit,
-		Speed: SliderPanel.Build(st),
+		Tabs:  tabs,
+		Speed: SliderPanel.Build(st, len(in.Card.Nodes) > 0),
 		Tilt:  TiltPanel.Build(st, in.Tilt.Rows, in.Tilt.Labels),
 		Rules: PolarRulesPanel.Build(st, Panel.PanelOpen["nodeRules"](in.Panels), in.Rules),
 	}
@@ -75,6 +81,5 @@ func LayoutOf(in Of) Layout {
 	lay.Nodes = NodesDropdown.Build(pills, in.Nodes.Open && in.SceneEditable, NodesDropdown.PaletteKinds(in.SceneKinds, in.SceneEditable, in.Nodes.RowOpen))
 	lay.Card = CardPanel.Build(pills, in.Card)
 	lay.Overlays = Pills.Build(pills, in.Overlays, in.Panels, in.PillsBar.Scroll)
-	lay.Tabs = Tabs.Build(float32(in.ViewW), in.Tabs.Names, in.Tabs.Selected)
 	return lay
 }

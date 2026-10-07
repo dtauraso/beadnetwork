@@ -71,7 +71,8 @@ func NewFromSpec(spec Topology.TopoSpec, sphere polar.SceneSphere, hasScene bool
 
 	md.UI.Tilt.Rows, md.UI.Tilt.Labels = Topology.TiltPanelRows(spec)
 	md.UI.Card.Nodes, md.UI.Card.Cards = Topology.CardPanelNodes(spec)
-	md.UI.Card.S = CardPanel.LoadCardS(Scenes.CardSFilePath(scenePath))
+	md.UI.Card.S = CardPanel.LoadCardScalar(Scenes.CardSFilePath(scenePath), CardPanel.DefaultS)
+	md.UI.Card.M = CardPanel.LoadCardScalar(Scenes.CardMFilePath(scenePath), CardPanel.DefaultM)
 
 	md.UI.Rules.Nodes = Topology.RulePanelNodes(spec, func(id string) bool {
 		ng, ok := md.MR.NodeGeoms()[id]

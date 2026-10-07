@@ -64,6 +64,7 @@ type UIState struct {
 	PersistSpeed    func(float64)
 	PersistLattice  func(int32)
 	PersistCardS    func(int32)
+	PersistCardM    func(int32)
 
 	LatchedNode string
 

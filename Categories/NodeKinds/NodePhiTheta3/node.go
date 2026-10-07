@@ -31,13 +31,17 @@ type NodePhiTheta3 struct {
 	Clock   clock.Clock
 	SpeedCh <-chan float64
 	EditIn  <-chan CardPanel.EditMsg
+	StepIn  <-chan struct{}
 	Wake    <-chan struct{}
+
+	steps int
 
 	Me       int
 	Partners [nodeCount - 1]int
 
 	Card CardPanel.Card
 	S    int
+	M    int
 
 	stepsPerR float64
 
@@ -64,6 +68,10 @@ func (n *NodePhiTheta3) applyEdit(e CardPanel.EditMsg) {
 		n.postStarts()
 		return
 	}
+	if e.Field.Vector == CardPanel.VecM {
+		n.M = e.Value
+		return
+	}
 	n.Card.Set(e.Field, e.Value)
 	if e.Field.Vector == CardPanel.VecStart || e.Field.Vector == CardPanel.VecK {
 		n.postStarts()
@@ -78,6 +86,8 @@ func (n *NodePhiTheta3) drainEdits() {
 		select {
 		case e := <-n.EditIn:
 			n.applyEdit(e)
+		case <-n.StepIn:
+			n.steps++
 		default:
 			return
 		}
@@ -124,6 +134,8 @@ func (n *NodePhiTheta3) exchange(ctx context.Context) (in [nodeCount]Vec, ok boo
 			in[b-1], got[1] = vecOf(v), true
 		case e := <-n.EditIn:
 			n.applyEdit(e)
+		case <-n.StepIn:
+			n.steps++
 		case <-ctx.Done():
 			return in, false
 		}
@@ -141,7 +153,7 @@ func (n *NodePhiTheta3) round(in [nodeCount]Vec) {
 
 	chosen := pickOne(n.Card.K[a-1], n.Card.K[b-1], in[a-1], in[b-1])
 	for _, j := range n.Partners {
-		n.arrival[j-1] = step(chosen, n.Card.PoleOffset[j-1])
+		n.arrival[j-1] = step(chosen, n.Card.PoleOffset[j-1], n.M)
 	}
 	n.started = true
 
@@ -166,7 +178,10 @@ func (n *NodePhiTheta3) Update(ctx context.Context) {
 		}
 		n.drainEdits()
 
-		if clk.Speed() > 0 {
+		if clk.Speed() > 0 || n.steps > 0 {
+			if n.steps > 0 {
+				n.steps--
+			}
 			in, ok := n.exchange(ctx)
 			if !ok {
 				return
@@ -199,13 +214,14 @@ var Builder = BuilderFor("NodePhiTheta3",
 		n.Clock = a.Clock()
 		n.SpeedCh = a.SpeedCh()
 		inbox := a.EditInbox()
-		n.EditIn, n.Wake = inbox.Edits, inbox.Wake
+		n.EditIn, n.StepIn, n.Wake = inbox.Edits, inbox.Steps, inbox.Wake
 		n.geom = a.Geom()
 
 		n.Me = me
 		n.Partners = CardPanel.Partners(me)
 		n.Card = CardPanel.CardFromState(me, a.State())
 		n.S = a.S()
+		n.M = a.M()
 		n.stepsPerR = NodeCat.NodeRadius(n.geom.Kind()) / n.geom.Constants().ConstantR
 
 		n.breadcrumb("built", fmt.Sprintf("node=%d partners=%v s=%d card=%+v", me, n.Partners, n.S, n.Card))

@@ -23,6 +23,11 @@ export const SLIDER_PANEL_VALUE_NAMES = [
   "trackY",
   "trackW",
   "trackH",
+  "stepX",
+  "stepY",
+  "stepW",
+  "stepH",
+  "stepText",
 ] as const;
 
 export type SliderPanelValueName = (typeof SLIDER_PANEL_VALUE_NAMES)[number];
