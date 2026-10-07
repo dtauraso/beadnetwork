@@ -8,10 +8,15 @@ type Lead struct {
 }
 
 type Leads struct {
-	leads []Lead
-	from  polarindex.Index
-	sent  bool
+	leads  []Lead
+	from   polarindex.Index
+	sent   bool
+	dragTo func(id string) (Deposit, bool)
 }
+
+func (n *Messaging) WireLeads(dragTo func(id string) (Deposit, bool)) { n.leads.dragTo = dragTo }
+
+func (n *Messaging) DragDeposit() Deposit { return n.dragIn.deposit }
 
 func (k *KindPosts) PostLeads(leads []Lead) {
 	k.post(func(p *KindPost) { p.Leads = &leads })
@@ -31,9 +36,16 @@ func (g *NodeGeometry) leadsOnMove(at polarindex.Index) {
 
 func (g *NodeGeometry) sendLeads(at polarindex.Index) {
 	g.msg.leads.from, g.msg.leads.sent = at, true
+	if g.msg.leads.dragTo == nil {
+		return
+	}
 	center := NodeWorldPos(g.geom)
 	for _, l := range g.msg.leads.leads {
+		deposit, ok := g.msg.leads.dragTo(l.TargetID)
+		if !ok {
+			continue
+		}
 		idx := TipIndex(center, g.SceneCenter(), l.Vec, g.Constants())
-		g.msg.SendMove()(l.TargetID, Msg{NodeID: l.TargetID, Body: Drag{Target: &idx}})
+		deposit(Msg{NodeID: l.TargetID, Body: Drag{Target: &idx}})
 	}
 }
