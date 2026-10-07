@@ -1,6 +1,10 @@
 package Node
 
-import "github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
+import (
+	"slices"
+
+	"github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
+)
 
 type Lead struct {
 	TargetID string
@@ -11,6 +15,7 @@ type Leads struct {
 	leads  []Lead
 	from   polarindex.Index
 	sent   bool
+	path   []string
 	dragTo func(id string) (Deposit, bool)
 }
 
@@ -39,13 +44,17 @@ func (g *NodeGeometry) sendLeads(at polarindex.Index) {
 	if g.msg.leads.dragTo == nil {
 		return
 	}
+	path := append(slices.Clone(g.msg.leads.path), g.id)
 	center := NodeWorldPos(g.geom)
 	for _, l := range g.msg.leads.leads {
+		if slices.Contains(path, l.TargetID) {
+			continue
+		}
 		deposit, ok := g.msg.leads.dragTo(l.TargetID)
 		if !ok {
 			continue
 		}
 		idx := TipIndex(center, g.SceneCenter(), l.Vec, g.Constants())
-		deposit(Msg{NodeID: l.TargetID, Body: Drag{Target: &idx}})
+		deposit(Msg{NodeID: l.TargetID, Body: Drag{Target: &idx, Path: path}})
 	}
 }

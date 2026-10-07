@@ -76,6 +76,10 @@ j a `Drag{Target}` and j moves itself. n sends it when n starts, whenever n's st
 changes, and whenever n itself moves — so a move passes down a chain of k links, each node
 sending to the next over the move channels. When `k_j` goes back to 0, j stays where it was put.
 
+The card checks k only within a node (k₁ ⊕ k₂), so the k links can loop across nodes (1 leads 2,
+2 leads 1). Each move carries the nodes it has passed through, and a node never sends it on to
+one already on that path, so a loop moves each node once and stops instead of running away.
+
 ## Description
 
 One of three φ, θ nodes running the three-node card: receives a local arrival on each of its
