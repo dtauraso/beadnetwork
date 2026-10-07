@@ -64,7 +64,7 @@ func (n *NodePhiTheta3) applyEdit(e CardPanel.EditMsg) {
 		return
 	}
 	n.Card.Set(e.Field, e.Value)
-	if e.Field.Vector == CardPanel.VecStart {
+	if e.Field.Vector == CardPanel.VecStart || e.Field.Vector == CardPanel.VecK {
 		n.postStarts()
 	}
 	if err := NodeCat.WriteCardState(n.geom.PersistRoot(), n.geom.ID(), e.Field.StateKey(), e.Value); err != nil {
@@ -149,8 +149,6 @@ func (n *NodePhiTheta3) round(in [nodeCount]Vec) {
 			a, in[a-1], b, in[b-1], chosen, a, n.arrival[a-1], b, n.arrival[b-1]))
 		n.logged, n.loggedOnce = n.arrival, true
 	}
-
-	n.place()
 }
 
 func (n *NodePhiTheta3) Update(ctx context.Context) {
