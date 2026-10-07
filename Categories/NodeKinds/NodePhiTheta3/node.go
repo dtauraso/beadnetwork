@@ -59,9 +59,13 @@ func (n *NodePhiTheta3) applyEdit(e CardPanel.EditMsg) {
 	if e.Field.Vector == CardPanel.VecS {
 		n.S = e.Value
 		n.postTicks()
+		n.postStarts()
 		return
 	}
 	n.Card.Set(e.Field, e.Value)
+	if e.Field.Vector == CardPanel.VecStart {
+		n.postStarts()
+	}
 	if err := NodeCat.WriteCardState(n.geom.PersistRoot(), n.geom.ID(), e.Field.StateKey(), e.Value); err != nil {
 		n.breadcrumb("card-persist", err.Error())
 	}
@@ -172,11 +176,21 @@ func (n *NodePhiTheta3) postTicks() {
 	n.geom.KindPosts().PostTicks(int32(poleHigh * n.S))
 }
 
+func (n *NodePhiTheta3) postStarts() {
+	starts := make([]polarindex.Offset, 0, len(n.Partners))
+	for _, j := range n.Partners {
+		v := n.Card.Start[j-1]
+		starts = append(starts, polarindex.Offset{Phi: v.Phi * n.S, Theta: v.Theta * n.S, R: v.R})
+	}
+	n.geom.KindPosts().PostStartVectors(starts)
+}
+
 func (n *NodePhiTheta3) Update(ctx context.Context) {
 	clk := n.Clock.Copy()
 	clk.SpeedFrom(n.SpeedCh)
 	n.geom.Clocks().Use(clk)
 	n.postTicks()
+	n.postStarts()
 
 	for {
 		if ctx.Err() != nil {

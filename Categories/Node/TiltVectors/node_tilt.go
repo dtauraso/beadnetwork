@@ -3,6 +3,7 @@ package TiltVectors
 import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/TiltPanel"
 	"github.com/dtauraso/beadnetwork/Categories/NodeKinds/NodePhi/tiltring"
+	"github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
 )
 
 type Tilt struct {
@@ -13,7 +14,13 @@ type Tilt struct {
 	latticePoints int32
 
 	tickCount int32
+
+	startVectors []polarindex.Offset
 }
+
+func (t *Tilt) SetStartVectors(v []polarindex.Offset) { t.startVectors = v }
+
+func (t *Tilt) StartVectors() []polarindex.Offset { return t.startVectors }
 
 func (t *Tilt) SetTickCount(count int32) { t.tickCount = count }
 

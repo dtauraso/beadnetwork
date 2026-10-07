@@ -10,6 +10,11 @@ const VECTOR_COLOR = "#FF2E88";
 
 const RECEIVED_VECTOR_COLOR = "#00E5FF";
 
+const START_VECTOR_COLOR = "#FFB300";
+
+const ARROW_RECEIVED = 1;
+const ARROW_START = 2;
+
 function copyMatrix(
   cols: Array<DataView | undefined>, arrow: number,
   mesh: THREE.InstancedMesh, slot: number,
@@ -23,7 +28,9 @@ function copyMatrix(
   }
 }
 
-export function TiltVectors({ capacity, receivedCapacity }: { capacity: number; receivedCapacity: number }) {
+export function TiltVectors({ capacity, receivedCapacity, startCapacity }: { capacity: number; receivedCapacity: number; startCapacity: number }) {
+  const startShaftRef = useRef<THREE.InstancedMesh>(null);
+  const startHeadRef = useRef<THREE.InstancedMesh>(null);
   const shaftRef = useRef<THREE.InstancedMesh>(null);
   const headRef = useRef<THREE.InstancedMesh>(null);
   const receivedShaftRef = useRef<THREE.InstancedMesh>(null);
@@ -34,7 +41,10 @@ export function TiltVectors({ capacity, receivedCapacity }: { capacity: number; 
     const head = headRef.current;
     const receivedShaft = receivedShaftRef.current;
     const receivedHead = receivedHeadRef.current;
-    if (!shaft || !head || !receivedShaft || !receivedHead) return;
+    const startShaft = startShaftRef.current;
+    const startHead = startHeadRef.current;
+    if (!shaft || !head || !receivedShaft || !receivedHead || !startShaft || !startHead) return;
+    let startDrawn = 0;
 
     let drawn = 0;
     let receivedDrawn = 0;
@@ -47,7 +57,15 @@ export function TiltVectors({ capacity, receivedCapacity }: { capacity: number; 
       const headCols = TILT_HEAD_NAMES.map((n) => tiltArrowBytes(row, n));
 
       for (let arrow = 0; arrow < received.byteLength; arrow++) {
-        if (received.getUint8(arrow) !== 0) {
+        const kind = received.getUint8(arrow);
+        if (kind === ARROW_START) {
+          if (startDrawn >= startCapacity) continue;
+          copyMatrix(shaftCols, arrow, startShaft, startDrawn);
+          copyMatrix(headCols, arrow, startHead, startDrawn);
+          startDrawn++;
+          continue;
+        }
+        if (kind === ARROW_RECEIVED) {
           if (receivedDrawn >= receivedCapacity) continue;
           copyMatrix(shaftCols, arrow, receivedShaft, receivedDrawn);
           copyMatrix(headCols, arrow, receivedHead, receivedDrawn);
@@ -69,6 +87,10 @@ export function TiltVectors({ capacity, receivedCapacity }: { capacity: number; 
     receivedHead.count = receivedDrawn;
     receivedShaft.instanceMatrix.needsUpdate = true;
     receivedHead.instanceMatrix.needsUpdate = true;
+    startShaft.count = startDrawn;
+    startHead.count = startDrawn;
+    startShaft.instanceMatrix.needsUpdate = true;
+    startHead.instanceMatrix.needsUpdate = true;
   });
 
   return (
@@ -89,6 +111,14 @@ export function TiltVectors({ capacity, receivedCapacity }: { capacity: number; 
       <instancedMesh ref={receivedHeadRef} args={[undefined, undefined, receivedCapacity]} frustumCulled={false} raycast={() => null}>
         <coneGeometry args={[1, 1, 14]} />
         <meshBasicMaterial color={RECEIVED_VECTOR_COLOR} />
+      </instancedMesh>
+      <instancedMesh ref={startShaftRef} args={[undefined, undefined, startCapacity]} frustumCulled={false} raycast={() => null}>
+        <cylinderGeometry args={[1, 1, 1, 12]} />
+        <meshBasicMaterial color={START_VECTOR_COLOR} />
+      </instancedMesh>
+      <instancedMesh ref={startHeadRef} args={[undefined, undefined, startCapacity]} frustumCulled={false} raycast={() => null}>
+        <coneGeometry args={[1, 1, 14]} />
+        <meshBasicMaterial color={START_VECTOR_COLOR} />
       </instancedMesh>
     </>
   );
