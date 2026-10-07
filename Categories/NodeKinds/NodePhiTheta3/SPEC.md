@@ -9,7 +9,7 @@ The pair φ, θ 3 tab's node, running the three-node phi theta card
 
 | Name | Value |
 |------|-------|
-| s | the tick mark scale; on the card s = 1, in Go s = the index steps per tick (default 30, set from the s panel) |
+| s | the tick mark scale; on the card s = 1, in Go s is set from the s panel (default 30). It is the nodes' only: 12s must divide the scene's turn so a tick is a whole number of index steps, and the panel refuses any other s |
 | 12s | 1 full turn φ, 1 full turn θ |
 | 3s | 1 quarter turn φ, 1 quarter turn θ |
 | P | the pole numbers, {0, 6s, 12s} |
@@ -67,8 +67,8 @@ any one still outstanding, so a cycle of three cannot deadlock.
 
 The card stops at its local numbers; placing them is conversion. Each node's `start_j` is a
 vector from its centre, `[φ·T/12s, θ·T/12s, r·ρ]`: φ and θ count spokes (one spoke is 1/(12s)
-of a turn, T is the whole turn in index steps), r is in node radii (ρ is the node radius in
-radial index steps), and each is rounded to a whole step. It is drawn as an arrow with that
+of a turn, T is the whole turn in index steps, and T/12s is a whole number), r is in node radii
+(ρ is the node radius in radial index steps) and is rounded to a whole step. It is drawn as an arrow with that
 conversion, so r = 1 reaches the ring.
 
 Chaining: when node n's `k_j = 1`, node j starts at the tip of n's `start_j` — n's centre plus

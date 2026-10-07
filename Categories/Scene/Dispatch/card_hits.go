@@ -2,6 +2,7 @@ package Dispatch
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/CardPanel"
@@ -22,6 +23,12 @@ func applyCardHit(md *MoveDispatch, f CardPanel.Field) {
 
 func applyCardKey(ctx context.Context, md *MoveDispatch, key string) {
 	msg, ok := CardPanel.Key(&md.UI.Card.Edit, key)
+	sc := md.UI.Constants
+	if ok && msg.Field.Vector == CardPanel.VecS && !CardPanel.SFits(msg.Value, sc.MaxIndexPhi, sc.MaxIndexTheta) {
+		md.UI.RefuseStructuralEdit(fmt.Sprintf("s = %d: 12s = %d does not divide the scene turn (%d φ, %d θ index steps), so a tick would not be a whole number of steps",
+			msg.Value, CardPanel.TurnTicks*msg.Value, sc.MaxIndexPhi, sc.MaxIndexTheta))
+		ok = false
+	}
 	if ok {
 		if msg.Field.Vector.SceneWide() {
 			value, persist := &md.UI.Card.S, md.UI.PersistCardS

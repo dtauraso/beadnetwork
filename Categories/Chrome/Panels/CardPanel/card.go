@@ -9,6 +9,13 @@ const NodeCount = 3
 
 const DefaultS = 30
 
+const TurnTicks = 12
+
+func SFits(s, turnPhi, turnTheta int) bool {
+	ticks := TurnTicks * s
+	return s >= 1 && turnPhi%ticks == 0 && turnTheta%ticks == 0
+}
+
 const DefaultM = 1
 
 type Vector int
