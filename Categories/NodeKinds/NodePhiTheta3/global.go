@@ -35,11 +35,11 @@ func (n *NodePhiTheta3) postTicks() {
 	n.geom.KindPosts().PostTicks(int32(poleHigh * n.S))
 }
 
-func (n *NodePhiTheta3) postStarts() {
+func (n *NodePhiTheta3) postVectors() {
 	starts := make([]polar.Polar, 0, len(n.Partners))
 	var leads []NodeCat.Lead
 	for _, j := range n.Partners {
-		vec := n.startVec(n.start(j))
+		vec := n.startVec(n.sendValue(j))
 		starts = append(starts, vec)
 		if n.Card.K[j-1] == 1 {
 			leads = append(leads, NodeCat.Lead{TargetID: strconv.Itoa(j), Vec: vec})
