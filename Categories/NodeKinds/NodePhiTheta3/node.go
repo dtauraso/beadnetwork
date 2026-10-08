@@ -148,7 +148,7 @@ func (n *NodePhiTheta3) Update(ctx context.Context) {
 	n.postVectors()
 
 	for {
-		if ctx.Err() != nil {
+		if err := clk.SleepCycle(ctx); err != nil {
 			return
 		}
 		n.drainEdits()
@@ -165,10 +165,6 @@ func (n *NodePhiTheta3) Update(ctx context.Context) {
 				return
 			}
 			n.round(in)
-		}
-
-		if err := clk.SleepCycle(ctx); err != nil {
-			return
 		}
 	}
 }

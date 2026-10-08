@@ -33,7 +33,9 @@ in the tab, and each value is its own file: the default under the tracked
 typed edit under the gitignored `nodes/<n>/drag/state/`, which replaces the default at load.
 `s` and `m` are scene-wide and live in the gitignored `view/card-s.bin` and `view/card-m.bin`.
 
-Rounds run while the speed slider is above 0. The step button beside it runs one round on
+Rounds run while the speed slider is above 0. Each node waits one clock cycle before its first
+round, and that cycle reads the saved speed (sent before the nodes start), so a scene loaded at
+speed 0 runs no round until the slider or step says so. The step button beside it runs one round on
 every node, so a paused card can be walked a round at a time. The reset button beside it puts
 every node back at round 0, so the next round sends `start_j` again; it redraws the arrows and
 moves no node. The start button beside that one has every node send its placements from the
