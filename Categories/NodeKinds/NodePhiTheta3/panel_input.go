@@ -46,6 +46,8 @@ func (n *NodePhiTheta3) drainEdits() {
 			n.steps++
 		case <-n.ResetIn:
 			n.reset = true
+		case <-n.StartIn:
+			n.applyStart()
 		default:
 			return
 		}
@@ -55,6 +57,11 @@ func (n *NodePhiTheta3) drainEdits() {
 func (n *NodePhiTheta3) applyReset() {
 	n.reset, n.steps, n.started, n.loggedOnce = false, 0, false, false
 	n.arrival = [nodeCount]Vec{}
-	n.postVectors()
+	n.postArrows()
 	n.breadcrumb("card", "reset to round 0")
+}
+
+func (n *NodePhiTheta3) applyStart() {
+	n.postVectors()
+	n.breadcrumb("card", "start: placing partners")
 }

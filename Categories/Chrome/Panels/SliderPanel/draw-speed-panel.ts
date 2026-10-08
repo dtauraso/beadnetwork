@@ -30,16 +30,18 @@ export function speedPanelKey(): string {
     sliderF32("boxW"), sliderF32("boxH"),
     sliderF32("stepX"), sliderF32("stepW"),
     sliderF32("resetX"), sliderF32("resetW"),
+    sliderF32("startX"), sliderF32("startW"),
     x ? x.length : 0, selectedIndex(),
   ].join(",");
 }
 
 const STEP_BUTTON = { x: "stepX", y: "stepY", w: "stepW", h: "stepH", text: "stepText" } as const;
 const RESET_BUTTON = { x: "resetX", y: "resetY", w: "resetW", h: "resetH", text: "resetText" } as const;
+const START_BUTTON = { x: "startX", y: "startY", w: "startW", h: "startH", text: "startText" } as const;
 
 function drawButton(
   c: CanvasRenderingContext2D,
-  b: typeof STEP_BUTTON | typeof RESET_BUTTON,
+  b: typeof STEP_BUTTON | typeof RESET_BUTTON | typeof START_BUTTON,
 ): void {
   const w = sliderF32(b.w);
   const h = sliderF32(b.h);
@@ -92,6 +94,7 @@ export function drawSpeedPanel(c: CanvasRenderingContext2D): void {
 
   drawButton(c, STEP_BUTTON);
   drawButton(c, RESET_BUTTON);
+  drawButton(c, START_BUTTON);
 
   let numOff = 0;
   let denOff = 0;

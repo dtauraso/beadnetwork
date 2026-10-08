@@ -6,11 +6,12 @@ type Inbox struct {
 	Edits  chan EditMsg
 	Steps  chan struct{}
 	Resets chan struct{}
+	Starts chan struct{}
 	Wake   chan struct{}
 }
 
 func NewInbox(depth int) Inbox {
-	return Inbox{Edits: make(chan EditMsg, depth), Steps: make(chan struct{}, depth), Resets: make(chan struct{}, 1), Wake: make(chan struct{}, 1)}
+	return Inbox{Edits: make(chan EditMsg, depth), Steps: make(chan struct{}, depth), Resets: make(chan struct{}, 1), Starts: make(chan struct{}, 1), Wake: make(chan struct{}, 1)}
 }
 
 type Inboxes struct {
@@ -58,6 +59,16 @@ func (ib *Inboxes) Reset() {
 	for _, in := range ib.in {
 		select {
 		case in.Resets <- struct{}{}:
+		default:
+		}
+		wake(in)
+	}
+}
+
+func (ib *Inboxes) Start() {
+	for _, in := range ib.in {
+		select {
+		case in.Starts <- struct{}{}:
 		default:
 		}
 		wake(in)

@@ -33,6 +33,7 @@ type NodePhiTheta3 struct {
 	EditIn  <-chan CardPanel.EditMsg
 	StepIn  <-chan struct{}
 	ResetIn <-chan struct{}
+	StartIn <-chan struct{}
 	Wake    <-chan struct{}
 
 	steps int
@@ -107,6 +108,8 @@ func (n *NodePhiTheta3) exchange(ctx context.Context) (in [nodeCount]Vec, ok boo
 			n.steps++
 		case <-n.ResetIn:
 			n.reset = true
+		case <-n.StartIn:
+			n.applyStart()
 		case <-ctx.Done():
 			return in, false
 		}
@@ -145,7 +148,7 @@ func (n *NodePhiTheta3) Update(ctx context.Context) {
 	n.postVectors()
 
 	for {
-		if ctx.Err() != nil {
+		if err := clk.SleepCycle(ctx); err != nil {
 			return
 		}
 		n.drainEdits()
@@ -162,10 +165,6 @@ func (n *NodePhiTheta3) Update(ctx context.Context) {
 				return
 			}
 			n.round(in)
-		}
-
-		if err := clk.SleepCycle(ctx); err != nil {
-			return
 		}
 	}
 }
@@ -189,7 +188,7 @@ var Builder = BuilderFor("NodePhiTheta3",
 		n.Clock = a.Clock()
 		n.SpeedCh = a.SpeedCh()
 		inbox := a.EditInbox()
-		n.EditIn, n.StepIn, n.ResetIn, n.Wake = inbox.Edits, inbox.Steps, inbox.Resets, inbox.Wake
+		n.EditIn, n.StepIn, n.ResetIn, n.StartIn, n.Wake = inbox.Edits, inbox.Steps, inbox.Resets, inbox.Starts, inbox.Wake
 		n.geom = a.Geom()
 
 		n.Me = me

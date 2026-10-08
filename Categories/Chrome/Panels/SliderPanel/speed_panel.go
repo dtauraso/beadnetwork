@@ -35,6 +35,7 @@ const (
 	StepGap    = 10
 
 	ResetLabel = "reset"
+	StartLabel = "start"
 )
 
 type Rect = Panel.Rect
@@ -45,16 +46,18 @@ type Layout struct {
 	Ticks []Rect
 	Step  Rect
 	Reset Rect
+	Start Rect
 }
 
 func Build(st *Panel.Stack, withStep bool) Layout {
 	contentW := float32(TrackW)
 	contentH := float32(TrackH + TrackTickGap + TickH)
-	var stepW, resetW float32
+	var stepW, resetW, startW float32
 	if withStep {
 		stepW = Panel.TextWidth(StepLabel, StepFontPx) + 2*StepPadX
 		resetW = Panel.TextWidth(ResetLabel, StepFontPx) + 2*StepPadX
-		contentW += StepGap + stepW + StepGap + resetW
+		startW = Panel.TextWidth(StartLabel, StepFontPx) + 2*StepPadX
+		contentW += StepGap + stepW + StepGap + resetW + StepGap + startW
 	}
 	box, x, y := st.Add(contentW, contentH)
 
@@ -66,6 +69,7 @@ func Build(st *Panel.Stack, withStep bool) Layout {
 	if withStep {
 		lay.Step = Rect{X: x + TrackW + StepGap, Y: y, W: stepW, H: contentH}
 		lay.Reset = Rect{X: lay.Step.X + stepW + StepGap, Y: y, W: resetW, H: contentH}
+		lay.Start = Rect{X: lay.Reset.X + resetW + StepGap, Y: y, W: startW, H: contentH}
 	}
 
 	span := float64(TrackW - 2*ThumbInset)
@@ -104,6 +108,10 @@ func (l Layout) HitStep(x, y float64) bool {
 
 func (l Layout) HitReset(x, y float64) bool {
 	return l.Reset.W > 0 && Panel.HitRect(l.Reset, x, y)
+}
+
+func (l Layout) HitStart(x, y float64) bool {
+	return l.Start.W > 0 && Panel.HitRect(l.Start, x, y)
 }
 
 func (l Layout) Hit(x, y float64) int {

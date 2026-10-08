@@ -17,6 +17,8 @@ var PanelValueNames = []string{
 	"stepText",
 	"resetX", "resetY", "resetW", "resetH",
 	"resetText",
+	"startX", "startY", "startW", "startH",
+	"startText",
 }
 
 type ValueWriter struct {
