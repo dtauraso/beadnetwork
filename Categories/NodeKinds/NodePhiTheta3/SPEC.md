@@ -57,13 +57,17 @@ vectors it now sends, so the chain is placed only when start is pressed.
 
 ## One node
 
-1. `local_arrival_j ← link j` for each partner j. The first round sends `[k_j · start_j]` on
+Everything in a round is φ and θ only, as on the card: `local_arrival_j`, what crosses a link,
+pick_one and the directions. r is never in a round; it is read from `start_j` only where the
+vector is converted (Local to global).
+
+1. `local_arrival_j ← link j` for each partner j. The first round sends `[k_j · start_jφ, k_j · start_jθ]` on
    link j; every later round sends `[k_j · local_arrival_j]`, so a link with `k_j = 0` always
    carries 0. A link with `L_j = 0` arrives as 0.
 2. `local_arrival₁ = local_arrival₂ = pick_one(k₁, k₂, local_arrival₁, local_arrival₂)`.
 3. For each link, with that link's `pole_offset_j`:
    `local_arrival_j = local_arrival_j + dir_down(·, 0, 3s) + dir_up(·, 3s, 6s) + dir_down(·, 6s, 9s) + dir_up(·, 9s, 12s)`.
-   The directions step the arrival; r has no direction, so it passes through unchanged.
+   The directions step the arrival.
 4. `[k_j · local_arrival_j] → link j`.
 
 The exchange is six unbuffered channels, one per ordered pair. A round is four rendezvous
@@ -75,12 +79,12 @@ any one still outstanding, so a cycle of three cannot deadlock.
 The card stops at its local numbers; placing them is conversion. Each node's `start_j` is a
 vector from its centre: φ and θ count spokes, each `T/12s` index steps (one spoke is 1/(12s) of
 a turn, T is the whole turn in index steps, and T/12s is a whole number), and r is a length in
-node radii, `r · node radius`, not rounded. The vector drawn toward j is the one n sends on link
-j: `k_j · start_j` before the first round and after a reset, `k_j · local_arrival_j` after each
-round. The kind goroutine posts it to n's geometry goroutine at start, after every round, on
+node radii, `r · node radius`, not rounded. The vector drawn toward j takes its angles from what n
+sends on link j — `k_j · start_j` before the first round and after a reset, `k_j · local_arrival_j`
+after each round — and its length from `start_j`'s r, always; no round changes it. The kind goroutine posts it to n's geometry goroutine at start, after every round, on
 reset (the arrow only), on the start button, and when start, t, k or s is edited. It is drawn as an arrow from the node's centre to its
-exact tip, so r = 1 reaches the ring; a vector with `k_j = 0` is the zero vector and draws
-nothing, while the start value stays on the panel. Once rounds have run, a start edit shows after
+exact tip, so r = 1 reaches the ring; with `k_j = 0` link j carries nothing, so its vector is the
+zero vector and draws nothing, while the start value stays on the panel. Once rounds have run, a start edit shows after
 a reset, and places partners after the start button.
 
 Chaining: when node n's `k_j = 1`, node j starts at the exact tip of the vector n sends to j — n's
