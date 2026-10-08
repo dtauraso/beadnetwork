@@ -113,13 +113,15 @@ k_{j} &\in& \{0, 1\} \\[3pt]
 \begin{bmatrix} \text{local_arrival}_{1\,\varphi} \\ \text{local_arrival}_{1\,\theta} \end{bmatrix}
   &=& \begin{bmatrix}
       \begin{array}{@{}r@{\;}l@{}}
-        & \text{local_arrival}_{1}\text{direction}_{0\,\varphi} \\
+        & \text{local_arrival}_{1\,\varphi} \\
+        + & \text{local_arrival}_{1}\text{direction}_{0\,\varphi} \\
         + & \text{local_arrival}_{1}\text{direction}_{1\,\varphi} \\
         + & \text{local_arrival}_{1}\text{direction}_{2\,\varphi} \\
         + & \text{local_arrival}_{1}\text{direction}_{3\,\varphi}
       \end{array} \\[10pt]
       \begin{array}{@{}r@{\;}l@{}}
-        & \text{local_arrival}_{1}\text{direction}_{0\,\theta} \\
+        & \text{local_arrival}_{1\,\theta} \\
+        + & \text{local_arrival}_{1}\text{direction}_{0\,\theta} \\
         + & \text{local_arrival}_{1}\text{direction}_{1\,\theta} \\
         + & \text{local_arrival}_{1}\text{direction}_{2\,\theta} \\
         + & \text{local_arrival}_{1}\text{direction}_{3\,\theta}
@@ -128,13 +130,15 @@ k_{j} &\in& \{0, 1\} \\[3pt]
 \begin{bmatrix} \text{local_arrival}_{2\,\varphi} \\ \text{local_arrival}_{2\,\theta} \end{bmatrix}
   &=& \begin{bmatrix}
       \begin{array}{@{}r@{\;}l@{}}
-        & \text{local_arrival}_{2}\text{direction}_{0\,\varphi} \\
+        & \text{local_arrival}_{2\,\varphi} \\
+        + & \text{local_arrival}_{2}\text{direction}_{0\,\varphi} \\
         + & \text{local_arrival}_{2}\text{direction}_{1\,\varphi} \\
         + & \text{local_arrival}_{2}\text{direction}_{2\,\varphi} \\
         + & \text{local_arrival}_{2}\text{direction}_{3\,\varphi}
       \end{array} \\[10pt]
       \begin{array}{@{}r@{\;}l@{}}
-        & \text{local_arrival}_{2}\text{direction}_{0\,\theta} \\
+        & \text{local_arrival}_{2\,\theta} \\
+        + & \text{local_arrival}_{2}\text{direction}_{0\,\theta} \\
         + & \text{local_arrival}_{2}\text{direction}_{1\,\theta} \\
         + & \text{local_arrival}_{2}\text{direction}_{2\,\theta} \\
         + & \text{local_arrival}_{2}\text{direction}_{3\,\theta}
