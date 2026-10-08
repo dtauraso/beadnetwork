@@ -82,6 +82,10 @@ func panelTookPointerDown(
 		md.CardInboxes.Reset()
 		return true
 	}
+	if pl.Speed.HitStart(ev.X, ev.Y) {
+		md.CardInboxes.Start()
+		return true
+	}
 	if i := pl.Speed.Hit(ev.X, ev.Y); i >= 0 {
 		setClockSpeed(md, speedSinks, SliderPanel.Settings[i].Speed)
 		return true

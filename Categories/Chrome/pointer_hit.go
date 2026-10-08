@@ -31,6 +31,9 @@ func TargetAt(pl Layout, x, y float64) Panels.PointerTarget {
 	if pl.Speed.HitReset(x, y) {
 		return Panels.PointerTarget{Rect: pl.Speed.Reset, Kind: Panels.PointerInteractive, Tip: "Back to round 0"}
 	}
+	if pl.Speed.HitStart(x, y) {
+		return Panels.PointerTarget{Rect: pl.Speed.Start, Kind: Panels.PointerInteractive, Tip: "Place each node's partners from its vectors"}
+	}
 	if i := pl.Speed.Hit(x, y); i >= 0 && i < len(pl.Speed.Ticks) {
 		return Panels.PointerTarget{Rect: pl.Speed.Ticks[i], Kind: Panels.PointerInteractive}
 	}

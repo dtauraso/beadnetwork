@@ -35,9 +35,8 @@ func (n *NodePhiTheta3) postTicks() {
 	n.geom.KindPosts().PostTicks(int32(poleHigh * n.S))
 }
 
-func (n *NodePhiTheta3) postVectors() {
-	starts := make([]polar.Polar, 0, len(n.Partners))
-	var leads []NodeCat.Lead
+func (n *NodePhiTheta3) sentVectors() (starts []polar.Polar, leads []NodeCat.Lead) {
+	starts = make([]polar.Polar, 0, len(n.Partners))
 	for _, j := range n.Partners {
 		vec := n.startVec(n.sendValue(j))
 		starts = append(starts, vec)
@@ -45,6 +44,16 @@ func (n *NodePhiTheta3) postVectors() {
 			leads = append(leads, NodeCat.Lead{TargetID: strconv.Itoa(j), Vec: vec})
 		}
 	}
+	return starts, leads
+}
+
+func (n *NodePhiTheta3) postArrows() {
+	starts, _ := n.sentVectors()
+	n.geom.KindPosts().PostStartVectors(starts)
+}
+
+func (n *NodePhiTheta3) postVectors() {
+	starts, leads := n.sentVectors()
 	n.geom.KindPosts().PostStartVectors(starts)
 	n.geom.KindPosts().PostLeads(leads)
 }

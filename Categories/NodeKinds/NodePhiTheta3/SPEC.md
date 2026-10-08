@@ -35,7 +35,9 @@ typed edit under the gitignored `nodes/<n>/drag/state/`, which replaces the defa
 
 Rounds run while the speed slider is above 0. The step button beside it runs one round on
 every node, so a paused card can be walked a round at a time. The reset button beside it puts
-every node back at round 0, so the next round sends `start_j` again.
+every node back at round 0, so the next round sends `start_j` again; it redraws the arrows and
+moves no node. The start button beside that one has every node send its placements from the
+vectors it now sends, so the chain is placed only when start is pressed.
 
 ## dir_down(local_arrival, p, qt)
 
@@ -74,10 +76,10 @@ a turn, T is the whole turn in index steps, and T/12s is a whole number), and r 
 node radii, `r · node radius`, not rounded. The vector drawn toward j is the one n sends on link
 j: `k_j · start_j` before the first round and after a reset, `k_j · local_arrival_j` after each
 round. The kind goroutine posts it to n's geometry goroutine at start, after every round, on
-reset, and when start, t, k or s is edited. It is drawn as an arrow from the node's centre to its
+reset (the arrow only), on the start button, and when start, t, k or s is edited. It is drawn as an arrow from the node's centre to its
 exact tip, so r = 1 reaches the ring; a vector with `k_j = 0` is the zero vector and draws
 nothing, while the start value stays on the panel. Once rounds have run, a start edit shows after
-a reset.
+a reset, and places partners after the start button.
 
 Chaining: when node n's `k_j = 1`, node j starts at the exact tip of the vector n sends to j — n's
 centre plus that vector. n's geometry goroutine sends that tip to j's geometry goroutine on the
@@ -87,7 +89,8 @@ dispatcher or a pointer-drag slot. j's centre is the exact tip, and j's own arro
 a chain's shape is its local vectors alone. The tip measured against the scene centre and rounded
 to the scene's index is kept beside it for what counts in index steps — the vectors to edge
 neighbours and the move they are told — and is never read back into the chain. n sends when n
-starts, after every round, whenever n's start, t, k or s changes, on reset, and whenever n itself
+starts, after every round, whenever n's start, t, k or s changes, on the start button (not on
+reset), and whenever n itself
 moves — so a move passes down a
 chain of k links, node by node. When `k_j` goes back to 0, n sends j a release; once no partner
 places j, j's centre is its index again. A pointer drag of j also makes its index its centre.

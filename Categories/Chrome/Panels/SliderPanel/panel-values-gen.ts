@@ -33,6 +33,11 @@ export const SLIDER_PANEL_VALUE_NAMES = [
   "resetW",
   "resetH",
   "resetText",
+  "startX",
+  "startY",
+  "startW",
+  "startH",
+  "startText",
 ] as const;
 
 export type SliderPanelValueName = (typeof SLIDER_PANEL_VALUE_NAMES)[number];
