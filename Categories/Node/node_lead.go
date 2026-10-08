@@ -68,6 +68,7 @@ func (g *NodeGeometry) setPlaced() {
 }
 
 func (g *NodeGeometry) unplace() {
+	g.leadCrumb("unplaced: no partner places this node, back to its index")
 	g.geom.HasPlaced = false
 	g.msg.PublishCenter(Vec3(NodeWorldPos(g.geom)))
 	g.emitGeometry()
@@ -153,13 +154,25 @@ func (g *NodeGeometry) takePlacement(p Placement) {
 		l.incoming = map[string]Placement{}
 	}
 	if p.Release {
+		g.leadCrumb(fmt.Sprintf("release from=%s", p.From))
 		delete(l.incoming, p.From)
 	} else if p.Move.Origin != g.id && g.movedIn(p.Move) {
+		g.leadCrumb(fmt.Sprintf("ignored from=%s move=%s/%d at=%v", p.From, p.Move.Origin, p.Move.Seq, p.At))
 		return
 	} else {
+		g.leadCrumb(fmt.Sprintf("held from=%s move=%s/%d at=%v", p.From, p.Move.Origin, p.Move.Seq, p.At))
 		l.incoming[p.From] = p
 	}
 	g.resolvePlacement()
+}
+
+func (g *NodeGeometry) leadCrumb(text string) {
+	g.trace.Post([]RowEvent{{
+		Kind: KindBreadcrumb, Label: "lead", Debug: 1,
+		NodeRow: g.stream.NodeRow(),
+		PortRow: -1, TargetRow: -1, TargetPortRow: -1, EdgeRow: -1, Slot: -1,
+		Text: text,
+	}})
 }
 
 func (g *NodeGeometry) pickPlacement() (Placement, bool) {
@@ -189,6 +202,7 @@ func (g *NodeGeometry) resolvePlacement() {
 		return
 	}
 	l.move, l.placing = &p.Move, &p.At
+	g.leadCrumb(fmt.Sprintf("placed by=%s move=%s/%d at=%v", p.From, p.Move.Origin, p.Move.Seq, p.At))
 	g.msg.ApplyDerived(g.id, p.Target)
 	l.move, l.placing = nil, nil
 }

@@ -3,7 +3,7 @@ const SPHERE_CARD_3_PLACEMENT_FORMULAS = String.raw`\[
 \rlap{\textbf{shared — each node's geometry goroutine, not its card goroutine}} & & \\[3pt]
 C_{n} &=& \text{node } n\text{'s centre, a point in the scene} \\[3pt]
 I_{n} &=& \text{node } n\text{'s scene index (base + drag)} \\[3pt]
-V_{j} &=& \text{the vector } n \text{ sends on link } j\text{: } k_{j} \cdot \text{start}_{j} \text{ before round 1, } k_{j} \cdot \text{local_arrival}_{j} \text{ after} \\[3pt]
+V_{j} &=& \text{the vector } n \text{ sends along the path to } j\text{: } k_{j} \cdot \text{start}_{j} \text{ before round 1, then } k_{j} \cdot \text{local_arrival}_{j} \text{ unless it is 0 (0 is no change: } V_{j} \text{ keeps the last non-zero one)} \\[3pt]
 \text{chan}_{n \to j} &=& \text{one buffered channel per ordered pair } n \to j \\[3pt]
 \text{move} &=& (o,\; q)\text{: the node } o \text{ that started it and } o\text{'s count } q \text{ of moves it has started} \\[3pt]
 \text{moved}_{j}[o] &=& \text{the last } q \text{ from } o \text{ that node } j \text{ moved in — one lookup, however long the chain} \\[3pt]

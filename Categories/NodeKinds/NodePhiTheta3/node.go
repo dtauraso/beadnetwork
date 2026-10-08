@@ -12,13 +12,18 @@ import (
 
 const nodeCount = CardPanel.NodeCount
 
-var link [nodeCount][nodeCount]chan Angles
+type pathMsg struct {
+	K int
+	A Angles
+}
+
+var link [nodeCount][nodeCount]chan pathMsg
 
 func init() {
 	for from := 0; from < nodeCount; from++ {
 		for to := 0; to < nodeCount; to++ {
 			if from != to {
-				link[from][to] = make(chan Angles)
+				link[from][to] = make(chan pathMsg)
 			}
 		}
 	}
@@ -48,6 +53,7 @@ type NodePhiTheta3 struct {
 	nodeR float64
 
 	arrival [nodeCount]Angles
+	shown   [nodeCount]Angles
 	started bool
 
 	logged     [nodeCount]Angles
@@ -70,21 +76,29 @@ func (n *NodePhiTheta3) sendValue(j int) Angles {
 	return scale(n.Card.K[j-1], n.arrival[j-1])
 }
 
-func (n *NodePhiTheta3) exchange(ctx context.Context) (in [nodeCount]Angles, ok bool) {
+func (n *NodePhiTheta3) shownValue(j int) Angles {
+	if !n.started {
+		return n.start(j)
+	}
+	return n.shown[j-1]
+}
+
+func (n *NodePhiTheta3) exchange(ctx context.Context) (in [nodeCount]pathMsg, ok bool) {
 	a, b := n.Partners[0], n.Partners[1]
 	me := n.Me - 1
-	outA, outB := n.sendValue(a), n.sendValue(b)
+	outA := pathMsg{K: n.Card.K[a-1], A: n.sendValue(a)}
+	outB := pathMsg{K: n.Card.K[b-1], A: n.sendValue(b)}
 
 	sent, got := [2]bool{}, [2]bool{}
 	for !(sent[0] && sent[1] && got[0] && got[1]) {
-		var toA, toB chan<- Angles
+		var toA, toB chan<- pathMsg
 		if !sent[0] {
 			toA = link[me][a-1]
 		}
 		if !sent[1] {
 			toB = link[me][b-1]
 		}
-		var fromA, fromB <-chan Angles
+		var fromA, fromB <-chan pathMsg
 		if !got[0] {
 			fromA = link[a-1][me]
 		}
@@ -116,19 +130,29 @@ func (n *NodePhiTheta3) exchange(ctx context.Context) (in [nodeCount]Angles, ok 
 	return in, true
 }
 
-func (n *NodePhiTheta3) round(in [nodeCount]Angles) {
+func (n *NodePhiTheta3) round(in [nodeCount]pathMsg) {
 	a, b := n.Partners[0], n.Partners[1]
 	for _, j := range n.Partners {
 		if n.Card.L[j-1] == 0 {
-			in[j-1] = Angles{}
+			in[j-1] = pathMsg{}
 		}
 	}
 
-	chosen := pickOne(n.Card.K[a-1], n.Card.K[b-1], in[a-1], in[b-1])
+	chosen := pickOne(in[a-1].K, in[b-1].K, in[a-1].A, in[b-1].A)
 	for _, j := range n.Partners {
 		n.arrival[j-1] = step(chosen, n.Card.PoleOffset[j-1], n.M, n.S)
 	}
+	if !n.started {
+		for _, j := range n.Partners {
+			n.shown[j-1] = n.start(j)
+		}
+	}
 	n.started = true
+	for _, j := range n.Partners {
+		if v := n.sendValue(j); v != (Angles{}) {
+			n.shown[j-1] = v
+		}
+	}
 	n.postVectors()
 
 	if !n.loggedOnce || n.arrival != n.logged {

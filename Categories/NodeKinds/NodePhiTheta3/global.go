@@ -13,7 +13,7 @@ func (n *NodePhiTheta3) startVec(j int) polar.Polar {
 	if n.Card.K[j-1] == 0 {
 		return polar.Polar{}
 	}
-	a := n.sendValue(j)
+	a := n.shownValue(j)
 	c := n.geom.Constants()
 	p := polarindex.OffsetToPolar(polarindex.Offset{Phi: n.spokes(a.Phi, c.MaxIndexPhi), Theta: n.spokes(a.Theta, c.MaxIndexTheta)}, c)
 	p.R = float64(n.Card.Start[j-1].R) * n.nodeR
