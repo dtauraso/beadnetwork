@@ -58,8 +58,8 @@ every node back at round 0, so the next round sends `start_j` again.
    carries 0. A link with `L_j = 0` arrives as 0.
 2. `local_arrival₁ = local_arrival₂ = pick_one(k₁, k₂, local_arrival₁, local_arrival₂)`.
 3. For each link, with that link's `pole_offset_j`:
-   `local_arrival_j = dir_down(·, 0, 3s) + dir_up(·, 3s, 6s) + dir_down(·, 6s, 9s) + dir_up(·, 9s, 12s)`.
-   r passes through unchanged.
+   `local_arrival_j = local_arrival_j + dir_down(·, 0, 3s) + dir_up(·, 3s, 6s) + dir_down(·, 6s, 9s) + dir_up(·, 9s, 12s)`.
+   The directions step the arrival; r has no direction, so it passes through unchanged.
 4. `[k_j · local_arrival_j] → link j`.
 
 The exchange is six unbuffered channels, one per ordered pair. A round is four rendezvous
