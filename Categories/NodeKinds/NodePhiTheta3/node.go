@@ -6,20 +6,19 @@ import (
 	"strconv"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/CardPanel"
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/TiltPanel"
 	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
 	NodeCat "github.com/dtauraso/beadnetwork/Categories/Node"
 )
 
 const nodeCount = CardPanel.NodeCount
 
-var link [nodeCount][nodeCount]chan TiltPanel.TiltVectorMsg
+var link [nodeCount][nodeCount]chan Angles
 
 func init() {
 	for from := 0; from < nodeCount; from++ {
 		for to := 0; to < nodeCount; to++ {
 			if from != to {
-				link[from][to] = make(chan TiltPanel.TiltVectorMsg)
+				link[from][to] = make(chan Angles)
 			}
 		}
 	}
@@ -48,10 +47,10 @@ type NodePhiTheta3 struct {
 
 	nodeR float64
 
-	arrival [nodeCount]Vec
+	arrival [nodeCount]Angles
 	started bool
 
-	logged     [nodeCount]Vec
+	logged     [nodeCount]Angles
 	loggedOnce bool
 }
 
@@ -64,28 +63,28 @@ func (n *NodePhiTheta3) breadcrumb(label, value string) {
 	}})
 }
 
-func (n *NodePhiTheta3) sendValue(j int) Vec {
+func (n *NodePhiTheta3) sendValue(j int) Angles {
 	if !n.started {
 		return n.start(j)
 	}
 	return scale(n.Card.K[j-1], n.arrival[j-1])
 }
 
-func (n *NodePhiTheta3) exchange(ctx context.Context) (in [nodeCount]Vec, ok bool) {
+func (n *NodePhiTheta3) exchange(ctx context.Context) (in [nodeCount]Angles, ok bool) {
 	a, b := n.Partners[0], n.Partners[1]
 	me := n.Me - 1
-	outA, outB := msgOf(n.sendValue(a)), msgOf(n.sendValue(b))
+	outA, outB := n.sendValue(a), n.sendValue(b)
 
 	sent, got := [2]bool{}, [2]bool{}
 	for !(sent[0] && sent[1] && got[0] && got[1]) {
-		var toA, toB chan<- TiltPanel.TiltVectorMsg
+		var toA, toB chan<- Angles
 		if !sent[0] {
 			toA = link[me][a-1]
 		}
 		if !sent[1] {
 			toB = link[me][b-1]
 		}
-		var fromA, fromB <-chan TiltPanel.TiltVectorMsg
+		var fromA, fromB <-chan Angles
 		if !got[0] {
 			fromA = link[a-1][me]
 		}
@@ -99,9 +98,9 @@ func (n *NodePhiTheta3) exchange(ctx context.Context) (in [nodeCount]Vec, ok boo
 		case toB <- outB:
 			sent[1] = true
 		case v := <-fromA:
-			in[a-1], got[0] = vecOf(v), true
+			in[a-1], got[0] = v, true
 		case v := <-fromB:
-			in[b-1], got[1] = vecOf(v), true
+			in[b-1], got[1] = v, true
 		case e := <-n.EditIn:
 			n.applyEdit(e)
 		case <-n.StepIn:
@@ -117,11 +116,11 @@ func (n *NodePhiTheta3) exchange(ctx context.Context) (in [nodeCount]Vec, ok boo
 	return in, true
 }
 
-func (n *NodePhiTheta3) round(in [nodeCount]Vec) {
+func (n *NodePhiTheta3) round(in [nodeCount]Angles) {
 	a, b := n.Partners[0], n.Partners[1]
 	for _, j := range n.Partners {
 		if n.Card.L[j-1] == 0 {
-			in[j-1] = Vec{}
+			in[j-1] = Angles{}
 		}
 	}
 

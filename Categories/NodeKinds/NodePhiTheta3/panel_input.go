@@ -56,7 +56,7 @@ func (n *NodePhiTheta3) drainEdits() {
 
 func (n *NodePhiTheta3) applyReset() {
 	n.reset, n.steps, n.started, n.loggedOnce = false, 0, false, false
-	n.arrival = [nodeCount]Vec{}
+	n.arrival = [nodeCount]Angles{}
 	n.postArrows()
 	n.breadcrumb("card", "reset to round 0")
 }

@@ -9,16 +9,20 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
 )
 
-func (n *NodePhiTheta3) startVec(v Vec) polar.Polar {
+func (n *NodePhiTheta3) startVec(j int) polar.Polar {
+	if n.Card.K[j-1] == 0 {
+		return polar.Polar{}
+	}
+	a := n.sendValue(j)
 	c := n.geom.Constants()
-	p := polarindex.OffsetToPolar(polarindex.Offset{Phi: n.spokes(v.Phi, c.MaxIndexPhi), Theta: n.spokes(v.Theta, c.MaxIndexTheta)}, c)
-	p.R = float64(v.R) * n.nodeR
+	p := polarindex.OffsetToPolar(polarindex.Offset{Phi: n.spokes(a.Phi, c.MaxIndexPhi), Theta: n.spokes(a.Theta, c.MaxIndexTheta)}, c)
+	p.R = float64(n.Card.Start[j-1].R) * n.nodeR
 	return p
 }
 
-func (n *NodePhiTheta3) start(j int) Vec {
+func (n *NodePhiTheta3) start(j int) Angles {
 	v, t := n.Card.Start[j-1], n.Card.Tick[j-1]
-	return scale(n.Card.K[j-1], Vec{Phi: v.Phi*n.S + t.Phi, Theta: v.Theta*n.S + t.Theta, R: v.R})
+	return scale(n.Card.K[j-1], Angles{Phi: v.Phi*n.S + t.Phi, Theta: v.Theta*n.S + t.Theta})
 }
 
 func (n *NodePhiTheta3) spokes(ticks, wholeTurn int) int {
@@ -38,7 +42,7 @@ func (n *NodePhiTheta3) postTicks() {
 func (n *NodePhiTheta3) sentVectors() (starts []polar.Polar, leads []NodeCat.Lead) {
 	starts = make([]polar.Polar, 0, len(n.Partners))
 	for _, j := range n.Partners {
-		vec := n.startVec(n.sendValue(j))
+		vec := n.startVec(j)
 		starts = append(starts, vec)
 		if n.Card.K[j-1] == 1 {
 			leads = append(leads, NodeCat.Lead{TargetID: strconv.Itoa(j), Vec: vec})

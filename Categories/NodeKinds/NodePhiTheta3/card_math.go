@@ -2,10 +2,11 @@ package NodePhiTheta3
 
 import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/CardPanel"
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/TiltPanel"
 )
 
 type Vec = CardPanel.Vec
+
+type Angles struct{ Phi, Theta int }
 
 const (
 	poleLow  = 0
@@ -15,21 +16,15 @@ const (
 	qtHigh   = 9
 )
 
-func msgOf(v Vec) TiltPanel.TiltVectorMsg {
-	return TiltPanel.TiltVectorMsg{PhiIdx: int32(v.Phi), ThetaIdx: int32(v.Theta), RIdx: int32(v.R)}
-}
+func anglesOf(v Vec) Angles { return Angles{Phi: v.Phi, Theta: v.Theta} }
 
-func vecOf(m TiltPanel.TiltVectorMsg) Vec {
-	return Vec{Phi: int(m.PhiIdx), Theta: int(m.ThetaIdx), R: int(m.RIdx)}
-}
+func scale(k int, a Angles) Angles { return Angles{Phi: k * a.Phi, Theta: k * a.Theta} }
 
-func scale(k int, v Vec) Vec { return Vec{Phi: k * v.Phi, Theta: k * v.Theta, R: k * v.R} }
+func add(a, b Angles) Angles { return Angles{Phi: a.Phi + b.Phi, Theta: a.Theta + b.Theta} }
 
-func add(a, b Vec) Vec { return Vec{Phi: a.Phi + b.Phi, Theta: a.Theta + b.Theta, R: a.R + b.R} }
-
-func pickOne(k1, k2 int, a1, a2 Vec) Vec {
+func pickOne(k1, k2 int, a1, a2 Angles) Angles {
 	if k1^k2 != 1 {
-		return Vec{}
+		return Angles{}
 	}
 	return add(scale(k1, a1), scale(k2, a2))
 }
@@ -48,16 +43,16 @@ func up(arrival, qt, pole, m int) int {
 	return 0
 }
 
-func dirDown(a Vec, p, qt int, offset Vec, m int) Vec {
-	return Vec{Phi: down(a.Phi, p+offset.Phi, qt, m), Theta: down(a.Theta, p+offset.Theta, qt, m)}
+func dirDown(a Angles, p, qt int, offset Angles, m int) Angles {
+	return Angles{Phi: down(a.Phi, p+offset.Phi, qt, m), Theta: down(a.Theta, p+offset.Theta, qt, m)}
 }
 
-func dirUp(a Vec, qt, p int, offset Vec, m int) Vec {
-	return Vec{Phi: up(a.Phi, qt, p-offset.Phi, m), Theta: up(a.Theta, qt, p-offset.Theta, m)}
+func dirUp(a Angles, qt, p int, offset Angles, m int) Angles {
+	return Angles{Phi: up(a.Phi, qt, p-offset.Phi, m), Theta: up(a.Theta, qt, p-offset.Theta, m)}
 }
 
-func step(a, offset Vec, m, s int) Vec {
-	offset = scale(s, offset)
-	return add(a, add(add(dirDown(a, poleLow*s, qtLow*s, offset, m), dirUp(a, qtLow*s, poleMid*s, offset, m)),
-		add(dirDown(a, poleMid*s, qtHigh*s, offset, m), dirUp(a, qtHigh*s, poleHigh*s, offset, m))))
+func step(a Angles, offset Vec, m, s int) Angles {
+	off := scale(s, anglesOf(offset))
+	return add(a, add(add(dirDown(a, poleLow*s, qtLow*s, off, m), dirUp(a, qtLow*s, poleMid*s, off, m)),
+		add(dirDown(a, poleMid*s, qtHigh*s, off, m), dirUp(a, qtHigh*s, poleHigh*s, off, m))))
 }
