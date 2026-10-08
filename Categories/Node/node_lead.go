@@ -31,6 +31,7 @@ type Leads struct {
 	from     Vec3
 	sent     bool
 	move     *Move
+	placedBy *Move
 	seq      uint64
 	moved    map[string]uint64
 	placing  *Vec3
@@ -44,10 +45,19 @@ func (g *NodeGeometry) WirePlacement(out map[string]chan<- Placement, in []<-cha
 }
 
 func (k *KindPosts) PostLeads(leads []Lead) {
-	k.post(func(p *KindPost) { p.Leads = &leads })
+	k.post(func(p *KindPost) { p.Leads, p.LeadsHeld = &leads, false })
 }
 
-func (g *NodeGeometry) applyLeads(leads []Lead) {
+func (k *KindPosts) PostLeadsHeld(leads []Lead) {
+	k.post(func(p *KindPost) {
+		if p.Leads == nil || p.LeadsHeld {
+			p.LeadsHeld = true
+		}
+		p.Leads = &leads
+	})
+}
+
+func (g *NodeGeometry) applyLeads(leads []Lead, held bool) {
 	l := &g.msg.leads
 	for _, old := range l.leads {
 		if !slices.ContainsFunc(leads, func(n Lead) bool { return n.TargetID == old.TargetID }) {
@@ -56,7 +66,15 @@ func (g *NodeGeometry) applyLeads(leads []Lead) {
 	}
 	l.leads = leads
 	g.resolvePlacement()
-	g.sendLeads()
+	if !held {
+		g.sendLeads()
+		return
+	}
+	if g.geom.HasPlaced && l.placedBy != nil {
+		l.move = l.placedBy
+		g.sendLeads()
+		l.move = nil
+	}
 }
 
 func (g *NodeGeometry) setPlaced() {
@@ -202,6 +220,8 @@ func (g *NodeGeometry) resolvePlacement() {
 		return
 	}
 	l.move, l.placing = &p.Move, &p.At
+	mv := p.Move
+	l.placedBy = &mv
 	g.leadCrumb(fmt.Sprintf("placed by=%s move=%s/%d at=%v", p.From, p.Move.Origin, p.Move.Seq, p.At))
 	g.msg.ApplyDerived(g.id, p.Target)
 	l.move, l.placing = nil, nil

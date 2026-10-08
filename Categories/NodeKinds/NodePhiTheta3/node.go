@@ -168,7 +168,7 @@ func (n *NodePhiTheta3) Update(ctx context.Context) {
 	clk.WakeOn(n.Wake)
 	n.geom.Clocks().Use(clk)
 	n.postTicks()
-	n.postVectors()
+	n.placeChain()
 
 	for {
 		if err := clk.SleepCycle(ctx); err != nil {

@@ -98,10 +98,12 @@ beside the card's link channels, so every placement is delivered and none passes
 dispatcher or a pointer-drag slot. j's centre is the exact tip, and j's own arrows start there, so
 a chain's shape is its local vectors alone. The tip measured against the scene centre and rounded
 to the scene's index is kept beside it for what counts in index steps — the vectors to edge
-neighbours and the move they are told — and is never read back into the chain. n sends when n
-starts, after every round, whenever n's start, t, k or s changes, on the start button (not on
-reset), and whenever n itself
-moves — so a move passes down a
+neighbours and the move they are told — and is never read back into the chain. At load and on
+the start button the chain is laid out by one walk from node 1: node 1 sends, and nodes 2 and 3
+only hold their links and pass the walk on when it reaches them (a node the walk reached before
+its links arrived passes it on as they arrive), so several moves never race round a loop. n also
+sends after every round, whenever n's start, t, k or s changes (not on reset), and whenever n
+itself moves — so a move passes down a
 chain of k links, node by node. When `k_j` goes back to 0, n sends j a release; once no partner
 places j, j's centre is its index again. A pointer drag of j also makes its index its centre.
 

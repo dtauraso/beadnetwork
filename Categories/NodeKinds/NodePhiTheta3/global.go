@@ -61,3 +61,15 @@ func (n *NodePhiTheta3) postVectors() {
 	n.geom.KindPosts().PostStartVectors(starts)
 	n.geom.KindPosts().PostLeads(leads)
 }
+
+const walkHead = 1
+
+func (n *NodePhiTheta3) placeChain() {
+	if n.Me == walkHead {
+		n.postVectors()
+		return
+	}
+	starts, leads := n.sentVectors()
+	n.geom.KindPosts().PostStartVectors(starts)
+	n.geom.KindPosts().PostLeadsHeld(leads)
+}
