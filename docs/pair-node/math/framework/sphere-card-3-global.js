@@ -27,7 +27,7 @@ c_{r} &=& \text{the length of 1 radial index step} \\[3pt]
                       (\text{start}_{j\,\theta} + t_{j\,\theta}) \cdot (T_{\theta} / 12s) \cdot c_{\theta} \end{bmatrix}
       \quad \text{in ticks: start}_{j} \text{ a multiple of } s,\; 0 \le t_{j} < s \\[10pt]
 \rlap{\textbf{2. the node's centre}} & & \\[3pt]
-C_{n} &=& \text{the exact tip that placed it} \quad \text{if a partner places } n \\[3pt]
+C_{n} &=& \text{the exact tip that placed it} \quad \text{if a partner places } n \text{ (the placement card)} \\[3pt]
 C_{n} &=& O + \textbf{polar_to_cart}\left(\begin{bmatrix} I_{n\,r}\, c_{r} \\ I_{n\,\varphi}\, c_{\varphi} \\ I_{n\,\theta}\, c_{\theta} \end{bmatrix}\right) \quad \text{otherwise} \\[10pt]
 \rlap{\textbf{3. the tip of start}_{j}\textbf{ — the arrow runs from } C_{n} \textbf{ to it}} & & \\[3pt]
 \text{tip}_{j} &=& C_{n} + \textbf{polar_to_cart}(V_{j}) \\[3pt]
