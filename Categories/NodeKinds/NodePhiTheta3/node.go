@@ -127,6 +127,7 @@ func (n *NodePhiTheta3) round(in [nodeCount]Vec) {
 		n.arrival[j-1] = step(chosen, n.Card.PoleOffset[j-1], n.M, n.S)
 	}
 	n.started = true
+	n.postVectors()
 
 	if !n.loggedOnce || n.arrival != n.logged {
 		n.breadcrumb("card", fmt.Sprintf("in %d=%v %d=%v chosen=%v arrival %d=%v %d=%v",
@@ -141,7 +142,7 @@ func (n *NodePhiTheta3) Update(ctx context.Context) {
 	clk.WakeOn(n.Wake)
 	n.geom.Clocks().Use(clk)
 	n.postTicks()
-	n.postStarts()
+	n.postVectors()
 
 	for {
 		if ctx.Err() != nil {

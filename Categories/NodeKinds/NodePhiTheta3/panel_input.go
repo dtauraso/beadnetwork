@@ -10,7 +10,7 @@ func (n *NodePhiTheta3) applyEdit(e CardPanel.EditMsg) {
 		n.S = e.Value
 		n.clearTicks()
 		n.postTicks()
-		n.postStarts()
+		n.postVectors()
 		return
 	}
 	if e.Field.Vector == CardPanel.VecM {
@@ -19,7 +19,7 @@ func (n *NodePhiTheta3) applyEdit(e CardPanel.EditMsg) {
 	}
 	n.Card.Set(e.Field, e.Value)
 	if v := e.Field.Vector; v == CardPanel.VecStart || v == CardPanel.VecTick || v == CardPanel.VecK {
-		n.postStarts()
+		n.postVectors()
 	}
 	n.persist(e.Field, e.Value)
 }
@@ -55,5 +55,6 @@ func (n *NodePhiTheta3) drainEdits() {
 func (n *NodePhiTheta3) applyReset() {
 	n.reset, n.steps, n.started, n.loggedOnce = false, 0, false, false
 	n.arrival = [nodeCount]Vec{}
+	n.postVectors()
 	n.breadcrumb("card", "reset to round 0")
 }

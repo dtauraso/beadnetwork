@@ -71,19 +71,24 @@ any one still outstanding, so a cycle of three cannot deadlock.
 The card stops at its local numbers; placing them is conversion. Each node's `start_j` is a
 vector from its centre: φ and θ count spokes, each `T/12s` index steps (one spoke is 1/(12s) of
 a turn, T is the whole turn in index steps, and T/12s is a whole number), and r is a length in
-node radii, `r · node radius`, not rounded. `k_j · start_j` is drawn as an arrow from the node's
-centre to its exact tip, so r = 1 reaches the ring; a `start_j` with `k_j = 0` is the zero vector
-and draws nothing, while its value stays on the panel.
+node radii, `r · node radius`, not rounded. The vector drawn toward j is the one n sends on link
+j: `k_j · start_j` before the first round and after a reset, `k_j · local_arrival_j` after each
+round. The kind goroutine posts it to n's geometry goroutine at start, after every round, on
+reset, and when start, t, k or s is edited. It is drawn as an arrow from the node's centre to its
+exact tip, so r = 1 reaches the ring; a vector with `k_j = 0` is the zero vector and draws
+nothing, while the start value stays on the panel. Once rounds have run, a start edit shows after
+a reset.
 
-Chaining: when node n's `k_j = 1`, node j starts at the exact tip of n's `start_j` — n's centre
-plus that vector. n's geometry goroutine sends that tip to j's geometry goroutine on the
+Chaining: when node n's `k_j = 1`, node j starts at the exact tip of the vector n sends to j — n's
+centre plus that vector. n's geometry goroutine sends that tip to j's geometry goroutine on the
 placement channel for the pair n → j — one buffered channel per ordered pair, made by this kind
 beside the card's link channels, so every placement is delivered and none passes through the
 dispatcher or a pointer-drag slot. j's centre is the exact tip, and j's own arrows start there, so
 a chain's shape is its local vectors alone. The tip measured against the scene centre and rounded
 to the scene's index is kept beside it for what counts in index steps — the vectors to edge
 neighbours and the move they are told — and is never read back into the chain. n sends when n
-starts, whenever n's start, k or s changes, and whenever n itself moves — so a move passes down a
+starts, after every round, whenever n's start, t, k or s changes, on reset, and whenever n itself
+moves — so a move passes down a
 chain of k links, node by node. When `k_j` goes back to 0, n sends j a release; once no partner
 places j, j's centre is its index again. A pointer drag of j also makes its index its centre.
 
