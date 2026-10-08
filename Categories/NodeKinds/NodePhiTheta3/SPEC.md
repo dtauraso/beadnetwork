@@ -103,10 +103,13 @@ A card-placed position is not saved: it is the tip of the sender's `start_j`, so
 again from the card when the scene loads. Only the card's values and pointer drags are saved.
 
 The card checks k only within a node (k₁ ⊕ k₂), so the k links can loop across nodes (1 leads 2,
-2 leads 1). Each move carries the nodes it has passed through, and a node never sends it on to
-one already on that path except the node that started it. That node takes the closing tip and
+2 leads 1). Each move carries its id, `(origin, q)`: the node that started it and that node's
+count of moves started. Each node keeps, for each origin, the last `q` it moved in, and ignores a
+tip from a move it already moved in, unless it is the origin. The origin takes the closing tip and
 sends nothing further, so a loop moves each node once and stops instead of running away, and it
-ends at its predecessor's tip whichever order several moves land in. A loop whose k vectors sum
+ends at its predecessor's tip whichever order several moves land in. The check is one lookup per
+hop, so a move costs the same at every hop however long the chain; a tip from an older move of the
+same origin is ignored too. A loop whose k vectors sum
 to zero then meets at every link; one that does not leaves its single open link at the starting
 node's own outgoing vector.
 

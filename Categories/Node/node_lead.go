@@ -17,15 +17,22 @@ type Placement struct {
 	From    string
 	At      Vec3
 	Target  polarindex.Index
-	Path    []string
+	Move    Move
 	Release bool
+}
+
+type Move struct {
+	Origin string
+	Seq    uint64
 }
 
 type Leads struct {
 	leads    []Lead
 	from     Vec3
 	sent     bool
-	path     []string
+	move     *Move
+	seq      uint64
+	moved    map[string]uint64
 	placing  *Vec3
 	incoming map[string]Placement
 	out      map[string]chan<- Placement
@@ -79,19 +86,36 @@ func (g *NodeGeometry) sendLeads() {
 	l := &g.msg.leads
 	center := NodeWorldPos(g.geom)
 	l.from, l.sent = center, true
-	path := append(slices.Clone(l.path), g.id)
+	mv := l.move
+	if mv == nil {
+		l.seq++
+		mv = &Move{Origin: g.id, Seq: l.seq}
+	} else if mv.Origin == g.id {
+		return
+	}
+	g.markMoved(*mv)
 	for _, ld := range l.leads {
-		if slices.Contains(path, ld.TargetID) && ld.TargetID != path[0] {
-			continue
-		}
 		tip := TipPoint(center, ld.Vec)
 		g.sendPlacement(Placement{
 			From:   g.id,
 			At:     tip,
 			Target: TipIndex(tip, g.SceneCenter(), g.Constants()),
-			Path:   path,
+			Move:   *mv,
 		}, ld.TargetID)
 	}
+}
+
+func (g *NodeGeometry) markMoved(mv Move) {
+	l := &g.msg.leads
+	if l.moved == nil {
+		l.moved = map[string]uint64{}
+	}
+	l.moved[mv.Origin] = mv.Seq
+}
+
+func (g *NodeGeometry) movedIn(mv Move) bool {
+	seq, ok := g.msg.leads.moved[mv.Origin]
+	return ok && seq >= mv.Seq
 }
 
 func (g *NodeGeometry) sendPlacement(p Placement, to string) {
@@ -105,7 +129,7 @@ func (g *NodeGeometry) sendPlacement(p Placement, to string) {
 	default:
 		panic(fmt.Sprintf("Node.sendPlacement: placement channel %s -> %s is full at %d unread — node %s's "+
 			"geometry goroutine drains it every pulse (drainPlacements), so it has stopped running, or placements "+
-			"are being sent in a loop the path check should have cut", g.id, to, cap(ch), to))
+			"are being sent in a loop the move check (takePlacement, movedIn) should have cut", g.id, to, cap(ch), to))
 	}
 }
 
@@ -130,6 +154,8 @@ func (g *NodeGeometry) takePlacement(p Placement) {
 	}
 	if p.Release {
 		delete(l.incoming, p.From)
+	} else if p.Move.Origin != g.id && g.movedIn(p.Move) {
+		return
 	} else {
 		l.incoming[p.From] = p
 	}
@@ -162,7 +188,7 @@ func (g *NodeGeometry) resolvePlacement() {
 	if g.geom.HasPlaced && g.geom.Placed == p.At {
 		return
 	}
-	l.path, l.placing = p.Path, &p.At
+	l.move, l.placing = &p.Move, &p.At
 	g.msg.ApplyDerived(g.id, p.Target)
-	l.path, l.placing = nil, nil
+	l.move, l.placing = nil, nil
 }
