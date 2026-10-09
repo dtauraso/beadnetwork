@@ -12,5 +12,5 @@ func (m *NodeGeometry) ApplyCenter(idx polarindex.Index) {
 
 	m.emitGeometry()
 
-	m.leadsOnMove()
+	m.turnsOnMove()
 }

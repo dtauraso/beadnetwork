@@ -10,16 +10,24 @@ func (n *NodePhiTheta3) applyEdit(e CardPanel.EditMsg) {
 		n.S = e.Value
 		n.clearTicks()
 		n.postTicks()
-		n.postVectors()
+		n.postArrows()
 		return
 	}
 	if e.Field.Vector == CardPanel.VecM {
 		n.M = e.Value
 		return
 	}
+	turned := e.Field.Vector == CardPanel.VecStart || e.Field.Vector == CardPanel.VecTick
+	var before Angles
+	if turned {
+		before = n.start(e.Field.J)
+	}
 	n.Card.Set(e.Field, e.Value)
+	if turned {
+		n.postTurns(map[int]Angles{e.Field.J: sub(n.start(e.Field.J), before)})
+	}
 	if v := e.Field.Vector; v == CardPanel.VecStart || v == CardPanel.VecTick || v == CardPanel.VecK {
-		n.postVectors()
+		n.postArrows()
 	}
 	n.persist(e.Field, e.Value)
 }
@@ -48,6 +56,8 @@ func (n *NodePhiTheta3) drainEdits() {
 			n.reset = true
 		case <-n.StartIn:
 			n.applyStart()
+		case id := <-n.CentreIn:
+			n.geom.KindPosts().PostCentre(id)
 		default:
 			return
 		}
@@ -62,6 +72,10 @@ func (n *NodePhiTheta3) applyReset() {
 }
 
 func (n *NodePhiTheta3) applyStart() {
-	n.placeChain()
+	changes := map[int]Angles{}
+	for _, j := range n.Partners {
+		changes[j] = n.start(j)
+	}
+	n.postTurns(changes)
 	n.breadcrumb("card", "start: placing partners")
 }

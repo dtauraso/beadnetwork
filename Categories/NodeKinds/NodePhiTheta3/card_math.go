@@ -22,6 +22,8 @@ func scale(k int, a Angles) Angles { return Angles{Phi: k * a.Phi, Theta: k * a.
 
 func add(a, b Angles) Angles { return Angles{Phi: a.Phi + b.Phi, Theta: a.Theta + b.Theta} }
 
+func sub(a, b Angles) Angles { return Angles{Phi: a.Phi - b.Phi, Theta: a.Theta - b.Theta} }
+
 func pickOne(k1, k2 int, a1, a2 Angles) Angles {
 	if k1^k2 != 1 {
 		return Angles{}
