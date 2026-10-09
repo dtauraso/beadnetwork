@@ -21,7 +21,7 @@ P' &=& C + d \quad \text{only this direction is converted, so no angle is wrappe
 \rlap{\textbf{5. read from } O \textbf{ — output only, never fed back into 2 to 4}} & & \\[3pt]
 \begin{bmatrix} R' \\ \Phi' \\ \Theta' \end{bmatrix} &=& \begin{bmatrix} |P' - O| \\ \operatorname{acos}\!\left((P' - O)_{y} / R'\right) \\ \operatorname{atan2}\!\left((P' - O)_{z},\; (P' - O)_{x}\right) \end{bmatrix} \\[3pt]
 & & \text{not } \varphi,\, \theta \text{: the node turned about } C \text{, so from } O \text{ it sweeps a different angle and } R' \text{ changes} \\[3pt]
-& & \text{the scene index is these rounded (the global card, step 4)} \\[10pt]
+& & \text{the scene index is these rounded (the global card, step 2)} \\[10pt]
 \rlap{\textbf{example — } a_{\theta} = 90^{\circ} \textbf{,  } O = (0, 0, 0) \textbf{,  } C = (1, 0, 0) \textbf{,  } P = (2, 0, 0)} & & \\[3pt]
 2. & & r = 1,\; \varphi = 90^{\circ},\; \theta = 0^{\circ} \;\to\; \theta = 90^{\circ} \\[3pt]
 3. & & d = (1 \cdot \sin 90^{\circ} \cos 90^{\circ},\; 1 \cdot \cos 90^{\circ},\; 1 \cdot \sin 90^{\circ} \sin 90^{\circ}) = (0, 0, 1) \\[3pt]
