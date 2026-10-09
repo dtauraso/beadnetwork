@@ -31,6 +31,7 @@ type KindPost struct {
 	Ticks       *int32
 	Starts      *[]polar.Polar
 	Leads       *[]Lead
+	LeadsHeld   bool
 	Center      *polarindex.Index
 	FromPartner *PartnerVectorPost
 }

@@ -62,6 +62,6 @@ func (n *NodePhiTheta3) applyReset() {
 }
 
 func (n *NodePhiTheta3) applyStart() {
-	n.postVectors()
+	n.placeChain()
 	n.breadcrumb("card", "start: placing partners")
 }
