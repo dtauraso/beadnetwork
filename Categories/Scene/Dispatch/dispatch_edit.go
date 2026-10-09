@@ -53,7 +53,11 @@ func HandleRawInputMsg(ctx context.Context, ev Drag.RawInputMsg, md *MoveDispatc
 	if ev.Kind == "pointerdown" && panelTookPointerDown(ctx, ev, md, speedSinks) {
 		return
 	}
+	was, _ := md.UI.SelectedNode()
 	md.HandleRawInput(ctx, ev)
+	if now, _ := md.UI.SelectedNode(); now != was {
+		md.CardInboxes.SetCentre(now)
+	}
 }
 
 func HandleSaveMsg(md *MoveDispatch) {

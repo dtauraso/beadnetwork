@@ -38,8 +38,8 @@ round, and that cycle reads the saved speed (sent before the nodes start), so a 
 speed 0 runs no round until the slider or step says so. The step button beside it runs one round on
 every node, so a paused card can be walked a round at a time. The reset button beside it puts
 every node back at round 0, so the next round sends `start_j` again; it redraws the arrows and
-moves no node. The start button beside that one has every node send its placements from the
-vectors it now sends, so the chain is placed only when start is pressed.
+moves no node. The start button beside that one turns each node's k = 1 partners by
+`start_j + t_j` about the selected node (Local to global).
 
 ## dir_down(local_arrival, p, qt)
 
@@ -79,54 +79,31 @@ any one still outstanding, so a cycle of three cannot deadlock.
 
 ## Local to global
 
-The card stops at its local numbers; placing them is conversion. Each node's `start_j` is a
-vector from its centre: φ and θ count spokes, each `T/12s` index steps (one spoke is 1/(12s) of
-a turn, T is the whole turn in index steps, and T/12s is a whole number), and r is a length in
-node radii, `r · node radius`, not rounded. The vector drawn toward j is what n sends along the
-path to j: `k_j · start_j` before the first round and after a reset, then after each round the
-`k_j · local_arrival_j` it sent, unless that is 0. A 0 is no change, so the vector keeps the last
-one that was not 0. Its length is `start_j`'s r, always; no round changes it. The kind goroutine posts it to n's geometry goroutine at start, after every round, on
-reset (the arrow only), on the start button, and when start, t, k or s is edited. It is drawn as an arrow from the node's centre to its
-exact tip, so r = 1 reaches the ring; with `k_j = 0` link j carries nothing, so its vector is the
-zero vector and draws nothing, while the start value stays on the panel. Once rounds have run, a start edit shows after
-a reset, and places partners after the start button.
+The card stops at its local numbers; showing them is conversion, and the conversion is the rotation
+card (`docs/pair-node/math/framework/sphere-card-3-rotation.js`): a card change turns a node about
+the selected node C. Each node starts at its saved index.
 
-Chaining: when node n's `k_j = 1`, node j starts at the exact tip of the vector n sends to j — n's
-centre plus that vector. n's geometry goroutine sends that tip to j's geometry goroutine on the
-placement channel for the pair n → j — one buffered channel per ordered pair, made by this kind
-beside the card's link channels, so every placement is delivered and none passes through the
-dispatcher or a pointer-drag slot. j's centre is the exact tip, and j's own arrows start there, so
-a chain's shape is its local vectors alone. The tip measured against the scene centre and rounded
-to the scene's index is kept beside it for what counts in index steps — the vectors to edge
-neighbours and the move they are told — and is never read back into the chain. At load and on
-the start button the chain is laid out by one walk from node 1: node 1 sends, and nodes 2 and 3
-only hold their links and pass the walk on when it reaches them (a node the walk reached before
-its links arrived passes it on as they arrive), so several moves never race round a loop. n also
-sends after every round, whenever n's start, t, k or s changes (not on reset), and whenever n
-itself moves — so a move passes down a
-chain of k links, node by node. When `k_j` goes back to 0, n sends j a release; once no partner
-places j, j's centre is its index again. A pointer drag of j also makes its index its centre.
+1. **Centre.** C is the centre of the node selected in the editor. When the selection changes, the
+   dispatcher tells every card node (`CardPanel.Inboxes.SetCentre`); the selected node's geometry
+   goroutine then sends its centre to the other two, and again whenever it moves.
+2. **What turns, by how much.** When node n's link j has `k_j = 1` and changes, n turns node j by
+   that change, in ticks turned to radians as spokes (`T/12s` index steps each): `start_j + t_j` on
+   the start button, the difference when start or t is edited, and each round's direction sum
+   (`local_arrival_j` after the steps minus the picked arrival). A 0 change sends nothing, so it
+   moves nothing. n's geometry goroutine sends the turn to j's on the turn channel for the pair
+   n → j — one buffered channel per ordered pair, made by this kind.
+3. **The turn, in j's own geometry goroutine.** j measures its local vector about C once,
+   `(r, φ, θ) = cart_to_polar(P − C)`, when C is set, and keeps it; a pointer drag of j, or C
+   moving, measures it again at the next turn. A turn adds `a_φ` to φ and `a_θ` to θ — two separate
+   rotations, so their order does not matter — and j goes to `C + polar_to_cart(r, φ, θ)`.
+4. **Nothing is passed on.** j moves only itself; no other node is told, so there is no chain and
+   nothing to loop. A turn with no node selected, or about j itself, is dropped with a `turn`
+   breadcrumb.
+5. **Saved.** j's new place is committed like a pointer drag, so its index (read from O, rounded)
+   is saved and a reload shows it there.
 
-j keeps the latest tip from each partner sending to it. With one sender, j goes to that tip. With
-two, j's own k picks, as pick_one does: j takes the tip from the partner its single `k = 1` names,
-and stays put if its k names neither or both.
-
-A placement moves j's centre only. j's own `start` vectors keep their own angles in the same axes
-every node uses.
-
-A card-placed position is not saved: it is the tip of the sender's `start_j`, so it is placed
-again from the card when the scene loads. Only the card's values and pointer drags are saved.
-
-The card checks k only within a node (k₁ ⊕ k₂), so the k links can loop across nodes (1 leads 2,
-2 leads 1). Each move carries its id, `(origin, q)`: the node that started it and that node's
-count of moves started. Each node keeps, for each origin, the last `q` it moved in, and ignores a
-tip from a move it already moved in, unless it is the origin. The origin takes the closing tip and
-sends nothing further, so a loop moves each node once and stops instead of running away, and it
-ends at its predecessor's tip whichever order several moves land in. The check is one lookup per
-hop, so a move costs the same at every hop however long the chain; a tip from an older move of the
-same origin is ignored too. A loop whose k vectors sum
-to zero then meets at every link; one that does not leaves its single open link at the starting
-node's own outgoing vector.
+The arrows drawn from each node are its `start_j` vectors (`k_j = 0` draws nothing), length
+`start_j`'s r in node radii; they show the card's values and do not place any node.
 
 ## Description
 

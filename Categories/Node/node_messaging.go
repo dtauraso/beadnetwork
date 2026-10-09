@@ -24,7 +24,7 @@ type Messaging struct {
 
 	applyDerived func(id string, idx polarindex.Index)
 
-	leads Leads
+	turns Turns
 }
 
 type Deposit func(msg Msg)

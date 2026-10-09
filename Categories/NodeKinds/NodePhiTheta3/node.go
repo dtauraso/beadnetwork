@@ -32,13 +32,14 @@ func init() {
 type NodePhiTheta3 struct {
 	geom *NodeCat.NodeGeometry
 
-	Clock   clock.Clock
-	SpeedCh <-chan float64
-	EditIn  <-chan CardPanel.EditMsg
-	StepIn  <-chan struct{}
-	ResetIn <-chan struct{}
-	StartIn <-chan struct{}
-	Wake    <-chan struct{}
+	Clock    clock.Clock
+	SpeedCh  <-chan float64
+	EditIn   <-chan CardPanel.EditMsg
+	StepIn   <-chan struct{}
+	ResetIn  <-chan struct{}
+	StartIn  <-chan struct{}
+	CentreIn <-chan string
+	Wake     <-chan struct{}
 
 	steps int
 	reset bool
@@ -123,43 +124,13 @@ func (n *NodePhiTheta3) exchange(ctx context.Context) (in [nodeCount]pathMsg, ok
 			n.reset = true
 		case <-n.StartIn:
 			n.applyStart()
+		case id := <-n.CentreIn:
+			n.geom.KindPosts().PostCentre(id)
 		case <-ctx.Done():
 			return in, false
 		}
 	}
 	return in, true
-}
-
-func (n *NodePhiTheta3) round(in [nodeCount]pathMsg) {
-	a, b := n.Partners[0], n.Partners[1]
-	for _, j := range n.Partners {
-		if n.Card.L[j-1] == 0 {
-			in[j-1] = pathMsg{}
-		}
-	}
-
-	chosen := pickOne(in[a-1].K, in[b-1].K, in[a-1].A, in[b-1].A)
-	for _, j := range n.Partners {
-		n.arrival[j-1] = step(chosen, n.Card.PoleOffset[j-1], n.M, n.S)
-	}
-	if !n.started {
-		for _, j := range n.Partners {
-			n.shown[j-1] = n.start(j)
-		}
-	}
-	n.started = true
-	for _, j := range n.Partners {
-		if v := n.sendValue(j); v != (Angles{}) {
-			n.shown[j-1] = v
-		}
-	}
-	n.postVectors()
-
-	if !n.loggedOnce || n.arrival != n.logged {
-		n.breadcrumb("card", fmt.Sprintf("in %d=%v %d=%v chosen=%v arrival %d=%v %d=%v",
-			a, in[a-1], b, in[b-1], chosen, a, n.arrival[a-1], b, n.arrival[b-1]))
-		n.logged, n.loggedOnce = n.arrival, true
-	}
 }
 
 func (n *NodePhiTheta3) Update(ctx context.Context) {
@@ -168,7 +139,7 @@ func (n *NodePhiTheta3) Update(ctx context.Context) {
 	clk.WakeOn(n.Wake)
 	n.geom.Clocks().Use(clk)
 	n.postTicks()
-	n.placeChain()
+	n.postArrows()
 
 	for {
 		if err := clk.SleepCycle(ctx); err != nil {
@@ -212,11 +183,12 @@ var Builder = BuilderFor("NodePhiTheta3",
 		n.SpeedCh = a.SpeedCh()
 		inbox := a.EditInbox()
 		n.EditIn, n.StepIn, n.ResetIn, n.StartIn, n.Wake = inbox.Edits, inbox.Steps, inbox.Resets, inbox.Starts, inbox.Wake
+		n.CentreIn = inbox.Centres
 		n.geom = a.Geom()
 
 		n.Me = me
 		n.Partners = CardPanel.Partners(me)
-		n.wirePlacement()
+		n.wireTurns()
 		n.Card = CardPanel.CardFromState(me, a.State())
 		n.S = a.S()
 		n.M = a.M()

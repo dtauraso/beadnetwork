@@ -2,9 +2,7 @@ package NodePhiTheta3
 
 import (
 	"fmt"
-	"strconv"
 
-	NodeCat "github.com/dtauraso/beadnetwork/Categories/Node"
 	"github.com/dtauraso/beadnetwork/Categories/Vectors/polar"
 	"github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
 )
@@ -39,37 +37,10 @@ func (n *NodePhiTheta3) postTicks() {
 	n.geom.KindPosts().PostTicks(int32(poleHigh * n.S))
 }
 
-func (n *NodePhiTheta3) sentVectors() (starts []polar.Polar, leads []NodeCat.Lead) {
-	starts = make([]polar.Polar, 0, len(n.Partners))
-	for _, j := range n.Partners {
-		vec := n.startVec(j)
-		starts = append(starts, vec)
-		if n.Card.K[j-1] == 1 {
-			leads = append(leads, NodeCat.Lead{TargetID: strconv.Itoa(j), Vec: vec})
-		}
-	}
-	return starts, leads
-}
-
 func (n *NodePhiTheta3) postArrows() {
-	starts, _ := n.sentVectors()
-	n.geom.KindPosts().PostStartVectors(starts)
-}
-
-func (n *NodePhiTheta3) postVectors() {
-	starts, leads := n.sentVectors()
-	n.geom.KindPosts().PostStartVectors(starts)
-	n.geom.KindPosts().PostLeads(leads)
-}
-
-const walkHead = 1
-
-func (n *NodePhiTheta3) placeChain() {
-	if n.Me == walkHead {
-		n.postVectors()
-		return
+	starts := make([]polar.Polar, 0, len(n.Partners))
+	for _, j := range n.Partners {
+		starts = append(starts, n.startVec(j))
 	}
-	starts, leads := n.sentVectors()
 	n.geom.KindPosts().PostStartVectors(starts)
-	n.geom.KindPosts().PostLeadsHeld(leads)
 }
