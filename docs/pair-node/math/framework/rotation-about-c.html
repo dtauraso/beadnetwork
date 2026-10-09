@@ -51,18 +51,18 @@
 </head>
 <body>
 <main>
-  <h1>The local vector on its sphere about C</h1>
-  <p class="sub">C is the selected node, at (1, 0, 0); the local vector from it has r = 1. One slider per angle; each changes only its own angle. P′ = C + polar_to_cart(r, φ, θ).</p>
+  <h1>The a→b vector on its sphere about node a</h1>
+  <p class="sub">Node a is at (1, 0, 0); its vector to b has r = 1. One slider per angle of a→b; each changes only its own angle. b = C<sub>a</sub> + polar_to_cart(r, φ, θ).</p>
 
   <div class="layout">
     <div class="panel">
-      <canvas id="view" width="900" height="900" aria-label="Sphere of radius r about C with the local vector"></canvas>
+      <canvas id="view" width="900" height="900" aria-label="Sphere of radius r about node a with the a to b vector"></canvas>
       <div class="hint">Drag the picture to look round the sphere.</div>
       <div class="legend">
-        <span><span class="sw" style="background:var(--local)"></span>local vector C→P′ (start fixed at C)</span>
+        <span><span class="sw" style="background:var(--local)"></span>the a→b vector (starts at a)</span>
         <span><span class="sw" style="background:var(--phi)"></span>every point the φ slider visits</span>
         <span><span class="sw" style="background:var(--theta)"></span>every point the θ slider visits</span>
-        <span><span class="sw" style="background:var(--global)"></span>O→P′, read from O</span>
+        <span><span class="sw" style="background:var(--global)"></span>O→b, read from O</span>
       </div>
     </div>
 
@@ -74,10 +74,10 @@
       <h2 class="calc-h">Calculation, in order</h2>
       <ol class="calc" id="calc"></ol>
       <ol>
-        <li><span class="p">φ</span> is measured from +y. Its slider tips the vector over the top and bottom of C; θ and r stay. Over its range it visits every point of the <span class="p">circle through the poles</span> at the current θ.</li>
-        <li><span class="t">θ</span> is measured round the vertical from +x. Its slider swings the vector round the vertical through C; φ and r stay. Over its range it visits every point of the <span class="t">circle</span> at the current φ.</li>
+        <li><span class="p">φ</span> is measured from +y. Its slider tips a→b over the top and bottom of a; θ and r stay. Over its range b visits every point of the <span class="p">circle through the poles</span> at the current θ.</li>
+        <li><span class="t">θ</span> is measured round the vertical from +x. Its slider swings a→b round the vertical through a; φ and r stay. Over its range b visits every point of the <span class="t">circle</span> at the current φ.</li>
         <li>The two are separate: each changes only its own angle, so order does not matter. Together they reach every point on the sphere.</li>
-        <li><span class="g">From O</span>, P′ is read as <code>cart_to_polar(P′ − O)</code>. Those angles are not φ and θ, and R changes, because the turn is about C.</li>
+        <li><span class="g">From O</span>, b is read as <code>cart_to_polar(b − O)</code>. Those angles are not φ and θ, which are about a.</li>
       </ol>
     </div>
   </div>
