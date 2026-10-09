@@ -30,8 +30,7 @@ type KindPost struct {
 	Lattice     *int32
 	Ticks       *int32
 	Starts      *[]polar.Polar
-	Centre      *string
-	Turns       *[]TurnPost
+	Tips        *[]TipPost
 	Center      *polarindex.Index
 	FromPartner *PartnerVectorPost
 }
