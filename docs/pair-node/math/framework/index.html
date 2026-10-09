@@ -50,15 +50,13 @@
 
     <p class="code-links">Code: <span data-src="Categories/NodeKinds/NodePhiTheta3/node.go#exchange">exchange</span> (← link, → link) · <span data-src="Categories/NodeKinds/NodePhiTheta3/card_math.go#pickOne">pickOne</span> · <span data-src="Categories/NodeKinds/NodePhiTheta3/card_math.go#dirDown">dirDown</span> · <span data-src="Categories/NodeKinds/NodePhiTheta3/card_math.go#dirUp">dirUp</span> · <span data-src="Categories/NodeKinds/NodePhiTheta3/card_math.go#step">step</span> (the four directions) · <span data-src="Categories/NodeKinds/NodePhiTheta3/round.go#round">round</span> (one node)</p>
 
-    <h4 class="secname">Local to global — a card change as a rotation about a chosen centre</h4>
+    <h4 class="secname">Local to global — each pair: b is where a→b says</h4>
 
     <div class="card wide" data-sphere-card-3-rotation></div>
 
-    <p class="code-links">Code — 1. centre: <span data-src="Categories/Scene/Dispatch/dispatch_edit.go#HandleRawInputMsg">HandleRawInputMsg</span> → <span data-src="Categories/Chrome/Panels/CardPanel/inboxes.go#SetCentre">SetCentre</span> → <span data-src="Categories/Node/node_turn.go#setCentre">setCentre</span> / <span data-src="Categories/Node/node_turn.go#sendCentre">sendCentre</span>
-      · Δφ, Δθ, a<sub>φ</sub>, a<sub>θ</sub>: <span data-src="Categories/NodeKinds/NodePhiTheta3/panel_input.go#applyStart">applyStart</span>, <span data-src="Categories/NodeKinds/NodePhiTheta3/panel_input.go#applyEdit">applyEdit</span>, <span data-src="Categories/NodeKinds/NodePhiTheta3/round.go#round">round</span> → <span data-src="Categories/NodeKinds/NodePhiTheta3/turns.go#postTurns">postTurns</span> / <span data-src="Categories/NodeKinds/NodePhiTheta3/turns.go#radians">radians</span>
-      · 2.–4.: <span data-src="Categories/Node/node_turn.go#takeTurn">takeTurn</span> · 5.: <span data-src="Categories/Node/node_start_arrows.go#TipIndex">TipIndex</span></p>
+    <p class="code-links">Code — b where a→b says: <span data-src="Categories/NodeKinds/NodePhiTheta3/global.go#startVec">startVec</span> (the a→b vector) → <span data-src="Categories/NodeKinds/NodePhiTheta3/tips.go#placePartners">placePartners</span> (from <span data-src="Categories/NodeKinds/NodePhiTheta3/panel_input.go#applyStart">applyStart</span>, <span data-src="Categories/NodeKinds/NodePhiTheta3/panel_input.go#applyEdit">applyEdit</span>, <span data-src="Categories/NodeKinds/NodePhiTheta3/round.go#round">round</span>, load) → <span data-src="Categories/Node/node_tip.go#sendTips">sendTips</span> (a's centre + vector) → <span data-src="Categories/Node/node_tip.go#takeTip">takeTip</span> (b goes there) · index: <span data-src="Categories/Node/node_start_arrows.go#TipIndex">TipIndex</span></p>
 
-    <p><a href="rotation-about-c.html">Diagram: the local vector on its sphere about C — one slider per angle</a></p>
+    <p><a href="rotation-about-c.html">Diagram: the a→b vector on its sphere about node a — one slider per angle</a></p>
 
     <h4 class="secname">Local to global — the scene sphere: a node's centre and its index</h4>
 

@@ -38,8 +38,8 @@ round, and that cycle reads the saved speed (sent before the nodes start), so a 
 speed 0 runs no round until the slider or step says so. The step button beside it runs one round on
 every node, so a paused card can be walked a round at a time. The reset button beside it puts
 every node back at round 0, so the next round sends `start_j` again; it redraws the arrows and
-moves no node. The start button beside that one turns each node's k = 1 partners by
-`start_j + t_j` about the selected node (Local to global).
+moves no node. The start button beside that one places each node's k = 1 partners where its
+vectors say (Local to global).
 
 ## dir_down(local_arrival, p, qt)
 
@@ -79,31 +79,21 @@ any one still outstanding, so a cycle of three cannot deadlock.
 
 ## Local to global
 
-The card stops at its local numbers; showing them is conversion, and the conversion is the rotation
-card (`docs/pair-node/math/framework/sphere-card-3-rotation.js`): a card change turns a node about
-the selected node C. Each node starts at its saved index.
+The card stops at its local numbers; showing them is conversion. For each pair separately: when
+node a's `k_b = 1`, node b is where the a→b vector says — a's centre plus that vector.
 
-1. **Centre.** C is the centre of the node selected in the editor. When the selection changes, the
-   dispatcher tells every card node (`CardPanel.Inboxes.SetCentre`); the selected node's geometry
-   goroutine then sends its centre to the other two, and again whenever it moves.
-2. **What turns, by how much.** When node n's link j has `k_j = 1` and changes, n turns node j by
-   that change, in ticks turned to radians as spokes (`T/12s` index steps each): `start_j + t_j` on
-   the start button, the difference when start or t is edited, and each round's direction sum
-   (`local_arrival_j` after the steps minus the picked arrival). A 0 change sends nothing, so it
-   moves nothing. n's geometry goroutine sends the turn to j's on the turn channel for the pair
-   n → j — one buffered channel per ordered pair, made by this kind.
-3. **The turn, in j's own geometry goroutine.** j measures its local vector about C once,
-   `(r, φ, θ) = cart_to_polar(P − C)`, when C is set, and keeps it; a pointer drag of j, or C
-   moving, measures it again at the next turn. A turn adds `a_φ` to φ and `a_θ` to θ — two separate
-   rotations, so their order does not matter — and j goes to `C + polar_to_cart(r, φ, θ)`.
-4. **Nothing is passed on.** j moves only itself; no other node is told, so there is no chain and
-   nothing to loop. A turn with no node selected, or about j itself, is dropped with a `turn`
-   breadcrumb.
-5. **Saved.** j's new place is committed like a pointer drag, so its index (read from O, rounded)
-   is saved and a reload shows it there.
-
-The arrows drawn from each node are its `start_j` vectors (`k_j = 0` draws nothing), length
-`start_j`'s r in node radii; they show the card's values and do not place any node.
+1. **The a→b vector.** φ and θ count spokes, each `T/12s` index steps, and r is `start_b`'s r in
+   node radii. Its angles are `start_b + t_b` before the first round and after a reset, then after
+   each round the `k_b · local_arrival_b` a sent, unless that is 0 — a 0 is no change, so the
+   vector keeps the last one that was not 0. It is drawn as the arrow from a.
+2. **When b is placed.** a's geometry goroutine sends b the tip `C_a + polar_to_cart(a→b)` at
+   load, on the start button, when a's start, t, k or s is edited, and after a round that changed
+   the vector. Reset redraws the arrow and moves nothing. The tip goes on the tip channel for the
+   pair a → b — one buffered channel per ordered pair, made by this kind.
+3. **One hop.** b goes to the tip and passes nothing on: each pair is placed on its own, so there is
+   no chain and no loop to stop. If a moves later, b follows only when a next sends.
+4. **Saved.** b's new place is committed like a pointer drag, so its index (read from O, rounded)
+   is saved and a reload starts from it.
 
 ## Description
 

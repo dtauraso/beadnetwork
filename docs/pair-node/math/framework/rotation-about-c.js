@@ -60,15 +60,15 @@
 
   function calcSteps(phi, theta, d, Pn) {
     const g = sub(Pn, O), R = Math.hypot(...g);
-    const read = R < 1e-9 ? 'P′ is at O — no angle'
-      : `R = |P′ − O| = ${f(R)}, Φ = acos(P′y / R) = ${deg(Math.acos(Math.max(-1, Math.min(1, g[1] / R)))).toFixed(1)}°, ` +
-        `Θ = atan2(P′z, P′x) = ${deg(Math.atan2(g[2], g[0])).toFixed(1)}°`;
+    const read = R < 1e-9 ? 'b is at O — no angle'
+      : `R = |b − O| = ${f(R)}, Φ = acos(b_y / R) = ${deg(Math.acos(Math.max(-1, Math.min(1, g[1] / R)))).toFixed(1)}°, ` +
+        `Θ = atan2(b_z, b_x) = ${deg(Math.atan2(g[2], g[0])).toFixed(1)}°`;
     return [
-      ['l', 'centre', `C = ${pt(C)}`, 'the centre of the selected node'],
-      ['l', 'local angles', `r = ${f(r)}, φ = ${phi}°, θ = ${theta}°`, 'from the sliders; each changes only its own angle'],
-      ['l', 'local vector', `d = polar_to_cart(r, φ, θ) = (r·sinφ·cosθ, r·cosφ, r·sinφ·sinθ) = ${pt(d)}`, 'starts at C'],
-      ['l', 'new place', `P′ = C + d = ${pt(Pn)}`, 'only the end of the vector moves'],
-      ['g', 'read from O', read, 'output only; never fed back into 2–4'],
+      ['l', 'the a→b vector', `r = ${f(r)}, φ = ${phi}°, θ = ${theta}°`, 'from the sliders; each changes only its own angle'],
+      ['l', 'node a', `C_a = ${pt(C)}`, 'where the vector starts'],
+      ['l', 'the vector', `d = polar_to_cart(r, φ, θ) = (r·sinφ·cosθ, r·cosφ, r·sinφ·sinθ) = ${pt(d)}`, 'starts at a'],
+      ['l', 'b goes to its tip', `b = C_a + d = ${pt(Pn)}`, 'b passes nothing on'],
+      ['g', 'read from O', read, 'output only; never fed back into 1–4'],
     ].map(([c, name, eq, note], i) =>
       `<li><span class="${c}">${i + 1}. ${name}</span><br><code>${eq}</code><div class="note">${note}</div></li>`).join('');
   }
@@ -112,9 +112,9 @@
     ctx.fillStyle = css('--card'); ctx.globalAlpha = 0.85; ctx.fill(); ctx.globalAlpha = 1;
     ctx.lineWidth = 6; ctx.strokeStyle = css('--local'); ctx.stroke();
     ctx.fillStyle = css('--local'); ctx.font = '600 28px -apple-system, sans-serif';
-    ctx.fillText('1 node C', nx + 0.14 * S + 8, ny + 0.14 * S + 10);
+    ctx.fillText('2 node a', nx + 0.14 * S + 8, ny + 0.14 * S + 10);
     dot(C, css('--local'));
-    dot(Pn, css('--local'), '4 P′', true);
+    dot(Pn, css('--local'), '4 b', true);
 
     document.getElementById('vphi').textContent = `${phi}°`;
     document.getElementById('vth').textContent = `${theta}°`;

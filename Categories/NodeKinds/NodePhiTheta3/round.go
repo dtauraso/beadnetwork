@@ -11,12 +11,10 @@ func (n *NodePhiTheta3) round(in [nodeCount]pathMsg) {
 	}
 
 	chosen := pickOne(in[a-1].K, in[b-1].K, in[a-1].A, in[b-1].A)
-	directions := map[int]Angles{}
 	for _, j := range n.Partners {
 		n.arrival[j-1] = step(chosen, n.Card.PoleOffset[j-1], n.M, n.S)
-		directions[j] = sub(n.arrival[j-1], chosen)
 	}
-	n.postTurns(directions)
+	before := n.shown
 	if !n.started {
 		for _, j := range n.Partners {
 			n.shown[j-1] = n.start(j)
@@ -29,6 +27,9 @@ func (n *NodePhiTheta3) round(in [nodeCount]pathMsg) {
 		}
 	}
 	n.postArrows()
+	if n.shown != before {
+		n.placePartners()
+	}
 
 	if !n.loggedOnce || n.arrival != n.logged {
 		n.breadcrumb("card", fmt.Sprintf("in %d=%v %d=%v chosen=%v arrival %d=%v %d=%v",

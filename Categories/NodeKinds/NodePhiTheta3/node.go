@@ -32,14 +32,13 @@ func init() {
 type NodePhiTheta3 struct {
 	geom *NodeCat.NodeGeometry
 
-	Clock    clock.Clock
-	SpeedCh  <-chan float64
-	EditIn   <-chan CardPanel.EditMsg
-	StepIn   <-chan struct{}
-	ResetIn  <-chan struct{}
-	StartIn  <-chan struct{}
-	CentreIn <-chan string
-	Wake     <-chan struct{}
+	Clock   clock.Clock
+	SpeedCh <-chan float64
+	EditIn  <-chan CardPanel.EditMsg
+	StepIn  <-chan struct{}
+	ResetIn <-chan struct{}
+	StartIn <-chan struct{}
+	Wake    <-chan struct{}
 
 	steps int
 	reset bool
@@ -124,8 +123,6 @@ func (n *NodePhiTheta3) exchange(ctx context.Context) (in [nodeCount]pathMsg, ok
 			n.reset = true
 		case <-n.StartIn:
 			n.applyStart()
-		case id := <-n.CentreIn:
-			n.geom.KindPosts().PostCentre(id)
 		case <-ctx.Done():
 			return in, false
 		}
@@ -140,6 +137,7 @@ func (n *NodePhiTheta3) Update(ctx context.Context) {
 	n.geom.Clocks().Use(clk)
 	n.postTicks()
 	n.postArrows()
+	n.placePartners()
 
 	for {
 		if err := clk.SleepCycle(ctx); err != nil {
@@ -183,12 +181,11 @@ var Builder = BuilderFor("NodePhiTheta3",
 		n.SpeedCh = a.SpeedCh()
 		inbox := a.EditInbox()
 		n.EditIn, n.StepIn, n.ResetIn, n.StartIn, n.Wake = inbox.Edits, inbox.Steps, inbox.Resets, inbox.Starts, inbox.Wake
-		n.CentreIn = inbox.Centres
 		n.geom = a.Geom()
 
 		n.Me = me
 		n.Partners = CardPanel.Partners(me)
-		n.wireTurns()
+		n.wireTips()
 		n.Card = CardPanel.CardFromState(me, a.State())
 		n.S = a.S()
 		n.M = a.M()
