@@ -34,7 +34,11 @@ func SelectedIndex(anchorPath string) int {
 }
 
 func ResolvePath(anchorPath string) string {
-	selected := All[SelectedIndex(anchorPath)]
+	return PathFor(anchorPath, SelectedIndex(anchorPath))
+}
+
+func PathFor(anchorPath string, idx int) string {
+	selected := All[idx]
 	container := Container(anchorPath)
 	resolved := filepath.Join(container, selected.Dir)
 	if info, err := os.Stat(resolved); err != nil || !info.IsDir() { // path-resolution-ok: asserting the resolver's own output exists, not resolving a second way

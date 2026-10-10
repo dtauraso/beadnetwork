@@ -23,13 +23,23 @@ import (
 )
 
 func run(ctx context.Context, cancel context.CancelFunc, topologyPath string, clk clock.Clock) {
-	scenePath := Scenes.ResolvePath(topologyPath)
+	router := Startup.NewSceneRouter()
+	open := func(idx int) (Startup.OpenedScene, error) {
+		return openScene(ctx, cancel, router, topologyPath, idx, clk)
+	}
+	if err := router.Run(ctx, cancel, Scenes.SelectedIndex(topologyPath), open); err != nil {
+		fmt.Fprintf(os.Stderr, "load topology: %v\n", err)
+		os.Exit(1)
+	}
+}
+
+func openScene(ctx context.Context, cancel context.CancelFunc, router *Startup.SceneRouter, topologyPath string, idx int, clk clock.Clock) (Startup.OpenedScene, error) {
+	scenePath := Scenes.PathFor(topologyPath, idx)
 	SceneB.WriteSpawnIdentity(scenePath)
 
 	sc, err := Startup.Load(ctx, scenePath, clk)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "load topology: %v\n", err)
-		os.Exit(1)
+		return Startup.OpenedScene{}, err
 	}
 	md, speedSinks := sc.Dispatch, sc.SpeedSinks
 
@@ -43,7 +53,7 @@ func run(ctx context.Context, cancel context.CancelFunc, topologyPath string, cl
 	md.UI.OwnerCounts.Nodes = int32(len(md.RT.NodeRowTable))
 	md.UI.OwnerCounts.Edges = int32(len(md.RT.EdgeRowTable))
 	md.UI.TabStrip.Names = Tabs.TabNames()
-	md.UI.TabStrip.Selected = Tabs.SelectedIndex(topologyPath)
+	md.UI.TabStrip.Selected = idx
 	md.UI.SetSceneRoot(scenePath)
 	md.UI.WriteRingSurfaces(NodeShape.CanonicalRingSurfacePointsFlat(), bead.CanonicalRingSurfacePointsFlat())
 
@@ -53,11 +63,16 @@ func run(ctx context.Context, cancel context.CancelFunc, topologyPath string, cl
 
 	md.Scenes.AnchorPath = topologyPath
 	md.Scenes.Quit = cancel
-	md.Scenes.Loaded = md.UI.TabStrip.Selected
+	md.Scenes.Open = func(i int) { router.Open(ctx, i) }
+	md.Scenes.Loaded = idx
 
 	moverWG := md.Start(ctx)
-	stdinWG, gestureWG := Startup.StartStdinReader(ctx, cancel, md, speedSinks, clk, Scenes.InputDirPath(scenePath))
-	joinAll(launchNodes(ctx, sc.Nodes), moverWG, stdinWG, gestureWG)
+	inbox, gestureWG := Startup.StartGestureActor(ctx, md, speedSinks, clk, Scenes.InputDirPath(scenePath))
+	nodesWG := launchNodes(ctx, sc.Nodes)
+	return Startup.OpenedScene{
+		Inbox: inbox,
+		Wait:  func() { joinAll(nodesWG, moverWG, gestureWG) },
+	}, nil
 }
 
 func launchNodes(ctx context.Context, nodes []Startup.BuiltNode) *sync.WaitGroup {
