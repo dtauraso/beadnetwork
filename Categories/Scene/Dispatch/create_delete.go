@@ -14,7 +14,7 @@ import (
 )
 
 func CreateNode(scenes *Scenes.SceneSwitch, ui *View.UIState, nodeGeoms map[string]*Node.NodeGeometry, nearestTo func(View.Vec3) (string, bool), kindID uint8, drop View.Vec3) {
-	if scenes == nil || scenes.TreeRoot == "" || scenes.Quit == nil {
+	if scenes == nil || scenes.TreeRoot == "" || scenes.Reload == nil {
 		return
 	}
 
@@ -95,11 +95,11 @@ func CreateNode(scenes *Scenes.SceneSwitch, ui *View.UIState, nodeGeoms map[stri
 		ui.EmitViewFrame(nil)
 		return
 	}
-	scenes.Quit()
+	scenes.Reload()
 }
 
 func DeleteNode(scenes *Scenes.SceneSwitch, ui *View.UIState, id string, row int) {
-	if scenes == nil || scenes.TreeRoot == "" || scenes.Quit == nil {
+	if scenes == nil || scenes.TreeRoot == "" || scenes.Reload == nil {
 		return
 	}
 
@@ -130,5 +130,5 @@ func DeleteNode(scenes *Scenes.SceneSwitch, ui *View.UIState, id string, row int
 		ui.EmitViewFrame(nil)
 		return
 	}
-	scenes.Quit()
+	scenes.Reload()
 }

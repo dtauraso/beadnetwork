@@ -2,9 +2,10 @@ package Scenes
 
 type SceneSwitch struct {
 	AnchorPath string
-	Quit       func()
 
 	Open func(idx int)
+
+	Reload func()
 
 	TreeRoot string
 

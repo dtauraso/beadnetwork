@@ -16,6 +16,17 @@ type BuildDeps struct {
 	CardS int
 
 	CardM int
+
+	loadShared map[string]any
+}
+
+func (d BuildDeps) LoadShared(key string, mk func() any) any {
+	v, ok := d.loadShared[key]
+	if !ok {
+		v = mk()
+		d.loadShared[key] = v
+	}
+	return v
 }
 
 func (d BuildDeps) LatticePointsSeed() int32 { return d.LatticePoints }
