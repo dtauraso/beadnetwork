@@ -10,3 +10,5 @@ var (
 	attrTiltVectorRst  = attrIndex("reset")
 	attrTiltVectorStrt = attrIndex("start")
 )
+
+func IsViewport(attr byte) bool { return attr == attrViewport }

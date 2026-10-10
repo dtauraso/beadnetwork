@@ -97,30 +97,28 @@ func (w *wheelTotals) difference(ev *Drag.RawInputMsg) {
 	w.x, w.y = totalX, totalY
 }
 
-func SendGestureMsgBlocking(ctx context.Context, inbox chan GestureInboxMsg, gm GestureInboxMsg) {
+func SendGestureMsgBlocking(ctx context.Context, inbox chan<- GestureInboxMsg, gm GestureInboxMsg) {
 	select {
 	case inbox <- gm:
 	case <-ctx.Done():
 	}
 }
 
-func StartStdinReader(ctx context.Context, cancel context.CancelFunc, md *Dispatch.MoveDispatch, speedSinks SliderPanel.Sinks, clk clock.Clock, inputPath string) (*sync.WaitGroup, *sync.WaitGroup) {
-	inbox, gestureWG := StartGestureActor(ctx, md, speedSinks, clk, inputPath)
-
+func startStdinReader(ctx context.Context, cancel context.CancelFunc, out chan<- GestureInboxMsg) *sync.WaitGroup {
 	stdinWG := new(sync.WaitGroup)
 	stdinWG.Add(1)
 	h := Drag.Handlers{
 		ApplyEdit: func(op string, entity, attr byte, payload []byte) {
-			SendGestureMsgBlocking(ctx, inbox, GestureInboxMsg{
+			SendGestureMsgBlocking(ctx, out, GestureInboxMsg{
 				Kind: GestureMsgEdit,
 				Op:   op, Entity: entity, Attr: attr, Payload: payload,
 			})
 		},
 		HandleSave: func() {
-			SendGestureMsgBlocking(ctx, inbox, GestureInboxMsg{Kind: GestureMsgSave})
+			SendGestureMsgBlocking(ctx, out, GestureInboxMsg{Kind: GestureMsgSave})
 		},
 		HandleCommand: func(ev Drag.RawInputMsg) {
-			SendGestureMsgBlocking(ctx, inbox, GestureInboxMsg{Kind: GestureMsgCommand, Command: ev})
+			SendGestureMsgBlocking(ctx, out, GestureInboxMsg{Kind: GestureMsgCommand, Command: ev})
 		},
 	}
 	go func() {
@@ -128,5 +126,5 @@ func StartStdinReader(ctx context.Context, cancel context.CancelFunc, md *Dispat
 		Drag.RunStdinReader(ctx, os.Stdin, h)
 		cancel()
 	}()
-	return stdinWG, gestureWG
+	return stdinWG
 }

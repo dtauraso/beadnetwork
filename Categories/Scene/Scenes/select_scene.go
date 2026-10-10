@@ -6,7 +6,7 @@ import (
 )
 
 func SelectScene(scenes *SceneSwitch, idx int) {
-	if scenes.AnchorPath == "" || scenes.Quit == nil {
+	if scenes.AnchorPath == "" || scenes.Open == nil {
 		return
 	}
 	if idx < 0 || idx >= len(All) {
@@ -21,5 +21,5 @@ func SelectScene(scenes *SceneSwitch, idx int) {
 			SelectionFilePath(scenes.AnchorPath), err)
 		return
 	}
-	scenes.Quit()
+	scenes.Open(idx)
 }
