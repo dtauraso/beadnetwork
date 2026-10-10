@@ -23,12 +23,20 @@ scene A is loaded — `.claude/rules/persistence-ownership.md`). TS renders the 
 from the VIEW frame and forwards a click as one addressed edit (`kind="scene"
 attr="selected"`); it holds no list, no labels, no selection of its own.
 
-A tab switch is not an in-process rebuild. There is no teardown of live node goroutines or
-their in-flight beads mid-traversal — persisting the new selection ends the Go process, and
-the extension host's already-looping runner respawns it, which re-reads the selection and
-loads the other tree. This is deliberate: a respawn is machinery that already exists (the
-`.go` file watcher triggers the same path on every edit), so switching scenes buys nothing
-by adding a second, in-process path to do the same thing.
+A tab switch is a state change in one Go process. The first click on a tab loads that
+scene beside the ones already open; it stays open, so a later click only changes which scene
+is selected. Nothing quits and nothing is torn down. The scenes share no state: stdin edits go
+to the selected scene only (`Startup.SceneRouter`), so a change in one scene never reaches
+another, and the viewport — the window's, not a scene's — goes to every open scene, so a
+newly opened one starts with the tab strip already laid out. Quitting for a respawn used to
+do the switch; the new process came up with no viewport and no tab strip until the webview
+noticed the respawn, which raced.
+
+Creating or deleting a node writes the scene's files and rebuilds THAT scene in the same
+process: its goroutines are cancelled and waited for, and it is loaded again from its files.
+Other open scenes are untouched. The rebuilt scene's in-memory state (beads in flight) starts
+over, because a running scene cannot take on or drop a node — its ports, rule mesh and row
+tables are all built once at load.
 
 **A scene may fork small pieces of node behavior, and each fork is a named, reasoned
 choice — not a tuning knob:**

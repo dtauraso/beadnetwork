@@ -50,8 +50,8 @@ the fixed anchor, and which sibling directory actually loads is resolved from it
 (the selected tab name, one string) is the ONE piece of state that lives at the ANCHOR rather than
 inside whichever scene is loaded — it has to, since it is what says which sibling to load, and
 a selection stored inside scene B would be unreachable while scene A is showing. Switching
-tabs writes this file and ends the Go process; the extension host's already-looping runner
-respawns it, and the respawn re-reads the selection and loads the other tree.
+tabs writes this file and opens the other tree in the same Go process; the file is read at
+process start to choose the first scene to open.
 
 An edge is stored under its **source** node and carries no `source` key — that is the
 directory it sits in, and storing it too would be a second copy free to drift.
