@@ -45,8 +45,9 @@ func BuildNodes(
 			md.CardInboxes.Claim(name, panelToNodeCardInbox)
 			return panelToNodeCardInbox
 		},
-		CardS: md.UI.Card.S,
-		CardM: md.UI.Card.M,
+		CardS:      md.UI.Card.S,
+		CardM:      md.UI.Card.M,
+		loadShared: map[string]any{},
 		ClaimSelfDriveGeom: func(name string) any {
 			ng, ok := md.MR.NodeGeoms()[name]
 			if !ok {

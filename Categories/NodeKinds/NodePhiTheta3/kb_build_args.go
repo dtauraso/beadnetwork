@@ -12,6 +12,7 @@ type deps interface {
 	CardEditChan(name string) any
 	CardSSeed() int
 	CardMSeed() int
+	LoadShared(key string, mk func() any) any
 }
 
 type BuildArgs struct {
@@ -32,6 +33,17 @@ func (a BuildArgs) EditInbox() CardPanel.Inbox {
 		panic("NodePhiTheta3.EditInbox: the scene handed node " + a.Name + " something that is not a card-edit inbox — Startup.BuildDeps.ClaimCardEditIn should have made one")
 	}
 	return in
+}
+
+func (a BuildArgs) Mesh() *mesh {
+	if a.Deps == nil {
+		panic("NodePhiTheta3.Mesh: node " + a.Name + " was built with no build deps, so it cannot reach the channels its scene load shares with its partners — Startup.BuildNodes should have passed BuildDeps")
+	}
+	m, ok := a.Deps.LoadShared("NodePhiTheta3", newMesh).(*mesh)
+	if !ok {
+		panic("NodePhiTheta3.Mesh: the scene load's shared value for NodePhiTheta3 is not this kind's mesh — another caller of Startup.BuildDeps.LoadShared used the key \"NodePhiTheta3\"")
+	}
+	return m
 }
 
 func (a BuildArgs) State() map[string]int {

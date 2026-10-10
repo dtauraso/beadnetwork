@@ -17,20 +17,27 @@ type pathMsg struct {
 	A Angles
 }
 
-var link [nodeCount][nodeCount]chan pathMsg
+type mesh struct {
+	link [nodeCount][nodeCount]chan pathMsg
+	tip  [nodeCount][nodeCount]chan NodeCat.Tip
+}
 
-func init() {
+func newMesh() any {
+	m := &mesh{}
 	for from := 0; from < nodeCount; from++ {
 		for to := 0; to < nodeCount; to++ {
 			if from != to {
-				link[from][to] = make(chan pathMsg)
+				m.link[from][to] = make(chan pathMsg)
+				m.tip[from][to] = make(chan NodeCat.Tip, tipDepth)
 			}
 		}
 	}
+	return m
 }
 
 type NodePhiTheta3 struct {
 	geom *NodeCat.NodeGeometry
+	mesh *mesh
 
 	Clock   clock.Clock
 	SpeedCh <-chan float64
@@ -93,17 +100,17 @@ func (n *NodePhiTheta3) exchange(ctx context.Context) (in [nodeCount]pathMsg, ok
 	for !(sent[0] && sent[1] && got[0] && got[1]) {
 		var toA, toB chan<- pathMsg
 		if !sent[0] {
-			toA = link[me][a-1]
+			toA = n.mesh.link[me][a-1]
 		}
 		if !sent[1] {
-			toB = link[me][b-1]
+			toB = n.mesh.link[me][b-1]
 		}
 		var fromA, fromB <-chan pathMsg
 		if !got[0] {
-			fromA = link[a-1][me]
+			fromA = n.mesh.link[a-1][me]
 		}
 		if !got[1] {
-			fromB = link[b-1][me]
+			fromB = n.mesh.link[b-1][me]
 		}
 
 		select {
@@ -182,6 +189,7 @@ var Builder = BuilderFor("NodePhiTheta3",
 		inbox := a.EditInbox()
 		n.EditIn, n.StepIn, n.ResetIn, n.StartIn, n.Wake = inbox.Edits, inbox.Steps, inbox.Resets, inbox.Starts, inbox.Wake
 		n.geom = a.Geom()
+		n.mesh = a.Mesh()
 
 		n.Me = me
 		n.Partners = CardPanel.Partners(me)
