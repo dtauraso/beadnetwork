@@ -11,17 +11,19 @@ import (
 
 type OpenedScene struct {
 	Inbox chan GestureInboxMsg
+	Stop  func()
 	Wait  func()
 }
 
 type SceneRouter struct {
-	open chan int
+	open   chan int
+	reload chan int
 }
 
 const sceneOpenDepth = 4
 
 func NewSceneRouter() *SceneRouter {
-	return &SceneRouter{open: make(chan int, sceneOpenDepth)}
+	return &SceneRouter{open: make(chan int, sceneOpenDepth), reload: make(chan int, sceneOpenDepth)}
 }
 
 func (r *SceneRouter) Open(ctx context.Context, idx int) {
@@ -31,21 +33,33 @@ func (r *SceneRouter) Open(ctx context.Context, idx int) {
 	}
 }
 
+func (r *SceneRouter) Reload(ctx context.Context, idx int) {
+	select {
+	case r.reload <- idx:
+	case <-ctx.Done():
+	}
+}
+
 func (r *SceneRouter) Run(ctx context.Context, cancel context.CancelFunc, first int, open func(idx int) (OpenedScene, error)) error {
 	opened := map[int]OpenedScene{}
 	var viewport *GestureInboxMsg
 	selected := first
 
+	load := func(idx int) error {
+		s, err := open(idx)
+		if err != nil {
+			return err
+		}
+		opened[idx] = s
+		if viewport != nil {
+			SendGestureMsgBlocking(ctx, s.Inbox, *viewport)
+		}
+		return nil
+	}
 	show := func(idx int) error {
-		s, ok := opened[idx]
-		if !ok {
-			var err error
-			if s, err = open(idx); err != nil {
+		if _, ok := opened[idx]; !ok {
+			if err := load(idx); err != nil {
 				return err
-			}
-			opened[idx] = s
-			if viewport != nil {
-				SendGestureMsgBlocking(ctx, s.Inbox, *viewport)
 			}
 		}
 		selected = idx
@@ -70,6 +84,16 @@ func (r *SceneRouter) Run(ctx context.Context, cancel context.CancelFunc, first 
 			if err := show(idx); err != nil {
 				fmt.Fprintf(os.Stderr, "scene tab: could not open scene %d: %v — staying on the current scene\n", idx, err)
 			}
+		case idx := <-r.reload:
+			s, ok := opened[idx]
+			if !ok {
+				continue
+			}
+			s.Stop()
+			delete(opened, idx)
+			if err := load(idx); err != nil {
+				fmt.Fprintf(os.Stderr, "scene edit: could not reload scene %d from its files: %v — it reloads on its next tab click\n", idx, err)
+			}
 		case gm := <-recs:
 			if isViewportEdit(gm) {
 				viewport = &gm
@@ -78,7 +102,9 @@ func (r *SceneRouter) Run(ctx context.Context, cancel context.CancelFunc, first 
 				}
 				continue
 			}
-			SendGestureMsgBlocking(ctx, opened[selected].Inbox, gm)
+			if s, ok := opened[selected]; ok {
+				SendGestureMsgBlocking(ctx, s.Inbox, gm)
+			}
 		}
 	}
 }

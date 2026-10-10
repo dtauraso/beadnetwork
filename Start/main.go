@@ -25,7 +25,7 @@ import (
 func run(ctx context.Context, cancel context.CancelFunc, topologyPath string, clk clock.Clock) {
 	router := Startup.NewSceneRouter()
 	open := func(idx int) (Startup.OpenedScene, error) {
-		return openScene(ctx, cancel, router, topologyPath, idx, clk)
+		return openScene(ctx, router, topologyPath, idx, clk)
 	}
 	if err := router.Run(ctx, cancel, Scenes.SelectedIndex(topologyPath), open); err != nil {
 		fmt.Fprintf(os.Stderr, "load topology: %v\n", err)
@@ -33,12 +33,14 @@ func run(ctx context.Context, cancel context.CancelFunc, topologyPath string, cl
 	}
 }
 
-func openScene(ctx context.Context, cancel context.CancelFunc, router *Startup.SceneRouter, topologyPath string, idx int, clk clock.Clock) (Startup.OpenedScene, error) {
+func openScene(processCtx context.Context, router *Startup.SceneRouter, topologyPath string, idx int, clk clock.Clock) (Startup.OpenedScene, error) {
 	scenePath := Scenes.PathFor(topologyPath, idx)
 	SceneB.WriteSpawnIdentity(scenePath)
 
+	ctx, cancel := context.WithCancel(processCtx)
 	sc, err := Startup.Load(ctx, scenePath, clk)
 	if err != nil {
+		cancel()
 		return Startup.OpenedScene{}, err
 	}
 	md, speedSinks := sc.Dispatch, sc.SpeedSinks
@@ -62,16 +64,18 @@ func openScene(ctx context.Context, cancel context.CancelFunc, router *Startup.S
 	Startup.LoadSceneState(scenePath, md, speedSinks)
 
 	md.Scenes.AnchorPath = topologyPath
-	md.Scenes.Quit = cancel
-	md.Scenes.Open = func(i int) { router.Open(ctx, i) }
+	md.Scenes.Reload = func() { router.Reload(processCtx, idx) }
+	md.Scenes.Open = func(i int) { router.Open(processCtx, i) }
 	md.Scenes.Loaded = idx
 
 	moverWG := md.Start(ctx)
 	inbox, gestureWG := Startup.StartGestureActor(ctx, md, speedSinks, clk, Scenes.InputDirPath(scenePath))
 	nodesWG := launchNodes(ctx, sc.Nodes)
+	wait := func() { joinAll(nodesWG, moverWG, gestureWG) }
 	return Startup.OpenedScene{
 		Inbox: inbox,
-		Wait:  func() { joinAll(nodesWG, moverWG, gestureWG) },
+		Stop:  func() { cancel(); wait() },
+		Wait:  wait,
 	}, nil
 }
 
