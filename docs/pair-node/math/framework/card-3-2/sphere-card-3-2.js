@@ -94,8 +94,6 @@ k_{j} &\in& \{0, 1\} \\[3pt]
                       \text{start}_{\varphi} & \text{otherwise} \\[6pt]
                       (\text{start}_{\theta} + \text{cw}\, m s + \text{ccw}\, (12s - m s)) \bmod 12s & \text{if } \text{cw} \oplus \text{ccw} \\[3pt]
                       \text{start}_{\theta} & \text{otherwise} \end{array}\right] \\[10pt]
-\begin{bmatrix} 12s - \text{start}_{\varphi} \\ 12s - \text{start}_{\theta} \end{bmatrix} & & \\[6pt]
-\begin{bmatrix} 12s - \text{end}_{\varphi} \\ 12s - \text{end}_{\theta} \end{bmatrix} & & \\[10pt]
 ${SPHERE_CARD_3_2_START}
 \end{array}
 \]`;
