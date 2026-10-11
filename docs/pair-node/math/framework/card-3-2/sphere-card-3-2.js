@@ -95,10 +95,18 @@ k_{j} &\in& \{0, 1\} \\[3pt]
                       (\text{start}_{\theta} + \text{cw}\, m s + \text{ccw}\, (12s - m s)) \bmod 12s & \text{if } \text{cw} \oplus \text{ccw} \\[3pt]
                       \text{start}_{\theta} & \text{otherwise} \end{array}\right] \\[10pt]
 \textbf{increment, stopping at end} & & \\[3pt]
+\begin{bmatrix} \text{gap_cw}_{\varphi} \\ \text{gap_cw}_{\theta} \end{bmatrix}
+  &=& \left[\begin{array}{l} (\text{end}_{\varphi} + 12s - \text{start}_{\varphi}) \bmod 12s \\ (\text{end}_{\theta} + 12s - \text{start}_{\theta}) \bmod 12s \end{array}\right] \\[6pt]
+\begin{bmatrix} \text{gap_ccw}_{\varphi} \\ \text{gap_ccw}_{\theta} \end{bmatrix}
+  &=& \left[\begin{array}{l} (\text{start}_{\varphi} + 12s - \text{end}_{\varphi}) \bmod 12s \\ (\text{start}_{\theta} + 12s - \text{end}_{\theta}) \bmod 12s \end{array}\right] \\[6pt]
+\begin{bmatrix} \text{gap}_{\varphi} \\ \text{gap}_{\theta} \end{bmatrix}
+  &=& \left[\begin{array}{l} \text{cw}\, \text{gap_cw}_{\varphi} + \text{ccw}\, \text{gap_ccw}_{\varphi} \\ \text{cw}\, \text{gap_cw}_{\theta} + \text{ccw}\, \text{gap_ccw}_{\theta} \end{array}\right] \\[6pt]
+\begin{bmatrix} \text{step}_{\varphi} \\ \text{step}_{\theta} \end{bmatrix}
+  &=& \left[\begin{array}{l} \min(m s,\, \text{gap}_{\varphi}) \\ \min(m s,\, \text{gap}_{\theta}) \end{array}\right] \\[6pt]
 \begin{bmatrix} \text{start}_{\varphi} \\ \text{start}_{\theta} \end{bmatrix}
-  &=& \left[\begin{array}{ll} (\text{start}_{\varphi} + \text{cw}\, \min(m s,\, (\text{end}_{\varphi} + 12s - \text{start}_{\varphi}) \bmod 12s) + \text{ccw}\, (12s - \min(m s,\, (\text{start}_{\varphi} + 12s - \text{end}_{\varphi}) \bmod 12s))) \bmod 12s & \text{if } \text{cw} \oplus \text{ccw} \\[3pt]
+  &=& \left[\begin{array}{ll} (\text{start}_{\varphi} + \text{cw}\, \text{step}_{\varphi} + \text{ccw}\, (12s - \text{step}_{\varphi})) \bmod 12s & \text{if } \text{cw} \oplus \text{ccw} \\[3pt]
                       \text{start}_{\varphi} & \text{otherwise} \\[6pt]
-                      (\text{start}_{\theta} + \text{cw}\, \min(m s,\, (\text{end}_{\theta} + 12s - \text{start}_{\theta}) \bmod 12s) + \text{ccw}\, (12s - \min(m s,\, (\text{start}_{\theta} + 12s - \text{end}_{\theta}) \bmod 12s))) \bmod 12s & \text{if } \text{cw} \oplus \text{ccw} \\[3pt]
+                      (\text{start}_{\theta} + \text{cw}\, \text{step}_{\theta} + \text{ccw}\, (12s - \text{step}_{\theta})) \bmod 12s & \text{if } \text{cw} \oplus \text{ccw} \\[3pt]
                       \text{start}_{\theta} & \text{otherwise} \end{array}\right] \\[10pt]
 ${SPHERE_CARD_3_2_START}
 \end{array}
