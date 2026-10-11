@@ -88,6 +88,8 @@ k_{j} &\in& \{0, 1\} \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
 \text{cw} &\in& \{0, 1\} \\[6pt]
 \text{ccw} &\in& \{0, 1\} \\[10pt]
+\text{start} &=& (\text{start}\, s + m s) \bmod 12s \text{, cw increment} \\[6pt]
+\text{start} &=& (\text{start}\, s + m s) \bmod (12s - \text{start}\, s) \text{, ccw increment} \\[10pt]
 \begin{bmatrix} 12s - \text{start}_{\varphi} \\ 12s - \text{start}_{\theta} \end{bmatrix} & & \\[6pt]
 \begin{bmatrix} 12s - \text{end}_{\varphi} \\ 12s - \text{end}_{\theta} \end{bmatrix} & & \\[10pt]
 ${SPHERE_CARD_3_2_START}
