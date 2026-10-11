@@ -1,8 +1,4 @@
 const SPHERE_CARD_3_2_START = String.raw`\textbf{one node} & & \\[3pt]
-\begin{bmatrix} \text{start}_{1\,\varphi} \\ \text{start}_{1\,\theta} \end{bmatrix}
-  &=& \textbf{pick_one}\left(k_{1},\; k_{2},\; \begin{bmatrix} \text{start}_{1\,\varphi} \\ \text{start}_{1\,\theta} \end{bmatrix},\; \begin{bmatrix} \text{start}_{2\,\varphi} \\ \text{start}_{2\,\theta} \end{bmatrix}\right) \\[6pt]
-\begin{bmatrix} \text{start}_{2\,\varphi} \\ \text{start}_{2\,\theta} \end{bmatrix}
-  &=& \textbf{pick_one}\left(k_{1},\; k_{2},\; \begin{bmatrix} \text{start}_{1\,\varphi} \\ \text{start}_{1\,\theta} \end{bmatrix},\; \begin{bmatrix} \text{start}_{2\,\varphi} \\ \text{start}_{2\,\theta} \end{bmatrix}\right) \\[10pt]
 \begin{bmatrix} \text{start}_{1}\text{direction}_{0\,\varphi} \\ \text{start}_{1}\text{direction}_{0\,\theta} \end{bmatrix}
   &=& \textbf{dir_down}\left(\begin{bmatrix} \text{start}_{1\,\varphi} \\ \text{start}_{1\,\theta} \end{bmatrix},\; 0,\; 3s\right) \\[6pt]
 \begin{bmatrix} \text{start}_{1}\text{direction}_{1\,\varphi} \\ \text{start}_{1}\text{direction}_{1\,\theta} \end{bmatrix}
