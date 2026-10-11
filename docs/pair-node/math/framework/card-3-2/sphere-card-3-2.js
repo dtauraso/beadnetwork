@@ -89,9 +89,11 @@ k_{j} &\in& \{0, 1\} \\[3pt]
 \text{cw} &\in& \{0, 1\} \\[6pt]
 \text{ccw} &\in& \{0, 1\} \\[10pt]
 \textbf{cw increment} & & \\[3pt]
-\text{start} &=& (\text{start}\, s + m s) \bmod 12s \\[10pt]
+\begin{bmatrix} \text{start}_{\varphi} \\ \text{start}_{\theta} \end{bmatrix}
+  &=& \begin{bmatrix} (\text{start}_{\varphi}\, s + m s) \bmod 12s \\ (\text{start}_{\theta}\, s + m s) \bmod 12s \end{bmatrix} \\[10pt]
 \textbf{ccw increment} & & \\[3pt]
-\text{start} &=& (\text{start}\, s + m s) \bmod (12s - \text{start}\, s) \\[10pt]
+\begin{bmatrix} \text{start}_{\varphi} \\ \text{start}_{\theta} \end{bmatrix}
+  &=& \begin{bmatrix} (\text{start}_{\varphi}\, s + m s) \bmod (12s - \text{start}_{\varphi}\, s) \\ (\text{start}_{\theta}\, s + m s) \bmod (12s - \text{start}_{\theta}\, s) \end{bmatrix} \\[10pt]
 \begin{bmatrix} 12s - \text{start}_{\varphi} \\ 12s - \text{start}_{\theta} \end{bmatrix} & & \\[6pt]
 \begin{bmatrix} 12s - \text{end}_{\varphi} \\ 12s - \text{end}_{\theta} \end{bmatrix} & & \\[10pt]
 ${SPHERE_CARD_3_2_START}
