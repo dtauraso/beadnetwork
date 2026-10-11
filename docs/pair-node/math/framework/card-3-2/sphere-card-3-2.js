@@ -88,7 +88,7 @@ k_{j} &\in& \{0, 1\} \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
 \text{cw} &\in& \{0, 1\} \\[6pt]
 \text{ccw} &\in& \{0, 1\} \\[10pt]
-\textbf{increment, stopping at end} & & \\[3pt]
+\rlap{\textbf{move start up to } m s \textbf{ in direction cw or ccw, stopping at end}} & & \\[3pt]
 \begin{bmatrix} \text{gap_cw}_{\varphi} \\ \text{gap_cw}_{\theta} \end{bmatrix}
   &=& \left[\begin{array}{l} (\text{end}_{\varphi} + 12s - \text{start}_{\varphi}) \bmod 12s \\ (\text{end}_{\theta} + 12s - \text{start}_{\theta}) \bmod 12s \end{array}\right] \\[6pt]
 \begin{bmatrix} \text{gap_ccw}_{\varphi} \\ \text{gap_ccw}_{\theta} \end{bmatrix}
