@@ -138,7 +138,7 @@ k_{j} &\in& \{0, 1\} \\[10pt]
         + & \text{local_arrival}_{2}\text{direction}_{3\,\theta}
       \end{array}
       \end{bmatrix} \\[10pt]
-${SPHERE_CARD_3_START}
+${SPHERE_CARD_3_2_START}
 \end{array}
 \]`;
 
