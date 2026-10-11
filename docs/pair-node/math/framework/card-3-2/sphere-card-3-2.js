@@ -91,9 +91,9 @@ k_{j} &\in& \{0, 1\} \\[3pt]
 \textbf{increment} & & \\[3pt]
 \begin{bmatrix} \text{start}_{\varphi} \\ \text{start}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} (\text{start}_{\varphi} + \text{cw}\, m s + \text{ccw}\, (12s - m s)) \bmod 12s & \text{if } \text{cw} \oplus \text{ccw} \\[3pt]
-                      0 & \text{otherwise} \\[6pt]
+                      \text{start}_{\varphi} & \text{otherwise} \\[6pt]
                       (\text{start}_{\theta} + \text{cw}\, m s + \text{ccw}\, (12s - m s)) \bmod 12s & \text{if } \text{cw} \oplus \text{ccw} \\[3pt]
-                      0 & \text{otherwise} \end{bmatrix} \\[10pt]
+                      \text{start}_{\theta} & \text{otherwise} \end{bmatrix} \\[10pt]
 \begin{bmatrix} 12s - \text{start}_{\varphi} \\ 12s - \text{start}_{\theta} \end{bmatrix} & & \\[6pt]
 \begin{bmatrix} 12s - \text{end}_{\varphi} \\ 12s - \text{end}_{\theta} \end{bmatrix} & & \\[10pt]
 ${SPHERE_CARD_3_2_START}
