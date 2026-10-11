@@ -147,8 +147,7 @@ k_{j} &\in& \{0, 1\} \\[3pt]
 \begin{bmatrix} k_{1}\,\text{local_arrival}_{1\,\varphi} \\ k_{1}\,\text{local_arrival}_{1\,\theta} \end{bmatrix}
   &\rightarrow& \text{link } 1 \\[6pt]
 \begin{bmatrix} k_{2}\,\text{local_arrival}_{2\,\varphi} \\ k_{2}\,\text{local_arrival}_{2\,\theta} \end{bmatrix}
-  &\rightarrow& \text{link } 2 \\[10pt]
-${SPHERE_CARD_3_START}
+  &\rightarrow& \text{link } 2
 \end{array}
 \]`;
 
