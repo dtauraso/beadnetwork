@@ -83,6 +83,8 @@ k_{j} &\in& \{0, 1\} \\[10pt]
                       0 & \text{otherwise} \\[6pt]
                       k_{1}\,\text{arrival}_{1\,\theta} + k_{2}\,\text{arrival}_{2\,\theta} & \text{if } k_{1} \oplus k_{2} \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
+\begin{bmatrix} 12s - \text{start}_{\varphi} \\ 12s - \text{start}_{\theta} \end{bmatrix} & & \\[6pt]
+\begin{bmatrix} 12 - \text{end}_{\varphi} \\ 12 - \text{end}_{\theta} \end{bmatrix} & & \\[10pt]
 ${SPHERE_CARD_3_2_START}
 \end{array}
 \]`;
