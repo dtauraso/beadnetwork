@@ -7,7 +7,7 @@ nudge_branch_name() {
   [ -t 0 ] && return 0
 
   local hook_input branch head shown base desc stat
-  hook_input=$(cat 2>/dev/null)
+  IFS= read -r -t 2 -d '' hook_input 2>/dev/null
   grep -q '"hook_event_name" *: *"Stop"' <<< "$hook_input" || return 0
   grep -q '"stop_hook_active" *: *true' <<< "$hook_input" && return 0
 
