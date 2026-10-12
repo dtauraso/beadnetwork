@@ -30,7 +30,13 @@ R &=& \text{start}_{b\,r} \cdot \rho \\[3pt]
 d &=& \textbf{polar_to_cart}\left(\begin{bmatrix} R \\ \varphi \\ \theta \end{bmatrix}\right) \\[10pt]
 \rlap{\textbf{what the channels carry}} & & \\[3pt]
 a \to b &:& C_{a} \text{ — } b \text{ needs it to derive } C_{b} = C_{a} + d \\[3pt]
-b \to a &:& C_{b} \text{ — } a \text{ needs it to draw its vector from } C_{a} \text{ to } C_{b}
+b \to a &:& C_{b} \text{ — } a \text{ needs it to draw its vector from } C_{a} \text{ to } C_{b} \\[3pt]
+& & b \text{ sends } C_{b} \text{ to } a \text{ only — each pair on its own, no chain} \\[10pt]
+\rlap{\textbf{example — } s = 1 \textbf{,  } C_{a} = (1, 0, 0) \textbf{,  } \rho = 1} & & \\[3pt]
+& & \text{cur}_{b} = [3,\, 3],\; \text{start}_{b\,r} = 1 \;\to\; \varphi = 90^{\circ},\; \theta = 90^{\circ},\; R = 1 \\[3pt]
+& & d = (1 \cdot \sin 90^{\circ} \cos 90^{\circ},\; 1 \cdot \cos 90^{\circ},\; 1 \cdot \sin 90^{\circ} \sin 90^{\circ}) = (0, 0, 1) \\[3pt]
+& & C_{b} = (1, 0, 0) + (0, 0, 1) = (1, 0, 1) \\[3pt]
+& & a \text{ draws } (1, 0, 0) \to (1, 0, 1)
 \end{array}
 \]`;
 
