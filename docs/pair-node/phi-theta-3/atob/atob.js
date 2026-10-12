@@ -1,8 +1,8 @@
 (function () {
   const O = [0, 0, 0];
   const PAIRS = [
-    { node: 'a', id: 'ab', C: [1, 0, 0], r: 1, start: [90, 90], color: '--local', cls: 'l', side: 1 },
-    { node: 'c', id: 'cb', C: [0, 0, 1], color: '--local2', cls: 'l2', side: -1 },
+    { node: 'a', other: 'c', id: 'ab', C: [1, 0, 0], color: '--local', cls: 'l', side: 1 },
+    { node: 'c', other: 'a', id: 'cb', C: [0, 0, 1], color: '--local2', cls: 'l2', side: -1 },
   ];
   const rad = d => d * Math.PI / 180, deg = a => a * 180 / Math.PI;
   const add = (p, q) => p.map((v, i) => v + q[i]);
@@ -91,26 +91,39 @@
     curve(thPath, pair.C, thColor, 4);
   }
 
-  function sharedCircle(pa, pc, dA, dC) {
-    const dAC = pc.toA.map(v => -v), D = Math.hypot(...dAC);
-    if (D < 1e-9) return;
+  function shared(dCA, dAB) {
+    const dAC = dCA.map(v => -v), D = Math.hypot(...dAC);
+    if (D < 1e-9) return null;
     const u = dAC.map(v => v / D);
-    const ra = Math.hypot(...dA), rc = Math.hypot(...dC);
+    const ra = Math.hypot(...dAB), rc = Math.hypot(...add(dCA, dAB));
     const h = (D * D + ra * ra - rc * rc) / (2 * D), rho = Math.sqrt(Math.max(0, ra * ra - h * h));
+    return { u, h, rho, m: u.map(v => v * h) };
+  }
+
+  function sharedCircle(pa, s) {
+    const { u, h, rho } = s;
     const cross = (p, q) => [p[1] * q[2] - p[2] * q[1], p[2] * q[0] - p[0] * q[2], p[0] * q[1] - p[1] * q[0]];
     const e1 = cross(u, Math.abs(u[1]) < 0.9 ? [0, 1, 0] : [1, 0, 0]), n1 = Math.hypot(...e1);
     const f1 = e1.map(v => v / n1), f2 = cross(u, f1);
     const local = [];
     for (let t = 0; t <= 360; t += 3) {
-      const c = Math.cos(rad(t)), s = Math.sin(rad(t));
-      local.push(u.map((v, i) => h * v + rho * (c * f1[i] + s * f2[i])));
+      const c = Math.cos(rad(t)), sn = Math.sin(rad(t));
+      local.push(u.map((v, i) => h * v + rho * (c * f1[i] + sn * f2[i])));
     }
-    const pts = local.map(d => add(pa.C, d)), centre = add(pa.C, u.map(v => v * h));
-    grid(centre, rho, css('--circle'), 1.2, 0.5);
-    label(add(centre, [0, rho, 0]), 'shared sphere', css('--circle'), 12, -12);
+    const centre = add(pa.C, s.m);
     ctx.setLineDash([12, 8]);
-    curve(pts, centre, css('--circle'), 4);
+    curve(local.map(d => add(pa.C, d)), centre, css('--circle'), 4);
     ctx.setLineDash([]);
+  }
+
+  function sharedSphere(pa, s, Phi, Theta) {
+    const centre = add(pa.C, s.m), on = (ph, th) => add(centre, toCart(s.rho, rad(ph), rad(th)));
+    grid(centre, s.rho, css('--circle'), 1.2, 0.5);
+    const phiPath = []; for (let p = 0; p <= 360; p += 2) phiPath.push(on(p, Theta));
+    curve(phiPath, centre, css('--circle'), 2.5);
+    const thPath = []; for (let t = 0; t <= 360; t += 2) thPath.push(on(Phi, t));
+    curve(thPath, centre, css('--circle'), 2.5);
+    label(add(centre, [0, s.rho, 0]), 'shared sphere', css('--circle'), 12, -12);
   }
 
   function vectors(pair, d, b) {
@@ -118,11 +131,11 @@
     triangle([O, pair.C, b], color);
     arrow(O, pair.C, css('--muted'), 2, true);
     arrow(O, b, css('--global'), 3, true);
-    if (pair.toA) {
-      const a = add(pair.C, pair.toA);
-      arrow(pair.C, a, color, 3, true);
-      label(add(pair.C, pair.toA.map(v => v / 2)), '2 d_ca', color, -12, -14);
-      arrow(a, b, color, 2, true);
+    if (pair.via) {
+      const o = add(pair.C, pair.via);
+      arrow(pair.C, o, color, 3, true);
+      label(add(pair.C, pair.via.map(v => v / 2)), `2 d_${n}${pair.other}`, color, -12, -14);
+      arrow(o, b, color, 2, true);
     }
     arrow(pair.C, b, color, 5);
     label(add(pair.C, d.map(v => v / 2)), `3 d_${n}b`, color, pair.side * 12, pair.side * 26);
@@ -134,14 +147,55 @@
     dot(pair.C, color);
   }
 
+  const el = id => document.getElementById(id);
+  const val = id => +el(id).value;
+  const toPolar = d => {
+    const r = Math.hypot(...d);
+    const phi = r ? deg(Math.acos(Math.max(-1, Math.min(1, d[1] / r)))) : 0;
+    return [r, phi, (deg(Math.atan2(d[2], d[0])) + 360) % 360];
+  };
+  const angles = id => [val(`sphi-${id}`), val(`sth-${id}`)];
+  let dAB = toCart(1, rad(90), rad(90)), driver = 'ab', held = null;
+
+  function positions() {
+    const [pa, pc] = PAIRS;
+    const pos = id => ['x', 'y', 'z'].map(k => val(`s${id}${k}`));
+    pa.C = pos('a'); pc.C = pos('c');
+    pc.toA = sub(pa.C, pc.C); pa.toC = pc.toA.map(v => -v);
+    focus = pa.C.map((v, i) => (v + pc.C[i]) / 2);
+    ['a', 'c'].forEach(id => ['x', 'y', 'z'].forEach(k => { el(`v${id}${k}`).textContent = val(`s${id}${k}`).toFixed(1); }));
+    return pc.toA;
+  }
+
+  function state() {
+    const dCA = PAIRS[1].toA, dCB = add(dCA, dAB);
+    return { dCA, dCB, a: toPolar(dAB), c: toPolar(dCB), both: held ? toPolar(sub(dAB, held.m)) : null };
+  }
+
+  function update(group) {
+    const dCA = positions();
+    if (group === 'ab') {
+      const [phi, th] = angles('ab');
+      dAB = toCart(Math.hypot(...dAB) || 1, rad(phi), rad(th));
+    } else if (group === 'cb') {
+      const [phi, th] = angles('cb');
+      dAB = sub(toCart(Math.hypot(...add(dCA, dAB)) || 1, rad(phi), rad(th)), dCA);
+    } else if (group === 'both' && held) {
+      const [Phi, Th] = angles('both');
+      dAB = add(held.m, toCart(held.rho, rad(Phi), rad(Th)));
+    }
+    if (group !== 'pos') driver = group;
+    if (group !== 'both') held = shared(dCA, dAB);
+    const s = state();
+    [['ab', s.a], ['cb', s.c], ['both', s.both]].forEach(([id, p]) => {
+      if (id === group || !p) return;
+      el(`sphi-${id}`).value = Math.round(p[1]); el(`sth-${id}`).value = Math.round(p[2]);
+    });
+    render();
+  }
+
   function render() {
     const [pa, pc] = PAIRS;
-    const pos = id => ['x', 'y', 'z'].map(k => +document.getElementById(`s${id}${k}`).value);
-    pa.C = pos('a'); pc.C = pos('c'); pc.toA = sub(pa.C, pc.C);
-    focus = pa.C.map((v, i) => (v + pc.C[i]) / 2);
-    ['a', 'c'].forEach(id => ['x', 'y', 'z'].forEach(k => {
-      document.getElementById(`v${id}${k}`).textContent = (+document.getElementById(`s${id}${k}`).value).toFixed(1);
-    }));
     ctx.clearRect(0, 0, W, H);
     const muted = css('--muted');
     [[[0.5, 0, 0], 'x'], [[0, 0.5, 0], 'y'], [[0, 0, 0.5], 'z']].forEach(([e, n]) => {
@@ -150,27 +204,28 @@
       ctx.fillStyle = muted; ctx.font = '24px -apple-system, sans-serif'; ctx.fillText(n, x + 6, y - 6);
     });
 
-    const phiA = +document.getElementById('sphi-ab').value, thA = +document.getElementById('sth-ab').value;
-    const dA = toCart(pa.r, rad(phiA), rad(thA));
-    const dC = add(pc.toA, dA), rC = Math.hypot(...dC);
-    const phiC = rC ? deg(Math.acos(Math.max(-1, Math.min(1, dC[1] / rC)))) : 0;
-    const thC = (deg(Math.atan2(dC[2], dC[0])) + 360) % 360;
+    const s = state(), fresh = shared(s.dCA, dAB);
     const runs = [
-      { pair: pa, r: pa.r, phi: phiA, theta: thA, d: dA, b: add(pa.C, dA) },
-      { pair: pc, r: rC, phi: phiC, theta: thC, d: dC, b: add(pc.C, dC) },
+      { pair: pa, p: s.a, d: dAB, b: add(pa.C, dAB) },
+      { pair: pc, p: s.c, d: s.dCB, b: add(pc.C, s.dCB) },
     ];
-    sphere(pa, pa.r, phiA, thA, css('--phi'), css('--theta'));
-    sphere(pc, rC, phiC, thC, css('--local2'), css('--local2'));
-    sharedCircle(pa, pc, dA, dC);
+    pa.via = driver === 'cb' ? pa.toC : null;
+    pc.via = driver === 'cb' ? null : pc.toA;
+    sphere(pa, s.a[0], s.a[1], s.a[2], css('--phi'), css('--theta'));
+    sphere(pc, s.c[0], s.c[1], s.c[2], css('--local2'), css('--local2'));
+    if (held) sharedSphere(pa, held, s.both[1], s.both[2]);
+    if (fresh) sharedCircle(pa, fresh);
     runs.forEach(({ pair, d, b }) => vectors(pair, d, b));
     dot(O, css('--ink'), 'O');
     runs.forEach(({ pair, b }, i) => dot(b, css(pair.color), `4 b_${pair.node}`, true, i === 0 ? -12 : 34));
 
-    document.getElementById('vphi-ab').textContent = `${phiA}°`;
-    document.getElementById('vth-ab').textContent = `${thA}°`;
-    runs.forEach(({ pair, r, phi, theta, d, b }) => {
-      document.getElementById(`calc-${pair.id}`).innerHTML = atobSteps(pair, r, phi, theta, d, b, dA);
+    [['ab', s.a], ['cb', s.c], ['both', s.both]].forEach(([id, p]) => {
+      el(`vphi-${id}`).textContent = p ? `${p[1].toFixed(0)}°` : '–';
+      el(`vth-${id}`).textContent = p ? `${p[2].toFixed(0)}°` : '–';
     });
+    const ctxt = { driver, held, both: s.both, dAB, dCB: s.dCB, toC: pa.toC, toA: pc.toA };
+    el('calc-both').innerHTML = atobBoth(ctxt);
+    runs.forEach(({ pair, p, d, b }) => { el(`calc-${pair.id}`).innerHTML = atobSteps(pair, p, d, b, ctxt); });
   }
 
   let drag = null;
@@ -183,7 +238,7 @@
     render();
   });
   cv.addEventListener('pointerup', () => { drag = null; });
-  document.querySelectorAll('.sliders input').forEach(s => s.addEventListener('input', render));
+  document.querySelectorAll('.sliders input').forEach(s => s.addEventListener('input', () => update(s.dataset.group)));
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change', render);
-  render();
+  update('pos');
 })();
