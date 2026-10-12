@@ -28,7 +28,7 @@ C_{n} &=& O + \textbf{polar_to_cart}\left(\begin{bmatrix} I_{n\,r}\, c_{r} \\ I_
   &=& \begin{bmatrix} \operatorname{round}(\Phi_{n} / c_{\varphi}) \bmod T_{\varphi} \\[3pt]
                       \operatorname{round}(\Theta_{n} / c_{\theta}) \bmod T_{\theta} \\[3pt]
                       \operatorname{round}(R_{n} / c_{r}) \end{bmatrix}
-      \quad \text{never read back into the rotation}
+      \quad \text{never read back into the placement}
 \end{array}
 \]`;
 
