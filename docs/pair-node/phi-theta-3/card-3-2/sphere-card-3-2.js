@@ -8,6 +8,7 @@ s &=& 1 \\[3pt]
 m &=& \text{the jump constant} \\[3pt]
 m &\in& \{1,\, 2,\, \ldots,\, 12\} \\[3pt]
 m &=& 1 \text{ by default} \\[3pt]
+L_{j} &=& 1 \text{ if the node has an outgoing link to node } j \text{, } 0 \text{ if not} \\[3pt]
 \text{start}_{\varphi},\, \text{start}_{\theta} &\in& \{0,\, 1s,\, \ldots,\, 11s\} \\[3pt]
 \text{end}_{\varphi},\, \text{end}_{\theta} &\in& \{0,\, 1s,\, \ldots,\, 11s\} \\[3pt]
 \text{cw} &=& \text{clockwise} \\[3pt]
@@ -16,17 +17,23 @@ m &=& 1 \text{ by default} \\[3pt]
 \begin{bmatrix} \text{start}_{\varphi} \\ \text{start}_{\theta} \\ \text{start}_{r} \end{bmatrix}
   &=& \begin{bmatrix} 0 \\ 0 \\ 0 \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{end}_{\varphi} \\ \text{end}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 2s \\ 2s \end{bmatrix} \\[10pt]
+  &=& \begin{bmatrix} 2s \\ 2s \end{bmatrix} \\[6pt]
+\begin{bmatrix} L_{2} \\ L_{3} \end{bmatrix}
+  &=& \begin{bmatrix} 1 \\ 1 \end{bmatrix} \\[10pt]
 \textbf{node 2} & & \\[3pt]
 \begin{bmatrix} \text{start}_{\varphi} \\ \text{start}_{\theta} \\ \text{start}_{r} \end{bmatrix}
   &=& \begin{bmatrix} 0 \\ 0 \\ 0 \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{end}_{\varphi} \\ \text{end}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 3s \\ 3s \end{bmatrix} \\[10pt]
+  &=& \begin{bmatrix} 3s \\ 3s \end{bmatrix} \\[6pt]
+\begin{bmatrix} L_{1} \\ L_{3} \end{bmatrix}
+  &=& \begin{bmatrix} 1 \\ 1 \end{bmatrix} \\[10pt]
 \textbf{node 3} & & \\[3pt]
 \begin{bmatrix} \text{start}_{\varphi} \\ \text{start}_{\theta} \\ \text{start}_{r} \end{bmatrix}
   &=& \begin{bmatrix} 0 \\ 0 \\ 0 \end{bmatrix} \\[6pt]
 \begin{bmatrix} \text{end}_{\varphi} \\ \text{end}_{\theta} \end{bmatrix}
-  &=& \begin{bmatrix} 2s \\ 2s \end{bmatrix} \\[10pt]
+  &=& \begin{bmatrix} 2s \\ 2s \end{bmatrix} \\[6pt]
+\begin{bmatrix} L_{1} \\ L_{2} \end{bmatrix}
+  &=& \begin{bmatrix} 1 \\ 1 \end{bmatrix} \\[10pt]
 \text{cw} &\in& \{0, 1\} \\[6pt]
 \text{ccw} &\in& \{0, 1\}
 \end{array}
