@@ -69,17 +69,21 @@
     ctx.closePath(); ctx.fillStyle = color; ctx.globalAlpha = 0.1; ctx.fill(); ctx.globalAlpha = 1;
   }
 
-  function sphere(pair, r, phi, theta, phiColor, thColor) {
-    const on = (ph, th) => add(pair.C, toCart(r, rad(ph), rad(th)));
-    const wire = css('--wire');
+  function grid(C, r, wire, width, alpha) {
+    const on = (ph, th) => add(C, toCart(r, rad(ph), rad(th)));
     for (let ph = 30; ph <= 150; ph += 30) {
       const pts = []; for (let t = 0; t <= 360; t += 6) pts.push(on(ph, t));
-      curve(pts, pair.C, wire, 0.8, 0.3);
+      curve(pts, C, wire, width, alpha);
     }
     for (let th = 0; th < 180; th += 30) {
       const pts = []; for (let p = 0; p <= 360; p += 6) pts.push(on(p, th));
-      curve(pts, pair.C, wire, 0.8, 0.3);
+      curve(pts, C, wire, width, alpha);
     }
+  }
+
+  function sphere(pair, r, phi, theta, phiColor, thColor) {
+    const on = (ph, th) => add(pair.C, toCart(r, rad(ph), rad(th)));
+    grid(pair.C, r, css('--wire'), 0.8, 0.3);
     const phiPath = []; for (let p = 0; p <= 360; p += 2) phiPath.push(on(p, theta));
     curve(phiPath, pair.C, phiColor, 4);
     const thPath = []; for (let t = 0; t <= 360; t += 2) thPath.push(on(phi, t));
@@ -98,9 +102,11 @@
       const c = Math.cos(rad(t)), s = Math.sin(rad(t));
       local.push(u.map((v, i) => h * v + rho * (c * f1[i] + s * f2[i])));
     }
-    const pts = local.map(d => add(pa.C, d));
+    const pts = local.map(d => add(pa.C, d)), centre = add(pa.C, u.map(v => v * h));
+    grid(centre, rho, css('--circle'), 1.2, 0.5);
+    label(add(centre, [0, rho, 0]), 'shared sphere', css('--circle'), 12, -12);
     ctx.setLineDash([12, 8]);
-    curve(pts, add(pa.C, u.map(v => v * h)), css('--circle'), 4);
+    curve(pts, centre, css('--circle'), 4);
     ctx.setLineDash([]);
   }
 
@@ -146,7 +152,6 @@
     ];
     sphere(pa, pa.r, phiA, thA, css('--phi'), css('--theta'));
     sphere(pc, rC, phiC, thC, css('--local2'), css('--local2'));
-    label(add(pa.C, [0, pa.r, 0]), 'shared sphere: where b moves', css('--ink'), 12, -12);
     sharedCircle(pa, pc, dA, dC);
     runs.forEach(({ pair, d, b }) => vectors(pair, d, b));
     dot(O, css('--ink'), 'O');
