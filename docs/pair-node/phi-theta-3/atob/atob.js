@@ -146,6 +146,7 @@
     ];
     sphere(pa, pa.r, phiA, thA, css('--phi'), css('--theta'));
     sphere(pc, rC, phiC, thC, css('--local2'), css('--local2'));
+    label(add(pa.C, [0, pa.r, 0]), 'shared sphere: where b moves', css('--ink'), 12, -12);
     sharedCircle(pa, pc, dA, dC);
     runs.forEach(({ pair, d, b }) => vectors(pair, d, b));
     dot(O, css('--ink'), 'O');
