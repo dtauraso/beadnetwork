@@ -12,7 +12,8 @@ type deps interface {
 	CardEditChan(name string) any
 	CardSSeed() int
 	CardMSeed() int
-	LoadShared(key string, mk func() any) any
+	CardCWSeed() int
+	CardCCWSeed() int
 }
 
 type BuildArgs struct {
@@ -35,17 +36,6 @@ func (a BuildArgs) EditInbox() CardPanel.Inbox {
 	return in
 }
 
-func (a BuildArgs) Mesh() *mesh {
-	if a.Deps == nil {
-		panic("NodePhiTheta3.Mesh: node " + a.Name + " was built with no build deps, so it cannot reach the channels its scene load shares with its partners — Startup.BuildNodes should have passed BuildDeps")
-	}
-	m, ok := a.Deps.LoadShared("NodePhiTheta3", newMesh).(*mesh)
-	if !ok {
-		panic("NodePhiTheta3.Mesh: the scene load's shared value for NodePhiTheta3 is not this kind's mesh — another caller of Startup.BuildDeps.LoadShared used the key \"NodePhiTheta3\"")
-	}
-	return m
-}
-
 func (a BuildArgs) State() map[string]int {
 	if a.Data == nil {
 		return nil
@@ -65,6 +55,20 @@ func (a BuildArgs) M() int {
 		return CardPanel.DefaultM
 	}
 	return a.Deps.CardMSeed()
+}
+
+func (a BuildArgs) CW() int {
+	if a.Deps == nil {
+		return CardPanel.DefaultCW
+	}
+	return a.Deps.CardCWSeed()
+}
+
+func (a BuildArgs) CCW() int {
+	if a.Deps == nil {
+		return CardPanel.DefaultCCW
+	}
+	return a.Deps.CardCCWSeed()
 }
 
 type kindBuilder struct {

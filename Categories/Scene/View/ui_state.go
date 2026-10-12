@@ -65,6 +65,8 @@ type UIState struct {
 	PersistLattice  func(int32)
 	PersistCardS    func(int32)
 	PersistCardM    func(int32)
+	PersistCardCW   func(int32)
+	PersistCardCCW  func(int32)
 
 	LatchedNode string
 

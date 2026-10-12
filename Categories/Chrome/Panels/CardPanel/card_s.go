@@ -19,7 +19,7 @@ func WriteCardScalar(path string, v int32) error {
 	return os.Rename(tmp, path)
 }
 
-func LoadCardScalar(path string, def int) int {
+func LoadCardScalar(path string, def, least int) int {
 	raw, err := os.ReadFile(path)
 	if err != nil {
 		return def
@@ -29,7 +29,7 @@ func LoadCardScalar(path string, def int) int {
 		return def
 	}
 	v := int(int32(binary.LittleEndian.Uint32(raw)))
-	if v < 1 {
+	if v < least {
 		return def
 	}
 	return v

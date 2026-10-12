@@ -7,21 +7,27 @@ import (
 )
 
 const (
-	tickValueField = "-000 +00"
-
 	StepArrowW = 14
 	StepGap    = 2
 )
 
+func HasStep(f Field) bool {
+	return (f.Vector == VecStart || f.Vector == VecEnd) && (f.Comp == CompPhi || f.Comp == CompTheta)
+}
+
+func Step(value, delta int) int {
+	return ((value+delta)%TurnTicks + TurnTicks) % TurnTicks
+}
+
 func stepW(f Field) float32 {
-	if !HasTick(f) {
+	if !HasStep(f) {
 		return 0
 	}
 	return StepGap + StepArrowW
 }
 
 func stepArrows(f Field, cell Rect) (up, down Rect) {
-	if !HasTick(f) {
+	if !HasStep(f) {
 		return Rect{}, Rect{}
 	}
 	x := cell.X + cell.W + StepGap
@@ -29,14 +35,7 @@ func stepArrows(f Field, cell Rect) (up, down Rect) {
 	return Rect{X: x, Y: cell.Y, W: StepArrowW, H: half}, Rect{X: x, Y: cell.Y + half, W: StepArrowW, H: half}
 }
 
-func TickText(start, tick int) string {
-	return strconv.Itoa(start) + " +" + strconv.Itoa(tick)
-}
-
 func (s State) Shown(f Field) string {
-	if HasTick(f) {
-		return TickText(s.Value(f), s.Cards[f.Node].Get(TickOf(f)))
-	}
 	return strconv.Itoa(s.Value(f))
 }
 

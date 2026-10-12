@@ -44,8 +44,16 @@ func armEdit(ui *View.UIState, topologyPath string) {
 	cardM := &Persister[int32]{
 		Path: Scenes.CardMFilePath(topologyPath), Write: CardPanel.WriteCardScalar, Tag: "card_m_persist",
 	}
+	cardCW := &Persister[int32]{
+		Path: Scenes.CardCWFilePath(topologyPath), Write: CardPanel.WriteCardScalar, Tag: "card_cw_persist",
+	}
+	cardCCW := &Persister[int32]{
+		Path: Scenes.CardCCWFilePath(topologyPath), Write: CardPanel.WriteCardScalar, Tag: "card_ccw_persist",
+	}
 
 	ui.PersistLattice = lattice.Schedule
 	ui.PersistCardS = cardS.Schedule
 	ui.PersistCardM = cardM.Schedule
+	ui.PersistCardCW = cardCW.Schedule
+	ui.PersistCardCCW = cardCCW.Schedule
 }

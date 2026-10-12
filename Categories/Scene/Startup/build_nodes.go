@@ -47,6 +47,8 @@ func BuildNodes(
 		},
 		CardS:      md.UI.Card.S,
 		CardM:      md.UI.Card.M,
+		CardCW:     md.UI.Card.CW,
+		CardCCW:    md.UI.Card.CCW,
 		loadShared: map[string]any{},
 		ClaimSelfDriveGeom: func(name string) any {
 			ng, ok := md.MR.NodeGeoms()[name]
