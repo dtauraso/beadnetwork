@@ -87,10 +87,10 @@ k_{j} &\in& \{0, 1\} \\[3pt]
                       k_{1}\,\text{arrival}_{1\,\theta} + k_{2}\,\text{arrival}_{2\,\theta} & \text{if } k_{1} \oplus k_{2} \\[3pt]
                       0 & \text{otherwise} \end{bmatrix} \\[10pt]
 \text{cw} &\in& \{0, 1\} \\[6pt]
-\text{ccw} &\in& \{0, 1\} \\[10pt]
-${SPHERE_CARD_3_2_START}
+\text{ccw} &\in& \{0, 1\}
 \end{array}
-\]`;
+\]
+${SPHERE_CARD_3_2_START}`;
 
 function sphereCard32Math(tex) {
   const box = document.createElement('div');
