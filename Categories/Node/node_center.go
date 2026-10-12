@@ -6,7 +6,6 @@ import (
 
 func (m *NodeGeometry) ApplyCenter(idx polarindex.Index) {
 	SetNodeWorld(&m.geom, idx)
-	m.setPlaced()
 
 	m.msg.PublishCenter(Vec3(NodeWorldPos(m.geom)))
 

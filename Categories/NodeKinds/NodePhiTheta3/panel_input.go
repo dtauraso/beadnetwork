@@ -11,7 +11,6 @@ func (n *NodePhiTheta3) applyEdit(e CardPanel.EditMsg) {
 		n.S = e.Value
 		n.postTicks()
 		n.restart()
-		n.place(true)
 		return
 	case CardPanel.VecM:
 		n.M = e.Value
@@ -29,8 +28,7 @@ func (n *NodePhiTheta3) applyEdit(e CardPanel.EditMsg) {
 	case CardPanel.VecStart:
 		n.restart()
 	case CardPanel.VecL:
-		n.tell()
-		n.place(false)
+		n.postVectors()
 	}
 }
 
@@ -50,7 +48,7 @@ func (n *NodePhiTheta3) drainEdits() {
 		case <-n.ResetIn:
 			n.reset = true
 		case <-n.StartIn:
-			n.place(true)
+			n.postVectors()
 		default:
 			return
 		}

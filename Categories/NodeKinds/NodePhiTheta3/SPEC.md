@@ -26,7 +26,6 @@ Each node's start, end and links are its own state files: the default under the 
 
 ## A node's start is its own vector
 
-A node's start is the vector from the node that links to it — its centre of rotation — to itself.
 The node holds the current angles in ticks, `cur`, which begin at `start · s`.
 
 ## Move — start toward end
@@ -40,34 +39,23 @@ On every round (speed above 0, or the step button), φ and θ each:
 
 Reset puts `cur` back at `start · s`. An edit to start does the same.
 
-## What a node tells its partners
+## Local to global — shown in the visual
 
-Whenever its links or its vector change, a node tells both partners `[links, start_r, cur]` on a
-one-slot, latest-wins channel per ordered pair, and wakes them. Nothing else crosses between nodes.
+Nothing crosses between nodes, and no node sets another node's position. The global cards only show
+each node's own local data.
 
-## Local to global — where a node is put
+1. **The node** is drawn at its own centre from its scene index:
+   `C_a = O + polar_to_cart(I_r·c_r, I_φ·c_φ, I_θ·c_θ)` (the scene card).
+2. **Each a→b vector** (the each-pair card), for each b with a's `L_b = 1`, from a's own start:
+   `(R, φ, θ) = (start_r·ρ, cur_φ·2π/12s, cur_θ·2π/12s)`, ρ the node radius,
+   `d = polar_to_cart(R, φ, θ)`, drawn as an arrow from `C_a` to `C_a + d`.
 
-A node h with `L_j = 1` is a centre of rotation for node j.
-
-1. **Local.** h works j's vector from what j told it: `(R, φ, θ) = (start_r·ρ, φ·2π/12s, θ·2π/12s)`,
-   ρ the node radius, and sends j its own centre `C_h` with it on the tip channel for the pair h → j,
-   marked shared when the other partner g also links to j. When h stops linking to j it tells j so.
-2. **One centre** (only h links to j). **Global, last, at j:** `C_j = C_h + polar_to_cart(R, φ, θ)`.
-3. **Two centres** (h and g both link to j). j turns about both: its point is on the sphere shared by
-   h's and g's spheres, each of radius R. With `D = C_g − C_h`, from what h and g each told j:
-   the shared centre is `C_h + D/2`, its radius `√(R² − |D|²/4)`, and
-   **global, last, at j:** `C_j = C_h + D/2 + polar_to_cart(√(R² − |D|²/4), φ, θ)`. j waits until both
-   have told it; when `|D| > 2R` the spheres do not meet and j is not moved.
-4. j draws an arrow from each centre that places it to itself.
-
-A holder re-sends only when what it would send changes: a partner's vector or links, its own links,
-s, or the start button. j does not pass its move on, and a holder moving does not move j until the
-holder next sends.
+a redraws its vectors when its start moves, an edit changes its start, links or s, or the start button.
 
 ## Description
 
-One of three φ, θ nodes running the three-node cards: moves its start toward its end, tells its
-partners, and places each node it links to around itself.
+One of three φ, θ nodes running the three-node cards: moves its start toward its end, and draws its
+a→b vector from its own centre for each node it links to.
 
 ## View
 

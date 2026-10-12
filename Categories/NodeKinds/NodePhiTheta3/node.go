@@ -14,7 +14,6 @@ const nodeCount = CardPanel.NodeCount
 
 type NodePhiTheta3 struct {
 	geom *NodeCat.NodeGeometry
-	mesh *mesh
 
 	Clock   clock.Clock
 	SpeedCh <-chan float64
@@ -36,9 +35,6 @@ type NodePhiTheta3 struct {
 	CW     int
 	CCW    int
 	cur    Angles
-	peer   [nodeCount]say
-	known  [nodeCount]bool
-	posted []NodeCat.TipPost
 
 	nodeR float64
 }
@@ -54,7 +50,7 @@ func (n *NodePhiTheta3) breadcrumb(label, value string) {
 
 func (n *NodePhiTheta3) restart() {
 	n.cur = ticksOf(n.Card.Start, n.S)
-	n.tell()
+	n.postVectors()
 }
 
 func (n *NodePhiTheta3) move() {
@@ -63,7 +59,7 @@ func (n *NodePhiTheta3) move() {
 		return
 	}
 	n.cur = next
-	n.tell()
+	n.postVectors()
 	n.breadcrumb("move", fmt.Sprintf("start=%+v end=%+v", n.cur, ticksOf(n.Card.End, n.S)))
 }
 
@@ -90,9 +86,6 @@ func (n *NodePhiTheta3) Update(ctx context.Context) {
 			}
 			n.move()
 		}
-		if n.hear() {
-			n.place(false)
-		}
 	}
 }
 
@@ -117,12 +110,9 @@ var Builder = BuilderFor("NodePhiTheta3",
 		inbox := a.EditInbox()
 		n.EditIn, n.StepIn, n.ResetIn, n.StartIn, n.Wake = inbox.Edits, inbox.Steps, inbox.Resets, inbox.Starts, inbox.Wake
 		n.geom = a.Geom()
-		n.mesh = a.Mesh()
-		n.mesh.wake[me-1] = inbox.Wake
 
 		n.Me = me
 		n.Partners = CardPanel.Partners(me)
-		n.wireTips()
 		n.Card = CardPanel.CardFromState(me, a.State())
 		n.S, n.M, n.CW, n.CCW = a.S(), a.M(), a.CW(), a.CCW()
 		n.nodeR = NodeCat.NodeRadius(n.geom.Kind())

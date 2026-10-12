@@ -30,7 +30,6 @@ func (g *NodeGeometry) RunGeometry(ctx context.Context) {
 			}
 		}
 
-		g.drainTips()
 		g.applyKindPosts()
 		g.applyKindSteps()
 
@@ -92,8 +91,8 @@ func (g *NodeGeometry) applyKindPosts() {
 	if p.Lattice != nil {
 		g.tilt.SetLatticePoints(*p.Lattice)
 	}
-	if p.Tips != nil {
-		g.sendTips(*p.Tips)
+	if p.Starts != nil {
+		g.tilt.SetStartVectors(*p.Starts)
 	}
 	if p.Ticks != nil {
 		g.tilt.SetTickCount(*p.Ticks)

@@ -23,8 +23,6 @@ type Messaging struct {
 	commitLocal func(id string, idx polarindex.Index)
 
 	applyDerived func(id string, idx polarindex.Index)
-
-	tips Tips
 }
 
 type Deposit func(msg Msg)
