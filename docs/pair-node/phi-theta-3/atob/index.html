@@ -54,8 +54,8 @@
 <body>
 <header>
   <h1>The a→b and c→b vectors</h1>
-  <div class="sub">Node a is at (1, 0, 0) and node c at (0, 0, 1). The both sliders move one b, and each vector aims
-    at it from its own node. Each pair is its own global calculation: b<sub>a</sub> = C<sub>a</sub> + polar_to_cart(a→b), b<sub>c</sub> = C<sub>c</sub> + polar_to_cart(c→b).</div>
+  <div class="sub">Node a is at (1, 0, 0) and node c at (0, 0, 1). Each node turns its own vector in its own view,
+    then each pair computes the new centre globally, last: b<sub>a</sub> = C<sub>a</sub> + polar_to_cart(a→b), b<sub>c</sub> = C<sub>c</sub> + polar_to_cart(c→b).</div>
 </header>
 
 <nav>
@@ -81,20 +81,17 @@
 
     <div class="panel">
       <div class="sliders">
-        <label for="sphi-both">both Φ</label><input id="sphi-both" class="p" type="range" min="0" max="180" value="90"><span id="vphi-both"></span>
-        <label for="sth-both">both Θ</label><input id="sth-both" class="t" type="range" min="0" max="360" value="45"><span id="vth-both"></span>
+        <label class="l" for="sphi-ab">a→b φ</label><input id="sphi-ab" class="p" type="range" min="0" max="180" value="90"><span id="vphi-ab"></span>
+        <label class="l" for="sth-ab">a→b θ</label><input id="sth-ab" class="t" type="range" min="0" max="360" value="90"><span id="vth-ab"></span>
       </div>
-      <h2 class="calc-h"><span class="g">b</span> — shared by both</h2>
-      <ol class="calc" id="calc-b"></ol>
-      <h2 class="calc-h"><span class="l">a→b</span> — its own calculation, in order</h2>
+      <h2 class="calc-h"><span class="l">a→b</span> — local first, global last</h2>
       <ol class="calc" id="calc-ab"></ol>
-      <h2 class="calc-h"><span class="l2">c→b</span> — its own calculation, in order</h2>
+      <h2 class="calc-h"><span class="l2">c→b</span> — local first, global last</h2>
       <ol class="calc" id="calc-cb"></ol>
       <ol>
-        <li>The two sliders move one b, on the sphere of radius √2 about O: <span class="p">Φ</span> is measured from +y, <span class="t">Θ</span> round the vertical from +x. Both vectors re-aim at it.</li>
-        <li>Each vector's own <span class="p">φ</span> and <span class="t">θ</span> are about its own node, so they differ from Φ and Θ and from each other; its r is however far b is from that node.</li>
-        <li>The two calculations are independent. a→b uses only b and C<sub>a</sub>; c→b uses only b and C<sub>c</sub>. Neither reads the other's result, so they run in either order, or at once, and give the same numbers.</li>
-        <li>Each closes its own triangle: O→a + a→b = O→b<sub>a</sub>, and O→c + c→b = O→b<sub>c</sub>. Both tips are the shared b, so the two triangles always end at the same point.</li>
+        <li><b>Local first.</b> The sliders turn a's vector in a's own view. c's vector turns in c's own view by the turn that lands where a's does: the same move of b, seen from somewhere else, so a different number.</li>
+        <li>Each vector's <span class="p">φ</span> and <span class="t">θ</span> are about its own node; its r is how far b is from that node. a's r stays 1, while c's r is whatever the turn needs.</li>
+        <li><b>Global last.</b> Each pair then draws the new centre from the global centre on its own: O→a + a→b = O→b<sub>a</sub>, and O→c + c→b = O→b<sub>c</sub>. Both land on the same b.</li>
         <li><span class="g">From O</span>, each b is read as <code>cart_to_polar(b − O)</code>. Those angles are not φ and θ, which are about each vector's own node.</li>
       </ol>
     </div>
