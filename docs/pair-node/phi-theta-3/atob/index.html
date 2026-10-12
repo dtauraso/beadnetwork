@@ -69,11 +69,11 @@
     <div class="panel">
       <div class="legend">
         <span><span class="sw" style="background:var(--local)"></span>a→b (starts at a), and its triangle O, a, b<sub>a</sub></span>
-        <span><span class="sw" style="background:var(--local2)"></span>c→b (starts at c), and its triangle O, c, b<sub>c</sub></span>
-        <span><span class="sw" style="background:var(--phi)"></span>each vector's φ circle (its θ and r held)</span>
-        <span><span class="sw" style="background:var(--theta)"></span>each vector's θ circle (its φ and r held)</span>
-        <span><span class="sw" style="background:var(--global)"></span>O→b, read from O</span>
-        <span><span class="sw" style="background:var(--circle)"></span>the shared circle: every b both nodes reach with their r held</span>
+        <span><span class="sw" style="background:var(--local2)"></span>c→b = c→a + a→b (dashed: the two parts), and its triangle O, c, b<sub>c</sub></span>
+        <span><span class="sw" style="background:var(--phi)"></span>a's φ circle (its θ and r held)</span>
+        <span><span class="sw" style="background:var(--theta)"></span>a's θ circle (its φ and r held)</span>
+        <span><span class="sw" style="background:var(--global)"></span>O→b, the global result, drawn last</span>
+        <span><span class="sw" style="background:var(--circle)"></span>the shared circle: every b both nodes reach with their r held, found in a's view, placed last</span>
       </div>
       <canvas id="view" width="900" height="900" aria-label="Spheres of radius r about nodes a and c, with the a to b and c to b vectors"></canvas>
       <div class="hint">Drag the picture to look round the spheres.</div>
@@ -89,10 +89,8 @@
       <h2 class="calc-h"><span class="l2">c→b</span> — local first, global last</h2>
       <ol class="calc" id="calc-cb"></ol>
       <ol>
-        <li><b>Local first.</b> The sliders turn a's vector in a's own view. c's vector turns in c's own view by the turn that lands where a's does: the same move of b, seen from somewhere else, so a different number.</li>
-        <li>Each vector's <span class="p">φ</span> and <span class="t">θ</span> are about its own node; its r is how far b is from that node. a's r stays 1, while c's r is whatever the turn needs.</li>
+        <li><b>Local first.</b> The sliders turn a's vector in a's own view. c's vector is its own vector to a plus a's vector, d<sub>cb</sub> = d<sub>ca</sub> + d<sub>ab</sub>: two local vectors added, no centre used.</li>
         <li><b>Global last.</b> Each pair then draws the new centre from the global centre on its own: O→a + a→b = O→b<sub>a</sub>, and O→c + c→b = O→b<sub>c</sub>. Both land on the same b.</li>
-        <li><span class="g">From O</span>, each b is read as <code>cart_to_polar(b − O)</code>. Those angles are not φ and θ, which are about each vector's own node.</li>
       </ol>
     </div>
   </div>
