@@ -28,6 +28,8 @@ type Tips struct {
 	out     map[string]chan<- Tip
 	in      []<-chan Tip
 	told    map[string]Tip
+	sent    []TipPost
+	from    Vec3
 }
 
 func (g *NodeGeometry) WireTips(out map[string]chan<- Tip, in []<-chan Tip) {
@@ -40,11 +42,24 @@ func (k *KindPosts) PostTips(tips []TipPost) {
 
 func (g *NodeGeometry) sendTips(tips []TipPost) {
 	from := NodeWorldPos(g.geom)
+	tr := &g.msg.tips
+	tr.sent, tr.from = tr.sent[:0], from
 	for _, tp := range tips {
+		if !tp.Drop {
+			tr.sent = append(tr.sent, tp)
+		}
 		g.tipCrumb(fmt.Sprintf("send to=%s with=%q drop=%t from=%v vec(r %.3f phi %.4f theta %.4f)",
 			tp.TargetID, tp.With, tp.Drop, from, tp.Vec.R, tp.Vec.Phi, tp.Vec.Theta))
 		g.sendTip(Tip{From: g.id, Centre: from, Vec: tp.Vec, Shared: tp.With != "", Drop: tp.Drop}, tp.TargetID)
 	}
+}
+
+func (g *NodeGeometry) resendTipsIfMoved() {
+	tr := &g.msg.tips
+	if len(tr.sent) == 0 || NodeWorldPos(g.geom) == tr.from {
+		return
+	}
+	g.sendTips(append([]TipPost(nil), tr.sent...))
 }
 
 func (g *NodeGeometry) sendTip(t Tip, to string) {

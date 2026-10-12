@@ -33,6 +33,7 @@ func (g *NodeGeometry) RunGeometry(ctx context.Context) {
 		g.drainTips()
 		g.applyKindPosts()
 		g.applyKindSteps()
+		g.resendTipsIfMoved()
 
 		g.pollChannelVectors()
 		g.drainRuleMesh()
