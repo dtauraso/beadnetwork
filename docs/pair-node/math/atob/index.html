@@ -38,7 +38,7 @@
   .calc li { padding: 6px 0; border-top: 1px solid var(--line); }
   .calc code { word-break: break-word; }
   .calc .note { color: var(--muted); font-size: 12px; }
-  .legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12.5px; color: var(--muted); margin-top: 8px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12.5px; color: var(--muted); margin-bottom: 8px; }
   .sw { display: inline-block; width: 14px; height: 3px; vertical-align: middle; margin-right: 6px; border-radius: 2px; }
   .p { color: var(--phi); font-weight: 600; } .t { color: var(--theta); font-weight: 600; }
   .l { color: var(--local); font-weight: 600; } .l2 { color: var(--local2); font-weight: 600; }
@@ -79,8 +79,6 @@
 <main>
   <div class="layout">
     <div class="panel">
-      <canvas id="view" width="900" height="900" aria-label="Spheres of radius r about nodes a and c, with the a to b and c to b vectors"></canvas>
-      <div class="hint">Drag the picture to look round the spheres.</div>
       <div class="legend">
         <span><span class="sw" style="background:var(--local)"></span>a→b (starts at a), and its triangle O, a, b<sub>a</sub></span>
         <span><span class="sw" style="background:var(--local2)"></span>c→b (starts at c), and its triangle O, c, b<sub>c</sub></span>
@@ -88,6 +86,8 @@
         <span><span class="sw" style="background:var(--theta)"></span>every point a θ slider visits</span>
         <span><span class="sw" style="background:var(--global)"></span>O→b, read from O</span>
       </div>
+      <canvas id="view" width="900" height="900" aria-label="Spheres of radius r about nodes a and c, with the a to b and c to b vectors"></canvas>
+      <div class="hint">Drag the picture to look round the spheres.</div>
     </div>
 
     <div class="panel">
