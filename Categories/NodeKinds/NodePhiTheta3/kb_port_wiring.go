@@ -11,7 +11,6 @@ type bindings interface {
 	SpeedSinksOf() *SliderPanel.Sinks
 	VectorOutOf(name string) chan<- TiltPanel.TiltVectorMsg
 	VectorInOf(name string) <-chan TiltPanel.TiltVectorMsg
-	NodeRowFor(id string) (int32, bool)
 }
 
 type PortDir int

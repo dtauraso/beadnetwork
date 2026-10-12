@@ -55,7 +55,5 @@ type NodeState struct {
 
 	TickMarks []TickMark
 
-	TipCopies []TipCopy
-
 	ChannelVectors []VecB.ChannelVector
 }

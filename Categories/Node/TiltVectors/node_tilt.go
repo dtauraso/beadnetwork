@@ -15,17 +15,12 @@ type Tilt struct {
 
 	tickCount int32
 
-	startVectors []StartVector
+	startVectors []polar.Polar
 }
 
-type StartVector struct {
-	ToRow int32
-	Vec   polar.Polar
-}
+func (t *Tilt) SetStartVectors(v []polar.Polar) { t.startVectors = v }
 
-func (t *Tilt) SetStartVectors(v []StartVector) { t.startVectors = v }
-
-func (t *Tilt) StartVectors() []StartVector { return t.startVectors }
+func (t *Tilt) StartVectors() []polar.Polar { return t.startVectors }
 
 func (t *Tilt) SetTickCount(count int32) { t.tickCount = count }
 

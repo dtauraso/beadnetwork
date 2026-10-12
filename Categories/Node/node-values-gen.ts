@@ -139,10 +139,6 @@ export const NODE_VALUE_NAMES = [
   "tickX1",
   "tickY1",
   "tickZ1",
-  "copyX",
-  "copyY",
-  "copyZ",
-  "copyRow",
 ] as const;
 
 export type NodeValueName = (typeof NODE_VALUE_NAMES)[number];

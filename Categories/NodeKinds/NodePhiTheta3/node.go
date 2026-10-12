@@ -29,8 +29,6 @@ type NodePhiTheta3 struct {
 	Me       int
 	Partners [nodeCount - 1]int
 
-	partnerRows [nodeCount - 1]int32
-
 	Card   CardPanel.Card
 	S      int
 	M      int
@@ -115,13 +113,6 @@ var Builder = BuilderFor("NodePhiTheta3",
 
 		n.Me = me
 		n.Partners = CardPanel.Partners(me)
-		for i, j := range n.Partners {
-			row, ok := a.PB.NodeRowFor(strconv.Itoa(j))
-			if !ok {
-				return nil, fmt.Errorf("NodePhiTheta3: node %d links to node %d, which the scene has no row for — the tab must hold nodes 1, 2 and 3", me, j)
-			}
-			n.partnerRows[i] = row
-		}
 		n.Card = CardPanel.CardFromState(me, a.State())
 		n.S, n.M, n.CW, n.CCW = a.S(), a.M(), a.CW(), a.CCW()
 		n.nodeR = NodeCat.NodeRadius(n.geom.Kind())

@@ -4,7 +4,7 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/PolarRulesPanel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/TiltPanel"
 	"github.com/dtauraso/beadnetwork/Categories/Node/ChannelVectors"
-	"github.com/dtauraso/beadnetwork/Categories/Node/TiltVectors"
+	"github.com/dtauraso/beadnetwork/Categories/Vectors/polar"
 	"math"
 )
 
@@ -48,7 +48,7 @@ type FrameInputs struct {
 
 	TickCount int32
 
-	StartVectors []TiltVectors.StartVector
+	StartVectors []polar.Polar
 }
 
 func BuildFrame(in FrameInputs) NodeFrameInput {
@@ -101,7 +101,6 @@ func BuildFrame(in FrameInputs) NodeFrameInput {
 		TiltArrows:       append(fg.TiltArrows, startArrows(in.Geom, fg.Center, in.StartVectors)...),
 		ChannelVectors:   in.ChannelVectors,
 		TickMarks:        TickMarks(fg.Center, in.Geom.Kind, in.TickCount),
-		TipCopies:        TipCopies(fg.Center, in.StartVectors),
 		Selected:         in.Selected,
 		KindID:           in.KindID,
 		Hovered:          in.Hovered,
