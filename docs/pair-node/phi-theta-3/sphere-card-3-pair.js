@@ -12,7 +12,7 @@ b &:& \text{needs } C_{a} \text{ to derive } C_{b} = C_{a} + d \\[3pt]
 a &:& \text{needs where } b \text{ is, to draw its vector to } b \\[10pt]
 \rlap{\textbf{one centre, many rotating nodes}} & & \\[3pt]
 & & a \text{ has a channel each way with each } b_{i} \\[3pt]
-C_{b_{i}} &=& C_{a} + d_{i} \quad \text{each } b_{i} \text{ holds its own rotation; they do not constrain each other}
+C_{b_{i}} &=& C_{a} + d_{i} \quad \text{each } b_{i} \text{ holds its own rotation}
 \end{array}
 \]`;
 
