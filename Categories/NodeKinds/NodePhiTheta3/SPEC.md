@@ -60,8 +60,9 @@ A node h with `L_j = 1` is a centre of rotation for node j.
    have told it; when `|D| > 2R` the spheres do not meet and j is not moved.
 4. j draws an arrow from each centre that places it to itself.
 
-A holder re-sends when what it would send changes: a partner's vector or links, its own links,
-s, or the start button — and whenever its own centre moves, so j always turns about where h is.
+A holder re-sends only when what it would send changes: a partner's vector or links, its own links,
+s, or the start button. j does not pass its move on, and a holder moving does not move j until the
+holder next sends.
 
 ## Description
 
