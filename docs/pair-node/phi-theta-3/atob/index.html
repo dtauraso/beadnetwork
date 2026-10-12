@@ -35,6 +35,8 @@
   .sliders { display: grid; grid-template-columns: auto 1fr 3.5em; gap: 10px; align-items: center;
              font-variant-numeric: tabular-nums; }
   .sliders input { width: 100%; }
+  .sliders input:disabled { opacity: 0.35; }
+  .link { display: block; margin-bottom: 10px; } .link input { accent-color: var(--circle); }
   .sliders .p { accent-color: var(--phi); } .sliders .t { accent-color: var(--theta); }
   .calc-h { font-size: 14px; margin: 16px 0 6px; }
   .calc { list-style: none; padding: 0; margin: 0; font-size: 13px; }
@@ -69,18 +71,20 @@
     <div class="panel">
       <div class="legend">
         <span><span class="sw" style="background:var(--local)"></span>a→b (starts at a), and its triangle O, a, b<sub>a</sub></span>
-        <span><span class="sw" style="background:var(--local2)"></span>c→b, and its triangle O, c, b<sub>c</sub>; dashed: the two parts of whichever vector follows the other</span>
+        <span><span class="sw" style="background:var(--local2)"></span>c→b, and its triangle O, c, b<sub>c</sub>; dashed: the two parts when a node re-aims through the other, box ticked: d<sub>ca</sub> + d<sub>ab</sub> after a→b moves, d<sub>ac</sub> + d<sub>cb</sub> after c→b moves</span>
         <span><span class="sw" style="background:var(--phi)"></span>a's φ circle (its θ and r held)</span>
         <span><span class="sw" style="background:var(--theta)"></span>a's θ circle (its φ and r held)</span>
         <span><span class="sw" style="background:var(--local2)"></span>c's sphere, radius |d<sub>cb</sub>|, with its φ and θ circles</span>
-        <span><span class="sw" style="background:var(--global)"></span>O→b, the global result, drawn last</span>
-        <span><span class="sw" style="background:var(--circle)"></span>the shared circle: every b both nodes reach with their r held, found in a's view, placed last; the shared sphere has it as its equator, and b is always on it; its two thin circles are the both Φ and Θ circles</span>
+        <span><span class="sw" style="background:var(--global)"></span>O→b<sub>a</sub> and O→b<sub>c</sub>, the global results, drawn last</span>
+        <span><span class="sw" style="background:var(--muted)"></span>dotted arrow b<sub>a</sub>→b<sub>c</sub>: the gap, when the two globals miss</span>
+        <span><span class="sw" style="background:var(--circle)"></span>the shared circle: every point on both spheres, found in a's view, placed last; only when the spheres meet. The shared sphere has it as its equator about the a–c line; its two thin circles are the both Φ and Θ circles</span>
       </div>
       <canvas id="view" width="900" height="900" aria-label="Spheres of radius r about nodes a and c, with the a to b and c to b vectors"></canvas>
       <div class="hint">Drag the picture to look round the spheres.</div>
     </div>
 
     <div class="panel">
+      <label class="link s"><input type="checkbox" id="link" checked> both: one shared b</label>
       <div class="sliders">
         <label class="s" for="sphi-both">both Φ</label><input id="sphi-both" data-group="both" class="p" type="range" min="0" max="360" value="90"><span id="vphi-both"></span>
         <label class="s" for="sth-both">both Θ</label><input id="sth-both" data-group="both" class="t" type="range" min="0" max="360" value="0"><span id="vth-both"></span>
@@ -88,12 +92,12 @@
         <label class="l" for="sth-ab">a→b θ</label><input id="sth-ab" data-group="ab" class="t" type="range" min="0" max="360" value="90"><span id="vth-ab"></span>
         <label class="l2" for="sphi-cb">c→b φ</label><input id="sphi-cb" data-group="cb" class="p" type="range" min="0" max="360" value="90"><span id="vphi-cb"></span>
         <label class="l2" for="sth-cb">c→b θ</label><input id="sth-cb" data-group="cb" class="t" type="range" min="0" max="360" value="0"><span id="vth-cb"></span>
-        <label class="l" for="sax">a x</label><input id="sax" data-group="pos" type="range" min="-2" max="2" step="0.1" value="1"><span id="vax"></span>
-        <label class="l" for="say">a y</label><input id="say" data-group="pos" type="range" min="-2" max="2" step="0.1" value="0"><span id="vay"></span>
-        <label class="l" for="saz">a z</label><input id="saz" data-group="pos" type="range" min="-2" max="2" step="0.1" value="0"><span id="vaz"></span>
-        <label class="l2" for="scx">c x</label><input id="scx" data-group="pos" type="range" min="-2" max="2" step="0.1" value="0"><span id="vcx"></span>
-        <label class="l2" for="scy">c y</label><input id="scy" data-group="pos" type="range" min="-2" max="2" step="0.1" value="0"><span id="vcy"></span>
-        <label class="l2" for="scz">c z</label><input id="scz" data-group="pos" type="range" min="-2" max="2" step="0.1" value="1"><span id="vcz"></span>
+        <label class="l" for="sax">a x</label><input id="sax" data-group="pos-a" type="range" min="-2" max="2" step="0.1" value="1"><span id="vax"></span>
+        <label class="l" for="say">a y</label><input id="say" data-group="pos-a" type="range" min="-2" max="2" step="0.1" value="0"><span id="vay"></span>
+        <label class="l" for="saz">a z</label><input id="saz" data-group="pos-a" type="range" min="-2" max="2" step="0.1" value="0"><span id="vaz"></span>
+        <label class="l2" for="scx">c x</label><input id="scx" data-group="pos-c" type="range" min="-2" max="2" step="0.1" value="0"><span id="vcx"></span>
+        <label class="l2" for="scy">c y</label><input id="scy" data-group="pos-c" type="range" min="-2" max="2" step="0.1" value="0"><span id="vcy"></span>
+        <label class="l2" for="scz">c z</label><input id="scz" data-group="pos-c" type="range" min="-2" max="2" step="0.1" value="1"><span id="vcz"></span>
       </div>
       <h2 class="calc-h"><span class="s">both</span> — b on the shared sphere</h2>
       <ol class="calc" id="calc-both"></ol>
@@ -102,9 +106,10 @@
       <h2 class="calc-h"><span class="l2">c→b</span> — local first, global last</h2>
       <ol class="calc" id="calc-cb"></ol>
       <ol>
-        <li><b>One b, three ways to move it.</b> The both sliders move b over the shared sphere; the a→b sliders turn a's vector in a's view, r held; the c→b sliders turn c's vector in c's view, r held. Whichever you move last drives b, and the others read their angles back off it.</li>
-        <li><b>Local first.</b> The other node follows by adding two local vectors, no centre used: d<sub>cb</sub> = d<sub>ca</sub> + d<sub>ab</sub>, or d<sub>ab</sub> = d<sub>ac</sub> + d<sub>cb</sub>.</li>
-        <li><b>Global last.</b> Each pair then draws the new centre from the global centre on its own: O→a + a→b = O→b<sub>a</sub>, and O→c + c→b = O→b<sub>c</sub>. Both land on the same b.</li>
+        <li><b>The both box.</b> Ticked, a and c share one b: the a→b or c→b sliders move it and the other node re-aims at it (d<sub>cb</sub> = d<sub>ca</sub> + d<sub>ab</sub>, or d<sub>ab</sub> = d<sub>ac</sub> + d<sub>cb</sub>), and the both sliders put it on the shared sphere. Unticked, each pair turns only its own vector, r held, and the two can miss.</li>
+        <li><b>Each builds its own.</b> Whichever way b moves, each node reads its own r, φ, θ and builds its own vector, polar_to_cart(r, φ, θ). Moving a node re-aims only that node's vector, so the gap stays as it was.</li>
+        <li><b>The gap, local.</b> d<sub>ca</sub> + d<sub>ab</sub> − d<sub>cb</sub> uses no centre. It is zero exactly when the two globals land on one point.</li>
+        <li><b>Global last.</b> Each pair then draws its new centre from the global centre on its own: O→a + a→b = O→b<sub>a</sub>, and O→c + c→b = O→b<sub>c</sub>. They are one point only when the gap is zero.</li>
       </ol>
     </div>
   </div>
