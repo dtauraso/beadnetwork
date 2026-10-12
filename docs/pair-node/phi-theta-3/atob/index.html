@@ -54,7 +54,7 @@
 <body>
 <header>
   <h1>The a→b and c→b vectors</h1>
-  <div class="sub">Node a is at (1, 0, 0) and node c at (0, 0, 1). Each node turns its own vector in its own view,
+  <div class="sub">Node a starts at (1, 0, 0) and node c at (0, 0, 1); the sliders at the bottom move them. Each node turns its own vector in its own view,
     then each pair computes the new centre globally, last: b<sub>a</sub> = C<sub>a</sub> + polar_to_cart(a→b), b<sub>c</sub> = C<sub>c</sub> + polar_to_cart(c→b).</div>
 </header>
 
@@ -84,6 +84,12 @@
       <div class="sliders">
         <label class="l" for="sphi-ab">a→b φ</label><input id="sphi-ab" class="p" type="range" min="0" max="360" value="90"><span id="vphi-ab"></span>
         <label class="l" for="sth-ab">a→b θ</label><input id="sth-ab" class="t" type="range" min="0" max="360" value="90"><span id="vth-ab"></span>
+        <label class="l" for="sax">a x</label><input id="sax" type="range" min="-2" max="2" step="0.1" value="1"><span id="vax"></span>
+        <label class="l" for="say">a y</label><input id="say" type="range" min="-2" max="2" step="0.1" value="0"><span id="vay"></span>
+        <label class="l" for="saz">a z</label><input id="saz" type="range" min="-2" max="2" step="0.1" value="0"><span id="vaz"></span>
+        <label class="l2" for="scx">c x</label><input id="scx" type="range" min="-2" max="2" step="0.1" value="0"><span id="vcx"></span>
+        <label class="l2" for="scy">c y</label><input id="scy" type="range" min="-2" max="2" step="0.1" value="0"><span id="vcy"></span>
+        <label class="l2" for="scz">c z</label><input id="scz" type="range" min="-2" max="2" step="0.1" value="1"><span id="vcz"></span>
       </div>
       <h2 class="calc-h"><span class="l">a→b</span> — local first, global last</h2>
       <ol class="calc" id="calc-ab"></ol>

@@ -2,7 +2,7 @@
   const O = [0, 0, 0];
   const PAIRS = [
     { node: 'a', id: 'ab', C: [1, 0, 0], r: 1, start: [90, 90], color: '--local', cls: 'l', side: 1 },
-    { node: 'c', id: 'cb', C: [0, 0, 1], toA: [1, 0, -1], color: '--local2', cls: 'l2', side: -1 },
+    { node: 'c', id: 'cb', C: [0, 0, 1], color: '--local2', cls: 'l2', side: -1 },
   ];
   const rad = d => d * Math.PI / 180, deg = a => a * 180 / Math.PI;
   const add = (p, q) => p.map((v, i) => v + q[i]);
@@ -13,7 +13,8 @@
   const view = { yaw: -0.6, pitch: 0.9 };
   const cv = document.getElementById('view');
   const ctx = cv.getContext('2d');
-  const W = cv.width, H = cv.height, S = 230, focus = [0.5, 0, 0.5];
+  const W = cv.width, H = cv.height, S = 230;
+  let focus = [0.5, 0, 0.5];
 
   function proj(p) {
     const [x, y, z] = sub(p, focus);
@@ -91,7 +92,9 @@
   }
 
   function sharedCircle(pa, pc, dA, dC) {
-    const dAC = pc.toA.map(v => -v), D = Math.hypot(...dAC), u = dAC.map(v => v / D);
+    const dAC = pc.toA.map(v => -v), D = Math.hypot(...dAC);
+    if (D < 1e-9) return;
+    const u = dAC.map(v => v / D);
     const ra = Math.hypot(...dA), rc = Math.hypot(...dC);
     const h = (D * D + ra * ra - rc * rc) / (2 * D), rho = Math.sqrt(Math.max(0, ra * ra - h * h));
     const cross = (p, q) => [p[1] * q[2] - p[2] * q[1], p[2] * q[0] - p[0] * q[2], p[0] * q[1] - p[1] * q[0]];
@@ -132,6 +135,13 @@
   }
 
   function render() {
+    const [pa, pc] = PAIRS;
+    const pos = id => ['x', 'y', 'z'].map(k => +document.getElementById(`s${id}${k}`).value);
+    pa.C = pos('a'); pc.C = pos('c'); pc.toA = sub(pa.C, pc.C);
+    focus = pa.C.map((v, i) => (v + pc.C[i]) / 2);
+    ['a', 'c'].forEach(id => ['x', 'y', 'z'].forEach(k => {
+      document.getElementById(`v${id}${k}`).textContent = (+document.getElementById(`s${id}${k}`).value).toFixed(1);
+    }));
     ctx.clearRect(0, 0, W, H);
     const muted = css('--muted');
     [[[0.5, 0, 0], 'x'], [[0, 0.5, 0], 'y'], [[0, 0, 0.5], 'z']].forEach(([e, n]) => {
@@ -140,11 +150,10 @@
       ctx.fillStyle = muted; ctx.font = '24px -apple-system, sans-serif'; ctx.fillText(n, x + 6, y - 6);
     });
 
-    const [pa, pc] = PAIRS;
     const phiA = +document.getElementById('sphi-ab').value, thA = +document.getElementById('sth-ab').value;
     const dA = toCart(pa.r, rad(phiA), rad(thA));
     const dC = add(pc.toA, dA), rC = Math.hypot(...dC);
-    const phiC = deg(Math.acos(Math.max(-1, Math.min(1, dC[1] / rC))));
+    const phiC = rC ? deg(Math.acos(Math.max(-1, Math.min(1, dC[1] / rC)))) : 0;
     const thC = (deg(Math.atan2(dC[2], dC[0])) + 360) % 360;
     const runs = [
       { pair: pa, r: pa.r, phi: phiA, theta: thA, d: dA, b: add(pa.C, dA) },
