@@ -15,7 +15,9 @@ function atobSteps(pair, r, phi, theta, d, tip, dAB) {
        ['local: as a vector from a', `d_ab = polar_to_cart(r, φ, θ) = (r·sinφ·cosθ, r·cosφ, r·sinφ·sinθ) = ${atobPt(d)}`, 'starts at a']]
     : [['local: c\'s vector to a', `d_ca = ${atobPt(pair.toA)}`, 'what c holds for its partner a, in c\'s own view'],
        ['local: the c→b vector', `d_cb = d_ca + d_ab = ${atobPt(pair.toA)} + ${atobPt(dAB)} = ${atobPt(d)}`,
-        'c\'s vector to a, then a\'s vector to b: two local vectors added, no centre used']];
+        'c\'s vector to a, then a\'s vector to b: two local vectors added, no centre used'],
+       ['local: as polar, in c\'s own view', `r = |d_cb| = ${atobF(r)}, φ = acos(y / r) = ${phi.toFixed(1)}°, θ = atan2(z, x) = ${theta.toFixed(1)}°`,
+        'read off d_cb itself, no centre used: the radius and circles of c\'s sphere']];
   return atobList([
     [pair.cls, `node ${n}`, `C_${n} = ${atobPt(pair.C)}`, 'where the vector starts'],
     ...local.map(([name, eq, note]) => [pair.cls, name, eq, note]),

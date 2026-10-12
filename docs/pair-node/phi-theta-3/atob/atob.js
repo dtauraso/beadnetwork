@@ -4,7 +4,7 @@
     { node: 'a', id: 'ab', C: [1, 0, 0], r: 1, start: [90, 90], color: '--local', cls: 'l', side: 1 },
     { node: 'c', id: 'cb', C: [0, 0, 1], toA: [1, 0, -1], color: '--local2', cls: 'l2', side: -1 },
   ];
-  const rad = d => d * Math.PI / 180;
+  const rad = d => d * Math.PI / 180, deg = a => a * 180 / Math.PI;
   const add = (p, q) => p.map((v, i) => v + q[i]);
   const sub = (p, q) => p.map((v, i) => v - q[i]);
   const toCart = (R, ph, th) => [R * Math.sin(ph) * Math.cos(th), R * Math.cos(ph), R * Math.sin(ph) * Math.sin(th)];
@@ -69,7 +69,7 @@
     ctx.closePath(); ctx.fillStyle = color; ctx.globalAlpha = 0.1; ctx.fill(); ctx.globalAlpha = 1;
   }
 
-  function sphere(pair, r, phi, theta) {
+  function sphere(pair, r, phi, theta, phiColor, thColor) {
     const on = (ph, th) => add(pair.C, toCart(r, rad(ph), rad(th)));
     const wire = css('--wire');
     for (let ph = 30; ph <= 150; ph += 30) {
@@ -81,9 +81,9 @@
       curve(pts, pair.C, wire, 0.8, 0.3);
     }
     const phiPath = []; for (let p = 0; p <= 360; p += 2) phiPath.push(on(p, theta));
-    curve(phiPath, pair.C, css('--phi'), 4);
+    curve(phiPath, pair.C, phiColor, 4);
     const thPath = []; for (let t = 0; t <= 360; t += 2) thPath.push(on(phi, t));
-    curve(thPath, pair.C, css('--theta'), 4);
+    curve(thPath, pair.C, thColor, 4);
   }
 
   function sharedCircle(pa, pc, dA, dC) {
@@ -137,12 +137,15 @@
     const [pa, pc] = PAIRS;
     const phiA = +document.getElementById('sphi-ab').value, thA = +document.getElementById('sth-ab').value;
     const dA = toCart(pa.r, rad(phiA), rad(thA));
-    const dC = add(pc.toA, dA);
+    const dC = add(pc.toA, dA), rC = Math.hypot(...dC);
+    const phiC = deg(Math.acos(Math.max(-1, Math.min(1, dC[1] / rC))));
+    const thC = (deg(Math.atan2(dC[2], dC[0])) + 360) % 360;
     const runs = [
       { pair: pa, r: pa.r, phi: phiA, theta: thA, d: dA, b: add(pa.C, dA) },
-      { pair: pc, d: dC, b: add(pc.C, dC) },
+      { pair: pc, r: rC, phi: phiC, theta: thC, d: dC, b: add(pc.C, dC) },
     ];
-    sphere(pa, pa.r, phiA, thA);
+    sphere(pa, pa.r, phiA, thA, css('--phi'), css('--theta'));
+    sphere(pc, rC, phiC, thC, css('--local2'), css('--local2'));
     sharedCircle(pa, pc, dA, dC);
     runs.forEach(({ pair, d, b }) => vectors(pair, d, b));
     dot(O, css('--ink'), 'O');
