@@ -42,8 +42,11 @@ An untagged doc there escaped a merge — delete it.
 
 | Doc | What it covers |
 |---|---|
-| [pair-node/index.html](pair-node/index.html) | The pair node — anatomy, channels, cycle, and the tilt rules. |
-| [math/framework/index.html](pair-node/math/framework/index.html) | The tilt rules as one block of modular arithmetic, with the ring diagrams. |
+| [pair-node/index.html](pair-node/index.html) | The pair tabs — one doc per editor tab, and the styles and scripts they share. |
+| [phi-2/index.html](pair-node/phi-2/index.html) | pair φ 2: the pair node — anatomy, channels, cycle, and the tilt rules. |
+| [phi-2/math/framework/index.html](pair-node/phi-2/math/framework/index.html) | pair φ 2: the tilt rules as one block of modular arithmetic, with the ring diagrams. |
+| [phi-theta-2/index.html](pair-node/phi-theta-2/index.html) | pair φ, θ 2: the two-node sphere card. |
+| [phi-theta-3/index.html](pair-node/phi-theta-3/index.html) | pair φ, θ 3: the three-node card, local to global, and the a→b vectors. |
 
 ## Process
 
