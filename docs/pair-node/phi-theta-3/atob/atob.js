@@ -70,9 +70,7 @@
     const phiPath = []; for (let p = 0; p <= 360; p += 2) phiPath.push(on(p, Theta));
     curve(phiPath, centre, css('--circle'), 2.5);
     const thPath = []; for (let t = 0; t <= 360; t += 2) thPath.push(on(Phi, t));
-    curve(thPath, centre, css('--circle'), 2.5);
-    label(add(centre, [0, s.rho, 0]), 'shared sphere', css('--circle'), 12, -12);
-  }
+    curve(thPath, centre, css('--circle'), 2.5);  }
 
   function vectors(pair, d, b) {
     const color = css(pair.color), n = pair.node;
