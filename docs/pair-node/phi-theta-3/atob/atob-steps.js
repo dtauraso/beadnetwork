@@ -16,12 +16,13 @@ function atobBoth({ driver, held, both, dAB, dCB, toA, gap, common, ra, rc }) {
   if (!held) return atobList([gapRow, meet]);
   const where = both
     ? [['s', 'b on it', `Φ = ${both[1].toFixed(1)}°, Θ = ${both[2].toFixed(1)}°`,
-        driver === 'both' ? 'from the both sliders' : 'read off d_ab − m; sets the both sliders'],
-      ['s', 'where b is, from a', `m + polar_to_cart(ρ, Φ, Θ) = ${atobPt(dAB)}`, 'a and c each read their angles off this and build their own vector']]
+        driver === 'both' ? 'from the both sliders' : 'read off d_ab − m_a, the same as d_cb − m_c; sets the both sliders'],
+      ['s', 'where b is, from each node', `a: m_a + polar_to_cart(ρ, Φ, Θ) = ${atobPt(dAB)};  c: m_c + polar_to_cart(ρ, Φ, Θ) = ${atobPt(dCB)}`,
+        'the same ρ, Φ, Θ from each node\'s own centre; each builds its own vector from it']]
     : [['s', 'b on it', '–', 'no common b: the both box is off, so each node aims on its own; tick it and c re-aims at a\'s b']];
   return atobList([gapRow, meet,
-    ['s', 'the shared sphere, in a\'s view', `m = u·h = ${atobPt(held.m)}, ρ = ${atobF(held.rho)}`,
-      'u: unit vector a→c; h = (D² + r_a² − r_c²) / 2D; held still while the both sliders drag'],
+    ['s', 'the shared sphere, from each node', `m_a = u·h = ${atobPt(held.m)}, m_c = u·(h − D) = ${atobPt(held.mc)}, ρ = ${atobF(held.rho)}`,
+      'one centre, seen from a and from c; u: unit vector a→c; h = (D² + r_a² − r_c²) / 2D; held still while the both sliders drag'],
     ...where]);
 }
 
@@ -45,10 +46,11 @@ function atobSteps(pair, p, d, tip, { driver, linked, dAB, dCB, toA, gap }) {
       : n === 'a' && follows
       ? ['local: where b is, from a', `d_ac + d_cb = ${atobPt(toC)} + ${atobPt(dCB)} = ${atobPt(d)}`,
         'a\'s vector to c, then c\'s vector to b: two local vectors added, no centre used']
-      : n === 'c'
+      : n === 'c' && follows
       ? ['local: where b is, from c', `d_ca + d_ab = ${atobPt(toA)} + ${atobPt(dAB)} = ${atobPt(d)}`,
         'c\'s vector to a, then a\'s vector to b: two local vectors added, no centre used']
-      : ['local: where b is, from a', `m + polar_to_cart(ρ, Φ, Θ) = ${atobPt(d)}`, 'b\'s place on the shared sphere'];
+      : [`local: where b is, from ${n}`, `m_${n} + polar_to_cart(ρ, Φ, Θ) = ${atobPt(d)}`,
+        `b's place on the shared sphere, from its centre as ${n} sees it; uses no vector of the other node`];
     local = [target,
       [`local: the ${n}→b angles, in ${n}'s own view`, `r = |v|, φ = acos(v_y / r), θ = atan2(v_z, v_x): ${atobAng(p)}`,
         `read off that vector v; sets the ${n}→b sliders`], build];

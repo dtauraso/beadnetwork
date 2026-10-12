@@ -45,7 +45,7 @@
     const u = dAC.map(v => v / D);
     const h = (D * D + ra * ra - rc * rc) / (2 * D);
     if (ra * ra - h * h < 0) return null;
-    return { u, h, rho: Math.sqrt(ra * ra - h * h), m: u.map(v => v * h) };
+    return { u, h, rho: Math.sqrt(ra * ra - h * h), m: u.map(v => v * h), mc: u.map(v => v * (h - D)) };
   }
 
   function sharedCircle(pa, s) {
@@ -140,8 +140,9 @@
       if (linked) dAB = sub(dCB, dCA);
     } else if (group === 'both') {
       const [Phi, Th] = angles('both');
-      dAB = add(held.m, toCart(held.rho, rad(Phi), rad(Th)));
-      dCB = add(dCA, dAB);
+      const onSphere = toCart(held.rho, rad(Phi), rad(Th));
+      dAB = add(held.m, onSphere);
+      dCB = add(held.mc, onSphere);
     }
     driver = group;
     if (group !== 'both') held = shared(dCA, len(dAB), len(dCB));
@@ -168,8 +169,9 @@
       { pair: pa, p: s.a, d: dAB, b: add(pa.C, dAB) },
       { pair: pc, p: s.c, d: dCB, b: add(pc.C, dCB) },
     ];
-    pa.via = null;
-    pc.via = driver === 'both' ? pc.toA : null;
+    const linked = el('link').checked;
+    pa.via = linked && driver === 'cb' ? pa.toC : null;
+    pc.via = linked && (driver === 'ab' || driver === 'link') ? pc.toA : null;
     sphere(pa, s.a[0], s.a[1], s.a[2], css('--phi'), css('--theta'));
     sphere(pc, s.c[0], s.c[1], s.c[2], css('--local2'), css('--local2'));
     if (held && s.both) sharedSphere(pa, held, s.both[1], s.both[2]);
