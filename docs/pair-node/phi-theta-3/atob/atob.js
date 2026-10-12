@@ -117,7 +117,12 @@
 
   function state() {
     const dCA = PAIRS[1].toA, gap = sub(add(dCA, dAB), dCB), common = len(gap) < 1e-6;
-    return { dCA, gap, common, a: toPolar(dAB), c: toPolar(dCB), both: held && common ? toPolar(sub(dAB, held.m)) : null };
+    const fit = (id, r, from) => {
+      const [ph, th] = angles(id);
+      return len(sub(toCart(r, rad(ph), rad(th)), from)) < 1e-9 * (1 + r) ? [r, ph, th] : toPolar(from);
+    };
+    return { dCA, gap, common, a: fit('ab', len(dAB), dAB), c: fit('cb', len(dCB), dCB),
+      both: held && common ? fit('both', held.rho, sub(dAB, held.m)) : null };
   }
 
   function update(group) {
