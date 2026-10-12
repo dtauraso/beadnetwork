@@ -12,13 +12,7 @@ b &:& \text{needs } C_{a} \text{ to derive } C_{b} = C_{a} + d \\[3pt]
 a &:& \text{needs where } b \text{ is, to draw its vector to } b \\[10pt]
 \rlap{\textbf{one centre, many rotating nodes}} & & \\[3pt]
 & & a \text{ has a channel each way with each } b_{i} \\[3pt]
-C_{b_{i}} &=& C_{a} + d_{i} \quad \text{each } b_{i} \text{ holds its own rotation; they do not constrain each other} \\[10pt]
-\rlap{\textbf{triangle — every node is a centre and a rotating node}} & & \\[3pt]
-& & \text{a channel each way for each pair: 6 channels for 3 nodes} \\[3pt]
-& & \text{each node derives its position from both centres; both must land on the same point} \\[3pt]
-d_{12} + d_{23} + d_{31} &=& 0 \quad \text{the loop closes} \\[3pt]
-& & \text{every start and end names the same rotation, so it stays closed} \\[3pt]
-& & \text{and the triangle turns as one piece about } G = (C_{1} + C_{2} + C_{3}) / 3
+C_{b_{i}} &=& C_{a} + d_{i} \quad \text{each } b_{i} \text{ holds its own rotation; they do not constrain each other}
 \end{array}
 \]`;
 
