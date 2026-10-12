@@ -51,8 +51,8 @@
 <body>
 <header>
   <h1>The a→b and c→b vectors</h1>
-  <div class="sub">Node a is at (1, 0, 0) and node c at (0, 0, 1); each vector has r = 1. Each pair is its own
-    global calculation: b<sub>a</sub> = C<sub>a</sub> + polar_to_cart(a→b), b<sub>c</sub> = C<sub>c</sub> + polar_to_cart(c→b).</div>
+  <div class="sub">Node a is at (1, 0, 0) and node c at (0, 0, 1). The both sliders move one b, and each vector aims
+    at it from its own node. Each pair is its own global calculation: b<sub>a</sub> = C<sub>a</sub> + polar_to_cart(a→b), b<sub>c</sub> = C<sub>c</sub> + polar_to_cart(c→b).</div>
 </header>
 
 <nav>
@@ -82,8 +82,8 @@
       <div class="legend">
         <span><span class="sw" style="background:var(--local)"></span>a→b (starts at a), and its triangle O, a, b<sub>a</sub></span>
         <span><span class="sw" style="background:var(--local2)"></span>c→b (starts at c), and its triangle O, c, b<sub>c</sub></span>
-        <span><span class="sw" style="background:var(--phi)"></span>every point a φ slider visits</span>
-        <span><span class="sw" style="background:var(--theta)"></span>every point a θ slider visits</span>
+        <span><span class="sw" style="background:var(--phi)"></span>each vector's φ circle (its θ and r held)</span>
+        <span><span class="sw" style="background:var(--theta)"></span>each vector's θ circle (its φ and r held)</span>
         <span><span class="sw" style="background:var(--global)"></span>O→b, read from O</span>
       </div>
       <canvas id="view" width="900" height="900" aria-label="Spheres of radius r about nodes a and c, with the a to b and c to b vectors"></canvas>
@@ -92,20 +92,20 @@
 
     <div class="panel">
       <div class="sliders">
-        <label class="l" for="sphi-ab">a→b φ</label><input id="sphi-ab" class="p" type="range" min="0" max="360" value="90"><span id="vphi-ab"></span>
-        <label class="l" for="sth-ab">a→b θ</label><input id="sth-ab" class="t" type="range" min="0" max="360" value="90"><span id="vth-ab"></span>
-        <label class="l2" for="sphi-cb">c→b φ</label><input id="sphi-cb" class="p" type="range" min="0" max="360" value="90"><span id="vphi-cb"></span>
-        <label class="l2" for="sth-cb">c→b θ</label><input id="sth-cb" class="t" type="range" min="0" max="360" value="0"><span id="vth-cb"></span>
+        <label for="sphi-both">both Φ</label><input id="sphi-both" class="p" type="range" min="0" max="180" value="90"><span id="vphi-both"></span>
+        <label for="sth-both">both Θ</label><input id="sth-both" class="t" type="range" min="0" max="360" value="45"><span id="vth-both"></span>
       </div>
+      <h2 class="calc-h"><span class="g">b</span> — shared by both</h2>
+      <ol class="calc" id="calc-b"></ol>
       <h2 class="calc-h"><span class="l">a→b</span> — its own calculation, in order</h2>
       <ol class="calc" id="calc-ab"></ol>
       <h2 class="calc-h"><span class="l2">c→b</span> — its own calculation, in order</h2>
       <ol class="calc" id="calc-cb"></ol>
       <ol>
-        <li><span class="p">φ</span> is measured from +y. A φ slider tips its vector over the top and bottom of its node; θ and r stay.</li>
-        <li><span class="t">θ</span> is measured round the vertical from +x. A θ slider swings its vector round the vertical through its node; φ and r stay.</li>
-        <li>The two calculations are independent. b<sub>a</sub> uses only C<sub>a</sub> and a→b; b<sub>c</sub> uses only C<sub>c</sub> and c→b. Neither reads the other's result, so they run in either order, or at once, and give the same numbers.</li>
-        <li>Each closes its own triangle: O→a + a→b = O→b<sub>a</sub>, and O→c + c→b = O→b<sub>c</sub>. Where the two tips meet, both triangles end at the same b.</li>
+        <li>The two sliders move one b, on the sphere of radius √2 about O: <span class="p">Φ</span> is measured from +y, <span class="t">Θ</span> round the vertical from +x. Both vectors re-aim at it.</li>
+        <li>Each vector's own <span class="p">φ</span> and <span class="t">θ</span> are about its own node, so they differ from Φ and Θ and from each other; its r is however far b is from that node.</li>
+        <li>The two calculations are independent. a→b uses only b and C<sub>a</sub>; c→b uses only b and C<sub>c</sub>. Neither reads the other's result, so they run in either order, or at once, and give the same numbers.</li>
+        <li>Each closes its own triangle: O→a + a→b = O→b<sub>a</sub>, and O→c + c→b = O→b<sub>c</sub>. Both tips are the shared b, so the two triangles always end at the same point.</li>
         <li><span class="g">From O</span>, each b is read as <code>cart_to_polar(b − O)</code>. Those angles are not φ and θ, which are about each vector's own node.</li>
       </ol>
     </div>

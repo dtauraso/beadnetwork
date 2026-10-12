@@ -1,10 +1,11 @@
 (function () {
   const O = [0, 0, 0];
   const PAIRS = [
-    { node: 'a', id: 'ab', C: [1, 0, 0], r: 1, color: '--local', cls: 'l', side: 1 },
-    { node: 'c', id: 'cb', C: [0, 0, 1], r: 1, color: '--local2', cls: 'l2', side: -1 },
+    { node: 'a', id: 'ab', C: [1, 0, 0], color: '--local', cls: 'l', side: 1 },
+    { node: 'c', id: 'cb', C: [0, 0, 1], color: '--local2', cls: 'l2', side: -1 },
   ];
-  const rad = d => d * Math.PI / 180;
+  const RB = Math.SQRT2;
+  const rad = d => d * Math.PI / 180, deg = a => a * 180 / Math.PI;
   const add = (p, q) => p.map((v, i) => v + q[i]);
   const sub = (p, q) => p.map((v, i) => v - q[i]);
   const toCart = (R, ph, th) => [R * Math.sin(ph) * Math.cos(th), R * Math.cos(ph), R * Math.sin(ph) * Math.sin(th)];
@@ -69,8 +70,8 @@
     ctx.closePath(); ctx.fillStyle = color; ctx.globalAlpha = 0.1; ctx.fill(); ctx.globalAlpha = 1;
   }
 
-  function sphere(pair, phi, theta) {
-    const on = (ph, th) => add(pair.C, toCart(pair.r, rad(ph), rad(th)));
+  function sphere(pair, r, phi, theta) {
+    const on = (ph, th) => add(pair.C, toCart(r, rad(ph), rad(th)));
     const wire = css('--wire');
     for (let ph = 30; ph <= 150; ph += 30) {
       const pts = []; for (let t = 0; t <= 360; t += 6) pts.push(on(ph, t));
@@ -98,7 +99,7 @@
     ctx.beginPath(); ctx.arc(nx, ny, 0.14 * S, 0, Math.PI * 2);
     ctx.fillStyle = css('--card'); ctx.globalAlpha = 0.85; ctx.fill(); ctx.globalAlpha = 1;
     ctx.lineWidth = 6; ctx.strokeStyle = color; ctx.stroke();
-    label(pair.C, `2 node ${n}`, color, pair.side * (0.14 * S + 8), 0.14 * S + 10);
+    label(pair.C, `1 node ${n}`, color, pair.side * (0.14 * S + 8), 0.14 * S + 10);
     dot(pair.C, color);
   }
 
@@ -111,21 +112,25 @@
       ctx.fillStyle = muted; ctx.font = '24px -apple-system, sans-serif'; ctx.fillText(n, x + 6, y - 6);
     });
 
+    const Phi = +document.getElementById('sphi-both').value, Theta = +document.getElementById('sth-both').value;
+    const target = toCart(RB, rad(Phi), rad(Theta));
     const runs = PAIRS.map(pair => {
-      const phi = +document.getElementById(`sphi-${pair.id}`).value;
-      const theta = +document.getElementById(`sth-${pair.id}`).value;
-      const d = toCart(pair.r, rad(phi), rad(theta));
-      return { pair, phi, theta, d, b: add(pair.C, d) };
+      const g = sub(target, pair.C), r = Math.hypot(...g);
+      const phi = deg(Math.acos(Math.max(-1, Math.min(1, g[1] / r))));
+      const theta = (deg(Math.atan2(g[2], g[0])) + 360) % 360;
+      const d = toCart(r, rad(phi), rad(theta));
+      return { pair, r, phi, theta, d, b: add(pair.C, d) };
     });
-    runs.forEach(({ pair, phi, theta }) => sphere(pair, phi, theta));
+    runs.forEach(({ pair, r, phi, theta }) => sphere(pair, r, phi, theta));
     runs.forEach(({ pair, d, b }) => vectors(pair, d, b));
     dot(O, css('--ink'), 'O');
     runs.forEach(({ pair, b }, i) => dot(b, css(pair.color), `4 b_${pair.node}`, true, i === 0 ? -12 : 34));
 
-    runs.forEach(({ pair, phi, theta, d, b }) => {
-      document.getElementById(`vphi-${pair.id}`).textContent = `${phi}°`;
-      document.getElementById(`vth-${pair.id}`).textContent = `${theta}°`;
-      document.getElementById(`calc-${pair.id}`).innerHTML = atobSteps(pair, phi, theta, d, b);
+    document.getElementById('vphi-both').textContent = `${Phi}°`;
+    document.getElementById('vth-both').textContent = `${Theta}°`;
+    document.getElementById('calc-b').innerHTML = atobTarget(RB, Phi, Theta, target);
+    runs.forEach(({ pair, r, phi, theta, d, b }) => {
+      document.getElementById(`calc-${pair.id}`).innerHTML = atobSteps(pair, target, r, phi, theta, d, b);
     });
   }
 
