@@ -62,6 +62,8 @@ type State struct {
 	Cards  map[int]Card
 	S      int
 	M      int
+	CW     int
+	CCW    int
 	Edit   Edit
 	Open   bool
 	Scroll float32
@@ -70,13 +72,24 @@ type State struct {
 func (s *State) Arm(sceneRoot string) { s.w = NewValueWriter(sceneRoot) }
 
 func (s State) Value(f Field) int {
-	switch f.Vector {
-	case VecS:
-		return s.S
-	case VecM:
-		return s.M
+	if p := s.Shared(f.Vector); p != nil {
+		return *p
 	}
 	return s.Cards[f.Node].Get(f)
+}
+
+func (s *State) Shared(v Vector) *int {
+	switch v {
+	case VecS:
+		return &s.S
+	case VecM:
+		return &s.M
+	case VecCW:
+		return &s.CW
+	case VecCCW:
+		return &s.CCW
+	}
+	return nil
 }
 
 var subscripts = []string{"₀", "₁", "₂", "₃", "₄", "₅", "₆", "₇", "₈", "₉"}
@@ -87,14 +100,16 @@ var compKeys = map[Comp]string{CompPhi: "φ", CompTheta: "θ", CompR: "r"}
 
 func keyOf(f Field) string {
 	switch f.Vector {
-	case VecK:
-		return "k" + sub(f.J)
 	case VecL:
 		return "L" + sub(f.J)
 	case VecS:
 		return "s"
 	case VecM:
 		return "m"
+	case VecCW:
+		return "cw"
+	case VecCCW:
+		return "ccw"
 	}
 	return compKeys[f.Comp]
 }
@@ -103,13 +118,11 @@ func titleOf(node int, f Field) string {
 	head := "node " + strconv.Itoa(node) + " · "
 	switch f.Vector {
 	case VecStart:
-		return head + "start" + sub(f.J)
-	case VecPoleOffset:
-		return head + "pole_offset" + sub(f.J)
-	case VecK:
-		return head + "k"
+		return head + "start"
+	case VecEnd:
+		return head + "end"
 	case VecL:
-		return head + "L"
+		return head + "links"
 	}
 	return "s"
 }
@@ -132,11 +145,7 @@ func groupsOf(node int) []group {
 }
 
 func fieldW(f Field) float32 {
-	value := valueField
-	if HasTick(f) {
-		value = tickValueField
-	}
-	return Panel.TextWidth(keyOf(f), KeyFontPx) + CellGapX + Panel.TextWidth(value, ValFontPx) + 2*CellPadX
+	return Panel.TextWidth(keyOf(f), KeyFontPx) + CellGapX + Panel.TextWidth(valueField, ValFontPx) + 2*CellPadX
 }
 
 func groupW(g group) float32 {
@@ -181,7 +190,7 @@ func Build(pills *Panel.PillStack, s State) Layout {
 		return lay
 	}
 
-	groups := []group{{title: "s · m", fields: []Field{{Vector: VecS, Comp: CompOne}, {Vector: VecM, Comp: CompOne}}}}
+	groups := []group{{title: "s · m · cw · ccw", fields: SharedFields}}
 	for _, node := range s.Nodes {
 		groups = append(groups, groupsOf(node)...)
 	}

@@ -23,12 +23,9 @@ func applyCardHit(md *MoveDispatch, f CardPanel.Field) {
 
 func applyCardStep(ctx context.Context, md *MoveDispatch, f CardPanel.Field, delta int) {
 	card := md.UI.Card.Cards[f.Node]
-	tick := CardPanel.TickOf(f)
-	start, t := CardPanel.Step(card.Get(f), card.Get(tick), md.UI.Card.S, delta)
-	for _, msg := range []CardPanel.EditMsg{{Field: tick, Value: t}, {Field: f, Value: start}} {
-		card.Set(msg.Field, msg.Value)
-		md.CardInboxes.Send(ctx, strconv.Itoa(f.Node), msg)
-	}
+	msg := CardPanel.EditMsg{Field: f, Value: CardPanel.Step(card.Get(f), delta)}
+	card.Set(msg.Field, msg.Value)
+	md.CardInboxes.Send(ctx, strconv.Itoa(f.Node), msg)
 	md.UI.Card.Cards[f.Node] = card
 	md.UI.EmitViewFrame(nil)
 }
@@ -43,17 +40,11 @@ func applyCardKey(ctx context.Context, md *MoveDispatch, key string) {
 	}
 	if ok {
 		if msg.Field.Vector.SceneWide() {
-			value, persist := &md.UI.Card.S, md.UI.PersistCardS
-			if msg.Field.Vector == CardPanel.VecM {
-				value, persist = &md.UI.Card.M, md.UI.PersistCardM
-			}
-			*value = msg.Value
-			if msg.Field.Vector == CardPanel.VecS {
-				for id, card := range md.UI.Card.Cards {
-					card.Tick = [CardPanel.NodeCount]CardPanel.Vec{}
-					md.UI.Card.Cards[id] = card
-				}
-			}
+			*md.UI.Card.Shared(msg.Field.Vector) = msg.Value
+			persist := map[CardPanel.Vector]func(int32){
+				CardPanel.VecS: md.UI.PersistCardS, CardPanel.VecM: md.UI.PersistCardM,
+				CardPanel.VecCW: md.UI.PersistCardCW, CardPanel.VecCCW: md.UI.PersistCardCCW,
+			}[msg.Field.Vector]
 			if persist != nil {
 				persist(int32(msg.Value))
 			}

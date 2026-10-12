@@ -72,17 +72,15 @@ func NewFromSpec(spec Topology.TopoSpec, sphere polar.SceneSphere, hasScene bool
 
 	md.UI.Tilt.Rows, md.UI.Tilt.Labels = Topology.TiltPanelRows(spec)
 	md.UI.Card.Nodes, md.UI.Card.Cards = Topology.CardPanelNodes(spec)
-	md.UI.Card.S = CardPanel.LoadCardScalar(Scenes.CardSFilePath(scenePath), CardPanel.DefaultS)
+	md.UI.Card.S = CardPanel.LoadCardScalar(Scenes.CardSFilePath(scenePath), CardPanel.DefaultS, 1)
 	if sc := spec.Constants; !CardPanel.SFits(md.UI.Card.S, sc.MaxIndexPhi, sc.MaxIndexTheta) {
 		fmt.Fprintf(os.Stderr, "card s: %s holds s = %d, but 12s does not divide the scene turn (%d φ, %d θ index steps) — using s = %d\n",
 			Scenes.CardSFilePath(scenePath), md.UI.Card.S, sc.MaxIndexPhi, sc.MaxIndexTheta, CardPanel.DefaultS)
 		md.UI.Card.S = CardPanel.DefaultS
 	}
-	for id, card := range md.UI.Card.Cards {
-		card.ClampTicks(md.UI.Card.S)
-		md.UI.Card.Cards[id] = card
-	}
-	md.UI.Card.M = CardPanel.LoadCardScalar(Scenes.CardMFilePath(scenePath), CardPanel.DefaultM)
+	md.UI.Card.M = CardPanel.LoadCardScalar(Scenes.CardMFilePath(scenePath), CardPanel.DefaultM, 1)
+	md.UI.Card.CW = CardPanel.LoadCardScalar(Scenes.CardCWFilePath(scenePath), CardPanel.DefaultCW, 0)
+	md.UI.Card.CCW = CardPanel.LoadCardScalar(Scenes.CardCCWFilePath(scenePath), CardPanel.DefaultCCW, 0)
 
 	md.UI.Rules.Nodes = Topology.RulePanelNodes(spec, func(id string) bool {
 		ng, ok := md.MR.NodeGeoms()[id]

@@ -18,19 +18,24 @@ func SFits(s, turnPhi, turnTheta int) bool {
 
 const DefaultM = 1
 
+const (
+	DefaultCW  = 1
+	DefaultCCW = 0
+)
+
 type Vector int
 
 const (
 	VecStart Vector = iota
-	VecPoleOffset
-	VecK
+	VecEnd
 	VecL
 	VecS
 	VecM
-	VecTick
+	VecCW
+	VecCCW
 )
 
-func (v Vector) SceneWide() bool { return v == VecS || v == VecM }
+func (v Vector) SceneWide() bool { return v == VecS || v == VecM || v == VecCW || v == VecCCW }
 
 type Comp int
 
@@ -76,65 +81,48 @@ func (v *Vec) set(c Comp, x int) {
 }
 
 type Card struct {
-	Start      [NodeCount]Vec
-	Tick       [NodeCount]Vec
-	PoleOffset [NodeCount]Vec
-	K          [NodeCount]int
-	L          [NodeCount]int
+	Start Vec
+	End   Vec
+	L     [NodeCount]int
 }
 
 func (c Card) Get(f Field) int {
-	i := f.J - 1
 	switch f.Vector {
 	case VecStart:
-		return c.Start[i].get(f.Comp)
-	case VecTick:
-		return c.Tick[i].get(f.Comp)
-	case VecPoleOffset:
-		return c.PoleOffset[i].get(f.Comp)
-	case VecK:
-		return c.K[i]
+		return c.Start.get(f.Comp)
+	case VecEnd:
+		return c.End.get(f.Comp)
 	case VecL:
-		return c.L[i]
+		return c.L[f.J-1]
 	}
-	panic(fmt.Sprintf("CardPanel.Card.Get: vector %d is not a node vector — s and m are scene-wide and are held beside the cards, not in one", f.Vector))
+	panic(fmt.Sprintf("CardPanel.Card.Get: vector %d is not a node vector — s, m, cw and ccw are scene-wide and are held beside the cards, not in one", f.Vector))
 }
 
 func (c *Card) Set(f Field, x int) {
-	i := f.J - 1
 	switch f.Vector {
 	case VecStart:
-		c.Start[i].set(f.Comp, x)
-	case VecTick:
-		c.Tick[i].set(f.Comp, x)
-	case VecPoleOffset:
-		c.PoleOffset[i].set(f.Comp, x)
-	case VecK:
-		c.K[i] = x
+		c.Start.set(f.Comp, x)
+	case VecEnd:
+		c.End.set(f.Comp, x)
 	case VecL:
-		c.L[i] = x
+		c.L[f.J-1] = x
 	default:
-		panic(fmt.Sprintf("CardPanel.Card.Set: vector %d is not a node vector — s and m are scene-wide and are held beside the cards, not in one", f.Vector))
+		panic(fmt.Sprintf("CardPanel.Card.Set: vector %d is not a node vector — s, m, cw and ccw are scene-wide and are held beside the cards, not in one", f.Vector))
 	}
 }
 
 var compNames = map[Comp]string{CompPhi: "phi", CompTheta: "theta", CompR: "r"}
 
 func (f Field) StateKey() string {
-	j := strconv.Itoa(f.J)
 	switch f.Vector {
 	case VecStart:
-		return "start-" + j + "-" + compNames[f.Comp]
-	case VecTick:
-		return "start-" + j + "-" + compNames[f.Comp] + "-tick"
-	case VecPoleOffset:
-		return "pole-offset-" + j + "-" + compNames[f.Comp]
-	case VecK:
-		return "k-" + j
+		return "start-" + compNames[f.Comp]
+	case VecEnd:
+		return "end-" + compNames[f.Comp]
 	case VecL:
-		return "l-" + j
+		return "l-" + strconv.Itoa(f.J)
 	}
-	panic(fmt.Sprintf("CardPanel.Field.StateKey: vector %d has no per-node state file — s and m are persisted by the view owner", f.Vector))
+	panic(fmt.Sprintf("CardPanel.Field.StateKey: vector %d has no per-node state file — s, m, cw and ccw are persisted by the view owner", f.Vector))
 }
 
 func Partners(node int) [NodeCount - 1]int {
@@ -150,28 +138,27 @@ func Partners(node int) [NodeCount - 1]int {
 }
 
 func NodeFields(node int) []Field {
-	var out []Field
-	for _, j := range Partners(node) {
-		out = append(out, Field{Node: node, Vector: VecStart, J: j, Comp: CompPhi})
-		out = append(out, Field{Node: node, Vector: VecStart, J: j, Comp: CompTheta})
-		out = append(out, Field{Node: node, Vector: VecStart, J: j, Comp: CompR})
+	out := []Field{
+		{Node: node, Vector: VecStart, Comp: CompPhi},
+		{Node: node, Vector: VecStart, Comp: CompTheta},
+		{Node: node, Vector: VecStart, Comp: CompR},
+		{Node: node, Vector: VecEnd, Comp: CompPhi},
+		{Node: node, Vector: VecEnd, Comp: CompTheta},
 	}
 	for _, j := range Partners(node) {
-		out = append(out, Field{Node: node, Vector: VecPoleOffset, J: j, Comp: CompPhi})
-		out = append(out, Field{Node: node, Vector: VecPoleOffset, J: j, Comp: CompTheta})
-	}
-	for _, j := range Partners(node) {
-		out = append(out, Field{Node: node, Vector: VecK, J: j, Comp: CompOne})
-	}
-	for j := 1; j <= NodeCount; j++ {
 		out = append(out, Field{Node: node, Vector: VecL, J: j, Comp: CompOne})
 	}
 	return out
 }
 
+var SharedFields = []Field{
+	{Vector: VecS, Comp: CompOne}, {Vector: VecM, Comp: CompOne},
+	{Vector: VecCW, Comp: CompOne}, {Vector: VecCCW, Comp: CompOne},
+}
+
 func CardFromState(node int, state map[string]int) Card {
 	var c Card
-	for _, f := range StateFields(node) {
+	for _, f := range NodeFields(node) {
 		c.Set(f, state[f.StateKey()])
 	}
 	return c
@@ -179,10 +166,15 @@ func CardFromState(node int, state map[string]int) Card {
 
 func Valid(f Field, x int) bool {
 	switch f.Vector {
-	case VecK, VecL:
+	case VecL, VecCW, VecCCW:
 		return x == 0 || x == 1
 	case VecS, VecM:
 		return x >= 1
+	case VecStart, VecEnd:
+		if f.Comp == CompR {
+			return x >= 0
+		}
+		return x >= 0 && x < TurnTicks
 	}
 	return true
 }

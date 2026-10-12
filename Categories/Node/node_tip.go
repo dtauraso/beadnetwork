@@ -15,6 +15,7 @@ type Tip struct {
 type TipPost struct {
 	TargetID string
 	Vec      polar.Polar
+	With     string
 }
 
 type Tips struct {
@@ -28,22 +29,41 @@ func (g *NodeGeometry) WireTips(out map[string]chan<- Tip, in []<-chan Tip) {
 }
 
 func (k *KindPosts) PostTips(tips []TipPost) {
-	k.post(func(p *KindPost) {
-		if p.Tips != nil {
-			tips = append(*p.Tips, tips...)
-		}
-		p.Tips = &tips
-	})
+	k.post(func(p *KindPost) { p.Tips = &tips })
 }
 
 func (g *NodeGeometry) sendTips(tips []TipPost) {
 	from := NodeWorldPos(g.geom)
+	arrows := make([]Vec3, 0, len(tips))
 	for _, tp := range tips {
-		at := TipPoint(from, tp.Vec)
-		g.tipCrumb(fmt.Sprintf("send to=%s from=%v vec(r %.3f phi %.4f theta %.4f) at=%v",
-			tp.TargetID, from, tp.Vec.R, tp.Vec.Phi, tp.Vec.Theta, at))
+		at, ok := g.tipAt(from, tp)
+		g.tipCrumb(fmt.Sprintf("send to=%s with=%q from=%v vec(r %.3f phi %.4f theta %.4f) at=%v placed=%t",
+			tp.TargetID, tp.With, from, tp.Vec.R, tp.Vec.Phi, tp.Vec.Theta, at, ok))
+		if !ok {
+			continue
+		}
+		arrows = append(arrows, at.Sub(from))
 		g.sendTip(Tip{From: g.id, At: at}, tp.TargetID)
 	}
+	g.tilt.SetStartVectors(arrows)
+}
+
+func (g *NodeGeometry) tipAt(from Vec3, tp TipPost) (Vec3, bool) {
+	if tp.With == "" {
+		return TipPoint(from, tp.Vec), true
+	}
+	idx, ok := g.PartnerIndex(tp.With)
+	if !ok {
+		return Vec3{}, false
+	}
+	gap := WorldPosAt(g.SceneCenter(), idx, g.Constants()).Sub(from)
+	half := gap.Length() / 2
+	rho2 := tp.Vec.R*tp.Vec.R - half*half
+	if half == 0 || rho2 < 0 {
+		return Vec3{}, false
+	}
+	on := polar.Polar{R: math.Sqrt(rho2), Phi: tp.Vec.Phi, Theta: tp.Vec.Theta}
+	return from.Add(gap.Scale(0.5)).Add(Vec3(polar.Polar2cart(on))), true
 }
 
 func (g *NodeGeometry) sendTip(t Tip, to string) {

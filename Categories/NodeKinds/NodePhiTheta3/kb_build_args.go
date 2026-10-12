@@ -12,6 +12,8 @@ type deps interface {
 	CardEditChan(name string) any
 	CardSSeed() int
 	CardMSeed() int
+	CardCWSeed() int
+	CardCCWSeed() int
 	LoadShared(key string, mk func() any) any
 }
 
@@ -65,6 +67,20 @@ func (a BuildArgs) M() int {
 		return CardPanel.DefaultM
 	}
 	return a.Deps.CardMSeed()
+}
+
+func (a BuildArgs) CW() int {
+	if a.Deps == nil {
+		return CardPanel.DefaultCW
+	}
+	return a.Deps.CardCWSeed()
+}
+
+func (a BuildArgs) CCW() int {
+	if a.Deps == nil {
+		return CardPanel.DefaultCCW
+	}
+	return a.Deps.CardCCWSeed()
 }
 
 type kindBuilder struct {

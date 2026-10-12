@@ -17,6 +17,10 @@ type BuildDeps struct {
 
 	CardM int
 
+	CardCW int
+
+	CardCCW int
+
 	loadShared map[string]any
 }
 
@@ -55,6 +59,10 @@ func (d BuildDeps) CardEditChan(name string) any {
 func (d BuildDeps) CardSSeed() int { return d.CardS }
 
 func (d BuildDeps) CardMSeed() int { return d.CardM }
+
+func (d BuildDeps) CardCWSeed() int { return d.CardCW }
+
+func (d BuildDeps) CardCCWSeed() int { return d.CardCCW }
 
 func (d BuildDeps) SelfDriveGeom(name string) any {
 	if d.ClaimSelfDriveGeom == nil {

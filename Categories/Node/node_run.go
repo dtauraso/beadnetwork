@@ -92,9 +92,6 @@ func (g *NodeGeometry) applyKindPosts() {
 	if p.Lattice != nil {
 		g.tilt.SetLatticePoints(*p.Lattice)
 	}
-	if p.Starts != nil {
-		g.tilt.SetStartVectors(*p.Starts)
-	}
 	if p.Tips != nil {
 		g.sendTips(*p.Tips)
 	}
