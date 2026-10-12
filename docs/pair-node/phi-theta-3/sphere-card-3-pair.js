@@ -1,0 +1,35 @@
+const SPHERE_CARD_3_PAIR_FORMULAS = String.raw`\[
+\begin{array}{@{}l@{\;}c@{\;}l@{}}
+\rlap{\textbf{the pair — } a \textbf{ and } b \textbf{ are doubly linked}} & & \\[3pt]
+a &=& \text{the centre} \\[3pt]
+b &=& \text{the rotating node — it holds the rotation: start}_{b}\text{, end}_{b} \\[10pt]
+\rlap{\textbf{two links}} & & \\[3pt]
+b \to a &:& b \text{ is linked to the node its position is derived from} \\[3pt]
+a \to b &:& a \text{ is linked to the node its vector is drawn to} \\[3pt]
+& & \text{the vector is on the } a \to b \text{ link — the link and the vector are one thing} \\[10pt]
+\rlap{\textbf{what the links carry}} & & \\[3pt]
+& & \text{only what the two need from each other} \\[3pt]
+b &:& \text{needs } C_{a} \text{ to derive } C_{b} = C_{a} + d \\[3pt]
+a &:& \text{needs where } b \text{ is, to draw its vector to } b \\[3pt]
+& & \text{no node sets another node's position — } b \text{ places itself} \\[10pt]
+\rlap{\textbf{one centre, many rotating nodes}} & & \\[3pt]
+& & a \text{ is doubly linked to each } b_{i} \\[3pt]
+C_{b_{i}} &=& C_{a} + d_{i} \quad \text{each } b_{i} \text{ holds its own rotation; they do not constrain each other} \\[10pt]
+\rlap{\textbf{triangle — every node is a centre and a rotating node}} & & \\[3pt]
+& & \text{each pair doubly linked: 6 links for 3 nodes} \\[3pt]
+& & \text{each node derives its position from both centres; both must land on the same point} \\[3pt]
+d_{12} + d_{23} + d_{31} &=& 0 \quad \text{the loop closes} \\[3pt]
+& & \text{every start and end names the same rotation, so it stays closed} \\[3pt]
+& & \text{and the triangle turns as one piece about } G = (C_{1} + C_{2} + C_{3}) / 3
+\end{array}
+\]`;
+
+function sphereCard3PairMath(tex) {
+  const box = document.createElement('div');
+  box.textContent = tex;
+  return box;
+}
+
+for (const host of document.querySelectorAll('[data-sphere-card-3-pair]')) {
+  host.appendChild(sphereCard3PairMath(SPHERE_CARD_3_PAIR_FORMULAS));
+}
