@@ -139,6 +139,15 @@
     render();
   });
   cv.addEventListener('pointerup', () => { drag = null; });
+  [['phi', 'sphi'], ['th', 'sth']].forEach(([v, s]) => {
+    const both = document.getElementById(`${s}-both`);
+    const show = () => { document.getElementById(`v${v}-both`).textContent = `${both.value}°`; };
+    show();
+    both.addEventListener('input', () => {
+      PAIRS.forEach(p => { document.getElementById(`${s}-${p.id}`).value = both.value; });
+      show();
+    });
+  });
   document.querySelectorAll('.sliders input').forEach(s => s.addEventListener('input', render));
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change', render);
   render();
