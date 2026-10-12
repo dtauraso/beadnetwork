@@ -6,7 +6,7 @@ b &=& \text{the rotating node — it holds the rotation: start}_{b}\text{, end}_
 \rlap{\textbf{two channels}} & & \\[3pt]
 b \to a &:& b \text{'s channel to the node its position is derived from} \\[3pt]
 a \to b &:& a \text{'s channel to the node its vector is drawn to} \\[3pt]
-& & \text{the vector is on the } a \to b \text{ channel — the channel and the vector are one thing} \\[10pt]
+& & \text{the vector is on the } a \to b \text{ channel} \\[10pt]
 \rlap{\textbf{what the channels carry}} & & \\[3pt]
 & & \text{only what the two need from each other} \\[3pt]
 b &:& \text{needs } C_{a} \text{ to derive } C_{b} = C_{a} + d \\[3pt]
