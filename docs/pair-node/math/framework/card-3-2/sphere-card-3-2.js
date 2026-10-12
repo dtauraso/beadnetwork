@@ -26,8 +26,8 @@ k_{j} &\in& \{0, 1\} \\[3pt]
   &=& \begin{bmatrix} 3s \\ 3s \end{bmatrix} \\[6pt]
 \begin{bmatrix} k_{2} \\ k_{3} \end{bmatrix}
   &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
-\begin{bmatrix} L_{1} \\ L_{2} \\ L_{3} \end{bmatrix}
-  &=& \begin{bmatrix} 0 \\ 1 \\ 1 \end{bmatrix} \\[10pt]
+\begin{bmatrix} L_{2} \\ L_{3} \end{bmatrix}
+  &=& \begin{bmatrix} 1 \\ 1 \end{bmatrix} \\[10pt]
 \textbf{node 2} & & \\[3pt]
 \begin{bmatrix} \text{start}_{1\,\varphi} \\ \text{start}_{1\,\theta} \\ \text{start}_{1\,r} \end{bmatrix}
   &=& \begin{bmatrix} 0 \\ 0 \\ 0 \end{bmatrix} \\[6pt]
@@ -39,8 +39,8 @@ k_{j} &\in& \{0, 1\} \\[3pt]
   &=& \begin{bmatrix} 1s \\ 1s \end{bmatrix} \\[6pt]
 \begin{bmatrix} k_{1} \\ k_{3} \end{bmatrix}
   &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
-\begin{bmatrix} L_{1} \\ L_{2} \\ L_{3} \end{bmatrix}
-  &=& \begin{bmatrix} 1 \\ 0 \\ 1 \end{bmatrix} \\[10pt]
+\begin{bmatrix} L_{1} \\ L_{3} \end{bmatrix}
+  &=& \begin{bmatrix} 1 \\ 1 \end{bmatrix} \\[10pt]
 \textbf{node 3} & & \\[3pt]
 \begin{bmatrix} \text{start}_{1\,\varphi} \\ \text{start}_{1\,\theta} \\ \text{start}_{1\,r} \end{bmatrix}
   &=& \begin{bmatrix} 0 \\ 0 \\ 0 \end{bmatrix} \\[6pt]
@@ -52,8 +52,8 @@ k_{j} &\in& \{0, 1\} \\[3pt]
   &=& \begin{bmatrix} 1s \\ 1s \end{bmatrix} \\[6pt]
 \begin{bmatrix} k_{1} \\ k_{2} \end{bmatrix}
   &=& \begin{bmatrix} 0 \\ 0 \end{bmatrix} \\[6pt]
-\begin{bmatrix} L_{1} \\ L_{2} \\ L_{3} \end{bmatrix}
-  &=& \begin{bmatrix} 1 \\ 1 \\ 0 \end{bmatrix} \\[10pt]
+\begin{bmatrix} L_{1} \\ L_{2} \end{bmatrix}
+  &=& \begin{bmatrix} 1 \\ 1 \end{bmatrix} \\[10pt]
 \text{cw} &\in& \{0, 1\} \\[6pt]
 \text{ccw} &\in& \{0, 1\}
 \end{array}
