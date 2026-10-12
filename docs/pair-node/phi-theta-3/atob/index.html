@@ -10,16 +10,19 @@
   :root {
     --bg: #fbfaf7; --ink: #1d1d1b; --muted: #6b6a66; --line: #e2ded5; --card: #ffffff;
     --wire: #8c887f; --global: #c2410c; --local: #1d4ed8; --local2: #be123c; --phi: #0f766e; --theta: #a21caf;
+    --circle: #a16207;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
       --bg: #161614; --ink: #ecebe6; --muted: #a09e97; --line: #2f2e2a; --card: #1e1e1b;
       --wire: #77746c; --global: #fb923c; --local: #60a5fa; --local2: #fb7185; --phi: #2dd4bf; --theta: #e879f9;
+      --circle: #facc15;
     }
   }
   :root[data-theme="dark"] {
     --bg: #161614; --ink: #ecebe6; --muted: #a09e97; --line: #2f2e2a; --card: #1e1e1b;
     --wire: #77746c; --global: #fb923c; --local: #60a5fa; --local2: #fb7185; --phi: #2dd4bf; --theta: #e879f9;
+    --circle: #facc15;
   }
   body { font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
   main { max-width: 1080px; margin: 0 auto; padding: 24px 16px 48px; }
@@ -70,6 +73,7 @@
         <span><span class="sw" style="background:var(--phi)"></span>each vector's φ circle (its θ and r held)</span>
         <span><span class="sw" style="background:var(--theta)"></span>each vector's θ circle (its φ and r held)</span>
         <span><span class="sw" style="background:var(--global)"></span>O→b, read from O</span>
+        <span><span class="sw" style="background:var(--circle)"></span>the shared circle: every b both nodes reach with their r held</span>
       </div>
       <canvas id="view" width="900" height="900" aria-label="Spheres of radius r about nodes a and c, with the a to b and c to b vectors"></canvas>
       <div class="hint">Drag the picture to look round the spheres.</div>

@@ -87,6 +87,25 @@
     curve(thPath, pair.C, css('--theta'), 4);
   }
 
+  function sharedCircle([ra, rc]) {
+    const A = ra.pair.C, axis = sub(rc.pair.C, A), dist = Math.hypot(...axis);
+    const u = axis.map(v => v / dist);
+    const h = (dist * dist + ra.r * ra.r - rc.r * rc.r) / (2 * dist);
+    const rho = Math.sqrt(Math.max(0, ra.r * ra.r - h * h));
+    const centre = add(A, u.map(v => v * h));
+    const cross = (p, q) => [p[1] * q[2] - p[2] * q[1], p[2] * q[0] - p[0] * q[2], p[0] * q[1] - p[1] * q[0]];
+    const seed = Math.abs(u[1]) < 0.9 ? [0, 1, 0] : [1, 0, 0];
+    const e1 = cross(u, seed), n1 = Math.hypot(...e1), f1 = e1.map(v => v / n1), f2 = cross(u, f1);
+    const pts = [];
+    for (let t = 0; t <= 360; t += 3) {
+      const c = Math.cos(rad(t)), s = Math.sin(rad(t));
+      pts.push(add(centre, f1.map((v, i) => rho * (c * v + s * f2[i]))));
+    }
+    ctx.setLineDash([12, 8]);
+    curve(pts, centre, css('--circle'), 4);
+    ctx.setLineDash([]);
+  }
+
   function vectors(pair, d, b) {
     const color = css(pair.color), n = pair.node;
     triangle([O, pair.C, b], color);
@@ -122,6 +141,7 @@
       return { pair, r, phi, theta, d, b: add(pair.C, d) };
     });
     runs.forEach(({ pair, r, phi, theta }) => sphere(pair, r, phi, theta));
+    sharedCircle(runs);
     runs.forEach(({ pair, d, b }) => vectors(pair, d, b));
     dot(O, css('--ink'), 'O');
     runs.forEach(({ pair, b }, i) => dot(b, css(pair.color), `4 b_${pair.node}`, true, i === 0 ? -12 : 34));
