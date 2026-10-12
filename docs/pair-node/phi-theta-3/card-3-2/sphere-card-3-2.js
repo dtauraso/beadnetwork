@@ -12,7 +12,9 @@ L_{j} &=& 1 \text{ if the node has an outgoing link to node } j \text{, } 0 \tex
 \text{start}_{\varphi},\, \text{start}_{\theta} &\in& \{0,\, 1s,\, \ldots,\, 11s\} \\[3pt]
 \text{end}_{\varphi},\, \text{end}_{\theta} &\in& \{0,\, 1s,\, \ldots,\, 11s\} \\[3pt]
 \text{cw} &=& \text{clockwise} \\[3pt]
-\text{ccw} &=& \text{counterclockwise} \\[10pt]
+\text{ccw} &=& \text{counterclockwise} \\[3pt]
+\text{cw} &\in& \{0, 1\} \\[3pt]
+\text{ccw} &\in& \{0, 1\} \\[10pt]
 \textbf{node 1} & & \\[3pt]
 \begin{bmatrix} \text{start}_{\varphi} \\ \text{start}_{\theta} \\ \text{start}_{r} \end{bmatrix}
   &=& \begin{bmatrix} 0 \\ 0 \\ 0 \end{bmatrix} \\[6pt]
@@ -33,9 +35,7 @@ L_{j} &=& 1 \text{ if the node has an outgoing link to node } j \text{, } 0 \tex
 \begin{bmatrix} \text{end}_{\varphi} \\ \text{end}_{\theta} \end{bmatrix}
   &=& \begin{bmatrix} 2s \\ 2s \end{bmatrix} \\[6pt]
 \begin{bmatrix} L_{1} \\ L_{2} \end{bmatrix}
-  &=& \begin{bmatrix} 1 \\ 1 \end{bmatrix} \\[10pt]
-\text{cw} &\in& \{0, 1\} \\[6pt]
-\text{ccw} &\in& \{0, 1\}
+  &=& \begin{bmatrix} 1 \\ 1 \end{bmatrix}
 \end{array}
 \]
 ${SPHERE_CARD_3_2_START}`;
