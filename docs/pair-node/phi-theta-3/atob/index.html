@@ -103,7 +103,7 @@
       <ol class="calc" id="calc-cb"></ol>
       <ol>
         <li><b>One b, three ways to move it.</b> The both sliders move b over the shared sphere; the a→b sliders turn a's vector in a's view, r held; the c→b sliders turn c's vector in c's view, r held. Whichever you move last drives b, and the others read their angles back off it.</li>
-        <li><b>Local first.</b> The other node follows by adding two local vectors, no centre used: d<sub>cb</sub> = d<sub>ca</sub> + d<sub>ab</sub>, or d<sub>ab</sub> = d<sub>ac</sub> + d<sub>cb</sub>.</li>
+        <li><b>Local first.</b> The other node finds where b went by adding two local vectors, no centre used: d<sub>ca</sub> + d<sub>ab</sub>, or d<sub>ac</sub> + d<sub>cb</sub>. It reads its own r, φ, θ off that, then builds its own vector from them. Both vectors are built the same way: polar_to_cart(r, φ, θ).</li>
         <li><b>Global last.</b> Each pair then draws the new centre from the global centre on its own: O→a + a→b = O→b<sub>a</sub>, and O→c + c→b = O→b<sub>c</sub>. Both land on the same b.</li>
       </ol>
     </div>
