@@ -41,11 +41,11 @@ Reset puts `cur` back at `start · s`. An edit to start does the same.
 
 ## Local to global — shown in the visual
 
-Nothing crosses between nodes, and no node sets another node's position. The global cards only show
+Nothing crosses between nodes, and no node sets another node's position. The each-pair card only shows
 each node's own local data.
 
 1. **The node** is drawn at its own centre from its scene index:
-   `C_a = O + polar_to_cart(I_r·c_r, I_φ·c_φ, I_θ·c_θ)` (the scene card).
+   `C_a = O + polar_to_cart(I_r·c_r, I_φ·c_φ, I_θ·c_θ)` (the pair card).
 2. **Each a→b vector** (the each-pair card), for each b with a's `L_b = 1`, from a's own start:
    `(R, φ, θ) = (start_r·ρ, cur_φ·2π/12s, cur_θ·2π/12s)`, ρ the node radius,
    `d = polar_to_cart(R, φ, θ)`, drawn as an arrow from `C_a` to `C_a + d`.
