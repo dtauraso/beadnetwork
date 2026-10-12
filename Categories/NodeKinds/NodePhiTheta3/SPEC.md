@@ -1,7 +1,7 @@
 # NodePhiTheta3
 
 The pair φ, θ 3 tab's node, running the three-node phi theta card
-(`docs/pair-node/math/framework/card-3-2/sphere-card-3-2.js`). The card is the source; this file and
+(`docs/pair-node/phi-theta-3/card-3-2/sphere-card-3-2.js`). The card is the source; this file and
 `node.go` follow it. The card is local and polar-only: every number below is in ticks of
 `s`, and nothing on it names a global centre.
 

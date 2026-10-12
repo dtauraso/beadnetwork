@@ -1,0 +1,54 @@
+<meta charset="utf-8">
+<title>Pair φ, θ 3 — the three-node card</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../pair-base.css">
+<link rel="stylesheet" href="../pair-layout.css">
+<link rel="stylesheet" href="../pair-typography.css">
+<link rel="stylesheet" href="../pair-panels.css">
+<link rel="stylesheet" href="../framework.css">
+<script src="../mathjax.js"></script>
+<script src="../port.js"></script>
+<script src="../pair.js" defer></script>
+
+<header>
+  <h1>Pair φ, θ 3 — the three-node card</h1>
+  <div class="sub">the editor's "pair φ, θ 3" tab — Categories/NodeKinds/NodePhiTheta3</div>
+</header>
+
+<nav>
+  <a href="../phi-2/index.html">Pair tabs</a>
+  <a class="on" href="index.html">Three-node card</a>
+  <a href="atob/index.html">a→b vectors</a>
+</nav>
+
+<main class="onesize">
+  <div class="grid">
+
+    <p class="warn" id="mathwarn" hidden>The typesetter did not load, so the formulas are showing as
+      source. It is fetched from a CDN — reconnect and reload.</p>
+
+    <h4 class="secname">Local node vectors — phi, theta, three nodes</h4>
+
+    <div class="card wide" data-sphere-card-3-2></div>
+
+    <h4 class="secname">Local to global — each pair: b is where a→b says</h4>
+
+    <div class="card wide" data-sphere-card-3-rotation></div>
+
+    <p class="code-links">Code — b where a→b says: <span data-src="Categories/NodeKinds/NodePhiTheta3/global.go#startVec">startVec</span> (the a→b vector) → <span data-src="Categories/NodeKinds/NodePhiTheta3/tips.go#placePartners">placePartners</span> (from <span data-src="Categories/NodeKinds/NodePhiTheta3/panel_input.go#applyStart">applyStart</span>, <span data-src="Categories/NodeKinds/NodePhiTheta3/panel_input.go#applyEdit">applyEdit</span>, <span data-src="Categories/NodeKinds/NodePhiTheta3/round.go#round">round</span>, load) → <span data-src="Categories/Node/node_tip.go#sendTips">sendTips</span> (a's centre + vector) → <span data-src="Categories/Node/node_tip.go#takeTip">takeTip</span> (b goes there) · index: <span data-src="Categories/Node/node_start_arrows.go#TipIndex">TipIndex</span></p>
+
+    <p><a href="atob/index.html">Diagram: the a→b and c→b vectors, each on its own sphere — two triangles, each computed on its own</a></p>
+
+    <h4 class="secname">Local to global — the scene sphere: a node's centre and its index</h4>
+
+    <div class="card wide" data-sphere-card-3-global></div>
+
+    <p class="code-links">Code: <span data-src="Categories/Vectors/polar/polar.go#Polar2cart">Polar2cart</span> (polar_to_cart) · <span data-src="Categories/Vectors/polar/polar.go#Cart2polar">Cart2polar</span> (cart_to_polar) · 1. <span data-src="Categories/Node/geom_node_geom.go#NodeWorldPos">NodeWorldPos</span> · 2. <span data-src="Categories/Node/node_start_arrows.go#TipIndex">TipIndex</span></p>
+
+  </div>
+</main>
+
+<script src="card-3-2/sphere-card-3-2-start.js"></script>
+<script src="card-3-2/sphere-card-3-2.js"></script>
+<script src="sphere-card-3-rotation.js"></script>
+<script src="sphere-card-3-global.js"></script>

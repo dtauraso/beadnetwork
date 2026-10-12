@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pair node — Cases — the two ties</title>
+  <link rel="stylesheet" href="../../../pair-base.css">
+  <link rel="stylesheet" href="../../../pair-layout.css">
+  <link rel="stylesheet" href="../../../pair-typography.css">
+  <link rel="stylesheet" href="../../../pair-panels.css">
+  <link rel="stylesheet" href="../../../pair-diagrams.css">
+  <link rel="stylesheet" href="../../../pair-diagrams-tables.css">
+  <script src="../../../port.js"></script>
+  <script src="../../../pair.js" defer></script>
+</head>
+
+<body>
+
+  <header>
+    <h1>Cases — the two ties</h1>
+    <div class="sub">the two ties in the case grid, and which way each breaks</div>
+  </header>
+
+  <nav>
+    <a href="../../index.html">Pair tabs</a>
+    <a href="../../index.html">Index</a>
+    <a href="index.html">&larr; back to Cases</a>
+  </nav>
+
+  <main>
+
+    <div class="grid">
+
+      <div class="card wide">
+        <h2>There is no tie to break</h2>
+        <div class="cap">The rule asks two questions in order — is the TOP inside a quarter turn of the
+          arrival, then is the BOTTOM
+          (<span data-src="Categories/NodeKinds/NodePhi/tiltring/rules.go#Offset">offset</span>) — and the two can never
+          both be true: the ends are a half turn apart, so an arrival inside a quarter of one is outside a
+          quarter of the other. Checked over every arrival on 12-, 24- and 48-point rings: both inside, 0
+          cases. So no ordering convention is doing any work, and the earlier tie-breaking ≤ is gone with
+          the count it compared.</div>
+        <div class="cap">What remains is the third branch: NEITHER end inside a quarter turn, which is the
+          halt rather than a tie — 108 of the 576 arrivals on a 24-point ring.</div>
+      </div>
+
+    </div>
+  </main>
+</body>
+
+</html>

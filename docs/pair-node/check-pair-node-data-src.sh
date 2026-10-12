@@ -9,7 +9,7 @@ cd "$REPO_ROOT"
 fail=0
 note() { echo "check-pair-node-data-src: $*" >&2; fail=1; }
 
-refs=$(grep -ho 'data-src="[^"]*"' docs/pair-node/*.html docs/pair-node/*/*.html docs/pair-node/*/*/*.html 2>/dev/null \
+refs=$(grep -rho --include='*.html' 'data-src="[^"]*"' docs/pair-node 2>/dev/null \
   | sed -E 's/^data-src="//; s/"$//' | sort -u)
 
 if [ -z "$refs" ]; then
