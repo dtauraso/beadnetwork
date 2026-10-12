@@ -48,7 +48,9 @@ each node's own local data.
    `C_a = O + polar_to_cart(I_r·c_r, I_φ·c_φ, I_θ·c_θ)` (the scene card).
 2. **Each a→b vector** (the each-pair card), for each b with a's `L_b = 1`, from a's own start:
    `(R, φ, θ) = (start_r·ρ, cur_φ·2π/12s, cur_θ·2π/12s)`, ρ the node radius,
-   `d = polar_to_cart(R, φ, θ)`, drawn as an arrow from `C_a` to `C_a + d`.
+   `d = polar_to_cart(R, φ, θ)`, drawn as an arrow from `C_a` to `C_a + d`, and b goes to its tip:
+   a copy of b is drawn at `C_b = C_a + d`. Each pair on its own — b linked by two nodes is drawn at
+   both tips, and b's own centre stays at its index.
 
 a redraws its vectors when its start moves, an edit changes its start, links or s, or the start button.
 

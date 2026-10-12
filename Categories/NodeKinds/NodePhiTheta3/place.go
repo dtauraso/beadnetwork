@@ -5,6 +5,7 @@ import (
 	"math"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/CardPanel"
+	"github.com/dtauraso/beadnetwork/Categories/Node/TiltVectors"
 	"github.com/dtauraso/beadnetwork/Categories/Vectors/polar"
 )
 
@@ -17,10 +18,10 @@ func (n *NodePhiTheta3) vector() polar.Polar {
 }
 
 func (n *NodePhiTheta3) postVectors() {
-	var out []polar.Polar
-	for _, j := range n.Partners {
+	var out []TiltVectors.StartVector
+	for i, j := range n.Partners {
 		if n.Card.L[j-1] == 1 {
-			out = append(out, n.vector())
+			out = append(out, TiltVectors.StartVector{ToRow: n.partnerRows[i], Vec: n.vector()})
 		}
 	}
 	n.geom.KindPosts().PostStartVectors(out)

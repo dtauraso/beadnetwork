@@ -1,7 +1,7 @@
 package Node
 
 import (
-	"github.com/dtauraso/beadnetwork/Categories/Vectors/polar"
+	"github.com/dtauraso/beadnetwork/Categories/Node/TiltVectors"
 	"github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
 )
 
@@ -29,7 +29,7 @@ type KindPost struct {
 	Rounds      *RoundsPost
 	Lattice     *int32
 	Ticks       *int32
-	Starts      *[]polar.Polar
+	Starts      *[]TiltVectors.StartVector
 	Center      *polarindex.Index
 	FromPartner *PartnerVectorPost
 }
@@ -93,7 +93,7 @@ func (k *KindPosts) PostLatticePoints(points int32) {
 	k.post(func(p *KindPost) { p.Lattice = &points })
 }
 
-func (k *KindPosts) PostStartVectors(v []polar.Polar) {
+func (k *KindPosts) PostStartVectors(v []TiltVectors.StartVector) {
 	k.post(func(p *KindPost) { p.Starts = &v })
 }
 

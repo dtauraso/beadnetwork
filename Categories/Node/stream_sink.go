@@ -67,6 +67,7 @@ func nodeStateFrom(f NodeFrameInput) NodeState {
 		TiltArrows:       f.TiltArrows,
 		ChannelVectors:   f.ChannelVectors,
 		TickMarks:        f.TickMarks,
+		TipCopies:        f.TipCopies,
 		Selected:         f.Selected,
 		KindID:           f.KindID,
 		Hovered:          f.Hovered,
