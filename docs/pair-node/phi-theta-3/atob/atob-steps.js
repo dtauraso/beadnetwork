@@ -31,7 +31,7 @@ function atobBoth({ driver, held, both, vec, to, gap, common, m }) {
     ...where]);
 }
 
-function atobSteps(pair, p, d, tip, { driver, mover, linked, vec, to, moved }) {
+function atobSteps(pair, p, d, head, { driver, mover, linked, vec, to, moved }) {
   const n = pair.node, own = `${n}b`;
   const build = ['local: build the vector', `d_${own} = polar_to_cart(r, φ, θ) = (r·sinφ·cosθ, r·cosφ, r·sinφ·sinθ) = ${atobPt(d)}`,
     `${n} builds its own vector from its own r, φ, θ; starts at ${n}`];
@@ -54,7 +54,7 @@ function atobSteps(pair, p, d, tip, { driver, mover, linked, vec, to, moved }) {
   return atobList([
     [pair.cls, `node ${n}`, `C_${n} = ${atobPt(pair.C)}`, 'where the vector starts'],
     ...local.map(([name, eq, note]) => [pair.cls, name, eq, note]),
-    [pair.cls, 'global, last: the new centre', `b_${n} = C_${n} + d_${own} = ${atobPt(tip)}`,
+    [pair.cls, 'global, last: the new centre', `b_${n} = C_${n} + d_${own} = ${atobPt(head)}`,
       `the only global step: O→${n} + ${n}→b = O→b_${n}`],
   ]);
 }
