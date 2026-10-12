@@ -3,25 +3,31 @@ package Node
 import (
 	"fmt"
 	"math"
+	"sort"
 
 	"github.com/dtauraso/beadnetwork/Categories/Vectors/polar"
 )
 
 type Tip struct {
-	From string
-	At   Vec3
+	From   string
+	Centre Vec3
+	Vec    polar.Polar
+	Shared bool
+	Drop   bool
 }
 
 type TipPost struct {
 	TargetID string
 	Vec      polar.Polar
 	With     string
+	Drop     bool
 }
 
 type Tips struct {
 	placing *Vec3
 	out     map[string]chan<- Tip
 	in      []<-chan Tip
+	told    map[string]Tip
 }
 
 func (g *NodeGeometry) WireTips(out map[string]chan<- Tip, in []<-chan Tip) {
@@ -34,36 +40,11 @@ func (k *KindPosts) PostTips(tips []TipPost) {
 
 func (g *NodeGeometry) sendTips(tips []TipPost) {
 	from := NodeWorldPos(g.geom)
-	arrows := make([]Vec3, 0, len(tips))
 	for _, tp := range tips {
-		at, ok := g.tipAt(from, tp)
-		g.tipCrumb(fmt.Sprintf("send to=%s with=%q from=%v vec(r %.3f phi %.4f theta %.4f) at=%v placed=%t",
-			tp.TargetID, tp.With, from, tp.Vec.R, tp.Vec.Phi, tp.Vec.Theta, at, ok))
-		if !ok {
-			continue
-		}
-		arrows = append(arrows, at.Sub(from))
-		g.sendTip(Tip{From: g.id, At: at}, tp.TargetID)
+		g.tipCrumb(fmt.Sprintf("send to=%s with=%q drop=%t from=%v vec(r %.3f phi %.4f theta %.4f)",
+			tp.TargetID, tp.With, tp.Drop, from, tp.Vec.R, tp.Vec.Phi, tp.Vec.Theta))
+		g.sendTip(Tip{From: g.id, Centre: from, Vec: tp.Vec, Shared: tp.With != "", Drop: tp.Drop}, tp.TargetID)
 	}
-	g.tilt.SetStartVectors(arrows)
-}
-
-func (g *NodeGeometry) tipAt(from Vec3, tp TipPost) (Vec3, bool) {
-	if tp.With == "" {
-		return TipPoint(from, tp.Vec), true
-	}
-	idx, ok := g.PartnerIndex(tp.With)
-	if !ok {
-		return Vec3{}, false
-	}
-	gap := WorldPosAt(g.SceneCenter(), idx, g.Constants()).Sub(from)
-	half := gap.Length() / 2
-	rho2 := tp.Vec.R*tp.Vec.R - half*half
-	if half == 0 || rho2 < 0 {
-		return Vec3{}, false
-	}
-	on := polar.Polar{R: math.Sqrt(rho2), Phi: tp.Vec.Phi, Theta: tp.Vec.Theta}
-	return from.Add(gap.Scale(0.5)).Add(Vec3(polar.Polar2cart(on))), true
 }
 
 func (g *NodeGeometry) sendTip(t Tip, to string) {
@@ -81,28 +62,83 @@ func (g *NodeGeometry) sendTip(t Tip, to string) {
 }
 
 func (g *NodeGeometry) drainTips() {
+	heard := false
 	for _, ch := range g.msg.tips.in {
 		for {
 			select {
 			case t := <-ch:
-				g.takeTip(t)
+				g.hearTip(t)
+				heard = true
 				continue
 			default:
 			}
 			break
 		}
 	}
+	if heard {
+		g.takeTips()
+	}
 }
 
-func (g *NodeGeometry) takeTip(t Tip) {
-	if math.IsNaN(t.At.X) || math.IsNaN(t.At.Y) || math.IsNaN(t.At.Z) {
-		panic(fmt.Sprintf("Node.takeTip: node %s was sent a NaN tip by node %s", g.id, t.From))
+func (g *NodeGeometry) hearTip(t Tip) {
+	if math.IsNaN(t.Centre.X) || math.IsNaN(t.Centre.Y) || math.IsNaN(t.Centre.Z) {
+		panic(fmt.Sprintf("Node.hearTip: node %s was sent a NaN centre by node %s", g.id, t.From))
 	}
-	g.tipCrumb(fmt.Sprintf("placed by=%s at=%v", t.From, t.At))
 	tr := &g.msg.tips
-	tr.placing = &t.At
-	g.msg.CommitLocal(g.id, TipIndex(t.At, g.SceneCenter(), g.Constants()))
+	if tr.told == nil {
+		tr.told = map[string]Tip{}
+	}
+	if t.Drop {
+		delete(tr.told, t.From)
+		return
+	}
+	tr.told[t.From] = t
+}
+
+func (g *NodeGeometry) takeTips() {
+	tr := &g.msg.tips
+	ids := make([]string, 0, len(tr.told))
+	for id := range tr.told {
+		ids = append(ids, id)
+	}
+	sort.Strings(ids)
+	placers := make([]Vec3, 0, len(ids))
+	for _, id := range ids {
+		placers = append(placers, tr.told[id].Centre)
+	}
+	g.tilt.SetStartVectors(placers)
+
+	at, miss := tipFrom(tr.told, ids)
+	g.tipCrumb(fmt.Sprintf("placed by=%v at=%v miss=%q", ids, at, miss))
+	if miss != "" {
+		return
+	}
+	tr.placing = &at
+	g.msg.CommitLocal(g.id, TipIndex(at, g.SceneCenter(), g.Constants()))
 	tr.placing = nil
+}
+
+func tipFrom(told map[string]Tip, ids []string) (Vec3, string) {
+	var shared []Tip
+	for _, id := range ids {
+		if t := told[id]; !t.Shared {
+			return TipPoint(t.Centre, t.Vec), ""
+		} else {
+			shared = append(shared, t)
+		}
+	}
+	if len(shared) < 2 {
+		return Vec3{}, fmt.Sprintf("%d of the 2 centres it turns about have spoken", len(shared))
+	}
+	a, b := shared[0], shared[1]
+	gap := b.Centre.Sub(a.Centre)
+	half := gap.Length() / 2
+	rho2 := a.Vec.R*a.Vec.R - half*half
+	if half == 0 || rho2 < 0 {
+		return Vec3{}, fmt.Sprintf("spheres miss: |D| = %.3f, R = %.3f", 2*half, a.Vec.R)
+	}
+	on := polar.Polar{R: math.Sqrt(rho2), Phi: a.Vec.Phi, Theta: a.Vec.Theta}
+	return a.Centre.Add(gap.Scale(0.5)).Add(Vec3(polar.Polar2cart(on))), ""
 }
 
 func (g *NodeGeometry) setPlaced() {

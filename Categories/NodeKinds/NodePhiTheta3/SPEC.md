@@ -47,17 +47,18 @@ one-slot, latest-wins channel per ordered pair, and wakes them. Nothing else cro
 
 ## Local to global — where a node is put
 
-A node h with `L_j = 1` is a centre of rotation for node j, and places it.
+A node h with `L_j = 1` is a centre of rotation for node j.
 
-1. **Local.** j's vector, from what j told h: `d = polar_to_cart(start_r·ρ, φ·2π/12s, θ·2π/12s)`,
-   ρ the node radius.
-2. **One centre** (only h links to j). **Global, last:** `C_j = C_h + d`.
+1. **Local.** h works j's vector from what j told it: `(R, φ, θ) = (start_r·ρ, φ·2π/12s, θ·2π/12s)`,
+   ρ the node radius, and sends j its own centre `C_h` with it on the tip channel for the pair h → j,
+   marked shared when the other partner g also links to j. When h stops linking to j it tells j so.
+2. **One centre** (only h links to j). **Global, last, at j:** `C_j = C_h + polar_to_cart(R, φ, θ)`.
 3. **Two centres** (h and g both link to j). j turns about both: its point is on the sphere shared by
-   h's and g's spheres, each of radius `R = start_r·ρ`. With `D = C_g − C_h`:
+   h's and g's spheres, each of radius R. With `D = C_g − C_h`, from what h and g each told j:
    the shared centre is `C_h + D/2`, its radius `√(R² − |D|²/4)`, and
-   **global, last:** `C_j = C_h + D/2 + polar_to_cart(√(R² − |D|²/4), φ, θ)`. Each holder works this
-   from its own centre; when `|D| > 2R` the spheres do not meet and j is not moved.
-4. The tip goes on the tip channel for the pair h → j, and h draws an arrow to each tip it sends.
+   **global, last, at j:** `C_j = C_h + D/2 + polar_to_cart(√(R² − |D|²/4), φ, θ)`. j waits until both
+   have told it; when `|D| > 2R` the spheres do not meet and j is not moved.
+4. j draws an arrow from each centre that places it to itself.
 
 A holder re-sends only when what it would send changes: a partner's vector or links, its own links,
 s, or the start button. j does not pass its move on, and a holder moving does not move j until the

@@ -46,9 +46,15 @@ func (n *NodePhiTheta3) place(force bool) {
 	if !force && slices.Equal(tips, n.posted) {
 		return
 	}
+	send := slices.Clone(tips)
+	for _, was := range n.posted {
+		if !slices.ContainsFunc(tips, func(t NodeCat.TipPost) bool { return t.TargetID == was.TargetID }) {
+			send = append(send, NodeCat.TipPost{TargetID: was.TargetID, Drop: true})
+		}
+	}
 	n.posted = tips
-	n.geom.KindPosts().PostTips(tips)
-	n.breadcrumb("place", fmt.Sprintf("tips=%+v", tips))
+	n.geom.KindPosts().PostTips(send)
+	n.breadcrumb("place", fmt.Sprintf("tips=%+v", send))
 }
 
 func (n *NodePhiTheta3) postTicks() {

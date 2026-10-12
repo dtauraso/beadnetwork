@@ -35,7 +35,7 @@
 
     <div class="card wide" data-sphere-card-3-rotation></div>
 
-    <p class="code-links">Code — b where a→b says: <span data-src="Categories/NodeKinds/NodePhiTheta3/place.go#vectorOf">vectorOf</span> (the a→b vector, from b's start) → <span data-src="Categories/NodeKinds/NodePhiTheta3/place.go#place">place</span> → <span data-src="Categories/Node/node_tip.go#sendTips">sendTips</span> (a's centre + vector) → <span data-src="Categories/Node/node_tip.go#takeTip">takeTip</span> (b goes there) · the move: <span data-src="Categories/NodeKinds/NodePhiTheta3/move.go#moveToward">moveToward</span></p>
+    <p class="code-links">Code — b where a→b says: <span data-src="Categories/NodeKinds/NodePhiTheta3/place.go#vectorOf">vectorOf</span> (the a→b vector, from b's start) → <span data-src="Categories/NodeKinds/NodePhiTheta3/place.go#place">place</span> → <span data-src="Categories/Node/node_tip.go#sendTips">sendTips</span> (a's centre and the vector, to b) → <span data-src="Categories/Node/node_tip.go#tipFrom">tipFrom</span> (b adds them, last, and goes there) · the move: <span data-src="Categories/NodeKinds/NodePhiTheta3/move.go#moveToward">moveToward</span></p>
 
     <h4 class="secname">Local to global — the scene sphere: a node's centre and its index</h4>
 

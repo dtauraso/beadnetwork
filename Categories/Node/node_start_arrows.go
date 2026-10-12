@@ -14,12 +14,11 @@ func TipIndex(tip, sceneCenter Vec3, sc polarindex.SceneConstants) polarindex.In
 	return polarindex.MeasureIndex(polar.Cart2polar(polar.Vec3(tip.Sub(sceneCenter))), sc)
 }
 
-func startArrows(g NodeGeom, center Vec3, offsets []Vec3) []TiltVectors.TiltArrow {
+func startArrows(g NodeGeom, center Vec3, placers []Vec3) []TiltVectors.TiltArrow {
 	size := NodeRadius(g.Kind)
 	var out []TiltVectors.TiltArrow
-	for _, off := range offsets {
-		tip := center.Add(off)
-		if a, ok := TiltVectors.ArrowBetween(TiltVectors.Vec3(center), TiltVectors.Vec3(tip), size, TiltVectors.ArrowStart); ok {
+	for _, from := range placers {
+		if a, ok := TiltVectors.ArrowBetween(TiltVectors.Vec3(from), TiltVectors.Vec3(center), size, TiltVectors.ArrowStart); ok {
 			out = append(out, a)
 		}
 	}
