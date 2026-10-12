@@ -69,12 +69,13 @@
     <div class="panel">
       <div class="legend">
         <span><span class="sw" style="background:var(--local)"></span>a→b (starts at a), and its triangle O, a, b<sub>a</sub></span>
-        <span><span class="sw" style="background:var(--local2)"></span>c→b, and its triangle O, c, b<sub>c</sub>; dashed: the two parts of whichever vector follows the other</span>
+        <span><span class="sw" style="background:var(--local2)"></span>c→b, and its triangle O, c, b<sub>c</sub>; dashed: d<sub>ca</sub> + d<sub>ab</sub>, when the both sliders aim c</span>
         <span><span class="sw" style="background:var(--phi)"></span>a's φ circle (its θ and r held)</span>
         <span><span class="sw" style="background:var(--theta)"></span>a's θ circle (its φ and r held)</span>
         <span><span class="sw" style="background:var(--local2)"></span>c's sphere, radius |d<sub>cb</sub>|, with its φ and θ circles</span>
-        <span><span class="sw" style="background:var(--global)"></span>O→b, the global result, drawn last</span>
-        <span><span class="sw" style="background:var(--circle)"></span>the shared circle: every b both nodes reach with their r held, found in a's view, placed last; the shared sphere has it as its equator, and b is always on it; its two thin circles are the both Φ and Θ circles</span>
+        <span><span class="sw" style="background:var(--global)"></span>O→b<sub>a</sub> and O→b<sub>c</sub>, the global results, drawn last</span>
+        <span><span class="sw" style="background:var(--muted)"></span>dotted arrow b<sub>a</sub>→b<sub>c</sub>: the gap, when the two globals miss</span>
+        <span><span class="sw" style="background:var(--circle)"></span>the shared circle: every point on both spheres, found in a's view, placed last; only when the spheres meet. The shared sphere has it as its equator about the a–c line; its two thin circles are the both Φ and Θ circles</span>
       </div>
       <canvas id="view" width="900" height="900" aria-label="Spheres of radius r about nodes a and c, with the a to b and c to b vectors"></canvas>
       <div class="hint">Drag the picture to look round the spheres.</div>
@@ -102,9 +103,10 @@
       <h2 class="calc-h"><span class="l2">c→b</span> — local first, global last</h2>
       <ol class="calc" id="calc-cb"></ol>
       <ol>
-        <li><b>One b, three ways to move it.</b> The both sliders move b over the shared sphere; the a→b sliders turn a's vector in a's view, r held; the c→b sliders turn c's vector in c's view, r held. Whichever you move last drives b, and the others read their angles back off it.</li>
-        <li><b>Local first.</b> The other node finds where b went by adding two local vectors, no centre used: d<sub>ca</sub> + d<sub>ab</sub>, or d<sub>ac</sub> + d<sub>cb</sub>. It reads its own r, φ, θ off that, then builds its own vector from them. Both vectors are built the same way: polar_to_cart(r, φ, θ).</li>
-        <li><b>Global last.</b> Each pair then draws the new centre from the global centre on its own: O→a + a→b = O→b<sub>a</sub>, and O→c + c→b = O→b<sub>c</sub>. Both land on the same b.</li>
+        <li><b>Two vectors, each its own.</b> The a→b sliders turn only a's vector, and the c→b sliders only c's, each in its own view with r held. Nothing makes them aim at one point.</li>
+        <li><b>Both.</b> When a's and c's spheres meet, the both sliders put one b on the shared sphere and aim both vectors at it: a reads its r, φ, θ off m + polar_to_cart(ρ, Φ, Θ), c off d<sub>ca</sub> + d<sub>ab</sub>, and each builds its own vector, polar_to_cart(r, φ, θ).</li>
+        <li><b>The gap, local.</b> d<sub>ca</sub> + d<sub>ab</sub> − d<sub>cb</sub> uses no centre. It is zero exactly when the two globals land on one point.</li>
+        <li><b>Global last.</b> Each pair then draws its new centre from the global centre on its own: O→a + a→b = O→b<sub>a</sub>, and O→c + c→b = O→b<sub>c</sub>. They are one point only when the gap is zero.</li>
       </ol>
     </div>
   </div>
