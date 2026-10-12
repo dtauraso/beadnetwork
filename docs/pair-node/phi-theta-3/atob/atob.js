@@ -209,5 +209,5 @@
   document.querySelectorAll('.sliders input').forEach(s => s.addEventListener('input', () => update(s.dataset.group)));
   el('link').addEventListener('change', () => update('link'));
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change', render);
-  update('ab');
+  update('start');
 })();
