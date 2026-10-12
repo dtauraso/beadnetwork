@@ -164,7 +164,7 @@
       ctx.fillStyle = muted; ctx.font = '24px -apple-system, sans-serif'; ctx.fillText(n, x + 6, y - 6);
     });
 
-    const s = state(), fresh = shared(s.dCA, len(dAB), len(dCB));
+    const s = state();
     const runs = [
       { pair: pa, p: s.a, d: dAB, b: add(pa.C, dAB) },
       { pair: pc, p: s.c, d: dCB, b: add(pc.C, dCB) },
@@ -175,8 +175,8 @@
     sphere(pa, s.a[0], s.a[1], s.a[2], css('--phi'), css('--theta'));
     sphere(pc, s.c[0], s.c[1], s.c[2], css('--local2'), css('--local2'));
     if (held && s.both) sharedSphere(pa, held, s.both[1], s.both[2]);
-    else if (fresh) grid(add(pa.C, fresh.m), fresh.rho, css('--circle'), 1.2, 0.5);
-    if (fresh) sharedCircle(pa, fresh);
+    else if (held) grid(add(pa.C, held.m), held.rho, css('--circle'), 1.2, 0.5);
+    if (held) sharedCircle(pa, held);
     runs.forEach(({ pair, d, b }) => vectors(pair, d, b));
     if (!s.common) arrow(runs[0].b, runs[1].b, css('--muted'), 2, true);
     dot(O, css('--ink'), 'O');
