@@ -16,9 +16,6 @@ c_{r} &=& \text{the length of 1 radial index step} \\[3pt]
 \rlap{\textbf{polar_to_cart}\left(\begin{bmatrix} R \\ \Phi \\ \Theta \end{bmatrix}\right)} & & \\[3pt]
 \begin{bmatrix} x \\ y \\ z \end{bmatrix}
   &=& \begin{bmatrix} R \sin\Phi \cos\Theta \\ R \cos\Phi \\ R \sin\Phi \sin\Theta \end{bmatrix} \\[10pt]
-\rlap{\textbf{cart_to_polar}\left(\begin{bmatrix} x \\ y \\ z \end{bmatrix}\right)} & & \\[3pt]
-\begin{bmatrix} R \\ \Phi \\ \Theta \end{bmatrix}
-  &=& \begin{bmatrix} \sqrt{x^{2} + y^{2} + z^{2}} \\ \operatorname{atan2}\!\left(\sqrt{x^{2} + z^{2}},\; y\right) \\ \operatorname{atan2}(z,\; x) \end{bmatrix} \\[10pt]
 \rlap{\textbf{the node's centre — from its index}} & & \\[3pt]
 C_{n} &=& O + \textbf{polar_to_cart}\left(\begin{bmatrix} I_{n\,r}\, c_{r} \\ I_{n\,\varphi}\, c_{\varphi} \\ I_{n\,\theta}\, c_{\theta} \end{bmatrix}\right)
 \end{array}
