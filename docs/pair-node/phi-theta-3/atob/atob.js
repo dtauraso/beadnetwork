@@ -121,16 +121,24 @@
   }
 
   function update(group) {
+    const gap = dCB && sub(add(PAIRS[1].toA, dAB), dCB);
     const dCA = positions();
     if (!dCB) dCB = add(dCA, dAB);
-    if (group === 'both' && !held) { render(); return; }
+    if (group === 'pos-c') dCB = sub(add(dCA, dAB), gap);
+    if (group === 'pos-a') dAB = add(sub(dCB, dCA), gap);
+    const linked = el('link').checked;
+    ['sphi-both', 'sth-both'].forEach(id => { el(id).disabled = !linked; });
+    if (group === 'both' && !(linked && held)) { render(); return; }
+    if (group === 'link' && linked) dCB = add(dCA, dAB);
     if (group === 'ab') {
       const [phi, th] = angles('ab');
       dAB = toCart(len(dAB) || 1, rad(phi), rad(th));
+      if (linked) dCB = add(dCA, dAB);
     } else if (group === 'cb') {
       const [phi, th] = angles('cb');
       dCB = toCart(len(dCB) || 1, rad(phi), rad(th));
-    } else if (group === 'both' && held) {
+      if (linked) dAB = sub(dCB, dCA);
+    } else if (group === 'both') {
       const [Phi, Th] = angles('both');
       dAB = add(held.m, toCart(held.rho, rad(Phi), rad(Th)));
       dCB = add(dCA, dAB);
@@ -176,7 +184,7 @@
       el(`vphi-${id}`).textContent = p ? `${p[1].toFixed(0)}°` : '–';
       el(`vth-${id}`).textContent = p ? `${p[2].toFixed(0)}°` : '–';
     });
-    const ctxt = { driver, held, both: s.both, dAB, dCB, toA: pc.toA, gap: s.gap, common: s.common, ra: len(dAB), rc: len(dCB) };
+    const ctxt = { driver, linked: el('link').checked, held, both: s.both, dAB, dCB, toA: pc.toA, gap: s.gap, common: s.common, ra: len(dAB), rc: len(dCB) };
     el('calc-both').innerHTML = atobBoth(ctxt);
     runs.forEach(({ pair, p, d, b }) => { el(`calc-${pair.id}`).innerHTML = atobSteps(pair, p, d, b, ctxt); });
   }
@@ -192,6 +200,7 @@
   });
   cv.addEventListener('pointerup', () => { drag = null; });
   document.querySelectorAll('.sliders input').forEach(s => s.addEventListener('input', () => update(s.dataset.group)));
+  el('link').addEventListener('change', () => update('link'));
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change', render);
-  update('pos');
+  update('ab');
 })();
