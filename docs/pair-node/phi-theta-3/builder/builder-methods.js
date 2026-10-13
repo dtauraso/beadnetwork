@@ -56,16 +56,13 @@ function bResult(st, item, p, label) {
   return lines;
 }
 
-function bMethodAtoB(st, item) {
-  const rows = bRowVectors(st, item);
-  const steps = [bVectorStep(rows, item)];
-  if (!rows.length) return steps;
+function bSenders(st, rows) {
   const placed = rows.map(r => {
     const n = st.nodes.find(x => x.name === r.from);
     return { ...r, I: n && n.known ? n.idx : null, C: bNodePos(st, r.from) };
   });
   const missing = placed.filter(r => !r.C).map(r => r.from);
-  steps.push({
+  const step = {
     title: 'the sender\'s position, from its index',
     lines: placed.map(r => r.C
       ? `C_${r.from} = ${bPlaceText(r.I)} = ${bPt(r.C)}`
@@ -73,8 +70,16 @@ function bMethodAtoB(st, item) {
     note: 'each row\'s vector starts at its sender, so the sender\'s position is needed',
     ok: !missing.length,
     draw: placed.filter(r => r.C).map(r => ({ dot: r.C, label: `C_${r.from}` })),
-  });
-  const done = placed.filter(r => r.C).map(r => ({ ...r, b: bAdd(r.C, r.d) }));
+  };
+  return { step, missing, done: placed.filter(r => r.C).map(r => ({ ...r, b: bAdd(r.C, r.d) })) };
+}
+
+function bMethodAtoB(st, item) {
+  const rows = bRowVectors(st, item);
+  const steps = [bVectorStep(rows, item)];
+  if (!rows.length) return steps;
+  const { step, missing, done } = bSenders(st, rows);
+  steps.push(step);
   if (!done.length) return steps;
   const lines = done.map(r => `${item}(${r.from}) = C_${r.from} + d_${r.from}${item} = ${bPt(r.b)}`);
   done.slice(1).forEach(r => {
@@ -94,37 +99,38 @@ function bMethodAtoB(st, item) {
 function bMethodPair(st, item) {
   const rows = bRowVectors(st, item);
   const steps = [bVectorStep(rows, item)];
-  let tip = B_O;
-  const chain = rows.map(r => { const a = tip; tip = bAdd(tip, r.d); return { arrow: [a, tip] }; });
-  const v = tip;
+  if (!rows.length) return steps;
+  const { step, missing, done } = bSenders(st, rows);
+  steps.push(step);
+  if (!done.length) return steps;
   steps.push({
-    title: 'the rows added at O',
-    lines: [`v = ${rows.map(r => `d_${r.from}${item}`).join(' + ') || '0'} = ${bPt(v)}`],
-    note: 'every row\'s vector is laid tip to tail from O; no sender\'s position is used',
-    ok: true, draw: [...chain, { dot: v, label: 'v' }],
+    title: `global: C_${item} = C_n + d_n${item}, per pair`,
+    lines: [...done.map(r => `pair ${r.from}→${item}: C_${item} = C_${r.from} + d_${r.from}${item} = ${bPt(r.b)}`),
+      ...missing.map(n => `pair ${n}→${item}: not placed — C_${n} is missing`)],
+    note: `in ${item}, with C_n from the edge n→${item}`, ok: true,
+    draw: done.flatMap(r => [{ arrow: [r.C, r.b] }]),
   });
-  if (bLen(v) < 1e-9 && rows.length) {
-    steps.push({ title: 'v as an index', lines: ['|v| = 0 with rows present: acos(0/0) is undefined'],
-      note: 'the card\'s "no rows: v = 0" covers only an empty table', ok: false, draw: [] });
-    return steps;
-  }
-  const I = bIndexOf(st, bAdd(B_O, v));
+  const indexed = done.map(r => ({ ...r, I: bIndexOf(st, r.b) }));
   steps.push({
-    title: 'v as an index',
-    lines: ['I_r = |v| / c_r,  I_φ = acos(v_y / |v|) / c_φ,  I_θ = atan2(v_z, v_x) / c_θ', `I_${item} = ${bIdx(I)}`],
-    note: 'kept exact — not rounded to whole index steps', ok: true, draw: [],
+    title: `convert: C_${item} − O as an index`,
+    lines: ['I_r = |C_b − O| / c_r,  I_φ = acos((C_b − O)_y / |C_b − O|) / c_φ,  I_θ = atan2((C_b − O)_z, (C_b − O)_x) / c_θ',
+      ...indexed.map(r => `pair ${r.from}→${item}: I_${item} = ${bIdx(r.I)}`)],
+    note: 'kept exact — not rounded to whole index steps; C_b = O gives I_b = 0', ok: true, draw: [],
   });
-  const Cb = bPlace(st, I);
-  steps.push({
-    title: `place ${item} from the index`,
-    lines: [`C_${item} = ${bPlaceText(I)} = ${bPt(Cb)}`, ...bResult(st, item, Cb, `C_${item}`).slice(1)],
-    note: 'the pair card\'s C_b', ok: true,
-    draw: [{ arrow: [B_O, Cb] }, { square: Cb, label: `pair C_${item}` }],
+  const lines = [];
+  const draw = [];
+  indexed.forEach(r => {
+    const Cb = bPlace(st, r.I), back = bLen(bSub(Cb, r.b));
+    lines.push(`pair ${r.from}→${item}: C_${item} = ${bPlaceText(r.I)} = ${bPt(Cb)}`,
+      `|placed − C_${r.from} + d_${r.from}${item}| = ${bF(back)}${back < 1e-6 ? ' — the index holds the same point' : ' — the index lost the point'}`,
+      ...bResult(st, item, Cb, `C_${item}`).slice(1));
+    draw.push({ arrow: [B_O, Cb] }, { square: Cb, label: `pair ${r.from}: C_${item}` });
   });
+  steps.push({ title: `place ${item} from the index`, lines, note: 'the pair card\'s C_b', ok: true, draw });
   return steps;
 }
 
 const B_METHODS = [
   { id: 'atob', name: 'a→b card: C_n + d_nb, one per row', color: '--local', run: bMethodAtoB },
-  { id: 'pair', name: 'pair card: rows added at O', color: '--global', run: bMethodPair },
+  { id: 'pair', name: 'pair card: C_b = C_a + d_ab, then index and place', color: '--global', run: bMethodPair },
 ];
