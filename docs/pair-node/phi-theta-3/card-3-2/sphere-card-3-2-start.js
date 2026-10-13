@@ -15,6 +15,6 @@ const SPHERE_CARD_3_2_START = String.raw`\[
                       \text{start}_{k\,\varphi} & \text{otherwise} \\[6pt]
                       (\text{start}_{k\,\theta} + \text{cw}\, \text{step}_{k\,\theta} + \text{ccw}\, (12s - \text{step}_{k\,\theta})) \bmod 12s & \text{if } \text{cw} \oplus \text{ccw} \\[3pt]
                       \text{start}_{k\,\theta} & \text{otherwise} \end{array}\right] \\[6pt]
-& & \text{a move of start}_{k} \text{ is the pair card's "b changes start}_{ab}\text{" with } k = ab
+& & \text{a move of start}_{k} \text{ is the pair card's "b changes start}_{a \to b}\text{" with } k = a \to b
 \end{array}
 \]`;
