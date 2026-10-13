@@ -149,7 +149,9 @@
           if (o.square) {
             const [x, y] = draw.proj(o.square);
             ctx.lineWidth = 3; ctx.strokeStyle = color; ctx.strokeRect(x - 10, y - 10, 20, 20);
-            ctx.fillStyle = color; ctx.font = '600 26px -apple-system, sans-serif'; ctx.fillText(o.label, x + 16, y + 30);
+            const key = o.square.map(v => v.toFixed(3)).join();
+            const k = seen[key] = (seen[key] || 0) + 1;
+            ctx.fillStyle = color; ctx.font = '600 26px -apple-system, sans-serif'; ctx.fillText(o.label, x + 16, y + 4 + 30 * k);
           }
         });
       });
