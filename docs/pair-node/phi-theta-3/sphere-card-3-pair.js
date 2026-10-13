@@ -13,7 +13,8 @@ a \to b &:& a \text{'s channel to the node its vector is drawn to} \\[3pt]
 \varphi_{b} &=& \textstyle\sum_{x} \text{from}_{x\,\varphi} \bmod 12s \\[3pt]
 \theta_{b} &=& \textstyle\sum_{x} \text{from}_{x\,\theta} \bmod 12s \\[3pt]
 & & b \text{ keeps each sender's angles; new angles from } a \text{ replace only } a\text{'s:} \\[3pt]
-\varphi_{b} &\leftarrow& (\varphi_{b} - \text{old from}_{a\,\varphi} + \text{new from}_{a\,\varphi}) \bmod 12s \text{, the same for } \theta_{b} \\[10pt]
+\varphi_{b} &\leftarrow& (\varphi_{b} - \text{old from}_{a\,\varphi} + \text{new from}_{a\,\varphi}) \bmod 12s \\[3pt]
+\theta_{b} &\leftarrow& (\theta_{b} - \text{old from}_{a\,\theta} + \text{new from}_{a\,\theta}) \bmod 12s \\[10pt]
 \rlap{\textbf{global, last — from } O \textbf{ to each node, one per node}} & & \\[3pt]
 O &=& \text{the scene centre, } [O_{x},\, O_{y},\, O_{z}] \\[3pt]
 T_{\varphi} &=& \text{index steps in 1 full turn } \varphi \\[3pt]
@@ -35,7 +36,7 @@ b \to a &:& C_{b} \text{ — } a \text{ draws its vector from } C_{a} \text{ to 
 & & \text{from}_{a} = [0,\, 2],\; \text{from}_{c} = [0,\, 1] \;\to\; \varphi_{b} = 0,\; \theta_{b} = 3 \\[3pt]
 & & C_{b} = \textbf{polar_to_cart}(2,\, 90^{\circ},\, 0^{\circ} + 90^{\circ}) = (0, 0, 2) \\[3pt]
 & & a \text{ draws } (1, 0, 0) \to (0, 0, 2) \\[3pt]
-& & a \text{ sends } [0,\, 3] \;\to\; \theta_{b} = 3 - 2 + 3 = 4 \\[3pt]
+& & a \text{ sends } [0,\, 3] \;\to\; \varphi_{b} = 0 - 0 + 0 = 0,\; \theta_{b} = 3 - 2 + 3 = 4 \\[3pt]
 & & C_{b} = \textbf{polar_to_cart}(2,\, 90^{\circ},\, 120^{\circ}) = (-1, 0, 1.73) \\[3pt]
 & & a \text{ draws } (1, 0, 0) \to (-1, 0, 1.73)
 \end{array}
