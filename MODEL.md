@@ -145,7 +145,7 @@ See [docs/model/scenes.md](docs/model/scenes.md) for what a scene is, how a tab 
 and the per-scene fork of node behaviour it documents (coplanar rings), plus the ring-axis vs.
 navigation-pole distinction. `scene.Scene`'s other per-scene fields (`UpAxis`, `ClockDivisor`,
 `Editable`, `Kinds`) are not written up anywhere — read `Categories/Scene/Scenes/scenes.go`.
-**Exception:** the φ, θ card nodes have no beads — [docs/model/card-nodes.md](docs/model/card-nodes.md).
+**Exception:** the φ, θ card nodes (`NodePhiTheta3`) have no beads; the bead sections do not apply.
 
 ## Drift rule
 
