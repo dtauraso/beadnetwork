@@ -31,6 +31,33 @@
       margin-top: 0
     }
 
+    .open {
+      max-width: 74ch;
+      margin: 0;
+      padding-left: 1.6em;
+      font-size: 17px;
+      line-height: 1.5
+    }
+
+    .open li {
+      margin: 0 0 22px
+    }
+
+    .open li:last-child {
+      margin-bottom: 0
+    }
+
+    .open b {
+      display: block;
+      margin-bottom: 4px
+    }
+
+    .open .go {
+      display: block;
+      margin-top: 4px;
+      color: var(--dim)
+    }
+
     .figlabel {
       margin: 16px 0 0;
       font-family: var(--mono);

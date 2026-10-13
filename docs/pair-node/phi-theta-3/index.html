@@ -39,6 +39,74 @@
 
     <div class="card wide" data-sphere-card-3-pair></div>
 
+    <h4 class="secname">Not defined by the cards</h4>
+
+    <div class="card wide">
+      <ol class="open">
+        <li>
+          <b>A node that is a in one pair and b in another</b>
+          With a→b and b→c, the middle node is both a b (C = C<sub>a</sub> + d) and an a (C from its index).<br>
+          Which centre does it have?
+        </li>
+        <li>
+          <b>One b with two values of C<sub>b</sub></b>
+          a→b and c→b share b's one start, so one d, but C<sub>a</sub> + d ≠ C<sub>c</sub> + d.<br>
+          Two drawn positions for b, or not allowed?
+        </li>
+        <li>
+          <b>What a channel is here</b>
+          A channel in this repo is a bead line, and these nodes have no beads.<br>
+          What carries C<sub>a</sub> and C<sub>b</sub>?
+          <span class="go">The Go has no channels: SPEC.md says nothing crosses between nodes.</span>
+        </li>
+        <li>
+          <b>Whose start makes the vector</b>
+          The pair card takes d from start<sub>b</sub>, but "a draws" reads as a's own vector.
+          <span class="go">The Go builds it from a's own start.</span>
+        </li>
+        <li>
+          <b>Start's units</b>
+          start<sub>φ</sub> ∈ {0, 1s, …, 11s} is a tick count.
+          <span class="go">The Go stores 0…11 and multiplies by s.</span>
+        </li>
+        <li>
+          <b>The move overwrites start</b>
+          Is the start that was set kept?<br>
+          Does the pair card's start<sub>b</sub> mean the moving one or the set one?
+          <span class="go">The Go moves a separate cur and resets it to start.</span>
+        </li>
+        <li>
+          <b>When</b>
+          What starts a move, and how often?<br>
+          When are C<sub>a</sub> and C<sub>b</sub> sent: once, every move, or when an index is dragged?<br>
+          Does b recompute C<sub>b</sub> when C<sub>a</sub> changes?
+        </li>
+        <li>
+          <b>s</b>
+          The local card fixes s = 1.<br>
+          The pair card's "12s divides T<sub>φ</sub> and T<sub>θ</sub>" only matters if s can change.
+        </li>
+        <li>
+          <b>Links</b>
+          Does setting a→b make the link, and what removes it?<br>
+          Which pairs exist is only implied.
+        </li>
+        <li>
+          <b>cw</b>
+          The formula makes cw "ticks go up".<br>
+          The word suggests clockwise on screen.
+        </li>
+        <li>
+          <b>φ over a full turn</b>
+          φ = k and φ = 12 − k (θ shifted half a turn) give the same direction.
+        </li>
+        <li>
+          <b>Where ρ, O, T<sub>φ</sub>, T<sub>θ</sub>, c<sub>r</sub> come from</b>
+          Named, not tied to a source.
+        </li>
+      </ol>
+    </div>
+
     <p class="code-links">Code: <span data-src="Categories/Vectors/polar/polar.go#Polar2cart">Polar2cart</span> (polar_to_cart) · <span data-src="Categories/Node/geom_node_geom.go#NodeWorldPos">NodeWorldPos</span> (a's centre)</p>
 
     <p class="code-links">Code — the a→b vector: <span data-src="Categories/NodeKinds/NodePhiTheta3/place.go#vector">vector</span> (from a's start) → <span data-src="Categories/NodeKinds/NodePhiTheta3/place.go#postVectors">postVectors</span> (one per b with L_b = 1) → <span data-src="Categories/Node/node_start_arrows.go#startArrows">startArrows</span> (drawn from C_a to C_a + d) · the move: <span data-src="Categories/NodeKinds/NodePhiTheta3/move.go#moveToward">moveToward</span></p>
