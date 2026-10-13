@@ -28,18 +28,7 @@ O \to b &:& C_{b} - O \text{ — } b \text{'s own global, built in } b \\[3pt]
 b \to a &:& \text{carries } C_{b} \text{, so } a \text{ holds both ends} \\[3pt]
 a \to b &=& C_{b} - C_{a} \text{ — the third side, subtracted in } a \\[3pt]
 |a \to b| &=& |C_{b} - C_{a}| \text{ — derived; need not be whole} \\[3pt]
-& & b \text{ re-sends } C_{b} \text{ on every } b \to x \text{ when } C_{b} \text{ changes} \\[10pt]
-\rlap{\textbf{example — sun, earth, moon:  } s = 1 \textbf{,  } O = 0 \textbf{,  } \rho = 1 \textbf{,  the sun has no rows, so } C_{\text{sun}} = O} & & \\[3pt]
-& & \text{edges: sun} \to \text{earth},\; \text{sun} \to \text{moon},\; \text{earth} \to \text{moon} \text{ — start} = [\varphi,\, \theta,\, r] \\[3pt]
-& & \text{earth holds } \begin{array}{c|c} \text{from} & \text{start} \\ \hline \text{sun} & [3,\, 0,\, 10] \end{array} \;\to\; C_{\text{earth}} = (10, 0, 0) \\[3pt]
-& & \text{moon holds } \begin{array}{c|c} \text{from} & \text{start} \\ \hline \text{sun} & [3,\, 0,\, 10] \\ \text{earth} & [3,\, 0,\, 1] \end{array} \;\to\; C_{\text{moon}} = (10, 0, 0) + (1, 0, 0) = (11, 0, 0) \\[3pt]
-& & \text{read back: } r = 11,\; \varphi = 90^{\circ},\; \theta = 0^{\circ} \\[3pt]
-& & \text{moon sets row earth's start} = [3,\, 6,\, 1] \;\to\; C_{\text{moon}} = (10, 0, 0) + (-1, 0, 0) = (9, 0, 0) \\[3pt]
-& & \text{read back: } r = 9,\; \varphi = 90^{\circ},\; \theta = 0^{\circ} \text{ — the turn round the earth changed the radius} \\[3pt]
-& & \text{earth} \to \text{moon} = (9, 0, 0) - (10, 0, 0) = (-1, 0, 0) \\[3pt]
-& & \text{both sun rows set to } [3,\, 3,\, 10] \;\to\; C_{\text{earth}} = (0, 0, 10),\; C_{\text{moon}} = (0, 0, 10) + (-1, 0, 0) = (-1, 0, 10) \\[3pt]
-& & \text{read back: } r = 10.05,\; \varphi = 90^{\circ},\; \theta = 95.7^{\circ} \\[3pt]
-& & \text{earth} \to \text{moon} = (-1, 0, 10) - (0, 0, 10) = (-1, 0, 0) \text{ — the moon went round the sun with the earth}
+& & b \text{ re-sends } C_{b} \text{ on every } b \to x \text{ when } C_{b} \text{ changes}
 \end{array}
 \]`;
 
