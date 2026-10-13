@@ -141,11 +141,11 @@ owns and writes, `SceneRoot`'s render tree, and the binary-both-ways bridge surf
 
 ## Scenes
 
-See [docs/model/scenes.md](docs/model/scenes.md) for what a scene is, how a tab switch
-works, and the per-scene fork of node behaviour it documents (coplanar rings), plus the
-ring-axis vs. navigation-pole distinction. `scene.Scene`'s other per-scene fields
-(`UpAxis`, `ClockDivisor`, `Editable`, `Kinds`) are not written up
-anywhere — read `Categories/Scene/Scenes/scenes.go`.
+See [docs/model/scenes.md](docs/model/scenes.md) for what a scene is, how a tab switch works,
+and the per-scene fork of node behaviour it documents (coplanar rings), plus the ring-axis vs.
+navigation-pole distinction. `scene.Scene`'s other per-scene fields (`UpAxis`, `ClockDivisor`,
+`Editable`, `Kinds`) are not written up anywhere — read `Categories/Scene/Scenes/scenes.go`.
+**Exception:** the φ, θ card nodes have no beads — [docs/model/card-nodes.md](docs/model/card-nodes.md).
 
 ## Drift rule
 
