@@ -74,10 +74,16 @@
         <div class="row">
           <label>s <input id="s" type="number" min="1" step="1"></label>
           <label>ρ <input id="rho" type="number" min="0.05" step="0.05"></label>
-          <span class="hint">12s ticks = 1 turn; ρ = the length of 1 radial tick; O = (0, 0, 0)</span>
+          <span class="hint">the rows: 12s ticks = 1 turn; ρ = the length of 1 radial tick</span>
         </div>
-        <h2>Nodes</h2>
-        <table><thead><tr><th>node</th><th>has a position</th><th>x</th><th>y</th><th>z</th><th></th></tr></thead><tbody id="nodes"></tbody></table>
+        <div class="row">
+          <label>T<sub>φ</sub> <input id="Tphi" type="number" min="1" step="1"></label>
+          <label>T<sub>θ</sub> <input id="Ttheta" type="number" min="1" step="1"></label>
+          <label>c<sub>r</sub> <input id="cr" type="number" min="0.05" step="0.05"></label>
+          <span class="hint">the scene sphere: index steps in 1 turn; c<sub>r</sub> = the length of 1 radial index step; c<sub>φ</sub> = 2π/T<sub>φ</sub>, c<sub>θ</sub> = 2π/T<sub>θ</sub></span>
+        </div>
+        <h2>Nodes — a position is a scene-sphere index: C = O + polar_to_cart(I<sub>r</sub>·c<sub>r</sub>, I<sub>φ</sub>·c<sub>φ</sub>, I<sub>θ</sub>·c<sub>θ</sub>), O = (0, 0, 0)</h2>
+        <table><thead><tr><th>node</th><th>has a position</th><th>I<sub>r</sub></th><th>I<sub>φ</sub></th><th>I<sub>θ</sub></th><th></th></tr></thead><tbody id="nodes"></tbody></table>
         <div class="row"><button id="add-node">add node</button><button id="preset">load the three-node example</button></div>
         <div id="tables"></div>
       </div>

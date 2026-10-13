@@ -1,15 +1,15 @@
 (function () {
-  const KEY = 'pair-builder-v1';
+  const KEY = 'pair-builder-v2';
   const preset = () => ({
-    s: 1, rho: 0.5,
+    s: 1, rho: 0.5, Tphi: 12, Ttheta: 12, cr: 0.5,
     nodes: [
-      { name: 'a', known: true, pos: [1, 0, 0] },
-      { name: 'b', known: false, pos: [0, 0, 0] },
-      { name: 'c', known: true, pos: [2, 0, 1] },
+      { name: 'a', known: true, idx: { r: 2, phi: 3, theta: 0 } },
+      { name: 'b', known: false, idx: { r: 0, phi: 0, theta: 0 } },
+      { name: 'c', known: true, idx: { r: 4, phi: 1, theta: 3 } },
     ],
     rows: [
       { from: 'a', to: 'b', start: { phi: 3, theta: 3, r: 2 }, end: { phi: 3, theta: 6 } },
-      { from: 'c', to: 'b', start: { phi: 3, theta: 6, r: 2 }, end: { phi: 3, theta: 6 } },
+      { from: 'c', to: 'b', start: { phi: 5, theta: 0, r: 4 }, end: { phi: 5, theta: 0 } },
     ],
     item: 'b', on: { atob: true, pair: true }, step: 1,
   });
@@ -38,11 +38,15 @@
   function setup() {
     el('s').value = st.s; el('s').onchange = () => { st.s = Math.max(1, Math.round(+el('s').value) || 1); update(); };
     el('rho').value = st.rho; el('rho').onchange = () => { st.rho = +el('rho').value || st.rho; update(); };
+    [['Tphi', 'Tphi', true], ['Ttheta', 'Ttheta', true], ['cr', 'cr', false]].forEach(([id, k, whole]) => {
+      el(id).value = st[k];
+      el(id).onchange = () => { const v = +el(id).value; if (v > 0) st[k] = whole ? Math.round(v) : v; update(); };
+    });
 
     el('nodes').replaceChildren(...st.nodes.map(n => {
       const known = h('input', { type: 'checkbox', checked: n.known });
       known.onchange = () => { n.known = known.checked; setup(); update(); };
-      const xyz = [0, 1, 2].map(i => { const f = num(n.pos[i], v => { n.pos[i] = v; }, 0.1); f.disabled = !n.known; return h('td', {}, [f]); });
+      const xyz = ['r', 'phi', 'theta'].map(k => { const f = num(n.idx[k], v => { n.idx[k] = v; }); f.disabled = !n.known; return h('td', {}, [f]); });
       const del = h('button', { textContent: 'remove' });
       del.onclick = () => {
         st.nodes = st.nodes.filter(x => x !== n);
@@ -111,7 +115,7 @@
   }
 
   function render(rs) {
-    const pts = [[0, 0, 0], ...st.nodes.filter(n => n.known).map(n => n.pos)];
+    const pts = [[0, 0, 0], ...st.nodes.filter(n => n.known).map(n => bPlace(st, n.idx))];
     rs.forEach(({ steps }) => steps.slice(0, st.step).forEach(s => s.draw.forEach(o => pts.push(...(o.arrow || [o.dot || o.square])))));
     const lo = [0, 1, 2].map(i => Math.min(...pts.map(p => p[i]))), hi = [0, 1, 2].map(i => Math.max(...pts.map(p => p[i])));
     focus = lo.map((v, i) => (v + hi[i]) / 2);
@@ -151,7 +155,7 @@
       });
     });
     draw.dot([0, 0, 0], css('--ink'), 'O');
-    st.nodes.filter(n => n.known).forEach(n => draw.dot(n.pos, css('--ink'), n.name));
+    st.nodes.filter(n => n.known).forEach(n => draw.dot(bPlace(st, n.idx), css('--ink'), n.name));
   }
 
   let drag = null;
@@ -169,7 +173,7 @@
   el('add-node').onclick = () => {
     const name = 'abcdefghijklmnopqrstuvwxyz'.split('').find(c => !st.nodes.some(n => n.name === c));
     if (!name) return;
-    st.nodes.push({ name, known: false, pos: [0, 0, 0] });
+    st.nodes.push({ name, known: false, idx: { r: 0, phi: 0, theta: 0 } });
     setup(); update();
   };
   el('preset').onclick = () => { st = preset(); setup(); update(); };
