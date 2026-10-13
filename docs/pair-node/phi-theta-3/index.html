@@ -47,18 +47,40 @@
           <b>The move overwrites start</b>
           Is the start that was set kept?<br>
           Does the pair card's row a start mean the moving one or the set one?
-          <span class="go">The Go moves a separate cur and resets it to start.</span>
+          <span class="go">Code, not a card: the Go moves a separate cur and resets it to start.</span>
         </li>
         <li>
           <b>When</b>
           What starts a move, and how often?<br>
           When is C<sub>b</sub> sent: once, every move, or when an index is dragged?<br>
-          What sets row a's start in b's table?
+          Setting a→b fills row a (the set card); what fills row c?
         </li>
         <li>
           <b>Links</b>
           Does setting a→b make the link, and what removes it?<br>
           Which pairs exist is only implied.
+        </li>
+        <li>
+          <b>Where a sender's position comes from</b>
+          The pair card says C<sub>a</sub> is built in a from a's own rows, but no card shows a's table or what fills it; with no rows, the card's own rule gives C<sub>a</sub> = O.<br>
+          The rows' vectors are added at O, but on the a→b card each one starts at its sender (C<sub>a</sub> + d<sub>ab</sub>). The pair card never adds C<sub>a</sub>, so its C<sub>b</sub> is right only if C<sub>a</sub> = O.<br>
+          b holds row a, but no channel carries C<sub>a</sub> to b; the only one shown, b→a, carries C<sub>b</sub>.
+          <span class="go">The a→b card does not build C<sub>a</sub>: it is an input, typed in on sliders.</span>
+        </li>
+        <li>
+          <b>Two rows, one b</b>
+          The a→b card gives one b per row; they meet only when the gap is zero.<br>
+          The pair card adds the rows instead. Which rule places b?
+        </li>
+        <li>
+          <b>The two a→b sides</b>
+          The pair card's triangle takes a→b as C<sub>b</sub> − C<sub>a</sub>.<br>
+          Row a's vector is a separate line on the same card. Nothing says the two are equal.
+        </li>
+        <li>
+          <b>Rows that cancel</b>
+          Two rows can add to zero, e.g. row a at φ 3, θ 0 and row c at φ 3, θ 6, both r 2.<br>
+          Then v = 0 and arccos(0/0) is undefined; "no rows: v = 0" covers only the empty table.
         </li>
         <li>
           <b>cw</b>
