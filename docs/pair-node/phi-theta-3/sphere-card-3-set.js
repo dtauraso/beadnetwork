@@ -1,8 +1,8 @@
 const SPHERE_CARD_3_SET_FORMULAS = String.raw`\[
 \begin{array}{@{}l@{\;}c@{\;}l@{}}
 \rlap{\textbf{setting } a \to b} & & \\[3pt]
-a &\in& \{1,\, 2,\, 3\} \text{ — the centre} \\[3pt]
-b &\in& \{1,\, 2,\, 3\},\; b \neq a \text{ — the rotating node}
+a &\in& \{1,\, 2,\, 3\} \text{ — the centre; set: its index } \begin{bmatrix} I_{a\,\varphi} \\ I_{a\,\theta} \\ I_{a\,r} \end{bmatrix} \\[6pt]
+b &\in& \{1,\, 2,\, 3\},\; b \neq a \text{ — the rotating node; set: start}_{b} = \begin{bmatrix} \text{start}_{\varphi} \\ \text{start}_{\theta} \\ \text{start}_{r} \end{bmatrix} \text{, end}_{b} = \begin{bmatrix} \text{end}_{\varphi} \\ \text{end}_{\theta} \end{bmatrix}
 \end{array}
 \]`;
 
