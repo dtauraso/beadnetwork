@@ -29,10 +29,10 @@ a \to b &:& C_{a} \text{ — } b \text{ needs it to derive } C_{b} = C_{a} + d \
 b \to a &:& C_{b} \text{ — } a \text{ needs it to draw its vector from } C_{a} \text{ to } C_{b} \\[3pt]
 & & b \text{ sends } C_{b} \text{ to } a \text{ only — each pair on its own, no chain} \\[10pt]
 \rlap{\textbf{example — } s = 1 \textbf{,  } C_{a} = (1, 0, 0) \textbf{,  } \rho = 1} & & \\[3pt]
-& & \text{start}_{b} = [3,\, 3,\, 1] \;\to\; \varphi = 90^{\circ},\; \theta = 90^{\circ},\; R = 1 \\[3pt]
-& & d = (1 \cdot \sin 90^{\circ} \cos 90^{\circ},\; 1 \cdot \cos 90^{\circ},\; 1 \cdot \sin 90^{\circ} \sin 90^{\circ}) = (0, 0, 1) \\[3pt]
-& & C_{b} = (1, 0, 0) + (0, 0, 1) = (1, 0, 1) \\[3pt]
-& & a \text{ draws } (1, 0, 0) \to (1, 0, 1)
+& & \text{start}_{b} = [3,\, 3,\, 2] \;\to\; \varphi = 90^{\circ},\; \theta = 90^{\circ},\; R = 2 \\[3pt]
+& & d = (2 \cdot \sin 90^{\circ} \cos 90^{\circ},\; 2 \cdot \cos 90^{\circ},\; 2 \cdot \sin 90^{\circ} \sin 90^{\circ}) = (0, 0, 2) \\[3pt]
+& & C_{b} = (1, 0, 0) + (0, 0, 2) = (1, 0, 2) \\[3pt]
+& & a \text{ draws } (1, 0, 0) \to (1, 0, 2)
 \end{array}
 \]`;
 
