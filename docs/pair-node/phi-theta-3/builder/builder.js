@@ -130,8 +130,23 @@
     focus = [mx * cy - z1 * sy, my * cp, mx * sy + z1 * cy];
     S = 640 / Math.max(0.5, hi[0] - lo[0], hi[1] - lo[1]);
     Object.assign(draw, atobCanvas(ctx, cv.width, cv.height, S, view, () => focus, css));
+    paint(rs, cells);
+    const b = inkBox(), k = Math.min(1, (cv.width - 40) / Math.max(1, b[2] - b[0], b[3] - b[1]));
+    ctx.setTransform(k, 0, 0, k, cv.width / 2 - k * (b[0] + b[2]) / 2, cv.height / 2 - k * (b[1] + b[3]) / 2);
+    paint(rs, cells);
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+  }
 
-    ctx.clearRect(0, 0, cv.width, cv.height);
+  function inkBox() {
+    const W = cv.width, H = cv.height, im = ctx.getImageData(0, 0, W, H).data, b = [W, H, 0, 0];
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (im[(y * W + x) * 4 + 3]) {
+      b[0] = Math.min(b[0], x); b[1] = Math.min(b[1], y); b[2] = Math.max(b[2], x); b[3] = Math.max(b[3], y);
+    }
+    return b[2] < b[0] ? [0, 0, W, H] : b;
+  }
+
+  function paint(rs, cells) {
+    ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, cv.width, cv.height); ctx.restore();
     const muted = css('--muted');
     [[[0.5, 0, 0], 'x'], [[0, 0.5, 0], 'y'], [[0, 0, 0.5], 'z']].forEach(([e, n]) => {
       draw.arrow([0, 0, 0], e, muted, 2);
