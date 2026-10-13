@@ -1,14 +1,3 @@
-function bGridTargets(st, rs) {
-  const out = [];
-  const add = (key, label, p) => { if (bLen(p) > 1e-9 && !out.some(t => bLen(bSub(t.p, p)) < 1e-9)) out.push({ key, label, p }); };
-  rs.forEach(({ steps }) => steps.forEach(s => s.draw.forEach(o => {
-    if (o.square) add(`result:${o.label}`, `${o.label} (placed)`, o.square);
-    else if (o.dot && o.label.startsWith(`${st.item}(`)) add(`result:${o.label}`, `${o.label} (placed)`, o.dot);
-  })));
-  st.nodes.filter(n => n.known).forEach(n => add(`node:${n.name}`, `node ${n.name}`, bPlace(st, n.idx)));
-  return out;
-}
-
 function bCellPoints(st, rs) {
   const out = [];
   const add = (p, color) => { if (bLen(p) > 1e-9 && !out.some(t => bLen(bSub(t.p, p)) < 1e-9)) out.push({ p, color }); };
@@ -36,16 +25,43 @@ function bCellCorners(st, p) {
 function bDrawCells(st, draw, ctx, css, points) {
   const cphi = 2 * Math.PI / st.Tphi, cth = 2 * Math.PI / st.Ttheta, wire = css('--wire');
   const at = (k, ph, th) => bCart(k * st.cr, ph * cphi, th * cth);
+  const dotted = (pts, color) => {
+    const ps = pts.map(draw.proj);
+    ctx.save();
+    ctx.setLineDash([3, 7]); ctx.lineCap = 'round'; ctx.lineWidth = 1.5; ctx.strokeStyle = color; ctx.globalAlpha = 0.8;
+    ctx.beginPath(); ctx.moveTo(ps[0][0], ps[0][1]);
+    ps.slice(1).forEach(p => ctx.lineTo(p[0], p[1]));
+    ctx.stroke();
+    ctx.restore();
+  };
   const arc = (f, color, width, alpha) => {
     const pts = []; for (let t = 0; t <= 16; t++) pts.push(f(t / 16));
-    draw.curve(pts, [0, 0, 0], color, width, alpha);
+    if (width === 'dotted') dotted(pts, color); else draw.curve(pts, [0, 0, 0], color, width, alpha);
   };
   const face = (k, i, j, color, width, alpha) => {
     [i, i + 1].forEach(ph => arc(t => at(k, ph, j + t), color, width, alpha));
     [j, j + 1].forEach(th => arc(t => at(k, i + t, th), color, width, alpha));
   };
   const rays = (k0, k1, i, j, color, width, alpha) => [[i, j], [i + 1, j], [i, j + 1], [i + 1, j + 1]]
-    .forEach(([ph, th]) => draw.curve([at(k0, ph, th), at(k1, ph, th)], [0, 0, 0], color, width, alpha));
+    .forEach(([ph, th]) => width === 'dotted'
+      ? dotted([at(k0, ph, th), at(k1, ph, th)], color)
+      : draw.curve([at(k0, ph, th), at(k1, ph, th)], [0, 0, 0], color, width, alpha));
+  const cells = points.map(({ p }) => bCell(st, p));
+  const half = st.Ttheta / 2;
+  cells.forEach((a, n) => cells.slice(n + 1).forEach(b => {
+    let dj = (b.j - a.j) % st.Ttheta;
+    if (dj > half) dj -= st.Ttheta;
+    if (dj <= -half) dj += st.Ttheta;
+    const di = b.i - a.i;
+    for (let k = 1; k <= Math.min(a.K, b.K); k++) {
+      const ph0 = a.i + (di > 0 ? 1 : 0), ph1 = a.i + di + (di > 0 ? 0 : 1);
+      const th0 = a.j + (dj > 0 ? 1 : 0), th1 = a.j + dj + (dj > 0 ? 0 : 1);
+      const pts = [], n1 = Math.max(1, Math.abs(th1 - th0) * 8), n2 = Math.max(1, Math.abs(ph1 - ph0) * 8);
+      for (let t = 0; t <= n1; t++) pts.push(at(k, ph0, th0 + (th1 - th0) * t / n1));
+      for (let t = 1; t <= n2; t++) pts.push(at(k, ph0 + (ph1 - ph0) * t / n2, th1));
+      if (th1 !== th0 || ph1 !== ph0) dotted(pts, wire);
+    }
+  }));
   return points.map(({ p, color }) => {
     const c = bCell(st, p), col = css(color);
     rays(0, c.K, c.i, c.j, wire, 1, 0.5);
@@ -55,27 +71,4 @@ function bDrawCells(st, draw, ctx, css, points) {
     rays(c.K - 1, c.K, c.i, c.j, col, 2.5, 1);
     return `cell I_r ${c.K - 1}–${c.K}, I_φ ${c.i}–${c.i + 1}, I_θ ${c.j}–${c.j + 1} holds (${bF(c.I.r)}, ${bF(c.I.phi)}, ${bF(c.I.theta)})`;
   });
-}
-
-function bDrawGrid(st, draw, ctx, wire, p) {
-  const R = bLen(p), cphi = 2 * Math.PI / st.Tphi, cth = 2 * Math.PI / st.Ttheta;
-  const kphi = Math.ceil(st.Tphi / 72), kth = Math.ceil(st.Ttheta / 72);
-  const on = (ph, th) => bCart(R, ph, th);
-  for (let i = kphi; i * cphi < Math.PI - 1e-9; i += kphi) {
-    const pts = []; for (let t = 0; t <= 96; t++) pts.push(on(i * cphi, t * 2 * Math.PI / 96));
-    draw.curve(pts, [0, 0, 0], wire, 1.2, 0.6);
-  }
-  for (let j = 0; j < st.Ttheta; j += kth) {
-    const pts = []; for (let t = 0; t <= 48; t++) pts.push(on(t * Math.PI / 48, j * cth));
-    draw.curve(pts, [0, 0, 0], wire, 1.2, 0.6);
-  }
-  const u = p.map(v => v / R);
-  ctx.fillStyle = wire;
-  for (let k = 1; k * st.cr <= R + 1e-9; k++) {
-    const [x, y] = draw.proj(u.map(v => v * k * st.cr));
-    ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI * 2); ctx.fill();
-  }
-  const I = bIndexOf(st, p);
-  return `radius |C − O| = ${bF(R)}: I_r ${bF(I.r)}, I_φ ${bF(I.phi)}, I_θ ${bF(I.theta)}` +
-    `; a line every ${kphi > 1 ? `${kphi} φ steps` : 'φ step'} and ${kth > 1 ? `${kth} θ steps` : 'θ step'}; dots on the ray: each c_r`;
 }
