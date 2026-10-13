@@ -1,10 +1,11 @@
 const SPHERE_CARD_3_SET_FORMULAS = String.raw`\[
 \begin{array}{@{}l@{\;}c@{\;}l@{}}
-\rlap{\textbf{setting } a \to b} & & \\[3pt]
+\rlap{\textbf{setting } a \to b \textbf{ fills row } a \textbf{ of } b \textbf{'s table}} & & \\[3pt]
 a &\in& \{1,\, 2,\, 3\} \\[10pt]
 b &\in& \{1,\, 2,\, 3\},\; b \neq a \\[3pt]
-\text{start}_{ab} &=& \begin{bmatrix} \text{start}_{\varphi} \\ \text{start}_{\theta} \\ \text{start}_{r} \end{bmatrix} \\[3pt]
-\text{end}_{ab} &=& \begin{bmatrix} \text{end}_{\varphi} \\ \text{end}_{\theta} \end{bmatrix}
+\text{start} &=& \begin{bmatrix} \text{start}_{\varphi} \\ \text{start}_{\theta} \\ \text{start}_{r} \end{bmatrix} \\[3pt]
+\text{end} &=& \begin{bmatrix} \text{end}_{\varphi} \\ \text{end}_{\theta} \end{bmatrix} \\[3pt]
+& & \begin{array}{c|c|c} \text{from} & \text{start} & \text{end} \\ \hline a & \text{start} & \text{end} \end{array}
 \end{array}
 \]`;
 

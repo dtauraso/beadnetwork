@@ -1,6 +1,6 @@
 const SPHERE_CARD_3_2_START = String.raw`\[
 \begin{array}{@{}l@{\;}c@{\;}l@{}}
-\textbf{one pair, } a \to b & & \\[3pt]
+\rlap{\textbf{each row of } b \textbf{'s table, on its own}} & & \\[3pt]
 \rlap{\textbf{move start up to } m s \textbf{ in direction cw or ccw, stopping at end}} & & \\[3pt]
 \begin{bmatrix} \text{gap_cw}_{\varphi} \\ \text{gap_cw}_{\theta} \end{bmatrix}
   &=& \left[\begin{array}{l} (\text{end}_{\varphi} + 12s - \text{start}_{\varphi}) \bmod 12s \\ (\text{end}_{\theta} + 12s - \text{start}_{\theta}) \bmod 12s \end{array}\right] \\[6pt]
@@ -14,6 +14,7 @@ const SPHERE_CARD_3_2_START = String.raw`\[
   &=& \left[\begin{array}{ll} (\text{start}_{\varphi} + \text{cw}\, \text{step}_{\varphi} + \text{ccw}\, (12s - \text{step}_{\varphi})) \bmod 12s & \text{if } \text{cw} \oplus \text{ccw} \\[3pt]
                       \text{start}_{\varphi} & \text{otherwise} \\[6pt]
                       (\text{start}_{\theta} + \text{cw}\, \text{step}_{\theta} + \text{ccw}\, (12s - \text{step}_{\theta})) \bmod 12s & \text{if } \text{cw} \oplus \text{ccw} \\[3pt]
-                      \text{start}_{\theta} & \text{otherwise} \end{array}\right]
+                      \text{start}_{\theta} & \text{otherwise} \end{array}\right] \\[6pt]
+& & \text{moving row } a \text{'s start is the pair card's "b changes row } a \text{'s start"}
 \end{array}
 \]`;
