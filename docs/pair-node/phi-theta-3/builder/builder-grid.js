@@ -46,10 +46,25 @@ function bDrawCells(st, draw, ctx, css, points) {
     .forEach(([ph, th]) => width === 'dotted'
       ? dotted([at(k0, ph, th), at(k1, ph, th)], color)
       : draw.curve([at(k0, ph, th), at(k1, ph, th)], [0, 0, 0], color, width, alpha));
+  const cells = points.map(({ p }) => bCell(st, p));
+  const half = st.Ttheta / 2;
+  cells.forEach((a, n) => cells.slice(n + 1).forEach(b => {
+    let dj = (b.j - a.j) % st.Ttheta;
+    if (dj > half) dj -= st.Ttheta;
+    if (dj <= -half) dj += st.Ttheta;
+    const di = b.i - a.i;
+    for (let k = 1; k <= Math.min(a.K, b.K); k++) {
+      const pts = [], ph0 = a.i + 0.5, th0 = a.j + 0.5, r = k - 0.5;
+      const n1 = Math.max(1, Math.abs(dj) * 8), n2 = Math.max(1, Math.abs(di) * 8);
+      for (let t = 0; t <= n1; t++) pts.push(at(r, ph0, th0 + dj * t / n1));
+      for (let t = 1; t <= n2; t++) pts.push(at(r, ph0 + di * t / n2, th0 + dj));
+      if (dj || di) dotted(pts, wire);
+    }
+  }));
   return points.map(({ p, color }) => {
     const c = bCell(st, p), col = css(color);
-    if (c.K > 1) rays(0, c.K - 1, c.i, c.j, wire, 'dotted');
-    for (let k = 1; k < c.K - 1; k++) face(k, c.i, c.j, wire, 'dotted');
+    rays(0, c.K, c.i, c.j, wire, 1, 0.5);
+    for (let k = 1; k < c.K; k++) face(k, c.i, c.j, wire, 1, 0.5);
     face(c.K - 1, c.i, c.j, col, 2.5, 1);
     face(c.K, c.i, c.j, col, 2.5, 1);
     rays(c.K - 1, c.K, c.i, c.j, col, 2.5, 1);
