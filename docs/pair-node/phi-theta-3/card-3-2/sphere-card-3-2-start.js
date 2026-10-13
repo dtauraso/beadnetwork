@@ -1,6 +1,6 @@
 const SPHERE_CARD_3_2_START = String.raw`\[
 \begin{array}{@{}l@{\;}c@{\;}l@{}}
-\textbf{one node} & & \\[3pt]
+\textbf{one pair, } a \to b & & \\[3pt]
 \rlap{\textbf{move start up to } m s \textbf{ in direction cw or ccw, stopping at end}} & & \\[3pt]
 \begin{bmatrix} \text{gap_cw}_{\varphi} \\ \text{gap_cw}_{\theta} \end{bmatrix}
   &=& \left[\begin{array}{l} (\text{end}_{\varphi} + 12s - \text{start}_{\varphi}) \bmod 12s \\ (\text{end}_{\theta} + 12s - \text{start}_{\theta}) \bmod 12s \end{array}\right] \\[6pt]

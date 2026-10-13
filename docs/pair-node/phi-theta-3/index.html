@@ -44,35 +44,16 @@
     <div class="card wide">
       <ol class="open">
         <li>
-          <b>A node that is a in one pair and b in another</b>
-          With a→b and b→c, the middle node is both a b (C = C<sub>a</sub> + d) and an a (C from its index).<br>
-          Which centre does it have?
-        </li>
-        <li>
-          <b>One b with two values of C<sub>b</sub></b>
-          a→b and c→b share b's one start, so one d, but C<sub>a</sub> + d ≠ C<sub>c</sub> + d.<br>
-          Two drawn positions for b, or not allowed?
-        </li>
-        <li>
           <b>What a channel is here</b>
           A channel in this repo is a bead line, and these nodes have no beads.<br>
-          What carries C<sub>a</sub> and C<sub>b</sub>?
+          The pair card's channels carry C<sub>a</sub> and C<sub>b</sub>, which are global places, and global comes last.<br>
+          Do the channels carry the local d, or nothing, with the view doing all the deriving?
           <span class="go">The Go has no channels: SPEC.md says nothing crosses between nodes.</span>
-        </li>
-        <li>
-          <b>Whose start makes the vector</b>
-          The pair card takes d from start<sub>b</sub>, but "a draws" reads as a's own vector.
-          <span class="go">The Go builds it from a's own start.</span>
-        </li>
-        <li>
-          <b>Start's units</b>
-          start<sub>φ</sub> ∈ {0, 1s, …, 11s} is a tick count.
-          <span class="go">The Go stores 0…11 and multiplies by s.</span>
         </li>
         <li>
           <b>The move overwrites start</b>
           Is the start that was set kept?<br>
-          Does the pair card's start<sub>b</sub> mean the moving one or the set one?
+          Does the pair card's start<sub>ab</sub> mean the moving one or the set one?
           <span class="go">The Go moves a separate cur and resets it to start.</span>
         </li>
         <li>
