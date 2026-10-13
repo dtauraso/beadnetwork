@@ -88,7 +88,7 @@
     el('methods').replaceChildren(...B_METHODS.map(m => {
       const box = h('input', { type: 'checkbox', checked: !!st.on[m.id] });
       box.onchange = () => { st.on[m.id] = box.checked; update(); };
-      return h('label', { className: 'row' }, [box, h('span', { className: `m-${m.color.slice(2)}`, textContent: m.name })]);
+      return h('label', { className: 'method' }, [box, h('span', { className: `m-${m.color.slice(2)}`, textContent: m.name })]);
     }));
   }
 
@@ -110,13 +110,23 @@
       }, [h('span', { className: 't', textContent: `${i + 1}. ${s.title}` }),
         ...s.lines.map(l => h('code', { textContent: l })), h('div', { className: 'note', textContent: s.note })]))),
     ])));
+    const targets = gridTargets(rs);
+    if (st.grid !== 'none' && !targets.some(t => t.key === st.grid)) st.grid = targets.find(t => t.key.startsWith('result'))?.key || 'none';
+    el('grid').replaceChildren(h('option', { value: 'none', textContent: 'none', selected: st.grid === 'none' }),
+      ...targets.map(t => h('option', { value: t.key, textContent: t.label, selected: t.key === st.grid })));
+    el('grid').onchange = () => { st.grid = el('grid').value; update(); };
     render(rs);
     save();
   }
 
+  const gridTargets = rs => bGridTargets(st, rs);
+  const drawGrid = p => { el('gridnote').textContent = bDrawGrid(st, draw, ctx, css('--wire'), p); };
+
   function render(rs) {
     const pts = [[0, 0, 0], ...st.nodes.filter(n => n.known).map(n => bPlace(st, n.idx))];
     rs.forEach(({ steps }) => steps.slice(0, st.step).forEach(s => s.draw.forEach(o => pts.push(...(o.arrow || [o.dot || o.square])))));
+    const target = gridTargets(rs).find(t => t.key === st.grid);
+    if (target) { const R = bLen(target.p); pts.push([R, R, R], [-R, -R, -R]); }
     const lo = [0, 1, 2].map(i => Math.min(...pts.map(p => p[i]))), hi = [0, 1, 2].map(i => Math.max(...pts.map(p => p[i])));
     focus = lo.map((v, i) => (v + hi[i]) / 2);
     const span = Math.max(1, ...hi.map((v, i) => v - lo[i]));
@@ -130,6 +140,7 @@
       const [x, y] = draw.proj(e);
       ctx.fillStyle = muted; ctx.font = '24px -apple-system, sans-serif'; ctx.fillText(n, x + 6, y - 6);
     });
+    if (target) drawGrid(target.p); else el('gridnote').textContent = '';
     const seen = {};
     rs.forEach(({ m, steps }) => {
       const color = css(m.color);

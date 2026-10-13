@@ -45,6 +45,7 @@
   .steps code { display: block; word-break: break-word; font-size: 12.5px; }
   .steps .note { color: var(--muted); font-size: 12px; }
   .t { font-weight: 600; }
+  .method { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 8px; }
   .stepper { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
   .missing { color: var(--bad); }
 </style>
@@ -91,6 +92,7 @@
 
     <div class="panel">
       <div class="row"><label>node to place <select id="item"></select></label></div>
+      <div class="row"><label>scene sphere index lines through <select id="grid"></select></label><span class="hint" id="gridnote"></span></div>
       <div id="methods"></div>
       <div class="stepper">
         <button id="prev">◀</button><span id="stepno"></span><button id="next">▶</button>
@@ -101,6 +103,7 @@
 </main>
 <script src="../atob/atob-draw.js"></script>
 <script src="builder-methods.js"></script>
+<script src="builder-grid.js"></script>
 <script src="builder.js"></script>
 </body>
 </html>
