@@ -111,7 +111,9 @@
         ...s.lines.map(l => h('code', { textContent: l })), h('div', { className: 'note', textContent: s.note })]))),
     ])));
     const targets = gridTargets(rs);
-    if (st.grid !== 'none' && !targets.some(t => t.key === st.grid)) st.grid = targets.find(t => t.key.startsWith('result'))?.key || 'none';
+    if (!targets.some(t => t.key === st.grid)) st.grid = 'none';
+    el('cells').checked = st.cells !== false;
+    el('cells').onchange = () => { st.cells = el('cells').checked; update(); };
     el('grid').replaceChildren(h('option', { value: 'none', textContent: 'none', selected: st.grid === 'none' }),
       ...targets.map(t => h('option', { value: t.key, textContent: t.label, selected: t.key === st.grid })));
     el('grid').onchange = () => { st.grid = el('grid').value; update(); };
@@ -127,6 +129,8 @@
     rs.forEach(({ steps }) => steps.slice(0, st.step).forEach(s => s.draw.forEach(o => pts.push(...(o.arrow || [o.dot || o.square])))));
     const target = gridTargets(rs).find(t => t.key === st.grid);
     if (target) { const R = bLen(target.p); pts.push([R, R, R], [-R, -R, -R]); }
+    const cells = st.cells !== false ? bCellPoints(st, rs) : [];
+    cells.forEach(({ p }) => pts.push(...bCellCorners(st, p)));
     const lo = [0, 1, 2].map(i => Math.min(...pts.map(p => p[i]))), hi = [0, 1, 2].map(i => Math.max(...pts.map(p => p[i])));
     focus = lo.map((v, i) => (v + hi[i]) / 2);
     const span = Math.max(1, ...hi.map((v, i) => v - lo[i]));
@@ -141,6 +145,7 @@
       ctx.fillStyle = muted; ctx.font = '24px -apple-system, sans-serif'; ctx.fillText(n, x + 6, y - 6);
     });
     if (target) drawGrid(target.p); else el('gridnote').textContent = '';
+    el('cellnote').replaceChildren(...bDrawCells(st, draw, ctx, css, cells).map(t => h('div', { textContent: t })));
     const seen = {};
     rs.forEach(({ m, steps }) => {
       const color = css(m.color);
