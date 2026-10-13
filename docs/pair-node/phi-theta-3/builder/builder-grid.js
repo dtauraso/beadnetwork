@@ -54,7 +54,7 @@ function bDrawCells(st, draw, ctx, css, points) {
     if (dj <= -half) dj += st.Ttheta;
     const di = b.i - a.i;
     for (let k = 1; k <= Math.min(a.K, b.K); k++) {
-      const pts = [], ph0 = a.i + 0.5, th0 = a.j + 0.5, r = k - 0.5;
+      const pts = [], ph0 = a.i + 0.5, th0 = a.j + 0.5, r = k;
       const n1 = Math.max(1, Math.abs(dj) * 8), n2 = Math.max(1, Math.abs(di) * 8);
       for (let t = 0; t <= n1; t++) pts.push(at(r, ph0, th0 + dj * t / n1));
       for (let t = 1; t <= n2; t++) pts.push(at(r, ph0 + di * t / n2, th0 + dj));
