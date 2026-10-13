@@ -68,6 +68,9 @@
     <div>
       <div class="panel">
         <canvas id="view" width="900" height="900" aria-label="Nodes and each ticked method's steps"></canvas>
+        <div class="stepper">
+          <button id="prev">◀</button><span id="stepno"></span><button id="next">▶</button>
+        </div>
         <div class="hint">Drag the picture to look round. Dots: nodes with a position. Arrows and points: the ticked methods, up to the current step, in each method's colour. Open square: the pair card's C<sub>b</sub>.</div>
       </div>
       <div class="panel">
@@ -95,9 +98,6 @@
       <div class="row"><label><input type="checkbox" id="cells"> index cells from O to each point</label></div>
       <div class="hint" id="cellnote"></div>
       <div id="methods"></div>
-      <div class="stepper">
-        <button id="prev">◀</button><span id="stepno"></span><button id="next">▶</button>
-      </div>
       <div id="lists"></div>
     </div>
   </div>
