@@ -54,11 +54,12 @@ function bDrawCells(st, draw, ctx, css, points) {
     if (dj <= -half) dj += st.Ttheta;
     const di = b.i - a.i;
     for (let k = 1; k <= Math.min(a.K, b.K); k++) {
-      const pts = [], ph0 = a.i + 0.5, th0 = a.j + 0.5, r = k;
-      const n1 = Math.max(1, Math.abs(dj) * 8), n2 = Math.max(1, Math.abs(di) * 8);
-      for (let t = 0; t <= n1; t++) pts.push(at(r, ph0, th0 + dj * t / n1));
-      for (let t = 1; t <= n2; t++) pts.push(at(r, ph0 + di * t / n2, th0 + dj));
-      if (dj || di) dotted(pts, wire);
+      const ph0 = a.i + (di > 0 ? 1 : 0), ph1 = a.i + di + (di > 0 ? 0 : 1);
+      const th0 = a.j + (dj > 0 ? 1 : 0), th1 = a.j + dj + (dj > 0 ? 0 : 1);
+      const pts = [], n1 = Math.max(1, Math.abs(th1 - th0) * 8), n2 = Math.max(1, Math.abs(ph1 - ph0) * 8);
+      for (let t = 0; t <= n1; t++) pts.push(at(k, ph0, th0 + (th1 - th0) * t / n1));
+      for (let t = 1; t <= n2; t++) pts.push(at(k, ph0 + (ph1 - ph0) * t / n2, th1));
+      if (th1 !== th0 || ph1 !== ph0) dotted(pts, wire);
     }
   }));
   return points.map(({ p, color }) => {
