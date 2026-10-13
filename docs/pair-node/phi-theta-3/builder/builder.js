@@ -1,0 +1,179 @@
+(function () {
+  const KEY = 'pair-builder-v1';
+  const preset = () => ({
+    s: 1, rho: 0.5,
+    nodes: [
+      { name: 'a', known: true, pos: [1, 0, 0] },
+      { name: 'b', known: false, pos: [0, 0, 0] },
+      { name: 'c', known: true, pos: [2, 0, 1] },
+    ],
+    rows: [
+      { from: 'a', to: 'b', start: { phi: 3, theta: 3, r: 2 }, end: { phi: 3, theta: 6 } },
+      { from: 'c', to: 'b', start: { phi: 3, theta: 6, r: 2 }, end: { phi: 3, theta: 6 } },
+    ],
+    item: 'b', on: { atob: true, pair: true }, step: 1,
+  });
+  let st;
+  try { st = JSON.parse(localStorage.getItem(KEY)) || preset(); } catch { st = preset(); }
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch { } };
+
+  const el = id => document.getElementById(id);
+  const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  const h = (tag, props = {}, kids = []) => {
+    const e = Object.assign(document.createElement(tag), props);
+    kids.forEach(k => e.append(k));
+    return e;
+  };
+  const num = (value, onset, step = 1) => {
+    const i = h('input', { type: 'number', value, step });
+    i.addEventListener('change', () => { const v = +i.value; if (Number.isFinite(v)) { onset(v); update(); } });
+    return i;
+  };
+
+  const cv = el('view'), ctx = cv.getContext('2d');
+  const view = { yaw: -0.6, pitch: 0.5 };
+  let focus = [0, 0, 0], S = 200;
+  const draw = atobCanvas(ctx, cv.width, cv.height, S, view, () => focus, css);
+
+  function setup() {
+    el('s').value = st.s; el('s').onchange = () => { st.s = Math.max(1, Math.round(+el('s').value) || 1); update(); };
+    el('rho').value = st.rho; el('rho').onchange = () => { st.rho = +el('rho').value || st.rho; update(); };
+
+    el('nodes').replaceChildren(...st.nodes.map(n => {
+      const known = h('input', { type: 'checkbox', checked: n.known });
+      known.onchange = () => { n.known = known.checked; setup(); update(); };
+      const xyz = [0, 1, 2].map(i => { const f = num(n.pos[i], v => { n.pos[i] = v; }, 0.1); f.disabled = !n.known; return h('td', {}, [f]); });
+      const del = h('button', { textContent: 'remove' });
+      del.onclick = () => {
+        st.nodes = st.nodes.filter(x => x !== n);
+        st.rows = st.rows.filter(r => r.from !== n.name && r.to !== n.name);
+        setup(); update();
+      };
+      return h('tr', {}, [h('td', { textContent: n.name }), h('td', {}, [known]), ...xyz, h('td', {}, [del])]);
+    }));
+
+    el('tables').replaceChildren(...st.nodes.map(n => {
+      const rows = st.rows.filter(r => r.to === n.name);
+      const body = rows.map(r => {
+        const del = h('button', { textContent: 'remove' });
+        del.onclick = () => { st.rows = st.rows.filter(x => x !== r); setup(); update(); };
+        const c = (o, k) => h('td', {}, [num(o[k], v => { o[k] = v; })]);
+        return h('tr', {}, [h('td', { textContent: r.from }), c(r.start, 'phi'), c(r.start, 'theta'), c(r.start, 'r'),
+          c(r.end, 'phi'), c(r.end, 'theta'), h('td', {}, [del])]);
+      });
+      const free = st.nodes.filter(x => x.name !== n.name && !rows.some(r => r.from === x.name));
+      const pick = h('select', {}, free.map(x => h('option', { value: x.name, textContent: x.name })));
+      const add = h('button', { textContent: `add row into ${n.name}`, disabled: !free.length });
+      add.onclick = () => {
+        st.rows.push({ from: pick.value, to: n.name, start: { phi: 0, theta: 0, r: 2 }, end: { phi: 0, theta: 0 } });
+        setup(); update();
+      };
+      return h('div', {}, [
+        h('h2', { textContent: `${n.name}'s table — one row per node with an edge into ${n.name}` }),
+        rows.length
+          ? h('table', {}, [h('thead', {}, [h('tr', {}, ['from', 'start φ', 'start θ', 'start r', 'end φ', 'end θ', ''].map(t => h('th', { textContent: t })))]),
+            h('tbody', {}, body)])
+          : h('div', { className: 'hint', textContent: 'no rows' }),
+        h('div', { className: 'row' }, free.length ? [pick, add] : []),
+      ]);
+    }));
+
+    el('item').replaceChildren(...st.nodes.map(n => h('option', { value: n.name, textContent: n.name, selected: n.name === st.item })));
+    el('item').onchange = () => { st.item = el('item').value; update(); };
+
+    el('methods').replaceChildren(...B_METHODS.map(m => {
+      const box = h('input', { type: 'checkbox', checked: !!st.on[m.id] });
+      box.onchange = () => { st.on[m.id] = box.checked; update(); };
+      return h('label', { className: 'row' }, [box, h('span', { className: `m-${m.color.slice(2)}`, textContent: m.name })]);
+    }));
+  }
+
+  function runs() {
+    if (!st.nodes.some(n => n.name === st.item)) st.item = st.nodes[0]?.name;
+    return B_METHODS.filter(m => st.on[m.id] && st.item).map(m => ({ m, steps: m.run(st, st.item) }));
+  }
+
+  function update() {
+    const rs = runs();
+    const max = Math.max(1, ...rs.map(r => r.steps.length));
+    st.step = Math.min(Math.max(1, st.step), max);
+    el('stepno').textContent = `step ${st.step} of ${max}`;
+    el('prev').disabled = st.step <= 1; el('next').disabled = st.step >= max;
+    el('lists').replaceChildren(...rs.map(({ m, steps }) => h('div', {}, [
+      h('h2', { className: `m-${m.color.slice(2)}`, textContent: m.name }),
+      h('ol', { className: 'steps' }, steps.map((s, i) => h('li', {
+        className: [i + 1 > st.step ? 'later' : '', i + 1 === st.step ? 'now' : '', s.ok ? '' : 'bad'].join(' '),
+      }, [h('span', { className: 't', textContent: `${i + 1}. ${s.title}` }),
+        ...s.lines.map(l => h('code', { textContent: l })), h('div', { className: 'note', textContent: s.note })]))),
+    ])));
+    render(rs);
+    save();
+  }
+
+  function render(rs) {
+    const pts = [[0, 0, 0], ...st.nodes.filter(n => n.known).map(n => n.pos)];
+    rs.forEach(({ steps }) => steps.slice(0, st.step).forEach(s => s.draw.forEach(o => pts.push(...(o.arrow || [o.dot || o.square])))));
+    const lo = [0, 1, 2].map(i => Math.min(...pts.map(p => p[i]))), hi = [0, 1, 2].map(i => Math.max(...pts.map(p => p[i])));
+    focus = lo.map((v, i) => (v + hi[i]) / 2);
+    const span = Math.max(1, ...hi.map((v, i) => v - lo[i]));
+    S = 560 / span;
+    Object.assign(draw, atobCanvas(ctx, cv.width, cv.height, S, view, () => focus, css));
+
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    const muted = css('--muted');
+    [[[0.5, 0, 0], 'x'], [[0, 0.5, 0], 'y'], [[0, 0, 0.5], 'z']].forEach(([e, n]) => {
+      draw.arrow([0, 0, 0], e, muted, 2);
+      const [x, y] = draw.proj(e);
+      ctx.fillStyle = muted; ctx.font = '24px -apple-system, sans-serif'; ctx.fillText(n, x + 6, y - 6);
+    });
+    const seen = {};
+    rs.forEach(({ m, steps }) => {
+      const color = css(m.color);
+      steps.slice(0, st.step).forEach((s, i) => {
+        const now = i + 1 === st.step;
+        s.draw.forEach(o => {
+          if (o.arrow) draw.arrow(o.arrow[0], o.arrow[1], color, now ? 4 : 2, !now);
+          if (o.dot && o.label.startsWith('C_')) {
+            const [x, y] = draw.proj(o.dot);
+            ctx.lineWidth = now ? 4 : 2; ctx.strokeStyle = color;
+            ctx.beginPath(); ctx.arc(x, y, 18, 0, Math.PI * 2); ctx.stroke();
+          } else if (o.dot) {
+            const key = o.dot.map(v => v.toFixed(3)).join();
+            const k = seen[key] = (seen[key] || 0) + 1;
+            draw.dot(o.dot, color, o.label, true, 4 + 30 * k);
+          }
+          if (o.square) {
+            const [x, y] = draw.proj(o.square);
+            ctx.lineWidth = 3; ctx.strokeStyle = color; ctx.strokeRect(x - 10, y - 10, 20, 20);
+            ctx.fillStyle = color; ctx.font = '600 26px -apple-system, sans-serif'; ctx.fillText(o.label, x + 16, y + 30);
+          }
+        });
+      });
+    });
+    draw.dot([0, 0, 0], css('--ink'), 'O');
+    st.nodes.filter(n => n.known).forEach(n => draw.dot(n.pos, css('--ink'), n.name));
+  }
+
+  let drag = null;
+  cv.addEventListener('pointerdown', e => { drag = { x: e.clientX, y: e.clientY }; cv.setPointerCapture(e.pointerId); });
+  cv.addEventListener('pointermove', e => {
+    if (!drag) return;
+    view.yaw += (e.clientX - drag.x) * 0.01; view.pitch += (e.clientY - drag.y) * 0.01;
+    drag = { x: e.clientX, y: e.clientY };
+    render(runs());
+  });
+  cv.addEventListener('pointerup', () => { drag = null; });
+
+  el('prev').onclick = () => { st.step--; update(); };
+  el('next').onclick = () => { st.step++; update(); };
+  el('add-node').onclick = () => {
+    const name = 'abcdefghijklmnopqrstuvwxyz'.split('').find(c => !st.nodes.some(n => n.name === c));
+    if (!name) return;
+    st.nodes.push({ name, known: false, pos: [0, 0, 0] });
+    setup(); update();
+  };
+  el('preset').onclick = () => { st = preset(); setup(); update(); };
+
+  setup();
+  update();
+})();
