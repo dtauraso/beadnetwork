@@ -44,26 +44,11 @@
     <div class="card wide">
       <ol class="open">
         <li>
-          <b>One b, two pairs</b>
-          a→b and c→b each have their own start, so C<sub>a</sub> + d<sub>ab</sub> and C<sub>c</sub> + d<sub>cb</sub> can be the same point.<br>
-          Must the two starts be set so they are, or can b have two drawn positions?
-        </li>
-        <li>
           <b>What a channel is here</b>
           A channel in this repo is a bead line, and these nodes have no beads.<br>
           The pair card's channels carry C<sub>a</sub> and C<sub>b</sub>, which are global places, and global comes last.<br>
           Do the channels carry the local d, or nothing, with the view doing all the deriving?
           <span class="go">The Go has no channels: SPEC.md says nothing crosses between nodes.</span>
-        </li>
-        <li>
-          <b>The start belongs to the pair</b>
-          d comes from start<sub>ab</sub>, so a node with two links has two starts, one per pair.
-          <span class="go">The Go gives each node one start and draws the same vector to every node it links to.</span>
-        </li>
-        <li>
-          <b>Start's units</b>
-          start<sub>φ</sub> ∈ {0, 1s, …, 11s} is a tick count.
-          <span class="go">The Go stores 0…11 and multiplies by s.</span>
         </li>
         <li>
           <b>The move overwrites start</b>
