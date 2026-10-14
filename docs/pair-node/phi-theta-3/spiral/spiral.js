@@ -40,12 +40,6 @@
     return fromView([a, b, c]);
   }
   const hits = (group, p) => balls.findIndex((q, j) => !group.includes(j) && len(sub(p, q)) < 2 * R - 1e-9);
-  const below = group => {
-    const lo = Math.min(...group), hi = Math.max(...group);
-    for (let j = lo - 1; j >= 0; j--) if (!group.includes(j)) return j;
-    for (let j = hi + 1; j < N; j++) if (!group.includes(j)) return j;
-    return null;
-  };
 
   function rotate(group, about, ax, ay) {
     const P = balls[about], d = Math.max(...group.map(i => len(sub(balls[i], P))));
@@ -88,6 +82,7 @@
   cv.addEventListener('pointerdown', e => {
     const i = pick(e);
     drag = { x: e.clientX, y: e.clientY, i, second: e.button === 2 || e.ctrlKey, moved: false };
+    blocked = null;
     cv.setPointerCapture(e.pointerId);
   });
   cv.addEventListener('pointermove', e => {
@@ -95,9 +90,7 @@
     const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
     if (!drag.moved && Math.hypot(dx, dy) < 4) return;
     drag.moved = true;
-    const group = drag.i === null || drag.i === pivot ? null : chosen.has(drag.i) ? [...chosen] : [drag.i];
-    const about = group && (pivot ?? below(group));
-    if (group && about !== null) rotate(group, about, dx * 0.01, -dy * 0.01);
+    if (pivot !== null && chosen.has(drag.i)) rotate([...chosen], pivot, dx * 0.01, -dy * 0.01);
     else { view.yaw += dx * 0.01; view.pitch += dy * 0.01; }
     drag.x = e.clientX; drag.y = e.clientY;
     paint();
