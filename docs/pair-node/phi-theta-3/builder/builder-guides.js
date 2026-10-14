@@ -90,14 +90,9 @@ function bSetStart(st, row, k, value, part = 'start') {
   if (!bWhole(value)) return `${said}: not a whole number, so it stays at ${was}`;
   const keep = JSON.stringify([st.nodes, st.rows]);
   row[part][k] = value;
-  const n = st.nodes.find(x => x.name === row.to), P = bNodePos(st, row.from);
-  let rows = [row];
-  if (n && n.known && P) {
-    const J = bIndexOf(st, bAdd(P, bRowVectors(st, row.to).find(v => v.row === row).d));
-    n.idx = { ...J, theta: J.theta < 0 ? J.theta + st.Ttheta : J.theta };
-    rows = st.rows.filter(r => r.from === n.name || r.to === n.name);
-    rows.filter(r => r !== row).forEach(r => bReview(st, r));
-  }
+  const { used, names } = bCarry(st, row);
+  const rows = [row, ...st.rows.filter(r => r !== row && (names.includes(r.from) || names.includes(r.to)))];
+  rows.filter(r => !used.includes(r)).forEach(r => bReview(st, r));
   return bSettle(st, keep, rows, said, was);
 }
 
