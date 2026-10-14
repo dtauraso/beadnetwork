@@ -39,24 +39,29 @@ function bWire(st) {
 
 const B_DATA = ['idx', 'start', 'end', 'base', 'ref', 'held'], B_SETS = ['out', 'rowsOut', 'rowsIn', 'angles'];
 
-function bKeep(st) {
-  return [...st.nodes, ...st.rows].map(o => {
-    const c = { ...o };
-    B_DATA.forEach(k => { if (c[k]) c[k] = { ...c[k] }; });
-    B_SETS.forEach(k => { if (c[k]) c[k] = new Set(c[k]); });
-    return [o, c];
-  });
+let bLog = null;
+const bKeep = () => (bLog = new Map());
+const bDone = () => { bLog = null; };
+
+function bSave(o) {
+  if (!bLog || bLog.has(o)) return;
+  const c = { ...o };
+  B_DATA.forEach(k => { if (c[k]) c[k] = { ...c[k] }; });
+  B_SETS.forEach(k => { if (c[k]) c[k] = new Set(c[k]); });
+  bLog.set(o, c);
 }
 
-function bRestore(st, keep) {
-  keep.forEach(([o, c]) => {
+function bRestore(keep) {
+  keep.forEach((c, o) => {
     Object.keys(o).forEach(k => { if (!(k in c)) delete o[k]; });
     Object.assign(o, c);
   });
+  bDone();
 }
 
 function bLetGo(n) {
-  if (n.sender) n.sender.out.delete(n);
+  bSave(n);
+  if (n.sender) { bSave(n.sender); n.sender.out.delete(n); }
   delete n.sender;
   delete n.via;
 }
@@ -65,6 +70,7 @@ function bRefer(st, row) {
   const n = row.to;
   if (bFloat(row) || n.via === row) return;
   bLetGo(n);
+  bSave(row.from);
   n.sender = row.from;
   n.via = row;
   row.from.out.add(n);
@@ -95,6 +101,7 @@ function bTake(st, n) {
   const t = bDir(st, n.via);
   if (!t) return false;
   const J = bIndexOf(st, bAdd(bPlace(st, f.idx), bVec(st, bS(st, f), t)));
+  bSave(n);
   n.idx = { ...J, theta: J.theta < 0 ? J.theta + st.Ttheta : J.theta };
   return true;
 }

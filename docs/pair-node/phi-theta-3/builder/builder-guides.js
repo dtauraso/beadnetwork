@@ -73,9 +73,10 @@ function bOffTicks(st, rows) {
 function bSettle(st, keep, rows, said, was) {
   const bad = bOffTicks(st, rows);
   if (bad.length) {
-    bRestore(st, keep);
+    bRestore(keep);
     return `${said}: ${bad.join('; ')} — not whole ticks, so it stays at ${was}`;
   }
+  bDone();
   rows.filter(r => !bFloat(r)).forEach(r => {
     const w = t => bWrap(bS(st, r.from), Math.round(t));
     r.start = { phi: w(r.start.phi), theta: w(r.start.theta), r: Math.round(r.start.r) };
@@ -87,10 +88,11 @@ function bSettle(st, keep, rows, said, was) {
 function bSetStart(st, row, k, value, part = 'start') {
   const was = bN(row[part][k]), said = `${row.from.name}→${row.to.name} ${part === 'end' ? 'own ' : ''}${{ phi: 'φ', theta: 'θ', r: 'r' }[k]} ${bN(value)}`;
   if (!bWhole(value)) return `${said}: not a whole number, so it stays at ${was}`;
-  const keep = bKeep(st);
+  const keep = bKeep();
+  bSave(row);
   row[part][k] = value;
   if (!bMove(st, row)) {
-    bRestore(st, keep);
+    bRestore(keep);
     return `${said}: the nodes' references run in a loop, so it stays at ${was}`;
   }
   return bSettle(st, keep, [row], said, was);
@@ -99,10 +101,12 @@ function bSetStart(st, row, k, value, part = 'start') {
 function bSetS(st, node, value) {
   const was = bS(st, node), said = `${node.name}'s s ${bN(value)}`;
   if (!bWhole(value) || value < 1) return `${said}: not a whole number of at least 1, so it stays at ${was}`;
-  const keep = bKeep(st), k = value / was;
+  const keep = bKeep(), k = value / was;
+  bSave(node);
   node.s = value;
   const rows = [...node.rowsOut, ...node.rowsIn];
   node.rowsOut.forEach(r => {
+    bSave(r);
     r.start = { ...r.start, phi: r.start.phi * k, theta: r.start.theta * k };
     r.end = { phi: r.end.phi * k, theta: r.end.theta * k };
     if (r.base) r.base = { ...r.base, phi: r.base.phi * k, theta: r.base.theta * k };
