@@ -69,6 +69,7 @@
     <div>
       <div class="panel">
         <canvas id="view" width="900" height="900" aria-label="Nodes and each ticked method's steps"></canvas>
+        <div class="row" id="spheres"></div>
         <div class="stepper">
           <button id="prev">◀</button><span id="stepno"></span><button id="next">▶</button>
         </div>
@@ -95,9 +96,7 @@
 
     <div class="panel">
       <div class="row"><label>node to place <select id="item"></select></label></div>
-      <div class="row"><label><input type="checkbox" id="cells"> index cells at each node toward the nodes it connects to</label></div>
-      <div class="row" id="spheres"></div>
-      <div class="hint" id="cellnote"></div>      <div id="methods"></div>
+      <div class="row"><label><input type="checkbox" id="cells"> index cells at each node toward the nodes it connects to</label></div>      <div class="hint" id="cellnote"></div>      <div id="methods"></div>
       <div id="lists"></div>
     </div>
   </div>

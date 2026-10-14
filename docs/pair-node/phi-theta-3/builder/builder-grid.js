@@ -70,6 +70,18 @@ function bDrawCells(st, draw, ctx, css, links) {
   });
 }
 
+function bSphereBoxes(st, h, changed) {
+  const on = st.spheres ||= {}, names = st.nodes.map(n => n.name);
+  const box = (label, checked, set) => {
+    const b = h('input', { type: 'checkbox', checked });
+    b.onchange = () => { set(b.checked); changed(); };
+    return h('label', {}, [b, ` ${label}`]);
+  };
+  return [h('span', { textContent: 'sphere at' }),
+    box('all', names.length > 0 && names.every(n => on[n]), v => names.forEach(n => { on[n] = v; })),
+    ...names.map(n => box(n, !!on[n], v => { on[n] = v; }))];
+}
+
 function bDrawSpheres(st, draw, ctx, S) {
   const P = st.nodes.filter(n => n.known).map(n => bPlace(st, n.idx));
   const r = Math.min(st.rho * 2, ...P.flatMap((p, i) => P.slice(i + 1).map(q => bLen(bSub(p, q))))) / 2 * S;

@@ -84,11 +84,7 @@
     el('item').replaceChildren(...st.nodes.map(n => h('option', { value: n.name, textContent: n.name, selected: n.name === st.item })));
     el('item').onchange = () => { st.item = el('item').value; update(); };
 
-    el('spheres').replaceChildren(h('span', { textContent: 'sphere at' }), ...st.nodes.map(n => {
-      const box = h('input', { type: 'checkbox', checked: !!(st.spheres || {})[n.name] });
-      box.onchange = () => { (st.spheres ||= {})[n.name] = box.checked; update(); };
-      return h('label', {}, [box, ` ${n.name}`]);
-    }));
+    el('spheres').replaceChildren(...bSphereBoxes(st, h, () => { setup(); update(); }));
 
     el('methods').replaceChildren(...B_METHODS.map(m => {
       const box = h('input', { type: 'checkbox', checked: !!st.on[m.id] });
