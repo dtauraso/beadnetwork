@@ -1,5 +1,5 @@
 (function () {
-  const KEY = 'pair-builder-v3';
+  const KEY = 'pair-builder-v4';
   const preset = bPreset;
   let err = null;
   let st;
@@ -24,7 +24,7 @@
 
   const cv = el('view'), ctx = cv.getContext('2d');
   const view = { yaw: -0.6, pitch: 0.5 }, pan = { x: 0, y: 0, zoom: 1 };
-  let focus = [0, 0, 0], S = 200;
+  let focus = [0, 0, 0], S = 200, reach = null;
   const draw = atobCanvas(ctx, cv.width, cv.height, S, view, () => focus, css);
 
   function setup() {
@@ -51,33 +51,35 @@
     const table = (head, rows) => (rows.length
       ? h('table', {}, [h('thead', {}, [h('tr', {}, head.map(t => h('th', { textContent: t })))]), h('tbody', {}, rows)])
       : h('div', { className: 'hint', textContent: 'no rows' }));
-    const c = (o, k, row) => {
-      const at = row && `${row.from}→${row.to}:${k}`;
-      return h('td', {}, [flag(at, num(o[k], v => (row ? check(at, bSetStart(st, row, k, v), v) : (o[k] = v, setup()))))]);
+    const c = (o, k, row, part = 'start') => {
+      const at = `${row.from}→${row.to}:${part}${k}`;
+      return h('td', {}, [flag(at, num(o[k], v => check(at, bSetStart(st, row, k, v, part), v)))]);
     };
     const settings = st.rows.flatMap(r => {
       const del = h('button', { textContent: 'remove' });
       del.onclick = () => { st.rows = st.rows.filter(x => x !== r); setup(); update(); };
-      return [h('tr', {}, [h('td', { textContent: `${r.from}→${r.to}` }), c(r.start, 'phi', r), c(r.start, 'theta', r), c(r.start, 'r', r),
-        c(r.end, 'phi'), c(r.end, 'theta'), h('td', {}, [del])]), ...note(`${r.from}→${r.to}`, 7)];
+      const on = { kind: v => { check(`${r.from}→${r.to}:kind`, bSetKind(st, r, v), v); update(); }, changed: () => { setup(); update(); } };
+      return [h('tr', {}, [h('td', { textContent: `${r.from}→${r.to}` }), ...bRowCells(st, r, c, h, on), h('td', {}, [del])]), ...note(`${r.from}→${r.to}`, 8)];
     });
     const free = st.nodes.flatMap(a => st.nodes.filter(b => b !== a && !st.rows.some(r => r.from === a.name && r.to === b.name)).map(b => `${a.name}→${b.name}`));
     const pick = h('select', {}, free.map(p => h('option', { value: p, textContent: p })));
     const add = h('button', { textContent: 'add a→b setting', disabled: !free.length });
     add.onclick = () => {
       const [from, to] = pick.value.split('→');
-      st.rows.push({ from, to, start: { phi: 0, theta: 0, r: 2 }, end: { phi: 0, theta: 0 } });
+      st.rows.push({ from, to, kind: 'angle', start: { phi: 0, theta: 0, r: 2 }, end: { phi: 0, theta: 0 } });
       setup(); update();
     };
+    el('settings').replaceChildren(
+      h('h2', { textContent: 'a→b settings — one row per a→b, set at a: an angle (φ, θ, r), a change (a copy of the angle into a, plus its own end φ, end θ), or a base (measured once from where b lands, then stored)' }),
+      table(['a→b', 'kind', 'start φ', 'start θ', 'start r', 'end φ', 'end θ', ''], settings),
+      h('div', { className: 'row' }, free.length ? [pick, add] : []));
     el('tables').replaceChildren(
-      h('h2', { textContent: 'a→b settings — one row per a→b, its φ, θ, r set at a' }),
-      table(['a→b', 'start φ', 'start θ', 'start r', 'end φ', 'end θ', ''], settings),
-      h('div', { className: 'row' }, free.length ? [pick, add] : []),
       ...st.nodes.map(n => {
-        const seen = st.rows.flatMap(r => (r.from === n.name ? [[r.to, r.start]] : r.to === n.name ? [[r.from, bBack(st, r)]] : []));
+        const seen = st.rows.filter(r => bDir(st, r)).flatMap(r => (r.from === n.name ? [[r.to, bDir(st, r)]] : r.to === n.name ? [[r.from, bBack(st, r)]] : []));
         return h('div', {}, [
           h('h2', { textContent: `${n.name}'s table — ${n.name}'s φ, θ, r toward each node it connects to, in ${n.name}'s ticks (s ${bS(st, n.name)}: ${12 * bS(st, n.name)} a turn)` }),
           table(['toward', 'φ', 'θ', 'r'], seen.map(([o, t]) => h('tr', {}, [o, bN(t.phi), bN(t.theta), bN(t.r)].map(x => h('td', { textContent: x }))))),
+          ...bSecondBase(st, n, h, table),
         ]);
       }));
 
@@ -121,7 +123,7 @@
     rs.forEach(({ steps }) => steps.slice(0, st.step).forEach(s => s.draw.forEach(o => pts.push(...(o.arrow || [o.dot || o.square])))));
     const cells = st.cells !== false ? bLinks(st) : [];
     cells.forEach(({ P, t, s }) => pts.push(...bCellCorners(st, P, t, s)));
-    const reach = Math.max(0.25, ...pts.map(bLen));
+    reach ??= Math.max(0.25, ...pts.map(bLen));
     focus = [0, 0, 0];
     S = pan.zoom * (cv.width / 2 - 60) / reach;
     Object.assign(draw, atobCanvas(ctx, cv.width, cv.height, S, view, () => focus, css));
@@ -201,7 +203,7 @@
     st.nodes.push({ name, known: false, idx: { r: 0, phi: 0, theta: 0 } });
     setup(); update();
   };
-  el('preset').onclick = () => { st = preset(); setup(); update(); };
+  el('preset').onclick = () => { st = preset(); reach = null; setup(); update(); };
 
   setup();
   update();
