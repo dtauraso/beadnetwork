@@ -1,5 +1,5 @@
 (function () {
-  const R = 0.4, STEP = 1;
+  const R = 0.25, STEP = 1;
   const cv = document.getElementById('view'), ctx = cv.getContext('2d');
   const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
   const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
