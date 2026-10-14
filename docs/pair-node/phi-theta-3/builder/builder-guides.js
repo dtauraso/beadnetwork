@@ -47,11 +47,7 @@ function bSyncRows(st) {
 
 function bDrawGuides(st, draw, ctx, css, points) {
   const tick = 2 * Math.PI / (12 * st.s), e = 1e-6, a = 0.45 * st.cr;
-  const muted = css('--muted'), ink = css('--ink');
-  const text = (p, s, color, size, dy) => {
-    const [x, y] = draw.proj(p);
-    ctx.fillStyle = color; ctx.font = `${size}px -apple-system, sans-serif`; ctx.fillText(s, x + 6, y + dy);
-  };
+  const muted = css('--muted');
   const line = (pts, color, width, dash = []) => {
     ctx.save(); ctx.setLineDash(dash); ctx.lineWidth = width; ctx.strokeStyle = color; ctx.beginPath();
     pts.map(draw.proj).forEach(([x, y], k) => (k ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
@@ -59,12 +55,11 @@ function bDrawGuides(st, draw, ctx, css, points) {
   };
   const arc = (f, color) => line(Array.from({ length: 17 }, (_, k) => f(k / 16)), color, 3);
   points.forEach(({ p }) => bDrawAxes(draw, ctx, css, p, st.cr, false));
-  bRowEnds(st).forEach(({ row, P, T }) => {
+  bRowEnds(st).forEach(({ P, T }) => {
     const w = bSub(T, P), t = bTicks(st, w), r = bLen(w);
     if (r < e) return;
     arc(s => bAdd(P, bCart(a, s * t.phi * tick, t.theta * tick)), css('--phi'));
     arc(s => bAdd(P, bCart(a, Math.PI / 2, s * t.theta * tick)), css('--theta'));
-    text(bAdd(P, bCart(a, t.phi * tick / 2, t.theta * tick)), `${row.from}→${row.to}: φ ${bF(t.phi)} θ ${bF(t.theta)} r ${bF(t.r)}`, ink, 20, -8);
     line([P, T], muted, 2, [3, 7]);
   });
 }
