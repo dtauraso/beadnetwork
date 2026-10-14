@@ -47,7 +47,7 @@ function bSyncRows(st) {
 
 function bDrawGuides(st, draw, ctx, css, points) {
   const tick = 2 * Math.PI / (12 * st.s), e = 1e-6, a = 0.45 * st.cr;
-  const muted = css('--muted'), ink = css('--ink'), near = v => [...new Set([Math.floor(v + e), Math.ceil(v - e)])];
+  const muted = css('--muted'), ink = css('--ink');
   const text = (p, s, color, size, dy) => {
     const [x, y] = draw.proj(p);
     ctx.fillStyle = color; ctx.font = `${size}px -apple-system, sans-serif`; ctx.fillText(s, x + 6, y + dy);
@@ -65,15 +65,6 @@ function bDrawGuides(st, draw, ctx, css, points) {
     arc(s => bAdd(P, bCart(a, s * t.phi * tick, t.theta * tick)), css('--phi'));
     arc(s => bAdd(P, bCart(a, Math.PI / 2, s * t.theta * tick)), css('--theta'));
     text(bAdd(P, bCart(a, t.phi * tick / 2, t.theta * tick)), `${row.from}→${row.to}: φ ${bF(t.phi)} θ ${bF(t.theta)} r ${bF(t.r)}`, ink, 20, -8);
-    const is = near(t.phi), js = near(t.theta), top = 6 * st.s;
-    const ticks = is.length === 1 && js.length === 1
-      ? [[is[0] - 1, js[0]], [is[0] + 1, js[0]], [is[0], js[0] - 1], [is[0], js[0] + 1]]
-      : is.flatMap(i => js.map(j => [i, j]));
-    ticks.filter(([i]) => i >= 0 && i <= top).forEach(([i, j]) => {
-      j = ((j % (12 * st.s)) + 12 * st.s) % (12 * st.s);
-      const end = bAdd(P, bCart(Math.min(r, 1.5 * st.cr), i * tick, j * tick));
-      line([P, end], muted, 1.5, [3, 7]);
-      text(end, `φ ${i} θ ${j}`, muted, 18, 18);
-    });
+    line([P, T], muted, 2, [3, 7]);
   });
 }
