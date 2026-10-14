@@ -11,20 +11,20 @@ function bCellPoints(st, rs) {
 
 function bLinks(st) {
   return bRowEnds(st).flatMap(({ row, P, T }) => [
-    { from: row.from, to: row.to, P, T, t: row.start },
-    { from: row.to, to: row.from, P: T, T: P, t: bBack(st, row.start) },
+    { from: row.from, to: row.to, P, T, t: row.start, s: bS(st, row.from) },
+    { from: row.to, to: row.from, P: T, T: P, t: bBack(st, row), s: bS(st, row.to) },
   ]);
 }
 
-function bCell(st, t) {
-  const n = 12 * st.s, e = 1e-9;
+function bCell(st, t, s) {
+  const n = 12 * s, e = 1e-9;
   const I = { r: t.r * st.rho / st.cr, phi: t.phi * st.Tphi / n, theta: t.theta * st.Ttheta / n };
   const K = Math.max(1, Math.ceil(I.r - e));
   return { I, K, i: Math.floor(I.phi + e) % st.Tphi, j: Math.floor(I.theta + e) % st.Ttheta, R: K * st.cr };
 }
 
-function bCellCorners(st, P, t) {
-  const c = bCell(st, t), cphi = 2 * Math.PI / st.Tphi, cth = 2 * Math.PI / st.Ttheta;
+function bCellCorners(st, P, t, s) {
+  const c = bCell(st, t, s), cphi = 2 * Math.PI / st.Tphi, cth = 2 * Math.PI / st.Ttheta;
   return [[0, 0], [1, 0], [0, 1], [1, 1]].map(([di, dj]) => bAdd(P, bCart(c.R, (c.i + di) * cphi, (c.j + dj) * cth)));
 }
 
@@ -51,7 +51,7 @@ function bDrawCells(st, draw, ctx, css, links) {
     ctx.stroke();
     ctx.restore();
   };
-  return links.map(({ from, to, P, t }) => {
+  return links.map(({ from, to, P, t, s }) => {
     const at = (k, ph, th) => bAdd(P, bCart(k * st.cr, ph * cphi, th * cth));
     const arc = (f, color, width, alpha) => line(Array.from({ length: 17 }, (_, t) => f(t / 16)), color, width, alpha);
     const face = (k, i, j, color, width, alpha) => {
@@ -60,7 +60,7 @@ function bDrawCells(st, draw, ctx, css, links) {
     };
     const rays = (k0, k1, i, j, color, width, alpha) => [[i, j], [i + 1, j], [i, j + 1], [i + 1, j + 1]]
       .forEach(([ph, th]) => line([at(k0, ph, th), at(k1, ph, th)], color, width, alpha));
-    const c = bCell(st, t);
+    const c = bCell(st, t, s);
     rays(0, c.K, c.i, c.j, wire, 1, 0.5);
     for (let k = 1; k < c.K; k++) face(k, c.i, c.j, wire, 1, 0.5);
     face(c.K - 1, c.i, c.j, ink, 2, 0.8);

@@ -25,7 +25,6 @@
   const draw = atobCanvas(ctx, cv.width, cv.height, S, view, () => focus, css);
 
   function setup() {
-    el('s').value = st.s; el('s').onchange = () => { st.s = Math.max(1, Math.round(+el('s').value) || 1); update(); };
     el('rho').value = st.rho; el('rho').onchange = () => { st.rho = +el('rho').value || st.rho; update(); };
     [['Tphi', 'Tphi', true], ['Ttheta', 'Ttheta', true], ['cr', 'cr', false]].forEach(([id, k, whole]) => {
       el(id).value = st[k];
@@ -42,7 +41,8 @@
         st.rows = st.rows.filter(r => r.from !== n.name && r.to !== n.name);
         setup(); update();
       };
-      return h('tr', {}, [h('td', { textContent: n.name }), h('td', {}, [known]), ...xyz, h('td', {}, [del])]);
+      const s = num(bS(st, n.name), v => { err = bSetS(st, n, v); setup(); });
+      return h('tr', {}, [h('td', { textContent: n.name }), h('td', {}, [s]), h('td', {}, [known]), ...xyz, h('td', {}, [del])]);
     }));
 
     const table = (head, rows) => (rows.length
@@ -69,9 +69,9 @@
       h('div', { className: 'missing', textContent: err }),
       h('div', { className: 'row' }, free.length ? [pick, add] : []),
       ...st.nodes.map(n => {
-        const seen = st.rows.flatMap(r => (r.from === n.name ? [[r.to, r.start]] : r.to === n.name ? [[r.from, bBack(st, r.start)]] : []));
+        const seen = st.rows.flatMap(r => (r.from === n.name ? [[r.to, r.start]] : r.to === n.name ? [[r.from, bBack(st, r)]] : []));
         return h('div', {}, [
-          h('h2', { textContent: `${n.name}'s table — ${n.name}'s φ, θ, r toward each node it connects to` }),
+          h('h2', { textContent: `${n.name}'s table — ${n.name}'s φ, θ, r toward each node it connects to, in ${n.name}'s ticks (s ${bS(st, n.name)}: ${12 * bS(st, n.name)} a turn)` }),
           table(['toward', 'φ', 'θ', 'r'], seen.map(([o, t]) => h('tr', {}, [o, bN(t.phi), bN(t.theta), bN(t.r)].map(x => h('td', { textContent: x }))))),
         ]);
       }));
@@ -113,7 +113,7 @@
     const pts = [[0, 0, 0], ...st.nodes.filter(n => n.known).map(n => bPlace(st, n.idx))];
     rs.forEach(({ steps }) => steps.slice(0, st.step).forEach(s => s.draw.forEach(o => pts.push(...(o.arrow || [o.dot || o.square])))));
     const cells = st.cells !== false ? bLinks(st) : [];
-    cells.forEach(({ P, t }) => pts.push(...bCellCorners(st, P, t)));
+    cells.forEach(({ P, t, s }) => pts.push(...bCellCorners(st, P, t, s)));
     const reach = Math.max(0.25, ...pts.map(bLen));
     focus = [0, 0, 0];
     S = pan.zoom * (cv.width / 2 - 60) / reach;

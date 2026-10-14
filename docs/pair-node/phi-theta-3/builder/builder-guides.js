@@ -31,9 +31,9 @@ function bPreset() {
   const p = {
     s: 1, rho: 0.5, Tphi: 12, Ttheta: 12, cr: 0.5,
     nodes: [
-      { name: 'a', known: true, idx: { r: 2, phi: 3, theta: 0 } },
-      { name: 'b', known: true, idx: { r: 0, phi: 0, theta: 0 } },
-      { name: 'c', known: true, idx: { r: 0, phi: 0, theta: 0 } },
+      { name: 'a', s: 1, known: true, idx: { r: 2, phi: 3, theta: 0 } },
+      { name: 'b', s: 1, known: true, idx: { r: 0, phi: 0, theta: 0 } },
+      { name: 'c', s: 1, known: true, idx: { r: 0, phi: 0, theta: 0 } },
     ],
     rows: [
       { from: 'a', to: 'b', start: { phi: 2, theta: 0, r: 2 }, end: { phi: 0, theta: 0 } },
@@ -50,41 +50,68 @@ function bPreset() {
 function bView(st, row) {
   const P = bNodePos(st, row.from), T = bNodePos(st, row.to);
   if (!P || !T) return null;
-  const v = bSub(T, P), len = bLen(v), tick = 2 * Math.PI / (12 * st.s), half = 6 * st.s;
+  const s = bS(st, row.from), v = bSub(T, P), len = bLen(v), tick = 2 * Math.PI / (12 * s), half = 6 * s;
   if (len < 1e-9) return { phi: row.start.phi, theta: row.start.theta, r: 0 };
   let phi = Math.acos(Math.max(-1, Math.min(1, v[1] / len))) / tick;
-  let theta = Math.hypot(v[0], v[2]) < 1e-9 * len ? row.start.theta : bWrap(st, Math.atan2(v[2], v[0]) / tick);
-  if (row.start.phi > half) { phi = 2 * half - phi; theta = bWrap(st, theta + half); }
+  let theta = Math.hypot(v[0], v[2]) < 1e-9 * len ? row.start.theta : bWrap(s, Math.atan2(v[2], v[0]) / tick);
+  if (row.start.phi > half) { phi = 2 * half - phi; theta = bWrap(s, theta + half); }
   return { phi, theta, r: len / st.rho };
 }
 
-function bSetStart(st, row, k, value) {
-  const whole = x => Math.abs(x - Math.round(x)) < 1e-6;
-  const name = { phi: 'φ', theta: 'θ', r: 'r' };
-  const said = `${row.from}→${row.to} ${name[k]} ${bN(value)}`;
-  if (!whole(value)) return `${said}: not a whole number, so it stays at ${bN(row.start[k])}`;
-  const n = st.nodes.find(x => x.name === row.to), P = bNodePos(st, row.from);
-  const idx = n && { ...n.idx };
-  const start = { ...row.start, [k]: value };
-  if (n && n.known && P) {
-    const tick = 2 * Math.PI / (12 * st.s);
-    const J = bIndexOf(st, bAdd(P, bCart(start.r * st.rho, start.phi * tick, start.theta * tick)));
-    n.idx = { ...J, theta: J.theta < 0 ? J.theta + st.Ttheta : J.theta };
-  }
-  const others = st.rows.filter(r => r !== row && n && (r.from === n.name || r.to === n.name))
-    .map(r => ({ r, t: bView(st, r) })).filter(o => o.t);
-  const bad = others.filter(({ t }) => !['phi', 'theta', 'r'].every(q => whole(t[q])));
+function bOffTicks(st, rows) {
+  return rows.flatMap(r => {
+    const a = r.start, b = bBack(st, r), out = [];
+    if (![a.phi, a.theta, a.r, r.end.phi, r.end.theta].every(bWhole)) out.push(`${r.from}→${r.to} at ${r.from} (s ${bS(st, r.from)}) would be φ ${bF(a.phi)}, θ ${bF(a.theta)}, r ${bF(a.r)}, end φ ${bF(r.end.phi)}, end θ ${bF(r.end.theta)}`);
+    if (![b.phi, b.theta].every(bWhole)) out.push(`${r.from} seen from ${r.to} (s ${bS(st, r.to)}) would be φ ${bF(b.phi)}, θ ${bF(b.theta)}`);
+    return out;
+  });
+}
+
+function bSettle(st, keep, rows, said, was) {
+  const bad = bOffTicks(st, rows);
   if (bad.length) {
-    if (n) n.idx = idx;
-    return `${said}: ${bad.map(({ r, t }) => `${r.from}→${r.to} would be φ ${bF(t.phi)}, θ ${bF(t.theta)}, r ${bF(t.r)}`).join('; ')} — not whole ticks, so it stays at ${bN(row.start[k])}`;
+    [st.nodes, st.rows] = JSON.parse(keep);
+    return `${said}: ${bad.join('; ')} — not whole ticks, so it stays at ${was}`;
   }
-  row.start = start;
-  others.forEach(({ r, t }) => { r.start = { phi: Math.round(t.phi) % (12 * st.s), theta: Math.round(t.theta) % (12 * st.s), r: Math.round(t.r) }; });
+  rows.forEach(r => {
+    const w = t => bWrap(bS(st, r.from), Math.round(t));
+    r.start = { phi: w(r.start.phi), theta: w(r.start.theta), r: Math.round(r.start.r) };
+    r.end = { phi: w(r.end.phi), theta: w(r.end.theta) };
+  });
   return '';
 }
 
+function bSetStart(st, row, k, value) {
+  const was = bN(row.start[k]), said = `${row.from}→${row.to} ${{ phi: 'φ', theta: 'θ', r: 'r' }[k]} ${bN(value)}`;
+  if (!bWhole(value)) return `${said}: not a whole number, so it stays at ${was}`;
+  const keep = JSON.stringify([st.nodes, st.rows]);
+  row.start[k] = value;
+  const n = st.nodes.find(x => x.name === row.to), P = bNodePos(st, row.from);
+  let rows = [row];
+  if (n && n.known && P) {
+    const J = bIndexOf(st, bAdd(P, bRowVectors(st, row.to).find(v => v.row === row).d));
+    n.idx = { ...J, theta: J.theta < 0 ? J.theta + st.Ttheta : J.theta };
+    rows = st.rows.filter(r => r.from === n.name || r.to === n.name);
+    rows.filter(r => r !== row).forEach(r => { const t = bView(st, r); if (t) r.start = t; });
+  }
+  return bSettle(st, keep, rows, said, was);
+}
+
+function bSetS(st, node, value) {
+  const was = bS(st, node.name), said = `${node.name}'s s ${bN(value)}`;
+  if (!bWhole(value) || value < 1) return `${said}: not a whole number of at least 1, so it stays at ${was}`;
+  const keep = JSON.stringify([st.nodes, st.rows]), k = value / was;
+  node.s = value;
+  const rows = st.rows.filter(r => r.from === node.name || r.to === node.name);
+  rows.filter(r => r.from === node.name).forEach(r => {
+    r.start = { ...r.start, phi: r.start.phi * k, theta: r.start.theta * k };
+    r.end = { phi: r.end.phi * k, theta: r.end.theta * k };
+  });
+  return bSettle(st, keep, rows, said, was);
+}
+
 function bDrawGuides(st, draw, ctx, css, points) {
-  const tick = 2 * Math.PI / (12 * st.s), e = 1e-6, a = 0.7 * st.cr;
+  const e = 1e-6, a = 0.7 * st.cr;
   const muted = css('--muted');
   const line = (pts, color, width, dash = []) => {
     ctx.save(); ctx.setLineDash(dash); ctx.lineWidth = width; ctx.strokeStyle = color; ctx.beginPath();
@@ -98,8 +125,8 @@ function bDrawGuides(st, draw, ctx, css, points) {
   };
   points.forEach(({ p }) => bDrawAxes(draw, ctx, css, p, st.cr, false));
   const seen = {};
-  bLinks(st).forEach(({ from, P, t }) => {
-    const k = seen[from] = (seen[from] ?? -1) + 1, R = a * (1 + 0.4 * k);
+  bLinks(st).forEach(({ from, P, t, s: ns }) => {
+    const k = seen[from] = (seen[from] ?? -1) + 1, R = a * (1 + 0.4 * k), tick = 2 * Math.PI / (12 * ns);
     if (t.r < e) return;
     if (t.phi > e) arc(s => bAdd(P, bCart(R, s * t.phi * tick, 0)), css('--phi'));
     if (t.theta > e) arc(s => bAdd(P, bCart(R, Math.PI / 2, s * t.theta * tick)), css('--theta'));

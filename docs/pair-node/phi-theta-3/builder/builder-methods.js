@@ -20,8 +20,13 @@ function bIndexOf(st, p) {
   return { r: r / c.r, phi: Math.acos(Math.max(-1, Math.min(1, w[1] / r))) / c.phi, theta: Math.atan2(w[2], w[0]) / c.theta };
 }
 
-const bWrap = (st, t) => ((t % (12 * st.s)) + 12 * st.s) % (12 * st.s);
-const bBack = (st, a) => ({ phi: bWrap(st, a.phi + 6 * st.s), theta: bWrap(st, a.theta + 6 * st.s), r: a.r });
+const bS = (st, name) => (st.nodes.find(n => n.name === name) || {}).s || st.s;
+const bWrap = (s, t) => ((t % (12 * s)) + 12 * s) % (12 * s);
+const bBack = (st, row) => {
+  const sa = bS(st, row.from), sb = bS(st, row.to), a = row.start;
+  return { phi: bWrap(sb, a.phi * sb / sa + 6 * sb), theta: bWrap(sb, a.theta * sb / sa + 6 * sb), r: a.r };
+};
+const bWhole = x => Math.abs(x - Math.round(x)) < 1e-6;
 
 const bIdx = I => `(I_r ${bF(I.r)}, I_φ ${bF(I.phi)}, I_θ ${bF(I.theta)})`;
 const bPlaceText = I => `O + polar_to_cart(${bF(I.r)}·c_r, ${bF(I.phi)}·c_φ, ${bF(I.theta)}·c_θ)`;
@@ -32,18 +37,17 @@ function bNodePos(st, name) {
 }
 
 function bRowVectors(st, item) {
-  const ang = t => t * 2 * Math.PI / (12 * st.s);
-  return st.rows.filter(r => r.to === item).map(r => ({
-    from: r.from, row: r,
-    d: bCart(r.start.r * st.rho, ang(r.start.phi), ang(r.start.theta)),
-  }));
+  return st.rows.filter(r => r.to === item).map(r => {
+    const ang = t => t * 2 * Math.PI / (12 * bS(st, r.from));
+    return { from: r.from, row: r, d: bCart(r.start.r * st.rho, ang(r.start.phi), ang(r.start.theta)) };
+  });
 }
 
 function bVectorStep(rows, item) {
   return {
     title: 'local: each row\'s start as a vector',
     lines: rows.length
-      ? rows.map(({ from, row, d }) => `d_${from}${item} = polar_to_cart(${bN(row.start.r)}·ρ, ${bN(row.start.phi)}·2π/12s, ${bN(row.start.theta)}·2π/12s) = ${bPt(d)}`)
+      ? rows.map(({ from, row, d }) => `d_${from}${item} = polar_to_cart(${bN(row.start.r)}·ρ, ${bN(row.start.phi)}·2π/12s_${from}, ${bN(row.start.theta)}·2π/12s_${from}) = ${bPt(d)}`)
       : [`${item}'s table has no rows`],
     note: 'from the row\'s start ticks alone; a vector, not yet a place',
     ok: rows.length > 0, draw: [],
