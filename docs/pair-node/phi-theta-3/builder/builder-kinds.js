@@ -1,10 +1,21 @@
 const bKind = row => row.kind || 'angle';
 const bFloat = row => bKind(row) === 'base' || bKind(row) === 'copy';
+const bAuto = row => row.automatic !== false;
 const bSib = (st, row) => st.rows.find(r => r !== row && r.from === row.from && bKind(r) === 'angle');
 
-function bChange(st, row) {
+function bTurned(st, row) {
   const sib = bSib(st, row);
   return sib && row.ref ? { sib, phi: sib.start.phi - row.ref.phi, theta: sib.start.theta - row.ref.theta } : null;
+}
+
+function bChange(st, row) {
+  const d = bTurned(st, row);
+  return d && !bAuto(row) ? { sib: d.sib, phi: row.held.phi, theta: row.held.theta } : d;
+}
+
+function bApply(st, row) {
+  const d = bTurned(st, row);
+  if (d) row.held = { phi: d.phi, theta: d.theta };
 }
 
 function bCopy(st, row) {
@@ -63,6 +74,7 @@ function bSetCopy(st, row, said) {
   row.kind = 'copy';
   row.base = bView(st, row);
   row.ref = sib && { phi: sib.start.phi, theta: sib.start.theta };
+  row.held = { phi: 0, theta: 0 };
   if (!sib) return `${said}: ${row.from} has no angle row to copy the change of`;
   return row.base ? '' : `${said}: ${row.from} or ${row.to} has no position to measure from`;
 }
@@ -79,8 +91,13 @@ function bRowCells(st, r, c, h, on) {
   const copy = bKind(r) === 'copy', d = copy && bChange(st, r);
   const set = h('button', { textContent: copy ? 'set copy' : 'set base' });
   set.onclick = () => { if (copy) bSetCopy(st, r, ''); else r.base = bView(st, r); on.changed(); };
-  const t = bDir(st, r), what = d ? `${d.sib.from}→${d.sib.to} change φ ${bN(d.phi)} θ ${bN(d.theta)} ` : '';
-  return [h('td', {}, [kind]), ...(t ? [t.phi, t.theta, t.r].map(x => txt(bF(x))) : ['—', '—', '—'].map(txt)), h('td', { colSpan: 2 }, [what, set])];
+  const t = bDir(st, r), what = d ? `${d.sib.from}→${d.sib.to} ${!bAuto(r) ? "turn applied" : "change"} φ ${bN(d.phi)} θ ${bN(d.theta)} ` : '';
+  const auto = h('input', { type: 'checkbox', checked: bAuto(r) });
+  auto.onchange = () => { r.automatic = auto.checked; bApply(st, r); on.changed(); };
+  const apply = h('button', { textContent: 'apply turn' });
+  apply.onclick = () => { bApply(st, r); on.changed(); };
+  const extra = copy && d ? [h('label', {}, [auto, ' automatic ']), ...(!bAuto(r) ? [apply] : [])] : [];
+  return [h('td', {}, [kind]), ...(t ? [t.phi, t.theta, t.r].map(x => txt(bF(x))) : ['—', '—', '—'].map(txt)), h('td', { colSpan: 2 }, [what, ...extra, set])];
 }
 
 function bHow(st, o, r) {
