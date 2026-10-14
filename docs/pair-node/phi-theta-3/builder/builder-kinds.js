@@ -105,3 +105,11 @@ function bSecondBase(st, n, h, table) {
         .map(x => h('td', { textContent: x })))))];
   });
 }
+
+function bLands(st, h, table) {
+  const three = x => (x ? [x.phi, x.theta, x.r].map(bF) : ['—', '—', '—']);
+  const rows = st.rows.map(r => h('tr', {}, [`${r.from}→${r.to}`, ...three(bDir(st, r)), ...three(bView(st, r))]
+    .map(x => h('td', { textContent: x }))));
+  return [h('h2', { textContent: 'read only: each row, and the direction from its first node to its second node where they are placed' }),
+    table(['a→b', 'row φ', 'θ', 'r', 'placed φ', 'θ', 'r'], rows)];
+}
