@@ -18,13 +18,6 @@ function bDrawAxes(draw, ctx, css, P, L, named) {
   });
 }
 
-function bTicks(st, w) {
-  const n = 12 * st.s, tick = 2 * Math.PI / n, r = bLen(w);
-  if (r < 1e-9) return { phi: 0, theta: 0, r: 0 };
-  const theta = Math.atan2(w[2], w[0]) / tick;
-  return { phi: Math.acos(Math.max(-1, Math.min(1, w[1] / r))) / tick, theta: theta < -1e-9 ? theta + n : Math.max(0, theta), r: r / st.rho };
-}
-
 function bRowEnds(st) {
   return st.rows.map(row => {
     const P = bNodePos(st, row.from);
@@ -75,8 +68,7 @@ function bDrawGuides(st, draw, ctx, css, points) {
     draw.arrow(pts[46], pts[48], color, 2);
   };
   points.forEach(({ p }) => bDrawAxes(draw, ctx, css, p, st.cr, false));
-  bLinks(st).forEach(({ P, T }) => {
-    const t = bTicks(st, bSub(T, P));
+  bLinks(st).forEach(({ P, t }) => {
     if (t.r < e) return;
     if (t.phi > e) arc(s => bAdd(P, bCart(a, s * t.phi * tick, t.theta * tick)), css('--phi'));
     if (t.theta > e) arc(s => bAdd(P, bCart(a, Math.PI / 2, s * t.theta * tick)), css('--theta'));

@@ -62,7 +62,9 @@
         const del = h('button', { textContent: 'remove' });
         del.onclick = () => { st.rows = st.rows.filter(x => x !== r); setup(); update(); };
         const c = (o, k) => h('td', {}, [num(o[k], v => { o[k] = v; })]);
+        const back = bBack(st, r.start);
         return h('tr', {}, [h('td', { textContent: r.from }), c(r.start, 'phi'), c(r.start, 'theta'), c(r.start, 'r'),
+          h('td', { textContent: bN(back.phi) }), h('td', { textContent: bN(back.theta) }),
           c(r.end, 'phi'), c(r.end, 'theta'), h('td', {}, [del])]);
       });
       const free = st.nodes.filter(x => x.name !== n.name && !rows.some(r => r.from === x.name));
@@ -75,7 +77,7 @@
       return h('div', {}, [
         h('h2', { textContent: `${n.name}'s table — one row per node with an edge into ${n.name}` }),
         rows.length
-          ? h('table', {}, [h('thead', {}, [h('tr', {}, ['from', 'start φ', 'start θ', 'start r', 'end φ', 'end θ', ''].map(t => h('th', { textContent: t })))]),
+          ? h('table', {}, [h('thead', {}, [h('tr', {}, ['from', 'start φ', 'start θ', 'start r', `${n.name}'s φ`, `${n.name}'s θ`, 'end φ', 'end θ', ''].map(t => h('th', { textContent: t })))]),
             h('tbody', {}, body)])
           : h('div', { className: 'hint', textContent: 'no rows' }),
         h('div', { className: 'row' }, free.length ? [pick, add] : []),
@@ -120,7 +122,7 @@
     const pts = [[0, 0, 0], ...st.nodes.filter(n => n.known).map(n => bPlace(st, n.idx))];
     rs.forEach(({ steps }) => steps.slice(0, st.step).forEach(s => s.draw.forEach(o => pts.push(...(o.arrow || [o.dot || o.square])))));
     const cells = st.cells !== false ? bLinks(st) : [];
-    cells.forEach(({ P, T }) => pts.push(...bCellCorners(st, P, T)));
+    cells.forEach(({ P, t }) => pts.push(...bCellCorners(st, P, t)));
     const reach = Math.max(0.25, ...pts.map(bLen));
     focus = [0, 0, 0];
     S = pan.zoom * (cv.width / 2 - 60) / reach;
