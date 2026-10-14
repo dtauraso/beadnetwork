@@ -56,33 +56,35 @@
       return h('tr', {}, [h('td', { textContent: n.name }), h('td', {}, [known]), ...xyz, h('td', {}, [del])]);
     }));
 
-    el('tables').replaceChildren(...st.nodes.map(n => {
-      const rows = st.rows.filter(r => r.to === n.name);
-      const body = rows.map(r => {
-        const del = h('button', { textContent: 'remove' });
-        del.onclick = () => { st.rows = st.rows.filter(x => x !== r); setup(); update(); };
-        const c = (o, k) => h('td', {}, [num(o[k], v => { o[k] = v; })]);
-        const back = bBack(st, r.start);
-        return h('tr', {}, [h('td', { textContent: r.from }), c(r.start, 'phi'), c(r.start, 'theta'), c(r.start, 'r'),
-          h('td', { textContent: bN(back.phi) }), h('td', { textContent: bN(back.theta) }),
-          c(r.end, 'phi'), c(r.end, 'theta'), h('td', {}, [del])]);
-      });
-      const free = st.nodes.filter(x => x.name !== n.name && !rows.some(r => r.from === x.name));
-      const pick = h('select', {}, free.map(x => h('option', { value: x.name, textContent: x.name })));
-      const add = h('button', { textContent: `add row into ${n.name}`, disabled: !free.length });
-      add.onclick = () => {
-        st.rows.push({ from: pick.value, to: n.name, start: { phi: 0, theta: 0, r: 2 }, end: { phi: 0, theta: 0 } });
-        setup(); update();
-      };
-      return h('div', {}, [
-        h('h2', { textContent: `${n.name}'s table — one row per node with an edge into ${n.name}` }),
-        rows.length
-          ? h('table', {}, [h('thead', {}, [h('tr', {}, ['from', 'start φ', 'start θ', 'start r', `${n.name}'s φ`, `${n.name}'s θ`, 'end φ', 'end θ', ''].map(t => h('th', { textContent: t })))]),
-            h('tbody', {}, body)])
-          : h('div', { className: 'hint', textContent: 'no rows' }),
-        h('div', { className: 'row' }, free.length ? [pick, add] : []),
-      ]);
-    }));
+    const table = (head, rows) => (rows.length
+      ? h('table', {}, [h('thead', {}, [h('tr', {}, head.map(t => h('th', { textContent: t })))]), h('tbody', {}, rows)])
+      : h('div', { className: 'hint', textContent: 'no rows' }));
+    const c = (o, k) => h('td', {}, [num(o[k], v => { o[k] = v; })]);
+    const settings = st.rows.map(r => {
+      const del = h('button', { textContent: 'remove' });
+      del.onclick = () => { st.rows = st.rows.filter(x => x !== r); setup(); update(); };
+      return h('tr', {}, [h('td', { textContent: `${r.from}→${r.to}` }), c(r.start, 'phi'), c(r.start, 'theta'), c(r.start, 'r'),
+        c(r.end, 'phi'), c(r.end, 'theta'), h('td', {}, [del])]);
+    });
+    const free = st.nodes.flatMap(a => st.nodes.filter(b => b !== a && !st.rows.some(r => r.from === a.name && r.to === b.name)).map(b => `${a.name}→${b.name}`));
+    const pick = h('select', {}, free.map(p => h('option', { value: p, textContent: p })));
+    const add = h('button', { textContent: 'add a→b setting', disabled: !free.length });
+    add.onclick = () => {
+      const [from, to] = pick.value.split('→');
+      st.rows.push({ from, to, start: { phi: 0, theta: 0, r: 2 }, end: { phi: 0, theta: 0 } });
+      setup(); update();
+    };
+    el('tables').replaceChildren(
+      h('h2', { textContent: 'a→b settings — one row per a→b, its φ, θ, r set at a' }),
+      table(['a→b', 'φ', 'θ', 'r', 'end φ', 'end θ', ''], settings),
+      h('div', { className: 'row' }, free.length ? [pick, add] : []),
+      ...st.nodes.map(n => {
+        const seen = st.rows.flatMap(r => (r.from === n.name ? [[r.to, r.start]] : r.to === n.name ? [[r.from, bBack(st, r.start)]] : []));
+        return h('div', {}, [
+          h('h2', { textContent: `${n.name}'s table — ${n.name}'s φ, θ, r toward each node it connects to` }),
+          table(['toward', 'φ', 'θ', 'r'], seen.map(([o, t]) => h('tr', {}, [o, bN(t.phi), bN(t.theta), bN(t.r)].map(x => h('td', { textContent: x }))))),
+        ]);
+      }));
 
     el('item').replaceChildren(...st.nodes.map(n => h('option', { value: n.name, textContent: n.name, selected: n.name === st.item })));
     el('item').onchange = () => { st.item = el('item').value; update(); };
