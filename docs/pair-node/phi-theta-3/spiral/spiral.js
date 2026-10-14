@@ -1,5 +1,5 @@
 (function () {
-  const KEY = 'pair-spiral-v1', R = 0.5, N = 30, GAP = 2 * R * 1.08;
+  const KEY = 'pair-spiral-v2', R = 0.5, N = 30, GAP = 2 * R * 1.08;
   const cv = document.getElementById('view'), ctx = cv.getContext('2d'), status = document.getElementById('status');
   const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
   const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
@@ -7,11 +7,8 @@
   const len = v => Math.hypot(v[0], v[1], v[2]);
 
   function spiral() {
-    const at = t => { const r = 1.2 + (2 * R * 1.3 / (2 * Math.PI)) * t; return [r * Math.cos(t), 0.06 * t, r * Math.sin(t)]; };
-    const out = [at(0)];
-    for (let t = 0; out.length < N; t += 0.001) if (len(sub(at(t), out[out.length - 1])) >= GAP) out.push(at(t));
-    const mid = out.reduce(add).map(x => x / N);
-    return out.map(p => sub(p, [0, mid[1], 0]));
+    const rho = 1.6, rise = 0.25, turn = 2 * Math.asin(Math.sqrt(GAP * GAP - rise * rise) / (2 * rho));
+    return Array.from({ length: N }, (_, i) => [rho * Math.cos(i * turn), (i - (N - 1) / 2) * rise, rho * Math.sin(i * turn)]);
   }
 
   let balls;
@@ -20,7 +17,7 @@
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(balls)); } catch { } };
   let pivot = null, mover = null, blocked = null;
 
-  const view = { yaw: -0.6, pitch: 0.6 };
+  const view = { yaw: -0.6, pitch: 0.75 };
   let zoom = 1, draw;
   const reach = Math.max(...spiral().map(len)) + R;
   const layout = () => { draw = atobCanvas(ctx, cv.width, cv.height, zoom * (cv.width / 2 - 30) / reach, view, () => [0, 0, 0], css); };
