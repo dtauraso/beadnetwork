@@ -84,6 +84,12 @@
     el('item').replaceChildren(...st.nodes.map(n => h('option', { value: n.name, textContent: n.name, selected: n.name === st.item })));
     el('item').onchange = () => { st.item = el('item').value; update(); };
 
+    el('spheres').replaceChildren(h('span', { textContent: 'sphere at' }), ...st.nodes.map(n => {
+      const box = h('input', { type: 'checkbox', checked: !!(st.spheres || {})[n.name] });
+      box.onchange = () => { (st.spheres ||= {})[n.name] = box.checked; update(); };
+      return h('label', {}, [box, ` ${n.name}`]);
+    }));
+
     el('methods').replaceChildren(...B_METHODS.map(m => {
       const box = h('input', { type: 'checkbox', checked: !!st.on[m.id] });
       box.onchange = () => { st.on[m.id] = box.checked; update(); };
@@ -132,6 +138,7 @@
     bDrawAxes(draw, ctx, css, [0, 0, 0], st.cr, true);
     el('cellnote').replaceChildren(...[...bDrawCells(st, draw, ctx, css, cells), ...bGlobalLines(st)].map(t => h('div', { textContent: t })));
     bDrawGuides(st, draw, ctx, css, bCellPoints(st, rs));
+    bDrawSpheres(st, draw, ctx, S);
     const seen = {};
     rs.forEach(({ m, steps }) => {
       const color = css(m.color);

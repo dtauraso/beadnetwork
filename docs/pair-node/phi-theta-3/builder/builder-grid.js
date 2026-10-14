@@ -69,3 +69,12 @@ function bDrawCells(st, draw, ctx, css, links) {
     return `${to} in ${from}'s frame: I_r ${bF(c.I.r)}, I_φ ${bF(c.I.phi)}, I_θ ${bF(c.I.theta)}`;
   });
 }
+
+function bDrawSpheres(st, draw, ctx, S) {
+  const r = st.rho / 2 * S;
+  st.nodes.filter(n => n.known && (st.spheres || {})[n.name]).map(n => draw.proj(bPlace(st, n.idx))).sort((p, q) => p[2] - q[2]).forEach(([x, y]) => {
+    const g = ctx.createRadialGradient(x - r * 0.35, y - r * 0.35, r * 0.1, x, y, r);
+    g.addColorStop(0, 'hsl(210 80% 85%)'); g.addColorStop(0.6, 'hsl(210 60% 55%)'); g.addColorStop(1, 'hsl(210 55% 28%)');
+    ctx.beginPath(); ctx.arc(x, y, r, 0, 2 * Math.PI); ctx.fillStyle = g; ctx.fill();
+  });
+}
