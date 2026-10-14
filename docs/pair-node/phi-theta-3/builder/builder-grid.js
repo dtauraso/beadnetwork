@@ -1,7 +1,7 @@
 function bCellPoints(st, rs) {
   const out = [];
   const add = (p, color) => { if (bLen(p) > 1e-9 && !out.some(t => bLen(bSub(t.p, p)) < 1e-9)) out.push({ p, color }); };
-  st.nodes.map(n => bNodePos(st, n.name)).filter(Boolean).forEach(p => add(p, '--ink'));
+  st.nodes.filter(n => n.known).forEach(n => add(bPlace(st, n.idx), '--ink'));
   rs.forEach(({ m, steps }) => steps.slice(0, st.step).forEach(s => s.draw.forEach(o => {
     if (o.square) add(o.square, m.color);
     else if (o.dot && o.label.startsWith(`${st.item}(`)) add(o.dot, m.color);
@@ -83,7 +83,7 @@ function bSphereBoxes(st, h, changed) {
 }
 
 function bDrawSpheres(st, draw, ctx) {
-  const P = st.nodes.map(n => bNodePos(st, n.name)).filter(Boolean);
+  const P = st.nodes.filter(n => n.known).map(n => bPlace(st, n.idx));
   const R = Math.min(st.rho * 2, ...P.flatMap((p, i) => P.slice(i + 1).map(q => bLen(bSub(p, q))))) / 2;
   const ring = (C, f) => {
     ctx.beginPath();
@@ -91,7 +91,7 @@ function bDrawSpheres(st, draw, ctx) {
     ctx.stroke();
   };
   ctx.strokeStyle = 'hsl(210 60% 55%)'; ctx.lineWidth = 1.5;
-  st.nodes.filter(n => (st.spheres || {})[n.name]).map(n => bNodePos(st, n.name)).filter(Boolean).forEach(C => {
+  st.nodes.filter(n => n.known && (st.spheres || {})[n.name]).map(n => bPlace(st, n.idx)).forEach(C => {
     for (let m = 0; m < 6; m++) ring(C, t => bCart(R, t, m * Math.PI / 6));
     for (let l = 1; l < 6; l++) ring(C, t => bCart(R, l * Math.PI / 6, t));
   });

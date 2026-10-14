@@ -30,8 +30,8 @@ function bPreset() {
   const p = {
     s: 1, rho: 0.5, Tphi: 12, Ttheta: 12, cr: 0.5,
     nodes: [
-      { name: 'a', s: 1, known: true, idx: { r: 2, phi: 3, theta: 0 } },
-      { name: 'b', s: 1, known: true, ref: 'a', idx: { r: 0, phi: 0, theta: 0 } },
+      { name: 'a', s: 1, known: true, out: ['b'], idx: { r: 2, phi: 3, theta: 0 } },
+      { name: 'b', s: 1, known: true, ref: 'a', out: ['c'], idx: { r: 0, phi: 0, theta: 0 } },
       { name: 'c', s: 1, known: true, ref: 'b', idx: { r: 0, phi: 0, theta: 0 } },
     ],
     rows: [
@@ -41,6 +41,7 @@ function bPreset() {
     ],
     item: 'c', on: { atob: true, pair: true }, step: 1,
   };
+  bSend(p, 'a');
   bSetCopy(p, p.rows[2], '');
   return p;
 }
@@ -86,7 +87,10 @@ function bSetStart(st, row, k, value, part = 'start') {
   if (!bWhole(value)) return `${said}: not a whole number, so it stays at ${was}`;
   const keep = JSON.stringify([st.nodes, st.rows]);
   row[part][k] = value;
-  bRefer(st, row);
+  if (!bMove(st, row)) {
+    [st.nodes, st.rows] = JSON.parse(keep);
+    return `${said}: the nodes' references run in a loop, so it stays at ${was}`;
+  }
   return bSettle(st, keep, [row], said, was);
 }
 

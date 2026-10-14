@@ -31,19 +31,9 @@ const bWhole = x => Math.abs(x - Math.round(x)) < 1e-6;
 const bIdx = I => `(I_r ${bF(I.r)}, I_φ ${bF(I.phi)}, I_θ ${bF(I.theta)})`;
 const bPlaceText = I => `O + polar_to_cart(${bF(I.r)}·c_r, ${bF(I.phi)}·c_φ, ${bF(I.theta)}·c_θ)`;
 
-function bNodePos(st, name, asked = 0) {
+function bNodePos(st, name) {
   const n = st.nodes.find(x => x.name === name);
-  if (!n || !n.known || asked > st.nodes.length) return null;
-  if (!n.ref) return bPlace(st, n.idx);
-  const P = bNodePos(st, n.ref, asked + 1), row = st.rows.find(r => r.from === n.ref && r.to === name), t = row && bDir(st, row);
-  return P && t ? bAdd(P, bVec(st, row, t)) : null;
-}
-
-function bNodeIdx(st, name) {
-  const p = bNodePos(st, name);
-  if (!p) return null;
-  const J = bIndexOf(st, p);
-  return { ...J, theta: J.theta < 0 ? J.theta + st.Ttheta : J.theta };
+  return n && n.known ? bPlace(st, n.idx) : null;
 }
 
 function bVec(st, r, t) {
@@ -81,7 +71,8 @@ function bResult(st, item, p, label) {
 
 function bSenders(st, rows) {
   const placed = rows.map(r => {
-    return { ...r, I: bNodeIdx(st, r.from), C: bNodePos(st, r.from) };
+    const n = st.nodes.find(x => x.name === r.from);
+    return { ...r, I: n && n.known ? n.idx : null, C: bNodePos(st, r.from) };
   });
   const missing = placed.filter(r => !r.C).map(r => r.from);
   const step = {
