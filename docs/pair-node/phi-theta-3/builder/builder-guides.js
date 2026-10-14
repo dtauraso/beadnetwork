@@ -31,8 +31,8 @@ function bPreset() {
     s: 1, rho: 0.5, Tphi: 12, Ttheta: 12, cr: 0.5,
     nodes: [
       { name: 'a', s: 1, known: true, idx: { r: 2, phi: 3, theta: 0 } },
-      { name: 'b', s: 1, known: true, idx: { r: 0, phi: 0, theta: 0 } },
-      { name: 'c', s: 1, known: true, idx: { r: 0, phi: 0, theta: 0 } },
+      { name: 'b', s: 1, known: true, idx: { r: 2 * Math.sqrt(2 + Math.sqrt(3)), phi: 2.5, theta: 0 } },
+      { name: 'c', s: 1, known: true, idx: { r: 2 * (1 + Math.sqrt(3)), phi: 3, theta: 0 } },
     ],
     rows: [
       { from: 'a', to: 'b', kind: 'angle', start: { phi: 2, theta: 0, r: 2 }, end: { phi: 0, theta: 0 } },
@@ -41,10 +41,6 @@ function bPreset() {
     ],
     item: 'c', on: { atob: true, pair: true }, step: 1,
   };
-  [[1, 0], [2, 1]].forEach(([i, r]) => {
-    const row = p.rows[r], P = bPlace(p, p.nodes.find(n => n.name === row.from).idx);
-    p.nodes[i].idx = bIndexOf(p, bAdd(P, bRowVectors(p, row.to).find(v => v.row === row).d));
-  });
   bSetCopy(p, p.rows[2], '');
   return p;
 }
@@ -90,7 +86,6 @@ function bSetStart(st, row, k, value, part = 'start') {
   if (!bWhole(value)) return `${said}: not a whole number, so it stays at ${was}`;
   const keep = JSON.stringify([st.nodes, st.rows]);
   row[part][k] = value;
-  bCarry(st, row);
   return bSettle(st, keep, [row], said, was);
 }
 
