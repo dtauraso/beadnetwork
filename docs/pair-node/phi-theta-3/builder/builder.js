@@ -98,6 +98,7 @@
   }
 
   function update() {
+    if (bSyncRows(st)) setup();
     const rs = runs();
     const max = Math.max(1, ...rs.map(r => r.steps.length));
     st.step = Math.min(Math.max(1, st.step), max);
@@ -111,8 +112,7 @@
         ...s.lines.map(l => h('code', { textContent: l })), h('div', { className: 'note', textContent: s.note })]))),
     ])));
     el('cells').checked = st.cells !== false;
-    el('cells').onchange = () => { st.cells = el('cells').checked; update(); };
-    render(rs);
+    el('cells').onchange = () => { st.cells = el('cells').checked; update(); };    render(rs);
     save();
   }
 
@@ -130,22 +130,9 @@
 
   function paint(rs, cells) {
     ctx.clearRect(0, 0, cv.width, cv.height);
-    const muted = css('--muted');
-    const L = st.cr, q = Math.PI / 2;
-    const label = (p, text, color) => {
-      const [x, y] = draw.proj(p);
-      ctx.fillStyle = color; ctx.font = '24px -apple-system, sans-serif'; ctx.fillText(text, x + 6, y - 6);
-    };
-    [[bCart(L, 0, 0), 'φ = 0'], [bCart(L, q, 0), 'θ = 0']].forEach(([e, n]) => { draw.arrow([0, 0, 0], e, muted, 2); label(e, n, muted); });
-    [[t => bCart(0.7 * L, t * q, 0), 'φ', '--phi'], [t => bCart(0.7 * L, q, t * q), 'θ', '--theta']].forEach(([f, n, c]) => {
-      const pts = Array.from({ length: 17 }, (_, i) => f(i / 16)), color = css(c);
-      ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.beginPath();
-      pts.slice(0, 15).map(draw.proj).forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
-      ctx.stroke();
-      draw.arrow(pts[14], pts[16], color, 2);
-      label(f(0.5), n, color);
-    });
+    bDrawAxes(draw, ctx, css, [0, 0, 0], st.cr, true);
     el('cellnote').replaceChildren(...bDrawCells(st, draw, ctx, css, cells).map(t => h('div', { textContent: t })));
+    bDrawGuides(st, draw, ctx, css, bCellPoints(st, rs));
     const seen = {};
     rs.forEach(({ m, steps }) => {
       const color = css(m.color);

@@ -34,7 +34,6 @@ function bDrawCells(st, draw, ctx, css, points) {
     ctx.stroke();
     ctx.restore();
   };
-  const dotted = (pts, color) => line(pts, color, 1.5, 0.8, [3, 7]);
   const arc = (f, color, width, alpha) => {
     const pts = []; for (let t = 0; t <= 16; t++) pts.push(f(t / 16));
     line(pts, color, width, alpha);
@@ -45,22 +44,6 @@ function bDrawCells(st, draw, ctx, css, points) {
   };
   const rays = (k0, k1, i, j, color, width, alpha) => [[i, j], [i + 1, j], [i, j + 1], [i + 1, j + 1]]
     .forEach(([ph, th]) => line([at(k0, ph, th), at(k1, ph, th)], color, width, alpha));
-  const cells = points.map(({ p }) => bCell(st, p));
-  const half = st.Ttheta / 2;
-  cells.forEach((a, n) => cells.slice(n + 1).forEach(b => {
-    let dj = (b.j - a.j) % st.Ttheta;
-    if (dj > half) dj -= st.Ttheta;
-    if (dj <= -half) dj += st.Ttheta;
-    const di = b.i - a.i;
-    for (let k = 1; k <= Math.min(a.K, b.K); k++) {
-      const ph0 = a.i + (di > 0 ? 1 : 0), ph1 = a.i + di + (di > 0 ? 0 : 1);
-      const th0 = a.j + (dj > 0 ? 1 : 0), th1 = a.j + dj + (dj > 0 ? 0 : 1);
-      const pts = [], n1 = Math.max(1, Math.abs(th1 - th0) * 8), n2 = Math.max(1, Math.abs(ph1 - ph0) * 8);
-      for (let t = 0; t <= n1; t++) pts.push(at(k, ph0, th0 + (th1 - th0) * t / n1));
-      for (let t = 1; t <= n2; t++) pts.push(at(k, ph0 + (ph1 - ph0) * t / n2, th1));
-      if (th1 !== th0 || ph1 !== ph0) dotted(pts, wire);
-    }
-  }));
   return points.map(({ p, color }) => {
     const c = bCell(st, p), col = css(color);
     rays(0, c.K, c.i, c.j, wire, 1, 0.5);
