@@ -107,24 +107,30 @@ function bPut(st, row) {
   return true;
 }
 
-function bTurn(st, row, was) {
-  const now = bDir(st, row), P = bNodePos(st, row.from), Q = bNodePos(st, row.to);
+function bRot(st, s, was, now) {
+  const k = 2 * Math.PI / (12 * s), a = was.theta * k, b = now.theta * k, f = (now.phi - was.phi) * k;
+  return v => {
+    const x1 = v[0] * Math.cos(a) + v[2] * Math.sin(a), z1 = v[2] * Math.cos(a) - v[0] * Math.sin(a);
+    const x2 = x1 * Math.cos(f) + v[1] * Math.sin(f), y2 = v[1] * Math.cos(f) - x1 * Math.sin(f);
+    return [x2 * Math.cos(b) - z1 * Math.sin(b), y2, x2 * Math.sin(b) + z1 * Math.cos(b)];
+  };
+}
+
+function bTurn(st, row, rot, dr = 0) {
+  const P = bNodePos(st, row.from), Q = bNodePos(st, row.to);
   const v = P && Q && bSub(Q, P), len = v && bLen(v);
-  if (!was || !now || !len || len < 1e-9) return bPut(st, row);
-  const k = 2 * Math.PI / (12 * bS(st, row.from)), a = was.theta * k, b = now.theta * k, f = (now.phi - was.phi) * k;
-  const x1 = v[0] * Math.cos(a) + v[2] * Math.sin(a), z1 = v[2] * Math.cos(a) - v[0] * Math.sin(a);
-  const x2 = x1 * Math.cos(f) + v[1] * Math.sin(f), y2 = v[1] * Math.cos(f) - x1 * Math.sin(f);
-  const w = (len + (now.r - was.r) * st.rho) / len;
-  bSetAt(st, row.to, bAdd(P, [x2 * Math.cos(b) - z1 * Math.sin(b), y2, x2 * Math.sin(b) + z1 * Math.cos(b)].map(c => c * w)));
+  if (!len || len < 1e-9) return bPut(st, row);
+  bSetAt(st, row.to, bAdd(P, rot(v).map(c => c * (len + dr * st.rho) / len)));
   return true;
 }
 
-function bTurning(st, row) {
-  const rows = [row, ...[...row.from.rowsOut].filter(r => bKind(r) === 'copy' && bAuto(r) && bSib(st, r) === row)];
-  return new Map(rows.map(r => [r, bDir(st, r) && { ...bDir(st, r) }]));
-}
+const bCopies = (st, row) => [...row.from.rowsOut].filter(r => bKind(r) === 'copy' && bAuto(r) && bSib(st, r) === row);
 
-function bMove(st, row, was = new Map([[row, null]])) {
+function bMove(st, row, was) {
   bRefer(st, row);
-  was.forEach((d, r) => bTurn(st, r, d));
+  const now = bDir(st, row);
+  if (!was || !now) return bPut(st, row);
+  const rot = bRot(st, bS(st, row.from), was, now);
+  bTurn(st, row, rot, now.r - was.r);
+  bCopies(st, row).forEach(r => bTurn(st, r, rot));
 }
