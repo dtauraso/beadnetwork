@@ -36,8 +36,8 @@ function bPreset() {
     ],
     rows: [
       { from: 'a', to: 'b', kind: 'angle', start: { phi: 2, theta: 0, r: 2 }, end: { phi: 0, theta: 0 } },
-      { from: 'b', to: 'c', kind: 'change', start: { phi: 0, theta: 0, r: 2 }, end: { phi: 2, theta: 0 } },
-      { from: 'a', to: 'c', kind: 'base', start: { phi: 0, theta: 0, r: 0 }, end: { phi: 0, theta: 0 } },
+      { from: 'b', to: 'c', kind: 'angle', start: { phi: 4, theta: 0, r: 2 }, end: { phi: 0, theta: 0 } },
+      { from: 'a', to: 'c', kind: 'copy', start: { phi: 0, theta: 0, r: 0 }, end: { phi: 0, theta: 0 } },
     ],
     item: 'c', on: { atob: true, pair: true }, step: 1,
   };
@@ -45,7 +45,7 @@ function bPreset() {
     const row = p.rows[r], P = bPlace(p, p.nodes.find(n => n.name === row.from).idx);
     p.nodes[i].idx = bIndexOf(p, bAdd(P, bRowVectors(p, row.to).find(v => v.row === row).d));
   });
-  p.rows[2].base = bView(p, p.rows[2]);
+  bSetCopy(p, p.rows[2], '');
   return p;
 }
 
@@ -62,7 +62,7 @@ function bView(st, row) {
 }
 
 function bOffTicks(st, rows) {
-  return rows.filter(r => bKind(r) !== 'base').flatMap(r => {
+  return rows.filter(r => !bFloat(r)).flatMap(r => {
     const a = bDir(st, r), b = bBack(st, r), out = [], own = bKind(r) === 'change';
     const ends = own ? `, own φ ${bF(r.end.phi)}, own θ ${bF(r.end.theta)}` : '';
     if (![a.phi, a.theta, a.r, ...(own ? [r.end.phi, r.end.theta] : [])].every(bWhole)) out.push(`${r.from}→${r.to} at ${r.from} (s ${bS(st, r.from)}) would be φ ${bF(a.phi)}, θ ${bF(a.theta)}, r ${bF(a.r)}${ends}`);
@@ -77,7 +77,7 @@ function bSettle(st, keep, rows, said, was) {
     [st.nodes, st.rows] = JSON.parse(keep);
     return `${said}: ${bad.join('; ')} — not whole ticks, so it stays at ${was}`;
   }
-  rows.filter(r => bKind(r) !== 'base').forEach(r => {
+  rows.filter(r => !bFloat(r)).forEach(r => {
     const w = t => bWrap(bS(st, r.from), Math.round(t));
     r.start = { phi: w(r.start.phi), theta: w(r.start.theta), r: Math.round(r.start.r) };
     r.end = { phi: w(r.end.phi), theta: w(r.end.theta) };
@@ -106,6 +106,7 @@ function bSetS(st, node, value) {
     r.start = { ...r.start, phi: r.start.phi * k, theta: r.start.theta * k };
     r.end = { phi: r.end.phi * k, theta: r.end.theta * k };
     if (r.base) r.base = { ...r.base, phi: r.base.phi * k, theta: r.base.theta * k };
+    if (r.ref) r.ref = { phi: r.ref.phi * k, theta: r.ref.theta * k };
   });
   return bSettle(st, keep, rows, said, was);
 }

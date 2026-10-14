@@ -1,5 +1,5 @@
 (function () {
-  const KEY = 'pair-builder-v4';
+  const KEY = 'pair-builder-v5';
   const preset = bPreset;
   let err = null;
   let st;
@@ -70,7 +70,7 @@
       setup(); update();
     };
     el('settings').replaceChildren(
-      h('h2', { textContent: 'a→b settings — one row per a→b, set at a: an angle (φ, θ, r), a change (a copy of the angle into a, plus its own end φ, end θ), or a base (measured once from where b lands, then stored)' }),
+      h('h2', { textContent: 'a→b settings — one row per a→b, set at a: an angle (φ, θ, r), a change (a copy of the angle into a, plus its own end φ, end θ), a copy (a stored direction plus the change of the angle row from a since it was set — no φ, θ, r of its own), or a base (measured once from where b lands, then stored)' }),
       table(['a→b', 'kind', 'start φ', 'start θ', 'start r', 'end φ', 'end θ', ''], settings),
       h('div', { className: 'row' }, free.length ? [pick, add] : []));
     el('tables').replaceChildren(
