@@ -90,7 +90,8 @@ function bSetStart(st, row, k, value, part = 'start') {
   const keep = bKeep();
   bSave(row);
   row[part][k] = value;
-  return bSettle(st, keep, [row, ...bMove(st, row)], said, was);
+  bMove(st, row);
+  return bSettle(st, keep, [row], said, was);
 }
 
 function bSetS(st, node, value) {

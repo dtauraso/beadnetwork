@@ -88,10 +88,9 @@ function bRowCells(st, r, c, h, on) {
   set.onclick = () => { if (copy) bSetCopy(st, r, ''); else r.base = bView(st, r); on.changed(); };
   const t = bDir(st, r), what = d ? `${d.sib.from.name}→${d.sib.to.name} ${!bAuto(r) ? "turn applied" : "change"} φ ${bN(d.phi)} θ ${bN(d.theta)} ` : '';
   const auto = h('input', { type: 'checkbox', checked: bAuto(r) });
-  const put = () => { bApply(st, r); if (bPut(st, r)) bRemeasure(st, r); on.changed(); };
-  auto.onchange = () => { r.automatic = auto.checked; put(); };
+  auto.onchange = () => { r.automatic = auto.checked; bApply(st, r); bPut(st, r); on.changed(); };
   const apply = h('button', { textContent: 'apply turn' });
-  apply.onclick = put;
+  apply.onclick = () => { bApply(st, r); bPut(st, r); on.changed(); };
   const extra = copy && d ? [h('label', {}, [auto, ' automatic ']), ...(!bAuto(r) ? [apply] : [])] : [];
   return [h('td', {}, [kind]), ...(t ? [t.phi, t.theta, t.r].map(x => txt(bF(x))) : ['—', '—', '—'].map(txt)), h('td', { colSpan: 2 }, [what, ...extra, set])];
 }

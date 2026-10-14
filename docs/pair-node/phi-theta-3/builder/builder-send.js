@@ -105,22 +105,8 @@ function bPut(st, row) {
 
 const bTake = (st, n) => !!n.sender && bPut(st, n.via);
 
-function bRemeasure(st, row) {
-  const out = [];
-  row.to.rowsIn.forEach(r => {
-    if (r === row || bKind(r) === 'base') return;
-    bSave(r);
-    if (bKind(r) === 'copy') bSetCopy(st, r, '');
-    else { bReview(st, r); out.push(r); }
-  });
-  return out;
-}
-
 function bMove(st, row) {
   bRefer(st, row);
-  const moved = bTake(st, row.to) ? bRemeasure(st, row) : [];
-  row.from.rowsOut.forEach(r => {
-    if (bKind(r) === 'copy' && bAuto(r) && bSib(st, r) === row && bPut(st, r)) moved.push(...bRemeasure(st, r));
-  });
-  return moved;
+  bTake(st, row.to);
+  row.from.rowsOut.forEach(r => { if (bKind(r) === 'copy' && bAuto(r) && bSib(st, r) === row) bPut(st, r); });
 }
