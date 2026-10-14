@@ -33,9 +33,9 @@ function bCellCorners(st, P, T) {
 }
 
 function bGlobalLines(st) {
-  const pos = bPositions(st);
+  const ends = bRowEnds(st);
   return st.nodes.map(n => {
-    const p = pos[n.name];
+    const p = bNodePos(st, n.name) || (ends.find(e => e.row.to === n.name) || {}).T;
     if (!p) return `${n.name} in O's frame: no position`;
     const r = bLen(p), phi = r < 1e-9 ? 0 : Math.acos(Math.max(-1, Math.min(1, p[1] / r)));
     let th = Math.atan2(p[2], p[0]);
