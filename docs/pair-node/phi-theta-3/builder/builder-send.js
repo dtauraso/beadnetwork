@@ -3,7 +3,7 @@ const bNode = (st, name) => st.nodes.find(x => x.name === name);
 function bPack(k, v) {
   if (k === 'from' || k === 'to' || k === 'sender') return v.name;
   if (k === 'via') return [v.from.name, v.to.name];
-  if (k === 'out' || k === 'rowsOut' || k === 'rowsIn') return undefined;
+  if (k === 'out' || k === 'rowsOut' || k === 'rowsIn' || k === 'angleOut') return undefined;
   return v;
 }
 
@@ -11,12 +11,13 @@ function bAddRow(st, row) {
   st.rows.push(row);
   (row.from.rowsOut ||= []).push(row);
   (row.to.rowsIn ||= []).push(row);
+  if (!row.from.angleOut && bKind(row) === 'angle') row.from.angleOut = row;
 }
 
 function bIndexRows(st) {
   const rows = st.rows;
   st.rows = [];
-  st.nodes.forEach(n => { n.rowsOut = []; n.rowsIn = []; });
+  st.nodes.forEach(n => { n.rowsOut = []; n.rowsIn = []; delete n.angleOut; });
   rows.forEach(r => bAddRow(st, r));
 }
 
@@ -64,6 +65,7 @@ function bDropRow(st, row) {
   if (row.to.via === row) bLetGo(row.to);
   row.from.rowsOut = row.from.rowsOut.filter(x => x !== row);
   row.to.rowsIn = row.to.rowsIn.filter(x => x !== row);
+  if (row.from.angleOut === row) bAngleOut(row.from);
   st.rows = st.rows.filter(x => x !== row);
 }
 
@@ -71,7 +73,7 @@ function bDropNode(st, n) {
   (n.out || []).forEach(x => { delete x.sender; delete x.via; });
   bLetGo(n);
   n.rowsOut.forEach(r => { r.to.rowsIn = r.to.rowsIn.filter(x => x !== r); });
-  n.rowsIn.forEach(r => { r.from.rowsOut = r.from.rowsOut.filter(x => x !== r); });
+  n.rowsIn.forEach(r => { r.from.rowsOut = r.from.rowsOut.filter(x => x !== r); if (r.from.angleOut === r) bAngleOut(r.from); });
   st.nodes = st.nodes.filter(x => x !== n);
   st.rows = st.rows.filter(r => r.from !== n && r.to !== n);
 }

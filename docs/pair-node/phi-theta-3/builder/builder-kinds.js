@@ -1,7 +1,8 @@
 const bKind = row => row.kind || 'angle';
 const bFloat = row => bKind(row) === 'base' || bKind(row) === 'copy';
 const bAuto = row => row.automatic !== false;
-const bSib = (st, row) => row.from.rowsOut.find(r => r !== row && bKind(r) === 'angle');
+const bSib = (st, row) => (row.from.angleOut !== row ? row.from.angleOut : undefined);
+const bAngleOut = n => { n.angleOut = n.rowsOut.find(r => bKind(r) === 'angle'); };
 
 function bTurned(st, row) {
   const sib = bSib(st, row);
@@ -50,6 +51,7 @@ function bSetKind(st, row, kind) {
   const keep = bKeep(st);
   if (['base', 'copy'].includes(kind) && row.to.via === row) bLetGo(row.to);
   row.kind = kind;
+  bAngleOut(row.from);
   if (kind === 'base') { row.base = bView(st, row); return row.base ? '' : `${said}: ${row.from.name} or ${row.to.name} has no position to measure from`; }
   if (kind === 'copy') return bSetCopy(st, row, said);
   row.end ||= { phi: 0, theta: 0 };
