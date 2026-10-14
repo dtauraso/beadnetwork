@@ -59,7 +59,7 @@
     const table = (head, rows) => (rows.length
       ? h('table', {}, [h('thead', {}, [h('tr', {}, head.map(t => h('th', { textContent: t })))]), h('tbody', {}, rows)])
       : h('div', { className: 'hint', textContent: 'no rows' }));
-    const c = (o, k) => h('td', {}, [num(o[k], v => { o[k] = v; })]);
+    const c = (o, k) => h('td', {}, [num(o[k], v => { o[k] = v; setup(); })]);
     const settings = st.rows.map(r => {
       const del = h('button', { textContent: 'remove' });
       del.onclick = () => { st.rows = st.rows.filter(x => x !== r); setup(); update(); };
