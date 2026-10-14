@@ -131,10 +131,19 @@
   function paint(rs, cells) {
     ctx.clearRect(0, 0, cv.width, cv.height);
     const muted = css('--muted');
-    [[[0.5, 0, 0], 'x'], [[0, 0.5, 0], 'y'], [[0, 0, 0.5], 'z']].forEach(([e, n]) => {
-      draw.arrow([0, 0, 0], e, muted, 2);
-      const [x, y] = draw.proj(e);
-      ctx.fillStyle = muted; ctx.font = '24px -apple-system, sans-serif'; ctx.fillText(n, x + 6, y - 6);
+    const L = st.cr, q = Math.PI / 2;
+    const label = (p, text, color) => {
+      const [x, y] = draw.proj(p);
+      ctx.fillStyle = color; ctx.font = '24px -apple-system, sans-serif'; ctx.fillText(text, x + 6, y - 6);
+    };
+    [[bCart(L, 0, 0), 'φ = 0'], [bCart(L, q, 0), 'θ = 0']].forEach(([e, n]) => { draw.arrow([0, 0, 0], e, muted, 2); label(e, n, muted); });
+    [[t => bCart(0.7 * L, t * q, 0), 'φ', '--phi'], [t => bCart(0.7 * L, q, t * q), 'θ', '--theta']].forEach(([f, n, c]) => {
+      const pts = Array.from({ length: 17 }, (_, i) => f(i / 16)), color = css(c);
+      ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.beginPath();
+      pts.slice(0, 15).map(draw.proj).forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
+      ctx.stroke();
+      draw.arrow(pts[14], pts[16], color, 2);
+      label(f(0.5), n, color);
     });
     el('cellnote').replaceChildren(...bDrawCells(st, draw, ctx, css, cells).map(t => h('div', { textContent: t })));
     const seen = {};
