@@ -42,9 +42,8 @@ function bCarry(st, row) {
     const J = bIndexOf(st, bAdd(P, v.d));
     n.idx = { ...J, theta: J.theta < 0 ? J.theta + st.Ttheta : J.theta };
     names.push(n.name);
-    st.rows.filter(x => x.from === n.name && bKind(x) !== 'base').forEach(go);
+    st.rows.filter(x => x.from === n.name && !bFloat(x)).forEach(go);
   };
-  st.rows.filter(x => bKind(x) === 'copy' && bSib(st, x) === row).forEach(go);
   go(row);
 }
 
