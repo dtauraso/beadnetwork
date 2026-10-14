@@ -71,7 +71,7 @@
     };
     el('settings').replaceChildren(
       table(['a→b', 'kind', 'start φ', 'start θ', 'start r', 'end φ', 'end θ', ''], settings),
-      h('div', { className: 'row' }, free.length ? [pick, add] : []),
+      h('div', { className: 'row' }, free.length ? [pick, add] : []), ...bLands(st, h, table),
       h('h2', { textContent: 'a→b settings — one row per a→b, set at a: an angle (φ, θ, r), a change (a copy of the angle into a, plus its own end φ, end θ), a copy (a stored direction plus the change of the angle row from a since it was set — no φ, θ, r of its own), or a base (measured once from where b lands, then stored)' }));
     el('tables').replaceChildren(
       ...st.nodes.map(n => {
