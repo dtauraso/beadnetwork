@@ -30,9 +30,9 @@ function bPreset() {
   const p = {
     s: 1, rho: 0.5, Tphi: 12, Ttheta: 12, cr: 0.5,
     nodes: [
-      { name: 'a', s: 1, known: true, out: ['b'], idx: { r: 2, phi: 3, theta: 0 } },
-      { name: 'b', s: 1, known: true, ref: 'a', out: ['c'], idx: { r: 0, phi: 0, theta: 0 } },
-      { name: 'c', s: 1, known: true, ref: 'b', idx: { r: 0, phi: 0, theta: 0 } },
+      { name: 'a', s: 1, known: true, idx: { r: 2, phi: 3, theta: 0 } },
+      { name: 'b', s: 1, known: true, idx: { r: 0, phi: 0, theta: 0 } },
+      { name: 'c', s: 1, known: true, idx: { r: 0, phi: 0, theta: 0 } },
     ],
     rows: [
       { from: 'a', to: 'b', kind: 'angle', start: { phi: 2, theta: 0, r: 2 }, end: { phi: 0, theta: 0 } },
@@ -41,7 +41,8 @@ function bPreset() {
     ],
     item: 'c', on: { atob: true, pair: true }, step: 1,
   };
-  bSend(p, 'a');
+  p.rows.slice(0, 2).forEach(r => bRefer(p, r));
+  bSend(p, p.nodes[0]);
   bSetCopy(p, p.rows[2], '');
   return p;
 }
@@ -71,7 +72,7 @@ function bOffTicks(st, rows) {
 function bSettle(st, keep, rows, said, was) {
   const bad = bOffTicks(st, rows);
   if (bad.length) {
-    [st.nodes, st.rows] = JSON.parse(keep);
+    bRestore(st, keep);
     return `${said}: ${bad.join('; ')} — not whole ticks, so it stays at ${was}`;
   }
   rows.filter(r => !bFloat(r)).forEach(r => {
@@ -85,10 +86,10 @@ function bSettle(st, keep, rows, said, was) {
 function bSetStart(st, row, k, value, part = 'start') {
   const was = bN(row[part][k]), said = `${row.from}→${row.to} ${part === 'end' ? 'own ' : ''}${{ phi: 'φ', theta: 'θ', r: 'r' }[k]} ${bN(value)}`;
   if (!bWhole(value)) return `${said}: not a whole number, so it stays at ${was}`;
-  const keep = JSON.stringify([st.nodes, st.rows]);
+  const keep = bKeep(st);
   row[part][k] = value;
   if (!bMove(st, row)) {
-    [st.nodes, st.rows] = JSON.parse(keep);
+    bRestore(st, keep);
     return `${said}: the nodes' references run in a loop, so it stays at ${was}`;
   }
   return bSettle(st, keep, [row], said, was);
@@ -97,7 +98,7 @@ function bSetStart(st, row, k, value, part = 'start') {
 function bSetS(st, node, value) {
   const was = bS(st, node.name), said = `${node.name}'s s ${bN(value)}`;
   if (!bWhole(value) || value < 1) return `${said}: not a whole number of at least 1, so it stays at ${was}`;
-  const keep = JSON.stringify([st.nodes, st.rows]), k = value / was;
+  const keep = bKeep(st), k = value / was;
   node.s = value;
   const rows = st.rows.filter(r => r.from === node.name || r.to === node.name);
   rows.filter(r => r.from === node.name).forEach(r => {

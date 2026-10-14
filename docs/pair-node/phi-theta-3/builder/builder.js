@@ -3,9 +3,9 @@
   const preset = bPreset;
   let err = null;
   let st;
-  try { st = JSON.parse(localStorage.getItem(KEY)) || preset(); } catch { st = preset(); }
+  try { st = JSON.parse(localStorage.getItem(KEY)); if (st) bWire(st); else st = preset(); } catch { st = preset(); }
   st.rows.filter(r => !bFloat(r)).forEach(r => bLink(st, r));
-  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch { } };
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(st, bPack)); } catch { } };
 
   const el = id => document.getElementById(id);
   const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
@@ -38,7 +38,7 @@
     el('nodes').replaceChildren(...st.nodes.flatMap(n => {
       const known = h('input', { type: 'checkbox', checked: n.known });
       known.onchange = () => { n.known = known.checked; setup(); update(); };
-      const xyz = ['r', 'phi', 'theta'].map(k => { const f = num(n.idx[k], v => { bLetGo(st, n.name); n.idx[k] = v; }); f.disabled = !n.known; return h('td', {}, [f]); });
+      const xyz = ['r', 'phi', 'theta'].map(k => { const f = num(n.idx[k], v => { bLetGo(n); n.idx[k] = v; }); f.disabled = !n.known; return h('td', {}, [f]); });
       const del = h('button', { textContent: 'remove' });
       del.onclick = () => { bDropNode(st, n); setup(); update(); };
       const s = flag(`${n.name}:s`, num(bS(st, n.name), v => check(`${n.name}:s`, bSetS(st, n, v), v)));

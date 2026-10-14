@@ -36,15 +36,15 @@ function bNodePos(st, name) {
   return n && n.known ? bPlace(st, n.idx) : null;
 }
 
-function bVec(st, r, t) {
-  const ang = x => x * 2 * Math.PI / (12 * bS(st, r.from));
+function bVec(st, s, t) {
+  const ang = x => x * 2 * Math.PI / (12 * s);
   return bCart(t.r * st.rho, ang(t.phi), ang(t.theta));
 }
 
 function bRowVectors(st, item) {
   return st.rows.filter(r => r.to === item && bDir(st, r)).map(r => {
     const t = bDir(st, r);
-    return { from: r.from, row: r, t, d: bVec(st, r, t) };
+    return { from: r.from, row: r, t, d: bVec(st, bS(st, r.from), t) };
   });
 }
 

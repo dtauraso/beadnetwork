@@ -32,9 +32,10 @@ function bDir(st, row) {
     const d = bChange(st, row);
     return row.base && d ? { phi: row.base.phi + d.phi, theta: row.base.theta + d.theta, r: row.base.r } : null;
   }
-  const c = bCopy(st, row), s = bS(st, row.from);
-  return { phi: bWrap(s, c.phi + row.end.phi), theta: bWrap(s, c.theta + row.end.theta), r: row.start.r };
+  return bChangeDir(bCopy(st, row), row, bS(st, row.from));
 }
+
+const bChangeDir = (c, row, s) => ({ phi: bWrap(s, c.phi + row.end.phi), theta: bWrap(s, c.theta + row.end.theta), r: row.start.r });
 
 function bReview(st, r) {
   const v = bView(st, r);
@@ -45,66 +46,10 @@ function bReview(st, r) {
   r.end = { phi: bWrap(s, v.phi - c.phi), theta: bWrap(s, v.theta - c.theta) };
 }
 
-const bNode = (st, name) => st.nodes.find(x => x.name === name);
-
-function bLetGo(st, name) {
-  const n = bNode(st, name), from = n && n.ref && bNode(st, n.ref);
-  if (from) from.out = (from.out || []).filter(x => x !== name);
-  if (n) delete n.ref;
-}
-
-function bRefer(st, row) {
-  const n = bNode(st, row.to), from = bNode(st, row.from);
-  if (!n || !from || bFloat(row) || n.ref === row.from) return;
-  bLetGo(st, row.to);
-  n.ref = row.from;
-  (from.out ||= []).push(row.to);
-}
-
-function bDropRow(st, row) {
-  if ((bNode(st, row.to) || {}).ref === row.from) bLetGo(st, row.to);
-  st.rows = st.rows.filter(x => x !== row);
-}
-
-function bDropNode(st, n) {
-  (n.out || []).forEach(x => delete bNode(st, x).ref);
-  bLetGo(st, n.name);
-  st.nodes = st.nodes.filter(x => x !== n);
-  st.rows = st.rows.filter(r => r.from !== n.name && r.to !== n.name);
-}
-
-function bLink(st, row) {
-  if (!(bNode(st, row.to) || {}).ref) bRefer(st, row);
-}
-
-function bTake(st, name) {
-  const n = bNode(st, name), P = n && n.known && n.ref && bNodePos(st, n.ref);
-  const row = P && st.rows.find(r => r.from === n.ref && r.to === name), t = row && bDir(st, row);
-  if (!t) return false;
-  const J = bIndexOf(st, bAdd(P, bVec(st, row, t)));
-  n.idx = { ...J, theta: J.theta < 0 ? J.theta + st.Ttheta : J.theta };
-  return true;
-}
-
-function bSend(st, name) {
-  const inbox = [...(bNode(st, name).out || [])];
-  for (let left = st.nodes.length; inbox.length; left--) {
-    if (!left) return false;
-    const to = inbox.shift();
-    if (bTake(st, to)) inbox.push(...(bNode(st, to).out || []));
-  }
-  return true;
-}
-
-function bMove(st, row) {
-  bRefer(st, row);
-  return !bTake(st, row.to) || bSend(st, row.to);
-}
-
 function bSetKind(st, row, kind) {
   const said = `${row.from}→${row.to} as ${kind}`, was = bKind(row);
-  const keep = JSON.stringify([st.nodes, st.rows]);
-  if (['base', 'copy'].includes(kind) && (bNode(st, row.to) || {}).ref === row.from) bLetGo(st, row.to);
+  const keep = bKeep(st), to = bNode(st, row.to);
+  if (['base', 'copy'].includes(kind) && to && to.via === row) bLetGo(to);
   row.kind = kind;
   if (kind === 'base') { row.base = bView(st, row); return row.base ? '' : `${said}: ${row.from} or ${row.to} has no position to measure from`; }
   if (kind === 'copy') return bSetCopy(st, row, said);
