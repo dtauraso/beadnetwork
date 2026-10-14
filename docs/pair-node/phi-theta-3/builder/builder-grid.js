@@ -69,3 +69,30 @@ function bDrawCells(st, draw, ctx, css, links) {
     return `${to} in ${from}'s frame: I_r ${bF(c.I.r)}, I_φ ${bF(c.I.phi)}, I_θ ${bF(c.I.theta)}`;
   });
 }
+
+function bSphereBoxes(st, h, changed) {
+  const on = st.spheres ||= {}, names = st.nodes.map(n => n.name);
+  const box = (label, checked, set) => {
+    const b = h('input', { type: 'checkbox', checked });
+    b.onchange = () => { set(b.checked); changed(); };
+    return h('label', {}, [b, ` ${label}`]);
+  };
+  return [h('span', { textContent: 'sphere at' }),
+    box('all', names.length > 0 && names.every(n => on[n]), v => names.forEach(n => { on[n] = v; })),
+    ...names.map(n => box(n, !!on[n], v => { on[n] = v; }))];
+}
+
+function bDrawSpheres(st, draw, ctx) {
+  const P = st.nodes.filter(n => n.known).map(n => bPlace(st, n.idx));
+  const R = Math.min(st.rho * 2, ...P.flatMap((p, i) => P.slice(i + 1).map(q => bLen(bSub(p, q))))) / 2;
+  const ring = (C, f) => {
+    ctx.beginPath();
+    for (let k = 0; k <= 48; k++) { const [x, y] = draw.proj(bAdd(C, f(k / 48 * 2 * Math.PI))); k ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
+    ctx.stroke();
+  };
+  ctx.strokeStyle = 'hsl(210 60% 55%)'; ctx.lineWidth = 1.5;
+  st.nodes.filter(n => n.known && (st.spheres || {})[n.name]).map(n => bPlace(st, n.idx)).forEach(C => {
+    for (let m = 0; m < 6; m++) ring(C, t => bCart(R, t, m * Math.PI / 6));
+    for (let l = 1; l < 6; l++) ring(C, t => bCart(R, l * Math.PI / 6, t));
+  });
+}
