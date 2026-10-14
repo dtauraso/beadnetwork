@@ -51,10 +51,12 @@ function bDrawGuides(st, draw, ctx, css, points) {
     draw.arrow(pts[46], pts[48], color, 2);
   };
   points.forEach(({ p }) => bDrawAxes(draw, ctx, css, p, st.cr, false));
-  bLinks(st).forEach(({ P, t }) => {
+  const seen = {};
+  bLinks(st).forEach(({ from, P, t }) => {
+    const k = seen[from] = (seen[from] ?? -1) + 1, R = a * (1 + 0.4 * k);
     if (t.r < e) return;
-    if (t.phi > e) arc(s => bAdd(P, bCart(a, s * t.phi * tick, 0)), css('--phi'));
-    if (t.theta > e) arc(s => bAdd(P, bCart(a, Math.PI / 2, s * t.theta * tick)), css('--theta'));
+    if (t.phi > e) arc(s => bAdd(P, bCart(R, s * t.phi * tick, 0)), css('--phi'));
+    if (t.theta > e) arc(s => bAdd(P, bCart(R, Math.PI / 2, s * t.theta * tick)), css('--theta'));
   });
   bRowEnds(st).forEach(({ P, T }) => line([P, T], muted, 2, [3, 7]));
 }
