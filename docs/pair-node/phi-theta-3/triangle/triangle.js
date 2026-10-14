@@ -18,6 +18,11 @@
     corners.forEach((p, i) => {
       const q = corners[(i + 1) % 3], v = sub(q, p), L = len(v);
       if (room[i] === STEP) out.push(p);
+      else {
+        const unit = w => w.map(x => x / len(w)), r = corners[(i + 2) % 3];
+        const bis = unit(add(unit(sub(q, p)), unit(sub(r, p)))), half = angle(p, q, r) / 2;
+        out.push(add(p, bis.map(x => x * (room[i] * Math.cos(half) - STEP * Math.sqrt(3) / 2))));
+      }
       const t0 = room[i], t1 = L - room[(i + 1) % 3], n = Math.floor((t1 - t0) / STEP);
       for (let k = 0; k <= n; k++) out.push(add(p, v.map(x => x * (t0 + (t1 - t0) * k / n) / L)));
     });
