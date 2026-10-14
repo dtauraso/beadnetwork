@@ -98,30 +98,39 @@ function bSetAt(st, n, p) {
   n.idx = { ...J, theta: J.theta < 0 ? J.theta + st.Ttheta : J.theta };
 }
 
+const B_I = [1, 0, 0, 0, 1, 0, 0, 0, 1];
+const bTimes = (m, v) => [0, 3, 6].map(i => m[i] * v[0] + m[i + 1] * v[1] + m[i + 2] * v[2]);
+const bThen = (m, q) => [0, 3, 6].flatMap(i => [0, 1, 2].map(j => m[i] * q[j] + m[i + 1] * q[3 + j] + m[i + 2] * q[6 + j]));
+const bFlip = m => [0, 3, 6, 1, 4, 7, 2, 5, 8].map(i => m[i]);
+const bFrame = row => (row.turn ? row.turn.m : B_I);
+
 function bPut(st, row) {
   const n = row.to, f = row.from;
   if (!n.known || !f.known) return false;
   const t = bDir(st, row);
   if (!t) return false;
-  bSetAt(st, n, bAdd(bPlace(st, f.idx), bVec(st, bS(st, f), t)));
+  bSetAt(st, n, bAdd(bPlace(st, f.idx), bTimes(bFrame(row), bVec(st, bS(st, f), t))));
   return true;
 }
 
-function bRot(st, s, was, now) {
-  const k = 2 * Math.PI / (12 * s), a = was.theta * k, b = now.theta * k, f = (now.phi - was.phi) * k;
-  return v => {
+function bRot(st, row, was, now) {
+  const s = bS(st, row.from), k = 2 * Math.PI / (12 * s), a = was.theta * k, b = now.theta * k, f = (now.phi - was.phi) * k;
+  const rot = v => {
     const x1 = v[0] * Math.cos(a) + v[2] * Math.sin(a), z1 = v[2] * Math.cos(a) - v[0] * Math.sin(a);
     const x2 = x1 * Math.cos(f) + v[1] * Math.sin(f), y2 = v[1] * Math.cos(f) - x1 * Math.sin(f);
     return [x2 * Math.cos(b) - z1 * Math.sin(b), y2, x2 * Math.sin(b) + z1 * Math.cos(b)];
   };
+  const [x, y, z] = [[1, 0, 0], [0, 1, 0], [0, 0, 1]].map(rot), m = bFrame(row);
+  return bThen(bThen(m, [x[0], y[0], z[0], x[1], y[1], z[1], x[2], y[2], z[2]]), bFlip(m));
 }
 
-function bTurn(st, row, rot, dr = 0) {
-  const P = bNodePos(st, row.from), Q = bNodePos(st, row.to);
-  const v = P && Q && bSub(Q, P), len = v && bLen(v);
-  if (!len || len < 1e-9) return bPut(st, row);
-  bSetAt(st, row.to, bAdd(P, rot(v).map(c => c * (len + dr * st.rho) / len)));
-  return true;
+function bCarry(st, copy, rot) {
+  const P = bNodePos(st, copy.from), Q = bNodePos(st, copy.to), via = copy.to.via;
+  if (!P || !Q) return;
+  bSetAt(st, copy.to, bAdd(P, bTimes(rot, bSub(Q, P))));
+  if (!via || via === copy) return;
+  bSave(via);
+  via.turn = { m: bThen(rot, bFrame(via)) };
 }
 
 const bCopies = (st, row) => [...row.from.rowsOut].filter(r => bKind(r) === 'copy' && bAuto(r) && bSib(st, r) === row);
@@ -129,8 +138,6 @@ const bCopies = (st, row) => [...row.from.rowsOut].filter(r => bKind(r) === 'cop
 function bMove(st, row, was) {
   bRefer(st, row);
   const now = bDir(st, row);
-  if (!was || !now) return bPut(st, row);
-  const rot = bRot(st, bS(st, row.from), was, now);
-  bTurn(st, row, rot, now.r - was.r);
-  bCopies(st, row).forEach(r => bTurn(st, r, rot));
+  bPut(st, row);
+  if (was && now) bCopies(st, row).forEach(r => bCarry(st, r, bRot(st, row, was, now)));
 }

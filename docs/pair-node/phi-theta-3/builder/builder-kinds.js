@@ -43,6 +43,7 @@ function bReview(st, r) {
   const v = bView(st, r);
   if (!v || bFloat(r)) return;
   bSave(r);
+  delete r.turn;
   if (bKind(r) === 'angle') { r.start = v; return; }
   const c = bCopy(st, r), s = bS(st, r.from);
   r.start = { ...r.start, r: v.r };
@@ -90,7 +91,7 @@ function bRowCells(st, r, c, h, on) {
   const auto = h('input', { type: 'checkbox', checked: bAuto(r) });
   const turn = c0 => {
     const c1 = bChange(st, r), s = c1 && c1.sib.start;
-    if (c0 && c1) bTurn(st, r, bRot(st, bS(st, r.from), { phi: s.phi - c1.phi + c0.phi, theta: s.theta - c1.theta + c0.theta }, s));
+    if (c0 && c1) bCarry(st, r, bRot(st, c1.sib, { phi: s.phi - c1.phi + c0.phi, theta: s.theta - c1.theta + c0.theta }, s));
     on.changed();
   };
   auto.onchange = () => { const c0 = bChange(st, r); r.automatic = auto.checked; bApply(st, r); turn(c0); };
