@@ -68,7 +68,8 @@ function bSetKind(st, row, kind) {
 function bSetCopy(st, row, said) {
   const sib = bSib(st, row);
   row.kind = 'copy';
-  row.base = bView(st, row);
+  const v = bView(st, row);
+  row.base = sib && v && { phi: sib.start.phi, theta: sib.start.theta, r: v.r };
   row.ref = sib && { phi: sib.start.phi, theta: sib.start.theta };
   row.held = { phi: 0, theta: 0 };
   if (!sib) return `${said}: ${row.from.name} has no angle row to copy the change of`;
