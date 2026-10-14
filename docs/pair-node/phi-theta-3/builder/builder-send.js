@@ -4,10 +4,10 @@ const bName = k => (k < 26 ? 'abcdefghijklmnopqrstuvwxyz'[k] : `n${k}`);
 const bNameAt = name => (name.length === 1 ? name.charCodeAt(0) - 97 : +name.slice(1));
 
 function bPack(k, v) {
+  if (['out', 'rowsOut', 'rowsIn', 'angles', 'gone'].includes(k)) return undefined;
   if (v instanceof Set) return [...v];
   if (k === 'from' || k === 'to' || k === 'sender' || k === 'item') return v.name;
   if (k === 'via') return [v.from.name, v.to.name];
-  if (['out', 'rowsOut', 'rowsIn', 'angles', 'gone'].includes(k)) return undefined;
   return v;
 }
 
