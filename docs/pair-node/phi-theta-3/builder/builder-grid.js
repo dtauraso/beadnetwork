@@ -31,7 +31,7 @@ function bCellCorners(st, P, t, s) {
 function bGlobalLines(st) {
   const ends = bRowEnds(st);
   return st.nodes.map(n => {
-    const p = bNodePos(st, n.name) || (ends.find(e => e.row.to === n.name) || {}).T;
+    const p = bNodePos(st, n) || (ends.find(e => e.row.to === n) || {}).T;
     if (!p) return `${n.name} in O's frame: no position`;
     const r = bLen(p), phi = r < 1e-9 ? 0 : Math.acos(Math.max(-1, Math.min(1, p[1] / r)));
     let th = Math.atan2(p[2], p[0]);
@@ -66,7 +66,7 @@ function bDrawCells(st, draw, ctx, css, links) {
     face(c.K - 1, c.i, c.j, ink, 2, 0.8);
     face(c.K, c.i, c.j, ink, 2, 0.8);
     rays(c.K - 1, c.K, c.i, c.j, ink, 2, 0.8);
-    return `${to} in ${from}'s frame: I_r ${bF(c.I.r)}, I_φ ${bF(c.I.phi)}, I_θ ${bF(c.I.theta)}`;
+    return `${to.name} in ${from.name}'s frame: I_r ${bF(c.I.r)}, I_φ ${bF(c.I.phi)}, I_θ ${bF(c.I.theta)}`;
   });
 }
 

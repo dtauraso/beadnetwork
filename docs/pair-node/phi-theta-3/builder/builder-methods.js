@@ -20,7 +20,7 @@ function bIndexOf(st, p) {
   return { r: r / c.r, phi: Math.acos(Math.max(-1, Math.min(1, w[1] / r))) / c.phi, theta: Math.atan2(w[2], w[0]) / c.theta };
 }
 
-const bS = (st, name) => (st.nodes.find(n => n.name === name) || {}).s || st.s;
+const bS = (st, n) => (n && n.s) || st.s;
 const bWrap = (s, t) => ((t % (12 * s)) + 12 * s) % (12 * s);
 const bBack = (st, row) => {
   const sa = bS(st, row.from), sb = bS(st, row.to), a = bDir(st, row);
@@ -31,10 +31,7 @@ const bWhole = x => Math.abs(x - Math.round(x)) < 1e-6;
 const bIdx = I => `(I_r ${bF(I.r)}, I_φ ${bF(I.phi)}, I_θ ${bF(I.theta)})`;
 const bPlaceText = I => `O + polar_to_cart(${bF(I.r)}·c_r, ${bF(I.phi)}·c_φ, ${bF(I.theta)}·c_θ)`;
 
-function bNodePos(st, name) {
-  const n = st.nodes.find(x => x.name === name);
-  return n && n.known ? bPlace(st, n.idx) : null;
-}
+const bNodePos = (st, n) => (n && n.known ? bPlace(st, n.idx) : null);
 
 function bVec(st, s, t) {
   const ang = x => x * 2 * Math.PI / (12 * s);
@@ -42,7 +39,7 @@ function bVec(st, s, t) {
 }
 
 function bRowVectors(st, item) {
-  return st.rows.filter(r => r.to === item && bDir(st, r)).map(r => {
+  return st.rows.filter(r => r.to.name === item && bDir(st, r)).map(r => {
     const t = bDir(st, r);
     return { from: r.from, row: r, t, d: bVec(st, bS(st, r.from), t) };
   });
@@ -52,7 +49,7 @@ function bVectorStep(rows, item) {
   return {
     title: 'local: each row\'s start as a vector',
     lines: rows.length
-      ? rows.map(({ from, row, t, d }) => `d_${from}${item} (${bKind(row)}) = polar_to_cart(${bN(t.r)}·ρ, ${bN(t.phi)}·2π/12s_${from}, ${bN(t.theta)}·2π/12s_${from}) = ${bPt(d)}`)
+      ? rows.map(({ from: { name: from }, row, t, d }) => `d_${from}${item} (${bKind(row)}) = polar_to_cart(${bN(t.r)}·ρ, ${bN(t.phi)}·2π/12s_${from}, ${bN(t.theta)}·2π/12s_${from}) = ${bPt(d)}`)
       : [`${item}'s table has no rows`],
     note: 'from the row\'s start ticks alone; a vector, not yet a place',
     ok: rows.length > 0, draw: [],
@@ -61,7 +58,7 @@ function bVectorStep(rows, item) {
 
 function bResult(st, item, p, label) {
   const lines = [`${label} as an index: ${bIdx(bIndexOf(st, p))}`];
-  const set = bNodePos(st, item);
+  const set = bNodePos(st, bNode(st, item));
   if (set) {
     const miss = bLen(bSub(p, set));
     lines.push(`|${label} − ${item} as set| = ${bF(miss)}${miss < 1e-6 ? ' — lands on it' : ' — misses it'}`);
@@ -70,10 +67,7 @@ function bResult(st, item, p, label) {
 }
 
 function bSenders(st, rows) {
-  const placed = rows.map(r => {
-    const n = st.nodes.find(x => x.name === r.from);
-    return { ...r, I: n && n.known ? n.idx : null, C: bNodePos(st, r.from) };
-  });
+  const placed = rows.map(r => ({ ...r, from: r.from.name, I: r.from.known ? r.from.idx : null, C: bNodePos(st, r.from) }));
   const missing = placed.filter(r => !r.C).map(r => r.from);
   const step = {
     title: 'the sender\'s position, from its index',

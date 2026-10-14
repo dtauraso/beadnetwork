@@ -41,7 +41,7 @@
       const xyz = ['r', 'phi', 'theta'].map(k => { const f = num(n.idx[k], v => { bLetGo(n); n.idx[k] = v; }); f.disabled = !n.known; return h('td', {}, [f]); });
       const del = h('button', { textContent: 'remove' });
       del.onclick = () => { bDropNode(st, n); setup(); update(); };
-      const s = flag(`${n.name}:s`, num(bS(st, n.name), v => check(`${n.name}:s`, bSetS(st, n, v), v)));
+      const s = flag(`${n.name}:s`, num(bS(st, n), v => check(`${n.name}:s`, bSetS(st, n, v), v)));
       return [h('tr', {}, [h('td', { textContent: n.name }), h('td', {}, [s]), h('td', {}, [known]), ...xyz, h('td', {}, [del])]), ...note(n.name, 7)];
     }));
 
@@ -49,20 +49,21 @@
       ? h('table', {}, [h('thead', {}, [h('tr', {}, head.map(t => h('th', { textContent: t })))]), h('tbody', {}, rows)])
       : h('div', { className: 'hint', textContent: 'no rows' }));
     const c = (o, k, row, part = 'start') => {
-      const at = `${row.from}→${row.to}:${part}${k}`;
+      const at = `${row.from.name}→${row.to.name}:${part}${k}`;
       return h('td', {}, [flag(at, num(o[k], v => check(at, bSetStart(st, row, k, v, part), v)))]);
     };
     const settings = st.rows.flatMap(r => {
       const del = h('button', { textContent: 'remove' });
       del.onclick = () => { bDropRow(st, r); setup(); update(); };
-      const on = { kind: v => { check(`${r.from}→${r.to}:kind`, bSetKind(st, r, v), v); update(); }, changed: () => { setup(); update(); } };
-      return [h('tr', {}, [h('td', { textContent: `${r.from}→${r.to}` }), ...bRowCells(st, r, c, h, on), h('td', {}, [del])]), ...note(`${r.from}→${r.to}`, 8)];
+      const ab = `${r.from.name}→${r.to.name}`;
+      const on = { kind: v => { check(`${ab}:kind`, bSetKind(st, r, v), v); update(); }, changed: () => { setup(); update(); } };
+      return [h('tr', {}, [h('td', { textContent: ab }), ...bRowCells(st, r, c, h, on), h('td', {}, [del])]), ...note(ab, 8)];
     });
-    const free = st.nodes.flatMap(a => st.nodes.filter(b => b !== a && !st.rows.some(r => r.from === a.name && r.to === b.name)).map(b => `${a.name}→${b.name}`));
-    const pick = h('select', {}, free.map(p => h('option', { value: p, textContent: p })));
+    const free = st.nodes.flatMap(a => st.nodes.filter(b => b !== a && !st.rows.some(r => r.from === a && r.to === b)).map(b => [a, b]));
+    const pick = h('select', {}, free.map(([a, b], i) => h('option', { value: i, textContent: `${a.name}→${b.name}` })));
     const add = h('button', { textContent: 'add a→b setting', disabled: !free.length });
     add.onclick = () => {
-      const [from, to] = pick.value.split('→');
+      const [from, to] = free[+pick.value];
       st.rows.push({ from, to, kind: 'angle', start: { phi: 0, theta: 0, r: 2 }, end: { phi: 0, theta: 0 } });
       bLink(st, st.rows[st.rows.length - 1]);
       setup(); update();
@@ -73,9 +74,9 @@
       h('h2', { textContent: 'a→b settings — one row per a→b, set at a: an angle (φ, θ, r), a change (a copy of the angle into a, plus its own end φ, end θ), a copy (a stored direction plus the change of the angle row from a since it was set — no φ, θ, r of its own), or a base (measured once from where b lands, then stored)' }));
     el('tables').replaceChildren(
       ...st.nodes.map(n => {
-        const seen = st.rows.filter(r => bDir(st, r)).flatMap(r => (r.from === n.name ? [[r.to, bDir(st, r)]] : r.to === n.name ? [[r.from, bBack(st, r)]] : []));
+        const seen = st.rows.filter(r => bDir(st, r)).flatMap(r => (r.from === n ? [[r.to.name, bDir(st, r)]] : r.to === n ? [[r.from.name, bBack(st, r)]] : []));
         return h('div', {}, [
-          h('h2', { textContent: `${n.name}'s table — ${n.name}'s φ, θ, r toward each node it connects to, in ${n.name}'s ticks (s ${bS(st, n.name)}: ${12 * bS(st, n.name)} a turn)` }),
+          h('h2', { textContent: `${n.name}'s table — ${n.name}'s φ, θ, r toward each node it connects to, in ${n.name}'s ticks (s ${bS(st, n)}:${12 * bS(st, n)} a turn)` }),
           table(['toward', 'φ', 'θ', 'r'], seen.map(([o, t]) => h('tr', {}, [o, bN(t.phi), bN(t.theta), bN(t.r)].map(x => h('td', { textContent: x }))))),
           ...bSecondBase(st, n, h, table),
         ]);
