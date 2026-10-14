@@ -18,8 +18,8 @@
     i.addEventListener('change', () => { const v = +i.value; if (Number.isFinite(v)) { err = null; onset(v); update(); } });
     return i;
   };
-  const check = (at, text) => { err = text ? { at, text } : null; setup(); };
-  const flag = (at, input) => { if (err && err.at === at) input.classList.add('invalid'); return input; };
+  const check = (at, text, value) => { err = text ? { at, text, value } : null; setup(); };
+  const flag = (at, input) => { if (err && err.at === at) { input.value = err.value; input.classList.add('invalid'); } return input; };
   const note = (at, cols) => (err && err.at.split(':')[0] === at ? [h('tr', {}, [h('td', { className: 'missing', colSpan: cols, textContent: err.text })])] : []);
 
   const cv = el('view'), ctx = cv.getContext('2d');
@@ -44,7 +44,7 @@
         st.rows = st.rows.filter(r => r.from !== n.name && r.to !== n.name);
         setup(); update();
       };
-      const s = flag(`${n.name}:s`, num(bS(st, n.name), v => check(`${n.name}:s`, bSetS(st, n, v))));
+      const s = flag(`${n.name}:s`, num(bS(st, n.name), v => check(`${n.name}:s`, bSetS(st, n, v), v)));
       return [h('tr', {}, [h('td', { textContent: n.name }), h('td', {}, [s]), h('td', {}, [known]), ...xyz, h('td', {}, [del])]), ...note(n.name, 7)];
     }));
 
@@ -53,7 +53,7 @@
       : h('div', { className: 'hint', textContent: 'no rows' }));
     const c = (o, k, row) => {
       const at = row && `${row.from}→${row.to}:${k}`;
-      return h('td', {}, [flag(at, num(o[k], v => (row ? check(at, bSetStart(st, row, k, v)) : (o[k] = v, setup()))))]);
+      return h('td', {}, [flag(at, num(o[k], v => (row ? check(at, bSetStart(st, row, k, v), v) : (o[k] = v, setup()))))]);
     };
     const settings = st.rows.flatMap(r => {
       const del = h('button', { textContent: 'remove' });
