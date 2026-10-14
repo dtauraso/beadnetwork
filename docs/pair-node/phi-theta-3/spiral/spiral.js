@@ -87,11 +87,11 @@
   let drag = null;
   cv.addEventListener('pointerdown', e => {
     const i = pick(e);
-    drag = { x: e.clientX, y: e.clientY, i, shift: e.shiftKey, moved: false };
+    drag = { x: e.clientX, y: e.clientY, i, second: e.button === 2 || e.ctrlKey, moved: false };
     cv.setPointerCapture(e.pointerId);
   });
   cv.addEventListener('pointermove', e => {
-    if (!drag) return;
+    if (!drag || drag.second) return;
     const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
     if (!drag.moved && Math.hypot(dx, dy) < 4) return;
     drag.moved = true;
@@ -104,11 +104,12 @@
   });
   cv.addEventListener('pointerup', () => {
     const i = drag && !drag.moved ? drag.i : null;
-    if (i !== null && drag.shift) { pivot = pivot === i ? null : i; chosen.delete(i); blocked = null; }
+    if (i !== null && drag.second) { pivot = pivot === i ? null : i; chosen.delete(i); blocked = null; }
     else if (i !== null && i !== pivot) { chosen.has(i) ? chosen.delete(i) : chosen.add(i); blocked = null; }
     drag = null;
     save(); paint();
   });
+  cv.addEventListener('contextmenu', e => e.preventDefault());
   const zoomBy = f => { zoom = Math.min(8, Math.max(0.2, zoom * f)); paint(); };
   cv.addEventListener('wheel', e => { if (!e.ctrlKey) return; e.preventDefault(); zoomBy(Math.exp(-e.deltaY * 0.01)); }, { passive: false });
   let pinch = 1;
