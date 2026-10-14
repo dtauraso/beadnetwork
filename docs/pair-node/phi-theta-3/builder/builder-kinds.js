@@ -1,5 +1,6 @@
 const bKind = row => row.kind || 'angle';
 const bFloat = row => bKind(row) === 'base' || bKind(row) === 'copy';
+const bAuto = row => row.automatic !== false;
 const bSib = (st, row) => st.rows.find(r => r !== row && r.from === row.from && bKind(r) === 'angle');
 
 function bTurned(st, row) {
@@ -9,7 +10,7 @@ function bTurned(st, row) {
 
 function bChange(st, row) {
   const d = bTurned(st, row);
-  return d && row.manual ? { sib: d.sib, phi: row.held.phi, theta: row.held.theta } : d;
+  return d && !bAuto(row) ? { sib: d.sib, phi: row.held.phi, theta: row.held.theta } : d;
 }
 
 function bApply(st, row) {
@@ -90,12 +91,12 @@ function bRowCells(st, r, c, h, on) {
   const copy = bKind(r) === 'copy', d = copy && bChange(st, r);
   const set = h('button', { textContent: copy ? 'set copy' : 'set base' });
   set.onclick = () => { if (copy) bSetCopy(st, r, ''); else r.base = bView(st, r); on.changed(); };
-  const t = bDir(st, r), what = d ? `${d.sib.from}→${d.sib.to} ${r.manual ? "turn applied" : "change"} φ ${bN(d.phi)} θ ${bN(d.theta)} ` : '';
-  const auto = h('input', { type: 'checkbox', checked: !r.manual });
-  auto.onchange = () => { r.manual = !auto.checked; bApply(st, r); on.changed(); };
+  const t = bDir(st, r), what = d ? `${d.sib.from}→${d.sib.to} ${!bAuto(r) ? "turn applied" : "change"} φ ${bN(d.phi)} θ ${bN(d.theta)} ` : '';
+  const auto = h('input', { type: 'checkbox', checked: bAuto(r) });
+  auto.onchange = () => { r.automatic = auto.checked; bApply(st, r); on.changed(); };
   const apply = h('button', { textContent: 'apply turn' });
   apply.onclick = () => { bApply(st, r); on.changed(); };
-  const extra = copy && d ? [h('label', {}, [auto, ' automatic ']), ...(r.manual ? [apply] : [])] : [];
+  const extra = copy && d ? [h('label', {}, [auto, ' automatic ']), ...(!bAuto(r) ? [apply] : [])] : [];
   return [h('td', {}, [kind]), ...(t ? [t.phi, t.theta, t.r].map(x => txt(bF(x))) : ['—', '—', '—'].map(txt)), h('td', { colSpan: 2 }, [what, ...extra, set])];
 }
 
