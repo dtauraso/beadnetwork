@@ -69,10 +69,11 @@
       st.rows.push({ from, to, kind: 'angle', start: { phi: 0, theta: 0, r: 2 }, end: { phi: 0, theta: 0 } });
       setup(); update();
     };
-    el('tables').replaceChildren(
+    el('settings').replaceChildren(
       h('h2', { textContent: 'a→b settings — one row per a→b, set at a: an angle (φ, θ, r), a change (a copy of the angle into a, plus its own end φ, end θ), or a base (measured once from where b lands, then stored)' }),
       table(['a→b', 'kind', 'start φ', 'start θ', 'start r', 'end φ', 'end θ', ''], settings),
-      h('div', { className: 'row' }, free.length ? [pick, add] : []),
+      h('div', { className: 'row' }, free.length ? [pick, add] : []));
+    el('tables').replaceChildren(
       ...st.nodes.map(n => {
         const seen = st.rows.filter(r => bDir(st, r)).flatMap(r => (r.from === n.name ? [[r.to, bDir(st, r)]] : r.to === n.name ? [[r.from, bBack(st, r)]] : []));
         return h('div', {}, [
