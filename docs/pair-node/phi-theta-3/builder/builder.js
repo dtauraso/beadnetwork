@@ -24,7 +24,7 @@
 
   const cv = el('view'), ctx = cv.getContext('2d');
   const view = { yaw: -0.6, pitch: 0.5 }, pan = { x: 0, y: 0, zoom: 1 };
-  let focus = [0, 0, 0], S = 200;
+  let focus = [0, 0, 0], S = 200, reach = null;
   const draw = atobCanvas(ctx, cv.width, cv.height, S, view, () => focus, css);
 
   function setup() {
@@ -123,7 +123,7 @@
     rs.forEach(({ steps }) => steps.slice(0, st.step).forEach(s => s.draw.forEach(o => pts.push(...(o.arrow || [o.dot || o.square])))));
     const cells = st.cells !== false ? bLinks(st) : [];
     cells.forEach(({ P, t, s }) => pts.push(...bCellCorners(st, P, t, s)));
-    const reach = Math.max(0.25, ...pts.map(bLen));
+    reach ??= Math.max(0.25, ...pts.map(bLen));
     focus = [0, 0, 0];
     S = pan.zoom * (cv.width / 2 - 60) / reach;
     Object.assign(draw, atobCanvas(ctx, cv.width, cv.height, S, view, () => focus, css));
@@ -203,7 +203,7 @@
     st.nodes.push({ name, known: false, idx: { r: 0, phi: 0, theta: 0 } });
     setup(); update();
   };
-  el('preset').onclick = () => { st = preset(); setup(); update(); };
+  el('preset').onclick = () => { st = preset(); reach = null; setup(); update(); };
 
   setup();
   update();
