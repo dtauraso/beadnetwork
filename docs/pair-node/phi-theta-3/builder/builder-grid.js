@@ -82,12 +82,17 @@ function bSphereBoxes(st, h, changed) {
     ...names.map(n => box(n, !!on[n], v => { on[n] = v; }))];
 }
 
-function bDrawSpheres(st, draw) {
+function bDrawSpheres(st, draw, ctx) {
   const P = st.nodes.filter(n => n.known).map(n => bPlace(st, n.idx));
-  const R = Math.min(st.rho * 2, ...P.flatMap((p, i) => P.slice(i + 1).map(q => bLen(bSub(p, q))))) / 2, color = 'hsl(210 60% 55%)';
-  const ring = (C, f) => Array.from({ length: 49 }, (_, k) => bAdd(C, f(k / 48 * 2 * Math.PI)));
+  const R = Math.min(st.rho * 2, ...P.flatMap((p, i) => P.slice(i + 1).map(q => bLen(bSub(p, q))))) / 2;
+  const ring = (C, f) => {
+    ctx.beginPath();
+    for (let k = 0; k <= 48; k++) { const [x, y] = draw.proj(bAdd(C, f(k / 48 * 2 * Math.PI))); k ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
+    ctx.stroke();
+  };
+  ctx.strokeStyle = 'hsl(210 60% 55%)'; ctx.lineWidth = 1.5;
   st.nodes.filter(n => n.known && (st.spheres || {})[n.name]).map(n => bPlace(st, n.idx)).forEach(C => {
-    for (let m = 0; m < 6; m++) draw.curve(ring(C, t => bCart(R, t, m * Math.PI / 6)), C, color, 1.5);
-    for (let l = 1; l < 6; l++) draw.curve(ring(C, t => bCart(R, l * Math.PI / 6, t)), C, color, 1.5);
+    for (let m = 0; m < 6; m++) ring(C, t => bCart(R, t, m * Math.PI / 6));
+    for (let l = 1; l < 6; l++) ring(C, t => bCart(R, l * Math.PI / 6, t));
   });
 }
