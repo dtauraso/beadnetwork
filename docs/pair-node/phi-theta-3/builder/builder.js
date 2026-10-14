@@ -134,7 +134,7 @@
     bDrawAxes(draw, ctx, css, [0, 0, 0], st.cr, true);
     el('cellnote').replaceChildren(...[...bDrawCells(st, draw, ctx, css, cells), ...bGlobalLines(st)].map(t => h('div', { textContent: t })));
     bDrawGuides(st, draw, ctx, css, bCellPoints(st, rs));
-    bDrawSpheres(st, draw, ctx, S);
+    bDrawSpheres(st, draw);
     const seen = {};
     rs.forEach(({ m, steps }) => {
       const color = css(m.color);
