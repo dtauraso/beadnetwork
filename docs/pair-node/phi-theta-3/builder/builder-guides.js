@@ -37,8 +37,8 @@ function bPreset() {
     ],
     rows: [
       { from: 'a', to: 'b', start: { phi: 2, theta: 0, r: 2 }, end: { phi: 0, theta: 0 } },
-      { from: 'b', to: 'c', start: { phi: 6, theta: 0, r: 2 }, end: { phi: 0, theta: 0 } },
-      { from: 'a', to: 'c', start: { phi: 4, theta: 0, r: 2 }, end: { phi: 0, theta: 0 } },
+      { from: 'b', to: 'c', start: { phi: 4, theta: 2, r: 2 }, end: { phi: 0, theta: 0 } },
+      { from: 'a', to: 'c', start: { phi: 3, theta: 1, r: 3 }, end: { phi: 0, theta: 0 } },
     ],
     item: 'b', on: { atob: true, pair: true }, step: 1,
   };
