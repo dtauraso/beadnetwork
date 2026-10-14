@@ -34,23 +34,6 @@ function bSyncRows(st) {
     o[k] = Math.round(o[k]);
     changed = true;
   })));
-  const first = st.nodes.find(n => n.known);
-  if (!first) return changed;
-  const pos = { [first.name]: bPlace(st, first.idx) };
-  const ds = st.nodes.flatMap(n => bRowVectors(st, n.name));
-  for (let more = true; more;) {
-    more = false;
-    ds.forEach(({ row, d }) => {
-      if (pos[row.from] && !pos[row.to]) { pos[row.to] = bAdd(pos[row.from], d); more = true; }
-      if (pos[row.to] && !pos[row.from]) { pos[row.from] = bSub(pos[row.to], d); more = true; }
-    });
-  }
-  st.nodes.filter(n => n.known && n !== first && pos[n.name]).forEach(n => {
-    if (bLen(bSub(bPlace(st, n.idx), pos[n.name])) < 1e-9) return;
-    const I = bIndexOf(st, pos[n.name]);
-    n.idx = { ...I, theta: I.theta < 0 ? I.theta + st.Ttheta : I.theta };
-    changed = true;
-  });
   return changed;
 }
 
