@@ -1,26 +1,36 @@
 (function () {
-  const KEY = 'pair-spiral-v2', R = 0.5, N = 30, GAP = 2 * R * 1.08;
+  const KEY = 'pair-triangle-v1', R = 0.5, GAP = 2 * R * 1.08;
   const cv = document.getElementById('view'), ctx = cv.getContext('2d'), status = document.getElementById('status');
   const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
   const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
   const add = (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
   const len = v => Math.hypot(v[0], v[1], v[2]);
 
-  function spiral() {
-    const rho = 1.6, rise = 0.25, turn = 2 * Math.asin(Math.sqrt(GAP * GAP - rise * rise) / (2 * rho));
-    return Array.from({ length: N }, (_, i) => [rho * Math.cos(i * turn), (i - (N - 1) / 2) * rise, rho * Math.sin(i * turn)]);
+  function triangle() {
+    const obtuse = 125 * Math.PI / 180, C = [0, 0, 0], A = [6.5, 0, 0], B = [4.5 * Math.cos(obtuse), 4.5 * Math.sin(obtuse), 0];
+    const out = [];
+    [[A, B], [B, C], [C, A]].forEach(([p, q]) => {
+      const v = sub(q, p), n = Math.floor(len(v) / GAP);
+      for (let k = 0; k < n; k++) {
+        const s = add(p, v.map(x => x * k / n));
+        if (k === 0 || [A, B, C, ...out].every(o => len(sub(o, s)) >= GAP - 1e-9)) out.push(s);
+      }
+    });
+    const mid = out.reduce(add).map(x => x / out.length);
+    return out.map(p => sub(p, mid));
   }
+  const N = triangle().length;
 
   let balls;
   try { balls = JSON.parse(localStorage.getItem(KEY)); } catch { }
-  if (!Array.isArray(balls) || balls.length !== N) balls = spiral();
+  if (!Array.isArray(balls) || balls.length !== N) balls = triangle();
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(balls)); } catch { } };
   let pivot = null, blocked = null;
   const chosen = new Set();
 
-  const view = { yaw: -0.6, pitch: 0.75 };
+  const view = { yaw: 0, pitch: 0 };
   let zoom = 1, draw;
-  const reach = Math.max(...spiral().map(len)) + R;
+  const reach = Math.max(...triangle().map(len)) + R;
   const layout = () => { draw = atobCanvas(ctx, cv.width, cv.height, zoom * (cv.width / 2 - 30) / reach, view, () => [0, 0, 0], css); };
 
   function toView([x, y, z]) {
@@ -109,7 +119,7 @@
   cv.addEventListener('gesturestart', e => { e.preventDefault(); pinch = 1; });
   cv.addEventListener('gesturechange', e => { e.preventDefault(); zoomBy(e.scale / pinch); pinch = e.scale; });
 
-  document.getElementById('reset').onclick = () => { balls = spiral(); pivot = blocked = null; chosen.clear(); save(); paint(); };
+  document.getElementById('reset').onclick = () => { balls = triangle(); pivot = blocked = null; chosen.clear(); save(); paint(); };
   document.getElementById('clear').onclick = () => { pivot = blocked = null; chosen.clear(); paint(); };
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change', paint);
   paint();

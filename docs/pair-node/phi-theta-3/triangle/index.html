@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Pair node — sphere spiral</title>
+<title>Pair node — sphere triangle</title>
 <link rel="stylesheet" href="../../pair-base.css">
 <link rel="stylesheet" href="../../pair-layout.css">
 <style>
@@ -34,7 +34,7 @@
 </head>
 <body>
 <header>
-  <h1>A spiral staircase of spheres</h1>
+  <h1>An obtuse triangle of spheres</h1>
   <div class="sub">Each sphere can turn round another sphere, at the distance it already has from it, and stops where it would touch any sphere instead of passing through it.</div>
 </header>
 
@@ -43,14 +43,14 @@
   <a href="../index.html">Three-node card</a>
   <a href="../atob/index.html">a→b vectors</a>
   <a href="../builder/index.html">a→b builder</a>
-  <a class="on" href="index.html">Sphere spiral</a>
+  <a class="on" href="index.html">Sphere triangle</a>
 </nav>
 
 <main>
   <div class="panel">
-    <canvas id="view" width="900" height="900" aria-label="A spiral of spheres"></canvas>
+    <canvas id="view" width="900" height="900" aria-label="An obtuse triangle of spheres"></canvas>
     <div class="row">
-      <button id="reset">reset the spiral</button>
+      <button id="reset">reset the triangle</button>
       <button id="clear">clear the selection and centre</button>
       <span class="hint" id="status"></span>
     </div>
@@ -58,6 +58,6 @@
   </div>
 </main>
 <script src="../atob/atob-draw.js"></script>
-<script src="spiral.js"></script>
+<script src="triangle.js"></script>
 </body>
 </html>
