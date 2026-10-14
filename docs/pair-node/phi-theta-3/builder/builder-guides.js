@@ -41,6 +41,7 @@ function bPreset() {
     ],
     item: 'c', on: { atob: true, pair: true }, step: 1,
   };
+  bIndexRows(p);
   p.rows.slice(0, 2).forEach(r => bRefer(p, r));
   bSend(p, a);
   bSetCopy(p, p.rows[2], '');
@@ -100,8 +101,8 @@ function bSetS(st, node, value) {
   if (!bWhole(value) || value < 1) return `${said}: not a whole number of at least 1, so it stays at ${was}`;
   const keep = bKeep(st), k = value / was;
   node.s = value;
-  const rows = st.rows.filter(r => r.from === node || r.to === node);
-  rows.filter(r => r.from === node).forEach(r => {
+  const rows = [...node.rowsOut, ...node.rowsIn];
+  node.rowsOut.forEach(r => {
     r.start = { ...r.start, phi: r.start.phi * k, theta: r.start.theta * k };
     r.end = { phi: r.end.phi * k, theta: r.end.theta * k };
     if (r.base) r.base = { ...r.base, phi: r.base.phi * k, theta: r.base.theta * k };

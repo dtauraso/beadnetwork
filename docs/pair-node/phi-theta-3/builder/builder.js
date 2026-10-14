@@ -1,7 +1,7 @@
 (function () {
   const KEY = 'pair-builder-v5';
   const preset = bPreset;
-  let err = null;
+  let err = null, pickFrom = null;
   let st;
   try { st = JSON.parse(localStorage.getItem(KEY)); if (st) bWire(st); else st = preset(); } catch { st = preset(); }
   st.rows.filter(r => !bFloat(r)).forEach(r => bLink(st, r));
@@ -59,24 +59,30 @@
       const on = { kind: v => { check(`${ab}:kind`, bSetKind(st, r, v), v); update(); }, changed: () => { setup(); update(); } };
       return [h('tr', {}, [h('td', { textContent: ab }), ...bRowCells(st, r, c, h, on), h('td', {}, [del])]), ...note(ab, 8)];
     });
-    const free = st.nodes.flatMap(a => st.nodes.filter(b => b !== a && !st.rows.some(r => r.from === a && r.to === b)).map(b => [a, b]));
-    const pick = h('select', {}, free.map(([a, b], i) => h('option', { value: i, textContent: `${a.name}→${b.name}` })));
-    const add = h('button', { textContent: 'add a→b setting', disabled: !free.length });
+    const froms = st.nodes.filter(a => a.rowsOut.length < st.nodes.length - 1);
+    if (!froms.includes(pickFrom)) pickFrom = froms[0];
+    const taken = new Set(pickFrom ? pickFrom.rowsOut.map(r => r.to) : []);
+    const tos = pickFrom ? st.nodes.filter(b => b !== pickFrom && !taken.has(b)) : [];
+    const pickA = h('select', {}, froms.map((a, i) => h('option', { value: i, textContent: a.name, selected: a === pickFrom })));
+    pickA.onchange = () => { pickFrom = froms[+pickA.value]; setup(); };
+    const pickB = h('select', {}, tos.map((b, i) => h('option', { value: i, textContent: b.name })));
+    const add = h('button', { textContent: 'add a→b setting', disabled: !tos.length });
     add.onclick = () => {
-      const [from, to] = free[+pick.value];
-      st.rows.push({ from, to, kind: 'angle', start: { phi: 0, theta: 0, r: 2 }, end: { phi: 0, theta: 0 } });
-      bLink(st, st.rows[st.rows.length - 1]);
+      const row = { from: pickFrom, to: tos[+pickB.value], kind: 'angle', start: { phi: 0, theta: 0, r: 2 }, end: { phi: 0, theta: 0 } };
+      bAddRow(st, row);
+      bLink(st, row);
       setup(); update();
     };
     el('settings').replaceChildren(
       table(['a→b', 'kind', 'start φ', 'start θ', 'start r', 'end φ', 'end θ', ''], settings),
-      h('div', { className: 'row' }, free.length ? [pick, add] : []), ...bLands(st, h, table),
+      h('div', { className: 'row' }, tos.length ? [pickA, ' → ', pickB, add] : []), ...bLands(st, h, table),
       h('h2', { textContent: 'a→b settings — one row per a→b, set at a: an angle (φ, θ, r), a change (a copy of the angle into a, plus its own end φ, end θ), a copy (a stored direction plus the change of the angle row from a since it was set — no φ, θ, r of its own), or a base (measured once from where b lands, then stored)' }));
     el('tables').replaceChildren(
       ...st.nodes.map(n => {
-        const seen = st.rows.filter(r => bDir(st, r)).flatMap(r => (r.from === n ? [[r.to.name, bDir(st, r)]] : r.to === n ? [[r.from.name, bBack(st, r)]] : []));
+        const seen = [...n.rowsOut.filter(r => bDir(st, r)).map(r => [r.to.name, bDir(st, r)]),
+          ...n.rowsIn.filter(r => bDir(st, r)).map(r => [r.from.name, bBack(st, r)])];
         return h('div', {}, [
-          h('h2', { textContent: `${n.name}'s table — ${n.name}'s φ, θ, r toward each node it connects to, in ${n.name}'s ticks (s ${bS(st, n)}:${12 * bS(st, n)} a turn)` }),
+          h('h2', { textContent: `${n.name}'s table — ${n.name}'s φ, θ, r toward each node it connects to, in ${n.name}'s ticks (s ${bS(st, n)}: ${12 * bS(st, n)} a turn)` }),
           table(['toward', 'φ', 'θ', 'r'], seen.map(([o, t]) => h('tr', {}, [o, bN(t.phi), bN(t.theta), bN(t.r)].map(x => h('td', { textContent: x }))))),
           ...bSecondBase(st, n, h, table),
         ]);
@@ -199,7 +205,7 @@
   el('add-node').onclick = () => {
     const name = 'abcdefghijklmnopqrstuvwxyz'.split('').find(c => !st.nodes.some(n => n.name === c));
     if (!name) return;
-    st.nodes.push({ name, known: false, idx: { r: 0, phi: 0, theta: 0 } });
+    st.nodes.push({ name, known: false, idx: { r: 0, phi: 0, theta: 0 }, rowsOut: [], rowsIn: [] });
     setup(); update();
   };
   el('preset').onclick = () => { st = preset(); reach = null; setup(); update(); };

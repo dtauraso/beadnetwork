@@ -39,7 +39,7 @@ function bVec(st, s, t) {
 }
 
 function bRowVectors(st, item) {
-  return st.rows.filter(r => r.to.name === item && bDir(st, r)).map(r => {
+  return ((bNode(st, item) || {}).rowsIn || []).filter(r => bDir(st, r)).map(r => {
     const t = bDir(st, r);
     return { from: r.from, row: r, t, d: bVec(st, bS(st, r.from), t) };
   });
@@ -58,7 +58,8 @@ function bVectorStep(rows, item) {
 
 function bResult(st, item, p, label) {
   const lines = [`${label} as an index: ${bIdx(bIndexOf(st, p))}`];
-  const set = bNodePos(st, bNode(st, item));
+  const set = bNodePos(st, item);
+  item = item.name;
   if (set) {
     const miss = bLen(bSub(p, set));
     lines.push(`|${label} − ${item} as set| = ${bF(miss)}${miss < 1e-6 ? ' — lands on it' : ' — misses it'}`);
@@ -94,7 +95,8 @@ function bMethodAtoB(st, item) {
     lines.push(`|${item}(${r.from}) − ${item}(${done[0].from})| = ${bF(gap)}${gap < 1e-6 ? ' — one point' : ' — the rows disagree'}`);
   });
   missing.forEach(n => lines.push(`${item}(${n}): not placed — C_${n} is missing`));
-  done.forEach(r => lines.push(...bResult(st, item, r.b, `${item}(${r.from})`)));
+  const node = bNode(st, item);
+  done.forEach(r => lines.push(...bResult(st, node, r.b, `${item}(${r.from})`)));
   steps.push({
     title: `global: ${item} from each row`,
     lines, note: `O→n + n→${item}, once per row (the a→b card); nothing is added at O; the index is exact, not rounded`, ok: true,
@@ -124,13 +126,12 @@ function bMethodPair(st, item) {
       ...indexed.map(r => `pair ${r.from}→${item}: I_${item} = ${bIdx(r.I)}`)],
     note: 'kept exact — not rounded to whole index steps; C_b = O gives I_b = 0', ok: true, draw: [],
   });
-  const lines = [];
-  const draw = [];
+  const lines = [], draw = [], node = bNode(st, item);
   indexed.forEach(r => {
     const Cb = bPlace(st, r.I), back = bLen(bSub(Cb, r.b));
     lines.push(`pair ${r.from}→${item}: C_${item} = ${bPlaceText(r.I)} = ${bPt(Cb)}`,
       `|placed − C_${r.from} + d_${r.from}${item}| = ${bF(back)}${back < 1e-6 ? ' — the index holds the same point' : ' — the index lost the point'}`,
-      ...bResult(st, item, Cb, `C_${item}`).slice(1));
+      ...bResult(st, node, Cb, `C_${item}`).slice(1));
     draw.push({ arrow: [B_O, Cb] }, { square: Cb, label: `pair ${r.from}: C_${item}` });
   });
   steps.push({ title: `place ${item} from the index`, lines, note: 'the pair card\'s C_b', ok: true, draw });

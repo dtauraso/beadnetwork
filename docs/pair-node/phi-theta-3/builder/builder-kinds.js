@@ -1,7 +1,7 @@
 const bKind = row => row.kind || 'angle';
 const bFloat = row => bKind(row) === 'base' || bKind(row) === 'copy';
 const bAuto = row => row.automatic !== false;
-const bSib = (st, row) => (row.from.out || []).map(n => n.via).find(r => r !== row && bKind(r) === 'angle');
+const bSib = (st, row) => row.from.rowsOut.find(r => r !== row && bKind(r) === 'angle');
 
 function bTurned(st, row) {
   const sib = bSib(st, row);
@@ -102,10 +102,11 @@ function bHow(st, o, r) {
 }
 
 function bSecondBase(st, n, h, table) {
-  return st.rows.filter(r => r.from === n && bFloat(r) && bDir(st, r)).flatMap(base => {
+  const bases = n.rowsOut.filter(r => bFloat(r) && bDir(st, r));
+  const seen = bases.length ? [...n.rowsOut.map(r => [r.to, bDir(st, r), r]), ...n.rowsIn.map(r => [r.from, bDir(st, r) && bBack(st, r), r])]
+    .filter(x => x[1]) : [];
+  return bases.flatMap(base => {
     const z = bDir(st, base);
-    const seen = st.rows.flatMap(r => (r.from === n ? [[r.to, bDir(st, r), r]] : r.to === n ? [[r.from, bDir(st, r) && bBack(st, r), r]] : []))
-      .filter(x => x[1]);
     return [h('h2', { textContent: `${n.name}'s second base — the ${n.name}→${base.to.name} base, measured once at φ ${bF(z.phi)}, θ ${bF(z.theta)} and stored as 0` }),
       table(['toward', 'φ', 'θ', 'r', 'how'], seen.map(([o, t, r]) => h('tr', {}, [o.name, bN(t.phi - z.phi), bN(t.theta - z.theta), bN(t.r), bHow(st, o, r)]
         .map(x => h('td', { textContent: x })))))];

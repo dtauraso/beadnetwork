@@ -3,8 +3,21 @@ const bNode = (st, name) => st.nodes.find(x => x.name === name);
 function bPack(k, v) {
   if (k === 'from' || k === 'to' || k === 'sender') return v.name;
   if (k === 'via') return [v.from.name, v.to.name];
-  if (k === 'out') return undefined;
+  if (k === 'out' || k === 'rowsOut' || k === 'rowsIn') return undefined;
   return v;
+}
+
+function bAddRow(st, row) {
+  st.rows.push(row);
+  (row.from.rowsOut ||= []).push(row);
+  (row.to.rowsIn ||= []).push(row);
+}
+
+function bIndexRows(st) {
+  const rows = st.rows;
+  st.rows = [];
+  st.nodes.forEach(n => { n.rowsOut = []; n.rowsIn = []; });
+  rows.forEach(r => bAddRow(st, r));
 }
 
 const bKeep = st => JSON.stringify([st.nodes, st.rows], bPack);
@@ -13,6 +26,7 @@ function bWire(st) {
   const by = new Map(st.nodes.map(n => [n.name, n])), rows = new Map(st.rows.map(r => [`${r.from}→${r.to}`, r]));
   st.rows.forEach(r => { r.from = by.get(r.from); r.to = by.get(r.to); });
   st.rows = st.rows.filter(r => r.from && r.to);
+  bIndexRows(st);
   st.nodes.forEach(n => {
     delete n.ref; delete n.out;
     n.sender = n.sender && by.get(n.sender);
@@ -48,12 +62,16 @@ function bLink(st, row) {
 
 function bDropRow(st, row) {
   if (row.to.via === row) bLetGo(row.to);
+  row.from.rowsOut = row.from.rowsOut.filter(x => x !== row);
+  row.to.rowsIn = row.to.rowsIn.filter(x => x !== row);
   st.rows = st.rows.filter(x => x !== row);
 }
 
 function bDropNode(st, n) {
   (n.out || []).forEach(x => { delete x.sender; delete x.via; });
   bLetGo(n);
+  n.rowsOut.forEach(r => { r.to.rowsIn = r.to.rowsIn.filter(x => x !== r); });
+  n.rowsIn.forEach(r => { r.from.rowsOut = r.from.rowsOut.filter(x => x !== r); });
   st.nodes = st.nodes.filter(x => x !== n);
   st.rows = st.rows.filter(r => r.from !== n && r.to !== n);
 }

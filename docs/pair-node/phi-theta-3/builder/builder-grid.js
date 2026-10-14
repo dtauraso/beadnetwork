@@ -1,6 +1,10 @@
 function bCellPoints(st, rs) {
   const out = [];
-  const add = (p, color) => { if (bLen(p) > 1e-9 && !out.some(t => bLen(bSub(t.p, p)) < 1e-9)) out.push({ p, color }); };
+  const had = new Set();
+  const add = (p, color) => {
+    const key = p.map(v => v.toFixed(6)).join();
+    if (bLen(p) > 1e-9 && !had.has(key)) { had.add(key); out.push({ p, color }); }
+  };
   st.nodes.filter(n => n.known).forEach(n => add(bPlace(st, n.idx), '--ink'));
   rs.forEach(({ m, steps }) => steps.slice(0, st.step).forEach(s => s.draw.forEach(o => {
     if (o.square) add(o.square, m.color);
@@ -29,9 +33,9 @@ function bCellCorners(st, P, t, s) {
 }
 
 function bGlobalLines(st) {
-  const ends = bRowEnds(st);
+  const ends = new Map(bRowEnds(st).map(e => [e.row, e.T]));
   return st.nodes.map(n => {
-    const p = bNodePos(st, n) || (ends.find(e => e.row.to === n) || {}).T;
+    const p = bNodePos(st, n) || ends.get(n.rowsIn.find(r => ends.has(r)));
     if (!p) return `${n.name} in O's frame: no position`;
     const r = bLen(p), phi = r < 1e-9 ? 0 : Math.acos(Math.max(-1, Math.min(1, p[1] / r)));
     let th = Math.atan2(p[2], p[0]);
@@ -84,7 +88,17 @@ function bSphereBoxes(st, h, changed) {
 
 function bDrawSpheres(st, draw, ctx) {
   const P = st.nodes.filter(n => n.known).map(n => bPlace(st, n.idx));
-  const R = Math.min(st.rho * 2, ...P.flatMap((p, i) => P.slice(i + 1).map(q => bLen(bSub(p, q))))) / 2;
+  const cap = st.rho * 2, cell = p => p.map(v => Math.floor(v / cap)), grid = new Map();
+  let near = cap;
+  P.forEach(p => {
+    const [x, y, z] = cell(p);
+    for (const dx of [-1, 0, 1]) for (const dy of [-1, 0, 1]) for (const dz of [-1, 0, 1])
+      (grid.get(`${x + dx},${y + dy},${z + dz}`) || []).forEach(q => { near = Math.min(near, bLen(bSub(p, q))); });
+    const key = `${x},${y},${z}`;
+    if (!grid.has(key)) grid.set(key, []);
+    grid.get(key).push(p);
+  });
+  const R = near / 2;
   const ring = (C, f) => {
     ctx.beginPath();
     for (let k = 0; k <= 48; k++) { const [x, y] = draw.proj(bAdd(C, f(k / 48 * 2 * Math.PI))); k ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
