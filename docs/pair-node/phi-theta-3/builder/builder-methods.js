@@ -23,7 +23,7 @@ function bIndexOf(st, p) {
 const bS = (st, name) => (st.nodes.find(n => n.name === name) || {}).s || st.s;
 const bWrap = (s, t) => ((t % (12 * s)) + 12 * s) % (12 * s);
 const bBack = (st, row) => {
-  const sa = bS(st, row.from), sb = bS(st, row.to), a = row.start;
+  const sa = bS(st, row.from), sb = bS(st, row.to), a = bDir(st, row);
   return { phi: bWrap(sb, a.phi * sb / sa + 6 * sb), theta: bWrap(sb, a.theta * sb / sa + 6 * sb), r: a.r };
 };
 const bWhole = x => Math.abs(x - Math.round(x)) < 1e-6;
@@ -37,9 +37,9 @@ function bNodePos(st, name) {
 }
 
 function bRowVectors(st, item) {
-  return st.rows.filter(r => r.to === item).map(r => {
-    const ang = t => t * 2 * Math.PI / (12 * bS(st, r.from));
-    return { from: r.from, row: r, d: bCart(r.start.r * st.rho, ang(r.start.phi), ang(r.start.theta)) };
+  return st.rows.filter(r => r.to === item && bDir(st, r)).map(r => {
+    const t = bDir(st, r), ang = x => x * 2 * Math.PI / (12 * bS(st, r.from));
+    return { from: r.from, row: r, t, d: bCart(t.r * st.rho, ang(t.phi), ang(t.theta)) };
   });
 }
 
@@ -47,7 +47,7 @@ function bVectorStep(rows, item) {
   return {
     title: 'local: each row\'s start as a vector',
     lines: rows.length
-      ? rows.map(({ from, row, d }) => `d_${from}${item} = polar_to_cart(${bN(row.start.r)}·ρ, ${bN(row.start.phi)}·2π/12s_${from}, ${bN(row.start.theta)}·2π/12s_${from}) = ${bPt(d)}`)
+      ? rows.map(({ from, row, t, d }) => `d_${from}${item} (${bKind(row)}) = polar_to_cart(${bN(t.r)}·ρ, ${bN(t.phi)}·2π/12s_${from}, ${bN(t.theta)}·2π/12s_${from}) = ${bPt(d)}`)
       : [`${item}'s table has no rows`],
     note: 'from the row\'s start ticks alone; a vector, not yet a place',
     ok: rows.length > 0, draw: [],

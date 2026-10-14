@@ -20,10 +20,9 @@ function bDrawAxes(draw, ctx, css, P, L, named) {
 
 function bRowEnds(st) {
   return st.rows.map(row => {
-    const P = bNodePos(st, row.from);
-    if (!P) return null;
-    const d = bRowVectors(st, row.to).find(v => v.row === row).d;
-    return { row, P, d, T: bNodePos(st, row.to) || bAdd(P, d) };
+    const P = bNodePos(st, row.from), v = bRowVectors(st, row.to).find(x => x.row === row);
+    if (!P || !v) return null;
+    return { row, P, d: v.d, T: bNodePos(st, row.to) || bAdd(P, v.d) };
   }).filter(Boolean);
 }
 
@@ -36,14 +35,17 @@ function bPreset() {
       { name: 'c', s: 1, known: true, idx: { r: 0, phi: 0, theta: 0 } },
     ],
     rows: [
-      { from: 'a', to: 'b', start: { phi: 2, theta: 0, r: 2 }, end: { phi: 0, theta: 0 } },
-      { from: 'b', to: 'c', start: { phi: 4, theta: 2, r: 2 }, end: { phi: 0, theta: 0 } },
-      { from: 'a', to: 'c', start: { phi: 3, theta: 1, r: 3 }, end: { phi: 0, theta: 0 } },
+      { from: 'a', to: 'b', kind: 'angle', start: { phi: 2, theta: 0, r: 2 }, end: { phi: 0, theta: 0 } },
+      { from: 'b', to: 'c', kind: 'change', start: { phi: 0, theta: 0, r: 2 }, end: { phi: 2, theta: 0 } },
+      { from: 'a', to: 'c', kind: 'base', start: { phi: 0, theta: 0, r: 0 }, end: { phi: 0, theta: 0 } },
     ],
-    item: 'b', on: { atob: true, pair: true }, step: 1,
+    item: 'c', on: { atob: true, pair: true }, step: 1,
   };
-  const A = bPlace(p, p.nodes[0].idx);
-  [[1, 0], [2, 2]].forEach(([i, r]) => { p.nodes[i].idx = bIndexOf(p, bAdd(A, bRowVectors(p, p.nodes[i].name).find(v => v.row === p.rows[r]).d)); });
+  [[1, 0], [2, 1]].forEach(([i, r]) => {
+    const row = p.rows[r], P = bPlace(p, p.nodes.find(n => n.name === row.from).idx);
+    p.nodes[i].idx = bIndexOf(p, bAdd(P, bRowVectors(p, row.to).find(v => v.row === row).d));
+  });
+  p.rows[2].base = bView(p, p.rows[2]);
   return p;
 }
 
@@ -51,17 +53,19 @@ function bView(st, row) {
   const P = bNodePos(st, row.from), T = bNodePos(st, row.to);
   if (!P || !T) return null;
   const s = bS(st, row.from), v = bSub(T, P), len = bLen(v), tick = 2 * Math.PI / (12 * s), half = 6 * s;
-  if (len < 1e-9) return { phi: row.start.phi, theta: row.start.theta, r: 0 };
+  const was = bDir(st, row) || { phi: 0, theta: 0 };
+  if (len < 1e-9) return { phi: was.phi, theta: was.theta, r: 0 };
   let phi = Math.acos(Math.max(-1, Math.min(1, v[1] / len))) / tick;
-  let theta = Math.hypot(v[0], v[2]) < 1e-9 * len ? row.start.theta : bWrap(s, Math.atan2(v[2], v[0]) / tick);
-  if (row.start.phi > half) { phi = 2 * half - phi; theta = bWrap(s, theta + half); }
+  let theta = Math.hypot(v[0], v[2]) < 1e-9 * len ? was.theta : bWrap(s, Math.atan2(v[2], v[0]) / tick);
+  if (was.phi > half) { phi = 2 * half - phi; theta = bWrap(s, theta + half); }
   return { phi, theta, r: len / st.rho };
 }
 
 function bOffTicks(st, rows) {
-  return rows.flatMap(r => {
-    const a = r.start, b = bBack(st, r), out = [];
-    if (![a.phi, a.theta, a.r, r.end.phi, r.end.theta].every(bWhole)) out.push(`${r.from}→${r.to} at ${r.from} (s ${bS(st, r.from)}) would be φ ${bF(a.phi)}, θ ${bF(a.theta)}, r ${bF(a.r)}, end φ ${bF(r.end.phi)}, end θ ${bF(r.end.theta)}`);
+  return rows.filter(r => bKind(r) !== 'base').flatMap(r => {
+    const a = bDir(st, r), b = bBack(st, r), out = [], own = bKind(r) === 'change';
+    const ends = own ? `, own φ ${bF(r.end.phi)}, own θ ${bF(r.end.theta)}` : '';
+    if (![a.phi, a.theta, a.r, ...(own ? [r.end.phi, r.end.theta] : [])].every(bWhole)) out.push(`${r.from}→${r.to} at ${r.from} (s ${bS(st, r.from)}) would be φ ${bF(a.phi)}, θ ${bF(a.theta)}, r ${bF(a.r)}${ends}`);
     if (![b.phi, b.theta].every(bWhole)) out.push(`${r.from} seen from ${r.to} (s ${bS(st, r.to)}) would be φ ${bF(b.phi)}, θ ${bF(b.theta)}`);
     return out;
   });
@@ -73,7 +77,7 @@ function bSettle(st, keep, rows, said, was) {
     [st.nodes, st.rows] = JSON.parse(keep);
     return `${said}: ${bad.join('; ')} — not whole ticks, so it stays at ${was}`;
   }
-  rows.forEach(r => {
+  rows.filter(r => bKind(r) !== 'base').forEach(r => {
     const w = t => bWrap(bS(st, r.from), Math.round(t));
     r.start = { phi: w(r.start.phi), theta: w(r.start.theta), r: Math.round(r.start.r) };
     r.end = { phi: w(r.end.phi), theta: w(r.end.theta) };
@@ -81,18 +85,18 @@ function bSettle(st, keep, rows, said, was) {
   return '';
 }
 
-function bSetStart(st, row, k, value) {
-  const was = bN(row.start[k]), said = `${row.from}→${row.to} ${{ phi: 'φ', theta: 'θ', r: 'r' }[k]} ${bN(value)}`;
+function bSetStart(st, row, k, value, part = 'start') {
+  const was = bN(row[part][k]), said = `${row.from}→${row.to} ${part === 'end' ? 'own ' : ''}${{ phi: 'φ', theta: 'θ', r: 'r' }[k]} ${bN(value)}`;
   if (!bWhole(value)) return `${said}: not a whole number, so it stays at ${was}`;
   const keep = JSON.stringify([st.nodes, st.rows]);
-  row.start[k] = value;
+  row[part][k] = value;
   const n = st.nodes.find(x => x.name === row.to), P = bNodePos(st, row.from);
   let rows = [row];
   if (n && n.known && P) {
     const J = bIndexOf(st, bAdd(P, bRowVectors(st, row.to).find(v => v.row === row).d));
     n.idx = { ...J, theta: J.theta < 0 ? J.theta + st.Ttheta : J.theta };
     rows = st.rows.filter(r => r.from === n.name || r.to === n.name);
-    rows.filter(r => r !== row).forEach(r => { const t = bView(st, r); if (t) r.start = t; });
+    rows.filter(r => r !== row).forEach(r => bReview(st, r));
   }
   return bSettle(st, keep, rows, said, was);
 }
@@ -106,6 +110,7 @@ function bSetS(st, node, value) {
   rows.filter(r => r.from === node.name).forEach(r => {
     r.start = { ...r.start, phi: r.start.phi * k, theta: r.start.theta * k };
     r.end = { phi: r.end.phi * k, theta: r.end.theta * k };
+    if (r.base) r.base = { ...r.base, phi: r.base.phi * k, theta: r.base.theta * k };
   });
   return bSettle(st, keep, rows, said, was);
 }
