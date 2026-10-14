@@ -42,8 +42,7 @@ function bPreset() {
     { from: a, to: c, kind: 'copy', start: { phi: 0, theta: 0, r: 0 }, end: { phi: 0, theta: 0 } },
   ];
   rows.forEach(r => bAddRow(p, r));
-  rows.slice(0, 2).forEach(r => bRefer(p, r));
-  bSend(p, a);
+  rows.slice(0, 2).forEach(r => bMove(p, r));
   bSetCopy(p, rows[2], '');
   return p;
 }
@@ -91,10 +90,7 @@ function bSetStart(st, row, k, value, part = 'start') {
   const keep = bKeep();
   bSave(row);
   row[part][k] = value;
-  if (!bMove(st, row)) {
-    bRestore(keep);
-    return `${said}: the nodes' references run in a loop, so it stays at ${was}`;
-  }
+  bMove(st, row);
   return bSettle(st, keep, [row], said, was);
 }
 

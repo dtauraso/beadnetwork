@@ -1,10 +1,10 @@
-const bMake = n => Object.assign(n, { out: new Set(), rowsOut: new Set(), rowsIn: new Set(), angles: new Set() });
+const bMake = n => Object.assign(n, { rowsOut: new Set(), rowsIn: new Set(), angles: new Set() });
 const bFirst = set => set.values().next().value;
 const bName = k => (k < 26 ? 'abcdefghijklmnopqrstuvwxyz'[k] : `n${k}`);
 const bNameAt = name => (name.length === 1 ? name.charCodeAt(0) - 97 : +name.slice(1));
 
 function bPack(k, v) {
-  if (['out', 'rowsOut', 'rowsIn', 'angles', 'gone'].includes(k)) return undefined;
+  if (['rowsOut', 'rowsIn', 'angles', 'gone'].includes(k)) return undefined;
   if (v instanceof Set) return [...v];
   if (k === 'from' || k === 'to' || k === 'sender' || k === 'item') return v.name;
   if (k === 'via') return [v.from.name, v.to.name];
@@ -30,14 +30,14 @@ function bWire(st) {
   st.nodes.forEach(n => {
     const from = n.sender && by.get(n.sender), row = n.via && via.get(n.via.join('→'));
     delete n.ref; delete n.sender; delete n.via;
-    if (from && row && row.to === n && row.from === from) { n.sender = from; n.via = row; from.out.add(n); }
+    if (from && row && row.to === n && row.from === from) { n.sender = from; n.via = row; }
   });
   st.rows.forEach(r => { if (!bFloat(r)) bLink(st, r); });
   st.item = by.get(st.item) || bFirst(st.nodes);
   st.made ??= 1 + Math.max(-1, ...[...by.keys()].map(bNameAt).filter(Number.isFinite));
 }
 
-const B_DATA = ['idx', 'start', 'end', 'base', 'ref', 'held'], B_SETS = ['out', 'rowsOut', 'rowsIn', 'angles'];
+const B_DATA = ['idx', 'start', 'end', 'base', 'ref', 'held'], B_SETS = ['rowsOut', 'rowsIn', 'angles'];
 
 let bLog = null;
 const bKeep = () => (bLog = new Map());
@@ -61,7 +61,6 @@ function bRestore(keep) {
 
 function bLetGo(n) {
   bSave(n);
-  if (n.sender) { bSave(n.sender); n.sender.out.delete(n); }
   delete n.sender;
   delete n.via;
 }
@@ -70,10 +69,8 @@ function bRefer(st, row) {
   const n = row.to;
   if (bFloat(row) || n.via === row) return;
   bLetGo(n);
-  bSave(row.from);
   n.sender = row.from;
   n.via = row;
-  row.from.out.add(n);
 }
 
 function bLink(st, row) {
@@ -106,16 +103,7 @@ function bTake(st, n) {
   return true;
 }
 
-function bSend(st, n) {
-  const inbox = [...n.out];
-  for (let i = 0; i < inbox.length; i++) {
-    if (i >= st.nodes.size) return false;
-    if (bTake(st, inbox[i])) inbox.push(...inbox[i].out);
-  }
-  return true;
-}
-
 function bMove(st, row) {
   bRefer(st, row);
-  return !bTake(st, row.to) || bSend(st, row.to);
+  bTake(st, row.to);
 }
