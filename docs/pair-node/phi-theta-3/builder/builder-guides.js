@@ -65,12 +65,15 @@ function bDrawGuides(st, draw, ctx, css, points) {
     arc(s => bAdd(P, bCart(a, s * t.phi * tick, t.theta * tick)), css('--phi'));
     arc(s => bAdd(P, bCart(a, Math.PI / 2, s * t.theta * tick)), css('--theta'));
     text(bAdd(P, bCart(a, t.phi * tick / 2, t.theta * tick)), `${row.from}→${row.to}: φ ${bF(t.phi)} θ ${bF(t.theta)} r ${bF(t.r)}`, ink, 20, -8);
-    const is = near(t.phi), js = near(t.theta);
-    if (is.length === 1 && js.length === 1) return;
-    is.forEach(i => js.forEach(j => {
+    const is = near(t.phi), js = near(t.theta), top = 6 * st.s;
+    const ticks = is.length === 1 && js.length === 1
+      ? [[is[0] - 1, js[0]], [is[0] + 1, js[0]], [is[0], js[0] - 1], [is[0], js[0] + 1]]
+      : is.flatMap(i => js.map(j => [i, j]));
+    ticks.filter(([i]) => i >= 0 && i <= top).forEach(([i, j]) => {
+      j = ((j % (12 * st.s)) + 12 * st.s) % (12 * st.s);
       const end = bAdd(P, bCart(r, i * tick, j * tick));
       line([P, end], muted, 1.5, [3, 7]);
-      text(end, `φ ${i} θ ${j % (12 * st.s)}`, muted, 18, 18);
-    }));
+      text(end, `φ ${i} θ ${j}`, muted, 18, 18);
+    });
   });
 }
