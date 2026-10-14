@@ -90,10 +90,8 @@ function bSetStart(st, row, k, value, part = 'start') {
   if (!bWhole(value)) return `${said}: not a whole number, so it stays at ${was}`;
   const keep = JSON.stringify([st.nodes, st.rows]);
   row[part][k] = value;
-  const { used, names } = bCarry(st, row);
-  const rows = [row, ...st.rows.filter(r => r !== row && (names.includes(r.from) || names.includes(r.to)))];
-  rows.filter(r => !used.includes(r)).forEach(r => bReview(st, r));
-  return bSettle(st, keep, rows, said, was);
+  bCarry(st, row);
+  return bSettle(st, keep, [row], said, was);
 }
 
 function bSetS(st, node, value) {
