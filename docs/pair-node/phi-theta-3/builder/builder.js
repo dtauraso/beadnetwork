@@ -117,7 +117,7 @@
   }
 
   function render(rs) {
-    const pts = [[0, 0, 0], ...st.nodes.filter(n => n.known).map(n => bPlace(st, n.idx))];
+    const pts = [[0, 0, 0], ...Object.values(bPositions(st))];
     rs.forEach(({ steps }) => steps.slice(0, st.step).forEach(s => s.draw.forEach(o => pts.push(...(o.arrow || [o.dot || o.square])))));
     const cells = st.cells !== false ? bLinks(st) : [];
     cells.forEach(({ P, T }) => pts.push(...bCellCorners(st, P, T)));
@@ -161,7 +161,8 @@
       });
     });
     draw.dot([0, 0, 0], css('--ink'), 'O');
-    st.nodes.filter(n => n.known).forEach(n => draw.dot(bPlace(st, n.idx), css('--ink'), n.name));
+    const pos = bPositions(st);
+    st.nodes.filter(n => pos[n.name]).forEach(n => draw.dot(pos[n.name], css(n.known ? '--ink' : '--muted'), n.name));
     ctx.restore();
   }
 

@@ -25,12 +25,28 @@ function bTicks(st, w) {
   return { phi: Math.acos(Math.max(-1, Math.min(1, w[1] / r))) / tick, theta: theta < -1e-9 ? theta + n : Math.max(0, theta), r: r / st.rho };
 }
 
+function bPositions(st) {
+  const first = st.nodes.find(n => n.known);
+  if (!first) return {};
+  const pos = { [first.name]: bPlace(st, first.idx) };
+  const ds = st.nodes.flatMap(n => bRowVectors(st, n.name));
+  for (let more = true; more;) {
+    more = false;
+    ds.forEach(({ row, d }) => {
+      if (pos[row.from] && !pos[row.to]) { pos[row.to] = bAdd(pos[row.from], d); more = true; }
+      if (pos[row.to] && !pos[row.from]) { pos[row.from] = bSub(pos[row.to], d); more = true; }
+    });
+  }
+  st.nodes.filter(n => n.known && !pos[n.name]).forEach(n => { pos[n.name] = bPlace(st, n.idx); });
+  return pos;
+}
+
 function bRowEnds(st) {
+  const pos = bPositions(st);
   return st.rows.map(row => {
-    const P = bNodePos(st, row.from);
-    if (!P) return null;
-    const d = bRowVectors(st, row.to).find(v => v.row === row).d;
-    return { row, P, d, T: bNodePos(st, row.to) || bAdd(P, d) };
+    const P = pos[row.from], T = pos[row.to];
+    if (!P || !T) return null;
+    return { row, P, T, d: bSub(T, P) };
   }).filter(Boolean);
 }
 
@@ -41,17 +57,7 @@ function bSyncRows(st) {
     o[k] = Math.round(o[k]);
     changed = true;
   })));
-  const first = st.nodes.find(n => n.known);
-  if (!first) return changed;
-  const pos = { [first.name]: bPlace(st, first.idx) };
-  const ds = st.nodes.flatMap(n => bRowVectors(st, n.name));
-  for (let more = true; more;) {
-    more = false;
-    ds.forEach(({ row, d }) => {
-      if (pos[row.from] && !pos[row.to]) { pos[row.to] = bAdd(pos[row.from], d); more = true; }
-      if (pos[row.to] && !pos[row.from]) { pos[row.from] = bSub(pos[row.to], d); more = true; }
-    });
-  }
+  const first = st.nodes.find(n => n.known), pos = bPositions(st);
   st.nodes.filter(n => n.known && n !== first && pos[n.name]).forEach(n => {
     if (bLen(bSub(bPlace(st, n.idx), pos[n.name])) < 1e-9) return;
     const I = bIndexOf(st, pos[n.name]);
