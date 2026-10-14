@@ -76,7 +76,7 @@
     };
     el('tables').replaceChildren(
       h('h2', { textContent: 'a→b settings — one row per a→b, its φ, θ, r set at a' }),
-      table(['a→b', 'φ', 'θ', 'r', 'end φ', 'end θ', ''], settings),
+      table(['a→b', 'start φ', 'start θ', 'start r', 'end φ', 'end θ', ''], settings),
       h('div', { className: 'row' }, free.length ? [pick, add] : []),
       ...st.nodes.map(n => {
         const seen = st.rows.flatMap(r => (r.from === n.name ? [[r.to, r.start]] : r.to === n.name ? [[r.from, bBack(st, r.start)]] : []));
