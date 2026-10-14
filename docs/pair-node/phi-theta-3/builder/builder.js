@@ -31,7 +31,7 @@
   };
 
   const cv = el('view'), ctx = cv.getContext('2d');
-  const view = { yaw: -0.6, pitch: 0.5 };
+  const view = { yaw: -0.6, pitch: 0.5 }, pan = { x: 0, y: 0, zoom: 1 };
   let focus = [0, 0, 0], S = 200;
   const draw = atobCanvas(ctx, cv.width, cv.height, S, view, () => focus, css);
 
@@ -123,13 +123,14 @@
     cells.forEach(({ P, T }) => pts.push(...bCellCorners(st, P, T)));
     const reach = Math.max(0.25, ...pts.map(bLen));
     focus = [0, 0, 0];
-    S = (cv.width / 2 - 60) / reach;
+    S = pan.zoom * (cv.width / 2 - 60) / reach;
     Object.assign(draw, atobCanvas(ctx, cv.width, cv.height, S, view, () => focus, css));
     paint(rs, cells);
   }
 
   function paint(rs, cells) {
     ctx.clearRect(0, 0, cv.width, cv.height);
+    ctx.save(); ctx.translate(pan.x, pan.y);
     bDrawAxes(draw, ctx, css, [0, 0, 0], st.cr, true);
     el('cellnote').replaceChildren(...[...bDrawCells(st, draw, ctx, css, cells), ...bGlobalLines(st)].map(t => h('div', { textContent: t })));
     bDrawGuides(st, draw, ctx, css, bCellPoints(st, rs));
@@ -161,17 +162,35 @@
     });
     draw.dot([0, 0, 0], css('--ink'), 'O');
     st.nodes.filter(n => n.known).forEach(n => draw.dot(bPlace(st, n.idx), css('--ink'), n.name));
+    ctx.restore();
   }
 
   let drag = null;
   cv.addEventListener('pointerdown', e => { drag = { x: e.clientX, y: e.clientY }; cv.setPointerCapture(e.pointerId); });
   cv.addEventListener('pointermove', e => {
     if (!drag) return;
-    view.yaw += (e.clientX - drag.x) * 0.01; view.pitch += (e.clientY - drag.y) * 0.01;
+    const dx = e.clientX - drag.x, dy = e.clientY - drag.y, k = cv.width / cv.getBoundingClientRect().width;
+    if (e.shiftKey) { pan.x += dx * k; pan.y += dy * k; } else { view.yaw += dx * 0.01; view.pitch += dy * 0.01; }
     drag = { x: e.clientX, y: e.clientY };
     render(runs());
   });
   cv.addEventListener('pointerup', () => { drag = null; });
+  const zoomAt = (f, cx, cy) => {
+    const box = cv.getBoundingClientRect(), k = cv.width / box.width;
+    const mx = (cx - box.left) * k - cv.width / 2, my = (cy - box.top) * k - cv.height / 2;
+    pan.x = mx - f * (mx - pan.x); pan.y = my - f * (my - pan.y); pan.zoom *= f;
+    render(runs());
+  };
+  cv.addEventListener('wheel', e => {
+    e.preventDefault();
+    if (e.ctrlKey) return zoomAt(Math.exp(-e.deltaY * 0.01), e.clientX, e.clientY);
+    const k = cv.width / cv.getBoundingClientRect().width;
+    pan.x -= e.deltaX * k; pan.y -= e.deltaY * k;
+    render(runs());
+  }, { passive: false });
+  let pinch = 1;
+  cv.addEventListener('gesturestart', e => { e.preventDefault(); pinch = 1; });
+  cv.addEventListener('gesturechange', e => { e.preventDefault(); zoomAt(e.scale / pinch, e.clientX, e.clientY); pinch = e.scale; });
 
   el('prev').onclick = () => { st.step--; update(); };
   el('next').onclick = () => { st.step++; update(); };
