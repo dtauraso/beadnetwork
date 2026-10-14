@@ -1,5 +1,5 @@
 (function () {
-  const R = 0.25, STEP = 1;
+  const R = 0.5, STEP = 2 * R;
   const cv = document.getElementById('view'), ctx = cv.getContext('2d');
   const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
   const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
@@ -9,10 +9,17 @@
   function triangle() {
     const obtuse = 120 * Math.PI / 180, side = 10;
     const C = [0, 0, 0], A = [side, 0, 0], B = [side * Math.cos(obtuse), side * Math.sin(obtuse), 0];
-    const out = [];
-    [[A, B], [B, C], [C, A]].forEach(([p, q]) => {
-      const v = sub(q, p), n = Math.round(len(v) / STEP);
-      for (let k = 0; k < n; k++) out.push(add(p, v.map(x => x * k / n)));
+    const corners = [A, B, C], out = [];
+    const angle = (p, a, b) => { const u = sub(a, p), w = sub(b, p); return Math.acos((u[0] * w[0] + u[1] * w[1] + u[2] * w[2]) / (len(u) * len(w))); };
+    const room = corners.map((p, i) => {
+      const half = angle(p, corners[(i + 1) % 3], corners[(i + 2) % 3]) / 2;
+      return 2 * Math.sin(half) >= 1 ? STEP : STEP / (2 * Math.sin(half));
+    });
+    corners.forEach((p, i) => {
+      const q = corners[(i + 1) % 3], v = sub(q, p), L = len(v);
+      if (room[i] === STEP) out.push(p);
+      const t0 = room[i], t1 = L - room[(i + 1) % 3], n = Math.floor((t1 - t0) / STEP);
+      for (let k = 0; k <= n; k++) out.push(add(p, v.map(x => x * (t0 + (t1 - t0) * k / n) / L)));
     });
     const mid = [A, B, C].reduce(add).map(x => x / 3);
     return out.map(p => sub(p, mid));
