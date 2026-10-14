@@ -71,7 +71,8 @@ function bDrawCells(st, draw, ctx, css, links) {
 }
 
 function bDrawSpheres(st, draw, ctx, S) {
-  const r = st.rho / 2 * S;
+  const P = st.nodes.filter(n => n.known).map(n => bPlace(st, n.idx));
+  const r = Math.min(st.rho * 2, ...P.flatMap((p, i) => P.slice(i + 1).map(q => bLen(bSub(p, q))))) / 2 * S;
   st.nodes.filter(n => n.known && (st.spheres || {})[n.name]).map(n => draw.proj(bPlace(st, n.idx))).sort((p, q) => p[2] - q[2]).forEach(([x, y]) => {
     const g = ctx.createRadialGradient(x - r * 0.35, y - r * 0.35, r * 0.1, x, y, r);
     g.addColorStop(0, 'hsl(210 80% 85%)'); g.addColorStop(0.6, 'hsl(210 60% 55%)'); g.addColorStop(1, 'hsl(210 55% 28%)');
