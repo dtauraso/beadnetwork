@@ -71,7 +71,7 @@ function bDrawGuides(st, draw, ctx, css, points) {
       : is.flatMap(i => js.map(j => [i, j]));
     ticks.filter(([i]) => i >= 0 && i <= top).forEach(([i, j]) => {
       j = ((j % (12 * st.s)) + 12 * st.s) % (12 * st.s);
-      const end = bAdd(P, bCart(r, i * tick, j * tick));
+      const end = bAdd(P, bCart(Math.min(r, 1.5 * st.cr), i * tick, j * tick));
       line([P, end], muted, 1.5, [3, 7]);
       text(end, `φ ${i} θ ${j}`, muted, 18, 18);
     });
