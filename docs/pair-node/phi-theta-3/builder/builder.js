@@ -121,10 +121,9 @@
     rs.forEach(({ steps }) => steps.slice(0, st.step).forEach(s => s.draw.forEach(o => pts.push(...(o.arrow || [o.dot || o.square])))));
     const cells = st.cells !== false ? bCellPoints(st, rs) : [];
     cells.forEach(({ p }) => pts.push(...bCellCorners(st, p)));
-    const flat = atobCanvas(ctx, 0, 0, 1, view, () => [0, 0, 0], css).proj;
-    const reach = Math.max(0.25, ...pts.map(flat).flatMap(p => [Math.abs(p[0]), Math.abs(p[1])]));
+    const reach = Math.max(0.25, ...pts.map(bLen));
     focus = [0, 0, 0];
-    S = (cv.width / 2 - 110) / reach;
+    S = (cv.width / 2 - 60) / reach;
     Object.assign(draw, atobCanvas(ctx, cv.width, cv.height, S, view, () => focus, css));
     paint(rs, cells);
   }
