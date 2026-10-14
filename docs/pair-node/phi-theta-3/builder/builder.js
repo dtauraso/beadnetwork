@@ -37,9 +37,11 @@
     el('nodes').replaceChildren(...st.nodes.flatMap(n => {
       const known = h('input', { type: 'checkbox', checked: n.known });
       known.onchange = () => { n.known = known.checked; setup(); update(); };
-      const xyz = ['r', 'phi', 'theta'].map(k => { const f = num(n.idx[k], v => { n.idx[k] = v; }); f.disabled = !n.known; return h('td', {}, [f]); });
+      const I = (n.ref && bNodeIdx(st, n.name)) || n.idx;
+      const xyz = ['r', 'phi', 'theta'].map(k => { const f = num(I[k], v => { bLetGo(st, n.name); n.idx[k] = v; setup(); }); f.disabled = !n.known; return h('td', {}, [f]); });
       const del = h('button', { textContent: 'remove' });
       del.onclick = () => {
+        st.nodes.filter(x => x.ref === n.name).forEach(x => bLetGo(st, x.name));
         st.nodes = st.nodes.filter(x => x !== n);
         st.rows = st.rows.filter(r => r.from !== n.name && r.to !== n.name);
         setup(); update();
@@ -57,7 +59,10 @@
     };
     const settings = st.rows.flatMap(r => {
       const del = h('button', { textContent: 'remove' });
-      del.onclick = () => { st.rows = st.rows.filter(x => x !== r); setup(); update(); };
+      del.onclick = () => {
+        if ((st.nodes.find(x => x.name === r.to) || {}).ref === r.from) bLetGo(st, r.to);
+        st.rows = st.rows.filter(x => x !== r); setup(); update();
+      };
       const on = { kind: v => { check(`${r.from}→${r.to}:kind`, bSetKind(st, r, v), v); update(); }, changed: () => { setup(); update(); } };
       return [h('tr', {}, [h('td', { textContent: `${r.from}→${r.to}` }), ...bRowCells(st, r, c, h, on), h('td', {}, [del])]), ...note(`${r.from}→${r.to}`, 8)];
     });
@@ -119,7 +124,7 @@
   }
 
   function render(rs) {
-    const pts = [[0, 0, 0], ...st.nodes.filter(n => n.known).map(n => bPlace(st, n.idx))];
+    const pts = [[0, 0, 0], ...st.nodes.map(n => bNodePos(st, n.name)).filter(Boolean)];
     rs.forEach(({ steps }) => steps.slice(0, st.step).forEach(s => s.draw.forEach(o => pts.push(...(o.arrow || [o.dot || o.square])))));
     const cells = st.cells !== false ? bLinks(st) : [];
     cells.forEach(({ P, t, s }) => pts.push(...bCellCorners(st, P, t, s)));
@@ -164,7 +169,7 @@
       });
     });
     draw.dot([0, 0, 0], css('--ink'), 'O');
-    st.nodes.filter(n => n.known).forEach(n => draw.dot(bPlace(st, n.idx), css('--ink'), n.name));
+    st.nodes.forEach(n => { const p = bNodePos(st, n.name); if (p) draw.dot(p, css('--ink'), n.name); });
     ctx.restore();
   }
 

@@ -31,15 +31,30 @@ const bWhole = x => Math.abs(x - Math.round(x)) < 1e-6;
 const bIdx = I => `(I_r ${bF(I.r)}, I_φ ${bF(I.phi)}, I_θ ${bF(I.theta)})`;
 const bPlaceText = I => `O + polar_to_cart(${bF(I.r)}·c_r, ${bF(I.phi)}·c_φ, ${bF(I.theta)}·c_θ)`;
 
-function bNodePos(st, name) {
+function bNodePos(st, name, asked = 0) {
   const n = st.nodes.find(x => x.name === name);
-  return n && n.known ? bPlace(st, n.idx) : null;
+  if (!n || !n.known || asked > st.nodes.length) return null;
+  if (!n.ref) return bPlace(st, n.idx);
+  const P = bNodePos(st, n.ref, asked + 1), row = st.rows.find(r => r.from === n.ref && r.to === name), t = row && bDir(st, row);
+  return P && t ? bAdd(P, bVec(st, row, t)) : null;
+}
+
+function bNodeIdx(st, name) {
+  const p = bNodePos(st, name);
+  if (!p) return null;
+  const J = bIndexOf(st, p);
+  return { ...J, theta: J.theta < 0 ? J.theta + st.Ttheta : J.theta };
+}
+
+function bVec(st, r, t) {
+  const ang = x => x * 2 * Math.PI / (12 * bS(st, r.from));
+  return bCart(t.r * st.rho, ang(t.phi), ang(t.theta));
 }
 
 function bRowVectors(st, item) {
   return st.rows.filter(r => r.to === item && bDir(st, r)).map(r => {
-    const t = bDir(st, r), ang = x => x * 2 * Math.PI / (12 * bS(st, r.from));
-    return { from: r.from, row: r, t, d: bCart(t.r * st.rho, ang(t.phi), ang(t.theta)) };
+    const t = bDir(st, r);
+    return { from: r.from, row: r, t, d: bVec(st, r, t) };
   });
 }
 
@@ -66,8 +81,7 @@ function bResult(st, item, p, label) {
 
 function bSenders(st, rows) {
   const placed = rows.map(r => {
-    const n = st.nodes.find(x => x.name === r.from);
-    return { ...r, I: n && n.known ? n.idx : null, C: bNodePos(st, r.from) };
+    return { ...r, I: bNodeIdx(st, r.from), C: bNodePos(st, r.from) };
   });
   const missing = placed.filter(r => !r.C).map(r => r.from);
   const step = {

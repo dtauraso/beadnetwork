@@ -45,27 +45,31 @@ function bReview(st, r) {
   r.end = { phi: bWrap(s, v.phi - c.phi), theta: bWrap(s, v.theta - c.theta) };
 }
 
-function bCarry(st, row) {
-  const names = [row.from];
-  const go = r => {
-    const n = st.nodes.find(x => x.name === r.to), P = bNodePos(st, r.from), v = bRowVectors(st, r.to).find(x => x.row === r);
-    if (!n || !n.known || !P || !v || names.includes(n.name)) return;
-    const J = bIndexOf(st, bAdd(P, v.d));
-    n.idx = { ...J, theta: J.theta < 0 ? J.theta + st.Ttheta : J.theta };
-    names.push(n.name);
-    st.rows.filter(x => x.from === n.name && !bFloat(x)).forEach(go);
-  };
-  go(row);
+function bLetGo(st, name) {
+  const n = st.nodes.find(x => x.name === name), I = bNodeIdx(st, name);
+  if (!n || !n.ref) return;
+  if (I) n.idx = I;
+  delete n.ref;
+}
+
+function bRefer(st, row) {
+  const n = st.nodes.find(x => x.name === row.to), from = st.nodes.find(x => x.name === row.from), I = bNodeIdx(st, row.from);
+  if (!n || !n.known || !I || bFloat(row) || n.ref === row.from) return;
+  n.ref = row.from;
+  if (!bNodePos(st, row.from)) { from.idx = I; delete from.ref; }
 }
 
 function bSetKind(st, row, kind) {
   const said = `${row.from}→${row.to} as ${kind}`, was = bKind(row);
   const keep = JSON.stringify([st.nodes, st.rows]);
+  const to = st.nodes.find(x => x.name === row.to), placed = to && to.ref === row.from;
+  if (placed) bLetGo(st, row.to);
   row.kind = kind;
   if (kind === 'base') { row.base = bView(st, row); return row.base ? '' : `${said}: ${row.from} or ${row.to} has no position to measure from`; }
   if (kind === 'copy') return bSetCopy(st, row, said);
   row.end ||= { phi: 0, theta: 0 };
   bReview(st, row);
+  if (placed) to.ref = row.from;
   return bSettle(st, keep, [row], said, was);
 }
 
