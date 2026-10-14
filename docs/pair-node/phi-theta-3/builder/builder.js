@@ -112,6 +112,8 @@
     ])));
     el('cells').checked = st.cells !== false;
     el('cells').onchange = () => { st.cells = el('cells').checked; update(); };
+    el('guides').checked = st.guides !== false;
+    el('guides').onchange = () => { st.guides = el('guides').checked; update(); };
     render(rs);
     save();
   }
@@ -146,6 +148,7 @@
       label(f(0.5), n, color);
     });
     el('cellnote').replaceChildren(...bDrawCells(st, draw, ctx, css, cells).map(t => h('div', { textContent: t })));
+    if (st.guides !== false) bDrawGuides(st, draw, ctx, css, bCellPoints(st, rs));
     const seen = {};
     rs.forEach(({ m, steps }) => {
       const color = css(m.color);
