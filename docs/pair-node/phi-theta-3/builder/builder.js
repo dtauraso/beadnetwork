@@ -1,7 +1,7 @@
 (function () {
   const KEY = 'pair-builder-v3';
   const preset = bPreset;
-  let err = '';
+  let err = null;
   let st;
   try { st = JSON.parse(localStorage.getItem(KEY)) || preset(); } catch { st = preset(); }
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch { } };
@@ -15,9 +15,12 @@
   };
   const num = (value, onset, step = 1) => {
     const i = h('input', { type: 'number', value, step });
-    i.addEventListener('change', () => { const v = +i.value; if (Number.isFinite(v)) { onset(v); update(); } });
+    i.addEventListener('change', () => { const v = +i.value; if (Number.isFinite(v)) { err = null; onset(v); update(); } });
     return i;
   };
+  const check = (at, text) => { err = text ? { at, text } : null; setup(); };
+  const flag = (at, input) => { if (err && err.at === at) input.classList.add('invalid'); return input; };
+  const note = (at, cols) => (err && err.at.split(':')[0] === at ? [h('tr', {}, [h('td', { className: 'missing', colSpan: cols, textContent: err.text })])] : []);
 
   const cv = el('view'), ctx = cv.getContext('2d');
   const view = { yaw: -0.6, pitch: 0.5 }, pan = { x: 0, y: 0, zoom: 1 };
@@ -31,7 +34,7 @@
       el(id).onchange = () => { const v = +el(id).value; if (v > 0) st[k] = whole ? Math.round(v) : v; update(); };
     });
 
-    el('nodes').replaceChildren(...st.nodes.map(n => {
+    el('nodes').replaceChildren(...st.nodes.flatMap(n => {
       const known = h('input', { type: 'checkbox', checked: n.known });
       known.onchange = () => { n.known = known.checked; setup(); update(); };
       const xyz = ['r', 'phi', 'theta'].map(k => { const f = num(n.idx[k], v => { n.idx[k] = v; }); f.disabled = !n.known; return h('td', {}, [f]); });
@@ -41,19 +44,22 @@
         st.rows = st.rows.filter(r => r.from !== n.name && r.to !== n.name);
         setup(); update();
       };
-      const s = num(bS(st, n.name), v => { err = bSetS(st, n, v); setup(); });
-      return h('tr', {}, [h('td', { textContent: n.name }), h('td', {}, [s]), h('td', {}, [known]), ...xyz, h('td', {}, [del])]);
+      const s = flag(`${n.name}:s`, num(bS(st, n.name), v => check(`${n.name}:s`, bSetS(st, n, v))));
+      return [h('tr', {}, [h('td', { textContent: n.name }), h('td', {}, [s]), h('td', {}, [known]), ...xyz, h('td', {}, [del])]), ...note(n.name, 7)];
     }));
 
     const table = (head, rows) => (rows.length
       ? h('table', {}, [h('thead', {}, [h('tr', {}, head.map(t => h('th', { textContent: t })))]), h('tbody', {}, rows)])
       : h('div', { className: 'hint', textContent: 'no rows' }));
-    const c = (o, k, row) => h('td', {}, [num(o[k], v => { if (row) err = bSetStart(st, row, k, v); else o[k] = v; setup(); })]);
-    const settings = st.rows.map(r => {
+    const c = (o, k, row) => {
+      const at = row && `${row.from}→${row.to}:${k}`;
+      return h('td', {}, [flag(at, num(o[k], v => (row ? check(at, bSetStart(st, row, k, v)) : (o[k] = v, setup()))))]);
+    };
+    const settings = st.rows.flatMap(r => {
       const del = h('button', { textContent: 'remove' });
       del.onclick = () => { st.rows = st.rows.filter(x => x !== r); setup(); update(); };
-      return h('tr', {}, [h('td', { textContent: `${r.from}→${r.to}` }), c(r.start, 'phi', r), c(r.start, 'theta', r), c(r.start, 'r', r),
-        c(r.end, 'phi'), c(r.end, 'theta'), h('td', {}, [del])]);
+      return [h('tr', {}, [h('td', { textContent: `${r.from}→${r.to}` }), c(r.start, 'phi', r), c(r.start, 'theta', r), c(r.start, 'r', r),
+        c(r.end, 'phi'), c(r.end, 'theta'), h('td', {}, [del])]), ...note(`${r.from}→${r.to}`, 7)];
     });
     const free = st.nodes.flatMap(a => st.nodes.filter(b => b !== a && !st.rows.some(r => r.from === a.name && r.to === b.name)).map(b => `${a.name}→${b.name}`));
     const pick = h('select', {}, free.map(p => h('option', { value: p, textContent: p })));
@@ -66,7 +72,6 @@
     el('tables').replaceChildren(
       h('h2', { textContent: 'a→b settings — one row per a→b, its φ, θ, r set at a' }),
       table(['a→b', 'start φ', 'start θ', 'start r', 'end φ', 'end θ', ''], settings),
-      h('div', { className: 'missing', textContent: err }),
       h('div', { className: 'row' }, free.length ? [pick, add] : []),
       ...st.nodes.map(n => {
         const seen = st.rows.flatMap(r => (r.from === n.name ? [[r.to, r.start]] : r.to === n.name ? [[r.from, bBack(st, r)]] : []));
