@@ -175,13 +175,22 @@
     render(runs());
   });
   cv.addEventListener('pointerup', () => { drag = null; });
-  cv.addEventListener('wheel', e => {
-    e.preventDefault();
-    const box = cv.getBoundingClientRect(), k = cv.width / box.width, f = Math.exp(-e.deltaY * 0.002);
-    const mx = (e.clientX - box.left) * k - cv.width / 2, my = (e.clientY - box.top) * k - cv.height / 2;
+  const zoomAt = (f, cx, cy) => {
+    const box = cv.getBoundingClientRect(), k = cv.width / box.width;
+    const mx = (cx - box.left) * k - cv.width / 2, my = (cy - box.top) * k - cv.height / 2;
     pan.x = mx - f * (mx - pan.x); pan.y = my - f * (my - pan.y); pan.zoom *= f;
     render(runs());
+  };
+  cv.addEventListener('wheel', e => {
+    e.preventDefault();
+    if (e.ctrlKey) return zoomAt(Math.exp(-e.deltaY * 0.01), e.clientX, e.clientY);
+    const k = cv.width / cv.getBoundingClientRect().width;
+    pan.x -= e.deltaX * k; pan.y -= e.deltaY * k;
+    render(runs());
   }, { passive: false });
+  let pinch = 1;
+  cv.addEventListener('gesturestart', e => { e.preventDefault(); pinch = 1; });
+  cv.addEventListener('gesturechange', e => { e.preventDefault(); zoomAt(e.scale / pinch, e.clientX, e.clientY); pinch = e.scale; });
 
   el('prev').onclick = () => { st.step--; update(); };
   el('next').onclick = () => { st.step++; update(); };
