@@ -11,24 +11,20 @@ function bCellPoints(st, rs) {
 
 function bLinks(st) {
   return bRowEnds(st).flatMap(({ row, P, T }) => [
-    { from: row.from, to: row.to, P, T },
-    { from: row.to, to: row.from, P: T, T: P },
+    { from: row.from, to: row.to, P, T, t: row.start },
+    { from: row.to, to: row.from, P: T, T: P, t: bBack(st, row.start) },
   ]);
 }
 
-function bCell(st, P, T) {
-  const c = bC(st), w = bSub(T, P), r = bLen(w), e = 1e-9;
-  const th = r < e ? 0 : Math.atan2(w[2], w[0]) / c.theta;
-  const I = r < e ? { r: 0, phi: 0, theta: 0 }
-    : { r: r / c.r, phi: Math.acos(Math.max(-1, Math.min(1, w[1] / r))) / c.phi, theta: th < -e ? th + st.Ttheta : Math.max(0, th) };
+function bCell(st, t) {
+  const n = 12 * st.s, e = 1e-9;
+  const I = { r: t.r * st.rho / st.cr, phi: t.phi * st.Tphi / n, theta: t.theta * st.Ttheta / n };
   const K = Math.max(1, Math.ceil(I.r - e));
-  const i = Math.min(Math.floor(I.phi + e), Math.ceil(st.Tphi / 2) - 1);
-  const j = Math.floor(I.theta + e);
-  return { I, K, i, j, R: K * st.cr };
+  return { I, K, i: Math.floor(I.phi + e) % st.Tphi, j: Math.floor(I.theta + e) % st.Ttheta, R: K * st.cr };
 }
 
-function bCellCorners(st, P, T) {
-  const c = bCell(st, P, T), cphi = 2 * Math.PI / st.Tphi, cth = 2 * Math.PI / st.Ttheta;
+function bCellCorners(st, P, t) {
+  const c = bCell(st, t), cphi = 2 * Math.PI / st.Tphi, cth = 2 * Math.PI / st.Ttheta;
   return [[0, 0], [1, 0], [0, 1], [1, 1]].map(([di, dj]) => bAdd(P, bCart(c.R, (c.i + di) * cphi, (c.j + dj) * cth)));
 }
 
@@ -55,7 +51,7 @@ function bDrawCells(st, draw, ctx, css, links) {
     ctx.stroke();
     ctx.restore();
   };
-  return links.map(({ from, to, P, T }) => {
+  return links.map(({ from, to, P, t }) => {
     const at = (k, ph, th) => bAdd(P, bCart(k * st.cr, ph * cphi, th * cth));
     const arc = (f, color, width, alpha) => line(Array.from({ length: 17 }, (_, t) => f(t / 16)), color, width, alpha);
     const face = (k, i, j, color, width, alpha) => {
@@ -64,7 +60,7 @@ function bDrawCells(st, draw, ctx, css, links) {
     };
     const rays = (k0, k1, i, j, color, width, alpha) => [[i, j], [i + 1, j], [i, j + 1], [i + 1, j + 1]]
       .forEach(([ph, th]) => line([at(k0, ph, th), at(k1, ph, th)], color, width, alpha));
-    const c = bCell(st, P, T);
+    const c = bCell(st, t);
     rays(0, c.K, c.i, c.j, wire, 1, 0.5);
     for (let k = 1; k < c.K; k++) face(k, c.i, c.j, wire, 1, 0.5);
     face(c.K - 1, c.i, c.j, ink, 2, 0.8);

@@ -20,6 +20,9 @@ function bIndexOf(st, p) {
   return { r: r / c.r, phi: Math.acos(Math.max(-1, Math.min(1, w[1] / r))) / c.phi, theta: Math.atan2(w[2], w[0]) / c.theta };
 }
 
+const bWrap = (st, t) => ((t % (12 * st.s)) + 12 * st.s) % (12 * st.s);
+const bBack = (st, a) => ({ phi: bWrap(st, a.phi + 6 * st.s), theta: bWrap(st, a.theta + 6 * st.s), r: a.r });
+
 const bIdx = I => `(I_r ${bF(I.r)}, I_φ ${bF(I.phi)}, I_θ ${bF(I.theta)})`;
 const bPlaceText = I => `O + polar_to_cart(${bF(I.r)}·c_r, ${bF(I.phi)}·c_φ, ${bF(I.theta)}·c_θ)`;
 
