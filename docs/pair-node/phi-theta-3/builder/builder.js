@@ -119,8 +119,8 @@
   function render(rs) {
     const pts = [[0, 0, 0], ...st.nodes.filter(n => n.known).map(n => bPlace(st, n.idx))];
     rs.forEach(({ steps }) => steps.slice(0, st.step).forEach(s => s.draw.forEach(o => pts.push(...(o.arrow || [o.dot || o.square])))));
-    const cells = st.cells !== false ? bCellPoints(st, rs) : [];
-    cells.forEach(({ p }) => pts.push(...bCellCorners(st, p)));
+    const cells = st.cells !== false ? bLinks(st) : [];
+    cells.forEach(({ P, T }) => pts.push(...bCellCorners(st, P, T)));
     const reach = Math.max(0.25, ...pts.map(bLen));
     focus = [0, 0, 0];
     S = (cv.width / 2 - 60) / reach;
@@ -131,7 +131,7 @@
   function paint(rs, cells) {
     ctx.clearRect(0, 0, cv.width, cv.height);
     bDrawAxes(draw, ctx, css, [0, 0, 0], st.cr, true);
-    el('cellnote').replaceChildren(...bDrawCells(st, draw, ctx, css, cells).map(t => h('div', { textContent: t })));
+    el('cellnote').replaceChildren(...[...bDrawCells(st, draw, ctx, css, cells), ...bGlobalLines(st)].map(t => h('div', { textContent: t })));
     bDrawGuides(st, draw, ctx, css, bCellPoints(st, rs));
     const seen = {};
     rs.forEach(({ m, steps }) => {
