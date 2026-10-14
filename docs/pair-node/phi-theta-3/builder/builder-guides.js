@@ -89,8 +89,9 @@ function bSetStart(st, row, k, value, part = 'start') {
   if (!bWhole(value)) return `${said}: not a whole number, so it stays at ${was}`;
   const keep = bKeep();
   bSave(row);
+  const turning = bTurning(st, row);
   row[part][k] = value;
-  bMove(st, row);
+  bMove(st, row, turning);
   return bSettle(st, keep, [row], said, was);
 }
 
