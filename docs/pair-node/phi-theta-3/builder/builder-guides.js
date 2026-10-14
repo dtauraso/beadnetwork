@@ -36,10 +36,18 @@ function bRowEnds(st) {
 
 function bSyncRows(st) {
   let changed = false;
+  st.rows.forEach(row => [row.start, row.end].forEach(o => Object.keys(o).forEach(k => {
+    if (Number.isInteger(o[k])) return;
+    o[k] = Math.round(o[k]);
+    changed = true;
+  })));
+  const placed = new Set();
   bRowEnds(st).forEach(({ row, P, d, T }) => {
+    const n = st.nodes.find(x => x.name === row.to);
+    if (!n || !n.known || placed.has(n.name)) return;
+    placed.add(n.name);
     if (bLen(bSub(bAdd(P, d), T)) < 1e-9) return;
-    const t = bTicks(st, bSub(T, P));
-    Object.assign(row.start, { phi: t.phi, theta: t.theta, r: t.r });
+    n.idx = bIndexOf(st, bAdd(P, d));
     changed = true;
   });
   return changed;
