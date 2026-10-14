@@ -51,9 +51,10 @@
     <canvas id="view" width="900" height="900" aria-label="A spiral of spheres"></canvas>
     <div class="row">
       <button id="reset">reset the spiral</button>
+      <button id="clear">clear the selection and centre</button>
       <span class="hint" id="status"></span>
     </div>
-    <div class="hint">Click a sphere to make it the centre (orange ring); click it again to clear it. Drag any other sphere to turn it round the centre; with no centre picked, it turns round the step below it. Drag empty space to look round; pinch or ctrl-scroll to zoom.</div>
+    <div class="hint">Click spheres to select them (blue ring); click again to deselect. Shift-click any sphere to make it the centre of rotation (orange ring). Drag a selected sphere to turn the whole selection round the centre as one piece; drag an unselected sphere to turn just that one. With no centre picked, it turns round the nearest step below. Drag empty space to look round; pinch or ctrl-scroll to zoom.</div>
   </div>
 </main>
 <script src="../atob/atob-draw.js"></script>

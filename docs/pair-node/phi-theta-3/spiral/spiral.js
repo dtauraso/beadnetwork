@@ -15,7 +15,8 @@
   try { balls = JSON.parse(localStorage.getItem(KEY)); } catch { }
   if (!Array.isArray(balls) || balls.length !== N) balls = spiral();
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(balls)); } catch { } };
-  let pivot = null, mover = null, blocked = null;
+  let pivot = null, blocked = null;
+  const chosen = new Set();
 
   const view = { yaw: -0.6, pitch: 0.75 };
   let zoom = 1, draw;
@@ -38,17 +39,23 @@
     [b, c] = [b * Math.cos(ay) + c * Math.sin(ay), -b * Math.sin(ay) + c * Math.cos(ay)];
     return fromView([a, b, c]);
   }
-  const hits = (i, p) => balls.findIndex((q, j) => j !== i && len(sub(p, q)) < 2 * R - 1e-9);
+  const hits = (group, p) => balls.findIndex((q, j) => !group.includes(j) && len(sub(p, q)) < 2 * R - 1e-9);
+  const below = group => {
+    const lo = Math.min(...group), hi = Math.max(...group);
+    for (let j = lo - 1; j >= 0; j--) if (!group.includes(j)) return j;
+    for (let j = hi + 1; j < N; j++) if (!group.includes(j)) return j;
+    return null;
+  };
 
-  function rotate(i, about, ax, ay) {
-    const P = balls[about], d = len(sub(balls[i], P));
+  function rotate(group, about, ax, ay) {
+    const P = balls[about], d = Math.max(...group.map(i => len(sub(balls[i], P))));
     const n = Math.max(1, Math.ceil(d * Math.hypot(ax, ay) / (0.05 * R)));
     blocked = null;
     for (let k = 0; k < n; k++) {
-      const next = add(P, turn(sub(balls[i], P), ax / n, ay / n));
-      const j = hits(i, next);
-      if (j >= 0) { blocked = j; return; }
-      balls[i] = next;
+      const next = group.map(i => add(P, turn(sub(balls[i], P), ax / n, ay / n)));
+      const j = next.map(p => hits(group, p)).find(j => j >= 0);
+      if (j !== undefined) { blocked = j; return; }
+      group.forEach((i, m) => { balls[i] = next[m]; });
     }
   }
 
@@ -61,11 +68,12 @@
       const g = ctx.createRadialGradient(x - r * 0.35, y - r * 0.35, r * 0.1, x, y, r);
       g.addColorStop(0, `hsl(${hue} 80% 85%)`); g.addColorStop(0.6, `hsl(${hue} 60% 55%)`); g.addColorStop(1, `hsl(${hue} 55% 28%)`);
       ctx.beginPath(); ctx.arc(x, y, r, 0, 2 * Math.PI); ctx.fillStyle = g; ctx.fill();
-      const ring = i === pivot ? '--pivot' : i === mover ? '--mover' : i === blocked ? '--bad' : null;
+      const ring = i === pivot ? '--pivot' : chosen.has(i) ? '--mover' : i === blocked ? '--bad' : null;
       if (ring) { ctx.lineWidth = 5; ctx.strokeStyle = css(ring); ctx.stroke(); }
     });
+    const picked = `${chosen.size} selected; ${pivot === null ? 'no centre picked' : `centre: sphere ${pivot + 1}`}`;
     status.className = blocked === null ? '' : 'blocked';
-    status.textContent = blocked === null ? (pivot === null ? 'no centre picked' : `centre: sphere ${pivot + 1}`) : `stopped: sphere ${blocked + 1} is in the way`;
+    status.textContent = blocked === null ? picked : `stopped: sphere ${blocked + 1} is in the way`;
   }
 
   function pick(e) {
@@ -79,7 +87,7 @@
   let drag = null;
   cv.addEventListener('pointerdown', e => {
     const i = pick(e);
-    drag = { x: e.clientX, y: e.clientY, i, moved: false };
+    drag = { x: e.clientX, y: e.clientY, i, shift: e.shiftKey, moved: false };
     cv.setPointerCapture(e.pointerId);
   });
   cv.addEventListener('pointermove', e => {
@@ -87,16 +95,18 @@
     const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
     if (!drag.moved && Math.hypot(dx, dy) < 4) return;
     drag.moved = true;
-    if (drag.i !== null && drag.i !== pivot) {
-      mover = drag.i;
-      rotate(mover, pivot ?? (mover === 0 ? 1 : mover - 1), dx * 0.01, -dy * 0.01);
-    } else { view.yaw += dx * 0.01; view.pitch += dy * 0.01; }
+    const group = drag.i === null || drag.i === pivot ? null : chosen.has(drag.i) ? [...chosen] : [drag.i];
+    const about = group && (pivot ?? below(group));
+    if (group && about !== null) rotate(group, about, dx * 0.01, -dy * 0.01);
+    else { view.yaw += dx * 0.01; view.pitch += dy * 0.01; }
     drag.x = e.clientX; drag.y = e.clientY;
     paint();
   });
   cv.addEventListener('pointerup', () => {
-    if (drag && !drag.moved && drag.i !== null) { pivot = pivot === drag.i ? null : drag.i; blocked = null; }
-    drag = null; mover = null;
+    const i = drag && !drag.moved ? drag.i : null;
+    if (i !== null && drag.shift) { pivot = pivot === i ? null : i; chosen.delete(i); blocked = null; }
+    else if (i !== null && i !== pivot) { chosen.has(i) ? chosen.delete(i) : chosen.add(i); blocked = null; }
+    drag = null;
     save(); paint();
   });
   const zoomBy = f => { zoom = Math.min(8, Math.max(0.2, zoom * f)); paint(); };
@@ -105,7 +115,8 @@
   cv.addEventListener('gesturestart', e => { e.preventDefault(); pinch = 1; });
   cv.addEventListener('gesturechange', e => { e.preventDefault(); zoomBy(e.scale / pinch); pinch = e.scale; });
 
-  document.getElementById('reset').onclick = () => { balls = spiral(); pivot = mover = blocked = null; save(); paint(); };
+  document.getElementById('reset').onclick = () => { balls = spiral(); pivot = blocked = null; chosen.clear(); save(); paint(); };
+  document.getElementById('clear').onclick = () => { pivot = blocked = null; chosen.clear(); paint(); };
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change', paint);
   paint();
 })();
