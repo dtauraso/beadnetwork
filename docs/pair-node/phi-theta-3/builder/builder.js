@@ -98,6 +98,7 @@
   }
 
   function update() {
+    if (bSyncRows(st)) setup();
     const rs = runs();
     const max = Math.max(1, ...rs.map(r => r.steps.length));
     st.step = Math.min(Math.max(1, st.step), max);

@@ -3,6 +3,7 @@ const bSub = (p, q) => p.map((v, i) => v - q[i]);
 const bLen = v => Math.hypot(...v);
 const bCart = (R, ph, th) => [R * Math.sin(ph) * Math.cos(th), R * Math.cos(ph), R * Math.sin(ph) * Math.sin(th)];
 const bF = n => (Math.abs(n) < 5e-4 ? 0 : n).toFixed(2);
+const bN = n => (Number.isInteger(n) ? `${n}` : bF(n));
 const bPt = p => `(${bF(p[0])}, ${bF(p[1])}, ${bF(p[2])})`;
 const B_O = [0, 0, 0];
 
@@ -39,7 +40,7 @@ function bVectorStep(rows, item) {
   return {
     title: 'local: each row\'s start as a vector',
     lines: rows.length
-      ? rows.map(({ from, row, d }) => `d_${from}${item} = polar_to_cart(${row.start.r}·ρ, ${row.start.phi}·2π/12s, ${row.start.theta}·2π/12s) = ${bPt(d)}`)
+      ? rows.map(({ from, row, d }) => `d_${from}${item} = polar_to_cart(${bN(row.start.r)}·ρ, ${bN(row.start.phi)}·2π/12s, ${bN(row.start.theta)}·2π/12s) = ${bPt(d)}`)
       : [`${item}'s table has no rows`],
     note: 'from the row\'s start ticks alone; a vector, not yet a place',
     ok: rows.length > 0, draw: [],
