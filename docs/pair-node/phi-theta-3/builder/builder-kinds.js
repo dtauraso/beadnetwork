@@ -45,6 +45,19 @@ function bReview(st, r) {
   r.end = { phi: bWrap(s, v.phi - c.phi), theta: bWrap(s, v.theta - c.theta) };
 }
 
+function bCarry(st, row) {
+  const names = [row.from];
+  const go = r => {
+    const n = st.nodes.find(x => x.name === r.to), P = bNodePos(st, r.from), v = bRowVectors(st, r.to).find(x => x.row === r);
+    if (!n || !n.known || !P || !v || names.includes(n.name)) return;
+    const J = bIndexOf(st, bAdd(P, v.d));
+    n.idx = { ...J, theta: J.theta < 0 ? J.theta + st.Ttheta : J.theta };
+    names.push(n.name);
+    st.rows.filter(x => x.from === n.name && !bFloat(x)).forEach(go);
+  };
+  go(row);
+}
+
 function bSetKind(st, row, kind) {
   const said = `${row.from}→${row.to} as ${kind}`, was = bKind(row);
   const keep = JSON.stringify([st.nodes, st.rows]);
