@@ -7,7 +7,7 @@
   const len = v => Math.hypot(v[0], v[1], v[2]);
 
   function triangle() {
-    const obtuse = 120 * Math.PI / 180, side = 5;
+    const obtuse = 120 * Math.PI / 180, side = 10;
     const C = [0, 0, 0], A = [side, 0, 0], B = [side * Math.cos(obtuse), side * Math.sin(obtuse), 0];
     const out = [];
     [[A, B], [B, C], [C, A]].forEach(([p, q]) => {
