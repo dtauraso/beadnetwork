@@ -4,7 +4,6 @@
   let err = null, pickFrom = null;
   let st;
   try { st = JSON.parse(localStorage.getItem(KEY)); if (st) bWire(st); else st = preset(); } catch { st = preset(); }
-  st.rows.filter(r => !bFloat(r)).forEach(r => bLink(st, r));
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(st, bPack)); } catch { } };
 
   const el = id => document.getElementById(id);
@@ -35,7 +34,8 @@
       el(id).onchange = () => { const v = +el(id).value; if (v > 0) st[k] = whole ? Math.round(v) : v; update(); };
     });
 
-    el('nodes').replaceChildren(...st.nodes.flatMap(n => {
+    const all = [...st.nodes];
+    el('nodes').replaceChildren(...all.flatMap(n => {
       const known = h('input', { type: 'checkbox', checked: n.known });
       known.onchange = () => { n.known = known.checked; setup(); update(); };
       const xyz = ['r', 'phi', 'theta'].map(k => { const f = num(n.idx[k], v => { bLetGo(n); n.idx[k] = v; }); f.disabled = !n.known; return h('td', {}, [f]); });
@@ -52,17 +52,17 @@
       const at = `${row.from.name}→${row.to.name}:${part}${k}`;
       return h('td', {}, [flag(at, num(o[k], v => check(at, bSetStart(st, row, k, v, part), v)))]);
     };
-    const settings = st.rows.flatMap(r => {
+    const settings = [...st.rows].flatMap(r => {
       const del = h('button', { textContent: 'remove' });
       del.onclick = () => { bDropRow(st, r); setup(); update(); };
       const ab = `${r.from.name}→${r.to.name}`;
       const on = { kind: v => { check(`${ab}:kind`, bSetKind(st, r, v), v); update(); }, changed: () => { setup(); update(); } };
       return [h('tr', {}, [h('td', { textContent: ab }), ...bRowCells(st, r, c, h, on), h('td', {}, [del])]), ...note(ab, 8)];
     });
-    const froms = st.nodes.filter(a => a.rowsOut.length < st.nodes.length - 1);
-    if (!froms.includes(pickFrom)) pickFrom = froms[0];
-    const taken = new Set(pickFrom ? pickFrom.rowsOut.map(r => r.to) : []);
-    const tos = pickFrom ? st.nodes.filter(b => b !== pickFrom && !taken.has(b)) : [];
+    const froms = all.filter(a => a.rowsOut.size < all.length - 1);
+    if (!pickFrom || pickFrom.gone || pickFrom.rowsOut.size >= all.length - 1) pickFrom = froms[0];
+    const taken = new Set(pickFrom ? [...pickFrom.rowsOut].map(r => r.to) : []);
+    const tos = pickFrom ? all.filter(b => b !== pickFrom && !taken.has(b)) : [];
     const pickA = h('select', {}, froms.map((a, i) => h('option', { value: i, textContent: a.name, selected: a === pickFrom })));
     pickA.onchange = () => { pickFrom = froms[+pickA.value]; setup(); };
     const pickB = h('select', {}, tos.map((b, i) => h('option', { value: i, textContent: b.name })));
@@ -78,9 +78,9 @@
       h('div', { className: 'row' }, tos.length ? [pickA, ' → ', pickB, add] : []), ...bLands(st, h, table),
       h('h2', { textContent: 'a→b settings — one row per a→b, set at a: an angle (φ, θ, r), a change (a copy of the angle into a, plus its own end φ, end θ), a copy (a stored direction plus the change of the angle row from a since it was set — no φ, θ, r of its own), or a base (measured once from where b lands, then stored)' }));
     el('tables').replaceChildren(
-      ...st.nodes.map(n => {
-        const seen = [...n.rowsOut.filter(r => bDir(st, r)).map(r => [r.to.name, bDir(st, r)]),
-          ...n.rowsIn.filter(r => bDir(st, r)).map(r => [r.from.name, bBack(st, r)])];
+      ...all.map(n => {
+        const seen = [...[...n.rowsOut].filter(r => bDir(st, r)).map(r => [r.to.name, bDir(st, r)]),
+          ...[...n.rowsIn].filter(r => bDir(st, r)).map(r => [r.from.name, bBack(st, r)])];
         return h('div', {}, [
           h('h2', { textContent: `${n.name}'s table — ${n.name}'s φ, θ, r toward each node it connects to, in ${n.name}'s ticks (s ${bS(st, n)}: ${12 * bS(st, n)} a turn)` }),
           table(['toward', 'φ', 'θ', 'r'], seen.map(([o, t]) => h('tr', {}, [o, bN(t.phi), bN(t.theta), bN(t.r)].map(x => h('td', { textContent: x }))))),
@@ -88,8 +88,8 @@
         ]);
       }));
 
-    el('item').replaceChildren(...st.nodes.map(n => h('option', { value: n.name, textContent: n.name, selected: n.name === st.item })));
-    el('item').onchange = () => { st.item = el('item').value; update(); };
+    el('item').replaceChildren(...all.map((n, i) => h('option', { value: i, textContent: n.name, selected: n === st.item })));
+    el('item').onchange = () => { st.item = all[+el('item').value]; update(); };
 
     el('spheres').replaceChildren(...bSphereBoxes(st, h, () => { setup(); update(); }));
 
@@ -101,7 +101,7 @@
   }
 
   function runs() {
-    if (!st.nodes.some(n => n.name === st.item)) st.item = st.nodes[0]?.name;
+    if (!st.item || st.item.gone) st.item = bFirst(st.nodes);
     return B_METHODS.filter(m => st.on[m.id] && st.item).map(m => ({ m, steps: m.run(st, st.item) }));
   }
 
@@ -124,7 +124,7 @@
   }
 
   function render(rs) {
-    const pts = [[0, 0, 0], ...st.nodes.filter(n => n.known).map(n => bPlace(st, n.idx))];
+    const pts = [[0, 0, 0], ...[...st.nodes].filter(n => n.known).map(n => bPlace(st, n.idx))];
     rs.forEach(({ steps }) => steps.slice(0, st.step).forEach(s => s.draw.forEach(o => pts.push(...(o.arrow || [o.dot || o.square])))));
     const cells = st.cells !== false ? bLinks(st) : [];
     cells.forEach(({ P, t, s }) => pts.push(...bCellCorners(st, P, t, s)));
@@ -169,7 +169,7 @@
       });
     });
     draw.dot([0, 0, 0], css('--ink'), 'O');
-    st.nodes.filter(n => n.known).forEach(n => draw.dot(bPlace(st, n.idx), css('--ink'), n.name));
+    [...st.nodes].filter(n => n.known).forEach(n => draw.dot(bPlace(st, n.idx), css('--ink'), n.name));
     ctx.restore();
   }
 
@@ -203,12 +203,10 @@
   el('prev').onclick = () => { st.step--; update(); };
   el('next').onclick = () => { st.step++; update(); };
   el('add-node').onclick = () => {
-    const name = 'abcdefghijklmnopqrstuvwxyz'.split('').find(c => !st.nodes.some(n => n.name === c));
-    if (!name) return;
-    st.nodes.push({ name, known: false, idx: { r: 0, phi: 0, theta: 0 }, rowsOut: [], rowsIn: [] });
+    st.nodes.add(bMake({ name: bName(st.made++), known: false, idx: { r: 0, phi: 0, theta: 0 } }));
     setup(); update();
   };
-  el('preset').onclick = () => { st = preset(); reach = null; setup(); update(); };
+  el('preset').onclick = () => { st = preset(); reach = null; pickFrom = null; setup(); update(); };
 
   setup();
   update();

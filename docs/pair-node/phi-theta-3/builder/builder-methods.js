@@ -38,8 +38,8 @@ function bVec(st, s, t) {
   return bCart(t.r * st.rho, ang(t.phi), ang(t.theta));
 }
 
-function bRowVectors(st, item) {
-  return ((bNode(st, item) || {}).rowsIn || []).filter(r => bDir(st, r)).map(r => {
+function bRowVectors(st, node) {
+  return [...node.rowsIn].filter(r => bDir(st, r)).map(r => {
     const t = bDir(st, r);
     return { from: r.from, row: r, t, d: bVec(st, bS(st, r.from), t) };
   });
@@ -82,8 +82,8 @@ function bSenders(st, rows) {
   return { step, missing, done: placed.filter(r => r.C).map(r => ({ ...r, b: bAdd(r.C, r.d) })) };
 }
 
-function bMethodAtoB(st, item) {
-  const rows = bRowVectors(st, item);
+function bMethodAtoB(st, node) {
+  const item = node.name, rows = bRowVectors(st, node);
   const steps = [bVectorStep(rows, item)];
   if (!rows.length) return steps;
   const { step, missing, done } = bSenders(st, rows);
@@ -95,7 +95,6 @@ function bMethodAtoB(st, item) {
     lines.push(`|${item}(${r.from}) − ${item}(${done[0].from})| = ${bF(gap)}${gap < 1e-6 ? ' — one point' : ' — the rows disagree'}`);
   });
   missing.forEach(n => lines.push(`${item}(${n}): not placed — C_${n} is missing`));
-  const node = bNode(st, item);
   done.forEach(r => lines.push(...bResult(st, node, r.b, `${item}(${r.from})`)));
   steps.push({
     title: `global: ${item} from each row`,
@@ -105,8 +104,8 @@ function bMethodAtoB(st, item) {
   return steps;
 }
 
-function bMethodPair(st, item) {
-  const rows = bRowVectors(st, item);
+function bMethodPair(st, node) {
+  const item = node.name, rows = bRowVectors(st, node);
   const steps = [bVectorStep(rows, item)];
   if (!rows.length) return steps;
   const { step, missing, done } = bSenders(st, rows);
@@ -126,7 +125,7 @@ function bMethodPair(st, item) {
       ...indexed.map(r => `pair ${r.from}→${item}: I_${item} = ${bIdx(r.I)}`)],
     note: 'kept exact — not rounded to whole index steps; C_b = O gives I_b = 0', ok: true, draw: [],
   });
-  const lines = [], draw = [], node = bNode(st, item);
+  const lines = [], draw = [];
   indexed.forEach(r => {
     const Cb = bPlace(st, r.I), back = bLen(bSub(Cb, r.b));
     lines.push(`pair ${r.from}→${item}: C_${item} = ${bPlaceText(r.I)} = ${bPt(Cb)}`,

@@ -1,8 +1,10 @@
 const bKind = row => row.kind || 'angle';
 const bFloat = row => bKind(row) === 'base' || bKind(row) === 'copy';
 const bAuto = row => row.automatic !== false;
-const bSib = (st, row) => (row.from.angleOut !== row ? row.from.angleOut : undefined);
-const bAngleOut = n => { n.angleOut = n.rowsOut.find(r => bKind(r) === 'angle'); };
+function bSib(st, row) {
+  const it = row.from.angles.values(), first = it.next().value;
+  return first === row ? it.next().value : first;
+}
 
 function bTurned(st, row) {
   const sib = bSib(st, row);
@@ -51,7 +53,7 @@ function bSetKind(st, row, kind) {
   const keep = bKeep(st);
   if (['base', 'copy'].includes(kind) && row.to.via === row) bLetGo(row.to);
   row.kind = kind;
-  bAngleOut(row.from);
+  if (kind === 'angle') row.from.angles.add(row); else row.from.angles.delete(row);
   if (kind === 'base') { row.base = bView(st, row); return row.base ? '' : `${said}: ${row.from.name} or ${row.to.name} has no position to measure from`; }
   if (kind === 'copy') return bSetCopy(st, row, said);
   row.end ||= { phi: 0, theta: 0 };
@@ -104,8 +106,8 @@ function bHow(st, o, r) {
 }
 
 function bSecondBase(st, n, h, table) {
-  const bases = n.rowsOut.filter(r => bFloat(r) && bDir(st, r));
-  const seen = bases.length ? [...n.rowsOut.map(r => [r.to, bDir(st, r), r]), ...n.rowsIn.map(r => [r.from, bDir(st, r) && bBack(st, r), r])]
+  const bases = [...n.rowsOut].filter(r => bFloat(r) && bDir(st, r));
+  const seen = bases.length ? [...[...n.rowsOut].map(r => [r.to, bDir(st, r), r]), ...[...n.rowsIn].map(r => [r.from, bDir(st, r) && bBack(st, r), r])]
     .filter(x => x[1]) : [];
   return bases.flatMap(base => {
     const z = bDir(st, base);
@@ -117,7 +119,7 @@ function bSecondBase(st, n, h, table) {
 
 function bLands(st, h, table) {
   const three = x => (x ? [x.phi, x.theta, x.r].map(bF) : ['—', '—', '—']);
-  const rows = st.rows.map(r => h('tr', {}, [`${r.from.name}→${r.to.name}`, ...three(bDir(st, r)), ...three(bView(st, r))]
+  const rows = [...st.rows].map(r => h('tr', {}, [`${r.from.name}→${r.to.name}`, ...three(bDir(st, r)), ...three(bView(st, r))]
     .map(x => h('td', { textContent: x }))));
   return [h('h2', { textContent: 'read only: each row, and the direction from its first node to its second node where they are placed' }),
     table(['a→b', 'row φ', 'θ', 'r', 'placed φ', 'θ', 'r'], rows)];

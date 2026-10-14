@@ -19,7 +19,7 @@ function bDrawAxes(draw, ctx, css, P, L, named) {
 }
 
 function bRowEnds(st) {
-  return st.rows.map(row => {
+  return [...st.rows].map(row => {
     const P = bNodePos(st, row.from), t = bDir(st, row);
     if (!P || !t) return null;
     const d = bVec(st, bS(st, row.from), t);
@@ -28,23 +28,23 @@ function bRowEnds(st) {
 }
 
 function bPreset() {
-  const a = { name: 'a', s: 1, known: true, idx: { r: 2, phi: 3, theta: 0 } };
-  const b = { name: 'b', s: 1, known: true, idx: { r: 0, phi: 0, theta: 0 } };
-  const c = { name: 'c', s: 1, known: true, idx: { r: 0, phi: 0, theta: 0 } };
+  const a = bMake({ name: 'a', s: 1, known: true, idx: { r: 2, phi: 3, theta: 0 } });
+  const b = bMake({ name: 'b', s: 1, known: true, idx: { r: 0, phi: 0, theta: 0 } });
+  const c = bMake({ name: 'c', s: 1, known: true, idx: { r: 0, phi: 0, theta: 0 } });
   const p = {
     s: 1, rho: 0.5, Tphi: 12, Ttheta: 12, cr: 0.5,
-    nodes: [a, b, c],
-    rows: [
-      { from: a, to: b, kind: 'angle', start: { phi: 2, theta: 0, r: 2 }, end: { phi: 0, theta: 0 } },
-      { from: b, to: c, kind: 'angle', start: { phi: 4, theta: 0, r: 2 }, end: { phi: 0, theta: 0 } },
-      { from: a, to: c, kind: 'copy', start: { phi: 0, theta: 0, r: 0 }, end: { phi: 0, theta: 0 } },
-    ],
-    item: 'c', on: { atob: true, pair: true }, step: 1,
+    nodes: new Set([a, b, c]), rows: new Set(), made: 3,
+    item: c, on: { atob: true, pair: true }, step: 1,
   };
-  bIndexRows(p);
-  p.rows.slice(0, 2).forEach(r => bRefer(p, r));
+  const rows = [
+    { from: a, to: b, kind: 'angle', start: { phi: 2, theta: 0, r: 2 }, end: { phi: 0, theta: 0 } },
+    { from: b, to: c, kind: 'angle', start: { phi: 4, theta: 0, r: 2 }, end: { phi: 0, theta: 0 } },
+    { from: a, to: c, kind: 'copy', start: { phi: 0, theta: 0, r: 0 }, end: { phi: 0, theta: 0 } },
+  ];
+  rows.forEach(r => bAddRow(p, r));
+  rows.slice(0, 2).forEach(r => bRefer(p, r));
   bSend(p, a);
-  bSetCopy(p, p.rows[2], '');
+  bSetCopy(p, rows[2], '');
   return p;
 }
 
