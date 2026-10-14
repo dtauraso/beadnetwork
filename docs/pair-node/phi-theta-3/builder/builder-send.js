@@ -92,10 +92,10 @@ function bDropNode(st, n) {
   if (st.item === n) st.item = bFirst(st.nodes);
 }
 
-function bTake(st, n) {
-  const f = n.sender;
-  if (!n.known || !f || !f.known) return false;
-  const t = bDir(st, n.via);
+function bPut(st, row) {
+  const n = row.to, f = row.from;
+  if (!n.known || !f.known) return false;
+  const t = bDir(st, row);
   if (!t) return false;
   const J = bIndexOf(st, bAdd(bPlace(st, f.idx), bVec(st, bS(st, f), t)));
   bSave(n);
@@ -103,7 +103,10 @@ function bTake(st, n) {
   return true;
 }
 
+const bTake = (st, n) => !!n.sender && bPut(st, n.via);
+
 function bMove(st, row) {
   bRefer(st, row);
   bTake(st, row.to);
+  row.from.rowsOut.forEach(r => { if (bKind(r) === 'copy' && bAuto(r) && bSib(st, r) === row) bPut(st, r); });
 }
