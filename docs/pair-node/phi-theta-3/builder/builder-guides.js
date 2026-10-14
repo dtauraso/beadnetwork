@@ -27,14 +27,60 @@ function bRowEnds(st) {
   }).filter(Boolean);
 }
 
-function bSyncRows(st) {
-  let changed = false;
-  st.rows.forEach(row => [row.start, row.end].forEach(o => Object.keys(o).forEach(k => {
-    if (Number.isInteger(o[k])) return;
-    o[k] = Math.round(o[k]);
-    changed = true;
-  })));
-  return changed;
+function bPreset() {
+  const p = {
+    s: 1, rho: 0.5, Tphi: 12, Ttheta: 12, cr: 0.5,
+    nodes: [
+      { name: 'a', known: true, idx: { r: 2, phi: 3, theta: 0 } },
+      { name: 'b', known: true, idx: { r: 0, phi: 0, theta: 0 } },
+      { name: 'c', known: true, idx: { r: 0, phi: 0, theta: 0 } },
+    ],
+    rows: [
+      { from: 'a', to: 'b', start: { phi: 2, theta: 0, r: 2 }, end: { phi: 0, theta: 0 } },
+      { from: 'b', to: 'c', start: { phi: 6, theta: 0, r: 2 }, end: { phi: 0, theta: 0 } },
+      { from: 'a', to: 'c', start: { phi: 4, theta: 0, r: 2 }, end: { phi: 0, theta: 0 } },
+    ],
+    item: 'b', on: { atob: true, pair: true }, step: 1,
+  };
+  const A = bPlace(p, p.nodes[0].idx);
+  [[1, 0], [2, 2]].forEach(([i, r]) => { p.nodes[i].idx = bIndexOf(p, bAdd(A, bRowVectors(p, p.nodes[i].name).find(v => v.row === p.rows[r]).d)); });
+  return p;
+}
+
+function bView(st, row) {
+  const P = bNodePos(st, row.from), T = bNodePos(st, row.to);
+  if (!P || !T) return null;
+  const v = bSub(T, P), len = bLen(v), tick = 2 * Math.PI / (12 * st.s), half = 6 * st.s;
+  if (len < 1e-9) return { phi: row.start.phi, theta: row.start.theta, r: 0 };
+  let phi = Math.acos(Math.max(-1, Math.min(1, v[1] / len))) / tick;
+  let theta = Math.hypot(v[0], v[2]) < 1e-9 * len ? row.start.theta : bWrap(st, Math.atan2(v[2], v[0]) / tick);
+  if (row.start.phi > half) { phi = 2 * half - phi; theta = bWrap(st, theta + half); }
+  return { phi, theta, r: len / st.rho };
+}
+
+function bSetStart(st, row, k, value) {
+  const whole = x => Math.abs(x - Math.round(x)) < 1e-6;
+  const name = { phi: 'φ', theta: 'θ', r: 'r' };
+  const said = `${row.from}→${row.to} ${name[k]} ${bN(value)}`;
+  if (!whole(value)) return `${said}: not a whole number, so it stays at ${bN(row.start[k])}`;
+  const n = st.nodes.find(x => x.name === row.to), P = bNodePos(st, row.from);
+  const idx = n && { ...n.idx };
+  const start = { ...row.start, [k]: value };
+  if (n && n.known && P) {
+    const tick = 2 * Math.PI / (12 * st.s);
+    const J = bIndexOf(st, bAdd(P, bCart(start.r * st.rho, start.phi * tick, start.theta * tick)));
+    n.idx = { ...J, theta: J.theta < 0 ? J.theta + st.Ttheta : J.theta };
+  }
+  const others = st.rows.filter(r => r !== row && n && (r.from === n.name || r.to === n.name))
+    .map(r => ({ r, t: bView(st, r) })).filter(o => o.t);
+  const bad = others.filter(({ t }) => !['phi', 'theta', 'r'].every(q => whole(t[q])));
+  if (bad.length) {
+    if (n) n.idx = idx;
+    return `${said}: ${bad.map(({ r, t }) => `${r.from}→${r.to} would be φ ${bF(t.phi)}, θ ${bF(t.theta)}, r ${bF(t.r)}`).join('; ')} — not whole ticks, so it stays at ${bN(row.start[k])}`;
+  }
+  row.start = start;
+  others.forEach(({ r, t }) => { r.start = { phi: Math.round(t.phi) % (12 * st.s), theta: Math.round(t.theta) % (12 * st.s), r: Math.round(t.r) }; });
+  return '';
 }
 
 function bDrawGuides(st, draw, ctx, css, points) {

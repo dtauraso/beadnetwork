@@ -1,18 +1,7 @@
 (function () {
-  const KEY = 'pair-builder-v2';
-  const preset = () => ({
-    s: 1, rho: 0.5, Tphi: 12, Ttheta: 12, cr: 0.5,
-    nodes: [
-      { name: 'a', known: true, idx: { r: 2, phi: 3, theta: 0 } },
-      { name: 'b', known: false, idx: { r: 0, phi: 0, theta: 0 } },
-      { name: 'c', known: true, idx: { r: 4, phi: 1, theta: 3 } },
-    ],
-    rows: [
-      { from: 'a', to: 'b', start: { phi: 3, theta: 3, r: 2 }, end: { phi: 3, theta: 6 } },
-      { from: 'c', to: 'b', start: { phi: 5, theta: 0, r: 4 }, end: { phi: 5, theta: 0 } },
-    ],
-    item: 'b', on: { atob: true, pair: true }, step: 1,
-  });
+  const KEY = 'pair-builder-v3';
+  const preset = bPreset;
+  let err = '';
   let st;
   try { st = JSON.parse(localStorage.getItem(KEY)) || preset(); } catch { st = preset(); }
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch { } };
@@ -59,11 +48,11 @@
     const table = (head, rows) => (rows.length
       ? h('table', {}, [h('thead', {}, [h('tr', {}, head.map(t => h('th', { textContent: t })))]), h('tbody', {}, rows)])
       : h('div', { className: 'hint', textContent: 'no rows' }));
-    const c = (o, k) => h('td', {}, [num(o[k], v => { o[k] = v; setup(); })]);
+    const c = (o, k, row) => h('td', {}, [num(o[k], v => { if (row) err = bSetStart(st, row, k, v); else o[k] = v; setup(); })]);
     const settings = st.rows.map(r => {
       const del = h('button', { textContent: 'remove' });
       del.onclick = () => { st.rows = st.rows.filter(x => x !== r); setup(); update(); };
-      return h('tr', {}, [h('td', { textContent: `${r.from}→${r.to}` }), c(r.start, 'phi'), c(r.start, 'theta'), c(r.start, 'r'),
+      return h('tr', {}, [h('td', { textContent: `${r.from}→${r.to}` }), c(r.start, 'phi', r), c(r.start, 'theta', r), c(r.start, 'r', r),
         c(r.end, 'phi'), c(r.end, 'theta'), h('td', {}, [del])]);
     });
     const free = st.nodes.flatMap(a => st.nodes.filter(b => b !== a && !st.rows.some(r => r.from === a.name && r.to === b.name)).map(b => `${a.name}→${b.name}`));
@@ -77,6 +66,7 @@
     el('tables').replaceChildren(
       h('h2', { textContent: 'a→b settings — one row per a→b, its φ, θ, r set at a' }),
       table(['a→b', 'start φ', 'start θ', 'start r', 'end φ', 'end θ', ''], settings),
+      h('div', { className: 'missing', textContent: err }),
       h('div', { className: 'row' }, free.length ? [pick, add] : []),
       ...st.nodes.map(n => {
         const seen = st.rows.flatMap(r => (r.from === n.name ? [[r.to, r.start]] : r.to === n.name ? [[r.from, bBack(st, r.start)]] : []));
@@ -102,7 +92,6 @@
   }
 
   function update() {
-    if (bSyncRows(st)) setup();
     const rs = runs();
     const max = Math.max(1, ...rs.map(r => r.steps.length));
     st.step = Math.min(Math.max(1, st.step), max);
