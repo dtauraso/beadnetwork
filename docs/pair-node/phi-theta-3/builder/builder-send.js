@@ -37,7 +37,7 @@ function bWire(st) {
   st.made ??= 1 + Math.max(-1, ...[...by.keys()].map(bNameAt).filter(Number.isFinite));
 }
 
-const B_DATA = ['idx', 'start', 'end', 'base', 'ref', 'held'], B_SETS = ['rowsOut', 'rowsIn', 'angles'];
+const B_DATA = ['idx', 'start', 'end', 'base', 'ref', 'held', 'went', 'step'], B_SETS = ['rowsOut', 'rowsIn', 'angles'];
 
 let bLog = null;
 const bKeep = () => (bLog = new Map());
@@ -139,5 +139,5 @@ function bMove(st, row, was) {
   bRefer(st, row);
   const now = bDir(st, row);
   bPut(st, row);
-  if (was && now) bCopies(st, row).forEach(r => bCarry(st, r, bRot(st, row, was, now)));
+  if (was && now) bCopies(st, row).forEach(r => bCarry(st, r, bRot(st, row, was, bStep(st, r, was, now))));
 }

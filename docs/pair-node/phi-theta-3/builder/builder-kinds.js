@@ -13,7 +13,23 @@ function bTurned(st, row) {
 
 function bChange(st, row) {
   const d = bTurned(st, row);
+  if (d && row.mine) return { sib: d.sib, phi: row.went.phi, theta: row.went.theta };
   return d && !bAuto(row) ? { sib: d.sib, phi: row.held.phi, theta: row.held.theta } : d;
+}
+
+function bStep(st, row, was, now) {
+  if (!row.mine) return now;
+  bSave(row);
+  row.went = { phi: row.went.phi + row.step.phi, theta: row.went.theta + row.step.theta };
+  return { phi: was.phi + row.step.phi, theta: was.theta + row.step.theta, r: now.r };
+}
+
+function bSetMine(st, row, on) {
+  const d = bTurned(st, row), c = bChange(st, row);
+  if (!d || !c) return;
+  if (on) { row.went = { phi: c.phi, theta: c.theta }; row.step ||= { phi: 0, theta: 0 }; }
+  else row.ref = { phi: d.sib.start.phi - row.went.phi, theta: d.sib.start.theta - row.went.theta };
+  row.mine = on;
 }
 
 function bApply(st, row) {
@@ -72,6 +88,9 @@ function bSetCopy(st, row, said) {
   row.base = sib && v && { phi: sib.start.phi, theta: sib.start.theta, r: v.r };
   row.ref = sib && { phi: sib.start.phi, theta: sib.start.theta };
   row.held = { phi: 0, theta: 0 };
+  row.mine = false;
+  row.went = { phi: 0, theta: 0 };
+  row.step = { phi: 0, theta: 0 };
   if (!sib) return `${said}: ${row.from.name} has no angle row to copy the change of`;
   return row.base ? '' : `${said}: ${row.from.name} or ${row.to.name} has no position to measure from`;
 }
@@ -98,7 +117,15 @@ function bRowCells(st, r, c, h, on) {
   auto.onchange = () => { const c0 = bChange(st, r); r.automatic = auto.checked; bApply(st, r); turn(c0); };
   const apply = h('button', { textContent: 'apply turn' });
   apply.onclick = () => { const c0 = bChange(st, r); bApply(st, r); turn(c0); };
-  const extra = copy && d ? [h('label', {}, [auto, ' automatic ']), ...(!bAuto(r) ? [apply] : [])] : [];
+  const mine = h('button', { textContent: r.mine ? 'own step: on' : 'own step: off' });
+  mine.onclick = () => { bSetMine(st, r, !r.mine); on.changed(); };
+  const step = k => {
+    const f = h('input', { type: 'number', value: r.mine ? r.step[k] : '', disabled: !r.mine, style: 'width: 4em' });
+    f.onchange = () => { if (bWhole(+f.value)) r.step[k] = +f.value; on.changed(); };
+    return f;
+  };
+  const own = copy && d ? [mine, ' φ ', step('phi'), ' θ ', step('theta'), ' '] : [];
+  const extra = copy && d ? [h('label', {}, [auto, ' automatic ']), ...(!bAuto(r) ? [apply] : []), ...own] : [];
   return [h('td', {}, [kind]), ...(t ? [t.phi, t.theta, t.r].map(x => txt(bF(x))) : ['—', '—', '—'].map(txt)), h('td', { colSpan: 2 }, [what, ...extra, set])];
 }
 
