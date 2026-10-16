@@ -19,9 +19,10 @@ function bChange(st, row) {
 
 function bStep(st, row, was, now) {
   if (!row.mine) return now;
+  const sg = k => Math.sign(now[k] - was[k]) * row.step[k];
   bSave(row);
-  row.went = { phi: row.went.phi + row.step.phi, theta: row.went.theta + row.step.theta };
-  return { phi: was.phi + row.step.phi, theta: was.theta + row.step.theta, r: now.r };
+  row.went = { phi: row.went.phi + sg('phi'), theta: row.went.theta + sg('theta') };
+  return { phi: was.phi + sg('phi'), theta: was.theta + sg('theta'), r: now.r };
 }
 
 function bSetMine(st, row, on) {
