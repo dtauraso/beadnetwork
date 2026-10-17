@@ -124,42 +124,51 @@ function bRot(st, row, was, now) {
   return bThen(bThen(m, [x[0], y[0], z[0], x[1], y[1], z[1], x[2], y[2], z[2]]), bFlip(m));
 }
 
-function bRound(st, copy, rot) {
-  const P = bNodePos(st, copy.from), Q = bNodePos(st, copy.to);
+const bCopies = (st, row) => [...row.from.rowsOut].filter(r => bKind(r) === 'copy' && bAuto(r) && bSib(st, r) === row);
+const bAB = row => ({ row, a: row.from, b: row.to });
+const bAC = copy => ({ row: copy, a: copy.from, c: copy.to });
+const bBC = ac => (ac.c.via && ac.c.via !== ac.row ? { row: ac.c.via, b: ac.c.via.from, c: ac.c } : null);
+
+function bTree(st, row) {
+  const acs = bCopies(st, row).map(bAC);
+  return { pair: { ab: bAB(row), acs }, bcs: acs.map(bBC) };
+}
+
+function bRound(st, ac, rot) {
+  const P = bNodePos(st, ac.a), Q = bNodePos(st, ac.c);
   if (!P || !Q) return false;
-  bSetAt(st, copy.to, bAdd(P, bTimes(rot, bSub(Q, P))));
+  bSetAt(st, ac.c, bAdd(P, bTimes(rot, bSub(Q, P))));
   return true;
 }
 
-function bTurnVia(st, copy, rot) {
-  const via = copy.to.via;
-  if (!via || via === copy) return;
-  bSave(via);
-  via.turn = { m: bThen(rot, bFrame(via)) };
+function bTurnVia(st, bc, rot) {
+  if (!bc) return;
+  bSave(bc.row);
+  bc.row.turn = { m: bThen(rot, bFrame(bc.row)) };
 }
 
 function bCarry(st, copy, rot) {
-  if (bRound(st, copy, rot)) bTurnVia(st, copy, rot);
+  const ac = bAC(copy);
+  if (bRound(st, ac, rot)) bTurnVia(st, bBC(ac), rot);
 }
 
-const bCopies = (st, row) => [...row.from.rowsOut].filter(r => bKind(r) === 'copy' && bAuto(r) && bSib(st, r) === row);
-
-function bHead(st, row) {
-  bRefer(st, row);
-  const now = bDir(st, row);
-  bPut(st, row);
+function bHead(st, ab) {
+  bRefer(st, ab.row);
+  const now = bDir(st, ab.row);
+  bPut(st, ab.row);
   return now;
 }
 
-function bPair(st, row, was) {
-  const now = bHead(st, row);
+function bPair(st, pair, was) {
+  const now = bHead(st, pair.ab);
   if (!was || !now) return [];
-  return bCopies(st, row).flatMap(copy => {
-    const rot = bRot(st, row, was, bStep(st, copy, was, now));
-    return bRound(st, copy, rot) ? [{ copy, rot }] : [];
+  return pair.acs.map(ac => {
+    const rot = bRot(st, pair.ab.row, was, bStep(st, ac.row, was, now));
+    return bRound(st, ac, rot) ? rot : null;
   });
 }
 
 function bMove(st, row, was) {
-  bPair(st, row, was).forEach(({ copy, rot }) => bTurnVia(st, copy, rot));
+  const tree = bTree(st, row);
+  bPair(st, tree.pair, was).forEach((rot, i) => { if (rot) bTurnVia(st, tree.bcs[i], rot); });
 }
