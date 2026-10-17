@@ -147,17 +147,15 @@
 
   <div class="panel">
     <h2>a→c — <code>bRound(st, a→c, rot)</code></h2>
-    <p>c = a + rot × (c − a). c moves on a circle round a, so |ac| and the angle between a→b and a→c both stay the same. If a or c has no position, nothing moves and b→c is skipped.</p>
-    <svg class="geo" viewBox="0 0 440 300" role="img" aria-label="c moves from c-was to c-now on a circle round a; a→b and a→c both turn 30°">
-      <path class="was" d="M80 120 L214 43"/>
+    <p>c = a + rot × (c − a). c moves on a circle round a, so |ac| stays the same. Only c moves here; b was already placed by a→b. If a or c has no position, nothing moves and b→c is skipped.</p>
+    <svg class="geo" viewBox="0 80 440 220" role="img" aria-label="c moves from c-was to c-now on a circle round a by rot; |ac| stays 1.73">
       <path class="was" d="M80 120 L351 120"/>
-      <path class="is" d="M80 120 L234 120"/>
       <path class="is" d="M80 120 L317 253"/>
+      <text class="small muted" x="216" y="106">|ac| 1.73</text>
+      <text class="small now" x="176" y="200">|ac| 1.73</text>
       <path class="arc" d="M357 126 A277 277 0 0 1 324 252"/>
       <text class="l small turn" x="352" y="196">rot</text>
       <circle class="dot" cx="80" cy="120" r="6"/><text x="62" y="120">a</text>
-      <circle class="dot-was" cx="218.6" cy="40" r="6"/><text class="muted" x="254" y="36">b was</text>
-      <circle class="dot-now" cx="240" cy="120" r="6"/><text class="now" x="240" y="100">b now</text>
       <circle class="dot-was" cx="357" cy="120" r="6"/><text class="muted" x="390" y="112">c was</text>
       <circle class="dot-now" cx="320" cy="258.6" r="6"/><text class="now" x="320" y="282">c now</text>
       <text class="l small muted" x="24" y="282">writes: c.idx</text>
