@@ -19,12 +19,12 @@ function bDrawAxes(draw, ctx, css, P, L, named) {
 }
 
 function bRowEnds(st) {
-  return bRows(st).map(row => {
-    const P = bNodePos(st, row.from), t = bDir(st, row);
-    if (!P || !t) return null;
+  return bRows(st).flatMap(row => bDirs(st, row).map(({ t }) => {
+    const P = bNodePos(st, row.from);
+    if (!P) return null;
     const d = bVec(st, bS(st, row.from), t);
-    return { row, P, d, T: bNodePos(st, row.to) || bAdd(P, d) };
-  }).filter(Boolean);
+    return { row, P, d, t, T: bNodePos(st, row.to) || bAdd(P, d) };
+  })).filter(Boolean);
 }
 
 function bPreset() {
@@ -107,7 +107,11 @@ function bSetS(st, node, value) {
     r.start = { ...r.start, phi: r.start.phi * k, theta: r.start.theta * k };
     r.end = { phi: r.end.phi * k, theta: r.end.theta * k };
     if (r.base) r.base = { ...r.base, phi: r.base.phi * k, theta: r.base.theta * k };
-    if (r.ref) r.ref = { phi: r.ref.phi * k, theta: r.ref.theta * k };
+    r.tree.pairs.forEach(p => {
+      bSave(p);
+      if (p.base) p.base = { ...p.base, phi: p.base.phi * k, theta: p.base.theta * k };
+      if (p.ref) p.ref = { phi: p.ref.phi * k, theta: p.ref.theta * k };
+    });
   });
   return bSettle(st, keep, rows, said, was);
 }

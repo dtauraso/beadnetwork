@@ -79,8 +79,8 @@
       h('h2', { textContent: 'a→b settings — one row per a→b, set at a: an angle (φ, θ, r), a change (a copy of the angle into a, plus its own end φ, end θ), a copy (a stored direction plus the change of the angle row from a since it was set — no φ, θ, r of its own), or a base (measured once from where b lands, then stored)' }));
     el('tables').replaceChildren(
       ...all.map(n => {
-        const seen = [...bOut(st, n).filter(r => bDir(st, r)).map(r => [r.to.name, bDir(st, r)]),
-          ...bIn(st, n).filter(r => bDir(st, r)).map(r => [r.from.name, bBack(st, r)])];
+        const seen = [...bOut(st, n).flatMap(r => bDirs(st, r).map(({ t }) => [r.to.name, t])),
+          ...bIn(st, n).flatMap(r => bDirs(st, r).map(({ t }) => [r.from.name, bBack(st, r, t)]))];
         return h('div', {}, [
           h('h2', { textContent: `${n.name}'s table — ${n.name}'s φ, θ, r toward each node it connects to, in ${n.name}'s ticks (s ${bS(st, n)}: ${12 * bS(st, n)} a turn)` }),
           table(['toward', 'φ', 'θ', 'r'], seen.map(([o, t]) => h('tr', {}, [o, bN(t.phi), bN(t.theta), bN(t.r)].map(x => h('td', { textContent: x }))))),

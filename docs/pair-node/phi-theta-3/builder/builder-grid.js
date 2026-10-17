@@ -14,9 +14,9 @@ function bCellPoints(st, rs) {
 }
 
 function bLinks(st) {
-  return bRowEnds(st).flatMap(({ row, P, T }) => [
-    { from: row.from, to: row.to, P, T, t: bDir(st, row), s: bS(st, row.from) },
-    { from: row.to, to: row.from, P: T, T: P, t: bBack(st, row), s: bS(st, row.to) },
+  return bRowEnds(st).flatMap(({ row, P, T, t }) => [
+    { from: row.from, to: row.to, P, T, t, s: bS(st, row.from) },
+    { from: row.to, to: row.from, P: T, T: P, t: bBack(st, row, t), s: bS(st, row.to) },
   ]);
 }
 

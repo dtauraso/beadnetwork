@@ -4,21 +4,32 @@ const bNameAt = name => (name.length === 1 ? name.charCodeAt(0) - 97 : +name.sli
 
 function bPack(k, v) {
   if (['gone', 'tree'].includes(k)) return undefined;
-  if (k === 'trees') return [...v].map(t => t.pair.ab.row);
+  if (k === 'trees') {
+    const vars = p => Object.fromEntries(B_PAIR.filter(x => x in p).map(x => [x, p[x]]));
+    return [...v].map(t => ({ ...t.ab.row, pairs: t.pairs.map(p => ({ with: p.ac.c.name, ...vars(p) })) }));
+  }
   if (v instanceof Set) return [...v];
   if (k === 'from' || k === 'to' || k === 'sender' || k === 'item') return v.name;
   if (k === 'via') return [v.from.name, v.to.name];
   return v;
 }
 
+function bOldPairs(st, r) {
+  const sib = bOut(st, r.from).find(x => bKind(x) === 'angle');
+  const p = sib && sib.tree.pairs.find(q => q.ac.row === r);
+  if (p) B_PAIR.filter(x => x in r).forEach(x => { p[x] = r[x]; });
+  B_PAIR.forEach(x => delete r[x]);
+}
+
 function bWire(st) {
-  const by = new Map(st.nodes.map(n => [n.name, n])), rows = st.trees || st.rows, via = new Map();
+  const by = new Map(st.nodes.map(n => [n.name, n])), rows = st.trees || st.rows, via = new Map(), saved = new Map();
   st.nodes = new Set(by.values());
   st.trees = new Set();
   delete st.rows;
   rows.forEach(r => {
     const key = `${r.from}→${r.to}`;
     r.from = by.get(r.from); r.to = by.get(r.to);
+    saved.set(r, r.pairs); delete r.pairs;
     if (r.from && r.to) { bAddRow(st, r); via.set(key, r); }
   });
   st.nodes.forEach(n => {
@@ -27,6 +38,12 @@ function bWire(st) {
     if (from && row && row.to === n && row.from === from) { n.sender = from; n.via = row; }
     bRelink(st, n);
   });
+  bRows(st).forEach(r => {
+    const ps = saved.get(r);
+    if (ps) ps.forEach(w => Object.assign(r.tree.pairs.find(p => p.ac.c.name === w.with) || {}, w, { with: undefined }));
+    r.tree.pairs.forEach(p => delete p.with);
+  });
+  bRows(st).forEach(r => { if (bKind(r) === 'copy' && r.ref) bOldPairs(st, r); B_PAIR.filter(x => x !== 'base').forEach(x => delete r[x]); });
   bRows(st).forEach(r => { if (!bFloat(r)) bLink(st, r); });
   st.item = by.get(st.item) || bFirst(st.nodes);
   st.made ??= 1 + Math.max(-1, ...[...by.keys()].map(bNameAt).filter(Number.isFinite));
@@ -112,10 +129,10 @@ function bRot(st, row, was, now) {
   return bThen(bThen(m, [x[0], y[0], z[0], x[1], y[1], z[1], x[2], y[2], z[2]]), bFlip(m));
 }
 
-function bRound(st, ac, rot) {
+function bRound(st, ac) {
   const P = bNodePos(st, ac.a), Q = bNodePos(st, ac.c);
-  if (!P || !Q) return false;
-  bSetAt(st, ac.c, bAdd(P, bTimes(rot, bSub(Q, P))));
+  if (!P || !Q || !ac.rot) return false;
+  bSetAt(st, ac.c, bAdd(P, bTimes(ac.rot, bSub(Q, P))));
   return true;
 }
 
@@ -125,29 +142,28 @@ function bTurnVia(st, bc, rot) {
   bc.row.turn = { m: bThen(rot, bFrame(bc.row)) };
 }
 
-function bCarry(st, copy, rot) {
-  const tree = bHolder(st, copy), i = tree ? tree.pair.acs.findIndex(ac => ac.row === copy) : -1;
-  if (i >= 0 && bRound(st, tree.pair.acs[i], rot)) bTurnVia(st, tree.bcs[i], rot);
+function bCarry(st, p, rot) {
+  const tree = p.ab.row.tree;
+  p.ac.rot = rot;
+  if (bRound(st, p.ac)) bTurnVia(st, tree.bcs[tree.pairs.indexOf(p)], rot);
 }
 
-function bHead(st, ab) {
+function bHead(st, ab, was) {
+  ab.was = was;
   bRefer(st, ab.row);
-  const now = bDir(st, ab.row);
+  ab.now = bDir(st, ab.row);
   bPut(st, ab.row);
-  return now;
 }
 
-function bPair(st, pair, was) {
-  const now = bHead(st, pair.ab);
-  if (!was || !now) return [];
-  return pair.acs.map(ac => {
-    if (!bAuto(ac.row)) return null;
-    const rot = bRot(st, pair.ab.row, was, bStep(st, ac.row, was, now));
-    return bRound(st, ac, rot) ? rot : null;
-  });
+function bPair(st, p) {
+  const { was, now } = p.ab;
+  if (!was || !now || bKind(p.ac.row) !== 'copy' || !bAuto(p)) return null;
+  p.ac.rot = bRot(st, p.ab.row, was, bStep(st, p, was, now));
+  return bRound(st, p.ac) ? p.ac.rot : null;
 }
 
 function bMove(st, row, was) {
   const tree = row.tree;
-  bPair(st, tree.pair, was).forEach((rot, i) => { if (rot) bTurnVia(st, tree.bcs[i], rot); });
+  bHead(st, tree.ab, was);
+  tree.pairs.forEach((p, i) => { const rot = bPair(st, p); if (rot) bTurnVia(st, tree.bcs[i], rot); });
 }

@@ -22,8 +22,8 @@ function bIndexOf(st, p) {
 
 const bS = (st, n) => (n && n.s) || st.s;
 const bWrap = (s, t) => ((t % (12 * s)) + 12 * s) % (12 * s);
-const bBack = (st, row) => {
-  const sa = bS(st, row.from), sb = bS(st, row.to), a = bDir(st, row);
+const bBack = (st, row, a = bDir(st, row)) => {
+  const sa = bS(st, row.from), sb = bS(st, row.to);
   return { phi: bWrap(sb, a.phi * sb / sa + 6 * sb), theta: bWrap(sb, a.theta * sb / sa + 6 * sb), r: a.r };
 };
 const bWhole = x => Math.abs(x - Math.round(x)) < 1e-6;
@@ -39,10 +39,7 @@ function bVec(st, s, t) {
 }
 
 function bRowVectors(st, node) {
-  return bIn(st, node).filter(r => bDir(st, r)).map(r => {
-    const t = bDir(st, r);
-    return { from: r.from, row: r, t, d: bVec(st, bS(st, r.from), t) };
-  });
+  return bIn(st, node).flatMap(r => bDirs(st, r).map(({ t }) => ({ from: r.from, row: r, t, d: bVec(st, bS(st, r.from), t) })));
 }
 
 function bVectorStep(rows, item) {

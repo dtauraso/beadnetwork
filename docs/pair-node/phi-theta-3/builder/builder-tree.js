@@ -1,75 +1,56 @@
 const bAB = row => ({ row, a: row.from, b: row.to });
-const bAC = copy => ({ row: copy, a: copy.from, c: copy.to });
+const bAC = row => ({ row, a: row.from, c: row.to });
 const bBC = ac => (ac.c.via && ac.c.via !== ac.row ? { row: ac.c.via, b: ac.c.via.from, c: ac.c } : null);
 
 const bTrees = st => [...st.trees];
-const bRows = st => bTrees(st).map(t => t.pair.ab.row);
+const bRows = st => bTrees(st).map(t => t.ab.row);
 const bOut = (st, n) => bRows(st).filter(r => r.from === n);
 const bIn = (st, n) => bRows(st).filter(r => r.to === n);
-const bHolder = (st, copy) => bTrees(st).find(t => t.pair.acs.some(ac => ac.row === copy));
-const bSib = (st, copy) => bHolder(st, copy)?.pair.ab.row;
+const bPairsOf = (st, row) => bTrees(st).flatMap(t => t.pairs).filter(p => p.ac.row === row);
+const B_PAIR = ['base', 'ref', 'held', 'went', 'step', 'mine', 'automatic'];
 
-function bTouch(t) {
+function bSeat(st, p) {
+  const s = p.ab.row.start, v = bView(st, p.ac.row);
+  bSave(p);
+  p.base = s && v && { phi: s.phi, theta: s.theta, r: v.r };
+  p.ref = s && { phi: s.phi, theta: s.theta };
+  p.held = { phi: 0, theta: 0 };
+  p.mine = false;
+  p.went = { phi: 0, theta: 0 };
+  p.step = { phi: 0, theta: 0 };
+}
+
+function bJoin(st, t, row) {
+  const p = { ab: t.ab, ac: bAC(row) };
+  bSeat(st, p);
   bSave(t);
-  bSave(t.pair);
+  t.pairs = [...t.pairs, p];
+  t.bcs = [...t.bcs, bBC(p.ac)];
 }
 
-function bFile(st, copy) {
-  const home = bTrees(st).find(t => t.pair.ab.a === copy.from && t.pair.ab.row !== copy && bKind(t.pair.ab.row) === 'angle');
-  if (!home) return;
-  const ac = bAC(copy);
-  bTouch(home);
-  home.pair.acs = [...home.pair.acs, ac];
-  home.bcs = [...home.bcs, bBC(ac)];
-}
-
-function bUnfile(st, copy) {
-  const t = bHolder(st, copy);
-  if (!t) return;
-  const i = t.pair.acs.findIndex(ac => ac.row === copy);
-  bTouch(t);
-  t.pair.acs = t.pair.acs.filter((_, k) => k !== i);
-  t.bcs = t.bcs.filter((_, k) => k !== i);
-}
-
-function bRehome(st, t) {
-  const copies = t.pair.acs.map(ac => ac.row);
-  bTouch(t);
-  t.pair.acs = [];
-  t.bcs = [];
-  copies.forEach(copy => bFile(st, copy));
-}
-
-function bAdopt(st, row) {
-  bOut(st, row.from).filter(r => bKind(r) === 'copy' && !bHolder(st, r)).forEach(r => bFile(st, r));
+function bSplit(t, row) {
+  const keep = t.pairs.map(p => p.ac.row !== row);
+  bSave(t);
+  t.pairs = t.pairs.filter((_, i) => keep[i]);
+  t.bcs = t.bcs.filter((_, i) => keep[i]);
 }
 
 function bRelink(st, n) {
-  bTrees(st).filter(t => t.pair.acs.some(ac => ac.c === n)).forEach(t => {
-    bTouch(t);
-    t.bcs = t.pair.acs.map(bBC);
+  bTrees(st).filter(t => t.pairs.some(p => p.ac.c === n)).forEach(t => {
+    bSave(t);
+    t.bcs = t.pairs.map(p => bBC(p.ac));
   });
 }
 
 function bAddRow(st, row) {
-  row.tree = { pair: { ab: bAB(row), acs: [] }, bcs: [] };
+  const others = bOut(st, row.from);
+  row.tree = { ab: bAB(row), pairs: [], bcs: [] };
   st.trees.add(row.tree);
-  if (bKind(row) === 'copy') bFile(st, row);
-  if (bKind(row) === 'angle') bAdopt(st, row);
+  others.forEach(o => { bJoin(st, row.tree, o); bJoin(st, o.tree, row); });
 }
 
 function bDropRow(st, row) {
   if (row.to.via === row) bLetGo(st, row.to);
   st.trees.delete(row.tree);
-  bUnfile(st, row);
-  bRehome(st, row.tree);
-}
-
-function bRekind(st, row, was) {
-  const kind = bKind(row);
-  if (was === kind) return;
-  if (was === 'copy') bUnfile(st, row);
-  if (was === 'angle') bRehome(st, row.tree);
-  if (kind === 'copy') bFile(st, row);
-  if (kind === 'angle') bAdopt(st, row);
+  bOut(st, row.from).forEach(o => bSplit(o.tree, row));
 }
