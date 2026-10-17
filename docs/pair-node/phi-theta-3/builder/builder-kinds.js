@@ -74,6 +74,7 @@ function bSetKind(st, row, kind) {
   bSave(row); bSave(row.from);
   row.kind = kind;
   if (kind === 'angle') row.from.angles.add(row); else row.from.angles.delete(row);
+  bGrow(st);
   if (kind === 'base') { bDone(); row.base = bView(st, row); return row.base ? '' : `${said}: ${row.from.name} or ${row.to.name} has no position to measure from`; }
   if (kind === 'copy') { bDone(); return bSetCopy(st, row, said); }
   row.end ||= { phi: 0, theta: 0 };

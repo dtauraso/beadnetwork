@@ -73,6 +73,7 @@ function bSettle(st, keep, rows, said, was) {
   const bad = bOffTicks(st, rows);
   if (bad.length) {
     bRestore(keep);
+    bGrow(st);
     return `${said}: ${bad.join('; ')} — not whole ticks, so it stays at ${was}`;
   }
   bDone();

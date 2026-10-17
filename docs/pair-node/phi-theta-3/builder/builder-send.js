@@ -4,7 +4,7 @@ const bName = k => (k < 26 ? 'abcdefghijklmnopqrstuvwxyz'[k] : `n${k}`);
 const bNameAt = name => (name.length === 1 ? name.charCodeAt(0) - 97 : +name.slice(1));
 
 function bPack(k, v) {
-  if (['rowsOut', 'rowsIn', 'angles', 'gone'].includes(k)) return undefined;
+  if (['rowsOut', 'rowsIn', 'angles', 'gone', 'tree'].includes(k)) return undefined;
   if (v instanceof Set) return [...v];
   if (k === 'from' || k === 'to' || k === 'sender' || k === 'item') return v.name;
   if (k === 'via') return [v.from.name, v.to.name];
@@ -16,6 +16,7 @@ function bAddRow(st, row) {
   row.from.rowsOut.add(row);
   row.to.rowsIn.add(row);
   if (bKind(row) === 'angle') row.from.angles.add(row);
+  bGrow(st);
 }
 
 function bWire(st) {
@@ -35,6 +36,7 @@ function bWire(st) {
   st.rows.forEach(r => { if (!bFloat(r)) bLink(st, r); });
   st.item = by.get(st.item) || bFirst(st.nodes);
   st.made ??= 1 + Math.max(-1, ...[...by.keys()].map(bNameAt).filter(Number.isFinite));
+  bGrow(st);
 }
 
 const B_DATA = ['idx', 'start', 'end', 'base', 'ref', 'held', 'went', 'step'], B_SETS = ['rowsOut', 'rowsIn', 'angles'];
@@ -71,6 +73,7 @@ function bRefer(st, row) {
   bLetGo(n);
   n.sender = row.from;
   n.via = row;
+  bGrow(st);
 }
 
 function bLink(st, row) {
@@ -83,6 +86,7 @@ function bDropRow(st, row) {
   row.from.angles.delete(row);
   row.to.rowsIn.delete(row);
   st.rows.delete(row);
+  bGrow(st);
 }
 
 function bDropNode(st, n) {
@@ -124,7 +128,7 @@ function bRot(st, row, was, now) {
   return bThen(bThen(m, [x[0], y[0], z[0], x[1], y[1], z[1], x[2], y[2], z[2]]), bFlip(m));
 }
 
-const bCopies = (st, row) => [...row.from.rowsOut].filter(r => bKind(r) === 'copy' && bAuto(r) && bSib(st, r) === row);
+const bCopies = (st, row) => [...row.from.rowsOut].filter(r => bKind(r) === 'copy' && bSib(st, r) === row);
 const bAB = row => ({ row, a: row.from, b: row.to });
 const bAC = copy => ({ row: copy, a: copy.from, c: copy.to });
 const bBC = ac => (ac.c.via && ac.c.via !== ac.row ? { row: ac.c.via, b: ac.c.via.from, c: ac.c } : null);
@@ -132,6 +136,10 @@ const bBC = ac => (ac.c.via && ac.c.via !== ac.row ? { row: ac.c.via, b: ac.c.vi
 function bTree(st, row) {
   const acs = bCopies(st, row).map(bAC);
   return { pair: { ab: bAB(row), acs }, bcs: acs.map(bBC) };
+}
+
+function bGrow(st) {
+  st.rows.forEach(r => { r.tree = bTree(st, r); });
 }
 
 function bRound(st, ac, rot) {
@@ -148,8 +156,8 @@ function bTurnVia(st, bc, rot) {
 }
 
 function bCarry(st, copy, rot) {
-  const ac = bAC(copy);
-  if (bRound(st, ac, rot)) bTurnVia(st, bBC(ac), rot);
+  const tree = bSib(st, copy)?.tree, i = tree ? tree.pair.acs.findIndex(ac => ac.row === copy) : -1;
+  if (i >= 0 && bRound(st, tree.pair.acs[i], rot)) bTurnVia(st, tree.bcs[i], rot);
 }
 
 function bHead(st, ab) {
@@ -163,12 +171,13 @@ function bPair(st, pair, was) {
   const now = bHead(st, pair.ab);
   if (!was || !now) return [];
   return pair.acs.map(ac => {
+    if (!bAuto(ac.row)) return null;
     const rot = bRot(st, pair.ab.row, was, bStep(st, ac.row, was, now));
     return bRound(st, ac, rot) ? rot : null;
   });
 }
 
 function bMove(st, row, was) {
-  const tree = bTree(st, row);
+  const tree = row.tree;
   bPair(st, tree.pair, was).forEach((rot, i) => { if (rot) bTurnVia(st, tree.bcs[i], rot); });
 }
