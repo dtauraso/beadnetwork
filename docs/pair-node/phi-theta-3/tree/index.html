@@ -43,36 +43,38 @@
 
 <main>
   <div class="panel">
-    <svg viewBox="0 0 600 360" role="img" aria-label="Tree: root, then a→b, (a→b, a→c) and b→c, then a, b and c">
+    <svg viewBox="0 0 600 420" role="img" aria-label="Tree: root, then (a→b, a→c) and b→c, then a→b and a→c under (a→b, a→c), then a, b and c">
       <defs>
         <marker id="arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="7" markerHeight="7" orient="auto">
           <path class="head" d="M0 0 L10 5 L0 10 z"/>
         </marker>
       </defs>
-      <path class="edge" d="M300 58 L110 152"/>
-      <path class="edge" d="M300 58 L300 152"/>
-      <path class="edge" d="M300 58 L490 152"/>
+      <path class="edge" d="M300 58 L200 132"/>
+      <path class="edge" d="M300 58 L460 132"/>
 
-      <path class="edge" d="M110 188 L136 292"/>
-      <path class="edge" d="M110 188 L288 292"/>
+      <path class="edge" d="M200 168 L110 242"/>
+      <path class="edge" d="M200 168 L290 242"/>
 
-      <path class="edge" d="M300 188 Q205 225 150 292"/>
-      <path class="edge" d="M300 188 Q255 262 164 292"/>
-      <path class="edge" d="M300 188 L300 292"/>
-      <path class="edge" d="M300 188 L440 292"/>
+      <path class="edge" d="M110 278 L142 362"/>
+      <path class="edge" d="M110 278 L292 362"/>
 
-      <path class="edge" d="M490 188 L312 292"/>
-      <path class="edge" d="M490 188 L460 292"/>
+      <path class="edge" d="M290 278 L158 362"/>
+      <path class="edge" d="M290 278 L444 362"/>
+
+      <path class="edge" d="M460 168 L308 362"/>
+      <path class="edge" d="M460 168 L456 362"/>
 
       <rect class="box" x="255" y="22" width="90" height="36" rx="8"/><text x="300" y="40">root</text>
 
-      <rect class="box" x="65" y="152" width="90" height="36" rx="8"/><text x="110" y="170">a→b</text>
-      <rect class="box" x="230" y="152" width="140" height="36" rx="8"/><text x="300" y="170">(a→b, a→c)</text>
-      <rect class="box" x="445" y="152" width="90" height="36" rx="8"/><text x="490" y="170">b→c</text>
+      <rect class="box" x="130" y="132" width="140" height="36" rx="8"/><text x="200" y="150">(a→b, a→c)</text>
+      <rect class="box" x="415" y="132" width="90" height="36" rx="8"/><text x="460" y="150">b→c</text>
 
-      <rect class="box" x="128" y="292" width="44" height="36" rx="18"/><text x="150" y="310">a</text>
-      <rect class="box" x="278" y="292" width="44" height="36" rx="18"/><text x="300" y="310">b</text>
-      <rect class="box" x="428" y="292" width="44" height="36" rx="18"/><text x="450" y="310">c</text>
+      <rect class="box" x="65" y="242" width="90" height="36" rx="8"/><text x="110" y="260">a→b</text>
+      <rect class="box" x="245" y="242" width="90" height="36" rx="8"/><text x="290" y="260">a→c</text>
+
+      <rect class="box" x="128" y="362" width="44" height="36" rx="18"/><text x="150" y="380">a</text>
+      <rect class="box" x="278" y="362" width="44" height="36" rx="18"/><text x="300" y="380">b</text>
+      <rect class="box" x="428" y="362" width="44" height="36" rx="18"/><text x="450" y="380">c</text>
     </svg>
   </div>
 </main>
