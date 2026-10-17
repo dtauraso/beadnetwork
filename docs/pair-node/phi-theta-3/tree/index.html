@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pair node — a→b tree</title>
+<link rel="stylesheet" href="../../pair-base.css">
+<link rel="stylesheet" href="../../pair-layout.css">
+<style>
+  :root {
+    --bg: #fbfaf7; --ink: #1d1d1b; --muted: #6b6a66; --line: #e2ded5; --card: #ffffff; --wire: #8c887f;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #161614; --ink: #ecebe6; --muted: #a09e97; --line: #2f2e2a; --card: #1e1e1b; --wire: #77746c;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #161614; --ink: #ecebe6; --muted: #a09e97; --line: #2f2e2a; --card: #1e1e1b; --wire: #77746c;
+  }
+  body { font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: var(--bg); color: var(--ink); }
+  main { max-width: 760px; margin: 0 auto; padding: 24px 16px 48px; }
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
+  svg { width: 100%; height: auto; display: block; }
+  svg .edge { fill: none; stroke: var(--wire); stroke-width: 1.5; }
+  svg .box { fill: var(--card); stroke: var(--ink); stroke-width: 1.5; }
+  svg text { fill: var(--ink); font-size: 15px; text-anchor: middle; dominant-baseline: central; }
+  svg text.tag { fill: var(--muted); font-size: 12px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>The a→b tree</h1>
+  <div class="sub">Editing a→b, by the pairs each part of the move uses: a→b places b; (a→b, a→c) turns c round a; b→c has its frame turned. Below each group, the nodes it uses.</div>
+</header>
+
+<nav>
+  <a href="../../phi-2/index.html">Pair tabs</a>
+  <a href="../index.html">Three-node card</a>
+  <a href="../atob/index.html">a→b vectors</a>
+  <a href="../builder/index.html">a→b builder</a>
+  <a class="on" href="index.html">a→b tree</a>
+</nav>
+
+<main>
+  <div class="panel">
+    <svg viewBox="0 0 600 360" role="img" aria-label="Tree: root, then a→b, (a→b, a→c) and b→c, then a, b and c">
+      <path class="edge" d="M300 40 L110 170"/>
+      <path class="edge" d="M300 40 L300 170"/>
+      <path class="edge" d="M300 40 L490 170"/>
+
+      <path class="edge" d="M110 170 L150 310"/>
+      <path class="edge" d="M110 170 L300 310"/>
+
+      <path class="edge" d="M300 170 Q208 222 150 310"/>
+      <path class="edge" d="M300 170 Q242 258 150 310"/>
+      <text class="tag" x="206" y="206">a→b</text>
+      <text class="tag" x="216" y="298">a→c</text>
+      <path class="edge" d="M300 170 L300 310"/>
+      <path class="edge" d="M300 170 L450 310"/>
+
+      <path class="edge" d="M490 170 L300 310"/>
+      <path class="edge" d="M490 170 L450 310"/>
+
+      <rect class="box" x="255" y="22" width="90" height="36" rx="8"/><text x="300" y="40">root</text>
+
+      <rect class="box" x="65" y="152" width="90" height="36" rx="8"/><text x="110" y="170">a→b</text>
+      <rect class="box" x="230" y="152" width="140" height="36" rx="8"/><text x="300" y="170">(a→b, a→c)</text>
+      <rect class="box" x="445" y="152" width="90" height="36" rx="8"/><text x="490" y="170">b→c</text>
+
+      <rect class="box" x="128" y="292" width="44" height="36" rx="18"/><text x="150" y="310">a</text>
+      <rect class="box" x="278" y="292" width="44" height="36" rx="18"/><text x="300" y="310">b</text>
+      <rect class="box" x="428" y="292" width="44" height="36" rx="18"/><text x="450" y="310">c</text>
+    </svg>
+  </div>
+</main>
+</body>
+</html>
