@@ -11,7 +11,7 @@
 <body>
 <header>
   <h1>The a→b tree</h1>
-  <div class="sub">Editing a→b, by the pairs each part of the move uses, and the builder function that does each part (builder/builder-send.js). The pictures use the three-node example: a→b φ 2 θ 0 r 2, b→c φ 4 θ 0 r 2, a→c a copy, then a→b's φ set from 2 to 3.</div>
+  <div class="sub">Editing a→b, by the pairs each part of the move uses, and the builder function that does each part (builder/builder-send.js). The pictures use the three-node example: a→b φ 2 θ 0 r 2, b→c φ 4 θ 0 r 2, a→c a copy, then a→b's φ set from 2 to 3. Each box lists what that tree node holds after the edit, read from the builder's own tree; grey lines are what a node reads from the nodes under it.</div>
 </header>
 
 <nav>
@@ -39,39 +39,30 @@
   <div class="panel">
     <h2>root — <code>bMove(st, a→b, was)</code></h2>
     <svg class="subtree" data-top="root" role="img" aria-label="Subtree used: the whole tree"></svg>
-    <p>One call per a→b edit. It runs (a→b, a→c) first, which hands back each copy row whose c moved and the turn it moved by, then runs b→c once for each of those.</p>
-    <svg viewBox="0 0 600 330" role="img" aria-label="Calls made by bMove: bPair, which calls bHead then, per copy row, bStep, bRot and bRound; then bTurnVia per moved copy">
+    <p>One call per a→b edit, on a→b's own tree. It runs a→b first, which stores was and now in the a→b node and places b. Then, for each (a→b, a→c) node in the tree, it runs bPair, and when c moved, b→c with the same rot.</p>
+    <svg viewBox="0 0 600 330" role="img" aria-label="Calls made by bMove: bHead on the a→b node, then per (a→b, a→c) node bPair, which calls bStep, bRot and bRound, then bTurnVia on that pair's b→c node">
       <rect class="frame" x="10" y="10" width="580" height="310" rx="10"/>
       <text class="l" x="24" y="30">bMove — root</text>
 
-      <rect class="box" x="24" y="48" width="552" height="196" rx="8"/>
-      <text class="l" x="38" y="68">1  bPair — (a→b, a→c)</text>
+      <rect class="box" x="24" y="48" width="552" height="96" rx="8"/>
+      <text class="l" x="38" y="68">1  bHead — a→b</text>
+      <text class="l small muted" x="38" y="94">bRefer: a→b is the row placing b · bDir: now = a→b's φ, θ, r</text>
+      <text class="l small muted" x="38" y="114">bPut: b = a + frame × now</text>
+      <text class="l small now" x="38" y="134">stores was and now in the a→b node</text>
 
-      <rect class="frame" x="38" y="84" width="230" height="146" rx="8"/>
-      <text class="l" x="50" y="102">bHead — a→b</text>
-      <text class="l small muted" x="50" y="128">bRefer: a→b is the row placing b</text>
-      <text class="l small muted" x="50" y="150">bDir: now = a→b's φ, θ, r</text>
-      <text class="l small muted" x="50" y="172">bPut: b = a + frame × now</text>
-      <text class="l small now" x="50" y="204">returns now</text>
+      <path class="edge" d="M300 144 L300 160"/>
 
-      <path class="edge" d="M268 157 L290 157"/>
-
-      <rect class="loop" x="292" y="84" width="270" height="146" rx="8"/>
-      <text class="l" x="304" y="102">for each copy row a→c (bCopies)</text>
-      <text class="l small muted" x="304" y="128">bStep: was → now, or was ± own step</text>
-      <text class="l small muted" x="304" y="150">bRot: the turn rot from that change</text>
-      <text class="l small muted" x="304" y="172">bRound — a→c: c turned round a</text>
-      <text class="l small now" x="304" y="204">c moved → keep { a→c, rot }</text>
-
-      <path class="edge" d="M300 244 L300 262"/>
-
-      <rect class="box" x="24" y="264" width="552" height="44" rx="8"/>
-      <text class="l" x="38" y="286">2  for each kept { a→c, rot }: bTurnVia — b→c turns its frame by rot</text>
+      <rect class="loop" x="24" y="162" width="552" height="146" rx="8"/>
+      <text class="l" x="38" y="182">2  for each (a→b, a→c) node in the tree</text>
+      <text class="l small muted" x="38" y="208">bPair: reads was, now from a→b and the kind from a→c; a copy turns</text>
+      <text class="l small muted" x="38" y="228">bStep: was → now, or was ± its own step · bRot: rot from that change</text>
+      <text class="l small muted" x="38" y="248">stores rot in the a→c node · bRound — a→c: c turned round a</text>
+      <text class="l small now" x="38" y="276">c moved → bTurnVia — that pair's b→c turns its frame by rot</text>
     </svg>
   </div>
 
   <div class="panel">
-    <h2>a→b — <code>bHead(st, a→b)</code></h2>
+    <h2>a→b — <code>bHead(st, a→b node, was)</code></h2>
     <svg class="subtree" data-top="ab" role="img" aria-label="Subtree used: a→b, then a and b"></svg>
     <p>b goes to a + the a→b row's frame × (φ, θ, r). Setting φ from 2 to 3 swings b round a by one tick, 30° here (12 ticks a turn, s = 1).</p>
     <svg class="geo" viewBox="0 0 440 210" role="img" aria-label="a→b before at φ 2 and after at φ 3; b moves from b-was to b-now">
@@ -82,14 +73,14 @@
       <circle class="dot" cx="80" cy="120" r="6"/><text x="62" y="120">a</text>
       <circle class="dot-was" cx="218.6" cy="40" r="6"/><text class="muted" x="254" y="36">b was</text>
       <circle class="dot-now" cx="240" cy="120" r="6"/><text class="now" x="280" y="120">b now</text>
-      <text class="l small muted" x="24" y="186">writes: b.idx (and a→b becomes b's via)</text>
+      <text class="l small muted" x="24" y="186">writes: the a→b node's was, now; b.idx (and a→b becomes b's via)</text>
     </svg>
   </div>
 
   <div class="panel">
-    <h2>(a→b, a→c) — <code>bPair</code> building rot with <code>bStep</code> and <code>bRot</code></h2>
+    <h2>(a→b, a→c) — <code>bPair(st, (a→b, a→c) node)</code> building rot with <code>bStep</code> and <code>bRot</code></h2>
     <svg class="subtree" data-top="pair" role="img" aria-label="Subtree used: (a→b, a→c), then a→b and a→c, then a, b and c"></svg>
-    <p>The turn is read off a→b: whatever turned a→b from was to now is rot. With a→c's own step on, rot is built from was to was + sign(change) × step instead, per φ and θ.</p>
+    <p>The turn is read off a→b: bPair visits the a→b node for was and now, and whatever turned a→b from was to now is rot. Its own variables — base, ref, held, went, step, own step, automatic — are stored in this node. With own step on, rot is built from was to was + sign(change) × step instead, per φ and θ. rot is stored in the a→c node.</p>
     <svg class="geo" viewBox="0 0 440 300" role="img" aria-label="a→b turns 30° at a and a→c turns the same 30°, so the angle between them stays 30°">
       <path class="was" d="M80 120 L214 43"/><path class="was" d="M80 120 L351 120"/>
       <path class="is" d="M80 120 L234 120"/><path class="is" d="M80 120 L317 253"/>
@@ -122,9 +113,9 @@
   </div>
 
   <div class="panel">
-    <h2>a→c — <code>bRound(st, a→c, rot)</code></h2>
+    <h2>a→c — <code>bRound(st, a→c node)</code></h2>
     <svg class="subtree" data-top="ac" role="img" aria-label="Subtree used: a→c, then a and c"></svg>
-    <p>c = a + rot × (c − a). c moves on a circle round a, so |ac| stays the same. Only c moves here; b was already placed by a→b. If a or c has no position, nothing moves and b→c is skipped.</p>
+    <p>c = a + rot × (c − a), with rot read from the a→c node. c moves on a circle round a, so |ac| stays the same. Only c moves here; b was already placed by a→b. If a or c has no position, nothing moves and b→c is skipped.</p>
     <svg class="geo" viewBox="0 80 440 220" role="img" aria-label="c moves from c-was to c-now on a circle round a by rot; |ac| stays 1.73">
       <path class="was" d="M80 120 L351 120"/>
       <path class="is" d="M80 120 L317 253"/>
@@ -140,7 +131,7 @@
   </div>
 
   <div class="panel">
-    <h2>b→c — <code>bTurnVia(st, a→c, rot)</code></h2>
+    <h2>b→c — <code>bTurnVia(st, b→c node, rot)</code></h2>
     <svg class="subtree" data-top="bc" role="img" aria-label="Subtree used: b→c, then b and c"></svg>
     <p>The row that placed c, here b→c, keeps its φ 4, θ 0, r 2 and has its frame turned by rot instead. Read in the unturned frame, b→c now points at φ 5; in its turned frame it still reads φ 4, so the next time b→c places c it puts c where bRound did.</p>
     <svg class="geo" viewBox="0 0 440 300" role="img" aria-label="b→c before and after; its frame axes at b turn by rot">
@@ -164,15 +155,22 @@
     <table>
       <thead><tr><th>tree node</th><th>function</th><th>reads</th><th>writes</th></tr></thead>
       <tbody>
-        <tr><td>root</td><td>bMove</td><td>a→b, was</td><td>— (calls the others)</td></tr>
-        <tr><td>(a→b, a→c)</td><td>bPair, bStep, bRot</td><td>a→b's was, now and frame; each copy's own step</td><td>a copy's went (own step on)</td></tr>
-        <tr><td>a→b</td><td>bHead</td><td>a.idx, a's s, a→b's φ θ r and frame</td><td>b.idx, b's via</td></tr>
-        <tr><td>a→c</td><td>bRound</td><td>a.idx, c.idx, rot</td><td>c.idx</td></tr>
-        <tr><td>b→c</td><td>bTurnVia</td><td>c's via, its frame, rot</td><td>that row's turn</td></tr>
+        <tr><td>root</td><td>bMove</td><td>a→b's tree, was</td><td>— (calls the others)</td></tr>
+        <tr><td>(a→b, a→c)</td><td>bPair, bStep, bRot</td><td>the a→b node's was, now and row frame; the a→c node's kind; its own step, own step, automatic</td><td>its went (own step on); the a→c node's rot</td></tr>
+        <tr><td>a→b</td><td>bHead</td><td>a.idx, a's s, the a→b row's φ θ r and frame</td><td>its was and now; b.idx, b's via</td></tr>
+        <tr><td>a→c</td><td>bRound</td><td>a.idx, c.idx, its rot</td><td>c.idx</td></tr>
+        <tr><td>b→c</td><td>bTurnVia</td><td>its b→c row's frame, rot</td><td>that row's turn</td></tr>
       </tbody>
     </table>
   </div>
 </main>
+<script src="../atob/atob-draw.js"></script>
+<script src="../builder/builder-methods.js"></script>
+<script src="../builder/builder-grid.js"></script>
+<script src="../builder/builder-guides.js"></script>
+<script src="../builder/builder-kinds.js"></script>
+<script src="../builder/builder-tree.js"></script>
+<script src="../builder/builder-send.js"></script>
 <script src="tree.js"></script>
 </body>
 </html>
