@@ -1,0 +1,32 @@
+const T_WHY_EDITS = [
+  'Loading the example places a, b and c where they belong, and the three trees come out with the right kinds.',
+  'Changing a start moves b, and c after it, since c hangs off b. The a→c copy follows the turn through its (a→b, a→c) pair.',
+  'The same as φ, for θ, which turns about the other axis.',
+  'Changing the length moves b outward without turning anything.',
+  'With its own step on (φ 2 θ 1), the (a→b, a→c) pair moves c by that fixed step, not by the turn a→b made.',
+  'The own step stays in force on the next edit.',
+  'A new node and tree get placed, and a second copy row joins a\'s trees. A single a→b edit then drives both copies, a→c and a→d.',
+  'Both copies follow a θ change.',
+  'With automatic off, the a→d copy stays where it is while a→c still follows.',
+  'Applying the turn by hand (bCarry) moves d and turns c→d\'s frame by the same rotation, catching up what the last step held back.',
+  'Once a→c stops being a copy, c no longer follows a→b\'s turns.',
+  'Switching back re-seats a→c\'s pair, giving it a fresh base and reference.',
+  'Making a→b a base releases b from being placed by a→b (via cleared) and stores a→b\'s current view as the base.',
+  'Switching back reattaches a→b so it places b, and the next edit then moves b.',
+  'A start that is not a whole number is turned away, and nothing changes.',
+  'An edit further down the line, on a tree other than a→b, moves c (and d through c→d) without touching a or b.',
+  'The state is packed (bPack), reloaded and rewired (bWire), and comes back exactly the same: positions, vias, kinds and frames.',
+  'The reloaded trees still work: their links, pairs and back-links are rebuilt well enough for an edit to move things as the original did.',
+  'Dropping a tree takes it out of both nodes\' lists and its back-links out of the mirrored trees. If c was placed by b→c, c is let go.',
+  'The same for a→b: b loses its via, and the copies paired with a→b lose those pairs.',
+  'Dropping a node drops every tree into and out of it, and the remaining nodes stay as they were.',
+];
+
+const T_WHY_SAVES = [
+  'The directions the builder works out for each row start right.',
+  'The directions after one edit.',
+  'A save in the old format, from before the rows moved into the trees, still loads and gives the same directions.',
+  'An old save, once loaded, still edits correctly.',
+  'Repacking an old save in the new format loses nothing, and the directions still match the step before.',
+  'A save that went from the old format to the new one and back in still edits correctly.',
+];
