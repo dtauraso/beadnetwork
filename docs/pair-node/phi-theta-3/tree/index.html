@@ -114,6 +114,20 @@
   <div class="panel">
     <h2>(a→b, a→c) — <code>bPair</code> building rot with <code>bStep</code> and <code>bRot</code></h2>
     <p>The turn is read off a→b: whatever turned a→b from was to now is rot. With a→c's own step on, rot is built from was to was + sign(change) × step instead, per φ and θ.</p>
+    <svg class="geo" viewBox="0 0 440 300" role="img" aria-label="a→b turns 30° at a and a→c turns the same 30°, so the angle between them stays 30°">
+      <path class="was" d="M80 120 L214 43"/><path class="was" d="M80 120 L351 120"/>
+      <path class="is" d="M80 120 L234 120"/><path class="is" d="M80 120 L317 253"/>
+      <path class="arc" d="M196.9 52.5 A135 135 0 0 1 213 112"/><text class="l small turn" x="222" y="74">turn 30°</text>
+      <path class="arc" d="M330 120 A250 250 0 0 1 300 238"/><text class="small turn" x="350" y="186">turn 30°</text>
+      <path class="ang-was" d="M130 120 A50 50 0 0 0 123.3 95"/><text class="small muted" x="146" y="103">30°</text>
+      <path class="ang-now" d="M130 120 A50 50 0 0 1 123.3 145"/><text class="small now" x="146" y="138">30°</text>
+      <circle class="dot" cx="80" cy="120" r="6"/><text x="62" y="120">a</text>
+      <circle class="dot-was" cx="218.6" cy="40" r="6"/><text class="muted" x="254" y="36">b was</text>
+      <circle class="dot-now" cx="240" cy="120" r="6"/><text class="now" x="246" y="142">b now</text>
+      <circle class="dot-was" cx="357" cy="120" r="6"/><text class="muted" x="390" y="112">c was</text>
+      <circle class="dot-now" cx="320" cy="258.6" r="6"/><text class="now" x="320" y="282">c now</text>
+      <text class="l small muted" x="24" y="282">angle a→b to a→c: 30° before, 30° after</text>
+    </svg>
     <svg viewBox="0 0 600 200" role="img" aria-label="rot is built in three steps: spin θ back by θ was, tilt φ by the change, spin θ forward to θ now">
       <rect class="box" x="16" y="40" width="170" height="64" rx="8"/>
       <text x="101" y="62">spin θ back</text>

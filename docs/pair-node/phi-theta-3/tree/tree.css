@@ -40,6 +40,8 @@ svg .is { fill: none; stroke: var(--now); stroke-width: 2.5; marker-end: url(#ar
 svg .arc { fill: none; stroke: var(--turn); stroke-width: 2; marker-end: url(#arrow-turn); }
 svg .axis { fill: none; stroke: var(--turn); stroke-width: 1.5; marker-end: url(#arrow-turn); }
 svg .axis-was { fill: none; stroke: var(--muted); stroke-width: 1.5; marker-end: url(#arrow-was); }
+svg .ang-was { fill: none; stroke: var(--muted); stroke-width: 2; stroke-dasharray: 4 3; }
+svg .ang-now { fill: none; stroke: var(--now); stroke-width: 2; }
 svg .dot { fill: var(--ink); }
 svg .dot-was { fill: var(--card); stroke: var(--muted); stroke-width: 2; }
 svg .dot-now { fill: var(--now); }
