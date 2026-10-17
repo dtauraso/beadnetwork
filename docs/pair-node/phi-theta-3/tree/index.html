@@ -33,38 +33,12 @@
 
 <main>
   <div class="panel">
-    <svg viewBox="0 0 600 420" role="img" aria-label="Tree: root, then (a→b, a→c) and b→c, then a→b and a→c under (a→b, a→c), then a, b and c">
-      <path class="edge" d="M300 58 L200 132"/>
-      <path class="edge" d="M300 58 L460 132"/>
-
-      <path class="edge" d="M200 168 L110 242"/>
-      <path class="edge" d="M200 168 L290 242"/>
-
-      <path class="edge" d="M110 278 L142 362"/>
-      <path class="edge" d="M110 278 L292 362"/>
-
-      <path class="edge" d="M290 278 L158 362"/>
-      <path class="edge" d="M290 278 L444 362"/>
-
-      <path class="edge" d="M460 168 L308 362"/>
-      <path class="edge" d="M460 168 L456 362"/>
-
-      <rect class="box" x="255" y="22" width="90" height="36" rx="8"/><text x="300" y="40">root</text>
-
-      <rect class="box" x="130" y="132" width="140" height="36" rx="8"/><text x="200" y="150">(a→b, a→c)</text>
-      <rect class="box" x="415" y="132" width="90" height="36" rx="8"/><text x="460" y="150">b→c</text>
-
-      <rect class="box" x="65" y="242" width="90" height="36" rx="8"/><text x="110" y="260">a→b</text>
-      <rect class="box" x="245" y="242" width="90" height="36" rx="8"/><text x="290" y="260">a→c</text>
-
-      <rect class="box" x="128" y="362" width="44" height="36" rx="18"/><text x="150" y="380">a</text>
-      <rect class="box" x="278" y="362" width="44" height="36" rx="18"/><text x="300" y="380">b</text>
-      <rect class="box" x="428" y="362" width="44" height="36" rx="18"/><text x="450" y="380">c</text>
-    </svg>
+    <svg data-top="root" role="img" aria-label="Tree: root, then (a→b, a→c) and b→c, then a→b and a→c under (a→b, a→c), then a, b and c"></svg>
   </div>
 
   <div class="panel">
     <h2>root — <code>bMove(st, a→b, was)</code></h2>
+    <svg class="subtree" data-top="root" role="img" aria-label="Subtree used: the whole tree"></svg>
     <p>One call per a→b edit. It runs (a→b, a→c) first, which hands back each copy row whose c moved and the turn it moved by, then runs b→c once for each of those.</p>
     <svg viewBox="0 0 600 330" role="img" aria-label="Calls made by bMove: bPair, which calls bHead then, per copy row, bStep, bRot and bRound; then bTurnVia per moved copy">
       <rect class="frame" x="10" y="10" width="580" height="310" rx="10"/>
@@ -98,6 +72,7 @@
 
   <div class="panel">
     <h2>a→b — <code>bHead(st, a→b)</code></h2>
+    <svg class="subtree" data-top="ab" role="img" aria-label="Subtree used: a→b, then a and b"></svg>
     <p>b goes to a + the a→b row's frame × (φ, θ, r). Setting φ from 2 to 3 swings b round a by one tick, 30° here (12 ticks a turn, s = 1).</p>
     <svg class="geo" viewBox="0 0 440 210" role="img" aria-label="a→b before at φ 2 and after at φ 3; b moves from b-was to b-now">
       <path class="was" d="M80 120 L214 43"/>
@@ -113,6 +88,7 @@
 
   <div class="panel">
     <h2>(a→b, a→c) — <code>bPair</code> building rot with <code>bStep</code> and <code>bRot</code></h2>
+    <svg class="subtree" data-top="pair" role="img" aria-label="Subtree used: (a→b, a→c), then a→b and a→c, then a, b and c"></svg>
     <p>The turn is read off a→b: whatever turned a→b from was to now is rot. With a→c's own step on, rot is built from was to was + sign(change) × step instead, per φ and θ.</p>
     <svg class="geo" viewBox="0 0 440 300" role="img" aria-label="a→b turns 30° at a and a→c turns the same 30°, so the angle between them stays 30°">
       <path class="was" d="M80 120 L214 43"/><path class="was" d="M80 120 L351 120"/>
@@ -147,6 +123,7 @@
 
   <div class="panel">
     <h2>a→c — <code>bRound(st, a→c, rot)</code></h2>
+    <svg class="subtree" data-top="ac" role="img" aria-label="Subtree used: a→c, then a and c"></svg>
     <p>c = a + rot × (c − a). c moves on a circle round a, so |ac| stays the same. Only c moves here; b was already placed by a→b. If a or c has no position, nothing moves and b→c is skipped.</p>
     <svg class="geo" viewBox="0 80 440 220" role="img" aria-label="c moves from c-was to c-now on a circle round a by rot; |ac| stays 1.73">
       <path class="was" d="M80 120 L351 120"/>
@@ -164,6 +141,7 @@
 
   <div class="panel">
     <h2>b→c — <code>bTurnVia(st, a→c, rot)</code></h2>
+    <svg class="subtree" data-top="bc" role="img" aria-label="Subtree used: b→c, then b and c"></svg>
     <p>The row that placed c, here b→c, keeps its φ 4, θ 0, r 2 and has its frame turned by rot instead. Read in the unturned frame, b→c now points at φ 5; in its turned frame it still reads φ 4, so the next time b→c places c it puts c where bRound did.</p>
     <svg class="geo" viewBox="0 0 440 300" role="img" aria-label="b→c before and after; its frame axes at b turn by rot">
       <path class="was" d="M218.6 40 L353 117"/>
@@ -195,5 +173,6 @@
     </table>
   </div>
 </main>
+<script src="tree.js"></script>
 </body>
 </html>
