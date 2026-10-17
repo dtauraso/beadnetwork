@@ -13,6 +13,7 @@ p { margin: 0 0 8px; font-size: 14px; }
 details.check { border-top: 1px solid var(--line, #e2ded5); padding: 6px 0; }
 details.check summary { cursor: pointer; font-size: 14px; }
 .mark { font-weight: 700; }
+.why { display: block; margin: 2px 0 0 20px; font-size: 13px; opacity: 0.75; }
 .check.ok .mark { color: var(--ok); }
 .check.bad .mark { color: var(--bad); }
 .miss { color: var(--bad); font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; margin: 4px 0 0 20px; overflow-wrap: anywhere; }

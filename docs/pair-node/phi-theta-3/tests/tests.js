@@ -138,12 +138,13 @@ function tDirTable(want, got) {
   }))]);
 }
 
-function tShow(id, checks, tables) {
+function tShow(id, checks, whys, tables) {
   const box = document.getElementById(id);
   box.replaceChildren(...checks.map((c, i) => {
     const ok = !c.misses.length;
     return tEl('details', { className: ok ? 'check ok' : 'check bad', open: !ok }, [
-      tEl('summary', {}, [tEl('span', { className: 'mark', textContent: ok ? '✓' : '✗' }), ` ${i + 1}. ${c.say}`]),
+      tEl('summary', {}, [tEl('span', { className: 'mark', textContent: ok ? '✓' : '✗' }), ` ${i + 1}. ${c.say}`,
+        tEl('span', { className: 'why', textContent: whys[i] })]),
       ...c.misses.slice(0, 8).map(m => tEl('div', { className: 'miss', textContent: m })),
       ...tables(c).map(t => tEl('div', { className: 'table-wrap' }, [t])),
     ]);
@@ -152,8 +153,8 @@ function tShow(id, checks, tables) {
 }
 
 const tEdit = tCheckEdits(), tSave = tCheckSaves();
-const tOkEdit = tShow('edits', tEdit, c => [tNodeTable(c.want.nodes, c.got && c.got.nodes), tRowTable(c.want.rows, c.got && c.got.rows)]);
-const tOkSave = tShow('saves', tSave, c => [tDirTable(c.want, c.got)]);
+const tOkEdit = tShow('edits', tEdit, T_WHY_EDITS, c => [tNodeTable(c.want.nodes, c.got && c.got.nodes), tRowTable(c.want.rows, c.got && c.got.rows)]);
+const tOkSave = tShow('saves', tSave, T_WHY_SAVES, c => [tDirTable(c.want, c.got)]);
 const tAll = tOkEdit === tEdit.length && tOkSave === tSave.length;
 document.getElementById('summary').className = `summary ${tAll ? 'ok' : 'bad'}`;
 document.getElementById('summary').textContent = `${tOkEdit} of ${tEdit.length} edit steps and ${tOkSave} of ${tSave.length} save steps give what the builder gave at ${T_FROM}`;
