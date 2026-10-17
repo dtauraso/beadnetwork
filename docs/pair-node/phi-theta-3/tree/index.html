@@ -22,7 +22,8 @@
   main { max-width: 760px; margin: 0 auto; padding: 24px 16px 48px; }
   .panel { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
   svg { width: 100%; height: auto; display: block; }
-  svg .edge { fill: none; stroke: var(--wire); stroke-width: 1.5; }
+  svg .edge { fill: none; stroke: var(--wire); stroke-width: 1.5; marker-end: url(#arrow); }
+  svg .head { fill: var(--wire); }
   svg .box { fill: var(--card); stroke: var(--ink); stroke-width: 1.5; }
   svg text { fill: var(--ink); font-size: 15px; text-anchor: middle; dominant-baseline: central; }
   svg text.tag { fill: var(--muted); font-size: 12px; }
@@ -45,22 +46,27 @@
 <main>
   <div class="panel">
     <svg viewBox="0 0 600 360" role="img" aria-label="Tree: root, then a→b, (a→b, a→c) and b→c, then a, b and c">
-      <path class="edge" d="M300 40 L110 170"/>
-      <path class="edge" d="M300 40 L300 170"/>
-      <path class="edge" d="M300 40 L490 170"/>
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+          <path class="head" d="M0 0 L10 5 L0 10 z"/>
+        </marker>
+      </defs>
+      <path class="edge" d="M300 58 L110 152"/>
+      <path class="edge" d="M300 58 L300 152"/>
+      <path class="edge" d="M300 58 L490 152"/>
 
-      <path class="edge" d="M110 170 L150 310"/>
-      <path class="edge" d="M110 170 L300 310"/>
+      <path class="edge" d="M110 188 L136 292"/>
+      <path class="edge" d="M110 188 L288 292"/>
 
-      <path class="edge" d="M300 170 Q208 222 150 310"/>
-      <path class="edge" d="M300 170 Q242 258 150 310"/>
-      <text class="tag" x="206" y="206">a→b</text>
-      <text class="tag" x="216" y="298">a→c</text>
-      <path class="edge" d="M300 170 L300 310"/>
-      <path class="edge" d="M300 170 L450 310"/>
+      <path class="edge" d="M300 188 Q205 225 150 292"/>
+      <path class="edge" d="M300 188 Q255 262 164 292"/>
+      <text class="tag" x="208" y="208">a→b</text>
+      <text class="tag" x="232" y="290">a→c</text>
+      <path class="edge" d="M300 188 L300 292"/>
+      <path class="edge" d="M300 188 L440 292"/>
 
-      <path class="edge" d="M490 170 L300 310"/>
-      <path class="edge" d="M490 170 L450 310"/>
+      <path class="edge" d="M490 188 L312 292"/>
+      <path class="edge" d="M490 188 L460 292"/>
 
       <rect class="box" x="255" y="22" width="90" height="36" rx="8"/><text x="300" y="40">root</text>
 
