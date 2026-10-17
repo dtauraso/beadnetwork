@@ -14,9 +14,9 @@ function bCellPoints(st, rs) {
 }
 
 function bLinks(st) {
-  return bRowEnds(st).flatMap(({ row, P, T }) => [
-    { from: row.from, to: row.to, P, T, t: bDir(st, row), s: bS(st, row.from) },
-    { from: row.to, to: row.from, P: T, T: P, t: bBack(st, row), s: bS(st, row.to) },
+  return bRowEnds(st).flatMap(({ row, P, T, t }) => [
+    { from: row.from, to: row.to, P, T, t, s: bS(st, row.from) },
+    { from: row.to, to: row.from, P: T, T: P, t: bBack(st, row, t), s: bS(st, row.to) },
   ]);
 }
 
@@ -33,7 +33,7 @@ function bCellCorners(st, P, t, s) {
 }
 
 function bGlobalLines(st) {
-  const ends = new Map(bRowEnds(st).map(e => [e.row, e.T]));
+  const ends = new Map(bRowEnds(st).map(e => [e.ab, e.T]));
   return [...st.nodes].map(n => {
     const p = bNodePos(st, n) || ends.get(n.via);
     if (!p) return `${n.name} in O's frame: no position`;
