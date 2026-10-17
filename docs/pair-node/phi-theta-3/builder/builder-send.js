@@ -124,20 +124,42 @@ function bRot(st, row, was, now) {
   return bThen(bThen(m, [x[0], y[0], z[0], x[1], y[1], z[1], x[2], y[2], z[2]]), bFlip(m));
 }
 
-function bCarry(st, copy, rot) {
-  const P = bNodePos(st, copy.from), Q = bNodePos(st, copy.to), via = copy.to.via;
-  if (!P || !Q) return;
+function bRound(st, copy, rot) {
+  const P = bNodePos(st, copy.from), Q = bNodePos(st, copy.to);
+  if (!P || !Q) return false;
   bSetAt(st, copy.to, bAdd(P, bTimes(rot, bSub(Q, P))));
+  return true;
+}
+
+function bTurnVia(st, copy, rot) {
+  const via = copy.to.via;
   if (!via || via === copy) return;
   bSave(via);
   via.turn = { m: bThen(rot, bFrame(via)) };
 }
 
+function bCarry(st, copy, rot) {
+  if (bRound(st, copy, rot)) bTurnVia(st, copy, rot);
+}
+
 const bCopies = (st, row) => [...row.from.rowsOut].filter(r => bKind(r) === 'copy' && bAuto(r) && bSib(st, r) === row);
 
-function bMove(st, row, was) {
+function bHead(st, row) {
   bRefer(st, row);
   const now = bDir(st, row);
   bPut(st, row);
-  if (was && now) bCopies(st, row).forEach(r => bCarry(st, r, bRot(st, row, was, bStep(st, r, was, now))));
+  return now;
+}
+
+function bPair(st, row, was) {
+  const now = bHead(st, row);
+  if (!was || !now) return [];
+  return bCopies(st, row).flatMap(copy => {
+    const rot = bRot(st, row, was, bStep(st, copy, was, now));
+    return bRound(st, copy, rot) ? [{ copy, rot }] : [];
+  });
+}
+
+function bMove(st, row, was) {
+  bPair(st, row, was).forEach(({ copy, rot }) => bTurnVia(st, copy, rot));
 }
