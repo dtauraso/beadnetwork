@@ -39,7 +39,7 @@ function bVec(st, s, t) {
 }
 
 function bRowVectors(st, node) {
-  return [...node.rowsIn].filter(r => bDir(st, r)).map(r => {
+  return bIn(st, node).filter(r => bDir(st, r)).map(r => {
     const t = bDir(st, r);
     return { from: r.from, row: r, t, d: bVec(st, bS(st, r.from), t) };
   });

@@ -19,7 +19,7 @@ function bDrawAxes(draw, ctx, css, P, L, named) {
 }
 
 function bRowEnds(st) {
-  return [...st.rows].map(row => {
+  return bRows(st).map(row => {
     const P = bNodePos(st, row.from), t = bDir(st, row);
     if (!P || !t) return null;
     const d = bVec(st, bS(st, row.from), t);
@@ -28,12 +28,12 @@ function bRowEnds(st) {
 }
 
 function bPreset() {
-  const a = bMake({ name: 'a', s: 1, known: true, idx: { r: 2, phi: 3, theta: 0 } });
-  const b = bMake({ name: 'b', s: 1, known: true, idx: { r: 0, phi: 0, theta: 0 } });
-  const c = bMake({ name: 'c', s: 1, known: true, idx: { r: 0, phi: 0, theta: 0 } });
+  const a = { name: 'a', s: 1, known: true, idx: { r: 2, phi: 3, theta: 0 } };
+  const b = { name: 'b', s: 1, known: true, idx: { r: 0, phi: 0, theta: 0 } };
+  const c = { name: 'c', s: 1, known: true, idx: { r: 0, phi: 0, theta: 0 } };
   const p = {
     s: 1, rho: 0.5, Tphi: 12, Ttheta: 12, cr: 0.5,
-    nodes: new Set([a, b, c]), rows: new Set(), made: 3,
+    nodes: new Set([a, b, c]), trees: new Set(), made: 3,
     item: c, on: { atob: true, pair: true }, step: 1,
   };
   const rows = [
@@ -73,7 +73,6 @@ function bSettle(st, keep, rows, said, was) {
   const bad = bOffTicks(st, rows);
   if (bad.length) {
     bRestore(keep);
-    bGrow(st);
     return `${said}: ${bad.join('; ')} — not whole ticks, so it stays at ${was}`;
   }
   bDone();
@@ -102,8 +101,8 @@ function bSetS(st, node, value) {
   const keep = bKeep(), k = value / was;
   bSave(node);
   node.s = value;
-  const rows = [...node.rowsOut, ...node.rowsIn];
-  node.rowsOut.forEach(r => {
+  const rows = [...bOut(st, node), ...bIn(st, node)];
+  bOut(st, node).forEach(r => {
     bSave(r);
     r.start = { ...r.start, phi: r.start.phi * k, theta: r.start.theta * k };
     r.end = { phi: r.end.phi * k, theta: r.end.theta * k };
