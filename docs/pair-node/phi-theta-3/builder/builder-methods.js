@@ -39,7 +39,7 @@ function bVec(st, s, t) {
 }
 
 function bRowVectors(st, node) {
-  return bIn(st, node).flatMap(r => bDirs(st, r).map(({ t }) => ({ from: r.from, row: r, t, d: bVec(st, bS(st, r.from), t) })));
+  return node.in.flatMap(tree => bDirs(st, tree).map(({ t }) => ({ from: tree.ab.a, row: tree.ab.row, t, d: bVec(st, bS(st, tree.ab.a), t) })));
 }
 
 function bVectorStep(rows, item) {

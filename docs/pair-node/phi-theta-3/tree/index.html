@@ -37,9 +37,9 @@
   </div>
 
   <div class="panel">
-    <h2>root — <code>bMove(st, a→b, was)</code></h2>
+    <h2>root — <code>bMove(st, a→b's tree, was)</code></h2>
     <svg class="subtree" data-top="root" role="img" aria-label="Subtree used: the whole tree"></svg>
-    <p>One call per a→b edit, on a→b's own tree. It runs a→b first, which stores was and now in the a→b node and places b. Then, for each (a→b, a→c) node in the tree, it runs bPair, and when c moved, b→c with the same rot.</p>
+    <p>One call per a→b edit, on a→b's own tree: every edit in the builder is handed a tree, not a row. It runs the tree's a→b node first, which stores was and now there and places b. Then, for each root of the tree — one per (a→b, a→c) combination, holding that combination's node and its b→c node — it runs bPair, and when c moved, bTurnVia on that root's b→c node with the same rot. Each root also links back to its mirror, the (a→c, a→b) root in a→c's tree, which is how a copy's own tree reaches the pair nodes that rotate it.</p>
     <svg viewBox="0 0 600 330" role="img" aria-label="Calls made by bMove: bHead on the a→b node, then per (a→b, a→c) node bPair, which calls bStep, bRot and bRound, then bTurnVia on that pair's b→c node">
       <rect class="frame" x="10" y="10" width="580" height="310" rx="10"/>
       <text class="l" x="24" y="30">bMove — root</text>
@@ -53,11 +53,11 @@
       <path class="edge" d="M300 144 L300 160"/>
 
       <rect class="loop" x="24" y="162" width="552" height="146" rx="8"/>
-      <text class="l" x="38" y="182">2  for each (a→b, a→c) node in the tree</text>
+      <text class="l" x="38" y="182">2  for each root of the tree: its (a→b, a→c) node and b→c node</text>
       <text class="l small muted" x="38" y="208">bPair: reads was, now from a→b and the kind from a→c; a copy turns</text>
       <text class="l small muted" x="38" y="228">bStep: was → now, or was ± its own step · bRot: rot from that change</text>
       <text class="l small muted" x="38" y="248">stores rot in the a→c node · bRound — a→c: c turned round a</text>
-      <text class="l small now" x="38" y="276">c moved → bTurnVia — that pair's b→c turns its frame by rot</text>
+      <text class="l small now" x="38" y="276">c moved → bTurnVia — that root's b→c turns its frame by rot</text>
     </svg>
   </div>
 
@@ -73,7 +73,7 @@
       <circle class="dot" cx="80" cy="120" r="6"/><text x="62" y="120">a</text>
       <circle class="dot-was" cx="218.6" cy="40" r="6"/><text class="muted" x="254" y="36">b was</text>
       <circle class="dot-now" cx="240" cy="120" r="6"/><text class="now" x="280" y="120">b now</text>
-      <text class="l small muted" x="24" y="186">writes: the a→b node's was, now; b.idx (and a→b becomes b's via)</text>
+      <text class="l small muted" x="24" y="186">writes: the a→b node's was, now; b.idx (and the a→b node becomes b's via)</text>
     </svg>
   </div>
 
@@ -157,7 +157,7 @@
       <tbody>
         <tr><td>root</td><td>bMove</td><td>a→b's tree, was</td><td>— (calls the others)</td></tr>
         <tr><td>(a→b, a→c)</td><td>bPair, bStep, bRot</td><td>the a→b node's was, now and row frame; the a→c node's kind; its own step, own step, automatic</td><td>its went (own step on); the a→c node's rot</td></tr>
-        <tr><td>a→b</td><td>bHead</td><td>a.idx, a's s, the a→b row's φ θ r and frame</td><td>its was and now; b.idx, b's via</td></tr>
+        <tr><td>a→b</td><td>bHead</td><td>a.idx, a's s, the a→b row's φ θ r and frame</td><td>its was and now; b.idx, b's via (this node)</td></tr>
         <tr><td>a→c</td><td>bRound</td><td>a.idx, c.idx, its rot</td><td>c.idx</td></tr>
         <tr><td>b→c</td><td>bTurnVia</td><td>its b→c row's frame, rot</td><td>that row's turn</td></tr>
       </tbody>

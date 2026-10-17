@@ -12,21 +12,21 @@ const T_LEVELS = [['root'], ['pair', 'bc'], ['ab', 'ac'], ['a', 'b', 'c']];
 const T_HEAD = 30, T_LINE = 17, T_CH = 7.2, T_GX = 18, T_GY = 44;
 
 function tData() {
-  const st = bPreset(), [ab, bc, ac] = bRows(st);
-  bSetStart(st, ab, 'phi', 3);
-  const t = ab.tree, p = t.pairs.find(q => q.ac.row === ac), [a, b, c] = [...st.nodes];
+  const st = bPreset(), [t, tbc, tac] = [...st.trees];
+  bSetStart(st, t, 'phi', 3);
+  const [ab, bc, ac] = [t, tbc, tac].map(x => x.ab.row), root = t.roots[0], p = root.pair, [a, b, c] = [...st.nodes];
   const sym = { phi: 'φ', theta: 'θ', r: 'r' };
   const pt = (name, o, ks = ['phi', 'theta', 'r']) => `${name} ${ks.filter(k => k in o).map(k => `${sym[k]} ${bN(o[k])}`).join(' ')}`;
   const mat = m => [0, 3, 6].map(i => `  ${m.slice(i, i + 3).map(bF).join('  ')}`);
   const row = r => `row ${r.from.name}→${r.to.name} · ${bKind(r)}`;
   const idx = n => [pt('idx', n.idx, ['r', 'phi', 'theta'])];
   return {
-    root: ['ab → the a→b node', 'pairs → (a→b, a→c)', 'bcs → b→c'],
+    root: ['pair → (a→b, a→c)', 'bc → b→c', 'back → (a→c, a→b) in a→c\'s tree'],
     ab: [row(ab), pt('start', ab.start), pt('end', ab.end), pt('was', t.ab.was), pt('now', t.ab.now)],
     ac: [row(ac), pt('start', ac.start), 'rot', ...mat(p.ac.rot)],
     pair: [pt('base', p.base), pt('ref', p.ref), pt('held', p.held), pt('went', p.went), pt('step', p.step),
       `own step ${p.mine ? 'on' : 'off'}`, `automatic ${bAuto(p) ? 'on' : 'off'}`, '~reads a→b: was, now', '~reads a→c: kind'],
-    bc: [row(t.bcs[t.pairs.indexOf(p)].row), pt('start', bc.start), pt('end', bc.end), 'turn', ...mat(bc.turn.m)],
+    bc: [row(root.bc.row), pt('start', bc.start), pt('end', bc.end), 'turn', ...mat(bc.turn.m)],
     a: idx(a), b: idx(b), c: idx(c),
   };
 }

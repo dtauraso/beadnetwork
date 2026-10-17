@@ -19,18 +19,18 @@ function bDrawAxes(draw, ctx, css, P, L, named) {
 }
 
 function bRowEnds(st) {
-  return bRows(st).flatMap(row => bDirs(st, row).map(({ t }) => {
-    const P = bNodePos(st, row.from);
+  return [...st.trees].flatMap(tree => bDirs(st, tree).map(({ t }) => {
+    const { ab } = tree, row = ab.row, P = bNodePos(st, ab.a);
     if (!P) return null;
-    const d = bVec(st, bS(st, row.from), t);
-    return { row, P, d, t, T: bNodePos(st, row.to) || bAdd(P, d) };
+    const d = bVec(st, bS(st, ab.a), t);
+    return { ab, row, P, d, t, T: bNodePos(st, ab.b) || bAdd(P, d) };
   })).filter(Boolean);
 }
 
 function bPreset() {
-  const a = { name: 'a', s: 1, known: true, idx: { r: 2, phi: 3, theta: 0 } };
-  const b = { name: 'b', s: 1, known: true, idx: { r: 0, phi: 0, theta: 0 } };
-  const c = { name: 'c', s: 1, known: true, idx: { r: 0, phi: 0, theta: 0 } };
+  const a = bMake({ name: 'a', s: 1, known: true, idx: { r: 2, phi: 3, theta: 0 } });
+  const b = bMake({ name: 'b', s: 1, known: true, idx: { r: 0, phi: 0, theta: 0 } });
+  const c = bMake({ name: 'c', s: 1, known: true, idx: { r: 0, phi: 0, theta: 0 } });
   const p = {
     s: 1, rho: 0.5, Tphi: 12, Ttheta: 12, cr: 0.5,
     nodes: new Set([a, b, c]), trees: new Set(), made: 3,
@@ -41,9 +41,10 @@ function bPreset() {
     { from: b, to: c, kind: 'angle', start: { phi: 4, theta: 0, r: 2 }, end: { phi: 0, theta: 0 } },
     { from: a, to: c, kind: 'copy', start: { phi: 0, theta: 0, r: 0 }, end: { phi: 0, theta: 0 } },
   ];
-  rows.forEach(r => bAddRow(p, r));
-  rows.slice(0, 2).forEach(r => bMove(p, r));
-  bSetCopy(p, rows[2], '');
+  const [ab, bc, ac] = rows.map(r => bAddTree(p, r));
+  bMove(p, ab);
+  bMove(p, bc);
+  bSetCopy(p, ac, '');
   return p;
 }
 
@@ -59,8 +60,8 @@ function bView(st, row) {
   return { phi, theta, r: len / st.rho };
 }
 
-function bOffTicks(st, rows) {
-  return rows.filter(r => !bFloat(r)).flatMap(r => {
+function bOffTicks(st, trees) {
+  return trees.map(t => t.ab.row).filter(r => !bFloat(r)).flatMap(r => {
     const a = bDir(st, r), b = bBack(st, r), out = [], own = bKind(r) === 'change';
     const ends = own ? `, own φ ${bF(r.end.phi)}, own θ ${bF(r.end.theta)}` : '';
     if (![a.phi, a.theta, a.r, ...(own ? [r.end.phi, r.end.theta] : [])].every(bWhole)) out.push(`${r.from.name}→${r.to.name} at ${r.from.name} (s ${bS(st, r.from)}) would be φ ${bF(a.phi)}, θ ${bF(a.theta)}, r ${bF(a.r)}${ends}`);
@@ -69,14 +70,14 @@ function bOffTicks(st, rows) {
   });
 }
 
-function bSettle(st, keep, rows, said, was) {
-  const bad = bOffTicks(st, rows);
+function bSettle(st, keep, trees, said, was) {
+  const bad = bOffTicks(st, trees);
   if (bad.length) {
     bRestore(keep);
     return `${said}: ${bad.join('; ')} — not whole ticks, so it stays at ${was}`;
   }
   bDone();
-  rows.filter(r => !bFloat(r)).forEach(r => {
+  trees.map(t => t.ab.row).filter(r => !bFloat(r)).forEach(r => {
     const w = t => bWrap(bS(st, r.from), Math.round(t));
     r.start = { phi: w(r.start.phi), theta: w(r.start.theta), r: Math.round(r.start.r) };
     r.end = { phi: w(r.end.phi), theta: w(r.end.theta) };
@@ -84,15 +85,16 @@ function bSettle(st, keep, rows, said, was) {
   return '';
 }
 
-function bSetStart(st, row, k, value, part = 'start') {
-  const was = bN(row[part][k]), said = `${row.from.name}→${row.to.name} ${part === 'end' ? 'own ' : ''}${{ phi: 'φ', theta: 'θ', r: 'r' }[k]} ${bN(value)}`;
+function bSetStart(st, tree, k, value, part = 'start') {
+  const { row, a, b } = tree.ab;
+  const was = bN(row[part][k]), said = `${a.name}→${b.name} ${part === 'end' ? 'own ' : ''}${{ phi: 'φ', theta: 'θ', r: 'r' }[k]} ${bN(value)}`;
   if (!bWhole(value)) return `${said}: not a whole number, so it stays at ${was}`;
   const keep = bKeep();
   bSave(row);
   const turning = bDir(st, row) && { ...bDir(st, row) };
   row[part][k] = value;
-  bMove(st, row, turning);
-  return bSettle(st, keep, [row], said, was);
+  bMove(st, tree, turning);
+  return bSettle(st, keep, [tree], said, was);
 }
 
 function bSetS(st, node, value) {
@@ -101,19 +103,20 @@ function bSetS(st, node, value) {
   const keep = bKeep(), k = value / was;
   bSave(node);
   node.s = value;
-  const rows = [...bOut(st, node), ...bIn(st, node)];
-  bOut(st, node).forEach(r => {
+  const trees = [...node.out, ...node.in];
+  node.out.forEach(t => {
+    const r = t.ab.row;
     bSave(r);
     r.start = { ...r.start, phi: r.start.phi * k, theta: r.start.theta * k };
     r.end = { phi: r.end.phi * k, theta: r.end.theta * k };
     if (r.base) r.base = { ...r.base, phi: r.base.phi * k, theta: r.base.theta * k };
-    r.tree.pairs.forEach(p => {
+    t.roots.forEach(({ pair: p }) => {
       bSave(p);
       if (p.base) p.base = { ...p.base, phi: p.base.phi * k, theta: p.base.theta * k };
       if (p.ref) p.ref = { phi: p.ref.phi * k, theta: p.ref.theta * k };
     });
   });
-  return bSettle(st, keep, rows, said, was);
+  return bSettle(st, keep, trees, said, was);
 }
 
 function bDrawGuides(st, draw, ctx, css, points) {

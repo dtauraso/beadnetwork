@@ -33,7 +33,7 @@ function bCellCorners(st, P, t, s) {
 }
 
 function bGlobalLines(st) {
-  const ends = new Map(bRowEnds(st).map(e => [e.row, e.T]));
+  const ends = new Map(bRowEnds(st).map(e => [e.ab, e.T]));
   return [...st.nodes].map(n => {
     const p = bNodePos(st, n) || ends.get(n.via);
     if (!p) return `${n.name} in O's frame: no position`;

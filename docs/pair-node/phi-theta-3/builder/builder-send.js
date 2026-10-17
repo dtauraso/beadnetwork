@@ -3,48 +3,49 @@ const bName = k => (k < 26 ? 'abcdefghijklmnopqrstuvwxyz'[k] : `n${k}`);
 const bNameAt = name => (name.length === 1 ? name.charCodeAt(0) - 97 : +name.slice(1));
 
 function bPack(k, v) {
-  if (['gone', 'tree'].includes(k)) return undefined;
+  if (['gone', 'out', 'in'].includes(k)) return undefined;
   if (k === 'trees') {
     const vars = p => Object.fromEntries(B_PAIR.filter(x => x in p).map(x => [x, p[x]]));
-    return [...v].map(t => ({ ...t.ab.row, pairs: t.pairs.map(p => ({ with: p.ac.c.name, ...vars(p) })) }));
+    return [...v].map(t => ({ ...t.ab.row, pairs: t.roots.map(({ pair }) => ({ with: pair.ac.c.name, ...vars(pair) })) }));
   }
   if (v instanceof Set) return [...v];
   if (k === 'from' || k === 'to' || k === 'sender' || k === 'item') return v.name;
-  if (k === 'via') return [v.from.name, v.to.name];
+  if (k === 'via') return [v.a.name, v.b.name];
   return v;
 }
 
-function bOldPairs(st, r) {
-  const sib = bOut(st, r.from).find(x => bKind(x) === 'angle');
-  const p = sib && sib.tree.pairs.find(q => q.ac.row === r);
-  if (p) B_PAIR.filter(x => x in r).forEach(x => { p[x] = r[x]; });
-  B_PAIR.forEach(x => delete r[x]);
+function bOldPairs(t) {
+  const r = t.ab.row, x = t.roots.find(({ back }) => bKind(back.tree.ab.row) === 'angle');
+  if (x) B_PAIR.filter(k => k in r).forEach(k => { x.back.pair[k] = r[k]; });
+  B_PAIR.forEach(k => delete r[k]);
 }
 
 function bWire(st) {
-  const by = new Map(st.nodes.map(n => [n.name, n])), rows = st.trees || st.rows, via = new Map(), saved = new Map();
+  const by = new Map(st.nodes.map(n => [n.name, bMake(n)])), rows = st.trees || st.rows, abs = new Map(), saved = new Map();
   st.nodes = new Set(by.values());
   st.trees = new Set();
   delete st.rows;
   rows.forEach(r => {
-    const key = `${r.from}→${r.to}`;
+    const key = `${r.from}→${r.to}`, ps = r.pairs;
     r.from = by.get(r.from); r.to = by.get(r.to);
-    saved.set(r, r.pairs); delete r.pairs;
-    if (r.from && r.to) { bAddRow(st, r); via.set(key, r); }
+    delete r.pairs;
+    if (!r.from || !r.to) return;
+    const t = bAddTree(st, r);
+    abs.set(key, t.ab);
+    saved.set(t, ps || []);
   });
   st.nodes.forEach(n => {
-    const from = n.sender && by.get(n.sender), row = n.via && via.get(n.via.join('→'));
+    const from = n.sender && by.get(n.sender), ab = n.via && abs.get(n.via.join('→'));
     delete n.ref; delete n.sender; delete n.via;
-    if (from && row && row.to === n && row.from === from) { n.sender = from; n.via = row; }
+    if (from && ab && ab.b === n && ab.a === from) { n.sender = from; n.via = ab; }
     bRelink(st, n);
   });
-  bRows(st).forEach(r => {
-    const ps = saved.get(r);
-    if (ps) ps.forEach(w => Object.assign(r.tree.pairs.find(p => p.ac.c.name === w.with) || {}, w, { with: undefined }));
-    r.tree.pairs.forEach(p => delete p.with);
-  });
-  bRows(st).forEach(r => { if (bKind(r) === 'copy' && r.ref) bOldPairs(st, r); B_PAIR.filter(x => x !== 'base').forEach(x => delete r[x]); });
-  bRows(st).forEach(r => { if (!bFloat(r)) bLink(st, r); });
+  saved.forEach((ps, t) => ps.forEach(({ with: c, ...w }) => {
+    const x = t.roots.find(({ pair }) => pair.ac.c.name === c);
+    if (x) Object.assign(x.pair, w);
+  }));
+  st.trees.forEach(t => { if (bKind(t.ab.row) === 'copy' && t.ab.row.ref) bOldPairs(t); B_PAIR.filter(k => k !== 'base').forEach(k => delete t.ab.row[k]); });
+  st.trees.forEach(t => { if (!bFloat(t.ab.row)) bLink(st, t.ab); });
   st.item = by.get(st.item) || bFirst(st.nodes);
   st.made ??= 1 + Math.max(-1, ...[...by.keys()].map(bNameAt).filter(Number.isFinite));
 }
@@ -77,21 +78,21 @@ function bLetGo(st, n) {
   bRelink(st, n);
 }
 
-function bRefer(st, row) {
-  const n = row.to;
-  if (bFloat(row) || n.via === row) return;
+function bRefer(st, ab) {
+  const n = ab.b;
+  if (bFloat(ab.row) || n.via === ab) return;
   bLetGo(st, n);
-  n.sender = row.from;
-  n.via = row;
+  n.sender = ab.a;
+  n.via = ab;
   bRelink(st, n);
 }
 
-function bLink(st, row) {
-  if (!row.to.sender) bRefer(st, row);
+function bLink(st, ab) {
+  if (!ab.b.sender) bRefer(st, ab);
 }
 
 function bDropNode(st, n) {
-  [...bOut(st, n), ...bIn(st, n)].forEach(r => bDropRow(st, r));
+  [...n.out, ...n.in].forEach(t => bDropTree(st, t));
   st.nodes.delete(n);
   n.gone = true;
   if (st.item === n) st.item = bFirst(st.nodes);
@@ -142,15 +143,14 @@ function bTurnVia(st, bc, rot) {
   bc.row.turn = { m: bThen(rot, bFrame(bc.row)) };
 }
 
-function bCarry(st, p, rot) {
-  const tree = p.ab.row.tree;
-  p.ac.rot = rot;
-  if (bRound(st, p.ac)) bTurnVia(st, tree.bcs[tree.pairs.indexOf(p)], rot);
+function bCarry(st, root, rot) {
+  root.pair.ac.rot = rot;
+  if (bRound(st, root.pair.ac)) bTurnVia(st, root.bc, rot);
 }
 
 function bHead(st, ab, was) {
   ab.was = was;
-  bRefer(st, ab.row);
+  bRefer(st, ab);
   ab.now = bDir(st, ab.row);
   bPut(st, ab.row);
 }
@@ -162,8 +162,7 @@ function bPair(st, p) {
   return bRound(st, p.ac) ? p.ac.rot : null;
 }
 
-function bMove(st, row, was) {
-  const tree = row.tree;
+function bMove(st, tree, was) {
   bHead(st, tree.ab, was);
-  tree.pairs.forEach((p, i) => { const rot = bPair(st, p); if (rot) bTurnVia(st, tree.bcs[i], rot); });
+  tree.roots.forEach(({ pair, bc }) => { const rot = bPair(st, pair); if (rot) bTurnVia(st, bc, rot); });
 }
