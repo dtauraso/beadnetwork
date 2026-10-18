@@ -1,8 +1,13 @@
 const B_SEQS = 'pair-builder-seqs-v1';
 
 function bSeqBook() {
-  try { const b = JSON.parse(localStorage.getItem(B_SEQS)); if (b && b.seqs.length && b.seqs[b.at]) return b; } catch { }
+  try { const b = JSON.parse(localStorage.getItem(B_SEQS)); if (b && b.seqs.length && b.seqs[b.at]) return bSeqNumber(b); } catch { }
   return { seqs: [{ name: 'sequence 1' }], at: 0 };
+}
+
+function bSeqNumber(book) {
+  book.seqs.forEach((q, i) => { if (/^sequence \d+$/.test(q.name)) q.name = `sequence ${i + 1}`; });
+  return book;
 }
 
 function bSeqKeep(book, st) {
@@ -20,7 +25,7 @@ function bSeqPicker(book, h, open) {
   del.onclick = () => {
     if (!confirm(`delete ${book.seqs[book.at].name}?`)) return;
     book.seqs.splice(book.at, 1);
-    book.seqs.forEach((q, i) => { if (/^sequence \d+$/.test(q.name)) q.name = `sequence ${i + 1}`; });
+    bSeqNumber(book);
     go(Math.max(0, book.at - 1));
   };
   return h('div', { className: 'row' }, [h('label', {}, ['sequence ', pick]), add, del]);
