@@ -160,7 +160,22 @@ function bSecondBase(st, n, h, table) {
 function bSteps(h, steps) {
   const step = (i, kids, head = [], cls = '') => h('li', { className: cls }, [h('div', { className: 'dot', textContent: `${i + 1}` }),
     h('div', { className: 'body' }, [h('div', { className: 'step' }, [h('span', { textContent: `step ${i + 1}${kids.length ? '' : ' — empty'}` }), ...head]), ...kids])]);
-  return h('ol', { className: 'seq' }, [...steps.map(({ body, head }, i) => step(i, [body], head)), step(steps.length, [], [], 'next')]);
+  return h('ol', { className: 'seq' }, [...steps.map(({ body, head }, i) => step(i, [].concat(body), head)), step(steps.length, [], [], 'next')]);
+}
+
+function bStepNodes(st, h) {
+  const ns = [...st.nodes].filter(n => n.out.length || n.in.length);
+  const items = ns.map(n => {
+    const at = n.known ? [['I_r', 'r'], ['I_φ', 'phi'], ['I_θ', 'theta']].map(([k, x]) => [k, bN(n.idx[x])]) : [['position', 'none']];
+    const c = bNodePos(st, n), toward = [...n.out.flatMap(t => bDirs(st, t).map(({ t: d }) => [t.ab.b.name, d])),
+      ...n.in.flatMap(t => bDirs(st, t).map(({ t: d }) => [t.ab.a.name, bBack(st, t.ab.row, d)]))];
+    const attrs = [['s', `${bS(st, n)} (${12 * bS(st, n)} ticks a turn)`], ...at, ...(c ? [['C', `(${c.map(bF).join(', ')})`]] : []),
+      ...toward.map(([o, d]) => [`toward ${o}`, `φ ${bN(d.phi)} θ ${bN(d.theta)} r ${bN(d.r)}`])];
+    return h('li', {}, [h('div', { className: 'row' }, [h('span', { className: 't', textContent: n.name })]),
+      h('ul', { className: 'attrs' }, attrs.map(([k, v]) => h('li', {}, [h('span', { className: 'k', textContent: k }), v])))]);
+  });
+  return [h('div', { className: 'part', textContent: 'nodes' }),
+    items.length ? h('ul', { className: 'abs' }, items) : h('div', { className: 'hint', textContent: 'no nodes' })];
 }
 
 function bLands(st, h) {
