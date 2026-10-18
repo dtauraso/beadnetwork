@@ -121,11 +121,12 @@ function bPairCells(st, root, h, on) {
 function bRowCells(st, tree, c, h, on) {
   const r = tree.ab.row, kind = h('select', {}, ['angle', 'change', 'copy', 'base'].map(k => h('option', { value: k, textContent: k, selected: bKind(r) === k })));
   kind.onchange = () => on.kind(kind.value);
-  if (bKind(r) === 'angle') return [['kind', kind], ['start φ', c(r.start, 'phi', tree)], ['start θ', c(r.start, 'theta', tree)], ['start r', c(r.start, 'r', tree)]];
+  const d = bView(st, r), now = (x, k) => [x, h('span', { className: 'now', textContent: d ? `now ${bN(+bF(d[k]))}` : '' })];
+  if (bKind(r) === 'angle') return [['kind', kind], ['start φ', now(c(r.start, 'phi', tree), 'phi')], ['start θ', now(c(r.start, 'theta', tree), 'theta')], ['start r', now(c(r.start, 'r', tree), 'r')]];
   if (bKind(r) === 'change') {
     const k = bCopy(st, r);
-    return [['kind', kind], ['start φ', `${bN(k.phi)} copy`], ['start θ', `${bN(k.theta)} copy`], ['start r', c(r.start, 'r', tree)],
-      ['end φ', c(r.end, 'phi', tree, 'end')], ['end θ', c(r.end, 'theta', tree, 'end')]];
+    return [['kind', kind], ['start φ', `${bN(k.phi)} copy`], ['start θ', `${bN(k.theta)} copy`], ['start r', now(c(r.start, 'r', tree), 'r')],
+      ['end φ', now(c(r.end, 'phi', tree, 'end'), 'phi')], ['end θ', now(c(r.end, 'theta', tree, 'end'), 'theta')]];
   }
   const copy = bKind(r) === 'copy', ts = bDirs(st, tree).map(e => e.t);
   const set = h('button', { textContent: copy ? 'set copy' : 'set base' });
