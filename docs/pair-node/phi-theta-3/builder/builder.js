@@ -4,7 +4,8 @@
   let err = null, pickFrom = null;
   let st;
   try { st = JSON.parse(localStorage.getItem(KEY)); if (st) bWire(st); else st = preset(); } catch { st = preset(); }
-  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(st, bPack)); } catch { } };
+  const book = bSeqBook(), save = () => { bSeqKeep(book, st); try { localStorage.setItem(KEY, JSON.stringify(st, bPack)); } catch { } };
+  const open = s => { st = s; reach = null; pickFrom = null; setup(); update(); };
 
   const el = id => document.getElementById(id);
   const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
@@ -74,7 +75,7 @@
       bLink(st, bAddTree(st, row).ab);
       setup(); update();
     };
-    el('settings').replaceChildren(
+    el('settings').replaceChildren(bSeqPicker(book, h, open),
       bSteps(h, [settings.length ? h('ul', { className: 'abs' }, settings) : h('div', { className: 'hint', textContent: 'no rows' })]),
       h('div', { className: 'row' }, tos.length ? [pickA, ' → ', pickB, add] : []), ...bLands(st, h),
       h('h2', { textContent: 'a→b settings — one item per a→b, set at a, with its attributes: an angle (φ, θ, r), a change (a copy of the angle into a, plus its own end φ, end θ), a copy (a stored direction plus the change of the angle row from a since it was set — no φ, θ, r of its own), or a base (measured once from where b lands, then stored)' }));
@@ -207,7 +208,7 @@
     st.nodes.add(bMake({ name: bName(st.made++), known: false, idx: { r: 0, phi: 0, theta: 0 } }));
     setup(); update();
   };
-  el('preset').onclick = () => { st = preset(); reach = null; pickFrom = null; setup(); update(); };
+  el('preset').onclick = () => open(preset());
 
   setup();
   update();
