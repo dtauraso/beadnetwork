@@ -169,7 +169,7 @@ function bStepNodes(st, h) {
     const at = n.known ? [['I_r', 'r'], ['I_φ', 'phi'], ['I_θ', 'theta']].map(([k, x]) => [k, bN(n.idx[x])]) : [['position', 'none']];
     const c = bNodePos(st, n), toward = [...n.out.map(t => [t.ab.b.name, bView(st, t.ab.row)]),
       ...n.in.map(t => [t.ab.a.name, bView(st, { from: n, to: t.ab.a })])];
-    const attrs = [['s', `${bS(st, n)} (${12 * bS(st, n)} ticks a turn)`], ...at, ...(c ? [['C', `${['x', 'y', 'z'].map((k, i) => `${k} ${bN(+bF(c[i]))}`).join(' ')} scene units`]] : []),
+    const attrs = [['s', `${bS(st, n)} (${12 * bS(st, n)} ticks a turn)`], ...at, ...(c ? [['C', `${['x', 'y', 'z'].map((k, i) => `${k} ${bN(+bF(c[i]))}`).join(' ')}`]] : []),
       ...toward.map(([o, d]) => [`toward ${o}`, d ? `φ ${bN(+bF(d.phi))} θ ${bN(+bF(d.theta))} r ${bN(+bF(d.r))}` : `${n.name} or ${o} has no position`]),
       ...n.in.map(t => [t.ab.a.name, bView(st, t.ab.row)]).map(([a, d]) => [`from ${a}`, d ? `φ ${bN(+bF(d.phi))} θ ${bN(+bF(d.theta))} r ${bN(+bF(d.r))}` :`${a} or ${n.name} has no position`])];
     return h('li', {}, [h('div', { className: 'row' }, [h('span', { className: 't', textContent: n.name })]),
