@@ -163,6 +163,12 @@ function bSteps(h, steps) {
   return h('ol', { className: 'seq' }, [...steps.map(({ body, head }, i) => step(i, [].concat(body), head)), step(steps.length, [], [], 'next')]);
 }
 
+function bInbound(st, n, h, table) {
+  const rows = n.in.flatMap(t => bDirs(st, t).map(({ t: d, pair }) => [bAt(t.ab.row, pair), bN(d.phi), bN(d.theta), bN(d.r), bS(st, t.ab.a)]));
+  return [h('h2', { textContent: `${n.name}'s inbound bearings — the φ, θ, r each sender measured toward ${n.name}, in the sender's ticks` }),
+    table(['from', 'φ', 'θ', 'r', 'sender s'], rows.map(r => h('tr', {}, r.map(v => h('td', { textContent: v })))))];
+}
+
 function bStepNodes(st, h) {
   const ns = [...st.nodes].filter(n => n.out.length || n.in.length);
   const items = ns.map(n => {
