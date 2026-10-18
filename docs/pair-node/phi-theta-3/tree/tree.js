@@ -22,12 +22,13 @@ function tData() {
   const idx = n => [pt('idx', n.idx, ['r', 'phi', 'theta'])];
   return {
     root: ['pair → (a→b, a→c)', 'bc → b→c', 'back → (a→c, a→b) in a→c\'s tree'],
-    ab: [row(ab), pt('start', ab.start), pt('end', ab.end), pt('was', t.ab.was), pt('now', t.ab.now)],
+    ab: [row(ab), pt('start', ab.start, ['theta', 'r']), pt('end', ab.end, ['theta']), pt('was', t.ab.was, ['theta', 'r']), pt('now', t.ab.now, ['theta', 'r'])],
     ac: [row(ac), pt('start', ac.start), 'rot', ...mat(p.ac.rot)],
     pair: [pt('base', p.base), pt('ref', p.ref), pt('held', p.held), pt('went', p.went), pt('step', p.step),
       `own step ${p.mine ? 'on' : 'off'}`, `automatic ${bAuto(p) ? 'on' : 'off'}`, '~reads a→b: was, now', '~reads a→c: kind'],
     bc: [row(root.bc.row), pt('start', bc.start), pt('end', bc.end), 'turn', ...mat(bc.turn.m)],
-    a: idx(a), b: idx(b), c: idx(c),
+    a: idx(a), c: idx(c),
+    b: [...idx(b), '~a→b', ...['start', 'end', 'was', 'now'].map(k => pt(k, { start: ab.start, end: ab.end, was: t.ab.was, now: t.ab.now }[k], ['phi']))],
   };
 }
 const T_DATA = tData();
