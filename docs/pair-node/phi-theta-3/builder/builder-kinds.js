@@ -163,12 +163,6 @@ function bSteps(h, steps) {
   return h('ol', { className: 'seq' }, [...steps.map(({ body, head }, i) => step(i, [].concat(body), head)), step(steps.length, [], [], 'next')]);
 }
 
-function bInbound(st, n, h, table) {
-  const rows = n.in.flatMap(t => bDirs(st, t).map(({ t: d, pair }) => [bAt(t.ab.row, pair), bN(d.phi), bN(d.theta), bN(d.r), bS(st, t.ab.a)]));
-  return [h('h2', { textContent: `${n.name}'s inbound bearings — the φ, θ, r each sender measured toward ${n.name}, in the sender's ticks` }),
-    table(['from', 'φ', 'θ', 'r', 'sender s'], rows.map(r => h('tr', {}, r.map(v => h('td', { textContent: v })))))];
-}
-
 function bStepNodes(st, h) {
   const ns = [...st.nodes].filter(n => n.out.length || n.in.length);
   const items = ns.map(n => {
@@ -176,7 +170,8 @@ function bStepNodes(st, h) {
     const c = bNodePos(st, n), toward = [...n.out.flatMap(t => bDirs(st, t).map(({ t: d }) => [t.ab.b.name, d])),
       ...n.in.flatMap(t => bDirs(st, t).map(({ t: d }) => [t.ab.a.name, bBack(st, t.ab.row, d)]))];
     const attrs = [['s', `${bS(st, n)} (${12 * bS(st, n)} ticks a turn)`], ...at, ...(c ? [['C', `(${c.map(bF).join(', ')})`]] : []),
-      ...toward.map(([o, d]) => [`toward ${o}`, `φ ${bN(d.phi)} θ ${bN(d.theta)} r ${bN(d.r)}`])];
+      ...toward.map(([o, d]) => [`toward ${o}`, `φ ${bN(d.phi)} θ ${bN(d.theta)} r ${bN(d.r)}`]),
+      ...n.in.flatMap(t => bDirs(st, t).map(({ t: d }) => [`from ${t.ab.a.name}`, `φ ${bN(d.phi)} θ ${bN(d.theta)} r ${bN(d.r)} — ${t.ab.a.name}'s bearing, in ${t.ab.a.name}'s ticks`]))];
     return h('li', {}, [h('div', { className: 'row' }, [h('span', { className: 't', textContent: n.name })]),
       h('ul', { className: 'attrs' }, attrs.map(([k, v]) => h('li', {}, [h('span', { className: 'k', textContent: k }), v])))]);
   });

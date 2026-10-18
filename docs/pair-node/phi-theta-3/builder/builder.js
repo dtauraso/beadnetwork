@@ -86,7 +86,7 @@
         return h('div', {}, [
           h('h2', { textContent: `${n.name}'s table — ${n.name}'s φ, θ, r toward each node it connects to, in ${n.name}'s ticks (s ${bS(st, n)}: ${12 * bS(st, n)} a turn)` }),
           table(['toward', 'φ', 'θ', 'r'], seen.map(([o, t]) => h('tr', {}, [o, bN(t.phi), bN(t.theta), bN(t.r)].map(x => h('td', { textContent: x }))))),
-          ...bInbound(st, n, h, table), ...bSecondBase(st, n, h, table),
+          ...bSecondBase(st, n, h, table),
         ]);
       }));
 
