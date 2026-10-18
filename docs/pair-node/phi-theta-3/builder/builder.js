@@ -80,15 +80,7 @@
         head: tos.length ? [pickA, ' → ', pickB, add] : [h('span', { className: 'hint', textContent: 'no edge left to add' })] }]), ...bLands(st, h),
       h('h2', { textContent: 'a→b settings — one item per a→b, set at a, with its attributes: an angle (φ, θ, r), a change (a copy of the angle into a, plus its own end φ, end θ), a copy (a stored direction plus the change of the angle row from a since it was set — no φ, θ, r of its own), or a base (measured once from where b lands, then stored)' }));
     el('tables').replaceChildren(
-      ...all.map(n => {
-        const seen = [...n.out.flatMap(tree => bDirs(st, tree).map(({ t }) => [tree.ab.b.name, t])),
-          ...n.in.flatMap(tree => bDirs(st, tree).map(({ t }) => [tree.ab.a.name, bBack(st, tree.ab.row, t)]))];
-        return h('div', {}, [
-          h('h2', { textContent: `${n.name}'s table — ${n.name}'s φ, θ, r toward each node it connects to, in ${n.name}'s ticks (s ${bS(st, n)}: ${12 * bS(st, n)} a turn)` }),
-          table(['toward', 'φ', 'θ', 'r'], seen.map(([o, t]) => h('tr', {}, [o, bN(t.phi), bN(t.theta), bN(t.r)].map(x => h('td', { textContent: x }))))),
-          ...bSecondBase(st, n, h, table),
-        ]);
-      }));
+      ...all.map(n => h('div', {}, bSecondBase(st, n, h, table))));
 
     el('item').replaceChildren(...all.map((n, i) => h('option', { value: i, textContent: n.name, selected: n === st.item })));
     el('item').onchange = () => { st.item = all[+el('item').value]; update(); };
