@@ -33,6 +33,7 @@ function bRelink(st, n) {
 }
 
 function bAddTree(st, row) {
+  row.delta ??= { phi: 0, theta: 0 };
   const t = { ab: bAB(row), roots: [] }, { a, b } = t.ab;
   a.out.forEach(o => bJoin(st, t, o));
   a.out = [...a.out, t];

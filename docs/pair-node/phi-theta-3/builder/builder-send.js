@@ -50,7 +50,7 @@ function bWire(st) {
   st.made ??= 1 + Math.max(-1, ...[...by.keys()].map(bNameAt).filter(Number.isFinite));
 }
 
-const B_DATA = ['idx', 'start', 'end', 'base', 'ref', 'held', 'went', 'step'];
+const B_DATA = ['idx', 'start', 'end', 'base', 'ref', 'held', 'went', 'step', 'delta'];
 
 let bLog = null;
 const bKeep = () => (bLog = new Map());
