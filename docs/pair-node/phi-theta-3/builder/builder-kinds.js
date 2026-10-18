@@ -180,8 +180,8 @@ function bAngleMath(st, row, d, h) {
 function bDelta(d, h) {
   if (!d) return [];
   const dl = { phi: 0, theta: 0 }, f = x => bN(+bF(x));
-  return [h('div', { className: 'sub', textContent: `Δ φ ${f(dl.phi)} θ ${f(dl.theta)}` }),
-    h('div', { className: 'sub', textContent: `φ ${f(d.phi)} + ${f(dl.phi)} = ${f(d.phi + dl.phi)} θ ${f(d.theta)} + ${f(dl.theta)} = ${f(d.theta + dl.theta)}` })];
+  return [h('div', { className: 'sub', textContent: `Δφ ${f(dl.phi)} · Δθ ${f(dl.theta)}` }),
+    h('div', { className: 'sub', textContent: `φ ${f(d.phi)} + Δφ ${f(dl.phi)} = ${f(d.phi + dl.phi)} · θ ${f(d.theta)} + Δθ ${f(dl.theta)} = ${f(d.theta + dl.theta)}` })];
 }
 
 function bStepNodes(st, h) {
