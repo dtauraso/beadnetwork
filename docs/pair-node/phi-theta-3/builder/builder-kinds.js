@@ -171,7 +171,7 @@ function bStepNodes(st, h) {
       ...n.in.map(t => [t.ab.a.name, bView(st, { from: n, to: t.ab.a })])];
     const attrs = [['s', `${bS(st, n)} (${12 * bS(st, n)} ticks a turn)`], ...at, ...(c ? [['C', `(${c.map(bF).join(', ')})`]] : []),
       ...toward.map(([o, d]) => [`toward ${o}`, d ? `φ ${bN(+bF(d.phi))} θ ${bN(+bF(d.theta))} r ${bN(+bF(d.r))}` : `${n.name} or ${o} has no position`]),
-      ...n.in.map(t => [t.ab.a.name, bView(st, t.ab.row)]).map(([a, d]) => [`from ${a}`, d ? `φ ${bN(+bF(d.phi))} θ ${bN(+bF(d.theta))} r ${bN(+bF(d.r))} — measured at ${a} toward ${n.name}, in ${a}'s ticks` : `${a} or ${n.name} has no position`])];
+      ...n.in.map(t => [t.ab.a.name, bView(st, t.ab.row)]).map(([a, d]) => [`from ${a}`, d ? `φ ${bN(+bF(d.phi))} θ ${bN(+bF(d.theta))} r ${bN(+bF(d.r))}` :`${a} or ${n.name} has no position`])];
     return h('li', {}, [h('div', { className: 'row' }, [h('span', { className: 't', textContent: n.name })]),
       h('ul', { className: 'attrs' }, attrs.map(([k, v]) => h('li', {}, [h('span', { className: 'k', textContent: k }), v])))]);
   });
