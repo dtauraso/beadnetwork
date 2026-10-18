@@ -121,18 +121,18 @@ function bPairCells(st, root, h, on) {
 function bRowCells(st, tree, c, h, on) {
   const r = tree.ab.row, kind = h('select', {}, ['angle', 'change', 'copy', 'base'].map(k => h('option', { value: k, textContent: k, selected: bKind(r) === k })));
   kind.onchange = () => on.kind(kind.value);
-  const txt = x => h('td', { textContent: x });
-  if (bKind(r) === 'angle') return [h('td', {}, [kind]), c(r.start, 'phi', tree), c(r.start, 'theta', tree), c(r.start, 'r', tree), txt('—'), txt('—')];
+  if (bKind(r) === 'angle') return [['kind', kind], ['start φ', c(r.start, 'phi', tree)], ['start θ', c(r.start, 'theta', tree)], ['start r', c(r.start, 'r', tree)]];
   if (bKind(r) === 'change') {
     const k = bCopy(st, r);
-    return [h('td', {}, [kind]), txt(`${bN(k.phi)} copy`), txt(`${bN(k.theta)} copy`), c(r.start, 'r', tree), c(r.end, 'phi', tree, 'end'), c(r.end, 'theta', tree, 'end')];
+    return [['kind', kind], ['start φ', `${bN(k.phi)} copy`], ['start θ', `${bN(k.theta)} copy`], ['start r', c(r.start, 'r', tree)],
+      ['end φ', c(r.end, 'phi', tree, 'end')], ['end θ', c(r.end, 'theta', tree, 'end')]];
   }
   const copy = bKind(r) === 'copy', ts = bDirs(st, tree).map(e => e.t);
   const set = h('button', { textContent: copy ? 'set copy' : 'set base' });
   set.onclick = () => { if (copy) bSetCopy(st, tree, ''); else r.base = bView(st, r); on.changed(); };
-  const three = ['phi', 'theta', 'r'].map(k => txt(ts.length ? ts.map(t => bF(t[k])).join(' / ') : '—'));
+  const three = [['φ', 'phi'], ['θ', 'theta'], ['r', 'r']].map(([n, k]) => [n, ts.length ? ts.map(t => bF(t[k])).join(' / ') : '—']);
   const pairs = copy ? tree.roots.flatMap(({ back }) => bPairCells(st, back, h, on)) : [];
-  return [h('td', {}, [kind]), ...three, h('td', { colSpan: 2 }, [...pairs, set])];
+  return [['kind', kind], ...three, [copy ? 'copy' : 'base', [...pairs, set]]];
 }
 
 function bHow(st, o, r, p) {
