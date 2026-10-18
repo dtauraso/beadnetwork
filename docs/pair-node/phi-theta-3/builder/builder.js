@@ -50,14 +50,16 @@
       : h('div', { className: 'hint', textContent: 'no rows' }));
     const c = (o, k, tree, part = 'start') => {
       const at = `${tree.ab.a.name}→${tree.ab.b.name}:${part}${k}`;
-      return h('td', {}, [flag(at, num(o[k], v => check(at, bSetStart(st, tree, k, v, part), v)))]);
+      return flag(at, num(o[k], v => check(at, bSetStart(st, tree, k, v, part), v)));
     };
-    const settings = [...st.trees].flatMap(tree => {
+    const settings = [...st.trees].map(tree => {
       const del = h('button', { textContent: 'remove' });
       del.onclick = () => { bDropTree(st, tree); setup(); update(); };
       const ab = `${tree.ab.a.name}→${tree.ab.b.name}`;
       const on = { kind: v => { check(`${ab}:kind`, bSetKind(st, tree, v), v); update(); }, changed: () => { setup(); update(); } };
-      return [h('tr', {}, [h('td', { textContent: ab }), ...bRowCells(st, tree, c, h, on), h('td', {}, [del])]), ...note(ab, 8)];
+      const attrs = bRowCells(st, tree, c, h, on).map(([k, v]) => h('li', {}, [h('span', { className: 'k', textContent: k }), ...[].concat(v)]));
+      const miss = err && err.at.split(':')[0] === ab ? [h('div', { className: 'missing', textContent: err.text })] : [];
+      return h('li', {}, [h('div', { className: 'row' }, [h('span', { className: 't', textContent: ab }), del]), h('ul', { className: 'attrs' }, attrs), ...miss]);
     });
     const froms = all.filter(a => a.out.length < all.length - 1);
     if (!pickFrom || pickFrom.gone || pickFrom.out.length >= all.length - 1) pickFrom = froms[0];
@@ -73,9 +75,9 @@
       setup(); update();
     };
     el('settings').replaceChildren(
-      table(['a→b', 'kind', 'start φ', 'start θ', 'start r', 'end φ', 'end θ', ''], settings),
+      settings.length ? h('ul', { className: 'abs' }, settings) : h('div', { className: 'hint', textContent: 'no rows' }),
       h('div', { className: 'row' }, tos.length ? [pickA, ' → ', pickB, add] : []), ...bLands(st, h, table),
-      h('h2', { textContent: 'a→b settings — one row per a→b, set at a: an angle (φ, θ, r), a change (a copy of the angle into a, plus its own end φ, end θ), a copy (a stored direction plus the change of the angle row from a since it was set — no φ, θ, r of its own), or a base (measured once from where b lands, then stored)' }));
+      h('h2', { textContent: 'a→b settings — one item per a→b, set at a, with its attributes: an angle (φ, θ, r), a change (a copy of the angle into a, plus its own end φ, end θ), a copy (a stored direction plus the change of the angle row from a since it was set — no φ, θ, r of its own), or a base (measured once from where b lands, then stored)' }));
     el('tables').replaceChildren(
       ...all.map(n => {
         const seen = [...n.out.flatMap(tree => bDirs(st, tree).map(({ t }) => [tree.ab.b.name, t])),
