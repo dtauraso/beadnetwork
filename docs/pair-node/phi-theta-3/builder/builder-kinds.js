@@ -157,6 +157,12 @@ function bSecondBase(st, n, h, table) {
       .map(v => h('td', { textContent: v })))))]);
 }
 
+function bSteps(h, steps) {
+  const step = (i, kids, cls = '') => h('li', { className: cls }, [h('div', { className: 'dot', textContent: `${i + 1}` }),
+    h('div', { className: 'body' }, [h('div', { className: 'step', textContent: `step ${i + 1}${kids.length ? '' : ' — empty'}` }), ...kids])]);
+  return h('ol', { className: 'seq' }, [...steps.map((s, i) => step(i, [s])), step(steps.length, [], 'next')]);
+}
+
 function bLands(st, h) {
   const three = (at, x) => [['φ', 'phi'], ['θ', 'theta'], ['r', 'r']].map(([n, k]) => [`${at} ${n}`, x ? bF(x[k]) : '—']);
   const items = [...st.trees].flatMap(t => {
