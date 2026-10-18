@@ -157,12 +157,14 @@ function bSecondBase(st, n, h, table) {
       .map(v => h('td', { textContent: v })))))]);
 }
 
-function bLands(st, h, table) {
-  const three = x => (x ? [x.phi, x.theta, x.r].map(bF) : ['—', '—', '—']);
-  const rows = [...st.trees].flatMap(t => {
+function bLands(st, h) {
+  const three = (at, x) => [['φ', 'phi'], ['θ', 'theta'], ['r', 'r']].map(([n, k]) => [`${at} ${n}`, x ? bF(x[k]) : '—']);
+  const items = [...st.trees].flatMap(t => {
     const dirs = bDirs(st, t), r = t.ab.row;
-    return (dirs.length ? dirs : [{}]).map(e => h('tr', {}, [bAt(r, e.pair), ...three(e.t), ...three(bView(st, r))].map(x => h('td', { textContent: x }))));
+    return (dirs.length ? dirs : [{}]).map(e => h('li', {}, [h('div', { className: 'row' }, [h('span', { className: 't', textContent: bAt(r, e.pair) })]),
+      h('ul', { className: 'attrs' }, [...three('row', e.t), ...three('placed', bView(st, r))]
+        .map(([k, v]) => h('li', {}, [h('span', { className: 'k', textContent: k }), v])))]));
   });
   return [h('h2', { textContent: 'read only: each row, and the direction from its first node to its second node where they are placed' }),
-    table(['a→b', 'row φ', 'θ', 'r', 'placed φ', 'θ', 'r'], rows)];
+    items.length ? h('ul', { className: 'abs' }, items) : h('div', { className: 'hint', textContent: 'no rows' })];
 }
