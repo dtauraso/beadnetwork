@@ -181,7 +181,7 @@ function bStepNodes(st, h) {
   const ns = [...st.nodes].filter(n => n.out.length || n.in.length);
   const items = ns.map(n => {
     const at = n.known ? [['I_r', 'r'], ['I_φ', 'phi'], ['I_θ', 'theta']].map(([k, x]) => [k, bN(n.idx[x])]) : [['position', 'none']];
-    const c = bNodePos(st, n), toward = [...n.out.map(t => t.ab.row), ...n.in.map(t => ({ from: n, to: t.ab.a }))].map(r => [r.to.name, bView(st, r), r]);
+    const c = bNodePos(st, n), toward = n.out.map(t => t.ab.row).map(r => [r.to.name, bView(st, r), r]);
     const attrs = [['s', `${bS(st, n)} (${12 * bS(st, n)} ticks a turn)`], ...at, ...(c ? [['C', `${['x', 'y', 'z'].map((k, i) => `${k} ${bN(+bF(c[i]))}`).join(' ')}`]] : []),
       ...toward.map(([o, d, row]) => [`toward ${o}`, d ? `φ ${bN(+bF(d.phi))} θ ${bN(+bF(d.theta))} r ${bN(+bF(d.r))}` : `${n.name} or ${o} has no position`, ...bAngleMath(st, row, d, h)]),
       ...n.in.map(t => [t.ab.a.name, bView(st, t.ab.row), t.ab.row]).map(([a, d, row]) => [`from ${a}`, d ? `φ ${bN(+bF(d.phi))} θ ${bN(+bF(d.theta))} r ${bN(+bF(d.r))}` :`${a} or ${n.name} has no position`, ...bAngleMath(st, row, d, h)])];
