@@ -69,15 +69,15 @@
     const pickA = h('select', {}, froms.map((a, i) => h('option', { value: i, textContent: a.name, selected: a === pickFrom })));
     pickA.onchange = () => { pickFrom = froms[+pickA.value]; setup(); };
     const pickB = h('select', {}, tos.map((b, i) => h('option', { value: i, textContent: b.name })));
-    const add = h('button', { textContent: 'add a→b setting', disabled: !tos.length });
+    const add = h('button', { textContent: '+ add edge', disabled: !tos.length });
     add.onclick = () => {
       const row = { from: pickFrom, to: tos[+pickB.value], kind: 'angle', start: { phi: 0, theta: 0, r: 2 }, end: { phi: 0, theta: 0 } };
       bLink(st, bAddTree(st, row).ab);
       setup(); update();
     };
     el('settings').replaceChildren(bSeqPicker(book, h, open),
-      bSteps(h, [settings.length ? h('ul', { className: 'abs' }, settings) : h('div', { className: 'hint', textContent: 'no rows' })]),
-      h('div', { className: 'row' }, tos.length ? [pickA, ' → ', pickB, add] : []), ...bLands(st, h),
+      bSteps(h, [{ body: settings.length ? h('ul', { className: 'abs' }, settings) : h('div', { className: 'hint', textContent: 'no edges' }),
+        head: tos.length ? [pickA, ' → ', pickB, add] : [h('span', { className: 'hint', textContent: 'no edge left to add' })] }]), ...bLands(st, h),
       h('h2', { textContent: 'a→b settings — one item per a→b, set at a, with its attributes: an angle (φ, θ, r), a change (a copy of the angle into a, plus its own end φ, end θ), a copy (a stored direction plus the change of the angle row from a since it was set — no φ, θ, r of its own), or a base (measured once from where b lands, then stored)' }));
     el('tables').replaceChildren(
       ...all.map(n => {

@@ -158,9 +158,9 @@ function bSecondBase(st, n, h, table) {
 }
 
 function bSteps(h, steps) {
-  const step = (i, kids, cls = '') => h('li', { className: cls }, [h('div', { className: 'dot', textContent: `${i + 1}` }),
-    h('div', { className: 'body' }, [h('div', { className: 'step', textContent: `step ${i + 1}${kids.length ? '' : ' — empty'}` }), ...kids])]);
-  return h('ol', { className: 'seq' }, [...steps.map((s, i) => step(i, [s])), step(steps.length, [], 'next')]);
+  const step = (i, kids, head = [], cls = '') => h('li', { className: cls }, [h('div', { className: 'dot', textContent: `${i + 1}` }),
+    h('div', { className: 'body' }, [h('div', { className: 'step' }, [h('span', { textContent: `step ${i + 1}${kids.length ? '' : ' — empty'}` }), ...head]), ...kids])]);
+  return h('ol', { className: 'seq' }, [...steps.map(({ body, head }, i) => step(i, [body], head)), step(steps.length, [], [], 'next')]);
 }
 
 function bLands(st, h) {

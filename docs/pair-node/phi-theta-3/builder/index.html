@@ -53,7 +53,9 @@
   .seq > li:not(:last-child)::before { content: ''; position: absolute; left: 13px; top: 28px; bottom: 0; width: 2px; background: var(--ink); }
   .seq .dot { width: 28px; height: 28px; box-sizing: border-box; border-radius: 50%; background: var(--ink); color: var(--card); display: grid; place-items: center; font-weight: 600; }
   .seq .body { border: 1px solid var(--line); border-radius: 8px; padding: 4px 10px; background: color-mix(in srgb, var(--ink) 4%, transparent); }
-  .seq .step { font-weight: 600; margin-bottom: 4px; line-height: 20px; }
+  .seq .step { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-weight: 600; margin-bottom: 4px; line-height: 20px; }
+  .seq .step > :first-child { margin-right: 8px; }
+  .seq .step select, .seq .step button, .seq .step .hint { font-weight: 400; margin: 0; }
   .seq li.next .dot { background: none; border: 2px dashed var(--muted); color: var(--muted); }
   .seq li.next .body { border-style: dashed; background: none; color: var(--muted); }
   .seq li.next .step { font-weight: 500; margin: 0; }
