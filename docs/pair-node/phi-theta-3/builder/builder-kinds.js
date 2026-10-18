@@ -177,6 +177,13 @@ function bAngleMath(st, row, d, h) {
   return [h('details', {}, [h('summary', { textContent: 'formulas' }), ...lines.map(t => h('code', { textContent: t }))])];
 }
 
+function bDelta(d, h) {
+  if (!d) return [];
+  const dl = { phi: 0, theta: 0 }, f = x => bN(+bF(x));
+  return [h('div', { className: 'sub', textContent: `Δ φ ${f(dl.phi)} θ ${f(dl.theta)}` }),
+    h('div', { className: 'sub', textContent: `φ ${f(d.phi)} + ${f(dl.phi)} = ${f(d.phi + dl.phi)} θ ${f(d.theta)} + ${f(dl.theta)} = ${f(d.theta + dl.theta)}` })];
+}
+
 function bStepNodes(st, h) {
   const ns = [...st.nodes].filter(n => n.out.length || n.in.length);
   const items = ns.map(n => {
@@ -184,7 +191,7 @@ function bStepNodes(st, h) {
     const c = bNodePos(st, n), toward = n.out.map(t => t.ab.row).map(r => [r.to.name, bView(st, r), r]);
     const attrs = [['s', `${bS(st, n)} (${12 * bS(st, n)} ticks a turn)`], ...at, ...(c ? [['C', `${['x', 'y', 'z'].map((k, i) => `${k} ${bN(+bF(c[i]))}`).join(' ')}`]] : []),
       ...toward.map(([o, d, row]) => [`toward ${o}`, d ? `φ ${bN(+bF(d.phi))} θ ${bN(+bF(d.theta))} r ${bN(+bF(d.r))}` : `${n.name} or ${o} has no position`, ...bAngleMath(st, row, d, h)]),
-      ...n.in.map(t => [t.ab.a.name, bView(st, t.ab.row), t.ab.row]).map(([a, d, row]) => [`from ${a}`, d ? `φ ${bN(+bF(d.phi))} θ ${bN(+bF(d.theta))} r ${bN(+bF(d.r))}` :`${a} or ${n.name} has no position`, ...bAngleMath(st, row, d, h)])];
+      ...n.in.map(t => [t.ab.a.name, bView(st, t.ab.row), t.ab.row]).map(([a, d, row]) => [`from ${a}`, d ? `φ ${bN(+bF(d.phi))} θ ${bN(+bF(d.theta))} r ${bN(+bF(d.r))}` :`${a} or ${n.name} has no position`, ...bDelta(d, h), ...bAngleMath(st, row, d, h)])];
     return h('li', {}, [h('div', { className: 'row' }, [h('span', { className: 't', textContent: n.name })]),
       h('ul', { className: 'attrs' }, attrs.map(([k, v, ...more]) => h('li', {}, [h('span', { className: 'k', textContent: k }), v, ...more])))]);
   });
