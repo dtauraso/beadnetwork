@@ -48,9 +48,16 @@
   .method { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 8px; }
   .stepper { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
   .missing { color: var(--bad); }
-  .seq { padding-left: 24px; margin: 0 0 8px; font-size: 13px; }
-  .seq > li::marker { font-weight: 600; }
-  .seq > li > .t { margin-bottom: 4px; }
+  .seq { list-style: none; padding: 0; margin: 0 0 8px; font-size: 13px; }
+  .seq > li { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 10px; position: relative; padding-bottom: 12px; }
+  .seq > li:not(:last-child)::before { content: ''; position: absolute; left: 13px; top: 28px; bottom: 0; width: 2px; background: var(--ink); }
+  .seq .dot { width: 28px; height: 28px; box-sizing: border-box; border-radius: 50%; background: var(--ink); color: var(--card); display: grid; place-items: center; font-weight: 600; }
+  .seq .body { border: 1px solid var(--line); border-radius: 8px; padding: 4px 10px; background: color-mix(in srgb, var(--ink) 4%, transparent); }
+  .seq .step { font-weight: 600; margin-bottom: 4px; line-height: 20px; }
+  .seq li.next .dot { background: none; border: 2px dashed var(--muted); color: var(--muted); }
+  .seq li.next .body { border-style: dashed; background: none; color: var(--muted); }
+  .seq li.next .step { font-weight: 500; margin: 0; }
+  .seq .abs > li:last-child { border-bottom: none; }
   .abs { list-style: none; padding: 0; margin: 0 0 8px; font-size: 13px; }
   .abs > li { padding: 6px 0; border-bottom: 1px solid var(--line); }
   .abs .row { margin-bottom: 4px; }
