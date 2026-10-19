@@ -1,0 +1,24 @@
+main { max-width: 860px; margin: 0 auto; padding: 24px 16px 48px; }
+.panel { border-radius: 10px; padding: 12px; margin-bottom: 16px; overflow-x: auto; }
+h2 { font-size: 15px; margin: 0 0 8px; }
+.source { padding: 8px 12px; margin-bottom: 16px; border-radius: 8px; border: 1px solid var(--line); color: var(--dim); font-size: 13px; }
+.calc-tag { color: var(--accent); font-style: italic; }
+
+ul.tree, ul.tree ul { list-style: none; margin: 0; padding: 0; }
+ul.tree ul { padding-left: 14px; }
+ul.tree li { position: relative; padding: 2px 0 2px 16px; }
+ul.tree > li { padding-left: 0; }
+ul.tree ul > li::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; border-left: 1px solid var(--line); }
+ul.tree ul > li:last-child::before { bottom: auto; height: 12px; }
+ul.tree ul > li::after { content: ''; position: absolute; left: 0; top: 12px; width: 11px; border-top: 1px solid var(--line); }
+ul.tree li:target > .it { background: var(--panel2); outline: 1px solid var(--accent); border-radius: 4px; }
+
+.it { display: inline-flex; flex-wrap: wrap; gap: 4px 8px; align-items: baseline; padding: 1px 4px; }
+.it .k { color: var(--dim); }
+.it .v { font-family: var(--mono); font-size: 12.5px; overflow-wrap: anywhere; }
+.it.head .k { color: var(--ink); font-weight: 600; }
+.it.head .v { color: var(--warm); }
+.it.calc .k { color: var(--accent); font-style: italic; }
+.it.calc .k::after { content: ' (worked out)'; font-size: 11px; opacity: 0.8; }
+.it.note .k { font-style: italic; }
+.it a { color: var(--accent); font-family: var(--mono); font-size: 12.5px; }

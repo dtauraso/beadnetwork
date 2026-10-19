@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pair node — a→b tree</title>
+<link rel="stylesheet" href="../../pair-base.css">
+<link rel="stylesheet" href="../../pair-layout.css">
+<link rel="stylesheet" href="tree.css">
+</head>
+<body>
+<header>
+  <h1>The a→b tree</h1>
+  <div class="sub">The a→b builder's data as it is now, laid out as the tree the builder keeps: the state, its nodes, and its trees — one per row — with each tree's a→b node and its roots, one per (a→b, a→c) pair. Read with the builder's own scripts from what the builder tab last saved in this browser; it redraws when the builder saves. Stored values are plain; values the builder works out from them are marked <span class="calc-tag">worked out</span>. Underlined names link to the node or tree they point at.</div>
+</header>
+
+<nav>
+  <a href="../../phi-2/index.html">Pair tabs</a>
+  <a href="../index.html">Three-node card</a>
+  <a href="../atob/index.html">a→b vectors</a>
+  <a href="../builder/index.html">a→b builder</a>
+  <a class="on" href="index.html">a→b tree</a>
+  <a href="../tests/index.html">builder tests</a>
+</nav>
+
+<main>
+  <div id="source" class="source"></div>
+
+  <div class="panel">
+    <h2>st — the state</h2>
+    <ul id="state" class="tree"></ul>
+  </div>
+
+  <div class="panel">
+    <h2>st.nodes</h2>
+    <ul id="nodes" class="tree"></ul>
+  </div>
+
+  <div class="panel">
+    <h2>st.trees</h2>
+    <ul id="trees" class="tree"></ul>
+  </div>
+</main>
+
+<script src="../atob/atob-draw.js"></script>
+<script src="../builder/builder-methods.js"></script>
+<script src="../builder/builder-grid.js"></script>
+<script src="../builder/builder-guides.js"></script>
+<script src="../builder/builder-kinds.js"></script>
+<script src="../builder/builder-tree.js"></script>
+<script src="../builder/builder-send.js"></script>
+<script src="tree.js"></script>
+</body>
+</html>
