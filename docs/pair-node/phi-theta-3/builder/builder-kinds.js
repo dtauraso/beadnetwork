@@ -1,38 +1,8 @@
 const bKind = row => row.kind || 'angle';
 const bFloat = row => bKind(row) === 'base' || bKind(row) === 'copy';
-const bAuto = p => p.automatic !== false;
-function bTurned(st, p) {
+function bChange(st, p) {
   const s = p.ab.row.start;
   return s && p.ref ? { sib: p.ab.row, phi: s.phi - p.ref.phi, theta: s.theta - p.ref.theta } : null;
-}
-
-function bChange(st, p) {
-  const d = bTurned(st, p);
-  if (d && p.mine) return { sib: d.sib, phi: p.went.phi, theta: p.went.theta };
-  return d && !bAuto(p) ? { sib: d.sib, phi: p.held.phi, theta: p.held.theta } : d;
-}
-
-function bStep(st, p, was, now) {
-  if (!p.mine) return now;
-  const sg = k => Math.sign(now[k] - was[k]) * p.step[k];
-  bSave(p);
-  p.went = { phi: p.went.phi + sg('phi'), theta: p.went.theta + sg('theta') };
-  return { phi: was.phi + sg('phi'), theta: was.theta + sg('theta'), r: now.r };
-}
-
-function bSetMine(st, p, on) {
-  const d = bTurned(st, p), c = bChange(st, p);
-  if (!d || !c) return;
-  bSave(p);
-  if (on) { p.went = { phi: c.phi, theta: c.theta }; p.step ||= { phi: 0, theta: 0 }; }
-  else p.ref = { phi: d.sib.start.phi - p.went.phi, theta: d.sib.start.theta - p.went.theta };
-  p.mine = on;
-}
-
-function bApply(st, p) {
-  const d = bTurned(st, p);
-  bSave(p);
-  if (d) p.held = { phi: d.phi, theta: d.theta };
 }
 
 function bDirs(st, tree) {
@@ -63,7 +33,6 @@ function bReview(st, r) {
   const v = bView(st, r);
   if (!v || bFloat(r)) return;
   bSave(r);
-  delete r.turn;
   if (bKind(r) === 'angle') { r.start = v; return; }
   const c = bCopy(st, r), s = bS(st, r.from);
   r.start = { ...r.start, r: v.r };
@@ -94,28 +63,11 @@ function bSetCopy(st, tree, said) {
 
 const bAt = (r, p) => `${r.from.name}→${r.to.name}${p ? ` in (${p.ab.a.name}→${p.ab.b.name}, ${p.ac.a.name}→${p.ac.c.name})` : ''}`;
 
-function bPairCells(st, root, h, on) {
+function bPairCells(st, root, h) {
   const p = root.pair, d = bChange(st, p);
   if (!d) return [];
-  const auto = h('input', { type: 'checkbox', checked: bAuto(p) });
-  const turn = c0 => {
-    const c1 = bChange(st, p), s = c1 && c1.sib.start;
-    if (c0 && c1) bCarry(st, root, bRot(st, c1.sib, { phi: s.phi - c1.phi + c0.phi, theta: s.theta - c1.theta + c0.theta }, s));
-    on.changed();
-  };
-  auto.onchange = () => { const c0 = bChange(st, p); p.automatic = auto.checked; bApply(st, p); turn(c0); };
-  const apply = h('button', { textContent: 'apply turn' });
-  apply.onclick = () => { const c0 = bChange(st, p); bApply(st, p); turn(c0); };
-  const mine = h('button', { textContent: p.mine ? 'own step: on' : 'own step: off' });
-  mine.onclick = () => { bSetMine(st, p, !p.mine); on.changed(); };
-  const step = k => {
-    const f = h('input', { type: 'number', value: p.mine ? p.step[k] : '', disabled: !p.mine, style: 'width: 4em' });
-    f.onchange = () => { if (bWhole(+f.value)) p.step[k] = +f.value; on.changed(); };
-    return f;
-  };
   const ab = `${d.sib.from.name}→${d.sib.to.name}`;
-  return [h('div', {}, [`(${ab}, ${p.ac.a.name}→${p.ac.c.name}): ${ab} ${!bAuto(p) ? 'turn applied' : 'change'} φ ${bN(d.phi)} θ ${bN(d.theta)} `,
-    h('label', {}, [auto, ' automatic ']), ...(!bAuto(p) ? [apply] : []), mine, ' φ ', step('phi'), ' θ ', step('theta')])];
+  return [h('div', { textContent: `(${ab}, ${p.ac.a.name}→${p.ac.c.name}): ${ab} change φ ${bN(d.phi)} θ ${bN(d.theta)}` })];
 }
 
 function bRowCells(st, tree, c, h, on) {
@@ -132,7 +84,7 @@ function bRowCells(st, tree, c, h, on) {
   const set = h('button', { textContent: copy ? 'set copy' : 'set base' });
   set.onclick = () => { if (copy) bSetCopy(st, tree, ''); else r.base = bView(st, r); on.changed(); };
   const three = [['φ', 'phi'], ['θ', 'theta'], ['r', 'r']].map(([n, k]) => [n, ts.length ? ts.map(t => bF(t[k])).join(' / ') : '—']);
-  const pairs = copy ? tree.roots.flatMap(({ back }) => bPairCells(st, back, h, on)) : [];
+  const pairs = copy ? tree.roots.flatMap(({ back }) => bPairCells(st, back, h)) : [];
   return [['kind', kind], ...three, [copy ? 'copy' : 'base', [...pairs, set]]];
 }
 

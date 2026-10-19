@@ -1,80 +1,103 @@
-const T = {
-  root: { label: 'root', kids: ['pair', 'bc'] },
-  pair: { label: '(a→b, a→c)', kids: ['ab', 'ac'] },
-  bc: { label: 'b→c', kids: ['b', 'c'] },
-  ab: { label: 'a→b', kids: ['a', 'b'] },
-  ac: { label: 'a→c', kids: ['a', 'c'] },
-  a: { label: 'a', kids: [] },
-  b: { label: 'b', kids: [] },
-  c: { label: 'c', kids: [] },
+const T_KEY = 'pair-builder-v5';
+const tEl = (tag, props = {}, kids = []) => {
+  const e = Object.assign(document.createElement(tag), props);
+  kids.forEach(k => e.append(k));
+  return e;
 };
-const T_LEVELS = [['root'], ['pair', 'bc'], ['ab', 'ac'], ['a', 'b', 'c']];
-const T_HEAD = 30, T_LINE = 17, T_CH = 7.2, T_GX = 18, T_GY = 44;
+const tNum = v => (Number.isInteger(v) ? `${v}` : v.toFixed(3));
+const tAng = (o, ks = ['phi', 'theta', 'r']) => (o ? ks.filter(k => k in o).map(k => `${{ phi: 'φ', theta: 'θ', r: 'r' }[k]} ${tNum(o[k])}`).join(' · ') : '—');
+const tAB = ab => `${ab.a.name}→${(ab.b || ab.c).name}`;
+const tId = ab => `t-${ab.a.name}-${(ab.b || ab.c).name}`;
+const tRootId = r => `r-${tId(r.tree.ab)}-${tId(r.pair.ac)}`;
+const tLink = (id, text) => tEl('a', { href: `#${id}`, textContent: text });
 
-function tData() {
-  const st = bPreset(), [t, tbc, tac] = [...st.trees];
-  bSetStart(st, t, 'phi', 3);
-  const [ab, bc, ac] = [t, tbc, tac].map(x => x.ab.row), root = t.roots[0], p = root.pair, [a, b, c] = [...st.nodes];
-  const sym = { phi: 'φ', theta: 'θ', r: 'r' };
-  const pt = (name, o, ks = ['phi', 'theta', 'r']) => `${name} ${ks.filter(k => k in o).map(k => `${sym[k]} ${bN(o[k])}`).join(' ')}`;
-  const mat = m => [0, 3, 6].map(i => `  ${m.slice(i, i + 3).map(bF).join('  ')}`);
-  const row = r => `row ${r.from.name}→${r.to.name} · ${bKind(r)}`;
-  const idx = n => [pt('idx', n.idx, ['r', 'phi', 'theta'])];
-  return {
-    root: ['pair → (a→b, a→c)', 'bc → b→c', 'back → (a→c, a→b) in a→c\'s tree'],
-    ab: [row(ab), pt('start', ab.start, ['theta', 'r']), pt('end', ab.end, ['theta']), pt('was', t.ab.was, ['theta', 'r']), pt('now', t.ab.now, ['theta', 'r'])],
-    ac: [row(ac), pt('start', ac.start), 'rot', ...mat(p.ac.rot)],
-    pair: [pt('base', p.base), pt('ref', p.ref), pt('held', p.held), pt('went', p.went), pt('step', p.step),
-      `own step ${p.mine ? 'on' : 'off'}`, `automatic ${bAuto(p) ? 'on' : 'off'}`, '~reads a→b: was, now', '~reads a→c: kind'],
-    bc: [row(root.bc.row), pt('start', bc.start), pt('end', bc.end), 'turn', ...mat(bc.turn.m)],
-    a: idx(a), c: idx(c),
-    b: [...idx(b), '~a→b', ...['start', 'end', 'was', 'now'].map(k => pt(k, { start: ab.start, end: ab.end, was: t.ab.was, now: t.ab.now }[k], ['phi']))],
-  };
+function tItem(label, value, kids = [], { id, cls = '' } = {}) {
+  const vs = [].concat(value).map(v => (typeof v === 'string' ? tEl('span', { className: 'v', textContent: v }) : v));
+  return tEl('li', id ? { id } : {}, [tEl('div', { className: `it ${cls}` }, [tEl('span', { className: 'k', textContent: label }), ...vs]),
+    ...(kids.length ? [tEl('ul', {}, kids)] : [])]);
 }
-const T_DATA = tData();
+const tCalc = (label, value) => tItem(label, value, [], { cls: 'calc' });
+const tLinks = (ts, id, name) => (ts.length ? ts.flatMap((t, i) => [...(i ? [', '] : []), tLink(id(t), name(t))]) : '—');
 
-function tUnder(top) {
-  const keep = new Set([top]);
-  keep.forEach(k => T[k].kids.forEach(c => keep.add(c)));
-  return keep;
+function tLoad() {
+  try {
+    const s = JSON.parse(localStorage.getItem(T_KEY));
+    if (s) { bWire(s); return { st: s, from: `the builder's save in this browser (${T_KEY})` }; }
+  } catch { }
+  return { st: bPreset(), from: 'the three-node preset — the builder has saved nothing in this browser yet' };
 }
 
-function tLayout(keep) {
-  const at = {}, levels = T_LEVELS.map(l => l.filter(k => keep.has(k))).filter(l => l.length);
-  levels.forEach(l => l.forEach(k => {
-    const lines = T_DATA[k], chars = Math.max(T[k].label.length, ...lines.map(s => s.length));
-    at[k] = { w: chars * T_CH + 24, h: T_HEAD + lines.length * T_LINE + 8 };
-  }));
-  const span = l => l.reduce((s, k) => s + at[k].w, 0) + (l.length - 1) * T_GX, W = Math.max(...levels.map(span));
-  let y = 0;
-  levels.forEach(l => {
-    let x = (W - span(l)) / 2;
-    l.forEach(k => { at[k].x = x + at[k].w / 2; at[k].y = y; x += at[k].w + T_GX; });
-    y += Math.max(...l.map(k => at[k].h)) + T_GY;
-  });
-  return { at, W, H: y - T_GY };
+function tState(st) {
+  return [tItem('st', '', [
+    tItem('s', tNum(st.s)), tItem('ρ', tNum(st.rho)), tItem('T_φ', tNum(st.Tphi)), tItem('T_θ', tNum(st.Ttheta)), tItem('c_r', tNum(st.cr)),
+    tItem('item', st.item ? tLink(`n-${st.item.name}`, st.item.name) : '—'), tItem('made', `${st.made}`),
+    tItem('step', `${st.step}`), tItem('nodes', `${st.nodes.size}`), tItem('trees', `${st.trees.size}`),
+  ], { cls: 'head' })];
 }
 
-function tDraw(svg) {
-  const top = svg.dataset.top, keep = tUnder(top), mark = svg.classList.contains('subtree'), parts = [];
-  const { at, W, H } = tLayout(keep);
-  keep.forEach(k => T[k].kids.forEach(c => {
-    const from = [...keep].filter(p => T[p].kids.includes(c)).sort((p, q) => at[p].x - at[q].x);
-    const off = (from.indexOf(k) - (from.length - 1) / 2) * 16;
-    parts.push(`<path class="edge" d="M${at[k].x} ${at[k].y + at[k].h} L${at[c].x + off} ${at[c].y}"/>`);
-  }));
-  keep.forEach(k => {
-    const n = at[k], cls = mark && k === top ? 'box top' : 'box', left = n.x - n.w / 2;
-    parts.push(`<rect class="${cls}" x="${left}" y="${n.y}" width="${n.w}" height="${n.h}" rx="${T[k].kids.length ? 8 : 14}"/>`);
-    parts.push(`<text class="name" x="${n.x}" y="${n.y + T_HEAD / 2 + 2}">${T[k].label}</text>`);
-    T_DATA[k].forEach((s, i) => {
-      const muted = s.startsWith('~');
-      parts.push(`<text class="l small data${muted ? ' muted' : ''}" x="${left + 12}" y="${n.y + T_HEAD + i * T_LINE + T_LINE / 2}">${muted ? s.slice(1) : s}</text>`);
-    });
-  });
-  svg.setAttribute('viewBox', `-8 -8 ${W + 16} ${H + 16}`);
-  if (mark) svg.style.width = `${(W + 16) * 0.8}px`;
-  svg.innerHTML = parts.join('');
+function tNode(st, n) {
+  const C = bNodePos(st, n);
+  return tItem('node', n.name, [
+    tItem('s', n.s ? tNum(n.s) : `— (the scene's s, ${tNum(st.s)})`),
+    tItem('known', n.known ? 'yes' : 'no'),
+    tItem('idx', n.known ? `I_r ${tNum(n.idx.r)} · I_φ ${tNum(n.idx.phi)} · I_θ ${tNum(n.idx.theta)}` : '—'),
+    tCalc('C', C ? bPt(C) : '—'),
+    tItem('sender', n.sender ? tLink(`n-${n.sender.name}`, n.sender.name) : '—'),
+    tItem('via', n.via ? tLink(tId(n.via), tAB(n.via)) : '—'),
+    tItem('out', tLinks(n.out, t => tId(t.ab), t => tAB(t.ab))),
+    tItem('in', tLinks(n.in, t => tId(t.ab), t => tAB(t.ab))),
+    ...n.in.map(t => tFrom(st, t)),
+  ], { id: `n-${n.name}`, cls: 'head' });
 }
 
-document.querySelectorAll('svg[data-top]').forEach(tDraw);
+function tFrom(st, t) {
+  const { row, a, b } = t.ab, d = bView(st, row), dl = row.delta;
+  if (!d) return tItem(`from ${a.name}`, `${a.name} or ${b.name} has no position`);
+  return tItem(`from ${a.name}`, tLink(tId(t.ab), tAB(t.ab)), [
+    tCalc('angle', tAng(d)),
+    tItem('Δ', `${tAng(dl, ['phi', 'theta'])} (${tAB(t.ab)}'s row delta)`),
+    tCalc('angle + Δ', tAng({ phi: d.phi + dl.phi, theta: d.theta + dl.theta })),
+  ]);
+}
+
+function tRow(st, t) {
+  const { row, a, b } = t.ab, dirs = bDirs(st, t);
+  const has = k => (row[k] ? [tItem(k, tAng(row[k], k === 'start' || k === 'base' ? ['phi', 'theta', 'r'] : ['phi', 'theta']))] : []);
+  return tItem('ab', tAB(t.ab), [
+    tItem('a', tLink(`n-${a.name}`, a.name)), tItem('b', tLink(`n-${b.name}`, b.name)),
+    tItem('row', '', [tItem('kind', bKind(row)), ...has('start'), ...has('end'), ...has('delta'), ...has('base')]),
+    tCalc('direction', dirs.length ? dirs.map(d => tAng(d.t)).join(' / ') : '—'),
+    tCalc('placed', tAng(bView(st, row))),
+    tItem('places b', b.via === t.ab ? 'yes — b\'s via' : 'no'),
+  ]);
+}
+
+function tRoot(st, t, r) {
+  const p = r.pair, ac = p.ac, d = bChange(st, p), copy = bKind(ac.row) === 'copy';
+  return tItem('root', `(${tAB(t.ab)}, ${tAB(ac)})`, [
+    tItem('pair', '', [
+      tItem('ab', tLink(tId(t.ab), tAB(t.ab))), tItem('ac', tLink(tId(ac), tAB(ac))),
+      tItem('base', tAng(p.base)), tItem('ref', tAng(p.ref, ['phi', 'theta'])),
+      tCalc('change', d ? `${tAB(t.ab)} start − ref = ${tAng(d, ['phi', 'theta'])}` : '—'),
+      tItem(copy ? 'used by' : 'unused', copy ? `${tAB(ac)}'s copy direction: base + change` : `${tAB(ac)} is ${bKind(ac.row)}, not a copy`, [], { cls: 'note' }),
+    ]),
+    tItem('back', tLink(tRootId(r.back), `(${tAB(r.back.tree.ab)}, ${tAB(r.back.pair.ac)}) in ${tAB(r.back.tree.ab)}'s tree`)),
+  ], { id: tRootId(r) });
+}
+
+function tTree(st, t) {
+  return tItem('tree', tAB(t.ab), [tRow(st, t),
+    tItem('roots', t.roots.length ? '' : `— (${t.ab.a.name} has no other row)`, t.roots.map(r => tRoot(st, t, r)))], { id: tId(t.ab), cls: 'head' });
+}
+
+function tDraw() {
+  const { st, from } = tLoad();
+  document.getElementById('source').textContent = `from ${from}, read at ${new Date().toLocaleTimeString()}`;
+  document.getElementById('state').replaceChildren(...tState(st));
+  document.getElementById('nodes').replaceChildren(...[...st.nodes].map(n => tNode(st, n)));
+  document.getElementById('trees').replaceChildren(...[...st.trees].map(t => tTree(st, t)));
+  if (location.hash) document.getElementById(location.hash.slice(1))?.scrollIntoView();
+}
+
+window.addEventListener('storage', e => { if (e.key === T_KEY) tDraw(); });
+tDraw();

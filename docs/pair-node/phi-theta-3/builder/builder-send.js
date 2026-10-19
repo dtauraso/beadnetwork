@@ -29,6 +29,7 @@ function bWire(st) {
     const key = `${r.from}→${r.to}`, ps = r.pairs;
     r.from = by.get(r.from); r.to = by.get(r.to);
     delete r.pairs;
+    B_GONE.forEach(k => delete r[k]);
     if (!r.from || !r.to) return;
     const t = bAddTree(st, r);
     abs.set(key, t.ab);
@@ -38,11 +39,10 @@ function bWire(st) {
     const from = n.sender && by.get(n.sender), ab = n.via && abs.get(n.via.join('→'));
     delete n.ref; delete n.sender; delete n.via;
     if (from && ab && ab.b === n && ab.a === from) { n.sender = from; n.via = ab; }
-    bRelink(st, n);
   });
   saved.forEach((ps, t) => ps.forEach(({ with: c, ...w }) => {
     const x = t.roots.find(({ pair }) => pair.ac.c.name === c);
-    if (x) Object.assign(x.pair, w);
+    if (x) B_PAIR.filter(k => k in w).forEach(k => { x.pair[k] = w[k]; });
   }));
   st.trees.forEach(t => { if (bKind(t.ab.row) === 'copy' && t.ab.row.ref) bOldPairs(t); B_PAIR.filter(k => k !== 'base').forEach(k => delete t.ab.row[k]); });
   st.trees.forEach(t => { if (!bFloat(t.ab.row)) bLink(st, t.ab); });
@@ -50,7 +50,7 @@ function bWire(st) {
   st.made ??= 1 + Math.max(-1, ...[...by.keys()].map(bNameAt).filter(Number.isFinite));
 }
 
-const B_DATA = ['idx', 'start', 'end', 'base', 'ref', 'held', 'went', 'step', 'delta'];
+const B_DATA = ['idx', 'start', 'end', 'base', 'ref', 'delta'];
 
 let bLog = null;
 const bKeep = () => (bLog = new Map());
@@ -75,7 +75,6 @@ function bLetGo(st, n) {
   bSave(n);
   delete n.sender;
   delete n.via;
-  bRelink(st, n);
 }
 
 function bRefer(st, ab) {
@@ -84,7 +83,6 @@ function bRefer(st, ab) {
   bLetGo(st, n);
   n.sender = ab.a;
   n.via = ab;
-  bRelink(st, n);
 }
 
 function bLink(st, ab) {
@@ -104,65 +102,16 @@ function bSetAt(st, n, p) {
   n.idx = { ...J, theta: J.theta < 0 ? J.theta + st.Ttheta : J.theta };
 }
 
-const B_I = [1, 0, 0, 0, 1, 0, 0, 0, 1];
-const bTimes = (m, v) => [0, 3, 6].map(i => m[i] * v[0] + m[i + 1] * v[1] + m[i + 2] * v[2]);
-const bThen = (m, q) => [0, 3, 6].flatMap(i => [0, 1, 2].map(j => m[i] * q[j] + m[i + 1] * q[3 + j] + m[i + 2] * q[6 + j]));
-const bFlip = m => [0, 3, 6, 1, 4, 7, 2, 5, 8].map(i => m[i]);
-const bFrame = row => (row.turn ? row.turn.m : B_I);
-
 function bPut(st, row) {
   const n = row.to, f = row.from;
   if (!n.known || !f.known) return false;
   const t = bDir(st, row);
   if (!t) return false;
-  bSetAt(st, n, bAdd(bPlace(st, f.idx), bTimes(bFrame(row), bVec(st, bS(st, f), t))));
+  bSetAt(st, n, bAdd(bPlace(st, f.idx), bVec(st, bS(st, f), t)));
   return true;
 }
 
-function bRot(st, row, was, now) {
-  const s = bS(st, row.from), k = 2 * Math.PI / (12 * s), a = was.theta * k, b = now.theta * k, f = (now.phi - was.phi) * k;
-  const rot = v => {
-    const x1 = v[0] * Math.cos(a) + v[2] * Math.sin(a), z1 = v[2] * Math.cos(a) - v[0] * Math.sin(a);
-    const x2 = x1 * Math.cos(f) + v[1] * Math.sin(f), y2 = v[1] * Math.cos(f) - x1 * Math.sin(f);
-    return [x2 * Math.cos(b) - z1 * Math.sin(b), y2, x2 * Math.sin(b) + z1 * Math.cos(b)];
-  };
-  const [x, y, z] = [[1, 0, 0], [0, 1, 0], [0, 0, 1]].map(rot), m = bFrame(row);
-  return bThen(bThen(m, [x[0], y[0], z[0], x[1], y[1], z[1], x[2], y[2], z[2]]), bFlip(m));
-}
-
-function bRound(st, ac) {
-  const P = bNodePos(st, ac.a), Q = bNodePos(st, ac.c);
-  if (!P || !Q || !ac.rot) return false;
-  bSetAt(st, ac.c, bAdd(P, bTimes(ac.rot, bSub(Q, P))));
-  return true;
-}
-
-function bTurnVia(st, bc, rot) {
-  if (!bc) return;
-  bSave(bc.row);
-  bc.row.turn = { m: bThen(rot, bFrame(bc.row)) };
-}
-
-function bCarry(st, root, rot) {
-  root.pair.ac.rot = rot;
-  if (bRound(st, root.pair.ac)) bTurnVia(st, root.bc, rot);
-}
-
-function bHead(st, ab, was) {
-  ab.was = was;
-  bRefer(st, ab);
-  ab.now = bDir(st, ab.row);
-  bPut(st, ab.row);
-}
-
-function bPair(st, p) {
-  const { was, now } = p.ab;
-  if (!was || !now || bKind(p.ac.row) !== 'copy' || !bAuto(p)) return null;
-  p.ac.rot = bRot(st, p.ab.row, was, bStep(st, p, was, now));
-  return bRound(st, p.ac) ? p.ac.rot : null;
-}
-
-function bMove(st, tree, was) {
-  bHead(st, tree.ab, was);
-  tree.roots.forEach(({ pair, bc }) => { const rot = bPair(st, pair); if (rot) bTurnVia(st, bc, rot); });
+function bMove(st, tree) {
+  bRefer(st, tree.ab);
+  bPut(st, tree.ab.row);
 }

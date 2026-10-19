@@ -11,7 +11,7 @@
 <body>
 <header>
   <h1>Builder tests</h1>
-  <div class="sub">Each test runs the builder's own scripts (the ones the a→b builder tab loads) through a list of edits, one step at a time, and compares what the step leaves with what the builder left at the same step at commit c1db60fcb — the last builder before the rows moved into the trees. The page runs them each time it opens; a step that differs is marked ✗ and opened, with the differing nodes and rows in red.</div>
+  <div class="sub">Each test runs the builder's own scripts (the ones the a→b builder tab loads) through a list of edits, one step at a time, and compares what the step leaves with what the builder left at the same step once the rotation matrix was removed. The page runs them each time it opens; a step that differs is marked ✗ and opened, with the differing nodes and rows in red.</div>
 </header>
 
 <nav>
@@ -28,13 +28,13 @@
 
   <div class="panel">
     <h2>Edits</h2>
-    <p>One sequence on one builder state, from the three-node preset. Each step compares every node's index (r, φ, θ) and via, and every row's kind and frame (each frame turn compared to 9 places). Numbers match when they are within 10⁻⁹.</p>
+    <p>One sequence on one builder state, from the three-node preset. Each step compares every node's index (r, φ, θ) and via, and every row's kind. Numbers match when they are within 10⁻⁹.</p>
     <div id="edits"></div>
   </div>
 
   <div class="panel">
     <h2>Copy directions and saves</h2>
-    <p>The direction each row gives — a copy has one per (a→b, a→c) node rotating it — and where the nodes are, across a save the old builder wrote and a save the tree builder writes. Directions and node positions are compared to 3 places.</p>
+    <p>The direction each row gives — a copy has one per (a→b, a→c) node it takes a change from — and where the nodes are, across a save the old builder wrote and a save the tree builder writes. Directions and node positions are compared to 3 places.</p>
     <div id="saves"></div>
   </div>
 </main>

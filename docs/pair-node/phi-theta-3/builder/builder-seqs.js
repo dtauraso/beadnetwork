@@ -1,8 +1,19 @@
 const B_SEQS = 'pair-builder-seqs-v1';
 
 function bSeqBook() {
-  try { const b = JSON.parse(localStorage.getItem(B_SEQS)); if (b && b.seqs.length && b.seqs[b.at]) return bSeqNumber(b); } catch { }
+  try { const b = JSON.parse(localStorage.getItem(B_SEQS)); if (b && b.seqs.length && b.seqs[b.at]) return bSeqNumber(bSeqClean(b)); } catch { }
   return { seqs: [{ name: 'sequence 1' }], at: 0 };
+}
+
+function bSeqClean(book) {
+  book.seqs.forEach(q => {
+    if (!q.data) return;
+    const s = JSON.parse(q.data);
+    bWire(s);
+    q.data = JSON.stringify(s, bPack);
+  });
+  try { localStorage.setItem(B_SEQS, JSON.stringify(book)); } catch { }
+  return book;
 }
 
 function bSeqNumber(book) {
