@@ -46,7 +46,18 @@ function tNode(st, n) {
     tItem('via', n.via ? tLink(tId(n.via), tAB(n.via)) : '—'),
     tItem('out', tLinks(n.out, t => tId(t.ab), t => tAB(t.ab))),
     tItem('in', tLinks(n.in, t => tId(t.ab), t => tAB(t.ab))),
+    ...n.in.map(t => tFrom(st, t)),
   ], { id: `n-${n.name}`, cls: 'head' });
+}
+
+function tFrom(st, t) {
+  const { row, a, b } = t.ab, d = bView(st, row), dl = row.delta;
+  if (!d) return tItem(`from ${a.name}`, `${a.name} or ${b.name} has no position`);
+  return tItem(`from ${a.name}`, tLink(tId(t.ab), tAB(t.ab)), [
+    tCalc('angle', tAng(d)),
+    tItem('Δ', `${tAng(dl, ['phi', 'theta'])} (${tAB(t.ab)}'s row delta)`),
+    tCalc('angle + Δ', tAng({ phi: d.phi + dl.phi, theta: d.theta + dl.theta })),
+  ]);
 }
 
 function tRow(st, t) {
