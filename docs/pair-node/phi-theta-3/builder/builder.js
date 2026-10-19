@@ -54,10 +54,9 @@
       return flag(at, num(o[k], v => check(at, bSetStart(st, tree, k, v, part), v)));
     };
     const trees = [...st.trees];
-    if (!trees.includes(pickEdge)) pickEdge = null;
-    const pickE = h('select', {}, [h('option', { value: -1, textContent: 'all edges' }),
-      ...trees.map((t, i) => h('option', { value: i, textContent: `${t.ab.a.name}→${t.ab.b.name}`, selected: t === pickEdge }))]);
-    pickE.onchange = () => { pickEdge = trees[+pickE.value] || null; setup(); };
+    if (!trees.includes(pickEdge)) pickEdge = trees[0] || null;
+    const pickE = h('select', {}, trees.map((t, i) => h('option', { value: i, textContent: `${t.ab.a.name}→${t.ab.b.name}`, selected: t === pickEdge })));
+    pickE.onchange = () => { pickEdge = trees[+pickE.value]; setup(); };
     const settings = (pickEdge ? [pickEdge] : trees).map(tree => {
       const del = h('button', { textContent: 'remove' });
       del.onclick = () => { bDropTree(st, tree); setup(); update(); };
@@ -81,7 +80,7 @@
       setup(); update();
     };
     el('settings').replaceChildren(bSeqPicker(book, h, open),
-      bSteps(h, [{ body: [h('div', { className: 'row' }, [h('label', {}, ['edge ', pickE])]), h('div', { className: 'part', textContent: 'edges' }), settings.length ? h('ul', { className: 'abs' }, settings) : h('div', { className: 'hint', textContent: 'no edges' }), ...bStepNodes(st, h, pickEdge)],
+      bSteps(h, [{ body: [...(trees.length ? [h('div', { className: 'row' }, [h('label', {}, ['edge ', pickE])])] : []), h('div', { className: 'part', textContent: 'edges' }), settings.length ? h('ul', { className: 'abs' }, settings) : h('div', { className: 'hint', textContent: 'no edges' }), ...bStepNodes(st, h, pickEdge)],
         head: tos.length ? [pickA, ' → ', pickB, add] : [h('span', { className: 'hint', textContent: 'no edge left to add' })] }]), ...bLands(st, h),
       h('h2', { textContent: 'a→b settings — one item per a→b, set at a, with its attributes: an angle (φ, θ, r), a change (a copy of the angle into a, plus its own end φ, end θ), a copy (a stored direction plus the change of the angle row from a since it was set — no φ, θ, r of its own), or a base (measured once from where b lands, then stored)' }));
     el('tables').replaceChildren(
