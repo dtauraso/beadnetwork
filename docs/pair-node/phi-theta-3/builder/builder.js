@@ -119,20 +119,18 @@
   }
 
   function render(rs) {
-    const pts = [[0, 0, 0], ...[...st.nodes].filter(n => n.known).map(n => bPlace(st, n.idx))];
+    const pts = [[0, 0, 0], ...[...st.nodes].filter(n => n.known).map(n => bShifted(st, n, picked))];
     rs.forEach(({ steps }) => steps.slice(0, st.step).forEach(s => s.draw.forEach(o => pts.push(...(o.arrow || [o.dot || o.square])))));
     const cells = st.cells !== false ? bLinks(st) : [];
     cells.forEach(({ P, t, s }) => pts.push(...bCellCorners(st, P, t, s)));
-    const shift = bShiftDraws(st, picked);
-    shift.forEach(o => pts.push(...o.arrow));
     reach ??= Math.max(0.25, ...pts.map(bLen));
     focus = [0, 0, 0];
     S = pan.zoom * (cv.width / 2 - 60) / reach;
     Object.assign(draw, atobCanvas(ctx, cv.width, cv.height, S, view, () => focus, css));
-    paint(rs, cells, shift);
+    paint(rs, cells);
   }
 
-  function paint(rs, cells, shift) {
+  function paint(rs, cells) {
     ctx.clearRect(0, 0, cv.width, cv.height);
     ctx.save(); ctx.translate(pan.x, pan.y);
     bDrawAxes(draw, ctx, css, [0, 0, 0], st.cr, true);
@@ -165,9 +163,8 @@
         });
       });
     });
-    bDrawShift(draw, css, shift);
     draw.dot([0, 0, 0], css('--ink'), 'O');
-    [...st.nodes].filter(n => n.known).forEach(n => draw.dot(bPlace(st, n.idx), css('--ink'), n.name));
+    [...st.nodes].filter(n => n.known).forEach(n => draw.dot(bShifted(st, n, picked), css('--ink'), n.name));
     ctx.restore();
   }
 

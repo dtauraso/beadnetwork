@@ -35,19 +35,3 @@ function bFromAngle(st, t, picked) {
   const row = t.ab.row;
   return picked.includes(t) ? bView(st, row) : bView(st, row, bShifted(st, row.from, picked), bShifted(st, row.to, picked));
 }
-
-function bShiftDraws(st, picked) {
-  const moved = picked.filter(t => t.ab.row.delta.phi || t.ab.row.delta.theta), heads = new Set(moved.map(t => t.ab.b));
-  const at = n => bShifted(st, n, picked);
-  const own = moved.map(t => ({ arrow: [bNodePos(st, t.ab.a), at(t.ab.b)], label: `${t.ab.b.name}'` }));
-  const redo = [...st.trees].filter(t => !picked.includes(t) && (heads.has(t.ab.a) || heads.has(t.ab.b)))
-    .map(t => ({ arrow: [at(t.ab.a), at(t.ab.b)], dashed: true }));
-  return [...own, ...redo].filter(o => o.arrow[0] && o.arrow[1]);
-}
-
-function bDrawShift(draw, css, shift) {
-  shift.forEach(o => {
-    draw.arrow(o.arrow[0], o.arrow[1], css('--theta'), 3, o.dashed);
-    if (o.label) draw.dot(o.arrow[1], css('--theta'), o.label, true);
-  });
-}
