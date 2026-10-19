@@ -19,9 +19,10 @@ function bDrawAxes(draw, ctx, css, P, L, named) {
 }
 
 function bRowEnds(st) {
-  return [...st.trees].flatMap(tree => bDirs(st, tree).map(({ t }) => {
+  return [...st.trees].flatMap(tree => bDirs(st, tree).map(({ t: was }) => {
     const { ab } = tree, row = ab.row, P = bNodePos(st, ab.a);
     if (!P) return null;
+    const t = B_AT && (B_AT.has(ab.a) || B_AT.has(ab.b)) ? bView(st, row) || was : was;
     const d = bVec(st, bS(st, ab.a), t);
     return { ab, row, P, d, t, T: bNodePos(st, ab.b) || bAdd(P, d) };
   })).filter(Boolean);

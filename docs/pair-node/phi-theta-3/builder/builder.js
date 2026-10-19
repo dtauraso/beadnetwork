@@ -100,8 +100,10 @@
     return B_METHODS.filter(m => st.on[m.id] && st.item).map(m => ({ m, steps: m.run(st, st.item) }));
   }
 
+  const redraw = () => bAtShifted(st, picked, () => render(runs()));
+
   function update() {
-    const rs = runs();
+    const rs = bAtShifted(st, picked, runs);
     const max = Math.max(1, ...rs.map(r => r.steps.length));
     st.step = Math.min(Math.max(1, st.step), max);
     el('stepno').textContent = `step ${st.step} of ${max}`;
@@ -114,12 +116,12 @@
         ...s.lines.map(l => h('code', { textContent: l })), h('div', { className: 'note', textContent: s.note })]))),
     ])));
     el('cells').checked = st.cells !== false;
-    el('cells').onchange = () => { st.cells = el('cells').checked; update(); };    render(rs);
+    el('cells').onchange = () => { st.cells = el('cells').checked; update(); };    bAtShifted(st, picked, () => render(rs));
     save();
   }
 
   function render(rs) {
-    const pts = [[0, 0, 0], ...[...st.nodes].filter(n => n.known).map(n => bShifted(st, n, picked))];
+    const pts = [[0, 0, 0], ...[...st.nodes].filter(n => n.known).map(n => bNodePos(st, n))];
     rs.forEach(({ steps }) => steps.slice(0, st.step).forEach(s => s.draw.forEach(o => pts.push(...(o.arrow || [o.dot || o.square])))));
     const cells = st.cells !== false ? bLinks(st) : [];
     cells.forEach(({ P, t, s }) => pts.push(...bCellCorners(st, P, t, s)));
@@ -164,7 +166,7 @@
       });
     });
     draw.dot([0, 0, 0], css('--ink'), 'O');
-    [...st.nodes].filter(n => n.known).forEach(n => draw.dot(bShifted(st, n, picked), css('--ink'), n.name));
+    [...st.nodes].filter(n => n.known).forEach(n => draw.dot(bNodePos(st, n), css('--ink'), n.name));
     ctx.restore();
   }
 
@@ -175,21 +177,21 @@
     const dx = e.clientX - drag.x, dy = e.clientY - drag.y, k = cv.width / cv.getBoundingClientRect().width;
     if (e.shiftKey) { pan.x += dx * k; pan.y += dy * k; } else { view.yaw += dx * 0.01; view.pitch += dy * 0.01; }
     drag = { x: e.clientX, y: e.clientY };
-    render(runs());
+    redraw();
   });
   cv.addEventListener('pointerup', () => { drag = null; });
   const zoomAt = (f, cx, cy) => {
     const box = cv.getBoundingClientRect(), k = cv.width / box.width;
     const mx = (cx - box.left) * k - cv.width / 2, my = (cy - box.top) * k - cv.height / 2;
     pan.x = mx - f * (mx - pan.x); pan.y = my - f * (my - pan.y); pan.zoom *= f;
-    render(runs());
+    redraw();
   };
   cv.addEventListener('wheel', e => {
     e.preventDefault();
     if (e.ctrlKey) return zoomAt(Math.exp(-e.deltaY * 0.01), e.clientX, e.clientY);
     const k = cv.width / cv.getBoundingClientRect().width;
     pan.x -= e.deltaX * k; pan.y -= e.deltaY * k;
-    render(runs());
+    redraw();
   }, { passive: false });
   let pinch = 1;
   cv.addEventListener('gesturestart', e => { e.preventDefault(); pinch = 1; });

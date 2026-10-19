@@ -31,6 +31,11 @@ function bShifted(st, n, picked) {
   return bAdd(P, bVec(st, bS(st, t.ab.a), { phi: d.phi + dl.phi, theta: d.theta + dl.theta, r: d.r }));
 }
 
+function bAtShifted(st, picked, f) {
+  B_AT = new Map(picked.filter(t => t.ab.row.delta.phi || t.ab.row.delta.theta).map(t => [t.ab.b, bShifted(st, t.ab.b, picked)]).filter(([, p]) => p));
+  try { return f(); } finally { B_AT = null; }
+}
+
 function bFromAngle(st, t, picked) {
   const row = t.ab.row;
   return picked.includes(t) ? bView(st, row) : bView(st, row, bShifted(st, row.from, picked), bShifted(st, row.to, picked));
