@@ -91,9 +91,8 @@ function bSetStart(st, tree, k, value, part = 'start') {
   if (!bWhole(value)) return `${said}: not a whole number, so it stays at ${was}`;
   const keep = bKeep();
   bSave(row);
-  const turning = bDir(st, row) && { ...bDir(st, row) };
   row[part][k] = value;
-  bMove(st, tree, turning);
+  bMove(st, tree);
   return bSettle(st, keep, [tree], said, was);
 }
 

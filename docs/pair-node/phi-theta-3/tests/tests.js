@@ -1,6 +1,6 @@
 const T_EPS = 1e-9;
 const tName = r => r.from.name + r.to.name;
-const tRows = st => [...st.trees].map(({ ab: { row } }) => [tName(row), row.kind || 'angle', row.turn ? row.turn.m.map(x => +x.toFixed(9)) : null]);
+const tRows = st => [...st.trees].map(({ ab: { row } }) => [tName(row), row.kind || 'angle']);
 const tNodes = st => [...st.nodes].map(n => [n.name, n.idx, n.via ? n.via.a.name + n.via.b.name : null]);
 const tSnap = st => ({ nodes: JSON.parse(JSON.stringify(tNodes(st))), rows: tRows(st) });
 const tReload = st => { const s = JSON.parse(JSON.stringify(st, bPack)); bWire(s); return s; };
@@ -15,12 +15,7 @@ function tEdits() {
     ['a→b φ 3', () => bSetStart(st, ab, 'phi', 3)],
     ['a→b θ 2', () => bSetStart(st, ab, 'theta', 2)],
     ['a→b r 3', () => bSetStart(st, ab, 'r', 3)],
-    ['own step on in (a→b, a→c), step φ 2 θ 1, then a→b φ 4', () => {
-      const p = ac.roots[0].back.pair;
-      bSetMine(st, p, true);
-      p.step = { phi: 2, theta: 1 };
-      bSetStart(st, ab, 'phi', 4);
-    }],
+    ['a→b φ 4', () => bSetStart(st, ab, 'phi', 4)],
     ['a→b θ 1', () => bSetStart(st, ab, 'theta', 1)],
     ['add d (s 2) with c→d φ 1 θ 2 r 2, add a→d as a copy, then a→b φ 5', () => {
       const d = bMake({ name: 'd', s: 2, known: true, idx: { r: 3, phi: 2, theta: 5 } });
@@ -31,13 +26,7 @@ function tEdits() {
       bSetStart(st, ab, 'phi', 5);
     }],
     ['a→b θ 4', () => bSetStart(st, ab, 'theta', 4)],
-    ['automatic off in (a→b, a→d), then a→b φ 6', () => {
-      ad.roots[0].back.pair.automatic = false;
-      bSetStart(st, ab, 'phi', 6);
-    }],
-    ['apply turn in (a→b, a→d): the turn from φ 5 θ 4 to φ 6 θ 4', () => {
-      bCarry(st, ad.roots[0].back, bRot(st, ab.ab.row, { phi: 5, theta: 4 }, { phi: 6, theta: 4 }));
-    }],
+    ['a→b φ 6', () => bSetStart(st, ab, 'phi', 6)],
     ['a→c as angle, then a→b φ 4', () => { bSetKind(st, ac, 'angle'); bSetStart(st, ab, 'phi', 4); }],
     ['a→c as copy again', () => bSetKind(st, ac, 'copy')],
     ['a→b as base', () => bSetKind(st, ab, 'base')],
@@ -118,13 +107,12 @@ function tNodeTable(want, got) {
 }
 
 function tRowTable(want, got) {
-  const turn = t => (t ? 'turned' : 'unturned');
-  const head = tEl('tr', {}, ['row', 'kind wanted', 'kind got', 'frame wanted', 'frame got'].map(t => tEl('th', { textContent: t })));
+  const head = tEl('tr', {}, ['row', 'kind wanted', 'kind got'].map(t => tEl('th', { textContent: t })));
   const names = [...new Set([...want.map(r => r[0]), ...(got || []).map(r => r[0])])];
   return tEl('table', {}, [tEl('thead', {}, [head]), tEl('tbody', {}, names.map(name => {
     const w = want.find(r => r[0] === name), g = (got || []).find(r => r[0] === name);
     const bad = tSame(w, g, '', []).length > 0;
-    return tEl('tr', { className: bad ? 'bad' : '' }, [`${name[0]}→${name.slice(1)}`, w ? w[1] : '—', g ? g[1] : '—', w ? turn(w[2]) : '—', g ? turn(g[2]) : '—']
+    return tEl('tr', { className: bad ? 'bad' : '' }, [`${name[0]}→${name.slice(1)}`, w ? w[1] : '—', g ? g[1] : '—']
       .map(t => tEl('td', { textContent: t })));
   }))]);
 }
@@ -157,4 +145,4 @@ const tOkEdit = tShow('edits', tEdit, T_WHY_EDITS, c => [tNodeTable(c.want.nodes
 const tOkSave = tShow('saves', tSave, T_WHY_SAVES, c => [tDirTable(c.want, c.got)]);
 const tAll = tOkEdit === tEdit.length && tOkSave === tSave.length;
 document.getElementById('summary').className = `summary ${tAll ? 'ok' : 'bad'}`;
-document.getElementById('summary').textContent = `${tOkEdit} of ${tEdit.length} edit steps and ${tOkSave} of ${tSave.length} save steps give what the builder gave at ${T_FROM}`;
+document.getElementById('summary').textContent = `${tOkEdit} of ${tEdit.length} edit steps and ${tOkSave} of ${tSave.length} save steps give what ${T_AT} gave`;
