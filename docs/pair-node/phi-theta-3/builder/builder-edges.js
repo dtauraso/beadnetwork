@@ -13,8 +13,8 @@ function bEdgePicker(st, h, picked, changed) {
     const own = (k, name) => {
       const amount = h('input', { type: 'number', value: t.ab.row.by[k], step: 1 });
       amount.onchange = () => { const v = +amount.value; if (Number.isFinite(v)) t.ab.row.by[k] = v; changed(); };
-      const step = (sign, text) => { const b = h('button', { textContent: text }); b.onclick = () => { by(t, k, sign); changed(); }; return b; };
-      return [` ${name}`, amount, step(-1, '−'), step(1, '+')];
+      const step = (sign, text) => { const b = h('button', { textContent: text }); b.onclick = () => { t.ab.row.by[k] += sign; changed(); }; return b; };
+      return [` ${name} by`, amount, step(-1, '−'), step(1, '+')];
     };
     return h('li', {}, [h('div', { className: 'row' }, [h('span', { className: 't', textContent: abName(t) }), ...own('phi', 'Δφ'), ...own('theta', 'Δθ'), drop])]);
   });
