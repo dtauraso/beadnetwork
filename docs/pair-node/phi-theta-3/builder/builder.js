@@ -77,7 +77,7 @@
       setup(); update();
     };
     el('settings').replaceChildren(bSeqPicker(book, h, open),
-      bSteps(h, [{ body: [...bEdgePicker(st, h, picked, setup, () => { setup(); update(); }), h('div', { className: 'part', textContent: 'edges' }), settings.length ? h('ul', { className: 'abs' }, settings) : h('div', { className: 'hint', textContent: 'no edges' }), ...bStepNodes(st, h, picked)],
+      bSteps(h, [{ body: [...bEdgePicker(st, h, picked, () => { setup(); update(); }), h('div', { className: 'part', textContent: 'edges' }), settings.length ? h('ul', { className: 'abs' }, settings) : h('div', { className: 'hint', textContent: 'no edges' }), ...bStepNodes(st, h, picked)],
         head: tos.length ? [pickA, ' → ', pickB, add] : [h('span', { className: 'hint', textContent: 'no edge left to add' })] }]), ...bLands(st, h),
       h('h2', { textContent: 'a→b settings — one item per a→b, set at a, with its attributes: an angle (φ, θ, r), a change (a copy of the angle into a, plus its own end φ, end θ), a copy (a stored direction plus the change of the angle row from a since it was set — no φ, θ, r of its own), or a base (measured once from where b lands, then stored)' }));
     el('tables').replaceChildren(
@@ -123,14 +123,16 @@
     rs.forEach(({ steps }) => steps.slice(0, st.step).forEach(s => s.draw.forEach(o => pts.push(...(o.arrow || [o.dot || o.square])))));
     const cells = st.cells !== false ? bLinks(st) : [];
     cells.forEach(({ P, t, s }) => pts.push(...bCellCorners(st, P, t, s)));
+    const shift = bShiftDraws(st, picked);
+    shift.forEach(o => pts.push(...o.arrow));
     reach ??= Math.max(0.25, ...pts.map(bLen));
     focus = [0, 0, 0];
     S = pan.zoom * (cv.width / 2 - 60) / reach;
     Object.assign(draw, atobCanvas(ctx, cv.width, cv.height, S, view, () => focus, css));
-    paint(rs, cells);
+    paint(rs, cells, shift);
   }
 
-  function paint(rs, cells) {
+  function paint(rs, cells, shift) {
     ctx.clearRect(0, 0, cv.width, cv.height);
     ctx.save(); ctx.translate(pan.x, pan.y);
     bDrawAxes(draw, ctx, css, [0, 0, 0], st.cr, true);
@@ -163,6 +165,7 @@
         });
       });
     });
+    bDrawShift(draw, css, shift);
     draw.dot([0, 0, 0], css('--ink'), 'O');
     [...st.nodes].filter(n => n.known).forEach(n => draw.dot(bPlace(st, n.idx), css('--ink'), n.name));
     ctx.restore();
