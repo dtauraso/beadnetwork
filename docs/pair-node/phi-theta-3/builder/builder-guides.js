@@ -48,8 +48,7 @@ function bPreset() {
   return p;
 }
 
-function bView(st, row) {
-  const P = bNodePos(st, row.from), T = bNodePos(st, row.to);
+function bView(st, row, P = bNodePos(st, row.from), T = bNodePos(st, row.to)) {
   if (!P || !T) return null;
   const s = bS(st, row.from), v = bSub(T, P), len = bLen(v), tick = 2 * Math.PI / (12 * s), half = 6 * s;
   const was = bDir(st, row) || { phi: 0, theta: 0 };
