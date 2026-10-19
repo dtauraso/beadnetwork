@@ -11,6 +11,9 @@ function bEdgePicker(st, h, picked, redraw) {
     drop.onclick = () => { picked.splice(picked.indexOf(t), 1); redraw(); };
     return h('li', {}, [h('div', { className: 'row' }, [h('span', { className: 't', textContent: abName(t) }), drop])]);
   });
+  const redo = left.map(t => h('li', {}, [h('div', { className: 'row' }, [h('span', { className: 't', textContent: abName(t) })])]));
   return [h('div', { className: 'row' }, [h('label', {}, ['edge ', pick])]),
-    items.length ? h('ul', { className: 'abs' }, items) : h('div', { className: 'hint', textContent: 'no edges picked' })];
+    items.length ? h('ul', { className: 'abs' }, items) : h('div', { className: 'hint', textContent: 'no edges picked' }),
+    h('div', { className: 'part', textContent: 'chosen for vector recalculation' }),
+    redo.length ? h('ul', { className: 'abs' }, redo) : h('div', { className: 'hint', textContent: 'no edges' })];
 }
