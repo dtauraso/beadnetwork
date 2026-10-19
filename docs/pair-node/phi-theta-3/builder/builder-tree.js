@@ -23,6 +23,7 @@ function bJoin(st, t, o) {
 
 function bAddTree(st, row) {
   row.delta ??= { phi: 0, theta: 0 };
+  row.by ??= { phi: 1, theta: 1 };
   const t = { ab: bAB(row), roots: [] }, { a, b } = t.ab;
   a.out.forEach(o => bJoin(st, t, o));
   a.out = [...a.out, t];
