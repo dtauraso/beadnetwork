@@ -31,7 +31,8 @@ const bWhole = x => Math.abs(x - Math.round(x)) < 1e-6;
 const bIdx = I => `(I_r ${bF(I.r)}, I_φ ${bF(I.phi)}, I_θ ${bF(I.theta)})`;
 const bPlaceText = I => `O + polar_to_cart(${bF(I.r)}·c_r, ${bF(I.phi)}·c_φ, ${bF(I.theta)}·c_θ)`;
 
-const bNodePos = (st, n) => (n && n.known ? bPlace(st, n.idx) : null);
+let B_AT = null;
+const bNodePos = (st, n) => (n && n.known ? (B_AT && B_AT.get(n)) || bPlace(st, n.idx) : null);
 
 function bVec(st, s, t) {
   const ang = x => x * 2 * Math.PI / (12 * s);

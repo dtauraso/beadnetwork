@@ -19,9 +19,10 @@ function bDrawAxes(draw, ctx, css, P, L, named) {
 }
 
 function bRowEnds(st) {
-  return [...st.trees].flatMap(tree => bDirs(st, tree).map(({ t }) => {
+  return [...st.trees].flatMap(tree => bDirs(st, tree).map(({ t: was }) => {
     const { ab } = tree, row = ab.row, P = bNodePos(st, ab.a);
     if (!P) return null;
+    const t = B_AT && (B_AT.has(ab.a) || B_AT.has(ab.b)) ? bView(st, row) || was : was;
     const d = bVec(st, bS(st, ab.a), t);
     return { ab, row, P, d, t, T: bNodePos(st, ab.b) || bAdd(P, d) };
   })).filter(Boolean);
@@ -48,8 +49,7 @@ function bPreset() {
   return p;
 }
 
-function bView(st, row) {
-  const P = bNodePos(st, row.from), T = bNodePos(st, row.to);
+function bView(st, row, P = bNodePos(st, row.from), T = bNodePos(st, row.to)) {
   if (!P || !T) return null;
   const s = bS(st, row.from), v = bSub(T, P), len = bLen(v), tick = 2 * Math.PI / (12 * s), half = 6 * s;
   const was = bDir(st, row) || { phi: 0, theta: 0 };
