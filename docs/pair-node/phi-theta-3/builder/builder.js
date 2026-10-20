@@ -79,8 +79,8 @@
     el('item').onchange = () => { builder.item = shown[+el('item').value]; update(); };
 
     el('methods').replaceChildren(...B_METHODS.map(m => {
-      const box = h('input', { type: 'checkbox', checked: !!builder.on[m.id] });
-      box.onchange = () => { builder.on[m.id] = box.checked; update(); };
+      const box = h('input', { type: 'checkbox', checked: !!builder.methods[m.id] });
+      box.onchange = () => { builder.methods[m.id] = box.checked; update(); };
       return h('label', { className: 'method' }, [box, h('span', { className: `m-${m.color.slice(2)}`, textContent: m.name })]);
     }));
   }
@@ -89,7 +89,7 @@
     const shown = bShown(builder);
     if (shown.length && !shown.includes(builder.item)) builder.item = shown[0];
     if (!builder.item || builder.item.gone) builder.item = bFirst(builder.nodes);
-    return B_METHODS.filter(m => builder.on[m.id] && shown.includes(builder.item)).map(m => ({ m, steps: m.run(builder, builder.item) }));
+    return B_METHODS.filter(m => builder.methods[m.id] && shown.includes(builder.item)).map(m => ({ m, steps: m.run(builder, builder.item) }));
   }
 
   const redraw = () => render(runs());
