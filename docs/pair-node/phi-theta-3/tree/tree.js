@@ -95,8 +95,12 @@ function tSvg(builder) {
     parts.push(`<text class="name" x="${n.x}" y="${n.y + T_HEAD / 2 + 2}">${tEsc(label)}</text>`);
     n.cs.forEach(({ lines, x, w, kw }, c) => {
       const left = box + x, right = c === n.cs.length - 1 ? box + n.w : left + w;
-      const y1 = n.y + T_HEAD + 3, y2 = n.y + n.h - 8, step = (y2 - y1) / Math.round((y2 - y1) / 6);
-      if (c) parts.push(`<line class="rule" x1="${left}" x2="${left}" y1="${y1}" y2="${y2}" stroke-dasharray="0 ${step}"/>`);
+      const y1 = n.y + 8, y2 = n.y + n.h - 8, dots = Math.round((y2 - y1) / 6), step = (y2 - y1) / dots;
+      const title = Math.abs(left - n.x) < label.length * 4.5 + 6;
+      if (c) for (let d = 0; d <= dots; d++) {
+        const y = y1 + d * step;
+        if (!(title && y < n.y + T_HEAD - 2)) parts.push(`<circle class="rule" cx="${left}" cy="${y}" r="1.25"/>`);
+      }
       lines.forEach(([name, v, kind], i) => {
         const calc = name.startsWith('~'), ref = kind === 'ref', y = n.y + T_HEAD + i * T_LINE + T_LINE / 2;
         if (kind === 'note') {
