@@ -1,51 +1,57 @@
-const B_SEQS = 'pair-builder-seqs-v1';
+const B_KEY = 'pair-builder-v6';
 
-function bSeqBook() {
-  try { const b = JSON.parse(localStorage.getItem(B_SEQS)); if (b && b.seqs.length && b.seqs[b.at]) return bSeqNumber(bSeqClean(b)); } catch { }
-  return { seqs: [{ name: 'sequence 1' }], at: 0 };
+function bLoad() {
+  try {
+    const builder = JSON.parse(localStorage.getItem(B_KEY)) || bOld();
+    if (builder && builder.seqs[builder.open]) { bWire(builder); return bSeqNumber(builder); }
+  } catch { }
+  return null;
 }
 
-function bSeqClean(book) {
-  book.seqs.forEach(q => {
-    if (!q.data) return;
-    const s = JSON.parse(q.data);
-    bWire(s);
-    q.data = JSON.stringify(s, bPack);
-  });
-  try { localStorage.setItem(B_SEQS, JSON.stringify(book)); } catch { }
-  return book;
+function bOld() {
+  const get = k => JSON.parse(localStorage.getItem(k)), book = get('pair-builder-seqs-v1'), v5 = get('pair-builder-v5');
+  const datas = book && book.seqs.length ? book.seqs.map(q => (q.data ? JSON.parse(q.data) : v5)) : [v5];
+  const open = book && datas[book.at] ? book.at : 0;
+  if (!datas[open]) return null;
+  const { nodes, trees, ...rest } = datas[open];
+  return { ...rest, open, seqs: datas.map((d, i) => ({ name: book ? book.seqs[i].name : 'sequence 1', steps: [{ edges: d ? d.trees : [], nodes: d ? d.nodes : [] }] })) };
 }
 
-function bSeqNumber(book) {
-  book.seqs.forEach((q, i) => { if (/^sequence \d+$/.test(q.name)) q.name = `sequence ${i + 1}`; });
-  return book;
+function bSeqNumber(builder) {
+  builder.seqs.forEach((q, i) => { if (/^sequence \d+$/.test(q.name)) q.name = `sequence ${i + 1}`; });
+  return builder;
 }
 
 const B_PAST = [];
 let bNow = null, bUndo = null;
 
-function bSeqKeep(book, builder) {
-  book.seqs[book.at].data = JSON.stringify(builder, bPack);
-  const now = JSON.stringify(book);
+function bKeep(builder) {
+  const now = JSON.stringify(builder, bPack);
   if (bNow !== null && now !== bNow) { B_PAST.push(bNow); if (B_PAST.length > 100) B_PAST.shift(); }
   bNow = now;
   if (bUndo) { bUndo.disabled = !B_PAST.length; bUndo.textContent = `undo (${B_PAST.length})`; }
-  try { localStorage.setItem(B_SEQS, now); } catch { }
+  try { localStorage.setItem(B_KEY, now); } catch { }
 }
 
-function bSeqPicker(book, h, open) {
-  const go = i => { book.at = i; const s = JSON.parse(book.seqs[i].data); bWire(s); open(s); };
+function bSeqPicker(builder, h, open) {
+  const load = text => { const s = JSON.parse(text); bWire(s); open(s); };
+  const go = i => { builder.open = i; load(JSON.stringify(builder, bPack)); };
   bUndo = h('button', { textContent: `undo (${B_PAST.length})`, disabled: !B_PAST.length });
-  bUndo.onclick = () => { bNow = B_PAST.pop(); Object.assign(book, JSON.parse(bNow)); go(book.at); };
-  const pick = h('select', {}, book.seqs.map((q, i) => h('option', { value: i, textContent: q.name, selected: i === book.at })));
+  bUndo.onclick = () => { bNow = B_PAST.pop(); load(bNow); };
+  const pick = h('select', {}, builder.seqs.map((q, i) => h('option', { value: i, textContent: q.name, selected: i === builder.open })));
   pick.onchange = () => go(+pick.value);
   const add = h('button', { textContent: '+ new sequence' });
-  add.onclick = () => { book.seqs.push({ name: `sequence ${book.seqs.length + 1}`, data: book.seqs[book.at].data }); go(book.seqs.length - 1); };
-  const del = h('button', { textContent: 'delete sequence', disabled: book.seqs.length < 2 });
+  add.onclick = () => {
+    const q = JSON.parse(JSON.stringify(builder.seqs[builder.open], bPack));
+    q.steps.forEach(bWireStep);
+    builder.seqs.push({ ...q, name: `sequence ${builder.seqs.length + 1}` });
+    go(builder.seqs.length - 1);
+  };
+  const del = h('button', { textContent: 'delete sequence', disabled: builder.seqs.length < 2 });
   del.onclick = () => {
-    book.seqs.splice(book.at, 1);
-    bSeqNumber(book);
-    go(Math.max(0, book.at - 1));
+    builder.seqs.splice(builder.open, 1);
+    bSeqNumber(builder);
+    go(Math.max(0, builder.open - 1));
   };
   return h('div', { className: 'row' }, [h('label', {}, ['sequence ', pick]), add, del, bUndo]);
 }

@@ -1,4 +1,3 @@
-const T_KEY = 'pair-builder-v5', T_SEQS = 'pair-builder-seqs-v1';
 const T_HEAD = 30, T_LINE = 17, T_CH = 7.2, T_GX = 18, T_GY = 44;
 const tNum = v => `${+v.toFixed(3)}`;
 const tAng = (o, ks = ['phi', 'theta', 'r']) => (o ? ks.filter(k => k in o).map(k => `${{ phi: 'φ', theta: 'θ', r: 'r' }[k]} ${tNum(o[k])}`).join(' | ') : '—');
@@ -8,25 +7,16 @@ const tOn = o => tNames(Object.keys(o || {}).filter(k => o[k]), k => k);
 const tEsc =s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
 
 function tLoad() {
-  try {
-    const s = JSON.parse(localStorage.getItem(T_KEY));
-    if (s) { bWire(s); return { builder: s, from: `the builder's save in this browser (${T_KEY})` }; }
-  } catch { }
+  const builder = bLoad();
+  if (builder) return { builder, from: `the builder's save in this browser (${B_KEY})` };
   return { builder: bPreset(), from: 'the three-node preset — the builder has saved nothing in this browser yet' };
-}
-
-function tSeq() {
-  try {
-    const book = JSON.parse(localStorage.getItem(T_SEQS));
-    if (book && book.seqs[book.at]) return { label: book.seqs[book.at].name, lines: [] };
-  } catch { }
-  return { label: 'sequence 1', lines: [] };
 }
 
 function tState(builder) {
   return { label: 'builder', lines: [['s', tNum(builder.s)], ['ρ', tNum(builder.rho)], ['T_φ', tNum(builder.Tphi)], ['T_θ', tNum(builder.Ttheta)], ['c_r', tNum(builder.cr)],
-    ['item', builder.item ? builder.item.name : '—', 'ref'], ['made', `${builder.made}`], ['step', `${builder.step}`], ['nodes', `${builder.nodes.size}`], ['trees', `${builder.trees.size}`],
-    ['picked', tNames(builder.picked || [], t => tAB(t.ab)), 'ref'], ['methods', tOn(builder.methods)]] };
+    ['item', builder.item ? builder.item.name : '—', 'ref'], ['made', `${builder.made}`], ['step', `${builder.step}`],
+    ['picked', tNames(builder.picked || [], t => tAB(t.ab)), 'ref'], ['methods', tOn(builder.methods)],
+    ['sequences', tNames(builder.seqs, q => q.name)], ['open', builder.seqs[builder.open].name, 'ref']] };
 }
 
 const tWorked = rows => [['', 'not stored', 'note'], ...rows];
@@ -46,9 +36,10 @@ function tNode(builder, n) {
 }
 
 function tGraph(builder) {
-  const trees = [...builder.trees], nodes = [...builder.nodes], box = new Map([['builder', tState(builder)], ['seq', tSeq()]]), kids = new Map([['builder', ['seq']], ['seq', []]]);
+  const seq = builder.seqs[builder.open], trees = seq.steps.flatMap(st => [...st.edges]), nodes = seq.steps.flatMap(st => [...st.nodes]);
+  const box = new Map([['builder', tState(builder)], ['seq', { label: seq.name, lines: [] }]]), kids = new Map([['builder', ['seq']], ['seq', []]]);
   if (trees.length) {
-    box.set('edges', { label: 'edges', steps: [{ name: 'step 1', cols: trees.map(t => tTree(builder, t)) }] });
+    box.set('edges', { label: 'edges', steps: seq.steps.map((st, i) => ({ name: `step ${i + 1}`, cols: [...st.edges].map(t => tTree(builder, t)) })) });
     kids.set('edges', nodes.filter(n => n.in.length || n.out.length));
     kids.get('seq').push('edges');
   }
@@ -141,5 +132,5 @@ function tDraw() {
   svg.innerHTML = body;
 }
 
-window.addEventListener('storage', e => { if (e.key === T_KEY || e.key === T_SEQS) tDraw(); });
+window.addEventListener('storage', e => { if (e.key === B_KEY) tDraw(); });
 tDraw();

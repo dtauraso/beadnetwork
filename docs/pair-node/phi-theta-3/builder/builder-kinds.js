@@ -53,7 +53,7 @@ function bStepNodes(builder, h) {
 
 function bLands(builder, h) {
   const three = (at, x) => [['φ', 'phi'], ['θ', 'theta'], ['r', 'r']].map(([n, k]) => [`${at} ${n}`, x ? bF(x[k]) : '—']);
-  const items = [...builder.trees].flatMap(t => {
+  const items = [...bOpenStep(builder).edges].flatMap(t => {
     const dirs = bDirs(builder, t), r = t.ab.row;
     return (dirs.length ? dirs : [{}]).map(e => h('li', {}, [h('div', { className: 'row' }, [h('span', { className: 't', textContent: bAt(r) })]),
       h('ul', { className: 'attrs' }, [...three('start', r.start), ...three('start + Δ', e.t)]
