@@ -18,9 +18,9 @@ function tLoad() {
 function tSeq() {
   try {
     const book = JSON.parse(localStorage.getItem(T_SEQS));
-    if (book && book.seqs[book.at]) return { label: book.seqs[book.at].name, lines: [['at', `${book.at + 1} of ${book.seqs.length}`]] };
+    if (book && book.seqs[book.at]) return { label: book.seqs[book.at].name, lines: [] };
   } catch { }
-  return { label: 'sequence 1', lines: [['at', '1 of 1']] };
+  return { label: 'sequence 1', lines: [] };
 }
 
 function tState(builder) {
