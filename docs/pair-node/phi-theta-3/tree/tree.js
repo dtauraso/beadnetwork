@@ -95,7 +95,7 @@ function tSvg(builder) {
     parts.push(`<text class="name" x="${n.x}" y="${n.y + T_HEAD / 2 + 2}">${tEsc(label)}</text>`);
     n.cs.forEach(({ lines, x, w, kw }, c) => {
       const left = box + x, right = c === n.cs.length - 1 ? box + n.w : left + w;
-      if (c) parts.push(`<line class="rule" x1="${left}" x2="${left}" y1="${n.y + T_HEAD - 4}" y2="${n.y + n.h}"/>`);
+      if (c) parts.push(`<line class="rule" x1="${left}" x2="${left}" y1="${n.y + T_HEAD + 4}" y2="${n.y + n.h - 8}"/>`);
       lines.forEach(([name, v, kind], i) => {
         const calc = name.startsWith('~'), ref = kind === 'ref', y = n.y + T_HEAD + i * T_LINE + T_LINE / 2;
         if (kind === 'note') {
