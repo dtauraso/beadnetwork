@@ -21,8 +21,6 @@ const T_WHY_EDITS = [
 const T_WHY_SAVES = [
   'The directions the builder works out for each row start right.',
   'The directions after one edit.',
-  'A save in the old format, from before the rows moved into the trees, still loads; its a→c copy loads as an angle edge measured from where a and c are, so c does not move.',
-  'An old save, once loaded, still edits correctly.',
-  'Repacking an old save in the new format loses nothing, and the directions still match the step before.',
-  'A save that went from the old format to the new one and back in still edits correctly.',
+  'Packing and loading that state loses nothing: the directions match the step before.',
+  'The loaded state still edits correctly.',
 ];

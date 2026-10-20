@@ -1,4 +1,3 @@
-const T_FROM = 'c1db60fcb';
 const T_AT = 'the builder that re-measures every start at a moved node';
 const T_WANT = [
   {"tag":"preset","nodes":[["a",{"r":2,"phi":3,"theta":0}],["b",{"r":3.863703305156273,"phi":2.5,"theta":0}],["c",{"r":5.464101615137754,"phi":3,"theta":0}]],"rows":[["ab"],["bc"]]},
@@ -22,8 +21,5 @@ const T_WANT = [
 const T_DIRS = [
   {"tag":"preset","dirs":[["ab",[[2,0,2]]],["bc",[[4,0,2]]]],"nodes":[[2,3],[3.864,2.5],[5.464,3]]},
   {"tag":"phi3","dirs":[["ab",[[3,0,2]]],["bc",[[3,0,1.464]]]],"nodes":[[2,3],[4,3],[5.464,3]]},
-  {"tag":"main save loaded","dirs":[["ab",[[3,0,2]]],["bc",[[4,0,2]]],["ac",[[4,0,3.464]]]],"nodes":[[2,3],[4,3],[5.292,3.637]]},
-  {"tag":"then phi4","dirs":[["ab",[[4,0,2]]],["bc",[[4,0,1.464]]],["ac",[[4,0,3.464]]]],"nodes":[[2,3],[3.864,3.5],[5.292,3.637]]},
-  {"tag":"then phi5","dirs":[["ab",[[5,0,2]]],["bc",[[2.999999999999999,0,2]]],["ac",[[4,0,3.464]]]],"nodes":[[2,3],[3.464,4],[5.292,3.637]]},
+  {"tag":"reloaded then phi4","dirs":[["ab",[[4,0,2]]],["bc",[[2,0,2]]]],"nodes":[[2,3],[3.864,3.5],[5.464,3]]},
 ];
-const T_SAVE = {"s":1,"rho":0.5,"Tphi":12,"Ttheta":12,"cr":0.5,"nodes":[{"name":"a","s":1,"idx":{"r":2,"phi":3,"theta":0}},{"name":"b","s":1,"idx":{"r":4,"phi":3,"theta":0}},{"name":"c","s":1,"idx":{"r":5.2915026221291805,"phi":3.63688684502897,"theta":0}}],"rows":[{"from":"a","to":"b","kind":"angle","start":{"phi":3,"theta":0,"r":2},"end":{"phi":0,"theta":0}},{"from":"b","to":"c","kind":"angle","start":{"phi":4,"theta":0,"r":2},"end":{"phi":0,"theta":0}},{"from":"a","to":"c","kind":"copy","start":{"phi":0,"theta":0,"r":0},"end":{"phi":0,"theta":0},"base":{"phi":2,"theta":0,"r":3.4641016151377544},"ref":{"phi":2,"theta":0}}],"made":3,"item":"c","on":{"atob":true,"pair":true},"step":1};

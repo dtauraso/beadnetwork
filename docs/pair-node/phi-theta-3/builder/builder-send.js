@@ -12,24 +12,15 @@ function bPack(k, v) {
 }
 
 function bWire(builder) {
-  const by = new Map(builder.nodes.map(({ name, s, idx }) => [name, bMake({ name, s, idx })])), rows = builder.trees || builder.rows, abs = new Map(), kinds = [];
+  const by = new Map(builder.nodes.map(({ name, s, idx }) => [name, bMake({ name, s, idx })])), rows = builder.trees, abs = new Map();
   builder.nodes = new Set(by.values());
   builder.trees = new Set();
-  delete builder.rows;
   rows.forEach(r => {
     const key = `${r.from}→${r.to}`;
     r.from = by.get(r.from); r.to = by.get(r.to);
-    if (r.kind && r.kind !== 'angle') kinds.push(r);
-    B_GONE.forEach(k => delete r[k]);
     if (!r.from || !r.to) return;
     const t = bAddTree(builder, r);
     abs.set(key, t);
-  });
-  const near = x => (Math.abs(x - Math.round(x)) < 1e-9 ? Math.round(x) : x);
-  kinds.filter(r => r.from && r.to).forEach(r => {
-    r.start = { phi: 0, theta: 0, r: 0 };
-    const v = bMeasure(builder, r);
-    if (v) r.start = { phi: near(v.phi), theta: near(v.theta), r: near(v.r) };
   });
   builder.picked = (builder.picked || []).map(k => abs.get(k)).filter(Boolean);
   builder.item = by.get(builder.item) || bFirst(builder.nodes);
