@@ -1,41 +1,41 @@
-function bCellPoints(st, rs) {
+function bCellPoints(builder, rs) {
   const out = [];
   const had = new Set();
   const add = (p, color) => {
     const key = p.map(v => v.toFixed(6)).join();
     if (bLen(p) > 1e-9 && !had.has(key)) { had.add(key); out.push({ p, color }); }
   };
-  bShown(st).forEach(n => { if (n.known) add(bNodePos(st, n), '--ink'); });
-  rs.forEach(({ m, steps }) => steps.slice(0, st.step).forEach(s => s.draw.forEach(o => {
+  bShown(builder).forEach(n => { if (n.known) add(bNodePos(builder, n), '--ink'); });
+  rs.forEach(({ m, steps }) => steps.slice(0, builder.step).forEach(s => s.draw.forEach(o => {
     if (o.square) add(o.square, m.color);
-    else if (o.dot && o.label.startsWith(`${st.item.name}(`)) add(o.dot, m.color);
+    else if (o.dot && o.label.startsWith(`${builder.item.name}(`)) add(o.dot, m.color);
   })));
   return out;
 }
 
-function bLinks(st) {
-  return bRowEnds(st).flatMap(({ row, P, T, t }) => [
-    { from: row.from, to: row.to, P, T, t, s: bS(st, row.from) },
-    { from: row.to, to: row.from, P: T, T: P, t: bBack(st, row, t), s: bS(st, row.to) },
+function bLinks(builder) {
+  return bRowEnds(builder).flatMap(({ row, P, T, t }) => [
+    { from: row.from, to: row.to, P, T, t, s: bS(builder, row.from) },
+    { from: row.to, to: row.from, P: T, T: P, t: bBack(builder, row, t), s: bS(builder, row.to) },
   ]);
 }
 
-function bCell(st, t, s) {
+function bCell(builder, t, s) {
   const n = 12 * s, e = 1e-9;
-  const I = { r: t.r * st.rho / st.cr, phi: t.phi * st.Tphi / n, theta: t.theta * st.Ttheta / n };
+  const I = { r: t.r * builder.rho / builder.cr, phi: t.phi * builder.Tphi / n, theta: t.theta * builder.Ttheta / n };
   const K = Math.max(1, Math.ceil(I.r - e));
-  return { I, K, i: Math.floor(I.phi + e) % st.Tphi, j: Math.floor(I.theta + e) % st.Ttheta, R: K * st.cr };
+  return { I, K, i: Math.floor(I.phi + e) % builder.Tphi, j: Math.floor(I.theta + e) % builder.Ttheta, R: K * builder.cr };
 }
 
-function bCellCorners(st, P, t, s) {
-  const c = bCell(st, t, s), cphi = 2 * Math.PI / st.Tphi, cth = 2 * Math.PI / st.Ttheta;
+function bCellCorners(builder, P, t, s) {
+  const c = bCell(builder, t, s), cphi = 2 * Math.PI / builder.Tphi, cth = 2 * Math.PI / builder.Ttheta;
   return [[0, 0], [1, 0], [0, 1], [1, 1]].map(([di, dj]) => bAdd(P, bCart(c.R, (c.i + di) * cphi, (c.j + dj) * cth)));
 }
 
-function bGlobalLines(st) {
-  const ends = new Map(bRowEnds(st).map(e => [e.ab, e.T]));
-  return bShown(st).map(n => {
-    const p = bNodePos(st, n) || ends.get(n.via);
+function bGlobalLines(builder) {
+  const ends = new Map(bRowEnds(builder).map(e => [e.ab, e.T]));
+  return bShown(builder).map(n => {
+    const p = bNodePos(builder, n) || ends.get(n.via);
     if (!p) return `${n.name} in O's frame: no position`;
     const r = bLen(p), phi = r < 1e-9 ? 0 : Math.acos(Math.max(-1, Math.min(1, p[1] / r)));
     let th = Math.atan2(p[2], p[0]);
@@ -44,8 +44,8 @@ function bGlobalLines(st) {
   });
 }
 
-function bDrawCells(st, draw, ctx, css, links) {
-  const cphi = 2 * Math.PI / st.Tphi, cth = 2 * Math.PI / st.Ttheta, wire = css('--wire'), ink = css('--ink');
+function bDrawCells(builder, draw, ctx, css, links) {
+  const cphi = 2 * Math.PI / builder.Tphi, cth = 2 * Math.PI / builder.Ttheta, wire = css('--wire'), ink = css('--ink');
   const line = (pts, color, width, alpha) => {
     const ps = pts.map(draw.proj);
     ctx.save();
@@ -56,7 +56,7 @@ function bDrawCells(st, draw, ctx, css, links) {
     ctx.restore();
   };
   return links.map(({ from, to, P, t, s }) => {
-    const at = (k, ph, th) => bAdd(P, bCart(k * st.cr, ph * cphi, th * cth));
+    const at = (k, ph, th) => bAdd(P, bCart(k * builder.cr, ph * cphi, th * cth));
     const arc = (f, color, width, alpha) => line(Array.from({ length: 17 }, (_, t) => f(t / 16)), color, width, alpha);
     const face = (k, i, j, color, width, alpha) => {
       [i, i + 1].forEach(ph => arc(t => at(k, ph, j + t), color, width, alpha));
@@ -64,7 +64,7 @@ function bDrawCells(st, draw, ctx, css, links) {
     };
     const rays = (k0, k1, i, j, color, width, alpha) => [[i, j], [i + 1, j], [i, j + 1], [i + 1, j + 1]]
       .forEach(([ph, th]) => line([at(k0, ph, th), at(k1, ph, th)], color, width, alpha));
-    const c = bCell(st, t, s);
+    const c = bCell(builder, t, s);
     rays(0, c.K, c.i, c.j, wire, 1, 0.5);
     for (let k = 1; k < c.K; k++) face(k, c.i, c.j, wire, 1, 0.5);
     face(c.K - 1, c.i, c.j, ink, 2, 0.8);
@@ -74,8 +74,8 @@ function bDrawCells(st, draw, ctx, css, links) {
   });
 }
 
-function bSphereBoxes(st, h, changed) {
-  const on = st.spheres ||= {}, names = bShown(st).map(n => n.name);
+function bSphereBoxes(builder, h, changed) {
+  const on = builder.spheres ||= {}, names = bShown(builder).map(n => n.name);
   const box = (label, checked, set) => {
     const b = h('input', { type: 'checkbox', checked });
     b.onchange = () => { set(b.checked); changed(); };
@@ -86,9 +86,9 @@ function bSphereBoxes(st, h, changed) {
     ...names.map(n => box(n, !!on[n], v => { on[n] = v; }))];
 }
 
-function bDrawSpheres(st, draw, ctx) {
-  const P = bShown(st).filter(n => n.known).map(n => bNodePos(st, n));
-  const cap = st.rho * 2, cell = p => p.map(v => Math.floor(v / cap)), grid = new Map();
+function bDrawSpheres(builder, draw, ctx) {
+  const P = bShown(builder).filter(n => n.known).map(n => bNodePos(builder, n));
+  const cap = builder.rho * 2, cell = p => p.map(v => Math.floor(v / cap)), grid = new Map();
   let near = cap;
   P.forEach(p => {
     const [x, y, z] = cell(p);
@@ -105,7 +105,7 @@ function bDrawSpheres(st, draw, ctx) {
     ctx.stroke();
   };
   ctx.strokeStyle = 'hsl(210 60% 55%)'; ctx.lineWidth = 1.5;
-  bShown(st).filter(n => n.known && (st.spheres || {})[n.name]).map(n => bNodePos(st, n)).forEach(C => {
+  bShown(builder).filter(n => n.known && (builder.spheres || {})[n.name]).map(n => bNodePos(builder, n)).forEach(C => {
     for (let m = 0; m < 6; m++) ring(C, t => bCart(R, t, m * Math.PI / 6));
     for (let l = 1; l < 6; l++) ring(C, t => bCart(R, l * Math.PI / 6, t));
   });

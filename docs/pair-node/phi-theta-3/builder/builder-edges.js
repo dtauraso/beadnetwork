@@ -1,12 +1,12 @@
-function bEdgePicker(st, h, picked, changed) {
-  const trees = [...st.trees], abName = t => `${t.ab.a.name}→${t.ab.b.name}`;
+function bEdgePicker(builder, h, picked, changed) {
+  const trees = [...builder.trees], abName = t => `${t.ab.a.name}→${t.ab.b.name}`;
   picked.splice(0, picked.length, ...picked.filter(t => trees.includes(t)));
   if (!trees.length) return [];
   const left = trees.filter(t => !picked.includes(t));
   const pick = h('select', {}, [h('option', { value: -1, textContent: left.length ? 'pick an edge' : 'all edges picked' }),
     ...left.map((t, i) => h('option', { value: i, textContent: abName(t) }))]);
   pick.onchange = () => { if (left[+pick.value]) picked.push(left[+pick.value]); changed(); };
-  const by = (t, k, sign) => { t.ab.row.delta[k] += sign * t.ab.row.by[k]; bMove(st, t); };
+  const by = (t, k, sign) => { t.ab.row.delta[k] += sign * t.ab.row.by[k]; bMove(builder, t); };
   const items = picked.map(t => {
     const drop = h('button', { textContent: 'unpick' });
     drop.onclick = () => { picked.splice(picked.indexOf(t), 1); changed(); };
@@ -31,4 +31,4 @@ function bEdgePicker(st, h, picked, changed) {
     redo.length ? h('ul', { className: 'abs' }, redo) : h('div', { className: 'hint', textContent: 'no edges' })];
 }
 
-const bShown = st => [...st.nodes].filter(n => n.out.length || n.in.length);
+const bShown = builder => [...builder.nodes].filter(n => n.out.length || n.in.length);

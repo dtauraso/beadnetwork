@@ -10,40 +10,40 @@ const tEsc =s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
 function tLoad() {
   try {
     const s = JSON.parse(localStorage.getItem(T_KEY));
-    if (s) { bWire(s); return { st: s, from: `the builder's save in this browser (${T_KEY})` }; }
+    if (s) { bWire(s); return { builder: s, from: `the builder's save in this browser (${T_KEY})` }; }
   } catch { }
-  return { st: bPreset(), from: 'the three-node preset — the builder has saved nothing in this browser yet' };
+  return { builder: bPreset(), from: 'the three-node preset — the builder has saved nothing in this browser yet' };
 }
 
-function tState(st) {
-  return { label: 'st', lines: [['s', tNum(st.s)], ['ρ', tNum(st.rho)], ['T_φ', tNum(st.Tphi)], ['T_θ', tNum(st.Ttheta)], ['c_r', tNum(st.cr)],
-    ['item', st.item ? st.item.name : '—'], ['made', `${st.made}`], ['step', `${st.step}`], ['nodes', `${st.nodes.size}`], ['trees', `${st.trees.size}`],
-    ['picked', tNames(st.picked || [], t => tAB(t.ab))], ['on', tOn(st.on)], ['cells', st.cells !== false ? 'on' : 'off'], ['spheres', tOn(st.spheres)]] };
+function tState(builder) {
+  return { label: 'builder', lines: [['s', tNum(builder.s)], ['ρ', tNum(builder.rho)], ['T_φ', tNum(builder.Tphi)], ['T_θ', tNum(builder.Ttheta)], ['c_r', tNum(builder.cr)],
+    ['item', builder.item ? builder.item.name : '—'], ['made', `${builder.made}`], ['step', `${builder.step}`], ['nodes', `${builder.nodes.size}`], ['trees', `${builder.trees.size}`],
+    ['picked', tNames(builder.picked || [], t => tAB(t.ab))], ['on', tOn(builder.on)], ['cells', builder.cells !== false ? 'on' : 'off'], ['spheres', tOn(builder.spheres)]] };
 }
 
-function tTree(st, t) {
+function tTree(builder, t) {
   const { row, b } = t.ab;
   return { label: tAB(t.ab), lines: [['from', row.from.name], ['to', row.to.name], ['start', tAng(row.start)], ['Δ', tAng(row.delta, ['phi', 'theta'])],
     ['by', tAng(row.by, ['phi', 'theta'])],
-    ['~start + Δ', tAng(bDir(st, row))], ['places b', b.via === t.ab ? 'yes — b\'s via' : 'no']] };
+    ['~start + Δ', tAng(bDir(builder, row))], ['places b', b.via === t.ab ? 'yes — b\'s via' : 'no']] };
 }
 
-function tNode(st, n) {
-  const C = bNodePos(st, n);
-  return { label: `node ${n.name}`, lines: [['s', n.s ? tNum(n.s) : `— (the scene's s, ${tNum(st.s)})`], ['known', n.known ? 'yes' : 'no'],
+function tNode(builder, n) {
+  const C = bNodePos(builder, n);
+  return { label: `node ${n.name}`, lines: [['s', n.s ? tNum(n.s) : `— (the scene's s, ${tNum(builder.s)})`], ['known', n.known ? 'yes' : 'no'],
     ['idx', n.known ? `I_r ${tNum(n.idx.r)} · I_φ ${tNum(n.idx.phi)} · I_θ ${tNum(n.idx.theta)}` : '—'], ['~C', C ? bPt(C) : '—'],
     ['sender', n.sender ? n.sender.name : '—'], ['via', n.via ? tAB(n.via) : '—'],
     ['out', tNames(n.out, t => tAB(t.ab))], ['in', tNames(n.in, t => tAB(t.ab))]] };
 }
 
-function tGraph(st) {
-  const trees = [...st.trees], nodes = [...st.nodes], box = new Map([['st', tState(st)]]), kids = new Map([['st', []]]);
-  trees.forEach(t => { box.set(t, tTree(st, t)); kids.set(t, [t.ab.a, t.ab.b]); kids.get('st').push(t); });
+function tGraph(builder) {
+  const trees = [...builder.trees], nodes = [...builder.nodes], box = new Map([['builder', tState(builder)]]), kids = new Map([['builder', []]]);
+  trees.forEach(t => { box.set(t, tTree(builder, t)); kids.set(t, [t.ab.a, t.ab.b]); kids.get('builder').push(t); });
   nodes.forEach(n => {
-    box.set(n, tNode(st, n)); kids.set(n, []);
-    if (!n.in.length && !n.out.length) kids.get('st').push(n);
+    box.set(n, tNode(builder, n)); kids.set(n, []);
+    if (!n.in.length && !n.out.length) kids.get('builder').push(n);
   });
-  return { box, kids, levels: [['st'], trees, nodes].filter(l => l.length) };
+  return { box, kids, levels: [['builder'], trees, nodes].filter(l => l.length) };
 }
 
 function tLayout({ box, levels }) {
@@ -63,8 +63,8 @@ function tLayout({ box, levels }) {
   return { at, W, H: y - T_GY };
 }
 
-function tSvg(st) {
-  const g = tGraph(st), { at, W, H } = tLayout(g), parts = [];
+function tSvg(builder) {
+  const g = tGraph(builder), { at, W, H } = tLayout(g), parts = [];
   g.kids.forEach((cs, k) => cs.forEach(c => {
     const from = [...g.kids].filter(([, ks]) => ks.includes(c)).map(([p]) => p).sort((p, q) => at.get(p).x - at.get(q).x);
     const off = (from.indexOf(k) - (from.length - 1) / 2) * 16, p = at.get(k), n = at.get(c);
@@ -84,7 +84,7 @@ function tSvg(st) {
 }
 
 function tDraw() {
-  const { st, from } = tLoad(), svg = document.getElementById('tree'), { view, width, body } = tSvg(st);
+  const { builder, from } = tLoad(), svg = document.getElementById('tree'), { view, width, body } = tSvg(builder);
   document.getElementById('source').textContent = `from ${from}, read at ${new Date().toLocaleTimeString()}`;
   svg.setAttribute('viewBox', view);
   svg.style.width = `${width}px`;

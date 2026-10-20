@@ -7,23 +7,23 @@ const bN = n => (Number.isInteger(n) ? `${n}` : bF(n));
 const bPt = p => `(${bF(p[0])}, ${bF(p[1])}, ${bF(p[2])})`;
 const B_O = [0, 0, 0];
 
-const bC = st => ({ r: st.cr, phi: 2 * Math.PI / st.Tphi, theta: 2 * Math.PI / st.Ttheta });
+const bC = builder => ({ r: builder.cr, phi: 2 * Math.PI / builder.Tphi, theta: 2 * Math.PI / builder.Ttheta });
 
-function bPlace(st, I) {
-  const c = bC(st);
+function bPlace(builder, I) {
+  const c = bC(builder);
   return bAdd(B_O, bCart(I.r * c.r, I.phi * c.phi, I.theta * c.theta));
 }
 
-function bIndexOf(st, p) {
-  const c = bC(st), w = bSub(p, B_O), r = bLen(w);
+function bIndexOf(builder, p) {
+  const c = bC(builder), w = bSub(p, B_O), r = bLen(w);
   if (r < 1e-9) return { r: 0, phi: 0, theta: 0 };
   return { r: r / c.r, phi: Math.acos(Math.max(-1, Math.min(1, w[1] / r))) / c.phi, theta: Math.atan2(w[2], w[0]) / c.theta };
 }
 
-const bS = (st, n) => (n && n.s) || st.s;
+const bS = (builder, n) => (n && n.s) || builder.s;
 const bWrap = (s, t) => ((t % (12 * s)) + 12 * s) % (12 * s);
-const bBack = (st, row, a = bDir(st, row)) => {
-  const sa = bS(st, row.from), sb = bS(st, row.to);
+const bBack = (builder, row, a = bDir(builder, row)) => {
+  const sa = bS(builder, row.from), sb = bS(builder, row.to);
   return { phi: bWrap(sb, a.phi * sb / sa + 6 * sb), theta: bWrap(sb, a.theta * sb / sa + 6 * sb), r: a.r };
 };
 const bWhole = x => Math.abs(x - Math.round(x)) < 1e-6;
@@ -31,15 +31,15 @@ const bWhole = x => Math.abs(x - Math.round(x)) < 1e-6;
 const bIdx = I => `(I_r ${bF(I.r)}, I_φ ${bF(I.phi)}, I_θ ${bF(I.theta)})`;
 const bPlaceText = I => `O + polar_to_cart(${bF(I.r)}·c_r, ${bF(I.phi)}·c_φ, ${bF(I.theta)}·c_θ)`;
 
-const bNodePos = (st, n) => (n && n.known ? bPlace(st, n.idx) : null);
+const bNodePos = (builder, n) => (n && n.known ? bPlace(builder, n.idx) : null);
 
-function bVec(st, s, t) {
+function bVec(builder, s, t) {
   const ang = x => x * 2 * Math.PI / (12 * s);
-  return bCart(t.r * st.rho, ang(t.phi), ang(t.theta));
+  return bCart(t.r * builder.rho, ang(t.phi), ang(t.theta));
 }
 
-function bRowVectors(st, node) {
-  return node.in.flatMap(tree => bDirs(st, tree).map(({ t }) => ({ from: tree.ab.a, row: tree.ab.row, t, d: bVec(st, bS(st, tree.ab.a), t) })));
+function bRowVectors(builder, node) {
+  return node.in.flatMap(tree => bDirs(builder, tree).map(({ t }) => ({ from: tree.ab.a, row: tree.ab.row, t, d: bVec(builder, bS(builder, tree.ab.a), t) })));
 }
 
 function bVectorStep(rows, item) {
@@ -53,9 +53,9 @@ function bVectorStep(rows, item) {
   };
 }
 
-function bResult(st, item, p, label) {
-  const lines = [`${label} as an index: ${bIdx(bIndexOf(st, p))}`];
-  const set = bNodePos(st, item);
+function bResult(builder, item, p, label) {
+  const lines = [`${label} as an index: ${bIdx(bIndexOf(builder, p))}`];
+  const set = bNodePos(builder, item);
   item = item.name;
   if (set) {
     const miss = bLen(bSub(p, set));
@@ -64,8 +64,8 @@ function bResult(st, item, p, label) {
   return lines;
 }
 
-function bSenders(st, rows) {
-  const placed = rows.map(r => ({ ...r, from: r.from.name, I: r.from.known ? r.from.idx : null, C: bNodePos(st, r.from) }));
+function bSenders(builder, rows) {
+  const placed = rows.map(r => ({ ...r, from: r.from.name, I: r.from.known ? r.from.idx : null, C: bNodePos(builder, r.from) }));
   const missing = placed.filter(r => !r.C).map(r => r.from);
   const step = {
     title: 'the sender\'s position, from its index',
@@ -79,11 +79,11 @@ function bSenders(st, rows) {
   return { step, missing, done: placed.filter(r => r.C).map(r => ({ ...r, b: bAdd(r.C, r.d) })) };
 }
 
-function bMethodAtoB(st, node) {
-  const item = node.name, rows = bRowVectors(st, node);
+function bMethodAtoB(builder, node) {
+  const item = node.name, rows = bRowVectors(builder, node);
   const steps = [bVectorStep(rows, item)];
   if (!rows.length) return steps;
-  const { step, missing, done } = bSenders(st, rows);
+  const { step, missing, done } = bSenders(builder, rows);
   steps.push(step);
   if (!done.length) return steps;
   const lines = done.map(r => `${item}(${r.from}) = C_${r.from} + d_${r.from}${item} = ${bPt(r.b)}`);
@@ -92,7 +92,7 @@ function bMethodAtoB(st, node) {
     lines.push(`|${item}(${r.from}) − ${item}(${done[0].from})| = ${bF(gap)}${gap < 1e-6 ? ' — one point' : ' — the rows disagree'}`);
   });
   missing.forEach(n => lines.push(`${item}(${n}): not placed — C_${n} is missing`));
-  done.forEach(r => lines.push(...bResult(st, node, r.b, `${item}(${r.from})`)));
+  done.forEach(r => lines.push(...bResult(builder, node, r.b, `${item}(${r.from})`)));
   steps.push({
     title: `global: ${item} from each row`,
     lines, note: `O→n + n→${item}, once per row (the a→b card); nothing is added at O; the index is exact, not rounded`, ok: true,
@@ -101,11 +101,11 @@ function bMethodAtoB(st, node) {
   return steps;
 }
 
-function bMethodPair(st, node) {
-  const item = node.name, rows = bRowVectors(st, node);
+function bMethodPair(builder, node) {
+  const item = node.name, rows = bRowVectors(builder, node);
   const steps = [bVectorStep(rows, item)];
   if (!rows.length) return steps;
-  const { step, missing, done } = bSenders(st, rows);
+  const { step, missing, done } = bSenders(builder, rows);
   steps.push(step);
   if (!done.length) return steps;
   steps.push({
@@ -115,7 +115,7 @@ function bMethodPair(st, node) {
     note: `in ${item}, with C_n from the edge n→${item}`, ok: true,
     draw: done.flatMap(r => [{ arrow: [r.C, r.b] }]),
   });
-  const indexed = done.map(r => ({ ...r, I: bIndexOf(st, r.b) }));
+  const indexed = done.map(r => ({ ...r, I: bIndexOf(builder, r.b) }));
   steps.push({
     title: `convert: C_${item} − O as an index`,
     lines: ['I_r = |C_b − O| / c_r,  I_φ = acos((C_b − O)_y / |C_b − O|) / c_φ,  I_θ = atan2((C_b − O)_z, (C_b − O)_x) / c_θ',
@@ -124,10 +124,10 @@ function bMethodPair(st, node) {
   });
   const lines = [], draw = [];
   indexed.forEach(r => {
-    const Cb = bPlace(st, r.I), back = bLen(bSub(Cb, r.b));
+    const Cb = bPlace(builder, r.I), back = bLen(bSub(Cb, r.b));
     lines.push(`pair ${r.from}→${item}: C_${item} = ${bPlaceText(r.I)} = ${bPt(Cb)}`,
       `|placed − C_${r.from} + d_${r.from}${item}| = ${bF(back)}${back < 1e-6 ? ' — the index holds the same point' : ' — the index lost the point'}`,
-      ...bResult(st, node, Cb, `C_${item}`).slice(1));
+      ...bResult(builder, node, Cb, `C_${item}`).slice(1));
     draw.push({ arrow: [B_O, Cb] }, { square: Cb, label: `pair ${r.from}: C_${item}` });
   });
   steps.push({ title: `place ${item} from the index`, lines, note: 'the pair card\'s C_b', ok: true, draw });

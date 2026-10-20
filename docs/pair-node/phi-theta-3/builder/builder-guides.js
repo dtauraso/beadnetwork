@@ -18,12 +18,12 @@ function bDrawAxes(draw, ctx, css, P, L, named) {
   });
 }
 
-function bRowEnds(st) {
-  return [...st.trees].flatMap(tree => bDirs(st, tree).map(({ t }) => {
-    const { ab } = tree, row = ab.row, P = bNodePos(st, ab.a);
+function bRowEnds(builder) {
+  return [...builder.trees].flatMap(tree => bDirs(builder, tree).map(({ t }) => {
+    const { ab } = tree, row = ab.row, P = bNodePos(builder, ab.a);
     if (!P) return null;
-    const d = bVec(st, bS(st, ab.a), t);
-    return { ab, row, P, d, t, T: bNodePos(st, ab.b) || bAdd(P, d) };
+    const d = bVec(builder, bS(builder, ab.a), t);
+    return { ab, row, P, d, t, T: bNodePos(builder, ab.b) || bAdd(P, d) };
   })).filter(Boolean);
 }
 
@@ -45,25 +45,25 @@ function bPreset() {
   return p;
 }
 
-function bMeasure(st, row, P = bNodePos(st, row.from), T = bNodePos(st, row.to)) {
+function bMeasure(builder, row, P = bNodePos(builder, row.from), T = bNodePos(builder, row.to)) {
   if (!P || !T) return null;
-  const s = bS(st, row.from), v = bSub(T, P), len = bLen(v), tick = 2 * Math.PI / (12 * s), half = 6 * s;
-  const was = bDir(st, row) || { phi: 0, theta: 0 };
+  const s = bS(builder, row.from), v = bSub(T, P), len = bLen(v), tick = 2 * Math.PI / (12 * s), half = 6 * s;
+  const was = bDir(builder, row) || { phi: 0, theta: 0 };
   if (len < 1e-9) return { phi: was.phi, theta: was.theta, r: 0 };
   let phi = Math.acos(Math.max(-1, Math.min(1, v[1] / len))) / tick;
   let theta = Math.hypot(v[0], v[2]) < 1e-9 * len ? was.theta : bWrap(s, Math.atan2(v[2], v[0]) / tick);
   if (was.phi > half) { phi = 2 * half - phi; theta = bWrap(s, theta + half); }
-  return { phi, theta, r: len / st.rho };
+  return { phi, theta, r: len / builder.rho };
 }
 
-function bSetStart(st, tree, k, value) {
+function bSetStart(builder, tree, k, value) {
   tree.ab.row.start[k] = value;
-  bMove(st, tree);
+  bMove(builder, tree);
   return '';
 }
 
-function bSetS(st, node, value) {
-  const was = bS(st, node), k = value / was;
+function bSetS(builder, node, value) {
+  const was = bS(builder, node), k = value / was;
   if (!bWhole(value) || value < 1) return `${node.name}'s s ${bN(value)}: not a whole number of at least 1, so it stays at ${was}`;
   node.s = value;
   node.out.forEach(t => {
@@ -73,8 +73,8 @@ function bSetS(st, node, value) {
   return '';
 }
 
-function bDrawGuides(st, draw, ctx, css, points) {
-  const e = 1e-6, a = 0.7 * st.cr;
+function bDrawGuides(builder, draw, ctx, css, points) {
+  const e = 1e-6, a = 0.7 * builder.cr;
   const muted = css('--muted');
   const line = (pts, color, width, dash = []) => {
     ctx.save(); ctx.setLineDash(dash); ctx.lineWidth = width; ctx.strokeStyle = color; ctx.beginPath();
@@ -86,13 +86,13 @@ function bDrawGuides(st, draw, ctx, css, points) {
     line(pts.slice(0, 47), color, 2);
     draw.arrow(pts[46], pts[48], color, 2);
   };
-  points.forEach(({ p }) => bDrawAxes(draw, ctx, css, p, st.cr, false));
+  points.forEach(({ p }) => bDrawAxes(draw, ctx, css, p, builder.cr, false));
   const seen = {};
-  bLinks(st).forEach(({ from, P, t, s: ns }) => {
+  bLinks(builder).forEach(({ from, P, t, s: ns }) => {
     const k = seen[from.name] = (seen[from.name] ?? -1) + 1, R = a * (1 + 0.4 * k), tick = 2 * Math.PI / (12 * ns);
     if (t.r < e) return;
     if (t.phi > e) arc(s => bAdd(P, bCart(R, s * t.phi * tick, 0)), css('--phi'));
     if (t.theta > e) arc(s => bAdd(P, bCart(R, Math.PI / 2, s * t.theta * tick)), css('--theta'));
   });
-  bRowEnds(st).forEach(({ P, T }) => line([P, T], muted, 2, [3, 7]));
+  bRowEnds(builder).forEach(({ P, T }) => line([P, T], muted, 2, [3, 7]));
 }

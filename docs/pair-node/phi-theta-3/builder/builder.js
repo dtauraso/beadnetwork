@@ -2,10 +2,10 @@
   const KEY = 'pair-builder-v5';
   const preset = bPreset;
   let err = null, pickFrom = null;
-  let st;
-  try { st = JSON.parse(localStorage.getItem(KEY)); if (st) bWire(st); else st = preset(); } catch { st = preset(); }
-  const book = bSeqBook(), save = () => { bSeqKeep(book, st); try { localStorage.setItem(KEY, JSON.stringify(st, bPack)); } catch { } };
-  const open = s => { st = s; reach = null; pickFrom = null; setup(); update(); };
+  let builder;
+  try { builder = JSON.parse(localStorage.getItem(KEY)); if (builder) bWire(builder); else builder = preset(); } catch { builder = preset(); }
+  const book = bSeqBook(), save = () => { bSeqKeep(book, builder); try { localStorage.setItem(KEY, JSON.stringify(builder, bPack)); } catch { } };
+  const open = s => { builder = s; reach = null; pickFrom = null; setup(); update(); };
 
   const el = id => document.getElementById(id);
   const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
@@ -29,32 +29,32 @@
   const draw = atobCanvas(ctx, cv.width, cv.height, S, view, () => focus, css);
 
   function setup() {
-    el('rho').value = st.rho; el('rho').onchange = () => { st.rho = +el('rho').value || st.rho; update(); };
+    el('rho').value = builder.rho; el('rho').onchange = () => { builder.rho = +el('rho').value || builder.rho; update(); };
     [['Tphi', 'Tphi', true], ['Ttheta', 'Ttheta', true], ['cr', 'cr', false]].forEach(([id, k, whole]) => {
-      el(id).value = st[k];
-      el(id).onchange = () => { const v = +el(id).value; if (v > 0) st[k] = whole ? Math.round(v) : v; update(); };
+      el(id).value = builder[k];
+      el(id).onchange = () => { const v = +el(id).value; if (v > 0) builder[k] = whole ? Math.round(v) : v; update(); };
     });
 
-    const all = [...st.nodes];
+    const all = [...builder.nodes];
     el('nodes').replaceChildren(...all.flatMap(n => {
       const known = h('input', { type: 'checkbox', checked: n.known });
       known.onchange = () => { n.known = known.checked; setup(); update(); };
-      const xyz = ['r', 'phi', 'theta'].map(k => { const f = num(n.idx[k], v => { bLetGo(st, n); n.idx[k] = v; bRemeasure(st, n); }); f.disabled = !n.known; return h('td', {}, [f]); });
+      const xyz = ['r', 'phi', 'theta'].map(k => { const f = num(n.idx[k], v => { bLetGo(builder, n); n.idx[k] = v; bRemeasure(builder, n); }); f.disabled = !n.known; return h('td', {}, [f]); });
       const del = h('button', { textContent: 'remove' });
-      del.onclick = () => { bDropNode(st, n); setup(); update(); };
-      const s = flag(`${n.name}:s`, num(bS(st, n), v => check(`${n.name}:s`, bSetS(st, n, v), v)));
+      del.onclick = () => { bDropNode(builder, n); setup(); update(); };
+      const s = flag(`${n.name}:s`, num(bS(builder, n), v => check(`${n.name}:s`, bSetS(builder, n, v), v)));
       return [h('tr', {}, [h('td', { textContent: n.name }), h('td', {}, [s]), h('td', {}, [known]), ...xyz, h('td', {}, [del])]), ...note(n.name, 7)];
     }));
 
     const c = (o, k, tree) => {
       const at = `${tree.ab.a.name}→${tree.ab.b.name}:start${k}`;
-      return flag(at, num(o[k], v => check(at, bSetStart(st, tree, k, v), v)));
+      return flag(at, num(o[k], v => check(at, bSetStart(builder, tree, k, v), v)));
     };
-    const settings = [...st.trees].map(tree => {
+    const settings = [...builder.trees].map(tree => {
       const del = h('button', { textContent: 'remove' });
-      del.onclick = () => { bDropTree(st, tree); setup(); update(); };
+      del.onclick = () => { bDropTree(builder, tree); setup(); update(); };
       const ab = `${tree.ab.a.name}→${tree.ab.b.name}`;
-      const attrs = bRowCells(st, tree, c, h).map(([k, v]) => h('li', {}, [h('span', { className: 'k', textContent: k }), ...[].concat(v)]));
+      const attrs = bRowCells(builder, tree, c, h).map(([k, v]) => h('li', {}, [h('span', { className: 'k', textContent: k }), ...[].concat(v)]));
       const miss = err && err.at.split(':')[0] === ab ? [h('div', { className: 'missing', textContent: err.text })] : [];
       return h('li', {}, [h('div', { className: 'row' }, [h('span', { className: 't', textContent: ab }), del]), h('ul', { className: 'attrs' }, attrs), ...miss]);
     });
@@ -68,32 +68,32 @@
     const add = h('button', { textContent: '+ add edge', disabled: !tos.length });
     add.onclick = () => {
       const row = { from: pickFrom, to: tos[+pickB.value], start: { phi: 0, theta: 0, r: 2 } };
-      bLink(st, bAddTree(st, row).ab);
+      bLink(builder, bAddTree(builder, row).ab);
       setup(); update();
     };
     el('settings').replaceChildren(bSeqPicker(book, h, open),
-      bSteps(h, [{ body: [...bEdgePicker(st, h, st.picked,() => { setup(); update(); }), h('div', { className: 'part', textContent: 'edges' }), settings.length ? h('ul', { className: 'abs' }, settings) : h('div', { className: 'hint', textContent: 'no edges' }), ...bStepNodes(st, h)],
-        head: tos.length ? [pickA, ' → ', pickB, add] : [h('span', { className: 'hint', textContent: 'no edge left to add' })] }]), ...bLands(st, h),
+      bSteps(h, [{ body: [...bEdgePicker(builder, h, builder.picked,() => { setup(); update(); }), h('div', { className: 'part', textContent: 'edges' }), settings.length ? h('ul', { className: 'abs' }, settings) : h('div', { className: 'hint', textContent: 'no edges' }), ...bStepNodes(builder, h)],
+        head: tos.length ? [pickA, ' → ', pickB, add] : [h('span', { className: 'hint', textContent: 'no edge left to add' })] }]), ...bLands(builder, h),
       h('h2', { textContent: 'a→b settings — one item per a→b, set at a, with its start (φ, θ, r)' }));
 
-    const shown = bShown(st);
-    el('item').replaceChildren(...shown.map((n, i) => h('option', { value: i, textContent: n.name, selected: n === st.item })));
-    el('item').onchange = () => { st.item = shown[+el('item').value]; update(); };
+    const shown = bShown(builder);
+    el('item').replaceChildren(...shown.map((n, i) => h('option', { value: i, textContent: n.name, selected: n === builder.item })));
+    el('item').onchange = () => { builder.item = shown[+el('item').value]; update(); };
 
-    el('spheres').replaceChildren(...bSphereBoxes(st, h, () => { setup(); update(); }));
+    el('spheres').replaceChildren(...bSphereBoxes(builder, h, () => { setup(); update(); }));
 
     el('methods').replaceChildren(...B_METHODS.map(m => {
-      const box = h('input', { type: 'checkbox', checked: !!st.on[m.id] });
-      box.onchange = () => { st.on[m.id] = box.checked; update(); };
+      const box = h('input', { type: 'checkbox', checked: !!builder.on[m.id] });
+      box.onchange = () => { builder.on[m.id] = box.checked; update(); };
       return h('label', { className: 'method' }, [box, h('span', { className: `m-${m.color.slice(2)}`, textContent: m.name })]);
     }));
   }
 
   function runs() {
-    const shown = bShown(st);
-    if (shown.length && !shown.includes(st.item)) st.item = shown[0];
-    if (!st.item || st.item.gone) st.item = bFirst(st.nodes);
-    return B_METHODS.filter(m => st.on[m.id] && shown.includes(st.item)).map(m => ({ m, steps: m.run(st, st.item) }));
+    const shown = bShown(builder);
+    if (shown.length && !shown.includes(builder.item)) builder.item = shown[0];
+    if (!builder.item || builder.item.gone) builder.item = bFirst(builder.nodes);
+    return B_METHODS.filter(m => builder.on[m.id] && shown.includes(builder.item)).map(m => ({ m, steps: m.run(builder, builder.item) }));
   }
 
   const redraw = () => render(runs());
@@ -101,27 +101,27 @@
   function update() {
     const rs = runs();
     const max = Math.max(1, ...rs.map(r => r.steps.length));
-    st.step = Math.min(Math.max(1, st.step), max);
-    el('stepno').textContent = `step ${st.step} of ${max}`;
-    el('prev').disabled = st.step <= 1; el('next').disabled = st.step >= max;
+    builder.step = Math.min(Math.max(1, builder.step), max);
+    el('stepno').textContent = `step ${builder.step} of ${max}`;
+    el('prev').disabled = builder.step <= 1; el('next').disabled = builder.step >= max;
     el('lists').replaceChildren(...rs.map(({ m, steps }) => h('div', {}, [
       h('h2', { className: `m-${m.color.slice(2)}`, textContent: m.name }),
       h('ol', { className: 'steps' }, steps.map((s, i) => h('li', {
-        className: [i + 1 > st.step ? 'later' : '', i + 1 === st.step ? 'now' : '', s.ok ? '' : 'bad'].join(' '),
+        className: [i + 1 > builder.step ? 'later' : '', i + 1 === builder.step ? 'now' : '', s.ok ? '' : 'bad'].join(' '),
       }, [h('span', { className: 't', textContent: `${i + 1}. ${s.title}` }),
         ...s.lines.map(l => h('code', { textContent: l })), h('div', { className: 'note', textContent: s.note })]))),
     ])));
-    el('cells').checked = st.cells !== false;
-    el('cells').onchange = () => { st.cells = el('cells').checked; update(); };
+    el('cells').checked = builder.cells !== false;
+    el('cells').onchange = () => { builder.cells = el('cells').checked; update(); };
     render(rs);
     save();
   }
 
   function render(rs) {
-    const pts = [[0, 0, 0], ...bShown(st).filter(n => n.known).map(n => bNodePos(st, n))];
-    rs.forEach(({ steps }) => steps.slice(0, st.step).forEach(s => s.draw.forEach(o => pts.push(...(o.arrow || [o.dot || o.square])))));
-    const cells = st.cells !== false ? bLinks(st) : [];
-    cells.forEach(({ P, t, s }) => pts.push(...bCellCorners(st, P, t, s)));
+    const pts = [[0, 0, 0], ...bShown(builder).filter(n => n.known).map(n => bNodePos(builder, n))];
+    rs.forEach(({ steps }) => steps.slice(0, builder.step).forEach(s => s.draw.forEach(o => pts.push(...(o.arrow || [o.dot || o.square])))));
+    const cells = builder.cells !== false ? bLinks(builder) : [];
+    cells.forEach(({ P, t, s }) => pts.push(...bCellCorners(builder, P, t, s)));
     reach ??= Math.max(0.25, ...pts.map(bLen));
     focus = [0, 0, 0];
     S = pan.zoom * (cv.width / 2 - 60) / reach;
@@ -132,15 +132,15 @@
   function paint(rs, cells) {
     ctx.clearRect(0, 0, cv.width, cv.height);
     ctx.save(); ctx.translate(pan.x, pan.y);
-    bDrawAxes(draw, ctx, css, [0, 0, 0], st.cr, true);
-    el('cellnote').replaceChildren(...[...bDrawCells(st, draw, ctx, css, cells), ...bGlobalLines(st)].map(t => h('div', { textContent: t })));
-    bDrawGuides(st, draw, ctx, css, bCellPoints(st, rs));
-    bDrawSpheres(st, draw, ctx);
+    bDrawAxes(draw, ctx, css, [0, 0, 0], builder.cr, true);
+    el('cellnote').replaceChildren(...[...bDrawCells(builder, draw, ctx, css, cells), ...bGlobalLines(builder)].map(t => h('div', { textContent: t })));
+    bDrawGuides(builder, draw, ctx, css, bCellPoints(builder, rs));
+    bDrawSpheres(builder, draw, ctx);
     const seen = {};
     rs.forEach(({ m, steps }) => {
       const color = css(m.color);
-      steps.slice(0, st.step).forEach((s, i) => {
-        const now = i + 1 === st.step;
+      steps.slice(0, builder.step).forEach((s, i) => {
+        const now = i + 1 === builder.step;
         s.draw.forEach(o => {
           if (o.arrow) draw.arrow(o.arrow[0], o.arrow[1], color, now ? 4 : 2, !now);
           if (o.dot && o.label.startsWith('C_')) {
@@ -163,7 +163,7 @@
       });
     });
     draw.dot([0, 0, 0], css('--ink'), 'O');
-    bShown(st).filter(n => n.known).forEach(n => draw.dot(bNodePos(st, n), css('--ink'), n.name));
+    bShown(builder).filter(n => n.known).forEach(n => draw.dot(bNodePos(builder, n), css('--ink'), n.name));
     ctx.restore();
   }
 
@@ -194,10 +194,10 @@
   cv.addEventListener('gesturestart', e => { e.preventDefault(); pinch = 1; });
   cv.addEventListener('gesturechange', e => { e.preventDefault(); zoomAt(e.scale / pinch, e.clientX, e.clientY); pinch = e.scale; });
 
-  el('prev').onclick = () => { st.step--; update(); };
-  el('next').onclick = () => { st.step++; update(); };
+  el('prev').onclick = () => { builder.step--; update(); };
+  el('next').onclick = () => { builder.step++; update(); };
   el('add-node').onclick = () => {
-    st.nodes.add(bMake({ name: bName(st.made++), known: false, idx: { r: 0, phi: 0, theta: 0 } }));
+    builder.nodes.add(bMake({ name: bName(builder.made++), known: false, idx: { r: 0, phi: 0, theta: 0 } }));
     setup(); update();
   };
   el('preset').onclick = () => open(preset());
