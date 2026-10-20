@@ -1,5 +1,33 @@
 const B_KEY = 'pair-builder-v6';
 
+function bPack(k, v) {
+  if (['gone', 'out', 'in'].includes(k)) return undefined;
+  if (k === 'edges') return [...v].map(t => t.ab.row);
+  if (k === 'picked') return v.map(t => `${t.ab.a.name}→${t.ab.b.name}`);
+  if (v instanceof Set) return [...v];
+  if (k === 'from' || k === 'to' || k === 'item') return v.name;
+  return v;
+}
+
+function bWireStep(step) {
+  const by = new Map(step.nodes.map(({ name, s, idx }) => [name, bMake({ name, s, idx })])), rows = step.edges.map(({ from, to, start, delta, increment }) => ({ from, to, start, delta, increment }));
+  step.nodes = new Set(by.values());
+  step.edges = new Set();
+  rows.forEach(r => {
+    r.from = by.get(r.from); r.to = by.get(r.to);
+    if (r.from && r.to) bLink(step, r);
+  });
+}
+
+function bWire(builder) {
+  builder.seqs.forEach(q => q.steps.forEach(bWireStep));
+  const step = bOpenStep(builder), by = new Map([...step.nodes].map(n => [n.name, n])), abs = new Map([...step.edges].map(t => [`${t.ab.a.name}→${t.ab.b.name}`, t]));
+  builder.picked = (builder.picked || []).map(k => abs.get(k)).filter(Boolean);
+  builder.methods ??= {};
+  builder.item = by.get(builder.item) || bFirst(step.nodes);
+  builder.made ??= 1 + Math.max(-1, ...builder.seqs.flatMap(q => q.steps.flatMap(st => [...st.nodes].map(n => bNameAt(n.name)))).filter(Number.isFinite));
+}
+
 function bLoad() {
   try {
     const builder = JSON.parse(localStorage.getItem(B_KEY)) || bOld();
@@ -31,27 +59,4 @@ function bKeep(builder) {
   bNow = now;
   if (bUndo) { bUndo.disabled = !B_PAST.length; bUndo.textContent = `undo (${B_PAST.length})`; }
   try { localStorage.setItem(B_KEY, now); } catch { }
-}
-
-function bSeqPicker(builder, h, open) {
-  const load = text => { const s = JSON.parse(text); bWire(s); open(s); };
-  const go = i => { builder.open = i; load(JSON.stringify(builder, bPack)); };
-  bUndo = h('button', { textContent: `undo (${B_PAST.length})`, disabled: !B_PAST.length });
-  bUndo.onclick = () => { bNow = B_PAST.pop(); load(bNow); };
-  const pick = h('select', {}, builder.seqs.map((q, i) => h('option', { value: i, textContent: q.name, selected: i === builder.open })));
-  pick.onchange = () => go(+pick.value);
-  const add = h('button', { textContent: '+ new sequence' });
-  add.onclick = () => {
-    const q = JSON.parse(JSON.stringify(builder.seqs[builder.open], bPack));
-    q.steps.forEach(bWireStep);
-    builder.seqs.push({ ...q, name: `sequence ${builder.seqs.length + 1}` });
-    go(builder.seqs.length - 1);
-  };
-  const del = h('button', { textContent: 'delete sequence', disabled: builder.seqs.length < 2 });
-  del.onclick = () => {
-    builder.seqs.splice(builder.open, 1);
-    bSeqNumber(builder);
-    go(Math.max(0, builder.open - 1));
-  };
-  return h('div', { className: 'row' }, [h('label', {}, ['sequence ', pick]), add, del, bUndo]);
 }

@@ -1,0 +1,36 @@
+function bPut(builder, row) {
+  const n = row.to, f = row.from;
+  const t = bDir(builder, row);
+  if (!t) return false;
+  bSetAt(builder, n, bAdd(bPlace(builder, f.idx), bVec(builder, bS(builder, f), t)));
+  return true;
+}
+
+function bRemeasure(builder, n, keep) {
+  [...n.in, ...n.out].filter(t => t !== keep).forEach(t => {
+    const v = bMeasure(builder, t.ab.row);
+    const dl = t.ab.row.delta;
+    if (v) t.ab.row.start = { phi: v.phi - dl.phi, theta: v.theta - dl.theta, r: v.r };
+  });
+}
+
+function bMove(builder, tree) {
+  if (bPut(builder, tree.ab.row)) bRemeasure(builder, tree.ab.b, tree);
+}
+
+function bSetStart(builder, tree, k, value) {
+  tree.ab.row.start[k] = value;
+  bMove(builder, tree);
+  return '';
+}
+
+function bSetS(builder, node, value) {
+  const was = bS(builder, node), k = value / was;
+  if (!bWhole(value) || value < 1) return `${node.name}'s s ${bN(value)}: not a whole number of at least 1, so it stays at ${was}`;
+  node.s = value;
+  node.out.forEach(t => {
+    const r = t.ab.row;
+    r.start = { ...r.start, phi: r.start.phi * k, theta: r.start.theta * k };
+  });
+  return '';
+}
