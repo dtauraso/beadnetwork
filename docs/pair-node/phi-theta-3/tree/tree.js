@@ -51,7 +51,7 @@ function tLayout({ box, levels }) {
   const at = new Map();
   levels.forEach(l => l.forEach(k => {
     const { label, lines } = box.get(k), kw = Math.max(...lines.map(([n]) => n.replace(/^~/, '').length)) + 2;
-    const chars = Math.max(label.length, ...lines.map(([, v]) => kw + v.length));
+    const chars = Math.max(label.length, ...lines.map(([, v, kind]) => (kind === 'note' ? 0 : kw) + v.length));
     at.set(k, { w: chars * T_CH + 24, h: T_HEAD + lines.length * T_LINE + 8, kw: kw * T_CH });
   }));
   const span = l => l.reduce((s, k) => s + at.get(k).w, 0) + (l.length - 1) * T_GX, W = Math.max(...levels.map(span));
