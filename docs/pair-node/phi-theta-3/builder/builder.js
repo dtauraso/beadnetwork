@@ -107,8 +107,6 @@
       }, [h('span', { className: 't', textContent: `${i + 1}. ${s.title}` }),
         ...s.lines.map(l => h('code', { textContent: l })), h('div', { className: 'note', textContent: s.note })]))),
     ])));
-    el('cells').checked = builder.cells !== false;
-    el('cells').onchange = () => { builder.cells = el('cells').checked; update(); };
     render(rs);
     save();
   }
@@ -116,20 +114,18 @@
   function render(rs) {
     const pts = [[0, 0, 0], ...bShown(builder).map(n => bNodePos(builder, n))];
     rs.forEach(({ steps }) => steps.slice(0, builder.step).forEach(s => s.draw.forEach(o => pts.push(...(o.arrow || [o.dot || o.square])))));
-    const cells = builder.cells !== false ? bLinks(builder) : [];
-    cells.forEach(({ P, t, s }) => pts.push(...bCellCorners(builder, P, t, s)));
     reach ??= Math.max(0.25, ...pts.map(bLen));
     focus = [0, 0, 0];
     S = pan.zoom * (cv.width / 2 - 60) / reach;
     Object.assign(draw, atobCanvas(ctx, cv.width, cv.height, S, view, () => focus, css));
-    paint(rs, cells);
+    paint(rs);
   }
 
-  function paint(rs, cells) {
+  function paint(rs) {
     ctx.clearRect(0, 0, cv.width, cv.height);
     ctx.save(); ctx.translate(pan.x, pan.y);
     bDrawAxes(draw, ctx, css, [0, 0, 0], builder.cr, true);
-    el('cellnote').replaceChildren(...[...bDrawCells(builder, draw, ctx, css, cells), ...bGlobalLines(builder)].map(t => h('div', { textContent: t })));
+    el('framenote').replaceChildren(...bGlobalLines(builder).map(t => h('div', { textContent: t })));
     bDrawGuides(builder, draw, ctx, css, bCellPoints(builder, rs));
     const seen = {};
     rs.forEach(({ m, steps }) => {
