@@ -100,7 +100,8 @@ function tSvg(builder) {
       lines.forEach(([name, v, kind], i) => {
         const calc = name.startsWith('~'), ref = kind === 'ref', y = n.y + T_HEAD + i * T_LINE + T_LINE / 2;
         if (kind === 'note') {
-          parts.push(`<line class="split" x1="${left + 8}" x2="${right - 8}" y1="${y - T_LINE / 2}" y2="${y - T_LINE / 2}"/>`);
+          const len = right - left - 16, dashes = Math.round((len + 3) / 6);
+          parts.push(`<line class="split" x1="${left + 8}" x2="${right - 8}" y1="${y - T_LINE / 2}" y2="${y - T_LINE / 2}" stroke-dasharray="3 ${(len - 3 * dashes) / (dashes - 1)}"/>`);
           parts.push(`<text class="l data note" x="${left + 12}" y="${y}">${tEsc(v)}</text>`);
           return;
         }
