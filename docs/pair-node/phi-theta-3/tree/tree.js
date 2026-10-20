@@ -1,4 +1,4 @@
-const T_KEY = 'pair-builder-v5';
+const T_KEY = 'pair-builder-v5', T_SEQS = 'pair-builder-seqs-v1';
 const T_HEAD = 30, T_LINE = 17, T_CH = 7.2, T_GX = 18, T_GY = 44;
 const tNum = v => `${+v.toFixed(3)}`;
 const tAng = (o, ks = ['phi', 'theta', 'r']) => (o ? ks.filter(k => k in o).map(k => `${{ phi: 'φ', theta: 'θ', r: 'r' }[k]} ${tNum(o[k])}`).join(' | ') : '—');
@@ -13,6 +13,14 @@ function tLoad() {
     if (s) { bWire(s); return { builder: s, from: `the builder's save in this browser (${T_KEY})` }; }
   } catch { }
   return { builder: bPreset(), from: 'the three-node preset — the builder has saved nothing in this browser yet' };
+}
+
+function tSeq() {
+  try {
+    const book = JSON.parse(localStorage.getItem(T_SEQS));
+    if (book && book.seqs[book.at]) return { label: book.seqs[book.at].name, lines: [['at', `${book.at + 1} of ${book.seqs.length}`]] };
+  } catch { }
+  return { label: 'sequence 1', lines: [['at', '1 of 1']] };
 }
 
 function tState(builder) {
@@ -38,13 +46,13 @@ function tNode(builder, n) {
 }
 
 function tGraph(builder) {
-  const trees = [...builder.trees], nodes = [...builder.nodes], box = new Map([['builder', tState(builder)]]), kids = new Map([['builder', []]]);
-  trees.forEach(t => { box.set(t, tTree(builder, t)); kids.set(t, [t.ab.a, t.ab.b]); kids.get('builder').push(t); });
+  const trees = [...builder.trees], nodes = [...builder.nodes], box = new Map([['builder', tState(builder)], ['seq', tSeq()]]), kids = new Map([['builder', ['seq']], ['seq', []]]);
+  trees.forEach(t => { box.set(t, tTree(builder, t)); kids.set(t, [t.ab.a, t.ab.b]); kids.get('seq').push(t); });
   nodes.forEach(n => {
     box.set(n, tNode(builder, n)); kids.set(n, []);
-    if (!n.in.length && !n.out.length) kids.get('builder').push(n);
+    if (!n.in.length && !n.out.length) kids.get('seq').push(n);
   });
-  return { box, kids, levels: [['builder'], trees, nodes].filter(l => l.length) };
+  return { box, kids, levels: [['builder'], ['seq'], trees, nodes].filter(l => l.length) };
 }
 
 function tLayout({ box, levels }) {
@@ -97,5 +105,5 @@ function tDraw() {
   svg.innerHTML = body;
 }
 
-window.addEventListener('storage', e => { if (e.key === T_KEY) tDraw(); });
+window.addEventListener('storage', e => { if (e.key === T_KEY || e.key === T_SEQS) tDraw(); });
 tDraw();
