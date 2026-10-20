@@ -39,7 +39,7 @@
     el('nodes').replaceChildren(...all.flatMap(n => {
       const known = h('input', { type: 'checkbox', checked: n.known });
       known.onchange = () => { n.known = known.checked; setup(); update(); };
-      const xyz = ['r', 'phi', 'theta'].map(k => { const f = num(n.idx[k], v => { bLetGo(st, n); n.idx[k] = v; }); f.disabled = !n.known; return h('td', {}, [f]); });
+      const xyz = ['r', 'phi', 'theta'].map(k => { const f = num(n.idx[k], v => { bLetGo(st, n); n.idx[k] = v; bRemeasure(st, n); }); f.disabled = !n.known; return h('td', {}, [f]); });
       const del = h('button', { textContent: 'remove' });
       del.onclick = () => { bDropNode(st, n); setup(); update(); };
       const s = flag(`${n.name}:s`, num(bS(st, n), v => check(`${n.name}:s`, bSetS(st, n, v), v)));

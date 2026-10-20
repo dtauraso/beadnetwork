@@ -26,7 +26,7 @@ function tEdits() {
     ['a→b θ 4', () => bSetStart(st, ab, 'theta', 4)],
     ['a→b φ 6', () => bSetStart(st, ab, 'phi', 6)],
     ['a→b φ 3', () => bSetStart(st, ab, 'phi', 3)],
-    ['a→b φ 2.5 — not a whole number, so the edit is undone', () => bSetStart(st, ab, 'phi', 2.5)],
+    ['a→b φ 2.5', () => bSetStart(st, ab, 'phi', 2.5)],
     ['b→c φ 5', () => bSetStart(st, bc, 'phi', 5)],
     ['save and load', () => { st = tReload(st); [ab2, bc2] = [...st.trees]; }],
     ['after loading, a→b φ 4', () => bSetStart(st, ab2, 'phi', 4)],

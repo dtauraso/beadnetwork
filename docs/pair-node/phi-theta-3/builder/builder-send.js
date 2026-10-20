@@ -43,29 +43,7 @@ function bWire(st) {
   st.made ??= 1 + Math.max(-1, ...[...by.keys()].map(bNameAt).filter(Number.isFinite));
 }
 
-const B_DATA = ['idx', 'start', 'delta', 'by'];
-
-let bLog = null;
-const bKeep = () => (bLog = new Map());
-const bDone = () => { bLog = null; };
-
-function bSave(o) {
-  if (!bLog || bLog.has(o)) return;
-  const c = { ...o };
-  B_DATA.forEach(k => { if (c[k]) c[k] = { ...c[k] }; });
-  bLog.set(o, c);
-}
-
-function bRestore(keep) {
-  keep.forEach((c, o) => {
-    Object.keys(o).forEach(k => { if (!(k in c)) delete o[k]; });
-    Object.assign(o, c);
-  });
-  bDone();
-}
-
 function bLetGo(st, n) {
-  bSave(n);
   delete n.sender;
   delete n.via;
 }
@@ -91,7 +69,6 @@ function bDropNode(st, n) {
 
 function bSetAt(st, n, p) {
   const J = bIndexOf(st, p);
-  bSave(n);
   n.idx = { ...J, theta: J.theta < 0 ? J.theta + st.Ttheta : J.theta };
 }
 
@@ -104,7 +81,14 @@ function bPut(st, row) {
   return true;
 }
 
+function bRemeasure(st, n, keep) {
+  [...n.in, ...n.out].filter(t => t !== keep).forEach(t => {
+    const v = bView(st, t.ab.row);
+    if (v) t.ab.row.start = v;
+  });
+}
+
 function bMove(st, tree) {
   bRefer(st, tree.ab);
-  bPut(st, tree.ab.row);
+  if (bPut(st, tree.ab.row)) bRemeasure(st, tree.ab.b, tree);
 }
