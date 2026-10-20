@@ -34,7 +34,7 @@ function bPreset() {
   const c = bMake({ name: 'c', s: 1, known: true, idx: { r: 0, phi: 0, theta: 0 } });
   const p = {
     s: 1, rho: 0.5, Tphi: 12, Ttheta: 12, cr: 0.5,
-    nodes: new Set([a, b, c]), trees: new Set(), made: 3,
+    nodes: new Set([a, b, c]), trees: new Set(), picked: [], made: 3,
     item: c, on: { atob: true, pair: true }, step: 1,
   };
   const rows = [
