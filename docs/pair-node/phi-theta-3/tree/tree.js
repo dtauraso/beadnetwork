@@ -18,7 +18,7 @@ function tLoad() {
 function tState(builder) {
   return { label: 'builder', lines: [['s', tNum(builder.s)], ['ρ', tNum(builder.rho)], ['T_φ', tNum(builder.Tphi)], ['T_θ', tNum(builder.Ttheta)], ['c_r', tNum(builder.cr)],
     ['item', builder.item ? builder.item.name : '—', 'ref'], ['made', `${builder.made}`], ['step', `${builder.step}`], ['nodes', `${builder.nodes.size}`], ['trees', `${builder.trees.size}`],
-    ['picked', tNames(builder.picked || [], t => tAB(t.ab)), 'ref'], ['on', tOn(builder.on)], ['cells', builder.cells !== false ? 'on' : 'off'], ['spheres', tOn(builder.spheres)]] };
+    ['picked', tNames(builder.picked || [], t => tAB(t.ab)), 'ref'], ['on', tOn(builder.on)], ['cells', builder.cells !== false ? 'on' : 'off']] };
 }
 
 const tWorked = rows => [['', 'not stored', 'note'], ...rows];
