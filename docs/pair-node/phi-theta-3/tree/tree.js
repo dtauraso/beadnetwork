@@ -22,17 +22,16 @@ function tState(builder) {
 }
 
 function tTree(builder, t) {
-  const { row, b } = t.ab;
+  const { row } = t.ab;
   return { label: tAB(t.ab), lines: [['from', row.from.name, 'ref'], ['to', row.to.name, 'ref'], ['start', tAng(row.start)], ['Δ', tAng(row.delta, ['phi', 'theta'])],
     ['by', tAng(row.by, ['phi', 'theta'])],
-    ['~start + Δ', tAng(bDir(builder, row))], ['places b', b.via === t.ab ? 'yes — b\'s via' : 'no']] };
+    ['~start + Δ', tAng(bDir(builder, row))]] };
 }
 
 function tNode(builder, n) {
   const C = bNodePos(builder, n);
   return { label: `node ${n.name}`, lines: [['s', n.s ? tNum(n.s) : `— (the scene's s, ${tNum(builder.s)})`],
     ['idx', tAng(n.idx)], ['~C', C ? ['x', 'y', 'z'].map((k, i) => `${k} ${tNum(C[i])}`).join(' · ') : '—'],
-    ['sender', n.sender ? n.sender.name : '—', 'ref'], ['via', n.via ? tAB(n.via) : '—', 'ref'],
     ['out', tNames(n.out, t => tAB(t.ab)), 'ref'], ['in', tNames(n.in, t => tAB(t.ab)), 'ref']] };
 }
 

@@ -14,7 +14,6 @@ function bAddTree(builder, row) {
 
 function bDropTree(builder, t) {
   const { a, b } = t.ab;
-  if (b.via === t.ab) bLetGo(builder, b);
   a.out = a.out.filter(x => x !== t);
   b.in = b.in.filter(x => x !== t);
   builder.trees.delete(t);

@@ -1,7 +1,7 @@
 const T_EPS = 1e-9;
 const tName = r => r.from.name + r.to.name;
 const tRows = builder => [...builder.trees].map(({ ab: { row } }) => [tName(row)]);
-const tNodes = builder => [...builder.nodes].map(n => [n.name, n.idx, n.via ? n.via.a.name + n.via.b.name : null]);
+const tNodes = builder => [...builder.nodes].map(n => [n.name, n.idx]);
 const tSnap = builder => ({ nodes: JSON.parse(JSON.stringify(tNodes(builder))), rows: tRows(builder) });
 const tReload = builder => { const s = JSON.parse(JSON.stringify(builder, bPack)); bWire(s); return s; };
 const tRow = (from, to, s) => ({ from, to, start: { phi: s[0], theta: s[1], r: s[2] } });
@@ -91,12 +91,12 @@ const tNum = v => (Number.isInteger(v) ? `${v}` : v.toFixed(4));
 const tIdx = i => (i ? `r ${tNum(i.r)} · φ ${tNum(i.phi)} · θ ${tNum(i.theta)}` : '—');
 
 function tNodeTable(want, got) {
-  const head = tEl('tr', {}, ['node', 'wanted', 'got', 'via wanted', 'via got'].map(t => tEl('th', { textContent: t })));
+  const head = tEl('tr', {}, ['node', 'wanted', 'got'].map(t => tEl('th', { textContent: t })));
   const names = [...new Set([...want.map(n => n[0]), ...(got || []).map(n => n[0])])];
   return tEl('table', {}, [tEl('thead', {}, [head]), tEl('tbody', {}, names.map(name => {
     const w = want.find(n => n[0] === name), g = (got || []).find(n => n[0] === name);
     const bad = tSame(w, g, '', []).length > 0;
-    return tEl('tr', { className: bad ? 'bad' : '' }, [name, tIdx(w && w[1]), tIdx(g && g[1]), (w && w[2]) || '—', (g && g[2]) || '—']
+    return tEl('tr', { className: bad ? 'bad' : '' }, [name, tIdx(w && w[1]), tIdx(g && g[1])]
       .map(t => tEl('td', { textContent: t })));
   }))]);
 }

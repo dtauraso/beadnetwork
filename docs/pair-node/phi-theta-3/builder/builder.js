@@ -37,7 +37,7 @@
 
     const all = [...builder.nodes];
     el('nodes').replaceChildren(...all.flatMap(n => {
-      const xyz = ['r', 'phi', 'theta'].map(k => { const f = num(n.idx[k], v => { bLetGo(builder, n); n.idx[k] = v; bRemeasure(builder, n); }); return h('td', {}, [f]); });
+      const xyz = ['r', 'phi', 'theta'].map(k => { const f = num(n.idx[k], v => { n.idx[k] = v; bRemeasure(builder, n); }); return h('td', {}, [f]); });
       const del = h('button', { textContent: 'remove' });
       del.onclick = () => { bDropNode(builder, n); setup(); update(); };
       const s = flag(`${n.name}:s`, num(bS(builder, n), v => check(`${n.name}:s`, bSetS(builder, n, v), v)));
@@ -66,7 +66,7 @@
     const add = h('button', { textContent: '+ add edge', disabled: !tos.length });
     add.onclick = () => {
       const row = { from: pickFrom, to: tos[+pickB.value], start: { phi: 0, theta: 0, r: 2 } };
-      bLink(builder, bAddTree(builder, row).ab);
+      bAddTree(builder, row);
       setup(); update();
     };
     el('settings').replaceChildren(bSeqPicker(book, h, open),

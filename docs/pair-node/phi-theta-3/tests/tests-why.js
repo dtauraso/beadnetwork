@@ -11,10 +11,10 @@ const T_WHY_EDITS = [
   'Going back to φ 3 puts b where φ 3 with θ 4 puts it.',
   'A start that is not a whole number is taken as it is: b moves, and b→c\'s start is re-measured to where c still is.',
   'An edit further down the line, on a tree other than a→b, moves c without touching a, b or d.',
-  'The state is packed (bPack), reloaded and rewired (bWire), and comes back exactly the same: positions, vias and trees.',
+  'The state is packed (bPack), reloaded and rewired (bWire), and comes back exactly the same: positions and trees.',
   'The reloaded trees still work: their links are rebuilt well enough for an edit to move things as the original did.',
-  'Dropping a tree takes it out of both nodes\' lists. If c was placed by b→c, c is let go.',
-  'The same for a→b: b loses its via.',
+  'Dropping a tree takes it out of both nodes\' lists.',
+  'The same for a→b.',
   'Dropping a node drops every tree into and out of it, and the remaining nodes stay as they were.',
 ];
 
