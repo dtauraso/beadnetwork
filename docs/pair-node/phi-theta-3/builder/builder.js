@@ -65,6 +65,7 @@
     add.onclick = () => {
       const row = { from: pickFrom, to: tos[+pickB.value], start: { phi: 0, theta: 0, r: 2 } };
       bAddTree(builder, row);
+      row.start = bMeasure(builder, row) || row.start;
       setup(); update();
     };
     el('settings').replaceChildren(bSeqPicker(builder, h, open),
