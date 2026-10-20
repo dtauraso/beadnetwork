@@ -77,7 +77,7 @@ function tSvg(builder) {
     lines.forEach(([name, v, ref], i) => {
       const calc = name.startsWith('~'), y = n.y + T_HEAD + i * T_LINE + T_LINE / 2;
       parts.push(`<text class="l data${calc ? ' calc' : ''}" y="${y}"><tspan class="k" x="${left + 12}">${tEsc(calc ? name.slice(1) : name)}</tspan>`
-        + `<tspan class="v${ref && v !== '—' ? ' ref' : ''}" x="${left + 12 + n.kw}">${tEsc(v)}</tspan></text>`);
+        + `<tspan class="v" x="${left + 12 + n.kw}">${ref && v !== '—' ? v.split(', ').map(r => `<tspan class="ref">${tEsc(r)}</tspan>`).join(', ') : tEsc(v)}</tspan></text>`);
     });
   });
   return { view: `-8 -8 ${W + 16} ${H + 16}`, width: W + 16, body: parts.join('') };
