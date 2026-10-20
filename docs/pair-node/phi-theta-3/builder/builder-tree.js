@@ -1,6 +1,6 @@
 const bAB = row => ({ row, a: row.from, b: row.to });
 const bMake = n => Object.assign(n, { out: [], in: [] });
-const B_GONE = ['turn', 'held', 'went', 'step', 'mine', 'automatic', 'ref', 'pairs'];
+const B_GONE = ['turn', 'held', 'went', 'step', 'mine', 'automatic', 'ref', 'pairs', 'kind', 'end', 'base'];
 
 function bAddTree(st, row) {
   row.delta ??= { phi: 0, theta: 0 };

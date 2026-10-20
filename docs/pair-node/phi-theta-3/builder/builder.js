@@ -46,19 +46,15 @@
       return [h('tr', {}, [h('td', { textContent: n.name }), h('td', {}, [s]), h('td', {}, [known]), ...xyz, h('td', {}, [del])]), ...note(n.name, 7)];
     }));
 
-    const table = (head, rows) => (rows.length
-      ? h('table', {}, [h('thead', {}, [h('tr', {}, head.map(t => h('th', { textContent: t })))]), h('tbody', {}, rows)])
-      : h('div', { className: 'hint', textContent: 'no rows' }));
-    const c = (o, k, tree, part = 'start') => {
-      const at = `${tree.ab.a.name}→${tree.ab.b.name}:${part}${k}`;
-      return flag(at, num(o[k], v => check(at, bSetStart(st, tree, k, v, part), v)));
+    const c = (o, k, tree) => {
+      const at = `${tree.ab.a.name}→${tree.ab.b.name}:start${k}`;
+      return flag(at, num(o[k], v => check(at, bSetStart(st, tree, k, v), v)));
     };
     const settings = [...st.trees].map(tree => {
       const del = h('button', { textContent: 'remove' });
       del.onclick = () => { bDropTree(st, tree); setup(); update(); };
       const ab = `${tree.ab.a.name}→${tree.ab.b.name}`;
-      const on = { kind: v => { check(`${ab}:kind`, bSetKind(st, tree, v), v); update(); }, changed: () => { setup(); update(); } };
-      const attrs = bRowCells(st, tree, c, h, on).map(([k, v]) => h('li', {}, [h('span', { className: 'k', textContent: k }), ...[].concat(v)]));
+      const attrs = bRowCells(st, tree, c, h).map(([k, v]) => h('li', {}, [h('span', { className: 'k', textContent: k }), ...[].concat(v)]));
       const miss = err && err.at.split(':')[0] === ab ? [h('div', { className: 'missing', textContent: err.text })] : [];
       return h('li', {}, [h('div', { className: 'row' }, [h('span', { className: 't', textContent: ab }), del]), h('ul', { className: 'attrs' }, attrs), ...miss]);
     });
@@ -71,16 +67,14 @@
     const pickB = h('select', {}, tos.map((b, i) => h('option', { value: i, textContent: b.name })));
     const add = h('button', { textContent: '+ add edge', disabled: !tos.length });
     add.onclick = () => {
-      const row = { from: pickFrom, to: tos[+pickB.value], kind: 'angle', start: { phi: 0, theta: 0, r: 2 }, end: { phi: 0, theta: 0 } };
+      const row = { from: pickFrom, to: tos[+pickB.value], start: { phi: 0, theta: 0, r: 2 } };
       bLink(st, bAddTree(st, row).ab);
       setup(); update();
     };
     el('settings').replaceChildren(bSeqPicker(book, h, open),
       bSteps(h, [{ body: [...bEdgePicker(st, h, st.picked,() => { setup(); update(); }), h('div', { className: 'part', textContent: 'edges' }), settings.length ? h('ul', { className: 'abs' }, settings) : h('div', { className: 'hint', textContent: 'no edges' }), ...bStepNodes(st, h, st.picked)],
         head: tos.length ? [pickA, ' → ', pickB, add] : [h('span', { className: 'hint', textContent: 'no edge left to add' })] }]), ...bLands(st, h),
-      h('h2', { textContent: 'a→b settings — one item per a→b, set at a, with its attributes: an angle (φ, θ, r), a change (a copy of the angle into a, plus its own end φ, end θ), or a base (measured once from where b lands, then stored)' }));
-    el('tables').replaceChildren(
-      ...all.map(n => h('div', {}, bSecondBase(st, n, h, table))));
+      h('h2', { textContent: 'a→b settings — one item per a→b, set at a, with its angle (φ, θ, r)' }));
 
     el('item').replaceChildren(...all.map((n, i) => h('option', { value: i, textContent: n.name, selected: n === st.item })));
     el('item').onchange = () => { st.item = all[+el('item').value]; update(); };

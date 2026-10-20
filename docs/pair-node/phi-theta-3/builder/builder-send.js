@@ -13,15 +13,15 @@ function bPack(k, v) {
 }
 
 function bWire(st) {
-  const by = new Map(st.nodes.map(n => [n.name, bMake(n)])), rows = st.trees || st.rows, abs = new Map(), copies = [];
+  const by = new Map(st.nodes.map(n => [n.name, bMake(n)])), rows = st.trees || st.rows, abs = new Map(), kinds = [];
   st.nodes = new Set(by.values());
   st.trees = new Set();
   delete st.rows;
   rows.forEach(r => {
     const key = `${r.from}→${r.to}`;
     r.from = by.get(r.from); r.to = by.get(r.to);
+    if (r.kind && r.kind !== 'angle') kinds.push(r);
     B_GONE.forEach(k => delete r[k]);
-    if (r.kind === 'copy') { r.kind = 'base'; delete r.base; copies.push(r); }
     if (!r.from || !r.to) return;
     const t = bAddTree(st, r);
     abs.set(key, t);
@@ -31,14 +31,19 @@ function bWire(st) {
     delete n.ref; delete n.sender; delete n.via;
     if (from && ab && ab.b === n && ab.a === from) { n.sender = from; n.via = ab; }
   });
-  st.trees.forEach(t => { if (!bFloat(t.ab.row)) bLink(st, t.ab); });
-  copies.forEach(r => { if (r.from && r.to) r.base = bView(st, r); });
+  const near = x => (Math.abs(x - Math.round(x)) < 1e-9 ? Math.round(x) : x);
+  kinds.filter(r => r.from && r.to).forEach(r => {
+    r.start = { phi: 0, theta: 0, r: 0 };
+    const v = bView(st, r);
+    if (v) r.start = { phi: near(v.phi), theta: near(v.theta), r: near(v.r) };
+  });
+  st.trees.forEach(t => bLink(st, t.ab));
   st.picked = (st.picked || []).map(k => abs.get(k)).filter(Boolean);
   st.item = by.get(st.item) || bFirst(st.nodes);
   st.made ??= 1 + Math.max(-1, ...[...by.keys()].map(bNameAt).filter(Number.isFinite));
 }
 
-const B_DATA = ['idx', 'start', 'end', 'base', 'delta', 'by'];
+const B_DATA = ['idx', 'start', 'delta', 'by'];
 
 let bLog = null;
 const bKeep = () => (bLog = new Map());
@@ -67,7 +72,7 @@ function bLetGo(st, n) {
 
 function bRefer(st, ab) {
   const n = ab.b;
-  if (bFloat(ab.row) || n.via === ab) return;
+  if (n.via === ab) return;
   bLetGo(st, n);
   n.sender = ab.a;
   n.via = ab;

@@ -61,10 +61,10 @@ function tFrom(st, t) {
 
 function tRow(st, t) {
   const { row, a, b } = t.ab, dirs = bDirs(st, t);
-  const has = k => (row[k] ? [tItem(k, tAng(row[k], k === 'start' || k === 'base' ? ['phi', 'theta', 'r'] : ['phi', 'theta']))] : []);
+  const has = k => (row[k] ? [tItem(k, tAng(row[k], k === 'start' ? ['phi', 'theta', 'r'] : ['phi', 'theta']))] : []);
   return tItem('ab', tAB(t.ab), [
     tItem('a', tLink(`n-${a.name}`, a.name)), tItem('b', tLink(`n-${b.name}`, b.name)),
-    tItem('row', '', [tItem('kind', bKind(row)), ...has('start'), ...has('end'), ...has('delta'), ...has('base')]),
+    tItem('row', '', [...has('start'), ...has('delta')]),
     tCalc('direction', dirs.length ? dirs.map(d => tAng(d.t)).join(' / ') : '—'),
     tCalc('placed', tAng(bView(st, row))),
     tItem('places b', b.via === t.ab ? 'yes — b\'s via' : 'no'),

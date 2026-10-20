@@ -1,36 +1,31 @@
 const T_EPS = 1e-9;
 const tName = r => r.from.name + r.to.name;
-const tRows = st => [...st.trees].map(({ ab: { row } }) => [tName(row), row.kind || 'angle']);
+const tRows = st => [...st.trees].map(({ ab: { row } }) => [tName(row)]);
 const tNodes = st => [...st.nodes].map(n => [n.name, n.idx, n.via ? n.via.a.name + n.via.b.name : null]);
 const tSnap = st => ({ nodes: JSON.parse(JSON.stringify(tNodes(st))), rows: tRows(st) });
 const tReload = st => { const s = JSON.parse(JSON.stringify(st, bPack)); bWire(s); return s; };
-const tRow = (from, to, s) => ({ from, to, kind: 'angle', start: { phi: s[0], theta: s[1], r: s[2] }, end: { phi: 0, theta: 0 } });
+const tRow = (from, to, s) => ({ from, to, start: { phi: s[0], theta: s[1], r: s[2] } });
 
 function tEdits() {
   let st = bPreset();
-  const [ab, bc, ac] = [...st.trees], [a, , c] = [...st.nodes];
-  let ad, ab2, bc2;
+  const [ab, bc] = [...st.trees], [, , c] = [...st.nodes];
+  let ab2, bc2;
   return [
-    ['the preset: a→b φ 2 θ 0 r 2, b→c φ 4 θ 0 r 2, a→c a base', () => {}],
+    ['the preset: a→b φ 2 θ 0 r 2, b→c φ 4 θ 0 r 2', () => {}],
     ['a→b φ 3', () => bSetStart(st, ab, 'phi', 3)],
     ['a→b θ 2', () => bSetStart(st, ab, 'theta', 2)],
     ['a→b r 3', () => bSetStart(st, ab, 'r', 3)],
     ['a→b φ 4', () => bSetStart(st, ab, 'phi', 4)],
     ['a→b θ 1', () => bSetStart(st, ab, 'theta', 1)],
-    ['add d (s 2) with c→d φ 1 θ 2 r 2, add a→d as a base, then a→b φ 5', () => {
+    ['add d (s 2) with c→d φ 1 θ 2 r 2, then a→b φ 5', () => {
       const d = bMake({ name: 'd', s: 2, known: true, idx: { r: 3, phi: 2, theta: 5 } });
       st.nodes.add(d);
       bMove(st, bAddTree(st, tRow(c, d, [1, 2, 2])));
-      ad = bAddTree(st, tRow(a, d, [1, 2, 2]));
-      bSetKind(st, ad, 'base');
       bSetStart(st, ab, 'phi', 5);
     }],
     ['a→b θ 4', () => bSetStart(st, ab, 'theta', 4)],
     ['a→b φ 6', () => bSetStart(st, ab, 'phi', 6)],
-    ['a→c as angle, then a→b φ 4', () => { bSetKind(st, ac, 'angle'); bSetStart(st, ab, 'phi', 4); }],
-    ['a→c as base again', () => bSetKind(st, ac, 'base')],
-    ['a→b as base', () => bSetKind(st, ab, 'base')],
-    ['a→b as angle, then a→b φ 3', () => { bSetKind(st, ab, 'angle'); bSetStart(st, ab, 'phi', 3); }],
+    ['a→b φ 3', () => bSetStart(st, ab, 'phi', 3)],
     ['a→b φ 2.5 — not a whole number, so the edit is undone', () => bSetStart(st, ab, 'phi', 2.5)],
     ['b→c φ 5', () => bSetStart(st, bc, 'phi', 5)],
     ['save and load', () => { st = tReload(st); [ab2, bc2] = [...st.trees]; }],
@@ -107,12 +102,12 @@ function tNodeTable(want, got) {
 }
 
 function tRowTable(want, got) {
-  const head = tEl('tr', {}, ['row', 'kind wanted', 'kind got'].map(t => tEl('th', { textContent: t })));
+  const head = tEl('tr', {}, ['row', 'wanted', 'got'].map(t => tEl('th', { textContent: t })));
   const names = [...new Set([...want.map(r => r[0]), ...(got || []).map(r => r[0])])];
   return tEl('table', {}, [tEl('thead', {}, [head]), tEl('tbody', {}, names.map(name => {
     const w = want.find(r => r[0] === name), g = (got || []).find(r => r[0] === name);
     const bad = tSame(w, g, '', []).length > 0;
-    return tEl('tr', { className: bad ? 'bad' : '' }, [`${name[0]}→${name.slice(1)}`, w ? w[1] : '—', g ? g[1] : '—']
+    return tEl('tr', { className: bad ? 'bad' : '' }, [`${name[0]}→${name.slice(1)}`, w ? 'yes' : '—', g ? 'yes' : '—']
       .map(t => tEl('td', { textContent: t })));
   }))]);
 }
