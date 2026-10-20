@@ -1,11 +1,3 @@
-function bDirs(builder, tree) {
-  return [{ t: bDir(builder, tree.ab.row) }];
-}
-
-const bDir = (builder, row) => ({ ...row.start, phi: row.start.phi + row.delta.phi, theta: row.start.theta + row.delta.theta });
-
-const bAt = r => `${r.from.name}→${r.to.name}`;
-
 function bRowCells(builder, tree, c, h) {
   const r = tree.ab.row;
   return [['start φ', c(r.start, 'phi', tree)], ['start θ', c(r.start, 'theta', tree)], ['start r', c(r.start, 'r', tree)]];
@@ -61,4 +53,14 @@ function bLands(builder, h) {
   });
   return [h('h2', { textContent: 'read only: each row\'s start, and start + Δ — the direction from its first node to its second node' }),
     items.length ? h('ul', { className: 'abs' }, items) : h('div', { className: 'hint', textContent: 'no rows' })];
+}
+
+function bGlobalLines(builder) {
+  return bShown(builder).map(n => {
+    const p = bNodePos(builder, n);
+    const r = bLen(p), phi = r < 1e-9 ? 0 : Math.acos(Math.max(-1, Math.min(1, p[1] / r)));
+    let th = Math.atan2(p[2], p[0]);
+    if (th < -1e-9) th += 2 * Math.PI;
+    return `${n.name} in O's frame: r ${bF(r)}, φ ${bF(phi)} rad, θ ${bF(Math.max(0, th))} rad`;
+  });
 }

@@ -30,5 +30,3 @@ function bEdgePicker(builder, h, picked, changed) {
     h('div', { className: 'part', textContent: 'chosen for vector recalculation' }),
     redo.length ? h('ul', { className: 'abs' }, redo) : h('div', { className: 'hint', textContent: 'no edges' })];
 }
-
-const bShown = builder => [...bOpenStep(builder).nodes].filter(n => n.out.length || n.in.length);
