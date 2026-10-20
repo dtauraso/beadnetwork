@@ -37,13 +37,11 @@
 
     const all = [...builder.nodes];
     el('nodes').replaceChildren(...all.flatMap(n => {
-      const known = h('input', { type: 'checkbox', checked: n.known });
-      known.onchange = () => { n.known = known.checked; setup(); update(); };
-      const xyz = ['r', 'phi', 'theta'].map(k => { const f = num(n.idx[k], v => { bLetGo(builder, n); n.idx[k] = v; bRemeasure(builder, n); }); f.disabled = !n.known; return h('td', {}, [f]); });
+      const xyz = ['r', 'phi', 'theta'].map(k => { const f = num(n.idx[k], v => { bLetGo(builder, n); n.idx[k] = v; bRemeasure(builder, n); }); return h('td', {}, [f]); });
       const del = h('button', { textContent: 'remove' });
       del.onclick = () => { bDropNode(builder, n); setup(); update(); };
       const s = flag(`${n.name}:s`, num(bS(builder, n), v => check(`${n.name}:s`, bSetS(builder, n, v), v)));
-      return [h('tr', {}, [h('td', { textContent: n.name }), h('td', {}, [s]), h('td', {}, [known]), ...xyz, h('td', {}, [del])]), ...note(n.name, 7)];
+      return [h('tr', {}, [h('td', { textContent: n.name }), h('td', {}, [s]), ...xyz, h('td', {}, [del])]), ...note(n.name, 6)];
     }));
 
     const c = (o, k, tree) => {
@@ -118,7 +116,7 @@
   }
 
   function render(rs) {
-    const pts = [[0, 0, 0], ...bShown(builder).filter(n => n.known).map(n => bNodePos(builder, n))];
+    const pts = [[0, 0, 0], ...bShown(builder).map(n => bNodePos(builder, n))];
     rs.forEach(({ steps }) => steps.slice(0, builder.step).forEach(s => s.draw.forEach(o => pts.push(...(o.arrow || [o.dot || o.square])))));
     const cells = builder.cells !== false ? bLinks(builder) : [];
     cells.forEach(({ P, t, s }) => pts.push(...bCellCorners(builder, P, t, s)));
@@ -163,7 +161,7 @@
       });
     });
     draw.dot([0, 0, 0], css('--ink'), 'O');
-    bShown(builder).filter(n => n.known).forEach(n => draw.dot(bNodePos(builder, n), css('--ink'), n.name));
+    bShown(builder).forEach(n => draw.dot(bNodePos(builder, n), css('--ink'), n.name));
     ctx.restore();
   }
 
@@ -197,7 +195,7 @@
   el('prev').onclick = () => { builder.step--; update(); };
   el('next').onclick = () => { builder.step++; update(); };
   el('add-node').onclick = () => {
-    builder.nodes.add(bMake({ name: bName(builder.made++), known: false, idx: { r: 0, phi: 0, theta: 0 } }));
+    builder.nodes.add(bMake({ name: bName(builder.made++), idx: { r: 0, phi: 0, theta: 0 } }));
     setup(); update();
   };
   el('preset').onclick = () => open(preset());

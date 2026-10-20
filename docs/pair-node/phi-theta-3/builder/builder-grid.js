@@ -5,7 +5,7 @@ function bCellPoints(builder, rs) {
     const key = p.map(v => v.toFixed(6)).join();
     if (bLen(p) > 1e-9 && !had.has(key)) { had.add(key); out.push({ p, color }); }
   };
-  bShown(builder).forEach(n => { if (n.known) add(bNodePos(builder, n), '--ink'); });
+  bShown(builder).forEach(n => add(bNodePos(builder, n), '--ink'));
   rs.forEach(({ m, steps }) => steps.slice(0, builder.step).forEach(s => s.draw.forEach(o => {
     if (o.square) add(o.square, m.color);
     else if (o.dot && o.label.startsWith(`${builder.item.name}(`)) add(o.dot, m.color);
@@ -87,7 +87,7 @@ function bSphereBoxes(builder, h, changed) {
 }
 
 function bDrawSpheres(builder, draw, ctx) {
-  const P = bShown(builder).filter(n => n.known).map(n => bNodePos(builder, n));
+  const P = bShown(builder).map(n => bNodePos(builder, n));
   const cap = builder.rho * 2, cell = p => p.map(v => Math.floor(v / cap)), grid = new Map();
   let near = cap;
   P.forEach(p => {
@@ -105,7 +105,7 @@ function bDrawSpheres(builder, draw, ctx) {
     ctx.stroke();
   };
   ctx.strokeStyle = 'hsl(210 60% 55%)'; ctx.lineWidth = 1.5;
-  bShown(builder).filter(n => n.known && (builder.spheres || {})[n.name]).map(n => bNodePos(builder, n)).forEach(C => {
+  bShown(builder).filter(n => (builder.spheres || {})[n.name]).map(n => bNodePos(builder, n)).forEach(C => {
     for (let m = 0; m < 6; m++) ring(C, t => bCart(R, t, m * Math.PI / 6));
     for (let l = 1; l < 6; l++) ring(C, t => bCart(R, l * Math.PI / 6, t));
   });
