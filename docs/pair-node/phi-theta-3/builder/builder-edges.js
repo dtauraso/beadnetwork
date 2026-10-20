@@ -26,7 +26,7 @@ function bEdgePicker(st, h, picked, changed) {
   };
   return [h('div', { className: 'row' }, [h('label', {}, ['edge ', pick])]),
     items.length ? h('ul', { className: 'abs' }, items) : h('div', { className: 'hint', textContent: 'no edges picked' }),
-    h('div', { className: 'row' }, ['each picked head\'s from Δφ, by its own amount', step('phi', -1, '−'), step('phi', 1, '+'), ' Δθ', step('theta', -1, '−'), step('theta', 1, '+')]),
+    h('div', { className: 'row' }, ['each picked edge\'s Δφ, by its own by', step('phi', -1, '−'), step('phi', 1, '+'), ' Δθ', step('theta', -1, '−'), step('theta', 1, '+')]),
     h('div', { className: 'part', textContent: 'chosen for vector recalculation' }),
     redo.length ? h('ul', { className: 'abs' }, redo) : h('div', { className: 'hint', textContent: 'no edges' })];
 }

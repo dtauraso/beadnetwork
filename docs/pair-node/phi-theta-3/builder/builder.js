@@ -74,7 +74,7 @@
     el('settings').replaceChildren(bSeqPicker(book, h, open),
       bSteps(h, [{ body: [...bEdgePicker(st, h, st.picked,() => { setup(); update(); }), h('div', { className: 'part', textContent: 'edges' }), settings.length ? h('ul', { className: 'abs' }, settings) : h('div', { className: 'hint', textContent: 'no edges' }), ...bStepNodes(st, h, st.picked)],
         head: tos.length ? [pickA, ' → ', pickB, add] : [h('span', { className: 'hint', textContent: 'no edge left to add' })] }]), ...bLands(st, h),
-      h('h2', { textContent: 'a→b settings — one item per a→b, set at a, with its angle (φ, θ, r)' }));
+      h('h2', { textContent: 'a→b settings — one item per a→b, set at a, with its start (φ, θ, r)' }));
 
     const shown = bShown(st);
     el('item').replaceChildren(...shown.map((n, i) => h('option', { value: i, textContent: n.name, selected: n === st.item })));
