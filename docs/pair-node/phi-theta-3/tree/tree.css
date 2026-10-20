@@ -16,6 +16,7 @@ svg text.calc { font-style: italic; }
 svg .split { stroke: var(--dim); stroke-width: 1; stroke-dasharray: 3 3; }
 svg text.note { fill: var(--dim); font-style: italic; }
 svg .rule { fill: var(--ink); }
+svg .steprule { stroke: var(--ink); stroke-width: 1; }
 svg text.data.part { font-size: 13px; font-weight: 700; }
 svg text.data .k { fill: var(--dim); }
 svg text.data .v { fill: var(--ink); font-weight: 600; }

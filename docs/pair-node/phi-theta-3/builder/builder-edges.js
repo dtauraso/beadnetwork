@@ -1,5 +1,5 @@
 function bEdgePicker(builder, h, picked, changed) {
-  const trees = [...builder.trees], abName = t => `${t.ab.a.name}→${t.ab.b.name}`;
+  const trees = [...bOpenStep(builder).edges], abName = t => `${t.ab.a.name}→${t.ab.b.name}`;
   picked.splice(0, picked.length, ...picked.filter(t => trees.includes(t)));
   if (!trees.length) return [];
   const left = trees.filter(t => !picked.includes(t));
@@ -31,4 +31,4 @@ function bEdgePicker(builder, h, picked, changed) {
     redo.length ? h('ul', { className: 'abs' }, redo) : h('div', { className: 'hint', textContent: 'no edges' })];
 }
 
-const bShown = builder => [...builder.nodes].filter(n => n.out.length || n.in.length);
+const bShown = builder => [...bOpenStep(builder).nodes].filter(n => n.out.length || n.in.length);

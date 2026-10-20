@@ -1,10 +1,8 @@
 (function () {
-  const KEY = 'pair-builder-v5';
   const preset = bPreset;
   let err = null, pickFrom = null;
-  let builder;
-  try { builder = JSON.parse(localStorage.getItem(KEY)); if (builder) bWire(builder); else builder = preset(); } catch { builder = preset(); }
-  const book = bSeqBook(), save = () => { bSeqKeep(book, builder); try { localStorage.setItem(KEY, JSON.stringify(builder, bPack)); } catch { } };
+  let builder = bLoad() || preset();
+  const save = () => bKeep(builder);
   const open = s => { builder = s; reach = null; pickFrom = null; setup(); update(); };
 
   const el = id => document.getElementById(id);
@@ -35,7 +33,7 @@
       el(id).onchange = () => { const v = +el(id).value; if (v > 0) builder[k] = whole ? Math.round(v) : v; update(); };
     });
 
-    const all = [...builder.nodes];
+    const all = [...bOpenStep(builder).nodes];
     el('nodes').replaceChildren(...all.flatMap(n => {
       const xyz = ['r', 'phi', 'theta'].map(k => { const f = num(n.idx[k], v => { n.idx[k] = v; bRemeasure(builder, n); }); return h('td', {}, [f]); });
       const del = h('button', { textContent: 'remove' });
@@ -48,7 +46,7 @@
       const at = `${tree.ab.a.name}→${tree.ab.b.name}:start${k}`;
       return flag(at, num(o[k], v => check(at, bSetStart(builder, tree, k, v), v)));
     };
-    const settings = [...builder.trees].map(tree => {
+    const settings = [...bOpenStep(builder).edges].map(tree => {
       const del = h('button', { textContent: 'remove' });
       del.onclick = () => { bDropTree(builder, tree); setup(); update(); };
       const ab = `${tree.ab.a.name}→${tree.ab.b.name}`;
@@ -69,7 +67,7 @@
       bAddTree(builder, row);
       setup(); update();
     };
-    el('settings').replaceChildren(bSeqPicker(book, h, open),
+    el('settings').replaceChildren(bSeqPicker(builder, h, open),
       bSteps(h, [{ body: [...bEdgePicker(builder, h, builder.picked,() => { setup(); update(); }), h('div', { className: 'part', textContent: 'edges' }), settings.length ? h('ul', { className: 'abs' }, settings) : h('div', { className: 'hint', textContent: 'no edges' }), ...bStepNodes(builder, h)],
         head: tos.length ? [pickA, ' → ', pickB, add] : [h('span', { className: 'hint', textContent: 'no edge left to add' })] }]), ...bLands(builder, h),
       h('h2', { textContent: 'a→b settings — one item per a→b, set at a, with its start (φ, θ, r)' }));
@@ -88,7 +86,7 @@
   function runs() {
     const shown = bShown(builder);
     if (shown.length && !shown.includes(builder.item)) builder.item = shown[0];
-    if (!builder.item || builder.item.gone) builder.item = bFirst(builder.nodes);
+    if (!builder.item || builder.item.gone) builder.item = bFirst(bOpenStep(builder).nodes);
     return B_METHODS.filter(m => builder.methods[m.id] && shown.includes(builder.item)).map(m => ({ m, steps: m.run(builder, builder.item) }));
   }
 
@@ -188,10 +186,14 @@
   el('prev').onclick = () => { builder.step--; update(); };
   el('next').onclick = () => { builder.step++; update(); };
   el('add-node').onclick = () => {
-    builder.nodes.add(bMake({ name: bName(builder.made++), idx: { r: 0, phi: 0, theta: 0 } }));
+    bOpenStep(builder).nodes.add(bMake({ name: bName(builder.made++), idx: { r: 0, phi: 0, theta: 0 } }));
     setup(); update();
   };
-  el('preset').onclick = () => open(preset());
+  el('preset').onclick = () => {
+    const p = preset();
+    builder.seqs[builder.open].steps = p.seqs[0].steps;
+    open(Object.assign(p, { seqs: builder.seqs, open: builder.open }));
+  };
 
   setup();
   update();

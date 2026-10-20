@@ -19,7 +19,7 @@ function bDrawAxes(draw, ctx, css, P, L, named) {
 }
 
 function bRowEnds(builder) {
-  return [...builder.trees].flatMap(tree => bDirs(builder, tree).map(({ t }) => {
+  return [...bOpenStep(builder).edges].flatMap(tree => bDirs(builder, tree).map(({ t }) => {
     const { ab } = tree, row = ab.row, P = bNodePos(builder, ab.a);
     if (!P) return null;
     const d = bVec(builder, bS(builder, ab.a), t);
@@ -33,8 +33,8 @@ function bPreset() {
   const c = bMake({ name: 'c', s: 1, idx: { r: 0, phi: 0, theta: 0 } });
   const p = {
     s: 1, rho: 0.5, Tphi: 12, Ttheta: 12, cr: 0.5,
-    nodes: new Set([a, b, c]), trees: new Set(), picked: [], made: 3,
-    item: c, methods: { atob: true, pair: true }, step: 1,
+    picked: [], made: 3, item: c, methods: { atob: true, pair: true }, step: 1,
+    open: 0, seqs: [{ name: 'sequence 1', steps: [{ edges: new Set(), nodes: new Set([a, b, c]) }] }],
   };
   const rows = [
     { from: a, to: b, start: { phi: 2, theta: 0, r: 2 } },
