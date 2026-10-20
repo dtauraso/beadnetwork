@@ -34,7 +34,7 @@ function bWire(st) {
   const near = x => (Math.abs(x - Math.round(x)) < 1e-9 ? Math.round(x) : x);
   kinds.filter(r => r.from && r.to).forEach(r => {
     r.start = { phi: 0, theta: 0, r: 0 };
-    const v = bView(st, r);
+    const v = bMeasure(st, r);
     if (v) r.start = { phi: near(v.phi), theta: near(v.theta), r: near(v.r) };
   });
   st.trees.forEach(t => bLink(st, t.ab));
@@ -83,7 +83,7 @@ function bPut(st, row) {
 
 function bRemeasure(st, n, keep) {
   [...n.in, ...n.out].filter(t => t !== keep).forEach(t => {
-    const v = bView(st, t.ab.row);
+    const v = bMeasure(st, t.ab.row);
     const dl = t.ab.row.delta;
     if (v) t.ab.row.start = { phi: v.phi - dl.phi, theta: v.theta - dl.theta, r: v.r };
   });

@@ -50,7 +50,7 @@ function tNode(st, n) {
 }
 
 function tFrom(st, t) {
-  const { row, a, b } = t.ab, d = bView(st, row), dl = row.delta;
+  const { row, a, b } = t.ab, d = bMeasure(st, row), dl = row.delta;
   if (!d) return tItem(`from ${a.name}`, `${a.name} or ${b.name} has no position`);
   return tItem(`from ${a.name}`, tLink(tId(t.ab), tAB(t.ab)), [
     tItem('start', tAng(row.start)),
