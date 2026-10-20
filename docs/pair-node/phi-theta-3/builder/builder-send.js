@@ -8,6 +8,7 @@ function bPack(k, v) {
     const vars = p => Object.fromEntries(B_PAIR.filter(x => x in p).map(x => [x, p[x]]));
     return [...v].map(t => ({ ...t.ab.row, pairs: t.roots.map(({ pair }) => ({ with: pair.ac.c.name, ...vars(pair) })) }));
   }
+  if (k === 'picked') return v.map(t => `${t.ab.a.name}→${t.ab.b.name}`);
   if (v instanceof Set) return [...v];
   if (k === 'from' || k === 'to' || k === 'sender' || k === 'item') return v.name;
   if (k === 'via') return [v.a.name, v.b.name];
@@ -32,11 +33,11 @@ function bWire(st) {
     B_GONE.forEach(k => delete r[k]);
     if (!r.from || !r.to) return;
     const t = bAddTree(st, r);
-    abs.set(key, t.ab);
+    abs.set(key, t);
     saved.set(t, ps || []);
   });
   st.nodes.forEach(n => {
-    const from = n.sender && by.get(n.sender), ab = n.via && abs.get(n.via.join('→'));
+    const from = n.sender && by.get(n.sender), ab = n.via && abs.get(n.via.join('→'))?.ab;
     delete n.ref; delete n.sender; delete n.via;
     if (from && ab && ab.b === n && ab.a === from) { n.sender = from; n.via = ab; }
   });
@@ -46,6 +47,7 @@ function bWire(st) {
   }));
   st.trees.forEach(t => { if (bKind(t.ab.row) === 'copy' && t.ab.row.ref) bOldPairs(t); B_PAIR.filter(k => k !== 'base').forEach(k => delete t.ab.row[k]); });
   st.trees.forEach(t => { if (!bFloat(t.ab.row)) bLink(st, t.ab); });
+  st.picked = (st.picked || []).map(k => abs.get(k)).filter(Boolean);
   st.item = by.get(st.item) || bFirst(st.nodes);
   st.made ??= 1 + Math.max(-1, ...[...by.keys()].map(bNameAt).filter(Number.isFinite));
 }
