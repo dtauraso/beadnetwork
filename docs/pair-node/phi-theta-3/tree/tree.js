@@ -17,13 +17,13 @@ function tLoad() {
 
 function tState(builder) {
   return { label: 'builder', lines: [['s', tNum(builder.s)], ['ρ', tNum(builder.rho)], ['T_φ', tNum(builder.Tphi)], ['T_θ', tNum(builder.Ttheta)], ['c_r', tNum(builder.cr)],
-    ['item', builder.item ? builder.item.name : '—'], ['made', `${builder.made}`], ['step', `${builder.step}`], ['nodes', `${builder.nodes.size}`], ['trees', `${builder.trees.size}`],
-    ['picked', tNames(builder.picked || [], t => tAB(t.ab))], ['on', tOn(builder.on)], ['cells', builder.cells !== false ? 'on' : 'off'], ['spheres', tOn(builder.spheres)]] };
+    ['item', builder.item ? builder.item.name : '—', 'ref'], ['made', `${builder.made}`], ['step', `${builder.step}`], ['nodes', `${builder.nodes.size}`], ['trees', `${builder.trees.size}`],
+    ['picked', tNames(builder.picked || [], t => tAB(t.ab)), 'ref'], ['on', tOn(builder.on)], ['cells', builder.cells !== false ? 'on' : 'off'], ['spheres', tOn(builder.spheres)]] };
 }
 
 function tTree(builder, t) {
   const { row, b } = t.ab;
-  return { label: tAB(t.ab), lines: [['from', row.from.name], ['to', row.to.name], ['start', tAng(row.start)], ['Δ', tAng(row.delta, ['phi', 'theta'])],
+  return { label: tAB(t.ab), lines: [['from', row.from.name, 'ref'], ['to', row.to.name, 'ref'], ['start', tAng(row.start)], ['Δ', tAng(row.delta, ['phi', 'theta'])],
     ['by', tAng(row.by, ['phi', 'theta'])],
     ['~start + Δ', tAng(bDir(builder, row))], ['places b', b.via === t.ab ? 'yes — b\'s via' : 'no']] };
 }
@@ -32,8 +32,8 @@ function tNode(builder, n) {
   const C = bNodePos(builder, n);
   return { label: `node ${n.name}`, lines: [['s', n.s ? tNum(n.s) : `— (the scene's s, ${tNum(builder.s)})`],
     ['idx', tAng(n.idx)], ['~C', C ? ['x', 'y', 'z'].map((k, i) => `${k} ${tNum(C[i])}`).join(' · ') : '—'],
-    ['sender', n.sender ? n.sender.name : '—'], ['via', n.via ? tAB(n.via) : '—'],
-    ['out', tNames(n.out, t => tAB(t.ab))], ['in', tNames(n.in, t => tAB(t.ab))]] };
+    ['sender', n.sender ? n.sender.name : '—', 'ref'], ['via', n.via ? tAB(n.via) : '—', 'ref'],
+    ['out', tNames(n.out, t => tAB(t.ab)), 'ref'], ['in', tNames(n.in, t => tAB(t.ab)), 'ref']] };
 }
 
 function tGraph(builder) {
@@ -74,10 +74,10 @@ function tSvg(builder) {
     const { label, lines } = g.box.get(k), left = n.x - n.w / 2;
     parts.push(`<rect class="box" x="${left}" y="${n.y}" width="${n.w}" height="${n.h}" rx="${g.kids.get(k).length ? 8 : 14}"/>`);
     parts.push(`<text class="name" x="${n.x}" y="${n.y + T_HEAD / 2 + 2}">${tEsc(label)}</text>`);
-    lines.forEach(([name, v], i) => {
+    lines.forEach(([name, v, ref], i) => {
       const calc = name.startsWith('~'), y = n.y + T_HEAD + i * T_LINE + T_LINE / 2;
       parts.push(`<text class="l data${calc ? ' calc' : ''}" y="${y}"><tspan class="k" x="${left + 12}">${tEsc(calc ? name.slice(1) : name)}</tspan>`
-        + `<tspan class="v" x="${left + 12 + n.kw}">${tEsc(v)}</tspan></text>`);
+        + `<tspan class="v${ref && v !== '—' ? ' ref' : ''}" x="${left + 12 + n.kw}">${tEsc(v)}</tspan></text>`);
     });
   });
   return { view: `-8 -8 ${W + 16} ${H + 16}`, width: W + 16, body: parts.join('') };
