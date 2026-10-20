@@ -84,7 +84,8 @@ function bPut(st, row) {
 function bRemeasure(st, n, keep) {
   [...n.in, ...n.out].filter(t => t !== keep).forEach(t => {
     const v = bView(st, t.ab.row);
-    if (v) t.ab.row.start = v;
+    const dl = t.ab.row.delta;
+    if (v) t.ab.row.start = { phi: v.phi - dl.phi, theta: v.theta - dl.theta, r: v.r };
   });
 }
 

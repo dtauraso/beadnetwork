@@ -2,7 +2,7 @@ function bDirs(st, tree) {
   return [{ t: bDir(st, tree.ab.row) }];
 }
 
-const bDir = (st, row) => row.start;
+const bDir = (st, row) => ({ ...row.start, phi: row.start.phi + row.delta.phi, theta: row.start.theta + row.delta.theta });
 
 const bAt = r => `${r.from.name}→${r.to.name}`;
 
@@ -31,20 +31,19 @@ function bAngleMath(st, row, d, h) {
   return [h('details', {}, [h('summary', { textContent: 'formulas' }), ...lines.map(t => h('code', { textContent: t }))])];
 }
 
-function bDelta(d, dl, h) {
-  if (!d) return [];
-  const f = x => bN(+bF(x));
+function bDelta(row, h) {
+  const f = x => bN(+bF(x)), s = row.start, dl = row.delta;
   return [h('div', { className: 'sub', textContent: `Δφ ${f(dl.phi)} | Δθ ${f(dl.theta)}` }),
-    h('div', { className: 'sub', textContent: `φ ${f(d.phi)} + Δφ ${f(dl.phi)} = ${f(d.phi + dl.phi)} | θ ${f(d.theta)} + Δθ ${f(dl.theta)} = ${f(d.theta + dl.theta)}` })];
+    h('div', { className: 'sub', textContent: `start φ ${f(s.phi)} + Δφ ${f(dl.phi)} = ${f(s.phi + dl.phi)} | start θ ${f(s.theta)} + Δθ ${f(dl.theta)} = ${f(s.theta + dl.theta)}` })];
 }
 
-function bStepNodes(st, h, picked) {
+function bStepNodes(st, h) {
   const ns = bShown(st);
   const items = ns.map(n => {
     const at = n.known ? [['I_r', 'r'], ['I_φ', 'phi'], ['I_θ', 'theta']].map(([k, x]) => [k, bN(n.idx[x])]) : [['position', 'none']];
     const c = bNodePos(st, n);
     const attrs = [['s', `${bS(st, n)} (${12 * bS(st, n)} ticks a turn)`], ...at, ...(c ? [['C', `${['x', 'y', 'z'].map((k, i) => `${k} ${bN(+bF(c[i]))}`).join(' ')}`]] : []),
-      ...n.in.map(t => [t.ab.a.name, bFromAngle(st, t, picked), t.ab.row]).map(([a, d, row]) => [`${a}→${n.name} view`, d ? `φ ${bN(+bF(d.phi))} θ ${bN(+bF(d.theta))} r ${bN(+bF(d.r))}` :`${a} or ${n.name} has no position`, ...bDelta(d, row.delta, h), ...bAngleMath(st, row, d, h)])];
+      ...n.in.map(t => [t.ab.a.name, bView(st, t.ab.row), t.ab.row]).map(([a, d, row]) => [`${a}→${n.name} view`, d ? `φ ${bN(+bF(d.phi))} θ ${bN(+bF(d.theta))} r ${bN(+bF(d.r))}` :`${a} or ${n.name} has no position`, ...bDelta(row, h), ...bAngleMath(st, row, d, h)])];
     return h('li', {}, [h('div', { className: 'row' }, [h('span', { className: 't', textContent: n.name })]),
       h('ul', { className: 'attrs' }, attrs.map(([k, v, ...more]) => h('li', {}, [h('span', { className: 'k', textContent: k }), v, ...more])))]);
   });
@@ -57,7 +56,7 @@ function bLands(st, h) {
   const items = [...st.trees].flatMap(t => {
     const dirs = bDirs(st, t), r = t.ab.row;
     return (dirs.length ? dirs : [{}]).map(e => h('li', {}, [h('div', { className: 'row' }, [h('span', { className: 't', textContent: bAt(r) })]),
-      h('ul', { className: 'attrs' }, [...three('start', e.t), ...three('view', bView(st, r))]
+      h('ul', { className: 'attrs' }, [...three('start', r.start), ...three('start + Δ', e.t), ...three('view', bView(st, r))]
         .map(([k, v]) => h('li', {}, [h('span', { className: 'k', textContent: k }), v])))]));
   });
   return [h('h2', { textContent: 'read only: each row\'s start, and its view — the direction from its first node to its second node where they are placed' }),

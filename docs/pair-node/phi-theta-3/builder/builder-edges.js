@@ -6,7 +6,7 @@ function bEdgePicker(st, h, picked, changed) {
   const pick = h('select', {}, [h('option', { value: -1, textContent: left.length ? 'pick an edge' : 'all edges picked' }),
     ...left.map((t, i) => h('option', { value: i, textContent: abName(t) }))]);
   pick.onchange = () => { if (left[+pick.value]) picked.push(left[+pick.value]); changed(); };
-  const by = (t, k, sign) => { t.ab.row.delta[k] += sign * t.ab.row.by[k]; };
+  const by = (t, k, sign) => { t.ab.row.delta[k] += sign * t.ab.row.by[k]; bMove(st, t); };
   const items = picked.map(t => {
     const drop = h('button', { textContent: 'unpick' });
     drop.onclick = () => { picked.splice(picked.indexOf(t), 1); changed(); };
@@ -32,20 +32,3 @@ function bEdgePicker(st, h, picked, changed) {
 }
 
 const bShown = st => [...st.nodes].filter(n => n.out.length || n.in.length);
-
-function bShifted(st, n, picked) {
-  const t = picked.find(t => t.ab.b === n), P = t && bNodePos(st, t.ab.a), d = t && bView(st, t.ab.row);
-  if (!P || !d) return bNodePos(st, n);
-  const dl = t.ab.row.delta;
-  return bAdd(P, bVec(st, bS(st, t.ab.a), { phi: d.phi + dl.phi, theta: d.theta + dl.theta, r: d.r }));
-}
-
-function bAtShifted(st, picked, f) {
-  B_AT = new Map(picked.filter(t => t.ab.row.delta.phi || t.ab.row.delta.theta).map(t => [t.ab.b, bShifted(st, t.ab.b, picked)]).filter(([, p]) => p));
-  try { return f(); } finally { B_AT = null; }
-}
-
-function bFromAngle(st, t, picked) {
-  const row = t.ab.row;
-  return picked.includes(t) ? bView(st, row) : bView(st, row, bShifted(st, row.from, picked), bShifted(st, row.to, picked));
-}

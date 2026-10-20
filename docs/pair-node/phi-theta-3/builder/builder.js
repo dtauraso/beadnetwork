@@ -72,7 +72,7 @@
       setup(); update();
     };
     el('settings').replaceChildren(bSeqPicker(book, h, open),
-      bSteps(h, [{ body: [...bEdgePicker(st, h, st.picked,() => { setup(); update(); }), h('div', { className: 'part', textContent: 'edges' }), settings.length ? h('ul', { className: 'abs' }, settings) : h('div', { className: 'hint', textContent: 'no edges' }), ...bStepNodes(st, h, st.picked)],
+      bSteps(h, [{ body: [...bEdgePicker(st, h, st.picked,() => { setup(); update(); }), h('div', { className: 'part', textContent: 'edges' }), settings.length ? h('ul', { className: 'abs' }, settings) : h('div', { className: 'hint', textContent: 'no edges' }), ...bStepNodes(st, h)],
         head: tos.length ? [pickA, ' → ', pickB, add] : [h('span', { className: 'hint', textContent: 'no edge left to add' })] }]), ...bLands(st, h),
       h('h2', { textContent: 'a→b settings — one item per a→b, set at a, with its start (φ, θ, r)' }));
 
@@ -96,10 +96,10 @@
     return B_METHODS.filter(m => st.on[m.id] && shown.includes(st.item)).map(m => ({ m, steps: m.run(st, st.item) }));
   }
 
-  const redraw = () => bAtShifted(st, st.picked,() => render(runs()));
+  const redraw = () => render(runs());
 
   function update() {
-    const rs = bAtShifted(st, st.picked,runs);
+    const rs = runs();
     const max = Math.max(1, ...rs.map(r => r.steps.length));
     st.step = Math.min(Math.max(1, st.step), max);
     el('stepno').textContent = `step ${st.step} of ${max}`;
@@ -112,7 +112,8 @@
         ...s.lines.map(l => h('code', { textContent: l })), h('div', { className: 'note', textContent: s.note })]))),
     ])));
     el('cells').checked = st.cells !== false;
-    el('cells').onchange = () => { st.cells = el('cells').checked; update(); };    bAtShifted(st, st.picked,() => render(rs));
+    el('cells').onchange = () => { st.cells = el('cells').checked; update(); };
+    render(rs);
     save();
   }
 

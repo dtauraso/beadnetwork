@@ -53,9 +53,9 @@ function tFrom(st, t) {
   const { row, a, b } = t.ab, d = bView(st, row), dl = row.delta;
   if (!d) return tItem(`from ${a.name}`, `${a.name} or ${b.name} has no position`);
   return tItem(`from ${a.name}`, tLink(tId(t.ab), tAB(t.ab)), [
-    tCalc('angle', tAng(d)),
+    tItem('start', tAng(row.start)),
     tItem('Δ', `${tAng(dl, ['phi', 'theta'])} (${tAB(t.ab)}'s row delta)`),
-    tCalc('angle + Δ', tAng({ phi: d.phi + dl.phi, theta: d.theta + dl.theta })),
+    tCalc('view = start + Δ', tAng(d)),
   ]);
 }
 
