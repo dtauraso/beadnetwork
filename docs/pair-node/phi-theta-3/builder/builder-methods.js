@@ -64,15 +64,15 @@ function bResult(builder, item, p, label) {
   return lines;
 }
 
-function bSenders(builder, rows) {
+function bFromNodes(builder, rows) {
   const placed = rows.map(r => ({ ...r, from: r.from.name, I: r.from.idx, C: bNodePos(builder, r.from) }));
   const missing = placed.filter(r => !r.C).map(r => r.from);
   const step = {
-    title: 'the sender\'s position, from its index',
+    title: 'the from node\'s position, from its index',
     lines: placed.map(r => r.C
       ? `C_${r.from} = ${bPlaceText(r.I)} = ${bPt(r.C)}`
       : `C_${r.from}: missing — ${r.from} has no index`),
-    note: 'each row\'s vector starts at its sender, so the sender\'s position is needed',
+    note: 'each row\'s vector starts at its from node, so the from node\'s position is needed',
     ok: !missing.length,
     draw: placed.filter(r => r.C).map(r => ({ dot: r.C, label: `C_${r.from}` })),
   };
@@ -83,7 +83,7 @@ function bMethodAtoB(builder, node) {
   const item = node.name, rows = bRowVectors(builder, node);
   const steps = [bVectorStep(rows, item)];
   if (!rows.length) return steps;
-  const { step, missing, done } = bSenders(builder, rows);
+  const { step, missing, done } = bFromNodes(builder, rows);
   steps.push(step);
   if (!done.length) return steps;
   const lines = done.map(r => `${item}(${r.from}) = C_${r.from} + d_${r.from}${item} = ${bPt(r.b)}`);
@@ -105,7 +105,7 @@ function bMethodPair(builder, node) {
   const item = node.name, rows = bRowVectors(builder, node);
   const steps = [bVectorStep(rows, item)];
   if (!rows.length) return steps;
-  const { step, missing, done } = bSenders(builder, rows);
+  const { step, missing, done } = bFromNodes(builder, rows);
   steps.push(step);
   if (!done.length) return steps;
   steps.push({
