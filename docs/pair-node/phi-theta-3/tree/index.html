@@ -11,7 +11,7 @@
 <body>
 <header>
   <h1>The a→b tree</h1>
-  <div class="sub">The a→b builder's data as it is now, drawn as the tree the builder keeps — root at the top, each box a variable joined by a line to the box above it: the state, its nodes, and its trees — one per row — with each tree's a→b node. Read with the builder's own scripts from what the builder tab last saved in this browser; it redraws when the builder saves. Stored values are plain; values the builder works out from them are marked <span class="calc-tag">worked out</span>. Underlined names link to the node or tree they point at.</div>
+  <div class="sub">The a→b builder's data as it is now, drawn as the tree the builder keeps: st, then its trees — one per row — then the two nodes each tree joins, each box holding that thing's variables. A node two trees share has an arrow from each. Read with the builder's own scripts from what the builder tab last saved in this browser; it redraws when the builder saves. Stored values are plain; values the builder works out from them are in <span class="calc-tag">italics</span>.</div>
 </header>
 
 <nav>
@@ -26,19 +26,14 @@
 <main>
   <div id="source" class="source"></div>
 
-  <div class="panel">
-    <h2>st — the state</h2>
-    <ul id="state" class="tree"></ul>
-  </div>
+  <svg class="defs" aria-hidden="true" width="0" height="0" style="position: absolute">
+    <defs>
+      <marker id="arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="head" d="M0 0 L10 5 L0 10 z"/></marker>
+    </defs>
+  </svg>
 
   <div class="panel">
-    <h2>st.nodes</h2>
-    <ul id="nodes" class="tree"></ul>
-  </div>
-
-  <div class="panel">
-    <h2>st.trees</h2>
-    <ul id="trees" class="tree"></ul>
+    <svg id="tree" role="img" aria-label="Tree: st, then each of its trees, then the two nodes each tree joins"></svg>
   </div>
 </main>
 
