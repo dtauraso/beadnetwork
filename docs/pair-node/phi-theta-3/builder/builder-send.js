@@ -7,8 +7,7 @@ function bPack(k, v) {
   if (k === 'trees') return [...v].map(t => t.ab.row);
   if (k === 'picked') return v.map(t => `${t.ab.a.name}→${t.ab.b.name}`);
   if (v instanceof Set) return [...v];
-  if (k === 'from' || k === 'to' || k === 'sender' || k === 'item') return v.name;
-  if (k === 'via') return [v.a.name, v.b.name];
+  if (k === 'from' || k === 'to' || k === 'item') return v.name;
   return v;
 }
 
@@ -26,38 +25,16 @@ function bWire(builder) {
     const t = bAddTree(builder, r);
     abs.set(key, t);
   });
-  builder.nodes.forEach(n => {
-    const from = n.sender && by.get(n.sender), ab = n.via && abs.get(n.via.join('→'))?.ab;
-    delete n.ref; delete n.known; delete n.sender; delete n.via;
-    if (from && ab && ab.b === n && ab.a === from) { n.sender = from; n.via = ab; }
-  });
+  builder.nodes.forEach(n => { delete n.ref; delete n.known; delete n.sender; delete n.via; });
   const near = x => (Math.abs(x - Math.round(x)) < 1e-9 ? Math.round(x) : x);
   kinds.filter(r => r.from && r.to).forEach(r => {
     r.start = { phi: 0, theta: 0, r: 0 };
     const v = bMeasure(builder, r);
     if (v) r.start = { phi: near(v.phi), theta: near(v.theta), r: near(v.r) };
   });
-  builder.trees.forEach(t => bLink(builder, t.ab));
   builder.picked = (builder.picked || []).map(k => abs.get(k)).filter(Boolean);
   builder.item = by.get(builder.item) || bFirst(builder.nodes);
   builder.made ??= 1 + Math.max(-1, ...[...by.keys()].map(bNameAt).filter(Number.isFinite));
-}
-
-function bLetGo(builder, n) {
-  delete n.sender;
-  delete n.via;
-}
-
-function bRefer(builder, ab) {
-  const n = ab.b;
-  if (n.via === ab) return;
-  bLetGo(builder, n);
-  n.sender = ab.a;
-  n.via = ab;
-}
-
-function bLink(builder, ab) {
-  if (!ab.b.sender) bRefer(builder, ab);
 }
 
 function bDropNode(builder, n) {
@@ -89,6 +66,5 @@ function bRemeasure(builder, n, keep) {
 }
 
 function bMove(builder, tree) {
-  bRefer(builder, tree.ab);
   if (bPut(builder, tree.ab.row)) bRemeasure(builder, tree.ab.b, tree);
 }

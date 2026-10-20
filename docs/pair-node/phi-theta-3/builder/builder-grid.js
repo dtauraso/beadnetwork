@@ -33,10 +33,8 @@ function bCellCorners(builder, P, t, s) {
 }
 
 function bGlobalLines(builder) {
-  const ends = new Map(bRowEnds(builder).map(e => [e.ab, e.T]));
   return bShown(builder).map(n => {
-    const p = bNodePos(builder, n) || ends.get(n.via);
-    if (!p) return `${n.name} in O's frame: no position`;
+    const p = bNodePos(builder, n);
     const r = bLen(p), phi = r < 1e-9 ? 0 : Math.acos(Math.max(-1, Math.min(1, p[1] / r)));
     let th = Math.atan2(p[2], p[0]);
     if (th < -1e-9) th += 2 * Math.PI;
