@@ -23,6 +23,7 @@ function bWire(builder) {
     abs.set(key, t);
   });
   builder.picked = (builder.picked || []).map(k => abs.get(k)).filter(Boolean);
+  builder.methods ??= {};
   builder.item = by.get(builder.item) || bFirst(builder.nodes);
   builder.made ??= 1 + Math.max(-1, ...[...by.keys()].map(bNameAt).filter(Number.isFinite));
 }
