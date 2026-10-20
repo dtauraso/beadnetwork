@@ -21,18 +21,20 @@ function tState(builder) {
     ['picked', tNames(builder.picked || [], t => tAB(t.ab)), 'ref'], ['on', tOn(builder.on)], ['cells', builder.cells !== false ? 'on' : 'off'], ['spheres', tOn(builder.spheres)]] };
 }
 
+const tWorked = rows => [['', 'not stored — worked out', 'note'], ...rows];
+
 function tTree(builder, t) {
   const { row } = t.ab;
   return { label: tAB(t.ab), lines: [['from', row.from.name, 'ref'], ['to', row.to.name, 'ref'], ['start', tAng(row.start)], ['Δ', tAng(row.delta, ['phi', 'theta'])],
     ['increment', tAng(row.increment, ['phi', 'theta'])],
-    ['~start + Δ', tAng(bDir(builder, row))]] };
+    ...tWorked([['~start + Δ', tAng(bDir(builder, row))]])] };
 }
 
 function tNode(builder, n) {
   const C = bNodePos(builder, n);
   return { label: `node ${n.name}`, lines: [['s', n.s ? tNum(n.s) : `— (the scene's s, ${tNum(builder.s)})`],
-    ['idx', tAng(n.idx)], ['~C', C ? ['x', 'y', 'z'].map((k, i) => `${k} ${tNum(C[i])}`).join(' | ') : '—'],
-    ['out', tNames(n.out, t => tAB(t.ab)), 'ref'], ['in', tNames(n.in, t => tAB(t.ab)), 'ref']] };
+    ['idx', tAng(n.idx)],
+    ['out', tNames(n.out, t => tAB(t.ab)), 'ref'], ['in', tNames(n.in, t => tAB(t.ab)), 'ref'], ...tWorked([['~C', C ? ['x', 'y', 'z'].map((k, i) => `${k} ${tNum(C[i])}`).join(' | ') : '—']])] };
 }
 
 function tGraph(builder) {
@@ -73,8 +75,13 @@ function tSvg(builder) {
     const { label, lines } = g.box.get(k), left = n.x - n.w / 2;
     parts.push(`<rect class="box" x="${left}" y="${n.y}" width="${n.w}" height="${n.h}" rx="${g.kids.get(k).length ? 8 : 14}"/>`);
     parts.push(`<text class="name" x="${n.x}" y="${n.y + T_HEAD / 2 + 2}">${tEsc(label)}</text>`);
-    lines.forEach(([name, v, ref], i) => {
-      const calc = name.startsWith('~'), y = n.y + T_HEAD + i * T_LINE + T_LINE / 2;
+    lines.forEach(([name, v, kind], i) => {
+      const calc = name.startsWith('~'), ref = kind === 'ref', y = n.y + T_HEAD + i * T_LINE + T_LINE / 2;
+      if (kind === 'note') {
+        parts.push(`<line class="split" x1="${left + 8}" x2="${left + n.w - 8}" y1="${y - T_LINE / 2}" y2="${y - T_LINE / 2}"/>`);
+        parts.push(`<text class="l data note" x="${left + 12}" y="${y}">${tEsc(v)}</text>`);
+        return;
+      }
       parts.push(`<text class="l data${calc ? ' calc' : ''}" y="${y}"><tspan class="k" x="${left + 12}">${tEsc(calc ? name.slice(1) : name)}</tspan>`
         + `<tspan class="v" x="${left + 12 + n.kw}">${ref && v !== '—' ? v.split(', ').map(r => `<tspan class="ref">${tEsc(r)}</tspan>`).join(', ') : tEsc(v)}</tspan></text>`);
     });
