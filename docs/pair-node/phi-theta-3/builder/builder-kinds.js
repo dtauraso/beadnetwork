@@ -44,7 +44,7 @@ function bStepNodes(st, h, picked) {
     const at = n.known ? [['I_r', 'r'], ['I_φ', 'phi'], ['I_θ', 'theta']].map(([k, x]) => [k, bN(n.idx[x])]) : [['position', 'none']];
     const c = bNodePos(st, n);
     const attrs = [['s', `${bS(st, n)} (${12 * bS(st, n)} ticks a turn)`], ...at, ...(c ? [['C', `${['x', 'y', 'z'].map((k, i) => `${k} ${bN(+bF(c[i]))}`).join(' ')}`]] : []),
-      ...n.in.filter(t => picked.includes(t)).map(t => [t.ab.a.name, bFromAngle(st, t, picked), t.ab.row]).map(([a, d, row]) => [`from ${a}`, d ? `φ ${bN(+bF(d.phi))} θ ${bN(+bF(d.theta))} r ${bN(+bF(d.r))}` :`${a} or ${n.name} has no position`, ...bDelta(d, row.delta, h), ...bAngleMath(st, row, d, h)])];
+      ...n.in.map(t => [t.ab.a.name, bFromAngle(st, t, picked), t.ab.row]).map(([a, d, row]) => [`from ${a}`, d ? `φ ${bN(+bF(d.phi))} θ ${bN(+bF(d.theta))} r ${bN(+bF(d.r))}` :`${a} or ${n.name} has no position`, ...bDelta(d, row.delta, h), ...bAngleMath(st, row, d, h)])];
     return h('li', {}, [h('div', { className: 'row' }, [h('span', { className: 't', textContent: n.name })]),
       h('ul', { className: 'attrs' }, attrs.map(([k, v, ...more]) => h('li', {}, [h('span', { className: 'k', textContent: k }), v, ...more])))]);
   });
