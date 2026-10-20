@@ -55,7 +55,7 @@ function tFrom(st, t) {
   return tItem(`from ${a.name}`, tLink(tId(t.ab), tAB(t.ab)), [
     tItem('start', tAng(row.start)),
     tItem('Δ', `${tAng(dl, ['phi', 'theta'])} (${tAB(t.ab)}'s row delta)`),
-    tCalc('view = start + Δ', tAng(d)),
+    tCalc('start + Δ', tAng(bDir(st, row))),
   ]);
 }
 
@@ -65,8 +65,7 @@ function tRow(st, t) {
   return tItem('ab', tAB(t.ab), [
     tItem('a', tLink(`n-${a.name}`, a.name)), tItem('b', tLink(`n-${b.name}`, b.name)),
     tItem('row', '', [...has('start'), ...has('delta')]),
-    tCalc('direction', dirs.length ? dirs.map(d => tAng(d.t)).join(' / ') : '—'),
-    tCalc('placed', tAng(bView(st, row))),
+    tCalc('start + Δ', dirs.length ? dirs.map(d => tAng(d.t)).join(' / ') : '—'),
     tItem('places b', b.via === t.ab ? 'yes — b\'s via' : 'no'),
   ]);
 }
