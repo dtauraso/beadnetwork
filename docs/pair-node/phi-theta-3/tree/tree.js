@@ -25,7 +25,7 @@ function tTree(builder, t) {
   const { row } = t.ab;
   return [['', tAB(t.ab), 'part'], ['from', row.from.name, 'ref'], ['to', row.to.name, 'ref'], ['start', tAng(row.start)], ['Δ', tAng(row.delta, ['phi', 'theta'])],
     ['increment', tAng(row.increment, ['phi', 'theta'])],
-    ...tWorked([['~start + Δ', tAng(bDir(builder, row))]])];
+    ...tWorked([['~start + Δ', tAng(bDir(builder, row))], [`~measured C_${row.from.name} → C_${row.to.name}`, tAng(bMeasure(builder, row))]])];
 }
 
 function tNode(builder, n) {
