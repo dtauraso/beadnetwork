@@ -38,14 +38,12 @@ function bPreset() {
     item: c, on: { atob: true, pair: true }, step: 1,
   };
   const rows = [
-    { from: a, to: b, kind: 'angle', start: { phi: 2, theta: 0, r: 2 }, end: { phi: 0, theta: 0 } },
-    { from: b, to: c, kind: 'angle', start: { phi: 4, theta: 0, r: 2 }, end: { phi: 0, theta: 0 } },
-    { from: a, to: c, kind: 'copy', start: { phi: 0, theta: 0, r: 0 }, end: { phi: 0, theta: 0 } },
+    { from: a, to: b, start: { phi: 2, theta: 0, r: 2 } },
+    { from: b, to: c, start: { phi: 4, theta: 0, r: 2 } },
   ];
-  const [ab, bc, ac] = rows.map(r => bAddTree(p, r));
+  const [ab, bc] = rows.map(r => bAddTree(p, r));
   bMove(p, ab);
   bMove(p, bc);
-  bSetCopy(p, ac, '');
   return p;
 }
 
@@ -61,10 +59,9 @@ function bView(st, row, P = bNodePos(st, row.from), T = bNodePos(st, row.to)) {
 }
 
 function bOffTicks(st, trees) {
-  return trees.map(t => t.ab.row).filter(r => !bFloat(r)).flatMap(r => {
-    const a = bDir(st, r), b = bBack(st, r), out = [], own = bKind(r) === 'change';
-    const ends = own ? `, own φ ${bF(r.end.phi)}, own θ ${bF(r.end.theta)}` : '';
-    if (![a.phi, a.theta, a.r, ...(own ? [r.end.phi, r.end.theta] : [])].every(bWhole)) out.push(`${r.from.name}→${r.to.name} at ${r.from.name} (s ${bS(st, r.from)}) would be φ ${bF(a.phi)}, θ ${bF(a.theta)}, r ${bF(a.r)}${ends}`);
+  return trees.map(t => t.ab.row).flatMap(r => {
+    const a = bDir(st, r), b = bBack(st, r), out = [];
+    if (![a.phi, a.theta, a.r].every(bWhole)) out.push(`${r.from.name}→${r.to.name} at ${r.from.name} (s ${bS(st, r.from)}) would be φ ${bF(a.phi)}, θ ${bF(a.theta)}, r ${bF(a.r)}`);
     if (![b.phi, b.theta].every(bWhole)) out.push(`${r.from.name} seen from ${r.to.name} (s ${bS(st, r.to)}) would be φ ${bF(b.phi)}, θ ${bF(b.theta)}`);
     return out;
   });
@@ -77,21 +74,20 @@ function bSettle(st, keep, trees, said, was) {
     return `${said}: ${bad.join('; ')} — not whole ticks, so it stays at ${was}`;
   }
   bDone();
-  trees.map(t => t.ab.row).filter(r => !bFloat(r)).forEach(r => {
+  trees.map(t => t.ab.row).forEach(r => {
     const w = t => bWrap(bS(st, r.from), Math.round(t));
     r.start = { phi: w(r.start.phi), theta: w(r.start.theta), r: Math.round(r.start.r) };
-    r.end = { phi: w(r.end.phi), theta: w(r.end.theta) };
   });
   return '';
 }
 
-function bSetStart(st, tree, k, value, part = 'start') {
+function bSetStart(st, tree, k, value) {
   const { row, a, b } = tree.ab;
-  const was = bN(row[part][k]), said = `${a.name}→${b.name} ${part === 'end' ? 'own ' : ''}${{ phi: 'φ', theta: 'θ', r: 'r' }[k]} ${bN(value)}`;
+  const was = bN(row.start[k]), said = `${a.name}→${b.name} ${{ phi: 'φ', theta: 'θ', r: 'r' }[k]} ${bN(value)}`;
   if (!bWhole(value)) return `${said}: not a whole number, so it stays at ${was}`;
   const keep = bKeep();
   bSave(row);
-  row[part][k] = value;
+  row.start[k] = value;
   bMove(st, tree);
   return bSettle(st, keep, [tree], said, was);
 }
@@ -107,13 +103,6 @@ function bSetS(st, node, value) {
     const r = t.ab.row;
     bSave(r);
     r.start = { ...r.start, phi: r.start.phi * k, theta: r.start.theta * k };
-    r.end = { phi: r.end.phi * k, theta: r.end.theta * k };
-    if (r.base) r.base = { ...r.base, phi: r.base.phi * k, theta: r.base.theta * k };
-    t.roots.forEach(({ pair: p }) => {
-      bSave(p);
-      if (p.base) p.base = { ...p.base, phi: p.base.phi * k, theta: p.base.theta * k };
-      if (p.ref) p.ref = { phi: p.ref.phi * k, theta: p.ref.theta * k };
-    });
   });
   return bSettle(st, keep, trees, said, was);
 }

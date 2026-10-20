@@ -47,7 +47,7 @@ function bVectorStep(rows, item) {
   return {
     title: 'local: each row\'s start as a vector',
     lines: rows.length
-      ? rows.map(({ from: { name: from }, row, t, d }) => `d_${from}${item} (${bKind(row)}) = polar_to_cart(${bN(t.r)}·ρ, ${bN(t.phi)}·2π/12s_${from}, ${bN(t.theta)}·2π/12s_${from}) = ${bPt(d)}`)
+      ? rows.map(({ from: { name: from }, t, d }) => `d_${from}${item} = polar_to_cart(${bN(t.r)}·ρ, ${bN(t.phi)}·2π/12s_${from}, ${bN(t.theta)}·2π/12s_${from}) = ${bPt(d)}`)
       : [`${item}'s table has no rows`],
     note: 'from the row\'s start ticks alone; a vector, not yet a place',
     ok: rows.length > 0, draw: [],
