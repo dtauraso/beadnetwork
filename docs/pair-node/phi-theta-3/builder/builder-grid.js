@@ -13,8 +13,8 @@ function bCellPoints(st, rs) {
   return out;
 }
 
-function bLinks(st) {
-  return bRowEnds(st).flatMap(({ row, P, T, t }) => [
+function bLinks(st, trees) {
+  return bRowEnds(st, trees).flatMap(({ row, P, T, t }) => [
     { from: row.from, to: row.to, P, T, t, s: bS(st, row.from) },
     { from: row.to, to: row.from, P: T, T: P, t: bBack(st, row, t), s: bS(st, row.to) },
   ]);

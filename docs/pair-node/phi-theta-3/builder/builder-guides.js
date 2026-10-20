@@ -18,8 +18,8 @@ function bDrawAxes(draw, ctx, css, P, L, named) {
   });
 }
 
-function bRowEnds(st) {
-  return [...st.trees].flatMap(tree => bDirs(st, tree).map(({ t: was }) => {
+function bRowEnds(st, trees = st.trees) {
+  return [...trees].flatMap(tree => bDirs(st, tree).map(({ t: was }) => {
     const { ab } = tree, row = ab.row, P = bNodePos(st, ab.a);
     if (!P) return null;
     const t = B_AT && (B_AT.has(ab.a) || B_AT.has(ab.b)) ? bView(st, row) || was : was;
@@ -122,11 +122,11 @@ function bDrawGuides(st, draw, ctx, css, points) {
   };
   points.forEach(({ p }) => bDrawAxes(draw, ctx, css, p, st.cr, false));
   const seen = {};
-  bLinks(st).forEach(({ from, P, t, s: ns }) => {
+  bLinks(st, st.picked).forEach(({ from, P, t, s: ns }) => {
     const k = seen[from.name] = (seen[from.name] ?? -1) + 1, R = a * (1 + 0.4 * k), tick = 2 * Math.PI / (12 * ns);
     if (t.r < e) return;
     if (t.phi > e) arc(s => bAdd(P, bCart(R, s * t.phi * tick, 0)), css('--phi'));
     if (t.theta > e) arc(s => bAdd(P, bCart(R, Math.PI / 2, s * t.theta * tick)), css('--theta'));
   });
-  bRowEnds(st).forEach(({ P, T }) => line([P, T], muted, 2, [3, 7]));
+  bRowEnds(st, st.picked).forEach(({ P, T }) => line([P, T], muted, 2, [3, 7]));
 }

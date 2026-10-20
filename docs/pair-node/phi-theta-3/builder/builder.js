@@ -116,7 +116,7 @@
   function render(rs) {
     const pts = [[0, 0, 0], ...[...st.nodes].filter(n => n.known).map(n => bNodePos(st, n))];
     rs.forEach(({ steps }) => steps.slice(0, st.step).forEach(s => s.draw.forEach(o => pts.push(...(o.arrow || [o.dot || o.square])))));
-    const cells = st.cells !== false ? bLinks(st) : [];
+    const cells = st.cells !== false ? bLinks(st, st.picked) : [];
     cells.forEach(({ P, t, s }) => pts.push(...bCellCorners(st, P, t, s)));
     reach ??= Math.max(0.25, ...pts.map(bLen));
     focus = [0, 0, 0];
