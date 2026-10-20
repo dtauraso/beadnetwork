@@ -48,7 +48,7 @@ function tNode(builder, n) {
 function tGraph(builder) {
   const trees = [...builder.trees], nodes = [...builder.nodes], box = new Map([['builder', tState(builder)], ['seq', tSeq()]]), kids = new Map([['builder', ['seq']], ['seq', []]]);
   if (trees.length) {
-    box.set('edges', { label: 'edges', lines: trees.flatMap(t => tTree(builder, t)) });
+    box.set('edges', { label: 'edges', cols: trees.map(t => tTree(builder, t)) });
     kids.set('edges', nodes.filter(n => n.in.length || n.out.length));
     kids.get('seq').push('edges');
   }
@@ -62,9 +62,15 @@ function tGraph(builder) {
 function tLayout({ box, levels }) {
   const at = new Map();
   levels.forEach(l => l.forEach(k => {
-    const { label, lines } = box.get(k), kw = Math.max(...lines.map(([n]) => n.replace(/^~/, '').length)) + 2;
-    const chars = Math.max(label.length, ...lines.map(([, v, kind]) => (kind === 'note' || kind === 'part' ? 0 : kw) + v.length));
-    at.set(k, { w: chars * T_CH + 24, h: T_HEAD + lines.length * T_LINE + 8, kw: kw * T_CH });
+    const { label, lines, cols = [lines] } = box.get(k);
+    let x = 0;
+    const cs = cols.map(lines => {
+      const kw = Math.max(...lines.map(([n]) => n.replace(/^~/, '').length)) + 2;
+      const w = Math.max(...lines.map(([, v, kind]) => (kind === 'note' || kind === 'part' ? 0 : kw) + v.length)) * T_CH + 24;
+      x += w;
+      return { lines, x: x - w, w, kw: kw * T_CH };
+    });
+    at.set(k, { w: Math.max(x, label.length * T_CH + 24), h: T_HEAD + Math.max(...cols.map(c => c.length)) * T_LINE + 8, cs });
   }));
   const span = l => l.reduce((s, k) => s + at.get(k).w, 0) + (l.length - 1) * T_GX, W = Math.max(...levels.map(span));
   let y = 0;
@@ -84,23 +90,26 @@ function tSvg(builder) {
     parts.push(`<path class="edge" d="M${p.x} ${p.y + p.h} L${n.x + off} ${n.y}"/>`);
   }));
   at.forEach((n, k) => {
-    const { label, lines } = g.box.get(k), left = n.x - n.w / 2;
-    parts.push(`<rect class="box" x="${left}" y="${n.y}" width="${n.w}" height="${n.h}" rx="${g.kids.get(k).length ? 8 : 14}"/>`);
+    const { label } = g.box.get(k), box = n.x - n.w / 2;
+    parts.push(`<rect class="box" x="${box}" y="${n.y}" width="${n.w}" height="${n.h}" rx="${g.kids.get(k).length ? 8 : 14}"/>`);
     parts.push(`<text class="name" x="${n.x}" y="${n.y + T_HEAD / 2 + 2}">${tEsc(label)}</text>`);
-    lines.forEach(([name, v, kind], i) => {
-      const calc = name.startsWith('~'), ref = kind === 'ref', y = n.y + T_HEAD + i * T_LINE + T_LINE / 2;
-      if (kind === 'note') {
-        parts.push(`<line class="split" x1="${left + 8}" x2="${left + n.w - 8}" y1="${y - T_LINE / 2}" y2="${y - T_LINE / 2}"/>`);
-        parts.push(`<text class="l data note" x="${left + 12}" y="${y}">${tEsc(v)}</text>`);
-        return;
-      }
-      if (kind === 'part') {
-        if (i) parts.push(`<line class="rule" x1="${left}" x2="${left + n.w}" y1="${y - T_LINE / 2}" y2="${y - T_LINE / 2}"/>`);
-        parts.push(`<text class="l data part" x="${left + 12}" y="${y}">${tEsc(v)}</text>`);
-        return;
-      }
-      parts.push(`<text class="l data${calc ? ' calc' : ''}" y="${y}"><tspan class="k" x="${left + 12}">${tEsc(calc ? name.slice(1) : name)}</tspan>`
-        + `<tspan class="v" x="${left + 12 + n.kw}">${ref && v !== '—' ? v.split(', ').map(r => `<tspan class="ref">${tEsc(r)}</tspan>`).join(', ') : tEsc(v)}</tspan></text>`);
+    n.cs.forEach(({ lines, x, w, kw }, c) => {
+      const left = box + x, right = c === n.cs.length - 1 ? box + n.w : left + w;
+      if (c) parts.push(`<line class="rule" x1="${left}" x2="${left}" y1="${n.y + T_HEAD - 4}" y2="${n.y + n.h}"/>`);
+      lines.forEach(([name, v, kind], i) => {
+        const calc = name.startsWith('~'), ref = kind === 'ref', y = n.y + T_HEAD + i * T_LINE + T_LINE / 2;
+        if (kind === 'note') {
+          parts.push(`<line class="split" x1="${left + 8}" x2="${right - 8}" y1="${y - T_LINE / 2}" y2="${y - T_LINE / 2}"/>`);
+          parts.push(`<text class="l data note" x="${left + 12}" y="${y}">${tEsc(v)}</text>`);
+          return;
+        }
+        if (kind === 'part') {
+          parts.push(`<text class="l data part" x="${left + 12}" y="${y}">${tEsc(v)}</text>`);
+          return;
+        }
+        parts.push(`<text class="l data${calc ? ' calc' : ''}" y="${y}"><tspan class="k" x="${left + 12}">${tEsc(calc ? name.slice(1) : name)}</tspan>`
+          + `<tspan class="v" x="${left + 12 + kw}">${ref && v !== '—' ? v.split(', ').map(r => `<tspan class="ref">${tEsc(r)}</tspan>`).join(', ') : tEsc(v)}</tspan></text>`);
+      });
     });
   });
   return { view: `-8 -8 ${W + 16} ${H + 16}`, width: W + 16, body: parts.join('') };
