@@ -16,24 +16,24 @@ function tLoad() {
 }
 
 function tState(st) {
-  return { label: 'st', lines: [`s ${tNum(st.s)}`, `ρ ${tNum(st.rho)}`, `T_φ ${tNum(st.Tphi)}`, `T_θ ${tNum(st.Ttheta)}`, `c_r ${tNum(st.cr)}`,
-    `item ${st.item ? st.item.name : '—'}`, `made ${st.made}`, `step ${st.step}`, `nodes ${st.nodes.size}`, `trees ${st.trees.size}`,
-    `picked ${tNames(st.picked || [], t => tAB(t.ab))}`, `on ${tOn(st.on)}`, `cells ${st.cells !== false ? 'on' : 'off'}`, `spheres ${tOn(st.spheres)}`] };
+  return { label: 'st', lines: [['s', tNum(st.s)], ['ρ', tNum(st.rho)], ['T_φ', tNum(st.Tphi)], ['T_θ', tNum(st.Ttheta)], ['c_r', tNum(st.cr)],
+    ['item', st.item ? st.item.name : '—'], ['made', `${st.made}`], ['step', `${st.step}`], ['nodes', `${st.nodes.size}`], ['trees', `${st.trees.size}`],
+    ['picked', tNames(st.picked || [], t => tAB(t.ab))], ['on', tOn(st.on)], ['cells', st.cells !== false ? 'on' : 'off'], ['spheres', tOn(st.spheres)]] };
 }
 
 function tTree(st, t) {
   const { row, b } = t.ab;
-  return { label: tAB(t.ab), lines: [`from ${row.from.name}`, `to ${row.to.name}`, `start ${tAng(row.start)}`, `Δ ${tAng(row.delta, ['phi', 'theta'])}`,
-    `by ${tAng(row.by, ['phi', 'theta'])}`,
-    `~start + Δ ${tAng(bDir(st, row))}`, `places b ${b.via === t.ab ? 'yes — b\'s via' : 'no'}`] };
+  return { label: tAB(t.ab), lines: [['from', row.from.name], ['to', row.to.name], ['start', tAng(row.start)], ['Δ', tAng(row.delta, ['phi', 'theta'])],
+    ['by', tAng(row.by, ['phi', 'theta'])],
+    ['~start + Δ', tAng(bDir(st, row))], ['places b', b.via === t.ab ? 'yes — b\'s via' : 'no']] };
 }
 
 function tNode(st, n) {
   const C = bNodePos(st, n);
-  return { label: `node ${n.name}`, lines: [`s ${n.s ? tNum(n.s) : `— (the scene's s, ${tNum(st.s)})`}`, `known ${n.known ? 'yes' : 'no'}`,
-    `idx ${n.known ? `I_r ${tNum(n.idx.r)} · I_φ ${tNum(n.idx.phi)} · I_θ ${tNum(n.idx.theta)}` : '—'}`, `~C ${C ? bPt(C) : '—'}`,
-    `sender ${n.sender ? n.sender.name : '—'}`, `via ${n.via ? tAB(n.via) : '—'}`,
-    `out ${tNames(n.out, t => tAB(t.ab))}`, `in ${tNames(n.in, t => tAB(t.ab))}`] };
+  return { label: `node ${n.name}`, lines: [['s', n.s ? tNum(n.s) : `— (the scene's s, ${tNum(st.s)})`], ['known', n.known ? 'yes' : 'no'],
+    ['idx', n.known ? `I_r ${tNum(n.idx.r)} · I_φ ${tNum(n.idx.phi)} · I_θ ${tNum(n.idx.theta)}` : '—'], ['~C', C ? bPt(C) : '—'],
+    ['sender', n.sender ? n.sender.name : '—'], ['via', n.via ? tAB(n.via) : '—'],
+    ['out', tNames(n.out, t => tAB(t.ab))], ['in', tNames(n.in, t => tAB(t.ab))]] };
 }
 
 function tGraph(st) {
@@ -49,8 +49,9 @@ function tGraph(st) {
 function tLayout({ box, levels }) {
   const at = new Map();
   levels.forEach(l => l.forEach(k => {
-    const { label, lines } = box.get(k), chars = Math.max(label.length, ...lines.map(s => s.replace(/^~/, '').length));
-    at.set(k, { w: chars * T_CH + 24, h: T_HEAD + lines.length * T_LINE + 8 });
+    const { label, lines } = box.get(k), kw = Math.max(...lines.map(([n]) => n.replace(/^~/, '').length)) + 2;
+    const chars = Math.max(label.length, ...lines.map(([, v]) => kw + v.length));
+    at.set(k, { w: chars * T_CH + 24, h: T_HEAD + lines.length * T_LINE + 8, kw: kw * T_CH });
   }));
   const span = l => l.reduce((s, k) => s + at.get(k).w, 0) + (l.length - 1) * T_GX, W = Math.max(...levels.map(span));
   let y = 0;
@@ -73,9 +74,10 @@ function tSvg(st) {
     const { label, lines } = g.box.get(k), left = n.x - n.w / 2;
     parts.push(`<rect class="box" x="${left}" y="${n.y}" width="${n.w}" height="${n.h}" rx="${g.kids.get(k).length ? 8 : 14}"/>`);
     parts.push(`<text class="name" x="${n.x}" y="${n.y + T_HEAD / 2 + 2}">${tEsc(label)}</text>`);
-    lines.forEach((s, i) => {
-      const calc = s.startsWith('~');
-      parts.push(`<text class="l data${calc ? ' calc' : ''}" x="${left + 12}" y="${n.y + T_HEAD + i * T_LINE + T_LINE / 2}">${tEsc(calc ? s.slice(1) : s)}</text>`);
+    lines.forEach(([name, v], i) => {
+      const calc = name.startsWith('~'), y = n.y + T_HEAD + i * T_LINE + T_LINE / 2;
+      parts.push(`<text class="l data${calc ? ' calc' : ''}" y="${y}"><tspan class="k" x="${left + 12}">${tEsc(calc ? name.slice(1) : name)}</tspan>`
+        + `<tspan class="v" x="${left + 12 + n.kw}">${tEsc(v)}</tspan></text>`);
     });
   });
   return { view: `-8 -8 ${W + 16} ${H + 16}`, width: W + 16, body: parts.join('') };

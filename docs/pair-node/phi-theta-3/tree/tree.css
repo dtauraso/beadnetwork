@@ -12,3 +12,6 @@ svg text.l { text-anchor: start; }
 svg text.name { font-weight: 600; }
 svg text.data { white-space: pre; font-family: var(--mono); font-size: 11.5px; }
 svg text.calc { fill: var(--accent); font-style: italic; }
+svg text.data .k { fill: var(--dim); }
+svg text.data .v { fill: var(--ink); font-weight: 600; }
+svg text.calc .k, svg text.calc .v { fill: var(--accent); }
