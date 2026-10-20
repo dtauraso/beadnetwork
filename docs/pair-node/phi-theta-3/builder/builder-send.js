@@ -12,7 +12,7 @@ function bPack(k, v) {
 }
 
 function bWire(builder) {
-  const by = new Map(builder.nodes.map(n => [n.name, bMake(n)])), rows = builder.trees || builder.rows, abs = new Map(), kinds = [];
+  const by = new Map(builder.nodes.map(({ name, s, idx }) => [name, bMake({ name, s, idx })])), rows = builder.trees || builder.rows, abs = new Map(), kinds = [];
   builder.nodes = new Set(by.values());
   builder.trees = new Set();
   delete builder.rows;
@@ -25,7 +25,6 @@ function bWire(builder) {
     const t = bAddTree(builder, r);
     abs.set(key, t);
   });
-  builder.nodes.forEach(n => { delete n.ref; delete n.known; delete n.sender; delete n.via; });
   const near = x => (Math.abs(x - Math.round(x)) < 1e-9 ? Math.round(x) : x);
   kinds.filter(r => r.from && r.to).forEach(r => {
     r.start = { phi: 0, theta: 0, r: 0 };
