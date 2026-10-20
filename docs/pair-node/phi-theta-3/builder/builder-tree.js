@@ -3,7 +3,7 @@ const bMake = n => Object.assign(n, { out: [], in: [] });
 
 function bAddTree(builder, row) {
   row.delta ??= { phi: 0, theta: 0 };
-  row.by ??= { phi: 1, theta: 1 };
+  row.increment ??= { phi: 1, theta: 1 };
   const t = { ab: bAB(row) }, { a, b } = t.ab;
   a.out = [...a.out, t];
   b.in = [...b.in, t];

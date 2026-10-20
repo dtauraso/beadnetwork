@@ -24,7 +24,7 @@ function tState(builder) {
 function tTree(builder, t) {
   const { row } = t.ab;
   return { label: tAB(t.ab), lines: [['from', row.from.name, 'ref'], ['to', row.to.name, 'ref'], ['start', tAng(row.start)], ['Δ', tAng(row.delta, ['phi', 'theta'])],
-    ['by', tAng(row.by, ['phi', 'theta'])],
+    ['increment', tAng(row.increment, ['phi', 'theta'])],
     ['~start + Δ', tAng(bDir(builder, row))]] };
 }
 

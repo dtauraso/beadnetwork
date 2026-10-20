@@ -12,7 +12,7 @@ function bPack(k, v) {
 }
 
 function bWire(builder) {
-  const by = new Map(builder.nodes.map(({ name, s, idx }) => [name, bMake({ name, s, idx })])), rows = builder.trees, abs = new Map();
+  const by = new Map(builder.nodes.map(({ name, s, idx }) => [name, bMake({ name, s, idx })])), rows = builder.trees.map(({ from, to, start, delta, increment }) => ({ from, to, start, delta, increment })), abs = new Map();
   builder.nodes = new Set(by.values());
   builder.trees = new Set();
   rows.forEach(r => {
