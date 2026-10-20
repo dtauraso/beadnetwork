@@ -28,7 +28,7 @@ function bWire(builder) {
   });
   builder.nodes.forEach(n => {
     const from = n.sender && by.get(n.sender), ab = n.via && abs.get(n.via.join('→'))?.ab;
-    delete n.ref; delete n.sender; delete n.via;
+    delete n.ref; delete n.known; delete n.sender; delete n.via;
     if (from && ab && ab.b === n && ab.a === from) { n.sender = from; n.via = ab; }
   });
   const near = x => (Math.abs(x - Math.round(x)) < 1e-9 ? Math.round(x) : x);
@@ -74,7 +74,6 @@ function bSetAt(builder, n, p) {
 
 function bPut(builder, row) {
   const n = row.to, f = row.from;
-  if (!n.known || !f.known) return false;
   const t = bDir(builder, row);
   if (!t) return false;
   bSetAt(builder, n, bAdd(bPlace(builder, f.idx), bVec(builder, bS(builder, f), t)));

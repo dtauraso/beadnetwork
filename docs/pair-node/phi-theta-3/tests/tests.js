@@ -18,7 +18,7 @@ function tEdits() {
     ['a→b φ 4', () => bSetStart(builder, ab, 'phi', 4)],
     ['a→b θ 1', () => bSetStart(builder, ab, 'theta', 1)],
     ['add d (s 2) with c→d φ 1 θ 2 r 2, then a→b φ 5', () => {
-      const d = bMake({ name: 'd', s: 2, known: true, idx: { r: 3, phi: 2, theta: 5 } });
+      const d = bMake({ name: 'd', s: 2, idx: { r: 3, phi: 2, theta: 5 } });
       builder.nodes.add(d);
       bMove(builder, bAddTree(builder, tRow(c, d, [1, 2, 2])));
       bSetStart(builder, ab, 'phi', 5);

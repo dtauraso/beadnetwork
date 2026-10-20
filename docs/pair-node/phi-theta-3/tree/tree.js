@@ -30,8 +30,8 @@ function tTree(builder, t) {
 
 function tNode(builder, n) {
   const C = bNodePos(builder, n);
-  return { label: `node ${n.name}`, lines: [['s', n.s ? tNum(n.s) : `— (the scene's s, ${tNum(builder.s)})`], ['known', n.known ? 'yes' : 'no'],
-    ['idx', n.known ? `I_r ${tNum(n.idx.r)} · I_φ ${tNum(n.idx.phi)} · I_θ ${tNum(n.idx.theta)}` : '—'], ['~C', C ? bPt(C) : '—'],
+  return { label: `node ${n.name}`, lines: [['s', n.s ? tNum(n.s) : `— (the scene's s, ${tNum(builder.s)})`],
+    ['idx', `I_r ${tNum(n.idx.r)} · I_φ ${tNum(n.idx.phi)} · I_θ ${tNum(n.idx.theta)}`], ['~C', C ? bPt(C) : '—'],
     ['sender', n.sender ? n.sender.name : '—'], ['via', n.via ? tAB(n.via) : '—'],
     ['out', tNames(n.out, t => tAB(t.ab))], ['in', tNames(n.in, t => tAB(t.ab))]] };
 }

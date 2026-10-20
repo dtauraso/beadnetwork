@@ -40,7 +40,7 @@ function bDelta(row, h) {
 function bStepNodes(builder, h) {
   const ns = bShown(builder);
   const items = ns.map(n => {
-    const at = n.known ? [['I_r', 'r'], ['I_φ', 'phi'], ['I_θ', 'theta']].map(([k, x]) => [k, bN(n.idx[x])]) : [['position', 'none']];
+    const at = [['I_r', 'r'], ['I_φ', 'phi'], ['I_θ', 'theta']].map(([k, x]) => [k, bN(n.idx[x])]);
     const c = bNodePos(builder, n);
     const attrs = [['s', `${bS(builder, n)} (${12 * bS(builder, n)} ticks a turn)`], ...at, ...(c ? [['C', `${['x', 'y', 'z'].map((k, i) => `${k} ${bN(+bF(c[i]))}`).join(' ')}`]] : []),
       ...n.in.map(t => [t.ab.a.name, bMeasure(builder, t.ab.row), t.ab.row]).map(([a, d, row]) => [`${a}→${n.name} start`, d ? `φ ${bN(+bF(row.start.phi))} θ ${bN(+bF(row.start.theta))} r ${bN(+bF(row.start.r))}` :`${a} or ${n.name} has no position`, ...bDelta(row, h), ...bAngleMath(builder, row, d, h)])];

@@ -31,7 +31,7 @@ const bWhole = x => Math.abs(x - Math.round(x)) < 1e-6;
 const bIdx = I => `(I_r ${bF(I.r)}, I_φ ${bF(I.phi)}, I_θ ${bF(I.theta)})`;
 const bPlaceText = I => `O + polar_to_cart(${bF(I.r)}·c_r, ${bF(I.phi)}·c_φ, ${bF(I.theta)}·c_θ)`;
 
-const bNodePos = (builder, n) => (n && n.known ? bPlace(builder, n.idx) : null);
+const bNodePos = (builder, n) => (n ? bPlace(builder, n.idx) : null);
 
 function bVec(builder, s, t) {
   const ang = x => x * 2 * Math.PI / (12 * s);
@@ -65,7 +65,7 @@ function bResult(builder, item, p, label) {
 }
 
 function bSenders(builder, rows) {
-  const placed = rows.map(r => ({ ...r, from: r.from.name, I: r.from.known ? r.from.idx : null, C: bNodePos(builder, r.from) }));
+  const placed = rows.map(r => ({ ...r, from: r.from.name, I: r.from.idx, C: bNodePos(builder, r.from) }));
   const missing = placed.filter(r => !r.C).map(r => r.from);
   const step = {
     title: 'the sender\'s position, from its index',
