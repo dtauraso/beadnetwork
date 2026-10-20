@@ -4,7 +4,8 @@ const tNum = v => (Number.isInteger(v) ? `${v}` : v.toFixed(3));
 const tAng = (o, ks = ['phi', 'theta', 'r']) => (o ? ks.filter(k => k in o).map(k => `${{ phi: 'φ', theta: 'θ', r: 'r' }[k]} ${tNum(o[k])}`).join(' · ') : '—');
 const tAB = ab => `${ab.a.name}→${ab.b.name}`;
 const tNames = (ts, name) => (ts.length ? ts.map(name).join(', ') : '—');
-const tEsc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+const tOn = o => tNames(Object.keys(o || {}).filter(k => o[k]), k => k);
+const tEsc =s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
 
 function tLoad() {
   try {
@@ -16,12 +17,14 @@ function tLoad() {
 
 function tState(st) {
   return { label: 'st', lines: [`s ${tNum(st.s)}`, `ρ ${tNum(st.rho)}`, `T_φ ${tNum(st.Tphi)}`, `T_θ ${tNum(st.Ttheta)}`, `c_r ${tNum(st.cr)}`,
-    `item ${st.item ? st.item.name : '—'}`, `made ${st.made}`, `step ${st.step}`, `nodes ${st.nodes.size}`, `trees ${st.trees.size}`] };
+    `item ${st.item ? st.item.name : '—'}`, `made ${st.made}`, `step ${st.step}`, `nodes ${st.nodes.size}`, `trees ${st.trees.size}`,
+    `picked ${tNames(st.picked || [], t => tAB(t.ab))}`, `on ${tOn(st.on)}`, `cells ${st.cells !== false ? 'on' : 'off'}`, `spheres ${tOn(st.spheres)}`] };
 }
 
 function tTree(st, t) {
   const { row, b } = t.ab;
-  return { label: `tree ${tAB(t.ab)}`, lines: [`start ${tAng(row.start)}`, `Δ ${tAng(row.delta, ['phi', 'theta'])}`,
+  return { label: tAB(t.ab), lines: [`from ${row.from.name}`, `to ${row.to.name}`, `start ${tAng(row.start)}`, `Δ ${tAng(row.delta, ['phi', 'theta'])}`,
+    `by ${tAng(row.by, ['phi', 'theta'])}`,
     `~start + Δ ${tAng(bDir(st, row))}`, `places b ${b.via === t.ab ? 'yes — b\'s via' : 'no'}`] };
 }
 
