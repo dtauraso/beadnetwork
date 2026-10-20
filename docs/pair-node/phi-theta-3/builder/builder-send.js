@@ -34,7 +34,7 @@ function bWire(st) {
   const near = x => (Math.abs(x - Math.round(x)) < 1e-9 ? Math.round(x) : x);
   kinds.filter(r => r.from && r.to).forEach(r => {
     r.start = { phi: 0, theta: 0, r: 0 };
-    const v = bView(st, r);
+    const v = bMeasure(st, r);
     if (v) r.start = { phi: near(v.phi), theta: near(v.theta), r: near(v.r) };
   });
   st.trees.forEach(t => bLink(st, t.ab));
@@ -43,29 +43,7 @@ function bWire(st) {
   st.made ??= 1 + Math.max(-1, ...[...by.keys()].map(bNameAt).filter(Number.isFinite));
 }
 
-const B_DATA = ['idx', 'start', 'delta', 'by'];
-
-let bLog = null;
-const bKeep = () => (bLog = new Map());
-const bDone = () => { bLog = null; };
-
-function bSave(o) {
-  if (!bLog || bLog.has(o)) return;
-  const c = { ...o };
-  B_DATA.forEach(k => { if (c[k]) c[k] = { ...c[k] }; });
-  bLog.set(o, c);
-}
-
-function bRestore(keep) {
-  keep.forEach((c, o) => {
-    Object.keys(o).forEach(k => { if (!(k in c)) delete o[k]; });
-    Object.assign(o, c);
-  });
-  bDone();
-}
-
 function bLetGo(st, n) {
-  bSave(n);
   delete n.sender;
   delete n.via;
 }
@@ -91,7 +69,6 @@ function bDropNode(st, n) {
 
 function bSetAt(st, n, p) {
   const J = bIndexOf(st, p);
-  bSave(n);
   n.idx = { ...J, theta: J.theta < 0 ? J.theta + st.Ttheta : J.theta };
 }
 
@@ -104,7 +81,15 @@ function bPut(st, row) {
   return true;
 }
 
+function bRemeasure(st, n, keep) {
+  [...n.in, ...n.out].filter(t => t !== keep).forEach(t => {
+    const v = bMeasure(st, t.ab.row);
+    const dl = t.ab.row.delta;
+    if (v) t.ab.row.start = { phi: v.phi - dl.phi, theta: v.theta - dl.theta, r: v.r };
+  });
+}
+
 function bMove(st, tree) {
   bRefer(st, tree.ab);
-  bPut(st, tree.ab.row);
+  if (bPut(st, tree.ab.row)) bRemeasure(st, tree.ab.b, tree);
 }
