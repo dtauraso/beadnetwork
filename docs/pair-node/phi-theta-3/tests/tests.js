@@ -1,39 +1,39 @@
 const T_EPS = 1e-9;
 const tName = r => r.from.name + r.to.name;
-const tRows = st => [...st.trees].map(({ ab: { row } }) => [tName(row)]);
-const tNodes = st => [...st.nodes].map(n => [n.name, n.idx, n.via ? n.via.a.name + n.via.b.name : null]);
-const tSnap = st => ({ nodes: JSON.parse(JSON.stringify(tNodes(st))), rows: tRows(st) });
-const tReload = st => { const s = JSON.parse(JSON.stringify(st, bPack)); bWire(s); return s; };
+const tRows = builder => [...builder.trees].map(({ ab: { row } }) => [tName(row)]);
+const tNodes = builder => [...builder.nodes].map(n => [n.name, n.idx, n.via ? n.via.a.name + n.via.b.name : null]);
+const tSnap = builder => ({ nodes: JSON.parse(JSON.stringify(tNodes(builder))), rows: tRows(builder) });
+const tReload = builder => { const s = JSON.parse(JSON.stringify(builder, bPack)); bWire(s); return s; };
 const tRow = (from, to, s) => ({ from, to, start: { phi: s[0], theta: s[1], r: s[2] } });
 
 function tEdits() {
-  let st = bPreset();
-  const [ab, bc] = [...st.trees], [, , c] = [...st.nodes];
+  let builder = bPreset();
+  const [ab, bc] = [...builder.trees], [, , c] = [...builder.nodes];
   let ab2, bc2;
   return [
     ['the preset: a→b φ 2 θ 0 r 2, b→c φ 4 θ 0 r 2', () => {}],
-    ['a→b φ 3', () => bSetStart(st, ab, 'phi', 3)],
-    ['a→b θ 2', () => bSetStart(st, ab, 'theta', 2)],
-    ['a→b r 3', () => bSetStart(st, ab, 'r', 3)],
-    ['a→b φ 4', () => bSetStart(st, ab, 'phi', 4)],
-    ['a→b θ 1', () => bSetStart(st, ab, 'theta', 1)],
+    ['a→b φ 3', () => bSetStart(builder, ab, 'phi', 3)],
+    ['a→b θ 2', () => bSetStart(builder, ab, 'theta', 2)],
+    ['a→b r 3', () => bSetStart(builder, ab, 'r', 3)],
+    ['a→b φ 4', () => bSetStart(builder, ab, 'phi', 4)],
+    ['a→b θ 1', () => bSetStart(builder, ab, 'theta', 1)],
     ['add d (s 2) with c→d φ 1 θ 2 r 2, then a→b φ 5', () => {
       const d = bMake({ name: 'd', s: 2, known: true, idx: { r: 3, phi: 2, theta: 5 } });
-      st.nodes.add(d);
-      bMove(st, bAddTree(st, tRow(c, d, [1, 2, 2])));
-      bSetStart(st, ab, 'phi', 5);
+      builder.nodes.add(d);
+      bMove(builder, bAddTree(builder, tRow(c, d, [1, 2, 2])));
+      bSetStart(builder, ab, 'phi', 5);
     }],
-    ['a→b θ 4', () => bSetStart(st, ab, 'theta', 4)],
-    ['a→b φ 6', () => bSetStart(st, ab, 'phi', 6)],
-    ['a→b φ 3', () => bSetStart(st, ab, 'phi', 3)],
-    ['a→b φ 2.5', () => bSetStart(st, ab, 'phi', 2.5)],
-    ['b→c φ 5', () => bSetStart(st, bc, 'phi', 5)],
-    ['save and load', () => { st = tReload(st); [ab2, bc2] = [...st.trees]; }],
-    ['after loading, a→b φ 4', () => bSetStart(st, ab2, 'phi', 4)],
-    ['remove b→c', () => bDropTree(st, bc2)],
-    ['remove a→b', () => bDropTree(st, ab2)],
-    ['remove node c', () => bDropNode(st, [...st.nodes].find(n => n.name === 'c'))],
-  ].map(([say, run]) => ({ say, run, snap: () => tSnap(st) }));
+    ['a→b θ 4', () => bSetStart(builder, ab, 'theta', 4)],
+    ['a→b φ 6', () => bSetStart(builder, ab, 'phi', 6)],
+    ['a→b φ 3', () => bSetStart(builder, ab, 'phi', 3)],
+    ['a→b φ 2.5', () => bSetStart(builder, ab, 'phi', 2.5)],
+    ['b→c φ 5', () => bSetStart(builder, bc, 'phi', 5)],
+    ['save and load', () => { builder = tReload(builder); [ab2, bc2] = [...builder.trees]; }],
+    ['after loading, a→b φ 4', () => bSetStart(builder, ab2, 'phi', 4)],
+    ['remove b→c', () => bDropTree(builder, bc2)],
+    ['remove a→b', () => bDropTree(builder, ab2)],
+    ['remove node c', () => bDropNode(builder, [...builder.nodes].find(n => n.name === 'c'))],
+  ].map(([say, run]) => ({ say, run, snap: () => tSnap(builder) }));
 }
 
 function tSame(want, got, at, out) {
@@ -58,18 +58,18 @@ function tCheckEdits() {
   });
 }
 
-function tDirsOf(st) {
+function tDirsOf(builder) {
   return {
-    dirs: [...st.trees].map(t => [tName(t.ab.row), bDirs(st, t).map(({ t: d }) => [d.phi, d.theta, +d.r.toFixed(3)])]),
-    nodes: [...st.nodes].map(n => [n.idx.r, n.idx.phi].map(v => +v.toFixed(3))),
+    dirs: [...builder.trees].map(t => [tName(t.ab.row), bDirs(builder, t).map(({ t: d }) => [d.phi, d.theta, +d.r.toFixed(3)])]),
+    nodes: [...builder.nodes].map(n => [n.idx.r, n.idx.phi].map(v => +v.toFixed(3))),
   };
 }
 
 function tCheckSaves() {
-  let st = bPreset(), s2, s3;
+  let builder = bPreset(), s2, s3;
   return [
-    ['the preset', 0, () => st],
-    ['a→b φ 3', 1, () => { bSetStart(st, [...st.trees][0], 'phi', 3); return st; }],
+    ['the preset', 0, () => builder],
+    ['a→b φ 3', 1, () => { bSetStart(builder, [...builder.trees][0], 'phi', 3); return builder; }],
     [`load the save the builder wrote at ${T_FROM}, before the rows moved into the trees, with its rotation fields taken out`, 2, () => { s2 = JSON.parse(JSON.stringify(T_SAVE)); bWire(s2); return s2; }],
     ['then a→b φ 4', 3, () => { bSetStart(s2, [...s2.trees][0], 'phi', 4); return s2; }],
     ['save that in the new format and load it', 3, () => (s3 = tReload(s2))],

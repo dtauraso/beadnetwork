@@ -24,8 +24,8 @@ function bSeqNumber(book) {
 const B_PAST = [];
 let bNow = null, bUndo = null;
 
-function bSeqKeep(book, st) {
-  book.seqs[book.at].data = JSON.stringify(st, bPack);
+function bSeqKeep(book, builder) {
+  book.seqs[book.at].data = JSON.stringify(builder, bPack);
   const now = JSON.stringify(book);
   if (bNow !== null && now !== bNow) { B_PAST.push(bNow); if (B_PAST.length > 100) B_PAST.shift(); }
   bNow = now;
