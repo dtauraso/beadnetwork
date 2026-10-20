@@ -40,12 +40,12 @@ function bPreset() {
   const rows = [
     { from: a, to: b, kind: 'angle', start: { phi: 2, theta: 0, r: 2 }, end: { phi: 0, theta: 0 } },
     { from: b, to: c, kind: 'angle', start: { phi: 4, theta: 0, r: 2 }, end: { phi: 0, theta: 0 } },
-    { from: a, to: c, kind: 'copy', start: { phi: 0, theta: 0, r: 0 }, end: { phi: 0, theta: 0 } },
+    { from: a, to: c, kind: 'base', start: { phi: 0, theta: 0, r: 0 }, end: { phi: 0, theta: 0 } },
   ];
   const [ab, bc, ac] = rows.map(r => bAddTree(p, r));
   bMove(p, ab);
   bMove(p, bc);
-  bSetCopy(p, ac, '');
+  ac.ab.row.base = bView(p, ac.ab.row);
   return p;
 }
 
@@ -109,11 +109,6 @@ function bSetS(st, node, value) {
     r.start = { ...r.start, phi: r.start.phi * k, theta: r.start.theta * k };
     r.end = { phi: r.end.phi * k, theta: r.end.theta * k };
     if (r.base) r.base = { ...r.base, phi: r.base.phi * k, theta: r.base.theta * k };
-    t.roots.forEach(({ pair: p }) => {
-      bSave(p);
-      if (p.base) p.base = { ...p.base, phi: p.base.phi * k, theta: p.base.theta * k };
-      if (p.ref) p.ref = { phi: p.ref.phi * k, theta: p.ref.theta * k };
-    });
   });
   return bSettle(st, keep, trees, said, was);
 }

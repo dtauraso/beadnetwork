@@ -11,24 +11,24 @@ function tEdits() {
   const [ab, bc, ac] = [...st.trees], [a, , c] = [...st.nodes];
   let ad, ab2, bc2;
   return [
-    ['the preset: a→b φ 2 θ 0 r 2, b→c φ 4 θ 0 r 2, a→c a copy', () => {}],
+    ['the preset: a→b φ 2 θ 0 r 2, b→c φ 4 θ 0 r 2, a→c a base', () => {}],
     ['a→b φ 3', () => bSetStart(st, ab, 'phi', 3)],
     ['a→b θ 2', () => bSetStart(st, ab, 'theta', 2)],
     ['a→b r 3', () => bSetStart(st, ab, 'r', 3)],
     ['a→b φ 4', () => bSetStart(st, ab, 'phi', 4)],
     ['a→b θ 1', () => bSetStart(st, ab, 'theta', 1)],
-    ['add d (s 2) with c→d φ 1 θ 2 r 2, add a→d as a copy, then a→b φ 5', () => {
+    ['add d (s 2) with c→d φ 1 θ 2 r 2, add a→d as a base, then a→b φ 5', () => {
       const d = bMake({ name: 'd', s: 2, known: true, idx: { r: 3, phi: 2, theta: 5 } });
       st.nodes.add(d);
       bMove(st, bAddTree(st, tRow(c, d, [1, 2, 2])));
       ad = bAddTree(st, tRow(a, d, [1, 2, 2]));
-      bSetKind(st, ad, 'copy');
+      bSetKind(st, ad, 'base');
       bSetStart(st, ab, 'phi', 5);
     }],
     ['a→b θ 4', () => bSetStart(st, ab, 'theta', 4)],
     ['a→b φ 6', () => bSetStart(st, ab, 'phi', 6)],
     ['a→c as angle, then a→b φ 4', () => { bSetKind(st, ac, 'angle'); bSetStart(st, ab, 'phi', 4); }],
-    ['a→c as copy again', () => bSetKind(st, ac, 'copy')],
+    ['a→c as base again', () => bSetKind(st, ac, 'base')],
     ['a→b as base', () => bSetKind(st, ab, 'base')],
     ['a→b as angle, then a→b φ 3', () => { bSetKind(st, ab, 'angle'); bSetStart(st, ab, 'phi', 3); }],
     ['a→b φ 2.5 — not a whole number, so the edit is undone', () => bSetStart(st, ab, 'phi', 2.5)],

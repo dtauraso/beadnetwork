@@ -6,9 +6,8 @@ const tEl = (tag, props = {}, kids = []) => {
 };
 const tNum = v => (Number.isInteger(v) ? `${v}` : v.toFixed(3));
 const tAng = (o, ks = ['phi', 'theta', 'r']) => (o ? ks.filter(k => k in o).map(k => `${{ phi: 'φ', theta: 'θ', r: 'r' }[k]} ${tNum(o[k])}`).join(' · ') : '—');
-const tAB = ab => `${ab.a.name}→${(ab.b || ab.c).name}`;
-const tId = ab => `t-${ab.a.name}-${(ab.b || ab.c).name}`;
-const tRootId = r => `r-${tId(r.tree.ab)}-${tId(r.pair.ac)}`;
+const tAB = ab => `${ab.a.name}→${ab.b.name}`;
+const tId = ab => `t-${ab.a.name}-${ab.b.name}`;
 const tLink = (id, text) => tEl('a', { href: `#${id}`, textContent: text });
 
 function tItem(label, value, kids = [], { id, cls = '' } = {}) {
@@ -72,22 +71,8 @@ function tRow(st, t) {
   ]);
 }
 
-function tRoot(st, t, r) {
-  const p = r.pair, ac = p.ac, d = bChange(st, p), copy = bKind(ac.row) === 'copy';
-  return tItem('root', `(${tAB(t.ab)}, ${tAB(ac)})`, [
-    tItem('pair', '', [
-      tItem('ab', tLink(tId(t.ab), tAB(t.ab))), tItem('ac', tLink(tId(ac), tAB(ac))),
-      tItem('base', tAng(p.base)), tItem('ref', tAng(p.ref, ['phi', 'theta'])),
-      tCalc('change', d ? `${tAB(t.ab)} start − ref = ${tAng(d, ['phi', 'theta'])}` : '—'),
-      tItem(copy ? 'used by' : 'unused', copy ? `${tAB(ac)}'s copy direction: base + change` : `${tAB(ac)} is ${bKind(ac.row)}, not a copy`, [], { cls: 'note' }),
-    ]),
-    tItem('back', tLink(tRootId(r.back), `(${tAB(r.back.tree.ab)}, ${tAB(r.back.pair.ac)}) in ${tAB(r.back.tree.ab)}'s tree`)),
-  ], { id: tRootId(r) });
-}
-
 function tTree(st, t) {
-  return tItem('tree', tAB(t.ab), [tRow(st, t),
-    tItem('roots', t.roots.length ? '' : `— (${t.ab.a.name} has no other row)`, t.roots.map(r => tRoot(st, t, r)))], { id: tId(t.ab), cls: 'head' });
+  return tItem('tree', tAB(t.ab), [tRow(st, t)], { id: tId(t.ab), cls: 'head' });
 }
 
 function tDraw() {

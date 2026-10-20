@@ -4,10 +4,7 @@ const bNameAt = name => (name.length === 1 ? name.charCodeAt(0) - 97 : +name.sli
 
 function bPack(k, v) {
   if (['gone', 'out', 'in'].includes(k)) return undefined;
-  if (k === 'trees') {
-    const vars = p => Object.fromEntries(B_PAIR.filter(x => x in p).map(x => [x, p[x]]));
-    return [...v].map(t => ({ ...t.ab.row, pairs: t.roots.map(({ pair }) => ({ with: pair.ac.c.name, ...vars(pair) })) }));
-  }
+  if (k === 'trees') return [...v].map(t => t.ab.row);
   if (k === 'picked') return v.map(t => `${t.ab.a.name}→${t.ab.b.name}`);
   if (v instanceof Set) return [...v];
   if (k === 'from' || k === 'to' || k === 'sender' || k === 'item') return v.name;
@@ -15,44 +12,33 @@ function bPack(k, v) {
   return v;
 }
 
-function bOldPairs(t) {
-  const r = t.ab.row, x = t.roots.find(({ back }) => bKind(back.tree.ab.row) === 'angle');
-  if (x) B_PAIR.filter(k => k in r).forEach(k => { x.back.pair[k] = r[k]; });
-  B_PAIR.forEach(k => delete r[k]);
-}
-
 function bWire(st) {
-  const by = new Map(st.nodes.map(n => [n.name, bMake(n)])), rows = st.trees || st.rows, abs = new Map(), saved = new Map();
+  const by = new Map(st.nodes.map(n => [n.name, bMake(n)])), rows = st.trees || st.rows, abs = new Map(), copies = [];
   st.nodes = new Set(by.values());
   st.trees = new Set();
   delete st.rows;
   rows.forEach(r => {
-    const key = `${r.from}→${r.to}`, ps = r.pairs;
+    const key = `${r.from}→${r.to}`;
     r.from = by.get(r.from); r.to = by.get(r.to);
-    delete r.pairs;
     B_GONE.forEach(k => delete r[k]);
+    if (r.kind === 'copy') { r.kind = 'base'; delete r.base; copies.push(r); }
     if (!r.from || !r.to) return;
     const t = bAddTree(st, r);
     abs.set(key, t);
-    saved.set(t, ps || []);
   });
   st.nodes.forEach(n => {
     const from = n.sender && by.get(n.sender), ab = n.via && abs.get(n.via.join('→'))?.ab;
     delete n.ref; delete n.sender; delete n.via;
     if (from && ab && ab.b === n && ab.a === from) { n.sender = from; n.via = ab; }
   });
-  saved.forEach((ps, t) => ps.forEach(({ with: c, ...w }) => {
-    const x = t.roots.find(({ pair }) => pair.ac.c.name === c);
-    if (x) B_PAIR.filter(k => k in w).forEach(k => { x.pair[k] = w[k]; });
-  }));
-  st.trees.forEach(t => { if (bKind(t.ab.row) === 'copy' && t.ab.row.ref) bOldPairs(t); B_PAIR.filter(k => k !== 'base').forEach(k => delete t.ab.row[k]); });
   st.trees.forEach(t => { if (!bFloat(t.ab.row)) bLink(st, t.ab); });
+  copies.forEach(r => { if (r.from && r.to) r.base = bView(st, r); });
   st.picked = (st.picked || []).map(k => abs.get(k)).filter(Boolean);
   st.item = by.get(st.item) || bFirst(st.nodes);
   st.made ??= 1 + Math.max(-1, ...[...by.keys()].map(bNameAt).filter(Number.isFinite));
 }
 
-const B_DATA = ['idx', 'start', 'end', 'base', 'ref', 'delta', 'by'];
+const B_DATA = ['idx', 'start', 'end', 'base', 'delta', 'by'];
 
 let bLog = null;
 const bKeep = () => (bLog = new Map());

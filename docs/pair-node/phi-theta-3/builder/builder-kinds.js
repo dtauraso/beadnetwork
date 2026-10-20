@@ -1,17 +1,9 @@
 const bKind = row => row.kind || 'angle';
-const bFloat = row => bKind(row) === 'base' || bKind(row) === 'copy';
-function bChange(st, p) {
-  const s = p.ab.row.start;
-  return s && p.ref ? { sib: p.ab.row, phi: s.phi - p.ref.phi, theta: s.theta - p.ref.theta } : null;
-}
+const bFloat = row => bKind(row) === 'base';
 
 function bDirs(st, tree) {
-  const row = tree.ab.row;
-  if (bKind(row) !== 'copy') { const t = bDir(st, row); return t ? [{ t }] : []; }
-  return tree.roots.map(({ back: { pair: p } }) => {
-    const d = bChange(st, p);
-    return p.base && d ? { t: { phi: p.base.phi + d.phi, theta: p.base.theta + d.theta, r: p.base.r }, pair: p } : null;
-  }).filter(Boolean);
+  const t = bDir(st, tree.ab.row);
+  return t ? [{ t }] : [];
 }
 
 function bCopy(st, row) {
@@ -24,7 +16,6 @@ function bCopy(st, row) {
 function bDir(st, row) {
   if (bKind(row) === 'base') return row.base || null;
   if (bKind(row) === 'angle') return row.start;
-  if (bKind(row) === 'copy') return null;
   const c = bCopy(st, row), s = bS(st, row.from);
   return { phi: bWrap(s, c.phi + row.end.phi), theta: bWrap(s, c.theta + row.end.theta), r: row.start.r };
 }
@@ -42,36 +33,20 @@ function bReview(st, r) {
 function bSetKind(st, tree, kind) {
   const { row, a, b } = tree.ab, said = `${a.name}→${b.name} as ${kind}`, was = bKind(row);
   const keep = bKeep();
-  if (['base', 'copy'].includes(kind) && b.via === tree.ab) bLetGo(st, b);
+  if (kind === 'base' && b.via === tree.ab) bLetGo(st, b);
   bSave(row);
   row.kind = kind;
   if (kind === 'base') { bDone(); row.base = bView(st, row); return row.base ? '' : `${said}: ${a.name} or ${b.name} has no position to measure from`; }
-  if (kind === 'copy') { bDone(); return bSetCopy(st, tree, said); }
   row.end ||= { phi: 0, theta: 0 };
   bLink(st, tree.ab);
   bReview(st, row);
   return bSettle(st, keep, [tree], said, was);
 }
 
-function bSetCopy(st, tree, said) {
-  const row = tree.ab.row, pairs = tree.roots.map(({ back }) => back.pair);
-  row.kind = 'copy';
-  pairs.forEach(p => bSeat(st, p));
-  if (!pairs.length) return `${said}: ${row.from.name} has no other row to pair with`;
-  return pairs.some(p => p.base) ? '' : `${said}: ${row.from.name} or ${row.to.name} has no position to measure from`;
-}
-
-const bAt = (r, p) => `${r.from.name}→${r.to.name}${p ? ` in (${p.ab.a.name}→${p.ab.b.name}, ${p.ac.a.name}→${p.ac.c.name})` : ''}`;
-
-function bPairCells(st, root, h) {
-  const p = root.pair, d = bChange(st, p);
-  if (!d) return [];
-  const ab = `${d.sib.from.name}→${d.sib.to.name}`;
-  return [h('div', { textContent: `(${ab}, ${p.ac.a.name}→${p.ac.c.name}): ${ab} change φ ${bN(d.phi)} θ ${bN(d.theta)}` })];
-}
+const bAt = r => `${r.from.name}→${r.to.name}`;
 
 function bRowCells(st, tree, c, h, on) {
-  const r = tree.ab.row, kind = h('select', {}, ['angle', 'change', 'copy', 'base'].map(k => h('option', { value: k, textContent: k, selected: bKind(r) === k })));
+  const r = tree.ab.row, kind = h('select', {}, ['angle', 'change', 'base'].map(k => h('option', { value: k, textContent: k, selected: bKind(r) === k })));
   kind.onchange = () => on.kind(kind.value);
   const d = bView(st, r), now = (x, k) => [x, h('span', { className: 'now', textContent: d ? `now ${bN(+bF(d[k]))}` : '' })];
   if (bKind(r) === 'angle') return [['kind', kind], ['start φ', now(c(r.start, 'phi', tree), 'phi')], ['start θ', now(c(r.start, 'theta', tree), 'theta')], ['start r', now(c(r.start, 'r', tree), 'r')]];
@@ -80,18 +55,15 @@ function bRowCells(st, tree, c, h, on) {
     return [['kind', kind], ['start φ', `${bN(k.phi)} copy`], ['start θ', `${bN(k.theta)} copy`], ['start r', now(c(r.start, 'r', tree), 'r')],
       ['end φ', now(c(r.end, 'phi', tree, 'end'), 'phi')], ['end θ', now(c(r.end, 'theta', tree, 'end'), 'theta')]];
   }
-  const copy = bKind(r) === 'copy', ts = bDirs(st, tree).map(e => e.t);
-  const set = h('button', { textContent: copy ? 'set copy' : 'set base' });
-  set.onclick = () => { if (copy) bSetCopy(st, tree, ''); else r.base = bView(st, r); on.changed(); };
+  const ts = bDirs(st, tree).map(e => e.t);
+  const set = h('button', { textContent: 'set base' });
+  set.onclick = () => { r.base = bView(st, r); on.changed(); };
   const three = [['φ', 'phi'], ['θ', 'theta'], ['r', 'r']].map(([n, k]) => [n, ts.length ? ts.map(t => bF(t[k])).join(' / ') : '—']);
-  const pairs = copy ? tree.roots.flatMap(({ back }) => bPairCells(st, back, h)) : [];
-  return [['kind', kind], ...three, [copy ? 'copy' : 'base', [...pairs, set]]];
+  return [['kind', kind], ...three, ['base', [set]]];
 }
 
-function bHow(st, o, r, p) {
+function bHow(st, o, r) {
   if (bKind(r) === 'angle') return `angle ${r.from.name}→${r.to.name}`;
-  const d = p && bChange(st, p);
-  if (bKind(r) === 'copy' && d) return `copy in (${d.sib.from.name}→${d.sib.to.name}, ${r.from.name}→${r.to.name}); stored φ ${bF(p.base.phi)} + ${d.sib.from.name}→${d.sib.to.name}'s change φ ${bN(d.phi)} θ ${bN(d.theta)}`;
   const ch = o.via && bKind(o.via.row) === 'change' ? o.via.row : null;
   if (bKind(r) === 'base' && ch) {
     const k = bCopy(st, ch);
@@ -102,11 +74,11 @@ function bHow(st, o, r, p) {
 
 function bSecondBase(st, n, h, table) {
   const bases = n.out.filter(t => bFloat(t.ab.row)).flatMap(t => bDirs(st, t).map(e => ({ r: t.ab.row, ...e })));
-  const seen = bases.length ? [...n.out.flatMap(t => bDirs(st, t).map(e => [t.ab.b, e.t, t.ab.row, e.pair])),
-    ...n.in.flatMap(t => bDirs(st, t).map(e => [t.ab.a, bBack(st, t.ab.row, e.t), t.ab.row, e.pair]))] : [];
-  return bases.flatMap(({ r, t: z, pair }) => [
-    h('h2', { textContent: `${n.name}'s second base — the ${bAt(r, pair)} ${bKind(r)}, measured once at φ ${bF(z.phi)}, θ ${bF(z.theta)} and stored as 0` }),
-    table(['toward', 'φ', 'θ', 'r', 'how'], seen.map(([o, t, x, p]) => h('tr', {}, [o.name, bN(t.phi - z.phi), bN(t.theta - z.theta), bN(t.r), bHow(st, o, x, p)]
+  const seen = bases.length ? [...n.out.flatMap(t => bDirs(st, t).map(e => [t.ab.b, e.t, t.ab.row])),
+    ...n.in.flatMap(t => bDirs(st, t).map(e => [t.ab.a, bBack(st, t.ab.row, e.t), t.ab.row]))] : [];
+  return bases.flatMap(({ r, t: z }) => [
+    h('h2', { textContent: `${n.name}'s second base — the ${bAt(r)} ${bKind(r)}, measured once at φ ${bF(z.phi)}, θ ${bF(z.theta)} and stored as 0` }),
+    table(['toward', 'φ', 'θ', 'r', 'how'], seen.map(([o, t, x]) => h('tr', {}, [o.name, bN(t.phi - z.phi), bN(t.theta - z.theta), bN(t.r), bHow(st, o, x)]
       .map(v => h('td', { textContent: v })))))]);
 }
 
@@ -155,7 +127,7 @@ function bLands(st, h) {
   const three = (at, x) => [['φ', 'phi'], ['θ', 'theta'], ['r', 'r']].map(([n, k]) => [`${at} ${n}`, x ? bF(x[k]) : '—']);
   const items = [...st.trees].flatMap(t => {
     const dirs = bDirs(st, t), r = t.ab.row;
-    return (dirs.length ? dirs : [{}]).map(e => h('li', {}, [h('div', { className: 'row' }, [h('span', { className: 't', textContent: bAt(r, e.pair) })]),
+    return (dirs.length ? dirs : [{}]).map(e => h('li', {}, [h('div', { className: 'row' }, [h('span', { className: 't', textContent: bAt(r) })]),
       h('ul', { className: 'attrs' }, [...three('row', e.t), ...three('placed', bView(st, r))]
         .map(([k, v]) => h('li', {}, [h('span', { className: 'k', textContent: k }), v])))]));
   });
