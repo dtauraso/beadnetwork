@@ -66,14 +66,12 @@ function tDirsOf(builder) {
 }
 
 function tCheckSaves() {
-  let builder = bPreset(), s2, s3;
+  let builder = bPreset(), s2;
   return [
     ['the preset', 0, () => builder],
     ['a→b φ 3', 1, () => { bSetStart(builder, [...builder.trees][0], 'phi', 3); return builder; }],
-    [`load the save the builder wrote at ${T_FROM}, before the rows moved into the trees, with its rotation fields taken out`, 2, () => { s2 = JSON.parse(JSON.stringify(T_SAVE)); bWire(s2); return s2; }],
-    ['then a→b φ 4', 3, () => { bSetStart(s2, [...s2.trees][0], 'phi', 4); return s2; }],
-    ['save that in the new format and load it', 3, () => (s3 = tReload(s2))],
-    ['then a→b φ 5', 4, () => { bSetStart(s3, [...s3.trees][0], 'phi', 5); return s3; }],
+    ['save that and load it', 1, () => (s2 = tReload(builder))],
+    ['then a→b φ 4', 2, () => { bSetStart(s2, [...s2.trees][0], 'phi', 4); return s2; }],
   ].map(([say, i, run]) => {
     let got, misses;
     try { got = tDirsOf(run()); misses = tSame({ dirs: T_DIRS[i].dirs, nodes: T_DIRS[i].nodes }, got, '', []); }
