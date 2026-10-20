@@ -21,7 +21,7 @@ function tState(builder) {
     ['picked', tNames(builder.picked || [], t => tAB(t.ab)), 'ref'], ['on', tOn(builder.on)], ['cells', builder.cells !== false ? 'on' : 'off'], ['spheres', tOn(builder.spheres)]] };
 }
 
-const tWorked = rows => [['', 'not stored — worked out', 'note'], ...rows];
+const tWorked = rows => [['', 'not stored', 'note'], ...rows];
 
 function tTree(builder, t) {
   const { row } = t.ab;
