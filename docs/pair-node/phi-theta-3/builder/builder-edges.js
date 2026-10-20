@@ -31,6 +31,8 @@ function bEdgePicker(st, h, picked, changed) {
     redo.length ? h('ul', { className: 'abs' }, redo) : h('div', { className: 'hint', textContent: 'no edges' })];
 }
 
+const bShown = st => [...st.nodes].filter(n => n.out.length || n.in.length);
+
 function bShifted(st, n, picked) {
   const t = picked.find(t => t.ab.b === n), P = t && bNodePos(st, t.ab.a), d = t && bView(st, t.ab.row);
   if (!P || !d) return bNodePos(st, n);

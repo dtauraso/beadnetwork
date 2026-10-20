@@ -76,8 +76,9 @@
         head: tos.length ? [pickA, ' → ', pickB, add] : [h('span', { className: 'hint', textContent: 'no edge left to add' })] }]), ...bLands(st, h),
       h('h2', { textContent: 'a→b settings — one item per a→b, set at a, with its angle (φ, θ, r)' }));
 
-    el('item').replaceChildren(...all.map((n, i) => h('option', { value: i, textContent: n.name, selected: n === st.item })));
-    el('item').onchange = () => { st.item = all[+el('item').value]; update(); };
+    const shown = bShown(st);
+    el('item').replaceChildren(...shown.map((n, i) => h('option', { value: i, textContent: n.name, selected: n === st.item })));
+    el('item').onchange = () => { st.item = shown[+el('item').value]; update(); };
 
     el('spheres').replaceChildren(...bSphereBoxes(st, h, () => { setup(); update(); }));
 
@@ -89,8 +90,10 @@
   }
 
   function runs() {
+    const shown = bShown(st);
+    if (shown.length && !shown.includes(st.item)) st.item = shown[0];
     if (!st.item || st.item.gone) st.item = bFirst(st.nodes);
-    return B_METHODS.filter(m => st.on[m.id] && st.item).map(m => ({ m, steps: m.run(st, st.item) }));
+    return B_METHODS.filter(m => st.on[m.id] && shown.includes(st.item)).map(m => ({ m, steps: m.run(st, st.item) }));
   }
 
   const redraw = () => bAtShifted(st, st.picked,() => render(runs()));
@@ -114,7 +117,7 @@
   }
 
   function render(rs) {
-    const pts = [[0, 0, 0], ...[...st.nodes].filter(n => n.known).map(n => bNodePos(st, n))];
+    const pts = [[0, 0, 0], ...bShown(st).filter(n => n.known).map(n => bNodePos(st, n))];
     rs.forEach(({ steps }) => steps.slice(0, st.step).forEach(s => s.draw.forEach(o => pts.push(...(o.arrow || [o.dot || o.square])))));
     const cells = st.cells !== false ? bLinks(st) : [];
     cells.forEach(({ P, t, s }) => pts.push(...bCellCorners(st, P, t, s)));
@@ -159,7 +162,7 @@
       });
     });
     draw.dot([0, 0, 0], css('--ink'), 'O');
-    [...st.nodes].filter(n => n.known).forEach(n => draw.dot(bNodePos(st, n), css('--ink'), n.name));
+    bShown(st).filter(n => n.known).forEach(n => draw.dot(bNodePos(st, n), css('--ink'), n.name));
     ctx.restore();
   }
 

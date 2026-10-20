@@ -39,7 +39,7 @@ function bDelta(d, dl, h) {
 }
 
 function bStepNodes(st, h, picked) {
-  const ns = [...st.nodes].filter(n => n.out.length || n.in.length);
+  const ns = bShown(st);
   const items = ns.map(n => {
     const at = n.known ? [['I_r', 'r'], ['I_φ', 'phi'], ['I_θ', 'theta']].map(([k, x]) => [k, bN(n.idx[x])]) : [['position', 'none']];
     const c = bNodePos(st, n);
