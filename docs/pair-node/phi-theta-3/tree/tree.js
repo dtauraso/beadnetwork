@@ -1,6 +1,6 @@
 const T_KEY = 'pair-builder-v5';
 const T_HEAD = 30, T_LINE = 17, T_CH = 7.2, T_GX = 18, T_GY = 44;
-const tNum = v => (Number.isInteger(v) ? `${v}` : v.toFixed(3));
+const tNum = v => `${+v.toFixed(3)}`;
 const tAng = (o, ks = ['phi', 'theta', 'r']) => (o ? ks.filter(k => k in o).map(k => `${{ phi: 'φ', theta: 'θ', r: 'r' }[k]} ${tNum(o[k])}`).join(' · ') : '—');
 const tAB = ab => `${ab.a.name}→${ab.b.name}`;
 const tNames = (ts, name) => (ts.length ? ts.map(name).join(', ') : '—');
@@ -31,7 +31,7 @@ function tTree(builder, t) {
 function tNode(builder, n) {
   const C = bNodePos(builder, n);
   return { label: `node ${n.name}`, lines: [['s', n.s ? tNum(n.s) : `— (the scene's s, ${tNum(builder.s)})`],
-    ['idx', `I_r ${tNum(n.idx.r)} · I_φ ${tNum(n.idx.phi)} · I_θ ${tNum(n.idx.theta)}`], ['~C', C ? bPt(C) : '—'],
+    ['idx', tAng(n.idx)], ['~C', C ? ['x', 'y', 'z'].map((k, i) => `${k} ${tNum(C[i])}`).join(' · ') : '—'],
     ['sender', n.sender ? n.sender.name : '—'], ['via', n.via ? tAB(n.via) : '—'],
     ['out', tNames(n.out, t => tAB(t.ab))], ['in', tNames(n.in, t => tAB(t.ab))]] };
 }
