@@ -78,8 +78,6 @@
     el('item').replaceChildren(...shown.map((n, i) => h('option', { value: i, textContent: n.name, selected: n === builder.item })));
     el('item').onchange = () => { builder.item = shown[+el('item').value]; update(); };
 
-    el('spheres').replaceChildren(...bSphereBoxes(builder, h, () => { setup(); update(); }));
-
     el('methods').replaceChildren(...B_METHODS.map(m => {
       const box = h('input', { type: 'checkbox', checked: !!builder.on[m.id] });
       box.onchange = () => { builder.on[m.id] = box.checked; update(); };
@@ -133,7 +131,6 @@
     bDrawAxes(draw, ctx, css, [0, 0, 0], builder.cr, true);
     el('cellnote').replaceChildren(...[...bDrawCells(builder, draw, ctx, css, cells), ...bGlobalLines(builder)].map(t => h('div', { textContent: t })));
     bDrawGuides(builder, draw, ctx, css, bCellPoints(builder, rs));
-    bDrawSpheres(builder, draw, ctx);
     const seen = {};
     rs.forEach(({ m, steps }) => {
       const color = css(m.color);
