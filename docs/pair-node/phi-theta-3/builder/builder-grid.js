@@ -75,7 +75,7 @@ function bDrawCells(st, draw, ctx, css, links) {
 }
 
 function bSphereBoxes(st, h, changed) {
-  const on = st.spheres ||= {}, names = [...st.nodes].map(n => n.name);
+  const on = st.spheres ||= {}, names = bShown(st).map(n => n.name);
   const box = (label, checked, set) => {
     const b = h('input', { type: 'checkbox', checked });
     b.onchange = () => { set(b.checked); changed(); };
