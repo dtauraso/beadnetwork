@@ -46,19 +46,22 @@
       const at = `${tree.ab.a.name}→${tree.ab.b.name}:start${k}`;
       return flag(at, num(o[k], v => check(at, bSetStart(builder, tree, k, v), v)));
     };
-    const settings = [...bOpenStep(builder).edges].map(tree => {
+    const abOf = tree => `${tree.ab.a.name}→${tree.ab.b.name}`, trees = [...bOpenStep(builder).edges];
+    const wide = { phi: trees.some(t => bAngleOpen.has(`${abOf(t)}:phi`)), theta: trees.some(t => bAngleOpen.has(`${abOf(t)}:theta`)) };
+    const heads = ['edge', 'start φ', ...(wide.phi ? ['Δφ', 'φ+Δφ'] : []), 'start θ', ...(wide.theta ? ['Δθ', 'θ+Δθ'] : []), 'start r', ''];
+    const settings = trees.map(tree => {
       const del = h('button', { textContent: 'remove' });
       del.onclick = () => { bDropTree(builder, tree); setup(); update(); };
-      const ab = `${tree.ab.a.name}→${tree.ab.b.name}`, row = tree.ab.row;
+      const ab = abOf(tree), row = tree.ab.row;
       const angle = (k, name) => {
         const at = `${ab}:${k}`, open = bAngleOpen.has(at);
-        const b = h('button', { className: 'grow', textContent: open ? '◂' : '▸', title: `${open ? 'hide' : 'show'} Δ${name} and start + Δ${name}` });
+        const b = h('button', { className: 'grow', textContent: open ? '◂' : '▸', title: `${open ? 'hide' : 'show'} Δ${name} and ${name}+Δ${name}` });
         b.onclick = () => { if (open) bAngleOpen.delete(at); else bAngleOpen.add(at); setup(); update(); };
-        const more = open ? [`Δ${name} ${bN(row.delta[k])}`, `start + Δ${name} ${bN(row.start[k] + row.delta[k])}`].map(t => h('span', { textContent: t })) : [];
-        return h('td', {}, [h('span', { className: 'pair' }, [c(row.start, k, tree), b, ...more])]);
+        const more = !wide[k] ? [] : open ? [bN(row.delta[k]), bN(row.start[k] + row.delta[k])].map(t => h('td', { textContent: t })) : [h('td'), h('td')];
+        return [h('td', {}, [h('span', { className: 'pair' }, [c(row.start, k, tree), b])]), ...more];
       };
-      const cells = [angle('phi', 'φ'), angle('theta', 'θ'), h('td', {}, [c(row.start, 'r', tree)])];
-      const miss = err && err.at.split(':')[0] === ab ? [h('tr', {}, [h('td', { className: 'missing', colSpan: 5, textContent: err.text })])] : [];
+      const cells = [...angle('phi', 'φ'), ...angle('theta', 'θ'), h('td', {}, [c(row.start, 'r', tree)])];
+      const miss = err && err.at.split(':')[0] === ab ? [h('tr', {}, [h('td', { className: 'missing', colSpan: heads.length, textContent: err.text })])] : [];
       return [h('tr', {}, [h('td', { className: 't', textContent: ab }), ...cells, h('td', {}, [del])]), ...miss];
     }).flat();
     const froms = all.filter(a => a.out.length < all.length - 1);
@@ -76,7 +79,7 @@
       setup(); update();
     };
     const changed = () => { setup(); update(); };
-    const edges = !bEdgesShown ? [] : [settings.length ? h('table', { className: 'cells' }, [h('thead', {}, [h('tr', {}, ['edge', 'start φ', 'start θ', 'start r', ''].map(t => h('th', { textContent: t })))]), h('tbody', {}, settings)]) : h('div', { className: 'hint', textContent: 'no edges' })];
+    const edges = !bEdgesShown ? [] : [settings.length ? h('table', { className: 'cells' }, [h('thead', {}, [h('tr', {}, heads.map(t => h('th', { textContent: t })))]), h('tbody', {}, settings)]) : h('div', { className: 'hint', textContent: 'no edges' })];
     el('settings').replaceChildren(bSeqPicker(builder, h, open),
       bSteps(h, [{ body: [...bEdgePicker(builder, h, builder.picked, changed), h('div', { className: 'folds' }, [bFold(h, bEdgesShown, 'edges', settings.length, () => { bEdgesShown = !bEdgesShown; }, changed)]), ...edges, ...bStepNodes(builder, h, changed)],
         head: tos.length ? [pickA, ' → ', pickB, add] : [h('span', { className: 'hint', textContent: 'no edge left to add' })] }]), ...bLands(builder, h),
