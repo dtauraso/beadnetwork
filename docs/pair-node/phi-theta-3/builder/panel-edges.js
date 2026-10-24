@@ -1,8 +1,5 @@
 let bPickedShown = true, bRedoShown = true, bEdgesShown = true, bNodesShown = true;
 const bAngleOpen = new Set();
-const bLock = { phi: 0, theta: 0 };
-let bLocking = false;
-const bRowLock = new WeakMap(), bRowLocking = new WeakSet();
 
 function bFold(h, open, text, n, flip, changed) {
   const b = h('button', { className: 'part fold', textContent: `${open ? '▾' : '▸'} ${text} (${n})` });
@@ -34,31 +31,31 @@ function bEdgePicker(builder, h, picked, changed) {
     b.className += ' tall';
     return b;
   };
-  const rowLock = t => { if (!bRowLock.has(t)) bRowLock.set(t, { phi: 0, theta: 0 }); return bRowLock.get(t); };
+  const rowLock = t => (t.ab.row.lock ??= { phi: 0, theta: 0 }), lockAll = builder.lock ??= { phi: 0, theta: 0 };
   const items = picked.map(t => {
     const drop = h('button', { textContent: 'unpick' });
     drop.onclick = () => { picked.splice(picked.indexOf(t), 1); changed(); };
-    const lock = rowLock(t), locking = bRowLocking.has(t);
+    const lock = rowLock(t), locking = !!t.ab.row.locking;
     const own = (k, name) => {
       const amount = h('input', { type: 'number', value: t.ab.row.increment[k], step: 1 });
       amount.onchange = () => { const v = +amount.value; if (bWhole(v)) t.ab.row.increment[k] = Math.round(v); changed(); };
       return h('td', {}, [h('span', { className: 'pair' }, [name, amount, h('span', { className: 'spin' }, [step(lock, locking, [t], k, 1, "this edge's"), step(lock, locking, [t], k, -1, "this edge's")])])]);
     };
-    const lockCell = h('td', { className: 'lockcell' }, [h('span', { className: 'spin' }, [lockButton(locking, () => { if (locking) bRowLocking.delete(t); else bRowLocking.add(t); })])]);
+    const lockCell = h('td', { className: 'lockcell' }, [h('span', { className: 'spin' }, [lockButton(locking, () => { t.ab.row.locking = !locking; })])]);
     return h('tr', {}, [h('td', { className: 't', textContent: abName(t) }), own('phi', 'Δφ'), own('theta', 'Δθ'), h('td', {}, [drop]), lockCell]);
   });
   const redo = left.map(t => h('span', { className: 't', textContent: abName(t) }));
-  const way = (t, k) => rowLock(t)[k] || bLock[k] || 1;
-  const locked = bLock.phi || bLock.theta || picked.some(t => rowLock(t).phi || rowLock(t).theta);
+  const way = (t, k) => rowLock(t)[k] || lockAll[k] || 1;
+  const locked = lockAll.phi || lockAll.theta || picked.some(t => rowLock(t).phi || rowLock(t).theta);
   const both = [button(locked ? '▲' : '+', locked ? "step each angle its locked way: the row's lock, else move all's, else +" : "add each picked edge's steps", () => move(picked, t => ({ phi: way(t, 'phi'), theta: way(t, 'theta') }))),
     button(locked ? '▼' : '−', locked ? 'step each angle against its locked way' : "subtract each picked edge's steps", () => move(picked, t => ({ phi: -way(t, 'phi'), theta: -way(t, 'theta') })))];
-  const rowsLocking = picked.some(t => bRowLocking.has(t));
-  if (rowsLocking) bLocking = false;
-  const allStep = (k, sign) => step(bLock, bLocking, picked, k, sign, "each picked edge's");
+  const rowsLocking = picked.some(t => t.ab.row.locking);
+  if (rowsLocking) builder.locking = false;
+  const allStep = (k, sign) => step(lockAll, !!builder.locking, picked, k, sign, "each picked edge's");
   const right = kids => h('td', { className: 'right' }, kids);
   const all = h('tr', { className: 'all' }, [h('td', { className: 't', textContent: 'all' }), right([spin('Δφ', [allStep('phi', 1), allStep('phi', -1)])]),
     right([spin('Δθ', [allStep('theta', 1), allStep('theta', -1)])]), right([spin('both', both)]),
-    h('td', { className: 'lockcell' }, [spin('lock', [lockButton(bLocking, () => { bLocking = !bLocking; }, rowsLocking)])])]);
+    h('td', { className: 'lockcell' }, [spin('lock', [lockButton(!!builder.locking, () => { builder.locking = !builder.locking; }, rowsLocking)])])]);
   const folds = h('div', { className: 'folds' }, [bFold(h, bPickedShown, 'picked', items.length, () => { bPickedShown = !bPickedShown; }, changed),
     bFold(h, bRedoShown, 'chosen for vector recalculation', redo.length, () => { bRedoShown = !bRedoShown; }, changed)]);
   const pickedList = items.length ? [h('table', { className: 'cells picked' }, [h('tbody', {}, [all, ...(bPickedShown ? items : [])])])]
