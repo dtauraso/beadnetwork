@@ -8,13 +8,13 @@ function bFold(h, open, text, n, flip, changed) {
 }
 
 function bEdgePicker(builder, h, changed) {
-  const seq = builder.openSeq(), edges = [...seq.open.edges], picked = seq.prune();
+  const st = builder.openStep(), edges = [...st.edges], picked = st.prune();
   if (!edges.length) return [];
-  const left = edges.filter(t => !picked.includes(t));
-  const pick = h('select', {}, [h('option', { value: -1, textContent: left.length ? 'pick an edge' : 'all edges picked' }),
+  const left = st.offered(), redo = st.recalc().map(t => h('span', { className: 't', textContent: t.name }));
+  const pick = h('select', {}, [h('option', { value: -1, textContent: left.length ? (picked.length ? `pick an edge from ${st.start.name}` : 'pick an edge') : `all of ${st.start.name}'s edges picked` }),
     ...left.map((t, i) => h('option', { value: i, textContent: t.name }))]);
-  pick.onchange = () => { if (left[+pick.value]) seq.pick(left[+pick.value]); changed(); };
-  const move = (ts, signs) => { ts.forEach(t => Object.entries(signs(t)).forEach(([k, sign]) => t.step(builder, k, sign))); seq.open.moveAll(builder, ts); changed(); };
+  pick.onchange = () => { if (left[+pick.value]) st.pick(left[+pick.value]); changed(); };
+  const move = (ts, signs) => { ts.forEach(t => Object.entries(signs(t)).forEach(([k, sign]) => t.step(builder, k, sign))); st.moveAll(builder, ts); changed(); };
   const button = (text, title, onclick, lit, disabled = !picked.length) => {
     const b = h('button', { textContent: text, title, disabled, className: lit ? 'lit' : '' });
     b.onclick = onclick;
@@ -30,10 +30,10 @@ function bEdgePicker(builder, h, changed) {
     b.className += ' tall';
     return b;
   };
-  const rowLock = t => (t.lock ??= { phi: 0, theta: 0 }), lockAll = seq.lock ??= { phi: 0, theta: 0 };
+  const rowLock = t => (t.lock ??= { phi: 0, theta: 0 }), lockAll = st.lock ??= { phi: 0, theta: 0 };
   const items = picked.map(t => {
     const drop = h('button', { textContent: 'unpick' });
-    drop.onclick = () => { seq.unpick(t); changed(); };
+    drop.onclick = () => { st.unpick(t); changed(); };
     const lock = rowLock(t), locking = !!t.locking;
     const own = (k, name) => {
       const amount = h('input', { type: 'number', value: t.increment[k], step: 1 });
@@ -43,18 +43,17 @@ function bEdgePicker(builder, h, changed) {
     const lockCell = h('td', { className: 'lockcell' }, [h('span', { className: 'spin' }, [lockButton(locking, () => { t.locking = !locking; })])]);
     return h('tr', {}, [h('td', { className: 't', textContent: t.name }), own('phi', 'Δφ'), own('theta', 'Δθ'), h('td', {}, [drop]), lockCell]);
   });
-  const redo = left.map(t => h('span', { className: 't', textContent: t.name }));
   const way = (t, k) => rowLock(t)[k] || lockAll[k] || 1;
   const locked = lockAll.phi || lockAll.theta || picked.some(t => rowLock(t).phi || rowLock(t).theta);
   const both = [button(locked ? '▲' : '+', locked ? "step each angle its locked way: the row's lock, else move all's, else +" : "add each picked edge's steps", () => move(picked, t => ({ phi: way(t, 'phi'), theta: way(t, 'theta') }))),
     button(locked ? '▼' : '−', locked ? 'step each angle against its locked way' : "subtract each picked edge's steps", () => move(picked, t => ({ phi: -way(t, 'phi'), theta: -way(t, 'theta') })))];
   const rowsLocking = picked.some(t => t.locking);
-  if (rowsLocking) seq.locking = false;
-  const allStep = (k, sign) => step(lockAll, !!seq.locking, picked, k, sign, "each picked edge's");
+  if (rowsLocking) st.locking = false;
+  const allStep = (k, sign) => step(lockAll, !!st.locking, picked, k, sign, "each picked edge's");
   const right = kids => h('td', { className: 'right' }, kids);
   const all = h('tr', { className: 'all' }, [h('td', { className: 't', textContent: 'all' }), right([spin('Δφ', [allStep('phi', 1), allStep('phi', -1)])]),
     right([spin('Δθ', [allStep('theta', 1), allStep('theta', -1)])]), right([spin('both', both)]),
-    h('td', { className: 'lockcell' }, [spin('lock', [lockButton(!!seq.locking, () => { seq.locking = !seq.locking; }, rowsLocking)])])]);
+    h('td', { className: 'lockcell' }, [spin('lock', [lockButton(!!st.locking, () => { st.locking = !st.locking; }, rowsLocking)])])]);
   const folds = h('div', { className: 'folds' }, [bFold(h, bPickedShown, 'picked', items.length, () => { bPickedShown = !bPickedShown; }, changed),
     bFold(h, bRedoShown, 'chosen for vector recalculation', redo.length, () => { bRedoShown = !bRedoShown; }, changed)]);
   const pickedList = items.length ? [h('table', { className: 'cells picked' }, [h('tbody', {}, [all, ...(bPickedShown ? items : [])])])]

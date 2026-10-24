@@ -1,12 +1,36 @@
 class BStep {
-  constructor({ nodes = [], edges = [], cards = new BCards() } = {}) {
+  constructor({ nodes = [], edges = [], cards = new BCards(), picked = [], lock, locking } = {}) {
     this.nodes = new Set();
     this.edges = new Set();
     nodes.forEach(n => this.addNode(n));
     edges.forEach(e => this.addEdge(e));
     this.cards = cards;
+    this.picked = picked;
+    this.lock = lock;
+    this.locking = locking;
     this.fixItem();
+    this.prune();
   }
+
+  get start() { return this.picked.length ? this.picked[0].from : undefined; }
+
+  pick(e) {
+    if (!this.edges.has(e) || this.picked.includes(e)) return;
+    if (!this.picked.length) this.picked = [...this.edges].filter(x => x.from === e.from).sort((x, y) => (x === e ? -1 : y === e ? 1 : 0));
+    else if (e.from === this.start) this.picked = [...this.picked, e];
+  }
+
+  unpick(e) { this.picked = this.picked.filter(x => x !== e); }
+
+  prune() {
+    const start = this.picked.find(e => this.edges.has(e))?.from;
+    this.picked = this.picked.filter(e => this.edges.has(e) && e.from === start);
+    return this.picked;
+  }
+
+  offered() { return this.recalc().filter(e => !this.picked.length || e.from === this.start); }
+
+  recalc() { return [...this.edges].filter(e => !this.picked.includes(e)); }
 
   find(name) { return [...this.nodes].find(n => n.name === name); }
 
@@ -33,6 +57,7 @@ class BStep {
   dropEdge(e) {
     e.unlink();
     this.edges.delete(e);
+    this.unpick(e);
   }
 
   dropNode(builder, n) {
@@ -48,12 +73,17 @@ class BStep {
     edges.forEach(e => e.to.moved(builder, edges));
   }
 
-  toJSON() { return { cards: this.cards, edges: [...this.edges], nodes: [...this.nodes] }; }
+  toJSON() {
+    const { cards, picked, lock, locking } = this;
+    return { cards, edges: [...this.edges], nodes: [...this.nodes], picked: picked.map(e => e.name),
+      ...(lock && (lock.phi || lock.theta) ? { lock } : {}), ...(locking ? { locking } : {}) };
+  }
 
-  static from({ nodes, edges, cards, item, methods, card }) {
+  static from({ nodes, edges, cards, item, methods, card, picked = [], lock, locking }) {
     const made = nodes.map(BNode.from), by = new Map(made.map(n => [n.name, n]));
     made.forEach((n, i) => n.seat(nodes[i], by));
     const rows = edges || nodes.flatMap(({ name, out = [] }) => out.map(r => ({ ...r, from: name })));
-    return new BStep({ nodes: made, edges: rows.map(r => BEdge.from(r, by)).filter(Boolean), cards: BCards.from(cards || { item, methods, card }, by) });
+    const es = rows.map(r => BEdge.from(r, by)).filter(Boolean), named = new Map(es.map(e => [e.name, e]));
+    return new BStep({ nodes: made, edges: es, cards: BCards.from(cards || { item, methods, card }, by), picked: picked.map(k => named.get(k)).filter(Boolean), lock, locking });
   }
 }

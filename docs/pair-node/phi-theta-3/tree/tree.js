@@ -19,12 +19,13 @@ function tState(builder) {
 const tLock = o => (o.lock && (o.lock.phi || o.lock.theta) ? tAng(o.lock, ['phi', 'theta']) : '—');
 
 function tSeq(seq) {
-  return { kind: 'seq', label: seq.name, lines: [['picked', tNames(seq.picked), 'ref'], ['steps', `${seq.steps.length}`],
-    ['all lock', tLock(seq)], ['all locking', seq.locking ? 'on' : 'off']] };
+  return { kind: 'seq', label: seq.name, lines: [['steps', `${seq.steps.length}`]] };
 }
 
 function tStep(st, i) {
-  return { kind: 'step', label: `step ${i + 1}`, lines: [['cards', 'method cards', 'ref'], ['edges', tNames([...st.edges]), 'ref'], ['nodes', tNames([...st.nodes]), 'ref']] };
+  return { kind: 'step', label: `step ${i + 1}`, lines: [['cards', 'method cards', 'ref'], ['edges', tNames([...st.edges]), 'ref'], ['nodes', tNames([...st.nodes]), 'ref'],
+    ['picked', tNames(st.picked), 'ref'], ['all lock', tLock(st)], ['all locking', st.locking ? 'on' : 'off'],
+    ...tWorked([['~start node', st.start ? st.start.name : '—', st.start ? 'ref' : undefined], ['~recalculated', tNames(st.recalc()), 'ref']])] };
 }
 
 function tCards(c) {
