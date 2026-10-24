@@ -2,20 +2,14 @@ const bName = k => (k < 26 ? 'abcdefghijklmnopqrstuvwxyz'[k] : `n${k}`);
 const bNameAt = name => (name.length === 1 ? name.charCodeAt(0) - 97 : +name.slice(1));
 
 class BBuilder {
-  constructor({ s, rho, Tphi, Ttheta, cr, made, item, methods = {}, step, open, seqs, lock, locking }) {
-    Object.assign(this, { s, rho, Tphi, Ttheta, cr, made, item, methods, step, open, seqs, lock, locking });
+  constructor({ s, rho, Tphi, Ttheta, cr, made, open, seqs }) {
+    Object.assign(this, { s, rho, Tphi, Ttheta, cr, made, open, seqs });
     this.made ??= 1 + Math.max(-1, ...seqs.flatMap(q => q.steps.flatMap(st => [...st.nodes].map(n => bNameAt(n.name)))).filter(Number.isFinite));
-    this.fixItem();
   }
 
   openSeq() { return this.seqs[this.open]; }
   openStep() { return this.openSeq().open; }
   shown() { return [...this.openStep().nodes]; }
-
-  fixItem() {
-    const shown = this.shown();
-    if (!shown.includes(this.item)) this.item = shown[0];
-  }
 
   cell() { return { r: this.cr, phi: 2 * Math.PI / this.Tphi, theta: 2 * Math.PI / this.Ttheta }; }
 
@@ -53,7 +47,6 @@ class BBuilder {
 
   dropNode(n) {
     this.openStep().dropNode(this, n);
-    this.fixItem();
   }
 
   addSeq() {
@@ -73,16 +66,15 @@ class BBuilder {
   }
 
   toJSON() {
-    const { s, rho, Tphi, Ttheta, cr, made, item, methods, step, open, seqs, lock, locking } = this;
-    return { s, rho, Tphi, Ttheta, cr, made, item: item && item.name, methods, step, open, seqs,
-      ...(lock && (lock.phi || lock.theta) ? { lock } : {}), ...(locking ? { locking } : {}) };
+    const { s, rho, Tphi, Ttheta, cr, made, open, seqs } = this;
+    return { s, rho, Tphi, Ttheta, cr, made, open, seqs };
   }
 
   static from(record) {
-    const seqs = record.seqs.map(q => ({ ...q }));
-    if (record.picked) seqs[record.open].picked ??= record.picked;
-    const made = seqs.map(BSeq.from), item = made[record.open].open.find(record.item);
-    return new BBuilder({ ...record, seqs: made, item });
+    const { item, methods, step: card, picked, lock, locking } = record;
+    const seqs = record.seqs.map((q, i) => ({ ...(i === record.open ? { picked, lock, locking } : {}), ...q,
+      steps: q.steps.map(st => ({ item, methods, card, ...st })) }));
+    return new BBuilder({ ...record, seqs: seqs.map(BSeq.from) });
   }
 
   static load() {
