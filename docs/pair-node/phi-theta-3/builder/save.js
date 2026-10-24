@@ -1,6 +1,6 @@
 function bPack(k, v) {
   if (['gone', 'out', 'in'].includes(k)) return undefined;
-  if (k === 'lock' && !v.phi && !v.theta || k === 'locking' && !v) return undefined;
+  if (k === 'lock' && !v?.phi && !v?.theta || k === 'locking' && !v) return undefined;
   if (k === 'edges') return [...v].map(t => t.ab.row);
   if (k === 'picked') return v.map(t => `${t.ab.a.name}→${t.ab.b.name}`);
   if (v instanceof Set) return [...v];
@@ -18,10 +18,15 @@ function bWireStep(step) {
   });
 }
 
+function bWirePicked(q) {
+  const abs = new Map([...q.steps[0].edges].map(t => [`${t.ab.a.name}→${t.ab.b.name}`, t]));
+  q.picked = (q.picked || []).map(k => abs.get(k)).filter(Boolean);
+}
+
 function bWire(builder) {
-  builder.seqs.forEach(q => q.steps.forEach(bWireStep));
-  const step = bOpenStep(builder), by = new Map([...step.nodes].map(n => [n.name, n])), abs = new Map([...step.edges].map(t => [`${t.ab.a.name}→${t.ab.b.name}`, t]));
-  builder.picked = (builder.picked || []).map(k => abs.get(k)).filter(Boolean);
+  if (builder.picked) { builder.seqs[builder.open].picked ??= builder.picked; delete builder.picked; }
+  builder.seqs.forEach(q => { q.steps.forEach(bWireStep); bWirePicked(q); });
+  const step = bOpenStep(builder), by = new Map([...step.nodes].map(n => [n.name, n]));
   builder.methods ??= {};
   builder.item = by.get(builder.item) || bFirst(step.nodes);
   builder.made ??= 1 + Math.max(-1, ...builder.seqs.flatMap(q => q.steps.flatMap(st => [...st.nodes].map(n => bNameAt(n.name)))).filter(Number.isFinite));
