@@ -28,7 +28,7 @@ function bEdgePicker(builder, h, picked, changed) {
   const redo = left.map(t => h('span', { className: 't', textContent: abName(t) }));
   const step = (k, sign, text) => {
     const b = h('button', { textContent: text, title: `${sign > 0 ? 'add' : 'subtract'} each picked edge's step`, disabled: !picked.length });
-    b.onclick = () => { picked.forEach(t => { t.ab.row.delta[k] += sign * t.ab.row.increment[k]; }); bMoveAll(builder, picked); changed(); };
+    b.onclick = () => { picked.forEach(t => { const r = t.ab.row; r.delta[k] = bWrap(bS(builder, t.ab.a), r.delta[k] + sign * r.increment[k]); }); bMoveAll(builder, picked); changed(); };
     return b;
   };
   const spin = (k, name) => h('span', { className: 'pair' }, [name, h('span', { className: 'spin' }, [step(k, 1, '+'), step(k, -1, '−')])]);

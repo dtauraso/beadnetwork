@@ -10,7 +10,8 @@ function bRemeasure(builder, n, keep = []) {
   [...n.in, ...n.out].filter(t => !keep.includes(t)).forEach(t => {
     const v = bMeasure(builder, t.ab.row);
     const dl = t.ab.row.delta;
-    if (v) t.ab.row.start = { phi: v.phi - dl.phi, theta: v.theta - dl.theta, r: v.r };
+    const s = bS(builder, t.ab.a);
+    if (v) t.ab.row.start = { phi: bWrap(s, v.phi - dl.phi), theta: bWrap(s, v.theta - dl.theta), r: v.r };
   });
 }
 

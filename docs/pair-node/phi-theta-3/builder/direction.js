@@ -1,4 +1,4 @@
-const bDir = (builder, row) => ({ ...row.start, phi: row.start.phi + row.delta.phi, theta: row.start.theta + row.delta.theta });
+const bDir = (builder, row, s = bS(builder, row.from)) => ({ ...row.start, phi: bWrap(s, row.start.phi + row.delta.phi), theta: bWrap(s, row.start.theta + row.delta.theta) });
 
 function bDirs(builder, tree) {
   return [{ t: bDir(builder, tree.ab.row) }];
