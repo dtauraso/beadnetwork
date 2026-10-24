@@ -49,8 +49,15 @@
     const settings = [...bOpenStep(builder).edges].map(tree => {
       const del = h('button', { textContent: 'remove' });
       del.onclick = () => { bDropTree(builder, tree); setup(); update(); };
-      const ab = `${tree.ab.a.name}→${tree.ab.b.name}`;
-      const cells = ['phi', 'theta', 'r'].map(k => h('td', {}, [c(tree.ab.row.start, k, tree)]));
+      const ab = `${tree.ab.a.name}→${tree.ab.b.name}`, row = tree.ab.row;
+      const angle = (k, name) => {
+        const at = `${ab}:${k}`, open = bAngleOpen.has(at);
+        const b = h('button', { className: 'grow', textContent: open ? '◂' : '▸', title: `${open ? 'hide' : 'show'} Δ${name} and start + Δ${name}` });
+        b.onclick = () => { if (open) bAngleOpen.delete(at); else bAngleOpen.add(at); setup(); update(); };
+        const more = open ? [`Δ${name} ${bN(row.delta[k])}`, `start + Δ${name} ${bN(row.start[k] + row.delta[k])}`].map(t => h('span', { textContent: t })) : [];
+        return h('td', {}, [h('span', { className: 'pair' }, [c(row.start, k, tree), b, ...more])]);
+      };
+      const cells = [angle('phi', 'φ'), angle('theta', 'θ'), h('td', {}, [c(row.start, 'r', tree)])];
       const miss = err && err.at.split(':')[0] === ab ? [h('tr', {}, [h('td', { className: 'missing', colSpan: 5, textContent: err.text })])] : [];
       return [h('tr', {}, [h('td', { className: 't', textContent: ab }), ...cells, h('td', {}, [del])]), ...miss];
     }).flat();
