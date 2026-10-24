@@ -12,23 +12,18 @@ class BStep {
     this.prune();
   }
 
-  get start() { return this.picked.length ? this.picked[0].from : undefined; }
+  allows(e, picked = this.picked) { return !picked.some(x => x.to === e.to && x.from !== e.from); }
 
-  pick(e) {
-    if (!this.edges.has(e) || this.picked.includes(e)) return;
-    if (!this.picked.length) this.picked = [...this.edges].filter(x => x.from === e.from).sort((x, y) => (x === e ? -1 : y === e ? 1 : 0));
-    else if (e.from === this.start) this.picked = [...this.picked, e];
-  }
+  pick(e) { if (this.edges.has(e) && !this.picked.includes(e) && this.allows(e)) this.picked = [...this.picked, e]; }
 
   unpick(e) { this.picked = this.picked.filter(x => x !== e); }
 
   prune() {
-    const start = this.picked.find(e => this.edges.has(e))?.from;
-    this.picked = this.picked.filter(e => this.edges.has(e) && e.from === start);
+    this.picked = this.picked.reduce((kept, e) => (this.edges.has(e) && this.allows(e, kept) ? [...kept, e] : kept), []);
     return this.picked;
   }
 
-  offered() { return this.recalc().filter(e => !this.picked.length || e.from === this.start); }
+  offered() { return this.recalc().filter(e => this.allows(e)); }
 
   recalc() { return [...this.edges].filter(e => !this.picked.includes(e)); }
 
