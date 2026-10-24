@@ -90,6 +90,9 @@
   .spin button:hover { background: color-mix(in srgb, var(--ink) 12%, transparent); }
   .spin button.lit { background: color-mix(in srgb, var(--local) 30%, transparent); }
   .spin button.tall { height: 27px; }
+  .spin button:disabled { color: var(--muted); cursor: default; background: none; }
+  table.picked { width: 100%; }
+  table.picked td.lockcell { width: 100%; text-align: right; }
   input.invalid { outline: 2px solid var(--bad); }
 </style>
 </head>
