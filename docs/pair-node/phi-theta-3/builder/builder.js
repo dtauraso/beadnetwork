@@ -1,7 +1,6 @@
 (function () {
   const preset = bPreset;
   let err = null, pickFrom = null;
-  const mathOpen = new WeakSet();
   let builder = bLoad() || preset();
   const save = () => bKeep(builder);
   const open = s => { builder = s; reach = null; pickFrom = null; setup(); update(); };
@@ -47,6 +46,14 @@
       const at = `${tree.ab.a.name}→${tree.ab.b.name}:start${k}`;
       return flag(at, num(o[k], v => check(at, bSetStart(builder, tree, k, v), v)));
     };
+    const settings = [...bOpenStep(builder).edges].map(tree => {
+      const del = h('button', { textContent: 'remove' });
+      del.onclick = () => { bDropTree(builder, tree); setup(); update(); };
+      const ab = `${tree.ab.a.name}→${tree.ab.b.name}`;
+      const attrs = bRowCells(builder, tree, c, h).map(([k, v]) => h('li', {}, [h('span', { className: 'k', textContent: k }), ...[].concat(v)]));
+      const miss = err && err.at.split(':')[0] === ab ? [h('div', { className: 'missing', textContent: err.text })] : [];
+      return h('li', {}, [h('div', { className: 'row' }, [h('span', { className: 't', textContent: ab }), del]), h('ul', { className: 'attrs' }, attrs), ...miss]);
+    });
     const froms = all.filter(a => a.out.length < all.length - 1);
     if (!pickFrom || pickFrom.gone || pickFrom.out.length >= all.length - 1) pickFrom = froms[0];
     const taken = new Set(pickFrom ? pickFrom.out.map(t => t.ab.b) : []);
@@ -62,8 +69,9 @@
       setup(); update();
     };
     el('settings').replaceChildren(bSeqPicker(builder, h, open),
-      bSteps(h, [{ body: [h('div', { className: 'part', textContent: 'edges' }), ...bEdgeTable(builder, h, c, mathOpen, err, () => { setup(); update(); }), ...bStepNodes(builder, h)],
-        head: tos.length ? [pickA, ' → ', pickB, add] : [h('span', { className: 'hint', textContent: 'no edge left to add' })] }]));
+      bSteps(h, [{ body: [...bEdgePicker(builder, h, builder.picked,() => { setup(); update(); }), h('div', { className: 'part', textContent: 'edges' }), settings.length ? h('ul', { className: 'abs' }, settings) : h('div', { className: 'hint', textContent: 'no edges' }), ...bStepNodes(builder, h)],
+        head: tos.length ? [pickA, ' → ', pickB, add] : [h('span', { className: 'hint', textContent: 'no edge left to add' })] }]), ...bLands(builder, h),
+      h('h2', { textContent: 'a→b settings — one item per a→b, set at a, with its start (φ, θ, r)' }));
 
     const shown = bShown(builder);
     el('item').replaceChildren(...shown.map((n, i) => h('option', { value: i, textContent: n.name, selected: n === builder.item })));
