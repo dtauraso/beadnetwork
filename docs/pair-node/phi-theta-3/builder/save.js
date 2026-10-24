@@ -34,8 +34,6 @@ function bLoad() {
   return null;
 }
 
-if (window.B_SAVED) try { ['pair-builder-v6', 'pair-builder-v5', 'pair-builder-seqs-v1'].forEach(k => localStorage.removeItem(k)); } catch { }
-
 function bSeqNumber(builder) {
   builder.seqs.forEach((q, i) => { if (/^sequence \d+$/.test(q.name)) q.name = `sequence ${i + 1}`; });
   return builder;
