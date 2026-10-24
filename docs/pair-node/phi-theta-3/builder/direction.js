@@ -14,11 +14,12 @@ function bMeasure(builder, row, P = bNodePos(builder, row.from), T = bNodePos(bu
   const s = bS(builder, row.from), v = bSub(T, P), len = bLen(v), tick = 2 * Math.PI / (12 * s), half = 6 * s;
   const was = bDir(builder, row) || { phi: 0, theta: 0 };
   if (len < 1e-9) return { phi: was.phi, theta: was.theta, r: 0 };
-  const k = v[0] < 0 ? -1 : 1, side = Math.hypot(v[0], v[2]);
-  const phi = bWrap(s, Math.atan2(k * side, v[1]) / tick);
-  let theta = side < 1e-9 * len ? was.theta : bWrap(s, Math.atan2(k * v[2], k * v[0]) / tick);
-  if (Math.abs(bWrap(s, half - theta) - bWrap(s, was.theta)) < 1e-9) theta = bWrap(s, was.theta);
-  return { phi, theta, r: len / builder.rho };
+  const side = Math.hypot(v[0], v[2]), phi = Math.atan2(side, v[1]) / tick;
+  const theta = side < 1e-9 * len ? was.theta : Math.atan2(v[2], v[0]) / tick;
+  const gap = (a, b) => { const d = bWrap(s, a - b); return Math.min(d, 12 * s - d); };
+  const off = (p, t) => gap(p, was.phi) + gap(t, was.theta);
+  const [p, t] = off(phi, theta) <= off(-phi, theta + half) ? [phi, theta] : [-phi, theta + half];
+  return { phi: bWrap(s, p), theta: bWrap(s, t), r: len / builder.rho };
 }
 
 function bRowEnds(builder) {
