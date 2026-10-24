@@ -59,4 +59,80 @@ function bKeep(builder) {
   bNow = now;
   if (bUndo) { bUndo.disabled = !B_PAST.length; bUndo.textContent = `undo (${B_PAST.length})`; }
   try { localStorage.setItem(B_KEY, now); } catch { }
+  bFileWrite();
 }
+
+let bFile = null, bFileOn = false, bFileSent = null, bFileBtn = null, bFileErr = '', bFileQueue = Promise.resolve();
+
+function bFileLabel() {
+  if (!window.showSaveFilePicker) return 'download file';
+  if (!bFile) return 'save to file';
+  return bFileOn ? `saving to ${bFile.name}` : `resume saving to ${bFile.name}`;
+}
+
+function bFileShow() {
+  if (!bFileBtn) return;
+  bFileBtn.textContent = bFileLabel();
+  bFileBtn.title = bFileErr || (bFileOn ? 'every change is written to this file; click to choose another file' : 'write every change to a file you choose, such as builder/sequences.json');
+  bFileBtn.classList.toggle('bad', !!bFileErr);
+}
+
+function bFileWrite() {
+  if (!bFile || !bFileOn || bNow === null || bNow === bFileSent) return;
+  const text = JSON.stringify(JSON.parse(bNow), null, 2) + '\n', file = bFile;
+  bFileSent = bNow;
+  bFileQueue = bFileQueue.then(async () => {
+    const out = await file.createWritable();
+    await out.write(text);
+    await out.close();
+    bFileErr = '';
+  }).catch(e => { bFileErr = `could not write ${file.name}: ${e.message}`; bFileOn = false; bFileSent = null; }).then(bFileShow);
+}
+
+function bFileStore(handle) {
+  return new Promise(done => {
+    try {
+      const req = indexedDB.open('pair-builder-file', 1);
+      req.onupgradeneeded = () => req.result.createObjectStore('file');
+      req.onsuccess = () => {
+        const tx = req.result.transaction('file', 'readwrite'), store = tx.objectStore('file');
+        const get = handle ? store.put(handle, 'file') : store.get('file');
+        get.onsuccess = () => done(handle || get.result || null);
+        get.onerror = () => done(null);
+      };
+      req.onerror = () => done(null);
+    } catch { done(null); }
+  });
+}
+
+async function bFileClick() {
+  if (!window.showSaveFilePicker) {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(JSON.parse(bNow), null, 2) + '\n'], { type: 'application/json' }));
+    a.download = 'sequences.json';
+    a.click();
+    return;
+  }
+  try {
+    if (bFile && !bFileOn && await bFile.requestPermission({ mode: 'readwrite' }) === 'granted') bFileOn = true;
+    else {
+      bFile = await window.showSaveFilePicker({ suggestedName: 'sequences.json', types: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }] });
+      bFileOn = true;
+      bFileStore(bFile);
+    }
+    bFileErr = '';
+    bFileSent = null;
+  } catch (e) {
+    if (e.name !== 'AbortError') bFileErr = e.message;
+  }
+  bFileShow();
+  bFileWrite();
+}
+
+if (window.showSaveFilePicker) bFileStore().then(async handle => {
+  if (!handle) return;
+  bFile = handle;
+  try { bFileOn = await handle.queryPermission({ mode: 'readwrite' }) === 'granted'; } catch { }
+  bFileShow();
+  bFileWrite();
+});

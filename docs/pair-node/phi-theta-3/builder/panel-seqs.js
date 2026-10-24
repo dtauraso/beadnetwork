@@ -18,5 +18,8 @@ function bSeqPicker(builder, h, open) {
     bSeqNumber(builder);
     go(Math.max(0, builder.open - 1));
   };
-  return h('div', { className: 'row' }, [h('label', {}, ['sequence ', pick]), add, del, bUndo]);
+  bFileBtn = h('button', {});
+  bFileBtn.onclick = bFileClick;
+  bFileShow();
+  return h('div', { className: 'row' }, [h('label', {}, ['sequence ', pick]), add, del, bUndo, bFileBtn]);
 }
