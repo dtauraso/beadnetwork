@@ -52,9 +52,9 @@ function bCellPoints(builder, rs) {
     if (bLen(p) > 1e-9 && !had.has(key)) { had.add(key); out.push({ p, color }); }
   };
   builder.shown().forEach(n => add(n.place(builder), '--ink'));
-  rs.forEach(({ m, steps }) => steps.slice(0, builder.step).forEach(s => s.draw.forEach(o => {
+  rs.forEach(({ m, steps }) => steps.slice(0, builder.openStep().card).forEach(s => s.draw.forEach(o => {
     if (o.square) add(o.square, m.color);
-    else if (o.dot && o.label.startsWith(`${builder.item.name}(`)) add(o.dot, m.color);
+    else if (o.dot && o.label.startsWith(`${builder.openStep().item.name}(`)) add(o.dot, m.color);
   })));
   return out;
 }
