@@ -25,7 +25,8 @@ function bMoveAll(builder, trees) {
 }
 
 function bSetStart(builder, tree, k, value) {
-  tree.ab.row.start[k] = value;
+  const row = tree.ab.row;
+  row.start[k] = k === 'r' ? value : bWrap(bS(builder, row.from), value);
   bMove(builder, tree);
   return '';
 }
