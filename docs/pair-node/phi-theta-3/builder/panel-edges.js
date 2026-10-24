@@ -26,13 +26,13 @@ function bEdgePicker(builder, h, picked, changed) {
     return h('tr', {}, [h('td', { className: 't', textContent: abName(t) }), own('phi', 'Δφ'), own('theta', 'Δθ'), h('td', {}, [drop])]);
   });
   const redo = left.map(t => h('span', { className: 't', textContent: abName(t) }));
-  const step = (k, sign, text) => {
+  const step = (ks, sign, text) => {
     const b = h('button', { textContent: text, title: `${sign > 0 ? 'add' : 'subtract'} each picked edge's step`, disabled: !picked.length });
-    b.onclick = () => { picked.forEach(t => { const r = t.ab.row; r.delta[k] = bWrap(bS(builder, t.ab.a), r.delta[k] + sign * r.increment[k]); }); bMoveAll(builder, picked); changed(); };
+    b.onclick = () => { picked.forEach(t => { const r = t.ab.row; ks.forEach(k => { r.delta[k] = bWrap(bS(builder, t.ab.a), r.delta[k] + sign * r.increment[k]); }); }); bMoveAll(builder, picked); changed(); };
     return b;
   };
-  const spin = (k, name) => h('span', { className: 'pair' }, [name, h('span', { className: 'spin' }, [step(k, 1, '+'), step(k, -1, '−')])]);
-  const all = items.length ? [h('span', { className: 'all' }, ['move all', spin('phi', 'Δφ'), spin('theta', 'Δθ')])] : [];
+  const spin = (ks, name) => h('span', { className: 'pair' }, [name, h('span', { className: 'spin' }, [step(ks, 1, '+'), step(ks, -1, '−')])]);
+  const all = items.length ? [h('span', { className: 'all' }, ['move all', spin(['phi'], 'Δφ'), spin(['theta'], 'Δθ'), spin(['phi', 'theta'], 'both')])] : [];
   const folds = h('div', { className: 'folds' }, [bFold(h, bPickedShown, 'picked', items.length, () => { bPickedShown = !bPickedShown; }, changed),
     bFold(h, bRedoShown, 'chosen for vector recalculation', redo.length, () => { bRedoShown = !bRedoShown; }, changed)]);
   const pickedList = !bPickedShown ? [] : items.length ? [h('table', { className: 'cells' }, [h('tbody', {}, items)])] : [h('div', { className: 'hint', textContent: 'no edges picked' })];
