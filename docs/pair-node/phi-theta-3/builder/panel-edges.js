@@ -1,4 +1,4 @@
-let bPickedShown = true;
+let bPickedShown = true, bRedoShown = true;
 
 function bEdgePicker(builder, h, picked, changed) {
   const trees = [...bOpenStep(builder).edges], abName = t => `${t.ab.a.name}→${t.ab.b.name}`;
@@ -27,11 +27,14 @@ function bEdgePicker(builder, h, picked, changed) {
   };
   const spin = (k, name) => h('span', { className: 'pair' }, [name, h('span', { className: 'spin' }, [step(k, 1, '+'), step(k, -1, '−')])]);
   const all = items.length ? [h('span', { className: 'all' }, ['move all', spin('phi', 'Δφ'), spin('theta', 'Δθ')])] : [];
-  const fold = h('button', { className: 'part fold', textContent: `${bPickedShown ? '▾' : '▸'} picked (${items.length})` });
-  fold.onclick = () => { bPickedShown = !bPickedShown; changed(); };
-  const list = !items.length ? [h('div', { className: 'hint', textContent: 'no edges picked' })]
-    : [fold, ...(bPickedShown ? [h('table', { className: 'cells' }, [h('tbody', {}, items)])] : [])];
-  return [h('div', { className: 'row' }, [pick, ...all]), ...list,
-    h('div', { className: 'part', textContent: 'chosen for vector recalculation' }),
-    redo.length ? h('div', { className: 'row' }, redo) :h('div', { className: 'hint', textContent: 'no edges' })];
+  const fold = (open, text, n, flip) => {
+    const b = h('button', { className: 'part fold', textContent: `${open ? '▾' : '▸'} ${text} (${n})` });
+    b.onclick = () => { flip(); changed(); };
+    return b;
+  };
+  const folds = h('div', { className: 'folds' }, [fold(bPickedShown, 'picked', items.length, () => { bPickedShown = !bPickedShown; }),
+    fold(bRedoShown, 'chosen for vector recalculation', redo.length, () => { bRedoShown = !bRedoShown; })]);
+  const pickedList = !bPickedShown ? [] : items.length ? [h('table', { className: 'cells' }, [h('tbody', {}, items)])] : [h('div', { className: 'hint', textContent: 'no edges picked' })];
+  const redoList = !bRedoShown ? [] : redo.length ? [h('div', { className: 'row' }, redo)] : [h('div', { className: 'hint', textContent: 'no edges chosen for recalculation' })];
+  return [h('div', { className: 'row' }, [pick, ...all]), folds, ...pickedList, ...redoList];
 }
