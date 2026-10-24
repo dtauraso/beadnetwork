@@ -1,5 +1,7 @@
 let bPickedShown = true, bRedoShown = true, bEdgesShown = true, bNodesShown = true;
 const bAngleOpen = new Set();
+const bLock = { phi: 0, theta: 0 };
+let bLocking = false;
 
 function bFold(h, open, text, n, flip, changed) {
   const b = h('button', { className: 'part fold', textContent: `${open ? '▾' : '▸'} ${text} (${n})` });
@@ -26,13 +28,23 @@ function bEdgePicker(builder, h, picked, changed) {
     return h('tr', {}, [h('td', { className: 't', textContent: abName(t) }), own('phi', 'Δφ'), own('theta', 'Δθ'), h('td', {}, [drop])]);
   });
   const redo = left.map(t => h('span', { className: 't', textContent: abName(t) }));
-  const step = (ks, sign, text) => {
-    const b = h('button', { textContent: text, title: `${sign > 0 ? 'add' : 'subtract'} each picked edge's step`, disabled: !picked.length });
-    b.onclick = () => { picked.forEach(t => { const r = t.ab.row; ks.forEach(k => { r.delta[k] = bWrap(bS(builder, t.ab.a), r.delta[k] + sign * r.increment[k]); }); }); bMoveAll(builder, picked); changed(); };
+  const move = signs => { picked.forEach(t => { const r = t.ab.row; Object.entries(signs).forEach(([k, sign]) => { r.delta[k] = bWrap(bS(builder, t.ab.a), r.delta[k] + sign * r.increment[k]); }); }); bMoveAll(builder, picked); changed(); };
+  const button = (text, title, onclick, lit) => {
+    const b = h('button', { textContent: text, title, disabled: !picked.length, className: lit ? 'lit' : '' });
+    b.onclick = onclick;
     return b;
   };
-  const spin = (ks, name) => h('span', { className: 'pair' }, [name, h('span', { className: 'spin' }, [step(ks, 1, '+'), step(ks, -1, '−')])]);
-  const all = items.length ? [h('span', { className: 'all' }, ['move all', spin(['phi'], 'Δφ'), spin(['theta'], 'Δθ'), spin(['phi', 'theta'], 'both')])] : [];
+  const step = (k, sign) => bLock[k] === sign
+    ? button(sign > 0 ? '+' : '−', 'locked: click to unlock', () => { bLock[k] = 0; changed(); }, true)
+    : button(sign > 0 ? '+' : '−', bLocking ? 'lock this direction' : `${sign > 0 ? 'add' : 'subtract'} each picked edge's step`,
+      () => { if (bLocking) { bLock[k] = sign; changed(); } else move({ [k]: sign }); });
+  const locked = bLock.phi || bLock.theta, way = sign => ({ phi: sign * (bLock.phi || 1), theta: sign * (bLock.theta || 1) });
+  const both = [button(locked ? '▲' : '+', locked ? 'step each angle its locked way (an unlocked angle steps +)' : "add each picked edge's steps", () => move(way(1))),
+    button(locked ? '▼' : '−', locked ? 'step each angle against its locked way' : "subtract each picked edge's steps", () => move(way(-1)))];
+  const spin = (name, kids) => h('span', { className: 'pair' }, [name, h('span', { className: 'spin' }, kids)]);
+  const lock = button(bLocking ? '●' : '○', 'then click a + or − to lock it; click a lit one to unlock', () => { bLocking = !bLocking; changed(); }, bLocking);
+  lock.className += ' tall';
+  const all = items.length ? [h('span', { className: 'all' }, ['move all', spin('lock', [lock]), spin('Δφ', [step('phi', 1), step('phi', -1)]), spin('Δθ', [step('theta', 1), step('theta', -1)]), spin('both', both)])] : [];
   const folds = h('div', { className: 'folds' }, [bFold(h, bPickedShown, 'picked', items.length, () => { bPickedShown = !bPickedShown; }, changed),
     bFold(h, bRedoShown, 'chosen for vector recalculation', redo.length, () => { bRedoShown = !bRedoShown; }, changed)]);
   const pickedList = !bPickedShown ? [] : items.length ? [h('table', { className: 'cells' }, [h('tbody', {}, items)])] : [h('div', { className: 'hint', textContent: 'no edges picked' })];
