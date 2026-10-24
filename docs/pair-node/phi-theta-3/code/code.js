@@ -1,4 +1,5 @@
 const cNS = 'http://www.w3.org/2000/svg';
+const C_W = 200, C_H = 70, C_GX = 50, C_GY = 14, C_PAD = 16;
 
 function cAdd(parent, tag, attrs, text) {
   const el = document.createElementNS(cNS, tag);
@@ -8,72 +9,64 @@ function cAdd(parent, tag, attrs, text) {
   return el;
 }
 
-function cBox(svg, x, y, w, h, cls, lines) {
-  cAdd(svg, 'rect', { class: `box ${cls}`, x, y, width: w, height: h, rx: 6 });
-  const top = lines.length === 1 ? [h / 2] : lines.length === 2 ? [h / 2 - 9, h / 2 + 9] : [20, 40, 58];
-  lines.forEach(([text, c], i) => cAdd(svg, 'text', { x: x + w / 2, y: y + top[i], class: c }, text));
+function cPlaces(cols) {
+  const at = {};
+  cols.forEach((col, i) => col.forEach((id, j) => {
+    if (id) at[id] = { x: C_PAD + i * (C_W + C_GX), y: C_PAD + j * (C_H + C_GY) };
+  }));
+  return at;
 }
 
-const C_FILES = [
-  [320, 10, 360, 'builder.js', 'uses every file below + atob-draw.js', 'the page: panels, methods, canvas, save', 'page-file'],
-  [320, 98, 360, 'panel-lists.js', 'panel-edges direction place graph text vec', 'step list, nodes table, read-only list'],
-  [10, 186, 230, 'preset.js', 'move graph', 'the three-node example'],
-  [385, 186, 230, 'panel-edges.js', 'move place graph vec', 'edge picker, increments, move all'],
-  [750, 186, 230, 'panel-seqs.js', 'save', 'sequence picker, new, delete, undo'],
-  [10, 274, 230, 'move.js', 'direction place text vec', 'place a node, re-measure the rest'],
-  [255, 274, 230, 'methods.js', 'direction place text vec', 'a→b card and pair card, step by step'],
-  [500, 274, 230, 'draw.js', 'direction place graph vec', 'axes, edge arrows, φ and θ arcs'],
-  [750, 274, 230, 'save.js', 'graph', 'load, pack, undo, send to the server'],
-  [385, 362, 230, 'direction.js', 'place graph vec', 'start + Δ, measure, lines to draw'],
-  [385, 450, 230, 'place.js', 'vec', 'index ↔ place, an edge\'s vector'],
-  [140, 538, 230, 'vec.js', 'nothing', 'add, subtract, length, polar, wrap'],
-  [385, 538, 230, 'graph.js', 'nothing', 'link and drop edges, the open step'],
-  [630, 538, 230, 'text.js', 'nothing', 'numbers and points as text'],
-];
-
-function cDrawFiles(svg) {
-  C_FILES.forEach(([x, y, w, name, uses, note, cls = '']) =>
-    cBox(svg, x, y, w, 70, cls, [[name, 'name'], [uses, 'uses'], [note, 'note']]));
+function cEdge(g, a, b, fy, ty) {
+  if (a.x === b.x && Math.abs(b.y - a.y) > C_H + C_GY) {
+    const x = a.x + C_W;
+    return cAdd(g, 'path', { class: 'edge', d: `M ${x} ${a.y + C_H / 2} h 18 V ${b.y + C_H / 2} H ${x + 2}` });
+  }
+  if (a.x === b.x) {
+    const x = a.x + C_W / 2, down = b.y > a.y;
+    const y1 = down ? a.y + C_H : a.y, y2 = down ? b.y - 2 : b.y + C_H + 2;
+    return cAdd(g, 'path', { class: 'edge', d: `M ${x} ${y1} V ${y2}` });
+  }
+  const x1 = a.x + C_W, y1 = a.y + fy, x2 = b.x - 2, y2 = b.y + ty, k = C_GX / 1.4;
+  cAdd(g, 'path', { class: 'edge', d: `M ${x1} ${y1} C ${x1 + k} ${y1} ${x2 - k} ${y2} ${x2} ${y2}` });
 }
 
-const C_LANES = [
-  ['you', 'name'], ['panel-edges.js'], ['move.js'], ['builder.js', 'file', 'page-file'], ['save.js'],
-  ['docs server', 'file', 'ext', 'docs-open.ts'], ['sequences.js', 'file', 'data'], ['a→b tree tab', 'name'],
-];
-const cLane = i => 63 + 125 * i;
+const cSpread = (list, i) => C_H * (i + 1) / (list.length + 1);
 
-const C_STEPS = [
-  ['call', 0, 1, 92, '1 press + under move all'],
-  ['loop', 1, 132, ['2 each picked edge:', 'Δ = wrap(Δ + increment)']],
-  ['call', 1, 2, 200, '3 bMoveAll(picked)'],
-  ['loop', 2, 236, ['4 bPut: place each picked', 'edge\'s second node', 'bRemeasure: rewrite the', 'unpicked edges\' start']],
-  ['call', 1, 3, 326, '5 changed()'],
-  ['loop', 3, 360, ['6 setup(): rebuild panels', 'update(): run methods,', 'draw the canvas, save()']],
-  ['call', 3, 4, 434, '7 bKeep'],
-  ['loop', 4, 466, ['8 pack to JSON,', 'last state → undo list']],
-  ['call', 4, 5, 526, '9 POST /save'],
-  ['call', 5, 6, 570, '10 write .tmp, rename'],
-  ['call', 7, 6, 622, '11 reload every 1 s'],
-  ['loop', 7, 640, ['12 redraw if it changed'], -1],
-];
+function cTrunk(g, a, targets) {
+  const xm = a.x + C_W + C_GX / 2, ys = targets.map(([b, ty]) => b.y + ty), y0 = a.y + C_H / 2;
+  cAdd(g, 'path', { class: 'trunk', d: `M ${a.x + C_W} ${y0} H ${xm} M ${xm} ${Math.min(y0, ...ys)} V ${Math.max(y0, ...ys)}` });
+  targets.forEach(([b], i) => cAdd(g, 'path', { class: 'edge', d: `M ${xm} ${ys[i]} H ${b.x - 2}` }));
+}
 
-function cDrawEdit(svg) {
-  const g = cAdd(svg, 'g', { class: 'lane' });
-  C_LANES.forEach(([name, c = 'file', box = '', sub], i) =>
-    cBox(g, cLane(i) - 55, 10, 110, 44, box, sub ? [[name, c], [sub, 'note small']] : [[name, c]]));
-  cAdd(svg, 'path', { class: 'life', d: C_LANES.map((_, i) => `M ${cLane(i)} 54 V 680`).join(' ') });
-  C_STEPS.forEach(([kind, ...s]) => {
-    if (kind === 'call') {
-      const [from, to, y, label] = s, a = cLane(from), b = cLane(to);
-      cAdd(svg, 'path', { class: 'edge', d: `M ${a} ${y} H ${b - 2 * Math.sign(b - a)}` });
-      cAdd(svg, 'text', { x: (a + b) / 2, y: y - 10, class: 'msg' }, label);
-    } else {
-      const [lane, y, lines, side = 1] = s, x = cLane(lane);
-      cAdd(svg, 'path', { class: 'edge', d: `M ${x} ${y} h ${36 * side} v 26 h ${-34 * side}` });
-      lines.forEach((t, i) => cAdd(svg, 'text', { x: x + 44 * side, y: y + 8 + 16 * i, class: `msg ${side > 0 ? 'l' : 'r'}` }, t));
-    }
+function cBox(g, id, { x, y }) {
+  const [file, role, kind = 'fn', name = id] = C_FN[id];
+  cAdd(g, 'rect', { class: `box ${kind}`, x, y, width: C_W, height: C_H, rx: 6 });
+  cAdd(g, 'text', { x: x + 12, y: y + 19, class: 'name' }, name);
+  cAdd(g, 'text', { x: x + 12, y: y + 40, class: 'role' }, role);
+  cAdd(g, 'text', { x: x + 12, y: y + 58, class: 'file' }, file);
+}
+
+function cMap(svg, { cols, calls }) {
+  const at = cPlaces(cols);
+  const rows = Math.max(...cols.map(c => c.length));
+  const w = 2 * C_PAD + 20 + cols.length * C_W + (cols.length - 1) * C_GX, h = 2 * C_PAD + rows * (C_H + C_GY) - C_GY;
+  Object.entries({ viewBox: `0 0 ${w} ${h}`, width: w, height: h }).forEach(([k, v]) => svg.setAttribute(k, v));
+  const edges = cAdd(svg, 'g', {}), boxes = cAdd(svg, 'g', {});
+  const pairs = calls.flatMap(line => {
+    const [from, to] = line.split('>').map(s => s.trim());
+    return to.split(/\s+/).map(t => [from, t]).filter(([f, t]) => at[f].x !== at[t].x);
   });
+  const ends = (side, other) => id => pairs.filter(p => p[side] === id).sort((p, q) => at[p[other]].y - at[q[other]].y);
+  const outs = ends(0, 1), ins = ends(1, 0);
+  const into = (from, t) => { const i = ins(t); return cSpread(i, i.findIndex(p => p[0] === from)); };
+  calls.forEach(line => {
+    const [from, to] = line.split('>').map(s => s.trim()), ts = to.split(/\s+/), a = at[from];
+    if (ts.length >= 3 && ts.every(t => at[t].x === a.x + C_W + C_GX)) return cTrunk(edges, a, ts.map(t => [at[t], into(from, t)]));
+    const o = outs(from);
+    ts.forEach(t => cEdge(edges, a, at[t], cSpread(o, o.findIndex(p => p[1] === t)), into(from, t)));
+  });
+  Object.entries(at).forEach(([id, p]) => cBox(boxes, id, p));
 }
 
-cDrawFiles(document.getElementById('code-files'));
-cDrawEdit(document.getElementById('code-edit'));
+Object.entries(C_MAPS).forEach(([id, map]) => cMap(document.getElementById(id), map));
