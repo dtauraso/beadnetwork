@@ -44,7 +44,9 @@
 
     const c = (o, k, tree) => {
       const at = `${tree.ab.a.name}→${tree.ab.b.name}:start${k}`;
-      return flag(at, num(o[k], v => check(at, bSetStart(builder, tree, k, v), v)));
+      const i = num(o[k], v => check(at, bSetStart(builder, tree, k, v), v)), turn = 12 * bS(builder, tree.ab.row.from);
+      if (k !== 'r') i.addEventListener('input', () => { const v = +i.value; if (i.value !== '' && (v < 0 || v >= turn)) i.value = bWrap(turn / 12, v); });
+      return flag(at, i);
     };
     const abOf = tree => `${tree.ab.a.name}→${tree.ab.b.name}`, trees = [...bOpenStep(builder).edges];
     const wide = { phi: bAngleOpen.has('phi'), theta: bAngleOpen.has('theta') };
