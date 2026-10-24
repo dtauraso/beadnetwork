@@ -42,8 +42,9 @@ function bEdgePicker(builder, h, picked, changed) {
   const both = [button(locked ? '▲' : '+', locked ? 'step each angle its locked way (an unlocked angle steps +)' : "add each picked edge's steps", () => move(way(1))),
     button(locked ? '▼' : '−', locked ? 'step each angle against its locked way' : "subtract each picked edge's steps", () => move(way(-1)))];
   const spin = (name, kids) => h('span', { className: 'pair' }, [name, h('span', { className: 'spin' }, kids)]);
-  const lock = button('lock', 'then click a + or − to lock it; click a lit one to unlock', () => { bLocking = !bLocking; changed(); }, bLocking);
-  const all = items.length ? [h('span', { className: 'all' }, ['move all', lock, spin('Δφ', [step('phi', 1), step('phi', -1)]), spin('Δθ', [step('theta', 1), step('theta', -1)]), spin('both', both)])] : [];
+  const lock = button(bLocking ? '●' : '○', 'then click a + or − to lock it; click a lit one to unlock', () => { bLocking = !bLocking; changed(); }, bLocking);
+  lock.className += ' tall';
+  const all = items.length ? [h('span', { className: 'all' }, ['move all', spin('lock', [lock]), spin('Δφ', [step('phi', 1), step('phi', -1)]), spin('Δθ', [step('theta', 1), step('theta', -1)]), spin('both', both)])] : [];
   const folds = h('div', { className: 'folds' }, [bFold(h, bPickedShown, 'picked', items.length, () => { bPickedShown = !bPickedShown; }, changed),
     bFold(h, bRedoShown, 'chosen for vector recalculation', redo.length, () => { bRedoShown = !bRedoShown; }, changed)]);
   const pickedList = !bPickedShown ? [] : items.length ? [h('table', { className: 'cells' }, [h('tbody', {}, items)])] : [h('div', { className: 'hint', textContent: 'no edges picked' })];
