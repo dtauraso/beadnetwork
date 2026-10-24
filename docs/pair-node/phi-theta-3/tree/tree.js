@@ -12,45 +12,55 @@ function tLoad() {
 }
 
 function tState(builder) {
-  return { label: 'builder', lines: [['s', tNum(builder.s)], ['ρ', tNum(builder.rho)], ['T_φ', tNum(builder.Tphi)], ['T_θ', tNum(builder.Ttheta)], ['c_r', tNum(builder.cr)],
+  return { kind: 'builder', label: 'builder', lines: [['s', tNum(builder.s)], ['ρ', tNum(builder.rho)], ['T_φ', tNum(builder.Tphi)], ['T_θ', tNum(builder.Ttheta)], ['c_r', tNum(builder.cr)],
     ['made', `${builder.made}`], ['sequences', tNames(builder.seqs)], ['open', builder.openSeq().name, 'ref']] };
 }
 
 const tLock = o => (o.lock && (o.lock.phi || o.lock.theta) ? tAng(o.lock, ['phi', 'theta']) : '—');
 
 function tSeq(seq) {
-  return { label: seq.name, lines: [['picked', tNames(seq.picked), 'ref'], ['steps', `${seq.steps.length}`],
+  return { kind: 'seq', label: seq.name, lines: [['picked', tNames(seq.picked), 'ref'], ['steps', `${seq.steps.length}`],
     ['all lock', tLock(seq)], ['all locking', seq.locking ? 'on' : 'off']] };
 }
 
-function tStep(st) {
-  return [['', 'this step', 'part'], ['item', st.item ? st.item.name : '—', 'ref'], ['methods', tOn(st.methods)], ['card step', `${st.card}`],
-    ['nodes', tNames([...st.nodes]), 'ref']];
+function tStep(st, i) {
+  return { kind: 'step', label: `step ${i + 1}`, lines: [['cards', 'method cards', 'ref'], ['edges', tNames([...st.edges]), 'ref'], ['nodes', tNames([...st.nodes]), 'ref']] };
+}
+
+function tCards(c) {
+  return { kind: 'cards', label: 'method cards', lines: [['item', c.item ? c.item.name : '—', 'ref'], ['methods', tOn(c.methods)], ['card step', `${c.card}`]] };
 }
 
 const tWorked = rows => [['', 'not stored', 'note'], ...rows];
 
 function tEdge(builder, e) {
-  return [['', e.name, 'part'], ['from', e.from.name, 'ref'], ['to', e.to.name, 'ref'], ['start', tAng(e.start)], ['Δ', tAng(e.delta, ['phi', 'theta'])],
+  return { kind: 'edge', label: `edge ${e.name}`, lines: [['from', e.from.name, 'ref'], ['to', e.to.name, 'ref'], ['start', tAng(e.start)], ['Δ', tAng(e.delta, ['phi', 'theta'])],
     ['increment', tAng(e.increment, ['phi', 'theta'])], ['lock', tLock(e)], ['locking', e.locking ? 'on' : 'off'],
-    ...tWorked([['~start + Δ', tAng(e.dir(builder))], [`~measured C_${e.from.name} → C_${e.to.name}`, tAng(e.measure(builder))]])];
+    ...tWorked([['~start + Δ', tAng(e.dir(builder))], [`~measured C_${e.from.name} → C_${e.to.name}`, tAng(e.measure(builder))]])] };
 }
 
 function tNode(builder, n) {
   const C = n.place(builder);
-  return { label: `node ${n.name}`, lines: [['s', n.s ? tNum(n.s) : `— (the scene's s, ${tNum(builder.s)})`],
+  return { kind: 'node', label: `node ${n.name}`, lines: [['s', n.s ? tNum(n.s) : `— (the scene's s, ${tNum(builder.s)})`],
     ['at', n.at.from ? `from ${n.at.from.name}`: 'from O', n.at.from ? 'ref' : undefined], ['', tAng(n.at)],
     ['out', tNames(n.out), 'ref'], ['in', tNames(n.in), 'ref'],
     ...tWorked([['~index on O\'s grid', tAng(n.index(builder), ['r', 'phi', 'theta'])], ['~C', ['x', 'y', 'z'].map((k, i) => `${k} ${tNum(C[i])}`).join(' | ')]])] };
 }
 
 function tGraph(builder) {
-  const seq = builder.openSeq(), nodes = seq.steps.flatMap(st => [...st.nodes]);
-  const box = new Map([['builder', tState(builder)], ['seq', tSeq(seq)],
-    ['steps', { label: 'steps', steps: seq.steps.map((st, i) => ({ name: `step ${i + 1}`, cols: [tStep(st), ...[...st.edges].map(e => tEdge(builder, e))] })) }]]);
-  const kids = new Map([['builder', ['seq']], ['seq', ['steps']], ['steps', nodes]]);
-  nodes.forEach(n => { box.set(n, tNode(builder, n)); kids.set(n, []); });
-  return { box, kids, levels: [['builder'], ['seq'], ['steps'], nodes].filter(l => l.length) };
+  const seq = builder.openSeq(), parts = [], nodes = [];
+  const box = new Map([['builder', tState(builder)], ['seq', tSeq(seq)]]), kids = new Map([['builder', ['seq']], ['seq', seq.steps]]);
+  const add = (k, b, cs = []) => { box.set(k, b); kids.set(k, cs); };
+  seq.steps.forEach((st, i) => {
+    const edges = [...st.edges], loose = [...st.nodes].filter(n => !n.in.length && !n.out.length);
+    add(st, tStep(st, i), [st.cards, ...edges, ...loose]);
+    add(st.cards, tCards(st.cards));
+    edges.forEach(e => add(e, tEdge(builder, e), [e.from, e.to]));
+    st.nodes.forEach(n => add(n, tNode(builder, n)));
+    parts.push(st.cards, ...edges);
+    nodes.push(...st.nodes);
+  });
+  return { box, kids, levels: [['builder'], ['seq'], seq.steps, parts, nodes].filter(l => l.length) };
 }
 
 function tLayout({ box, levels }) {
@@ -90,8 +100,8 @@ function tSvg(builder) {
     parts.push(`<path class="edge" d="M${p.x} ${p.y + p.h} L${n.x + off} ${n.y}"/>`);
   }));
   at.forEach((n, k) => {
-    const { label } = g.box.get(k), box = n.x - n.w / 2;
-    parts.push(`<rect class="box" x="${box}" y="${n.y}" width="${n.w}" height="${n.h}" rx="${g.kids.get(k).length ? 8 : 14}"/>`);
+    const { label, kind } = g.box.get(k), box = n.x - n.w / 2;
+    parts.push(`<rect class="box k-${kind}" x="${box}" y="${n.y}" width="${n.w}" height="${n.h}" rx="${g.kids.get(k).length ? 8 : 14}"/>`);
     parts.push(`<text class="name" x="${n.x}" y="${n.y + T_HEAD / 2 + 2}">${tEsc(label)}</text>`);
     n.bands.forEach(({ name: step, top, head, h, cs }, b) => {
       const ceil = n.y + top + head - 3, last = b === n.bands.length - 1;

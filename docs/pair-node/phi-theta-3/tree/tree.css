@@ -8,6 +8,11 @@ svg { display: block; max-width: none; height: auto; margin: 0 auto; }
 svg .edge { fill: none; stroke: var(--dim); stroke-width: 1.5; marker-end: url(#arrow); }
 svg .head { fill: var(--dim); }
 svg .box { fill: var(--panel2); stroke: var(--ink); stroke-width: 1.5; }
+svg .box.k-seq { stroke: var(--accent); }
+svg .box.k-step { stroke: var(--warm); }
+svg .box.k-cards { stroke: var(--mag); }
+svg .box.k-edge { stroke: var(--red); }
+svg .box.k-node { stroke: var(--green); }
 svg text { fill: var(--ink); font-size: 15px; text-anchor: middle; dominant-baseline: central; }
 svg text.l { text-anchor: start; }
 svg text.name { font-weight: 600; }
