@@ -57,7 +57,7 @@
         const open = wide[k];
         const b = h('button', { className: 'grow', textContent: open ? '◂' : '▸', title: `${open ? 'hide' : 'show'} Δ${name} and ${name}+Δ${name}` });
         b.onclick = () => { if (open) bAngleOpen.delete(k); else bAngleOpen.add(k); setup(); update(); };
-        const more = !open ? [] : [bN(row.delta[k]), bN(row.start[k] + row.delta[k])].map(t => h('td', { textContent: t }));
+        const more = !open ? [] : [bN(row.delta[k]), bN(bDir(builder, row)[k])].map(t => h('td', { textContent: t }));
         return [h('td', {}, [h('span', { className: 'pair' }, [c(row.start, k, tree), b])]), ...more];
       };
       const cells = [...angle('phi', 'φ'), ...angle('theta', 'θ'), h('td', {}, [c(row.start, 'r', tree)])];
