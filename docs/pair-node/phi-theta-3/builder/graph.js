@@ -4,7 +4,7 @@ const bFirst = set => set.values().next().value;
 const bName = k => (k < 26 ? 'abcdefghijklmnopqrstuvwxyz'[k] : `n${k}`);
 const bNameAt = name => (name.length === 1 ? name.charCodeAt(0) - 97 : +name.slice(1));
 const bOpenStep = builder => builder.seqs[builder.open].steps[0];
-const bShown = builder => [...bOpenStep(builder).nodes].filter(n => n.out.length || n.in.length);
+const bShown = builder => [...bOpenStep(builder).nodes];
 
 function bLink(step, row) {
   row.delta ??= { phi: 0, theta: 0 };
