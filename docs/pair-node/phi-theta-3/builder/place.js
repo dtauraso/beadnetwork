@@ -16,7 +16,8 @@ const bNodePos = (builder, n) => (n ? bPlace(builder, n.idx) : null);
 
 function bVec(builder, s, t) {
   const ang = x => x * 2 * Math.PI / (12 * s);
-  return bCart(t.r * builder.rho, ang(t.phi), ang(t.theta));
+  const R = t.r * builder.rho, ph = ang(t.phi), th = ang(t.theta);
+  return [R * Math.sin(ph) * Math.abs(Math.cos(th)), R * Math.cos(ph), R * Math.sin(ph) * Math.sin(th)];
 }
 
 function bSetAt(builder, n, p) {
