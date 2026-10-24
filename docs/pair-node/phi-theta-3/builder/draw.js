@@ -39,7 +39,7 @@ function bDrawGuides(builder, draw, ctx, css, points) {
     if (t.phi > e) arc(s => bAdd(P, bCart(R, s * t.phi * tick, 0)), css('--phi'));
     if (t.theta > e) arc(s => bAdd(P, bCart(R, Math.PI / 2, s * t.theta * tick)), css('--theta'));
   });
-  bRowEnds(builder).forEach(({ P, T }) => line([P, T], muted, 2, [3, 7]));
+  bRowEnds(builder).forEach(({ P, T }) => draw.arrow(P, T, muted, 2, true));
 }
 
 function bCellPoints(builder, rs) {
