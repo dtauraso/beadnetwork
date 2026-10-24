@@ -11,7 +11,7 @@ function bEdgePicker(builder, h, changed) {
   const st = builder.openStep(), edges = [...st.edges], picked = st.prune();
   if (!edges.length) return [];
   const left = st.offered(), redo = st.recalc().map(t => h('span', { className: 't', textContent: t.name }));
-  const pick = h('select', {}, [h('option', { value: -1, textContent: left.length ? (picked.length ? `pick an edge from ${st.start.name}` : 'pick an edge') : `all of ${st.start.name}'s edges picked` }),
+  const pick = h('select', {}, [h('option', { value: -1, textContent: left.length ? 'pick an edge' : 'no edge left to pick' }),
     ...left.map((t, i) => h('option', { value: i, textContent: t.name }))]);
   pick.onchange = () => { if (left[+pick.value]) st.pick(left[+pick.value]); changed(); };
   const move = (ts, signs) => { ts.forEach(t => Object.entries(signs(t)).forEach(([k, sign]) => t.step(builder, k, sign))); st.moveAll(builder, ts); changed(); };

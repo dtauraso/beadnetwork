@@ -25,7 +25,7 @@ function tSeq(seq) {
 function tStep(st, i) {
   return { kind: 'step', label: `step ${i + 1}`, lines: [['cards', 'method cards', 'ref'], ['edges', tNames([...st.edges]), 'ref'], ['nodes', tNames([...st.nodes]), 'ref'],
     ['picked', tNames(st.picked), 'ref'], ['all lock', tLock(st)], ['all locking', st.locking ? 'on' : 'off'],
-    ...tWorked([['~start node', st.start ? st.start.name : '—', st.start ? 'ref' : undefined], ['~recalculated', tNames(st.recalc()), 'ref']])] };
+    ...tWorked([['~recalculated', tNames(st.recalc()), 'ref']])] };
 }
 
 function tCards(c) {
