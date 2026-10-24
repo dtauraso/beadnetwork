@@ -1,4 +1,5 @@
 let bPickedShown = true, bRedoShown = true, bEdgesShown = true, bNodesShown = true;
+const bAngleOpen = new Set();
 
 function bFold(h, open, text, n, flip, changed) {
   const b = h('button', { className: 'part fold', textContent: `${open ? '▾' : '▸'} ${text} (${n})` });
