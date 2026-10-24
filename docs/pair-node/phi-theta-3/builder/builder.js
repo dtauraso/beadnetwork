@@ -68,8 +68,10 @@
       row.start = bMeasure(builder, row) || row.start;
       setup(); update();
     };
+    const changed = () => { setup(); update(); };
+    const edges = !bEdgesShown ? [] : [settings.length ? h('table', { className: 'cells' }, [h('thead', {}, [h('tr', {}, ['edge', 'start φ', 'start θ', 'start r', ''].map(t => h('th', { textContent: t })))]), h('tbody', {}, settings)]) : h('div', { className: 'hint', textContent: 'no edges' })];
     el('settings').replaceChildren(bSeqPicker(builder, h, open),
-      bSteps(h, [{ body: [...bEdgePicker(builder, h, builder.picked,() => { setup(); update(); }), h('div', { className: 'part', textContent: 'edges' }), settings.length ? h('table', { className: 'cells' }, [h('thead', {}, [h('tr', {}, ['edge', 'start φ', 'start θ', 'start r', ''].map(t => h('th', { textContent: t })))]), h('tbody', {}, settings)]) : h('div', { className: 'hint', textContent: 'no edges' }), ...bStepNodes(builder, h)],
+      bSteps(h, [{ body: [...bEdgePicker(builder, h, builder.picked, changed), h('div', { className: 'folds' }, [bFold(h, bEdgesShown, 'edges', settings.length, () => { bEdgesShown = !bEdgesShown; }, changed)]), ...edges, ...bStepNodes(builder, h, changed)],
         head: tos.length ? [pickA, ' → ', pickB, add] : [h('span', { className: 'hint', textContent: 'no edge left to add' })] }]), ...bLands(builder, h),
       h('h2', { textContent: 'a→b settings — one item per a→b, set at a, with its start (φ, θ, r)' }));
 

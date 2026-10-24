@@ -1,4 +1,10 @@
-let bPickedShown = true, bRedoShown = true;
+let bPickedShown = true, bRedoShown = true, bEdgesShown = true, bNodesShown = true;
+
+function bFold(h, open, text, n, flip, changed) {
+  const b = h('button', { className: 'part fold', textContent: `${open ? '▾' : '▸'} ${text} (${n})` });
+  b.onclick = () => { flip(); changed(); };
+  return b;
+}
 
 function bEdgePicker(builder, h, picked, changed) {
   const trees = [...bOpenStep(builder).edges], abName = t => `${t.ab.a.name}→${t.ab.b.name}`;
@@ -27,13 +33,8 @@ function bEdgePicker(builder, h, picked, changed) {
   };
   const spin = (k, name) => h('span', { className: 'pair' }, [name, h('span', { className: 'spin' }, [step(k, 1, '+'), step(k, -1, '−')])]);
   const all = items.length ? [h('span', { className: 'all' }, ['move all', spin('phi', 'Δφ'), spin('theta', 'Δθ')])] : [];
-  const fold = (open, text, n, flip) => {
-    const b = h('button', { className: 'part fold', textContent: `${open ? '▾' : '▸'} ${text} (${n})` });
-    b.onclick = () => { flip(); changed(); };
-    return b;
-  };
-  const folds = h('div', { className: 'folds' }, [fold(bPickedShown, 'picked', items.length, () => { bPickedShown = !bPickedShown; }),
-    fold(bRedoShown, 'chosen for vector recalculation', redo.length, () => { bRedoShown = !bRedoShown; })]);
+  const folds = h('div', { className: 'folds' }, [bFold(h, bPickedShown, 'picked', items.length, () => { bPickedShown = !bPickedShown; }, changed),
+    bFold(h, bRedoShown, 'chosen for vector recalculation', redo.length, () => { bRedoShown = !bRedoShown; }, changed)]);
   const pickedList = !bPickedShown ? [] : items.length ? [h('table', { className: 'cells' }, [h('tbody', {}, items)])] : [h('div', { className: 'hint', textContent: 'no edges picked' })];
   const redoList = !bRedoShown ? [] : redo.length ? [h('div', { className: 'row' }, redo)] : [h('div', { className: 'hint', textContent: 'no edges chosen for recalculation' })];
   return [h('div', { className: 'row' }, [pick, ...all]), folds, h('div', { className: 'lists' }, [...pickedList, ...redoList])];
