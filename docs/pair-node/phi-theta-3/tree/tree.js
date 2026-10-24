@@ -8,7 +8,7 @@ const tEsc =s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
 
 function tLoad() {
   const builder = bLoad();
-  if (builder) return { builder, from: window.B_SAVED ? `the builder's save, ${B_FILE}` : `the builder's old save in this browser (${B_KEY}), until it writes ${B_FILE}` };
+  if (builder) return { builder, from: `the builder's save, ${B_FILE}` };
   return { builder: bPreset(), from: `the three-node preset — the builder has not written ${B_FILE} yet` };
 }
 

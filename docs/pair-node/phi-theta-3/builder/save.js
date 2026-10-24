@@ -1,5 +1,3 @@
-const B_KEY = 'pair-builder-v6';
-
 function bPack(k, v) {
   if (['gone', 'out', 'in'].includes(k)) return undefined;
   if (k === 'edges') return [...v].map(t => t.ab.row);
@@ -30,15 +28,13 @@ function bWire(builder) {
 
 function bLoad() {
   try {
-    const builder = window.B_SAVED ? JSON.parse(JSON.stringify(window.B_SAVED)) : bCarry();
+    const builder = window.B_SAVED && JSON.parse(JSON.stringify(window.B_SAVED));
     if (builder && builder.seqs[builder.open]) { bWire(builder); return bSeqNumber(builder); }
   } catch { }
   return null;
 }
 
-function bCarry() {
-  try { return JSON.parse(localStorage.getItem(B_KEY)); } catch { return null; }
-}
+if (window.B_SAVED) try { ['pair-builder-v6', 'pair-builder-v5', 'pair-builder-seqs-v1'].forEach(k => localStorage.removeItem(k)); } catch { }
 
 function bSeqNumber(builder) {
   builder.seqs.forEach((q, i) => { if (/^sequence \d+$/.test(q.name)) q.name = `sequence ${i + 1}`; });
