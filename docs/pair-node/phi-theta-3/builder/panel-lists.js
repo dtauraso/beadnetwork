@@ -1,7 +1,7 @@
 function bSteps(h, steps) {
-  const step = (i, kids, head = []) => h('li', {}, [h('div', { className: 'dot', textContent: `${i + 1}` }),
+  const step = (i, kids, head = [], cls = '') => h('li', { className: cls }, [h('div', { className: 'dot', textContent: `${i + 1}` }),
     h('div', { className: 'body' }, [h('div', { className: 'step' }, [h('span', { textContent: `step ${i + 1}${kids.length ? '' : ' — empty'}` }), ...head]), ...kids])]);
-  return h('ol', { className: 'seq' }, steps.map(({ body, head }, i) => step(i, [].concat(body), head)));
+  return h('ol', { className: 'seq' }, [...steps.map(({ body, head }, i) => step(i, [].concat(body), head)), step(steps.length, [], [], 'next')]);
 }
 
 function bAngleLines(builder, row, d) {
