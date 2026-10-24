@@ -26,7 +26,7 @@
   .layout { display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: 16px; align-items: start; }
   @media (max-width: 880px) { .layout { grid-template-columns: 1fr; } }
   .panel { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px; margin-bottom: 16px; }
-  canvas { width: min(100%, 60vh); margin: 0 auto; aspect-ratio: 1 / 1; display: block; cursor: grab; touch-action: none; }
+  canvas { width: 100%; aspect-ratio: 1 / 1; display: block; cursor: grab; touch-action: none; }
   canvas:active { cursor: grabbing; }
   .hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
   h2 { font-size: 14px; margin: 0 0 8px; }
@@ -104,10 +104,10 @@
     <div>
       <div class="panel">
         <canvas id="view" width="900" height="900" aria-label="Nodes and each ticked method's steps"></canvas>
+        <div id="settings"></div>
         <div class="stepper">
           <button id="prev">◀</button><span id="stepno"></span><button id="next">▶</button>
         </div>
-        <div id="settings"></div>
         <div class="hint">Click-drag to look round; two-finger scroll or shift-drag to move the picture; pinch to zoom. The diagram draws every edge added in this sequence and the nodes they join. Dots: those nodes with a position. Arrows and points: the ticked methods, up to the current step, in each method's colour. Open square: the pair card's C<sub>b</sub>.</div>
       </div>
       <div class="panel">
