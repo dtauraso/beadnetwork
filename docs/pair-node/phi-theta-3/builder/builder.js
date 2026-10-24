@@ -47,17 +47,17 @@
       return flag(at, num(o[k], v => check(at, bSetStart(builder, tree, k, v), v)));
     };
     const abOf = tree => `${tree.ab.a.name}→${tree.ab.b.name}`, trees = [...bOpenStep(builder).edges];
-    const wide = { phi: trees.some(t => bAngleOpen.has(`${abOf(t)}:phi`)), theta: trees.some(t => bAngleOpen.has(`${abOf(t)}:theta`)) };
+    const wide = { phi: bAngleOpen.has('phi'), theta: bAngleOpen.has('theta') };
     const heads = ['edge', 'start φ', ...(wide.phi ? ['Δφ', 'φ+Δφ'] : []), 'start θ', ...(wide.theta ? ['Δθ', 'θ+Δθ'] : []), 'start r', ''];
     const settings = trees.map(tree => {
       const del = h('button', { textContent: 'remove' });
       del.onclick = () => { bDropTree(builder, tree); setup(); update(); };
       const ab = abOf(tree), row = tree.ab.row;
       const angle = (k, name) => {
-        const at = `${ab}:${k}`, open = bAngleOpen.has(at);
+        const open = wide[k];
         const b = h('button', { className: 'grow', textContent: open ? '◂' : '▸', title: `${open ? 'hide' : 'show'} Δ${name} and ${name}+Δ${name}` });
-        b.onclick = () => { if (open) bAngleOpen.delete(at); else bAngleOpen.add(at); setup(); update(); };
-        const more = !wide[k] ? [] : open ? [bN(row.delta[k]), bN(row.start[k] + row.delta[k])].map(t => h('td', { textContent: t })) : [h('td'), h('td')];
+        b.onclick = () => { if (open) bAngleOpen.delete(k); else bAngleOpen.add(k); setup(); update(); };
+        const more = !open ? [] : [bN(row.delta[k]), bN(row.start[k] + row.delta[k])].map(t => h('td', { textContent: t }));
         return [h('td', {}, [h('span', { className: 'pair' }, [c(row.start, k, tree), b])]), ...more];
       };
       const cells = [...angle('phi', 'φ'), ...angle('theta', 'θ'), h('td', {}, [c(row.start, 'r', tree)])];
