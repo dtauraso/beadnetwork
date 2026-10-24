@@ -24,8 +24,9 @@ function bEdgePicker(builder, h, picked, changed) {
     return b;
   };
   return [h('div', { className: 'row' }, [h('label', {}, ['edge ', pick])]),
-    items.length ? h('table', { className: 'cells' }, [h('thead', {}, [h('tr', {}, ['edge', 'Δφ step', 'Δθ step', ''].map(t => h('th', { textContent: t })))]), h('tbody', {}, items)]) :h('div', { className: 'hint', textContent: 'no edges picked' }),
-    h('div', { className: 'row' }, ['each picked edge\'s Δφ, by its own increment', step('phi', -1, '−'), step('phi', 1, '+'), ' Δθ', step('theta', -1, '−'), step('theta', 1, '+')]),
+    items.length ? h('table', { className: 'cells' }, [h('thead', {}, [h('tr', {}, ['edge', 'Δφ step', 'Δθ step', ''].map(t => h('th', { textContent: t })))]), h('tbody', {}, items),
+      h('tbody', {}, [h('tr', {}, [h('td', { className: 't', textContent: 'move all' }), h('td', {}, [step('phi', -1, '−'), step('phi', 1, '+')]), h('td', {}, [step('theta', -1, '−'), step('theta', 1, '+')]), h('td')])])])
+      : h('div', { className: 'hint', textContent: 'no edges picked' }),
     h('div', { className: 'part', textContent: 'chosen for vector recalculation' }),
     redo.length ? h('div', { className: 'row' }, redo) :h('div', { className: 'hint', textContent: 'no edges' })];
 }
