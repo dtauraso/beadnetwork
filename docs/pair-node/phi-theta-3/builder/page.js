@@ -203,7 +203,7 @@
   };
   el('preset').onclick = () => {
     const p = preset();
-    Object.assign(builder.openSeq(), { steps: p.openSeq().steps, lock: undefined, locking: undefined });
+    builder.openSeq().steps = p.openSeq().steps;
     open(Object.assign(p, { seqs: builder.seqs, open: builder.open }));
   };
 
