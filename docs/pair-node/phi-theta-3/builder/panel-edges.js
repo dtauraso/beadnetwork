@@ -23,7 +23,7 @@ function bEdgePicker(builder, h, picked, changed) {
     b.onclick = () => { picked.forEach(t => bump(t, k, sign)); changed(); };
     return b;
   };
-  const spin = k => h('span', { className: 'spin' }, [step(k, 1, '▲'), step(k, -1, '▼')]);
+  const spin = k => h('span', { className: 'spin' }, [step(k, 1, '+'), step(k, -1, '−')]);
   const all = items.length ? [h('span', { className: 'all' }, ['move all Δφ', spin('phi'), ' Δθ', spin('theta')])] : [];
   return [h('div', { className: 'row' }, [pick, ...all]),
     items.length ? h('table', { className: 'cells' }, [h('tbody', {}, items)]) : h('div', { className: 'hint', textContent: 'no edges picked' }),
