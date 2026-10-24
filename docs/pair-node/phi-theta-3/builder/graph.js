@@ -1,5 +1,5 @@
 const bAB = row => ({ row, a: row.from, b: row.to });
-const bMake = n => Object.assign(n, { out: [], in: [] });
+const bMake = n => Object.assign(Object.create(B_NODE), n, { out: [], in: [] });
 const bFirst = set => set.values().next().value;
 const bName = k => (k < 26 ? 'abcdefghijklmnopqrstuvwxyz'[k] : `n${k}`);
 const bNameAt = name => (name.length === 1 ? name.charCodeAt(0) - 97 : +name.slice(1));
@@ -10,8 +10,8 @@ function bLink(step, row) {
   row.delta ??= { phi: 0, theta: 0 };
   row.increment ??= { phi: 1, theta: 1 };
   const t = { ab: bAB(row) }, { a, b } = t.ab;
-  a.out = [...a.out, t];
-  b.in = [...b.in, t];
+  a.addOut(t);
+  b.addIn(t);
   step.edges.add(t);
   return t;
 }
@@ -20,8 +20,8 @@ const bAddTree = (builder, row) => bLink(bOpenStep(builder), row);
 
 function bDropTree(builder, t) {
   const { a, b } = t.ab;
-  a.out = a.out.filter(x => x !== t);
-  b.in = b.in.filter(x => x !== t);
+  a.drop(t);
+  b.drop(t);
   bOpenStep(builder).edges.delete(t);
 }
 

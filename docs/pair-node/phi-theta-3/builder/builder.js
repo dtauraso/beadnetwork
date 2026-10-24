@@ -35,16 +35,16 @@
 
     const all = [...bOpenStep(builder).nodes];
     el('nodes').replaceChildren(...all.flatMap(n => {
-      const xyz = ['r', 'phi', 'theta'].map(k => { const f = num(n.idx[k], v => { n.idx[k] = v; bRemeasure(builder, n); }); return h('td', {}, [f]); });
+      const xyz = ['r', 'phi', 'theta'].map(k => { const f = num(n.idx[k], v => { n.setIdx(builder, k, v); }); return h('td', {}, [f]); });
       const del = h('button', { textContent: 'remove' });
       del.onclick = () => { bDropNode(builder, n); setup(); update(); };
-      const s = flag(`${n.name}:s`, num(bS(builder, n), v => check(`${n.name}:s`, bSetS(builder, n, v), v)));
+      const s = flag(`${n.name}:s`, num(bS(builder, n), v => check(`${n.name}:s`, n.setS(builder, v), v)));
       return [h('tr', {}, [h('td', { textContent: n.name }), h('td', {}, [s]), ...xyz, h('td', {}, [del])]), ...note(n.name, 6)];
     }));
 
     const c = (o, k, tree) => {
       const at = `${tree.ab.a.name}→${tree.ab.b.name}:start${k}`;
-      const i = num(o[k], v => check(at, bSetStart(builder, tree, k, v), v)), turn = 12 * bS(builder, tree.ab.row.from);
+      const i = num(o[k], v => check(at, tree.ab.a.setStart(builder, tree, k, v), v)), turn = 12 * bS(builder, tree.ab.row.from);
       if (k !== 'r') i.addEventListener('input', () => { const v = +i.value; if (i.value !== '' && (v < 0 || v >= turn)) i.value = bWrap(turn / 12, v); });
       return flag(at, i);
     };
