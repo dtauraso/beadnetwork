@@ -1,5 +1,3 @@
-const B_KEY = 'pair-builder-v6';
-
 function bPack(k, v) {
   if (['gone', 'out', 'in'].includes(k)) return undefined;
   if (k === 'edges') return [...v].map(t => t.ab.row);
@@ -30,19 +28,10 @@ function bWire(builder) {
 
 function bLoad() {
   try {
-    const builder = JSON.parse(localStorage.getItem(B_KEY)) || bOld();
+    const builder = window.B_SAVED && JSON.parse(JSON.stringify(window.B_SAVED));
     if (builder && builder.seqs[builder.open]) { bWire(builder); return bSeqNumber(builder); }
   } catch { }
   return null;
-}
-
-function bOld() {
-  const get = k => JSON.parse(localStorage.getItem(k)), book = get('pair-builder-seqs-v1'), v5 = get('pair-builder-v5');
-  const datas = book && book.seqs.length ? book.seqs.map(q => (q.data ? JSON.parse(q.data) : v5)) : [v5];
-  const open = book && datas[book.at] ? book.at : 0;
-  if (!datas[open]) return null;
-  const { nodes, trees, ...rest } = datas[open];
-  return { ...rest, open, seqs: datas.map((d, i) => ({ name: book ? book.seqs[i].name : 'sequence 1', steps: [{ edges: d ? d.trees : [], nodes: d ? d.nodes : [] }] })) };
 }
 
 function bSeqNumber(builder) {
@@ -58,5 +47,18 @@ function bKeep(builder) {
   if (bNow !== null && now !== bNow) { B_PAST.push(bNow); if (B_PAST.length > 100) B_PAST.shift(); }
   bNow = now;
   if (bUndo) { bUndo.disabled = !B_PAST.length; bUndo.textContent = `undo (${B_PAST.length})`; }
-  try { localStorage.setItem(B_KEY, now); } catch { }
+  bSend();
+}
+
+const B_FILE = 'phi-theta-3/builder/sequences.js';
+let bSent = null, bSending = Promise.resolve();
+
+function bSend() {
+  const at = window.BEADNETWORK_DOCS_OPEN;
+  if (!at || bNow === bSent) return;
+  const text = `window.B_SAVED = ${JSON.stringify(JSON.parse(bNow), null, 2)};\n`;
+  bSent = bNow;
+  bSending = bSending.then(() => fetch(`http://localhost:${at.port}/save?token=${encodeURIComponent(at.token)}&file=${encodeURIComponent(B_FILE)}`, { method: 'POST', body: text }))
+    .then(r => { if (!r.ok) throw new Error(`status ${r.status}`); })
+    .catch(e => { bSent = null; console.warn(`builder: ${B_FILE} not saved: ${e.message}`); });
 }
