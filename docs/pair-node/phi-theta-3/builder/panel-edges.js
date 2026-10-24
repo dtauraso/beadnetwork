@@ -27,11 +27,11 @@ function bEdgePicker(builder, h, picked, changed) {
   };
   const spin = (k, name) => h('span', { className: 'pair' }, [name, h('span', { className: 'spin' }, [step(k, 1, '+'), step(k, -1, '−')])]);
   const all = items.length ? [h('span', { className: 'all' }, ['move all', spin('phi', 'Δφ'), spin('theta', 'Δθ')])] : [];
-  const fold = h('button', { textContent: bPickedShown ? 'hide picked' : `show picked (${items.length})` });
+  const fold = h('button', { className: 'part fold', textContent: `${bPickedShown ? '▾' : '▸'} picked (${items.length})` });
   fold.onclick = () => { bPickedShown = !bPickedShown; changed(); };
   const list = !items.length ? [h('div', { className: 'hint', textContent: 'no edges picked' })]
-    : bPickedShown ? [h('table', { className: 'cells' }, [h('tbody', {}, items)])] : [];
-  return [h('div', { className: 'row' }, [pick, ...(items.length ? [fold] : []), ...all]), ...list,
+    : [fold, ...(bPickedShown ? [h('table', { className: 'cells' }, [h('tbody', {}, items)])] : [])];
+  return [h('div', { className: 'row' }, [pick, ...all]), ...list,
     h('div', { className: 'part', textContent: 'chosen for vector recalculation' }),
     redo.length ? h('div', { className: 'row' }, redo) :h('div', { className: 'hint', textContent: 'no edges' })];
 }
