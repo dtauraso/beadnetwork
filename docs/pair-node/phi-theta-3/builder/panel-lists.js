@@ -4,7 +4,7 @@ function bSteps(h, steps) {
   return h('ol', { className: 'seq' }, [...steps.map(({ body, head }, i) => step(i, [].concat(body), head)), step(steps.length, [], [], 'next')]);
 }
 
-function bStepNodes(builder, h) {
+function bStepNodes(builder, h, changed) {
   const ns = bShown(builder);
   const rows = ns.map(n => {
     const c = bNodePos(builder, n);
@@ -12,7 +12,9 @@ function bStepNodes(builder, h) {
       c ? ['x', 'y', 'z'].map((k, i) => `${k} ${bN(+bF(c[i]))}`).join(' ') : '—'];
     return h('tr', {}, cells.map((t, i) => h('td', { className: i ? '' : 't', textContent: t })));
   });
-  return [h('div', { className: 'part', textContent: 'nodes' }),
+  const fold = h('div', { className: 'folds' }, [bFold(h, bNodesShown, 'nodes', rows.length, () => { bNodesShown = !bNodesShown; }, changed)]);
+  if (!bNodesShown) return [fold];
+  return [fold,
     rows.length ? h('table', { className: 'cells' }, [h('thead', {}, [h('tr', {}, ['node', 's (ticks a turn)', 'I_r', 'I_φ', 'I_θ', 'C'].map(t => h('th', { textContent: t })))]), h('tbody', {}, rows)])
       : h('div', { className: 'hint', textContent: 'no nodes' })];
 }
