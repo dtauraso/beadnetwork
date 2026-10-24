@@ -1,8 +1,3 @@
-function bRowCells(builder, tree, c, h) {
-  const r = tree.ab.row;
-  return [['start φ', c(r.start, 'phi', tree)], ['start θ', c(r.start, 'theta', tree)], ['start r', c(r.start, 'r', tree)]];
-}
-
 function bSteps(h, steps) {
   const step = (i, kids, head = [], cls = '') => h('li', { className: cls }, [h('div', { className: 'dot', textContent: `${i + 1}` }),
     h('div', { className: 'body' }, [h('div', { className: 'step' }, [h('span', { textContent: `step ${i + 1}${kids.length ? '' : ' — empty'}` }), ...head]), ...kids])]);
@@ -31,16 +26,18 @@ function bDelta(row, h) {
 
 function bStepNodes(builder, h) {
   const ns = bShown(builder);
-  const items = ns.map(n => {
-    const at = [['I_r', 'r'], ['I_φ', 'phi'], ['I_θ', 'theta']].map(([k, x]) => [k, bN(n.idx[x])]);
+  const rows = ns.flatMap(n => {
     const c = bNodePos(builder, n);
-    const attrs = [['s', `${bS(builder, n)} (${12 * bS(builder, n)} ticks a turn)`], ...at, ...(c ? [['C', `${['x', 'y', 'z'].map((k, i) => `${k} ${bN(+bF(c[i]))}`).join(' ')}`]] : []),
-      ...n.in.map(t => [t.ab.a.name, bMeasure(builder, t.ab.row), t.ab.row]).map(([a, d, row]) => [`${a}→${n.name} start`, d ? `φ ${bN(+bF(row.start.phi))} θ ${bN(+bF(row.start.theta))} r ${bN(+bF(row.start.r))}` :`${a} or ${n.name} has no position`, ...bDelta(row, h), ...bAngleMath(builder, row, d, h)])];
-    return h('li', {}, [h('div', { className: 'row' }, [h('span', { className: 't', textContent: n.name })]),
-      h('ul', { className: 'attrs' }, attrs.map(([k, v, ...more]) => h('li', {}, [h('span', { className: 'k', textContent: k }), v, ...more])))]);
+    const cells = [n.name, `${bS(builder, n)} (${12 * bS(builder, n)})`, ...['r', 'phi', 'theta'].map(x => bN(n.idx[x])),
+      c ? ['x', 'y', 'z'].map((k, i) => `${k} ${bN(+bF(c[i]))}`).join(' ') : '—'];
+    const ins = n.in.map(t => [t.ab.a.name, bMeasure(builder, t.ab.row), t.ab.row]).map(([a, d, row]) => h('tr', { className: 'in' }, [
+      h('td', { className: 'k', textContent: `${a}→${n.name} start` }),
+      h('td', { colSpan: 5 }, [d ? `φ ${bN(+bF(row.start.phi))} θ ${bN(+bF(row.start.theta))} r ${bN(+bF(row.start.r))}` : `${a} or ${n.name} has no position`, ...bDelta(row, h), ...bAngleMath(builder, row, d, h)])]));
+    return [h('tr', {}, cells.map((t, i) => h('td', { className: i ? '' : 't', textContent: t }))), ...ins];
   });
   return [h('div', { className: 'part', textContent: 'nodes' }),
-    items.length ? h('ul', { className: 'abs' }, items) : h('div', { className: 'hint', textContent: 'no nodes' })];
+    rows.length ? h('table', { className: 'cells' }, [h('thead', {}, [h('tr', {}, ['node', 's (ticks a turn)', 'I_r', 'I_φ', 'I_θ', 'C'].map(t => h('th', { textContent: t })))]), h('tbody', {}, rows)])
+      : h('div', { className: 'hint', textContent: 'no nodes' })];
 }
 
 function bLands(builder, h) {

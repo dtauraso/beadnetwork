@@ -50,10 +50,10 @@
       const del = h('button', { textContent: 'remove' });
       del.onclick = () => { bDropTree(builder, tree); setup(); update(); };
       const ab = `${tree.ab.a.name}→${tree.ab.b.name}`;
-      const attrs = bRowCells(builder, tree, c, h).map(([k, v]) => h('li', {}, [h('span', { className: 'k', textContent: k }), ...[].concat(v)]));
-      const miss = err && err.at.split(':')[0] === ab ? [h('div', { className: 'missing', textContent: err.text })] : [];
-      return h('li', {}, [h('div', { className: 'row' }, [h('span', { className: 't', textContent: ab }), del]), h('ul', { className: 'attrs' }, attrs), ...miss]);
-    });
+      const cells = ['phi', 'theta', 'r'].map(k => h('td', {}, [c(tree.ab.row.start, k, tree)]));
+      const miss = err && err.at.split(':')[0] === ab ? [h('tr', {}, [h('td', { className: 'missing', colSpan: 5, textContent: err.text })])] : [];
+      return [h('tr', {}, [h('td', { className: 't', textContent: ab }), ...cells, h('td', {}, [del])]), ...miss];
+    }).flat();
     const froms = all.filter(a => a.out.length < all.length - 1);
     if (!pickFrom || pickFrom.gone || pickFrom.out.length >= all.length - 1) pickFrom = froms[0];
     const taken = new Set(pickFrom ? pickFrom.out.map(t => t.ab.b) : []);
@@ -69,7 +69,7 @@
       setup(); update();
     };
     el('settings').replaceChildren(bSeqPicker(builder, h, open),
-      bSteps(h, [{ body: [...bEdgePicker(builder, h, builder.picked,() => { setup(); update(); }), h('div', { className: 'part', textContent: 'edges' }), settings.length ? h('ul', { className: 'abs' }, settings) : h('div', { className: 'hint', textContent: 'no edges' }), ...bStepNodes(builder, h)],
+      bSteps(h, [{ body: [...bEdgePicker(builder, h, builder.picked,() => { setup(); update(); }), h('div', { className: 'part', textContent: 'edges' }), settings.length ? h('table', { className: 'cells' }, [h('thead', {}, [h('tr', {}, ['edge', 'start φ', 'start θ', 'start r', ''].map(t => h('th', { textContent: t })))]), h('tbody', {}, settings)]) : h('div', { className: 'hint', textContent: 'no edges' }), ...bStepNodes(builder, h)],
         head: tos.length ? [pickA, ' → ', pickB, add] : [h('span', { className: 'hint', textContent: 'no edge left to add' })] }]), ...bLands(builder, h),
       h('h2', { textContent: 'a→b settings — one item per a→b, set at a, with its start (φ, θ, r)' }));
 
