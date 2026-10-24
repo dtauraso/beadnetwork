@@ -11,8 +11,8 @@
 </head>
 <body>
 <header>
-  <h1>The code behind these tabs</h1>
-  <div class="sub">How the three-node card, the a→b vectors, the a→b builder, the a→b tree and the builder tests are built: which page loads which scripts, which of the builder's files uses which, how a page starts from the saved sequences, and how one edit travels from a button to sequences.js and back into the tree tab. Every page is plain scripts with no build step; a script's names are globals the scripts after it can use, so a page's script order is its dependency order.</div>
+  <h1>The code behind the builder and the tree</h1>
+  <div class="sub">Function by function. Each box is one function: its name, what it does, and the file it lives in. An arrow goes from a function to a function it calls. Read each map left to right, from where it starts.</div>
 </header>
 
 <nav>
@@ -28,147 +28,47 @@
 <main>
   <svg class="defs" aria-hidden="true" width="0" height="0" style="position: absolute">
     <defs>
-      <marker id="arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="head" d="M0 0 L10 5 L0 10 z"/></marker>
+      <marker id="arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path class="head" d="M0 0 L10 5 L0 10 z"/></marker>
     </defs>
   </svg>
 
-  <h2>1. Pages and the scripts they load</h2>
-  <p class="lede">Each column is one tab. A box sits in every column it spans, so a box across several columns is a script those tabs share. The builder, the tree and the tests all run the same builder model; only the builder and the tree read the saved sequences.</p>
-  <div class="panel">
-    <svg class="d1" viewBox="0 0 1000 370" role="img" aria-label="Five tab columns with the scripts each loads; shared scripts span several columns">
-      <rect class="band" x="10" y="10" width="180" height="350" rx="8"/>
-      <rect class="band" x="210" y="10" width="180" height="350" rx="8"/>
-      <rect class="band" x="410" y="10" width="200" height="350" rx="8"/>
-      <rect class="band" x="630" y="10" width="160" height="350" rx="8"/>
-      <rect class="band" x="810" y="10" width="180" height="350" rx="8"/>
+  <h2>1. Opening the builder</h2>
+  <p class="lede">The page reads the saved sequences, or starts from the three-node example when there are none, then builds the panels with setup and draws with update.</p>
+  <div class="panel"><svg id="map-open" role="img" aria-label="Opening the builder: which function calls which"></svg></div>
 
-      <rect class="page" x="20" y="20" width="160" height="36" rx="6"/><text x="100" y="38" class="name">Three-node card</text>
-      <rect class="page" x="220" y="20" width="160" height="36" rx="6"/><text x="300" y="38" class="name">a→b vectors</text>
-      <rect class="page" x="420" y="20" width="180" height="36" rx="6"/><text x="510" y="38" class="name">a→b builder</text>
-      <rect class="page" x="640" y="20" width="140" height="36" rx="6"/><text x="710" y="38" class="name">a→b tree</text>
-      <rect class="page" x="820" y="20" width="160" height="36" rx="6"/><text x="900" y="38" class="name">builder tests</text>
+  <h2>2. update: after every change</h2>
+  <p class="lede">update runs the ticked methods, paints the canvas and saves. It runs after every edit.</p>
+  <div class="panel"><svg id="map-update" role="img" aria-label="update: which function calls which"></svg></div>
 
-      <rect class="box" x="20" y="70" width="160" height="112" rx="6"/>
-      <text x="100" y="90" class="file">sphere-card-3-set.js</text>
-      <text x="100" y="110" class="file">sphere-card-3-pair.js</text>
-      <text x="100" y="130" class="file">card-3-2/ (2 files)</text>
-      <text x="100" y="150" class="file">pair.js · port.js</text>
-      <text x="100" y="170" class="file">mathjax.js</text>
+  <h2>3. setup: the panels and what their controls call</h2>
+  <p class="lede">setup rebuilds every panel. A control's edit calls the function it points to, then setup and update again.</p>
+  <div class="panel"><svg id="map-setup" role="img" aria-label="setup: which function calls which"></svg></div>
 
-      <rect class="box" x="220" y="70" width="160" height="72" rx="6"/>
-      <text x="300" y="90" class="file">atob-steps.js</text>
-      <text x="300" y="110" class="file">atob-scene.js</text>
-      <text x="300" y="130" class="file">atob.js</text>
+  <h2>4. Moving a node</h2>
+  <p class="lede">bPut puts an edge's second node at its first node's place plus the edge's vector. bRemeasure then reads each other edge at that node back from the two places.</p>
+  <div class="panel"><svg id="map-move" role="img" aria-label="Moving a node: which function calls which"></svg></div>
 
-      <rect class="box" x="420" y="70" width="180" height="112" rx="6"/>
-      <text x="510" y="90" class="file">builder.js</text>
-      <text x="510" y="110" class="file">panel-seqs.js</text>
-      <text x="510" y="130" class="file">panel-edges.js</text>
-      <text x="510" y="150" class="file">panel-lists.js · draw.js</text>
-      <text x="510" y="170" class="file">port.js</text>
+  <h2>5. The methods' steps and the edge drawing</h2>
+  <p class="lede">The two methods and the diagram's arrows and arcs all work from each edge's direction, start + Δ.</p>
+  <div class="panel"><svg id="map-draw" role="img" aria-label="Methods and drawing: which function calls which"></svg></div>
 
-      <rect class="box" x="640" y="70" width="140" height="32" rx="6"/>
-      <text x="710" y="86" class="file">tree.js</text>
+  <h2>6. Saving, and the tree tab reading it back</h2>
+  <p class="lede">bSend posts the file to the docs server in the VS Code extension. The tree tab reloads sequences.js every second and redraws when it changed.</p>
+  <div class="panel"><svg id="map-save" role="img" aria-label="Saving: which function calls which"></svg></div>
 
-      <rect class="box" x="820" y="70" width="160" height="72" rx="6"/>
-      <text x="900" y="90" class="file">tests.js</text>
-      <text x="900" y="110" class="file">tests-want.js</text>
-      <text x="900" y="130" class="file">tests-why.js</text>
+  <h2>7. The tree tab</h2>
+  <p class="lede">tDraw loads the builder with the builder's own bLoad, then lays out one box per field, edge and node.</p>
+  <div class="panel"><svg id="map-tree" role="img" aria-label="The tree tab: which function calls which"></svg></div>
 
-      <rect class="box data" x="420" y="198" width="360" height="40" rx="6"/>
-      <text x="600" y="212" class="file">sequences.js</text>
-      <text x="600" y="228" class="note">the saved sequences: window.B_SAVED</text>
-
-      <rect class="box" x="420" y="252" width="560" height="50" rx="6"/>
-      <text x="700" y="268" class="file">vec · text · place · direction · graph · move · preset · methods · save</text>
-      <text x="700" y="288" class="note">the builder model (builder/*.js): the data and the math, no page of its own</text>
-
-      <rect class="box" x="220" y="316" width="760" height="36" rx="6"/>
-      <text x="600" y="334" class="file">atob-draw.js <tspan class="note">— the canvas: projection, arrows, dots, labels</tspan></text>
-    </svg>
-  </div>
-
-  <h2>2. Inside the builder: which file uses which</h2>
-  <p class="lede">A file uses only files in rows below it; "uses" names the files whose functions it calls. The bottom row uses nothing. builder.js is the page: it is the only file that runs on its own, and every other file is functions it calls.</p>
-  <div class="panel">
-    <svg id="code-files" viewBox="0 0 1000 620" role="img" aria-label="The builder's files in layers; each file uses only files in rows below it">
-    </svg>
-  </div>
-  <ul class="files">
-    <li><span data-src="docs/pair-node/phi-theta-3/builder/builder.js">builder.js</span> — setup() builds the panels from the builder's data, update() runs the ticked methods, draws the canvas and saves; the canvas's look-round, pan and zoom.</li>
-    <li><span data-src="docs/pair-node/phi-theta-3/builder/panel-lists.js#bStepNodes">panel-lists.js</span> — the step list, each step's nodes table, the read-only start and start + Δ list, and the nodes' places in O's frame.</li>
-    <li><span data-src="docs/pair-node/phi-theta-3/builder/panel-edges.js#bEdgePicker">panel-edges.js</span> — picking edges, each picked edge's Δφ and Δθ step, and move all.</li>
-    <li><span data-src="docs/pair-node/phi-theta-3/builder/panel-seqs.js#bSeqPicker">panel-seqs.js</span> — the sequence picker, new and delete sequence, undo.</li>
-    <li><span data-src="docs/pair-node/phi-theta-3/builder/preset.js#bPreset">preset.js</span> — the three-node example.</li>
-    <li><span data-src="docs/pair-node/phi-theta-3/builder/move.js#bMoveAll">move.js</span> — placing an edge's second node from its first, re-measuring the other edges at a moved node, setting a start, changing a node's s.</li>
-    <li><span data-src="docs/pair-node/phi-theta-3/builder/methods.js#bMethodAtoB">methods.js</span> — the two methods you tick, the a→b card and the pair card, as steps to list and draw.</li>
-    <li><span data-src="docs/pair-node/phi-theta-3/builder/draw.js#bDrawGuides">draw.js</span> — the diagram's axes, each edge's line with its arrow, and the φ and θ arcs.</li>
-    <li><span data-src="docs/pair-node/phi-theta-3/builder/save.js#bKeep">save.js</span> — reading sequences.js into a builder, packing it back to text, the undo list, sending it to the docs server.</li>
-    <li><span data-src="docs/pair-node/phi-theta-3/builder/direction.js#bMeasure">direction.js</span> — an edge's direction (start + Δ, wrapped into one turn), measuring a direction from two node places, the lines and arcs to draw.</li>
-    <li><span data-src="docs/pair-node/phi-theta-3/builder/place.js#bVec">place.js</span> — a node's place from its scene index and back, and an edge's vector from φ, θ and r.</li>
-    <li><span data-src="docs/pair-node/phi-theta-3/builder/vec.js">vec.js</span> — adding, subtracting and measuring vectors, polar to x y z, wrapping a number into one turn.</li>
-    <li><span data-src="docs/pair-node/phi-theta-3/builder/graph.js#bLink">graph.js</span> — linking an edge to its two nodes, dropping edges and nodes, the open step, the nodes shown.</li>
-    <li><span data-src="docs/pair-node/phi-theta-3/builder/text.js">text.js</span> — numbers, points and indexes as text.</li>
-  </ul>
-
-  <h2>3. Starting a page</h2>
-  <p class="lede">The builder and the tree read the saved sequences as a script, not a request: sequences.js is a line of JavaScript that sets window.B_SAVED. The VS Code extension writes port.js when it starts, so a page knows where to send saves and which token to send with them.</p>
-  <div class="panel">
-    <svg viewBox="0 0 1000 230" role="img" aria-label="At start the extension writes port.js; a page loads sequences.js, then bLoad and bWire turn it into the builder">
-      <rect class="box ext" x="10" y="20" width="220" height="64" rx="6"/>
-      <text x="120" y="42" class="name">VS Code extension</text>
-      <text x="120" y="64" class="note">docs-open.ts starts the docs server</text>
-      <rect class="box data" x="300" y="20" width="300" height="64" rx="6"/>
-      <text x="450" y="42" class="file">port.js</text>
-      <text x="450" y="64" class="note">port + token, BEADNETWORK_DOCS_OPEN</text>
-      <path class="edge" d="M 230 52 L 298 52"/>
-      <text x="264" y="42" class="note small">writes</text>
-
-      <rect class="box data" x="10" y="140" width="190" height="64" rx="6"/>
-      <text x="105" y="162" class="file">sequences.js</text>
-      <text x="105" y="184" class="note">sets window.B_SAVED</text>
-      <rect class="box" x="250" y="140" width="190" height="64" rx="6"/>
-      <text x="345" y="162" class="name">bLoad</text>
-      <text x="345" y="184" class="note">a deep copy of B_SAVED</text>
-      <rect class="box" x="490" y="140" width="220" height="64" rx="6"/>
-      <text x="600" y="162" class="name">bWire</text>
-      <text x="600" y="184" class="note">names → node and edge objects</text>
-      <rect class="box page-file" x="760" y="140" width="230" height="64" rx="6"/>
-      <text x="875" y="162" class="name">builder</text>
-      <text x="875" y="184" class="note">sequences → steps → edges, nodes</text>
-      <path class="edge" d="M 200 172 L 248 172"/>
-      <path class="edge" d="M 440 172 L 488 172"/>
-      <path class="edge" d="M 710 172 L 758 172"/>
-      <path class="edge dashed" d="M 600 52 C 760 52 875 70 875 138"/>
-      <text x="760" y="36" class="note small">save.js reads it when it sends</text>
-    </svg>
-  </div>
-  <p class="lede">The builder object is the tree the <a href="../tree/index.html">a→b tree</a> tab draws. bWire turns each saved edge's from and to names into the node objects themselves and links each edge into its nodes' in and out lists, so moving a node is seen by every edge that touches it. With no saved file the builder starts from preset.js.</p>
-
-  <h2>4. One edit, from the button to the tree tab</h2>
-  <p class="lede">Pressing + under move all, top to bottom. Each column is a file or a process; an arrow is a call, a loop is work inside one file. The page saves after every redraw, so every change reaches sequences.js; nothing waits for the save.</p>
-  <div class="panel">
-    <svg id="code-edit" viewBox="0 0 1000 690" role="img" aria-label="Sequence: press +, panel-edges steps Δ, move.js places nodes, builder.js redraws, save.js sends, the docs server writes sequences.js, the tree tab reloads it">
-    </svg>
-  </div>
-  <ol class="files">
-    <li>The + is drawn by <span data-src="docs/pair-node/phi-theta-3/builder/panel-edges.js#bEdgePicker">bEdgePicker</span>.</li>
-    <li>Δ wraps into one turn, so below 0 it comes back in at 12s and counts down.</li>
-    <li><span data-src="docs/pair-node/phi-theta-3/builder/move.js#bMoveAll">bMoveAll</span> takes every picked edge at once.</li>
-    <li><span data-src="docs/pair-node/phi-theta-3/builder/move.js#bPut">bPut</span> sets the second node at its first node's place + the edge's vector; then <span data-src="docs/pair-node/phi-theta-3/builder/move.js#bRemeasure">bRemeasure</span> measures every unpicked edge at a moved node from the two node places. A picked edge is never re-measured, so + then − returns every edge.</li>
-    <li>changed() is setup() then update() in builder.js.</li>
-    <li>The canvas, the panels and the step lists are all redrawn from the builder's data; nothing on screen is kept between redraws.</li>
-    <li><span data-src="docs/pair-node/phi-theta-3/builder/save.js#bKeep">bKeep</span> is called at the end of every update().</li>
-    <li>The undo list holds the last 100 states; undo loads one back through bWire.</li>
-    <li><span data-src="docs/pair-node/phi-theta-3/builder/save.js#bSend">bSend</span> posts the whole file with the token from port.js, and only when the state changed. It does not wait for an answer before the next edit.</li>
-    <li><span data-src="Start/extension/docs-open.ts#saveDoc">saveDoc</span> writes only a file named sequences.js under docs/pair-node, to a .tmp first and then renames it over, so a reader never sees half a file.</li>
-    <li><span data-src="docs/pair-node/phi-theta-3/tree/tree.js#tReread">tReread</span> loads sequences.js again as a script every second.</li>
-    <li>The tree redraws only when B_SAVED differs from the last read. The builder does not reread the file: an open builder tab keeps its own copy, and its next save writes over the file.</li>
-  </ol>
+  <h2>Left out of the arrows</h2>
+  <p class="helpers">Small helpers almost every function calls, so arrows to them would hide the rest:
+    <b>bAdd bSub bLen bCart bWrap bWhole</b> (vec.js, vector math and wrapping into one turn) ·
+    <b>bF bN bPt bIdx</b> (text.js, numbers as text) ·
+    <b>bS bOpenStep bShown</b> (a node's s, the open step, the nodes shown) ·
+    <b>h bSteps bFold</b> (making page elements).</p>
 </main>
 
-<script src="../../port.js"></script>
-<script src="../../pair.js"></script>
+<script src="code-maps.js"></script>
 <script src="code.js"></script>
 </body>
 </html>
