@@ -81,7 +81,6 @@
   .seq .lists { display: flex; flex-wrap: wrap; gap: 0 4px; align-items: flex-start; }
   .seq .lists > .row, .seq .lists > .hint { margin: 6px 0 0; }
   .seq .part.fold { margin: 0; background: none; border: none; padding: 0; font-family: inherit; cursor: pointer; }
-  .all { white-space: nowrap; margin-left: auto; display: flex; align-items: center; gap: 16px; }
   .pair { display: inline-flex; align-items: center; gap: 6px; }
   button.grow { background: none; border: none; color: var(--muted); padding: 0; font-size: 12px; line-height: 1; cursor: pointer; }
   table.cells th, table.cells td { white-space: nowrap; }  .spin { display: inline-flex; flex-direction: column; border: 1px solid var(--wire); border-radius: 5px; overflow: hidden; }
@@ -90,6 +89,12 @@
   .spin button:hover { background: color-mix(in srgb, var(--ink) 12%, transparent); }
   .spin button.lit { background: color-mix(in srgb, var(--local) 30%, transparent); }
   .spin button.tall { height: 27px; }
+  .spin button:disabled { color: var(--muted); cursor: default; background: none; }
+  table.picked { width: 100%; }
+  table.picked td { padding: 3px 8px 3px 0; }
+  table.picked td.lockcell { width: 100%; text-align: right; padding-right: 0; }
+  table.picked td.right { text-align: right; }
+  table.picked tr.all td { border-bottom: 1px solid var(--line); }
   input.invalid { outline: 2px solid var(--bad); }
 </style>
 </head>
