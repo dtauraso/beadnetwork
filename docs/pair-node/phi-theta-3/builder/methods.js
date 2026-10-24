@@ -1,5 +1,5 @@
 function bRowVectors(builder, node) {
-  return node.in.flatMap(tree => bDirs(builder, tree).map(({ t }) => ({ from: tree.ab.a, row: tree.ab.row, t, d: bVec(builder, bS(builder, tree.ab.a), t) })));
+  return node.in.map(e => { const t = e.dir(builder); return { from: e.from, t, d: builder.vec(e.from.scale(builder), t) }; });
 }
 
 function bVectorStep(rows, item) {
@@ -14,44 +14,34 @@ function bVectorStep(rows, item) {
 }
 
 function bResult(builder, item, p, label) {
-  const lines = [`${label} as an index: ${bIdx(bIndexOf(builder, p))}`];
-  const set = bNodePos(builder, item);
-  item = item.name;
-  if (set) {
-    const miss = bLen(bSub(p, set));
-    lines.push(`|${label} − ${item} as set| = ${bF(miss)}${miss < 1e-6 ? ' — lands on it' : ' — misses it'}`);
-  }
-  return lines;
+  const miss = bLen(bSub(p, item.place(builder)));
+  return [`${label} as an index: ${bIdx(builder.indexOf(p))}`,
+    `|${label} − ${item.name} as set| = ${bF(miss)}${miss < 1e-6 ? ' — lands on it' : ' — misses it'}`];
 }
 
 function bFromNodes(builder, rows) {
-  const placed = rows.map(r => ({ ...r, from: r.from.name, I: r.from.idx, C: bNodePos(builder, r.from) }));
-  const missing = placed.filter(r => !r.C).map(r => r.from);
+  const placed = rows.map(r => ({ ...r, from: r.from.name, I: r.from.index(builder), C: r.from.place(builder) }));
   const step = {
     title: 'the from node\'s position, from its index',
-    lines: placed.map(r => r.C
-      ? `C_${r.from} = ${bPlaceText(r.I)} = ${bPt(r.C)}`
-      : `C_${r.from}: missing — ${r.from} has no index`),
+    lines: placed.map(r => `C_${r.from} = ${bPlaceText(r.I)} = ${bPt(r.C)}`),
     note: 'each row\'s vector starts at its from node, so the from node\'s position is needed',
-    ok: !missing.length,
-    draw: placed.filter(r => r.C).map(r => ({ dot: r.C, label: `C_${r.from}` })),
+    ok: true,
+    draw: placed.map(r => ({ dot: r.C, label: `C_${r.from}` })),
   };
-  return { step, missing, done: placed.filter(r => r.C).map(r => ({ ...r, b: bAdd(r.C, r.d) })) };
+  return { step, done: placed.map(r => ({ ...r, b: bAdd(r.C, r.d) })) };
 }
 
 function bMethodAtoB(builder, node) {
   const item = node.name, rows = bRowVectors(builder, node);
   const steps = [bVectorStep(rows, item)];
   if (!rows.length) return steps;
-  const { step, missing, done } = bFromNodes(builder, rows);
+  const { step, done } = bFromNodes(builder, rows);
   steps.push(step);
-  if (!done.length) return steps;
   const lines = done.map(r => `${item}(${r.from}) = C_${r.from} + d_${r.from}${item} = ${bPt(r.b)}`);
   done.slice(1).forEach(r => {
     const gap = bLen(bSub(r.b, done[0].b));
     lines.push(`|${item}(${r.from}) − ${item}(${done[0].from})| = ${bF(gap)}${gap < 1e-6 ? ' — one point' : ' — the rows disagree'}`);
   });
-  missing.forEach(n => lines.push(`${item}(${n}): not placed — C_${n} is missing`));
   done.forEach(r => lines.push(...bResult(builder, node, r.b, `${item}(${r.from})`)));
   steps.push({
     title: `global: ${item} from each row`,
@@ -65,17 +55,15 @@ function bMethodPair(builder, node) {
   const item = node.name, rows = bRowVectors(builder, node);
   const steps = [bVectorStep(rows, item)];
   if (!rows.length) return steps;
-  const { step, missing, done } = bFromNodes(builder, rows);
+  const { step, done } = bFromNodes(builder, rows);
   steps.push(step);
-  if (!done.length) return steps;
   steps.push({
     title: `global: C_${item} = C_n + d_n${item}, per pair`,
-    lines: [...done.map(r => `pair ${r.from}→${item}: C_${item} = C_${r.from} + d_${r.from}${item} = ${bPt(r.b)}`),
-      ...missing.map(n => `pair ${n}→${item}: not placed — C_${n} is missing`)],
+    lines: done.map(r => `pair ${r.from}→${item}: C_${item} = C_${r.from} + d_${r.from}${item} = ${bPt(r.b)}`),
     note: `in ${item}, with C_n from the edge n→${item}`, ok: true,
     draw: done.flatMap(r => [{ arrow: [r.C, r.b] }]),
   });
-  const indexed = done.map(r => ({ ...r, I: bIndexOf(builder, r.b) }));
+  const indexed = done.map(r => ({ ...r, I: builder.indexOf(r.b) }));
   steps.push({
     title: `convert: C_${item} − O as an index`,
     lines: ['I_r = |C_b − O| / c_r,  I_φ = acos((C_b − O)_y / |C_b − O|) / c_φ,  I_θ = atan2((C_b − O)_z, (C_b − O)_x) / c_θ',
@@ -84,7 +72,7 @@ function bMethodPair(builder, node) {
   });
   const lines = [], draw = [];
   indexed.forEach(r => {
-    const Cb = bPlace(builder, r.I), back = bLen(bSub(Cb, r.b));
+    const Cb = builder.place(r.I), back = bLen(bSub(Cb, r.b));
     lines.push(`pair ${r.from}→${item}: C_${item} = ${bPlaceText(r.I)} = ${bPt(Cb)}`,
       `|placed − C_${r.from} + d_${r.from}${item}| = ${bF(back)}${back < 1e-6 ? ' — the index holds the same point' : ' — the index lost the point'}`,
       ...bResult(builder, node, Cb, `C_${item}`).slice(1));

@@ -7,15 +7,14 @@ function bFold(h, open, text, n, flip, changed) {
   return b;
 }
 
-function bEdgePicker(builder, h, picked, changed) {
-  const trees = [...bOpenStep(builder).edges], abName = t => `${t.ab.a.name}→${t.ab.b.name}`;
-  picked.splice(0, picked.length, ...picked.filter(t => trees.includes(t)));
-  if (!trees.length) return [];
-  const left = trees.filter(t => !picked.includes(t));
+function bEdgePicker(builder, h, changed) {
+  const seq = builder.openSeq(), edges = [...seq.open.edges], picked = seq.prune();
+  if (!edges.length) return [];
+  const left = edges.filter(t => !picked.includes(t));
   const pick = h('select', {}, [h('option', { value: -1, textContent: left.length ? 'pick an edge' : 'all edges picked' }),
-    ...left.map((t, i) => h('option', { value: i, textContent: abName(t) }))]);
-  pick.onchange = () => { if (left[+pick.value]) picked.push(left[+pick.value]); changed(); };
-  const move = (ts, signs) => { ts.forEach(t => Object.entries(signs(t)).forEach(([k, sign]) => t.ab.a.step(builder, t, k, sign))); bMoveAll(builder, ts); changed(); };
+    ...left.map((t, i) => h('option', { value: i, textContent: t.name }))]);
+  pick.onchange = () => { if (left[+pick.value]) seq.pick(left[+pick.value]); changed(); };
+  const move = (ts, signs) => { ts.forEach(t => Object.entries(signs(t)).forEach(([k, sign]) => t.step(builder, k, sign))); seq.open.moveAll(builder, ts); changed(); };
   const button = (text, title, onclick, lit, disabled = !picked.length) => {
     const b = h('button', { textContent: text, title, disabled, className: lit ? 'lit' : '' });
     b.onclick = onclick;
@@ -31,25 +30,25 @@ function bEdgePicker(builder, h, picked, changed) {
     b.className += ' tall';
     return b;
   };
-  const rowLock = t => (t.ab.row.lock ??= { phi: 0, theta: 0 }), lockAll = builder.lock ??= { phi: 0, theta: 0 };
+  const rowLock = t => (t.lock ??= { phi: 0, theta: 0 }), lockAll = builder.lock ??= { phi: 0, theta: 0 };
   const items = picked.map(t => {
     const drop = h('button', { textContent: 'unpick' });
-    drop.onclick = () => { picked.splice(picked.indexOf(t), 1); changed(); };
-    const lock = rowLock(t), locking = !!t.ab.row.locking;
+    drop.onclick = () => { seq.unpick(t); changed(); };
+    const lock = rowLock(t), locking = !!t.locking;
     const own = (k, name) => {
-      const amount = h('input', { type: 'number', value: t.ab.row.increment[k], step: 1 });
-      amount.onchange = () => { const v = +amount.value; if (bWhole(v)) t.ab.row.increment[k] = Math.round(v); changed(); };
+      const amount = h('input', { type: 'number', value: t.increment[k], step: 1 });
+      amount.onchange = () => { const v = +amount.value; if (bWhole(v)) t.increment[k] = Math.round(v); changed(); };
       return h('td', {}, [h('span', { className: 'pair' }, [name, amount, h('span', { className: 'spin' }, [step(lock, locking, [t], k, 1, "this edge's"), step(lock, locking, [t], k, -1, "this edge's")])])]);
     };
-    const lockCell = h('td', { className: 'lockcell' }, [h('span', { className: 'spin' }, [lockButton(locking, () => { t.ab.row.locking = !locking; })])]);
-    return h('tr', {}, [h('td', { className: 't', textContent: abName(t) }), own('phi', 'Δφ'), own('theta', 'Δθ'), h('td', {}, [drop]), lockCell]);
+    const lockCell = h('td', { className: 'lockcell' }, [h('span', { className: 'spin' }, [lockButton(locking, () => { t.locking = !locking; })])]);
+    return h('tr', {}, [h('td', { className: 't', textContent: t.name }), own('phi', 'Δφ'), own('theta', 'Δθ'), h('td', {}, [drop]), lockCell]);
   });
-  const redo = left.map(t => h('span', { className: 't', textContent: abName(t) }));
+  const redo = left.map(t => h('span', { className: 't', textContent: t.name }));
   const way = (t, k) => rowLock(t)[k] || lockAll[k] || 1;
   const locked = lockAll.phi || lockAll.theta || picked.some(t => rowLock(t).phi || rowLock(t).theta);
   const both = [button(locked ? '▲' : '+', locked ? "step each angle its locked way: the row's lock, else move all's, else +" : "add each picked edge's steps", () => move(picked, t => ({ phi: way(t, 'phi'), theta: way(t, 'theta') }))),
     button(locked ? '▼' : '−', locked ? 'step each angle against its locked way' : "subtract each picked edge's steps", () => move(picked, t => ({ phi: -way(t, 'phi'), theta: -way(t, 'theta') })))];
-  const rowsLocking = picked.some(t => t.ab.row.locking);
+  const rowsLocking = picked.some(t => t.locking);
   if (rowsLocking) builder.locking = false;
   const allStep = (k, sign) => step(lockAll, !!builder.locking, picked, k, sign, "each picked edge's");
   const right = kids => h('td', { className: 'right' }, kids);

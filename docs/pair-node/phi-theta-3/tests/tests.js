@@ -1,39 +1,36 @@
 const T_EPS = 1e-9;
-const tName = r => r.from.name + r.to.name;
-const tRows = builder => [...bOpenStep(builder).edges].map(({ ab: { row } }) => [tName(row)]);
-const tNodes = builder => [...bOpenStep(builder).nodes].map(n => [n.name, n.idx]);
+const tName = e => e.from.name + e.to.name;
+const tRows = builder => [...builder.openStep().edges].map(e => [tName(e)]);
+const tNodes = builder => builder.shown().map(n => [n.name, n.index(builder)]);
 const tSnap = builder => ({ nodes: JSON.parse(JSON.stringify(tNodes(builder))), rows: tRows(builder) });
-const tReload = builder => { const s = JSON.parse(JSON.stringify(builder, bPack)); bWire(s); return s; };
-const tStart = (builder, t, k, v) => t.ab.a.setStart(builder, t, k, v);
-const tRow = (from, to, s) => ({ from, to, start: { phi: s[0], theta: s[1], r: s[2] } });
+const tReload = builder => BBuilder.from(JSON.parse(JSON.stringify(builder)));
 
 function tEdits() {
   let builder = bPreset();
-  const [ab, bc] = [...bOpenStep(builder).edges], [, , c] = [...bOpenStep(builder).nodes];
+  const [ab, bc] = [...builder.openStep().edges], c = builder.openStep().find('c');
   let ab2, bc2;
   return [
     ['the preset: a→b φ 2 θ 0 r 2, b→c φ 4 θ 0 r 2', () => {}],
-    ['a→b φ 3', () => tStart(builder, ab, 'phi', 3)],
-    ['a→b θ 2', () => tStart(builder, ab, 'theta', 2)],
-    ['a→b r 3', () => tStart(builder, ab, 'r', 3)],
-    ['a→b φ 4', () => tStart(builder, ab, 'phi', 4)],
-    ['a→b θ 1', () => tStart(builder, ab, 'theta', 1)],
+    ['a→b φ 3', () => ab.setStart(builder, 'phi', 3)],
+    ['a→b θ 2', () => ab.setStart(builder, 'theta', 2)],
+    ['a→b r 3', () => ab.setStart(builder, 'r', 3)],
+    ['a→b φ 4', () => ab.setStart(builder, 'phi', 4)],
+    ['a→b θ 1', () => ab.setStart(builder, 'theta', 1)],
     ['add d (s 2) with c→d φ 1 θ 2 r 2, then a→b φ 5', () => {
-      const d = bMake({ name: 'd', s: 2, idx: { r: 3, phi: 2, theta: 5 } });
-      bOpenStep(builder).nodes.add(d);
-      bMove(builder, bAddTree(builder, tRow(c, d, [1, 2, 2])));
-      tStart(builder, ab, 'phi', 5);
+      const d = builder.openStep().addNode(new BNode({ name: 'd', s: 2, at: { r: 3, phi: 2, theta: 5 } }));
+      builder.openStep().addEdge(new BEdge({ from: c, to: d, start: { phi: 1, theta: 2, r: 2 } })).move(builder);
+      ab.setStart(builder, 'phi', 5);
     }],
-    ['a→b θ 4', () => tStart(builder, ab, 'theta', 4)],
-    ['a→b φ 6', () => tStart(builder, ab, 'phi', 6)],
-    ['a→b φ 3', () => tStart(builder, ab, 'phi', 3)],
-    ['a→b φ 2.5', () => tStart(builder, ab, 'phi', 2.5)],
-    ['b→c φ 5', () => tStart(builder, bc, 'phi', 5)],
-    ['save and load', () => { builder = tReload(builder); [ab2, bc2] = [...bOpenStep(builder).edges]; }],
-    ['after loading, a→b φ 4', () => tStart(builder, ab2, 'phi', 4)],
-    ['remove b→c', () => bDropTree(builder, bc2)],
-    ['remove a→b', () => bDropTree(builder, ab2)],
-    ['remove node c', () => bDropNode(builder, [...bOpenStep(builder).nodes].find(n => n.name === 'c'))],
+    ['a→b θ 4', () => ab.setStart(builder, 'theta', 4)],
+    ['a→b φ 6', () => ab.setStart(builder, 'phi', 6)],
+    ['a→b φ 3', () => ab.setStart(builder, 'phi', 3)],
+    ['a→b φ 2.5', () => ab.setStart(builder, 'phi', 2.5)],
+    ['b→c φ 5', () => bc.setStart(builder, 'phi', 5)],
+    ['save and load', () => { builder = tReload(builder); [ab2, bc2] = [...builder.openStep().edges]; }],
+    ['after loading, a→b φ 4', () => ab2.setStart(builder, 'phi', 4)],
+    ['remove b→c', () => builder.openStep().dropEdge(bc2)],
+    ['remove a→b', () => builder.openStep().dropEdge(ab2)],
+    ['remove node c', () => builder.dropNode(builder.openStep().find('c'))],
   ].map(([say, run]) => ({ say, run, snap: () => tSnap(builder) }));
 }
 
@@ -61,8 +58,8 @@ function tCheckEdits() {
 
 function tDirsOf(builder) {
   return {
-    dirs: [...bOpenStep(builder).edges].map(t => [tName(t.ab.row), bDirs(builder, t).map(({ t: d }) => [d.phi, d.theta, +d.r.toFixed(3)])]),
-    nodes: [...bOpenStep(builder).nodes].map(n => [n.idx.r, n.idx.phi].map(v => +v.toFixed(3))),
+    dirs: [...builder.openStep().edges].map(e => { const d = e.dir(builder); return [tName(e), [[d.phi, d.theta, +d.r.toFixed(3)]]]; }),
+    nodes: builder.shown().map(n => { const I = n.index(builder); return [I.r, I.phi].map(v => +v.toFixed(3)); }),
   };
 }
 
@@ -70,9 +67,9 @@ function tCheckSaves() {
   let builder = bPreset(), s2;
   return [
     ['the preset', 0, () => builder],
-    ['a→b φ 3', 1, () => { tStart(builder, [...bOpenStep(builder).edges][0], 'phi', 3); return builder; }],
+    ['a→b φ 3', 1, () => { [...builder.openStep().edges][0].setStart(builder, 'phi', 3); return builder; }],
     ['save that and load it', 1, () => (s2 = tReload(builder))],
-    ['then a→b φ 4', 2, () => { tStart(s2, [...bOpenStep(s2).edges][0], 'phi', 4); return s2; }],
+    ['then a→b φ 4', 2, () => { [...s2.openStep().edges][0].setStart(s2, 'phi', 4); return s2; }],
   ].map(([say, i, run]) => {
     let got, misses;
     try { got = tDirsOf(run()); misses = tSame({ dirs: T_DIRS[i].dirs, nodes: T_DIRS[i].nodes }, got, '', []); }

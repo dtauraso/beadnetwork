@@ -1,215 +1,95 @@
-(function () {
-  const preset = bPreset;
-  let err = null, pickFrom = null;
-  let builder = bLoad() || preset();
-  const save = () => bKeep(builder);
-  const open = s => { builder = s; reach = null; pickFrom = null; setup(); update(); };
+const bName = k => (k < 26 ? 'abcdefghijklmnopqrstuvwxyz'[k] : `n${k}`);
+const bNameAt = name => (name.length === 1 ? name.charCodeAt(0) - 97 : +name.slice(1));
 
-  const el = id => document.getElementById(id);
-  const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-  const h = (tag, props = {}, kids = []) => {
-    const e = Object.assign(document.createElement(tag), props);
-    kids.forEach(k => e.append(k));
-    return e;
-  };
-  const num = (value, onset, step = 1) => {
-    const i = h('input', { type: 'number', value, step });
-    i.addEventListener('change', () => { const v = +i.value; if (Number.isFinite(v)) { err = null; onset(v); update(); } });
-    return i;
-  };
-  const check = (at, text, value) => { err = text ? { at, text, value } : null; setup(); };
-  const flag = (at, input) => { if (err && err.at === at) { input.value = err.value; input.classList.add('invalid'); } return input; };
-  const note = (at, cols) => (err && err.at.split(':')[0] === at ? [h('tr', {}, [h('td', { className: 'missing', colSpan: cols, textContent: err.text })])] : []);
-
-  const cv = el('view'), ctx = cv.getContext('2d');
-  const view = { yaw: -0.6, pitch: 0.5 }, pan = { x: 0, y: 0, zoom: 1 };
-  let focus = [0, 0, 0], S = 200, reach = null;
-  const draw = atobCanvas(ctx, cv.width, cv.height, S, view, () => focus, css);
-
-  function setup() {
-    el('rho').value = builder.rho; el('rho').onchange = () => { builder.rho = +el('rho').value || builder.rho; update(); };
-    [['Tphi', 'Tphi', true], ['Ttheta', 'Ttheta', true], ['cr', 'cr', false]].forEach(([id, k, whole]) => {
-      el(id).value = builder[k];
-      el(id).onchange = () => { const v = +el(id).value; if (v > 0) builder[k] = whole ? Math.round(v) : v; update(); };
-    });
-
-    const all = [...bOpenStep(builder).nodes];
-    el('nodes').replaceChildren(...all.flatMap(n => {
-      const xyz = ['r', 'phi', 'theta'].map(k => { const f = num(n.idx[k], v => { n.setIdx(builder, k, v); }); return h('td', {}, [f]); });
-      const del = h('button', { textContent: 'remove' });
-      del.onclick = () => { bDropNode(builder, n); setup(); update(); };
-      const s = flag(`${n.name}:s`, num(bS(builder, n), v => check(`${n.name}:s`, n.setS(builder, v), v)));
-      return [h('tr', {}, [h('td', { textContent: n.name }), h('td', {}, [s]), ...xyz, h('td', {}, [del])]), ...note(n.name, 6)];
-    }));
-
-    const c = (o, k, tree) => {
-      const at = `${tree.ab.a.name}→${tree.ab.b.name}:start${k}`;
-      const i = num(o[k], v => check(at, tree.ab.a.setStart(builder, tree, k, v), v)), turn = 12 * bS(builder, tree.ab.row.from);
-      if (k !== 'r') i.addEventListener('input', () => { const v = +i.value; if (i.value !== '' && (v < 0 || v >= turn)) i.value = bWrap(turn / 12, v); });
-      return flag(at, i);
-    };
-    const abOf = tree => `${tree.ab.a.name}→${tree.ab.b.name}`, trees = [...bOpenStep(builder).edges];
-    const wide = { phi: bAngleOpen.has('phi'), theta: bAngleOpen.has('theta') };
-    const heads = ['edge', 'start φ', ...(wide.phi ? ['Δφ', 'φ+Δφ'] : []), 'start θ', ...(wide.theta ? ['Δθ', 'θ+Δθ'] : []), 'start r', ''];
-    const settings = trees.map(tree => {
-      const del = h('button', { textContent: 'remove' });
-      del.onclick = () => { bDropTree(builder, tree); setup(); update(); };
-      const ab = abOf(tree), row = tree.ab.row;
-      const angle = (k, name) => {
-        const open = wide[k];
-        const b = h('button', { className: 'grow', textContent: open ? '◂' : '▸', title: `${open ? 'hide' : 'show'} Δ${name} and ${name}+Δ${name}` });
-        b.onclick = () => { if (open) bAngleOpen.delete(k); else bAngleOpen.add(k); setup(); update(); };
-        const more = !open ? [] : [bN(row.delta[k]), bN(bDir(builder, row)[k])].map(t => h('td', { textContent: t }));
-        return [h('td', {}, [h('span', { className: 'pair' }, [c(row.start, k, tree), b])]), ...more];
-      };
-      const cells = [...angle('phi', 'φ'), ...angle('theta', 'θ'), h('td', {}, [c(row.start, 'r', tree)])];
-      const miss = err && err.at.split(':')[0] === ab ? [h('tr', {}, [h('td', { className: 'missing', colSpan: heads.length, textContent: err.text })])] : [];
-      return [h('tr', {}, [h('td', { className: 't', textContent: ab }), ...cells, h('td', {}, [del])]), ...miss];
-    }).flat();
-    const froms = all.filter(a => a.out.length < all.length - 1);
-    if (!pickFrom || pickFrom.gone || pickFrom.out.length >= all.length - 1) pickFrom = froms[0];
-    const taken = new Set(pickFrom ? pickFrom.out.map(t => t.ab.b) : []);
-    const tos = pickFrom ? all.filter(b => b !== pickFrom && !taken.has(b)) : [];
-    const pickA = h('select', {}, froms.map((a, i) => h('option', { value: i, textContent: a.name, selected: a === pickFrom })));
-    pickA.onchange = () => { pickFrom = froms[+pickA.value]; setup(); };
-    const pickB = h('select', {}, tos.map((b, i) => h('option', { value: i, textContent: b.name })));
-    const add = h('button', { textContent: '+ add edge', disabled: !tos.length });
-    add.onclick = () => {
-      const row = { from: pickFrom, to: tos[+pickB.value], start: { phi: 0, theta: 0, r: 2 } };
-      bAddTree(builder, row);
-      row.start = bMeasure(builder, row) || row.start;
-      setup(); update();
-    };
-    const changed = () => { setup(); update(); };
-    const edges = !bEdgesShown ? [] : [settings.length ? h('table', { className: 'cells' }, [h('thead', {}, [h('tr', {}, heads.map(t => h('th', { textContent: t })))]), h('tbody', {}, settings)]) : h('div', { className: 'hint', textContent: 'no edges' })];
-    el('settings').replaceChildren(bSeqPicker(builder, h, open),
-      bSteps(h, [{ body: [...bEdgePicker(builder, h, builder.seqs[builder.open].picked ??= [], changed), h('div', { className: 'folds' }, [bFold(h, bEdgesShown, 'edges', settings.length, () => { bEdgesShown = !bEdgesShown; }, changed)]), ...edges, ...bStepNodes(builder, h, changed)],
-        head: tos.length ? [pickA, ' → ', pickB, add] : [h('span', { className: 'hint', textContent: 'no edge left to add' })] }]), ...bLands(builder, h),
-      h('h2', { textContent: 'a→b settings — one item per a→b, set at a, with its start (φ, θ, r)' }));
-
-    const shown = bShown(builder);
-    el('item').replaceChildren(...shown.map((n, i) => h('option', { value: i, textContent: n.name, selected: n === builder.item })));
-    el('item').onchange = () => { builder.item = shown[+el('item').value]; update(); };
-
-    el('methods').replaceChildren(...B_METHODS.map(m => {
-      const box = h('input', { type: 'checkbox', checked: !!builder.methods[m.id] });
-      box.onchange = () => { builder.methods[m.id] = box.checked; update(); };
-      return h('label', { className: 'method' }, [box, h('span', { className: `m-${m.color.slice(2)}`, textContent: m.name })]);
-    }));
+class BBuilder {
+  constructor({ s, rho, Tphi, Ttheta, cr, made, item, methods = {}, step, open, seqs, lock, locking }) {
+    Object.assign(this, { s, rho, Tphi, Ttheta, cr, made, item, methods, step, open, seqs, lock, locking });
+    this.made ??= 1 + Math.max(-1, ...seqs.flatMap(q => q.steps.flatMap(st => [...st.nodes].map(n => bNameAt(n.name)))).filter(Number.isFinite));
+    this.fixItem();
   }
 
-  function runs() {
-    const shown = bShown(builder);
-    if (shown.length && !shown.includes(builder.item)) builder.item = shown[0];
-    if (!builder.item || builder.item.gone) builder.item = bFirst(bOpenStep(builder).nodes);
-    return B_METHODS.filter(m => builder.methods[m.id] && shown.includes(builder.item)).map(m => ({ m, steps: m.run(builder, builder.item) }));
+  openSeq() { return this.seqs[this.open]; }
+  openStep() { return this.openSeq().open; }
+  shown() { return [...this.openStep().nodes]; }
+
+  fixItem() {
+    const shown = this.shown();
+    if (!shown.includes(this.item)) this.item = shown[0];
   }
 
-  const redraw = () => render(runs());
+  cell() { return { r: this.cr, phi: 2 * Math.PI / this.Tphi, theta: 2 * Math.PI / this.Ttheta }; }
 
-  function update() {
-    const rs = runs();
-    const max = Math.max(1, ...rs.map(r => r.steps.length));
-    builder.step = Math.min(Math.max(1, builder.step), max);
-    el('stepno').textContent = `step ${builder.step} of ${max}`;
-    el('prev').disabled = builder.step <= 1; el('next').disabled = builder.step >= max;
-    el('lists').replaceChildren(...rs.map(({ m, steps }) => h('div', {}, [
-      h('h2', { className: `m-${m.color.slice(2)}`, textContent: m.name }),
-      h('ol', { className: 'steps' }, steps.map((s, i) => h('li', {
-        className: [i + 1 > builder.step ? 'later' : '', i + 1 === builder.step ? 'now' : '', s.ok ? '' : 'bad'].join(' '),
-      }, [h('span', { className: 't', textContent: `${i + 1}. ${s.title}` }),
-        ...s.lines.map(l => h('code', { textContent: l })), h('div', { className: 'note', textContent: s.note })]))),
-    ])));
-    render(rs);
-    save();
+  place(I) {
+    const c = this.cell();
+    return bAdd(B_O, bCart(I.r * c.r, I.phi * c.phi, I.theta * c.theta));
   }
 
-  function render(rs) {
-    const pts = [[0, 0, 0], ...bShown(builder).map(n => bNodePos(builder, n))];
-    rs.forEach(({ steps }) => steps.slice(0, builder.step).forEach(s => s.draw.forEach(o => pts.push(...(o.arrow || [o.dot || o.square])))));
-    reach ??= Math.max(0.25, ...pts.map(bLen));
-    focus = [0, 0, 0];
-    S = pan.zoom * (cv.width / 2 - 60) / reach;
-    Object.assign(draw, atobCanvas(ctx, cv.width, cv.height, S, view, () => focus, css));
-    paint(rs);
+  indexOf(p) {
+    const c = this.cell(), w = bSub(p, B_O), r = bLen(w);
+    if (r < 1e-9) return { r: 0, phi: 0, theta: 0 };
+    return { r: r / c.r, phi: Math.acos(Math.max(-1, Math.min(1, w[1] / r))) / c.phi, theta: Math.atan2(w[2], w[0]) / c.theta };
   }
 
-  function paint(rs) {
-    ctx.clearRect(0, 0, cv.width, cv.height);
-    ctx.save(); ctx.translate(pan.x, pan.y);
-    bDrawAxes(draw, ctx, css, [0, 0, 0], builder.cr, true);
-    el('framenote').replaceChildren(...bGlobalLines(builder).map(t => h('div', { textContent: t })));
-    bDrawGuides(builder, draw, ctx, css, bCellPoints(builder, rs));
-    const seen = {};
-    rs.forEach(({ m, steps }) => {
-      const color = css(m.color);
-      steps.slice(0, builder.step).forEach((s, i) => {
-        const now = i + 1 === builder.step;
-        s.draw.forEach(o => {
-          if (o.arrow) draw.arrow(o.arrow[0], o.arrow[1], color, now ? 4 : 2, !now);
-          if (o.dot && o.label.startsWith('C_')) {
-            const [x, y] = draw.proj(o.dot);
-            ctx.lineWidth = now ? 4 : 2; ctx.strokeStyle = color;
-            ctx.beginPath(); ctx.arc(x, y, 18, 0, Math.PI * 2); ctx.stroke();
-          } else if (o.dot) {
-            const key = o.dot.map(v => v.toFixed(3)).join();
-            const k = seen[key] = (seen[key] || 0) + 1;
-            draw.dot(o.dot, color, o.label, true, 4 + 30 * k);
-          }
-          if (o.square) {
-            const [x, y] = draw.proj(o.square);
-            ctx.lineWidth = 3; ctx.strokeStyle = color; ctx.strokeRect(x - 10, y - 10, 20, 20);
-            const key = o.square.map(v => v.toFixed(3)).join();
-            const k = seen[key] = (seen[key] || 0) + 1;
-            ctx.fillStyle = color; ctx.font = '600 26px -apple-system, sans-serif'; ctx.fillText(o.label, x + 16, y + 4 + 30 * k);
-          }
-        });
-      });
-    });
-    draw.dot([0, 0, 0], css('--ink'), 'O');
-    bShown(builder).forEach(n => draw.dot(bNodePos(builder, n), css('--ink'), n.name));
-    ctx.restore();
+  gridAt(p) {
+    const J = this.indexOf(p);
+    return { ...J, theta: J.theta < -1e-9 ? J.theta + this.Ttheta : Math.max(0, J.theta) };
   }
 
-  let drag = null;
-  cv.addEventListener('pointerdown', e => { drag = { x: e.clientX, y: e.clientY }; cv.setPointerCapture(e.pointerId); });
-  cv.addEventListener('pointermove', e => {
-    if (!drag) return;
-    const dx = e.clientX - drag.x, dy = e.clientY - drag.y, k = cv.width / cv.getBoundingClientRect().width;
-    if (e.shiftKey) { pan.x += dx * k; pan.y += dy * k; } else { view.yaw += dx * 0.01; view.pitch += dy * 0.01; }
-    drag = { x: e.clientX, y: e.clientY };
-    redraw();
-  });
-  cv.addEventListener('pointerup', () => { drag = null; });
-  const zoomAt = (f, cx, cy) => {
-    const box = cv.getBoundingClientRect(), k = cv.width / box.width;
-    const mx = (cx - box.left) * k - cv.width / 2, my = (cy - box.top) * k - cv.height / 2;
-    pan.x = mx - f * (mx - pan.x); pan.y = my - f * (my - pan.y); pan.zoom *= f;
-    redraw();
-  };
-  cv.addEventListener('wheel', e => {
-    e.preventDefault();
-    if (e.ctrlKey) return zoomAt(Math.exp(-e.deltaY * 0.01), e.clientX, e.clientY);
-    const k = cv.width / cv.getBoundingClientRect().width;
-    pan.x -= e.deltaX * k; pan.y -= e.deltaY * k;
-    redraw();
-  }, { passive: false });
-  let pinch = 1;
-  cv.addEventListener('gesturestart', e => { e.preventDefault(); pinch = 1; });
-  cv.addEventListener('gesturechange', e => { e.preventDefault(); zoomAt(e.scale / pinch, e.clientX, e.clientY); pinch = e.scale; });
+  vec(s, t) {
+    const ang = x => x * 2 * Math.PI / (12 * s);
+    const R = t.r * this.rho, ph = ang(t.phi), th = ang(t.theta);
+    return [R * Math.sin(ph) * Math.cos(th), R * Math.cos(ph), R * Math.sin(ph) * Math.sin(th)];
+  }
 
-  el('prev').onclick = () => { builder.step--; update(); };
-  el('next').onclick = () => { builder.step++; update(); };
-  el('add-node').onclick = () => {
-    bOpenStep(builder).nodes.add(bMake({ name: bName(builder.made++), idx: { r: 0, phi: 0, theta: 0 } }));
-    setup(); update();
-  };
-  el('preset').onclick = () => {
-    const p = preset();
-    builder.seqs[builder.open].steps = p.seqs[0].steps;
-    open(Object.assign(p, { seqs: builder.seqs, open: builder.open }));
-  };
+  local(s, v) {
+    const len = bLen(v), tick = 2 * Math.PI / (12 * s);
+    if (len < 1e-12) return { phi: 0, theta: 0, r: 0 };
+    return { phi: Math.atan2(Math.hypot(v[0], v[2]), v[1]) / tick, theta: bWrap(s, Math.atan2(v[2], v[0]) / tick), r: len / this.rho };
+  }
 
-  setup();
-  update();
-})();
+  addNode() {
+    return this.openStep().addNode(new BNode({ name: bName(this.made++), at: { r: 0, phi: 0, theta: 0 } }));
+  }
+
+  dropNode(n) {
+    this.openStep().dropNode(this, n);
+    this.fixItem();
+  }
+
+  addSeq() {
+    this.seqs = [...this.seqs, this.openSeq().copy(`sequence ${this.seqs.length + 1}`)];
+    return this.seqs.length - 1;
+  }
+
+  dropSeq() {
+    this.seqs = this.seqs.filter((q, i) => i !== this.open);
+    this.renumber();
+    return Math.max(0, this.open - 1);
+  }
+
+  renumber() {
+    this.seqs.forEach((q, i) => { if (/^sequence \d+$/.test(q.name)) q.name = `sequence ${i + 1}`; });
+    return this;
+  }
+
+  toJSON() {
+    const { s, rho, Tphi, Ttheta, cr, made, item, methods, step, open, seqs, lock, locking } = this;
+    return { s, rho, Tphi, Ttheta, cr, made, item: item && item.name, methods, step, open, seqs,
+      ...(lock && (lock.phi || lock.theta) ? { lock } : {}), ...(locking ? { locking } : {}) };
+  }
+
+  static from(record) {
+    const seqs = record.seqs.map(q => ({ ...q }));
+    if (record.picked) seqs[record.open].picked ??= record.picked;
+    const made = seqs.map(BSeq.from), item = made[record.open].open.find(record.item);
+    return new BBuilder({ ...record, seqs: made, item });
+  }
+
+  static load() {
+    try {
+      const saved = window.B_SAVED && JSON.parse(JSON.stringify(window.B_SAVED));
+      if (saved && saved.seqs[saved.open]) return BBuilder.from(saved).renumber();
+    } catch { }
+    return null;
+  }
+}
