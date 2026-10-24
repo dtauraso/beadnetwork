@@ -38,7 +38,8 @@
   th { color: var(--muted); font-weight: 500; }
   .m-local { color: var(--local); font-weight: 600; } .m-global { color: var(--global); font-weight: 600; }
   .steps { list-style: none; padding: 0; margin: 0 0 12px; font-size: 13px; }
-  .steps li { padding: 6px 0; border-top: 1px solid var(--line); }
+  .steps summary { cursor: pointer; }
+  .steps li { padding: 4px 0; border-top: 1px solid var(--line); }
   .steps li.later { opacity: 0.35; }
   .steps li.now { background: color-mix(in srgb, var(--ink) 6%, transparent); }
   .steps li.bad .t { color: var(--bad); }

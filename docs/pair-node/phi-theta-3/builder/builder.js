@@ -1,6 +1,7 @@
 (function () {
   const preset = bPreset;
   let err = null, pickFrom = null, places = [];
+  const opened = new Set();
   const mathOpen = new WeakSet();
   let builder = bLoad() || preset();
   const save = () => bKeep(builder);
@@ -92,15 +93,18 @@
     const rs = runs();
     const max = Math.max(1, ...rs.map(r => r.steps.length));
     builder.step = Math.min(Math.max(1, builder.step), max);
-    el('stepno').textContent = `step ${builder.step} of ${max}`;
+    el('stepno').textContent = `method step ${builder.step} of ${max}`;
     el('prev').disabled = builder.step <= 1; el('next').disabled = builder.step >= max;
     places.forEach(([n, at]) => bPosText(builder, n).forEach((t, i) => { at[i].textContent = t; }));
     el('lists').replaceChildren(...rs.map(({ m, steps }) => h('div', {}, [
       h('h2', { className: `m-${m.color.slice(2)}`, textContent: m.name }),
-      h('ol', { className: 'steps' }, steps.map((s, i) => h('li', {
-        className: [i + 1 > builder.step ? 'later' : '', i + 1 === builder.step ? 'now' : '', s.ok ? '' : 'bad'].join(' '),
-      }, [h('span', { className: 't', textContent: `${i + 1}. ${s.title}` }),
-        ...s.lines.map(l => h('code', { textContent: l })), h('div', { className: 'note', textContent: s.note })]))),
+      h('ol', { className: 'steps' }, steps.map((s, i) => {
+        const key = `${m.id}:${i}`;
+        const box = h('details', { open: i + 1 === builder.step || opened.has(key) }, [h('summary', { className: 't', textContent: `${i + 1}. ${s.title}` }),
+          ...s.lines.map(l => h('code', { textContent: l })), h('div', { className: 'note', textContent: s.note })]);
+        box.ontoggle = () => { if (i + 1 === builder.step) return; if (box.open) opened.add(key); else opened.delete(key); };
+        return h('li', { className: [i + 1 > builder.step ? 'later' : '', i + 1 === builder.step ? 'now' : '', s.ok ? '' : 'bad'].join(' ') }, [box]);
+      })),
     ])));
     render(rs);
     save();
