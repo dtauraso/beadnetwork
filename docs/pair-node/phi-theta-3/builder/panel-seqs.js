@@ -9,6 +9,7 @@ function bSeqPicker(builder, h, open) {
   add.onclick = () => {
     const q = JSON.parse(JSON.stringify(builder.seqs[builder.open], bPack));
     q.steps.forEach(bWireStep);
+    bWirePicked(q);
     builder.seqs.push({ ...q, name: `sequence ${builder.seqs.length + 1}` });
     go(builder.seqs.length - 1);
   };
