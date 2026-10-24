@@ -10,12 +10,12 @@ function bEdgePicker(builder, h, picked, changed) {
   const items = picked.map(t => {
     const drop = h('button', { textContent: 'unpick' });
     drop.onclick = () => { picked.splice(picked.indexOf(t), 1); changed(); };
-    const own = k => {
+    const own = (k, name) => {
       const amount = h('input', { type: 'number', value: t.ab.row.increment[k], step: 1 });
       amount.onchange = () => { const v = +amount.value; if (bWhole(v)) t.ab.row.increment[k] = Math.round(v); changed(); };
-      return h('td', {}, [amount]);
+      return h('td', {}, [`${name} `, amount]);
     };
-    return h('tr', {}, [h('td', { className: 't', textContent: abName(t) }), own('phi'), own('theta'), h('td', {}, [drop])]);
+    return h('tr', {}, [h('td', { className: 't', textContent: abName(t) }), own('phi', 'Δφ'), own('theta', 'Δθ'), h('td', {}, [drop])]);
   });
   const redo = left.map(t => h('span', { className: 't', textContent: abName(t) }));
   const step = (k, sign, text) => {
