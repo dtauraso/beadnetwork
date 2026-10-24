@@ -1,3 +1,5 @@
+let bPickedShown = true;
+
 function bEdgePicker(builder, h, picked, changed) {
   const trees = [...bOpenStep(builder).edges], abName = t => `${t.ab.a.name}→${t.ab.b.name}`;
   picked.splice(0, picked.length, ...picked.filter(t => trees.includes(t)));
@@ -25,8 +27,11 @@ function bEdgePicker(builder, h, picked, changed) {
   };
   const spin = (k, name) => h('span', { className: 'pair' }, [name, h('span', { className: 'spin' }, [step(k, 1, '+'), step(k, -1, '−')])]);
   const all = items.length ? [h('span', { className: 'all' }, ['move all', spin('phi', 'Δφ'), spin('theta', 'Δθ')])] : [];
-  return [h('div', { className: 'row' }, [pick, ...all]),
-    items.length ? h('table', { className: 'cells' }, [h('tbody', {}, items)]) : h('div', { className: 'hint', textContent: 'no edges picked' }),
+  const fold = h('button', { textContent: bPickedShown ? 'hide picked' : `show picked (${items.length})` });
+  fold.onclick = () => { bPickedShown = !bPickedShown; changed(); };
+  const list = !items.length ? [h('div', { className: 'hint', textContent: 'no edges picked' })]
+    : bPickedShown ? [h('table', { className: 'cells' }, [h('tbody', {}, items)])] : [];
+  return [h('div', { className: 'row' }, [pick, ...(items.length ? [fold] : []), ...all]), ...list,
     h('div', { className: 'part', textContent: 'chosen for vector recalculation' }),
     redo.length ? h('div', { className: 'row' }, redo) :h('div', { className: 'hint', textContent: 'no edges' })];
 }
