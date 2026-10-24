@@ -1,45 +1,47 @@
 const T_HEAD = 30, T_LINE = 17, T_CH = 7.2, T_GX = 18, T_GY = 44;
 const tNum = v => `${+v.toFixed(3)}`;
 const tAng = (o, ks = ['phi', 'theta', 'r']) => (o ? ks.filter(k => k in o).map(k => `${{ phi: 'φ', theta: 'θ', r: 'r' }[k]} ${tNum(o[k])}`).join(' | ') : '—');
-const tAB = ab => `${ab.a.name}→${ab.b.name}`;
-const tNames = (ts, name) => (ts.length ? ts.map(name).join(', ') : '—');
+const tNames = (ts, name = x => x.name) => (ts.length ? ts.map(name).join(', ') : '—');
 const tOn = o => tNames(Object.keys(o || {}).filter(k => o[k]), k => k);
 const tEsc =s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
 
 function tLoad() {
-  const builder = bLoad();
+  const builder = BBuilder.load();
   if (builder) return { builder, from: `the builder's save, ${B_FILE}` };
   return { builder: bPreset(), from: `the three-node preset — the builder has not written ${B_FILE} yet` };
 }
 
 function tState(builder) {
   return { label: 'builder', lines: [['s', tNum(builder.s)], ['ρ', tNum(builder.rho)], ['T_φ', tNum(builder.Tphi)], ['T_θ', tNum(builder.Ttheta)], ['c_r', tNum(builder.cr)],
-    ['item', builder.item ? builder.item.name : '—', 'ref'], ['made', `${builder.made}`], ['step', `${builder.step}`],
-    ['picked', tNames(builder.picked || [], t => tAB(t.ab)), 'ref'], ['methods', tOn(builder.methods)],
-    ['sequences', tNames(builder.seqs, q => q.name)], ['open', builder.seqs[builder.open].name, 'ref']] };
+    ['item', builder.item ? builder.item.name : '—', 'ref'], ['made', `${builder.made}`], ['step', `${builder.step}`], ['methods', tOn(builder.methods)],
+    ['sequences', tNames(builder.seqs)], ['open', builder.openSeq().name, 'ref']] };
+}
+
+function tSeq(seq) {
+  return { label: seq.name, lines: [['picked', tNames(seq.picked), 'ref'], ['steps', `${seq.steps.length}`]] };
 }
 
 const tWorked = rows => [['', 'not stored', 'note'], ...rows];
 
-function tTree(builder, t) {
-  const { row } = t.ab;
-  return [['', tAB(t.ab), 'part'], ['from', row.from.name, 'ref'], ['to', row.to.name, 'ref'], ['start', tAng(row.start)], ['Δ', tAng(row.delta, ['phi', 'theta'])],
-    ['increment', tAng(row.increment, ['phi', 'theta'])],
-    ...tWorked([['~start + Δ', tAng(bDir(builder, row))], [`~measured C_${row.from.name} → C_${row.to.name}`, tAng(bMeasure(builder, row))]])];
+function tEdge(builder, e) {
+  return [['', e.name, 'part'], ['from', e.from.name, 'ref'], ['to', e.to.name, 'ref'], ['start', tAng(e.start)], ['Δ', tAng(e.delta, ['phi', 'theta'])],
+    ['increment', tAng(e.increment, ['phi', 'theta'])],
+    ...tWorked([['~start + Δ', tAng(e.dir(builder))], [`~measured C_${e.from.name} → C_${e.to.name}`, tAng(e.measure(builder))]])];
 }
 
 function tNode(builder, n) {
-  const C = bNodePos(builder, n);
+  const C = n.place(builder);
   return { label: `node ${n.name}`, lines: [['s', n.s ? tNum(n.s) : `— (the scene's s, ${tNum(builder.s)})`],
-    ['idx', tAng(n.idx)],
-    ['out', tNames(n.out, t => tAB(t.ab)), 'ref'], ['in', tNames(n.in, t => tAB(t.ab)), 'ref'], ...tWorked([['~C', C ? ['x', 'y', 'z'].map((k, i) => `${k} ${tNum(C[i])}`).join(' | ') : '—']])] };
+    ['at', n.at.from ? `from ${n.at.from.name}`: 'from O', n.at.from ? 'ref' : undefined], ['', tAng(n.at)],
+    ['out', tNames(n.out), 'ref'], ['in', tNames(n.in), 'ref'],
+    ...tWorked([['~index on O\'s grid', tAng(n.index(builder), ['r', 'phi', 'theta'])], ['~C', ['x', 'y', 'z'].map((k, i) => `${k} ${tNum(C[i])}`).join(' | ')]])] };
 }
 
 function tGraph(builder) {
-  const seq = builder.seqs[builder.open], trees = seq.steps.flatMap(st => [...st.edges]), nodes = seq.steps.flatMap(st => [...st.nodes]);
-  const box = new Map([['builder', tState(builder)], ['seq', { label: seq.name, lines: [] }]]), kids = new Map([['builder', ['seq']], ['seq', []]]);
-  if (trees.length) {
-    box.set('edges', { label: 'edges', steps: seq.steps.map((st, i) => ({ name: `step ${i + 1}`, cols: [...st.edges].map(t => tTree(builder, t)) })) });
+  const seq = builder.openSeq(), edges = seq.steps.flatMap(st => [...st.edges]), nodes = seq.steps.flatMap(st => [...st.nodes]);
+  const box = new Map([['builder', tState(builder)], ['seq', tSeq(seq)]]), kids = new Map([['builder', ['seq']], ['seq', []]]);
+  if (edges.length) {
+    box.set('edges', { label: 'edges', steps: seq.steps.map((st, i) => ({ name: `step ${i + 1}`, cols: [...st.edges].map(e => tEdge(builder, e)) })) });
     kids.set('edges', nodes.filter(n => n.in.length || n.out.length));
     kids.get('seq').push('edges');
   }
@@ -47,7 +49,7 @@ function tGraph(builder) {
     box.set(n, tNode(builder, n)); kids.set(n, []);
     if (!n.in.length && !n.out.length) kids.get('seq').push(n);
   });
-  return { box, kids, levels: [['builder'], ['seq'], trees.length ? ['edges'] : [], nodes].filter(l => l.length) };
+  return { box, kids, levels: [['builder'], ['seq'], edges.length ? ['edges'] : [], nodes].filter(l => l.length) };
 }
 
 function tLayout({ box, levels }) {

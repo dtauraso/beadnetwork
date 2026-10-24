@@ -33,14 +33,15 @@ function bDrawGuides(builder, draw, ctx, css, points) {
   };
   points.forEach(({ p }) => bDrawAxes(draw, ctx, css, p, builder.cr, false));
   const seen = {};
-  bLinks(builder).forEach(({ from, P, t, s: ns }) => {
+  const edges = [...builder.openStep().edges];
+  edges.flatMap(x => x.links(builder)).forEach(({ from, P, t, s: ns }) => {
     const k = seen[from.name] = (seen[from.name] ?? -1) + 1, R = a * (1 + 0.4 * k), tick = 2 * Math.PI / (12 * ns);
     if (t.r < e) return;
     const ph = t.phi * tick, th = t.theta * tick;
     if (t.phi > e) arc(s => bAdd(P, bCart(R, s * ph, th)), css('--phi'));
     if (t.theta > e && Math.abs(Math.sin(ph)) > e) arc(s => bAdd(P, bCart(R, ph, s * th)), css('--theta'));
   });
-  bRowEnds(builder).forEach(({ P, T }) => draw.arrow(P, T, muted, 2, true));
+  edges.map(x => x.ends(builder)).forEach(({ P, T }) => draw.arrow(P, T, muted, 2, true));
 }
 
 function bCellPoints(builder, rs) {
@@ -50,7 +51,7 @@ function bCellPoints(builder, rs) {
     const key = p.map(v => v.toFixed(6)).join();
     if (bLen(p) > 1e-9 && !had.has(key)) { had.add(key); out.push({ p, color }); }
   };
-  bShown(builder).forEach(n => add(bNodePos(builder, n), '--ink'));
+  builder.shown().forEach(n => add(n.place(builder), '--ink'));
   rs.forEach(({ m, steps }) => steps.slice(0, builder.step).forEach(s => s.draw.forEach(o => {
     if (o.square) add(o.square, m.color);
     else if (o.dot && o.label.startsWith(`${builder.item.name}(`)) add(o.dot, m.color);
