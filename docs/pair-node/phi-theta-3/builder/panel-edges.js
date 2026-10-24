@@ -23,10 +23,9 @@ function bEdgePicker(builder, h, picked, changed) {
     b.onclick = () => { picked.forEach(t => bump(t, k, sign)); changed(); };
     return b;
   };
-  return [h('div', { className: 'row' }, [h('label', {}, ['edge ', pick])]),
-    items.length ? h('table', { className: 'cells' }, [h('tbody', {}, items),
-      h('tbody', {}, [h('tr', {}, [h('td', { className: 't', textContent: 'move all' }), h('td', {}, [step('phi', -1, '−'), step('phi', 1, '+')]), h('td', {}, [step('theta', -1, '−'), step('theta', 1, '+')]), h('td')])])])
-      : h('div', { className: 'hint', textContent: 'no edges picked' }),
+  const all = items.length ? [h('span', { className: 't', textContent: 'move all' }), 'Δφ', step('phi', -1, '−'), step('phi', 1, '+'), 'Δθ', step('theta', -1, '−'), step('theta', 1, '+')] : [];
+  return [h('div', { className: 'row' }, [h('label', {}, ['edge ', pick]), ...all]),
+    items.length ? h('table', { className: 'cells' }, [h('tbody', {}, items)]) : h('div', { className: 'hint', textContent: 'no edges picked' }),
     h('div', { className: 'part', textContent: 'chosen for vector recalculation' }),
     redo.length ? h('div', { className: 'row' }, redo) :h('div', { className: 'hint', textContent: 'no edges' })];
 }
