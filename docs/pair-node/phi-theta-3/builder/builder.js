@@ -1,6 +1,6 @@
 (function () {
   const preset = bPreset;
-  let err = null, pickFrom = null;
+  let err = null, pickFrom = null, places = [];
   const mathOpen = new WeakSet();
   let builder = bLoad() || preset();
   const save = () => bKeep(builder);
@@ -35,12 +35,15 @@
     });
 
     const all = [...bOpenStep(builder).nodes];
+    places = [];
     el('nodes').replaceChildren(...all.flatMap(n => {
       const xyz = ['r', 'phi', 'theta'].map(k => { const f = num(n.idx[k], v => { n.idx[k] = v; bRemeasure(builder, n); }); return h('td', {}, [f]); });
       const del = h('button', { textContent: 'remove' });
       del.onclick = () => { bDropNode(builder, n); setup(); update(); };
       const s = flag(`${n.name}:s`, num(bS(builder, n), v => check(`${n.name}:s`, bSetS(builder, n, v), v)));
-      return [h('tr', {}, [h('td', { textContent: n.name }), h('td', {}, [s]), ...xyz, h('td', {}, [del])]), ...note(n.name, 6)];
+      const at = [h('td'), h('td')];
+      places.push([n, at]);
+      return [h('tr', {}, [h('td', { textContent: n.name }), h('td', {}, [s]), ...xyz, ...at, h('td', {}, [del])]), ...note(n.name, 8)];
     }));
 
     const c = (o, k, tree) => {
@@ -62,7 +65,7 @@
       setup(); update();
     };
     el('settings').replaceChildren(bSeqPicker(builder, h, open),
-      bSteps(h, [{ body: [h('div', { className: 'part', textContent: 'edges' }), ...bEdgeTable(builder, h, c, mathOpen, err, () => { setup(); update(); }), ...bStepNodes(builder, h)],
+      bSteps(h, [{ body: [h('div', { className: 'part', textContent: 'edges' }), ...bEdgeTable(builder, h, c, mathOpen, err, () => { setup(); update(); })],
         head: tos.length ? [pickA, ' → ', pickB, add] : [h('span', { className: 'hint', textContent: 'no edge left to add' })] }]));
 
     const shown = bShown(builder);
@@ -91,6 +94,7 @@
     builder.step = Math.min(Math.max(1, builder.step), max);
     el('stepno').textContent = `step ${builder.step} of ${max}`;
     el('prev').disabled = builder.step <= 1; el('next').disabled = builder.step >= max;
+    places.forEach(([n, at]) => bPosText(builder, n).forEach((t, i) => { at[i].textContent = t; }));
     el('lists').replaceChildren(...rs.map(({ m, steps }) => h('div', {}, [
       h('h2', { className: `m-${m.color.slice(2)}`, textContent: m.name }),
       h('ol', { className: 'steps' }, steps.map((s, i) => h('li', {
@@ -116,7 +120,6 @@
     ctx.clearRect(0, 0, cv.width, cv.height);
     ctx.save(); ctx.translate(pan.x, pan.y);
     bDrawAxes(draw, ctx, css, [0, 0, 0], builder.cr, true);
-    el('framenote').replaceChildren(...bGlobalLines(builder).map(t => h('div', { textContent: t })));
     bDrawGuides(builder, draw, ctx, css, bCellPoints(builder, rs));
     const seen = {};
     rs.forEach(({ m, steps }) => {

@@ -123,14 +123,14 @@
           <span class="hint">the scene sphere: index steps in 1 turn; c<sub>r</sub> = the length of 1 radial index step; c<sub>φ</sub> = 2π/T<sub>φ</sub>, c<sub>θ</sub> = 2π/T<sub>θ</sub></span>
         </div>
         <h2>Nodes — a position is a scene-sphere index: C = O + polar_to_cart(I<sub>r</sub>·c<sub>r</sub>, I<sub>φ</sub>·c<sub>φ</sub>, I<sub>θ</sub>·c<sub>θ</sub>), O = (0, 0, 0)</h2>
-        <table><thead><tr><th>node</th><th>s</th><th>I<sub>r</sub></th><th>I<sub>φ</sub></th><th>I<sub>θ</sub></th><th></th></tr></thead><tbody id="nodes"></tbody></table>
+        <table><thead><tr><th>node</th><th>s</th><th>I<sub>r</sub></th><th>I<sub>φ</sub></th><th>I<sub>θ</sub></th><th>C</th><th>in O's frame (rad)</th><th></th></tr></thead><tbody id="nodes"></tbody></table>
         <div class="row"><button id="add-node">add node</button><button id="preset">load the three-node example</button></div>
       </div>
     </div>
 
     <div class="panel">
       <div class="row"><label>node to place <select id="item"></select></label></div>
-      <div class="hint" id="framenote"></div>      <div id="methods"></div>
+      <div id="methods"></div>
       <div id="lists"></div>
     </div>
   </div>
