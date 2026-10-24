@@ -1,3 +1,5 @@
+let bPickedShown = true;
+
 function bEdgePicker(builder, h, picked, changed) {
   const trees = [...bOpenStep(builder).edges], abName = t => `${t.ab.a.name}→${t.ab.b.name}`;
   picked.splice(0, picked.length, ...picked.filter(t => trees.includes(t)));
@@ -10,23 +12,26 @@ function bEdgePicker(builder, h, picked, changed) {
   const items = picked.map(t => {
     const drop = h('button', { textContent: 'unpick' });
     drop.onclick = () => { picked.splice(picked.indexOf(t), 1); changed(); };
-    const own = k => {
+    const own = (k, name) => {
       const amount = h('input', { type: 'number', value: t.ab.row.increment[k], step: 1 });
       amount.onchange = () => { const v = +amount.value; if (bWhole(v)) t.ab.row.increment[k] = Math.round(v); changed(); };
-      return h('td', {}, [amount]);
+      return h('td', {}, [h('span', { className: 'pair' }, [name, amount])]);
     };
-    return h('tr', {}, [h('td', { className: 't', textContent: abName(t) }), own('phi'), own('theta'), h('td', {}, [drop])]);
+    return h('tr', {}, [h('td', { className: 't', textContent: abName(t) }), own('phi', 'Δφ'), own('theta', 'Δθ'), h('td', {}, [drop])]);
   });
   const redo = left.map(t => h('span', { className: 't', textContent: abName(t) }));
   const step = (k, sign, text) => {
-    const b = h('button', { textContent: text, disabled: !picked.length });
+    const b = h('button', { textContent: text, title: `${sign > 0 ? 'add' : 'subtract'} each picked edge's step`, disabled: !picked.length });
     b.onclick = () => { picked.forEach(t => bump(t, k, sign)); changed(); };
     return b;
   };
-  return [h('div', { className: 'row' }, [h('label', {}, ['edge ', pick])]),
-    items.length ? h('table', { className: 'cells' }, [h('thead', {}, [h('tr', {}, ['edge', 'Δφ step', 'Δθ step', ''].map(t => h('th', { textContent: t })))]), h('tbody', {}, items),
-      h('tbody', {}, [h('tr', {}, [h('td', { className: 't', textContent: 'move all' }), h('td', {}, [step('phi', -1, '−'), step('phi', 1, '+')]), h('td', {}, [step('theta', -1, '−'), step('theta', 1, '+')]), h('td')])])])
-      : h('div', { className: 'hint', textContent: 'no edges picked' }),
+  const spin = (k, name) => h('span', { className: 'pair' }, [name, h('span', { className: 'spin' }, [step(k, 1, '+'), step(k, -1, '−')])]);
+  const all = items.length ? [h('span', { className: 'all' }, ['move all', spin('phi', 'Δφ'), spin('theta', 'Δθ')])] : [];
+  const fold = h('button', { className: 'part fold', textContent: `${bPickedShown ? '▾' : '▸'} picked (${items.length})` });
+  fold.onclick = () => { bPickedShown = !bPickedShown; changed(); };
+  const list = !items.length ? [h('div', { className: 'hint', textContent: 'no edges picked' })]
+    : [fold, ...(bPickedShown ? [h('table', { className: 'cells' }, [h('tbody', {}, items)])] : [])];
+  return [h('div', { className: 'row' }, [pick, ...all]), ...list,
     h('div', { className: 'part', textContent: 'chosen for vector recalculation' }),
     redo.length ? h('div', { className: 'row' }, redo) :h('div', { className: 'hint', textContent: 'no edges' })];
 }
