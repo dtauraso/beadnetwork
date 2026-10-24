@@ -13,7 +13,7 @@ function bEdgePicker(builder, h, picked, changed) {
     const own = (k, name) => {
       const amount = h('input', { type: 'number', value: t.ab.row.increment[k], step: 1 });
       amount.onchange = () => { const v = +amount.value; if (bWhole(v)) t.ab.row.increment[k] = Math.round(v); changed(); };
-      return h('td', {}, [`${name} `, amount]);
+      return h('td', {}, [h('span', { className: 'pair' }, [name, amount])]);
     };
     return h('tr', {}, [h('td', { className: 't', textContent: abName(t) }), own('phi', 'Δφ'), own('theta', 'Δθ'), h('td', {}, [drop])]);
   });
@@ -23,8 +23,8 @@ function bEdgePicker(builder, h, picked, changed) {
     b.onclick = () => { picked.forEach(t => bump(t, k, sign)); changed(); };
     return b;
   };
-  const spin = k => h('span', { className: 'spin' }, [step(k, 1, '+'), step(k, -1, '−')]);
-  const all = items.length ? [h('span', { className: 'all' }, ['move all Δφ', spin('phi'), ' Δθ', spin('theta')])] : [];
+  const spin = (k, name) => h('span', { className: 'pair' }, [name, h('span', { className: 'spin' }, [step(k, 1, '+'), step(k, -1, '−')])]);
+  const all = items.length ? [h('span', { className: 'all' }, ['move all', spin('phi', 'Δφ'), spin('theta', 'Δθ')])] : [];
   return [h('div', { className: 'row' }, [pick, ...all]),
     items.length ? h('table', { className: 'cells' }, [h('tbody', {}, items)]) : h('div', { className: 'hint', textContent: 'no edges picked' }),
     h('div', { className: 'part', textContent: 'chosen for vector recalculation' }),
