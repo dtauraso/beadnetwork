@@ -36,5 +36,5 @@ function bEdgePicker(builder, h, picked, changed) {
     fold(bRedoShown, 'chosen for vector recalculation', redo.length, () => { bRedoShown = !bRedoShown; })]);
   const pickedList = !bPickedShown ? [] : items.length ? [h('table', { className: 'cells' }, [h('tbody', {}, items)])] : [h('div', { className: 'hint', textContent: 'no edges picked' })];
   const redoList = !bRedoShown ? [] : redo.length ? [h('div', { className: 'row' }, redo)] : [h('div', { className: 'hint', textContent: 'no edges chosen for recalculation' })];
-  return [h('div', { className: 'row' }, [pick, ...all]), folds, ...pickedList, ...redoList];
+  return [h('div', { className: 'row' }, [pick, ...all]), folds, h('div', { className: 'lists' }, [...pickedList, ...redoList])];
 }
