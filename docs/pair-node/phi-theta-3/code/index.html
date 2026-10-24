@@ -45,7 +45,7 @@
   <div class="panel"><svg id="map-setup" role="img" aria-label="setup: which function calls which"></svg></div>
 
   <h2>4. Moving a node</h2>
-  <p class="lede">bPut puts an edge's second node at its first node's place plus the edge's vector. bRemeasure then reads each other edge at that node back from the two places.</p>
+  <p class="lede">A move is a request. Dashed boxes are a node's own methods, in node.js: each node keeps its own place, its s, and its out edges' start and Δ. The edge's first node sends: it works out its place plus the edge's vector, and the second node takes that as its place. The moved node then re-measures its own out edges and tells the first node of each in edge, which re-measures that edge from the two places.</p>
   <div class="panel"><svg id="map-move" role="img" aria-label="Moving a node: which function calls which"></svg></div>
 
   <h2>5. The methods' steps and the edge drawing</h2>

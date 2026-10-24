@@ -15,7 +15,7 @@ function bEdgePicker(builder, h, picked, changed) {
   const pick = h('select', {}, [h('option', { value: -1, textContent: left.length ? 'pick an edge' : 'all edges picked' }),
     ...left.map((t, i) => h('option', { value: i, textContent: abName(t) }))]);
   pick.onchange = () => { if (left[+pick.value]) picked.push(left[+pick.value]); changed(); };
-  const move = (ts, signs) => { ts.forEach(t => { const r = t.ab.row; Object.entries(signs(t)).forEach(([k, sign]) => { r.delta[k] = bWrap(bS(builder, t.ab.a), r.delta[k] + sign * r.increment[k]); }); }); bMoveAll(builder, ts); changed(); };
+  const move = (ts, signs) => { ts.forEach(t => Object.entries(signs(t)).forEach(([k, sign]) => t.ab.a.step(builder, t, k, sign))); bMoveAll(builder, ts); changed(); };
   const button = (text, title, onclick, lit, disabled = !picked.length) => {
     const b = h('button', { textContent: text, title, disabled, className: lit ? 'lit' : '' });
     b.onclick = onclick;

@@ -19,8 +19,3 @@ function bVec(builder, s, t) {
   const R = t.r * builder.rho, ph = ang(t.phi), th = ang(t.theta);
   return [R * Math.sin(ph) * Math.cos(th), R * Math.cos(ph), R * Math.sin(ph) * Math.sin(th)];
 }
-
-function bSetAt(builder, n, p) {
-  const J = bIndexOf(builder, p);
-  n.idx = { ...J, theta: J.theta < 0 ? J.theta + builder.Ttheta : J.theta };
-}

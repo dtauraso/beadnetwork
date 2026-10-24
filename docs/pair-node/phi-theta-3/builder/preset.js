@@ -12,6 +12,6 @@ function bPreset() {
     { from: b, to: c, start: { phi: 4, theta: 0, r: 2 } },
   ];
   const [ab, bc] = rows.map(r => bAddTree(p, r));
-  [ab, bc].forEach(t => bPut(p, t.ab.row));
+  [ab, bc].forEach(t => t.ab.a.send(p, t));
   return p;
 }
