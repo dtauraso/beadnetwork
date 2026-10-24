@@ -9,7 +9,7 @@ function bPreset() {
   const p = new BBuilder({
     s: 1, rho: 0.5, Tphi: 12, Ttheta: 12, cr: 0.5,
     made: 3, open: 0,
-    seqs: [new BSeq({ name: 'sequence 1', steps: [new BStep({ nodes: [a, b, c], edges, item: c, methods: { atob: true, pair: true }, card: 1 })] })],
+    seqs: [new BSeq({ name: 'sequence 1', steps: [new BStep({ nodes: [a, b, c], edges, cards: new BCards({ item: c, methods: { atob: true, pair: true }, card: 1 }) })] })],
   });
   edges.forEach(e => e.from.send(p, e));
   return p;

@@ -86,12 +86,12 @@
       h('h2', { textContent: 'a→b settings — one item per a→b, set at a, with its start (φ, θ, r)' }));
 
     const shown = builder.shown();
-    el('item').replaceChildren(...shown.map((n, i) => h('option', { value: i, textContent: n.name, selected: n === builder.openStep().item })));
-    el('item').onchange = () => { builder.openStep().item = shown[+el('item').value]; update(); };
+    el('item').replaceChildren(...shown.map((n, i) => h('option', { value: i, textContent: n.name, selected: n === builder.openStep().cards.item })));
+    el('item').onchange = () => { builder.openStep().cards.item = shown[+el('item').value]; update(); };
 
     el('methods').replaceChildren(...B_METHODS.map(m => {
-      const box = h('input', { type: 'checkbox', checked: !!builder.openStep().methods[m.id] });
-      box.onchange = () => { builder.openStep().methods[m.id] = box.checked; update(); };
+      const box = h('input', { type: 'checkbox', checked: !!builder.openStep().cards.methods[m.id] });
+      box.onchange = () => { builder.openStep().cards.methods[m.id] = box.checked; update(); };
       return h('label', { className: 'method' }, [box, h('span', { className: `m-${m.color.slice(2)}`, textContent: m.name })]);
     }));
   }
@@ -99,7 +99,7 @@
   function runs() {
     const shown = builder.shown();
     builder.openStep().fixItem();
-    return B_METHODS.filter(m => builder.openStep().methods[m.id] && shown.includes(builder.openStep().item)).map(m => ({ m, steps: m.run(builder, builder.openStep().item) }));
+    return B_METHODS.filter(m => builder.openStep().cards.methods[m.id] && shown.includes(builder.openStep().cards.item)).map(m => ({ m, steps: m.run(builder, builder.openStep().cards.item) }));
   }
 
   const redraw = () => render(runs());
@@ -107,13 +107,13 @@
   function update() {
     const rs = runs();
     const max = Math.max(1, ...rs.map(r => r.steps.length));
-    builder.openStep().card = Math.min(Math.max(1, builder.openStep().card), max);
-    el('stepno').textContent = `step ${builder.openStep().card} of ${max}`;
-    el('prev').disabled = builder.openStep().card <= 1; el('next').disabled = builder.openStep().card >= max;
+    builder.openStep().cards.card = Math.min(Math.max(1, builder.openStep().cards.card), max);
+    el('stepno').textContent = `step ${builder.openStep().cards.card} of ${max}`;
+    el('prev').disabled = builder.openStep().cards.card <= 1; el('next').disabled = builder.openStep().cards.card >= max;
     el('lists').replaceChildren(...rs.map(({ m, steps }) => h('div', {}, [
       h('h2', { className: `m-${m.color.slice(2)}`, textContent: m.name }),
       h('ol', { className: 'steps' }, steps.map((s, i) => h('li', {
-        className: [i + 1 > builder.openStep().card ? 'later' : '', i + 1 === builder.openStep().card ? 'now' : '', s.ok ? '' : 'bad'].join(' '),
+        className: [i + 1 > builder.openStep().cards.card ? 'later' : '', i + 1 === builder.openStep().cards.card ? 'now' : '', s.ok ? '' : 'bad'].join(' '),
       }, [h('span', { className: 't', textContent: `${i + 1}. ${s.title}` }),
         ...s.lines.map(l => h('code', { textContent: l })), h('div', { className: 'note', textContent: s.note })]))),
     ])));
@@ -123,7 +123,7 @@
 
   function render(rs) {
     const pts = [[0, 0, 0], ...builder.shown().map(n => n.place(builder))];
-    rs.forEach(({ steps }) => steps.slice(0, builder.openStep().card).forEach(s => s.draw.forEach(o => pts.push(...(o.arrow || [o.dot || o.square])))));
+    rs.forEach(({ steps }) => steps.slice(0, builder.openStep().cards.card).forEach(s => s.draw.forEach(o => pts.push(...(o.arrow || [o.dot || o.square])))));
     reach ??= Math.max(0.25, ...pts.map(bLen));
     focus = [0, 0, 0];
     S = pan.zoom * (cv.width / 2 - 60) / reach;
@@ -140,8 +140,8 @@
     const seen = {};
     rs.forEach(({ m, steps }) => {
       const color = css(m.color);
-      steps.slice(0, builder.openStep().card).forEach((s, i) => {
-        const now = i + 1 === builder.openStep().card;
+      steps.slice(0, builder.openStep().cards.card).forEach((s, i) => {
+        const now = i + 1 === builder.openStep().cards.card;
         s.draw.forEach(o => {
           if (o.arrow) draw.arrow(o.arrow[0], o.arrow[1], color, now ? 4 : 2, !now);
           if (o.dot && o.label.startsWith('C_')) {
@@ -195,8 +195,8 @@
   cv.addEventListener('gesturestart', e => { e.preventDefault(); pinch = 1; });
   cv.addEventListener('gesturechange', e => { e.preventDefault(); zoomAt(e.scale / pinch, e.clientX, e.clientY); pinch = e.scale; });
 
-  el('prev').onclick = () => { builder.openStep().card--; update(); };
-  el('next').onclick = () => { builder.openStep().card++; update(); };
+  el('prev').onclick = () => { builder.openStep().cards.card--; update(); };
+  el('next').onclick = () => { builder.openStep().cards.card++; update(); };
   el('add-node').onclick = () => {
     builder.addNode();
     setup(); update();
