@@ -11,7 +11,7 @@
 <body>
 <header>
   <h1>The a→b tree</h1>
-  <div class="sub">The a→b builder's data as it is now, drawn as the tree the builder keeps: builder, then the sequence open in the builder, then that sequence's edges in one box, by step: under each step's heading its edges sit side by side (the step's edges, one column per row, with a line between columns), then the nodes the edges join, each box holding that thing's variables. The builder stores its data in this same shape: builder, its sequences, each sequence's steps, each step's edges and nodes. Read with the builder's own scripts from what the builder tab last saved in this browser; it redraws when the builder saves. Stored values are plain; values the builder works out from them are not stored: they sit below a dashed line in each box (an edge's start + Δ, then “measured C_a → C_b”, the direction from its first node's drawn place C to its second's, taken at the first node — when the two differ, the edge's settings and the diagram disagree), in <span class="calc-tag">italics</span>, and a value that is a reference to another box — a node or an edge, not a copy of it — is <span class="ref-tag">green and dotted-underlined</span>.</div>
+  <div class="sub">The a→b builder's data as it is now, drawn as the tree the builder keeps: builder, then the sequence open in the builder, then that sequence's edges in one box, by step: under each step's heading its edges sit side by side (the step's edges, one column per row, with a line between columns), then the nodes the edges join, each box holding that thing's variables. The builder stores its data in this same shape: builder, its sequences, each sequence's steps, each step's edges and nodes. Read with the builder's own scripts from builder/sequences.js, the file the builder writes on every change; it redraws when that file changes. Stored values are plain; values the builder works out from them are not stored: they sit below a dashed line in each box (an edge's start + Δ, then “measured C_a → C_b”, the direction from its first node's drawn place C to its second's, taken at the first node — when the two differ, the edge's settings and the diagram disagree), in <span class="calc-tag">italics</span>, and a value that is a reference to another box — a node or an edge, not a copy of it — is <span class="ref-tag">green and dotted-underlined</span>.</div>
 </header>
 
 <nav>
@@ -46,6 +46,7 @@
 <script src="../builder/move.js"></script>
 <script src="../builder/preset.js"></script>
 <script src="../builder/methods.js"></script>
+<script src="../builder/sequences.js"></script>
 <script src="../builder/save.js"></script>
 <script src="tree.js"></script>
 </body>

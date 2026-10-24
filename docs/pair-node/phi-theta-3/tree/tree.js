@@ -8,8 +8,8 @@ const tEsc =s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
 
 function tLoad() {
   const builder = bLoad();
-  if (builder) return { builder, from: `the builder's save in this browser (${B_KEY})` };
-  return { builder: bPreset(), from: 'the three-node preset — the builder has saved nothing in this browser yet' };
+  if (builder) return { builder, from: window.B_SAVED ? `the builder's save, ${B_FILE}` : `the builder's old save in this browser (${B_KEY}), until it writes ${B_FILE}` };
+  return { builder: bPreset(), from: `the three-node preset — the builder has not written ${B_FILE} yet` };
 }
 
 function tState(builder) {
@@ -132,5 +132,12 @@ function tDraw() {
   svg.innerHTML = body;
 }
 
-window.addEventListener('storage', e => { if (e.key === B_KEY) tDraw(); });
+function tReread() {
+  const was = JSON.stringify(window.B_SAVED), s = document.createElement('script');
+  s.src = `../builder/sequences.js?t=${Date.now()}`;
+  s.onload = s.onerror = () => { s.remove(); if (JSON.stringify(window.B_SAVED) !== was) tDraw(); };
+  document.head.append(s);
+}
+
+setInterval(tReread, 1000);
 tDraw();
