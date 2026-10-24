@@ -18,7 +18,7 @@ function bEdgePicker(builder, h, picked, changed) {
     };
     return h('li', {}, [h('div', { className: 'row' }, [h('span', { className: 't', textContent: abName(t) }), ...own('phi', 'Δφ'), ...own('theta', 'Δθ'), drop])]);
   });
-  const redo = left.map(t => h('li', {}, [h('div', { className: 'row' }, [h('span', { className: 't', textContent: abName(t) })])]));
+  const redo = left.map(t => h('span', { className: 't', textContent: abName(t) }));
   const step = (k, sign, text) => {
     const b = h('button', { textContent: text, disabled: !picked.length });
     b.onclick = () => { picked.forEach(t => bump(t, k, sign)); changed(); };
@@ -28,5 +28,5 @@ function bEdgePicker(builder, h, picked, changed) {
     items.length ? h('ul', { className: 'abs' }, items) : h('div', { className: 'hint', textContent: 'no edges picked' }),
     h('div', { className: 'row' }, ['each picked edge\'s Δφ, by its own increment', step('phi', -1, '−'), step('phi', 1, '+'), ' Δθ', step('theta', -1, '−'), step('theta', 1, '+')]),
     h('div', { className: 'part', textContent: 'chosen for vector recalculation' }),
-    redo.length ? h('ul', { className: 'abs' }, redo) : h('div', { className: 'hint', textContent: 'no edges' })];
+    redo.length ? h('div', { className: 'row' }, redo) :h('div', { className: 'hint', textContent: 'no edges' })];
 }
