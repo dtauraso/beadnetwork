@@ -36,8 +36,9 @@ function bDrawGuides(builder, draw, ctx, css, points) {
   bLinks(builder).forEach(({ from, P, t, s: ns }) => {
     const k = seen[from.name] = (seen[from.name] ?? -1) + 1, R = a * (1 + 0.4 * k), tick = 2 * Math.PI / (12 * ns);
     if (t.r < e) return;
-    if (t.phi > e) arc(s => bAdd(P, bCart(R, s * t.phi * tick, 0)), css('--phi'));
-    if (t.theta > e) arc(s => bAdd(P, bCart(R, Math.PI / 2, s * t.theta * tick)), css('--theta'));
+    const ph = t.phi * tick, th = t.theta * tick;
+    if (t.phi > e) arc(s => bAdd(P, bCart(R, s * ph, th)), css('--phi'));
+    if (t.theta > e && Math.abs(Math.sin(ph)) > e) arc(s => bAdd(P, bCart(R, ph, s * th)), css('--theta'));
   });
   bRowEnds(builder).forEach(({ P, T }) => draw.arrow(P, T, muted, 2, true));
 }
