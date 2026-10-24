@@ -19,11 +19,12 @@ function bEdgePicker(builder, h, picked, changed) {
   });
   const redo = left.map(t => h('span', { className: 't', textContent: abName(t) }));
   const step = (k, sign, text) => {
-    const b = h('button', { className: 'pm', textContent: text, disabled: !picked.length });
+    const b = h('button', { textContent: text, title: `${sign > 0 ? 'add' : 'subtract'} each picked edge's step`, disabled: !picked.length });
     b.onclick = () => { picked.forEach(t => bump(t, k, sign)); changed(); };
     return b;
   };
-  const all = items.length ? [h('span', { className: 'all' }, ['move all Δφ', step('phi', -1, '−'), step('phi', 1, '+'), ' Δθ', step('theta', -1, '−'), step('theta', 1, '+')])] : [];
+  const spin = k => h('span', { className: 'spin' }, [step(k, 1, '▲'), step(k, -1, '▼')]);
+  const all = items.length ? [h('span', { className: 'all' }, ['move all Δφ', spin('phi'), ' Δθ', spin('theta')])] : [];
   return [h('div', { className: 'row' }, [pick, ...all]),
     items.length ? h('table', { className: 'cells' }, [h('tbody', {}, items)]) : h('div', { className: 'hint', textContent: 'no edges picked' }),
     h('div', { className: 'part', textContent: 'chosen for vector recalculation' }),
