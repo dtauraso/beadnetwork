@@ -10,13 +10,12 @@ function bEdgePicker(builder, h, picked, changed) {
   const items = picked.map(t => {
     const drop = h('button', { textContent: 'unpick' });
     drop.onclick = () => { picked.splice(picked.indexOf(t), 1); changed(); };
-    const own = (k, name) => {
+    const own = k => {
       const amount = h('input', { type: 'number', value: t.ab.row.increment[k], step: 1 });
       amount.onchange = () => { const v = +amount.value; if (bWhole(v)) t.ab.row.increment[k] = Math.round(v); changed(); };
-      const step = (sign, text) => { const b = h('button', { textContent: text }); b.onclick = () => { t.ab.row.increment[k] += sign; changed(); }; return b; };
-      return [` ${name} increment`, amount, step(-1, '−'), step(1, '+')];
+      return h('td', {}, [amount]);
     };
-    return h('li', {}, [h('div', { className: 'row' }, [h('span', { className: 't', textContent: abName(t) }), ...own('phi', 'Δφ'), ...own('theta', 'Δθ'), drop])]);
+    return h('tr', {}, [h('td', { className: 't', textContent: abName(t) }), own('phi'), own('theta'), h('td', {}, [drop])]);
   });
   const redo = left.map(t => h('span', { className: 't', textContent: abName(t) }));
   const step = (k, sign, text) => {
@@ -25,8 +24,9 @@ function bEdgePicker(builder, h, picked, changed) {
     return b;
   };
   return [h('div', { className: 'row' }, [h('label', {}, ['edge ', pick])]),
-    items.length ? h('ul', { className: 'abs' }, items) : h('div', { className: 'hint', textContent: 'no edges picked' }),
-    h('div', { className: 'row' }, ['each picked edge\'s Δφ, by its own increment', step('phi', -1, '−'), step('phi', 1, '+'), ' Δθ', step('theta', -1, '−'), step('theta', 1, '+')]),
+    items.length ? h('table', { className: 'cells' }, [h('thead', {}, [h('tr', {}, ['edge', 'Δφ step', 'Δθ step', ''].map(t => h('th', { textContent: t })))]), h('tbody', {}, items),
+      h('tbody', {}, [h('tr', {}, [h('td', { className: 't', textContent: 'move all' }), h('td', {}, [step('phi', -1, '−'), step('phi', 1, '+')]), h('td', {}, [step('theta', -1, '−'), step('theta', 1, '+')]), h('td')])])])
+      : h('div', { className: 'hint', textContent: 'no edges picked' }),
     h('div', { className: 'part', textContent: 'chosen for vector recalculation' }),
     redo.length ? h('div', { className: 'row' }, redo) :h('div', { className: 'hint', textContent: 'no edges' })];
 }
