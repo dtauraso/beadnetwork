@@ -6,7 +6,7 @@ function bDirs(builder, tree) {
 
 const bBack = (builder, row, a = bDir(builder, row)) => {
   const sa = bS(builder, row.from), sb = bS(builder, row.to);
-  return { phi: bWrap(sb, a.phi * sb / sa + 6 * sb), theta: bWrap(sb, a.theta * sb / sa + 6 * sb), r: a.r };
+  return { phi: bWrap(sb, a.phi * sb / sa + 6 * sb), theta: bWrap(sb, a.theta * sb / sa), r: a.r };
 };
 
 function bMeasure(builder, row, P = bNodePos(builder, row.from), T = bNodePos(builder, row.to)) {
@@ -14,9 +14,10 @@ function bMeasure(builder, row, P = bNodePos(builder, row.from), T = bNodePos(bu
   const s = bS(builder, row.from), v = bSub(T, P), len = bLen(v), tick = 2 * Math.PI / (12 * s), half = 6 * s;
   const was = bDir(builder, row) || { phi: 0, theta: 0 };
   if (len < 1e-9) return { phi: was.phi, theta: was.theta, r: 0 };
-  let phi = Math.acos(Math.max(-1, Math.min(1, v[1] / len))) / tick;
-  let theta = Math.hypot(v[0], v[2]) < 1e-9 * len ? was.theta : bWrap(s, Math.atan2(v[2], v[0]) / tick);
-  if (was.phi > half) { phi = 2 * half - phi; theta = bWrap(s, theta + half); }
+  const k = v[0] < 0 ? -1 : 1, side = Math.hypot(v[0], v[2]);
+  const phi = bWrap(s, Math.atan2(k * side, v[1]) / tick);
+  let theta = side < 1e-9 * len ? was.theta : bWrap(s, Math.atan2(k * v[2], k * v[0]) / tick);
+  if (Math.abs(bWrap(s, half - theta) - bWrap(s, was.theta)) < 1e-9) theta = bWrap(s, was.theta);
   return { phi, theta, r: len / builder.rho };
 }
 
