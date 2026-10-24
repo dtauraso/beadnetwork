@@ -44,7 +44,7 @@ function bEdgePicker(builder, h, picked, changed) {
       amount.onchange = () => { const v = +amount.value; if (bWhole(v)) t.ab.row.increment[k] = Math.round(v); changed(); };
       return h('td', {}, [h('span', { className: 'pair' }, [name, amount, h('span', { className: 'spin' }, [step(lock, locking, [t], k, 1, "this edge's"), step(lock, locking, [t], k, -1, "this edge's")])])]);
     };
-    const lockCell = h('td', { className: 'lockcell' }, [spin('lock', [lockButton(locking, () => { if (locking) bRowLocking.delete(t); else bRowLocking.add(t); })])]);
+    const lockCell = h('td', { className: 'lockcell' }, [h('span', { className: 'spin' }, [lockButton(locking, () => { if (locking) bRowLocking.delete(t); else bRowLocking.add(t); })])]);
     return h('tr', {}, [h('td', { className: 't', textContent: abName(t) }), own('phi', 'Δφ'), own('theta', 'Δθ'), h('td', {}, [drop]), lockCell]);
   });
   const redo = left.map(t => h('span', { className: 't', textContent: abName(t) }));
@@ -55,11 +55,14 @@ function bEdgePicker(builder, h, picked, changed) {
   const rowsLocking = picked.some(t => bRowLocking.has(t));
   if (rowsLocking) bLocking = false;
   const allStep = (k, sign) => step(bLock, bLocking, picked, k, sign, "each picked edge's");
-  const all = items.length ? [h('span', { className: 'all' }, ['move all', spin('lock', [lockButton(bLocking, () => { bLocking = !bLocking; }, rowsLocking)]),
-    spin('Δφ', [allStep('phi', 1), allStep('phi', -1)]), spin('Δθ', [allStep('theta', 1), allStep('theta', -1)]), spin('both', both)])] : [];
+  const right = kids => h('td', { className: 'right' }, kids);
+  const all = h('tr', { className: 'all' }, [h('td', { className: 't', textContent: 'all' }), right([spin('Δφ', [allStep('phi', 1), allStep('phi', -1)])]),
+    right([spin('Δθ', [allStep('theta', 1), allStep('theta', -1)])]), right([spin('both', both)]),
+    h('td', { className: 'lockcell' }, [spin('lock', [lockButton(bLocking, () => { bLocking = !bLocking; }, rowsLocking)])])]);
   const folds = h('div', { className: 'folds' }, [bFold(h, bPickedShown, 'picked', items.length, () => { bPickedShown = !bPickedShown; }, changed),
     bFold(h, bRedoShown, 'chosen for vector recalculation', redo.length, () => { bRedoShown = !bRedoShown; }, changed)]);
-  const pickedList = !bPickedShown ? [] : items.length ? [h('table', { className: 'cells picked' }, [h('tbody', {}, items)])] : [h('div', { className: 'hint', textContent: 'no edges picked' })];
+  const pickedList = items.length ? [h('table', { className: 'cells picked' }, [h('tbody', {}, [all, ...(bPickedShown ? items : [])])])]
+    : bPickedShown ? [h('div', { className: 'hint', textContent: 'no edges picked' })] : [];
   const redoList = !bRedoShown ? [] : redo.length ? [h('div', { className: 'row' }, redo)] : [h('div', { className: 'hint', textContent: 'no edges chosen for recalculation' })];
-  return [h('div', { className: 'row' }, [pick, ...all]), folds, h('div', { className: 'lists' }, [...pickedList, ...redoList])];
+  return [h('div', { className: 'row' }, [pick]), folds, h('div', { className: 'lists' }, [...pickedList, ...redoList])];
 }
