@@ -1,5 +1,6 @@
 function bPack(k, v) {
   if (['gone', 'out', 'in'].includes(k)) return undefined;
+  if (k === 'lock' && !v.phi && !v.theta || k === 'locking' && !v) return undefined;
   if (k === 'edges') return [...v].map(t => t.ab.row);
   if (k === 'picked') return v.map(t => `${t.ab.a.name}→${t.ab.b.name}`);
   if (v instanceof Set) return [...v];
@@ -8,7 +9,7 @@ function bPack(k, v) {
 }
 
 function bWireStep(step) {
-  const by = new Map(step.nodes.map(({ name, s, idx }) => [name, bMake({ name, s, idx })])), rows = step.edges.map(({ from, to, start, delta, increment }) => ({ from, to, start, delta, increment }));
+  const by = new Map(step.nodes.map(({ name, s, idx }) => [name, bMake({ name, s, idx })])), rows = step.edges.map(({ from, to, start, delta, increment, lock, locking }) => ({ from, to, start, delta, increment, lock, locking }));
   step.nodes = new Set(by.values());
   step.edges = new Set();
   rows.forEach(r => {
