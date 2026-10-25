@@ -97,6 +97,15 @@ func WriteLinks(nodeDir string, links []Link) error {
 	return writeLinksIn(DragLinksDir(nodeDir), links)
 }
 
+func RemoveLinksTo(nodeDir, from, to string) error {
+	for _, dir := range []string{BaseLinksDir(nodeDir), DragLinksDir(nodeDir)} {
+		if err := os.RemoveAll(filepath.Join(dir, linkName(from, to))); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func writeLinksIn(linksDir string, links []Link) error {
 	keep := map[string]bool{}
 	for i, l := range links {

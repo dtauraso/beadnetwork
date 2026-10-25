@@ -3,6 +3,7 @@ package Scene
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/dtauraso/beadnetwork/Categories/Vectors/polar"
@@ -24,6 +25,15 @@ func WriteSceneSphere(sceneRoot string, s polar.SceneSphere) error {
 		}
 	}
 	return nil
+}
+
+func WriteFrame(sceneRoot string, tPhi, tTheta int, cr, rho float64) error {
+	for name, value := range map[string]any{"maxIndexPhi": tPhi, "maxIndexTheta": tTheta, "constantR": cr} {
+		if err := WriteAtomicIfChanged(SceneValuePath(sceneRoot, name), value); err != nil {
+			return err
+		}
+	}
+	return WriteAtomicIfChanged(filepath.Join(ConstantsDir(sceneRoot), FileRho), rho)
 }
 
 func LogPersistErr(label, path string, err error) {

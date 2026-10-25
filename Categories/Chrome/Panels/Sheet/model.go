@@ -95,10 +95,10 @@ func (s State) Pills() []Pill {
 	if !s.Model.On() {
 		return nil
 	}
-	return []Pill{LinksPill(s.Model)}
+	return []Pill{FramePill(s.Model), NodesPill(s.Model), LinksPill(s.Model)}
 }
 
-var RightLabels = []string{LinksLabel}
+var RightLabels = []string{FrameLabel, NodesLabel, LinksLabel}
 
 var LeftLabels = []string{}
 

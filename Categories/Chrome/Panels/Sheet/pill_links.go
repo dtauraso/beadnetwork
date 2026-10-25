@@ -32,6 +32,7 @@ func LinksPill(m Model) Pill {
 			Field("θ", Num(l.Start.Theta), act(OpLinkStart, Links.KTheta), true, true),
 			Field("Δθ", Num(l.Delta.Theta), act(OpLinkPress, Links.KTheta), false, true),
 			Field("r", Num(l.Start.R), act(OpLinkStart, Links.KR), true, false),
+			Button("remove", act(OpDropLink, ""), false),
 		})
 	}
 	if len(rows) == 0 {

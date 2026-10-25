@@ -44,6 +44,9 @@ func (md *MoveDispatch) sendLink(ctx context.Context, to string, msg any) {
 func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, typed *float64) {
 	m := md.UI.Sheet.Model
 	md.UI.Sheet.Model.Refused = ""
+	if runSheetStructure(ctx, md, a, sign, typed) {
+		return
+	}
 	switch a.Op {
 	case Sheet.OpLinkStart:
 		l, ok := m.Link(a.Node, a.To)
