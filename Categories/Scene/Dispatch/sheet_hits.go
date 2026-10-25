@@ -33,7 +33,11 @@ func applySheetHit(ctx context.Context, md *MoveDispatch, h Sheet.Hit) {
 }
 
 func applySheetKey(ctx context.Context, md *MoveDispatch, key string) {
-	if act, v, ok := Sheet.Key(&md.UI.Sheet.Edit, key); ok {
+	act, v, ok, err := Sheet.Key(&md.UI.Sheet.Edit, key)
+	if err != nil {
+		md.UI.Builder.Refused = err.Error()
+	}
+	if ok {
 		runSheetAct(ctx, md, act, 0, &v)
 	}
 	md.UI.EmitViewFrame(nil)
@@ -62,6 +66,10 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		if typed != nil {
 			v = *typed
 		}
+		if a.K == Links.KR && v < 0 {
+			md.UI.Builder.Refused = fmt.Sprintf("%s→%s r %v: a length cannot be negative, so it stays at %v", a.Node, a.To, v, l.Start.R)
+			return
+		}
 		md.sendLink(ctx, a.Node, Links.SetStart{To: a.To, K: a.K, V: v})
 	case Builder.OpLinkPress:
 		if sign == 0 {
@@ -75,8 +83,10 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 	case Builder.OpUnpick:
 		md.sendLink(ctx, a.Node, Links.Unpick{To: a.To})
 	case Builder.OpIncrement:
-		if typed != nil {
+		if typed != nil && whole(*typed) {
 			md.sendLink(ctx, a.Node, Links.SetIncrement{To: a.To, K: a.K, V: *typed})
+		} else if typed != nil {
+			md.UI.Builder.Refused = fmt.Sprintf("%s→%s increment %v: not a whole number of ticks, so it stays as it is", a.Node, a.To, *typed)
 		}
 	case Builder.OpLocking:
 		if l, ok := m.Link(a.Node, a.To); ok {
