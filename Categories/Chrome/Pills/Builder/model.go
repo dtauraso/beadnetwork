@@ -84,12 +84,12 @@ func Pills(m Model) []Pill {
 	if len(m.Seqs) > 0 {
 		pills = append(pills, SequencesPill(m))
 	}
-	return append(pills, PlacePill(m))
+	return append(pills, PlacePill(m), TreePill(m))
 }
 
 var RightLabels = []string{FrameLabel, NodesLabel, LinksLabel}
 
-var LeftLabels = []string{SeqLabel, PlaceLabel}
+var LeftLabels = []string{SeqLabel, PlaceLabel, TreeLabel}
 
 func Num(v float64) string {
 	if math.Abs(v) < 5e-4 {
