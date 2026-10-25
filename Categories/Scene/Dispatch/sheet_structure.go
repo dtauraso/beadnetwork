@@ -129,3 +129,57 @@ func removeLinkNode(md *MoveDispatch, id string) {
 	}
 	md.Scenes.Reload()
 }
+
+func runSheetSequence(md *MoveDispatch, a Sheet.Act) bool {
+	m := &md.UI.Sheet.Model
+	scene := md.Scenes.TreeRoot
+	if scene == "" || md.Scenes.Reload == nil {
+		return a.Op == Sheet.OpSeqOpen || a.Op == Sheet.OpSeqAdd || a.Op == Sheet.OpSeqDrop
+	}
+	open := m.OpenSeq
+	switch a.Op {
+	case Sheet.OpSeqOpen:
+		if a.I == open {
+			return true
+		}
+		open = a.I
+	case Sheet.OpSeqAdd:
+		to, err := Scenes.CopySequence(scene, open)
+		if err != nil {
+			m.Refused = fmt.Sprintf("could not copy sequence %d: %v", open, err)
+			return true
+		}
+		open = to
+	case Sheet.OpSeqDrop:
+		if len(m.Seqs) < 2 {
+			return true
+		}
+		if err := Scenes.RemoveSequence(scene, open); err != nil {
+			m.Refused = fmt.Sprintf("could not delete sequence %d: %v", open, err)
+			return true
+		}
+		open = max(1, open-1)
+	default:
+		return false
+	}
+	if err := Scenes.WriteOpenSequence(scene, open); err != nil {
+		m.Refused = fmt.Sprintf("could not open sequence %d: %v", open, err)
+		return true
+	}
+	nodes := Scenes.NodesRoot(scene)
+	if err := writeCounts(scene, largestNodeID(nodes), countEdgeFiles(nodes)); err != nil {
+		m.Refused = fmt.Sprintf("could not update the counts: %v", err)
+		return true
+	}
+	md.Scenes.Reload()
+	return true
+}
+
+func LoadSequences(md *MoveDispatch, scene string) {
+	m := &md.UI.Sheet.Model
+	m.Seqs = nil
+	for _, k := range Scenes.Sequences(scene) {
+		m.Seqs = append(m.Seqs, Sheet.Seq{K: k, Name: Scenes.SequenceName(scene, k)})
+	}
+	m.OpenSeq = Scenes.OpenSequence(scene)
+}

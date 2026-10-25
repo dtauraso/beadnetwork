@@ -76,6 +76,7 @@ func NewFromSpec(spec Topology.TopoSpec, sphere polar.SceneSphere, hasScene bool
 	md.UI.Sheet.Model.Frame = Topology.LinkFrame(spec)
 	md.UI.Sheet.Model.StepDir = Sheet.StepDir(Scenes.NodesRoot(scenePath))
 	md.UI.Sheet.Model.Step = Sheet.ReadStep(md.UI.Sheet.Model.StepDir)
+	Dispatch.LoadSequences(md, scenePath)
 
 	md.UI.Rules.Nodes = Topology.RulePanelNodes(spec, func(id string) bool {
 		ng, ok := md.MR.NodeGeoms()[id]

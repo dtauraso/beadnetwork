@@ -16,6 +16,9 @@ type Model struct {
 
 	Step    Step
 	StepDir string
+
+	Seqs    []Seq
+	OpenSeq int
 }
 
 func (m Model) RowsLocking() bool {
@@ -95,12 +98,16 @@ func (s State) Pills() []Pill {
 	if !s.Model.On() {
 		return nil
 	}
-	return []Pill{FramePill(s.Model), NodesPill(s.Model), LinksPill(s.Model)}
+	pills := []Pill{FramePill(s.Model), NodesPill(s.Model), LinksPill(s.Model)}
+	if len(s.Model.Seqs) > 0 {
+		pills = append(pills, SequencesPill(s.Model))
+	}
+	return pills
 }
 
 var RightLabels = []string{FrameLabel, NodesLabel, LinksLabel}
 
-var LeftLabels = []string{}
+var LeftLabels = []string{SeqLabel}
 
 func Num(v float64) string {
 	if math.Abs(v) < 5e-4 {
