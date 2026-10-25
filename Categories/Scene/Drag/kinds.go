@@ -15,6 +15,8 @@ var EventKinds = []string{
 }
 
 var CommandKinds = []string{
+	"pointerdown",
+	"pointerup",
 	"delete",
 	"key",
 }
