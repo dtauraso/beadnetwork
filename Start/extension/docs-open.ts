@@ -34,28 +34,6 @@ export function findDefinitionLine(abs: string, symbol: string): number {
   return -1;
 }
 
-function saveDoc(docsDir: string, rel: string, req: http.IncomingMessage, res: http.ServerResponse, log: vscode.OutputChannel): void {
-  const abs = path.resolve(docsDir, rel);
-  if (!abs.startsWith(docsDir + path.sep) || path.basename(abs) !== "sequences.js") {
-    log.appendLine(`  refused save: not a sequences.js under docs/pair-node`);
-    res.writeHead(403).end();
-    return;
-  }
-  const parts: Buffer[] = [];
-  req.on("data", (b: Buffer) => parts.push(b));
-  req.on("end", () => {
-    const tmp = abs + ".tmp";
-    try {
-      fs.writeFileSync(tmp, Buffer.concat(parts));
-      fs.renameSync(tmp, abs);
-      res.writeHead(200).end("ok");
-    } catch (err) {
-      log.appendLine(`  save FAILED: ${String(err)}`);
-      res.writeHead(500).end(String(err));
-    }
-  });
-}
-
 export function serveDocsOpen(context: vscode.ExtensionContext): void {
   const folder = vscode.workspace.workspaceFolders?.[0];
   if (!folder || folder.uri.scheme !== "file") return;
@@ -79,10 +57,6 @@ export function serveDocsOpen(context: vscode.ExtensionContext): void {
     const symbol = url.searchParams.get("symbol") ?? "";
     log.appendLine(`request ${url.pathname} file=${rel} symbol=${symbol}`);
 
-    if (url.pathname === "/save" && req.method === "POST" && url.searchParams.get("token") === token) {
-      saveDoc(docsDir, rel, req, res, log);
-      return;
-    }
     if (url.pathname !== "/open" || url.searchParams.get("token") !== token) {
       res.writeHead(404).end();
       return;
