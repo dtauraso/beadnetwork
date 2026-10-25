@@ -18,6 +18,8 @@ func whole(v float64) bool { return math.Abs(v-math.Round(v)) < 1e-6 }
 func runSheetStructure(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, typed *float64) bool {
 	m := md.UI.Builder
 	switch a.Op {
+	case Builder.OpTickMs:
+		setTickMs(ctx, md, sign, typed)
 	case Builder.OpFrame:
 		if typed != nil {
 			setFrame(md, a.K, *typed)

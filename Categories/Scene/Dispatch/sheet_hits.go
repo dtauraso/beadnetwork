@@ -2,10 +2,14 @@ package Dispatch
 
 import (
 	"context"
+	"fmt"
+	"math"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder"
+	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
+	"github.com/dtauraso/beadnetwork/Categories/Scene/Scenes"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/View"
 )
 
@@ -153,11 +157,39 @@ func DrainLinkReports(md *MoveDispatch) {
 	if md == nil || md.Links == nil {
 		return
 	}
+	m := &md.UI.Builder
 	rs := md.Links.TakeReports()
 	for _, r := range rs {
-		md.UI.Builder.Take(r)
+		m.Take(r)
 	}
-	if len(rs) > 0 {
+	before := m.TimeKey()
+	for _, t := range md.Links.TakeTimings() {
+		m.TakeTiming(t)
+	}
+	m.Now = clock.HumanTick(m.TickMs)
+	if len(rs) > 0 || m.TimeKey() != before {
 		md.UI.EmitViewFrame(nil)
 	}
+}
+
+func setTickMs(ctx context.Context, md *MoveDispatch, sign int, typed *float64) {
+	m := &md.UI.Builder
+	v := m.TickMs + sign
+	if typed != nil {
+		if !whole(*typed) || *typed < 1 {
+			m.Refused = fmt.Sprintf("Δt %v: not a whole number of milliseconds of at least 1, so it stays at %d", *typed, m.TickMs)
+			return
+		}
+		v = int(math.Round(*typed))
+	}
+	if v < 1 {
+		return
+	}
+	m.TickMs = v
+	if root := md.Scenes.TreeRoot; root != "" {
+		if err := Sheet.WriteScalar(Scenes.TickMsFilePath(root), int32(v)); err != nil {
+			m.Refused = fmt.Sprintf("could not write Δt: %v", err)
+		}
+	}
+	md.sendLink(ctx, Links.All, Links.SetTickMs{V: v})
 }
