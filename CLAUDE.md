@@ -180,8 +180,6 @@ this sentence. Their value is only that in the DEFAULT case they announce, so ne
 fire instead of fall silent. Nothing here is a guarantee; the only real check is the human
 noticing behavior.
 
-Exception: the builder tests tab (`docs/pair-node/phi-theta-3/tests/`) runs the a→b builder's edits and saves and compares them with recorded output (`tests-want.js`).
-
 Prefer, in order: an assertion that fires in the running system with a site tag
 (`Categories/Node/check-panic-message.sh`); a guard whose failure state is loud and
 whose allowlist is empty (`Categories/Node/check-no-network-locks.sh`); a `.probe`

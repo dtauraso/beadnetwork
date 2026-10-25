@@ -1,9 +1,8 @@
 # NodePhiTheta3
 
-The pair φ, θ 3 tab's node, running the a→b builder (`docs/pair-node/phi-theta-3/builder/`) as a
-network: each node holds its own float place and its own outgoing links, and a change to one node
-reaches another only as a message between them. The builder is the source; this file and the Go
-follow it. The node's logic is `Categories/Node/Links`'s `Peer`; this kind is its goroutine.
+The pair φ, θ 3 tab's node: each node holds its own float place and its own outgoing links, and a
+change to one node reaches another only as a message between them. The node's logic is
+`Categories/Node/Links`'s `Peer`; this kind is its goroutine.
 
 ## The frame — shared by every node
 
@@ -34,7 +33,7 @@ Angles are in ticks of a's `s`. Its direction is `start + Δ`, wrapped to a turn
 
 ## Messages
 
-- **Put** (a → b): `C_a` and `d`. b sits at `gridAt(C_a + d)`.
+- **Put** (a → b): `C_a` and `d`. b sits at `GridAt(C_a + d)`.
 - **Moved** (b → every node): b's new place. Each node remeasures its OWN links touching b
   (start = the measured direction − Δ), except the link that moved b, or every picked link during
   an all-step.
@@ -42,7 +41,7 @@ Angles are in ticks of a's `s`. Its direction is `start + Δ`, wrapped to a turn
 - **StepAll** (UI → every node, numbered): each node steps Δ on its picked links; a node with no
   picked link into it sends Put down its picked links and each target forwards after it sits; a
   node with one sends a **Trail** round the picked links, and the trail that comes back to it holds
-  the whole ring, from which it places only itself (the builder's `moveAll` ring).
+  the whole ring, from which it places only itself.
 
 ## Time — machine ticks become one human tick
 
@@ -58,7 +57,7 @@ node's `n` and which node it is, and how many nodes are behind `h − 1`; Node p
 
 ## Description
 
-A node of the a→b builder: holds its own place and outgoing links, and places itself from a link's
+A node of the pair φ, θ 3 tab: holds its own place and outgoing links, and places itself from a link's
 vector when the link's source sends it.
 
 ## View

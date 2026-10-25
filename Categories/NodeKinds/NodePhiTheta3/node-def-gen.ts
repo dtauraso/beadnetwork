@@ -9,4 +9,4 @@ import type { NodeDef } from "../node-def";
 // is authored in SPEC.md and never renumbered, so a removed kind leaves a gap.
 export const KIND_NAME = "NodePhiTheta3";
 export const KIND_ID = 13;
-export const DEF: NodeDef = { bg: "#e3f2fd", border: "#1565c0", text: "#0d2b4a", minWidth: 70, shape: "rect", fill: "#e3f2fd", stroke: "#1565c0", width: 70, height: 60, desc: "A node of the a→b builder: holds its own place and outgoing links, and places itself from a link's vector when the link's source sends it." };
+export const DEF: NodeDef = { bg: "#e3f2fd", border: "#1565c0", text: "#0d2b4a", minWidth: 70, shape: "rect", fill: "#e3f2fd", stroke: "#1565c0", width: 70, height: 60, desc: "A node of the pair φ, θ 3 tab: holds its own place and outgoing links, and places itself from a link's vector when the link's source sends it." };
