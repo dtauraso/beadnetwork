@@ -13,6 +13,18 @@ type Model struct {
 	Frame   Links.Frame
 	S       int
 	Refused string
+
+	Step    Step
+	StepDir string
+}
+
+func (m Model) RowsLocking() bool {
+	for _, l := range m.Picked() {
+		if l.Locking {
+			return true
+		}
+	}
+	return false
 }
 
 func (m Model) On() bool { return len(m.Nodes) > 0 }

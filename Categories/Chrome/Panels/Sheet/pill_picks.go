@@ -73,7 +73,45 @@ func pickedGroup(m Model) Group {
 		rows = append(rows, row)
 	}
 	if len(rows) == 0 {
-		rows = [][]Cell{{Text("no edges picked")}}
+		return Group{Title: "picked", Rows: [][]Cell{{Text("no edges picked")}}}
 	}
-	return Group{Title: "picked — + / − steps Δ; ● then + or − locks that way, a lit one unlocks", Rows: rows}
+	return Group{Title: "picked — + / − steps Δ; ● then + or − locks that way, a lit one unlocks", Rows: append([][]Cell{allRow(m)}, rows...)}
+}
+
+const (
+	OpAllStep    = "all-step"
+	OpAllBoth    = "all-both"
+	OpAllLocking = "all-locking"
+)
+
+func allRow(m Model) []Cell {
+	st := m.Step
+	lockOf := func(k string) int {
+		if k == Links.KTheta {
+			return st.LockAll.Theta
+		}
+		return st.LockAll.Phi
+	}
+	press := func(k string, sign int) Act { return Act{Op: OpAllStep, K: k, Sign: sign} }
+	locked := st.LockAll != (Links.Lock{})
+	for _, l := range m.Picked() {
+		locked = locked || l.Lock != (Links.Lock{})
+	}
+	up, down := "+", "−"
+	if locked {
+		up, down = "▲", "▼"
+	}
+	mark := "○"
+	if st.Locking {
+		mark = "●"
+	}
+	row := []Cell{Text("all"), Text("Δφ")}
+	row = append(row, signButtons(lockOf, press, Links.KPhi)...)
+	row = append(row, Text("Δθ"))
+	row = append(row, signButtons(lockOf, press, Links.KTheta)...)
+	row = append(row, Button(up+" both", Act{Op: OpAllBoth, Sign: 1}, false), Button(down+" both", Act{Op: OpAllBoth, Sign: -1}, false))
+	if !m.RowsLocking() {
+		row = append(row, Button(mark, Act{Op: OpAllLocking}, st.Locking))
+	}
+	return row
 }

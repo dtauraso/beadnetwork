@@ -5,6 +5,7 @@ import (
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
+	"github.com/dtauraso/beadnetwork/Categories/Scene/View"
 )
 
 func applySheetHit(ctx context.Context, md *MoveDispatch, h Sheet.Hit) {
@@ -72,6 +73,50 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 	case Sheet.OpLocking:
 		if l, ok := m.Link(a.Node, a.To); ok {
 			md.sendLink(ctx, a.Node, Links.SetLocking{To: a.To, On: !l.Locking})
+		}
+	case Sheet.OpAllStep:
+		allStep(ctx, md, a.K, a.Sign)
+	case Sheet.OpAllBoth:
+		md.stepAll(ctx, Links.KBoth, a.Sign)
+	case Sheet.OpAllLocking:
+		st := &md.UI.Sheet.Model.Step
+		if !m.RowsLocking() {
+			st.Locking = !st.Locking
+			md.persistStep()
+		}
+	}
+}
+
+func allStep(ctx context.Context, md *MoveDispatch, k string, sign int) {
+	st := &md.UI.Sheet.Model.Step
+	lock := &st.LockAll.Phi
+	if k == Links.KTheta {
+		lock = &st.LockAll.Theta
+	}
+	switch {
+	case *lock == sign:
+		*lock = 0
+	case st.Locking:
+		*lock = sign
+	default:
+		md.stepAll(ctx, k, sign)
+		return
+	}
+	md.persistStep()
+}
+
+func (md *MoveDispatch) stepAll(ctx context.Context, k string, sign int) {
+	st := &md.UI.Sheet.Model.Step
+	st.Round++
+	for _, id := range md.UI.Sheet.Model.Nodes {
+		md.sendLink(ctx, id, Links.StepAll{Round: st.Round, K: k, Sign: sign, LockAll: st.LockAll})
+	}
+}
+
+func (md *MoveDispatch) persistStep() {
+	if dir := md.UI.Sheet.Model.StepDir; dir != "" {
+		if err := Sheet.WriteStep(dir, md.UI.Sheet.Model.Step); err != nil {
+			View.LogPersistErr("sheet_step_persist", dir, err)
 		}
 	}
 }
