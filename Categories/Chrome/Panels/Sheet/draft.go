@@ -1,6 +1,9 @@
 package Sheet
 
-import "strconv"
+import (
+	"fmt"
+	"strconv"
+)
 
 type Edit struct {
 	Active bool
@@ -12,9 +15,9 @@ func StartDraft(e *Edit, a Act) {
 	*e = Edit{Active: true, Act: a}
 }
 
-func Key(e *Edit, key string) (Act, float64, bool) {
+func Key(e *Edit, key string) (Act, float64, bool, error) {
 	if !e.Active {
-		return Act{}, 0, false
+		return Act{}, 0, false, nil
 	}
 	switch key {
 	case "Escape":
@@ -22,11 +25,14 @@ func Key(e *Edit, key string) (Act, float64, bool) {
 	case "Enter":
 		a, draft := e.Act, e.Draft
 		*e = Edit{}
+		if draft == "" {
+			return Act{}, 0, false, nil
+		}
 		v, err := strconv.ParseFloat(draft, 64)
 		if err != nil {
-			return Act{}, 0, false
+			return Act{}, 0, false, fmt.Errorf("%q: not a number, so nothing changed", draft)
 		}
-		return a, v, true
+		return a, v, true, nil
 	case "Backspace":
 		if len(e.Draft) > 0 {
 			e.Draft = e.Draft[:len(e.Draft)-1]
@@ -42,5 +48,5 @@ func Key(e *Edit, key string) (Act, float64, bool) {
 			e.Draft += key
 		}
 	}
-	return Act{}, 0, false
+	return Act{}, 0, false, nil
 }
