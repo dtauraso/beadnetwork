@@ -4,6 +4,7 @@ import (
 	Panels "github.com/dtauraso/beadnetwork/Categories/Chrome/Panels"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Panel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/PolarRulesPanel"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/AngleDropdown"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/NodesDropdown"
@@ -25,14 +26,8 @@ func TargetAt(pl Layout, x, y float64) Panels.PointerTarget {
 	if h := pl.Nodes.Hit(x, y); h.Kind != NodesDropdown.HitNone {
 		return Panels.PointerTarget{Rect: h.Rect, Kind: Panels.PointerInteractive}
 	}
-	if pl.Speed.HitStep(x, y) {
-		return Panels.PointerTarget{Rect: pl.Speed.Step, Kind: Panels.PointerInteractive, Tip: "Run one round"}
-	}
-	if pl.Speed.HitReset(x, y) {
-		return Panels.PointerTarget{Rect: pl.Speed.Reset, Kind: Panels.PointerInteractive, Tip: "Back to round 0"}
-	}
-	if pl.Speed.HitStart(x, y) {
-		return Panels.PointerTarget{Rect: pl.Speed.Start, Kind: Panels.PointerInteractive, Tip: "Place each node's partners from its vectors"}
+	if h := pl.Sheet.Hit(x, y); h.Part != Sheet.PartNone && h.Part != Sheet.PartInside {
+		return Panels.PointerTarget{Rect: h.Rect, Kind: Panels.PointerInteractive}
 	}
 	if i := pl.Speed.Hit(x, y); i >= 0 && i < len(pl.Speed.Ticks) {
 		return Panels.PointerTarget{Rect: pl.Speed.Ticks[i], Kind: Panels.PointerInteractive}
@@ -50,9 +45,13 @@ func TargetAt(pl Layout, x, y float64) Panels.PointerTarget {
 	return Panels.PointerTarget{}
 }
 
-func TakeWheel(pl Layout, overlaysScroll, rulesScroll, cardScroll *float32, x, y, deltaY float64, redraw func()) bool {
-	if pl.Card.Covers(x, y) {
-		return scrollBy(cardScroll, pl.Card.MaxScroll, deltaY, redraw)
+func TakeWheel(pl Layout, overlaysScroll, rulesScroll *float32, sheet *Sheet.State, x, y, deltaY float64, redraw func()) bool {
+	if label, maxScroll, ok := pl.Sheet.Covers(x, y); ok {
+		v := sheet.ScrollOf(label)
+		return scrollBy(v, maxScroll, deltaY, func() {
+			sheet.SetScroll(label, *v)
+			redraw()
+		})
 	}
 	if pl.Overlays.Open && Panel.HitRect(pl.Overlays.Popover, x, y) {
 		return scrollBy(overlaysScroll, pl.Overlays.MaxScroll, deltaY, redraw)

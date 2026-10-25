@@ -1,61 +1,52 @@
 # NodePhiTheta3
 
-The pair φ, θ 3 tab's node, running the three-node phi theta cards
-(`docs/pair-node/phi-theta-3/`): the local card (`card-3-2/sphere-card-3-2.js`) for what a node holds
-and how its start moves, and the pair card (`sphere-card-3-pair.js`) for where a node is put,
-in the a→b card's order — local first, global last (`atob/`). The cards are the source; this file and
-the Go follow them. Every angle below is in ticks of `s`.
+The pair φ, θ 3 tab's node, running the a→b builder (`docs/pair-node/phi-theta-3/builder/`) as a
+network: each node holds its own float place and its own outgoing links, and a change to one node
+reaches another only as a message between them. The builder is the source; this file and the Go
+follow it. The node's logic is `Categories/Node/Links`'s `Peer`; this kind is its goroutine.
 
-## Shared — the three nodes together
+## The frame — shared by every node
 
 | Name | Value |
 |------|-------|
-| s | the tick mark scale; s = 30 by default, set from the panel. 12s must divide the scene's turn, and the panel refuses any other s |
-| 12s | 1 full turn φ, 1 full turn θ |
-| m | the jump constant, m ≥ 1, m = 1 by default |
-| cw, ccw | ∈ {0, 1}; cw = 1, ccw = 0 by default. A move needs exactly one of them |
-| L_j | 1 if the node has an outgoing link to node j, 0 if not |
-| links | [L_j, L_k], j, k the other two nodes |
-| start | [start_φ, start_θ, start_r]; start_φ, start_θ ∈ {0, …, 11}, a multiple of s on the panel; start_r in node radii |
-| end | [end_φ, end_θ] ∈ {0, …, 11}, a multiple of s on the panel |
+| O | the scene centre |
+| T_φ, T_θ | `constants/max-index-phi.bin`, `max-index-theta.bin`: index steps a turn |
+| c_r | `constants/constant-r.bin`: the length of one radial index step |
+| ρ | `constants/rho.bin`: the length of one unit of a link's `r` (the node radius when absent) |
+| s | `view/s.bin`: ticks a twelfth of a turn, for a node with no `s` of its own |
 
-s, m, cw and ccw are scene-wide (`view/card-s.bin`, `card-m.bin`, `card-cw.bin`, `card-ccw.bin`).
-Each node's start, end and links are its own state files: the default under the tracked
-`nodes/<n>/data/state/` (`start-phi`, `end-theta`, `l-<j>`, …), and a typed edit under the gitignored
-`nodes/<n>/drag/state/`, which replaces the default at load.
+A place `I = (I_r, I_φ, I_θ)` is a float index: `C = O + polar_to_cart(I_r·c_r, I_φ·2π/T_φ, I_θ·2π/T_θ)`.
 
-## A node's start is its own vector
+## A node — its own state
 
-The node holds the current angles in ticks, `cur`, which begin at `start · s`.
+| Name | File |
+|------|------|
+| place `at` | `base/at-{r,phi,theta}.bin` (f64), replaced by `drag/at-*.bin` once the node has moved |
+| `s` | `base/s.bin`, replaced by `drag/s.bin` |
+| its links | `links/<me>To<j>/`, replaced as a whole by `drag/links/` once one is edited |
 
-## Move — start toward end
+## A link a→b — owned by a
 
-On every round (speed above 0, or the step button), φ and θ each:
+`start (φ, θ, r)`, `Δ (φ, θ)`, `increment (φ, θ)`, `lock (φ, θ) ∈ {−1, 0, 1}`, `locking`, `picked`.
+Angles are in ticks of a's `s`. Its direction is `start + Δ`, wrapped to a turn, and its vector is
+`d = polar_to_cart(r·ρ, (φ+Δφ)·2π/12s, (θ+Δθ)·2π/12s)`, drawn as an arrow from `C_a`.
 
-    gap_cw  = (end + 12s − cur) mod 12s
-    gap_ccw = (cur + 12s − end) mod 12s
-    step    = min(m·s, cw·gap_cw + ccw·gap_ccw)
-    cur     = (cur + cw·step + ccw·(12s − step)) mod 12s      if cw ⊕ ccw, else unchanged
+## Messages
 
-Reset puts `cur` back at `start · s`. An edit to start does the same.
-
-## Local to global — shown in the visual
-
-Nothing crosses between nodes, and no node sets another node's position. The pair card only shows
-each node's own local data.
-
-1. **The node** is drawn at its own centre from its scene index:
-   `C_a = O + polar_to_cart(I_r·c_r, I_φ·c_φ, I_θ·c_θ)` (the pair card).
-2. **Each a→b vector** (the pair card), for each b with a's `L_b = 1`, from a's own start:
-   `(R, φ, θ) = (start_r·ρ, cur_φ·2π/12s, cur_θ·2π/12s)`, ρ the node radius,
-   `d = polar_to_cart(R, φ, θ)`, drawn as an arrow from `C_a` to `C_a + d`.
-
-a redraws its vectors when its start moves, an edit changes its start, links or s, or the start button.
+- **Put** (a → b): `C_a` and `d`. b sits at `gridAt(C_a + d)`.
+- **Moved** (b → every node): b's new place. Each node remeasures its OWN links touching b
+  (start = the measured direction − Δ), except the link that moved b, or every picked link during
+  an all-step.
+- **Pick** (UI → b, b → a): b grants a pick only if no other node has a picked link into b.
+- **StepAll** (UI → every node, numbered): each node steps Δ on its picked links; a node with no
+  picked link into it sends Put down its picked links and each target forwards after it sits; a
+  node with one sends a **Trail** round the picked links, and the trail that comes back to it holds
+  the whole ring, from which it places only itself (the builder's `moveAll` ring).
 
 ## Description
 
-One of three φ, θ nodes running the three-node cards: moves its start toward its end, and draws its
-a→b vector from its own centre for each node it links to.
+A node of the a→b builder: holds its own place and outgoing links, and places itself from a link's
+vector when the link's source sends it.
 
 ## View
 
@@ -75,8 +66,8 @@ a→b vector from its own centre for each node it links to.
 
 ## Ports
 
-None. A port is where a bead line attaches, and nothing is placed on these edges: what
-crosses is the card's vector, on the channel the edge allocates.
+None. A port is where a bead line attaches, and no bead travels a link: what crosses is a
+message on the links mesh.
 
 | Name | Direction | EdgeKind | Notes |
 |------|-----------|----------|-------|

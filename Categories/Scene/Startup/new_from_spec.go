@@ -3,7 +3,6 @@ package Startup
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Topology"
 
@@ -11,7 +10,9 @@ import (
 
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Dispatch"
 
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/CardPanel"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/SliderPanel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/AngleDropdown"
 	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
@@ -66,21 +67,19 @@ func NewFromSpec(spec Topology.TopoSpec, sphere polar.SceneSphere, hasScene bool
 
 	for _, n := range spec.Nodes {
 		if nm, ok := md.MR.NodeGeoms()[n.ID]; ok {
-			Topology.SeedNode(nm, n, scenePath)
+			Topology.SeedNode(nm, n, Scenes.NodesRoot(scenePath))
 		}
 	}
 
 	md.UI.Tilt.Rows, md.UI.Tilt.Labels = Topology.TiltPanelRows(spec)
-	md.UI.Card.Nodes, md.UI.Card.Cards = Topology.CardPanelNodes(spec)
-	md.UI.Card.S = CardPanel.LoadCardScalar(Scenes.CardSFilePath(scenePath), CardPanel.DefaultS, 1)
-	if sc := spec.Constants; !CardPanel.SFits(md.UI.Card.S, sc.MaxIndexPhi, sc.MaxIndexTheta) {
-		fmt.Fprintf(os.Stderr, "card s: %s holds s = %d, but 12s does not divide the scene turn (%d φ, %d θ index steps) — using s = %d\n",
-			Scenes.CardSFilePath(scenePath), md.UI.Card.S, sc.MaxIndexPhi, sc.MaxIndexTheta, CardPanel.DefaultS)
-		md.UI.Card.S = CardPanel.DefaultS
-	}
-	md.UI.Card.M = CardPanel.LoadCardScalar(Scenes.CardMFilePath(scenePath), CardPanel.DefaultM, 1)
-	md.UI.Card.CW = CardPanel.LoadCardScalar(Scenes.CardCWFilePath(scenePath), CardPanel.DefaultCW, 0)
-	md.UI.Card.CCW = CardPanel.LoadCardScalar(Scenes.CardCCWFilePath(scenePath), CardPanel.DefaultCCW, 0)
+	md.Links = Links.NewMesh()
+	md.UI.Builder.S = Sheet.LoadScalar(Scenes.SFilePath(scenePath), 1, 1)
+	md.UI.Builder.Frame = Topology.LinkFrame(spec)
+	md.UI.Builder.StepDir = Builder.StepDir(Scenes.NodesRoot(scenePath))
+	md.UI.Builder.Step = Builder.ReadStep(md.UI.Builder.StepDir)
+	Dispatch.LoadSequences(md, scenePath)
+	md.UI.Builder.CardsDir = Builder.CardsDir(Scenes.NodesRoot(scenePath))
+	md.UI.Builder.Cards = Builder.ReadCards(md.UI.Builder.CardsDir)
 
 	md.UI.Rules.Nodes = Topology.RulePanelNodes(spec, func(id string) bool {
 		ng, ok := md.MR.NodeGeoms()[id]
@@ -99,10 +98,10 @@ func NewFromSpec(spec Topology.TopoSpec, sphere polar.SceneSphere, hasScene bool
 	sourceByLabel := make(map[string]string, len(spec.Edges))
 	for _, e := range spec.Edges {
 		if src, ok := md.MR.NodeGeoms()[e.Source]; ok {
-			Topology.SeedEdge(src, e, true, kindByID[e.Target], restByID[e.Target], scenePath)
+			Topology.SeedEdge(src, e, true, kindByID[e.Target], restByID[e.Target], Scenes.NodesRoot(scenePath))
 		}
 		if dst, ok := md.MR.NodeGeoms()[e.Target]; ok {
-			Topology.SeedEdge(dst, e, false, kindByID[e.Source], restByID[e.Source], scenePath)
+			Topology.SeedEdge(dst, e, false, kindByID[e.Source], restByID[e.Source], Scenes.NodesRoot(scenePath))
 		}
 		targetByLabel[e.Label] = e.Target
 		sourceByLabel[e.Label] = e.Source

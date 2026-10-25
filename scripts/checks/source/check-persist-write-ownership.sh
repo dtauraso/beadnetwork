@@ -21,11 +21,11 @@ if [[ ! -f "$PLUMBING_PATH" ]]; then
   exit 1
 fi
 
-NODE_OWNERS=("node_mover.go" "nodefile_new_node_files.go" "nodefile_node_base_file.go" "nodefile_card_state.go" "quant_offset_persist.go" "scene_anchor_persist.go" "nodefile_drag_index.go")
+NODE_OWNERS=("node_mover.go" "nodefile_new_node_files.go" "nodefile_node_base_file.go" "nodefile_place.go" "link_files.go" "quant_offset_persist.go" "scene_anchor_persist.go" "nodefile_drag_index.go")
 
 EDGE_OWNERS=("edge_file.go" "edge_delta_file.go" "edge_rule_active.go" "out_edges.go")
 
-VIEW_OWNERS=("scene_camera_persist.go" "overlays_persist.go" "panels_persist.go" "selected_scene.go" "scene_speed.go" "lattice.go" "scene_writes.go")
+VIEW_OWNERS=("cards_files.go" "step_files.go" "sequences.go" "scene_camera_persist.go" "overlays_persist.go" "panels_persist.go" "selected_scene.go" "scene_speed.go" "lattice.go" "scene_writes.go")
 
 TREE_OWNERS=("counts.go")
 

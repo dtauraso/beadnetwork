@@ -11,15 +11,11 @@ type BuildDeps struct {
 
 	ClaimSelfDriveGeom func(name string) any
 
-	ClaimCardEditIn func(name string) any
+	ClaimLinkIn func(name string) any
 
-	CardS int
+	Mesh any
 
-	CardM int
-
-	CardCW int
-
-	CardCCW int
+	Seed any
 
 	loadShared map[string]any
 }
@@ -49,20 +45,16 @@ func (d BuildDeps) TiltEditChan(name string) any {
 	return d.ClaimTiltEditIn(name)
 }
 
-func (d BuildDeps) CardEditChan(name string) any {
-	if d.ClaimCardEditIn == nil {
+func (d BuildDeps) LinkInbox(name string) any {
+	if d.ClaimLinkIn == nil {
 		return nil
 	}
-	return d.ClaimCardEditIn(name)
+	return d.ClaimLinkIn(name)
 }
 
-func (d BuildDeps) CardSSeed() int { return d.CardS }
+func (d BuildDeps) LinkMesh() any { return d.Mesh }
 
-func (d BuildDeps) CardMSeed() int { return d.CardM }
-
-func (d BuildDeps) CardCWSeed() int { return d.CardCW }
-
-func (d BuildDeps) CardCCWSeed() int { return d.CardCCW }
+func (d BuildDeps) LinkSeed() any { return d.Seed }
 
 func (d BuildDeps) SelfDriveGeom(name string) any {
 	if d.ClaimSelfDriveGeom == nil {

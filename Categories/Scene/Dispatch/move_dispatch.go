@@ -2,7 +2,7 @@ package Dispatch
 
 import (
 	"context"
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/CardPanel"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 	"sync"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Panel"
@@ -37,7 +37,7 @@ type MoveDispatch struct {
 
 	Inboxes TiltVectors.TiltEditInboxes
 
-	CardInboxes CardPanel.Inboxes
+	Links *Links.Mesh
 
 	ChannelVectorsOn ChannelVectors.OnSwitch
 

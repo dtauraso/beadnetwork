@@ -7,6 +7,7 @@ import (
 	NodeBuf "github.com/dtauraso/beadnetwork/Categories/Node"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/PolarRulesPanel"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 
 	"github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
 )
@@ -21,6 +22,7 @@ type Node struct {
 	IndexR     *int
 
 	At *polarindex.Place
+	S  *int
 
 	DragIndexPhi  *int
 	DragIndexTheta *int
@@ -75,6 +77,9 @@ type TopoSpec struct {
 	RowCount int
 
 	Constants polarindex.SceneConstants
+
+	Links []Links.Link
+	Rho   float64
 }
 
 func ParseSpec(path string) (TopoSpec, error) {

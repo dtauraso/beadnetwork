@@ -16,7 +16,15 @@ const (
 	FileMaxIndexTheta = "max-index-theta.bin"
 )
 
+const FileRho = "rho.bin"
+
 func ConstantsDir(root string) string { return filepath.Join(root, ConstantsDirName) }
+
+func LoadRho(root string) float64 {
+	var rho float64
+	ReadIfExists(filepath.Join(ConstantsDir(root), FileRho), &rho)
+	return rho
+}
 
 func LoadSceneConstants(root string) (polarindex.SceneConstants, error) {
 	c, err := LoadSceneFrame(root)

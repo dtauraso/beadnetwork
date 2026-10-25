@@ -9,5 +9,7 @@ type SceneSwitch struct {
 
 	TreeRoot string
 
+	NodesRoot string
+
 	Loaded int
 }

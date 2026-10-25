@@ -20,8 +20,8 @@ func HandleRawInputMsg(ctx context.Context, ev Drag.RawInputMsg, md *MoveDispatc
 		return
 	}
 	if ev.Kind == "key" {
-		if md.UI.Card.Edit.Active {
-			applyCardKey(ctx, md, ev.Key)
+		if md.UI.Sheet.Edit.Active {
+			applySheetKey(ctx, md, ev.Key)
 			return
 		}
 		applyRuleKey(ctx, md, ev.Key)
@@ -31,6 +31,10 @@ func HandleRawInputMsg(ctx context.Context, ev Drag.RawInputMsg, md *MoveDispatc
 		if sel, any := md.UI.SelectedNode(); md.UI.SceneEditable && any {
 			if row, ok := md.UI.NodeRowFor(sel); ok {
 				nodeID, _ := md.RT.LookupNodeRow(int(row))
+				if md.UI.Builder.On() {
+					removeLinkNode(md, nodeID)
+					return
+				}
 				DeleteNode(&md.Scenes, &md.UI, nodeID, int(row))
 			}
 		}
@@ -47,7 +51,7 @@ func HandleRawInputMsg(ctx context.Context, ev Drag.RawInputMsg, md *MoveDispatc
 			md.UI.EmitViewFrame(nil)
 		}
 	}
-	if ev.Kind == "wheel" && Chrome.TakeWheel(md.UI.PanelLayout(), &md.UI.OverlaysPill.Scroll, &md.UI.Rules.Scroll, &md.UI.Card.Scroll, ev.X, ev.Y, ev.DeltaY, md.redraw) {
+	if ev.Kind == "wheel" && Chrome.TakeWheel(md.UI.PanelLayout(), &md.UI.OverlaysPill.Scroll, &md.UI.Rules.Scroll, &md.UI.Sheet, ev.X, ev.Y, ev.DeltaY, md.redraw) {
 		return
 	}
 	if ev.Kind == "pointerdown" && panelTookPointerDown(ctx, ev, md, speedSinks) {

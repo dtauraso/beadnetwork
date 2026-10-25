@@ -28,14 +28,6 @@ const (
 	TickH = 12
 
 	TrackTickGap = 2
-
-	StepLabel  = "step"
-	StepFontPx = 11
-	StepPadX   = 8
-	StepGap    = 10
-
-	ResetLabel = "reset"
-	StartLabel = "start"
 )
 
 type Rect = Panel.Rect
@@ -44,32 +36,17 @@ type Layout struct {
 	Box   Rect
 	Track Rect
 	Ticks []Rect
-	Step  Rect
-	Reset Rect
-	Start Rect
 }
 
-func Build(st *Panel.Stack, withStep bool) Layout {
+func Build(st *Panel.Stack) Layout {
 	contentW := float32(TrackW)
 	contentH := float32(TrackH + TrackTickGap + TickH)
-	var stepW, resetW, startW float32
-	if withStep {
-		stepW = Panel.TextWidth(StepLabel, StepFontPx) + 2*StepPadX
-		resetW = Panel.TextWidth(ResetLabel, StepFontPx) + 2*StepPadX
-		startW = Panel.TextWidth(StartLabel, StepFontPx) + 2*StepPadX
-		contentW += StepGap + stepW + StepGap + resetW + StepGap + startW
-	}
 	box, x, y := st.Add(contentW, contentH)
 
 	lay := Layout{
 		Box:   box,
 		Track: Rect{X: x, Y: y, W: TrackW, H: TrackH},
 		Ticks: make([]Rect, len(Settings)),
-	}
-	if withStep {
-		lay.Step = Rect{X: x + TrackW + StepGap, Y: y, W: stepW, H: contentH}
-		lay.Reset = Rect{X: lay.Step.X + stepW + StepGap, Y: y, W: resetW, H: contentH}
-		lay.Start = Rect{X: lay.Reset.X + resetW + StepGap, Y: y, W: startW, H: contentH}
 	}
 
 	span := float64(TrackW - 2*ThumbInset)
@@ -100,18 +77,6 @@ func SelectedIndex(speed float64) int {
 		}
 	}
 	return best
-}
-
-func (l Layout) HitStep(x, y float64) bool {
-	return l.Step.W > 0 && Panel.HitRect(l.Step, x, y)
-}
-
-func (l Layout) HitReset(x, y float64) bool {
-	return l.Reset.W > 0 && Panel.HitRect(l.Reset, x, y)
-}
-
-func (l Layout) HitStart(x, y float64) bool {
-	return l.Start.W > 0 && Panel.HitRect(l.Start, x, y)
 }
 
 func (l Layout) Hit(x, y float64) int {

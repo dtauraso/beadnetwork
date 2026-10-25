@@ -12,9 +12,6 @@ const TRACK_FILL = "#c8c8c8";
 const THUMB_FILL = "#fff";
 const THUMB_EDGE = "#999";
 const THUMB_R = 6;
-const STEP_FILL = "#f2f2f2";
-const STEP_EDGE = "#bbb";
-const STEP_RADIUS = 4;
 
 function selectedIndex(): number {
   const sel = sliderBytes("selected");
@@ -28,40 +25,8 @@ export function speedPanelKey(): string {
   return [
     sliderF32("boxX"), sliderF32("boxY"),
     sliderF32("boxW"), sliderF32("boxH"),
-    sliderF32("stepX"), sliderF32("stepW"),
-    sliderF32("resetX"), sliderF32("resetW"),
-    sliderF32("startX"), sliderF32("startW"),
     x ? x.length : 0, selectedIndex(),
   ].join(",");
-}
-
-const STEP_BUTTON = { x: "stepX", y: "stepY", w: "stepW", h: "stepH", text: "stepText" } as const;
-const RESET_BUTTON = { x: "resetX", y: "resetY", w: "resetW", h: "resetH", text: "resetText" } as const;
-const START_BUTTON = { x: "startX", y: "startY", w: "startW", h: "startH", text: "startText" } as const;
-
-function drawButton(
-  c: CanvasRenderingContext2D,
-  b: typeof STEP_BUTTON | typeof RESET_BUTTON | typeof START_BUTTON,
-): void {
-  const w = sliderF32(b.w);
-  const h = sliderF32(b.h);
-  const label = sliderText(b.text);
-  if (w <= 0 || h <= 0 || !label) return;
-  const x = sliderF32(b.x);
-  const y = sliderF32(b.y);
-
-  roundRect(c, x + 0.5, y + 0.5, w - 1, h - 1, STEP_RADIUS);
-  c.fillStyle = STEP_FILL;
-  c.fill();
-  c.strokeStyle = STEP_EDGE;
-  c.lineWidth = 1;
-  c.stroke();
-
-  c.fillStyle = INK;
-  c.font = canvasFont(TICK_FONT_PX);
-  c.textAlign = "center";
-  c.textBaseline = "middle";
-  c.fillText(decodeAt(label, 0, label.length), x + w / 2, y + h / 2);
 }
 
 export function drawSpeedPanel(c: CanvasRenderingContext2D): void {
@@ -91,10 +56,6 @@ export function drawSpeedPanel(c: CanvasRenderingContext2D): void {
 
   c.fillStyle = TRACK_FILL;
   c.fillRect(trackX, trackY, trackW, trackH);
-
-  drawButton(c, STEP_BUTTON);
-  drawButton(c, RESET_BUTTON);
-  drawButton(c, START_BUTTON);
 
   let numOff = 0;
   let denOff = 0;

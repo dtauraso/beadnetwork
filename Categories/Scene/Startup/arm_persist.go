@@ -1,7 +1,6 @@
 package Startup
 
 import (
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/CardPanel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Panel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/SliderPanel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/AngleDropdown"
@@ -38,22 +37,5 @@ func armEdit(ui *View.UIState, topologyPath string) {
 	ui.PersistPanels = panels.Schedule
 	ui.PersistSphere = sphere.Schedule
 	ui.PersistSpeed = speed.Schedule
-	cardS := &Persister[int32]{
-		Path: Scenes.CardSFilePath(topologyPath), Write: CardPanel.WriteCardScalar, Tag: "card_s_persist",
-	}
-	cardM := &Persister[int32]{
-		Path: Scenes.CardMFilePath(topologyPath), Write: CardPanel.WriteCardScalar, Tag: "card_m_persist",
-	}
-	cardCW := &Persister[int32]{
-		Path: Scenes.CardCWFilePath(topologyPath), Write: CardPanel.WriteCardScalar, Tag: "card_cw_persist",
-	}
-	cardCCW := &Persister[int32]{
-		Path: Scenes.CardCCWFilePath(topologyPath), Write: CardPanel.WriteCardScalar, Tag: "card_ccw_persist",
-	}
-
 	ui.PersistLattice = lattice.Schedule
-	ui.PersistCardS = cardS.Schedule
-	ui.PersistCardM = cardM.Schedule
-	ui.PersistCardCW = cardCW.Schedule
-	ui.PersistCardCCW = cardCCW.Schedule
 }

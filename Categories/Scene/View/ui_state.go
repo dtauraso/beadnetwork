@@ -9,7 +9,8 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/SliderPanel"
 	Flags "github.com/dtauraso/beadnetwork/Categories/Scene/View/Flags"
 
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/CardPanel"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/PolarRulesPanel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/TiltPanel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills"
@@ -63,10 +64,6 @@ type UIState struct {
 	PersistSphere   func(polar.SceneSphere)
 	PersistSpeed    func(float64)
 	PersistLattice  func(int32)
-	PersistCardS    func(int32)
-	PersistCardM    func(int32)
-	PersistCardCW   func(int32)
-	PersistCardCCW  func(int32)
 
 	LatchedNode string
 
@@ -80,7 +77,9 @@ type UIState struct {
 
 	Tilt TiltPanel.State
 
-	Card CardPanel.State
+	Sheet Sheet.State
+
+	Builder Builder.Model
 
 	ViewW, ViewH float64
 
