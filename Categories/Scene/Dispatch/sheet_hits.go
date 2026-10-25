@@ -32,7 +32,7 @@ func applySheetHit(ctx context.Context, md *MoveDispatch, h Sheet.Hit) {
 	md.UI.EmitViewFrame(nil)
 }
 
-func applySheetKey(ctx context.Context, md *MoveDispatch, key string) {
+func applySheetKey(ctx context.Context, md *MoveDispatch, key string) bool {
 	act, v, ok, err := Sheet.Key(&md.UI.Sheet.Edit, key)
 	if err != nil {
 		md.UI.Builder.Refused = err.Error()
@@ -41,6 +41,7 @@ func applySheetKey(ctx context.Context, md *MoveDispatch, key string) {
 		runSheetAct(ctx, md, act, 0, &v)
 	}
 	md.UI.EmitViewFrame(nil)
+	return err != nil || (ok && md.UI.Builder.Refused != "")
 }
 
 func (md *MoveDispatch) sendLink(ctx context.Context, to string, msg any) {
