@@ -21,6 +21,7 @@ type NodeGeom struct {
 
 	BaseIndex polarindex.Index
 	DragIndex polarindex.Offset
+	Rest      polarindex.Place
 	HasPos    bool
 }
 
@@ -29,7 +30,15 @@ func ComposedIndexOf(g NodeGeom) polarindex.Index {
 }
 
 func ScenePolarOf(g NodeGeom) polar.Polar {
-	return polarindex.ToPolar(ComposedIndexOf(g), g.SceneConstants)
+	return polarindex.ToPolarAt(ComposedIndexOf(g), g.Rest, g.SceneConstants)
+}
+
+func WorldPosOf(g NodeGeom, idx polarindex.Index) Vec3 {
+	return WorldPosAtRest(g.SceneCenter, idx, g.Rest, g.SceneConstants)
+}
+
+func WorldPosAtRest(sceneCenter Vec3, idx polarindex.Index, rest polarindex.Place, sc polarindex.SceneConstants) Vec3 {
+	return sceneCenter.Add(Vec3(polar.Polar2cart(polarindex.ToPolarAt(idx, rest, sc))))
 }
 
 func KindWidthHeight(kind string) (float64, float64) {

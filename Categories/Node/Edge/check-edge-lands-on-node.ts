@@ -1,10 +1,10 @@
 import { ownerCounts } from "../../Scene/owner-counts";
 import { nodeF32 } from "../node-leaves";
 import { getEdgeStreamAccessor } from "./edge-stream-blocks";
-import { sceneSteps } from "../../Scene/scene-frame";
+import { SHADING_PARAM_NODE_RING_TUBE_RATIO } from "../shading-params";
 import { postLog } from "../../../Start/extension/webview/log/post";
 
-const TOLERANCE = 0.25;
+const TOLERANCE = 0.05;
 
 const reported = new Set<number>();
 
@@ -30,23 +30,23 @@ export function checkEdgeLandsOnNode(): void {
     if (cx === 0 && cy === 0 && cz === 0) continue;
 
     const gap = Math.hypot(ex - cx, ey - cy, ez - cz);
-    const step = sceneSteps().constantR;
-    if (!(step > 0)) continue;
-    const steps = gap / step;
-    if (Math.abs(steps - Math.round(steps)) <= TOLERANCE) continue;
+    const torusR = nodeF32(dst, "radius") * (1 + SHADING_PARAM_NODE_RING_TUBE_RATIO);
+    if (!(torusR > 0)) continue;
+    if (Math.abs(gap - torusR) <= TOLERANCE) continue;
 
     reported.add(edgeRow);
     postLog("edge-misses-node", {
       edgeRow,
       dstNodeRow: dst,
       gap: gap.toFixed(3),
-      steps: steps.toFixed(3),
+      torusR: torusR.toFixed(3),
       end: `${ex.toFixed(2)},${ey.toFixed(2)},${ez.toFixed(2)}`,
       centre: `${cx.toFixed(2)},${cy.toFixed(2)},${cz.toFixed(2)}`,
       why:
-        "an edge end is pulled back from its target's centre by that node's torus radius, " +
-        "which is a whole number of lattice steps; a fractional gap means the edge was " +
-        "aimed somewhere the node is not",
+        "an edge end is pulled back from its target's centre by exactly that node's torus " +
+        "radius; any other gap means the edge was aimed somewhere the node is not — a node " +
+        "on a float place of the scene sphere is not on a whole grid step, so the gap is " +
+        "measured against the torus radius, not against the scene's radial step",
     });
   }
 }

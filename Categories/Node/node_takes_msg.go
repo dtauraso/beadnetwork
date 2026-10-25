@@ -65,7 +65,7 @@ func (m *NodeGeometry) takeDragOfSelf(msg Drag) {
 	movedIdx := polarindex.Compose(haveIdx, m.TrimOwnDrag(delta), m.Constants())
 
 	m.msg.CommitLocal(m.id, movedIdx)
-	newPos := WorldPosAt(m.geom.SceneCenter, movedIdx, m.Constants())
+	newPos := WorldPosOf(m.geom, movedIdx)
 
 	m.writeStreamFrame([]RowEvent{{
 		Kind: KindBreadcrumb, Label: BreadcrumbDragCommit, Debug: 1,

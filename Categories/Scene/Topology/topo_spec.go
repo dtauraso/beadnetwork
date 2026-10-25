@@ -20,7 +20,9 @@ type Node struct {
 	IndexTheta *int
 	IndexR     *int
 
-	DragIndexPhi   *int
+	At *polarindex.Place
+
+	DragIndexPhi  *int
 	DragIndexTheta *int
 	DragIndexR     *int
 

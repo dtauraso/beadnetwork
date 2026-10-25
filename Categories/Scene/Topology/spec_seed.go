@@ -39,12 +39,13 @@ func SeedNode(m *NodeBuf.NodeGeometry, n Node, sceneRoot string) {
 	}
 }
 
-func SeedEdge(m *NodeBuf.NodeGeometry, e Edge, src bool, otherKind, sceneRoot string) {
+func SeedEdge(m *NodeBuf.NodeGeometry, e Edge, src bool, otherKind string, otherRest polarindex.Place, sceneRoot string) {
 	other := e.Target
 	if !src {
 		other = e.Source
 	}
 
+	m.Deltas().SetRestOf(other, otherRest)
 	m.RuleNode().SeedEdgeActive(other, NodeBuf.LoadEdgeRuleActive(sceneRoot, e.Source, e.Target))
 	m.Topo().AddNeighborKind(other, otherKind)
 	if src {
@@ -96,6 +97,7 @@ func toNodeGeom(n Node, sceneCenter Vec3, sc polarindex.SceneConstants) NodeBuf.
 	g := NodeBuf.NodeGeom{NodeIdentity: NodeBuf.NodeIdentity{Kind: n.Type, Label: n.Label(), SceneCenter: NodeBuf.Vec3(sceneCenter), SceneConstants: sc}}
 	if n.HasPoint() {
 		g.BaseIndex = n.Index()
+		g.Rest = n.Rest()
 		g.HasPos = true
 	}
 	if n.DragIndexPhi != nil && n.DragIndexTheta != nil && n.DragIndexR != nil {

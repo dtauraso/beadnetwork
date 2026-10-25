@@ -12,6 +12,9 @@ const (
 	FileIndexPhi   = "index-phi.bin"
 	FileIndexTheta = "index-theta.bin"
 	FileIndexR     = "index-r.bin"
+	FileAtPhi      = "at-phi.bin"
+	FileAtTheta    = "at-theta.bin"
+	FileAtR        = "at-r.bin"
 	FileTiltIdx    = "top-tilt-vector-phi-idx.bin"
 
 	DirDragRule = "drag-rule"

@@ -89,18 +89,20 @@ func NewFromSpec(spec Topology.TopoSpec, sphere polar.SceneSphere, hasScene bool
 	md.UI.Rules.SharedRow = -1
 
 	kindByID := make(map[string]string, len(spec.Nodes))
+	restByID := make(map[string]polarindex.Place, len(spec.Nodes))
 	for _, n := range spec.Nodes {
 		kindByID[n.ID] = n.Type
+		restByID[n.ID] = n.Rest()
 	}
 
 	targetByLabel := make(map[string]string, len(spec.Edges))
 	sourceByLabel := make(map[string]string, len(spec.Edges))
 	for _, e := range spec.Edges {
 		if src, ok := md.MR.NodeGeoms()[e.Source]; ok {
-			Topology.SeedEdge(src, e, true, kindByID[e.Target], scenePath)
+			Topology.SeedEdge(src, e, true, kindByID[e.Target], restByID[e.Target], scenePath)
 		}
 		if dst, ok := md.MR.NodeGeoms()[e.Target]; ok {
-			Topology.SeedEdge(dst, e, false, kindByID[e.Source], scenePath)
+			Topology.SeedEdge(dst, e, false, kindByID[e.Source], restByID[e.Source], scenePath)
 		}
 		targetByLabel[e.Label] = e.Target
 		sourceByLabel[e.Label] = e.Source

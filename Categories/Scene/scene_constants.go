@@ -19,10 +19,14 @@ const (
 func ConstantsDir(root string) string { return filepath.Join(root, ConstantsDirName) }
 
 func LoadSceneConstants(root string) (polarindex.SceneConstants, error) {
-	return loadSceneConstants(root)
+	c, err := LoadSceneFrame(root)
+	if err != nil {
+		return c, err
+	}
+	return c, CheckBeadGrid(root, c)
 }
 
-func loadSceneConstants(root string) (polarindex.SceneConstants, error) {
+func LoadSceneFrame(root string) (polarindex.SceneConstants, error) {
 	dir := ConstantsDir(root)
 	var c polarindex.SceneConstants
 	missing := []string{}
@@ -41,11 +45,16 @@ func loadSceneConstants(root string) (polarindex.SceneConstants, error) {
 	if c.ConstantR == 0 || c.MaxIndexPhi <= 0 || c.MaxIndexTheta <= 0 {
 		return polarindex.SceneConstants{}, fmt.Errorf("loadTree: %s: constant-r is zero, or max-index-phi/max-index-theta is not a positive step count", dir)
 	}
+	return c, nil
+}
+
+func CheckBeadGrid(root string, c polarindex.SceneConstants) error {
+	dir := ConstantsDir(root)
 	if c.MaxIndexPhi%2 != 0 || c.MaxIndexTheta%2 != 0 {
-		return polarindex.SceneConstants{}, fmt.Errorf("loadTree: %s: maxIndexPhi=%d maxIndexTheta=%d must be EVEN — a half turn is maxIndex/2 steps, and an odd ring has no exact half", dir, c.MaxIndexPhi, c.MaxIndexTheta)
+		return fmt.Errorf("loadTree: %s: maxIndexPhi=%d maxIndexTheta=%d must be EVEN — a half turn is maxIndex/2 steps, and an odd ring has no exact half", dir, c.MaxIndexPhi, c.MaxIndexTheta)
 	}
 	if math.Abs(c.ConstantR-lattice.SlotR) > 1e-9 {
-		return polarindex.SceneConstants{}, fmt.Errorf("loadTree: %s: constantR=%v is not lattice.SlotR=%v — one radial index IS one slot, the step a bead takes per wake, so the scene grid and the bead lattice are the same grid (a bead width is %v slots)", dir, c.ConstantR, lattice.SlotR, lattice.SlotsPerBead)
+		return fmt.Errorf("loadTree: %s: constantR=%v is not lattice.SlotR=%v — one radial index IS one slot, the step a bead takes per wake, so the scene grid and the bead lattice are the same grid (a bead width is %v slots); a scene whose every node stores a float place (base/at-*.bin) is on its own frame and skips this", dir, c.ConstantR, lattice.SlotR, lattice.SlotsPerBead)
 	}
-	return c, nil
+	return nil
 }

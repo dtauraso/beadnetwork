@@ -11,7 +11,18 @@ import (
 
 	"github.com/dtauraso/beadnetwork/Categories/Node/Edge/edgefile"
 	SceneBuf "github.com/dtauraso/beadnetwork/Categories/Scene"
+	"github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
 )
+
+func readOptPlace(baseDir string) *polarindex.Place {
+	var p polarindex.Place
+	if !readLeaf(filepath.Join(baseDir, NodeBuf.FileAtPhi), &p.Phi) ||
+		!readLeaf(filepath.Join(baseDir, NodeBuf.FileAtTheta), &p.Theta) ||
+		!readLeaf(filepath.Join(baseDir, NodeBuf.FileAtR), &p.R) {
+		return nil
+	}
+	return &p
+}
 
 func LoadTree(root string) (TopoSpec, error) {
 	var spec TopoSpec
@@ -31,16 +42,22 @@ func LoadTree(root string) (TopoSpec, error) {
 	}
 	spec.RowCount = rowCount
 
-	constants, err := SceneBuf.LoadSceneConstants(root)
+	constants, err := SceneBuf.LoadSceneFrame(root)
 	if err != nil {
 		return spec, err
 	}
 	spec.Constants = constants
 
+	placed := len(nodeDirs) > 0
 	for _, nodeID := range nodeDirs {
 		sn, err := loadNodeBase(root, nodesDir, nodeID)
 		if err != nil {
 			return spec, err
+		}
+		if sn.At != nil {
+			sn.setIndex(polarindex.Nearest(*sn.At, constants))
+		} else {
+			placed = false
 		}
 		spec.Nodes = append(spec.Nodes, sn)
 
@@ -49,6 +66,11 @@ func LoadTree(root string) (TopoSpec, error) {
 			return spec, err
 		}
 		spec.Edges = append(spec.Edges, edges...)
+	}
+	if !placed {
+		if err := SceneBuf.CheckBeadGrid(root, constants); err != nil {
+			return spec, err
+		}
 	}
 
 	ResolveEdgeDeltas(&spec)
@@ -130,6 +152,7 @@ func loadNodeBase(root, nodesDir, nodeID string) (Node, error) {
 		IndexPhi:            readOptInt(filepath.Join(baseDir, NodeBuf.FileIndexPhi)),
 		IndexTheta:          readOptInt(filepath.Join(baseDir, NodeBuf.FileIndexTheta)),
 		IndexR:              readOptInt(filepath.Join(baseDir, NodeBuf.FileIndexR)),
+		At:                  readOptPlace(baseDir),
 		Drag:                NodeBuf.ReadDragRule(filepath.Join(baseDir, NodeBuf.DirDragRule)),
 		SelfDrag:            NodeBuf.ReadDragRule(filepath.Join(baseDir, NodeBuf.DirSelfRule)),
 		TopTiltVectorPhiIdx: readOptInt32(filepath.Join(baseDir, NodeBuf.FileTiltIdx)),

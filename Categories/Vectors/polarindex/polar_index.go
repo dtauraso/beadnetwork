@@ -32,6 +32,24 @@ type Index struct {
 	R     int
 }
 
+type Place struct {
+	Phi   float64
+	Theta float64
+	R     float64
+}
+
+func Nearest(p Place, sc SceneConstants) Index {
+	return Canonical(Index{Phi: int(math.Round(p.Phi)), Theta: int(math.Round(p.Theta)), R: int(math.Round(p.R))}, sc)
+}
+
+func Rest(p Place) Place {
+	return Place{Phi: p.Phi - math.Round(p.Phi), Theta: p.Theta - math.Round(p.Theta), R: p.R - math.Round(p.R)}
+}
+
+func ToPolarAt(o Index, rest Place, sc SceneConstants) polar.Polar {
+	return polar.Polar{R: (float64(o.R) + rest.R) * sc.ConstantR, Phi: (float64(o.Phi) + rest.Phi) * sc.ConstantPhi(), Theta: (float64(o.Theta) + rest.Theta) * sc.ConstantTheta()}
+}
+
 type Offset struct {
 	Phi   int
 	Theta int

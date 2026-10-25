@@ -5,8 +5,18 @@ import "github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
 type Deltas struct {
 	baseTo    map[string]polarindex.Offset
 	dragTo    map[string]polarindex.Offset
+	restOf    map[string]polarindex.Place
 	constants polarindex.SceneConstants
 }
+
+func (d *Deltas) SetRestOf(otherID string, rest polarindex.Place) {
+	if d.restOf == nil {
+		d.restOf = map[string]polarindex.Place{}
+	}
+	d.restOf[otherID] = rest
+}
+
+func (d *Deltas) RestOf(otherID string) polarindex.Place { return d.restOf[otherID] }
 
 func NewDeltas() Deltas { return Deltas{} }
 

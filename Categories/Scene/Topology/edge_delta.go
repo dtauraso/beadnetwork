@@ -75,6 +75,13 @@ func (n *Node) Index() polarindex.Index {
 	return polarindex.Index{Phi: *n.IndexPhi, Theta: *n.IndexTheta, R: *n.IndexR}
 }
 
+func (n *Node) Rest() polarindex.Place {
+	if n.At == nil {
+		return polarindex.Place{}
+	}
+	return polarindex.Rest(*n.At)
+}
+
 func (n *Node) setIndex(idx polarindex.Index) {
 	n.IndexPhi, n.IndexTheta, n.IndexR = &idx.Phi, &idx.Theta, &idx.R
 }
