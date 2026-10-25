@@ -65,6 +65,17 @@ func (n *NodePhiTheta3) drain(ctx context.Context) bool {
 func (n *NodePhiTheta3) apply() {
 	c := n.peer.TakeChanges()
 	root, id := n.geom.PersistRoot(), n.peer.ID
+	if root == "" {
+		c = Links.Changes{Place: c.Place, S: c.S, Refused: c.Refused}
+		if c.Place {
+			n.geom.KindPosts().PostPlace(n.peer.At)
+		}
+		if c.S {
+			n.postTicks()
+		}
+		n.publishWith(c.Refused)
+		return
+	}
 	if c.Place {
 		if err := NodeCat.WritePlace(root, id, n.peer.At); err != nil {
 			n.breadcrumb("place-persist", err.Error())
