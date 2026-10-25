@@ -13,6 +13,7 @@ func (g *NodeGeometry) RunGeometry(ctx context.Context) {
 		return
 	}
 	clk := clock.NewRealClock()
+	tickMs := 0
 	defer g.kindPosts.Close()
 
 	for {
@@ -43,7 +44,7 @@ func (g *NodeGeometry) RunGeometry(ctx context.Context) {
 
 		g.writeInteriorFrames()
 
-		if err := clk.SleepPulse(ctx); err != nil {
+		if err := g.pace(ctx, clk, &tickMs); err != nil {
 			return
 		}
 	}

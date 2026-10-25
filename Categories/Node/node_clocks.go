@@ -9,10 +9,12 @@ type Clocks struct {
 	clockSrc clock.Clock
 
 	clk clock.Clock
+
+	humanTickMs chan int
 }
 
 func NewClocks(clockSrc clock.Clock) Clocks {
-	return Clocks{clockSrc: clockSrc}
+	return Clocks{clockSrc: clockSrc, humanTickMs: make(chan int, 1)}
 }
 
 func (c *Clocks) Tick() int64 {

@@ -34,6 +34,7 @@ func (n *NodePhiTheta3) Update(ctx context.Context) {
 	clk := n.Clock.Copy()
 	clk.SpeedFrom(n.SpeedCh)
 	n.geom.Clocks().Use(clk)
+	n.geom.RunOnHumanTicks(n.tickMs)
 	n.postTicks()
 	n.publish()
 
@@ -63,6 +64,7 @@ func (n *NodePhiTheta3) Update(ctx context.Context) {
 func (n *NodePhiTheta3) take(ctx context.Context, msg any) bool {
 	if t, ok := msg.(Links.SetTickMs); ok {
 		n.tickMs = max(t.V, 1)
+		n.geom.RunOnHumanTicks(n.tickMs)
 		return false
 	}
 	for _, e := range n.peer.Handle(msg) {
