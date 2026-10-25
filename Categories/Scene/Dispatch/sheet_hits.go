@@ -66,6 +66,10 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		if typed != nil {
 			v = *typed
 		}
+		if a.K == Links.KR && v < 0 {
+			md.UI.Builder.Refused = fmt.Sprintf("%s→%s r %v: a length cannot be negative, so it stays at %v", a.Node, a.To, v, l.Start.R)
+			return
+		}
 		md.sendLink(ctx, a.Node, Links.SetStart{To: a.To, K: a.K, V: v})
 	case Builder.OpLinkPress:
 		if sign == 0 {
