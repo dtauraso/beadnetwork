@@ -41,10 +41,10 @@ Angles are in ticks of a's `s`. Its direction is `start + Δ`, wrapped to a turn
   adds a to the nodes it tells when it moves, and answers with a Moved. **Drop** sends b
   **Unlinked**.
 - **Pick** (UI → b, b → a): b grants a pick only if no other node has a picked link into b.
-- **StepAll** (UI → every node, numbered): each node steps Δ on its picked links; a node with no
-  picked link into it sends Put down its picked links and each target forwards after it sits; a
-  node with one sends a **Trail** round the picked links, and the trail that comes back to it holds
-  the whole ring, from which it places only itself.
+- **StepAll** (UI → every node, numbered): each node steps Δ on its picked links and sends Put down
+  each one, carrying its place from before the round; the target sits and forwards nothing. A Put
+  of a round the target has not stepped yet waits until it has, so every Put carries a place from
+  before the round.
 
 ## Time — machine ticks become one human tick
 
