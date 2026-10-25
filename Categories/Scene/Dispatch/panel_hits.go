@@ -28,6 +28,13 @@ func panelTookPointerDown(
 ) bool {
 	pl := md.UI.PanelLayout()
 
+	if e := md.UI.Sheet.Edit; e.Active {
+		h := pl.Sheet.Hit(ev.X, ev.Y)
+		if applySheetKey(ctx, md, "Enter") || (h.Part == Sheet.PartBody && h.Cell.Typed && h.Cell.Act == e.Act) {
+			return true
+		}
+	}
+
 	if h := pl.Sheet.Hit(ev.X, ev.Y); h.Part != Sheet.PartNone {
 		applySheetHit(ctx, md, h)
 		return true
