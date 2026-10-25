@@ -39,6 +39,8 @@ func LinksPill(m Model) Pill {
 	}
 	groups := []Group{
 		{Title: "links — one per a→b, set at a: its start, and Δ on it (± steps Δ and moves b)", Rows: rows},
+		pickGroup(m),
+		pickedGroup(m),
 		recalcGroup(m),
 		landsGroup(m),
 	}

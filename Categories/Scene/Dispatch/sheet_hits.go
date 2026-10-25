@@ -55,8 +55,23 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		}
 		md.sendLink(ctx, a.Node, Links.SetStart{To: a.To, K: a.K, V: v})
 	case Sheet.OpLinkPress:
+		if sign == 0 {
+			sign = a.Sign
+		}
 		if sign != 0 {
 			md.sendLink(ctx, a.Node, Links.Press{To: a.To, K: a.K, Sign: sign})
+		}
+	case Sheet.OpPick:
+		md.sendLink(ctx, a.To, Links.PickReq{From: a.Node})
+	case Sheet.OpUnpick:
+		md.sendLink(ctx, a.Node, Links.Unpick{To: a.To})
+	case Sheet.OpIncrement:
+		if typed != nil {
+			md.sendLink(ctx, a.Node, Links.SetIncrement{To: a.To, K: a.K, V: *typed})
+		}
+	case Sheet.OpLocking:
+		if l, ok := m.Link(a.Node, a.To); ok {
+			md.sendLink(ctx, a.Node, Links.SetLocking{To: a.To, On: !l.Locking})
 		}
 	}
 }
