@@ -43,6 +43,7 @@ func StartGestureActor(ctx context.Context, md *Dispatch.MoveDispatch, speedSink
 		reader := Drag.NewInputDirReader(inputPath)
 		mine := clk.Copy()
 		wheel := &wheelTotals{}
+		h := int64(-1)
 		for {
 			for _, raw := range reader.ReadAll() {
 				if ev, ok := Drag.DecodeRawInput(raw); ok {
@@ -68,6 +69,13 @@ func StartGestureActor(ctx context.Context, md *Dispatch.MoveDispatch, speedSink
 				default:
 					break drain
 				}
+			}
+			if b := md.UI.Builder; b.On() {
+				if now := clock.HumanTick(b.TickMs); now != h {
+					h = now
+					Dispatch.DrainLinkReports(md)
+				}
+				continue
 			}
 			Dispatch.DrainLinkReports(md)
 
