@@ -12,9 +12,10 @@ func EnableViewpointPersist(ui *View.UIState, topologyPath string) {
 
 func EnableEditPersist(ui *View.UIState, scenes *Scenes.SceneSwitch, nodeGeoms map[string]*Node.NodeGeometry, topologyPath string) {
 	scenes.TreeRoot = topologyPath
+	scenes.NodesRoot = Scenes.NodesRoot(topologyPath)
 	armEdit(ui, topologyPath)
 
 	for _, nm := range nodeGeoms {
-		nm.SetPersistRoot(topologyPath)
+		nm.SetPersistRoot(scenes.NodesRoot)
 	}
 }

@@ -66,7 +66,7 @@ func NewFromSpec(spec Topology.TopoSpec, sphere polar.SceneSphere, hasScene bool
 
 	for _, n := range spec.Nodes {
 		if nm, ok := md.MR.NodeGeoms()[n.ID]; ok {
-			Topology.SeedNode(nm, n, scenePath)
+			Topology.SeedNode(nm, n, Scenes.NodesRoot(scenePath))
 		}
 	}
 
@@ -74,7 +74,7 @@ func NewFromSpec(spec Topology.TopoSpec, sphere polar.SceneSphere, hasScene bool
 	md.Links = Links.NewMesh()
 	md.UI.Sheet.Model.S = Sheet.LoadScalar(Scenes.SFilePath(scenePath), 1, 1)
 	md.UI.Sheet.Model.Frame = Topology.LinkFrame(spec)
-	md.UI.Sheet.Model.StepDir = Sheet.StepDir(scenePath)
+	md.UI.Sheet.Model.StepDir = Sheet.StepDir(Scenes.NodesRoot(scenePath))
 	md.UI.Sheet.Model.Step = Sheet.ReadStep(md.UI.Sheet.Model.StepDir)
 
 	md.UI.Rules.Nodes = Topology.RulePanelNodes(spec, func(id string) bool {
@@ -94,10 +94,10 @@ func NewFromSpec(spec Topology.TopoSpec, sphere polar.SceneSphere, hasScene bool
 	sourceByLabel := make(map[string]string, len(spec.Edges))
 	for _, e := range spec.Edges {
 		if src, ok := md.MR.NodeGeoms()[e.Source]; ok {
-			Topology.SeedEdge(src, e, true, kindByID[e.Target], restByID[e.Target], scenePath)
+			Topology.SeedEdge(src, e, true, kindByID[e.Target], restByID[e.Target], Scenes.NodesRoot(scenePath))
 		}
 		if dst, ok := md.MR.NodeGeoms()[e.Target]; ok {
-			Topology.SeedEdge(dst, e, false, kindByID[e.Source], restByID[e.Source], scenePath)
+			Topology.SeedEdge(dst, e, false, kindByID[e.Source], restByID[e.Source], Scenes.NodesRoot(scenePath))
 		}
 		targetByLabel[e.Label] = e.Target
 		sourceByLabel[e.Label] = e.Source

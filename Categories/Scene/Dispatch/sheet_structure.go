@@ -83,19 +83,21 @@ func setFrame(md *MoveDispatch, k string, v float64) {
 	md.Scenes.Reload()
 }
 
-func addLinkNode(md *MoveDispatch) {
+func addLinkNode(md *MoveDispatch) { addLinkNodeAt(md, Links.Place{}) }
+
+func addLinkNodeAt(md *MoveDispatch, at Links.Place) {
 	m := &md.UI.Sheet.Model
-	root := md.Scenes.TreeRoot
+	root := md.Scenes.NodesRoot
 	if root == "" || md.Scenes.Reload == nil || len(m.Nodes) == 0 {
 		return
 	}
 	kind := md.MR.NodeGeoms()[m.Nodes[0]].Kind()
 	id := newNodeID(root)
-	if err := NodeBuf.WriteNewPlaceNode(root, id, kind, Links.Place{}, m.S); err != nil {
+	if err := NodeBuf.WriteNewPlaceNode(root, id, kind, at, m.S); err != nil {
 		m.Refused = fmt.Sprintf("could not write node %s: %v", id, err)
 		return
 	}
-	if err := writeCounts(root, largestNodeID(root), countEdgeFiles(root)); err != nil {
+	if err := writeCounts(md.Scenes.TreeRoot, largestNodeID(root), countEdgeFiles(root)); err != nil {
 		m.Refused = fmt.Sprintf("could not update the counts: %v", err)
 		return
 	}
@@ -104,7 +106,7 @@ func addLinkNode(md *MoveDispatch) {
 
 func removeLinkNode(md *MoveDispatch, id string) {
 	m := &md.UI.Sheet.Model
-	root := md.Scenes.TreeRoot
+	root := md.Scenes.NodesRoot
 	if root == "" || md.Scenes.Reload == nil {
 		return
 	}
@@ -121,7 +123,7 @@ func removeLinkNode(md *MoveDispatch, id string) {
 		m.Refused = fmt.Sprintf("could not remove node %s: %v", id, err)
 		return
 	}
-	if err := writeCounts(root, largestNodeID(root), countEdgeFiles(root)); err != nil {
+	if err := writeCounts(md.Scenes.TreeRoot, largestNodeID(root), countEdgeFiles(root)); err != nil {
 		m.Refused = fmt.Sprintf("could not update the counts: %v", err)
 		return
 	}

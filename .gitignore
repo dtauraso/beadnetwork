@@ -206,6 +206,7 @@ __pycache__/
 # failure mode.
 topology*/view/*.json
 topology*/nodes/*/drag/
+topology*/sequences/*/nodes/*/drag/
 
 # Whether a node's drag rule is currently ACTIVE is persisted output, deliberately separate
 # from the rule's VALUES (drag.phi/drag.maxTheta), which stay in the tracked base.json seed.

@@ -12,6 +12,7 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Node/Edge/edgefile"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 	SceneBuf "github.com/dtauraso/beadnetwork/Categories/Scene"
+	"github.com/dtauraso/beadnetwork/Categories/Scene/Scenes"
 	"github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
 )
 
@@ -28,7 +29,8 @@ func readOptPlace(baseDir string) *polarindex.Place {
 func LoadTree(root string) (TopoSpec, error) {
 	var spec TopoSpec
 
-	nodesDir := filepath.Join(root, "nodes")
+	nodesRoot := Scenes.NodesRoot(root)
+	nodesDir := filepath.Join(nodesRoot, "nodes")
 	nodeDirs, err := readDirNames(nodesDir)
 	if os.IsNotExist(err) {
 		nodeDirs, err = nil, nil
@@ -62,7 +64,7 @@ func LoadTree(root string) (TopoSpec, error) {
 		}
 		spec.Nodes = append(spec.Nodes, sn)
 
-		edges, err := loadNodeEdges(root, nodesDir, nodeID)
+		edges, err := loadNodeEdges(nodesRoot, nodesDir, nodeID)
 		if err != nil {
 			return spec, err
 		}
@@ -86,7 +88,7 @@ func LoadTree(root string) (TopoSpec, error) {
 
 	reportEdgeClosure(&spec)
 
-	ApplyDragOverlay(root, &spec)
+	ApplyDragOverlay(nodesRoot, &spec)
 
 	return spec, nil
 }

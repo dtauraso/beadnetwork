@@ -31,6 +31,10 @@ func HandleRawInputMsg(ctx context.Context, ev Drag.RawInputMsg, md *MoveDispatc
 		if sel, any := md.UI.SelectedNode(); md.UI.SceneEditable && any {
 			if row, ok := md.UI.NodeRowFor(sel); ok {
 				nodeID, _ := md.RT.LookupNodeRow(int(row))
+				if md.UI.Sheet.Model.On() {
+					removeLinkNode(md, nodeID)
+					return
+				}
 				DeleteNode(&md.Scenes, &md.UI, nodeID, int(row))
 			}
 		}
