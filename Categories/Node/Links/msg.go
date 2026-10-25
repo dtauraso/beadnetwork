@@ -57,6 +57,8 @@ type SetIdx struct {
 
 type SetS struct{ V int }
 
+type SetTickMs struct{ V int }
+
 type Connect struct{ To string }
 
 type Drop struct{ To string }
