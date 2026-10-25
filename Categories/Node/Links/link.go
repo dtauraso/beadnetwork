@@ -80,7 +80,7 @@ func Measure(f Frame, s int, was Start, p, t Vec3) Start {
 	tick := 2 * math.Pi / float64(TurnTicks*s)
 	half := float64(TurnTicks * s / 2)
 	if n < 1e-9 {
-		return Start{Phi: was.Phi, Theta: was.Theta}
+		return Start{Phi: was.Phi, Theta: was.Theta, R: was.R}
 	}
 	side := math.Hypot(v.X, v.Z)
 	phi := math.Atan2(side, v.Y) / tick
