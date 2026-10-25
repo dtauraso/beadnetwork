@@ -28,8 +28,17 @@ func (l Layout) Hit(x, y float64) Hit {
 			return Hit{Part: PartPill, Label: p.Label, Rect: p.Pill}
 		}
 	}
+	top := -1
+	for i, p := range l.Pills {
+		if p.Open && Panel.HitRect(p.Popover, x, y) {
+			top = i
+		}
+	}
+	if top < 0 {
+		return Hit{}
+	}
 	for _, cb := range l.Cells {
-		if !Panel.HitRect(l.Pills[cb.Box].Popover, x, y) {
+		if cb.Box != top {
 			continue
 		}
 		label := l.Pills[cb.Box].Label
@@ -45,15 +54,12 @@ func (l Layout) Hit(x, y float64) Hit {
 			return Hit{Part: PartBody, Label: label, Cell: cb.Cell, Rect: cb.Rect}
 		}
 	}
-	if p, ok := l.covering(x, y); ok {
-		return Hit{Part: PartInside, Label: p.Label}
-	}
-	return Hit{}
+	return Hit{Part: PartInside, Label: l.Pills[top].Label}
 }
 
 func (l Layout) covering(x, y float64) (PillBox, bool) {
-	for _, p := range l.Pills {
-		if p.Open && Panel.HitRect(p.Popover, x, y) {
+	for i := len(l.Pills) - 1; i >= 0; i-- {
+		if p := l.Pills[i]; p.Open && Panel.HitRect(p.Popover, x, y) {
 			return p, true
 		}
 	}

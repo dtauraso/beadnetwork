@@ -16,14 +16,20 @@ type Seq struct {
 func SequencesPill(m Model) Pill {
 	var rows [][]Cell
 	for _, q := range m.Seqs {
-		rows = append(rows, []Cell{LitText(q.Name, Act{Op: OpSeqOpen, I: q.K}, q.K == m.OpenSeq)})
+		label := q.Name
+		if q.K == m.OpenSeq {
+			label += "  (open)"
+		}
+		rows = append(rows, []Cell{Button(label, Act{Op: OpSeqOpen, I: q.K}, q.K == m.OpenSeq)})
 	}
 	buttons := []Cell{Button("+ new sequence", Act{Op: OpSeqAdd}, false)}
 	if len(m.Seqs) > 1 {
 		buttons = append(buttons, Button("delete sequence", Act{Op: OpSeqDrop}, false))
 	}
 	rows = append(rows, buttons)
-	return Pill{Label: SeqLabel, Left: true, Groups: []Group{
-		{Title: "sequence — click one to open it", Rows: rows},
-	}}
+	groups := []Group{{Title: "sequence — click one to open it; the scene reloads with its nodes and links", Rows: rows}}
+	if m.Refused != "" {
+		groups = append(groups, Group{Rows: [][]Cell{{Text(m.Refused)}}})
+	}
+	return Pill{Label: SeqLabel, Left: true, Groups: groups}
 }

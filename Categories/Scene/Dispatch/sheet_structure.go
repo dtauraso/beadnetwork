@@ -135,12 +135,17 @@ func runSheetSequence(md *MoveDispatch, a Sheet.Act) bool {
 	m := &md.UI.Builder
 	scene := md.Scenes.TreeRoot
 	if scene == "" || md.Scenes.Reload == nil {
-		return a.Op == Builder.OpSeqOpen || a.Op == Builder.OpSeqAdd || a.Op == Builder.OpSeqDrop
+		if a.Op == Builder.OpSeqOpen || a.Op == Builder.OpSeqAdd || a.Op == Builder.OpSeqDrop {
+			m.Refused = "this scene cannot switch sequences: it was opened with no tree root to reload from"
+			return true
+		}
+		return false
 	}
 	open := m.OpenSeq
 	switch a.Op {
 	case Builder.OpSeqOpen:
 		if a.I == open {
+			m.Refused = Scenes.SequenceName(scene, open) + " is already open — click another sequence to open it"
 			return true
 		}
 		open = a.I

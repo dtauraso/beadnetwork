@@ -129,7 +129,7 @@ func (s *PillStack) AddWideScrollingPopover(contentW, contentH, scroll float32) 
 	if w < s.width {
 		w = s.width
 	}
-	x := s.viewW - PillRight - w
+	x := max(OriginX, s.viewW-PillRight-w)
 	if s.left {
 		x = s.X()
 	}
