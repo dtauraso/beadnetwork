@@ -15,6 +15,11 @@ const dirReady = new Set<string>();
 let scene: string | undefined;
 let timer: NodeJS.Timeout | undefined;
 
+export function flushInputFiles(): void {
+  if (timer !== undefined) clearTimeout(timer);
+  flush();
+}
+
 function flush(): void {
   timer = undefined;
   const root = scene;

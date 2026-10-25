@@ -44,13 +44,16 @@ func StartGestureActor(ctx context.Context, md *Dispatch.MoveDispatch, speedSink
 		mine := clk.Copy()
 		wheel := &wheelTotals{}
 		h := int64(-1)
-		for {
+		readFiles := func() {
 			for _, raw := range reader.ReadAll() {
 				if ev, ok := Drag.DecodeRawInput(raw); ok {
 					wheel.difference(&ev)
 					Dispatch.HandleRawInputMsg(ctx, ev, md, speedSinks)
 				}
 			}
+		}
+		for {
+			readFiles()
 
 		drain:
 			for {
@@ -64,6 +67,7 @@ func StartGestureActor(ctx context.Context, md *Dispatch.MoveDispatch, speedSink
 					case GestureMsgSave:
 						Dispatch.HandleSaveMsg(md)
 					case GestureMsgCommand:
+						readFiles()
 						Dispatch.HandleRawInputMsg(ctx, gm.Command, md, speedSinks)
 					}
 				default:

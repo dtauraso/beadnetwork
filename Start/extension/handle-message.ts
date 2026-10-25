@@ -1,6 +1,6 @@
 import { logfmt } from "./probe/logfmt";
 import { IN_COMMAND_KINDS, IN_EVENT_KINDS, IN_KIND_RAW_INPUT } from "../../Categories/Scene/Drag/input-defs";
-import { writeInputFile } from "./runner/input-file";
+import { flushInputFiles, writeInputFile } from "./runner/input-file";
 import { resolveScenePath } from "./runner/scene-path";
 import * as fs from "fs";
 import * as path from "path";
@@ -75,8 +75,10 @@ async function dispatch(msg: WebviewToHostMsg, ctx: MessageCtx): Promise<void> {
       // Pointer input is the CURRENT input, so it goes to the file the gesture
       // goroutine reads when it wakes. Sending it down the pipe queued it, and
       // a queue of input replays history after the fingers stop. Edits, save,
-      // and a key or delete press are one-shot commands, not state, and go on
-      // stdin: a file holds only the latest, so a repeated key was dropped.
+      // and a pointer down/up, key or delete press are one-shot commands, not
+      // state, and go on stdin: a file holds only the latest, so a repeated
+      // press at the same pixel was dropped. The files flush first, so a move
+      // made before a press is on disk before the press is queued.
       const bytes = new Uint8Array(msg.record instanceof Uint8Array ? msg.record : new Uint8Array(msg.record));
       const eventKind: string | undefined = IN_EVENT_KINDS[bytes[1] ?? -1];
       if (bytes[0] === IN_KIND_RAW_INPUT && !(IN_COMMAND_KINDS as readonly string[]).includes(eventKind ?? "")) {
@@ -86,6 +88,7 @@ async function dispatch(msg: WebviewToHostMsg, ctx: MessageCtx): Promise<void> {
         );
         return;
       }
+      flushInputFiles();
       runner.writeStdin(msg.record);
       return;
     }

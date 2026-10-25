@@ -40,9 +40,12 @@ carries the TS → Go vocabulary.
 - **`raw-input`** — raw pointer/wheel + stateless raycast hit → Go's gesture FSM. Camera
   orbit, node moves, and port-anchor moves are produced **in-process** by the FSM
   from raw-input; they do not cross this seam as edits. Pointer and wheel records are the
-  current input and cross as `view/input/<kind>.bin`, latest wins. A `key` or `delete`
-  record (`Drag.CommandKinds`) is a one-shot press and crosses on stdin, queued: a file
-  keeps only the latest, so a repeated key looked unchanged and was dropped.
+  current input and cross as `view/input/<kind>.bin`, latest wins. A `pointerdown`,
+  `pointerup`, `key` or `delete` record (`Drag.CommandKinds`) is a one-shot press and
+  crosses on stdin, queued: a file keeps only the latest, so a repeated key — or a second
+  click at the same pixel, byte-identical to the first — looked unchanged and was dropped.
+  The host flushes the pending input files before queuing a press, and the gesture actor
+  reads the files before handling one, so a move made before a press is handled before it.
 
 ## No sidecar
 
