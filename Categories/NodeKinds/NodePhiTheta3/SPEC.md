@@ -46,8 +46,11 @@ Angles are in ticks of a's `s`. Its direction is `start + Δ`, wrapped to a turn
 
 ## Time — machine ticks become one human tick
 
-The goroutine never sleeps. Each pass of its loop takes at most one message and counts one
-machine tick `k`. When `h = ⌊(now − epoch) / Δt⌋` changes, it applies, persists and publishes
+Nothing on this tab sleeps: not the node's goroutine, not its geometry goroutine (it writes the
+block files once per human tick), and not the gesture actor while the tab is open (it reads
+input every pass and refreshes the pills once per human tick); a node has no bead animation.
+
+Each pass of the node's loop takes at most one message and counts one machine tick `k`. When `h = ⌊(now − epoch) / Δt⌋` changes, it applies, persists and publishes
 what changed during that tick, then posts `(h, k)` to its timing slot. So a node shows at most one
 step per human tick whatever its `n` (machine ticks per human tick); `n` differs between nodes and
 between ticks and changes nothing the node computes. The Frame pill shows Δt, `h`, the slowest

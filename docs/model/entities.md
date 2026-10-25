@@ -83,7 +83,11 @@
   The Frame pill reads these for the slowest node's `n` (ΔK/ΔH) and how many
   nodes are behind `h − 1`. This is timing only: the links model is numbered
   rounds of pure `Peer.Handle` calls, so no result depends on any node's `n`. Δt is
-  `view/tick-ms.bin` (default `MsPerTick`).
+  `view/tick-ms.bin` (default `MsPerTick`). The node's geometry goroutine is told the same
+  Δt (`NodeGeometry.RunOnHumanTicks`) and from then on also loops without sleeping, doing its
+  derive-and-write pass once per human tick; while the tab's builder has nodes, the gesture
+  actor does the same — it reads input every pass and collects reports once per human tick. A
+  φθ3 node starts no bead animation.
 
   Each goroutine holds its own `Copy()` of the clock and reads its own tick; there is no
   shared clock to pin a tick against. But a bead's **placement tick** (when it started
