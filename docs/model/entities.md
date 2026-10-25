@@ -80,8 +80,8 @@
   person sees at most one step per human tick: the `n_i` machine ticks node i ran during that
   tick count as one (`n_i / n_i = 1`), however large `n_i` is and however it differs between
   nodes. Then it posts `(h, k)` to its latest-value timing slot (`Links.Mesh.PostTiming`).
-  The Frame pill reads these for `n̄` (the mean of each node's ΔK/ΔH), machine ticks a second,
-  and how many nodes are behind `h − 1`. This is timing only: the links model is numbered
+  The Frame pill reads these for the slowest node's `n` (ΔK/ΔH) and how many
+  nodes are behind `h − 1`. This is timing only: the links model is numbered
   rounds of pure `Peer.Handle` calls, so no result depends on any node's `n`. Δt is
   `view/tick-ms.bin` (default `MsPerTick`).
 

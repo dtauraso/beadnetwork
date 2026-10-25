@@ -30,18 +30,17 @@ func (m *Model) TakeTiming(t Links.Timing) {
 	m.Timings[t.ID] = nt
 }
 
-func (m Model) NBar() float64 {
-	sum, c := 0.0, 0
+func (m Model) NMin() string {
+	min, at := 0.0, ""
 	for _, id := range m.Nodes {
-		if t, ok := m.Timings[id]; ok && t.N > 0 {
-			sum += t.N
-			c++
+		if t, ok := m.Timings[id]; ok && t.N > 0 && (at == "" || t.N < min) {
+			min, at = t.N, id
 		}
 	}
-	if c == 0 {
-		return 0
+	if at == "" {
+		return "—"
 	}
-	return sum / float64(c)
+	return Sig2(min) + " (" + at + ")"
 }
 
 func (m Model) Behind() int {
@@ -62,19 +61,8 @@ func (m Model) NOf(id string) string {
 	return Sig2(t.N)
 }
 
-func (m Model) MachinePerSec() string {
-	if m.TickMs < 1 {
-		return "—"
-	}
-	n := m.NBar()
-	if n == 0 {
-		return "—"
-	}
-	return Sig2(n*1000/float64(m.TickMs)/1e6) + "M"
-}
-
 func (m Model) TimeKey() string {
-	return fmt.Sprintf("%d|%s|%s|%d|%v", m.Now, Sig2(m.NBar()), m.MachinePerSec(), m.Behind(), m.nKeys())
+	return fmt.Sprintf("%d|%s|%d|%v", m.Now, m.NMin(), m.Behind(), m.nKeys())
 }
 
 func (m Model) nKeys() []string {

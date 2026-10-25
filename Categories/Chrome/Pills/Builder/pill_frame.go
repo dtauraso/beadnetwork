@@ -29,8 +29,7 @@ func FramePill(m Model) Pill {
 		{Title: "time — each node loops at machine speed; its machine ticks become one human tick", Rows: [][]Cell{
 			{Field("Δt", strconv.Itoa(m.TickMs), Act{Op: OpTickMs}, true, true), Text("ms one human tick lasts")},
 			{Text("h " + strconv.FormatInt(m.Now, 10)), Text("human ticks since the scene started")},
-			{Text("n̄ " + Sig2(m.NBar())), Text("machine ticks per human tick, averaged over the nodes")},
-			{Text("M/s " + m.MachinePerSec()), Text("machine ticks a second, per node")},
+			{Text("n min " + m.NMin()), Text("machine ticks per human tick of the slowest node — near 0, it is about to miss human ticks")},
 			{Text("behind " + strconv.Itoa(m.Behind()) + "/" + strconv.Itoa(len(m.Nodes))), Text("nodes that have not reached h−1")},
 		}},
 	}}

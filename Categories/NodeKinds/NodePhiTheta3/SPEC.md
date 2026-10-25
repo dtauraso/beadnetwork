@@ -50,8 +50,8 @@ The goroutine never sleeps. Each pass of its loop takes at most one message and 
 machine tick `k`. When `h = ⌊(now − epoch) / Δt⌋` changes, it applies, persists and publishes
 what changed during that tick, then posts `(h, k)` to its timing slot. So a node shows at most one
 step per human tick whatever its `n` (machine ticks per human tick); `n` differs between nodes and
-between ticks and changes nothing the node computes. The Frame pill shows Δt, `h`, `n̄`, machine
-ticks a second and how many nodes are behind `h − 1`; Node places shows each node's `n`.
+between ticks and changes nothing the node computes. The Frame pill shows Δt, `h`, the slowest
+node's `n` and which node it is, and how many nodes are behind `h − 1`; Node places shows each node's `n`.
 
 ## Description
 
