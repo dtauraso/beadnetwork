@@ -25,7 +25,7 @@ Repo: <current repo>. Identify verifying-grep hotspots. Four categories:
 
 **A. String/key duplication across boundaries.** Same string in N≥2 files that must agree for the system to work, with no static check. Examples to look for: identifier names that span Go ↔ JSON ↔ TS, struct-tag literals that mirror JSON keys, port/handle name strings, kind name strings, file-path conventions encoded in code.
 
-**B. Documentation claims about code that could drift.** Prose in `*.md` files (especially MODEL.md, CLAUDE.md, SPEC.md, handoff.md, memory/*.md) that makes a factual claim about code (e.g. "X is called before Y", "field Z is required", "this is generated"). For each, ask: would this survive a refactor without anyone updating the doc?
+**B. Documentation claims about code that could drift.** Prose in `*.md` files (especially MODEL.md, CLAUDE.md, SPEC.md, memory/*.md) that makes a factual claim about code (e.g. "X is called before Y", "field Z is required", "this is generated"). For each, ask: would this survive a refactor without anyone updating the doc?
 
 **C. Runtime-only validation that could move to a parser.** `return ... fmt.Errorf(...)` or `panic(...)` or `throw` calls that catch a shape problem at runtime, where a parser/loader/schema validator could have caught it earlier.
 

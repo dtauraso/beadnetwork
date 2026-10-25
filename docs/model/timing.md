@@ -9,9 +9,7 @@
   measured distance to the target — one integer, not an arc length divided by a speed.
   Geometry has no other effect on timing.
 - A slot is one radial index (`lattice.SlotR`), and it is exactly the distance a bead
-  covers in one pulse at the authored pulse speed. One radial index IS one slot: the
-  loader refuses a `constants.json` whose `constantR` is anything else, because the scene
-  grid and the bead lattice are the same grid.
+  covers in one pulse at the authored pulse speed.
 - A bead's position is its slot. `slot × SlotR` along the segment, arithmetic, with no
   fraction of an elapsed time in it — so nothing accumulates drift and a skipped frame
   costs nothing. Reaching the last slot IS arrival; no clock is compared against a
@@ -37,8 +35,7 @@ thing:
 - the **kind** goroutine — the kind's `Update`, paced by the sim clock; it decides values
 - the **animation** goroutine — `BeadAnimation.RunBeadAnimation`, one per node with outputs;
   it advances every bead the node owns by one slot per wake and writes its bead stream
-- the **geometry** goroutine — `RunGeometry`, paced by nothing, blocking on its own inbox
-  so a drag is served at the rate of the hand dragging it
+- the **geometry** goroutine — `RunGeometry`
 - the **rule** goroutine — `Node.RuleNode.Run`, which fans out one forwarder per peer
 
 A `BeadLine` is state one of them owns, not a fifth goroutine: it holds the segment, the step

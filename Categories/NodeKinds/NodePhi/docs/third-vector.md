@@ -3,9 +3,7 @@
 [← BEHAVIOR.md](BEHAVIOR.md)
 
 Alongside its own tilt vector and the coplanar normal, this node draws a THIRD arrow:
-the direction that last ARRIVED on its vector channel (`ReceivedThetaIdx`/
-streamed as the buffer's `ReceivedVectorLen`/`ReceivedVectorTheta` columns,
-`Categories/Node/node_state.go`). It:
+the direction that last ARRIVED on its vector channel. It:
 
 - Persists indefinitely once set — it is NOT cleared when the straightening exchange
   settles (i.e. the arrival lands on this node's own top, so nothing steps and nothing is

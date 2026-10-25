@@ -47,8 +47,7 @@ one.
 **The goroutines share no memory.** Every field of `NodeGeometry` belongs to
 exactly one of them, and the places the geometry half used to reach into the
 animation half are messages: the per-edge segment/step-count revision that
-`OutEdges.DeriveGeometry` derives, handed over by the animation inbox and
-`outport.Out.PostGeom` as a `bead.Revision`, and bead-drag start/end, handed
+`OutEdges.DeriveGeometry` derives, handed over by the animation inbox, and bead-drag start/end, handed
 over by `Beads.PostBeadDrag`. The animation goroutine applies both at ONE point, the top
 of its own pass, never mid-pass — so beads are never drawn against a segment
 that moved halfway through the frame. An atomic or a mutex here would be a

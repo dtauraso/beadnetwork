@@ -22,7 +22,7 @@ loop body) runs:
   is no φ. Both nodes of a pair run this same unmodified addition — there is no per-node
   sign. `coplanarNormal` (`Categories/NodeKinds/NodePhi/vectors.go`) reads it straight off the tilt's own
   `quarter` link on the ring (`Categories/NodeKinds/NodePhi/ring.go`) — the ring is built with that link
-  already wrapped onto `0…Wiring.FullTurnThetaIdx-1`, so there is no addition here to
+  already wrapped, so there is no addition here to
   overflow and nothing to subtract back into range. There is no pole and nothing to cross:
   the renderer decodes an index as `(sin θ, cos θ, 0)`, a plain circle, so there is no φ to
   flip and no parity term. This is a PURE function of the tilt state's own `quarter` link
@@ -32,12 +32,10 @@ loop body) runs:
   tilt index to its own geometry in one call (`syncTiltIndex`, `SyncTiltIndex(theta,
   normalTheta, bottomTheta)`) every time any of them changes. That
   is a plain method call on this node's OWN goroutine, not a message to a second one:
-  there is no `nodeMover` for this kind, and `NodePhiSelf.SetTiltIndex` sets the
-  geometry's mirror fields directly. The geometry stays a pure mirror — it streams exactly
-  what it is told as the buffer's `CoplanarNormalTheta` column and
-  never derives a normal from the edge itself (`coplanarNormalTowardPartner` was removed).
-- **Bottom tilt vector**: this node's TOP tilt vector turned a half turn (180°,
-  `Wiring.HalfTurnThetaIdx`) in θ — both nodes of a pair add it, unmodified. There is no φ.
+  there is no `nodeMover` for this kind. The geometry stays a pure mirror — it streams exactly
+  what it is told and
+  never derives a normal from the edge itself.
+- **Bottom tilt vector**: this node's TOP tilt vector turned a half turn (180°) in θ — both nodes of a pair add it, unmodified. There is no φ.
   A half turn in θ alone negates the direction exactly in this
   parameterization, so this is index bookkeeping only. It shares the top's length column (`TopTiltVectorLen`) and its colour;
   it is one of the two acute-test operands.

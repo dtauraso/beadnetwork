@@ -12,7 +12,7 @@ Two things in one repo:
 
 1. **A concurrent dataflow runtime in Go.** Behavior emerges from how nodes are wired together, not from procedural code. Goroutines and channels replace conventional control flow.
 
-2. **A visual editor** (vscode webview, Three.js / React Three Fiber). The diagram is the spec for **topology/wiring** — interpreted data, no codegen step on that path: the editor writes a directory tree of `topology/nodes/<id>/base.json`, `inputs|outputs/*.json`, and `topology/nodes/<id>/edges/*.json` (an adjacency list — an edge lives under its source node, no top-level `edges/` dir), which the runtime loader reads directly at startup. (Node-kind behavior and the content-buffer schema are a *separate*, code-generated axis — `Categories/NodeKinds/*/SPEC.md` and the block-file layouts drive `gen-node-defs`, staleness-guarded by `check-generated.sh`.) The directory tree is the only supported form — the earlier monolithic `topology.json` form was deleted.
+2. **A visual editor** (vscode webview, Three.js / React Three Fiber). The diagram is the spec for **topology/wiring** — interpreted data, no codegen step on that path. (Node-kind behavior and the content-buffer schema are a *separate*, code-generated axis — `Categories/NodeKinds/*/SPEC.md` and the block-file layouts drive `gen-node-defs`, staleness-guarded by `check-generated.sh`.)
 
 ## Running it
 
@@ -46,7 +46,7 @@ Categories/     the code, one directory per category
   Node/           nodes, their beads, edges, geometry
   Scene/          the scene: its spec on disk, assembling it, running it
   Chrome/         the UI that is not the diagram
-  Clock/  NodeKinds/  Polar/  Ring/  Speed/
+  Clock/  NodeKinds/  Ring/
 
 scripts/        what serves the repo rather than one category
 docs/  memory/  and the tool configs stay at the root, where each

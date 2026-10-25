@@ -36,7 +36,7 @@ carries the TS → Go vocabulary.
 
   (Several ops/commands were removed end-to-end with no live TS sender — `edit-create`/
   `edit-delete`, `play`/`pause`, `run`/`stop`, `fade-toggle` — and their kind bytes are left
-  as GAPS in `input_codec.go`, never renumbered.)
+  as GAPS, never renumbered.)
 - **`raw-input`** — raw pointer/wheel + stateless raycast hit → Go's gesture FSM. Camera
   orbit, node moves, and port-anchor moves are produced **in-process** by the FSM
   from raw-input; they do not cross this seam as edits. Pointer and wheel records are the

@@ -36,7 +36,7 @@
   animation goroutine — the split says which concern a field serves, it does not add an owner.
 
 - **Node goroutine.** One of SEVERAL serving the same node id, not "the" goroutine for that
-  node: a node id is a referent, and each goroutine that tags frames with it owns one job
+  node: a node id is a referent, and each goroutine owns one job
   (the kind's own logic, geometry and interaction, bead animation) and its own state. They
   are peers sharing nothing but the id. **Only the animation job sleeps on the human-speed
   clock**; a goroutine that both paces beads and reads input makes the bead rate the
