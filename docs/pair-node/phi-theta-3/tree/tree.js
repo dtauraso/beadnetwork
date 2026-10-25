@@ -37,15 +37,15 @@ const tWorked = rows => [['', 'not stored', 'note'], ...rows];
 function tEdge(builder, e) {
   return { kind: 'edge', label: `edge ${e.name}`, lines: [['from', e.from.name, 'ref'], ['to', e.to.name, 'ref'], ['start', tAng(e.start)], ['Δ', tAng(e.delta, ['phi', 'theta'])],
     ['increment', tAng(e.increment, ['phi', 'theta'])], ['lock', tLock(e)], ['locking', e.locking ? 'on' : 'off'],
-    ...tWorked([['~start + Δ', tAng(e.dir(builder))], [`~measured C_${e.from.name} → C_${e.to.name}`, tAng(e.measure(builder))]])] };
+    ...tWorked([['~start + Δ', tAng(e.dir(builder))]])] };
 }
 
 function tNode(builder, n) {
   const C = n.place(builder);
   return { kind: 'node', label: `node ${n.name}`, lines: [['s', n.s ? tNum(n.s) : `— (the scene's s, ${tNum(builder.s)})`],
-    ['at', n.at.from ? `from ${n.at.from.name}`: 'from O', n.at.from ? 'ref' : undefined], ['', tAng(n.at)],
+    ['at on O\'s grid', tAng(n.at, ['r', 'phi', 'theta'])],
     ['out', tNames(n.out), 'ref'], ['in', tNames(n.in), 'ref'],
-    ...tWorked([['~index on O\'s grid', tAng(n.index(builder), ['r', 'phi', 'theta'])], ['~C', ['x', 'y', 'z'].map((k, i) => `${k} ${tNum(C[i])}`).join(' | ')]])] };
+    ...tWorked([['~C',['x', 'y', 'z'].map((k, i) => `${k} ${tNum(C[i])}`).join(' | ')]])] };
 }
 
 function tGraph(builder) {
