@@ -63,14 +63,24 @@ class BStep {
   }
 
   moveAll(builder, edges = [...this.edges]) {
-    const by = new Map(edges.map(e => [e.to, e])), was = new Map([...this.nodes].map(n => [n, n.place(builder)]));
-    const looped = n => { for (let x = by.get(n), k = 0; x && k < by.size; x = by.get(x.from), k++) if (x.from === n) return true; return false; };
-    const done = new Set(), put = n => {
+    const by = new Map(edges.map(e => [e.to, e])), done = new Set();
+    const loop = n => { const r = [n]; for (let x = by.get(n); x && r.length <= by.size; x = by.get(x.from)) { if (x.from === n) return r; r.push(x.from); } return null; };
+    const ring = r => {
+      const v = r.map(n => builder.vec(by.get(n).from.scale(builder), by.get(n).dir(builder)));
+      const gap = v.reduce(bAdd).map(x => x / r.length), mid = ps => ps.reduce(bAdd).map(x => x / ps.length);
+      const ps = [[0, 0, 0]];
+      for (let i = r.length - 1; i > 0; i--) ps.unshift(bAdd(ps[0], bSub(v[i - 1], gap)));
+      const shift = bSub(mid(r.map(n => n.place(builder))), mid(ps));
+      r.forEach((n, i) => { n.sit(builder.gridAt(bAdd(ps[i], shift))); done.add(n); });
+    };
+    const put = n => {
       const e = by.get(n);
       if (!e || done.has(n)) return;
+      const r = loop(n);
+      if (r) return ring(r);
       done.add(n);
-      if (!looped(n)) put(e.from);
-      e.from.send(builder, e, looped(n) ? was.get(e.from) : e.from.place(builder));
+      put(e.from);
+      e.from.send(builder, e);
     };
     edges.forEach(e => put(e.to));
     edges.forEach(e => e.to.moved(builder, edges));
