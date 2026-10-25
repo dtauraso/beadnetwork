@@ -114,7 +114,7 @@ func (o *OutEdges) DeriveGeometry(self NodeGeom, deltas *Deltas) {
 			continue
 		}
 		targetIndex := polarindex.Compose(selfIndex, d, o.constants)
-		targetCenter := polar.Vec3(WorldPosAt(self.SceneCenter, targetIndex, o.constants))
+		targetCenter := polar.Vec3(WorldPosAtRest(self.SceneCenter, targetIndex, deltas.RestOf(e.targetID), o.constants))
 
 		start, end := selfCenter, targetCenter
 		dir := targetCenter.Sub(polar.Vec3(selfCenter))

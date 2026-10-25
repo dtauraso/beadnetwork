@@ -22,7 +22,7 @@ func (mv *NodeMover) applyNodeMoveLocal(nodeGeoms map[string]*NodeGeometry, edge
 	nm.Deltas().ShiftSelfBy(deltaIdx)
 
 	nm.ApplyCenter(committedIdx)
-	committedPos := WorldPosAt(nm.SceneCenter(), committedIdx, nm.Constants())
+	committedPos := WorldPosOf(nm.geom, committedIdx)
 	BroadcastToPartners(edgeTable, nodeGeoms,
 		map[string]Vec3{nodeID: Vec3(committedPos)},
 		map[string]polarindex.Offset{nodeID: deltaIdx},
