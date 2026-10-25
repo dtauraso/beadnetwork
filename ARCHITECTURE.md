@@ -15,7 +15,6 @@ extension host (Node)                webview (browser)
   Start/extension/handle-message.ts    Start/extension/webview/scene/scene-root.tsx
   Start/extension/html.ts                          Categories/Node/Labels/node-label.ts
   Start/extension/goBuild.ts                     Categories/Scene/scene-leaves.ts
-  src/* (shared)
 ```
 
 esbuild bundles each side separately ([esbuild.mjs](esbuild.mjs)).
@@ -28,9 +27,7 @@ Communication is `panel.webview.postMessage` ↔ `vscode.postMessage`, wired in
 `WebviewToHostMsg` includes `ready` and the binary bridge envelope (a fully
 encoded editor→Go record built by the concern that owns the edit — `Categories/Scene/View/Flags/encode.ts`,
 `Categories/Scene/encode.ts`, `Categories/Node/encode.ts` and their siblings, each beside that concern's
-Go decoder — and written FRAMED to Go's stdin by `runCommand.ts`). There is no `HostToWebviewMsg` —
-the host has nothing to say to the webview, because everything Go tells the
-renderer is a file the renderer reads. Extension-side dispatch is
+Go decoder — and written FRAMED to Go's stdin by `runCommand.ts`). Extension-side dispatch is
 `Start/extension/handle-message.ts`. Per CLAUDE.md, Go → TS is the block
 FILES and nothing else; TS → Go is framed binary records
 (addressed `edit` ops, or the bare `save` command) — see CLAUDE.md
@@ -47,7 +44,7 @@ neither can drift and there is no second hand-kept copy to compare:
 - the update-kind ordering — `Categories/Scene/Dispatch/dispatch_edit.go`, beside the
   table that dispatches on it.
 - update attributes — each concern's own `update_attrs.go` (`Node`, `Node/Edge`,
-  `Scene`, `Overlay`, `Chrome/Panels/Panel`, `Speed`). An attr byte is read only
+  `Scene`, `Chrome/Panels/Panel`). An attr byte is read only
   inside the decoder its kind selected, so each concern numbers its own from zero.
 - event and hit kinds — `Categories/Scene/Drag/kinds.go`.
 - overlay and panel flags — `Categories/Scene/View/Flags/flags.ts` and
@@ -76,8 +73,8 @@ generically from the block files each component reads, keyed off `NODE_DEFS`
 
 | File | Role |
 |---|---|
-| `Start/main.tsx` | Entry point and mount. Receives NO messages — the host→webview direction is empty; everything Go says arrives as files |
-| `Categories/Scene/scene-leaves.ts` | Polls the scene's binary leaves, including `spawn`, whose change means Go was replaced |
+| `Start/main.tsx` | Entry point and mount |
+| `Categories/Scene/scene-leaves.ts` | the scene's binary leaves, including `spawn`, whose change means Go was replaced |
 | `Start/extension/webview/scene/scene-root.tsx` | Composition root of the render tree; each component it assembles reads its own block files |
 | `Start/extension/webview/scene/ThreeView.tsx` | R3F `<Canvas>` root. Holds NO gesture state — raw pointer/wheel events forward verbatim to Go's FSM (`Categories/Scene/Gesture` package) |
 | `Categories/Scene/Drag/raw-input-build.ts` | Raw pointer/wheel + raycast hit → binary `raw-input` record to Go |
@@ -92,21 +89,9 @@ store — the TS layer is render + forward only (guard:
 
 - **The `topology/` tree** — read directly by the Go loader (`Categories/Scene/Startup/load.go`,
   `loader_tree.go`) at startup; every field maps to live wiring. Edited through `edit`
-  messages. The live form is a directory tree — `nodes/<id>/base.json`, `data.json`,
-  `inputs/`, `outputs/`, and `edges/*.json` (adjacency layout: an edge lives under its
-  source node, `nodes/<source>/edges/<label>.json`, no top-level `edges/` dir). The
-  earlier monolithic single-file `topology.json` form was deleted; the tree is the only
-  supported form.
-- **`<tree-root>/view/{camera,overlays,sphere}.json`** — one file per writer, for
-  camera/view state not affecting generated Go. Paths computed in
-  `Categories/Scene/Scenes/scene_paths.go`. (An earlier shared sidecar under that same `view/`
-  directory, a single `scene.json`, held all three in one document; it and its
-  best-effort read fallback were removed once the split landed — no such file exists in
-  this repo's tree.)
-
-If a field affects generated Go, it belongs in the spec. Otherwise the sidecar.
+  messages.
 
 ## Build
 
 `npm run build` → `out/extension.js` (Node CJS) + `out/webview.js` (browser
-IIFE) + `out/webview.css`. Watch mode via `npm run watch`.
+IIFE). Watch mode via `npm run watch`.

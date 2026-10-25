@@ -13,13 +13,9 @@ per-node world centers are cartesian too. The invariant is narrower and stronger
 and none is a source of truth.
 
 - **Scene sphere** — a first-class, persisted reference (NOT the derived content-sphere
-  centroid, which moves with the nodes and is circular). It has a **cartesian center** (the
-  one world anchor, in `scene.json`) and a **radius** that fits the diagram.
+  centroid, which moves with the nodes and is circular). It has a **cartesian center** and a **radius** that fits the diagram.
 
-  **It is established once and never moves.** `LoadSceneSphere` reads it from `scene.json`,
-  or content-fits it from the node centers and persists that immediately — persisting matters,
-  because every node position is a polar measured ABOUT this center, so a center re-fitted
-  over moved nodes on the next load would silently reinterpret the whole diagram.
+  **It is established once and never moves.**
 
   It is a SEPARATE entity from the camera pivot, and **both camera gestures leave it alone**:
   orbit must not move it, and `PanViewpoint` is a pure CAMERA move that deliberately does not
@@ -47,12 +43,10 @@ and none is a source of truth.
 - **A node is a point and an edge is the triple that closes the triangle.** A node's own
   point is `(r,φ,θ)` about the scene-sphere centre, in the QUANTISED integer form
   (`polarindex.Index` — `IndexTheta`/`IndexPhi`/`IndexR` × the scene's own constants,
-  `Categories/Vectors/polarindex/polar_index.go`), persisted (`nodes/<id>/base.json`'s
-  `indexPhi`/`indexTheta`/`indexR` — the SOLE authored position; there is no continuous
+  `Categories/Vectors/polarindex/polar_index.go`), persisted (the SOLE authored position; there is no continuous
   `scenePolar*` shadow any more, so the value IS index × constant, never a second stored
   copy). An edge carries `D`, the triple from its source to its target, persisted the same
-  way in that edge's own file under its source (`nodes/<src>/edges/<label>.json`'s
-  `deltaIndexR`/`deltaIndexPhi`/`deltaIndexTheta` — INTEGER steps, not a continuous
+  way in that edge's own file under its source (INTEGER steps, not a continuous
   `deltaPolar*`). The two are one triangle:
 
   ```
@@ -80,8 +74,7 @@ and none is a source of truth.
 
   A move is the same triangle. Drag a node by `Δ`: every side it touches loses `Δ`, and the
   node at the other end of each of those edges takes that same `Δ` onto its own side. No node
-  reads another node's position — it is TOLD the difference (`movemsg.Msg.Delta`, applied in
-  `owners.Deltas`).
+  reads another node's position — it is TOLD the difference.
 
   **Do not "tidy" a triple after arithmetic.** Folding a result back into canonical ranges
   (`r ≥ 0`, `φ ∈ [0,π]`) removes nothing: each fold pays for itself by rewriting the other two
@@ -101,7 +94,7 @@ and none is a source of truth.
   (`Categories/Node/node_drag_trim.go`).
 
   **The rule is carried by the node it binds, by id, and is applied BY that node.** Each node
-  states its own `drag` in its own `base.json` (`polar.DragRule`); absent means free, and
+  states its own `drag`; absent means free, and
   most nodes say nothing. No node reads another's rule: a neighbour that wants a node moved
   computes the `Δ` from ITS OWN numbers — its own point before and after, and its own side of
   the edge before and after (`Categories/NodeKinds/input/drag.go`) — and TELLS it, and the node told
@@ -119,8 +112,7 @@ and none is a source of truth.
   what is genuinely about being an input node — the shared length across its outgoing paths,
   and the half-turn snap on its own drag — and it is no longer a kind CHECK inside shared
   code. **A node owns the function that trims it, not only the numbers it trims to.** The
-  kind states its own drag behaviour from its own package (`nodedrag.RegisterTrim` /
-  `RegisterRequest` in `Categories/NodeKinds/input/drag.go`), exactly as it states its ports; a kind that
+  kind states its own drag behaviour from its own package, exactly as it states its ports; a kind that
   registers nothing is trimmed by its own drag rule alone. `Categories/Node` composes the delta,
   asks the node to trim it, and commits — it does not know what an `Input` is.
 
@@ -133,8 +125,7 @@ and none is a source of truth.
   of an edge holding its OWN quantised bearing/distance to the other node, re-quantized
   node-to-node on every drag, and was measured disagreeing with the node's own scene polar
   (node 3 by +3.24 world units, node 4 by −3.08, against a step of 8.96 — two
-  half-authoritative records for one position). Here there is ONE record: the edge file,
-  owned by the one `edgeMover` that writes it. A target's in-entry is not a second
+  half-authoritative records for one position). Here there is ONE record: the edge file. A target's in-entry is not a second
   authority — it is what its source TOLD it, it is never persisted, and no node's position
   is derived from it. The loader asserts the triangle closes on load, per component, and
   panics with both ids and all three triples if it does not.
@@ -145,7 +136,7 @@ and none is a source of truth.
   own goroutine (the deleted `beadchain` actor's
   `Bead`) — ownership + message passing, one writer, no locks/atomics
   (`Categories/Node/check-no-network-locks.sh`, empty allowlist) — resolved from the node's own live
-  aim broadcast (`BroadcastChain`, see the Chain bead bullet above) rather than a second
+  aim broadcast rather than a second
   stored copy. It is NEVER stored as an independent absolute position — it is computed at
   ONE site by summation: the node's world center (already `sceneCenter +
   polar2cart(polarindex.ToPolar(index, sc))`) plus this node-local vector, at the render/decode boundary
@@ -158,8 +149,7 @@ and none is a source of truth.
   keep their existing chain-relative placement (index × `lattice.BeadStepR` along the same aim)
   — this model change is about the node's coordinate, the per-edge first-bead vector, and
   this one summation site, not the rest of the chain.
-- **The node STORES ITS SUM** — its own world center (`NodeMover.geom`, written once per
-  move by `ApplyCenter`) — so a bead's polar view starts from that stored sum rather than
+- **The node STORES ITS SUM** — its own world center — so a bead's polar view starts from that stored sum rather than
   re-walking to the scene centre on every read. With no ancestors, only that node can
   invalidate it, and it owns it (single-writer, its own goroutine).
 - **No blow-up, by construction.** The offset is STORED and only carried through the

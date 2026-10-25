@@ -3,8 +3,7 @@
 [← BEHAVIOR.md](BEHAVIOR.md) · [← vector-channel.md](vector-channel.md)
 
 **On receiving a vector**: FIRST, unconditionally, this node records the received
-direction as its own THIRD drawn vector (`ReceivedThetaIdx`/
-`ReceivedSet`, reported to its own geometry via `SyncReceivedVector` — same
+direction as its own THIRD drawn vector (`ReceivedSet`, reported to its own geometry via `SyncReceivedVector` — same
 passive-mirror shape as `SyncTiltIndex`, and likewise a direct call rather than a
 message) — REPLACING whatever it received last time,
 regardless of whether the step below fires. THEN the step decision (`stepFromVector`).

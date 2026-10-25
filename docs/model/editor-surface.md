@@ -20,14 +20,11 @@ Go owns the clock.
   `u32 length + bytes` in a generated name order, written whole through
   tmp+rename, so a reader never sees half a frame. **The row is in the PATH,
   never in the file** — that is what keeps one writer per owner without a
-  lock. The renderer fetches one file per block and slices it
-  (a concern-owned `leaf-values.ts` for singletons, `row-leaf-values.ts` for
-  per-owner), at an interval for human-speed state and per frame for
-  anything tracking the cursor, a drag, or a tick. Go writes only when the
+  lock. Go writes only when the
   value changes: `BlobWriter.Flush` compares the whole payload first.
 - **Nothing streams. Go → TS is files, and only files.** There is no frame,
   no per-goroutine pipe, no `BEADNETWORK_STREAM_FDS`, no framing or demux in the
-  ext host, and no host→webview message of any kind. Go inherits three stdio
+  ext host. Go inherits three stdio
   slots; stderr is the only one that carries anything, because an error has to
   reach the human before any file is written.
 
@@ -65,14 +62,7 @@ Go owns the clock.
   `Categories/Ring/NodeShape/node-highlight-shape.ts`), and the camera (`Categories/Scene/Camera/SceneCamera.tsx` maps the camera
   block file onto the three.js camera). Nothing in this tree owns traversal
   timing, positions, or geometry.
-- **Bridge surface — binary BOTH ways.** **Go → TS:** the block files, plus
-  the trace-event streams over each goroutine's own dedicated inherited-stdio
-  pipe — stated in full under "Go → TS is block files plus the event streams"
-  above; not restated here, so the two copies cannot drift apart. **TS → Go:** framed binary records on stdin (`[len:u32-LE][record]`,
-  symmetric in framing style with the dedicated per-goroutine streams, though
-  stdin records carry no block-tag byte — that discriminator exists only on
-  the Go → TS direction, where the ext host adds a synthetic tag purely for
-  cell routing) — `raw-input` (raw pointer/wheel + the stateless raycast
+- **Bridge surface — binary BOTH ways.** **Go → TS:** the block files. **TS → Go:** framed binary records on stdin (`[len:u32-LE][record]`) — `raw-input` (raw pointer/wheel + the stateless raycast
   hit as numeric rows, and the world point that raycast landed on; Go's gesture
   FSM decides what each gesture MEANS), the
   geometry-CRUD `edit` (`op` = update — the sole remaining op; a `create` /

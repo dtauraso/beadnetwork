@@ -7,15 +7,12 @@ paths:
 # Wire props — a tag alone does not reach the screen
 
 Wire props (`WireProps` from `Categories/Scene/Topology/wire-defs.ts`, generated from
-`wire:"prop,..."` tags on `specEdge` in `Categories/Scene/Topology/topo_spec.go`) are Go-owned edge
-metadata from the spec JSON.
+`wire:"prop,..."` tags in `Categories/Scene/Topology/topo_spec.go`) are Go-owned edge
+metadata.
 
 Today the only prop is `label`, and it does **NOT** feed the render path: there is no
 per-edge drawn line at all any more (the source node's own chain of placeholder beads is
-the edge's visual, `docs/model/entities.md`) — the Edge block's SX..EZ/Selected columns
-still stream, read only by the `.probe` debug decoder, not by anything that draws. `label`
-rides the Edge block's EdgeLabelOff/EdgeLabelLen columns solely for that same `.probe` log,
-never for drawing.
+the edge's visual, `docs/model/entities.md`).
 
 If a NEW wire prop needs to affect rendering, it must be added to the edge's value list
 (`Categories/Node/Edge/edge_values.go` and its generated TS twin, which together name what

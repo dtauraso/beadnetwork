@@ -2,9 +2,6 @@
 
 [← README.md](README.md)
 
-If you already have Go, Node, VS Code and a clone of the repo, skip to
-[Build in README.md](README.md#build). Otherwise start here — no prior setup assumed.
-
 Everything below is typed into **Terminal**. To open it: press `Cmd`+`Space`,
 type `Terminal`, press `Return`. You get a window where you type a command and
 press `Return` to run it. Commands are shown one per line; run them in order.
@@ -80,5 +77,3 @@ code -v
 
 Three version numbers means you are ready. Any `command not found` means that
 tool's step above did not complete.
-
-Continue with [Build in README.md](README.md#build).

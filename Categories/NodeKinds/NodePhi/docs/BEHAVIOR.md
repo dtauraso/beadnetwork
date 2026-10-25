@@ -14,6 +14,6 @@ else the generator does not read lives in the pages below.
 - [tilt-machine.md](tilt-machine.md) — what happens on receiving a vector: the acute
   test, the two-mode state machine, and how a pair decides which mode it runs.
 - [separation.md](separation.md) — why a tilt does not move the node.
-- [pacing.md](pacing.md) — pacing and clock speed, and the human-edit speed override.
+- [pacing.md](pacing.md) — pacing and clock speed.
 - [third-vector.md](third-vector.md) — the third drawn vector: the last received
   direction.

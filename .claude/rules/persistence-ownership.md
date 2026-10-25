@@ -61,7 +61,7 @@ it, instead of leaving a dangling file in a sibling tree.
 
 **In-edges are deliberately not local, and that costs nothing.** Nothing ever asks "what
 points at node 9". Every use of an edge's target is built during a single full pass over all
-edges (`buildEdgeMaps`' `inbound`, `loader_layout`'s `neighbors`). Do NOT "fix" this by also
+edges. Do NOT "fix" this by also
 recording the edge under the target — that reintroduces the duplication the layout removes.
 
 ## Base composed with drag; the delta is gitignored, not skip-worktree'd
@@ -89,20 +89,12 @@ sub-step drag rounds to the nearest index (`polarindex.MeasureScalar`) and a dra
 rounds to zero is correct, not lost precision to recover. Neither file carries
 `constantPhi`/`constantTheta`/`constantR` — nor does `base/` any more; those moved to
 `constants/` at the scene root (read once per load, fails loudly by path on
-missing/malformed input, and asserts `constantR == lattice.BeadStepR` — the radial grid
-must match the bead lattice's own step size). The loaded triple (`polarindex.SceneConstants`)
+missing/malformed input). The loaded triple (`polarindex.SceneConstants`)
 is passed explicitly into every consumer, never a per-instance field or a package-level
 global.
 
 **A (base) and B (drag) are held SEPARATELY in the running program, never summed into a
-stored value.** The quantized index rides this split, in `owners.Quant`: `base` (A, loaded
-once from `base/`'s `indexPhi`/`indexTheta`/`indexR`) and `drag` (B, set by
-`CommitQuantOffset` as `polarindex.Delta(measured, base)`, never reconstructed by
-subtracting later). `Quant.Composed()` returns `polarindex.Compose(base, drag)`, computed at
-each call site and held nowhere else; `Node.ScenePolarOf`/`polar.Compose` derive the
-continuous on-screen position from that composed index the same way, at each call site that
-needs it, held in no field that outlives that call. `persistQuantOffset` writes `drag`
-straight to `drag/`'s `index-phi`/`index-theta`/`index-r` leaves.
+stored value.**
 
 The same split applies to an edge's target vector. `owners.Deltas` holds `baseTo` (A, seeded
 once at build from each edge's `<label>/`, outgoing straight and incoming negated, never
@@ -119,8 +111,7 @@ something is drawn, and persist always writes the DRAG, never the composed value
 
 On load, `Topology.ApplyDragOverlay` reads `base/`/`<label>/` into the BASE fields
 and `drag/` and `drag/edges/<label>/` into separate DRAG fields on the same
-spec struct (`DragScenePolarR/Phi/Theta` on a node, `DragDeltaPolarR/Phi/Theta` on an
-edge) — it composes NOTHING; a node or edge with no `drag/` file simply carries a zero drag
+spec struct — it composes NOTHING; a node or edge with no `drag/` file simply carries a zero drag
 value forward. `polar.Compose`/`polar.Between` are untouched by this change; this is the
 existing componentwise op, just applied at the render/persist boundary instead of at load.
 
@@ -158,40 +149,24 @@ Consequences to keep in mind:
 
 - A node writes its own `position/local-polars` and reads them back from one file,
   `Categories/Node/nodefile_drag_index.go` — Write and Read beside each other, so the four filenames
-  and the directory are spelled once; the loader held a second reader. There is no longer a separate
-  `inputs/`/`outputs/` port-geometry
-  file — port geometry was removed with the port model (edges attach on the bead lattice,
-  `Categories/Vectors/lattice/bead_lattice.go`); this bullet used to list it as a second thing the mover writes.
+  and the directory are spelled once; the loader held a second reader.
 - The **SOURCE NODE** owns `nodes/<source>/drag/edges/<label>.bin`, and writes it from
   `Categories/Node/node_out_edges.go`'s `persistDelta` — the same pass that derives that edge's geometry,
   since the node is what holds the vector being stored. The write is gated on the vector
   actually changing: derivation runs every tick, so an ungated write would rewrite the file
-  every tick. (This bullet used to claim "an `edgeMover` owns" it and "no Go writer exists
-  yet — edges are editor-authored". Both were wrong: `edge_delta_persist.go` had been the
-  writer all along, and it rewrote every edge file on startup, which is why a plain run
-  used to dirty the whole tree.)
+  every tick.
 - Scene-level state (camera, overlays, sphere) is genuinely singular and belongs to the
   view-owner goroutine (`RunStdinReader`).
 
 **One owner writes inside `nodes/<id>/`: that node.** Its own position/local-polars, and the
 file of every edge leaving it.
 
-This REVERSES what this section used to say. The old text had two owners per directory —
-the node's mover and the edgeMover of each edge leaving it — and warned that "routing edge
-writes through the source node's mover would make one goroutine write another's state on
-request". That warning assumed the edge's delta was the EDGE's state. It is not: the vector
-from a node to its neighbour is the node's own state, held in its `owners.Deltas` and
-maintained by composing each neighbour's reported move into it. The edgeMover was computing
-a second copy of that vector from mirrored absolute positions and persisting the copy. So
-the node writing the file is a goroutine writing what it already owns — not a request, and
-one fewer representation of the same quantity.
-
 Guards: `scripts/checks/source/check-persist-write-ownership.sh` (who may write which path pattern),
 `Categories/Scene/Scenes/check-scene-path-resolution.sh` (who may construct a `nodes/` path).
 
 ## A topology is a directory tree, always
 
-The monolithic single-file form is gone. `readSpec` rejects a non-directory. Node ids ARE
+Node ids ARE
 numbers — they are strings only because they are directory names — and **ROW ID = NODE ID -
 1**: `loadTree` parses each node directory name to an int (`strconv.Atoi`) and that int,
 minus one, IS the node's row directly — the directory its files live in. There is no ordering step left — a row is
@@ -215,34 +190,3 @@ authored order, because a tree has no array.
 
 There is no migration from any pre-split form: a tree holding only a legacy sidecar loses
 its camera pose, overlay flags and sphere on load and falls back to defaults.
-
-## Counts are stored, never re-derived
-
-`topology/counts/nodes.bin` and `topology/counts/edges.bin` exist because the extension host SPAWNS Go, and Node's `spawn()` takes the
-stdio array up front — with one dedicated pipe per emitting goroutine, the pipe count must
-be known before the child exists, and Go cannot answer because Go is not running yet.
-
-**`nodes` means the ROW COUNT** (the largest node id in the tree, `topoSpec.RowCount`),
-**not** how many node directories exist. Under ROW ID = NODE ID - 1 a gap in the id space
-(a deleted node) still needs a dedicated fd allocated for its now-empty row — the row space
-doesn't shrink just because one row went empty — so sizing the stdio array from a live-node
-count would under-allocate the moment any id is missing from the middle of the range.
-`edges` is unaffected by this — edges have no id space to gap, so it stays a plain count.
-
-**Nobody re-derives it — not TS, and not Go.** Go's own load (`loadTree`) walks `nodes/`
-and computes its own `RowCount` independently, from the SAME rule (largest id), but that is
-LOADING (reading each node's data to build the graph and its own row space), not reading
-those files — Go never opens them at all; it exists solely so something can size the
-stdio array BEFORE Go is running to answer. Correctness is single-writer: the one operation
-that creates, deletes, or renumbers a node, or creates/deletes an edge, updates
-both count files. Nothing else writes them.
-
-A missing or malformed count file must fail LOUDLY. Returning 0 allocates no dedicated
-streams and degrades the bridge invisibly — the behaviour the old `countEdges` had. The
-extension host reader (`Start/extension/runCommand.ts`'s `readCounts`) and the Go
-headless test harness (`headless_stream_helpers_test.go`) must fail the same way if the
-stored `nodes` value disagrees with the tree's own largest id — not just on a missing file.
-
-No Go writer exists today, so the file is hand-maintained alongside the tree. The headless
-harness sizes its spawn from this same file and fails if it disagrees with the tree's own
-computed row count, which is the only drift check that does not re-derive at runtime.

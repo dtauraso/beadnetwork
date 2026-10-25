@@ -18,7 +18,7 @@ file, keyed off `node.data.fill`/`node.data.stroke` from `NODE_DEFS`; no per-kin
 component file is needed or expected.
 
 **Step 2 — single registry.** The generated `node-defs.ts` is the single registry — no
-separate `registry.ts` exists. The schema dir is `src/`.
+separate `registry.ts` exists.
 
 **Step 3 — the Go package** under `Categories/NodeKinds/<Kind>/`.
 
@@ -64,7 +64,7 @@ three generators that read every kind (`Categories/Node/kindtables`,
 `Categories/Node/Ports/kindports`, `Categories/Scene/Dispatch/kindports`) — reads every `a.In("X")`/`a.Out("X")`/`a.Broadcast("X")`/`a.DriveOut("X")`
 literal in the kind's package and fails `go generate` when the name is not a row, or is a row
 with the other direction; each kind's `mustDeclare` panics on the same condition at build time.
-Without it an undeclared name binds a DEAD-END channel (`PortBindings.deadEndIn`) and the kind
+Without it an undeclared name binds a DEAD-END channel and the kind
 runs silently — reading nothing, emitting nothing, indistinguishable from a port with no edge
 attached. That silence is what let a SPEC.md rename reach `node-defs.ts` while the Go code
 still asked for the old spelling.

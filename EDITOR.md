@@ -1,7 +1,6 @@
 # Topology Editor (VS Code extension)
 
-Editor for the `topology/` directory tree. Drag nodes around; saves write back
-through `WorkspaceEdit` and the runtime loader picks up the new spec on next run.
+Editor for the `topology/` directory tree.
 
 It is a **command-activated webview panel**, not a custom editor bound to a file
 type — opening a `.json` file will not launch it.
@@ -17,7 +16,7 @@ If you already have Go, Node, VS Code and a clone of the repo, skip to
 
 # Build
 
-From the repo root (`~/Documents/beadnetwork`):
+From the repo root:
 
 ```sh
 npm install
@@ -47,7 +46,7 @@ That opens this folder in VS Code. Press **F5**. A second VS Code window opens
    **Topology: Open Editor**. (Or `Cmd`+`Shift`+`P` → **Topology: Open Editor**,
    which resolves `topology/` from the workspace root.)
 
-The panel compiles the Go binary on open and starts streaming. First open is
+The panel compiles the Go binary on open. First open is
 slower because it compiles from scratch.
 
 ## Rebuilding while you work
@@ -56,13 +55,13 @@ slower because it compiles from scratch.
 depends on which side changed:
 
 - **webview code** (`Start/extension/webview/`) — close and reopen the panel.
-- **extension-host code** (everything else in `src/`) — `Cmd`+`Shift`+`P` →
+- **extension-host code** — `Cmd`+`Shift`+`P` →
   **Developer: Reload Window** in the Extension Development Host.
 
 ## Architecture
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for the file map (extension side,
-webview side, message protocol, spec-vs-viewer split).
+webview side, message protocol).
 
 ## Packaging a .vsix
 

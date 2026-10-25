@@ -16,7 +16,7 @@ capabilities — there is no separate tab table to keep in sync with the scene l
 is the set of declared scenes, always. Do not gate it on the anchor's directory NAME: that
 privileges one scene's directory, so launching against any other publishes ZERO tabs and the
 strip silently vanishes. The `-topology` path the extension host launches with is the fixed ANCHOR;
-the scenes live beside it (`SceneContainer` — the anchor's parent when the anchor is itself
+the scenes live beside it (the anchor's parent when the anchor is itself
 a scene directory), which sibling actually loads is resolved from it (`ResolveScenePath`)
 and persisted at the anchor, never inside a scene (a selection stored inside scene B would be unreachable while
 scene A is loaded — `.claude/rules/persistence-ownership.md`). TS renders the tab strip
@@ -60,11 +60,7 @@ choice — not a tuning knob:**
 **The drawn ring axis and the navigation pole are two different streamed values, on
 purpose.** `PoleTheta`/`PolePhi` (`Categories/Node/node_state.go`) is a node's own INWARD pole — its own
 scene-polar direction reversed, pointing back at the scene centre — and is what navigation
-reads (`nav-nodes.ts`'s `NavNode.pole`). `RingAxisTheta`/`RingAxisPhi` is the axis the
-node's RING is actually drawn on, defaulting to the torus's own +Z normal (unrotated) and
-diverging from the inward pole only under coplanar rings (above). Keeping them as separate
-columns is what lets a scene ask for coplanar rings without touching what navigation reads,
-and vice versa. Every node's own local FRAME is held at world +y regardless of its
+reads (`nav-nodes.ts`'s `NavNode.pole`). Every node's own local FRAME is held at world +y regardless of its
 pole. Do not rotate one node's frame onto its streamed pole: it reads as a property of that
 node rather than of the feature, and the frames stop agreeing with each other. `PoleTheta`/`PolePhi` is consequently live on the wire (navigation still
 reads it) and not rendered as a frame rotation for any node — whether a node's frame should

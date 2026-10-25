@@ -36,7 +36,7 @@ removes a port rather than failing.
 
 ## Non-channel fields
 
-(Optional. Struct fields populated from each node's `data.json` `data.*`.)
+(Optional. Struct fields populated from each node's `data.*`.)
 
 | Field | Type | Source | Notes |
 |-------|------|--------|-------|
@@ -82,7 +82,7 @@ For channels the loader allocates but does not wire to any edge — e.g., Input 
 
 ### Non-channel fields
 
-Struct fields populated from the node's `data.json` at load time (not wires). Examples: `HeldValue` on `Time`, `Name` / `Id` on most kinds. Trivial fields like `Id`/`Name` are implicit and need not be listed; only list fields with substantive load-time semantics.
+Struct fields populated at load time (not wires). Examples: `Name` / `Id` on most kinds. Trivial fields like `Id`/`Name` are implicit and need not be listed; only list fields with substantive load-time semantics.
 
 ### kindId
 
@@ -139,9 +139,9 @@ The `## View` section is required for any kind that has a TSX render. It drives 
   check, but do not rely on its value meaning anything downstream.
 - `bg`, `border`, `text` — required hex colors.
 - `minWidth` — optional integer pixel width.
-- `shape`, `fill`, `stroke`, `width`, `height` — optional `NodeTypeDef`-compatible
-  fields consumed by schema/adapter code; `width`/`height` also drive the generated Go
-  `Categories/Node/geom_node_dims_gen.go` (used for port-to-port arc length), falling back to
+- `shape`, `fill`, `stroke`, `width`, `height` — optional
+  fields; `width`/`height` also drive the generated Go
+  `Categories/Node/geom_node_dims_gen.go`, falling back to
   110×60 if omitted.
 
 A missing `## View` section (or one missing the `Field`/`Value` table columns) is a **hard
