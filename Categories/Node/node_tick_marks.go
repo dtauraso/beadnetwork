@@ -18,11 +18,16 @@ func TickMarks(center Vec3, kind string, count int32) []TickMark {
 		return nil
 	}
 	reach := NodeRadius(kind) * (1 - ShadingParamNodeRingTubeRatio)
-	out := make([]TickMark, count)
-	for i := range out {
+	out := make([]TickMark, 0, 2*count)
+	for i := range count {
 		phi := 2 * math.Pi * float64(i) / float64(count)
 		dir := Vec3(Camera.AnglesToWorldOffset(1, phi, TiltVectors.ArrowRingDiskTheta).Normalize())
-		out[i] = TickMark{From: center, To: center.Add(dir.Scale(reach))}
+		out = append(out, TickMark{From: center, To: center.Add(dir.Scale(reach))})
+	}
+	for i := range count {
+		theta := 2 * math.Pi * float64(i) / float64(count)
+		dir := Vec3{X: math.Cos(theta), Z: math.Sin(theta)}
+		out = append(out, TickMark{From: center, To: center.Add(dir.Scale(reach))})
 	}
 	return out
 }
