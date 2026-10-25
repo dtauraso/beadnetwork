@@ -22,7 +22,7 @@ class BEdge {
 
   measure(builder, P = this.from.place(builder), T = this.to.place(builder)) {
     const s = this.from.scale(builder), v = bSub(T, P), len = bLen(v), tick = 2 * Math.PI / (12 * s), half = 6 * s;
-    const was = this.dir(builder);
+    const was = this.start ? this.dir(builder) : { phi: 0, theta: 0 };
     if (len < 1e-9) return { phi: was.phi, theta: was.theta, r: 0 };
     const side = Math.hypot(v[0], v[2]), phi = Math.atan2(side, v[1]) / tick;
     const theta = side < 1e-9 * len ? was.theta : Math.atan2(v[2], v[0]) / tick;

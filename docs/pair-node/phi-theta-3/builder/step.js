@@ -56,7 +56,6 @@ class BStep {
   }
 
   dropNode(builder, n) {
-    n.leave(builder);
     [...n.out, ...n.in].forEach(e => this.dropEdge(e));
     this.nodes.delete(n);
     n.gone = true;
@@ -64,8 +63,24 @@ class BStep {
   }
 
   moveAll(builder, edges = [...this.edges]) {
-    edges.forEach(() => edges.forEach(e => e.from.send(builder, e)));
+    const by = new Map(edges.map(e => [e.to, e])), was = new Map([...this.nodes].map(n => [n, n.place(builder)]));
+    const looped = n => { for (let x = by.get(n), k = 0; x && k < by.size; x = by.get(x.from), k++) if (x.from === n) return true; return false; };
+    const done = new Set(), put = n => {
+      const e = by.get(n);
+      if (!e || done.has(n)) return;
+      done.add(n);
+      if (!looped(n)) put(e.from);
+      e.from.send(builder, e, looped(n) ? was.get(e.from) : e.from.place(builder));
+    };
+    edges.forEach(e => put(e.to));
     edges.forEach(e => e.to.moved(builder, edges));
+  }
+
+  settle(builder) {
+    const by = new Map([...this.nodes].map(n => [n.name, n]));
+    const at = n => (n.at.from ? bAdd(at(by.get(n.at.from)), builder.vec(by.get(n.at.from).scale(builder), n.at)) : builder.place(n.at));
+    [...this.nodes].map(n => [n, at(n)]).forEach(([n, p]) => n.sit(builder.gridAt(p)));
+    this.edges.forEach(e => { if (!e.start) e.start = e.measure(builder); });
   }
 
   toJSON() {
@@ -76,7 +91,6 @@ class BStep {
 
   static from({ nodes, edges, cards, item, methods, card, picked = [], lock, locking }) {
     const made = nodes.map(BNode.from), by = new Map(made.map(n => [n.name, n]));
-    made.forEach((n, i) => n.seat(nodes[i], by));
     const rows = edges || nodes.flatMap(({ name, out = [] }) => out.map(r => ({ ...r, from: name })));
     const es = rows.map(r => BEdge.from(r, by)).filter(Boolean), named = new Map(es.map(e => [e.name, e]));
     return new BStep({ nodes: made, edges: es, cards: BCards.from(cards || { item, methods, card }, by), picked: picked.map(k => named.get(k)).filter(Boolean), lock, locking });

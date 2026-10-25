@@ -74,7 +74,9 @@ class BBuilder {
     const { item, methods, step: card, picked, lock, locking } = record;
     const seqs = record.seqs.map((q, i) => ({ ...(i === record.open ? { picked, lock, locking } : {}), ...q,
       steps: q.steps.map(st => ({ item, methods, card, ...st })) }));
-    return new BBuilder({ ...record, seqs: seqs.map(BSeq.from) });
+    const b = new BBuilder({ ...record, seqs: seqs.map(BSeq.from) });
+    b.seqs.forEach(q => q.steps.forEach(st => st.settle(b)));
+    return b;
   }
 
   static load() {
