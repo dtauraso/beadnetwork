@@ -15,6 +15,7 @@ const (
 	FileAtPhi      = "at-phi.bin"
 	FileAtTheta    = "at-theta.bin"
 	FileAtR        = "at-r.bin"
+	FileS          = "s.bin"
 	FileTiltIdx    = "top-tilt-vector-phi-idx.bin"
 
 	DirDragRule = "drag-rule"

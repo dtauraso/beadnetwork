@@ -9,6 +9,7 @@ import (
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Panel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/PolarRulesPanel"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/SliderPanel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/TiltPanel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills"
@@ -26,19 +27,8 @@ func panelTookPointerDown(
 ) bool {
 	pl := md.UI.PanelLayout()
 
-	if pl.Card.HitPill(ev.X, ev.Y) {
-		toggleCardPanel(md)
-		return true
-	}
-	if f, delta, ok := pl.Card.HitStep(ev.X, ev.Y); ok {
-		applyCardStep(ctx, md, f, delta)
-		return true
-	}
-	if f, ok := pl.Card.Hit(ev.X, ev.Y); ok {
-		applyCardHit(md, f)
-		return true
-	}
-	if pl.Card.Covers(ev.X, ev.Y) {
+	if h := pl.Sheet.Hit(ev.X, ev.Y); h.Part != Sheet.PartNone {
+		applySheetHit(ctx, md, h)
 		return true
 	}
 
@@ -74,18 +64,6 @@ func panelTookPointerDown(
 		return true
 	}
 
-	if pl.Speed.HitStep(ev.X, ev.Y) {
-		md.CardInboxes.Step()
-		return true
-	}
-	if pl.Speed.HitReset(ev.X, ev.Y) {
-		md.CardInboxes.Reset()
-		return true
-	}
-	if pl.Speed.HitStart(ev.X, ev.Y) {
-		md.CardInboxes.Start()
-		return true
-	}
 	if i := pl.Speed.Hit(ev.X, ev.Y); i >= 0 {
 		setClockSpeed(md, speedSinks, SliderPanel.Settings[i].Speed)
 		return true

@@ -3,17 +3,15 @@ package NodePhiTheta3
 import (
 	"context"
 
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/CardPanel"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 	NodeBuf "github.com/dtauraso/beadnetwork/Categories/Node"
 )
 
 type deps interface {
 	SelfDriveGeom(name string) any
-	CardEditChan(name string) any
-	CardSSeed() int
-	CardMSeed() int
-	CardCWSeed() int
-	CardCCWSeed() int
+	LinkInbox(name string) any
+	LinkMesh() any
+	LinkSeed() any
 }
 
 type BuildArgs struct {
@@ -25,50 +23,28 @@ type BuildArgs struct {
 	Deps deps
 }
 
-func (a BuildArgs) EditInbox() CardPanel.Inbox {
-	if a.Deps == nil {
-		return CardPanel.Inbox{}
-	}
-	in, ok := a.Deps.CardEditChan(a.Name).(CardPanel.Inbox)
+func (a BuildArgs) Inbox() Links.Inbox {
+	in, ok := a.Deps.LinkInbox(a.Name).(Links.Inbox)
 	if !ok {
-		panic("NodePhiTheta3.EditInbox: the scene handed node " + a.Name + " something that is not a card-edit inbox — Startup.BuildDeps.ClaimCardEditIn should have made one")
+		panic("NodePhiTheta3.Inbox: the scene handed node " + a.Name + " something that is not a links inbox — Startup.BuildDeps.ClaimLinkIn should have made one")
 	}
 	return in
 }
 
-func (a BuildArgs) State() map[string]int {
-	if a.Data == nil {
-		return nil
+func (a BuildArgs) Mesh() *Links.Mesh {
+	m, ok := a.Deps.LinkMesh().(*Links.Mesh)
+	if !ok || m == nil {
+		panic("NodePhiTheta3.Mesh: the scene handed node " + a.Name + " no links mesh — Startup.BuildDeps.Mesh is how a node reaches the others")
 	}
-	return a.Data.State
+	return m
 }
 
-func (a BuildArgs) S() int {
-	if a.Deps == nil || a.Deps.CardSSeed() < 1 {
-		return CardPanel.DefaultS
+func (a BuildArgs) Seed() Links.Seed {
+	s, ok := a.Deps.LinkSeed().(Links.Seed)
+	if !ok {
+		panic("NodePhiTheta3.Seed: the scene handed node " + a.Name + " no links seed — Startup.BuildDeps.Seed holds every node's place and link as loaded")
 	}
-	return a.Deps.CardSSeed()
-}
-
-func (a BuildArgs) M() int {
-	if a.Deps == nil || a.Deps.CardMSeed() < 1 {
-		return CardPanel.DefaultM
-	}
-	return a.Deps.CardMSeed()
-}
-
-func (a BuildArgs) CW() int {
-	if a.Deps == nil {
-		return CardPanel.DefaultCW
-	}
-	return a.Deps.CardCWSeed()
-}
-
-func (a BuildArgs) CCW() int {
-	if a.Deps == nil {
-		return CardPanel.DefaultCCW
-	}
-	return a.Deps.CardCCWSeed()
+	return s
 }
 
 type kindBuilder struct {

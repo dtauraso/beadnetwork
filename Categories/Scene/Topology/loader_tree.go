@@ -10,6 +10,7 @@ import (
 	NodeBuf "github.com/dtauraso/beadnetwork/Categories/Node"
 
 	"github.com/dtauraso/beadnetwork/Categories/Node/Edge/edgefile"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 	SceneBuf "github.com/dtauraso/beadnetwork/Categories/Scene"
 	"github.com/dtauraso/beadnetwork/Categories/Vectors/polarindex"
 )
@@ -50,7 +51,7 @@ func LoadTree(root string) (TopoSpec, error) {
 
 	placed := len(nodeDirs) > 0
 	for _, nodeID := range nodeDirs {
-		sn, err := loadNodeBase(root, nodesDir, nodeID)
+		sn, err := loadNodeBase(nodesDir, nodeID)
 		if err != nil {
 			return spec, err
 		}
@@ -66,7 +67,14 @@ func LoadTree(root string) (TopoSpec, error) {
 			return spec, err
 		}
 		spec.Edges = append(spec.Edges, edges...)
+
+		links, err := Links.ReadLinks(filepath.Join(nodesDir, nodeID), nodeID)
+		if err != nil {
+			return spec, fmt.Errorf("loadTree: node %q links: %w", nodeID, err)
+		}
+		spec.Links = append(spec.Links, links...)
 	}
+	spec.Rho = SceneBuf.LoadRho(root)
 	if !placed {
 		if err := SceneBuf.CheckBeadGrid(root, constants); err != nil {
 			return spec, err
@@ -137,7 +145,7 @@ func readOptInt32(path string) *int32 {
 	return &v
 }
 
-func loadNodeBase(root, nodesDir, nodeID string) (Node, error) {
+func loadNodeBase(nodesDir, nodeID string) (Node, error) {
 	nodeDir := filepath.Join(nodesDir, nodeID)
 
 	baseDir := NodeBuf.BaseDir(nodeDir)
@@ -164,16 +172,13 @@ func loadNodeBase(root, nodesDir, nodeID string) (Node, error) {
 		return Node{}, fmt.Errorf("loadTree: node %q data: %w", nodeID, err)
 	}
 	sn.Data = nd
-	if edited := NodeBuf.ReadCardState(root, nodeID); len(edited) > 0 {
-		if sn.Data == nil {
-			sn.Data = &NodeBuf.NodeData{}
-		}
-		if sn.Data.State == nil {
-			sn.Data.State = map[string]int{}
-		}
-		for k, v := range edited {
-			sn.Data.State[k] = v
-		}
+	drag, _ := NodeBuf.PlaceDirs(nodeDir)
+	if at := readOptPlace(drag); at != nil {
+		sn.At = at
+	}
+	sn.S = readOptInt(filepath.Join(baseDir, NodeBuf.FileS))
+	if s := readOptInt(filepath.Join(drag, NodeBuf.FileS)); s != nil {
+		sn.S = s
 	}
 
 	return sn, nil

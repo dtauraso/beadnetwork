@@ -22,7 +22,7 @@ topology/
 ├── nodes/<id>/
 │   ├── base/                               one value per file: type/gate/index + drag-rule/ and self-rule/ — TRACKED
 │   ├── drag/                               index-phi/-theta/-r — the node's position DELTA — GITIGNORED
-│   ├── data/                               init/<n>, repeat, state/<k>, send-rules/<port> — TRACKED; a panel edit of state/<k> goes to the GITIGNORED drag/state/<k> and REPLACES it at load (nodefile_card_state.go)
+│   ├── data/ links/<from>To<to>/           data: init/<n>, repeat, state/<k>, send-rules/<port>; links: a links node's OUTGOING links (start, Δ, increment, lock, pick) — both TRACKED; a links node's edits write the whole link set to the GITIGNORED drag/links/, which REPLACES links/ at load, as drag/at-*.bin and drag/s.bin replace base/'s (Links/link_files.go, nodefile_place.go)
 │   ├── edges/<label>/                     OUTGOING only, one value per file: wiring + delta — TRACKED
 │   └── drag/edges/<label>/                that edge's accumulated geometry DELTA — GITIGNORED
 └── view/

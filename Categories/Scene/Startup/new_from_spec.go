@@ -3,7 +3,6 @@ package Startup
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Topology"
 
@@ -11,7 +10,8 @@ import (
 
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Dispatch"
 
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/CardPanel"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/SliderPanel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/AngleDropdown"
 	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
@@ -71,16 +71,9 @@ func NewFromSpec(spec Topology.TopoSpec, sphere polar.SceneSphere, hasScene bool
 	}
 
 	md.UI.Tilt.Rows, md.UI.Tilt.Labels = Topology.TiltPanelRows(spec)
-	md.UI.Card.Nodes, md.UI.Card.Cards = Topology.CardPanelNodes(spec)
-	md.UI.Card.S = CardPanel.LoadCardScalar(Scenes.CardSFilePath(scenePath), CardPanel.DefaultS, 1)
-	if sc := spec.Constants; !CardPanel.SFits(md.UI.Card.S, sc.MaxIndexPhi, sc.MaxIndexTheta) {
-		fmt.Fprintf(os.Stderr, "card s: %s holds s = %d, but 12s does not divide the scene turn (%d φ, %d θ index steps) — using s = %d\n",
-			Scenes.CardSFilePath(scenePath), md.UI.Card.S, sc.MaxIndexPhi, sc.MaxIndexTheta, CardPanel.DefaultS)
-		md.UI.Card.S = CardPanel.DefaultS
-	}
-	md.UI.Card.M = CardPanel.LoadCardScalar(Scenes.CardMFilePath(scenePath), CardPanel.DefaultM, 1)
-	md.UI.Card.CW = CardPanel.LoadCardScalar(Scenes.CardCWFilePath(scenePath), CardPanel.DefaultCW, 0)
-	md.UI.Card.CCW = CardPanel.LoadCardScalar(Scenes.CardCCWFilePath(scenePath), CardPanel.DefaultCCW, 0)
+	md.Links = Links.NewMesh()
+	md.UI.Sheet.Model.S = Sheet.LoadScalar(Scenes.SFilePath(scenePath), 1, 1)
+	md.UI.Sheet.Model.Frame = Topology.LinkFrame(spec)
 
 	md.UI.Rules.Nodes = Topology.RulePanelNodes(spec, func(id string) bool {
 		ng, ok := md.MR.NodeGeoms()[id]

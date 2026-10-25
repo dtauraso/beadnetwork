@@ -6,20 +6,8 @@ func ViewFilePath(topologyPath, name string) string {
 	return filepath.Join(topologyPath, "view", name)
 }
 
-func CardSFilePath(topologyPath string) string {
-	return ViewFilePath(topologyPath, "card-s.bin")
-}
-
-func CardMFilePath(topologyPath string) string {
-	return ViewFilePath(topologyPath, "card-m.bin")
-}
-
-func CardCWFilePath(topologyPath string) string {
-	return ViewFilePath(topologyPath, "card-cw.bin")
-}
-
-func CardCCWFilePath(topologyPath string) string {
-	return ViewFilePath(topologyPath, "card-ccw.bin")
+func SFilePath(topologyPath string) string {
+	return ViewFilePath(topologyPath, "s.bin")
 }
 
 func InputDirPath(topologyPath string) string {

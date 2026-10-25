@@ -25,21 +25,35 @@ type PillStack struct {
 	viewH float32
 	width float32
 	y     float32
+	left  bool
 }
 
 func NewPillStack(viewW, viewH float32, labels []string) *PillStack {
+	return &PillStack{viewW: viewW, viewH: viewH, width: pillWidth(labels), y: PillTop}
+}
+
+func NewLeftPillStack(viewW, viewH, top float32, labels []string) *PillStack {
+	return &PillStack{viewW: viewW, viewH: viewH, width: pillWidth(labels), y: top, left: true}
+}
+
+func pillWidth(labels []string) float32 {
 	var w float32
 	for _, l := range labels {
 		if t := TextWidth(l, PillFontPx); t > w {
 			w = t
 		}
 	}
-	return &PillStack{viewW: viewW, viewH: viewH, width: w + 2*PillPadX + CaretW + 2, y: PillTop}
+	return w + 2*PillPadX + CaretW + 2
 }
 
 func (s *PillStack) Width() float32 { return s.width }
 
-func (s *PillStack) X() float32 { return s.viewW - PillRight - s.width }
+func (s *PillStack) X() float32 {
+	if s.left {
+		return OriginX
+	}
+	return s.viewW - PillRight - s.width
+}
 
 func (s *PillStack) AddChip(label string) Rect {
 	w := TextWidth(label, PillFontPx) + 2*8 + 2
@@ -115,7 +129,11 @@ func (s *PillStack) AddWideScrollingPopover(contentW, contentH, scroll float32) 
 	if w < s.width {
 		w = s.width
 	}
-	box = Rect{X: s.viewW - PillRight - w, Y: s.y, W: w, H: visible}
+	x := s.viewW - PillRight - w
+	if s.left {
+		x = s.X()
+	}
+	box = Rect{X: x, Y: s.y, W: w, H: visible}
 	s.y += box.H
 	return box, box.X + PopoverPad, box.Y + PopoverPad - scroll, maxScroll
 }

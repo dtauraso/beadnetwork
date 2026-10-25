@@ -86,7 +86,7 @@
 
     <p class="code-links">Code: <span data-src="Categories/Vectors/polar/polar.go#Polar2cart">Polar2cart</span> (polar_to_cart) · <span data-src="Categories/Node/geom_node_geom.go#NodeWorldPos">NodeWorldPos</span> (a's centre)</p>
 
-    <p class="code-links">Code — the a→b vector: <span data-src="Categories/NodeKinds/NodePhiTheta3/place.go#vector">vector</span> (from a's start) → <span data-src="Categories/NodeKinds/NodePhiTheta3/place.go#postVectors">postVectors</span> (one per b with L_b = 1) → <span data-src="Categories/Node/node_start_arrows.go#startArrows">startArrows</span> (drawn from C_a to C_a + d) · the move: <span data-src="Categories/NodeKinds/NodePhiTheta3/move.go#moveToward">moveToward</span></p>
+    <p class="code-links">Code — the a→b vector: <span data-src="Categories/Node/Links/link.go#Dir">Dir</span> (start + Δ) → <span data-src="Categories/NodeKinds/NodePhiTheta3/vectors.go#postVectors">postVectors</span> (one per link a holds) → <span data-src="Categories/Node/node_start_arrows.go#startArrows">startArrows</span> (drawn from C_a to C_a + d) · b placed from it: <span data-src="Categories/Node/Links/peer_moves.go#take">take</span></p>
 
   </div>
 </main>

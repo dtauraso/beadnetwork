@@ -69,6 +69,7 @@ func StartGestureActor(ctx context.Context, md *Dispatch.MoveDispatch, speedSink
 					break drain
 				}
 			}
+			Dispatch.DrainLinkReports(md)
 
 			if err := mine.SleepCycle(ctx); err != nil {
 				return

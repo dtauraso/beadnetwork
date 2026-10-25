@@ -3,40 +3,21 @@ package NodePhiTheta3
 import (
 	"context"
 	"fmt"
-	"strconv"
 
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/CardPanel"
 	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
 	NodeCat "github.com/dtauraso/beadnetwork/Categories/Node"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 )
-
-const nodeCount = CardPanel.NodeCount
 
 type NodePhiTheta3 struct {
 	geom *NodeCat.NodeGeometry
 
 	Clock   clock.Clock
 	SpeedCh <-chan float64
-	EditIn  <-chan CardPanel.EditMsg
-	StepIn  <-chan struct{}
-	ResetIn <-chan struct{}
-	StartIn <-chan struct{}
-	Wake    <-chan struct{}
 
-	steps int
-	reset bool
-
-	Me       int
-	Partners [nodeCount - 1]int
-
-	Card   CardPanel.Card
-	S      int
-	M      int
-	CW     int
-	CCW    int
-	cur    Angles
-
-	nodeR float64
+	In   Links.Inbox
+	mesh *Links.Mesh
+	peer *Links.Peer
 }
 
 func (n *NodePhiTheta3) breadcrumb(label, value string) {
@@ -48,45 +29,68 @@ func (n *NodePhiTheta3) breadcrumb(label, value string) {
 	}})
 }
 
-func (n *NodePhiTheta3) restart() {
-	n.cur = ticksOf(n.Card.Start, n.S)
-	n.postVectors()
-}
-
-func (n *NodePhiTheta3) move() {
-	next := moveToward(n.cur, ticksOf(n.Card.End, n.S), n.S, n.M, n.CW, n.CCW)
-	if next == n.cur {
-		return
-	}
-	n.cur = next
-	n.postVectors()
-	n.breadcrumb("move", fmt.Sprintf("start=%+v end=%+v", n.cur, ticksOf(n.Card.End, n.S)))
-}
-
 func (n *NodePhiTheta3) Update(ctx context.Context) {
 	clk := n.Clock.Copy()
 	clk.SpeedFrom(n.SpeedCh)
-	clk.WakeOn(n.Wake)
+	clk.WakeOn(n.In.Wake)
 	n.geom.Clocks().Use(clk)
 	n.postTicks()
-	n.restart()
+	n.publish()
 
 	for {
 		if err := clk.SleepCycle(ctx); err != nil {
 			return
 		}
-		n.drainEdits()
-		if n.reset {
-			n.reset = false
-			n.restart()
-		}
-		if clk.Speed() > 0 || n.steps > 0 {
-			if n.steps > 0 {
-				n.steps--
-			}
-			n.move()
+		if n.drain(ctx) {
+			n.apply()
 		}
 	}
+}
+
+func (n *NodePhiTheta3) drain(ctx context.Context) bool {
+	took := false
+	for {
+		select {
+		case msg := <-n.In.In:
+			took = true
+			for _, e := range n.peer.Handle(msg) {
+				n.mesh.Send(ctx, n.peer.ID, e)
+			}
+		default:
+			return took
+		}
+	}
+}
+
+func (n *NodePhiTheta3) apply() {
+	c := n.peer.TakeChanges()
+	root, id := n.geom.PersistRoot(), n.peer.ID
+	if c.Place {
+		if err := NodeCat.WritePlace(root, id, n.peer.At); err != nil {
+			n.breadcrumb("place-persist", err.Error())
+		}
+		n.geom.KindPosts().PostPlace(n.peer.At)
+		n.breadcrumb("sat", fmt.Sprintf("at=%+v", n.peer.At))
+	}
+	if c.S {
+		if err := NodeCat.WriteNodeS(root, id, n.peer.S); err != nil {
+			n.breadcrumb("s-persist", err.Error())
+		}
+		n.postTicks()
+	}
+	if len(c.Links) > 0 || len(c.Dropped) > 0 {
+		if err := Links.WriteLinks(NodeCat.NodeDir(root, id), n.peer.Links()); err != nil {
+			n.breadcrumb("links-persist", err.Error())
+		}
+	}
+	n.publishWith(c.Refused)
+}
+
+func (n *NodePhiTheta3) publish() { n.publishWith("") }
+
+func (n *NodePhiTheta3) publishWith(refused string) {
+	n.postVectors()
+	n.mesh.Report(Links.Report{ID: n.peer.ID, S: n.peer.S, At: n.peer.At, Links: n.peer.Links(), Refused: refused})
 }
 
 func (a BuildArgs) Geom() *NodeCat.NodeGeometry {
@@ -99,25 +103,16 @@ func (a BuildArgs) Geom() *NodeCat.NodeGeometry {
 
 var Builder = BuilderFor("NodePhiTheta3",
 	func(a BuildArgs) (any, error) {
-		me, err := strconv.Atoi(a.Name)
-		if err != nil || me < 1 || me > nodeCount {
-			return nil, fmt.Errorf("NodePhiTheta3: node %q is not one of nodes 1..%d — the card names its nodes by number, so the tab's node ids must be 1, 2 and 3", a.Name, nodeCount)
-		}
-
 		n := &NodePhiTheta3{}
 		n.Clock = a.Clock()
 		n.SpeedCh = a.SpeedCh()
-		inbox := a.EditInbox()
-		n.EditIn, n.StepIn, n.ResetIn, n.StartIn, n.Wake = inbox.Edits, inbox.Steps, inbox.Resets, inbox.Starts, inbox.Wake
 		n.geom = a.Geom()
-
-		n.Me = me
-		n.Partners = CardPanel.Partners(me)
-		n.Card = CardPanel.CardFromState(me, a.State())
-		n.S, n.M, n.CW, n.CCW = a.S(), a.M(), a.CW(), a.CCW()
-		n.nodeR = NodeCat.NodeRadius(n.geom.Kind())
-
-		n.breadcrumb("built", fmt.Sprintf("node=%d partners=%v s=%d m=%d cw=%d ccw=%d card=%+v", me, n.Partners, n.S, n.M, n.CW, n.CCW, n.Card))
-
+		n.In, n.mesh = a.Inbox(), a.Mesh()
+		seed := a.Seed()
+		if _, ok := seed.Places[a.Name]; !ok {
+			return nil, fmt.Errorf("NodePhiTheta3: node %q has no float place (base/at-r.bin, at-phi.bin, at-theta.bin) — a links node is placed on the scene sphere by its own place, and has nowhere to stand without one", a.Name)
+		}
+		n.peer = Links.NewPeer(a.Name, seed)
+		n.breadcrumb("built", fmt.Sprintf("node=%s s=%d at=%+v links=%d", a.Name, n.peer.S, n.peer.At, len(n.peer.Links())))
 		return n, nil
 	})

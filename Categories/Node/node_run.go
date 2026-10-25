@@ -101,6 +101,10 @@ func (g *NodeGeometry) applyKindPosts() {
 
 		g.msg.ApplyDerived(g.id, *p.Center)
 	}
+	if p.Place != nil {
+		g.geom.Rest = polarindex.Rest(*p.Place)
+		g.ApplyCenter(polarindex.Nearest(*p.Place, g.Constants()))
+	}
 	if p.FromPartner != nil {
 
 		if partner, ok := g.PartnerIndex(p.FromPartner.PartnerID); ok {

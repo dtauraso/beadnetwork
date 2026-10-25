@@ -13,12 +13,6 @@ var PanelValueNames = []string{
 	"numText", "numLen",
 	"denText", "denLen",
 	"trackX", "trackY", "trackW", "trackH",
-	"stepX", "stepY", "stepW", "stepH",
-	"stepText",
-	"resetX", "resetY", "resetW", "resetH",
-	"resetText",
-	"startX", "startY", "startW", "startH",
-	"startText",
 }
 
 type ValueWriter struct {

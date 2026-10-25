@@ -30,12 +30,6 @@ func (s *State) Write(lay Layout, speed float64) {
 	}
 
 	w.Rect("trackX", "trackY", "trackW", "trackH", lay.Track)
-	w.Rect("stepX", "stepY", "stepW", "stepH", lay.Step)
-	w.Text("stepText", StepLabel)
-	w.Rect("resetX", "resetY", "resetW", "resetH", lay.Reset)
-	w.Text("resetText", ResetLabel)
-	w.Rect("startX", "startY", "startW", "startH", lay.Start)
-	w.Text("startText", StartLabel)
 
 	if err := w.Flush(); err != nil {
 		fmt.Fprintf(os.Stderr, "slider_panel_values: %v\n", err)

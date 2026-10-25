@@ -31,6 +31,7 @@ type KindPost struct {
 	Ticks       *int32
 	Starts      *[]polar.Polar
 	Center      *polarindex.Index
+	Place       *polarindex.Place
 	FromPartner *PartnerVectorPost
 }
 
@@ -103,6 +104,10 @@ func (k *KindPosts) PostTicks(count int32) {
 
 func (k *KindPosts) PostCenter(center polarindex.Index) {
 	k.post(func(p *KindPost) { p.Center = &center })
+}
+
+func (k *KindPosts) PostPlace(place polarindex.Place) {
+	k.post(func(p *KindPost) { p.Place = &place })
 }
 
 func (k *KindPosts) PostVectorFrom(partnerID string, vec polarindex.Offset) {
