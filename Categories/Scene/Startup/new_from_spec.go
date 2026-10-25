@@ -11,6 +11,7 @@ import (
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Dispatch"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/SliderPanel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/AngleDropdown"
@@ -72,11 +73,13 @@ func NewFromSpec(spec Topology.TopoSpec, sphere polar.SceneSphere, hasScene bool
 
 	md.UI.Tilt.Rows, md.UI.Tilt.Labels = Topology.TiltPanelRows(spec)
 	md.Links = Links.NewMesh()
-	md.UI.Sheet.Model.S = Sheet.LoadScalar(Scenes.SFilePath(scenePath), 1, 1)
-	md.UI.Sheet.Model.Frame = Topology.LinkFrame(spec)
-	md.UI.Sheet.Model.StepDir = Sheet.StepDir(Scenes.NodesRoot(scenePath))
-	md.UI.Sheet.Model.Step = Sheet.ReadStep(md.UI.Sheet.Model.StepDir)
+	md.UI.Builder.S = Sheet.LoadScalar(Scenes.SFilePath(scenePath), 1, 1)
+	md.UI.Builder.Frame = Topology.LinkFrame(spec)
+	md.UI.Builder.StepDir = Builder.StepDir(Scenes.NodesRoot(scenePath))
+	md.UI.Builder.Step = Builder.ReadStep(md.UI.Builder.StepDir)
 	Dispatch.LoadSequences(md, scenePath)
+	md.UI.Builder.CardsDir = Builder.CardsDir(Scenes.NodesRoot(scenePath))
+	md.UI.Builder.Cards = Builder.ReadCards(md.UI.Builder.CardsDir)
 
 	md.UI.Rules.Nodes = Topology.RulePanelNodes(spec, func(id string) bool {
 		ng, ok := md.MR.NodeGeoms()[id]

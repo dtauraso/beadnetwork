@@ -10,6 +10,7 @@ import (
 	Flags "github.com/dtauraso/beadnetwork/Categories/Scene/View/Flags"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/PolarRulesPanel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/TiltPanel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills"
@@ -77,6 +78,8 @@ type UIState struct {
 	Tilt TiltPanel.State
 
 	Sheet Sheet.State
+
+	Builder Builder.Model
 
 	ViewW, ViewH float64
 

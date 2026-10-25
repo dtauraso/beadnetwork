@@ -61,7 +61,7 @@ func Load(ctx context.Context, scenePath string, clk clock.Clock) (Scene, error)
 	}
 
 	md.MR.Bind(outSink, destRun, md.RT.EdgeRowForPair)
-	md.UI.Sheet.Model.Nodes = md.Links.IDs()
+	md.UI.Builder.Nodes = md.Links.IDs()
 
 	return Scene{
 		Nodes:      nodes,

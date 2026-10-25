@@ -41,7 +41,7 @@ func BuildNodes(
 		},
 		ClaimLinkIn: func(name string) any { return md.Links.Claim(name) },
 		Mesh:        md.Links,
-		Seed:        Topology.LinkSeed(spec, md.UI.Sheet.Model.S),
+		Seed:        Topology.LinkSeed(spec, md.UI.Builder.S),
 		loadShared: map[string]any{},
 		ClaimSelfDriveGeom: func(name string) any {
 			ng, ok := md.MR.NodeGeoms()[name]

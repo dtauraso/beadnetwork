@@ -16,7 +16,10 @@ type Link struct {
 	Lock      Lock
 	Locking   bool
 	Picked    bool
+	Order     int
 }
+
+const NewLinkOrder = 1 << 20
 
 const (
 	KPhi   = "phi"

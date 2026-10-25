@@ -47,11 +47,7 @@ func readLinksIn(linksDir, from string) ([]Link, error) {
 	if err != nil {
 		return nil, err
 	}
-	type ordered struct {
-		l     Link
-		order int
-	}
-	var all []ordered
+	var all []Link
 	for _, e := range entries {
 		if !e.IsDir() { // path-resolution-ok: a link is a directory; skipping strays under links/
 			continue
@@ -61,8 +57,7 @@ func readLinksIn(linksDir, from string) ([]Link, error) {
 		if !ReadIfExists(filepath.Join(dir, FileTarget), &l.To) {
 			continue
 		}
-		var o int
-		ReadIfExists(filepath.Join(dir, FileOrder), &o)
+		ReadIfExists(filepath.Join(dir, FileOrder), &l.Order)
 		ReadIfExists(filepath.Join(dir, FileStartPhi), &l.Start.Phi)
 		ReadIfExists(filepath.Join(dir, FileStartTheta), &l.Start.Theta)
 		ReadIfExists(filepath.Join(dir, FileStartR), &l.Start.R)
@@ -74,19 +69,22 @@ func readLinksIn(linksDir, from string) ([]Link, error) {
 		ReadIfExists(filepath.Join(dir, FileLockTheta), &l.Lock.Theta)
 		ReadIfExists(filepath.Join(dir, FileLocking), &l.Locking)
 		ReadIfExists(filepath.Join(dir, FilePicked), &l.Picked)
-		all = append(all, ordered{l, o})
+		all = append(all, l)
 	}
-	sort.SliceStable(all, func(i, j int) bool {
-		if all[i].order != all[j].order {
-			return all[i].order < all[j].order
+	SortLinks(all)
+	return all, nil
+}
+
+func SortLinks(ls []Link) {
+	sort.SliceStable(ls, func(i, j int) bool {
+		if ls[i].Order != ls[j].Order {
+			return ls[i].Order < ls[j].Order
 		}
-		return all[i].l.To < all[j].l.To
+		if ls[i].From != ls[j].From {
+			return ls[i].From < ls[j].From
+		}
+		return ls[i].To < ls[j].To
 	})
-	out := make([]Link, len(all))
-	for i, o := range all {
-		out[i] = o.l
-	}
-	return out, nil
 }
 
 func WriteBaseLinks(nodeDir string, links []Link) error {
@@ -108,12 +106,12 @@ func RemoveLinksTo(nodeDir, from, to string) error {
 
 func writeLinksIn(linksDir string, links []Link) error {
 	keep := map[string]bool{}
-	for i, l := range links {
+	for _, l := range links {
 		name := linkName(l.From, l.To)
 		keep[name] = true
 		dir := filepath.Join(linksDir, name)
 		for file, v := range map[string]any{
-			FileTarget: l.To, FileOrder: i,
+			FileTarget: l.To, FileOrder: l.Order,
 			FileStartPhi: l.Start.Phi, FileStartTheta: l.Start.Theta, FileStartR: l.Start.R,
 			FileDeltaPhi: l.Delta.Phi, FileDeltaTheta: l.Delta.Theta,
 			FileIncPhi: l.Increment.Phi, FileIncTheta: l.Increment.Theta,

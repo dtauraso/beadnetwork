@@ -1,10 +1,25 @@
-package Sheet
+package Builder
 
 import (
 	"math"
 	"strconv"
 
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
+)
+
+type (
+	Cell  = Sheet.Cell
+	Act   = Sheet.Act
+	Pill  = Sheet.Pill
+	Group = Sheet.Group
+)
+
+var (
+	Text    = Sheet.Text
+	LitText = Sheet.LitText
+	Button  = Sheet.Button
+	Field   = Sheet.Field
 )
 
 type Model struct {
@@ -19,6 +34,9 @@ type Model struct {
 
 	Seqs    []Seq
 	OpenSeq int
+
+	Cards    Cards
+	CardsDir string
 }
 
 func (m Model) RowsLocking() bool {
@@ -58,56 +76,20 @@ func (m Model) ScaleOf(id string) int {
 	return max(1, m.S)
 }
 
-type State struct {
-	w *ValueWriter
-
-	Model  Model
-	Edit   Edit
-	Open   map[string]bool
-	Scroll map[string]float32
-}
-
-func (s *State) Arm(sceneRoot string) { s.w = NewValueWriter(sceneRoot) }
-
-func (s *State) Toggle(label string) {
-	if s.Open == nil {
-		s.Open = map[string]bool{}
-	}
-	s.Open[label] = !s.Open[label]
-	if !s.Open[label] && s.Edit.Active {
-		s.Edit = Edit{}
-	}
-}
-
-func (s *State) ScrollOf(label string) *float32 {
-	if s.Scroll == nil {
-		s.Scroll = map[string]float32{}
-	}
-	v := s.Scroll[label]
-	return &v
-}
-
-func (s *State) SetScroll(label string, v float32) {
-	if s.Scroll == nil {
-		s.Scroll = map[string]float32{}
-	}
-	s.Scroll[label] = v
-}
-
-func (s State) Pills() []Pill {
-	if !s.Model.On() {
+func Pills(m Model) []Pill {
+	if !m.On() {
 		return nil
 	}
-	pills := []Pill{FramePill(s.Model), NodesPill(s.Model), LinksPill(s.Model)}
-	if len(s.Model.Seqs) > 0 {
-		pills = append(pills, SequencesPill(s.Model))
+	pills := []Pill{FramePill(m), NodesPill(m), LinksPill(m)}
+	if len(m.Seqs) > 0 {
+		pills = append(pills, SequencesPill(m))
 	}
-	return pills
+	return append(pills, PlacePill(m))
 }
 
 var RightLabels = []string{FrameLabel, NodesLabel, LinksLabel}
 
-var LeftLabels = []string{SeqLabel}
+var LeftLabels = []string{SeqLabel, PlaceLabel}
 
 func Num(v float64) string {
 	if math.Abs(v) < 5e-4 {
@@ -116,5 +98,5 @@ func Num(v float64) string {
 	if v == math.Trunc(v) {
 		return strconv.Itoa(int(v))
 	}
-	return strconv.FormatFloat(v, 'f', 2, 64)
+	return strconv.FormatFloat(math.Round(v*100)/100, 'f', 2, 64)
 }

@@ -3,8 +3,8 @@ package NodePhiTheta3
 import (
 	"context"
 
-	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 	NodeBuf "github.com/dtauraso/beadnetwork/Categories/Node"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 )
 
 type deps interface {

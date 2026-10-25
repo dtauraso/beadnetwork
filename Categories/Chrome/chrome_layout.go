@@ -1,13 +1,14 @@
 package Chrome
 
 import (
-	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Panel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/PolarRulesPanel"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/SliderPanel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/TiltPanel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/AngleDropdown"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/FitButton"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/NodesDropdown"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Tabs"
@@ -41,6 +42,7 @@ type Of struct {
 
 	Tilt     TiltPanel.State
 	Sheet    *Sheet.State
+	Builder  Builder.Model
 	Angle    AngleDropdown.State
 	Nodes    NodesDropdown.State
 	Tabs     Tabs.State
@@ -48,7 +50,7 @@ type Of struct {
 	PillsBar Pills.State
 }
 
-var PillLabels = append([]string{AngleDropdown.Label, NodesDropdown.Label, Pills.Label}, Sheet.RightLabels...)
+var PillLabels = append([]string{AngleDropdown.Label, NodesDropdown.Label, Pills.Label}, Builder.RightLabels...)
 
 func LayoutOf(in Of) Layout {
 	pills := Panel.NewPillStack(float32(in.ViewW), float32(in.ViewH), PillLabels)
@@ -80,8 +82,8 @@ func LayoutOf(in Of) Layout {
 	lay.Angle = AngleDropdown.Build(pills, in.Angle.Open, in.LatticePoints, nodes)
 	lay.Nodes = NodesDropdown.Build(pills, in.Nodes.Open && in.SceneEditable, NodesDropdown.PaletteKinds(in.SceneKinds, in.SceneEditable, in.Nodes.RowOpen))
 	if in.Sheet != nil {
-		left := Panel.NewLeftPillStack(float32(in.ViewW), float32(in.ViewH), st.Next(), Sheet.LeftLabels)
-		lay.Sheet = Sheet.Build(pills, left, in.Sheet.Pills(), in.Sheet)
+		left := Panel.NewLeftPillStack(float32(in.ViewW), float32(in.ViewH), st.Next(), Builder.LeftLabels)
+		lay.Sheet = Sheet.Build(pills, left, Builder.Pills(in.Builder), in.Sheet)
 	}
 	lay.Overlays = Pills.Build(pills, in.Overlays, in.Panels, in.PillsBar.Scroll)
 	return lay

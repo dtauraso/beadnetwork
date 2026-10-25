@@ -6,6 +6,7 @@ import (
 	"math"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder"
 	NodeBuf "github.com/dtauraso/beadnetwork/Categories/Node"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 	SceneB "github.com/dtauraso/beadnetwork/Categories/Scene"
@@ -15,32 +16,32 @@ import (
 func whole(v float64) bool { return math.Abs(v-math.Round(v)) < 1e-6 }
 
 func runSheetStructure(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, typed *float64) bool {
-	m := md.UI.Sheet.Model
+	m := md.UI.Builder
 	switch a.Op {
-	case Sheet.OpFrame:
+	case Builder.OpFrame:
 		if typed != nil {
 			setFrame(md, a.K, *typed)
 		}
-	case Sheet.OpNodeS:
+	case Builder.OpNodeS:
 		if typed != nil && whole(*typed) && *typed >= 1 {
 			md.sendLink(ctx, a.Node, Links.SetS{V: int(math.Round(*typed))})
 		} else if typed != nil {
-			md.UI.Sheet.Model.Refused = fmt.Sprintf("%s's s %v: not a whole number of at least 1, so it stays at %d", a.Node, *typed, m.ScaleOf(a.Node))
+			md.UI.Builder.Refused = fmt.Sprintf("%s's s %v: not a whole number of at least 1, so it stays at %d", a.Node, *typed, m.ScaleOf(a.Node))
 		}
-	case Sheet.OpNodeIdx:
+	case Builder.OpNodeIdx:
 		at := m.Reports[a.Node].At
 		v := float64(sign) + map[string]float64{Links.KR: at.R, Links.KPhi: at.Phi, Links.KTheta: at.Theta}[a.K]
 		if typed != nil {
 			v = *typed
 		}
 		md.sendLink(ctx, a.Node, Links.SetIdx{K: a.K, V: v})
-	case Sheet.OpConnect:
+	case Builder.OpConnect:
 		md.sendLink(ctx, a.Node, Links.Connect{To: a.To})
-	case Sheet.OpDropLink:
+	case Builder.OpDropLink:
 		md.sendLink(ctx, a.Node, Links.Drop{To: a.To})
-	case Sheet.OpAddNode:
+	case Builder.OpAddNode:
 		addLinkNode(md)
-	case Sheet.OpRemoveNode:
+	case Builder.OpRemoveNode:
 		removeLinkNode(md, a.Node)
 	default:
 		return false
@@ -49,19 +50,19 @@ func runSheetStructure(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign 
 }
 
 func setFrame(md *MoveDispatch, k string, v float64) {
-	m := &md.UI.Sheet.Model
+	m := &md.UI.Builder
 	f, s := m.Frame, m.S
 	ok := v > 0
 	switch k {
-	case Sheet.FrameRho:
+	case Builder.FrameRho:
 		f.Rho = v
-	case Sheet.FrameCr:
+	case Builder.FrameCr:
 		f.Cr = v
-	case Sheet.FrameTphi:
+	case Builder.FrameTphi:
 		f.Tphi, ok = int(math.Round(v)), ok && whole(v)
-	case Sheet.FrameTtheta:
+	case Builder.FrameTtheta:
 		f.Ttheta, ok = int(math.Round(v)), ok && whole(v)
-	case Sheet.FrameS:
+	case Builder.FrameS:
 		s, ok = int(math.Round(v)), ok && whole(v)
 	}
 	if !ok {
@@ -86,7 +87,7 @@ func setFrame(md *MoveDispatch, k string, v float64) {
 func addLinkNode(md *MoveDispatch) { addLinkNodeAt(md, Links.Place{}) }
 
 func addLinkNodeAt(md *MoveDispatch, at Links.Place) {
-	m := &md.UI.Sheet.Model
+	m := &md.UI.Builder
 	root := md.Scenes.NodesRoot
 	if root == "" || md.Scenes.Reload == nil || len(m.Nodes) == 0 {
 		return
@@ -105,7 +106,7 @@ func addLinkNodeAt(md *MoveDispatch, at Links.Place) {
 }
 
 func removeLinkNode(md *MoveDispatch, id string) {
-	m := &md.UI.Sheet.Model
+	m := &md.UI.Builder
 	root := md.Scenes.NodesRoot
 	if root == "" || md.Scenes.Reload == nil {
 		return
@@ -131,26 +132,26 @@ func removeLinkNode(md *MoveDispatch, id string) {
 }
 
 func runSheetSequence(md *MoveDispatch, a Sheet.Act) bool {
-	m := &md.UI.Sheet.Model
+	m := &md.UI.Builder
 	scene := md.Scenes.TreeRoot
 	if scene == "" || md.Scenes.Reload == nil {
-		return a.Op == Sheet.OpSeqOpen || a.Op == Sheet.OpSeqAdd || a.Op == Sheet.OpSeqDrop
+		return a.Op == Builder.OpSeqOpen || a.Op == Builder.OpSeqAdd || a.Op == Builder.OpSeqDrop
 	}
 	open := m.OpenSeq
 	switch a.Op {
-	case Sheet.OpSeqOpen:
+	case Builder.OpSeqOpen:
 		if a.I == open {
 			return true
 		}
 		open = a.I
-	case Sheet.OpSeqAdd:
+	case Builder.OpSeqAdd:
 		to, err := Scenes.CopySequence(scene, open)
 		if err != nil {
 			m.Refused = fmt.Sprintf("could not copy sequence %d: %v", open, err)
 			return true
 		}
 		open = to
-	case Sheet.OpSeqDrop:
+	case Builder.OpSeqDrop:
 		if len(m.Seqs) < 2 {
 			return true
 		}
@@ -176,10 +177,10 @@ func runSheetSequence(md *MoveDispatch, a Sheet.Act) bool {
 }
 
 func LoadSequences(md *MoveDispatch, scene string) {
-	m := &md.UI.Sheet.Model
+	m := &md.UI.Builder
 	m.Seqs = nil
 	for _, k := range Scenes.Sequences(scene) {
-		m.Seqs = append(m.Seqs, Sheet.Seq{K: k, Name: Scenes.SequenceName(scene, k)})
+		m.Seqs = append(m.Seqs, Builder.Seq{K: k, Name: Scenes.SequenceName(scene, k)})
 	}
 	m.OpenSeq = Scenes.OpenSequence(scene)
 }

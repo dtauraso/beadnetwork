@@ -96,7 +96,7 @@ func placeNodeAt(md *MoveDispatch, ev *Drag.RawInputMsg) {
 	if ev.RectWidth <= 0 || ev.RectHeight <= 0 {
 		return
 	}
-	if m := md.UI.Sheet.Model; m.On() {
+	if m := md.UI.Builder; m.On() {
 		drop := View.Vec3(ev.Hit.Point).Sub(View.Vec3(md.UI.SceneSphere.Center))
 		addLinkNodeAt(md, m.Frame.GridAt(Links.Vec3(drop)))
 		md.UI.EmitViewFrame(nil)

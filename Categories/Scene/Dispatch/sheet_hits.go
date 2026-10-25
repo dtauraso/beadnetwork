@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/View"
 )
@@ -42,13 +43,13 @@ func (md *MoveDispatch) sendLink(ctx context.Context, to string, msg any) {
 }
 
 func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, typed *float64) {
-	m := md.UI.Sheet.Model
-	md.UI.Sheet.Model.Refused = ""
+	m := md.UI.Builder
+	md.UI.Builder.Refused = ""
 	if runSheetStructure(ctx, md, a, sign, typed) || runSheetSequence(md, a) {
 		return
 	}
 	switch a.Op {
-	case Sheet.OpLinkStart:
+	case Builder.OpLinkStart:
 		l, ok := m.Link(a.Node, a.To)
 		if !ok {
 			return
@@ -58,31 +59,33 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 			v = *typed
 		}
 		md.sendLink(ctx, a.Node, Links.SetStart{To: a.To, K: a.K, V: v})
-	case Sheet.OpLinkPress:
+	case Builder.OpLinkPress:
 		if sign == 0 {
 			sign = a.Sign
 		}
 		if sign != 0 {
 			md.sendLink(ctx, a.Node, Links.Press{To: a.To, K: a.K, Sign: sign})
 		}
-	case Sheet.OpPick:
+	case Builder.OpPick:
 		md.sendLink(ctx, a.To, Links.PickReq{From: a.Node})
-	case Sheet.OpUnpick:
+	case Builder.OpUnpick:
 		md.sendLink(ctx, a.Node, Links.Unpick{To: a.To})
-	case Sheet.OpIncrement:
+	case Builder.OpIncrement:
 		if typed != nil {
 			md.sendLink(ctx, a.Node, Links.SetIncrement{To: a.To, K: a.K, V: *typed})
 		}
-	case Sheet.OpLocking:
+	case Builder.OpLocking:
 		if l, ok := m.Link(a.Node, a.To); ok {
 			md.sendLink(ctx, a.Node, Links.SetLocking{To: a.To, On: !l.Locking})
 		}
-	case Sheet.OpAllStep:
+	case Builder.OpItem, Builder.OpMethod, Builder.OpCard:
+		setCards(md, a)
+	case Builder.OpAllStep:
 		allStep(ctx, md, a.K, a.Sign)
-	case Sheet.OpAllBoth:
+	case Builder.OpAllBoth:
 		md.stepAll(ctx, Links.KBoth, a.Sign)
-	case Sheet.OpAllLocking:
-		st := &md.UI.Sheet.Model.Step
+	case Builder.OpAllLocking:
+		st := &md.UI.Builder.Step
 		if !m.RowsLocking() {
 			st.Locking = !st.Locking
 			md.persistStep()
@@ -91,7 +94,7 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 }
 
 func allStep(ctx context.Context, md *MoveDispatch, k string, sign int) {
-	st := &md.UI.Sheet.Model.Step
+	st := &md.UI.Builder.Step
 	lock := &st.LockAll.Phi
 	if k == Links.KTheta {
 		lock = &st.LockAll.Theta
@@ -109,16 +112,38 @@ func allStep(ctx context.Context, md *MoveDispatch, k string, sign int) {
 }
 
 func (md *MoveDispatch) stepAll(ctx context.Context, k string, sign int) {
-	st := &md.UI.Sheet.Model.Step
+	st := &md.UI.Builder.Step
 	st.Round++
-	for _, id := range md.UI.Sheet.Model.Nodes {
+	for _, id := range md.UI.Builder.Nodes {
 		md.sendLink(ctx, id, Links.StepAll{Round: st.Round, K: k, Sign: sign, LockAll: st.LockAll})
 	}
 }
 
+func setCards(md *MoveDispatch, a Sheet.Act) {
+	m := &md.UI.Builder
+	c := &m.Cards
+	switch a.Op {
+	case Builder.OpItem:
+		c.Item = a.Node
+	case Builder.OpMethod:
+		if c.Methods == nil {
+			c.Methods = map[string]bool{}
+		}
+		c.Methods[a.K] = !c.Methods[a.K]
+	case Builder.OpCard:
+		c.Card = m.CardShown() + a.Sign
+	}
+	c.Card = m.CardShown()
+	if m.CardsDir != "" {
+		if err := Builder.WriteCards(m.CardsDir, *c); err != nil {
+			View.LogPersistErr("sheet_cards_persist", m.CardsDir, err)
+		}
+	}
+}
+
 func (md *MoveDispatch) persistStep() {
-	if dir := md.UI.Sheet.Model.StepDir; dir != "" {
-		if err := Sheet.WriteStep(dir, md.UI.Sheet.Model.Step); err != nil {
+	if dir := md.UI.Builder.StepDir; dir != "" {
+		if err := Builder.WriteStep(dir, md.UI.Builder.Step); err != nil {
 			View.LogPersistErr("sheet_step_persist", dir, err)
 		}
 	}
@@ -130,7 +155,7 @@ func DrainLinkReports(md *MoveDispatch) {
 	}
 	rs := md.Links.TakeReports()
 	for _, r := range rs {
-		md.UI.Sheet.Model.Take(r)
+		md.UI.Builder.Take(r)
 	}
 	if len(rs) > 0 {
 		md.UI.EmitViewFrame(nil)

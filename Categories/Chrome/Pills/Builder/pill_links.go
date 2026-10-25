@@ -1,4 +1,4 @@
-package Sheet
+package Builder
 
 import (
 	"strings"
@@ -18,6 +18,7 @@ func (m Model) allLinks() []Links.Link {
 	for _, id := range m.Nodes {
 		out = append(out, m.Reports[id].Links...)
 	}
+	Links.SortLinks(out)
 	return out
 }
 

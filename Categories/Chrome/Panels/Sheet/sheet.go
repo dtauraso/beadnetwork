@@ -52,7 +52,9 @@ type Cell struct {
 
 func Text(s string) Cell { return Cell{Kind: CellText, Key: s} }
 
-func LitText(s string, act Act, lit bool) Cell { return Cell{Kind: CellText, Key: s, Act: act, Lit: lit} }
+func LitText(s string, act Act, lit bool) Cell {
+	return Cell{Kind: CellText, Key: s, Act: act, Lit: lit}
+}
 
 func Button(label string, act Act, lit bool) Cell {
 	return Cell{Kind: CellButton, Key: label, Act: act, Lit: lit}

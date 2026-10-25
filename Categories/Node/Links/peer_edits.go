@@ -112,6 +112,7 @@ func (p *Peer) connect(m Connect) {
 		return
 	}
 	l := NewLink(p.ID, m.To)
+	l.Order = NewLinkOrder
 	l.Start = Measure(p.Frame, p.S, l.Dir(p.S), p.Pos(), p.posOf(m.To))
 	p.out[m.To] = l
 	p.order = append(p.order, m.To)
