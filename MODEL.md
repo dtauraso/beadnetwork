@@ -145,7 +145,7 @@ See [docs/model/scenes.md](docs/model/scenes.md) for what a scene is, how a tab 
 and the per-scene fork of node behaviour it documents (coplanar rings), plus the ring-axis vs.
 navigation-pole distinction. `scene.Scene`'s other per-scene fields (`UpAxis`, `ClockDivisor`,
 `Editable`, `Kinds`) are not written up anywhere — read `Categories/Scene/Scenes/scenes.go`.
-**Exception:** the φ, θ card nodes (`NodePhiTheta3`) have no beads; the bead sections do not apply.
+**Exception:** the φ, θ card nodes (`NodePhiTheta3`) have no beads, so the bead sections do not apply, and they do not sleep: each loops at machine speed and publishes once per human tick (`clock.HumanTick`; machine ticks in [docs/model/entities.md](docs/model/entities.md)).
 
 ## Drift rule
 
@@ -262,6 +262,6 @@ the shape, not the content — (3) is the part only a human can write, and the p
 - arc length, pulse speed (world-units per tick), ticks-to-cross,
   tick-count processing window
 - tick, human-speed clock (the one system monotonic clock scaled to ticks
-  at human speed), scale, `SleepCycle`, `Tick`
+  at human speed), scale, `SleepCycle`, `Tick`, machine tick, human tick (`HumanTick`)
 - node receives, node holds, node fires, the node advances its beads, delivers,
   and emits their positions

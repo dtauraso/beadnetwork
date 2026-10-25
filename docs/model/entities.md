@@ -72,6 +72,23 @@
   processing windows are tick counts. There is no separate render cadence — the tick IS the
   animation clock.
 
+  **Exception — machine ticks (`NodePhiTheta3`).** The φ, θ 3 tab's node does not sleep. Its
+  goroutine loops at machine speed, counting each pass as a **machine tick** in a plain local
+  `k`, and reads `clock.HumanTick(Δt)` (`Categories/Clock/human_tick.go`), which counts whole
+  Δt periods since the one shared epoch and is NOT scaled by speed. When the human tick
+  changes, the node applies what its messages changed, persists it and publishes it, so the
+  person sees at most one step per human tick: the `n_i` machine ticks node i ran during that
+  tick count as one (`n_i / n_i = 1`), however large `n_i` is and however it differs between
+  nodes. Then it posts `(h, k)` to its latest-value timing slot (`Links.Mesh.PostTiming`).
+  The Frame pill reads these for the slowest node's `n` (ΔK/ΔH) and how many
+  nodes are behind `h − 1`. This is timing only: the links model is numbered
+  rounds of pure `Peer.Handle` calls, so no result depends on any node's `n`. Δt is
+  `view/tick-ms.bin` (default `MsPerTick`). The node's geometry goroutine is told the same
+  Δt (`NodeGeometry.RunOnHumanTicks`) and from then on also loops without sleeping, doing its
+  derive-and-write pass once per human tick; while the tab's builder has nodes, the gesture
+  actor does the same — it reads input every pass and collects reports once per human tick. A
+  φθ3 node starts no bead animation.
+
   Each goroutine holds its own `Copy()` of the clock and reads its own tick; there is no
   shared clock to pin a tick against. But a bead's **placement tick** (when it started
   crossing) is a DIFFERENT reading than the step tick that later advances it: placement is
@@ -88,4 +105,6 @@
 **INVARIANT: no position update may be gated on the human clock, and no animation step may
 run on the system clock.** `MsPerTick` (`Categories/Clock/`) names the human-speed clock; it exists so
 a person can watch a bead cross, and geometry must never run on it — one propagation hop per
-tick would make even a straight traversal visibly slow.
+tick would make even a straight traversal visibly slow. (`NodePhiTheta3` publishes its place
+once per human tick by design — it is a card node with no beads; see the machine-ticks exception
+under Clock.)

@@ -10,6 +10,10 @@ func SFilePath(topologyPath string) string {
 	return ViewFilePath(topologyPath, "s.bin")
 }
 
+func TickMsFilePath(topologyPath string) string {
+	return ViewFilePath(topologyPath, "tick-ms.bin")
+}
+
 func InputDirPath(topologyPath string) string {
 	return ViewFilePath(topologyPath, "input")
 }

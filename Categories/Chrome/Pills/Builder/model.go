@@ -37,6 +37,10 @@ type Model struct {
 
 	Cards    Cards
 	CardsDir string
+
+	TickMs  int
+	Now     int64
+	Timings map[string]NodeTiming
 }
 
 func (m Model) RowsLocking() bool {

@@ -36,6 +36,7 @@ type Seed struct {
 	Places map[string]Place
 	Scales map[string]int
 	Links  []Link
+	TickMs int
 }
 
 func NewPeer(id string, seed Seed) *Peer {

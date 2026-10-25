@@ -24,10 +24,11 @@ type Mesh struct {
 	in      map[string]Inbox
 	order   []string
 	reports map[string]chan Report
+	timings map[string]chan Timing
 }
 
 func NewMesh() *Mesh {
-	return &Mesh{in: map[string]Inbox{}, reports: map[string]chan Report{}}
+	return &Mesh{in: map[string]Inbox{}, reports: map[string]chan Report{}, timings: map[string]chan Timing{}}
 }
 
 func (m *Mesh) Claim(id string) Inbox {
@@ -38,6 +39,7 @@ func (m *Mesh) Claim(id string) Inbox {
 	m.in[id] = in
 	m.order = append(m.order, id)
 	m.reports[id] = make(chan Report, 1)
+	m.timings[id] = make(chan Timing, 1)
 	return in
 }
 

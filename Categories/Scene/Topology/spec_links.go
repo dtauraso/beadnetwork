@@ -14,8 +14,8 @@ func LinkFrame(spec TopoSpec) Links.Frame {
 	return Links.Frame{Rho: rho, Cr: c.ConstantR, Tphi: c.MaxIndexPhi, Ttheta: c.MaxIndexTheta}
 }
 
-func LinkSeed(spec TopoSpec, sceneS int) Links.Seed {
-	sd := Links.Seed{Frame: LinkFrame(spec), Places: map[string]Links.Place{}, Scales: map[string]int{}, Links: spec.Links}
+func LinkSeed(spec TopoSpec, sceneS, tickMs int) Links.Seed {
+	sd := Links.Seed{Frame: LinkFrame(spec), Places: map[string]Links.Place{}, Scales: map[string]int{}, Links: spec.Links, TickMs: tickMs}
 	for _, n := range spec.Nodes {
 		if n.At != nil {
 			sd.Places[n.ID] = *n.At

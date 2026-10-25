@@ -15,9 +15,10 @@ type NodePhiTheta3 struct {
 	Clock   clock.Clock
 	SpeedCh <-chan float64
 
-	In   Links.Inbox
-	mesh *Links.Mesh
-	peer *Links.Peer
+	In     Links.Inbox
+	mesh   *Links.Mesh
+	peer   *Links.Peer
+	tickMs int
 }
 
 func (n *NodePhiTheta3) breadcrumb(label, value string) {
@@ -32,34 +33,44 @@ func (n *NodePhiTheta3) breadcrumb(label, value string) {
 func (n *NodePhiTheta3) Update(ctx context.Context) {
 	clk := n.Clock.Copy()
 	clk.SpeedFrom(n.SpeedCh)
-	clk.WakeOn(n.In.Wake)
 	n.geom.Clocks().Use(clk)
+	n.geom.RunOnHumanTicks(n.tickMs)
 	n.postTicks()
 	n.publish()
 
+	h := clock.HumanTick(n.tickMs)
+	var k int64
+	pending := false
 	for {
-		if err := clk.SleepCycle(ctx); err != nil {
+		select {
+		case <-ctx.Done():
 			return
+		case msg := <-n.In.In:
+			pending = n.take(ctx, msg) || pending
+		default:
 		}
-		if n.drain(ctx) {
-			n.apply()
+		k++
+		if now := clock.HumanTick(n.tickMs); now != h {
+			h = now
+			if pending {
+				n.apply()
+				pending = false
+			}
+			n.mesh.PostTiming(Links.Timing{ID: n.peer.ID, H: h, K: k})
 		}
 	}
 }
 
-func (n *NodePhiTheta3) drain(ctx context.Context) bool {
-	took := false
-	for {
-		select {
-		case msg := <-n.In.In:
-			took = true
-			for _, e := range n.peer.Handle(msg) {
-				n.mesh.Send(ctx, n.peer.ID, e)
-			}
-		default:
-			return took
-		}
+func (n *NodePhiTheta3) take(ctx context.Context, msg any) bool {
+	if t, ok := msg.(Links.SetTickMs); ok {
+		n.tickMs = max(t.V, 1)
+		n.geom.RunOnHumanTicks(n.tickMs)
+		return false
 	}
+	for _, e := range n.peer.Handle(msg) {
+		n.mesh.Send(ctx, n.peer.ID, e)
+	}
+	return true
 }
 
 func (n *NodePhiTheta3) apply() {
@@ -124,6 +135,7 @@ var Builder = BuilderFor("NodePhiTheta3",
 			return nil, fmt.Errorf("NodePhiTheta3: node %q has no float place (base/at-r.bin, at-phi.bin, at-theta.bin) — a links node is placed on the scene sphere by its own place, and has nowhere to stand without one", a.Name)
 		}
 		n.peer = Links.NewPeer(a.Name, seed)
+		n.tickMs = max(seed.TickMs, 1)
 		n.breadcrumb("built", fmt.Sprintf("node=%s s=%d at=%+v links=%d", a.Name, n.peer.S, n.peer.At, len(n.peer.Links())))
 		return n, nil
 	})

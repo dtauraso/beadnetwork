@@ -5,7 +5,8 @@ import "strconv"
 const FrameLabel = "Frame"
 
 const (
-	OpFrame = "frame"
+	OpFrame  = "frame"
+	OpTickMs = "tick-ms"
 
 	FrameRho    = "rho"
 	FrameTphi   = "tphi"
@@ -24,6 +25,12 @@ func FramePill(m Model) Pill {
 			{Field("T_θ", strconv.Itoa(f.Ttheta), act(FrameTtheta), true, false), Text("index steps a turn in θ")},
 			{Field("c_r", Num(f.Cr), act(FrameCr), true, false), Text("length of one radial index step")},
 			{Field("s", strconv.Itoa(m.S), act(FrameS), true, false), Text("ticks a twelfth of a turn, for a node with no s of its own")},
+		}},
+		{Title: "time — each node loops at machine speed; its machine ticks become one human tick", Rows: [][]Cell{
+			{Field("Δt", strconv.Itoa(m.TickMs), Act{Op: OpTickMs}, true, true), Text("ms one human tick lasts")},
+			{Text("h " + strconv.FormatInt(m.Now, 10)), Text("human ticks since the scene started")},
+			{Text("n min " + m.NMin()), Text("machine ticks per human tick of the slowest node — near 0, it is about to miss human ticks")},
+			{Text("behind " + strconv.Itoa(m.Behind()) + "/" + strconv.Itoa(len(m.Nodes))), Text("nodes that have not reached h−1")},
 		}},
 	}}
 }
