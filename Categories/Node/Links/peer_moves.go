@@ -1,6 +1,9 @@
 package Links
 
-import "slices"
+import (
+	"maps"
+	"slices"
+)
 
 func (p *Peer) send(l *Link) []Envelope {
 	return []Envelope{{To: l.To, Msg: Put{From: p.ID, P: p.Pos(), D: p.vecOf(l), Keep: l.Name()}}}
@@ -65,14 +68,15 @@ func (p *Peer) sat(keep string, keepPicked bool) []Envelope {
 		l.Remeasure(p.Frame, p.S, p.Pos(), p.posOf(to))
 		p.touched(to)
 	}
-	return []Envelope{{To: All, Msg: Moved{ID: p.ID, At: p.At, S: p.S, Keep: keep, KeepPicked: keepPicked}}}
+	var out []Envelope
+	for _, from := range slices.Sorted(maps.Keys(p.in)) {
+		out = append(out, Envelope{To: from, Msg: Moved{ID: p.ID, At: p.At, Keep: keep, KeepPicked: keepPicked}})
+	}
+	return out
 }
 
 func (p *Peer) moved(m Moved) {
 	p.places[m.ID] = m.At
-	if m.S > 0 {
-		p.scales[m.ID] = m.S
-	}
 	if l, ok := p.out[m.ID]; ok && l.Name() != m.Keep && !(m.KeepPicked && l.Picked) {
 		l.Remeasure(p.Frame, p.S, p.Pos(), p.posOf(m.ID))
 		p.touched(m.ID)

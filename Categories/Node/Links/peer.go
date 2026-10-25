@@ -21,9 +21,9 @@ type Peer struct {
 
 	out      map[string]*Link
 	order    []string
+	in       map[string]bool
 	inPicked map[string]bool
 	places   map[string]Place
-	scales   map[string]int
 	round    int
 	roundAt  Vec3
 	held     []any
@@ -41,17 +41,17 @@ type Seed struct {
 
 func NewPeer(id string, seed Seed) *Peer {
 	p := &Peer{ID: id, S: seed.Scales[id], At: seed.Places[id], Frame: seed.Frame,
-		out: map[string]*Link{}, inPicked: map[string]bool{}, places: map[string]Place{}, scales: map[string]int{}}
+		out: map[string]*Link{}, in: map[string]bool{}, inPicked: map[string]bool{}, places: map[string]Place{}}
 	maps.Copy(p.places, seed.Places)
-	maps.Copy(p.scales, seed.Scales)
 	for _, l := range seed.Links {
 		switch {
 		case l.From == id:
 			c := l
 			p.out[l.To] = &c
 			p.order = append(p.order, l.To)
-		case l.To == id && l.Picked:
-			p.inPicked[l.From] = true
+		case l.To == id:
+			p.in[l.From] = true
+			p.inPicked[l.From] = l.Picked
 		}
 	}
 	p.Changed.Links = map[string]bool{}
@@ -125,8 +125,6 @@ func (p *Peer) Handle(msg any) []Envelope {
 		return p.trail(m)
 	case Moved:
 		p.moved(m)
-	case Scaled:
-		p.scales[m.ID] = m.S
 	case PickReq:
 		return p.pickReq(m)
 	case PickSet:
@@ -140,9 +138,14 @@ func (p *Peer) Handle(msg any) []Envelope {
 	case SetS:
 		return p.setS(m)
 	case Connect:
-		p.connect(m)
+		return p.connect(m)
 	case Drop:
 		return p.drop(m)
+	case Linked:
+		return p.linked(m)
+	case Unlinked:
+		delete(p.in, m.From)
+		delete(p.inPicked, m.From)
 	default:
 		panic(fmt.Sprintf("Links.Peer.Handle: node %s was handed a %T, which no case takes — every message a node can be sent has a case here, so an unhandled one is a sender naming the wrong thing", p.ID, msg))
 	}

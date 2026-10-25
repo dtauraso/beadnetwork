@@ -101,34 +101,34 @@ func (p *Peer) setS(m SetS) []Envelope {
 		p.out[to].ScaleAngles(k)
 		p.touched(to)
 	}
-	return []Envelope{{To: All, Msg: Scaled{ID: p.ID, S: p.S}}}
+	return nil
 }
 
-func (p *Peer) connect(m Connect) {
+func (p *Peer) connect(m Connect) []Envelope {
 	if _, ok := p.out[m.To]; ok || m.To == p.ID {
-		return
+		return nil
 	}
-	if _, ok := p.places[m.To]; !ok {
-		return
-	}
+	p.places[m.To] = m.At
 	l := NewLink(p.ID, m.To)
 	l.Order = NewLinkOrder
 	l.Start = Measure(p.Frame, p.S, l.Dir(p.S), p.Pos(), p.posOf(m.To))
 	p.out[m.To] = l
 	p.order = append(p.order, m.To)
 	p.touched(m.To)
+	return []Envelope{{To: m.To, Msg: Linked{From: p.ID}}}
+}
+
+func (p *Peer) linked(m Linked) []Envelope {
+	p.in[m.From] = true
+	return []Envelope{{To: m.From, Msg: Moved{ID: p.ID, At: p.At}}}
 }
 
 func (p *Peer) drop(m Drop) []Envelope {
-	l, ok := p.out[m.To]
-	if !ok {
+	if _, ok := p.out[m.To]; !ok {
 		return nil
 	}
 	delete(p.out, m.To)
 	p.order = slices.DeleteFunc(p.order, func(t string) bool { return t == m.To })
 	p.Changed.Dropped = append(p.Changed.Dropped, m.To)
-	if l.Picked {
-		return []Envelope{{To: m.To, Msg: PickDropped{From: p.ID}}}
-	}
-	return nil
+	return []Envelope{{To: m.To, Msg: Unlinked{From: p.ID}}}
 }

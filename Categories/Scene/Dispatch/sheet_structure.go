@@ -38,7 +38,12 @@ func runSheetStructure(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign 
 		}
 		md.sendLink(ctx, a.Node, Links.SetIdx{K: a.K, V: v})
 	case Builder.OpConnect:
-		md.sendLink(ctx, a.Node, Links.Connect{To: a.To})
+		r, ok := m.Reports[a.To]
+		if !ok {
+			md.UI.Builder.Refused = fmt.Sprintf("%s→%s: %s has not reported its place yet, so there is nothing to measure the link to", a.Node, a.To, a.To)
+			return true
+		}
+		md.sendLink(ctx, a.Node, Links.Connect{To: a.To, At: r.At})
 	case Builder.OpDropLink:
 		md.sendLink(ctx, a.Node, Links.Drop{To: a.To})
 	case Builder.OpAddNode:

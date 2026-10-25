@@ -59,9 +59,16 @@ type SetS struct{ V int }
 
 type SetTickMs struct{ V int }
 
-type Connect struct{ To string }
+type Connect struct {
+	To string
+	At Place
+}
 
 type Drop struct{ To string }
+
+type Linked struct{ From string }
+
+type Unlinked struct{ From string }
 
 type Put struct {
 	From    string
@@ -74,14 +81,8 @@ type Put struct {
 type Moved struct {
 	ID         string
 	At         Place
-	S          int
 	Keep       string
 	KeepPicked bool
-}
-
-type Scaled struct {
-	ID string
-	S  int
 }
 
 type Hop struct {

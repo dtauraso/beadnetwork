@@ -34,9 +34,12 @@ Angles are in ticks of a's `s`. Its direction is `start + Δ`, wrapped to a turn
 ## Messages
 
 - **Put** (a → b): `C_a` and `d`. b sits at `GridAt(C_a + d)`.
-- **Moved** (b → every node): b's new place. Each node remeasures its OWN links touching b
+- **Moved** (b → each node with a link into b): b's new place. Each remeasures its link to b
   (start = the measured direction − Δ), except the link that moved b, or every picked link during
-  an all-step.
+  an all-step; b remeasures its own links itself. A node with no link into b is not told.
+- **Connect** (UI → a, carrying b's place): a measures a new link a→b and sends b **Linked**, so b
+  adds a to the nodes it tells when it moves, and answers with a Moved. **Drop** sends b
+  **Unlinked**.
 - **Pick** (UI → b, b → a): b grants a pick only if no other node has a picked link into b.
 - **StepAll** (UI → every node, numbered): each node steps Δ on its picked links; a node with no
   picked link into it sends Put down its picked links and each target forwards after it sits; a
