@@ -79,7 +79,7 @@ class BStep {
   settle(builder) {
     const by = new Map([...this.nodes].map(n => [n.name, n]));
     const at = n => (n.at.from ? bAdd(at(by.get(n.at.from)), builder.vec(by.get(n.at.from).scale(builder), n.at)) : builder.place(n.at));
-    [...this.nodes].map(n => [n, at(n)]).forEach(([n, p]) => n.sit(builder.gridAt(p)));
+    [...this.nodes].filter(n => n.at.from).map(n => [n, at(n)]).forEach(([n, p]) => n.sit(builder.gridAt(p)));
     this.edges.forEach(e => { if (!e.start) e.start = e.measure(builder); });
   }
 
