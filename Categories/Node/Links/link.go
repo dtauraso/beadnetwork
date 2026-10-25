@@ -70,6 +70,8 @@ func (l *Link) Step(s int, k string, sign int) {
 func (l *Link) ScaleAngles(k float64) {
 	l.Start.Phi *= k
 	l.Start.Theta *= k
+	l.Delta.Phi *= k
+	l.Delta.Theta *= k
 }
 
 func Measure(f Frame, s int, was Start, p, t Vec3) Start {
