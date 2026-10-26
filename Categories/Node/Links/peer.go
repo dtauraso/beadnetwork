@@ -28,6 +28,7 @@ type Peer struct {
 	round     int
 	point     Vec3
 	placed    bool
+	heard     map[string]int
 	held      []any
 
 	Changed Changes
@@ -43,7 +44,7 @@ type Seed struct {
 
 func NewPeer(id string, seed Seed) *Peer {
 	p := &Peer{ID: id, S: seed.Scales[id], At: seed.Places[id], Frame: seed.Frame, placed: true,
-		own: map[string]*Link{}, out: map[string]bool{}, outPicked: map[string]bool{}, places: map[string]Place{}}
+		own: map[string]*Link{}, out: map[string]bool{}, outPicked: map[string]bool{}, places: map[string]Place{}, heard: map[string]int{}}
 	maps.Copy(p.places, seed.Places)
 	for _, l := range seed.Links {
 		switch {
@@ -88,7 +89,17 @@ func (p *Peer) TakeChanges() Changes {
 
 func (p *Peer) touched(from string) { p.Changed.Links[from] = true }
 
-func (p *Peer) Placed() bool { return p.placed }
+func (p *Peer) Ready() bool {
+	if !p.placed || len(p.held) > 0 {
+		return false
+	}
+	for _, id := range p.neighbours() {
+		if p.heard[id] != p.round {
+			return false
+		}
+	}
+	return true
+}
 
 func (p *Peer) vecOf(l *Link) Vec3 { return p.Frame.Vec(p.S, l.Dir(p.S)) }
 
@@ -149,6 +160,7 @@ func (p *Peer) Handle(msg any) []Envelope {
 	case Linked:
 		p.out[m.From] = true
 		p.places[m.From] = m.At
+		p.heard[m.From] = p.round
 	case Unlinked:
 		delete(p.out, m.From)
 		delete(p.outPicked, m.From)

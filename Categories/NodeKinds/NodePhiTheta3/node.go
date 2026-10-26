@@ -53,7 +53,7 @@ func (n *NodePhiTheta3) Update(ctx context.Context) {
 		k++
 		if now := clock.HumanTick(n.tickMs); now != h {
 			h = now
-			if pending && n.peer.Placed() && h >= n.showAt {
+			if pending && n.peer.Ready() && h >= n.showAt {
 				n.apply()
 				pending = false
 			}

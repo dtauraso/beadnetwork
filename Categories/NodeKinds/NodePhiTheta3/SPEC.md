@@ -62,9 +62,11 @@ input every pass and refreshes the pills once per human tick); a node has no bea
 
 Each pass of the node's loop takes at most one message and counts one machine tick `k`. When `h = ⌊(now − epoch) / Δt⌋` changes, it applies, persists and publishes
 what changed during that tick, then posts `(h, k)` to its timing slot. A StepAll carries the human
-tick `H` it was sent on, and a node holds what the step changed until its point is final and
-`h ≥ H + 2`, so every node shows a step's links and points on the same human tick — never new
-angles drawn from a point not yet recovered. So a node shows at most one
+tick `H` it was sent on, and a node holds what the step changed until its point is final, it
+has a **Moved** for that step from every node it is linked with (a node nothing rotates sends
+its unchanged place), and `h ≥ H + 2`, so every node shows a step's links and points on the
+same human tick — never new angles drawn from a point not yet recovered, and never an arrow
+drawn to where a neighbour was before the step. So a node shows at most one
 step per human tick whatever its `n` (machine ticks per human tick); `n` differs between nodes and
 between ticks and changes nothing the node computes. The Frame pill shows Δt, `h`, the slowest
 node's `n` and which node it is, and how many nodes are behind `h − 1`; Node places shows each node's `n`.

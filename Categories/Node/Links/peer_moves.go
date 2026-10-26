@@ -24,6 +24,9 @@ func (p *Peer) stepAll(m StepAll) []Envelope {
 	}
 	p.round, p.point, p.placed = m.Round, p.Pos(), p.pickedIn() == nil
 	out := p.tell(p.placed)
+	if p.placed {
+		out = append(out, p.movedTo(true)...)
+	}
 	held := p.held
 	p.held = nil
 	for _, h := range held {
@@ -79,15 +82,20 @@ func (p *Peer) sat(keep string, keepPicked bool) []Envelope {
 		l.Remeasure(p.Frame, p.S, p.posOf(from), p.Pos())
 		p.touched(from)
 	}
+	return p.movedTo(keepPicked)
+}
+
+func (p *Peer) movedTo(keepPicked bool) []Envelope {
 	var out []Envelope
 	for _, id := range p.neighbours() {
-		out = append(out, Envelope{To: id, Msg: Moved{ID: p.ID, At: p.At, KeepPicked: keepPicked}})
+		out = append(out, Envelope{To: id, Msg: Moved{ID: p.ID, At: p.At, KeepPicked: keepPicked, Round: p.round}})
 	}
 	return out
 }
 
 func (p *Peer) moved(m Moved) {
 	p.places[m.ID] = m.At
+	p.heard[m.ID] = max(p.heard[m.ID], m.Round)
 	if l, ok := p.own[m.ID]; ok && !(m.KeepPicked && l.Picked) {
 		l.Remeasure(p.Frame, p.S, p.posOf(m.ID), p.Pos())
 		p.touched(m.ID)
