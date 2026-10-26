@@ -78,7 +78,6 @@ func Measure(f Frame, s int, was Start, p, t Vec3) Start {
 	v := t.Sub(p)
 	n := v.Length()
 	tick := 2 * math.Pi / float64(TurnTicks*s)
-	half := float64(TurnTicks * s / 2)
 	if n < 1e-9 {
 		return Start{Phi: was.Phi, Theta: was.Theta}
 	}
@@ -93,8 +92,8 @@ func Measure(f Frame, s int, was Start, p, t Vec3) Start {
 		return math.Min(d, float64(TurnTicks*s)-d)
 	}
 	off := func(p, t float64) float64 { return gap(p, was.Phi) + gap(t, was.Theta) }
-	if off(phi, theta) > off(-phi, theta+half) {
-		phi, theta = -phi, theta+half
+	if off(phi, theta) > off(-phi, theta) {
+		phi = -phi
 	}
 	return Start{Phi: Wrap(s, phi), Theta: Wrap(s, theta), R: n / f.Rho}
 }
