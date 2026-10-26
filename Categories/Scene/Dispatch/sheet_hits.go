@@ -71,27 +71,27 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 			md.UI.Builder.Refused = fmt.Sprintf("%s→%s r %v: a length cannot be negative, so it stays at %v", a.Node, a.To, v, l.Start.R)
 			return
 		}
-		md.sendLink(ctx, a.Node, Links.SetStart{To: a.To, K: a.K, V: v})
+		md.sendLink(ctx, a.To, Links.SetStart{From: a.Node, K: a.K, V: v})
 	case Builder.OpLinkPress:
 		if sign == 0 {
 			sign = a.Sign
 		}
 		if sign != 0 {
-			md.sendLink(ctx, a.Node, Links.Press{To: a.To, K: a.K, Sign: sign})
+			md.sendLink(ctx, a.To, Links.Press{From: a.Node, K: a.K, Sign: sign})
 		}
 	case Builder.OpPick:
 		md.sendLink(ctx, a.To, Links.PickReq{From: a.Node})
 	case Builder.OpUnpick:
-		md.sendLink(ctx, a.Node, Links.Unpick{To: a.To})
+		md.sendLink(ctx, a.To, Links.Unpick{From: a.Node})
 	case Builder.OpIncrement:
 		if typed != nil && whole(*typed) {
-			md.sendLink(ctx, a.Node, Links.SetIncrement{To: a.To, K: a.K, V: *typed})
+			md.sendLink(ctx, a.To, Links.SetIncrement{From: a.Node, K: a.K, V: *typed})
 		} else if typed != nil {
 			md.UI.Builder.Refused = fmt.Sprintf("%s→%s increment %v: not a whole number of ticks, so it stays as it is", a.Node, a.To, *typed)
 		}
 	case Builder.OpLocking:
 		if l, ok := m.Link(a.Node, a.To); ok {
-			md.sendLink(ctx, a.Node, Links.SetLocking{To: a.To, On: !l.Locking})
+			md.sendLink(ctx, a.To, Links.SetLocking{From: a.Node, On: !l.Locking})
 		}
 	case Builder.OpItem, Builder.OpMethod, Builder.OpCard:
 		setCards(md, a)

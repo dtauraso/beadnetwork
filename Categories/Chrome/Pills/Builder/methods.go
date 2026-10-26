@@ -57,7 +57,7 @@ func rowsInto(m Model, item string) []row {
 		if l.To != item {
 			continue
 		}
-		s := m.ScaleOf(l.From)
+		s := m.ScaleOf(l.To)
 		t := l.Dir(s)
 		at := m.Reports[l.From].At
 		c := m.Frame.At(at)
@@ -71,7 +71,7 @@ func vectorStep(rows []row, item string) CardStep {
 	st := CardStep{Title: "local: each row's start as a vector", Note: "from the row's start ticks alone; a vector, not yet a place", OK: len(rows) > 0}
 	for _, r := range rows {
 		st.Lines = append(st.Lines, fmt.Sprintf("d_%s%s = polar_to_cart(%s·ρ, %s·2π/12s_%s, %s·2π/12s_%s) = %s",
-			r.from, item, Num(r.t.R), Num(r.t.Phi), r.from, Num(r.t.Theta), r.from, pt(r.d)))
+			r.from, item, Num(r.t.R), Num(r.t.Phi), item, Num(r.t.Theta), item, pt(r.d)))
 	}
 	if len(rows) == 0 {
 		st.Lines = []string{item + "'s table has no rows"}

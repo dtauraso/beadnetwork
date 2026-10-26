@@ -3,6 +3,7 @@ package Links
 import (
 	"fmt"
 	"maps"
+	"slices"
 )
 
 type Changes struct {
@@ -19,15 +20,15 @@ type Peer struct {
 	At    Place
 	Frame Frame
 
-	out      map[string]*Link
-	order    []string
-	in       map[string]bool
-	inPicked map[string]bool
-	places   map[string]Place
-	round    int
-	point    Vec3
-	placed   bool
-	held     []any
+	own       map[string]*Link
+	order     []string
+	out       map[string]bool
+	outPicked map[string]bool
+	places    map[string]Place
+	round     int
+	point     Vec3
+	placed    bool
+	held      []any
 
 	Changed Changes
 }
@@ -42,17 +43,17 @@ type Seed struct {
 
 func NewPeer(id string, seed Seed) *Peer {
 	p := &Peer{ID: id, S: seed.Scales[id], At: seed.Places[id], Frame: seed.Frame, placed: true,
-		out: map[string]*Link{}, in: map[string]bool{}, inPicked: map[string]bool{}, places: map[string]Place{}}
+		own: map[string]*Link{}, out: map[string]bool{}, outPicked: map[string]bool{}, places: map[string]Place{}}
 	maps.Copy(p.places, seed.Places)
 	for _, l := range seed.Links {
 		switch {
-		case l.From == id:
-			c := l
-			p.out[l.To] = &c
-			p.order = append(p.order, l.To)
 		case l.To == id:
-			p.in[l.From] = true
-			p.inPicked[l.From] = l.Picked
+			c := l
+			p.own[l.From] = &c
+			p.order = append(p.order, l.From)
+		case l.From == id:
+			p.out[l.To] = true
+			p.outPicked[l.To] = l.Picked
 		}
 	}
 	p.Changed.Links = map[string]bool{}
@@ -61,8 +62,8 @@ func NewPeer(id string, seed Seed) *Peer {
 
 func (p *Peer) Links() []Link {
 	out := make([]Link, 0, len(p.order))
-	for _, to := range p.order {
-		out = append(out, *p.out[to])
+	for _, from := range p.order {
+		out = append(out, *p.own[from])
 	}
 	return out
 }
@@ -71,35 +72,44 @@ func (p *Peer) Pos() Vec3 { return p.Frame.At(p.At) }
 
 func (p *Peer) posOf(id string) Vec3 { return p.Frame.At(p.places[id]) }
 
+func (p *Peer) Outs() []Vec3 {
+	var out []Vec3
+	for _, to := range slices.Sorted(maps.Keys(p.out)) {
+		out = append(out, p.posOf(to).Sub(p.Pos()))
+	}
+	return out
+}
+
 func (p *Peer) TakeChanges() Changes {
 	c := p.Changed
 	p.Changed = Changes{Links: map[string]bool{}}
 	return c
 }
 
-func (p *Peer) touched(to string) { p.Changed.Links[to] = true }
+func (p *Peer) touched(from string) { p.Changed.Links[from] = true }
 
 func (p *Peer) Placed() bool { return p.placed }
 
 func (p *Peer) vecOf(l *Link) Vec3 { return p.Frame.Vec(p.S, l.Dir(p.S)) }
 
-func (p *Peer) hasPickedIn() bool {
-	for _, on := range p.inPicked {
-		if on {
-			return true
+func (p *Peer) pickedIn() *Link {
+	for _, from := range p.order {
+		if l := p.own[from]; l.Picked {
+			return l
 		}
 	}
-	return false
+	return nil
 }
 
-func (p *Peer) picked() []*Link {
-	var out []*Link
-	for _, to := range p.order {
-		if l := p.out[to]; l.Picked {
-			out = append(out, l)
-		}
+func (p *Peer) neighbours() []string {
+	ids := map[string]bool{}
+	for from := range p.own {
+		ids[from] = true
 	}
-	return out
+	for to := range p.out {
+		ids[to] = true
+	}
+	return slices.Sorted(maps.Keys(ids))
 }
 
 func (p *Peer) Handle(msg any) []Envelope {
@@ -115,9 +125,6 @@ func (p *Peer) Handle(msg any) []Envelope {
 	case StepAll:
 		return p.stepAll(m)
 	case Put:
-		if !m.Step {
-			return p.take(m)
-		}
 		if m.Round > p.round {
 			p.held = append(p.held, m)
 			return nil
@@ -128,11 +135,9 @@ func (p *Peer) Handle(msg any) []Envelope {
 	case PickReq:
 		return p.pickReq(m)
 	case PickSet:
-		p.pickSet(m)
+		p.outPicked[m.From] = m.On
 	case Unpick:
 		return p.unpick(m)
-	case PickDropped:
-		delete(p.inPicked, m.From)
 	case SetIdx:
 		return p.setIdx(m)
 	case SetS:
@@ -142,10 +147,11 @@ func (p *Peer) Handle(msg any) []Envelope {
 	case Drop:
 		return p.drop(m)
 	case Linked:
-		return p.linked(m)
+		p.out[m.From] = true
+		p.places[m.From] = m.At
 	case Unlinked:
-		delete(p.in, m.From)
-		delete(p.inPicked, m.From)
+		delete(p.out, m.From)
+		delete(p.outPicked, m.From)
 	default:
 		panic(fmt.Sprintf("Links.Peer.Handle: node %s was handed a %T, which no case takes — every message a node can be sent has a case here, so an unhandled one is a sender naming the wrong thing", p.ID, msg))
 	}

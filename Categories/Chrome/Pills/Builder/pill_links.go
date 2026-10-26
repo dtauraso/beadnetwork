@@ -69,7 +69,7 @@ func recalcGroup(m Model) Group {
 func landsGroup(m Model) Group {
 	var rows [][]Cell
 	for _, l := range m.allLinks() {
-		d := l.Dir(m.ScaleOf(l.From))
+		d := l.Dir(m.ScaleOf(l.To))
 		rows = append(rows, []Cell{
 			Text(l.Name()),
 			Text("start φ " + Num(l.Start.Phi) + "  θ " + Num(l.Start.Theta) + "  r " + Num(l.Start.R)),
