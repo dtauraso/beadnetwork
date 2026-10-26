@@ -19,6 +19,8 @@ func way(l *Link, all Lock, k string) int {
 	return 1
 }
 
+const settled = 1e-9
+
 func (p *Peer) stepAll(m StepAll) []Envelope {
 	for _, l := range p.picked() {
 		if m.K == KBoth {
@@ -29,15 +31,8 @@ func (p *Peer) stepAll(m StepAll) []Envelope {
 		}
 		p.touched(l.To)
 	}
-	p.round, p.roundAt = m.Round, p.Pos()
-	var out []Envelope
-	if p.hasPickedIn() {
-		for _, l := range p.picked() {
-			out = append(out, Envelope{To: l.To, Msg: Trail{Round: m.Round, Hops: []Hop{{ID: p.ID, P: p.roundAt, D: p.vecOf(l)}}}})
-		}
-	} else {
-		out = p.cascade(m.Round, nil)
-	}
+	p.round, p.point, p.placed = m.Round, p.Pos(), !p.hasPickedIn()
+	out := p.tell(p.placed)
 	held := p.held
 	p.held = nil
 	for _, h := range held {
@@ -46,15 +41,32 @@ func (p *Peer) stepAll(m StepAll) []Envelope {
 	return out
 }
 
-func (p *Peer) cascade(round int, skip map[string]bool) []Envelope {
+func (p *Peer) tell(final bool) []Envelope {
 	var out []Envelope
 	for _, l := range p.picked() {
-		if skip[l.To] {
-			continue
-		}
-		out = append(out, Envelope{To: l.To, Msg: Put{From: p.ID, P: p.Pos(), D: p.vecOf(l), Round: round, Cascade: true}})
+		out = append(out, Envelope{To: l.To, Msg: Put{From: p.ID, P: p.point, D: p.vecOf(l), Round: p.round, Step: true, Final: final}})
 	}
 	return out
+}
+
+func (p *Peer) recover(m Put) []Envelope {
+	if p.placed {
+		return nil
+	}
+	want := m.P.Add(m.D)
+	next := want
+	if !m.Final {
+		next = p.point.Add(want).Scale(0.5)
+	}
+	moved := next.Sub(p.point).Length()
+	p.point = next
+	if !m.Final && moved >= settled {
+		return p.tell(false)
+	}
+	p.placed = true
+	p.At = p.Frame.GridAt(p.point)
+	p.point = p.Pos()
+	return append(p.sat("", true), p.tell(true)...)
 }
 
 func (p *Peer) sat(keep string, keepPicked bool) []Envelope {
@@ -85,52 +97,5 @@ func (p *Peer) moved(m Moved) {
 
 func (p *Peer) take(m Put) []Envelope {
 	p.At = p.Frame.GridAt(m.P.Add(m.D))
-	out := p.sat(m.Keep, m.Cascade)
-	if m.Cascade {
-		out = append(out, p.cascade(m.Round, nil)...)
-	}
-	return out
-}
-
-func (p *Peer) trail(m Trail) []Envelope {
-	if m.Hops[0].ID == p.ID {
-		return p.ring(m)
-	}
-	for _, h := range m.Hops {
-		if h.ID == p.ID {
-			return nil
-		}
-	}
-	var out []Envelope
-	for _, l := range p.picked() {
-		hops := append(slices.Clone(m.Hops), Hop{ID: p.ID, P: p.roundAt, D: p.vecOf(l)})
-		out = append(out, Envelope{To: l.To, Msg: Trail{Round: m.Round, Hops: hops}})
-	}
-	return out
-}
-
-func (p *Peer) ring(m Trail) []Envelope {
-	n := float64(len(m.Hops))
-	var gap, mid Vec3
-	for _, h := range m.Hops {
-		gap = gap.Add(h.D)
-		mid = mid.Add(h.P)
-	}
-	gap, mid = gap.Scale(1/n), mid.Scale(1/n)
-	qs := make([]Vec3, len(m.Hops))
-	var qmid Vec3
-	for i := 1; i < len(m.Hops); i++ {
-		qs[i] = qs[i-1].Add(m.Hops[i-1].D.Sub(gap))
-	}
-	for _, q := range qs {
-		qmid = qmid.Add(q)
-	}
-	shift := mid.Sub(qmid.Scale(1 / n))
-	p.At = p.Frame.GridAt(qs[0].Add(shift))
-	out := p.sat("", true)
-	inRing := map[string]bool{}
-	for _, h := range m.Hops {
-		inRing[h.ID] = true
-	}
-	return append(out, p.cascade(m.Round, inRing)...)
+	return p.sat(m.Keep, false)
 }

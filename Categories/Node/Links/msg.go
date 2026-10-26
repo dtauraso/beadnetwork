@@ -71,11 +71,12 @@ type Linked struct{ From string }
 type Unlinked struct{ From string }
 
 type Put struct {
-	From    string
-	P, D    Vec3
-	Keep    string
-	Round   int
-	Cascade bool
+	From  string
+	P, D  Vec3
+	Keep  string
+	Round int
+	Step  bool
+	Final bool
 }
 
 type Moved struct {
@@ -83,14 +84,4 @@ type Moved struct {
 	At         Place
 	Keep       string
 	KeepPicked bool
-}
-
-type Hop struct {
-	ID   string
-	P, D Vec3
-}
-
-type Trail struct {
-	Round int
-	Hops  []Hop
 }
