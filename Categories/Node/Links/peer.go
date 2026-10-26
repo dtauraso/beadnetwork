@@ -25,7 +25,8 @@ type Peer struct {
 	inPicked map[string]bool
 	places   map[string]Place
 	round    int
-	roundAt  Vec3
+	point    Vec3
+	placed   bool
 	held     []any
 
 	Changed Changes
@@ -40,7 +41,7 @@ type Seed struct {
 }
 
 func NewPeer(id string, seed Seed) *Peer {
-	p := &Peer{ID: id, S: seed.Scales[id], At: seed.Places[id], Frame: seed.Frame,
+	p := &Peer{ID: id, S: seed.Scales[id], At: seed.Places[id], Frame: seed.Frame, placed: true,
 		out: map[string]*Link{}, in: map[string]bool{}, inPicked: map[string]bool{}, places: map[string]Place{}}
 	maps.Copy(p.places, seed.Places)
 	for _, l := range seed.Links {
@@ -78,6 +79,8 @@ func (p *Peer) TakeChanges() Changes {
 
 func (p *Peer) touched(to string) { p.Changed.Links[to] = true }
 
+func (p *Peer) Placed() bool { return p.placed }
+
 func (p *Peer) vecOf(l *Link) Vec3 { return p.Frame.Vec(p.S, l.Dir(p.S)) }
 
 func (p *Peer) hasPickedIn() bool {
@@ -112,17 +115,14 @@ func (p *Peer) Handle(msg any) []Envelope {
 	case StepAll:
 		return p.stepAll(m)
 	case Put:
-		if m.Cascade && m.Round > p.round {
-			p.held = append(p.held, m)
-			return nil
+		if !m.Step {
+			return p.take(m)
 		}
-		return p.take(m)
-	case Trail:
 		if m.Round > p.round {
 			p.held = append(p.held, m)
 			return nil
 		}
-		return p.trail(m)
+		return p.recover(m)
 	case Moved:
 		p.moved(m)
 	case PickReq:

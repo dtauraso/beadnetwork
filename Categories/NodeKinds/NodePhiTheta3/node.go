@@ -19,6 +19,7 @@ type NodePhiTheta3 struct {
 	mesh   *Links.Mesh
 	peer   *Links.Peer
 	tickMs int
+	showAt int64
 }
 
 func (n *NodePhiTheta3) breadcrumb(label, value string) {
@@ -52,7 +53,7 @@ func (n *NodePhiTheta3) Update(ctx context.Context) {
 		k++
 		if now := clock.HumanTick(n.tickMs); now != h {
 			h = now
-			if pending {
+			if pending && n.peer.Placed() && h >= n.showAt {
 				n.apply()
 				pending = false
 			}
@@ -66,6 +67,9 @@ func (n *NodePhiTheta3) take(ctx context.Context, msg any) bool {
 		n.tickMs = max(t.V, 1)
 		n.geom.RunOnHumanTicks(n.tickMs)
 		return false
+	}
+	if s, ok := msg.(Links.StepAll); ok {
+		n.showAt = s.H + 2
 	}
 	for _, e := range n.peer.Handle(msg) {
 		n.mesh.Send(ctx, n.peer.ID, e)

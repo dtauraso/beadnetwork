@@ -129,8 +129,9 @@ func allStep(ctx context.Context, md *MoveDispatch, k string, sign int) {
 func (md *MoveDispatch) stepAll(ctx context.Context, k string, sign int) {
 	st := &md.UI.Builder.Step
 	st.Round++
+	h := clock.HumanTick(md.UI.Builder.TickMs)
 	for _, id := range md.UI.Builder.Nodes {
-		md.sendLink(ctx, id, Links.StepAll{Round: st.Round, K: k, Sign: sign, LockAll: st.LockAll})
+		md.sendLink(ctx, id, Links.StepAll{Round: st.Round, H: h, K: k, Sign: sign, LockAll: st.LockAll})
 	}
 }
 
