@@ -79,6 +79,10 @@ func (p *Peer) TakeChanges() Changes {
 
 func (p *Peer) touched(to string) { p.Changed.Links[to] = true }
 
+func (p *Peer) Round() int { return p.round }
+
+func (p *Peer) Placed() bool { return p.placed }
+
 func (p *Peer) vecOf(l *Link) Vec3 { return p.Frame.Vec(p.S, l.Dir(p.S)) }
 
 func (p *Peer) hasPickedIn() bool {
