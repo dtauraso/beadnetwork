@@ -65,8 +65,8 @@ func (m *Model) Take(r Links.Report) {
 }
 
 func (m Model) Link(from, to string) (Links.Link, bool) {
-	for _, l := range m.Reports[from].Links {
-		if l.To == to {
+	for _, l := range m.Reports[to].Links {
+		if l.From == from {
 			return l, true
 		}
 	}

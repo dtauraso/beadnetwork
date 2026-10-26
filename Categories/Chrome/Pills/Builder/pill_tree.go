@@ -96,7 +96,7 @@ func TreePill(m Model) Pill {
 		box(3, "method cards", kv("item", m.Item(), true), kv("methods", names(methods), false), kv("card step", strconv.Itoa(m.CardShown()), false)),
 	}
 	for _, l := range all {
-		d := l.Dir(m.ScaleOf(l.From))
+		d := l.Dir(m.ScaleOf(l.To))
 		groups = append(groups, box(3, "edge "+l.Name(), kv("from", l.From, true), kv("to", l.To, true),
 			kv("start", ang(l.Start.Phi, l.Start.Theta, &l.Start.R), false), kv("Δ", ang(l.Delta.Phi, l.Delta.Theta, nil), false),
 			kv("increment", ang(l.Increment.Phi, l.Increment.Theta, nil), false), kv("lock", lockText(l.Lock), false),

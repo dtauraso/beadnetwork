@@ -8,26 +8,26 @@ type Envelope struct {
 }
 
 type SetStart struct {
-	To string
-	K  string
-	V  float64
+	From string
+	K    string
+	V    float64
 }
 
 type Press struct {
-	To   string
+	From string
 	K    string
 	Sign int
 }
 
 type SetIncrement struct {
-	To string
-	K  string
-	V  float64
+	From string
+	K    string
+	V    float64
 }
 
 type SetLocking struct {
-	To string
-	On bool
+	From string
+	On   bool
 }
 
 type StepAll struct {
@@ -47,9 +47,7 @@ type PickSet struct {
 	On   bool
 }
 
-type Unpick struct{ To string }
-
-type PickDropped struct{ From string }
+type Unpick struct{ From string }
 
 type SetIdx struct {
 	K string
@@ -61,28 +59,28 @@ type SetS struct{ V int }
 type SetTickMs struct{ V int }
 
 type Connect struct {
-	To string
-	At Place
+	From string
+	At   Place
 }
 
-type Drop struct{ To string }
+type Drop struct{ From string }
 
-type Linked struct{ From string }
+type Linked struct {
+	From string
+	At   Place
+}
 
 type Unlinked struct{ From string }
 
 type Put struct {
 	From  string
-	P, D  Vec3
-	Keep  string
+	P     Vec3
 	Round int
-	Step  bool
 	Final bool
 }
 
 type Moved struct {
 	ID         string
 	At         Place
-	Keep       string
 	KeepPicked bool
 }

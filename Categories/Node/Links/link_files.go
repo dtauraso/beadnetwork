@@ -10,7 +10,7 @@ const (
 	DirLinks = "links"
 	DirDrag  = "drag"
 
-	FileTarget     = "target.bin"
+	FileSource     = "source.bin"
 	FileOrder      = "order.bin"
 	FileStartPhi   = "start-phi.bin"
 	FileStartTheta = "start-theta.bin"
@@ -31,15 +31,15 @@ func DragLinksDir(nodeDir string) string { return filepath.Join(nodeDir, DirDrag
 
 func linkName(from, to string) string { return from + "To" + to }
 
-func ReadLinks(nodeDir, from string) ([]Link, error) {
+func ReadLinks(nodeDir, to string) ([]Link, error) {
 	dir := DragLinksDir(nodeDir)
 	if _, err := os.Stat(dir); err != nil { // path-resolution-ok: a node's edits replace its base links only once it has made one
 		dir = BaseLinksDir(nodeDir)
 	}
-	return readLinksIn(dir, from)
+	return readLinksIn(dir, to)
 }
 
-func readLinksIn(linksDir, from string) ([]Link, error) {
+func readLinksIn(linksDir, to string) ([]Link, error) {
 	entries, err := os.ReadDir(linksDir)
 	if os.IsNotExist(err) {
 		return nil, nil
@@ -53,8 +53,8 @@ func readLinksIn(linksDir, from string) ([]Link, error) {
 			continue
 		}
 		dir := filepath.Join(linksDir, e.Name())
-		l := Link{From: from, Increment: Angles{Phi: 1, Theta: 1}}
-		if !ReadIfExists(filepath.Join(dir, FileTarget), &l.To) {
+		l := Link{To: to, Increment: Angles{Phi: 1, Theta: 1}}
+		if !ReadIfExists(filepath.Join(dir, FileSource), &l.From) {
 			continue
 		}
 		ReadIfExists(filepath.Join(dir, FileOrder), &l.Order)
@@ -111,7 +111,7 @@ func writeLinksIn(linksDir string, links []Link) error {
 		keep[name] = true
 		dir := filepath.Join(linksDir, name)
 		for file, v := range map[string]any{
-			FileTarget: l.To, FileOrder: l.Order,
+			FileSource: l.From, FileOrder: l.Order,
 			FileStartPhi: l.Start.Phi, FileStartTheta: l.Start.Theta, FileStartR: l.Start.R,
 			FileDeltaPhi: l.Delta.Phi, FileDeltaTheta: l.Delta.Theta,
 			FileIncPhi: l.Increment.Phi, FileIncTheta: l.Increment.Theta,
