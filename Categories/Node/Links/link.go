@@ -91,11 +91,16 @@ func Measure(f Frame, s int, was Start, p, t Vec3) Start {
 		d := Wrap(s, a-b)
 		return math.Min(d, float64(TurnTicks*s)-d)
 	}
-	off := func(p, t float64) float64 { return gap(p, was.Phi) + gap(t, was.Theta) }
-	if off(phi, theta) > off(-phi, theta) {
-		phi = -phi
+	off := func(c Angles) float64 { return gap(c.Phi, was.Phi) + gap(c.Theta, was.Theta) }
+	half := float64(TurnTicks * s / 2)
+	best := Angles{Phi: phi, Theta: theta}
+	for _, c := range []Angles{{Phi: -phi, Theta: theta}, {Phi: -phi, Theta: theta + half}} {
+		d := f.Vec(s, Start{Phi: Wrap(s, c.Phi), Theta: Wrap(s, c.Theta), R: n / f.Rho}).Sub(v)
+		if d.Length() < 1e-6*n && off(c) < off(best) {
+			best = c
+		}
 	}
-	return Start{Phi: Wrap(s, phi), Theta: Wrap(s, theta), R: n / f.Rho}
+	return Start{Phi: Wrap(s, best.Phi), Theta: Wrap(s, best.Theta), R: n / f.Rho}
 }
 
 func (l *Link) Remeasure(f Frame, s int, p, t Vec3) {
