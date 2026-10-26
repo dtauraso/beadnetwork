@@ -57,7 +57,10 @@ block files once per human tick), and not the gesture actor while the tab is ope
 input every pass and refreshes the pills once per human tick); a node has no bead animation.
 
 Each pass of the node's loop takes at most one message and counts one machine tick `k`. When `h = ⌊(now − epoch) / Δt⌋` changes, it applies, persists and publishes
-what changed during that tick, then posts `(h, k)` to its timing slot. So a node shows at most one
+what changed during that tick, then posts `(h, k)` to its timing slot. A StepAll carries the human
+tick `H` it was sent on, and a node holds what the step changed until its point is final and
+`h ≥ H + 2`, so every node shows a step's links and points on the same human tick — never new
+angles drawn from a point not yet recovered. So a node shows at most one
 step per human tick whatever its `n` (machine ticks per human tick); `n` differs between nodes and
 between ticks and changes nothing the node computes. The Frame pill shows Δt, `h`, the slowest
 node's `n` and which node it is, and how many nodes are behind `h − 1`; Node places shows each node's `n`.

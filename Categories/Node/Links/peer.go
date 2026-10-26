@@ -41,7 +41,7 @@ type Seed struct {
 }
 
 func NewPeer(id string, seed Seed) *Peer {
-	p := &Peer{ID: id, S: seed.Scales[id], At: seed.Places[id], Frame: seed.Frame,
+	p := &Peer{ID: id, S: seed.Scales[id], At: seed.Places[id], Frame: seed.Frame, placed: true,
 		out: map[string]*Link{}, in: map[string]bool{}, inPicked: map[string]bool{}, places: map[string]Place{}}
 	maps.Copy(p.places, seed.Places)
 	for _, l := range seed.Links {
@@ -78,8 +78,6 @@ func (p *Peer) TakeChanges() Changes {
 }
 
 func (p *Peer) touched(to string) { p.Changed.Links[to] = true }
-
-func (p *Peer) Round() int { return p.round }
 
 func (p *Peer) Placed() bool { return p.placed }
 

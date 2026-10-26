@@ -19,9 +19,7 @@ type NodePhiTheta3 struct {
 	mesh   *Links.Mesh
 	peer   *Links.Peer
 	tickMs int
-
-	k        int64
-	recovers int
+	showAt int64
 }
 
 func (n *NodePhiTheta3) breadcrumb(label, value string) {
@@ -42,6 +40,7 @@ func (n *NodePhiTheta3) Update(ctx context.Context) {
 	n.publish()
 
 	h := clock.HumanTick(n.tickMs)
+	var k int64
 	pending := false
 	for {
 		select {
@@ -51,31 +50,14 @@ func (n *NodePhiTheta3) Update(ctx context.Context) {
 			pending = n.take(ctx, msg) || pending
 		default:
 		}
-		n.k++
+		k++
 		if now := clock.HumanTick(n.tickMs); now != h {
 			h = now
-			if pending {
+			if pending && n.peer.Placed() && h >= n.showAt {
 				n.apply()
 				pending = false
 			}
-			n.mesh.PostTiming(Links.Timing{ID: n.peer.ID, H: h, K: n.k})
-		}
-	}
-}
-
-func (n *NodePhiTheta3) stepTrace(msg any, wasPlaced bool) {
-	h := clock.HumanTick(n.tickMs)
-	switch m := msg.(type) {
-	case Links.StepAll:
-		n.recovers = 0
-		n.breadcrumb("step", fmt.Sprintf("round=%d h=%d k=%d placed=%v", m.Round, h, n.k, n.peer.Placed()))
-	case Links.Put:
-		if !m.Step {
-			return
-		}
-		n.recovers++
-		if !wasPlaced && n.peer.Placed() {
-			n.breadcrumb("placed", fmt.Sprintf("round=%d h=%d k=%d recovers=%d final-from-source=%v", n.peer.Round(), h, n.k, n.recovers, m.Final))
+			n.mesh.PostTiming(Links.Timing{ID: n.peer.ID, H: h, K: k})
 		}
 	}
 }
@@ -86,17 +68,17 @@ func (n *NodePhiTheta3) take(ctx context.Context, msg any) bool {
 		n.geom.RunOnHumanTicks(n.tickMs)
 		return false
 	}
-	wasPlaced := n.peer.Placed()
+	if s, ok := msg.(Links.StepAll); ok {
+		n.showAt = s.H + 2
+	}
 	for _, e := range n.peer.Handle(msg) {
 		n.mesh.Send(ctx, n.peer.ID, e)
 	}
-	n.stepTrace(msg, wasPlaced)
 	return true
 }
 
 func (n *NodePhiTheta3) apply() {
 	c := n.peer.TakeChanges()
-	n.breadcrumb("publish", fmt.Sprintf("round=%d h=%d k=%d place=%v links=%d placed=%v", n.peer.Round(), clock.HumanTick(n.tickMs), n.k, c.Place, len(c.Links), n.peer.Placed()))
 	root, id := n.geom.PersistRoot(), n.peer.ID
 	if root == "" {
 		c = Links.Changes{Place: c.Place, S: c.S, Refused: c.Refused}

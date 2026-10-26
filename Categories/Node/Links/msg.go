@@ -32,6 +32,7 @@ type SetLocking struct {
 
 type StepAll struct {
 	Round   int
+	H       int64
 	K       string
 	Sign    int
 	LockAll Lock
