@@ -105,6 +105,7 @@ func (p *Peer) connect(m Connect) []Envelope {
 		return nil
 	}
 	p.places[m.From] = m.At
+	p.heard[m.From] = p.round
 	l := NewLink(m.From, p.ID)
 	l.Order = NewLinkOrder
 	l.Start = Measure(p.Frame, p.S, l.Dir(p.S), p.posOf(m.From), p.Pos())

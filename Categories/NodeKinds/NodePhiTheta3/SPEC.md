@@ -29,7 +29,10 @@ A place `I = (I_r, I_φ, I_θ)` is a float index: `C = O + polar_to_cart(I_r·c_
 
 `start (φ, θ, r)`, `Δ (φ, θ)`, `increment (φ, θ)`, `lock (φ, θ) ∈ {−1, 0, 1}`, `locking`, `picked`,
 held by b, the target. Angles are in ticks of b's `s`. Its direction is `start + Δ`, wrapped to a
-turn, and its local vector is `d = polar_to_cart(r·ρ, (φ+Δφ)·2π/12s, (θ+Δθ)·2π/12s)`. What is
+turn, and its local vector is `d = polar_to_cart(r·ρ, (φ+Δφ)·2π/12s, (θ+Δθ)·2π/12s)` with its z
+negated when φ = θ and both are past half a turn (6s < φ < 12s), where the angle counts as
+negative: with the two angles equal, sin φ · sin θ is a square and would otherwise never let d
+reach the negative side. What is
 drawn from `C_a` is the link's global version, `C_b − C_a`, from the two recovered points.
 
 ## Messages
@@ -60,9 +63,11 @@ input every pass and refreshes the pills once per human tick); a node has no bea
 
 Each pass of the node's loop takes at most one message and counts one machine tick `k`. When `h = ⌊(now − epoch) / Δt⌋` changes, it applies, persists and publishes
 what changed during that tick, then posts `(h, k)` to its timing slot. A StepAll carries the human
-tick `H` it was sent on, and a node holds what the step changed until its point is final and
-`h ≥ H + 2`, so every node shows a step's links and points on the same human tick — never new
-angles drawn from a point not yet recovered. So a node shows at most one
+tick `H` it was sent on, and a node holds what the step changed until its point is final, it
+has a **Moved** for that step from every node it is linked with (a node nothing rotates sends
+its unchanged place), and `h ≥ H + 2`, so every node shows a step's links and points on the
+same human tick — never new angles drawn from a point not yet recovered, and never an arrow
+drawn to where a neighbour was before the step. So a node shows at most one
 step per human tick whatever its `n` (machine ticks per human tick); `n` differs between nodes and
 between ticks and changes nothing the node computes. The Frame pill shows Δt, `h`, the slowest
 node's `n` and which node it is, and how many nodes are behind `h − 1`; Node places shows each node's `n`.
