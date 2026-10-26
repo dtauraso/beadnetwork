@@ -29,9 +29,10 @@ A place `I = (I_r, I_φ, I_θ)` is a float index: `C = O + polar_to_cart(I_r·c_
 
 `start (φ, θ, r)`, `Δ (φ, θ)`, `increment (φ, θ)`, `lock (φ, θ) ∈ {−1, 0, 1}`, `locking`, `picked`,
 held by b, the target. Angles are in ticks of b's `s`. Its direction is `start + Δ`, wrapped to a
-turn, and its local vector is `d = polar_to_cart(r·ρ, (φ+Δφ)·2π/12s, (θ+Δθ)·2π/12s)` with its x and z
-negated when sin φ < 0 and sin θ < 0, the one case where the two negatives cancel and would
-otherwise leave d on the side it started. What is
+turn, and its local vector is `d = polar_to_cart(r·ρ, (φ+Δφ)·2π/12s, (θ+Δθ)·2π/12s)` with its z
+negated when φ = θ and both are past half a turn (6s < φ < 12s), where the angle counts as
+negative: with the two angles equal, sin φ · sin θ is a square and would otherwise never let d
+reach the negative side. What is
 drawn from `C_a` is the link's global version, `C_b − C_a`, from the two recovered points.
 
 ## Messages

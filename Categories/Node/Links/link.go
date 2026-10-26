@@ -94,7 +94,7 @@ func Measure(f Frame, s int, was Start, p, t Vec3) Start {
 	off := func(c Angles) float64 { return gap(c.Phi, was.Phi) + gap(c.Theta, was.Theta) }
 	half := float64(TurnTicks * s / 2)
 	best := Angles{Phi: phi, Theta: theta}
-	for _, c := range []Angles{{Phi: -phi, Theta: theta}, {Phi: -phi, Theta: theta + half}} {
+	for _, c := range []Angles{{Phi: -phi, Theta: theta + half}, {Phi: theta, Theta: theta}, {Phi: theta + half, Theta: theta + half}} {
 		d := f.Vec(s, Start{Phi: Wrap(s, c.Phi), Theta: Wrap(s, c.Theta), R: n / f.Rho}).Sub(v)
 		if d.Length() < 1e-6*n && off(c) < off(best) {
 			best = c
