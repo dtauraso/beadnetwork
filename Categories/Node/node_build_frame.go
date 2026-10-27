@@ -100,7 +100,7 @@ func BuildFrame(in FrameInputs) NodeFrameInput {
 		TopTiltVectorIdx: fg.TopTiltVectorIdx,
 		TiltArrows:       append(fg.TiltArrows, startArrows(in.Geom, fg.Center, in.StartVectors)...),
 		ChannelVectors:   in.ChannelVectors,
-		TickMarks:        TickMarks(fg.Center, in.Geom.Kind, in.TickCount),
+		TickMarks:        append(TickMarks(fg.Center, in.Geom.Kind, in.TickCount), startArcs(in.Geom.Kind, fg.Center, in.StartVectors)...),
 		Selected:         in.Selected,
 		KindID:           in.KindID,
 		Hovered:          in.Hovered,
