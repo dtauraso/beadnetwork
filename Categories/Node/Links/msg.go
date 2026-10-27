@@ -76,7 +76,6 @@ type Put struct {
 	From  string
 	P     Vec3
 	Round int
-	Final bool
 }
 
 type Moved struct {

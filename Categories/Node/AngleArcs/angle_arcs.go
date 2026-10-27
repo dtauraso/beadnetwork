@@ -34,32 +34,37 @@ const (
 	zeroTo       = 1.35
 )
 
-func Build(selected bool, center Vec3, outer float64, starts []polar.Polar) Arcs {
+type Angle struct {
+	At  Vec3
+	Dir polar.Polar
+}
+
+func Build(selected bool, center Vec3, outer float64, angles []Angle) Arcs {
 	var a Arcs
 	if !selected {
 		return a
 	}
 	i := 0
-	for _, vec := range starts {
+	for _, an := range angles {
+		vec := an.Dir
 		if vec.R < 1e-9 {
 			continue
 		}
+		c := center.Add(an.At)
 		r := outer * (pathRadius + radiusStep*float64(i))
 		theta := math.Mod(vec.Theta+2*math.Pi, 2*math.Pi)
-		a.sweep(center, KindPhi, func(t float64) Vec3 {
+		a.sweep(c, KindPhi, func(t float64) Vec3 {
 			return Vec3(polar.Polar2cart(polar.Polar{R: r, Phi: t * vec.Phi}))
 		})
-		end := a.sweep(center, KindTheta, func(t float64) Vec3 {
+		end := a.sweep(c, KindTheta, func(t float64) Vec3 {
 			return Vec3(polar.Polar2cart(polar.Polar{R: r, Phi: vec.Phi, Theta: t * theta}))
 		})
-		a.chevron(center, end, KindTheta)
-		i++
-	}
-	if i > 0 {
+		a.chevron(c, end, KindTheta)
 		up, x := Vec3{Y: outer}, Vec3{X: outer}
 		a.Lines = append(a.Lines,
-			Line{From: center.Add(up.Scale(zeroFrom)), To: center.Add(up.Scale(zeroTo)), Kind: KindPhiZero},
-			Line{From: center.Add(x.Scale(zeroFrom)), To: center.Add(x.Scale(zeroTo)), Kind: KindThetaZero})
+			Line{From: c.Add(up.Scale(zeroFrom)), To: c.Add(up.Scale(zeroTo)), Kind: KindPhiZero},
+			Line{From: c.Add(x.Scale(zeroFrom)), To: c.Add(x.Scale(zeroTo)), Kind: KindThetaZero})
+		i++
 	}
 	return a
 }
