@@ -29,7 +29,7 @@ const (
 	segments     = 24
 	pathRadius   = 1.5
 	radiusStep   = 0.35
-	chevronScale = 0.3
+	chevronScale = 0.15
 	zeroFrom     = 1.05
 	zeroTo       = 1.35
 )
