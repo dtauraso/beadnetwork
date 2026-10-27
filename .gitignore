@@ -127,6 +127,7 @@ dist/
 # camera/ and sphere/ below stay per-scene, because the pair tree tracks its seeds.
 topology*/view/overlays.bin
 topology*/view/panels.bin
+topology*/view/sequence.bin
 topology*/view/camera.bin
 
 # One value, one file, for chrome Go draws rather than streams: each piece writes
