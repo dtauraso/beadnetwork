@@ -146,11 +146,6 @@ export const NODE_VALUE_NAMES = [
   "arcY1",
   "arcZ1",
   "arcKind",
-  "arcLabelX",
-  "arcLabelY",
-  "arcLabelZ",
-  "arcLabelPhi",
-  "arcLabelTheta",
 ] as const;
 
 export type NodeValueName = (typeof NODE_VALUE_NAMES)[number];

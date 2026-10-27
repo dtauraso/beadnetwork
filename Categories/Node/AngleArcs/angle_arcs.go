@@ -21,14 +21,8 @@ type Line struct {
 	Kind     uint8
 }
 
-type Label struct {
-	At                   Vec3
-	PhiTicks, ThetaTicks float32
-}
-
 type Arcs struct {
-	Lines  []Line
-	Labels []Label
+	Lines []Line
 }
 
 const (
@@ -36,20 +30,15 @@ const (
 	pathRadius   = 1.5
 	radiusStep   = 0.35
 	chevronScale = 0.3
-	labelPush    = 1.15
 	zeroFrom     = 1.05
 	zeroTo       = 1.35
 )
 
-func Build(selected bool, center Vec3, outer float64, ticksPerTurn int32, starts []polar.Polar) Arcs {
+func Build(selected bool, center Vec3, outer float64, starts []polar.Polar) Arcs {
 	var a Arcs
 	if !selected {
 		return a
 	}
-	if ticksPerTurn <= 0 {
-		ticksPerTurn = 12
-	}
-	toTicks := float64(ticksPerTurn) / (2 * math.Pi)
 	i := 0
 	for _, vec := range starts {
 		if vec.R < 1e-9 {
@@ -64,11 +53,6 @@ func Build(selected bool, center Vec3, outer float64, ticksPerTurn int32, starts
 			return Vec3(polar.Polar2cart(polar.Polar{R: r, Phi: vec.Phi, Theta: t * theta}))
 		})
 		a.chevron(center, end, KindTheta)
-		a.Labels = append(a.Labels, Label{
-			At:         center.Add(end[1].Scale(labelPush)),
-			PhiTicks:   float32(vec.Phi * toTicks),
-			ThetaTicks: float32(theta * toTicks),
-		})
 		i++
 	}
 	if i > 0 {
@@ -105,7 +89,6 @@ func (a *Arcs) chevron(center Vec3, end [2]Vec3, kind uint8) {
 
 var ValueNames = []string{
 	"arcX0", "arcY0", "arcZ0", "arcX1", "arcY1", "arcZ1", "arcKind",
-	"arcLabelX", "arcLabelY", "arcLabelZ", "arcLabelPhi", "arcLabelTheta",
 }
 
 type block interface {
@@ -124,10 +107,5 @@ func WriteValues(w block, a Arcs) {
 		xyz(w, "arcX0", "arcY0", "arcZ0", l.From)
 		xyz(w, "arcX1", "arcY1", "arcZ1", l.To)
 		w.U8("arcKind", l.Kind)
-	}
-	for _, l := range a.Labels {
-		xyz(w, "arcLabelX", "arcLabelY", "arcLabelZ", l.At)
-		w.F32("arcLabelPhi", l.PhiTicks)
-		w.F32("arcLabelTheta", l.ThetaTicks)
 	}
 }
