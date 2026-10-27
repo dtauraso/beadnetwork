@@ -73,6 +73,8 @@ func (p *Peer) Pos() Vec3 { return p.Frame.At(p.At) }
 
 func (p *Peer) posOf(id string) Vec3 { return p.Frame.At(p.places[id]) }
 
+func (p *Peer) Offset(id string) Vec3 { return p.posOf(id).Sub(p.Pos()) }
+
 func (p *Peer) Outs() []Vec3 {
 	var out []Vec3
 	for _, to := range slices.Sorted(maps.Keys(p.out)) {
