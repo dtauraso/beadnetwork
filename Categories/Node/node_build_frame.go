@@ -2,6 +2,7 @@ package Node
 
 import (
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/PolarRulesPanel"
+	"github.com/dtauraso/beadnetwork/Categories/Node/AngleArcs"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/TiltPanel"
 	"github.com/dtauraso/beadnetwork/Categories/Node/ChannelVectors"
 	"github.com/dtauraso/beadnetwork/Categories/Vectors/polar"
@@ -100,7 +101,8 @@ func BuildFrame(in FrameInputs) NodeFrameInput {
 		TopTiltVectorIdx: fg.TopTiltVectorIdx,
 		TiltArrows:       append(fg.TiltArrows, startArrows(in.Geom, fg.Center, in.StartVectors)...),
 		ChannelVectors:   in.ChannelVectors,
-		TickMarks:        append(TickMarks(fg.Center, in.Geom.Kind, in.TickCount), startArcs(in.Geom.Kind, fg.Center, in.StartVectors)...),
+		TickMarks:        TickMarks(fg.Center, in.Geom.Kind, in.TickCount),
+		AngleArcs:        AngleArcs.Build(fg.Center, NodeTorusOuterR(in.Geom.Kind), in.TickCount, in.StartVectors),
 		Selected:         in.Selected,
 		KindID:           in.KindID,
 		Hovered:          in.Hovered,
