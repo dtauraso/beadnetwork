@@ -10,8 +10,10 @@ import (
 type Vec3 = Vectors.Vec3
 
 const (
-	KindPhi   uint8 = 0
-	KindTheta uint8 = 1
+	KindPhi       uint8 = 0
+	KindTheta     uint8 = 1
+	KindPhiZero   uint8 = 2
+	KindThetaZero uint8 = 3
 )
 
 type Line struct {
@@ -19,89 +21,91 @@ type Line struct {
 	Kind     uint8
 }
 
-type Wedge struct {
-	A, B, C Vec3
-	Kind    uint8
-}
-
 type Label struct {
-	At    Vec3
-	Kind  uint8
-	Ticks float32
+	At                   Vec3
+	PhiTicks, ThetaTicks float32
 }
 
 type Arcs struct {
 	Lines  []Line
-	Wedges []Wedge
 	Labels []Label
 }
 
 const (
 	segments     = 24
-	phiRadius    = 1.6
-	thetaRadius  = 1.3
+	pathRadius   = 1.5
 	radiusStep   = 0.35
 	chevronScale = 0.3
 	labelPush    = 1.15
+	zeroFrom     = 1.05
+	zeroTo       = 1.35
 )
 
-func Build(center Vec3, outer float64, ticksPerTurn int32, starts []polar.Polar) Arcs {
+func Build(selected bool, center Vec3, outer float64, ticksPerTurn int32, starts []polar.Polar) Arcs {
+	var a Arcs
+	if !selected {
+		return a
+	}
 	if ticksPerTurn <= 0 {
 		ticksPerTurn = 12
 	}
 	toTicks := float64(ticksPerTurn) / (2 * math.Pi)
-	var a Arcs
-	maxPhi, maxTheta := 0.0, 0.0
 	i := 0
 	for _, vec := range starts {
 		if vec.R < 1e-9 {
 			continue
 		}
-		rPhi := outer * (phiRadius + radiusStep*float64(i))
-		rTheta := outer * (thetaRadius + radiusStep*float64(i))
-		maxPhi, maxTheta = max(maxPhi, rPhi), max(maxTheta, rTheta)
+		r := outer * (pathRadius + radiusStep*float64(i))
 		theta := math.Mod(vec.Theta+2*math.Pi, 2*math.Pi)
-		a.add(center, KindPhi, float32(vec.Phi*toTicks), func(t float64) Vec3 {
-			return Vec3(polar.Polar2cart(polar.Polar{R: rPhi, Phi: t * vec.Phi, Theta: vec.Theta}))
+		a.sweep(center, KindPhi, func(t float64) Vec3 {
+			return Vec3(polar.Polar2cart(polar.Polar{R: r, Phi: t * vec.Phi}))
 		})
-		a.add(center, KindTheta, float32(theta*toTicks), func(t float64) Vec3 {
-			return Vec3{X: rTheta * math.Cos(t*theta), Z: rTheta * math.Sin(t*theta)}
+		end := a.sweep(center, KindTheta, func(t float64) Vec3 {
+			return Vec3(polar.Polar2cart(polar.Polar{R: r, Phi: vec.Phi, Theta: t * theta}))
+		})
+		a.chevron(center, end, KindTheta)
+		a.Labels = append(a.Labels, Label{
+			At:         center.Add(end[1].Scale(labelPush)),
+			PhiTicks:   float32(vec.Phi * toTicks),
+			ThetaTicks: float32(theta * toTicks),
 		})
 		i++
 	}
 	if i > 0 {
+		up, x := Vec3{Y: outer}, Vec3{X: outer}
 		a.Lines = append(a.Lines,
-			Line{From: center, To: center.Add(Vec3{Y: maxPhi}), Kind: KindPhi},
-			Line{From: center, To: center.Add(Vec3{X: maxTheta}), Kind: KindTheta})
+			Line{From: center.Add(up.Scale(zeroFrom)), To: center.Add(up.Scale(zeroTo)), Kind: KindPhiZero},
+			Line{From: center.Add(x.Scale(zeroFrom)), To: center.Add(x.Scale(zeroTo)), Kind: KindThetaZero})
 	}
 	return a
 }
 
-func (a *Arcs) add(center Vec3, kind uint8, ticks float32, at func(t float64) Vec3) {
+func (a *Arcs) sweep(center Vec3, kind uint8, at func(t float64) Vec3) [2]Vec3 {
 	prev := at(0)
 	for i := 1; i <= segments; i++ {
 		p := at(float64(i) / segments)
 		a.Lines = append(a.Lines, Line{From: center.Add(prev), To: center.Add(p), Kind: kind})
-		a.Wedges = append(a.Wedges, Wedge{A: center, B: center.Add(prev), C: center.Add(p), Kind: kind})
 		prev = p
 	}
-	end, back := at(1), at(1-1.0/segments)
-	a.Labels = append(a.Labels, Label{At: center.Add(end.Scale(labelPush)), Kind: kind, Ticks: ticks})
-	along := end.Sub(back)
+	return [2]Vec3{at(1 - 1.0/segments), at(1)}
+}
+
+func (a *Arcs) chevron(center Vec3, end [2]Vec3, kind uint8) {
+	back, tip := end[0], end[1]
+	along := tip.Sub(back)
 	if along.Length() < 1e-9 {
 		return
 	}
-	along = along.Normalize().Scale(end.Length() * chevronScale)
-	side := end.Normalize().Scale(along.Length() * 0.6)
+	along = along.Normalize().Scale(tip.Length() * chevronScale)
+	side := tip.Normalize().Scale(along.Length() * 0.6)
 	a.Lines = append(a.Lines,
-		Line{From: center.Add(end), To: center.Add(end.Sub(along).Add(side)), Kind: kind},
-		Line{From: center.Add(end), To: center.Add(end.Sub(along).Sub(side)), Kind: kind})
+		Line{From: center.Add(tip), To: center.Add(tip.Sub(along).Add(side)), Kind: kind},
+		Line{From: center.Add(tip), To: center.Add(tip.Sub(along).Sub(side)), Kind: kind})
 }
 
 var ValueNames = []string{
 	"arcX0", "arcY0", "arcZ0", "arcX1", "arcY1", "arcZ1", "arcKind",
-	"wedgeX0", "wedgeY0", "wedgeZ0", "wedgeX1", "wedgeY1", "wedgeZ1", "wedgeX2", "wedgeY2", "wedgeZ2", "wedgeKind",
-	"arcLabelX", "arcLabelY", "arcLabelZ", "arcLabelKind", "arcLabelTicks",
+	"arcLabelX", "arcLabelY", "arcLabelZ", "arcLabelPhi", "arcLabelTheta",
 }
 
 type block interface {
@@ -121,15 +125,9 @@ func WriteValues(w block, a Arcs) {
 		xyz(w, "arcX1", "arcY1", "arcZ1", l.To)
 		w.U8("arcKind", l.Kind)
 	}
-	for _, t := range a.Wedges {
-		xyz(w, "wedgeX0", "wedgeY0", "wedgeZ0", t.A)
-		xyz(w, "wedgeX1", "wedgeY1", "wedgeZ1", t.B)
-		xyz(w, "wedgeX2", "wedgeY2", "wedgeZ2", t.C)
-		w.U8("wedgeKind", t.Kind)
-	}
 	for _, l := range a.Labels {
 		xyz(w, "arcLabelX", "arcLabelY", "arcLabelZ", l.At)
-		w.U8("arcLabelKind", l.Kind)
-		w.F32("arcLabelTicks", l.Ticks)
+		w.F32("arcLabelPhi", l.PhiTicks)
+		w.F32("arcLabelTheta", l.ThetaTicks)
 	}
 }

@@ -146,21 +146,11 @@ export const NODE_VALUE_NAMES = [
   "arcY1",
   "arcZ1",
   "arcKind",
-  "wedgeX0",
-  "wedgeY0",
-  "wedgeZ0",
-  "wedgeX1",
-  "wedgeY1",
-  "wedgeZ1",
-  "wedgeX2",
-  "wedgeY2",
-  "wedgeZ2",
-  "wedgeKind",
   "arcLabelX",
   "arcLabelY",
   "arcLabelZ",
-  "arcLabelKind",
-  "arcLabelTicks",
+  "arcLabelPhi",
+  "arcLabelTheta",
 ] as const;
 
 export type NodeValueName = (typeof NODE_VALUE_NAMES)[number];

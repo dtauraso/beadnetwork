@@ -10,7 +10,9 @@ const GAP_ABOVE_ANCHOR = 4;
 let positions: LabelPos[] = [];
 let epoch = 0;
 
-export interface ArcLabel { text: string; color: string; px: number; py: number; }
+export interface ArcLabel { parts: { text: string; color: string }[]; px: number; py: number; }
+
+const PART_GAP = 6;
 
 let arcLabels: ArcLabel[] = [];
 
@@ -32,17 +34,23 @@ function drawArcLabels(c: CanvasRenderingContext2D): void {
   c.textBaseline = "middle";
   const h = T.FONT_SIZE * 1.25 + 2 * PAD_Y;
   for (const p of arcLabels) {
-    const w = c.measureText(p.text).width + 2 * PAD_X;
+    const widths = p.parts.map((part) => c.measureText(part.text).width);
+    const textW = widths.reduce((s, v) => s + v, 0) + PART_GAP * Math.max(0, p.parts.length - 1);
+    const w = textW + 2 * PAD_X;
     const x = p.px - w / 2;
     const y = p.py - h / 2;
     roundRect(c, x, y, w, h, RADIUS);
     c.fillStyle = T.CHIP;
     c.fill();
-    c.strokeStyle = p.color;
-    c.lineWidth = 1.5;
+    c.strokeStyle = T.BORDER;
+    c.lineWidth = 1;
     c.stroke();
-    c.fillStyle = p.color;
-    c.fillText(p.text, x + PAD_X, y + h / 2);
+    let tx = x + PAD_X;
+    p.parts.forEach((part, i) => {
+      c.fillStyle = part.color;
+      c.fillText(part.text, tx, y + h / 2);
+      tx += (widths[i] ?? 0) + PART_GAP;
+    });
   }
 }
 
