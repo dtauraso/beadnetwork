@@ -10,8 +10,6 @@ func way(l *Link, all Lock, k string) int {
 	return 1
 }
 
-const settled = 1e-9
-
 func (p *Peer) stepAll(m StepAll) []Envelope {
 	if l := p.pickedIn(); l != nil {
 		if m.K == KBoth {
@@ -23,9 +21,9 @@ func (p *Peer) stepAll(m StepAll) []Envelope {
 		p.touched(l.From)
 	}
 	p.round, p.point, p.placed = m.Round, p.Pos(), p.pickedIn() == nil
-	out := p.tell(p.placed)
+	var out []Envelope
 	if p.placed {
-		out = append(out, p.movedTo(true)...)
+		out = append(p.tell(), p.movedTo(true)...)
 	}
 	held := p.held
 	p.held = nil
@@ -35,11 +33,11 @@ func (p *Peer) stepAll(m StepAll) []Envelope {
 	return out
 }
 
-func (p *Peer) tell(final bool) []Envelope {
+func (p *Peer) tell() []Envelope {
 	var out []Envelope
 	for _, to := range p.neighbours() {
 		if p.outPicked[to] {
-			out = append(out, Envelope{To: to, Msg: Put{From: p.ID, P: p.point, Round: p.round, Final: final}})
+			out = append(out, Envelope{To: to, Msg: Put{From: p.ID, P: p.point, Round: p.round}})
 		}
 	}
 	return out
@@ -50,20 +48,10 @@ func (p *Peer) recover(m Put) []Envelope {
 	if p.placed || !ok || !l.Picked {
 		return nil
 	}
-	want := m.P.Add(p.vecOf(l))
-	next := want
-	if !m.Final {
-		next = p.point.Add(want).Scale(0.5)
-	}
-	moved := next.Sub(p.point).Length()
-	p.point = next
-	if !m.Final && moved >= settled {
-		return p.tell(false)
-	}
 	p.placed = true
-	p.At = p.Frame.GridAt(p.point)
+	p.At = p.Frame.GridAt(m.P.Add(p.vecOf(l)))
 	p.point = p.Pos()
-	return append(p.sat("", true), p.tell(true)...)
+	return append(p.sat("", true), p.tell()...)
 }
 
 func (p *Peer) take(l *Link) []Envelope {
