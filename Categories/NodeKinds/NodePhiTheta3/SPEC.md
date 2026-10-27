@@ -49,11 +49,11 @@ drawn from `C_a` is the link's global version, `C_b − C_a`, from the two recov
   with **PickSet**, so a knows to send b its point.
 - **StepAll** (UI → every node, numbered): every node first steps Δ on the one picked link it
   holds — a rotates b's angles, b rotates c's, c rotates a's, all at once, before any global point
-  changes. Recovery comes last: each node sends its point down each picked link out of it, and b
-  moves halfway to `C_a + d'` and sends its own point on, until it moves less than 1e-9. A node
-  with no picked link into it is rotated by nothing, so it stays and sends its point as final; a
-  target told a final point sits exactly at `C_a + d'` and sends its own as final. No picked link
-  is remeasured, no global measurement goes back into a picked link, and no node looks for a loop.
+  changes. Recovery comes last: a node with no picked link into it is rotated by nothing, so it
+  stays placed and sends its point down each picked link out of it; a target sent its source's
+  point sits at `C_a + d'` and sends its own point on. A node sends its point only once it is
+  placed, so every point sent is the one it keeps. No picked link is remeasured and no global
+  measurement goes back into a picked link.
 
 ## Time — machine ticks become one human tick
 
@@ -63,7 +63,7 @@ input every pass and refreshes the pills once per human tick); a node has no bea
 
 Each pass of the node's loop takes at most one message and counts one machine tick `k`. When `h = ⌊(now − epoch) / Δt⌋` changes, it applies, persists and publishes
 what changed during that tick, then posts `(h, k)` to its timing slot. A StepAll carries the human
-tick `H` it was sent on, and a node holds what the step changed until its point is final, it
+tick `H` it was sent on, and a node holds what the step changed until it is placed, it
 has a **Moved** for that step from every node it is linked with (a node nothing rotates sends
 its unchanged place), and `h ≥ H + 2`, so every node shows a step's links and points on the
 same human tick — never new angles drawn from a point not yet recovered, and never an arrow
