@@ -1,6 +1,7 @@
 package Node
 
 import (
+	"github.com/dtauraso/beadnetwork/Categories/Node/AngleArcs"
 	VecB "github.com/dtauraso/beadnetwork/Categories/Node/ChannelVectors"
 	TiltB "github.com/dtauraso/beadnetwork/Categories/Node/TiltVectors"
 )
@@ -54,6 +55,8 @@ type NodeState struct {
 	TiltArrows []TiltB.TiltArrow
 
 	TickMarks []TickMark
+
+	AngleArcs AngleArcs.Arcs
 
 	ChannelVectors []VecB.ChannelVector
 }

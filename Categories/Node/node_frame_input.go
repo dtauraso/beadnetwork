@@ -1,6 +1,7 @@
 package Node
 
 import (
+	"github.com/dtauraso/beadnetwork/Categories/Node/AngleArcs"
 	"github.com/dtauraso/beadnetwork/Categories/Node/ChannelVectors"
 	"github.com/dtauraso/beadnetwork/Categories/Node/TiltVectors"
 )
@@ -43,6 +44,8 @@ type NodeFrameInput struct {
 	ChannelVectors []ChannelVectors.ChannelVector
 
 	TickMarks []TickMark
+
+	AngleArcs AngleArcs.Arcs
 
 	Selected, KindID, Hovered, LatchedSel uint8
 
