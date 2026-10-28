@@ -48,8 +48,7 @@ drawn from `C_a` is the link's global version, `C_b − C_a`, from the two recov
 - **Pick** (UI → b, b → a): b grants a pick only if no other link into b is picked, and tells a
   with **PickSet**, so a knows to send b its point.
 - **StepAll** (UI → every node, numbered): every node first steps Δ on the one picked link it
-  holds — a rotates b's angles, b rotates c's, c rotates a's, all at once, before any global point
-  changes. Recovery comes last: a node with no picked link into it is rotated by nothing, so it
+  holds, before any global point changes. Recovery comes last: a node with no picked link into it is rotated by nothing, so it
   stays placed and sends its point down each picked link out of it; a target sent its source's
   point sits at `C_a + d'` and sends its own point on. A node sends its point only once it is
   placed, so every point sent is the one it keeps. No picked link is remeasured and no global
