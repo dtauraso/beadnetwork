@@ -17,6 +17,7 @@ type Changes struct {
 type Peer struct {
 	ID    string
 	S     int
+	SNote string
 	At    Place
 	Frame Frame
 
