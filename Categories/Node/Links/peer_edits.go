@@ -91,6 +91,13 @@ func (p *Peer) setS(m SetS) []Envelope {
 		return nil
 	}
 	k := float64(m.V) / float64(p.S)
+	for _, from := range p.order {
+		d := p.own[from].Delta
+		if !whole(d.Phi*k) || !whole(d.Theta*k) {
+			p.Changed.Refused = fmt.Sprintf("%s→%s: s %d puts its Δ (%g, %g) off the %d-tick line", from, p.ID, m.V, d.Phi, d.Theta, TurnTicks*m.V)
+			return nil
+		}
+	}
 	p.S = m.V
 	p.Changed.S = true
 	for _, from := range p.order {
