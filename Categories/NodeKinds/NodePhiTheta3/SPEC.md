@@ -46,8 +46,10 @@ drawn from `C_a` is the link's global version, `C_b − C_a`, from the two recov
 - **Edits** (start, press, increment, locking — UI → b): b changes the angles it holds and places
   itself at `GridAt(C_a + d)`.
 - **S** (UI → b): b's new `s` rescales start and Δ of every link into b by `new s / old s`, so each
-  keeps its direction. Δ must land on the new `12·s` tick line, whole; an `s` that would put any
-  link's Δ between ticks is refused, so Δ stays whole and steps stay exact in any order.
+  keeps its direction. Δ must land on the new `12·s` tick line, whole, which holds exactly for an
+  `s` that is a multiple of `s / gcd(s, every Δ)`; an `s` that would put any link's Δ between
+  ticks is replaced by the closest such multiple (a tie takes the larger), and the reason is shown
+  on the line below the node. So Δ stays whole and steps stay exact in any order.
 - **Pick** (UI → b, b → a): b grants a pick only if no other link into b is picked, and tells a
   with **PickSet**, so a knows to send b its point.
 - **StepAll** (UI → every node, numbered): every node first steps Δ on the one picked link it

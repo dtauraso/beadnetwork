@@ -33,6 +33,9 @@ func NodesPill(m Model) Pill {
 			Text("n " + m.NOf(id)),
 			Button("remove", act(OpRemoveNode, ""), false),
 		})
+		if r.SNote != "" {
+			rows = append(rows, []Cell{Text(""), Text(r.SNote)})
+		}
 	}
 	rows = append(rows, []Cell{Button("+ add node", Act{Op: OpAddNode}, false)})
 	return Pill{Label: NodesLabel, Groups: []Group{

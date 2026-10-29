@@ -87,24 +87,44 @@ func (p *Peer) setIdx(m SetIdx) []Envelope {
 }
 
 func (p *Peer) setS(m SetS) []Envelope {
-	if m.V < 1 || m.V == p.S {
+	if m.V < 1 {
 		return nil
 	}
-	k := float64(m.V) / float64(p.S)
-	for _, from := range p.order {
-		d := p.own[from].Delta
-		if !whole(d.Phi*k) || !whole(d.Theta*k) {
-			p.Changed.Refused = fmt.Sprintf("%s→%s: s %d puts its Δ (%g, %g) off the %d-tick line", from, p.ID, m.V, d.Phi, d.Theta, TurnTicks*m.V)
-			return nil
-		}
-	}
-	p.S = m.V
+	v, why := p.closestS(m.V)
+	p.SNote = why
 	p.Changed.S = true
+	if v == p.S {
+		return nil
+	}
+	k := float64(v) / float64(p.S)
+	p.S = v
 	for _, from := range p.order {
 		p.own[from].ScaleAngles(k)
 		p.touched(from)
 	}
 	return nil
+}
+
+func (p *Peer) closestS(v int) (int, string) {
+	step, by := 1, ""
+	for _, from := range p.order {
+		d := p.own[from].Delta
+		if n := p.S / gcd(p.S, gcd(int(math.Round(d.Phi)), int(math.Round(d.Theta)))); n > step {
+			step, by = n, fmt.Sprintf("%s→%s's Δ (%g, %g)", from, p.ID, d.Phi, d.Theta)
+		}
+	}
+	c := max(step, (2*v+step)/(2*step)*step)
+	if c == v {
+		return v, ""
+	}
+	return c, fmt.Sprintf("s %d would put %s between ticks; it stays whole only for s a multiple of %d, so s is %d", v, by, step, c)
+}
+
+func gcd(a, b int) int {
+	for b != 0 {
+		a, b = b, a%b
+	}
+	return max(a, -a)
 }
 
 func (p *Peer) connect(m Connect) []Envelope {
