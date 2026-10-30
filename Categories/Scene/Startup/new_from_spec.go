@@ -81,6 +81,8 @@ func NewFromSpec(spec Topology.TopoSpec, sphere polar.SceneSphere, hasScene bool
 	Dispatch.LoadSequences(md, scenePath)
 	md.UI.Builder.CardsDir = Builder.CardsDir(Scenes.NodesRoot(scenePath))
 	md.UI.Builder.Cards = Builder.ReadCards(md.UI.Builder.CardsDir)
+	md.UI.Builder.UnfoldDir = Builder.UnfoldDir(Scenes.NodesRoot(scenePath))
+	md.UI.Builder.Unfold = Builder.ReadUnfold(md.UI.Builder.UnfoldDir)
 
 	md.UI.Rules.Nodes = Topology.RulePanelNodes(spec, func(id string) bool {
 		ng, ok := md.MR.NodeGeoms()[id]

@@ -32,7 +32,8 @@ type Model struct {
 	Step    Step
 	StepDir string
 
-	Unfold map[string]bool
+	Unfold    map[string]bool
+	UnfoldDir string
 
 	Seqs    []Seq
 	OpenSeq int
