@@ -12,6 +12,7 @@ type Link struct {
 	From, To  string
 	Start     Start
 	Delta     Angles
+	DeltaR    float64
 	Increment Angles
 	IncR      float64
 	Lock      Lock
@@ -35,7 +36,7 @@ func NewLink(from, to string) *Link {
 func (l *Link) Name() string { return l.From + "→" + l.To }
 
 func (l *Link) Dir(s int) Start {
-	return Start{Phi: Wrap(s, l.Start.Phi+l.Delta.Phi), Theta: Wrap(s, l.Start.Theta+l.Delta.Theta), R: l.Start.R}
+	return Start{Phi: Wrap(s, l.Start.Phi+l.Delta.Phi), Theta: Wrap(s, l.Start.Theta+l.Delta.Theta), R: l.Start.R + l.DeltaR}
 }
 
 func (a *Angles) at(k string) *float64 {
@@ -64,6 +65,10 @@ func (l *Link) SetStart(s int, k string, v float64) {
 }
 
 func (l *Link) Step(s int, k string, sign int) {
+	if k == KR {
+		l.DeltaR = math.Round((l.DeltaR+float64(sign)*l.IncR)*1e6) / 1e6
+		return
+	}
 	d := l.Delta.at(k)
 	*d = Wrap(s, *d+float64(sign)**l.Increment.at(k))
 }
@@ -106,5 +111,5 @@ func Measure(f Frame, s int, was Start, p, t Vec3) Start {
 
 func (l *Link) Remeasure(f Frame, s int, p, t Vec3) {
 	v := Measure(f, s, l.Dir(s), p, t)
-	l.Start = Start{Phi: Wrap(s, v.Phi-l.Delta.Phi), Theta: Wrap(s, v.Theta-l.Delta.Theta), R: v.R}
+	l.Start = Start{Phi: Wrap(s, v.Phi-l.Delta.Phi), Theta: Wrap(s, v.Theta-l.Delta.Theta), R: v.R - l.DeltaR}
 }

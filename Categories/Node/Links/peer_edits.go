@@ -21,6 +21,15 @@ func (p *Peer) press(m Press) []Envelope {
 	if !ok {
 		return nil
 	}
+	if m.K == KR {
+		if l.Start.R+l.DeltaR+float64(m.Sign)*l.IncR < 0 {
+			p.Changed.Refused = fmt.Sprintf("%s→%s Δr: r + Δr would be below 0, so Δr stays at %v", m.From, p.ID, l.DeltaR)
+			return nil
+		}
+		l.Step(p.S, m.K, m.Sign)
+		p.touched(m.From)
+		return p.take(l)
+	}
 	lock := l.Lock.at(m.K)
 	switch {
 	case *lock == m.Sign:

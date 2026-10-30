@@ -57,16 +57,12 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		if !ok {
 			return
 		}
-		by := 1.0
-		if a.K == Links.KR {
-			by = l.IncR
-		}
-		v := float64(sign)*by + map[string]float64{Links.KPhi: l.Start.Phi, Links.KTheta: l.Start.Theta, Links.KR: l.Start.R}[a.K]
+		v := float64(sign) + map[string]float64{Links.KPhi: l.Start.Phi, Links.KTheta: l.Start.Theta, Links.KR: l.Start.R}[a.K]
 		if typed != nil {
 			v = *typed
 		}
-		if a.K == Links.KR && v < 0 {
-			md.UI.Builder.Refused = fmt.Sprintf("%s→%s r %v: a length cannot be negative, so it stays at %v", a.Node, a.To, v, l.Start.R)
+		if a.K == Links.KR && (v < 0 || v+l.DeltaR < 0) {
+			md.UI.Builder.Refused = fmt.Sprintf("%s→%s r %v: neither r nor r + Δr can be negative, so r stays at %v", a.Node, a.To, v, l.Start.R)
 			return
 		}
 		md.sendLink(ctx, a.To, Links.SetStart{From: a.Node, K: a.K, V: v})
@@ -77,14 +73,14 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		if sign != 0 {
 			md.sendLink(ctx, a.To, Links.Press{From: a.Node, K: a.K, Sign: sign})
 		}
+	case Builder.OpUnfold:
+		md.UI.Builder.ToggleUnfold(a.K)
 	case Builder.OpPick:
 		md.sendLink(ctx, a.To, Links.PickReq{From: a.Node})
 	case Builder.OpUnpick:
 		md.sendLink(ctx, a.To, Links.Unpick{From: a.Node})
 	case Builder.OpIncrement:
-		if typed != nil {
-			md.setIncrement(ctx, a, *typed)
-		}
+		md.setIncrement(ctx, a, sign, typed)
 	case Builder.OpLocking:
 		if l, ok := m.Link(a.Node, a.To); ok {
 			md.sendLink(ctx, a.To, Links.SetLocking{From: a.Node, On: !l.Locking})

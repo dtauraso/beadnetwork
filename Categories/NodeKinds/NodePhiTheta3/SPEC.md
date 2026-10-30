@@ -27,9 +27,10 @@ A place `I = (I_r, I_φ, I_θ)` is a float index: `C = O + polar_to_cart(I_r·c_
 
 ## A link a→b — its angles stored at b
 
-`start (φ, θ, r)`, `Δ (φ, θ)`, `increment n (φ, θ, r)` — what one press of Δφ, Δθ or r moves it by, whole ticks for an angle and any length above 0 for r —, `lock (φ, θ) ∈ {−1, 0, 1}`, `locking`, `picked`,
-held by b, the target. Angles are in ticks of b's `s`. Its direction is `start + Δ`, wrapped to a
-turn, and its local vector is `d = polar_to_cart(r·ρ, (φ+Δφ)·2π/12s, (θ+Δθ)·2π/12s)` with its z
+`start (φ, θ, r)`, `Δ (φ, θ, r)`, `increment n (φ, θ, r)` — what one press of Δφ, Δθ or Δr moves it by, whole ticks for an angle and any length above 0 for r —, `lock (φ, θ) ∈ {−1, 0, 1}`, `locking`, `picked`,
+held by b, the target. Angles are in ticks of b's `s`; r + Δr is never below 0, and Δr has no lock and
+is not stepped by StepAll. Its direction is `start + Δ`, the angles wrapped to a
+turn, and its local vector is `d = polar_to_cart((r+Δr)·ρ, (φ+Δφ)·2π/12s, (θ+Δθ)·2π/12s)` with its z
 negated when φ = θ and both are past half a turn (6s < φ < 12s), where the angle counts as
 negative: with the two angles equal, sin φ · sin θ is a square and would otherwise never let d
 reach the negative side. What is
