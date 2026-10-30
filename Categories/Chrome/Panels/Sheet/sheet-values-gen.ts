@@ -45,6 +45,11 @@ export const SHEET_VALUE_NAMES = [
   "downW",
   "downH",
   "draftText",
+  "outlineBox",
+  "outlineX",
+  "outlineY",
+  "outlineW",
+  "outlineH",
 ] as const;
 
 export type SheetValueName = (typeof SHEET_VALUE_NAMES)[number];

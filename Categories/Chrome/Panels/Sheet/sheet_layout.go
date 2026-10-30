@@ -113,7 +113,7 @@ func (lay *Layout) place(box int, g Group, x, y float32) {
 		y += titleH() + TitleGap
 	}
 	cols := columns(g)
-	for _, row := range g.Rows {
+	for r, row := range g.Rows {
 		cx := x
 		for i, c := range row {
 			cb := CellBox{Box: box, Cell: c, Rect: Rect{X: cx, Y: y, W: cols[i], H: rowH()}}
@@ -135,6 +135,9 @@ func (lay *Layout) place(box int, g Group, x, y float32) {
 			}
 			lay.Cells = append(lay.Cells, cb)
 			cx += cols[i] + CellGapX
+		}
+		if r < len(g.Outlined) && g.Outlined[r] {
+			lay.Outlines = append(lay.Outlines, OutlineBox{Box: box, Rect: Rect{X: x - 2, Y: y - RowGapY/2, W: cx - CellGapX - x + 4, H: rowH() + RowGapY}})
 		}
 		y += rowH() + RowGapY
 	}

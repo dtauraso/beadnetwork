@@ -71,8 +71,9 @@ func Field(key, value string, act Act, typed, steps bool) Cell {
 }
 
 type Group struct {
-	Title string
-	Rows  [][]Cell
+	Title    string
+	Rows     [][]Cell
+	Outlined []bool
 }
 
 type Pill struct {
@@ -104,8 +105,14 @@ type CellBox struct {
 	Down Rect
 }
 
+type OutlineBox struct {
+	Box  int
+	Rect Rect
+}
+
 type Layout struct {
-	Pills []PillBox
-	Heads []HeadBox
-	Cells []CellBox
+	Pills    []PillBox
+	Heads    []HeadBox
+	Cells    []CellBox
+	Outlines []OutlineBox
 }

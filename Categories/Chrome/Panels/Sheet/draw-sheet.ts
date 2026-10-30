@@ -21,6 +21,8 @@ const BUTTON_FILL = "#f2f2f2";
 const BUTTON_EDGE = "#bbb";
 const BUTTON_LIT_FILL = "#0d47a1";
 
+const OUTLINE_EDGE = "#0d47a1";
+
 const CELL_TEXT = 0;
 const CELL_FIELD = 1;
 
@@ -60,6 +62,7 @@ export function sheetKey(): string {
     Array.from(sheetF32Run("boxW") ?? []).join("."),
     Array.from(sheetF32Run("cellY") ?? []).join("."),
     Array.from(sheetF32Run("cellX") ?? []).join("."),
+    Array.from(sheetF32Run("outlineY") ?? []).join("."),
     bytesOf("pillOpen").join(""),
     bytesOf("cellLit").join(""),
     bytesOf("cellEditing").join(""),
@@ -71,8 +74,8 @@ export function sheetKey(): string {
 
 type R = { x: number; y: number; w: number; h: number };
 
-function rects(x: "pillX" | "boxX" | "cellX" | "upX" | "downX", y: "pillY" | "boxY" | "cellY" | "upY" | "downY",
-  w: "pillW" | "boxW" | "cellW" | "upW" | "downW", h: "pillH" | "boxH" | "cellH" | "upH" | "downH"): R[] {
+function rects(x: "pillX" | "boxX" | "cellX" | "upX" | "downX" | "outlineX", y: "pillY" | "boxY" | "cellY" | "upY" | "downY" | "outlineY",
+  w: "pillW" | "boxW" | "cellW" | "upW" | "downW" | "outlineW", h: "pillH" | "boxH" | "cellH" | "upH" | "downH" | "outlineH"): R[] {
   const xs = sheetF32Run(x), ys = sheetF32Run(y), ws = sheetF32Run(w), hs = sheetF32Run(h);
   const out: R[] = [];
   if (!xs || !ys || !ws || !hs) return out;
@@ -148,6 +151,8 @@ export function drawSheets(c: CanvasRenderingContext2D): void {
   const upBox = sheetU32Run("upBox");
   const ups = rects("upX", "upY", "upW", "upH"), downs = rects("downX", "downY", "downW", "downH");
   const draft = draftText();
+  const outlineBox = sheetU32Run("outlineBox");
+  const outlines = rects("outlineX", "outlineY", "outlineW", "outlineH");
 
   boxes.forEach((b, bi) => {
     if (b.w <= 0 || b.h <= 0) return;
@@ -174,6 +179,15 @@ export function drawSheets(c: CanvasRenderingContext2D): void {
           if (kinds[i] === CELL_FIELD) drawField(c, r, keys[i] ?? "", isEditing ? `${draft}_` : vals[i] ?? "", isEditing);
           else if (kinds[i] === CELL_TEXT) drawText(c, r, keys[i] ?? "", lit[i] !== 0);
           else drawButton(c, r, keys[i] ?? "", lit[i] !== 0);
+        });
+      }
+      if (outlineBox) {
+        outlines.forEach((r, i) => {
+          if (outlineBox[i] !== bi) return;
+          roundRect(c, r.x + 0.5, r.y + 0.5, r.w - 1, r.h - 1, CELL_RADIUS + 1);
+          c.strokeStyle = OUTLINE_EDGE;
+          c.lineWidth = 1.5;
+          c.stroke();
         });
       }
       if (upBox) {

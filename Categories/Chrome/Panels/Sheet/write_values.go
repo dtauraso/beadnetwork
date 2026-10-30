@@ -46,6 +46,10 @@ func (s *State) Write(lay Layout) {
 		}
 	}
 	w.Text("draftText", s.Edit.Draft)
+	for _, o := range lay.Outlines {
+		w.U32("outlineBox", uint32(o.Box))
+		w.Rect("outlineX", "outlineY", "outlineW", "outlineH", o.Rect)
+	}
 
 	if err := w.Flush(); err != nil {
 		fmt.Fprintf(os.Stderr, "sheet_values: %v\n", err)
