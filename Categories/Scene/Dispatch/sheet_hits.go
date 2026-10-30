@@ -84,9 +84,7 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 	case Builder.OpUnpick:
 		md.sendLink(ctx, a.To, Links.Unpick{From: a.Node})
 	case Builder.OpIncrement:
-		if typed != nil {
-			md.setIncrement(ctx, a, *typed)
-		}
+		md.setIncrement(ctx, a, sign, typed)
 	case Builder.OpLocking:
 		if l, ok := m.Link(a.Node, a.To); ok {
 			md.sendLink(ctx, a.To, Links.SetLocking{From: a.Node, On: !l.Locking})

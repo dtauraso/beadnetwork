@@ -3,6 +3,7 @@ package Dispatch
 import (
 	"context"
 	"fmt"
+	"math"
 	"sync"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Panel"
@@ -91,7 +92,19 @@ func (md *MoveDispatch) sendLink(ctx context.Context, to string, msg any) {
 	md.Links.Send(ctx, "", Links.Envelope{To: to, Msg: msg})
 }
 
-func (md *MoveDispatch) setIncrement(ctx context.Context, a Sheet.Act, v float64) {
+func (md *MoveDispatch) setIncrement(ctx context.Context, a Sheet.Act, sign int, typed *float64) {
+	l, ok := md.UI.Builder.Link(a.Node, a.To)
+	if !ok || (typed == nil && sign == 0) {
+		return
+	}
+	cur, by := map[string]float64{Links.KPhi: l.Increment.Phi, Links.KTheta: l.Increment.Theta, Links.KR: l.IncR}[a.K], 1.0
+	if a.K == Links.KR {
+		by = 0.1
+	}
+	v := math.Round((cur+float64(sign)*by)*10) / 10
+	if typed != nil {
+		v = *typed
+	}
 	switch {
 	case a.K == Links.KR && v <= 0:
 		md.UI.Builder.Refused = fmt.Sprintf("%s→%s r increment %v: not more than 0, so it stays as it is", a.Node, a.To, v)
