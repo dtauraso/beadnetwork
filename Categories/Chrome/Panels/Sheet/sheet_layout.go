@@ -29,13 +29,14 @@ func cellW(c Cell) float32 {
 	if c.Boxed {
 		w := Panel.TextWidth(c.Key, KeyFontPx) + 2*CellPadX
 		if c.Arrows.Op != "" {
-			w += StepGap + StepArrowW
+			w += lockW()
 		}
 		return w
 	}
 	return Panel.TextWidth(c.Key, KeyFontPx) + 2
 }
 
+func lockW() float32  { return LockGap + 2*LockArrowW + StepGap }
 func rowH() float32   { return Panel.LineHeight(ValFontPx) + 2*CellPadY }
 func titleH() float32 { return Panel.LineHeight(TitleFontPx) }
 
@@ -147,22 +148,26 @@ func (lay *Layout) place(box int, g Group, x, y, dx float32) {
 		cx := x - dx
 		for i, c := range row {
 			cb := CellBox{Box: box, Cell: c, Rect: Rect{X: cx, Y: y, W: cols[i], H: rowH()}, Slides: g.Slides}
-			if c.Kind == CellField && c.Steps || c.Arrows.Op != "" {
+			if c.Arrows.Op != "" {
+				right := cx + cols[i]
+				tw := cellW(c) - lockW()
+				cb.Rect.X, cb.Rect.W = right-lockW()-tw, tw
+				ax := right - 2*LockArrowW - StepGap
+				cb.Up = Rect{X: ax, Y: y, W: LockArrowW, H: rowH()}
+				cb.Down = Rect{X: ax + LockArrowW + StepGap, Y: y, W: LockArrowW, H: rowH()}
+			} else if c.Kind == CellField && c.Steps {
 				cb.Rect.W = cols[i] - StepGap - StepArrowW
 				ax := cx + cb.Rect.W + StepGap
 				half := rowH() / 2
 				cb.Up = Rect{X: ax, Y: y, W: StepArrowW, H: half}
 				cb.Down = Rect{X: ax, Y: y + half, W: StepArrowW, H: half}
 			}
-			if c.Kind == CellText && c.OverLastDigit {
+			if c.Kind == CellText && c.OverLastDigit && c.Arrows.Op == "" {
 				right := cx + cols[i]
 				if stepsIn(g, i) {
 					right -= StepGap + StepArrowW
 				}
 				tw := cellW(c)
-				if c.Arrows.Op != "" {
-					tw -= StepGap + StepArrowW
-				}
 				cb.Rect.X = min(right-CellPadX-Panel.Advance(ValFontPx)/2-tw/2, right-tw)
 				cb.Rect.W = tw
 			}

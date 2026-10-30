@@ -18,6 +18,9 @@ const (
 	StepArrowW = 14
 	StepGap    = 2
 
+	LockArrowW = 16
+	LockGap    = 8
+
 	valueField = "-00.00"
 )
 
