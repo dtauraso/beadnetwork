@@ -90,7 +90,10 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 	case Builder.OpAllStep:
 		allStep(ctx, md, a.K, a.Sign)
 	case Builder.OpAllBoth:
-		md.stepAll(ctx, Links.KBoth, a.Sign)
+		if sign == 0 {
+			sign = a.Sign
+		}
+		md.stepAll(ctx, Links.KBoth, sign)
 	case Builder.OpAllLocking:
 		st := &md.UI.Builder.Step
 		if !m.RowsLocking() {
