@@ -98,6 +98,15 @@ func Build(right, left *Panel.PillStack, pills []Pill, st *State) Layout {
 	return lay
 }
 
+func stepsIn(g Group, i int) bool {
+	for _, row := range g.Rows {
+		if i < len(row) && row[i].Kind == CellField && row[i].Steps {
+			return true
+		}
+	}
+	return false
+}
+
 func (lay *Layout) place(box int, g Group, x, y float32) {
 	if g.Title != "" {
 		lay.Heads = append(lay.Heads, HeadBox{Box: box, Rect: Rect{X: x, Y: y, W: groupW(g), H: titleH()}, Title: g.Title})
@@ -115,9 +124,13 @@ func (lay *Layout) place(box int, g Group, x, y float32) {
 				cb.Up = Rect{X: ax, Y: y, W: StepArrowW, H: half}
 				cb.Down = Rect{X: ax, Y: y + half, W: StepArrowW, H: half}
 			}
-			if c.Kind == CellText && c.OverSteps {
+			if c.Kind == CellText && c.OverLastDigit {
+				right := cx + cols[i]
+				if stepsIn(g, i) {
+					right -= StepGap + StepArrowW
+				}
 				tw := cellW(c)
-				cb.Rect.X = cx + cols[i] - StepArrowW/2 - tw/2
+				cb.Rect.X = right - CellPadX - Panel.Advance(ValFontPx)/2 - tw/2
 				cb.Rect.W = tw
 			}
 			lay.Cells = append(lay.Cells, cb)

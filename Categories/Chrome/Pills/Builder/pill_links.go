@@ -42,7 +42,7 @@ func LinksPill(m Model) Pill {
 	if len(rows) == 0 {
 		rows = [][]Cell{{Text("no links")}}
 	} else {
-		labels := []Cell{Text(""), Text("φ").AboveSteps(), Text("Δφ").AboveSteps(), Text("θ").AboveSteps(), Text("Δθ").AboveSteps(), Text("r").AboveSteps()}
+		labels := []Cell{Text(""), Text("φ").AboveLastDigit(), Text("Δφ").AboveLastDigit(), Text("θ").AboveLastDigit(), Text("Δθ").AboveLastDigit(), Text("r").AboveLastDigit()}
 		rows = append([][]Cell{labels}, rows...)
 	}
 	groups := []Group{

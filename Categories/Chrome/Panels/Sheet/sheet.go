@@ -41,20 +41,20 @@ type Act struct {
 }
 
 type Cell struct {
-	Kind      CellKind
-	Key       string
-	Value     string
-	Act       Act
-	Typed     bool
-	Steps     bool
-	Lit       bool
-	Fit       string
-	OverSteps bool
+	Kind          CellKind
+	Key           string
+	Value         string
+	Act           Act
+	Typed         bool
+	Steps         bool
+	Lit           bool
+	Fit           string
+	OverLastDigit bool
 }
 
 func (c Cell) Fitting(v string) Cell { c.Fit = v; return c }
 
-func (c Cell) AboveSteps() Cell { c.OverSteps = true; return c }
+func (c Cell) AboveLastDigit() Cell { c.OverLastDigit = true; return c }
 
 func Text(s string) Cell { return Cell{Kind: CellText, Key: s} }
 
