@@ -32,6 +32,7 @@ type linkCol struct {
 	op, k  string
 	typed  bool
 	steps  bool
+	picked bool
 }
 
 func (m Model) linkCols() []linkCol {
@@ -44,32 +45,39 @@ func (m Model) linkCols() []linkCol {
 	}
 	var cols []linkCol
 	cols = append(cols, chain(
-		linkCol{"φ", "phi", func(l Links.Link) float64 { return l.Start.Phi }, OpLinkStart, Links.KPhi, true, true},
-		linkCol{"Δφ", "dphi", func(l Links.Link) float64 { return l.Delta.Phi }, OpLinkPress, Links.KPhi, false, true},
-		linkCol{"nΔφ", "", func(l Links.Link) float64 { return l.Increment.Phi }, OpIncrement, Links.KPhi, true, true},
+		linkCol{"φ", "phi", func(l Links.Link) float64 { return l.Start.Phi }, OpLinkStart, Links.KPhi, true, true, false},
+		linkCol{"Δφ", "dphi", func(l Links.Link) float64 { return l.Delta.Phi }, OpLinkPress, Links.KPhi, false, true, true},
+		linkCol{"nΔφ", "", func(l Links.Link) float64 { return l.Increment.Phi }, OpIncrement, Links.KPhi, true, true, true},
 	)...)
 	cols = append(cols, chain(
-		linkCol{"θ", "theta", func(l Links.Link) float64 { return l.Start.Theta }, OpLinkStart, Links.KTheta, true, true},
-		linkCol{"Δθ", "dtheta", func(l Links.Link) float64 { return l.Delta.Theta }, OpLinkPress, Links.KTheta, false, true},
-		linkCol{"nΔθ", "", func(l Links.Link) float64 { return l.Increment.Theta }, OpIncrement, Links.KTheta, true, true},
+		linkCol{"θ", "theta", func(l Links.Link) float64 { return l.Start.Theta }, OpLinkStart, Links.KTheta, true, true, false},
+		linkCol{"Δθ", "dtheta", func(l Links.Link) float64 { return l.Delta.Theta }, OpLinkPress, Links.KTheta, false, true, true},
+		linkCol{"nΔθ", "", func(l Links.Link) float64 { return l.Increment.Theta }, OpIncrement, Links.KTheta, true, true, true},
 	)...)
 	return append(cols, chain(
-		linkCol{"r", "r", func(l Links.Link) float64 { return l.Start.R }, OpLinkStart, Links.KR, true, true},
-		linkCol{"Δr", "dr", func(l Links.Link) float64 { return l.DeltaR }, OpLinkPress, Links.KR, false, true},
-		linkCol{"nΔr", "", func(l Links.Link) float64 { return l.IncR }, OpIncrement, Links.KR, true, true},
+		linkCol{"r", "r", func(l Links.Link) float64 { return l.Start.R }, OpLinkStart, Links.KR, true, true, false},
+		linkCol{"Δr", "dr", func(l Links.Link) float64 { return l.DeltaR }, OpLinkPress, Links.KR, false, true, false},
+		linkCol{"nΔr", "", func(l Links.Link) float64 { return l.IncR }, OpIncrement, Links.KR, true, true, false},
 	)...)
 }
 
 func (c linkCol) head(m Model) Cell {
 	if c.unfold == "" {
-		return Text(c.label).AboveLastDigit()
+		return c.mark(Text(c.label)).AboveLastDigit()
 	}
 	open := m.Unfold[c.unfold]
 	mark := " ▸"
 	if open {
 		mark = " ▾"
 	}
-	return LitText(c.label+mark, Act{Op: OpUnfold, K: c.unfold}, open).AboveLastDigit()
+	return c.mark(LitText(c.label+mark, Act{Op: OpUnfold, K: c.unfold}, open)).AboveLastDigit()
+}
+
+func (c linkCol) mark(cell Cell) Cell {
+	if c.picked {
+		return cell.Outline(true)
+	}
+	return cell
 }
 
 func LinksPill(m Model) Pill {
@@ -84,21 +92,21 @@ func LinksPill(m Model) Pill {
 		}
 		row := []Cell{Text(l.Name()).Acting(act(pick, "")).Outline(l.Picked)}
 		for _, c := range cols {
-			row = append(row, Field("", num1(c.value(l)), act(c.op, c.k), c.typed, c.steps).Fitting(fit))
+			row = append(row, Field("", num1(c.value(l)), act(c.op, c.k), c.typed, c.steps).Fitting(fit).Outline(c.picked && l.Picked))
 		}
 		rows = append(rows, append(row, Button("×", act(OpDropLink, ""), false)))
 	}
 	if len(rows) == 0 {
 		rows = [][]Cell{{Text("no links")}}
 	} else {
-		labels := []Cell{Text("")}
+		labels := []Cell{Field("both", "", Act{Op: OpAllBoth}, false, true).Fitting(" ")}
 		for _, c := range cols {
 			labels = append(labels, c.head(m))
 		}
 		rows = append([][]Cell{labels}, rows...)
 	}
 	groups := []Group{
-		{Title: "links — one per a→b, set at a: its start, and Δ on it (± steps Δ and moves b); a picked link's name is outlined, and clicking a name picks or unpicks it", Rows: rows},
+		{Title: "links — one per a→b, set at a: its start, and Δ on it (± steps Δ and moves b); a picked link's name is outlined, and clicking a name picks or unpicks it", Rows: rows, Slides: true},
 		pickGroup(m),
 		pickedGroup(m),
 		recalcGroup(m),

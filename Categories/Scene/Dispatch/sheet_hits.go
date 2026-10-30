@@ -74,7 +74,13 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 			md.sendLink(ctx, a.To, Links.Press{From: a.Node, K: a.K, Sign: sign})
 		}
 	case Builder.OpUnfold:
-		md.UI.Builder.ToggleUnfold(a.K)
+		m := &md.UI.Builder
+		m.ToggleUnfold(a.K)
+		if m.UnfoldDir != "" {
+			if err := Builder.WriteUnfold(m.UnfoldDir, m.Unfold); err != nil {
+				View.LogPersistErr("sheet_unfold_persist", m.UnfoldDir, err)
+			}
+		}
 	case Builder.OpPick:
 		md.sendLink(ctx, a.To, Links.PickReq{From: a.Node})
 	case Builder.OpUnpick:
@@ -90,7 +96,10 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 	case Builder.OpAllStep:
 		allStep(ctx, md, a.K, a.Sign)
 	case Builder.OpAllBoth:
-		md.stepAll(ctx, Links.KBoth, a.Sign)
+		if sign == 0 {
+			sign = a.Sign
+		}
+		md.stepAll(ctx, Links.KBoth, sign)
 	case Builder.OpAllLocking:
 		st := &md.UI.Builder.Step
 		if !m.RowsLocking() {

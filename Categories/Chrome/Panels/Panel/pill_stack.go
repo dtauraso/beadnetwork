@@ -138,6 +138,17 @@ func (s *PillStack) AddWideScrollingPopover(contentW, contentH, scroll float32) 
 	return box, box.X + PopoverPad, box.Y + PopoverPad - scroll, maxScroll
 }
 
+func (s *PillStack) ContentRoomW() float32 {
+	if s.viewW <= 0 {
+		return 0
+	}
+	left := float32(OriginX)
+	if s.left {
+		left = s.X()
+	}
+	return s.viewW - PillRight - left - 2*PopoverPad
+}
+
 func (s *PillStack) EndGroup() { s.y += PillGap }
 
 func RowH() float32 { return LineHeight(PillFontPx) + 2*RowPadY }

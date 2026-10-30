@@ -77,8 +77,9 @@ func Field(key, value string, act Act, typed, steps bool) Cell {
 }
 
 type Group struct {
-	Title string
-	Rows  [][]Cell
+	Title  string
+	Rows   [][]Cell
+	Slides bool
 }
 
 type Pill struct {
@@ -93,7 +94,9 @@ type PillBox struct {
 	Pill      Rect
 	Open      bool
 	Popover   Rect
-	MaxScroll float32
+	MaxScroll  float32
+	Slide      Rect
+	MaxScrollX float32
 }
 
 type HeadBox struct {
@@ -103,11 +106,12 @@ type HeadBox struct {
 }
 
 type CellBox struct {
-	Box  int
-	Cell Cell
-	Rect Rect
-	Up   Rect
-	Down Rect
+	Box    int
+	Cell   Cell
+	Rect   Rect
+	Up     Rect
+	Down   Rect
+	Slides bool
 }
 
 type Layout struct {
