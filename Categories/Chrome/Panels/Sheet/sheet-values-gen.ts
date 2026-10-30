@@ -51,6 +51,8 @@ export const SHEET_VALUE_NAMES = [
   "slideW",
   "cellSlides",
   "upSlides",
+  "upLit",
+  "downLit",
 ] as const;
 
 export type SheetValueName = (typeof SHEET_VALUE_NAMES)[number];

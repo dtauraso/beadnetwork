@@ -91,10 +91,10 @@ export function drawCell(c: CanvasRenderingContext2D, r: R, l: CellLook): void {
   else drawButton(c, r, l.key, l.lit);
 }
 
-export function drawArrow(c: CanvasRenderingContext2D, r: R, up: boolean): void {
+export function drawArrow(c: CanvasRenderingContext2D, r: R, up: boolean, lit: boolean): void {
   if (r.w <= 0 || r.h <= 0) return;
   roundRect(c, r.x, r.y + 0.5, r.w, r.h - 1, 2);
-  c.fillStyle = CELL_FILL;
+  c.fillStyle = lit ? BUTTON_LIT_FILL : CELL_FILL;
   c.fill();
   const cx = r.x + r.w / 2, cy = r.y + r.h / 2, half = Math.min(r.w, r.h) * 0.28;
   c.beginPath();

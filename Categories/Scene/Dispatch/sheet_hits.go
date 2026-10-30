@@ -25,9 +25,9 @@ func applySheetHit(ctx context.Context, md *MoveDispatch, h Sheet.Hit) {
 			runSheetAct(ctx, md, h.Cell.Act, 0, nil)
 		}
 	case Sheet.PartUp:
-		runSheetAct(ctx, md, h.Cell.Act, 1, nil)
+		runSheetAct(ctx, md, h.Cell.ArrowAct(), 1, nil)
 	case Sheet.PartDown:
-		runSheetAct(ctx, md, h.Cell.Act, -1, nil)
+		runSheetAct(ctx, md, h.Cell.ArrowAct(), -1, nil)
 	}
 	md.UI.EmitViewFrame(nil)
 }
@@ -94,7 +94,10 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 	case Builder.OpItem, Builder.OpMethod, Builder.OpCard:
 		setCards(md, a)
 	case Builder.OpAllStep:
-		allStep(ctx, md, a.K, a.Sign)
+		if sign == 0 {
+			sign = a.Sign
+		}
+		allStep(ctx, md, a.K, sign)
 	case Builder.OpAllBoth:
 		if sign == 0 {
 			sign = a.Sign

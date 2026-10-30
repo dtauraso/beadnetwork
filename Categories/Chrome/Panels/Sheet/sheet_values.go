@@ -21,6 +21,7 @@ var SheetValueNames = []string{
 	"draftText",
 	"cellOutlined", "cellBoxed",
 	"slideX", "slideW", "cellSlides", "upSlides",
+	"upLit", "downLit",
 }
 
 func ValueRelPath() string { return ValueRelFile }

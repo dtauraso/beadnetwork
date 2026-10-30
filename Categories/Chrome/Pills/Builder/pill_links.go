@@ -70,7 +70,15 @@ func (c linkCol) head(m Model) Cell {
 	if open {
 		mark = " ▾"
 	}
-	return c.mark(LitText(c.label+mark, Act{Op: OpUnfold, K: c.unfold}, open)).AboveLastDigit()
+	fold := Act{Op: OpUnfold, K: c.unfold}
+	if c.op == OpLinkPress && c.k != Links.KR {
+		lock := m.Step.LockAll.Phi
+		if c.k == Links.KTheta {
+			lock = m.Step.LockAll.Theta
+		}
+		return c.mark(Field(c.label+mark, "", fold, false, true).Stepping(Act{Op: OpAllStep, K: c.k}, lock).Fitting(" "))
+	}
+	return c.mark(LitText(c.label+mark, fold, open)).AboveLastDigit()
 }
 
 func (c linkCol) mark(cell Cell) Cell {

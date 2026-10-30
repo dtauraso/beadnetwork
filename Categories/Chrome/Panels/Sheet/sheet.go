@@ -52,6 +52,17 @@ type Cell struct {
 	OverLastDigit bool
 	Boxed         bool
 	Outlined      bool
+	Arrows        Act
+	LockSign      int
+}
+
+func (c Cell) Stepping(a Act, lock int) Cell { c.Arrows, c.LockSign = a, lock; return c }
+
+func (c Cell) ArrowAct() Act {
+	if c.Arrows.Op != "" {
+		return c.Arrows
+	}
+	return c.Act
 }
 
 func (c Cell) Fitting(v string) Cell { c.Fit = v; return c }
