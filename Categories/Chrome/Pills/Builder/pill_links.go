@@ -1,6 +1,8 @@
 package Builder
 
 import (
+	"math"
+	"strconv"
 	"strings"
 
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
@@ -29,11 +31,11 @@ func LinksPill(m Model) Pill {
 		act := func(op, k string) Act { return Act{Op: op, Node: l.From, To: l.To, K: k} }
 		rows = append(rows, []Cell{
 			Text(l.Name()),
-			Field("", Num(l.Start.Phi), act(OpLinkStart, Links.KPhi), true, true).Fitting(fit),
-			Field("", Num(l.Delta.Phi), act(OpLinkPress, Links.KPhi), false, true).Fitting(fit),
-			Field("", Num(l.Start.Theta), act(OpLinkStart, Links.KTheta), true, true).Fitting(fit),
-			Field("", Num(l.Delta.Theta), act(OpLinkPress, Links.KTheta), false, true).Fitting(fit),
-			Field("", Num(l.Start.R), act(OpLinkStart, Links.KR), true, false).Fitting(fit),
+			Field("", num1(l.Start.Phi), act(OpLinkStart, Links.KPhi), true, true).Fitting(fit),
+			Field("", num1(l.Delta.Phi), act(OpLinkPress, Links.KPhi), false, true).Fitting(fit),
+			Field("", num1(l.Start.Theta), act(OpLinkStart, Links.KTheta), true, true).Fitting(fit),
+			Field("", num1(l.Delta.Theta), act(OpLinkPress, Links.KTheta), false, true).Fitting(fit),
+			Field("", num1(l.Start.R), act(OpLinkStart, Links.KR), true, false).Fitting(fit),
 			Button("remove", act(OpDropLink, ""), false),
 		})
 	}
@@ -54,6 +56,14 @@ func LinksPill(m Model) Pill {
 		groups = append(groups, Group{Rows: [][]Cell{{Text(m.Refused)}}})
 	}
 	return Pill{Label: LinksLabel, Groups: groups}
+}
+
+func num1(v float64) string {
+	v = math.Round(v*10) / 10
+	if v == math.Trunc(v) {
+		return strconv.Itoa(int(v))
+	}
+	return strconv.FormatFloat(v, 'f', 1, 64)
 }
 
 func recalcGroup(m Model) Group {
