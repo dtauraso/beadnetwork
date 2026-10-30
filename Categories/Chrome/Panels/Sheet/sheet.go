@@ -50,9 +50,12 @@ type Cell struct {
 	Lit           bool
 	Fit           string
 	OverLastDigit bool
+	Outlined      bool
 }
 
 func (c Cell) Fitting(v string) Cell { c.Fit = v; return c }
+
+func (c Cell) Outline(on bool) Cell { c.Outlined = on; return c }
 
 func (c Cell) AboveLastDigit() Cell { c.OverLastDigit = true; return c }
 
@@ -71,9 +74,8 @@ func Field(key, value string, act Act, typed, steps bool) Cell {
 }
 
 type Group struct {
-	Title    string
-	Rows     [][]Cell
-	Outlined []bool
+	Title string
+	Rows  [][]Cell
 }
 
 type Pill struct {
@@ -105,14 +107,8 @@ type CellBox struct {
 	Down Rect
 }
 
-type OutlineBox struct {
-	Box  int
-	Rect Rect
-}
-
 type Layout struct {
-	Pills    []PillBox
-	Heads    []HeadBox
-	Cells    []CellBox
-	Outlines []OutlineBox
+	Pills []PillBox
+	Heads []HeadBox
+	Cells []CellBox
 }

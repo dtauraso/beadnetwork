@@ -46,9 +46,8 @@ func (s *State) Write(lay Layout) {
 		}
 	}
 	w.Text("draftText", s.Edit.Draft)
-	for _, o := range lay.Outlines {
-		w.U32("outlineBox", uint32(o.Box))
-		w.Rect("outlineX", "outlineY", "outlineW", "outlineH", o.Rect)
+	for _, cb := range lay.Cells {
+		w.U8("cellOutlined", flag(cb.Cell.Outlined))
 	}
 
 	if err := w.Flush(); err != nil {
