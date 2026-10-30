@@ -120,11 +120,13 @@ function drawText(c: CanvasRenderingContext2D, r: R, text: string, lit: boolean)
   c.fillText(text, r.x + 1, r.y + r.h / 2);
 }
 
-function drawOutlined(c: CanvasRenderingContext2D, r: R, text: string): void {
-  roundRect(c, r.x + 0.75, r.y + 0.75, r.w - 1.5, r.h - 1.5, CELL_RADIUS);
-  c.strokeStyle = OUTLINE_EDGE;
-  c.lineWidth = 1.5;
-  c.stroke();
+function drawBoxed(c: CanvasRenderingContext2D, r: R, text: string, outlined: boolean): void {
+  if (outlined) {
+    roundRect(c, r.x + 0.75, r.y + 0.75, r.w - 1.5, r.h - 1.5, CELL_RADIUS);
+    c.strokeStyle = OUTLINE_EDGE;
+    c.lineWidth = 1.5;
+    c.stroke();
+  }
   c.fillStyle = TEXT_INK;
   c.font = canvasFont(KEY_FONT_PX, 500);
   c.textAlign = "center";
@@ -188,7 +190,7 @@ export function drawSheets(c: CanvasRenderingContext2D): void {
           if (cellBox[i] !== bi || r.w <= 0) return;
           const isEditing = editing[i] !== 0;
           if (kinds[i] === CELL_FIELD) drawField(c, r, keys[i] ?? "", isEditing ? `${draft}_` : vals[i] ?? "", isEditing);
-          else if (kinds[i] === CELL_TEXT && outlined[i]) drawOutlined(c, r, keys[i] ?? "");
+          else if (kinds[i] === CELL_TEXT && outlined[i]) drawBoxed(c, r, keys[i] ?? "", outlined[i] === 2);
           else if (kinds[i] === CELL_TEXT) drawText(c, r, keys[i] ?? "", lit[i] !== 0);
           else drawButton(c, r, keys[i] ?? "", lit[i] !== 0);
         });

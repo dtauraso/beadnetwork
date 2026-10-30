@@ -26,7 +26,7 @@ func cellW(c Cell) float32 {
 	case CellButton:
 		return Panel.TextWidth(c.Key, KeyFontPx) + 2*CellPadX
 	}
-	if c.Outlined {
+	if c.Boxed {
 		return Panel.TextWidth(c.Key, KeyFontPx) + 2*CellPadX
 	}
 	return Panel.TextWidth(c.Key, KeyFontPx) + 2
