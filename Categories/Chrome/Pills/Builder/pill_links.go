@@ -71,11 +71,8 @@ func (c linkCol) head(m Model) Cell {
 		mark = " ▾"
 	}
 	fold := Act{Op: OpUnfold, K: c.unfold}
-	if c.op == OpLinkPress && c.k != Links.KR {
-		lock := m.Step.LockAll.Phi
-		if c.k == Links.KTheta {
-			lock = m.Step.LockAll.Theta
-		}
+	if c.op == OpLinkPress {
+		lock := map[string]int{Links.KPhi: m.Step.LockAll.Phi, Links.KTheta: m.Step.LockAll.Theta, Links.KR: m.Step.LockAll.R}[c.k]
 		return c.mark(LitText(c.label+mark, fold, open)).AboveLastDigit().Stepping(Act{Op: OpAllStep, K: c.k}, lock)
 	}
 	return c.mark(LitText(c.label+mark, fold, open)).AboveLastDigit()

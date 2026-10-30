@@ -115,8 +115,11 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 func allStep(ctx context.Context, md *MoveDispatch, k string, sign int) {
 	st := &md.UI.Builder.Step
 	lock := &st.LockAll.Phi
-	if k == Links.KTheta {
+	switch k {
+	case Links.KTheta:
 		lock = &st.LockAll.Theta
+	case Links.KR:
+		lock = &st.LockAll.R
 	}
 	switch {
 	case *lock == sign:

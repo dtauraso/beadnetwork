@@ -6,7 +6,7 @@ type Start struct{ Phi, Theta, R float64 }
 
 type Angles struct{ Phi, Theta float64 }
 
-type Lock struct{ Phi, Theta int }
+type Lock struct{ Phi, Theta, R int }
 
 type Link struct {
 	From, To  string
@@ -47,6 +47,9 @@ func (a *Angles) at(k string) *float64 {
 }
 
 func (k *Lock) at(name string) *int {
+	if name == KR {
+		return &k.R
+	}
 	if name == KTheta {
 		return &k.Theta
 	}
