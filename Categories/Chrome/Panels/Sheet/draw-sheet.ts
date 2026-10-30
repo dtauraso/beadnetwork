@@ -189,7 +189,15 @@ export function drawSheets(c: CanvasRenderingContext2D): void {
         cells.forEach((r, i) => {
           if (cellBox[i] !== bi || r.w <= 0) return;
           const isEditing = editing[i] !== 0;
-          if (kinds[i] === CELL_FIELD) drawField(c, r, keys[i] ?? "", isEditing ? `${draft}_` : vals[i] ?? "", isEditing);
+          if (kinds[i] === CELL_FIELD) {
+            drawField(c, r, keys[i] ?? "", isEditing ? `${draft}_` : vals[i] ?? "", isEditing);
+            if (outlined[i]) {
+              roundRect(c, r.x - 1.5, r.y - 1.5, r.w + 3, r.h + 3, CELL_RADIUS + 1);
+              c.strokeStyle = OUTLINE_EDGE;
+              c.lineWidth = 2;
+              c.stroke();
+            }
+          }
           else if (kinds[i] === CELL_TEXT && boxed[i]) drawBoxed(c, r, keys[i] ?? "", outlined[i] !== 0, lit[i] !== 0);
           else if (kinds[i] === CELL_TEXT) drawText(c, r, keys[i] ?? "", lit[i] !== 0);
           else drawButton(c, r, keys[i] ?? "", lit[i] !== 0);
