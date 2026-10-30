@@ -50,9 +50,15 @@ type Cell struct {
 	Lit           bool
 	Fit           string
 	OverLastDigit bool
+	Boxed         bool
+	Outlined      bool
 }
 
 func (c Cell) Fitting(v string) Cell { c.Fit = v; return c }
+
+func (c Cell) Outline(on bool) Cell { c.Boxed, c.Outlined = true, on; return c }
+
+func (c Cell) Acting(a Act) Cell { c.Act = a; return c }
 
 func (c Cell) AboveLastDigit() Cell { c.OverLastDigit = true; return c }
 

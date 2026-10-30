@@ -21,10 +21,12 @@ const BUTTON_FILL = "#f2f2f2";
 const BUTTON_EDGE = "#bbb";
 const BUTTON_LIT_FILL = "#0d47a1";
 
+const OUTLINE_EDGE = "#0d47a1";
+
 const CELL_TEXT = 0;
 const CELL_FIELD = 1;
 
-function bytesOf(name: "cellKind" | "cellLit" | "cellEditing" | "pillOpen"): number[] {
+function bytesOf(name: "cellKind" | "cellLit" | "cellEditing" | "cellOutlined" | "cellBoxed" | "pillOpen"): number[] {
   const v = sheetBytes(name);
   const out: number[] = [];
   if (v) for (let i = 0; i < v.byteLength; i++) out.push(v.getUint8(i));
@@ -60,6 +62,7 @@ export function sheetKey(): string {
     Array.from(sheetF32Run("boxW") ?? []).join("."),
     Array.from(sheetF32Run("cellY") ?? []).join("."),
     Array.from(sheetF32Run("cellX") ?? []).join("."),
+    bytesOf("cellOutlined").join(""),
     bytesOf("pillOpen").join(""),
     bytesOf("cellLit").join(""),
     bytesOf("cellEditing").join(""),
@@ -117,6 +120,20 @@ function drawText(c: CanvasRenderingContext2D, r: R, text: string, lit: boolean)
   c.fillText(text, r.x + 1, r.y + r.h / 2);
 }
 
+function drawBoxed(c: CanvasRenderingContext2D, r: R, text: string, outlined: boolean): void {
+  if (outlined) {
+    roundRect(c, r.x + 0.75, r.y + 0.75, r.w - 1.5, r.h - 1.5, CELL_RADIUS);
+    c.strokeStyle = OUTLINE_EDGE;
+    c.lineWidth = 1.5;
+    c.stroke();
+  }
+  c.fillStyle = TEXT_INK;
+  c.font = canvasFont(KEY_FONT_PX, 500);
+  c.textAlign = "center";
+  c.textBaseline = "middle";
+  c.fillText(text, r.x + r.w / 2, r.y + r.h / 2);
+}
+
 function drawArrow(c: CanvasRenderingContext2D, r: R, up: boolean): void {
   if (r.w <= 0 || r.h <= 0) return;
   roundRect(c, r.x, r.y + 0.5, r.w, r.h - 1, 2);
@@ -148,6 +165,7 @@ export function drawSheets(c: CanvasRenderingContext2D): void {
   const upBox = sheetU32Run("upBox");
   const ups = rects("upX", "upY", "upW", "upH"), downs = rects("downX", "downY", "downW", "downH");
   const draft = draftText();
+  const outlined = bytesOf("cellOutlined"), boxed = bytesOf("cellBoxed");
 
   boxes.forEach((b, bi) => {
     if (b.w <= 0 || b.h <= 0) return;
@@ -172,6 +190,7 @@ export function drawSheets(c: CanvasRenderingContext2D): void {
           if (cellBox[i] !== bi || r.w <= 0) return;
           const isEditing = editing[i] !== 0;
           if (kinds[i] === CELL_FIELD) drawField(c, r, keys[i] ?? "", isEditing ? `${draft}_` : vals[i] ?? "", isEditing);
+          else if (kinds[i] === CELL_TEXT && boxed[i]) drawBoxed(c, r, keys[i] ?? "", outlined[i] !== 0);
           else if (kinds[i] === CELL_TEXT) drawText(c, r, keys[i] ?? "", lit[i] !== 0);
           else drawButton(c, r, keys[i] ?? "", lit[i] !== 0);
         });

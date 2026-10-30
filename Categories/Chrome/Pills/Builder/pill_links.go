@@ -78,7 +78,11 @@ func LinksPill(m Model) Pill {
 	var rows [][]Cell
 	for _, l := range m.allLinks() {
 		act := func(op, k string) Act { return Act{Op: op, Node: l.From, To: l.To, K: k} }
-		row := []Cell{Text(l.Name())}
+		pick := OpPick
+		if l.Picked {
+			pick = OpUnpick
+		}
+		row := []Cell{Text(l.Name()).Acting(act(pick, "")).Outline(l.Picked)}
 		for _, c := range cols {
 			row = append(row, Field("", num1(c.value(l)), act(c.op, c.k), c.typed, c.steps).Fitting(fit))
 		}
@@ -94,7 +98,7 @@ func LinksPill(m Model) Pill {
 		rows = append([][]Cell{labels}, rows...)
 	}
 	groups := []Group{
-		{Title: "links — one per a→b, set at a: its start, and Δ on it (± steps Δ and moves b)", Rows: rows},
+		{Title: "links — one per a→b, set at a: its start, and Δ on it (± steps Δ and moves b); a picked link's name is outlined, and clicking a name picks or unpicks it", Rows: rows},
 		pickGroup(m),
 		pickedGroup(m),
 		recalcGroup(m),
