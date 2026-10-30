@@ -115,6 +115,11 @@ func (lay *Layout) place(box int, g Group, x, y float32) {
 				cb.Up = Rect{X: ax, Y: y, W: StepArrowW, H: half}
 				cb.Down = Rect{X: ax, Y: y + half, W: StepArrowW, H: half}
 			}
+			if c.Kind == CellText && c.OverSteps {
+				tw := cellW(c)
+				cb.Rect.X = cx + cols[i] - StepArrowW/2 - tw/2
+				cb.Rect.W = tw
+			}
 			lay.Cells = append(lay.Cells, cb)
 			cx += cols[i] + CellGapX
 		}
