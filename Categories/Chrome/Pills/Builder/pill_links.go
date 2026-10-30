@@ -46,17 +46,17 @@ func (m Model) linkCols() []linkCol {
 	cols = append(cols, chain(
 		linkCol{"φ", "phi", func(l Links.Link) float64 { return l.Start.Phi }, OpLinkStart, Links.KPhi, true, true},
 		linkCol{"Δφ", "dphi", func(l Links.Link) float64 { return l.Delta.Phi }, OpLinkPress, Links.KPhi, false, true},
-		linkCol{"n", "", func(l Links.Link) float64 { return l.Increment.Phi }, OpIncrement, Links.KPhi, true, true},
+		linkCol{"nΔφ", "", func(l Links.Link) float64 { return l.Increment.Phi }, OpIncrement, Links.KPhi, true, true},
 	)...)
 	cols = append(cols, chain(
 		linkCol{"θ", "theta", func(l Links.Link) float64 { return l.Start.Theta }, OpLinkStart, Links.KTheta, true, true},
 		linkCol{"Δθ", "dtheta", func(l Links.Link) float64 { return l.Delta.Theta }, OpLinkPress, Links.KTheta, false, true},
-		linkCol{"n", "", func(l Links.Link) float64 { return l.Increment.Theta }, OpIncrement, Links.KTheta, true, true},
+		linkCol{"nΔθ", "", func(l Links.Link) float64 { return l.Increment.Theta }, OpIncrement, Links.KTheta, true, true},
 	)...)
 	return append(cols, chain(
 		linkCol{"r", "r", func(l Links.Link) float64 { return l.Start.R }, OpLinkStart, Links.KR, true, true},
 		linkCol{"Δr", "dr", func(l Links.Link) float64 { return l.DeltaR }, OpLinkPress, Links.KR, false, true},
-		linkCol{"n", "", func(l Links.Link) float64 { return l.IncR }, OpIncrement, Links.KR, true, true},
+		linkCol{"nΔr", "", func(l Links.Link) float64 { return l.IncR }, OpIncrement, Links.KR, true, true},
 	)...)
 }
 
