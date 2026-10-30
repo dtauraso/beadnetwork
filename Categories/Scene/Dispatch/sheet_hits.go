@@ -77,6 +77,8 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		if sign != 0 {
 			md.sendLink(ctx, a.To, Links.Press{From: a.Node, K: a.K, Sign: sign})
 		}
+	case Builder.OpUnfold:
+		md.UI.Builder.ToggleUnfold(a.K)
 	case Builder.OpPick:
 		md.sendLink(ctx, a.To, Links.PickReq{From: a.Node})
 	case Builder.OpUnpick:
