@@ -26,7 +26,7 @@ const OUTLINE_EDGE = "#0d47a1";
 const CELL_TEXT = 0;
 const CELL_FIELD = 1;
 
-function bytesOf(name: "cellKind" | "cellLit" | "cellEditing" | "cellOutlined" | "pillOpen"): number[] {
+function bytesOf(name: "cellKind" | "cellLit" | "cellEditing" | "cellOutlined" | "cellBoxed" | "pillOpen"): number[] {
   const v = sheetBytes(name);
   const out: number[] = [];
   if (v) for (let i = 0; i < v.byteLength; i++) out.push(v.getUint8(i));
@@ -165,7 +165,7 @@ export function drawSheets(c: CanvasRenderingContext2D): void {
   const upBox = sheetU32Run("upBox");
   const ups = rects("upX", "upY", "upW", "upH"), downs = rects("downX", "downY", "downW", "downH");
   const draft = draftText();
-  const outlined = bytesOf("cellOutlined");
+  const outlined = bytesOf("cellOutlined"), boxed = bytesOf("cellBoxed");
 
   boxes.forEach((b, bi) => {
     if (b.w <= 0 || b.h <= 0) return;
@@ -190,7 +190,7 @@ export function drawSheets(c: CanvasRenderingContext2D): void {
           if (cellBox[i] !== bi || r.w <= 0) return;
           const isEditing = editing[i] !== 0;
           if (kinds[i] === CELL_FIELD) drawField(c, r, keys[i] ?? "", isEditing ? `${draft}_` : vals[i] ?? "", isEditing);
-          else if (kinds[i] === CELL_TEXT && outlined[i]) drawBoxed(c, r, keys[i] ?? "", outlined[i] === 2);
+          else if (kinds[i] === CELL_TEXT && boxed[i]) drawBoxed(c, r, keys[i] ?? "", outlined[i] !== 0);
           else if (kinds[i] === CELL_TEXT) drawText(c, r, keys[i] ?? "", lit[i] !== 0);
           else drawButton(c, r, keys[i] ?? "", lit[i] !== 0);
         });
