@@ -38,6 +38,9 @@ func LinksPill(m Model) Pill {
 	}
 	if len(rows) == 0 {
 		rows = [][]Cell{{Text("no links")}}
+	} else {
+		units := []Cell{Text("units"), Text("ticks of b's s"), Text("ticks"), Text("ticks"), Text("ticks"), Text("× ρ")}
+		rows = append([][]Cell{units}, rows...)
 	}
 	groups := []Group{
 		{Title: "links — one per a→b, set at a: its start, and Δ on it (± steps Δ and moves b)", Rows: rows},
