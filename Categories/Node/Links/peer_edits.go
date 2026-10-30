@@ -37,10 +37,18 @@ func (p *Peer) press(m Press) []Envelope {
 }
 
 func (p *Peer) setIncrement(m SetIncrement) {
-	if l, ok := p.own[m.From]; ok && whole(m.V) {
+	l, ok := p.own[m.From]
+	switch {
+	case !ok:
+		return
+	case m.K == KR && m.V > 0:
+		l.IncR = m.V
+	case m.K != KR && whole(m.V):
 		*l.Increment.at(m.K) = math.Round(m.V)
-		p.touched(m.From)
+	default:
+		return
 	}
+	p.touched(m.From)
 }
 
 func (p *Peer) setLocking(m SetLocking) {

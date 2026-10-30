@@ -44,12 +44,6 @@ func applySheetKey(ctx context.Context, md *MoveDispatch, key string) bool {
 	return err != nil || (ok && md.UI.Builder.Refused != "")
 }
 
-func (md *MoveDispatch) sendLink(ctx context.Context, to string, msg any) {
-	if md.Links == nil {
-		return
-	}
-	md.Links.Send(ctx, "", Links.Envelope{To: to, Msg: msg})
-}
 
 func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, typed *float64) {
 	m := md.UI.Builder
@@ -63,7 +57,11 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		if !ok {
 			return
 		}
-		v := float64(sign) + map[string]float64{Links.KPhi: l.Start.Phi, Links.KTheta: l.Start.Theta, Links.KR: l.Start.R}[a.K]
+		by := 1.0
+		if a.K == Links.KR {
+			by = l.IncR
+		}
+		v := float64(sign)*by + map[string]float64{Links.KPhi: l.Start.Phi, Links.KTheta: l.Start.Theta, Links.KR: l.Start.R}[a.K]
 		if typed != nil {
 			v = *typed
 		}
@@ -84,10 +82,8 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 	case Builder.OpUnpick:
 		md.sendLink(ctx, a.To, Links.Unpick{From: a.Node})
 	case Builder.OpIncrement:
-		if typed != nil && whole(*typed) {
-			md.sendLink(ctx, a.To, Links.SetIncrement{From: a.Node, K: a.K, V: *typed})
-		} else if typed != nil {
-			md.UI.Builder.Refused = fmt.Sprintf("%s→%s increment %v: not a whole number of ticks, so it stays as it is", a.Node, a.To, *typed)
+		if typed != nil {
+			md.setIncrement(ctx, a, *typed)
 		}
 	case Builder.OpLocking:
 		if l, ok := m.Link(a.Node, a.To); ok {

@@ -33,16 +33,19 @@ func LinksPill(m Model) Pill {
 			Text(l.Name()),
 			Field("", num1(l.Start.Phi), act(OpLinkStart, Links.KPhi), true, true).Fitting(fit),
 			Field("", num1(l.Delta.Phi), act(OpLinkPress, Links.KPhi), false, true).Fitting(fit),
+			Field("", num1(l.Increment.Phi), act(OpIncrement, Links.KPhi), true, false).Fitting(fit),
 			Field("", num1(l.Start.Theta), act(OpLinkStart, Links.KTheta), true, true).Fitting(fit),
 			Field("", num1(l.Delta.Theta), act(OpLinkPress, Links.KTheta), false, true).Fitting(fit),
+			Field("", num1(l.Increment.Theta), act(OpIncrement, Links.KTheta), true, false).Fitting(fit),
 			Field("", num1(l.Start.R), act(OpLinkStart, Links.KR), true, true).Fitting(fit),
+			Field("", num1(l.IncR), act(OpIncrement, Links.KR), true, false).Fitting(fit),
 			Button("remove", act(OpDropLink, ""), false),
 		})
 	}
 	if len(rows) == 0 {
 		rows = [][]Cell{{Text("no links")}}
 	} else {
-		labels := []Cell{Text(""), Text("φ").AboveLastDigit(), Text("Δφ").AboveLastDigit(), Text("θ").AboveLastDigit(), Text("Δθ").AboveLastDigit(), Text("r").AboveLastDigit()}
+		labels := []Cell{Text(""), Text("φ").AboveLastDigit(), Text("Δφ").AboveLastDigit(), Text("n").AboveLastDigit(), Text("θ").AboveLastDigit(), Text("Δθ").AboveLastDigit(), Text("n").AboveLastDigit(), Text("r").AboveLastDigit(), Text("n").AboveLastDigit()}
 		rows = append([][]Cell{labels}, rows...)
 	}
 	groups := []Group{
