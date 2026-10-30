@@ -2,7 +2,8 @@ package Dispatch
 
 import (
 	"context"
-
+	"fmt"
+	"math"
 
 	"github.com/dtauraso/beadnetwork/Categories/Scene/Drag"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/View"
@@ -151,4 +152,26 @@ func applyAngleHit(ctx context.Context, md *MoveDispatch, speedSinks SliderPanel
 
 func setClockSpeed(md *MoveDispatch, speedSinks SliderPanel.Sinks, speed float64) {
 	SliderPanel.SetSpeedNum(int64(speed*SliderPanel.SpeedNumScale), md.speedState(), speedSinks, md.persistSpeed, md.redraw)
+}
+
+func setTickMs(ctx context.Context, md *MoveDispatch, sign int, typed *float64) {
+	m := &md.UI.Builder
+	v := m.TickMs + sign
+	if typed != nil {
+		if !whole(*typed) || *typed < 1 {
+			m.Refused = fmt.Sprintf("Δt %v: not a whole number of milliseconds of at least 1, so it stays at %d", *typed, m.TickMs)
+			return
+		}
+		v = int(math.Round(*typed))
+	}
+	if v < 1 {
+		return
+	}
+	m.TickMs = v
+	if root := md.Scenes.TreeRoot; root != "" {
+		if err := Sheet.WriteScalar(Scenes.TickMsFilePath(root), int32(v)); err != nil {
+			m.Refused = fmt.Sprintf("could not write Δt: %v", err)
+		}
+	}
+	md.sendLink(ctx, Links.All, Links.SetTickMs{V: v})
 }

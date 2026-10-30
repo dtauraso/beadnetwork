@@ -91,18 +91,25 @@ export function drawCell(c: CanvasRenderingContext2D, r: R, l: CellLook): void {
   else drawButton(c, r, l.key, l.lit);
 }
 
-export function drawArrow(c: CanvasRenderingContext2D, r: R, up: boolean): void {
+export function drawArrow(c: CanvasRenderingContext2D, r: R, up: boolean, lit: boolean, head: boolean): void {
   if (r.w <= 0 || r.h <= 0) return;
-  roundRect(c, r.x, r.y + 0.5, r.w, r.h - 1, 2);
-  c.fillStyle = CELL_FILL;
-  c.fill();
+  if (head && !lit) {
+    roundRect(c, r.x + 0.5, r.y + 1, r.w - 1, r.h - 2, 2);
+    c.strokeStyle = OUTLINE_EDGE;
+    c.lineWidth = 1;
+    c.stroke();
+  } else {
+    roundRect(c, r.x, r.y + 0.5, r.w, r.h - 1, 2);
+    c.fillStyle = lit ? BUTTON_LIT_FILL : CELL_FILL;
+    c.fill();
+  }
   const cx = r.x + r.w / 2, cy = r.y + r.h / 2, half = Math.min(r.w, r.h) * 0.28;
   c.beginPath();
   c.moveTo(cx - half, cy + (up ? 1 : -1) * half * 0.6);
   c.lineTo(cx + half, cy + (up ? 1 : -1) * half * 0.6);
   c.lineTo(cx, cy - (up ? 1 : -1) * half * 0.6);
   c.closePath();
-  c.fillStyle = VAL_INK;
+  c.fillStyle = head && !lit ? TEXT_LIT_INK : VAL_INK;
   c.fill();
 }
 

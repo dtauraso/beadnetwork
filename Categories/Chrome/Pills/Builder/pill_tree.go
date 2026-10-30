@@ -30,7 +30,7 @@ func lockText(l Links.Lock) string {
 	if l == (Links.Lock{}) {
 		return "—"
 	}
-	return "φ " + strconv.Itoa(l.Phi) + " | θ " + strconv.Itoa(l.Theta)
+	return "φ " + strconv.Itoa(l.Phi) + " | θ " + strconv.Itoa(l.Theta) + " | r " + strconv.Itoa(l.R)
 }
 
 func onOff(b bool) string {

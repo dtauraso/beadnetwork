@@ -18,6 +18,9 @@ const (
 	StepArrowW = 14
 	StepGap    = 2
 
+	LockArrowW = 16
+	LockGap    = 8
+
 	valueField = "-00.00"
 )
 
@@ -52,6 +55,28 @@ type Cell struct {
 	OverLastDigit bool
 	Boxed         bool
 	Outlined      bool
+	Arrows        Act
+	LockSign      int
+	Fold          Act
+	Open          bool
+}
+
+func (c Cell) Stepping(a Act, lock int) Cell { c.Arrows, c.LockSign = a, lock; return c }
+
+func (c Cell) Folding(a Act, open bool) Cell { c.Fold, c.Open = a, open; return c }
+
+func (c Cell) FoldMark() string {
+	if c.Open {
+		return "▾"
+	}
+	return "▸"
+}
+
+func (c Cell) ArrowAct() Act {
+	if c.Arrows.Op != "" {
+		return c.Arrows
+	}
+	return c.Act
 }
 
 func (c Cell) Fitting(v string) Cell { c.Fit = v; return c }

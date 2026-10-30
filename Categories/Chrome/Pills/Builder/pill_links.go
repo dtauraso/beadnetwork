@@ -70,7 +70,13 @@ func (c linkCol) head(m Model) Cell {
 	if open {
 		mark = " ▾"
 	}
-	return c.mark(LitText(c.label+mark, Act{Op: OpUnfold, K: c.unfold}, open)).AboveLastDigit()
+	fold := Act{Op: OpUnfold, K: c.unfold}
+	if c.op == OpLinkPress {
+		lock := map[string]int{Links.KPhi: m.Step.LockAll.Phi, Links.KTheta: m.Step.LockAll.Theta, Links.KR: m.Step.LockAll.R}[c.k]
+		lockAct := Act{Op: OpAllLock, K: c.k}
+		return Text(c.label).Acting(lockAct).Outline(lock != 0).Stepping(lockAct, lock).Folding(fold, open)
+	}
+	return c.mark(LitText(c.label+mark, fold, open)).AboveLastDigit()
 }
 
 func (c linkCol) mark(cell Cell) Cell {
@@ -99,7 +105,8 @@ func LinksPill(m Model) Pill {
 	if len(rows) == 0 {
 		rows = [][]Cell{{Text("no links")}}
 	} else {
-		labels := []Cell{Field("both", "", Act{Op: OpAllBoth}, false, true).Fitting(" ")}
+		labels := []Cell{Text("both").Outline(true).Stepping(Act{Op: OpAllBoth}, 0)}
+		labels[0].Lit = m.Step.LockAll != (Links.Lock{})
 		for _, c := range cols {
 			labels = append(labels, c.head(m))
 		}

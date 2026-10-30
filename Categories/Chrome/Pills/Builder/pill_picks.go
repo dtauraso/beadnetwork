@@ -82,6 +82,7 @@ const (
 	OpAllStep    = "all-step"
 	OpAllBoth    = "all-both"
 	OpAllLocking = "all-locking"
+	OpAllLock    = "all-lock"
 )
 
 func allRow(m Model) []Cell {

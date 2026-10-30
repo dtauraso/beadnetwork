@@ -10,6 +10,7 @@ const (
 	DirStep       = "step"
 	FileLockPhi   = "lock-phi.bin"
 	FileLockTheta = "lock-theta.bin"
+	FileLockR     = "lock-r.bin"
 	FileLocking   = "locking.bin"
 )
 
@@ -25,12 +26,13 @@ func ReadStep(dir string) Step {
 	var s Step
 	Links.ReadIfExists(filepath.Join(dir, FileLockPhi), &s.LockAll.Phi)
 	Links.ReadIfExists(filepath.Join(dir, FileLockTheta), &s.LockAll.Theta)
+	Links.ReadIfExists(filepath.Join(dir, FileLockR), &s.LockAll.R)
 	Links.ReadIfExists(filepath.Join(dir, FileLocking), &s.Locking)
 	return s
 }
 
 func WriteStep(dir string, s Step) error {
-	for name, v := range map[string]any{FileLockPhi: s.LockAll.Phi, FileLockTheta: s.LockAll.Theta, FileLocking: s.Locking} {
+	for name, v := range map[string]any{FileLockPhi: s.LockAll.Phi, FileLockTheta: s.LockAll.Theta, FileLockR: s.LockAll.R, FileLocking: s.Locking} {
 		if err := Links.WriteAtomicIfChanged(filepath.Join(dir, name), v); err != nil {
 			return err
 		}

@@ -3,13 +3,11 @@ package Dispatch
 import (
 	"context"
 	"fmt"
-	"math"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/Builder"
 	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
-	"github.com/dtauraso/beadnetwork/Categories/Scene/Scenes"
 	"github.com/dtauraso/beadnetwork/Categories/Scene/View"
 )
 
@@ -25,9 +23,9 @@ func applySheetHit(ctx context.Context, md *MoveDispatch, h Sheet.Hit) {
 			runSheetAct(ctx, md, h.Cell.Act, 0, nil)
 		}
 	case Sheet.PartUp:
-		runSheetAct(ctx, md, h.Cell.Act, 1, nil)
+		runSheetAct(ctx, md, h.Cell.ArrowAct(), 1, nil)
 	case Sheet.PartDown:
-		runSheetAct(ctx, md, h.Cell.Act, -1, nil)
+		runSheetAct(ctx, md, h.Cell.ArrowAct(), -1, nil)
 	}
 	md.UI.EmitViewFrame(nil)
 }
@@ -94,7 +92,20 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 	case Builder.OpItem, Builder.OpMethod, Builder.OpCard:
 		setCards(md, a)
 	case Builder.OpAllStep:
-		allStep(ctx, md, a.K, a.Sign)
+		if sign == 0 {
+			sign = a.Sign
+		}
+		allStep(ctx, md, a.K, sign)
+	case Builder.OpAllLock:
+		lock := allLockOf(md, a.K)
+		switch {
+		case sign == 0 && *lock == 0:
+			sign = 1
+		case *lock == sign:
+			sign = 0
+		}
+		*lock = sign
+		md.persistStep()
 	case Builder.OpAllBoth:
 		if sign == 0 {
 			sign = a.Sign
@@ -109,12 +120,20 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 	}
 }
 
+func allLockOf(md *MoveDispatch, k string) *int {
+	st := &md.UI.Builder.Step
+	switch k {
+	case Links.KTheta:
+		return &st.LockAll.Theta
+	case Links.KR:
+		return &st.LockAll.R
+	}
+	return &st.LockAll.Phi
+}
+
 func allStep(ctx context.Context, md *MoveDispatch, k string, sign int) {
 	st := &md.UI.Builder.Step
-	lock := &st.LockAll.Phi
-	if k == Links.KTheta {
-		lock = &st.LockAll.Theta
-	}
+	lock := allLockOf(md, k)
 	switch {
 	case *lock == sign:
 		*lock = 0
@@ -183,26 +202,4 @@ func DrainLinkReports(md *MoveDispatch) {
 	if len(rs) > 0 || m.TimeKey() != before {
 		md.UI.EmitViewFrame(nil)
 	}
-}
-
-func setTickMs(ctx context.Context, md *MoveDispatch, sign int, typed *float64) {
-	m := &md.UI.Builder
-	v := m.TickMs + sign
-	if typed != nil {
-		if !whole(*typed) || *typed < 1 {
-			m.Refused = fmt.Sprintf("Δt %v: not a whole number of milliseconds of at least 1, so it stays at %d", *typed, m.TickMs)
-			return
-		}
-		v = int(math.Round(*typed))
-	}
-	if v < 1 {
-		return
-	}
-	m.TickMs = v
-	if root := md.Scenes.TreeRoot; root != "" {
-		if err := Sheet.WriteScalar(Scenes.TickMsFilePath(root), int32(v)); err != nil {
-			m.Refused = fmt.Sprintf("could not write Δt: %v", err)
-		}
-	}
-	md.sendLink(ctx, Links.All, Links.SetTickMs{V: v})
 }
