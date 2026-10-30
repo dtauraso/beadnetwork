@@ -28,19 +28,19 @@ func LinksPill(m Model) Pill {
 		act := func(op, k string) Act { return Act{Op: op, Node: l.From, To: l.To, K: k} }
 		rows = append(rows, []Cell{
 			Text(l.Name()),
-			Field("φ", Num(l.Start.Phi), act(OpLinkStart, Links.KPhi), true, true),
-			Field("Δφ", Num(l.Delta.Phi), act(OpLinkPress, Links.KPhi), false, true),
-			Field("θ", Num(l.Start.Theta), act(OpLinkStart, Links.KTheta), true, true),
-			Field("Δθ", Num(l.Delta.Theta), act(OpLinkPress, Links.KTheta), false, true),
-			Field("r", Num(l.Start.R), act(OpLinkStart, Links.KR), true, false),
+			Field("", Num(l.Start.Phi), act(OpLinkStart, Links.KPhi), true, true),
+			Field("", Num(l.Delta.Phi), act(OpLinkPress, Links.KPhi), false, true),
+			Field("", Num(l.Start.Theta), act(OpLinkStart, Links.KTheta), true, true),
+			Field("", Num(l.Delta.Theta), act(OpLinkPress, Links.KTheta), false, true),
+			Field("", Num(l.Start.R), act(OpLinkStart, Links.KR), true, false),
 			Button("remove", act(OpDropLink, ""), false),
 		})
 	}
 	if len(rows) == 0 {
 		rows = [][]Cell{{Text("no links")}}
 	} else {
-		units := []Cell{Text("units"), Text("ticks of b's s"), Text("ticks"), Text("ticks"), Text("ticks"), Text("× ρ")}
-		rows = append([][]Cell{units}, rows...)
+		labels := []Cell{Text(""), Text("φ"), Text("Δφ"), Text("θ"), Text("Δθ"), Text("r")}
+		rows = append([][]Cell{labels}, rows...)
 	}
 	groups := []Group{
 		{Title: "links — one per a→b, set at a: its start, and Δ on it (± steps Δ and moves b)", Rows: rows},
