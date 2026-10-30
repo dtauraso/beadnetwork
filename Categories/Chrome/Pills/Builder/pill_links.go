@@ -39,7 +39,7 @@ func LinksPill(m Model) Pill {
 			Field("", num1(l.Increment.Theta), act(OpIncrement, Links.KTheta), true, false).Fitting(fit),
 			Field("", num1(l.Start.R), act(OpLinkStart, Links.KR), true, true).Fitting(fit),
 			Field("", num1(l.IncR), act(OpIncrement, Links.KR), true, false).Fitting(fit),
-			Button("remove", act(OpDropLink, ""), false),
+			Button("×", act(OpDropLink, ""), false),
 		})
 	}
 	if len(rows) == 0 {
