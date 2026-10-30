@@ -1,6 +1,8 @@
 package Builder
 
 import (
+	"math"
+	"strconv"
 	"strings"
 
 	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
@@ -23,21 +25,25 @@ func (m Model) allLinks() []Links.Link {
 }
 
 func LinksPill(m Model) Pill {
+	const fit = "0.0"
 	var rows [][]Cell
 	for _, l := range m.allLinks() {
 		act := func(op, k string) Act { return Act{Op: op, Node: l.From, To: l.To, K: k} }
 		rows = append(rows, []Cell{
 			Text(l.Name()),
-			Field("φ", Num(l.Start.Phi), act(OpLinkStart, Links.KPhi), true, true),
-			Field("Δφ", Num(l.Delta.Phi), act(OpLinkPress, Links.KPhi), false, true),
-			Field("θ", Num(l.Start.Theta), act(OpLinkStart, Links.KTheta), true, true),
-			Field("Δθ", Num(l.Delta.Theta), act(OpLinkPress, Links.KTheta), false, true),
-			Field("r", Num(l.Start.R), act(OpLinkStart, Links.KR), true, false),
+			Field("", num1(l.Start.Phi), act(OpLinkStart, Links.KPhi), true, true).Fitting(fit),
+			Field("", num1(l.Delta.Phi), act(OpLinkPress, Links.KPhi), false, true).Fitting(fit),
+			Field("", num1(l.Start.Theta), act(OpLinkStart, Links.KTheta), true, true).Fitting(fit),
+			Field("", num1(l.Delta.Theta), act(OpLinkPress, Links.KTheta), false, true).Fitting(fit),
+			Field("", num1(l.Start.R), act(OpLinkStart, Links.KR), true, true).Fitting(fit),
 			Button("remove", act(OpDropLink, ""), false),
 		})
 	}
 	if len(rows) == 0 {
 		rows = [][]Cell{{Text("no links")}}
+	} else {
+		labels := []Cell{Text(""), Text("φ").AboveSteps(), Text("Δφ").AboveSteps(), Text("θ").AboveSteps(), Text("Δθ").AboveSteps(), Text("r").AboveSteps()}
+		rows = append([][]Cell{labels}, rows...)
 	}
 	groups := []Group{
 		{Title: "links — one per a→b, set at a: its start, and Δ on it (± steps Δ and moves b)", Rows: rows},
@@ -50,6 +56,14 @@ func LinksPill(m Model) Pill {
 		groups = append(groups, Group{Rows: [][]Cell{{Text(m.Refused)}}})
 	}
 	return Pill{Label: LinksLabel, Groups: groups}
+}
+
+func num1(v float64) string {
+	v = math.Round(v*10) / 10
+	if v == math.Trunc(v) {
+		return strconv.Itoa(int(v))
+	}
+	return strconv.FormatFloat(v, 'f', 1, 64)
 }
 
 func recalcGroup(m Model) Group {

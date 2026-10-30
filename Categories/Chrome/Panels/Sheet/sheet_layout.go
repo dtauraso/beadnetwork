@@ -7,11 +7,18 @@ import (
 func cellW(c Cell) float32 {
 	switch c.Kind {
 	case CellField:
-		v := c.Value
-		if len(v) < len(valueField) {
-			v = valueField
+		fit := valueField
+		if c.Fit != "" {
+			fit = c.Fit
 		}
-		w := Panel.TextWidth(c.Key, KeyFontPx) + CellGapX + Panel.TextWidth(v, ValFontPx) + 2*CellPadX
+		v := c.Value
+		if len(v) < len(fit) {
+			v = fit
+		}
+		w := Panel.TextWidth(v, ValFontPx) + 2*CellPadX
+		if c.Key != "" {
+			w += Panel.TextWidth(c.Key, KeyFontPx) + CellGapX
+		}
 		if c.Steps {
 			w += StepGap + StepArrowW
 		}
@@ -107,6 +114,11 @@ func (lay *Layout) place(box int, g Group, x, y float32) {
 				half := rowH() / 2
 				cb.Up = Rect{X: ax, Y: y, W: StepArrowW, H: half}
 				cb.Down = Rect{X: ax, Y: y + half, W: StepArrowW, H: half}
+			}
+			if c.Kind == CellText && c.OverSteps {
+				tw := cellW(c)
+				cb.Rect.X = cx + cols[i] - StepArrowW/2 - tw/2
+				cb.Rect.W = tw
 			}
 			lay.Cells = append(lay.Cells, cb)
 			cx += cols[i] + CellGapX
