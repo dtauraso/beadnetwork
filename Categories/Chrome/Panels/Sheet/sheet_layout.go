@@ -26,12 +26,16 @@ func cellW(c Cell) float32 {
 	case CellButton:
 		return Panel.TextWidth(c.Key, KeyFontPx) + 2*CellPadX
 	}
+	w := textW(c)
+	if c.Arrows.Op != "" {
+		w += lockW()
+	}
+	return w
+}
+
+func textW(c Cell) float32 {
 	if c.Boxed {
-		w := Panel.TextWidth(c.Key, KeyFontPx) + 2*CellPadX
-		if c.Arrows.Op != "" {
-			w += lockW()
-		}
-		return w
+		return Panel.TextWidth(c.Key, KeyFontPx) + 2*CellPadX
 	}
 	return Panel.TextWidth(c.Key, KeyFontPx) + 2
 }
@@ -150,7 +154,7 @@ func (lay *Layout) place(box int, g Group, x, y, dx float32) {
 			cb := CellBox{Box: box, Cell: c, Rect: Rect{X: cx, Y: y, W: cols[i], H: rowH()}, Slides: g.Slides}
 			if c.Arrows.Op != "" {
 				right := cx + cols[i]
-				tw := cellW(c) - lockW()
+				tw := textW(c)
 				cb.Rect.X, cb.Rect.W = right-lockW()-tw, tw
 				ax := right - 2*LockArrowW - StepGap
 				cb.Up = Rect{X: ax, Y: y, W: LockArrowW, H: rowH()}
