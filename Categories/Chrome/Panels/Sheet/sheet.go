@@ -57,9 +57,20 @@ type Cell struct {
 	Outlined      bool
 	Arrows        Act
 	LockSign      int
+	Fold          Act
+	Open          bool
 }
 
 func (c Cell) Stepping(a Act, lock int) Cell { c.Arrows, c.LockSign = a, lock; return c }
+
+func (c Cell) Folding(a Act, open bool) Cell { c.Fold, c.Open = a, open; return c }
+
+func (c Cell) FoldMark() string {
+	if c.Open {
+		return "▾"
+	}
+	return "▸"
+}
 
 func (c Cell) ArrowAct() Act {
 	if c.Arrows.Op != "" {

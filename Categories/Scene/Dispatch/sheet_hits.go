@@ -98,7 +98,10 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		allStep(ctx, md, a.K, sign)
 	case Builder.OpAllLock:
 		lock := allLockOf(md, a.K)
-		if *lock == sign {
+		switch {
+		case sign == 0 && *lock == 0:
+			sign = 1
+		case *lock == sign:
 			sign = 0
 		}
 		*lock = sign
