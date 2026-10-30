@@ -121,16 +121,15 @@ function drawText(c: CanvasRenderingContext2D, r: R, text: string, lit: boolean)
 }
 
 function drawOutlined(c: CanvasRenderingContext2D, r: R, text: string): void {
-  c.font = canvasFont(KEY_FONT_PX, 500);
-  const w = Math.max(r.w, c.measureText(text).width + 2 * CELL_PAD_X);
-  roundRect(c, r.x + 0.75, r.y + 0.75, w - 1.5, r.h - 1.5, CELL_RADIUS);
+  roundRect(c, r.x + 0.75, r.y + 0.75, r.w - 1.5, r.h - 1.5, CELL_RADIUS);
   c.strokeStyle = OUTLINE_EDGE;
   c.lineWidth = 1.5;
   c.stroke();
   c.fillStyle = TEXT_INK;
+  c.font = canvasFont(KEY_FONT_PX, 500);
   c.textAlign = "center";
   c.textBaseline = "middle";
-  c.fillText(text, r.x + w / 2, r.y + r.h / 2);
+  c.fillText(text, r.x + r.w / 2, r.y + r.h / 2);
 }
 
 function drawArrow(c: CanvasRenderingContext2D, r: R, up: boolean): void {
