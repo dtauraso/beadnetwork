@@ -48,7 +48,7 @@ func (l Layout) Hit(x, y float64) Hit {
 		case cb.Down.W > 0 && Panel.HitRect(cb.Down, x, y):
 			return Hit{Part: PartDown, Label: label, Cell: cb.Cell, Rect: cb.Down}
 		case cb.Cell.Act.Op != "" && Panel.HitRect(cb.Rect, x, y):
-			if cb.Cell.Kind == CellField && !cb.Cell.Typed && cb.Cell.Arrows.Op == "" {
+			if cb.Cell.Kind == CellField && !cb.Cell.Typed {
 				continue
 			}
 			return Hit{Part: PartBody, Label: label, Cell: cb.Cell, Rect: cb.Rect}

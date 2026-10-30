@@ -27,7 +27,11 @@ func cellW(c Cell) float32 {
 		return Panel.TextWidth(c.Key, KeyFontPx) + 2*CellPadX
 	}
 	if c.Boxed {
-		return Panel.TextWidth(c.Key, KeyFontPx) + 2*CellPadX
+		w := Panel.TextWidth(c.Key, KeyFontPx) + 2*CellPadX
+		if c.Arrows.Op != "" {
+			w += StepGap + StepArrowW
+		}
+		return w
 	}
 	return Panel.TextWidth(c.Key, KeyFontPx) + 2
 }
@@ -143,7 +147,7 @@ func (lay *Layout) place(box int, g Group, x, y, dx float32) {
 		cx := x - dx
 		for i, c := range row {
 			cb := CellBox{Box: box, Cell: c, Rect: Rect{X: cx, Y: y, W: cols[i], H: rowH()}, Slides: g.Slides}
-			if c.Kind == CellField && c.Steps {
+			if c.Kind == CellField && c.Steps || c.Arrows.Op != "" {
 				cb.Rect.W = cols[i] - StepGap - StepArrowW
 				ax := cx + cb.Rect.W + StepGap
 				half := rowH() / 2
@@ -156,6 +160,9 @@ func (lay *Layout) place(box int, g Group, x, y, dx float32) {
 					right -= StepGap + StepArrowW
 				}
 				tw := cellW(c)
+				if c.Arrows.Op != "" {
+					tw -= StepGap + StepArrowW
+				}
 				cb.Rect.X = right - CellPadX - Panel.Advance(ValFontPx)/2 - tw/2
 				cb.Rect.W = tw
 			}

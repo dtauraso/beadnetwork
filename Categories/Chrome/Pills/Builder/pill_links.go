@@ -76,7 +76,7 @@ func (c linkCol) head(m Model) Cell {
 		if c.k == Links.KTheta {
 			lock = m.Step.LockAll.Theta
 		}
-		return c.mark(Field(c.label+mark, "", fold, false, true).Stepping(Act{Op: OpAllStep, K: c.k}, lock).Fitting(" "))
+		return c.mark(LitText(c.label+mark, fold, open)).AboveLastDigit().Stepping(Act{Op: OpAllStep, K: c.k}, lock)
 	}
 	return c.mark(LitText(c.label+mark, fold, open)).AboveLastDigit()
 }
@@ -107,7 +107,8 @@ func LinksPill(m Model) Pill {
 	if len(rows) == 0 {
 		rows = [][]Cell{{Text("no links")}}
 	} else {
-		labels := []Cell{Field("both", "", Act{Op: OpAllBoth}, false, true).Fitting(" ")}
+		labels := []Cell{Text("both").Outline(true).Stepping(Act{Op: OpAllBoth}, 0)}
+		labels[0].Lit = m.Step.LockAll != (Links.Lock{})
 		for _, c := range cols {
 			labels = append(labels, c.head(m))
 		}
