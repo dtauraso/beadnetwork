@@ -163,7 +163,7 @@ func (lay *Layout) place(box int, g Group, x, y, dx float32) {
 				if c.Arrows.Op != "" {
 					tw -= StepGap + StepArrowW
 				}
-				cb.Rect.X = right - CellPadX - Panel.Advance(ValFontPx)/2 - tw/2
+				cb.Rect.X = min(right-CellPadX-Panel.Advance(ValFontPx)/2-tw/2, right-tw)
 				cb.Rect.W = tw
 			}
 			lay.Cells = append(lay.Cells, cb)

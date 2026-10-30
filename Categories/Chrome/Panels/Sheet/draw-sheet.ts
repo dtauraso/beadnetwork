@@ -7,7 +7,7 @@ import { sheetBytes, sheetF32Run, sheetU32Run, sheetText } from "./sheet-leaves"
 const TITLE_FONT_PX = 12;
 const TITLE_INK = "#222";
 
-function bytesOf(name: "cellKind" | "cellLit" | "cellEditing" | "cellOutlined" | "cellBoxed" | "cellSlides" | "upSlides" | "upLit" | "downLit" | "pillOpen"): number[] {
+function bytesOf(name: "cellKind" | "cellLit" | "cellEditing" | "cellOutlined" | "cellBoxed" | "cellSlides" | "upSlides" | "upLit" | "downLit" | "upHead" | "pillOpen"): number[] {
   const v = sheetBytes(name);
   const out: number[] = [];
   if (v) for (let i = 0; i < v.byteLength; i++) out.push(v.getUint8(i));
@@ -81,7 +81,7 @@ export function drawSheets(c: CanvasRenderingContext2D): void {
   const outlined = bytesOf("cellOutlined"), boxed = bytesOf("cellBoxed");
   const slideX = sheetF32Run("slideX"), slideW = sheetF32Run("slideW");
   const cellSlides = bytesOf("cellSlides"), upSlides = bytesOf("upSlides");
-  const upLit = bytesOf("upLit"), downLit = bytesOf("downLit");
+  const upLit = bytesOf("upLit"), downLit = bytesOf("downLit"), upHead = bytesOf("upHead");
 
   boxes.forEach((b, bi) => {
     if (b.w <= 0 || b.h <= 0) return;
@@ -116,9 +116,10 @@ export function drawSheets(c: CanvasRenderingContext2D): void {
         ups.forEach((r, i) => {
           if (upBox[i] !== bi) return;
           slid(c, b, sx, sw, (upSlides[i] ?? 0) !== 0, () => {
-            drawArrow(c, r, true, (upLit[i] ?? 0) !== 0);
+            const head = (upHead[i] ?? 0) !== 0;
+            drawArrow(c, r, true, (upLit[i] ?? 0) !== 0, head);
             const down = downs[i];
-            if (down) drawArrow(c, down, false, (downLit[i] ?? 0) !== 0);
+            if (down) drawArrow(c, down, false, (downLit[i] ?? 0) !== 0, head);
           });
         });
       }
