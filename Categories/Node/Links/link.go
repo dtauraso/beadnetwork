@@ -13,6 +13,7 @@ type Link struct {
 	Start     Start
 	Delta     Angles
 	Increment Angles
+	IncR      float64
 	Lock      Lock
 	Locking   bool
 	Picked    bool
@@ -28,7 +29,7 @@ const (
 )
 
 func NewLink(from, to string) *Link {
-	return &Link{From: from, To: to, Start: Start{R: 2}, Increment: Angles{Phi: 1, Theta: 1}}
+	return &Link{From: from, To: to, Start: Start{R: 2}, Increment: Angles{Phi: 1, Theta: 1}, IncR: 1}
 }
 
 func (l *Link) Name() string { return l.From + "→" + l.To }

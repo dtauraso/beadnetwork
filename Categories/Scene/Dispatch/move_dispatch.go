@@ -2,10 +2,12 @@ package Dispatch
 
 import (
 	"context"
-	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
+	"fmt"
 	"sync"
 
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Panel"
+	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Sheet"
+	"github.com/dtauraso/beadnetwork/Categories/Node/Links"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/SliderPanel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Pills/AngleDropdown"
 	clock "github.com/dtauraso/beadnetwork/Categories/Clock"
@@ -80,4 +82,22 @@ func NewMoveDispatch(geoms map[string]Node.NodeGeom, edgeEndpoints map[string]ed
 	md.bindUIClosures()
 
 	return md, nil
+}
+
+func (md *MoveDispatch) sendLink(ctx context.Context, to string, msg any) {
+	if md.Links == nil {
+		return
+	}
+	md.Links.Send(ctx, "", Links.Envelope{To: to, Msg: msg})
+}
+
+func (md *MoveDispatch) setIncrement(ctx context.Context, a Sheet.Act, v float64) {
+	switch {
+	case a.K == Links.KR && v <= 0:
+		md.UI.Builder.Refused = fmt.Sprintf("%s→%s r increment %v: not more than 0, so it stays as it is", a.Node, a.To, v)
+	case a.K != Links.KR && !whole(v):
+		md.UI.Builder.Refused = fmt.Sprintf("%s→%s increment %v: not a whole number of ticks, so it stays as it is", a.Node, a.To, v)
+	default:
+		md.sendLink(ctx, a.To, Links.SetIncrement{From: a.Node, K: a.K, V: v})
+	}
 }
