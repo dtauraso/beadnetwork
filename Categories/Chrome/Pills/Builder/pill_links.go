@@ -55,6 +55,7 @@ func (m Model) linkCols() []linkCol {
 	)...)
 	return append(cols, chain(
 		linkCol{"r", "r", func(l Links.Link) float64 { return l.Start.R }, OpLinkStart, Links.KR, true, true},
+		linkCol{"Δr", "dr", func(l Links.Link) float64 { return l.DeltaR }, OpLinkPress, Links.KR, false, true},
 		linkCol{"n", "", func(l Links.Link) float64 { return l.IncR }, OpIncrement, Links.KR, true, true},
 	)...)
 }

@@ -17,6 +17,7 @@ const (
 	FileStartR     = "start-r.bin"
 	FileDeltaPhi   = "delta-phi.bin"
 	FileDeltaTheta = "delta-theta.bin"
+	FileDeltaR     = "delta-r.bin"
 	FileIncPhi     = "increment-phi.bin"
 	FileIncTheta   = "increment-theta.bin"
 	FileIncR       = "increment-r.bin"
@@ -64,6 +65,7 @@ func readLinksIn(linksDir, to string) ([]Link, error) {
 		ReadIfExists(filepath.Join(dir, FileStartR), &l.Start.R)
 		ReadIfExists(filepath.Join(dir, FileDeltaPhi), &l.Delta.Phi)
 		ReadIfExists(filepath.Join(dir, FileDeltaTheta), &l.Delta.Theta)
+		ReadIfExists(filepath.Join(dir, FileDeltaR), &l.DeltaR)
 		ReadIfExists(filepath.Join(dir, FileIncPhi), &l.Increment.Phi)
 		ReadIfExists(filepath.Join(dir, FileIncTheta), &l.Increment.Theta)
 		ReadIfExists(filepath.Join(dir, FileIncR), &l.IncR)
@@ -115,7 +117,7 @@ func writeLinksIn(linksDir string, links []Link) error {
 		for file, v := range map[string]any{
 			FileSource: l.From, FileOrder: l.Order,
 			FileStartPhi: l.Start.Phi, FileStartTheta: l.Start.Theta, FileStartR: l.Start.R,
-			FileDeltaPhi: l.Delta.Phi, FileDeltaTheta: l.Delta.Theta,
+			FileDeltaPhi: l.Delta.Phi, FileDeltaTheta: l.Delta.Theta, FileDeltaR: l.DeltaR,
 			FileIncPhi: l.Increment.Phi, FileIncTheta: l.Increment.Theta, FileIncR: l.IncR,
 			FileLockPhi: l.Lock.Phi, FileLockTheta: l.Lock.Theta,
 			FileLocking: l.Locking, FilePicked: l.Picked,
