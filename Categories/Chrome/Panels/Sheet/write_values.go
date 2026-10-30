@@ -23,6 +23,8 @@ func (s *State) Write(lay Layout) {
 		w.Str("pillText", "pillLen", p.Label)
 		w.U8("pillOpen", flag(p.Open))
 		w.Rect("boxX", "boxY", "boxW", "boxH", p.Popover)
+		w.F32("slideX", p.Slide.X)
+		w.F32("slideW", p.Slide.W)
 	}
 	for _, h := range lay.Heads {
 		w.U32("headBox", uint32(h.Box))
@@ -49,6 +51,10 @@ func (s *State) Write(lay Layout) {
 	for _, cb := range lay.Cells {
 		w.U8("cellOutlined", flag(cb.Cell.Outlined))
 		w.U8("cellBoxed", flag(cb.Cell.Boxed))
+		w.U8("cellSlides", flag(cb.Slides))
+		if cb.Up.W > 0 {
+			w.U8("upSlides", flag(cb.Slides))
+		}
 	}
 
 	if err := w.Flush(); err != nil {

@@ -38,7 +38,7 @@ func (l Layout) Hit(x, y float64) Hit {
 		return Hit{}
 	}
 	for _, cb := range l.Cells {
-		if cb.Box != top {
+		if cb.Box != top || cb.Slides && !Panel.HitRect(l.Pills[top].Slide, x, y) {
 			continue
 		}
 		label := l.Pills[cb.Box].Label
@@ -68,5 +68,8 @@ func (l Layout) covering(x, y float64) (PillBox, bool) {
 
 func (l Layout) Covers(x, y float64) (label string, maxScroll, maxScrollX float32, ok bool) {
 	p, ok := l.covering(x, y)
+	if !Panel.HitRect(p.Slide, x, y) {
+		p.MaxScrollX = 0
+	}
 	return p.Label, p.MaxScroll, p.MaxScrollX, ok
 }

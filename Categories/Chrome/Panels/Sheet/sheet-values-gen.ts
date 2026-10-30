@@ -47,6 +47,10 @@ export const SHEET_VALUE_NAMES = [
   "draftText",
   "cellOutlined",
   "cellBoxed",
+  "slideX",
+  "slideW",
+  "cellSlides",
+  "upSlides",
 ] as const;
 
 export type SheetValueName = (typeof SHEET_VALUE_NAMES)[number];

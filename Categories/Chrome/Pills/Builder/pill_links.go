@@ -106,7 +106,7 @@ func LinksPill(m Model) Pill {
 		rows = append([][]Cell{labels}, rows...)
 	}
 	groups := []Group{
-		{Title: "links — one per a→b, set at a: its start, and Δ on it (± steps Δ and moves b); a picked link's name is outlined, and clicking a name picks or unpicks it", Rows: rows},
+		{Title: "links — one per a→b, set at a: its start, and Δ on it (± steps Δ and moves b); a picked link's name is outlined, and clicking a name picks or unpicks it", Rows: rows, Slides: true},
 		pickGroup(m),
 		pickedGroup(m),
 		recalcGroup(m),

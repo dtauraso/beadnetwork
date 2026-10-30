@@ -48,7 +48,7 @@ func columns(g Group) []float32 {
 	return cols
 }
 
-func groupW(g Group) float32 {
+func colsW(g Group) float32 {
 	var w float32
 	for i, c := range columns(g) {
 		if i > 0 {
@@ -56,7 +56,21 @@ func groupW(g Group) float32 {
 		}
 		w += c
 	}
-	return max(w, Panel.TextWidth(g.Title, TitleFontPx))
+	return w
+}
+
+func groupW(g Group) float32 { return max(colsW(g), Panel.TextWidth(g.Title, TitleFontPx)) }
+
+func slideW(g Group, room float32) float32 {
+	w := colsW(g)
+	if g.Slides && room > 0 {
+		w = min(w, room)
+	}
+	return w
+}
+
+func shownW(g Group, room float32) float32 {
+	return max(slideW(g, room), Panel.TextWidth(g.Title, TitleFontPx))
 }
 
 func groupH(g Group) float32 {
@@ -81,20 +95,29 @@ func Build(right, left *Panel.PillStack, pills []Pill, st *State) Layout {
 			lay.Pills = append(lay.Pills, pb)
 			continue
 		}
+		room := stack.ContentRoomW()
 		var contentW, contentH float32
 		for i, g := range p.Groups {
-			contentW = max(contentW, groupW(g))
+			contentW = max(contentW, shownW(g, room))
 			if i > 0 {
 				contentH += Panel.Gap
 			}
 			contentH += groupH(g)
 		}
-		popover, x, y, maxScroll, maxScrollX := stack.AddWideScrollingPopover(contentW, contentH, st.Scroll[p.Label], st.ScrollX[p.Label])
+		popover, x, y, maxScroll := stack.AddWideScrollingPopover(contentW, contentH, st.Scroll[p.Label])
 		stack.EndGroup()
-		pb.Popover, pb.MaxScroll, pb.MaxScrollX = popover, maxScroll, maxScrollX
+		pb.Popover, pb.MaxScroll = popover, maxScroll
 		lay.Pills = append(lay.Pills, pb)
 		for _, g := range p.Groups {
-			lay.place(box, g, x, y)
+			dx := float32(0)
+			if g.Slides {
+				vis := slideW(g, room)
+				pb := &lay.Pills[box]
+				pb.Slide = Rect{X: x, Y: popover.Y, W: vis, H: popover.H}
+				pb.MaxScrollX = colsW(g) - vis
+				dx = max(0, min(st.ScrollX[p.Label], pb.MaxScrollX))
+			}
+			lay.place(box, g, x, y, dx)
 			y += groupH(g) + Panel.Gap
 		}
 	}
@@ -110,16 +133,16 @@ func stepsIn(g Group, i int) bool {
 	return false
 }
 
-func (lay *Layout) place(box int, g Group, x, y float32) {
+func (lay *Layout) place(box int, g Group, x, y, dx float32) {
 	if g.Title != "" {
 		lay.Heads = append(lay.Heads, HeadBox{Box: box, Rect: Rect{X: x, Y: y, W: groupW(g), H: titleH()}, Title: g.Title})
 		y += titleH() + TitleGap
 	}
 	cols := columns(g)
 	for _, row := range g.Rows {
-		cx := x
+		cx := x - dx
 		for i, c := range row {
-			cb := CellBox{Box: box, Cell: c, Rect: Rect{X: cx, Y: y, W: cols[i], H: rowH()}}
+			cb := CellBox{Box: box, Cell: c, Rect: Rect{X: cx, Y: y, W: cols[i], H: rowH()}, Slides: g.Slides}
 			if c.Kind == CellField && c.Steps {
 				cb.Rect.W = cols[i] - StepGap - StepArrowW
 				ax := cx + cb.Rect.W + StepGap
