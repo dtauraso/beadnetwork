@@ -7,11 +7,18 @@ import (
 func cellW(c Cell) float32 {
 	switch c.Kind {
 	case CellField:
-		v := c.Value
-		if len(v) < len(valueField) {
-			v = valueField
+		fit := valueField
+		if c.Fit != "" {
+			fit = c.Fit
 		}
-		w := Panel.TextWidth(c.Key, KeyFontPx) + CellGapX + Panel.TextWidth(v, ValFontPx) + 2*CellPadX
+		v := c.Value
+		if len(v) < len(fit) {
+			v = fit
+		}
+		w := Panel.TextWidth(v, ValFontPx) + 2*CellPadX
+		if c.Key != "" {
+			w += Panel.TextWidth(c.Key, KeyFontPx) + CellGapX
+		}
 		if c.Steps {
 			w += StepGap + StepArrowW
 		}

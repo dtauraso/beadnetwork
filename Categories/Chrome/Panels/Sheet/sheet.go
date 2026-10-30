@@ -48,7 +48,10 @@ type Cell struct {
 	Typed bool
 	Steps bool
 	Lit   bool
+	Fit   string
 }
+
+func (c Cell) Fitting(v string) Cell { c.Fit = v; return c }
 
 func Text(s string) Cell { return Cell{Kind: CellText, Key: s} }
 

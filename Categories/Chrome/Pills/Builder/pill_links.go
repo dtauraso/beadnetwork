@@ -23,16 +23,17 @@ func (m Model) allLinks() []Links.Link {
 }
 
 func LinksPill(m Model) Pill {
+	const fit = "0.0"
 	var rows [][]Cell
 	for _, l := range m.allLinks() {
 		act := func(op, k string) Act { return Act{Op: op, Node: l.From, To: l.To, K: k} }
 		rows = append(rows, []Cell{
 			Text(l.Name()),
-			Field("", Num(l.Start.Phi), act(OpLinkStart, Links.KPhi), true, true),
-			Field("", Num(l.Delta.Phi), act(OpLinkPress, Links.KPhi), false, true),
-			Field("", Num(l.Start.Theta), act(OpLinkStart, Links.KTheta), true, true),
-			Field("", Num(l.Delta.Theta), act(OpLinkPress, Links.KTheta), false, true),
-			Field("", Num(l.Start.R), act(OpLinkStart, Links.KR), true, false),
+			Field("", Num(l.Start.Phi), act(OpLinkStart, Links.KPhi), true, true).Fitting(fit),
+			Field("", Num(l.Delta.Phi), act(OpLinkPress, Links.KPhi), false, true).Fitting(fit),
+			Field("", Num(l.Start.Theta), act(OpLinkStart, Links.KTheta), true, true).Fitting(fit),
+			Field("", Num(l.Delta.Theta), act(OpLinkPress, Links.KTheta), false, true).Fitting(fit),
+			Field("", Num(l.Start.R), act(OpLinkStart, Links.KR), true, false).Fitting(fit),
 			Button("remove", act(OpDropLink, ""), false),
 		})
 	}
