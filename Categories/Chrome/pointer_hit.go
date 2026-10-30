@@ -1,6 +1,8 @@
 package Chrome
 
 import (
+	"math"
+
 	Panels "github.com/dtauraso/beadnetwork/Categories/Chrome/Panels"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/Panel"
 	"github.com/dtauraso/beadnetwork/Categories/Chrome/Panels/PolarRulesPanel"
@@ -45,8 +47,15 @@ func TargetAt(pl Layout, x, y float64) Panels.PointerTarget {
 	return Panels.PointerTarget{}
 }
 
-func TakeWheel(pl Layout, overlaysScroll, rulesScroll *float32, sheet *Sheet.State, x, y, deltaY float64, redraw func()) bool {
-	if label, maxScroll, ok := pl.Sheet.Covers(x, y); ok {
+func TakeWheel(pl Layout, overlaysScroll, rulesScroll *float32, sheet *Sheet.State, x, y, deltaX, deltaY float64, redraw func()) bool {
+	if label, maxScroll, maxScrollX, ok := pl.Sheet.Covers(x, y); ok {
+		if math.Abs(deltaX) > math.Abs(deltaY) {
+			v := sheet.ScrollXOf(label)
+			return scrollBy(v, maxScrollX, deltaX, func() {
+				sheet.SetScrollX(label, *v)
+				redraw()
+			})
+		}
 		v := sheet.ScrollOf(label)
 		return scrollBy(v, maxScroll, deltaY, func() {
 			sheet.SetScroll(label, *v)

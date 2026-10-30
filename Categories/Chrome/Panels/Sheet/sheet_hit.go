@@ -66,7 +66,7 @@ func (l Layout) covering(x, y float64) (PillBox, bool) {
 	return PillBox{}, false
 }
 
-func (l Layout) Covers(x, y float64) (label string, maxScroll float32, ok bool) {
+func (l Layout) Covers(x, y float64) (label string, maxScroll, maxScrollX float32, ok bool) {
 	p, ok := l.covering(x, y)
-	return p.Label, p.MaxScroll, ok
+	return p.Label, p.MaxScroll, p.MaxScrollX, ok
 }

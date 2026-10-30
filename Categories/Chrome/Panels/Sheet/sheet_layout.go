@@ -89,9 +89,9 @@ func Build(right, left *Panel.PillStack, pills []Pill, st *State) Layout {
 			}
 			contentH += groupH(g)
 		}
-		popover, x, y, maxScroll := stack.AddWideScrollingPopover(contentW, contentH, st.Scroll[p.Label])
+		popover, x, y, maxScroll, maxScrollX := stack.AddWideScrollingPopover(contentW, contentH, st.Scroll[p.Label], st.ScrollX[p.Label])
 		stack.EndGroup()
-		pb.Popover, pb.MaxScroll = popover, maxScroll
+		pb.Popover, pb.MaxScroll, pb.MaxScrollX = popover, maxScroll, maxScrollX
 		lay.Pills = append(lay.Pills, pb)
 		for _, g := range p.Groups {
 			lay.place(box, g, x, y)

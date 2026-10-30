@@ -93,7 +93,8 @@ type PillBox struct {
 	Pill      Rect
 	Open      bool
 	Popover   Rect
-	MaxScroll float32
+	MaxScroll  float32
+	MaxScrollX float32
 }
 
 type HeadBox struct {
