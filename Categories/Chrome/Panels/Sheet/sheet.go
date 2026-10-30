@@ -57,6 +57,8 @@ func (c Cell) Fitting(v string) Cell { c.Fit = v; return c }
 
 func (c Cell) Outline(on bool) Cell { c.Outlined = on; return c }
 
+func (c Cell) Acting(a Act) Cell { c.Act = a; return c }
+
 func (c Cell) AboveLastDigit() Cell { c.OverLastDigit = true; return c }
 
 func Text(s string) Cell { return Cell{Kind: CellText, Key: s} }
