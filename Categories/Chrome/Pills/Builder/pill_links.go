@@ -35,14 +35,14 @@ func LinksPill(m Model) Pill {
 			Field("", num1(l.Delta.Phi), act(OpLinkPress, Links.KPhi), false, true).Fitting(fit),
 			Field("", num1(l.Start.Theta), act(OpLinkStart, Links.KTheta), true, true).Fitting(fit),
 			Field("", num1(l.Delta.Theta), act(OpLinkPress, Links.KTheta), false, true).Fitting(fit),
-			Field("", num1(l.Start.R), act(OpLinkStart, Links.KR), true, false).Fitting(fit),
+			Field("", num1(l.Start.R), act(OpLinkStart, Links.KR), true, true).Fitting(fit),
 			Button("remove", act(OpDropLink, ""), false),
 		})
 	}
 	if len(rows) == 0 {
 		rows = [][]Cell{{Text("no links")}}
 	} else {
-		labels := []Cell{Text(""), Text("φ").AboveSteps(), Text("Δφ").AboveSteps(), Text("θ").AboveSteps(), Text("Δθ").AboveSteps(), Text("r")}
+		labels := []Cell{Text(""), Text("φ").AboveSteps(), Text("Δφ").AboveSteps(), Text("θ").AboveSteps(), Text("Δθ").AboveSteps(), Text("r").AboveSteps()}
 		rows = append([][]Cell{labels}, rows...)
 	}
 	groups := []Group{
