@@ -27,9 +27,9 @@ Also:
 - **Who:** a visual thinker for whom reading code is the bottleneck.
 - **What for:** making visual simulations by directing an AI, checked mainly by watching,
   with reading the code it writes secondary.
-- **Why the usual way doesn't work:** the usual way to trust code is to read it. They check
-  by watching instead. So the screen has to be the simulation itself, and every behaviour
-  has to be something they can test by pressing buttons and watching.
+- **What it needs:** since checking is mainly by watching, the screen has to be the
+  simulation itself, and every behaviour has to be something that can be checked by
+  pressing buttons and watching.
 
 ### The bet
 
