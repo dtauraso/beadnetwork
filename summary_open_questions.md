@@ -180,7 +180,7 @@ the others only make it better.
 **Example:** "Rollback matters most: without it no team would trust the tool on a live
 database, so speed and a nicer viewer would never be used."
 
-**Answer:** *Not answered yet.*
+**Answer:** Only one so far: the bird, so there is nothing to rank yet.
 
 ## 9. What are the redesigned gestures?
 

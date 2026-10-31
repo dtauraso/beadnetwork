@@ -209,13 +209,14 @@ Each item, and the part of the design it serves.
 | Item | Why |
 |---|---|
 | Make the UI easier to use for all the settings (in progress, comes first) | Every property is checked by pressing buttons, so each setting must be reachable. In the 3 phi theta tab the settings are scattered across pill dropdowns, so the settings UI is getting a full redo before the settings can be tested. |
+| Make the "bird" animation (after the settings UI) | It should be easier once the settings UI is done; it is where the design is going ([question 7](summary_open_questions.md#7-what-should-it-be-able-to-do-that-it-cannot-do-now)). |
 | Test all the settings to make sure the screen shows the intent of the settings | The screen is how the local system is seen, so it must show what each setting means. |
 | Test sequences of many concurrent rotation changes | Each node moves on its own, which is only shown when many move at once. |
 | Add more nodes for testing scale | Each node has its own s, so scale is tested across many nodes, not one. |
 | Build a node selection replacement | The current one is a central raycast through global x, y, z; the replacement has each node measure the mouse's angle in its own local polar steps ([questions 3 and 4](summary_open_questions.md#3-why-does-node-selection-get-a-replacement)). |
 | Build a camera replacement | The current one stacks decimal rotations; the replacement is a node in the scene sphere whose angle ranges, in local polar steps, set the frame ([questions 5 and 6](summary_open_questions.md#5-why-does-the-camera-get-a-replacement)). |
+| Put the rings tab animation programming into the animation settings (after the camera) | So the ring tab animations are visible, easier to control, and set the same way as everything else. |
 | Redesign the gestures as pinch/unpinch, rotate and pan | So each gesture changes whole-number steps in the local polar system ([question 9](summary_open_questions.md#9-what-are-the-redesigned-gestures)). |
-| Put the rings tab animation programming into the animation settings | So the ring tab animations are visible, easier to control, and set the same way as everything else. |
 
 ---
 
@@ -229,9 +230,11 @@ What is already there that points ahead:
 - each node moves on its own from what its neighbours tell it,
 - and the screen only draws what the simulation wrote.
 
-**Not answered yet:**
+Answered:
 
-- what this is for beyond rotating links ([question 1](summary_open_questions.md#1-what-is-it-for-beyond-rotating-links)),
-- what it should be able to do that it cannot do now: answered, a flapping "bird"
+- what this is for: making visual simulations with AI, checked by watching
+  ([question 1](summary_open_questions.md#1-what-is-it-for-beyond-rotating-links)),
+- what it should do next: a flapping "bird", once the settings UI is done
   ([question 7](summary_open_questions.md#7-what-should-it-be-able-to-do-that-it-cannot-do-now)),
-- and which of those is the one that matters most ([question 8](summary_open_questions.md#8-which-of-those-matters-most)).
+- which matters most: only the bird so far
+  ([question 8](summary_open_questions.md#8-which-of-those-matters-most)).
