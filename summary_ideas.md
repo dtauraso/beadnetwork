@@ -1,7 +1,7 @@
 # Summary ideas
 
 What the current design does that is correct — not so much how it does it, but what it does.
-Every property below can be seen by running the code.
+Every property below can be seen by running the editor.
 
 - [Vision](#vision)
 - [Design principles](#design-principles)
@@ -27,13 +27,14 @@ Also:
 - **Who:** a visual thinker for whom reading code and prose is the bottleneck.
 - **What for:** making visual simulations by directing an AI, without reading the code it
   writes.
-- **Why the usual way doesn't work:** the usual way to trust code is to read it. I check by
-  watching instead. So the screen has to be the simulation itself, and every behaviour has
-  to be something I can test by pressing buttons and watching.
+- **Why the usual way doesn't work:** the usual way to trust code is to read it. They check
+  by watching instead. So the screen has to be the simulation itself, and every behaviour
+  has to be something they can test by pressing buttons and watching.
 
 ### The bet
 
-I can build visual simulations by using my visual thinking as primary and reading code as secondary.
+A visual thinker can build visual simulations by using visual thinking as primary and
+reading code as secondary.
 
 What makes that possible: motion is one kind of setting: links plus whole-number Δ, held locally, with the global picture only a view of
 them. Each link keeps its own count of steps in φ, θ and r, and x, y, z are made from
@@ -146,8 +147,8 @@ pointing the same way.
 ### Moving nodes
 
 A link turns about the node it starts from. Stepping a link moves the node at its end to
-where that link now points. The other links touching that node are remeasured from where
-their two nodes now are, so every link always describes where its two nodes really are.
+where that link now points. The other links touching that node are rebuilt from the two
+nodes' new positions, so the picture stays in step with the links.
 
 - **To see it:** step a link, and its end node moves while the links touching it follow.
 - **To read it:** `peer_moves.go`, `Peer.take`: the end node goes to the other node's
@@ -158,7 +159,7 @@ their two nodes now are, so every link always describes where its two nodes real
 
 A link can be selected: marked to be turned together with the other selected links. One
 step rotates every selected link at once. Each node moves on its own, once it has heard
-where its neighbours are. It refuses changes that cannot be: a length below zero, or a
+where its neighbours are. A node refuses changes that cannot be: a length below zero, or a
 second selected link into the same node.
 
 - **To see it:** in sequence 1 press the both ▲, the button that steps every selected
@@ -207,7 +208,7 @@ Node places and links are saved as they change, so a scene reopens where it was 
 The local polar system (φ, θ, r in whole-number steps) is how the system runs, so the
 existing parts (selection, camera, gestures) are changed to fit it.
 
-It is at least a few months of work; it shows the direction, not a schedule. Each item,
+The roadmap is at least a few months of work; it shows the direction, not a schedule. Each item,
 and the part of the design it serves.
 
 | | Item | Why |
