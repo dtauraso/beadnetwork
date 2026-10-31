@@ -64,9 +64,11 @@ those counts once, at the end.
 
 ### Where it is going
 
-The roadmap makes every setting reachable and visible, then tests many concurrent
-rotations and many nodes, which is where local counting and independent nodes are meant to
-hold up. Past the roadmap, see [Future directions](#future-directions).
+Now: the settings UI redo, so every setting is reachable and visible. Next: the "bird"
+animation and testing the settings. Later: the existing parts (selection, camera, rings
+tab, gestures) are changed to fit the local polar system, and many rotations and many
+nodes are tested at once. See [Roadmap](#roadmap) and
+[Future directions](#future-directions).
 
 ---
 
