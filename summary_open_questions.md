@@ -76,8 +76,7 @@ held it."
 - **Selected:** the node that sees M at 180° ± k steps (a range, because an exact 180° is
   too hard to hit with a mouse). Every other node sees a different angle and does not
   respond.
-- The mouse click has other states besides selected: *not answered yet*, what they are
-  and what each one means. They may come from the gesture redesign
+- The other mouse states come from the gesture redesign
   ([question 9](#9-what-are-the-redesigned-gestures)).
 
 ## 5. Why does the camera get a replacement?
@@ -176,13 +175,6 @@ which node it changes. A gesture that changes no Δ is outside the local system.
 **Example:** "In a map app: pinch/unpinch changes the zoom level by whole levels; rotate
 turns the map by whole 15° steps; pan moves the map by whole tiles."
 
-**Answer:** *Not answered yet.*
-
-| Gesture | What the hand does | Changes which Δ, on which node |
-|---|---|---|
-| Pinch / unpinch | *not answered yet* | *not answered yet* |
-| Rotate | *not answered yet* | *not answered yet* |
-| Pan | *not answered yet* | *not answered yet* |
-
-Also not answered yet: which of these replace the current click states (hover, click,
-drag, rotate, handhold), and which states stay.
+**Answer:** The gestures will be redone from pinch/unpinch, rotate and pan, each one
+changing whole-number steps in the local polar system. What each gesture changes, and
+which current states get replaced, will be decided when it is built.
