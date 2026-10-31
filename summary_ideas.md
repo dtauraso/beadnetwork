@@ -25,15 +25,15 @@ Also:
 ### Purpose
 
 - **Who:** a visual thinker for whom reading code is the bottleneck.
-- **What for:** making visual simulations by directing an AI, checked mainly by watching,
+- **What for:** making visual simulations by directing an AI, checked primarily by watching,
   with reading the code it writes secondary.
-- **What it needs:** since checking is mainly by watching, the screen has to be the
+- **What it needs:** since checking is primarily by watching, the screen has to be the
   simulation itself, and every behaviour has to be something that can be checked by
   pressing buttons and watching.
 
 ### The bet
 
-A visual thinker can build visual simulations by using visual thinking as primary and
+A visual thinker can make visual simulations by using visual thinking as primary and
 reading code as secondary.
 
 What makes that possible: motion is one kind of setting: links plus whole-number Δ, held locally, with the global picture only a view of
