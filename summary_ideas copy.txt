@@ -208,13 +208,6 @@ if it's novel then it will be paragraphs.
 
 
 effort to try for iteration.
-    explanation: what it takes to try one change and see whether it worked.
-    A change is made on its own branch,
-    checked by one script (scripts/stop-checks.sh) that builds everything and runs every guard,
-    then tried by hand in the editor before it is merged.
-    There are no tests; a wrong change is meant to fail loudly while the editor runs.
-    So one iteration is: change, check, open the editor, press the buttons, look.
-    not answered yet: how long one iteration takes you, and what makes one expensive.
 
 important future directions.
     explanation: where the design goes after the roadmap, and why that follows from it.
