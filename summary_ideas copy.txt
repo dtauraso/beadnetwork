@@ -25,22 +25,33 @@ paragraphs version:
 The software is a 3D simulation system.
 It does 3D rotations by making small integer changes to angles,
 and it makes those changes locally:
-each part holds its own polar coordinates,
-and that local data is the truth the system runs on.
+each link between two nodes holds its own polar start (φ, θ, r)
+and an integer Δ on top of it.
+Angles are counted in ticks:
+a whole turn is 12 × s ticks, where s is the node's own scale.
 Integers are the main control numbers,
-so a rotation is a count of steps rather than an arbitrary decimal value.
+so a rotation is a count of steps rather than an arbitrary decimal value:
+each press moves Δ by the link's whole-number increment.
+The link being stepped is the truth for where its node goes.
 
-The global picture is a projection of that local data.
-A local-to-global adaptor builds global positions from the local parts
-so they can be drawn on the screen.
-The adaptor exists so the local system can be seen, and tested, on screen.
+Each node also keeps a global place,
+which is polar too (r, φ, θ around the scene's centre),
+held as floats and saved to a file.
+A local-to-global adaptor turns places and links into x, y, z,
+so a node can be placed from its neighbour's place plus the link,
+and so the result can be drawn on the screen.
+It was picked so the local system can be seen, and tested, on screen.
 
-Going the other way, global positions are turned back into local vectors
-for the links that are not selected:
-when a node moves, each unselected link is remeasured from the two nodes' places.
-Those rebuilt local values are allowed to be floats,
-because they are not part of the control system.
-The selected links keep their integer steps.
+Going the other way, global places are turned back into local links:
+when a node moves, its links that did not move it
+are remeasured from the two nodes' places,
+and its neighbours remeasure the links from it into them.
+Only a link's start is rebuilt, as floats,
+because the start is not part of the control system;
+its Δ stays a whole number of steps.
+While the selected links are stepped together, they are kept, not remeasured.
+When one link is edited on its own, that link places its node,
+and every other link at the node is remeasured, selected or not.
 
 A UI sits on top of this
 for setting the angles and the many other settings
