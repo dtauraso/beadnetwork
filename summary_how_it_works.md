@@ -66,3 +66,34 @@ The simulation writes each place, each link and everything drawn to files, one w
 file. The screen reads those files and draws them; it works out no positions of its own.
 A UI sits on top of this for setting the angles and the many other settings that control
 the 3D rotations.
+
+## The rules, to check without the screen
+
+These rules are enough to recompute every position from the saved values, with no code
+from this repo. `go run ./scripts/readscene -json <scene dir>` prints the saved values:
+the frame (ρ, constant-r, max-index-φ, max-index-θ), each node's s and place, and each
+link's start, Δ, increment and whether it is selected. Run it before and after pressing a
+button to get the two states to compare.
+
+For a link, s is the s of the node it goes to, and one turn is T = 12·s ticks.
+
+1. **Where a link points.** φ = start φ + Δφ and θ = start θ + Δθ, each wrapped into
+   0 ≤ angle < T; r = start r + Δr.
+2. **A step.** It adds the increment, plus or minus, to one Δ, and changes nothing else in
+   that link. An angle's Δ is wrapped into 0 ≤ Δ < T; Δr is not wrapped. A step that would
+   take r below 0 is refused.
+3. **A link's vector.** With a(t) = t · 2π / T:
+   x = r·ρ·sin a(φ)·cos a(θ), y = r·ρ·cos a(φ), z = r·ρ·sin a(φ)·sin a(θ).
+   One case differs: when φ is past half a turn (φ > T/2) and φ = θ, z is negated. There
+   both angles count as negative, and without the flip sin φ · sin θ would be a square
+   that never lets the link reach the negative-z side.
+4. **A node's position.** The same formula with r · constant-r for the length,
+   φ · 2π / max-index-φ and θ · 2π / max-index-θ for the angles, and no z flip.
+5. **Every link closes.** For every link a→b: position(a) + vector(a→b) = position(b), to
+   floating-point rounding.
+6. **What a step of the selected links changes.** Each stepped link's Δ changes by exactly
+   its increment (wrapped, as in rule 2) and its start stays the same. No other link's Δ changes. A link that was
+   not stepped but touches a node that moved gets a new start, the one that makes rule 5
+   hold again for it.
+
+Rules 1–5 are checked on one state; rule 6 is checked between a before and an after.

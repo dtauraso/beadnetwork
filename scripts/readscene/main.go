@@ -18,20 +18,28 @@ import (
 )
 
 func main() {
-	if len(os.Args) < 2 {
-		fmt.Fprintln(os.Stderr, "usage: readscene <scene dir> [sequence ...]")
+	args := os.Args[1:]
+	asJSON := len(args) > 0 && args[0] == "-json"
+	if asJSON {
+		args = args[1:]
+	}
+	if len(args) < 1 {
+		fmt.Fprintln(os.Stderr, "usage: readscene [-json] <scene dir> [sequence ...]")
 		fmt.Fprintln(os.Stderr)
 		fmt.Fprintln(os.Stderr, "Prints the values a scene's sequences are saved as — the frame,")
 		fmt.Fprintln(os.Stderr, "each node's place and s, each link's start, Δ, increment and lock —")
 		fmt.Fprintln(os.Stderr, "as text, with the x, y, z the simulation makes from them. Run it")
 		fmt.Fprintln(os.Stderr, "before and after pressing a button and diff the two.")
+		fmt.Fprintln(os.Stderr)
+		fmt.Fprintln(os.Stderr, "-json prints only the saved values, none of the computed ones, so")
+		fmt.Fprintln(os.Stderr, "the rules can be checked with code that is not this repo's.")
 		os.Exit(2)
 	}
-	root := os.Args[1]
+	root := args[0]
 	seqs := Scenes.Sequences(root)
-	if len(os.Args) > 2 {
+	if len(args) > 1 {
 		seqs = nil
-		for _, a := range os.Args[2:] {
+		for _, a := range args[1:] {
 			k, err := strconv.Atoi(a)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "readscene: sequence %q is not a number\n", a)
@@ -47,6 +55,10 @@ func main() {
 		os.Exit(1)
 	}
 	sceneS := Sheet.LoadScalar(Scenes.SFilePath(root), 1, 1)
+
+	if asJSON {
+		os.Exit(dumpJSON(root, seqs, constants, sceneS))
+	}
 
 	out := bufio.NewWriter(os.Stdout)
 	status := 0
