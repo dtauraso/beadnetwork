@@ -25,8 +25,8 @@ Also:
 ### Purpose
 
 - **Who:** a visual thinker for whom reading code and prose is the bottleneck.
-- **What for:** making visual simulations by directing an AI, checking by watching first
-  and reading the code it writes only second.
+- **What for:** making visual simulations by directing an AI, checked mainly by watching,
+  with reading the code it writes secondary.
 - **Why the usual way doesn't work:** the usual way to trust code is to read it. They check
   by watching instead. So the screen has to be the simulation itself, and every behaviour
   has to be something they can test by pressing buttons and watching.
