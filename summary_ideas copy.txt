@@ -69,10 +69,17 @@ put the rings tab animation programming into the animation settings to make the 
 nt all the mistakes
 what the current design does that is correct. not so much about how it does it. what does it do.
 
-It rotates links in 3D by exact, countable steps.
-A link's change is a whole number of steps,
-so stepping it back the same number of times
-brings its change back to exactly where it was.
+It rotates links in 3D by steps.
+Each link has two angle changes, Δφ and Δθ, and a length change, Δr.
+Each one is a whole number of steps.
+Stepping one back the same number of times returns it to exactly where it was.
+However many steps are made, forward and back,
+it never drifts away from the count of steps that were made.
+
+A rotation is a number of steps in φ and a number of steps in θ.
+Where a link points is decided by those two numbers alone.
+So steps in φ and θ can be made in any order,
+and the link ends up pointing the same way.
 
 Stepping a link moves the node at its end
 to where that link now points.
