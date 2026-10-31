@@ -52,6 +52,10 @@ nodes are tested at once. See [Roadmap](#roadmap) and
 
 ## Design principles
 
+The motion is local: each link moves in its own polar frame. A computer works in one global
+frame, so the design keeps the local data as the truth and makes the global frame only a
+view of it.
+
 | Principle | Meaning |
 |---|---|
 | Local data as truth | Each link's own Δ is the source of truth. |
