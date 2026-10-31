@@ -22,8 +22,8 @@ func (p *Peer) press(m Press) []Envelope {
 		return nil
 	}
 	if m.K == KR {
-		if l.Start.R+l.DeltaR+float64(m.Sign)*l.IncR < 0 {
-			p.Changed.Refused = fmt.Sprintf("%s→%s Δr: r + Δr would be below 0, so Δr stays at %v", m.From, p.ID, l.DeltaR)
+		if l.Start.R+float64(l.Delta.R+m.Sign*l.Increment.R) < 0 {
+			p.Changed.Refused = fmt.Sprintf("%s→%s Δr: r + Δr would be below 0, so Δr stays at %d", m.From, p.ID, l.Delta.R)
 			return nil
 		}
 		l.Step(p.S, m.K, m.Sign)
@@ -48,14 +48,10 @@ func (p *Peer) press(m Press) []Envelope {
 func (p *Peer) setIncrement(m SetIncrement) {
 	l, ok := p.own[m.From]
 	switch {
-	case !ok:
+	case !ok || !whole(m.V) || (m.K == KR && m.V <= 0):
 		return
-	case m.K == KR && m.V > 0:
-		l.IncR = m.V
-	case m.K != KR && whole(m.V):
-		*l.Increment.at(m.K) = math.Round(m.V)
 	default:
-		return
+		*l.Increment.at(m.K) = int(math.Round(m.V))
 	}
 	p.touched(m.From)
 }
@@ -126,8 +122,8 @@ func (p *Peer) closestS(v int) (int, string) {
 	step, by := 1, ""
 	for _, from := range p.order {
 		d := p.own[from].Delta
-		if n := p.S / gcd(p.S, gcd(int(math.Round(d.Phi)), int(math.Round(d.Theta)))); n > step {
-			step, by = n, fmt.Sprintf("%s→%s's Δ (%g, %g)", from, p.ID, d.Phi, d.Theta)
+		if n := p.S / gcd(p.S, gcd(d.Phi, d.Theta)); n > step {
+			step, by = n, fmt.Sprintf("%s→%s's Δ (%d, %d)", from, p.ID, d.Phi, d.Theta)
 		}
 	}
 	c := max(step, (2*v+step)/(2*step)*step)
