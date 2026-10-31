@@ -33,8 +33,7 @@ Also:
 
 ### The bet
 
-CG systems were inaccessible to me, so I didn't use them. Here, motion is one kind of
-setting: links plus whole-number Δ, held locally, with the global picture only a view of
+Motion is one kind of setting: links plus whole-number Δ, held locally, with the global picture only a view of
 them. Each link keeps its own count of steps in φ, θ and r, and x, y, z are made from
 those counts once, at the end.
 
