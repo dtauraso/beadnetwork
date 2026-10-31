@@ -29,6 +29,11 @@ func Wrap(s int, t float64) float64 {
 	return math.Mod(math.Mod(t, turn)+turn, turn)
 }
 
+func WrapTicks(s, t int) int {
+	turn := TurnTicks * s
+	return (t%turn + turn) % turn
+}
+
 func whole(x float64) bool { return math.Abs(x-math.Round(x)) < 1e-6 }
 
 func (f Frame) cellPhi() float64   { return 2 * math.Pi / float64(f.Tphi) }

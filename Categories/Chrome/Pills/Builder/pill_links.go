@@ -46,18 +46,18 @@ func (m Model) linkCols() []linkCol {
 	var cols []linkCol
 	cols = append(cols, chain(
 		linkCol{"φ", "phi", func(l Links.Link) float64 { return l.Start.Phi }, OpLinkStart, Links.KPhi, true, true, false},
-		linkCol{"Δφ", "dphi", func(l Links.Link) float64 { return l.Delta.Phi }, OpLinkPress, Links.KPhi, false, true, true},
-		linkCol{"nΔφ", "", func(l Links.Link) float64 { return l.Increment.Phi }, OpIncrement, Links.KPhi, true, true, true},
+		linkCol{"Δφ", "dphi", func(l Links.Link) float64 { return float64(l.Delta.Phi) }, OpLinkPress, Links.KPhi, false, true, true},
+		linkCol{"nΔφ", "", func(l Links.Link) float64 { return float64(l.Increment.Phi) }, OpIncrement, Links.KPhi, true, true, true},
 	)...)
 	cols = append(cols, chain(
 		linkCol{"θ", "theta", func(l Links.Link) float64 { return l.Start.Theta }, OpLinkStart, Links.KTheta, true, true, false},
-		linkCol{"Δθ", "dtheta", func(l Links.Link) float64 { return l.Delta.Theta }, OpLinkPress, Links.KTheta, false, true, true},
-		linkCol{"nΔθ", "", func(l Links.Link) float64 { return l.Increment.Theta }, OpIncrement, Links.KTheta, true, true, true},
+		linkCol{"Δθ", "dtheta", func(l Links.Link) float64 { return float64(l.Delta.Theta) }, OpLinkPress, Links.KTheta, false, true, true},
+		linkCol{"nΔθ", "", func(l Links.Link) float64 { return float64(l.Increment.Theta) }, OpIncrement, Links.KTheta, true, true, true},
 	)...)
 	return append(cols, chain(
 		linkCol{"r", "r", func(l Links.Link) float64 { return l.Start.R }, OpLinkStart, Links.KR, true, true, false},
-		linkCol{"Δr", "dr", func(l Links.Link) float64 { return l.DeltaR }, OpLinkPress, Links.KR, false, true, false},
-		linkCol{"nΔr", "", func(l Links.Link) float64 { return l.IncR }, OpIncrement, Links.KR, true, true, false},
+		linkCol{"Δr", "dr", func(l Links.Link) float64 { return float64(l.Delta.R) }, OpLinkPress, Links.KR, false, true, false},
+		linkCol{"nΔr", "", func(l Links.Link) float64 { return float64(l.Increment.R) }, OpIncrement, Links.KR, true, true, false},
 	)...)
 }
 

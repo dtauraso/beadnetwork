@@ -59,7 +59,7 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		if typed != nil {
 			v = *typed
 		}
-		if a.K == Links.KR && (v < 0 || v+l.DeltaR < 0) {
+		if a.K == Links.KR && (v < 0 || v+float64(l.Delta.R) < 0) {
 			md.UI.Builder.Refused = fmt.Sprintf("%s→%s r %v: neither r nor r + Δr can be negative, so r stays at %v", a.Node, a.To, v, l.Start.R)
 			return
 		}

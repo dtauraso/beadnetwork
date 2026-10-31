@@ -65,9 +65,9 @@ func pickedGroup(m Model) Group {
 		if l.Locking {
 			mark = "●"
 		}
-		row := []Cell{Text(l.Name()), Field("Δφ by", Num(l.Increment.Phi), act(OpIncrement, Links.KPhi), true, false)}
+		row := []Cell{Text(l.Name()), Field("Δφ by", Num(float64(l.Increment.Phi)), act(OpIncrement, Links.KPhi), true, false)}
 		row = append(row, signButtons(lockOf, press, Links.KPhi)...)
-		row = append(row, Field("Δθ by", Num(l.Increment.Theta), act(OpIncrement, Links.KTheta), true, false))
+		row = append(row, Field("Δθ by", Num(float64(l.Increment.Theta)), act(OpIncrement, Links.KTheta), true, false))
 		row = append(row, signButtons(lockOf, press, Links.KTheta)...)
 		row = append(row, Button("unpick", act(OpUnpick, ""), false), Button(mark, act(OpLocking, ""), l.Locking))
 		rows = append(rows, row)

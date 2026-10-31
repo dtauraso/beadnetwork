@@ -26,6 +26,10 @@ func ang(phi, theta float64, r *float64) string {
 	return s
 }
 
+func ticks(t Links.Ticks) string {
+	return "φ " + strconv.Itoa(t.Phi) + " | θ " + strconv.Itoa(t.Theta) + " | r " + strconv.Itoa(t.R)
+}
+
 func lockText(l Links.Lock) string {
 	if l == (Links.Lock{}) {
 		return "—"
@@ -98,8 +102,8 @@ func TreePill(m Model) Pill {
 	for _, l := range all {
 		d := l.Dir(m.ScaleOf(l.To))
 		groups = append(groups, box(3, "edge "+l.Name(), kv("from", l.From, true), kv("to", l.To, true),
-			kv("start", ang(l.Start.Phi, l.Start.Theta, &l.Start.R), false), kv("Δ", ang(l.Delta.Phi, l.Delta.Theta, nil), false),
-			kv("increment", ang(l.Increment.Phi, l.Increment.Theta, nil), false), kv("lock", lockText(l.Lock), false),
+			kv("start", ang(l.Start.Phi, l.Start.Theta, &l.Start.R), false), kv("Δ", ticks(l.Delta), false),
+			kv("increment", ticks(l.Increment), false), kv("lock", lockText(l.Lock), false),
 			kv("locking", onOff(l.Locking), false), notStored(), kv("start + Δ", ang(d.Phi, d.Theta, &d.R), false)))
 	}
 	for _, id := range m.Nodes {

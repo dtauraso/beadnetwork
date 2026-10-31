@@ -13,8 +13,8 @@ func way(l *Link, all Lock, k string) int {
 }
 
 func (p *Peer) stepR(l *Link, sign int) {
-	if l.Start.R+l.DeltaR+float64(sign)*l.IncR < 0 {
-		p.Changed.Refused = fmt.Sprintf("%s→%s Δr: r + Δr would be below 0, so Δr stays at %v", l.From, p.ID, l.DeltaR)
+	if l.Start.R+float64(l.Delta.R+sign*l.Increment.R) < 0 {
+		p.Changed.Refused = fmt.Sprintf("%s→%s Δr: r + Δr would be below 0, so Δr stays at %d", l.From, p.ID, l.Delta.R)
 		return
 	}
 	l.Step(p.S, KR, sign)
