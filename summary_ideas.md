@@ -4,6 +4,7 @@ What the current design does that is correct — not so much how it does it, but
 Every property below can be seen by running the code.
 
 - [Writing the summary](#writing-the-summary)
+- [Vision](#vision)
 - [Design principles](#design-principles)
 - [In one paragraph](#in-one-paragraph)
 - [What it does](#what-it-does)
@@ -42,6 +43,75 @@ Every property below can be seen by running the code.
 A summary leaves things out, so it is not the full picture. The full picture is the code
 and the running editor. Each property below names the code to read and the buttons to
 press, so a reader can go from the summary to the real thing.
+
+### How to express a vision
+
+A vision says what the software is for and why it is built the way it is. It is the thing
+every other section points back to. Write it in this order:
+
+1. **The purpose.** One or two sentences: what the software is for, and who it is for.
+   Say what it lets someone do, not how it does it.
+2. **The bet.** What the design believes that the usual approach does not. A vision with no
+   bet just describes what everyone already builds.
+3. **What follows from the bet.** The few commitments the design keeps because of it. Each
+   one should be something a reader can check in the running code.
+4. **What it rules out.** The approaches it will not take, and the reason, tied back to the
+   bet. ("Euler angles are not fine here because of reason X" is this step.)
+5. **Where it is going.** The direction after the roadmap, as an outcome, not a task list.
+
+Checks that it is a vision and not a feature list:
+
+- Every roadmap item can say which part of the vision it serves. An item that cannot is
+  either outside the vision or shows the vision is missing a part.
+- It stays true if the implementation changes. If swapping a class or a file would make it
+  false, it is describing the implementation, not the vision.
+- It is short enough to say aloud. Detail belongs in the sections that point back to it.
+- Questions that are still open are written down as open, not filled in with a guess.
+
+---
+
+## Vision
+
+### Purpose
+
+*Not answered yet:* what this is for beyond rotating links, and who it is for. This is the
+first thing to write; the rest of the vision hangs from it.
+
+### The bet
+
+Motion is held as local, whole-number counts, and the global picture is only a view of
+them. The usual approach keeps one global set of x, y, z floats and rotates it, so error
+builds up and the order of the rotations leaks into the result. Here each link keeps its
+own count of steps in φ, θ and r, and x, y, z are made from those counts once, at the end.
+
+### What follows from the bet
+
+- **Local data is the truth.** Each link's own start and Δ decide where it points; the
+  global place is rebuilt from them, never the other way round for the control numbers.
+- **Steps never drift.** A rotation is a count, so stepping back returns exactly to where
+  it was, however many steps were made.
+- **Order does not matter.** φ and θ are added on their own, so steps can be made in any
+  order and land in the same place.
+- **Each node moves on its own.** A node acts only on what its neighbours tell it; nothing
+  coordinates the network from above.
+- **The screen is the simulation.** The screen only draws what the simulation wrote, so
+  there is no second copy that could disagree.
+
+### What it rules out
+
+- Accumulating rotations on top of each other in global floats, because that brings back
+  drift and order dependence.
+- Letting the global view become a second source of truth; it may be floats only where it
+  is rebuilt and is not part of the control system.
+- A central coordinator moving the nodes, because each node moving on its own is part of
+  what is being shown.
+- A screen that works out positions of its own.
+
+### Where it is going
+
+The roadmap makes every setting reachable and visible, then tests many concurrent
+rotations and many nodes, which is where local counting and independent nodes are meant to
+hold up. Past the roadmap, see [Future directions](#future-directions).
 
 ---
 
