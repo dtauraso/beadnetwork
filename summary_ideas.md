@@ -50,8 +50,9 @@ floats, rebuilt from where the nodes are as they move.
   far as floats are.
 - **Order does not matter.** φ and θ are added on their own, so steps on a link can be
   made in any order and it points the same way.
-- **Each node moves on its own.** A node places itself only from what its neighbours tell
-  it; one message starts each step, but nothing positions the nodes from above.
+- **Each node moves on its own.** A node places itself from what its neighbours tell it,
+  or from a place set on it directly in the UI; one message starts each step, but nothing
+  positions the nodes from above.
 - **The screen is the simulation.** The screen only draws what the simulation wrote, so
   there is no second copy that could disagree.
 
