@@ -233,6 +233,10 @@ topology*/view/spawn.bin
 topology-pair-phi-theta-3/counts/nodes.bin
 topology-pair-phi-theta-3/sequences/5/
 
+# A sequence's all-links step locks (direction lock-<k>.bin, on/off lock-on-<k>.bin): set
+# from the Links pill headers while the editor is used, kept local.
+topology*/sequences/*/step/lock-*.bin
+
 # Where the running extension listens for "open this file as a tab", and that
 # session's token. Written on activation, removed on shutdown.
 docs/pair-node/port.js
