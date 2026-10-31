@@ -205,7 +205,7 @@ Each item, and the part of the design it serves.
 
 | Item | Why |
 |---|---|
-| Make the UI easier to use for all the settings | Every property is checked by pressing buttons, so each setting must be reachable. |
+| Make the UI easier to use for all the settings (in progress, comes first) | Every property is checked by pressing buttons, so each setting must be reachable. In the 3 phi theta tab the settings are scattered across pill dropdowns, so the settings UI is getting a full redo before the settings can be tested. |
 | Test all the settings to make sure the screen shows the intent of the settings | The screen is how the local system is seen, so it must show what each setting means. |
 | Test sequences of many concurrent rotation changes | Each node moves on its own, which is only shown when many move at once. |
 | Add more nodes for testing scale | Each node has its own s, so scale is tested across many nodes, not one. |
