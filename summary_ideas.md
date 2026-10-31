@@ -3,45 +3,63 @@
 What the current design does that is correct — not so much how it does it, but what it does.
 Every property below can be seen by running the code.
 
-- [Writing the summary](#writing-the-summary)
+- [Vision](#vision)
 - [Design principles](#design-principles)
 - [In one paragraph](#in-one-paragraph)
 - [What it does](#what-it-does)
-- [How it works](#how-it-works)
 - [Roadmap](#roadmap)
 - [Future directions](#future-directions)
 
+Also:
+
+- [summary_how_it_works.md](summary_how_it_works.md): the same properties, by mechanism.
+- [summary_writing.md](summary_writing.md): how this summary is written, and how to express
+  a vision.
+
 ---
 
-## Writing the summary
+## Vision
 
-### Keep what matters to the design on its own
+### Purpose
 
-- Keep things that are independently important to the design of the software.
-  - If I am explaining that I designed a database, the schema matters. It is technical, but
-    the names and the columns are important to how the application works.
-  - In a security system, how the secrets are stored matters.
-- Things that arose from the implementation matter less.
-  - They could have gone one way or another; I just picked, and it does not affect the
-    overall design.
-  - When functionality was factored to achieve something, the class design is probably not
-    important, and neither is the exact way the functions were written.
+*Not answered yet:* what this is for beyond rotating links, and who it is for. This is the
+first thing to write; the rest of the vision hangs from it.
 
-### Example: polar vector math
+### The bet
 
-- Say there is a layer (a file or a class) that handles rotations in 3D, using Euler angles
-  under the hood.
-- I talk about what is around it: we have a 3D system and rotations are supported.
-  Quaternions are on the roadmap to replace Euler angles.
-- If it is on the roadmap, say how it fits into the vision of the software: Euler angles are
-  not fine here because of reason X, and reason X should link back to the project.
-- If it is novel, it gets paragraphs.
+Motion is held as local, whole-number counts, and the global picture is only a view of
+them. The usual approach keeps one global set of x, y, z floats and rotates it, so error
+builds up and the order of the rotations leaks into the result. Here each link keeps its
+own count of steps in φ, θ and r, and x, y, z are made from those counts once, at the end.
 
-### It will not be an accurate picture
+### What follows from the bet
 
-A summary leaves things out, so it is not the full picture. The full picture is the code
-and the running editor. Each property below names the code to read and the buttons to
-press, so a reader can go from the summary to the real thing.
+- **Local data is the truth.** Each link's own start and Δ decide where it points; the
+  global place is rebuilt from them, never the other way round for the control numbers.
+- **Steps never drift.** A rotation is a count, so stepping back returns exactly to where
+  it was, however many steps were made.
+- **Order does not matter.** φ and θ are added on their own, so steps can be made in any
+  order and land in the same place.
+- **Each node moves on its own.** A node acts only on what its neighbours tell it; nothing
+  coordinates the network from above.
+- **The screen is the simulation.** The screen only draws what the simulation wrote, so
+  there is no second copy that could disagree.
+
+### What it rules out
+
+- Accumulating rotations on top of each other in global floats, because that brings back
+  drift and order dependence.
+- Letting the global view become a second source of truth; it may be floats only where it
+  is rebuilt and is not part of the control system.
+- A central coordinator moving the nodes, because each node moving on its own is part of
+  what is being shown.
+- A screen that works out positions of its own.
+
+### Where it is going
+
+The roadmap makes every setting reachable and visible, then tests many concurrent
+rotations and many nodes, which is where local counting and independent nodes are meant to
+hold up. Past the roadmap, see [Future directions](#future-directions).
 
 ---
 
@@ -172,77 +190,6 @@ Node places and links are saved as they change, so a scene reopens where it was 
 - **To see it:** close and reopen the scene, and it is where it was left.
 - **To read it:** `Categories/Node/nodefile_place.go`, `WritePlace`, and
   `link_files.go`, `WriteLinks`: one value per file, written by the node that owns it.
-
----
-
-## How it works
-
-The same parts, described by mechanism.
-
-### The parts
-
-The software is a 3D simulation system. It is a network of nodes joined by links. Each
-link is held by the node it goes into, and holds its own polar start (φ, θ, r) and an
-integer Δ on top of it, one for each of φ, θ and r.
-
-### Steps
-
-Angles are counted in ticks: a whole turn is 12 × s ticks, where s is the node's own
-scale. Integers are the main control numbers, so a rotation is a count of steps rather
-than an arbitrary decimal value. Each press moves Δ by the link's whole-number increment.
-
-### Two angles
-
-A link's direction is worked out from its start plus its Δφ and Δθ, each added on its
-own, and turned into x, y, z once, from the totals. No step is applied on top of another
-step, so the order the steps were made in never reaches the result.
-
-### Moving nodes
-
-Each node keeps a global place, which is polar too (r, φ, θ around the scene's centre),
-held as floats and saved to a file. A local-to-global adaptor turns places and links into
-x, y, z. A stepped link places its node: the node goes to the other node's place plus the
-link. The adaptor was picked so the local system can be seen, and tested, on screen.
-
-Going the other way, global places are turned back into local links:
-
-- When a node moves, its links that did not move it are remeasured from the two nodes'
-  places, and its neighbours remeasure the links from it into them.
-- Only a link's start is rebuilt, as floats, because the start is not part of the control
-  system; its Δ stays a whole number of steps.
-- While the selected links are stepped together, they are kept, not remeasured.
-- When one link is edited on its own, that link places its node, and every other link at
-  the node is remeasured, selected or not.
-
-### The network
-
-Each node runs on its own goroutine, with its own inbox.
-
-1. A step of all the selected links starts when the UI sends it to every node, numbered
-   as a round.
-2. A node whose selected link was stepped waits for the place of the node that link
-   starts from, then places itself from that place plus the link.
-3. Each node sends its new place to its neighbours, and shows the step only once it has
-   heard that round from all of them.
-
-Each node checks its own links' changes, and refuses a length below zero or a second
-selected link into itself.
-
-### Time
-
-Every node counts ticks from one shared clock, each with its own copy. The tick length is
-set from the UI, and a step is shown a couple of ticks after it is sent.
-
-### Sequences
-
-Each sequence is its own folder of nodes and links, one value per file.
-
-### The screen
-
-The simulation writes each place, each link and everything drawn to files, one writer per
-file. The screen reads those files and draws them; it works out no positions of its own.
-A UI sits on top of this for setting the angles and the many other settings that control
-the 3D rotations.
 
 ---
 
