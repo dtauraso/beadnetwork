@@ -75,7 +75,7 @@ func (c linkCol) head(m Model) Cell {
 		st := m.Step
 		way, on := st.At(c.k)
 		lockAct := Act{Op: OpAllLock, K: c.k}
-		return Text(c.label).Acting(lockAct).Outline(*on).Stepping(lockAct, *way).Folding(fold, open)
+		return Text(c.label).Acting(lockAct).Outline(*on).Stepping(lockAct, *way).LockedOn(*on).Folding(fold, open)
 	}
 	return c.mark(LitText(c.label+mark, fold, open)).AboveLastDigit()
 }

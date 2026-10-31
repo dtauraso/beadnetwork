@@ -59,7 +59,10 @@ type Cell struct {
 	LockSign      int
 	Fold          Act
 	Open          bool
+	Locked        bool
 }
+
+func (c Cell) LockedOn(on bool) Cell { c.Locked = on; return c }
 
 func (c Cell) Stepping(a Act, lock int) Cell { c.Arrows, c.LockSign = a, lock; return c }
 
