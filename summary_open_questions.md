@@ -150,9 +150,11 @@ purpose). A capability, as an outcome, not a task list.
 **Example:** "It cannot yet roll a schema change back. It should, because the purpose is
 changing a live database safely, and a change that cannot be undone is not safe."
 
-**Answer:** It cannot yet make a "bird" flapping its wings. It should, because a bird is
-rotations combined and repeated, which is what the local polar system already does
-(repeating two rotations with different centres already swings links like an arm).
+**Answer:** A "bird" flapping its wings. It may already be possible, but it has not been
+tried, because the settings are scattered across pill dropdowns; it is the first thing to
+make once the settings UI redo is done. It fits, because a bird is rotations combined and
+repeated, which is what the local polar system already does (repeating two rotations with
+different centres already swings links like an arm).
 
 ```
               F  front
