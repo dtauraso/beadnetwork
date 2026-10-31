@@ -24,17 +24,20 @@ Also:
 
 ### Purpose
 
-*Not answered yet:* what this is for beyond rotating links
-([question 1](summary_open_questions.md#1-what-is-it-for-beyond-rotating-links)), and who
-it is for ([question 2](summary_open_questions.md#2-who-is-it-for)). This is the first
-thing to write; the rest of the vision hangs from it.
+- **Who:** a visual thinker for whom reading code and prose is the bottleneck.
+- **What for:** making visual simulations by directing an AI, without reading the code it
+  writes.
+- **Why the usual way doesn't work:** the usual way to trust code is to read it. I check by
+  watching instead. So the screen has to be the simulation itself, and every behaviour has
+  to be something I can test by pressing buttons and watching.
 
 ### The bet
 
-Motion is held as local, whole-number counts, and the global picture is only a view of
-them. The usual approach keeps one global set of x, y, z floats and rotates it, so error
-builds up and the order of the rotations leaks into the result. Here each link keeps its
-own count of steps in φ, θ and r, and x, y, z are made from those counts once, at the end.
+I can build visual simulations by using my visual thinking as primary and reading code as secondary.
+
+What makes that possible: motion is one kind of setting: links plus whole-number Δ, held locally, with the global picture only a view of
+them. Each link keeps its own count of steps in φ, θ and r, and x, y, z are made from
+those counts once, at the end.
 
 ### What follows from the bet
 
@@ -61,9 +64,11 @@ own count of steps in φ, θ and r, and x, y, z are made from those counts once,
 
 ### Where it is going
 
-The roadmap makes every setting reachable and visible, then tests many concurrent
-rotations and many nodes, which is where local counting and independent nodes are meant to
-hold up. Past the roadmap, see [Future directions](#future-directions).
+Now: the settings UI redo, so every setting is reachable and visible. Next: the "bird"
+animation and testing the settings. Later: the existing parts (selection, camera, rings
+tab, gestures) are changed to fit the local polar system, and many rotations and many
+nodes are tested at once. See [Roadmap](#roadmap) and
+[Future directions](#future-directions).
 
 ---
 
@@ -199,20 +204,23 @@ Node places and links are saved as they change, so a scene reopens where it was 
 
 ## Roadmap
 
-Each item, and the part of the design it serves.
+The local polar system (φ, θ, r in whole-number steps) is how the system runs, so the
+existing parts (selection, camera, gestures) are changed to fit it.
 
-| Item | Why |
-|---|---|
-| Make the UI easier to use for all the settings | Every property is checked by pressing buttons, so each setting must be reachable. |
-| Test all the settings to make sure the screen shows the intent of the settings | The screen is how the local system is seen, so it must show what each setting means. |
-| Test sequences of many concurrent rotation changes | Each node moves on its own, which is only shown when many move at once. |
-| Add more nodes for testing scale | Each node has its own s, so scale is tested across many nodes, not one. |
-| Build a node selection replacement | *Not answered yet:* [questions 3 and 4](summary_open_questions.md#3-why-does-node-selection-get-a-replacement). |
-| Build a camera replacement | *Not answered yet:* [questions 5 and 6](summary_open_questions.md#5-why-does-the-camera-get-a-replacement). |
-| Put the rings tab animation programming into the animation settings | So the ring tab animations are visible, easier to control, and set the same way as everything else. |
+It is at least a few months of work; it shows the direction, not a schedule. Each item,
+and the part of the design it serves.
 
-**Not answered yet:** why the node selection and the camera get replacements, and what
-each replacement has to do ([questions 3–6](summary_open_questions.md)).
+| | Item | Why |
+|---|---|---|
+| **Now** | Make the UI easier to use for all the settings (in progress) | Every property is checked by pressing buttons, so each setting must be reachable. In the 3 phi theta tab the settings are scattered across pill dropdowns, so the settings UI is getting a full redo before the settings can be tested. |
+| **Next** | Make the "bird" animation | It should be easier once the settings UI is done; it is where the design is going ([question 7](summary_open_questions.md#7-what-should-it-be-able-to-do-that-it-cannot-do-now)). |
+| **Next** | Test all the settings to make sure the screen shows the intent of the settings | The screen is how the local system is seen, so it must show what each setting means. |
+| **Later** | Test sequences of many concurrent rotation changes | Each node moves on its own, which is only shown when many move at once. |
+| **Later** | Add more nodes for testing scale | Each node has its own s, so scale is tested across many nodes, not one. |
+| **Later** | Build a node selection replacement | The current one is a central raycast through global x, y, z; the replacement has each node measure the mouse's angle in its own local polar steps ([questions 3 and 4](summary_open_questions.md#3-why-does-node-selection-get-a-replacement)). |
+| **Later** | Build a camera replacement | The current one stacks decimal rotations; the replacement is a node in the scene sphere whose angle ranges, in local polar steps, set the frame ([questions 5 and 6](summary_open_questions.md#5-why-does-the-camera-get-a-replacement)). |
+| **Later** | Put the rings tab animation programming into the animation settings (after the camera) | So the ring tab animations are visible, easier to control, and set the same way as everything else. |
+| **Later** | Redesign the gestures as pinch/unpinch, rotate and pan | So each gesture changes whole-number steps in the local polar system ([question 9](summary_open_questions.md#9-what-are-the-redesigned-gestures)). |
 
 ---
 
@@ -226,8 +234,11 @@ What is already there that points ahead:
 - each node moves on its own from what its neighbours tell it,
 - and the screen only draws what the simulation wrote.
 
-**Not answered yet:**
+Answered:
 
-- what this is for beyond rotating links ([question 1](summary_open_questions.md#1-what-is-it-for-beyond-rotating-links)),
-- what it should be able to do that it cannot do now ([question 7](summary_open_questions.md#7-what-should-it-be-able-to-do-that-it-cannot-do-now)),
-- and which of those is the one that matters most ([question 8](summary_open_questions.md#8-which-of-those-matters-most)).
+- what this is for: making visual simulations with AI, checked by watching
+  ([question 1](summary_open_questions.md#1-what-is-it-for-beyond-rotating-links)),
+- what it should do next: a flapping "bird", once the settings UI is done
+  ([question 7](summary_open_questions.md#7-what-should-it-be-able-to-do-that-it-cannot-do-now)),
+- which matters most: only the bird so far
+  ([question 8](summary_open_questions.md#8-which-of-those-matters-most)).
