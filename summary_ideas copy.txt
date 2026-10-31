@@ -69,33 +69,29 @@ put the rings tab animation programming into the animation settings to make the 
 nt all the mistakes
 what the current design does that is correct. not so much about how it does it. what does it do.
 
-Each link holds its own polar start (φ, θ, r)
-and its own Δ, which changes only in integer steps.
-A selected link is the truth for where its node goes:
-the node is placed from the other node's place plus that link.
-An unselected link goes the other way:
-it is rebuilt from the two nodes' places, as floats.
-The floats are only the base a link's Δ steps from,
-so the link always matches where its two nodes really are,
-while every change the user makes is still a whole step of Δ.
+It rotates links in 3D by exact, countable steps.
+A link's change is a whole number of steps,
+so stepping it back the same number of times
+brings its change back to exactly where it was.
 
-Each node runs on its own goroutine
-and owns the links that come in to it.
-A step starts when the UI sends it to every node.
-After that the nodes settle it themselves,
-by sending their places to their neighbours,
-and each one waits until it has heard from all of its neighbours.
+Stepping a link moves the node at its end
+to where that link now points.
+The other links touching that node follow along,
+so every link always describes where its two nodes really are.
 
-All nodes count time from one shared clock,
-each holding its own copy,
-and the tick length is set from the UI,
-so a change happens in steps that can be watched on the screen
-instead of all at once.
+One step can rotate every selected link at once,
+and the whole network settles that step by itself.
+It refuses changes that cannot be:
+a length below zero,
+or a second selected link into the same node.
 
-The simulation owns all of the geometry.
-The screen only draws what the simulation writes out,
-so what is shown is the simulation's own state,
-not a second copy that could disagree with it.
+Changes play out at a speed a person can watch,
+and that speed is set from the UI.
+
+What is on the screen is the simulation itself,
+not a second copy of it that could disagree.
+Node places and links are saved as they change,
+so a scene reopens where it was left.
 
 polar vector math example:
     have a layer (file or class) and it handles rotations in 3d. under the hood it used euler angles.
