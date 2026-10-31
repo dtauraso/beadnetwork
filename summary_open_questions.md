@@ -89,7 +89,10 @@ against, which part the replacement serves.
 **Example:** "The current schema viewer redraws from its own cached copy, so it can show a
 column that is already gone; the replacement reads the live schema only."
 
-**Answer:** *Not answered yet.*
+**Answer:** Same reason as the mouse. The current camera keeps decimal rotations stacked on
+top of each other (`Categories/Scene/Camera/viewpoint.go`, `Rotate` and `Orbit`), outside
+the local polar system. The replacement is a node, held in local polar whole-number steps
+like everything else.
 
 ## 6. What does the camera replacement have to do?
 
@@ -100,7 +103,42 @@ From: [Roadmap](summary_ideas.md#roadmap).
 **Example:** "Done when: a column is dropped, and the viewer stops showing it without a
 reload."
 
-**Answer:** *Not answered yet.*
+**Answer:**
+
+```
+          frame ┌─────────────────────┐
+                │  ◯               ◯  │   ← each edge node sends
+                │       *    *        │     its point + extra distance
+                │  ◯       *       ◯  │
+                └─────────────────────┘
+   without the extra:  ◔  only a quarter of an edge node shows
+```
+
+- The camera is a node in the scene sphere, linked to every scene node (not the mouse
+  node).
+- Each node's angle from the camera is in whole-number φ, θ steps.
+- The nodes at the edges of the range send their point plus an extra distance, so the
+  whole node is inside the frame, not a quarter of it.
+- The ranges, widened that way, become what three.js needs, made once from the totals
+  (`Categories/Scene/Camera/SceneCamera.tsx`):
+
+| Three.js needs | From the camera node |
+|---|---|
+| `position` | its link to the centre: φ, θ, r steps |
+| `lookAt` | the middle of the edge nodes |
+| `up` | its up direction: φ, θ steps |
+| `fov` | the top-to-bottom range |
+| `aspect` | the panel's width ÷ height |
+| `near`, `far` | an r range, if wanted |
+
+Notes:
+
+- `fov` is the same angle above and below the middle, so the camera aims at the middle of
+  the edge nodes, not at the centre node.
+- `aspect` comes from the panel, so the camera fits whichever range is tighter, and the
+  other follows from the panel with spare room.
+- The extra distance is an angle that depends on how far away the node is:
+  atan(node size ÷ distance), rounded up to whole steps so nothing is cut.
 
 ## 7. What should it be able to do that it cannot do now?
 
