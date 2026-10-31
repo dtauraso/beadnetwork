@@ -211,9 +211,12 @@ Each item, and the part of the design it serves.
 | Add more nodes for testing scale | Each node has its own s, so scale is tested across many nodes, not one. |
 | Build a node selection replacement | The current one is a central raycast through global x, y, z; the replacement has each node measure the mouse's angle in its own local polar steps ([questions 3 and 4](summary_open_questions.md#3-why-does-node-selection-get-a-replacement)). |
 | Build a camera replacement | The current one stacks decimal rotations; the replacement is a node in the scene sphere whose angle ranges, in local polar steps, set the frame ([questions 5 and 6](summary_open_questions.md#5-why-does-the-camera-get-a-replacement)). |
+| Redesign the gestures as pinch/unpinch, rotate and pan | *Not answered yet:* [question 9](summary_open_questions.md#9-what-are-the-redesigned-gestures). |
 | Put the rings tab animation programming into the animation settings | So the ring tab animations are visible, easier to control, and set the same way as everything else. |
 
-**Not answered yet:** the other mouse click states ([question 4](summary_open_questions.md#4-what-does-the-node-selection-replacement-have-to-do)).
+**Not answered yet:** the redesigned gestures
+([question 9](summary_open_questions.md#9-what-are-the-redesigned-gestures)); the other
+mouse click states ([question 4](summary_open_questions.md#4-what-does-the-node-selection-replacement-have-to-do)).
 
 ---
 

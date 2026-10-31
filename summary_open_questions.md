@@ -77,7 +77,8 @@ held it."
   too hard to hit with a mouse). Every other node sees a different angle and does not
   respond.
 - The mouse click has other states besides selected: *not answered yet*, what they are
-  and what each one means.
+  and what each one means. They may come from the gesture redesign
+  ([question 9](#9-what-are-the-redesigned-gestures)).
 
 ## 5. Why does the camera get a replacement?
 
@@ -163,3 +164,25 @@ the others only make it better.
 database, so speed and a nicer viewer would never be used."
 
 **Answer:** *Not answered yet.*
+
+## 9. What are the redesigned gestures?
+
+From: [Roadmap](summary_ideas.md#roadmap). The gestures may be redone from three:
+pinch/unpinch, rotate, and pan.
+
+**Shape:** For each gesture: what the hand does, and which whole-number Δ (φ, θ or r) on
+which node it changes. A gesture that changes no Δ is outside the local system.
+
+**Example:** "In a map app: pinch/unpinch changes the zoom level by whole levels; rotate
+turns the map by whole 15° steps; pan moves the map by whole tiles."
+
+**Answer:** *Not answered yet.*
+
+| Gesture | What the hand does | Changes which Δ, on which node |
+|---|---|---|
+| Pinch / unpinch | *not answered yet* | *not answered yet* |
+| Rotate | *not answered yet* | *not answered yet* |
+| Pan | *not answered yet* | *not answered yet* |
+
+Also not answered yet: which of these replace the current click states (hover, click,
+drag, rotate, handhold), and which states stay.
