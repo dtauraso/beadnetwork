@@ -231,7 +231,7 @@ topology*/view/spawn.bin
 # The pair φ, θ 3 tab's node count, and every sequence except the tracked seeds 2, 3 and 4
 # (sequence 1, and any the editor adds): written from editor use, kept local.
 topology-pair-phi-theta-3/counts/nodes.bin
-topology*/sequences/*
+topology-pair-phi-theta-3/sequences/*
 !topology-pair-phi-theta-3/sequences/2/
 !topology-pair-phi-theta-3/sequences/3/
 !topology-pair-phi-theta-3/sequences/4/
