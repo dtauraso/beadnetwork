@@ -201,6 +201,9 @@ Node places and links are saved as they change, so a scene reopens where it was 
 
 ## Roadmap
 
+The local polar system (φ, θ, r in whole-number steps) is how the system runs, so the
+existing parts (selection, camera, gestures) are changed to fit it.
+
 Each item, and the part of the design it serves.
 
 | Item | Why |
@@ -229,5 +232,6 @@ What is already there that points ahead:
 **Not answered yet:**
 
 - what this is for beyond rotating links ([question 1](summary_open_questions.md#1-what-is-it-for-beyond-rotating-links)),
-- what it should be able to do that it cannot do now ([question 7](summary_open_questions.md#7-what-should-it-be-able-to-do-that-it-cannot-do-now)),
+- what it should be able to do that it cannot do now: answered, a flapping "bird"
+  ([question 7](summary_open_questions.md#7-what-should-it-be-able-to-do-that-it-cannot-do-now)),
 - and which of those is the one that matters most ([question 8](summary_open_questions.md#8-which-of-those-matters-most)).

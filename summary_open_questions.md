@@ -150,7 +150,23 @@ purpose). A capability, as an outcome, not a task list.
 **Example:** "It cannot yet roll a schema change back. It should, because the purpose is
 changing a live database safely, and a change that cannot be undone is not safe."
 
-**Answer:** *Not answered yet.*
+**Answer:** It cannot yet make a "bird" flapping its wings. It should, because a bird is
+rotations combined and repeated, which is what the local polar system already does
+(repeating two rotations with different centres already swings links like an arm).
+
+```
+              F  front
+              │
+     L ────── C ────── R      C = centre, L/R = wings (sides),
+              │                F/B = front and back
+              B  back
+```
+
+- **Basic version, 5 nodes:** one centre node, two for front and back, two on the sides.
+- **Flapping:** the side nodes rotate halfway around the centre and back.
+- **Further:** the whole bird rotates while it flaps its wings.
+- **Sequences:** the same centre can run two different sets of rotations, one after the
+  other.
 
 ## 8. Which of those matters most?
 
