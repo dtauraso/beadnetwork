@@ -204,19 +204,20 @@ Node places and links are saved as they change, so a scene reopens where it was 
 The local polar system (φ, θ, r in whole-number steps) is how the system runs, so the
 existing parts (selection, camera, gestures) are changed to fit it.
 
-Each item, and the part of the design it serves.
+It is at least a few months of work; it shows the direction, not a schedule. Each item,
+and the part of the design it serves.
 
-| Item | Why |
-|---|---|
-| Make the UI easier to use for all the settings (in progress, comes first) | Every property is checked by pressing buttons, so each setting must be reachable. In the 3 phi theta tab the settings are scattered across pill dropdowns, so the settings UI is getting a full redo before the settings can be tested. |
-| Make the "bird" animation (after the settings UI) | It should be easier once the settings UI is done; it is where the design is going ([question 7](summary_open_questions.md#7-what-should-it-be-able-to-do-that-it-cannot-do-now)). |
-| Test all the settings to make sure the screen shows the intent of the settings | The screen is how the local system is seen, so it must show what each setting means. |
-| Test sequences of many concurrent rotation changes | Each node moves on its own, which is only shown when many move at once. |
-| Add more nodes for testing scale | Each node has its own s, so scale is tested across many nodes, not one. |
-| Build a node selection replacement | The current one is a central raycast through global x, y, z; the replacement has each node measure the mouse's angle in its own local polar steps ([questions 3 and 4](summary_open_questions.md#3-why-does-node-selection-get-a-replacement)). |
-| Build a camera replacement | The current one stacks decimal rotations; the replacement is a node in the scene sphere whose angle ranges, in local polar steps, set the frame ([questions 5 and 6](summary_open_questions.md#5-why-does-the-camera-get-a-replacement)). |
-| Put the rings tab animation programming into the animation settings (after the camera) | So the ring tab animations are visible, easier to control, and set the same way as everything else. |
-| Redesign the gestures as pinch/unpinch, rotate and pan | So each gesture changes whole-number steps in the local polar system ([question 9](summary_open_questions.md#9-what-are-the-redesigned-gestures)). |
+| | Item | Why |
+|---|---|---|
+| **Now** | Make the UI easier to use for all the settings (in progress) | Every property is checked by pressing buttons, so each setting must be reachable. In the 3 phi theta tab the settings are scattered across pill dropdowns, so the settings UI is getting a full redo before the settings can be tested. |
+| **Next** | Make the "bird" animation | It should be easier once the settings UI is done; it is where the design is going ([question 7](summary_open_questions.md#7-what-should-it-be-able-to-do-that-it-cannot-do-now)). |
+| **Next** | Test all the settings to make sure the screen shows the intent of the settings | The screen is how the local system is seen, so it must show what each setting means. |
+| **Later** | Test sequences of many concurrent rotation changes | Each node moves on its own, which is only shown when many move at once. |
+| **Later** | Add more nodes for testing scale | Each node has its own s, so scale is tested across many nodes, not one. |
+| **Later** | Build a node selection replacement | The current one is a central raycast through global x, y, z; the replacement has each node measure the mouse's angle in its own local polar steps ([questions 3 and 4](summary_open_questions.md#3-why-does-node-selection-get-a-replacement)). |
+| **Later** | Build a camera replacement | The current one stacks decimal rotations; the replacement is a node in the scene sphere whose angle ranges, in local polar steps, set the frame ([questions 5 and 6](summary_open_questions.md#5-why-does-the-camera-get-a-replacement)). |
+| **Later** | Put the rings tab animation programming into the animation settings (after the camera) | So the ring tab animations are visible, easier to control, and set the same way as everything else. |
+| **Later** | Redesign the gestures as pinch/unpinch, rotate and pan | So each gesture changes whole-number steps in the local polar system ([question 9](summary_open_questions.md#9-what-are-the-redesigned-gestures)). |
 
 ---
 
