@@ -122,6 +122,7 @@ and holds a direction, φ and θ, and a length, r.
 Each node holds the links that come into it.
 to see it: open the Links pill, the table of every link;
 each row is one link a→b with its φ, θ and r.
+to read it: Categories/Node/Links/link.go, type Link: From, To, Start (φ, θ, r), Delta, Increment.
 
 steps:
 It rotates links in 3D by steps.
@@ -133,6 +134,7 @@ However many steps are made, forward and back,
 it never drifts away from the count of steps that were made.
 to see it: press a link's step up button (▲) and then its step down button (▼)
 the same number of times, and its Δ is back where it was.
+to read it: link.go, Link.Step: a step adds sign × increment to one whole-number Δ, and nothing else.
 
 two angles:
 A rotation is a number of steps in φ and a number of steps in θ.
@@ -144,6 +146,8 @@ and the link ends up pointing the same way.
 to see it: on one link step φ then θ, and read its start + Δ,
 the read-only row showing where the link points;
 step both back, then step θ then φ, and start + Δ is the same.
+to read it: link.go, Link.Dir: start + Δ, one sum per angle;
+frame.go, Frame.Vec: x, y, z made once, from those two sums.
 
 moving nodes:
 A link turns about the node it starts from.
@@ -153,6 +157,8 @@ The other links touching that node are remeasured
 from where their two nodes now are,
 so every link always describes where its two nodes really are.
 to see it: step a link, and its end node moves while the links touching it follow.
+to read it: peer_moves.go, Peer.take: the end node goes to the other node's place plus the link;
+Peer.sat and Peer.moved: the other links are remeasured (link.go, Link.Remeasure).
 
 the network:
 A link can be selected: marked to be turned together with the other selected links.
@@ -164,6 +170,10 @@ a length below zero,
 or a second selected link into the same node.
 to see it: in sequence 1 press the both ▲, the button that steps every selected link,
 and nodes 2 and 3 both move in one step.
+to read it: peer_moves.go, Peer.stepAll, Peer.tell and Peer.recover: step, send the place, place from it;
+peer.go, Peer.Ready: shown once every neighbour is heard;
+Peer.stepR and peer_edits.go, Peer.press: a length below zero is refused;
+peer_edits.go, Peer.pickReq: a second selected link is refused.
 
 time:
 Changes play out at a speed a person can watch,
@@ -171,11 +181,13 @@ and that speed is set from the UI.
 Repeating two different rotations with different centres
 makes the links swing like an arm on its joints.
 to see it: keep repeating two rotations with different centres, and the links swing like an arm.
+to read it: Categories/Clock/human_tick.go, HumanTick: every node counts ticks from one shared start.
 
 sequences:
 A scene holds several sequences.
 Each sequence is a separate saved setup of nodes and links.
 to see it: switch sequences, and each shows its own nodes and links.
+to read it: Categories/Scene/Scenes/sequences.go, SequenceDir: one folder per sequence.
 
 the screen:
 The simulation writes out every place and link,
@@ -185,6 +197,8 @@ not a second copy of it that could disagree.
 Node places and links are saved as they change,
 so a scene reopens where it was left.
 to see it: close and reopen the scene, and it is where it was left.
+to read it: Categories/Node/nodefile_place.go, WritePlace, and link_files.go, WriteLinks:
+one value per file, written by the node that owns it.
 
 polar vector math example:
     have a layer (file or class) and it handles rotations in 3d. under the hood it used euler angles.
@@ -194,8 +208,34 @@ if it's novel then it will be paragraphs.
 
 
 effort to try for iteration.
+    explanation: what it takes to try one change and see whether it worked.
+    A change is made on its own branch,
+    checked by one script (scripts/stop-checks.sh) that builds everything and runs every guard,
+    then tried by hand in the editor before it is merged.
+    There are no tests; a wrong change is meant to fail loudly while the editor runs.
+    So one iteration is: change, check, open the editor, press the buttons, look.
+    not answered yet: how long one iteration takes you, and what makes one expensive.
 
 important future directions.
+    explanation: where the design goes after the roadmap, and why that follows from it.
+    What is already there that points ahead:
+    the control numbers are whole-number counts held locally by each link,
+    each node moves on its own from what its neighbours tell it,
+    and the screen only draws what the simulation wrote.
+    not answered yet: what this is for beyond rotating links,
+    what it should be able to do that it cannot do now,
+    and which of those is the one that matters most.
 
+roadmap reasons (each item, and the part of the design it serves):
+    make the ui easier to use all the settings: every property is checked by pressing buttons, so each setting must be reachable.
+    test all the settings: the screen is how the local system is seen, so it must show what each setting means.
+    test sequences of many concurrent rotation changes: each node moves on its own, which is only shown when many move at once.
+    add more nodes for testing scale: each node has its own s, so scale is tested across many nodes, not one.
+    put the rings tab animation into the animation settings: so the ring animations are set the same way as everything else.
+    not answered yet: why the node selection and the camera get replacements, and what each replacement has to do.
 
 it will not be an accurte picture summary.
+    explanation: a summary leaves things out, so it is not the full picture.
+    The full picture is the code and the running editor;
+    each property above names the code to read and the buttons to press,
+    so a reader can go from the summary to the real thing.
