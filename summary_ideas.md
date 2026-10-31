@@ -48,8 +48,6 @@ floats, rebuilt from where the nodes are as they move.
 - **Stepping a link moves the node at its end.** The links that move with it keep their
   vectors; every other link touching a moved node has its vector recalculated from where
   its two nodes now are.
-- **Parts move as one when their links keep their vectors.** A body moving together is what
-  is seen when several nodes move and the links between them keep their vectors.
 - **Each node moves on its own.** A node places itself from what its neighbours tell it, or
   from a place set on it directly in the UI.
 - **The screen draws what the simulation wrote.** Where that is an angle (a node's pole, the
