@@ -24,10 +24,12 @@ Also:
 
 ### Purpose
 
-*Not answered yet:* what this is for beyond rotating links
-([question 1](summary_open_questions.md#1-what-is-it-for-beyond-rotating-links)), and who
-it is for ([question 2](summary_open_questions.md#2-who-is-it-for)). This is the first
-thing to write; the rest of the vision hangs from it.
+- **Who:** a visual thinker for whom reading code and prose is the bottleneck.
+- **What for:** making visual simulations by directing an AI, without reading the code it
+  writes.
+- **Why the usual way doesn't work:** the usual way to trust code is to read it. I check by
+  watching instead. So the screen has to be the simulation itself, and every behaviour has
+  to be something I can test by pressing buttons and watching.
 
 ### The bet
 

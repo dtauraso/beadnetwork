@@ -20,7 +20,10 @@ Say what it lets them do, not how it does it.
 **Example:** "A migration tool lets a team change a live database's schema without taking
 it offline, which hand-written migrations cannot, because they lock the tables they change."
 
-**Answer:** *Not answered yet.*
+**Answer:** It lets me make visual simulations by directing an AI, without reading the code
+it writes. The usual way to trust code is to read it; I check by watching instead, so the
+screen has to be the simulation itself, and every behaviour has to be testable by pressing
+buttons and watching.
 
 ## 2. Who is it for?
 
@@ -31,7 +34,7 @@ From: [Vision → Purpose](summary_ideas.md#purpose).
 **Example:** "Teams running a database that cannot go offline, who change its schema every
 week."
 
-**Answer:** *Not answered yet.*
+**Answer:** A visual thinker for whom reading code and prose is the bottleneck.
 
 ## 3. Why does node selection get a replacement?
 
