@@ -98,10 +98,14 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		allStep(ctx, md, a.K, sign)
 	case Builder.OpAllLock:
 		way, on := md.UI.Builder.Step.At(a.K)
-		if sign == 0 {
+		switch {
+		case sign == 0:
 			*on = !*on
-		} else {
+		case *on:
 			*way = sign
+		default:
+			md.stepAll(ctx, a.K, sign)
+			return
 		}
 		if *way == 0 {
 			*way = 1
