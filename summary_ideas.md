@@ -33,10 +33,10 @@ Also:
 
 ### The bet
 
-Motion is held as local, whole-number counts, and the global picture is only a view of
-them. The usual approach keeps one global set of x, y, z floats and rotates it, so error
-builds up and the order of the rotations leaks into the result. Here each link keeps its
-own count of steps in φ, θ and r, and x, y, z are made from those counts once, at the end.
+CG systems were inaccessible to me, so I didn't use them. Here, motion is one kind of
+setting: links plus whole-number Δ, held locally, with the global picture only a view of
+them. Each link keeps its own count of steps in φ, θ and r, and x, y, z are made from
+those counts once, at the end.
 
 ### What follows from the bet
 
