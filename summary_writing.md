@@ -34,10 +34,11 @@ every other section points back to. Write it in this order:
    Say what it lets someone do, not how it does it.
 2. **The bet.** What the design believes that the usual approach does not. A vision with no
    bet just describes what everyone already builds.
-3. **What follows from the bet.** What the design does because of it, stated as what it
-   does, not what it is not. Each one should be something a reader can check in the
-   running code.
-4. **Where it is going.** The direction after the roadmap, as an outcome, not a task list.
+3. **What follows from the bet.** The few commitments the design keeps because of it. Each
+   one should be something a reader can check in the running code.
+4. **What it rules out.** The approaches it will not take, and the reason, tied back to the
+   bet. ("Euler angles are not fine here because of reason X" is this step.)
+5. **Where it is going.** The direction after the roadmap, as an outcome, not a task list.
 
 Checks that it is a vision and not a feature list:
 
