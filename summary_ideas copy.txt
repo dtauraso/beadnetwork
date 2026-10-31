@@ -31,11 +31,16 @@ Integers are the main control numbers,
 so a rotation is a count of steps rather than an arbitrary decimal value.
 
 The global picture is a projection of that local data.
-A local-to-global adaptor rebuilds global positions from the local parts
+A local-to-global adaptor builds global positions from the local parts
 so they can be drawn on the screen.
-Those rebuilt values are allowed to be floats,
-because they are not part of the control system.
 The adaptor exists so the local system can be seen, and tested, on screen.
+
+Going the other way, global positions are turned back into local vectors
+for the links that are not selected:
+when a node moves, each unselected link is remeasured from the two nodes' places.
+Those rebuilt local values are allowed to be floats,
+because they are not part of the control system.
+The selected links keep their integer steps.
 
 A UI sits on top of this
 for setting the angles and the many other settings
