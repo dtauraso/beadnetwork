@@ -72,9 +72,10 @@ func (c linkCol) head(m Model) Cell {
 	}
 	fold := Act{Op: OpUnfold, K: c.unfold}
 	if c.op == OpLinkPress {
-		lock := map[string]int{Links.KPhi: m.Step.LockAll.Phi, Links.KTheta: m.Step.LockAll.Theta, Links.KR: m.Step.LockAll.R}[c.k]
+		st := m.Step
+		way, on := st.At(c.k)
 		lockAct := Act{Op: OpAllLock, K: c.k}
-		return Text(c.label).Acting(lockAct).Outline(lock != 0).Stepping(lockAct, lock).Folding(fold, open)
+		return Text(c.label).Acting(lockAct).Outline(*on).Stepping(lockAct, *way).Folding(fold, open)
 	}
 	return c.mark(LitText(c.label+mark, fold, open)).AboveLastDigit()
 }
@@ -106,7 +107,7 @@ func LinksPill(m Model) Pill {
 		rows = [][]Cell{{Text("no links")}}
 	} else {
 		labels := []Cell{Text("both").Outline(true).Stepping(Act{Op: OpAllBoth}, 0)}
-		labels[0].Lit = m.Step.LockAll != (Links.Lock{})
+		labels[0].Lit = m.Step.Locks() != (Links.Lock{})
 		for _, c := range cols {
 			labels = append(labels, c.head(m))
 		}
