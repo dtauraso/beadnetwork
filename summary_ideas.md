@@ -15,6 +15,8 @@ Also:
 - [summary_how_it_works.md](summary_how_it_works.md): the same properties, by mechanism.
 - [summary_writing.md](summary_writing.md): how this summary is written, and how to express
   a vision.
+- [summary_open_questions.md](summary_open_questions.md): every question still to be
+  answered, with an example of how each answer is expressed.
 
 ---
 
@@ -22,8 +24,10 @@ Also:
 
 ### Purpose
 
-*Not answered yet:* what this is for beyond rotating links, and who it is for. This is the
-first thing to write; the rest of the vision hangs from it.
+*Not answered yet:* what this is for beyond rotating links
+([question 1](summary_open_questions.md#1-what-is-it-for-beyond-rotating-links)), and who
+it is for ([question 2](summary_open_questions.md#2-who-is-it-for)). This is the first
+thing to write; the rest of the vision hangs from it.
 
 ### The bet
 
@@ -203,12 +207,12 @@ Each item, and the part of the design it serves.
 | Test all the settings to make sure the screen shows the intent of the settings | The screen is how the local system is seen, so it must show what each setting means. |
 | Test sequences of many concurrent rotation changes | Each node moves on its own, which is only shown when many move at once. |
 | Add more nodes for testing scale | Each node has its own s, so scale is tested across many nodes, not one. |
-| Build a node selection replacement | *Not answered yet.* |
-| Build a camera replacement | *Not answered yet.* |
+| Build a node selection replacement | *Not answered yet:* [questions 3 and 4](summary_open_questions.md#3-why-does-node-selection-get-a-replacement). |
+| Build a camera replacement | *Not answered yet:* [questions 5 and 6](summary_open_questions.md#5-why-does-the-camera-get-a-replacement). |
 | Put the rings tab animation programming into the animation settings | So the ring tab animations are visible, easier to control, and set the same way as everything else. |
 
 **Not answered yet:** why the node selection and the camera get replacements, and what
-each replacement has to do.
+each replacement has to do ([questions 3–6](summary_open_questions.md)).
 
 ---
 
@@ -224,6 +228,6 @@ What is already there that points ahead:
 
 **Not answered yet:**
 
-- what this is for beyond rotating links,
-- what it should be able to do that it cannot do now,
-- and which of those is the one that matters most.
+- what this is for beyond rotating links ([question 1](summary_open_questions.md#1-what-is-it-for-beyond-rotating-links)),
+- what it should be able to do that it cannot do now ([question 7](summary_open_questions.md#7-what-should-it-be-able-to-do-that-it-cannot-do-now)),
+- and which of those is the one that matters most ([question 8](summary_open_questions.md#8-which-of-those-matters-most)).
