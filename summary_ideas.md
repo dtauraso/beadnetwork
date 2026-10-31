@@ -33,7 +33,9 @@ Also:
 
 ### The bet
 
-Motion is one kind of setting: links plus whole-number Δ, held locally, with the global picture only a view of
+I can build visual things by sight alone.
+
+What makes that possible: motion is one kind of setting: links plus whole-number Δ, held locally, with the global picture only a view of
 them. Each link keeps its own count of steps in φ, θ and r, and x, y, z are made from
 those counts once, at the end.
 
