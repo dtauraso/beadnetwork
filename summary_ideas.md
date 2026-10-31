@@ -36,32 +36,36 @@ Also:
 A visual thinker can make visual simulations by using visual thinking as primary and
 reading code as secondary.
 
-What makes that possible: motion is one kind of setting: links plus whole-number Δ, held locally, with the global picture only a view of
-them. Each link keeps its own count of steps in φ, θ and r, and x, y, z are made from
-those counts once, at the end.
+What makes that possible: motion is one kind of setting: each link holds its own Δ, a
+whole-number count of steps in φ, θ and r, added to the link's start. The counts are
+exact and never rewritten from the global picture. The start and each node's place are
+floats, rebuilt from where the nodes are as they move.
 
 ### What follows from the bet
 
-- **Local data is the truth.** Each link's own start and Δ decide where it points; the
-  global place is rebuilt from them, never the other way round for the control numbers.
-- **Steps never drift.** A rotation is a count, so stepping back returns exactly to where
-  it was, however many steps were made.
-- **Order does not matter.** φ and θ are added on their own, so steps can be made in any
-  order and land in the same place.
-- **Each node moves on its own.** A node acts only on what its neighbours tell it; nothing
-  coordinates the network from above.
-- **The screen is the simulation.** The screen only draws what the simulation wrote, so
-  there is no second copy that could disagree.
+- **Δ is the truth.** Each link's own Δ is never rewritten from the global picture. A
+  link's start and each node's place are floats, rebuilt from where the nodes are.
+- **Steps never drift.** A rotation is a count, so stepping back returns Δ exactly to
+  where it was, however many steps were made. Starts and places are floats, exact only as
+  far as floats are.
+- **Order does not matter.** φ and θ are added on their own, so steps on a link can be
+  made in any order and it points the same way.
+- **Each node moves on its own.** A node places itself from what its neighbours tell it,
+  or from a place set on it directly in the UI; one message starts each step, but nothing
+  positions the nodes from above.
+- **The screen is the simulation.** The screen draws what the simulation wrote; where that
+  is an angle (a node's pole, the camera), the screen only turns it into x, y, z and
+  decides nothing. So there is no second copy that could disagree.
 
 ### What it rules out
 
 - Accumulating rotations on top of each other in global floats, because that brings back
-  drift and order dependence.
-- Letting the global view become a second source of truth; it may be floats only where it
-  is rebuilt and is not part of the control system.
-- A central coordinator moving the nodes, because each node moving on its own is part of
+  drift and order dependence; a rotation is a count in Δ.
+- Letting the global picture rewrite Δ. Starts and places are rebuilt from it, as floats;
+  Δ never is.
+- A central coordinator positioning the nodes, because each node moving on its own is part of
   what is being shown.
-- A screen that works out positions of its own.
+- A screen that decides positions of its own.
 
 ### Where it is going
 
@@ -77,12 +81,12 @@ nodes are tested at once. See [Roadmap](#roadmap) and
 
 | Principle | Meaning |
 |---|---|
-| Local data as truth | Each link's own numbers are the source of truth. |
+| Local data as truth | Each link's own Δ is the source of truth. |
 | Polar as the local coordinate system | Links are φ, θ, r — not x, y, z. |
 | Integers as the control numbers | Changes in the local system are whole-number counts of steps. |
 | Global as projection | The global picture is a view made from the local data. |
 | Local → global adaptor | Turns local places and links into x, y, z. |
-| Global reconstructions → local | The parts rebuilt from global places may be floats, and are not the main control system. |
+| Global reconstructions → local | Starts and node places are rebuilt from global places, as floats; Δ is not. |
 
 The local-to-global adaptor was picked to get the local system visible on the screen, so
 it can be tested.
