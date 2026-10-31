@@ -120,16 +120,19 @@ It is a network of nodes joined by links.
 Each link goes from one node to another
 and holds a direction, φ and θ, and a length, r.
 Each node holds the links that come into it.
-to see it: open the Links pill; each row is one link a→b with its φ, θ and r.
+to see it: open the Links pill, the table of every link;
+each row is one link a→b with its φ, θ and r.
 
 steps:
 It rotates links in 3D by steps.
-Each link has two angle changes, Δφ and Δθ, and a length change, Δr.
+Each link has a change added to each of its two angles and its length:
+Δφ is the change added to φ, Δθ the change added to θ, and Δr the change added to r.
 Each one is a whole number of steps.
 Stepping one back the same number of times returns it to exactly where it was.
 However many steps are made, forward and back,
 it never drifts away from the count of steps that were made.
-to see it: press ▲ then ▼ the same number of times, and Δ is back where it was.
+to see it: press a link's step up button (▲) and then its step down button (▼)
+the same number of times, and its Δ is back where it was.
 
 two angles:
 A rotation is a number of steps in φ and a number of steps in θ.
@@ -138,7 +141,8 @@ stepping one never changes the other.
 Where a link points is decided by those two numbers alone.
 So steps in φ and θ can be made in any order,
 and the link ends up pointing the same way.
-to see it: on one link step φ then θ and read its start + Δ;
+to see it: on one link step φ then θ, and read its start + Δ,
+the read-only row showing where the link points;
 step both back, then step θ then φ, and start + Δ is the same.
 
 moving nodes:
@@ -151,13 +155,15 @@ so every link always describes where its two nodes really are.
 to see it: step a link, and its end node moves while the links touching it follow.
 
 the network:
-One step can rotate every selected link at once.
+A link can be selected: marked to be turned together with the other selected links.
+One step rotates every selected link at once.
 Each node moves on its own,
 once it has heard where its neighbours are.
 It refuses changes that cannot be:
 a length below zero,
 or a second selected link into the same node.
-to see it: in sequence 1 press the both ▲, and nodes 2 and 3 both move in one step.
+to see it: in sequence 1 press the both ▲, the button that steps every selected link,
+and nodes 2 and 3 both move in one step.
 
 time:
 Changes play out at a speed a person can watch,
@@ -168,7 +174,7 @@ to see it: keep repeating two rotations with different centres, and the links sw
 
 sequences:
 A scene holds several sequences.
-Each sequence is its own set of nodes and links, saved on its own.
+Each sequence is a separate saved setup of nodes and links.
 to see it: switch sequences, and each shows its own nodes and links.
 
 the screen:
