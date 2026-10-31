@@ -228,10 +228,12 @@ topology*/view/trace.bin
 # on every single run.
 topology*/view/spawn.bin
 
-# The pair φ, θ 3 tab's node count and the sequence the editor added as 5: written from
-# editor use, kept local.
+# The pair φ, θ 3 tab's node count, sequence 1 with its adjustments, and the sequences the
+# editor added as 5 and 6: written from editor use, kept local.
 topology-pair-phi-theta-3/counts/nodes.bin
+topology-pair-phi-theta-3/sequences/1/
 topology-pair-phi-theta-3/sequences/5/
+topology-pair-phi-theta-3/sequences/6/
 
 # A sequence's all-links step locks (direction lock-<k>.bin, on/off lock-on-<k>.bin): set
 # from the Links pill headers while the editor is used, kept local.
