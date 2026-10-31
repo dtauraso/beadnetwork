@@ -27,8 +27,8 @@ Also:
 - **Who:** a visual thinker for whom reading code is the bottleneck.
 - **What for:** making visual simulations by directing an AI, checked primarily by watching,
   with reading the code it writes secondary.
-- **Why it is built new:** the usual approaches did not move the nodes the way they needed,
-  and each time they said what the motion needed to be, the AI said it was impossible.
+- **Why it is built new:** they were not satisfied with what AI made, so they made a
+  solution themselves, with AI assistance.
 - **What it needs:** since checking is primarily by watching, the screen has to be the
   simulation itself, and every behaviour has to be something that can be checked by
   pressing buttons and watching. The design does that this way:
