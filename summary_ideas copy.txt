@@ -1,0 +1,47 @@
+keep things that are indipendently important to the desgin of the software
+    if I am explaining I have designed a database the schema is kind of important. it's theckincal but th enames and the comlumns are important to how my application works
+    security systems how the secrets are stored are importants
+    things that aroase from the implementation are less improatnt
+        could have been 1 way or another I just picked and it doesn't affect the overall things
+            factored functiaonlity to achieve something the class design is probably not important. the exact way I did the functions is not important
+
+local data as truth
+polar as the local coordinate system
+integers as the main control number data type in the local coordinate system
+
+global as projection
+local -> global adaptor
+glocal reconstructions -> local parts that are allowed to be floats and not the main control system
+
+local to global was picked to get the local system visible on the screen for testing it.
+
+
+describe how does it work
+There is a 3d simuliation system.
+It uses local integer changes to angles to do 3d rotations.
+It has a ui for setting angles and many other settings for 3d rotations.
+
+roadmap:
+make the ui easier to use all the settings.
+test all the settings to make sure the screen shows the intent of the settings.
+test sequences of many concurrent rotation changes.
+add more nodes for testing scale.
+build a node selection replacement.
+build a camera replacement.
+put the rings tab animation programming into the animation settings to make the ring tab animations visible and easier to control.
+
+nt all the mistakes
+what the current design does that is correct. not so much about how it does it. what does it do.
+polar vector math example:
+    have a layer (file or class) and it handles rotations in 3d. under the hood it used euler angles.
+    I talk about the stuff around. we have a 3d system and rotations are supported. quaternsa are on the roamapt to replac euolaer angles.
+if it's on the roadmap how does it fit into the vision of the software. euler angles are not fine here because of reason x. reason x shoudl link back to the porject.
+if it's novel then it will be paragraphs.
+
+
+effort to try for iteration.
+
+important future directions.
+
+
+it will not be an accurte picture summary.
