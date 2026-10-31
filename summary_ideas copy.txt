@@ -21,6 +21,26 @@ There is a 3d simuliation system.
 It uses local integer changes to angles to do 3d rotations.
 It has a ui for setting angles and many other settings for 3d rotations.
 
+paragraphs version:
+The software is a 3D simulation system.
+It does 3D rotations by making small integer changes to angles,
+and it makes those changes locally:
+each part holds its own polar coordinates,
+and that local data is the truth the system runs on.
+Integers are the main control numbers,
+so a rotation is a count of steps rather than an arbitrary decimal value.
+
+The global picture is a projection of that local data.
+A local-to-global adaptor rebuilds global positions from the local parts
+so they can be drawn on the screen.
+Those rebuilt values are allowed to be floats,
+because they are not part of the control system.
+The adaptor exists so the local system can be seen, and tested, on screen.
+
+A UI sits on top of this
+for setting the angles and the many other settings
+that control the 3D rotations.
+
 roadmap:
 make the ui easier to use all the settings.
 test all the settings to make sure the screen shows the intent of the settings.
