@@ -46,7 +46,9 @@ replacement serves that part. Name the part of the vision, not a dislike of the 
 **Example:** "The current secret store keeps keys in a config file, which breaks the rule
 that a secret never touches disk; the replacement keeps them only in memory."
 
-**Answer:** *Not answered yet.*
+**Answer:** The current selection uses a raycast through global x, y, z, decided by one
+central loop, so it skips the local polar system. The replacement selects with local polar
+whole-number angles, measured by each node itself.
 
 ## 4. What does the node selection replacement have to do?
 
@@ -58,7 +60,24 @@ what to do, and what they then see.
 **Example:** "Done when: a key is rotated while the service runs, and no file on disk ever
 held it."
 
-**Answer:** *Not answered yet.*
+**Answer:**
+
+```
+           * A    sees M at ≈ 210°  → no
+         ╱
+  M ──────── * B  sees M at  180°   → selected
+         ╲
+           * C    sees M at ≈ 150°  → no
+```
+
+- The mouse is a node, M, with a link to each node near it.
+- Each node measures the angle to M in its own local frame: φ and θ, in whole-number
+  steps.
+- **Selected:** the node that sees M at 180° ± k steps (a range, because an exact 180° is
+  too hard to hit with a mouse). Every other node sees a different angle and does not
+  respond.
+- The mouse click has other states besides selected: *not answered yet*, what they are
+  and what each one means.
 
 ## 5. Why does the camera get a replacement?
 

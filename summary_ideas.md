@@ -209,12 +209,13 @@ Each item, and the part of the design it serves.
 | Test all the settings to make sure the screen shows the intent of the settings | The screen is how the local system is seen, so it must show what each setting means. |
 | Test sequences of many concurrent rotation changes | Each node moves on its own, which is only shown when many move at once. |
 | Add more nodes for testing scale | Each node has its own s, so scale is tested across many nodes, not one. |
-| Build a node selection replacement | *Not answered yet:* [questions 3 and 4](summary_open_questions.md#3-why-does-node-selection-get-a-replacement). |
+| Build a node selection replacement | The current one is a central raycast through global x, y, z; the replacement has each node measure the mouse's angle in its own local polar steps ([questions 3 and 4](summary_open_questions.md#3-why-does-node-selection-get-a-replacement)). |
 | Build a camera replacement | *Not answered yet:* [questions 5 and 6](summary_open_questions.md#5-why-does-the-camera-get-a-replacement). |
 | Put the rings tab animation programming into the animation settings | So the ring tab animations are visible, easier to control, and set the same way as everything else. |
 
-**Not answered yet:** why the node selection and the camera get replacements, and what
-each replacement has to do ([questions 3–6](summary_open_questions.md)).
+**Not answered yet:** why the camera gets a replacement, and what it has to do
+([questions 5 and 6](summary_open_questions.md#5-why-does-the-camera-get-a-replacement));
+the other mouse click states ([question 4](summary_open_questions.md#4-what-does-the-node-selection-replacement-have-to-do)).
 
 ---
 
