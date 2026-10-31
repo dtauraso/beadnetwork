@@ -53,8 +53,9 @@ floats, rebuilt from where the nodes are as they move.
 - **Each node moves on its own.** A node places itself from what its neighbours tell it,
   or from a place set on it directly in the UI; one message starts each step, but nothing
   positions the nodes from above.
-- **The screen is the simulation.** The screen only draws what the simulation wrote, so
-  there is no second copy that could disagree.
+- **The screen is the simulation.** The screen draws what the simulation wrote; where that
+  is an angle (a node's pole, the camera), the screen only turns it into x, y, z and
+  decides nothing. So there is no second copy that could disagree.
 
 ### What it rules out
 
@@ -64,7 +65,7 @@ floats, rebuilt from where the nodes are as they move.
   Δ never is.
 - A central coordinator positioning the nodes, because each node moving on its own is part of
   what is being shown.
-- A screen that works out positions of its own.
+- A screen that decides positions of its own.
 
 ### Where it is going
 
