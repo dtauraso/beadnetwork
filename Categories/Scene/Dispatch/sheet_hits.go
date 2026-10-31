@@ -97,14 +97,15 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 		}
 		allStep(ctx, md, a.K, sign)
 	case Builder.OpAllLock:
-		lock := allLockOf(md, a.K)
-		switch {
-		case sign == 0 && *lock == 0:
-			sign = 1
-		case *lock == sign:
-			sign = 0
+		way, on := md.UI.Builder.Step.At(a.K)
+		if sign == 0 {
+			*on = !*on
+		} else {
+			*way = sign
 		}
-		*lock = sign
+		if *way == 0 {
+			*way = 1
+		}
 		md.persistStep()
 	case Builder.OpAllBoth:
 		if sign == 0 {
@@ -120,25 +121,14 @@ func runSheetAct(ctx context.Context, md *MoveDispatch, a Sheet.Act, sign int, t
 	}
 }
 
-func allLockOf(md *MoveDispatch, k string) *int {
-	st := &md.UI.Builder.Step
-	switch k {
-	case Links.KTheta:
-		return &st.LockAll.Theta
-	case Links.KR:
-		return &st.LockAll.R
-	}
-	return &st.LockAll.Phi
-}
-
 func allStep(ctx context.Context, md *MoveDispatch, k string, sign int) {
 	st := &md.UI.Builder.Step
-	lock := allLockOf(md, k)
+	way, on := st.At(k)
 	switch {
-	case *lock == sign:
-		*lock = 0
+	case *on && *way == sign:
+		*on = false
 	case st.Locking:
-		*lock = sign
+		*way, *on = sign, true
 	default:
 		md.stepAll(ctx, k, sign)
 		return
@@ -151,7 +141,7 @@ func (md *MoveDispatch) stepAll(ctx context.Context, k string, sign int) {
 	st.Round++
 	h := clock.HumanTick(md.UI.Builder.TickMs)
 	for _, id := range md.UI.Builder.Nodes {
-		md.sendLink(ctx, id, Links.StepAll{Round: st.Round, H: h, K: k, Sign: sign, LockAll: st.LockAll})
+		md.sendLink(ctx, id, Links.StepAll{Round: st.Round, H: h, K: k, Sign: sign, LockAll: st.Locks()})
 	}
 }
 

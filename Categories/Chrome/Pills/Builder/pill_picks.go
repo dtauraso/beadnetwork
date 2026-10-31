@@ -87,14 +87,15 @@ const (
 
 func allRow(m Model) []Cell {
 	st := m.Step
+	locks := st.Locks()
 	lockOf := func(k string) int {
 		if k == Links.KTheta {
-			return st.LockAll.Theta
+			return locks.Theta
 		}
-		return st.LockAll.Phi
+		return locks.Phi
 	}
 	press := func(k string, sign int) Act { return Act{Op: OpAllStep, K: k, Sign: sign} }
-	locked := st.LockAll != (Links.Lock{})
+	locked := locks != (Links.Lock{})
 	for _, l := range m.Picked() {
 		locked = locked || l.Lock != (Links.Lock{})
 	}

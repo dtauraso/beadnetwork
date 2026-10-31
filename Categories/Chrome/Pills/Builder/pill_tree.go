@@ -95,7 +95,7 @@ func TreePill(m Model) Pill {
 			kv("T_θ", n3(float64(f.Ttheta)), false), kv("c_r", n3(f.Cr), false), kv("sequences", names(seqNames), false), kv("open", open, true)),
 		box(1, open, kv("steps", "1", false)),
 		box(2, "step 1", kv("cards", "method cards", true), kv("edges", names(linkNames(all)), true), kv("nodes", names(m.Nodes), true),
-			kv("picked", names(linkNames(m.Picked())), true), kv("all lock", lockText(m.Step.LockAll), false), kv("all locking", onOff(m.Step.Locking), false),
+			kv("picked", names(linkNames(m.Picked())), true), kv("all lock", lockText(m.Step.Locks()), false), kv("all locking", onOff(m.Step.Locking), false),
 			notStored(), kv("recalculated", names(linkNames(recalc)), true)),
 		box(3, "method cards", kv("item", m.Item(), true), kv("methods", names(methods), false), kv("card step", strconv.Itoa(m.CardShown()), false)),
 	}
