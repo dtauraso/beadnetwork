@@ -22,28 +22,39 @@ It uses local integer changes to angles to do 3d rotations.
 It has a ui for setting angles and many other settings for 3d rotations.
 
 paragraphs version:
+
+the parts:
 The software is a 3D simulation system.
-It does 3D rotations by making small integer changes to angles,
-and it makes those changes locally:
-each link between two nodes holds its own polar start (φ, θ, r)
-and an integer Δ on top of it.
+It is a network of nodes joined by links.
+Each link is held by the node it goes into,
+and holds its own polar start (φ, θ, r)
+and an integer Δ on top of it, one for each of φ, θ and r.
+
+steps:
 Angles are counted in ticks:
 a whole turn is 12 × s ticks, where s is the node's own scale.
 Integers are the main control numbers,
-so a rotation is a count of steps rather than an arbitrary decimal value:
-each press moves Δ by the link's whole-number increment.
-The link being stepped is the truth for where its node goes.
+so a rotation is a count of steps rather than an arbitrary decimal value.
+Each press moves Δ by the link's whole-number increment.
 
-Each node also keeps a global place,
+two angles:
+A link's direction is worked out from its start plus its Δφ and Δθ,
+each added on its own,
+and turned into x, y, z once, from the totals.
+No step is applied on top of another step,
+so the order the steps were made in never reaches the result.
+
+moving nodes:
+Each node keeps a global place,
 which is polar too (r, φ, θ around the scene's centre),
 held as floats and saved to a file.
-A local-to-global adaptor turns places and links into x, y, z,
-so a node can be placed from its neighbour's place plus the link,
-and so the result can be drawn on the screen.
-It was picked so the local system can be seen, and tested, on screen.
+A local-to-global adaptor turns places and links into x, y, z.
+A stepped link places its node:
+the node goes to the other node's place plus the link.
+The adaptor was picked so the local system can be seen, and tested, on screen.
 
-Going the other way, global places are turned back into local links:
-when a node moves, its links that did not move it
+Going the other way, global places are turned back into local links.
+When a node moves, its links that did not move it
 are remeasured from the two nodes' places,
 and its neighbours remeasure the links from it into them.
 Only a link's start is rebuilt, as floats,
@@ -53,6 +64,33 @@ While the selected links are stepped together, they are kept, not remeasured.
 When one link is edited on its own, that link places its node,
 and every other link at the node is remeasured, selected or not.
 
+the network:
+Each node runs on its own goroutine, with its own inbox.
+A step of all the selected links starts when the UI sends it to every node,
+numbered as a round.
+A node whose selected link was stepped
+waits for the place of the node that link starts from,
+then places itself from that place plus the link.
+Each node sends its new place to its neighbours,
+and shows the step only once it has heard that round from all of them.
+Each node checks its own links' changes,
+and refuses a length below zero
+or a second selected link into itself.
+
+time:
+Every node counts ticks from one shared clock, each with its own copy.
+The tick length is set from the UI,
+and a step is shown a couple of ticks after it is sent.
+
+sequences:
+Each sequence is its own folder of nodes and links,
+one value per file.
+
+the screen:
+The simulation writes each place, each link and everything drawn to files,
+one writer per file.
+The screen reads those files and draws them;
+it works out no positions of its own.
 A UI sits on top of this
 for setting the angles and the many other settings
 that control the 3D rotations.
@@ -69,51 +107,72 @@ put the rings tab animation programming into the animation settings to make the 
 nt all the mistakes
 what the current design does that is correct. not so much about how it does it. what does it do.
 
+Every property below can be seen by running the code.
+
+the parts:
 It is a network of nodes joined by links.
 Each link goes from one node to another
 and holds a direction, φ and θ, and a length, r.
 Each node holds the links that come into it.
-A step changes a link's counts,
-and the node at the end of the link moves to where it now points.
+to see it: open the Links pill; each row is one link a→b with its φ, θ and r.
 
+steps:
 It rotates links in 3D by steps.
 Each link has two angle changes, Δφ and Δθ, and a length change, Δr.
 Each one is a whole number of steps.
 Stepping one back the same number of times returns it to exactly where it was.
 However many steps are made, forward and back,
 it never drifts away from the count of steps that were made.
+to see it: press ▲ then ▼ the same number of times, and Δ is back where it was.
 
+two angles:
 A rotation is a number of steps in φ and a number of steps in θ.
 φ and θ are independent angles:
 stepping one never changes the other.
 Where a link points is decided by those two numbers alone.
 So steps in φ and θ can be made in any order,
 and the link ends up pointing the same way.
+to see it: on one link step φ then θ and read its start + Δ;
+step both back, then step θ then φ, and start + Δ is the same.
 
+moving nodes:
+A link turns about the node it starts from.
 Stepping a link moves the node at its end
 to where that link now points.
-The other links touching that node follow along,
+The other links touching that node are remeasured
+from where their two nodes now are,
 so every link always describes where its two nodes really are.
+to see it: step a link, and its end node moves while the links touching it follow.
 
-One step can rotate every selected link at once,
-and the whole network settles that step by itself.
+the network:
+One step can rotate every selected link at once.
+Each node moves on its own,
+once it has heard where its neighbours are.
 It refuses changes that cannot be:
 a length below zero,
 or a second selected link into the same node.
+to see it: in sequence 1 press the both ▲, and nodes 2 and 3 both move in one step.
 
-A scene holds several sequences.
-Each sequence is its own set of nodes and links, saved on its own.
-
-Repeating two different rotations with different centres
-makes the links swing like an arm on its joints.
-
+time:
 Changes play out at a speed a person can watch,
 and that speed is set from the UI.
+Repeating two different rotations with different centres
+makes the links swing like an arm on its joints.
+to see it: keep repeating two rotations with different centres, and the links swing like an arm.
 
-What is on the screen is the simulation itself,
+sequences:
+A scene holds several sequences.
+Each sequence is its own set of nodes and links, saved on its own.
+to see it: switch sequences, and each shows its own nodes and links.
+
+the screen:
+The simulation writes out every place and link,
+and the screen only draws them,
+so what is on the screen is the simulation itself,
 not a second copy of it that could disagree.
 Node places and links are saved as they change,
 so a scene reopens where it was left.
+to see it: close and reopen the scene, and it is where it was left.
 
 polar vector math example:
     have a layer (file or class) and it handles rotations in 3d. under the hood it used euler angles.
