@@ -29,43 +29,16 @@ Also:
   with reading the code it writes secondary.
 - **What it needs:** since checking is primarily by watching, the screen has to be the
   simulation itself, and every behaviour has to be something that can be checked by
-  pressing buttons and watching.
-
-### The bet
-
-A visual thinker can make visual simulations by using visual thinking as primary and
-reading code as secondary.
-
-What makes that possible: motion is one kind of setting: each link holds its own Δ, a
-whole-number count of steps in φ, θ and r, added to the link's start. The counts are
-exact and never rewritten from the global picture. The start and each node's place are
-floats, rebuilt from where the nodes are as they move.
-
-### What follows from the bet
-
-- **Δ is the truth.** Each link's own Δ is never rewritten from the global picture. A
-  link's start and each node's place are floats, rebuilt from where the nodes are.
-- **Steps never drift.** A rotation is a count, so stepping back returns Δ exactly to
-  where it was, however many steps were made. Starts and places are floats, exact only as
-  far as floats are.
-- **Order does not matter.** φ and θ are added on their own, so steps on a link can be
-  made in any order and it points the same way.
-- **Each node moves on its own.** A node places itself from what its neighbours tell it,
-  or from a place set on it directly in the UI; one message starts each step, but nothing
-  positions the nodes from above.
-- **The screen is the simulation.** The screen draws what the simulation wrote; where that
-  is an angle (a node's pole, the camera), the screen only turns it into x, y, z and
-  decides nothing. So there is no second copy that could disagree.
-
-### What it rules out
-
-- Accumulating rotations on top of each other in global floats, because that brings back
-  drift and order dependence; a rotation is a count in Δ.
-- Letting the global picture rewrite Δ. Starts and places are rebuilt from it, as floats;
-  Δ never is.
-- A central coordinator positioning the nodes, because each node moving on its own is part of
-  what is being shown.
-- A screen that decides positions of its own.
+  pressing buttons and watching. The design does that this way:
+  - **A link is a vector.** It has a direction, φ and θ, and a length, r, each a start plus
+    a whole-number Δ.
+  - **Stepping a link moves the node at its end.** The links that move with it keep their
+    vectors; every other link touching a moved node has its vector recalculated from where
+    its two nodes now are.
+  - **Each node moves on its own.** A node places itself from what its neighbours tell it,
+    or from a place set on it directly in the UI.
+  - **The screen draws what the simulation wrote.** Where that is an angle (a node's pole,
+    the camera), the screen turns it into x, y, z.
 
 ### Where it is going
 
@@ -78,6 +51,10 @@ nodes are tested at once. See [Roadmap](#roadmap) and
 ---
 
 ## Design principles
+
+The motion is local: each link moves in its own polar frame. A computer works in one global
+frame, so the design keeps the local data as the truth and makes the global frame only a
+view of it.
 
 | Principle | Meaning |
 |---|---|
