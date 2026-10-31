@@ -109,6 +109,12 @@ what the current design does that is correct. not so much about how it does it. 
 
 Every property below can be seen by running the code.
 
+the tools:
+It is built only from tools in everyday use:
+polar coordinates, whole-number counting, addition,
+sin and cos and their inverses, subtracting one point from another,
+nodes passing messages, and a clock.
+
 the parts:
 It is a network of nodes joined by links.
 Each link goes from one node to another
