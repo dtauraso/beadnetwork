@@ -33,7 +33,7 @@ Also:
 
 ### The bet
 
-I can build systems by using my visual thinking as primary and reading code as secondary.
+I can build visual simulations by using my visual thinking as primary and reading code as secondary.
 
 What makes that possible: motion is one kind of setting: links plus whole-number Δ, held locally, with the global picture only a view of
 them. Each link keeps its own count of steps in φ, θ and r, and x, y, z are made from
