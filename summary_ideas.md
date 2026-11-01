@@ -54,8 +54,9 @@ flaps, checked by watching it ([Roadmap](#roadmap)).
 ## Design principles
 
 An AI's defaults keep the truth in one global x, y, z frame. Their way keeps it in each
-link's own integer angle values: 3D rotation is done by adding and subtracting them, so a
-rotation is an exact count of steps that never drifts. x, y, z are only worked out from
+link's own spherical-coordinate angles, φ and θ, centred on the node the link starts from:
+3D rotation is done by adding and subtracting integers to them, so a rotation is an exact
+count of steps that never drifts. x, y, z are only worked out from
 those values, to place and draw the nodes.
 
 It rules out:
@@ -70,8 +71,9 @@ It rules out:
 ## In one paragraph
 
 There is a 3D simulation system. It does 3D rotation by adding and subtracting integers to
-each link's own polar angles, φ and θ, measured from the node the link starts from. It has a
-UI for setting angles and many other settings for 3D rotations.
+each link's spherical-coordinate angles, φ and θ, centred on the node the link starts from.
+Any number of centres can rotate at the same time, each by its own rotation. It has a UI for
+setting angles and many other settings for 3D rotations.
 
 ### The tools
 
@@ -95,7 +97,8 @@ holds a direction, φ and θ, and a length, r.
 
 ### Steps
 
-It does 3D rotation by adding and subtracting integer angle values. Stepping back the same
+It does 3D rotation by adding and subtracting integers to each link's φ and θ. Stepping
+back the same
 number of times returns a link to exactly where it was, however many steps are made.
 
 - **To see it:** press a link's step up button (▲) and then its step down button (▼) the
@@ -117,11 +120,16 @@ A link rotates about the node it starts from, and the node at its end moves with
 
 ### The network
 
-Selected links rotate together in one step. Each node moves on its own, and refuses
-changes that cannot be: a length below zero, or a second selected link into the same node.
+Selected links rotate together in one step. Each rotates about the node it starts from,
+so any number of centres can be picked, and they rotate at the same time, each by its own
+rotation, like a shoulder and an elbow moving at once. Each node moves on its own, and
+refuses changes that cannot be: a length below zero, or a second selected link into the
+same node.
 
 - **To see it:** in sequence 1 press the both ▲, the button that steps every selected
   link, and nodes 2 and 3 both move in one step.
+- **To see it:** in sequence 5, two centres move at the same time, each by a different
+  rotation.
 
 ### Time
 
