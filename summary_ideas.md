@@ -122,7 +122,9 @@ A link rotates about the node it starts from, and the node at its end moves with
 
 Selected links rotate together in one step. Each rotates about the node it starts from,
 so any number of centres can be picked, and they rotate at the same time, each by its own
-rotation, like a shoulder and an elbow moving at once. Each node moves on its own, and
+rotation, like a shoulder and an elbow moving at once. Nothing is combined into one
+motion: when the shoulder's link rotates, the elbow moves with it, and the elbow's own
+rotation goes on about wherever the elbow now is. Each node moves on its own, and
 refuses changes that cannot be: a length below zero, or a second selected link into the
 same node.
 
