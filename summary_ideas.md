@@ -59,9 +59,8 @@ counts, and needs no other link to say where it points. So any number of nodes a
 at once, each link turning by its own amount, and none of them has to be pictured together:
 one link is the whole of it.
 
-In body terms: the nodes are the bones, the links are the muscles between them, and the
-series of angle changes made step after step is the nerves firing those muscles. A muscle
-moves the bone it pulls on and does not drag the bones beyond it along.
+In body terms, each link is a muscle between two nodes: it moves the node it pulls on and
+does not drag the nodes beyond it along.
 
 It has a UI for setting angles, lengths and many other settings for 3D rotations.
 
