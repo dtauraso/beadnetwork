@@ -1,7 +1,6 @@
 # Summary ideas
 
 What the current design does that is correct — not how it does it, but what it does.
-Every property below can be seen by running the editor.
 
 - [Vision](#vision)
 - [Design principles](#design-principles)
@@ -56,8 +55,8 @@ flaps, checked by watching it ([Roadmap](#roadmap)).
 An AI's defaults keep the truth in one global x, y, z frame. Their way keeps it in each
 link's own spherical-coordinate angles, φ and θ, centred on the node the link starts from:
 3D rotation is done by adding and subtracting integers to them, so a rotation is an exact
-count of steps that never drifts. x, y, z are only worked out from
-those values, to place and draw the nodes.
+count of steps that never drifts. x, y, z are only worked out from those values, to place
+and draw the nodes.
 
 It rules out:
 
@@ -85,72 +84,46 @@ passing messages, and a clock.
 
 ## What it does
 
-Each property says what it does, and how **to see it** in the editor.
-
 ### The parts
 
 It is a network of nodes joined by links. Each link goes from one node to another and
 holds a direction, φ and θ, and a length, r.
 
-- **To see it:** open the Links pill, the table of every link; each row is one link a→b
-  with its φ, θ and r.
-
 ### Steps
 
 It does 3D rotation by adding and subtracting integers to each link's φ and θ. Stepping
-back the same
-number of times returns a link to exactly where it was, however many steps are made.
-
-- **To see it:** press a link's step up button (▲) and then its step down button (▼) the
-  same number of times, and its Δ is back where it was.
+back the same number of times returns a link to exactly where it was, however many steps
+are made.
 
 ### Two angles
 
 A rotation is steps in φ and steps in θ, and stepping one never changes the other, so they
 can be made in any order and the link ends up pointing the same way.
 
-- **To see it:** on one link step φ then θ, and read its start + Δ; step both back, then
-  step θ then φ, and start + Δ is the same.
-
 ### Moving nodes
 
 A link rotates about the node it starts from, and the node at its end moves with it.
-
-- **To see it:** step a link, and its end node moves while the links touching it follow.
 
 ### The network
 
 Each link rotates about the node it starts from, so a rotation's centre is that link's
 start node. Selecting links picks the centres: select links that start from different
 nodes, and each of those nodes is a centre. One step rotates every selected link at once,
-each by its own step size. Each node moves on its own, and refuses changes that cannot be: a length below
-zero, or a second selected link into the same node.
-
-- **To see it:** in sequence 1 press the both ▲, the button that steps every selected
-  link, and nodes 2 and 3 both move in one step.
-- **To see it:** in sequence 5, two centres move at the same time, each by a different
-  rotation.
+each by its own step size. Each node moves on its own, and refuses changes that cannot be:
+a length below zero, or a second selected link into the same node.
 
 ### Time
 
-Changes play out at a speed a person can watch, set from the UI. Repeating two rotations
-with different centres makes the links swing like an arm on its joints.
-
-- **To see it:** keep repeating two rotations with different centres, and the links swing
-  like an arm.
+Changes play out at a speed a person can watch, set from the UI.
 
 ### Sequences
 
 A scene holds several sequences, each a separate saved setup of nodes and links.
 
-- **To see it:** switch sequences, and each shows its own nodes and links.
-
 ### The screen
 
 What is on the screen is the simulation itself, not a second copy that could disagree, and
 a scene reopens where it was left.
-
-- **To see it:** close and reopen the scene, and it is where it was left.
 
 ---
 
